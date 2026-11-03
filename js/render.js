@@ -565,7 +565,7 @@ function drawMob(m) {
   const ma = m.ail || {};
   if (ma.mark) {
     const y = m.y - fly - m.sz - 18;
-    CX.fillStyle = '#ff6b6b';
+    CX.fillStyle = ma.mark.k === 'falcon' ? '#ffd166' : '#ff6b6b';
     CX.beginPath();
     CX.moveTo(m.x, y - 6);
     CX.lineTo(m.x + 5, y);
@@ -843,6 +843,16 @@ function drawHideout() {
       CX.fillRect(p.x - 34, p.y - 52, 68, 14);
       CX.fillStyle = '#d9b45a';
       CX.fillRect(p.x - 5, p.y - 36, 10, 12);
+    } else if (p.k === 'asc') {
+      /* 昇華石碑（0.2.25）：發金光的石碑，上面是選好的昇華圖示 */
+      CX.fillStyle = '#3d342e';
+      CX.fillRect(p.x - 22, p.y - 70, 44, 70);
+      CX.fillStyle = '#5a4d43';
+      CX.fillRect(p.x - 26, p.y - 76, 52, 10);
+      const g = 0.45 + 0.3 * Math.sin(G.t * 2.4);
+      CX.fillStyle = `rgba(255,209,102,${g})`;
+      CX.fillRect(p.x - 8, p.y - 58, 16, 30);
+      spr(S.asc ? ASC[S.asc].ic : 'asc_s_stars', p.x, p.y - 22, 30);
     } else if (p.k === 'forge') {
       /* 鍛造台：鐵砧＋爐火 */
       CX.fillStyle = '#3a2f28';

@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T12～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.24';
+const VER = '0.2.26';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -420,7 +420,7 @@ const SKILLS = {
     m: 1,
     wt: ['sword'],
     tags: ['attack', 'melee', 'cd'],
-    d: '在滑鼠位置召出劍士分身 4 秒，每 0.8 秒用斬擊砍最近的敵人（傷害 ×0.6）'
+    d: '在滑鼠位置召出分身 4 秒，每 0.8 秒從你裝著的攻擊技能隨機挑一招打最近的敵人（傷害 ×0.6）'
   },
   axethrow: {
     n: '擲斧',
@@ -1038,6 +1038,7 @@ const STATN = {
   cvPL: ['物理轉成閃電', '%'],
   cvLC: ['閃電轉成冰冷', '%'],
   cvCF: ['冰冷轉成火焰', '%'],
+  cvLF: ['閃電轉成火焰', '%'],
   movP: ['移動中傷害', '%'],
   stillP: ['靜止 1 秒以上時傷害', '%'],
   selfMore: ['你自己造成的傷害更多', '%'],
@@ -1052,7 +1053,10 @@ const STATN = {
   avatar: ['物理、冰冷、閃電的 50% 轉成火焰；冰冷、閃電傷害更少 30%', '', 1],
   mom: ['承受的傷害 40% 先扣魔力', '', 1],
   noSelf: ['你自己的擊中不造成傷害（召喚物、陷阱、地雷、圖騰、砲台照常）', '', 1],
-  stand: ['不會被擊退、冰凍；閃避變成 0', '', 1]
+  stand: ['不會被擊退、冰凍；閃避變成 0', '', 1],
+  /* 0.2.25 昇華小點 */
+  blockValP: ['格擋值', '%'],
+  hsP: ['重暈累積', '%']
 };
 /* 天賦樹的主題（0.2.17，照技能體系重做）：sm 小點（輪流）、nt 大點（名字＋效果）；
    rg 六條路（鬥士、遊俠、暗影、魔導、死靈、自然）各自的權重，叢集照所在方向抽主題；
@@ -1915,7 +1919,17 @@ const PT_STAT_IC = {
   esRec: 'asc_s_drop',
   auraEff: 'asc_s_lotus',
   spirit: 'sup_ln_candle',
-  cdr: 'sup_sp_cd'
+  cdr: 'sup_sp_cd',
+  /* 0.2.25 昇華小點 */
+  blockValP: 'asc_s_anvil',
+  hsP: 'asc_s_fist',
+  w_mace: 'asc_s_fist',
+  /* 0.2.26 昇華小點 */
+  fireP: 'asc_s_flame',
+  castP: 'sup_sp_fastcast',
+  ailMag: 'sup_sp_dmg',
+  pen: 'sup_sp_brutal',
+  resF: 'sup_ln_iron'
 };
 /* 天賦樹產生器（0.2.22，照 docs/PoE天賦結構.md 第 5 節）：
    幹道＝三角格子的頂點（過路點，十字路口：2～3 條接幹道、2～3 條接叢集），每個三角形是一個叢集（口袋）；
@@ -2242,6 +2256,351 @@ const PT_START = ['g0', 'g1', 'g2', 'g3', 'g4', 'g5'];
 /* 天賦點：每級 1 點、每到 10 的倍數再 +2（到 100 級共 119）；100 級後每 10 級 1 點 */
 const ptPoints = lv =>
   Math.min(lv, 100) - 1 + 2 * Math.floor(Math.min(lv, 100) / 10) + Math.max(0, Math.floor((lv - 100) / 10));
+
+/* ---------- 昇華（0.2.25 重做）：不分職業，藏身處的昇華石碑直接選一個（免費換、點數退回），點畫在天賦樹中間挖空的地方 ----------
+   8 點＝4 大 4 小：開局 2 點，第一次打倒階級 6、12、16 的王各 +2。
+   每個昇華的結構不一樣（主幹、三選一、二選一），但一律照 PoE「小 → 大 → 小 → 大」（每個大點前面有自己的小點、小點後面只接大點），
+   g 是選擇組（同組只能拿一個）；大點的 fx 是開關或數值（items.js 的 stats 讀），
+   only＝綁武器（拿那種武器才生效）。每個大點用到的底層寫在企劃書 7.4 */
+const ascPoints = s => 2 + (s.maxT > 6 ? 2 : 0) + (s.maxT > 12 ? 2 : 0) + (s.t16 ? 2 : 0);
+const ASC = {
+  wind: {
+    n: '風行神射',
+    ic: 'asc_hunter_c',
+    d: '投射物與身法：用技能疊順風、標記一片敵人、幻影一起射。',
+    /* [x, y, 名字或小點數值, 大點效果, 說明, 圖示, 選擇組]；結構照 PoE「小 → 大 → 小 → 大」，每個大點前面都有自己的小點 */
+    N: {
+      st: [0, 0],
+      s1: [-85, 0, { ms: 4 }],
+      gale: [
+        -170,
+        0,
+        '聚風',
+        { gale: 2 },
+        '用技能時得到 1 層順風（最多 10 層），被擊中時順風全部掉光；每層順風再給移動速度 +2%、閃避值 +2%',
+        'asc_hunter_b0'
+      ],
+      s2: [-255, 0, { evP: 15 }],
+      walk: [-340, 0, '疾風化身', { windWalk: 1 }, '順風滿 10 層時：移動速度 +10%、投射物速度 +30%', 'asc_hunter_b5'],
+      s3: [0, -75, { projP: 10 }],
+      far: [
+        -105,
+        -150,
+        '遠射',
+        { farShot: 30 },
+        '投射物飛得越遠傷害越高，飛到 500 以上時傷害更多 30%',
+        'asc_hunter_b1',
+        'shot'
+      ],
+      near: [
+        0,
+        -160,
+        '近射',
+        { nearShot: 30 },
+        '投射物貼臉時傷害更多 30%，越遠越少，飛到 300（中距離）變成 0',
+        'asc_hunter_b2',
+        'shot'
+      ],
+      chain: [
+        105,
+        -150,
+        '彈射',
+        { chain: 1 },
+        '投射物連鎖 +1（打中後彈向 260 內最近、還沒打過的敵人）',
+        'asc_hunter_b3',
+        'shot'
+      ],
+      s4: [0, -250, { as: 4 }],
+      endless: [0, -335, '無盡箭矢', { proj: 1 }, '投射物 +1', 'asc_hunter_e'],
+      s5: [75, 60, { accP: 10 }],
+      falcon: [
+        155,
+        120,
+        '獵鷹標記',
+        { falcon: 1 },
+        '每 3 秒標記 500 內全部沒有標記的敵人（佔標記位）；擊中被標記的敵人時傷害更多 10% 並消耗標記，每消耗一次熵值 +20，滿 100 得到一顆狂怒球',
+        'asc_hunter_c0'
+      ],
+      s6: [255, 95, { critInc: 15 }],
+      eye: [
+        345,
+        70,
+        '靶心',
+        { bullseye: 10 },
+        '消耗獵鷹標記時，給那個敵人 10 層暴擊弱點（每層對它的擊中暴擊率 +0.5%，最多 20 層、每層 4 秒）',
+        'asc_hunter_c1',
+        'falc'
+      ],
+      s7: [200, 215, { as: 4 }],
+      gust: [245, 295, '狂風', { frenzyMs: 4 }, '每顆狂怒球：移動速度與攻擊速度 +4%', 'asc_hunter_c2', 'falc'],
+      s8: [-75, 70, { critX: 15 }],
+      mirage: [
+        -155,
+        150,
+        '幻影獵手',
+        { mirageH: 1 },
+        '擊中時熵值 +20，滿 100 在你身邊生成一個幻影（同時最多 2 個、存活 4 秒），隨機放你裝著的攻擊技能，傷害 ×0.6',
+        'asc_hunter_b4'
+      ]
+    },
+    E: 'st-s1 s1-gale gale-s2 s2-walk st-s3 s3-far s3-near s3-chain far-s4 near-s4 chain-s4 s4-endless st-s5 s5-falcon falcon-s6 s6-eye falcon-s7 s7-gust st-s8 s8-mirage'
+  },
+  iron: {
+    n: '鐵金剛',
+    ic: 'asc_phalanx_c',
+    d: '盾與錘：靠格擋值吃傷害、用護甲打人，盾碎了反而衝上去。',
+    N: {
+      st: [0, 0],
+      s1: [0, -75, { armorP: 15 }],
+      wall: [
+        0,
+        -155,
+        '鐵壁之盾',
+        { shArmMore: 100, blockHalf: 1 },
+        '副手拿盾時：盾的護甲更多 100%（格擋值跟著變大），格擋率減半',
+        'asc_phalanx_b0'
+      ],
+      s2: [-85, -220, { blockValP: 25 }],
+      push: [-145, -300, '重盾前進', { heavyShield: 1 }, '格擋值翻倍，每一下吸收 40% → 60%', 'asc_phalanx_b1', 'shd'],
+      s3: [85, -220, { hpP: 5 }],
+      stand: [
+        145,
+        -300,
+        '不動如山',
+        { unmov: 1 },
+        '格擋值大於 0 時不會被擊退、不會重度暈眩；格擋值碎掉後 5 秒跑滿（原本 8 秒）',
+        'asc_phalanx_e',
+        'shd'
+      ],
+      s4: [75, 55, { w_mace: 15 }],
+      mass: [
+        155,
+        115,
+        '重如泰山',
+        { only: 'mace', addArm: 3 },
+        '持錘時：攻擊擊中附加等於護甲 3% 的物理傷害',
+        'asc_crusher_b0'
+      ],
+      s5: [255, 85, { hsP: 15 }],
+      stun: [345, 60, '震懾之錘', { hsArm: 10 }, '物理擊中的重暈累積：每 1000 護甲提高 10%', 'asc_crusher_b1', 'mace'],
+      s6: [200, 210, { armorP: 15 }],
+      anvil: [
+        245,
+        295,
+        '鐵砧之重',
+        { armBreakArm: 5 },
+        '擊中時依你護甲的 5% 對敵人破甲（普通怪 ×3、菁英 ×2）',
+        'asc_crusher_e',
+        'mace'
+      ],
+      s7: [-80, 45, { ms: 4 }],
+      dash: [
+        -165,
+        95,
+        '捨身突襲',
+        { sacrifice: 1 },
+        '格擋值碎掉時：2 秒內移動速度 +30%、物理傷害更多 15%',
+        'asc_paladin_b0'
+      ],
+      s8: [-250, 140, { hsP: 15 }],
+      cycle: [
+        -335,
+        185,
+        '鋼鐵循環',
+        { steelCycle: 1 },
+        '格擋值吸收的傷害累積起來（最多到最大生命），下一次擊中時加上等量的重暈累積，然後清空',
+        'asc_paladin_e'
+      ]
+    },
+    E: 'st-s1 s1-wall wall-s2 s2-push wall-s3 s3-stand st-s4 s4-mass mass-s5 s5-stun mass-s6 s6-anvil st-s7 s7-dash dash-s8 s8-cycle'
+  },
+  /* 0.2.26 第二批 */
+  hell: {
+    n: '地獄火',
+    ic: 'asc_pyro_c',
+    d: '火與點燃：魔力換成地獄火，放技能越放越熱，滿了會自爆。',
+    N: {
+      st: [0, 0],
+      s1: [0, -70, { mpP: 15 }],
+      pact: [
+        0,
+        -145,
+        '炎魔契約',
+        { hellfire: 1 },
+        '最大魔力換成 2 倍的地獄火：放技能不扣魔力，改成累積地獄火；滿了自爆（受到等於最大生命＋能量護盾的火焰傷害，吃火焰抗性）並清空；2 秒沒累積，每秒消退 25%',
+        'asc_pyro_c0'
+      ],
+      c1: [-150, -215, { spellP: 10 }],
+      boil: [-215, -300, '沸騰之軀', { boil: 20 }, '地獄火高於一半時，法術傷害更多 20%', 'asc_pyro_b0'],
+      c2: [-50, -220, { fireP: 10 }],
+      reborn: [
+        -72,
+        -310,
+        '灰燼重生',
+        { reborn: 20 },
+        '自爆後 4 秒內放技能不累積地獄火、火焰傷害更多 20%',
+        'asc_pyro_b1'
+      ],
+      c3: [50, -220, { hpP: 5 }],
+      devour: [72, -310, '業火吞噬', { devour: 10 }, '擊殺被點燃的敵人時，地獄火 −10%（最大值的）', 'asc_pyro_b2'],
+      c4: [150, -215, { castP: 4 }],
+      touch: [
+        215,
+        -300,
+        '炎魔之觸',
+        { hfFlam: 10 },
+        '累積地獄火時，300 內的敵人易燃 +10%（被點燃的機率）',
+        'asc_pyro_b3'
+      ],
+      s2: [65, 60, { fireP: 10 }],
+      shaper: [
+        135,
+        120,
+        '火焰塑造者',
+        { shaper: 30 },
+        '物理、冰冷、閃電的擊中也會累積易燃；點燃傷害提高 30%',
+        'asc_pyro_c1'
+      ],
+      f1: [230, 90, { ailMag: 10 }],
+      spread: [330, 60, '焚城', { igSpread: 1 }, '被點燃的敵人死掉時，點燃傳給 200 內的其他敵人', 'asc_pyro_b4'],
+      f2: [225, 170, { fireP: 10 }],
+      ember: [310, 190, '餘燼', { ember: 25 }, '點燃傷害更多 25%、持續時間 −25%', 'asc_pyro_b5'],
+      f3: [170, 215, { pen: 5 }],
+      scorch: [
+        215,
+        275,
+        '焦土',
+        { fireExp: 15 },
+        '點燃中的敵人被火焰曝露：火焰抗性 −15%（魔法、稀有、王少一點）',
+        'asc_pyro_e'
+      ],
+      f4: [110, 215, { eleP: 10 }],
+      purg: [110, 300, '煉獄轉化', { cvCF: 25, cvLF: 25 }, '冰冷、閃電傷害的 25% 轉成火焰（不轉物理）', 'asc_pyro_c2'],
+      s3: [-75, 60, { resF: 12 }],
+      lava: [
+        -155,
+        125,
+        '熔岩之膚',
+        { maxResF: 5, resF: -30, physAsFire: 20 },
+        '最大火焰抗性 +5%、火焰抗性 −30%；承受的物理傷害 20% 當作火焰傷害承受',
+        'asc_storm_e'
+      ]
+    },
+    E: 'st-s1 s1-pact pact-c1 c1-boil pact-c2 c2-reborn pact-c3 c3-devour pact-c4 c4-touch st-s2 s2-shaper shaper-f1 f1-spread shaper-f2 f2-ember shaper-f3 f3-scorch shaper-f4 f4-purg st-s3 s3-lava'
+  },
+  shade: {
+    n: '影舞者',
+    ic: 'asc_shadow_c',
+    d: '閃避反擊與暗影暴擊：完美閃避、暴擊球、暴擊施放一起炸。',
+    N: {
+      st: [0, 0],
+      s1: [-85, 0, { evP: 15 }],
+      after: [
+        -170,
+        0,
+        '殘影步',
+        { perfWin: 0.24, perfMore: 20 },
+        '完美閃避的判定 0.16 → 0.24 秒；完美閃避後 2 秒內傷害更多 20%，並重置翻滾冷卻',
+        'asc_shadow_b0'
+      ],
+      s2: [-255, 0, { ms: 4 }],
+      strike: [-340, 0, '影襲', { rollBlind: 5 }, '翻滾穿過敵人時，給它致盲與 5 層暴擊弱點', 'asc_shadow_b1'],
+      s3: [0, -75, { critInc: 15 }],
+      deadly: [
+        0,
+        -155,
+        '致命陰影',
+        { powCritE: 25, powCritX: 15 },
+        '暴擊時熵值 +25，滿 100 得到一顆暴擊球；每顆暴擊球暴擊傷害 +15%',
+        'asc_shadow_c0'
+      ],
+      s4: [-85, -220, { as: 4 }],
+      hunt: [
+        -145,
+        -300,
+        '弱點獵殺',
+        { cwHit: 1, cwMax: 40 },
+        '任何攻擊擊中都給 1 層暴擊弱點；暴擊弱點上限 20 → 40 層',
+        'asc_shadow_b2'
+      ],
+      s5: [85, -220, { critX: 15 }],
+      reap: [
+        145,
+        -300,
+        '暗影收割',
+        { reap: 20 },
+        '暴擊擊殺時消耗 1 顆暴擊球，在原地爆炸，120 內的敵人受到它最大生命 20% 的物理傷害',
+        'asc_shadow_e'
+      ],
+      s6: [75, 60, { castP: 4 }],
+      hex: [
+        155,
+        120,
+        '影咒',
+        { hexCoc: 15 },
+        '暴擊施放每次暴擊的能量 +10 → +20；觸發施放的法術傷害更多 15%',
+        'asc_curse_c0'
+      ],
+      s7: [255, 95, { spellP: 10 }],
+      burst: [
+        345,
+        70,
+        '咒爆',
+        { hexBurst: 1 },
+        '任何一顆暴擊施放能量滿 100 時，所有插了暴擊施放的法術一起放',
+        'asc_curse_e'
+      ]
+    },
+    E: 'st-s1 s1-after after-s2 s2-strike st-s3 s3-deadly deadly-s4 s4-hunt deadly-s5 s5-reap st-s6 s6-hex hex-s7 s7-burst'
+  }
+};
+/* 一個昇華的點與線（id 加 a_ 前綴，跟天賦樹分開） */
+function ascNodes(k) {
+  const A = ASC[k];
+  if (!A) return null;
+  const N = Object.entries(A.N).map(([id, [x, y, n, fx, d, ic, g]]) => ({
+    id: 'a_' + id,
+    x,
+    y,
+    asc: 1,
+    big: id === 'st' ? 3 : fx ? 1 : 0,
+    n: id === 'st' ? A.n : fx ? n : '昇華小點',
+    ic: id === 'st' ? A.ic : ic || PT_STAT_IC[Object.keys(n)[0]] || null,
+    s: fx ? {} : n || {},
+    fx: fx || null,
+    d: d || '',
+    g: g || null
+  }));
+  const E = A.E.split(' ').map(e => e.split('-').map(s => 'a_' + s)),
+    ADJ = {};
+  for (const [a, b] of E) (ADJ[a] = ADJ[a] || []).push(b), (ADJ[b] = ADJ[b] || []).push(a);
+  return { N, E, ADJ, I: Object.fromEntries(N.map(n => [n.id, n])) };
+}
+/* 這組點還能不能補成剛好 4 小 4 大（連著點、同一個選擇組只拿一個）；tree.js 點之前、check.js 都用 */
+function ascFeasible(T, set) {
+  const memo = new Set(),
+    cnt = cur => {
+      let sm = 0,
+        bg = 0;
+      for (const id of cur) if (id !== 'a_st') T.I[id].big ? bg++ : sm++;
+      return [sm, bg];
+    },
+    grpOK = cur => {
+      const g = [...cur].map(id => T.I[id].g).filter(Boolean);
+      return new Set(g).size === g.length;
+    },
+    go = cur => {
+      const [sm, bg] = cnt(cur);
+      if (sm > 4 || bg > 4 || !grpOK(cur)) return false;
+      if (sm === 4 && bg === 4) return true;
+      const key = [...cur].sort().join();
+      if (memo.has(key)) return false;
+      memo.add(key);
+      for (const id of cur) for (const o of T.ADJ[id] || []) if (!cur.has(o) && go(new Set([...cur, o]))) return true;
+      return false;
+    };
+  return go(new Set(set));
+}
 
 const ROLL = { t: 0.32, dist: 175, iframe: 0.26, cd: 0.55, perfect: 0.16, slow: 0.55, slowScale: 0.3 };
 /* 藥水：紅水（1）回生命、藍水（2，0.2.13）回魔力，瓶數分開算 */

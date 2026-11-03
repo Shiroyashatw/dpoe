@@ -194,15 +194,27 @@ function tryParry(m) {
 const ENERGY = { crit: 10, perfect: 40, block: 25, kill: 5 };
 /* 事件：插了觸發輔助（暴擊施放）的法術照輔助的條件累積能量（存在輔助寶石上），滿 100 對最近的敵人施放那招 */
 function metaEvent(kind, near) {
+  const full = [];
   for (let i = 0; i < NSLOT; i++) {
     const g = S.skills[i] && S.skills[i].a,
       sp = metaOf(g);
     if (!sp || SUPPORTS[sp.gem].meta !== kind) continue;
-    sp.en = Math.min(200, (sp.en || 0) + ENERGY[kind]);
-    if (sp.en < 100) continue;
-    sp.en -= 100;
-    const t = near || G.mobs.filter(m => m.hp > 0).sort((a, b) => dist(a, P) - dist(b, P))[0];
-    if (t) castGem(g, t);
+    /* 影咒（0.2.26）：暴擊的能量 +10 → +20 */
+    sp.en = Math.min(200, (sp.en || 0) + ENERGY[kind] * (kind === 'crit' && ST.hexCoc ? 2 : 1));
+    if (sp.en >= 100) full.push([g, sp]);
+  }
+  if (!full.length) return;
+  const t = near || G.mobs.filter(m => m.hp > 0).sort((a, b) => dist(a, P) - dist(b, P))[0];
+  if (!t) return;
+  for (const [, sp] of full) sp.en -= 100;
+  /* 咒爆（0.2.26）：有一顆滿了，所有插了觸發輔助的法術一起放（沒滿的不扣能量） */
+  if (ST.hexBurst) hexBurst(t);
+  else for (const [g] of full) castGem(g, t);
+}
+function hexBurst(t) {
+  for (let i = 0; i < NSLOT; i++) {
+    const g = S.skills[i] && S.skills[i].a;
+    if (metaOf(g)) castGem(g, t);
   }
 }
 /* 不經技能欄、直接施放一顆技能寶石（觸發、幻影用） */
@@ -301,9 +313,40 @@ function plantSwords(x, y, c) {
 }
 
 /* ---------- 12. 幻影 ---------- */
-/* 在 (x, y) 召出分身：dur 秒內每 every 秒從自己的位置照技能 g 出招一次，傷害 ×mul */
-function spawnMirage(g, x, y, dur = 4, every = 1, mul = 0.6) {
-  G.mirages.push({ g, x, y, t: G.t + dur, next: G.t + 0.3, every, mul });
+/* 在 (x, y) 召出分身：dur 秒內每 every 秒從自己的位置出招一次，傷害 ×mul；
+   g 是 null 時（0.2.25）每次從你裝著的攻擊技能隨機挑一招（用那顆寶石的等級與輔助）；src 是來源（幻影獵手限 2 個） */
+function spawnMirage(g, x, y, dur = 4, every = 1, mul = 0.6, src) {
+  G.mirages.push({ g, x, y, t: G.t + dur, next: G.t + 0.3, every, mul, src });
+}
+/* 幻影能用的攻擊技能：不用位移、放單位、資源（屍體、榮耀、飛出去的盾）、要指定目標的，也不能是幻影斬自己 */
+const MIRAGE_NO = new Set(['mirage', 'shieldthrow', 'banner', 'corpseboom', 'paperdoll']);
+function mirageGem() {
+  const gs = S.skills
+    .map(k => k.a)
+    .filter(g => {
+      const D = g && SKILLS[g.gem];
+      return (
+        D &&
+        D.tags.includes('attack') &&
+        !D.dist &&
+        !D.unit &&
+        !D.toMob &&
+        !MIRAGE_NO.has(g.gem) &&
+        wtOK(D) &&
+        !metaOf(g)
+      );
+    });
+  return gs.length ? pick(gs) : mkGem('slash');
+}
+/* 幻影獵手（昇華「風行神射」）：擊中熵值 +20，滿了在身邊生成幻影（同時最多 2 個、4 秒） */
+function mirageHunt() {
+  if (!entropy('mirage', 20) || G.mirages.filter(M => M.src === 'hunt' && M.t > G.t).length >= 2) return;
+  const a = Math.random() * TAU,
+    x = P.x + Math.cos(a) * 60,
+    y = P.y + Math.sin(a) * 60,
+    ok = !isWall(x, y);
+  spawnMirage(null, ok ? x : P.x, ok ? y : P.y, 4, 0.8, 0.6, 'hunt');
+  fxs('blinkin', ok ? x : P.x, ok ? y : P.y, 40);
 }
 function mirageTick() {
   for (const M of G.mirages) {
@@ -316,7 +359,7 @@ function mirageTick() {
     /* 暫時把施放點換成分身的位置（跟場上單位一樣的做法） */
     const px = P.x,
       py = P.y,
-      c = gemCfg(M.g, -1);
+      c = gemCfg(M.g || mirageGem(), -1);
     if (!c) continue;
     c.more *= M.mul;
     P.x = M.x;

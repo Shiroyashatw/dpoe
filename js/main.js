@@ -40,9 +40,6 @@ function migrate(s) {
     o.auras = Array(AURA_SLOTS).fill(null);
     o.v = 13;
   }
-  /* 0.2.9：職業與昇華全部砍掉（之後重新設計） */
-  delete o.asc;
-  delete o.at;
   /* 天賦樹的形狀換過（點的編號對不上）就把點數全部退回 */
   if (o.pt.some(id => !PTREE.I[id])) o.pt = [...PT_START];
   /* 0.2.11：刪掉的寶石換成同等級的替代（燕返→斬擊、飛刃與千本櫻→御劍訣、轉陷阱與轉地雷→轉圖騰） */
@@ -125,6 +122,16 @@ function migrate(s) {
     o.pt = [...PT_START];
     o.v = 17;
   }
+  /* 存檔 18（0.2.25）：昇華重做（不分職業，直接選一個）；0.2.9 前的舊昇華不沿用 */
+  if (o.v < 18) {
+    o.asc = null;
+    o.at = [];
+    o.v = 18;
+  }
+  /* 昇華不存在或點對不上（改過昇華的形狀）就退回 */
+  const AT = o.asc && ascNodes(o.asc);
+  if (!AT) (o.asc = null), (o.at = []);
+  else if (!o.at.length || o.at.some(id => !AT.I[id]) || !ascFeasible(AT, o.at)) o.at = ['a_st'];
   /* 0.2.9：武器照 PoE2 的 18 種類別重做；舊底材換成同一族的新類別、最接近的階級（等級、稀有度、詞綴都保留） */
   const OLDW = {
     sword1: ['w_katana', 'w_moon', 'w_demon'],

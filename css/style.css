@@ -49,6 +49,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .orb i { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--v) * 100%); transition: height 120ms ease-out; }
 .orb.hp i { background: radial-gradient(circle at 40% 30%, #ff6b6b, #8e1414 70%); }
 .orb.mp i { background: radial-gradient(circle at 40% 30%, #7aa8ff, #1a2f8e 70%); }
+/* 地獄火（0.2.26）：魔力球換成往上漲的火；八成以上外框發紅光（快自爆） */
+.orb.mp.hf i { background: radial-gradient(circle at 40% 30%, #ffb15a, #9b2a0e 70%); }
+.orb.mp.hot { border-color: #ff6b3d; box-shadow: inset 0 0 18px #000, 0 0 14px rgba(255, 90, 40, 0.75); }
+.hb.mp.hf i { background: linear-gradient(180deg, #ffb15a, #9b2a0e); }
+.hb.mp.hot { box-shadow: 0 0 0 1px #ff6b3d, 0 0 8px rgba(255, 90, 40, 0.7); }
 .orb span { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--fs-s); font-weight: 700; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
 .mid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
 .xp { height: 4px; background: rgba(0, 0, 0, 0.7); border: 1px solid var(--line); pointer-events: auto; }
@@ -134,6 +139,22 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .tinfo div { display: flex; justify-content: space-between; gap: 12px; }
 .tinfo span { color: var(--dim); }
 #pdev p { font-size: var(--fs-s); margin: 10px 0; }
+/* 昇華石碑（0.2.25）：兩張卡並排（窄螢幕上下排），大點照選擇組合併成一行 */
+#pasc { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(1240px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pasc .anote { font-size: var(--fs-s); color: var(--dim); margin: 8px 0 12px; }
+.ascs { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; align-items: start; }
+.ascc { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--rad); background: rgba(0, 0, 0, 0.25); }
+.ascc.on { border-color: #ff9f43; background: rgba(255, 159, 67, 0.08); }
+.ascc .abh { display: flex; gap: 10px; align-items: center; }
+.ascc .abh .ic { width: 44px; height: 44px; flex: none; }
+.ascc .abh b { font-size: var(--fs-l); color: var(--title); }
+.ascc .abh small { display: block; color: var(--dim); font-size: var(--fs-s); margin-top: 2px; }
+.ascc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ascc li { font-size: var(--fs-s); line-height: 1.45; }
+.ascc li b { color: #ffb38a; margin-right: 6px; }
+.ascc li small { font-size: var(--fs-s); margin-right: 6px; }
+.ascc li span { display: block; color: var(--dim); }
+.ascc .btn { width: 100%; }
 #pdev .btn { width: 100%; }
 
 /* ---------- 說明框 ---------- */
@@ -226,6 +247,15 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .hollow { fill: rgba(40, 20, 10, 0.55); stroke: rgba(255, 159, 67, 0.25); stroke-width: 4; }
 #tsvg text.hint { fill: var(--dim); font: 700 30px var(--font); text-anchor: middle; }
 #tsvg text.hint.sm { font-size: 20px; }
+/* 昇華（0.2.25）：中間挖空的地方；橘色系跟天賦樹分開，選擇組（三選一、二選一）的大點外框是虛線 */
+#tsvg line.asc.near { stroke: rgba(255, 159, 67, 0.3); }
+.nd.asc circle { fill: #241510; stroke: rgba(255, 159, 67, 0.35); }
+.nd.asc.grp circle { stroke-dasharray: 6 4; }
+.nd.asc.can circle { stroke: #ffb38a; }
+.nd.asc.on circle { fill: #5a2a12; stroke: #ff9f43; stroke-dasharray: none; }
+.nd.asc text { fill: var(--dim); font: 700 15px var(--font); text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: #0d0a08; stroke-width: 4px; }
+.nd.asc.can text { fill: var(--tx); }
+.nd.asc.on text { fill: #ffb38a; }
 .tbar > b { font-size: var(--fs-l); }
 .tbar .btn + .btn { margin-left: 0; }
 .thelp { margin: 0; padding: 10px 16px; font-size: var(--fs-s); color: var(--dim); border-top: 1px solid var(--line); }
@@ -247,6 +277,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .orb .spir { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; fill: none; stroke-width: 7; stroke-linecap: round; }
 .orb .spir .tr { stroke: rgba(255, 255, 255, 0.12); }
 .orb .spir .fg { stroke: #e6d6ff; stroke-dasharray: var(--s, 0) 1; filter: drop-shadow(0 0 3px rgba(200, 170, 255, 0.9)); transition: stroke-dasharray 200ms ease-out; }
+/* 格擋值（0.2.25）：生命球右邊的弧（鋼色）；碎掉回滿中變淺 */
+.orb:not(.hasbv) .blk { display: none; }
+.orb .blk .fg { stroke: #d6dde8; stroke-dasharray: var(--b, 0) 1; filter: drop-shadow(0 0 3px rgba(190, 210, 235, 0.9)); transition: stroke-dasharray 120ms ease-out; }
+.orb.bvbr .blk .fg { stroke: rgba(214, 221, 232, 0.35); filter: none; }
+.hb.bv { height: 5px; }
+.hb.bv i { width: calc(var(--b, 0) * 100%); background: #d6dde8; }
+.hb.bv.bvbr i { background: rgba(214, 221, 232, 0.35); }
 .aurah { display: flex; align-items: baseline; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .aurah span { color: var(--dim); font-size: var(--fs-s); }
 .aurarow { display: flex; gap: 12px; margin-top: 8px; }
@@ -643,12 +680,12 @@ body.touch.port #ptabs:not([hidden]) { display: flex; position: fixed; z-index: 
 body.touch.port .panel { left: 0 !important; right: 0 !important; width: auto !important; top: calc(48px + env(safe-area-inset-top)); bottom: 0; max-height: none; transform: none; border-radius: 0; outline: none; }
 body.touch.port.pair #pstash, body.touch.port.pair #pskill, body.touch.port.pair #pcraft { bottom: auto; height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
 body.touch.port.pair #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
-body.touch.port #pdev, body.touch.port #pgem, body.touch.port #pset { top: env(safe-area-inset-top); transform: none; max-height: none; }
+body.touch.port #pdev, body.touch.port #pgem, body.touch.port #pset, body.touch.port #pasc { top: env(safe-area-inset-top); transform: none; max-height: none; }
 body.touch.port .ph .sw { display: none; }
 .tinfo span { white-space: nowrap; }
 .tinfo div > :last-child { text-align: right; }
 body.touch.port .panel > .ph:first-child .x { display: none; }
-body.touch.port #pdev > .ph:first-child .x, body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x { display: grid; }
+body.touch.port #pdev > .ph:first-child .x, body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x { display: grid; }
 
 /* ---------- 0.2.14 地圖台：◀ 階級 ▶、三張大卡、選中的卡展開地圖詞 ---------- */
 .tstep { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; margin: 2px 0 6px; }

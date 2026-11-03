@@ -63,13 +63,20 @@ function route(w, pts) {
   return [...have];
 }
 /* 裝備：每一欄挑同階級的稀有裝（照權重從 4 件裡挑最好的，接近一般玩家） */
-function gear(t, want, wt) {
+function gear(t, want, wt, off) {
   const eq = {};
   for (const e of R('EQS')) {
     let best = null,
       bv = -1;
     for (let i = 0; i < 4; i++) {
-      const pool = R('BASES').filter(b => R('eqTakes')(e, b.k) && b.lv <= t && (e.k !== 'weapon' || b.wt === wt));
+      const pool = R('BASES').filter(
+        b =>
+          R('eqTakes')(e, b.k) &&
+          b.lv <= t &&
+          (e.k !== 'weapon' || b.wt === wt) &&
+          (e.k !== 'off' || !off || b.k === off) &&
+          (e.k !== 'weapon' || !off || !b.two)
+      );
       if (!pool.length) break;
       const b = pool[Math.floor(Math.random() * pool.length)],
         it = R('mkItem')(b.id, R('tierIlvl')(t), 2),
@@ -129,21 +136,83 @@ const BUILDS = {
     gear: { dmgP: 1, flat: 3, as: 2, crit: 5, critInc: 1, life: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
     wt: 'bow',
     sk: 'split'
+  },
+  /* 0.2.25 昇華：asc 照順序點，點數照等級（ascPoints；Lv90 當作打過第 16 階的王） */
+  風行神射: {
+    tree: { projP: 2, atkP: 2, w_bow: 2, critInc: 1, as: 3, ms: 1, evP: 0.5, life: 0.3 },
+    gear: {
+      dmgP: 1,
+      flat: 3,
+      as: 2,
+      crit: 5,
+      critInc: 1,
+      life: 0.5,
+      ev: 0.5,
+      resA: 1,
+      resF: 0.5,
+      resC: 0.5,
+      resL: 0.5
+    },
+    wt: 'bow',
+    sk: 'split',
+    asc: ['wind', 's3', 'far', 's4', 'endless', 's5', 'falcon', 's1', 'gale'],
+    /* 遠射：當作平均飛 400（更多 24%）；獵鷹標記：當作每一下都打到被標記的（更多 10%） */
+    fly: 400,
+    falcon: 1
+  },
+  鐵金剛: {
+    tree: { meleeP: 2, atkP: 1, w_mace: 2, shieldP: 1, armorP: 3, armorF: 0.5, blockInc: 1, life: 0.5, hpP: 5 },
+    gear: { dmgP: 1, flat: 3, as: 1, life: 0.8, armor: 1, block: 1, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'mace',
+    off: 'shield',
+    sk: 'quake',
+    asc: ['iron', 's4', 'mass', 's1', 'wall', 's2', 'push', 's5', 'stun']
+  },
+  /* 0.2.26：地獄火（火法＋點燃：點燃當作一直掛著，每秒傷害＝每一下火焰 ×20%×點燃加成，扣火抗）；
+     影舞者（匕首暴擊＋暴擊施放電弧：每秒觸發次數＝每秒暴擊數 × 能量÷100；暴擊球當 3 顆、暴擊弱點當上限） */
+  地獄火: {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_staff: 2, castP: 3, pen: 2, fireP: 2, ailMag: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'staff',
+    sk: 'fireball',
+    asc: ['hell', 's2', 'shaper', 'f2', 'ember', 'f3', 'scorch', 's1', 'pact'],
+    ign: 1
+  },
+  影舞者: {
+    tree: { meleeP: 1, atkP: 2, w_dagger: 2, critInc: 3, critX: 3, as: 3, spellP: 1, life: 0.3 },
+    gear: {
+      dmgP: 1,
+      flat: 3,
+      as: 2,
+      crit: 5,
+      critInc: 2,
+      critX: 2,
+      life: 0.5,
+      resA: 1,
+      resF: 0.5,
+      resC: 0.5,
+      resL: 0.5
+    },
+    wt: 'dagger',
+    sk: 'slash',
+    asc: ['shade', 's3', 'deadly', 's4', 'hunt', 's6', 'hex', 's1', 'after'],
+    coc: 'arc'
   }
 };
 console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗 命中');
 for (const L of [30, 60, 90]) {
   const t = Math.min(16, Math.max(1, Math.round(((L - 5) * 15) / 78) + 1));
   for (const [bn, B] of Object.entries(BUILDS)) {
-    const S = {
-      lv: L,
-      eq: gear(t, B.gear, B.wt),
-      pt: route(B.tree, R('ptPoints')(L)),
-      asc: null,
-      at: [],
-      auras: [],
-      charms: []
-    };
+    const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
+      S = {
+        lv: L,
+        eq: gear(t, B.gear, B.wt, B.off),
+        pt: route(B.tree, R('ptPoints')(L)),
+        asc: B.asc ? B.asc[0] : null,
+        at: B.asc ? ['a_st', ...B.asc.slice(1, 1 + ap).map(k => 'a_' + k)] : [],
+        auras: [],
+        charms: []
+      };
     ctx.S = S;
     R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');
     const ST = R('ST'),
@@ -171,18 +240,50 @@ for (const L of [30, 60, 90]) {
     R('mobDef(boss, ' + t + ')');
     let sum = 0;
     ctx.c = c;
-    for (let i = 0; i < N; i++) sum += R('hitCalc(c, boss).d');
+    if (B.falcon) boss.ail.mark = { k: 'falcon' };
+    /* 點燃一直掛著（焦土的火焰曝露才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
+    if (B.ign) boss.ail.ign = { dps: 1, t: 1e9 };
+    if (ST.powCritX) R('P.chg = { p: { n: 3, t: 1e9 } }');
+    if (ST.cwHit) boss.ail.cw = Array(ST.cwMax || 20).fill(1e9);
+    let fireSum = 0,
+      crits = 0;
+    for (let i = 0; i < N; i++) {
+      const r = R(`hitCalc(c, boss, { fly: ${B.fly || 0} })`);
+      sum += r.d;
+      fireSum += r.pre.fire;
+      crits += r.crit ? 1 : 0;
+    }
+    const ignDps = B.ign
+      ? (fireSum / N) *
+        0.2 *
+        (1 + (ST.ailMag + ST.shaper) / 100) *
+        (1 + ST.ember / 100) *
+        (1 - R(`resOf(boss, 'fire', ST.pen)`) / 100)
+      : 0;
+    let cocDps = 0;
+    if (B.coc) {
+      const sd = R('SKILLS')[B.coc];
+      ctx.sc = { D: sd, lv, mult: 1, more: 1, critInc: 0, critX: 0, fireAdd: 0, pen: 0, ailMag: 0 };
+      let ss = 0;
+      for (let i = 0; i < N; i++) ss += R('hitCalc(sc, boss, { trig: 1 }).d');
+      const atkRate = (ST.asM / D.t) * R('hitChance')(ST.acc, boss.ev);
+      cocDps = (ss / N) * ((atkRate * crits) / N) * ((10 * (ST.hexCoc ? 2 : 1)) / 100) * ((sd.chain || 0) + 1);
+    }
     const hit = sum / N,
       spell = R('isSpell')(D),
       rate = spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
       /* 0.2.22：攻擊要乘命中率（法術一律命中） */
       hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
-      dps = hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc,
+      dps = hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc + ignDps + cocDps,
       hitDmg = bossD.dmg * tm.dmg * R('BOSS_DMG') * 1.4,
+      /* 0.2.25：無盡箭矢的投射物 +1 已經在 ST.proj */
       ehp = ST.hp + ST.es,
       fire = R(`ST.res.fire`) && R(`effRes('fire')`),
       fireHit = hitDmg * (1 - R(`effRes('fire')`) / 100),
-      physHit = hitDmg * (1 - Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1)));
+      physHit0 = hitDmg * (1 - Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1))),
+      /* 0.2.25 格擋值：滿的時候先吸收 40%（重盾前進 60%），最多吸到格擋值 */
+      bvAb = d => Math.min(ST.bv, d * (ST.heavyShield ? 0.6 : 0.4)),
+      physHit = physHit0 - bvAb(physHit0);
     console.log(
       [
         String(L).padStart(3),
@@ -191,13 +292,15 @@ for (const L of [30, 60, 90]) {
         Math.round(dps).toString().padStart(8),
         Math.round(boss.mhp).toString().padStart(8),
         (boss.mhp / dps).toFixed(1).padStart(8),
-        `${Math.round((fireHit / ehp) * 100)}%/${Math.round((physHit / ehp) * 100)}%`.padStart(12),
+        `${Math.round(((fireHit - bvAb(fireHit)) / ehp) * 100)}%/${Math.round((physHit / ehp) * 100)}%`.padStart(12),
         String(ehp).padStart(6),
         (Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1)) * 100).toFixed(0).padStart(7) + '%',
         String(R(`effRes('fire')`)).padStart(4) + '%',
         Math.round(hc * 100)
           .toString()
-          .padStart(4) + '%'
+          .padStart(4) + '%',
+        ST.bv ? `格擋值 ${ST.bv}` : '',
+        B.asc ? `昇華 ${S.at.length - 1} 點` : ''
       ].join(' ')
     );
     void fire;

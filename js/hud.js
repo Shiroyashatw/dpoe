@@ -57,10 +57,10 @@ function hudInit() {
   $('hud').innerHTML = `
   <div class="top"><div id="area"></div><div id="bossbar" hidden><b id="bossn"></b><div class="bb"><i></i></div></div><div id="prog" hidden><b>首領進度</b><div class="pb"><i></i></div></div></div>
   <div class="bottom">
-    <div class="orb hp" id="ohp"><i></i><b class="ward"></b><span></span></div>
+    <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
     <div class="mid">
       <div class="mech" id="mech"></div>
-      <div class="bars tonly"><div class="hb hp" id="bhp"><i></i><b class="ward"></b><span></span></div><div class="hb mp" id="bmp"><i></i><span></span></div></div>
+      <div class="bars tonly"><div class="hb hp" id="bhp"><i></i><b class="ward"></b><span></span></div><div class="hb bv" id="bbv" hidden><i></i></div><div class="hb mp" id="bmp"><i></i><span></span></div></div>
       <div class="xp" id="xp" data-tip="經驗"><i></i></div>
       <div class="bar" id="bar"></div>
     </div>
@@ -122,9 +122,19 @@ function setT(el, k, v) {
 function hudTick() {
   if (!P) return;
   setV($('ohp'), 'hp', (P.hp / ST.hp).toFixed(3));
-  setV($('omp'), 'mp', (P.mp / ST.mp).toFixed(3));
+  /* 地獄火（0.2.26，炎魔契約）：魔力球改成地獄火（橘紅色、往上漲；八成以上發紅光＝快自爆） */
+  const hell = !!ST.hellfire,
+    mpv = hell ? (P.hf || 0) / ST.hfMax : P.mp / ST.mp,
+    mpt = hell ? `地獄火\n${Math.floor(P.hf || 0)} / ${ST.hfMax}` : Math.floor(P.mp) + ' / ' + ST.mp,
+    hot = hell && mpv >= 0.8;
+  if (HV.hell !== hell || HV.hot !== hot) {
+    HV.hell = hell;
+    HV.hot = hot;
+    for (const el of [$('omp'), $('bmp')]) el.classList.toggle('hf', hell), el.classList.toggle('hot', hot);
+  }
+  setV($('omp'), 'mp', mpv.toFixed(3));
   setT($('ohp').lastChild, 'ht', Math.ceil(P.hp) + ' / ' + ST.hp + (ST.es ? `\n盾 ${Math.floor(P.es || 0)}` : ''));
-  setT($('omp').lastChild, 'mt', Math.floor(P.mp) + ' / ' + ST.mp);
+  setT($('omp').lastChild, 'mt', mpt);
   setV($('xp'), 'xp', (S.xp / xpNeed(S.lv)).toFixed(3));
   for (const el of document.querySelectorAll('.sk')) {
     const k = el.dataset.k,
@@ -141,7 +151,7 @@ function hudTick() {
     }
     setV(el, 'cd' + k, cd.toFixed(2));
     setT(el.querySelector('u'), 't' + k, txt);
-    const no = (c && (P.mp < c.mp || !wtOK(c.D))) || G.scene === 'hide';
+    const no = (c && ((!hell && P.mp < c.mp) || !wtOK(c.D))) || G.scene === 'hide';
     if (HV['n' + k] !== no) el.classList.toggle('no', (HV['n' + k] = no));
   }
   /* 翻滾冷卻：桌機畫在游標旁（直立是技能鍵旁的小圖示，照上面的 .sk 一起更新） */
@@ -155,6 +165,23 @@ function hudTick() {
   /* 能量護盾（照 PoE）：生命球上疊一層白，高度＝護盾÷最大護盾；騎士的護盾也畫在這層 */
   const wv = ST.es ? Math.min(1, (P.es || 0) / ST.es).toFixed(3) : '0';
   if (HV.ward !== wv) $('ohp').style.setProperty('--w', (HV.ward = wv));
+  /* 格擋值（0.2.25）：生命球右邊的弧（手機是生命條下面的細條）；碎掉在回滿的時候變淺色 */
+  const bvOn = ST.bv > 0,
+    bvv = bvOn ? Math.min(1, (P.bv || 0) / ST.bv).toFixed(3) : '0',
+    bvBr = P.bvRe != null;
+  if (HV.bvOn !== bvOn) {
+    HV.bvOn = bvOn;
+    $('ohp').classList.toggle('hasbv', bvOn);
+    $('bbv').hidden = !bvOn;
+    if (!bvOn) delete $('ohp').dataset.tip;
+  }
+  if (HV.bv !== bvv) for (const el of [$('ohp'), $('bbv')]) el.style.setProperty('--b', (HV.bv = bvv));
+  if (HV.bvBr !== bvBr) {
+    HV.bvBr = bvBr;
+    $('ohp').classList.toggle('bvbr', bvBr);
+    $('bbv').classList.toggle('bvbr', bvBr);
+  }
+  if (bvOn) $('ohp').dataset.tip = `格擋值 ${Math.floor(P.bv || 0)} / ${ST.bv}${bvBr ? '（碎了，回滿前不吸收）' : ''}`;
   /* 精魄：魔力球左邊的弧（已預留÷總量） */
   const sv = ST.spirit ? (ST.spiritUsed / ST.spirit).toFixed(3) : '0';
   if (HV.spir !== sv) {
@@ -169,6 +196,8 @@ function hudTick() {
       .filter(hasBuff)
       .map(k => BUFF[k].n),
     P.tail ? `順風 ${Math.ceil(P.tail)}` : '',
+    ST.sacrifice && P.sacT > G.t ? '捨身突襲' : '',
+    ST.steelCycle && P.bvAcc >= 1 ? `鋼鐵循環 ${Math.floor(P.bvAcc)}` : '',
     ...ailNames()
   ]
     .filter(Boolean)
@@ -199,7 +228,7 @@ function hudTick() {
     setV($('bhp'), 'hp2', HV.hp);
     setV($('bmp'), 'mp2', HV.mp);
     setT($('bhp').lastChild, 'ht2', Math.ceil(P.hp) + ' / ' + ST.hp + (ST.es ? ` · 盾 ${Math.floor(P.es || 0)}` : ''));
-    setT($('bmp').lastChild, 'mt2', Math.floor(P.mp) + ' / ' + ST.mp);
+    setT($('bmp').lastChild, 'mt2', mpt.replace('\n', ' '));
     if (HV.w2 !== wv) $('bhp').style.setProperty('--w', (HV.w2 = wv));
     const near =
       (G.scene === 'hide' && (!!nearProp() || (G.portal && dist(P, G.portal) < 90))) ||
@@ -251,12 +280,22 @@ function openPanel(k) {
   hudPanels();
 }
 function closePanels() {
-  PANEL.inv = PANEL.stash = PANEL.device = PANEL.skill = PANEL.craft = PANEL.gem = PANEL.set = PANEL.sellM = false;
+  PANEL.inv =
+    PANEL.stash =
+    PANEL.device =
+    PANEL.skill =
+    PANEL.craft =
+    PANEL.gem =
+    PANEL.set =
+    PANEL.sellM =
+    PANEL.asc =
+      false;
   SELLS.clear();
   hideTip();
   hudPanels();
 }
-const anyPanel = () => PANEL.inv || PANEL.stash || PANEL.device || PANEL.skill || PANEL.craft || PANEL.gem || PANEL.set;
+const anyPanel = () =>
+  PANEL.inv || PANEL.stash || PANEL.device || PANEL.skill || PANEL.craft || PANEL.gem || PANEL.set || PANEL.asc;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
 const KEYS_PC = [
   ['WASD', '移動'],
@@ -367,6 +406,7 @@ function hudPanels() {
   $('pinv').hidden = !PANEL.inv;
   $('pstash').hidden = !PANEL.stash;
   $('pdev').hidden = !PANEL.device;
+  $('pasc').hidden = !PANEL.asc;
   $('pskill').hidden = !PANEL.skill;
   $('pcraft').hidden = !PANEL.craft;
   $('pgem').hidden = !PANEL.gem;
@@ -404,6 +444,7 @@ function hudPanels() {
       }${gridHTML(S[st], st)}`;
   }
   if (PANEL.device) $('pdev').innerHTML = devHTML();
+  if (PANEL.asc) $('pasc').innerHTML = ascHTML();
 }
 const hudInv = () => PANEL.inv && hudPanels();
 /* 手機窄螢幕：兩個面板一次只顯示一個，標題列的按鈕切換 */
@@ -753,6 +794,35 @@ document.addEventListener('click', e => {
   hudPanels();
 });
 
+/* 昇華石碑（0.2.25）：不分職業，直接選一個；換昇華免費、點數全部退回。點在天賦樹中間挖空的地方 */
+function ascHTML() {
+  const pts = ascPoints(S),
+    big = A => {
+      /* 大點照選擇組合併成一行：「遠射／近射／彈射（三選一）」 */
+      const L = [];
+      for (const [id, v] of Object.entries(A.N)) {
+        if (!v[3]) continue;
+        const g = v[6],
+          row = g && L.find(r => r.g === g);
+        if (row) row.n.push(v[2]), row.d.push(v[4]);
+        else L.push({ g, n: [v[2]], d: [v[4]] });
+      }
+      return L.map(
+        r =>
+          `<li><b>${r.n.join('／')}</b>${r.n.length > 1 ? `<small class="c-gold">${['', '', '二選一', '三選一'][r.n.length]}</small>` : ''}<span>${r.d.map(esc).join('<br>')}</span></li>`
+      ).join('');
+    };
+  return `<div class="ph"><b>昇華石碑</b><span>昇華點 <b class="c-gold">${pts}</b> / 8</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <p class="anote">開局 2 點，第一次打倒階級 6、12、16 的王各 +2。8 點剛好 4 大 4 小；換昇華免費，點數全部退回。選好後按 P，點在天賦樹中間。</p>
+  <div class="ascs">${Object.entries(ASC)
+    .map(([k, A]) => {
+      const cur = S.asc === k;
+      return `<div class="ascc ${cur ? 'on' : ''}"><div class="abh">${icHTML(A.ic)}<div><b>${A.n}</b><small>${esc(A.d)}</small></div></div>
+      <button class="btn" data-a="asc:${k}" ${cur ? 'disabled' : ''}>${cur ? '目前的昇華' : S.asc ? `改成${A.n}（點數退回）` : `成為${A.n}`}</button>
+      <ul>${big(A)}</ul></div>`;
+    })
+    .join('')}</div>`;
+}
 function devHTML() {
   /* 地圖台（0.2.7）：上面選階級（怪物強度、物品等級），下面選一張地圖卡（星級＝詞綴數＝風險與獎勵） */
   const t = PANEL.pick,
@@ -1384,5 +1454,13 @@ function act(a) {
   } else if (a === 'pickmap') {
     $('over').hidden = true;
     openPanel('device');
+  } else if (a.startsWith('asc:')) {
+    /* 選昇華／換昇華：點數全部退回 */
+    S.asc = a.slice(4);
+    S.at = ['a_st'];
+    treeChanged();
+    hudPanels();
+    hudWarn(`成為${ASC[S.asc].n}！按 P 在天賦樹中間點昇華`);
+    sfx('lvup');
   }
 }

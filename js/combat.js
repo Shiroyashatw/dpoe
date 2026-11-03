@@ -83,6 +83,8 @@ function resOf(m, k, pen = 0) {
     if (a.curse && a.curse.k === 'eleweak') r -= a.curse.v;
     if (a.exp > G.t) r -= 20 * (1 - rarRed(m));
     if (a.scorch && a.scorch.t > G.t) r -= a.scorch.v;
+    /* 火焰曝露（0.2.26，焦土）：點燃中的敵人火焰抗性 −x%（稀有度減效果，跟曝露一樣） */
+    if (k === 'fire' && ST.fireExp && a.ign && a.ign.t > G.t) r -= ST.fireExp * (1 - rarRed(m));
   } else if (a.curse && a.curse.k === 'despair') r -= a.curse.v;
   return r > 0 ? Math.max(0, r - pen) : r;
 }
@@ -96,7 +98,127 @@ function takenInc(m, k) {
   if (k === 'phys' && a.broken > G.t) v += 20;
   return v;
 }
-/* c 技能設定（slotCfg）、m 目標、o：mult 更多倍率、crit 必暴、minion、unit */
+/* 0.2.25 底層 ---------- */
+/* 依防禦給附加物理傷害：「護甲的 x%」（addArm），閃避、能量護盾之後要用再加 */
+const defAdd = () => (ST.addArm ? (ST.armor * ST.addArm) / 100 : 0);
+/* 投射物飛行距離（遠射、近射）：fly＝投射物從射出到打中飛了多遠（瞬間的投射物用到目標的距離）
+   遠射：0 → 500 線性到更多 farShot%；近射：貼臉更多 nearShot%，300（中距離）降到 0 */
+const PROJ_FAR = 500,
+  PROJ_MID = 300;
+const projDistMore = fly =>
+  (1 + (ST.farShot * Math.min(1, fly / PROJ_FAR)) / 100) * (1 + (ST.nearShot * Math.max(0, 1 - fly / PROJ_MID)) / 100);
+/* 暴擊弱點（照 PoE2）：每層讓對這個目標的擊中暴擊率 +0.5%，最多 20 層、每層各自 4 秒 */
+const cwN = m => (m && m.ail && m.ail.cw ? (m.ail.cw = m.ail.cw.filter(t => t > G.t)).length : 0);
+function addCw(m, n) {
+  const a = (m.ail.cw = (m.ail.cw || []).filter(t => t > G.t));
+  for (let i = 0; i < n; i++) a.push(G.t + 4);
+  /* 上限 20 層；弱點獵殺 40 層 */
+  a.splice(0, Math.max(0, a.length - (ST.cwMax || 20)));
+}
+/* 熵值（設計原則第 4 節）：每次 +v，滿 100 必定觸發（起點隨機，不會每次都在同一下） */
+function entropy(k, v) {
+  const E = (P.ent = P.ent || {});
+  if (E[k] == null) E[k] = Math.random() * 100;
+  E[k] += v;
+  if (E[k] < 100) return false;
+  E[k] -= 100;
+  return true;
+}
+/* 格擋值（0.2.25，盾的隱性：格擋值＝盾的護甲，stats 的 ST.bv）：
+   大於 0 時每一下吸收 40%（重盾前進 60%），在守護之前；2 秒沒被打開始回，每秒 25%；
+   打碎（歸 0）後 8 秒（不動如山 5 秒）從 0 跑滿，跑滿前不吸收 */
+const BV = { abs: 0.4, absHeavy: 0.6, wait: 2, rate: 0.25, re: 8, reStand: 5 };
+const bvUp = () => ST.bv > 0 && P.bv > 0 && P.bvRe == null;
+function bvAbsorb(d) {
+  if (!bvUp()) return d;
+  const ab = Math.min(P.bv, d * (ST.heavyShield ? BV.absHeavy : BV.abs));
+  P.bv -= ab;
+  P.bvHit = G.t;
+  if (ST.steelCycle) P.bvAcc = Math.min(ST.hp, (P.bvAcc || 0) + ab);
+  if (P.bv <= 0.5) {
+    P.bv = 0;
+    P.bvRe = G.t;
+    if (ST.sacrifice) P.sacT = G.t + 2;
+    fx({ k: 'ring', x: P.x, y: P.y, r: 60, dur: 0.35, col: '#c9d3e0' });
+    sfx('block');
+  }
+  return d - ab;
+}
+function bvTick(dt) {
+  if (!ST.bv) return (P.bv = 0), (P.bvRe = null);
+  if (P.bvRe != null) {
+    P.bv = (ST.bv * (G.t - P.bvRe)) / (ST.unmov ? BV.reStand : BV.re);
+    if (P.bv >= ST.bv) (P.bv = ST.bv), (P.bvRe = null);
+  } else if (G.t - (P.bvHit == null ? -9 : P.bvHit) >= BV.wait)
+    P.bv = Math.min(ST.bv, (P.bv || 0) + ST.bv * BV.rate * dt);
+  P.bv = Math.min(ST.bv, P.bv);
+}
+/* ---------- 地獄火（0.2.26，炎魔契約）：反過來的魔力 ----------
+   最大＝2 倍最大魔力（stats 的 hfMax）。放技能不扣魔力，改成累積地獄火；滿了自爆（受到最大生命＋能量護盾的火焰傷害，吃火焰抗性）並清空；
+   2 秒沒累積，每秒消退最大值的 25%。灰燼重生：自爆後 4 秒不累積；炎魔之觸：累積時 300 內的敵人易燃 */
+const HF = { wait: 2, decay: 0.25, reborn: 4, touchR: 300 };
+function hfGain(v) {
+  if (!ST.hellfire || P.rebT > G.t) return;
+  P.hf = (P.hf || 0) + v;
+  P.hfT = G.t;
+  if (ST.hfFlam)
+    for (const m of G.mobs)
+      if (m.hp > 0 && m.ail && dist(P, m) < HF.touchR) {
+        const a = m.ail;
+        a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + ST.hfFlam);
+        a.flamT = G.t + 8;
+      }
+  if (P.hf >= ST.hfMax) hfBoom();
+}
+function hfBoom() {
+  P.hf = 0;
+  const d = (ST.hp + ST.es) * (1 - effRes('fire') / 100);
+  fx({ k: 'ring', x: P.x, y: P.y, r: 140, dur: 0.45, col: '#ff6b3d' });
+  sfx('slam');
+  num(P.x, P.y - 60, d, 'hurt');
+  if (ST.reborn) P.rebT = G.t + HF.reborn;
+  P.hp -= esAbsorb(d);
+  if (P.hp <= 0) die();
+}
+function hfTick(dt) {
+  if (!ST.hellfire) return (P.hf = 0);
+  if (P.hf > 0 && G.t - (P.hfT == null ? -9 : P.hfT) >= HF.wait) P.hf = Math.max(0, P.hf - ST.hfMax * HF.decay * dt);
+}
+/* 完美閃避的判定時間（0.2.26 可調：殘影步 0.24 秒）；完美閃避之後（殘影步：2 秒更多、重置翻滾冷卻） */
+const perfWin = () => ST.perfWin || ROLL.perfect;
+function onPerfect() {
+  if (!ST.perfMore) return;
+  P.pfT = G.t + 2;
+  P.cds.roll = 0;
+}
+/* 影襲（0.2.26）：翻滾穿過敵人時給致盲與 x 層暴擊弱點（每次翻滾每隻一次） */
+function rollThrough() {
+  if (!ST.rollBlind || !P.roll) return;
+  const h = (P.roll.hit = P.roll.hit || new Set());
+  for (const m of G.mobs)
+    if (m.hp > 0 && m.ail && !h.has(m) && dist(P, m) < P.r + m.r + 10)
+      h.add(m), (m.ail.blind = G.t + 4), addCw(m, ST.rollBlind);
+}
+/* 暗影收割（0.2.26）：暴擊擊殺時消耗 1 顆暴擊球，原地爆炸（120 內，牠最大生命 x% 的物理） */
+function reapBoom(m) {
+  const c = P.chg && P.chg.p;
+  if (!ST.reap || !(c && c.t > G.t && c.n > 0)) return;
+  c.n--;
+  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: '#8a6cff' });
+  const v = (m.mhp * ST.reap) / 100;
+  for (const o of G.mobs)
+    if (o.hp > 0 && o !== m && dist(o, m) < 120 + o.r) (o.hp -= v), num(o.x, o.y - o.sz, v, 'phys');
+}
+/* 獵鷹標記（風行神射）：每 3 秒標記 500 內全部沒有標記的敵人（算標記，佔每隻怪 1 個標記位） */
+function falconTick() {
+  if (!ST.falcon || (P.falT || 0) > G.t) return;
+  P.falT = G.t + 3;
+  let n = 0;
+  for (const m of G.mobs) if (m.hp > 0 && m.ail && !m.ail.mark && dist(P, m) < 500) (m.ail.mark = { k: 'falcon' }), n++;
+  if (n) fx({ k: 'ring', x: P.x, y: P.y, r: 500, dur: 0.5, col: '#ffd166' });
+}
+
+/* c 技能設定（slotCfg）、m 目標、o：mult 更多倍率、crit 必暴、minion、unit、fly 投射物飛行距離 */
 function hitCalc(c, m, o = {}) {
   const D = c.D,
     tg = D.tags || [],
@@ -118,6 +240,8 @@ function hitCalc(c, m, o = {}) {
       const [lo, hi] = ST.add[k];
       if (hi) pre[k === 'flat' ? 'phys' : k] += rnd(lo, hi);
     }
+    /* 依防禦給的附加物理（0.2.25，鐵金剛的重如泰山：護甲的 x%） */
+    pre.phys += defAdd();
     /* 穿刺：取出最強的一個，加進這一下 */
     const imp = m && m.ail && m.ail.imp;
     if (imp && imp.length) pre.phys += imp.splice(imp.indexOf(Math.max(...imp)), 1)[0];
@@ -135,7 +259,7 @@ function hitCalc(c, m, o = {}) {
     hs = m && m.ail && m.ail.hstun > G.t ? ST.hsFire : 0,
     CV = {
       phys: { light: ST.cvPL, cold: ST.cvPC, fire: ST.cvPF + av + hs },
-      light: { cold: ST.cvLC, fire: av },
+      light: { cold: ST.cvLC, fire: av + ST.cvLF },
       cold: { fire: ST.cvCF + av }
     };
   for (const src of ['phys', 'light', 'cold']) {
@@ -188,21 +312,33 @@ function hitCalc(c, m, o = {}) {
   if (!o.minion && !o.unit) more *= ST.noSelf ? 0 : 1 + ST.selfMore / 100;
   /* 失衡（招架，mech.js）：受到的攻擊傷害提高 50% */
   if (!spell && m && m.ail && m.ail.parried > G.t) more *= 1.5;
+  /* 0.2.25 昇華：獵鷹標記（被標記的更多 10%）、遠射／近射（看投射物飛了多遠 o.fly） */
+  if (m && m.ail && m.ail.mark && m.ail.mark.k === 'falcon') more *= 1.1;
+  if (tg.includes('proj')) more *= projDistMore(o.fly || 0);
+  const sac = ST.sacrifice && P.sacT > G.t;
+  /* 0.2.26 昇華：沸騰之軀（地獄火過半，法術更多）、殘影步（完美閃避後 2 秒更多）、影咒（觸發施放的法術更多） */
+  if (spell && ST.boil && P.hf > ST.hfMax / 2) more *= 1 + ST.boil / 100;
+  if (ST.perfMore && P.pfT > G.t) more *= 1 + ST.perfMore / 100;
+  if (spell && o.trig && ST.hexCoc) more *= 1 + ST.hexCoc / 100;
+  const reb = ST.reborn && P.rebT > G.t;
   for (const k of DT) pre[k] = 0;
   for (const p of parts) {
     let mk = more;
     if (spell && ELEK.includes(p.k) && P.buf && P.buf.archon > G.t) mk *= 1.25;
     if (ST.avatar && (p.k === 'cold' || p.k === 'light')) mk *= 0.7;
+    if (sac && p.k === 'phys') mk *= 1.15;
+    if (reb && p.k === 'fire') mk *= 1 + ST.reborn / 100;
     pre[p.k] += p.v * (1 + (common + incOf(p.ch)) / 100) * mk;
   }
   /* 暴擊：基礎（攻擊看武器、法術看寶石）×（1＋提高）；易碎直接加；暴擊傷害加成基礎 +100% */
   const base = spell ? D.crit || 7 : D.shield ? 5 : ST.wcrit,
     brit = m && m.ail && m.ail.brittle && m.ail.brittle.t > G.t ? m.ail.brittle.v : 0,
-    chance = ST.noCrit ? 0 : Math.min(100, base * (1 + (ST.critInc + (c.critInc || 0)) / 100) + brit);
+    chance = ST.noCrit ? 0 : Math.min(100, base * (1 + (ST.critInc + (c.critInc || 0)) / 100) + brit + cwN(m) * 0.5);
   const crit =
     !ST.noCrit && !!(o.crit || P.critNext || (ST.fullCrit && m && m.hp >= m.mhp) || Math.random() * 100 < chance);
   if (crit) {
-    const cm = 1 + (100 + ST.critX + (c.critX || 0) + (P.critNext ? 50 : 0)) / 100;
+    /* 致命陰影（0.2.26）：每顆暴擊球暴擊傷害 +x% */
+    const cm = 1 + (100 + ST.critX + (c.critX || 0) + (P.critNext ? 50 : 0) + ST.powCritX * chgN('p')) / 100;
     for (const k of DT) pre[k] *= cm;
   }
   if (!o.keep) P.critNext = 0;
@@ -236,10 +372,14 @@ function applyAil(m, r, c) {
     attack = (c.D.tags || []).includes('attack'),
     rr = 1 - rarRed(m);
   /* 點燃：火焰傷害疊易燃（每 5% 門檻 +1% 機率），中了清零 */
-  if (p.fire > 0) {
-    a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (p.fire / thr) * 20);
+  /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；餘燼：點燃更多、持續時間 −25% */
+  const igB = ST.shaper ? p.fire + p.phys + p.cold + p.light : p.fire;
+  if (igB > 0) {
+    a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (igB / thr) * 20);
     a.flamT = G.t + 8;
-    if (Math.random() * 100 < a.flam) (a.ign = keepMax(a.ign, p.fire * 0.2 * mag, 4)), (a.flam = 0);
+    if (Math.random() * 100 < a.flam)
+      (a.ign = keepMax(a.ign, igB * 0.2 * (mag + ST.shaper / 100) * (1 + ST.ember / 100), 4 * (ST.ember ? 0.75 : 1))),
+        (a.flam = 0);
   }
   /* 冰緩：效果看傷害÷門檻，低於 30% 不生效，最高 50%；8 秒 */
   if (p.cold > 0) {
@@ -259,11 +399,14 @@ function applyAil(m, r, c) {
   /* 暈眩：輕暈看「這一下÷最大生命」（低於 15% 不算）；重暈累積（冰冷不算，物理、近戰各 ×1.5） */
   const hit = p.phys + p.fire + p.light + p.chaos;
   if (!m.boss && hit / m.mhp >= 0.15 && Math.random() < hit / m.mhp) m.stun = Math.max(m.stun || 0, 0.5);
+  /* 0.2.25：重暈累積提高（昇華小點）、震懾之錘（物理擊中每 1000 護甲 +10%）、鋼鐵循環（格擋值吸收的量） */
+  const hsInc = 1 + (ST.hsP + (p.phys > 0 ? (ST.hsArm * ST.armor) / 1000 : 0)) / 100;
   a.hs =
     (a.hs || 0) +
-    ((hit * (p.phys > 0 ? 1.5 : 1) * ((c.D.tags || []).includes('melee') ? 1.5 : 1) * (c.hsM || 1)) / m.mhp) *
+    ((hit * (p.phys > 0 ? 1.5 : 1) * ((c.D.tags || []).includes('melee') ? 1.5 : 1) * (c.hsM || 1) * hsInc) / m.mhp) *
       100 *
       0.5;
+  if (ST.steelCycle && P.bvAcc > 0) (a.hs += (P.bvAcc / m.mhp) * 100 * 0.5), (P.bvAcc = 0);
   if (a.hs >= 100) (a.hstun = G.t + (m.boss ? 1.2 : 3)), (a.hs = 0);
   /* 流血、中毒：要有機率；流血只有攻擊會造成，c.spellBleed 是例外（死亡紅花的爆炸） */
   if ((attack || c.spellBleed) && p.phys > 0 && Math.random() * 100 < ST.bleedCh + (c.bleedCh || 0))
@@ -276,8 +419,10 @@ function applyAil(m, r, c) {
     a.poi.length = Math.min(a.poi.length, n);
   }
   /* 破甲：物理擊中扣護甲（普通 ×3、菁英 ×2），扣到 0＝完全破甲 12 秒 */
-  if (p.phys > 0 && (ST.armBreak || c.armBreak) && !(a.broken > G.t)) {
-    m.arm -= p.phys * (m.boss ? 1 : m.elite ? 2 : 3);
+  /* 鐵砧之重（0.2.25）：任何擊中都依你護甲的 x% 破甲 */
+  const brk = (p.phys > 0 && (ST.armBreak || c.armBreak) ? p.phys : 0) + (ST.armBreakArm * ST.armor) / 100;
+  if (brk > 0 && !(a.broken > G.t)) {
+    m.arm -= brk * (m.boss ? 1 : m.elite ? 2 : 3);
     a.abT = G.t + 12;
     if (m.arm <= 0) (m.arm = 0), (a.broken = G.t + 12);
   }
@@ -367,7 +512,8 @@ const MARKS = {
   hound: { n: '獵犬標記', d: '流血會累積重暈；被重暈或死亡時血爆' },
   assassin: { n: '刺客標記', d: '被暴擊率 +5%；死亡時給暴擊球' },
   poacher: { n: '獵人標記', d: '被擊中時你回 1% 魔力；死亡時給狂怒球、回 5% 生命' },
-  warlord: { n: '軍閥標記', d: '被擊中時你回 0.5% 生命；死亡時給耐力球' }
+  warlord: { n: '軍閥標記', d: '被擊中時你回 0.5% 生命；死亡時給耐力球' },
+  falcon: { n: '獵鷹標記', d: '被擊中時傷害更多 10% 並消耗（昇華「風行神射」）' }
 };
 function markMob(m, k) {
   for (const o of G.mobs) if (o.ail && o.ail.mark && o.ail.mark.k === k && o !== m && !ST.multiMark) o.ail.mark = null;
@@ -405,7 +551,24 @@ function gainBuff(k, t) {
 const hasBuff = k => !!(P && P.buf && P.buf[k] > G.t);
 /* 技能速度、移動速度（給 speedMul／moveMul） */
 const buffSpeed = () => (hasBuff('onslaught') ? 1.2 : 1) * (1 + 0.02 * (P.tail || 0));
-const buffMove = () => (hasBuff('onslaught') ? 1.1 : 1) * (1 + 0.01 * (P.tail || 0));
+/* 疾風化身（0.2.25）：順風滿 10 層（照 HUD 的顯示無條件進位；順風會慢慢消退） */
+const windFull = () => !!ST.windWalk && Math.ceil(P.tail || 0) >= 10;
+/* 聚風（0.2.25）：每層順風再 +2% 移動速度；疾風化身：滿 10 層 +10%；狂風：每顆狂怒球 +4% 移動速度；捨身突襲：2 秒內 +30% */
+const buffMove = () =>
+  (hasBuff('onslaught') ? 1.1 : 1) *
+  (windFull() ? 1.1 : 1) *
+  (1 + (0.01 + (ST.gale || 0) / 100) * (P.tail || 0)) *
+  (1 + ((ST.frenzyMs || 0) * chgN('f')) / 100) *
+  (ST.sacrifice && P.sacT > G.t ? 1.3 : 1);
+/* 攻擊速度的暫時加成：狂風（每顆狂怒球 +4%） */
+const atkBuf = () => 1 + ((ST.frenzyMs || 0) * chgN('f')) / 100;
+/* 施放時移動（0.2.25 底層）：出手中照移動方向走，基礎移動速度的 35%（不吃移動速度加成）。
+   位移技能（D.dist）自己控制位置，不走這裡 */
+const CAST_MOVE = 0.35;
+/* 聚風：用技能得 1 層順風、被擊中掉光 */
+function galeUse() {
+  if (ST.gale) P.tail = Math.min(10, (P.tail || 0) + 1);
+}
 
 /* ---------- 打中、擊殺時的觸發（hitMob／killMob 呼叫） ---------- */
 function onHitBase(m, r, c) {
@@ -417,10 +580,17 @@ function onHitBase(m, r, c) {
   if (r.crit && ST.powOnCrit && Math.random() * 100 < ST.powOnCrit) gainChg('p');
   if (r.spell && (c.arcane || Math.random() * 100 < ST.arcaneHit)) gainBuff('arcane', 10);
   if (ST.tailwind && r.crit) P.tail = Math.min(10, (P.tail || 0) + 1);
+  /* 致命陰影：暴擊時熵值累積，滿 100 給暴擊球；弱點獵殺：攻擊擊中給 1 層暴擊弱點 */
+  if (r.crit && ST.powCritE && entropy('pow', ST.powCritE)) gainChg('p');
+  if (ST.cwHit && (c.D.tags || []).includes('attack')) addCw(m, ST.cwHit);
   /* 標記 */
   const mk = a.mark;
   if (!mk) return;
-  if (mk.k === 'sniper' && r.crit) (m.hp -= r.d * 0.5), gainChg('f'), (a.mark = null);
+  if (mk.k === 'falcon') {
+    a.mark = null;
+    if (ST.bullseye) addCw(m, ST.bullseye);
+    if (entropy('falcon', 20)) gainChg('f');
+  } else if (mk.k === 'sniper' && r.crit) (m.hp -= r.d * 0.5), gainChg('f'), (a.mark = null);
   else if (mk.k === 'poacher') P.mp = Math.min(ST.mp, P.mp + ST.mp * 0.01);
   else if (mk.k === 'warlord') P.hp = Math.min(ST.hp, P.hp + ST.hp * 0.005);
   else if (mk.k === 'freeze' && a.frozen > G.t) gainBuff('frostMark', 6), (a.mark = null);
@@ -444,6 +614,12 @@ function onKillBase(m) {
   if (ST.onsKill && Math.random() * 100 < ST.onsKill) gainBuff('onslaught', 4);
   if (ST.unholyKill && Math.random() * 100 < ST.unholyKill) gainBuff('unholy', 4);
   addCorpse(m);
+  /* 焚城（0.2.26）：被點燃的死掉時點燃傳給 200 內的怪；業火吞噬：地獄火 −10% */
+  const ig = m.ail && m.ail.ign && m.ail.ign.t > G.t ? m.ail.ign : null;
+  if (ig && ST.igSpread)
+    for (const o of G.mobs)
+      if (o !== m && o.hp > 0 && o.ail && dist(o, m) < 200) o.ail.ign = keepMax(o.ail.ign, ig.dps, ig.t - G.t);
+  if (ig && ST.devour && P.hf) P.hf = Math.max(0, P.hf - (ST.hfMax * ST.devour) / 100);
   /* 元素殘留物：點燃、冰緩（冰凍）、感電中的怪死掉留下（撿起來得到灌注） */
   const a = m.ail || {};
   if (a.ign && a.ign.t > G.t) dropRemnant('fire', m.x, m.y);
@@ -477,6 +653,9 @@ function baseTick(dt) {
     P.hp -= d * dt - viaEs;
     if (P.hp <= 0) die();
   }
+  bvTick(dt);
+  hfTick(dt);
+  falconTick();
   /* 吸血：1 秒內回完 */
   if (P.lch && P.lch.t > G.t) P.hp = Math.min(ST.hp, P.hp + P.lch.rate * dt);
   tickCharms(dt);
@@ -500,7 +679,7 @@ function hurtCalc(d, src, el, noEv) {
   /* 閃避：熵值（累積命中率到 100 才算打中），王的紅光大招（noEv）躲不掉 */
   if (!noEv) {
     const acc = (m ? m.acc : 15 + 6 * mobLv(G.mapT || 1)) * (m && m.ail.blind > G.t ? 0.8 : 1),
-      hitCh = hitChance(acc, ST.ev);
+      hitCh = hitChance(acc, ST.ev * (1 + ((ST.gale || 0) * (P.tail || 0)) / 100));
     if (P.evE == null) P.evE = Math.random() * 100;
     P.evE += hitCh * 100;
     if (P.evE < 100) return { ev: 1 };
@@ -519,7 +698,11 @@ function hurtCalc(d, src, el, noEv) {
     },
     cu = P.ail && P.ail.curse,
     arm = ST.armor * (cu && cu.k === 'vuln' ? 1 - cu.v / 100 : 1) * ((formOf() && formOf().armorM) || 1);
+  /* 承受轉換（0.2.26，熔岩之膚）：承受的物理有 x% 當作火焰承受（在減傷之前分出來，吃火焰抗性） */
+  let asFire = 0;
+  if (el === 'phys' && ST.physAsFire) (asFire = (d * ST.physAsFire) / 100), (d -= asFire);
   if (el === 'phys') d *= 1 - Math.min(0.9, arm / (arm + 10 * d + 1));
+  if (asFire) d += asFire * (1 - resHit('fire') / 100);
   else d *= 1 - resHit(el) / 100;
   /* 地圖詞「怪物多造成 20% 的某元素傷害」：另外照那個元素的抗性算 */
   for (const [f, k] of [
@@ -531,6 +714,8 @@ function hurtCalc(d, src, el, noEv) {
   if (P.ail && P.ail.shock > G.t) d *= 1.2;
   if (el !== 'phys' && el !== 'chaos' && formOf() && formOf().eleTaken) d *= formOf().eleTaken;
   if (m) mobAilPlayer(m, pre, el);
+  /* 格擋值（0.2.25）在守護之前 */
+  d = bvAbsorb(d);
   /* 守護先吸收 */
   if (P.guardV > 0) {
     const ab = Math.min(P.guardV, d);

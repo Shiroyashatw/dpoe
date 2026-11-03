@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 17,
+    v: 18,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -35,6 +35,9 @@ function newGame() {
   s.skills[0].a = mkGem('slash');
   s.skills[1].a = mkGem('mirage');
   s.pt = [...PT_START];
+  /* 昇華（0.2.25）：藏身處的昇華石碑選，S.at 是點過的點（a_st 是起點） */
+  s.asc = null;
+  s.at = [];
   s.auras = Array(AURA_SLOTS).fill(null);
   s.charms = [null, null, null];
   s.eq.chest = mkItem('c_leather', 1, 0);
@@ -123,7 +126,8 @@ function enterHideout() {
     { k: 'device', n: '地圖台', x: 480, y: 210, r: 46 },
     { k: 'stash', n: '倉庫', x: 190, y: 330, r: 34 },
     { k: 'market', n: '市集（之後開放）', x: 770, y: 330, r: 34 },
-    { k: 'forge', n: '鍛造台', x: 190, y: 520, r: 34 }
+    { k: 'forge', n: '鍛造台', x: 190, y: 520, r: 34 },
+    { k: 'asc', n: '昇華石碑', x: 770, y: 520, r: 30 }
   ];
   newPlayer(480, 470);
   P.hp = ST.hp;
@@ -456,6 +460,7 @@ function updPlayer(dt) {
     const sp = (ROLL.dist / ROLL.t) * 1.6 * (1 - r.t / ROLL.t);
     moveBody(P, r.dx * sp * dt, r.dy * sp * dt);
     (P.movT = G.t), (P.stillT = null);
+    rollThrough();
     if (r.t >= ROLL.t) P.roll = null;
     return;
   }
@@ -569,10 +574,11 @@ function drinkFlask(mana) {
 /* noEv：躲不掉的（王的紅光大招、地上的陷阱）；其他擊中都可以被閃避、格擋 */
 function hurtPlayer(d, src, el = 'phys', noEv) {
   if (G.state !== 'play') return;
-  if (P.roll && P.roll.t < ROLL.perfect) {
+  if (P.roll && P.roll.t < perfWin()) {
     if (!G.slow) {
       G.slow = ROLL.slow;
       P.critNext = 1;
+      onPerfect();
       metaEvent('perfect');
       fx({ k: 'perfect', x: P.x, y: P.y, dur: 0.6 });
       num(P.x, P.y - 70, 0, 'perfect');
@@ -592,6 +598,8 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
     return;
   }
   d = r.d;
+  /* 聚風（0.2.25）：被擊中時順風掉光 */
+  if (ST.gale) P.tail = 0;
   /* 召喚魔像：站在它旁邊受到的傷害少 20% */
   if (G.allies.some(w => w.src === 'golem' && dist(w, P) < 200)) d *= 0.8;
   d = esAbsorb(d);
@@ -606,7 +614,8 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   num(P.x, P.y - 60, d, 'hurt');
   hitstop(0.05);
   sfx('hurt');
-  if (src && !ST.stand) {
+  /* 不動如山（基石）；昇華的不動如山：格擋值還在時不會被擊退 */
+  if (src && !ST.stand && !(ST.unmov && bvUp())) {
     const a = angTo(src, P);
     P.vx += Math.cos(a) * 160;
     P.vy += Math.sin(a) * 160;
@@ -775,6 +784,7 @@ function useProp(p) {
   if (p.k === 'device') openPanel('device');
   else if (p.k === 'stash') openPanel('stash');
   else if (p.k === 'forge') openPanel('craft');
+  else if (p.k === 'asc') openPanel('asc');
   else hudWarn('市集之後開放');
   return true;
 }
@@ -1147,7 +1157,19 @@ function updShots(dt) {
             break;
           }
           if (s.pierce-- <= 0) {
-            s.life = 0;
+            /* 連鎖（0.2.25）：穿透用完後彈向 260 內最近、還沒打過、看得到的敵人 */
+            const n =
+              s.chain > 0 &&
+              G.mobs
+                .filter(o => o.hp > 0 && !s.hit.has(o) && dist(o, m) < 260 && los(m.x, m.y, o.x, o.y))
+                .sort((x, y) => dist(x, m) - dist(y, m))[0];
+            if (n) {
+              const g = Math.atan2(n.y - n.sz * 0.4 - s.y, n.x - s.x),
+                v = Math.hypot(s.vx, s.vy);
+              (s.vx = Math.cos(g) * v), (s.vy = Math.sin(g) * v), (s.ang = g), (s.life = Math.max(s.life, 0.6));
+              s.chain--;
+              s.pierce = 0;
+            } else s.life = 0;
             break;
           }
         }

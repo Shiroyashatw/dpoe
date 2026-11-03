@@ -42,6 +42,8 @@ function gemCfg(g, i) {
       /* 天賦的投射物數量、穿透（0.2.23）只給投射物技能 */
       proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0),
       pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
+      /* 全域投射物連鎖（0.2.25，彈射）：打中後彈向 260 內最近、還沒打過的敵人 */
+      chain: D.tags.includes('proj') ? ST.chain : 0,
       kb: 1,
       fireAdd: 0,
       pen: 0,
@@ -109,7 +111,9 @@ function useSlot(i) {
   if (!wtOK(c.D)) return hudWarn(c.D.n + '：' + wtNeed(c.D)), false;
   if ((P.cds['s' + i] || 0) > 0) return false;
   /* 血祭／血之代價：用生命施放 */
-  if (ST.blood ? P.hp <= c.mp + 1 : P.mp < c.mp) return hudWarn(ST.blood ? '生命不夠施放' : '魔力不足'), false;
+  /* 地獄火（0.2.26）：不扣魔力、改成累積（滿了自爆），所以不檢查魔力；血魔法優先 */
+  const hell = ST.hellfire && !ST.blood;
+  if (ST.blood ? P.hp <= c.mp + 1 : !hell && P.mp < c.mp) return hudWarn(ST.blood ? '生命不夠施放' : '魔力不足'), false;
   const w = mouseWorld(),
     D = c.D,
     tm = D.toMob && mobNear(w.x, w.y, 150, D.dist);
@@ -124,7 +128,9 @@ function useSlot(i) {
   if (D.gren && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('手雷還沒好'), false;
   if (D.ammo) ammoUse(c.k, D.ammo[0], D.ammo[1]);
   if (ST.blood) P.hp -= c.mp;
+  else if (hell) hfGain(c.mp);
   else P.mp -= c.mp;
+  galeUse();
   if (c.cd) P.cds['s' + i] = c.cd;
   /* 變身（mech.js）：用了不是這個形態的技能就變回來 */
   formFor(c.D);
@@ -141,7 +147,7 @@ function useSlot(i) {
     k: c.k,
     c,
     t: 0,
-    dur: D.t / (D.shield ? ST.sasM : ST.asM) / c.speed / speedMul(),
+    dur: D.t / (D.shield ? ST.sasM : ST.asM) / c.speed / speedMul() / (isSpell(D) ? 1 : atkBuf()),
     ang,
     hits: D.hits || [0.42],
     n: 0,
@@ -198,7 +204,8 @@ function skillTick(a, dt, mx, my) {
         }
     } else if (f >= 1 && !a.n++) actHit(a, 0);
   } else {
-    moveBody(P, mx * ST.spd * 0.35 * dt, my * ST.spd * 0.35 * dt);
+    /* 施放時移動（combat.js 的 CAST_MOVE） */
+    moveBody(P, mx * ST.spd * CAST_MOVE * dt, my * ST.spd * CAST_MOVE * dt);
     while (a.n < a.hits.length && a.t >= a.dur * a.hits[a.n]) actHit(a, a.n++);
   }
   if (a.t >= a.dur) P.act = null;
@@ -279,7 +286,7 @@ function actHit(a, idx) {
         const d = Math.hypot(m.x - a.tx, m.y - a.ty);
         if (d < bd) (bd = d), (cur = m);
       }
-    for (let k = 0; cur && k <= D.chain + (c.proj - 1); k++) {
+    for (let k = 0; cur && k <= D.chain + (c.proj - 1) + (c.chain || 0); k++) {
       fx({ k: 'zap', x: from.x, y: from.y, x2: cur.x, y2: cur.y - cur.sz * 0.4, dur: 0.18 });
       hit.add(cur);
       hitMob(cur, c, angTo(from, cur), 60 * c.kb, { a, from });
@@ -360,9 +367,9 @@ function actHit2(a, idx, R, hitArc) {
       return n;
     };
   if (a.k === 'mirage') {
-    /* 分身用這顆寶石的等級與輔助出斬擊 */
+    /* 分身（0.2.25）：每次從你裝著的攻擊技能隨機放一招，傷害 ×0.6 */
     const p = open(a.tx, a.ty, 14) ? { x: a.tx, y: a.ty } : { x: P.x, y: P.y };
-    spawnMirage({ ...c.g, gem: 'slash' }, p.x, p.y, 4, 0.8, 0.6);
+    spawnMirage(null, p.x, p.y, 4, 0.8, 0.6);
     fxs('blinkin', p.x, p.y, 40);
   } else if (a.k === 'axethrow' || a.k === 'apshot' || a.k === 'chaosbolt') {
     const n = c.proj,
@@ -553,6 +560,7 @@ function actHit2(a, idx, R, hitArc) {
   }
 }
 function shoot(ang, spd, c, a, o) {
+  if (windFull()) spd *= 1.3; /* 疾風化身：投射物速度 +30% */
   G.shots.push({
     x: P.x + Math.cos(ang) * 20,
     y: P.y - 18 + Math.sin(ang) * 20,
@@ -561,6 +569,10 @@ function shoot(ang, spd, c, a, o) {
     ang,
     r: 10,
     pierce: c.pierce,
+    chain: c.chain || 0,
+    /* 射出的位置（投射物飛行距離：遠射、近射） */
+    sx: P.x,
+    sy: P.y,
     c,
     a,
     hit: new Set(),
@@ -611,7 +623,11 @@ function hitMob(m, c, ang, kb, o = {}) {
   /* 0.2.22：攻擊可能被閃避（熵值，combat.js 的 hitRoll） */
   if (!hitRoll(m, c, { minion: o.minion, unit: a.unit }))
     return num(m.x, m.y - m.sz, 0, 'miss', '未命中'), aggroPack(m);
-  const r = hitCalc(c, m, { mult, crit, minion: o.minion, unit: a.unit });
+  /* 投射物飛行距離（0.2.25）：飛出去的算飛了多遠，瞬間的算到目標的距離 */
+  const fly = f.sx != null ? Math.hypot(f.x - f.sx, f.y - f.sy) : Math.hypot(m.x - f.x, m.y - f.y);
+  const r = hitCalc(c, m, { mult, crit, minion: o.minion, unit: a.unit, fly, trig: a.trig });
+  /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
+  if (ST.mirageH && !a.trig && !o.minion && !a.unit && !o.again) mirageHunt();
   applyAil(m, r, c);
   if (c.k === 'axethrow' && hasState(m, 'bleed')) fxs('bleed', m.x, m.y - m.sz * 0.5, 30);
   onHitBase(m, r, c);
@@ -647,8 +663,10 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (c.leech && ST.vaal) P.hp = Math.min(ST.hp, P.hp + lr);
   else if (c.leech && (!P.lch || P.lch.t <= G.t || lr > P.lch.rate)) P.lch = { rate: lr, t: G.t + 1 };
   /* 劍的招牌點（0.2.23）：近戰擊中有機率再打一次（再打的那一下不會再觸發） */
-  if (m.hp <= 0) killMob(m);
-  else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && Math.random() * 100 < ST.dbl)
+  if (m.hp <= 0) {
+    if (r.crit && !o.minion && !a.unit) reapBoom(m);
+    killMob(m);
+  } else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && Math.random() * 100 < ST.dbl)
     hitMob(m, c, ang, 0, { ...o, again: 1, quiet: 1 });
 }
 
@@ -774,6 +792,9 @@ function skillsEnter() {
   Object.assign(G, { allies: [], pools: [], meteors: [], units: [], mineT: 0 });
   mechEnter();
   P.es = ST.es;
+  P.bv = ST.bv;
+  P.bvRe = null;
+  P.hf = 0;
 }
 
 /* 出手速度、移動速度：buff 與冰緩、冰凍（combat.js） */

@@ -404,4 +404,193 @@ vm.runInContext(
   const sw = R('P.x = 0; gainSwords(7, {}); gainSwords(7, {}); var n1 = swordN(); G.t += 16; [n1, swordN()]');
   ok('飛劍上限與時間', sw.join() === '10,0', sw.join());
 }
+/* 0.2.25 昇華：每個昇華點得成 4 大 4 小、選擇組只能拿一個、照規則亂點一定停在 4 大 4 小、全點滿沒有 NaN */
+{
+  const R = s => vm.runInContext(s, ctx),
+    ASC = R('ASC');
+  ok(
+    '昇華點：一開始 2 點，第一次打倒階級 6、12、16 的王各 +2',
+    R('ascPoints({ maxT: 1 })') === 2 &&
+      R('ascPoints({ maxT: 7 })') === 4 &&
+      R('ascPoints({ maxT: 13 })') === 6 &&
+      R('ascPoints({ maxT: 16, t16: 1 })') === 8
+  );
+  for (const k of Object.keys(ASC)) {
+    const T = R(`ascNodes('${k}')`),
+      big = id => T.I[id].big === 1,
+      can = set => id =>
+        !set.includes(id) && (T.ADJ[id] || []).some(o => set.includes(o)) && R('ascFeasible')(T, [...set, id]);
+    /* 起點都連得到、圖示都在、大點都有說明 */
+    const seen = new Set(['a_st']),
+      q = ['a_st'];
+    while (q.length) for (const o of T.ADJ[q.pop()] || []) if (!seen.has(o)) seen.add(o), q.push(o);
+    const noIc = T.N.filter(n => n.big && !has(n.ic)).map(n => n.n);
+    ok(
+      `昇華「${ASC[k].n}」${T.N.length} 個點都連得到、大點有圖示與說明`,
+      seen.size === T.N.length && !noIc.length && T.N.filter(n => n.big === 1).every(n => n.d),
+      noIc.join(',')
+    );
+    /* 一小一大（照 PoE）：從起點往外，起點的下一個是小點、小點後面只接大點、大點後面只接小點 */
+    const dep = { a_st: 0 },
+      bq = ['a_st'];
+    while (bq.length) {
+      const x = bq.shift();
+      for (const o of T.ADJ[x] || []) if (dep[o] == null) (dep[o] = dep[x] + 1), bq.push(o);
+    }
+    const altBad = T.E.map(([a, b]) => (dep[a] < dep[b] ? [a, b] : [b, a]))
+      .filter(([a, b]) => (a === 'a_st' ? big(b) : big(a) === big(b)))
+      .map(e => e.join('-'));
+    ok(`昇華「${ASC[k].n}」一小一大交錯：每個大點前面是自己的小點、小點後面只接大點`, !altBad.length, altBad.join(','));
+    /* 所有合法的 8 點組合：沒有哪個點是每一種都一定要拿的 */
+    const all = [],
+      seen8 = new Set(),
+      walk = set => {
+        const key = [...set].sort().join();
+        if (seen8.has(key)) return;
+        seen8.add(key);
+        if (set.length === 9) return all.push(set);
+        for (const id of T.N.map(n => n.id).filter(can(set))) walk([...set, id]);
+      };
+    walk(['a_st']);
+    const forced = T.N.filter(n => n.id !== 'a_st' && all.every(set => set.includes(n.id))).map(n => n.n + n.id);
+    ok(
+      `昇華「${ASC[k].n}」${all.length} 種合法的 8 點組合，沒有每一種都一定要拿的點`,
+      all.length > 1 && !forced.length,
+      forced.join(',')
+    );
+    /* 照規則亂點 2000 次：每一步都有點可以點、最後剛好 4 大 4 小、同一組只拿一個 */
+    let stuck = 0,
+      wrong = 0;
+    const ends = new Set();
+    for (let i = 0; i < 2000; i++) {
+      const set = ['a_st'];
+      while (set.length < 9) {
+        const c = T.N.map(n => n.id).filter(can(set));
+        if (!c.length) {
+          stuck++;
+          break;
+        }
+        set.push(c[Math.floor(Math.random() * c.length)]);
+      }
+      const nb = set.filter(big).length,
+        ns = set.length - 1 - nb,
+        g = set.map(id => T.I[id].g).filter(Boolean);
+      if (nb !== 4 || ns !== 4 || new Set(g).size !== g.length) wrong++;
+      ends.add(set.filter(big).sort().join());
+    }
+    ok(
+      `昇華「${ASC[k].n}」照規則亂點 2000 次都停在 4 大 4 小、選擇組只拿一個（${ends.size} 種大點組合）`,
+      !stuck && !wrong && ends.size >= 4,
+      `卡住 ${stuck}、不對 ${wrong}`
+    );
+    /* 5 大 3 小點不出來：手動試「大點優先」也會被擋 */
+    const bigFirst = ['a_st'];
+    for (let i = 0; i < 8; i++) {
+      const c = T.N.map(n => n.id).filter(can(bigFirst));
+      bigFirst.push(c.find(big) || c[0]);
+    }
+    ok(
+      `昇華「${ASC[k].n}」大點優先也點不出 5 大 3 小`,
+      bigFirst.filter(big).length === 4 &&
+        !R('ascFeasible')(T, ['a_st', ...T.N.filter(n => n.big === 1).map(n => n.id)])
+    );
+    /* 全點滿（不管規則）＋錘盾、弓兩套：數值沒有 NaN */
+    for (const eq of [
+      { weapon: G.mkItem('w_mace1_5', 16, 2), off: G.mkItem('s_tower', 16, 2) },
+      { weapon: G.mkItem('w_bow_5', 16, 2) }
+    ]) {
+      const o = G.stats({ lv: 90, eq, pt: G.PTREE.N.map(n => n.id), asc: k, at: T.N.map(n => n.id) }),
+        vals = [o.hp, o.armor, o.ev, o.bv, o.block, o.dmg[0], o.aps, o.crit, o.spd, G.dps(o), ...Object.values(o.res)];
+      ok(
+        `昇華「${ASC[k].n}」全點滿（${eq.off ? '錘＋盾' : '弓'}）數值沒有 NaN`,
+        vals.every(Number.isFinite),
+        JSON.stringify(vals)
+      );
+    }
+  }
+  /* 底層：格擋值、暴擊弱點、熵值、投射物飛行距離 */
+  R(`G = { t: 0, mapT: 16, scene: 'map', mobs: [] };
+     S = { lv: 90, eq: { weapon: mkItem('w_mace1_5', 16, 0), off: mkItem('s_tower', 16, 0) }, pt: [...PT_START], asc: null, at: [], auras: [], charms: [] };
+     ST = stats(S); P = { x: 0, y: 0, hp: ST.hp, es: 0, bv: ST.bv };`);
+  const bv0 = R('ST.bv'),
+    left = R('bvAbsorb(100)'),
+    bv1 = R('P.bv');
+  R('bvAbsorb(1e9)');
+  const br = [R('P.bv'), R('P.bvRe'), R('bvAbsorb(100)')];
+  R('G.t = 4; bvTick(0)');
+  const half = R('P.bv / ST.bv');
+  R('G.t = 8.1; bvTick(0)');
+  const full = [R('P.bv === ST.bv'), R('P.bvRe')];
+  R('P.bv = ST.bv / 2; P.bvHit = G.t; G.t += 1; bvTick(1)');
+  const wait = R('P.bv / ST.bv');
+  R('G.t += 1.5; bvTick(1)');
+  const regen = R('P.bv / ST.bv');
+  ok(
+    '格擋值：拿盾就有、吸收 40%、碎了 8 秒從 0 跑滿（跑滿前不吸收）、2 秒沒被打每秒回 25%',
+    bv0 > 0 &&
+      left === 60 &&
+      bv1 === bv0 - 40 &&
+      br.join() === '0,0,100' &&
+      Math.abs(half - 0.5) < 0.01 &&
+      full.join() === 'true,' &&
+      wait === 0.5 &&
+      Math.abs(regen - 0.75) < 0.01,
+    [bv0, left, bv1, br, half, full, wait, regen].join(' ')
+  );
+  R('var m2 = { ail: {} }; addCw(m2, 10); addCw(m2, 15);');
+  const cw = [R('cwN(m2)')];
+  R('G.t += 4.1');
+  cw.push(R('cwN(m2)'));
+  const ent = Array.from({ length: 10 }, () => R("entropy('t', 20)")).filter(Boolean).length;
+  R('ST.farShot = 30; ST.nearShot = 0');
+  const far = [R('projDistMore(0)'), R('projDistMore(250)'), R('projDistMore(900)')];
+  R('ST.farShot = 0; ST.nearShot = 30');
+  const near = [R('projDistMore(0)'), R('projDistMore(150)'), R('projDistMore(300)')];
+  ok(
+    '暴擊弱點最多 20 層、4 秒；熵值每 5 次 +20 必定觸發 2 次／10 次；遠射、近射的更多照飛行距離',
+    cw.join() === '20,0' && ent === 2 && far.join() === '1,1.15,1.3' && near.join() === '1.3,1.15,1',
+    [cw, ent, far, near].join(' ')
+  );
+}
+/* 0.2.26 底層：地獄火、承受轉換、完美閃避判定時間、暴擊弱點上限 40 */
+{
+  const R = s => vm.runInContext(s, ctx);
+  R(`var esAbsorb = d => d, die = () => {};
+     G = { t: 0, mapT: 16, scene: 'map', mobs: [] };
+     S = { lv: 90, eq: {}, pt: [...PT_START], asc: 'hell', at: ['a_st', 'a_s1', 'a_pact', 'a_s3', 'a_lava'], auras: [], charms: [] };
+     ST = stats(S); P = { x: 0, y: 0, hp: ST.hp, es: 0, mp: ST.mp, hf: 0 };`);
+  const hm = R('ST.hfMax === ST.mp * 2');
+  R('hfGain(ST.hfMax * 0.6)');
+  const acc = R('P.hf / ST.hfMax');
+  R('G.t = 1.5; hfTick(1)');
+  const wait = R('P.hf / ST.hfMax');
+  R('G.t = 3; hfTick(1)');
+  const dec = R('P.hf / ST.hfMax');
+  R('P.hp = ST.hp; hfGain(ST.hfMax)');
+  const boom = [R('P.hf'), R('ST.hp - P.hp'), R("ST.hp * (1 - effRes('fire') / 100)")];
+  ok(
+    '地獄火：最大＝2 倍魔力、放技能累積、2 秒後每秒退 25%、滿了自爆（最大生命×（1−火抗））並清空',
+    hm &&
+      Math.abs(acc - 0.6) < 1e-9 &&
+      Math.abs(wait - 0.6) < 1e-9 &&
+      Math.abs(dec - 0.35) < 1e-9 &&
+      boom[0] === 0 &&
+      Math.abs(boom[1] - boom[2]) < 1e-6,
+    [hm, acc, wait, dec, boom].join(' ')
+  );
+  /* 熔岩之膚：承受的物理 20% 當作火焰（不閃避的一下，護甲 0） */
+  R('ST.armor = 0; P.evE = 0; P.ail = {}');
+  const lava = R("hurtCalc(100, null, 'phys', 1).d"),
+    want = R("80 + 20 * (1 - effRes('fire') / 100)");
+  ok('承受轉換：熔岩之膚的物理 20% 當火焰承受（吃火焰抗性）', Math.abs(lava - want) < 1e-6, lava + ' vs ' + want);
+  R("S.asc = 'shade'; S.at = ['a_st', 'a_s3', 'a_deadly', 'a_s4', 'a_hunt', 'a_s1', 'a_after']; ST = stats(S)");
+  const pw = [R('perfWin()'), R('ROLL.perfect')];
+  R('var m3 = { ail: {} }; addCw(m3, 30); addCw(m3, 30)');
+  const cw40 = R('cwN(m3)');
+  ok(
+    '殘影步：完美閃避判定 0.24 秒（預設 0.16）；弱點獵殺：暴擊弱點上限 40',
+    pw.join() === '0.24,0.16' && cw40 === 40,
+    pw + ' ' + cw40
+  );
+}
 process.exit(bad ? 1 : 0);

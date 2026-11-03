@@ -366,7 +366,50 @@ function stats(s = S) {
         'avatar',
         'mom',
         'noSelf',
-        'stand'
+        'stand',
+        /* 0.2.25 昇華（data.js 的 ASC；combat.js、mech.js、skills.js 讀） */
+        'gale',
+        'windWalk',
+        'farShot',
+        'nearShot',
+        'chain',
+        'falcon',
+        'bullseye',
+        'frenzyMs',
+        'mirageH',
+        'shArmMore',
+        'blockHalf',
+        'heavyShield',
+        'unmov',
+        'addArm',
+        'hsArm',
+        'armBreakArm',
+        'sacrifice',
+        'steelCycle',
+        'blockValP',
+        'hsP',
+        /* 0.2.26 地獄火、影舞者 */
+        'hellfire',
+        'boil',
+        'reborn',
+        'devour',
+        'hfFlam',
+        'shaper',
+        'igSpread',
+        'ember',
+        'fireExp',
+        'cvLF',
+        'physAsFire',
+        'perfWin',
+        'perfMore',
+        'rollBlind',
+        'powCritE',
+        'powCritX',
+        'cwHit',
+        'cwMax',
+        'reap',
+        'hexCoc',
+        'hexBurst'
       ].map(k => [k, 0])
     )
   };
@@ -458,6 +501,14 @@ function stats(s = S) {
       else put(k, n.s[k]);
     }
   }
+  /* 昇華（0.2.25）：小點的數值跟天賦一樣加；大點是開關或數值（only＝拿那種武器才生效） */
+  const AT = s.asc && ascNodes(s.asc);
+  for (const id of (AT && s.at) || []) {
+    const n = AT.I[id],
+      v = n && (n.fx || n.s);
+    if (!v || (v.only && v.only !== wt0)) continue;
+    for (const k in v) if (k !== 'only') k in pt ? (pt[k] += v[k]) : put(k, v[k]);
+  }
   /* 光環：照光環欄的順序預留精魄，精魄不夠的不生效 */
   o.spiritUsed = 0;
   o.auraOn = [];
@@ -488,6 +539,13 @@ function stats(s = S) {
   /* 天賦「持某武器時傷害」（0.2.17，15 種武器都有） */
   o.dmgA += o['w_' + o.wt] || 0;
   o.hp = Math.round(o.hp * (1 + pt.hpP / 100));
+  /* 盾的護甲（底材照品質＋盾上的護甲詞）：格擋值＝這個數（0.2.25）；鐵壁之盾讓它更多 100% */
+  const shI = off && offOK(w, off) && baseOf(off).k === 'shield' ? off : null,
+    shArm = shI
+      ? Math.round((baseOf(shI).b.armor || 0) * qMul(shI)) + shI.a.reduce((t, a) => t + (a.k === 'armor' ? a.v : 0), 0)
+      : 0;
+  o.armor += (shArm * o.shArmMore) / 100;
+  o.bv = Math.round(shArm * (1 + o.shArmMore / 100) * (1 + o.blockValP / 100) * (o.heavyShield ? 2 : 1));
   o.armor = Math.round(o.armor * (1 + pt.armorP / 100));
   o.ev = Math.round(o.ev * (1 + pt.evP / 100));
   /* 基石：鐵壁（閃避轉護甲）、不動如山（閃避歸零）、混沌免疫（生命 1、能量護盾更多 30%） */
@@ -527,7 +585,10 @@ function stats(s = S) {
   o.crit = Math.min(100, o.wcrit * (1 + o.critInc / 100));
   o.critM = 2 + o.critX / 100;
   o.block = Math.min(50, Math.round(o.block * (1 + pt.blockInc / 100)));
+  if (o.blockHalf && shI) o.block = Math.round(o.block / 2);
   for (const r of RESK) o.maxRes[r] = Math.min(MAXRES_CAP, RES_CAP + o.maxRes[r]);
+  /* 地獄火（0.2.26，炎魔契約）：最大魔力換成 2 倍的地獄火 */
+  o.hfMax = o.hellfire ? o.mp * 2 : 0;
   return o;
 }
 /* 平均每秒傷害（給比較用；攻擊、不算提高與目標防禦） */
