@@ -110,6 +110,11 @@ function migrate(s) {
     o.pt = [...PT_START];
     o.v = 15;
   }
+  /* 存檔 16（0.2.22）：天賦樹照 PoE2 的幹道＋口袋重做，點數全部退回 */
+  if (o.v < 16) {
+    o.pt = [...PT_START];
+    o.v = 16;
+  }
   /* 0.2.9：武器照 PoE2 的 18 種類別重做；舊底材換成同一族的新類別、最接近的階級（等級、稀有度、詞綴都保留） */
   const OLDW = {
     sword1: ['w_katana', 'w_moon', 'w_demon'],

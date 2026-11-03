@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 15,
+    v: 16,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -361,7 +361,7 @@ function spawnMob(D, x, y, pack, elite) {
     elite,
     r: D.r * e.sz,
     sz: D.sz * e.sz,
-    hp: D.hp * m.hp * e.hp * (1 + MM('mhp') / 100),
+    hp: D.hp * m.hp * e.hp * MOB_HP * (1 + MM('mhp') / 100),
     dmg: D.dmg * m.dmg * e.dmg * (1 + MM('mdmg') / 100),
     el: D.el || 'phys',
     st: 'idle',

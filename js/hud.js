@@ -404,7 +404,7 @@ function invHTML() {
       ? ''
       : `<div class="eqrow col"><div class="doll" style="width:${Math.round(320 * z)}px;height:${Math.round(232 * z)}px">${eqs}</div>
   <div class="st">
-    <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻速 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b></span>
+    <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻速 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b></span><span title="打同等級普通怪的命中率（法術一律命中）">命中 <b>${s.acc}</b>（${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%）</span>
     <span>生命 <b>${s.hp}</b></span>${s.es ? `<span>能量護盾 <b>${s.es}</b></span>` : ''}<span>護甲 <b>${s.armor}</b></span>${s.ev ? `<span>閃避 <b>${s.ev}</b></span>` : ''}<span>格擋 <b>${s.block}%</b></span><span>精魄 <b>${s.spiritUsed}/${s.spirit}</b></span>
     ${res}
   </div></div>`

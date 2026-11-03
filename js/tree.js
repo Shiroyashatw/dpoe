@@ -155,7 +155,7 @@ function treeChanged() {
 }
 const statLines = s =>
   Object.entries(s).map(([k, v]) =>
-    k === 'blood' ? STATN[k][0] : `${STATN[k][0]} ${v > 0 ? '+' : ''}${v}${STATN[k][1]}`
+    STATN[k][2] ? STATN[k][0] : `${STATN[k][0]} ${v > 0 ? '+' : ''}${v}${STATN[k][1]}`
   );
 function treeTip(id) {
   const n = PTREE.I[id];

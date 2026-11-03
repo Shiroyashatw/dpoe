@@ -112,7 +112,7 @@ const BUILDS = {
     sk: 'slash'
   }
 };
-console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗');
+console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗 命中');
 for (const L of [30, 60, 90]) {
   const t = Math.min(16, Math.max(1, Math.round(((L - 5) * 15) / 78) + 1));
   for (const [bn, B] of Object.entries(BUILDS)) {
@@ -143,7 +143,7 @@ for (const L of [30, 60, 90]) {
         boss: 1,
         x: 100,
         y: 0,
-        hp: bossD.hp * tm.hp * R('bossHpMul')(t),
+        hp: bossD.hp * tm.hp * R('bossHpMul')(t) * R('MOB_HP'),
         el: bossD.el || 'phys',
         ail: {}
       };
@@ -156,7 +156,9 @@ for (const L of [30, 60, 90]) {
     const hit = sum / N,
       spell = R('isSpell')(D),
       rate = spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
-      dps = hit * rate * (D.cnt || 1),
+      /* 0.2.22：攻擊要乘命中率（法術一律命中） */
+      hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
+      dps = hit * rate * (D.cnt || 1) * hc,
       hitDmg = bossD.dmg * tm.dmg * R('BOSS_DMG') * 1.4,
       ehp = ST.hp + ST.es,
       fire = R(`ST.res.fire`) && R(`effRes('fire')`),
@@ -173,7 +175,10 @@ for (const L of [30, 60, 90]) {
         `${Math.round((fireHit / ehp) * 100)}%/${Math.round((physHit / ehp) * 100)}%`.padStart(12),
         String(ehp).padStart(6),
         (Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1)) * 100).toFixed(0).padStart(7) + '%',
-        String(R(`effRes('fire')`)).padStart(4) + '%'
+        String(R(`effRes('fire')`)).padStart(4) + '%',
+        Math.round(hc * 100)
+          .toString()
+          .padStart(4) + '%'
       ].join(' ')
     );
     void fire;
@@ -189,7 +194,20 @@ for (const L of [30, 60, 90]) {
           critX: ST.critX,
           inc: ST.dmgA + ST.atkP + ST.meleeP + ST.physP,
           spellInc: ST.spellP + ST.eleP + ST.fireP,
-          gemMult: +c.mult.toFixed(2)
+          gemMult: +c.mult.toFixed(2),
+          /* 天賦樹本身：點了幾個大點／小點／過路點，各數值合計 */
+          tree: (() => {
+            const I = R('PTREE').I,
+              n = S.pt.map(id => I[id]).filter(x => !x.gate),
+              sum = {};
+            for (const x of n) for (const k in x.s) sum[k] = (sum[k] || 0) + x.s[k];
+            return {
+              大: n.filter(x => x.big).length,
+              小: n.filter(x => !x.big && x.th).length,
+              過路: n.filter(x => !x.th).length,
+              ...sum
+            };
+          })()
         })
       );
   }

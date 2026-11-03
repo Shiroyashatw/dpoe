@@ -26,12 +26,29 @@ function xpMul(plv, mlv) {
 /* 王的生命、傷害倍率（0.2.7，dmg_check 驗收：第 16 階的王一般配裝 30～60 秒、大招最多打掉 40% 生命） */
 const bossHpMul = t => 1 + 0.8 * t,
   BOSS_DMG = 1.8;
+/* 0.2.22：天賦回到 PoE2 的量級（全押傷害約 +900%），怪物與王的生命 ×2（護甲、異常門檻不跟著變） */
+const MOB_HP = 2;
 
 /* ---------- 異常門檻：同等級普通怪的基礎生命（照 PoE2 只看等級，不吃稀有度） ---------- */
 const ailThr = t => 30 * tierMul(t).hp;
 /* 稀有度對減益的抵抗（冰緩、詛咒、曝露）：菁英當稀有 30%、王當傳奇 50% */
 const rarRed = m => (m.boss ? 0.5 : m.elite ? 0.3 : 0);
 const ELEK = ['fire', 'cold', 'light'];
+
+/* ---------- 命中（0.2.22，照 PoE2）：命中率 = 1.25 × 命中 ÷（命中 ＋ 0.3 × 閃避），5%～100%；用熵值不擲骰 ---------- */
+const hitChance = (acc, ev) => Math.max(0.05, Math.min(1, (1.25 * acc) / (acc + 0.3 * ev)));
+/* 怪物閃避：同等級、沒投資命中（基礎 30＋每級 6）時，普通怪約 85%、菁英 80%、王 75% */
+const mobEv = (lv, m) => 6 * lv * (m && m.boss ? 2.22 : m && m.elite ? 1.9 : 1.57);
+/* 玩家的攻擊打不打得中：法術、召喚物、場上單位、持續傷害一律命中；基石「堅定技巧」必中 */
+function hitRoll(m, c, o = {}) {
+  if (ST.noMiss || o.minion || o.unit || isSpell(c.D) || !m.ev) return true;
+  const ch = hitChance(ST.acc * (P.ail && P.ail.blind > G.t ? 0.8 : 1), m.ev);
+  if (m.evE == null) m.evE = Math.random() * 100;
+  m.evE += ch * 100;
+  if (m.evE < 100) return false;
+  m.evE -= 100;
+  return true;
+}
 
 /* ---------- 怪物的防禦（spawnMob 呼叫） ---------- */
 function mobDef(m, t) {
@@ -43,6 +60,7 @@ function mobDef(m, t) {
   m.arm0 = m.arm = (m.boss ? 0.1 : m.D.arm || 0.3) * m.D.hp * tierMul(t).hp * (m.elite ? ELITE.hp : 1) * 0.5;
   m.arm0 = m.arm *= 1 + MM('marm') / 100;
   m.acc = (15 + 6 * mobLv(t)) * (1 + MM('macc') / 100);
+  m.ev = mobEv(mobLv(t), m);
   m.spdM = 1 + MM('mspd') / 100;
   m.ail = {};
 }
@@ -155,8 +173,8 @@ function hitCalc(c, m, o = {}) {
   /* 暴擊：基礎（攻擊看武器、法術看寶石）×（1＋提高）；易碎直接加；暴擊傷害加成基礎 +100% */
   const base = spell ? D.crit || 7 : D.shield ? 5 : ST.wcrit,
     brit = m && m.ail && m.ail.brittle && m.ail.brittle.t > G.t ? m.ail.brittle.v : 0,
-    chance = Math.min(100, base * (1 + (ST.critInc + (c.critInc || 0)) / 100) + brit);
-  const crit = !!(o.crit || P.critNext || Math.random() * 100 < chance);
+    chance = ST.noCrit ? 0 : Math.min(100, base * (1 + (ST.critInc + (c.critInc || 0)) / 100) + brit);
+  const crit = !ST.noCrit && !!(o.crit || P.critNext || Math.random() * 100 < chance);
   if (crit) {
     const cm = 1 + (100 + ST.critX + (c.critX || 0) + (P.critNext ? 50 : 0)) / 100;
     for (const k of DT) pre[k] *= cm;
@@ -455,7 +473,7 @@ function hurtCalc(d, src, el, noEv) {
   /* 閃避：熵值（累積命中率到 100 才算打中），王的紅光大招（noEv）躲不掉 */
   if (!noEv) {
     const acc = (m ? m.acc : 15 + 6 * mobLv(G.mapT || 1)) * (m && m.ail.blind > G.t ? 0.8 : 1),
-      hitCh = Math.max(0.05, Math.min(1, (1.25 * acc) / (acc + 0.3 * ST.ev)));
+      hitCh = hitChance(acc, ST.ev);
     if (P.evE == null) P.evE = Math.random() * 100;
     P.evE += hitCh * 100;
     if (P.evE < 100) return { ev: 1 };

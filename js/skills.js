@@ -616,6 +616,9 @@ function hitMob(m, c, ang, kb, o = {}) {
   const a = o.a || {};
   let mult = (o.mult ? o.mult / (c.mult || 1) : 1) * (a.mul || 1),
     crit = !!(a.crit || o.crit);
+  /* 0.2.22：攻擊可能被閃避（熵值，combat.js 的 hitRoll） */
+  if (!hitRoll(m, c, { minion: o.minion, unit: a.unit }))
+    return num(m.x, m.y - m.sz, 0, 'miss', '未命中'), aggroPack(m);
   const r = hitCalc(c, m, { mult, crit, minion: o.minion, unit: a.unit });
   applyAil(m, r, c);
   if (c.k === 'axethrow' && hasState(m, 'bleed')) fxs('bleed', m.x, m.y - m.sz * 0.5, 30);

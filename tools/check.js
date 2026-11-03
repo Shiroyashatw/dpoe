@@ -201,51 +201,96 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
   ok('天賦樹的點沒有疊在一起', !close, close + ' 組');
 }
 {
-  /* 0.2.17 結構驗收（開發參考 §2）：同主題相連的點（過路點切斷）平均 ≤ 3、最多 12；同主題的叢集至少隔 3 步；
-     12 個基石各只連 1 條線；15 種武器都有專精叢集 */
+  /* 0.2.22 結構驗收（docs/PoE天賦結構.md 5.6）：叢集大小、死路比例、大點在最裡面、同一條詞連續塊、
+     同主題叢集的距離、起點到大點的步數、幹道是十字路口；12 個基石各只連 1 條線、15 種武器都有專精、大點全部手寫 */
   const T = G.PTREE,
     TH = vm.runInContext('PT_THEME', ctx),
+    A = T.ADJ,
     cid = n => (/^k\d/.test(n.id) ? n.id.split('_')[0] : null),
+    bfs = src => {
+      const d = {},
+        q = [...src];
+      src.forEach(s => (d[s] = 0));
+      for (let h = 0; h < q.length; h++)
+        for (const b of A[q[h]] || []) if (d[b] === undefined) (d[b] = d[q[h]] + 1), q.push(b);
+      return d;
+    },
+    D = bfs(G.PT_START),
+    C = {};
+  for (const n of T.N) if (cid(n)) (C[cid(n)] = C[cid(n)] || []).push(n);
+  const cl = Object.keys(C),
+    nts = T.N.filter(n => n.big === 1 && !n.gate);
+  let sm = 0,
+    dead = 0,
+    far = 0;
+  for (const c of cl) {
+    const ns = C[c],
+      set = new Set(ns.map(n => n.id)),
+      ent = ns.filter(n => A[n.id].some(b => !set.has(b))).length,
+      maxS = Math.max(...ns.filter(n => !n.big).map(n => D[n.id]));
+    sm += ns.filter(n => !n.big).length;
+    if (ent === 1) dead++;
+    far += ns.filter(n => n.big && D[n.id] >= maxS).length;
+  }
+  /* 連續塊照「詞」算：同主題但不同詞（副詞）、轉折大點（tt）都會切斷 */
+  const tag = n => n.tt ?? (n.big ? n.th : n.th + ':' + Object.keys(n.s)[0]),
     seen = new Set(),
     runs = [];
   for (const n of T.N) {
-    if (seen.has(n.id) || !cid(n) || !n.th) continue;
-    let c = 0;
+    if (seen.has(n.id) || !cid(n)) continue;
+    let k = 0;
     const q = [n.id];
     seen.add(n.id);
     while (q.length) {
-      c++;
-      for (const b of T.ADJ[q.pop()] || [])
-        if (!seen.has(b) && cid(T.I[b]) && T.I[b].th === n.th) seen.add(b), q.push(b);
+      k++;
+      for (const b of A[q.pop()]) if (!seen.has(b) && cid(T.I[b]) && tag(T.I[b]) === tag(n)) seen.add(b), q.push(b);
     }
-    runs.push(c);
+    runs.push(k);
   }
-  const avg = runs.reduce((a, b) => a + b, 0) / runs.length,
-    cl = {};
-  for (const n of T.N) if (cid(n) && n.th) cl[cid(n)] = n.th;
-  let near = 0;
-  for (const c in cl) {
-    const d = {},
-      q = T.N.filter(n => cid(n) === c).map(n => n.id);
-    q.forEach(i => (d[i] = 0));
-    for (let h = 0; h < q.length; h++)
-      for (const b of T.ADJ[q[h]] || []) {
-        if (d[b] !== undefined || d[q[h]] >= 2) continue;
-        d[b] = d[q[h]] + 1;
-        const cb = cid(T.I[b]);
-        if (cb && cb !== c && cl[cb] === cl[c] && T.I[b].th) near++;
-        q.push(b);
-      }
+  runs.sort((x, y) => x - y);
+  const avg = a => a.reduce((x, y) => x + y, 0) / a.length,
+    thC = c => C[c][0].th,
+    nearS = [];
+  for (const c of cl) {
+    const d = bfs(C[c].map(n => n.id));
+    let best = 1e9;
+    for (const o of cl) if (o !== c && thC(o) === thC(c)) for (const n of C[o]) best = Math.min(best, d[n.id]);
+    if (best < 1e9) nearS.push(best);
   }
-  const ks = T.N.filter(n => n.big === 2),
-    wp = TH.filter(t => t.wp && !Object.values(cl).includes(TH.indexOf(t))).map(t => t.n);
+  const nd = nts.map(n => D[n.id]).sort((x, y) => x - y),
+    vd = T.N.filter(n => /^v\d/.test(n.id)).map(n => A[n.id].length),
+    ks = T.N.filter(n => n.big === 2),
+    wp = TH.filter((t, i) => t.wp && !cl.some(c => thC(c) === i)).map(t => t.n),
+    auto = nts.filter(n => n.auto).length;
   ok(
-    `天賦樹同主題相連的點：平均 ${avg.toFixed(2)}、最多 ${Math.max(...runs)}（≤ 3、≤ 12）`,
-    avg <= 3 && Math.max(...runs) <= 12
+    `天賦樹 ${cl.length} 個叢集，平均 ${(sm / cl.length).toFixed(2)} 小＋${(nts.length / cl.length).toFixed(2)} 大（3～4.2、1.3～1.5）`,
+    sm / cl.length >= 3 && sm / cl.length <= 4.2 && nts.length / cl.length >= 1.3 && nts.length / cl.length <= 1.5
   );
-  ok('同主題的叢集至少隔 3 步', !near, near + ' 處');
-  ok('12 個基石、各只連 1 條線', ks.length === 12 && ks.every(n => T.ADJ[n.id].length === 1), ks.length);
+  ok(
+    `死路叢集 ${Math.round((100 * dead) / cl.length)}%（55～70%）`,
+    dead / cl.length >= 0.55 && dead / cl.length <= 0.7
+  );
+  ok(`大點在叢集最裡面 ${Math.round((100 * far) / nts.length)}%（≥ 75%）`, far / nts.length >= 0.75);
+  ok(
+    `同一條詞連續塊：平均 ${avg(runs).toFixed(2)}、90% ${runs[Math.floor(runs.length * 0.9)]}、最多 ${runs.at(-1)}（≤ 3、≤ 6、≤ 12）`,
+    avg(runs) <= 3 && runs[Math.floor(runs.length * 0.9)] <= 6 && runs.at(-1) <= 12
+  );
+  ok(
+    `到最近的同主題叢集平均 ${avg(nearS).toFixed(1)} 步、2 步內 ${nearS.filter(x => x <= 2).length} 個（≥ 5、≤ 15%）`,
+    avg(nearS) >= 5 && nearS.filter(x => x <= 2).length <= nearS.length * 0.15
+  );
+  ok(
+    `起點到大點：最近 ${nd[0]}、第 10 近 ${nd[9]}、最遠 ${nd.at(-1)} 步（4～5、≤ 10、≤ 24）`,
+    nd[0] >= 4 && nd[0] <= 5 && nd[9] <= 10 && nd.at(-1) <= 24
+  );
+  ok(`幹道頂點平均連 ${avg(vd).toFixed(1)} 條（4～6）`, avg(vd) >= 4 && avg(vd) <= 6);
+  ok('12 個基石、各只連 1 條線', ks.length === 12 && ks.every(n => A[n.id].length === 1), ks.length);
   ok('15 種武器都有專精叢集', !wp.length, wp.join(','));
+  ok(
+    `大點全部手寫（${nts.length} 個，名字不重複）`,
+    !auto && new Set(nts.map(n => n.n)).size === nts.length,
+    `${auto} 個是產生的`
+  );
 }
 {
   const full = { lv: 100, eq: {}, pt: G.PTREE.N.map(n => n.id) },

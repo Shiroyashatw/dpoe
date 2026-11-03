@@ -385,6 +385,7 @@ function draw() {
       lv: ['#ffd166', 26],
       perfect: ['#8fe0ff', 26],
       ev: ['#b8f0c8', 18],
+      miss: ['#9aa3ad', 14],
       mat: ['#d6b8ff', 15],
       /* 持續傷害：小、淡，跟擊中分開 */
       dot: ['#c9a3a3', 12]

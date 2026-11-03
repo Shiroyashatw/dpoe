@@ -333,6 +333,10 @@ function stats(s = S) {
     farP: 0,
     killHeal: 0,
     ev: 0,
+    acc: 0,
+    accP: 0,
+    noMiss: 0,
+    noCrit: 0,
     spellLv: 0,
     castP: 0
   };
@@ -453,6 +457,8 @@ function stats(s = S) {
   o.hp = Math.round(o.hp * (1 + pt.hpP / 100));
   o.armor = Math.round(o.armor * (1 + pt.armorP / 100));
   o.ev = Math.round(o.ev * (1 + pt.evP / 100));
+  /* 命中（0.2.22）：基礎 30 ＋ 每級 6 ＋ 裝備、天賦的命中值，再乘提高（Lv1 打第 1 階的 Lv5 怪約 90%） */
+  o.acc = Math.round((30 + 6 * lv + o.acc) * (1 + o.accP / 100));
   o.mp = Math.round(o.mp * (1 + pt.mpP / 100));
   o.mpReg = HERO.mpReg * (1 + pt.mpReg / 100);
   o.cdr = Math.min(60, pt.cdr);
