@@ -244,7 +244,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 
 /* ---------- 0.2.4 手機操作（body.touch 才生效；桌機為主、手機為輔，規則見企劃書「操作模式」） ---------- */
 html { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
-button, .sk, .it { touch-action: manipulation; }
+button, .sk { touch-action: manipulation; }
+/* 道具要能拖：不能讓瀏覽器拿去捲動（manipulation 會讓拖曳變成 pointercancel） */
+.it { touch-action: none; }
 .tonly, #stick, .tmenu, #rot { display: none; }
 body.touch #cv, body.touch #hud .sk { touch-action: none; }
 body.touch .sk kbd { display: none; }
@@ -562,6 +564,16 @@ body.touch .dmenu { display: none; }
 .keyl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 8px 0 4px; }
 .keyl dt { font-weight: 700; color: var(--title); white-space: nowrap; }
 .keyl dd { margin: 0; color: var(--tx); }
+/* 帳號：輸入框 16px（iPhone 小於 16px 會放大頁面） */
+.acct { display: grid; gap: 8px; margin: 4px 0 12px; }
+.acct .seg2 { display: grid; gap: 8px; }
+.acct.row { grid-template-columns: 1fr auto; align-items: center; }
+.acem { color: var(--title); overflow-wrap: anywhere; }
+.inp { font: 16px var(--font); color: var(--tx); background: linear-gradient(180deg, #120e0b, #1a140f); border: 1px solid var(--line); border-radius: 2px; padding: 10px 12px; min-height: 44px; width: 100%; box-sizing: border-box; }
+.inp:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
+.btn.lnk { justify-self: start; min-height: 44px; background: none; border-color: transparent; color: var(--dim); text-decoration: underline; }
+.acct + .sethint { margin-top: -4px; }
+.sethint.c-bad { color: var(--bad); }
 
 /* 手機共用：血、魔力改成長條（球收起來）；「互動」只在附近有東西時出現；右上 ☰ 選單 */
 .bars { display: none; }

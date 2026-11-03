@@ -275,8 +275,26 @@ function setHTML() {
       ? `<div class="ph2">操作方向</div><div class="gkind seg2"><button class="btn ${p ? 'on' : ''}" data-tm="port">直立</button><button class="btn ${p ? '' : 'on'}" data-tm="land">橫向</button></div><p class="sethint">直立單手就能玩；橫向要兩手，看得比較寬</p>`
       : ''
   }
+  ${acctHTML()}
   <div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
   <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>`;
+}
+/* 帳號：訪客 → 信箱＋密碼、註冊／登入；登入後顯示信箱、登出；點重設密碼信回來 → 設定新密碼 */
+function acctHTML() {
+  if (typeof CLOUD === 'undefined') return '';
+  const dis = AUTH.busy ? ' disabled' : '',
+    msg = AUTH.msg ? `<p class="sethint${AUTH.err ? ' c-bad' : ''}" role="status">${esc(AUTH.msg)}</p>` : '',
+    pw = (ph, ac) =>
+      `<input class="inp" id="apw" type="password" placeholder="${ph}" autocomplete="${ac}" value="${esc(AUTH.pw)}" aria-label="密碼">`;
+  const body = AUTH.recovery
+    ? `<div class="acct">${pw('新密碼（至少 6 個字）', 'new-password')}<button class="btn pri" data-ac="newpw"${dis}>設定新密碼</button></div>`
+    : CLOUD.anon
+      ? `<p class="sethint">訪客的存檔只在這台裝置；用信箱註冊後，換手機或清除網站資料都能登回來</p>
+    <div class="acct"><input class="inp" id="aem" type="email" placeholder="信箱" autocomplete="email" value="${esc(AUTH.em)}" aria-label="信箱">${pw('密碼（至少 6 個字）', 'current-password')}
+    <div class="seg2 g2"><button class="btn pri" data-ac="register"${dis}>註冊</button><button class="btn" data-ac="login"${dis}>登入</button></div>
+    <button class="btn mini lnk" data-ac="reset"${dis}>忘記密碼</button></div>`
+      : `<div class="acct row"><span class="acem">${esc(CLOUD.email || '')}</span><button class="btn" data-ac="logout"${dis}>登出</button></div>`;
+  return `<div class="ph2">帳號<span>${CLOUD.anon ? '訪客' : '已登入'} · ${esc(CLOUD.status)}</span></div>${body}${msg}`;
 }
 /* 直立：背包以外的面板（倉庫、寶石、鍛造）疊在背包上面，上方分頁切換 */
 function portTabs() {
@@ -296,7 +314,16 @@ function portTabs() {
 function hudPanels() {
   if (!S) return;
   $('pset').hidden = !PANEL.set;
-  if (PANEL.set) $('pset').innerHTML = setHTML();
+  /* 正在輸入帳密時不重畫（撿東西等事件會重畫面板，焦點和輸入法會被打斷） */
+  if (
+    PANEL.set &&
+    !(
+      document.activeElement &&
+      document.activeElement.tagName === 'INPUT' &&
+      $('pset').contains(document.activeElement)
+    )
+  )
+    $('pset').innerHTML = setHTML();
   $('ptabs').hidden = !(PORT() && PANEL.inv && !PANEL.gem);
   if (!$('ptabs').hidden) $('ptabs').innerHTML = portTabs();
   document.body.classList.toggle('pair', !!(PANEL.inv && (PANEL.stash || PANEL.skill || PANEL.craft)));
@@ -480,8 +507,7 @@ function skActTip(kind, i, el) {
           : ''
       }${g.so < GEM_SO_MAX ? btn('dri:' + i, `開孔（${DRILLS[dr.k]}）`, dr.why) : ''}</div>${up.why ? `<p class="hint">升級：${esc(up.why)}</p>` : ''}`;
   }
-  const r = el.getBoundingClientRect();
-  showTip(html, r.right, r.top + r.height / 2);
+  showTip(html, el.getBoundingClientRect());
   $('tip').classList.add('act');
 }
 document.addEventListener('click', e => {
@@ -906,11 +932,12 @@ function markTarget() {
 function dragEnd(e) {
   if (!DR) return;
   const d = DR,
-    t = d.moved && dropTarget(e);
+    cancel = e.type === 'pointercancel',
+    t = d.moved && !cancel && dropTarget(e);
   DR = null;
   if (d.ghost) d.ghost.remove();
   document.querySelectorAll('.hl').forEach(n => n.remove());
-  if (!d.moved) return TOUCH.on ? tapItem(d) : quickMove(d.src, d.it, d.eqk);
+  if (!d.moved) return cancel ? null : TOUCH.on ? tapItem(d) : quickMove(d.src, d.it, d.eqk);
   if (!t || (t.k !== 'sell' && !t.ok)) return hudPanels();
   if (t.k === 'sell') return G.scene === 'hide' ? sell(d.src, d.it, d.eqk) : hudPanels();
   takeOut(d.src, d.it, d.eqk);
@@ -1014,15 +1041,34 @@ function itemTip(it, cmp) {
   html += `<p class="hint">${G.scene === 'hide' ? '賣價 ' + sellPrice(it) + ' 金' : ''}</p>`;
   return html;
 }
-function showTip(html, x, y) {
-  const t = $('tip');
+/* 說明框貼在 a（被點或滑過的東西的方框）旁邊：右 → 左 → 下 → 上，第一個放得下的；
+   都放不下就放上下比較寬的那邊、縮短高度（裡面可以捲），永遠不蓋住 a */
+function showTip(html, a) {
+  const t = $('tip'),
+    M = 8,
+    G = 8;
   t.innerHTML = html;
+  t.style.maxHeight = '';
   t.hidden = false;
-  const r = t.getBoundingClientRect();
-  let left = x + 16;
-  if (left + r.width > innerWidth - 8) left = x - r.width - 56;
-  t.style.left = Math.max(8, left) + 'px';
-  t.style.top = Math.max(8, Math.min(innerHeight - r.height - 8, y - r.height / 2)) + 'px';
+  const { width: w, height: h } = t.getBoundingClientRect(),
+    W = innerWidth,
+    H = innerHeight,
+    cx = clamp((a.left + a.right) / 2 - w / 2, M, W - w - M),
+    cy = clamp((a.top + a.bottom) / 2 - h / 2, M, H - h - M),
+    up = a.top - G - M,
+    dn = H - a.bottom - G - M;
+  let x, y;
+  if (a.right + G + w <= W - M) (x = a.right + G), (y = cy);
+  else if (a.left - G - w >= M) (x = a.left - G - w), (y = cy);
+  else if (h <= dn) (x = cx), (y = a.bottom + G);
+  else if (h <= up) (x = cx), (y = a.top - G - h);
+  else {
+    t.style.maxHeight = Math.max(up, dn) + 'px';
+    x = cx;
+    y = dn >= up ? a.bottom + G : M;
+  }
+  t.style.left = x + 'px';
+  t.style.top = y + 'px';
 }
 function hideTip() {
   $('tip').hidden = true;
@@ -1094,6 +1140,8 @@ function inputInit() {
     if (e.button === 2) M.R = 0;
     dragEnd(e);
   });
+  /* 系統把觸控拿走（來電、手勢）：放回原位，不留殘影 */
+  addEventListener('pointercancel', dragEnd);
   addEventListener('pointermove', dragMove);
   addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('pointerdown', e => {
@@ -1123,10 +1171,9 @@ function inputInit() {
     const s = e.target.closest('.it[data-id],[data-tip]');
     if (!s) return hideTip();
     const r = s.getBoundingClientRect();
-    if (s.dataset.tip)
-      return showTip(`<p class="sktip">${esc(s.dataset.tip).replace(/\n/g, '<br>')}</p>`, r.right - 30, r.top - 40);
+    if (s.dataset.tip) return showTip(`<p class="sktip">${esc(s.dataset.tip).replace(/\n/g, '<br>')}</p>`, r);
     const it = findItem(s.dataset.src, s.dataset.id, s.dataset.eqk);
-    if (it) showTip(itemTip(it, !isSlot(s.dataset.src)), r.right, r.top + r.height / 2);
+    if (it) showTip(itemTip(it, !isSlot(s.dataset.src)), r);
   });
 }
 /* 滑鼠底下的藏身處物件 */

@@ -42,7 +42,7 @@
 | `js/render.js` | canvas 畫面 `draw`：藏身處 `drawHideout`、互動提示 `drawPrompts`、預警、怪物、主角（`img/hero.png` 九列動作的 `heroCell`、技能對應動作 `ACT_ROW`、方向 `dirCol`）、特效、跳數字、掉落標籤 `LABELS`（手機避開技能鍵 `touchRects`）、光照、小地圖、古銅框 `bronzeRect` |
 | `js/biome.js` | 地圖場景（0.2.14，只有外觀、不影響戰鬥）：`BIOMES`（冰雪洞窟、岩漿地城、毒沼古墓、廢棄廟宇；`G.biome` 在 `enterMap` 隨機，藏身處固定廟宇）、地板花紋 `bFloor`、地上細節 `bDecals`、牆 `bWalls`、藏身處後牆 `bHideWall`、擺設 `decorate`／`hideDeco`／`bDeco`（`G.deco`，不擋路）、光源 `bLights`（暗層挖亮）／`bGlow`。房間形狀（圓形庭院、切角、崩塌，會擋路）在 game.js 的 `roomShape` |
 | `js/hud.js` | HUD（生命／魔力球、技能列 `BAR`／`hudBar`、王血條、首領進度條）、面板 `openPanel`／`hudPanels`（裝備 `invHTML`、倉庫、地圖台 `devHTML`、技能寶石與光環欄 `skillHTML`）、欄位 `slotGet`／`slotSet`／`slotFits`（裝備欄與寶石插槽）、拖曳 `dragStart`／`dragMove`／`dropTarget`／`dragEnd`、點一下搬移 `quickMove`、賣 `sell`、說明框 `itemTip`／`gemTip`、死亡與傳送門選單 `hudState`、輸入 `inputInit`、動作 `act` |
-| `js/cloud.js` | Supabase 匿名登入＋雲端存檔（表 `dungeon_saves`） |
+| `js/cloud.js` | Supabase 匿名登入＋雲端存檔（表 `dungeon_saves`）、0.2.19 信箱帳號 `AUTH`／`authDo`（註冊 `authRegister`、登入 `authLogin`（換成帳號的存檔，`main.js` 的 `useSave`）、登出、忘記密碼 `authReset`／`authNewPw`；面板在 hud.js 的 `acctHTML`） |
 | `js/market.js` | 0.1 的市集（還沒接回 0.2，`index.html` 沒有載入） |
 | `js/main.js` | `load`／`save`／`migrate`／`start` |
 | `tools/check.js` | 固定檢查（含底材三層的範圍、雙手與箭袋規則、每種武器的數值不是 NaN） |

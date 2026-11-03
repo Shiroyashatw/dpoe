@@ -169,6 +169,13 @@ function resize() {
   CV.width = Math.round(innerWidth * DPR);
   CV.height = Math.round(innerHeight * DPR);
 }
+/* 換成另一份存檔（雲端較新、登入帳號）：回藏身處重來 */
+function useSave(r) {
+  S = migrate(r);
+  enterHideout();
+  applyOrient();
+  save();
+}
 function start() {
   CV = $('cv');
   CX = CV.getContext('2d');
@@ -183,10 +190,7 @@ function start() {
   touchInit();
   cloudInit().then(remote => {
     if (remote && remote.v >= 10 && (remote.savedAt || 0) > (S.savedAt || 0)) {
-      S = migrate(remote);
-      enterHideout();
-      applyOrient();
-      save();
+      useSave(remote);
       hudWarn('已從雲端載入存檔');
     } else cloudPush();
   });
