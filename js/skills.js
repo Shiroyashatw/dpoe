@@ -298,7 +298,7 @@ function actHit(a, idx) {
   } else if (a.k === 'quake') {
     fx({ k: 'quake', x: P.x, y: P.y, ang: a.ang, r: R, arc: D.arc, dur: 0.35 });
     fxs('slam', P.x + Math.cos(a.ang) * R * 0.5, P.y + Math.sin(a.ang) * R * 0.5, R * 0.6);
-    shake(0.3);
+    shake(0.1);
     sfx('slam');
     hitArc(a.ang, D.arc, R, 120 * c.kb, { stun: D.stun });
     const cx = P.x + Math.cos(a.ang) * R * 0.55,
@@ -307,7 +307,6 @@ function actHit(a, idx) {
   } else if (a.k === 'whirl') {
     fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.28 });
     fxs('spin', P.x, P.y - 10, R);
-    shake(0.25);
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) hitMob(m, c, angTo(P, m), 320 * c.kb, { a });
   } else if (a.k === 'nova') {
     /* 灌注：火＝範圍 ×1.5＋燃燒地面，冰＝冰緩地面（觸發、幻影施放的不吃灌注） */
@@ -316,7 +315,6 @@ function actHit(a, idx) {
       R2 = R * (fire ? 1.5 : 1);
     fx({ k: 'ring', x: P.x, y: P.y, r: R2, dur: 0.32, col: '#ff8a4c' });
     fxs('firering', P.x, P.y, R2);
-    shake(0.2);
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R2 + m.r) hitMob(m, c, angTo(P, m), 140 * c.kb, { a });
     if (fire) addGround({ k: 'fire', x: P.x, y: P.y, r: R2, dur: 4, c, dps: 0.3 });
     if (cold) addGround({ k: 'chill', x: P.x, y: P.y, r: R2, dur: 4 }), fxs('frost', P.x, P.y, R2);
@@ -379,7 +377,7 @@ function actHit2(a, idx, R, hitArc) {
   } else if (a.k === 'shieldcrush') {
     /* 盾牌粉碎：前方扇形；瀕臨重暈的碾壓（直接重暈），並震傷碾壓那隻周圍的怪 */
     fxs('blunt', P.x + cos * R * 0.5, P.y + sin * R * 0.5 - 10, R * 0.7);
-    shake(0.25);
+    shake(0.1);
     sfx('slam');
     for (const m of G.mobs) {
       const dd = dist(P, m);
@@ -413,7 +411,6 @@ function actHit2(a, idx, R, hitArc) {
     }
   } else if (a.k === 'cleave') {
     fxs('cleave', P.x + cos * R * 0.5, P.y + sin * R * 0.5, R * 0.6);
-    shake(0.3);
     sfx('slam');
     hitArc(a.ang, D.arc, R, 200 * c.kb);
   } else if (a.k === 'warcry') {
@@ -422,7 +419,6 @@ function actHit2(a, idx, R, hitArc) {
     fxs('rage', P.x, P.y - 30, 40);
     fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#ff6b3d' });
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) m.ail.intim = G.t + 4;
-    shake(0.2);
   } else if (a.k === 'smash') {
     /* 重擊：打前方最近的一隻；瀕臨重暈就碾壓（直接重暈）並震傷周圍 */
     let t = null,
@@ -437,14 +433,14 @@ function actHit2(a, idx, R, hitArc) {
     hitMob(t, c, a.ang, 200 * c.kb, { a });
     if (crushed) {
       fxs('hammer', t.x, t.y, 90);
-      shake(0.35);
+      shake(0.1);
       for (const o of G.mobs)
         if (o.hp > 0 && o !== t && dist(o, t) < 120 + o.r)
           hitMob(o, c, angTo(t, o), 260, { a, quiet: 1, mult: c.mult * 0.5, from: t });
     } else fxs('blunt', t.x, t.y - t.sz * 0.3, 45);
   } else if (a.k === 'leap' || a.k === 'blindpounce') {
     /* 落地：範圍攻擊；跳砸留碎裂地面，盲擊撲致盲（c.blind） */
-    shake(0.3);
+    shake(0.1);
     sfx('slam');
     if (a.k === 'leap') {
       fxs('landing', P.x, P.y, R);
@@ -466,7 +462,6 @@ function actHit2(a, idx, R, hitArc) {
           hitMob(m, c, a.ang, 100 * c.kb, { a, from: { x, y }, mult: takeState(m, 'broken') ? c.mult * 2 : 0 });
         }
     }
-    shake(0.25);
   } else if (a.k === 'thunder') {
     /* 每顆暴擊球多劈一道；連擊數 5 以上全部花掉換範圍 ×1.5 */
     const n = 1 + useChg('p'),
@@ -479,7 +474,6 @@ function actHit2(a, idx, R, hitArc) {
       fxs('strike', x, y, r);
       around(x, y, r, 80);
     }
-    shake(0.25);
     sfx('slam');
   } else if (a.k === 'spearthrow') {
     /* 每顆狂怒球多一根，多的擊中時爆炸 */
@@ -531,7 +525,6 @@ function actHit2(a, idx, R, hitArc) {
     const r = R * ST.aoeM * c.aoe,
       d = cp.mhp * 0.1 * (1 + 0.03 * (c.lv - 1));
     fxs('dark', cp.x, cp.y, r);
-    shake(0.25);
     sfx('slam');
     for (const m of G.mobs) if (m.hp > 0 && Math.hypot(m.x - cp.x, m.y - cp.y) < r + m.r) dotHit(m, d, 'fire');
     detonate(cp.x, cp.y, r, c);
@@ -556,7 +549,6 @@ function actHit2(a, idx, R, hitArc) {
   } else if (a.k === 'bearmaul') {
     fxs('claw', P.x, P.y - 20, R, { rot: a.ang });
     fxs('slam', P.x + cos * R * 0.5, P.y + sin * R * 0.5, R * 0.5);
-    shake(0.25);
     if (hitArc(a.ang, D.arc, R, 220 * c.kb)) (P.rage = Math.min(30, (P.rage || 0) + 2)), (P.rageT = G.t);
   }
 }
@@ -585,7 +577,6 @@ function boom(s) {
     return fxs('gas', s.x, s.y + 18, s.gas);
   }
   fx({ k: 'ring', x: s.x, y: s.y + 18, r: s.boom, dur: 0.3, col: '#ff8a4c' });
-  shake(0.12);
   sfx('slam');
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - s.x, m.y - 18 - s.y) < s.boom + m.r)
@@ -647,7 +638,6 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (!o.quiet) {
     sparks(m.x, m.y - m.sz * 0.4, ang, r.crit ? 10 : 5, r.crit ? '#ffd166' : ELC[r.el]);
     hitstop(r.crit ? 0.085 : 0.04);
-    shake(r.crit ? 0.22 : 0.08);
     sfx(r.crit ? 'crit' : 'hit');
     if (ST.loh) P.hp = Math.min(ST.hp, P.hp + ST.loh);
   }
@@ -750,7 +740,6 @@ function updPools(dt) {
     } else if (o.t >= o.dur && !o.done) {
       o.done = 1;
       fx({ k: 'ring', x: o.x, y: o.y, r: o.r, dur: 0.4, col: '#ff6b3d' });
-      shake(0.45);
       sfx('slam');
       for (const m of G.mobs)
         if (m.hp > 0 && Math.hypot(m.x - o.x, m.y - o.y) < o.r + m.r)
@@ -834,7 +823,6 @@ function unitFire(u, tgt, mul = 1) {
   if (D.unit === 'trap' || D.unit === 'mine') {
     const r = (D.r || 100) * ST.aoeM * c.aoe;
     fx({ k: 'ring', x: u.x, y: u.y, r, dur: 0.35, col: D.el === 'cold' ? '#8fd6ff' : '#ff8a4c' });
-    shake(0.18);
     sfx('slam');
     for (const m of G.mobs)
       if (m.hp > 0 && Math.hypot(m.x - u.x, m.y - u.y) < r + m.r)

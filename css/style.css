@@ -98,6 +98,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .grid { position: relative; margin: 0 auto; background-color: rgba(0, 0, 0, 0.45); background-image: linear-gradient(rgba(232, 226, 214, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 226, 214, 0.07) 1px, transparent 1px); background-size: var(--cell) var(--cell); border: 1px solid var(--line); }
 .it { position: absolute; display: grid; place-items: center; background: rgba(40, 34, 30, 0.6); border: 1px solid rgba(232, 226, 214, 0.18); cursor: grab; touch-action: none; }
 .it.full { position: static; width: 100%; height: 100%; }
+/* 欄位的格線跟欄位一樣大：道具與圖示的 % 高度才有依據（腰帶這種扁的欄位圖示才不會撐破） */
+.eqs { grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
 .it .ic { width: min(48px, 82%); height: auto; max-height: 90%; object-fit: contain; }
 .it.r1 { background: rgba(40, 60, 110, 0.35); border-color: rgba(138, 180, 255, 0.5); }
 .it.r2 { background: rgba(110, 85, 30, 0.35); border-color: rgba(255, 209, 102, 0.6); }
@@ -113,6 +115,15 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .foot { margin-top: 10px; display: flex; justify-content: center; font-size: var(--fs-s); }
 .sell { width: 100%; text-align: center; padding: 10px; border: 1px dashed rgba(255, 209, 102, 0.4); border-radius: var(--rad); color: var(--gold); }
 .sell.on { background: rgba(255, 209, 102, 0.15); border-style: solid; }
+/* 0.2.24：拖到面板外＝丟到地上（幽靈變淡）；批量賣出的選取與底列；過濾器四顆開關 */
+.ghost.floor { opacity: 0.45; box-shadow: none; }
+.foot { gap: 6px; align-items: stretch; }
+.foot > .btn { flex: none; }
+.it.mk { outline: 2px solid var(--gold); outline-offset: -2px; background-color: rgba(255, 209, 102, 0.22); }
+.sellbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; }
+.sellbar > span { flex: 1; min-width: 6em; text-align: center; color: var(--dim); }
+.gkind.flt { grid-template-columns: repeat(5, 1fr); }
+.gkind.flt .rc0 { color: var(--r0); } .gkind.flt .rc1 { color: var(--r1); } .gkind.flt .rc2 { color: var(--r2); } .gkind.flt .rc3 { color: var(--r3); }
 /* 地圖台 */
 .tiers { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin: 14px 0; }
 .tier { height: 44px; font: 700 var(--fs) var(--font); color: var(--tx); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); border-radius: var(--rad); cursor: pointer; }
@@ -335,6 +346,8 @@ button.chip:active { scale: 0.95; }
 .chip.on { border-color: var(--gold); background: rgba(255, 209, 102, 0.12); }
 .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; }
 .dot.dust { background: radial-gradient(#e8dcc4, #8a7d66); }
+.dot.dust.fine { background: radial-gradient(#d6e4ff, #5a72b8); }
+.dot.dust.rare { background: radial-gradient(#ffe7a8, #b8862a); }
 .dot.soul { background: radial-gradient(#d6f0ff, #4a7fc4); }
 .dot.drill { border-radius: 2px; background: #9a9086; }
 .dot.d1 { background: #c9a227; }
@@ -675,5 +688,21 @@ button.skinfo { text-align: left; font: inherit; color: inherit; background: non
 button.skinfo:hover { border-color: var(--fr-o); }
 button.skinfo:active { transform: scale(0.98); }
 .skinfo .upd { margin-left: 6px; font: 700 11px var(--font); font-style: normal; color: var(--good); }
-.aurac[data-sk] { cursor: pointer; }
+.aurac [data-sk] { cursor: pointer; }
+/* 0.2.24：寶石那一行直接放升級、升滿、開孔；空的格子點一下生成（虛線框＋加號） */
+.skmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.skact { display: flex; flex-wrap: wrap; gap: 4px; }
+.skact .btn.mini { min-height: 32px; }
+.aurarow { flex-wrap: wrap; }
+.aurac > div:first-child { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.aurac .skact { justify-content: center; max-width: 180px; }
+.sock.emp { cursor: pointer; border-style: dashed; border-color: var(--fr-o); }
+.sock.emp:hover { border-color: var(--fr-hi); }
+.sock.emp:active { transform: scale(0.95); }
+.sock.emp small { display: grid; place-items: center; gap: 1px; }
+.sock.emp .ico { width: 12px; height: 12px; }
+/* 桌機翻滾冷卻：游標旁的小圓環，走完就消失 */
+#rcd { position: fixed; left: 0; top: 0; z-index: 6; width: 22px; height: 22px; border-radius: 50%; pointer-events: none; background: conic-gradient(var(--tx) calc(var(--v, 0) * 360deg), rgba(0, 0, 0, 0.45) 0); -webkit-mask: radial-gradient(circle, transparent 6px, #000 7px); mask: radial-gradient(circle, transparent 6px, #000 7px); }
+/* 直立沒有翻滾鍵（一撥就翻），留一個不能按的小圖示顯示冷卻 */
+body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: auto; top: auto; right: calc(12px + env(safe-area-inset-right)); bottom: calc(150px + env(safe-area-inset-bottom)); width: 40px; height: 40px; pointer-events: none; }
 .tqa.col { flex-direction: column; }

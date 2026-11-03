@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T12～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.23';
+const VER = '0.2.24';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -2639,8 +2639,8 @@ const BASES = [
   { id: 'a_gold', k: 'amulet', n: '金鎖片', lv: 9, ic: 'gear_amulet_4', b: { crit: 8 } }
 ];
 /* ---------- 做裝的材料（0.2.6，企劃書 5.3、6.3、6.4）：放材料頁（S.mat），不佔背包，打怪自動吸收 ---------- */
-/* 8 類屬性碎片：決定鍛造對哪一類詞綴下手 */
-const SHARDS = [
+/* 8 類詞綴類別：鍛造時選一類（免費）決定對哪一類詞下手 */
+const ACLS = [
   { k: 'life', n: '生命', ic: 'asc_s_heart', aff: ['life', 'regen', 'loh', 'flask'] },
   { k: 'def', n: '防禦', ic: 'asc_s_shield', aff: ['armor', 'ev', 'es', 'block'] },
   { k: 'ele', n: '元素', ic: 'asc_s_flame', aff: ['fire', 'cold', 'light', 'chaos'] },
@@ -2650,15 +2650,18 @@ const SHARDS = [
   { k: 'spell', n: '法術', ic: 'sup_sp_fastcast', aff: ['spellP', 'mp', 'aoe', 'spirit'] },
   { k: 'res', n: '抗性', ic: 'sup_ln_iron', aff: ['resF', 'resC', 'resL', 'resX', 'resA'] }
 ];
-const SHARDI = Object.fromEntries(SHARDS.map(x => [x.k, x]));
-const affCls = k => (SHARDS.find(x => x.aff.includes(k)) || {}).k;
+const ACLSI = Object.fromEntries(ACLS.map(x => [x.k, x]));
+const affCls = k => (ACLS.find(x => x.aff.includes(k)) || {}).k;
 /* 鑿孔石：寶石開孔 2→3 小、3→4 中、4→5 大 */
 const DRILLS = ['小鑿孔石', '中鑿孔石', '大鑿孔石'];
 const GEM_SO_MAX = 5;
 /* 靈魂升級寶石：L 級升 L+1 要 10 × 1.35^L（輔助打三折） */
 const soulCost = (L, sup) => Math.round(10 * Math.pow(1.35, L) * (sup ? 0.3 : 1));
+/* 三種粉（0.2.24 取代 8 類碎片）：粗粉＝強化、精粉＝添加與同類置換、稀粉＝跨類置換與定向重鑄 */
+const DUSTS = { dust: '粗粉', fine: '精粉', rare: '稀粉' };
 /* 鍛造要的粉：物品等級越高越多 */
-const dustCost = it => Math.round(8 * (1 + it.L / 3));
+const dustCost = (it, k = 'dust') =>
+  k === 'dust' ? Math.round(8 * (1 + it.L / 3)) : 1 + Math.floor(it.L / (k === 'fine' ? 20 : 30));
 /* 淬鍊的金幣：每按一次 +10%，最多 2 倍 */
 const temperCost = (it, single) => Math.round(3 * (1 + it.L) * Math.min(2, 1 + 0.1 * (it.tmp || 0)) * (single ? 3 : 1));
 const BASEI = Object.fromEntries(BASES.map(b => [b.id, b]));

@@ -59,12 +59,17 @@ function migrate(s) {
     ...Object.values(o.eq),
     ...o.inv.items,
     ...o.stash.items,
+    ...o.temp.items,
     ...o.skills.flatMap(k => [k.a, ...(k.s || []), ...((k.a && k.a.sup) || [])]),
     ...o.auras
   ])
     if (it && it.id > IID) IID = it.id;
   /* 0.2.6：輔助改插在技能寶石自己的孔裡（舊的技能欄輔助搬過去；沒有技能寶石的輔助收進背包）、材料頁、書庫 */
   o.mat = o.mat || newMat();
+  /* 0.2.24：8 類碎片換成精粉（1 換 1），補上精粉、稀粉 */
+  if (o.mat.sh) (o.mat.fine = Object.values(o.mat.sh).reduce((x, y) => x + y, 0)), delete o.mat.sh;
+  o.mat.fine = o.mat.fine || 0;
+  o.mat.rare = o.mat.rare || 0;
   const allGems = [
     ...o.skills.flatMap(k => [k.a, ...(k.s || [])]),
     ...o.auras,

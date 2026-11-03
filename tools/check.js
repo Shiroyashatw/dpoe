@@ -8,7 +8,7 @@ vm.createContext(ctx);
 for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const G = vm.runInContext(
-  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, SHARDS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, decompDo, newMat, gemUp, drillDo, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, dropGem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
+  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, gemUp, drillDo, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, dropGem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
   ctx
 );
 let bad = 0;
@@ -68,7 +68,7 @@ ok(
   /* 0.2.6 鍛造：材料給滿，隨機鍛造 2000 次 */
   vm.runInContext('var S = { gold: 1e12, lv: 60, mat: null, lib: [] }', ctx);
   vm.runInContext(
-    'S.mat = newMat(); S.mat.dust = 1e9; for (const k in S.mat.sh) S.mat.sh[k] = 1e6; S.mat.soul = 1e12; S.mat.drill = [99, 99, 99];',
+    'S.mat = newMat(); S.mat.dust = S.mat.fine = S.mat.rare = 1e9; S.mat.soul = 1e12; S.mat.drill = [99, 99, 99];',
     ctx
   );
   const fbad = [],
@@ -78,7 +78,7 @@ ok(
     const it = G.dropItem(1 + (i % 16), 0.6);
     it.pot = 10;
     const op = ops[i % ops.length],
-      cls = G.SHARDS[i % 8].k,
+      cls = G.ACLS[i % 8].k,
       before = it.a.slice(),
       p0 = it.pot,
       err = G.forgeDo(it, op, cls);

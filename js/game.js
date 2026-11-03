@@ -23,6 +23,10 @@ function newGame() {
     eq: Object.fromEntries(EQS.map(e => [e.k, null])),
     inv: { w: 12, h: 5, items: [] },
     stash: { w: 12, h: 12, items: [] },
+    /* 臨時倉庫頁（0.2.24）：背包滿了撿到的放這裡，只能拿出來 */
+    temp: { w: 12, h: 12, items: [] },
+    /* 過濾器（0.2.24）：照順序的規則清單；之後加詞綴、孔數條件只是規則多一個欄位 */
+    filter: { on: 0, rules: [{ rar: [1, 2], gem: 1 }] },
     sfx: 1
   };
   s.eq.weapon = mkItem('w_sword1_0', 1, 0);
@@ -338,7 +342,6 @@ function addProg(m) {
   b.aggro = 1;
   b.cd = 1.2;
   fx({ k: 'ring', x: p.x, y: p.y, r: 160, dur: 0.6, col: '#ff6b3d' });
-  shake(0.6);
   sfx('boss');
   hudWarn(b.D.n + '出現了！');
 }
@@ -601,7 +604,6 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   P.hp -= d;
   P.hurtT = 0.35;
   num(P.x, P.y - 60, d, 'hurt');
-  shake(0.32);
   hitstop(0.05);
   sfx('hurt');
   if (src && !ST.stand) {
@@ -686,7 +688,6 @@ function bossDown(m) {
   if (G.mapT === TMAX && !S.t16) (S.t16 = 1), (G.first = 1);
   G.portal = { ...(floorNear(m.x, m.y, 150, 230, 40) || { x: m.x, y: m.y }), home: 1 };
   G.first = G.first || first;
-  shake(0.7);
   hitstop(0.25);
   G.slow = 0.9;
   sfx('boss');
@@ -717,7 +718,9 @@ function gainXp(v) {
     sfx('lvup');
   }
 }
-/* 撿起來：金幣、碎片直接加；裝備放進格子背包 */
+/* 過濾器要不要自動撿 */
+const filterPick = it => !!S.filter.on && S.filter.rules.some(r => (it.gem ? r.gem : r.rar.includes(it.r)));
+/* 撿起來：金幣、碎片直接加；裝備放進格子背包，背包滿了放臨時倉庫頁 */
 function pickup(d) {
   if (d.gold) {
     S.gold += d.gold;
@@ -742,7 +745,10 @@ function pickup(d) {
     sfx(r.learned ? 'lvup' : 'pick');
     hudPanels();
   } else {
-    if (!gridAuto(S.inv, d.it)) return hudWarn('背包滿了：回藏身處整理');
+    if (!gridAuto(S.inv, d.it)) {
+      if (!gridAuto(S.temp, d.it)) return (d.full = 1), hudWarn('背包和臨時倉庫都滿了：回藏身處整理');
+      hudWarn('背包滿了：放進臨時倉庫（回藏身處在倉庫拿）');
+    }
     sfx('pick');
     hudInv();
   }
@@ -942,7 +948,6 @@ function mobStrike(m) {
   } else if (D.ai === 'bomb') {
     /* 自爆：死掉但不給經驗與掉寶，只算首領進度 */
     fx({ k: 'ring', x: m.x, y: m.y, r: D.boom, dur: 0.35, col: '#ff8a5b' });
-    shake(0.3);
     sfx('slam');
     if (dist(m, P) < D.boom + P.r) hurtPlayer(m.dmg, m, m.el, true);
     m.hp = 0;
@@ -952,7 +957,6 @@ function mobStrike(m) {
     const x = m.x + Math.cos(m.ang) * 55,
       y = m.y + Math.sin(m.ang) * 55;
     fx({ k: 'ring', x, y, r: 95, dur: 0.3, col: '#ff8a5b' });
-    shake(0.3);
     if (Math.hypot(P.x - x, P.y - y) < 95 + P.r) hurtPlayer(m.dmg, m, m.el, true);
     recover(m, 0.6);
   }
@@ -987,7 +991,6 @@ function bossAI(m, dt, dP) {
   if (rage < 1 && !m.raged) {
     m.raged = 1;
     hudWarn(m.D.n + '發狂了！');
-    shake(0.5);
   }
   if (m.st === 'idle' || m.st === 'move') {
     m.st = 'move';
@@ -1058,7 +1061,6 @@ function bossAI(m, dt, dP) {
       } else if (m.pat === 'nova') {
         const grp = {};
         for (let i = 0; i < NOVA_N - NOVA_GAP; i++) foeShot(m, novaAng(m, i), 260, m.dmg * 0.8, grp);
-        shake(0.25);
         bossRec(m, 0.7, rage);
       } else if (m.pat === 'blink') {
         fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: '#b28dff' });
@@ -1080,7 +1082,6 @@ function bossAI(m, dt, dP) {
       hurtPlayer(m.dmg * 1.4, m, m.el);
     }
     if (m.t <= 0) {
-      shake(0.2);
       bossRec(m, 0.55, rage);
     }
   } else if (m.st === 'rec') {
@@ -1165,7 +1166,6 @@ function updShots(dt) {
     if (t.t >= t.dur && !t.done) {
       t.done = 1;
       fx({ k: 'ring', x: t.x, y: t.y, r: t.r, dur: 0.3, col: '#ff8a5b' });
-      shake(0.2);
       sfx('slam');
       if (Math.hypot(P.x - t.x, P.y - t.y) < t.r + P.r) hurtPlayer(t.dmg, t.src, t.el, true);
     }
@@ -1202,7 +1202,8 @@ function frame(now) {
     }
     for (const d of G.drops.slice()) {
       d.t += dt;
-      if ((d.gold || d.frag) && d.t > 0.4 && dist(P, d) < 150) {
+      /* 過濾器：符合的裝備跟金幣一樣吸過來（自己丟的、放不下的不吸） */
+      if ((d.gold || d.frag || (d.it && !d.nopick && !d.full && filterPick(d.it))) && d.t > 0.4 && dist(P, d) < 150) {
         const f = Math.min(1, dt * 10);
         d.x = d.sx = d.x + (P.x - d.x) * f;
         d.y = d.sy = d.y + (P.y - d.y) * f;

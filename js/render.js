@@ -434,6 +434,8 @@ function draw() {
         x = (r.left - 6) / ZOOM - ox - w / 2;
     }
     const near = dist(P, d) < 110;
+    /* 過濾器開著：不符合的標籤變暗 */
+    CX.globalAlpha = S.filter.on && !filterPick(d.it) ? 0.45 : 1;
     /* 底色帶一點稀有度的色調（跟說明框的標題列一致），稀有以上框粗一點 */
     CX.fillStyle = near ? RBG[d.it.r] : 'rgba(8,6,5,0.86)';
     CX.fillRect(x - w / 2, y - 11, w, 20);
@@ -442,6 +444,7 @@ function draw() {
     CX.strokeRect(x - w / 2 + 0.5, y - 10.5, w - 1, 19);
     CX.fillStyle = RCOL[d.it.r];
     CX.fillText(txt, x, y + 4);
+    CX.globalAlpha = 1;
     LABELS.push({ d, x: (x - w / 2 + ox) * ZOOM, y: (y - 11 + oy) * ZOOM, w: w * ZOOM, h: 20 * ZOOM });
   }
   CX.restore();

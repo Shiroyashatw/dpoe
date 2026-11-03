@@ -151,14 +151,16 @@ function moveLabel(src, it) {
   if (PANEL.craft && !it.gem) return '放上鍛造台';
   if (isSlot(src)) return '卸下';
   if (it.gem && src === 'inv' && !PANEL.stash) return '鑲上';
-  if (src === 'stash') return '放進背包';
+  if (src === 'stash' || src === 'temp') return '放進背包';
   if (PANEL.stash) return '放進倉庫';
   return '裝備';
 }
 function tapItem(d) {
   const r = d.el.getBoundingClientRect();
   TOUCH.sel = { src: d.src, id: d.it.id, eqk: d.eqk };
-  const sellB = G.scene === 'hide' ? `<button class="btn" data-tq="sell">賣 ${sellPrice(d.it)} 金</button>` : '';
+  const sellB =
+    (G.scene === 'hide' && !d.it.gem ? `<button class="btn" data-tq="sell">賣 ${sellPrice(d.it)} 金</button>` : '') +
+    `<button class="btn" data-tq="drop">丟掉</button>`;
   showTip(
     itemTip(d.it, !isSlot(d.src)) +
       `<div class="tqa"><button class="btn pri" data-tq="move">${moveLabel(d.src, d.it)}</button>${sellB}</div>`,
@@ -342,6 +344,7 @@ function touchInit() {
       hideTip();
       if (!it) return;
       if (q.dataset.tq === 'sell') sell(src, it, eqk);
+      else if (q.dataset.tq === 'drop') dropFloor(src, it, eqk);
       else quickMove(src, it, eqk);
     }
   });
