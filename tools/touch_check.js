@@ -228,6 +228,62 @@ let fail = 0;
     '點道具出現說明與動作按鈕',
     await p.evaluate(() => !$('tip').hidden && !!document.querySelector('#tip [data-tq=move]'))
   );
+  /* 說明框貼在旁邊：不蓋住被點的東西、不出畫面 */
+  /* 每一個看得到的東西都試一次（左上、右下、正中間的都要放得下） */
+  const tipAll = sel =>
+    p.evaluate(sel => {
+      const bad = [];
+      for (const e of document.querySelectorAll(sel)) {
+        const r = e.getBoundingClientRect();
+        const it = !e.dataset.n && findItem(e.dataset.src, e.dataset.id, e.dataset.eqk);
+        if (
+          (!e.dataset.n && !it) ||
+          !r.width ||
+          r.right < 0 ||
+          r.bottom < 0 ||
+          r.left > innerWidth ||
+          r.top > innerHeight
+        )
+          continue;
+        showTip(
+          e.dataset.n
+            ? treeTip(e.dataset.n)
+            : itemTip(it, true) +
+                '<div class="tqa"><button class="btn pri">裝備</button><button class="btn">賣 3 金</button></div>',
+          r
+        );
+        const t = $('tip').getBoundingClientRect();
+        if (
+          (t.left < r.right - 1 && t.right > r.left + 1 && t.top < r.bottom - 1 && t.bottom > r.top + 1) ||
+          t.left < 0 ||
+          t.top < 0 ||
+          t.right > innerWidth + 0.5 ||
+          t.bottom > innerHeight + 0.5
+        )
+          bad.push(e.dataset.n || e.dataset.id);
+      }
+      hideTip();
+      return bad;
+    }, sel);
+  const tipOK = pt =>
+    p.evaluate(([x, y]) => {
+      const t = $('tip').getBoundingClientRect(),
+        e = document
+          .elementsFromPoint(x, y)
+          .map(n => n.closest('.it[data-id], .nd'))
+          .find(Boolean);
+      const r = e.getBoundingClientRect(),
+        cover = t.left < r.right - 1 && t.right > r.left + 1 && t.top < r.bottom - 1 && t.bottom > r.top + 1,
+        out = t.left < 0 || t.top < 0 || t.right > innerWidth || t.bottom > innerHeight;
+      return [
+        !cover && !out,
+        [t, r].map(q => [q.left, q.top, q.right, q.bottom].map(Math.round).join(',')).join(' / ')
+      ];
+    }, pt);
+  {
+    const [v, d] = await tipOK(it);
+    ok('道具說明框不蓋住道具、不出畫面', v, d);
+  }
   await p.screenshot({ path: shot('tip') });
   const n0 = await p.evaluate(() => [S.inv.items.length, S.stash.items.length].join());
   const bt = await p.evaluate(() => {
@@ -239,6 +295,69 @@ let fail = 0;
   await p.waitForTimeout(200);
   const n1 = await p.evaluate(() => [S.inv.items.length, S.stash.items.length].join());
   ok('按動作按鈕搬過去', n0 !== n1, n0 + ' → ' + n1);
+  {
+    const bad = await tipAll('.it[data-id]');
+    ok('每件道具的說明框都不蓋住、不出畫面', !bad.length, bad.join(','));
+  }
+  /* 拖曳：在同一個格子裡拖到右下角的空格，放開後沒有殘影 */
+  await p.evaluate(() => hideTip());
+  const dg = await p.evaluate(() => {
+    const vis = e => {
+        const r = e.getBoundingClientRect();
+        return r.width && e.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+      },
+      e = [...document.querySelectorAll('.grid .it[data-id]')].find(vis),
+      gr = e.closest('[data-grid]'),
+      g = GRIDS()[gr.dataset.grid],
+      it = findItem(e.dataset.src, e.dataset.id),
+      [w, h] = itemSize(it);
+    let tx = -1,
+      ty = -1;
+    for (let y = g.h - h; y >= 0 && tx < 0; y--)
+      for (let x = g.w - w; x >= 0; x--)
+        if (
+          !gridHits(g, x, y, w, h, it).length &&
+          (x !== it.x || y !== it.y) &&
+          gr.contains(
+            document.elementFromPoint(
+              gr.getBoundingClientRect().left + (x + w / 2) * C,
+              gr.getBoundingClientRect().top + (y + h / 2) * C
+            )
+          ) /* 要拖得到（畫面看得到、沒被捲動區切掉） */
+        ) {
+          [tx, ty] = [x, y];
+          break;
+        }
+    const r = e.getBoundingClientRect(),
+      R = gr.getBoundingClientRect();
+    return {
+      id: it.id,
+      from: [r.left + 8, r.top + 8],
+      to: [R.left + tx * C + 8, R.top + ty * C + 8],
+      x: it.x,
+      y: it.y,
+      tx,
+      ty
+    };
+  });
+  await touch('touchStart', [dg.from]);
+  for (let i = 1; i <= 8; i++)
+    await touch('touchMove', [
+      [dg.from[0] + ((dg.to[0] - dg.from[0]) * i) / 8, dg.from[1] + ((dg.to[1] - dg.from[1]) * i) / 8]
+    ]);
+  ok('拖曳中有跟手的圖示', await p.evaluate(() => !!document.querySelector('.ghost')));
+  await touch('touchEnd', []);
+  await p.waitForTimeout(200);
+  const dr = await p.evaluate(id => {
+    const it = [...S.inv.items, ...S.stash.items].find(i => i.id === id);
+    return [it && it.x, it && it.y, document.querySelectorAll('.ghost, .hl, .it.lift').length, !!DR];
+  }, dg.id);
+  ok(
+    '拖到空格放得下',
+    dr[0] === dg.tx && dr[1] === dg.ty,
+    `(${dg.x},${dg.y}) → (${dr[0]},${dr[1]})，目標 (${dg.tx},${dg.ty})`
+  );
+  ok('放開後沒有殘影', !dr[2] && !dr[3], `殘留 ${dr[2]} 個、DR ${dr[3]}`);
   /* 天賦樹 */
   await p.evaluate(() => {
     closePanels();
@@ -247,7 +366,15 @@ let fail = 0;
   });
   await p.waitForTimeout(400);
   const nd = await p.evaluate(() => {
-    const id = [...document.querySelectorAll('#tg .nd.can')].map(e => e.dataset.n).find(i => !i.startsWith('a_'));
+    /* 挑畫面上點得到的（沒被上方列擋住、沒在畫面外） */
+    const id = [...document.querySelectorAll('#tg .nd.can')]
+      .filter(e => {
+        const r = e.getBoundingClientRect(),
+          top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return top && top.closest('.nd') === e;
+      })
+      .map(e => e.dataset.n)
+      .find(i => !i.startsWith('a_'));
     const r = document.querySelector(`#tg [data-n="${id}"]`).getBoundingClientRect();
     return [id, r.left + r.width / 2, r.top + r.height / 2];
   });
@@ -258,7 +385,15 @@ let fail = 0;
     '天賦點一下＝選取看說明（還沒點亮）',
     await p.evaluate(id => TREE.sel === id && !S.pt.includes(id) && !$('tip').hidden, nd[0])
   );
+  {
+    const [v, d] = await tipOK([nd[1], nd[2]]);
+    ok('天賦說明框不蓋住天賦點、不出畫面', v, d);
+  }
   await p.screenshot({ path: shot('tree') });
+  {
+    const bad = await tipAll('#tg .nd[data-n]');
+    ok('每個天賦點的說明框都不蓋住、不出畫面', !bad.length, bad.length + ' 個');
+  }
   const nd2 = await p.evaluate(id => {
     const r = document.querySelector(`#tg [data-n="${id}"]`).getBoundingClientRect();
     return [r.left + r.width / 2, r.top + r.height / 2];

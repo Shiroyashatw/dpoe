@@ -213,7 +213,7 @@ function treeInit() {
     const n = e.target.closest('.nd');
     if (n) {
       const r = n.getBoundingClientRect();
-      showTip(treeTip(n.dataset.n), r.right, r.top + r.height / 2);
+      showTip(treeTip(n.dataset.n), r);
     } else hideTip();
   });
   const up = e => {
@@ -238,7 +238,7 @@ function treeInit() {
       treeRefresh();
       const r = document.querySelector(`#tg [data-n="${id}"]`).getBoundingClientRect(),
         have = S.pt.includes(id);
-      showTip(treeTip(id) + `<p class="hint">再點一次${have ? '退回' : '點亮'}</p>`, r.right, r.top + r.height / 2);
+      showTip(treeTip(id) + `<p class="hint">再點一次${have ? '退回' : '點亮'}</p>`, r);
       return;
     }
     TREE.sel = null;

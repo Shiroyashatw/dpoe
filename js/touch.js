@@ -101,8 +101,7 @@ function fsClick() {
   if (fsOK()) return fsEnter();
   showTip(
     `<b>全螢幕</b><p>iPhone 的 Safari 不能讓網頁全螢幕。<br>按下方的<span class="c-gold">分享</span>按鈕 →「加入主畫面」，之後從主畫面的圖示打開，就沒有網址列了。</p>`,
-    innerWidth / 2 - 160,
-    innerHeight / 2
+    new DOMRect(innerWidth / 2, 0, 0, 0)
   );
   $('tip').classList.add('act');
 }
@@ -163,8 +162,7 @@ function tapItem(d) {
   showTip(
     itemTip(d.it, !isSlot(d.src)) +
       `<div class="tqa"><button class="btn pri" data-tq="move">${moveLabel(d.src, d.it)}</button>${sellB}</div>`,
-    r.right,
-    r.top + r.height / 2
+    r
   );
   $('tip').classList.add('act');
 }

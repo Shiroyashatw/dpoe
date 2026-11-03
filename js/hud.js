@@ -692,14 +692,15 @@ const GRIDS = () => ({ inv: S.inv, stash: S.stash });
 /* 欄位：裝備欄 eq（key＝欄位名）、寶石插槽 sock（key＝「技能欄:a」是技能、「技能欄:0／1」是輔助） */
 const isSlot = src => src === 'eq' || src === 'sock';
 function slotGet(src, key) {
-  if (src === 'eq') return key[0] === 'c' && key[1] === 'h' ? S.charms[+key[2]] : S.eq[key];
+  /* 護符欄是 ch0～（胸甲 chest 也是 ch 開頭，不能只看前兩個字） */
+  if (src === 'eq') return /^ch\d$/.test(key) ? S.charms[+key[2]] : S.eq[key];
   const [i, p] = key.split(':');
   if (i === 'A') return S.auras[+p];
   const a = S.skills[i].a;
   return p === 'a' ? a : a && a.sup ? a.sup[+p] : null;
 }
 function slotSet(src, key, it) {
-  if (src === 'eq') return key[0] === 'c' && key[1] === 'h' ? (S.charms[+key[2]] = it) : (S.eq[key] = it);
+  if (src === 'eq') return /^ch\d$/.test(key) ? (S.charms[+key[2]] = it) : (S.eq[key] = it);
   const [i, p] = key.split(':');
   if (i === 'A') S.auras[+p] = it;
   else if (p === 'a') S.skills[i].a = it;
