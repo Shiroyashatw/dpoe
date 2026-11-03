@@ -110,6 +110,25 @@ const BUILDS = {
     gear: { life: 1, armor: 0.5, block: 3, resA: 2, resF: 1, resC: 1, resL: 1, dmgP: 0.3 },
     wt: 'sword',
     sk: 'slash'
+  },
+  /* 0.2.23 特色大點與基石 */
+  轉火: {
+    tree: { meleeP: 2, w_sword: 2, cvPF: 3, fireP: 2, eleP: 2, as: 3, avatar: 3000, life: 0.3 },
+    gear: { dmgP: 1, flat: 3, fire: 3, as: 2, life: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'sword',
+    sk: 'slash'
+  },
+  混沌免疫: {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_staff: 2, castP: 3, pen: 2, esP: 1, ci: 3000 },
+    gear: { spellP: 1, es: 2, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'staff',
+    sk: 'fireball'
+  },
+  箭雨: {
+    tree: { projP: 2, atkP: 2, w_bow: 2, critInc: 1, as: 3, proj: 3000, pierce: 5, life: 0.3 },
+    gear: { dmgP: 1, flat: 3, as: 2, crit: 5, critInc: 1, life: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'bow',
+    sk: 'split'
   }
 };
 console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗 命中');
@@ -158,7 +177,7 @@ for (const L of [30, 60, 90]) {
       rate = spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
       /* 0.2.22：攻擊要乘命中率（法術一律命中） */
       hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
-      dps = hit * rate * (D.cnt || 1) * hc,
+      dps = hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc,
       hitDmg = bossD.dmg * tm.dmg * R('BOSS_DMG') * 1.4,
       ehp = ST.hp + ST.es,
       fire = R(`ST.res.fire`) && R(`effRes('fire')`),

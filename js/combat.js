@@ -65,6 +65,10 @@ function mobDef(m, t) {
   m.ail = {};
 }
 
+/* 移動中＝0.3 秒內有移動（翻滾也算）；靜止＝連續站著 1 秒以上（game.js 的 updPlayer 記 movT／stillT） */
+const moving = () => P.movT != null && G.t - P.movT < 0.3;
+const still = () => !moving() && P.stillT != null && G.t - P.stillT >= 1;
+
 /* ---------- 擊中傷害（企劃書 7.2 的五步） ---------- */
 const DT = ['phys', 'fire', 'cold', 'light', 'chaos'];
 const SPELL_BASE = [7, 12];
@@ -123,9 +127,27 @@ function hitCalc(c, m, o = {}) {
   const sum = DT.reduce((s, k) => s + pre[k], 0);
   pre.fire += (sum * ((c.fireAdd || 0) * 100 + ST.fireAdd)) / 100;
   if (P.buf && P.buf.unholy > G.t) pre.chaos += sum * 0.3;
-  /* 3. 轉換：有屬性的攻擊技能把物理全部轉成那個屬性（吃兩邊的提高） */
-  let conv = null;
-  if (!spell && D.el && D.el !== 'phys') (pre[D.el] += pre.phys), (pre.phys = 0), (conv = D.el);
+  /* 3. 轉換：有屬性的攻擊技能把物理全部轉成那個屬性；再照天賦往後轉（物理→閃電→冰冷→火焰，每種最多轉 100%）
+     轉過去的部分吃路上每一種屬性的提高（parts 的 ch） */
+  let parts = DT.filter(k => pre[k]).map(k => ({ k, v: pre[k], ch: [k] }));
+  if (!spell && D.el && D.el !== 'phys') for (const p of parts) if (p.k === 'phys') (p.k = D.el), p.ch.push(D.el);
+  const av = ST.avatar ? 50 : 0,
+    hs = m && m.ail && m.ail.hstun > G.t ? ST.hsFire : 0,
+    CV = {
+      phys: { light: ST.cvPL, cold: ST.cvPC, fire: ST.cvPF + av + hs },
+      light: { cold: ST.cvLC, fire: av },
+      cold: { fire: ST.cvCF + av }
+    };
+  for (const src of ['phys', 'light', 'cold']) {
+    const to = CV[src],
+      tot = Object.values(to).reduce((a, b) => a + b, 0);
+    if (!tot) continue;
+    const sc = Math.min(1, 100 / tot);
+    for (const p of parts.filter(p => p.k === src)) {
+      for (const k in to) if (to[k]) parts.push({ k, v: (p.v * to[k] * sc) / 100, ch: [...p.ch, k] });
+      p.v *= 1 - Math.min(100, tot) / 100;
+    }
+  }
   /* 4. 提高：同一池相加 */
   const near = m ? dist(P, m) : 999,
     common =
@@ -145,16 +167,13 @@ function hitCalc(c, m, o = {}) {
       (P.es > 0 ? ST.esUp : 0) +
       (P.rolledT > G.t ? ST.afterRoll : 0) +
       (m && (m.boss || m.elite) ? ST.bossP : 0) +
+      (moving() ? ST.movP : 0) +
+      (still() ? ST.stillP : 0) +
       (near < 160 ? ST.closeP : 0) +
       (near > 350 ? ST.farP : 0) +
       (bannerOn() ? G.banner.buff.dmg || 0 : 0);
-  const typeInc = {
-    phys: ST.physP,
-    fire: ST.eleP + ST.fireP + (conv === 'fire' ? ST.physP : 0),
-    cold: ST.eleP + ST.coldP + (conv === 'cold' ? ST.physP : 0),
-    light: ST.eleP + ST.lightP + (conv === 'light' ? ST.physP : 0),
-    chaos: ST.chaosP + (conv === 'chaos' ? ST.physP : 0)
-  };
+  const typeInc = { phys: ST.physP, fire: ST.fireP, cold: ST.coldP, light: ST.lightP, chaos: ST.chaosP },
+    incOf = ch => ch.reduce((t, k) => t + typeInc[k], 0) + (ch.some(k => ELEK.includes(k)) ? ST.eleP : 0);
   /* 5. 更多：輔助、昇華、狂怒（只有攻擊）、化身（法術的元素） */
   let more = (o.mult || 1) * (c.more || 1);
   /* 你被「衰弱」詛咒（地圖詞）：造成的傷害更少 */
@@ -163,18 +182,25 @@ function hitCalc(c, m, o = {}) {
   if (tg.includes('attack')) more *= 1 + (P.rage || 0) / 100;
   /* 天賦基石的全域更多／更少（0.2.17） */
   if (ST.more) more *= 1 + ST.more / 100;
+  /* 0.2.23 基石與特色點：疾風步、投射物更多、自己的擊中（不是召喚物、場上單位） */
+  if (ST.wind) more *= moving() ? 1.25 : 0.75;
+  if (ST.projMore && tg.includes('proj')) more *= 1 + ST.projMore / 100;
+  if (!o.minion && !o.unit) more *= ST.noSelf ? 0 : 1 + ST.selfMore / 100;
   /* 失衡（招架，mech.js）：受到的攻擊傷害提高 50% */
   if (!spell && m && m.ail && m.ail.parried > G.t) more *= 1.5;
-  for (const k of DT) {
+  for (const k of DT) pre[k] = 0;
+  for (const p of parts) {
     let mk = more;
-    if (spell && k !== 'phys' && k !== 'chaos' && P.buf && P.buf.archon > G.t) mk *= 1.25;
-    pre[k] *= (1 + (common + typeInc[k]) / 100) * mk;
+    if (spell && ELEK.includes(p.k) && P.buf && P.buf.archon > G.t) mk *= 1.25;
+    if (ST.avatar && (p.k === 'cold' || p.k === 'light')) mk *= 0.7;
+    pre[p.k] += p.v * (1 + (common + incOf(p.ch)) / 100) * mk;
   }
   /* 暴擊：基礎（攻擊看武器、法術看寶石）×（1＋提高）；易碎直接加；暴擊傷害加成基礎 +100% */
   const base = spell ? D.crit || 7 : D.shield ? 5 : ST.wcrit,
     brit = m && m.ail && m.ail.brittle && m.ail.brittle.t > G.t ? m.ail.brittle.v : 0,
     chance = ST.noCrit ? 0 : Math.min(100, base * (1 + (ST.critInc + (c.critInc || 0)) / 100) + brit);
-  const crit = !ST.noCrit && !!(o.crit || P.critNext || Math.random() * 100 < chance);
+  const crit =
+    !ST.noCrit && !!(o.crit || P.critNext || (ST.fullCrit && m && m.hp >= m.mhp) || Math.random() * 100 < chance);
   if (crit) {
     const cm = 1 + (100 + ST.critX + (c.critX || 0) + (P.critNext ? 50 : 0)) / 100;
     for (const k of DT) pre[k] *= cm;
@@ -459,6 +485,7 @@ function baseTick(dt) {
 /* ---------- 玩家受傷（hurtPlayer 呼叫）：回傳 { d, ev, block, crit }，d 是扣完防禦的傷害 ---------- */
 /* 抗性：扣完懲罰、上限是最大抗性（藏身處不扣） */
 const effRes = k => {
+  if (k === 'chaos' && ST.ci) return 100;
   const pen = k !== 'chaos' && G.scene === 'map' ? resPen(mobLv(G.mapT || 1)) : 0;
   let r = ST.res[k] - pen;
   const cu = P.ail && P.ail.curse;
@@ -526,11 +553,11 @@ function mobAilPlayer(m, d, el) {
   }
   if (el === 'light' && !imm('shock') && Math.random() * 100 < ((d / thr) * 100) / 4) a.shock = G.t + 4;
   /* 冰凍累積：滿了凍住 1.5 秒（玩家的比怪物短，不然太難受） */
-  if (el === 'cold' && !imm('frz')) {
+  if (el === 'cold' && !imm('frz') && !ST.stand) {
     a.frz = (a.frz || 0) + (d / thr) * 50;
     if (a.frz >= 100) (a.frozen = G.t + 1.5), (a.frz = 0);
   }
-  if (!imm('bleed') && Math.random() < (ail === 'bleed' ? 0.25 : 0) + MM('mbleed') / 100)
+  if (!imm('bleed') && !ST.ci && Math.random() < (ail === 'bleed' ? 0.25 : 0) + MM('mbleed') / 100)
     a.bleed = keepMax(a.bleed, d * 0.15, 5);
   if (!imm('poi') && Math.random() < (ail === 'poison' ? 0.3 : 0) + MM('mpoi') / 100)
     a.poi = { dps: d * 0.2, t: G.t + 2 };

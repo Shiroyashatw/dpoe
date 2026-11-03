@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 16,
+    v: 17,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -435,7 +435,7 @@ function updPlayer(dt) {
   for (const k in P.cds) P.cds[k] = Math.max(0, P.cds[k] - dt);
   P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1.2 : 1) * dt);
   if (G.scene === 'map') baseTick(dt);
-  if (ST.regen) P.hp = Math.min(ST.hp, P.hp + ST.regen * Math.max(0, 1 + MM('pregen') / 100) * dt);
+  if (ST.regen && !ST.vaal) P.hp = Math.min(ST.hp, P.hp + ST.regen * Math.max(0, 1 + MM('pregen') / 100) * dt);
   if (P.heal > 0) {
     const h = Math.min(P.heal, ((ST.hp * FLASK.heal) / FLASK.t) * dt);
     P.heal -= h;
@@ -452,6 +452,7 @@ function updPlayer(dt) {
     r.t += dt;
     const sp = (ROLL.dist / ROLL.t) * 1.6 * (1 - r.t / ROLL.t);
     moveBody(P, r.dx * sp * dt, r.dy * sp * dt);
+    (P.movT = G.t), (P.stillT = null);
     if (r.t >= ROLL.t) P.roll = null;
     return;
   }
@@ -462,6 +463,9 @@ function updPlayer(dt) {
   const ml = Math.hypot(mx, my);
   if (ml) (mx /= ml), (my /= ml);
   P.mv = ml ? 1 : 0;
+  /* 移動中／靜止（combat.js 的 moving／still） */
+  if (ml) (P.movT = G.t), (P.stillT = null);
+  else if (P.stillT == null) P.stillT = G.t;
   P.mdx = mx;
   P.mdy = my;
   const spd = ST.spd * moveMul();
@@ -588,6 +592,11 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   /* 召喚魔像：站在它旁邊受到的傷害少 20% */
   if (G.allies.some(w => w.src === 'golem' && dist(w, P) < 200)) d *= 0.8;
   d = esAbsorb(d);
+  /* 心靈凌駕（基石）：40% 先扣魔力 */
+  if (ST.mom && d > 0) {
+    const t = Math.min(P.mp, d * 0.4);
+    (P.mp -= t), (d -= t);
+  }
   if (d <= 0) return;
   P.hp -= d;
   P.hurtT = 0.35;
@@ -595,7 +604,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   shake(0.32);
   hitstop(0.05);
   sfx('hurt');
-  if (src) {
+  if (src && !ST.stand) {
     const a = angTo(src, P);
     P.vx += Math.cos(a) * 160;
     P.vy += Math.sin(a) * 160;

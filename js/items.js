@@ -261,6 +261,7 @@ function gridAuto(g, it) {
 }
 
 /* ---------- 角色數值：等級＋穿在身上的裝備 ---------- */
+const MAXRK = { maxResF: 'fire', maxResC: 'cold', maxResL: 'light', maxResX: 'chaos' };
 function stats(s = S) {
   /* 0.2.7 照 PoE2（企劃書 7.2）：角色等級只給生命、魔力（到 100 級），不給傷害；提高同池相加在 combat.js 的 hitCalc */
   const lv = Math.min(100, s.lv);
@@ -338,7 +339,36 @@ function stats(s = S) {
     noMiss: 0,
     noCrit: 0,
     spellLv: 0,
-    castP: 0
+    castP: 0,
+    /* 0.2.23 特色大點（combat.js、skills.js 讀） */
+    ...Object.fromEntries(
+      [
+        'proj',
+        'pierce',
+        'projMore',
+        'leech',
+        'dbl',
+        'hsFire',
+        'wolfN',
+        'cvPF',
+        'cvPC',
+        'cvPL',
+        'cvLC',
+        'cvCF',
+        'movP',
+        'stillP',
+        'selfMore',
+        'fullCrit',
+        'ironRef',
+        'wind',
+        'ci',
+        'vaal',
+        'avatar',
+        'mom',
+        'noSelf',
+        'stand'
+      ].map(k => [k, 0])
+    )
   };
   const w = s.eq.weapon,
     off = s.eq.off,
@@ -384,6 +414,7 @@ function stats(s = S) {
     else if (k === 'resX') o.res.chaos += v;
     else if (k === 'resA') for (const r of ['fire', 'cold', 'light']) o.res[r] += v;
     else if (k === 'maxRes') for (const r of ['fire', 'cold', 'light']) o.maxRes[r] += v;
+    else if (MAXRK[k]) o.maxRes[MAXRK[k]] += v;
     else if (k === 'flat') (o.flat[0] += v[0]), (o.flat[1] += v[1]);
     else if (o.add[k]) (o.add[k][0] += v[0]), (o.add[k][1] += v[1]);
     else if (k === 'dmgP') o.physP += v;
@@ -416,9 +447,11 @@ function stats(s = S) {
     esF: 0,
     blockInc: 0
   };
-  const nodes = (s.pt || []).map(id => PTREE.I[id]);
+  const nodes = (s.pt || []).map(id => PTREE.I[id]),
+    wt0 = (w && baseOf(w).wt) || 'sword';
   for (const n of nodes) {
-    if (!n) continue;
+    /* 武器招牌點（0.2.23，only）：拿那種武器才生效 */
+    if (!n || (n.s.only && n.s.only !== wt0)) continue;
     for (const k in n.s) {
       if (k in pt) pt[k] += n.s[k];
       else if (k === 'resA') for (const r of ['fire', 'cold', 'light']) o.res[r] += n.s[k];
@@ -457,6 +490,10 @@ function stats(s = S) {
   o.hp = Math.round(o.hp * (1 + pt.hpP / 100));
   o.armor = Math.round(o.armor * (1 + pt.armorP / 100));
   o.ev = Math.round(o.ev * (1 + pt.evP / 100));
+  /* 基石：鐵壁（閃避轉護甲）、不動如山（閃避歸零）、混沌免疫（生命 1、能量護盾更多 30%） */
+  if (o.ironRef) (o.armor += o.ev), (o.ev = 0);
+  if (o.stand) o.ev = 0;
+  if (o.ci) (o.hp = 1), (o.es = Math.round(o.es * 1.3));
   /* 命中（0.2.22）：基礎 30 ＋ 每級 6 ＋ 裝備、天賦的命中值，再乘提高（Lv1 打第 1 階的 Lv5 怪約 90%） */
   o.acc = Math.round((30 + 6 * lv + o.acc) * (1 + o.accP / 100));
   o.mp = Math.round(o.mp * (1 + pt.mpP / 100));

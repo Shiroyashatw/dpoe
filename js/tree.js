@@ -153,10 +153,13 @@ function treeChanged() {
   hudBar();
   treeRefresh();
 }
-const statLines = s =>
-  Object.entries(s).map(([k, v]) =>
-    STATN[k][2] ? STATN[k][0] : `${STATN[k][0]} ${v > 0 ? '+' : ''}${v}${STATN[k][1]}`
-  );
+/* only＝武器招牌點：拿那種武器才生效（items.js 的 stats） */
+const statLines = s => [
+  ...(s.only ? [`持${WTN[s.only]}時：`] : []),
+  ...Object.entries(s)
+    .filter(([k]) => k !== 'only')
+    .map(([k, v]) => (STATN[k][2] ? STATN[k][0] : `${STATN[k][0]} ${v > 0 ? '+' : ''}${v}${STATN[k][1]}`))
+];
 function treeTip(id) {
   const n = PTREE.I[id];
   const kind = n.big === 2 ? '基石' : n.gate ? '起點' : n.big ? '大點' : '小點';

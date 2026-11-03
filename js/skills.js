@@ -38,9 +38,10 @@ function gemCfg(g, i) {
       g,
       critInc: D.crit || 0,
       critX: 0,
-      leech: 0,
-      proj: D.cnt || 1,
-      pierce: D.pierce || 0,
+      leech: ST.leech / 100,
+      /* 天賦的投射物數量、穿透（0.2.23）只給投射物技能 */
+      proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0),
+      pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
       kb: 1,
       fireAdd: 0,
       pen: 0,
@@ -53,7 +54,7 @@ function gemCfg(g, i) {
       wither: D.wither,
       blind: D.blind,
       hsM: D.hsM || 1,
-      wolves: D.cnt || 0,
+      wolves: (D.cnt || 0) + ST.wolfN,
       wolfM: 1
     };
   for (const sp of g.sup || []) {
@@ -652,8 +653,13 @@ function hitMob(m, c, ang, kb, o = {}) {
   }
   /* 吸血：1 秒內回完；同時只有一筆（取回得最快的） */
   const lr = r.d * c.leech * (1 + MM('pleech') / 100);
-  if (c.leech && (!P.lch || P.lch.t <= G.t || lr > P.lch.rate)) P.lch = { rate: lr, t: G.t + 1 };
+  /* 瓦爾契約（基石）：吸血立即回復 */
+  if (c.leech && ST.vaal) P.hp = Math.min(ST.hp, P.hp + lr);
+  else if (c.leech && (!P.lch || P.lch.t <= G.t || lr > P.lch.rate)) P.lch = { rate: lr, t: G.t + 1 };
+  /* 劍的招牌點（0.2.23）：近戰擊中有機率再打一次（再打的那一下不會再觸發） */
   if (m.hp <= 0) killMob(m);
+  else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && Math.random() * 100 < ST.dbl)
+    hitMob(m, c, ang, 0, { ...o, again: 1, quiet: 1 });
 }
 
 /* 不吃暴擊的傷害：只吃抗性 */
