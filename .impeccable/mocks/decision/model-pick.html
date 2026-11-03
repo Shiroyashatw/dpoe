@@ -1,0 +1,38 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#07090d;font:15px/1.4 "Noto Sans TC",sans-serif;color:#f2f2f2;position:relative}
+.game{position:absolute;inset:0;background:radial-gradient(circle at 46% 52%,#3a3226 0,#1a1712 30%,#07090d 62%)}
+.win{background:linear-gradient(#2638a0,#0c1450);border:3px solid #f2f2f2;box-shadow:0 0 0 3px #05072a,inset 0 0 0 2px #05072a;border-radius:6px;image-rendering:pixelated}
+.px{font-family:"Silkscreen",monospace}
+.hero{position:absolute;left:640px;top:440px;width:40px;height:52px;background:#e9e3e3;border-radius:6px}
+.mob{position:absolute;width:30px;height:30px;background:#5c7a3a}
+.drop{position:absolute;padding:2px 8px;font:700 13px "Noto Sans TC";background:#05072acc;border:2px solid currentColor}
+.hud{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);display:flex;gap:16px;align-items:flex-end;padding:12px 18px}
+.gauge{width:180px}.gauge b{font-size:12px}.gauge div{height:16px;border:2px solid #f2f2f2;background:#05072a;margin-top:4px}
+.gauge i{display:block;height:100%}
+.slots{display:flex;gap:6px}.sl{width:54px;height:54px;border:2px solid #f2f2f2;background:#05072a;position:relative}
+.sl span{position:absolute;left:3px;top:1px;font-size:10px}
+.panel{position:absolute;right:40px;top:120px;width:460px;height:700px;padding:20px}
+.panel h2{font:900 22px "Noto Sans TC";margin-bottom:14px}
+.menu div{padding:6px 0 6px 28px;position:relative}.menu div.on:before{content:"▶";position:absolute;left:4px;color:#ffd34d}
+.eq{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+.eq div{height:60px;border:2px solid #f2f2f2;background:#05072a}
+.eq div.r2{border-color:#ffd34d}.eq div.r1{border-color:#8fa8ff}
+.inv{height:260px;border:2px solid #f2f2f2;background:#05072a}
+.mini{position:absolute;right:40px;top:20px;width:200px;height:84px;padding:10px}
+.tip{position:absolute;right:530px;top:220px;width:300px;padding:14px}
+.tip h3{color:#ffd34d;font:900 18px "Noto Sans TC"}
+</style></head><body>
+<div class="game"></div>
+<div class="mob" style="left:520px;top:380px"></div><div class="mob" style="left:740px;top:400px"></div><div class="hero"></div>
+<div class="drop" style="left:470px;top:600px;color:#ffd34d">血腥 長劍</div><div class="drop" style="left:660px;top:620px;color:#8fa8ff">灼熱之 戒指</div>
+<div class="mini win px">T7 MAP<br>BOSS 70%</div>
+<div class="panel win"><h2>裝備</h2><div class="menu"><div class="on">裝備</div><div>倉庫</div><div>技能寶石</div></div>
+<div class="eq"><div class="r2"></div><div class="r1"></div><div></div><div class="r2"></div><div></div><div class="r1"></div><div></div><div></div><div class="r2"></div><div></div></div><div class="inv"></div></div>
+<div class="tip win"><h3>血腥 長劍</h3><p>增加 142% 物理傷害<br>附加 12～24 火焰傷害<br>攻擊速度 +8%</p></div>
+<div class="hud win"><div class="gauge"><b class="px">HP 1212</b><div><i style="width:72%;background:#e04848"></i></div></div>
+<div class="slots"><div class="sl"><span class="px">L</span></div><div class="sl"><span class="px">R</span></div><div class="sl"><span class="px">Q</span></div><div class="sl"><span class="px">E</span></div><div class="sl"><span class="px">R</span></div></div>
+<div class="gauge"><b class="px">MP 184</b><div><i style="width:54%;background:#4f86ff"></i></div></div></div>
+</body></html>

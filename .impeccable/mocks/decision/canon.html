@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:1440px;height:900px;overflow:hidden;background:#07090d;font:14px/1.4 "Noto Sans TC",sans-serif;color:#e8d9b0;position:relative}
+.game{position:absolute;inset:0;background:radial-gradient(circle at 46% 52%,#3a3226 0,#1a1712 30%,#07090d 62%)}
+.stone{background:linear-gradient(#2a231a,#14110d);border:2px solid #a88a4f;box-shadow:0 0 0 2px #14110d,0 0 0 4px #6b5530,0 10px 30px #000}
+.hero{position:absolute;left:640px;top:440px;width:40px;height:52px;background:#e9e3e3;border-radius:6px}
+.hud{position:absolute;left:0;right:0;bottom:0;height:150px;display:flex;align-items:flex-end;justify-content:center;gap:24px;padding-bottom:16px;background:linear-gradient(transparent,#14110d 60%)}
+.orb{width:130px;height:130px;border-radius:50%;border:4px solid #a88a4f;box-shadow:0 0 0 3px #3a2d18;overflow:hidden;position:relative;background:#000}
+.orb i{position:absolute;left:0;right:0;bottom:0}
+.slots{display:flex;gap:6px;padding:8px}.sl{width:56px;height:56px;border:2px solid #6b5530;background:#0a0806}
+.panel{position:absolute;right:30px;top:60px;width:470px;height:760px;padding:18px}
+.panel h2{font:900 24px "Noto Serif TC";text-align:center;color:#e8c77a;border-bottom:1px solid #6b5530;padding-bottom:10px;margin-bottom:14px}
+.eq{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}.eq div{height:62px;border:1px solid #6b5530;background:#0a0806}
+.eq div.r2{border-color:#ffd34d}.eq div.r1{border-color:#8fa8ff}
+.inv{height:300px;border:1px solid #6b5530;background:#0a0806}
+.tip{position:absolute;right:530px;top:220px;width:300px;padding:0 0 12px;text-align:center}
+.tip h3{font:900 18px "Noto Serif TC";color:#ffd34d;background:#3a2d18;padding:8px}.tip p{padding:8px 12px}
+</style></head><body>
+<div class="game"></div><div class="hero"></div>
+<div class="panel stone"><h2>裝備</h2><div class="eq"><div class="r2"></div><div class="r1"></div><div></div><div class="r2"></div><div></div><div></div><div></div><div></div><div class="r2"></div><div></div></div><div class="inv"></div></div>
+<div class="tip stone"><h3>血腥 長劍</h3><p>增加 142% 物理傷害<br>附加 12～24 火焰傷害<br>攻擊速度 +8%</p></div>
+<div class="hud"><div class="orb"><i style="height:72%;background:radial-gradient(#e04848,#600)"></i></div><div class="slots stone"><div class="sl"></div><div class="sl"></div><div class="sl"></div><div class="sl"></div><div class="sl"></div><div class="sl"></div></div><div class="orb"><i style="height:54%;background:radial-gradient(#4f86ff,#013)"></i></div></div>
+</body></html>

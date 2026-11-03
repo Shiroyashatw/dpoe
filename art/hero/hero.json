@@ -1,0 +1,109 @@
+{
+  "character": {
+    "id": "f022b65a-a51c-417f-96b5-a85a1ef018c2",
+    "name": "Idle",
+    "prompt": "Chibi female fantasy warrior, full-body pixel art game character, 48x48 sprite, 8 directions. Long flowing white hair with coral pink bangs and pink hair on the top of her head. A small dark floral hair ornament. Calm, elegant expression. In the front view, show two slightly larger, expressive eyes, clearly separated with visible skin between them. Keep the bangs above the eyes and the face clearly visible. Simple facial features with minimal shading. Wearing a fitted white short dress with black trim, a long black open coat with deep red lining, and black thigh-high stockings with black boots. Red and orange accents on one sleeve. Both hands are empty, with no weapons or objects. Large head and small body, elegant standing pose, clear silhouette, clean and readable pixel art. Keep the design consistent across all directions.",
+    "size": {
+      "width": 48,
+      "height": 48
+    },
+    "directions": 8,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "Chibi_female_fantasy_war-Idle.png",
+    "cell_size": {
+      "width": 80,
+      "height": 80
+    },
+    "sheet_size": {
+      "width": 720,
+      "height": 720
+    },
+    "columns": 9,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      },
+      {
+        "row": 1,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "Idle",
+        "animation_group_id": "3b62ba8b-40cd-405e-8435-7f36bb0d6628",
+        "direction": "south"
+      },
+      {
+        "row": 2,
+        "type": "animation",
+        "frame_count": 6,
+        "animation": "Slide",
+        "animation_group_id": "5b5866b2-9d03-456b-a838-5ff8001286e8",
+        "direction": "south-east"
+      },
+      {
+        "row": 3,
+        "type": "animation",
+        "frame_count": 9,
+        "animation": "The right arm rises above the shoulder to initiate a wide, sweeping arc. The hand then swings downward across the torso in a fluid motion before returning to the original idle resting position. The subject faces the front-right. The arm swings from above the shoulder downward across the front of the body towards the camera and to the right. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick outlines, flat colors, and the strict original perspective throughout the entire fluid animation.",
+        "animation_group_id": "8b1f0822-6f1c-4754-80db-5d2b902f831a",
+        "direction": "south-east"
+      },
+      {
+        "row": 4,
+        "type": "animation",
+        "frame_count": 9,
+        "animation": "The character performs a deep knee bend, leaps vertically, and descends in a forceful slam with an empty right hand striking the ground. After a brief pause, the character stands back up and returns to the initial idle pose. Facing diagonally towards the camera and to the right, the character stays centered. The jump and slam occur along that diagonal, with the right hand striking the ground diagonally down and to the right. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick outlines, flat colors, and the strict original perspective throughout the entire fluid animation.",
+        "animation_group_id": "8b7e2760-d182-483a-9df8-7e8e20ef7103",
+        "direction": "south-east"
+      },
+      {
+        "row": 5,
+        "type": "animation",
+        "frame_count": 9,
+        "animation": "The character slowly raises one open hand to shoulder level, pausing briefly as if gathering magical energy. Then, the character thrusts that same hand forward in a fluid casting motion before lowering the arm and returning to the initial idle stance. The subject faces towards the camera and to the right. The hand raises and extends diagonally down and to the right, with the spell effect traveling diagonally down and to the right. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick outlines, flat colors, and the strict original perspective throughout the entire fluid animation.",
+        "animation_group_id": "a3792b50-3552-4e4b-872b-9c4fc351628a",
+        "direction": "south-east"
+      },
+      {
+        "row": 6,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "Running",
+        "animation_group_id": "bc14b681-ade9-4ce0-8312-d7442412fb79",
+        "direction": "south"
+      },
+      {
+        "row": 7,
+        "type": "animation",
+        "frame_count": 8,
+        "animation": "Running",
+        "animation_group_id": "bc14b681-ade9-4ce0-8312-d7442412fb79",
+        "direction": "north"
+      },
+      {
+        "row": 8,
+        "type": "animation",
+        "frame_count": 9,
+        "animation": "The body performs a rapid full rotation while extending the right arm in a wide, circular arc. The arm sweeps horizontally around the torso before returning to the initial idle position with controlled momentum. The subject faces towards the camera and to the right. The arm sweeps in an arc, moving diagonally down and to the right. Static camera, completely locked-off shot. Maintain the crisp 2D pixel art aesthetic, thick outlines, flat colors, and the strict original perspective throughout the entire fluid animation.",
+        "animation_group_id": "e612561c-5004-4cdf-802b-b2201e74b385",
+        "direction": "south-east"
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-10-31T05:29:52.339201+00:00"
+}

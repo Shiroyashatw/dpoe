@@ -1,0 +1,685 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-03T04:41:27.571Z",
+  "title": "Design System: dungeonPOE",
+  "extensions": {
+    "colorMeta": {
+      "void": {
+        "role": "neutral",
+        "displayName": "深淵",
+        "canonical": "#070605",
+        "tonalRamp": [
+          "#272625",
+          "#40403f",
+          "#5a5958",
+          "#7b7a7a",
+          "#999999",
+          "#b8b8b7",
+          "#d6d6d6",
+          "#f2f2f2"
+        ]
+      },
+      "stone-top": {
+        "role": "neutral",
+        "displayName": "石材（上）",
+        "canonical": "#17130f",
+        "tonalRamp": [
+          "#292622",
+          "#423f3c",
+          "#5c5956",
+          "#7c7a78",
+          "#9a9997",
+          "#b9b7b6",
+          "#d7d6d5",
+          "#f2f2f2"
+        ]
+      },
+      "stone-base": {
+        "role": "neutral",
+        "displayName": "石材（下）",
+        "canonical": "#0e0b09",
+        "tonalRamp": [
+          "#282624",
+          "#423f3e",
+          "#5b5957",
+          "#7c7a79",
+          "#9a9998",
+          "#b8b7b7",
+          "#d7d6d6",
+          "#f2f2f2"
+        ]
+      },
+      "well": {
+        "role": "neutral",
+        "displayName": "井底",
+        "canonical": "#0a0807",
+        "tonalRamp": [
+          "#282625",
+          "#413f3f",
+          "#5a5958",
+          "#7b7a7a",
+          "#9a9998",
+          "#b8b7b7",
+          "#d6d6d6",
+          "#f2f2f2"
+        ]
+      },
+      "title-band-top": {
+        "role": "neutral",
+        "displayName": "標題帶（上）",
+        "canonical": "#241b12",
+        "tonalRamp": [
+          "#2d251c",
+          "#463e37",
+          "#5f5851",
+          "#7f7974",
+          "#9c9894",
+          "#bab7b4",
+          "#d8d6d4",
+          "#f3f2f2"
+        ]
+      },
+      "title-band-base": {
+        "role": "neutral",
+        "displayName": "標題帶（下）",
+        "canonical": "#130f0b",
+        "tonalRamp": [
+          "#292622",
+          "#423f3c",
+          "#5c5956",
+          "#7c7a78",
+          "#9a9997",
+          "#b9b7b6",
+          "#d7d6d5",
+          "#f2f2f2"
+        ]
+      },
+      "bronze-dark": {
+        "role": "primary",
+        "displayName": "暗銅",
+        "canonical": "#5a4628",
+        "tonalRamp": [
+          "#2f2515",
+          "#4f3e23",
+          "#69573c",
+          "#877963",
+          "#a39887",
+          "#beb7ab",
+          "#dad6cf",
+          "#f3f2f0"
+        ]
+      },
+      "bronze": {
+        "role": "primary",
+        "displayName": "古銅",
+        "canonical": "#b8955a",
+        "tonalRamp": [
+          "#2e2517",
+          "#4d3e26",
+          "#6c5735",
+          "#937748",
+          "#b8955a",
+          "#cdb58c",
+          "#e3d5bd",
+          "#f6f2ea"
+        ]
+      },
+      "bronze-bright": {
+        "role": "primary",
+        "displayName": "亮銅",
+        "canonical": "#d7b77c",
+        "tonalRamp": [
+          "#2c261a",
+          "#4a3f2b",
+          "#67583c",
+          "#8e7952",
+          "#b19766",
+          "#d4b57b",
+          "#e7d5b2",
+          "#f8f2e7"
+        ]
+      },
+      "title-gold": {
+        "role": "primary",
+        "displayName": "標題金",
+        "canonical": "#e6c88e",
+        "tonalRamp": [
+          "#2b261b",
+          "#483f2d",
+          "#65583f",
+          "#8b7956",
+          "#ae976b",
+          "#d1b581",
+          "#ecd4a7",
+          "#f9f2e4"
+        ]
+      },
+      "parchment": {
+        "role": "neutral",
+        "displayName": "米白",
+        "canonical": "#e8e2d6",
+        "tonalRamp": [
+          "#272624",
+          "#41403c",
+          "#5b5954",
+          "#7d7a74",
+          "#9d9991",
+          "#bcb7ae",
+          "#dbd6ca",
+          "#f5f2ed"
+        ]
+      },
+      "button-ink": {
+        "role": "neutral",
+        "displayName": "按鈕墨",
+        "canonical": "#e9dfcd",
+        "tonalRamp": [
+          "#282623",
+          "#423f3a",
+          "#5d5952",
+          "#7f7a70",
+          "#9f988c",
+          "#bfb7a8",
+          "#dfd5c4",
+          "#f6f2ea"
+        ]
+      },
+      "ash": {
+        "role": "neutral",
+        "displayName": "灰燼",
+        "canonical": "#a1968a",
+        "tonalRamp": [
+          "#292623",
+          "#443f3a",
+          "#5f5851",
+          "#82796f",
+          "#a2978b",
+          "#beb6ae",
+          "#dad5d1",
+          "#f3f2f1"
+        ]
+      },
+      "locked-ink": {
+        "role": "neutral",
+        "displayName": "鎖住墨",
+        "canonical": "#6a6259",
+        "tonalRamp": [
+          "#292622",
+          "#443f39",
+          "#5f5850",
+          "#807972",
+          "#9d9892",
+          "#bbb7b3",
+          "#d8d6d3",
+          "#f3f2f1"
+        ]
+      },
+      "oxblood-top": {
+        "role": "secondary",
+        "displayName": "牛血紅（上）",
+        "canonical": "#6b2414",
+        "tonalRamp": [
+          "#4a190e",
+          "#712d1e",
+          "#84493c",
+          "#9d6e63",
+          "#b38f87",
+          "#cab1ab",
+          "#e1d2cf",
+          "#f6f1f0"
+        ]
+      },
+      "oxblood-base": {
+        "role": "secondary",
+        "displayName": "牛血紅（下）",
+        "canonical": "#3a110a",
+        "tonalRamp": [
+          "#431b15",
+          "#593630",
+          "#6f514c",
+          "#8c7470",
+          "#a69491",
+          "#c1b4b2",
+          "#dcd4d3",
+          "#f4f2f1"
+        ]
+      },
+      "rarity-normal": {
+        "role": "tertiary",
+        "displayName": "普通",
+        "canonical": "#e8e2d6",
+        "tonalRamp": [
+          "#272624",
+          "#41403c",
+          "#5b5954",
+          "#7d7a74",
+          "#9d9991",
+          "#bcb7ae",
+          "#dbd6ca",
+          "#f5f2ed"
+        ]
+      },
+      "rarity-magic": {
+        "role": "tertiary",
+        "displayName": "魔法藍",
+        "canonical": "#8ab4ff",
+        "tonalRamp": [
+          "#1e2737",
+          "#32415c",
+          "#465b81",
+          "#607db1",
+          "#789cde",
+          "#95bbff",
+          "#c3d8ff",
+          "#ecf3ff"
+        ]
+      },
+      "rarity-rare": {
+        "role": "tertiary",
+        "displayName": "稀有黃",
+        "canonical": "#ffd166",
+        "tonalRamp": [
+          "#2e2613",
+          "#4d3f1f",
+          "#6c592b",
+          "#94793b",
+          "#b9984a",
+          "#deb659",
+          "#ffd573",
+          "#fff2d3"
+        ]
+      },
+      "rarity-gem": {
+        "role": "tertiary",
+        "displayName": "寶石青",
+        "canonical": "#4fd1c5",
+        "tonalRamp": [
+          "#122f2d",
+          "#1e4f4a",
+          "#2a6f68",
+          "#39988f",
+          "#48bdb3",
+          "#6dd9cf",
+          "#ace9e4",
+          "#e5f8f6"
+        ]
+      },
+      "band-normal": {
+        "role": "tertiary",
+        "displayName": "普通標題帶",
+        "canonical": "#15110d",
+        "tonalRamp": [
+          "#292622",
+          "#423f3c",
+          "#5c5956",
+          "#7c7a78",
+          "#9a9997",
+          "#b9b7b6",
+          "#d7d6d5",
+          "#f2f2f2"
+        ]
+      },
+      "band-magic": {
+        "role": "tertiary",
+        "displayName": "魔法標題帶",
+        "canonical": "#121833",
+        "tonalRamp": [
+          "#1f253f",
+          "#3a3f55",
+          "#54586c",
+          "#767a89",
+          "#9698a4",
+          "#b5b7c0",
+          "#d5d6db",
+          "#f2f2f4"
+        ]
+      },
+      "band-rare": {
+        "role": "tertiary",
+        "displayName": "稀有標題帶",
+        "canonical": "#2a210d",
+        "tonalRamp": [
+          "#2f2612",
+          "#473f2e",
+          "#60594a",
+          "#807a6e",
+          "#9d9990",
+          "#bab7b1",
+          "#d8d6d2",
+          "#f3f2f1"
+        ]
+      },
+      "band-gem": {
+        "role": "tertiary",
+        "displayName": "寶石標題帶",
+        "canonical": "#0e2826",
+        "tonalRamp": [
+          "#152e2c",
+          "#304745",
+          "#4c5f5e",
+          "#707f7e",
+          "#919d9c",
+          "#b2baba",
+          "#d3d8d7",
+          "#f1f3f3"
+        ]
+      },
+      "affix-blue": {
+        "role": "tertiary",
+        "displayName": "詞綴藍",
+        "canonical": "#9aa6ff",
+        "tonalRamp": [
+          "#222539",
+          "#393d5e",
+          "#505684",
+          "#6d76b5",
+          "#8993e2",
+          "#a8b2ff",
+          "#cdd3ff",
+          "#eff1ff"
+        ]
+      },
+      "good": {
+        "role": "tertiary",
+        "displayName": "好",
+        "canonical": "#7bd36b",
+        "tonalRamp": [
+          "#1b2f18",
+          "#2d4e27",
+          "#406d37",
+          "#57954c",
+          "#6dbb5f",
+          "#8cd97e",
+          "#bde9b6",
+          "#ebf8e8"
+        ]
+      },
+      "bad": {
+        "role": "tertiary",
+        "displayName": "壞",
+        "canonical": "#e5484d",
+        "tonalRamp": [
+          "#491719",
+          "#7a2629",
+          "#ab363a",
+          "#e64c51",
+          "#eb7579",
+          "#f19fa1",
+          "#f7c8c9",
+          "#fdeeee"
+        ]
+      },
+      "warn": {
+        "role": "tertiary",
+        "displayName": "警示",
+        "canonical": "#ffb38a",
+        "tonalRamp": [
+          "#31231b",
+          "#523a2d",
+          "#73513f",
+          "#9e6f56",
+          "#c68b6b",
+          "#eea781",
+          "#ffc9ad",
+          "#ffeee5"
+        ]
+      },
+      "fire": {
+        "role": "tertiary",
+        "displayName": "火",
+        "canonical": "#ff8a4c",
+        "tonalRamp": [
+          "#3b2012",
+          "#62351d",
+          "#894a29",
+          "#bc6638",
+          "#eb7f46",
+          "#ffa170",
+          "#ffc9ad",
+          "#ffeee5"
+        ]
+      },
+      "cold": {
+        "role": "tertiary",
+        "displayName": "冰",
+        "canonical": "#8fd6ff",
+        "tonalRamp": [
+          "#1c2931",
+          "#2e4552",
+          "#416173",
+          "#59859e",
+          "#6fa6c6",
+          "#85c7ed",
+          "#b0e2ff",
+          "#e6f6ff"
+        ]
+      },
+      "lightning": {
+        "role": "tertiary",
+        "displayName": "電",
+        "canonical": "#ffe066",
+        "tonalRamp": [
+          "#2c2712",
+          "#4a411e",
+          "#685b2a",
+          "#8e7d39",
+          "#b29c47",
+          "#d5bb55",
+          "#f9db64",
+          "#fff4c8"
+        ]
+      },
+      "chaos": {
+        "role": "tertiary",
+        "displayName": "混沌",
+        "canonical": "#c38bff",
+        "tonalRamp": [
+          "#2c1f3a",
+          "#4a3460",
+          "#674987",
+          "#8d65b9",
+          "#b17ee7",
+          "#cd9fff",
+          "#e3c8ff",
+          "#f6eeff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "標題",
+        "purpose": "面板與天賦樹工具列標題，金色襯線，桌機置中兩側細線。"
+      },
+      "headline": {
+        "displayName": "大標",
+        "purpose": "說明框道具名（稀有度色）、王名、警告字。"
+      },
+      "section": {
+        "displayName": "小節",
+        "purpose": "面板內小節標題，下有細線。"
+      },
+      "body": {
+        "displayName": "內文",
+        "purpose": "內文、按鈕（700）、地圖卡。"
+      },
+      "label": {
+        "displayName": "說明",
+        "purpose": "說明、數值列、晶片。"
+      },
+      "micro": {
+        "displayName": "極小",
+        "purpose": "鍵名、詞綴層級、空格名；手機 HUD 最小 10px。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "frame",
+        "value": "0 0 0 1px #000, 0 0 0 3px #5a4628, 0 0 0 4px #000",
+        "purpose": "古銅框環（--frame），搭配 1px 古銅 border 與內縮 5px outline。"
+      },
+      {
+        "name": "panel-drop",
+        "value": "0 18px 48px rgba(0,0,0,0.75)",
+        "purpose": "面板從遊戲畫面分開。"
+      },
+      {
+        "name": "tip-drop",
+        "value": "0 12px 32px rgba(0,0,0,0.8)",
+        "purpose": "說明框。"
+      },
+      {
+        "name": "tray-drop",
+        "value": "0 8px 24px rgba(0,0,0,0.7)",
+        "purpose": "HUD 技能托盤。"
+      },
+      {
+        "name": "well",
+        "value": "inset 0 0 10px #000",
+        "purpose": "裝備欄、格子、技能格的凹槽。"
+      },
+      {
+        "name": "orb-ring",
+        "value": "0 0 0 2px #b8955a, 0 0 0 4px #1a130b, 0 0 0 5px #5a4628, 0 6px 18px rgba(0,0,0,0.8), inset 0 0 22px #000",
+        "purpose": "生命／魔力球的三環古銅框。"
+      }
+    ],
+    "motion": [
+      {
+        "name": "panel-in",
+        "value": "200ms cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "面板 pop／inL／inR 進場；減少動態時不播。"
+      },
+      {
+        "name": "press",
+        "value": "160ms ease-out",
+        "purpose": "技能格按下：0.92 縮放＋亮銅閃框。"
+      },
+      {
+        "name": "bar-fill",
+        "value": "120–200ms ease-out",
+        "purpose": "球、血條、進度條的數值變化。"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "touch",
+        "value": "body.touch（瀏覽器模擬寬 < 768px）"
+      },
+      {
+        "name": "single-panel",
+        "value": "max-width: 799px（觸控時一次一個面板）"
+      },
+      {
+        "name": "gem-stack",
+        "value": "max-width: 600px, max-height: 420px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "按鈕",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "深色凹面、暗銅框；hover 古銅框金字。",
+      "html": "<button class=\"ds-btn\">放進倉庫</button>",
+      "css": ".ds-btn{font:700 14px \"Noto Sans TC\",sans-serif;color:#e9dfcd;background:linear-gradient(180deg,#221a13,#120e0b);border:1px solid #5a4628;border-radius:2px;box-shadow:inset 0 1px 0 rgba(255,225,170,.06);padding:10px 18px;min-height:44px;cursor:pointer}.ds-btn:hover{border-color:#b8955a;color:#e6c88e}.ds-btn:focus-visible{outline:1px solid #d7b77c;outline-offset:2px}.ds-btn:active{transform:scale(.97)}"
+    },
+    {
+      "name": "主要按鈕",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "牛血紅、古銅框、襯線字；一個畫面最多一顆。",
+      "html": "<button class=\"ds-btn-pri\">進入地圖</button>",
+      "css": ".ds-btn-pri{font:700 14px \"Noto Serif TC\",serif;letter-spacing:.08em;color:#f6e6c4;background:linear-gradient(180deg,#6b2414,#3a110a);border:1px solid #b8955a;border-radius:2px;padding:10px 18px;min-height:44px;cursor:pointer}.ds-btn-pri:hover{border-color:#d7b77c}.ds-btn-pri:focus-visible{outline:1px solid #d7b77c;outline-offset:2px}.ds-btn-pri:active{transform:scale(.97)}"
+    },
+    {
+      "name": "晶片",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "材料與篩選；選中為亮銅框。",
+      "html": "<button class=\"ds-chip\">粉 <small>×12</small></button> <button class=\"ds-chip on\">靈魂 <small>×3</small></button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:3px;height:32px;padding:0 6px;font:500 12px \"Noto Sans TC\",sans-serif;color:#e8e2d6;background:rgba(0,0,0,.35);border:1px solid rgba(196,160,104,.2);border-radius:2px;cursor:pointer}.ds-chip small{color:#a1968a;font-size:11px}.ds-chip.on{border-color:#d7b77c;color:#e6c88e;background:rgba(215,183,124,.1)}.ds-chip:focus-visible{outline:1px solid #d7b77c;outline-offset:2px}.ds-chip:active{scale:.95}"
+    },
+    {
+      "name": "面板",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "石材底古銅雙框，黏住的標題帶、金色襯線標題置中兩側細線（桌機）。",
+      "html": "<div class=\"ds-panel\"><div class=\"ds-ph\"><b>裝備</b><span>Lv 42 · 1820 金</span></div><p>內容</p></div>",
+      "css": ".ds-panel{--dia:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0L8 4 4 8 0 4z' fill='%23d7b77c'/%3E%3C/svg%3E\");background:var(--dia) left 3px bottom 3px/7px no-repeat,var(--dia) right 3px bottom 3px/7px no-repeat,linear-gradient(180deg,#17130f,#0e0b09);border:1px solid #b8955a;border-radius:2px;box-shadow:0 0 0 1px #000,0 0 0 3px #5a4628,0 0 0 4px #000,0 18px 48px rgba(0,0,0,.75);outline:1px solid rgba(140,109,63,.32);outline-offset:-5px;color:#e8e2d6;font:500 14px/1.5 \"Noto Sans TC\",sans-serif;padding:14px;width:300px}.ds-ph{margin:-14px -14px 12px;padding:12px 14px 10px;text-align:center;background:linear-gradient(180deg,#241b12,#130f0b);border-bottom:1px solid #b8955a}.ds-ph b{display:flex;justify-content:center;align-items:center;gap:12px;font:700 19px/1.2 \"Noto Serif TC\",serif;color:#e6c88e;letter-spacing:.08em}.ds-ph b::before,.ds-ph b::after{content:\"\";width:36px;height:1px;background:linear-gradient(90deg,transparent,#b8955a)}.ds-ph b::after{transform:scaleX(-1)}.ds-ph span{color:#a1968a;font-size:12px}"
+    },
+    {
+      "name": "說明框（稀有）",
+      "kind": "custom",
+      "refersTo": "tooltip-header-rare",
+      "description": "PoE 式：稀有度標題帶、名字置中、段落細線、詞綴藍。",
+      "html": "<div class=\"ds-tip\"><b>血之印 珊瑚墜</b><small>稀有 護身符 · 物品等級 70</small><p class=\"base\">品質 9% · 孔 無</p><p class=\"aff\">最大魔力 +43 <i>T5</i><br>全部抗性 +16% <i>T3</i></p></div>",
+      "css": ".ds-tip{--dia:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 0L8 4 4 8 0 4z' fill='%23d7b77c'/%3E%3C/svg%3E\");background:var(--dia) left 3px bottom 3px/7px no-repeat,var(--dia) right 3px bottom 3px/7px no-repeat,linear-gradient(180deg,#17130f,#0e0b09);border:1px solid #b8955a;border-radius:2px;box-shadow:0 0 0 1px #000,0 0 0 3px #5a4628,0 0 0 4px #000,0 18px 48px rgba(0,0,0,.75);outline:1px solid rgba(140,109,63,.32);outline-offset:-5px;width:260px;text-align:center;padding:0 0 10px;font:500 14px/1.5 \"Noto Sans TC\",sans-serif;color:#e8e2d6}.ds-tip>b{display:block;padding:8px 14px 2px;font:700 18px/1.3 \"Noto Serif TC\",serif;letter-spacing:.04em;color:#ffd166;background:#2a210d}.ds-tip>small{display:block;padding:0 14px 8px;color:#a1968a;font-size:12px;background:#2a210d;border-bottom:1px solid #5a4628}.ds-tip p{margin:0;padding:7px 14px 0}.ds-tip p+p{margin-top:7px;border-top:1px solid rgba(140,109,63,.25)}.ds-tip .base{color:#a1968a}.ds-tip .aff{color:#9aa6ff;line-height:1.6}.ds-tip .aff i{font-style:normal;font-size:11px;color:#8a86a0}"
+    },
+    {
+      "name": "技能格",
+      "kind": "custom",
+      "refersTo": "skill-slot",
+      "description": "內凹的 52px 技能格，左上標題金鍵名。",
+      "html": "<div class=\"ds-sk\"><kbd>Q</kbd><svg viewBox=\"0 0 16 16\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\"><path d=\"M8 3v10M3 8h10\"/></svg></div>",
+      "css": ".ds-sk{position:relative;width:52px;height:52px;display:grid;place-items:center;color:#6a6259;background:radial-gradient(circle at 50% 35%,#1a1510,#060504);border:1px solid #5a4628;border-radius:2px;box-shadow:inset 0 0 8px #000}.ds-sk:hover{border-color:#b8955a}.ds-sk kbd{position:absolute;left:3px;top:1px;font:700 11px \"Noto Sans TC\",sans-serif;color:#e6c88e;text-shadow:0 1px 1px #000}"
+    },
+    {
+      "name": "掉落標籤（稀有）",
+      "kind": "custom",
+      "refersTo": "drop-label-rare",
+      "description": "canvas 上的 PoE 式標籤（這裡用 DOM 示意）：稀有度框與字，走近換標題帶底。",
+      "html": "<span class=\"ds-drop\">雷之握 鐵戒</span>",
+      "css": ".ds-drop{display:inline-block;height:20px;line-height:16px;padding:0 8px;font:700 12px \"Noto Sans TC\",sans-serif;color:#ffd166;background:rgba(42,33,13,.95);border:2px solid #ffd166}"
+    }
+  ],
+  "narrative": {
+    "northStar": "古銅鑲邊的刷寶台",
+    "overview": "dungeonPOE 的介面是一件鑲在近黑石材上的古銅器：每個面板、說明框、技能托盤、生命魔力球、小地圖，甚至 canvas 上的互動提示，都用同一套外暗內亮的古銅雙框圍起來，標題用金色襯線字壓在一條深色標題帶上。它走 ARPG 的標準做法（使用者確認的 canon），品質標準是 Path of Exile 2 與 Last Epoch；像 PoE 沒關係，要的是玩家一眼就認出「這是正統 ARPG」。\n\n資訊密度高但分層清楚：戰鬥中只露出球、托盤、王血條、小地圖與掉落標籤，深度留在面板裡。稀有度是整套系統唯一會「發光」的東西：地上的光柱、掉落標籤的框與底、說明框的標題列、格子背包裡道具的底色，從地上到說明框都是同一組 D2 稀有度色，掉落因此有份量。\n\n拒絕的方向（使用者確認）：「灰色半透明面板＋細線」的後台工具感。面板是不透明的石材，不是玻璃。\n\n元件規格、測試尺寸與技術限制在 `docs/介面規範.md`（專案的元件規則書）；這份只記視覺系統，兩份要一致。",
+    "keyCharacteristics": [
+      "近黑暖石底（由上 `stone-top` 到下 `stone-base` 的直向漸層），不透明。",
+      "古銅雙框：外圈暗銅 3px 環、內圈亮銅 1px 線、內縮 5px 的淡銅細線，四角 7px 小菱形。",
+      "金色 Noto Serif TC 標題；內文 Noto Sans TC 米白。",
+      "圓角幾乎為零（2px），只有球與手機技能鍵是正圓。",
+      "稀有度色從地上標籤一路貫穿到說明框標題列。"
+    ],
+    "rules": [
+      {
+        "name": "The Only-Rarity-Glows Rule",
+        "body": "有光暈、光柱、彩色底色的只能是稀有度（以及元素特效）。介面框一律古銅，不拿稀有度色當裝飾。",
+        "section": "colors"
+      },
+      {
+        "name": "The One-Path Rarity Rule",
+        "body": "同一件道具在地上標籤、格子背包、裝備欄、說明框標題列用同一組稀有度色與同一組標題帶底色；canvas 的 `RCOL`／`RBG` 必須等於 CSS 的 `--r*` 與 `#tip` 標題帶。",
+        "section": "colors"
+      },
+      {
+        "name": "The Serif-Is-Ceremony Rule",
+        "body": "襯線只給標題、主要動作、王與地點的名字、canvas 的互動提示；清單內容、數值、說明不用襯線。",
+        "section": "typography"
+      },
+      {
+        "name": "The Ring-Not-Lift Rule",
+        "body": "陰影是零偏移的框環或內凹；不使用偏移的硬陰影，也不用 backdrop-filter 或毛玻璃。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** 每個新面板、浮層、canvas 框都用古銅雙框（CSS 的 `--frame`＋`--fr` border＋內縮 outline；canvas 用 `bronzeRect`），角落放 `--dia` 菱形。",
+      "**Do** 圓角一律 2px（道具 1px），只有球、圓形觸控鍵與天賦點例外。",
+      "**Do** 標題、主要按鈕、王名、地點名用 Noto Serif TC 700 標題金；其餘用 Noto Sans TC。",
+      "**Do** 新的稀有度或道具種類同時補三處：CSS 的 `--r*`／`.it.r*`／`#tip` 標題帶、canvas 的 `RCOL`／`RBG`、光柱。",
+      "**Do** 選中、hover、焦點統一走亮銅框（寶石類分段例外用寶石青）。",
+      "**Do** 鎖住的東西用虛線框＋鎖住墨，並寫出原因。",
+      "**Do** 新的介面小圖示畫成 16×16、1.5px 線條的 SVG 加進 `ICO`。"
+    ],
+    "donts": [
+      "**Don't** 用灰色半透明面板＋細線（使用者拒絕的後台工具感）；面板底要不透明的石材。",
+      "**Don't** 用 backdrop-filter、毛玻璃或偏移的硬陰影。",
+      "**Don't** 把稀有度色或元素色拿來當框或裝飾。",
+      "**Don't** 在介面上用 emoji 或符號字當圖示。",
+      "**Don't** 在一個畫面放第二顆牛血紅主要按鈕。"
+    ]
+  }
+}

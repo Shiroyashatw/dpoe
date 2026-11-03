@@ -1,0 +1,3 @@
+# impeccable 的審查截圖與暫存（很大，不進 git）
+.impeccable/review/
+.impeccable/hook.cache.json
