@@ -1,6 +1,6 @@
-/* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T12～T1）、怪物、王 */
+/* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.40';
+const VER = '0.2.41';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -3240,7 +3240,7 @@ const dustCost = (it, k = 'dust') =>
 const temperCost = (it, single) => Math.round(3 * (1 + it.L) * Math.min(2, 1 + 0.1 * (it.tmp || 0)) * (single ? 3 : 1));
 const BASEI = Object.fromEntries(BASES.map(b => [b.id, b]));
 
-/* 詞綴：p 前綴（1）／後綴（0）、r：[T12 的最小, T1 的最大]、add 是「附加 a～b」兩個數 */
+/* 詞綴：p 前綴（1）／後綴（0）、r：[T6 的最小, T1 的最大]、add 是「附加 a～b」兩個數 */
 const AFF = {
   /* 武器上的 dmgP、flat、元素附加、as、crit 是本地詞（只改這把武器，stats 處理） */
   dmgP: { p: 1, n: '物理傷害提高 {}%', r: [10, 170] },
@@ -3274,15 +3274,16 @@ const AFF = {
   spellP: { p: 1, n: '法術傷害提高 {}%', r: [8, 90] },
   spirit: { p: 0, n: '精魄 +{}', r: [4, 30] }
 };
-/* T12（最低）～T1（最高）各一段；物品等級越高，能出現的最高階越高 */
+/* 詞綴階級數（0.2.41 從 12 階改回 6 階）：T6（最低）～T1（最高）各一段；物品等級越高，能出現的最高階越高 */
+const AFF_T = 6;
 function tierRange(k, T) {
   const [lo, hi] = AFF[k].r,
-    step = (hi - lo) / 12,
-    a = lo + step * (12 - T),
+    step = (hi - lo) / AFF_T,
+    a = lo + step * (AFF_T - T),
     b = a + step;
   return [Math.max(1, Math.round(a)), Math.max(1, Math.round(b))];
 }
-const bestTier = ilvl => Math.max(1, 12 - Math.floor(((ilvl - 1) * 11) / (TMAX - 1)));
+const bestTier = ilvl => Math.max(1, AFF_T - Math.floor(((ilvl - 1) * (AFF_T - 1)) / (TMAX - 1)));
 const RARN = ['普通', '魔法', '稀有'];
 const NAME_A = ['血', '鴉', '霜', '雷', '屍', '魂', '龍', '狼', '影', '骨', '焰', '夜', '鬼', '蛇', '鐵', '星'];
 const NAME_B = ['之牙', '之爪', '之握', '之心', '之怒', '之歌', '之嚎', '之印', '之刃', '之殼', '之眼', '之息'];

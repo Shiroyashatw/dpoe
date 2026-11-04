@@ -14,7 +14,8 @@ function rollRarity(bonus) {
 }
 function rollAff(k, ilvl) {
   const best = bestTier(ilvl),
-    T = Math.min(12, best + irnd(0, 4)),
+    /* 一次骰在最高階往下 3 階內 */
+    T = Math.min(AFF_T, best + irnd(0, 2)),
     [lo, hi] = tierRange(k, T);
   if (AFF[k].add) {
     /* 附加傷害：a～b，b 大約是 a 的 2 倍 */

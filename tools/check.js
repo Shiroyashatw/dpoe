@@ -103,7 +103,7 @@ ok(
   /* 藍裝（後綴已經用掉）強化成黃：還能加後綴（照強化之後的上限） */
   const blue = G.mkItem('c_leather', 10, 0);
   blue.r = 1;
-  blue.a = [{ k: 'resF', T: 8, v: 20 }];
+  blue.a = [{ k: 'resF', T: 4, v: 20 }];
   blue.pot = 5;
   ok(
     '藍裝後綴滿了也能「強化」加抗性（照黃裝的上限）',
@@ -114,7 +114,11 @@ ok(
   while (!G.gemUp(g)) up++;
   /* 0.2.40：角色 Lv60 只能升到 14 級（Lv15 要 64），升到 90 才能到 20 */
   const why60 = G.gemUp(g);
-  ok('寶石等級門檻照 PoE2：角色 Lv60 停在 14 級', g.lv === 14 && why60 === 'Lv 15 要角色 Lv 64', `Lv ${g.lv}：${why60}`);
+  ok(
+    '寶石等級門檻照 PoE2：角色 Lv60 停在 14 級',
+    g.lv === 14 && why60 === 'Lv 15 要角色 Lv 64',
+    `Lv ${g.lv}：${why60}`
+  );
   vm.runInContext('S.lv = 90', ctx);
   while (!G.gemUp(g)) up++;
   vm.runInContext('S.lv = 60', ctx);
@@ -139,7 +143,7 @@ for (let i = 0; i < 3000; i++) {
   if (it.r === 2 && (n < 3 || n > 6 || np > 3 || n - np > 3)) err.push('稀有詞綴數 ' + n);
   if (new Set(it.a.map(a => a.k)).size !== n) err.push('詞綴重複');
   for (const a of it.a) {
-    if (a.T < G.bestTier(L) || a.T > 12) err.push(`階級超出 T${a.T} L${L}`);
+    if (a.T < G.bestTier(L) || a.T > 6) err.push(`階級超出 T${a.T} L${L}`);
     const [lo, hi] = G.tierRange(a.k, a.T),
       v = Array.isArray(a.v) ? a.v[1] : a.v;
     if (v < lo || v > hi) err.push(`數值超出 ${a.k} ${v}`);

@@ -29,12 +29,12 @@ function forgeAff(k, ilvl) {
 }
 const sortAff = it => it.a.sort((x, y) => AFF[y.k].p - AFF[x.k].p);
 /* 可能拿到的階級（預覽用） */
-const tierSpan = it => `T${Math.max(2, bestTier(it.L))}～T${Math.min(12, bestTier(it.L) + 4)}`;
+const tierSpan = it => `T${Math.max(2, bestTier(it.L))}～T${Math.min(AFF_T, bestTier(it.L) + 2)}`;
 /* 預覽（0.2.30）：一條詞可能的數字範圍（這件物品等級能出的階級） */
 function affRangeTxt(k, it) {
   const b = bestTier(it.L),
     [, hi] = tierRange(k, Math.max(2, b)),
-    [lo] = tierRange(k, Math.min(12, b + 4));
+    [lo] = tierRange(k, Math.min(AFF_T, b + 2));
   return AFF[k].n.replace('{}', `${lo}～${hi}`);
 }
 /* 這一步可能拿掉、可能加入什麼（鍛造台的預覽）：out 拿掉的詞、add 詞綴鍵、keep 不變的詞 */
@@ -215,12 +215,12 @@ function forgeDo(it, op, cls) {
   sortAff(it);
   return null;
 }
-/* 推薦：白藍→強化；黃裝沒滿→添加（選的那類）；有很爛的詞（T9 以下）→同類置換 */
+/* 推薦：白藍→強化；黃裝沒滿→添加（選的那類）；有很爛的詞（T5 以下）→同類置換 */
 function forgeHint(it, cls) {
   if (it.gem || !it.pot) return null;
   if (it.r < 2) return 'enhance';
   if (it.a.length < affCap(it) && cls && !FORGE.add.ok(it, cls)) return 'add';
-  if (cls && it.a.some(a => affCls(a.k) === cls && a.T >= 9)) return 'swapSame';
+  if (cls && it.a.some(a => affCls(a.k) === cls && a.T >= 5)) return 'swapSame';
   return null;
 }
 

@@ -91,7 +91,7 @@ function migrate(s) {
       for (const a of it.a) {
         const k = a.k === 'crit' && !wpn ? 'critInc' : a.k === 'dmgP' && baseOf(it).k === 'amulet' ? 'physP' : a.k;
         if (k !== a.k || (a.k === 'crit' && wpn)) {
-          const [lo, hi] = tierRange(k, a.T || 12);
+          const [lo, hi] = tierRange(k, Math.ceil((a.T || 12) / 2));
           Object.assign(a, { k, v: Math.round((lo + hi) / 2) });
         }
       }
@@ -149,6 +149,12 @@ function migrate(s) {
       };
     walk([o.inv, o.stash, o.temp, o.gems, o.skills, o.auras]);
     o.v = 20;
+  }
+  /* 存檔 21（0.2.41）：詞綴 12 階改成 6 階；新的 Tn 剛好是舊的 T(2n−1)＋T(2n)，數值不用動 */
+  if (o.v < 21) {
+    for (const it of [...Object.values(o.eq), ...o.inv.items, ...o.stash.items, ...((o.temp && o.temp.items) || [])])
+      if (it && !it.gem && it.a) for (const a of it.a) if (a.T) a.T = Math.ceil(a.T / 2);
+    o.v = 21;
   }
   /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
   if (!o.filter || !Array.isArray(o.filter.sets)) {
