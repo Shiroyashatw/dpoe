@@ -5,10 +5,9 @@
 const CRAFT = { tab: 'forge', cls: null, sel: null, log: '' };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);
 
-/* 材料列：三種粉、靈魂、鑿孔石；鍛造分頁多一排 8 類詞綴類別（點選） */
 /* 詞綴類別（第二步）：選了才知道對哪一類下手 */
 const clsHTML = () =>
-  `<div class="ph2">選詞綴類別 <span>${CRAFT.cls ? '對' + ACLSI[CRAFT.cls].n + '類下手' : '添加、置換、重鑄都要先選'}</span></div><div class="mats">${ACLS.map(
+  `<div class="mats" role="group" aria-label="詞綴類別">${ACLS.map(
     x =>
       `<button class="chip ${CRAFT.cls === x.k ? 'on' : ''}" data-fg="cls:${x.k}" title="對${x.n}類詞綴下手">${icHTML(x.ic)}<small>${x.n}</small></button>`
   ).join('')}</div>`;
@@ -24,26 +23,13 @@ function fpvHTML(it, op) {
       : '';
   return out + keep + add;
 }
-function matsHTML(pickable) {
-  const m = MAT();
-  return `<div class="mats">
-    ${Object.entries(DUSTS)
-      .map(
-        ([k, n]) =>
-          `<span class="chip" title="${n}"><i class="dot dust ${k}"></i><b>${m[k]}</b><small>${n}</small></span>`
-      )
-      .join('')}
-    <span class="chip" title="靈魂：寶石升級"><i class="dot soul"></i><b>${m.soul}</b><small>靈魂</small></span>
-    ${DRILLS.map((n, i) => `<span class="chip" title="${n}"><i class="dot drill d${i}"></i><b>${m.drill[i]}</b><small>${'小中大'[i]}鑿</small></span>`).join('')}
-  </div>${
-    pickable
-      ? `<div class="mats">${ACLS.map(
-          x =>
-            `<button class="chip ${CRAFT.cls === x.k ? 'on' : ''}" data-fg="cls:${x.k}" title="對${x.n}類詞綴下手">${icHTML(x.ic)}<small>${x.n}</small></button>`
-        ).join('')}</div>`
-      : ''
-  }`;
-}
+/* 標題列的材料：只列鍛造用得到的三種粉（淬鍊列金幣） */
+const matLine = tab =>
+  tab === 'temper'
+    ? `金幣 <b class="c-gold">${S.gold}</b>`
+    : Object.entries(DUSTS)
+        .map(([k, n]) => `${n} <b class="c-gold">${MAT()[k]}</b>`)
+        .join(' · ');
 function selHTML(it, temper) {
   if (!it)
     return `<p class="fhint">${TOUCH.on ? '點背包或身上的裝備，再按「放上鍛造台」' : '點一下背包或身上的裝備，放上鍛造台'}</p>${
@@ -76,38 +62,37 @@ function forgeHTML() {
       ['temper', '淬鍊']
     ];
   let body = '';
-  if (tab === 'forge') {
-    const hint = it && forgeHint(it, CRAFT.cls);
-    body = it
-      ? `<div class="fops">${Object.keys(FORGE)
-          .map(op => {
-            const F = FORGE[op],
-              { cost, why } = forgeCheck(it, op, CRAFT.cls),
-              ok = !why || /^.粉不夠/.test(why),
-              noCls = why === '先選一種類別';
-            return `<div class="fop ${why ? 'off' : ''}"><button class="btn ${hint === op ? 'pri' : ''}" data-fg="op:${op}" ${why ? 'disabled' : ''}>${hint === op ? '★ ' : ''}${F.n}</button>
-              <div><small>${esc(F.d)}</small><small class="cost">潛能 −${cost.pot} · ${DUSTS[cost.du]} ${cost.n}</small>${
-                (why && !noCls ? `<small class="c-bad">${esc(why)}</small>` : '') + (ok ? fpvHTML(it, op) : '')
-              }</div></div>`;
-          })
-          .join('')}</div>
-        <p class="fhint">先在上面選一種類別（對那一類詞下手）。粗粉強化、精粉添加與同類置換、稀粉跨類置換與定向重鑄。鍛造出來的詞最高 T2，T1 只能靠野生掉落。套路：定向重鑄 → 添加補滿；5 條好 1 條爛 → 同類置換。</p>`
-      : '';
+  if (tab === 'forge' && it) {
+    /* 一次只看一個動作：五選一＋類別＋結果預覽＋一顆主按鈕 */
+    const hint = forgeHint(it, CRAFT.cls),
+      op = CRAFT.op || hint || 'enhance',
+      F = FORGE[op],
+      { cost, why } = forgeCheck(it, op, CRAFT.cls),
+      noCls = why === '先選一種類別',
+      ok = !why || /^.粉不夠/.test(why);
+    body = `<div class="fseg" role="tablist" aria-label="鍛造動作">${Object.keys(FORGE)
+      .map(
+        k =>
+          `<button role="tab" aria-selected="${k === op}" class="${k === op ? 'on' : ''}" data-fg="sel:${k}">${hint === k ? `<i>推薦</i>` : ''}${FORGE[k].n}</button>`
+      )
+      .join('')}</div>
+      <p class="fdo">${esc(F.d)}</p>
+      ${clsHTML()}
+      <div class="fres">${ok ? fpvHTML(it, op) : ''}${why && !noCls ? `<small class="c-bad">${esc(why)}</small>` : ''}</div>
+      <button class="btn pri fgo" data-fg="op:${op}" ${why ? 'disabled' : ''}>${noCls ? '先選詞綴類別' : `${F.n} · 潛能 −${cost.pot} · ${DUSTS[cost.du]} ${cost.n}`}</button>`;
   } else if (tab === 'temper') {
     body = it
       ? it.a.length
         ? `<button class="btn pri" data-fg="tmp:all" ${S.gold < temperCost(it) ? 'disabled' : ''}>全體淬鍊 ${temperCost(it)} 金</button>
-          <p class="fhint">階級、條數不變，只在範圍裡重骰數字（會變高也會變低）。不花潛能，每按一次貴 10%，最多 2 倍。你有 ${S.gold} 金。</p>`
+          <p class="fhint">階級和條數不變，只重骰數字，可能變高也可能變低。每按一次貴 10%，最多 2 倍。</p>`
         : `<p class="fhint">白裝沒有詞綴可以淬鍊</p>`
       : '';
   }
-  return `<div class="ph"><b>鍛造台</b><span class="ftabs">${tabs
+  return `<div class="ph"><b>鍛造台</b><span class="fmat">${matLine(tab)}</span><span class="ftabs">${tabs
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
     .join('')}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  ${matsHTML(false)}
   ${selHTML(it, tab === 'temper')}
   ${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}
-  ${tab === 'forge' && it ? clsHTML() : ''}
   ${body}`;
 }
 /* 做完一次：寫下拿掉什麼、加了什麼 */
@@ -136,6 +121,7 @@ document.addEventListener('click', e => {
     it = craftItem();
   let err = null;
   if (k === 'tab') CRAFT.tab = v;
+  else if (k === 'sel') CRAFT.op = v;
   else if (k === 'cls') CRAFT.cls = CRAFT.cls === v ? null : v;
   else if (k === 'op' && it) {
     const before = it.a.slice();

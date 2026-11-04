@@ -629,7 +629,7 @@ function skillHTML() {
         return `<div class="skrow"><div class="skcol"><kbd>${SLOTKEY[i]}</kbd>${sock(i + ':a', g, 'act', '技能')}</div><div class="skmain"><div class="skhd"><button class="skinfo" data-sk="row:${i}"><b>${esc(c.D.n)} <span>Lv ${g.lv}${c.lv > g.lv ? `（+${c.lv - g.lv}）` : ''}${g.q ? ` · 品質 ${g.q}%` : ''}</span>${need || ''}</b><small>${skLine(c)}</small></button>${btn('gup:' + i, `升級 ${up.c} 魂`, up.why)}</div><div class="links">${holes}</div></div></div>`;
       })
       .join('');
-  return `<div class="ph"><b>技能寶石</b><span>靈魂 <b class="c-gold">${M.soul}</b> · 精粉 <b class="c-gold">${M.fine}</b> · ${TOUCH.on ? '點背包裡的寶石再按鑲上' : '拖進來或點背包裡的寶石'}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><b>技能寶石</b><span>靈魂 <b class="c-gold">${M.soul}</b> · 精粉 <b class="c-gold">${M.fine}</b> ${M.drill.some(Boolean) ? ` · 鑿孔石 <b class="c-gold">${M.drill.join('／')}</b>` : ''} · ${TOUCH.on ? '點背包裡的寶石再按鑲上' : '拖進來或點背包裡的寶石'}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   ${tabs}${body}`;
 }
 const SKUI = { tab: 'sk' };

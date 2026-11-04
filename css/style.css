@@ -913,3 +913,71 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
 @media (prefers-reduced-motion: reduce) {
   .panel, #tip, #warn.on { animation: none; }
 }
+
+/* ---------- 0.2.31 bolder：一個招牌動作——切角＋金軌＋大字，其他安靜。不加新色，只把金色與稀有度開到滿 ---------- */
+:root { --cut: 8px; --chamfer: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
+/* 面板：頂端 3px 金軌＋大標題，直角 */
+.panel, #over .card { border-radius: 0; border-top: 3px solid var(--act); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75); }
+.ph b, .tbar > b { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; color: var(--title); }
+.panel > .ph:first-child { justify-content: flex-start; text-align: left; padding-top: 12px; padding-bottom: 12px; background: var(--s0); }
+.panel > .ph:first-child > span { text-align: left; }
+.ph2 { font-size: 15px; font-weight: 700; color: var(--title); border-bottom: 1px solid var(--fr); }
+.ph2::before { content: ''; display: inline-block; width: 4px; height: 13px; margin-right: 8px; background: var(--act); vertical-align: -1px; }
+/* 按鈕、技能格、卡片：切角是這套介面的剪影 */
+.btn, .sk, .shopb, .mc2, .gtab, .ftabs button, .fseg button { --cut: 6px; clip-path: var(--chamfer); border-radius: 0; }
+.btn.mini { --cut: 4px; }
+.btn:focus-visible, .sk:focus-visible, .shopb:focus-visible, .mc2:focus-visible, .gtab:focus-visible, .ftabs button:focus-visible, .fseg button:focus-visible { clip-path: none; }
+.btn.pri { font-weight: 700; font-size: 15px; }
+.ftabs button.on, .sktabs .btn.on, .gkind .btn.on { background: var(--act); border-color: var(--act); color: #15120a; }
+/* 稀有度：格子從淡底改成實色，掉到好東西一眼看到 */
+.it.r1, .eqs.r1 .it { background: linear-gradient(180deg, rgba(138, 180, 255, 0.34), rgba(40, 60, 110, 0.5)); border-color: var(--r1); }
+.it.r2, .eqs.r2 .it { background: linear-gradient(180deg, rgba(255, 209, 102, 0.38), rgba(110, 85, 30, 0.55)); border-color: var(--r2); }
+.it.r3 { background: linear-gradient(180deg, rgba(79, 209, 197, 0.34), rgba(30, 90, 85, 0.5)); border-color: var(--r3); }
+.eqs.r1 { border-color: var(--r1); box-shadow: 0 0 10px rgba(138, 180, 255, 0.35); }
+.eqs.r2 { border-color: var(--r2); box-shadow: 0 0 12px rgba(255, 209, 102, 0.4); }
+/* 說明框：稀有度色的頂軌＋大名字，跟地上的標籤同一套 */
+#tip { border-radius: 0; border-top: 3px solid var(--r0); box-shadow: 0 14px 36px rgba(0, 0, 0, 0.8); }
+#tip:has(> b.rc1:first-child) { border-top-color: var(--r1); }
+#tip:has(> b.rc2:first-child) { border-top-color: var(--r2); }
+#tip:has(> b.rc3:first-child) { border-top-color: var(--r3); }
+#tip > b:first-child { font-size: 20px; font-weight: 700; }
+/* 數字是主角：技能傷害、角色數值放大 */
+.skv { font-size: 15px; font-weight: 700; }
+.skinfo b { font-size: 15px; }
+#tip .sknums { font-size: 15px; }
+.st b { font-size: 15px; }
+/* HUD：球和托盤是戰鬥畫面的招牌 */
+.orb { width: 104px; height: 104px; border: 2px solid var(--act); box-shadow: 0 0 0 2px #000, 0 8px 22px rgba(0, 0, 0, 0.8), inset 0 0 24px #000; }
+.orb.mp.hot { border-color: var(--fire); box-shadow: 0 0 0 2px #000, 0 0 16px rgba(255, 138, 76, 0.8), inset 0 0 18px #000; }
+.orb span { font-size: 14px; }
+.mid { border-radius: 0; border-top: 2px solid var(--act); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8); }
+.sk { --cut: 7px; background: var(--s0); border: 1px solid var(--fr); }
+#bossbar b { font-size: 22px; font-weight: 700; color: var(--title); }
+#bossbar .bb { height: 16px; border: 1px solid var(--act); }
+#hint { border-radius: 0; border-top: 3px solid var(--act); }
+
+/* 鍛造台（distill）：一次一個動作 */
+.fmat { flex: 1; min-width: 0; }
+.fseg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 10px 0 6px; }
+.fseg button { position: relative; min-height: 44px; padding: 10px 2px 4px; font: 700 var(--fs-s) var(--font); color: var(--dim); background: var(--s2); border: 1px solid var(--fr-o); cursor: pointer; }
+.fseg button.on { color: #15120a; background: var(--act); border-color: var(--act); }
+.fseg i { position: absolute; left: 0; right: 0; top: 0; font: 700 10px/12px var(--font); color: var(--act); }
+.fseg button.on i { color: #15120a; }
+.fdo { margin: 0 0 6px; font-size: var(--fs-s); color: var(--dim); }
+.fres { min-height: 44px; display: flex; flex-direction: column; gap: 2px; margin: 6px 0 8px; }
+.fgo { width: 100%; min-height: 44px; }
+#pcraft .faff { margin-bottom: 0; }
+@media (max-height: 480px) {
+  .fseg { margin-top: 4px; }
+  .fres { min-height: 0; }
+  body.touch .orb { display: none; }
+}
+
+/* 標題列靠左一行：標題＋副標，關閉鈕在右上；分頁接在副標後面 */
+body:not(.touch) .panel > .ph:first-child { display: flex; flex-flow: row wrap; align-items: baseline; justify-content: flex-start; gap: 2px 10px; padding-left: var(--pp); padding-right: 56px; text-align: left; }
+body:not(.touch) .panel > .ph:first-child > b { display: block; flex: none; width: auto; }
+body:not(.touch) .panel > .ph:first-child > span { flex: 0 1 auto; width: auto; text-align: left; }
+body:not(.touch) .panel > .ph:first-child > .x { position: absolute; right: 12px; top: 10px; margin: 0; }
+.st b { font-size: 14px; }
+body.touch.port.pair #pcraft { height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.62); bottom: auto; }
+body.touch.port.pair:has(#pcraft:not([hidden])) #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.62); }
