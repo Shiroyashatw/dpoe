@@ -31,7 +31,7 @@ const MOB_HP = 2;
 
 /* ---------- 異常門檻：同等級普通怪的基礎生命（只看等級，不吃稀有度；穩固值才吃，見下面） ---------- */
 const ailThr = t => 30 * tierMul(t).hp;
-/* 穩固值（0.2.36，企劃書 7.2）：冰凍、電殛、重暈共用。每階比例是 Path of Building 兩張表相除（T1～T16） */
+/* 穩固值（0.2.36，企劃書 7.2）：冰凍、觸電、重暈共用。每階比例是 Path of Building 兩張表相除（T1～T16） */
 const POISE_T = [1.97, 2.03, 2.01, 1.96, 1.89, 1.82, 1.66, 1.46, 1.31, 1.26, 1.23, 1.19, 2.83, 3.02, 3.19, 3.35];
 /* k 累積係數、on 定身到期的欄位、sec 定身秒數、back 定身結束後 +500% 退回的秒數 */
 const POISE = {
@@ -491,7 +491,7 @@ function applyAil(m, r, c) {
   }
   /* 感電：每 4% 門檻 +1% 機率（化身 ×2），受到的傷害提高 20%、8 秒 */
   if (p.light > 0 && Math.random() * 100 < (((p.light / thr) * 100) / 4) * (archon ? 2 : 1)) a.shock = G.t + 8;
-  /* 電殛：只有特定技能、輔助會累積 */
+  /* 觸電：只有特定技能、輔助會累積 */
   if (c.elc) poiseAdd(m, 'elc', po.light * c.elc, ST.elcP + (mk === 'volt' ? 50 : 0));
   /* 暈眩：僵直（輕暈）看「這一下÷最大生命」（低於 15% 不算）；重暈累積（冰冷不算，物理、近戰各 ×1.5） */
   const hit = p.phys + p.fire + p.light + p.chaos;
@@ -562,7 +562,7 @@ function applyAil(m, r, c) {
   if (c.maim && attack) a.maim = G.t + 4;
   if (c.intim) a.intim = G.t + 4;
 }
-/* 怪物這一格：持續傷害、累積條消退；回傳 true＝不能行動（冰凍、電殛、重暈、輕暈） */
+/* 怪物這一格：持續傷害、累積條消退；回傳 true＝不能行動（冰凍、觸電、重暈、輕暈） */
 function ailTick(m, dt) {
   const a = m.ail || {};
   let d = 0;
@@ -637,7 +637,7 @@ function curseMob(m, k, lv, q = 0) {
 const MARKS = {
   sniper: { n: '狙擊手標記', d: '下一次被暴擊：這一下多 50% 傷害，給狂怒球' },
   freeze: { n: '冰凍標記', d: '冰凍累積 +50%；被冰凍時你得到附加冰冷 buff' },
-  volt: { n: '電壓標記', d: '電殛累積 +50%；被電殛時你得到附加閃電 buff' },
+  volt: { n: '電壓標記', d: '觸電累積 +50%；被觸電時你得到附加閃電 buff' },
   hound: { n: '獵犬標記', d: '流血會累積重暈；被重暈或死亡時血爆' },
   assassin: { n: '刺客標記', d: '被暴擊率 +5%；死亡時給暴擊球' },
   poacher: { n: '獵人標記', d: '被擊中時你回 1% 魔力；死亡時給狂怒球、回 5% 生命' },
@@ -708,7 +708,7 @@ function onHitBase(m, r, c) {
     (P.rage = Math.min(30, (P.rage || 0) + ST.rageHit)), (P.rageCd = G.t + 0.5), (P.rageT = G.t);
   if (r.crit && ST.powOnCrit && Math.random() * 100 < ST.powOnCrit) gainChg('p');
   if (r.crit && qRoll(c.critChg)) gainChg('p');
-  /* 電殛的品質：不能行動的怪被閃電擊中，跳一道電弧 */
+  /* 觸電的品質：不能行動的怪被閃電擊中，跳一道電弧 */
   if (c.elcQ && a.elcT > G.t && r.pre.light > 0) zapNear(m, r.pre.light * 0.5 * c.elcQ, 1);
   if (r.spell && (c.arcane || Math.random() * 100 < ST.arcaneHit)) gainBuff('arcane', 10);
   if (ST.tailwind && r.crit) P.tail = Math.min(10, (P.tail || 0) + 1);
@@ -1140,7 +1140,7 @@ const STATE = {
   chill: ['冰緩', 'sk_frostarrow', '移動與出手變慢'],
   frozen: ['冰凍', 'sk_frostnova', '不能行動'],
   shock: ['感電', 'sk_arc', '受到的傷害提高'],
-  elc: ['電殛', 'sup_sp_stun', '不能行動'],
+  elc: ['觸電', 'sup_sp_stun', '不能行動'],
   stun: ['暈眩', 'sup_sp_stun', '不能行動'],
   stagger: ['僵直', 'sup_sp_stun', '被一擊打中最大生命 15% 以上，不能行動 0.5 秒'],
   wither: ['凋零', 'sup_sp_wither', '受到的混沌傷害提高'],
