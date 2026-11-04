@@ -31,7 +31,7 @@ function takeState(m, k) {
 /* 碾壓一擊：打中瀕臨重暈的怪直接重暈 */
 function crush(m) {
   if (!takeState(m, 'primed')) return false;
-  m.ail.hstun = G.t + (m.boss ? 1.2 : 3);
+  poisePin(m, 'hs');
   fxs('slam', m.x, m.y, m.r * 1.5);
   return true;
 }

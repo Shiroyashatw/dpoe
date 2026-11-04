@@ -103,6 +103,16 @@
 - **PoE1**：公式 E = ½ ×（D ÷ T）^0.4 ×（1 + M），最低 5%、最高 30%，持續 2 秒；不是靠傷害造成的預設 10%。https://www.poewiki.net/wiki/Chill
 - **差異**：PoE2 的緩速比較強（30～50%），而且在怪物身上持續比較久。
 
+### B0.1 穩固值的數字（0.2.36 開發時查 Path of Building PoE2 的 `src/Data/Misc.lua`、`Modules/CalcOffence.lua` 第 5568 行起）
+
+- **公式**：`data.gameConstants[ailment .. "DamageScale"] / enemyPoiseThreshold * (1 + inc / 100) * more * 100`，再乘傷害。`inc` 只取 `EnemyFreezeBuildup` 這類累積詞和 `EnemyImmobilisationBuildup`，**沒有 `AilmentMagnitude`**，所以異常強度不影響累積（`AilmentMagnitude` 只出現在冰緩、感電等效果）。
+- **係數**：`HeavyStunDamageScale` 0.58、`FreezeDamageScale` 2.1、`ElectrocuteDamageScale` 1.7、`PinDamageScale` 4.2。
+- **定身**：`FreezeDuration` 4、`ElectrocuteDuration` 5000 毫秒、`base_heavy_stun_duration_ms` 2000。
+- **定身後**：`FreezeThresholdModifier`、`ElectrocuteThresholdModifier`、`HeavyStunThresholdModifier` 都是 500，對應 `FreezeModifierDuration` 14、`ElectrocuteModifierDuration` 15、`HeavyStunModifierDuration` 16.5。⚠️ 這些常數在 Path of Building 裡只有定義、沒有運算（`CalcOffence.lua` 沒用到），「+500%、線性退回、從定身結束開始算」是我們的解讀。
+- **消退**：`poise_decay_delay_ms` 8000、`poise_decay_%_per_second` 5（`monsterConstants`；`characterConstants` 的 2000／50 是玩家）。
+- **稀有度**：傳奇 `PoiseThreshold` MORE 500、地圖王 MORE 213，合起來 ×18.78。
+- **感電持續**：`BaseShockDuration` 8、`BaseShockDurationPlayer` 4，所以怪物 8 秒。
+
 ### B5. 冰凍 Freeze
 
 - **PoE2**：冷傷害累積「冰凍值」，到 100% 時冰凍、然後歸零；預設持續 **4 秒**（tooltip）。冰凍期間行動速度歸零，算定身。首領每被冰凍一次，對冰凍的門檻就提高，之後會慢慢回落。格擋不會擋掉冰凍累積。冰凍後再累積會變慢（0.1.0e 起）；0.2.0 起整體累積慢了大約 48%。https://www.poe2wiki.net/wiki/Freeze

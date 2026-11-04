@@ -199,6 +199,53 @@ const BUILDS = {
     coc: 'arc'
   }
 };
+/* 0.2.36 穩固值：同樣扣完減傷的總傷害，全部換成一種累積，30 秒打死王時定得住幾次（用真的 poiseAdd，打不打得中、抗性不算） */
+console.log(
+  '階級  王生命    穩固值  累滿占王生命 冰/電/暈(近戰物理)  30 秒打死：定住次數 冰/電/暈  第一次(秒)  累滿占生命 精英/普通'
+);
+for (const t of [1, 4, 8, 12, 13, 16]) {
+  const avgMob = R('Object.values(MOBS).map(x => x.hp)').reduce((a, b) => a + b, 0) / R('Object.keys(MOBS).length'),
+    tm = R('tierMob')(t),
+    bossHp = Math.max(...R('BOSSES').map(b => b.hp)) * tm.hp * R('bossHpMul')(t) * R('MOB_HP'),
+    mobHp = avgMob * tm.hp * R('MOB_HP'),
+    fill = { frz: 2.1, elc: 1.7, hs: 0.58 * 2.25 },
+    pct = (v, hp) => ((v / hp) * 100).toFixed(0) + '%';
+  R(`G.mapT = ${t}; G.t = 0`);
+  const po = R(`poise({ boss: 1, ail: {} }, 'frz')`),
+    run = (k, dmg) => {
+      ctx.b = { boss: 1, ail: {} };
+      R(`G.t = 0`);
+      let n = 0,
+        first = 0;
+      for (let i = 0; i < 90; i++) {
+        const was = R(`ailPinned(b.ail)`);
+        R(`G.t = ${i / 3}; poiseAdd(b, '${k}', ${dmg})`);
+        if (!was && R(`ailPinned(b.ail)`)) (n += 1), (first = first || i / 3);
+      }
+      return [n, first];
+    },
+    hitD = bossHp / 90,
+    rs = [run('frz', hitD), run('elc', hitD), run('hs', hitD * 2.25)],
+    e = R(`poise({ elite: 1, ail: {} }, 'frz')`) / R('ELITE.hp'),
+    n = R(`poise({ ail: {} }, 'frz')`);
+  console.log(
+    [
+      String(t).padStart(3),
+      Math.round(bossHp).toString().padStart(9),
+      Math.round(po).toString().padStart(8),
+      `${pct(po / fill.frz, bossHp)}/${pct(po / fill.elc, bossHp)}/${pct(po / fill.hs, bossHp)}`.padStart(16),
+      rs
+        .map(x => x[0])
+        .join('/')
+        .padStart(14),
+      rs
+        .map(x => x[1].toFixed(1))
+        .join('/')
+        .padStart(16),
+      `${pct(e / 2.1, mobHp)}/${pct(n / 2.1, mobHp)}`.padStart(14)
+    ].join('  ')
+  );
+}
 console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗 命中');
 for (const L of [30, 60, 90]) {
   const t = Math.min(16, Math.max(1, Math.round(((L - 5) * 15) / 78) + 1));

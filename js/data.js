@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T12～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.35';
+const VER = '0.2.36';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -291,7 +291,7 @@ const SKILLS = {
     chain: 4,
     el: 'light',
     tags: ['spell', 'elem'],
-    d: '閃電打中滑鼠附近的敵人，再跳 4 次；感電 2 秒（受到的傷害 +15%）'
+    d: '閃電打中滑鼠附近的敵人，再跳 4 次；可能造成感電（受到的傷害提高 20%、8 秒）'
   },
   slash: {
     n: '斬擊',
@@ -869,7 +869,7 @@ const SUPPORTS = {
     need: ['attack'],
     d: '物理擊中削減護甲；削到 0＝完全破甲，受到的物理傷害提高 20%'
   },
-  elec: { n: '電殛', ic: 'sup_sp_glight', need: [], d: '閃電擊中累積電殛：累滿不能行動 5 秒（王 1.5 秒）' },
+  elec: { n: '電殛', ic: 'sup_sp_glight', need: [], d: '閃電擊中累積電殛：累滿不能行動 5 秒' },
   wither: { n: '凋零', ic: 'sup_sp_wither', need: [], d: '混沌擊中造成凋零：每層受到的混沌傷害提高 5%，最多 10 層' },
   blind: { n: '致盲', ic: 'ail_n_blind', need: [], d: '擊中時致盲：命中值少 20%，4 秒' },
   arcane: {
@@ -1229,7 +1229,10 @@ const STATN = {
   stand: ['不會被擊退、冰凍；閃避變成 0', '', 1],
   /* 0.2.25 昇華小點 */
   blockValP: ['格擋值', '%'],
-  hsP: ['重暈累積', '%']
+  hsP: ['重暈累積', '%'],
+  frzP: ['冰凍累積', '%'],
+  elcP: ['電殛累積', '%'],
+  ailThrP: ['異常門檻', '%']
 };
 /* 天賦樹的主題（0.2.17，照技能體系重做）：sm 小點（輪流）、nt 大點（名字＋效果）；
    rg 六條路（鬥士、遊俠、暗影、魔導、死靈、自然）各自的權重，叢集照所在方向抽主題；
@@ -1267,7 +1270,7 @@ const PT_THEME = [
       ['生命之泉', { flask: 30 }],
       ['不死鳥', { regen: 15, ms: -3 }],
       ['血脈奔騰', { hpP: 3, as: 2 }, '攻速'],
-      ['堅忍', { hpP: 2, resA: 3 }],
+      ['堅忍', { hpP: 2, ailThrP: 25 }],
       ['戰後療傷', { killHeal: 8 }],
       ['活力', { life: 20, ms: 2 }],
       ['心如磐石', { hpP: 3, blockInc: 5 }, '格擋與盾'],
@@ -1326,14 +1329,14 @@ const PT_THEME = [
     nt: [
       ['斬鐵', { meleeP: 25, critX: 10 }],
       ['戰意', { meleeP: 20, rageHit: 1 }],
-      ['破陣', { meleeP: 25, as: 2 }],
+      ['破陣', { meleeP: 25, hsP: 15 }],
       ['猛擊', { meleeP: 40, as: -5 }],
       ['近身肉搏', { meleeP: 20, closeP: 15 }],
       ['血戰', { meleeP: 20, lowHp: 20 }],
       ['橫掃', { meleeP: 15, aoe: 8 }, '範圍'],
       ['熔火之拳', { cvPF: 25, meleeP: 10 }],
       ['狂暴', { meleeP: 20, onsKill: 15 }],
-      ['重擊', { meleeP: 25, armBreak: 1 }],
+      ['重擊', { meleeP: 25, armBreak: 1, hsP: 15 }],
       ['飲血刃', { leech: 2, meleeP: 10 }],
       ['鬥技', { meleeP: 15, as: 4 }, '攻速'],
       ['斷筋', { meleeP: 15, bleedCh: 15 }, '異常'],
@@ -1526,13 +1529,13 @@ const PT_THEME = [
       ['寒冰', { coldP: 30 }],
       ['雷霆', { lightP: 30 }],
       ['焚燒', { fireP: 20, ailMag: 10 }, '異常'],
-      ['霜凍', { coldP: 20, eleP: 10 }],
-      ['電流', { lightP: 20, as: 2 }],
+      ['霜凍', { coldP: 20, frzP: 15 }],
+      ['電流', { lightP: 20, elcP: 15 }],
       ['元素穿透', { pen: 10 }],
       ['雷霜', { cvLC: 25 }],
       ['三元', { fireP: 12, coldP: 12, lightP: 12 }],
       ['元素爆發', { eleP: 20, aoe: 6 }, '範圍'],
-      ['元素護體', { resA: 5, eleP: 10 }],
+      ['元素護體', { resA: 5, ailThrP: 25 }],
       ['火神之心', { maxResF: 1, resF: 12 }],
       ['冰之心', { coldP: 25, resC: 10 }],
       ['雷之心', { lightP: 25, resL: 10 }],
@@ -1551,8 +1554,8 @@ const PT_THEME = [
       ['秘法迴響', { arcaneHit: 30, elemP: 10 }],
       ['灌注', { elemP: 20, aoe: 6 }],
       ['炎爆', { elemP: 20, fireP: 10 }],
-      ['冰封', { elemP: 20, coldP: 10 }],
-      ['雷鳴', { elemP: 20, lightP: 10 }],
+      ['冰封', { elemP: 20, frzP: 15 }],
+      ['雷鳴', { elemP: 20, elcP: 15 }],
       ['冥想施法', { stillP: 30 }],
       ['元素迴響', { elemP: 20, castP: 4 }, '法術'],
       ['風暴之眼', { elemP: 20, critInc: 15 }, '暴擊率'],

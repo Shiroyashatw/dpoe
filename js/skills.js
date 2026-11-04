@@ -816,7 +816,7 @@ function hitMob(m, c, ang, kb, o = {}) {
       isWall(m.x + Math.cos(ang) * (m.r + 40), m.y + Math.sin(ang) * (m.r + 40)) &&
       qRoll(c.wallCh)
     )
-      m.ail.hstun = G.t + 3;
+      poisePin(m, 'hs');
   }
   aggroPack(m);
   num(m.x, m.y - m.sz, r.d, r.crit ? 'crit' : r.el);

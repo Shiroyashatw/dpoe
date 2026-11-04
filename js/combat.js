@@ -26,11 +26,50 @@ function xpMul(plv, mlv) {
 /* 王的生命、傷害倍率（0.2.7，dmg_check 驗收：第 16 階的王一般配裝 30～60 秒、大招最多打掉 40% 生命） */
 const bossHpMul = t => 1 + 0.8 * t,
   BOSS_DMG = 1.8;
-/* 0.2.22：天賦回到 PoE2 的量級（全押傷害約 +900%），怪物與王的生命 ×2（護甲、異常門檻不跟著變） */
+/* 0.2.22：天賦回到 PoE2 的量級（全押傷害約 +900%），怪物與王的生命 ×2（護甲不跟著變；異常門檻、穩固值 0.2.35 起跟著乘） */
 const MOB_HP = 2;
 
-/* ---------- 異常門檻：同等級普通怪的基礎生命（照 PoE2 只看等級，不吃稀有度） ---------- */
+/* ---------- 異常門檻：同等級普通怪的基礎生命（只看等級，不吃稀有度；穩固值才吃，見下面） ---------- */
 const ailThr = t => 30 * tierMul(t).hp;
+/* 穩固值（0.2.36，企劃書 7.2）：冰凍、電殛、重暈共用。每階比例是 Path of Building 兩張表相除（T1～T16） */
+const POISE_T = [1.97, 2.03, 2.01, 1.96, 1.89, 1.82, 1.66, 1.46, 1.31, 1.26, 1.23, 1.19, 2.83, 3.02, 3.19, 3.35];
+/* k 累積係數、on 定身到期的欄位、sec 定身秒數、back 定身結束後 +500% 退回的秒數 */
+const POISE = {
+  frz: { k: 2.1, on: 'frozen', sec: 4, back: 14 },
+  elc: { k: 1.7, on: 'elcT', sec: 5, back: 15 },
+  hs: { k: 0.58, on: 'hstun', sec: 2, back: 16.5 }
+};
+function poise(m, k) {
+  const t = G.mapT || 1,
+    left = ((m.ail.psT && m.ail.psT[k]) || 0) - G.t,
+    /* 刻意偏離 PoE2：生命地圖詞也提高穩固值，不然定身會跟著生命詞變強 */
+    hpW = (1 + MM('mhp') / 100) * (1 + (m.boss ? MM('bhp') : 0) / 100);
+  return (
+    ailThr(t) *
+    MOB_HP *
+    POISE_T[t - 1] *
+    (m.boss ? 18.78 : m.elite ? 3 : 1) *
+    hpW *
+    (1 + 5 * Math.max(0, Math.min(1, left / POISE[k].back)))
+  );
+}
+const ailPinned = a => a.frozen > G.t || a.elcT > G.t || a.hstun > G.t;
+/* 定身：不管是累滿還是碾壓、撞牆，之後穩固值都 +500%，從定身結束開始退回 */
+function poisePin(m, k) {
+  const q = POISE[k],
+    a = m.ail;
+  a[q.on] = G.t + q.sec;
+  (a.psT = a.psT || {})[k] = G.t + q.sec + q.back;
+  a[k] = 0;
+}
+/* 累積：定身期間三條都暫停；inc＝累積提高 % */
+function poiseAdd(m, k, dmg, inc = 0) {
+  const a = m.ail;
+  if (!(dmg > 0) || ailPinned(a)) return;
+  a[k] = (a[k] || 0) + (dmg * POISE[k].k * (1 + inc / 100) * 100) / poise(m, k);
+  (a.psA = a.psA || {})[k] = G.t;
+  if (a[k] >= 100) poisePin(m, k);
+}
 /* 稀有度對減益的抵抗（冰緩、詛咒、曝露）：菁英當稀有 30%、王當傳奇 50% */
 const rarRed = m => (m.boss ? 0.5 : m.elite ? 0.3 : 0);
 const ELEK = ['fire', 'cold', 'light'];
@@ -398,12 +437,14 @@ function hitCalc(c, m, o = {}) {
   }
   if (!o.keep) P.critNext = 0;
   if (ST.aq.precise) P.noCritN = crit ? 0 : (P.noCritN || 0) + 1;
-  /* 目標的減傷：物理看護甲（上限 90%）、其他看抗性；再乘「受到的傷害提高」 */
+  /* 目標的減傷：物理看護甲（上限 90%）、其他看抗性；再乘「受到的傷害提高」；post 是扣完的（穩固值累積用） */
   let d = 0,
     big = 'phys',
     bigV = -1;
+  const post = {};
   for (const k of DT) {
     const v = pre[k];
+    post[k] = 0;
     if (!v) continue;
     if (v > bigV) (bigV = v), (big = k);
     if (!m) {
@@ -411,9 +452,9 @@ function hitCalc(c, m, o = {}) {
       continue;
     }
     const red = k === 'phys' ? Math.min(0.9, m.arm / (m.arm + 10 * v + 1)) : resOf(m, k, ST.pen + (c.pen || 0)) / 100;
-    d += v * (1 - red) * (1 + takenInc(m, k) / 100);
+    d += post[k] = v * (1 - red) * (1 + takenInc(m, k) / 100);
   }
-  return { d, pre, crit, el: big, spell };
+  return { d, pre, post, crit, el: big, spell };
 }
 
 /* ---------- 異常：打中之後（hitMob 呼叫） ---------- */
@@ -425,6 +466,9 @@ function applyAil(m, r, c) {
     t = G.mapT || 1,
     thr = ailThr(t) * MOB_HP,
     p = r.pre,
+    po = r.post,
+    archon = P.buf && P.buf.archon > G.t,
+    mk = a.mark && a.mark.k,
     mag = 1 + (ST.ailMag + (c.ailMag || 0)) / 100,
     attack = (c.D.tags || []).includes('attack'),
     rr = 1 - rarRed(m);
@@ -432,7 +476,7 @@ function applyAil(m, r, c) {
   /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；餘燼：點燃更多、持續時間 −25% */
   const igB = ST.shaper ? p.fire + p.phys + p.cold + p.light : p.fire;
   if (igB > 0) {
-    a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (igB / thr) * 20);
+    a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (igB / thr) * 20 * (archon ? 2 : 1));
     a.flamT = G.t + 8;
     if (Math.random() * 100 < a.flam)
       (a.ign = keepMax(a.ign, igB * 0.2 * (mag + ST.shaper / 100) * (1 + ST.ember / 100), 4 * (ST.ember ? 0.75 : 1))),
@@ -442,17 +486,13 @@ function applyAil(m, r, c) {
   if (p.cold > 0) {
     const v = Math.min(50, ((p.cold / thr) * 100 + 0) * mag) * rr;
     if (v >= 30 * rr && (!a.chill || a.chill.t <= G.t || v >= a.chill.v)) a.chill = { v, t: G.t + 8 };
-    /* 冰凍累積：滿了冰凍 4 秒；王每被冰凍一次門檻 +50% */
-    a.frz = (a.frz || 0) + ((p.cold / thr) * 100) / (1 + 0.5 * (a.frzN || 0)) / (m.boss ? 4 : m.elite ? 2 : 1);
-    if (a.frz >= 100) (a.frozen = G.t + 4), (a.frz = 0), (a.frzN = (a.frzN || 0) + 1);
+    /* 冰凍累積（穩固值）；標記、化身都是累積提高 */
+    poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + (archon ? 100 : 0));
   }
-  /* 感電：每 4% 門檻 +1% 機率，受到的傷害提高 20%、8 秒 */
-  if (p.light > 0 && Math.random() * 100 < ((p.light / thr) * 100) / 4) a.shock = G.t + 8;
+  /* 感電：每 4% 門檻 +1% 機率（化身 ×2），受到的傷害提高 20%、8 秒 */
+  if (p.light > 0 && Math.random() * 100 < (((p.light / thr) * 100) / 4) * (archon ? 2 : 1)) a.shock = G.t + 8;
   /* 電殛：只有特定技能、輔助會累積 */
-  if (p.light > 0 && c.elc) {
-    a.elc = (a.elc || 0) + ((p.light / thr) * 100 * c.elc) / (m.boss ? 4 : m.elite ? 2 : 1);
-    if (a.elc >= 100) (a.elcT = G.t + (m.boss ? 1.5 : 5)), (a.elc = 0);
-  }
+  if (c.elc) poiseAdd(m, 'elc', po.light * c.elc, ST.elcP + (mk === 'volt' ? 50 : 0));
   /* 暈眩：僵直（輕暈）看「這一下÷最大生命」（低於 15% 不算）；重暈累積（冰冷不算，物理、近戰各 ×1.5） */
   const hit = p.phys + p.fire + p.light + p.chaos;
   if (!m.boss && hit / m.mhp >= 0.15 && Math.random() < hit / m.mhp) m.stun = Math.max(m.stun || 0, 0.5);
@@ -464,13 +504,16 @@ function applyAil(m, r, c) {
     (c.k === 'cleave' && hasState(m, 'bleed') ? 0.4 * cq : 0) +
     (c.brkQ && a.broken > G.t ? 0.2 * c.brkQ : 0);
   const hsInc = (1 + (ST.hsP + (p.phys > 0 ? (ST.hsArm * ST.armor) / 1000 : 0)) / 100) * (1 + hsQ);
-  a.hs =
-    (a.hs || 0) +
-    ((hit * (p.phys > 0 ? 1.5 : 1) * ((c.D.tags || []).includes('melee') ? 1.5 : 1) * (c.hsM || 1) * hsInc) / m.mhp) *
-      100 *
-      0.5;
-  if (ST.steelCycle && P.bvAcc > 0) (a.hs += (P.bvAcc / m.mhp) * 100 * 0.5), (P.bvAcc = 0);
-  if (a.hs >= 100) (a.hstun = G.t + (m.boss ? 1.2 : 3)), (a.hs = 0);
+  poiseAdd(
+    m,
+    'hs',
+    (po.phys + po.fire + po.light + po.chaos) *
+      (p.phys > 0 ? 1.5 : 1) *
+      ((c.D.tags || []).includes('melee') ? 1.5 : 1) *
+      (c.hsM || 1) *
+      hsInc
+  );
+  if (ST.steelCycle && P.bvAcc > 0 && !ailPinned(a)) poiseAdd(m, 'hs', P.bvAcc), (P.bvAcc = 0);
   /* 流血、中毒：要有機率；流血只有攻擊會造成，c.spellBleed 是例外（死亡紅花的爆炸） */
   if ((attack || c.spellBleed) && p.phys > 0 && Math.random() * 100 < ST.bleedCh + (c.bleedCh || 0))
     a.bleed = keepMax(a.bleed, p.phys * 0.15 * mag, 5);
@@ -542,10 +585,11 @@ function ailTick(m, dt) {
       m.dotT = m.dotAcc = 0;
     }
   }
-  for (const k of ['frz', 'elc', 'hs']) if (a[k]) a[k] = Math.max(0, a[k] - 15 * dt);
+  /* 累積條：8 秒沒被累積才開始退，每秒 5%；定身期間不動 */
+  if (!ailPinned(a))
+    for (const k in POISE) if (a[k] && G.t - ((a.psA && a.psA[k]) || 0) >= 8) a[k] = Math.max(0, a[k] - 5 * dt);
   /* 獵犬標記：流血的失血累積重暈 */
-  if (a.mark && a.mark.k === 'hound' && a.bleed && a.bleed.t > G.t)
-    a.hs = (a.hs || 0) + ((a.bleed.dps * dt) / m.mhp) * 100;
+  if (a.mark && a.mark.k === 'hound' && a.bleed && a.bleed.t > G.t) poiseAdd(m, 'hs', a.bleed.dps * dt);
   if (a.abT && a.abT <= G.t && !(a.broken > G.t)) m.arm = m.arm0;
   if (a.curse && a.curse.t <= G.t) a.curse = null;
   if (m.stun > 0) m.stun -= dt;
@@ -626,7 +670,7 @@ const BUFF = {
   onslaught: { n: '猛攻', d: '技能速度 +20%、移動速度 +10%' },
   arcane: { n: '秘術增強', d: '施法速度 +15%、魔力回復更多 20%' },
   unholy: { n: '邪力', d: '多造成全部傷害 30% 的混沌傷害' },
-  archon: { n: '元素化身', d: '法術的元素傷害更多 25%' },
+  archon: { n: '元素化身', d: '法術的元素傷害更多 25%、冰凍累積 +100%、易燃 +100%、感電機率 +100%' },
   phasing: { n: '相位', d: '可以穿過敵人' }
 };
 function gainBuff(k, t) {
@@ -884,7 +928,7 @@ function hurtCalc(d, src, el, noEv) {
 /* 怪物對玩家上異常：照怪物類型（企劃書 7.2） */
 function mobAilPlayer(m, d, el) {
   const a = (P.ail = P.ail || {}),
-    thr = ST.hp / 2,
+    thr = (ST.hp / 2) * (1 + ST.ailThrP / 100),
     ail = m.D.ail || '',
     imm = k => a.imm && a.imm[k] > G.t;
   /* 純淨的品質：元素異常有機率免疫 */

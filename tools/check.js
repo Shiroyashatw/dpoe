@@ -388,6 +388,31 @@ vm.runInContext(
   const hv = R(`var m = { x: 0, y: 0, r: 10, mhp: 100, ail: { frozen: 5, hs: 50 } };
     [takeState(m, 'frozen'), takeState(m, 'frozen'), hasState(m, 'primed'), crush(m), hasState(m, 'primed'), m.ail.hstun > G.t]`);
   ok('收割與碾壓一擊', hv.join() === 'true,false,true,true,false,true', hv.join());
+  /* 穩固值：T16 的王約 24 萬；定身期間三條都暫停；定身後 +500% 退回；8 秒沒累積才消退 */
+  const po = R(`(() => {
+    G.t = 100; G.mapT = 16;
+    const m = { x: 0, y: 0, boss: 1, mhp: 1e6, ail: {} }, a = m.ail, p0 = poise(m, 'frz');
+    poiseAdd(m, 'frz', (p0 / 2.1) * 0.5);
+    poiseAdd(m, 'hs', (p0 / 0.58) * 0.1);
+    const half = Math.round(a.frz);
+    poiseAdd(m, 'frz', (p0 / 2.1) * 0.6);
+    const fr = a.frozen === 104 && a.frz === 0;
+    poiseAdd(m, 'hs', 1e9);
+    const paused = Math.round(a.hs);
+    G.t = 104;
+    const up = Math.round(poise(m, 'frz') / p0);
+    G.t = 111;
+    const mid = (poise(m, 'frz') / p0).toFixed(1);
+    G.t = 118;
+    const back = Math.round(poise(m, 'frz') / p0);
+    a.psA.hs = 113; a.hs = 50;
+    G.t = 120; ailTick(m, 1); const d0 = a.hs;
+    G.t = 121; ailTick(m, 1); const d1 = a.hs;
+    const e = { ail: {}, elite: 1 }, n = { ail: {} }, mp = { x: 0, y: 0, mhp: 1, ail: {} };
+    G.mm = { bhp: 100 }; const b2 = Math.round(poise(m, 'frz') / p0); G.mm = null;
+    return [p0 > 2.4e5 && p0 < 2.5e5, half, fr, paused, up, mid, back, d0, d1, Math.round(poise(e, 'hs') / poise(n, 'hs')), b2];
+  })()`);
+  ok('穩固值', po.join() === 'true,50,true,10,6,3.5,1,50,45,3,2', po.join());
   /* 灌注：撿殘留物 +1（最多 3），消耗 −1 */
   const inf =
     R(`S.skills = [{ a: { gem: 'nova' } }]; G.t = 0; for (let i = 0; i < 5; i++) dropRemnant('fire', 0, 0), remnantTick();

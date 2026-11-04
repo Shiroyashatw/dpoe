@@ -384,6 +384,9 @@ function stats(s = S) {
         'steelCycle',
         'blockValP',
         'hsP',
+        'frzP',
+        'elcP',
+        'ailThrP',
         /* 0.2.26 地獄火、影舞者 */
         'hellfire',
         'boil',
