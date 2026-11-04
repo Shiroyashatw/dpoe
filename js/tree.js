@@ -41,7 +41,11 @@ function treeOpen() {
   /* 起點的 6 個門大約在半徑 560 的圈上；窄螢幕（直立）縮到看得到全部的門 */
   Object.assign(TREE, { open: true, x: 0, y: 0, z: Math.min(0.55, (innerWidth / 2 - 30) / 560) });
   $('ptree').hidden = false;
-  treeRender();
+  /* 整棵樹只建一次（換昇華才重建）；再打開只更新點亮狀態 */
+  if (TREE.built === (S.asc || '') && TEL) {
+    treeRefresh();
+    treeView();
+  } else treeRender();
 }
 function treeClose() {
   TREE.open = false;
@@ -51,6 +55,7 @@ function treeClose() {
 }
 function treeRender() {
   if (!TREE.open) return;
+  TREE.built = S.asc || '';
   const have = new Set(S.pt);
   const line = (A, B, on, near, cls = '') =>
     `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" class="${on ? 'on' : near ? 'near' : ''} ${cls}"/>`;
@@ -70,9 +75,8 @@ function treeRender() {
   /* 圖示：每張只定義一次（<defs>），點用 <use> 引用，一千多個點也不會太重 */
   const used = new Set(PTREE.N.map(n => n.ic).filter(Boolean)),
     defs = [...used]
-      .map(ic => [ic, artIconURL(ic)])
-      .filter(([, u]) => u)
-      .map(([ic, u]) => `<image id="ti_${ic}" href="${u}" width="1" height="1"/>`)
+      .filter(ic => typeof ART !== 'undefined' && ART[ic])
+      .map(ic => `<image id="ti_${ic}" data-ic="${ic}" width="1" height="1"/>`)
       .join('');
   html = `<defs>${defs}</defs>` + html;
   html += PTREE.N.map(n => {
@@ -80,7 +84,7 @@ function treeRender() {
       st = have.has(n.id) ? 'on' : treeCan(n.id) ? 'can' : 'off',
       s = r * (n.big ? 1.4 : 1.3),
       img =
-        n.ic && artIconURL(n.ic)
+        n.ic && typeof ART !== 'undefined' && ART[n.ic]
           ? `<use href="#ti_${n.ic}" transform="translate(${-s / 2} ${-s / 2}) scale(${s})"/>`
           : '';
     return `<g class="nd ${st} b${n.big}${TREE.sel === n.id ? ' sel' : ''}" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})" style="--c:${PT_THEME[n.th].c}"><circle r="${r}"/>${img}</g>`;
@@ -92,8 +96,8 @@ function treeRender() {
     html += T.E.map(([a, b]) => line(T.I[a], T.I[b], 0, 0, 'asc')).join('');
     html += T.N.map(n => {
       const r = n.big === 3 ? 28 : n.big ? 24 : 12,
-        u = n.ic && artIconURL(n.ic);
-      return `<g class="nd asc b${n.big}${n.g ? ' grp' : ''}" data-n="${n.id}" transform="translate(${n.x} ${n.y})"><circle r="${r}"/>${u ? `<image href="${u}" x="${-r * 0.7}" y="${-r * 0.7}" width="${r * 1.4}" height="${r * 1.4}"/>` : ''}${n.big === 1 ? `<text y="${n.y < -330 ? -r - 8 : r + 17}">${esc(n.n)}</text>` : ''}</g>`;
+        u = n.ic && typeof ART !== 'undefined' && ART[n.ic];
+      return `<g class="nd asc b${n.big}${n.g ? ' grp' : ''}" data-n="${n.id}" transform="translate(${n.x} ${n.y})"><circle r="${r}"/>${u ? `<image data-ic="${n.ic}" x="${-r * 0.7}" y="${-r * 0.7}" width="${r * 1.4}" height="${r * 1.4}"/>` : ''}${n.big === 1 ? `<text y="${n.y < -330 ? -r - 8 : r + 17}">${esc(n.n)}</text>` : ''}</g>`;
     }).join('');
   } else
     html += `<text class="hint" y="-10">還沒有昇華</text><text class="hint sm" y="22">到藏身處的昇華石碑選一個</text>`;
@@ -115,8 +119,17 @@ function treeRender() {
     e: [...tg.querySelectorAll(':scope > line:not(.asc), :scope > path')].map((el, i) => [el, ...PTREE.E[i]]),
     ae: T ? [...tg.querySelectorAll(':scope > line.asc')].map((el, i) => [el, ...T.E[i]]) : []
   };
+  treeIcons();
   treeRefresh();
   treeView();
+}
+/* 圖示另外補：大圖載好幾張就補幾張，不重建整棵樹 */
+function treeIcons() {
+  if (!TREE.open) return;
+  for (const el of document.querySelectorAll('#tg image[data-ic]')) {
+    const u = artIconURL(el.dataset.ic);
+    if (u) el.setAttribute('href', u), el.removeAttribute('data-ic');
+  }
 }
 let TEL = null;
 function treeRefresh() {

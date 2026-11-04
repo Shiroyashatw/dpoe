@@ -6,10 +6,15 @@ const icHTML = (n, cls = '') => {
   return u ? `<img class="ic ${cls}" src="${u}" alt="">` : `<span class="ic ${cls}"></span>`;
 };
 /* 圖還沒載好時，載好後補畫面板 */
+/* 一次開圖會連續載好幾十張大圖：合併成一次重畫（0.2.32，之前每張都重建整棵天賦樹，第一次打開會卡好幾秒） */
+let ART_T = 0;
 function artRepaint() {
-  hudPanels();
-  if (document.querySelector('.sk span.ic')) hudBar();
-  if (TREE.open && document.querySelector('#tg .nd:not(:has(image))')) treeRender();
+  clearTimeout(ART_T);
+  ART_T = setTimeout(() => {
+    hudPanels();
+    if (document.querySelector('.sk span.ic')) hudBar();
+    treeIcons();
+  }, 80);
 }
 
 /* 技能列：1 紅水、2 藍水、5 個技能欄（左鍵、右鍵、Q、E、R）、空白翻滾 */
