@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T12～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.34';
+const VER = '0.2.35';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -236,7 +236,7 @@ const SKILLS = {
     n: '招架反擊',
     ic: 'sk_riposte',
     t: 0.45,
-    mp: 0,
+    mp: 4,
     m: 1.3,
     r: 120,
     hits: [0.95],
@@ -249,7 +249,7 @@ const SKILLS = {
     n: '連打',
     ic: 'sk_staffstrike',
     t: 0.55,
-    mp: 0,
+    mp: 5,
     m: 0.6,
     r: 110,
     arc: 1.8,
@@ -263,7 +263,7 @@ const SKILLS = {
     n: '散射',
     ic: 'sk_multishot',
     t: 0.45,
-    mp: 0,
+    mp: 4,
     m: 0.95,
     spd: 900,
     cnt: 3,
@@ -297,7 +297,7 @@ const SKILLS = {
     n: '斬擊',
     ic: 'sk_slash2',
     t: 0.36,
-    mp: 0,
+    mp: 3,
     m: 1,
     r: 100,
     arc: 2.1,
@@ -606,7 +606,7 @@ const SKILLS = {
     n: '穿甲彈',
     ic: 'sk_apshot',
     t: 0.18,
-    mp: 0,
+    mp: 3,
     m: 0.7,
     spd: 1100,
     ammo: [6, 1.5],
@@ -655,7 +655,7 @@ const SKILLS = {
     n: '連爪',
     ic: 'sk_bloodclaw',
     t: 0.5,
-    mp: 0,
+    mp: 5,
     m: 0.45,
     r: 90,
     arc: 1.6,
@@ -683,7 +683,7 @@ const SKILLS = {
     n: '鏈錘橫掃',
     ic: 'sk_sweep',
     t: 0.42,
-    mp: 0,
+    mp: 4,
     m: 1,
     r: 130,
     arc: 2.2,
@@ -697,7 +697,7 @@ const SKILLS = {
     n: '戰旗',
     ic: 'sk_banner',
     t: 0.3,
-    mp: 0,
+    mp: 5,
     m: 0,
     wt: ['mace', 'flail'],
     tags: ['banner'],
@@ -3191,11 +3191,15 @@ const ACLS = [
 ];
 const ACLSI = Object.fromEntries(ACLS.map(x => [x.k, x]));
 const affCls = k => (ACLS.find(x => x.aff.includes(k)) || {}).k;
-/* 鑿孔石：寶石開孔 2→3 小、3→4 中、4→5 大 */
-const DRILLS = ['小鑿孔石', '中鑿孔石', '大鑿孔石'];
+/* 開孔（0.2.35）花粉：2→3 孔 粗粉 ×30、3→4 孔 精粉 ×15、4→5 孔 稀粉 ×5（鑿孔石刪掉了） */
+const DRILL = [
+  ['dust', 30],
+  ['fine', 15],
+  ['rare', 5]
+];
 const GEM_SO_MAX = 5;
-/* 靈魂升級寶石：L 級升 L+1 要 10 × 1.35^L（輔助打三折） */
-const soulCost = (L, sup) => Math.round(10 * Math.pow(1.35, L) * (sup ? 0.3 : 1));
+/* 靈魂升級寶石：L 級升 L+1 要 10 × 1.35^L（主動、輔助、光環同價） */
+const soulCost = L => Math.round(10 * Math.pow(1.35, L));
 /* 三種粉（0.2.24 取代 8 類碎片）：粗粉＝強化、精粉＝添加與同類置換、稀粉＝跨類置換與定向重鑄 */
 const DUSTS = { dust: '粗粉', fine: '精粉', rare: '稀粉' };
 /* 鍛造要的粉：物品等級越高越多 */

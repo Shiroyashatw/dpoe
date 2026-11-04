@@ -67,10 +67,7 @@ ok(
   ok('每種武器的數值都不是 NaN', !nan.length, nan.join('；'));
   /* 0.2.6 鍛造：材料給滿，隨機鍛造 2000 次 */
   vm.runInContext('var S = { gold: 1e12, lv: 60, mat: null, lib: [] }', ctx);
-  vm.runInContext(
-    'S.mat = newMat(); S.mat.dust = S.mat.fine = S.mat.rare = 1e9; S.mat.soul = 1e12; S.mat.drill = [99, 99, 99];',
-    ctx
-  );
+  vm.runInContext('S.mat = newMat(); S.mat.dust = S.mat.fine = S.mat.rare = 1e9; S.mat.soul = 1e12;', ctx);
   const fbad = [],
     ops = Object.keys(G.FORGE);
   let done = 0;
@@ -392,9 +389,13 @@ vm.runInContext(
     [takeState(m, 'frozen'), takeState(m, 'frozen'), hasState(m, 'primed'), crush(m), hasState(m, 'primed'), m.ail.hstun > G.t]`);
   ok('收割與碾壓一擊', hv.join() === 'true,false,true,true,false,true', hv.join());
   /* 灌注：撿殘留物 +1（最多 3），消耗 −1 */
-  const inf = R(`G.t = 0; for (let i = 0; i < 5; i++) dropRemnant('fire', 0, 0), remnantTick();
+  const inf =
+    R(`S.skills = [{ a: { gem: 'nova' } }]; G.t = 0; for (let i = 0; i < 5; i++) dropRemnant('fire', 0, 0), remnantTick();
     [infN('fire'), takeInf('fire'), infN('fire'), takeInf('cold')]`);
   ok('灌注', inf.join() === '3,true,2,false', inf.join());
+  /* 技能欄沒有吃灌注的技能：不產生殘留物 */
+  const nr = R(`S.skills = [{ a: { gem: 'slash' } }]; G.remnants = []; dropRemnant('fire', 0, 0); G.remnants.length`);
+  ok('沒有灌注技能不掉殘留物', nr === 0, nr);
   /* 飛劍：最多 10 把、15 秒 */
   const sw = R('P.x = 0; gainSwords(7, {}); gainSwords(7, {}); var n1 = swordN(); G.t += 16; [n1, swordN()]');
   ok('飛劍上限與時間', sw.join() === '10,0', sw.join());

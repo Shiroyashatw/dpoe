@@ -1,5 +1,7 @@
 /* dungeonPOE · 畫面：藏身處、地板、石頭、預警、怪物、玩家、特效、跳數字、掉落標籤、光照、小地圖 */
 'use strict';
+/* '#rrggbb' → '255,0,0'（拼 rgba 用） */
+const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(',');
 /* 畫圖：腳底在 (x, y)，高度 hgt，flip 左右翻；圖用 sprites.js 的大圖（用到才載） */
 function spr(n, x, y, hgt, o = {}) {
   const a = artImg(n);
@@ -258,15 +260,19 @@ function draw() {
     if (d.gold) spr('mat_gold', x, y + 8, 22);
     else if (d.frag) spr('mat_frag', x, y + 8, 24);
     else {
-      const col = RCOL[d.it.r];
-      /* 掉落光柱：稀有金色、又粗又亮會呼吸；魔法淡藍細柱 */
-      if (d.it.r >= 1) {
-        const rare = d.it.r === 2,
+      const fa = dropFlt(d);
+      if (fa.act === 'hide') continue;
+      const col = RCOL[d.it.r],
+        hl = fa.act === 'hl' ? hexRgb(FLT_COL[fa.col]) : null;
+      /* 掉落光柱：稀有金色、又粗又亮會呼吸；魔法淡藍細柱；醒目＝過濾器選的顏色（又粗又亮） */
+      if (hl || d.it.r >= 1) {
+        const rare = hl || d.it.r === 2,
           bh = rare ? 190 : 110,
           a = (rare ? 0.6 : 0.28) * (0.8 + 0.2 * Math.sin(G.t * 3 + d.sx)),
+          rgb = hl || (rare ? '255,209,102' : '138,180,255'),
           g = CX.createLinearGradient(x, y - bh, x, y);
-        g.addColorStop(0, `rgba(${rare ? '255,209,102' : '138,180,255'},0)`);
-        g.addColorStop(1, `rgba(${rare ? '255,209,102' : '138,180,255'},${a})`);
+        g.addColorStop(0, `rgba(${rgb},0)`);
+        g.addColorStop(1, `rgba(${rgb},${a})`);
         CX.fillStyle = g;
         CX.fillRect(x - (rare ? 7 : 3), y - bh, rare ? 14 : 6, bh);
         if (rare) {
@@ -421,6 +427,8 @@ function draw() {
   const btns = touchRects();
   for (const d of G.drops) {
     if (!d.it || d.t < 0.3) continue;
+    const fa = dropFlt(d);
+    if (fa.act === 'hide') continue;
     /* 品質、潛能金字以上直接寫在標籤上（D2：好底材一眼看得出來） */
     const txt = itemName(d.it) + dropTag(d.it),
       w = CX.measureText(txt).width + 14;
@@ -434,13 +442,11 @@ function draw() {
         x = (r.left - 6) / ZOOM - ox - w / 2;
     }
     const near = dist(P, d) < 110;
-    /* 過濾器開著：不符合的標籤變暗 */
-    CX.globalAlpha = S.filter.on && !filterPick(d.it) ? 0.45 : 1;
-    /* 底色帶一點稀有度的色調（跟說明框的標題列一致），稀有以上框粗一點 */
+    /* 底色帶一點稀有度的色調（跟說明框的標題列一致），稀有以上框粗一點；過濾器「醒目」＝框改成選的顏色、更粗 */
     CX.fillStyle = near ? RBG[d.it.r] : 'rgba(38,40,45,0.88)';
     CX.fillRect(x - w / 2, y - 11, w, 20);
-    CX.strokeStyle = RCOL[d.it.r];
-    CX.lineWidth = near || d.it.r >= 2 ? 2 : 1;
+    CX.strokeStyle = fa.act === 'hl' ? FLT_COL[fa.col] : RCOL[d.it.r];
+    CX.lineWidth = fa.act === 'hl' ? 3 : near || d.it.r >= 2 ? 2 : 1;
     CX.strokeRect(x - w / 2 + 0.5, y - 10.5, w - 1, 19);
     CX.fillStyle = RCOL[d.it.r];
     CX.fillText(txt, x, y + 4);
@@ -541,10 +547,33 @@ function drawMobStates(m, y) {
   const s = Math.min(24, 22 / ZOOM),
     gap = 2;
   let x = m.x - ((L.length - 1) * (s + gap)) / 2;
-  for (const ic of L) {
+  for (const t of L) {
     CX.fillStyle = 'rgba(8,9,11,0.82)';
     CX.fillRect(x - s / 2 - 1, y - s - 1, s + 2, s + 2);
-    spr(ic, x, y, s);
+    spr(t.ic, x, y, s);
+    /* 暗色扇形順時針掃過（剩餘越少蓋越多）、層數在右下角 */
+    if (t.f < 0.995) {
+      CX.save();
+      CX.beginPath();
+      CX.rect(x - s / 2, y - s, s, s);
+      CX.clip();
+      CX.fillStyle = 'rgba(0,0,0,0.62)';
+      CX.beginPath();
+      CX.moveTo(x, y - s / 2);
+      CX.arc(x, y - s / 2, s, -Math.PI / 2, -Math.PI / 2 + (1 - t.f) * TAU);
+      CX.fill();
+      CX.restore();
+    }
+    if (t.c > 1) {
+      CX.font = `700 ${Math.round(s * 0.5)}px sans-serif`;
+      CX.textAlign = 'right';
+      CX.lineWidth = 3;
+      CX.strokeStyle = '#000';
+      CX.strokeText(t.c, x + s / 2, y);
+      CX.fillStyle = '#fff';
+      CX.fillText(t.c, x + s / 2, y);
+      CX.textAlign = 'center';
+    }
     x += s + gap;
   }
 }
@@ -810,12 +839,13 @@ function drawMinimap(W) {
     const z = m.boss ? 5 : 2;
     CX.fillRect(x0 + m.x * s - z / 2, y0 + m.y * s - z / 2, z, z);
   }
-  /* 地上的稀有裝：黑邊金菱形（比玩家的點大，一眼分得出來） */
-  CX.fillStyle = RCOL[2];
+  /* 地上的稀有裝：黑邊金菱形（比玩家的點大，一眼分得出來）；過濾器「醒目」的用選的顏色、隱藏的不畫 */
   CX.strokeStyle = '#000';
   CX.lineWidth = 1.5;
-  for (const d of G.drops)
-    if (d.it && d.it.r >= 2) {
+  for (const d of G.drops) {
+    const fa = d.it && dropFlt(d);
+    if (d.it && fa.act !== 'hide' && (d.it.r >= 2 || fa.act === 'hl')) {
+      CX.fillStyle = fa.act === 'hl' ? FLT_COL[fa.col] : RCOL[2];
       const dx = x0 + d.x * s,
         dy = y0 + d.y * s,
         z = 5;
@@ -828,6 +858,7 @@ function drawMinimap(W) {
       CX.stroke();
       CX.fill();
     }
+  }
   CX.fillStyle = '#9df29d';
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);
 }

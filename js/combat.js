@@ -423,7 +423,7 @@ function applyAil(m, r, c) {
   const a = m.ail,
     cq = c.q || 0,
     t = G.mapT || 1,
-    thr = ailThr(t),
+    thr = ailThr(t) * MOB_HP,
     p = r.pre,
     mag = 1 + (ST.ailMag + (c.ailMag || 0)) / 100,
     attack = (c.D.tags || []).includes('attack'),
@@ -453,7 +453,7 @@ function applyAil(m, r, c) {
     a.elc = (a.elc || 0) + ((p.light / thr) * 100 * c.elc) / (m.boss ? 4 : m.elite ? 2 : 1);
     if (a.elc >= 100) (a.elcT = G.t + (m.boss ? 1.5 : 5)), (a.elc = 0);
   }
-  /* 暈眩：輕暈看「這一下÷最大生命」（低於 15% 不算）；重暈累積（冰冷不算，物理、近戰各 ×1.5） */
+  /* 暈眩：僵直（輕暈）看「這一下÷最大生命」（低於 15% 不算）；重暈累積（冰冷不算，物理、近戰各 ×1.5） */
   const hit = p.phys + p.fire + p.light + p.chaos;
   if (!m.boss && hit / m.mhp >= 0.15 && Math.random() < hit / m.mhp) m.stun = Math.max(m.stun || 0, 0.5);
   /* 0.2.25：重暈累積提高（昇華小點）、震懾之錘（物理擊中每 1000 護甲 +10%）、鋼鐵循環（格擋值吸收的量） */
@@ -549,6 +549,7 @@ function ailTick(m, dt) {
   if (a.abT && a.abT <= G.t && !(a.broken > G.t)) m.arm = m.arm0;
   if (a.curse && a.curse.t <= G.t) a.curse = null;
   if (m.stun > 0) m.stun -= dt;
+  if (m.ail) mobStates(m);
   return a.frozen > G.t || a.elcT > G.t || a.hstun > G.t || m.stun > 0;
 }
 /* 怪物的移動倍率：冰緩、阻礙、殘廢、時空鎖鏈 */
@@ -888,8 +889,7 @@ function mobAilPlayer(m, d, el) {
     imm = k => a.imm && a.imm[k] > G.t;
   /* 純淨的品質：元素異常有機率免疫 */
   if (el !== 'phys' && el !== 'chaos' && qRoll(20 * (ST.aq.purity || 0))) return;
-  if (el === 'fire' && !imm('ign') && Math.random() < Math.min(1, (d / thr) * 0.2 + 0.1))
-    a.ign = keepMax(a.ign, d * 0.2, 4);
+  if (el === 'fire' && !imm('ign') && Math.random() < Math.min(1, (d / thr) * 0.2)) a.ign = keepMax(a.ign, d * 0.2, 4);
   if (el === 'cold' && !imm('chill')) {
     const v = Math.min(50, (d / thr) * 100);
     if (v >= 30) a.chill = { v, t: G.t + 2 };
@@ -1098,6 +1098,7 @@ const STATE = {
   shock: ['感電', 'sk_arc', '受到的傷害提高'],
   elc: ['電殛', 'sup_sp_stun', '不能行動'],
   stun: ['暈眩', 'sup_sp_stun', '不能行動'],
+  stagger: ['僵直', 'sup_sp_stun', '被一擊打中最大生命 15% 以上，不能行動 0.5 秒'],
   wither: ['凋零', 'sup_sp_wither', '受到的混沌傷害提高'],
   blind: ['致盲', 'sup_sp_ailx', '命中值降低'],
   broken: ['完全破甲', 'sup_sp_pen', '護甲歸零，受到的物理傷害提高'],
@@ -1124,31 +1125,45 @@ const STATE = {
 };
 const curseIc = k => SKILLS['cu_' + k].ic;
 /* 怪物身上有哪些狀態（畫面用，回傳圖示名） */
+/* 剩餘時間比例 0～1（扇形倒數用）：第一次看到或被刷新時記下總時長；玩家（P）、怪物（m）共用 */
+function stFrac(o, k, until) {
+  const r = until - G.t,
+    s = (o.sd = o.sd || {}),
+    x = s[k];
+  if (!x || until > x.u + 0.05) s[k] = { u: until, d: r };
+  else x.u = until;
+  return Math.max(0, Math.min(1, r / s[k].d));
+}
+/* 回傳 [{ k, ic 圖示, f 剩餘比例, c 層數 }]；ailTick 每格也會呼叫一次，讓總時長記得準 */
 function mobStates(m) {
   const a = m.ail;
   if (!a) return [];
   const o = [],
-    add = k => o.push(STATE[k][1]);
-  if (a.ign && a.ign.t > G.t) add('ign');
-  if (a.bleed && a.bleed.t > G.t) add('bleed');
-  if (a.poi && a.poi.some(x => x.t > G.t)) add('poison');
-  if (a.chill && a.chill.t > G.t) add('chill');
-  if (a.frozen > G.t) add('frozen');
-  if (a.shock > G.t) add('shock');
-  if (a.elcT > G.t) add('elc');
-  if (a.hstun > G.t || m.stun > 0) add('stun');
-  if (a.curse && a.curse.t > G.t) o.push(curseIc(a.curse.k));
+    add = (k, until, c, ic) => o.push({ k, ic: ic || STATE[k][1], f: until == null ? 1 : stFrac(m, k, until), c });
+  const mx = l => Math.max(...l);
+  if (a.ign && a.ign.t > G.t) add('ign', a.ign.t);
+  if (a.bleed && a.bleed.t > G.t) add('bleed', a.bleed.t);
+  const pl = a.poi ? a.poi.filter(x => x.t > G.t) : [];
+  if (pl.length) add('poison', mx(pl.map(x => x.t)), pl.length);
+  if (a.chill && a.chill.t > G.t) add('chill', a.chill.t);
+  if (a.frozen > G.t) add('frozen', a.frozen);
+  if (a.shock > G.t) add('shock', a.shock);
+  if (a.elcT > G.t) add('elc', a.elcT);
+  if (a.hstun > G.t) add('stun', a.hstun);
+  if (m.stun > 0) add('stagger', G.t + m.stun);
+  if (a.curse && a.curse.t > G.t) add('c' + a.curse.k, a.curse.t, 0, curseIc(a.curse.k));
   if (a.mark) add('mark');
-  if (a.wither && a.wither.some(t => t > G.t)) add('wither');
-  if (a.broken > G.t) add('broken');
-  if (a.blind > G.t) add('blind');
-  if (a.parried > G.t) add('parried');
-  if (a.intim > G.t) add('intim');
-  if (a.scorch && a.scorch.t > G.t) add('scorch');
-  if (a.brittle && a.brittle.t > G.t) add('brittle');
-  if (a.sap && a.sap.t > G.t) add('sap');
-  if (a.exp > G.t) add('exp');
-  return [...new Set(o)];
+  const wl = a.wither ? a.wither.filter(t => t > G.t) : [];
+  if (wl.length) add('wither', mx(wl), wl.length);
+  if (a.broken > G.t) add('broken', a.broken);
+  if (a.blind > G.t) add('blind', a.blind);
+  if (a.parried > G.t) add('parried', a.parried);
+  if (a.intim > G.t) add('intim', a.intim);
+  if (a.scorch && a.scorch.t > G.t) add('scorch', a.scorch.t);
+  if (a.brittle && a.brittle.t > G.t) add('brittle', a.brittle.t);
+  if (a.sap && a.sap.t > G.t) add('sap', a.sap.t);
+  if (a.exp > G.t) add('exp', a.exp);
+  return o.filter((x, i) => o.findIndex(y => y.ic === x.ic) === i);
 }
 /* 玩家身上的狀態：{ k, n, ic, d, t 剩餘秒數（沒有時間的是 null）, c 層數, bad 負面 } */
 function playerStates() {
@@ -1158,7 +1173,7 @@ function playerStates() {
       /* null＝沒有時間（層數）；其他要有效才顯示 */
       if (until !== null && !(until > G.t)) return;
       const [n, ic, d] = STATE[k];
-      L.push({ k, n, ic, d, t: until == null ? null : until - G.t, ...o });
+      L.push({ k, n, ic, d, t: until == null ? null : until - G.t, f: until == null ? 1 : stFrac(P, k, until), ...o });
     };
   const bad = { bad: 1 };
   add('ign', a.ign && a.ign.t, bad);
@@ -1175,6 +1190,7 @@ function playerStates() {
       ic: curseIc(a.curse.k),
       d: C.d.replace('{}', Math.round(a.curse.v)),
       t: a.curse.t - G.t,
+      f: stFrac(P, 'curse', a.curse.t),
       bad: 1
     });
   }

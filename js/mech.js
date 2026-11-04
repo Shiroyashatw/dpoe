@@ -127,8 +127,12 @@ function igniteAt(x, y) {
 }
 
 /* ---------- 4. 殘留物與灌注 ---------- */
+/* 技能欄裝著會吃灌注的技能（目前只有灌注新星 nova）才會產生殘留物 */
+const REMN = { fire: '火焰殘留', cold: '冰霜殘留', light: '閃電殘留' };
+const hasInfSkill = () => S.skills.some(s => s && s.a && s.a.gem === 'nova');
 function dropRemnant(el, x, y) {
-  if (G.remnants.length < 20) G.remnants.push({ el, x: x + rnd(-20, 20), y: y + rnd(-20, 20), t: G.t + 15 });
+  if (G.remnants.length < 20 && hasInfSkill())
+    G.remnants.push({ el, x: x + rnd(-20, 20), y: y + rnd(-20, 20), t: G.t + 15 });
 }
 const infN = el => (P.inf && P.inf[el] && P.inf[el].t > G.t ? P.inf[el].n : 0);
 function takeInf(el) {
@@ -505,12 +509,29 @@ function drawMech() {
     CX.ellipse(c.x, c.y, c.sz * 0.35, c.sz * 0.15, 0, 0, TAU);
     CX.fill();
   }
+  /* 殘留物：元素結晶（菱形）＋小字標籤 */
+  CX.font = '600 11px "Noto Sans TC", sans-serif';
+  CX.textAlign = 'center';
   for (const r of G.remnants) {
-    CX.globalAlpha = 0.6 + 0.3 * Math.sin(G.t * 6 + r.x);
+    const bob = Math.sin(G.t * 3 + r.x) * 2,
+      y = r.y - 14 + bob;
+    CX.globalAlpha = 0.85 + 0.15 * Math.sin(G.t * 6 + r.x);
     CX.fillStyle = ELC[r.el];
+    CX.strokeStyle = 'rgba(255,255,255,0.8)';
+    CX.lineWidth = 1.5;
     CX.beginPath();
-    CX.arc(r.x, r.y - 12, 6, 0, TAU);
+    CX.moveTo(r.x, y - 10);
+    CX.lineTo(r.x + 6, y);
+    CX.lineTo(r.x, y + 10);
+    CX.lineTo(r.x - 6, y);
+    CX.closePath();
     CX.fill();
+    CX.stroke();
+    CX.lineWidth = 3;
+    CX.strokeStyle = 'rgba(0,0,0,0.85)';
+    CX.strokeText(REMN[r.el], r.x, y + 24);
+    CX.fillStyle = '#fff';
+    CX.fillText(REMN[r.el], r.x, y + 24);
   }
   CX.globalAlpha = 1;
   for (const n of G.grenades) {

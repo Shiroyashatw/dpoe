@@ -403,7 +403,7 @@ body.touch .panel { top: calc(6px + env(safe-area-inset-top)); max-height: calc(
 body.touch #pinv { right: calc(6px + env(safe-area-inset-right)); width: calc(50vw - 9px); }
 body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); width: calc(50vw - 9px); }
 body.touch #pdev { width: min(440px, calc(100vw - 12px)); max-height: calc(100dvh - 12px); }
-body.touch #pasc, body.touch #pshop { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
+body.touch #pasc, body.touch #pshop, body.touch #pflt { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch .eqrow { flex-wrap: wrap; gap: 8px; }
 body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-space: normal; }
 body.touch .ph .x { width: 40px; height: 40px; }
@@ -744,12 +744,12 @@ body.touch.port #ptabs:not([hidden]) { display: flex; position: fixed; z-index: 
 body.touch.port .panel { left: 0 !important; right: 0 !important; width: auto !important; top: calc(48px + env(safe-area-inset-top)); bottom: 0; max-height: none; transform: none; border-radius: 0; outline: none; }
 body.touch.port.pair #pstash, body.touch.port.pair #pskill, body.touch.port.pair #pcraft { bottom: auto; height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
 body.touch.port.pair #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
-body.touch.port #pdev, body.touch.port #pgem, body.touch.port #pset, body.touch.port #pasc, body.touch.port #pshop { top: env(safe-area-inset-top); transform: none; max-height: none; }
+body.touch.port #pdev, body.touch.port #pgem, body.touch.port #pset, body.touch.port #pflt, body.touch.port #pasc, body.touch.port #pshop { top: env(safe-area-inset-top); transform: none; max-height: none; }
 body.touch.port .ph .sw { display: none; }
 .tinfo span { white-space: nowrap; }
 .tinfo div > :last-child { text-align: right; }
 body.touch.port .panel > .ph:first-child .x { display: none; }
-body.touch.port #pdev > .ph:first-child .x, body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x, body.touch.port #pshop > .ph:first-child .x { display: grid; }
+body.touch.port #pdev > .ph:first-child .x, body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x, body.touch.port #pflt > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x, body.touch.port #pshop > .ph:first-child .x { display: grid; }
 
 /* ---------- 0.2.14 地圖台：◀ 階級 ▶、三張大卡、選中的卡展開地圖詞 ---------- */
 .tstep { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; margin: 2px 0 6px; }
@@ -850,6 +850,7 @@ body.touch.port .ascbk { display: inline-flex; align-items: center; gap: 4px; }
 .stc { position: relative; flex: none; width: 32px; height: 32px; padding: 0; display: grid; place-items: center; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 3px; cursor: pointer; }
 .stc.bad { border-color: var(--bad); }
 .stc .ic { width: 26px; height: 26px; }
+.stc i { position: absolute; inset: 0; border-radius: 2px; pointer-events: none; background: conic-gradient(rgba(0, 0, 0, 0.62) calc((1 - var(--f, 1)) * 360deg), transparent 0); }
 .stc b { position: absolute; right: 1px; bottom: 0; font: 700 11px/1.1 var(--font); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 3px #000; }
 
 /* 說明框：動作分組、看詳細是文字連結 */
@@ -984,3 +985,58 @@ body.touch .panel, body.touch #over .card, body.touch #tip { border-width: 4px; 
 body.touch .mid { border: 0; border-image: none; background: none; box-shadow: none; }
 body.touch .panel > .ph:first-child { padding-left: 10px; }
 body.touch #tip .tqa { padding: 0 8px; }
+
+/* ---------- 0.2.35 物品過濾器面板、倉庫寶石頁、異常圖示的扇形倒數 ---------- */
+#pflt { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(540px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); z-index: 12; }
+.flist { display: grid; gap: 6px; margin: 6px 0; }
+.frule { border: 1px solid var(--line); border-radius: 2px; background: rgba(0, 0, 0, 0.25); }
+.frule.off { opacity: 0.55; }
+.frule.open { border-color: var(--fr-hi); }
+.frule.def { padding: 8px; background: rgba(255, 255, 255, 0.03); }
+.fhd { display: flex; align-items: center; gap: 6px; padding: 4px; }
+.fhd2 { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.fhd2 small, .fsum small { color: var(--dim); font-size: var(--fs-s); }
+.fdrag { flex: none; width: 36px; min-height: 44px; font: 700 18px var(--font); color: var(--dim); background: none; border: 0; cursor: grab; touch-action: none; }
+.fsw2 { flex: none; min-width: 44px; min-height: 36px; font: 700 var(--fs-s) var(--font); color: var(--dim); background: none; border: 1px solid var(--line); border-radius: 2px; cursor: pointer; }
+.fsw2.on { color: var(--tx); border-color: var(--good); }
+.fsum { flex: 1; min-width: 0; min-height: 44px; display: grid; gap: 2px; align-content: center; text-align: left; font: inherit; color: var(--tx); background: none; border: 0; cursor: pointer; }
+.fsum b { overflow-wrap: anywhere; font-size: var(--fs-s); }
+.fdot, .fsw { display: inline-block; background: var(--c); }
+.fdot { width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; }
+.fbody { display: grid; gap: 8px; padding: 6px 10px 10px; border-top: 1px solid var(--line); }
+.fcond { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-height: 36px; color: var(--dim); }
+.fcond.on { color: var(--tx); }
+.fcond b { min-width: 74px; font-size: var(--fs-s); }
+.fchk { flex: none; width: 28px; height: 28px; padding: 0; font: 700 14px var(--font); color: var(--title); background: var(--s3); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
+.fcond.on .fchk { border-color: var(--fr-hi); }
+.ftog, .fnum { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.ftog .btn.on { border-color: var(--fr-hi); color: var(--title); background: rgba(200, 205, 215, 0.14); }
+.fnum i { min-width: 44px; text-align: center; font-style: normal; font-weight: 700; color: var(--title); }
+.fcaff { display: flex; flex-wrap: wrap; gap: 4px; max-height: 148px; overflow-y: auto; padding: 2px; }
+.fcaff .chip { height: 32px; cursor: pointer; }
+.fact2 { display: grid; gap: 4px; }
+.fact2 b { font-size: var(--fs-s); }
+.fact { grid-template-columns: repeat(4, 1fr); margin: 4px 0; }
+.fcol { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 2px; }
+.fsw { width: 36px; height: 36px; border: 2px solid var(--line); border-radius: 50%; padding: 0; cursor: pointer; }
+.fsw.on { border-color: #fff; box-shadow: 0 0 0 2px #000 inset; }
+.fdel { justify-self: start; color: var(--bad); }
+.frow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
+.gpbar { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 6px 0 0; }
+.gpbar .gkind { display: flex; margin: 0; gap: 4px; }
+.gpbar .gkind .btn { min-height: 36px; padding: 4px 8px; }
+.gpbar .inp { min-height: 36px; padding: 4px 10px; }
+.gplist { max-height: 52vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 2px; background: rgba(0, 0, 0, 0.25); }
+.gplist.good { outline: 2px solid var(--good); }
+.gplist.bad { outline: 2px solid var(--bad); }
+.gph { margin: 0; padding: 4px 10px; font: 700 var(--fs-s) var(--font); color: var(--dim); background: rgba(255, 255, 255, 0.04); }
+.gph i { font-style: normal; }
+.gpr { display: grid; grid-template-columns: 32px 1fr auto auto; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 4px 10px; font: inherit; font-size: var(--fs-s); color: var(--tx); text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.gpr:hover { background: rgba(255, 255, 255, 0.06); }
+.gpr .ic { width: 28px; height: 28px; }
+.gpr span { white-space: nowrap; color: var(--dim); }
+.gpr span.c-good { color: var(--good); }
+#tip.gu { pointer-events: auto; }
+#tip.act, #tip.gu { overflow-y: auto; overscroll-behavior: contain; }
+body.touch .gplist { max-height: 40vh; }
+@media (max-height: 480px) { .gplist { max-height: 32vh; } .fcaff { max-height: 96px; } }

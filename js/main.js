@@ -50,7 +50,6 @@ function migrate(s) {
     ...o.stash.items
   ])
     if (g && GONE[g.gem]) g.gem = GONE[g.gem];
-  if (s.lib) s.lib = s.lib.map(k => GONE[k] || k);
   /* 道具編號接著存檔裡最大的往下編 */
   for (const it of [
     ...Object.values(o.eq),
@@ -67,14 +66,7 @@ function migrate(s) {
   if (o.mat.sh) (o.mat.fine = Object.values(o.mat.sh).reduce((x, y) => x + y, 0)), delete o.mat.sh;
   o.mat.fine = o.mat.fine || 0;
   o.mat.rare = o.mat.rare || 0;
-  const allGems = [
-    ...o.skills.flatMap(k => [k.a, ...(k.s || [])]),
-    ...o.auras,
-    ...o.inv.items,
-    ...o.stash.items
-  ].filter(g => g && g.gem);
-  /* 書庫：存檔原本的（不是新角色的預設）＋身上所有寶石 */
-  o.lib = [...new Set([...(s.lib || []), ...allGems.map(g => g.gem)])];
+  delete o.lib; /* 0.2.35：寶石書庫早就不用了 */
   for (const it of [...o.inv.items, ...o.stash.items, ...o.skills.map(k => k.a)])
     if (it && SKILLS[it.gem] && !it.sup) (it.so = 2), (it.sup = [null, null]);
   for (const k of o.skills) {
@@ -127,6 +119,27 @@ function migrate(s) {
     o.asc = null;
     o.at = [];
     o.v = 18;
+  }
+  /* 存檔 19（0.2.35）：鑿孔石換成粉（小×30 粗粉、中×15 精粉、大×5 稀粉）、寶石搬進寶石頁、過濾器改成 3 組規則 */
+  if (o.v < 19) {
+    const dr = o.mat.drill || [0, 0, 0];
+    o.mat.dust = (o.mat.dust || 0) + dr[0] * 30;
+    o.mat.fine += dr[1] * 15;
+    o.mat.rare += dr[2] * 5;
+    delete o.mat.drill;
+    o.gems = [];
+    for (const g of [o.stash, o.temp]) {
+      o.gems.push(...g.items.filter(it => it.gem));
+      g.items = g.items.filter(it => !it.gem);
+    }
+    o.v = 19;
+  }
+  /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
+  if (!o.filter || !Array.isArray(o.filter.sets)) {
+    const f = s.filter,
+      rar = (f && f.on && f.rules && f.rules[0] && f.rules[0].rar) || [];
+    o.filter = { cur: 0, sets: [fltEmpty(), fltEmpty(), fltEmpty()] };
+    if (rar.length) o.filter.sets[0].rules.push({ on: 1, c: { rar: rar.slice() }, act: 'pick', col: 0 });
   }
   /* 昇華不存在或點對不上（改過昇華的形狀）就退回 */
   const AT = o.asc && ascNodes(o.asc);

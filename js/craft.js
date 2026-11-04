@@ -1,9 +1,9 @@
 /* dungeonPOE · 做裝（0.2.6，企劃書 5.3、6.2～6.4）：純邏輯，不碰畫面（tools/check.js 也會載入）
-   鍛造（詞綴，花潛能＋三種粉，最高做到 T2）、淬鍊（數值，花金幣）、材料、寶石書庫、靈魂升級、開孔 */
+   鍛造（詞綴，花潛能＋三種粉，最高做到 T2）、淬鍊（數值，花金幣）、材料、靈魂升級、開孔 */
 'use strict';
 
 /* ---------- 材料 ---------- */
-const newMat = () => ({ dust: 0, fine: 0, rare: 0, soul: 0, drill: [0, 0, 0] });
+const newMat = () => ({ dust: 0, fine: 0, rare: 0, soul: 0 });
 const MAT = () => (S.mat = S.mat || newMat());
 
 /* ---------- 詞綴的條數上限 ---------- */
@@ -249,7 +249,7 @@ function temperDo(it, idx) {
   return null;
 }
 
-/* ---------- 打怪拿材料（三種粉、靈魂、鑿孔石自動進材料頁） ---------- */
+/* ---------- 打怪拿材料（三種粉、靈魂自動進材料頁） ---------- */
 function killMat(m, t) {
   const M = MAT(),
     k = m.boss ? 2 : m.elite ? 1 : 0,
@@ -260,36 +260,14 @@ function killMat(m, t) {
     rare = k === 2 ? 2 : k && Math.random() < 0.15 ? 1 : 0;
   if (fine) (M.fine += fine), got.push(fine + ' 精粉');
   if (rare) (M.rare += rare), got.push(rare + ' 稀粉');
-  const dr = [
-    Math.random() < [0.012, 0.08, 0.6][k],
-    t >= 5 && Math.random() < [0.002, 0.04, 0.5][k],
-    t >= 10 && Math.random() < [0, 0.005, 0.3][k]
-  ];
-  dr.forEach((y, i) => y && (M.drill[i]++, got.push(DRILLS[i])));
   return got;
 }
 
-/* ---------- 寶石：書庫（學會＝永遠會）、白板、靈魂升級、開孔 ---------- */
-const LIB = () => (S.lib = S.lib || []);
-/* 撿到寶石：沒學過＝學會（寶石收進書庫）；學過了＝技能、光環換靈魂，輔助換粉 */
-function learnGem(it) {
-  const L = LIB(),
-    M = MAT();
-  if (!L.includes(it.gem)) {
-    L.push(it.gem);
-    return { learned: 1 };
-  }
-  if (isSup(it)) return (M.dust += 15), { dust: 15 };
-  const v = 20 * it.lv;
-  M.soul += v;
-  return { soul: v };
-}
-/* 從書庫複製一顆白板（Lv 1、技能 2 孔） */
-const blankGem = g => mkGem(g, 1);
+/* ---------- 寶石：靈魂升級、開孔 ---------- */
 const gemSoCap = g => (SKILLS[g.gem] ? GEM_SO_MAX : 0);
 function gemUpCheck(g) {
   const cap = Math.min(GEM_MAX, S.lv),
-    c = soulCost(g.lv, isSup(g));
+    c = soulCost(g.lv);
   if (g.lv >= cap) return { c, why: g.lv >= GEM_MAX ? '已經滿級' : `不能超過角色等級（Lv ${S.lv}）` };
   if (MAT().soul < c) return { c, why: `靈魂不夠（要 ${c}）` };
   return { c, why: null };
@@ -306,7 +284,7 @@ function gemMaxCheck(g) {
   const cap = Math.min(GEM_MAX, S.lv);
   let lv = g.lv,
     c = 0;
-  while (lv < cap && c + soulCost(lv, isSup(g)) <= MAT().soul) c += soulCost(lv++, isSup(g));
+  while (lv < cap && c + soulCost(lv) <= MAT().soul) c += soulCost(lv++);
   return { lv, c, why: lv > g.lv ? null : gemUpCheck(g).why };
 }
 function gemUpMax(g) {
@@ -336,13 +314,14 @@ function drillCheck(g) {
   const so = g.so || 0;
   if (!SKILLS[g.gem]) return { why: '只有技能寶石能開孔' };
   if (so >= GEM_SO_MAX) return { why: '已經 5 孔' };
-  const k = Math.max(0, so - 2);
-  return { k, why: MAT().drill[k] > 0 ? null : `沒有${DRILLS[k]}` };
+  const k = Math.max(0, so - 2),
+    [m, n] = DRILL[k];
+  return { k, m, n, why: MAT()[m] >= n ? null : `${DUSTS[m]}不夠（要 ${n}）` };
 }
 function drillDo(g) {
-  const { k, why } = drillCheck(g);
+  const { m, n, why } = drillCheck(g);
   if (why) return why;
-  MAT().drill[k]--;
+  MAT()[m] -= n;
   g.so = (g.so || 2) + 1;
   g.sup = [...(g.sup || []), null];
   return null;

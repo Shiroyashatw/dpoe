@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 18,
+    v: 19,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -27,8 +27,10 @@ function newGame() {
     stash: { w: 12, h: 12, items: [] },
     /* 臨時倉庫頁（0.2.24）：背包滿了撿到的放這裡，只能拿出來 */
     temp: { w: 12, h: 12, items: [] },
-    /* 過濾器（0.2.24）：照順序的規則清單；之後加詞綴、孔數條件只是規則多一個欄位 */
-    filter: { on: 0, rules: [{ rar: [1, 2], gem: 1 }] },
+    /* 寶石頁（0.2.35）：倉庫的清單式分頁，不限數量 */
+    gems: [],
+    /* 過濾器（0.2.35）：3 組、每組一串規則（由上往下第一條符合的決定處理方式）＋「其他」預設；見 fltAct */
+    filter: { cur: 0, sets: [fltTemplate(), fltEmpty(), fltEmpty()] },
     sfx: 1
   };
   s.eq.weapon = mkItem('w_sword1_0', 1, 0);
@@ -44,7 +46,6 @@ function newGame() {
   s.charms = [null, null, null];
   s.eq.chest = mkItem('c_leather', 1, 0);
   s.mat = newMat();
-  s.lib = ['slash', 'mirage'];
   return s;
 }
 
@@ -668,15 +669,17 @@ function aggroPack(m) {
 }
 function killMob(m) {
   m.hp = 0;
-  G.kills++;
   const t = G.mapT;
   fx({ k: 'die', x: m.x, y: m.y, sp: m.D.sp, sz: m.sz, dur: 0.45, flip: m.x > P.x });
   sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? '#ff6b3d' : '#c9b8a8');
+  /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
+  if (m.summoned) return;
+  G.kills++;
   const fk = FLASK.perKill * (m.elite ? 3 : m.boss ? 10 : 1);
   P.flask = Math.min(FLASK.n, P.flask + fk);
   P.mflask = Math.min(FLASK.n, P.mflask + fk);
   gainXp(Math.max(1, Math.round(m.D.xp * tierMul(t).hp * (m.elite ? 4 : 1) * xpMul(S.lv, mobLv(t)))));
-  /* 材料：粉、靈魂自動吸收；碎片、鑿孔石直接進材料頁，跳字提醒 */
+  /* 材料：粉、靈魂自動吸收；碎片直接進材料頁，跳字提醒 */
   killMat(m, t).forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
   /* 地圖卡的材料加成：多拿一次 */
   if (Math.random() * 100 < MM('mat')) killMat(m, t);
@@ -754,8 +757,75 @@ function gainXp(v) {
     sfx('lvup');
   }
 }
-/* 過濾器要不要自動撿 */
-const filterPick = it => !!S.filter.on && S.filter.rules.some(r => (it.gem ? r.gem : r.rar.includes(it.r)));
+/* ---------- 物品過濾器（0.2.35） ----------
+   一組＝{ rules: [規則…], def: { act, col } }；規則＝{ on, c: 條件（有這個欄位才算用）, act, col }
+   act：pick 自動撿、show 顯示、hl 醒目（col 是 FLT_COL 的顏色）、hide 隱藏；寶石與通貨不進過濾器（寶石一律顯示、金幣碎片自動吸收） */
+const FLT_COL = ['#ff5d5d', '#ffa24a', '#ffe066', '#6ee06e', '#5ad1ff', '#d07aff'];
+const FLT_ACT = { pick: '自動撿', show: '顯示', hl: '醒目', hide: '隱藏' };
+const FLT_KIND = [
+  ['weapon', '武器'],
+  ['armor', '防具'],
+  ['acc', '飾品'],
+  ['charm', '護符']
+];
+const KIND_GRP = {
+  weapon: 'weapon',
+  focus: 'armor',
+  shield: 'armor',
+  helm: 'armor',
+  chest: 'armor',
+  gloves: 'armor',
+  boots: 'armor',
+  quiver: 'armor',
+  belt: 'acc',
+  ring: 'acc',
+  amulet: 'acc'
+};
+const fltEmpty = () => ({ rules: [], def: { act: 'show', col: 0 } });
+/* 新手範本：稀有自動撿，其他顯示 */
+const fltTemplate = () => ({ rules: [{ on: 1, c: { rar: [2] }, act: 'pick', col: 0 }], def: { act: 'show', col: 0 } });
+/* 詞綴勾選清單：同名的詞（例如兩種「物理傷害提高」）合成一項；id 是第一個 key */
+const FLT_AFF = (() => {
+  const L = [],
+    by = {};
+  for (const k in AFF) {
+    const n = AFF[k].n
+      .replace(/\s*\{\}%?/g, '')
+      .replace(/\s*\+$/, '')
+      .replace(/^附加\s*/, '附加');
+    (by[n] || (by[n] = { id: k, n, keys: [] })).keys.push(k);
+    if (by[n].keys.length === 1) L.push(by[n]);
+  }
+  return L;
+})();
+const fltSet = () => S.filter.sets[S.filter.cur];
+let FLTV = 0; /* 規則改了就加一，掉落物的結果要重算 */
+function ruleHit(r, it) {
+  const c = r.c;
+  if (c.kind && !c.kind.includes(it.charm ? 'charm' : KIND_GRP[baseOf(it).k])) return false;
+  if (c.rar && !c.rar.includes(it.r || 0)) return false;
+  if (c.aff) {
+    const ks = new Set(FLT_AFF.filter(g => c.aff.ks.includes(g.id)).flatMap(g => g.keys));
+    if ((it.a || []).filter(a => ks.has(a.k)).length < c.aff.n) return false;
+  }
+  if (c.so != null && (it.so || 0) < c.so) return false;
+  if (c.q != null && (it.q || 0) * 100 < c.q) return false;
+  if (c.pot != null && (it.pot || 0) < c.pot) return false;
+  if (c.L != null && (it.L || 0) < c.L) return false;
+  return true;
+}
+/* 這件東西怎麼處理：{ act, col } */
+function fltAct(it) {
+  if (it.gem) return { act: 'show', col: 0 };
+  const s = fltSet();
+  return s.rules.find(r => r.on && ruleHit(r, it)) || s.def;
+}
+/* 地上的掉落物：自己丟的一律顯示；結果記在 d 上，規則改了才重算 */
+function dropFlt(d) {
+  if (d.nopick) return { act: 'show', col: 0 };
+  if (d.fv !== FLTV) (d.fv = FLTV), (d.fa = fltAct(d.it));
+  return d.fa;
+}
 /* 撿起來：金幣、碎片直接加；裝備放進格子背包，背包滿了放臨時倉庫頁 */
 function pickup(d) {
   if (d.gold) {
@@ -766,20 +836,6 @@ function pickup(d) {
     S.frag += d.frag;
     num(d.x, d.y - 20, d.frag, 'frag');
     sfx('pick');
-  } else if (d.it.gem) {
-    /* 寶石：沒學過＝學進書庫；學過的換成靈魂（輔助換粉） */
-    const r = learnGem(d.it),
-      n = gemOf(d.it).n;
-    hudWarn(
-      r.learned
-        ? `學會「${n}」：到技能寶石面板（G）的書庫複製`
-        : r.soul
-          ? `「${n}」學過了：換成 ${r.soul} 靈魂`
-          : `「${n}」學過了：換成 ${r.dust} 粉`
-    );
-    num(d.x, d.y - 20, 0, 'mat', r.learned ? '學會 ' + n : '+' + (r.soul ? r.soul + ' 靈魂' : r.dust + ' 粉'));
-    sfx(r.learned ? 'lvup' : 'pick');
-    hudPanels();
   } else {
     if (!gridAuto(S.inv, d.it)) {
       if (!gridAuto(S.temp, d.it)) return (d.full = 1), hudWarn('背包和臨時倉庫都滿了：回藏身處整理');
@@ -794,7 +850,7 @@ function pickNearest() {
   let best = null,
     bd = 110;
   for (const d of G.drops)
-    if (d.it && dist(P, d) < bd) {
+    if (d.it && dropFlt(d).act !== 'hide' && dist(P, d) < bd) {
       bd = dist(P, d);
       best = d;
     }
@@ -979,7 +1035,7 @@ function mobStrike(m) {
       for (let i = 0; i < 2; i++) {
         const o = spawnMob(MOBS[D.call], m.x + rnd(-60, 60), m.y + rnd(-60, 60), 99, false);
         o.owner = m;
-        o.aggro = 1;
+        o.summoned = o.aggro = 1;
       }
     fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.35, col: '#b28dff' });
     recover(m, 0.5);
@@ -1092,8 +1148,10 @@ function bossAI(m, dt, dP) {
         m.t = 0.42;
         m.hitP = 0;
       } else if (m.pat === 'summon') {
-        for (let i = 0; i < 4; i++)
-          spawnMob(MOBS[m.D.call], m.x + rnd(-90, 90), m.y + rnd(-90, 90), 99, false).aggro = 1;
+        for (let i = 0; i < 4; i++) {
+          const o = spawnMob(MOBS[m.D.call], m.x + rnd(-90, 90), m.y + rnd(-90, 90), 99, false);
+          o.summoned = o.aggro = 1;
+        }
         fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.35, col: '#b28dff' });
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'nova') {
@@ -1268,8 +1326,12 @@ function frame(now) {
     }
     for (const d of G.drops.slice()) {
       d.t += dt;
-      /* 過濾器：符合的裝備跟金幣一樣吸過來（自己丟的、放不下的不吸） */
-      if ((d.gold || d.frag || (d.it && !d.nopick && !d.full && filterPick(d.it))) && d.t > 0.4 && dist(P, d) < 150) {
+      /* 過濾器：「自動撿」的裝備跟金幣一樣吸過來（自己丟的、放不下的不吸） */
+      if (
+        (d.gold || d.frag || (d.it && !d.nopick && !d.full && dropFlt(d).act === 'pick')) &&
+        d.t > 0.4 &&
+        dist(P, d) < 150
+      ) {
         const f = Math.min(1, dt * 10);
         d.x = d.sx = d.x + (P.x - d.x) * f;
         d.y = d.sy = d.y + (P.y - d.y) * f;
