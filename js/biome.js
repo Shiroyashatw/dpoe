@@ -299,6 +299,52 @@ function bWalls(W, H) {
     }
 }
 
+/* 地板＋牆不會動：切成 8×8 格的區塊，第一次進畫面時畫成一張圖，之後每格只貼圖（每格重畫 400 多個方塊太貴）。
+   shortcut: 岩漿牆的裂縫亮度固定在畫的那一刻，不再閃；要閃的話另外每格畫裂縫 */
+const BCH = 8;
+function bStatic(W, H) {
+  if (!G.bc || G.bc.t !== G.tiles) G.bc = { t: G.tiles, m: new Map() };
+  const S = BCH * TS,
+    x0 = Math.max(0, Math.floor((G.cam.x - W / 2) / S)),
+    x1 = Math.floor((G.cam.x + W / 2) / S),
+    y0 = Math.max(0, Math.floor((G.cam.y - H / 2) / S)),
+    y1 = Math.floor((G.cam.y + H / 2) / S);
+  const get = (cx, cy) => {
+    const k = cy * 1000 + cx;
+    let c = G.bc.m.get(k);
+    if (c) G.bc.m.delete(k);
+    else c = bakeChunk(cx, cy, S);
+    /* 用到的排到最後；最多留 48 塊（約 28 MB，畫面加外一圈夠用），最久沒用的丟掉 */
+    G.bc.m.set(k, c);
+    if (G.bc.m.size > 48) G.bc.m.delete(G.bc.m.keys().next().value);
+    return c;
+  };
+  const inMap = (cx, cy) => cx >= 0 && cy >= 0 && cx * BCH < G.cols && cy * BCH < G.rows;
+  for (let cy = y0; cy <= y1; cy++)
+    for (let cx = x0; cx <= x1; cx++) if (inMap(cx, cy)) CX.drawImage(get(cx, cy), cx * S, cy * S);
+  /* 每格先畫好畫面外一圈的一塊，走過去時不用當場畫（不然那一格會頓） */
+  for (let cy = y0 - 1; cy <= y1 + 1; cy++)
+    for (let cx = x0 - 1; cx <= x1 + 1; cx++) if (inMap(cx, cy) && !G.bc.m.has(cy * 1000 + cx)) return void get(cx, cy);
+}
+function bakeChunk(cx, cy, S) {
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const main = CX,
+    cam = G.cam;
+  CX = c.getContext('2d');
+  CX.translate(-cx * S, -cy * S);
+  CX.fillStyle = bFloor();
+  CX.fillRect(cx * S, cy * S, S, S);
+  /* bWalls 只畫鏡頭附近（多一格），把鏡頭放在這塊中間 */
+  G.cam = { x: cx * S + S / 2, y: cy * S + S / 2 };
+  try {
+    bWalls(S, S);
+  } finally {
+    (CX = main), (G.cam = cam);
+  }
+  return c;
+}
+
 /* ---------- 擺設：每個房間上牆的燈、場景的主角（岩漿池、毒水窪、冰晶、香爐）、散落的小東西 ---------- */
 const DECO_SET = {
   ice: { feat: 'crystal', small: ['icicle', 'crystal'] },
@@ -551,15 +597,22 @@ function bLights(dg, ox, oy) {
     dg.fillRect(x - r, y - r, r * 2, r * 2);
   }
 }
+let GLOW = null;
 function bGlow(ox, oy) {
   const c = BIO().light;
   CX.globalCompositeOperation = 'lighter';
-  for (const [x, y, r] of lightsInView(ox, oy)) {
-    const g = CX.createRadialGradient(x, y, 0, x, y, r * 0.75);
+  /* 光暈圖只在換場景顏色時畫一次，之後每格放大貼上（每格建漸層太貴） */
+  if (!GLOW || GLOW.c !== c) {
+    GLOW = Object.assign(document.createElement('canvas'), { width: 64, height: 64, c });
+    const gg = GLOW.getContext('2d'),
+      g = gg.createRadialGradient(32, 32, 0, 32, 32, 32);
     g.addColorStop(0, `rgba(${c},0.16)`);
     g.addColorStop(1, `rgba(${c},0)`);
-    CX.fillStyle = g;
-    CX.fillRect(x - r, y - r, r * 2, r * 2);
+    gg.fillStyle = g;
+    gg.fillRect(0, 0, 64, 64);
   }
+  CX.imageSmoothingEnabled = true;
+  for (const [x, y, r] of lightsInView(ox, oy)) CX.drawImage(GLOW, x - r * 0.75, y - r * 0.75, r * 1.5, r * 1.5);
+  CX.imageSmoothingEnabled = false;
   CX.globalCompositeOperation = 'source-over';
 }

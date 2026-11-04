@@ -120,15 +120,17 @@ function draw() {
   CX.save();
   CX.translate(ox, oy);
   /* 地板、地上細節、牆、擺設（場景在 biome.js） */
-  CX.fillStyle = bFloor();
-  CX.fillRect(0, 0, G.W, G.H);
+  if (G.scene === 'hide') {
+    CX.fillStyle = bFloor();
+    CX.fillRect(0, 0, G.W, G.H);
+  }
   CX.strokeStyle = '#3a2f28';
   CX.lineWidth = 6;
   CX.strokeRect(-3, -3, G.W + 6, G.H + 6);
   if (G.scene === 'hide') drawHideout();
   else {
+    bStatic(W, H);
     bDecals(W, H);
-    bWalls(W, H);
   }
   bDeco(W, H);
   /* 地面效果、屍體、殘留物、手雷、幻影、旗幟、飛劍（mech.js） */
@@ -293,7 +295,14 @@ function draw() {
   /* 角色們（照 y 排序） */
   const ents = G.mobs.filter(m => m.hp > 0).concat([P], G.allies || []);
   ents.sort((a, b) => a.y - b.y);
-  for (const e of ents) e === P ? drawHero() : e.src ? drawWolf(e) : drawMob(e);
+  /* 畫面外的不畫（留 150 給大隻的王與頭上的圖示） */
+  const vx0 = G.cam.x - W / 2 - 150,
+    vx1 = G.cam.x + W / 2 + 150,
+    vy0 = G.cam.y - H / 2 - 150,
+    vy1 = G.cam.y + H / 2 + 250;
+  for (const e of ents)
+    if (e === P) drawHero();
+    else if (e.x > vx0 && e.x < vx1 && e.y > vy0 && e.y < vy1) e.src ? drawWolf(e) : drawMob(e);
   /* 投射物 */
   for (const s of G.shots) {
     /* 有 pixelfx 投射物圖（箭、子彈、飛斧…）就照方向畫序列圖 */
@@ -456,18 +465,22 @@ function draw() {
   }
   CX.restore();
   /* 光照：玩家周圍亮、遠處暗 */
-  if (!DARK || DARK.width !== CV.width || DARK.height !== CV.height) {
+  /* 暗層只有柔和的漸層：用 1/4 解析度畫再放大（全解析度每格三次全螢幕填色太貴），座標照畫布像素 */
+  const DS = 4;
+  if (!DARK || DARK.cw !== CV.width || DARK.ch !== CV.height) {
     DARK = document.createElement('canvas');
-    DARK.width = CV.width;
-    DARK.height = CV.height;
+    DARK.width = Math.ceil(CV.width / DS);
+    DARK.height = Math.ceil(CV.height / DS);
+    (DARK.cw = CV.width), (DARK.ch = CV.height);
   }
   const dg = DARK.getContext('2d'),
     px = (P.x + ox) * DPR * ZOOM,
     py = (P.y - 20 + oy) * DPR * ZOOM;
+  dg.setTransform(1 / DS, 0, 0, 1 / DS, 0, 0);
   dg.globalCompositeOperation = 'source-over';
-  dg.clearRect(0, 0, DARK.width, DARK.height);
+  dg.clearRect(0, 0, CV.width, CV.height);
   dg.fillStyle = `rgba(${BIO().dark},${G.scene === 'hide' ? 0.45 : 0.74})`;
-  dg.fillRect(0, 0, DARK.width, DARK.height);
+  dg.fillRect(0, 0, CV.width, CV.height);
   dg.globalCompositeOperation = 'destination-out';
   const R = 560 * DPR * ZOOM,
     g = dg.createRadialGradient(px, py, 40 * DPR, px, py, R);
@@ -475,10 +488,12 @@ function draw() {
   g.addColorStop(0.6, 'rgba(0,0,0,0.85)');
   g.addColorStop(1, 'rgba(0,0,0,0)');
   dg.fillStyle = g;
-  dg.fillRect(0, 0, DARK.width, DARK.height);
+  dg.fillRect(0, 0, CV.width, CV.height);
   bLights(dg, ox, oy);
   CX.setTransform(1, 0, 0, 1, 0, 0);
-  CX.drawImage(DARK, 0, 0);
+  CX.imageSmoothingEnabled = true;
+  CX.drawImage(DARK, 0, 0, DARK.width * DS, DARK.height * DS);
+  CX.imageSmoothingEnabled = false;
   bGlow(ox, oy);
   CX.setTransform(DPR, 0, 0, DPR, 0, 0);
   {

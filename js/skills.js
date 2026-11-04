@@ -894,7 +894,6 @@ function hitMob(m, c, ang, kb, o = {}) {
   fxs(r.crit ? 'crit' : 'hit', m.x, m.y - m.sz * 0.3, m.sz * (r.crit ? 0.8 : 0.5));
   if (!o.quiet) {
     sparks(m.x, m.y - m.sz * 0.4, ang, r.crit ? 10 : 5, r.crit ? '#ffd166' : ELC[r.el]);
-    hitstop(r.crit ? 0.085 : 0.04);
     sfx(r.crit ? 'crit' : 'hit');
     if (ST.loh) P.hp = Math.min(ST.hp, P.hp + ST.loh);
   }

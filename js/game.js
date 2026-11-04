@@ -402,12 +402,8 @@ function mouseWorld() {
 }
 
 /* ---------- 打擊感 ---------- */
-/* 小停頓（打中、被打）之間至少隔 0.3 秒（真實時間），連續打中才不會一頓一頓；打倒王這種大停頓照放 */
-let hsLast = -1e9;
+/* 只有打倒王才停頓；打中、被打不停（會一頓一頓，掉到 60 fps 以下的感覺） */
 function hitstop(s) {
-  const now = performance.now();
-  if (s < 0.2 && G.hs <= 0 && now - hsLast < 300) return;
-  if (G.hs <= 0) hsLast = now;
   G.hs = Math.max(G.hs, s);
 }
 /* 系統開了「減少動態」就不震動 */
@@ -643,7 +639,6 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   P.hp -= d;
   P.hurtT = 0.35;
   num(P.x, P.y - 60, d, 'hurt');
-  hitstop(0.05);
   sfx('hurt');
   /* 不動如山（基石）；昇華的不動如山：格擋值還在時不會被擊退 */
   if (src && !ST.stand && !(ST.unmov && bvUp())) {
