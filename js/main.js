@@ -206,6 +206,7 @@ function start() {
   S = migrate(load());
   ST = stats();
   hudInit();
+  firstHint();
   enterHideout();
   inputInit();
   treeInit();

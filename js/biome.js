@@ -504,11 +504,11 @@ function bDeco(W, H) {
       CX.fillRect(x - 4, y - 35, 8, 8);
     } else if (d.k === 'incense') {
       /* 香爐：三腳銅爐＋三炷香＋煙 */
-      CX.fillStyle = '#5a4628';
+      CX.fillStyle = '#3b3e45';
       CX.beginPath();
       CX.ellipse(x, y - 10, 18 * s, 10 * s, 0, 0, TAU);
       CX.fill();
-      CX.fillStyle = '#b8955a';
+      CX.fillStyle = '#7c8290';
       CX.fillRect(x - 18 * s, y - 14, 36 * s, 3);
       CX.fillStyle = '#3a2d18';
       CX.fillRect(x - 12, y - 2, 3, 6);

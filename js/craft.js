@@ -30,6 +30,23 @@ function forgeAff(k, ilvl) {
 const sortAff = it => it.a.sort((x, y) => AFF[y.k].p - AFF[x.k].p);
 /* 可能拿到的階級（預覽用） */
 const tierSpan = it => `T${Math.max(2, bestTier(it.L))}～T${Math.min(12, bestTier(it.L) + 4)}`;
+/* 預覽（0.2.30）：一條詞可能的數字範圍（這件物品等級能出的階級） */
+function affRangeTxt(k, it) {
+  const b = bestTier(it.L),
+    [, hi] = tierRange(k, Math.max(2, b)),
+    [lo] = tierRange(k, Math.min(12, b + 4));
+  return AFF[k].n.replace('{}', `${lo}～${hi}`);
+}
+/* 這一步可能拿掉、可能加入什麼（鍛造台的預覽）：out 拿掉的詞、add 詞綴鍵、keep 不變的詞 */
+function forgeWhat(it, op, cls) {
+  const open = it.a.filter(a => !a.lock);
+  if (op === 'enhance') return { out: [], add: affPool({ ...it, r: it.r + 1 }, cls) };
+  if (op === 'add') return { out: [], add: affPool(it, cls) };
+  if (op === 'reforge')
+    return { all: 1, out: open, add: affPool({ ...it, a: it.a.filter(a => a.lock) }), keep: it.a.filter(a => a.lock) };
+  const L = open.filter(a => (op === 'swapSame' ? affCls(a.k) === cls : affCls(a.k) !== cls));
+  return { out: L, add: [...new Set(L.flatMap(o => affPool(it, cls, o)))] };
+}
 const affShort = a => AFF[a.k].n.replace(/ ?\+?\{\}%?/g, '').replace('附加 ', '') + ' T' + a.T;
 
 /* ---------- 商人賭裝（0.2.28，企劃書 5.6）：選種類、花金幣買一件。物品等級＝開放的最高階；品質 0、孔 0、潛能 3、

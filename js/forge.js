@@ -6,6 +6,24 @@ const CRAFT = { tab: 'forge', cls: null, sel: null, log: '' };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);
 
 /* 材料列：三種粉、靈魂、鑿孔石；鍛造分頁多一排 8 類詞綴類別（點選） */
+/* 詞綴類別（第二步）：選了才知道對哪一類下手 */
+const clsHTML = () =>
+  `<div class="ph2">選詞綴類別 <span>${CRAFT.cls ? '對' + ACLSI[CRAFT.cls].n + '類下手' : '添加、置換、重鑄都要先選'}</span></div><div class="mats">${ACLS.map(
+    x =>
+      `<button class="chip ${CRAFT.cls === x.k ? 'on' : ''}" data-fg="cls:${x.k}" title="對${x.n}類詞綴下手">${icHTML(x.ic)}<small>${x.n}</small></button>`
+  ).join('')}</div>`;
+/* 預覽：拿掉哪些、可能加入哪些（數字是這件物品等級能出的範圍） */
+function fpvHTML(it, op) {
+  const W = forgeWhat(it, op, CRAFT.cls),
+    out = W.out.length
+      ? `<small class="pvout">${W.all ? '全部重骰' : `可能拿掉（各 ${Math.round(100 / W.out.length)}%）`}：${W.out.map(a => esc(affText(a))).join('、')}</small>`
+      : '',
+    keep = W.keep && W.keep.length ? `<small>鎖住不變：${W.keep.map(a => esc(affText(a))).join('、')}</small>` : '',
+    add = W.add.length
+      ? `<details class="fpv" ${W.add.length <= 6 ? 'open' : ''}><summary>可能加入 ${W.add.length} 種${W.all ? '' : `（各 ${Math.round(100 / W.add.length)}%）`}</summary><ul>${W.add.map(k => `<li>${esc(affRangeTxt(k, it))}</li>`).join('')}</ul></details>`
+      : '';
+  return out + keep + add;
+}
 function matsHTML(pickable) {
   const m = MAT();
   return `<div class="mats">
@@ -65,10 +83,11 @@ function forgeHTML() {
           .map(op => {
             const F = FORGE[op],
               { cost, why } = forgeCheck(it, op, CRAFT.cls),
-              pv = !why || /^.粉不夠/.test(why) ? F.preview(it, CRAFT.cls) : '';
+              ok = !why || /^.粉不夠/.test(why),
+              noCls = why === '先選一種類別';
             return `<div class="fop ${why ? 'off' : ''}"><button class="btn ${hint === op ? 'pri' : ''}" data-fg="op:${op}" ${why ? 'disabled' : ''}>${hint === op ? '★ ' : ''}${F.n}</button>
               <div><small>${esc(F.d)}</small><small class="cost">潛能 −${cost.pot} · ${DUSTS[cost.du]} ${cost.n}</small>${
-                why ? `<small class="c-bad">${esc(why)}</small>` : `<small class="pv">${esc(pv)}</small>`
+                (why && !noCls ? `<small class="c-bad">${esc(why)}</small>` : '') + (ok ? fpvHTML(it, op) : '')
               }</div></div>`;
           })
           .join('')}</div>
@@ -85,9 +104,10 @@ function forgeHTML() {
   return `<div class="ph"><b>鍛造台</b><span class="ftabs">${tabs
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
     .join('')}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  ${matsHTML(tab === 'forge')}
+  ${matsHTML(false)}
   ${selHTML(it, tab === 'temper')}
   ${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}
+  ${tab === 'forge' && it ? clsHTML() : ''}
   ${body}`;
 }
 /* 做完一次：寫下拿掉什麼、加了什麼 */
@@ -130,9 +150,11 @@ document.addEventListener('click', e => {
     if (g) err = gemUp(g);
     if (!err) sfx('lvup');
   } else if (k === 'gmax' || k === 'amax') {
+    /* 升滿花得多：按兩次 */
     const g = k === 'gmax' ? S.skills[+v].a : S.auras[+v];
+    if (g && !confirm2(b, `再按一次：花 ${gemMaxCheck(g).c} 魂`)) return;
     if (g) err = gemUpMax(g);
-    if (!err) sfx('lvup');
+    if (!err) sfx('lvup'), hideTip();
   } else if (k === 'sup') {
     const a = S.skills[+v].a;
     for (const g of (a && a.sup) || []) if (g && !gemUpCheck(g).why) gemUp(g);

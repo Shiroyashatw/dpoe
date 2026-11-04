@@ -780,7 +780,19 @@ function baseTick(dt) {
     const viaEs = Math.min(P.es || 0, (d - skipEs) * dt);
     P.es = (P.es || 0) - viaEs;
     P.hp -= d * dt - viaEs;
-    if (P.hp <= 0) die();
+    if (P.hp <= 0) {
+      /* 死因：持續傷害裡最先算到的那一種 */
+      const n =
+        a.ign && a.ign.t > G.t
+          ? '點燃'
+          : a.bleed && a.bleed.t > G.t
+            ? '流血'
+            : a.poi && a.poi.t > G.t
+              ? '中毒'
+              : '持續傷害';
+      P.lastHit = { n, el: '', d: 0 };
+      die();
+    }
   }
   bvTick(dt);
   hfTick(dt);
@@ -1076,6 +1088,104 @@ function tickCharms() {
 }
 
 /* 玩家身上的異常與詛咒（HUD 顯示用） */
+/* 狀態圖示（0.2.30）：玩家的狀態列（技能列上方，圖示＋剩餘秒數）與怪物頭上（只有圖示）共用；[名字, 圖示, 說明] */
+const STATE = {
+  ign: ['點燃', 'sup_sp_gfire', '每秒受到火焰傷害'],
+  bleed: ['流血', 'sup_sp_bleed', '每秒受到物理傷害，移動時加倍'],
+  poison: ['中毒', 'sup_sp_poison', '每秒受到混沌傷害'],
+  chill: ['冰緩', 'sk_frostarrow', '移動與出手變慢'],
+  frozen: ['冰凍', 'sk_frostnova', '不能行動'],
+  shock: ['感電', 'sk_arc', '受到的傷害提高'],
+  elc: ['電殛', 'sup_sp_stun', '不能行動'],
+  stun: ['暈眩', 'sup_sp_stun', '不能行動'],
+  wither: ['凋零', 'sup_sp_wither', '受到的混沌傷害提高'],
+  blind: ['致盲', 'sup_sp_ailx', '命中值降低'],
+  broken: ['完全破甲', 'sup_sp_pen', '護甲歸零，受到的物理傷害提高'],
+  parried: ['失衡', 'sup_sp_heavy', '受到的攻擊傷害提高'],
+  intim: ['威嚇', 'sk_anger', '受到的傷害提高、造成的傷害降低'],
+  mark: ['標記', 'sk_markshot', '被標記的怪觸發時給你效果'],
+  scorch: ['焦灼', 'sup_sp_gfire', '元素抗性降低'],
+  brittle: ['易碎', 'sk_frostarrow', '被擊中時暴擊率提高'],
+  sap: ['殘喘', 'sk_arc', '造成的傷害降低'],
+  exp: ['曝露', 'sk_elemweak', '元素抗性降低'],
+  rage: ['狂怒', 'sk_anger', '攻擊傷害更多'],
+  tail: ['順風', 'sk_hasteaura', '移動速度提高'],
+  chg_e: ['耐力球', 'sup_sp_heavy', '球體資源'],
+  chg_f: ['狂怒球', 'sk_anger', '球體資源'],
+  chg_p: ['暴擊球', 'sk_precise', '球體資源'],
+  onslaught: ['猛攻', 'sk_hasteaura', BUFF.onslaught.d],
+  arcane: ['秘術增強', 'sk_clarity', BUFF.arcane.d],
+  unholy: ['邪力', 'sk_despair', BUFF.unholy.d],
+  archon: ['元素化身', 'sk_elemweak', BUFF.archon.d],
+  phasing: ['相位', 'sk_hasteaura', BUFF.phasing.d],
+  frostMark: ['附加冰冷', 'sk_frostarrow', '冰凍標記給的效果'],
+  voltMark: ['附加閃電', 'sk_arc', '電壓標記給的效果'],
+  sac: ['捨身突襲', 'sk_hasteaura', '移動速度更快']
+};
+const curseIc = k => SKILLS['cu_' + k].ic;
+/* 怪物身上有哪些狀態（畫面用，回傳圖示名） */
+function mobStates(m) {
+  const a = m.ail;
+  if (!a) return [];
+  const o = [],
+    add = k => o.push(STATE[k][1]);
+  if (a.ign && a.ign.t > G.t) add('ign');
+  if (a.bleed && a.bleed.t > G.t) add('bleed');
+  if (a.poi && a.poi.some(x => x.t > G.t)) add('poison');
+  if (a.chill && a.chill.t > G.t) add('chill');
+  if (a.frozen > G.t) add('frozen');
+  if (a.shock > G.t) add('shock');
+  if (a.elcT > G.t) add('elc');
+  if (a.hstun > G.t || m.stun > 0) add('stun');
+  if (a.curse && a.curse.t > G.t) o.push(curseIc(a.curse.k));
+  if (a.mark) add('mark');
+  if (a.wither && a.wither.some(t => t > G.t)) add('wither');
+  if (a.broken > G.t) add('broken');
+  if (a.blind > G.t) add('blind');
+  if (a.parried > G.t) add('parried');
+  if (a.intim > G.t) add('intim');
+  if (a.scorch && a.scorch.t > G.t) add('scorch');
+  if (a.brittle && a.brittle.t > G.t) add('brittle');
+  if (a.sap && a.sap.t > G.t) add('sap');
+  if (a.exp > G.t) add('exp');
+  return [...new Set(o)];
+}
+/* 玩家身上的狀態：{ k, n, ic, d, t 剩餘秒數（沒有時間的是 null）, c 層數, bad 負面 } */
+function playerStates() {
+  const a = P.ail || {},
+    L = [],
+    add = (k, until, o = {}) => {
+      /* null＝沒有時間（層數）；其他要有效才顯示 */
+      if (until !== null && !(until > G.t)) return;
+      const [n, ic, d] = STATE[k];
+      L.push({ k, n, ic, d, t: until == null ? null : until - G.t, ...o });
+    };
+  const bad = { bad: 1 };
+  add('ign', a.ign && a.ign.t, bad);
+  add('bleed', a.bleed && a.bleed.t, bad);
+  add('poison', a.poi && a.poi.t, bad);
+  add('chill', a.chill && a.chill.t, bad);
+  add('frozen', a.frozen, bad);
+  add('shock', a.shock, bad);
+  if (a.curse && a.curse.t > G.t) {
+    const C = CURSES[a.curse.k];
+    L.push({
+      k: 'c',
+      n: C.n,
+      ic: curseIc(a.curse.k),
+      d: C.d.replace('{}', Math.round(a.curse.v)),
+      t: a.curse.t - G.t,
+      bad: 1
+    });
+  }
+  for (const k of Object.keys(BUFF)) if (STATE[k]) add(k, P.buf && P.buf[k]);
+  for (const k of ['frostMark', 'voltMark']) add(k, P.buf && P.buf[k]);
+  for (const k of ['e', 'f', 'p']) if (chgN(k)) add('chg_' + k, P.chg[k].t, { c: chgN(k) });
+  if (P.rage) add('rage', null, { c: Math.floor(P.rage) });
+  if (P.tail) add('tail', null, { c: Math.ceil(P.tail) });
+  if (ST.sacrifice) add('sac', P.sacT);
+  return L;
+}
 function ailNames() {
   const a = P.ail || {},
     on = x => x && (x.t || x) > G.t,

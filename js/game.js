@@ -176,6 +176,9 @@ function enterMap(t) {
     rows = CHn * CHUNK;
   resetWorld(cols * TS, rows * TS);
   G.scene = 'map';
+  /* 進過地圖就不再顯示第一次的提示 */
+  S.hint0 = 1;
+  if ($('hint')) $('hint').hidden = true;
   G.mapT = t;
   /* 地圖卡的詞綴；這一批卡用掉了，下次打開地圖台抽新的 */
   G.mm = mapMods(S.card);
@@ -401,7 +404,9 @@ function mouseWorld() {
 function hitstop(s) {
   G.hs = Math.max(G.hs, s);
 }
+/* 系統開了「減少動態」就不震動 */
 function shake(a) {
+  if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   G.trauma = Math.min(1, G.trauma + a);
 }
 /* txt：直接顯示的文字（材料、學會寶石） */
@@ -626,6 +631,9 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
     (P.mp -= t), (d -= t);
   }
   if (d <= 0) return;
+  /* 死亡卡要寫死因 */
+  const who = src && src.D ? src : src && src.src && src.src.D ? src.src : null;
+  P.lastHit = { n: who ? (who.elite ? '菁英 ' : '') + who.D.n : '環境傷害', el, d: Math.round(d) };
   P.hp -= d;
   P.hurtT = 0.35;
   num(P.x, P.y - 60, d, 'hurt');
@@ -641,6 +649,8 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
 }
 /* 死亡（PoE 式）：地圖失敗、扣這一級 10% 經驗（不降級），裝備不會掉 */
 function die() {
+  /* 已經倒下：持續傷害還在跑時不要再扣一次經驗、蓋掉死因 */
+  if (G.state === 'dead') return;
   P.hp = 0;
   G.state = 'dead';
   P.act = P.roll = null;

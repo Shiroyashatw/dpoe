@@ -505,12 +505,10 @@ function touchRects() {
 }
 const RBG = ['rgba(21,17,13,0.95)', 'rgba(18,24,51,0.95)', 'rgba(42,33,13,0.95)'];
 /* 古銅雙框（跟 CSS 的面板一樣）：外暗銅、內亮銅 */
-function bronzeRect(x, y, w, h) {
-  CX.lineWidth = 3;
-  CX.strokeStyle = '#5a4628';
-  CX.strokeRect(x - 1.5, y - 1.5, w + 3, h + 3);
+/* canvas 上的細線框（小地圖、互動提示），跟面板同色 */
+function frameRect(x, y, w, h) {
   CX.lineWidth = 1;
-  CX.strokeStyle = '#b8955a';
+  CX.strokeStyle = '#3b3e45';
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 const LABELS = [];
@@ -533,6 +531,21 @@ function shadow(x, y, r) {
   CX.beginPath();
   CX.ellipse(x, y, r, r * 0.38, 0, 0, TAU);
   CX.fill();
+}
+/* 怪物頭上的異常圖示（0.2.30）：血條上面一排，最多 6 個 */
+function drawMobStates(m, y) {
+  const L = mobStates(m).slice(0, 6);
+  if (!L.length) return;
+  /* 螢幕上約 22px：手機畫面縮得比較小，圖示要放大 */
+  const s = Math.min(24, 22 / ZOOM),
+    gap = 2;
+  let x = m.x - ((L.length - 1) * (s + gap)) / 2;
+  for (const ic of L) {
+    CX.fillStyle = 'rgba(8,9,11,0.82)';
+    CX.fillRect(x - s / 2 - 1, y - s - 1, s + 2, s + 2);
+    spr(ic, x, y, s);
+    x += s + gap;
+  }
 }
 function drawMob(m) {
   const D = m.D,
@@ -580,6 +593,7 @@ function drawMob(m) {
     CX.fill();
   }
   /* 生命條（受傷或菁英、王才顯示） */
+  drawMobStates(m, m.y - fly - m.sz - 13);
   if (m.hp < m.mhp || m.elite) {
     const w = m.boss ? 0 : Math.max(36, m.r * 2.4),
       y = m.y - fly - m.sz - 8;
@@ -777,7 +791,7 @@ function drawMinimap(W) {
     s = mw / G.W;
   CX.fillStyle = 'rgba(8,6,5,0.78)';
   CX.fillRect(x0, y0, mw, mh);
-  bronzeRect(x0, y0, mw, mh);
+  frameRect(x0, y0, mw, mh);
   if (!G.mini) {
     /* 地圖縮圖：一格一點，進地圖時畫一次 */
     const c = (G.mini = document.createElement('canvas'));
@@ -889,15 +903,26 @@ function drawPrompts() {
       : p
         ? [(TOUCH.on ? '' : 'F ') + p.n, p.x, p.y - (p.k === 'device' ? 92 : 80)]
         : null;
+  if (G.scene === 'hide') drawPropNames();
   if (!lab) return;
-  CX.font = '700 15px "Noto Serif TC", serif';
+  plate(lab[0], lab[1], lab[2], '#eceef2', 1);
+}
+/* 藏身處的擺設常駐弱名牌（走近才變成互動提示） */
+function drawPropNames() {
+  const p = nearProp();
+  for (const k of G.props) if (k !== p) plate(k.n, k.x, k.y - (k.k === 'device' ? 92 : 80), '#aeb3bc', 0.75);
+}
+function plate(txt, x, y, col, a) {
+  CX.font = '700 14px "Noto Sans TC", sans-serif';
   CX.textAlign = 'center';
-  const w = CX.measureText(lab[0]).width + 22;
-  CX.fillStyle = 'rgba(14,11,9,0.92)';
-  CX.fillRect(lab[1] - w / 2, lab[2] - 15, w, 25);
-  bronzeRect(lab[1] - w / 2, lab[2] - 15, w, 25);
-  CX.fillStyle = '#e6c88e';
-  CX.fillText(lab[0], lab[1], lab[2] + 2);
+  const w = CX.measureText(txt).width + 18;
+  CX.globalAlpha = a;
+  CX.fillStyle = 'rgba(17,18,21,0.92)';
+  CX.fillRect(x - w / 2, y - 15, w, 25);
+  frameRect(x - w / 2, y - 15, w, 25);
+  CX.fillStyle = col;
+  CX.fillText(txt, x, y + 2);
+  CX.globalAlpha = 1;
 }
 
 /* 戰狼：跟著你的狼（腳下綠圈） */

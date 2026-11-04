@@ -102,6 +102,7 @@ function treeRender() {
     <b>天賦樹</b>
     <span>天賦點 剩 <b id="tpts"></b>（每升一級 1 點）</span>
     <span id="tasc"></span>
+    <input id="tfind" type="search" placeholder="搜尋天賦" aria-label="搜尋天賦" autocomplete="off"><span id="tfound"></span>
     <button class="btn" data-ta="reset" id="treset">重置天賦</button>
     <button class="btn" data-ta="areset" id="taset">重置昇華</button>
     <button class="x" aria-label="關閉" data-ta="close">${ICO.x}</button></div>
@@ -162,6 +163,28 @@ function treeBox() {
     w: Math.ceil(x1 - x0 + 120),
     h: Math.ceil(y1 - y0 + 120)
   });
+}
+/* 搜尋（0.2.30）：比對名字和效果文字；符合的點亮、其他變暗，Enter 跳到下一個 */
+function treeFind(q) {
+  q = q.trim().toLowerCase();
+  if (!TREE.txt)
+    TREE.txt = PTREE.N.map(n => [n.id, ((n.n || '') + ' ' + treeTip(n.id).replace(/<[^>]+>/g, ' ')).toLowerCase()]);
+  TREE.hits = q ? TREE.txt.filter(([, t]) => t.includes(q)).map(([id]) => id) : [];
+  TREE.hi = -1;
+  const set = new Set(TREE.hits);
+  $('tsvg').classList.toggle('finding', !!q);
+  for (const el of document.querySelectorAll('#tsvg .nd')) el.classList.toggle('hit', set.has(el.dataset.n));
+  $('tfound').textContent = q ? `${TREE.hits.length} 個` : '';
+  treeJump(1);
+}
+function treeJump(d) {
+  if (!TREE.hits || !TREE.hits.length) return;
+  TREE.hi = (TREE.hi + d + TREE.hits.length) % TREE.hits.length;
+  const n = PTREE.I[TREE.hits[TREE.hi]];
+  TREE.x = -n.x * TREE.z;
+  TREE.y = -n.y * TREE.z;
+  treeView();
+  $('tfound').textContent = `${TREE.hi + 1} / ${TREE.hits.length}`;
 }
 function treeView() {
   const v = $('tview');
@@ -323,8 +346,15 @@ function treeInit() {
     const a = e.target.closest('[data-ta]');
     if (!a) return;
     if (a.dataset.ta === 'close') treeClose();
-    if (a.dataset.ta === 'reset') (S.pt = [...PT_START]), treeChanged();
-    if (a.dataset.ta === 'areset') (S.at = ['a_st']), treeChanged();
+    /* 重置按兩次：一鍵清空幾十點太容易誤觸 */
+    if (a.dataset.ta === 'reset' && confirm2(a, '再按一次：退回全部天賦點')) (S.pt = [...PT_START]), treeChanged();
+    if (a.dataset.ta === 'areset' && confirm2(a, '再按一次：退回昇華點')) (S.at = ['a_st']), treeChanged();
+  });
+  el.addEventListener('input', e => e.target.id === 'tfind' && treeFind(e.target.value));
+  el.addEventListener('keydown', e => {
+    if (e.target.id !== 'tfind') return;
+    if (e.key === 'Enter') e.preventDefault(), treeJump(e.shiftKey ? -1 : 1);
+    if (e.key === 'Escape') (e.target.value = ''), treeFind('');
   });
   addEventListener('resize', treeView);
 }

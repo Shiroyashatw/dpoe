@@ -415,6 +415,27 @@ let fail = 0;
   await touch('touchEnd', []);
   const z1 = await p.evaluate(() => TREE.z);
   ok('兩指放大', z1 > z0 * 1.3, z0.toFixed(2) + ' → ' + z1.toFixed(2));
+  /* 手機橫向：要決定的東西要在第一屏（背包格、地圖詞、開門鈕）；0.2.30 audit 的發現 */
+  if (W > H) {
+    const fold = await p.evaluate(() => {
+      treeClose();
+      closePanels();
+      openPanel('inv');
+      const g = document.querySelector('#pinv .grid').getBoundingClientRect();
+      closePanels();
+      S.frag = 99;
+      openPanel('device');
+      const m = document.querySelector('#pdev .mmods').getBoundingClientRect(),
+        k = document.querySelector('#pdev .btn.pri').getBoundingClientRect();
+      closePanels();
+      return [g.top, m.top, k.bottom, innerHeight].map(Math.round);
+    });
+    ok(
+      '橫向：背包格、地圖詞、開門鈕都在第一屏',
+      fold[0] < fold[3] - 100 && fold[1] < fold[3] - 60 && fold[2] <= fold[3],
+      fold.join()
+    );
+  }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');
   await b.close();

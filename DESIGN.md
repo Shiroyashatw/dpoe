@@ -1,23 +1,23 @@
 ---
 name: dungeonPOE
-description: 瀏覽器裡的 PoE 式刷寶 ARPG：近黑石材底、古銅雙框、襯線金標題、D2 稀有度色
+description: 瀏覽器裡的 PoE 式刷寶 ARPG：深灰暗石、1px 冷灰細線、無襯線標題、金色只留給重點，D2 稀有度色
 colors:
-  void: "#070605"
-  stone-top: "#17130f"
-  stone-base: "#0e0b09"
-  well: "#0a0807"
-  title-band-top: "#241b12"
-  title-band-base: "#130f0b"
-  bronze-dark: "#5a4628"
-  bronze: "#b8955a"
-  bronze-bright: "#d7b77c"
-  title-gold: "#e6c88e"
-  parchment: "#e8e2d6"
-  button-ink: "#e9dfcd"
-  ash: "#a1968a"
-  locked-ink: "#6a6259"
-  oxblood-top: "#6b2414"
-  oxblood-base: "#3a110a"
+  void: "#08090b"
+  stone-top: "#111215"
+  stone-base: "#111215"
+  well: "#08090b"
+  title-band-top: "#17181c"
+  title-band-base: "#17181c"
+  bronze-dark: "#2a2c31"
+  bronze: "#3b3e45"
+  bronze-bright: "#7c8290"
+  title-gold: "#eceef2"
+  parchment: "#e4e6ea"
+  button-ink: "#e4e6ea"
+  ash: "#9aa0ab"
+  locked-ink: "#868b95"
+  oxblood-top: "#c9a24a"
+  oxblood-base: "#c9a24a"
   rarity-normal: "#e8e2d6"
   rarity-magic: "#8ab4ff"
   rarity-rare: "#ffd166"
@@ -36,19 +36,19 @@ colors:
   chaos: "#c38bff"
 typography:
   title:
-    fontFamily: "Noto Serif TC, Songti TC, PMingLiU, serif"
+    fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif"
     fontSize: "19px"
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "0.08em"
   headline:
-    fontFamily: "Noto Serif TC, Songti TC, PMingLiU, serif"
+    fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif"
     fontSize: "18px"
     fontWeight: 700
     lineHeight: 1.3
     letterSpacing: "0.04em"
   section:
-    fontFamily: "Noto Serif TC, Songti TC, PMingLiU, serif"
+    fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif"
     fontSize: "14px"
     fontWeight: 700
     letterSpacing: "0.04em"
@@ -135,6 +135,8 @@ components:
     textColor: "{colors.rarity-rare}"
     height: "20px"
 ---
+
+> **0.2.30 視覺改版：暗石細線。** 古銅雙框、四角菱形、金襯線標題全部拿掉。面板是深灰平面（`--s0`～`--s3`）、1px 冷灰細線（`--fr-o`／`--fr`／`--fr-hi`）、無襯線標題；金色只用在重點數字與主按鈕（`--act`）。下面內文裡的「古銅」「暗銅」「亮銅」「標題金」「牛血紅」「襯線」是舊名，色值以上面的 frontmatter 與 `css/style.css` 的 `:root` 為準：古銅＝細線、亮銅＝hover 與焦點框、標題金＝標題白、牛血紅＝主按鈕金。手機有直立與橫向兩種佈局（`docs/介面規範.md`）；操作提示在設定裡，不在左下角。
 
 # Design System: dungeonPOE
 

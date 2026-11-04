@@ -785,6 +785,37 @@ vm.runInContext(
     /^\[0\.5,1\.\d+,20,20,18,true,1\]$/.test(qs) && Math.abs(JSON.parse(qs)[1] - 1.2) < 0.15,
     qs
   );
+  /* 0.2.30 狀態圖示、鍛造預覽 */
+  const si = R(`[...Object.values(STATE).map(s => s[1]), ...Object.keys(CURSES).map(curseIc)]`).filter(
+    n => !art.includes(`  ${n}: [`)
+  );
+  ok('狀態圖示都有圖', !si.length, si.join());
+  const ms = R(`(() => {
+    G.t = 10;
+    const m = { ail: { ign: { dps: 1, t: 20 }, bleed: { dps: 1, t: 5 }, poi: [{ dps: 1, t: 20 }], shock: 30, curse: { k: 'vuln', t: 20 }, mark: { k: 'sniper' } } };
+    return mobStates(m);
+  })()`);
+  ok(
+    '怪物狀態：只列有效的（過期的流血不列），含詛咒與標記',
+    ms.length === 5 && !ms.includes(R(`STATE.bleed[1]`)),
+    ms.join()
+  );
+  const ps = R(`(() => {
+    P.ail = { ign: { dps: 1, t: 17 }, bleed: { dps: 1, t: 5 }, curse: { k: 'enfeeble', v: 25, t: 16 } };
+    P.buf = { onslaught: 18 }; P.chg = {}; P.rage = 7; P.tail = 0;
+    const L = playerStates().map(s => [s.k, s.t == null ? null : Math.round(s.t), s.c || 0, s.bad || 0].join(':')).join();
+    P.ail = {}; P.buf = {}; P.rage = 0;
+    return L;
+  })()`);
+  ok('玩家狀態：秒數、層數、負面都對，過期的不列', ps === 'ign:7:0:1,c:6:0:1,onslaught:8:0:0,rage::7:0', ps);
+  const fw = R(`(() => {
+    const it = mkItem(BASES.find(b => b.k === 'chest').id, 20, 2), c = 'life';
+    const r = forgeWhat(it, 'reforge', null), add = forgeWhat({ ...it, a: [] }, 'add', null);
+    it.a[0].lock = 1;
+    const k = forgeWhat(it, 'reforge', null);
+    return [r.all, r.out.length === it.a.length, add.add.length > 0, k.keep.length, k.out.length === it.a.length - 1, /～/.test(affRangeTxt(add.add[0], it))];
+  })()`);
+  ok('鍛造預覽：重鑄列出全部、鎖住的不變、可能加入有數字範圍', fw.every(Boolean), fw.join());
   /* 品質 0 時不觸發：舊存檔的寶石沒有 q，機率類的工具要回 false */
   ok('品質：機率 0 不觸發、機率 100 必中', !R('qRoll(0)') && !R('qRoll(undefined)') && R('qRoll(100)'));
 }
