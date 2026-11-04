@@ -1,13 +1,13 @@
 ---
 name: dungeonPOE
-description: 瀏覽器裡的 PoE 式刷寶 ARPG：鐵灰底、鑄鐵銀框、朱紅標題帶與主按鈕、粗襯線標題，黃色只留給稀有度
+description: 瀏覽器裡的 PoE 式刷寶 ARPG：鐵灰底、鑄鐵銀框、鋼藍灰標題帶與主按鈕、粗襯線標題，黃色只留給稀有度
 colors:
   void: "#17181b"
   stone-top: "#2f3137"
   stone-base: "#26282d"
   well: "#17181b"
-  title-band-top: "#8f231b"
-  title-band-base: "#6c1810"
+  title-band-top: "#3d4a58"
+  title-band-base: "#2f3945"
   bronze-dark: "#454952"
   bronze: "#5f636e"
   bronze-bright: "#c3c7d0"
@@ -16,8 +16,8 @@ colors:
   button-ink: "#e9eaed"
   ash: "#aeb2bb"
   locked-ink: "#979ba5"
-  oxblood-top: "#a92c22"
-  oxblood-base: "#8f231b"
+  oxblood-top: "#566c80"
+  oxblood-base: "#47596a"
   rarity-normal: "#e8e2d6"
   rarity-magic: "#8ab4ff"
   rarity-rare: "#ffd166"
@@ -136,13 +136,13 @@ components:
     height: "20px"
 ---
 
-> **0.2.33 視覺改版：鑄鐵銀框。** 使用者否定過兩版：古銅金（金色本身俗）、深灰細線（太平淡）。現行：鐵灰不透明面板（`--s0`～`--s3`，不用純黑底）、九宮格鑄鐵銀框（`img/ui/frame.png`，`tools/ui_frame.py` 產生，上左亮、下右暗，不加角飾、鉚釘或貝殼碎片）、朱紅標題帶與主按鈕（`--act`）、白色 Noto Serif TC 900 標題、選中是整塊銀底（`--sel`）。金色不當介面色，黃色只代表稀有度。裝備欄維持 PoE 式人形排法。地城場景不屬於介面，不跟著改。下面內文的「古銅」「暗銅」「亮銅」「標題金」「牛血紅」「石材」都是舊名：依序讀作鑄鐵框、暗鐵、亮銀、標題白、朱紅、鐵灰；色值以上面的 frontmatter 與 `css/style.css` 的 `:root` 為準；內文的雙框環與四角菱形已不用，以本段為準。手機有直立與橫向兩種佈局（`docs/介面規範.md`）；銀框在手機減半（4px）；操作提示在設定裡，不在左下角。
+> **0.2.33 視覺改版：鑄鐵銀框。** 使用者否定過兩版：古銅金（金色本身俗）、深灰細線（太平淡）。現行：鐵灰不透明面板（`--s0`～`--s3`，不用純黑底）、九宮格鑄鐵銀框（`img/ui/frame.png`，`tools/ui_frame.py` 產生，上左亮、下右暗，不加角飾、鉚釘或貝殼碎片）、鋼藍灰標題帶與主按鈕（`--act`；0.2.34 起不用紅，使用者覺得朱紅像錯誤訊息，紅色只代表危險）、白色 Noto Serif TC 900 標題、選中是整塊銀底（`--sel`）。金色不當介面色，黃色只代表稀有度。裝備欄維持 PoE 式人形排法。地城場景不屬於介面，不跟著改。下面內文的「古銅」「暗銅」「亮銅」「標題金」「牛血紅」「石材」都是舊名：依序讀作鑄鐵框、暗鐵、亮銀、標題白、鋼藍灰、鐵灰；色值以上面的 frontmatter 與 `css/style.css` 的 `:root` 為準；內文的雙框環與四角菱形已不用，以本段為準。手機有直立與橫向兩種佈局（`docs/介面規範.md`）；銀框在手機減半（4px）；操作提示在設定裡，不在左下角。
 
 # Design System: dungeonPOE
 
 ## Overview
 
-**Creative North Star: "朱漆鑄鐵的刷寶台"**
+**Creative North Star: "鋼藍鑄鐵的刷寶台"**
 
 dungeonPOE 的介面是一件鑲在近黑石材上的古銅器：每個面板、說明框、技能托盤、生命魔力球、小地圖，甚至 canvas 上的互動提示，都用同一套外暗內亮的古銅雙框圍起來，標題用金色襯線字壓在一條深色標題帶上。它走 ARPG 的標準做法（使用者確認的 canon），品質標準是 Path of Exile 2 與 Last Epoch；像 PoE 沒關係，要的是玩家一眼就認出「這是正統 ARPG」。
 

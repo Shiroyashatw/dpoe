@@ -520,7 +520,7 @@ button.mcard:active { transform: scale(0.96); }
 #pdev .btn.pri { position: sticky; bottom: -14px; box-shadow: 0 -10px 14px var(--panel); }
 
 :root {
-  /* 0.2.33 鑄鐵銀框：鐵灰四階、銀灰框、朱紅標題帶與主按鈕；黃色只留給稀有度 */
+  /* 0.2.34 鑄鐵銀框：鐵灰四階、銀灰框、鋼藍灰標題帶與主按鈕（紅色只代表危險）；黃色只留給稀有度 */
   --bg: #1a1b1f;
   --s0: #17181b;
   --s1: #26282d;
@@ -536,8 +536,8 @@ button.mcard:active { transform: scale(0.96); }
   --tx: #e9eaed;
   --dim: #aeb2bb;
   --lock: #979ba5;
-  --act: #8f231b;
-  --act-hi: #a92c22;
+  --act: #47596a;
+  --act-hi: #566c80;
   --sel: #d3d7de;
   --sel-ink: #17181b;
   --serif: 'Noto Serif TC', 'PMingLiU', serif;
@@ -843,7 +843,7 @@ body.touch.port .ascbk { display: inline-flex; align-items: center; gap: 4px; }
 .tstep b { font-family: var(--font); letter-spacing: 0; }
 #ptree .tbar { background: var(--s2); border-bottom: 1px solid var(--fr-o); }
 #tsvg line.on, #tsvg path.on { stroke: var(--sel); }
-::selection { background: rgba(143, 35, 27, 0.7); color: #fff; }
+::selection { background: rgba(86, 108, 128, 0.75); color: #fff; }
 
 /* 狀態列：技能列上方，圖示＋秒數；負面紅框 */
 .mech { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 0; pointer-events: auto; }
@@ -916,12 +916,12 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
   .panel, #tip, #warn.on { animation: none; }
 }
 
-/* ---------- 0.2.33 鑄鐵銀框：鐵灰底＋銀框九宮格（tools/ui_frame.py）＋朱紅標題帶 ---------- */
+/* ---------- 0.2.33 鑄鐵銀框：鐵灰底＋銀框九宮格（tools/ui_frame.py）＋鋼藍灰標題帶 ---------- */
 .panel, #over .card, #tip, .mid { border: 8px solid transparent; border-image: url(../img/ui/frame.png) 16 / 32px stretch; border-radius: 0; image-rendering: pixelated; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6); }
 .panel, #over .card { background: linear-gradient(160deg, var(--s2), var(--s1) 42%); }
-.panel > .ph:first-child, #ptree .tbar { background: linear-gradient(180deg, var(--act), #6c1810); border-bottom: 1px solid var(--fr-hi); }
+.panel > .ph:first-child, #ptree .tbar { background: linear-gradient(180deg, #3d4a58, #2f3945); border-bottom: 1px solid var(--fr-hi); }
 .panel > .ph:first-child { justify-content: flex-start; text-align: left; padding-top: 10px; padding-bottom: 10px; }
-.panel > .ph:first-child > span { text-align: left; color: #f3d6d0; }
+.panel > .ph:first-child > span { text-align: left; color: #d3dae3; }
 .ph b, .tbar > b { font: 900 24px/1.2 var(--serif); letter-spacing: 0.08em; color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); }
 .ph span b { color: #fff; font-weight: 700; }
 .ph .x, .tbar .x { color: #fff; background: rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.28); }
