@@ -739,21 +739,23 @@ function spawnArrow(x, y, c) {
   Object.assign(m, { arrow: 1, summoned: 1, aggro: 1, hp: 1e12, mhp: 1e12, c, until: G.t + c.D.dur, fired: 0 });
   fxs('landing', x, y, 30);
 }
-/* 箭矢被打中：只有這一下的異常算數（地面冰緩不算）；中了就清掉、放衝擊波 */
+/* 箭矢被打中：只有這一下的異常算數（易燃累積、地面冰緩都不算）；中了就清掉，一下只放一次衝擊波（中的異常裡傷害最高的元素） */
 function arrowHit(m, r, c) {
   const a = m.ail;
   a.ign = a.chill = a.shock = null;
+  a.flam = 0;
   applyAil(m, r, c);
   fxs('hit', m.x, m.y - 20, 14);
-  for (const [el, k] of [
+  const el = [
     ['fire', 'ign'],
     ['cold', 'chill'],
     ['light', 'shock']
-  ])
-    if (a[k]) {
-      a[k] = null;
-      if (m.fired++ < ARROW_HITS) arrowWave(m, el);
-    }
+  ]
+    .filter(([, k]) => a[k])
+    .sort((x, y) => r.pre[y[0]] - r.pre[x[0]])[0];
+  a.ign = a.chill = a.shock = null;
+  a.flam = 0;
+  if (el && m.fired++ < ARROW_HITS) arrowWave(m, el[0]);
   if (m.fired >= ARROW_HITS) m.hp = 0;
 }
 /* 衝擊波：用箭矢這顆寶石的數值，物理全部轉成那個元素；先降門檻，這一下就吃得到 */

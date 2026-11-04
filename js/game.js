@@ -402,7 +402,12 @@ function mouseWorld() {
 }
 
 /* ---------- 打擊感 ---------- */
+/* 小停頓（打中、被打）之間至少隔 0.3 秒（真實時間），連續打中才不會一頓一頓；打倒王這種大停頓照放 */
+let hsLast = -1e9;
 function hitstop(s) {
+  const now = performance.now();
+  if (s < 0.2 && G.hs <= 0 && now - hsLast < 300) return;
+  if (G.hs <= 0) hsLast = now;
   G.hs = Math.max(G.hs, s);
 }
 /* 系統開了「減少動態」就不震動 */
