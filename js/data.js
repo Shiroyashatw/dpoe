@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T12～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.39';
+const VER = '0.2.40';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -1128,8 +1128,15 @@ const GEM_LV = {
   golem: 3
 };
 const gemLv = k => GEM_LV[k] || 1;
-/* 寶石等級：上限 20、不能超過角色等級；每級傷害 +6%（輔助每級 +1%） */
+/* 寶石等級：上限 20；每一級要的角色等級照 PoE2（0.2.40；Lv5 要 14、Lv20 要 90），超過 20 級（裝備加等級、腐化）不再要求 */
 const GEM_MAX = 20;
+const GEM_REQ = [1, 3, 6, 10, 14, 18, 22, 26, 31, 36, 41, 46, 52, 58, 64, 66, 72, 78, 84, 90];
+const gemReq = lv => GEM_REQ[Math.min(lv, GEM_MAX) - 1];
+/* 這個角色等級最高能用幾級的寶石 */
+const gemCap = clv => GEM_REQ.filter(r => r <= clv).length;
+/* 攻擊倍率隨寶石等級（0.2.40）：每招寫 Lv1 的 m 與 Lv20 的 m20（沒寫就是每級 ×1.06，Lv20 約 ×3.03），中間照等比補；
+   超過 20 級照同一個比例往上，越高每級加得越多 */
+const gemMult = (D, lv) => D.m * Math.pow((D.m20 || D.m * Math.pow(1.06, 19)) / D.m, (lv - 1) / 19);
 /* 魔力消耗：Lv1 只要一半，到 Lv10 回到原值，之後不變（0.2.27） */
 const gemMpMul = lv => Math.min(1, 0.5 + ((lv - 1) * 0.5) / 9);
 const gemNeed = lv => Math.round(30 * lv * lv);

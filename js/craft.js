@@ -266,9 +266,9 @@ function killMat(m, t) {
 /* ---------- 寶石：靈魂升級、開孔 ---------- */
 const gemSoCap = g => (SKILLS[g.gem] ? GEM_SO_MAX : 0);
 function gemUpCheck(g) {
-  const cap = Math.min(GEM_MAX, S.lv),
+  const cap = gemCap(S.lv),
     c = soulCost(g.lv);
-  if (g.lv >= cap) return { c, why: g.lv >= GEM_MAX ? '已經滿級' : `不能超過角色等級（Lv ${S.lv}）` };
+  if (g.lv >= cap) return { c, why: g.lv >= GEM_MAX ? '已經滿級' : `Lv ${g.lv + 1} 要角色 Lv ${gemReq(g.lv + 1)}` };
   if (MAT().soul < c) return { c, why: `靈魂不夠（要 ${c}）` };
   return { c, why: null };
 }
@@ -279,9 +279,9 @@ function gemUp(g) {
   g.lv++;
   return null;
 }
-/* 升滿（0.2.24）：一直升到角色等級（或滿級），靈魂不夠就停在買得起的最高級 */
+/* 升滿（0.2.24）：一直升到角色能用的最高級（或滿級），靈魂不夠就停在買得起的最高級 */
 function gemMaxCheck(g) {
-  const cap = Math.min(GEM_MAX, S.lv);
+  const cap = gemCap(S.lv);
   let lv = g.lv,
     c = 0;
   while (lv < cap && c + soulCost(lv) <= MAT().soul) c += soulCost(lv++);

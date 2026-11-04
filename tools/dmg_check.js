@@ -264,8 +264,8 @@ for (const L of [30, 60, 90]) {
     R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');
     const ST = R('ST'),
       D = R('SKILLS')[B.sk],
-      lv = Math.min(20, Math.round(L / 4.5)),
-      c = { D, lv, mult: D.m * Math.pow(1.06, lv - 1), more: 1, critInc: 0, critX: 0, fireAdd: 0, pen: 0, ailMag: 0 },
+      lv = R('gemCap')(L),
+      c = { D, lv, mult: R('gemMult')(D, lv), more: 1, critInc: 0, critX: 0, fireAdd: 0, pen: 0, ailMag: 0 },
       /* 王是隨機的：用生命最高、傷害最高的組合當最壞情況 */
       bossD = {
         ...R('BOSSES')[0],

@@ -914,7 +914,7 @@ function skActTip(kind, i, el, more) {
       (more ? skDetail(g, i) : '') +
       `<button class="tlink" data-sk="${more ? 'less' : 'more'}:${i}">${more ? '收起詳細' : '看詳細'}</button>` +
       qRow('s.' + i, g) +
-      `<div class="tqa col">${btn('gup:' + i, `升級 ${up.c} 魂`, up.why)}${btn('gmax:' + i, mx.why ? '升滿' : `升滿 Lv ${mx.lv} · ${mx.c} 魂`, mx.why)}${sups.length ? btn('sup:' + i, `輔助都升一級 ${supC} 魂`, supC ? '' : '輔助都升不了（滿級、超過角色等級或靈魂不夠）') : ''}</div>` +
+      `<div class="tqa col">${btn('gup:' + i, `升級 ${up.c} 魂`, up.why)}${btn('gmax:' + i, mx.why ? '升滿' : `升滿 Lv ${mx.lv} · ${mx.c} 魂`, mx.why)}${sups.length ? btn('sup:' + i, `輔助都升一級 ${supC} 魂`, supC ? '' : '輔助都升不了（滿級、角色等級不夠或靈魂不夠）') : ''}</div>` +
       (up.why ? `<p class="hint">升級：${esc(up.why)}</p>` : '');
   }
   showTip(html, box);
@@ -1706,7 +1706,8 @@ function gemTip(it, act) {
             .join('、')
         : ''
     }</p>`;
-  html += `<p class="hint">升級要 ${soulCost(it.lv)} 靈魂（不能超過角色等級）</p>`;
+  if (it.lv < GEM_MAX)
+    html += `<p class="hint">升到 Lv ${it.lv + 1} 要 ${soulCost(it.lv)} 靈魂、角色 Lv ${gemReq(it.lv + 1)}</p>`;
   return html;
 }
 /* 所有放得下寶石的地方（升級按鈕用編號找寶石） */

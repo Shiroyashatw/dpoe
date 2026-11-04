@@ -34,7 +34,7 @@ function gemCfg(g, i) {
       D,
       lv,
       /* 攻擊的技能倍率（寶石等級）；「更多」另外放在 more（combat.js 的 hitCalc 第 5 步） */
-      mult: D.m * Math.pow(1.06, lv - 1),
+      mult: gemMult(D, lv),
       more: 1,
       aoe: 1,
       speed: D.tags.includes('spell') ? (1 + ST.castP / 100) * (hasBuff('arcane') ? 1.15 : 1) : 1,

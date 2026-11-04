@@ -112,6 +112,12 @@ ok(
   const g = G.mkGem('fireball', 1);
   let up = 0;
   while (!G.gemUp(g)) up++;
+  /* 0.2.40：角色 Lv60 只能升到 14 級（Lv15 要 64），升到 90 才能到 20 */
+  const why60 = G.gemUp(g);
+  ok('寶石等級門檻照 PoE2：角色 Lv60 停在 14 級', g.lv === 14 && why60 === 'Lv 15 要角色 Lv 64', `Lv ${g.lv}：${why60}`);
+  vm.runInContext('S.lv = 90', ctx);
+  while (!G.gemUp(g)) up++;
+  vm.runInContext('S.lv = 60', ctx);
   let dr = 0;
   while (!G.drillDo(g)) dr++;
   ok(

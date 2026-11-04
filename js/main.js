@@ -134,6 +134,22 @@ function migrate(s) {
     }
     o.v = 19;
   }
+  /* 存檔 20（0.2.40）：寶石等級改照 PoE2 的角色等級門檻；超過的降到能用的最高級，多的等級換回靈魂 */
+  if (o.v < 20) {
+    const cap = gemCap(o.lv || 1),
+      seen = new Set(),
+      walk = x => {
+        if (!x || typeof x !== 'object' || seen.has(x)) return;
+        seen.add(x);
+        if (x.gem && x.lv > cap && x.lv <= GEM_MAX) {
+          for (let l = cap; l < x.lv; l++) o.mat.soul = (o.mat.soul || 0) + soulCost(l);
+          x.lv = cap;
+        }
+        for (const v of Array.isArray(x) ? x : Object.values(x)) walk(v);
+      };
+    walk([o.inv, o.stash, o.temp, o.gems, o.skills, o.auras]);
+    o.v = 20;
+  }
   /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
   if (!o.filter || !Array.isArray(o.filter.sets)) {
     const f = s.filter,
