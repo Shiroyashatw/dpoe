@@ -737,14 +737,14 @@ const ARROW_D = { hp: 1, dmg: 0, r: 16, sz: 34, xp: 0 };
 function spawnArrow(x, y, c) {
   const m = spawnMob(ARROW_D, x, y, -1, false);
   Object.assign(m, { arrow: 1, summoned: 1, aggro: 1, hp: 1e12, mhp: 1e12, c, until: G.t + c.D.dur, fired: 0 });
-  fx({ k: 'ring', x, y, r: 30, dur: 0.25, col: '#cfd8e3' });
+  fxs('landing', x, y, 30);
 }
 /* 箭矢被打中：只有這一下的異常算數（地面冰緩不算）；中了就清掉、放衝擊波 */
 function arrowHit(m, r, c) {
   const a = m.ail;
   a.ign = a.chill = a.shock = null;
   applyAil(m, r, c);
-  m.flash = 0.09;
+  fxs('hit', m.x, m.y - 20, 14);
   for (const [el, k] of [
     ['fire', 'ign'],
     ['cold', 'chill'],
@@ -761,7 +761,7 @@ function arrowWave(u, el) {
   const c = u.c,
     r = c.D.r * ST.aoeM * c.aoe * (1 + (c.g.q || 0) / 100),
     w = { ...c, cvL: el === 'light' ? 100 : 0, cvC: el === 'cold' ? 100 : 0, cvF: el === 'fire' ? 100 : 0 };
-  fx({ k: 'ring', x: u.x, y: u.y, r, dur: 0.35, col: ELC[el] });
+  fxs({ fire: 'boom', cold: 'frost', light: 'thunder' }[el], u.x, u.y, r);
   sfx('slam');
   for (const m of G.mobs)
     if (m.hp > 0 && !m.arrow && Math.hypot(m.x - u.x, m.y - u.y) < r + m.r) {

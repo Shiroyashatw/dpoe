@@ -578,27 +578,23 @@ function drawMobStates(m, y) {
     x += s + gap;
   }
 }
-/* 折射箭矢：斜插在地上，腳下的圈是還能觸發幾次；快消失時閃爍 */
+/* 折射箭矢：pixelfx 的箭（只裁箭身、不要拖尾）斜插在地上，腳下的方塊是還能觸發幾次；快消失時閃爍 */
 function drawArrow(m) {
   if (m.until - G.t < 2 && Math.floor(G.t * 8) % 2) return;
   shadow(m.x, m.y, m.r * 0.7);
-  CX.strokeStyle = 'rgba(207,216,227,0.75)';
-  CX.lineWidth = 2;
-  const n = ARROW_HITS - m.fired;
-  for (let i = 0; i < n; i++) {
-    CX.beginPath();
-    CX.ellipse(m.x, m.y, m.r + i * 7, (m.r + i * 7) * 0.4, 0, 0, TAU);
-    CX.stroke();
+  const S = FXS.arrow,
+    im = fxImg('arrow'),
+    sc = 1.6;
+  if (im.naturalWidth) {
+    CX.save();
+    CX.translate(m.x, m.y + 4);
+    CX.rotate(1.35);
+    CX.drawImage(im, 5 * S.w + 26, 0, 45, S.h, (26 - S.ox) * sc, -S.oy * sc, 45 * sc, S.h * sc);
+    CX.restore();
   }
-  CX.save();
-  CX.translate(m.x, m.y);
-  CX.rotate(0.2);
-  CX.fillStyle = m.flash > 0 ? '#fff' : '#d9c7a3';
-  CX.fillRect(-2, -44, 4, 44);
-  CX.fillStyle = m.flash > 0 ? '#fff' : '#cfd8e3';
-  CX.fillRect(-6, -48, 12, 4);
-  CX.fillRect(-4, -42, 8, 4);
-  CX.restore();
+  const n = ARROW_HITS - m.fired;
+  CX.fillStyle = '#cfd8e3';
+  for (let i = 0; i < n; i++) CX.fillRect(Math.round(m.x - n * 4 + 1 + i * 8), Math.round(m.y + 10), 6, 6);
 }
 function drawMob(m) {
   if (m.arrow) return drawArrow(m);
