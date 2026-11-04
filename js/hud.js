@@ -494,7 +494,7 @@ function invHTML() {
   /* 人形裝備欄照面板寬度放大置中（最多 1.3 倍），數值放在下面一排 */
   const s = ST,
     pp = TOUCH.on ? 20 : 28,
-    z = Math.min(TOUCH.on ? 1.3 : 1.15, (($('pinv').clientWidth || 462) - pp) / 320),
+    z = Math.min(TOUCH.on ? 1.3 : 1.15, (($('pinv').clientWidth || 476) - pp) / 320),
     eqs =
       EQS.map(e => {
         const [x, y, w, h] = EQPOS[e.k].map(v => Math.round(v * z)),

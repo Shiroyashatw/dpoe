@@ -34,7 +34,7 @@ description: dungeonPOE 任何動到介面（UI／UX）的工作都用這個，�
 
 ## 步驟
 
-1. **找程式**：Grep `docs/CODEMAP.md`；面板開關是 `js/hud.js` 的 `openPanel('…')`／`hudPanels()`，HUD 文字用 `setT` 更新，canvas 上的框用 `render.js` 的 `bronzeRect`。
+1. **找程式**：Grep `docs/CODEMAP.md`；面板開關是 `js/hud.js` 的 `openPanel('…')`／`hudPanels()`，HUD 文字用 `setT` 更新，canvas 上的框用 `render.js` 的 `frameRect`。
 2. **改之前截圖**：在 `dpoe/` 底下開 `python3 -m http.server`（上一層 `.claude/launch.json` 的 `dungeonpoe` 也行，port 8003），網址加 `?p=2` 用測試存檔。最擠的情況也要試（背包滿、詞綴最多、名字最長）。
 3. **改**：只用 `css/style.css` `:root` 的變數與 `docs/介面規範.md` 第 3 節的共用元件；JS 不寫死顏色、字級。
 4. **檢查與改之後截圖**，跟改之前並排給使用者看：

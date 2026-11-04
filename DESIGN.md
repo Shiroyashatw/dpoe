@@ -1,23 +1,23 @@
 ---
 name: dungeonPOE
-description: 瀏覽器裡的 PoE 式刷寶 ARPG：深灰暗石、1px 冷灰細線、無襯線標題、金色只留給重點，D2 稀有度色
+description: 瀏覽器裡的 PoE 式刷寶 ARPG：鐵灰底、鑄鐵銀框、朱紅標題帶與主按鈕、粗襯線標題，黃色只留給稀有度
 colors:
-  void: "#08090b"
-  stone-top: "#111215"
-  stone-base: "#111215"
-  well: "#08090b"
-  title-band-top: "#17181c"
-  title-band-base: "#17181c"
-  bronze-dark: "#2a2c31"
-  bronze: "#3b3e45"
-  bronze-bright: "#7c8290"
-  title-gold: "#eceef2"
-  parchment: "#e4e6ea"
-  button-ink: "#e4e6ea"
-  ash: "#9aa0ab"
-  locked-ink: "#868b95"
-  oxblood-top: "#c9a24a"
-  oxblood-base: "#c9a24a"
+  void: "#17181b"
+  stone-top: "#2f3137"
+  stone-base: "#26282d"
+  well: "#17181b"
+  title-band-top: "#8f231b"
+  title-band-base: "#6c1810"
+  bronze-dark: "#454952"
+  bronze: "#5f636e"
+  bronze-bright: "#c3c7d0"
+  title-gold: "#f4f5f7"
+  parchment: "#e9eaed"
+  button-ink: "#e9eaed"
+  ash: "#aeb2bb"
+  locked-ink: "#979ba5"
+  oxblood-top: "#a92c22"
+  oxblood-base: "#8f231b"
   rarity-normal: "#e8e2d6"
   rarity-magic: "#8ab4ff"
   rarity-rare: "#ffd166"
@@ -36,9 +36,9 @@ colors:
   chaos: "#c38bff"
 typography:
   title:
-    fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif"
-    fontSize: "19px"
-    fontWeight: 700
+    fontFamily: "Noto Serif TC, PMingLiU, serif"
+    fontSize: "24px"
+    fontWeight: 900
     lineHeight: 1.2
     letterSpacing: "0.08em"
   headline:
@@ -136,13 +136,13 @@ components:
     height: "20px"
 ---
 
-> **0.2.30 視覺改版：暗石細線。** 古銅雙框、四角菱形、金襯線標題全部拿掉。面板是深灰平面（`--s0`～`--s3`）、1px 冷灰細線（`--fr-o`／`--fr`／`--fr-hi`）、無襯線標題；金色只用在重點數字與主按鈕（`--act`）。下面內文裡的「古銅」「暗銅」「亮銅」「標題金」「牛血紅」「襯線」是舊名，色值以上面的 frontmatter 與 `css/style.css` 的 `:root` 為準：古銅＝細線、亮銅＝hover 與焦點框、標題金＝標題白、牛血紅＝主按鈕金。**0.2.31 招牌：切角＋金軌＋大字。** 面板與說明框頂端 3px 色軌（面板金、說明框跟稀有度）、直角外框；按鈕、技能格、卡片切角（`--chamfer`，聚焦時取消讓外框可見）；標題 22px；稀有度格子是實色；數字 15px。金色與稀有度以外不加新色。手機有直立與橫向兩種佈局（`docs/介面規範.md`）；操作提示在設定裡，不在左下角。
+> **0.2.33 視覺改版：鑄鐵銀框。** 使用者否定過兩版：古銅金（金色本身俗）、深灰細線（太平淡）。現行：鐵灰不透明面板（`--s0`～`--s3`，不用純黑底）、九宮格鑄鐵銀框（`img/ui/frame.png`，`tools/ui_frame.py` 產生，上左亮、下右暗，不加角飾、鉚釘或貝殼碎片）、朱紅標題帶與主按鈕（`--act`）、白色 Noto Serif TC 900 標題、選中是整塊銀底（`--sel`）。金色不當介面色，黃色只代表稀有度。裝備欄維持 PoE 式人形排法。地城場景不屬於介面，不跟著改。下面內文的「古銅」「暗銅」「亮銅」「標題金」「牛血紅」「石材」都是舊名：依序讀作鑄鐵框、暗鐵、亮銀、標題白、朱紅、鐵灰；色值以上面的 frontmatter 與 `css/style.css` 的 `:root` 為準；內文的雙框環與四角菱形已不用，以本段為準。手機有直立與橫向兩種佈局（`docs/介面規範.md`）；銀框在手機減半（4px）；操作提示在設定裡，不在左下角。
 
 # Design System: dungeonPOE
 
 ## Overview
 
-**Creative North Star: "古銅鑲邊的刷寶台"**
+**Creative North Star: "朱漆鑄鐵的刷寶台"**
 
 dungeonPOE 的介面是一件鑲在近黑石材上的古銅器：每個面板、說明框、技能托盤、生命魔力球、小地圖，甚至 canvas 上的互動提示，都用同一套外暗內亮的古銅雙框圍起來，標題用金色襯線字壓在一條深色標題帶上。它走 ARPG 的標準做法（使用者確認的 canon），品質標準是 Path of Exile 2 與 Last Epoch；像 PoE 沒關係，要的是玩家一眼就認出「這是正統 ARPG」。
 

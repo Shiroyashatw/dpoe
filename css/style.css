@@ -5,7 +5,7 @@
   --line: rgba(205, 210, 220, 0.16);
   --tx: #e8e2d6;
   --dim: #9a9086;
-  --gold: #ffd166;
+  --gold: #f4f5f7;
   --good: #7bd36b;
   --bad: #e5484d;
   --warn: #ffb38a;
@@ -57,7 +57,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .orb span { position: absolute; inset: 0; display: grid; place-items: center; font-size: var(--fs-s); font-weight: 700; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
 .mid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px; }
 .xp { height: 4px; background: rgba(0, 0, 0, 0.7); border: 1px solid var(--line); pointer-events: auto; }
-.xp i { display: block; height: 100%; width: calc(var(--v) * 100%); background: #c9a227; }
+.xp i { display: block; height: 100%; width: calc(var(--v) * 100%); background: var(--sel); }
 .bar { display: flex; gap: 6px; pointer-events: auto; }
 .sk { position: relative; width: 52px; height: 52px; display: grid; place-items: center; background: rgba(12, 10, 9, 0.85); border: 1px solid rgba(205, 210, 220, 0.25); border-radius: var(--rad); }
 .sk .ic { width: 40px; height: 40px; }
@@ -78,8 +78,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 /* ---------- 面板（不擋遊戲：沒有遮罩，遊戲照跑） ---------- */
 .panel { position: fixed; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6); }
 .panel[hidden] { display: none; }
-#pinv { right: 16px; width: 462px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
-#pstash { left: 16px; width: 462px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pinv { right: 16px; width: 476px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pstash { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pdev { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes inR { from { opacity: 0; transform: translateX(24px); } }
 @keyframes inL { from { opacity: 0; transform: translateX(-24px); } }
@@ -118,13 +118,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .st { display: flex; flex-direction: column; gap: 3px; font-size: var(--fs-s); color: var(--dim); white-space: nowrap; }
 .st b { color: var(--tx); }
 .foot { margin-top: 10px; display: flex; justify-content: center; font-size: var(--fs-s); }
-.sell { width: 100%; text-align: center; padding: 10px; border: 1px dashed rgba(255, 209, 102, 0.4); border-radius: var(--rad); color: var(--gold); }
+.sell { width: 100%; text-align: center; padding: 10px; border: 1px dashed var(--fr); border-radius: var(--rad); color: var(--gold); }
 .sell.on { background: rgba(255, 209, 102, 0.15); border-style: solid; }
 /* 0.2.24：拖到面板外＝丟到地上（幽靈變淡）；批量賣出的選取與底列；過濾器四顆開關 */
 .ghost.floor { opacity: 0.45; box-shadow: none; }
 .foot { gap: 6px; align-items: stretch; }
 .foot > .btn { flex: none; }
-.it.mk { outline: 2px solid var(--gold); outline-offset: -2px; background-color: rgba(255, 209, 102, 0.22); }
+.it.mk { outline: 2px solid var(--gold); outline-offset: -2px; background-color: rgba(211, 215, 222, 0.22); }
 .sellbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; width: 100%; }
 .sellbar > span { flex: 1; min-width: 6em; text-align: center; color: var(--dim); }
 .gkind.flt { grid-template-columns: repeat(5, 1fr); }
@@ -211,7 +211,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 /* 騎士的護盾：生命球上的藍白層 */
 .orb .ward { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--w, 0) * 100%); background: rgba(190, 225, 255, 0.35); border-top: 2px solid rgba(220, 240, 255, 0.8); transition: height 120ms ease-out; }
 .orb[style*='--w: 0;'] .ward, .orb:not([style*='--w']) .ward { border-top: none; }
-#pskill { left: 16px; width: 462px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pskill { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 .skrow { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
 .skrow:last-child { border-bottom: none; }
 .skcol { display: grid; gap: 4px; justify-items: center; }
@@ -287,7 +287,7 @@ button.gtag:active { transform: scale(0.95); }
 #tsvg.moving { will-change: transform; }
 #tsvg line, #tsvg path { stroke: rgba(205, 210, 220, 0.1); stroke-width: 5; fill: none; }
 #tsvg line.near, #tsvg path.near { stroke: rgba(205, 210, 220, 0.22); }
-#tsvg line.on, #tsvg path.on { stroke: #c9a227; stroke-width: 7; }
+#tsvg line.on, #tsvg path.on { stroke: var(--sel); stroke-width: 7; }
 #tsvg line.asc { stroke-width: 6; }
 #tsvg line.asc.on { stroke: #ff9f43; }
 .nd { cursor: pointer; }
@@ -300,12 +300,12 @@ button.gtag:active { transform: scale(0.95); }
 .nd.b0 use { opacity: 0.25; }
 .nd.b0.can use { opacity: 0.6; }
 .nd.b0.on use { opacity: 0.95; }
-.nd.on circle { fill: var(--c, #3a2b12); stroke: #ffd166; stroke-width: 4; }
+.nd.on circle { fill: var(--c, #3a3d44); stroke: var(--sel); stroke-width: 4; }
 .nd.on.b1 circle, .nd.on.b2 circle { fill: #3a2b12; }
 .nd.on image, .nd.on use { opacity: 1; }
 .nd.b2 circle { stroke-width: 5; stroke: rgba(255, 209, 102, 0.35); }
 .nd:hover circle { filter: brightness(1.6); }
-.hollow { fill: rgba(40, 20, 10, 0.55); stroke: rgba(255, 159, 67, 0.25); stroke-width: 4; }
+.hollow { fill: var(--s0); stroke: var(--fr); stroke-width: 3; }
 #tsvg text.hint { fill: var(--dim); font: 700 30px var(--font); text-anchor: middle; }
 #tsvg text.hint.sm { font-size: 20px; }
 /* 昇華（0.2.25）：中間挖空的地方；橘色系跟天賦樹分開，選擇組（三選一、二選一）的大點外框是虛線 */
@@ -431,7 +431,7 @@ body.touch .thelp { display: none; }
 .qb3 { color: var(--bad); }
 
 /* ---------- 0.2.6 鍛造台、材料、寶石書庫 ---------- */
-#pcraft { left: 16px; width: 462px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pcraft { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 .ftabs { display: flex; gap: 4px; }
 .ftabs button { font: 700 var(--fs-s) var(--font); color: var(--dim); background: none; border: 1px solid var(--line); border-radius: var(--rad); padding: 4px 10px; min-height: 32px; cursor: pointer; }
 .ftabs button.on { color: var(--tx); border-color: var(--gold); background: rgba(255, 209, 102, 0.08); }
@@ -448,7 +448,7 @@ button.chip:active { scale: 0.95; }
 .dot.dust.rare { background: radial-gradient(#ffe7a8, #b8862a); }
 .dot.soul { background: radial-gradient(#d6f0ff, #4a7fc4); }
 .dot.drill { border-radius: 2px; background: #9a9086; }
-.dot.d1 { background: #c9a227; }
+.dot.d1 { background: var(--sel); }
 .dot.d2 { background: #e5484d; }
 .fsel { display: flex; gap: 10px; align-items: center; padding: 8px; background: rgba(0, 0, 0, 0.35); border-radius: var(--rad); }
 .fsel .fic { position: static; width: 48px; height: 48px; flex: none; }
@@ -520,25 +520,27 @@ button.mcard:active { transform: scale(0.96); }
 #pdev .btn.pri { position: sticky; bottom: -14px; box-shadow: 0 -10px 14px var(--panel); }
 
 :root {
-  /* 0.2.30 暗石細線：深灰四階、冷灰細線、金色只留給重點數字與主按鈕 */
-  --bg: #0a0b0d;
-  --s0: #08090b;
-  --s1: #111215;
-  --s2: #17181c;
-  --s3: #1e2025;
+  /* 0.2.33 鑄鐵銀框：鐵灰四階、銀灰框、朱紅標題帶與主按鈕；黃色只留給稀有度 */
+  --bg: #1a1b1f;
+  --s0: #17181b;
+  --s1: #26282d;
+  --s2: #2f3137;
+  --s3: #3a3d44;
   --stone: var(--s1);
   --panel: var(--s1);
-  --line: rgba(205, 210, 220, 0.14);
-  --fr-o: #2a2c31;
-  --fr: #3b3e45;
-  --fr-hi: #7c8290;
-  --title: #eceef2;
-  --tx: #e4e6ea;
-  --dim: #9aa0ab;
-  --lock: #868b95;
-  --act: #c9a24a;
-  --act-hi: #dcb75c;
-  --serif: var(--font);
+  --line: rgba(214, 218, 226, 0.16);
+  --fr-o: #454952;
+  --fr: #5f636e;
+  --fr-hi: #c3c7d0;
+  --title: #f4f5f7;
+  --tx: #e9eaed;
+  --dim: #aeb2bb;
+  --lock: #979ba5;
+  --act: #8f231b;
+  --act-hi: #a92c22;
+  --sel: #d3d7de;
+  --sel-ink: #17181b;
+  --serif: 'Noto Serif TC', 'PMingLiU', serif;
   --frame: 0 0 0 1px #000;
   --pp: 14px;
 }
@@ -825,8 +827,8 @@ body.touch.port .ascbk { display: inline-flex; align-items: center; gap: 4px; }
 .ph .x, .tbar .x { background: var(--s2); border-radius: 3px; }
 .btn { background: var(--s3); border: 1px solid var(--fr); border-radius: 3px; box-shadow: none; }
 .btn:not(:disabled):hover { border-color: var(--fr-hi); color: var(--title); }
-.btn.pri { background: var(--act); border-color: var(--act); color: #15120a; font-family: var(--font); letter-spacing: 0; }
-.btn.pri:not(:disabled):hover { background: var(--act-hi); border-color: var(--act-hi); color: #15120a; }
+.btn.pri { background: linear-gradient(180deg, var(--act-hi), var(--act)); border-color: var(--fr-hi); color: #fff; font-family: var(--serif); letter-spacing: 0.06em; }
+.btn.pri:not(:disabled):hover { background: var(--act-hi); border-color: #fff; color: #fff; }
 .btn.pri:disabled { background: var(--s3); border-color: var(--fr); color: var(--dim); }
 .btn.arm { border-color: var(--bad); color: var(--bad); }
 .btn:focus-visible, .tier:focus-visible, .mcard:focus-visible, .gtab:focus-visible, .chip:focus-visible, .ph .x:focus-visible, .it:focus-visible, .stc:focus-visible, .tlink:focus-visible { outline: 2px solid var(--fr-hi); outline-offset: 1px; }
@@ -834,14 +836,14 @@ body.touch.port .ascbk { display: inline-flex; align-items: center; gap: 4px; }
 .orb.mp.hot { border-color: var(--fire); box-shadow: 0 0 14px rgba(255, 138, 76, 0.75), inset 0 0 18px #000; }
 .hb { box-shadow: none; border-color: var(--fr-o); }
 .hb.mp.hot { box-shadow: 0 0 8px rgba(255, 138, 76, 0.7); }
-#bossbar b { font-family: var(--font); letter-spacing: 0.04em; }
+#bossbar b { font-family: var(--serif); letter-spacing: 0.1em; }
 #bossbar .bb { box-shadow: none; border: 1px solid var(--fr); }
 #tip > b:first-child { font-family: var(--font); letter-spacing: 0; }
 #area, #warn { font-family: var(--font); letter-spacing: 0; }
 .tstep b { font-family: var(--font); letter-spacing: 0; }
 #ptree .tbar { background: var(--s2); border-bottom: 1px solid var(--fr-o); }
-#tsvg line.on, #tsvg path.on { stroke: var(--act); }
-::selection { background: rgba(201, 162, 74, 0.35); }
+#tsvg line.on, #tsvg path.on { stroke: var(--sel); }
+::selection { background: rgba(143, 35, 27, 0.7); color: #fff; }
 
 /* 狀態列：技能列上方，圖示＋秒數；負面紅框 */
 .mech { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 0; pointer-events: auto; }
@@ -886,7 +888,7 @@ body.touch.port .ascbk { display: inline-flex; align-items: center; gap: 4px; }
 .shopb { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 64px; padding: 6px 4px; font: 500 var(--fs-s) var(--font); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 3px; cursor: pointer; }
 .shopb .ic { width: 32px; height: 32px; object-fit: contain; }
 .shopb:hover { border-color: var(--fr-hi); }
-.shopb.on { border-color: var(--act); }
+.shopb.on { border-color: var(--sel); }
 .shopsel { margin-top: 8px; padding: 8px 10px; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 3px; }
 .shopsel ul { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 2px 12px; font-size: var(--fs-s); }
 .shopsel li { display: flex; align-items: center; gap: 6px; }
@@ -914,21 +916,22 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
   .panel, #tip, #warn.on { animation: none; }
 }
 
-/* ---------- 0.2.31 bolder：一個招牌動作——切角＋金軌＋大字，其他安靜。不加新色，只把金色與稀有度開到滿 ---------- */
-:root { --cut: 8px; --chamfer: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut)); }
-/* 面板：頂端 3px 金軌＋大標題，直角 */
-.panel, #over .card { border-radius: 0; border-top: 3px solid var(--act); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75); }
-.ph b, .tbar > b { font-size: 22px; font-weight: 700; letter-spacing: 0.04em; color: var(--title); }
-.panel > .ph:first-child { justify-content: flex-start; text-align: left; padding-top: 12px; padding-bottom: 12px; background: var(--s0); }
-.panel > .ph:first-child > span { text-align: left; }
-.ph2 { font-size: 15px; font-weight: 700; color: var(--title); border-bottom: 1px solid var(--fr); }
-.ph2::before { content: ''; display: inline-block; width: 4px; height: 13px; margin-right: 8px; background: var(--act); vertical-align: -1px; }
-/* 按鈕、技能格、卡片：切角是這套介面的剪影 */
-.btn, .sk, .shopb, .mc2, .gtab, .ftabs button, .fseg button { --cut: 6px; clip-path: var(--chamfer); border-radius: 0; }
-.btn.mini { --cut: 4px; }
-.btn:focus-visible, .sk:focus-visible, .shopb:focus-visible, .mc2:focus-visible, .gtab:focus-visible, .ftabs button:focus-visible, .fseg button:focus-visible { clip-path: none; }
+/* ---------- 0.2.33 鑄鐵銀框：鐵灰底＋銀框九宮格（tools/ui_frame.py）＋朱紅標題帶 ---------- */
+.panel, #over .card, #tip, .mid { border: 8px solid transparent; border-image: url(../img/ui/frame.png) 16 / 32px stretch; border-radius: 0; image-rendering: pixelated; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6); }
+.panel, #over .card { background: linear-gradient(160deg, var(--s2), var(--s1) 42%); }
+.panel > .ph:first-child, #ptree .tbar { background: linear-gradient(180deg, var(--act), #6c1810); border-bottom: 1px solid var(--fr-hi); }
+.panel > .ph:first-child { justify-content: flex-start; text-align: left; padding-top: 10px; padding-bottom: 10px; }
+.panel > .ph:first-child > span { text-align: left; color: #f3d6d0; }
+.ph b, .tbar > b { font: 900 24px/1.2 var(--serif); letter-spacing: 0.08em; color: #fff; text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5); }
+.ph span b { color: #fff; font-weight: 700; }
+.ph .x, .tbar .x { color: #fff; background: rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.28); }
+.ph .x:hover, .tbar .x:hover { color: #fff; background: rgba(0, 0, 0, 0.45); border-color: #fff; }
+.ph2 { font: 900 16px var(--serif); letter-spacing: 0.06em; color: var(--title); border-bottom: 1px solid var(--fr); }
+.btn, .sk, .shopb, .mc2, .gtab, .ftabs button, .fseg button { border-radius: 0; }
+.btn { background: linear-gradient(180deg, var(--s3), var(--s2)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1); }
 .btn.pri { font-weight: 700; font-size: 15px; }
-.ftabs button.on, .sktabs .btn.on, .gkind .btn.on { background: var(--act); border-color: var(--act); color: #15120a; }
+.tbar .tabs button.on, .ftabs button.on, .sktabs .btn.on, .gkind .btn.on, .chip.on, .fseg button.on { background: var(--sel); border-color: var(--sel); color: var(--sel-ink); }
+.eqs, .grid, .sk, .stc { box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.55); }
 /* 稀有度：格子從淡底改成實色，掉到好東西一眼看到 */
 .it.r1, .eqs.r1 .it { background: linear-gradient(180deg, rgba(138, 180, 255, 0.34), rgba(40, 60, 110, 0.5)); border-color: var(--r1); }
 .it.r2, .eqs.r2 .it { background: linear-gradient(180deg, rgba(255, 209, 102, 0.38), rgba(110, 85, 30, 0.55)); border-color: var(--r2); }
@@ -936,10 +939,6 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
 .eqs.r1 { border-color: var(--r1); box-shadow: 0 0 10px rgba(138, 180, 255, 0.35); }
 .eqs.r2 { border-color: var(--r2); box-shadow: 0 0 12px rgba(255, 209, 102, 0.4); }
 /* 說明框：稀有度色的頂軌＋大名字，跟地上的標籤同一套 */
-#tip { border-radius: 0; border-top: 3px solid var(--r0); box-shadow: 0 14px 36px rgba(0, 0, 0, 0.8); }
-#tip:has(> b.rc1:first-child) { border-top-color: var(--r1); }
-#tip:has(> b.rc2:first-child) { border-top-color: var(--r2); }
-#tip:has(> b.rc3:first-child) { border-top-color: var(--r3); }
 #tip > b:first-child { font-size: 20px; font-weight: 700; }
 /* 數字是主角：技能傷害、角色數值放大 */
 .skv { font-size: 15px; font-weight: 700; }
@@ -947,22 +946,20 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
 #tip .sknums { font-size: 15px; }
 .st b { font-size: 15px; }
 /* HUD：球和托盤是戰鬥畫面的招牌 */
-.orb { width: 104px; height: 104px; border: 2px solid var(--act); box-shadow: 0 0 0 2px #000, 0 8px 22px rgba(0, 0, 0, 0.8), inset 0 0 24px #000; }
-.orb.mp.hot { border-color: var(--fire); box-shadow: 0 0 0 2px #000, 0 0 16px rgba(255, 138, 76, 0.8), inset 0 0 18px #000; }
+.orb { width: 104px; height: 104px; border: 2px solid var(--fr-hi); box-shadow: 0 0 0 2px #0c0d0f, 0 0 0 5px var(--fr), 0 0 0 6px #0c0d0f, 0 8px 22px rgba(0, 0, 0, 0.7), inset 0 0 22px #000; }
+.orb.mp.hot { border-color: var(--fire); box-shadow: 0 0 0 2px #0c0d0f, 0 0 16px rgba(255, 138, 76, 0.8), inset 0 0 18px #000; }
 .orb span { font-size: 14px; }
-.mid { border-radius: 0; border-top: 2px solid var(--act); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8); }
-.sk { --cut: 7px; background: var(--s0); border: 1px solid var(--fr); }
-#bossbar b { font-size: 22px; font-weight: 700; color: var(--title); }
-#bossbar .bb { height: 16px; border: 1px solid var(--act); }
-#hint { border-radius: 0; border-top: 3px solid var(--act); }
+.sk { background: var(--s0); border: 1px solid var(--fr); }
+#bossbar b { font-size: 24px; font-weight: 900; color: var(--title); text-shadow: 0 2px 3px #000; }
+#bossbar .bb { height: 16px; border: 1px solid var(--fr-hi); box-shadow: 0 0 0 2px #0c0d0f; }
+#hint { border-radius: 0; border-color: var(--fr-hi); }
 
 /* 鍛造台（distill）：一次一個動作 */
 .fmat { flex: 1; min-width: 0; }
 .fseg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 10px 0 6px; }
 .fseg button { position: relative; min-height: 44px; padding: 10px 2px 4px; font: 700 var(--fs-s) var(--font); color: var(--dim); background: var(--s2); border: 1px solid var(--fr-o); cursor: pointer; }
-.fseg button.on { color: #15120a; background: var(--act); border-color: var(--act); }
-.fseg i { position: absolute; left: 0; right: 0; top: 0; font: 700 10px/12px var(--font); color: var(--act); }
-.fseg button.on i { color: #15120a; }
+.fseg i { position: absolute; left: 0; right: 0; top: 0; font: 700 10px/12px var(--font); color: var(--dim); }
+.fseg button.on i { color: var(--sel-ink); }
 .fdo { margin: 0 0 6px; font-size: var(--fs-s); color: var(--dim); }
 .fres { min-height: 44px; display: flex; flex-direction: column; gap: 2px; margin: 6px 0 8px; }
 .fgo { width: 100%; min-height: 44px; }
@@ -981,3 +978,9 @@ body:not(.touch) .panel > .ph:first-child > .x { position: absolute; right: 12px
 .st b { font-size: 14px; }
 body.touch.port.pair #pcraft { height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.62); bottom: auto; }
 body.touch.port.pair:has(#pcraft:not([hidden])) #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.62); }
+
+/* 手機：銀框減半省空間；托盤不加框 */
+body.touch .panel, body.touch #over .card, body.touch #tip { border-width: 4px; border-image-width: 16px; }
+body.touch .mid { border: 0; border-image: none; background: none; box-shadow: none; }
+body.touch .panel > .ph:first-child { padding-left: 10px; }
+body.touch #tip .tqa { padding: 0 8px; }

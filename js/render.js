@@ -437,7 +437,7 @@ function draw() {
     /* 過濾器開著：不符合的標籤變暗 */
     CX.globalAlpha = S.filter.on && !filterPick(d.it) ? 0.45 : 1;
     /* 底色帶一點稀有度的色調（跟說明框的標題列一致），稀有以上框粗一點 */
-    CX.fillStyle = near ? RBG[d.it.r] : 'rgba(8,6,5,0.86)';
+    CX.fillStyle = near ? RBG[d.it.r] : 'rgba(38,40,45,0.88)';
     CX.fillRect(x - w / 2, y - 11, w, 20);
     CX.strokeStyle = RCOL[d.it.r];
     CX.lineWidth = near || d.it.r >= 2 ? 2 : 1;
@@ -504,11 +504,12 @@ function touchRects() {
   return TRECT;
 }
 const RBG = ['rgba(21,17,13,0.95)', 'rgba(18,24,51,0.95)', 'rgba(42,33,13,0.95)'];
-/* 古銅雙框（跟 CSS 的面板一樣）：外暗銅、內亮銅 */
-/* canvas 上的細線框（小地圖、互動提示），跟面板同色 */
+/* canvas 上的鑄鐵銀框（小地圖、互動提示），跟面板同色：外黑、內銀 */
 function frameRect(x, y, w, h) {
   CX.lineWidth = 1;
-  CX.strokeStyle = '#3b3e45';
+  CX.strokeStyle = '#0c0d0f';
+  CX.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
+  CX.strokeStyle = '#a7acb6';
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 const LABELS = [];
@@ -917,7 +918,7 @@ function plate(txt, x, y, col, a) {
   CX.textAlign = 'center';
   const w = CX.measureText(txt).width + 18;
   CX.globalAlpha = a;
-  CX.fillStyle = 'rgba(17,18,21,0.92)';
+  CX.fillStyle = 'rgba(38,40,45,0.94)';
   CX.fillRect(x - w / 2, y - 15, w, 25);
   frameRect(x - w / 2, y - 15, w, 25);
   CX.fillStyle = col;

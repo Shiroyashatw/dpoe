@@ -12,12 +12,12 @@ dungeonPOE 全部介面：戰鬥 HUD、所有面板、說明框、canvas 上的 
 玩過 PoE 的刷寶玩家：戰鬥中一眼讀血、魔、冷卻、王；面板裡比裝、擺寶石、點天賦、做裝。
 
 ## Direction contract
-THESIS: 用 ARPG 的標準做法（使用者選的 canon），做到 PoE2／Last Epoch 的精緻度；拒絕現在「灰色半透明面板＋細線」的後台工具感。
-OWN-WORLD: 近黑暖石底（#0d0b09→#17130f 細微直向漸層）、古銅金雙層框（外暗銅 #5a4628、內亮金 #b8955a 一像素）、角落小菱形；標題 Noto Serif TC 金色（#e3c58a）置中、兩側細飾線；內文 Noto Sans TC 米白；D2 稀有度色不變；說明框照 PoE：標題列底色依稀有度、名字置中、分隔線、詞綴置中藍字。
-STORY: 玩家一眼知道這是正統 ARPG；掉落、稀有、升級有份量。
-FIRST VIEWPORT: 戰鬥畫面不動。底部中間：古銅框的生命球（左）與魔力球（右），中間一條框起來的技能托盤＋上方經驗條；上方中間王血條（金框、名字襯線）；右上小地圖加古銅框；地上掉落標籤是 PoE 式黑底、稀有度色框與字；面板從右（背包）、左（倉庫／寶石／鍛造）滑入，標題列金色襯線。
-FORM: canon（ARPG 標準做法，PoE2／Last Epoch 為品質標準）；seed:2a93be43fe692b51
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+THESIS: 鑄鐵銀框配朱紅：有重量的 ARPG 介面，但不靠金色；拒絕古銅金與深灰細線兩個已被否定的版本。
+OWN-WORLD: 鐵灰不透明面板、鑄鐵銀框九宮格、朱紅標題帶與主按鈕、白色粗襯線標題、選中整塊銀底；黃色只代表稀有度。
+STORY: 玩家一眼認得這款遊戲，稀有裝備有份量，操作跟 PoE 一樣。
+FIRST VIEWPORT: 戰鬥畫面不動。底部銀環生命魔力球與銀框技能托盤；右側背包是 PoE 式人形裝備欄＋格子背包。
+FORM: 使用者融合黑漆螺鈿（只取朱紅標題帶）與鑄鐵銀框，並指定灰底、不要貝殼碎片；seed:46f2258b0821bd86
+FINISH: 四個尺寸截圖驗收、手機操作測試、DESIGN.md 已更新
 
 ## Signature move
 說明框與掉落標籤的 PoE 式稀有度標題列（金／藍／白／青），從地上標籤到說明框一致。
