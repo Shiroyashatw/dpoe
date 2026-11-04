@@ -17,6 +17,8 @@ function newGame() {
     lv: 1,
     xp: 0,
     gold: 0,
+    /* 商人賭裝連續幾件沒出稀有（0.2.28） */
+    gamN: 0,
     frag: 0,
     maxT: 1,
     tier: 1,
@@ -124,6 +126,7 @@ function enterHideout() {
   G.deco = hideDeco();
   G.props = [
     { k: 'device', n: '地圖台', x: 480, y: 210, r: 46 },
+    { k: 'gamble', n: '商人', x: 190, y: 190, r: 34 },
     { k: 'stash', n: '倉庫', x: 190, y: 330, r: 34 },
     { k: 'market', n: '市集（之後開放）', x: 770, y: 330, r: 34 },
     { k: 'forge', n: '鍛造台', x: 190, y: 520, r: 34 },
@@ -356,7 +359,7 @@ function goHome() {
   enterHideout();
 }
 function spawnMob(D, x, y, pack, elite) {
-  const m = tierMul(G.mapT || 1),
+  const m = tierMob(G.mapT || 1),
     e = elite ? ELITE : { hp: 1, dmg: 1, sz: 1 };
   const o = {
     D,
@@ -440,7 +443,9 @@ function sparks(x, y, ang, n, col) {
 /* ---------- 玩家（技能在 skills.js） ---------- */
 function updPlayer(dt) {
   for (const k in P.cds) P.cds[k] = Math.max(0, P.cds[k] - dt);
-  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1.2 : 1) * dt);
+  /* 冥思的品質：魔力低於 30% 時回復更多 */
+  const lowMp = P.mp < ST.mp * 0.3 ? 1 + 0.4 * (ST.aq.clarity || 0) : 1;
+  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1.2 : 1) * lowMp * dt);
   if (G.scene === 'map') baseTick(dt);
   if (ST.regen && !ST.vaal) P.hp = Math.min(ST.hp, P.hp + ST.regen * Math.max(0, 1 + MM('pregen') / 100) * dt);
   if (P.heal > 0) {
@@ -555,6 +560,13 @@ function doRoll() {
   P.roll = { t: 0, dx, dy };
   P.cds.roll = ROLL.cd * (1 - Math.min(60, ST.rollCd) / 100) + ROLL.t;
   P.rolledT = G.t + ROLL.t + 2;
+  /* 戰狼精魄的品質：翻滾時狼撲向滑鼠附近的怪 */
+  if (qRoll(20 * (ST.aq.wolfsp || 0))) {
+    const w = G.allies.find(x => x.src === 'aura'),
+      mw = mouseWorld(),
+      t = mobNear(mw.x, mw.y, 200);
+    if (w && t) (w.x = t.x), (w.y = t.y + t.r), (w.cd = 0);
+  }
   P.iuntil = G.t + ROLL.iframe;
   sfx('roll');
 }
@@ -600,8 +612,13 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   d = r.d;
   /* 聚風（0.2.25）：被擊中時順風掉光 */
   if (ST.gale) P.tail = 0;
-  /* 召喚魔像：站在它旁邊受到的傷害少 20% */
-  if (G.allies.some(w => w.src === 'golem' && dist(w, P) < 200)) d *= 0.8;
+  /* 召喚魔像：站在它旁邊受到的傷害少 20%；品質：有機率替你擋下這一下 */
+  if (G.allies.some(w => w.src === 'golem' && dist(w, P) < 200)) {
+    if (qRoll(20 * (ST.aq.golem || 0))) return num(P.x, P.y - 60, 0, 'block', '魔像');
+    d *= 0.8;
+  }
+  /* 熊掌的品質：熊形態被擊中得狂怒 */
+  if (P.form === 'bear' && qRoll(20 * (P.bearQ || 0))) (P.rage = Math.min(30, (P.rage || 0) + 1)), (P.rageT = G.t);
   d = esAbsorb(d);
   /* 心靈凌駕（基石）：40% 先扣魔力 */
   if (ST.mom && d > 0) {
@@ -785,6 +802,7 @@ function useProp(p) {
   else if (p.k === 'stash') openPanel('stash');
   else if (p.k === 'forge') openPanel('craft');
   else if (p.k === 'asc') openPanel('asc');
+  else if (p.k === 'gamble') openPanel('shop');
   else hudWarn('市集之後開放');
   return true;
 }
@@ -1115,10 +1133,17 @@ function updShots(dt) {
     if (s.ret) {
       const g = Math.atan2(P.y - 20 - s.y, P.x - s.x);
       (s.vx = Math.cos(g) * 900), (s.vy = Math.sin(g) * 900), (s.life = 1);
-      if (Math.hypot(P.x - s.x, P.y - 20 - s.y) < 30) (s.life = 0), (P.shieldOut = 0);
+      if (Math.hypot(P.x - s.x, P.y - 20 - s.y) < 30) s.life = 0;
+      /* 擲斧的品質：回程再打一次 */
+      if (s.back)
+        for (const m of G.mobs) {
+          if (m.hp <= 0 || (s.hitB = s.hitB || new Set()).has(m)) continue;
+          if (Math.hypot(m.x - s.x, m.y - m.sz * 0.4 - s.y) < m.r + s.r + 6)
+            s.hitB.add(m), hitMob(m, s.c, g, 60 * s.c.kb, { a: s.a, from: s });
+        }
       continue;
     }
-    if (s.bounce != null && s.life <= 0) (s.ret = 1), (s.life = 1);
+    if ((s.bounce != null || s.back) && s.life <= 0) (s.ret = 1), (s.life = 1);
     if (s.foe) {
       if (Math.hypot(P.x - s.x, P.y - 20 - s.y) < P.r + s.r) {
         /* 同一波（扇形、彈幕環）只打中一次 */
@@ -1144,6 +1169,8 @@ function updShots(dt) {
             from: s
           });
           if (s.hitfx) fxs(s.hitfx, m.x, m.y - m.sz * 0.4, s.hfr || 40);
+          /* 品質的擊中效果：回傳 true＝這一下不消耗穿透 */
+          if (s.onHit && s.onHit(s, m) === true) continue;
           /* 盾牌投擲：跳到 320 內最近、還沒打過的怪；跳完或沒有就飛回來 */
           if (s.bounce != null) {
             const n = G.mobs
@@ -1157,6 +1184,12 @@ function updShots(dt) {
             break;
           }
           if (s.pierce-- <= 0) {
+            if (s.back) {
+              (s.ret = 1), (s.life = 1);
+              break;
+            }
+            /* 穿透輔助的品質：最後一次穿透分裂 */
+            if (!s.noFork && qRoll(s.c.pSplit || 0)) shotFork(s, s.ang - 0.35), shotFork(s, s.ang + 0.35);
             /* 連鎖（0.2.25）：穿透用完後彈向 260 內最近、還沒打過、看得到的敵人 */
             const n =
               s.chain > 0 &&
@@ -1175,12 +1208,13 @@ function updShots(dt) {
         }
       }
     if (s.boom && s.life <= 0) boom(s);
-    if (isWall(s.x, s.y) && s.bounce != null) (s.ret = 1), (s.life = 1);
+    if (isWall(s.x, s.y) && (s.bounce != null || s.back)) (s.ret = 1), (s.life = 1);
     else if (isWall(s.x, s.y)) {
       if (s.boom) boom(s);
       s.life = 0;
       sparks(s.x, s.y, Math.atan2(-s.vy, -s.vx), 4, '#aaa');
     }
+    if (s.life <= 0 && s.onEnd) s.onEnd(s), (s.onEnd = null);
   }
   G.shots = G.shots.filter(s => s.life > 0 && s.x > 0 && s.y > 0 && s.x < G.W && s.y < G.H);
   for (const t of G.tele) {
@@ -1235,8 +1269,16 @@ function frame(now) {
   }
   G.trauma = Math.max(0, G.trauma - rdt * 1.6);
   const w = mouseWorld(),
-    tx = G.scene === 'hide' ? G.W / 2 + (P.x - G.W / 2) * 0.3 : P.x + (w.x - P.x) * 0.12,
-    ty = G.scene === 'hide' ? G.H / 2 + (P.y - G.H / 2) * 0.3 : P.y + (w.y - P.y) * 0.12,
+    /* 藏身處：鏡頭只跟一點，但人物一定在畫面內（手機直立的畫面比房間窄） */
+    keep = (c, p, half, pad) => clamp(c, p - Math.max(0, half - pad), p + Math.max(0, half - pad)),
+    tx =
+      G.scene === 'hide'
+        ? keep(G.W / 2 + (P.x - G.W / 2) * 0.3, P.x, CV.clientWidth / ZOOM / 2, 60)
+        : P.x + (w.x - P.x) * 0.12,
+    ty =
+      G.scene === 'hide'
+        ? keep(G.H / 2 + (P.y - G.H / 2) * 0.3, P.y, CV.clientHeight / ZOOM / 2, 90)
+        : P.y + (w.y - P.y) * 0.12,
     f = 1 - Math.exp(-rdt * 9);
   G.cam.x += (tx - G.cam.x) * f;
   G.cam.y += (ty - G.cam.y) * f;

@@ -869,6 +869,13 @@ function drawHideout() {
       CX.fillStyle = '#7a2e2a';
       CX.fillRect(p.x - 44, p.y - 70, 88, 16);
       spr('mat_gold', p.x, p.y - 40, 24);
+      if (p.k === 'gamble') {
+        /* 商人（0.2.28）：紫布棚的小攤 */
+        CX.fillStyle = '#3f2352';
+        CX.fillRect(p.x - 44, p.y - 70, 88, 16);
+        CX.fillStyle = '#5c3475';
+        CX.fillRect(p.x - 36, p.y - 22, 72, 8);
+      }
     }
   }
 }

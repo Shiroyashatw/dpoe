@@ -8,7 +8,7 @@ vm.createContext(ctx);
 for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const G = vm.runInContext(
-  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, gemUp, drillDo, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, dropGem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
+  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, gemUp, drillDo, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
   ctx
 );
 let bad = 0;
@@ -313,11 +313,6 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     ];
   ok('天賦全點滿：數值沒有 NaN', vals.every(Number.isFinite), JSON.stringify(vals));
 }
-const gems = Array.from({ length: 200 }, (_, i) => G.dropGem(1 + (i % 16)));
-ok(
-  '寶石掉落：等級 1～20、大小 1×1、有名字',
-  gems.every(g => g.lv >= 1 && g.lv <= 20 && G.itemSize(g).join() === '1,1' && G.itemName(g))
-);
 /* 0.2.7 底層（企劃書 7.2） */
 const B = s => vm.runInContext(s, ctx);
 ok(
@@ -592,5 +587,205 @@ vm.runInContext(
     pw.join() === '0.24,0.16' && cw40 === 40,
     pw + ' ' + cw40
   );
+}
+/* 0.2.27 物理傷害不能走抗性（NaN＝無敵）；T1～T5 放寬；魔力回復與消耗 */
+{
+  const R = s => vm.runInContext(s, ctx);
+  R("S.asc = null; S.at = ['a_st']; ST = stats(S); ST.armor = 100; P.evE = 0; P.ail = {}; G.scene = 'map'");
+  const ph = R("hurtCalc(100, null, 'phys', 1).d"),
+    el = ['fire', 'cold', 'light', 'chaos'].map(k => R(`hurtCalc(100, null, '${k}', 1).d`));
+  ok(
+    '玩家受傷：物理與四種元素都是有限的數字，物理只看護甲',
+    [ph, ...el].every(Number.isFinite) && ph > 0 && ph < 100,
+    ph + ' ' + el
+  );
+  const e = [1, 2, 3, 4, 5, 6, 16].map(t => +R(`tierMob(${t}).hp / tierMul(${t}).hp`).toFixed(2)),
+    d = [1, 3, 4, 5, 6].map(t => +R(`tierMob(${t}).dmg / tierMul(${t}).dmg`).toFixed(2));
+  ok(
+    '地圖放寬：T1～T3 ×0.8、T4 ×0.87、T5 ×0.93、T6 起不變（生命、傷害一樣）',
+    e.join() === '0.8,0.8,0.8,0.87,0.93,1,1' && d.join() === '0.8,0.8,0.87,0.93,1',
+    e + ' / ' + d
+  );
+  ok(
+    '魔力：每秒回最大魔力 10%；消耗 Lv1 ×0.5、Lv10 起 ×1',
+    Math.abs(R('ST.mpReg / ST.mp') - 0.1) < 0.02 &&
+      R('gemMpMul(1)') === 0.5 &&
+      R('gemMpMul(10)') === 1 &&
+      R('gemMpMul(20)') === 1,
+    R('ST.mpReg / ST.mp')
+  );
+}
+/* 0.2.28 商人：買了馬上賣不會賺、T1 不出現、品質與孔、保底、背包滿不扣錢 */
+{
+  const R = s => vm.runInContext(s, ctx);
+  R(`var S = { maxT: 1, gold: 1e9, gamN: 0, inv: { w: 12, h: 6, items: [] } };`);
+  const ids = R('GAMBLE.flatMap(g => g[1]).map(x => x.id)');
+  ok('商人：15 種武器＋3 種副手＋7 種防具飾品', ids.length === 25, ids.length);
+  let lose = 0,
+    wrong = 0,
+    t1 = 0,
+    streak = 0,
+    maxMiss = 0,
+    rares = 0,
+    n = 0;
+  for (const t of [1, 4, 8, 16])
+    for (const id of ids)
+      for (let i = 0; i < 40; i++) {
+        R(`S.maxT = ${t}; S.inv.items = []`);
+        const g0 = R('S.gold'),
+          ok1 = R(
+            `(() => { const r = gambleDo('${id}'); return r.it ? [r.it.r, sellPrice(r.it), r.it.q, r.it.so, r.it.pot, r.it.L, Math.min(9, ...r.it.a.map(a => a.T)), baseOf(r.it).k, baseOf(r.it).wt || ''] : null; })()`
+          ),
+          price = g0 - R('S.gold');
+        n++;
+        if (!ok1) {
+          wrong++;
+          continue;
+        }
+        const [r, sell, q, so, pot, L, T, k, wt] = ok1;
+        if (sell >= price) lose++;
+        if (q || so || pot !== 3 || L !== t || (k !== id && wt !== id)) wrong++;
+        if (T < 2) t1++;
+        if (r === 2) rares++, (maxMiss = Math.max(maxMiss, streak)), (streak = 0);
+        else streak++;
+      }
+  ok('商人：買了馬上賣都賠錢、底材對、品質 0 孔 0 潛能 3、物品等級＝最高階', !lose && !wrong, lose + ' ' + wrong);
+  ok('商人：詞綴最高 T2', !t1, t1);
+  ok('商人：連續 8 件沒出稀有，下一件必出', maxMiss <= 8 && maxMiss >= 5, maxMiss);
+  console.log(`   稀有率 ${((rares / n) * 100).toFixed(1)}%（平均每 ${(n / rares).toFixed(1)} 件一件）`);
+  R(
+    `S.inv = { w: 1, h: 1, items: [] }; S.gamN = 3; var g9 = S.gold; var r9 = gambleDo('ring'); r9 = gambleDo('ring');`
+  );
+  ok(
+    '商人：背包滿不扣錢、不算保底',
+    R('r9.why') === '背包滿了' && R('g9 - S.gold') === R('gamPrice(S)') && R('S.gamN') <= 4,
+    R('[r9.why, g9 - S.gold, S.gamN]')
+  );
+}
+/* 投射物：每一招都吃多重投射（0.2.27）；自動化的規則（0.2.28）。載入 skills.js，用替身跑出手 */
+{
+  const c2 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  vm.createContext(c2);
+  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
+  const R = s => vm.runInContext(s, c2);
+  R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+     const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, hudWarn = t => (G.warn = t), die = () => {}, los = () => true, open = () => true, floorNear = () => null;`);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8'), c2, {
+    filename: 'skills.js'
+  });
+  R(
+    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: ['a_st'], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; S.eq.off = mkItem(BASES.find(b => b.k === 'shield').id, 10, 0); ST = stats(S); ST.cdr = 0;`
+  );
+  const count = (k, multi) =>
+    R(`(() => {
+      G.shots = []; G.grenades = []; G.units = []; P.swords = []; P.gren = {}; P.ammo = {};
+      const g = mkGem('${k}', 5); ${multi ? "g.sup[0] = mkGem('multi', 1);" : ''}
+      const c = gemCfg(g, 0), D = c.D, a = { k: '${k}', c, ang: 0, tx: P.x + 200, ty: P.y, hits: [0], n: 0 };
+      if (c.unit) { placeUnit(c, { x: P.x + 100, y: P.y }); unitFire(G.units[0], { x: P.x + 300, y: P.y }); }
+      else actHit(a, 0);
+      return G.shots.length + G.grenades.length + (P.swords || []).length;
+    })()`);
+  const pk = R(`Object.keys(SKILLS).filter(k => SKILLS[k].tags.includes('proj'))`),
+    res = pk.map(k => [k, count(k, 0), count(k, 1)]),
+    badp = res.filter(([, a, b]) => !(a >= 1 && b === a + 2));
+  ok(`多重投射：${pk.length} 招投射物都多 2 發`, !badp.length, JSON.stringify(badp));
+  ok(
+    '散射基礎 3 支',
+    res.find(x => x[0] === 'split')[1] === 3,
+    res.find(x => x[0] === 'split')
+  );
+  const cfg = (k, lv = 5) =>
+    R(
+      `(() => { const g = mkGem('${k}', ${lv}); const b = gemCfg(g, 0); g.sup[0] = mkGem('autocast', 1); const c = gemCfg(g, 0); return [supOK(SKILLS['${k}'], g.sup[0], g), b.cd, c.cd, b.mp, c.mp]; })()`
+    );
+  const fb = cfg('fireball', 10),
+    wh = cfg('whirl', 10);
+  ok(
+    '自動化：沒冷卻變 8 秒、原本 3 秒變 11 秒、魔力 ×1.4',
+    fb[0] && fb[2] === 8 && wh[2] === 11 && fb[4] === Math.round(9 * 1.4),
+    fb + ' / ' + wh
+  );
+  ok(
+    '自動化：砲台、圖騰可以；位移、陷阱、地雷、召喚不行',
+    cfg('ballista')[0] &&
+      cfg('firetotem')[0] &&
+      !['iai', 'frosttrap', 'blastmine', 'wolf', 'paperdoll'].some(k => cfg(k)[0])
+  );
+  ok(
+    '自動化：品質 20% 附加冷卻 6.4 秒',
+    Math.abs(
+      R(
+        `(() => { const g = mkGem('fireball', 5); g.sup[0] = mkGem('autocast', 1); g.sup[0].q = 20; return gemCfg(g, 0).cd; })()`
+      ) - 6.4
+    ) < 1e-9
+  );
+  const run = R(`(() => {
+    const g = mkGem('fireball', 5); g.sup[0] = mkGem('autocast', 1); S.skills[0].a = g;
+    G.shots = []; G.mobs = []; P.mp = 1e4; P.cds = {};
+    autoTick(); const none = G.shots.length;
+    G.mobs = [{ x: P.x + 300, y: P.y, hp: 10, ail: {} }];
+    P.act = { k: 'x' }; autoTick(); const fired = G.shots.length, cd = P.cds.s0, act = P.act.k;
+    P.act = null; autoTick(); const again = G.shots.length;
+    P.cds = {}; P.mp = 0; autoTick(); const dry = G.shots.length;
+    G.mobs[0].x = P.x + 600; P.mp = 1e4; autoTick(); const far = G.shots.length;
+    const hand = useSlot(0);
+    return [none, fired, cd, act, again, dry, far, hand];
+  })()`);
+  ok(
+    '自動化：沒敵人不放、有敵人放且不打斷出手、冷卻中不放、沒魔力等、太遠不放、不能手動',
+    run.join() === '0,1,8,x,1,1,1,false',
+    run
+  );
+  const nums = R(
+      `Object.keys(SKILLS).map(k => { const g = mkGem(k, 7), n = skillNums(gemCfg(g, 0)); return [k, n.hit, n.dps, n.unit, n.dot, n.eff]; })`
+    ),
+    badn = nums.filter(([k, ...v]) => v.some(x => x != null && typeof x === 'number' && !Number.isFinite(x)));
+  ok('技能面板的數字沒有 NaN', !badn.length, JSON.stringify(badn));
+  const nod = nums.filter(([, h, , , , ef]) => h == null && !ef).map(x => x[0]);
+  console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
+  /* 品質（0.2.29） */
+  ok(
+    '品質：92 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 92,
+    R(`Object.keys(QUAL).length`)
+  );
+  ok(
+    '品質：說明的數字照比例換算',
+    R(`[qualText('fury', 0), qualText('fury', 10), qualText('autocast', 20), qualText('fireball', 10)].join('|')`) ===
+      '魔力倍率 ×1.4 降到 ×1.4|魔力倍率 ×1.4 降到 ×1.3|附加冷卻 8 秒降到 6.4 秒|爆炸處留下燃燒地面 0.75 秒',
+    R(`qualText('fury', 10)`)
+  );
+  const qc = R(`(() => {
+    S.mat = newMat(); S.mat.fine = 25;
+    const a = mkGem('fireball', 1), b = mkGem('multi', 1), o = mkGem('anger', 1);
+    gemQUp(a); const a1 = [a.q, S.mat.fine];
+    gemQUp(b); const b1 = [b.q, S.mat.fine];
+    gemQUp(a, 1); const a2 = [a.q, S.mat.fine];
+    const whyFull = gemQCheck(a).why;
+    gemQUp(b, 1); const b2 = [b.q, S.mat.fine];
+    S.mat.fine = 3; gemQUp(o, 1); const o1 = [o.q, S.mat.fine, gemQCheck(o).why];
+    return JSON.stringify([a1, b1, a2, whyFull, b2, o1]);
+  })()`);
+  ok(
+    '品質：技能、光環 1 精粉 1%，輔助 1 精粉 2%，精粉不夠時能升多少升多少',
+    qc === '[[1,24],[2,23],[20,4],"品質已滿",[10,0],[3,0,"精粉不夠"]]',
+    qc
+  );
+  const qs = R(`(() => {
+    const cf = (k, sp, lv = 5) => { const g = mkGem(k, lv); g.q = 20; const x = mkGem(sp, 1); x.q = 20; g.sup[0] = x; return gemCfg(g, 0); };
+    const fb = mkGem('fireball', 10), fq = mkGem('fireball', 10); fq.q = 20;
+    return JSON.stringify([cf('fireball', 'multi').fan, cf('fireball', 'fury').mp / gemCfg(mkGem('fireball', 5), 0).mp,
+      cf('slash', 'bleed').ailMag, cf('fireball', 'poison').ailMag, cf('chaosbolt', 'wither').witherMax,
+      gemCfg(fq, 0).mult === gemCfg(fb, 0).mult, gemCfg(fq, 0).q]);
+  })()`);
+  ok(
+    '品質：多重投射角度減半、狂暴魔力 ×1.2、流血中毒強度 +20、凋零 18 層、品質不加技能倍率',
+    /^\[0\.5,1\.\d+,20,20,18,true,1\]$/.test(qs) && Math.abs(JSON.parse(qs)[1] - 1.2) < 0.15,
+    qs
+  );
+  /* 品質 0 時不觸發：舊存檔的寶石沒有 q，機率類的工具要回 false */
+  ok('品質：機率 0 不觸發、機率 100 必中', !R('qRoll(0)') && !R('qRoll(undefined)') && R('qRoll(100)'));
 }
 process.exit(bad ? 1 : 0);

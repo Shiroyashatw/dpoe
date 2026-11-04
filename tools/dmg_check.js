@@ -225,7 +225,7 @@ for (const L of [30, 60, 90]) {
         hp: Math.max(...R('BOSSES').map(b => b.hp)),
         dmg: Math.max(...R('BOSSES').map(b => b.dmg))
       },
-      tm = R('tierMul')(t),
+      tm = R('tierMob')(t),
       boss = {
         D: bossD,
         boss: 1,

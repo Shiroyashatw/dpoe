@@ -112,7 +112,7 @@ function craftPick(src, it, eqk) {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-fg]');
   if (!b || b.disabled) return;
-  const [k, v] = b.dataset.fg.split(':'),
+  const [k, v, x] = b.dataset.fg.split(':'),
     it = craftItem();
   let err = null;
   if (k === 'tab') CRAFT.tab = v;
@@ -137,6 +137,12 @@ document.addEventListener('click', e => {
     const a = S.skills[+v].a;
     for (const g of (a && a.sup) || []) if (g && !gemUpCheck(g).why) gemUp(g);
     sfx('lvup');
+  } else if (k === 'q') {
+    /* 提升品質（0.2.29）：v 是 s.欄、a.欄、u.欄.孔；x 是 1＝提升到滿 */
+    const [t, i, j] = v.split('.'),
+      g = t === 'a' ? S.auras[+i] : t === 's' ? S.skills[+i].a : S.skills[+i].a.sup[+j];
+    if (g) err = gemQUp(g, x === '1');
+    if (!err) sfx('equip');
   } else if (k === 'dri') {
     const a = S.skills[+v].a;
     if (a) err = drillDo(a);
@@ -144,4 +150,6 @@ document.addEventListener('click', e => {
   }
   if (err) hudWarn(err);
   changed();
+  /* 品質的按鈕在說明框裡：重畫內容，框留著 */
+  if (k === 'q') (SKUI.keep = 1), skActTip(...SKUI.cur), (SKUI.keep = 0);
 });

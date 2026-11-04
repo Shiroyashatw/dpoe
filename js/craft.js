@@ -32,6 +32,52 @@ const sortAff = it => it.a.sort((x, y) => AFF[y.k].p - AFF[x.k].p);
 const tierSpan = it => `T${Math.max(2, bestTier(it.L))}～T${Math.min(12, bestTier(it.L) + 4)}`;
 const affShort = a => AFF[a.k].n.replace(/ ?\+?\{\}%?/g, '').replace('附加 ', '') + ' T' + a.T;
 
+/* ---------- 商人賭裝（0.2.28，企劃書 5.6）：選種類、花金幣買一件。物品等級＝開放的最高階；品質 0、孔 0、潛能 3、
+   詞綴最高 T2（好底材與 T1 只靠掉落）；連續 8 件沒出稀有，下一件必出（S.gamN）。價格永遠高於稀有裝的賣價 ---------- */
+const GAMBLE = [
+  ['武器', Object.keys(WTN).map(w => ({ id: w, k: 'weapon', wt: w, n: WTN[w] }))],
+  [
+    '副手',
+    [
+      ['shield', '盾'],
+      ['focus', '法器'],
+      ['quiver', '箭袋']
+    ].map(([k, n]) => ({ id: k, k, n }))
+  ],
+  [
+    '防具與飾品',
+    [
+      ['helm', '頭盔'],
+      ['chest', '胸甲'],
+      ['gloves', '手套'],
+      ['boots', '鞋子'],
+      ['belt', '腰帶'],
+      ['amulet', '護身符'],
+      ['ring', '戒指']
+    ].map(([k, n]) => ({ id: k, k, n }))
+  ]
+];
+const GAM_PITY = 8;
+const gamIlvl = s => tierIlvl(s.maxT);
+const gamPrice = s => Math.round(17 * (1 + 0.4 * gamIlvl(s)) * 1.5);
+const gamLeft = s => GAM_PITY - (s.gamN || 0);
+/* 回傳 { it } 或 { why }；背包放不下不扣錢、不算保底 */
+function gambleDo(id) {
+  const o = GAMBLE.flatMap(g => g[1]).find(x => x.id === id),
+    c = gamPrice(S);
+  if (!o) return { why: '沒有這種東西' };
+  if (S.gold < c) return { why: `金幣不夠（要 ${c}）` };
+  const L = gamIlvl(S),
+    rar = gamLeft(S) <= 0 ? 2 : rollRarity(0),
+    it = mkItem(pickBase(L, o.k, o.wt).id, L, rar);
+  Object.assign(it, { q: 0, so: 0, pot: 3 });
+  it.a = it.a.map(a => (a.T < 2 ? forgeAff(a.k, L) : a));
+  if (!gridAuto(S.inv, it)) return { why: '背包滿了' };
+  S.gold -= c;
+  S.gamN = rar === 2 ? 0 : (S.gamN || 0) + 1;
+  return { it };
+}
+
 /* ---------- 鍛造：5 種（企劃書 5.3.1 先做的） ---------- */
 /* pot 潛能、du 花哪一種粉（DUSTS）、cls 選的詞綴類別；ok(it, cls) 回傳 null＝可以，字串＝不行的原因；preview 給預覽文字；run 真的做 */
 const FORGE = {
@@ -251,6 +297,22 @@ function gemUpMax(g) {
   if (why) return why;
   MAT().soul -= c;
   g.lv = lv;
+  return null;
+}
+/* 品質（0.2.29）：花精粉，只能升不能降 */
+function gemQCheck(g) {
+  const q = g.q || 0,
+    n = Math.ceil((GEM_Q_MAX - q) / gemQStep(g));
+  if (!n) return { why: '品質已滿', n: 0 };
+  return { n, why: MAT().fine > 0 ? null : '精粉不夠' };
+}
+/* all：能升多少升多少 */
+function gemQUp(g, all) {
+  const { n, why } = gemQCheck(g);
+  if (why) return why;
+  const k = all ? Math.min(n, MAT().fine) : 1;
+  MAT().fine -= k;
+  g.q = Math.min(GEM_Q_MAX, (g.q || 0) + k * gemQStep(g));
   return null;
 }
 function drillCheck(g) {

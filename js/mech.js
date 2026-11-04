@@ -61,7 +61,7 @@ function detonate(x, y, r, c) {
       boomAt(g.x, g.y, g.r * 1.2, g.c || c, 1.5, 'fire');
       if (g.k === 'oil') addGround({ k: 'fire', x: g.x, y: g.y, r: g.r, dur: 4, c: g.c || c, dps: 0.3 });
     } else if (g.k === 'blades') (g.done = 1), boomAt(g.x, g.y, g.r, g.c || c, 0.6 * (g.n || 1));
-    else if (g.k === 'bloom') popBlooms();
+    else if (g.k === 'bloom') popBlooms(1);
   }
   for (const n of G.grenades) if (Math.hypot(n.x - x, n.y - y) < r + 30) n.fuse = 0;
 }
@@ -75,11 +75,13 @@ function boomAt(x, y, r, c, mul = 1, el) {
       hitMob(m, cc, Math.atan2(m.y - y, m.x - x), 120, { quiet: 1, mult: (cc.mult || 1) * mul, from: { x, y } });
 }
 /* 死亡紅花爆炸：一朵一次範圍物理擊中（技能的 boomM），一定流血；場上只有一排，一朵爆就整排爆 */
-function popBlooms() {
+function popBlooms(det) {
   for (const g of G.ground)
     if (g.k === 'bloom' && !g.done) {
       g.done = 1;
-      boomAt(g.x, g.y, g.r * 1.4, { ...g.c, bleedCh: 100, spellBleed: 1 }, g.c.D.boomM / g.c.D.m);
+      /* 死亡紅花的品質：被引爆器提早引爆時更多 */
+      const mul = det ? 1 + 0.4 * (g.c.q || 0) : 1;
+      boomAt(g.x, g.y, g.r * 1.4, { ...g.c, bleedCh: 100, spellBleed: 1 }, (g.c.D.boomM / g.c.D.m) * mul);
       fxs('bleed', g.x, g.y - 10, 30);
     }
 }
@@ -87,6 +89,14 @@ function groundTick(dt) {
   for (const g of G.ground) {
     g.t += dt;
     const G0 = GROUND[g.k];
+    /* 震地的品質：地面上的怪重暈累積更多（applyAil 看 m.jagT） */
+    if (g.q) for (const m of G.mobs) if (m.hp > 0 && inGround(g, m)) (m.jagT = G.t + 0.2), (m.jagQ = g.q);
+    /* 毒氣箭的品質：毒氣雲飄向最近的怪 */
+    if (g.drift) {
+      const m = mobNear(g.x, g.y, 500),
+        d = m && Math.hypot(m.x - g.x, m.y - g.y);
+      if (d > 4) (g.x += ((m.x - g.x) / d) * g.drift * dt), (g.y += ((m.y - g.y) / d) * g.drift * dt);
+    }
     if (g.dps && g.c && (g.tick = (g.tick || 0) - dt) <= 0) {
       g.tick = 0.5;
       for (const m of G.mobs)
@@ -160,7 +170,14 @@ const COMBO_MAX = 10;
 function comboHit(a) {
   if (!a || a.combo) return;
   a.combo = 1;
+  if (a.c && a.c.k === 'combo') P.comboQ = a.c.q;
   P.combo = Math.min(COMBO_MAX, (P.combo || 0) + 1);
+  P.comboT = G.t;
+}
+/* 連打的品質：超時時留下一部分（mechTick），不整組歸零 */
+function comboTick() {
+  if (!P.combo || !P.comboQ || G.t - (P.comboT || 0) < 8) return;
+  P.combo = Math.floor(P.combo * 0.5 * P.comboQ);
   P.comboT = G.t;
 }
 const comboN = () => (P.combo && G.t - (P.comboT || 0) < 8 ? P.combo : 0);
@@ -209,12 +226,18 @@ function metaEvent(kind, near) {
   for (const [, sp] of full) sp.en -= 100;
   /* 咒爆（0.2.26）：有一顆滿了，所有插了觸發輔助的法術一起放（沒滿的不扣能量） */
   if (ST.hexBurst) hexBurst(t);
-  else for (const [g] of full) castGem(g, t);
+  else
+    for (const [g, sp] of full) {
+      castGem(g, t);
+      /* 暴擊施放的品質：再放一次 */
+      if (qRoll(sp.q || 0)) castGem(g, t);
+    }
 }
 function hexBurst(t) {
   for (let i = 0; i < NSLOT; i++) {
     const g = S.skills[i] && S.skills[i].a;
-    if (metaOf(g)) castGem(g, t);
+    const sp = metaOf(g);
+    if (sp && SUPPORTS[sp.gem].meta === 'crit') castGem(g, t);
   }
 }
 /* 不經技能欄、直接施放一顆技能寶石（觸發、幻影用） */
@@ -228,12 +251,13 @@ function castGem(g, t) {
 /* ---------- 9. 手雷 ---------- */
 /* 丟手雷：往目標飛，落地彈跳，引信到或被引爆才爆；o：fuse、r 爆炸半徑、mul、el、onBoom(x, y) */
 function throwGrenade(c, tx, ty, o = {}) {
-  const ang = Math.atan2(ty - P.y, tx - P.x),
-    d = Math.min(380, Math.hypot(tx - P.x, ty - P.y)),
+  const f = o.from || P,
+    ang = Math.atan2(ty - f.y, tx - f.x),
+    d = Math.min(380, Math.hypot(tx - f.x, ty - f.y)),
     sp = d / 0.45;
   G.grenades.push({
-    x: P.x,
-    y: P.y - 10,
+    x: f.x,
+    y: f.y - 10,
     vx: Math.cos(ang) * sp,
     vy: Math.sin(ang) * sp,
     c,
@@ -291,6 +315,15 @@ const SWORD_MAX = 10;
 function gainSwords(n, c) {
   P.swords = (P.swords || []).filter(s => s.t > G.t);
   for (let i = 0; i < n && P.swords.length < SWORD_MAX; i++) P.swords.push({ t: G.t + 15, c });
+}
+/* 御劍訣的品質：環繞的飛劍每 0.6 秒砍一下身邊的怪 */
+function swordTick(dt) {
+  if ((P.swT = (P.swT || 0) - dt) > 0) return;
+  P.swT = 0.6;
+  for (const s of P.swords || []) {
+    const m = s.t > G.t && s.c.q && mobNear(P.x, P.y, 110);
+    if (m) hitMob(m, s.c, angTo(P, m), 0, { quiet: 1, mult: s.c.mult * 0.3 * s.c.q });
+  }
 }
 const swordN = () => (P.swords || []).filter(s => s.t > G.t).length;
 /* 全部射出：每把都是一次投射物擊中（用召喚時的技能數值、倍率 mul） */
@@ -371,6 +404,8 @@ function mirageTick() {
     P.x = px;
     P.y = py;
   }
+  /* 幻影斬的品質：消失時有機率留下新分身 */
+  for (const M of G.mirages.slice()) if (M.t <= G.t && qRoll(20 * (M.q || 0))) spawnMirage(null, M.x, M.y, 2, 0.8, 0.6);
   G.mirages = G.mirages.filter(M => M.t > G.t);
 }
 
@@ -419,6 +454,10 @@ function mechTick(dt) {
   remnantTick();
   grenadeTick(dt);
   mirageTick();
+  comboTick();
+  swordTick(dt);
+  /* 戰旗的品質：收起時返還榮耀 */
+  if (G.banner && G.banner.q && G.banner.t <= G.t) gainGlory(25 * G.banner.q), (G.banner.q = 0);
   G.corpses = G.corpses.filter(c => c.t > G.t);
 }
 function drawMech() {

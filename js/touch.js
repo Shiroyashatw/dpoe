@@ -350,7 +350,7 @@ function touchInit() {
   });
   /* 點說明框以外的地方：收起說明框 */
   document.addEventListener('pointerdown', e => {
-    if (TOUCH.on && !$('tip').hidden && !e.target.closest('#tip') && !e.target.closest('.it[data-id]')) hideTip();
+    if (TOUCH.on && !$('tip').hidden && !e.target.closest('#tip,#ttip') && !e.target.closest('.it[data-id]')) hideTip();
   });
   /* 第一次用觸控點螢幕：自動進全螢幕（要在手指放開時才算玩家的操作，瀏覽器才允許） */
   let fsAuto = false;

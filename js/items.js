@@ -24,7 +24,7 @@ function rollAff(k, ilvl) {
   return { k, T, v: irnd(lo, hi) };
 }
 /* 隨機挑一種當下能掉的底材 */
-function pickBase(ilvl, kind) {
+function pickBase(ilvl, kind, wt) {
   /* 0.2.9：先挑種類（武器 ×3），再挑底材，免得 100 多個武器底材把防具擠掉 */
   if (!kind) {
     const ks = [...new Set(BASES.filter(b => b.lv <= ilvl).map(b => b.k))],
@@ -32,7 +32,7 @@ function pickBase(ilvl, kind) {
     let r = Math.random() * kw.reduce((a, b) => a + b, 0);
     kind = ks.find((k, i) => (r -= kw[i]) <= 0) || ks[0];
   }
-  const pool = BASES.filter(b => b.lv <= ilvl && (!kind || b.k === kind));
+  const pool = BASES.filter(b => b.lv <= ilvl && (!kind || b.k === kind) && (!wt || b.wt === wt));
   /* 高階的底材機率高一點 */
   const w = pool.map(b => 1 + b.lv / 4);
   let r = Math.random() * w.reduce((a, b) => a + b, 0);
@@ -138,11 +138,6 @@ function mkGem(g, lv = 1) {
 const gemOf = it => SKILLS[it.gem] || SUPPORTS[it.gem] || AURAS[it.gem];
 const isAura = it => !!AURAS[it.gem];
 const isSup = it => !!SUPPORTS[it.gem];
-function dropGem(t) {
-  const r = Math.random(),
-    pool = r < 0.5 ? Object.keys(SKILLS) : r < 0.85 ? Object.keys(SUPPORTS) : Object.keys(AURAS);
-  return mkGem(pick(pool), Math.max(1, Math.min(GEM_MAX, irnd(1, 1 + Math.floor(t / 2)))));
-}
 const baseOf = it => BASEI[it.b];
 const kindOf = it => (it.gem ? 'gem' : it.charm ? 'charm' : baseOf(it).k);
 const itemSize = it => (it.gem || it.charm ? [1, 1] : KINDS[baseOf(it).k].sz);
@@ -276,6 +271,7 @@ function stats(s = S) {
     critX: 0,
     armor: 0,
     block: 0,
+    aq: {},
     res: { fire: 0, cold: 0, light: 0, chaos: 0 },
     maxRes: { fire: 0, cold: 0, light: 0, chaos: 0 },
     ms: 0,
@@ -519,6 +515,9 @@ function stats(s = S) {
     o.spiritUsed += A.sp;
     o.auraOn.push(g.gem);
     const m = (1 + 0.03 * (g.lv - 1)) * (1 + o.auraEff / 100);
+    /* 光環的品質（0.2.29）：0～1 */
+    o.aq[g.gem] = (g.q || 0) / GEM_Q_MAX;
+    if (g.gem === 'anger') o.angerV = A.fx.fireAdd * m;
     for (const k in A.fx) {
       const v = A.fx[k] * m;
       if (k === 'wolf') o.auraWolf = 1;
@@ -555,7 +554,7 @@ function stats(s = S) {
   /* 命中（0.2.22）：基礎 30 ＋ 每級 6 ＋ 裝備、天賦的命中值，再乘提高（Lv1 打第 1 階的 Lv5 怪約 90%） */
   o.acc = Math.round((30 + 6 * lv + o.acc) * (1 + o.accP / 100));
   o.mp = Math.round(o.mp * (1 + pt.mpP / 100));
-  o.mpReg = HERO.mpReg * (1 + pt.mpReg / 100);
+  o.mpReg = o.mp * HERO.mpReg * (1 + pt.mpReg / 100);
   o.cdr = Math.min(60, pt.cdr);
   /* 武器：雙持時兩把輪流出手，傷害、暴擊取平均，攻速再快 10% */
   const W1 = local(w),
