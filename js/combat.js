@@ -31,12 +31,14 @@ const MOB_HP = 2;
 
 /* ---------- 異常門檻：同等級普通怪的基礎生命（只看等級，不吃稀有度；穩固值才吃，見下面） ---------- */
 const ailThr = t => 30 * tierMul(t).hp;
+/* 門檻倍率：折射箭矢本身中異常的機率提高 30%；被衝擊波打過的怪，那個元素的門檻降低 30%（暫定） */
+const ailLow = (m, el) => (m.arrow ? 1 / 1.3 : m.ail.thrLow && m.ail.thrLow[el] > G.t ? 0.7 : 1);
 /* 穩固值（0.2.36，企劃書 7.2）：冰凍、觸電、重暈共用。每階比例是 Path of Building 兩張表相除（T1～T16） */
 const POISE_T = [1.97, 2.03, 2.01, 1.96, 1.89, 1.82, 1.66, 1.46, 1.31, 1.26, 1.23, 1.19, 2.83, 3.02, 3.19, 3.35];
 /* k 累積係數、on 定身到期的欄位、sec 定身秒數、back 定身結束後 +500% 退回的秒數 */
 const POISE = {
-  frz: { k: 2.1, on: 'frozen', sec: 4, back: 14 },
-  elc: { k: 1.7, on: 'elcT', sec: 5, back: 15 },
+  frz: { k: 2.1, on: 'frozen', sec: 4, back: 14, el: 'cold' },
+  elc: { k: 1.7, on: 'elcT', sec: 5, back: 15, el: 'light' },
   hs: { k: 0.58, on: 'hstun', sec: 2, back: 16.5 }
 };
 function poise(m, k) {
@@ -50,6 +52,7 @@ function poise(m, k) {
     POISE_T[t - 1] *
     (m.boss ? 18.78 : m.elite ? 3 : 1) *
     hpW *
+    (POISE[k].el ? ailLow(m, POISE[k].el) : 1) *
     (1 + 5 * Math.max(0, Math.min(1, left / POISE[k].back)))
   );
 }
@@ -332,7 +335,11 @@ function hitCalc(c, m, o = {}) {
   const av = ST.avatar ? 50 : 0,
     hs = m && m.ail && m.ail.hstun > G.t ? ST.hsFire : 0,
     CV = {
-      phys: { light: ST.cvPL, cold: ST.cvPC, fire: ST.cvPF + av + hs },
+      phys: {
+        light: ST.cvPL + (c.cvL || 0),
+        cold: ST.cvPC + (c.cvC || 0),
+        fire: ST.cvPF + av + hs + (c.cvF || 0)
+      },
       light: { cold: ST.cvLC, fire: av + ST.cvLF },
       cold: { fire: ST.cvCF + av }
     };
@@ -465,6 +472,9 @@ function applyAil(m, r, c) {
     cq = c.q || 0,
     t = G.mapT || 1,
     thr = ailThr(t) * MOB_HP,
+    thrF = thr * ailLow(m, 'fire'),
+    thrC = thr * ailLow(m, 'cold'),
+    thrL = thr * ailLow(m, 'light'),
     p = r.pre,
     po = r.post,
     archon = P.buf && P.buf.archon > G.t,
@@ -476,7 +486,7 @@ function applyAil(m, r, c) {
   /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；餘燼：點燃更多、持續時間 −25% */
   const igB = ST.shaper ? p.fire + p.phys + p.cold + p.light : p.fire;
   if (igB > 0) {
-    a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (igB / thr) * 20 * (archon ? 2 : 1));
+    a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (igB / thrF) * 20 * (archon ? 2 : 1));
     a.flamT = G.t + 8;
     if (Math.random() * 100 < a.flam)
       (a.ign = keepMax(a.ign, igB * 0.2 * (mag + ST.shaper / 100) * (1 + ST.ember / 100), 4 * (ST.ember ? 0.75 : 1))),
@@ -484,13 +494,17 @@ function applyAil(m, r, c) {
   }
   /* 冰緩：效果看傷害÷門檻，低於 30% 不生效，最高 50%；8 秒 */
   if (p.cold > 0) {
-    const v = Math.min(50, ((p.cold / thr) * 100 + 0) * mag) * rr;
+    const v = Math.min(50, ((p.cold / thrC) * 100 + 0) * mag) * rr;
     if (v >= 30 * rr && (!a.chill || a.chill.t <= G.t || v >= a.chill.v)) a.chill = { v, t: G.t + 8 };
     /* 冰凍累積（穩固值）；標記、化身都是累積提高 */
     poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + (archon ? 100 : 0));
   }
-  /* 感電：每 4% 門檻 +1% 機率（化身 ×2），受到的傷害提高 20%、8 秒 */
-  if (p.light > 0 && Math.random() * 100 < (((p.light / thr) * 100) / 4) * (archon ? 2 : 1)) a.shock = G.t + 8;
+  /* 感電：每 4% 門檻 +1% 機率（化身 ×2、閃電箭更多），受到的傷害提高 20%、8 秒 */
+  if (
+    p.light > 0 &&
+    Math.random() * 100 < (((p.light / thrL) * 100) / 4) * (archon ? 2 : 1) * (1 + (c.shockMore || 0) / 100)
+  )
+    a.shock = G.t + 8;
   /* 觸電：只有特定技能、輔助會累積 */
   if (c.elc) poiseAdd(m, 'elc', po.light * c.elc, ST.elcP + (mk === 'volt' ? 50 : 0));
   /* 暈眩：僵直（輕暈）看「這一下÷最大生命」（低於 15% 不算）；重暈累積（冰冷不算，物理、近戰各 ×1.5） */
@@ -545,10 +559,10 @@ function applyAil(m, r, c) {
   if (attack && p.phys > 0 && ST.wt === 'spear' && Math.random() * 100 < ST.impaleCh + (c.impaleCh || 0))
     (a.imp = a.imp || []).length < 60 && a.imp.push(p.phys * 0.3);
   /* 特殊元素異常（PoE1）：k ×（傷害÷門檻）^0.4，4 秒 */
-  const alt = (k, dmg, cap) => Math.min(cap, k * Math.pow(dmg / thr, 0.4) * 100 * mag);
-  if (c.alt === 'scorch' && p.fire > 0) a.scorch = { v: alt(0.5, p.fire, 30), t: G.t + 4, q: c.altQ };
-  if (c.alt === 'brittle' && p.cold > 0) a.brittle = { v: alt(10, p.cold, 600) / 100, t: G.t + 4, q: c.altQ };
-  if (c.alt === 'sap' && p.light > 0) a.sap = { v: alt(1 / 3, p.light, 20), t: G.t + 4, q: c.altQ };
+  const alt = (k, dmg, cap, th) => Math.min(cap, k * Math.pow(dmg / th, 0.4) * 100 * mag);
+  if (c.alt === 'scorch' && p.fire > 0) a.scorch = { v: alt(0.5, p.fire, 30, thrF), t: G.t + 4, q: c.altQ };
+  if (c.alt === 'brittle' && p.cold > 0) a.brittle = { v: alt(10, p.cold, 600, thrC) / 100, t: G.t + 4, q: c.altQ };
+  if (c.alt === 'sap' && p.light > 0) a.sap = { v: alt(1 / 3, p.light, 20, thrL), t: G.t + 4, q: c.altQ };
   /* 減益 */
   /* 曝露的品質：曝露中被任何擊中都可能刷新 */
   if (a.exp > G.t && qRoll(20 * (a.expQ || 0))) a.exp = G.t + 4;

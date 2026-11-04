@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與底材、詞綴（T12～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.37';
+const VER = '0.2.38';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -259,17 +259,36 @@ const SKILLS = {
     tags: ['attack', 'melee'],
     d: '3 下連打，每下打中 +1 連擊數；第 3 下打中得到 1 顆暴擊球（給雷鳴擊消耗）'
   },
+  /* 內部名稱沿用散射，舊存檔的寶石直接變閃電箭 */
   split: {
-    n: '散射',
-    ic: 'sk_multishot',
+    n: '閃電箭',
+    ic: 'sk_lightarrow',
     t: 0.45,
     mp: 4,
-    m: 0.95,
+    m: 1.5,
     spd: 900,
-    cnt: 3,
+    cvL: 70,
+    shockMore: 20,
+    noChain: 1,
     wt: ['bow'],
     tags: ['attack', 'proj'],
-    d: '一次射出 3 支箭，扇形散開'
+    d: '射出一支箭，70% 物理轉成閃電，感電機率更多 20%，無法連鎖；打中已經感電的敵人時，彈出連鎖閃電跳 2 隻（物理全部轉成閃電）'
+  },
+  refract: {
+    n: '折射箭矢',
+    ic: 'sk_markshot',
+    t: 0.45,
+    mp: 12,
+    cd: 20,
+    m: 1,
+    spd: 1100,
+    r: 250,
+    dur: 10,
+    reach: 600,
+    noConv: 1,
+    wt: ['bow'],
+    tags: ['attack', 'proj', 'aoe', 'cd'],
+    d: '往滑鼠位置射一根箭矢，插在地上 10 秒。你可以攻擊箭矢，它被點燃、冰緩、感電的機率提高 30%；每次中異常就清掉異常，對周圍敵人放出衝擊波（物理全部轉成該元素），並讓它們該元素的異常門檻降低 30%，持續 8 秒；每根最多 3 次'
   },
   frostbolt: {
     n: '冰霜彈',
@@ -925,7 +944,8 @@ const QUAL = {
   mk_warlord: '目標死亡時，{200} 內的怪被威嚇 3 秒',
   thrust: '招架成功時，攻擊者 120 內的怪 {40}% 機率失衡',
   combo: '連擊數超時時留下 {50}%，不會整組歸零',
-  split: '打中怪時，{20}% 機率往隨機方向多射 1 支',
+  split: '物理轉閃電 +{20}%、感電機率更多再 +{20}%',
+  refract: '衝擊波範圍 +{20}%',
   frostbolt: '飛到盡頭留下冰緩地面 {2} 秒',
   arc: '跳到感電的怪時，{20}% 機率不算跳數',
   slash: '第 3 段放出一道穿透的斬波，倍率 ×{0.5}',
@@ -1042,6 +1062,7 @@ const GEM_LV = {
   thrust: 1,
   combo: 1,
   split: 1,
+  refract: 1,
   frostbolt: 1,
   arc: 1,
   quake: 3,

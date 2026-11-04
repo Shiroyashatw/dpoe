@@ -13,7 +13,7 @@ const supOK = (D, sp, g) => {
   /* Meta 寶石的孔插的是法術，不是輔助 */
   if (!U) return false;
   if (g && supDup(g, sp)) return false;
-  if (U.conv && (D.unit || D.tags.includes('move') || D.tags.includes('minion'))) return false;
+  if (U.conv && (D.unit || D.noConv || D.tags.includes('move') || D.tags.includes('minion'))) return false;
   if (
     U.meta === 'auto' &&
     (D.tags.includes('move') || D.tags.includes('minion') || D.unit === 'trap' || D.unit === 'mine')
@@ -48,7 +48,7 @@ function gemCfg(g, i) {
       proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0),
       pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
       /* 全域投射物連鎖（0.2.25，彈射）：打中後彈向 260 內最近、還沒打過的敵人 */
-      chain: D.tags.includes('proj') ? ST.chain : 0,
+      chain: D.tags.includes('proj') && !D.noChain ? ST.chain : 0,
       kb: 1,
       fireAdd: 0,
       pen: 0,
@@ -67,6 +67,8 @@ function gemCfg(g, i) {
       q: (g.q || 0) / GEM_Q_MAX,
       fan: 1
     };
+  /* 閃電箭：品質每 1% 物理轉閃電 +1%、感電機率更多 +1% */
+  if (D.cvL) (c.cvL = D.cvL + (g.q || 0)), (c.shockMore = D.shockMore + (g.q || 0)), (c.boltChain = 1);
   /* 重擊的品質：碾壓後的下一下 */
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
   for (const sp of g.sup || []) {
@@ -318,10 +320,21 @@ function actHit(a, idx) {
   } else if (a.k === 'split') {
     const n = c.proj;
     for (let i = 0; i < n; i++)
-      shoot(a.ang + (i - (n - 1) / 2) * 0.22 * c.fan, D.spd, c, a, {
-        life: 0.7,
+      shoot(a.ang + (i - (n - 1) / 2) * 0.22 * c.fan, D.spd, c, a, { life: 0.7, sh: 'arrow' });
+  } else if (a.k === 'refract') {
+    /* 只留這次射的：飛到滑鼠位置（碰牆提早）才變成場上的箭矢，路上不打人 */
+    for (const m of G.mobs) if (m.arrow) m.hp = 0;
+    const life = Math.max(0.05, Math.min(D.reach, Math.hypot(a.tx - P.x, a.ty - P.y)) / D.spd);
+    for (let i = 0; i < c.proj; i++)
+      shoot(a.ang + (i - (c.proj - 1) / 2) * 0.3 * c.fan, D.spd, c, a, {
+        life,
         sh: 'arrow',
-        onHit: s => qRoll(20 * c.q) && shotFork(s, rnd(0, TAU))
+        noHit: 1,
+        onEnd: s => {
+          const y = s.y + 18,
+            p = open(s.x, y, 12) ? { x: s.x, y } : floorNear(s.x, y, 10, 80, 14) || P;
+          spawnArrow(p.x, p.y, c);
+        }
       });
   } else if (a.k === 'frostbolt') {
     const n = c.proj;
@@ -702,7 +715,61 @@ function actHit2(a, idx, R, hitArc) {
       (P.rage = Math.min(30, (P.rage || 0) + 2)), (P.rageT = G.t), (P.bearQ = c.q);
   }
 }
-/* 從飛行中的投射物分出一支（品質：散射、穿透）；分出來的不會再分 */
+/* 閃電箭打中已經感電的怪：連鎖閃電跳 2 隻（260 內最近、看得到、不重複），物理全部轉閃電；不會再觸發自己 */
+function boltChain(m, c, a) {
+  const hit = new Set([m]),
+    c2 = { ...c, cvL: 100, boltChain: 0 };
+  let from = m;
+  for (let k = 0; k < 2; k++) {
+    const n = G.mobs
+      .filter(o => o.hp > 0 && !o.arrow && !hit.has(o) && dist(o, from) < 260 && los(from.x, from.y, o.x, o.y))
+      .sort((x, y) => dist(x, from) - dist(y, from))[0];
+    if (!n) return;
+    fx({ k: 'zap', x: from.x, y: from.y - from.sz * 0.4, x2: n.x, y2: n.y - n.sz * 0.4, dur: 0.18 });
+    hit.add(n);
+    hitMob(n, c2, angTo(from, n), 60 * c.kb, { a, from });
+    from = n;
+  }
+}
+/* 折射箭矢：放在 G.mobs 裡，所有打怪的技能自動打得到；怪不會理它，不算擊殺（hp 由 updMobs 補滿） */
+const ARROW_HITS = 3;
+const ARROW_D = { hp: 1, dmg: 0, r: 16, sz: 34, xp: 0 };
+function spawnArrow(x, y, c) {
+  const m = spawnMob(ARROW_D, x, y, -1, false);
+  Object.assign(m, { arrow: 1, summoned: 1, aggro: 1, hp: 1e12, mhp: 1e12, c, until: G.t + c.D.dur, fired: 0 });
+  fx({ k: 'ring', x, y, r: 30, dur: 0.25, col: '#cfd8e3' });
+}
+/* 箭矢被打中：只有這一下的異常算數（地面冰緩不算）；中了就清掉、放衝擊波 */
+function arrowHit(m, r, c) {
+  const a = m.ail;
+  a.ign = a.chill = a.shock = null;
+  applyAil(m, r, c);
+  m.flash = 0.09;
+  for (const [el, k] of [
+    ['fire', 'ign'],
+    ['cold', 'chill'],
+    ['light', 'shock']
+  ])
+    if (a[k]) {
+      a[k] = null;
+      if (m.fired++ < ARROW_HITS) arrowWave(m, el);
+    }
+  if (m.fired >= ARROW_HITS) m.hp = 0;
+}
+/* 衝擊波：用箭矢這顆寶石的數值，物理全部轉成那個元素；先降門檻，這一下就吃得到 */
+function arrowWave(u, el) {
+  const c = u.c,
+    r = c.D.r * ST.aoeM * c.aoe * (1 + (c.g.q || 0) / 100),
+    w = { ...c, cvL: el === 'light' ? 100 : 0, cvC: el === 'cold' ? 100 : 0, cvF: el === 'fire' ? 100 : 0 };
+  fx({ k: 'ring', x: u.x, y: u.y, r, dur: 0.35, col: ELC[el] });
+  sfx('slam');
+  for (const m of G.mobs)
+    if (m.hp > 0 && !m.arrow && Math.hypot(m.x - u.x, m.y - u.y) < r + m.r) {
+      (m.ail.thrLow = m.ail.thrLow || {})[el] = G.t + 8;
+      hitMob(m, w, angTo(u, m), 120 * c.kb, { from: u });
+    }
+}
+/* 從飛行中的投射物分出一支（品質：穿透）；分出來的不會再分 */
 function shotFork(s, ang) {
   const v = Math.hypot(s.vx, s.vy) || 800;
   G.shots.push({
@@ -782,11 +849,13 @@ function hitMob(m, c, ang, kb, o = {}) {
   let mult = (o.mult ? o.mult / (c.mult || 1) : 1) * (a.mul || 1),
     crit = !!(a.crit || o.crit);
   /* 0.2.22：攻擊可能被閃避（熵值，combat.js 的 hitRoll） */
-  if (!hitRoll(m, c, { minion: o.minion, unit: a.unit }))
+  if (!m.arrow && !hitRoll(m, c, { minion: o.minion, unit: a.unit }))
     return num(m.x, m.y - m.sz, 0, 'miss', '未命中'), aggroPack(m);
   /* 投射物飛行距離（0.2.25）：飛出去的算飛了多遠，瞬間的算到目標的距離 */
   const fly = f.sx != null ? Math.hypot(f.x - f.sx, f.y - f.sy) : Math.hypot(m.x - f.x, m.y - f.y);
-  const r = hitCalc(c, m, { mult, crit, minion: o.minion, unit: a.unit, fly, trig: a.trig });
+  const r = hitCalc(c, m, { mult, crit, minion: o.minion, unit: a.unit, fly, trig: a.trig, keep: m.arrow });
+  if (m.arrow) return arrowHit(m, r, c);
+  const shocked = c.boltChain && hasState(m, 'shock');
   /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
   if (ST.mirageH && !a.trig && !o.minion && !a.unit && !o.again) mirageHunt();
   applyAil(m, r, c);
@@ -844,6 +913,7 @@ function hitMob(m, c, ang, kb, o = {}) {
     killMob(m);
   } else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && Math.random() * 100 < ST.dbl)
     hitMob(m, c, ang, 0, { ...o, again: 1, quiet: 1 });
+  if (shocked) boltChain(m, c, a);
 }
 
 /* 不吃暴擊的傷害：只吃抗性 */

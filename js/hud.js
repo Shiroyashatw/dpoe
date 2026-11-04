@@ -226,7 +226,7 @@ function hudTick() {
   const at =
     G.scene === 'hide'
       ? `藏身處 · Lv ${S.lv} · ${S.gold} 金 · 地圖碎片 ${S.frag}`
-      : `地圖 階級 ${G.mapT} · ${'★'.repeat(G.star || 1)} · Lv ${S.lv} · 剩 ${G.mobs.length} 隻 · 碎片 ${S.frag}`;
+      : `地圖 階級 ${G.mapT} · ${'★'.repeat(G.star || 1)} · Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻 · 碎片 ${S.frag}`;
   setT($('area'), 'at', at);
   const hm = G.scene !== 'map';
   if (HV.hm !== hm) {

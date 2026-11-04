@@ -718,8 +718,8 @@ vm.runInContext(
     badp = res.filter(([, a, b]) => !(a >= 1 && b === a + 2));
   ok(`多重投射：${pk.length} 招投射物都多 2 發`, !badp.length, JSON.stringify(badp));
   ok(
-    '散射基礎 3 支',
-    res.find(x => x[0] === 'split')[1] === 3,
+    '閃電箭基礎 1 支',
+    res.find(x => x[0] === 'split')[1] === 1,
     res.find(x => x[0] === 'split')
   );
   const cfg = (k, lv = 5) =>
@@ -773,10 +773,40 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：92 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 92,
+    '品質：93 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 93,
     R(`Object.keys(QUAL).length`)
   );
+  /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻 */
+  const bow = R(`(() => {
+    G.mobs = []; G.t = 100; G.kills = 0; ST.chain = 3; ST.dmg = [100, 100]; globalThis.spawnMob = (D, x, y) => mk(x - P.x); globalThis.aggroPack = globalThis.sparks = globalThis.hitstop = globalThis.killMob = () => {};
+    const D = Object.values(MOBS)[0],
+      mk = x => { const m = { D, x: P.x + x, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} }; G.mobs.push(m); return m; },
+      [a, b, c, d] = [40, 80, 120, 160].map(mk),
+      g = mkGem('split', 5);
+    g.q = 20;
+    const cf = gemCfg(g, 0), pre = hitCalc(cf, a, { keep: 1 }).pre, hurt = m => m.hp < m.mhp, out = [];
+    out.push(Math.round((pre.light / (pre.light + pre.phys)) * 100), cf.chain, cf.proj);
+    hitMob(a, cf, 0, 0);
+    out.push(hurt(b));
+    a.ail.shock = G.t + 8;
+    hitMob(a, cf, 0, 0);
+    out.push(hurt(b), hurt(c), hurt(d));
+    const rnd0 = Math.random, k0 = G.kills, rc = gemCfg(mkGem('refract', 5), 0);
+    Math.random = () => 0;
+    spawnArrow(P.x + 10, P.y, rc);
+    const ar = G.mobs[G.mobs.length - 1], fire = { ...rc, cvF: 100 };
+    d.hp = d.mhp;
+    hitMob(ar, fire, 0, 0);
+    out.push(ar.fired, !!ar.ail.ign, hurt(d), d.ail.thrLow.fire === G.t + 8, ailLow(d, 'fire'), ailLow(d, 'cold'));
+    hitMob(ar, fire, 0, 0);
+    hitMob(ar, fire, 0, 0);
+    Math.random = rnd0;
+    out.push(ar.fired, ar.hp, G.kills - k0);
+    G.mobs = [];
+    return out;
+  })()`);
+  ok('閃電箭與折射箭矢', bow.join() === '90,0,1,false,true,true,false,1,false,true,true,0.7,1,3,0,0', bow.join());
   ok(
     '品質：說明的數字照比例換算',
     R(`[qualText('fury', 0), qualText('fury', 10), qualText('autocast', 20), qualText('fireball', 10)].join('|')`) ===

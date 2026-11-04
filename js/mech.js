@@ -356,7 +356,7 @@ function spawnMirage(g, x, y, dur = 4, every = 1, mul = 0.6, src) {
   G.mirages.push({ g, x, y, t: G.t + dur, next: G.t + 0.3, every, mul, src });
 }
 /* 幻影能用的攻擊技能：不用位移、放單位、資源（屍體、榮耀、飛出去的盾）、要指定目標的，也不能是幻影斬自己 */
-const MIRAGE_NO = new Set(['mirage', 'shieldthrow', 'banner', 'corpseboom', 'paperdoll']);
+const MIRAGE_NO = new Set(['mirage', 'shieldthrow', 'banner', 'corpseboom', 'paperdoll', 'refract']);
 function mirageGem() {
   const gs = S.skills
     .map(k => k.a)

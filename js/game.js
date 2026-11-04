@@ -943,6 +943,10 @@ function updMobs(dt) {
     m.flash = Math.max(0, m.flash - dt);
     m.sq = Math.max(0, m.sq - dt * 6);
     m.ph += dt * 8;
+    if (m.arrow) {
+      m.hp = G.t < m.until ? m.mhp : 0;
+      continue;
+    }
     if (mobTick(m, dt)) continue;
     if (m.vx || m.vy) {
       moveBody(m, m.vx * dt, m.vy * dt);
@@ -975,7 +979,7 @@ function updMobs(dt) {
       let vx = Math.cos(a) * want,
         vy = Math.sin(a) * want;
       for (const o of G.mobs) {
-        if (o === m || o.hp <= 0) continue;
+        if (o === m || o.hp <= 0 || o.arrow) continue;
         const dd = dist(m, o),
           mn = m.r + o.r + 6;
         if (dd < mn && dd > 0) {
@@ -1219,7 +1223,7 @@ function updShots(dt) {
         if (s.grp) s.grp.hit = 1;
         s.life = 0;
       }
-    } else
+    } else if (!s.noHit)
       for (const m of G.mobs) {
         if (m.hp <= 0 || s.hit.has(m)) continue;
         if (Math.hypot(m.x - s.x, m.y - m.sz * 0.4 - s.y) < m.r + s.r + 6) {

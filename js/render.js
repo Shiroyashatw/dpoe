@@ -39,6 +39,7 @@ const ACT_ROW = {
   thrust: 3,
   combo: 8,
   split: 5,
+  refract: 5,
   frostbolt: 5,
   arc: 5,
   nova: 5,
@@ -577,7 +578,30 @@ function drawMobStates(m, y) {
     x += s + gap;
   }
 }
+/* 折射箭矢：斜插在地上，腳下的圈是還能觸發幾次；快消失時閃爍 */
+function drawArrow(m) {
+  if (m.until - G.t < 2 && Math.floor(G.t * 8) % 2) return;
+  shadow(m.x, m.y, m.r * 0.7);
+  CX.strokeStyle = 'rgba(207,216,227,0.75)';
+  CX.lineWidth = 2;
+  const n = ARROW_HITS - m.fired;
+  for (let i = 0; i < n; i++) {
+    CX.beginPath();
+    CX.ellipse(m.x, m.y, m.r + i * 7, (m.r + i * 7) * 0.4, 0, 0, TAU);
+    CX.stroke();
+  }
+  CX.save();
+  CX.translate(m.x, m.y);
+  CX.rotate(0.2);
+  CX.fillStyle = m.flash > 0 ? '#fff' : '#d9c7a3';
+  CX.fillRect(-2, -44, 4, 44);
+  CX.fillStyle = m.flash > 0 ? '#fff' : '#cfd8e3';
+  CX.fillRect(-6, -48, 12, 4);
+  CX.fillRect(-4, -42, 8, 4);
+  CX.restore();
+}
 function drawMob(m) {
+  if (m.arrow) return drawArrow(m);
   const D = m.D,
     fly = D.fly ? 14 + Math.sin(m.ph * 0.5) * 4 : 0;
   shadow(m.x, m.y, m.r * 1.1);
@@ -835,6 +859,7 @@ function drawMinimap(W) {
   CX.imageSmoothingEnabled = false;
   CX.drawImage(G.mini, x0, y0, mw, mh);
   for (const m of G.mobs) {
+    if (m.arrow) continue;
     CX.fillStyle = m.boss ? '#ff6b3d' : m.elite ? '#8ab4ff' : '#c95050';
     const z = m.boss ? 5 : 2;
     CX.fillRect(x0 + m.x * s - z / 2, y0 + m.y * s - z / 2, z, z);
