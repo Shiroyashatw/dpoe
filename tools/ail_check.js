@@ -58,10 +58,11 @@ function load(old) {
       S = { lv: 60, eq: Object.fromEntries(EQS.map(e => [e.k, null])), pt: [], ptA: {}, asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) };
       S.eq.weapon = mkItem(sw.id, 10, 0);
       ST = stats(S);
-      /* 同一套配裝：劍的物理 + 每種測試各加同樣大小的元素／混沌（流血測物理就不加） */
+      /* 同一套配裝：劍的物理 + 每種測試各加同樣大小的附加傷害（流血加物理、點燃加火焰、中毒加混沌） */
       if (o.add) ST.add[o.add] = [o.addLo, o.addHi];
       Object.assign(ST, { bleedCh: o.bleedCh || 0, poisonCh: o.poisonCh || 0, ailMag: o.ailMag || 0, poiStack: o.poiStack || 0, aggHit: o.aggHit || 0, aggIgn: o.aggIgn || 0, noMiss: 1 });
-      const cf = gemCfg(mkGem('slash', 10), 0), step = 1 / 30, gap = actDur(cf);
+      const cf = gemCfg(mkGem('slash', 10), 0), step = 1 / 30, fast = actDur(cf), gap = o.gap || fast;
+      if (o.gap) cf.more = (cf.more || 1) * (gap / fast);
       G.t = 1000; G.mapT = 10; P.ail = {}; P.hp = 1e12;
       const m = { D: Object.values(MOBS)[0], x: 40, y: 0, r: 12, sz: 20, hp: 1e15, mhp: 1e15, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, boss: true, mv: !!o.mv, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} };
       G.mobs = [m];
@@ -104,7 +105,7 @@ const KINDS = [
   {
     k: 'bleed',
     name: '流血',
-    base: { bleedCh: 100 },
+    base: { bleedCh: 100, add: 'phys', addLo: ADD[0], addHi: ADD[1] },
     inv: { ailMag: 100 },
     invTxt: '異常強度 +100%',
     vars: [
@@ -146,71 +147,79 @@ let md = `# 異常強度對照（第 9 批驗收，0.2.43）
 
 ## 設定與限制
 
-- **配裝**：Lv60、空欄位 + 一把單手劍（\`mkItem\`，物理基底），天賦與昇華都沒點；技能「斬擊」10 級、間隔取 \`actDur\`（每下 **${NEW.fight(1, 1, {})[2].toFixed(3)} 秒**）。點燃、中毒的測試各額外加 ${ADD[0]}～${ADD[1]} 的火焰／混沌附加傷害，流血只吃劍的物理。所以三種異常的「擊中 DPS」不一樣大，**不能拿三種異常的絕對數字互比，只看各自的倍率**。
+- **配裝**：Lv60、空欄位 + 一把單手劍（\`mkItem\`，物理基底），天賦與昇華都沒點；技能「斬擊」10 級、間隔取 \`actDur\`（每下 **${NEW.fight(1, 1, {})[2].toFixed(3)} 秒**）。三種測試各額外加 ${ADD[0]}～${ADD[1]} 的火焰／混沌附加傷害，流血加同樣大小的附加物理（所以三種的擊中 DPS 同量級）。所以三種異常的「擊中 DPS」不一樣大，**不能拿三種異常的絕對數字互比，只看各自的倍率**。
 - **目標**：一隻打不死的王（\`boss: true\`，生命 1e15，護甲、抗性都是 0，\`G.mapT = 10\`），所以「異常佔比」是沒有被減傷時的值；實戰有護甲／抗性時，點燃與中毒會比物理流血更吃抗性。
 - **靜止／移動**：靜止＝\`m.mv\` 為 false；移動＝true（流血 ×2）。加劇的流血不管靜止或移動都是 ×2，所以移動時加劇沒有額外好處。
 - **機率**：流血、中毒的施加機率都給 100%（機率另有來源，這張表只量「幅度」），點燃走遊戲的易燃累積。\`noMiss\`（一律命中），暴擊走遊戲的暴擊率（劍 5%，所以有少量暴擊，讓備份佇列有事可做）。
 - **投資**：「異常強度 +100%」＝約 天賦「痛苦／蔓延／疫病／侵蝕」四個大點（各 +20%）+ 兩個小點（各 +10%），是現有天賦能合理拿到的量，不含輔助；中毒疊層 +3 ＝ 劇毒 +1、疫病之源 +2。
 - **次數與亂數**：每種設定 **${FIGHTS} 場 × ${SECS} 秒**，每場固定亂數種子（\`1000 + 場次\`，mulberry32），所有設定用同一串種子（成對比較），重跑結果一樣。場數少、暴擊是隨機，**±1～2% 以內的差異不要當真**。
 - **沒量到**：只有單一目標、單一技能連打；沒模擬玩家身上的異常、多隻怪、護甲與抗性、王的無敵階段、手機操作；加劇點燃用「每次擊中直接加劇」代替（遊戲裡還沒有來源能這樣做）。
-- 「倍率」欄：對**同一版本、同樣靜止／移動**下「無投資、無加劇」那一列的總 DPS；「對單格」欄：新版對舊版（同設定）的總 DPS。
+- **節奏**：「快攻」＝斬擊的原始間隔（上面那個秒數），單下傷害小，異常（吃單下傷害）最不利；「重擊 1.5 秒一下」＝每 1.5 秒一下，單下傷害放大（\`more\`）到擊中 DPS 跟快攻一樣，異常吃到的單下傷害大很多。看異常佔比一定要兩個節奏一起看。
+- 「總倍率」「異常倍率」：對**同節奏、同版本、同靜止／移動**下「無投資、無加劇」那一列的總 DPS／異常 DPS；「對單格」：新版對舊版（同設定）。
 
 `;
+const RH = [
+  ['快攻', 0],
+  ['重擊 1.5 秒一下', 1.5]
+];
 const res = {};
 for (const K of KINDS) {
-  md += `## ${K.name}\n\n| 版本 | 設定 | 目標 | 擊中 DPS | 異常 DPS | 總 DPS | 異常佔比 | 倍率 | 對單格 |\n| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |\n`;
+  md += `## ${K.name}${K.k === 'poi' ? '（中毒沒有加劇，只比投資）' : ''}
+
+| 節奏 | 版本 | 設定 | 目標 | 擊中 DPS | 異常 DPS | 總 DPS | 異常佔比 | 總倍率 | 異常倍率 | 總 對單格 | 異常 對單格 |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+`;
   const sets = [['無投資', {}]];
   sets.push([K.invTxt, K.inv]);
   if (K.inv2) sets.push([K.inv2Txt, K.inv2]);
-  const rowsFor = (ctx, ver) => {
-    const out = [];
+  const all = [];
+  for (const [rn, gap] of RH) {
+    const rows = [];
+    const add = (ctx, ver, vn, sn, mv, o) =>
+      rows.push({ rn, ver, vn, sn, mv, ...run(ctx, { ...K.base, ...o, mv, gap }) });
+    /* 改動前只有「無加劇」才有意義（舊版沒有加劇） */
+    for (const [sn, so] of sets) for (const mv of [0, 1]) add(OLD, '改動前（單格）', '無加劇', sn, mv, so);
     for (const [vn, vo] of K.vars)
-      for (const [sn, so] of sets)
-        for (const mv of [0, 1]) {
-          const o = { ...K.base, ...so, ...vo, mv };
-          out.push({ ver, vn, sn, mv, ...run(ctx, o) });
-        }
-    return out;
-  };
-  /* 改動前只有「無加劇」才有意義（舊版沒有加劇） */
-  const oldRows = [];
-  for (const [sn, so] of sets)
-    for (const mv of [0, 1])
-      oldRows.push({ ver: '改動前（單格）', vn: '無加劇', sn, mv, ...run(OLD, { ...K.base, ...so, mv }) });
-  const newRows = rowsFor(NEW, '改動後（佇列）');
-  const baseOf = (rows, mv) => rows.find(r => r.sn === '無投資' && r.vn === '無加劇' && r.mv === mv);
-  const all = [...oldRows, ...newRows];
-  for (const r of all) {
-    const rows = r.ver.startsWith('改動前') ? oldRows : newRows,
-      b = baseOf(rows, r.mv),
-      tot = r.hit + r.ail,
-      ov = oldRows.find(x => x.sn === r.sn && x.mv === r.mv);
-    r.tot = tot;
-    r.mul = tot / (b.hit + b.ail);
-    r.vsOld = r.vn === '無加劇' ? tot / (ov.hit + ov.ail) : null;
-    md += `| ${r.ver} | ${r.sn}${r.vn === '無加劇' ? '' : '；' + r.vn} | ${r.mv ? '移動' : '靜止'} | ${f0(r.hit)} | ${f0(r.ail)} | ${f0(tot)} | ${pc(r.ail / tot)} | ${xx(r.mul)} | ${r.vsOld == null ? '—' : xx(r.vsOld)} |\n`;
+      for (const [sn, so] of sets) for (const mv of [0, 1]) add(NEW, '改動後（佇列）', vn, sn, mv, { ...so, ...vo });
+    const find = (ver, vn, sn, mv) =>
+      rows.find(r => r.ver.startsWith(ver) && r.vn === vn && r.sn === sn && r.mv === mv);
+    for (const r of rows) {
+      const b = find(r.ver.slice(0, 3), '無加劇', '無投資', r.mv),
+        ov = find('改動前', '無加劇', r.sn, r.mv);
+      r.tot = r.hit + r.ail;
+      r.mul = r.tot / (b.hit + b.ail);
+      r.amul = r.ail / b.ail;
+      r.vsOld = r.vn === '無加劇' ? r.tot / (ov.hit + ov.ail) : null;
+      r.avsOld = r.vn === '無加劇' ? r.ail / ov.ail : null;
+      md += `| ${rn} | ${r.ver} | ${r.sn}${r.vn === '無加劇' ? '' : '；' + r.vn} | ${r.mv ? '移動' : '靜止'} | ${f0(r.hit)} | ${f0(r.ail)} | ${f0(r.tot)} | ${pc(r.ail / r.tot)} | ${xx(r.mul)} | ${xx(r.amul)} | ${r.vsOld == null ? '—' : xx(r.vsOld)} | ${r.avsOld == null ? '—' : xx(r.avsOld)} |\n`;
+    }
+    all.push(...rows);
   }
   md += '\n';
   res[K.k] = all;
 }
 /* 重點整理 */
-const pick = (k, ver, sn, vn, mv) =>
-  res[k].find(r => r.ver.startsWith(ver) && r.sn === sn && r.vn === vn && r.mv === mv);
+const pick = (k, rn, ver, sn, vn, mv) =>
+  res[k].find(r => r.rn === rn && r.ver.startsWith(ver) && r.sn === sn && r.vn === vn && r.mv === mv);
 md += `## 重點
 
+倍率都是「對同節奏、同版本、同靜止／移動下『無投資、無加劇』那一列」；「異常倍率」只看異常 DPS，「總倍率」連擊中一起算。
+
 `;
-for (const K of KINDS) {
-  const b0 = pick(K.k, '改動後', '無投資', '無加劇', 0),
-    b1 = pick(K.k, '改動後', K.invTxt, '無加劇', 0),
-    c1 = pick(K.k, '改動後', '無投資', '無加劇', 1),
-    d1 = pick(K.k, '改動後', K.invTxt, '無加劇', 1);
-  const ga = K.vars[1] ? [0, 1].map(mv => pick(K.k, '改動後', '無投資', K.vars[1][0], mv).mul) : null;
-  const gi = K.vars[1] ? [0, 1].map(mv => pick(K.k, '改動後', K.invTxt, K.vars[1][0], mv).mul) : null;
-  if (ga)
-    md += `- **${K.name}加劇**：無投資時總 DPS 靜止 ${xx(ga[0])}、移動 ${xx(ga[1])}；有投資再加劇 靜止 ${xx(gi[0])}、移動 ${xx(gi[1])}（倍率都對各自版本「無投資、無加劇」）。
-`;
-  md += `- **${K.name}**：投資異常強度 +100%，總 DPS 靜止 ${xx(b1.mul)}、移動 ${xx(d1.mul)}；異常佔比靜止 ${pc(b0.ail / b0.tot)}→${pc(b1.ail / b1.tot)}、移動 ${pc(c1.ail / c1.tot)}→${pc(d1.ail / d1.tot)}。\n`;
-}
+for (const K of KINDS)
+  for (const [rn] of RH) {
+    const g = (sn, vn, mv, ver = '改動後') => pick(K.k, rn, ver, sn, vn, mv),
+      m2 = (f, mv) => `靜止 ${f(0)}、移動 ${f(1)}`;
+    md += `- **${K.name}・${rn}**（擊中 DPS ${f0(g('無投資', '無加劇', 0).hit)}）：\n`;
+    md += `  - 投資（${K.invTxt}）：異常 DPS 靜止 ${f0(g('無投資', '無加劇', 0).ail)}→${f0(g(K.invTxt, '無加劇', 0).ail)}（${xx(g(K.invTxt, '無加劇', 0).amul)}）、移動 ${f0(g('無投資', '無加劇', 1).ail)}→${f0(g(K.invTxt, '無加劇', 1).ail)}（${xx(g(K.invTxt, '無加劇', 1).amul)}）；總 DPS ${xx(g(K.invTxt, '無加劇', 0).mul)}／${xx(g(K.invTxt, '無加劇', 1).mul)}。\n`;
+    if (K.inv2)
+      md += `  - 再加疊層 +3：異常 ${xx(g(K.inv2Txt, '無加劇', 0).amul)}／${xx(g(K.inv2Txt, '無加劇', 1).amul)}，總 ${xx(g(K.inv2Txt, '無加劇', 0).mul)}／${xx(g(K.inv2Txt, '無加劇', 1).mul)}（靜止／移動）。\n`;
+    if (K.vars[1]) {
+      const v = K.vars[1][0];
+      md += `  - 加劇：無投資 異常 ${xx(g('無投資', v, 0).amul)}／${xx(g('無投資', v, 1).amul)}（總 ${xx(g('無投資', v, 0).mul)}／${xx(g('無投資', v, 1).mul)}）；有投資 異常 ${xx(g(K.invTxt, v, 0).amul)}／${xx(g(K.invTxt, v, 1).amul)}（總 ${xx(g(K.invTxt, v, 0).mul)}／${xx(g(K.invTxt, v, 1).mul)}）（靜止／移動）。\n`;
+    }
+    md += `  - 改動前（單格）→ 後（佇列），異常 DPS：無投資 ${xx(g('無投資', '無加劇', 0).avsOld)}／${xx(g('無投資', '無加劇', 1).avsOld)}、有投資 ${xx(g(K.invTxt, '無加劇', 0).avsOld)}／${xx(g(K.invTxt, '無加劇', 1).avsOld)}（靜止／移動）。\n`;
+  }
 md += '\n（逐列數字見上面各表。）\n';
 console.log(md);
 if (WRITE) fs.writeFileSync(path.join(__dirname, '..', 'docs', '異常強度對照.md'), md, 'utf8');

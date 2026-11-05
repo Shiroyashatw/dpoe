@@ -688,6 +688,13 @@ function ailReflow(a) {
   for (const k of ['ign', 'bleed'])
     if (a[k] && a[k].t <= G.t && a[k].q && a[k].q.length) a[k] = ailQ([a[k], ...a[k].q]) || ((a[k].q = null), a[k]);
 }
+/* 流血這一格實際的傷害：移動時普通流血也 ×2、加劇的一律 ×2，所以要用當下的 mv 在最強一筆與備份裡挑實際最大的（排序用的 ailEff 不知道移動） */
+function bleedNow(a, mv) {
+  let v = 0;
+  if (a.bleed)
+    for (const x of [a.bleed, ...(a.bleed.q || [])]) if (x.t > G.t) v = Math.max(v, x.dps * (x.agg || mv ? 2 : 1));
+  return v;
+}
 /* 加劇：這個怪身上現有的每一筆（含備份）都變成加劇，之後新上的不算；回傳有沒有實際加劇（至少一筆從沒加劇變成加劇） */
 function aggravate(m, k) {
   const top = m.ail && m.ail[k];
@@ -795,11 +802,11 @@ function applyAil(m, r, c, use) {
   );
   if (ST.steelCycle && P.bvAcc > 0 && !immob(a)) poiseAdd(m, 'hs', P.bvAcc), (P.bvAcc = 0);
   /* 流血、中毒：要有機率；流血只有攻擊會造成，c.spellBleed 是例外（死亡紅花的爆炸） */
-  if ((attack || c.spellBleed) && p.phys > 0 && roll(ST.bleedCh + (c.bleedCh || 0)))
+  if ((attack || c.spellBleed) && ailBase(p, 'bleed') > 0 && roll(ST.bleedCh + (c.bleedCh || 0)))
     a.bleed = keepMax(a.bleed, ailBase(p, 'bleed') * 0.15 * mag, 5);
   /* 附加火焰的品質：附加的火焰有機率直接點燃 */
   if (c.addIgn && p.fire > 0 && qRoll(c.addIgn)) a.ign = igniteOn(m, p.fire * 0.2 * mag, 4, c, use);
-  if (p.phys + p.chaos > 0 && roll(ST.poisonCh + (c.poisonCh || 0))) {
+  if (ailBase(p, 'poi') > 0 && roll(ST.poisonCh + (c.poisonCh || 0))) {
     const n = 1 + ST.poiStack + (c.poiStack || 0);
     a.poi = (a.poi || []).filter(x => x.t > G.t);
     a.poi.push({ dps: ailBase(p, 'poi') * 0.2 * mag, t: G.t + 2 });
@@ -856,7 +863,8 @@ function ailTick(m, dt) {
   ailReflow(a);
   if (a.ign && a.ign.t > G.t) d += ailEff(a.ign) * (1 - resOf(m, 'fire') / 100);
   /* 加劇的流血一律當目標在移動（×2），移動時不再加倍 */
-  if (a.bleed && a.bleed.t > G.t) d += a.bleed.dps * (a.bleed.agg || m.mv ? 2 : 1);
+  const bl = bleedNow(a, m.mv);
+  d += bl;
   if (a.poi)
     for (const x of a.poi) if (x.t > G.t) d += x.dps * (1 - resOf(m, 'chaos') / 100) * (1 + takenInc(m, 'chaos') / 100);
   if (d > 0) {
@@ -871,7 +879,7 @@ function ailTick(m, dt) {
   if (!immob(a))
     for (const k in POISE) if (a[k] && G.t - ((a.psA && a.psA[k]) || 0) >= 8) a[k] = Math.max(0, a[k] - 5 * dt);
   /* 獵犬印記：流血的失血累積沉重暈眩 */
-  if (a.mark && a.mark.k === 'hound' && a.bleed && a.bleed.t > G.t) poiseAdd(m, 'hs', ailEff(a.bleed) * dt);
+  if (a.mark && a.mark.k === 'hound' && a.bleed && a.bleed.t > G.t) poiseAdd(m, 'hs', bl * dt);
   if (a.abT && a.abT <= G.t && !(a.broken > G.t)) m.arm = m.arm0;
   if (a.curse && a.curse.t <= G.t) a.curse = null;
   if (m.stun > 0) m.stun -= dt;

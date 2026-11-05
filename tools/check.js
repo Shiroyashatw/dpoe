@@ -727,6 +727,26 @@ vm.runInContext(
     res = pk.map(k => [k, count(k, 0), count(k, 1)]),
     badp = res.filter(([, a, b]) => !(a >= 1 && b === a + 2));
   ok(`多重投射：${pk.length} 招投射物都多 2 發`, !badp.length, JSON.stringify(badp));
+  /* 滿溢機率（0.2.43）：多重投射 250% ＝ 多 2 發，再 50% 機率第 3 發；測試裡把 surpass 的結果加進 c.proj，實際出手數對得上（遊戲內容還沒接） */
+  {
+    const k = pk[0],
+      sr = R(`(() => {
+      const out = [], base = ${count(k, 0)};
+      for (let i = 0; i < 60; i++) {
+        G.shots = []; G.grenades = []; G.units = []; P.swords = []; P.gren = {}; P.ammo = {};
+        const c = gemCfg(mkGem('${k}', 5), 0), n = surpass(250); c.proj += n;
+        const a = { k: '${k}', c, ang: 0, tx: P.x + 200, ty: P.y, hits: [0], n: 0 };
+        if (c.unit) { placeUnit(c, { x: P.x + 100, y: P.y }); unitFire(G.units[0], { x: P.x + 300, y: P.y }); } else actHit(a, 0);
+        out.push([n, G.shots.length + G.grenades.length + (P.swords || []).length - base]);
+      }
+      return out;
+    })()`);
+    ok(
+      '滿溢機率：多重投射 250% ＝ 實際多 2 或 3 發（兩種都出現），發數跟 surpass 的結果一致',
+      sr.every(([n, d]) => (n === 2 || n === 3) && d === n) && sr.some(([n]) => n === 2) && sr.some(([n]) => n === 3),
+      JSON.stringify(sr.slice(0, 6))
+    );
+  }
   ok(
     '閃電箭基礎 1 支',
     res.find(x => x[0] === 'split')[1] === 1,
@@ -1830,6 +1850,14 @@ vm.runInContext(
     m = mk(); a = m.ail; G.t = 100; a.bleed = keepMax(a.bleed, 5, 8); a.ign = keepMax(a.ign, 10, 5);
     ST.aggIgn = 1; out.aggIgn1 = [aggBleed(m), a.ign.agg, loss(m, 101)]; out.aggIgn2 = [aggBleed(m), aggBleed(mk())];
     ST.aggIgn = 0;
+    /* 移動目標：普通流血也 ×2，所以加劇 100 對普通 150 要打 300；靜止則加劇的 200 勝過 150 */
+    const mb = mv => { const t = mk({ mv }); G.t = 100; t.ail.bleed = keepMax(t.ail.bleed, 100, 8); aggravate(t, 'bleed'); t.ail.bleed = keepMax(t.ail.bleed, 150, 8); t.ail.mark = { k: 'hound', t: 200 }; const h = t.ail.hs || 0; const l = loss(t, 101); return [l, Math.round(((t.ail.hs || 0) - h) * 1000) / 1000]; };
+    out.mvBleed = [mb(1), mb(0)];
+    /* 純元素擊中：bleedAll／poiAll 開才有流血、中毒；關閉時不變 */
+    const pf = { phys: 0, fire: 50, cold: 0, light: 0, chaos: 0 }, rf = { pre: pf, post: pf }, cb = { D: { tags: ['attack'] }, q: 0, bleedCh: 100, poisonCh: 100 };
+    const pureF = () => { const t = mk(); G.t = 100; applyAil(t, rf, cb, {}); return [!!t.ail.bleed, !!(t.ail.poi && t.ail.poi.length)]; };
+    out.pure0 = pureF(); ST.bleedAll = 1; ST.poiAll = 1; out.pure1 = pureF(); ST.bleedAll = ST.poiAll = 0;
+    G.t = 100;
     /* 惡化點燃：同一次使用再點燃同一目標，移除舊筆、新筆幅度 × 累計筆數 */
     const pre = { phys: 0, fire: 0.001, cold: 0, light: 0, chaos: 0 }, rr = { pre, post: pre }, ci = { D: { tags: [] }, q: 0, addIgn: 100 };
     const hitI = (m, c, use) => applyAil(m, rr, c, use);
@@ -1894,6 +1922,16 @@ vm.runInContext(
     return out;
   })()`);
   const j9 = x => JSON.stringify(x);
+  ok(
+    '流血在移動目標上取實際最大的一筆：移動時 加劇 100 vs 普通 150 → 300、靜止時加劇 200 勝過 150',
+    b9.mvBleed[0][0] === 300 && b9.mvBleed[1][0] === 200,
+    j9(b9.mvBleed)
+  );
+  ok(
+    'bleedAll／poiAll：純火焰擊中開了才有流血、中毒；關閉時沒有',
+    j9(b9.pure0) === '[false,false]' && j9(b9.pure1) === '[true,true]',
+    j9([b9.pure0, b9.pure1])
+  );
   ok(
     '備份佇列：最強一筆造成傷害、強的後到舊的退成備份、弱的備份在最強一筆結束後接手',
     j9(b9.q1) === '[10,1,4]' && j9(b9.q2) === '[20,"10/4"]' && j9(b9.dmg) === '[20,10,4,4,0,0]',
