@@ -1,7 +1,7 @@
 /* dungeonPOE · 手機操作（0.2.4）：桌機為主、手機為輔，規則在 docs/企劃書.md「操作模式」。
    模式：一碰觸控就切成觸控模式（body.touch），滑鼠一按就切回桌機；鍵盤兩邊都能用。
    觸控：左半邊浮動搖桿；右下 5 個技能鍵（大的是普攻＝左鍵欄），點一下自動瞄準最近的敵人（王優先）、
-   按住拖＝手動瞄準（地上畫線）放開施放、拖回按鈕上取消；普攻按住連打。翻滾、藥水、互動在技能鍵外圈。 */
+   按住拖＝手動瞄準（地上畫線）放開施放、拖回按鈕上取消；普攻按住連打。翻滾、藥劑、互動在技能鍵外圈。 */
 'use strict';
 const TOUCH = { on: false, stick: null, mv: [0, 0], sk: null, cast: false, sel: null, front: 'inv' };
 const AIM_R = 360; /* 手動瞄準最遠的距離 */
@@ -289,7 +289,7 @@ function touchInit() {
   };
   addEventListener('pointerup', up);
   addEventListener('pointercancel', up);
-  /* 技能鍵、翻滾、藥水、互動 */
+  /* 技能鍵、翻滾、藥劑、互動 */
   $('hud').addEventListener('pointerdown', e => {
     const el = e.target.closest('.sk');
     if (!el || e.pointerType !== 'touch') return;

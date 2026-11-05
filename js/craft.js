@@ -50,7 +50,7 @@ function forgeWhat(it, op, cls) {
 const affShort = a => AFF[a.k].n.replace(/ ?\+?\{\}%?/g, '').replace('附加 ', '') + ' T' + a.T;
 
 /* ---------- 商人賭裝（0.2.28，企劃書 5.6）：選種類、花金幣買一件。物品等級＝開放的最高階；品質 0、孔 0、潛能 3、
-   詞綴最高 T2（好底材與 T1 只靠掉落）；連續 8 件沒出稀有，下一件必出（S.gamN）。價格永遠高於稀有裝的賣價 ---------- */
+   詞綴最高 T2（好基底與 T1 只靠掉落）；連續 8 件沒出稀有，下一件必出（S.gamN）。價格永遠高於稀有裝的賣價 ---------- */
 const GAMBLE = [
   ['武器', Object.keys(WTN).map(w => ({ id: w, k: 'weapon', wt: w, n: WTN[w] }))],
   [
@@ -64,12 +64,12 @@ const GAMBLE = [
   [
     '防具與飾品',
     [
-      ['helm', '頭盔'],
+      ['helm', '頭部'],
       ['chest', '胸甲'],
       ['gloves', '手套'],
       ['boots', '鞋子'],
       ['belt', '腰帶'],
-      ['amulet', '護身符'],
+      ['amulet', '項鍊'],
       ['ring', '戒指']
     ].map(([k, n]) => ({ id: k, k, n }))
   ]

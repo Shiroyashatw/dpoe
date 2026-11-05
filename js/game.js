@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 21,
+    v: 22,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -39,6 +39,8 @@ function newGame() {
   s.skills[0].a = mkGem('slash');
   s.skills[1].a = mkGem('mirage');
   s.pt = [...PT_START];
+  /* 過路點自選的能力值（0.2.42）：點 id → 's'／'d'／'i' */
+  s.ptA = {};
   /* 昇華（0.2.25）：藏身處的昇華石碑選，S.at 是點過的點（a_st 是起點） */
   s.asc = null;
   s.at = [];
@@ -255,7 +257,7 @@ function enterMap(t) {
   let pk = 0,
     pts = 0;
   for (const r of rooms.slice(1))
-    for (let k = irnd(2, 3) + (Math.random() * 100 < MM('pack') * 2 ? 1 : 0); k > 0; k--) {
+    for (let k = irnd(2, 3) + (roll(MM('pack') * 2) ? 1 : 0); k > 0; k--) {
       const c = floorIn(r);
       if (!c) continue;
       const elite = ++pk % 4 === 0 || Math.random() * 400 < MM('elite');
@@ -450,9 +452,9 @@ function sparks(x, y, ang, n, col) {
 /* ---------- 玩家（技能在 skills.js） ---------- */
 function updPlayer(dt) {
   for (const k in P.cds) P.cds[k] = Math.max(0, P.cds[k] - dt);
-  /* 冥思的品質：魔力低於 30% 時回復更多 */
-  const lowMp = P.mp < ST.mp * 0.3 ? 1 + 0.4 * (ST.aq.clarity || 0) : 1;
-  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1.2 : 1) * lowMp * dt);
+  /* 冥思的品質：貧魔時回復更多 */
+  const lowM = lowMp() ? 1 + 0.4 * (ST.aq.clarity || 0) : 1;
+  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1.2 : 1) * lowM * dt);
   if (G.scene === 'map') baseTick(dt);
   if (ST.regen && !ST.vaal) P.hp = Math.min(ST.hp, P.hp + ST.regen * Math.max(0, 1 + MM('pregen') / 100) * dt);
   if (P.heal > 0) {
@@ -510,6 +512,8 @@ function updPlayer(dt) {
 }
 /* 移動＋碰撞：地圖是牆（一格一格推出去），藏身處是邊界與擺設；分段走，快速衝刺也不會穿牆 */
 function moveBody(o, dx, dy) {
+  /* 釘身（combat.js）：不能移動、不能被擊退 */
+  if (o.ail && o.ail.pinT > G.t) return;
   const n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (o.r * 0.8)));
   for (let i = 0; i < n; i++) {
     o.x += dx / n;
@@ -559,7 +563,7 @@ function pushTiles(o) {
     }
 }
 function doRoll() {
-  if (P.roll || G.state !== 'play' || (P.cds.roll || 0) > 0) return;
+  if (P.roll || G.state !== 'play' || (P.cds.roll || 0) > 0 || pHeavy()) return;
   let dx = P.mdx || 0,
     dy = P.mdy || 0;
   if (!dx && !dy) (dx = Math.cos(P.face)), (dy = Math.sin(P.face));
@@ -567,7 +571,7 @@ function doRoll() {
   P.roll = { t: 0, dx, dy };
   P.cds.roll = ROLL.cd * (1 - Math.min(60, ST.rollCd) / 100) + ROLL.t;
   P.rolledT = G.t + ROLL.t + 2;
-  /* 戰狼精魄的品質：翻滾時狼撲向滑鼠附近的怪 */
+  /* 戰狼精魂的品質：翻滾時狼撲向滑鼠附近的怪 */
   if (qRoll(20 * (ST.aq.wolfsp || 0))) {
     const w = G.allies.find(x => x.src === 'aura'),
       mw = mouseWorld(),
@@ -577,11 +581,11 @@ function doRoll() {
   P.iuntil = G.t + ROLL.iframe;
   sfx('roll');
 }
-/* mana：喝藍水（2）回魔力，不然喝紅水（1）回生命；藥水效果的詞綴與地圖詞兩種都算 */
+/* mana：喝魔力藥劑（2）回魔力，不然喝生命藥劑（1）回生命；藥劑效果的詞綴與地圖詞兩種都算 */
 function drinkFlask(mana) {
   if (G.scene !== 'map' || G.state !== 'play') return;
   const k = mana ? 'mflask' : 'flask';
-  if (P[k] < 1) return hudWarn((mana ? '魔力' : '生命') + '藥水用完了：殺怪會補');
+  if (P[k] < 1) return hudWarn((mana ? '魔力' : '生命') + '藥劑用完了：殺怪會補');
   P[k] -= 1;
   const v = 1 + (ST.flask + MM('pflask')) / 100;
   if (mana) P.mheal += ST.mp * FLASK.mp * v;
@@ -589,7 +593,7 @@ function drinkFlask(mana) {
   fx({ k: 'heal', x: P.x, y: P.y, dur: 0.5 });
   sfx('drink');
 }
-/* 受傷：完美閃避 → 無敵 → 閃避 → 格擋 → 護甲（物理）／抗性 → 守護 → 能量護盾（公式在 combat.js 的 hurtCalc） */
+/* 受傷：完美閃避 → 無敵 → 閃避 → 格擋 → 偏斜 → 減傷（護甲、抗性、適應）→ 吸收（格擋值 → 守護）→ 能量護盾 → 生命（公式在 combat.js 的 hurtCalc） */
 /* noEv：躲不掉的（王的紅光大招、地上的陷阱）；其他擊中都可以被閃避、格擋 */
 function hurtPlayer(d, src, el = 'phys', noEv) {
   if (G.state !== 'play') return;
@@ -617,15 +621,25 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
     return;
   }
   d = r.d;
-  /* 聚風（0.2.25）：被擊中時順風掉光 */
-  if (ST.gale) P.tail = 0;
+  evMark('hurt');
+  if (r.defl) num(P.x, P.y - 60, 0, 'ev', '偏斜');
+  /* 荊棘反擊（0.2.42）：近戰怪擊中你時反彈荊棘傷害，同一隻怪 0.3 秒最多一次 */
+  thornHit(src);
+  /* 暈眩（0.2.42）：僵直看每一下的傷害；沉重暈眩只有王的紅光大招累積 */
+  playerStagger(d);
+  const boss = src && src.D ? src : src && src.src && src.src.D ? src.src : null;
+  if (noEv && boss && boss.boss) playerHeavy(d, el);
+  /* 流順之風：被擊中清空 */
+  P.tail = 0;
   /* 召喚魔像：站在它旁邊受到的傷害少 20%；品質：有機率替你擋下這一下 */
   if (G.allies.some(w => w.src === 'golem' && dist(w, P) < 200)) {
     if (qRoll(20 * (ST.aq.golem || 0))) return num(P.x, P.y - 60, 0, 'block', '魔像');
     d *= 0.8;
   }
-  /* 熊掌的品質：熊形態被擊中得狂怒 */
-  if (P.form === 'bear' && qRoll(20 * (P.bearQ || 0))) (P.rage = Math.min(30, (P.rage || 0) + 1)), (P.rageT = G.t);
+  /* 熊掌的品質：熊形態被擊中得盛怒 */
+  if (P.form === 'bear' && qRoll(20 * (P.bearQ || 0)))
+    (P.rage = Math.min(rageCap(), (P.rage || 0) + 1)), (P.rageT = G.t);
+  if (d > 0) recoupAdd(d);
   d = esAbsorb(d);
   /* 心靈凌駕（基石）：40% 先扣魔力 */
   if (ST.mom && d > 0) {
@@ -637,6 +651,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   const who = src && src.D ? src : src && src.src && src.src.D ? src.src : null;
   P.lastHit = { n: who ? (who.elite ? '菁英 ' : '') + who.D.n : '環境傷害', el, d: Math.round(d) };
   P.hp -= d;
+  lifeLost();
   P.hurtT = 0.35;
   num(P.x, P.y - 60, d, 'hurt');
   sfx('hurt');
@@ -682,7 +697,7 @@ function killMob(m) {
   /* 材料：粉、靈魂自動吸收；碎片直接進材料頁，跳字提醒 */
   killMat(m, t).forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
   /* 地圖卡的材料加成：多拿一次 */
-  if (Math.random() * 100 < MM('mat')) killMat(m, t);
+  if (roll(MM('mat'))) killMat(m, t);
   /* 掉落：裝備、金幣、地圖碎片（越高階越多） */
   /* 地圖卡：物品數量、稀有度 */
   const q = 1 + MM('qty') / 100,
@@ -1164,8 +1179,7 @@ function bossAI(m, dt, dP) {
         bossRec(m, 0.7, rage);
       } else if (m.pat === 'blink') {
         fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: '#b28dff' });
-        m.x = m.tx;
-        m.y = m.ty;
+        if (!(m.ail.pinT > G.t)) (m.x = m.tx), (m.y = m.ty);
         fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: '#b28dff' });
         /* 落地接一下揮爪（畫面照揮爪的預警） */
         m.pat = 'swipe';

@@ -1,34 +1,34 @@
 # PoE 底層規則查證（PoE2 ／ PoE1）
 
 > 查證日期：2026-11-02。來源以 poe2wiki.net（PoE2，wiki 上的最新版本是 0.5.x，0.5.0 在 2026-05-29 上線）與 poewiki.net（PoE1）為主；wiki 頁面裡的「Keyword infobox／Tooltip」是遊戲內關鍵字說明，最接近官方文字。
-> 寫法：每段先寫 **PoE2**、再寫 **PoE1**、最後寫 **差異**。⚠️ 表示查不到、來源互相矛盾，或是我自己推論的。
+> 寫法：每段先寫 **PoE2**、再寫 **PoE1**、最後寫 **差異**。⚠️ 表示查不到、來源互相長矛盾，或是我自己推論的。
 > 網址縮寫：`W2/頁名` = `https://www.poe2wiki.net/wiki/頁名`，`W1/頁名` = `https://www.poewiki.net/wiki/頁名`（下面每條都附完整網址）。
 
 ---
 
 ## A. 傷害計算
 
-### A1. increased／more、持續傷害（DoT）與暴擊、吸血、穿透
+### A1. increased／more、持續傷害（DoT）與暴擊、生命偷取、穿透
 
 **PoE2**
 - 傷害型異常（點燃、流血、中毒）的強度（magnitude）由「造成它的那一下命中」算出來；**之後不再套用任何傷害加成**。所以要讓 DoT 變強，就是提高命中傷害，或提高異常強度（magnitude）。原文："will not subsequently have Damage modifiers applied directly to them"。https://www.poe2wiki.net/wiki/Ignite 、 https://www.poe2wiki.net/wiki/Flammability
 - 異常的計算基礎是「減傷前的傷害（pre-mitigation）」，也就是**套完攻擊方所有傷害加成之後**、還沒扣目標的護甲／抗性時的數字。https://www.poe2wiki.net/wiki/Impale （Pre-mitigation 的說明）
 - 目標身上「影響減傷能力」的減益（例如感電）會讓 DoT 傷害變高；只對命中有效的效果（穿透、破甲）不影響 DoT。https://www.poe2wiki.net/wiki/Flammability 、 https://www.poe2wiki.net/wiki/Incision
 - DoT 不算命中：護甲、穿透都不作用，只有抗性。https://www.poe2wiki.net/wiki/Damage_over_time
-- 吸血：依照「命中」對敵人造成的傷害計算，DoT 不會吸血。https://www.poe2wiki.net/wiki/Leech
+- 生命偷取：依照「命中」對敵人造成的傷害計算，DoT 不會生命偷取。https://www.poe2wiki.net/wiki/Leech
 - 暴擊與 DoT：DoT 本身不會暴擊。⚠️（推論）因為異常是用「套完所有加成的命中傷害」算的，暴擊命中造成的異常應該也會跟著變強；wiki 沒有直接寫出這一點。
 - **DoT multiplier（持續傷害乘數）**：⚠️ 在 poe2wiki 全站搜尋 "damage over time multiplier" 結果是 0 筆（https://www.poe2wiki.net/api.php?action=query&list=search&srsearch=%22damage+over+time+multiplier%22），看起來 PoE2 已經改用「異常強度（magnitude）」的加成來取代它；但我沒有找到明確寫「移除」的 patch note。
 
 **PoE1**
 - DoT 吃 `Damage`、`Damage over Time`、`[類型] Damage`、`[效果] Damage` 這類 increased；**不吃** Attack／Spell Damage 加成（除非技能特別寫）。https://www.poewiki.net/wiki/Damage_over_time
 - DoT 乘數（DoT multi）：各來源互相相加，再跟其他傷害加成相乘。https://www.poewiki.net/wiki/Damage_over_time
-- DoT 不會暴擊；由暴擊造成的傷害型異常天生有 **+50% DoT 乘數**（怪物與召喚物是 +30%）；有 Perfect Agony 時改用暴擊傷害倍率。https://www.poewiki.net/wiki/Critical_strike
+- DoT 不會暴擊；由暴擊造成的傷害型異常天生有 **+50% DoT 乘數**（怪物與召喚物是 +30%）；有 Perfect Agony 時改用暴擊傷害加成倍率。https://www.poewiki.net/wiki/Critical_strike
 - 穿透只對命中有效。https://www.poewiki.net/wiki/Resistance
-- 吸血：命中才會吸血。https://www.poewiki.net/wiki/Leech
+- 生命偷取：命中才會生命偷取。https://www.poewiki.net/wiki/Leech
 
-**差異**：PoE1 的異常傷害會「再算一次加成」（increased／more／DoT 乘數）；PoE2 是「命中傷害 × 固定比例 × 強度（magnitude）」，不會再套傷害加成。兩代的 DoT 都不吃穿透、護甲，也不會吸血。
+**差異**：PoE1 的異常傷害會「再算一次加成」（increased／more／DoT 乘數）；PoE2 是「命中傷害 × 固定比例 × 強度（magnitude）」，不會再套傷害加成。兩代的 DoT 都不吃穿透、護甲，也不會生命偷取。
 
-### A2. 暴擊傷害
+### A2. 暴擊傷害加成
 
 - **PoE2**：玩家與召喚物的基礎暴擊傷害加成是 **+100%**（等於 200% 傷害）；怪物的暴擊額外傷害少 40%（0.1.0e 起）。`+#% to Critical Damage Bonus` 先加到 +100% 上，然後才套 increased／more。PoE2 的暴擊**不會**像 PoE1 那樣保證觸發異常。https://www.poe2wiki.net/wiki/Critical_hit 、 https://www.poe2wiki.net/wiki/Shock
 - **PoE1**：玩家的暴擊倍率是 **150%**（額外 +50%）；怪物是 130%。元素暴擊必定觸發點燃、冰凍、感電。https://www.poewiki.net/wiki/Critical_strike
@@ -37,7 +37,7 @@
 ### A3. 命中與閃避
 
 - **PoE2**：命中率（未封頂）= 命中值 × 1.25 × 100 ÷（命中值 + 閃避值 × 0.3）。命中率最低 5%（所以閃避率最高 95%）。命中率一般最高 100%，透過 Amazon 的天賦最高可以到 125%。用「熵值（entropy）」決定，不是每次獨立擲骰：被攻擊方累積命中率，超過 100 就算命中，然後減 100；距離上次攻擊超過 3.33 秒會重新擲一個隨機起始值。暴擊會再做一次閃避判定，成功的話就降成普通命中。0.3.0 起閃避對所有命中都有效（含法術），但有紅光的首領攻擊除外；怪物不能閃避玩家的法術。https://www.poe2wiki.net/wiki/Evasion 、 https://www.poe2wiki.net/wiki/Accuracy
-  - 玩家每升一級 +6 命中值，每點敏捷 +6 命中值；距離 2～9 公尺時命中值會打折，最多少 90%。https://www.poe2wiki.net/wiki/Accuracy
+  - 玩家每升一級 +6 命中值，每點敏捷 +8 命中值；距離 2～9 公尺時命中值會打折，最多少 90%。https://www.poe2wiki.net/wiki/Accuracy
   - 偏斜（Deflection，0.3.0 新增）：偏斜率 = 150% ×（1 − 命中值 ÷（命中值 + 偏斜值 × 0.12）），上限 95%；偏斜成功時減少 40% 傷害（Tailwind 的說明裡有寫），對紅光首領攻擊也有效。https://www.poe2wiki.net/wiki/Deflection 、 https://www.poe2wiki.net/wiki/Tailwind
 - **PoE1**：命中率 = 1.25 × 命中值 ÷（命中值 +（閃避值 ÷ 5）^0.9），最低 5%、最高 100%；同樣使用熵值機制。**法術不能被閃避**。每升一級 +2 命中值，每點敏捷 +2。https://www.poewiki.net/wiki/Evasion 、 https://www.poewiki.net/wiki/Accuracy
 - **差異**：公式不同（PoE2 是閃避值 × 0.3，而且沒有 0.9 次方）；PoE2 的閃避擋得了法術；PoE2 多了偏斜這一層。
@@ -56,15 +56,15 @@
 
 ### A6. 格擋
 
-- **PoE2**：只有一種格擋（0.3.0 起所有沒有紅光的命中都能擋，包括法術）；**上限 50%**（0.3.0 從 75% 改成 50%）。被動格擋主要來自盾牌。主動格擋（Raise Shield／Parry）擋住正面的攻擊會累積重暈條，滿了就會重暈 3 秒。被格擋的命中仍然可能讓人輕暈或冰凍。https://www.poe2wiki.net/wiki/Block
+- **PoE2**：只有一種格擋（0.3.0 起所有沒有紅光的命中都能擋，包括法術）；**上限 50%**（0.3.0 從 75% 改成 50%）。被動格擋主要來自盾牌。主動格擋（Raise Shield／Parry）擋住正面的攻擊會累積沉重暈眩條，滿了就會沉重暈眩 3 秒。被格擋的命中仍然可能讓人輕暈或冰凍。https://www.poe2wiki.net/wiki/Block
 - **PoE1**：分成攻擊格擋與法術格擋，預設上限 75%、硬上限 90%；雙持武器天生 +20% 攻擊格擋。https://www.poewiki.net/wiki/Blocking
-- **Glancing Blows（擦傷）**：PoE1 是格擋率加倍、但被格擋的命中仍受到 **65%** 傷害。https://www.poewiki.net/wiki/Glancing_Blows ；PoE2 在 0.3.0 改成「閃避率 Unlucky、偏斜率 Lucky」，拿掉了格擋加倍和受 50% 傷害的效果。https://www.poe2wiki.net/wiki/Glancing_Blows
+- **Glancing Blows（擦傷）**：PoE1 是格擋機率加倍、但被格擋的命中仍受到 **65%** 傷害。https://www.poewiki.net/wiki/Glancing_Blows ；PoE2 在 0.3.0 改成「閃避率 Unlucky、偏斜率 Lucky」，拿掉了格擋加倍和受 50% 傷害的效果。https://www.poe2wiki.net/wiki/Glancing_Blows
 - **差異**：PoE2 的上限比較低（50%）、不分攻擊與法術、多了主動格擋；擦傷在 PoE2 已經變成另一個機制。
 
-### A7. 吸血
+### A7. 生命偷取
 
-- **PoE2**：吸取量是命中傷害的百分比，每次吸血預設在 **1 秒內**回完；**0.5.0 起同一種資源一次只會有一筆吸血在作用**（取回復速度最高的那筆）。一下命中最多只算 40,000 傷害。資源補滿就清掉所有吸血。後期怪物有隱藏的「吸血抗性」。wiki 沒有寫出整體速率上限的數字。https://www.poe2wiki.net/wiki/Leech
-- **PoE1**：每一筆吸血最多回最大生命的 10%，速度是每秒 2% 最大生命；所有吸血加起來每秒最多 **20%** 最大生命（能量護盾是 10%）；可以同時有很多筆在作用。https://www.poewiki.net/wiki/Leech
+- **PoE2**：吸取量是命中傷害的百分比，每次生命偷取預設在 **1 秒內**回完；**0.5.0 起同一種資源一次只會有一筆生命偷取在作用**（取回復速度最高的那筆）。一下命中最多只算 40,000 傷害。資源補滿就清掉所有生命偷取。後期怪物有隱藏的「生命偷取抗性」。wiki 沒有寫出整體速率上限的數字。https://www.poe2wiki.net/wiki/Leech
+- **PoE1**：每一筆生命偷取最多回最大生命的 10%，速度是每秒 2% 最大生命；所有生命偷取加起來每秒最多 **20%** 最大生命（能量護盾是 10%）；可以同時有很多筆在作用。https://www.poewiki.net/wiki/Leech
 - **差異**：PoE1 靠很多筆同時作用加上總上限；PoE2 一次只有一筆（等於用「單筆的速度」當上限）。
 
 ---
@@ -74,9 +74,9 @@
 ### B0. 門檻（ailment threshold）與累積條
 
 - **PoE2**：玩家的異常門檻 = 最大生命的一半（0.2.0 前是全部最大生命）；怪物的門檻只看怪物等級，**跟怪物生命無關**（wiki 上有等級表）。冰凍、感電、定身（Pin）、暈眩用另一個值，叫「穩固值（poise）」。中毒、流血用固定機率，不看門檻。https://www.poe2wiki.net/wiki/Ailment
-- **Primed（瀕臨觸發）**：重暈、冰凍、感電、定身的累積值到達一定比例就算 Primed：普通怪 40%、魔法怪 50%、稀有怪 60%、傳奇怪 70%（0.2.0 調整過）。「碾壓一擊（Crushing Blow）」打中 Primed 的怪會直接重暈。https://www.poe2wiki.net/wiki/Stun 、 https://www.poe2wiki.net/wiki/Pinned 、 https://www.poe2wiki.net/wiki/Electrocute 、 https://www.poe2wiki.net/wiki/Crushing_Blows
-  - ⚠️ Primed_for_Stun 頁面內文另外列了一組舊值（普通 40／魔法 60／稀有 70／傳奇 80），跟它自己的 tooltip 和 0.2.0 patch 互相矛盾，以新值為準。https://www.poe2wiki.net/wiki/Primed_for_Stun
-- **累積條會不會顯示**：怪物的重暈累積「會顯示成生命條下方的一條」（wiki 原文）。https://www.poe2wiki.net/wiki/Stun 。冰凍、感電的累積：⚠️ wiki 沒寫，只有 Mobalytics 說你造成的異常或累積會顯示在怪物生命條下方（https://mobalytics.gg/poe-2/guides/ailments）。玩家自己有重暈條（舉盾、騎乘時會累積，0.2.0 patch 寫「Your Heavy Stun bar」）。https://www.poe2wiki.net/wiki/Block
+- **Primed（瀕臨觸發）**：沉重暈眩、冰凍、感電、定身的累積值到達一定比例就算 Primed：普通怪 40%、魔法怪 50%、稀有怪 60%、傳奇怪 70%（0.2.0 調整過）。「粉碎重擊（Crushing Blow）」打中 Primed 的怪會直接沉重暈眩。https://www.poe2wiki.net/wiki/Stun 、 https://www.poe2wiki.net/wiki/Pinned 、 https://www.poe2wiki.net/wiki/Electrocute 、 https://www.poe2wiki.net/wiki/Crushing_Blows
+  - ⚠️ Primed_for_Stun 頁面內文另外列了一組舊值（普通 40／魔法 60／稀有 70／傳奇 80），跟它自己的 tooltip 和 0.2.0 patch 互相長矛盾，以新值為準。https://www.poe2wiki.net/wiki/Primed_for_Stun
+- **累積條會不會顯示**：怪物的沉重暈眩累積「會顯示成生命條下方的一條」（wiki 原文）。https://www.poe2wiki.net/wiki/Stun 。冰凍、感電的累積：⚠️ wiki 沒寫，只有 Mobalytics 說你造成的異常或累積會顯示在怪物生命條下方（https://mobalytics.gg/poe-2/guides/ailments）。玩家自己有沉重暈眩條（舉盾、騎乘時會累積，0.2.0 patch 寫「Your Heavy Stun bar」）。https://www.poe2wiki.net/wiki/Block
 - **PoE1**：怪物門檻「大部分情況等於最大生命」，只有生命特別高的首領門檻比較低。https://www.poewiki.net/wiki/Chill 。PoE1 沒有累積條（只有暈眩是看單次傷害決定機率）。
 
 ### B1. 點燃 Ignite
@@ -130,17 +130,17 @@
 - 雷傷害**預設不會累積**觸電，要特定技能或效果才行；累積滿了就觸電，打斷目標並讓它不能行動（算定身），預設持續 **5 秒**（tooltip）。0.2.0 起對非玩家的累積慢了大約 44%；0.1.0e 起難度提高 25%。https://www.poe2wiki.net/wiki/Electrocute
 - ⚠️ 確切的累積公式 wiki 沒寫。
 
-### B8. 暈眩 Stun／重暈 Heavy Stun
+### B8. 暈眩 Stun／沉重暈眩 Heavy Stun
 
 - **PoE2**：
   - 輕暈（Light Stun）：機率依「命中傷害 ÷ 目標最大生命」計算，傷害等於最大生命時是 100%；低於 15% 的機率直接當作 0；持續大約 0.53 秒（數值來自 PoB2）。玩家過去 4 秒內每被輕暈一次，輕暈門檻就多 50%。
-  - 重暈（Heavy Stun）：所有非冷傷害都會累積，滿了就重暈，持續時間依怪物而定；冷傷害不會累積重暈。
-  - 玩家的物理、近戰各使重暈累積多 50%，兩者相乘（合計多 125%）；怪物是物理多 100%、近戰多 33%（相乘）。
-  - 玩家一般不會被重暈，只有舉盾、騎乘、衝刺時被打才會；玩家的重暈持續 3 秒，期間不能閃避或格擋。玩家的暈眩門檻 = 最大生命。
+  - 沉重暈眩（Heavy Stun）：所有非冷傷害都會累積，滿了就沉重暈眩，持續時間依怪物而定；冷傷害不會累積沉重暈眩。
+  - 玩家的物理、近戰各使沉重暈眩累積多 50%，兩者相乘（合計多 125%）；怪物是物理多 100%、近戰多 33%（相乘）。
+  - 玩家一般不會被沉重暈眩，只有舉盾、騎乘、衝刺時被打才會；玩家的沉重暈眩持續 3 秒，期間不能閃避或格擋。玩家的暈眩門檻 = 最大生命。
   - 暈眩（Daze）：受到的暈眩累積多 50%，持續 8 秒。
   - https://www.poe2wiki.net/wiki/Stun 、 https://www.poe2wiki.net/wiki/Daze
 - **PoE1**：依「傷害 ÷ 最大生命」計算機率；機率 ≤ 20% 時無效（需要超過最大生命 10% 的傷害），造成 50% 以上一定暈；基礎持續 0.35 秒；近戰 +25%、非物理 −25%。https://www.poewiki.net/wiki/Stun
-- **差異**：PoE2 分成輕暈和有累積條的重暈。
+- **差異**：PoE2 分成輕暈和有累積條的沉重暈眩。
 
 ### B9. 破甲 Armour Break（只有 PoE2）
 
@@ -170,16 +170,16 @@
 
 ---
 
-## C. 球體（Charges）
+## C. 能量球（Charges）
 
-**PoE2**：耐力、狂怒、暴擊三種球**本身沒有任何加成**，只是給技能消耗的資源（原文："Charges do not inherently grant bonuses … they are used to empower skills by being consumed by them"）。預設每種**上限 3 顆**，**持續 15 秒**，再得到同類的球就刷新時間。https://www.poe2wiki.net/wiki/Charge 、 https://www.poe2wiki.net/wiki/Endurance_charge 、 https://www.poe2wiki.net/wiki/Frenzy_charge 、 https://www.poe2wiki.net/wiki/Power_charge
+**PoE2**：耐力、盛怒、暴擊三種球**本身沒有任何加成**，只是給技能消耗的資源（原文："Charges do not inherently grant bonuses … they are used to empower skills by being consumed by them"）。預設每種**上限 3 顆**，**持續 15 秒**，再得到同類的球就刷新時間。https://www.poe2wiki.net/wiki/Charge 、 https://www.poe2wiki.net/wiki/Endurance_charge 、 https://www.poe2wiki.net/wiki/Frenzy_charge 、 https://www.poe2wiki.net/wiki/Power_charge
 
 **PoE1**：預設每種上限 3 顆、持續 **10 秒**。https://www.poewiki.net/wiki/Charge
 
 | 球 | PoE1 玩家每顆的效果 | PoE1 怪物每顆的效果 |
 | --- | --- | --- |
 | 耐力 Endurance | 物理減傷 +4%、元素減傷 +4% https://www.poewiki.net/wiki/Endurance_charge | 物理減傷 +15%、元素抗性 +15% |
-| 狂怒 Frenzy | 傷害 more 4%、攻速 +4%、施法速度 +4% https://www.poewiki.net/wiki/Frenzy_charge | 傷害 more 4%、攻速與施法速度各 +15%、移動速度 +5% |
+| 盛怒 Frenzy | 傷害 more 4%、攻擊速度 +4%、施法速度 +4% https://www.poewiki.net/wiki/Frenzy_charge | 傷害 more 4%、攻擊速度與施法速度各 +15%、移動速度 +5% |
 | 暴擊 Power | 暴擊率 +50% https://www.poewiki.net/wiki/Power_charge | 暴擊率 +200% |
 
 **差異**：PoE1 的球是被動加成；PoE2 的球是「要拿來消耗的資源」，持續時間 15 秒，比 PoE1 的 10 秒長。
@@ -191,15 +191,15 @@
 | Buff | PoE2 | PoE1 | 來源類型 |
 | --- | --- | --- | --- |
 | 猛攻 Onslaught | 技能速度 +20%、移動速度 +10%，預設 4 秒 https://www.poe2wiki.net/wiki/Onslaught | 攻擊、施法、移動速度 +20%，4 秒，不疊加 https://www.poewiki.net/wiki/Onslaught | 擊殺或命中時的機率、詞綴、藥劑 |
-| 狂怒 Rage | 每點 Rage 攻擊傷害 more 1%，上限 30；每 0.2 秒掉 1 點，獲得 Rage 或受傷後暫停 4 秒；每 0.5 秒最多一下命中能加 Rage https://www.poe2wiki.net/wiki/Rage | 每點攻擊命中傷害 more 1%（不影響異常），上限 30；2 秒沒有獲得就每秒掉 10 點；不算 buff https://www.poewiki.net/wiki/Rage | 天賦、技能 |
-| 秘術增強 Arcane Surge | 施法速度 +15%、魔力回復 more 20%，10 秒 https://www.poe2wiki.net/wiki/Arcane_Surge | 施法速度 +20%、魔力回復 +30%，4 秒 https://www.poewiki.net/wiki/Arcane_Surge | 輔助寶石、詞綴 |
+| 盛怒 Rage | 每點 Rage 攻擊傷害 more 1%，上限 30；每 0.2 秒掉 1 點，獲得 Rage 或受傷後暫停 4 秒；每 0.5 秒最多一下命中能加 Rage https://www.poe2wiki.net/wiki/Rage | 每點攻擊命中傷害 more 1%（不影響異常），上限 30；2 秒沒有獲得就每秒掉 10 點；不算 buff https://www.poewiki.net/wiki/Rage | 天賦、技能 |
+| 秘能波動 Arcane Surge | 施法速度 +15%、魔力回復 more 20%，10 秒 https://www.poe2wiki.net/wiki/Arcane_Surge | 施法速度 +20%、魔力回復 +30%，4 秒 https://www.poewiki.net/wiki/Arcane_Surge | 輔助寶石、詞綴 |
 | 堅守 Fortify／Fortification | ⚠️ poe2wiki 沒有這一頁，應該不存在 | 每層受到的命中傷害 less 1%，最多 20 層、6 秒，依命中傷害取得層數 https://www.poewiki.net/wiki/Fortification | 近戰輔助 |
 | 順風 Tailwind | 可疊 10 層；每層移動速度 +1%、技能速度 +2%、閃避值 +10%、偏斜減傷 +1% https://www.poe2wiki.net/wiki/Tailwind | 行動速度 +8%，4 秒，不疊加 https://www.poewiki.net/wiki/Tailwind | 職業或天賦 |
-| 迅捷 Haste | ⚠️ poe2wiki 沒有這一頁 | 光環：攻速、施法速度、移動速度依寶石等級；另有 Vaal Haste https://www.poewiki.net/wiki/Haste | 光環 |
+| 迅捷 Haste | ⚠️ poe2wiki 沒有這一頁 | 光環：攻擊速度、施法速度、移動速度依寶石等級；另有 Vaal Haste https://www.poewiki.net/wiki/Haste | 光環 |
 | 閃避 Elusive | ⚠️ poe2wiki 沒有這一頁 | 一開始：15% 機率避開命中傷害、移動速度 +30%；每秒衰減 20%，要等結束才能再獲得 https://www.poewiki.net/wiki/Elusive | 詞綴、職業 |
 | 腎上腺素 Adrenaline | ⚠️ poe2wiki 沒有這一頁 | 傷害 +100%、攻擊／施法／移動速度 +25%、物理減傷 +10%；持有期間不能刷新 https://www.poewiki.net/wiki/Adrenaline | 天賦、職業 |
 | 相位 Phasing | ⚠️ 沒查到 | 可以穿過敵人；不算 buff https://www.poewiki.net/wiki/Phasing | 藥劑、詞綴 |
-| 邪力 Unholy Might | 獲得全部傷害 30% 的混沌傷害（DoT 吃不到）https://www.poe2wiki.net/wiki/Unholy_Might | 物理傷害 100% 轉成混沌，命中時 25% 機率造成凋零 https://www.poewiki.net/wiki/Unholy_Might | 藥劑、詞綴 |
+| 不潔之力 Unholy Might | 獲得全部傷害 30% 的混沌傷害（DoT 吃不到）https://www.poe2wiki.net/wiki/Unholy_Might | 物理傷害 100% 轉成混沌，命中時 25% 機率造成凋零 https://www.poewiki.net/wiki/Unholy_Might | 藥劑、詞綴 |
 | 化身 Archon（只有 PoE2） | 持續 10 秒，結束後要再等 20 秒；Elemental Archon：法術元素傷害 more 25%、冰凍累積 +100%、易燃強度 +100%、感電機率 +100% https://www.poe2wiki.net/wiki/Archon | 沒有 | 職業或天賦 |
 | 守護 Guard（只有 PoE2） | 先吸收命中傷害（在減傷之後），最多最大生命的 200%；不疊加 https://www.poe2wiki.net/wiki/Guard | 沒有（PoE1 有 Guard 技能，但是不同機制） | 護符、藥劑詞綴 |
 | 湧動 Surges（只有 PoE2） | 每種最多 6 個、15 秒，綁在武器上；遠程投射物攻擊會消耗它，在落點爆炸 https://www.poe2wiki.net/wiki/Surge | 沒有 | 職業 |
@@ -213,7 +213,7 @@
 
 ---
 
-## E. 詛咒與曝露
+## E. 詛咒與曝曬
 
 **PoE2 詛咒**（預設上限 **1 個**；施放後延遲 1.5 秒才生效；魔法、稀有、傳奇怪受到的效果分別少 15%、30%、50%；等級太高的怪會無效）https://www.poe2wiki.net/wiki/Curse
 
@@ -225,11 +225,11 @@
 | Vulnerability | 總護甲 −16～19210（依等級） |
 | Despair | 混沌抗性 −35～49% |
 
-持續 6～7.4 秒；範圍 1.5～3.1 公尺。另外還有標記類（例如 Sniper's Mark）和 Blasphemy（把詛咒變成光環），不在上表。
+持續 6～7.4 秒；範圍 1.5～3.1 公尺。另外還有印記類（例如 Sniper's Mark）和 Blasphemy（把詛咒變成光環），不在上表。
 
 **PoE1 詛咒**：分成 Hex（範圍）與 Mark（單一目標）；預設上限 1 個，最多可以加到 10 個；Mark 同時只能有一個。https://www.poewiki.net/wiki/Curse
 
-**曝露 Exposure**
+**曝曬 Exposure**
 - **PoE2**：三種元素抗性一起 **−20%**，持續 4 秒；魔法、稀有、傳奇怪的效果分別少 15%、30%、50%；可以跟詛咒疊加，也可以把抗性壓成負值。https://www.poe2wiki.net/wiki/Exposure
 - **PoE1**：只降單一元素，玩家造成的是 **−10%**（怪物造成的是 −25%），有持續時間時預設 4 秒；同一元素只取最強的一個。https://www.poewiki.net/wiki/Exposure
 
@@ -264,12 +264,12 @@
 用兩代 wiki 的 mods 資料表查詢（Special:CargoExport，條件是 domain = 物品、詞綴類型是前綴或後綴）：
 
 **PoE2**（https://www.poe2wiki.net/index.php?title=Special:CargoExport&tables=mods&fields=mods.id,mods.stat_text&where=mods.domain=1&format=json）
-- 一般的稀有詞綴大多是「放大既有機制」：例如 `增加感電機率`、`流血／中毒持續時間 +8～12%`、`詛咒強度 +2～12%`、`秘術增強效果 +12～18%`、`對自己的點燃／感電持續時間降低`、`護符充能獲得量提高`。
+- 一般的稀有詞綴大多是「放大既有機制」：例如 `增加感電機率`、`流血／中毒持續時間 +8～12%`、`詛咒強度 +2～12%`、`秘能波動效果 +12～18%`、`對自己的點燃／感電持續時間降低`、`護符充能獲得量提高`。
 - 「直接給機制」的詞綴幾乎只出現在特殊來源：**精髓（Essence）**（`被命中時獲得猛攻 3 秒`、`擊殺時 16% 機率獲得任一種球`、`格擋時 25% 機率獲得暴擊球`、`不會中毒`），**Abyss／Decay 類**（`流血／中毒／點燃強度 +20～42%`），**特定職業的詞綴**（`25% 機率造成流血`），以及**傳奇物品**。⚠️ 有一批 id 開頭是 `HandWraps…` 的詞綴（例如 `命中時 8～12% 機率獲得猛攻`、`暴擊時 5～10% 機率獲得暴擊球`），我不確定是哪一種物品或來源。
 - 傷害型異常的機率（流血、中毒）在 PoE2 主要來自技能和輔助寶石，不是裝備詞綴。
 
 **PoE1**（https://www.poewiki.net/index.php?title=Special:CargoExport&tables=mods&fields=mods.id,mods.stat_text&where=mods.domain=1&format=json）
-- 機制類詞綴主要集中在**勢力詞綴**（Shaper／Elder／征服者／Maven，id 有 `Uber`、`Influence`）：`暴擊時 15% 機率獲得暴擊球`、`+1 球數上限`、`擊殺時 5～10% 機率獲得猛攻`、`附近敵人被致盲`、`15% 機率造成殘廢`、`暴擊時 11～20% 機率獲得秘術增強`；另外是**精髓**、**工藝台**（Necropolis 等），以及**傳奇物品**（例如「Curse Enemies with … on Hit」）。
+- 機制類詞綴主要集中在**勢力詞綴**（Shaper／Elder／征服者／Maven，id 有 `Uber`、`Influence`）：`暴擊時 15% 機率獲得暴擊球`、`+1 球數上限`、`擊殺時 5～10% 機率獲得猛攻`、`附近敵人被致盲`、`15% 機率造成殘廢`、`暴擊時 11～20% 機率獲得秘能波動`；另外是**精髓**、**工藝台**（Necropolis 等），以及**傳奇物品**（例如「Curse Enemies with … on Hit」）。
 - 一般的稀有詞綴以數值為主（抗性、生命、傷害、速度）。
 
 **結論（規律）**：兩代都一樣，一般隨機詞綴負責「數值、放大既有機制」；「獲得球或 buff、施加詛咒、新增異常來源」這種改變玩法的效果，主要放在特殊來源（精髓、勢力或深淵、傳奇物品），或交給技能、天賦。
@@ -278,7 +278,7 @@
 
 ## 我最不確定的項目
 
-1. PoE2 中毒的比例：tooltip 寫每秒 20%（共 40%），內文寫「20%……持續 2 秒」，兩者矛盾。
+1. PoE2 中毒的比例：tooltip 寫每秒 20%（共 40%），內文寫「20%……持續 2 秒」，兩者長矛盾。
 2. PoE2 暴擊會不會讓異常變強：我是從「異常用套完所有加成的命中傷害計算」推論的，wiki 沒有直接寫。
 3. PoE2 有沒有 DoT 乘數：只是 wiki 全站搜不到，沒有找到明確移除的 patch note。
 4. PoE2 冰凍、感電的累積條會不會顯示在怪物身上：只有 Mobalytics 一個來源；冰凍、感電的累積公式也沒有公開。

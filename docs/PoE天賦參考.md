@@ -11,10 +11,10 @@ PoE2 的走向是**小點只給一點點，傷害和防禦都靠「疊很多個 
 | 生命 | 不給 %；給 +10 固定值或 +5 力量 | 3% 最大生命（或 +20 固定生命）＋另一個效果 | 小點 3074 個只有 1 個 %生命；大點 3% |
 | 生命回復 | 回復速度 +10%、每秒 0.1～0.2% | 每秒 0.5～1%、受傷回收 5～8% | 同左 |
 | 護甲／閃避／能量護盾 | +10～15% | +20～30%（少數 40%） | 小點 10～15，大點 20～30 |
-| 一般傷害（攻擊、法術、元素、物理、投射物、近戰、召喚物） | +8～12% | +20～30%；有條件可到 40～50%；有缺點（例：攻速 -5%）可到 40～50% | 小點 8～12，大點 15～35 |
+| 一般傷害（攻擊、法術、元素、物理、投射物、近戰、召喚物） | +8～12% | +20～30%；有條件可到 40～50%；有缺點（例：攻擊速度 -5%）可到 40～50% | 小點 8～12，大點 15～35 |
 | 單一元素傷害 | +10～12% | +20～30% | 同左 |
-| 攻速／施法／技能速度 | +2～3% | +5～8%（條件式 8～16%） | 小點 2～3，大點 4～10 |
-| 移速 | +2% | +3～4% | 同左 |
+| 攻擊速度／施法／技能速度 | +2～3% | +5～8%（條件式 8～16%） | 小點 2～3，大點 4～10 |
+| 移動速度 | +2% | +3～4% | 同左 |
 | 暴擊率（increased） | +10% | +15～25%（條件式 50%） | 同左 |
 | 暴擊傷害加成 | +15% | +20～25%（只限某武器時 40%） | 小點 15，大點 20～25 |
 | 抗性 | +5% 單抗（少量） | +10% 單抗 或 +3% 全抗；+1% 最大抗為頂 | 同左 |
@@ -22,7 +22,7 @@ PoE2 的走向是**小點只給一點點，傷害和防禦都靠「疊很多個 
 | 持續時間 | +5～10% | +10～20% | 同左 |
 | 格擋（increased） | +5% | +10～15% | 同左 |
 | 魔力回復 | +10% | +15～20% | 同左 |
-| 精魄 | 不給 | 頂多 4% increased（全樹只有 1 個） | 同左 |
+| 精魂 | 不給 | 頂多 4% increased（全樹只有 1 個） | 同左 |
 | 異常機率 | +10%；直接「命中時 x% 機率中毒／流血」5～8% | +15～20%；直接機率 25～30% | 同左 |
 | 異常強度（magnitude） | +10% | +15～25%；條件式到 35～80% | 同左 |
 | 「更多（more）」 | 不給 | 幾乎不給；要給就 10～20% 而且要窄條件（某武器＋某狀態） | 984 大點只有 4 個 more |
@@ -95,18 +95,18 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 | 混沌 | #% increased Chaos Damage | 33 | 7x16 21x6 5x5 |
 | 全傷害 | #% increased Damage | 15 | 10x9 15x3 |
 | 穿透 | Damage Penetrates #% Fire/Cold/Lightning Resistance | 14／12／18 | 6 |
-| 攻速 | #% increased Attack Speed | 44 | 3x26 2x18 |
+| 攻擊速度 | #% increased Attack Speed | 44 | 3x26 2x18 |
 | 施法速度 | #% increased Cast Speed | 22 | 3x19 2x3 |
 | 技能速度 | #% increased Skill Speed | 11 | 3x7 2x2 4x2 |
-| 移速 | #% increased Movement Speed | 11 | 2x7 1x2 3x2 |
+| 移動速度 | #% increased Movement Speed | 11 | 2x7 1x2 3x2 |
 | 暴擊率 | #% increased Critical Hit Chance | 35 | 10x28 5x5 |
-| 暴擊傷害 | #% increased Critical Damage Bonus | 30 | 15x26 20x3 |
+| 暴擊傷害加成 | #% increased Critical Damage Bonus | 30 | 15x26 20x3 |
 | 抗性 | +#% to Lightning / Cold / Fire / Chaos Resistance | 7／6／3／3 | 5 為主（2～5） |
 | 範圍 | #% increased Area of Effect for Attacks | 36 | 6x23 4x13 |
 | 範圍 | #% increased Area of Effect | 13 | 6x7 5x4 |
 | 持續時間 | #% increased Skill Effect Duration | 25 | 10x10 5x7 8x4 |
 | 格擋 | #% increased Block chance | 38 | 5x28 4x7 8x3 |
-| 精魄 | （小點沒有任何精魄） | 0 | — |
+| 精魂 | （小點沒有任何精魂） | 0 | — |
 | 魔力 | #% increased Mana Regeneration Rate | 54 | 10x39 |
 | 召喚物傷害 | Minions deal #% increased Damage | 49 | 10x23 6x9 15x7 |
 | 召喚物生命 | Minions have #% increased maximum Life | 25 | 10x11 |
@@ -131,7 +131,7 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 | 魔力 | #% increased maximum Mana（47） | 8x30 |
 | 能量護盾 | #% increased maximum Energy Shield（46） | 5x23 6x14 4x9 |
 | 閃避／護甲 | #% increased Evasion Rating／Armour | 閃避 10～14；護甲 8～14 |
-| 攻速／施法 | #% increased Attack／Cast Speed | 3～4 |
+| 攻擊速度／施法 | #% increased Attack／Cast Speed | 3～4 |
 | 物理／元素／法術 | #% increased … Damage | 8～12（單元素 8～16） |
 | 雙手物理 | #% increased Physical Damage with Two Handed Melee Weapons（17） | 12x10 14x4 16x2 |
 | 暴擊率 | #% increased Critical Strike Chance | 12～25 |
@@ -139,7 +139,7 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 | 格擋 | +#% Chance to Block Attack Damage while…（直接加，非 increased） | 2～4 |
 | 範圍 | #% increased Area of Effect | 5～12 |
 | 回血 | Regenerate #% of Life per second | 0.4～0.6 |
-| 移速 | #% increased Movement Speed | 3 |
+| 移動速度 | #% increased Movement Speed | 3 |
 | 持續傷害倍率 | +#% to Damage over Time Multiplier | 3～6 |
 
 來源：PoE1 data.json（上方網址）統計。**對照重點**：PoE1 小點直接給 4～6% 生命，PoE2 拿掉了，改成 +5 屬性。
@@ -176,7 +176,7 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 - **Lightning Quick**：14% increased Lightning Damage；8% increased Attack and Cast Speed with Lightning Skills
 - **Blade Flurry**：6% increased Attack Speed while Dual Wielding；15% increased Attack Critical Hit Chance while Dual Wielding
 
-量級：攻速 4～10（6x5 4x3）、施法 5～16、技能速度 5～6、移速 3～4。
+量級：攻擊速度 4～10（6x5 4x3）、施法 5～16、技能速度 5～6、移動速度 3～4。
 
 ### 暴擊
 - **Heartbreaking**：25% increased Critical Damage Bonus；+10 to Strength
@@ -184,7 +184,7 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 - **Leaping Ambush**：50% increased Critical Hit Chance against Enemies that are on Full Life
 - **Sundering**：25% increased Critical Damage Bonus for Attack Damage；+25% to Critical Damage Bonus against Stunned Enemies
 
-量級：暴擊率 15～25（條件式 50）；暴擊傷害 20～25（限武器 40～80）。
+量級：暴擊率 15～25（條件式 50）；暴擊傷害加成 20～25（限武器 40～80）。
 
 ### 生命與防禦
 - **Unbending**：3% increased maximum Life；10% increased Stun Threshold for each time you've been Hit Recently, up to 100%
@@ -228,13 +228,13 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 | Avatar of Fire | 75% 傷害轉為火焰；不造成非火焰傷害 |
 | Blood Magic | 沒有魔力；技能魔力消耗改扣生命 |
 | Zealot's Oath | 溢出的生命再生加到能量護盾；能量護盾不會充能 |
-| Ancestral Bond | 圖騰上限加倍；放圖騰不需充能；每個圖騰保留 75 精魄 |
+| Ancestral Bond | 圖騰上限加倍；放圖騰不需充能；每個圖騰保留 75 精魂 |
 | Pain Attunement | 滿血時暴擊傷害加成 30% less；低血時 30% more |
 | Chaos Inoculation | 最大生命為 1；免疫混沌傷害與流血 |
 | Eldritch Battery | 能量護盾 100% 轉為魔力；魔力消耗加倍 |
 | Mind Over Matter | 所有傷害先扣魔力；魔力回復 50% less |
 | Whispers of Doom | 可多掛一個詛咒；詛咒啟動延遲加倍 |
-| Necromantic Talisman | 護身符的所有加成改給召喚物 |
+| Necromantic Talisman | 項鍊的所有加成改給召喚物 |
 | Conduit | 你獲得的充能球改給身邊的隊友 |
 | Resonance | 暴擊球／狂怒球／耐力球的獲得互換一輪 |
 | Eternal Youth | 生命改成會充能（取代能量護盾）；藥劑回血 50% less |
@@ -249,11 +249,11 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 | Bulwark | 翻滾不能閃避傷害；翻滾中受到的命中傷害 30% less |
 | Crimson Assault | 流血變惡化；基礎流血持續 1 秒；流血強度 50% more |
 | Trusted Kinship | 可帶兩個不同種的夥伴；夥伴技能保留效率 30% more、其他 20% less |
-| Hollow Palm Technique | 雙手空時當作拿木杖攻擊；依護甲上的閃避加攻速、能量護盾加暴擊率 |
+| Hollow Palm Technique | 雙手空時當作拿木杖攻擊；依護甲上的閃避加攻擊速度、能量護盾加暴擊率 |
 | Blackflame Covenant | 火焰法術 100% 轉混沌；混沌照樣累積易燃與點燃；點燃改造成混沌傷害 |
 | Ritual Cadence | 祈喚技能改成每 2 秒觸發法術；觸發時不能累積能量；祈喚法術能量消耗 50% less |
 | Scarred Faith | 每單位敵人強度，被護甲擋下的物理傷害 5% 回收為能量護盾；能量護盾不充能、不再生、不能超過護甲 |
-| Lord of the Wilds | 拿法器時可以裝非傳奇權杖；精魄 50% less；非召喚物技能保留效率 50% less |
+| Lord of the Wilds | 拿法器時可以裝非傳奇權杖；精魂 50% less；非召喚物技能保留效率 50% less |
 | Wildsurge Incantation | 風暴與植物法術：傷害 50% more、消耗 50% less、持續時間 75% less |
 
 量級：**正面效果 25～50% more，一定配一個同量級的 less 或「不能做某事」**。
@@ -262,7 +262,7 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 
 | 名稱 | 效果 |
 | --- | --- |
-| Glancing Blows | 攻擊格擋率加倍、法術格擋率加倍；**被格擋的命中仍承受 65% 傷害** |
+| Glancing Blows | 攻擊格擋機率加倍、法術格擋機率加倍；**被格擋的命中仍承受 65% 傷害** |
 | Resolute Technique | 你的命中不會被閃避；永遠不會暴擊 |
 | Chaos Inoculation | 最大生命變 1；免疫混沌傷害 |
 | Iron Reflexes | 全部閃避轉為護甲；敏捷不再給閃避 |
@@ -289,9 +289,9 @@ PoE2 小點有 2553 個只有 1 條詞、507 個 2 條、14 個 3 條（JSON 統
 | 最大生命 % | **+3～9%** | 1～3 個 3% 大點 |
 | 固定生命 | 約 +150～250 | 15～25 個屬性小點的力量 ×2 生命（另加大點的 +10～25 力量） |
 | 主屬性傷害（例：近戰物理） | **+200～350% increased** | 約 18 個傷害小點 ×10% ≈ 180%；約 8 個傷害大點 ×25% ≈ 200%；扣掉不同類別不疊的部分 |
-| 攻速／施法 | +15～30% | 5 個小點 ×3% ＋ 2 個大點 ×6% |
+| 攻擊速度／施法 | +15～30% | 5 個小點 ×3% ＋ 2 個大點 ×6% |
 | 主防禦（護甲或閃避） | +100～200% | 8 個小點 ×12% ＋ 2～3 個大點 ×25% |
-| 暴擊率／暴擊傷害（有走暴擊才算） | 暴擊率 +60～100%、暴傷 +50～80% | 4～6 個小點＋1～2 個大點 |
+| 暴擊率／暴擊傷害加成（有走暴擊才算） | 暴擊率 +60～100%、暴傷 +50～80% | 4～6 個小點＋1～2 個大點 |
 | 抗性 | +0～15% | 樹上很少，主要靠裝備 |
 | more 乘區 | 0～1 個（10～20%） | 大點幾乎沒有，主要來自基石／昇華 |
 

@@ -33,22 +33,24 @@ const MAPMOD = {
   cold: { d: 1, g: 'addC', t: '怪物多造成 20% 的冰冷傷害', fx: { addC: 20 } },
   light: { d: 1, g: 'addL', t: '怪物多造成 20% 的閃電傷害', fx: { addL: 20 } },
   crit1: { d: 2, g: 'crit', t: '怪物暴擊率 +10%', fx: { mcrit: 10 } },
-  crit2: { d: 3, g: 'crit', t: '怪物暴擊率 +25%、暴擊傷害 +50%', fx: { mcrit: 25, mcritX: 0.5 } },
+  crit2: { d: 3, g: 'crit', t: '怪物暴擊率 +25%、暴擊傷害加成 +50%', fx: { mcrit: 25, mcritX: 0.5 } },
   bleed: { d: 2, g: 'bleed', t: '怪物擊中時 25% 機率讓你流血', fx: { mbleed: 25 } },
   poison: { d: 2, g: 'poison', t: '怪物擊中時 25% 機率讓你中毒', fx: { mpoi: 25 } },
   ignite: { d: 2, g: 'ignite', t: '怪物擊中時 25% 機率點燃你', fx: { mign: 25 } },
   regen1: { d: 1, g: 'regen', t: '你的生命回復 −40%', fx: { pregen: -40 } },
-  regen3: { d: 3, g: 'regen', t: '你不能回復生命（藥水、吸血除外）', fx: { pregen: -100 } },
-  flask: { d: 1, g: 'flask', t: '藥水回復 −30%', fx: { pflask: -30 } },
+  regen3: { d: 3, g: 'regen', t: '你不能回復生命（藥劑、生命偷取除外）', fx: { pregen: -100 } },
+  flask: { d: 1, g: 'flask', t: '藥劑回復 −30%', fx: { pflask: -30 } },
   maxres1: { d: 2, g: 'maxres', t: '你的最大元素抗性 −10%', fx: { pmaxres: -10 } },
   maxres3: { d: 3, g: 'maxres', t: '你的最大元素抗性 −20%', fx: { pmaxres: -20 } },
-  es: { d: 2, g: 'es', t: '能量護盾回充速度 −40%', fx: { pes: -40 } },
-  leech: { d: 1, g: 'leech', t: '吸血 −50%', fx: { pleech: -50 } },
+  es: { d: 2, g: 'es', t: '能量護盾充能速度 −40%', fx: { pes: -40 } },
+  leech: { d: 1, g: 'leech', t: '生命偷取 −50%', fx: { pleech: -50 } },
   cuEle: { d: 2, g: 'curse', t: '你被「元素要害」詛咒（元素抗性 −20%）', fx: { pcurse: 'eleweak', pcv: 20 } },
   cuTc: { d: 2, g: 'curse', t: '你被「時空鎖鏈」詛咒（緩速 15%）', fx: { pcurse: 'tchains', pcv: 15 } },
   cuEn: { d: 3, g: 'curse', t: '你被「衰弱」詛咒（造成的傷害更少 20%）', fx: { pcurse: 'enfeeble', pcv: 20 } },
   cuVu: { d: 2, g: 'curse', t: '你被「脆弱」詛咒（護甲 −30%）', fx: { pcurse: 'vuln', pcv: 30 } },
-  pen: { d: 3, g: 'pen', t: '怪物穿透你 15% 的元素抗性', fx: { mpen: 15 } }
+  pen: { d: 3, g: 'pen', t: '怪物穿透你 15% 的元素抗性', fx: { mpen: 15 } },
+  /* 0.2.42 堅韌：怪物受到的傷害 ÷ (1 + 30%)，約少打 23%，跟「怪物生命 +30%」差不多，危險度 2 */
+  tough: { d: 2, g: 'tough', t: '怪物堅韌 +30%', fx: { mtough: 30 } }
 };
 /* 每條詞的獎勵：危險度越高越多（物品數量、稀有度、材料，%） */
 const MOD_REW = [null, [4, 3, 4], [8, 6, 7], [13, 10, 11]];

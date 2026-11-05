@@ -4,7 +4,16 @@
 const fs = require('fs'),
   vm = require('vm'),
   path = require('path');
-const ctx = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+/* 固定亂數（mulberry32）：同一份程式每次結果一樣，批次前後的數字才比得出差別 */
+let seed = 12345;
+const sMath = Object.create(Math);
+sMath.random = () => {
+  let t = (seed = (seed + 0x6d2b79f5) | 0);
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+const ctx = { console, Math: sMath, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
 for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
@@ -63,7 +72,7 @@ function route(w, pts) {
   return [...have];
 }
 /* 裝備：每一欄挑同階級的稀有裝（照權重從 4 件裡挑最好的，接近一般玩家） */
-function gear(t, want, wt, off) {
+function gear(t, want, wt, off, L = 999) {
   const eq = {};
   for (const e of R('EQS')) {
     let best = null,
@@ -73,12 +82,14 @@ function gear(t, want, wt, off) {
         b =>
           R('eqTakes')(e, b.k) &&
           b.lv <= t &&
+          /* 穿得起的才挑：基底階級換算的需求等級（items.js 的 itemReq）不超過角色等級 */
+          1 + Math.round(((b.lv - 1) * 82) / 15) <= L &&
           (e.k !== 'weapon' || b.wt === wt) &&
           (e.k !== 'off' || !off || b.k === off) &&
           (e.k !== 'weapon' || !off || !b.two)
       );
       if (!pool.length) break;
-      const b = pool[Math.floor(Math.random() * pool.length)],
+      const b = pool[Math.floor(sMath.random() * pool.length)],
         it = R('mkItem')(b.id, R('tierIlvl')(t), 2),
         v = it.a.reduce((a, x) => a + (want[x.k] || 0) * (Array.isArray(x.v) ? x.v[1] : x.v), 0);
       if (v > bv) (bv = v), (best = it);
@@ -156,7 +167,7 @@ const BUILDS = {
     wt: 'bow',
     sk: 'split',
     asc: ['wind', 's3', 'far', 's4', 'endless', 's5', 'falcon', 's1', 'gale'],
-    /* 遠射：當作平均飛 400（更多 24%）；獵鷹標記：當作每一下都打到被標記的（更多 10%） */
+    /* 遠射：當作平均飛 400（更多 24%）；獵鷹印記：當作每一下都打到被印記的（更多 10%） */
     fly: 400,
     falcon: 1
   },
@@ -218,9 +229,9 @@ for (const t of [1, 4, 8, 12, 13, 16]) {
       let n = 0,
         first = 0;
       for (let i = 0; i < 90; i++) {
-        const was = R(`ailPinned(b.ail)`);
+        const was = R(`immob(b.ail)`);
         R(`G.t = ${i / 3}; poiseAdd(b, '${k}', ${dmg})`);
-        if (!was && R(`ailPinned(b.ail)`)) (n += 1), (first = first || i / 3);
+        if (!was && R(`immob(b.ail)`)) (n += 1), (first = first || i / 3);
       }
       return [n, first];
     },
@@ -253,13 +264,44 @@ for (const L of [30, 60, 90]) {
     const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
       S = {
         lv: L,
-        eq: gear(t, B.gear, B.wt, B.off),
+        eq: gear(t, B.gear, B.wt, B.off, L),
         pt: route(B.tree, R('ptPoints')(L)),
+        ptA: {},
         asc: B.asc ? B.asc[0] : null,
         at: B.asc ? ['a_st', ...B.asc.slice(1, 1 + ap).map(k => 'a_' + k)] : [],
         auras: [],
         charms: []
       };
+    /* 過路點的能力值：一點一點補，每點選「讓全身裝備缺的能力值總和降最多」的那一項（用 eqLack，自己給的不算自己），都不缺就加力量 */
+    {
+      const I = R('PTREE').I,
+        need = { str: 0, dex: 0, int: 0, lv: 0 };
+      ctx.S = S;
+      /* 各項能力值全身裝備缺的總和（eqLack：自己給的不算自己、失效的不給） */
+      const lack = () => {
+        const d = { 力量: 0, 敏捷: 0, 智慧: 0 };
+        for (const k of Object.keys(S.eq)) {
+          ctx.__k = k;
+          for (const [n, have, req] of R('eqLack(S, S.eq.' + k + ', __k)')) if (n in d) d[n] += req - have;
+        }
+        return d;
+      };
+      for (const it of Object.values(S.eq)) {
+        ctx.__it = it;
+        const q = R('itemReq(__it)');
+        for (const k in need) need[k] = Math.max(need[k], q[k]);
+      }
+      S.need = need;
+      for (const id of S.pt.filter(id => I[id].s && I[id].s.attr)) {
+        const d = lack(),
+          c = [
+            ['s', '力量'],
+            ['d', '敏捷'],
+            ['i', '智慧']
+          ].sort((a, b) => d[b[1]] - d[a[1]])[0];
+        S.ptA[id] = d[c[1]] > 0 ? c[0] : 's';
+      }
+    }
     ctx.S = S;
     R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');
     const ST = R('ST'),
@@ -288,7 +330,7 @@ for (const L of [30, 60, 90]) {
     let sum = 0;
     ctx.c = c;
     if (B.falcon) boss.ail.mark = { k: 'falcon' };
-    /* 點燃一直掛著（焦土的火焰曝露才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
+    /* 點燃一直掛著（焦土的火焰曝曬才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
     if (B.ign) boss.ail.ign = { dps: 1, t: 1e9 };
     if (ST.powCritX) R('P.chg = { p: { n: 3, t: 1e9 } }');
     if (ST.cwHit) boss.ail.cw = Array(ST.cwMax || 20).fill(1e9);
@@ -347,7 +389,9 @@ for (const L of [30, 60, 90]) {
           .toString()
           .padStart(4) + '%',
         ST.bv ? `格擋值 ${ST.bv}` : '',
-        B.asc ? `昇華 ${S.at.length - 1} 點` : ''
+        B.asc ? `昇華 ${S.at.length - 1} 點` : '',
+        ST.eqBad.length ? `❌穿不起 ${ST.eqBad.join('/')}` : '',
+        `過路${JSON.stringify(Object.values(S.ptA).reduce((m, c) => ((m[c] = (m[c] || 0) + 1), m), {}))}${S.pt.filter(id => R('PTREE').I[id].s && R('PTREE').I[id].s.attr).length}點 失效${R('eqCheck(S).bad.size')} 能力值${ST.str}/${ST.dex}/${ST.int} 最高需求${S.need.str}/${S.need.dex}/${S.need.int} 等級${S.need.lv}`
       ].join(' ')
     );
     void fire;

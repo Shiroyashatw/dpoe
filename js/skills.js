@@ -19,14 +19,15 @@ const supOK = (D, sp, g) => {
     (D.tags.includes('move') || D.tags.includes('minion') || D.unit === 'trap' || D.unit === 'mine')
   )
     return false;
+  if (U.all && !U.all.every(t => D.tags.includes(t))) return false;
   return !U.need.length || U.need.some(t => D.tags.includes(t));
 };
-/* 一格技能的實際數值（技能等級＋輔助＋天賦冷卻縮減）；觸發、幻影直接用 gemCfg（i = −1）；c.g 是寶石本身 */
+/* 一格技能的實際數值（技能等級＋輔助＋天賦冷卻時間恢復率）；觸發、幻影直接用 gemCfg（i = −1）；c.g 是寶石本身 */
 const slotCfg = i => gemCfg(S.skills[i] && S.skills[i].a, i);
 function gemCfg(g, i) {
   if (!g) return null;
   const D = SKILLS[g.gem],
-    /* 法杖：法術技能等級 +1 */
+    /* 長杖：法術技能等級 +1 */
     lv = g.lv + (D.tags.includes('spell') ? ST.spellLv : 0),
     c = {
       i,
@@ -39,7 +40,8 @@ function gemCfg(g, i) {
       aoe: 1,
       speed: D.tags.includes('spell') ? (1 + ST.castP / 100) * (hasBuff('arcane') ? 1.15 : 1) : 1,
       mp: D.mp * gemMpMul(g.lv),
-      cd: (D.cd || 0) * (1 - ST.cdr / 100),
+      cd: D.cd || 0,
+      cdrP: ST.cdr,
       g,
       critInc: D.crit || 0,
       critX: 0,
@@ -61,6 +63,7 @@ function gemCfg(g, i) {
       wither: D.wither,
       blind: D.blind,
       hsM: D.hsM || 1,
+      pin: D.pin || 0,
       wolves: (D.cnt || 0) + ST.wolfN,
       wolfM: 1,
       /* 品質（0.2.29）0～1；fan 扇形角度倍率（多重投射的品質） */
@@ -69,7 +72,7 @@ function gemCfg(g, i) {
     };
   /* 閃電箭：品質每 1% 物理轉閃電 +1%、感電機率更多 +1% */
   if (D.cvL) (c.cvL = D.cvL + (g.q || 0)), (c.shockMore = D.shockMore + (g.q || 0)), (c.boltChain = 1);
-  /* 重擊的品質：碾壓後的下一下 */
+  /* 重擊的品質：粉碎重擊後的下一下 */
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
   for (const sp of g.sup || []) {
     if (!sp || !supOK(D, sp, g)) continue;
@@ -80,10 +83,10 @@ function gemCfg(g, i) {
     else if (k === 'pierce') (c.pierce += 3), (c.pSplit = 20 * sq);
     else if (k === 'area') (c.aoe *= 1.4), (c.solo = 0.2 * sq);
     else if (k === 'fury') (c.more *= 1.35), (c.mp *= 1.4 - 0.2 * sq);
-    else if (k === 'haste') c.speed *= 1.25 * (P && P.killT > G.t ? 1 + 0.15 * sq : 1);
+    else if (k === 'haste') c.speed *= 1.25 * (P && recent('kill') ? 1 + 0.15 * sq : 1);
     else if (k === 'crit') (c.critInc += 50), (c.critX += 40), (c.critChg = 20 * sq);
     else if (k === 'leech') (c.leech += 0.03), (c.leechMp = 0.2 * sq);
-    else if (k === 'cdr') c.cd *= 0.65;
+    else if (k === 'cdr') c.cdrP += 50;
     else if (k === 'fireadd') (c.fireAdd += 0.25), (c.addIgn = 20 * sq);
     else if (k === 'heavy') (c.kb *= 2), (c.more *= 1.15), (c.wallCh = 20 * sq);
     else if (k === 'pack') (c.wolves += 1), (c.wolfM *= 1.3), (c.wolfBl = 20 * sq);
@@ -95,6 +98,7 @@ function gemCfg(g, i) {
     else if (k === 'expose') (c.expose = 1), (c.expQ = sq);
     else if (k === 'armbreak') (c.armBreak = 1), (c.brkQ = sq);
     else if (k === 'elec') (c.elc = 1), (c.elcQ = sq);
+    else if (k === 'pin') c.pin = 1 + 0.2 * sq;
     else if (k === 'wither') (c.wither = 1), (c.witherMax = 10 + 2 * Math.floor(sq * 4));
     else if (k === 'blind') (c.blind = 1), (c.blindQ = sq);
     else if (k === 'arcane') (c.arcane = 1), (c.arcKill = sq);
@@ -105,13 +109,21 @@ function gemCfg(g, i) {
       c.more *= c.conv === 'trap' ? 1.2 : c.conv === 'totem' ? 0.7 : 1;
     }
   }
-  if (c.auto) (c.cd += AUTO.cd * (1 - (c.auto.q || 0) / 100) * (1 - ST.cdr / 100)), (c.mp *= AUTO.mp);
-  c.mp = D.mp ? Math.max(1, Math.round(c.mp)) : 0;
+  if (c.auto) (c.cd += AUTO.cd * (1 - (c.auto.q || 0) / 100)), (c.mp *= AUTO.mp);
+  c.cd /= 1 + c.cdrP / 100; /* 冷卻時間恢復率：冷卻 ÷ (1 + x/100)，沒有上限 */
+  /* 效用：魔力消耗 ÷ (1 + 效用%) */
+  c.mp = D.mp ? Math.max(1, Math.round(c.mp / (1 + ST.mpEff / 100))) : 0;
   c.unit = D.unit || c.conv;
   return c;
 }
 /* 出手一次要幾秒（useSlot 與面板共用） */
-const actDur = c => c.D.t / (c.D.shield ? ST.sasM : ST.asM) / c.speed / speedMul() / (isSpell(c.D) ? 1 : atkBuf());
+/* tAdd（0.2.42）：增加技能使用時間，固定秒數、不吃任何速度，加在最後 */
+const actDur = c =>
+  c.D.t / (c.D.shield ? ST.sasM : ST.asM) / c.speed / speedMul() / (isSpell(c.D) ? 1 : atkBuf()) + (c.D.tAdd || 0);
+/* 技能基礎攻擊時間（只在技能面板顯示）：技能的 t 除以武器每秒攻擊次數（1.1 是 t 的基準），法術就是 t */
+const baseT = c => c.D.t / (isSpell(c.D) ? 1 : (c.D.shield ? 1.2 : ST.waps) / 1.1);
+/* 持續時間（0.2.42）：只有 duration 標籤的技能吃「技能持續時間」 */
+const durOf = c => (c.D.dur || 0) * (c.D.tags.includes('duration') ? 1 + ST.durP / 100 : 1);
 /* 面板的數字：hit 每下（含暴擊期望、不算怪物防禦）、dps、dot 每秒、unit 單體 DPS、eff 沒有傷害的效果 */
 function skillNums(c) {
   const D = c.D,
@@ -145,8 +157,9 @@ const metaOf = g =>
   g && (g.sup || []).find(x => x && SUPPORTS[x.gem] && SUPPORTS[x.gem].meta && supOK(SKILLS[g.gem], x, g));
 /* 放不放得出來（手動與自動共用）：回傳不能放的原因。地獄火（0.2.26）不扣魔力、改成累積，所以不檢查魔力；血魔法優先 */
 function skillWhy(c, at) {
+  if (c.g && gemLack(c.g).length) return '能力值不足';
   const hell = ST.hellfire && !ST.blood;
-  if (ST.blood ? P.hp <= c.mp + 1 : !hell && P.mp < c.mp) return ST.blood ? '生命不夠施放' : '魔力不足';
+  if (ST.blood ? P.hp <= c.mp + 1 : !hell && mpAvail() < c.mp) return ST.blood ? '生命不夠施放' : '魔力不足';
   if (c.k === 'banner' && (P.glory || 0) < 100) return '榮耀不夠（' + Math.floor(P.glory || 0) + '／100）';
   if ((c.k === 'corpseboom' || c.k === 'paperdoll') && !corpseNear(c.k === 'paperdoll' ? P : at, 250))
     return '附近沒有屍體';
@@ -154,18 +167,18 @@ function skillWhy(c, at) {
   if (A && A.until > G.t) return '裝填中';
   return '';
 }
-/* 付費：彈藥、魔力（或生命、地獄火）、順風、冷卻 */
+/* 付費：彈藥、魔力（或生命、地獄火）、流順之風、冷卻 */
 function skillPay(c, i) {
   if (c.D.ammo) ammoUse(c.k, c.D.ammo[0], c.D.ammo[1]);
-  if (ST.blood) P.hp -= c.mp;
+  if (ST.blood) sacrifice('hp', c.mp);
   else if (ST.hellfire) hfGain(c.mp);
-  else P.mp -= c.mp;
+  else payMp(c.mp);
   galeUse();
   if (c.cd) P.cds['s' + i] = c.cd;
 }
 function useSlot(i) {
   if (P.act || P.roll || G.state !== 'play' || G.scene !== 'map') return false;
-  if (P.ail && P.ail.frozen > G.t) return false;
+  if ((P.ail && P.ail.frozen > G.t) || pStagger() || pHeavy()) return false;
   const c = slotCfg(i);
   if (!c) return false;
   const mt = metaOf(c.g);
@@ -180,13 +193,13 @@ function useSlot(i) {
   if (D.gren && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('手雷還沒好'), false;
   skillPay(c, i);
   if (c.k === 'smash') P.smashQ = 0;
-  /* 狼撲的品質：撲向被標記的怪不花魔力 */
+  /* 狼撲的品質：撲向被印記的怪不花魔力 */
   if (c.k === 'wolfpounce' && tm && tm.ail.mark && qRoll(20 * c.q)) addMp(c.mp);
   /* 變身（mech.js）：用了不是這個形態的技能就變回來 */
   formFor(c.D);
   const ang = Math.atan2(w.y - P.y, w.x - P.x);
   P.face = ang;
-  /* 陷阱、地雷、砲台、圖騰：放在滑鼠位置（最遠 320） */
+  /* 陷阱、地雷、砲塔圖騰、圖騰：放在滑鼠位置（最遠 320） */
   if (c.unit) {
     placeUnit(c, w);
     P.act = { k: c.k, c, t: 0, dur: 0.25 / c.speed, ang, hits: [], n: 0, place: 1 };
@@ -414,7 +427,7 @@ function actHit(a, idx) {
       shoot(g, D.spd, c, a, { boom: (D.r || 70) * ST.aoeM * c.aoe, fire: 1, life: 1.1 });
     }
   } else if (a.k === 'venom') {
-    G.pools.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: D.dur, tick: 0, c, a });
+    G.pools.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: durOf(c), tick: 0, c, a });
     sfx('cast');
   } else if (D.curse) {
     G.meteors.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: 1.5, curse: D.curse, lv: c.lv, q: c.q });
@@ -487,7 +500,7 @@ function actHit2(a, idx, R, hitArc) {
         back: a.k === 'axethrow' && qRoll(20 * c.q)
       });
   } else if (a.k === 'shieldcrush') {
-    /* 盾牌粉碎：前方扇形；瀕臨重暈的碾壓（直接重暈），並震傷碾壓那隻周圍的怪 */
+    /* 盾牌粉碎：前方扇形；瀕臨沉重暈眩的粉碎重擊（直接沉重暈眩），並震傷粉碎重擊那隻周圍的怪 */
     fxs('blunt', P.x + cos * R * 0.5, P.y + sin * R * 0.5 - 10, R * 0.7);
     shake(0.1);
     sfx('slam');
@@ -497,7 +510,7 @@ function actHit2(a, idx, R, hitArc) {
       const crushed = crush(m);
       hitMob(m, c, angTo(P, m), 220 * c.kb, { a });
       if (crushed) {
-        /* 盾牌粉碎的品質：碾壓回格擋值 */
+        /* 盾牌粉碎的品質：粉碎重擊回格擋值 */
         if (c.q && P.bvRe == null) P.bv = Math.min(ST.bv, (P.bv || 0) + ST.bv * 0.2 * c.q);
         for (const o of G.mobs)
           if (o.hp > 0 && o !== m && dist(o, m) < 120 + o.r)
@@ -535,13 +548,13 @@ function actHit2(a, idx, R, hitArc) {
     sfx('slam');
     hitArc(a.ang, D.arc, R, 200 * c.kb);
   } else if (a.k === 'warcry') {
-    P.rage = Math.min(30, (P.rage || 0) + 15);
+    P.rage = Math.min(rageCap(), (P.rage || 0) + 15);
     P.rageT = G.t;
     fxs('rage', P.x, P.y - 30, 40);
     fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#ff6b3d' });
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) (m.ail.intim = G.t + 4), (m.ail.intimQ = c.q);
   } else if (a.k === 'smash') {
-    /* 重擊：打前方最近的一隻；瀕臨重暈就碾壓（直接重暈）並震傷周圍 */
+    /* 重擊：打前方最近的一隻；瀕臨沉重暈眩就粉碎重擊（直接沉重暈眩）並震傷周圍 */
     let t = null,
       bd = 1e9;
     for (const m of G.mobs) {
@@ -592,7 +605,7 @@ function actHit2(a, idx, R, hitArc) {
     }
     if (last && c.q) addGround({ k: 'jagged', ...last, r: last.r * 1.5, dur: 2 * c.q, c });
   } else if (a.k === 'thunder') {
-    /* 每顆暴擊球多劈一道；連擊數 5 以上全部花掉換範圍 ×1.5 */
+    /* 每顆暴擊球多劈一道；連擊 5 以上全部花掉換範圍 ×1.5 */
     const spent = useChg('p'),
       n = 1 + spent,
       r = R * (comboN() >= 5 ? (useCombo(), 1.5) : 1);
@@ -657,7 +670,7 @@ function actHit2(a, idx, R, hitArc) {
     if (swordN() >= SWORD_MAX) launchSwords(a.tx, a.ty), sfx('throw');
     else gainSwords(3 + c.proj - 1, c), fx({ k: 'ring', x: P.x, y: P.y, r: 45, dur: 0.25, col: '#cfd8e3' });
   } else if (a.k === 'shadowstrike' || a.k === 'wolfpounce') {
-    /* 撲到目標身邊：影襲必定暴擊（翻滾後 2 秒內 ×2），狼撲上獵人標記 */
+    /* 撲到目標身邊：影襲必定暴擊（翻滾後 2 秒內 ×2），狼撲上獵人印記 */
     const t = a.tm;
     if (!t || t.hp <= 0 || dist(P, t) > t.r + 60) return;
     const g = angTo(P, t);
@@ -679,7 +692,7 @@ function actHit2(a, idx, R, hitArc) {
   } else if (a.k === 'banner') {
     if (plantBanner({ dmg: 30 })) (G.banner.q = c.q), fxs('pillar', P.x, P.y, 70), sfx('cast');
   } else if (a.k === 'corpseboom') {
-    /* 屍體最大生命 10%（每級 +3%）的火焰範圍傷害，只吃抗性；也是引爆器 */
+    /* 屍體最大生命 10%（每級 +3%）的火焰範圍傷害，只吃抗性；也是引爆技能 */
     const cp = takeCorpse(a.tx, a.ty, 250);
     if (!cp) return;
     if (qRoll(20 * c.q)) G.corpses.push(cp);
@@ -705,14 +718,14 @@ function actHit2(a, idx, R, hitArc) {
       const x = P.x + cos * (40 + (k * D.len) / 4),
         y = P.y + sin * (40 + (k * D.len) / 4);
       if (isWall(x, y)) break;
-      addGround({ k: 'bloom', x, y, r: R, dur: D.dur, c, dps: 1 });
+      addGround({ k: 'bloom', x, y, r: R, dur: durOf(c), c, dps: 1 });
     }
     sfx('cast');
   } else if (a.k === 'bearmaul') {
     fxs('claw', P.x, P.y - 20, R, { rot: a.ang });
     fxs('slam', P.x + cos * R * 0.5, P.y + sin * R * 0.5, R * 0.5);
     if (hitArc(a.ang, D.arc, R, 220 * c.kb))
-      (P.rage = Math.min(30, (P.rage || 0) + 2)), (P.rageT = G.t), (P.bearQ = c.q);
+      (P.rage = Math.min(rageCap(), (P.rage || 0) + 2)), (P.rageT = G.t), (P.bearQ = c.q);
   }
 }
 /* 閃電箭打中已經感電的怪：連鎖閃電跳 2 隻（260 內最近、看得到、不重複），物理全部轉閃電；不會再觸發自己 */
@@ -736,7 +749,7 @@ const ARROW_HITS = 3;
 const ARROW_D = { hp: 1, dmg: 0, r: 16, sz: 34, xp: 0 };
 function spawnArrow(x, y, c) {
   const m = spawnMob(ARROW_D, x, y, -1, false);
-  Object.assign(m, { arrow: 1, summoned: 1, aggro: 1, hp: 1e12, mhp: 1e12, c, until: G.t + c.D.dur, fired: 0 });
+  Object.assign(m, { arrow: 1, summoned: 1, aggro: 1, hp: 1e12, mhp: 1e12, c, until: G.t + durOf(c), fired: 0 });
   fxs('landing', x, y, 30);
 }
 /* 箭矢被打中：只有這一下的異常算數（易燃累積、地面冰緩都不算）；中了就清掉，一下只放一次衝擊波（中的異常裡傷害最高的元素） */
@@ -863,24 +876,30 @@ function hitMob(m, c, ang, kb, o = {}) {
   applyAil(m, r, c);
   if (c.k === 'axethrow' && hasState(m, 'bleed')) fxs('bleed', m.x, m.y - m.sz * 0.5, 30);
   onHitBase(m, r, c);
-  /* mech.js：火焰點燃可燃地面、引爆器、連擊數、榮耀、暴擊觸發 */
+  /* 近期事件（combat.js 的 recent）：你自己的擊中與暴擊，不算召喚物與場上單位 */
+  if (!o.minion && !a.unit) evMark('hit'), r.crit && evMark('crit');
+  /* mech.js：火焰點燃可燃地面、引爆技能、連擊、榮耀、暴擊觸發 */
   if (r.pre.fire > 0) igniteAt(m.x, m.y);
   if (c.D.detonator) detonate(m.x, m.y, 60, c);
   if ((c.D.tags || []).includes('melee') && !o.quiet) comboHit(a);
-  gainGlory((r.crit ? 4 : 1) * (o.glory || 1));
+  hitGlory(m, r.crit, o.glory || 1);
   if (r.crit && !a.trig) metaEvent('crit', m);
   if (ST.wt === 'qstaff' && (c.D.tags || []).includes('melee') && !o.quiet) P.mp = Math.min(ST.mp, P.mp + 1);
+  /* 屠戮打擊（0.2.42）：擊中滿血的敵人，先移除 min(x%, 上限) 的生命；撲殺：擊中後生命低於門檻直接殺死 */
+  const cut = fullCut(m);
+  if (cut) (m.hp -= cut), num(m.x, m.y - m.sz * 1.3, 0, 'ev', '屠戮');
   m.hp -= r.d;
+  if (culled(m)) (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺');
   if (a) a.any = 1;
   m.flash = 0.09;
   m.sq = 1;
   if (o.stun && !m.boss) m.stun = o.stun;
   if (o.blind) m.ail.blind = G.t + 4;
-  if (!m.boss && kb) {
+  if (!m.boss && kb && !(m.ail.pinT > G.t)) {
     const res = m.elite ? 0.5 : m.D.ai === 'slam' ? 0.4 : 1;
     m.vx += Math.cos(ang) * kb * res * (r.crit ? 1.5 : 1);
     m.vy += Math.sin(ang) * kb * res * (r.crit ? 1.5 : 1);
-    /* 重擊輔助的品質：擊退方向貼著牆就重暈 */
+    /* 重擊輔助的品質：擊退方向貼著牆就沉重暈眩 */
     if (
       kb > 0 &&
       c.wallCh &&
@@ -897,13 +916,20 @@ function hitMob(m, c, ang, kb, o = {}) {
     sfx(r.crit ? 'crit' : 'hit');
     if (ST.loh) P.hp = Math.min(ST.hp, P.hp + ST.loh);
   }
-  /* 吸血：1 秒內回完；同時只有一筆（取回得最快的） */
+  /* 偷取：1 秒內回完；每種資源同時只有一筆（取回得最快的），見 combat.js leechAdd */
   const lr = r.d * c.leech * (1 + MM('pleech') / 100);
-  /* 吸血的品質：生命全滿時轉成魔力 */
+  /* 生命偷取的品質：生命全滿時轉成魔力 */
   if (c.leechMp && P.hp >= ST.hp) addMp(lr * c.leechMp);
-  /* 瓦爾契約（基石）：吸血立即回復 */
+  /* 瓦爾契約（基石）：生命偷取立即回復 */
   if (c.leech && ST.vaal) P.hp = Math.min(ST.hp, P.hp + lr);
-  else if (c.leech && (!P.lch || P.lch.t <= G.t || lr > P.lch.rate)) P.lch = { rate: lr, t: G.t + 1 };
+  else if (c.leech) leechAdd('hp', lr);
+  const lm = 1 + MM('pleech') / 100;
+  if (ST.mpLeech) leechAdd('mp', (r.d * ST.mpLeech * lm) / 100);
+  if (ST.esLeech) leechAdd('es', (r.d * ST.esLeech * lm) / 100);
+  if (ST.rageLeech) leechAdd('rage', (r.d * ST.rageLeech * lm) / 100);
+  /* 友方偷取相同數值（開關）：友方擊中用你的生命偷取總值（不再吃加成）回復自己 */
+  if (ST.allyLeech && o.from && o.from.mhp && G.allies.includes(o.from))
+    leechAdd('hp', r.d * (c.leech != null ? c.leech : ST.leech / 100), o.from);
   /* 劍的招牌點（0.2.23）：近戰擊中有機率再打一次（再打的那一下不會再觸發） */
   if (m.hp <= 0) {
     if (r.crit && !o.minion && !a.unit) reapBoom(m);
@@ -912,11 +938,21 @@ function hitMob(m, c, ang, kb, o = {}) {
     if (o.minion && c.k === 'wolf' && qRoll(20 * (c.q || 0)) && G.allies.filter(w => w.src === 'gemt').length < 4)
       callWolf('gemt', c, m, G.t + 8);
     killMob(m);
-  } else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && Math.random() * 100 < ST.dbl)
+  } else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && roll(ST.dbl))
     hitMob(m, c, ang, 0, { ...o, again: 1, quiet: 1 });
   if (shocked) boltChain(m, c, a);
 }
 
+/* 荊棘反擊（hurtPlayer 呼叫）：近戰怪（近戰、撲咬）擊中你時，同一隻怪 0.3 秒最多一次；不走 hitCalc（不算攻擊、不算法術），吃護甲、不暴擊 */
+function thornHit(m) {
+  if (!m || !m.D || (m.D.ai !== 'melee' && m.D.ai !== 'lunge') || !(ST.thornAdd[1] > 0) || m.thornT > G.t) return;
+  m.thornT = G.t + 0.3;
+  const d = thornDmg(m);
+  m.hp -= d;
+  num(m.x, m.y - m.sz, d, 'dot');
+  aggroPack(m);
+  if (m.hp <= 0) killMob(m);
+}
 /* 不吃暴擊的傷害：只吃抗性 */
 function dotHit(m, d, el, quiet) {
   if (el !== 'phys') d *= 1 - resOf(m, el) / 100;
@@ -933,6 +969,8 @@ function mobTick(m, dt) {
 }
 /* 能量護盾：受傷先扣護盾（流血、中毒在 combat.js 另外算）；回傳剩下的傷害 */
 function esAbsorb(d) {
+  /* 能量護盾保護魔力（基石）：傷害不扣能量護盾、直接扣生命 */
+  if (ST.esMana) return d;
   P.lastHurt = G.t;
   if (P.es > 0) {
     const ab = Math.min(P.es, d);
@@ -945,7 +983,21 @@ function esAbsorb(d) {
 /* ---------- 召喚戰狼：狼跟著你、咬最近的怪 ---------- */
 function callWolf(src, c, at = P, t = 0) {
   const p = floorNear(at.x, at.y, 30, 80, 14) || { x: at.x, y: at.y };
-  G.allies.push({ src, x: p.x, y: p.y, vx: 0, vy: 0, r: 14, cd: rnd(0.2, 0.6), c, ph: Math.random() * TAU, t });
+  /* hp／mhp：友方偷取用（友方目前不會受傷，生命取你的最大生命當底） */
+  G.allies.push({
+    src,
+    x: p.x,
+    y: p.y,
+    vx: 0,
+    vy: 0,
+    r: 14,
+    cd: rnd(0.2, 0.6),
+    c,
+    ph: Math.random() * TAU,
+    t,
+    hp: ST.hp,
+    mhp: ST.hp
+  });
 }
 /* 同伴這一下的倍率：寶石叫的狼吃群狼、紙人用寶石倍率、魔像與光環狼用左鍵技能打折 */
 const ALLY_RATE = 0.8;
@@ -961,6 +1013,7 @@ function updAllies(dt) {
   for (const w of G.allies) {
     w.cd -= dt;
     w.ph += dt * 10;
+    leechTick(dt, w, [['hp', w.mhp]]);
     let t = null,
       bd = 420;
     for (const m of G.mobs)
@@ -1024,11 +1077,12 @@ function updPools(dt) {
   }
   G.meteors = G.meteors.filter(o => !o.done);
 }
+const ES_DELAY = 4;
 function updSkills(dt) {
-  /* 能量護盾：2 秒沒受傷開始回充，每秒 25% */
-  if (ST.es && P.es < ST.es && G.t - (P.lastHurt || -9) > 2)
-    P.es = Math.min(ST.es, P.es + ST.es * 0.25 * (1 + (ST.esRec + MM('pes')) / 100) * dt);
-  /* 戰狼精魄光環 */
+  /* 能量護盾（0.2.42）：4 秒沒受傷開始充能（天賦 esDelay 縮短延遲），每秒 12.5% */
+  if (ST.es && P.es < ST.es && G.t - (P.lastHurt || -9) > ES_DELAY / (1 + ST.esDelay / 100))
+    P.es = Math.min(ST.es, P.es + ST.es * 0.125 * (1 + (ST.esRec + MM('pes')) / 100) * dt);
+  /* 戰狼精魂光環 */
   const aw = G.allies.some(w => w.src === 'aura');
   if (G.scene === 'map' && ST.auraWolf && !aw) callWolf('aura');
   else if (!ST.auraWolf && aw) G.allies = G.allies.filter(w => w.src !== 'aura');
@@ -1047,10 +1101,10 @@ function updSkills(dt) {
   updUnits(dt);
   if (G.scene === 'map') mechTick(dt), autoTick();
 }
-/* 自動化（0.2.28）：冷卻好了、魔力夠、480 內看得到敵人就放；不佔玩家的出手（P.act），砲台、圖騰放在敵人方向 */
+/* 自動化（0.2.28）：冷卻好了、魔力夠、480 內看得到敵人就放；不佔玩家的出手（P.act），砲塔圖騰、圖騰放在敵人方向 */
 const AUTO_R = 480;
 function autoTick() {
-  if (G.state !== 'play' || (P.ail && P.ail.frozen > G.t)) return;
+  if (G.state !== 'play' || (P.ail && P.ail.frozen > G.t) || pStagger() || pHeavy()) return;
   for (let i = 0; i < NSLOT; i++) {
     const g = S.skills[i] && S.skills[i].a,
       sp = metaOf(g);
@@ -1070,7 +1124,7 @@ function autoTick() {
 }
 /* 進地圖、回藏身處：重設狀態 */
 function skillsEnter() {
-  Object.assign(P, { lastHurt: -9, rage: 0, rageT: 0 });
+  Object.assign(P, { lastHurt: -9, rage: 0, rageT: 0, lifeLost: -9, adapt: {} });
   Object.assign(G, { allies: [], pools: [], meteors: [], units: [], mineT: 0 });
   mechEnter();
   P.es = ST.es;
@@ -1101,9 +1155,9 @@ function onKill() {
   if (ST.killHeal) P.hp = Math.min(ST.hp, P.hp + ST.killHeal);
 }
 
-/* ---------- 陷阱、地雷、砲台、圖騰（場上單位） ---------- */
+/* ---------- 陷阱、地雷、砲塔圖騰、圖騰（場上單位） ---------- */
 const UNIT_MAX = { trap: 4, mine: 6, totem: 2, turret: 2 };
-const UNIT_N = { trap: '陷阱', mine: '地雷', totem: '圖騰', turret: '砲台' };
+const UNIT_N = { trap: '陷阱', mine: '地雷', totem: '圖騰', turret: '砲塔圖騰' };
 function placeUnit(c, w) {
   const d = Math.min(320, Math.hypot(w.x - P.x, w.y - P.y)),
     a = Math.atan2(w.y - P.y, w.x - P.x);
@@ -1117,11 +1171,13 @@ function placeUnit(c, w) {
     (x = nx), (y = ny);
   }
   const type = c.unit,
-    mine = G.units.filter(u => u.type === type);
-  /* 滿了就收掉最舊的 */
-  if (mine.length >= UNIT_MAX[type] + (ST.units || 0)) G.units.splice(G.units.indexOf(mine[0]), 1);
+    cap = type === 'totem' || type === 'turret' ? ['totem', 'turret'] : [type],
+    mine = G.units.filter(u => cap.includes(u.type));
+  /* 滿了就收掉最舊的（0.2.42：砲塔圖騰與圖騰合計一個上限） */
+  if (mine.length >= (cap.length > 1 ? UNIT_MAX.totem : UNIT_MAX[type]) + (ST.units || 0))
+    G.units.splice(G.units.indexOf(mine[0]), 1);
   const D = c.D,
-    dur = type === 'trap' || type === 'mine' ? 30 : D.dur || 8,
+    dur = type === 'trap' || type === 'mine' ? 30 : durOf(c) || 8,
     rate = D.rate || Math.max(0.5, D.t * 1.8);
   const u = { type, x, y, c, t: 0, dur, cd: 0.3, rate };
   G.units.push(u);
@@ -1133,7 +1189,7 @@ function placeUnit(c, w) {
   if (type === 'mine') G.mineT = G.t + 1.2;
   fx({ k: 'ring', x, y, r: 30, dur: 0.25, col: '#cfd8e3' });
 }
-/* 從場上單位施放：本身就是單位的技能（陷阱爆開、地雷爆開、砲台射擊、火焰圖騰）或轉換來的技能 */
+/* 從場上單位施放：本身就是單位的技能（陷阱爆開、地雷爆開、砲塔圖騰射擊、火焰圖騰）或轉換來的技能 */
 function unitFire(u, tgt, mul = 1) {
   const c = u.c,
     D = c.D,
@@ -1154,7 +1210,7 @@ function unitFire(u, tgt, mul = 1) {
     pf = P.face;
   P.x = u.x;
   P.y = u.y;
-  /* 砲台、圖騰也吃多重投射（c.proj）：扇形散開 */
+  /* 砲塔圖騰、圖騰也吃多重投射（c.proj）：扇形散開 */
   const fan = i => ang + (i - (c.proj - 1) / 2) * 0.16 * c.fan;
   if (D.unit === 'turret')
     for (let i = 0; i < c.proj; i++) shoot(fan(i), 820, c, a, { life: 0.7, bolt: 1, sh: 'arrow', shs: 1.2 });

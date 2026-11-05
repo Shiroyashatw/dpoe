@@ -1,5 +1,5 @@
 /* dungeonPOE · 技能用的底層新機制（0.2.10，照 PoE2；規則在 docs/企劃書.md 7.3）：
-   收割、地面效果與引爆器、殘留物與灌注、屍體、連擊數與段數、招架與失衡、能量與觸發（Meta）、手雷、彈藥、飛劍、幻影、
+   收割、地面效果與引爆技能、殘留物與灌注、屍體、連擊與段數、招架與失衡、能量與觸發（Meta）、手雷、彈藥、飛劍、幻影、
    旗幟與榮耀、變身。技能（0.2.11 起）只呼叫這裡的函式，不自己發明規則。 */
 'use strict';
 
@@ -10,6 +10,7 @@ function hasState(m, k) {
   if (k === 'frozen') return a.frozen > G.t;
   if (k === 'broken') return a.broken > G.t;
   if (k === 'primed') return (a.hs || 0) >= PRIMED(m);
+  if (k === 'pinprime') return !(a.pinT > G.t) && (a.pin || 0) >= PRIMED(m);
   if (k === 'bleed') return !!(a.bleed && a.bleed.t > G.t);
   if (k === 'ign') return !!(a.ign && a.ign.t > G.t);
   if (k === 'shock') return a.shock > G.t;
@@ -24,11 +25,12 @@ function takeState(m, k) {
   if (k === 'frozen') a.frozen = 0;
   else if (k === 'broken') (a.broken = 0), (m.arm = m.arm0);
   else if (k === 'primed') a.hs = 0;
+  else if (k === 'pinprime') a.pin = 0;
   else if (k === 'bleed' || k === 'ign' || k === 'curse' || k === 'mark') a[k] = null;
   else a[k] = 0;
   return true;
 }
-/* 碾壓一擊：打中瀕臨重暈的怪直接重暈 */
+/* 粉碎重擊：打中瀕臨沉重暈眩的怪直接沉重暈眩 */
 function crush(m) {
   if (!takeState(m, 'primed')) return false;
   poisePin(m, 'hs');
@@ -36,7 +38,7 @@ function crush(m) {
   return true;
 }
 
-/* ---------- 2、3. 地面效果與引爆器 ---------- */
+/* ---------- 2、3. 地面效果與引爆技能 ---------- */
 const GROUND = {
   jagged: { n: '碎裂地面', col: '#b08a5a', slow: 0.3 },
   gas: { n: '毒氣雲', col: '#8fd16b', burn: 1 },
@@ -44,7 +46,7 @@ const GROUND = {
   fire: { n: '燃燒地面', col: '#ff6b3d' },
   chill: { n: '冰緩地面', col: '#8fd6ff' },
   blades: { n: '劍陣', col: '#e8e2d6' },
-  /* 0.2.13 死亡紅花：每秒吸血的持續傷害，時間到或被引爆就整排爆炸＋流血 */
+  /* 0.2.13 死亡紅花：每秒生命偷取的持續傷害，時間到或被引爆就整排爆炸＋流血 */
   bloom: { n: '死亡紅花', col: '#d9304a', leech: 0.2 }
 };
 /* o：k 種類、x、y、r、dur 秒、c 技能設定（傷害照它算）、dps 每秒傷害倍率、after 結束時再打一次的倍率（餘震） */
@@ -79,7 +81,7 @@ function popBlooms(det) {
   for (const g of G.ground)
     if (g.k === 'bloom' && !g.done) {
       g.done = 1;
-      /* 死亡紅花的品質：被引爆器提早引爆時更多 */
+      /* 死亡紅花的品質：被引爆技能提早引爆時更多 */
       const mul = det ? 1 + 0.4 * (g.c.q || 0) : 1;
       boomAt(g.x, g.y, g.r * 1.4, { ...g.c, bleedCh: 100, spellBleed: 1 }, (g.c.D.boomM / g.c.D.m) * mul);
       fxs('bleed', g.x, g.y - 10, 30);
@@ -89,7 +91,7 @@ function groundTick(dt) {
   for (const g of G.ground) {
     g.t += dt;
     const G0 = GROUND[g.k];
-    /* 震地的品質：地面上的怪重暈累積更多（applyAil 看 m.jagT） */
+    /* 震地的品質：地面上的怪沉重暈眩累積更多（applyAil 看 m.jagT） */
     if (g.q) for (const m of G.mobs) if (m.hp > 0 && inGround(g, m)) (m.jagT = G.t + 0.2), (m.jagQ = g.q);
     /* 毒氣箭的品質：毒氣雲飄向最近的怪 */
     if (g.drift) {
@@ -169,7 +171,7 @@ function takeCorpse(x, y, r) {
   return best;
 }
 
-/* ---------- 6. 連擊數與段數 ---------- */
+/* ---------- 6. 連擊與段數 ---------- */
 const COMBO_MAX = 10;
 function comboHit(a) {
   if (!a || a.combo) return;
@@ -247,7 +249,7 @@ function hexBurst(t) {
 /* 不經技能欄、直接施放一顆技能寶石（觸發、幻影用） */
 function castGem(g, t) {
   const c = gemCfg(g, -1);
-  if (!c) return;
+  if (!c || gemLack(g).length) return; /* 能力值不夠的寶石不能觸發 */
   const ang = Math.atan2(t.y - P.y, t.x - P.x);
   actHit({ k: c.k, c, t: 0, dur: 0.1, ang, hits: [0], n: 0, tx: t.x, ty: t.y, trig: 1 }, 0);
 }
@@ -340,7 +342,7 @@ function launchSwords(tx, ty, mul = 1) {
   });
   return sw.length;
 }
-/* 劍陣：飛劍插在地上，被引爆器引爆 */
+/* 劍陣：飛劍插在地上，被引爆技能引爆 */
 function plantSwords(x, y, c) {
   const n = swordN();
   if (!n) return 0;
@@ -416,6 +418,13 @@ function mirageTick() {
 /* ---------- 13. 旗幟與榮耀 ---------- */
 function gainGlory(v) {
   P.glory = Math.min(100, (P.glory || 0) + v);
+  if (v > 0) P.gloryT = G.t;
+}
+/* 擊中給榮耀（0.2.42）：同一隻怪每 0.5 秒最多一次；一般 1、精英 5、王 20，再乘暴擊 ×4 與技能的 glory */
+function hitGlory(m, crit, mul = 1) {
+  if (m.gloryT > G.t) return;
+  m.gloryT = G.t + 0.5;
+  gainGlory((m.boss ? 20 : m.elite ? 5 : 1) * (crit ? 4 : 1) * mul);
 }
 /* 插旗：榮耀滿 100 才能插；buff 是 stats 欄位 → 數值（例 { atkP: 20 }），站在旗子範圍裡才有效 */
 function plantBanner(buff, r = 220, dur = 10) {
@@ -460,7 +469,9 @@ function mechTick(dt) {
   mirageTick();
   comboTick();
   swordTick(dt);
-  /* 戰旗的品質：收起時返還榮耀 */
+  /* 榮耀消退：15 秒沒有獲得就每秒掉 2 點 */
+  if (P.glory > 0 && G.t - (P.gloryT || 0) > 15) P.glory = Math.max(0, P.glory - 2 * dt);
+  /* 鬥旗的品質：收起時返還榮耀 */
   if (G.banner && G.banner.q && G.banner.t <= G.t) gainGlory(25 * G.banner.q), (G.banner.q = 0);
   G.corpses = G.corpses.filter(c => c.t > G.t);
 }

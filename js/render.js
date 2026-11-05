@@ -221,7 +221,7 @@ function draw() {
       CX.stroke();
     }
   }
-  /* 陷阱、地雷、砲台、圖騰 */
+  /* 陷阱、地雷、砲塔圖騰、圖騰 */
   for (const u of G.units || []) drawUnit(u);
   /* 隕石：落點的橘圈越來越滿，球從上面掉下來 */
   for (const o of G.meteors || []) {
@@ -439,7 +439,7 @@ function draw() {
     if (!d.it || d.t < 0.3) continue;
     const fa = dropFlt(d);
     if (fa.act === 'hide') continue;
-    /* 品質、潛能金字以上直接寫在標籤上（D2：好底材一眼看得出來） */
+    /* 品質、潛能金字以上直接寫在標籤上（D2：好基底一眼看得出來） */
     const txt = itemName(d.it) + dropTag(d.it),
       w = CX.measureText(txt).width + 14;
     let x = d.x,
@@ -639,7 +639,7 @@ function drawMob(m) {
     CX.fill();
     CX.globalAlpha = 1;
   }
-  /* 標記（頭上紅色菱形）、點燃（橘色的火）；異常的 pixelfx 圖示在待做清單 */
+  /* 印記（頭上紅色菱形）、點燃（橘色的火）；異常的 pixelfx 圖示在待做清單 */
   const ma = m.ail || {};
   if (ma.mark) {
     const y = m.y - fly - m.sz - 18;
@@ -670,7 +670,7 @@ function drawMob(m) {
     }
   }
 }
-/* 球體：玩家身邊繞圈的小圓點（耐力紅、狂怒綠、暴擊藍） */
+/* 能量球：玩家身邊繞圈的小圓點（耐力紅、盛怒綠、暴擊藍） */
 const CHGC = { e: '#ff6b5b', f: '#7be08a', p: '#6cb8ff' };
 function drawCharges() {
   const ds = [];
@@ -1007,7 +1007,7 @@ function drawWolf(w) {
   spr(im, w.x, w.y, sz, { flip: (w.face || 0) > 0, sy: 1 + bob });
 }
 
-/* 場上單位：陷阱（地上的齒輪）、地雷（閃紅點）、砲台（弩）、圖騰（柱子）；砲台、圖騰下面的小條是剩下的時間 */
+/* 場上單位：陷阱（地上的齒輪）、地雷（閃紅點）、砲塔圖騰（十字弓）、圖騰（柱子）；砲塔圖騰、圖騰下面的小條是剩下的時間 */
 function drawUnit(u) {
   const D = u.c.D;
   shadow(u.x, u.y, 12);

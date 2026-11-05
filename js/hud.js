@@ -18,10 +18,10 @@ function artRepaint() {
   }, 80);
 }
 
-/* 技能列：1 紅水、2 藍水、5 個技能欄（左鍵、右鍵、Q、E、R）、空白翻滾 */
+/* 技能列：1 生命藥劑、2 魔力藥劑、5 個技能欄（左鍵、右鍵、Q、E、R）、空白翻滾 */
 const BAR = [
-  { k: 'flask', key: '1', ic: 'it_potion', n: '生命藥水', d: '回復一半生命（1.4 秒內）。殺怪會補充。' },
-  { k: 'mflask', key: '2', ic: 'it_potion', n: '魔力藥水', d: '回復一半魔力（1.4 秒內）。殺怪會補充。' },
+  { k: 'flask', key: '1', ic: 'it_potion', n: '生命藥劑', d: '回復一半生命（1.4 秒內）。殺怪會補充。' },
+  { k: 'mflask', key: '2', ic: 'it_potion', n: '魔力藥劑', d: '回復一半魔力（1.4 秒內）。殺怪會補充。' },
   ...SLOTKEY.map((key, i) => ({ k: 's' + i, key, slot: i })),
   { k: 'roll', key: '空白', n: '翻滾', d: '短暫無敵。怪物出手的瞬間翻滾＝完美閃避：時間變慢，下一擊必定暴擊。' },
   { k: 'use', key: 'F', n: '互動', d: '撿東西、使用藏身處的擺設', touch: 1 }
@@ -161,7 +161,7 @@ function hudTick() {
     }
     setV(el, 'cd' + k, cd.toFixed(2));
     setT(el.querySelector('u'), 't' + k, txt);
-    const no = (c && ((!hell && P.mp < c.mp) || !wtOK(c.D))) || G.scene === 'hide';
+    const no = (c && ((!hell && mpAvail() < c.mp) || !wtOK(c.D))) || G.scene === 'hide';
     if (HV['n' + k] !== no) el.classList.toggle('no', (HV['n' + k] = no));
   }
   /* 翻滾冷卻：桌機畫在游標旁（直立是技能鍵旁的小圖示，照上面的 .sk 一起更新） */
@@ -192,11 +192,11 @@ function hudTick() {
     $('bbv').classList.toggle('bvbr', bvBr);
   }
   if (bvOn) $('ohp').dataset.tip = `格擋值 ${Math.floor(P.bv || 0)} / ${ST.bv}${bvBr ? '（碎了，回滿前不吸收）' : ''}`;
-  /* 精魄：魔力球左邊的弧（已預留÷總量） */
+  /* 精魂：魔力球左邊的弧（已預留÷總量） */
   const sv = ST.spirit ? (ST.spiritUsed / ST.spirit).toFixed(3) : '0';
   if (HV.spir !== sv) {
     $('omp').style.setProperty('--s', (HV.spir = sv));
-    $('omp').dataset.tip = `精魄 ${ST.spiritUsed} / ${ST.spirit}`;
+    $('omp').dataset.tip = `精魂 ${ST.spiritUsed} / ${ST.spirit}`;
   }
   /* 狀態列（0.2.30）：圖示＋剩餘秒數或層數；負面的紅框；點一下看名字與效果 */
   const sts = G.scene === 'map' ? playerStates() : [],
@@ -329,7 +329,7 @@ const KEYS_PC = [
   ['滑鼠', '瞄準'],
   ['左鍵 右鍵 Q E R', '技能'],
   ['空白', '翻滾（怪物出手的瞬間翻滾＝完美閃避）'],
-  ['1 ／ 2', '紅水 ／ 藍水'],
+  ['1 ／ 2', '生命藥劑 ／ 魔力藥劑'],
   ['F', '互動、撿東西（也可以直接點地上的名字）'],
   ['I', '背包'],
   ['G', '技能寶石'],
@@ -378,7 +378,7 @@ const FUI = { open: -1 };
 /* 條件：預設值、數字的 [名字, 最小, 最大, 單位] */
 const FLT_DEF = { kind: ['weapon'], rar: [2], aff: { ks: [], n: 1 }, so: 1, q: 10, pot: 7, L: 10 };
 const FLT_NUM = {
-  so: ['孔數', 1, 6, ''],
+  so: ['插槽數', 1, 6, ''],
   q: ['品質', 0, 40, '%'],
   pot: ['潛能', 1, 10, ''],
   L: ['物品等級', 1, 100, '']
@@ -639,7 +639,7 @@ const EQPOS = {
   off: [248, 0, 72, 108],
   boots: [248, 116, 72, 72]
 };
-/* 空的裝備欄：那個部位的淡圖示（取第一個同部位的底材圖） */
+/* 空的裝備欄：那個部位的淡圖示（取第一個同部位的基底圖） */
 const slotIc = e => (BASES.find(b => b.k === e.t) || {}).ic;
 const LAND = () => TOUCH.on && !PORT() && innerHeight < 480;
 function invHTML() {
@@ -651,7 +651,7 @@ function invHTML() {
       EQS.map(e => {
         const [x, y, w, h] = EQPOS[e.k].map(v => Math.round(v * z)),
           it = S.eq[e.k];
-        return `<div class="eqs ${it ? 'r' + it.r : ''}" data-eq="${e.k}" ${it ? '' : `data-tip="${e.n}"`} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', e.k) : `<span class="eqg">${icHTML(slotIc(e))}</span>`}</div>`;
+        return `<div class="eqs ${it ? 'r' + it.r : ''} ${s.eqBad.includes(e.k) ? 'noreq' : ''}" data-eq="${e.k}" ${it ? '' : `data-tip="${e.n}"`} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', e.k) : `<span class="eqg">${icHTML(slotIc(e))}</span>`}</div>`;
       }).join('') +
       /* 護符槽：腰帶給幾格就開幾格（照 PoE2） */
       [0, 1, 2]
@@ -667,7 +667,7 @@ function invHTML() {
     res =
       RESK.map(
         r =>
-          `<span class="res-${r}">${ELN[r]}抗 <b>${effRes(r)}%</b>${s.maxRes[r] > RES_CAP ? `<small>／${s.maxRes[r]}</small>` : ''}</span>`
+          `<span class="res-${r}">${ELN[r]}抗 <b>${effRes(r)}%</b>${s.maxRes[r] > RES_CAP ? `<small>／${s.maxRes[r]}</small>` : ''}${s.resRaw[r] - (r === 'chaos' ? 0 : pen) > effRes(r) ? `<small>（${s.resRaw[r] - (r === 'chaos' ? 0 : pen)}%）</small>` : ''}</span>`
       ).join('') + (pen ? `<span class="c-dim">這一階元素抗性 −${pen}%</span>` : '');
   /* 手機橫向一屏放不下裝備欄和背包：分頁，預設背包 */
   const land = LAND(),
@@ -687,8 +687,9 @@ function invHTML() {
       ? ''
       : `<div class="eqrow col"><div class="doll" style="width:${Math.round(320 * z)}px;height:${Math.round(232 * z)}px">${eqs}</div>
   <div class="st">
-    <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻速 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b></span><span title="打同等級普通怪的命中率（法術一律命中）">命中 <b>${s.acc}</b>（${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%）</span>
-    <span>生命 <b>${s.hp}</b></span>${s.es ? `<span>能量護盾 <b>${s.es}</b></span>` : ''}<span>護甲 <b>${s.armor}</b></span>${s.ev ? `<span>閃避 <b>${s.ev}</b></span>` : ''}<span>格擋 <b>${s.block}%</b></span><span>精魄 <b>${s.spiritUsed}/${s.spirit}</b></span>
+    <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻擊速度 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b>${s.lukCrit ? `（有效 ${effCh(s.crit, 1).toFixed(1)}%）` : ''}</span><span title="打同等級普通怪的命中率（法術一律命中）">命中 <b>${s.acc}</b>（${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%）</span>
+    ${ATTR.map(k => `<span title="${ATTN[k]}：${{ str: '1 點 +2 生命', dex: '1 點 +8 命中值', int: '1 點 +2 魔力' }[k]}">${ATTN[k]} <b>${s[k]}</b></span>`).join('')}
+    <span>生命 <b>${s.hp}</b></span>${s.es ? `<span>能量護盾 <b>${s.es}</b></span>` : ''}<span>護甲 <b>${s.armor}</b></span>${s.ev ? `<span>閃避 <b>${s.ev}</b></span>` : ''}<span>格擋 <b>${s.block}%</b>${s.lukBlock ? `（有效 ${capLuck(s.block, 50, 1).toFixed(1)}%）` : ''}</span>${s.defl ? `<span title="被擊中且沒閃避、格擋時，傷害 −40%">偏斜值 <b>${Math.round(s.defl)}</b>（${Math.round(capLuck(deflCh(15 + 6 * S.lv, s.defl), 95, s.lukDefl))}%）</span>` : ''}${s.thornAdd[1] ? `<span>荊棘 <b>${s.thornAdd[0]}–${s.thornAdd[1]}</b></span>` : ''}<span>精魂 <b>${s.spiritUsed}/${s.spirit}</b></span>
     ${res}
   </div></div>`
   }
@@ -726,11 +727,22 @@ const TAGN = {
   minion: '召喚',
   dot: '持續傷害',
   curse: '詛咒',
-  mark: '標記',
+  mark: '印記',
   move: '位移',
   elem: '元素',
   occ: '秘術',
-  pri: '原始'
+  pri: '原始',
+  /* 0.2.42 第 7 批：技能分類（名字跟 TERMS 的鍵一樣，說明框的標籤可以點開） */
+  strike: '打擊',
+  slam: '重擊',
+  nova: '新星技能',
+  duration: '持續時間技能',
+  sustained: '經久技能',
+  remote: '遠端技能',
+  repeat: '重複技能',
+  stack: '獲得疊層的技能',
+  cond: '條件使用',
+  channel: '引導'
 };
 function skillHTML() {
   /* 空的格子點一下＝生成一顆直接裝上（data-gen） */
@@ -756,7 +768,7 @@ function skillHTML() {
       .join('')}</div>`;
   let body;
   if (tab === 'aura')
-    body = `<p class="sethint">開著就一直生效；精魄不夠的不會生效（框變紅）。點光環看說明與升級</p><div class="aurarow">${S.auras
+    body = `<p class="sethint">開著就一直生效；精魂不夠的不會生效（框變紅）。點光環看說明與升級</p><div class="aurarow">${S.auras
       .map((g, j) => {
         const on = g && ST.auraOn.includes(g.gem);
         return `<div class="aurac"><div ${g ? `data-sk="aura:${j}"` : ''}>${sock('A:' + j, g, 'act', '光環', g && !on)}<small>${g ? `${esc(AURAS[g.gem].n)} Lv ${g.lv}` : '空的'}</small></div>${g ? `<div class="skact">${ups(g, 'aup:' + j, 'amax:' + j)}</div>` : ''}</div>`;
@@ -865,7 +877,8 @@ function skDetail(g, i) {
     }
     rows.push(row('提高', `+${fmtN(N.inc)}%`), row('更多', '×' + N.more.toFixed(2)));
     rows.push(row('暴擊', `${N.ch.toFixed(1)}% · 傷害 ×${N.cm.toFixed(2)}`));
-    rows.push(row('出手', `${actDur(c).toFixed(2)} 秒`));
+    rows.push(row('基礎攻擊時間', `${baseT(c).toFixed(2)} 秒`), row('出手', `${actDur(c).toFixed(2)} 秒`));
+    if (D.tAdd) rows.push(row('增加使用時間', `+${D.tAdd} 秒（不吃速度）`));
   }
   if (D.tags.includes('proj')) rows.push(row('投射物', c.proj));
   const sups = (g.sup || [])
@@ -982,7 +995,7 @@ document.addEventListener('click', e => {
   )
     hideTip();
 });
-/* 生成寶石（0.2.7，照 PoE2 選技能）：上面三種、左邊頁籤（主動照武器、輔助與精魄照標籤）、右邊照使用等級分組 */
+/* 生成寶石（0.2.7，照 PoE2 選技能）：上面三種、左邊頁籤（主動照武器、輔助與精魂照標籤）、右邊照使用等級分組 */
 /* to：從空的格子打開＝生成後直接裝進這格（'技能欄:a' 技能、'技能欄:孔' 輔助、'A:格' 光環），只列裝得進去的 */
 const GEMUI = { kind: 'act', tab: null, to: null };
 function gemOpenFor(key) {
@@ -1002,12 +1015,12 @@ function gemFits(k) {
   const a = to[0] !== 'A' && !to.endsWith(':a') && S.skills[to.split(':')[0]].a;
   return !a || supOK(SKILLS[a.gem], { gem: k });
 }
-const GEMKIND = { act: '主動技能', sup: '輔助寶石', aura: '精魄' };
+const GEMKIND = { act: '主動技能', sup: '輔助寶石', aura: '精魂' };
 const SUPTAB = {
   通用: ['fury', 'crit', 'leech', 'haste', 'cdr', 'fireadd'],
   投射物: ['multi', 'pierce'],
   範圍與近戰: ['area', 'heavy'],
-  異常: ['bleed', 'poison', 'poistack', 'ailmag', 'armbreak', 'wither', 'blind'],
+  異常: ['bleed', 'poison', 'poistack', 'ailmag', 'armbreak', 'wither', 'blind', 'pin'],
   元素: ['scorch', 'brittle', 'sap', 'expose', 'elec'],
   法術: ['arcane', 'cast_crit'],
   召喚: ['pack'],
@@ -1019,13 +1032,13 @@ function gemTabs(kind) {
   if (kind === 'act') {
     const K = Object.keys(SKILLS),
       tg = (k, t) => SKILLS[k].tags.includes(t);
-    /* 0.2.13：綁武器的放武器頁（錘與連枷同一頁、盾一頁），不綁的照分類（元素、秘術、原始）；空的頁不顯示 */
+    /* 0.2.13：綁武器的放武器頁（錘與鏈錘同一頁、盾一頁），不綁的照分類（元素、秘術、原始）；空的頁不顯示 */
     tabs = [
       ...Object.entries(WTN)
         .filter(([w]) => w !== 'flail')
         .map(([w, n]) =>
           by(
-            w === 'mace' ? '錘・連枷' : n,
+            w === 'mace' ? '錘・鏈錘' : n,
             K.filter(k => (SKILLS[k].wt || []).includes(w))
           )
         ),
@@ -1182,7 +1195,7 @@ function ascHTML() {
 }
 /* 商人（0.2.28）：選種類賭一件，結果顯示在上面、東西進背包 */
 const SHOPUI = { last: null, sel: null };
-/* 這一種在目前物品等級會出哪些底材（機率照 pickBase 的權重，高階的多一點） */
+/* 這一種在目前物品等級會出哪些基底（機率照 pickBase 的權重，高階的多一點） */
 const gamBases = o => {
   const L = BASES.filter(b => b.k === o.k && (!o.wt || b.wt === o.wt) && b.lv <= gamIlvl(S));
   return (L.length ? L : BASES.filter(b => b.k === o.k && (!o.wt || b.wt === o.wt)))
@@ -1191,17 +1204,17 @@ const gamBases = o => {
 };
 function shopSel() {
   const o = GAMBLE.flatMap(g => g[1]).find(x => x.id === SHOPUI.sel);
-  if (!o) return '<p class="fhint">先選一種，會列出可能出現的底材</p>';
+  if (!o) return '<p class="fhint">先選一種，會列出可能出現的基底</p>';
   const L = gamBases(o),
     sum = L.reduce((s, b) => s + 1 + b.lv / 4, 0);
-  return `<div class="shopsel"><div class="ph2">${esc(o.n)} <span>可能的底材 ${L.length} 種</span></div><ul>${L.slice(
+  return `<div class="shopsel"><div class="ph2">${esc(o.n)} <span>可能的基底 ${L.length} 種</span></div><ul>${L.slice(
     0,
     6
   )
     .map(
       b => `<li>${icHTML(b.ic)}<span>${esc(b.n)}</span><small>${Math.round(((1 + b.lv / 4) / sum) * 100)}%</small></li>`
     )
-    .join('')}${L.length > 6 ? `<li class="c-dim">還有 ${L.length - 6} 種低階底材</li>` : ''}</ul>
+    .join('')}${L.length > 6 ? `<li class="c-dim">還有 ${L.length - 6} 種低階基底</li>` : ''}</ul>
     <button class="btn pri" data-a="gam:${o.id}" ${S.gold < gamPrice(S) ? 'disabled' : ''}>買一件 · ${gamPrice(S)} 金</button></div>`;
 }
 function shopHTML() {
@@ -1333,6 +1346,14 @@ function slotSet(src, key, it) {
   else if (p === 'a') S.skills[i].a = it;
   else S.skills[i].a.sup[+p] = it;
 }
+/* 放進這個欄位缺什麼能力值（0.2.42）：裝備看等級與能力值（eqLack）、技能寶石看插槽裡那顆技能的需求（輔助會讓它 +5） */
+function slotLack(src, key, it) {
+  if (src === 'eq') return /^ch\d$/.test(key) ? [] : eqLack(S, it, key);
+  const [i, p] = key.split(':'),
+    a = i !== 'A' && S.skills[i].a;
+  if (p === 'a') return gemLack(it);
+  return a ? gemLack({ ...a, sup: [...a.sup.filter((x, j) => j !== +p), it] }) : [];
+}
 const slotFits = (src, key, it) =>
   src === 'eq' && /^ch\d$/.test(key)
     ? !!it.charm && +key[2] < charmSlots(S)
@@ -1341,8 +1362,10 @@ const slotFits = (src, key, it) =>
           EQS.find(q => q.k === key),
           kindOf(it)
         ) &&
-        (key !== 'off' || offOK(S.eq.weapon, it))
+        (key !== 'off' || offOK(S.eq.weapon, it)) &&
+        !slotLack(src, key, it).length
       : !!it.gem &&
+        !slotLack(src, key, it).length &&
         (key[0] === 'A'
           ? isAura(it)
           : key.endsWith(':a')
@@ -1406,6 +1429,8 @@ function quickMove(src, it, eqk) {
     const key = gemSlotFor(it);
     if (!key)
       return hudWarn(isAura(it) ? '光環欄滿了' : isSup(it) ? '沒有空的輔助插槽' : '技能欄滿了：拖到想換的那一欄');
+    const lk = slotLack('sock', key, it);
+    if (lk.length) return hudWarn('能力值不足：' + lackTxt(lk));
     takeOut('inv', it);
     slotSet('sock', key, it);
     if (!PANEL.skill) openPanel('skill');
@@ -1435,6 +1460,8 @@ function quickMove(src, it, eqk) {
           : slots.find(e => !S.eq[e.k]) || slots[0];
     if (!e) return;
     if (e.k === 'off' && !offOK(S.eq.weapon, it)) return hudWarn(offWhy(S.eq.weapon, it));
+    const lack = eqLack(S, it, e.k);
+    if (lack.length) return hudWarn('不符合需求：' + lackTxt(lack));
     const old = S.eq[e.k],
       ox = it.x,
       oy = it.y;
@@ -1623,6 +1650,10 @@ function dragEnd(e) {
           ? tapItem(d)
           : quickMove(d.src, d.it, d.eqk);
   if (t && t.k === 'floor') return dropFloor(d.src, d.it, d.eqk);
+  if (t && t.k === 'eq' && !t.ok) {
+    const lk = slotLack(t.src, t.eqk, d.it);
+    if (lk.length) hudWarn('不符合需求：' + lackTxt(lk));
+  }
   if (!t || (t.k !== 'sell' && !t.ok)) return hudPanels();
   if (t.k === 'sell') return G.scene === 'hide' ? sell(d.src, d.it, d.eqk) : hudPanels();
   takeOut(d.src, d.it, d.eqk);
@@ -1682,14 +1713,19 @@ function gemTip(it, act) {
   if (isAura(it)) {
     const on = S.auras.includes(it),
       act = on && ST.auraOn.includes(it.gem);
-    html += `<p class="base">預留精魄 ${D.sp} · 效果 ×${((1 + 0.03 * (it.lv - 1)) * (1 + ST.auraEff / 100)).toFixed(2)}（等級與光環效果）</p>`;
-    if (on && !act) html += `<p class="c-bad">精魄不夠，沒有生效</p>`;
+    html += `<p class="base">預留精魂 ${D.sp} · 效果 ×${((1 + 0.03 * (it.lv - 1)) * (1 + (ST.auraEff + ST.buffEff) / 100) * (1 + ST.buffMag / 100)).toFixed(2)}（等級與光環效果）</p>`;
+    if (on && !act) html += `<p class="c-bad">精魂不夠，沒有生效</p>`;
   } else if (sup)
     html += `<p class="base">${D.need.length ? '要有標籤：' + D.need.map(t => TAGN[t]).join('、') : '所有技能都能用'}</p>`;
   else {
     const c = gemCfg(it, -1),
       N = skillNums(c);
     html += `<p class="sknums">${skLine(c, N)}</p><div class="gtags">${D.tags.map(chip).join('')}</div>${wtOK(D) ? '' : `<p class="c-bad">${needTxt(D)}</p>`}`;
+    html += reqHTML(
+      { ...gemAttrReq(it), lv: 0 },
+      gemLack(it),
+      S.skills.some(x => x.a === it)
+    );
   }
   /* 品質（0.2.29）：還沒有品質時顯示做滿能得到什麼 */
   const q = it.q || 0;
@@ -1720,6 +1756,14 @@ const allGems = () =>
     ...S.skills.flatMap(k => [k.a, ...((k.a && k.a.sup) || [])]),
     ...S.auras
   ].filter(g => g && g.gem);
+/* 需求列（0.2.42）：夠的是一般字、缺的是紅字；有缺再加一行紅字「缺什麼」；req 全空就不顯示；lack 是 [[名稱, 現有, 需求]] */
+function reqHTML(req, lack, worn) {
+  const bad = new Set(lack.map(l => l[0])),
+    part = (n, v) => (v ? `<span class="${bad.has(n) ? 'c-bad' : ''}">${n} ${v}</span>` : ''),
+    ps = [part('等級', req.lv), ...ATTR.map(k => part(ATTN[k], req[k]))].filter(Boolean);
+  if (!ps.length) return '';
+  return `<p class="base">需求：${ps.join(' · ')}</p>${lack.length ? `<p class="c-bad">${worn ? '已失效，數值不算' : '不能裝上'}：${lackTxt(lack)}</p>` : ''}`;
+}
 /* 說明框裡的升級、升滿（背包、倉庫、寶石頁、技能孔裡的寶石都有；主動、輔助、光環同價） */
 function gemUpRow(it) {
   const up = gemUpCheck(it),
@@ -1735,13 +1779,15 @@ function itemTip(it, cmp) {
   if (it.gem) return gemTip(it) + gemUpRow(it);
   if (it.charm) {
     const C = CHARMS[it.charm];
-    return `<b class="rc1">${esc(C.n)}</b><small>護符 · 放在腰帶的護符槽</small><p class="aff">${esc(C.d)}</p><p class="base">充能 ${Math.floor(it.ch || 0)}／${C.max} · 每次用 ${C.use} · 殺怪回充</p><p class="hint">條件達成就自動觸發，不用按鍵${G.scene === 'hide' ? ' · 賣價 3 金' : ''}</p>`;
+    return `<b class="rc1">${esc(C.n)}</b><small>護符 · 放在腰帶的護符槽</small><p class="aff">${esc(C.d)}</p><p class="base">充能 ${Math.floor(it.ch || 0)}／${C.max} · 每次用 ${C.use} · 殺怪充能</p><p class="hint">條件達成就自動觸發，不用按鍵${G.scene === 'hide' ? ' · 賣價 3 金' : ''}</p>`;
   }
   const B = baseOf(it);
   let html = `<b class="rc${it.r}">${esc(itemName(it))}</b><small>${RARN[it.r]} ${KINDS[B.k].n} · 物品等級 ${it.L}</small>`;
   const lay = baseLayers(it);
   if (lay) html += `<p class="lay">${lay}</p>`;
   html += `<p class="base">${baseText(it).join('<br>')}</p>`;
+  const wk = EQS.find(e => S.eq[e.k] === it) || EQS.find(e => eqTakes(e, B.k));
+  html += reqHTML(itemReq(it), wk ? eqLack(S, it, wk.k) : [], wk && S.eq[wk.k] === it);
   if (it.a.length) html += `<p class="aff">${it.a.map(a => `${affText(a)} <i>T${a.T}</i>`).join('<br>')}</p>`;
   if (cmp) {
     /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄 */
@@ -1760,7 +1806,7 @@ function itemTip(it, cmp) {
       ['閃避', b.ev - a.ev],
       ['暴擊率', b.crit - a.crit],
       ...RESK.map(r => [ELN[r] + '抗', b.res[r] - a.res[r]]),
-      ['移速', b.spd - a.spd]
+      ['移動速度', b.spd - a.spd]
     ].filter(r => Math.abs(r[1]) >= 0.5);
     html += `<p class="cmp">${cur ? '換上去' : '這格空著'}：${rows.length ? rows.map(([n, v]) => `<span class="${v > 0 ? 'c-good' : 'c-bad'}">${n} ${v > 0 ? '▲' : '▼'}${Math.abs(Math.round(v))}</span>`).join(' ') : '沒有變化'}</p>`;
   }

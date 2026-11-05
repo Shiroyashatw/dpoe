@@ -50,6 +50,7 @@ function treeOpen() {
 function treeClose() {
   TREE.open = false;
   TREE.sel = null;
+  treeAttrClose();
   $('ptree').hidden = true;
   hideTip();
 }
@@ -218,12 +219,40 @@ function treeToggle(id) {
   if (have.includes(id)) {
     if (!treeCanRefund(id)) return hudWarn(id === 'a_st' || PT_START.includes(id) ? '起點不能退' : '先退後面的點');
     have.splice(have.indexOf(id), 1);
-  } else if (treeCan(id)) have.push(id);
-  else if (asc && ascLeft() <= 0) return hudWarn('沒有昇華點了：階級 6、12、16 的王第一次打倒各 +2');
+    delete S.ptA[id];
+  } else if (treeCan(id)) {
+    /* 過路點：先選要加哪一項能力值（treePick 才真的點下去） */
+    if (!asc && PTREE.I[id].s.attr) return treeAttrAsk(id);
+    have.push(id);
+  } else if (asc && ascLeft() <= 0) return hudWarn('沒有昇華點了：階級 6、12、16 的王第一次打倒各 +2');
   else if (asc && ascT().I[id].g && S.at.some(o => ascT().I[o].g === ascT().I[id].g))
     return hudWarn('同一組只能選一個：先退掉另一個');
   else if (asc) return hudWarn('要跟點過的點連在一起，而且最後要剛好 4 小 4 大');
   else return hudWarn(ptLeft() <= 0 ? '沒有天賦點了：升級會再給' : '要跟點過的點連在一起');
+  sfx('equip');
+  treeChanged();
+}
+/* 過路點的選擇框（0.2.42）：+5 力量／敏捷／智慧，點按鈕才點下去；再點別處或按取消關掉 */
+function treeAttrAsk(id) {
+  treeAttrClose();
+  const d = document.createElement('div');
+  d.id = 'tattr';
+  d.className = 'tattr';
+  d.innerHTML = `<span>+${PT_ATTR} 能力值：</span>${Object.entries(ATT_PT)
+    .map(([c, k]) => `<button class="btn pri" data-ta="attr:${id}:${c}">${ATTN[k]}（${ATT_HINT[k]}）</button>`)
+    .join('')}<button class="btn" data-ta="attrx">取消</button>`;
+  $('ptree').appendChild(d);
+}
+const ATT_HINT = { str: '生命', dex: '命中', int: '魔力' };
+function treeAttrClose() {
+  const d = $('tattr');
+  if (d) d.remove();
+}
+function treePick(id, c) {
+  treeAttrClose();
+  if (!ATT_PT[c] || S.pt.includes(id) || !treeCan(id)) return;
+  S.pt.push(id);
+  S.ptA[id] = c;
   sfx('equip');
   treeChanged();
 }
@@ -260,7 +289,18 @@ function treeTip(id) {
         : n.big
           ? '大點'
           : '小點';
-  const lines = n.big === 3 ? [esc(ASC[S.asc].d)] : n.d ? [esc(n.d)] : statLines(n.s);
+  const lines =
+    n.big === 3
+      ? [esc(ASC[S.asc].d)]
+      : n.d
+        ? [esc(n.d)]
+        : n.s.attr
+          ? [
+              S.ptA[id]
+                ? `${ATTN[ATT_PT[S.ptA[id]]]} +${n.s.attr}`
+                : `能力值 +${n.s.attr}（點的時候選力量、敏捷或智慧）`
+            ]
+          : statLines(n.s);
   return `<b class="${n.big === 2 || n.asc ? 'c-gold' : ''}">${esc(n.n)}</b><small>${kind}</small>${lines.length ? `<p class="aff">${lines.join('<br>')}</p>` : ''}`;
 }
 /* 以畫面上一點為中心縮放 */
@@ -328,6 +368,7 @@ function treeInit() {
     TREE.drag = null;
     if (!g || g.moved || e.type !== 'pointerup') return;
     if (!g.n) {
+      treeAttrClose();
       if (TOUCH.on && TREE.sel) (TREE.sel = null), hideTip(), treeRefresh();
       return;
     }
@@ -359,8 +400,11 @@ function treeInit() {
     const a = e.target.closest('[data-ta]');
     if (!a) return;
     if (a.dataset.ta === 'close') treeClose();
+    if (a.dataset.ta === 'attrx') treeAttrClose();
+    if (a.dataset.ta.startsWith('attr:')) treePick(...a.dataset.ta.split(':').slice(1));
     /* 重置按兩次：一鍵清空幾十點太容易誤觸 */
-    if (a.dataset.ta === 'reset' && confirm2(a, '再按一次：退回全部天賦點')) (S.pt = [...PT_START]), treeChanged();
+    if (a.dataset.ta === 'reset' && confirm2(a, '再按一次：退回全部天賦點'))
+      (S.pt = [...PT_START]), (S.ptA = {}), treeChanged();
     if (a.dataset.ta === 'areset' && confirm2(a, '再按一次：退回昇華點')) (S.at = ['a_st']), treeChanged();
   });
   el.addEventListener('input', e => e.target.id === 'tfind' && treeFind(e.target.value));

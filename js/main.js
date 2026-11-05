@@ -79,10 +79,10 @@ function migrate(s) {
       delete k.s;
     }
   }
-  /* 0.2.6：舊裝備補上品質 0、孔 0、潛能 3（不重骰，免得讀檔洗出好底材） */
+  /* 0.2.6：舊裝備補上品質 0、孔 0、潛能 3（不重骰，免得讀檔洗出好基底） */
   for (const it of [...Object.values(o.eq), ...o.inv.items, ...o.stash.items])
     if (it && !it.gem && it.q == null) Object.assign(it, { q: 0, so: 0, pot: 3 });
-  /* 0.2.7（存檔 14）：暴擊詞分成武器的「暴擊率 +」（本地）和其他部位的「暴擊率提高」；護身符的物理傷害改成「物理傷害提高」；
+  /* 0.2.7（存檔 14）：暴擊詞分成武器的「暴擊率 +」（本地）和其他部位的「暴擊率提高」；項鍊的物理傷害改成「物理傷害提高」；
      數值照同一個階級換到新的範圍（不重骰） */
   if (o.v < 14) {
     for (const it of [...Object.values(o.eq), ...o.inv.items, ...o.stash.items]) {
@@ -156,6 +156,12 @@ function migrate(s) {
       if (it && !it.gem && it.a) for (const a of it.a) if (a.T) a.T = Math.ceil(a.T / 2);
     o.v = 21;
   }
+  /* 存檔 22（0.2.42）：過路點改成「+5 能力值，自選其一」（S.ptA），天賦全部退點；裝備不動（不夠需求的會失效、顯示紅框） */
+  if (o.v < 22) {
+    o.pt = [...PT_START];
+    o.v = 22;
+  }
+  o.ptA = o.ptA || {};
   /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
   if (!o.filter || !Array.isArray(o.filter.sets)) {
     const f = s.filter,
@@ -167,7 +173,7 @@ function migrate(s) {
   const AT = o.asc && ascNodes(o.asc);
   if (!AT) (o.asc = null), (o.at = []);
   else if (!o.at.length || o.at.some(id => !AT.I[id]) || !ascFeasible(AT, o.at)) o.at = ['a_st'];
-  /* 0.2.9：武器照 PoE2 的 18 種類別重做；舊底材換成同一族的新類別、最接近的階級（等級、稀有度、詞綴都保留） */
+  /* 0.2.9：武器照 PoE2 的 18 種類別重做；舊基底換成同一族的新類別、最接近的階級（等級、稀有度、詞綴都保留） */
   const OLDW = {
     sword1: ['w_katana', 'w_moon', 'w_demon'],
     sword2: ['w_nodachi', 'w_zanba', 'w_omono'],
