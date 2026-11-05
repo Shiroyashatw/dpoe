@@ -616,7 +616,8 @@ function hitCalc(c, m, o = {}) {
   if (!spell && parryOn(m)) more *= parryMore();
   /* 易攻目標（第 10 批）：下一次投射物攻擊擊中更多傷害，擊中後消耗（面板的期望值不消耗） */
   const ez = m && m.ail && m.ail.easy;
-  if (ez && ez.t > G.t && tg.includes('proj') && !o.avg) (more *= 1 + ez.v / 100), (m.ail.easy = null);
+  if (ez && ez.t > G.t && tg.includes('proj') && tg.includes('attack') && !o.avg)
+    (more *= 1 + ez.v / 100), (m.ail.easy = null);
   /* 0.2.25 昇華：獵鷹印記（被印記的更多 10%）、遠射／近射（看投射物飛了多遠 o.fly） */
   if (m && m.ail && m.ail.mark && m.ail.mark.k === 'falcon') more *= 1.1;
   if (tg.includes('proj')) more *= projDistMore(o.fly || 0);
@@ -803,7 +804,7 @@ function igniteOn(m, dps, t, c, use) {
   return keepMax(m.ail.ign, dps * n, t, { cu: use });
 }
 /* 破甲家族（第 10 批）：碎甲（5 秒，或完全破甲被移除就結束）、卸防姿態（60 秒，目眩消失或承受 10 次擊中就結束）、破碎護甲（只在完全破甲期間） */
-const rivenOn = a => !!(a.riven && a.riven.t > G.t && !(a.riven.b && !(a.broken > G.t))),
+const rivenOn = a => !!(a.riven && a.riven.t > G.t && a.broken > G.t),
   unbrOn = a => !!(a.unbr && a.unbr.t > G.t && a.daze > G.t),
   rivenAdd = a => (rivenOn(a) ? a.riven.v : 0) + (unbrOn(a) ? a.unbr.v : 0);
 /* 有這些狀態的敵人不能再被破甲 */
@@ -964,17 +965,17 @@ function debuffsOn(m, p, c) {
     tot = DT.reduce((t, k) => t + p[k], 0);
   /* 破碎護甲：只能對完全破甲的敵人施加，物理再 +20%，持續到完全破甲結束；之後不能再破甲 */
   if (c.shatter && a.broken > G.t) a.shatter = a.broken;
-  /* 碎甲：存這次擊中 5% 減免前物理為幅度，5 秒；重上取代舊的；記下上的時候有沒有完全破甲（被移除就結束） */
-  if (c.riven && p.phys > 0)
-    a.riven = { v: (p.phys * DEBUFF.rivenPct) / 100, t: G.t + DEBUFF.rivenT, b: a.broken > G.t };
+  /* 碎甲：只能對完全破甲的敵人施加，存這次擊中 5% 減免前物理為幅度，5 秒，完全破甲被移除就結束；重上取代舊的 */
+  if (c.riven && p.phys > 0 && a.broken > G.t)
+    a.riven = { v: (p.phys * DEBUFF.rivenPct) / 100, t: G.t + DEBUFF.rivenT };
   /* 卸防姿態：只能對目眩的敵人施加，存 10%，60 秒；重上取代舊的 */
   if (c.unbr && p.phys > 0 && a.daze > G.t)
     a.unbr = { v: (p.phys * DEBUFF.unbrPct) / 100, t: G.t + DEBUFF.unbrT, n: DEBUFF.unbrHits };
   /* 壓碎：物理減傷 −15 個百分點，可以變負 */
   if (c.crush) a.crush = G.t + dbT(c.crush, DEBUFF.crushT);
-  /* 跛行：扣目標當下的閃避（普通 ×3、稀有與王 ×1），扣到 0＝完全跛行 12 秒；c.cripple＝這一擊總傷害的倍率 */
+  /* 跛行：扣目標當下的閃避（普通 ×3、菁英 ×2、王 ×1，跟破甲一致），扣到 0＝完全跛行 12 秒；c.cripple＝這一擊總傷害的倍率 */
   if (c.cripple && m.ev0 != null && !(a.crip > G.t)) {
-    m.ev = Math.max(0, m.ev - tot * c.cripple * (m.boss || m.elite ? 1 : 3));
+    m.ev = Math.max(0, m.ev - tot * c.cripple * (m.boss ? 1 : m.elite ? 2 : 3));
     a.evT = G.t + DEBUFF.cripT;
     if (m.ev <= 0) a.crip = G.t + DEBUFF.cripT;
   }

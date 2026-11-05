@@ -2069,17 +2069,17 @@ vm.runInContext(
     m.ail.broken = G.t + 12; apply(m, P0, { shatter: true }); out.sh1 = [m.ail.shatter > G.t, takenInc(m, 'phys')];
     m.ail.broken = 0; out.sh2 = takenInc(m, 'phys');
     m = mk({ arm: 50, arm0: 50 }); m.ail.shatter = G.t + 5; m.ail.broken = G.t - 1; apply(m, P0, { armBreak: 1 }); const noB = m.arm;
-    m = mk({ arm: 50, arm0: 50 }); apply(m, P0, { riven: 1 }); apply(m, P0, { armBreak: 1 }); out.noBreak = [noB, m.arm];
+    m = mk({ arm: 50, arm0: 50 }); out.noBreak = [noB];
     m = mk({ arm: 50, arm0: 50 }); apply(m, P0, { armBreak: 1 }); out.canBreak = m.arm < 50;
     /* 碎甲：幅度＝該次擊中 5% 的減免前物理；之後的攻擊多一筆不吃任何加成的附加物理；法術沒有；5 秒到期；完全破甲被移除即結束 */
     ST.physP = 100; const c2x = { ...atk, more: 2 };
-    m = mk(); const nb = hit(m, c2x); apply(m, { ...P0, phys: 1000 }, { riven: 1 }); out.riven = [m.ail.riven.v, rd(hit(m, c2x) - nb)];
+    m = mk(); m.ail.broken = G.t + 12; const nb = hit(m, c2x); apply(m, { ...P0, phys: 1000 }, { riven: 1 }); out.riven = [m.ail.riven.v, rd(hit(m, c2x) - nb)];
     const sc = { D: { tags: ['spell'], m: 1, el: 'fire' }, mult: 1, more: 1, lv: 1 };
     Math.random = () => 0.5; out.rivenSpell = rd(hitCalc(sc, m, { keep: 1 }).d - hitCalc(sc, mk(), { keep: 1 }).d) === 0; Math.random = rnd0;
     ST.physP = 0;
-    G.t = 100; m.ail.riven.t = 104; G.t = 105; out.rivenEnd = hit(m) === hit(mk());
+    G.t = 100; m.ail.riven.t = 104; G.t = 105; { const r = m.ail.riven, h = hit(m); m.ail.riven = null; out.rivenEnd = h === hit(m); m.ail.riven = r; }
     G.t = 100; m = mk(); m.ail.broken = G.t + 12; apply(m, { ...P0, phys: 1000 }, { riven: 1 }); const rb = [rivenOn(m.ail)]; m.ail.broken = 0; rb.push(rivenOn(m.ail)); out.rivenBroken = rb;
-    G.t = 100; m = mk(); apply(m, { ...P0, phys: 1000 }, { riven: 1 }); apply(m, { ...P0, phys: 2000 }, { riven: 1 }); out.rivenRe = m.ail.riven.v;
+    G.t = 100; m = mk(); out.rivenNo = (apply(m, { ...P0, phys: 1000 }, { riven: 1 }), !m.ail.riven); m.ail.broken = G.t + 12; apply(m, { ...P0, phys: 1000 }, { riven: 1 }); apply(m, { ...P0, phys: 2000 }, { riven: 1 }); out.rivenRe = m.ail.riven.v;
     /* 卸防姿態：只對目眩的敵人、存 10%；10 次擊中、60 秒、目眩消失後結束；有它不能再目眩；重上取代舊的 */
     m = mk(); apply(m, { ...P0, phys: 1000 }, { unbr: 1 }); out.unb0 = !!m.ail.unbr;
     m.ail.daze = G.t + 8; apply(m, { ...P0, phys: 1000 }, { unbr: 1 }); out.unb1 = [m.ail.unbr.v, rd(hit(m) - hit(mk()))];
@@ -2092,6 +2092,8 @@ vm.runInContext(
     m = mk({ ev: 1000, ev0: 1000 }); apply(m, P0, { cripple: 2 }); const evN = m.ev;
     m = mk({ ev: 1000, ev0: 1000, boss: 1 }); apply(m, P0, { cripple: 2 }); const evB = m.ev;
     m = mk({ ev: 1000, ev0: 1000, elite: 1 }); apply(m, P0, { cripple: 2 }); out.crip = [evN, evB, m.ev];
+    /* 易攻目標：法術投射物不吃也不消耗，攻擊投射物才吃 */
+    m = mk(); apply(m, P0, { easy: 50 }); const spj = { D: { tags: ['spell', 'proj'], m: 1, el: 'fire' }, mult: 1, more: 1, lv: 1 }; Math.random = () => 0.5; hitCalc(spj, m, { keep: 1 }); out.easySpell = !!m.ail.easy; Math.random = rnd0;
     m = mk({ ev: 1000, ev0: 1000 }); apply(m, P0, { cripple: 2 }); apply(m, P0, { cripple: 2 }); apply(m, P0, { cripple: 2 });
     out.crip0 = [m.ev, m.ail.crip - G.t, hitRoll(m, atk)]; G.t = 113; ailTick(m, 0.1); out.cripEnd = [m.ev, m.ail.crip > G.t]; G.t = 100;
     /* 可觸電、可冰凍：普通 40%、菁英 60%、王 70%；定身後不算；收割後歸零 */
@@ -2210,17 +2212,18 @@ vm.runInContext(
     j10(b10.sh0) === '[0,0]' &&
       j10(b10.sh1) === '[true,40]' &&
       b10.sh2 === 0 &&
-      j10(b10.noBreak) === '[50,50]' &&
+      j10(b10.noBreak) === '[50]' &&
       b10.canBreak,
     j10([b10.sh0, b10.sh1, b10.sh2, b10.noBreak, b10.canBreak])
   );
   ok(
-    '碎甲：幅度＝擊中 5% 減免前物理、之後攻擊多一筆不吃提高與更多的附加物理；法術沒有、5 秒到期、完全破甲移除即結束、重上取代舊的',
-    j10(b10.riven) === '[50,50]' &&
+    '碎甲：只能對完全破甲的敵人施加（沒完全破甲不會上）、幅度＝擊中 5% 減免前物理、之後攻擊多一筆不吃提高與更多的附加物理；法術沒有、5 秒到期、完全破甲移除即結束、重上取代舊的',
+    j10(b10.riven) === '[50,60]' &&
       b10.rivenSpell &&
       b10.rivenEnd &&
       j10(b10.rivenBroken) === '[true,false]' &&
-      b10.rivenRe === 100,
+      b10.rivenRe === 100 &&
+      b10.rivenNo,
     j10([b10.riven, b10.rivenSpell, b10.rivenEnd, b10.rivenBroken, b10.rivenRe])
   );
   ok(
@@ -2236,8 +2239,8 @@ vm.runInContext(
     j10([b10.unb0, b10.unb1, b10.unbRe, b10.unbNoDaze, b10.unb9, b10.unb10, b10.unbDaze, b10.unbT])
   );
   ok(
-    '跛行：普通怪 ×3、菁英與王 ×1 扣目標當下的閃避，扣到 0 完全跛行 12 秒（攻擊必中），到期恢復',
-    j10(b10.crip) === '[400,800,800]' && j10(b10.crip0) === '[0,12,true]' && j10(b10.cripEnd) === '[1000,false]',
+    '跛行：普通怪 ×3、菁英 ×2、王 ×1（跟破甲一致）扣目標當下的閃避，扣到 0 完全跛行 12 秒（攻擊必中），到期恢復',
+    j10(b10.crip) === '[400,800,600]' && j10(b10.crip0) === '[0,12,true]' && j10(b10.cripEnd) === '[1000,false]',
     j10([b10.crip, b10.crip0, b10.cripEnd])
   );
   ok(
@@ -2300,7 +2303,7 @@ vm.runInContext(
   );
   ok(
     '易攻目標：只有投射物攻擊吃、吃一次就消耗；幅度由施加者給；4 秒到期不吃',
-    j10(b10.easy) === '[1,1.5,1,true]' && b10.easyEnd === 1,
+    b10.easySpell && j10(b10.easy) === '[1,1.5,1,true]' && b10.easyEnd === 1,
     j10([b10.easy, b10.easyEnd])
   );
   ok(
