@@ -58,8 +58,8 @@ function poise(m, k) {
     (1 + 5 * Math.max(0, Math.min(1, left / POISE[k].back)))
   );
 }
-/* 禁錮（0.2.42，照 PoE2）＝不能移動的總稱：冰凍、觸電、沉重暈眩、釘身；本身不加傷害，「對禁錮的敵人傷害提高」才吃 */
-const immob = a => a.frozen > G.t || a.elcT > G.t || a.hstun > G.t || a.pinT > G.t;
+/* 禁錮（0.2.42，照 PoE2）＝不能移動的總稱：冰凍、觸電、沉重暈眩、釘身、石化（第 10 批）；本身不加傷害，「對禁錮的敵人傷害提高」才吃 */
+const immob = a => a.frozen > G.t || a.elcT > G.t || a.hstun > G.t || a.pinT > G.t || a.petr > G.t;
 /* 定身：不管是累滿還是粉碎重擊、撞牆，之後穩固值都 +500%，從定身結束開始退回 */
 function poisePin(m, k) {
   const q = POISE[k],
@@ -76,13 +76,68 @@ function poiseAdd(m, k, dmg, inc = 0) {
   if (!(dmg > 0) || immob(a)) return;
   /* 目眩（0.2.42）：受到的沉重暈眩累積 +50% */
   const daze = k === 'hs' && a.daze > G.t ? 1.5 : 1;
-  a[k] = (a[k] || 0) + (dmg * POISE[k].k * (1 + inc / 100) * daze * 100) / poise(m, k);
+  /* 濕透（第 10 批）：冰凍累積 25% 更多 */
+  const wet = k === 'frz' && a.wet > G.t ? 1 + DEBUFF.wetFrz / 100 : 1;
+  a[k] = (a[k] || 0) + (dmg * POISE[k].k * (1 + inc / 100) * daze * wet * 100) / poise(m, k);
   (a.psA = a.psA || {})[k] = G.t;
   if (a[k] >= 100) poisePin(m, k);
 }
 /* 稀有度對減益的抵抗（冰緩、詛咒、曝曬）：菁英當稀有 30%、王當傳奇 50% */
 const rarRed = m => (m.boss ? 0.5 : m.elite ? 0.3 : 0);
 const ELEK = ['fire', 'cold', 'light'];
+
+/* ---------- 第 10 批：異常與減益（企劃書 7.2、7.3）。數字照 poe2db；⚠️＝查不到的暫定值，全部集中在這裡 ---------- */
+const DEBUFF = {
+  parryT: 2 /* 受招架秒數 */,
+  parryMore: 50 /* 受招架：攻擊傷害更多 % */,
+  shatterR: 4 /* ⚠️ 格擋值碎開的衝擊範圍（公尺） */,
+  crushPts: 15 /* 壓碎：物理減傷扣的百分點 */,
+  crushT: 4 /* ⚠️ */,
+  shatterMore: 20 /* 破碎護甲：物理再受到 +20%（跟完全破甲相加） */,
+  rivenPct: 5,
+  rivenT: 5,
+  unbrPct: 10,
+  unbrT: 60,
+  unbrHits: 10,
+  cripT: 12,
+  stainNeed: 6 /* 血漬：流血累積 6 秒 */,
+  stainT: 8 /* ⚠️ 血漬減益持續秒數 */,
+  inciseCh: 10 /* 切割：每層流血機率 +10% */,
+  inciseMax: 10,
+  inciseMore: 3 /* 近期每消耗 1 層，流血幅度 3% 更多 */,
+  inciseCap: 30,
+  cbT: 5 /* 腐化之血 */,
+  cbMax: 10,
+  anemiaT: 8 /* ⚠️ 缺血持續秒數 */,
+  petrifyT: 3 /* ⚠️ 王減半 */,
+  weakT: 1,
+  weakMove: 20,
+  weakDmg: 10,
+  tauntT: 3,
+  tauntLess: 10,
+  wetT: 2,
+  wetShock: 50 /* 濕透：感電機率更多 % */,
+  wetFrz: 25 /* 冰凍累積更多 % */,
+  easyT: 4 /* ⚠️ */,
+  suppMax: 100,
+  suppCut: 50,
+  overSlow: 10,
+  overT: 4,
+  overMax: 5 /* ⚠️ */,
+  vineSlow: 8,
+  vineMax: 5,
+  vineLose: 1 /* ⚠️ 每移動 1 秒移除 1 層 */
+};
+/* 技能欄位的值：true＝用預設秒數，數字＝施加者給的秒數 */
+const dbT = (v, def) => (v === true ? def : v);
+/* 受招架（0.2.43 第 10 批，原「失衡」）：受到的攻擊傷害更多、無法閃避攻擊；幅度與持續時間對所有來源一致（長矛招架、碎開衝擊、品質擴散） */
+const parryOn = m => !!(m && m.ail && m.ail.parried > G.t);
+const parryMore = () => 1 + (DEBUFF.parryMore * (1 + ST.parryMag / 100)) / 100;
+function applyParry(m) {
+  if (m && m.ail) m.ail.parried = G.t + DEBUFF.parryT * (1 + ST.parryDur / 100);
+}
+/* 不受影響（第 10 批）：ST.unaff = { chill: 1 } 之類，減益仍掛著、仍顯示，只是不發揮效果 */
+const unaff = k => !!(ST.unaff && ST.unaff[k]);
 
 /* ---------- 命中（0.2.22，照 PoE2）：命中率 = 1.25 × 命中 ÷（命中 ＋ 0.3 × 閃避），5%～100%；用熵值不擲骰 ---------- */
 const hitChance = (acc, ev) => Math.max(0.05, Math.min(1, (1.25 * acc) / (acc + 0.3 * ev)));
@@ -91,6 +146,8 @@ const mobEv = (lv, m) => 6 * lv * (m && m.boss ? 2.22 : m && m.elite ? 1.9 : 1.5
 /* 玩家的攻擊打不打得中：法術、召喚物、場上單位、持續傷害一律命中；基石「堅定技巧」必中 */
 function hitRoll(m, c, o = {}) {
   if (ST.noMiss || o.minion || o.unit || isSpell(c.D) || !m.ev) return true;
+  /* 受招架的敵人無法閃避攻擊；沉重暈眩的敵人無法閃避你的擊中（開關 hstunNoEv，易攻目標天賦版） */
+  if (parryOn(m) || (ST.hstunNoEv && m.ail && m.ail.hstun > G.t)) return true;
   const ch = hitChance(ST.acc * (P.ail && P.ail.blind > G.t ? 0.8 : 1), m.ev);
   if (m.evE == null) m.evE = Math.random() * 100;
   m.evE += ch * 100;
@@ -109,7 +166,7 @@ function mobDef(m, t) {
   m.arm0 = m.arm = (m.boss ? 0.1 : m.D.arm || 0.3) * m.D.hp * tierMul(t).hp * (m.elite ? ELITE.hp : 1) * 0.5;
   m.arm0 = m.arm *= 1 + MM('marm') / 100;
   m.acc = (15 + 6 * mobLv(t)) * (1 + MM('macc') / 100);
-  m.ev = mobEv(mobLv(t), m);
+  m.ev0 = m.ev = mobEv(mobLv(t), m);
   m.spdM = 1 + MM('mspd') / 100;
   m.ail = {};
   /* 堅韌（0.2.42）：受到的傷害 ÷ (1 + 堅韌/100)；怪物、王的基礎值都是 0，只有地圖詞（mtough）給 */
@@ -291,14 +348,14 @@ function resOf(m, k, pen = 0) {
   } else if (a.curse && a.curse.k === 'despair') r -= a.curse.v;
   return r > 0 ? Math.max(0, r - pen) : r;
 }
-/* 目標「受到的傷害提高」：感電、威嚇、凋零（只混沌）、完全破甲（只物理） */
+/* 目標「受到的傷害提高」：感電、威嚇、凋零（只混沌）、完全破甲（只物理，破碎護甲再 +20%、相加） */
 function takenInc(m, k) {
   const a = m.ail || {};
   let v = 0;
   if (a.shock > G.t) v += 20;
   if (a.intim > G.t) v += 10;
   if (k === 'chaos') v += 5 * (a.wither || []).filter(t => t > G.t).length;
-  if (k === 'phys' && a.broken > G.t) v += 20;
+  if (k === 'phys' && a.broken > G.t) v += 20 + (a.shatter > G.t ? DEBUFF.shatterMore : 0);
   return v;
 }
 const toughOf = m => (m.tough || 0) + MM('mtough');
@@ -346,7 +403,11 @@ function absorb(d) {
       P.bv = 0;
       P.bvRe = G.t;
       if (ST.sacrifice) P.sacT = G.t + 2;
-      fx({ k: 'ring', x: P.x, y: P.y, r: 60, dur: 0.35, col: '#c9d3e0' });
+      /* 碎開的衝擊：範圍內所有敵人（含王）受招架，範圍 4 公尺×(1 + parryR%)，圓環畫的就是實際範圍；有格擋值（拿盾）就生效 */
+      const R = DEBUFF.shatterR * METER * (1 + ST.parryR / 100);
+      for (const o of G.mobs || [])
+        if (o.hp > 0 && !o.arrow && Math.hypot(o.x - P.x, o.y - P.y) <= R + o.r) applyParry(o);
+      fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#c9d3e0' });
       sfx('block');
     }
     d -= ab;
@@ -543,7 +604,7 @@ function hitCalc(c, m, o = {}) {
   let more = (o.mult || 1) * (c.more || 1);
   /* 你被「衰弱」詛咒（地圖詞）：造成的傷害更少 */
   const pc = P.ail && P.ail.curse;
-  if (pc && pc.k === 'enfeeble' && pc.t > G.t) more *= 1 - pc.v / 100;
+  if (pc && pc.k === 'enfeeble' && pc.t > G.t && !unaff('curse')) more *= 1 - pc.v / 100;
   if (tg.includes('attack')) more *= 1 + ((P.rage || 0) * (1 + ST.rageEff / 100)) / 100;
   /* 天賦基石的全域更多／更少（0.2.17） */
   if (ST.more) more *= 1 + ST.more / 100;
@@ -551,8 +612,11 @@ function hitCalc(c, m, o = {}) {
   if (ST.wind) more *= moving() ? 1.25 : 0.75;
   if (ST.projMore && tg.includes('proj')) more *= 1 + ST.projMore / 100;
   if (!o.minion && !o.unit) more *= ST.noSelf ? 0 : 1 + ST.selfMore / 100;
-  /* 失衡（招架，mech.js）：受到的攻擊傷害提高 50% */
-  if (!spell && m && m.ail && m.ail.parried > G.t) more *= 1.5;
+  /* 受招架（mech.js）：受到的攻擊傷害 50% 更多（幅度 parryMag） */
+  if (!spell && parryOn(m)) more *= parryMore();
+  /* 易攻目標（第 10 批）：下一次投射物攻擊擊中更多傷害，擊中後消耗（面板的期望值不消耗） */
+  const ez = m && m.ail && m.ail.easy;
+  if (ez && ez.t > G.t && tg.includes('proj') && !o.avg) (more *= 1 + ez.v / 100), (m.ail.easy = null);
   /* 0.2.25 昇華：獵鷹印記（被印記的更多 10%）、遠射／近射（看投射物飛了多遠 o.fly） */
   if (m && m.ail && m.ail.mark && m.ail.mark.k === 'falcon') more *= 1.1;
   if (tg.includes('proj')) more *= projDistMore(o.fly || 0);
@@ -622,9 +686,11 @@ function hitCalc(c, m, o = {}) {
     big = 'phys',
     bigV = -1;
   const post = {},
-    tough = m ? 1 + toughOf(m) / 100 : 1;
+    tough = m ? 1 + toughOf(m) / 100 : 1,
+    /* 碎甲、卸防姿態：之後的攻擊擊中多一筆獨立附加物理（不吃提高、更多、暴擊、只算一次），在減傷之前加進去 */
+    rv = m && tg.includes('attack') ? rivenAdd(m.ail) : 0;
   for (const k of DT) {
-    const v = pre[k];
+    const v = pre[k] + (k === 'phys' ? rv : 0);
     post[k] = 0;
     if (!v) continue;
     if (v > bigV) (bigV = v), (big = k);
@@ -632,7 +698,12 @@ function hitCalc(c, m, o = {}) {
       d += v;
       continue;
     }
-    const red = k === 'phys' ? Math.min(0.9, m.arm / (m.arm + 10 * v + 1)) : resOf(m, k, ST.pen + (c.pen || 0)) / 100;
+    /* 物理減傷順序：護甲（上限 90%）→ 鎮壓（扣百分點，最多扣到 0）→ 壓碎（再扣 15 百分點，可以變負＝受到更多） */
+    let red = k === 'phys' ? Math.min(0.9, m.arm / (m.arm + 10 * v + 1)) : resOf(m, k, ST.pen + (c.pen || 0)) / 100;
+    if (k === 'phys') {
+      red = Math.max(0, red - ((c.overwhelm || 0) + ST.overwhelm) / 100);
+      if (m.ail && m.ail.crush > G.t) red -= DEBUFF.crushPts / 100;
+    }
     d += post[k] = (v * (1 - red) * (1 + takenInc(m, k) / 100)) / tough;
   }
   return { d, pre, post, crit, el: big, spell };
@@ -731,6 +802,21 @@ function igniteOn(m, dps, t, c, use) {
   mp.set(m, n);
   return keepMax(m.ail.ign, dps * n, t, { cu: use });
 }
+/* 破甲家族（第 10 批）：碎甲（5 秒，或完全破甲被移除就結束）、卸防姿態（60 秒，目眩消失或承受 10 次擊中就結束）、破碎護甲（只在完全破甲期間） */
+const rivenOn = a => !!(a.riven && a.riven.t > G.t && !(a.riven.b && !(a.broken > G.t))),
+  unbrOn = a => !!(a.unbr && a.unbr.t > G.t && a.daze > G.t),
+  rivenAdd = a => (rivenOn(a) ? a.riven.v : 0) + (unbrOn(a) ? a.unbr.v : 0);
+/* 有這些狀態的敵人不能再被破甲 */
+const noBreak = a => rivenOn(a) || a.shatter > G.t;
+/* 近期（4 秒）切割消耗的層數 */
+function inciseRecent() {
+  P.incN = (P.incN || []).filter(x => x[0] > G.t - RECENT);
+  return P.incN.reduce((t, x) => t + x[1], 0);
+}
+/* 濕透（第 10 批）：獨立的通用減益，不綁任何技能；技能欄位 c.drench、地面、地圖詞都呼叫這個。t 預設 2 秒，傳更長的秒數會延長（不縮短） */
+function drench(m, t = DEBUFF.wetT) {
+  if (m && m.ail) m.ail.wet = Math.max(m.ail.wet || 0, G.t + t);
+}
 function applyAil(m, r, c, use) {
   const a = m.ail,
     cq = c.q || 0,
@@ -750,6 +836,9 @@ function applyAil(m, r, c, use) {
   /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；餘燼：點燃更多、持續時間 −25% */
   /* 加劇任何流血（開關 aggHit，攻擊擊中時）：先加劇現有的，這一下新上的不算 */
   if (ST.aggHit && attack) aggBleed(m);
+  /* 第 10 批：卸防姿態承受的擊中數（這一下之後才算）；濕透先上，這一下就吃得到 */
+  if (a.unbr && --a.unbr.n <= 0) a.unbr = null;
+  if (c.drench) drench(m, dbT(c.drench, DEBUFF.wetT));
   const igB = ailBase(p, 'ign');
   if (igB > 0) {
     a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (igB / thrF) * 20 * (archon ? 2 : 1));
@@ -772,14 +861,22 @@ function applyAil(m, r, c, use) {
     poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + (archon ? 100 : 0));
   }
   /* 感電：每 4% 門檻 +1% 機率（化身 ×2、閃電箭更多），受到的傷害提高 20%、8 秒 */
-  if (p.light > 0 && roll((((p.light / thrL) * 100) / 4) * (archon ? 2 : 1) * (1 + (c.shockMore || 0) / 100)))
+  if (
+    p.light > 0 &&
+    roll(
+      (((p.light / thrL) * 100) / 4) *
+        (archon ? 2 : 1) *
+        (1 + (c.shockMore || 0) / 100) *
+        (a.wet > G.t ? 1 + DEBUFF.wetShock / 100 : 1)
+    )
+  )
     a.shock = G.t + 8;
   /* 觸電：只有特定技能、輔助會累積 */
   if (c.elc) poiseAdd(m, 'elc', po.light * c.elc, ST.elcP + (mk === 'volt' ? 50 : 0));
   /* 釘身：只有 c.pin 的技能、輔助累積（所有傷害種類都算） */
   if (c.pin) poiseAdd(m, 'pin', (po.phys + po.fire + po.cold + po.light + po.chaos) * c.pin);
   /* 目眩（0.2.42）：不疊加，重上刷新 8 秒 */
-  if (qRoll(ST.dazeCh)) a.daze = G.t + 8;
+  if (qRoll(ST.dazeCh) && !unbrOn(a)) a.daze = G.t + 8;
   /* 暈眩：僵直（輕暈）看「這一下÷最大生命」（低於 15% 不算）；沉重暈眩累積（冰冷不算，物理、近戰各 ×1.5） */
   const hit = p.phys + p.fire + p.light + p.chaos;
   if (!m.boss && hit / m.mhp >= 0.15 && Math.random() < hit / m.mhp) m.stun = Math.max(m.stun || 0, 0.5);
@@ -802,8 +899,18 @@ function applyAil(m, r, c, use) {
   );
   if (ST.steelCycle && P.bvAcc > 0 && !immob(a)) poiseAdd(m, 'hs', P.bvAcc), (P.bvAcc = 0);
   /* 流血、中毒：要有機率；流血只有攻擊會造成，c.spellBleed 是例外（死亡紅花的爆炸） */
-  if ((attack || c.spellBleed) && ailBase(p, 'bleed') > 0 && roll(ST.bleedCh + (c.bleedCh || 0)))
-    a.bleed = keepMax(a.bleed, ailBase(p, 'bleed') * 0.15 * mag, 5);
+  /* 切割（開關 incise）：擊中給 1 層；每層流血機率 +10%（最多 10 層），上流血時全部移除；inciseMag：近期每消耗 1 層，流血幅度 3% 更多（上限 30%） */
+  if (ST.incise) a.inc = Math.min(DEBUFF.inciseMax, (a.inc || 0) + 1);
+  const nInc = a.inc || 0;
+  if (
+    (attack || c.spellBleed) &&
+    ailBase(p, 'bleed') > 0 &&
+    roll(ST.bleedCh + (c.bleedCh || 0) + DEBUFF.inciseCh * nInc)
+  ) {
+    if (nInc) (a.inc = 0), (P.incN = P.incN || []).push([G.t, nInc]);
+    const im = ST.inciseMag ? 1 + Math.min(DEBUFF.inciseCap, DEBUFF.inciseMore * inciseRecent()) / 100 : 1;
+    a.bleed = keepMax(a.bleed, ailBase(p, 'bleed') * 0.15 * mag * im, 5);
+  }
   /* 附加火焰的品質：附加的火焰有機率直接點燃 */
   if (c.addIgn && p.fire > 0 && qRoll(c.addIgn)) a.ign = igniteOn(m, p.fire * 0.2 * mag, 4, c, use);
   if (ailBase(p, 'poi') > 0 && roll(ST.poisonCh + (c.poisonCh || 0))) {
@@ -823,7 +930,7 @@ function applyAil(m, r, c, use) {
   const brk =
     (p.phys > 0 && (ST.armBreak || c.armBreak || (c.k === 'ballista' && qRoll(20 * cq))) ? p.phys : 0) +
     (ST.armBreakArm * ST.armor) / 100;
-  if (brk > 0 && !(a.broken > G.t)) {
+  if (brk > 0 && !(a.broken > G.t) && !noBreak(a)) {
     m.arm -= brk * (m.boss ? 1 : m.elite ? 2 : 3);
     a.abT = G.t + 12;
     if (m.arm <= 0) (m.arm = 0), (a.broken = G.t + 12);
@@ -848,6 +955,44 @@ function applyAil(m, r, c, use) {
   if (c.hinder) a.hinder = G.t + 4;
   if (c.maim && attack) a.maim = G.t + 4;
   if (c.intim) a.intim = G.t + 4;
+  debuffsOn(m, p, c);
+}
+/* 第 10 批的技能欄位減益（applyAil 最後呼叫）；來源只有技能欄位，沒有技能接的先不會發生 */
+function debuffsOn(m, p, c) {
+  const a = m.ail,
+    dm = debuffM(),
+    tot = DT.reduce((t, k) => t + p[k], 0);
+  /* 破碎護甲：只能對完全破甲的敵人施加，物理再 +20%，持續到完全破甲結束；之後不能再破甲 */
+  if (c.shatter && a.broken > G.t) a.shatter = a.broken;
+  /* 碎甲：存這次擊中 5% 減免前物理為幅度，5 秒；重上取代舊的；記下上的時候有沒有完全破甲（被移除就結束） */
+  if (c.riven && p.phys > 0)
+    a.riven = { v: (p.phys * DEBUFF.rivenPct) / 100, t: G.t + DEBUFF.rivenT, b: a.broken > G.t };
+  /* 卸防姿態：只能對目眩的敵人施加，存 10%，60 秒；重上取代舊的 */
+  if (c.unbr && p.phys > 0 && a.daze > G.t)
+    a.unbr = { v: (p.phys * DEBUFF.unbrPct) / 100, t: G.t + DEBUFF.unbrT, n: DEBUFF.unbrHits };
+  /* 壓碎：物理減傷 −15 個百分點，可以變負 */
+  if (c.crush) a.crush = G.t + dbT(c.crush, DEBUFF.crushT);
+  /* 跛行：扣目標當下的閃避（普通 ×3、稀有與王 ×1），扣到 0＝完全跛行 12 秒；c.cripple＝這一擊總傷害的倍率 */
+  if (c.cripple && m.ev0 != null && !(a.crip > G.t)) {
+    m.ev = Math.max(0, m.ev - tot * c.cripple * (m.boss || m.elite ? 1 : 3));
+    a.evT = G.t + DEBUFF.cripT;
+    if (m.ev <= 0) a.crip = G.t + DEBUFF.cripT;
+  }
+  /* 缺血：目標的腐化之血層數上限 = 10 + 缺血幅度（乘減益幅度）；腐化之血：c.corrupt ＝每層每秒的物理持續傷害，每層獨立 5 秒 */
+  if (c.anemia) a.anemia = { v: c.anemia * dm, t: G.t + DEBUFF.anemiaT };
+  if (c.corrupt) {
+    const cb = (a.cb = (a.cb || []).filter(x => x.t > G.t)),
+      mx = DEBUFF.cbMax + (a.anemia && a.anemia.t > G.t ? Math.floor(a.anemia.v) : 0);
+    cb.push({ dps: c.corrupt, t: G.t + DEBUFF.cbT });
+    cb.sort((x, y) => y.t - x.t);
+    if (cb.length > mx) cb.pop(); /* 滿了就換掉最舊的；上限縮小時不一次砍掉已有的層 */
+  }
+  /* 控制與減益（秒數由施加者給，true＝預設） */
+  if (c.petrify) a.petr = G.t + dbT(c.petrify, DEBUFF.petrifyT) * (m.boss ? 0.5 : 1);
+  if (c.calm) a.calm = G.t + dbT(c.calm, 1);
+  if (c.weaken) a.weak = G.t + dbT(c.weaken, DEBUFF.weakT);
+  if (c.taunt) a.taunt = G.t + dbT(c.taunt, DEBUFF.tauntT);
+  if (c.easy) a.easy = { v: c.easy, t: G.t + DEBUFF.easyT };
 }
 /* 怪物這一格：持續傷害、累積條消退；回傳 true＝不能行動（冰凍、觸電、沉重暈眩、輕暈） */
 function ailTick(m, dt) {
@@ -867,6 +1012,14 @@ function ailTick(m, dt) {
   d += bl;
   if (a.poi)
     for (const x of a.poi) if (x.t > G.t) d += x.dps * (1 - resOf(m, 'chaos') / 100) * (1 + takenInc(m, 'chaos') / 100);
+  /* 腐化之血：每層獨立的物理持續傷害，不是流血（不吃流血加成、不會加倍） */
+  if (a.cb) for (const x of a.cb) if (x.t > G.t) d += x.dps;
+  /* 血漬：流血時累積（目標移動或流血被加劇時 ×2），流血斷掉就暫停（不歸零），滿 6 秒得到血漬減益 */
+  if (bl > 0) {
+    const agg = [a.bleed, ...(a.bleed.q || [])].some(x => x.t > G.t && x.agg);
+    a.stainA = (a.stainA || 0) + dt * (m.mv || agg ? 2 : 1);
+    if (a.stainA >= DEBUFF.stainNeed) (a.stainA = 0), (a.stain = G.t + DEBUFF.stainT);
+  }
   if (d > 0) {
     m.hp -= d * dt;
     m.dotAcc = (m.dotAcc || 0) + d * dt;
@@ -881,10 +1034,14 @@ function ailTick(m, dt) {
   /* 獵犬印記：流血的失血累積沉重暈眩 */
   if (a.mark && a.mark.k === 'hound' && a.bleed && a.bleed.t > G.t) poiseAdd(m, 'hs', bl * dt);
   if (a.abT && a.abT <= G.t && !(a.broken > G.t)) m.arm = m.arm0;
+  if (a.evT && a.evT <= G.t && !(a.crip > G.t) && m.ev0 != null) (m.ev = m.ev0), (a.evT = 0);
+  /* 卸防姿態：目眩消失就結束（承受 10 次擊中、60 秒到期在 applyAil／unbrOn） */
+  if (a.unbr && !unbrOn(a)) a.unbr = null;
+  if (a.riven && !rivenOn(a)) a.riven = null;
   if (a.curse && a.curse.t <= G.t) a.curse = null;
   if (m.stun > 0) m.stun -= dt;
   if (m.ail) mobStates(m);
-  return a.frozen > G.t || a.elcT > G.t || a.hstun > G.t || m.stun > 0;
+  return a.frozen > G.t || a.elcT > G.t || a.hstun > G.t || a.petr > G.t || m.stun > 0;
 }
 /* 怪物的移動倍率：冰緩、阻礙、殘廢、時空鎖鏈 */
 function mobSpd(m) {
@@ -893,6 +1050,7 @@ function mobSpd(m) {
   if (a.chill && a.chill.t > G.t) s *= 1 - a.chill.v / 100;
   if (a.hinder > G.t || a.maim > G.t) s *= 0.7;
   if (a.curse && a.curse.k === 'tchains') s *= 1 - a.curse.v / 100;
+  if (a.weak > G.t) s *= 1 - DEBUFF.weakMove / 100;
   return Math.max(0.25, s);
 }
 /* 怪物造成的傷害倍率：殘喘、衰弱（更少）、威嚇 */
@@ -902,8 +1060,14 @@ function mobDmgMul(m) {
   if (a.sap && a.sap.t > G.t) s *= 1 - a.sap.v / 100;
   if (a.curse && a.curse.k === 'enfeeble') s *= 1 - a.curse.v / 100;
   if (a.intim > G.t) s *= 0.9;
+  if (a.weak > G.t) s *= 1 - DEBUFF.weakDmg / 100;
+  /* 平靜：照常出手，但造成的傷害為 0 */
+  if (a.calm > G.t) s = 0;
   return s;
 }
+/* 嘲諷（第 10 批）：被嘲諷的敵人只能以你為目標，對你以外的目標傷害 10% 更少。
+   目前怪物只會打玩家（沒有怪打友方的接點），所以這裡只是旗標與倍率函式；以後有怪打友方時，在那個接點乘 tauntMul(m, 目標) */
+const tauntMul = (m, tgt) => (m.ail && m.ail.taunt > G.t && tgt !== P ? 1 - DEBUFF.tauntLess / 100 : 1);
 
 /* ---------- 詛咒與印記 ---------- */
 /* 詛咒：每隻怪 1 個，新的蓋掉舊的；稀有度減效果 */
@@ -922,6 +1086,8 @@ const curseV = (k, lv) => {
   return a + ((b - a) * (Math.min(20, lv) - 1)) / 19;
 };
 function curseMob(m, k, lv, q = 0) {
+  /* 無咒的（怪物旗標 m.hexproof）：不受詛咒；玩家有 hexPierce 時你的詛咒能影響無咒敵人 */
+  if (m.hexproof && !ST.hexPierce) return;
   const v = curseV(k, lv) * (1 - rarRed(m)) * debuffM();
   m.ail.curse = { k, v, t: G.t + 6 + 0.07 * lv, q };
   if (k === 'vuln') m.arm = m.arm0 * (1 - v / 100);
@@ -1112,13 +1278,16 @@ function baseTick(dt) {
   let d = 0,
     skipEs = 0;
   ailReflow(a);
-  if (a.ign && a.ign.t > G.t) d += ailEff(a.ign) * (1 - effRes('fire') / 100);
-  if (a.bleed && a.bleed.t > G.t) (d += ailEff(a.bleed)), (skipEs += ailEff(a.bleed));
-  if (a.poi && a.poi.t > G.t) {
+  if (a.ign && a.ign.t > G.t && !unaff('ign')) d += ailEff(a.ign) * (1 - effRes('fire') / 100);
+  if (a.bleed && a.bleed.t > G.t && !unaff('bleed')) (d += ailEff(a.bleed)), (skipEs += ailEff(a.bleed));
+  if (a.poi && a.poi.t > G.t && !unaff('poison')) {
     const v = a.poi.dps * (1 - effRes('chaos') / 100);
     (d += v), (skipEs += v);
   }
   if (a.frz) a.frz = Math.max(0, a.frz - 20 * dt);
+  /* 緩速藤蔓：移動逐漸移除層數 */
+  if (a.vine && a.vine.n > 0 && moving())
+    for (a.vine.acc += dt; a.vine.acc >= DEBUFF.vineLose && a.vine.n > 0; a.vine.acc -= DEBUFF.vineLose) a.vine.n--;
   if (a.hs && !(a.hstun > G.t) && G.t - (a.hsA || 0) >= 8) a.hs = Math.max(0, a.hs - 5 * dt);
   if (d > 0) {
     /* 流血、中毒跳過能量護盾 */
@@ -1156,13 +1325,19 @@ const effRes = k => {
   const pen = k !== 'chaos' && G.scene === 'map' ? resPen(mobLv(G.mapT || 1)) : 0;
   let r = ST.res[k] - pen;
   const cu = P.ail && P.ail.curse;
-  if (cu && cu.t > G.t && ((cu.k === 'eleweak' && k !== 'chaos') || (cu.k === 'despair' && k === 'chaos'))) r -= cu.v;
+  if (
+    cu &&
+    cu.t > G.t &&
+    !unaff('curse') &&
+    ((cu.k === 'eleweak' && k !== 'chaos') || (cu.k === 'despair' && k === 'chaos'))
+  )
+    r -= cu.v;
   return Math.min(ST.maxRes[k] + (k !== 'chaos' && G.scene === 'map' ? MM('pmaxres') : 0), r);
 };
 function hurtCalc(d, src, el, noEv) {
   const m = src && src.ail ? src : src && src.src && src.src.ail ? src.src : null;
   if (m) d *= mobDmgMul(m);
-  /* 招架（mech.js）：窗口裡被打到＝擋下，攻擊者失衡 */
+  /* 招架（mech.js）：窗口裡被打到＝擋下，攻擊者受招架 */
   if (!noEv && tryParry(m)) return { parry: 1 };
   const acc = (m ? m.acc : 15 + 6 * mobLv(G.mapT || 1)) * (m && m.ail.blind > G.t ? 0.8 : 1);
   /* 閃避：熵值（累積命中率到 100 才算打中），王的紅光大招（noEv）躲不掉 */
@@ -1182,8 +1357,8 @@ function hurtCalc(d, src, el, noEv) {
   /* 偏斜（0.2.42）：閃避、格擋之後；這一下傷害 −40%（流順之風每層再 +1%）；紅光大招也有效 */
   const defl = roll(capLuck(deflCh(acc, ST.defl), 95, ST.lukDefl));
   if (defl) d *= 1 - Math.min(0.9, 0.4 + 0.01 * (P.tail || 0));
-  /* 王、菁英會暴擊（5%，暴擊傷害加成 +60%）；地圖詞可以讓所有怪暴擊 */
-  const crit = m && roll((m.boss || m.elite ? 5 : 0) + MM('mcrit'));
+  /* 王、菁英會暴擊（5%，暴擊傷害加成 +60%）；地圖詞可以讓所有怪暴擊；bvNoCrit：格擋值還在時無法被暴擊 */
+  const crit = m && !(ST.bvNoCrit && bvUp()) && roll((m.boss || m.elite ? 5 : 0) + MM('mcrit'));
   if (crit) d *= 1.6 + MM('mcritX');
   const pre = d,
     /* 怪物穿透（地圖詞）：最多穿到 0 */
@@ -1194,7 +1369,7 @@ function hurtCalc(d, src, el, noEv) {
     cu = P.ail && P.ail.curse,
     arm =
       ST.armor *
-      (cu && cu.k === 'vuln' ? 1 - cu.v / 100 : 1) *
+      (cu && cu.k === 'vuln' && !unaff('curse') ? 1 - cu.v / 100 : 1) *
       ((formOf() && formOf().armorM) || 1) *
       (still() ? 1 + 0.08 * (ST.aq.iron || 0) : 1);
   /* 承受轉換（0.2.26，熔岩之膚）：承受的物理有 x% 當作火焰承受（在減傷之前分出來，吃火焰抗性） */
@@ -1221,9 +1396,12 @@ function hurtCalc(d, src, el, noEv) {
       const v = ((pre * MM(f)) / 100) * (1 - resHit(k) / 100);
       (ep[k] += v), (d += v * ad(k));
     }
-  if (P.ail && P.ail.shock > G.t) d *= 1.2;
+  if (P.ail && P.ail.shock > G.t && !unaff('shock')) d *= 1.2;
   if (el !== 'phys' && el !== 'chaos' && formOf() && formOf().eleTaken) d *= formOf().eleTaken;
-  if (m) mobAilPlayer(m, pre, el);
+  /* 壓抑（開關 suppCh，機率上限 100%）：被壓抑的擊中傷害與它造成的異常傷害各防止 50%（異常照上，只是傷害減半） */
+  const supp = ST.suppCh > 0 && roll(Math.min(DEBUFF.suppMax, ST.suppCh)),
+    sm = supp ? 1 - DEBUFF.suppCut / 100 : 1;
+  if (m) mobAilPlayer(m, pre, el, sm);
   /* 品質：殘喘的怪打中你回魔；被衰弱的怪打中得到守護（上限最大生命 50%） */
   if (m) {
     const sp = m.ail.sap,
@@ -1237,19 +1415,19 @@ function hurtCalc(d, src, el, noEv) {
     const [k, v] = Object.entries(ep).sort((a, b) => b[1] - a[1])[0];
     if (v > 0) (P.adapt = P.adapt || {})[k] = Math.min(ADAPT.max, ((P.adapt || {})[k] || 0) + 1);
   }
-  /* 傷害吸收：格擋值 → 守護 */
-  d = absorb(d);
-  return { d, crit, defl };
+  d = absorb(d * sm);
+  return { d, crit, defl, supp };
 }
 /* 怪物對玩家上異常：照怪物類型（企劃書 7.2） */
-function mobAilPlayer(m, d, el) {
+function mobAilPlayer(m, d, el, dm = 1) {
   const a = (P.ail = P.ail || {}),
     thr = (ST.hp / 2) * (1 + ST.ailThrP / 100),
     ail = m.D.ail || '',
     imm = k => a.imm && a.imm[k] > G.t;
   /* 純淨的品質：元素異常有機率免疫 */
   if (el !== 'phys' && el !== 'chaos' && qRoll(20 * (ST.aq.purity || 0))) return;
-  if (el === 'fire' && !imm('ign') && Math.random() < Math.min(1, (d / thr) * 0.2)) a.ign = keepMax(a.ign, d * 0.2, 4);
+  if (el === 'fire' && !imm('ign') && Math.random() < Math.min(1, (d / thr) * 0.2))
+    a.ign = keepMax(a.ign, d * 0.2 * dm, 4);
   if (el === 'cold' && !imm('chill')) {
     const v = Math.min(50, (d / thr) * 100);
     if (v >= 30) a.chill = { v, t: G.t + 2 };
@@ -1261,10 +1439,12 @@ function mobAilPlayer(m, d, el) {
     if (a.frz >= 100) (a.frozen = G.t + 1.5), (a.frz = 0);
   }
   if (!imm('bleed') && !ST.ci && Math.random() < (ail === 'bleed' ? 0.25 : 0) + MM('mbleed') / 100)
-    a.bleed = keepMax(a.bleed, d * 0.15, 5);
+    a.bleed = keepMax(a.bleed, d * 0.15 * dm, 5);
   if (!imm('poi') && Math.random() < (ail === 'poison' ? 0.3 : 0) + MM('mpoi') / 100)
-    a.poi = { dps: d * 0.2, t: G.t + 2 };
-  if (!imm('ign') && roll(MM('mign'))) a.ign = keepMax(a.ign, d * 0.2, 4);
+    a.poi = { dps: d * 0.2 * dm, t: G.t + 2 };
+  if (!imm('ign') && roll(MM('mign'))) a.ign = keepMax(a.ign, d * 0.2 * dm, 4);
+  /* 緩速藤蔓：怪物（D.vine＝層數）打中你時施加 */
+  if (m.D.vine) vineAdd(m.D.vine);
   trigCharms(el, a);
 }
 /* 玩家暈眩（0.2.42，照 PoE2）：門檻＝最大生命 ×（1 + 暈眩門檻提高）；時間 ÷ (1 + 暈眩恢復) */
@@ -1297,12 +1477,28 @@ function playerHeavy(d, el) {
 function playerSlow() {
   const a = P.ail || {};
   let s = 1;
-  if (a.frozen > G.t || a.hstun > G.t) return 0;
-  if (a.chill && a.chill.t > G.t && !(a.imm && a.imm.slow > G.t)) s *= 1 - a.chill.v / 100;
+  if ((a.frozen > G.t && !unaff('frozen')) || a.hstun > G.t) return 0;
+  if (a.chill && a.chill.t > G.t && !(a.imm && a.imm.slow > G.t) && !unaff('chill')) s *= 1 - a.chill.v / 100;
   const cu = a.curse;
-  if (cu && cu.t > G.t && cu.k === 'tchains' && !(a.imm && a.imm.slow > G.t)) s *= 1 - cu.v / 100;
+  if (cu && cu.t > G.t && cu.k === 'tchains' && !(a.imm && a.imm.slow > G.t) && !unaff('curse')) s *= 1 - cu.v / 100;
+  /* 超重：每層緩速 10% */
+  if (a.over && a.over.t > G.t && !unaff('over')) s *= 1 - (DEBUFF.overSlow * a.over.n) / 100;
   return s;
 }
+/* 超重（第 10 批，玩家減益）：重新施加疊層並刷新 4 秒，最多 5 層（⚠️）；來源還沒有 */
+function encumber(n = 1) {
+  const a = (P.ail = P.ail || {});
+  a.over = { n: Math.min(DEBUFF.overMax, (a.over && a.over.t > G.t ? a.over.n : 0) + n), t: G.t + DEBUFF.overT };
+}
+/* 緩速藤蔓（第 10 批，怪物施加給玩家）：每層移動速度 −8%（只影響移動），最多 5 層；移動會逐漸移除層數（每移動 1 秒 1 層，⚠️） */
+function vineAdd(n = 1) {
+  const a = (P.ail = P.ail || {});
+  a.vine = { n: Math.min(DEBUFF.vineMax, ((a.vine && a.vine.n) || 0) + n), acc: 0 };
+}
+const vineSlow = () => {
+  const v = P.ail && P.ail.vine;
+  return v && v.n > 0 && !unaff('vine') ? 1 - (DEBUFF.vineSlow * v.n) / 100 : 1;
+};
 
 /* ---------- 護符（照 PoE2）：腰帶給 1～3 格，條件達成自動觸發，殺怪充能 ---------- */
 const CHARMS = {
@@ -1492,7 +1688,7 @@ const STATE = {
   wither: ['凋零', 'sup_sp_wither', '受到的混沌傷害提高'],
   blind: ['致盲', 'sup_sp_ailx', '命中值降低'],
   broken: ['完全破甲', 'sup_sp_pen', '護甲歸零，受到的物理傷害提高'],
-  parried: ['失衡', 'sup_sp_heavy', '受到的攻擊傷害提高'],
+  parried: ['受招架', 'sup_sp_heavy', '受到的攻擊傷害更多、無法閃避攻擊'],
   intim: ['威嚇', 'sk_anger', '受到的傷害提高、造成的傷害降低'],
   mark: ['印記', 'sk_markshot', '被印記的怪觸發時給你效果'],
   scorch: ['焦灼', 'sup_sp_gfire', '元素抗性降低'],
@@ -1504,6 +1700,25 @@ const STATE = {
   ad_cold: ['冰冷適應', 'sup_sp_gcold', '每層受到的冰冷傷害少 10%；離開地圖清掉'],
   ad_light: ['閃電適應', 'sup_sp_glight', '每層受到的閃電傷害少 10%；離開地圖清掉'],
   tail: ['流順之風', 'sk_hasteaura', '每層移動速度 +1%、技能速度 +2%、閃避值 +10%、偏斜減傷 +1%；被擊中清空'],
+  elcprime: ['可觸電', 'ail_shock', '觸電累積到門檻，再累積一點就會觸電；本身沒有效果'],
+  frzprime: ['可冰凍', 'ail_frozen', '冰凍累積到門檻，再累積一點就會冰凍；本身沒有效果'],
+  crush: ['壓碎', 'ail_doom', '物理傷害減免 −15 個百分點，可以變負（受到更多）'],
+  shatter: ['破碎護甲', 'ail_vul', '完全破甲期間，受到的物理擊中傷害再 +20%；不能再被破甲'],
+  riven: ['碎甲', 'ail_n_seal', '你之後的攻擊擊中多一筆獨立附加物理；不能再被破甲'],
+  unbr: ['卸防姿態', 'ail_guard', '你之後的攻擊擊中多一筆獨立附加物理；不能再被目眩'],
+  crip: ['完全跛行', 'ail_slow', '閃避值歸零，你的攻擊必定命中'],
+  stain: ['血漬', 'ail_dmark', '流血累積 6 秒得到；目前沒有技能消耗它'],
+  inc: ['切割', 'ail_stacks', '每層擊中造成流血機率 +10%；造成流血後全部移除'],
+  cb: ['腐化之血', 'ail_n_corrode', '每層獨立的物理持續傷害，不是流血'],
+  anemia: ['缺血', 'ail_bleed', '腐化之血的層數上限 +缺血幅度'],
+  petr: ['石化', 'ail_empN', '不能移動、不能行動'],
+  calm: ['平靜', 'ail_shield', '造成的傷害為 0'],
+  weak: ['虛弱', 'ail_chgN', '移動速度 −20%、造成的傷害 −10%'],
+  taunt: ['嘲諷', 'ail_mark', '只能以你為目標，對你以外的目標傷害少 10%'],
+  wet: ['濕透', 'ail_burn', '感電機率 50% 更多、冰凍累積 25% 更多'],
+  easy: ['易攻目標', 'ail_comboN', '下一次投射物攻擊擊中受到更多傷害，擊中後消耗'],
+  over: ['超重', 'ail_slow', '每層緩速 10%，重新施加疊層並刷新'],
+  vine: ['緩速藤蔓', 'ail_n_corrode', '每層移動速度 −8%；移動會逐漸移除層數'],
   chg_e: ['耐力球', 'sup_sp_heavy', '能量球資源'],
   chg_f: ['狂怒球', 'sk_anger', '能量球資源'],
   chg_p: ['暴擊球', 'sk_precise', '能量球資源'],
@@ -1559,6 +1774,21 @@ function mobStates(m) {
   if (a.brittle && a.brittle.t > G.t) add('brittle', a.brittle.t);
   if (a.sap && a.sap.t > G.t) add('sap', a.sap.t);
   if (a.exp > G.t) add('exp', a.exp);
+  /* 第 10 批 */
+  if (hasState(m, 'elcprime')) add('elcprime');
+  else if (hasState(m, 'frzprime')) add('frzprime');
+  if (a.crush > G.t) add('crush', a.crush);
+  if (a.shatter > G.t && a.broken > G.t) add('shatter', a.shatter);
+  if (rivenOn(a)) add('riven', a.riven.t);
+  if (unbrOn(a)) add('unbr', a.unbr.t);
+  if (a.crip > G.t) add('crip', a.crip);
+  if (a.stain > G.t) add('stain', a.stain);
+  if (a.inc > 0) add('inc', null, a.inc);
+  const cb = (a.cb || []).filter(x => x.t > G.t);
+  if (cb.length) add('cb', mx(cb.map(x => x.t)), cb.length);
+  if (a.anemia && a.anemia.t > G.t) add('anemia', a.anemia.t, Math.floor(a.anemia.v));
+  if (a.easy && a.easy.t > G.t) add('easy', a.easy.t);
+  for (const k of ['petr', 'calm', 'weak', 'taunt', 'wet']) if (a[k] > G.t) add(k, a[k]);
   return o.filter((x, i) => o.findIndex(y => y.ic === x.ic) === i);
 }
 /* 玩家身上的狀態：{ k, n, ic, d, t 剩餘秒數（沒有時間的是 null）, c 層數, bad 負面 } */
@@ -1580,6 +1810,8 @@ function playerStates() {
   add('shock', a.shock, bad);
   add('stagger', P.stag, bad);
   add('hstunP', a.hstun, bad);
+  if (a.over && a.over.t > G.t) add('over', a.over.t, { bad: 1, c: a.over.n });
+  if (a.vine && a.vine.n > 0) add('vine', null, { bad: 1, c: a.vine.n });
   if (a.curse && a.curse.t > G.t) {
     const C = CURSES[a.curse.k];
     L.push({

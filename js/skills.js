@@ -306,7 +306,7 @@ function actHit(a, idx) {
       shoot(a.ang, 760, { ...c, mult: c.mult * 0.5 * c.q, pierce: 99 }, a, { life: 0.4, sh: 'arrow', shs: 1.6 });
     if (D.gain && n) P.mp = Math.min(ST.mp, P.mp + D.gain * n);
   } else if (a.k === 'thrust') {
-    /* 招架反擊：往前刺一整排；失衡的怪消耗失衡、必定暴擊、給狂怒球 */
+    /* 招架反擊：往前刺一整排；受招架的怪消耗受招架、必定暴擊、給狂怒球 */
     const L = R * 1.9;
     fxs('thrust', P.x, P.y - 20, L, { rot: a.ang });
     for (const m of G.mobs) {
@@ -320,7 +320,7 @@ function actHit(a, idx) {
       hitMob(m, c, a.ang, 220 * c.kb, { a, crit: par });
       if (par) {
         gainChg('f');
-        for (const o of G.mobs) if (o !== m && o.hp > 0 && dist(o, m) < 120 && qRoll(40 * c.q)) o.ail.parried = G.t + 4;
+        for (const o of G.mobs) if (o !== m && o.hp > 0 && dist(o, m) < 120 && qRoll(40 * c.q)) applyParry(o);
       }
     }
   } else if (a.k === 'combo') {
@@ -630,7 +630,7 @@ function actHit2(a, idx, R, hitArc) {
         sh: 'arrow',
         shs: 1.4,
         life: 0.8,
-        /* 擲矛的品質：打中失衡的怪不消耗穿透（回傳 true）、給狂怒球 */
+        /* 擲矛的品質：打中受招架的怪不消耗穿透（回傳 true）、給狂怒球 */
         onHit: (s, m) => {
           if (!c.q || !hasState(m, 'parried')) return false;
           if (qRoll(20 * c.q)) gainChg('f');
@@ -1151,6 +1151,7 @@ function moveMul() {
   return (
     buffMove() *
     playerSlow() *
+    vineSlow() *
     ((formOf() && formOf().move) || 1) *
     (P.rolledT > G.t ? 1 + 0.04 * (ST.aq.swift || 0) : 1)
   );

@@ -1087,6 +1087,7 @@ function foeShot(m, ang, spd, dmg, grp) {
     dmg,
     el: m.el,
     life: 1.6,
+    src: m,
     grp
   });
 }

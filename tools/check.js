@@ -2017,5 +2017,364 @@ vm.runInContext(
     b9.sv0 === 0 && j9(b9.sv1) === '[100,4,0,20]' && b9.sv2 === 50 && b9.sv3 === 0,
     j9([b9.sv0, b9.sv1, b9.sv2, b9.sv3])
   );
+  /* 0.2.43 第 10 批：異常與減益 */
+  const b10 = R(`(() => {
+    const out = {}, D = Object.values(MOBS)[0],
+      mk = (o = {}) => ({ D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, ev0: 0, vx: 0, vy: 0, aggro: 1, acc: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      st0 = { ...ST }, rnd0 = Math.random, rd = x => Math.round(x * 1000) / 1000,
+      atk = { D: { tags: ['attack'], m: 1 }, mult: 1, more: 1, kb: 1, q: 0, leech: 0 },
+      apply = (m, pre, c) => applyAil(m, { pre, post: pre }, { ...atk, ...c }),
+      P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 },
+      hit = (m, c = atk) => hitCalc(c, m, { keep: 1 }).d;
+    Object.assign(ST, { noCrit: 1, noMiss: 0, dmg: [100, 100], ev: 0, block: 0, defl: 0, physP: 0, dmgA: 0, atkP: 0, meleeP: 0, projP: 0, strikeP: 0, parryMag: 0, parryDur: 0, parryR: 0, bvNoCrit: 0, overwhelm: 0, incise: 0, inciseMag: 0, hexPierce: 0, hstunNoEv: 0, suppCh: 0, unaff: {}, debuffEff: 0, debuffMag: 0, bleedCh: 0, poisonCh: 0, dazeCh: 0, acc: 1, bv: 0 });
+    ST.wadd = { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] };
+    ST.add = {};
+    Object.assign(G, { t: 100, scene: 'map', mapT: 1, mm: null, mobs: [], allies: [], state: 'play' });
+    P.ail = {}; P.parryT = 0; P.counter = null; P.hp = 1e6; P.es = 0; P.incN = []; P.rage = 0; P.buf = {};
+    globalThis.aggroPack = globalThis.sparks = globalThis.hitstop = () => {}; globalThis.killMob = m => { m.dead = 1; };
+    let m = mk(), a = m.ail;
+    /* 受招架：必中（天生閃避極高也中）、幅度與持續開關 */
+    m = mk({ ev: 1e7 }); ST.acc = 1;
+    let n0 = 0, n1 = 0; for (let i = 0; i < 40; i++) hitRoll(m, atk) && n0++;
+    applyParry(m); for (let i = 0; i < 40; i++) hitRoll(m, atk) && n1++;
+    out.parryHit = [n0 < 10, n1];
+    m = mk(); applyParry(m); out.parryT = m.ail.parried - G.t; ST.parryDur = 50; m = mk(); applyParry(m); out.parryDur = m.ail.parried - G.t; ST.parryDur = 0;
+    m = mk(); const h0 = hit(m); applyParry(m); const h1 = hit(m); ST.parryMag = 100; const h2 = hit(m); ST.parryMag = 0;
+    out.parryMore = [rd(h1 / h0), rd(h2 / h0)];
+    /* 沉重暈眩無法閃避你的擊中（開關 hstunNoEv） */
+    m = mk({ ev: 1e7 }); m.ail.hstun = G.t + 3;
+    let e0 = 0, e1 = 0; for (let i = 0; i < 40; i++) hitRoll(m, atk) && e0++; ST.hstunNoEv = 1; for (let i = 0; i < 40; i++) hitRoll(m, atk) && e1++; ST.hstunNoEv = 0;
+    out.hsNoEv = [e0 < 10, e1];
+    /* 格擋值碎開：範圍內（含王）受招架，範圍外不受；圓環半徑＝實際範圍；parryR 放大範圍 */
+    const shat = () => { ST.bv = 1000; P.bv = 10; P.bvRe = null; P.ail = {}; const ms = [mk({ x: P.x + 3 * METER }), mk({ x: P.x + 3.5 * METER, boss: 1 }), mk({ x: P.x + 6 * METER }), mk({ x: P.x + 10 * METER })]; G.mobs = ms; absorb(100); return ms.map(x => parryOn(x) ? 1 : 0).join(''); };
+    out.shat = shat(); ST.parryR = 100; out.shatR = shat(); ST.parryR = 0; ST.bv = 0; P.bv = 0; G.mobs = [];
+    /* 反擊狀態：第一次被打擋下＋受招架＋反擊，只觸發一次；過期不觸發；可傳技能設定 */
+    m = mk({ hp: 1e9 }); G.mobs = [m]; startCounter(3); const hp0 = m.hp;
+    const c1 = hurtCalc(50, m, 'phys'), hpAfter = m.hp, p1 = parryOn(m);
+    m.ail.parried = 0; const c2 = hurtCalc(50, m, 'phys');
+    out.counter = [c1.parry || 0, hp0 > hpAfter, p1, c2.parry || 0, parryOn(m), P.counter === null];
+    G.t = 200; startCounter(1); G.t = 202; m.ail.parried = 0; out.counterEnd = [(hurtCalc(50, m, 'phys').parry || 0), parryOn(m)];
+    G.t = 100; startCounter(3, { ...atk, mult: 5 }); const hb = m.hp; hurtCalc(50, m, 'phys'); const big = hb - m.hp; startCounter(3); const hb2 = m.hp; hurtCalc(50, m, 'phys'); out.counterC = big > (hb2 - m.hp) * 3;
+    P.counter = null; G.mobs = [];
+    /* 物理減傷：護甲（上限 90%）→ 鎮壓（最多扣到 0）→ 壓碎（可以變負）；全部跟「沒減傷」的數字比 */
+    m = mk({ arm: 1e12 }); const base = hit(mk());
+    const rr = (c, mm) => rd(hit(mm || m, c) / base);
+    out.red = [rr(atk), rr({ ...atk, overwhelm: 30 }), rr({ ...atk, overwhelm: 95 })];
+    m.ail.crush = G.t + 4; out.crush = [rr(atk), rr({ ...atk, overwhelm: 30 })];
+    ST.overwhelm = 30; out.stOver = rr(atk); ST.overwhelm = 0;
+    m = mk({ arm: 0 }); m.ail.crush = G.t + 4; out.crushNeg = rr(atk, m); m.ail.crush = G.t - 1; out.crushOff = rr(atk, m);
+    apply(m = mk(), P0, { crush: true }); out.crushOn = [m.ail.crush - G.t, hit(m) / base > 1.14];
+    /* 破碎護甲：只對完全破甲的敵人施加、物理 +20% 相加；有它或碎甲不能再破甲 */
+    m = mk({ arm: 50, arm0: 50 }); apply(m, P0, { shatter: true }); out.sh0 = [m.ail.shatter || 0, takenInc(m, 'phys')];
+    m.ail.broken = G.t + 12; apply(m, P0, { shatter: true }); out.sh1 = [m.ail.shatter > G.t, takenInc(m, 'phys')];
+    m.ail.broken = 0; out.sh2 = takenInc(m, 'phys');
+    m = mk({ arm: 50, arm0: 50 }); m.ail.shatter = G.t + 5; m.ail.broken = G.t - 1; apply(m, P0, { armBreak: 1 }); const noB = m.arm;
+    m = mk({ arm: 50, arm0: 50 }); apply(m, P0, { riven: 1 }); apply(m, P0, { armBreak: 1 }); out.noBreak = [noB, m.arm];
+    m = mk({ arm: 50, arm0: 50 }); apply(m, P0, { armBreak: 1 }); out.canBreak = m.arm < 50;
+    /* 碎甲：幅度＝該次擊中 5% 的減免前物理；之後的攻擊多一筆不吃任何加成的附加物理；法術沒有；5 秒到期；完全破甲被移除即結束 */
+    ST.physP = 100; const c2x = { ...atk, more: 2 };
+    m = mk(); const nb = hit(m, c2x); apply(m, { ...P0, phys: 1000 }, { riven: 1 }); out.riven = [m.ail.riven.v, rd(hit(m, c2x) - nb)];
+    const sc = { D: { tags: ['spell'], m: 1, el: 'fire' }, mult: 1, more: 1, lv: 1 };
+    Math.random = () => 0.5; out.rivenSpell = rd(hitCalc(sc, m, { keep: 1 }).d - hitCalc(sc, mk(), { keep: 1 }).d) === 0; Math.random = rnd0;
+    ST.physP = 0;
+    G.t = 100; m.ail.riven.t = 104; G.t = 105; out.rivenEnd = hit(m) === hit(mk());
+    G.t = 100; m = mk(); m.ail.broken = G.t + 12; apply(m, { ...P0, phys: 1000 }, { riven: 1 }); const rb = [rivenOn(m.ail)]; m.ail.broken = 0; rb.push(rivenOn(m.ail)); out.rivenBroken = rb;
+    G.t = 100; m = mk(); apply(m, { ...P0, phys: 1000 }, { riven: 1 }); apply(m, { ...P0, phys: 2000 }, { riven: 1 }); out.rivenRe = m.ail.riven.v;
+    /* 卸防姿態：只對目眩的敵人、存 10%；10 次擊中、60 秒、目眩消失後結束；有它不能再目眩；重上取代舊的 */
+    m = mk(); apply(m, { ...P0, phys: 1000 }, { unbr: 1 }); out.unb0 = !!m.ail.unbr;
+    m.ail.daze = G.t + 8; apply(m, { ...P0, phys: 1000 }, { unbr: 1 }); out.unb1 = [m.ail.unbr.v, rd(hit(m) - hit(mk()))];
+    apply(m, { ...P0, phys: 2000 }, { unbr: 1 }); out.unbRe = [m.ail.unbr.v, m.ail.unbr.n];
+    m.ail.daze = G.t + 1; ST.dazeCh = 100; apply(m, P0, {}); out.unbNoDaze = m.ail.daze - G.t; ST.dazeCh = 0;
+    for (let i = 0; i < 8; i++) apply(m, P0, {}); out.unb9 = !!m.ail.unbr; apply(m, P0, {}); out.unb10 = !!m.ail.unbr;
+    m = mk(); m.ail.daze = G.t + 8; apply(m, { ...P0, phys: 1000 }, { unbr: 1 }); m.ail.daze = 0; ailTick(m, 0.1); out.unbDaze = !!m.ail.unbr;
+    m = mk(); m.ail.daze = G.t + 8; apply(m, { ...P0, phys: 1000 }, { unbr: 1 }); G.t = 170; out.unbT = unbrOn(m.ail); G.t = 100;
+    /* 跛行：普通 ×3、稀有與王 ×1，扣目標當下的閃避，扣到 0 完全跛行 12 秒（攻擊必中），到期恢復 */
+    m = mk({ ev: 1000, ev0: 1000 }); apply(m, P0, { cripple: 2 }); const evN = m.ev;
+    m = mk({ ev: 1000, ev0: 1000, boss: 1 }); apply(m, P0, { cripple: 2 }); const evB = m.ev;
+    m = mk({ ev: 1000, ev0: 1000, elite: 1 }); apply(m, P0, { cripple: 2 }); out.crip = [evN, evB, m.ev];
+    m = mk({ ev: 1000, ev0: 1000 }); apply(m, P0, { cripple: 2 }); apply(m, P0, { cripple: 2 }); apply(m, P0, { cripple: 2 });
+    out.crip0 = [m.ev, m.ail.crip - G.t, hitRoll(m, atk)]; G.t = 113; ailTick(m, 0.1); out.cripEnd = [m.ev, m.ail.crip > G.t]; G.t = 100;
+    /* 可觸電、可冰凍：普通 40%、菁英 60%、王 70%；定身後不算；收割後歸零 */
+    m = mk(); m.ail.elc = 40; m.ail.frz = 39; out.prime = [hasState(m, 'elcprime'), hasState(m, 'frzprime')];
+    m = mk({ boss: 1 }); m.ail.elc = 60; const pb = hasState(m, 'elcprime'); m.ail.elc = 70; out.primeB = [pb, hasState(m, 'elcprime')];
+    m = mk({ elite: 1 }); m.ail.frz = 60; out.primeE = hasState(m, 'frzprime');
+    m = mk(); m.ail.elc = 50; m.ail.frozen = G.t + 3; out.primeFrozen = hasState(m, 'elcprime');
+    m = mk(); m.ail.elc = 50; m.ail.frz = 50; out.primeTake = [takeState(m, 'elcprime'), m.ail.elc, takeState(m, 'elcprime'), takeState(m, 'frzprime'), m.ail.frz];
+    /* 血漬：流血時累積（移動或加劇時 ×2），流血斷掉暫停不歸零，滿 6 秒得到減益 */
+    const bleedTick = (m, secs, bt) => { for (let i = 0; i < secs; i++) { G.t += 1; if (!m.ail.bleed || m.ail.bleed.t <= G.t) m.ail.bleed = keepMax(null, 1, bt); ailTick(m, 1); } };
+    G.t = 100; m = mk(); bleedTick(m, 5, 99); out.stain5 = [m.ail.stainA, hasState(m, 'stain')]; bleedTick(m, 1, 99); out.stain6 = [hasState(m, 'stain'), m.ail.stainA, takeState(m, 'stain'), hasState(m, 'stain')];
+    G.t = 100; m = mk({ mv: 1 }); bleedTick(m, 3, 99); out.stainMv = hasState(m, 'stain');
+    G.t = 100; m = mk(); m.ail.bleed = keepMax(null, 1, 4); aggravate(m, 'bleed'); G.t = 101; ailTick(m, 1); G.t = 102; ailTick(m, 1); G.t = 103; ailTick(m, 1); out.stainAgg = hasState(m, 'stain');
+    G.t = 100; m = mk(); m.ail.bleed = keepMax(null, 1, 4); for (let i = 1; i <= 3; i++) { G.t = 100 + i; ailTick(m, 1); } const part = m.ail.stainA;
+    G.t = 110; ailTick(m, 1); ailTick(m, 1); const paused = m.ail.stainA; m.ail.bleed = keepMax(null, 1, 20); G.t = 111; ailTick(m, 1); out.stainPause = [part, paused, m.ail.stainA];
+    G.t = 100; m = mk(); m.ail.cb = [{ dps: 5, t: G.t + 50 }]; for (let i = 0; i < 10; i++) { G.t += 1; ailTick(m, 1); } out.stainCb = [m.ail.stainA || 0, hasState(m, 'stain')];
+    /* 切割：擊中給 1 層，每層流血機率 +10%（上限 10 層），上流血全清；inciseMag：近期每消耗 1 層流血幅度 3% 更多（上限 30%） */
+    const bleedHit = (m, p = 1000) => apply(m, { ...P0, phys: p }, { bleedCh: 0 });
+    G.t = 100; ST.incise = 1; Math.random = () => 0.55; m = mk(); const lay = [];
+    for (let i = 0; i < 5; i++) bleedHit(m), lay.push(m.ail.inc);
+    out.incLayers = [lay.join(), !!m.ail.bleed]; bleedHit(m); out.incBleed = [!!m.ail.bleed, m.ail.inc, P.incN.length];
+    G.t = 100; P.incN = []; m = mk(); m.ail.inc = 10; ST.incise = 0; Math.random = () => 0.999; bleedHit(m); out.incCap = [!!m.ail.bleed, m.ail.inc];
+    ST.incise = 0; Math.random = () => 0.001; m = mk(); bleedHit(m); out.incOff = [m.ail.inc || 0, !!m.ail.bleed];
+    ST.incise = 1; m = mk(); m.ail.inc = 10; Math.random = () => 0.999; bleedHit(m); out.incMax = [m.ail.bleed ? 1 : 0, m.ail.inc]; m = mk(); m.ail.inc = 10; ST.bleedCh = -100; bleedHit(m); out.incMax2 = m.ail.inc; ST.bleedCh = 0;
+    const bd = n => { P.incN = []; const t = mk(); t.ail.inc = n; Math.random = () => 0; ST.incise = 0; bleedHit(t); return t.ail.bleed ? t.ail.bleed.dps : 0; };
+    ST.inciseMag = 0; const d0 = bd(6); ST.inciseMag = 1; out.incMag = [rd(bd(6) / d0), rd(bd(10) / d0), rd(bd(20) / d0)];
+    P.incN = [[G.t - 1, 4]]; const t2 = mk(); t2.ail.inc = 2; Math.random = () => 0; bleedHit(t2); out.incMagRecent = rd(t2.ail.bleed.dps / d0);
+    P.incN = [[G.t - 9, 4]]; const t3 = mk(); t3.ail.inc = 2; bleedHit(t3); out.incMagOld = rd(t3.ail.bleed.dps / d0);
+    ST.inciseMag = 0; ST.incise = 0; Math.random = rnd0; P.incN = [];
+    /* 腐化之血：每層獨立 5 秒、最多 10 層、不是流血（不累積血漬）；缺血提高上限（乘減益幅度）；上限縮小不砍已有的層 */
+    G.t = 100; m = mk(); for (let i = 0; i < 12; i++) apply(m, P0, { corrupt: 10 });
+    out.cb = [m.ail.cb.length, rd((() => { const h = m.hp; G.t = 101; ailTick(m, 1); return h - m.hp; })()), m.ail.bleed || null, m.ail.stainA || 0];
+    G.t = 100; m = mk(); apply(m, P0, { anemia: 3 }); for (let i = 0; i < 20; i++) apply(m, P0, { corrupt: 1 }); out.anemia = m.ail.cb.length;
+    ST.debuffMag = 50; m = mk(); apply(m, P0, { anemia: 3 }); for (let i = 0; i < 20; i++) apply(m, P0, { corrupt: 1 }); out.anemiaM = m.ail.cb.length; ST.debuffMag = 0;
+    G.t = 100; m = mk(); apply(m, P0, { corrupt: 10 }); G.t = 103; apply(m, P0, { corrupt: 10 }); G.t = 106; const h6 = m.hp; ailTick(m, 1); out.cbIndep = [rd(h6 - m.hp), m.ail.cb.filter(x => x.t > G.t).length];
+    G.t = 100; m = mk(); apply(m, P0, { anemia: 5 }); for (let i = 0; i < 15; i++) apply(m, P0, { corrupt: 1 }); G.t = 102; m.ail.anemia.t = 101; apply(m, P0, { corrupt: 1 }); out.anemiaEnd = m.ail.cb.length;
+    /* 控制與減益（技能欄位）：石化（王減半、算禁錮）、平靜、虛弱、嘲諷、濕透、易攻目標 */
+    G.t = 100; m = mk(); apply(m, P0, { petrify: true }); out.petr = [rd(m.ail.petr - G.t), immob(m.ail), ailTick(m, 0.1)];
+    m = mk({ boss: 1 }); apply(m, P0, { petrify: true }); out.petrB = rd(m.ail.petr - G.t); G.t = 104; out.petrEnd = [immob(m.ail), ailTick(m, 0.1)]; G.t = 100;
+    m = mk(); out.calm0 = mobDmgMul(m); apply(m, P0, { calm: 2 }); out.calm = [mobDmgMul(m), rd(m.ail.calm - G.t)]; G.t = 103; out.calmEnd = mobDmgMul(m); G.t = 100;
+    m = mk(); const sp0 = mobSpd(m); apply(m, P0, { weaken: true }); out.weak = [rd(mobSpd(m) / sp0), mobDmgMul(m), rd(m.ail.weak - G.t)]; G.t = 102; out.weakEnd = mobDmgMul(m); G.t = 100;
+    m = mk(); apply(m, P0, { taunt: true }); out.taunt = [rd(m.ail.taunt - G.t), tauntMul(m, P), rd(tauntMul(m, { x: 0 })), tauntMul(mk(), { x: 0 })];
+    m = mk(); apply(m, P0, { easy: 50 }); const pj = { ...atk, D: { tags: ['attack', 'proj'], m: 1 } }, bz = hit(mk(), pj);
+    out.easy = [rd(hit(m, atk) / base), rd(hit(m, pj) / bz), rd(hit(m, pj) / bz), !m.ail.easy]; apply(m, P0, { easy: 50 }); G.t = 105; out.easyEnd = rd(hit(m, pj) / bz); G.t = 100;
+    /* 濕透：通用減益（技能欄位 c.drench、drench() 函式都行）；感電機率 50% 更多、冰凍累積 25% 更多；預設 2 秒、可傳更長、不縮短 */
+    m = mk(); apply(m, P0, { drench: true }); out.wet = rd(m.ail.wet - G.t); apply(m, P0, { drench: 5 }); out.wet5 = rd(m.ail.wet - G.t); drench(m, 1); out.wetKeep = rd(m.ail.wet - G.t);
+    m = mk(); drench(m); out.wetFn = rd(m.ail.wet - G.t);
+    const thr = ailThr(1) * MOB_HP, lt = { ...P0, phys: 0, light: thr * 0.8 };
+    Math.random = () => 0.25; m = mk(); apply(m, lt, {}); const s0 = m.ail.shock > G.t; m = mk(); drench(m); apply(m, lt, {}); const s1 = m.ail.shock > G.t; Math.random = rnd0;
+    out.wetShock = [s0, s1];
+    const fz = { ...P0, phys: 0, cold: thr * 0.3 }, fa = mm => { apply(mm, fz, {}); return mm.ail.frz || 0; };
+    m = mk(); const f0 = fa(m); m = mk(); drench(m); const f1 = fa(m); const f2 = (() => { const t = mk(); t.ail.wet = G.t - 1; return fa(t); })();
+    out.wetFrz = [rd(f1 / f0), rd(f2 / f0)];
+    /* 無咒的：curseMob 直接跳過，hexPierce 開了才能詛咒 */
+    m = mk({ hexproof: 1 }); curseMob(m, 'enfeeble', 5); const hx0 = !!m.ail.curse; ST.hexPierce = 1; curseMob(m, 'enfeeble', 5); out.hex = [hx0, !!m.ail.curse]; ST.hexPierce = 0;
+    m = mk(); curseMob(m, 'enfeeble', 5); out.hexNormal = !!m.ail.curse;
+    /* 超重：每層緩速 10%、4 秒、重上疊層並刷新、最多 5 層 */
+    G.t = 100; P.ail = {}; encumber(); encumber(); out.over = [P.ail.over.n, rd(playerSlow())]; G.t = 102; encumber(); out.overRe = [P.ail.over.n, rd(P.ail.over.t - G.t)];
+    for (let i = 0; i < 6; i++) encumber(); out.overCap = [P.ail.over.n, rd(playerSlow())]; G.t = 107; out.overEnd = playerSlow(); G.t = 100;
+    /* 緩速藤蔓：每層移動 −8%（只移動、不影響出手）、最多 5 層；移動逐漸移除層數；站著不掉 */
+    P.ail = {}; const mv0 = moveMul(), sp1 = speedMul(); vineAdd(3); out.vine = [rd(moveMul() / mv0), rd(speedMul() / sp1)]; vineAdd(9); out.vineCap = P.ail.vine.n;
+    P.ail.vine.n = 3; P.movT = null; baseTick(1); baseTick(1); const st = P.ail.vine.n; P.movT = G.t; baseTick(1); baseTick(1); out.vineMove = [st, P.ail.vine.n]; P.movT = G.t; baseTick(1); baseTick(1); baseTick(1); out.vineGone = [P.ail.vine.n, rd(moveMul() / mv0)];
+    /* 不受影響：減益仍掛著、仍顯示，只是不發揮效果 */
+    P.ail = { chill: { v: 40, t: G.t + 5 }, shock: G.t + 5 }; encumber(2);
+    const sl0 = rd(playerSlow()), sh0x = (() => { P.hp = 1e6; return hurtCalc(100, mk(), 'phys').d; })(); ST.unaff = { chill: 1, shock: 1, over: 1 };
+    out.unaff = [sl0, rd(playerSlow()), sh0x > hurtCalc(100, mk(), 'phys').d, playerStates().filter(x => ['chill', 'shock', 'over'].includes(x.k)).length]; ST.unaff = {};
+    /* 壓抑：機率（上限 100%）、擊中傷害與異常傷害各防止 50%（異常照上） */
+    P.ail = {}; ST.ev = 0; ST.block = 0; ST.defl = 0; Math.random = () => 0; m = mk({ D: { ...D, ail: '' } });
+    const hs = () => { P.ail = {}; P.evE = 0; const r = hurtCalc(1000, m, 'fire'); return [r.d, P.ail.ign ? P.ail.ign.dps : 0, !!r.supp]; };
+    const u0 = hs(); ST.suppCh = 250; const u1 = hs(); ST.suppCh = 0; out.supp = [rd(u1[0] / u0[0]), rd(u1[1] / u0[1]), u0[2], u1[2], u0[1] > 0];
+    Math.random = rnd0;
+    /* 無法被暴擊：有格擋值（bvUp）才算；用盡就不算 */
+    Math.random = () => 0; m = mk({ boss: 1 }); P.ail = {}; ST.bv = 1000; P.bv = 500; P.bvRe = null;
+    const cr0 = hurtCalc(100, m, 'phys').crit; ST.bvNoCrit = 1; const cr1 = hurtCalc(100, m, 'phys').crit; P.bv = 0; P.bvRe = G.t; const cr2 = hurtCalc(100, m, 'phys').crit;
+    out.bvNoCrit = [!!cr0, !!cr1, !!cr2]; Math.random = rnd0; ST.bv = 0; P.bv = 0; P.bvRe = null;
+    Object.assign(ST, st0); P.ail = {}; G.mobs = []; G.t = 100;
+    return out;
+  })()`);
+  const j10 = x => JSON.stringify(x);
+  ok(
+    '受招架：必中（閃避再高也中）、持續 2 秒（parryDur 放大）、攻擊傷害 50% 更多（parryMag 放大）',
+    b10.parryHit[0] &&
+      b10.parryHit[1] === 40 &&
+      b10.parryT === 2 &&
+      b10.parryDur === 3 &&
+      j10(b10.parryMore) === '[1.5,2]',
+    j10([b10.parryHit, b10.parryT, b10.parryDur, b10.parryMore])
+  );
+  ok(
+    'hstunNoEv：沉重暈眩的敵人無法閃避你的擊中，沒開關仍會被閃避',
+    b10.hsNoEv[0] && b10.hsNoEv[1] === 40,
+    j10(b10.hsNoEv)
+  );
+  ok(
+    '格擋值打碎：4 公尺內所有敵人（含王）受招架、範圍外不受；parryR 放大範圍',
+    b10.shat === '1100' && b10.shatR === '1110',
+    j10([b10.shat, b10.shatR])
+  );
+  ok(
+    '反擊狀態：第一次被打擋下＋受招架＋自動反擊，只觸發一次；過期不觸發；可傳技能設定',
+    j10(b10.counter) === '[1,true,true,0,false,true]' && j10(b10.counterEnd) === '[0,false]' && b10.counterC,
+    j10([b10.counter, b10.counterEnd, b10.counterC])
+  );
+  ok(
+    '物理減傷順序：護甲 90% → 鎮壓（扣百分點、最多扣到 0）→ 壓碎（−15 個百分點）',
+    j10(b10.red) === '[0.1,0.4,1]' && j10(b10.crush) === '[0.25,0.55]' && b10.stOver === 0.55,
+    j10([b10.red, b10.crush, b10.stOver])
+  );
+  ok(
+    '壓碎可以讓物理減傷變負（沒護甲 → 受到 115%）、到期恢復；技能欄位 crush 上 4 秒',
+    b10.crushNeg === 1.15 && b10.crushOff === 1 && b10.crushOn[0] === 4 && b10.crushOn[1],
+    j10([b10.crushNeg, b10.crushOff, b10.crushOn])
+  );
+  ok(
+    '破碎護甲：只對完全破甲的敵人、物理 +20% 與完全破甲相加（20 → 40）、完全破甲結束就沒效果；有它或碎甲不能再破甲',
+    j10(b10.sh0) === '[0,0]' &&
+      j10(b10.sh1) === '[true,40]' &&
+      b10.sh2 === 0 &&
+      j10(b10.noBreak) === '[50,50]' &&
+      b10.canBreak,
+    j10([b10.sh0, b10.sh1, b10.sh2, b10.noBreak, b10.canBreak])
+  );
+  ok(
+    '碎甲：幅度＝擊中 5% 減免前物理、之後攻擊多一筆不吃提高與更多的附加物理；法術沒有、5 秒到期、完全破甲移除即結束、重上取代舊的',
+    j10(b10.riven) === '[50,50]' &&
+      b10.rivenSpell &&
+      b10.rivenEnd &&
+      j10(b10.rivenBroken) === '[true,false]' &&
+      b10.rivenRe === 100,
+    j10([b10.riven, b10.rivenSpell, b10.rivenEnd, b10.rivenBroken, b10.rivenRe])
+  );
+  ok(
+    '卸防姿態：只對目眩的敵人、存 10%、附加物理；有它不能再目眩；承受 10 次擊中、目眩消失、60 秒後結束；重上取代舊的',
+    !b10.unb0 &&
+      j10(b10.unb1) === '[100,100]' &&
+      j10(b10.unbRe) === '[200,10]' &&
+      b10.unbNoDaze === 1 &&
+      b10.unb9 &&
+      !b10.unb10 &&
+      !b10.unbDaze &&
+      !b10.unbT,
+    j10([b10.unb0, b10.unb1, b10.unbRe, b10.unbNoDaze, b10.unb9, b10.unb10, b10.unbDaze, b10.unbT])
+  );
+  ok(
+    '跛行：普通怪 ×3、菁英與王 ×1 扣目標當下的閃避，扣到 0 完全跛行 12 秒（攻擊必中），到期恢復',
+    j10(b10.crip) === '[400,800,800]' && j10(b10.crip0) === '[0,12,true]' && j10(b10.cripEnd) === '[1000,false]',
+    j10([b10.crip, b10.crip0, b10.cripEnd])
+  );
+  ok(
+    '可觸電、可冰凍：普通 40%、菁英 60%、王 70%；定身中不算；收割後歸零',
+    j10(b10.prime) === '[true,false]' &&
+      j10(b10.primeB) === '[false,true]' &&
+      b10.primeE &&
+      !b10.primeFrozen &&
+      j10(b10.primeTake) === '[true,0,false,true,0]',
+    j10([b10.prime, b10.primeB, b10.primeE, b10.primeFrozen, b10.primeTake])
+  );
+  ok(
+    '血漬：流血累積 6 秒得到、移動或加劇時 ×2（3 秒）、流血斷掉暫停不歸零、腐化之血（不是流血）不累積',
+    j10(b10.stain5) === '[5,false]' &&
+      j10(b10.stain6) === '[true,0,true,false]' &&
+      b10.stainMv &&
+      b10.stainAgg &&
+      j10(b10.stainPause) === '[3,3,4]' &&
+      j10(b10.stainCb) === '[0,false]',
+    j10([b10.stain5, b10.stain6, b10.stainMv, b10.stainAgg, b10.stainPause, b10.stainCb])
+  );
+  ok(
+    '切割：擊中給 1 層、每層流血機率 +10%、上流血時全部移除；沒開關不給層數；層數有上限 10',
+    j10(b10.incLayers) === '["1,2,3,4,5",false]' &&
+      j10(b10.incBleed) === '[true,0,1]' &&
+      j10(b10.incCap) === '[true,0]' &&
+      j10(b10.incOff) === '[0,false]' &&
+      j10(b10.incMax) === '[1,0]' &&
+      b10.incMax2 === 10,
+    j10([b10.incLayers, b10.incBleed, b10.incCap, b10.incOff, b10.incMax, b10.incMax2])
+  );
+  ok(
+    '切割幅度（inciseMag）：近期每消耗 1 層流血幅度 3% 更多、上限 30%、超過 4 秒的不算',
+    j10(b10.incMag) === '[1.18,1.3,1.3]' && b10.incMagRecent === 1.18 && b10.incMagOld === 1.06,
+    j10([b10.incMag, b10.incMagRecent, b10.incMagOld])
+  );
+  ok(
+    '腐化之血：最多 10 層、每層獨立 5 秒、不是流血（沒有流血）；缺血 +3 → 13 層（乘減益幅度 1.5 → 14）；上限縮小不砍已有的層',
+    j10(b10.cb) === '[10,100,null,0]' &&
+      b10.anemia === 13 &&
+      b10.anemiaM === 14 &&
+      j10(b10.cbIndep) === '[10,1]' &&
+      b10.anemiaEnd === 15,
+    j10([b10.cb, b10.anemia, b10.anemiaM, b10.cbIndep, b10.anemiaEnd])
+  );
+  ok(
+    '石化：3 秒（王減半）、不能行動、算禁錮；到期恢復',
+    j10(b10.petr) === '[3,true,true]' && b10.petrB === 1.5 && j10(b10.petrEnd) === '[false,false]',
+    j10([b10.petr, b10.petrB, b10.petrEnd])
+  );
+  ok(
+    '平靜：傷害 0、秒數由施加者給；虛弱：移動 −20%、傷害 −10%、預設 1 秒；嘲諷：3 秒、對你以外傷害 −10%',
+    b10.calm0 === 1 &&
+      j10(b10.calm) === '[0,2]' &&
+      b10.calmEnd === 1 &&
+      j10(b10.weak) === '[0.8,0.9,1]' &&
+      b10.weakEnd === 1 &&
+      j10(b10.taunt) === '[3,1,0.9,1]',
+    j10([b10.calm, b10.weak, b10.weakEnd, b10.taunt])
+  );
+  ok(
+    '易攻目標：只有投射物攻擊吃、吃一次就消耗；幅度由施加者給；4 秒到期不吃',
+    j10(b10.easy) === '[1,1.5,1,true]' && b10.easyEnd === 1,
+    j10([b10.easy, b10.easyEnd])
+  );
+  ok(
+    '濕透：技能欄位 c.drench 或 drench() 都能施加、預設 2 秒、可傳更長、不縮短；感電機率 50% 更多、冰凍累積 25% 更多；到期不吃',
+    b10.wet === 2 &&
+      b10.wet5 === 5 &&
+      b10.wetKeep === 5 &&
+      b10.wetFn === 2 &&
+      j10(b10.wetShock) === '[false,true]' &&
+      j10(b10.wetFrz) === '[1.25,1]',
+    j10([b10.wet, b10.wet5, b10.wetKeep, b10.wetFn, b10.wetShock, b10.wetFrz])
+  );
+  ok(
+    '無咒的：curseMob 直接跳過；hexPierce 開了才能詛咒；一般敵人照常',
+    j10(b10.hex) === '[false,true]' && b10.hexNormal,
+    j10([b10.hex, b10.hexNormal])
+  );
+  ok(
+    '超重：每層緩速 10%、重上疊層並刷新 4 秒、最多 5 層、到期恢復',
+    j10(b10.over) === '[2,0.8]' && j10(b10.overRe) === '[3,4]' && j10(b10.overCap) === '[5,0.5]' && b10.overEnd === 1,
+    j10([b10.over, b10.overRe, b10.overCap, b10.overEnd])
+  );
+  ok(
+    '緩速藤蔓：每層移動 −8%（不影響出手）、最多 5 層；移動逐漸移除層數、站著不掉',
+    j10(b10.vine) === '[0.76,1]' && b10.vineCap === 5 && j10(b10.vineMove) === '[3,1]' && j10(b10.vineGone) === '[0,1]',
+    j10([b10.vine, b10.vineCap, b10.vineMove, b10.vineGone])
+  );
+  ok(
+    '不受影響：冰緩、感電、超重仍掛著、仍顯示，但不緩速、不多受傷',
+    j10(b10.unaff) === '[0.48,1,true,3]',
+    j10(b10.unaff)
+  );
+  ok(
+    '壓抑：機率上限 100%、被壓抑的擊中傷害與異常傷害各防止 50%（異常照上）、沒機率不壓抑',
+    j10(b10.supp) === '[0.5,0.5,false,true,true]',
+    j10(b10.supp)
+  );
+  ok(
+    'bvNoCrit：有格擋值時不會被暴擊，格擋值打碎後恢復；沒開關照常',
+    j10(b10.bvNoCrit) === '[true,false,true]',
+    j10(b10.bvNoCrit)
+  );
+  const need10 = [
+    '受招架',
+    '不受影響',
+    '鎮壓',
+    '壓抑',
+    '嘲諷',
+    '可觸電',
+    '可冰凍',
+    '壓碎',
+    '腐化之血',
+    '緩速藤蔓',
+    '石化',
+    '無咒',
+    '血漬',
+    '切割',
+    '跛行',
+    '易攻目標',
+    '虛弱',
+    '平靜',
+    '碎甲',
+    '卸防姿態',
+    '破碎護甲',
+    '濕透',
+    '超重',
+    '缺血'
+  ];
+  ok(
+    '第 10 批名詞卡 24 張都在，舊名「失衡」沒有留下',
+    need10.length === 24 &&
+      need10.every(k => R(`!!TERMS['${k}']`)) &&
+      !R(`'失衡' in TERMS || Object.values(STATE).some(s => s[0] === '失衡')`),
+    need10.filter(k => !R(`!!TERMS['${k}']`)).join()
+  );
 }
 process.exit(bad ? 1 : 0);

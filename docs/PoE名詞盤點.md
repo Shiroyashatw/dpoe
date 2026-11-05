@@ -206,23 +206,23 @@ A＝影響所有 build，排第 1～7 批；B＝接在後面，排第 8～18 批
 | B | 可觸電 | 普通敵人擁有 40% 以上的觸電累積時進入「可觸電」狀態；魔法敵人門檻 50%、稀有 60%、傳奇 70%。 | 門檻 40／50／60／70%（普通／魔法／稀有／傳奇）；累積達 100% 才真正觸電。用途：Neural Overload 輔助、Voltaic Mark、Moment of Vulnerability。見補充 |
 | B | 可冰凍 | 普通敵人擁有 40% 以上的冰凍累積時進入「可冰凍」狀態；魔法敵人門檻 50%、稀有 60%、傳奇 70%。 | 門檻 40／50／60／70%；累積達 100% 才冰凍。用途：Wave of Frost 立即冰凍可冰凍敵人、Arctic Howl、Freezing Mark、Moment of Vulnerability。見補充 |
 | B | 壓碎 | 壓碎（Crushed）使目標的物理傷害減免降低 15%；可使物理傷害減免變為負值，承受更多傷害。 | 來源：重錘（Forge Maul 等）固有「擊中壓碎敵人」、傳奇輔助 Styrn's Ferocity。持續時間 ⚠️ 查不到。來源 https://poe2db.tw/us/Crushed |
-| B | 腐化之血 | 腐化之血（Corrupted Blood）：造成物理持續傷害的減益；每個目標最多 10 層；不是流血，不受任何流血相關數值影響。 | 來源：輔助 Corrupting Cry I/II（戰吼）、Paquate's Pact（傳奇）、技能 Blood Boil、Bloodbarrier 輕盾（格擋時施加 5 秒）。「缺血」可超過 10 層。來源 https://poe2db.tw/us/Corrupted_Blood |
+| B | 腐化之血 | 腐化之血（Corrupted Blood）：造成物理持續傷害的減益；每個目標最多 10 層；不是流血，不受任何流血相關數值影響。 | 來源：輔助 Corrupting Cry I/II（戰吼）、Paquate's Pact（傳奇）、技能 Blood Boil、Bloodbarrier 輕盾（格擋時施加 5 秒）。「缺血」可超過 10 層。**持續 5 秒**；傷害例：Corrupting Cry 1 級 5.9、20 級 287／秒；Blood Boil 被殺敵人最大生命 2%／秒；Bloodbarrier 自己最大生命 50%／秒（0.2.43 查證；我們的每層傷害由技能欄位 `c.corrupt` 給）。來源 https://poe2db.tw/us/Corrupted_Blood |
 | B | 緩速藤蔓 | 緩速藤蔓（Grasping Vines）：可疊加的減益，每層使移動速度降低 8%；移動會逐漸移除層數。 | 來源為怪物詞綴與環境（怪物版最多 5 層）；玩家沒有取得來源。來源 https://poe2db.tw/us/Grasping_Vines |
 | B | 石化 | 石化（Petrify）：減益效果，使目標被石頭包覆，無法移動或行動。 | ⚠️ poe2db 沒有來源與持續時間，查不到。來源 https://poe2db.tw/us/Petrify |
 | B | 無咒的 | 無咒（Hexproof）：你不受詛咒影響。 | 怪物詞綴與地圖詞綴「怪物無咒」；玩家端有 Veilpiercer 戒指、Cospri's Will 讓你的詛咒能影響無咒敵人。來源 https://poe2db.tw/us/Hexproof |
 | B | 血漬 | 使敵人流血時會累積血漬，共計流血 6 秒後獲得「血漬」減益；若流血的敵人在移動，或流血被加劇，血漬累積加快 100%。特定技能可檢視敵人身上的血漬減益，並消耗它來獲得強力效果。 | 流血共 6 秒（加速時約 3 秒）後獲得。⚠️ 血漬本身的減益數字、能消耗它的技能 poe2db 沒列。見補充 |
-| B | 切割 | 切割（Incision）：讓受影響目標被擊中時有更高機率造成流血的減益；造成流血後移除所有切割疊層。 | 繁中頁：每層 +10% 擊中造成流血機率，每目標最多 10 層。來源：輔助 Incision（擊中給 1 層；近期每消耗 1 層，流血幅度 3% 更多，上限 30%）。見補充 |
+| B | 切割 | 切割（Incision）：讓受影響目標被擊中時有更高機率造成流血的減益；造成流血後移除所有切割疊層。 | 英文頁：擊中給 1 層，近期每消耗 1 層，流血幅度 3% 更多，上限 30%；每層 10%、10 層只在繁中頁。來源：輔助 Incision。見補充 |
 | B | 跛行 | 跛行（Hobble）：降低目標一定數值的閃避；降到 0 時，完全跛行 12 秒。 | 玩家造成時，對普通怪的閃避降低量 ×3、魔法怪 ×2。來源：輔助 Hobble（對流血敵人造成）。來源 https://poe2db.tw/us/Hobble |
-| B | 易攻目標 | 易攻目標（Easy Target）：使受影響目標的下一次投射物攻擊擊中受到更多傷害，並消耗此減益。 | 來源：輔助 Punch Through（近戰擊退時施加，幅度為每公尺預期擊退距離 3%）。持續時間 ⚠️ 查不到。來源 https://poe2db.tw/us/Punch_Through |
-| B | 受招架 | 受招架（Parried）：你以輕盾招架敵人時，使其一段時間內承受更多攻擊傷害，且無法閃避攻擊。 | 招架（Parry）技能：50% 更多攻擊傷害、持續 2 秒；Nocturne 輕盾改為受更多法術傷害且持續 +100%。來源 https://poe2db.tw/us/Parry |
+| B | 易攻目標 | 易攻目標（Easy Target）：使受影響目標的下一次投射物攻擊擊中受到更多傷害，並消耗此減益。 | 來源：輔助 Punch Through（近戰擊退時施加，幅度為每公尺預期擊退距離 3%）；同名天賦是「被沉重暈眩的敵人無法閃避你的擊中」（我們做成開關 `hstunNoEv`）。持續時間 ⚠️ 查不到（暫定 4 秒）。來源 https://poe2db.tw/us/Punch_Through |
+| B | 受招架 | 受招架（Parried）：你以輕盾招架敵人時，使其一段時間內承受更多攻擊傷害，且無法閃避攻擊。 | 招架（Parry）技能：50% 更多攻擊傷害、持續 2 秒（0.2.43 已照做，原名「失衡」改叫「受招架」）；Nocturne 輕盾改為受更多法術傷害且持續 +100%。來源 https://poe2db.tw/us/Parry |
 | B | 虛弱 | 虛弱（Debilitate）：減益，降低 20% 移動速度並使造成的傷害減少 10%；未特別註明時持續 1 秒。 | 來源：液態情感 Frightening Shield（舉盾時對前方 30 公尺敵人）、Guttural Roar（戰吼使敵人虛弱）、珠寶尾綴（擊中時使敵人虛弱）。來源 https://poe2db.tw/us/Debilitate |
 | B | 平靜 | 平靜（Pacified）：平靜的敵人無法造成傷害。 | 來源：傳奇輔助 Kalisa's Crescendo（被詛咒的敵人在詛咒最後一段時間平靜）。⚠️ 比例與秒數查不到。來源 https://poe2db.tw/us/Pacification |
 | B | 碎甲 | 碎甲（Riven Armour）：擊中時造成的減益，儲存該次擊中 5% 的減免前物理擊中傷害作為其幅度；施加者之後的攻擊擊中，額外獲得等同該幅度的獨立附加物理傷害；碎甲的敵人無法再被進一步破甲。 | 來源：十字弓 High Velocity Rounds 對完全破甲敵人施加；持續 5 秒，或完全破甲被移除即結束。見補充 |
 | B | 卸防姿態 | 卸防姿態（Broken Stance）：擊中時造成的減益，儲存該次擊中 10% 的減免前物理擊中傷害作為其幅度；施加者之後的擊中額外獲得等同該幅度的獨立附加物理傷害；卸防姿態的敵人無法再被目眩。 | 來源：四型杖技能 Vaulting Impact 對目眩敵人施加；持續 60 秒，或目眩消失、或承受 10 次擊中後移除。見補充 |
 | B | 破碎護甲 | 破碎護甲（Sundered Armour）：可對已受完全破甲的敵人施加的減益，使其受到的物理擊中傷害額外再增加 20%；該效果與目標一般的完全破甲效果疊加；完全破甲的詞綴也套用於它；有破碎護甲的敵人無法再被進一步破甲。 | 完全破甲＝護甲被破壞到 0，持續 12 秒（玩家 4 秒），非玩家目標受物理擊中傷害 +20%。破碎護甲來源：技能 Sunder 的衝擊波。見補充 |
-| B | 濕透的 | 濕透（Drenched）：減益，使敵人更容易被感電和冰凍。 | 來源：技能 Thunderstorm（雷暴）範圍內敵人；輔助 Shock Conduction II（濕透敵人必定感電）、Coursing Current。實際增幅 ⚠️ 查不到。來源 https://poe2db.tw/us/Drenched |
+| B | 濕透的 | 濕透（Drenched）：減益，使敵人更容易被感電和冰凍。 | 來源：技能 Thunderstorm（雷暴）範圍內敵人；輔助 Shock Conduction II（濕透敵人必定感電）、Coursing Current。**感電機率 50% 更多、冰凍累積 25% 更多，持續 2 秒**（0.2.43 查證，來源 Thunderstorm；做成獨立減益，不綁技能）；濕透天賦：感電機率提高 40%、5% 閃電轉額外冰冷。來源 https://poe2db.tw/us/Drenched |
 | B | 超重 | 超重（Overencumbered）：減緩 10%，重新施加會疊層並刷新持續時間。 | 持續 4 秒。來源：傳奇護脛 Ab Aeterno（閃避翻滾時獲得 4 秒）。層數上限 ⚠️ 查不到。來源 https://poe2db.tw/us/Overencumbered |
-| B | 缺血 | 缺血（Anaemia）：使目標可被施加超過 10 層腐化之血的減益；缺血的幅度決定可額外施加的腐化之血層數。 | ⚠️ 查不到來源與數字（poe2db 只有定義）。來源 https://poe2db.tw/us/Anaemia |
+| B | 缺血 | 缺血（Anaemia）：使目標可被施加超過 10 層腐化之血的減益；缺血的幅度決定可額外施加的腐化之血層數。 | 例：深淵詞綴 +2～3 層（0.2.43 查證）；幅度 3 ＝上限 13 層。來源 https://poe2db.tw/us/Anaemia |
 
 ### 能力計算
 

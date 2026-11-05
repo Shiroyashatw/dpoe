@@ -1,5 +1,5 @@
 /* dungeonPOE · 技能用的底層新機制（0.2.10，照 PoE2；規則在 docs/企劃書.md 7.3）：
-   收割、地面效果與引爆技能、殘留物與灌注、屍體、連擊與段數、招架與失衡、能量與觸發（Meta）、手雷、彈藥、飛劍、幻影、
+   收割、地面效果與引爆技能、殘留物與灌注、屍體、連擊與段數、招架與受招架、能量與觸發（Meta）、手雷、彈藥、飛劍、幻影、
    旗幟與榮耀、變身。技能（0.2.11 起）只呼叫這裡的函式，不自己發明規則。 */
 'use strict';
 
@@ -11,6 +11,10 @@ function hasState(m, k) {
   if (k === 'broken') return a.broken > G.t;
   if (k === 'primed') return (a.hs || 0) >= PRIMED(m);
   if (k === 'pinprime') return !(a.pinT > G.t) && (a.pin || 0) >= PRIMED(m);
+  /* 可觸電、可冰凍（第 10 批）：跟可釘身同一套門檻，本身沒有效果，只給技能判斷；血漬：流血累積 6 秒的減益 */
+  if (k === 'elcprime') return !immob(a) && (a.elc || 0) >= PRIMED(m);
+  if (k === 'frzprime') return !immob(a) && (a.frz || 0) >= PRIMED(m);
+  if (k === 'stain') return a.stain > G.t;
   if (k === 'bleed') return !!(a.bleed && a.bleed.t > G.t);
   if (k === 'ign') return !!(a.ign && a.ign.t > G.t);
   if (k === 'shock') return a.shock > G.t;
@@ -26,6 +30,8 @@ function takeState(m, k) {
   else if (k === 'broken') (a.broken = 0), (m.arm = m.arm0);
   else if (k === 'primed') a.hs = 0;
   else if (k === 'pinprime') a.pin = 0;
+  else if (k === 'elcprime') a.elc = 0;
+  else if (k === 'frzprime') a.frz = 0;
   else if (k === 'bleed' || k === 'ign' || k === 'curse' || k === 'mark') a[k] = null;
   else a[k] = 0;
   return true;
@@ -200,16 +206,26 @@ function nextStage(k, max = 3) {
   return cur;
 }
 
-/* ---------- 7. 招架與失衡 ---------- */
+/* ---------- 7. 招架與受招架、反擊狀態 ---------- */
 function startParry(t = 0.4) {
   P.parryT = G.t + t;
 }
-/* hurtCalc 呼叫：招架窗口裡被近戰或投射物打到＝擋下，攻擊者失衡 */
+/* 反擊狀態（第 10 批，技能還沒接）：持續 t 秒，期間第一次被近戰或投射物打到就擋下、攻擊者受招架、自動用 c（預設 BASEC）反擊一下，觸發一次就結束 */
+function startCounter(t = 3, c = null) {
+  P.counter = { t: G.t + t, c };
+}
+/* hurtCalc 呼叫：招架窗口或反擊狀態裡被近戰或投射物打到＝擋下，攻擊者受招架（幅度與持續時間在 combat.js 的 applyParry） */
 function tryParry(m) {
-  if (!(P.parryT > G.t) || !m || !m.ail) return false;
-  m.ail.parried = G.t + 4;
+  const cn = P.counter && P.counter.t > G.t;
+  if ((!(P.parryT > G.t) && !cn) || !m || !m.ail) return false;
+  applyParry(m);
   fxs('block', P.x, P.y);
   num(P.x, P.y - 60, 0, 'block', '招架');
+  if (cn) {
+    const c = P.counter.c || BASEC();
+    P.counter = null;
+    if (m.hp > 0) hitMob(m, c, Math.atan2(m.y - P.y, m.x - P.x), 160 * (c.kb || 1));
+  }
   return true;
 }
 
@@ -454,6 +470,7 @@ function mechEnter() {
     combo: 0,
     stage: {},
     parryT: 0,
+    counter: null,
     inf: {},
     swords: [],
     glory: 0,
