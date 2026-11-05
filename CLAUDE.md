@@ -46,6 +46,7 @@
 | `js/market.js` | 0.1 的市集（還沒接回 0.2，`index.html` 沒有載入） |
 | `js/main.js` | `load`／`save`／`migrate`／`start` |
 | `tools/check.js` | 固定檢查（含基底三層的範圍、雙手與箭袋規則、每種武器的數值不是 NaN、天賦樹照 `PoE天賦結構.md` 5.6 的結構驗收） |
+| `tools/ail_check.js` | 異常強度對照（第 9 批）：同一套配裝打打不死的王，流血／點燃／中毒的投資、加劇、改動前（單格）vs 佇列，寫 `docs/異常強度對照.md`；`node tools/ail_check.js 200 60 --write` |
 | `tools/dmg_check.js` | 傷害與防禦的驗收：Lv30／60／90 × 三套配裝打王的秒數、王一招打掉多少生命（`--why` 印出每一層的數字）；改了傷害、防禦、天賦、詞綴、怪物數值後跑 |
 | `tools/touch_check.js` | 手機操作測試（Playwright 模擬觸控，送真的觸控事件）：搖桿、普攻連打、技能點／拖／取消、翻滾、按鈕不重疊、面板不出畫面、點道具的動作、天賦樹點兩次與兩指縮放；`node tools/touch_check.js 寬 高 [網址]` |
 | `tools/ui_frame.py` | 鑄鐵銀框的九宮格素材 `img/ui/frame.png`（CSS 的 `border-image`） |

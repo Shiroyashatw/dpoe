@@ -535,6 +535,20 @@ function stats(s = S) {
         /* 0.2.42 第 6 批：撲殺、屠戮打擊（%）、幸運、荊棘、偏斜（combat.js） */
         'cull',
         'fullStrike',
+        /* 0.2.43 第 9 批：進攻機制的開關（combat.js；目前沒有來源，見待做清單） */
+        'ignFire',
+        'ignCold',
+        'ignLight',
+        'ignChaos',
+        'aggHit',
+        'aggIgn',
+        'bleedAll',
+        'poiAll',
+        'forkCrit',
+        'inevCrit',
+        'ovkSplash',
+        'kbEs',
+        'savageGuard',
         'lukCrit',
         'lukBlock',
         'lukDmg',
@@ -562,7 +576,7 @@ function stats(s = S) {
     ),
     /* 武器的本地詞：物理提高、附加傷害、攻擊速度、暴擊率只改那把武器（品質也是本地） */
     local = it => {
-      const B = it ? baseOf(it).b : { dmg: HERO.dmg, as: 1.1 },
+      const B = it ? baseOf(it).b : { dmg: HERO.dmg, as: HERO.as },
         L = {
           dmgP: 0,
           flat: [0, 0],
@@ -633,7 +647,7 @@ function stats(s = S) {
     blockInc: 0
   };
   const nodes = (s.pt || []).map(id => PTREE.I[id]),
-    wt0 = (w && baseOf(w).wt) || 'sword';
+    wt0 = (w && baseOf(w).wt) || 'unarmed';
   for (const n of nodes) {
     /* 武器招牌點（0.2.23，only）：拿那種武器才生效 */
     if (!n || (n.s.only && n.s.only !== wt0)) continue;
@@ -678,7 +692,7 @@ function stats(s = S) {
   o.spiritUsed = Math.round(o.spiritUsed * 10) / 10;
   o.es = calc(o.es + pt.esF, o.esP + o.defP, 1, o.esTot);
   /* 持武器的加成 */
-  o.wt = (w && baseOf(w).wt) || 'sword';
+  o.wt = (w && baseOf(w).wt) || 'unarmed';
   /* 天賦「持某武器時傷害」（0.2.17，15 種武器都有） */
   o.dmgA += o['w_' + o.wt] || 0;
   o.hp = calc(o.hp + pt.life, pt.hpP, 1, o.lifeTot);

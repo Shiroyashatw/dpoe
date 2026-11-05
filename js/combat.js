@@ -276,7 +276,10 @@ const spellDmg = (lv, avg) =>
   (avg ? (SPELL_BASE[0] + SPELL_BASE[1]) / 2 : rnd(SPELL_BASE[0], SPELL_BASE[1])) * Math.pow(1.25, lv - 1);
 const isSpell = D => (D.tags || []).includes('spell') && !(D.tags || []).includes('attack');
 /* 目標身上的減益讓抗性變成多少（詛咒、曝曬、焦灼可以壓成負值；穿透最多穿到 0） */
+const IGNK = { fire: 'Fire', cold: 'Cold', light: 'Light', chaos: 'Chaos' };
 function resOf(m, k, pen = 0) {
+  /* 無視抗性（0.2.43）：該種傷害當抗性 0，負抗性也不吃（開關 ignFire／ignCold／ignLight／ignChaos，目前沒有來源） */
+  if (ST['ign' + IGNK[k]]) return 0;
   const a = m.ail || {};
   let r = m.res[k] || 0;
   if (k !== 'chaos') {
@@ -351,6 +354,12 @@ function absorb(d) {
   if (P.guardV > 0) {
     const ab = Math.min(P.guardV, d);
     P.guardV -= ab;
+    d -= ab;
+  }
+  /* 殘暴打擊的守護（4 秒） */
+  if (P.svgV > 0 && P.svgT > G.t) {
+    const ab = Math.min(P.svgV, d);
+    P.svgV -= ab;
     d -= ab;
   }
   return d;
@@ -578,20 +587,33 @@ function hitCalc(c, m, o = {}) {
       sum = DT.reduce((s, k) => s + pre[k], 0),
       big = DT.reduce((b, k) => (pre[k] > pre[b] ? k : b), 'phys');
     return {
-      d: sum * (1 + (ch / 100) * (cm - 1)),
+      d:
+        sum *
+        ((ST.forkCrit || ST.inevCrit) && !ST.noCrit && !o.crit ? critAvg(ch / 100, cm - 1) : 1 + (ch / 100) * (cm - 1)),
       el: big,
-      ch,
+      ch: ST.noCrit || o.crit ? ch : ST.inevCrit && ch > 0 ? 100 : ST.forkCrit ? 100 * (1 - (1 - ch / 100) ** 2) : ch,
       cm,
       inc: common + incOf(parts[0] ? parts[0].ch : []),
       more
     };
   }
-  const crit =
-    !ST.noCrit && !!(o.crit || P.critNext || (ST.fullCrit && m && m.hp >= m.mhp) || roll(chance, ST.lukCrit));
+  /* 分岔暴擊（forkCrit）：判定兩次，任一次成功就暴擊，兩次都成功暴擊傷害加成套兩次（幸運時兩次各自幸運）；
+     絕對暴擊（inevCrit）：沒骰中就重骰到成功，每重骰一次暴擊傷害加成 30% 更少（chance 0 不重骰） */
+  const forced = !ST.noCrit && !!(o.crit || P.critNext || (ST.fullCrit && m && m.hp >= m.mhp));
+  let hits = forced ? 1 : 0,
+    rerolls = 0;
+  if (!ST.noCrit && !forced) {
+    const tries = ST.forkCrit ? 2 : 1,
+      once = () => (roll(chance, ST.lukCrit) ? 1 : 0) + (tries > 1 && roll(chance, ST.lukCrit) ? 1 : 0);
+    hits = once();
+    while (!hits && ST.inevCrit && chance > 0 && rerolls < 50) rerolls++, (hits = once());
+  }
+  const crit = hits > 0;
   if (crit) {
     /* 致命陰影（0.2.26）：每顆暴擊球暴擊傷害加成 +x% */
-    const cm = 1 + (100 + ST.critX + (c.critX || 0) + (P.critNext ? 50 : 0) + ST.powCritX * chgN('p')) / 100;
-    for (const k of DT) pre[k] *= cm;
+    const cm =
+      1 + ((100 + ST.critX + (c.critX || 0) + (P.critNext ? 50 : 0) + ST.powCritX * chgN('p')) / 100) * INEV ** rerolls;
+    for (const k of DT) pre[k] *= hits > 1 ? cm * cm : cm;
   }
   if (!o.keep) P.critNext = 0;
   if (ST.aq.precise) P.noCritN = crit ? 0 : (P.noCritN || 0) + 1;
@@ -616,10 +638,93 @@ function hitCalc(c, m, o = {}) {
   return { d, pre, post, crit, el: big, spell };
 }
 
+/* 殘暴打擊（開關 savageGuard＝%，0.2.43；hurtPlayer 呼叫）：一下被移除至少 15% 最大生命，獲得該 % 最大生命的守護，4 秒（重新獲得是刷新，不疊） */
+function savageHit(d) {
+  if (ST.savageGuard && d >= ST.hp * 0.15) (P.svgV = (ST.hp * ST.savageGuard) / 100), (P.svgT = G.t + 4);
+}
+/* 擊中造成擊殺（skills.js hitMob 呼叫；hp0＝擊中前的生命）：溢出（超出剩餘生命的傷害）的 x% 打給 2 公尺內的敵人（只算擊中）；最後一擊：打死感電的敵人回復 x% 最大能量護盾 */
+function hitKill(m, hp0, r) {
+  const over = -m.hp;
+  if (ST.ovkSplash && over > 0)
+    for (const o of G.mobs)
+      if (o !== m && o.hp > 0 && dist(o, m) < 2 * METER + o.r) dotHit(o, (over * ST.ovkSplash) / 100, r.el);
+  if (ST.kbEs && m.ail && m.ail.shock > G.t) P.es = Math.min(ST.es, (P.es || 0) + (ST.es * ST.kbEs) / 100);
+}
+/* 分岔、絕對暴擊的期望倍率：e＝一次判定的有效暴擊率（已含幸運），b＝暴擊傷害加成（cm − 1）；跟 hitCalc 實際擲骰同一套規則 */
+const INEV = 0.7;
+function critAvg(e, b) {
+  if (e <= 0) return 1;
+  const s0 = ST.forkCrit ? (1 - e) ** 2 : 1 - e,
+    s2 = ST.forkCrit ? e * e : 0,
+    s1 = 1 - s0 - s2;
+  if (!ST.inevCrit) return s0 + s1 * (1 + b) + s2 * (1 + b) ** 2;
+  /* 失敗 k 次後才成功（機率 s0^k），加成 × 0.7^k：Σ 等比級數，平方項的比例是 0.49 */
+  return 1 + ((s1 + 2 * s2) * b) / (1 - s0 * INEV) + (s2 * b * b) / (1 - s0 * INEV * INEV);
+}
 /* ---------- 異常：打中之後（hitMob 呼叫） ---------- */
-/* 只取最強的（點燃、流血） */
-const keepMax = (cur, dps, t) => (!cur || cur.t <= G.t || dps > cur.dps ? { dps, t: G.t + t } : cur);
-function applyAil(m, r, c) {
+/* 流血、點燃的備份佇列（0.2.43）：每一筆都留著，只有有效傷害最強的一筆（a.bleed／a.ign，原本的讀法不變）造成傷害，
+   其他筆掛在它的 .q；最強的到期或有人被加劇就重新整理。加劇 .agg：有效傷害 ×2（流血一律當目標在移動、點燃 ×2）。
+   shortcut: 最多留 AILQ 筆，超過丟掉最弱的；要放寬就改這個數字 */
+const AILQ = 60,
+  ailEff = x => x.dps * (x.agg ? 2 : 1);
+function ailQ(list) {
+  const all = list
+    .filter(x => x && x.t > G.t)
+    .sort((x, y) => ailEff(y) - ailEff(x) || y.t - x.t)
+    .slice(0, AILQ);
+  for (const x of all) delete x.q;
+  if (all[0]) all[0].q = all.slice(1);
+  return all[0];
+}
+/* 加進一筆；ex 是這筆的記號（惡化點燃的 cu＝同一次使用，會先移除同一次使用的舊筆） */
+const keepMax = (cur, dps, t, ex) =>
+  ailQ(
+    [cur, ...((cur && cur.q) || [])]
+      .filter(x => !(ex && ex.cu && x && x.cu === ex.cu))
+      .concat({ dps, t: G.t + t, ...ex })
+  );
+/* 最強的到期了，換備份接手（沒有備份就不動） */
+function ailReflow(a) {
+  for (const k of ['ign', 'bleed'])
+    if (a[k] && a[k].t <= G.t && a[k].q && a[k].q.length) a[k] = ailQ([a[k], ...a[k].q]) || ((a[k].q = null), a[k]);
+}
+/* 加劇：這個怪身上現有的每一筆（含備份）都變成加劇，之後新上的不算；回傳有沒有實際加劇（至少一筆從沒加劇變成加劇） */
+function aggravate(m, k) {
+  const top = m.ail && m.ail[k];
+  if (!top) return false;
+  const all = [top, ...(top.q || [])].filter(x => x.t > G.t && !x.agg);
+  if (!all.length) return false;
+  for (const x of all) x.agg = 1;
+  m.ail[k] = ailQ([top, ...(top.q || [])]);
+  return true;
+}
+/* 加劇任何流血：有流血被加劇才算；ST.aggIgn 開著時同時加劇所有點燃 */
+function aggBleed(m) {
+  const did = aggravate(m, 'bleed');
+  if (did && ST.aggIgn) aggravate(m, 'ign');
+  return did;
+}
+/* 有助於異常狀態的傷害（0.2.43）：哪種傷害算進哪種異常的基礎；AIL_EXTRA 的開關打開時，加進那幾種傷害 */
+const AIL_SRC = { ign: ['fire'], bleed: ['phys'], poi: ['phys', 'chaos'] },
+  AIL_EXTRA = [
+    ['shaper', 'ign', ['phys', 'cold', 'light']],
+    ['bleedAll', 'bleed', ['fire', 'cold', 'light', 'chaos']],
+    ['poiAll', 'poi', ['fire', 'cold', 'light']]
+  ],
+  ailBase = (p, k) =>
+    AIL_SRC[k].reduce((t, d) => t + p[d], 0) +
+    AIL_EXTRA.reduce((t, [f, a, ds]) => t + (a === k && ST[f] ? ds.reduce((u, d) => u + p[d], 0) : 0), 0);
+/* 滿溢機率（0.2.43）：回傳發生幾次，215 ＝ 2 次，再 15% 機率第 3 次 */
+const surpass = p => (p > 0 ? Math.floor(p / 100) + (roll(p % 100) ? 1 : 0) : 0);
+/* 惡化點燃（技能欄位 c.compound）：同一次使用（use＝hitMob 的 o.a）再點燃同一目標，移除這次使用的舊筆，新筆幅度 × 累計筆數；反射、油地面的點燃不走這裡 */
+function igniteOn(m, dps, t, c, use) {
+  if (!c.compound || !use) return keepMax(m.ail.ign, dps, t);
+  const mp = (use.cmp = use.cmp || new Map()),
+    n = (mp.get(m) || 0) + 1;
+  mp.set(m, n);
+  return keepMax(m.ail.ign, dps * n, t, { cu: use });
+}
+function applyAil(m, r, c, use) {
   const a = m.ail,
     cq = c.q || 0,
     t = G.mapT || 1,
@@ -636,12 +741,20 @@ function applyAil(m, r, c) {
     rr = 1 - rarRed(m);
   /* 點燃：火焰傷害疊易燃（每 5% 門檻 +1% 機率），中了清零 */
   /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；餘燼：點燃更多、持續時間 −25% */
-  const igB = ST.shaper ? p.fire + p.phys + p.cold + p.light : p.fire;
+  /* 加劇任何流血（開關 aggHit，攻擊擊中時）：先加劇現有的，這一下新上的不算 */
+  if (ST.aggHit && attack) aggBleed(m);
+  const igB = ailBase(p, 'ign');
   if (igB > 0) {
     a.flam = Math.min(100, (a.flamT > G.t ? a.flam || 0 : 0) + (igB / thrF) * 20 * (archon ? 2 : 1));
     a.flamT = G.t + 8;
     if (roll(a.flam))
-      (a.ign = keepMax(a.ign, igB * 0.2 * (mag + ST.shaper / 100) * (1 + ST.ember / 100), 4 * (ST.ember ? 0.75 : 1))),
+      (a.ign = igniteOn(
+        m,
+        igB * 0.2 * (mag + ST.shaper / 100) * (1 + ST.ember / 100),
+        4 * (ST.ember ? 0.75 : 1),
+        c,
+        use
+      )),
         (a.flam = 0);
   }
   /* 冰緩：效果看傷害÷門檻，低於 30% 不生效，最高 50%；8 秒 */
@@ -683,13 +796,13 @@ function applyAil(m, r, c) {
   if (ST.steelCycle && P.bvAcc > 0 && !immob(a)) poiseAdd(m, 'hs', P.bvAcc), (P.bvAcc = 0);
   /* 流血、中毒：要有機率；流血只有攻擊會造成，c.spellBleed 是例外（死亡紅花的爆炸） */
   if ((attack || c.spellBleed) && p.phys > 0 && roll(ST.bleedCh + (c.bleedCh || 0)))
-    a.bleed = keepMax(a.bleed, p.phys * 0.15 * mag, 5);
+    a.bleed = keepMax(a.bleed, ailBase(p, 'bleed') * 0.15 * mag, 5);
   /* 附加火焰的品質：附加的火焰有機率直接點燃 */
-  if (c.addIgn && p.fire > 0 && qRoll(c.addIgn)) a.ign = keepMax(a.ign, p.fire * 0.2 * mag, 4);
+  if (c.addIgn && p.fire > 0 && qRoll(c.addIgn)) a.ign = igniteOn(m, p.fire * 0.2 * mag, 4, c, use);
   if (p.phys + p.chaos > 0 && roll(ST.poisonCh + (c.poisonCh || 0))) {
     const n = 1 + ST.poiStack + (c.poiStack || 0);
     a.poi = (a.poi || []).filter(x => x.t > G.t);
-    a.poi.push({ dps: (p.phys + p.chaos) * 0.2 * mag, t: G.t + 2 });
+    a.poi.push({ dps: ailBase(p, 'poi') * 0.2 * mag, t: G.t + 2 });
     a.poi.sort((x, y) => y.dps - x.dps);
     a.poi.length = Math.min(a.poi.length, n);
     /* 劇毒的品質：疊滿時結算一部分剩餘毒傷 */
@@ -740,8 +853,10 @@ function ailTick(m, dt) {
         x.ext = 1;
         if (qRoll(a.extP)) x.t = G.t + 1;
       }
-  if (a.ign && a.ign.t > G.t) d += a.ign.dps * (1 - resOf(m, 'fire') / 100);
-  if (a.bleed && a.bleed.t > G.t) d += a.bleed.dps * (m.mv ? 2 : 1);
+  ailReflow(a);
+  if (a.ign && a.ign.t > G.t) d += ailEff(a.ign) * (1 - resOf(m, 'fire') / 100);
+  /* 加劇的流血一律當目標在移動（×2），移動時不再加倍 */
+  if (a.bleed && a.bleed.t > G.t) d += a.bleed.dps * (a.bleed.agg || m.mv ? 2 : 1);
   if (a.poi)
     for (const x of a.poi) if (x.t > G.t) d += x.dps * (1 - resOf(m, 'chaos') / 100) * (1 + takenInc(m, 'chaos') / 100);
   if (d > 0) {
@@ -756,7 +871,7 @@ function ailTick(m, dt) {
   if (!immob(a))
     for (const k in POISE) if (a[k] && G.t - ((a.psA && a.psA[k]) || 0) >= 8) a[k] = Math.max(0, a[k] - 5 * dt);
   /* 獵犬印記：流血的失血累積沉重暈眩 */
-  if (a.mark && a.mark.k === 'hound' && a.bleed && a.bleed.t > G.t) poiseAdd(m, 'hs', a.bleed.dps * dt);
+  if (a.mark && a.mark.k === 'hound' && a.bleed && a.bleed.t > G.t) poiseAdd(m, 'hs', ailEff(a.bleed) * dt);
   if (a.abT && a.abT <= G.t && !(a.broken > G.t)) m.arm = m.arm0;
   if (a.curse && a.curse.t <= G.t) a.curse = null;
   if (m.stun > 0) m.stun -= dt;
@@ -988,8 +1103,9 @@ function baseTick(dt) {
   const a = (P.ail = P.ail || {});
   let d = 0,
     skipEs = 0;
-  if (a.ign && a.ign.t > G.t) d += a.ign.dps * (1 - effRes('fire') / 100);
-  if (a.bleed && a.bleed.t > G.t) (d += a.bleed.dps), (skipEs += a.bleed.dps);
+  ailReflow(a);
+  if (a.ign && a.ign.t > G.t) d += ailEff(a.ign) * (1 - effRes('fire') / 100);
+  if (a.bleed && a.bleed.t > G.t) (d += ailEff(a.bleed)), (skipEs += ailEff(a.bleed));
   if (a.poi && a.poi.t > G.t) {
     const v = a.poi.dps * (1 - effRes('chaos') / 100);
     (d += v), (skipEs += v);

@@ -652,6 +652,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   P.lastHit = { n: who ? (who.elite ? '菁英 ' : '') + who.D.n : '環境傷害', el, d: Math.round(d) };
   P.hp -= d;
   lifeLost();
+  savageHit(d);
   P.hurtT = 0.35;
   num(P.x, P.y - 60, d, 'hurt');
   sfx('hurt');

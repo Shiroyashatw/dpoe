@@ -149,7 +149,9 @@ function skillNums(c) {
 /* 按下技能鍵 */
 /* 武器技能要拿對的武器（照 PoE2） */
 /* 盾技能（D.off）要副手拿盾；wtNeed 沒有限制時是空字串 */
-const wtOK = D => (!D.wt || D.wt.includes(ST.wt)) && (!D.off || ST.shield);
+/* 空手（ST.wt 'unarmed'）不能用限定武器的技能，只有預設攻擊斬擊可以 */
+const wtOK = D =>
+  (!D.wt || D.wt.includes(ST.wt) || (ST.wt === 'unarmed' && D === SKILLS.slash)) && (!D.off || ST.shield);
 const wtNeed = D => (D.wt ? '要拿' + D.wt.map(w => WTN[w]).join('或') : D.off ? '副手要拿盾' : '');
 const needTxt = D => '需要：' + (D.wt ? D.wt.map(w => WTN[w]).join('、') : '副手的盾');
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */
@@ -873,7 +875,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   const shocked = c.boltChain && hasState(m, 'shock');
   /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
   if (ST.mirageH && !a.trig && !o.minion && !a.unit && !o.again) mirageHunt();
-  applyAil(m, r, c);
+  applyAil(m, r, c, a);
   if (c.k === 'axethrow' && hasState(m, 'bleed')) fxs('bleed', m.x, m.y - m.sz * 0.5, 30);
   onHitBase(m, r, c);
   /* 近期事件（combat.js 的 recent）：你自己的擊中與暴擊，不算召喚物與場上單位 */
@@ -888,8 +890,11 @@ function hitMob(m, c, ang, kb, o = {}) {
   /* 屠戮打擊（0.2.42）：擊中滿血的敵人，先移除 min(x%, 上限) 的生命；撲殺：擊中後生命低於門檻直接殺死 */
   const cut = fullCut(m);
   if (cut) (m.hp -= cut), num(m.x, m.y - m.sz * 1.3, 0, 'ev', '屠戮');
+  const hp0 = m.hp;
   m.hp -= r.d;
   if (culled(m)) (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺');
+  /* 事件（0.2.43，擊中造成擊殺才算，持續傷害不算）：溢出 ovkSplash＝%（溢出傷害打給 2 公尺內的敵人）、最後一擊 kbEs＝%（打死感電的敵人回復最大能量護盾） */
+  if (hp0 > 0 && m.hp <= 0) hitKill(m, hp0, r);
   if (a) a.any = 1;
   m.flash = 0.09;
   m.sq = 1;
