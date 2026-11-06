@@ -29,6 +29,14 @@ async function cloudFetch() {
 }
 async function cloudInit() {
   try {
+    /* 本機不碰正式雲端：自動匿名登入會讓每個乾淨的測試瀏覽器都在正式庫多一個帳號與存檔；要測雲端加 ?cloud=1 */
+    if (
+      /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) &&
+      !new URLSearchParams(location.search).has('cloud')
+    ) {
+      CLOUD.status = '本機測試：不連雲端';
+      return null;
+    }
     if (!window.supabase) {
       CLOUD.status = '無法載入雲端模組，存檔只在這台裝置';
       return null;
