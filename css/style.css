@@ -1276,3 +1276,36 @@ body.touch .wm-acts { bottom: -8px; }
 body.touch.port .wm-acts { bottom: calc(-8px - env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
 body.touch:not(.port) #pdev { grid-template-columns: minmax(0, 1fr) min(320px, 46vw); }
 @media (prefers-reduced-motion: reduce) { .wm-cap p { animation-duration: 200ms; } .wm-hunt i { transition: none; } }
+
+/* ---------- 天賦樹（0.2.45，照 PoE2）：黑底、沒點亮也看得到系色（--c＝data.js 的 PT_FAM）、鎖住的預留點 ---------- */
+#ptree { --pt-bg: #090b13; --pt-node: #10131b; --pt-line: 162, 148, 110; background: var(--pt-bg); }
+#tsvg line:not(.asc), #tsvg path { stroke: rgba(var(--pt-line), 0.3); stroke-width: 4; }
+#tsvg line.near:not(.asc), #tsvg path.near { stroke: rgba(var(--pt-line), 0.62); }
+#tsvg line.on:not(.asc), #tsvg path.on { stroke: var(--sel); stroke-width: 7; }
+.nd:not(.asc) circle { fill: var(--pt-node); stroke: var(--c, #a2946e); stroke-opacity: 0.6; stroke-width: 3; }
+.nd.can:not(.asc) circle { fill: color-mix(in srgb, var(--c, #a2946e) 30%, var(--pt-node)); stroke-opacity: 1; stroke-width: 4; }
+.nd.on:not(.asc) circle { fill: var(--c, #a2946e); stroke: var(--sel); stroke-opacity: 1; stroke-width: 4; }
+.nd.b2:not(.asc):not(.on) circle { stroke: var(--gold); stroke-opacity: 0.75; stroke-width: 5; }
+.nd:not(.asc) image, .nd:not(.asc) use { opacity: 0.6; }
+.nd.b0:not(.asc) use { opacity: 0.5; }
+.nd.can:not(.asc) image, .nd.can:not(.asc) use { opacity: 0.95; }
+.nd.on:not(.asc) image, .nd.on:not(.asc) use { opacity: 1; }
+.nd.lk { cursor: not-allowed; }
+.nd.lk:not(.asc) circle { fill: #0c0e14; stroke: #5a5d66; stroke-opacity: 0.9; stroke-dasharray: 5 4; }
+.nd.lk:not(.asc) use, .nd.lk:not(.asc) image { opacity: 0.25; }
+.nd.sel:not(.asc) circle { stroke: #fff; stroke-opacity: 1; stroke-width: 6; }
+.nd.hit:not(.asc) circle { stroke: var(--gold); stroke-opacity: 1; stroke-width: 6; }
+/* 縮到看不清楚時：每個點就是一顆系色的點，一眼看出哪個方向是什麼系 */
+#tsvg.far .nd:not(.asc) circle { fill: var(--c, #a2946e); fill-opacity: 0.65; stroke-width: 7; }
+#tsvg.far .nd.on:not(.asc) circle { fill-opacity: 1; }
+#tsvg.far .nd.lk:not(.asc) circle { fill: #2a2d36; fill-opacity: 1; }
+#tsvg.far line:not(.asc), #tsvg.far path { stroke: rgba(var(--pt-line), 0.28); stroke-width: 10; }
+#tsvg.far line.on:not(.asc), #tsvg.far path.on { stroke: var(--sel); stroke-width: 24; }
+/* 能力值的選擇框貼在被點的點旁邊（位置由 tree.js 的 treeAttrAsk 算），按鈕照系色 */
+.tattr { left: 0; top: 0; bottom: auto; transform: none; max-width: min(calc(100% - 16px), 440px); }
+.tattr .btn.pri { border-color: var(--c); box-shadow: inset 0 -3px 0 var(--c); }
+.thelp .lg { display: inline-flex; align-items: center; gap: 5px; margin-right: 12px; white-space: nowrap; }
+.thelp .lg::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.thelp .lg.lk::before { background: none; border: 1px dashed #8a8d96; }
+/* 視窗不夠寬時標題不置中，才不會蓋到搜尋框 */
+@media (max-width: 1240px) { body:not(.touch) .tbar > b { position: static; transform: none; } }

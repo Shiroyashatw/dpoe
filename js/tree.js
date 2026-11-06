@@ -19,7 +19,8 @@ function treeCan(id) {
     if (!T || S.at.includes(id) || ascLeft() <= 0) return false;
     return (T.ADJ[id] || []).some(o => S.at.includes(o)) && ascFeasible(T, [...S.at, id]);
   }
-  if (S.pt.includes(id) || ptLeft() <= 0) return false;
+  /* 鎖住的預留點（PT_RSV）看得到、不能點 */
+  if (S.pt.includes(id) || ptLeft() <= 0 || PTREE.I[id].lock) return false;
   return (PTREE.ADJ[id] || []).some(o => S.pt.includes(o));
 }
 /* 退回後其他點還連得到起點嗎 */
@@ -40,7 +41,8 @@ function treeOpen() {
   if (proHint('tree', treeOpen)) return;
   closePanels();
   /* 起點的 6 個門大約在半徑 560 的圈上；窄螢幕（直立）縮到看得到全部的門 */
-  Object.assign(TREE, { open: true, x: 0, y: 0, z: Math.min(0.55, (innerWidth / 2 - 30) / 560) });
+  /* 視窗還沒有寬度（分頁在背景）時不能算出負的縮放 */
+  Object.assign(TREE, { open: true, x: 0, y: 0, z: clamp((innerWidth / 2 - 30) / 560, 0.12, 0.55) });
   $('ptree').hidden = false;
   /* 整棵樹只建一次（換昇華才重建）；再打開只更新點亮狀態 */
   if (TREE.built === (S.asc || '') && TEL) {
@@ -104,7 +106,7 @@ function treeRender() {
       nC,
       n.x,
       n.y,
-      `<g class="nd ${st} b${n.big}${TREE.sel === n.id ? ' sel' : ''}" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})" style="--c:${PT_THEME[n.th].c}"><circle r="${r}"/>${img}</g>`
+      `<g class="nd ${st} b${n.big}${n.lock ? ' lk' : ''}${TREE.sel === n.id ? ' sel' : ''}" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})" style="--c:${PT_THEME[n.th].c}"><circle r="${r}"/>${img}</g>`
     );
   }
   html += Object.entries(nC)
@@ -132,7 +134,11 @@ function treeRender() {
     <button class="btn" data-ta="areset" id="taset">重置昇華</button>
     <button class="x" aria-label="關閉" data-ta="close">${ICO.x}</button></div>
   <div id="tview"><svg id="tsvg" viewBox="${B.x} ${B.y} ${B.w} ${B.h}" width="${B.w}" height="${B.h}"><g id="tg">${html}</g></svg></div>
-  <p class="thelp"><b>起點</b> ${PT_ROADS.map((r, i) => ['上', '右上', '右下', '下', '左下', '左上'][i] + ' ' + r.n.slice(0, 2)).join(' · ')}　<b>操作</b> 點亮著的點＝點下去，再點＝退回 · 拖曳移動 · 滾輪縮放　外圈是武器專精，最外面的大圓是基石（有代價）</p>`;
+  <p class="thelp"><b>顏色</b> ${Object.keys(PT_FAM)
+    .map(k => `<span class="lg" style="--c:${PT_FAM[k]}">${PT_FAMN[k]}</span>`)
+    .join(
+      ''
+    )}<span class="lg lk">鎖住＝還沒開放</span>　<b>操作</b> 點亮著的點＝點下去，再點＝退回 · 拖曳移動 · 滾輪縮放　金框大圓是基石（有代價）</p>`;
   /* 之後選取、點亮只改 class，不重畫整棵樹（一千多個點，手機重畫會卡） */
   const tg = $('tg'),
     eEls = tg.querySelectorAll('.tc.e');
@@ -184,7 +190,7 @@ function treeRefresh() {
   for (const [id, el] of TEL.n) {
     const st = have.has(id) ? 'on' : treeCan(id) ? 'can' : 'off',
       n = id.startsWith('a_') ? T.I[id] : PTREE.I[id],
-      cls = `nd ${n.asc ? 'asc ' : ''}${st} b${n.big}${n.g ? ' grp' : ''}${TREE.sel === id ? ' sel' : ''}`;
+      cls = `nd ${n.asc ? 'asc ' : ''}${st} b${n.big}${n.g ? ' grp' : ''}${n.lock ? ' lk' : ''}${TREE.sel === id ? ' sel' : ''}`;
     if (el.getAttribute('class') !== cls) el.setAttribute('class', cls);
   }
   for (const [el, a, b] of TEL.ae) {
@@ -273,22 +279,66 @@ function treeToggle(id) {
   else if (asc && ascT().I[id].g && S.at.some(o => ascT().I[o].g === ascT().I[id].g))
     return hudWarn('同一組只能選一個：先退掉另一個');
   else if (asc) return hudWarn('要跟點過的點連在一起，而且最後要剛好 4 小 4 大');
-  else return hudWarn(ptLeft() <= 0 ? '沒有天賦點了：升級會再給' : '要跟點過的點連在一起');
+  else
+    return hudWarn(
+      PTREE.I[id].lock ? PTREE.I[id].d : ptLeft() <= 0 ? '沒有天賦點了：升級會再給' : '要跟點過的點連在一起'
+    );
   sfx('equip');
   treeChanged();
 }
-/* 過路點的選擇框（0.2.42）：+5 力量／敏捷／智慧，點按鈕才點下去；再點別處或按取消關掉 */
+/* 過路點的選擇框（0.2.42）：+5 力量／敏捷／智慧，點按鈕才點下去；再點別處或按取消關掉。
+   0.2.45：框貼在被點的那個點旁邊（以前固定在畫面最下面，離點很遠），按鈕照系色（紅力、綠敏、藍智） */
 function treeAttrAsk(id) {
   treeAttrClose();
   const d = document.createElement('div');
   d.id = 'tattr';
   d.className = 'tattr';
   d.innerHTML = `<span>+${PT_ATTR} 能力值：</span>${Object.entries(ATT_PT)
-    .map(([c, k]) => `<button class="btn pri" data-ta="attr:${id}:${c}">${ATTN[k]}（${ATT_HINT[k]}）</button>`)
+    .map(
+      ([c, k]) =>
+        `<button class="btn pri" style="--c:${PT_FAM[ATT_FAM[k]]}" data-ta="attr:${id}:${c}">${ATTN[k]}（${ATT_HINT[k]}）</button>`
+    )
     .join('')}<button class="btn" data-ta="attrx">取消</button>`;
-  $('ptree').appendChild(d);
+  const P = $('ptree');
+  P.appendChild(d);
+  /* 放在點的下面，放不下就放上面；左右不超出畫面 */
+  const r = TEL.n.get(id).getBoundingClientRect(),
+    p = P.getBoundingClientRect(),
+    w = d.offsetWidth,
+    h = d.offsetHeight,
+    below = r.bottom + 10 + h <= p.bottom - 8;
+  d.style.left = clamp(r.left + r.width / 2 - w / 2, p.left + 8, p.right - w - 8) - p.left + 'px';
+  d.style.top = (below ? r.bottom + 10 : Math.max(p.top + 8, r.top - 10 - h)) - p.top + 'px';
 }
-const ATT_HINT = { str: '生命', dex: '命中', int: '魔力' };
+const ATT_HINT = { str: '生命', dex: '命中', int: '魔力' },
+  ATT_FAM = { str: 'r', dex: 'g', int: 'b' };
+/* 點擊範圍（0.2.45）：小點在預設縮放下只有 11px，不靠圓本身，找游標附近最近的點（半徑至少 22px） */
+let THIT = null;
+function treeHit(e) {
+  const v = $('tview'),
+    el = e.target.closest('.nd');
+  if (el || !v || !TEL || !e.target.closest('#tview')) return el;
+  if (!THIT) {
+    THIT = new Map();
+    for (const n of PTREE.N) {
+      const k = Math.floor(n.x / 200) + ',' + Math.floor(n.y / 200);
+      (THIT.get(k) || THIT.set(k, []).get(k)).push(n);
+    }
+  }
+  const r = v.getBoundingClientRect(),
+    x = (e.clientX - r.left - r.width / 2 - TREE.x) / TREE.z,
+    y = (e.clientY - r.top - r.height / 2 - TREE.y) / TREE.z,
+    R = Math.min(60, 22 / TREE.z);
+  let best = null,
+    bd = R;
+  for (let i = Math.floor((x - R - 30) / 200); i <= Math.floor((x + R + 30) / 200); i++)
+    for (let j = Math.floor((y - R - 30) / 200); j <= Math.floor((y + R + 30) / 200); j++)
+      for (const n of THIT.get(i + ',' + j) || []) {
+        const d = Math.hypot(n.x - x, n.y - y) - (n.big === 2 ? 30 : n.big ? 19 : 10);
+        if (d < bd) (bd = d), (best = n);
+      }
+  return best ? TEL.n.get(best.id) : null;
+}
 function treeAttrClose() {
   const d = $('tattr');
   if (d) d.remove();
@@ -333,13 +383,15 @@ function treeTip(id) {
           ? '昇華大點（同一組只能選一個）'
           : '昇華大點'
         : '昇華小點'
-    : n.big === 2
-      ? '基石'
-      : n.gate
-        ? '起點'
-        : n.big
-          ? '大點'
-          : '小點';
+    : n.lock
+      ? '預留（鎖住）'
+      : n.big === 2
+        ? '基石'
+        : n.gate
+          ? '起點'
+          : n.big
+            ? '大點'
+            : '小點';
   const lines =
     n.big === 3
       ? [esc(ASC[S.asc].d)]
@@ -384,7 +436,7 @@ function treeInit() {
       TREE.drag = null;
       return hideTip();
     }
-    TREE.drag = { x: e.clientX, y: e.clientY, ox: TREE.x, oy: TREE.y, moved: false, n: e.target.closest('.nd') };
+    TREE.drag = { x: e.clientX, y: e.clientY, ox: TREE.x, oy: TREE.y, moved: false, n: treeHit(e) };
   });
   el.addEventListener('pointermove', e => {
     if (TP.has(e.pointerId)) TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -403,7 +455,7 @@ function treeInit() {
       }
     }
     if (e.pointerType !== 'mouse') return;
-    const n = e.target.closest('.nd');
+    const n = treeHit(e);
     if (n) {
       const r = n.getBoundingClientRect();
       showTip(treeTip(n.dataset.n), r);

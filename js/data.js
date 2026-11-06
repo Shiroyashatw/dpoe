@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.44';
+const VER = '0.2.45';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -3230,10 +3230,6 @@ const PT_STAT_IC = {
   pen: 'sup_sp_brutal',
   resF: 'sup_ln_iron'
 };
-/* 天賦樹產生器（0.2.22，照 docs/PoE天賦結構.md 第 5 節）：
-   幹道＝三角格子的頂點（過路點，十字路口：2～3 條接幹道、2～3 條接叢集），每個三角形是一個叢集（口袋）；
-   叢集的小點排在一圈軌道上、大點在最裡面（離入口 2～3 步），叢集之間不直接相連；
-   64% 死路（一個入口）、24% 兩頭通、12% 樞紐（內圈多）；外圈有 2 個三角形併成一塊的大叢集（武器、召喚…） */
 /* 主題的整體權重：新主題多了 20 個，用這張表把每個主題的叢集數調到 PoE天賦結構.md 5.5 的比例（rg 只管方向） */
 const PT_RW = {
   生命: 1.47,
@@ -3296,445 +3292,472 @@ const PT_RW = {
   棍術: 3.54
 };
 const PT_R0 = 470;
-/* 幹道：能力值點固定 247 個（全樹 7.5%，照 PoE2）；其他是過路小點，六條路各自的零散數值 */
-const PT_ATTN = 247;
-/* 幹道間距的倍率：調它讓全樹維持約 3300 點 */
-const PT_GAP = 0.86;
-/* 基石離中心的距離：約 14 步（PoE2 13.9），外圈不一定有基石 */
-const PT_KR = 3600;
-const PT_WAY = [
-  [{ armorF: 20 }, { life: 10 }],
-  [{ evF: 16 }, { acc: 30 }],
-  [{ evF: 16 }, { acc: 30 }],
-  [{ mana: 10 }, { esF: 8 }],
-  [{ mana: 10 }, { esF: 8 }],
-  [{ armorF: 20 }, { life: 10 }]
+/* 0.2.45 天賦樹重做新增的能力（PoE2 樹上有、我們底層本來就有機制；掛勾在 combat.js、items.js、skills.js、mech.js） */
+Object.assign(STATN, {
+  penF: ['穿透火焰抗性', '%'],
+  penC: ['穿透冰冷抗性', '%'],
+  penL: ['穿透閃電抗性', '%'],
+  lowEnemyP: ['對貧血（生命低於 35%）的敵人傷害', '%'],
+  blindP: ['對致盲的敵人傷害', '%'],
+  blindCh: ['擊中時致盲的機率', '%'],
+  formP: ['變身時傷害', '%'],
+  formArm: ['變身時護甲', '%'],
+  flamP: ['易燃累積（點燃的機率）', '%'],
+  chillMag: ['冰緩效果', '%'],
+  shockCh: ['感電機率', '%'],
+  pinP: ['釘身累積', '%'],
+  chgDur: ['能量球持續時間', '%'],
+  chgMore: ['獲得能量球時多 1 顆的機率', '%'],
+  expEff: ['曝曬效果', '%'],
+  armEle: ['護甲也套用到元素擊中傷害（護甲的）', '%'],
+  esAsThr: ['獲得能量護盾的一部分當作暈眩門檻與異常門檻', '%'],
+  presArea: ['存在範圍', '%'],
+  twoP: ['雙手武器傷害', '%'],
+  oneP: ['單手武器傷害', '%'],
+  dualP: ['雙持時傷害', '%'],
+  minAs: ['召喚物攻擊速度', '%'],
+  gloryP: ['榮耀獲得', '%'],
+  energyP: ['觸發技能的能量獲得', '%'],
+  grenCd: ['手雷冷卻恢復', '%'],
+  reloadP: ['裝填速度', '%']
+});
+/* 小點的變體與複合詞（0.2.45，照 PoE2：小點有 601 種、18% 是兩條詞）：接在每個主題的 sub 後面，
+   每個叢集大部分小點是主詞（sm 輪流），夾 1～3 個從 sub 輪流抽的變體（tools/tree_bake.js 第 8 步）。
+   複合詞每條約單詞的 6～7 成；只用底層已經有的能力。加一條不用重烘，改條數要重烘（編號會換） */
+const PT_SMX = {
+  生命: [
+    { life: 6, regen: 1 },
+    { life: 6, stunThrP: 5 },
+    { regen: 1, flask: 6 }
+  ],
+  護甲: [{ armorP: 8, evP: 8 }, { armorP: 8, esP: 8 }, { armorP: 8, life: 5 }, { armEle: 5 }],
+  格擋與盾: [
+    { blockInc: 3, armorP: 6 },
+    { shieldP: 6, blockInc: 2 }
+  ],
+  近戰: [{ meleeP: 6, as: 2 }, { meleeP: 6, hsP: 8 }, { twoP: 10 }, { oneP: 10 }],
+  攻擊速度: [{ as: 2, acc: 20 }, { as: 2, dex: 3 }, { ss: 3 }, { dualP: 10 }],
+  投射物: [
+    { projP: 6, as: 2 },
+    { projP: 6, critInc: 6 },
+    { projP: 6, acc: 20 },
+    { projP: 6, meleeP: 6 }
+  ],
+  身法: [{ evP: 8, esP: 8 }, { evP: 8, ms: 1 }, { blindCh: 5 }, { blindP: 10 }],
+  暴擊率: [
+    { critInc: 6, accP: 5 },
+    { critInc: 6, critX: 8 },
+    { critInc: 6, spellP: 6 },
+    { critInc: 6, atkP: 6 }
+  ],
+  暴擊傷害加成: [
+    { critX: 10, critInc: 4 },
+    { critX: 10, lowEnemyP: 6 }
+  ],
+  命中: [
+    { accP: 5, as: 2 },
+    { accP: 5, critInc: 5 },
+    { acc: 20, atkP: 5 }
+  ],
+  陷阱地雷: [{ unitP: 6, aoe: 3 }, { unitP: 6, critInc: 5 }, { grenCd: 8 }, { unitP: 6, durP: 5 }],
+  異常: [{ ailMag: 6, durP: 4 }, { flamP: 12 }, { shockCh: 12 }, { chillMag: 8 }],
+  元素: [{ eleP: 6, atkP: 6 }, { eleP: 6, spellP: 6 }, { expEff: 8 }],
+  元素技能: [
+    { elemP: 6, ss: 2 },
+    { elemP: 6, aoe: 3 },
+    { elemP: 6, mpReg: 5 }
+  ],
+  法術: [{ castP: 3 }, { spellP: 6, castP: 2 }, { spellP: 6, critInc: 5 }, { spellP: 6, mpReg: 5 }],
+  能量護盾: [{ esP: 8, mpReg: 5 }, { esAsThr: 8 }, { esDelay: 4, esRec: 6 }],
+  魔力冷卻: [{ mpReg: 6, mpP: 3 }, { cdr: 3 }, { mpReg: 6, castP: 2 }, { energyP: 8 }],
+  秘術技能: [
+    { occP: 6, durP: 4 },
+    { occP: 6, debuffMag: 3 },
+    { occP: 6, aoe: 3 }
+  ],
+  召喚: [{ minionP: 6, minAs: 3 }, { minAs: 4 }, { minionP: 6, auraEff: 2 }],
+  精魂光環: [{ auraEff: 3, presArea: 6 }, { presArea: 10 }, { gloryP: 10 }],
+  原始技能: [{ priP: 6, formP: 6 }, { formP: 10 }, { formArm: 10 }, { priP: 6, life: 5 }],
+  砲塔圖騰: [
+    { unitP: 6, durP: 5 },
+    { unitP: 6, ss: 2 },
+    { unitP: 6, aoe: 3 }
+  ],
+  範圍: [{ aoe: 3, aoeP: 6 }, { aoeP: 10 }, { aoe: 3, durP: 4 }],
+  劍術: [
+    { w_sword: 6, critInc: 5 },
+    { w_sword: 6, as: 2 }
+  ],
+  斧術: [
+    { w_axe: 6, bleedCh: 3 },
+    { w_axe: 6, as: 2 }
+  ],
+  錘術: [
+    { w_mace: 6, hsP: 8 },
+    { w_mace: 6, aoe: 3 }
+  ],
+  鏈錘術: [
+    { w_flail: 6, critInc: 5 },
+    { w_flail: 6, armorP: 6 }
+  ],
+  長矛術: [
+    { w_spear: 6, projP: 6 },
+    { w_spear: 6, meleeP: 6 },
+    { w_spear: 6, as: 2 }
+  ],
+  弓術: [
+    { w_bow: 6, as: 2 },
+    { w_bow: 6, critInc: 5 }
+  ],
+  十字弓術: [{ w_xbow: 6, reloadP: 8 }, { reloadP: 10 }, { w_xbow: 6, grenCd: 5 }],
+  匕首術: [
+    { w_dagger: 6, critInc: 5 },
+    { w_dagger: 6, poisonCh: 4 }
+  ],
+  爪術: [
+    { w_claw: 6, as: 2 },
+    { w_claw: 6, leech: 0.2 }
+  ],
+  機關術: [
+    { w_traptool: 6, unitP: 6 },
+    { w_traptool: 6, grenCd: 5 }
+  ],
+  長杖術: [
+    { w_staff: 6, castP: 2 },
+    { w_staff: 6, elemP: 6 }
+  ],
+  法杖術: [
+    { w_wand: 6, castP: 2 },
+    { w_wand: 6, occP: 6 }
+  ],
+  權杖術: [
+    { w_sceptre: 6, minionP: 6 },
+    { w_sceptre: 6, auraEff: 2 }
+  ],
+  魔符術: [
+    { w_talisman: 6, formP: 6 },
+    { w_talisman: 6, priP: 6 }
+  ],
+  棍術: [
+    { w_qstaff: 6, as: 2 },
+    { w_qstaff: 6, critInc: 5 }
+  ],
+  攻擊: [{ atkP: 6, acc: 20 }, { atkP: 6, as: 2 }, { atkP: 6, eleP: 6 }, { lowEnemyP: 10 }],
+  物理: [
+    { physP: 6, critInc: 5 },
+    { physP: 6, hsP: 8 },
+    { physP: 6, bleedCh: 3 }
+  ],
+  火焰: [{ penF: 6 }, { fireP: 8, aoe: 3 }, { flamP: 15 }, { fireP: 8, atkP: 6 }],
+  冰冷: [{ penC: 6 }, { chillMag: 10 }, { coldP: 8, durP: 4 }, { frzP: 10, coldP: 6 }],
+  閃電: [{ penL: 6 }, { shockCh: 15 }, { lightP: 8, ss: 2 }, { lightP: 8, critInc: 5 }],
+  混沌: [
+    { chaosP: 5, durP: 4 },
+    { chaosP: 5, poiMag: 6 },
+    { chaosP: 5, debuffMag: 3 }
+  ],
+  流血: [
+    { bleedMag: 6, physP: 6 },
+    { bleedCh: 3, atkP: 6 },
+    { bleedMag: 6, durP: 4 }
+  ],
+  中毒: [
+    { poiMag: 6, chaosP: 4 },
+    { poisonCh: 5, as: 2 },
+    { poiMag: 6, durP: 4 }
+  ],
+  偷取: [
+    { leech: 0.2, atkP: 6 },
+    { leech: 0.2, life: 5 }
+  ],
+  回復: [
+    { recoupHp: 2, regen: 1 },
+    { flask: 6, life: 5 },
+    { recoupHp: 2, armorP: 6 }
+  ],
+  打擊: [
+    { strikeP: 6, as: 2 },
+    { strikeP: 6, critInc: 5 },
+    { strikeP: 6, meleeP: 6 }
+  ],
+  重擊: [
+    { slamP: 6, aoe: 3 },
+    { slamP: 6, hsP: 8 },
+    { slamP: 6, physP: 6 }
+  ],
+  暈眩: [{ hsP: 10, meleeP: 6 }, { pinP: 15 }, { hsP: 10, physP: 6 }],
+  堅韌: [
+    { stunThrP: 6, armorP: 6 },
+    { stunThrP: 6, life: 5 },
+    { stunRec: 6, regen: 1 }
+  ],
+  荊棘: [
+    { thornP: 10, armorP: 6 },
+    { thornP: 10, blockInc: 2 }
+  ],
+  偏斜: [
+    { evAsDefl: 5, evP: 8 },
+    { evAsDefl: 5, esDelay: 4 },
+    { defl: 12, ms: 1 }
+  ],
+  持續時間: [{ durP: 5, aoe: 3 }, { durP: 5, debuffMag: 3 }, { chgDur: 10 }, { chgMore: 5 }],
+  詛咒: [
+    { debuffMag: 3, aoe: 3 },
+    { debuffMag: 3, durP: 5 },
+    { debuffMag: 3, occP: 6 }
+  ],
+  盛怒: [
+    { rageEff: 3, meleeP: 6 },
+    { rageEff: 3, as: 2 }
+  ],
+  招架: [
+    { parryMag: 3, hsP: 8 },
+    { parryMag: 3, armorP: 6 }
+  ]
+};
+for (const T of PT_THEME) if (PT_SMX[T.n]) T.sub = [...(T.sub || []), ...PT_SMX[T.n]];
+/* 複合詞的配對表（0.2.45，把小點補到約 450 種；PoE2 有 482 個「A 和 B」的小點，幾乎每一對都不一樣）：
+   每個主題的主詞（sm 第一條的第一個能力，算 6 成）配這裡的每一個能力（數值已經是配對用的，約單詞的 6～7 成），
+   接在 sub 後面；跟前面重複的配對會跳過。只用底層已經有的能力。加一條要重烘（編號會換） */
+const PT_PAIR = {
+  生命: 'armorP:7 evP:7 esP:7 flask:6 recoupHp:2 ailThrP:6 str:3 mpP:3',
+  護甲: 'stunThrP:6 blockInc:3 regen:1 thornP:9 stunRec:6 str:3 recoupHp:2 ailThrP:6',
+  格擋與盾: 'life:6 stunThrP:6 thornP:9 parryMag:3 shieldP:6 evP:7 esP:7 recoupHp:2',
+  近戰: 'critInc:6 physP:6 strikeP:6 slamP:6 aoe:3 leech:0.2 str:3 acc:18',
+  攻擊速度: 'atkP:6 meleeP:6 projP:6 critInc:6 ms:1 leech:0.2 physP:6 evP:7',
+  投射物: 'eleP:6 physP:6 ms:1 dex:3 poisonCh:5 bleedCh:3 aoe:3 critX:9',
+  身法: 'life:6 acc:18 as:2 dex:3 recoupHp:2 ailThrP:6 defl:12 stunThrP:6',
+  暴擊率: 'physP:6 eleP:6 projP:6 meleeP:6 as:2 int:3 dex:3 occP:6',
+  暴擊傷害加成: 'atkP:6 spellP:6 physP:6 eleP:6 accP:5 projP:6 meleeP:6 ailMag:6',
+  命中: 'projP:6 meleeP:6 dex:3 critX:9 ms:1 evP:7 physP:6 blindCh:3',
+  陷阱地雷: 'as:2 eleP:6 physP:6 chaosP:4 poisonCh:5 cdr:2 critX:9 evP:7',
+  異常: 'bleedMag:6 poiMag:6 ignMag:6 critInc:6 atkP:6 spellP:6 chaosP:4 physP:6',
+  元素: 'critInc:6 aoe:3 ss:2 fireP:7 coldP:7 lightP:7 ailMag:6 mpReg:6',
+  元素技能: 'critInc:6 castP:2 eleP:6 durP:5 esP:7 int:3 ailMag:6 cdr:2',
+  法術: 'aoe:3 eleP:6 esP:7 int:3 durP:5 chaosP:4 critX:9 mpP:3',
+  能量護盾: 'life:6 int:3 spellP:6 stunThrP:6 ailThrP:6 recoupHp:2 mpP:3 castP:2',
+  魔力冷卻: 'spellP:6 int:3 esP:7 elemP:6 occP:6 durP:5 aoe:3 minionP:6',
+  秘術技能: 'critInc:6 castP:2 chaosP:4 minionP:6 esP:7 int:3 mpReg:6 poiMag:6',
+  召喚: 'durP:5 life:6 mpReg:6 esP:7 int:3 aoe:3 cdr:2 occP:6',
+  精魂光環: 'mpReg:6 esP:7 life:6 minionP:6 armorP:7 int:3 durP:5 regen:1',
+  原始技能: 'as:2 aoe:3 physP:6 armorP:7 str:3 critInc:6 regen:1 hsP:9',
+  砲塔圖騰: 'life:6 armorP:7 priP:6 atkP:6 spellP:6 str:3 regen:1 hsP:9',
+  範圍: 'atkP:6 spellP:6 slamP:6 eleP:6 physP:6 minionP:6 critInc:6 unitP:6',
+  劍術: 'physP:6 bleedCh:3 acc:18 leech:0.2 parryMag:3',
+  斧術: 'physP:6 critX:9 rageEff:2 hsP:9 leech:0.2',
+  錘術: 'physP:6 slamP:6 armorP:7 str:3 critX:9',
+  鏈錘術: 'physP:6 as:2 blockInc:3 strikeP:6 hsP:9',
+  長矛術: 'critInc:6 acc:18 physP:6 evP:7 dex:3',
+  弓術: 'projP:6 acc:18 eleP:6 physP:6 ms:1',
+  十字弓術: 'projP:6 critInc:6 as:2 physP:6 acc:18',
+  匕首術: 'as:2 critX:9 bleedCh:3 evP:7 chaosP:4',
+  爪術: 'critInc:6 poisonCh:5 evP:7 physP:6 life:6',
+  機關術: 'critInc:6 aoe:3 as:2 cdr:2 eleP:6',
+  長杖術: 'spellP:6 critInc:6 eleP:6 esP:7 aoe:3',
+  法杖術: 'spellP:6 critInc:6 chaosP:4 esP:7 mpReg:6',
+  權杖術: 'occP:6 esP:7 mpReg:6 durP:5 life:6',
+  魔符術: 'physP:6 as:2 armorP:7 life:6 critInc:6',
+  棍術: 'physP:6 evP:7 hsP:9 lightP:7 coldP:7',
+  攻擊: 'critInc:6 critX:9 physP:6 ms:1 leech:0.2 str:3 dex:3 aoe:3',
+  物理: 'as:2 atkP:6 aoe:3 leech:0.2 str:3 critX:9 bleedMag:6 armorP:7',
+  火焰: 'critInc:6 spellP:6 ignMag:6 durP:5 meleeP:6 elemP:6 life:6 ss:2',
+  冰冷: 'critInc:6 spellP:6 aoe:3 atkP:6 esP:7 elemP:6 projP:6 mpReg:6',
+  閃電: 'elcP:9 spellP:6 atkP:6 aoe:3 projP:6 elemP:6 as:2 mpReg:6',
+  混沌: 'spellP:6 occP:6 critInc:6 aoe:3 esP:7 atkP:6 minionP:6 life:6',
+  流血: 'meleeP:6 critInc:6 as:2 hsP:9 strikeP:6 slamP:6 leech:0.2 str:3',
+  中毒: 'chaosP:4 critInc:6 projP:6 atkP:6 evP:7 dex:3 ailMag:6 poiMag:6',
+  偷取: 'meleeP:6 physP:6 as:2 critInc:6 regen:1 armorP:7 mpLeech:0.2 esLeech:0.2',
+  回復: 'life:6 evP:7 esP:7 stunThrP:6 flask:6 mpReg:6 ailThrP:6 str:3',
+  打擊: 'physP:6 aoe:3 hsP:9 leech:0.2 acc:18 eleP:6 critX:9 str:3',
+  重擊: 'critInc:6 as:2 str:3 meleeP:6 armorP:7 eleP:6 durP:5 critX:9',
+  暈眩: 'slamP:6 strikeP:6 critInc:6 armorP:7 str:3 as:2 aoe:3 atkP:6',
+  堅韌: 'evP:7 esP:7 blockInc:3 recoupHp:2 str:3 ailThrP:6 flask:6 thornP:9',
+  荊棘: 'life:6 stunThrP:6 regen:1 physP:6 str:3 recoupHp:2 ailThrP:6 meleeP:6',
+  偏斜: 'life:6 as:2 acc:18 dex:3 stunThrP:6 recoupHp:2 ailThrP:6 projP:6',
+  持續時間: 'spellP:6 minionP:6 unitP:6 occP:6 elemP:6 ailMag:6 mpReg:6 poiMag:6',
+  詛咒: 'chaosP:4 critInc:6 spellP:6 esP:7 int:3 mpReg:6 minionP:6 ailMag:6',
+  盛怒: 'physP:6 slamP:6 strikeP:6 hsP:9 leech:0.2 armorP:7 str:3 critX:9',
+  招架: 'blockInc:3 meleeP:6 stunThrP:6 as:2 evP:7 physP:6 str:3 critInc:6'
+};
+for (const T of PT_THEME) {
+  if (!PT_PAIR[T.n]) continue;
+  const [mk, mv] = Object.entries(T.sm[0])[0],
+    v = mv < 1 ? Math.round(mv * 6) / 10 : Math.max(1, Math.round(mv * 0.6)),
+    sig = s => Object.keys(s).sort().join(),
+    have = new Set([...T.sm, ...(T.sub || [])].map(sig));
+  for (const tok of PT_PAIR[T.n].split(' ')) {
+    const [k, x] = tok.split(':'),
+      s = { [mk]: v, [k]: +x };
+    if (k !== mk && !have.has(sig(s))) have.add(sig(s)), (T.sub = [...(T.sub || []), s]);
+  }
+}
+/* 配色（0.2.45，照 PoE2：顏色跟著能力值走；沒點亮也看得到）：系 → 顏色與名字、主題 → 系（寫回每個主題的 c、fam） */
+const PT_FAM = {
+  r: '#d64a3d',
+  g: '#5fc24a',
+  b: '#4f8fe8',
+  o: '#ec8a33',
+  p: '#a85ad8',
+  t: '#33b9ad',
+  n: '#9c9a42',
+  a: '#a2946e'
+};
+const PT_FAMN = {
+  r: '力系',
+  g: '敏系',
+  b: '智系',
+  o: '火焰與元素',
+  p: '混沌與秘術',
+  t: '召喚、陷阱、圖騰',
+  n: '原始',
+  a: '能力值'
+};
+const PT_FAM_OF = (() => {
+  const F = {
+      r: '生命 護甲 格擋與盾 近戰 攻擊 物理 流血 偷取 回復 打擊 重擊 暈眩 堅韌 荊棘 盛怒 招架 劍術 斧術 錘術 鏈錘術',
+      g: '攻擊速度 投射物 身法 命中 異常 中毒 偏斜 長矛術 弓術 十字弓術 匕首術 爪術',
+      b: '暴擊率 暴擊傷害加成 法術 能量護盾 魔力冷卻 範圍 冰冷 閃電 持續時間 長杖術 法杖術',
+      o: '元素 元素技能 火焰',
+      p: '秘術技能 精魂光環 混沌 詛咒 權杖術',
+      t: '陷阱地雷 召喚 砲塔圖騰 機關術',
+      n: '原始技能 魔符術 棍術',
+      a: '基礎'
+    },
+    o = {};
+  for (const k in F) for (const n of F[k].split(' ')) o[n] = k;
+  return o;
+})();
+for (const T of PT_THEME) (T.fam = PT_FAM_OF[T.n] || 'a'), (T.c = PT_FAM[T.fam]);
+/* 預留叢集（樹上看得到、鎖住不能點；PoE2 樹上有、我們底層還沒有，docs/待做清單.md 第 3、4 層）：名字、放哪幾條路、幾個。
+   機制做好後：把那一列拿掉、主題加進 PT_THEME、重烘（node tools/tree_bake.js），照 docs/天賦樹設計.md */
+const PT_RSV = [
+  ['夥伴', [5, 1], 10],
+  ['戰吼', [0], 8],
+  ['召喚物防禦', [4], 5],
+  ['命令技能', [4], 4],
+  ['捷光環', [2, 3], 3],
+  ['波動', [2], 3],
+  ['祭品', [4], 3],
+  ['執政官', [3], 2],
+  ['傀儡師', [4], 2],
+  ['圖騰生命', [5], 2],
+  ['先祖強化', [0], 1],
+  ['哨兵', [4], 1]
 ];
+/* 起點模板的小點（六條路同一套形狀：第 1 步傷害與防禦各一個，各分成兩條路擇一的菱形）：
+   d 傷害菱形、f 防禦菱形，各是 [主詞, 另一條路]；一格＝[主題名, 用那個主題的第幾種小點, 自訂的詞（可省）] */
+const PT_STARTS = [
+  {
+    d: [
+      ['近戰', 0],
+      ['暈眩', 0]
+    ],
+    f: [
+      ['護甲', 0],
+      ['生命', 0]
+    ]
+  },
+  {
+    d: [
+      ['投射物', 0],
+      ['攻擊速度', 0]
+    ],
+    f: [
+      ['身法', 0],
+      ['身法', 1]
+    ]
+  },
+  {
+    d: [
+      ['暴擊率', 0],
+      ['異常', 0]
+    ],
+    f: [
+      ['偏斜', 0],
+      ['身法', 0]
+    ]
+  },
+  {
+    d: [
+      ['元素技能', 0],
+      ['法術', 0, { ss: 3 }]
+    ],
+    f: [
+      ['能量護盾', 0],
+      ['魔力冷卻', 0]
+    ]
+  },
+  {
+    d: [
+      ['秘術技能', 0],
+      ['召喚', 0]
+    ],
+    f: [
+      ['能量護盾', 0],
+      ['魔力冷卻', 1]
+    ]
+  },
+  {
+    d: [
+      ['原始技能', 0],
+      ['砲塔圖騰', 0]
+    ],
+    f: [
+      ['生命', 1],
+      ['護甲', 0]
+    ]
+  }
+];
+/* 天賦樹（0.2.45 照 PoE2 重做，規則在 docs/天賦樹設計.md）：形狀由 tools/tree_bake.js 烘成 js/ptdata.js 的 PT_BAKE
+   （點 [id, x, y, 類型, 主題, 第幾條]、線 [a, b, 弧的圓心與半徑]），這裡只把效果填上去，所以改數值不用重烘。
+   類型：0 能力值、1 小點、2 大點、3 基石、4 起點、5 起點模板的小點、6／7 鎖住的小點／大點 */
 const PTREE = (() => {
   const N = [],
     E = [],
     I = {},
     ARC = {},
-    add = o => ((I[o.id] = o), N.push(o), o),
-    link = (a, b) => E.push([a.id, b.id]),
-    hsh = i => ((Math.imul(i + 7, 2654435761) >>> 0) % 1000) / 1000,
-    /* 六條路的方向：0～6 的小數，整數＝起點正中間（0 鬥士在正上方，順時針） */
-    rgF = (x, y) => (((Math.atan2(y, x) * 180) / Math.PI + 90 + 360) % 360) / 60,
-    road = (x, y) => Math.round(rgF(x, y)) % 6,
-    dst = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2),
-    LA = 360,
-    /* 外框隨角度凹凸 */
-    rim = a => 4450 * (1 + 0.08 * Math.sin(a * 3 + 1.3) + 0.05 * Math.sin(a * 7 + 0.4));
-  const smIc = s => PT_STAT_IC[Object.keys(s)[0]];
-  /* 起點：六條路（免費） */
-  for (let g = 0; g < 6; g++) {
-    const a = ((g * 60 - 90) * Math.PI) / 180,
-      R = PT_ROADS[g],
-      th = PT_TH[R.th];
-    add({
-      id: 'g' + g,
-      x: Math.cos(a) * PT_R0,
-      y: Math.sin(a) * PT_R0,
-      n: R.n,
-      d: '往外偏重：' + R.d,
-      ic: PT_THEME[th].ic,
-      s: {},
-      big: 1,
-      gate: 1,
-      th
-    });
-  }
-  /* 幹道頂點：六條放射主幹＋兩圈環路當骨架（看得出大結構），其他用 Poisson 撒點補滿、間距隨位置變（有密有疏），
-     再用 Delaunay 連成三角網；不用格子，才不會縮小看像同一個花紋重複。亂數固定，每次長一樣 */
-  const fld = (x, y) =>
-      0.5 + 0.3 * Math.sin(x / 610 + 1.7) * Math.cos(y / 740 - 0.6) + 0.2 * Math.sin((x - y) / 1090 + 2.9),
-    gap = (x, y) => LA * PT_GAP * (0.8 + 0.62 * fld(x, y)),
-    V = [],
-    put = (x, y, m, skel) => {
-      const r = Math.hypot(x, y),
-        g = gap(x, y);
-      if (r < PT_R0 + 230 || r > rim(Math.atan2(y, x))) return;
-      if (V.some(o => (o.x - x) ** 2 + (o.y - y) ** 2 < ((m * (g + o.g)) / 2) ** 2)) return;
-      V.push({ x, y, g, k: 'p' + V.length, pk: 0, skel });
-    };
-  for (let g = 0; g < 6; g++)
-    for (let r = PT_R0 + 300; r < 4500; r += 330) {
-      const a = ((g * 60 - 90) * Math.PI) / 180 + 0.11 * Math.sin(r / 800 + g * 1.9);
-      put(Math.cos(a) * r, Math.sin(a) * r, 0.5, 1);
-    }
-  for (const [R, w] of [
-    [1680, 0.05],
-    [2800, 0.06]
-  ])
-    for (let a = 0; a < 2 * Math.PI - 0.05; a += 340 / R) {
-      const r = R * (1 + w * Math.sin(a * 4 + R));
-      put(Math.cos(a) * r, Math.sin(a) * r, 0.5, 1);
-    }
-  for (let k = 0; k < 9000; k++)
-    put(
-      (hsh(k * 3 + 1) + hsh(k * 11 + 2) / 999 - 0.5) * 9400,
-      (hsh(k * 7 + 5) + hsh(k * 13 + 3) / 999 - 0.5) * 9400,
-      1
-    );
-  /* Delaunay（Bowyer–Watson）：點不到 400 個，O(n²) 夠用 */
-  const delaunay = pts => {
-    const W = 3e4,
-      A = [...pts, { x: -W, y: -W }, { x: W, y: -W }, { x: 0, y: W }],
-      n = pts.length,
-      cc = t => {
-        const [a, b, c] = t.map(i => A[i]),
-          d = 2 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y)),
-          sa = a.x ** 2 + a.y ** 2,
-          sb = b.x ** 2 + b.y ** 2,
-          sc = c.x ** 2 + c.y ** 2,
-          x = (sa * (b.y - c.y) + sb * (c.y - a.y) + sc * (a.y - b.y)) / d,
-          y = (sa * (c.x - b.x) + sb * (a.x - c.x) + sc * (b.x - a.x)) / d;
-        return { t, x, y, r: (a.x - x) ** 2 + (a.y - y) ** 2 };
+    ids = [],
+    smIc = s => PT_STAT_IC[Object.keys(s)[0]];
+  for (const [id, x, y, t, th, v] of PT_BAKE.N) {
+    const T = PT_THEME[th],
+      L = PT_ICONS[T.n] || [T.ic];
+    let o;
+    if (t === 0) o = { n: '基礎', s: { ...PT_BASE[0][0] }, ic: PT_STAT_IC.attr, big: 0 };
+    else if (t === 1 || t === 5) {
+      /* 小點：主題的小點清單（sm 接 sub）的第 v 條；起點模板的照 PT_STARTS */
+      const P = T.sub ? [...T.sm, ...T.sub] : T.sm,
+        e = t === 5 ? PT_STARTS[v >> 2][v & 2 ? 'f' : 'd'][v & 1] : null,
+        s = e ? e[2] || PT_THEME[PT_TH[e[0]]].sm[e[1]] : P[v % P.length];
+      o = { n: T.n, s: { ...s }, ic: smIc(s) || T.ic, big: 0 };
+    } else if (t === 2) {
+      /* 大點：主題的大點清單的第 v 個（第三格＝轉折到哪個主題）；清單不夠才用產生的（check.js 會抓） */
+      const e = T.nt[v];
+      o = e
+        ? { n: e[0], s: { ...e[1] }, big: 1, auto: 0, ...(e[2] ? { tt: PT_TH[e[2]] } : {}) }
+        : {
+            n: T.n + '之心 ' + (v + 1),
+            s: { [Object.keys(T.sm[0])[0]]: Object.values(T.sm[0])[0] * 2.5 },
+            big: 1,
+            auto: 1
+          };
+      o.ic = L[(v + 1) % L.length];
+    } else if (t === 3) o = { n: PT_KEYS[v].n, ic: PT_KEYS[v].ic, s: PT_KEYS[v].s, big: 2 };
+    else if (t === 4) o = { n: PT_ROADS[v].n, d: '往外偏重：' + PT_ROADS[v].d, ic: T.ic, s: {}, big: 1, gate: 1 };
+    else
+      o = {
+        n: PT_RSV[v][0],
+        d: `還沒開放：「${PT_RSV[v][0]}」做好之後解鎖`,
+        ic: 'asc_s_rune',
+        s: {},
+        big: t === 7 ? 1 : 0,
+        lock: 1
       };
-    let T = [cc([n, n + 1, n + 2])];
-    for (let i = 0; i < n; i++) {
-      const p = pts[i],
-        bad = T.filter(q => (p.x - q.x) ** 2 + (p.y - q.y) ** 2 < q.r),
-        ed = new Map();
-      for (const { t } of bad)
-        for (const [a, b] of [
-          [t[0], t[1]],
-          [t[1], t[2]],
-          [t[2], t[0]]
-        ]) {
-          const k = a < b ? a + ',' + b : b + ',' + a;
-          ed.set(k, ed.has(k) ? null : [a, b]);
-        }
-      T = T.filter(q => !bad.includes(q));
-      for (const e of ed.values()) if (e) T.push(cc([e[0], e[1], i]));
-    }
-    return T.map(q => q.t).filter(t => t.every(i => i < n));
-  };
-  const cen = vs => ({
-      x: vs.reduce((s, v) => s + v.x, 0) / vs.length,
-      y: vs.reduce((s, v) => s + v.y, 0) / vs.length
-    }),
-    /* 點到線段的距離 */
-    segD = (P, A, B) => {
-      const dx = B.x - A.x,
-        dy = B.y - A.y,
-        f = Math.max(0, Math.min(1, ((P.x - A.x) * dx + (P.y - A.y) * dy) / (dx * dx + dy * dy)));
-      return Math.sqrt((P.x - A.x - dx * f) ** 2 + (P.y - A.y - dy * f) ** 2);
-    },
-    ek = (a, b) => [a.k, b.k].sort().join('|'),
-    /* 邊：不穿過中間的昇華、不要太長；三角形：三條邊都能用、塞得下一個口袋，再隨機留白 */
-    edgeOK = (a, b) => segD({ x: 0, y: 0 }, a, b) > PT_R0 + 110 && dst(a, b) < 1.5 * (gap(a.x, a.y) + gap(b.x, b.y)),
-    tris = delaunay(V).map(t => t.map(i => V[i])),
-    edgeK = new Map();
-  for (const [a, b, c] of tris)
-    for (const [p, q] of [
-      [a, b],
-      [b, c],
-      [c, a]
-    ])
-      if (edgeOK(p, q)) edgeK.set(ek(p, q), [p, q]);
-  const tri = tris.filter((vs, i) => {
-    const c = cen(vs);
-    return (
-      vs.every((v, k) => edgeK.has(ek(v, vs[(k + 1) % 3]))) &&
-      Math.min(...vs.map((v, k) => segD(c, v, vs[(k + 1) % 3]))) > 74 &&
-      hsh(i * 17 + 4) > 0.05
-    );
-  });
-  let cl = tri.map(vs => ({ vs, ...cen(vs) }));
-  const RMAX = Math.max(...cl.map(c => Math.hypot(c.x, c.y)));
-  for (const c of cl) c.dd = (Math.hypot(c.x, c.y) - PT_R0) / (RMAX - PT_R0);
-  /* 大叢集：外圈每隔幾個，把相鄰的兩個三角形併成一塊（共用的那條邊不當幹道） */
-  const noTrunk = new Set(),
-    taken = new Set();
-  for (const [ci, c] of cl.entries()) {
-    if (c.big || taken.has(ci) || c.dd < 0.5 || hsh(ci * 41 + 9) > 0.11) continue;
-    const oi = cl.findIndex(
-      (o, k) => !o.big && !taken.has(k) && k !== ci && o.vs.filter(v => c.vs.includes(v)).length === 2
-    );
-    if (oi < 0) continue;
-    const o = cl[oi],
-      sh = c.vs.filter(v => o.vs.includes(v)),
-      p = c.vs.find(v => !sh.includes(v)),
-      q = o.vs.find(v => !sh.includes(v)),
-      sd = (a, b, e) => (b.x - a.x) * (e.y - a.y) - (b.y - a.y) * (e.x - a.x);
-    /* 只併凸四邊形（兩條對角線相交），不然中心點會跑到別的三角形裡 */
-    if (sd(p, q, sh[0]) * sd(p, q, sh[1]) >= 0) continue;
-    taken.add(ci).add(oi);
-    noTrunk.add(ek(sh[0], sh[1]));
-    const vs = [p, sh[0], q, sh[1]];
-    cl.push({ vs, ...cen(vs), dd: (c.dd + o.dd) / 2, big: 1 });
+    N.push((I[id] = { id, x, y, th, ...o }));
+    ids.push(id);
   }
-  cl = cl.filter((c, k) => !taken.has(k));
-  cl.forEach((c, k) => (c.id = 'k' + k));
-  /* 幹道：網的邊先挑一棵樹（骨架優先，再偏好往外的方向，路比較短），再加 1/4 當捷徑；骨架全部留著 */
-  const ed = [];
-  for (const [k, [v, b]] of edgeK) {
-    if (noTrunk.has(k)) continue;
-    const mx = (v.x + b.x) / 2,
-      my = (v.y + b.y) / 2,
-      rad = Math.abs(((b.x - v.x) * mx + (b.y - v.y) * my) / (dst(v, b) * Math.hypot(mx, my))),
-      skel = v.skel && b.skel && dst(v, b) < 480;
-    ed.push({ a: v, b, skel, w: hsh(ed.length * 7 + 3) + (1 - rad) * 0.7 - (skel ? 2 : 0) });
-  }
-  ed.sort((p, q) => p.w - q.w);
-  const par = {},
-    find = a => (par[a] === undefined || par[a] === a ? ((par[a] = a), a) : (par[a] = find(par[a])));
-  const vid = new Map();
-  for (const v of Object.values(V)) {
-    const r = add({ id: 'v' + vid.size, x: v.x, y: v.y, th: 0, big: 0 });
-    vid.set(v, r);
-  }
-  const base = (nd, v) => {
-    /* 過路點：+5 能力值，點的時候自選（tree.js 的 treeToggle） */
-    nd.s = { ...PT_BASE[0][0] };
-    nd.n = '基礎';
-    nd.ic = PT_STAT_IC.attr;
-  };
-  for (const n of N) if (!n.gate) base(n, n);
-  const trunk = (A, B, n) => {
-    let prev = A;
-    for (let k = 1; k <= n; k++) {
-      const x = A.x + ((B.x - A.x) * k) / (n + 1),
-        y = A.y + ((B.y - A.y) * k) / (n + 1),
-        f = add({ id: 'x' + N.length, x, y, th: 0, big: 0 });
-      base(f, f);
-      link(prev, f);
-      prev = f;
-    }
-    link(prev, B);
-  };
-  for (const e of ed) {
-    const ra = find(e.a.k),
-      rb = find(e.b.k),
-      tree = ra !== rb;
-    if (tree) par[ra] = rb;
-    if (tree || e.skel || hsh(e.a.x + e.b.y) < 0.24 + (0.36 * Math.hypot(e.a.x, e.a.y)) / 4800) {
-      trunk(vid.get(e.a), vid.get(e.b), Math.max(0, Math.round(dst(e.a, e.b) / 360) - 1));
-      e.a.tk = (e.a.tk || 0) + 1;
-      e.b.tk = (e.b.tk || 0) + 1;
-    }
-  }
-  /* 起點接最近的 2 個頂點 */
-  for (let g = 0; g < 6; g++) {
-    const G = I['g' + g];
-    const near = [...V].sort((p, q) => dst(p, G) - dst(q, G)),
-      ang = v => Math.atan2(v.y - G.y, v.x - G.x),
-      /* 第二條路要跟第一條分得夠開（至少 50°），不然兩條線疊在一起 */
-      far = near.find(v => Math.abs(((ang(v) - ang(near[0]) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI) > 0.87);
-    for (const v of [near[0], far]) trunk(G, vid.get(v), Math.max(2, Math.round(dst(v, G) / 150)));
-  }
-  /* 過路點只留 PT_ATTN 個能力值（內圈優先），其他是過路小點：照方向的零散小數值，不屬於任何主題 */
-  const way = N.filter(n => n.s && n.s.attr)
-    .map((n, i) => [Math.hypot(n.x, n.y) / 4200 + hsh(i * 37 + 5) * 0.6, n])
-    .sort((a, b) => a[0] - b[0]);
-  for (const [i, [, n]] of way.entries())
-    if (i >= PT_ATTN) {
-      const L = PT_WAY[road(n.x, n.y)],
-        s = L[i % L.length];
-      n.s = { ...s };
-      n.n = '過路';
-      n.ic = smIc(s);
-    }
-  /* 叢集的主題（照 PoE2「區域權重抽樣＋距離排斥」）：照方向混合兩條路的權重，內圈多防禦、武器專精只在外圈，
-     大叢集偏好武器與一整套的玩法；附近（約 3 步內）已經有的主題不抽 */
-  const REP = 600,
-    BIGT = new Set(['召喚', '砲塔圖騰', '陷阱地雷', '格擋與盾']),
-    byR = [...cl].sort((a, b) => a.dd - b.dd);
-  for (const [ci, c] of byR.entries()) {
-    const f = rgF(c.x, c.y),
-      r0 = Math.floor(f) % 6,
-      t = f - Math.floor(f),
-      w = PT_THEME.map(
-        (T, ti) =>
-          (T.base ? 0 : (T.rg[r0] * (1 - t) + T.rg[(r0 + 1) % 6] * t) * (PT_RW[T.n] || 1)) *
-          (T.wp ? (c.dd < 0.45 ? 0 : c.dd < 0.65 ? 0.3 : 0.8) : T.inner && c.dd < 0.35 ? 2.5 : 1) *
-          (c.big ? (T.wp || BIGT.has(T.n) ? 2 : 0.6) : 1)
-      );
-    let ws = w;
-    for (const rep of [REP, REP * 0.7, REP / 2, 0]) {
-      const ban = new Set(byR.filter(b => b.th && dst(b, c) < rep).map(b => b.th)),
-        v = w.map((x, ti) => (ban.has(ti) ? 0 : x));
-      if (v.some(x => x > 0)) {
-        ws = v;
-        break;
-      }
-    }
-    let roll = hsh(ci * 131 + 17) * ws.reduce((a, b) => a + b, 0);
-    c.th = ws.findIndex(v => (roll -= v) < 0);
-    if (c.th < 0) c.th = ws.findLastIndex(v => v > 0);
-  }
-  /* 保底：每種武器至少 3 個專精叢集，從它那條路的外圈換 */
-  const cnt = t => cl.filter(c => c.th === t).length;
-  for (const [ti, T] of PT_THEME.entries())
-    for (let need = T.wp ? 3 - cnt(ti) : 0; need > 0; need--) {
-      const c = byR
-        .filter(
-          c =>
-            road(c.x, c.y) === T.rg.indexOf(3) &&
-            c.dd > 0.45 &&
-            !PT_THEME[c.th].wp &&
-            cnt(c.th) >= 5 &&
-            !cl.some(b => b.th === ti && dst(b, c) < REP)
-        )
-        .pop();
-      if (c) c.th = ti;
-    }
-  /* 叢集的點：入口朝主要的那個頂點，小點沿軌道往兩邊排，大點在兩條手臂的末端（最裡面） */
-  const ntK = {},
-    icK = {},
-    note = (c, k) => {
-      const T = PT_THEME[c.th],
-        u = (ntK[c.th] = (ntK[c.th] || 0) + 1) - 1,
-        L = PT_ICONS[T.n] || [T.ic],
-        [n, s] = T.nt[u] || [T.n + '之心 ' + (u + 1), { [Object.keys(T.sm[0])[0]]: Object.values(T.sm[0])[0] * 2.5 }];
-      /* 第三格：轉折大點接到哪個主題（連續塊在這裡切斷） */
-      const tt = T.nt[u] && T.nt[u][2] ? { tt: PT_TH[T.nt[u][2]] } : {};
-      return {
-        n,
-        s: { ...s },
-        big: 1,
-        ...tt,
-        auto: T.nt[u] ? 0 : 1,
-        ic: L[(icK[c.th] = (icK[c.th] || 0) + 1) % L.length]
-      };
-    };
-  for (const [ci, c] of cl.entries()) {
-    const T = PT_THEME[c.th],
-      sides = c.vs.map((v, k) => [v, c.vs[(k + 1) % c.vs.length]]),
-      inR = Math.min(...sides.map(([a, b]) => segD(c, a, b))),
-      h = k => hsh(ci * 53 + k * 11);
-    /* 入口：64% 一個、24% 兩個、12% 三個（內圈多樞紐）；主入口挑接得最少的頂點 */
-    const ents = c.dd < 0.25 ? (h(1) < 0.45 ? 3 : h(1) < 0.75 ? 2 : 1) : h(1) < 0.7 ? 1 : h(1) < 0.95 ? 2 : 3,
-      order = [...c.vs].sort((a, b) => a.pk - b.pk || dst(a, c) - dst(b, c)),
-      main = order[0];
-    let m = c.big ? 3 : h(2) < 0.72 ? 1 : 2,
-      k = c.big ? 6 + Math.floor(h(3) * 3) : [3, 3, 3, 4, 4, 4, 5, 5, 6, 6][Math.floor(h(3) * 10)];
-    if (inR < 85 && m === 2) m = 1;
-    if (m === 2 && k < 3) k = 3;
-    /* 形狀：環、月牙（開口朝外的一段弧）、鏈（一條弧線穿過口袋），半徑也隨機，每個口袋長得不一樣；
-       點的連法都是「入口 → 兩條手臂 → 大點」，只有位置不同 */
-    const shape = c.big ? 0 : inR < 85 ? 2 : h(7) < 0.34 || m === 2 ? (h(10) < 0.5 ? 0 : 1) : h(7) < 0.7 ? 1 : 2,
-      rMax = Math.min(c.big ? 150 : 124, inR - 36),
-      fm = Math.atan2(main.y - c.y, main.x - c.x);
-    let cx = c.x,
-      cy = c.y,
-      rp = Math.max(46, rMax * (0.62 + 0.38 * h(8))),
-      f0 = fm,
-      a1,
-      a2,
-      dA;
-    if (shape === 0) {
-      while (k + Math.min(m, 2) > Math.floor((2 * Math.PI * rp) / 46) && k > 3) k--;
-      a1 = Math.ceil((k - 1) / 2);
-      a2 = k - 1 - a1;
-      dA = (2 * Math.PI) / (m === 1 ? 2 * (a1 + 1) : a1 + a2 + 3);
-    } else if (shape === 1) {
-      rp = rMax * (0.8 + 0.2 * h(8));
-      const span = 3.4 + 1.2 * h(9),
-        gaps = () => k - 1 + (m === 1 ? 1 : 2);
-      while ((rp * span) / gaps() < 46 && k > 2) k--;
-      a1 = Math.ceil((k - 1) / 2);
-      a2 = k - 1 - a1;
-      dA = span / gaps();
-    } else {
-      /* 鏈：入口在靠頂點那一側，弧線穿過口袋到另一側；彎的方向隨機 */
-      const hc = rMax * 0.92,
-        R = hc * (1.5 + 1.5 * h(8)),
-        s = h(9) < 0.5 ? 1 : -1,
-        d = Math.sqrt(R * R - hc * hc);
-      cx = c.x - Math.sin(fm) * d * s;
-      cy = c.y + Math.cos(fm) * d * s;
-      rp = R;
-      f0 = Math.atan2(c.y + Math.sin(fm) * hc - cy, c.x + Math.cos(fm) * hc - cx);
-      const span = 2 * Math.asin(hc / R);
-      k = Math.min(k, 4);
-      while ((R * span) / k < 46 && k > 2) k--;
-      a1 = k - 1;
-      a2 = 0;
-      dA = (-s * span) / k;
-    }
-    const at = (f, r = rp) => [cx + Math.cos(f) * r, cy + Math.sin(f) * r];
-    /* 小點：主詞重複；4 成的叢集夾一個副詞 */
-    const mainS = (ci + c.th) % T.sm.length,
-      subAt = (T.sub || T.sm.length > 1) && h(4) < 0.4 ? 1 + Math.floor(h(5) * (k - 1)) : -1;
-    let kk = 0;
-    const small = f => {
-      const s = kk++ !== subAt ? T.sm[mainS] : T.sub ? T.sub[ci % T.sub.length] : T.sm[(mainS + 1) % T.sm.length];
-      return add({
-        id: `${c.id}_${N.length}`,
-        ...(p => ({ x: p[0], y: p[1] }))(at(f)),
-        n: T.n,
-        s: { ...s },
-        big: 0,
-        th: c.th,
-        ic: smIc(s) || T.ic
-      });
-    };
-    const orb = (A, B) => ((ARC[A.id + '|' + B.id] = ARC[B.id + '|' + A.id] = [cx, cy, rp]), link(A, B));
-    const ent = small(f0),
-      arm = (dir, n) => {
-        let p = ent;
-        const out = [];
-        for (let j = 1; j <= n; j++) {
-          const q = small(f0 + dir * j * dA);
-          orb(p, q);
-          out.push(q);
-          p = q;
-        }
-        return out;
-      },
-      A1 = arm(1, a1),
-      A2 = arm(-1, a2),
-      e1 = A1.at(-1) || ent,
-      e2 = A2.at(-1) || ent,
-      nts = [];
-    const putN = (f, r = rp) => {
-      const o = note(c),
-        [x, y] = at(f, r);
-      return nts.push(add({ id: `${c.id}_${N.length}`, x, y, th: c.th, ...o })), nts.at(-1);
-    };
-    if (shape === 2) orb(e1, putN(f0 + (a1 + 1) * dA));
-    else if (m === 1) {
-      const n1 = putN(shape ? f0 + (a1 + 1) * dA : f0 + Math.PI);
-      orb(e1, n1);
-      if (!shape && a2 === a1 && h(6) < 0.5) orb(e2, n1);
-    } else {
-      orb(e1, putN(f0 + (a1 + 1) * dA));
-      orb(e2, putN(f0 - (a2 + 1) * dA));
-      if (m === 3) link(nts[0], putN(0, 0));
-    }
-    link(vid.get(main), ent);
-    main.pk++;
-    /* 第二、三個入口：找離那個頂點最近的小點（不是主入口） */
-    const smalls = [...A1, ...A2];
-    for (const v of order.slice(1, ents)) {
-      const q = smalls.sort((p, r) => dst(p, v) - dst(r, v))[0];
-      if (!q) break;
-      link(vid.get(v), q);
-      v.pk++;
-    }
-  }
-  /* 基石：每條路 2 個，接在那條路最外面的頂點，往外拉出去、只連 1 條線 */
-  const ks = [];
-  for (const [i, K] of PT_KEYS.entries()) {
-    const vs = Object.values(V)
-      .filter(v => road(v.x, v.y) === K.rg)
-      .sort((a, b) => Math.abs(Math.hypot(a.x, a.y) - PT_KR) - Math.abs(Math.hypot(b.x, b.y) - PT_KR));
-    for (const v of vs) {
-      const r = Math.hypot(v.x, v.y),
-        p = { x: (v.x / r) * (r + 170), y: (v.y / r) * (r + 170) };
-      if (ks.some(o => dst(o, p) < 420)) continue;
-      /* 拉出去的那條線、基石本身都不能壓到別的點或線；只看附近的，載入才快 */
-      const box = o => Math.abs(o.x - p.x) < 500 && Math.abs(o.y - p.y) < 500,
-        nb = N.filter(box);
-      if (nb.some(o => dst(o, p) < 90 || (o !== vid.get(v) && segD(o, v, p) < 34))) continue;
-      if (E.some(([a, b]) => (box(I[a]) || box(I[b])) && segD(p, I[a], I[b]) < 44)) continue;
-      const nd = add({ id: 'ks' + i, ...p, n: K.n, ic: K.ic, s: K.s, big: 2, th: PT_TH[PT_ROADS[K.rg].th] });
-      link(vid.get(v), nd);
-      ks.push(nd);
-      break;
-    }
+  for (const [a, b, cx, cy, r] of PT_BAKE.E) {
+    E.push([ids[a], ids[b]]);
+    if (r) ARC[ids[a] + '|' + ids[b]] = ARC[ids[b] + '|' + ids[a]] = [cx, cy, r];
   }
   const ADJ = {};
   for (const [a, b] of E) (ADJ[a] = ADJ[a] || []).push(b), (ADJ[b] = ADJ[b] || []).push(a);

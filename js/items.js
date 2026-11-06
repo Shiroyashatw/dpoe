@@ -446,6 +446,12 @@ function stats(s = S) {
     fireAdd: 0,
     ...Object.fromEntries(Object.keys(WTN).map(k => ['w_' + k, 0])),
     shieldP: 0,
+    /* 0.2.45 天賦樹重做新增的能力（STATN 有名字） */
+    ...Object.fromEntries(
+      'penF penC penL lowEnemyP blindP blindCh formP formArm flamP chillMag shockCh pinP chgDur chgMore expEff armEle esAsThr presArea twoP oneP dualP minAs gloryP energyP grenCd reloadP'
+        .split(' ')
+        .map(k => [k, 0])
+    ),
     more: 0,
     lowHp: 0,
     fullHp: 0,
@@ -815,6 +821,10 @@ function stats(s = S) {
   const sh = off && offOK(w, off) && baseOf(off).k === 'shield' ? off : null;
   o.shield = !!sh;
   if (sh) o.dmgA += o.shieldP;
+  /* 雙手、單手、雙持時的傷害（0.2.45 天賦，跟「持某武器時傷害」同一個做法） */
+  if (w && baseOf(w).two) o.dmgA += o.twoP;
+  else if (w) o.dmgA += o.oneP;
+  if (dual) o.dmgA += o.dualP;
   if (sh) {
     const b = baseOf(sh).b,
       def =

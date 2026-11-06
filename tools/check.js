@@ -5,7 +5,7 @@ const fs = require('fs'),
   path = require('path');
 const ctx = { console, Math, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js', 'mech.js'])
+for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const G = vm.runInContext(
   '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, gemUp, drillDo, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
@@ -238,91 +238,151 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
   ok('天賦樹的線不壓到別的點、不互相交叉', !thru && !cross, `壓到 ${thru}、交叉 ${cross}`);
 }
 {
-  /* 0.2.22 結構驗收（docs/PoE天賦結構.md 5.6）：叢集大小、死路比例、大點在最裡面、同一條詞連續塊、
-     同主題叢集的距離、起點到大點的步數、幹道是十字路口；12 個基石各只連 1 條線、15 種武器都有專精、大點全部手寫 */
+  /* 0.2.45 結構驗收（docs/天賦樹設計.md，數字照 PoE2）：叢集＝被能力值點切開的連通塊（跟量 PoE2 的方法一樣）；
+     形狀＝烘焙工具放的一個一個形狀（點的編號 c12_3 的 c12） */
   const T = G.PTREE,
     TH = vm.runInContext('PT_THEME', ctx),
     A = T.ADJ,
-    cid = n => (/^k\d/.test(n.id) ? n.id.split('_')[0] : null),
-    bfs = src => {
+    isT = n => n.gate || !!(n.s && n.s.attr) || n.big === 2,
+    bfs = (src, pass = () => true) => {
       const d = {},
         q = [...src];
       src.forEach(s => (d[s] = 0));
       for (let h = 0; h < q.length; h++)
-        for (const b of A[q[h]] || []) if (d[b] === undefined) (d[b] = d[q[h]] + 1), q.push(b);
+        for (const o of A[q[h]] || []) if (d[o] === undefined && pass(T.I[o])) (d[o] = d[q[h]] + 1), q.push(o);
       return d;
     },
     D = bfs(G.PT_START),
-    C = {};
-  for (const n of T.N) if (cid(n)) (C[cid(n)] = C[cid(n)] || []).push(n);
-  const cl = Object.keys(C),
-    nts = T.N.filter(n => n.big === 1 && !n.gate);
-  let sm = 0,
-    dead = 0,
-    far = 0;
-  for (const c of cl) {
-    const ns = C[c],
-      set = new Set(ns.map(n => n.id)),
-      ent = ns.filter(n => A[n.id].some(b => !set.has(b))).length,
-      maxS = Math.max(...ns.filter(n => !n.big).map(n => D[n.id]));
-    sm += ns.filter(n => !n.big).length;
-    if (ent === 1) dead++;
-    far += ns.filter(n => n.big && D[n.id] >= maxS).length;
+    comp = {},
+    C = [];
+  for (const n of T.N) {
+    if (isT(n) || comp[n.id] !== undefined) continue;
+    const ns = [],
+      q = [n.id];
+    comp[n.id] = C.length;
+    while (q.length) {
+      const x = q.pop();
+      ns.push(T.I[x]);
+      for (const o of A[x]) if (comp[o] === undefined && !isT(T.I[o])) (comp[o] = C.length), q.push(o);
+    }
+    C.push(ns);
   }
-  /* 連續塊照「詞」算：同主題但不同詞（副詞）、轉折大點（tt）都會切斷 */
-  const tag = n => n.tt ?? (n.big ? n.th : n.th + ':' + Object.keys(n.s)[0]),
+  const open = C.filter(ns => !ns[0].lock),
+    locked = C.filter(ns => ns[0].lock),
+    /* 主題叢集：不含起點模板那一串（它故意有兩種詞） */
+    plain = open.filter(ns => !ns.some(n => /^s\d/.test(n.id))),
+    nts = T.N.filter(n => n.big === 1 && !n.gate && !n.lock),
+    hubs = ns => new Set(ns.flatMap(n => A[n.id].filter(o => isT(T.I[o])))).size,
+    avg = a => a.reduce((x, y) => x + y, 0) / a.length,
+    smAvg = avg(plain.map(ns => ns.filter(n => !n.big).length)),
+    ntAvg = avg(plain.map(ns => ns.filter(n => n.big).length)),
+    dead = plain.filter(ns => hubs(ns) === 1).length / plain.length;
+  /* 大點在形狀的最裡面：離起點不比同一個形狀的任何小點近 */
+  const S = {};
+  for (const n of T.N) if (/^c\d/.test(n.id) && !n.lock) (S[n.id.split('_')[0]] = S[n.id.split('_')[0]] || []).push(n);
+  let far = 0,
+    farN = 0;
+  for (const ns of Object.values(S)) {
+    const maxS = Math.max(...ns.filter(n => !n.big).map(n => D[n.id]));
+    for (const n of ns) if (n.big) farN++, D[n.id] >= maxS && far++;
+  }
+  /* 同一條詞連續塊：同主題但不同詞（複合詞算另一條）、轉折大點（tt）都會切斷 */
+  const tag = n => n.tt ?? (n.big ? n.th : n.th + ':' + Object.keys(n.s).join('+')),
     seen = new Set(),
     runs = [];
   for (const n of T.N) {
-    if (seen.has(n.id) || !cid(n)) continue;
+    if (seen.has(n.id) || isT(n) || n.lock) continue;
     let k = 0;
     const q = [n.id];
     seen.add(n.id);
     while (q.length) {
       k++;
-      for (const b of A[q.pop()]) if (!seen.has(b) && cid(T.I[b]) && tag(T.I[b]) === tag(n)) seen.add(b), q.push(b);
+      for (const o of A[q.pop()])
+        if (!seen.has(o) && !isT(T.I[o]) && !T.I[o].lock && tag(T.I[o]) === tag(n)) seen.add(o), q.push(o);
     }
     runs.push(k);
   }
   runs.sort((x, y) => x - y);
-  const avg = a => a.reduce((x, y) => x + y, 0) / a.length,
-    thC = c => C[c][0].th,
+  const thC = ns => ns[0].th,
     nearS = [];
-  for (const c of cl) {
-    const d = bfs(C[c].map(n => n.id));
+  for (const ns of plain) {
+    const d = bfs(ns.map(n => n.id));
     let best = 1e9;
-    for (const o of cl) if (o !== c && thC(o) === thC(c)) for (const n of C[o]) best = Math.min(best, d[n.id]);
+    for (const o of plain) if (o !== ns && thC(o) === thC(ns)) for (const n of o) best = Math.min(best, d[n.id]);
     if (best < 1e9) nearS.push(best);
   }
   const nd = nts.map(n => D[n.id]).sort((x, y) => x - y),
-    vd = T.N.filter(n => /^v\d/.test(n.id)).map(n => A[n.id].length),
+    attrs = T.N.filter(n => n.s && n.s.attr),
     ks = T.N.filter(n => n.big === 2),
-    wp = TH.filter((t, i) => t.wp && !cl.some(c => thC(c) === i)).map(t => t.n),
+    wp = TH.filter((t, i) => t.wp && !T.N.some(n => n.th === i && !n.lock && /^c\d/.test(n.id))).map(t => t.n),
     auto = nts.filter(n => n.auto).length;
   ok(
-    `天賦樹 ${cl.length} 個叢集，平均 ${(sm / cl.length).toFixed(2)} 小＋${(nts.length / cl.length).toFixed(2)} 大（3～4.2、1.3～1.5）`,
-    sm / cl.length >= 3 && sm / cl.length <= 4.2 && nts.length / cl.length >= 1.3 && nts.length / cl.length <= 1.5
+    `天賦樹 ${C.length} 個叢集（${locked.length} 個鎖住），平均 ${smAvg.toFixed(2)} 小＋${ntAvg.toFixed(2)} 大（PoE2 4.74＋1.65；4～6.5、1.3～2）`,
+    smAvg >= 4 && smAvg <= 6.5 && ntAvg >= 1.3 && ntAvg <= 2
   );
+  ok(`只接一個能力值點的叢集 ${Math.round(100 * dead)}%（PoE2 85%；≥ 70%）`, dead >= 0.7);
+  ok(`大點在形狀最裡面 ${Math.round((100 * far) / farN)}%（≥ 70%）`, far / farN >= 0.7);
   ok(
-    `死路叢集 ${Math.round((100 * dead) / cl.length)}%（55～70%）`,
-    dead / cl.length >= 0.55 && dead / cl.length <= 0.7
-  );
-  ok(`大點在叢集最裡面 ${Math.round((100 * far) / nts.length)}%（≥ 75%）`, far / nts.length >= 0.75);
-  ok(
-    `同一條詞連續塊：平均 ${avg(runs).toFixed(2)}、90% ${runs[Math.floor(runs.length * 0.9)]}、最多 ${runs.at(-1)}（≤ 3、≤ 6、≤ 12）`,
-    avg(runs) <= 3 && runs[Math.floor(runs.length * 0.9)] <= 6 && runs.at(-1) <= 12
+    `同一條詞連續塊：平均 ${avg(runs).toFixed(2)}、90% ${runs[Math.floor(runs.length * 0.9)]}、最多 ${runs.at(-1)}（≤ 3.5、≤ 7、≤ 14）`,
+    avg(runs) <= 3.5 && runs[Math.floor(runs.length * 0.9)] <= 7 && runs.at(-1) <= 14
   );
   ok(
     `到最近的同主題叢集平均 ${avg(nearS).toFixed(1)} 步、2 步內 ${nearS.filter(x => x <= 2).length} 個（≥ 5、≤ 15%）`,
     avg(nearS) >= 5 && nearS.filter(x => x <= 2).length <= nearS.length * 0.15
   );
   ok(
-    `起點到大點：最近 ${nd[0]}、第 10 近 ${nd[9]}、最遠 ${nd.at(-1)} 步（4～5、≤ 10、≤ 24）`,
-    nd[0] >= 4 && nd[0] <= 5 && nd[9] <= 10 && nd.at(-1) <= 24
+    `起點到大點：最近 ${nd[0]}、第 10 近 ${nd[9]}、平均 ${avg(nd).toFixed(1)}、最遠 ${nd.at(-1)} 步（4～5、≤ 6、≤ 17、≤ 30）`,
+    nd[0] >= 4 && nd[0] <= 5 && nd[9] <= 6 && avg(nd) <= 17 && nd.at(-1) <= 30
   );
-  ok(`幹道頂點平均連 ${avg(vd).toFixed(1)} 條（4～6）`, avg(vd) >= 4 && avg(vd) <= 6);
+  ok(
+    `能力值點平均連 ${avg(attrs.map(n => A[n.id].length)).toFixed(1)} 條（3.5～6）`,
+    avg(attrs.map(n => A[n.id].length)) >= 3.5 && avg(attrs.map(n => A[n.id].length)) <= 6
+  );
   ok('23 個基石、各只連 1 條線', ks.length === 23 && ks.every(n => A[n.id].length === 1), ks.length);
-  /* 天賦擴充（docs/天賦擴充清單.md）：比例、每個能力都有來源、每個點都有名字與圖示 */
+  /* 起點模板：每個起點出去兩條都是小點（一條傷害、一條防禦），第 5 步有大點 */
+  {
+    const bad = G.PT_START.filter(g => {
+      const d = bfs([g]),
+        n1 = A[g].map(o => T.I[o]);
+      return (
+        n1.length !== 2 || n1.some(n => n.s.attr || n.big) || !T.N.some(n => n.big === 1 && !n.gate && d[n.id] === 5)
+      );
+    });
+    ok('六個起點：第 1 步是兩個小點、第 5 步有大點', !bad.length, bad.join(' '));
+  }
+  /* 鎖住的預留叢集：只有一個入口，不擋路（不經過鎖住的點也走得到每個沒鎖的點） */
+  {
+    const RSV = vm.runInContext('PT_RSV', ctx),
+      free = bfs(G.PT_START, n => !n.lock),
+      cut = T.N.filter(n => !n.lock && free[n.id] === undefined).length,
+      multi = locked.filter(ns => ns.flatMap(n => A[n.id].filter(o => !T.I[o].lock)).length !== 1).length,
+      want = RSV.reduce((s, r) => s + r[2], 0);
+    ok(
+      `鎖住的預留叢集 ${locked.length} 個（表上 ${want} 個）、各只有一個入口、不擋路`,
+      locked.length === want && !multi && !cut,
+      `入口不是 1 個的 ${multi}、被擋住的點 ${cut}`
+    );
+  }
+  /* 烘的檔要跟工具一致；形狀不重複、沒有跑版 */
+  {
+    const { ptreeGen2, pt2Audit } = require('./tree_bake.js'),
+      B = vm.runInContext('PT_BAKE', ctx),
+      T2 = ptreeGen2(vm.runInContext('({ PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS })', ctx)),
+      A2 = pt2Audit(T2),
+      same =
+        T2.N.length === B.N.length &&
+        T2.N.every(
+          (n, i) => n.id === B.N[i][0] && Math.abs(n.x - B.N[i][1]) < 0.06 && Math.abs(n.y - B.N[i][2]) < 0.06
+        );
+    ok('js/ptdata.js 是用現在的 tools/tree_bake.js 烘的（改了工具或主題要重烘）', same);
+    ok(`${T2.CL.length} 個形狀都不重複`, new Set(T2.CL.map(c => c.sig)).size === T2.CL.length);
+    ok(
+      '天賦樹沒有跑版（線交叉、線壓到點、點太近、夾角小於 12°，含弧線）',
+      !(A2.線交叉 + A2.線壓到點 + A2.兩點太近 + A2.夾角小於12度),
+      A2._dbg.slice(0, 5).join('、')
+    );
+  }
+  /* 每個能力都有來源、每個點都有名字與圖示 */
   {
     const has = new Set(T.N.flatMap(n => Object.keys(n.s || {}))),
       need =
@@ -336,21 +396,48 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       STATN = vm.runInContext('STATN', ctx),
       noName = [...has].filter(k => k !== 'only' && !STATN[k]),
       noIc = T.N.filter(n => !n.gate && !n.ic).map(n => n.id),
-      attr = T.N.filter(n => n.s && n.s.attr).length,
-      way = T.N.filter(n => /^[vx]\d/.test(n.id) && !n.s.attr).length;
+      /* 沒有過路小點：每個小點都跟某個大點連在一起（鎖住的也算） */
+      way = C.filter(ns => !ns.some(n => n.big)).length;
     ok('每個能力都有天賦來源（fullStrike 留給昇華）', !miss.length && !has.has('fullStrike'), miss.join(' '));
     ok('天賦點的每個鍵都有 STATN 名字', !noName.length, noName.join(' '));
     ok('每個天賦點都有圖示', !noIc.length, noIc.slice(0, 5).join(' '));
     ok(
-      `能力值點 ${attr} 個佔全樹 ${((100 * attr) / T.N.length).toFixed(1)}%、過路小點 ${way} 個、全樹約 3300 點`,
-      attr === 247 && Math.abs(attr / T.N.length - 0.075) < 0.002 && way > 150 && T.N.length > 3200 && T.N.length < 3400
+      `能力值點 ${attrs.length} 個佔全樹 ${((100 * attrs.length) / T.N.length).toFixed(1)}%、沒有過路小點、全樹 ${T.N.length} 點（PoE2 3915）`,
+      Math.abs(attrs.length - 293) <= 8 &&
+        Math.abs(attrs.length / T.N.length - 0.075) < 0.003 &&
+        !way &&
+        Math.abs(T.N.length - 3915) <= 25,
+      `沒有大點的叢集 ${way} 個`
     );
+  }
+  {
+    /* 小點的種類照能力的組合算（PoE2 是 601 種、18% 是兩條詞） */
+    const sm = T.N.filter(n => !n.big && !n.lock && !n.s.attr),
+      kinds = new Set(sm.map(n => Object.keys(n.s).sort().join('+'))).size,
+      two = sm.filter(n => Object.keys(n.s).length > 1).length / sm.length;
+    ok(`小點 ${kinds} 種（≥ 420）、兩條詞的佔 ${Math.round(100 * two)}%（≤ 32%）`, kinds >= 420 && two <= 0.32);
   }
   ok('15 種武器都有專精叢集', !wp.length, wp.join(','));
   ok(
     `大點全部手寫（${nts.length} 個，名字不重複）`,
     !auto && new Set(nts.map(n => n.n)).size === nts.length,
     `${auto} 個是產生的`
+  );
+}
+{
+  /* 0.2.45 天賦樹重做新增的能力：預設要是 0（戰鬥直接拿來算，undefined 會變 NaN），天賦給了要讀得到 */
+  const K =
+      'penF penC penL lowEnemyP blindP blindCh formP formArm flamP chillMag shockCh pinP chgDur chgMore expEff armEle esAsThr presArea twoP oneP dualP minAs gloryP energyP grenCd reloadP'.split(
+        ' '
+      ),
+    o0 = G.stats({ lv: 50, eq: {}, pt: [] });
+  G.PTREE.I.zz = { s: Object.fromEntries(K.map(k => [k, 7])) };
+  const o1 = G.stats({ lv: 50, eq: {}, pt: ['zz'] });
+  delete G.PTREE.I.zz;
+  ok(
+    `0.2.45 新增的 ${K.length} 個能力：預設是 0、天賦給了讀得到`,
+    K.every(k => o0[k] === 0 && o1[k] === 7),
+    K.filter(k => o0[k] !== 0 || o1[k] !== 7).join(' ')
   );
 }
 {
@@ -766,7 +853,7 @@ vm.runInContext(
     document: { getElementById: () => ({ classList: { add() {}, remove() {} } }), querySelectorAll: () => [] }
   };
   vm.createContext(c2);
-  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
   const R = s => vm.runInContext(s, c2);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -1671,7 +1758,7 @@ vm.runInContext(
 {
   const c3 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c3);
-  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c3, { filename: f });
   const R = s => vm.runInContext(s, c3);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -2542,7 +2629,7 @@ vm.runInContext(
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -2839,7 +2926,7 @@ vm.runInContext(
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -3132,7 +3219,7 @@ vm.runInContext(
 {
   const c5 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c5);
-  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c5, { filename: f });
   const R = s => vm.runInContext(s, c5);
   R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -3324,7 +3411,7 @@ vm.runInContext(
 {
   const c6 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c6);
-  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c6, { filename: f });
   const R = s => vm.runInContext(s, c6);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -3728,6 +3815,7 @@ vm.runInContext(
   vm.createContext(c2);
   for (const f of [
     'core.js',
+    'ptdata.js',
     'data.js',
     'items.js',
     'craft.js',
@@ -3841,7 +3929,7 @@ vm.runInContext(
       delete old.world; delete old.hunt;
       old.eq.weapon = mkItem('w_bow_0', 12, 2);
       const id = old.eq.weapon.id, n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 25 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
+      return n.v === 26 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
         n.world.stage === 0 && !n.world.done.length && n.world.at === '0,0' && Number.isInteger(n.world.seed) &&
         n.hunt.v === 0 && !Array.isArray(n.cards) && !Object.keys(n.cards).length && !n.card;
     })()`)

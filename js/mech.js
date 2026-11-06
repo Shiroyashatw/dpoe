@@ -365,7 +365,10 @@ function metaEvent(kind, near) {
       sp = metaOf(g);
     if (!sp || SUPPORTS[sp.gem].meta !== kind) continue;
     /* 影咒（0.2.26）：暴擊的能量 +10 → +20 */
-    sp.en = Math.min(200, (sp.en || 0) + ENERGY[kind] * (kind === 'crit' && ST.hexCoc ? 2 : 1));
+    sp.en = Math.min(
+      200,
+      (sp.en || 0) + ENERGY[kind] * (kind === 'crit' && ST.hexCoc ? 2 : 1) * (1 + ST.energyP / 100)
+    );
     if (sp.en >= 100) full.push([g, sp]);
   }
   if (!full.length) return;
@@ -421,7 +424,7 @@ function throwGrenade(c, tx, ty, o = {}) {
 function grenadeReady(k, max, cd) {
   const q = ((P.gren = P.gren || {})[k] = (P.gren[k] || []).filter(t => t > G.t));
   if (q.length >= max) return false;
-  q.push(G.t + cd);
+  q.push(G.t + cd / (1 + ST.grenCd / 100));
   return true;
 }
 function grenadeTick(dt) {
@@ -453,7 +456,7 @@ function ammoUse(k, clip, reload) {
   if (A.until > G.t) return false;
   if (A.until && A.until <= G.t) (A.n = clip), (A.until = 0);
   A.n--;
-  if (A.n <= 0) A.until = G.t + reload;
+  if (A.n <= 0) A.until = G.t + reload / (1 + ST.reloadP / 100);
   return true;
 }
 const ammoLeft = k => (P.ammo && P.ammo[k] ? (P.ammo[k].until > G.t ? 0 : P.ammo[k].n) : null);
@@ -559,7 +562,7 @@ function mirageTick() {
 
 /* ---------- 13. 旗幟與榮耀 ---------- */
 function gainGlory(v) {
-  P.glory = Math.min(100, (P.glory || 0) + v);
+  P.glory = Math.min(100, (P.glory || 0) + (v > 0 ? v * (1 + ST.gloryP / 100) : v));
   if (v > 0) P.gloryT = G.t;
 }
 /* 擊中給榮耀（0.2.42）：同一隻怪每 0.5 秒最多一次；一般 1、精英 5、王 20，再乘暴擊 ×4 與技能的 glory */

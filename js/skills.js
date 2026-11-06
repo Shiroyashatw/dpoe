@@ -1090,7 +1090,7 @@ function updAllies(dt) {
       w.face = Math.cos(a);
     }
     if (t && d < t.r + 30 && w.cd <= 0) {
-      w.cd = ALLY_RATE;
+      w.cd = ALLY_RATE / (1 + ST.minAs / 100);
       fx({ k: 'claw', x: w.x, y: w.y, ang: angTo(w, t), r: 34, dur: 0.12 });
       const c = w.c || slotCfg(0) || BASEC(),
         mult = allyMult(w, c) * giantM(w);

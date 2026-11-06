@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>天賦樹預覽（js/ptdata.js，跟遊戲裡同一棵）</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #090b13; color: #cfd3da; font: 14px/1.5 system-ui, 'Noto Sans TC', sans-serif; overflow: hidden; }
+      #bar { position: fixed; left: 0; right: 0; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px; background: rgba(9, 11, 19, 0.88); border-bottom: 1px solid #23262f; }
+      #bar b { margin-right: 8px; color: #fff; }
+      button { font: inherit; color: #cfd3da; background: #171a22; border: 1px solid #343846; border-radius: 3px; padding: 5px 10px; min-height: 32px; cursor: pointer; }
+      button.on { border-color: #d7b77c; color: #fff; }
+      canvas { position: fixed; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+      #info { position: fixed; right: 0; top: 50px; bottom: 0; width: 330px; overflow: auto; padding: 10px 12px; background: rgba(9, 11, 19, 0.9); border-left: 1px solid #23262f; font-size: 13px; z-index: 1; }
+      #info[hidden] { display: none; }
+      #info table { border-collapse: collapse; width: 100%; }
+      #info td { padding: 2px 4px; vertical-align: top; border-bottom: 1px solid #1b1e27; }
+      #info td:first-child { color: #9aa0ac; white-space: nowrap; }
+      .bad { color: #ff7b6b; }
+      .ok { color: #7fd38a; }
+      #legend { position: fixed; left: 10px; bottom: 10px; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px 12px; max-width: 60vw; padding: 6px 10px; background: rgba(9, 11, 19, 0.85); border: 1px solid #23262f; border-radius: 3px; font-size: 13px; }
+      #legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; }
+      #tip { position: fixed; z-index: 3; pointer-events: none; padding: 4px 8px; background: #11141c; border: 1px solid #343846; border-radius: 3px; font-size: 13px; }
+      #tip[hidden] { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="bar">
+      <b>天賦樹預覽</b>
+      <button data-v="all">整棵樹</button>
+      <span id="starts"></span>
+      <button data-v="rim">外圍</button>
+      <button data-t="lock" class="on">鎖住的預留叢集</button>
+      <button data-t="label">主題名</button>
+      <button data-t="info" class="on">驗收數字</button>
+    </div>
+    <canvas id="cv"></canvas>
+    <div id="info"></div>
+    <div id="legend"></div>
+    <div id="tip" hidden></div>
+    <script src="../js/ptdata.js"></script>
+    <script src="../js/data.js"></script>
+    <script>
+      'use strict';
+      /* 畫的是烘好的樹（js/ptdata.js），跟遊戲裡一樣；驗收數字是烘的時候算的 */
+      const T = { ...PTREE, R0: PT_R0, CL: PT_BAKE.C.map(([x, y, th, maxR]) => ({ x, y, maxR, th: Math.max(0, th), lock: th < 0 ? PT_RSV[-th - 1][0] : null })) },
+        A = PT_BAKE.M,
+        Q = new URLSearchParams(location.search),
+        cv = document.getElementById('cv'),
+        g = cv.getContext('2d'),
+        V = { x: 0, y: 0, z: 0.1, lock: Q.get('lock') !== '0', label: Q.get('label') === '1', info: Q.get('info') !== '0' };
+      const col = n => (n.lock ? '#5a5d66' : PT_THEME[n.th].c),
+        isA = n => !!(n.s && n.s.attr),
+        NR = n => (n.big === 2 ? 30 : n.gate ? 20 : n.big ? 19 : 10);
+      function fit(cx, cy, w) {
+        V.z = Math.min(innerWidth - (V.info ? 330 : 0), innerHeight - 50) / w;
+        V.x = cx;
+        V.y = cy;
+        draw();
+      }
+      function draw() {
+        const dpr = devicePixelRatio || 1,
+          W = (cv.width = innerWidth * dpr),
+          H = (cv.height = innerHeight * dpr),
+          ox = (innerWidth - (V.info ? 330 : 0)) / 2,
+          oy = (innerHeight + 50) / 2;
+        g.setTransform(1, 0, 0, 1, 0, 0);
+        g.fillStyle = '#090b13';
+        g.fillRect(0, 0, W, H);
+        g.setTransform(dpr * V.z, 0, 0, dpr * V.z, dpr * (ox - V.x * V.z), dpr * (oy - V.y * V.z));
+        const show = n => V.lock || !n.lock;
+        g.lineCap = 'round';
+        for (const [a, b] of T.E) {
+          const A0 = T.I[a],
+            B = T.I[b];
+          if (!show(A0) || !show(B)) continue;
+          const lk = A0.lock || B.lock,
+            c = T.ARC[a + '|' + b];
+          g.strokeStyle = lk ? 'rgba(90,93,102,0.5)' : isA(A0) && isA(B) ? 'rgba(162,148,110,0.55)' : 'rgba(150,140,115,0.4)';
+          g.lineWidth = Math.max(3, 1.2 / V.z);
+          g.beginPath();
+          if (c) {
+            const a0 = Math.atan2(A0.y - c[1], A0.x - c[0]);
+            let d = Math.atan2(B.y - c[1], B.x - c[0]) - a0;
+            while (d > Math.PI) d -= 2 * Math.PI;
+            while (d < -Math.PI) d += 2 * Math.PI;
+            g.arc(c[0], c[1], c[2], a0, a0 + d, d < 0);
+          } else {
+            g.moveTo(A0.x, A0.y);
+            g.lineTo(B.x, B.y);
+          }
+          g.stroke();
+        }
+        /* 中間挖空的地方是昇華 */
+        g.beginPath();
+        g.arc(0, 0, T.R0 - 40, 0, 7);
+        g.strokeStyle = '#2a2d38';
+        g.lineWidth = 3;
+        g.stroke();
+        for (const n of T.N) {
+          if (!show(n)) continue;
+          const r = Math.max(NR(n), (n.big ? 3.2 : 1.6) / V.z),
+            c = col(n);
+          g.beginPath();
+          g.arc(n.x, n.y, r, 0, 7);
+          /* 沒點亮：暗底＋系色外框（接進遊戲後點亮才變亮） */
+          g.fillStyle = n.gate ? '#f4efe2' : n.lock ? '#12141a' : V.z < 0.16 ? c : '#12141a';
+          g.fill();
+          g.lineWidth = n.big === 2 ? 6 : n.big ? 5 : 3.5;
+          g.strokeStyle = n.big === 2 ? '#f0d9a0' : c;
+          if (n.lock) g.setLineDash([6, 5]);
+          g.stroke();
+          g.setLineDash([]);
+          if (V.z >= 0.16 && !n.lock && !n.gate) {
+            g.beginPath();
+            g.arc(n.x, n.y, r * (n.big ? 0.5 : 0.42), 0, 7);
+            g.fillStyle = c;
+            g.globalAlpha = isA(n) ? 0.55 : 0.9;
+            g.fill();
+            g.globalAlpha = 1;
+          }
+        }
+        if (V.label && V.z > 0.3) {
+          g.font = '600 24px system-ui, "Noto Sans TC", sans-serif';
+          g.textAlign = 'center';
+          for (const c of T.CL) {
+            if (c.lock && !V.lock) continue;
+            g.fillStyle = c.lock ? '#8a8d96' : PT_THEME[c.th].c;
+            g.fillText(c.lock ? '🔒' + c.lock : PT_THEME[c.th].n, c.x, c.y + c.maxR + 42);
+          }
+        }
+      }
+      const VIEWS = {
+        all: () => fit(0, 0, 10200),
+        rim: () => fit(3300, -2300, 3000)
+      };
+      for (let k = 0; k < 6; k++) {
+        const b = document.createElement('button');
+        b.textContent = PT_ROADS[k].n.slice(0, 2) + '起點';
+        b.dataset.v = 'g' + k;
+        document.getElementById('starts').appendChild(b);
+        VIEWS['g' + k] = () => {
+          const a = (k * 60 * Math.PI) / 180;
+          fit(Math.sin(a) * 1150, -Math.cos(a) * 1150, 2100);
+        };
+      }
+      document.getElementById('bar').addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        if (b.dataset.v) VIEWS[b.dataset.v]();
+        if (b.dataset.t) {
+          V[b.dataset.t] = !V[b.dataset.t];
+          b.classList.toggle('on', V[b.dataset.t]);
+          document.getElementById('info').hidden = !V.info;
+          draw();
+        }
+      });
+      /* 拖曳、滾輪、兩指縮放 */
+      const P = new Map();
+      let pin = null;
+      cv.addEventListener('pointerdown', e => {
+        cv.setPointerCapture(e.pointerId);
+        P.set(e.pointerId, [e.clientX, e.clientY]);
+        if (P.size === 2) {
+          const [a, b] = [...P.values()];
+          pin = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: V.z };
+        }
+      });
+      cv.addEventListener('pointermove', e => {
+        const p = P.get(e.pointerId);
+        if (p && P.size === 1) {
+          V.x -= (e.clientX - p[0]) / V.z;
+          V.y -= (e.clientY - p[1]) / V.z;
+          draw();
+        }
+        if (p) P.set(e.pointerId, [e.clientX, e.clientY]);
+        if (pin && P.size === 2) {
+          const [a, b] = [...P.values()];
+          V.z = Math.max(0.04, Math.min(2, (pin.z * Math.hypot(a[0] - b[0], a[1] - b[1])) / pin.d));
+          draw();
+        }
+        if (!p) tip(e);
+      });
+      const up = e => (P.delete(e.pointerId), P.size < 2 && (pin = null));
+      cv.addEventListener('pointerup', up);
+      cv.addEventListener('pointercancel', up);
+      cv.addEventListener(
+        'wheel',
+        e => {
+          e.preventDefault();
+          const ox = (innerWidth - (V.info ? 330 : 0)) / 2,
+            oy = (innerHeight + 50) / 2,
+            wx = V.x + (e.clientX - ox) / V.z,
+            wy = V.y + (e.clientY - oy) / V.z;
+          V.z = Math.max(0.04, Math.min(2, V.z * (e.deltaY < 0 ? 1.18 : 1 / 1.18)));
+          V.x = wx - (e.clientX - ox) / V.z;
+          V.y = wy - (e.clientY - oy) / V.z;
+          draw();
+        },
+        { passive: false }
+      );
+      function tip(e) {
+        const ox = (innerWidth - (V.info ? 330 : 0)) / 2,
+          oy = (innerHeight + 50) / 2,
+          wx = V.x + (e.clientX - ox) / V.z,
+          wy = V.y + (e.clientY - oy) / V.z,
+          n = T.N.find(n => Math.hypot(n.x - wx, n.y - wy) < NR(n) + 6),
+          el = document.getElementById('tip');
+        el.hidden = !n;
+        if (!n) return;
+        el.textContent = (n.lock ? '🔒 預留：' : '') + n.n + (n.big === 2 ? '（基石）' : n.big ? '（大點）' : isA(n) ? '（能力值）' : '（小點）');
+        el.style.left = e.clientX + 14 + 'px';
+        el.style.top = e.clientY + 14 + 'px';
+      }
+      addEventListener('resize', draw);
+      const bad = { 線交叉: 1, 線壓到點: 1, 兩點太近: 1, 夾角小於12度: 1 },
+        fmt = v => (typeof v === 'object' ? (Array.isArray(v) ? v.join('<br>') : Object.entries(v).map(([k, x]) => `${k}：${x}`).join('　')) : v);
+      document.getElementById('info').innerHTML =
+        '<table>' +
+        Object.entries(A)
+          .filter(([k]) => k[0] !== '_')
+          .map(([k, v]) => `<tr><td>${k}</td><td class="${bad[k] ? (v ? 'bad' : 'ok') : k === '全部連得到' ? (v ? 'ok' : 'bad') : ''}">${fmt(v)}</td></tr>`)
+          .join('') +
+        '</table>';
+      document.getElementById('legend').innerHTML =
+        Object.keys(PT_FAM)
+          .map(k => `<span><i style="background:${PT_FAM[k]}"></i>${PT_FAMN[k]}</span>`)
+          .join('') + '<span><i style="background:#5a5d66"></i>預留（鎖住）</span>';
+      document.getElementById('info').hidden = !V.info;
+      /* 上方列在窄視窗會換行，驗收數字的面板要接在它下面 */
+      const place = () => (document.getElementById('info').style.top = document.getElementById('bar').offsetHeight + 'px');
+      place();
+      addEventListener('resize', place);
+      for (const b of document.querySelectorAll('[data-t]')) b.classList.toggle('on', V[b.dataset.t]);
+      (VIEWS[Q.get('v')] || VIEWS.all)();
+    </script>
+  </body>
+</html>

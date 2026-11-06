@@ -15,7 +15,7 @@ sMath.random = () => {
 };
 const ctx = { console, Math: sMath, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 /* 遊戲裡由 game.js 提供的全域：這裡給最小的替身 */
 vm.runInContext(
@@ -42,7 +42,9 @@ function route(w, pts) {
     while (q.length) {
       const c = q.shift();
       if (d[c] >= 14) continue;
-      for (const n of ADJ[c] || []) if (d[n] === undefined && !have.has(n)) (d[n] = d[c] + 1), (prev[n] = c), q.push(n);
+      /* 鎖住的預留點不能點 */
+      for (const n of ADJ[c] || [])
+        if (d[n] === undefined && !have.has(n) && !I[n].lock) (d[n] = d[c] + 1), (prev[n] = c), q.push(n);
     }
     return { d, prev };
   };
@@ -274,7 +276,8 @@ for (const L of [30, 60, 90]) {
       };
     /* 過路點的能力值：一點一點補，每點選「讓全身裝備缺的能力值總和降最多」的那一項（用 eqLack，自己給的不算自己），都不缺就加力量。
        能力值點只佔全樹 7.5%：穿不起時像玩家一樣繞去拿，路線給能力值點權重（aw），由小到大試到穿得起 */
-    for (const aw of [0, 1, 2, 4, 8, 16]) {
+    /* 級距要細：一口氣從 8 跳到 16 會多繞幾十個能力值點（0.2.45 箭雨 Lv90 繞了 109 點） */
+    for (const aw of [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16]) {
       S.pt = route({ ...B.tree, attr: aw }, R('ptPoints')(L));
       S.ptA = {};
       const I = R('PTREE').I,

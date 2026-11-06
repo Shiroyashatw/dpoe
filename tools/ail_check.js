@@ -32,7 +32,7 @@ function load(old) {
     URLSearchParams
   };
   vm.createContext(ctx);
-  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js']) {
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js']) {
     let src = JS(f);
     if (old && f === 'combat.js') src = patchOld(src);
     vm.runInContext(src, ctx, { filename: f });

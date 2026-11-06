@@ -184,7 +184,15 @@ function migrate(s) {
     o.ptA = {};
     o.v = 25;
   }
+  /* 存檔 26：天賦樹照 PoE2 重做（0.2.45，點的編號全部換了），天賦點全部退回 */
+  if (o.v < 26) {
+    o.pt = [...PT_START];
+    o.ptA = {};
+    o.v = 26;
+  }
   o.ptA = o.ptA || {};
+  /* 存檔裡有樹上已經沒有的點（重烘過）也全部退回，不然算數值會壞 */
+  if (o.pt.some(id => !PTREE.I[id])) (o.pt = [...PT_START]), (o.ptA = {});
   /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
   if (!o.filter || !Array.isArray(o.filter.sets)) {
     const f = s.filter,
