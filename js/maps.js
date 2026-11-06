@@ -50,7 +50,19 @@ const MAPMOD = {
   cuVu: { d: 2, g: 'curse', t: '你被「脆弱」詛咒（護甲 −30%）', fx: { pcurse: 'vuln', pcv: 30 } },
   pen: { d: 3, g: 'pen', t: '怪物穿透你 15% 的元素抗性', fx: { mpen: 15 } },
   /* 0.2.42 堅韌：怪物受到的傷害 ÷ (1 + 30%)，約少打 23%，跟「怪物生命 +30%」差不多，危險度 2 */
-  tough: { d: 2, g: 'tough', t: '怪物堅韌 +30%', fx: { mtough: 30 } }
+  tough: { d: 2, g: 'tough', t: '怪物堅韌 +30%', fx: { mtough: 30 } },
+  /* 第 11 批：怪物死亡留下怪物方的地面（mech.js 的 mobGround），同組一張卡最多一種。
+     危險度：只減益或要站著才吃虧的 1；會直接掉血、放大怪物傷害的 2；地面離開就沒事，沒有 3 */
+  gCons: { d: 1, g: 'ground', t: '怪物死亡有 25% 機率留下奉獻地面', fx: { gnd: 'cons' } },
+  gSmoke: { d: 1, g: 'ground', t: '怪物死亡有 25% 機率留下煙霧', fx: { gnd: 'smoke' } },
+  gWither: { d: 1, g: 'ground', t: '怪物死亡有 25% 機率留下凋零地面', fx: { gnd: 'wither' } },
+  gOil: { d: 1, g: 'ground', t: '怪物死亡有 25% 機率留下油滑地面', fx: { gnd: 'oil' } },
+  gCorrupt: { d: 2, g: 'ground', t: '怪物死亡有 25% 機率留下腐化地面', fx: { gnd: 'corrupt' } },
+  gShock: { d: 2, g: 'ground', t: '怪物死亡有 25% 機率留下感電地面', fx: { gnd: 'shockg' } },
+  gIgnite: { d: 2, g: 'ground', t: '怪物死亡有 25% 機率留下點燃地面', fx: { gnd: 'ignited' } },
+  gThorn: { d: 2, g: 'ground', t: '怪物死亡有 25% 機率留下荊棘地面', fx: { gnd: 'thorn' } },
+  gHowl: { d: 2, g: 'ground', t: '怪物死亡有 25% 機率留下怒號地面', fx: { gnd: 'howl' } },
+  gEle: { d: 2, g: 'ground', t: '怪物死亡有 25% 機率留下元素地面', fx: { gnd: 'ele' } }
 };
 /* 每條詞的獎勵：危險度越高越多（物品數量、稀有度、材料，%） */
 const MOD_REW = [null, [4, 3, 4], [8, 6, 7], [13, 10, 11]];

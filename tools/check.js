@@ -2380,4 +2380,246 @@ vm.runInContext(
     need10.filter(k => !R(`!!TERMS['${k}']`)).join()
   );
 }
+/* 第 11 批：地面（mech.js 的 GROUND、maps.js 的地面詞）：每種地面雙向、數值不是 NaN、陣營、死因、上限 */
+{
+  const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  vm.createContext(c4);
+  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
+  const R = s => vm.runInContext(s, c4);
+  R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+     var LOS = true, HURT = null, DEAD = 0;
+     const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, hudWarn = () => {}, los = () => LOS, open = () => true, floorNear = () => null, isWall = () => false,
+       die = () => DEAD++, killMob = m => (m.hp = 0), aggroPack = () => {}, hurtPlayer = (d, src, el, noEv) => (HURT = { d, n: src.D.n, el, noEv });`);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8'), c4, {
+    filename: 'skills.js'
+  });
+  R(`S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; ST = stats(S);
+     mechEnter();
+     Object.assign(ST, { hp: 1000, es: 0, ev: 1000, acc: 1000, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, maxRes: { fire: 75, cold: 75, light: 75, chaos: 75 }, armor: 0, block: 0, defl: 0 });`);
+  const g = R(`(() => {
+    const o = {}, D = Object.values(MOBS)[0],
+      mk = (x = {}) => ({ D, x: 0, y: 0, r: 12, sz: 20, hp: 500, mhp: 1000, arm: 0, arm0: 0, ev: 100, vx: 0, vy: 0, dmg: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...x }),
+      reset = () => { G.t = 100; G.ground = []; G.mobs = []; G.mm = null; G.state = 'play'; LOS = true; HURT = null; DEAD = 0; Object.assign(P, { x: 0, y: 0, hp: 500, es: 0, ail: {}, buf: {}, evE: null, movT: null, lastHit: null }); },
+      /* 跑 s 秒（地面、怪物、玩家每格都跑） */
+      run = (s, dt = 0.05) => { for (let i = 0; i < Math.round(s / dt); i++) { G.t += dt; groundTick(dt); for (const m of G.mobs) ailTick(m, dt); baseTick(dt); } },
+      /* 一塊地面：side 'p'／'m'，怪物與玩家都站在裡面 */
+      put = (k, side, mx) => { reset(); const m = mk(mx); G.mobs = [m]; addGround({ k, x: 0, y: 0, r: 60, dur: 30, v: 100, ...(side === 'm' ? { side } : {}) }); return m; },
+      r2 = v => Math.round(v * 100) / 100;
+    /* 每種地面雙向跑 3 秒：沒有 NaN */
+    o.kinds = Object.keys(GROUND).filter(k => GROUND[k].on);
+    o.nan = [];
+    for (const k of o.kinds) for (const s of ['p', 'm']) {
+      const m = put(k, s, { mv: 1 });
+      for (let i = 0; i < 60; i++) { P.movT = G.t; run(0.05); }
+      const vals = [m.hp, P.hp, P.es, resOf(m, 'fire'), resOf(m, 'chaos'), takenInc(m, 'chaos'), mobSpd(m), mobDmgMul(m), effRes('fire'), effRes('chaos'), moveMul(), speedMul()];
+      if (!vals.every(Number.isFinite)) o.nan.push(k + s + ':' + vals);
+    }
+    /* 奉獻：友方每秒 5%，王 1%，詛咒 −50%；另一方不受影響 */
+    let m = put('cons', 'p'); P.ail.curse = { k: 'eleweak', v: 40, t: 1e9 }; m.ail.curse = { k: 'eleweak', v: 40, t: 1e9 };
+    run(1); o.consP = [Math.round(P.hp), m.hp, effRes('fire'), resOf(m, 'fire')];
+    m = put('cons', 'm'); P.ail.curse = { k: 'eleweak', v: 40, t: 1e9 }; m.ail.curse = { k: 'eleweak', v: 40, t: 1e9 };
+    run(1); o.consM = [P.hp, Math.round(m.hp), effRes('fire'), resOf(m, 'fire')];
+    m = put('cons', 'm', { boss: 1 }); run(1); o.consB = Math.round(m.hp);
+    m = put('cons', 'p'); G.mm = { pregen: -100 }; run(1); o.consNo = P.hp; G.mm = null;
+    /* 腐化：混沌持續傷害，跳過能量護盾；只有敵方受傷；離開就停 */
+    m = put('corrupt', 'm'); ST.res.chaos = 50; P.es = 100; run(1); o.corM = [Math.round(P.hp), m.hp, P.es]; ST.res.chaos = 0;
+    P.x = 500; run(0.3); const h0 = P.hp; run(1); o.corOff = P.hp === h0;
+    m = put('corrupt', 'p'); run(1); o.corP = [P.hp, Math.round(m.hp)];
+    /* 煙霧：敵方致盲；玩家致盲時閃避值、命中值少 20% */
+    m = put('smoke', 'p'); run(0.1); o.smP = [m.ail.blind > G.t, !P.ail.blind];
+    m = put('smoke', 'm'); run(0.1); o.smM = [!m.ail.blind, P.ail.blind > G.t];
+    const evGain = () => { P.evE = 0; hurtCalc(100, null, 'phys'); return P.evE; }, e1 = evGain();
+    P.ail.blind = 0; o.smEv = e1 > evGain();
+    /* 感電地面：感電 6 秒、雙向 */
+    m = put('shockg', 'p'); run(0.1); o.shP = [r2(m.ail.shock - G.t), !P.ail.shock];
+    m = put('shockg', 'm'); run(0.1); o.shM = [!m.ail.shock, r2(P.ail.shock - G.t)];
+    /* 點燃地面：2 秒累積到 50%、死因；被油纏身 200% 更多 */
+    m = put('ignited', 'p'); run(1.5); const ig0 = !m.ail.ign; run(0.6); o.igP = [ig0, !!m.ail.ign, m.ail.ign && m.ail.ign.dps, !P.ail.ign];
+    m = put('ignited', 'm'); run(2.1); o.igM = [!m.ail.ign, P.ail.ign && P.ail.ign.dps, P.ail.ign && P.ail.ign.by];
+    m = put('ignited', 'm'); P.ail.oiled = 1e9; run(0.75); o.igOil = !!P.ail.ign;
+    m = put('ignited', 'm'); P.ail.imm = { ign: 1e9 }; run(3); o.igImm = !P.ail.ign;
+    m = put('ignited', 'm'); P.hp = 1; run(4); o.igDead = [DEAD > 0, P.lastHit && P.lastHit.n];
+    /* 凋零地面：每秒 1 層、每層 4 秒、混沌受傷提高（玩家、怪物） */
+    m = put('wither', 'p'); run(2.5); o.wiP = [witherN(m.ail), !P.ail.wither, takenInc(m, 'chaos')];
+    m = put('wither', 'm'); run(9); o.wiM = [!m.ail.wither, witherN(P.ail)];
+    P.ail = {}; const wb = hurtCalc(100, null, 'chaos', 1).d; P.ail.wither = [1e9, 1e9, 1e9]; o.wiHit = r2(hurtCalc(100, null, 'chaos', 1).d / wb);
+    P.ail.poi = { dps: 100, t: 1e9 }; P.hp = 500; P.ail.wither = [1e9, 1e9]; baseTick(1); o.wiPoi = Math.round(500 - P.hp); P.ail = {};
+    /* 荊棘：生成時打一次（怪物方躲不掉、死因是地面；玩家方吃護甲），移動才持續受傷 */
+    m = put('thorn', 'm'); o.thM = HURT && [HURT.d, HURT.n, HURT.el, HURT.noEv];
+    run(1); o.thStill = P.hp; for (let i = 0; i < 20; i++) { P.movT = G.t; run(0.05); } o.thMove = Math.round(P.hp);
+    m = put('thorn', 'p', { arm: 0, mv: 0 }); o.thP = [m.hp, HURT === null];
+    const hp1 = m.hp; run(1); o.thPStill = m.hp === hp1; m.mv = 1; run(1); o.thPMove = Math.round(m.hp);
+    /* 怒號：友方閃避、滿血傷害、猛攻，留 1 秒；怪物方給怪物 */
+    m = put('howl', 'p'); run(0.1); o.hoP = [hasBuff('howl'), hasBuff('onslaught'), !m.ail.howl];
+    const eH = evGain(); P.buf.howl = 0; o.hoEv = eH < evGain();
+    const cf = gemCfg(mkGem('split', 5), 0); ST.noCrit = 1; ST.noMiss = 1; ST.dmg = [100, 100]; P.hp = ST.hp;
+    const dmgNow = () => { const rn = Math.random; Math.random = () => 0.5; const v = hitCalc(cf, mk({ arm: 0 }), { keep: 1 }).d; Math.random = rn; return v; };
+    P.buf.howl = 1e9; const dH = dmgNow(); P.buf.howl = 0; const d0 = dmgNow();
+    P.buf.howl = 1e9; P.hp = 500; const dL = dmgNow(); P.buf.howl = 0; o.hoDmg = [dH > d0, dL < dH];
+    m = put('howl', 'm', { hp: 1000 }); run(0.1); o.hoM = [m.ail.howl > G.t, !hasBuff('howl'), r2(mobDmgMul(m)), r2(mobSpd(m))]; m.hp = 900; o.hoM2 = r2(mobDmgMul(m));
+    G.ground = []; G.t += 1.1; o.hoEnd = [m.ail.howl > G.t, r2(mobSpd(m))];
+    /* 油滑：被油纏身（緩速、火焰曝曬、易燃 ×3），留 2 秒；不另外疊地面緩速；雙向 */
+    m = put('oil', 'p'); run(0.1); o.oiP = [m.ail.oiled > G.t, !P.ail.oiled, r2(mobSpd(m)), resOf(m, 'fire'), resOf(m, 'cold')];
+    m = put('oil', 'm'); run(0.1); o.oiM = [!m.ail.oiled, P.ail.oiled > G.t, r2(oilSlow()), effRes('fire'), effRes('cold')];
+    flamAdd(P.ail, 10); o.oiFlam = P.ail.flam; P.x = 500; G.t += 1.9; o.oiStay = r2(oilSlow()); G.t += 0.2; o.oiGone = oilSlow();
+    /* 被油纏身時，怪物的火焰擊中點燃機率 ×3 */
+    const rnd0 = Math.random; Math.random = () => 0.25; P.x = 0; P.ail = { oiled: 1e9 }; const mf = mk({ ail: {} }); mobAilPlayer(mf, ST.hp * 0.5, 'fire'); const a1 = !!P.ail.ign; P.ail = {}; mobAilPlayer(mf, ST.hp * 0.5, 'fire'); o.oiHit = [a1, !!P.ail.ign]; Math.random = rnd0;
+    /* 曝曬：玩家也吃；跟火焰曝曬不疊 */
+    reset(); P.ail.exp = 1e9; o.exP = [effRes('fire'), effRes('cold'), effRes('chaos')]; P.ail.oiled = 1e9; o.exTop = effRes('fire'); P.ail = {};
+    /* 怪物方的油：火焰擊中引爆，爆炸算點燃的那一招（只傷怪物），留下玩家方的燃燒地面 */
+    m = put('oil', 'm', { hp: 1e6, mhp: 1e6 }); const c0 = { ...cf, mult: 1 }; P.hp = 500;
+    igniteAt(0, 0, c0); o.oilBoom = [G.ground.filter(g => g.k === 'oil' && !g.done).length, m.hp < 1e6, G.ground.filter(g => g.k === 'fire' && g.side !== 'm' && g.c).length, P.hp];
+    /* 冰緩地面雙向 */
+    m = put('chill', 'p'); run(0.1); o.chP = [m.ail.chill && m.ail.chill.v, !P.ail.chill];
+    m = put('chill', 'm'); run(0.1); o.chM = [!m.ail.chill, P.ail.chill && P.ail.chill.v, r2(playerSlow())];
+    /* 玩家要踩在畫出來的橢圓裡（y 方向 0.75）、牆後面不算 */
+    m = put('corrupt', 'm'); P.y = 50; run(0.5); o.ell = P.hp; P.y = 0; LOS = false; run(0.5); o.wall = P.hp;
+    /* 死因 */
+    m = put('corrupt', 'm'); P.hp = 5; run(2); o.dead = [DEAD > 0, P.lastHit && P.lastHit.n];
+    /* 死掉之後不再作用在玩家身上 */
+    m = put('cons', 'p'); G.state = 'dead'; run(1); o.deadNoHeal = P.hp;
+    /* 持續傷害只算最強一塊 */
+    reset(); addGround({ k: 'corrupt', side: 'm', x: 0, y: 0, r: 60, dur: 30, v: 100 }); addGround({ k: 'corrupt', side: 'm', x: 0, y: 0, r: 60, dur: 30, v: 300 }); addGround({ k: 'corrupt', side: 'm', x: 0, y: 0, r: 60, dur: 30, v: 100 }); run(1); o.top = Math.round(P.hp);
+    /* 地圖詞：留地面的條件 */
+    reset(); G.mm = mapMods({ mods: ['gCorrupt'] });
+    const r0 = Math.random; Math.random = () => 0;
+    mobGround(mk({ summoned: 1 })); mobGround(mk({ boss: 1 })); o.noSum = G.ground.length;
+    mobGround(mk({ x: 7, y: 8, dmg: 123 })); o.drop = G.ground.length && { k: G.ground[0].k, side: G.ground[0].side, x: G.ground[0].x, r: G.ground[0].r, dur: G.ground[0].dur, v: G.ground[0].v };
+    for (let i = 0; i < 30; i++) mobGround(mk()); o.cap = G.ground.length;
+    /* 玩家方的地面不佔上限 */
+    G.ground = G.ground.slice(-3).concat({ k: 'smoke' }); mobGround(mk()); o.cap2 = G.ground.length;
+    Math.random = () => 0.99; G.ground = []; for (let i = 0; i < 30; i++) mobGround(mk()); o.noRoll = G.ground.length; Math.random = r0;
+    G.mm = mapMods({ mods: ['gEle'] }); const ks = new Set(); for (let i = 0; i < 300; i++) { G.ground = []; while (!G.ground.length) mobGround(mk()); ks.add(G.ground[0].k); } o.ele = [...ks].sort().join();
+    G.mm = null; G.ground = []; mobGround(mk()); o.noMod = G.ground.length;
+    /* 卡片 */
+    const gk = Object.keys(MAPMOD).filter(k => MAPMOD[k].g === 'ground');
+    o.mods = [gk.length, gk.every(k => /^怪物死亡有 25% 機率留下/.test(MAPMOD[k].t)), gk.every(k => MAPMOD[k].d <= 2), gk.every(k => k === 'gEle' || GROUND[MAPMOD[k].fx.gnd]), Object.keys(MAPMOD).length];
+    o.one = Array.from({ length: 3000 }, rollCard).every(c => c.mods.filter(k => MAPMOD[k].g === 'ground').length <= 1);
+    o.terms = ['奉獻地面', '腐化地面', '煙霧', '感電地面', '點燃地面', '元素地面', '被油纏身', '油滑地面', '凋零地面', '荊棘地面', '怒號地面'].filter(k => !TERMS[k]);
+    o.gname = o.kinds.filter(k => !GROUND[k].n || !GROUND[k].col || !GROUND[k].dur);
+    reset(); P.ail = { blind: 1e9, exp: 1e9, oiled: 1e9, cons: 1e9, wither: [1e9, 1e9], gd: { v: 1, n: '腐化地面', t: 1e9 } }; P.buf = { howl: 1e9 };
+    const st = playerStates(); o.pst = ['blind', 'exp', 'oiled', 'wither', 'cons', 'gd', 'howl'].filter(k => !st.some(x => x.k === k)); o.gdName = (st.find(x => x.k === 'gd') || {}).n; o.wc = (st.find(x => x.k === 'wither') || {}).c;
+    o.mst = mobStates(mk({ ail: { oiled: 1e9, cons: 1e9, howl: 1e9 } })).map(x => x.k).join();
+    reset(); ST.noCrit = 0; ST.noMiss = 0;
+    return o;
+  })()`);
+  ok(
+    '地面：每種分陣營的地面雙向跑 3 秒，數值都不是 NaN',
+    g.kinds.length === 10 && !g.nan.length,
+    g.kinds + ' ' + g.nan.join(' | ')
+  );
+  ok(
+    '奉獻地面：友方每秒 5%（王 1%）、詛咒效果 −50%；敵方不受影響；不能回復生命的地圖詞也擋得住',
+    g.consP.join() === '550,500,-20,-40' && g.consM.join() === '500,550,-40,-20' && g.consB === 510 && g.consNo === 500,
+    JSON.stringify([g.consP, g.consM, g.consB, g.consNo])
+  );
+  ok(
+    '腐化地面：混沌持續傷害吃抗性、跳過能量護盾、只打敵方、離開就停',
+    g.corM.join() === '470,500,100' && g.corOff && g.corP.join() === '500,440',
+    JSON.stringify([g.corM, g.corOff, g.corP])
+  );
+  ok(
+    '煙霧：雙向致盲；玩家被致盲時閃避值變低',
+    g.smP.join() === 'true,true' && g.smM.join() === 'true,true' && g.smEv,
+    JSON.stringify([g.smP, g.smM, g.smEv])
+  );
+  ok(
+    '感電地面：雙向、感電 6 秒',
+    g.shP.join() === '6,true' && g.shM.join() === 'true,6',
+    JSON.stringify([g.shP, g.shM])
+  );
+  ok(
+    '點燃地面：2 秒累積到 50%、雙向、被油纏身更快、護符免疫、死因是點燃地面',
+    g.igP.join() === 'true,true,50,true' &&
+      g.igM.join() === 'true,50,點燃地面' &&
+      g.igOil &&
+      g.igImm &&
+      g.igDead.join() === 'true,點燃地面',
+    JSON.stringify([g.igP, g.igM, g.igOil, g.igImm, g.igDead])
+  );
+  ok(
+    '凋零地面：每秒 1 層、每層 4 秒、玩家的混沌擊中與中毒也吃',
+    g.wiP.join() === '3,true,15' && g.wiM.join() === 'true,4' && g.wiHit === 1.15 && g.wiPoi === 110,
+    JSON.stringify([g.wiP, g.wiM, g.wiHit, g.wiPoi])
+  );
+  ok(
+    '荊棘地面：生成時打一次（怪物方躲不掉、死因是地面），站著不受傷、移動才受傷，雙向',
+    g.thM.join() === '100,荊棘地面,phys,true' &&
+      g.thStill === 500 &&
+      g.thMove === 460 &&
+      g.thP.join() === '400,true' &&
+      g.thPStill &&
+      g.thPMove === 360,
+    JSON.stringify([g.thM, g.thStill, g.thMove, g.thP, g.thPStill, g.thPMove])
+  );
+  ok(
+    '怒號地面：友方閃避、滿血傷害、猛攻，留 1 秒；怪物方給怪物（傷害 ×1.4 只在滿血、移動速度 +10%）',
+    g.hoP.join() === 'true,true,true' &&
+      g.hoEv &&
+      g.hoDmg.join() === 'true,true' &&
+      g.hoM.join() === 'true,true,1.4,1.1' &&
+      g.hoM2 === 1 &&
+      g.hoEnd.join() === 'false,1',
+    JSON.stringify([g.hoP, g.hoEv, g.hoDmg, g.hoM, g.hoM2, g.hoEnd])
+  );
+  ok(
+    '油滑地面與被油纏身：緩速 30%、火焰抗性 −20%（別的元素不吃）、易燃 ×3、留 2 秒、雙向；怪物火焰擊中的點燃機率 ×3',
+    g.oiP.join() === 'true,true,0.7,-20,0' &&
+      g.oiM.join() === 'true,true,0.7,-20,0' &&
+      g.oiFlam === 30 &&
+      g.oiStay === 0.7 &&
+      g.oiGone === 1 &&
+      g.oiHit.join() === 'true,false',
+    JSON.stringify([g.oiP, g.oiM, g.oiFlam, g.oiStay, g.oiGone, g.oiHit])
+  );
+  ok(
+    '曝曬：玩家三元素 −20%、混沌不吃，跟火焰曝曬不疊',
+    g.exP.join() === '-20,-20,0' && g.exTop === -20,
+    JSON.stringify([g.exP, g.exTop])
+  );
+  ok(
+    '怪物方的油可引爆：爆炸算點燃的那一招、只傷怪物、留下玩家方的燃燒地面',
+    g.oilBoom[0] === 0 && g.oilBoom[1] && g.oilBoom[2] === 1 && g.oilBoom[3] === 500,
+    JSON.stringify(g.oilBoom)
+  );
+  ok('冰緩地面：雙向', g.chP.join() === '30,true' && g.chM.join() === 'true,30,0.7', JSON.stringify([g.chP, g.chM]));
+  ok(
+    '地面打玩家：要踩在畫出來的橢圓裡、牆後面不算；死因寫地面；死後不再作用；只算最強一塊',
+    g.ell === 500 && g.wall === 500 && g.dead.join() === 'true,腐化地面' && g.deadNoHeal === 500 && g.top === 320,
+    JSON.stringify([g.ell, g.wall, g.dead, g.deadNoHeal, g.top])
+  );
+  ok(
+    '地圖詞留地面：召喚物與王不留、怪物方、基準是那隻怪的一下、最多 10 塊、機率真的會擋、元素地面三選一、沒有詞不留',
+    g.noSum === 0 &&
+      g.drop.k === 'corrupt' &&
+      g.drop.side === 'm' &&
+      g.drop.x === 7 &&
+      g.drop.r === 60 &&
+      g.drop.dur === 6 &&
+      g.drop.v === 123 &&
+      g.cap === 10 &&
+      g.cap2 === 5 &&
+      g.noRoll === 0 &&
+      g.ele === 'chill,ignited,shockg' &&
+      g.noMod === 0,
+    JSON.stringify([g.noSum, g.drop, g.cap, g.cap2, g.noRoll, g.ele, g.noMod])
+  );
+  ok(
+    '地面地圖詞 10 條：寫在卡面上、同組一張卡最多一種、危險度 1～2、種類都存在',
+    g.mods.join() === '10,true,true,true,46' && g.one,
+    JSON.stringify([g.mods, g.one])
+  );
+  ok(
+    '地面的名詞卡、狀態圖示都在',
+    !g.terms.length &&
+      !g.gname.length &&
+      !g.pst.length &&
+      g.gdName === '腐化地面' &&
+      g.wc === 2 &&
+      g.mst === 'oiled,cons,howl',
+    JSON.stringify([g.terms, g.gname, g.pst, g.gdName, g.wc, g.mst])
+  );
+}
 process.exit(bad ? 1 : 0);

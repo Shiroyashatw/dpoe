@@ -45,22 +45,134 @@ function crush(m) {
 }
 
 /* ---------- 2、3. 地面效果與引爆技能 ---------- */
+/* 陣營（第 11 批，企劃書 7.3）：g.side 'm'＝怪物方，沒寫＝玩家方。on(a, t, g, dt) 是站在上面每格做的事，
+   a 是目標的異常表（怪物、玩家同一組欄位）、t 是目標；on 打「地面的敵方」，ally 的打「擁有者那一方」。
+   有 on 的種類才分陣營；碎裂、毒氣雲、燃燒地面、劍陣、紅花的傷害照玩家的技能算，只有玩家方。
+   dot、burst：每秒傷害、生成時一次的傷害對 g.v 的倍率（怪物方 g.v＝死掉那隻的一下；⚠️ 暫定）；dur：怪物方留多久 */
+const noAil = (a, k) => a.imm && a.imm[k] > G.t;
+/* 持續傷害：同一格只算最強一塊，離開就停（ailTick、baseTick 讀 a.gd） */
+function gdSet(a, g, el, mv) {
+  const v = g.v * GROUND[g.k].dot;
+  if (!(a.gd && a.gd.t > G.t && a.gd.v > v)) a.gd = { v, el, mv, n: GROUND[g.k].n, t: G.t + 0.2 };
+}
 const GROUND = {
   jagged: { n: '碎裂地面', col: '#b08a5a', slow: 0.3 },
   gas: { n: '毒氣雲', col: '#8fd16b', burn: 1 },
-  oil: { n: '油', col: '#4a3a2a', slow: 0.3, burn: 1 },
+  /* 緩速在被油纏身裡（離開還留 2 秒），地面本身不另外緩速 */
+  oil: { n: '油滑地面', col: '#8a6a2a', burn: 1, dur: 6, on: a => (a.oiled = G.t + DEBUFF.oilT) },
   fire: { n: '燃燒地面', col: '#ff6b3d' },
-  chill: { n: '冰緩地面', col: '#8fd6ff' },
+  chill: {
+    n: '冰緩地面',
+    col: '#8fd6ff',
+    el: 'cold',
+    dur: 4,
+    on: a => noAil(a, 'chill') || (a.chill = { v: 30, t: G.t + 0.5 })
+  },
   blades: { n: '劍陣', col: '#e8e2d6' },
   /* 0.2.13 死亡紅花：每秒生命偷取的持續傷害，時間到或被引爆就整排爆炸＋流血 */
-  bloom: { n: '死亡紅花', col: '#d9304a', leech: 0.2 }
+  bloom: { n: '死亡紅花', col: '#d9304a', leech: 0.2 },
+  cons: {
+    n: '奉獻地面',
+    col: '#ffe08a',
+    ally: 1,
+    dur: 6,
+    on(a, t, g, dt) {
+      a.cons = G.t + 0.2;
+      /* 回復：玩家吃「生命回復」地圖詞；怪物的王只回 1% */
+      if (t === P)
+        P.hp = Math.min(ST.hp, P.hp + ((ST.hp * DEBUFF.consHeal) / 100) * Math.max(0, 1 + MM('pregen') / 100) * dt);
+      else t.hp = Math.min(t.mhp, t.hp + ((t.mhp * (t.boss ? DEBUFF.consBoss : DEBUFF.consHeal)) / 100) * dt);
+    }
+  },
+  corrupt: { n: '腐化地面', col: '#7a3fa0', dot: 0.6, dur: 6, on: (a, t, g) => gdSet(a, g, 'chaos') },
+  smoke: {
+    n: '煙霧',
+    col: '#9aa0a8',
+    dur: 6,
+    on: a => (a.blind = Math.max(a.blind || 0, G.t + DEBUFF.blindT))
+  },
+  shockg: {
+    n: '感電地面',
+    col: '#ffe14d',
+    el: 'light',
+    dur: 6,
+    on: a => noAil(a, 'shock') || (a.shock = Math.max(a.shock || 0, G.t + DEBUFF.shockGT))
+  },
+  /* 持續累積易燃（被油纏身 200% 更多），到 50% 點燃 */
+  ignited: {
+    n: '點燃地面',
+    col: '#ff8a2a',
+    el: 'fire',
+    dot: 0.5,
+    dur: 4,
+    on(a, t, g, dt) {
+      if (noAil(a, 'ign')) return;
+      flamAdd(a, DEBUFF.flamRate * dt);
+      if (a.flam < DEBUFF.flamAt) return;
+      a.flam = 0;
+      a.ign = keepMax(a.ign, g.v * GROUND.ignited.dot, 4, { by: GROUND.ignited.n });
+    }
+  },
+  /* 每秒疊 1 層（a.gwT 是這個目標下一層的時間） */
+  wither: {
+    n: '凋零地面',
+    col: '#5fae7a',
+    dur: 6,
+    on(a) {
+      if (a.gwT > G.t) return;
+      a.gwT = G.t + 1;
+      witherAdd(a);
+    }
+  },
+  /* 生成時打一次（addGround），之後在裡面移動才受傷 */
+  thorn: { n: '荊棘地面', col: '#a8c24a', dot: 0.4, burst: 1, dur: 6, on: (a, t, g) => gdSet(a, g, 'phys', 1) },
+  howl: {
+    n: '怒號地面',
+    col: '#ff5a8a',
+    ally: 1,
+    dur: 6,
+    on(a, t) {
+      if (t === P) gainBuff('howl', DEBUFF.howlT), gainBuff('onslaught', DEBUFF.howlT);
+      else a.howl = G.t + DEBUFF.howlT;
+    }
+  }
 };
-/* o：k 種類、x、y、r、dur 秒、c 技能設定（傷害照它算）、dps 每秒傷害倍率、after 結束時再打一次的倍率（餘震） */
+/* o：k 種類、x、y、r、dur 秒、c 技能設定（傷害照它算）、dps 每秒傷害倍率、after 結束時再打一次的倍率（餘震）、side 'm' 怪物方、v 傷害基準 */
 function addGround(o) {
-  G.ground.push({ t: 0, dur: 4, dps: 0, ...o });
+  const g = { t: 0, dur: 4, dps: 0, v: 0, ...o };
+  G.ground.push(g);
+  if (GROUND[g.k].burst) groundBurst(g);
+}
+/* 地圖詞「怪物死亡有 25% 機率留下 X」（killMob 呼叫）：召喚物與王不留（王死了要撿東西），怪物方同時最多 gndMax 塊 */
+function mobGround(m) {
+  const k = MM('gnd');
+  if (!k || m.summoned || m.boss || G.ground.filter(g => g.side === 'm').length >= DEBUFF.gndMax || !roll(DEBUFF.gndCh))
+    return;
+  const kind = k === 'ele' ? pick(['shockg', 'chill', 'ignited']) : k;
+  addGround({ k: kind, side: 'm', x: m.x, y: m.y, r: 2 * METER, dur: GROUND[kind].dur, v: m.dmg });
 }
 const inGround = (g, o) => Math.hypot(o.x - g.x, o.y - g.y) < g.r + (o.r || 0);
-/* 引爆：範圍裡可燃的地面爆炸（油變成燃燒地面）、手雷提早爆、插地的飛劍爆 */
+/* 玩家要腳下真的踩在畫出來的橢圓裡、中間沒有牆才算（設計原則：死得要有道理） */
+const onGround = g => Math.hypot(P.x - g.x, (P.y - g.y) / 0.75) < g.r && los(g.x, g.y, P.x, P.y);
+/* 荊棘地面生成時打一次：怪物方打玩家（躲不掉、吃護甲，死因寫地面）；玩家方是荊棘傷害，吃荊棘傷害提高與怪物護甲 */
+function groundBurst(g) {
+  const v = g.v * GROUND[g.k].burst;
+  fx({ k: 'ring', x: g.x, y: g.y, r: g.r, dur: 0.3, col: GROUND[g.k].col });
+  if (g.side === 'm') {
+    if (onGround(g)) hurtPlayer(v, { D: { n: GROUND[g.k].n }, x: g.x, y: g.y }, 'phys', true);
+  } else
+    for (const m of G.mobs) if (m.hp > 0 && inGround(g, m)) dotHit(m, thornCut(m, v * (1 + ST.thornP / 100)), 'phys');
+}
+/* 站在地面上：敵方（怪物方打玩家、玩家方打怪物）；ally 反過來 */
+function groundOn(g, G0, dt) {
+  if ((g.side === 'm') !== !!G0.ally) {
+    if (G.state !== 'play' || !onGround(g)) return;
+    G0.on((P.ail = P.ail || {}), P, g, dt);
+    if (G0.el) trigCharms(G0.el, P.ail);
+  } else for (const m of G.mobs) if (m.hp > 0 && inGround(g, m)) G0.on(m.ail, m, g, dt);
+}
+/* 引爆：範圍裡可燃的地面爆炸（油變成燃燒地面）、手雷提早爆、插地的飛劍爆。
+   誰點的爆炸算誰的：怪物方的油沒有 g.c，用點燃它的那一招算傷害，只傷怪物 */
 function detonate(x, y, r, c) {
   for (const g of G.ground) {
     if (Math.hypot(g.x - x, g.y - y) > g.r + r || g.done) continue;
@@ -117,7 +229,7 @@ function groundTick(dt) {
           });
         }
     }
-    if (g.k === 'chill') for (const m of G.mobs) if (m.hp > 0 && inGround(g, m)) m.ail.chill = { v: 30, t: G.t + 0.5 };
+    if (G0.on) groundOn(g, G0, dt);
     if (G0.slow) for (const m of G.mobs) if (m.hp > 0 && inGround(g, m)) m.gslow = G.t + 0.2;
     /* 餘震：結束時再打一次 */
     if (g.t >= g.dur && !g.done) {
@@ -129,9 +241,9 @@ function groundTick(dt) {
   G.ground = G.ground.filter(g => !g.done);
 }
 /* 火焰擊中點燃可燃的地面（hitMob 呼叫） */
-function igniteAt(x, y) {
+function igniteAt(x, y, c) {
   for (const g of G.ground)
-    if (GROUND[g.k].burn && !g.done && Math.hypot(g.x - x, g.y - y) < g.r) detonate(g.x, g.y, 1, g.c);
+    if (GROUND[g.k].burn && !g.done && Math.hypot(g.x - x, g.y - y) < g.r) detonate(g.x, g.y, 1, g.c || c);
 }
 
 /* ---------- 4. 殘留物與灌注 ---------- */
@@ -519,15 +631,28 @@ function drawMech() {
       CX.fill();
       continue;
     }
-    CX.globalAlpha = 0.22 * f;
+    /* 怪物方：填色更濃、紅色虛線框、寫名字，一眼跟自己的地面分開 */
+    const foe = g.side === 'm';
+    CX.globalAlpha = (foe ? 0.36 : 0.22) * f;
     CX.fillStyle = C.col;
     CX.beginPath();
     CX.ellipse(g.x, g.y, g.r, g.r * 0.75, 0, 0, TAU);
     CX.fill();
-    CX.globalAlpha = 0.5 * f;
-    CX.strokeStyle = C.col;
-    CX.lineWidth = 2;
+    CX.globalAlpha = (foe ? 0.95 : 0.5) * f;
+    CX.strokeStyle = foe ? '#ff3b3b' : C.col;
+    CX.lineWidth = foe ? 3 : 2;
+    if (foe) CX.setLineDash([10, 6]);
     CX.stroke();
+    CX.setLineDash([]);
+    if (foe) {
+      CX.font = '600 11px "Noto Sans TC", sans-serif';
+      CX.textAlign = 'center';
+      CX.lineWidth = 3;
+      CX.strokeStyle = 'rgba(0,0,0,0.85)';
+      CX.strokeText(C.n, g.x, g.y + 4);
+      CX.fillStyle = '#fff';
+      CX.fillText(C.n, g.x, g.y + 4);
+    }
   }
   CX.globalAlpha = 1;
   for (const c of G.corpses) {
