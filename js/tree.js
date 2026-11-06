@@ -66,14 +66,25 @@ function treeRender() {
     const cw = (A.x - cx) * (B.y - cy) - (A.y - cy) * (B.x - cx) > 0 ? 1 : 0;
     return `<path d="M${A.x.toFixed(1)} ${A.y.toFixed(1)} A${r.toFixed(1)} ${r.toFixed(1)} 0 0 ${cw} ${B.x.toFixed(1)} ${B.y.toFixed(1)}" class="${cls}"/>`;
   };
-  let html = PTREE.E.map(([a, b]) => {
+  /* 線與點分格裝進 <g>（treeCull 把看不到的格子關掉）；線都在點下面 */
+  const eC = {},
+    nC = {},
+    cell = (o, x, y, v) => (o[tcell(x, y)] = o[tcell(x, y)] || []).push(v);
+  for (const [a, b] of PTREE.E) {
     const A = PTREE.I[a],
       B = PTREE.I[b],
       on = have.has(a) && have.has(b),
       near = have.has(a) || have.has(b);
     const c = PTREE.ARC[a + '|' + b];
-    return c ? arc(A, B, c, on ? 'on' : near ? 'near' : '') : line(A, B, on, near);
-  }).join('');
+    cell(eC, (A.x + B.x) / 2, (A.y + B.y) / 2, [
+      c ? arc(A, B, c, on ? 'on' : near ? 'near' : '') : line(A, B, on, near),
+      a,
+      b
+    ]);
+  }
+  let html = Object.entries(eC)
+    .map(([k, L]) => `<g class="tc e" data-c="${k}" style="display:none">${L.map(x => x[0]).join('')}</g>`)
+    .join('');
   /* 圖示：每張只定義一次（<defs>），點用 <use> 引用，一千多個點也不會太重 */
   const used = new Set(PTREE.N.map(n => n.ic).filter(Boolean)),
     defs = [...used]
@@ -81,7 +92,7 @@ function treeRender() {
       .map(ic => `<image id="ti_${ic}" data-ic="${ic}" width="1" height="1"/>`)
       .join('');
   html = `<defs>${defs}</defs>` + html;
-  html += PTREE.N.map(n => {
+  for (const n of PTREE.N) {
     const r = n.big === 2 ? 30 : n.gate ? 20 : n.big ? 19 : 10,
       st = have.has(n.id) ? 'on' : treeCan(n.id) ? 'can' : 'off',
       s = r * (n.big ? 1.4 : 1.3),
@@ -89,8 +100,16 @@ function treeRender() {
         n.ic && typeof ART !== 'undefined' && ART[n.ic]
           ? `<use href="#ti_${n.ic}" transform="translate(${-s / 2} ${-s / 2}) scale(${s})"/>`
           : '';
-    return `<g class="nd ${st} b${n.big}${TREE.sel === n.id ? ' sel' : ''}" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})" style="--c:${PT_THEME[n.th].c}"><circle r="${r}"/>${img}</g>`;
-  }).join('');
+    cell(
+      nC,
+      n.x,
+      n.y,
+      `<g class="nd ${st} b${n.big}${TREE.sel === n.id ? ' sel' : ''}" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})" style="--c:${PT_THEME[n.th].c}"><circle r="${r}"/>${img}</g>`
+    );
+  }
+  html += Object.entries(nC)
+    .map(([k, L]) => `<g class="tc" data-c="${k}" style="display:none">${L.join('')}</g>`)
+    .join('');
   html += `<circle class="hollow" r="${PT_R0 - 40}"/>`;
   /* 中間：昇華（點跟線也進 TEL，點亮只改 class）；最上面的大點名字寫在上面，不壓到下面的線 */
   const T = ascT();
@@ -106,7 +125,7 @@ function treeRender() {
   const B = treeBox();
   $('ptree').innerHTML = `<div class="tbar">
     <b>天賦樹</b>
-    <span>天賦點 剩 <b id="tpts"></b>（每升一級 1 點）</span>
+    <span>天賦點 剩 <b id="tpts"></b>（每級 1 點，逢 10 級 +3）</span>
     <span id="tasc"></span>
     <input id="tfind" type="search" placeholder="搜尋天賦" aria-label="搜尋天賦" autocomplete="off"><span id="tfound"></span>
     <button class="btn" data-ta="reset" id="treset">重置天賦</button>
@@ -118,8 +137,15 @@ function treeRender() {
   const tg = $('tg');
   TEL = {
     n: new Map([...tg.querySelectorAll('.nd')].map(e => [e.dataset.n, e])),
-    e: [...tg.querySelectorAll(':scope > line:not(.asc), :scope > path')].map((el, i) => [el, ...PTREE.E[i]]),
-    ae: T ? [...tg.querySelectorAll(':scope > line.asc')].map((el, i) => [el, ...T.E[i]]) : []
+    e: Object.entries(eC).flatMap(([k, L]) => {
+      const els = tg.querySelector(`.tc.e[data-c="${k}"]`).children;
+      return L.map((x, i) => [els[i], x[1], x[2]]);
+    }),
+    ae: T ? [...tg.querySelectorAll(':scope > line.asc')].map((el, i) => [el, ...T.E[i]]) : [],
+    c: [...tg.querySelectorAll('.tc')].map(el => {
+      const [x, y] = el.dataset.c.split(',');
+      return { el, x: x * TCELL, y: y * TCELL, on: false };
+    })
   };
   treeIcons();
   treeRefresh();
@@ -134,6 +160,25 @@ function treeIcons() {
   }
 }
 let TEL = null;
+/* 視窗裁切：世界座標切成方格，看不到的格子 display:none，手機拖曳才順（三千多個點都留在 DOM，點亮、搜尋不用管畫面）。
+   縮到看不清楚時（far）小點不畫圖示 */
+const TCELL = 900,
+  tcell = (x, y) => Math.floor(x / TCELL) + ',' + Math.floor(y / TCELL);
+function treeCull() {
+  const v = $('tview');
+  if (!TEL || !v) return;
+  const z = TREE.z,
+    m = 300,
+    x0 = (-v.clientWidth / 2 - TREE.x) / z - m,
+    x1 = (v.clientWidth / 2 - TREE.x) / z + m,
+    y0 = (-v.clientHeight / 2 - TREE.y) / z - m,
+    y1 = (v.clientHeight / 2 - TREE.y) / z + m;
+  for (const c of TEL.c) {
+    const on = c.x + TCELL > x0 && c.x < x1 && c.y + TCELL > y0 && c.y < y1;
+    if (on !== c.on) (c.on = on), (c.el.style.display = on ? '' : 'none');
+  }
+  $('tsvg').classList.toggle('far', z < 0.2);
+}
 function treeRefresh() {
   if (!TREE.open || !TEL) return;
   const have = new Set([...S.pt, ...S.at]),
@@ -208,6 +253,7 @@ function treeView() {
     z = TREE.z;
   $('tsvg').style.transform =
     `translate(${v.clientWidth / 2 + TREE.x + B.x * z}px, ${v.clientHeight / 2 + TREE.y + B.y * z}px) scale(${z})`;
+  treeCull();
 }
 /* 拖曳、縮放時才把 SVG 升成一張圖層（放手後拿掉，瀏覽器會重新畫成清楚的） */
 function treeMoving(on) {
@@ -271,7 +317,13 @@ const statLines = s => [
   ...(s.only ? [`持${WTN[s.only]}時：`] : []),
   ...Object.entries(s)
     .filter(([k]) => k !== 'only')
-    .map(([k, v]) => (STATN[k][2] ? STATN[k][0] : `${STATN[k][0]} ${v > 0 ? '+' : ''}${v}${STATN[k][1]}`))
+    .map(([k, v]) =>
+      STATN[k][2]
+        ? STATN[k][0]
+        : Array.isArray(v)
+          ? `${STATN[k][0]} ${v[0]}～${v[1]}`
+          : `${STATN[k][0]} ${v > 0 ? '+' : ''}${v}${STATN[k][1]}`
+    )
 ];
 function treeTip(id) {
   const n = id.startsWith('a_') ? ascT().I[id] : PTREE.I[id];
@@ -309,7 +361,9 @@ function treeZoomAt(cx, cy, z) {
   const svg = $('tview').getBoundingClientRect(),
     mx = cx - svg.left - svg.width / 2 - TREE.x,
     my = cy - svg.top - svg.height / 2 - TREE.y;
-  z = clamp(z, 0.12, 1.6);
+  /* 下限：整棵樹放得進畫面（樹變大，手機直立要到 0.05 左右） */
+  const B = treeBox();
+  z = clamp(z, Math.min(0.12, 0.95 * Math.min(svg.width / B.w, svg.height / B.h)), 1.6);
   TREE.x -= mx * (z / TREE.z - 1);
   TREE.y -= my * (z / TREE.z - 1);
   TREE.z = z;

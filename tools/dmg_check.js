@@ -33,7 +33,7 @@ function route(w, pts) {
     I = T.I,
     ADJ = T.ADJ,
     have = new Set();
-  const val = n => Object.entries(I[n].s || {}).reduce((a, [k, v]) => a + (w[k] || 0) * v, 0);
+  const val = n => Object.entries(I[n].s || {}).reduce((a, [k, v]) => a + (w[k] || 0) * (+v || 0), 0);
   const bfs = src => {
     const prev = {},
       d = {},
@@ -265,15 +265,18 @@ for (const L of [30, 60, 90]) {
       S = {
         lv: L,
         eq: gear(t, B.gear, B.wt, B.off, L),
-        pt: route(B.tree, R('ptPoints')(L)),
+        pt: [],
         ptA: {},
         asc: B.asc ? B.asc[0] : null,
         at: B.asc ? ['a_st', ...B.asc.slice(1, 1 + ap).map(k => 'a_' + k)] : [],
         auras: [],
         charms: []
       };
-    /* 過路點的能力值：一點一點補，每點選「讓全身裝備缺的能力值總和降最多」的那一項（用 eqLack，自己給的不算自己），都不缺就加力量 */
-    {
+    /* 過路點的能力值：一點一點補，每點選「讓全身裝備缺的能力值總和降最多」的那一項（用 eqLack，自己給的不算自己），都不缺就加力量。
+       能力值點只佔全樹 7.5%：穿不起時像玩家一樣繞去拿，路線給能力值點權重（aw），由小到大試到穿得起 */
+    for (const aw of [0, 1, 2, 4, 8, 16]) {
+      S.pt = route({ ...B.tree, attr: aw }, R('ptPoints')(L));
+      S.ptA = {};
       const I = R('PTREE').I,
         need = { str: 0, dex: 0, int: 0, lv: 0 };
       ctx.S = S;
@@ -301,6 +304,8 @@ for (const L of [30, 60, 90]) {
           ].sort((a, b) => d[b[1]] - d[a[1]])[0];
         S.ptA[id] = d[c[1]] > 0 ? c[0] : 's';
       }
+      S.aw = aw;
+      if (!R('eqCheck(S).bad.size')) break;
     }
     ctx.S = S;
     R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');

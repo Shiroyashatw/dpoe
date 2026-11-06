@@ -249,6 +249,10 @@ button.gtag:active { transform: scale(0.95); }
 #tview { flex: 1; position: relative; overflow: hidden; cursor: grab; touch-action: none; }
 #tsvg { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: visible; }
 #tsvg.moving { will-change: transform; }
+#tsvg.far .nd.b0 use { display: none; }
+#tsvg.far line, #tsvg.far path { stroke: rgba(205, 210, 220, 0.2); stroke-width: 12; }
+#tsvg.far line.on, #tsvg.far path.on { stroke: var(--sel); stroke-width: 26; }
+#tsvg.far .nd circle { stroke-width: 7; }
 #tsvg line, #tsvg path { stroke: rgba(205, 210, 220, 0.1); stroke-width: 5; fill: none; }
 #tsvg line.near, #tsvg path.near { stroke: rgba(205, 210, 220, 0.22); }
 #tsvg line.on, #tsvg path.on { stroke: var(--sel); stroke-width: 7; }

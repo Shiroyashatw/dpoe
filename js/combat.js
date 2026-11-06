@@ -100,6 +100,7 @@ const DEBUFF = {
   unbrT: 60,
   unbrHits: 10,
   cripT: 12,
+  cripOn: 0.25 /* ⚠️ 天賦的跛行：這一擊總傷害的倍率（輔助 Hobble 的數字沒查到） */,
   consumeImm: 1 /* 效果消耗：消耗減益後對它免疫的秒數 */,
   stainNeed: 6 /* 血漬：流血累積 6 秒 */,
   stainT: 8 /* ⚠️ 血漬減益持續秒數 */,
@@ -647,6 +648,12 @@ function hitCalc(c, m, o = {}) {
       (still() ? ST.stillP : 0) +
       (near < 160 ? ST.closeP : 0) +
       (near > 350 ? ST.farP : 0) +
+      (ST.surrP && surrounded() ? ST.surrP : 0) +
+      (ST.isoP && m && isolated(m) ? ST.isoP : 0) +
+      (recent('kill') ? ST.killP : 0) +
+      (ST.presP && m && presence(m.x, m.y) ? ST.presP : 0) +
+      (lowMp() ? ST.lowMpP : 0) +
+      (lowEs() ? ST.lowEsP : 0) +
       (bannerOn() ? G.banner.buff.dmg || 0 : 0);
   const typeInc = { phys: ST.physP, fire: ST.fireP, cold: ST.coldP, light: ST.lightP, chaos: ST.chaosP },
     incOf = ch => ch.reduce((t, k) => t + typeInc[k], 0) + (ch.some(k => ELEK.includes(k)) ? ST.eleP : 0);
@@ -868,7 +875,7 @@ const AIL_SRC = { ign: ['fire'], bleed: ['phys'], poi: ['phys', 'chaos'] },
 const surpass = p => (p > 0 ? Math.floor(p / 100) + (roll(p % 100) ? 1 : 0) : 0);
 /* 惡化點燃（技能欄位 c.compound）：同一次使用（use＝hitMob 的 o.a）再點燃同一目標，移除這次使用的舊筆，新筆幅度 × 累計筆數；反射、油地面的點燃不走這裡 */
 function igniteOn(m, dps, t, c, use) {
-  if (!c.compound || !use) return keepMax(m.ail.ign, dps, t);
+  if (!(c.compound || ST.compoundOn) || !use) return keepMax(m.ail.ign, dps, t);
   const mp = (use.cmp = use.cmp || new Map()),
     n = (mp.get(m) || 0) + 1;
   mp.set(m, n);
@@ -902,6 +909,7 @@ function applyAil(m, r, c, use) {
     archon = P.buf && P.buf.archon > G.t,
     mk = a.mark && a.mark.k,
     mag = 1 + (ST.ailMag + (c.ailMag || 0)) / 100,
+    ignM = mag + ST.ignMag / 100,
     attack = (c.D.tags || []).includes('attack'),
     rr = 1 - rarRed(m);
   /* 點燃：火焰傷害疊易燃（每 5% 門檻 +1% 機率），中了清零 */
@@ -917,7 +925,7 @@ function applyAil(m, r, c, use) {
     if (roll(a.flam) && !noAil(a, 'ign'))
       (a.ign = igniteOn(
         m,
-        igB * 0.2 * (mag + ST.shaper / 100) * (1 + ST.ember / 100),
+        igB * 0.2 * (ignM + ST.shaper / 100) * (1 + ST.ember / 100),
         4 * (ST.ember ? 0.75 : 1),
         c,
         use
@@ -982,14 +990,17 @@ function applyAil(m, r, c, use) {
   ) {
     if (nInc) (a.inc = 0), (P.incN = P.incN || []).push([G.t, nInc]);
     const im = ST.inciseMag ? 1 + Math.min(DEBUFF.inciseCap, DEBUFF.inciseMore * inciseRecent()) / 100 : 1;
-    a.bleed = keepMax(a.bleed, ailBase(p, 'bleed') * 0.15 * mag * im, 5);
+    /* 緋紅猛攻（基石 aggAll）：新上的流血都是加劇（×2），持續 −60% */
+    const agg = ST.aggAll ? { agg: 1 } : undefined;
+    a.bleed = keepMax(a.bleed, ailBase(p, 'bleed') * 0.15 * (mag + ST.bleedMag / 100) * im, agg ? 2 : 5, agg);
   }
   /* 附加火焰的品質：附加的火焰有機率直接點燃 */
-  if (c.addIgn && p.fire > 0 && !noAil(a, 'ign') && qRoll(c.addIgn)) a.ign = igniteOn(m, p.fire * 0.2 * mag, 4, c, use);
+  if (c.addIgn && p.fire > 0 && !noAil(a, 'ign') && qRoll(c.addIgn))
+    a.ign = igniteOn(m, p.fire * 0.2 * ignM, 4, c, use);
   if (ailBase(p, 'poi') > 0 && roll(ST.poisonCh + (c.poisonCh || 0))) {
     const n = 1 + ST.poiStack + (c.poiStack || 0);
     a.poi = (a.poi || []).filter(x => x.t > G.t);
-    a.poi.push({ dps: ailBase(p, 'poi') * 0.2 * mag, t: G.t + 2 });
+    a.poi.push({ dps: ailBase(p, 'poi') * 0.2 * (mag + ST.poiMag / 100), t: G.t + 2 });
     a.poi.sort((x, y) => y.dps - x.dps);
     a.poi.length = Math.min(a.poi.length, n);
     /* 劇毒的品質：疊滿時結算一部分剩餘毒傷 */
@@ -1043,10 +1054,12 @@ function debuffsOn(m, p, c) {
   if (c.unbr && p.phys > 0 && a.daze > G.t)
     a.unbr = { v: (p.phys * DEBUFF.unbrPct) / 100, t: G.t + DEBUFF.unbrT, n: DEBUFF.unbrHits };
   /* 壓碎：物理減傷 −15 個百分點，可以變負 */
-  if (c.crush) a.crush = G.t + dbT(c.crush, DEBUFF.crushT);
+  /* 天賦的開關（crushOn 重擊、crippleOn 對流血的敵人、weakenOn 對被詛咒的敵人）跟技能欄位同一條路 */
+  if (c.crush || (ST.crushOn && c.D.tags.includes('slam'))) a.crush = G.t + dbT(c.crush || true, DEBUFF.crushT);
   /* 跛行：扣目標當下的閃避（普通 ×3、菁英 ×2、王 ×1，跟破甲一致），扣到 0＝完全跛行 12 秒；c.cripple＝這一擊總傷害的倍率 */
-  if (c.cripple && m.ev0 != null && !(a.crip > G.t)) {
-    m.ev = Math.max(0, m.ev - tot * c.cripple * (m.boss ? 1 : m.elite ? 2 : 3));
+  const crip = c.cripple || (ST.crippleOn && a.bleed && a.bleed.t > G.t ? DEBUFF.cripOn : 0);
+  if (crip && m.ev0 != null && !(a.crip > G.t)) {
+    m.ev = Math.max(0, m.ev - tot * crip * (m.boss ? 1 : m.elite ? 2 : 3));
     a.evT = G.t + DEBUFF.cripT;
     if (m.ev <= 0) a.crip = G.t + DEBUFF.cripT;
   }
@@ -1062,7 +1075,7 @@ function debuffsOn(m, p, c) {
   /* 控制與減益（秒數由施加者給，true＝預設） */
   if (c.petrify) a.petr = G.t + dbT(c.petrify, DEBUFF.petrifyT) * (m.boss ? 0.5 : 1);
   if (c.calm) a.calm = G.t + dbT(c.calm, 1);
-  if (c.weaken) a.weak = G.t + dbT(c.weaken, DEBUFF.weakT);
+  if (c.weaken || (ST.weakenOn && a.curse && a.curse.t > G.t)) a.weak = G.t + dbT(c.weaken || true, DEBUFF.weakT);
   if (c.taunt) a.taunt = G.t + dbT(c.taunt, DEBUFF.tauntT);
   if (c.easy) a.easy = { v: c.easy, t: G.t + DEBUFF.easyT };
 }
@@ -1516,6 +1529,7 @@ function qualKill(m) {
 }
 /* 玩家這一格：盛怒消退、能量球與 buff 到期、玩家身上的異常、護符 */
 function baseTick(dt) {
+  if (ST.dynOn && !stkN('dyn')) gainStk('dyn');
   if (P.rage && G.t - (P.rageT || 0) > 4) {
     P.rageDec = (P.rageDec || 0) + dt;
     while (P.rageDec >= 0.2 && P.rage > 0) (P.rageDec -= 0.2), (P.rage = Math.max(0, P.rage - 1));
@@ -1727,6 +1741,7 @@ const pStunThr = () => ST.hp * (1 + ST.stunThrP / 100),
   pHeavy = () => !!(P.ail && P.ail.hstun > G.t);
 /* 僵直：被擊中時機率＝傷害 ÷ 門檻，低於 15% 不算（跟怪物的僵直一樣）；打斷正在出的招 */
 function playerStagger(d) {
+  if (ST.noStag) return;
   const p = d / pStunThr();
   if (p >= 0.15 && Math.random() < p) (P.stag = G.t + pStunSec(0.5)), (P.act = null);
 }

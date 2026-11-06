@@ -333,6 +333,8 @@ function eqCheck(s) {
   for (const id of s.pt || []) {
     const n = PTREE.I[id];
     if (n && n.s.attr) pts[ATT_PT[(s.ptA || {})[id]] || 'str'] += n.s.attr;
+    /* 大點的固定能力值也算進需求（stats 的 put 會再加進 o，這裡只管需求與顯示的總量） */
+    if (n) for (const a of ATTR) if (n.s[a]) pts[a] += n.s[a];
   }
   const es = EQS.filter(e => s.eq[e.k] && !(e.k === 'off' && !offOK(s.eq.weapon, s.eq.off)));
   let tot;
@@ -601,7 +603,27 @@ function stats(s = S) {
         'weakMore',
         'noRoll',
         'rollTank',
-        'minGiant'
+        'minGiant',
+        /* 天賦擴充：異常強度分種類、條件傷害、基石與開關 */
+        'bleedMag',
+        'poiMag',
+        'ignMag',
+        'surrP',
+        'isoP',
+        'killP',
+        'presP',
+        'lowMpP',
+        'lowEsP',
+        'dynOn',
+        'aggAll',
+        'noStag',
+        'crushOn',
+        'crippleOn',
+        'weakenOn',
+        'compoundOn',
+        'unChill',
+        'unPoi',
+        'unBleed'
       ].map(k => [k, 0])
     ),
     /* 不受影響：{ 減益種類: 1 }（ign、bleed、poison、chill、frozen、shock、curse、over、vine） */
@@ -697,6 +719,7 @@ function stats(s = S) {
     /* 武器招牌點（0.2.23，only）：拿那種武器才生效 */
     if (!n || (n.s.only && n.s.only !== wt0)) continue;
     for (const k in n.s) {
+      if (ATTR.includes(k)) continue;
       if (k in pt) pt[k] += n.s[k];
       else if (k === 'resA') for (const r of ['fire', 'cold', 'light']) o.res[r] += n.s[k];
       else put(k, n.s[k]);
@@ -710,6 +733,9 @@ function stats(s = S) {
     if (!v || (v.only && v.only !== wt0)) continue;
     for (const k in v) if (k !== 'only') k in pt ? (pt[k] += v[k]) : put(k, v[k]);
   }
+  if (o.unChill) o.unaff.chill = 1;
+  if (o.unPoi) o.unaff.poison = 1;
+  if (o.unBleed) o.unaff.bleed = 1;
   /* 固有加成：1 力量 +2 生命、1 敏捷 +8 命中值、1 智慧 +2 魔力，吃後面的提高；能力值基石拿掉一種、改成每 2 點給 1% 別的提高 */
   const noB = {};
   for (const k in ATT_KS)
