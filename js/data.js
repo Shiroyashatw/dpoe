@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.45';
+const VER = '0.2.46';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -95,8 +95,8 @@ const TERMS = {
   從其他能力獲得能力: '獲得能力 A 基礎值的 x% 當作能力 B：獲得的部分吃 B 的提高 %。例：獲得基礎閃避的 15% 當作護甲。',
   效用: '消耗 ÷ (1 + 效用%)：精魂保留效用 +50% → 保留量變成 67%。套在精魂保留與魔力消耗。',
   增益效果幅度:
-    '增益（光環、猛攻、流順之風）的數值 = 基礎 ×（1 + 效果%）×（1 + 幅度%），兩者分開相乘。光環效果算「效果」；幅度目前沒有來源。',
-  減益效果幅度: '減益（詛咒、曝曬）的數值 = 基礎 ×（1 + 效果%）×（1 + 幅度%），兩者分開相乘；目前都沒有來源。',
+    '增益（光環、猛攻、流順之風）的數值 = 基礎 ×（1 + 效果%）×（1 + 幅度%），兩者分開相乘。光環效果算「效果」。',
+  減益效果幅度: '減益（詛咒、曝曬）的數值 = 基礎 ×（1 + 效果%）×（1 + 幅度%），兩者分開相乘。',
   非疊加效果:
     '猛攻、詛咒、印記、曝曬這類效果不會疊加：在第一個結束前再附加只會刷新持續時間（詛咒、印記每隻怪只有一個）。',
   未限抗性: '無視上限的抗性數值，顯示在角色面板抗性後的括號裡；真正生效的是 min(未限抗性，最大抗性)。',
@@ -307,6 +307,7 @@ const SKILLS = {
     m: 0,
     r: 110,
     curse: 'enfeeble',
+    dur: 6,
     tags: ['spell', 'curse', 'aoe', 'occ'],
     d: '詛咒滑鼠位置的範圍（1.5 秒後生效）：' + CURSE_D.enfeeble
   },
@@ -318,6 +319,7 @@ const SKILLS = {
     m: 0,
     r: 110,
     curse: 'eleweak',
+    dur: 6,
     tags: ['spell', 'curse', 'aoe', 'occ'],
     d: '詛咒滑鼠位置的範圍（1.5 秒後生效）：' + CURSE_D.eleweak
   },
@@ -329,6 +331,7 @@ const SKILLS = {
     m: 0,
     r: 110,
     curse: 'tchains',
+    dur: 6,
     tags: ['spell', 'curse', 'aoe', 'occ'],
     d: '詛咒滑鼠位置的範圍（1.5 秒後生效）：' + CURSE_D.tchains
   },
@@ -340,6 +343,7 @@ const SKILLS = {
     m: 0,
     r: 110,
     curse: 'vuln',
+    dur: 6,
     tags: ['spell', 'curse', 'aoe', 'occ'],
     d: '詛咒滑鼠位置的範圍（1.5 秒後生效）：' + CURSE_D.vuln
   },
@@ -351,6 +355,7 @@ const SKILLS = {
     m: 0,
     r: 110,
     curse: 'despair',
+    dur: 6,
     tags: ['spell', 'curse', 'aoe', 'occ'],
     d: '詛咒滑鼠位置的範圍（1.5 秒後生效）：' + CURSE_D.despair
   },
@@ -695,6 +700,7 @@ const SKILLS = {
     mp: 14,
     cd: 6,
     m: 1,
+    dur: 4,
     wt: ['sword'],
     tags: ['attack', 'melee', 'cd'],
     d: '在滑鼠位置召出分身 4 秒，每 0.8 秒從你裝著的攻擊技能隨機挑一招打最近的敵人（傷害 ×0.6）'
@@ -746,6 +752,7 @@ const SKILLS = {
     cd: 8,
     m: 0,
     r: 250,
+    dur: 4,
     wt: ['axe'],
     tags: ['warcry', 'aoe', 'cd'],
     d: '立刻得到 15 點盛怒（攻擊傷害更多 1%／點），周圍 250 內的敵人被威嚇 4 秒（受到的傷害 +10%、造成的傷害 −10%）'
@@ -819,6 +826,7 @@ const SKILLS = {
     m: 0.8,
     spd: 850,
     r: 90,
+    dur: 5,
     wt: ['bow'],
     tags: ['attack', 'proj', 'aoe'],
     d: '射出一箭，落點留下可燃的毒氣雲 5 秒（中毒）；被火焰擊中或引爆技能打到會爆炸'
@@ -920,6 +928,7 @@ const SKILLS = {
     t: 0.3,
     mp: 5,
     m: 0,
+    dur: 10,
     wt: ['mace', 'flail'],
     tags: ['banner'],
     d: '榮耀滿 100 才能用（擊中、暴擊、擊殺累積）：插下鬥旗 10 秒，站在旗子範圍裡傷害提高 30%'
@@ -954,6 +963,7 @@ const SKILLS = {
     t: 0.4,
     mp: 14,
     m: 0.6,
+    dur: 15,
     tags: ['minion', 'occ'],
     d: '消耗身邊的一具屍體，叫出紙人兵 15 秒（最多 4 隻），用這顆寶石的召喚物傷害攻擊；附近沒有屍體就不能用'
   },
@@ -1022,6 +1032,7 @@ const CLS_TAGS = {
   combo: 'strike stack',
   split: 'repeat',
   refract: 'duration',
+  gasarrow: 'duration',
   frostbolt: 'repeat',
   arc: 'repeat',
   slash: 'strike final',
@@ -1036,11 +1047,11 @@ const CLS_TAGS = {
   blastmine: 'remote',
   ballista: 'remote duration',
   firetotem: 'remote duration',
-  mirage: 'remote',
+  mirage: 'remote duration',
   axethrow: 'repeat',
   rend: 'strike payoff',
   cleave: 'slam',
-  warcry: 'stack cascade',
+  warcry: 'stack cascade duration',
   smash: 'strike',
   leap: 'slam',
   fissure: 'slam payoff',
@@ -1050,20 +1061,20 @@ const CLS_TAGS = {
   clawchain: 'strike',
   blindpounce: 'slam cond',
   chainsweep: 'strike final',
-  banner: 'cond',
+  banner: 'cond duration',
   chaosbolt: 'repeat',
   corpseboom: 'cond cascade',
-  paperdoll: 'cond temp',
+  paperdoll: 'cond temp duration',
   bearmaul: 'slam stack',
   wolfpounce: 'strike cond',
   shieldcrush: 'slam',
   shieldthrow: 'repeat',
   grenade: 'grenade',
-  cu_enfeeble: 'cascade',
-  cu_eleweak: 'cascade',
-  cu_tchains: 'cascade',
-  cu_vuln: 'cascade',
-  cu_despair: 'cascade'
+  cu_enfeeble: 'cascade duration',
+  cu_eleweak: 'cascade duration',
+  cu_tchains: 'cascade duration',
+  cu_vuln: 'cascade duration',
+  cu_despair: 'cascade duration'
 };
 for (const k in CLS_TAGS) SKILLS[k].tags.push(...CLS_TAGS[k].split(' '));
 /* 光環（0.2.4，照 PoE2）：插在光環欄、開著就一直生效，預留精魂；效果跟著寶石等級與光環效果變強 */
@@ -1470,7 +1481,6 @@ const STATN = {
   closeP: ['對近身（160 內）的敵人傷害', '%'],
   farP: ['對遠處（350 外）的敵人傷害', '%'],
   killHeal: ['擊殺回復生命', ''],
-  lowHpRed: ['貧血時受到的傷害減少', '%'],
   blood: ['技能改用生命施放（不耗魔力）', '', 1],
   fireP: ['火焰傷害', '%'],
   coldP: ['冰冷傷害', '%'],
@@ -1517,7 +1527,7 @@ const STATN = {
   noCrit: ['不會暴擊', '', 1],
   fullCrit: ['對滿血的敵人必定暴擊', '', 1],
   evAsArmor: ['獲得基礎閃避的 15% 當作護甲（吃護甲的提高）', '', 1],
-  /* 0.2.42 第 6 批：撲殺、屠戮打擊、幸運、荊棘、偏斜（目前都沒有天賦來源，見待做清單） */
+  /* 0.2.42 第 6 批：撲殺、屠戮打擊、幸運、荊棘、偏斜 */
   cull: ['撲殺：擊中後生命低於門檻的敵人直接死亡（普通 35%、菁英 10%、王 5%）', '', 1],
   fullStrike: ['屠戮打擊：擊中滿血的敵人前，先移除生命（上限：普通 30%、菁英 15%、王 5%）', '%'],
   lukCrit: ['暴擊幸運', '', 1],
@@ -1546,7 +1556,7 @@ const STATN = {
   dazeCh: ['擊中時目眩的機率', '%'],
   stunRec: ['暈眩恢復', '%'],
   stunThrP: ['暈眩門檻', '%'],
-  /* 0.2.42 第 7 批：跟技能分類標籤的能力（目前都沒有天賦來源，見待做清單） */
+  /* 0.2.42 第 7 批：跟技能分類標籤的能力 */
   strikeP: ['打擊傷害', '%'],
   slamP: ['重擊傷害', '%'],
   novaP: ['新星傷害', '%'],
@@ -3198,7 +3208,7 @@ const PT_STAT_IC = {
   spiritEff: 'asc_s_lotus',
   mpEff: 'sup_sp_cd',
   evAsArmor: 'asc_s_shield',
-  /* 0.2.42 第 6 批（目前沒有天賦來源，圖示先借） */
+  /* 0.2.42 第 6 批（圖示先借） */
   cull: 'asc_s_sword',
   fullStrike: 'asc_s_sword',
   lukCrit: 'asc_s_eye',
@@ -4196,7 +4206,7 @@ const WATT = {
   traptool: ['dex', 'int'],
   talisman: ['str', 'int']
 };
-/* 能力值基石（第 13～16 批）：無法獲得某能力值的固有加成，改成每 2 點給 1% 的別的提高（items.js 的 stats 讀）；開關目前沒有來源 */
+/* 能力值基石（第 13～16 批）：無法獲得某能力值的固有加成，改成每 2 點給 1% 的別的提高（items.js 的 stats 讀）；來源是天賦 */
 const ATT_KS = {
   blackScythe: ['str', 'esP'],
   circular: ['dex', 'armorP'],
@@ -4204,7 +4214,7 @@ const ATT_KS = {
   ironGrip: ['str', 'projAtkP'],
   ironWill: ['str', 'spellP']
 };
-/* 第 13～16 批的開關與數值（都還沒有來源，見待做清單） */
+/* 第 13～16 批的開關與數值 */
 Object.assign(STATN, {
   blackScythe: ['黑暗血鐮訓練', '', 1],
   circular: ['循環教義', '', 1],

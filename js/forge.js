@@ -1,6 +1,6 @@
 /* dungeonPOE · 鍛造台面板（0.2.6，企劃書 5.3）：藏身處的鍛造台打開（左邊），背包在右邊。
    點一下背包或身上的裝備＝放上鍛造台；分頁：鍛造（花潛能＋三種粉）、淬鍊（花金幣）。
-   每個按鈕都寫要花什麼、預覽會發生什麼；不能按的寫原因；推薦的標 ★。技能寶石面板的升級、開孔、書庫按鈕也在這裡處理 */
+   每個按鈕都寫要花什麼、預覽會發生什麼；不能按的寫原因；推薦的標 ★。技能寶石面板的升級、開孔按鈕也在這裡處理 */
 'use strict';
 const CRAFT = { tab: 'forge', cls: null, sel: null, log: '' };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);

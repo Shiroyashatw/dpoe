@@ -389,7 +389,7 @@ function flamAdd(a, v) {
 /* 單一元素的穿透（0.2.45 天賦）：跟通用的穿透相加 */
 const PEN_K = { fire: 'penF', cold: 'penC', light: 'penL' };
 function resOf(m, k, pen = 0) {
-  /* 無視抗性（0.2.43）：該種傷害當抗性 0，負抗性也不吃（開關 ignFire／ignCold／ignLight／ignChaos，目前沒有來源） */
+  /* 無視抗性（0.2.43）：該種傷害當抗性 0，負抗性也不吃（開關 ignFire／ignCold／ignLight／ignChaos） */
   if (ST['ign' + IGNK[k]]) return 0;
   const a = m.ail || {};
   let r = m.res[k] || 0;
@@ -1192,18 +1192,19 @@ const CURSES = {
   vuln: { n: '脆弱', v: [30, 50], d: '護甲 −{}%' },
   despair: { n: '絕望', v: [35, 49], d: '混沌抗性 −{}%' }
 };
-/* 增益／減益的數值＝基礎 ×（1 + 效果%）×（1 + 幅度%），兩個分開相乘（0.2.42；光環效果 auraEff 歸增益效果）；幅度目前沒有來源 */
+/* 增益／減益的數值＝基礎 ×（1 + 效果%）×（1 + 幅度%），兩個分開相乘（0.2.42；光環效果 auraEff 歸增益效果） */
 const buffM = () => (1 + ST.buffEff / 100) * (1 + ST.buffMag / 100),
   debuffM = (mag = 0) => (1 + ST.debuffEff / 100) * (1 + (ST.debuffMag + mag) / 100);
 const curseV = (k, lv) => {
   const [a, b] = CURSES[k].v;
   return a + ((b - a) * (Math.min(20, lv) - 1)) / 19;
 };
-function curseMob(m, k, lv, q = 0) {
+/* dm：技能持續時間的倍率（詛咒技能是持續時間技能） */
+function curseMob(m, k, lv, q = 0, dm = 1) {
   /* 無咒的（怪物旗標 m.hexproof）：不受詛咒；玩家有 hexPierce 時你的詛咒能影響無咒敵人 */
   if ((m.hexproof && !ST.hexPierce) || noAil(m.ail, 'curse')) return;
   const v = curseV(k, lv) * (1 - rarRed(m)) * debuffM(bufV('curseMag'));
-  m.ail.curse = { k, v, t: G.t + 6 + 0.07 * lv, q };
+  m.ail.curse = { k, v, t: G.t + (6 + 0.07 * lv) * dm, q };
   if (k === 'vuln') m.arm = m.arm0 * (1 - v / 100);
 }
 /* 印記：每隻怪 1 個；觸發時消耗，給球或 buff */

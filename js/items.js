@@ -479,7 +479,7 @@ function stats(s = S) {
         'esLeech',
         'recoupHp',
         'recoupMp',
-        /* 0.2.42 第 8 批（沒有天賦來源，見待做清單） */
+        /* 0.2.42 第 8 批 */
         'rageLeech',
         'rageMax',
         'rageEff',
@@ -566,7 +566,7 @@ function stats(s = S) {
         /* 0.2.42 第 6 批：撲殺、屠戮打擊（%）、幸運、荊棘、偏斜（combat.js） */
         'cull',
         'fullStrike',
-        /* 0.2.43 第 9 批：進攻機制的開關（combat.js；目前沒有來源，見待做清單） */
+        /* 0.2.43 第 9 批：進攻機制的開關（combat.js） */
         'ignFire',
         'ignCold',
         'ignLight',
@@ -587,7 +587,7 @@ function stats(s = S) {
         'thornP',
         'defl',
         'evAsDefl',
-        /* 0.2.43 第 10 批：異常與減益的開關（combat.js；目前沒有來源，見待做清單） */
+        /* 0.2.43 第 10 批：異常與減益的開關（combat.js） */
         'parryMag',
         'parryDur',
         'parryR',
@@ -598,7 +598,7 @@ function stats(s = S) {
         'hexPierce',
         'hstunNoEv',
         'suppCh',
-        /* 第 13～16 批：開關與數值（combat.js、mech.js、skills.js；目前沒有來源，見待做清單） */
+        /* 第 13～16 批：開關與數值（combat.js、mech.js、skills.js） */
         ...Object.keys(ATT_KS),
         'projAtkP',
         'fork',

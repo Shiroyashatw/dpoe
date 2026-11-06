@@ -458,7 +458,7 @@ function actHit(a, idx) {
     G.pools.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: durOf(c), tick: 0, c, a });
     sfx('cast');
   } else if (D.curse) {
-    G.meteors.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: 1.5, curse: D.curse, lv: c.lv, q: c.q });
+    G.meteors.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: 1.5, curse: D.curse, lv: c.lv, q: c.q, dm: durOf(c) / D.dur });
     fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: '#c38bff' });
     sfx('cast');
   } else if (D.mark) {
@@ -491,7 +491,7 @@ function actHit2(a, idx, R, hitArc) {
   if (a.k === 'mirage') {
     /* 分身（0.2.25）：每次從你裝著的攻擊技能隨機放一招，傷害 ×0.6 */
     const p = open(a.tx, a.ty, 14) ? { x: a.tx, y: a.ty } : { x: P.x, y: P.y };
-    spawnMirage(null, p.x, p.y, 4, 0.8, 0.6);
+    spawnMirage(null, p.x, p.y, durOf(c), 0.8, 0.6);
     G.mirages[G.mirages.length - 1].q = c.q;
     fxs('blinkin', p.x, p.y, 40);
   } else if (a.k === 'axethrow' || a.k === 'apshot' || a.k === 'chaosbolt') {
@@ -580,7 +580,7 @@ function actHit2(a, idx, R, hitArc) {
     P.rageT = G.t;
     fxs('rage', P.x, P.y - 30, 40);
     fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#ff6b3d' });
-    for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) (m.ail.intim = G.t + 4), (m.ail.intimQ = c.q);
+    for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) (m.ail.intim = G.t + durOf(c)), (m.ail.intimQ = c.q);
   } else if (a.k === 'smash') {
     /* 重擊：打前方最近的一隻；瀕臨沉重暈眩就粉碎重擊（直接沉重暈眩）並震傷周圍 */
     let t = null,
@@ -721,7 +721,7 @@ function actHit2(a, idx, R, hitArc) {
     fxs('whip', P.x, P.y - 20, r, { rot: a.ang });
     hitArc(a.ang, D.arc, r, 150 * c.kb, { glory: a.stage === 2 ? 1 + c.q : 1 });
   } else if (a.k === 'banner') {
-    if (plantBanner({ dmg: 30 })) (G.banner.q = c.q), fxs('pillar', P.x, P.y, 70), sfx('cast');
+    if (plantBanner({ dmg: 30 }, 220, durOf(c))) (G.banner.q = c.q), fxs('pillar', P.x, P.y, 70), sfx('cast');
   } else if (a.k === 'corpseboom') {
     /* 屍體最大生命 10%（每級 +3%）的火焰範圍傷害，只吃抗性；也是引爆技能 */
     const cp = takeCorpse(a.tx, a.ty, 250);
@@ -739,7 +739,7 @@ function actHit2(a, idx, R, hitArc) {
     if (!cp) return;
     const dolls = G.allies.filter(w => w.src === 'doll');
     if (dolls.length >= 4) allyDie(dolls[0]);
-    callWolf('doll', c, cp, G.t + 15);
+    callWolf('doll', c, cp, G.t + durOf(c));
     const nw = G.allies[G.allies.length - 1];
     nw.hp = nw.mhp = cp.mhp * giantM(nw);
     fxs('rise', cp.x, cp.y, 40);
@@ -850,7 +850,7 @@ function boom(s) {
   s.done = 1;
   if (s.gas) {
     /* 毒氣箭的品質：毒氣雲飄向最近的怪（groundTick） */
-    addGround({ k: 'gas', x: s.x, y: s.y + 18, r: s.gas, dur: 5, c: s.c, dps: 0.6, drift: 60 * (s.c.q || 0) });
+    addGround({ k: 'gas', x: s.x, y: s.y + 18, r: s.gas, dur: durOf(s.c), c: s.c, dps: 0.6, drift: 60 * (s.c.q || 0) });
     return fxs('gas', s.x, s.y + 18, s.gas);
   }
   fx({ k: 'ring', x: s.x, y: s.y + 18, r: s.boom, dur: 0.3, col: '#ff8a4c' });
@@ -1122,7 +1122,7 @@ function updPools(dt) {
       fxs('dark', o.x, o.y, o.r * 0.6);
       for (const m of G.mobs)
         if (m.hp > 0 && Math.hypot(m.x - o.x, m.y - o.y) < o.r + m.r && los(o.x, o.y, m.x, m.y))
-          curseMob(m, o.curse, o.lv, o.q);
+          curseMob(m, o.curse, o.lv, o.q, o.dm);
     } else if (o.t >= o.dur && !o.done) {
       o.done = 1;
       fx({ k: 'ring', x: o.x, y: o.y, r: o.r, dur: 0.4, col: '#ff6b3d' });

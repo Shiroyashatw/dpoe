@@ -212,6 +212,38 @@ const BUILDS = {
     coc: 'arc'
   }
 };
+/* 0.2.46 每種武器一套（之後每批技能的數值驗收拿這些當基準）：路線與裝備跟劍近戰同一組權重，只換武器專精與主力招。
+   shortcut: 只算主力招單發 × 出手速度，段數、彈夾裝填、盛怒、連擊都沒算；要比連招時再加 */
+const WG = {
+    dmgP: 1,
+    flat: 3,
+    as: 2,
+    crit: 5,
+    critInc: 1,
+    critX: 1,
+    life: 0.5,
+    resA: 1,
+    resF: 0.5,
+    resC: 0.5,
+    resL: 0.5
+  },
+  WT = (w, more) => ({ atkP: 2, ['w_' + w]: 2, critInc: 1, critX: 1, as: 3, life: 0.3, ...more });
+Object.assign(BUILDS, {
+  斧: { tree: WT('axe', { meleeP: 2 }), gear: WG, wt: 'axe', sk: 'cleave' },
+  細杖: { tree: WT('qstaff', { meleeP: 2 }), gear: WG, wt: 'qstaff', sk: 'combo' },
+  長矛: { tree: WT('spear', { projP: 2 }), gear: WG, wt: 'spear', sk: 'spearthrow' },
+  十字弓: { tree: WT('xbow', { projP: 2 }), gear: WG, wt: 'xbow', sk: 'apshot' },
+  爪: { tree: WT('claw', { meleeP: 2 }), gear: WG, wt: 'claw', sk: 'clawchain' },
+  鏈錘: { tree: WT('flail', { meleeP: 2 }), gear: WG, wt: 'flail', sk: 'chainsweep' },
+  魔符: { tree: WT('talisman', { meleeP: 2, priP: 2 }), gear: WG, wt: 'talisman', sk: 'bearmaul' },
+  盾: {
+    tree: WT('mace', { meleeP: 2, shieldP: 2, armorP: 2 }),
+    gear: { ...WG, armor: 1, block: 1 },
+    wt: 'mace',
+    off: 'shield',
+    sk: 'shieldcrush'
+  }
+});
 /* 0.2.36 穩固值：同樣扣完減傷的總傷害，全部換成一種累積，30 秒打死王時定得住幾次（用真的 poiseAdd，打不打得中、抗性不算） */
 console.log(
   '階級  王生命    穩固值  累滿占王生命 冰/電/暈(近戰物理)  30 秒打死：定住次數 冰/電/暈  第一次(秒)  累滿占生命 精英/普通'
@@ -262,7 +294,10 @@ for (const t of [1, 4, 8, 12, 13, 16]) {
 console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗 命中');
 for (const L of [30, 60, 90]) {
   const t = Math.min(16, Math.max(1, Math.round(((L - 5) * 15) / 78) + 1));
+  let bi = 0;
   for (const [bn, B] of Object.entries(BUILDS)) {
+    /* 每一格自己的亂數種子：新增配裝不會讓別格的數字跟著變（0.2.46） */
+    seed = 12345 + L * 1000 + bi++;
     const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
       S = {
         lv: L,

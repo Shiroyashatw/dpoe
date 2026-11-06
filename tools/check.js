@@ -1869,6 +1869,34 @@ vm.runInContext(
     du.join() === '4.5,15,5,0,4.5,3',
     du.join()
   );
+  /* 0.2.46：原本寫死秒數的六類也吃技能持續時間（詛咒存的是倍率 dm） */
+  const du2 = R(`(() => {
+    ST.durP = 50;
+    const c = k => gemCfg(mkGem(k, 5), 0),
+      out = ['warcry', 'banner', 'gasarrow', 'mirage', 'paperdoll', 'cu_enfeeble'].map(k => durOf(c(k)));
+    G.meteors = [];
+    actHit({ k: 'cu_enfeeble', c: c('cu_enfeeble'), ang: 0, tx: 100, ty: 0, hits: [0], n: 0 }, 0);
+    out.push(G.meteors[0] && G.meteors[0].dm);
+    G.meteors = [];
+    /* 真的放一次：威嚇掛在怪身上的秒數、鬥旗插多久 */
+    const mob = { hp: 1, x: P.x + 10, y: P.y, r: 10, ail: {} }, mobs0 = G.mobs, rage0 = P.rage;
+    G.mobs = [mob];
+    actHit({ k: 'warcry', c: c('warcry'), ang: 0, tx: 100, ty: 0, hits: [0], n: 0 }, 0);
+    out.push(+(mob.ail.intim - G.t).toFixed(2));
+    G.mobs = mobs0;
+    P.rage = rage0;
+    P.glory = 100;
+    actHit({ k: 'banner', c: c('banner'), ang: 0, tx: 100, ty: 0, hits: [0], n: 0 }, 0);
+    out.push(+(G.banner.t - G.t).toFixed(2));
+    G.banner = null;
+    ST.durP = 0;
+    return out;
+  })()`);
+  ok(
+    '技能持續時間：威嚇、鬥旗、毒氣雲、幻影斬、紙人、詛咒也吃（詛咒 ×1.5；威嚇真的掛 6 秒、鬥旗真的插 15 秒）',
+    du2.join() === '6,15,7.5,6,22.5,9,1.5,6,15',
+    du2.join()
+  );
   const ta = R(`(() => {
     const c = gemCfg(mkGem('slash', 5), 0), t = x => ({ ...c, D: { ...c.D, tAdd: x } }), out = [];
     const a0 = actDur(c);
