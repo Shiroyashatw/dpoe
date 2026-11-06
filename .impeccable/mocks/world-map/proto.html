@@ -1,0 +1,390 @@
+<title>dungeonPOE 世界地圖原型</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<style>
+/* 版面：滿版的像素大陸地圖，鑄鐵框面板貼在右側（手機在下方）。延續遊戲 DESIGN.md：鐵灰、鑄鐵銀框、鋼藍標題帶、粗襯線；血紅只給血霧與裂縫，黃色只給主線 */
+:root {
+  color-scheme: dark;
+  --void: #17181b; --top: #2f3137; --base: #26282d; --bandA: #3d4a58; --bandB: #2f3945;
+  --bronze: #5f636e; --bright: #c3c7d0; --ink: #e9eaed; --ash: #aeb2bb; --steelA: #566c80; --steelB: #47596a;
+  --gold: #ffd166; --blood: #e5484d; --good: #7bd36b; --warn: #ffb38a;
+  --sans: "Noto Sans TC", "Microsoft JhengHei", sans-serif; --serif: "Noto Serif TC", PMingLiU, serif;
+}
+html, body { height: 100%; }
+body { background: var(--void); color: var(--ink); font: 14px/1.55 var(--sans); }
+::selection { background: var(--steelB); color: #fff; }
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 348px; }
+.map { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: #0d0e11; }
+canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; image-rendering: pixelated; }
+canvas:active { cursor: grabbing; }
+.frame { background: linear-gradient(var(--top), var(--base)); box-shadow: inset 0 0 0 1px var(--bronze), inset 0 0 0 2px #17181b, inset 0 0 0 3px #7c8088; }
+.side { min-width: 0; overflow-y: auto; display: flex; flex-direction: column; scrollbar-color: var(--bronze) var(--void); }
+.band { background: linear-gradient(var(--bandA), var(--bandB)); padding: 12px 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid #7c8088; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.band h1 { font: 900 19px/1.3 var(--serif); margin: 0; color: #f4f5f7; letter-spacing: .04em; }
+.band span { color: var(--bright); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.body { padding-block: 14px 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 14px; }
+.place h2 { font: 700 21px/1.3 var(--serif); margin: 0; color: #f4f5f7; }
+.place .kind { color: var(--bright); font-size: 13px; margin: 2px 0 0; }
+.place p { margin: 6px 0 0; color: var(--ash); }
+.place .lvl { color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
+.cards { display: grid; gap: 6px; margin-top: 10px; }
+button { font: 700 14px var(--sans); color: var(--ink); cursor: pointer; min-height: 44px; padding: 9px 12px; border: 1px solid var(--bright); background: linear-gradient(var(--steelA), var(--steelB)); box-shadow: 0 2px 3px rgba(0,0,0,.45); }
+button:hover { filter: brightness(1.14); }
+button:active { transform: translateY(1px); box-shadow: none; }
+button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+button:disabled { color: var(--ash); background: var(--void); border-color: var(--bronze); cursor: default; box-shadow: none; filter: none; }
+.card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; text-align: left; background: var(--void); border-color: var(--bronze); font-weight: 500; }
+.card .st { color: var(--gold); letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.card[aria-pressed="true"] { border-color: var(--bright); background: var(--bandB); }
+.enter { width: 100%; margin-top: 8px; }
+details { border-top: 1px solid var(--bronze); padding-top: 10px; }
+summary { cursor: pointer; color: var(--bright); font-weight: 500; min-height: 28px; }
+label { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; color: var(--ash); font-size: 13px; margin-top: 10px; }
+label b { color: var(--ink); font-variant-numeric: tabular-nums; }
+input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--steelA); }
+.reach { color: var(--ash); font-size: 13px; margin: 10px 0 0; }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin-top: 10px; color: var(--ash); font-size: 13px; }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend canvas { width: 22px; height: 22px; flex: none; }
+.foot { display: flex; gap: 6px; }
+.foot button { flex: 1; background: var(--void); border-color: var(--bronze); font-weight: 500; }
+.tool { position: absolute; right: calc(10px + env(safe-area-inset-right, 0px)); bottom: 10px; display: flex; gap: 6px; }
+.tool button { width: 44px; height: 44px; padding: 0; background: rgba(23,24,27,.9); border-color: var(--bronze); display: grid; place-items: center; }
+.tool svg { width: 16px; height: 16px; stroke: var(--ink); stroke-width: 2; fill: none; }
+.rift { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 5px 14px; white-space: nowrap; pointer-events: none; text-align: center; font-size: 13px; color: var(--bright); background: rgba(23,24,27,.88); box-shadow: inset 0 0 0 1px #7a2b2e; font-variant-numeric: tabular-nums; }
+.rift b { font: 700 15px var(--serif); color: #ffb9ad; margin-right: 8px; letter-spacing: .05em; }
+.cap { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; padding: 20px; }
+.cap[hidden] { display: none; }
+.cap p { margin: 0; font: 900 clamp(22px, 4.2vw, 40px)/1.5 var(--serif); text-align: center; color: #fff; text-shadow: 0 2px 2px #000, 0 0 24px rgba(0,0,0,.9); letter-spacing: .08em; text-wrap: balance; }
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 46%); }
+  .rift { font-size: 12px; padding: 4px 10px; top: 8px; }
+  .place h2 { font-size: 19px; }
+}
+</style>
+<div class="app">
+  <div class="map">
+    <canvas id="c" aria-label="世界地圖，點選地點"></canvas>
+    <div class="rift" id="rift"></div>
+    <div class="cap" id="cap" hidden><p id="capt"></p></div>
+    <div class="tool">
+      <button id="me" aria-label="回到目前位置"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4"/><path d="M8 0v3M8 13v3M0 8h3M13 8h3"/></svg></button>
+      <button id="zo" aria-label="縮小"><svg viewBox="0 0 16 16"><path d="M2 8h12"/></svg></button>
+      <button id="zi" aria-label="放大"><svg viewBox="0 0 16 16"><path d="M2 8h12M8 2v12"/></svg></button>
+    </div>
+  </div>
+  <aside class="side frame">
+    <div class="band"><h1>世界地圖</h1><span id="sum"></span></div>
+    <div class="body">
+      <section class="place" id="info" aria-live="polite"></section>
+      <details>
+        <summary>原型設定：難度節奏</summary>
+        <label for="step">每往外一圈，怪物等級 <b id="stepV"></b><input id="step" type="range" min="1" max="6" value="3"></label>
+        <label for="end">劇情區結束時的等級 <b id="endV"></b><input id="end" type="range" min="10" max="35" value="18"></label>
+        <p class="reach" id="reach"></p>
+      </details>
+      <details>
+        <summary>地點圖例</summary>
+        <div class="legend" id="legend"></div>
+      </details>
+      <div class="foot"><button id="skip">跳到世界展開</button><button id="reset">重來</button></div>
+    </div>
+  </aside>
+</div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id), cv = $('c'), cx = cv.getContext('2d');
+const DIRS = [[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]], SZ = 36, STORY_R = 3, CAP = 83;
+const STORY = [
+  ['地層出口', '離開地層，第一次打開地圖', 0, 0], ['枯河渡口', '教地圖卡與星級', 0, 1], ['破曉哨站', '認識破曉軍團的第一個據點', -1, 2],
+  ['廢棄礦道', '教地圖詞與風險', 0, 2], ['鴉衛的記號', '遇見鴉衛，學會看主線目標', 1, 1], ['天星商隊', '教商人與賣裝', 1, 2],
+  ['燒毀的村莊', '教昇華', 2, 1], ['血霧山道', '第一個機制：狩獵之血', 3, 0], ['裂谷斷崖', '打倒這裡的王，世界就會展開', 3, -1]
+];
+const ZOD = ['瘟噬鼠皇','獄鎖魔牛','血牙虎煞','月蝕狂兔','天墜邪龍','毒涎蛇姬','焚魂夢魘','魔羊祭司','雷魘猴王','業火冥雞','冥府獄犬','屠野魔豬'];
+const TYPES = {
+  dawn: ['破曉據點', '#9cc4e4', '破曉軍團的據點：補給、主線對話'], crow: ['鴉衛情報', '#d6dae2', '鴉衛留下的記號：標出附近值得走的路'],
+  star: ['天星分會', '#c9a0ff', '天星商會的分會：商人與市集'], blood: ['血霧之地', '#ff5a5f', '打完累積血霧'],
+  rift: ['裂口', '#ff8a4c', '生肖主線的目標'], plain: ['荒野', '#a7a294', '一般地圖'], story: ['主線', '#ffd166', '']
+};
+const REGIONS = [['枯河原野', 4], ['灰燼平原', 10], ['血霧荒原', 16], ['裂口腹地', 23]];
+const ICONS = {
+  story: ['...##......','...####....','...######..','...####....','...##......','...#.......','...#.......','...#.......','...#.......','..###......','.#####.....'],
+  dawn: ['.....#.....','....###....','...#####...','..##+#+##..','.##+++++##.','##+++.+++##','#+++...+++#','#+++...+++#','###########','...........','...........'],
+  crow: ['...........','..####.....','.#+#####...','###########','..#######..','...#####...','...#####...','....###....','....#.#....','...##.##...','...........'],
+  star: ['.....#.....','.....#.....','....###....','..#######..','#####+#####','..#######..','....###....','.....#.....','.....#.....','...........','...........'],
+  blood: ['.....#.....','....###....','....###....','...#####...','..#######..','..##+####..','.##+######.','.##+######.','..#######..','...#####...','...........'],
+  rift: ['......#....','.....##....','....##.....','...###.....','...####....','....###....','.....##....','....##.....','...##......','...#.......','..#........'],
+  plain: ['...........','...........','....###....','...#####...','..###+###..','..##+++##..','.##+++++##.','.#########.','...........','...........','...........']
+};
+const key = (q, r) => q + ',' + r, dist = (q, r) => (Math.abs(q) + Math.abs(r) + Math.abs(q + r)) / 2;
+const hash = (q, r, s = 0) => { let h = (q * 374761393 + r * 668265263 + s * 2147483647) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+const lat = (q, r) => [SZ * 1.5 * q, SZ * Math.sqrt(3) * (r + q / 2)];
+const pos = (q, r) => { const [x, y] = lat(q, r); if (SK[key(q, r)] != null) return [x, y]; return [x + (hash(q, r, 5) - .5) * 26, y + (hash(q, r, 6) - .5) * 26]; };
+const RIFTS = {}, SK = {};
+ZOD.forEach((n, i) => { const a = (i / 12) * Math.PI * 2 + .3, d = (9 + (i % 3) * 5) * SZ * 1.6, x = Math.cos(a) * d, y = Math.sin(a) * d; RIFTS[key(Math.round((x * 2 / 3) / SZ), Math.round((-x / 3 + Math.sqrt(3) / 3 * y) / SZ))] = n; });
+STORY.forEach((s, i) => (SK[key(s[2], s[3])] = i));
+
+/* ---------- 大陸：低解析度程式繪製，抖色量化，跟遊戲的像素圖同一種質感 ---------- */
+const TX = 5, TN = 900, HALF = (TN * TX) / 2;
+const PERM = new Uint8Array(512); { let s = 77; const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { s = (s * 1103515245 + 12345) & 0x7fffffff; const j = s % (i + 1); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) PERM[i] = p[i & 255]; }
+const vn = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), X = xi & 255, Y = yi & 255, a = PERM[PERM[X] + Y] / 255, b = PERM[PERM[X + 1] + Y] / 255, c = PERM[PERM[X] + Y + 1] / 255, d = PERM[PERM[X + 1] + Y + 1] / 255; return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
+const fbm = (x, y, o) => { let s = 0, a = .5, f = 1; for (let i = 0; i < o; i++) { s += vn(x * f, y * f) * a; a *= .5; f *= 2.03; } return s; };
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const EARTH = ['#1f1d1a','#2b2822','#39352c','#4a4538','#5e5847','#79725d','#98917a'].map(hex);
+const ASH = ['#201a1c','#2e2224','#3f2b2b','#533632','#6c463c','#8a5b4a','#a8765f'].map(hex);
+const BLOOD = ['#250f12','#3a1417','#531a1c','#6f2221','#8f2e29','#ae4034','#c95b47'].map(hex);
+const SEA = ['#0b1219','#0f1a24','#13232f'].map(hex);
+const FROST = ['#1b2531','#2a3946','#3f5361','#5e7684','#88a0ad','#b6c8d1','#e6f0f4'].map(hex);
+const LAVA = ['#170c0c','#261110','#371612','#4a1b14','#5f2217','#7a2f1b','#964222'].map(hex);
+const BOG = ['#121b15','#1a281b','#243522','#30452a','#3f5732','#526c3b','#6b8446'].map(hex);
+const biomeAt = (wx, wy) => { const n = (fbm(wx * .0016 + 21, wy * .0016 + 8, 3) - .45) * 900, x = wx + n, y = wy - n * .7; return y < -640 ? 'frost' : x > 620 ? 'lava' : y > 660 ? 'bog' : x < -640 ? 'blood' : 'mid'; };
+const WOOD = { mid: ['#1d3522','#27472a','#376034'], ash: ['#2b211c','#392b22','#4b3729'], blood: ['#2a0f12','#3e1518','#561c1e'], frost: ['#1f3339','#2d4a50','#cfdde2'], bog: ['#17281c','#213a24','#2e502e'] };
+for (const k in WOOD) WOOD[k] = WOOD[k].map(hex);
+const RIVER = { mid: ['#2b6a86', '#6fb6cf'], frost: ['#a9cfdd', '#eef6f8'], lava: ['#d9531e', '#ffb13c'], bog: ['#2d5a3a', '#7aa862'], blood: ['#7d1a1e', '#cf4238'] };
+const SITES = [];
+const BAYER = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5].map(v => (v + .5) / 16 - .5);
+const smooth = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const land = document.createElement('canvas'); land.width = land.height = TN;
+{
+  const g = land.getContext('2d'), im = g.createImageData(TN, TN), d = im.data, H = new Float32Array(TN * TN);
+  for (let y = 0, i = 0; y < TN; y++) for (let x = 0; x < TN; x++, i++) {
+    const wx = x * TX - HALF, wy = y * TX - HALF, r = Math.hypot(wx, wy * 1.08) / 2150;
+    H[i] = fbm(wx * .0021 + 9, wy * .0021 + 4, 5) * 1.25 - r * r * .95 - r * .18 + .02;
+  }
+  for (let y = 0, i = 0; y < TN; y++) for (let x = 0; x < TN; x++, i++) {
+    const h = H[i], b = BAYER[(y & 3) * 4 + (x & 3)], wx = x * TX - HALF, wy = y * TX - HALF; let c;
+    if (h < .16) { const w = Math.max(0, Math.min(2, Math.floor((h + .25) * 5 + b * .9 + Math.sin(wy * .04 + wx * .012) * .25))); c = SEA[w]; }
+    else {
+      const up = H[Math.max(0, i - TN - 1)], shade = (h - up) * 34, r = Math.hypot(wx, wy) / 1700;
+      let v = .6 + (h - .16) * 8.5 + shade + b * .7; v = Math.max(0, Math.min(6, Math.floor(v)));
+      const cor = smooth(.28, .95, r + (fbm(wx * .004 + 3, wy * .004 + 7, 3) - .45) * .5) + b * .2;
+      const bm = biomeAt(wx + b * 90, wy + b * 60), pal = bm === 'frost' ? FROST : bm === 'lava' ? LAVA : bm === 'bog' ? BOG : bm === 'blood' ? BLOOD : cor > .45 ? ASH : EARTH;
+      c = h < .185 ? pal[6] : pal[v];
+      /* 樹林：一整片樹冠，不是一顆顆小點；燒過的地方只剩枯林 */
+      if (h >= .22 && h < .58 && bm !== 'lava') {
+        const f = fbm(wx * .0052 + 17, wy * .0052 + 3, 3) + b * .02;
+        if (f > .535) { const F = bm === 'frost' ? WOOD.frost : bm === 'bog' ? WOOD.bog : bm === 'blood' ? WOOD.blood : cor > .45 ? WOOD.ash : WOOD.mid; c = F[((x >> 1) * 3 + (y >> 1) * 5 + (f * 40 | 0)) % 3]; }
+        else if (bm === 'mid' && cor < .45 && r > .16 && fbm(wx * .0075 + 71, wy * .0075 + 13, 2) > .6) c = ((x >> 2) + (y >> 1)) & 1 ? [104, 92, 50] : [76, 70, 42]; /* 荒廢的田 */
+      }
+      if (h >= .2 && bm === 'lava') { const n = Math.abs(fbm(wx * .0045 + 5, wy * .0045 + 2, 3) - .47); if (n < .0055) c = [255, 176, 72]; else if (n < .012) c = [176, 58, 26]; }
+      else if (h >= .2 && (bm === 'bog' || bm === 'blood')) { const n = fbm(wx * .0062 + 30, wy * .0062 + 12, 3); if (n > .615) c = bm === 'bog' ? [38, 72, 40] : [112, 18, 24]; else if (n > .595) c = bm === 'bog' ? [104, 142, 62] : [176, 58, 50]; }
+      else if (h >= .2 && bm === 'mid') { const n = fbm(wx * .0062 + 30, wy * .0062 + 12, 3); if (n > .615) c = [34, 86, 112]; else if (n > .6) c = [134, 176, 182]; }
+    }
+    const k = i * 4; d[k] = c[0]; d[k + 1] = c[1]; d[k + 2] = c[2]; d[k + 3] = 255;
+  }
+  g.putImageData(im, 0, 0);
+  /* 河：從山上順著地勢流到海，越走越寬，途中分支；流過哪裡就是哪裡的顏色（岩漿區是熔岩河、血海是血河） */
+  const at = (x, y) => H[(Math.max(0, Math.min(TN - 1, y | 0))) * TN + Math.max(0, Math.min(TN - 1, x | 0))];
+  const flow = (x, y, seed, w0, depth) => {
+    let px = 0, py = 0;
+    for (let s = 0; s < 1400 && at(x, y) > .16 && x > 2 && y > 2 && x < TN - 2 && y < TN - 2; s++) {
+      let gx = at(x + 5, y) - at(x - 5, y), gy = at(x, y + 5) - at(x, y - 5); const ox = x - TN / 2, oy = y - TN / 2, ol = Math.hypot(ox, oy) || 1, a = vn(x * .02 + seed, y * .02) * 12.6;
+      let dx = -gx * 7 + ox / ol * 1.05 + Math.cos(a) * .62 + px * 1.5, dy = -gy * 7 + oy / ol * 1.05 + Math.sin(a) * .62 + py * 1.5, l = Math.hypot(dx, dy) || 1; px = dx / l; py = dy / l; x += px * 1.1; y += py * 1.1;
+      const w = Math.min(4, w0 + s / 150), wx = x * TX - HALF, wy = y * TX - HALF, c = RIVER[biomeAt(wx, wy)];
+      g.fillStyle = c[0]; g.fillRect(Math.round(x - w / 2), Math.round(y - w / 2), Math.ceil(w), Math.ceil(w));
+      if (w > 2 && s % 3 === 0) { g.fillStyle = c[1]; g.fillRect(Math.round(x), Math.round(y), 1, 1); }
+      if (depth < 1 && s > 60 && s % 150 === 0) flow(x, y, seed + s, Math.max(1, w0 - 1), depth + 1);
+    }
+  };
+  for (let n = 0; n < 11; n++) { const a = n * 2.399 + .4, d = 45 + hash(n, 1, 61) * 120; flow(TN / 2 + Math.cos(a) * d, TN / 2 + Math.sin(a) * d, n * 13, 1.4, 0); }
+  /* 裂口：十二位神砸出來的深谷 */
+  for (const k in RIFTS) {
+    const [q, r] = k.split(',').map(Number), [wx, wy] = pos(q, r), X = (wx + HALF) / TX, Y = (wy + HALF) / TX, a = hash(q, r, 31) * 3.14, pts = [];
+    for (let i = -6; i <= 6; i++) pts.push([X + Math.cos(a) * i * 6 + (hash(q, i, 32) - .5) * 7, Y + Math.sin(a) * i * 6 + (hash(r, i, 33) - .5) * 7]);
+    for (const [col, ex] of [['#ff8a4c', 1], ['#080508', 0]]) { g.fillStyle = col; for (let i = 0; i < 12; i++) for (let u = 0; u < 1; u += .1) { const t = i + u, w = Math.max(.6, 3 - Math.abs(t - 6) * .5) + ex, x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * u, y = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * u; g.fillRect(Math.round(x - w / 2), Math.round(y - w / 2), Math.ceil(w), Math.ceil(w)); } }
+  }
+  /* 地貌：山脈成帶、樹林成叢、城鎮燒毀；間距拉開，不要滿版的小山 */
+  const mount = (x, y, s, l, d, snow, tip) => { for (let i = 0; i < s; i++) { g.fillStyle = l; g.fillRect(x - i, y - s + i, i + 1, 1); g.fillStyle = d; g.fillRect(x + 1, y - s + i, i, 1); } if (snow) { g.fillStyle = '#eef4f6'; g.fillRect(x, y - s, 1, 1); g.fillRect(x - 1, y - s + 1, 2, 1); g.fillRect(x - 2, y - s + 2, 2, 1); } if (tip) { g.fillStyle = tip; g.fillRect(x - 1, y - s, 2, 2); } };
+  for (let y = 6; y < TN - 10; y += 9) for (let x = 6 + (y % 2) * 4; x < TN - 10; x += 11) {
+    const jx = x + (hash(x, y, 21) * 8 | 0), jy = y + (hash(x, y, 22) * 7 | 0), h = at(jx, jy), wx = jx * TX - HALF, wy = jy * TX - HALF, R = Math.hypot(wx, wy) / 1700;
+    if (h < .22) continue;
+    const bm = biomeAt(wx, wy), ridge = 1 - Math.abs(2 * fbm(wx * .0011 + 50, wy * .0011 + 60, 3) - 1), z = hash(x, y, 23), wild = fbm(wx * .0052 + 17, wy * .0052 + 3, 3);
+    if (R > .34 && z < .016) { /* 燒毀的城鎮 */
+      for (let i = 0; i < 4; i++) { const bx = jx - 5 + i * 3, bh = 3 + (hash(x, i, 27) * 4 | 0); g.fillStyle = '#14100f'; g.fillRect(bx, jy - bh, 3, bh); g.fillStyle = '#ff7a3c'; if (hash(y, i, 28) < .5) g.fillRect(bx + 1, jy - bh + 1, 1, 1); }
+      SITES.push({ t: 'town', x: wx, y: wy, p: z * 400 });
+    } else if (ridge > .9 && z < .55 && bm !== 'bog') {
+      const s = 5 + (hash(x, y, 24) * 5 | 0);
+      if (bm === 'frost') mount(jx, jy, s, '#9fb4bf', '#31434f', 1);
+      else if (bm === 'lava') { mount(jx, jy, s, '#4a2118', '#1a0d0c', 0, '#ffb13c'); if (hash(x, y, 29) < .45) SITES.push({ t: 'smoke', x: wx, y: wy - s * TX, p: z * 50 }); }
+      else if (bm === 'blood') mount(jx, jy, s, '#6b2422', '#260f11');
+      else mount(jx, jy, s, R > .5 ? '#6f5548' : '#7d7762', R > .5 ? '#2d2223' : '#26241f');
+    } else if (wild > .52 && z < .45) {
+      if (bm === 'frost') { g.fillStyle = '#23323d'; g.fillRect(jx, jy - 2, 1, 3); g.fillStyle = '#e6f0f4'; g.fillRect(jx - 1, jy - 3, 3, 1); }
+      else if (bm === 'bog') { g.fillStyle = '#1b2a1b'; g.fillRect(jx, jy - 3, 1, 4); g.fillStyle = '#a6c76a'; g.fillRect(jx - 1, jy - 3, 3, 1); if (z < .05) SITES.push({ t: 'gas', x: wx, y: wy, p: z * 400 }); }
+      else if (bm === 'lava' || R > .56) { g.fillStyle = '#17100f'; g.fillRect(jx, jy - 3, 1, 4); g.fillRect(jx - 1, jy - 2, 3, 1); if (z < .06) SITES.push({ t: 'fire', x: wx, y: wy - 8, p: z * 300 }); }
+      else if (z < .1) { g.fillStyle = '#20261c'; g.fillRect(jx, jy - 2, 1, 3); }
+    }
+  }
+}
+/* 血霧：幾團慢慢飄的紅霧 */
+const MIST = Array.from({ length: 7 }, (_, n) => { const s = 64, c = document.createElement('canvas'); c.width = c.height = s; const g = c.getContext('2d'), im = g.createImageData(s, s); for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) { const u = (x - 32) / 32, v = (y - 32) / 32, a = Math.max(0, 1 - Math.hypot(u, v)) * (fbm(x * .09 + n * 9, y * .09, 3) * 1.8 - .25) * BAYER.length / 16, k = (y * s + x) * 4; im.data[k] = 190; im.data[k + 1] = 34; im.data[k + 2] = 38; im.data[k + 3] = Math.max(0, Math.min(150, a * 150)); } g.putImageData(im, 0, 0); return { c, a: hash(n, 1) * 6.28, d: 500 + hash(n, 2) * 900, s: 520 + hash(n, 3) * 620, v: (hash(n, 4) - .5) * .018 }; });
+/* 圖示：11×11 點陣，照顏色烘成小圖，地圖上一律不模糊 */
+const ICO = {}; const tint = (h, f) => { const [r, g, b] = hex(h); return `rgb(${r * f | 0},${g * f | 0},${b * f | 0})`; };
+for (const k in ICONS) { const c = document.createElement('canvas'); c.width = c.height = 11; const g = c.getContext('2d'), col = TYPES[k][1]; ICONS[k].forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '.') return; g.fillStyle = ch === '#' ? col : tint(col, .55); g.fillRect(x, y, 1, 1); })); ICO[k] = c; }
+
+/* 路：從劇情區終點往外長一棵樹（保證走得到），再隨機多接幾條成環，地點不是六邊都通 */
+const LINK = new Set(), lk = (a, b, c, d) => (a < c || (a === c && b < d) ? `${a},${b}|${c},${d}` : `${c},${d}|${a},${b}`), linked = (a, b, c, d) => LINK.has(lk(a, b, c, d));
+/* ---------- 狀態與規則 ---------- */
+const st = {};
+function reset() { Object.assign(st, { lv: 1, done: new Set(), cur: [0, 0], open: false, sel: [0, 0], card: null, n: 0, kills: 0, zoom: 1.25, cx: 0, cy: 0, stage: 0, wipe: 0, fogDirty: true }); const [x, y] = lat(1, 1); st.cx = x; st.cy = y; $('cap').hidden = true; ui(); }
+const step = () => +$('step').value, endLv = () => +$('end').value;
+const lvOf = (q, r) => { const i = SK[key(q, r)]; return i != null ? Math.round(1 + (i / 8) * (endLv() - 1)) : Math.min(CAP, endLv() + Math.max(0, dist(q, r) - STORY_R) * step()); };
+const nodeType = (q, r) => { if (SK[key(q, r)] != null) return 'story'; if (RIFTS[key(q, r)]) return 'rift'; const h = hash(q, r, 1); return h < .07 ? 'dawn' : h < .12 ? 'crow' : h < .17 ? 'star' : h < .3 ? 'blood' : 'plain'; };
+const isNode = (q, r) => { const k = key(q, r); if (SK[k] != null) return true; if (dist(q, r) <= STORY_R) return false; return !!RIFTS[k] || hash(q, r, 2) > .1; };
+const nameOf = (q, r) => { const i = SK[key(q, r)]; if (i != null) return STORY[i][0]; const k = key(q, r); if (RIFTS[k]) return RIFTS[k] + '的裂口'; const t = nodeType(q, r), R = REGIONS.filter(x => dist(q, r) >= x[1]).pop(); return t === 'plain' ? R[0] : TYPES[t][0]; };
+const isDone = (q, r) => st.done.has(key(q, r));
+const reachable = (q, r) => { if (!isNode(q, r) || isDone(q, r)) return false; const i = SK[key(q, r)]; if (i != null) return i === st.stage; return st.open && DIRS.some(([a, b]) => isDone(q + a, r + b) && linked(q, r, q + a, r + b)); };
+const visible = (q, r) => { if (!isNode(q, r)) return false; const i = SK[key(q, r)]; if (i != null) return i <= st.stage; if (!st.open) return false; return isDone(q, r) || !!RIFTS[key(q, r)] || DIRS.some(([a, b]) => isDone(q + a, r + b) && linked(q, r, q + a, r + b)); };
+{
+  for (let i = 0; i < 8; i++) LINK.add(lk(STORY[i][2], STORY[i][3], STORY[i + 1][2], STORY[i + 1][3]));
+  const seen = new Set([key(3, -1)]), Q = [[3, -1]];
+  while (Q.length) {
+    const [q, r] = Q.splice(Math.floor(hash(Q.length, Q[0][0], 41) * Math.min(Q.length, 6)), 1)[0];
+    for (const [a, b] of [...DIRS].sort((m, n) => hash(q + m[0], r + m[1], 42) - hash(q + n[0], r + n[1], 42))) {
+      const x = q + a, y = r + b;
+      if (seen.has(key(x, y)) || dist(x, y) <= STORY_R || dist(x, y) > 44 || !isNode(x, y)) continue;
+      seen.add(key(x, y)); LINK.add(lk(q, r, x, y)); Q.push([x, y]);
+    }
+  }
+  seen.forEach(k => { const [q, r] = k.split(',').map(Number); if (SK[k] != null) return; for (const [a, b] of DIRS) if (seen.has(key(q + a, r + b)) && SK[key(q + a, r + b)] == null && hash(q * 2 + a, r * 2 + b, 43) < .2) LINK.add(lk(q, r, q + a, r + b)); });
+}
+const riskOf = (lv, star) => { const d = lv + (star - 1) - st.lv; return d <= 1 ? ['輕鬆', 'var(--good)'] : d <= 5 ? ['打得動', 'var(--gold)'] : d <= 10 ? ['吃力', 'var(--warn)'] : ['很危險', 'var(--blood)']; };
+const cardsOf = (q, r) => [0, 1, 2].map(i => { const h = hash(q, r, 10 + i + st.n); return h < .34 ? 1 : h < .64 ? 2 : h < .84 ? 3 : h < .95 ? 4 : 5; }).sort();
+function clear(q, r, star) {
+  const i = SK[key(q, r)], lv = lvOf(q, r);
+  st.done.add(key(q, r)); st.cur = [q, r]; st.n++; st.fogDirty = true; st.card = null;
+  if (i != null) { st.lv = Math.max(st.lv, lv); st.stage = i + 1; if (i === 8) return expand(); const nx = STORY[i + 1]; st.sel = [nx[2], nx[3]]; }
+  else { const g = Math.max(.15, Math.min(1.7, 1 + (lv - st.lv) * .07)) * (1 + .1 * (star - 1)); st.lv = Math.min(CAP + 7, st.lv + g * .85); if (RIFTS[key(q, r)]) st.kills++; st.sel = null; }
+  ui();
+}
+function expand() {
+  st.open = true; st.sel = null; st.card = null; st.fogDirty = true; ui();
+  $('capt').textContent = '霧散開了。整片大陸都在燃燒。'; $('cap').hidden = false;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches, z0 = st.zoom, x0 = st.cx, y0 = st.cy, t0 = performance.now(), D = still ? 1 : 3400;
+  const tick = t => { const f = Math.min(1, (t - t0) / D), e = 1 - (1 - f) ** 4; st.zoom = z0 + (.46 - z0) * e; st.cx = x0 * (1 - e); st.cy = y0 * (1 - e); st.wipe = e; st.fogDirty = true; if (f < 1) requestAnimationFrame(tick); else setTimeout(() => ($('cap').hidden = true), 900); };
+  requestAnimationFrame(tick);
+}
+function ui() {
+  const c = st.cur, R = REGIONS.filter(x => dist(c[0], c[1]) >= x[1]).pop();
+  $('sum').textContent = `Lv ${Math.floor(st.lv)} · ${st.n} 張圖`;
+  $('rift').innerHTML = `<b>天空的裂縫</b>鎖定 · 主線 ${st.kills >= 12 ? 1 : 0}／4 · 生肖 ${st.kills}／12`;
+  $('stepV').textContent = '+' + step(); $('endV').textContent = 'Lv ' + endLv();
+  const rings = Math.ceil((CAP - endLv()) / step());
+  $('reach').textContent = `直直往外走，約 ${rings} 張圖會到等級 ${CAP}。想慢慢來就橫著走，同一圈難度不變。`;
+  const box = $('info'); box.textContent = '';
+  const add = (t, cls, txt) => { const e = document.createElement(t); if (cls) e.className = cls; e.textContent = txt; box.append(e); return e; };
+  if (!st.sel) { add('h2', '', st.open ? (R ? R[0] : '世界') : '地層出口'); add('p', '', st.open ? '點一個發亮的相鄰地點。往外走會變難，橫著走難度不變。' : '點發亮的主線地點繼續前進。'); return; }
+  const [q, r] = st.sel, t = TYPES[nodeType(q, r)], lv = lvOf(q, r), i = SK[key(q, r)];
+  add('h2', '', nameOf(q, r)); add('div', 'kind', i != null ? '主線' : t[0]);
+  const p = add('p', '', ''); const l = document.createElement('span'); l.className = 'lvl'; l.textContent = `怪物等級 ${lv}`; p.append(l, `　${i != null ? STORY[i][1] : t[2]}`);
+  if (isDone(q, r)) { add('p', '', '已經走過，留在地圖上當路線。'); return; }
+  if (!reachable(q, r)) { add('p', '', '還走不到：先打完相鄰的地點。'); return; }
+  if (i != null) { box.append(go(q, r, 1, '進入地圖')); add('p', '', '主線是固定內容，不用選地圖卡。'); return; }
+  const w = document.createElement('div'); w.className = 'cards';
+  cardsOf(q, r).forEach((star, n) => { const b = document.createElement('button'), [lab, col] = riskOf(lv, star); b.className = 'card'; b.setAttribute('aria-pressed', st.card === n); b.innerHTML = `<span class="st">${star}★</span><span>${[0, 2, 5, 8, 11, 14][star]} 條地圖詞</span><span style="color:${col}">${lab}</span>`; b.onclick = () => { st.card = n; ui(); }; w.append(b); });
+  box.append(w);
+  const star = st.card == null ? null : cardsOf(q, r)[st.card], g = go(q, r, star || 1, star ? '進入地圖' : '先選一張地圖卡'); g.disabled = !star; box.append(g);
+}
+function go(q, r, star, label) { const b = document.createElement('button'); b.className = 'enter'; b.textContent = label; b.onclick = () => clear(q, r, star); return b; }
+
+/* ---------- 迷霧：未探索的地方是黑的，世界展開時從中心血紅色推開 ---------- */
+const FN = 200, FS = 2250 * 2 / FN, fog = document.createElement('canvas'); fog.width = fog.height = FN; const fg = fog.getContext('2d');
+function drawFog() {
+  fg.globalCompositeOperation = 'source-over'; fg.clearRect(0, 0, FN, FN); fg.fillStyle = '#0d0e11'; fg.fillRect(0, 0, FN, FN);
+  fg.globalCompositeOperation = 'destination-out';
+  const hole = (x, y, rad, a = 1) => { const X = (x + 2250) / FS, Y = (y + 2250) / FS, R = rad / FS, g = fg.createRadialGradient(X, Y, R * .35, X, Y, R); g.addColorStop(0, `rgba(0,0,0,${a})`); g.addColorStop(1, 'rgba(0,0,0,0)'); fg.fillStyle = g; fg.beginPath(); fg.arc(X, Y, R, 0, 7); fg.fill(); };
+  if (st.wipe > 0) { const R = 80 + st.wipe * 2400, X = 2250 / FS, r = R / FS, g = fg.createRadialGradient(X, X, r * .7, X, X, r); g.addColorStop(0, 'rgba(0,0,0,.62)'); g.addColorStop(1, 'rgba(0,0,0,0)'); fg.fillStyle = g; fg.fillRect(0, 0, FN, FN); }
+  STORY.forEach((s, i) => { if (i <= st.stage) { const [x, y] = lat(s[2], s[3]); hole(x, y, 170); } });
+  st.done.forEach(k => { const [q, r] = k.split(',').map(Number), [x, y] = pos(q, r); hole(x, y, 150); });
+  st.fogDirty = false;
+}
+let vis = [];
+/* 世界的混亂：城鎮與森林在燒、濃煙、毒氣、裂口的光柱、鴉群、灰燼與閃電 */
+const STILL = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ASHES = Array.from({ length: 46 }, (_, i) => ({ x: hash(i, 1, 51), y: hash(i, 2, 51), v: 8 + hash(i, 3, 51) * 26, e: hash(i, 4, 51) < .45 }));
+const FLOCK = [0, 1, 2, 3].map(i => ({ a: i * 1.6, d: 420 + i * 260, v: .00006 + i * .00002 }));
+let bolt = null, nextBolt = 5000;
+function fxWorld(now, S, W, H, z) {
+  if (!st.open) return;
+  const on = st.wipe, cull = (x, y) => x < -60 || y < -120 || x > W + 60 || y > H + 60, px = Math.max(2, Math.round(z * 3));
+  /* 裂口光柱，直通天上的裂縫 */
+  cx.globalCompositeOperation = 'lighter';
+  for (const k in RIFTS) { const [q, r] = k.split(',').map(Number), [wx, wy] = pos(q, r), [x, y] = S(wx, wy), h = 520 * z, w = 5 * z + 2, g = cx.createLinearGradient(0, y, 0, y - h); g.addColorStop(0, 'rgba(255,110,60,.5)'); g.addColorStop(.4, 'rgba(229,60,60,.16)'); g.addColorStop(1, 'rgba(229,60,60,0)'); cx.globalAlpha = on * (.72 + .28 * Math.sin(now / 600 + q)); cx.fillStyle = g; cx.fillRect(x - w / 2, y - h, w, h); }
+  cx.globalCompositeOperation = 'source-over'; cx.globalAlpha = 1;
+  for (const s of SITES) {
+    const [x, y] = S(s.x, s.y); if (cull(x, y)) continue; const t = STILL ? 0 : now / 1000 + s.p;
+    if (s.t === 'fire' || s.t === 'town') { const f = Math.floor(t * 9) % 3, n = s.t === 'town' ? 3 : 1; for (let i = 0; i < n; i++) { const o = (i - (n - 1) / 2) * 3 * px; cx.fillStyle = '#ff7a2e'; cx.fillRect(x + o - px, y - px * (2 + f), px * 2, px * (2 + f)); cx.fillStyle = '#ffd166'; cx.fillRect(x + o - px / 2, y - px * (1 + f / 2), px, px); } }
+    if (s.t === 'town' || s.t === 'smoke') for (let i = 0; i < 5; i++) { const p = ((t * .22 + i / 5) % 1), a = (1 - p) * .34, sz = px * (2 + p * 6); cx.fillStyle = `rgba(32,28,30,${a})`; cx.fillRect(x + Math.sin(p * 6 + s.p) * 10 * z - sz / 2, y - p * 110 * z - sz, sz, sz); }
+    if (s.t === 'gas') for (let i = 0; i < 3; i++) { const p = ((t * .3 + i / 3) % 1); cx.fillStyle = `rgba(150,210,90,${(1 - p) * .55})`; cx.fillRect(x + Math.sin(p * 8 + i) * 8 * z, y - p * 34 * z, px, px); }
+  }
+  /* 鴉群 */
+  cx.fillStyle = '#0a0a0d';
+  for (const f of FLOCK) { const a = f.a + (STILL ? 0 : now * f.v), bx = Math.cos(a) * f.d, by = Math.sin(a) * f.d * .7; for (let i = 0; i < 7; i++) { const [x, y] = S(bx + (hash(i, 1, 52) - .5) * 90, by + (hash(i, 2, 52) - .5) * 60); if (cull(x, y)) continue; const w = Math.floor(now / 170 + i) % 2 ? 1 : 2; cx.fillRect(x - 3, y - w, 3, 1); cx.fillRect(x + 1, y - w, 3, 1); cx.fillRect(x, y, 1, 1); } }
+}
+function fxScreen(now, W, H) {
+  if (!st.open || STILL) return;
+  cx.globalAlpha = Math.min(1, st.wipe);
+  for (const a of ASHES) { const y = (a.y * H + now * .001 * a.v) % H, x = (a.x * W + Math.sin(now * .0006 + a.y * 9) * 18 + W) % W; cx.fillStyle = a.e ? '#ff8a4c' : 'rgba(190,186,178,.55)'; cx.fillRect(x, y, 2, 2); }
+  cx.globalAlpha = 1;
+  /* 閃電：從天上的裂縫打到大地 */
+  if (now > nextBolt) { nextBolt = now + 3500 + Math.random() * 4500; const x0 = W * (.25 + Math.random() * .5), pts = [[x0, 56]]; let x = x0, y = 56; const end = 140 + Math.random() * (H - 200); while (y < end) { y += 26 + Math.random() * 30; x += (Math.random() - .5) * 60; pts.push([x, y]); } bolt = { t: now, pts }; }
+  if (bolt && now - bolt.t < 320) { const a = 1 - (now - bolt.t) / 320; cx.beginPath(); bolt.pts.forEach(([x, y], i) => (i ? cx.lineTo(x, y) : cx.moveTo(x, y))); cx.strokeStyle = `rgba(255,120,110,${a * .55})`; cx.lineWidth = 7; cx.stroke(); cx.strokeStyle = `rgba(255,240,235,${a})`; cx.lineWidth = 2; cx.stroke(); cx.fillStyle = `rgba(255,120,100,${a * .08})`; cx.fillRect(0, 0, W, H); }
+}
+function draw(now) {
+  const dpr = Math.min(2, devicePixelRatio || 1), W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== (W * dpr | 0) || cv.height !== (H * dpr | 0)) { cv.width = W * dpr | 0; cv.height = H * dpr | 0; }
+  if (st.fogDirty) drawFog();
+  const z = st.zoom, ox = W / 2 - st.cx * z, oy = H / 2 - st.cy * z, S = (x, y) => [x * z + ox, y * z + oy];
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.imageSmoothingEnabled = false; cx.fillStyle = '#0c1014'; cx.fillRect(0, 0, W, H);
+  cx.drawImage(land, ox - HALF * z, oy - HALF * z, TN * TX * z, TN * TX * z);
+  cx.imageSmoothingEnabled = true; cx.drawImage(fog, ox - 2250 * z, oy - 2250 * z, 4500 * z, 4500 * z);
+  if (st.wipe > .02 && st.wipe < .995) { const R = (80 + st.wipe * 2400) * z; cx.strokeStyle = `rgba(229,72,77,${.7 * (1 - st.wipe)})`; cx.lineWidth = 40 * z + 6; cx.beginPath(); cx.arc(ox, oy, R * .92, 0, 7); cx.stroke(); }
+  if (st.open) {
+    cx.globalCompositeOperation = 'lighter';
+    for (const m of MIST) { const a = m.a + now * m.v * .001, x = Math.cos(a) * m.d, y = Math.sin(a) * m.d * .8, [sx, sy] = S(x, y), s = m.s * z; cx.globalAlpha = .34 * st.wipe; cx.drawImage(m.c, sx - s / 2, sy - s / 2, s, s); }
+    cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over';
+    /* 區域名：地圖上直接寫，取代數字等級線 */
+    if (z < 1) { cx.textAlign = 'center'; cx.font = `700 ${Math.max(14, 26 * z + 6)}px "Noto Serif TC", serif`; REGIONS.forEach(([n, r], i) => { const a = -1.15 + i * 1.72, R = (r + 3) * SZ * 1.62, [x, y] = S(Math.cos(a) * R, Math.sin(a) * R); cx.lineWidth = 4; cx.strokeStyle = 'rgba(13,14,17,.85)'; cx.fillStyle = 'rgba(233,226,206,.72)'; const t = [...n].join(' '); cx.strokeText(t, x, y); cx.fillText(t, x, y); }); }
+  }
+  fxWorld(now, S, W, H, z);
+  /* 地點與路 */
+  const cq = Math.round((st.cx * 2 / 3) / SZ), cr = Math.round((-st.cx / 3 + Math.sqrt(3) / 3 * st.cy) / SZ), span = Math.min(46, Math.ceil(Math.max(W, H) / z / SZ / 1.3) + 2); vis = [];
+  for (let q = cq - span; q <= cq + span; q++) for (let r = cr - span; r <= cr + span; r++) if (visible(q, r)) { const [x, y] = pos(q, r), [sx, sy] = S(x, y); if (sx > -40 && sy > -40 && sx < W + 40 && sy < H + 40) vis.push([q, r, sx, sy]); }
+  cx.imageSmoothingEnabled = false;
+  for (const [q, r] of vis) for (const [a, b] of DIRS) {
+    if ((a < 0 || (a === 0 && b < 0)) && visible(q + a, r + b)) continue;
+    if (!linked(q, r, q + a, r + b) || !visible(q + a, r + b)) continue;
+    const both = isDone(q, r) && isDone(q + a, r + b), [p1, p2] = pos(q, r), [p3, p4] = pos(q + a, r + b), mx = (p1 + p3) / 2 + (p4 - p2) * (hash(q + q + a, r + r + b, 44) - .5) * .5, my = (p2 + p4) / 2 - (p3 - p1) * (hash(q + q + a, r + r + b, 45) - .5) * .5, [x1, y1] = S(p1, p2), [x3, y3] = S(p3, p4), [xm, ym] = S(mx, my), L = Math.hypot(x3 - x1, y3 - y1), n = Math.max(3, Math.floor(L / 7));
+    for (let i = 1; i < n; i++) { const t = i / n, u = 1 - t, x = u * u * x1 + 2 * u * t * xm + t * t * x3, y = u * u * y1 + 2 * u * t * ym + t * t * y3; cx.fillStyle = 'rgba(8,8,10,.85)'; cx.fillRect(Math.round(x) - 2, Math.round(y) - 2, 5, 5); cx.fillStyle = both ? '#ffe9b0' : '#b9b09a'; cx.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3); }
+  }
+  const bigS = z >= .62 ? 2 : 1, pulse = .5 + .5 * Math.sin(now / 320);
+  for (const [q, r, x, y] of vis) {
+    const t = nodeType(q, r), T = TYPES[t], done = isDone(q, r), can = reachable(q, r), sel = st.sel && st.sel[0] === q && st.sel[1] === r, s = t === 'rift' || t === 'story' ? Math.max(2, bigS) : bigS, sz = 11 * s, b = sz / 2 + 5;
+    if (can) { cx.globalAlpha = .25 + .45 * pulse; cx.fillStyle = T[1]; cx.beginPath(); cx.moveTo(x, y - b - 7); cx.lineTo(x + b + 7, y); cx.lineTo(x, y + b + 7); cx.lineTo(x - b - 7, y); cx.fill(); cx.globalAlpha = 1; }
+    cx.beginPath(); cx.moveTo(x, y - b); cx.lineTo(x + b, y); cx.lineTo(x, y + b); cx.lineTo(x - b, y); cx.closePath(); cx.fillStyle = 'rgba(13,14,17,.92)'; cx.fill(); cx.lineWidth = sel ? 3 : 1.5; cx.strokeStyle = sel ? '#fff' : done ? '#6d7280' : T[1]; cx.stroke();
+    cx.globalAlpha = done ? .45 : 1; cx.drawImage(ICO[t], Math.round(x - sz / 2), Math.round(y - sz / 2), sz, sz); cx.globalAlpha = 1;
+    if (sel || can && z >= .62) { const lab = sel ? nameOf(q, r) : 'Lv ' + lvOf(q, r); cx.font = `700 ${sel ? 13 : 12}px "Noto Sans TC", sans-serif`; cx.textAlign = 'center'; const w = cx.measureText(lab).width + 12; cx.fillStyle = 'rgba(23,24,27,.92)'; cx.fillRect(x - w / 2, y + b + 5, w, 20); cx.strokeStyle = '#5f636e'; cx.lineWidth = 1; cx.strokeRect(x - w / 2 + .5, y + b + 5.5, w - 1, 19); cx.fillStyle = '#e9eaed'; cx.fillText(lab, x, y + b + 19); }
+  }
+  const [hx, hy] = S(...pos(st.cur[0], st.cur[1])); cx.fillStyle = '#fff'; cx.fillRect(Math.round(hx) - 3, Math.round(hy) - 28, 6, 6); cx.fillStyle = '#e5484d'; cx.fillRect(Math.round(hx) - 3, Math.round(hy) - 22, 6, 8); cx.fillStyle = '#17181b'; cx.fillRect(Math.round(hx) - 4, Math.round(hy) - 14, 8, 2);
+  fxScreen(now, W, H);
+  /* 天空的裂縫：掛在畫面最上方，永遠看得到 */
+  const g = cx.createLinearGradient(0, 0, 0, 96); g.addColorStop(0, 'rgba(10,9,12,.96)'); g.addColorStop(1, 'rgba(10,9,12,0)'); cx.fillStyle = g; cx.fillRect(0, 0, W, 96);
+  const w0 = W * .5 - Math.min(W * .42, 330), N = 22, dx = (W * .5 - w0) * 2 / N; cx.beginPath(); for (let i = 0; i <= N; i++) { const y = 54 + (hash(i, 7) - .5) * 15 - Math.sin((i / N) * 3.14) * 7; i ? cx.lineTo(w0 + i * dx, y) : cx.moveTo(w0, y); }
+  cx.lineJoin = 'bevel'; cx.strokeStyle = `rgba(229,72,77,${.22 + .1 * pulse})`; cx.lineWidth = 9; cx.stroke(); cx.strokeStyle = '#ff6b5e'; cx.lineWidth = 2.5; cx.stroke(); cx.strokeStyle = '#ffd9cc'; cx.lineWidth = 1; cx.stroke();
+  requestAnimationFrame(draw);
+}
+const pick = (mx, my) => { const r = cv.getBoundingClientRect(); let best = null, bd = 30; for (const n of vis) { const d = Math.hypot(n[2] - (mx - r.left), n[3] - (my - r.top)); if (d < bd) { bd = d; best = n; } } return best; };
+let dn = null;
+cv.addEventListener('pointerdown', e => { dn = { x: e.clientX, y: e.clientY, cx: st.cx, cy: st.cy, m: 0 }; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => { if (!dn) return; const dx = e.clientX - dn.x, dy = e.clientY - dn.y; dn.m = Math.max(dn.m, Math.hypot(dx, dy)); if (dn.m > 8) { st.cx = dn.cx - dx / st.zoom; st.cy = dn.cy - dy / st.zoom; } });
+cv.addEventListener('pointerup', e => { if (dn && dn.m <= 8) { const n = pick(e.clientX, e.clientY); if (n) { st.sel = [n[0], n[1]]; st.card = null; ui(); } } dn = null; });
+cv.addEventListener('wheel', e => { e.preventDefault(); st.zoom = Math.max(.3, Math.min(1.8, st.zoom * (e.deltaY < 0 ? 1.12 : .89))); }, { passive: false });
+$('zi').onclick = () => (st.zoom = Math.min(1.8, st.zoom * 1.25));
+$('zo').onclick = () => (st.zoom = Math.max(.3, st.zoom / 1.25));
+$('me').onclick = () => { const [x, y] = pos(st.cur[0], st.cur[1]); st.cx = x; st.cy = y; st.zoom = Math.max(st.zoom, .9); };
+$('step').oninput = $('end').oninput = ui;
+$('reset').onclick = reset;
+$('skip').onclick = () => { if (st.open) return; STORY.forEach(s => st.done.add(key(s[2], s[3]))); st.stage = 9; st.n = 9; st.lv = endLv(); st.cur = [3, -1]; const [x, y] = lat(3, -1); st.cx = x; st.cy = y; expand(); };
+{ const L = $('legend'); for (const k of ['story','dawn','crow','star','blood','rift']) { const s = document.createElement('span'), c = document.createElement('canvas'); c.width = c.height = 11; c.getContext('2d').drawImage(ICO[k], 0, 0); s.append(c, TYPES[k][0]); L.append(s); } }
+reset(); requestAnimationFrame(draw);
+</script>
