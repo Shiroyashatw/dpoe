@@ -76,12 +76,16 @@ function rollStar() {
   for (let i = 1; i <= 5; i++) if ((r -= STARS[i].w) <= 0) return i;
   return 1;
 }
+/* 抽卡是照「條」抽，組越大越常出現：地面詞 10 條同組，每張卡先隨機留 3 條，整組的權重等於 3 條詞，其他詞的相對比例不變 */
+const GROUND_W = 3;
 function rollCard() {
   const star = rollStar(),
     [lo, hi] = STARS[star].n,
     n = irnd(lo, hi),
     maxD = star <= 2 ? 2 : 3,
-    pool = Object.keys(MAPMOD).filter(k => MAPMOD[k].d <= maxD),
+    gnd = Object.keys(MAPMOD).filter(k => MAPMOD[k].g === 'ground'),
+    keep = new Set(Array.from({ length: GROUND_W }, () => gnd.splice(Math.floor(Math.random() * gnd.length), 1)[0])),
+    pool = Object.keys(MAPMOD).filter(k => MAPMOD[k].d <= maxD && (MAPMOD[k].g !== 'ground' || keep.has(k))),
     used = new Set(),
     mods = [];
   while (mods.length < n && pool.length) {

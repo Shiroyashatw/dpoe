@@ -2621,5 +2621,60 @@ vm.runInContext(
       g.mst === 'oiled,cons,howl',
     JSON.stringify([g.terms, g.gname, g.pst, g.gdName, g.wc, g.mst])
   );
+  /* 地面詞的出現率（固定亂數）：整組的權重等於 3 條詞，其他詞的相對比例跟沒有地面詞時一樣 */
+  const fq = R(`(() => {
+    const seed = s => () => {
+        s = (s + 0x6d2b79f5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      },
+      N = 200000,
+      count = () => {
+        const o = { n: [0, 0, 0, 0, 0, 0], g: [0, 0, 0, 0, 0, 0], h: [0, 0, 0, 0, 0, 0], w: {}, gw: {}, tot: 0, gtot: 0 };
+        for (let i = 0; i < N; i++) {
+          const c = rollCard();
+          o.n[c.star]++;
+          for (const k of c.mods) {
+            const f = MAPMOD[k].g;
+            if (f === 'ground') o.g[c.star]++, (o.gw[k] = (o.gw[k] || 0) + 1), o.gtot++;
+            else (o.w[k] = (o.w[k] || 0) + 1), o.tot++;
+            if (f === 'hp') o.h[c.star]++;
+          }
+        }
+        return o;
+      },
+      rnd0 = Math.random,
+      gk = Object.keys(MAPMOD).filter(k => MAPMOD[k].g === 'ground'),
+      saved = {};
+    Math.random = seed(11);
+    const A = count();
+    /* 對照組：把地面詞拿掉，就是加地面詞之前的抽法 */
+    for (const k of gk) (saved[k] = MAPMOD[k]), delete MAPMOD[k];
+    Math.random = seed(12);
+    const B = count();
+    Object.assign(MAPMOD, saved);
+    Math.random = rnd0;
+    const pct = (a, n) => Math.round((a / n) * 1000) / 10;
+    return {
+      rate: [1, 2, 3, 4, 5].map(s => pct(A.g[s], A.n[s])),
+      hp: [1, 2, 3, 4, 5].map(s => pct(A.h[s], A.n[s])),
+      gs: gk.map(k => pct(A.gw[k], A.gtot)),
+      /* 每條非地面詞佔非地面詞總數的比例，兩組最大差（百分點） */
+      drift: Math.max(...Object.keys(B.w).map(k => Math.abs(((A.w[k] || 0) / A.tot - B.w[k] / B.tot) * 100)))
+    };
+  })()`);
+  console.log(
+    `   地面詞出現率 ${fq.rate.map((v, i) => `${i + 1}★ ${v}%`).join('、')}；「怪物生命」${fq.hp.map(v => v + '%').join('／')}；其他詞比例最大差 ${fq.drift.toFixed(2)} 個百分點`
+  );
+  ok(
+    '地面詞出現率：1★ 15～20%；3★ 起跟 3 條同組的「怪物生命」差不超過 3 個百分點；10 條機率相同',
+    fq.rate[0] >= 15 &&
+      fq.rate[0] <= 20 &&
+      [2, 3, 4].every(i => Math.abs(fq.rate[i] - fq.hp[i]) <= 3) &&
+      fq.gs.every(v => Math.abs(v - 10) < 0.5),
+    JSON.stringify(fq)
+  );
+  ok('地面詞改權重：其他地圖詞的相對比例不變（每條差不到 0.2 個百分點）', fq.drift < 0.2, JSON.stringify(fq));
 }
 process.exit(bad ? 1 : 0);
