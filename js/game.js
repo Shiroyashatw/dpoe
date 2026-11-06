@@ -1001,10 +1001,14 @@ function flowAng(m) {
 /* ---------- 怪物的目標（0.2.52，企劃書 4.1）----------
    一般怪：打離自己最近、看得到的玩家或召喚物，每 0.5 秒重選一次。王：平常只打玩家。
    被魔像嘲諷（a.tauntBy／a.tauntT，skills.js 的 updAllies）只打魔像；被玩家嘲諷（a.taunt）只打玩家 */
-const liveAllies = () => (G.allies || []).filter(w => !w.dead && w.hp > 0);
+/* 活著的友方：召喚物，加上有生命的圖騰與砲塔圖騰（0.2.53；陷阱、地雷沒有生命，怪物不理） */
+const liveAllies = () => [
+  ...(G.allies || []).filter(w => !w.dead && w.hp > 0),
+  ...(G.units || []).filter(u => u.hp > 0)
+];
 function mobTarget(m, dt = 0) {
   const a = m.ail,
-    ok = w => w === P || (!w.dead && w.hp > 0 && G.allies.includes(w));
+    ok = w => w === P || (!w.dead && w.hp > 0 && (G.allies.includes(w) || (G.units || []).includes(w)));
   if (a.taunt > G.t) return (m.tg = P);
   if (a.tauntT > G.t && a.tauntBy && ok(a.tauntBy)) return (m.tg = a.tauntBy);
   if (m.boss) return (m.tg = P);
@@ -1018,7 +1022,7 @@ function mobTarget(m, dt = 0) {
 /* 怪物這一下打到誰：玩家走 hurtPlayer；召喚物走 allyHurt（沒有護甲、抗性、閃避，只吃怪物自己的傷害倍率與嘲諷的 −10%） */
 function mobHit(m, T, d, noEv, el) {
   if (T === P) hurtPlayer(d, m, el || (m && m.el), noEv);
-  else allyHurt(T, d * (m && m.ail ? mobDmgMul(m) * tauntMul(m, T) : 1));
+  else (T.type ? unitHurt : allyHurt)(T, d * (m && m.ail ? mobDmgMul(m) * tauntMul(m, T) : 1));
 }
 /* 範圍招：圓裡的玩家與召喚物都吃 */
 function mobArea(m, x, y, r, d, noEv, el) {

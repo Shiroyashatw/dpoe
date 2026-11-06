@@ -244,8 +244,21 @@ function useSlot(i) {
   P.face = ang;
   /* 陷阱、地雷、砲塔圖騰、圖騰：放在滑鼠位置（最遠 320） */
   if (c.unit) {
-    placeUnit(c, w);
-    P.act = { k: c.k, c, t: 0, dur: 0.25 / c.speed, ang, hits: [], n: 0, place: 1 };
+    /* 圖騰、砲塔圖騰（0.2.53）：放置要 UNIT_PLACE 秒，動作做完才出現（skillTick 的 a.pw）；陷阱、地雷照舊馬上放。
+       自動化輔助放的不走這裡（autoTick 直接 placeUnit），立刻出現 */
+    const slow = c.unit === 'totem' || c.unit === 'turret';
+    if (!slow) placeUnit(c, w);
+    P.act = {
+      k: c.k,
+      c,
+      t: 0,
+      dur: (slow ? UNIT_PLACE : 0.25) / c.speed,
+      ang,
+      hits: [],
+      n: 0,
+      place: 1,
+      pw: slow ? w : null
+    };
     sfx('throw');
     return true;
   }
@@ -339,7 +352,11 @@ function skillTick(a, dt, mx, my) {
     moveBody(P, mx * ST.spd * CAST_MOVE * dt, my * ST.spd * CAST_MOVE * dt);
     while (a.n < a.hits.length && a.t >= a.dur * a.hits[a.n]) actHit(a, a.n++);
   }
-  if (a.t >= a.dur) P.act = null;
+  if (a.t >= a.dur) {
+    /* 圖騰、砲塔圖騰：放置動作做完才出現（被打斷就沒放出來） */
+    if (a.pw) placeUnit(a.c, a.pw);
+    P.act = null;
+  }
 }
 
 /* ---------- 各技能出手 ---------- */
@@ -1193,7 +1210,7 @@ const ALLY_LIFE = [
     [80, 10084],
     [100, 17980]
   ],
-  ALLY_HPM = { golem: 1.2 };
+  ALLY_HPM = { golem: 1.2, totem: 1 };
 function allyBase(lv) {
   let i = 1;
   while (i < ALLY_LIFE.length - 1 && ALLY_LIFE[i][0] < lv) i++;
@@ -1416,6 +1433,15 @@ function onKill() {
 
 /* ---------- 陷阱、地雷、砲塔圖騰、圖騰（場上單位） ---------- */
 const UNIT_MAX = { trap: 4, mine: 6, totem: 2, turret: 2 };
+/* 圖騰、砲塔圖騰的放置時間（0.2.53；PoE1 的基礎值，PoE2 查不到數字）。陷阱、地雷是 0.25 秒 */
+const UNIT_PLACE = 0.6;
+/* 圖騰、砲塔圖騰被打（0.2.53，game.js 的 mobHit）：生命歸零就消失、不復活（updUnits 收掉） */
+function unitHurt(u, d) {
+  if (!(u.hp > 0)) return;
+  u.hp -= d;
+  u.hurtT = G.t;
+  if (u.hp <= 0) fx({ k: 'ring', x: u.x, y: u.y, r: 26, dur: 0.3, col: '#cfd8e3' }), sfx('slam');
+}
 const UNIT_N = { trap: '陷阱', mine: '地雷', totem: '圖騰', turret: '砲塔圖騰' };
 function placeUnit(c, w) {
   const d = Math.min(320, Math.hypot(w.x - P.x, w.y - P.y)),
@@ -1439,6 +1465,8 @@ function placeUnit(c, w) {
     dur = type === 'trap' || type === 'mine' ? 30 : durOf(c) || 8,
     rate = D.rate || Math.max(0.5, D.t * 1.8);
   const u = { type, x, y, c, t: 0, dur, cd: 0.3, rate };
+  /* 圖騰、砲塔圖騰有生命（0.2.53，照 PoE2：友方基礎生命 × 1，等級看寶石），怪物會打；陷阱、地雷沒有 */
+  if (type === 'totem' || type === 'turret') (u.r = 14), (u.hp = u.mhp = allyLife('totem', c));
   G.units.push(u);
   /* 轉圖騰的品質：立下時立刻施放一次 */
   if (type === 'totem' && qRoll(c.totemCast)) {
@@ -1493,6 +1521,8 @@ function updUnits(dt) {
     boomMines = G.mineT && G.t >= G.mineT;
   const mines = G.units.filter(u => u.type === 'mine').length;
   for (const u of G.units) {
+    /* 被打死的圖騰直接收掉（不算時間到，不自爆） */
+    if (u.hp <= 0) continue;
     u.t += dt;
     if (u.type === 'trap') {
       const m = u.t > 0.4 && near(u, 70);

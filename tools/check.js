@@ -4030,6 +4030,40 @@ vm.runInContext(
       '[[400,true],[true,true],false,[470,500],[51,382,1571,2888,5308,17980,17980],[35.7,61.2,9426,9426],16158]',
     JSON.stringify(d52)
   );
+  /* 0.2.53 D2：圖騰與砲塔圖騰有生命、怪物會打、被打死就消失；放置要 0.6 秒；陷阱、地雷不變 */
+  const d53 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (x, e = {}) => ({ D, x, y: 0, r: 12, sz: 20, hp: 1e6, mhp: 1e6, dmg: 100, el: 'phys', ail: {}, ...e }),
+      c = k => gemCfg(mkGem(k, 1), 0),
+      keep = { allies: G.allies, mobs: G.mobs, units: G.units, x: P.x, y: P.y, act: P.act, t: G.t },
+      out = {};
+    if (typeof moveBody === 'undefined') globalThis.moveBody = () => {};
+    P.x = 0; P.y = 0; G.allies = []; G.mobs = []; G.units = [];
+    /* 放下去：圖騰、砲塔有生命（Lv1 寶石＝51），陷阱、地雷沒有 */
+    placeUnit(c('firetotem'), { x: 60, y: 0 }); placeUnit(c('ballista'), { x: 0, y: 60 });
+    placeUnit(c('frosttrap'), { x: -60, y: 0 }); placeUnit(c('blastmine'), { x: 0, y: -60 });
+    out.hp = G.units.map(u => [u.type, u.hp == null ? null : Math.round(u.hp)]);
+    /* 怪物會選圖騰當目標（比玩家近），不會選陷阱 */
+    const tot = G.units[0], trap = G.units[2], m = mk(100), m2 = mk(-100);
+    out.tg = [mobTarget(m, 0) === tot, mobTarget(m2, 0) === P];
+    /* 打圖騰：扣生命；歸零就被 updUnits 收掉，其他三個還在 */
+    mobHit(m, tot, 20); out.hit = Math.round(tot.hp);
+    mobHit(m, tot, 1e4); updUnits(0.01); out.dead = [G.units.includes(tot), G.units.length, mobTarget(m, 1) === P];
+    /* 放置時間：圖騰 0.6 秒做完才出現；陷阱照舊 0.25 秒、馬上放 */
+    G.units = [];
+    const a = { k: 'firetotem', c: c('firetotem'), t: 0, dur: UNIT_PLACE, ang: 0, hits: [], n: 0, place: 1, pw: { x: 60, y: 0 } };
+    P.act = a; skillTick(a, 0.5, 0, 0); const mid = G.units.length;
+    skillTick(a, 0.2, 0, 0); out.place = [UNIT_PLACE, mid, G.units.length, P.act === null];
+    Object.assign(G, { allies: keep.allies, mobs: keep.mobs, units: keep.units, t: keep.t });
+    Object.assign(P, { x: keep.x, y: keep.y, act: keep.act });
+    return out;
+  })()`);
+  ok(
+    'D2 圖騰：圖騰與砲塔有生命（Lv1 是 51）、陷阱與地雷沒有；怪物會打比玩家近的圖騰、不理陷阱；被打死就消失；放置 0.6 秒做完才出現',
+    JSON.stringify(d53) ===
+      '{"hp":[["totem",51],["turret",51],["trap",null],["mine",null]],"tg":[true,true],"hit":31,"dead":[false,3,true],"place":[0.6,0,1,true]}',
+    JSON.stringify(d53)
+  );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',
     b.eat1.join() === 'true,false,true' &&

@@ -1004,4 +1004,13 @@ function drawUnit(u) {
     CX.fillStyle = '#cfd8e3';
     CX.fillRect(u.x - 14, u.y + 6, 28 * Math.max(0, 1 - u.t / u.dur), 3);
   }
+  /* 生命條（0.2.53，圖騰與砲塔圖騰會被打）：受傷才顯示，畫法跟召喚物、怪物的小血條一樣 */
+  if (u.hp < u.mhp) {
+    /* 砲塔圖騰比圖騰矮，血條貼著它的頭頂 */
+    const y = u.y - (u.type === 'turret' ? 40 : 62);
+    CX.fillStyle = 'rgba(0,0,0,0.7)';
+    CX.fillRect(u.x - 19, y - 1, 38, 6);
+    CX.fillStyle = '#7bd36b';
+    CX.fillRect(u.x - 18, y, (36 * Math.max(0, u.hp)) / u.mhp, 4);
+  }
 }
