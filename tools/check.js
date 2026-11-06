@@ -2969,4 +2969,195 @@ vm.runInContext(
     })()`)
   );
 }
+/* 第 12 批：增益與資源（combat.js 的 BUFF）：疊層、上限、到期、數值生效、不是 NaN；奇術活力、滿溢聖杯 */
+{
+  const c5 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  vm.createContext(c5);
+  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c5, { filename: f });
+  const R = s => vm.runInContext(s, c5);
+  R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+     var LOS = true, HURT = null, DEAD = 0;
+     const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, hudWarn = () => {}, los = () => LOS, open = () => true, floorNear = () => null, isWall = () => false,
+       die = () => DEAD++, killMob = m => (m.hp = 0), aggroPack = () => {}, hurtPlayer = (d, src, el, noEv) => (HURT = { d, n: src.D.n, el, noEv });`);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8'), c5, {
+    filename: 'skills.js'
+  });
+  const gs = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, '');
+  vm.runInContext(gs.slice(gs.indexOf('function drinkFlask'), gs.indexOf('/* 受傷：完美閃避')), c5);
+  R(
+    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; ST = stats(S); mechEnter();`
+  );
+  const b = R(`(() => {
+    const o = {}, D = Object.values(MOBS)[0],
+      mk = () => ({ D, x: 0, y: 0, r: 12, sz: 20, hp: 500, mhp: 1000, arm: 0, arm0: 0, ev: 100, vx: 0, vy: 0, dmg: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} }),
+      ATK = { D: { n: 'x', tags: ['attack', 'melee'] }, mult: 1, lv: 1 },
+      SPL = { D: { n: 'x', tags: ['spell'], el: 'fire', m: 1 }, mult: 1, lv: 1 },
+      avg = c => hitCalc(c, null, { avg: 1 }),
+      r2 = v => Math.round(v * 100) / 100,
+      base = { ...ST },
+      reset = () => {
+        G.t = 100; G.mm = null; G.mobs = []; G.state = 'play'; G.scene = 'hide'; DEAD = 0;
+        ST = { ...base, dmg: [100, 100], armor: 0, block: 0, defl: 0, ev: 0, hp: 1000, mp: 1000, es: 1000 };
+        Object.assign(P, { x: 0, y: 0, hp: 1000, mp: 1000, es: 1000, ail: {}, buf: {}, stk: null, stkC: null, stkE: null, drain: null, chg: {}, rage: 0, rageCd: 0, flask: 0, mflask: 0, heal: 0, mheal: 0, form: null, charmRes: {}, evE: null, lastHit: null });
+      },
+      run = (s, dt = 0.05) => { for (let i = 0; i < Math.round(s / dt); i++) { G.t += dt; baseTick(dt); } };
+
+    /* 每一列：疊層、上限、狀態圖示、不是 NaN、到期 */
+    o.rows = Object.keys(BUFF).filter(k => BUFF[k].max);
+    o.bad = [];
+    const keys = [...new Set(o.rows.flatMap(k => Object.keys(BUFF[k].st || {})))];
+    for (const k of o.rows) {
+      const R = BUFF[k], st = () => playerStates().find(x => x.k === k), no = w => o.bad.push(k + ' ' + w);
+      reset();
+      gainStk(k);
+      if (stkN(k) !== 1) no('疊層 1');
+      if (R.max > 1) { gainStk(k); if (stkN(k) !== 2) no('疊層 2'); }
+      if (!R.fade) gainStk(k, 99);
+      if (stkN(k) !== R.max) no('上限');
+      const s = st();
+      if (!s || s.n !== R.n || s.ic !== R.ic || (R.max > 1 && s.c !== R.max)) no('狀態圖示');
+      const vals = [...keys.map(bufV), buffSpeed(), buffMove(), avg(ATK).d, avg(SPL).d, hurtCalc(100, null, 'phys', 1).d, hurtCalc(100, null, 'fire', 1).d];
+      if (!vals.every(Number.isFinite)) no('NaN ' + vals.join());
+      if (R.t || R.lose) {
+        G.t += R.lose ? R.lose * R.max + 0.01 : R.t + 0.01;
+        if (stkN(k) || st()) no('到期');
+        if (keys.some(x => bufV(x))) no('到期後還有數值');
+      } else {
+        G.t += 1e5;
+        if (stkN(k) !== R.max) no('不該到期');
+        stkClr(k);
+        if (stkN(k) || st()) no('清掉');
+      }
+    }
+    /* 來源可以指定秒數 */
+    reset(); gainStk('chalice', 1, 5); G.t += 4.9; o.tA = stkN('chalice'); G.t += 0.2; o.tB = stkN('chalice');
+    reset(); gainStk('elusive', 1, 60); o.tC = bufV('moveP'); G.t += 5.01; o.tD = stkN('elusive');
+    /* 持續時間：刷新 vs 每層各算各的 */
+    reset(); gainStk('dark', 3); G.t += 5; gainStk('dark'); G.t += 5; o.dark = stkN('dark');
+    reset(); gainStk('storm', 3); G.t += 3; gainStk('storm'); G.t += 3; o.storm = stkN('storm');
+    reset(); gainStk('prowess', 3); G.t += 1; gainStk('prowess'); const nFull = stkN('prowess'); G.t += 9.5; o.prow = [nFull, stkN('prowess')];
+    reset(); gainStk('unbound', 10); G.t += 5.01; const u1 = stkN('unbound'); G.t += 20; o.lose = [u1, stkN('unbound')];
+    /* 靈巧：遞減、結束前不能再獲得、移動速度跟 ST.ms 同池、避開擊中 */
+    reset(); ST.ms = 20; const mv0 = buffMove(); gainStk('elusive'); o.el0 = [bufV('moveP'), bufV('avoid'), r2(buffMove() / mv0)];
+    G.t += 2.5; gainStk('elusive', 1, 60); o.el1 = [bufV('moveP'), bufV('avoid')];
+    G.t += 2.6; o.el2 = bufV('moveP'); gainStk('elusive'); o.el3 = bufV('moveP');
+    reset(); gainStk('elusive'); let av = 0; for (let i = 0; i < 4000; i++) if (hurtCalc(100, null, 'phys').ev) av++;
+    o.avoid = av / 40; o.avoidNo = hurtCalc(100, null, 'phys', 1).ev;
+    /* 黑暗低語：詛咒幅度跟 debuffMag 同池；到期 4 秒內損失、能致死、死因 */
+    reset(); const m = mk(); curseMob(m, 'vuln', 1); const c0 = m.ail.curse.v; gainStk('dark', 5); curseMob(m, 'vuln', 1); o.cu = r2(m.ail.curse.v / c0);
+    ST.debuffMag = 50; curseMob(m, 'vuln', 1); o.cu2 = r2(m.ail.curse.v / c0);
+    reset(); gainStk('dark', 10); run(8.1); o.dr0 = [stkN('dark'), !!P.drain]; run(5); o.dr = [Math.round(P.hp), Math.round(P.mp), Math.round(P.es), !!P.drain, P.lastHit.n, DEAD];
+    reset(); P.hp = 100; gainStk('dark', 10); run(13); o.drK = DEAD > 0;
+    /* 風暴湧流：獲得額外閃電，只有攻擊 */
+    reset(); ST.noCrit = 1; gainStk('storm', 10); const m2 = mk(), hA = hitCalc(ATK, m2), hS = hitCalc(SPL, m2); o.st = [r2(hA.pre.light / hA.pre.phys), hS.pre.light];
+    /* 德魯伊之賦：技能速度同池、法術擊中給盛怒、0.5 秒限制 */
+    reset(); ST.as = 0; ST.ss = 0; gainStk('prowess', 2); o.ss = r2(buffSpeed());
+    const hit = sp => onHitBase(mk(), { spell: sp, crit: 0, d: 1, pre: { light: 0 } }, sp ? SPL : ATK);
+    hit(1); const g1 = P.rage; hit(1); const g2 = P.rage; G.t += 0.6; hit(0); const g3 = P.rage; hit(1); o.rg = [g1, g2, g3, P.rage];
+    /* 翠玉：物理減免、90% 上限、不影響元素 */
+    reset(); const j0 = hurtCalc(100, null, 'phys', 1).d, jf0 = hurtCalc(100, null, 'fire', 1).d; gainStk('jade', 10);
+    const j1 = hurtCalc(100, null, 'phys', 1).d, jf1 = hurtCalc(100, null, 'fire', 1).d; ST.armor = 1e9; o.jade = [j0, j1, r2(hurtCalc(100, null, 'phys', 1).d), jf0 === jf1];
+    /* 完美增益：更多、不進提高池；增益效果與幅度都吃 */
+    reset(); const pf0 = avg(ATK); gainStk('perfect', 4); const pf1 = avg(ATK); o.pf = [r2(pf1.more / pf0.more), pf1.inc === pf0.inc];
+    ST.buffEff = 100; ST.buffMag = 50; o.pfM = bufV('more');
+    /* 無縛潛能：真的護甲與能量護盾（stats 同池）、傷害提高；到人形全失、能量護盾收回 */
+    reset();
+    const lo = f => BASES.filter(f).sort((x, y) => x.lv - y.lv)[0].id;
+    S.eq = { chest: mkItem(lo(x => x.k === 'chest' && x.b.armor && !x.b.es && !x.b.ev), 1, 0), helm: mkItem(lo(x => x.k === 'helm' && x.b.es && !x.b.armor && !x.b.ev), 1, 0) };
+    ST = stats(S); P.es = ST.es; const a0 = ST.armor, e0 = ST.es, in0 = avg(ATK).inc;
+    gainStk('unbound', 5); run(0.05); o.ub = [a0 > 0, e0 > 0, r2(ST.armor / a0), r2(ST.es / e0), avg(ATK).inc - in0]; P.es = ST.es;
+    formFor({ form: 'bear' }); formFor({ form: 'wolf' }); const keep = stkN('unbound'); formFor({}); run(0.05); o.ub2 = [keep, stkN('unbound'), ST.armor === a0, ST.es === e0, P.es <= e0];
+    S.eq = {}; ST = stats(S);
+    /* 奇術活力：只有生效時給、每 5 秒一顆、種類照能力值需求 */
+    const only = a => Object.keys(SKILLS).find(k => { const r = gemAttrReq(mkGem(k, 5)); return r[a] > 0 && ATTR.every(x => x === a || !r[x]); }),
+      nChg = () => chgN('e') + chgN('f') + chgN('p');
+    reset(); run(6); o.dy0 = nChg();
+    reset(); gainStk('dyn'); run(4.9); const dy1 = nChg(); run(0.2); o.dy = [dy1, nChg()];
+    o.dyT = [['str', 'e'], ['dex', 'f'], ['int', 'p']].map(([a, c]) => { reset(); S.skills[0].a = mkGem(only(a), 5); dynChg(); return chgN(c); });
+    reset(); S.skills[0].a = mkGem(only('str'), 5); S.skills[1].a = mkGem(only('int'), 5);
+    const seen = { e: 0, f: 0, p: 0 }; for (let i = 0; i < 300; i++) { P.chg = {}; dynChg(); for (const c in seen) seen[c] += chgN(c); } o.dyW = seen;
+    S.skills[0].a = S.skills[1].a = null; reset(); dynChg(); o.dyNone = nChg();
+    /* 滿溢聖杯：每秒 2 充能＝0.2 瓶、恢復量跟藥劑效果同池、到上限為止 */
+    reset(); P.flask = 0; P.mflask = 1; gainStk('chalice', 1, 10); run(1); o.fl = [r2(P.flask), r2(P.mflask)]; run(10); o.fl2 = r2(P.flask);
+    reset(); P.flask = P.mflask = 2.99; gainStk('chalice', 1, 5); run(2); o.fl3 = [P.flask, P.mflask];
+    reset(); G.scene = 'map'; ST.flask = 20; P.flask = P.mflask = 3; drinkFlask(); drinkFlask(1); const h0 = P.heal, mh0 = P.mheal;
+    gainStk('chalice', 1, 5); P.heal = P.mheal = 0; drinkFlask(); drinkFlask(1); o.fl4 = [r2(P.heal / h0), r2(P.mheal / mh0)];
+    /* 沒有層數時一切照舊 */
+    reset(); o.none = keys.map(bufV).every(v => v === 0);
+    o.terms = ['靈巧', '黑暗低語', '風暴湧流', '德魯伊之賦', '翠玉', '無縛潛能', '完美增益', '奇術活力', '滿溢聖杯'].filter(k => !TERMS[k]);
+    return o;
+  })()`);
+  ok(
+    '層數增益：九列都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 9 && !b.bad.length,
+    b.rows.join() + ' ' + b.bad.join(' | ')
+  );
+  ok(
+    '層數增益：來源可以指定秒數，會遞減的不行',
+    b.tA === 1 && b.tB === 0 && b.tC === 30 && b.tD === 0,
+    JSON.stringify([b.tA, b.tB, b.tC, b.tD])
+  );
+  ok(
+    '層數增益：得到新層時全部刷新（黑暗低語）、每層各算各的（風暴湧流、德魯伊之賦，滿了擠掉最舊的）、每 5 秒掉一層（無縛潛能）',
+    b.dark === 4 && b.storm === 1 && b.prow.join() === '3,1' && b.lose.join() === '9,5',
+    JSON.stringify([b.dark, b.storm, b.prow, b.lose])
+  );
+  ok(
+    '靈巧：移動速度跟提高池相加、5 秒遞減到 0、結束前不能再獲得',
+    b.el0.join() === '30,15,1.25' && b.el1.join() === '15,7.5' && b.el2 === 0 && b.el3 === 30,
+    JSON.stringify([b.el0, b.el1, b.el2, b.el3])
+  );
+  ok(
+    '靈巧：約 15% 避開擊中，紅光大招躲不掉',
+    Math.abs(b.avoid - 15) < 3 && !b.avoidNo,
+    JSON.stringify([b.avoid, b.avoidNo])
+  );
+  ok('黑暗低語：每層詛咒幅度 +4%，跟其他幅度相加', b.cu === 1.2 && b.cu2 === 1.7, JSON.stringify([b.cu, b.cu2]));
+  ok(
+    '黑暗低語：結束後 4 秒損失每層 3% 生命魔力能量護盾，死因寫得出來，會致死',
+    b.dr0.join() === '0,true' && b.dr.join() === '700,700,700,false,黑暗低語,0' && b.drK,
+    JSON.stringify([b.dr0, b.dr, b.drK])
+  );
+  ok('風暴湧流：每層 3% 獲得額外閃電，法術沒有', b.st.join() === '0.3,0', b.st.join());
+  ok(
+    '德魯伊之賦：每層技能速度 +10%、法術擊中每層 3 盛怒、每 0.5 秒一次、非法術不給',
+    b.ss === 1.2 && b.rg.join() === '6,6,6,12',
+    JSON.stringify([b.ss, b.rg])
+  );
+  ok('翠玉：10 層物理 −10%，跟護甲一起吃 90% 上限，不影響元素', b.jade.join() === '100,90,10,true', b.jade.join());
+  ok(
+    '完美增益：4 層 20% 更多、不進提高池，增益效果與幅度分開相乘',
+    b.pf.join() === '1.2,true' && b.pfM === 60,
+    JSON.stringify([b.pf, b.pfM])
+  );
+  ok(
+    '無縛潛能：5 層傷害提高 +100、護甲與能量護盾 ×1.5（跟 stats 同池），變身之間不掉、變回人形全部失去',
+    b.ub[0] &&
+      b.ub[1] &&
+      Math.abs(b.ub[2] - 1.5) < 0.1 &&
+      Math.abs(b.ub[3] - 1.5) < 0.1 &&
+      b.ub[4] === 100 &&
+      b.ub2.join() === '5,0,true,true,true',
+    JSON.stringify([b.ub, b.ub2])
+  );
+  ok(
+    '奇術活力：沒生效不給、每 5 秒一顆、種類照能力值需求加權',
+    b.dy0 === 0 &&
+      b.dy.join() === '0,1' &&
+      b.dyT.join() === '1,1,1' &&
+      b.dyW.e > 50 &&
+      b.dyW.p > 50 &&
+      b.dyW.f === 0 &&
+      b.dyNone === 1,
+    JSON.stringify([b.dy0, b.dy, b.dyT, b.dyW, b.dyNone])
+  );
+  ok(
+    '滿溢聖杯：每秒 0.2 瓶、到期就停、不超過上限，恢復量跟藥劑效果同池（1.5÷1.2）',
+    b.fl.join() === '0.2,1.2' && b.fl2 === 2 && b.fl3.join() === '3,3' && b.fl4.join() === '1.25,1.25',
+    JSON.stringify([b.fl, b.fl2, b.fl3, b.fl4])
+  );
+  ok('層數增益：沒有層數時數值都是 0；九張名詞卡都在', b.none && !b.terms.length, b.terms.join());
+}
 process.exit(bad ? 1 : 0);

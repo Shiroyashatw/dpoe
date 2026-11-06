@@ -196,7 +196,7 @@
 | 堅守 Fortify／Fortification | ⚠️ poe2wiki 沒有這一頁，應該不存在 | 每層受到的命中傷害 less 1%，最多 20 層、6 秒，依命中傷害取得層數 https://www.poewiki.net/wiki/Fortification | 近戰輔助 |
 | 順風 Tailwind | 可疊 10 層；每層移動速度 +1%、技能速度 +2%、閃避值 +10%、偏斜減傷 +1% https://www.poe2wiki.net/wiki/Tailwind | 行動速度 +8%，4 秒，不疊加 https://www.poewiki.net/wiki/Tailwind | 職業或天賦 |
 | 迅捷 Haste | ⚠️ poe2wiki 沒有這一頁 | 光環：攻擊速度、施法速度、移動速度依寶石等級；另有 Vaal Haste https://www.poewiki.net/wiki/Haste | 光環 |
-| 閃避 Elusive | ⚠️ poe2wiki 沒有這一頁 | 一開始：15% 機率避開命中傷害、移動速度 +30%；每秒衰減 20%，要等結束才能再獲得 https://www.poewiki.net/wiki/Elusive | 詞綴、職業 |
+| 閃避 Elusive（第 12 批譯名「靈巧」） | poe2db 只寫提高移動速度、避開傷害、效果隨時間減少，⚠️ 沒有數字 https://poe2db.tw/us/Elusive | 一開始：15% 機率避開命中傷害、移動速度 +30%；每秒衰減 20%，要等結束才能再獲得 https://www.poewiki.net/wiki/Elusive | 詞綴、職業 |
 | 腎上腺素 Adrenaline | ⚠️ poe2wiki 沒有這一頁 | 傷害 +100%、攻擊／施法／移動速度 +25%、物理減傷 +10%；持有期間不能刷新 https://www.poewiki.net/wiki/Adrenaline | 天賦、職業 |
 | 相位 Phasing | ⚠️ 沒查到 | 可以穿過敵人；不算 buff https://www.poewiki.net/wiki/Phasing | 藥劑、詞綴 |
 | 不潔之力 Unholy Might | 獲得全部傷害 30% 的混沌傷害（DoT 吃不到）https://www.poe2wiki.net/wiki/Unholy_Might | 物理傷害 100% 轉成混沌，命中時 25% 機率造成凋零 https://www.poewiki.net/wiki/Unholy_Might | 藥劑、詞綴 |
@@ -208,6 +208,17 @@
 | 連擊 Combo（只有 PoE2） | 8 秒內近戰打擊的次數；換武器會清掉 https://www.poe2wiki.net/wiki/Combo | 沒有 | 技能 |
 | 召集 Convocation | 沒有 | 是寶石，不是 buff：把召喚物拉回身邊並給它們生命回復 https://www.poewiki.net/wiki/Convocation | 寶石 |
 | 不屈 Unbroken | ⚠️ 兩代 wiki 都查不到叫這個名字的 buff。PoE1 有 Juggernaut 的天賦「Unbreakable」（身體護甲的護甲加倍），不是 buff https://www.poewiki.net/wiki/Unbreakable | 同左 | — |
+
+| 黑暗低語 Dark Whispers（只有 PoE2） | 每層詛咒幅度 +4%，最多 10 層、8 秒、得到新層時刷新；結束時 4 秒內每層損失 3% 生命、魔力、能量護盾 https://poe2db.tw/us/Dark_Whispers | 沒有 | 傳奇戒指 Veilpiercer（存在範圍內有被詛咒的敵人時每秒 1 層） |
+| 風暴湧流 Stormsurge（只有 PoE2） | 每層此武器獲得 3% 額外閃電傷害，5 秒，最多 10 層；⚠️ 取得方式、每層是否各算各的都沒寫 https://poe2db.tw/us/Stormsurge | 沒有 | 武器效果 |
+| 德魯伊之賦 Druidic Prowess（只有 PoE2） | 每層技能速度 +10%、法術擊中給 3 盛怒，10 秒，最多 3 層，每層時間獨立 https://poe2db.tw/us/Druidic_Prowess | 沒有 | Amor Mandragora（每花 20 盛怒 1 層）、遠古符文（沉重暈眩稀有或傳奇敵人 +2 層） |
+| 翠玉 Jade（只有 PoE2） | 每層額外物理傷害減免 1%，最多 10 層，有守護時不能獲得 https://poe2db.tw/us/Jade | 沒有 | 昇華 Jade Heritage（每秒 1 層）、Encase in Jade 消耗全部換守護 |
+| 無縛潛能 Unbound Potential（只有 PoE2） | 每層傷害 +20%、護甲 +10%、能量護盾 +10%（都是 increased），最多 10 層，每 5 秒掉一層，變回人形全部失去 https://poe2db.tw/us/Unbound_Potential | 沒有 | 傳奇胸甲 The Unleashed（法術擊中得符文束縛，變身時換成同數量的無縛潛能） |
+| 完美 Perfection（只有 PoE2） | 每層傷害 more 5%，10 秒，最多 4 層；任何完美時機失敗移除全部 https://poe2db.tw/us/Perfection_Buff | 沒有 | 完美輔助 |
+| 奇術活力 Thaumaturgical Dynamism（只有 PoE2） | 生效期間每 5 秒一顆隨機能量球，機率看插槽技能寶石的能力值需求總和 https://poe2db.tw/us/Thaumaturgical_Dynamism | 沒有 | 天賦 Thaumaturgic Generator、液態情緒塗油 |
+| 滿溢聖杯 Overflowing Chalice（只有 PoE2） | 生命與魔力藥劑每秒 2 充能、恢復量 +30% https://poe2db.tw/us/Overflowing_Chalice | 沒有 | 族裔輔助 Uhtred's Rite（冷卻技能使用時給，持續時間＝冷卻秒數）https://poe2db.tw/us/Uhtreds_Rite |
+
+藥劑充能（第 12 批查）：每次使用 10 充能，上限 60～75 https://poe2db.tw/us/Life_Flasks 。
 
 通則：PoE2 同一種 buff 不疊加，只取最強的；「buff 到期變慢」的效果彼此相加，最多慢 75%。https://www.poe2wiki.net/wiki/Buff 。PoE1 的球和藥劑效果都不算 buff。https://www.poewiki.net/wiki/Buff
 

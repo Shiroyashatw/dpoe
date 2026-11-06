@@ -571,6 +571,7 @@ const FORMS = {
 };
 /* 技能有 D.form 就變成那個形態；用了不是這個形態的技能就變回來（useSlot 呼叫） */
 function formFor(D) {
+  if (P.form && !D.form) for (const k in BUFF) if (BUFF[k].human) stkClr(k);
   P.form = D.form || null;
 }
 const formOf = () => (P.form ? FORMS[P.form] : null);

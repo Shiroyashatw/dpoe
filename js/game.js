@@ -100,6 +100,8 @@ function resetWorld(W, H) {
   });
 }
 function newPlayer(x, y) {
+  /* 層數增益不帶到下一個場景（stats() 會讀） */
+  if (P) P.stk = null;
   ST = stats();
   const keep = P && P.hp > 0 ? { hp: Math.min(ST.hp, P.hp) } : {};
   P = {
@@ -596,7 +598,7 @@ function drinkFlask(mana) {
   const k = mana ? 'mflask' : 'flask';
   if (P[k] < 1) return hudWarn((mana ? '魔力' : '生命') + '藥劑用完了：殺怪會補');
   P[k] -= 1;
-  const v = 1 + (ST.flask + MM('pflask')) / 100;
+  const v = 1 + (ST.flask + MM('pflask') + bufV('flaskP')) / 100;
   if (mana) P.mheal += ST.mp * FLASK.mp * v;
   else P.heal += ST.hp * FLASK.heal * v;
   fx({ k: 'heal', x: P.x, y: P.y, dur: 0.5 });
