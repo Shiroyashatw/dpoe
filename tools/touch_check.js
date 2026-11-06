@@ -26,6 +26,10 @@ let fail = 0;
   await p.evaluate(() => localStorage.clear());
   await p.reload();
   await p.waitForTimeout(1200);
+  await p.evaluate(() => {
+    proSkip();
+    S.story.tips = 0;
+  });
   const cdp = await ctx.newCDPSession(p);
   const touch = async (type, pts) =>
     cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x, y, id: i })) });

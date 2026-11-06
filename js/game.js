@@ -34,9 +34,10 @@ function newGame() {
     story: {},
     /* 過濾器（0.2.35）：3 組、每組一串規則（由上往下第一條符合的決定處理方式）＋「其他」預設；見 fltAct */
     filter: { cur: 0, sets: [fltTemplate(), fltEmpty(), fltEmpty()] },
-    sfx: 1
+    sfx: 1,
+    /* 新存檔：序章結束才拿到劍（prologue.js）；migrate 對舊存檔拿掉這個旗標 */
+    fresh: 1
   };
-  s.eq.weapon = mkItem('w_sword1_0', 1, 0);
   /* 技能欄：單手劍的兩招，左鍵斬擊、右鍵幻影斬；其他到生成寶石拿 */
   s.skills = Array.from({ length: NSLOT }, () => ({ a: null }));
   s.skills[0].a = mkGem('slash');
@@ -189,9 +190,6 @@ function enterMap(t) {
     rows = CHn * CHUNK;
   resetWorld(cols * TS, rows * TS);
   G.scene = 'map';
-  /* 進過地圖就不再顯示第一次的提示 */
-  S.hint0 = 1;
-  if ($('hint')) $('hint').hidden = true;
   G.mapT = t;
   /* 地圖卡的詞綴；這一批卡用掉了，下次打開地圖台抽新的 */
   G.mm = mapMods(S.card);
@@ -677,6 +675,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
 function die() {
   /* 已經倒下：持續傷害還在跑時不要再扣一次經驗、蓋掉死因 */
   if (G.state === 'dead') return;
+  if (PRO.on) return proDied();
   P.hp = 0;
   G.state = 'dead';
   P.act = P.roll = null;
@@ -699,7 +698,7 @@ function killMob(m) {
   sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? '#ff6b3d' : '#c9b8a8');
   mobGround(m);
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
-  if (m.summoned) return;
+  if (m.summoned || PRO.on) return;
   G.kills++;
   const fk = FLASK.perKill * (m.elite ? 3 : m.boss ? 10 : 1);
   P.flask = Math.min(FLASK.n, P.flask + fk);
@@ -896,11 +895,10 @@ function nearProp() {
 function useProp(p) {
   if (!p) return false;
   if (dist(P, p) > p.r + 90) return hudWarn('走近一點'), true;
-  if (p.k === 'device') openPanel('device');
+  if (p.k === 'device') openWorld();
   else if (p.k === 'stash') openPanel('stash');
   else if (p.k === 'forge') openPanel('craft');
   else if (p.k === 'asc') openPanel('asc');
-  else if (p.k === 'gamble') openPanel('shop');
   else if (p.k === 'npc') talkOpen(p.id);
   else if (p.k === 'prac') hudWarn('走進石圈就能出招');
   else hudWarn('市集之後開放');
@@ -1346,6 +1344,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
   last = now;
+  if (IV.on) return introFrame(rdt);
   if (G.hs > 0) {
     G.hs -= rdt;
     rdt = 0;
@@ -1361,6 +1360,7 @@ function frame(now) {
     updMobs(dt);
     updShots(dt);
     updSkills(dt);
+    if (PRO.on) proTick();
     /* 傳送門：地圖裡打倒王後的門＝回家 */
     if (G.portal && G.portal.home) {
       const on = dist(P, G.portal) < 40;

@@ -15,8 +15,26 @@ const NPCS = {
     sp: 'ghost_priest',
     when: s => !!s.story.crow,
     talk: () => 'crow_first'
+  },
+  /* 天星商會（世界觀第 6 節）：第一次先打招呼，之後直接開店；sp 是暫代圖，提示詞在 docs/怪物提示詞.md */
+  trader: {
+    n: '天星商會掌櫃',
+    sp: 'ghost_priest',
+    when: () => true,
+    talk: s => (s.story.shopMet ? '' : 'trader_first'),
+    done() {
+      S.story.shopN = (S.story.shopN || 0) + 1;
+      openPanel('shop');
+    }
   }
 };
+/* 掌櫃每次開店換一句：神秘管道只留伏筆，不解釋 */
+const TRADER_SAY = [
+  '路斷了？商會的貨，從來不走路。',
+  '貨從哪裡來？客人，這不是該問的事。',
+  '三年前的帳還沒結清，生意不能停。',
+  '今天的貨，昨天晚上才到。別問怎麼到的。'
+];
 const TALKS = {
   bone_first: {
     set: 'boneMet',
@@ -31,6 +49,27 @@ const TALKS = {
   bone_1: { lines: [['bone', '牆邊那十二尊都暗著。我不知道它們還會不會亮。']] },
   bone_2: { lines: [['bone', '外面的霧，比去年更紅了。']] },
   bone_3: { lines: [['bone', '累了就坐一下。這裡沒有東西會追上來。']] },
+  trader_first: {
+    set: 'shopMet',
+    lines: [
+      ['trader', '天星商會，歡迎光臨。'],
+      ['trader', '城沒了，路也斷了，商會的貨還是準時到。'],
+      ['trader', '別問是怎麼送來的。有金幣就好。']
+    ]
+  },
+  /* 第一次走到設施：撿骨師提一句，不是教學（prologue.js 的 proHint） */
+  hint_asc: {
+    set: 'h_asc',
+    lines: [['bone', '那是昇華石碑。選一條路，你身上的血會跟著變。想換路也可以，只是要重走一次。']]
+  },
+  hint_forge: {
+    set: 'h_forge',
+    lines: [['bone', '鍛造台還能用。怪物留下的粉拿來打磨裝備，不滿意的詞綴可以換掉。']]
+  },
+  hint_tree: {
+    set: 'h_tree',
+    lines: [['bone', '變強的路記在你的血裡。升級拿到的點數，一格連著一格往外點。']]
+  },
   crow_first: {
     lines: [
       ['crow', '別在霧裡待太久。'],
@@ -44,7 +83,7 @@ const npcList = () =>
     .filter(id => NPCS[id].when(S))
     .map(id => ({ npc: 1, id, n: NPCS[id].n, sp: NPCS[id].sp, ...HIDE_ART.npc[id] }));
 const TALK = { on: false, q: [], i: 0, txt: '', n: 0, tm: 0, id: '', done: null };
-const talkOpen = id => talkPlay(NPCS[id].talk(S));
+const talkOpen = id => talkPlay(NPCS[id].talk(S), NPCS[id].done);
 /* 播一段對話（序章、狩獵之血也呼叫這個）；done：整段播完（含快轉）才呼叫 */
 function talkPlay(id, done) {
   const T = TALKS[id];

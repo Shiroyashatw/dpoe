@@ -88,7 +88,7 @@ async function cloudPush() {
   try {
     const { error } = await CLOUD.sb
       .from('dungeon_saves')
-      .upsert({ user_id: CLOUD.uid, data: S, game_version: VER, updated_at: new Date().toISOString() });
+      .upsert({ user_id: CLOUD.uid, data: PRO.real || S, game_version: VER, updated_at: new Date().toISOString() });
     const t = new Date();
     CLOUD.status = error
       ? '同步失敗：' + error.message

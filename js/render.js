@@ -131,6 +131,7 @@ function draw() {
   bDeco(W, H);
   /* 地面效果、屍體、殘留物、手雷、幻影、旗幟、飛劍（mech.js） */
   if (G.ground) drawMech();
+  if (PRO.on) proDraw();
   /* 預警：怪物出手前地上的紅色範圍 */
   CX.lineWidth = 2;
   for (const m of G.mobs) {

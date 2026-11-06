@@ -118,6 +118,7 @@ function moreMenu(on) {
 /* 在地圖裡按兩次才回家（這張地圖會結束） */
 let tHome = 0;
 function homeAsk() {
+  if (PRO.on) return hudWarn('先走出地層');
   if (G.scene !== 'map' || G.state !== 'play') return;
   if (performance.now() - tHome < 2000) return goHome();
   tHome = performance.now();
@@ -180,15 +181,22 @@ function touchInit() {
     },
     true
   );
+  document.addEventListener('click', e => e.target.closest('.sk[data-k=use]') && interact());
+  CV.addEventListener('click', () => {
+    if (TOUCH.prop) useProp(TOUCH.prop);
+    TOUCH.prop = null;
+  });
   /* 畫面：撿東西、藏身處的擺設，左半邊是搖桿 */
   CV.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
+    TOUCH.prop = null;
     const l = LABELS.find(l => inL(l, e));
     if (l) return dist(P, l.d) < 160 ? pickup(l.d) : hudWarn('走近一點再撿（或按互動）');
     if (G.scene === 'hide') {
       const p = propAt(e);
       if (p === 'portal') return dist(P, G.portal) < 120 ? enterMap(G.portal.to) : hudWarn('走近一點');
-      if (p) return useProp(p);
+      /* 跟互動鍵一樣放開才開（上面的 click） */
+      if (p) return void (TOUCH.prop = p);
     }
     /* 直立（龍絆式）：整個畫面都是手勢區。拖＝移動、點＝普攻、按住不動＝連打、快速一撥＝翻滾 */
     if (PORT()) {
@@ -301,7 +309,8 @@ function touchInit() {
     el.classList.add('hit');
     if (k === 'roll') return doRoll();
     if (k === 'flask' || k === 'mflask') return drinkFlask(k === 'mflask');
-    if (k === 'use') return interact();
+    /* 互動放開才執行：按下就開面板的話，手指放開的 click 會落到剛長出來的按鈕上（375×667 的「開啟傳送門」正好在這裡） */
+    if (k === 'use') return;
     const i = +k[1],
       r = el.getBoundingClientRect();
     el.classList.add('down');

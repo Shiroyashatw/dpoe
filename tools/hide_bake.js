@@ -1295,7 +1295,6 @@ const PROPS = [
   { k: 'asc', n: '昇華石碑', x: 660, y: 388, r: 26, ny: 100 },
   { k: 'stash', n: '倉庫', x: 318, y: 640, r: 46, ny: 76 },
   { k: 'forge', n: '鍛造台', x: 150, y: 610, r: 50, ny: 124 },
-  { k: 'gamble', n: '商人', x: 450, y: 790, r: 50, ny: 108 },
   { k: 'market', n: '市集（之後開放）', x: 250, y: 748, r: 36, ny: 88 },
   { k: 'prac', n: '練習區', x: 952, y: 712, r: 14, ny: 62 }
 ];
@@ -1306,7 +1305,7 @@ const ZONE = { x: 1110, y: 628, rx: 150, ry: 104 },
     { t: 1, x: 1110, y: 572 },
     { t: 2, x: 1200, y: 640 }
   ],
-  NPC = { bone: { x: 585, y: 778 }, crow: { x: 790, y: 408 } },
+  NPC = { bone: { x: 585, y: 778 }, crow: { x: 790, y: 408 }, trader: { x: 352, y: 800 } },
   SPAWN = { x: 660, y: 560 },
   EXIT = { x: 900, y: 806 };
 const SOLID = [],
@@ -1389,6 +1388,7 @@ function layout() {
   ]);
   for (const p of PROPS) if (p.r > 20) solid(p.x, p.y, p.r);
   for (const [x, y, r] of [
+    [450, 790, 50],
     [505, 520, 14],
     [815, 520, 14],
     [660, 770, 44],
@@ -1576,6 +1576,7 @@ for (let ty = 1; ty < rows - 1; ty++)
     ...DUMMIES.map(d => ({ n: '稻草人', ...d })),
     { n: '撿骨師', ...NPC.bone },
     { n: '赤鴉', ...NPC.crow },
+    { n: '天星商會掌櫃', ...NPC.trader },
     { n: '出口', ...EXIT }
   ]) {
     let b = 1e9;

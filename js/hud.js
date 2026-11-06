@@ -79,13 +79,15 @@ function hudInit() {
   <div id="prac" hidden></div>
   <div id="talk" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
-  <button id="hint" hidden></button>
+  <div id="pro" hidden><small id="pron"></small><b id="prot" role="status"></b><button class="btn mini" data-pro="skip">跳過<span class="ponly">序章</span></button></div>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}背包</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
   <div class="tonly tmore" id="tmore" hidden><button data-tm="skill">${ICO.gem}技能寶石</button><button data-tm="tree">${ICO.tree}天賦樹</button><button data-tm="home">${ICO.home}回藏身處</button><button data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
   pracInit();
   talkInit();
+  proInit();
+  introInit();
   hudBar();
   hudState();
 }
@@ -229,9 +231,11 @@ function hudTick() {
   if (pr) setV($('prog'), 'prog', Math.min(1, G.prog / G.need).toFixed(3));
   pracHud();
   const at =
-    G.scene === 'hide'
-      ? `藏身處 · Lv ${S.lv} · ${S.gold} 金 · 地圖碎片 ${S.frag}`
-      : `地圖 階級 ${G.mapT} · ${'★'.repeat(G.star || 1)} · Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻 · 碎片 ${S.frag}`;
+    PRO.on && G.scene === 'map'
+      ? '地層'
+      : G.scene === 'hide'
+        ? `藏身處 · Lv ${S.lv} · ${S.gold} 金 · 地圖碎片 ${S.frag}`
+        : `地圖 階級 ${G.mapT} · ${'★'.repeat(G.star || 1)} · Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻 · 碎片 ${S.frag}`;
   setT($('area'), 'at', at);
   const hm = G.scene !== 'map';
   if (HV.hm !== hm) {
@@ -1017,16 +1021,7 @@ function showTerm(el) {
   const w = el.dataset.term;
   showTip(`<b>${esc(w)}</b><p>${esc(TERMS[w])}</p>`, el.getBoundingClientRect(), $('ttip'));
 }
-/* 第一次玩：操作提示（點一下關掉，不是教學關） */
-function firstHint() {
-  const h = $('hint');
-  if (S.hint0 || !h) return;
-  h.innerHTML = `<b>${TOUCH.on ? (PORT() ? '點＝普攻 · 按住＝連打 · 拖＝移動 · 一撥＝翻滾' : '左半邊搖桿移動 · 技能鍵點＝自動瞄準、拖＝手動瞄準') : 'WASD 移動 · 左右鍵與 Q E R 放技能 · 空白鍵翻滾'}</b><small>走到地圖台開始第一張地圖 · 點一下關閉</small>`;
-  h.hidden = false;
-}
 document.addEventListener('click', e => {
-  const ht = e.target.closest('#hint');
-  if (ht) return (ht.hidden = true), (S.hint0 = 1), save();
   const st = e.target.closest('[data-st]');
   if (st) return hudWarn(st.dataset.st);
   const iv = e.target.closest('[data-invt]');
@@ -1401,7 +1396,8 @@ function shopSel() {
 function shopHTML() {
   const L = SHOPUI.last,
     left = gamLeft(S);
-  return `<div class="ph"><b>商人</b><span>金幣 <b class="c-gold">${S.gold}</b> · 每件 <b class="c-gold">${gamPrice(S)}</b> 金 · 物品等級 ${gamIlvl(S)}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><b>天星商會</b><span>金幣 <b class="c-gold">${S.gold}</b> · 每件 <b class="c-gold">${gamPrice(S)}</b> 金 · 物品等級 ${gamIlvl(S)}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <p class="tsay">「${TRADER_SAY[(S.story.shopN || 0) % TRADER_SAY.length]}」</p>
   <p class="sethint">選一種，買一件隨機的裝備：品質 0%、沒有孔、潛能 3，詞綴最高 T2。${left > 0 ? `再 ${left} 件沒出稀有，下一件必出` : '<span class="c-gold">這一件必出稀有</span>'}</p>
   ${L ? `<div class="shopres">${icHTML(itemIc(L))}<span><b class="rc${L.r}">${esc(itemName(L))}</b><small>放進背包了</small></span></div>` : ''}
   ${shopSel()}
@@ -2060,6 +2056,7 @@ function inputInit() {
       return;
     }
     const k = e.key.toLowerCase();
+    if (IV.on) return e.preventDefault(), e.repeat || introKey(k);
     if (TALK.on) return e.repeat || (e.preventDefault(), talkKey(k));
     if (e.repeat && !'wasd'.includes(k) && !k.startsWith('arrow')) return;
     K[k] = 1;

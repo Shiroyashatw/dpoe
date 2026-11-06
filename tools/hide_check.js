@@ -36,8 +36,8 @@ const ok = (n, c, info = '') => {
   await p.evaluate(() => localStorage.clear());
   await open();
   await p.evaluate(() => {
-    $('hint').hidden = true;
-    S.hint0 = 1;
+    proSkip();
+    S.story.tips = 0;
   });
   /* 真的按鍵走路：往目標走到距離 d 以內，回傳花了幾秒 */
   const walk = (x, y, d = 60) =>
@@ -94,7 +94,7 @@ const ok = (n, c, info = '') => {
     if (s.k === 'asc') await walk(s.x - 90, s.y + 30, 30);
     const w = await walk(s.x, s.y, s.r + 30);
     const opened = await p.evaluate(k => {
-      const pk = { device: 'device', stash: 'stash', forge: 'craft', asc: 'asc', gamble: 'shop' }[k];
+      const pk = { device: 'device', stash: 'stash', forge: 'craft', asc: 'asc' }[k];
       interact();
       const o = pk ? !!PANEL[pk] : k === 'npc' ? TALK.on : k === 'market' || k === 'prac';
       if (TALK.on) talkEnd();

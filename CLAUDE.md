@@ -16,7 +16,7 @@
 
 ## 檢查（改了遊戲邏輯一定要跑）
 - `node tools/check.js`：圖名、3000 件裝備的稀有度與詞綴範圍、全身裝備數值沒有 NaN、格子背包不重疊、天賦樹一千多點都連得到且沒有重疊、每個昇華照規則亂點都停在 4 大 4 小、選擇組只拿一個、全點滿沒有 NaN、格擋值與暴擊弱點、物理傷害有限、地圖放寬、魔力、商人、自動化、每招投射物吃多重投射。有 ❌ 不交差。
-- 戰鬥、面板、拖曳用 Playwright 在本機實際操作（`python3 -m http.server`）：進地圖、打王開放下一階、死亡、拖曳裝上／交換／倉庫／賣掉、存檔還原；動到藏身處跑 `node tools/hide_check.js`。
+- 戰鬥、面板、拖曳用 Playwright 在本機實際操作（`python3 -m http.server`）：進地圖、打王開放下一階、死亡、拖曳裝上／交換／倉庫／賣掉、存檔還原；動到藏身處跑 `node tools/hide_check.js`；動到序章、開場、存檔流程跑 `node tools/pro_check.js`。新存檔一開始是開場：其他 Playwright 測試進遊戲後先 `proSkip()`，要關設施提示再設 `S.story.tips = 0`。
 - 改完 JS：`npx prettier@3.3.3 --write js/*.js tools/*.js`。
 
 ## 專案結構
@@ -41,10 +41,12 @@
 | `js/tree.js` | 天賦樹盤面 `TREE`／`treeOpen`／`treeRender`／`treeToggle`（叢集的軌道照 `PTREE.ARC` 畫成弧線；能不能點 `treeCan`、能不能退 `treeCanRefund`；搜尋 `treeFind`／`treeJump`；中間挖空的地方是昇華 `ascT`／`ascLeft`，0.2.25）、說明 `treeTip` |
 | `js/hideout.js` | 藏身處（0.2.44）：格子牆 `hideTiles`、擺設 `hideProps`、畫面 `drawHideout`（窗外山谷＋烘好的場景、篝火 `fireStep`、神像點亮）、擺設前景 `hideFront`、NPC `drawNpc`、練習區 `hideTick`／`pracStep`／`pracReal`／`pracLeave`（`PRAC`、`fightOn`、`pracFree` 在 skills.js）、稻草人 `dummyBuild`／`dummyArm`（攔生命寫入算統計、不會死）／`dummyTick`、DPS `dpsAdd`／`dpsView`／`dpsReset`、面板 `pracInit`／`pracHud` |
 | `js/hideart.js`、`img/hide-*.png` | `tools/hide_bake.js` 產生，不要手改：`HIDE_ART`（格子牆、擺設與稻草人座標、`solids` 碰撞圓、`fg` 前景、`statues`、`exit`）、稻草人與亮神像的圖（併進 `ART`） |
-| `js/npc.js` | NPC 與對話（資料驅動，序章、狩獵之血共用）：`NPCS`（`when`、`talk`）、`TALKS`（`lines`、`set`、`next`）、`npcList`、`talkPlay`／`talkOpen`／`talkNext`／`talkEnd`、`TALK` |
+| `js/npc.js` | NPC 與對話（資料驅動，序章、狩獵之血共用）：`NPCS`（`when`、`talk`、`done`；撿骨師、赤鴉、天星商會掌櫃）、掌櫃的台詞 `TRADER_SAY`、`TALKS`（`lines`、`set`、`next`）、`npcList`、`talkPlay`／`talkOpen`／`talkNext`／`talkEnd`、`TALK` |
+| `js/intro.js` | 開場動畫（世界觀第 2 節，約 85 秒）：鏡頭與字幕 `SHOTS`（`shotPeace`～`shotYou`）、換圖 `INTRO_ART`、背景分層 `IV_PAINT`／`ivBake`／`ivBg`、十二神剪影 `GOD_HEAD`／`ivGod`、聲音 `ivSnd`、流程 `introGate`／`introGo`／`introFrame`／`introEnd`／`introStop`、睜眼 `introLid`；狀態 `IV` |
+| `js/prologue.js` | 序章（企劃書 3.1）：版本 `PRO_VER`、手工地圖 `PRO_MAP`、八步 `PRO_STEPS`（`at`、`gate`、`aim`、`hl`、`go`、`done`）、進出 `proStart`／`proStep`／`proHome`／`proBack`（換回真的存檔）／`proDone`／`proSkip`／`proAbort`／`proBoot`、死亡重來 `proDied`、每格 `proTick`、紅圈 `proCircle`、**第 8 步 `openWorld`（改接世界地圖只動這裡）**、設施提示 `proHint`、目標列 `proBar`／`proHl`、地上的指引 `proDraw`；狀態 `PRO`（`PRO.real` 是真的存檔，序章裡 `S` 是臨時角色） |
 | `js/render.js` | canvas 畫面 `draw`：互動提示 `drawPrompts`、預警、怪物與頭上的異常圖示 `drawMobStates`、主角（`img/hero.png` 九列動作的 `heroCell`、技能對應動作 `ACT_ROW`、方向 `dirCol`）、特效、跳數字、掉落標籤 `LABELS`（手機避開技能鍵 `touchRects`）、光照、小地圖、細線框 `frameRect`、名牌 `plate` |
 | `js/biome.js` | 地圖場景（0.2.14，只有外觀、不影響戰鬥）：`BIOMES`（冰雪洞窟、岩漿地城、毒沼古墓、廢棄廟宇；`G.biome` 在 `enterMap` 隨機）、地板花紋 `bFloor`、地上細節 `bDecals`、牆 `bWalls`、擺設 `decorate`／`bDeco`（`G.deco`，不擋路）、光源 `bLights`（暗層挖亮）／`bGlow`。地板＋牆的區塊快取 `bStatic`／`bakeChunk`（`G.bc`，8×8 格一塊，0.2.39；`G.tiles` 換了就重畫）。房間形狀（圓形庭院、切角、崩塌，會擋路）在 game.js 的 `roomShape` |
-| `js/hud.js` | HUD（生命／魔力球、技能列 `BAR`／`hudBar`、王血條、首領進度條）、面板 `openPanel`／`hudPanels`（裝備 `invHTML`、倉庫、地圖台 `devHTML`、技能寶石與光環欄 `skillHTML`）、欄位 `slotGet`／`slotSet`／`slotFits`（裝備欄與寶石插槽）、拖曳 `dragStart`／`dragMove`／`dropTarget`／`dragEnd`、點一下搬移 `quickMove`、賣 `sell`／批量賣出 `sellBar`／`sellAll`、丟到地上 `dropFloor`、倉庫的臨時頁（`PANEL.stab`、`S.temp`）、過濾器面板 `fltHTML`／設定裡的入口 `filterHTML`（判斷在 game.js 的 `fltAct`／`dropFlt`，`S.filter`）、倉庫寶石頁 `gemPageHTML`／`gpList`（`S.gems`）、說明框升級按鈕 `gemUpRow`、技能寶石的檢視區 `skIns`／動作 `gemAct`（`SKUI.sel`、`data-gx`）、點格子挑一顆裝上 `gemOpenFor`／`gemFits`／`gemPut`／`gemTake`（`GEMUI.to`）、桌機游標旁的翻滾冷卻 `#rcd`（`hudTick`）、說明框 `itemTip`／`gemTip`、技能列數字 `skLine`、傷害算式 `skDetail`、名詞 `termify`／`showTerm`、昇華石碑 `ascHTML`／`ascCap`／`ascWhy`（`ASCUI`、`data-ax`）、商人 `shopHTML`／`shopSel`／`gamBases`、按兩次確認 `confirm2`、第一次提示 `firstHint`、死因 `deathCause`、手機橫向 `LAND`、一次一個面板 `swapOn`、死亡與傳送門選單 `hudState`、輸入 `inputInit`、動作 `act` |
+| `js/hud.js` | HUD（生命／魔力球、技能列 `BAR`／`hudBar`、王血條、首領進度條）、面板 `openPanel`／`hudPanels`（裝備 `invHTML`、倉庫、地圖台 `devHTML`、技能寶石與光環欄 `skillHTML`）、欄位 `slotGet`／`slotSet`／`slotFits`（裝備欄與寶石插槽）、拖曳 `dragStart`／`dragMove`／`dropTarget`／`dragEnd`、點一下搬移 `quickMove`、賣 `sell`／批量賣出 `sellBar`／`sellAll`、丟到地上 `dropFloor`、倉庫的臨時頁（`PANEL.stab`、`S.temp`）、過濾器面板 `fltHTML`／設定裡的入口 `filterHTML`（判斷在 game.js 的 `fltAct`／`dropFlt`，`S.filter`）、倉庫寶石頁 `gemPageHTML`／`gpList`（`S.gems`）、說明框升級按鈕 `gemUpRow`、技能寶石的檢視區 `skIns`／動作 `gemAct`（`SKUI.sel`、`data-gx`）、點格子挑一顆裝上 `gemOpenFor`／`gemFits`／`gemPut`／`gemTake`（`GEMUI.to`）、桌機游標旁的翻滾冷卻 `#rcd`（`hudTick`）、說明框 `itemTip`／`gemTip`、技能列數字 `skLine`、傷害算式 `skDetail`、名詞 `termify`／`showTerm`、昇華石碑 `ascHTML`／`ascCap`／`ascWhy`（`ASCUI`、`data-ax`）、商人 `shopHTML`／`shopSel`／`gamBases`、按兩次確認 `confirm2`、死因 `deathCause`、手機橫向 `LAND`、一次一個面板 `swapOn`、死亡與傳送門選單 `hudState`、輸入 `inputInit`、動作 `act` |
 | `js/cloud.js` | Supabase 匿名登入＋雲端存檔（表 `dungeon_saves`）、0.2.19 信箱帳號 `AUTH`／`authDo`（註冊 `authRegister`、登入 `authLogin`（換成帳號的存檔，`main.js` 的 `useSave`）、登出、忘記密碼 `authReset`／`authNewPw`；面板在 hud.js 的 `acctHTML`） |
 | `js/market.js` | 0.1 的市集（還沒接回 0.2，`index.html` 沒有載入） |
 | `js/main.js` | `load`／`save`／`migrate`／`start` |
@@ -54,6 +56,7 @@
 | `tools/touch_check.js` | 手機操作測試（Playwright 模擬觸控，送真的觸控事件）：搖桿、普攻連打、技能點／拖／取消、翻滾、按鈕不重疊、面板不出畫面、點道具的動作、天賦樹點兩次與兩指縮放；`node tools/touch_check.js 寬 高 [網址]` |
 | `tools/hide_bake.js` | 藏身處烘圖（0.2.44）：地形、擺設、光都在這支（`L`、`PROPS`、`ZONE`、`layout`），`node tools/hide_bake.js` 寫 `img/hide-*.png` 與 `js/hideart.js`，並檢查每個設施從出生點走得到 |
 | `tools/hide_check.js` | 藏身處實測（Playwright）：走到每個設施、打三隻稻草人、實戰模式、DPS、召喚物圖騰地面、盲擊撲的煙霧、每把武器配輕盾的 DPS 對帳、清場、傳送門、存檔還原；`node tools/hide_check.js [網址]`（`PW_CHROME` 指定瀏覽器） |
+| `tools/pro_check.js` | 開場與序章實測（Playwright）：新存檔走完全程、老存檔還原、跳過、死亡重來、版本號重跑、重新整理接回、手機四個尺寸的提示與觸控；`node tools/pro_check.js [網址] [fresh／vet／skip／phone]` |
 | `tools/ui_frame.py` | 鑄鐵銀框的九宮格素材 `img/ui/frame.png`（CSS 的 `border-image`） |
 | `supabase/migrations/` | `dungeon_saves` 表、`dungeon_market` 市集表與函式 |
 
@@ -62,7 +65,7 @@
 python3 -m http.server 8000   # 在 dpoe/ 底下，開 http://localhost:8000
 ```
 **本機（localhost、127.0.0.1）不連雲端**（`cloud.js` 的 `cloudInit`，要測雲端才加 `?cloud=1`），測試一律在本機跑，不要對線上網址跑，否則自動匿名登入會在正式庫留下帳號與存檔。
-存檔在 localStorage（鍵 `dungeonpoe_v1`，網址加 `?p=2` 用另一份）。存檔版本 `S.v`：0.2.0 是 10、0.2.2 是 11（技能寶石 `S.skills`）、0.2.3 是 12（天賦 `S.pt`、昇華 `S.asc`／`S.at`、打過階級 16 `S.t16`）、0.2.4 是 13（光環欄 `S.auras`、天賦與昇華退回；0.1 的 1～3 直接開新角色）。0.2.7 是 14（暴擊詞分成本地／全域、項鍊物理改成提高 %、護符欄 `S.charms`）。0.2.18 是 15（天賦樹照技能體系重做，點數退回）。0.2.22 是 16（天賦樹照 PoE2 的幹道＋口袋重做，點數退回）。0.2.23 是 17。0.2.25 是 18（昇華重做：`S.asc`／`S.at`，不分職業）。0.2.35 是 19（鑿孔石換粉、寶石頁 `S.gems`、過濾器改成 `S.filter = { cur, sets: [{ rules, def }] }`）。0.2.40 是 20（寶石等級門檻 `GEM_REQ`：超過的降級、退靈魂）。0.2.41 是 21（詞綴 12 階改 6 階：`T = ceil(舊T / 2)`，數值不動）。0.2.42 是 22（能力值：過路點改自選 `S.ptA`，天賦全部退點；需求與失效在 `items.js` 的 `itemReq`／`gemAttrReq`／`eqCheck`）。0.2.44 的 `S.idols`（點亮的神像）、`S.story`（故事旗標）沒有換版本號，舊存檔由 `migrate()` 的 `{ ...newGame(), ...s }` 補上。0.2.6 沒有換版本號，`migrate()` 每次都補：材料 `S.mat`、技能欄的輔助搬進技能寶石的孔（`gem.so`／`gem.sup`，技能欄只剩 `{ a }`）、舊裝備補品質 0／孔 0／潛能 3，改格式要在 `main.js` 的 `migrate()` 補轉換。
+存檔在 localStorage（鍵 `dungeonpoe_v1`，網址加 `?p=2` 用另一份）。存檔版本 `S.v`：0.2.0 是 10、0.2.2 是 11（技能寶石 `S.skills`）、0.2.3 是 12（天賦 `S.pt`、昇華 `S.asc`／`S.at`、打過階級 16 `S.t16`）、0.2.4 是 13（光環欄 `S.auras`、天賦與昇華退回；0.1 的 1～3 直接開新角色）。0.2.7 是 14（暴擊詞分成本地／全域、項鍊物理改成提高 %、護符欄 `S.charms`）。0.2.18 是 15（天賦樹照技能體系重做，點數退回）。0.2.22 是 16（天賦樹照 PoE2 的幹道＋口袋重做，點數退回）。0.2.23 是 17。0.2.25 是 18（昇華重做：`S.asc`／`S.at`，不分職業）。0.2.35 是 19（鑿孔石換粉、寶石頁 `S.gems`、過濾器改成 `S.filter = { cur, sets: [{ rules, def }] }`）。0.2.40 是 20（寶石等級門檻 `GEM_REQ`：超過的降級、退靈魂）。0.2.41 是 21（詞綴 12 階改 6 階：`T = ceil(舊T / 2)`，數值不動）。0.2.42 是 22（能力值：過路點改自選 `S.ptA`，天賦全部退點；需求與失效在 `items.js` 的 `itemReq`／`gemAttrReq`／`eqCheck`）。0.2.44 的 `S.idols`（點亮的神像）、`S.story`（故事旗標，序章用 `prologue`、`intro`、`proS`、`tips`、`h_*`）、`S.fresh`（新存檔還沒拿到劍，`migrate()` 對舊存檔拿掉）沒有換版本號，舊存檔由 `migrate()` 的 `{ ...newGame(), ...s }` 補上。0.2.6 沒有換版本號，`migrate()` 每次都補：材料 `S.mat`、技能欄的輔助搬進技能寶石的孔（`gem.so`／`gem.sup`，技能欄只剩 `{ a }`）、舊裝備補品質 0／孔 0／潛能 3，改格式要在 `main.js` 的 `migrate()` 補轉換。
 
 ## Supabase
 同一個專案（ref `eugkdfhkoaxvqhztvptc`），表 `public.dungeon_saves`（跟《塞令老師》的 `saves` 分開，RLS 只允許本人）。前端只放 anon key，**絕對不要使用或要求 service_role key**。表不存在時只存本機。
