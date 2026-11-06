@@ -336,7 +336,7 @@ const ok = (n, c, info = '') => {
     openPanel('device');
     PANEL.pick = 1;
     PANEL.card = 0;
-    openMap(1, 0);
+    openMap('0,0', 0);
     closePanels();
   });
   ok('傳送門開在地圖台前面', await p.evaluate(() => !!G.portal && Math.abs(G.portal.x - HIDE_ART.portal.x) < 1));

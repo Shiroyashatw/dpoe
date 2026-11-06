@@ -225,7 +225,7 @@ function treeToggle(id) {
     /* 過路點：先選要加哪一項能力值（treePick 才真的點下去） */
     if (!asc && PTREE.I[id].s.attr) return treeAttrAsk(id);
     have.push(id);
-  } else if (asc && ascLeft() <= 0) return hudWarn('沒有昇華點了：階級 6、12、16 的王第一次打倒各 +2');
+  } else if (asc && ascLeft() <= 0) return hudWarn('沒有昇華點了：Lv 31、63、83 地圖的王第一次打倒各 +2');
   else if (asc && ascT().I[id].g && S.at.some(o => ascT().I[o].g === ascT().I[id].g))
     return hudWarn('同一組只能選一個：先退掉另一個');
   else if (asc) return hudWarn('要跟點過的點連在一起，而且最後要剛好 4 小 4 大');

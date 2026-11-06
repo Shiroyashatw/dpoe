@@ -914,7 +914,7 @@ function drawPrompts() {
     port = G.portal && dist(P, G.portal) < 90;
   const lab =
     port && G.scene === 'hide'
-      ? [(TOUCH.on ? '' : 'F ') + '進入階級 ' + G.portal.to, G.portal.x, G.portal.y - 40]
+      ? [(TOUCH.on ? '' : 'F ') + '進入' + (G.portal.n || '地圖'), G.portal.x, G.portal.y - 40]
       : p
         ? [(TOUCH.on ? '' : 'F ') + p.n, p.x, p.y - p.ny]
         : null;

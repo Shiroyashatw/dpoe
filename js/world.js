@@ -275,6 +275,20 @@ function huntEnter(s) {
   s.hunt.v = s.hunt.full = s.hunt.used = 0;
 }
 
+/* 下一個目標：劇情區的下一步；之後血霧滿了標最近的裂口，沒滿標最近走得到的血霧；都沒有就最近走得到的節點 */
+function wGoal(s) {
+  if (!wOpen(s)) return wKey(STORY[s.world.stage].q, STORY[s.world.stage].r);
+  const L = wList(s).map(wXY),
+    near = (a, b) => wRing(...a) - wRing(...b),
+    can = L.filter(([q, r]) => wCan(s, q, r)).sort(near),
+    rift = L.filter(([q, r]) => wType(s, q, r) === 'rift' && !wDone(s).has(wKey(q, r))).sort(near),
+    p =
+      s.hunt.full && !s.hunt.used && rift[0]
+        ? can.find(([q, r]) => wType(s, q, r) === 'rift') || rift[0]
+        : can.find(([q, r]) => wType(s, q, r) === 'blood') || can[0];
+  return p ? wKey(...p) : null;
+}
+
 /* 打倒節點的王：回傳節點類型 */
 function wClear(s, k) {
   const [q, r] = wXY(k),

@@ -242,7 +242,7 @@ function hudTick() {
       ? '地層'
       : G.scene === 'hide'
         ? `藏身處 · Lv ${S.lv} · ${S.gold} 金 · 地圖碎片 ${S.frag}`
-        : `地圖 階級 ${G.mapT} · ${'★'.repeat(G.star || 1)} · Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻 · 碎片 ${S.frag}`;
+        : `${G.nodeN || '地圖'} · 怪物 Lv ${mobLv(G.mapT)} · ${'★'.repeat(G.star || 1)} · Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻 · 碎片 ${S.frag}`;
   setT($('area'), 'at', at);
   const hm = G.scene !== 'map';
   if (HV.hm !== hm) {
@@ -277,7 +277,7 @@ function hudState() {
     o.hidden = false;
   } else if (G.state === 'portal') {
     /* 站在傳送門上：打開地圖台選下一張（新的一批卡），或回藏身處 */
-    o.innerHTML = `<div class="card portal"><h2>傳送門</h2><p>${G.first ? `<span class="c-gold">開放階級 ${S.maxT}！</span>` : '地上的東西撿完了嗎？'}</p>
+    o.innerHTML = `<div class="card portal"><h2>傳送門</h2><p>${G.first ? `<span class="c-gold">${G.first}</span>` : '地上的東西撿完了嗎？'}</p>
       <div class="pbtns"><button class="btn pri" data-a="pickmap">選下一張地圖<small>新的一批地圖卡</small></button><button class="btn" data-a="home">回藏身處<small>整理背包、點天賦</small></button></div>
       <p class="c-dim">走開就關掉</p></div>`;
     o.hidden = false;
@@ -305,8 +305,7 @@ function openPanel(k) {
     PANEL.inv = PANEL[k] = true;
   } else if (k === 'device') {
     PANEL.device = true;
-    PANEL.pick = S.maxT;
-    PANEL.card = 0;
+    wmOpen();
   } else PANEL[k] = true;
   /* 手機直立：選中才佔掉背包那半邊；桌機與橫向在 hudPanels 預選第一招 */
   if (k === 'skill' && PORT()) SKUI.sel = null;
@@ -647,7 +646,7 @@ function hudPanels() {
           : ''
       }${st === 'gems' ? gemPageHTML() : gridHTML(S[st], st)}`;
   }
-  if (PANEL.device) $('pdev').innerHTML = devHTML();
+  if (PANEL.device) wmPanel();
   if (PANEL.asc) panelHTML($('pasc'), ascHTML(), ['', '.ax-list']);
   if (PANEL.shop) $('pshop').innerHTML = shopHTML();
 }
@@ -1318,7 +1317,7 @@ function ascHTML() {
     lit = id => cur && S.at.includes(id),
     st = id => (lit(id) ? 'on' : cur && treeCan(id) ? 'can' : 'off'),
     sel = T.I[ASCUI.n] || null,
-    nx = S.maxT <= 6 ? 6 : S.maxT <= 12 ? 12 : !S.t16 ? 16 : 0;
+    nx = S.maxT <= 6 ? 31 : S.maxT <= 12 ? 63 : !S.t16 ? 83 : 0;
   const lines = T.E.map(
       ([a, b]) =>
         `<line x1="${T.I[a].x}" y1="${T.I[a].y}" x2="${T.I[b].x}" y2="${T.I[b].y}" class="${lit(a) && lit(b) ? 'on' : ''}"/>`
@@ -1353,7 +1352,7 @@ function ascHTML() {
     )
     .join('')}</div>
   <div class="ax-chart"><div class="ax-disc"></div><svg viewBox="${-R} ${-R} ${2 * R} ${2 * R}" aria-hidden="true">${lines}</svg>${nodes}</div>
-  <div class="ax-side">${ascCap(k, T, sel)}<ul class="ax-list">${list}${nx ? `<li class="ax-note">第一次打倒階級 ${nx} 的王：昇華點 +2。換昇華免費，點數全部退回</li>` : ''}</ul>${cur ? '' : `<button class="btn pri ax-pick" data-a="asc:${k}">${S.asc ? `改成${A.n}（點數退回）` : `成為${A.n}`}</button>`}</div>`;
+  <div class="ax-side">${ascCap(k, T, sel)}<ul class="ax-list">${list}${nx ? `<li class="ax-note">第一次打倒 Lv ${nx} 地圖的王：昇華點 +2。換昇華免費，點數全部退回</li>` : ''}</ul>${cur ? '' : `<button class="btn pri ax-pick" data-a="asc:${k}">${S.asc ? `改成${A.n}（點數退回）` : `成為${A.n}`}</button>`}</div>`;
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-ax]');
@@ -1422,47 +1421,6 @@ function shopHTML() {
   ${shopSel()}
   ${GAMBLE.map(([n, xs]) => `<div class="ph2">${n}</div><div class="shopg">${xs.map(x => `<button class="shopb ${SHOPUI.sel === x.id ? 'on' : ''}" data-a="gsel:${x.id}">${icHTML(gamBases(x)[0].ic)}<span>${x.n}</span></button>`).join('')}</div>`).join('')}`;
 }
-function devHTML() {
-  /* 地圖台（0.2.7）：上面選階級（怪物強度、物品等級），下面選一張地圖卡（星級＝詞綴數＝風險與獎勵） */
-  const t = PANEL.pick,
-    cards = mapCards(S),
-    open = cardsOpen(S),
-    i = Math.min(PANEL.card || 0, open - 1),
-    card = cards[i],
-    c = mapCost(t, card.star),
-    m = tierMob(t),
-    rw = cardRew(card),
-    lv = mobLv(t);
-  /* 0.2.14：預設最高階、◀ ▶ 往下選；只列開放的卡（大卡：星級、危險、獎勵、費用），選中的那張展開地圖詞 */
-  const danger = cd => Math.max(1, ...cd.mods.map(k => MAPMOD[k].d)),
-    DN = ['', '低', '中', '高'],
-    next = cards.length > open ? `再打到階級 ${3 * (open - 2) + 1} 多開一張卡` : '';
-  return `<div class="ph"><b>地圖台</b><span>地圖碎片 <b class="c-gold">${S.frag}</b> · 打完一張才換一批卡</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="devw"><div class="mdl"><div class="tstep">
-    <button class="btn" data-tier="${t - 1}" ${t <= 1 ? 'disabled' : ''} aria-label="低一階">${ICO.prev}</button>
-    <div><b>階級 ${t}</b><small>怪物 Lv ${lv} · 生命 ×${m.hp.toFixed(1)} · 傷害 ×${m.dmg.toFixed(1)}${resPen(lv) ? ` · <span class="c-warn">元素抗性 −${resPen(lv)}%</span>` : ''}</small></div>
-    <button class="btn" data-tier="${t + 1}" ${t >= S.maxT ? 'disabled' : ''} aria-label="高一階">${ICO.next}</button>
-  </div>
-  ${S.maxT < TMAX ? `<p class="tnext">打倒階級 ${S.maxT} 的王開放階級 ${S.maxT + 1}</p>` : ''}
-  <div class="mcards2">${cards
-    .slice(0, open)
-    .map((cd, k) => {
-      const r = cardRew(cd),
-        d = danger(cd),
-        cc = mapCost(t, cd.star);
-      return `<button class="mc2 ${k === i ? 'on' : ''}" data-card="${k}" style="--sc:${STARS[cd.star].c}">
-        <span class="mstar">${'★'.repeat(cd.star)}</span>
-        <span class="mdang d${d}">危險 ${DN[d]}</span>
-        <span class="mrew">數量 +${r.qty}% · 稀有 +${r.rar}%</span>
-        <span class="mcost ${S.frag < cc ? 'c-bad' : ''}">${cc ? `${cc} 碎片` : '免費'}</span></button>`;
-    })
-    .join('')}</div>
-  ${next ? `<p class="tnext">${next}</p>` : ''}</div>
-  <div class="mdr"><div class="msel"><b>這張的地圖詞</b><span class="c-gold">物品數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
-  <ul class="mmods">${card.mods.map(k => `<li class="d${MAPMOD[k].d}">${termify(MAPMOD[k].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
-  <button class="btn pri" data-a="open" ${S.frag < c ? 'disabled' : ''}>${S.frag < c ? `碎片不夠（要 ${c}，有 ${S.frag}）` : `${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}${c ? ` · ${c} 碎片` : ''}`}</button></div></div>`;
-}
-
 /* ---------- 寶石頁（0.2.35）：倉庫的清單式分頁、不限數量；主動／輔助／光環三組，上面有類型篩選與搜尋 ---------- */
 const GP = { k: 'all', q: '' };
 const GP_KINDS = [
@@ -2150,11 +2108,6 @@ function inputInit() {
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-a]');
     if (a) act(a.dataset.a);
-    const t = e.target.closest('[data-tier]');
-    if (t && !t.disabled) {
-      PANEL.pick = clamp(+t.dataset.tier, 1, S.maxT);
-      hudPanels();
-    }
     const cd = e.target.closest('[data-card]');
     if (cd) {
       PANEL.card = +cd.dataset.card;
@@ -2204,11 +2157,8 @@ function pressFx(key) {
 }
 function act(a) {
   if (a === 'close') closePanels();
-  else if (a === 'open') {
-    if (G.scene === 'map') mapAgain(PANEL.pick, PANEL.card || 0);
-    else openMap(PANEL.pick, PANEL.card || 0);
-    closePanels();
-  } else if (a === 'home') {
+  else if (a === 'open') wmGo();
+  else if (a === 'home') {
     enterHideout();
   } else if (a.startsWith('stab:')) {
     PANEL.stab = a.slice(5);

@@ -159,33 +159,38 @@ function enterHideout() {
   hudState();
 }
 /* 開地圖：花碎片、地圖台前面出現傳送門 */
-/* 選了地圖卡 i、階級 t：付碎片（階級＋星級），記住這張卡（進地圖時套用） */
-function payMap(t, i) {
-  const card = mapCards(S)[i];
-  if (t > S.maxT) return hudWarn('先打倒前一階的王'), false;
-  if (!card || i >= cardsOpen(S)) return hudWarn('這張卡還沒開放'), false;
-  const c = mapCost(t, card.star);
-  if (S.frag < c) return hudWarn(`碎片不夠：要 ${c} 個`), false;
+/* 選了節點 k 的地圖卡 i：付碎片（只看星級），記住節點與這張卡（進地圖時套用）；回傳內部難度 */
+function payMap(k, i) {
+  const [q, r] = wXY(k),
+    why = wWhy(S, q, r),
+    st = STORY_I[k],
+    card = st != null ? STORY[st].card : wCards(S, k).c[i];
+  if (why) return hudWarn(why), 0;
+  if (!card) return hudWarn('先選一張地圖卡'), 0;
+  const c = st != null ? 0 : mapCost(card.star);
+  if (S.frag < c) return hudWarn(`碎片不夠：要 ${c} 個`), 0;
   S.frag -= c;
-  S.tier = t;
+  S.node = k;
   S.card = card;
-  return true;
+  return lvT(wLv(q, r));
 }
-function openMap(t, i) {
-  if (!payMap(t, i)) return;
-  G.portal = { ...HIDE_ART.portal, to: t };
+function openMap(k, i) {
+  const t = payMap(k, i);
+  if (!t) return;
+  const n = wName(S, ...wXY(k));
+  G.portal = { ...HIDE_ART.portal, to: t, n };
   save();
   sfx('portal');
-  hudWarn(`階級 ${t}・${S.card.star} 星的傳送門開了`);
+  hudWarn(`${n}的傳送門開了`);
 }
 /* 地圖（參考 Chronicon）：一塊一塊 14×14 格的房間拼起來，有岔路也沒關係；
    殺怪累積首領進度，滿了王就出現在附近（怪物總量約是需要的 150～160%） */
 const TS = 48,
   CHUNK = 14;
 /* 從地圖裡的傳送門直接開下一張（花碎片） */
-/* 傳送門：直接開下一張 */
-function mapAgain(t, i) {
-  if (!payMap(t, i)) return;
+function mapAgain(k, i) {
+  const t = payMap(k, i);
+  if (!t) return;
   save();
   enterMap(t);
 }
@@ -197,11 +202,20 @@ function enterMap(t) {
   resetWorld(cols * TS, rows * TS);
   G.scene = 'map';
   G.mapT = t;
-  /* 地圖卡的詞綴；這一批卡用掉了，下次打開地圖台抽新的 */
-  G.mm = mapMods(S.card);
+  /* 節點：血霧扣 25%、這一批卡用掉了（失敗回來也是新的一批）；裂口的王帶 1 條墮落詞 */
+  G.node = S.node || null;
+  G.zod = null;
+  G.nodeN = '';
+  if (G.node) {
+    const [q, r] = wXY(G.node);
+    if (wType(S, q, r) === 'rift') G.zod = wZod(S, q, r);
+    G.nodeN = wName(S, q, r);
+    huntEnter(S);
+    delete S.cards[G.node];
+  }
+  G.mm = mapMods(S.card, G.zod && G.zod.cor);
   G.star = (S.card && S.card.star) || 1;
-  S.card = null;
-  S.cards = null;
+  S.node = S.card = null;
   const tiles = (G.tiles = new Uint8Array(cols * rows).fill(1));
   G.cols = cols;
   G.rows = rows;
@@ -361,7 +375,7 @@ function addProg(m) {
   if (G.prog < G.need) return;
   G.bossOut = 1;
   const p = floorNear(P.x, P.y, 260, 420, 60) || floorNear(P.x, P.y, 120, 260, 50) || { x: P.x + 1, y: P.y };
-  const b = spawnMob((G.lastBoss = bossPick(G.lastBoss)), p.x, p.y, 99, false);
+  const b = spawnMob(G.zod || (G.lastBoss = bossPick(G.lastBoss)), p.x, p.y, 99, false);
   b.boss = 1;
   b.hp = b.mhp = b.hp * bossHpMul(G.mapT || 1) * (1 + MM('bhp') / 100);
   b.dmg *= BOSS_DMG * (1 + MM('bdmg') / 100);
@@ -725,6 +739,13 @@ function killMob(m) {
     if (m.boss && i === 0 && it.r < 2) Object.assign(it, mkItem(it.b, it.L, 2), { id: it.id });
     dropAt(m.x, m.y, { it });
   }
+  /* 生肖王：額外 1 件保底高品質的稀有裝 */
+  if (m.boss && G.zod) {
+    const it = dropItem(tierIlvl(t), 0.8);
+    Object.assign(it, mkItem(it.b, it.L, 2), { id: it.id });
+    it.q = Math.max(it.q, 0.3);
+    dropAt(m.x, m.y, { it });
+  }
   if (Math.random() < (m.boss || m.elite ? 1 : 0.4))
     dropAt(m.x, m.y, { gold: Math.round(rnd(2, 6) * (1 + t * 0.5) * (m.boss ? 12 : m.elite ? 3 : 1)) });
   const fr = m.boss
@@ -755,15 +776,14 @@ function killMob(m) {
     }
 }
 function bossDown(m) {
-  const first = G.mapT === S.maxT && S.maxT < TMAX;
-  if (first) S.maxT++;
-  if (G.mapT === TMAX && !S.t16) (S.t16 = 1), (G.first = 1);
+  /* 打倒王才算走過：路開通；失敗或回家都不算 */
+  const ty = G.node ? wClear(S, G.node) : '';
+  G.first = ty === 'rift' ? '十二尊神像，又亮了一尊' : ty ? '地圖上開了新的路' : '';
   G.portal = { ...(floorNear(m.x, m.y, 150, 230, 40) || { x: m.x, y: m.y }), home: 1 };
-  G.first = G.first || first;
   hitstop(0.25);
   G.slow = 0.9;
   sfx('boss');
-  hudWarn(first ? `打倒${m.D.n}！開放階級 ${S.maxT}。撿完走進藍色傳送門` : `打倒${m.D.n}！撿完走進藍色傳送門`);
+  hudWarn(`打倒${m.D.n}！撿完走進藍色傳送門`);
   save();
 }
 function dropAt(x, y, o) {
@@ -1361,6 +1381,7 @@ function frame(now) {
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
   last = now;
   if (IV.on) return introFrame(rdt);
+  if (PANEL.device) return wmFrame(now, rdt);
   if (G.hs > 0) {
     G.hs -= rdt;
     rdt = 0;

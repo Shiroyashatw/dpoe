@@ -80,7 +80,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .panel[hidden] { display: none !important; }
 #pinv { right: 16px; width: 476px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pstash { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
-#pdev { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes inR { from { opacity: 0; transform: translateX(24px); } }
 @keyframes inL { from { opacity: 0; transform: translateX(-24px); } }
 @keyframes pop { from { opacity: 0; } }
@@ -139,7 +138,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .tinfo { display: grid; gap: 4px; padding: 10px 12px; background: rgba(0, 0, 0, 0.35); border-radius: var(--rad); }
 .tinfo div { display: flex; justify-content: space-between; gap: 12px; }
 .tinfo span { color: var(--dim); }
-#pdev p { font-size: var(--fs-s); margin: 10px 0; }
 /* 昇華石碑（0.2.25）：兩張卡並排（窄螢幕上下排），大點照選擇組合併成一行 */
 #pasc { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(980px, calc(100vw - 24px)); height: min(720px, calc(100vh - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pshop { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
@@ -149,7 +147,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .shopres .ic { width: 36px; height: 36px; flex: none; }
 .shopres b { display: block; font-size: var(--fs); }
 .shopres small { color: var(--dim); font-size: var(--fs-s); }
-#pdev .btn { width: 100%; }
 
 /* ---------- 說明框 ---------- */
 #tip { position: fixed; z-index: 30; max-width: 300px; padding: 10px 12px; background: rgba(14, 11, 10, 0.97); border: 1px solid rgba(205, 210, 220, 0.3); border-radius: var(--rad); pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7); }
@@ -363,7 +360,6 @@ body.touch .tmenu { display: flex; gap: 6px; position: fixed; top: calc(8px + en
 body.touch .panel { top: calc(6px + env(safe-area-inset-top)); max-height: calc(100dvh - 12px); padding: 10px; overscroll-behavior: contain; }
 body.touch #pinv { right: calc(6px + env(safe-area-inset-right)); width: calc(50vw - 9px); }
 body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); width: calc(50vw - 9px); }
-body.touch #pdev { width: min(440px, calc(100vw - 12px)); max-height: calc(100dvh - 12px); }
 body.touch #pshop, body.touch #pflt { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch .eqrow { flex-wrap: wrap; gap: 8px; }
 body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-space: normal; }
@@ -477,8 +473,6 @@ button.mcard:active { transform: scale(0.96); }
 .mmods .d2 { color: var(--warn); } .mmods .d3 { color: var(--bad); }
 .c-warn { color: var(--warn); }
 @media (max-width: 600px) { .mmods { columns: 1; } }
-/* 主要按鈕固定在地圖台底部（手機橫向一屏放不下時也按得到） */
-#pdev .btn.pri { position: sticky; bottom: -14px; box-shadow: 0 -10px 14px var(--panel); }
 
 :root {
   /* 0.2.34 鑄鐵銀框：鐵灰四階、銀灰框、鋼藍灰標題帶與主按鈕（紅色只代表危險）；黃色只留給稀有度 */
@@ -714,21 +708,14 @@ body.touch.port #ptabs:not([hidden]) { display: flex; position: fixed; z-index: 
 body.touch.port .panel { left: 0 !important; right: 0 !important; width: auto !important; top: calc(48px + env(safe-area-inset-top)); bottom: 0; max-height: none; transform: none; border-radius: 0; outline: none; }
 body.touch.port.pair #pstash, body.touch.port.pair #pskill, body.touch.port.pair #pcraft { bottom: auto; height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
 body.touch.port.pair #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
-body.touch.port #pdev, body.touch.port #pgem, body.touch.port #pset, body.touch.port #pflt, body.touch.port #pasc, body.touch.port #pshop { top: env(safe-area-inset-top); transform: none; max-height: none; }
+body.touch.port #pgem, body.touch.port #pset, body.touch.port #pflt, body.touch.port #pasc, body.touch.port #pshop { top: env(safe-area-inset-top); transform: none; max-height: none; }
 body.touch.port .ph .sw { display: none; }
 .tinfo span { white-space: nowrap; }
 .tinfo div > :last-child { text-align: right; }
 body.touch.port .panel > .ph:first-child .x { display: none; }
-body.touch.port #pdev > .ph:first-child .x, body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x, body.touch.port #pflt > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x, body.touch.port #pshop > .ph:first-child .x { display: grid; }
+body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x, body.touch.port #pflt > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x, body.touch.port #pshop > .ph:first-child .x { display: grid; }
 
-/* ---------- 0.2.14 地圖台：◀ 階級 ▶、三張大卡、選中的卡展開地圖詞 ---------- */
-.tstep { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; margin: 2px 0 6px; }
-.tstep .btn { padding: 0; display: grid; place-items: center; color: var(--title); }
-.tstep .ico { width: 20px; height: 20px; }
-.tstep div { text-align: center; }
-.tstep b { display: block; font: 700 22px/1.2 var(--serif); color: var(--title); letter-spacing: 0.06em; }
-.tstep small { display: block; color: var(--dim); font-size: var(--fs-s); }
-.tnext { margin: 0 0 10px; text-align: center; font-size: var(--fs-s); color: var(--dim); }
+/* ---------- 地圖卡：星級、危險、費用；選中的卡展開地圖詞 ---------- */
 .mcards2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; margin: 4px 0 6px; }
 .mc2 { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px; font: 500 var(--fs-s) var(--font); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
 .mc2:hover { border-color: var(--fr); }
@@ -741,10 +728,6 @@ body.touch.port #pdev > .ph:first-child .x, body.touch.port #pgem > .ph:first-ch
 .mcost { color: var(--dim); }
 .msel { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--line); font-size: var(--fs-s); }
 .msel b { font-family: var(--serif); color: var(--title); font-size: var(--fs); }
-body.touch.port .mcards2 { grid-template-columns: 1fr; }
-body.touch.port .mc2 { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; text-align: left; justify-items: start; padding: 10px 12px; column-gap: 12px; }
-body.touch.port .mc2 .mstar { grid-row: 1 / 3; align-self: center; }
-body.touch.port .mc2 .mcost { grid-column: 3; grid-row: 1 / 3; align-self: center; }
 
 /* ---------- 0.2.14 裝備：人形欄放大置中、空格是淡淡的部位圖示、數值在下面 ---------- */
 .eqrow.col { flex-direction: column; align-items: center; gap: 10px; }
@@ -785,7 +768,6 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 #bossbar .bb { box-shadow: none; border: 1px solid var(--fr); }
 #tip > b:first-child { font-family: var(--font); letter-spacing: 0; }
 #area, #warn { font-family: var(--font); letter-spacing: 0; }
-.tstep b { font-family: var(--font); letter-spacing: 0; }
 #ptree .tbar { background: var(--s2); border-bottom: 1px solid var(--fr-o); }
 #tsvg line.on, #tsvg path.on { stroke: var(--sel); }
 ::selection { background: rgba(86, 108, 128, 0.75); color: #fff; }
@@ -838,12 +820,6 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
 
 /* 手機橫向（畫面矮）：地圖台左右兩欄、材料一排、說明框更緊湊 */
 @media (max-height: 480px) {
-  body.touch:not(.port) #pdev { width: calc(100vw - 12px); }
-  body.touch:not(.port) .devw { display: flex; }
-  body.touch:not(.port) .mdl, body.touch:not(.port) .mdr { flex: 1; min-width: 0; }
-  body.touch:not(.port) .mcards2 { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
-  body.touch:not(.port) .mc2 { padding: 4px; }
-  body.touch:not(.port) .mmods { columns: 1; margin: 4px 0; }
   body.touch:not(.port) .mats { flex-wrap: nowrap; overflow-x: auto; margin: 4px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1239,3 +1215,59 @@ body.touch #pro .btn { min-height: 44px; }
   #prot.in, .pro-hl { animation: none; }
 }
 @keyframes lidFade { to { opacity: 0; } }
+
+/* ---------- 世界地圖（wmap.js）：全螢幕像素大陸＋右側節點面板；手機直立面板在下、手機橫向窄一點 ---------- */
+#pdev { position: fixed; inset: 0; z-index: 10; display: grid; grid-template-columns: minmax(0, 1fr) 348px; background: #0c1014; }
+#pdev[hidden] { display: none; }
+.wm-map { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+#wmc { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#wmc.drag { cursor: grabbing; }
+.wm-rift { position: absolute; left: 50%; top: calc(10px + env(safe-area-inset-top)); transform: translateX(-50%); max-width: calc(100% - 16px); min-height: 32px; padding: 4px 14px; font: 500 var(--fs-s)/1.4 var(--font); color: var(--dim); background: rgba(23, 24, 27, 0.9); border: 1px solid #7a2b2e; border-radius: 2px; cursor: pointer; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.wm-rift:hover { color: var(--title); border-color: var(--bad); }
+.wm-rift:active { transform: translateX(-50%) scale(0.97); }
+.wm-rift > b { margin-right: 8px; font: 700 15px var(--serif); color: #ffb9ad; letter-spacing: 0.05em; }
+.wm-hunt { display: block; height: 4px; margin-top: 4px; background: var(--s0); }
+.wm-hunt i { display: block; height: 100%; background: var(--bad); transition: width 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.wm-hunt.full i { background: #ff8a4c; }
+.wm-cap { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; pointer-events: none; }
+.wm-cap[hidden] { display: none; }
+.wm-cap p { margin: 0; font: 900 clamp(22px, 4.2vw, 40px)/1.5 var(--serif); text-align: center; color: var(--title); text-shadow: 0 2px 2px #000, 0 0 24px rgba(0, 0, 0, 0.9); letter-spacing: 0.08em; text-wrap: balance; animation: wmcap 900ms ease-out; }
+@keyframes wmcap { from { opacity: 0; } }
+.wm-tools { position: absolute; right: calc(10px + env(safe-area-inset-right)); bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 6px; }
+.wm-tools .btn { width: 44px; height: 44px; min-height: 0; padding: 0; display: grid; place-items: center; background: var(--s0); }
+.wm-tools .ico { width: 16px; height: 16px; }
+.wm-side { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--stone); border-left: 1px solid var(--fr); box-shadow: inset 2px 0 0 #000, inset 3px 0 0 var(--fr-o); }
+.wm-side > .ph { flex: none; padding: 10px 14px; padding-right: max(14px, env(safe-area-inset-right)); background: var(--s2); border-bottom: 1px solid var(--fr); }
+.wm-side > .ph .x { flex: none; }
+.wm-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px; padding-right: max(14px, env(safe-area-inset-right)); display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
+.wm-body h2 { margin: 0; font: 700 21px/1.3 var(--serif); color: var(--title); }
+.wm-body p { margin: 0; font-size: var(--fs-s); color: var(--dim); }
+.wm-body .wm-kind { color: var(--tx); font-variant-numeric: tabular-nums; }
+.wm-note { color: var(--dim); }
+.wm-cards { margin: 4px 0 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.wm-cards .mc2 { min-height: 72px; padding: 8px 4px; }
+.wm-body .msel { margin: 0; }
+.wm-mods { columns: 1; margin: 0; }
+.wm-acts { position: sticky; bottom: -14px; display: grid; gap: 6px; margin-top: auto; padding-top: 8px; background: linear-gradient(transparent, var(--s1) 8px); }
+.wm-acts .btn, .wm-body > .btn { width: 100%; }
+.wm-q { margin: 4px 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.wm-q li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; padding: 8px 10px; background: var(--s0); border: 1px solid var(--fr-o); }
+.wm-q li span { color: var(--dim); font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
+.wm-q li.lock { border-style: dashed; color: var(--dim); }
+.wm-zod { flex-basis: 100%; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 4px; }
+.wm-zod span { display: grid; place-items: center; aspect-ratio: 1; background: rgba(0, 0, 0, 0.3); opacity: 0.35; filter: grayscale(1); }
+.wm-zod span.on { opacity: 1; filter: none; }
+.wm-zod .ic { width: 100%; height: 100%; }
+body.touch.port #pdev { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, auto); }
+body.touch.port .wm-side { max-height: 56dvh; border-left: 0; border-top: 1px solid var(--fr); box-shadow: inset 0 2px 0 #000; }
+body.touch .wm-acts { grid-template-columns: auto 1fr; }
+body.touch .wm-acts .btn { padding-inline: 10px; white-space: nowrap; }
+body.touch .wm-side > .ph { padding: 4px 10px; }
+body.touch .wm-side > .ph b { font-size: var(--fs); }
+body.touch .wm-body { padding: 8px 10px; gap: 4px; }
+body.touch .wm-body h2 { font-size: var(--fs-l); }
+body.touch .wm-cards .mc2 { min-height: 56px; padding: 4px; }
+body.touch .wm-acts { bottom: -8px; }
+body.touch.port .wm-acts { bottom: calc(-8px - env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
+body.touch:not(.port) #pdev { grid-template-columns: minmax(0, 1fr) min(320px, 46vw); }
+@media (prefers-reduced-motion: reduce) { .wm-cap p { animation-duration: 200ms; } .wm-hunt i { transition: none; } }

@@ -143,7 +143,7 @@ function dpsView() {
 
 /* ---------- 練習區的小面板（只在石圈裡；DPS 打了稻草人才出現） ---------- */
 const PRAC_HTML = `<div class="prh"><b>練習區</b><span id="prm"></span></div>
-  <div class="prs"><button class="btn mini" data-pr="dn" aria-label="降低階級">−</button><b id="prt"></b><button class="btn mini" data-pr="up" aria-label="提高階級">＋</button></div>
+  <div class="prs"><button class="btn mini" data-pr="dn" aria-label="降低等級">−</button><b id="prt"></b><button class="btn mini" data-pr="up" aria-label="提高等級">＋</button></div>
   <button class="btn mini prr" data-pr="real" aria-pressed="false">實戰模式</button>
   <div id="prd" hidden><dl><dt>10 秒平均</dt><dd id="pra"></dd><dt>總傷害</dt><dd id="prv"></dd><dt>最高一擊</dt><dd id="prx"></dd></dl>
   <div class="prb"><i></i></div><small id="prp"></small><button class="btn mini" data-pr="reset">重置</button></div>`;
@@ -164,7 +164,7 @@ function pracHud() {
   const el = $('prac');
   if (HV.prac !== PRAC.in) el.hidden = !(HV.prac = PRAC.in);
   if (!PRAC.in) return;
-  setT($('prt'), 'prt', '階級 ' + PRAC.t);
+  setT($('prt'), 'prt', '怪物 Lv ' + mobLv(PRAC.t));
   setT($('prm'), 'prm', PRAC.real ? '真實魔力與冷卻' : '無限魔力 · 無冷卻');
   if (HV.prr !== PRAC.real) {
     const b = el.querySelector('.prr');
