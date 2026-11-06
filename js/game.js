@@ -29,6 +29,9 @@ function newGame() {
     temp: { w: 12, h: 12, items: [] },
     /* 寶石頁（0.2.35）：倉庫的清單式分頁，不限數量 */
     gems: [],
+    /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
+    idols: [],
+    story: {},
     /* 過濾器（0.2.35）：3 組、每組一串規則（由上往下第一條符合的決定處理方式）＋「其他」預設；見 fltAct */
     filter: { cur: 0, sets: [fltTemplate(), fltEmpty(), fltEmpty()] },
     sfx: 1
@@ -81,6 +84,8 @@ function resetWorld(W, H) {
     tele: [],
 
     props: [],
+    solid: [],
+    npcs: [],
     tiles: null,
     mini: null,
     bossOut: 0,
@@ -121,24 +126,29 @@ function newPlayer(x, y) {
   G.cam.x = x;
   G.cam.y = y;
 }
-/* 藏身處：小房間，地圖台在中間偏上、倉庫箱在左邊 */
+/* 藏身處：地層出口的山腹營地。場景圖與座標在 hideart.js（tools/hide_bake.js 產生），碰撞用地圖的格子牆 */
 function enterHideout() {
-  resetWorld(960, 640);
+  const A = HIDE_ART;
+  if (TALK.on) talkEnd();
+  resetWorld(A.W, A.H);
   G.scene = 'hide';
-  G.biome = 'temple';
-  G.deco = hideDeco();
-  G.props = [
-    { k: 'device', n: '地圖台', x: 480, y: 210, r: 46 },
-    { k: 'gamble', n: '商人', x: 190, y: 190, r: 34 },
-    { k: 'stash', n: '倉庫', x: 190, y: 330, r: 34 },
-    { k: 'market', n: '市集（之後開放）', x: 770, y: 330, r: 34 },
-    { k: 'forge', n: '鍛造台', x: 190, y: 520, r: 34 },
-    { k: 'asc', n: '昇華石碑', x: 770, y: 520, r: 30 }
-  ];
-  newPlayer(480, 470);
+  G.mm = null;
+  G.tiles = hideTiles();
+  G.cols = A.cols;
+  G.rows = A.rows;
+  G.solid = A.solids;
+  G.deco = A.lights.map(l => ({ k: 'light', ...l }));
+  G.props = hideProps();
+  G.npcs = npcList();
+  newPlayer(A.spawn.x, A.spawn.y);
   P.hp = ST.hp;
   P.mp = ST.mp;
   skillsEnter();
+  PRAC.in = false;
+  PRAC.t = Math.min(PRAC.t || S.maxT, S.maxT);
+  dummyBuild();
+  dpsReset();
+  ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
 }
 /* 開地圖：花碎片、地圖台前面出現傳送門 */
@@ -156,7 +166,7 @@ function payMap(t, i) {
 }
 function openMap(t, i) {
   if (!payMap(t, i)) return;
-  G.portal = { x: 480, y: 330, to: t };
+  G.portal = { ...HIDE_ART.portal, to: t };
   save();
   sfx('portal');
   hudWarn(`階級 ${t}・${S.card.star} 星的傳送門開了`);
@@ -455,7 +465,7 @@ function updPlayer(dt) {
   /* 冥思的品質：貧魔時回復更多 */
   const lowM = lowMp() ? 1 + 0.4 * (ST.aq.clarity || 0) : 1;
   P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1.2 : 1) * lowM * dt);
-  if (G.scene === 'map') baseTick(dt);
+  if (fightOn()) baseTick(dt);
   if (ST.regen && !ST.vaal) P.hp = Math.min(ST.hp, P.hp + ST.regen * Math.max(0, 1 + MM('pregen') / 100) * dt);
   if (P.heal > 0) {
     const h = Math.min(P.heal, ((ST.hp * FLASK.heal) / FLASK.t) * dt);
@@ -482,6 +492,8 @@ function updPlayer(dt) {
   let mx = (K.d || K.arrowright ? 1 : 0) - (K.a || K.arrowleft ? 1 : 0),
     my = (K.s || K.arrowdown ? 1 : 0) - (K.w || K.arrowup ? 1 : 0);
   if (TOUCH.mv[0] || TOUCH.mv[1]) [mx, my] = TOUCH.mv;
+  /* 對話中站著不動 */
+  if (G.state === 'talk') mx = my = 0;
   const ml = Math.hypot(mx, my);
   if (ml) (mx /= ml), (my /= ml);
   P.mv = ml ? 1 : 0;
@@ -505,12 +517,11 @@ function updPlayer(dt) {
     if (M.L) useSlot(0);
     else if (M.R) useSlot(1);
     const w = mouseWorld();
-    if (G.scene === 'map' || P.mv)
-      P.face =
-        P.mv && (G.scene === 'hide' || (TOUCH.on && !TOUCH.sk)) ? Math.atan2(my, mx) : Math.atan2(w.y - P.y, w.x - P.x);
+    if (fightOn() || P.mv)
+      P.face = P.mv && (!fightOn() || (TOUCH.on && !TOUCH.sk)) ? Math.atan2(my, mx) : Math.atan2(w.y - P.y, w.x - P.x);
   }
 }
-/* 移動＋碰撞：地圖是牆（一格一格推出去），藏身處是邊界與擺設；分段走，快速衝刺也不會穿牆 */
+/* 移動＋碰撞：牆一格一格推出去，藏身處再推開擺設；分段走，快速衝刺也不會穿牆 */
 function moveBody(o, dx, dy) {
   /* 釘身（combat.js）：不能移動、不能被擊退 */
   if (o.ail && o.ail.pinT > G.t) return;
@@ -520,10 +531,8 @@ function moveBody(o, dx, dy) {
     o.y += dy / n;
     if (G.tiles) pushTiles(o);
   }
-  if (G.tiles) return;
-  o.x = clamp(o.x, o.r + 60, G.W - o.r - 60);
-  o.y = clamp(o.y, o.r + 100, G.H - o.r - 60);
-  for (const k of G.props) {
+  /* 藏身處的擺設 */
+  for (const k of G.solid) {
     const ddx = o.x - k.x,
       ddy = o.y - k.y,
       d = Math.hypot(ddx, ddy),
@@ -583,7 +592,7 @@ function doRoll() {
 }
 /* mana：喝魔力藥劑（2）回魔力，不然喝生命藥劑（1）回生命；藥劑效果的詞綴與地圖詞兩種都算 */
 function drinkFlask(mana) {
-  if (G.scene !== 'map' || G.state !== 'play') return;
+  if (!fightOn() || G.state !== 'play') return;
   const k = mana ? 'mflask' : 'flask';
   if (P[k] < 1) return hudWarn((mana ? '魔力' : '生命') + '藥劑用完了：殺怪會補');
   P[k] -= 1;
@@ -875,7 +884,13 @@ function pickNearest() {
 }
 /* 藏身處的東西：走到旁邊按 F 或點一下 */
 function nearProp() {
-  return (G.props || []).find(p => dist(P, p) < p.r + 70);
+  let best = null,
+    bd = 1e9;
+  for (const p of G.props) {
+    const d = dist(P, p);
+    if (d < p.r + 70 && d < bd) (bd = d), (best = p);
+  }
+  return best;
 }
 function useProp(p) {
   if (!p) return false;
@@ -885,6 +900,8 @@ function useProp(p) {
   else if (p.k === 'forge') openPanel('craft');
   else if (p.k === 'asc') openPanel('asc');
   else if (p.k === 'gamble') openPanel('shop');
+  else if (p.k === 'npc') talkOpen(p.id);
+  else if (p.k === 'prac') hudWarn('走進石圈就能出招');
   else hudWarn('市集之後開放');
   return true;
 }
@@ -955,6 +972,10 @@ function flowAng(m) {
 function updMobs(dt) {
   flowUpd();
   for (const m of G.mobs) {
+    if (m.dummy) {
+      dummyTick(m, dt);
+      continue;
+    }
     if (m.hp <= 0) continue;
     m.flash = Math.max(0, m.flash - dt);
     m.sq = Math.max(0, m.sq - dt * 6);
@@ -1361,16 +1382,8 @@ function frame(now) {
   }
   G.trauma = Math.max(0, G.trauma - rdt * 1.6);
   const w = mouseWorld(),
-    /* 藏身處：鏡頭只跟一點，但人物一定在畫面內（手機直立的畫面比房間窄） */
-    keep = (c, p, half, pad) => clamp(c, p - Math.max(0, half - pad), p + Math.max(0, half - pad)),
-    tx =
-      G.scene === 'hide'
-        ? keep(G.W / 2 + (P.x - G.W / 2) * 0.3, P.x, CV.clientWidth / ZOOM / 2, 60)
-        : P.x + (w.x - P.x) * 0.12,
-    ty =
-      G.scene === 'hide'
-        ? keep(G.H / 2 + (P.y - G.H / 2) * 0.3, P.y, CV.clientHeight / ZOOM / 2, 90)
-        : P.y + (w.y - P.y) * 0.12,
+    tx = P.x + (w.x - P.x) * 0.12,
+    ty = P.y + (w.y - P.y) * 0.12,
     f = 1 - Math.exp(-rdt * 9);
   G.cam.x += (tx - G.cam.x) * f;
   G.cam.y += (ty - G.cam.y) * f;

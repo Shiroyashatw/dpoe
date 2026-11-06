@@ -2380,4 +2380,88 @@ vm.runInContext(
     need10.filter(k => !R(`!!TERMS['${k}']`)).join()
   );
 }
+/* 藏身處（0.2.44）：地形走得到、對話資料、稻草人不會死、DPS 統計 */
+{
+  const c4 = { console, Math, Date, JSON, Object, Array, Uint8Array, Float64Array };
+  vm.createContext(c4);
+  for (const f of ['hideart.js', 'npc.js', 'hideout.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
+  const R = x => vm.runInContext(x, c4);
+  R(`var G = { t: 0, mobs: [] }, P = {}, S = { story: {}, maxT: 3 }, PRAC = { t: 2, dot: 0 }, MOBS = { a: { hp: 50 } }, BOSSES = [{ hp: 300 }];
+    var clamp = (v, a, b) => Math.max(a, Math.min(b, v)), hudWarn = () => {};
+    var bossHpMul = () => 10, mobDef = () => {}, ailTick = () => {};
+    var spawnMob = (D, x, y, pack, elite) => { const m = { D, x, y, r: D.r, sz: D.sz, elite, hp: D.hp, mhp: D.hp, ail: {}, flash: 0, sq: 0 }; G.mobs.push(m); return m; };`);
+  const A = R('HIDE_ART'),
+    tiles = R('hideTiles()'),
+    at = (x, y) => Math.floor(y / 48) * A.cols + Math.floor(x / 48),
+    dst = new Float64Array(A.cols * A.rows).fill(1e9),
+    q = [at(A.spawn.x, A.spawn.y)];
+  dst[q[0]] = 0;
+  for (let h = 0; h < q.length; h++)
+    for (const d of [1, -1, A.cols, -A.cols]) {
+      const n = q[h] + d;
+      if (!tiles[n] && dst[n] > dst[q[h]] + 48) (dst[n] = dst[q[h]] + 48), q.push(n);
+    }
+  const near = o => {
+    let b = 1e9;
+    for (let y = -2; y <= 2; y++)
+      for (let x = -2; x <= 2; x++) b = Math.min(b, dst[at(o.x + x * 48, o.y + y * 48)] || 1e9);
+    return b;
+  };
+  const far = [...A.props, ...A.dummies, ...Object.values(A.npc), A.exit].filter(o => near(o) > 690);
+  ok('藏身處：每個設施從出生點 3 秒內走得到', !far.length, JSON.stringify(far));
+  ok('藏身處：出生點、傳送門不在牆裡', !tiles[at(A.spawn.x, A.spawn.y)] && !tiles[at(A.portal.x, A.portal.y)]);
+  ok(
+    '藏身處：十二尊神像各一尊、三隻稻草人都在石圈裡',
+    new Set(A.statues.map(s => s.z)).size === 12 &&
+      A.dummies.length === 3 &&
+      A.dummies.every(d => ((d.x - A.zone.x) / A.zone.rx) ** 2 + ((d.y - A.zone.y) / A.zone.ry) ** 2 < 1)
+  );
+  /* 稻草人 */
+  R('dummyBuild()');
+  const hit = v => R(`G.mobs[0].hp -= ${v}; G.mobs[0].hp`);
+  ok(
+    '稻草人：三隻、王的生命照倍率、階級照選的',
+    R(
+      'G.mobs.length === 3 && G.mobs[2].boss === 1 && G.mobs[2].mhp === 3000 && G.mapT === 2 && G.mobs[1].elite === true'
+    )
+  );
+  hit(30);
+  ok('稻草人：擊中算直接傷害與最高一擊', R('DPS.tot === 30 && DPS.max === 30 && DPS.dot === 0'));
+  const after = hit(1e6);
+  ok('稻草人：打爆了補滿，不會死', after === R('G.mobs[0].mhp') && R('DPS.tot') === 1000030 && R('DPS.max') === 1e6);
+  R('G.mobs[0].hp = 0');
+  ok('稻草人：歸零的寫入（撲殺）不算傷害、也不會死', R('DPS.tot === 1000030 && G.mobs[0].hp > 0'));
+  R('PRAC.dot = 1; G.mobs[0].hp -= 5; PRAC.dot = 0');
+  ok('稻草人：持續傷害另外算、不進最高一擊', R('DPS.dot === 5 && DPS.tot === 1000035 && DPS.max === 1e6'));
+  R(
+    `ailTick = m => { m.hp -= 7; m.x = 9999; }; DPS.dot = 0; G.mobs[1].x = 1; dummyTick(G.mobs[1], 0.1); ailTick = () => {}`
+  );
+  ok('稻草人：異常走得到、釘在原地', R('DPS.dot === 7 && G.mobs[1].x === G.mobs[1].hx'));
+  R('G.t = 100; G.mobs[1].hitT = 90; dummyTick(G.mobs[1], 0.1)');
+  ok('稻草人：沒人打 5 秒回滿', R('G.mobs[1].hp === G.mobs[1].mhp'));
+  R('G.mobs[0].ailX = 1; G.mobs = []; PRAC.t = 3; dummyBuild(); dpsReset()');
+  ok('稻草人：換階級重建、統計歸零', R('G.mobs.length === 3 && G.mapT === 3 && DPS.tot === 0 && dpsView().avg === 0'));
+  /* DPS：10 秒平均 */
+  R('G.t = 200; for (let i = 0; i < 20; i++) { dpsAdd(100, i % 2); G.t += 1; }');
+  ok('DPS：10 秒平均只看最近 10 秒', Math.abs(R('dpsView().avg') - 100) < 11, R('dpsView().avg'));
+  ok('DPS：直接與持續的比例', Math.abs(R('dpsView().dotP') - 0.5) < 1e-9 && R('DPS.tot') === 2000);
+  R('G.t += 11');
+  ok('DPS：停手 10 秒後平均歸零、總傷害留著', R('dpsView().avg === 0 && dpsView().tot === 2000'));
+  R('dpsReset(); G.t = 300; dpsAdd(50, 0); G.t = 302');
+  ok('DPS：剛開打用實際秒數平均', R('dpsView().avg') === 25);
+  /* 對話資料 */
+  const bad2 = R(`Object.entries(TALKS).flatMap(([k, T]) => [
+      ...T.lines.filter(l => l[0] !== null && !NPCS[l[0]]).map(() => k + ' 的 NPC 不存在'),
+      ...(typeof T.next === 'string' && !TALKS[T.next] ? [k + ' 的 next 不存在'] : [])
+    ])`);
+  ok('NPC：對話的角色與接續都存在', !bad2.length, bad2.join());
+  ok(
+    'NPC：每個人都接得到對話、位置都有',
+    R(`Object.keys(NPCS).every(id => TALKS[NPCS[id].talk(S)] && HIDE_ART.npc[id])`)
+  );
+  ok('NPC：撿骨師在、赤鴉預設隱藏', R(`npcList().map(n => n.id).join() === 'bone'`));
+  R('S.story.crow = 1');
+  ok('NPC：解鎖後赤鴉出現', R(`npcList().some(n => n.id === 'crow')`));
+}
 process.exit(bad ? 1 : 0);

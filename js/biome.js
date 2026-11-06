@@ -1,4 +1,4 @@
-/* dungeonPOE · 地圖場景（0.2.14）：冰雪洞窟、岩漿地城、毒沼古墓、廢棄廟宇（藏身處也用廟宇）。
+/* dungeonPOE · 地圖場景（0.2.14）：冰雪洞窟、岩漿地城、毒沼古墓、廢棄廟宇（藏身處在 hideout.js）。
    只有外觀，不影響戰鬥。地板花紋 bFloor、地上細節 bDecals、牆 bWalls、擺設 decorate／bDeco、
    光源 bLights（在暗層挖洞）／bGlow（疊一層色光）。擺設只是畫，不擋路 */
 'use strict';
@@ -40,7 +40,7 @@ const BIOMES = {
     light: '255,179,90'
   }
 };
-const BIO = () => BIOMES[G.biome] || BIOMES.temple;
+const BIO = () => (G.scene === 'hide' ? HIDE_BIO : BIOMES[G.biome] || BIOMES.temple);
 
 /* ---------- 地板：每種場景一張 256×256 的花紋（固定亂數，畫一次） ---------- */
 const FLOORS = {};
@@ -382,37 +382,6 @@ function decorate(rooms) {
     }
   }
   return out;
-}
-/* 藏身處的後牆（廟宇）：屋瓦＋紅漆牆＋木柱＋金邊 */
-function bHideWall() {
-  CX.fillStyle = '#1c181e';
-  CX.fillRect(0, 0, G.W, 52);
-  CX.strokeStyle = 'rgba(255,255,255,0.07)';
-  CX.lineWidth = 2;
-  for (let r = 0; r < 4; r++) {
-    CX.beginPath();
-    for (let x = (r % 2) * 6; x < G.W; x += 12) CX.arc(x + 6, 8 + r * 12, 6, 0, Math.PI);
-    CX.stroke();
-  }
-  CX.fillStyle = '#2a150e';
-  CX.fillRect(0, 52, G.W, 8);
-  CX.fillStyle = '#c9a227';
-  CX.fillRect(0, 60, G.W, 2);
-  CX.fillStyle = '#6a241b';
-  CX.fillRect(0, 62, G.W, 36);
-  CX.fillStyle = '#3a2418';
-  for (let x = 0; x < G.W; x += 160) CX.fillRect(x + 76, 52, 10, 46);
-  CX.fillStyle = 'rgba(0,0,0,0.35)';
-  CX.fillRect(0, 98, G.W, 12);
-}
-/* 藏身處（廟宇）：上牆一排燈籠＋兩座石燈籠 */
-function hideDeco() {
-  return [
-    ...[160, 320, 640, 800].map(x => ({ k: 'torch', x, y: 84, l: 200 })),
-    { k: 'slant', x: 340, y: 230, s: 1, l: 120 },
-    { k: 'slant', x: 620, y: 230, s: 1, l: 120 },
-    { k: 'incense', x: 480, y: 560, s: 1, l: 110 }
-  ];
 }
 function bDeco(W, H) {
   const b = G.biome,

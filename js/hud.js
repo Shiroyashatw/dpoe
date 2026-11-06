@@ -76,12 +76,16 @@ function hudInit() {
     <div class="orb mp" id="omp"><i></i><svg class="spir" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 95 A45 45 0 0 1 50 5"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 1 50 5"/></svg><span></span></div>
     <div class="dmenu">${DMENU.map(([k, ic, n, key]) => `<button data-tm="${k}" data-tip="${n}（${key}）" aria-label="${n}">${ICO[ic]}<kbd>${key}</kbd></button>`).join('')}</div>
   </div>
+  <div id="prac" hidden></div>
+  <div id="talk" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
   <button id="hint" hidden></button>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}背包</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
   <div class="tonly tmore" id="tmore" hidden><button data-tm="skill">${ICO.gem}技能寶石</button><button data-tm="tree">${ICO.tree}天賦樹</button><button data-tm="home">${ICO.home}回藏身處</button><button data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
+  pracInit();
+  talkInit();
   hudBar();
   hudState();
 }
@@ -161,7 +165,7 @@ function hudTick() {
     }
     setV(el, 'cd' + k, cd.toFixed(2));
     setT(el.querySelector('u'), 't' + k, txt);
-    const no = (c && ((!hell && mpAvail() < c.mp) || !wtOK(c.D))) || G.scene === 'hide';
+    const no = (c && ((!hell && !pracFree() && mpAvail() < c.mp) || !wtOK(c.D))) || !fightOn();
     if (HV['n' + k] !== no) el.classList.toggle('no', (HV['n' + k] = no));
   }
   /* 翻滾冷卻：桌機畫在游標旁（直立是技能鍵旁的小圖示，照上面的 .sk 一起更新） */
@@ -199,7 +203,7 @@ function hudTick() {
     $('omp').dataset.tip = `精魂 ${ST.spiritUsed} / ${ST.spirit}`;
   }
   /* 狀態列（0.2.30）：圖示＋剩餘秒數或層數；負面的紅框；點一下看名字與效果 */
-  const sts = G.scene === 'map' ? playerStates() : [],
+  const sts = fightOn() ? playerStates() : [],
     stKey = sts.map(s => s.k + (s.c || '')).join();
   if (HV.sts !== stKey) {
     HV.sts = stKey;
@@ -213,7 +217,7 @@ function hudTick() {
   /* 暗色扇形順時針掃過：剩餘越少蓋越多 */
   const sb = $('mech').children;
   sts.forEach((s, i) => sb[i] && sb[i].style.setProperty('--f', s.f.toFixed(2)));
-  const b = G.mobs.find(m => m.boss),
+  const b = G.mobs.find(m => m.boss && !m.dummy),
     show = !!(b && b.aggro);
   if (HV.boss !== show) {
     $('bossbar').hidden = !(HV.boss = show);
@@ -223,6 +227,7 @@ function hudTick() {
   const pr = G.scene === 'map' && !G.bossOut;
   if (HV.pr !== pr) $('prog').hidden = !(HV.pr = pr);
   if (pr) setV($('prog'), 'prog', Math.min(1, G.prog / G.need).toFixed(3));
+  pracHud();
   const at =
     G.scene === 'hide'
       ? `藏身處 · Lv ${S.lv} · ${S.gold} 金 · 地圖碎片 ${S.frag}`
@@ -1875,6 +1880,7 @@ function inputInit() {
       return;
     }
     const k = e.key.toLowerCase();
+    if (TALK.on) return e.repeat || (e.preventDefault(), talkKey(k));
     if (e.repeat && !'wasd'.includes(k) && !k.startsWith('arrow')) return;
     K[k] = 1;
     if (k === ' ') {

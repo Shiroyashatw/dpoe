@@ -120,21 +120,17 @@ function draw() {
   CX.save();
   CX.translate(ox, oy);
   /* 地板、地上細節、牆、擺設（場景在 biome.js） */
-  if (G.scene === 'hide') {
-    CX.fillStyle = bFloor();
-    CX.fillRect(0, 0, G.W, G.H);
-  }
-  CX.strokeStyle = '#3a2f28';
-  CX.lineWidth = 6;
-  CX.strokeRect(-3, -3, G.W + 6, G.H + 6);
-  if (G.scene === 'hide') drawHideout();
+  if (G.scene === 'hide') drawHideout(W, H);
   else {
+    CX.strokeStyle = '#3a2f28';
+    CX.lineWidth = 6;
+    CX.strokeRect(-3, -3, G.W + 6, G.H + 6);
     bStatic(W, H);
     bDecals(W, H);
   }
   bDeco(W, H);
   /* 地面效果、屍體、殘留物、手雷、幻影、旗幟、飛劍（mech.js） */
-  if (G.scene === 'map' && G.ground) drawMech();
+  if (G.ground) drawMech();
   /* 預警：怪物出手前地上的紅色範圍 */
   CX.lineWidth = 2;
   for (const m of G.mobs) {
@@ -293,7 +289,7 @@ function draw() {
     }
   }
   /* 角色們（照 y 排序） */
-  const ents = G.mobs.filter(m => m.hp > 0).concat([P], G.allies || []);
+  const ents = G.mobs.filter(m => m.hp > 0).concat([P], G.allies || [], G.npcs);
   ents.sort((a, b) => a.y - b.y);
   /* 畫面外的不畫（留 150 給大隻的王與頭上的圖示） */
   const vx0 = G.cam.x - W / 2 - 150,
@@ -302,7 +298,8 @@ function draw() {
     vy1 = G.cam.y + H / 2 + 250;
   for (const e of ents)
     if (e === P) drawHero();
-    else if (e.x > vx0 && e.x < vx1 && e.y > vy0 && e.y < vy1) e.src ? drawWolf(e) : drawMob(e);
+    else if (e.x > vx0 && e.x < vx1 && e.y > vy0 && e.y < vy1) e.npc ? drawNpc(e) : e.src ? drawWolf(e) : drawMob(e);
+  if (G.scene === 'hide') hideFront();
   /* 投射物 */
   for (const s of G.shots) {
     /* 有 pixelfx 投射物圖（箭、子彈、飛斧…）就照方向畫序列圖 */
@@ -899,68 +896,6 @@ function drawMinimap(W) {
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);
 }
 
-/* 藏身處：木地板、牆、地圖台、倉庫箱、市集攤；走近時顯示「F 名字」 */
-function drawHideout() {
-  bHideWall();
-  for (const p of G.props) {
-    shadow(p.x, p.y + 6, p.r * 1.1);
-    if (p.k === 'device') {
-      /* 地圖台：石台＋發光的盤面 */
-      CX.fillStyle = '#3d342e';
-      CX.beginPath();
-      CX.ellipse(p.x, p.y, p.r, p.r * 0.55, 0, 0, TAU);
-      CX.fill();
-      CX.fillStyle = '#5a4d43';
-      CX.fillRect(p.x - p.r * 0.7, p.y - 46, p.r * 1.4, 40);
-      const g = 0.5 + 0.3 * Math.sin(G.t * 2);
-      CX.fillStyle = `rgba(178,141,255,${g})`;
-      CX.beginPath();
-      CX.ellipse(p.x, p.y - 46, p.r * 0.7, p.r * 0.3, 0, 0, TAU);
-      CX.fill();
-      spr('mat_frag', p.x, p.y - 44, 28);
-    } else if (p.k === 'stash') {
-      CX.fillStyle = '#6b4a2b';
-      CX.fillRect(p.x - 34, p.y - 44, 68, 44);
-      CX.fillStyle = '#8a6239';
-      CX.fillRect(p.x - 34, p.y - 52, 68, 14);
-      CX.fillStyle = '#d9b45a';
-      CX.fillRect(p.x - 5, p.y - 36, 10, 12);
-    } else if (p.k === 'asc') {
-      /* 昇華石碑（0.2.25）：發金光的石碑，上面是選好的昇華圖示 */
-      CX.fillStyle = '#3d342e';
-      CX.fillRect(p.x - 22, p.y - 70, 44, 70);
-      CX.fillStyle = '#5a4d43';
-      CX.fillRect(p.x - 26, p.y - 76, 52, 10);
-      const g = 0.45 + 0.3 * Math.sin(G.t * 2.4);
-      CX.fillStyle = `rgba(255,209,102,${g})`;
-      CX.fillRect(p.x - 8, p.y - 58, 16, 30);
-      spr(S.asc ? ASC[S.asc].ic : 'asc_s_stars', p.x, p.y - 22, 30);
-    } else if (p.k === 'forge') {
-      /* 鍛造台：鐵砧＋爐火 */
-      CX.fillStyle = '#3a2f28';
-      CX.fillRect(p.x - 30, p.y - 30, 60, 30);
-      CX.fillStyle = '#6b6560';
-      CX.fillRect(p.x - 36, p.y - 46, 72, 16);
-      CX.fillRect(p.x - 14, p.y - 30, 28, 8);
-      const g = 0.4 + 0.3 * Math.sin(G.t * 3.1);
-      CX.fillStyle = `rgba(255,138,76,${g})`;
-      CX.fillRect(p.x - 24, p.y - 22, 48, 14);
-    } else {
-      CX.fillStyle = '#4a3a2e';
-      CX.fillRect(p.x - 36, p.y - 40, 72, 40);
-      CX.fillStyle = '#7a2e2a';
-      CX.fillRect(p.x - 44, p.y - 70, 88, 16);
-      spr('mat_gold', p.x, p.y - 40, 24);
-      if (p.k === 'gamble') {
-        /* 商人（0.2.28）：紫布棚的小攤 */
-        CX.fillStyle = '#3f2352';
-        CX.fillRect(p.x - 44, p.y - 70, 88, 16);
-        CX.fillStyle = '#5c3475';
-        CX.fillRect(p.x - 36, p.y - 22, 72, 8);
-      }
-    }
-  }
-}
 /* 互動提示：走近的東西頭上「F 名字」 */
 function drawPrompts() {
   const p = G.scene === 'hide' && nearProp(),
@@ -969,7 +904,7 @@ function drawPrompts() {
     port && G.scene === 'hide'
       ? [(TOUCH.on ? '' : 'F ') + '進入階級 ' + G.portal.to, G.portal.x, G.portal.y - 40]
       : p
-        ? [(TOUCH.on ? '' : 'F ') + p.n, p.x, p.y - (p.k === 'device' ? 92 : 80)]
+        ? [(TOUCH.on ? '' : 'F ') + p.n, p.x, p.y - p.ny]
         : null;
   if (G.scene === 'hide') drawPropNames();
   if (!lab) return;
@@ -978,7 +913,8 @@ function drawPrompts() {
 /* 藏身處的擺設常駐弱名牌（走近才變成互動提示） */
 function drawPropNames() {
   const p = nearProp();
-  for (const k of G.props) if (k !== p) plate(k.n, k.x, k.y - (k.k === 'device' ? 92 : 80), '#aeb3bc', 0.75);
+  for (const k of G.props) if (k !== p) plate(k.n, k.x, k.y - k.ny, '#aeb3bc', 0.75);
+  if (PRAC.in) for (const m of G.mobs) if (m.dummy) plate(m.D.n, m.x, m.y + 26, '#aeb3bc', 0.75);
 }
 function plate(txt, x, y, col, a) {
   CX.font = '700 14px "Noto Sans TC", sans-serif';

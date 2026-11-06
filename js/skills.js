@@ -157,11 +157,18 @@ const needTxt = D => '需要：' + (D.wt ? D.wt.map(w => WTN[w]).join('、') : '
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */
 const metaOf = g =>
   g && (g.sup || []).find(x => x && SUPPORTS[x.gem] && SUPPORTS[x.gem].meta && supOK(SKILLS[g.gem], x, g));
+/* 練習區（藏身處的石圈，hideout.js）：in 站在裡面、real 實戰模式、t 稻草人階級、dot 正在結算持續傷害 */
+const PRAC = { in: false, real: false, t: 0, dot: 0 };
+/* 能不能出招：地圖裡，或藏身處的練習區 */
+const fightOn = () => G.scene === 'map' || PRAC.in;
+/* 練習區預設無限魔力、無冷卻；實戰模式才照真的算 */
+const pracFree = () => G.scene === 'hide' && PRAC.in && !PRAC.real;
 /* 放不放得出來（手動與自動共用）：回傳不能放的原因。地獄火（0.2.26）不扣魔力、改成累積，所以不檢查魔力；血魔法優先 */
 function skillWhy(c, at) {
   if (c.g && gemLack(c.g).length) return '能力值不足';
   const hell = ST.hellfire && !ST.blood;
-  if (ST.blood ? P.hp <= c.mp + 1 : !hell && mpAvail() < c.mp) return ST.blood ? '生命不夠施放' : '魔力不足';
+  if (!pracFree() && (ST.blood ? P.hp <= c.mp + 1 : !hell && mpAvail() < c.mp))
+    return ST.blood ? '生命不夠施放' : '魔力不足';
   if (c.k === 'banner' && (P.glory || 0) < 100) return '榮耀不夠（' + Math.floor(P.glory || 0) + '／100）';
   if ((c.k === 'corpseboom' || c.k === 'paperdoll') && !corpseNear(c.k === 'paperdoll' ? P : at, 250))
     return '附近沒有屍體';
@@ -171,6 +178,7 @@ function skillWhy(c, at) {
 }
 /* 付費：彈藥、魔力（或生命、地獄火）、流順之風、冷卻 */
 function skillPay(c, i) {
+  if (pracFree()) return;
   if (c.D.ammo) ammoUse(c.k, c.D.ammo[0], c.D.ammo[1]);
   if (ST.blood) sacrifice('hp', c.mp);
   else if (ST.hellfire) hfGain(c.mp);
@@ -179,7 +187,8 @@ function skillPay(c, i) {
   if (c.cd) P.cds['s' + i] = c.cd;
 }
 function useSlot(i) {
-  if (P.act || P.roll || G.state !== 'play' || G.scene !== 'map') return false;
+  if (P.act || P.roll || G.state !== 'play') return false;
+  if (!fightOn()) return pracHint(), false;
   if ((P.ail && P.ail.frozen > G.t) || pStagger() || pHeavy()) return false;
   const c = slotCfg(i);
   if (!c) return false;
@@ -192,7 +201,7 @@ function useSlot(i) {
     tm = D.toMob && mobNear(w.x, w.y, 150, D.dist);
   const why = skillWhy(c, w) || (D.toMob && !tm && '滑鼠附近沒有敵人');
   if (why) return hudWarn(why), false;
-  if (D.gren && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('手雷還沒好'), false;
+  if (D.gren && !pracFree() && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('手雷還沒好'), false;
   skillPay(c, i);
   if (c.k === 'smash') P.smashQ = 0;
   /* 狼撲的品質：撲向被印記的怪不花魔力 */
@@ -239,6 +248,13 @@ function useSlot(i) {
     P.iuntil = G.t + a.dur + 0.05;
   }
   return true;
+}
+/* 在藏身處想出招：提醒去練習區（按住連打時不要一直跳） */
+let pracHintT = -9;
+function pracHint() {
+  if (G.t - pracHintT < 3) return;
+  pracHintT = G.t;
+  hudWarn('到練習區才能出招');
 }
 /* (x, y) 附近 r 內、離自己 far 以內最近的怪 */
 function mobNear(x, y, r, far = 1e9) {
@@ -1089,12 +1105,12 @@ function updSkills(dt) {
     P.es = Math.min(ST.es, P.es + ST.es * 0.125 * (1 + (ST.esRec + MM('pes')) / 100) * dt);
   /* 戰狼精魂光環 */
   const aw = G.allies.some(w => w.src === 'aura');
-  if (G.scene === 'map' && ST.auraWolf && !aw) callWolf('aura');
+  if (fightOn() && ST.auraWolf && !aw) callWolf('aura');
   else if (!ST.auraWolf && aw) G.allies = G.allies.filter(w => w.src !== 'aura');
   /* 召喚魔像（光環欄）：拿權杖才會出來 */
   const gm = G.allies.some(w => w.src === 'golem'),
     gOn = ST.auraGolem;
-  if (G.scene === 'map' && gOn && !gm) callWolf('golem');
+  if (fightOn() && gOn && !gm) callWolf('golem');
   else if (!gOn && gm) G.allies = G.allies.filter(w => w.src !== 'golem');
   /* 紙人 15 秒就消失；品質：有機率留下屍體 */
   for (const w of G.allies)
@@ -1104,7 +1120,8 @@ function updSkills(dt) {
   updAllies(dt);
   updPools(dt);
   updUnits(dt);
-  if (G.scene === 'map') mechTick(dt), autoTick();
+  if (fightOn()) mechTick(dt), autoTick();
+  if (G.scene === 'hide') hideTick();
 }
 /* 自動化（0.2.28）：冷卻好了、魔力夠、480 內看得到敵人就放；不佔玩家的出手（P.act），砲塔圖騰、圖騰放在敵人方向 */
 const AUTO_R = 480;
