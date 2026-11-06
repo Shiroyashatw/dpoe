@@ -53,7 +53,7 @@ function crush(m) {
 /* ---------- 2、3. 地面效果與引爆技能 ---------- */
 /* 陣營（第 11 批，企劃書 7.3）：g.side 'm'＝怪物方，沒寫＝玩家方。on(a, t, g, dt) 是站在上面每格做的事，
    a 是目標的異常表（怪物、玩家同一組欄位）、t 是目標；on 打「地面的敵方」，ally 的打「擁有者那一方」。
-   有 on 的種類才分陣營；碎裂、毒氣雲、燃燒地面、劍陣、紅花的傷害照玩家的技能算，只有玩家方。
+   有 on 的種類才分陣營；碎裂、毒氣雲、燃燒地面、劍陣的傷害照玩家的技能算，只有玩家方。
    dot、burst：每秒傷害、生成時一次的傷害對 g.v 的倍率（怪物方 g.v＝死掉那隻的一下；⚠️ 暫定）；dur：怪物方留多久 */
 const noAil = (a, k) => a.imm && a.imm[k] > G.t;
 /* 持續傷害：同一格只算最強一塊，離開就停（ailTick、baseTick 讀 a.gd） */
@@ -75,8 +75,6 @@ const GROUND = {
     on: a => noAil(a, 'chill') || (a.chill = { v: 30, t: G.t + 0.5 })
   },
   blades: { n: '劍陣', col: '#e8e2d6' },
-  /* 0.2.13 死亡紅花：每秒生命偷取的持續傷害，時間到或被引爆就整排爆炸＋流血 */
-  bloom: { n: '死亡紅花', col: '#d9304a', leech: 0.2 },
   cons: {
     n: '奉獻地面',
     col: '#ffe08a',
@@ -187,7 +185,6 @@ function detonate(x, y, r, c) {
       boomAt(g.x, g.y, g.r * 1.2, g.c || c, 1.5, 'fire');
       if (g.k === 'oil') addGround({ k: 'fire', x: g.x, y: g.y, r: g.r, dur: 4, c: g.c || c, dps: 0.3 });
     } else if (g.k === 'blades') (g.done = 1), boomAt(g.x, g.y, g.r, g.c || c, 0.6 * (g.n || 1));
-    else if (g.k === 'bloom') popBlooms(1);
   }
   for (const n of G.grenades) if (Math.hypot(n.x - x, n.y - y) < r + 30) n.fuse = 0;
 }
@@ -199,17 +196,6 @@ function boomAt(x, y, r, c, mul = 1, el) {
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r)
       hitMob(m, cc, Math.atan2(m.y - y, m.x - x), 120, { quiet: 1, mult: (cc.mult || 1) * mul, from: { x, y } });
-}
-/* 死亡紅花爆炸：一朵一次範圍物理擊中（技能的 boomM），一定流血；場上只有一排，一朵爆就整排爆 */
-function popBlooms(det) {
-  for (const g of G.ground)
-    if (g.k === 'bloom' && !g.done) {
-      g.done = 1;
-      /* 死亡紅花的品質：被引爆技能提早引爆時更多 */
-      const mul = det ? 1 + 0.4 * (g.c.q || 0) : 1;
-      boomAt(g.x, g.y, g.r * 1.4, { ...g.c, bleedCh: 100, spellBleed: 1 }, (g.c.D.boomM / g.c.D.m) * mul);
-      fxs('bleed', g.x, g.y - 10, 30);
-    }
 }
 function groundTick(dt) {
   for (const g of G.ground) {
@@ -228,7 +214,7 @@ function groundTick(dt) {
       for (const m of G.mobs)
         if (m.hp > 0 && inGround(g, m)) {
           if (g.k === 'gas' && !hasState(m, 'poison')) fxs('poisoned', m.x, m.y - m.sz * 0.3, m.sz * 0.5);
-          hitMob(m, g.k === 'gas' ? { ...g.c, poisonCh: 100 } : G0.leech ? { ...g.c, leech: G0.leech } : g.c, 0, 0, {
+          hitMob(m, g.k === 'gas' ? { ...g.c, poisonCh: 100 } : g.c, 0, 0, {
             quiet: 1,
             mult: g.c.mult * g.dps * 0.5,
             from: g
@@ -241,7 +227,6 @@ function groundTick(dt) {
     if (g.t >= g.dur && !g.done) {
       g.done = 1;
       if (g.after) boomAt(g.x, g.y, g.r, g.c, g.after);
-      if (g.k === 'bloom') (g.done = 0), popBlooms();
     }
   }
   G.ground = G.ground.filter(g => !g.done);
@@ -640,29 +625,6 @@ function drawMech() {
   for (const g of G.ground) {
     const C = GROUND[g.k],
       f = Math.min(1, (g.dur - g.t) / 0.5);
-    if (g.k === 'bloom') {
-      /* 紅花：五片花瓣，快爆的時候變大、跳得更快 */
-      const k = g.t / g.dur,
-        s = (8 + 6 * k) * (1 + 0.08 * Math.sin(G.t * (6 + 14 * k))),
-        y = g.y - 6;
-      CX.globalAlpha = 0.18;
-      CX.fillStyle = C.col;
-      CX.beginPath();
-      CX.ellipse(g.x, g.y, g.r, g.r * 0.6, 0, 0, TAU);
-      CX.fill();
-      CX.globalAlpha = 1;
-      for (let i = 0; i < 5; i++) {
-        const q = (i / 5) * TAU + g.x;
-        CX.beginPath();
-        CX.arc(g.x + Math.cos(q) * s * 0.7, y + Math.sin(q) * s * 0.5, s * 0.55, 0, TAU);
-        CX.fill();
-      }
-      CX.fillStyle = '#ffd166';
-      CX.beginPath();
-      CX.arc(g.x, y, s * 0.3, 0, TAU);
-      CX.fill();
-      continue;
-    }
     /* 怪物方：填色更濃、紅色虛線框、寫名字，一眼跟自己的地面分開 */
     const foe = g.side === 'm';
     CX.globalAlpha = (foe ? 0.36 : 0.22) * f;

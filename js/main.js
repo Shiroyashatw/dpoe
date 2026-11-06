@@ -164,6 +164,11 @@ function migrate(s) {
     o.pt = [...PT_START];
     o.v = 22;
   }
+  /* 存檔 23（0.2.44）：死亡紅花刪除 */
+  if (o.v < 23) {
+    gemPurge(o, 'redbloom');
+    o.v = 23;
+  }
   o.ptA = o.ptA || {};
   /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
   if (!o.filter || !Array.isArray(o.filter.sets)) {

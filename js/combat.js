@@ -968,7 +968,7 @@ function applyAil(m, r, c, use) {
       hsInc
   );
   if (ST.steelCycle && P.bvAcc > 0 && !immob(a)) poiseAdd(m, 'hs', P.bvAcc), (P.bvAcc = 0);
-  /* 流血、中毒：要有機率；流血只有攻擊會造成，c.spellBleed 是例外（死亡紅花的爆炸） */
+  /* 流血、中毒：要有機率；流血只有攻擊會造成，c.spellBleed 是例外（狼的流血） */
   /* 切割（開關 incise）：擊中給 1 層；每層流血機率 +10%（最多 10 層），上流血時全部移除；inciseMag：近期每消耗 1 層，流血幅度 3% 更多（上限 30%） */
   if (ST.incise) a.inc = Math.min(DEBUFF.inciseMax, (a.inc || 0) + 1);
   const nInc = a.inc || 0;

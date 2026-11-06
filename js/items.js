@@ -136,6 +136,20 @@ function mkGem(g, lv = 1) {
   if (SKILLS[g]) (it.so = 2), (it.sup = [null, null]);
   return it;
 }
+/* 舊存檔裡被刪除的技能寶石：拿掉、退回升級的靈魂、孔裡的輔助放回寶石頁（存檔 23，死亡紅花） */
+function gemPurge(o, k) {
+  const back = [],
+    gone = g => {
+      if (!g || g.gem !== k) return false;
+      for (let l = 1; l < g.lv; l++) o.mat.soul = (o.mat.soul || 0) + soulCost(l);
+      back.push(...(g.sup || []).filter(Boolean));
+      return true;
+    };
+  for (const s of o.skills) if (gone(s.a)) s.a = null;
+  o.gems = o.gems.filter(g => !gone(g));
+  for (const b of [o.inv, o.stash, o.temp]) if (b) b.items = b.items.filter(g => !gone(g));
+  o.gems.push(...back);
+}
 const gemOf = it => SKILLS[it.gem] || SUPPORTS[it.gem] || AURAS[it.gem];
 const isAura = it => !!AURAS[it.gem];
 const isSup = it => !!SUPPORTS[it.gem];

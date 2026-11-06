@@ -814,8 +814,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：94 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 94,
+    '品質：93 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 93,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -1671,7 +1671,7 @@ vm.runInContext(
       cl.remote === 'frosttrap,blastmine,ballista,firetotem,mirage' &&
       !cl.channel.length &&
       cl.nova === 'whirl,nova' &&
-      cl.sust === 'venom,redbloom' &&
+      cl.sust === 'venom' &&
       cl.cond === 'shadowstrike,blindpounce,banner,corpseboom,paperdoll,wolfpounce',
     JSON.stringify(cl)
   );
@@ -1697,7 +1697,7 @@ vm.runInContext(
   );
   /* 2. 跟標籤的傷害提高：只對有標籤的技能 */
   const pool = R(`(() => {
-    const nz = ['strikeP', 'slamP', 'novaP', 'sustP'], d = k => hitCalc(gemCfg(mkGem(k, 5), 0), null, { avg: 1, keep: 1 }).d, ks = ['slash', 'whirl', 'quake', 'nova', 'venom', 'redbloom', 'fireball'], out = {};
+    const nz = ['strikeP', 'slamP', 'novaP', 'sustP'], d = k => hitCalc(gemCfg(mkGem(k, 5), 0), null, { avg: 1, keep: 1 }).d, ks = ['slash', 'whirl', 'quake', 'nova', 'venom', 'fireball'], out = {};
     const base = Object.fromEntries(ks.map(k => [k, d(k)]));
     for (const s of nz) {
       ST[s] = 50;
@@ -1708,17 +1708,14 @@ vm.runInContext(
   })()`);
   ok(
     '傷害池：打擊只給打擊技能、重擊只給重擊、新星只給新星、經久只給經久（沒標籤的不吃）',
-    pool.strikeP === 'slash,whirl' &&
-      pool.slamP === 'quake' &&
-      pool.novaP === 'whirl,nova' &&
-      pool.sustP === 'venom,redbloom',
+    pool.strikeP === 'slash,whirl' && pool.slamP === 'quake' && pool.novaP === 'whirl,nova' && pool.sustP === 'venom',
     JSON.stringify(pool)
   );
   /* 3. 技能持續時間：只影響 duration 標籤；tAdd 不吃速度；技能基礎攻擊時間 */
   const du = R(`(() => {
     ST.durP = 50;
     const out = [], c = k => gemCfg(mkGem(k, 5), 0);
-    out.push(durOf(c('venom')), durOf(c('redbloom')), durOf(c('ballista')), durOf({ D: { dur: 5, tags: ['proj'] } }), durOf(c('fireball')));
+    out.push(durOf(c('venom')), durOf(c('ballista')), durOf({ D: { dur: 5, tags: ['proj'] } }), durOf(c('fireball')));
     G.pools = [];
     const cv = c('venom');
     actHit({ k: 'venom', c: cv, ang: 0, tx: 100, ty: 0, hits: [0], n: 0 }, 0);
@@ -1728,8 +1725,8 @@ vm.runInContext(
     return out;
   })()`);
   ok(
-    '技能持續時間：毒刃雨 3→4.5、紅花 4→6、弩砲塔圖騰 10→15，沒有標籤的不變；毒刃雨真的放出 4.5 秒',
-    du.join() === '4.5,6,15,5,0,4.5,3',
+    '技能持續時間：毒刃雨 3→4.5、弩砲塔圖騰 10→15，沒有標籤的不變；毒刃雨真的放出 4.5 秒',
+    du.join() === '4.5,15,5,0,4.5,3',
     du.join()
   );
   const ta = R(`(() => {
@@ -3217,7 +3214,7 @@ vm.runInContext(
 
     /* 標籤 */
     const tagOf = k => SKILLS[k].tags;
-    o.tags = [tagOf('venom').includes('orb'), tagOf('redbloom').includes('orb'), tagOf('rend').includes('payoff'), tagOf('fissure').includes('payoff'), tagOf('grenade').includes('grenade'), tagOf('banner').includes('banner'), tagOf('warcry').includes('cascade'), tagOf('nova').includes('cascade'), tagOf('meteor').includes('cascade'), tagOf('cu_vuln').includes('cascade'), tagOf('slash').includes('final'), tagOf('chainsweep').includes('final'), tagOf('paperdoll').includes('temp')];
+    o.tags = [tagOf('venom').includes('orb'), tagOf('rend').includes('payoff'), tagOf('fissure').includes('payoff'), tagOf('grenade').includes('grenade'), tagOf('banner').includes('banner'), tagOf('warcry').includes('cascade'), tagOf('nova').includes('cascade'), tagOf('meteor').includes('cascade'), tagOf('cu_vuln').includes('cascade'), tagOf('slash').includes('final'), tagOf('chainsweep').includes('final'), tagOf('paperdoll').includes('temp')];
     o.tagNo = [tagOf('fireball').includes('cascade'), tagOf('smash').includes('payoff'), tagOf('thrust').includes('payoff')];
     o.stageFinal = Object.keys(SKILLS).filter(k => !!SKILLS[k].stage !== tagOf(k).includes('final'));
     o.terms = ['寶珠技能','捷光環技能','遣散技能','擲彈技能','鬥旗技能','疾風技能','風暴技能','可爆發技能','主要寶石','連結的輔助技能','分裂','迴旋','超限格擋率','效果消耗','最終打擊','終極','擴散傷害','只有最低或最高傷害','暴露弱點','封印','極大','暫時召喚物','召喚物死亡及擊殺召喚物','復甦召喚物','迷蹤','無法閃避翻滾或衝刺','閃避翻滾無法躲避傷害','預期擊退','黑暗血鐮訓練','循環教義','騎士信條','堅鐵之力','鋼鐵意志','無法獲得力量的固有加成','無法獲得敏捷的固有加成','無法獲得智慧的固有加成'].filter(k => !TERMS[k]);
@@ -3686,6 +3683,23 @@ vm.runInContext(
       }
       return true;
     })()`)
+  );
+}
+/* 存檔 23：舊存檔裡的死亡紅花要拿掉、退靈魂、輔助放回寶石頁，別的寶石不動 */
+{
+  const r = vm.runInContext(
+    `(() => {
+    const bad = lv => ({ gem: 'redbloom', lv, sup: [{ gem: 'multi', lv: 1 }, null] }), keep = { gem: 'slash', lv: 2, sup: [null, null] };
+    const o = { mat: { soul: 5 }, gems: [bad(1), keep], skills: [{ a: bad(3) }, { a: keep }, { a: null }], inv: { items: [bad(1), { b: 'x', a: [] }] }, stash: { items: [] }, temp: { items: [] } };
+    gemPurge(o, 'redbloom');
+    return { soul: o.mat.soul, need: 5 + soulCost(1) + soulCost(2), slots: o.skills.map(s => (s.a ? s.a.gem : '')).join(), gems: o.gems.map(g => g.gem).sort().join(), inv: o.inv.items.length, live: !SKILLS.redbloom && !GROUND_OK };
+  })()`.replace('GROUND_OK', 'false'),
+    ctx
+  );
+  ok(
+    '舊存檔的死亡紅花：拿掉、退靈魂、輔助放回寶石頁',
+    r.soul === r.need && r.slots === ',slash,' && r.gems === 'multi,multi,multi,slash' && r.inv === 1 && r.live,
+    JSON.stringify(r)
   );
 }
 process.exit(bad ? 1 : 0);

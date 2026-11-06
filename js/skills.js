@@ -145,8 +145,8 @@ function skillNums(c) {
     return c.unit === 'trap' || c.unit === 'mine' ? { ...r, hit: r.d } : { ...r, hit: r.d, unit: r.d / rate };
   }
   const r = hitCalc(c, null, { avg: 1, keep: 1, crit: c.k === 'shadowstrike', fly: 200 });
-  /* 持續傷害：毒刃雨每 0.5 秒跳一下全傷害，紅花的地面每 0.5 秒跳一半（groundTick） */
-  if (tg.includes('dot')) return { ...r, hit: r.d, dot: r.d / (c.k === 'redbloom' ? 1 : 0.5) };
+  /* 持續傷害：毒刃雨每 0.5 秒跳一下全傷害 */
+  if (tg.includes('dot')) return { ...r, hit: r.d, dot: r.d / 0.5 };
   return { ...r, hit: r.d, dps: (r.d * (D.hits ? D.hits.length : 1)) / Math.max(actDur(c), c.cd) };
 }
 /* 按下技能鍵 */
@@ -743,16 +743,6 @@ function actHit2(a, idx, R, hitArc) {
     const nw = G.allies[G.allies.length - 1];
     nw.hp = nw.mhp = cp.mhp * giantM(nw);
     fxs('rise', cp.x, cp.y, 40);
-  } else if (a.k === 'redbloom') {
-    /* 死亡紅花：舊的那排先爆，再往滑鼠方向鋪 5 朵（碰到牆就停） */
-    popBlooms();
-    for (let k = 0; k < 5; k++) {
-      const x = P.x + cos * (40 + (k * D.len) / 4),
-        y = P.y + sin * (40 + (k * D.len) / 4);
-      if (isWall(x, y)) break;
-      addGround({ k: 'bloom', x, y, r: R, dur: durOf(c), c, dps: 1 });
-    }
-    sfx('cast');
   } else if (a.k === 'bearmaul') {
     fxs('claw', P.x, P.y - 20, R, { rot: a.ang });
     fxs('slam', P.x + cos * R * 0.5, P.y + sin * R * 0.5, R * 0.5);
