@@ -438,7 +438,7 @@ let fail = 0;
       closePanels();
       S.frag = 99;
       openPanel('device');
-      const m = document.querySelector('#pdev .mmods').getBoundingClientRect(),
+      const m = document.querySelector('#pdev .mx-mods').getBoundingClientRect(),
         k = document.querySelector('#pdev .btn.pri').getBoundingClientRect();
       closePanels();
       return [g.top, m.top, k.bottom, innerHeight].map(Math.round);
@@ -448,6 +448,61 @@ let fail = 0;
       fold[0] < fold[3] - 100 && fold[1] < fold[3] - 60 && fold[2] <= fold[3],
       fold.join()
     );
+  }
+  /* 技能寶石、地圖台、昇華石碑：面板不出畫面、主要動作看得到（等面板滑入的動畫跑完才量） */
+  {
+    const inView = async (open, ...sel) => {
+      await p.evaluate(open);
+      await p.waitForTimeout(260);
+      return p.evaluate(
+        sel =>
+          sel.map(q => {
+            const r = document.querySelector(q).getBoundingClientRect();
+            return r.left >= -0.5 && r.top >= -0.5 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5;
+          }),
+        sel
+      );
+    };
+    const L = [
+      await inView(
+        () => {
+          treeClose();
+          closePanels();
+          S.lv = 72;
+          S.frag = 99;
+          S.skills[0].a = mkGem('slash', 10);
+          changed();
+          openPanel('skill');
+          SKUI.sel = '0:a';
+          hudPanels();
+        },
+        '#pskill',
+        '.gx-row',
+        '.gx-acts'
+      ),
+      await inView(
+        () => {
+          closePanels();
+          openPanel('device');
+        },
+        '#pdev',
+        '.mx-c',
+        '#pdev .btn.pri'
+      ),
+      await inView(
+        () => {
+          closePanels();
+          S.asc = null;
+          S.at = [];
+          ASCUI.v = null;
+          openPanel('asc');
+        },
+        '#pasc',
+        '.ax-tab',
+        '.ax-pick'
+      )
+    ];
+    ok('三面板：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
   }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');

@@ -156,6 +156,7 @@ function moveLabel(src, it) {
   return '裝備';
 }
 function tapItem(d) {
+  if (d.src === 'sock') return gemSel(d.eqk);
   const r = d.el.getBoundingClientRect();
   TOUCH.sel = { src: d.src, id: d.it.id, eqk: d.eqk };
   const sellB =

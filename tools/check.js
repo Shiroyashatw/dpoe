@@ -2847,4 +2847,57 @@ vm.runInContext(
     JSON.stringify([shots('w_xbow_0'), shots('w_xbow_2'), shots('w_xbow_4')])
   );
 }
+/* 三面板改版：升滿不把寶石升到失效、全部升滿平均分、致命詞有短名、地圖台預選買得起的卡 */
+{
+  const R = s => vm.runInContext(s, ctx);
+  R(`var mkG = (k, lv) => Object.assign(mkGem(k), { lv });
+     S = { lv: 72, maxT: 13, frag: 60, eq: {}, pt: [...PT_START], ptA: {}, asc: null, at: [], auras: [], charms: [], mat: Object.assign(newMat(), { soul: 1e7 }) };
+     ST = stats(S);`);
+  ok(
+    '升滿：停在升完還能用的最高級，原因寫得出來',
+    R(`(() => {
+      const g = mkG('slash', 1), a = gemMaxCheck(g), free = gemLack({ ...g, lv: a.lv }).length;
+      const next = gemLack({ ...g, lv: a.lv + 1 }).length;
+      const top = mkG('slash', a.lv), b = gemMaxCheck(top);
+      return a.lv > 1 && !free && next > 0 && !!b.why && /要/.test(b.why);
+    })()`)
+  );
+  ok(
+    '升滿：輔助與光環沒有能力值需求，升到角色上限',
+    R(`gemMaxCheck(mkG('fury', 1)).lv === gemCap(S.lv) && gemMaxCheck(mkG('anger', 1)).lv === gemCap(S.lv)`)
+  );
+  ok(
+    '全部升滿：靈魂不夠時最低等的先升、花費不超過持有、不把任何一顆升到失效',
+    R(`(() => {
+      S.mat.soul = 500;
+      const L = [mkG('fury', 2), mkG('crit', 9), mkG('area', 2), mkG('slash', 3)], before = L[1].lv, P = gemAllPlan(L);
+      const c = P.c, n = gemUpAll(L), lv = L.map(g => g.lv);
+      return c <= 500 && S.mat.soul === 500 - c && n === P.L.length && L[1].lv === before && lv[0] > 2 && lv[2] > 2 && Math.abs(lv[0] - lv[2]) <= 1 && !L.some(g => gemLack(g).length);
+    })()`)
+  );
+  ok(
+    '全部升滿：靈魂夠的時候跟一顆一顆升滿花的一樣',
+    R(`(() => {
+      S.mat.soul = 1e7;
+      const A = mkG('fury', 4), B = mkG('crit', 7), c = gemAllPlan([A, B]).c;
+      const one = gemMaxCheck(A).c + gemMaxCheck(B).c;
+      return c === one;
+    })()`)
+  );
+  ok('地圖詞：致命詞都有卡上用的短名', R(`Object.values(MAPMOD).every(m => m.d < 3 || !!m.s)`));
+  ok(
+    '地圖台：清單照獎勵排序，預選買得起的最肥一張，買不起時退回第一張',
+    R(`(() => {
+      S.cards = null;
+      const L = cardOrder(S), q = L.map(x => cardRew(x.c).qty), sorted = q.every((v, i) => !i || v <= q[i - 1]);
+      S.frag = 1e3;
+      const rich = bestCard(S, 13) === L[0].i;
+      S.frag = 0;
+      const poor = bestCard(S, 13) === L[0].i;
+      S.frag = mapCost(13, 1);
+      const pick = mapCards(S)[bestCard(S, 13)], ok1 = !L.some(x => x.c.star === 1) || pick.star === 1;
+      return L.length === cardsOpen(S) && sorted && rich && poor && ok1;
+    })()`)
+  );
+}
 process.exit(bad ? 1 : 0);

@@ -130,27 +130,6 @@ document.addEventListener('click', e => {
   } else if (k === 'tmp' && it) {
     err = temperDo(it, v === 'all' ? null : +v);
     if (!err) (CRAFT.log = `淬鍊完成 · 完美度 ${Math.round(perfection(it) * 100)}%`), sfx('coin');
-  } else if (k === 'gup' || k === 'aup') {
-    /* 寶石升級（技能欄 i 的技能寶石／光環欄 j） */
-    const g = k === 'gup' ? S.skills[+v].a : S.auras[+v];
-    if (g) err = gemUp(g);
-    if (!err) sfx('lvup');
-  } else if (k === 'gmax' || k === 'amax') {
-    /* 升滿花得多：按兩次 */
-    const g = k === 'gmax' ? S.skills[+v].a : S.auras[+v];
-    if (g && !confirm2(b, `再按一次：花 ${gemMaxCheck(g).c} 魂`)) return;
-    if (g) err = gemUpMax(g);
-    if (!err) sfx('lvup'), hideTip();
-  } else if (k === 'sup') {
-    const a = S.skills[+v].a;
-    for (const g of (a && a.sup) || []) if (g && !gemUpCheck(g).why) gemUp(g);
-    sfx('lvup');
-  } else if (k === 'q') {
-    /* 提升品質（0.2.29）：v 是 s.欄、a.欄、u.欄.孔；x 是 1＝提升到滿 */
-    const [t, i, j] = v.split('.'),
-      g = t === 'a' ? S.auras[+i] : t === 's' ? S.skills[+i].a : S.skills[+i].a.sup[+j];
-    if (g) err = gemQUp(g, x === '1');
-    if (!err) sfx('equip');
   } else if (k === 'dri') {
     const a = S.skills[+v].a;
     if (a) err = drillDo(a);
@@ -158,6 +137,4 @@ document.addEventListener('click', e => {
   }
   if (err) hudWarn(err);
   changed();
-  /* 品質的按鈕在說明框裡：重畫內容，框留著 */
-  if (k === 'q') (SKUI.keep = 1), skActTip(...SKUI.cur), (SKUI.keep = 0);
 });
