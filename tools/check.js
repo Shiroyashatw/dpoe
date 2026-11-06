@@ -206,6 +206,36 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
   for (let i = 0; i < T.N.length; i++)
     for (let j = i + 1; j < T.N.length; j++) if (Math.hypot(T.N[i].x - T.N[j].x, T.N[i].y - T.N[j].y) < 30) close++;
   ok('天賦樹的點沒有疊在一起', !close, close + ' 組');
+  /* 不規則的網：直線不能壓到別的點（點的半徑 10）、幹道不能交叉 */
+  const seg = T.E.filter(([a, b]) => !T.ARC[a + '|' + b]).map(([a, b]) => [T.I[a], T.I[b]]),
+    side = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  let thru = 0,
+    cross = 0;
+  for (const [A, B] of seg) {
+    const dx = B.x - A.x,
+      dy = B.y - A.y,
+      L = dx * dx + dy * dy;
+    for (const n of T.N) {
+      if (n === A || n === B) continue;
+      const f = ((n.x - A.x) * dx + (n.y - A.y) * dy) / L;
+      if (f > 0 && f < 1 && Math.hypot(n.x - A.x - dx * f, n.y - A.y - dy * f) < 10) thru++;
+    }
+  }
+  for (let i = 0; i < seg.length; i++)
+    for (let j = i + 1; j < seg.length; j++) {
+      const [a, b] = seg[i],
+        [c, d] = seg[j];
+      if (
+        a !== c &&
+        a !== d &&
+        b !== c &&
+        b !== d &&
+        side(a, b, c) * side(a, b, d) < 0 &&
+        side(c, d, a) * side(c, d, b) < 0
+      )
+        cross++;
+    }
+  ok('天賦樹的線不壓到別的點、不互相交叉', !thru && !cross, `壓到 ${thru}、交叉 ${cross}`);
 }
 {
   /* 0.2.22 結構驗收（docs/PoE天賦結構.md 5.6）：叢集大小、死路比例、大點在最裡面、同一條詞連續塊、
@@ -291,7 +321,31 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     nd[0] >= 4 && nd[0] <= 5 && nd[9] <= 10 && nd.at(-1) <= 24
   );
   ok(`幹道頂點平均連 ${avg(vd).toFixed(1)} 條（4～6）`, avg(vd) >= 4 && avg(vd) <= 6);
-  ok('12 個基石、各只連 1 條線', ks.length === 12 && ks.every(n => A[n.id].length === 1), ks.length);
+  ok('23 個基石、各只連 1 條線', ks.length === 23 && ks.every(n => A[n.id].length === 1), ks.length);
+  /* 天賦擴充（docs/天賦擴充清單.md）：比例、每個能力都有來源、每個點都有名字與圖示 */
+  {
+    const has = new Set(T.N.flatMap(n => Object.keys(n.s || {}))),
+      need =
+        `atkP physP fireP coldP lightP chaosP strikeP slamP novaP sustP durP projAtkP bleedMag poiMag ignMag rageMax rageEff rageLeech rageHit
+        mpLeech esLeech allyLeech lifeRec esMana recoupHp recoupMp evAsArmor cull lukCrit lukBlock lukDmg lukDefl thornP thorn defl evAsDefl
+        ignFire ignCold ignLight ignChaos aggHit aggIgn aggAll bleedAll poiAll forkCrit inevCrit ovkSplash kbEs savageGuard parryMag parryDur parryR bvNoCrit
+        overwhelm incise inciseMag hexPierce hstunNoEv suppCh buffMag debuffMag blackScythe circular knightly ironGrip ironWill fork projRet splash minmax reveal
+        weakMore noRoll noStag rollTank minGiant surrP isoP killP presP lowMpP lowEsP dynOn crushOn crippleOn weakenOn compoundOn unChill unPoi unBleed esDelay esRec
+        stunThrP stunRec immobP dazeCh`.split(/\s+/),
+      miss = need.filter(k => !has.has(k)),
+      STATN = vm.runInContext('STATN', ctx),
+      noName = [...has].filter(k => k !== 'only' && !STATN[k]),
+      noIc = T.N.filter(n => !n.gate && !n.ic).map(n => n.id),
+      attr = T.N.filter(n => n.s && n.s.attr).length,
+      way = T.N.filter(n => /^[vx]\d/.test(n.id) && !n.s.attr).length;
+    ok('每個能力都有天賦來源（fullStrike 留給昇華）', !miss.length && !has.has('fullStrike'), miss.join(' '));
+    ok('天賦點的每個鍵都有 STATN 名字', !noName.length, noName.join(' '));
+    ok('每個天賦點都有圖示', !noIc.length, noIc.slice(0, 5).join(' '));
+    ok(
+      `能力值點 ${attr} 個佔全樹 ${((100 * attr) / T.N.length).toFixed(1)}%、過路小點 ${way} 個、全樹約 3300 點`,
+      attr === 247 && Math.abs(attr / T.N.length - 0.075) < 0.002 && way > 150 && T.N.length > 3200 && T.N.length < 3400
+    );
+  }
   ok('15 種武器都有專精叢集', !wp.length, wp.join(','));
   ok(
     `大點全部手寫（${nts.length} 個，名字不重複）`,
@@ -323,12 +377,12 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
 /* 0.2.7 底層（企劃書 7.2） */
 const B = s => vm.runInContext(s, ctx);
 ok(
-  '等級與懲罰：第 16 階怪物 Lv83、抗性 −60%；Lv100 有 119 天賦點、Lv300 有 139 點',
+  '等級與懲罰：第 16 階怪物 Lv83、抗性 −60%；Lv100 有 129 天賦點、Lv300 有 149 點',
   B('mobLv(16)') === 83 &&
     B('resPen(83)') === 60 &&
     B('resPen(10)') === 0 &&
-    B('ptPoints(100)') === 119 &&
-    B('ptPoints(300)') === 139
+    B('ptPoints(100)') === 129 &&
+    B('ptPoints(300)') === 149
 );
 vm.runInContext(
   `var G = { t: 0, mapT: 16, scene: 'map', mobs: [] }, P = { x: 0, y: 0, hp: 100, es: 0 };
@@ -2024,6 +2078,96 @@ vm.runInContext(
     b9.sv0 === 0 && j9(b9.sv1) === '[100,4,0,20]' && b9.sv2 === 50 && b9.sv3 === 0,
     j9([b9.sv0, b9.sv1, b9.sv2, b9.sv3])
   );
+  /* 天賦擴充：新的開關與條件傷害（docs/天賦擴充清單.md） */
+  const bx = R(`(() => {
+    const out = {}, D = Object.values(MOBS)[0], st0 = { ...ST }, rd = x => Math.round(x * 1000) / 1000,
+      mk = (o = {}) => ({ D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, ev0: 0, vx: 0, vy: 0, aggro: 1, acc: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      atk = { D: { tags: ['attack'], m: 1 }, mult: 1, more: 1, kb: 1, q: 0, leech: 0 },
+      P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 }, F0 = { phys: 0, fire: 0.001, cold: 0, light: 0, chaos: 0 },
+      apply = (m, c = {}, pre = P0) => applyAil(m, { pre, post: pre }, { ...atk, ...c }),
+      hit = m => hitCalc(atk, m, { keep: 1 }).d;
+    Object.assign(ST, { noCrit: 1, noMiss: 0, dmg: [100, 100], ev: 0, block: 0, defl: 0, physP: 0, dmgA: 0, atkP: 0, meleeP: 0, projP: 0, strikeP: 0, ailMag: 0, bleedCh: 100, poisonCh: 100, hp: 1000, mp: 100, es: 100 });
+    ST.wadd = { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] };
+    ST.add = {};
+    Object.assign(G, { t: 100, scene: 'map', mapT: 1, mm: null, mobs: [], allies: [], state: 'play' });
+    Object.assign(P, { ail: {}, ev: {}, hp: 1000, mp: 100, es: 100, rage: 0, buf: {}, stk: {}, x: 0, y: 0 });
+    /* 異常強度分種類：只放大自己那一種 */
+    let m = mk(); apply(m); const b0 = m.ail.bleed.dps, p0 = m.ail.poi[0].dps;
+    ST.bleedMag = 100; m = mk(); apply(m); out.bleed = [rd(m.ail.bleed.dps / b0), rd(m.ail.poi[0].dps / p0)]; ST.bleedMag = 0;
+    ST.poiMag = 100; m = mk(); apply(m); out.poi = [rd(m.ail.bleed.dps / b0), rd(m.ail.poi[0].dps / p0)]; ST.poiMag = 0;
+    const ig = { addIgn: 100 }; m = mk(); apply(m, ig, F0); const i0 = m.ail.ign.dps; ST.ignMag = 100; m = mk(); apply(m, ig, F0); out.ign = rd(m.ail.ign.dps / i0); ST.ignMag = 0;
+    /* 惡化點燃的開關等於技能欄位 compound */
+    ST.compoundOn = 1; m = mk(); const u = {}; apply(m, ig, F0); const c1 = m.ail.ign.dps; applyAil(m, { pre: F0, post: F0 }, { ...atk, ...ig }, u); applyAil(m, { pre: F0, post: F0 }, { ...atk, ...ig }, u); out.comp = rd(m.ail.ign.dps / c1); ST.compoundOn = 0;
+    /* 緋紅猛攻：新上的流血是加劇、2 秒 */
+    ST.aggAll = 1; m = mk(); apply(m); out.agg = [m.ail.bleed.agg, rd(m.ail.bleed.t - G.t), rd(bleedNow(m.ail, 0) / m.ail.bleed.dps)]; ST.aggAll = 0;
+    m = mk(); apply(m); out.agg0 = m.ail.bleed.agg || 0;
+    /* 條件傷害：提高池 +100 ＝ 兩倍；條件不成立不變 */
+    const h0 = hit(mk()), dbl = (k, set = () => {}) => { set(); ST[k] = 100; const v = rd(hit(mk()) / h0); ST[k] = 0; return v; };
+    out.killNo = dbl('killP'); evMark('kill'); out.killYes = dbl('killP'); P.ev = {};
+    out.lowMpNo = dbl('lowMpP'); P.mp = 1; out.lowMpYes = dbl('lowMpP'); P.mp = 100;
+    out.lowEsNo = dbl('lowEsP'); P.es = 1; out.lowEsYes = dbl('lowEsP'); P.es = 100;
+    out.pres = dbl('presP'); ST.presP = 100; out.presFar = rd(hit(mk({ x: 400 })) / h0); ST.presP = 0;
+    out.isoAlone = dbl('isoP'); G.mobs = [mk({ x: 50 }), mk({ x: 60 })]; ST.isoP = 100; out.isoCrowd = rd(hit(G.mobs[0]) / h0); ST.isoP = 0;
+    G.mobs = []; out.surrNo = dbl('surrP'); G.mobs = [0, 1, 2, 3, 4].map(i => mk({ x: 10 + i })); out.surrYes = dbl('surrP'); G.mobs = [];
+    /* 減益開關：要符合條件才施加 */
+    const slam = { D: { tags: ['attack', 'slam'], m: 1 } };
+    ST.crushOn = 1; m = mk(); debuffsOn(m, P0, { ...atk }); out.crush0 = m.ail.crush > 0; m = mk(); debuffsOn(m, P0, { ...atk, ...slam }); out.crush1 = m.ail.crush > G.t; ST.crushOn = 0;
+    ST.crippleOn = 1; m = mk({ ev: 1000, ev0: 1000 }); debuffsOn(m, P0, atk); out.crip0 = m.ev; m.ail.bleed = { dps: 1, t: G.t + 5 }; debuffsOn(m, P0, atk); out.crip1 = m.ev; ST.crippleOn = 0;
+    ST.weakenOn = 1; m = mk(); debuffsOn(m, P0, atk); out.weak0 = m.ail.weak > 0; m.ail.curse = { k: 'vuln', v: 1, t: G.t + 5 }; debuffsOn(m, P0, atk); out.weak1 = m.ail.weak > G.t; ST.weakenOn = 0;
+    /* 磐石姿態不會僵直；奇術活力常駐 */
+    const rnd0 = Math.random; Math.random = () => 0; P.act = {}; P.stag = 0; ST.noStag = 1; playerStagger(1e6); out.stag0 = P.stag; ST.noStag = 0; playerStagger(1e6); out.stag1 = P.stag > 0; Math.random = rnd0;
+    ST.dynOn = 1; P.stk = {}; baseTick(0.016); out.dyn = stkN('dyn'); ST.dynOn = 0;
+    Object.assign(ST, st0);
+    return out;
+  })()`);
+  const jx = JSON.stringify;
+  ok(
+    '流血、中毒、點燃強度只放大自己那一種（×2）',
+    jx([bx.bleed, bx.poi, bx.ign]) === '[[2,1],[1,2],2]',
+    jx([bx.bleed, bx.poi, bx.ign])
+  );
+  ok('惡化點燃的天賦開關等於技能欄位', bx.comp > 1, bx.comp);
+  ok(
+    '緋紅猛攻：流血都是加劇（×2）、2 秒；沒開關不是',
+    jx(bx.agg) === '[1,2,2]' && bx.agg0 === 0,
+    jx([bx.agg, bx.agg0])
+  );
+  ok(
+    '條件傷害：近期擊殺、貧魔、貧能量護盾、存在範圍、孤立、被包圍，成立才 ×2',
+    jx([
+      bx.killNo,
+      bx.killYes,
+      bx.lowMpNo,
+      bx.lowMpYes,
+      bx.lowEsNo,
+      bx.lowEsYes,
+      bx.pres,
+      bx.presFar,
+      bx.isoAlone,
+      bx.isoCrowd,
+      bx.surrNo,
+      bx.surrYes
+    ]) === '[1,2,1,2,1,2,2,1,2,1,1,2]',
+    jx(bx)
+  );
+  ok(
+    '壓碎只有重擊、跛行只對流血、虛弱只對被詛咒',
+    !bx.crush0 && bx.crush1 && bx.crip0 === 1000 && bx.crip1 < 1000 && !bx.weak0 && bx.weak1,
+    jx(bx)
+  );
+  ok(
+    '不會僵直開關有效；奇術活力常駐得到 1 層',
+    bx.stag0 === 0 && bx.stag1 && bx.dyn === 1,
+    jx([bx.stag0, bx.stag1, bx.dyn])
+  );
+  ok(
+    '大點的能力值算一次、算進需求；不受影響、荊棘、基石的開關讀得到',
+    R(`(() => {
+      const T = PTREE.N, id = f => T.find(f).id, st = id(n => n.n === '千錘百鍊'), s = { lv: 90, eq: {}, pt: [...PT_START, st], ptA: {}, auras: [], charms: [], skills: [] },
+        o = stats(s), d = stats({ ...s, pt: [...PT_START, id(n => n.n === '踏雪'), id(n => n.n === '尖刺'), id(n => n.n === '磐石姿態')] });
+      return o.str === ATT_START + 10 && eqCheck(s).tot.str === ATT_START + 10 && d.unaff.chill === 1 && d.thornAdd[0] === 8 && d.thornAdd[1] === 20 && d.noRoll === 1 && d.noStag === 1;
+    })()`)
+  );
   /* 0.2.43 第 10 批：異常與減益 */
   const b10 = R(`(() => {
     const out = {}, D = Object.values(MOBS)[0],
@@ -3697,7 +3841,7 @@ vm.runInContext(
       delete old.world; delete old.hunt;
       old.eq.weapon = mkItem('w_bow_0', 12, 2);
       const id = old.eq.weapon.id, n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 24 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
+      return n.v === 25 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
         n.world.stage === 0 && !n.world.done.length && n.world.at === '0,0' && Number.isInteger(n.world.seed) &&
         n.hunt.v === 0 && !Array.isArray(n.cards) && !Object.keys(n.cards).length && !n.card;
     })()`)

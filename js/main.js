@@ -178,6 +178,12 @@ function migrate(s) {
     delete o.node;
     o.v = 24;
   }
+  /* 存檔 25：天賦樹擴充，天賦點全部退回 */
+  if (o.v < 25) {
+    o.pt = [...PT_START];
+    o.ptA = {};
+    o.v = 25;
+  }
   o.ptA = o.ptA || {};
   /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
   if (!o.filter || !Array.isArray(o.filter.sets)) {
