@@ -1043,3 +1043,35 @@ body.touch #tip .tqa { padding: 0 8px; }
 #tip.act, #tip.gu { overflow-y: auto; overscroll-behavior: contain; }
 body.touch .gplist { max-height: 40vh; }
 @media (max-height: 480px) { .gplist { max-height: 32vh; } .fcaff { max-height: 96px; } }
+
+/* 藏身處（0.2.44）：練習區面板、NPC 對話 */
+#prac { position: absolute; top: 40px; left: 12px; width: 244px; padding: 6px; display: grid; grid-template-columns: 1fr 76px; gap: 6px; background: linear-gradient(160deg, var(--s2), var(--s1) 42%); border: 8px solid transparent; border-image: url(../img/ui/frame.png) 16 / 32px stretch; image-rendering: pixelated; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6); pointer-events: auto; font: 500 var(--fs-s) var(--font); color: var(--tx); }
+#prac[hidden] { display: none; }
+#prac .prh { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+#prac .prh b { font: 900 var(--fs) var(--serif); letter-spacing: 0.06em; color: var(--title); }
+#prac .prh span { color: var(--dim); font-size: 11px; }
+#prac .prs { display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; gap: 2px; text-align: center; }
+#prac .prs b { font-weight: 700; white-space: nowrap; }
+#prac .prr.on { background: var(--sel); border-color: var(--sel); color: var(--sel-ink); }
+#prd { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 64px; gap: 2px 8px; padding-top: 6px; border-top: 1px solid var(--fr); }
+#prd[hidden] { display: none; }
+#prd dl { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; margin: 0; }
+#prd dt { color: var(--dim); }
+#prd dd { margin: 0; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+#prd dd#pra { color: var(--title); font-size: var(--fs); line-height: 1.2; }
+#prd .btn { grid-column: 2; grid-row: 1; align-self: center; }
+#prd small { grid-column: 1 / -1; color: var(--dim); font-size: 11px; }
+.prb { grid-column: 1 / -1; height: 6px; margin-top: 2px; background: #5a3a3a; border: 1px solid var(--fr-o); }
+.prb i { display: block; height: 100%; width: calc(var(--v, 1) * 100%); background: var(--fr-hi); }
+body.touch #prac { top: calc(30px + env(safe-area-inset-top)); left: calc(8px + env(safe-area-inset-left)); }
+body.touch #prac .btn { min-height: 44px; }
+body.touch.port #prac { top: calc(60px + env(safe-area-inset-top)); }
+#talk { position: fixed; inset: 0; z-index: 12; display: flex; align-items: flex-end; justify-content: center; padding: 0 12px 146px; pointer-events: auto; cursor: pointer; }
+#talk[hidden] { display: none; }
+.tkb { width: min(640px, 100%); padding: 10px 14px; background: linear-gradient(160deg, var(--s2), var(--s1) 42%); border: 8px solid transparent; border-image: url(../img/ui/frame.png) 16 / 32px stretch; image-rendering: pixelated; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6); animation: pop 160ms ease-out; }
+.tkb b { display: block; font: 900 var(--fs-l) var(--serif); letter-spacing: 0.06em; color: var(--title); }
+.tkb p { min-height: 3em; margin: 6px 0; font: 500 16px/1.5 var(--font); color: var(--tx); }
+.tkf { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--dim); }
+.tkf small { font-size: var(--fs-s); }
+body.touch #talk { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
