@@ -82,18 +82,24 @@ function gemCfg(g, i) {
   for (const sp of g.sup || []) {
     if (!sp || !supOK(D, sp, g)) continue;
     c.more *= 1 + 0.01 * (sp.lv - 1);
-    const k = sp.gem,
+    /* 分級（0.2.51，data.js 的 SUP_II）：II 用 I 的鍵走同一段，t2 換數字。
+       0.2.49 C1：分裂、連鎖、迴旋、集中效應、抗性穿透、極大、撲殺、夜刃；0.2.50 C2：附加冰冷／閃電／混沌、魔力偷取、擴張、貫穿拳 */
+    const U = SUPPORTS[sp.gem],
+      k = U.base || sp.gem,
+      t2 = U.tier === 2,
+      add = (t2 ? 0.32 : 0.25) + 0.05 * ((sp.q || 0) / GEM_Q_MAX),
       sq = (sp.q || 0) / GEM_Q_MAX;
-    if (k === 'multi') (c.proj += 2), (c.more *= 0.8), (c.fan *= 1 - 0.5 * sq);
-    else if (k === 'pierce') (c.pierce += 3), (c.pSplit = 20 * sq);
-    else if (k === 'area') (c.aoe *= 1.4), (c.solo = 0.2 * sq);
-    else if (k === 'fury') (c.more *= 1.35), (c.mp *= 1.4 - 0.2 * sq);
-    else if (k === 'haste') c.speed *= 1.25 * (P && recent('kill') ? 1 + 0.15 * sq : 1);
-    else if (k === 'crit') (c.critInc += 50), (c.critX += 40), (c.critChg = 20 * sq);
-    else if (k === 'leech') (c.leech += 0.03), (c.leechMp = 0.2 * sq);
-    else if (k === 'cdr') c.cdrP += 50;
-    else if (k === 'fireadd') (c.fireAdd += 0.25), (c.addIgn = 20 * sq);
-    else if (k === 'heavy') (c.kb *= 2), (c.more *= 1.15), (c.wallCh = 20 * sq);
+    if (k === 'multi') (c.proj += 2), (c.more *= t2 ? 0.9 : 0.8), (c.fan *= 1 - 0.5 * sq);
+    else if (k === 'pierce') (c.pierce += t2 ? 5 : 3), (c.pSplit = 20 * sq);
+    else if (k === 'area') (c.aoe *= t2 ? 1.55 : 1.4), (c.solo = 0.2 * sq);
+    else if (k === 'fury') (c.more *= t2 ? 1.45 : 1.35), (c.mp *= (t2 ? 1.5 : 1.4) - 0.2 * sq);
+    else if (k === 'haste') c.speed *= (t2 ? 1.32 : 1.25) * (P && recent('kill') ? 1 + 0.15 * sq : 1);
+    else if (k === 'crit') (c.critInc += t2 ? 70 : 50), (c.critX += t2 ? 50 : 40), (c.critChg = 20 * sq);
+    else if (k === 'leech') (c.leech += t2 ? 0.04 : 0.03), (c.leechMp = 0.2 * sq);
+    else if (k === 'cdr') c.cdrP += t2 ? 65 : 50;
+    else if (k === 'fireadd') (c.fireAdd += t2 ? 0.32 : 0.25), (c.addIgn = 20 * sq);
+    /* 0.2.51：說明一直寫「沉重暈眩累積 +50%」，但之前沒有真的加上去 */ else if (k === 'heavy')
+      (c.kb *= 2), (c.more *= t2 ? 1.22 : 1.15), (c.hsM *= t2 ? 1.7 : 1.5), (c.wallCh = 20 * sq);
     else if (k === 'pack') (c.wolves += 1), (c.wolfM *= 1.3), (c.wolfBl = 20 * sq);
     else if (k === 'bleed') (c.bleedCh += 25), (c.ailMag += 20 * sq);
     else if (k === 'poison') (c.poisonCh += 25), (c.ailMag += 20 * sq);
@@ -116,12 +122,9 @@ function gemCfg(g, i) {
     else if (k === 'giant') (c.giant = 1), (c.more *= 1 + 0.1 * sq);
     else if (k === 'cull') (c.cull = 1), (c.cullQ = sq);
     else if (k === 'nightblade') (c.elusive = 1), (c.critInc += 20 * sq);
-    /* 0.2.50 C2：附加冰冷／閃電／混沌（可以同插）、魔力偷取、擴張（封印）、貫穿拳（預期擊退） */ else if (
-      k === 'coldadd'
-    )
-      c.coldAdd = (c.coldAdd || 0) + 0.25 + 0.05 * sq;
-    else if (k === 'lightadd') c.lightAdd = (c.lightAdd || 0) + 0.25 + 0.05 * sq;
-    else if (k === 'chaosadd') c.chaosAdd = (c.chaosAdd || 0) + 0.25 + 0.05 * sq;
+    else if (k === 'coldadd') c.coldAdd = (c.coldAdd || 0) + add;
+    else if (k === 'lightadd') c.lightAdd = (c.lightAdd || 0) + add;
+    else if (k === 'chaosadd') c.chaosAdd = (c.chaosAdd || 0) + add;
     else if (k === 'mpleech') c.mpLeech = 0.02 + 0.01 * sq;
     else if (k === 'expand') c.seal = { max: 3, every: 2, aoe: 30 + 10 * sq };
     else if (k === 'punch') c.kbEasy = 3 + sq;

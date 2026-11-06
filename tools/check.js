@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：122 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 122,
+    '品質：135 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 135,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3931,6 +3931,51 @@ vm.runInContext(
     JSON.stringify(c50) ===
       '{"add":[0.25,0.25,0.25,0.25,true,true],"addQ":0.3,"mp":[0.02,0.03],"punch":[3,0],"hurt":[15,false],"seal":[3,30,0,1,3],"sealOff":0}',
     JSON.stringify(c50)
+  );
+  /* 0.2.51 C3：輔助 II 分級（13 顆）、新寶石的使用等級、重擊輔助真的加沉重暈眩累積 */
+  const c51 = R(`(() => {
+    const cf = (k, sups) => {
+        const g = mkGem(k, 5);
+        g.sup = sups.map(x => mkGem(x, 1));
+        return gemCfg(g, 0);
+      },
+      r2 = v => +v.toFixed(2),
+      b = cf('axethrow', []),
+      out = {};
+    const II = Object.keys(SUPPORTS).filter(k => SUPPORTS[k].tier === 2);
+    out.n = II.length;
+    /* 每顆 II：名字加 II、跟 I 同分類、同圖示、有品質效果、使用等級 31 */
+    out.meta = II.every(k => {
+      const U = SUPPORTS[k], B = SUPPORTS[U.base];
+      return U.n === B.n + ' II' && supCat(k) === supCat(U.base) && U.ic === B.ic && QUAL[k] === QUAL[U.base] && gemLv(k) === 31 && U.d !== B.d;
+    });
+    /* I 跟 II 不能插在同一招：後插的那顆不生效 */
+    const both = cf('axethrow', ['multi', 'multi2']), one = cf('axethrow', ['multi']), two = cf('axethrow', ['multi2']);
+    out.dup = [both.proj - b.proj, r2(both.more / b.more), r2(two.more / b.more)];
+    out.nums = [
+      cf('axethrow', ['pierce2']).pierce - b.pierce,
+      r2(cf('quake', ['area2']).aoe / cf('quake', []).aoe),
+      r2(cf('slash', ['fury2']).more / cf('slash', []).more),
+      r2(cf('slash', ['haste2']).speed / cf('slash', []).speed),
+      cf('slash', ['crit2']).critInc - cf('slash', []).critInc,
+      cf('slash', ['crit2']).critX,
+      r2(cf('slash', ['leech2']).leech - cf('slash', []).leech),
+      cf('iai', ['cdr2']).cdrP - cf('iai', []).cdrP,
+      cf('slash', ['fireadd2']).fireAdd,
+      cf('slash', ['coldadd2']).coldAdd,
+      cf('slash', ['lightadd2']).lightAdd,
+      cf('slash', ['chaosadd2']).chaosAdd
+    ];
+    out.heavy = [r2(cf('slash', ['heavy']).more / cf('slash', []).more), cf('slash', ['heavy']).hsM, r2(cf('slash', ['heavy2']).more / cf('slash', []).more), cf('slash', ['heavy2']).hsM];
+    /* 使用等級：新寶石都有設，沒有哪一顆還是預設的 1 卻不在名單裡 */
+    out.lv = ['shieldcharge', 'furyslam', 'bloodrage', 'frostwave', 'frostfang', 'swordarray', 'oilgrenade', 'thunderstorm', 'profane', 'snap', 'hexblast', 'fork', 'chain', 'ret', 'focus', 'elepen', 'giant', 'cull', 'nightblade', 'cast_kill', 'cast_dodge', 'cast_block', 'cast_hurt', 'coldadd', 'lightadd', 'chaosadd', 'mpleech', 'expand', 'punch'].filter(k => !GEM_LV[k]);
+    return out;
+  })()`);
+  ok(
+    'C3 分級：13 顆 II 都跟 I 同分類、同圖示、使用等級 31，I 與 II 同插只算一顆；II 的數字照表；重擊輔助的沉重暈眩累積 ×1.5（II ×1.7）；新寶石都有使用等級',
+    JSON.stringify(c51) ===
+      '{"n":13,"meta":true,"dup":[2,0.8,0.9],"nums":[5,1.55,1.45,1.32,70,50,0.04,65,0.32,0.32,0.32,0.32],"heavy":[1.15,1.5,1.22,1.7],"lv":[]}',
+    JSON.stringify(c51)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

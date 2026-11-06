@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.50';
+const VER = '0.2.51';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -1338,19 +1338,19 @@ const SUPPORTS = {
     n: '分裂',
     ic: 'sup_sp_proj',
     need: ['proj'],
-    d: '投射物第一次擊中敵人時一分為二（分出來的不會再分裂，還是會穿透、連鎖）；傷害更少 20%'
+    d: '投射物第一次擊中敵人時一分為二，分出來的不會再分裂；傷害更少 20%'
   },
   chain: {
     n: '連鎖',
     ic: 'sup_sp_chain',
     need: ['proj'],
-    d: '投射物穿透用完後，多彈向附近 2 隻沒打過的敵人；傷害更少 20%。分裂、穿透會先發生，所以一路穿透的冰霜彈和閃電箭不能用；不能跟迴旋插在同一招'
+    d: '投射物穿透用完後，多彈向附近 2 隻沒打過的敵人；傷害更少 20%。冰霜彈、閃電箭不能用，也不能跟迴旋同插'
   },
   ret: {
     n: '迴旋',
     ic: 'sup_sp_ext',
     need: ['proj'],
-    d: '投射物飛到終點或打完最後一個目標後飛回來，回程再打一次；傷害更少 20%。會爆炸的投射物沒有效果；不能跟連鎖插在同一招'
+    d: '投射物飛到終點或打完最後一個目標後飛回來，回程再打一次；傷害更少 20%。會爆炸的投射物無效，也不能跟連鎖同插'
   },
   focus: { n: '集中效應', ic: 'sup_sp_conc', need: ['aoe'], d: '範圍 −30%，傷害更多 30%。不能跟範圍擴大插在同一招' },
   elepen: { n: '抗性穿透', ic: 'sup_sp_eff', need: [], d: '這招的擊中穿透敵人 25% 抗性' },
@@ -1663,9 +1663,62 @@ const GEM_LV = {
   purity: 7,
   clarity: 7,
   wolfsp: 9,
-  golem: 3
+  golem: 3,
+  /* 0.2.51 補上 0.2.47～0.2.50 的新寶石：每把武器第 1 招 Lv1、第 2 招 Lv3，收割類排在製造狀態的招後面 */
+  shieldcharge: 3,
+  furyslam: 3,
+  bloodrage: 3,
+  frostwave: 5,
+  frostfang: 5,
+  swordarray: 5,
+  oilgrenade: 5,
+  thunderstorm: 7,
+  profane: 7,
+  snap: 9,
+  hexblast: 9,
+  coldadd: 3,
+  lightadd: 3,
+  fork: 5,
+  chain: 5,
+  focus: 5,
+  chaosadd: 5,
+  mpleech: 5,
+  ret: 7,
+  giant: 7,
+  nightblade: 7,
+  expand: 7,
+  punch: 7,
+  elepen: 9,
+  cull: 9,
+  cast_kill: 9,
+  cast_dodge: 9,
+  cast_block: 9,
+  cast_hurt: 9
 };
 const gemLv = k => GEM_LV[k] || 1;
+/* 輔助分級（0.2.51，企劃書 6.5）：II 是另一顆寶石，鍵＝I 的鍵＋'2'；跟 I 同分類（不能同插）、同圖示、同品質效果，使用等級 31。
+   這裡只放 II 的說明文字，數字在 skills.js 的 gemCfg 用 t2 分開寫；沒列在這裡的輔助不分級 */
+const SUP_II = {
+  multi: '投射物 +2，傷害更少 10%',
+  pierce: '投射物多穿透 5 隻',
+  area: '範圍 +55%',
+  fury: '傷害更多 45%，魔力消耗 ×1.5',
+  haste: '出手速度更快 32%',
+  crit: '暴擊率提高 70%、暴擊傷害加成 +50%',
+  heavy: '擊退 ×2、傷害更多 22%、沉重暈眩累積 +70%',
+  leech: '擊中傷害的 4% 吸取為生命（1 秒內回完）',
+  cdr: '冷卻時間恢復率 +65%',
+  fireadd: '多造成傷害 32% 的火焰附加傷害',
+  coldadd: '多造成傷害 32% 的冰冷附加傷害',
+  lightadd: '多造成傷害 32% 的閃電附加傷害',
+  chaosadd: '多造成傷害 32% 的混沌附加傷害'
+};
+for (const k in SUP_II) {
+  SUPPORTS[k + '2'] = { ...SUPPORTS[k], n: SUPPORTS[k].n + ' II', d: SUP_II[k], base: k, tier: 2 };
+  SUP_CAT[k + '2'] = supCat(k);
+  QUAL[k + '2'] = QUAL[k];
+  GEM_LV[k + '2'] = 31;
+}
 /* 寶石等級：上限 20；每一級要的角色等級照 PoE2（0.2.40；Lv5 要 14、Lv20 要 90），超過 20 級（裝備加等級、腐化）不再要求 */
 const GEM_MAX = 20;
 const GEM_REQ = [1, 3, 6, 10, 14, 18, 22, 26, 31, 36, 41, 46, 52, 58, 64, 66, 72, 78, 84, 90];

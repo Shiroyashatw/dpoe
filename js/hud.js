@@ -1135,13 +1135,27 @@ function gemTake(id) {
 }
 const GEMKIND = { act: '主動技能', sup: '輔助寶石', aura: '精魂' };
 const SUPTAB = {
-  通用: ['fury', 'crit', 'leech', 'haste', 'cdr', 'fireadd'],
-  投射物: ['multi', 'pierce'],
-  範圍與近戰: ['area', 'heavy'],
+  通用: [
+    'fury',
+    'crit',
+    'leech',
+    'haste',
+    'cdr',
+    'fireadd',
+    'coldadd',
+    'lightadd',
+    'chaosadd',
+    'mpleech',
+    'elepen',
+    'cull',
+    'nightblade'
+  ],
+  投射物: ['multi', 'pierce', 'fork', 'chain', 'ret'],
+  範圍與近戰: ['area', 'heavy', 'focus', 'expand', 'punch'],
   異常: ['bleed', 'poison', 'poistack', 'ailmag', 'armbreak', 'wither', 'blind', 'pin'],
   元素: ['scorch', 'brittle', 'sap', 'expose', 'elec'],
-  法術: ['arcane', 'cast_crit'],
-  召喚: ['pack'],
+  法術: ['arcane', 'cast_crit', 'cast_kill', 'cast_dodge', 'cast_block', 'cast_hurt'],
+  召喚: ['pack', 'giant'],
   轉換: ['totemc']
 };
 function gemTabs(kind) {
@@ -1183,7 +1197,14 @@ function gemTabs(kind) {
         ks.filter(k => SUPPORTS[k])
       )
     );
-    tabs[0].ks.push(...Object.keys(SUPPORTS).filter(k => !seen.has(k)));
+    /* 沒列在 SUPTAB 的放通用；II（0.2.51）跟著 I 排在同一頁。放完再照使用等級排一次，不然右邊分組的順序會亂 */
+    tabs[0].ks.push(...Object.keys(SUPPORTS).filter(k => !seen.has(k) && !SUPPORTS[k].tier));
+    tabs = tabs.map(t =>
+      by(
+        t.n,
+        t.ks.flatMap(k => (SUPPORTS[k + '2'] ? [k, k + '2'] : [k]))
+      )
+    );
   } else
     tabs = [
       by(
