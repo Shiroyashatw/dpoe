@@ -697,6 +697,7 @@ function killMob(m) {
   const t = G.mapT;
   fx({ k: 'die', x: m.x, y: m.y, sp: m.D.sp, sz: m.sz, dur: 0.45, flip: m.x > P.x });
   sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? '#ff6b3d' : '#c9b8a8');
+  mobGround(m);
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
   if (m.summoned) return;
   G.kills++;
@@ -998,7 +999,8 @@ function updMobs(dt) {
       else continue;
     }
     if (G.state !== 'play') continue;
-    m.cd -= dt;
+    /* 怒號地面的猛攻：技能速度 +20%（移動速度在 mobSpd） */
+    m.cd -= dt * (m.ail.howl > G.t ? 1.2 : 1);
     if (m.boss) {
       bossAI(m, dt, dP);
       continue;

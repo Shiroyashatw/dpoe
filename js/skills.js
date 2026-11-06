@@ -47,7 +47,7 @@ function gemCfg(g, i) {
       critX: 0,
       leech: ST.leech / 100,
       /* 天賦的投射物數量、穿透（0.2.23）只給投射物技能 */
-      proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0),
+      proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0) + (D.gren ? ST.grenN : 0),
       pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
       /* 全域投射物連鎖（0.2.25，彈射）：打中後彈向 260 內最近、還沒打過的敵人 */
       chain: D.tags.includes('proj') && !D.noChain ? ST.chain : 0,
@@ -179,7 +179,7 @@ function skillWhy(c, at) {
 /* 付費：彈藥、魔力（或生命、地獄火）、流順之風、冷卻 */
 function skillPay(c, i) {
   if (pracFree()) return;
-  if (c.D.ammo) ammoUse(c.k, c.D.ammo[0], c.D.ammo[1]);
+  if (c.D.ammo) ammoUse(c.k, c.D.ammo[0] + ST.ammoN, c.D.ammo[1]);
   if (ST.blood) sacrifice('hp', c.mp);
   else if (ST.hellfire) hfGain(c.mp);
   else payMp(c.mp);
@@ -599,7 +599,10 @@ function actHit2(a, idx, R, hitArc) {
       fxs('landing', P.x, P.y, R);
       addGround({ k: 'jagged', x: P.x, y: P.y, r: R, dur: 2, c, after: 0.8 });
       if (c.q) pullTo(P.x, P.y, 180 * c.q);
-    } else fxs('smoke', P.x, P.y, R * 0.8), fxs('claw', P.x, P.y - 20, R * 0.8, { rot: a.ang });
+    } else {
+      fxs('smoke', P.x, P.y, R * 0.8), fxs('claw', P.x, P.y - 20, R * 0.8, { rot: a.ang });
+      addGround({ k: 'smoke', x: P.x, y: P.y, r: R, dur: 2 });
+    }
     /* 盲擊撲的品質：打到已經致盲的怪，冷卻 −1 秒（要在這一下上致盲之前看） */
     const blinded = a.k === 'blindpounce' && G.mobs.some(m => m.hp > 0 && m.ail.blind > G.t && dist(P, m) < R + m.r);
     around(P.x, P.y, R, 180);
@@ -897,7 +900,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   /* 近期事件（combat.js 的 recent）：你自己的擊中與暴擊，不算召喚物與場上單位 */
   if (!o.minion && !a.unit) evMark('hit'), r.crit && evMark('crit');
   /* mech.js：火焰點燃可燃地面、引爆技能、連擊、榮耀、暴擊觸發 */
-  if (r.pre.fire > 0) igniteAt(m.x, m.y);
+  if (r.pre.fire > 0) igniteAt(m.x, m.y, c);
   if (c.D.detonator) detonate(m.x, m.y, 60, c);
   if ((c.D.tags || []).includes('melee') && !o.quiet) comboHit(a);
   hitGlory(m, r.crit, o.glory || 1);
@@ -1169,6 +1172,7 @@ function moveMul() {
     buffMove() *
     playerSlow() *
     vineSlow() *
+    oilSlow() *
     ((formOf() && formOf().move) || 1) *
     (P.rolledT > G.t ? 1 + 0.04 * (ST.aq.swift || 0) : 1)
   );
