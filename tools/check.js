@@ -206,6 +206,36 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
   for (let i = 0; i < T.N.length; i++)
     for (let j = i + 1; j < T.N.length; j++) if (Math.hypot(T.N[i].x - T.N[j].x, T.N[i].y - T.N[j].y) < 30) close++;
   ok('天賦樹的點沒有疊在一起', !close, close + ' 組');
+  /* 不規則的網：直線不能壓到別的點（點的半徑 10）、幹道不能交叉 */
+  const seg = T.E.filter(([a, b]) => !T.ARC[a + '|' + b]).map(([a, b]) => [T.I[a], T.I[b]]),
+    side = (a, b, c) => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  let thru = 0,
+    cross = 0;
+  for (const [A, B] of seg) {
+    const dx = B.x - A.x,
+      dy = B.y - A.y,
+      L = dx * dx + dy * dy;
+    for (const n of T.N) {
+      if (n === A || n === B) continue;
+      const f = ((n.x - A.x) * dx + (n.y - A.y) * dy) / L;
+      if (f > 0 && f < 1 && Math.hypot(n.x - A.x - dx * f, n.y - A.y - dy * f) < 10) thru++;
+    }
+  }
+  for (let i = 0; i < seg.length; i++)
+    for (let j = i + 1; j < seg.length; j++) {
+      const [a, b] = seg[i],
+        [c, d] = seg[j];
+      if (
+        a !== c &&
+        a !== d &&
+        b !== c &&
+        b !== d &&
+        side(a, b, c) * side(a, b, d) < 0 &&
+        side(c, d, a) * side(c, d, b) < 0
+      )
+        cross++;
+    }
+  ok('天賦樹的線不壓到別的點、不互相交叉', !thru && !cross, `壓到 ${thru}、交叉 ${cross}`);
 }
 {
   /* 0.2.22 結構驗收（docs/PoE天賦結構.md 5.6）：叢集大小、死路比例、大點在最裡面、同一條詞連續塊、

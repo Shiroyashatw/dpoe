@@ -134,13 +134,11 @@ function treeRender() {
   <div id="tview"><svg id="tsvg" viewBox="${B.x} ${B.y} ${B.w} ${B.h}" width="${B.w}" height="${B.h}"><g id="tg">${html}</g></svg></div>
   <p class="thelp"><b>起點</b> ${PT_ROADS.map((r, i) => ['上', '右上', '右下', '下', '左下', '左上'][i] + ' ' + r.n.slice(0, 2)).join(' · ')}　<b>操作</b> 點亮著的點＝點下去，再點＝退回 · 拖曳移動 · 滾輪縮放　外圈是武器專精，最外面的大圓是基石（有代價）</p>`;
   /* 之後選取、點亮只改 class，不重畫整棵樹（一千多個點，手機重畫會卡） */
-  const tg = $('tg');
+  const tg = $('tg'),
+    eEls = tg.querySelectorAll('.tc.e');
   TEL = {
     n: new Map([...tg.querySelectorAll('.nd')].map(e => [e.dataset.n, e])),
-    e: Object.entries(eC).flatMap(([k, L]) => {
-      const els = tg.querySelector(`.tc.e[data-c="${k}"]`).children;
-      return L.map((x, i) => [els[i], x[1], x[2]]);
-    }),
+    e: Object.values(eC).flatMap((L, c) => L.map((x, i) => [eEls[c].children[i], x[1], x[2]])),
     ae: T ? [...tg.querySelectorAll(':scope > line.asc')].map((el, i) => [el, ...T.E[i]]) : [],
     c: [...tg.querySelectorAll('.tc')].map(el => {
       const [x, y] = el.dataset.c.split(',');
