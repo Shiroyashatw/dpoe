@@ -1,0 +1,39 @@
+{
+  "fps": 20,
+  "kind": "new",
+  "loop": true,
+  "name": "dpoe_bloom",
+  "files": {
+    "dpoe-bloom.gif": "https://api.pixellab.ai/mcp/pixel-tools/82c0ffc0-bff0-496c-8ca2-927a7de50d65/dpoe-bloom.gif",
+    "dpoe-bloom.png": "https://api.pixellab.ai/mcp/pixel-tools/82c0ffc0-bff0-496c-8ca2-927a7de50d65/dpoe-bloom.png",
+    "dpoe-bloom.json": "https://api.pixellab.ai/mcp/pixel-tools/82c0ffc0-bff0-496c-8ca2-927a7de50d65/dpoe-bloom.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 32,
+    "y": 32,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 64,
+    "w": 64
+  },
+  "frames": 8,
+  "message": "A 64x64, 8-frame seamless loop at 20 fps: a crimson spider lily of six curling petals with dark veins, a black thorny stem with three thorns, blood drips falling from the bloom, a red mist behind it, and a core glow that pulses on a double-beat heartbeat, all in #d9304a shades with no outline. Sliders are not exposed yet; the petal curl and mist are the parts to push further if you want it more claw-like or heavier.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=299a08da-851f-4af6-87d2-346777f6a053",
+  "effect_id": "299a08da-851f-4af6-87d2-346777f6a053",
+  "gif_exact": true,
+  "result_id": "82c0ffc0-bff0-496c-8ca2-927a7de50d65",
+  "conversation": "v5jc_y8hk-iZE007Rrm7Rw.122698cc73e3505d11d987f650ce26285766386188dcbd999535bb4349557a57",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "c8304297-5f06-4af9-b88b-694ee78ea926",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

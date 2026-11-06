@@ -1,0 +1,42 @@
+{
+  "fps": 20,
+  "kind": "new",
+  "loop": true,
+  "name": "dpoe_frostbolt",
+  "files": {
+    "dpoe-frostbolt.gif": "https://api.pixellab.ai/mcp/pixel-tools/66e62968-b245-49cd-a41b-e76fcc1ebf15/dpoe-frostbolt.gif",
+    "dpoe-frostbolt.png": "https://api.pixellab.ai/mcp/pixel-tools/66e62968-b245-49cd-a41b-e76fcc1ebf15/dpoe-frostbolt.png",
+    "dpoe-frostbolt.json": "https://api.pixellab.ai/mcp/pixel-tools/66e62968-b245-49cd-a41b-e76fcc1ebf15/dpoe-frostbolt.json"
+  },
+  "parts": [
+    "ice_lance",
+    "rest"
+  ],
+  "anchor": {
+    "x": 63,
+    "y": 19,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 64,
+    "w": 64
+  },
+  "frames": 8,
+  "message": "I made a looping ice spear flying right on a 64x64 transparent canvas: 8 frames at 20 fps, no outline, in #8fd6ff with white flicker on the glints. The spear is a built-in ice lance, scaled to 75% so it fits the canvas. Small ice shards spin off behind it and drift up.\n\nLimits: the spear is about 53 px long, so it doesn't fill the whole canvas. The tip is blunt rather than a true needle, and the body is thicker than the \"thin\" you asked for. I didn't add a dark stone floor because the canvas is transparent. Use the Ice lance colour and Ice lance amount sliders to adjust the tone and strength.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=73c9aa75-352a-44dc-bfb0-3281d592703f",
+  "effect_id": "73c9aa75-352a-44dc-bfb0-3281d592703f",
+  "gif_exact": true,
+  "result_id": "66e62968-b245-49cd-a41b-e76fcc1ebf15",
+  "conversation": "qrQu10QZRsyP_Pxefl_-xA.b9a2f806df77dc4c153c29c0816e5231868793332496ca5857bbd20b41525ea9",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "2d7ec030-5bc4-4556-affe-4bd4a3f6486a",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

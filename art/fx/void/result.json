@@ -1,0 +1,39 @@
+{
+  "fps": 20,
+  "kind": "new",
+  "loop": true,
+  "name": "dpoe_void",
+  "files": {
+    "dpoe-void.gif": "https://api.pixellab.ai/mcp/pixel-tools/fc72c8a8-5eff-4fc9-b8bb-e66fd6fcc018/dpoe-void.gif",
+    "dpoe-void.png": "https://api.pixellab.ai/mcp/pixel-tools/fc72c8a8-5eff-4fc9-b8bb-e66fd6fcc018/dpoe-void.png",
+    "dpoe-void.json": "https://api.pixellab.ai/mcp/pixel-tools/fc72c8a8-5eff-4fc9-b8bb-e66fd6fcc018/dpoe-void.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 32,
+    "y": 32,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 64,
+    "w": 64
+  },
+  "frames": 8,
+  "message": "A 64x64, 8-frame seamless loop at 20 fps: a violet and magenta plasma sphere (#c38bff) with a swirling vortex, jagged arcs bursting in all directions that re-roll every frame, and sparks orbiting it. No outline, no trail, transparent background. It stays centred rather than travelling right, and the black centre you asked for didn't come out (the core reads as bright lilac), so I left it out. Try the Sparks and Crackle sliders, or ask me to darken the centre or add a rightward drift.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=558c1a6d-23dd-410a-ae8b-8ca0a7d0d5ad",
+  "effect_id": "558c1a6d-23dd-410a-ae8b-8ca0a7d0d5ad",
+  "gif_exact": true,
+  "result_id": "fc72c8a8-5eff-4fc9-b8bb-e66fd6fcc018",
+  "conversation": "1f7N8Yq8ps7FPcRDrb1C3w.fa7207d897d960adcb827e70d38b9c11aa4e5e2513937ff19afc1b2be70c3799",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "3e77043e-5ce7-4c16-841f-b5345f3e2ae3",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

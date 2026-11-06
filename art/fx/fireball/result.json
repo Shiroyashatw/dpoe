@@ -1,0 +1,41 @@
+{
+  "fps": 20,
+  "kind": "new",
+  "loop": true,
+  "name": "dpoe_fireball",
+  "files": {
+    "dpoe-fireball.gif": "https://api.pixellab.ai/mcp/pixel-tools/9c5e69f2-75ab-4978-8c0b-5296dce62bda/dpoe-fireball.gif",
+    "dpoe-fireball.png": "https://api.pixellab.ai/mcp/pixel-tools/9c5e69f2-75ab-4978-8c0b-5296dce62bda/dpoe-fireball.png",
+    "dpoe-fireball.json": "https://api.pixellab.ai/mcp/pixel-tools/9c5e69f2-75ab-4978-8c0b-5296dce62bda/dpoe-fireball.json"
+  },
+  "parts": [
+    "fire_bolt"
+  ],
+  "anchor": {
+    "x": 63,
+    "y": 15,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 64,
+    "w": 64
+  },
+  "frames": 8,
+  "message": "A 64x64, 8-frame seamless loop at 20 fps of a fireball flying right: a bright yellow core, orange flames streaming behind, and embers breaking off the tail. It has no outline, a transparent background, and now sits fully inside the canvas. The Fire bolt sliders control its colour, speed, and tail length.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=f703d927-c2dc-4d24-b83d-c43ccccf4ea2",
+  "effect_id": "f703d927-c2dc-4d24-b83d-c43ccccf4ea2",
+  "gif_exact": true,
+  "result_id": "9c5e69f2-75ab-4978-8c0b-5296dce62bda",
+  "conversation": "IQXYM9ZXZEHu3x9xoBZwYQ.367e7eb099bc37df4b4f70c6042a6a1a7dfb800b84f60ac317bc9111d046ce2a",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "910eea04-5460-416d-8df8-4b3af97ec8d0",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

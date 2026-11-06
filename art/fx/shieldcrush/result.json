@@ -1,0 +1,39 @@
+{
+  "fps": 20,
+  "kind": "new",
+  "loop": false,
+  "name": "dpoe_shieldcrush",
+  "files": {
+    "dpoe-shieldcrush.gif": "https://api.pixellab.ai/mcp/pixel-tools/59bdc77a-c6c4-4486-97a1-5e90db06004a/dpoe-shieldcrush.gif",
+    "dpoe-shieldcrush.png": "https://api.pixellab.ai/mcp/pixel-tools/59bdc77a-c6c4-4486-97a1-5e90db06004a/dpoe-shieldcrush.png",
+    "dpoe-shieldcrush.json": "https://api.pixellab.ai/mcp/pixel-tools/59bdc77a-c6c4-4486-97a1-5e90db06004a/dpoe-shieldcrush.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 32,
+    "y": 32,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 64,
+    "w": 64
+  },
+  "frames": 10,
+  "message": "Here's a 64x64, 10-frame, one-shot shield bash: a thick steel-grey wall of force sweeps out to the right from a white-hot flash at its front, with cracks, flying debris, orange-white metal sparks and dust, and it fades out by the last frames. It has no outline, faces right, and stays inside the canvas. Things to try: the wall's thickness and sweep, and the spark speed. Frames 9-10 are nearly empty as the dust settles.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=dbaac268-3ae7-4934-9524-fd00cbc2e867",
+  "effect_id": "dbaac268-3ae7-4934-9524-fd00cbc2e867",
+  "gif_exact": true,
+  "result_id": "59bdc77a-c6c4-4486-97a1-5e90db06004a",
+  "conversation": "mrIn77ts5nrfYv5X5PKkeA.02ec792dae9016d9662ad2b83016096667d0707d8302563fbb5c360a368fe60d",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "b3527f43-1b52-4d01-a8cb-932efea88211",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}
