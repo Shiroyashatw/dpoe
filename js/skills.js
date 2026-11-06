@@ -45,7 +45,7 @@ function gemCfg(g, i) {
       g,
       critInc: D.crit || 0,
       critX: 0,
-      leech: ST.leech / 100,
+      leech: (ST.leech + bufV('leech')) / 100,
       /* 天賦的投射物數量、穿透（0.2.23）只給投射物技能 */
       proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0) + (D.gren ? ST.grenN : 0),
       pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
@@ -173,6 +173,7 @@ function skillWhy(c, at) {
   if (!pracFree() && (ST.blood ? P.hp <= c.mp + 1 : !hell && mpAvail() < c.mp))
     return ST.blood ? '生命不夠施放' : '魔力不足';
   if (c.k === 'banner' && (P.glory || 0) < 100) return '榮耀不夠（' + Math.floor(P.glory || 0) + '／100）';
+  if (c.k === 'swordarray' && !swordN() && !G.ground.some(g => g.k === 'blades')) return '要先用御劍訣召出飛劍';
   if ((c.k === 'corpseboom' || c.k === 'paperdoll') && !corpseNear(c.k === 'paperdoll' ? P : at, 250))
     return '附近沒有屍體';
   const A = c.D.ammo && P.ammo && P.ammo[c.k];
@@ -251,8 +252,10 @@ function useSlot(i) {
     const d = Math.min(D.dist, Math.hypot(tx - P.x, ty - P.y));
     Object.assign(a, { sx: P.x, sy: P.y, d, tm, hit: new Set(), hits: [] });
     if (c.k === 'iai') fxs('blink', P.x, P.y);
-    P.iuntil = G.t + a.dur + 0.05;
+    if (!D.noInv) P.iuntil = G.t + a.dur + 0.05;
   }
+  /* 盾衝：從突刺開始進入反擊狀態（mech.js） */
+  if (c.k === 'shieldcharge') startCounter(durOf(c) + c.q), fxs('parry', P.x, P.y - 20, 50);
   return true;
 }
 /* 在藏身處想出招：提醒去練習區（按住連打時不要一直跳） */
@@ -289,6 +292,14 @@ function skillTick(a, dt, mx, my) {
           fxs('sslash', m.x, m.y - m.sz * 0.4, 50, { rot: a.ang });
           hitMob(m, a.c, a.ang + Math.PI / 2, 220, { a });
           if (a.c.i >= 0 && a.c.q) P.cds['s' + a.c.i] *= 1 - 0.1 * a.c.q;
+        }
+    } else if (a.k === 'shieldcharge') {
+      /* 盾衝：路上撞到的每隻怪受一次盾擊 */
+      for (const m of G.mobs)
+        if (m.hp > 0 && !a.hit.has(m) && dist(P, m) < m.r + 36) {
+          a.hit.add(m);
+          fxs('blunt', m.x, m.y - m.sz * 0.3, 45);
+          hitMob(m, a.c, a.ang, 160 * a.c.kb, { a });
         }
     } else if (f >= 1 && !a.n++) actHit(a, 0);
   } else {
@@ -428,7 +439,8 @@ function actHit(a, idx) {
     hitArc(a.ang, D.arc, R, 120 * c.kb, { stun: D.stun });
     const cx = P.x + Math.cos(a.ang) * R * 0.55,
       cy = P.y + Math.sin(a.ang) * R * 0.55;
-    addGround({ k: 'jagged', x: cx, y: cy, r: R * 0.5, dur: 2, c, after: 1.2, q: c.q });
+    /* 0.2.47：消耗全部耐力球，每顆讓餘震多打一次 */
+    addGround({ k: 'jagged', x: cx, y: cy, r: R * 0.5, dur: 2, c, after: 1.2, q: c.q, again: useChg('e') });
   } else if (a.k === 'whirl') {
     fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.28 });
     fxs('spin', P.x, P.y - 10, R);
@@ -743,6 +755,69 @@ function actHit2(a, idx, R, hitArc) {
     const nw = G.allies[G.allies.length - 1];
     nw.hp = nw.mhp = cp.mhp * giantM(nw);
     fxs('rise', cp.x, cp.y, 40);
+  } else if (a.k === 'furyslam') {
+    /* 狂怒重砸：砸周圍一圈；盛怒夠就花掉，多一道更大的震波＋碎裂地面（品質：返還盛怒） */
+    fxs('slam', P.x, P.y, R);
+    shake(0.1);
+    sfx('slam');
+    around(P.x, P.y, R, 200);
+    if ((P.rage || 0) >= D.rageCost) {
+      P.rage += 4 * c.q - D.rageCost;
+      P.rageT = G.t;
+      fxs('rage', P.x, P.y - 30, 40);
+      fx({ k: 'ring', x: P.x, y: P.y, r: R * 1.5, dur: 0.35, col: '#ff6b3d' });
+      around(P.x, P.y, R * 1.5, 260);
+      addGround({ k: 'jagged', x: P.x, y: P.y, r: R, dur: 2, c, after: 1 });
+    }
+  } else if (a.k === 'frostwave') {
+    /* 霜波：前方扇形的冰冷打擊；可冰凍的怪消耗掉、直接冰凍（品質：機率給暴擊球） */
+    fx({ k: 'slash', x: P.x, y: P.y, ang: a.ang, r: R, arc: D.arc, dur: 0.2 });
+    fxs('frost', P.x + cos * R * 0.6, P.y + sin * R * 0.6, R * 0.6);
+    sfx('slam');
+    for (const m of G.mobs) {
+      const dd = dist(P, m);
+      if (m.hp <= 0 || !(dd < R + m.r && angDiff(angTo(P, m), a.ang) < D.arc / 2 + m.r / Math.max(dd, 1))) continue;
+      const frz = takeState(m, 'frzprime');
+      hitMob(m, c, angTo(P, m), 100 * c.kb, { a });
+      if (frz && m.hp > 0) {
+        poisePin(m, 'frz');
+        fxs('frost', m.x, m.y, m.r * 2);
+        if (qRoll(20 * c.q)) gainChg('p');
+      }
+    }
+  } else if (a.k === 'frostfang') {
+    /* 霜牙：往前刺一整排；受招架的怪消耗受招架，身上炸出冰爆並留冰緩地面（品質：地面留更久） */
+    const L = R * 1.9;
+    fxs('thrust', P.x, P.y - 20, L, { rot: a.ang });
+    for (const m of G.mobs) {
+      if (m.hp <= 0) continue;
+      const dx = m.x - P.x,
+        dy = m.y - P.y,
+        along = dx * Math.cos(a.ang) + dy * Math.sin(a.ang),
+        side = Math.abs(-dx * Math.sin(a.ang) + dy * Math.cos(a.ang));
+      if (!(along > 0 && along < L + m.r && side < 28 + m.r)) continue;
+      const par = takeState(m, 'parried');
+      hitMob(m, c, a.ang, 180 * c.kb, { a });
+      if (par) {
+        fxs('frost', m.x, m.y, 110);
+        boomAt(m.x, m.y, 110, c, 1, 'cold');
+        addGround({ k: 'chill', x: m.x, y: m.y, r: 90, dur: 3 + 2 * c.q });
+      }
+    }
+  } else if (a.k === 'swordarray') {
+    /* 劍陣：場上有劍陣就引爆（mech.js 的 detonate），沒有就把飛劍插在滑鼠位置（品質：範圍） */
+    const g = G.ground.find(o => o.k === 'blades' && !o.done);
+    if (g) detonate(g.x, g.y, 1, c), sfx('slam');
+    else if (plantSwords(a.tx, a.ty, c)) {
+      const nw = G.ground[G.ground.length - 1];
+      nw.r *= 1 + 0.2 * c.q;
+      fx({ k: 'ring', x: nw.x, y: nw.y, r: nw.r, dur: 0.3, col: '#cfd8e3' });
+      sfx('throw');
+    }
+  } else if (a.k === 'bloodrage') {
+    /* 血怒：開著再按就關掉 */
+    if (stkN('bloodrage')) stkClr('bloodrage');
+    else (P.brQ = c.q), gainStk('bloodrage', 1, durOf(c)), fxs('rage', P.x, P.y - 30, 40);
   } else if (a.k === 'bearmaul') {
     fxs('claw', P.x, P.y - 20, R, { rot: a.ang });
     fxs('slam', P.x + cos * R * 0.5, P.y + sin * R * 0.5, R * 0.5);

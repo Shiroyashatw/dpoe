@@ -1,5 +1,5 @@
 /* dungeonPOE 0.2.7 · 傷害與防禦的驗收（企劃書 7.2）：Lv30／60／90 各三套典型配裝（天賦路線＋同階級稀有裝），
-   算打王幾秒、王一招打掉多少生命、各屬性減傷。用法：node tools/dmg_check.js [每格模擬次數，預設 400] */
+   算打王幾秒、王一招打掉多少生命、各屬性減傷。用法：node tools/dmg_check.js [每格模擬次數，預設 400] [--seeds 種子數，預設 5] [--why] */
 'use strict';
 const fs = require('fs'),
   vm = require('vm'),
@@ -292,179 +292,202 @@ for (const t of [1, 4, 8, 12, 13, 16]) {
   );
 }
 console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗 命中');
-for (const L of [30, 60, 90]) {
-  const t = Math.min(16, Math.max(1, Math.round(((L - 5) * 15) / 78) + 1));
-  let bi = 0;
-  for (const [bn, B] of Object.entries(BUILDS)) {
-    /* 每一格自己的亂數種子：新增配裝不會讓別格的數字跟著變（0.2.46） */
-    seed = 12345 + L * 1000 + bi++;
-    const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
-      S = {
-        lv: L,
-        eq: gear(t, B.gear, B.wt, B.off, L),
-        pt: [],
-        ptA: {},
-        asc: B.asc ? B.asc[0] : null,
-        at: B.asc ? ['a_st', ...B.asc.slice(1, 1 + ap).map(k => 'a_' + k)] : [],
-        auras: [],
-        charms: []
-      };
-    /* 過路點的能力值：一點一點補，每點選「讓全身裝備缺的能力值總和降最多」的那一項（用 eqLack，自己給的不算自己），都不缺就加力量。
+/* 0.2.47：裝備是隨機擲的，同一套配裝換種子打王秒數可以差三倍，所以每格跑 SEEDS 個種子；
+   明細只印第一個種子，最後印平均（--seeds n，預設 5） */
+const SEEDS = +(process.argv[process.argv.indexOf('--seeds') + 1] || 5) || 5,
+  AVG = {};
+let SD = 0;
+const out = (...a) => SD || console.log(...a);
+for (SD = 0; SD < SEEDS; SD++)
+  for (const L of [30, 60, 90]) {
+    const t = Math.min(16, Math.max(1, Math.round(((L - 5) * 15) / 78) + 1));
+    let bi = 0;
+    for (const [bn, B] of Object.entries(BUILDS)) {
+      /* 每一格自己的亂數種子：新增配裝不會讓別格的數字跟著變（0.2.46） */
+      seed = 12345 + L * 1000 + bi++ + SD * 100000;
+      const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
+        S = {
+          lv: L,
+          eq: gear(t, B.gear, B.wt, B.off, L),
+          pt: [],
+          ptA: {},
+          asc: B.asc ? B.asc[0] : null,
+          at: B.asc ? ['a_st', ...B.asc.slice(1, 1 + ap).map(k => 'a_' + k)] : [],
+          auras: [],
+          charms: []
+        };
+      /* 過路點的能力值：一點一點補，每點選「讓全身裝備缺的能力值總和降最多」的那一項（用 eqLack，自己給的不算自己），都不缺就加力量。
        能力值點只佔全樹 7.5%：穿不起時像玩家一樣繞去拿，路線給能力值點權重（aw），由小到大試到穿得起 */
-    /* 級距要細：一口氣從 8 跳到 16 會多繞幾十個能力值點（0.2.45 箭雨 Lv90 繞了 109 點） */
-    for (const aw of [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16]) {
-      S.pt = route({ ...B.tree, attr: aw }, R('ptPoints')(L));
-      S.ptA = {};
-      const I = R('PTREE').I,
-        need = { str: 0, dex: 0, int: 0, lv: 0 };
-      ctx.S = S;
-      /* 各項能力值全身裝備缺的總和（eqLack：自己給的不算自己、失效的不給） */
-      const lack = () => {
-        const d = { 力量: 0, 敏捷: 0, 智慧: 0 };
-        for (const k of Object.keys(S.eq)) {
-          ctx.__k = k;
-          for (const [n, have, req] of R('eqLack(S, S.eq.' + k + ', __k)')) if (n in d) d[n] += req - have;
+      /* 級距要細：一口氣從 8 跳到 16 會多繞幾十個能力值點（0.2.45 箭雨 Lv90 繞了 109 點） */
+      for (const aw of [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16]) {
+        S.pt = route({ ...B.tree, attr: aw }, R('ptPoints')(L));
+        S.ptA = {};
+        const I = R('PTREE').I,
+          need = { str: 0, dex: 0, int: 0, lv: 0 };
+        ctx.S = S;
+        /* 各項能力值全身裝備缺的總和（eqLack：自己給的不算自己、失效的不給） */
+        const lack = () => {
+          const d = { 力量: 0, 敏捷: 0, 智慧: 0 };
+          for (const k of Object.keys(S.eq)) {
+            ctx.__k = k;
+            for (const [n, have, req] of R('eqLack(S, S.eq.' + k + ', __k)')) if (n in d) d[n] += req - have;
+          }
+          return d;
+        };
+        for (const it of Object.values(S.eq)) {
+          ctx.__it = it;
+          const q = R('itemReq(__it)');
+          for (const k in need) need[k] = Math.max(need[k], q[k]);
         }
-        return d;
-      };
-      for (const it of Object.values(S.eq)) {
-        ctx.__it = it;
-        const q = R('itemReq(__it)');
-        for (const k in need) need[k] = Math.max(need[k], q[k]);
+        S.need = need;
+        for (const id of S.pt.filter(id => I[id].s && I[id].s.attr)) {
+          const d = lack(),
+            c = [
+              ['s', '力量'],
+              ['d', '敏捷'],
+              ['i', '智慧']
+            ].sort((a, b) => d[b[1]] - d[a[1]])[0];
+          S.ptA[id] = d[c[1]] > 0 ? c[0] : 's';
+        }
+        S.aw = aw;
+        if (!R('eqCheck(S).bad.size')) break;
       }
-      S.need = need;
-      for (const id of S.pt.filter(id => I[id].s && I[id].s.attr)) {
-        const d = lack(),
-          c = [
-            ['s', '力量'],
-            ['d', '敏捷'],
-            ['i', '智慧']
-          ].sort((a, b) => d[b[1]] - d[a[1]])[0];
-        S.ptA[id] = d[c[1]] > 0 ? c[0] : 's';
+      ctx.S = S;
+      R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');
+      const ST = R('ST'),
+        D = R('SKILLS')[B.sk],
+        lv = R('gemCap')(L),
+        c = { D, lv, mult: R('gemMult')(D, lv), more: 1, critInc: 0, critX: 0, fireAdd: 0, pen: 0, ailMag: 0 },
+        /* 王是隨機的：用生命最高、傷害最高的組合當最壞情況 */
+        bossD = {
+          ...R('BOSSES')[0],
+          hp: Math.max(...R('BOSSES').map(b => b.hp)),
+          dmg: Math.max(...R('BOSSES').map(b => b.dmg))
+        },
+        tm = R('tierMob')(t),
+        boss = {
+          D: bossD,
+          boss: 1,
+          x: 100,
+          y: 0,
+          hp: bossD.hp * tm.hp * R('bossHpMul')(t) * R('MOB_HP'),
+          el: bossD.el || 'phys',
+          ail: {}
+        };
+      boss.mhp = boss.hp;
+      ctx.boss = boss;
+      R('mobDef(boss, ' + t + ')');
+      let sum = 0;
+      ctx.c = c;
+      if (B.falcon) boss.ail.mark = { k: 'falcon' };
+      /* 點燃一直掛著（焦土的火焰曝曬才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
+      if (B.ign) boss.ail.ign = { dps: 1, t: 1e9 };
+      if (ST.powCritX) R('P.chg = { p: { n: 3, t: 1e9 } }');
+      if (ST.cwHit) boss.ail.cw = Array(ST.cwMax || 20).fill(1e9);
+      let fireSum = 0,
+        crits = 0;
+      for (let i = 0; i < N; i++) {
+        const r = R(`hitCalc(c, boss, { fly: ${B.fly || 0} })`);
+        sum += r.d;
+        fireSum += r.pre.fire;
+        crits += r.crit ? 1 : 0;
       }
-      S.aw = aw;
-      if (!R('eqCheck(S).bad.size')) break;
-    }
-    ctx.S = S;
-    R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');
-    const ST = R('ST'),
-      D = R('SKILLS')[B.sk],
-      lv = R('gemCap')(L),
-      c = { D, lv, mult: R('gemMult')(D, lv), more: 1, critInc: 0, critX: 0, fireAdd: 0, pen: 0, ailMag: 0 },
-      /* 王是隨機的：用生命最高、傷害最高的組合當最壞情況 */
-      bossD = {
-        ...R('BOSSES')[0],
-        hp: Math.max(...R('BOSSES').map(b => b.hp)),
-        dmg: Math.max(...R('BOSSES').map(b => b.dmg))
-      },
-      tm = R('tierMob')(t),
-      boss = {
-        D: bossD,
-        boss: 1,
-        x: 100,
-        y: 0,
-        hp: bossD.hp * tm.hp * R('bossHpMul')(t) * R('MOB_HP'),
-        el: bossD.el || 'phys',
-        ail: {}
-      };
-    boss.mhp = boss.hp;
-    ctx.boss = boss;
-    R('mobDef(boss, ' + t + ')');
-    let sum = 0;
-    ctx.c = c;
-    if (B.falcon) boss.ail.mark = { k: 'falcon' };
-    /* 點燃一直掛著（焦土的火焰曝曬才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
-    if (B.ign) boss.ail.ign = { dps: 1, t: 1e9 };
-    if (ST.powCritX) R('P.chg = { p: { n: 3, t: 1e9 } }');
-    if (ST.cwHit) boss.ail.cw = Array(ST.cwMax || 20).fill(1e9);
-    let fireSum = 0,
-      crits = 0;
-    for (let i = 0; i < N; i++) {
-      const r = R(`hitCalc(c, boss, { fly: ${B.fly || 0} })`);
-      sum += r.d;
-      fireSum += r.pre.fire;
-      crits += r.crit ? 1 : 0;
-    }
-    const ignDps = B.ign
-      ? (fireSum / N) *
-        0.2 *
-        (1 + (ST.ailMag + ST.shaper) / 100) *
-        (1 + ST.ember / 100) *
-        (1 - R(`resOf(boss, 'fire', ST.pen)`) / 100)
-      : 0;
-    let cocDps = 0;
-    if (B.coc) {
-      const sd = R('SKILLS')[B.coc];
-      ctx.sc = { D: sd, lv, mult: 1, more: 1, critInc: 0, critX: 0, fireAdd: 0, pen: 0, ailMag: 0 };
-      let ss = 0;
-      for (let i = 0; i < N; i++) ss += R('hitCalc(sc, boss, { trig: 1 }).d');
-      const atkRate = (ST.asM / D.t) * R('hitChance')(ST.acc, boss.ev);
-      cocDps = (ss / N) * ((atkRate * crits) / N) * ((10 * (ST.hexCoc ? 2 : 1)) / 100) * ((sd.chain || 0) + 1);
-    }
-    const hit = sum / N,
-      spell = R('isSpell')(D),
-      rate = spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
-      /* 0.2.22：攻擊要乘命中率（法術一律命中） */
-      hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
-      dps = hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc + ignDps + cocDps,
-      hitDmg = bossD.dmg * tm.dmg * R('BOSS_DMG') * 1.4,
-      /* 0.2.25：無盡箭矢的投射物 +1 已經在 ST.proj */
-      ehp = ST.hp + ST.es,
-      fire = R(`ST.res.fire`) && R(`effRes('fire')`),
-      fireHit = hitDmg * (1 - R(`effRes('fire')`) / 100),
-      physHit0 = hitDmg * (1 - Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1))),
-      /* 0.2.25 格擋值：滿的時候先吸收 40%（重盾前進 60%），最多吸到格擋值 */
-      bvAb = d => Math.min(ST.bv, d * (ST.heavyShield ? 0.6 : 0.4)),
-      physHit = physHit0 - bvAb(physHit0);
-    console.log(
-      [
-        String(L).padStart(3),
-        String(t).padStart(4),
-        bn.padEnd(5, '　'),
-        Math.round(dps).toString().padStart(8),
-        Math.round(boss.mhp).toString().padStart(8),
-        (boss.mhp / dps).toFixed(1).padStart(8),
-        `${Math.round(((fireHit - bvAb(fireHit)) / ehp) * 100)}%/${Math.round((physHit / ehp) * 100)}%`.padStart(12),
-        String(ehp).padStart(6),
-        (Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1)) * 100).toFixed(0).padStart(7) + '%',
-        String(R(`effRes('fire')`)).padStart(4) + '%',
-        Math.round(hc * 100)
-          .toString()
-          .padStart(4) + '%',
-        ST.bv ? `格擋值 ${ST.bv}` : '',
-        B.asc ? `昇華 ${S.at.length - 1} 點` : '',
-        ST.eqBad.length ? `❌穿不起 ${ST.eqBad.join('/')}` : '',
-        `過路${JSON.stringify(Object.values(S.ptA).reduce((m, c) => ((m[c] = (m[c] || 0) + 1), m), {}))}${S.pt.filter(id => R('PTREE').I[id].s && R('PTREE').I[id].s.attr).length}點 失效${R('eqCheck(S).bad.size')} 能力值${ST.str}/${ST.dex}/${ST.int} 最高需求${S.need.str}/${S.need.dex}/${S.need.int} 等級${S.need.lv}`
-      ].join(' ')
-    );
-    void fire;
-    if (process.argv.includes('--why'))
-      console.log(
-        '     ',
-        JSON.stringify({
-          dmg: ST.dmg.map(Math.round),
-          wadd: ST.wadd,
-          add: ST.add,
-          aps: +ST.aps.toFixed(2),
-          crit: +ST.crit.toFixed(1),
-          critX: ST.critX,
-          inc: ST.dmgA + ST.atkP + ST.meleeP + ST.physP,
-          spellInc: ST.spellP + ST.eleP + ST.fireP,
-          gemMult: +c.mult.toFixed(2),
-          /* 天賦樹本身：點了幾個大點／小點／過路點，各數值合計 */
-          tree: (() => {
-            const I = R('PTREE').I,
-              n = S.pt.map(id => I[id]).filter(x => !x.gate),
-              sum = {};
-            for (const x of n) for (const k in x.s) sum[k] = (sum[k] || 0) + x.s[k];
-            return {
-              大: n.filter(x => x.big).length,
-              小: n.filter(x => !x.big && x.th).length,
-              過路: n.filter(x => !x.th).length,
-              ...sum
-            };
-          })()
-        })
+      const ignDps = B.ign
+        ? (fireSum / N) *
+          0.2 *
+          (1 + (ST.ailMag + ST.shaper) / 100) *
+          (1 + ST.ember / 100) *
+          (1 - R(`resOf(boss, 'fire', ST.pen)`) / 100)
+        : 0;
+      let cocDps = 0;
+      if (B.coc) {
+        const sd = R('SKILLS')[B.coc];
+        ctx.sc = { D: sd, lv, mult: 1, more: 1, critInc: 0, critX: 0, fireAdd: 0, pen: 0, ailMag: 0 };
+        let ss = 0;
+        for (let i = 0; i < N; i++) ss += R('hitCalc(sc, boss, { trig: 1 }).d');
+        const atkRate = (ST.asM / D.t) * R('hitChance')(ST.acc, boss.ev);
+        cocDps = (ss / N) * ((atkRate * crits) / N) * ((10 * (ST.hexCoc ? 2 : 1)) / 100) * ((sd.chain || 0) + 1);
+      }
+      const hit = sum / N,
+        spell = R('isSpell')(D),
+        rate = spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
+        /* 0.2.22：攻擊要乘命中率（法術一律命中） */
+        hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
+        dps = hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc + ignDps + cocDps,
+        hitDmg = bossD.dmg * tm.dmg * R('BOSS_DMG') * 1.4,
+        /* 0.2.25：無盡箭矢的投射物 +1 已經在 ST.proj */
+        ehp = ST.hp + ST.es,
+        fire = R(`ST.res.fire`) && R(`effRes('fire')`),
+        fireHit = hitDmg * (1 - R(`effRes('fire')`) / 100),
+        physHit0 = hitDmg * (1 - Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1))),
+        /* 0.2.25 格擋值：滿的時候先吸收 40%（重盾前進 60%），最多吸到格擋值 */
+        bvAb = d => Math.min(ST.bv, d * (ST.heavyShield ? 0.6 : 0.4)),
+        physHit = physHit0 - bvAb(physHit0);
+      ((AVG[bn] = AVG[bn] || {})[L] = AVG[bn][L] || []).push(boss.mhp / dps);
+      out(
+        [
+          String(L).padStart(3),
+          String(t).padStart(4),
+          bn.padEnd(5, '　'),
+          Math.round(dps).toString().padStart(8),
+          Math.round(boss.mhp).toString().padStart(8),
+          (boss.mhp / dps).toFixed(1).padStart(8),
+          `${Math.round(((fireHit - bvAb(fireHit)) / ehp) * 100)}%/${Math.round((physHit / ehp) * 100)}%`.padStart(12),
+          String(ehp).padStart(6),
+          (Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1)) * 100).toFixed(0).padStart(7) + '%',
+          String(R(`effRes('fire')`)).padStart(4) + '%',
+          Math.round(hc * 100)
+            .toString()
+            .padStart(4) + '%',
+          ST.bv ? `格擋值 ${ST.bv}` : '',
+          B.asc ? `昇華 ${S.at.length - 1} 點` : '',
+          ST.eqBad.length ? `❌穿不起 ${ST.eqBad.join('/')}` : '',
+          `過路${JSON.stringify(Object.values(S.ptA).reduce((m, c) => ((m[c] = (m[c] || 0) + 1), m), {}))}${S.pt.filter(id => R('PTREE').I[id].s && R('PTREE').I[id].s.attr).length}點 失效${R('eqCheck(S).bad.size')} 能力值${ST.str}/${ST.dex}/${ST.int} 最高需求${S.need.str}/${S.need.dex}/${S.need.int} 等級${S.need.lv}`
+        ].join(' ')
       );
+      void fire;
+      if (process.argv.includes('--why'))
+        out(
+          '     ',
+          JSON.stringify({
+            dmg: ST.dmg.map(Math.round),
+            wadd: ST.wadd,
+            add: ST.add,
+            aps: +ST.aps.toFixed(2),
+            crit: +ST.crit.toFixed(1),
+            critX: ST.critX,
+            inc: ST.dmgA + ST.atkP + ST.meleeP + ST.physP,
+            spellInc: ST.spellP + ST.eleP + ST.fireP,
+            gemMult: +c.mult.toFixed(2),
+            /* 天賦樹本身：點了幾個大點／小點／過路點，各數值合計 */
+            tree: (() => {
+              const I = R('PTREE').I,
+                n = S.pt.map(id => I[id]).filter(x => !x.gate),
+                sum = {};
+              for (const x of n) for (const k in x.s) sum[k] = (sum[k] || 0) + x.s[k];
+              return {
+                大: n.filter(x => x.big).length,
+                小: n.filter(x => !x.big && x.th).length,
+                過路: n.filter(x => !x.th).length,
+                ...sum
+              };
+            })()
+          })
+        );
+    }
   }
-}
+console.log('\n平均打王秒數（' + SEEDS + ' 個種子，括號是最快～最慢）');
+console.log('配裝      Lv30                Lv60                Lv90');
+for (const [bn, o] of Object.entries(AVG))
+  console.log(
+    bn.padEnd(5, '　') +
+      [30, 60, 90]
+        .map(L => {
+          const v = o[L],
+            m = v.reduce((a, b) => a + b, 0) / v.length;
+          return (m.toFixed(1) + '（' + Math.min(...v).toFixed(0) + '～' + Math.max(...v).toFixed(0) + '）').padStart(
+            18
+          );
+        })
+        .join('  ')
+  );

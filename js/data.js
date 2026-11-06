@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.46';
+const VER = '0.2.47';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -144,7 +144,9 @@ const TERMS = {
   偏斜: '被擊中、閃避沒躲掉後判定：機率 = 150% ×（1 − 命中值 ÷（命中值 + 偏斜值 × 0.12）），上限 95%。成功時這一下傷害 −40%（流順之風每層再 +1%）；紅光大招也有效。',
   狂怒球: '能量球資源，最多 3 顆、15 秒。持有不加數值，由技能或昇華消耗。',
   暴擊球: '能量球資源，最多 3 顆、15 秒。持有不加數值，由技能或昇華消耗。',
-  耐力球: '能量球資源，最多 3 顆、15 秒。持有不加數值，由技能或昇華消耗。',
+  耐力球:
+    '能量球資源，最多 3 顆、15 秒。持有不加數值；粉碎重擊（重擊、盾牌粉碎）與軍閥印記會給，震地消耗後餘震多打幾次。',
+  反擊狀態: '持續期間，打到你的敵人都會受招架；你受到的傷害照常結算。來源：盾衝。',
   幻影: '你的分身，隨機放你裝著的攻擊技能，傷害打折。',
   格擋值:
     '每面盾都有：等於盾上的護甲 ×（1 + 盾的護甲更多）（盾上的護甲 = 基底護甲 × 品質 + 護甲詞綴）。大於 0 時每一下吸收 40% 傷害；打碎後要等它跑滿才再吸收。',
@@ -569,7 +571,7 @@ const SKILLS = {
     stun: 0.6,
     wt: ['mace', 'flail'],
     tags: ['attack', 'melee', 'aoe'],
-    d: '往前重擊地面，扇形範圍的敵人暈眩 0.6 秒，留下碎裂地面 2 秒（怪物緩速 30%），結束時餘震再打一次（×1.2）'
+    d: '往前重擊地面，扇形範圍的敵人暈眩 0.6 秒，留下碎裂地面 2 秒（怪物緩速 30%），結束時餘震再打一次（×1.2）；消耗全部耐力球，每顆讓餘震多打一次'
   },
   venom: {
     n: '毒刃雨',
@@ -768,7 +770,7 @@ const SKILLS = {
     armBreak: 1,
     wt: ['mace', 'flail'],
     tags: ['attack', 'melee'],
-    d: '單體猛擊，物理擊中削減護甲；打中瀕臨沉重暈眩的怪＝粉碎重擊：直接沉重暈眩，並震傷周圍 120 內的敵人'
+    d: '單體猛擊，物理擊中削減護甲；打中瀕臨沉重暈眩的怪＝粉碎重擊：直接沉重暈眩，並震傷周圍 120 內的敵人，給 1 顆耐力球'
   },
   leap: {
     n: '跳砸',
@@ -1007,11 +1009,11 @@ const SKILLS = {
     off: 'shield',
     shield: 1,
     tags: ['attack', 'melee', 'aoe'],
-    d: '用盾往前猛撞，沉重暈眩累積 ×2；打中瀕臨沉重暈眩的怪＝粉碎重擊，直接沉重暈眩並震開周圍。基礎傷害看盾的護甲與閃避'
+    d: '用盾往前猛撞，沉重暈眩累積 ×2；打中瀕臨沉重暈眩的怪＝粉碎重擊，直接沉重暈眩並震開周圍，給 1 顆耐力球。基礎傷害看盾的護甲與閃避'
   },
   shieldthrow: {
     n: '盾牌投擲',
-    ic: 'sk_shieldcharge',
+    ic: 'sk_holyshield',
     t: 0.4,
     mp: 8,
     m: 0.9,
@@ -1021,6 +1023,83 @@ const SKILLS = {
     shield: 1,
     tags: ['attack', 'proj'],
     d: '丟出盾牌，在敵人之間彈 3 次再飛回手上，可以連續丟。基礎傷害看盾的護甲與閃避'
+  },
+  /* 0.2.47 第 3 層 B 批（近戰）：把斷掉的鏈接起來（待做清單第 3 層）。
+     盾衝＝製造受招架（反擊狀態，mech.js 的 startCounter）；狂怒重砸＝花盛怒；霜波＝收割可冰凍；霜牙＝收割受招架；
+     劍陣＝飛劍插地再引爆（plantSwords）；血怒＝生命損失換速度與偷取（combat.js 的 BUFF.bloodrage） */
+  shieldcharge: {
+    n: '盾衝',
+    ic: 'sk_shieldcharge',
+    t: 0.3,
+    mp: 8,
+    cd: 6,
+    m: 0.7,
+    dist: 75,
+    noInv: 1,
+    dur: 2,
+    off: 'shield',
+    shield: 1,
+    tags: ['attack', 'melee', 'move', 'cd'],
+    d: '舉盾往前突刺一小段（途中不是無敵），撞到的敵人受一次盾擊。之後 2 秒內是反擊狀態：打到你的敵人都會受招架（受到的攻擊傷害 50% 更多、無法閃避），你受到的傷害照常結算。基礎傷害看盾的護甲與閃避'
+  },
+  furyslam: {
+    n: '狂怒重砸',
+    ic: 'sk_rage',
+    t: 0.7,
+    mp: 8,
+    m: 1.9,
+    r: 130,
+    rageCost: 10,
+    form: 'bear',
+    wt: ['talisman'],
+    tags: ['attack', 'melee', 'aoe', 'pri'],
+    d: '變成熊，雙掌砸地打周圍一圈。有 10 點盛怒就花掉：再砸出第二道範圍 ×1.5 的震波，並留下碎裂地面 2 秒（結束時餘震）'
+  },
+  frostwave: {
+    n: '霜波',
+    ic: 'sk_frostnova',
+    t: 0.55,
+    mp: 10,
+    m: 1.1,
+    r: 150,
+    arc: 1.4,
+    el: 'cold',
+    wt: ['qstaff'],
+    tags: ['attack', 'melee', 'aoe'],
+    d: '往前掃出一道冰波（物理轉成冰冷）；打中可冰凍的敵人，直接冰凍牠'
+  },
+  frostfang: {
+    n: '霜牙',
+    ic: 'sk_spearrush',
+    t: 0.4,
+    mp: 7,
+    m: 1.2,
+    r: 110,
+    wt: ['spear'],
+    tags: ['attack', 'melee'],
+    d: '往前突刺一整排；刺中受招架的怪會消耗受招架，在牠身上炸出冰爆（冰冷範圍傷害）並留下冰緩地面 3 秒'
+  },
+  swordarray: {
+    n: '劍陣',
+    ic: 'sk_bladestorm',
+    t: 0.35,
+    mp: 8,
+    m: 1,
+    wt: ['dagger'],
+    tags: ['attack', 'aoe'],
+    d: '把環繞的飛劍全部插在滑鼠位置成劍陣 8 秒（每把讓範圍更大）；劍陣在場時再按一次就引爆，每把飛劍 0.6 倍的範圍傷害。8 秒沒引爆會自己爆，威力減半。沒有飛劍也沒有劍陣時不能用'
+  },
+  bloodrage: {
+    n: '血怒',
+    ic: 'sk_bloodlust',
+    t: 0.3,
+    mp: 6,
+    cd: 1,
+    m: 0,
+    dur: 15,
+    wt: ['claw'],
+    tags: ['cd'],
+    d: '15 秒內技能速度提高 20%、生命偷取 +3%，但每秒損失 4% 最大生命（生命剩 1 就不再損失）；再按一次提早結束'
   }
 };
 /* 技能分類標籤（0.2.42，照 poe2db，名詞在 TERMS）：加在每招原本的 tags 後面。沒列的技能（詛咒、印記、召喚、擲矛…）沒有新標籤。
@@ -1069,6 +1148,12 @@ const CLS_TAGS = {
   wolfpounce: 'strike cond',
   shieldcrush: 'slam',
   shieldthrow: 'repeat',
+  shieldcharge: 'strike duration',
+  furyslam: 'slam payoff',
+  frostwave: 'slam payoff',
+  frostfang: 'strike payoff',
+  swordarray: 'cond',
+  bloodrage: 'duration',
   grenade: 'grenade',
   cu_enfeeble: 'cascade duration',
   cu_eleweak: 'cascade duration',
@@ -1189,6 +1274,12 @@ const supCat = k => SUP_CAT[k] || k;
 /* 寶石品質（0.2.29，docs/品質效果表.md）：0～20%；{數字} 是品質 20% 的值，顯示時照比例換算 */
 const GEM_Q_MAX = 20;
 const QUAL = {
+  shieldcharge: '反擊狀態多 {1} 秒',
+  furyslam: '花盛怒時返還 {4} 點',
+  frostwave: '直接冰凍敵人時，{20}% 機率得到 1 顆暴擊球',
+  frostfang: '冰緩地面多留 {2} 秒',
+  swordarray: '劍陣範圍 +{20}%',
+  bloodrage: '生命損失減少 {25}%',
   cu_enfeeble: '被詛咒的怪打中你時，得到那一下傷害 {20}% 的守護',
   cu_eleweak: '被詛咒的怪死亡時，{20}% 機率掉元素殘留物',
   cu_tchains: '被詛咒的怪死亡時，{20}% 機率把詛咒傳給 200 內最近的怪',

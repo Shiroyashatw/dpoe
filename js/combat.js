@@ -1301,6 +1301,17 @@ const BUFF = {
     st: { ss: 10, rageSpell: 3 }
   },
   jade: { n: '翠玉', ic: 'sk_determination', d: '每層額外物理傷害減免 1%', max: 10, st: { physDr: 1 } },
+  /* 0.2.47 爪的血怒：每秒損失 4% 最大生命（P.brQ＝品質，減少損失；生命剩 1 就不再扣），不算傷害 */
+  bloodrage: {
+    n: '血怒',
+    ic: 'sk_bloodlust',
+    d: '技能速度提高 20%、生命偷取 +3%，每秒損失 4% 最大生命',
+    max: 1,
+    t: 15,
+    st: { ss: 20, leech: 3 },
+    every: 1,
+    on: () => loseLife(Math.min(P.hp - 1, ST.hp * 0.04 * (1 - 0.25 * (P.brQ || 0))), '血怒', 1)
+  },
   unbound: {
     n: '無縛潛能',
     ic: 'sk_power',
@@ -1628,6 +1639,8 @@ const effRes = k => {
 function hurtCalc(d, src, el, noEv) {
   const m = src && src.ail ? src : src && src.src && src.src.ail ? src.src : null;
   if (m) d *= mobDmgMul(m);
+  /* 反擊狀態（mech.js，盾衝）：被打到，攻擊者受招架；傷害照算，王的紅光大招也算 */
+  counterHit(m);
   /* 招架（mech.js）：窗口裡被打到＝擋下，攻擊者受招架 */
   if (!noEv && tryParry(m)) return { parry: 1 };
   const acc = (m ? m.acc : 15 + 6 * mobLv(G.mapT || 1)) * (m && m.ail.blind > G.t ? 0.8 : 1);
@@ -2006,6 +2019,7 @@ const STATE = {
   broken: ['完全破甲', 'sup_sp_pen', '護甲歸零，受到的物理傷害提高'],
   parried: ['受招架', 'sup_sp_heavy', '受到的攻擊傷害更多、無法閃避攻擊'],
   intim: ['威嚇', 'sk_anger', '受到的傷害提高、造成的傷害降低'],
+  counter: ['反擊狀態', 'sk_shieldcharge', '打到你的敵人會受招架'],
   mark: ['印記', 'sk_markshot', '被印記的怪觸發時給你效果'],
   scorch: ['焦灼', 'sup_sp_gfire', '元素抗性降低'],
   brittle: ['易碎', 'sk_frostarrow', '被擊中時暴擊率提高'],
@@ -2154,6 +2168,7 @@ function playerStates() {
   for (const k of ['frostMark', 'voltMark']) add(k, P.buf && P.buf[k]);
   for (const k of ['e', 'f', 'p']) if (chgN(k)) add('chg_' + k, P.chg[k].t, { c: chgN(k) });
   if (P.rage > 0) add('rage', null, { c: Math.ceil(P.rage) });
+  add('counter', P.counterT);
   for (const k of ['fire', 'cold', 'light']) if (P.adapt && P.adapt[k]) add('ad_' + k, null, { c: P.adapt[k] });
   if (P.tail) add('tail', null, { c: Math.ceil(P.tail) });
   if (ST.sacrifice) add('sac', P.sacT);

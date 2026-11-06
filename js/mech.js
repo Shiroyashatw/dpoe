@@ -47,6 +47,8 @@ function crush(m) {
   if (!takeState(m, 'primed')) return false;
   poisePin(m, 'hs');
   fxs('slam', m.x, m.y, m.r * 1.5);
+  /* 0.2.47：粉碎重擊給 1 顆耐力球（震地會消耗） */
+  gainChg('e');
   return true;
 }
 
@@ -227,6 +229,8 @@ function groundTick(dt) {
     if (g.t >= g.dur && !g.done) {
       g.done = 1;
       if (g.after) boomAt(g.x, g.y, g.r, g.c, g.after);
+      /* 震地消耗的耐力球：每顆多一次餘震，隔 0.4 秒 */
+      if (g.again > 0) g.again--, (g.done = 0), (g.t = g.dur - 0.4);
     }
   }
   G.ground = G.ground.filter(g => !g.done);
@@ -336,22 +340,23 @@ function sealBreak(k) {
 function startParry(t = 0.4) {
   P.parryT = G.t + t;
 }
-/* 反擊狀態（第 10 批，技能還沒接）：持續 t 秒，期間第一次被近戰或投射物打到就擋下、攻擊者受招架、自動用 c（預設 BASEC）反擊一下，觸發一次就結束 */
-function startCounter(t = 3, c = null) {
-  P.counter = { t: G.t + t, c };
+/* 反擊狀態（0.2.47 改寫，盾衝在用）：持續 t 秒，期間每次被找得到攻擊者的擊中打到（近戰、投射物、範圍招、王的紅光大招），
+   攻擊者就受招架；傷害照常結算、不擋、不自動反擊。條件放寬是為了手機好觸發 */
+function startCounter(t = 2) {
+  P.counterT = G.t + t;
 }
-/* hurtCalc 呼叫：招架窗口或反擊狀態裡被近戰或投射物打到＝擋下，攻擊者受招架（幅度與持續時間在 combat.js 的 applyParry） */
+/* hurtCalc 呼叫（在招架、閃避之前）：m 是攻擊者，地面與持續傷害沒有攻擊者，不算 */
+function counterHit(m) {
+  if (!(P.counterT > G.t) || !m || !m.ail || m.hp <= 0) return;
+  if (!parryOn(m)) fxs('block', P.x, P.y), num(P.x, P.y - 60, 0, 'block', '受招架');
+  applyParry(m);
+}
+/* hurtCalc 呼叫：招架窗口裡被近戰或投射物打到＝擋下，攻擊者受招架（幅度與持續時間在 combat.js 的 applyParry） */
 function tryParry(m) {
-  const cn = P.counter && P.counter.t > G.t;
-  if ((!(P.parryT > G.t) && !cn) || !m || !m.ail) return false;
+  if (!(P.parryT > G.t) || !m || !m.ail) return false;
   applyParry(m);
   fxs('block', P.x, P.y);
   num(P.x, P.y - 60, 0, 'block', '招架');
-  if (cn) {
-    const c = P.counter.c || BASEC();
-    P.counter = null;
-    if (m.hp > 0) hitMob(m, c, Math.atan2(m.y - P.y, m.x - P.x), 160 * (c.kb || 1));
-  }
   return true;
 }
 
@@ -492,7 +497,8 @@ function plantSwords(x, y, c) {
   const n = swordN();
   if (!n) return 0;
   P.swords = [];
-  addGround({ k: 'blades', x, y, r: 70 + n * 6, dur: 8, c, n });
+  /* after：8 秒沒引爆就自己爆（威力是引爆的一半） */
+  addGround({ k: 'blades', x, y, r: 70 + n * 6, dur: 8, c, n, after: 0.3 * n });
   return n;
 }
 
@@ -503,7 +509,16 @@ function spawnMirage(g, x, y, dur = 4, every = 1, mul = 0.6, src) {
   G.mirages.push({ g, x, y, t: G.t + dur, next: G.t + 0.3, every, mul, src });
 }
 /* 幻影能用的攻擊技能：不用位移、放單位、資源（屍體、榮耀、飛出去的盾）、要指定目標的，也不能是幻影斬自己 */
-const MIRAGE_NO = new Set(['mirage', 'shieldthrow', 'banner', 'corpseboom', 'paperdoll', 'refract']);
+const MIRAGE_NO = new Set([
+  'mirage',
+  'shieldthrow',
+  'banner',
+  'corpseboom',
+  'paperdoll',
+  'refract',
+  'swordarray',
+  'furyslam'
+]);
 function mirageGem() {
   const gs = S.skills
     .map(k => k.a)
@@ -600,7 +615,7 @@ function mechEnter() {
     combo: 0,
     stage: {},
     parryT: 0,
-    counter: null,
+    counterT: 0,
     inf: {},
     swords: [],
     glory: 0,

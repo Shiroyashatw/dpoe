@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：93 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 93,
+    '品質：99 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 99,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -1812,7 +1812,7 @@ vm.runInContext(
       !cl.channel.length &&
       cl.nova === 'whirl,nova' &&
       cl.sust === 'venom' &&
-      cl.cond === 'shadowstrike,blindpounce,banner,corpseboom,paperdoll,wolfpounce',
+      cl.cond === 'shadowstrike,blindpounce,banner,corpseboom,paperdoll,wolfpounce,swordarray',
     JSON.stringify(cl)
   );
   const tagN = [
@@ -2296,7 +2296,7 @@ vm.runInContext(
     ST.wadd = { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] };
     ST.add = {};
     Object.assign(G, { t: 100, scene: 'map', mapT: 1, mm: null, mobs: [], allies: [], state: 'play' });
-    P.ail = {}; P.parryT = 0; P.counter = null; P.hp = 1e6; P.es = 0; P.incN = []; P.rage = 0; P.buf = {};
+    P.ail = {}; P.parryT = 0; P.counterT = 0; P.hp = 1e6; P.es = 0; P.incN = []; P.rage = 0; P.buf = {};
     globalThis.aggroPack = globalThis.sparks = globalThis.hitstop = () => {}; globalThis.killMob = m => { m.dead = 1; };
     let m = mk(), a = m.ail;
     /* 受招架：必中（天生閃避極高也中）、幅度與持續開關 */
@@ -2314,14 +2314,14 @@ vm.runInContext(
     /* 格擋值碎開：範圍內（含王）受招架，範圍外不受；圓環半徑＝實際範圍；parryR 放大範圍 */
     const shat = () => { ST.bv = 1000; P.bv = 10; P.bvRe = null; P.ail = {}; const ms = [mk({ x: P.x + 3 * METER }), mk({ x: P.x + 3.5 * METER, boss: 1 }), mk({ x: P.x + 6 * METER }), mk({ x: P.x + 10 * METER })]; G.mobs = ms; absorb(100); return ms.map(x => parryOn(x) ? 1 : 0).join(''); };
     out.shat = shat(); ST.parryR = 100; out.shatR = shat(); ST.parryR = 0; ST.bv = 0; P.bv = 0; G.mobs = [];
-    /* 反擊狀態：第一次被打擋下＋受招架＋反擊，只觸發一次；過期不觸發；可傳技能設定 */
+    /* 反擊狀態（0.2.47 改寫，盾衝）：期間每次被打，攻擊者都受招架；不擋、不自動反擊；王的紅光大招（noEv）也算；過期不算 */
     m = mk({ hp: 1e9 }); G.mobs = [m]; startCounter(3); const hp0 = m.hp;
-    const c1 = hurtCalc(50, m, 'phys'), hpAfter = m.hp, p1 = parryOn(m);
-    m.ail.parried = 0; const c2 = hurtCalc(50, m, 'phys');
-    out.counter = [c1.parry || 0, hp0 > hpAfter, p1, c2.parry || 0, parryOn(m), P.counter === null];
+    const c1 = hurtCalc(50, m, 'phys'), p1 = parryOn(m);
+    m.ail.parried = 0; const c2 = hurtCalc(50, m, 'phys'), p2 = parryOn(m);
+    m.ail.parried = 0; hurtCalc(50, m, 'phys', 1); const p3 = parryOn(m);
+    out.counter = [c1.parry || 0, m.hp === hp0, p1, c2.parry || 0, p2, p3];
     G.t = 200; startCounter(1); G.t = 202; m.ail.parried = 0; out.counterEnd = [(hurtCalc(50, m, 'phys').parry || 0), parryOn(m)];
-    G.t = 100; startCounter(3, { ...atk, mult: 5 }); const hb = m.hp; hurtCalc(50, m, 'phys'); const big = hb - m.hp; startCounter(3); const hb2 = m.hp; hurtCalc(50, m, 'phys'); out.counterC = big > (hb2 - m.hp) * 3;
-    P.counter = null; G.mobs = [];
+    G.t = 100; P.counterT = 0; G.mobs = [];
     /* 物理減傷：護甲（上限 90%）→ 鎮壓（最多扣到 0）→ 壓碎（可以變負）；全部跟「沒減傷」的數字比 */
     m = mk({ arm: 1e12 }); const base = hit(mk());
     const rr = (c, mm) => rd(hit(mm || m, c) / base);
@@ -2459,9 +2459,9 @@ vm.runInContext(
     j10([b10.shat, b10.shatR])
   );
   ok(
-    '反擊狀態：第一次被打擋下＋受招架＋自動反擊，只觸發一次；過期不觸發；可傳技能設定',
-    j10(b10.counter) === '[1,true,true,0,false,true]' && j10(b10.counterEnd) === '[0,false]' && b10.counterC,
-    j10([b10.counter, b10.counterEnd, b10.counterC])
+    '反擊狀態：期間每次被打攻擊者都受招架（含王的大招）、不擋、不反擊；過期不算',
+    j10(b10.counter) === '[0,true,true,0,true,true]' && j10(b10.counterEnd) === '[0,false]',
+    j10([b10.counter, b10.counterEnd])
   );
   ok(
     '物理減傷順序：護甲 90% → 鎮壓（扣百分點、最多扣到 0）→ 壓碎（−15 個百分點）',
@@ -3364,8 +3364,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '層數增益：九列都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 9 && !b.bad.length,
+    '層數增益：十列（含血怒）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 10 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(
@@ -3708,6 +3708,74 @@ vm.runInContext(
     JSON.stringify([b.ret, b.retCfg, b.retBoom, b.retUnit])
   );
   ok('超限格擋率：超過 50 的部分，沒超過是 0', b.over.join() === '50,10,30,0', b.over.join());
+  /* 0.2.47 第 3 層 B 批（近戰）：耐力球、狂怒重砸、霜波、霜牙、劍陣、血怒（盾衝的反擊狀態在第 10 批那一段） */
+  const b47 = R(`(() => {
+    const c = k => gemCfg(mkGem(k, 5), 0),
+      A = (k, o) => ({ k, c: c(k), ang: 0, tx: P.x + 60, ty: P.y, hits: [0], n: 0, ...o }),
+      D = Object.values(MOBS)[0],
+      mk = (o = {}) => ({ D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, ground: G.ground, chg: P.chg, rage: P.rage, stk: P.stk, hp: P.hp, swords: P.swords, form: P.form, t: G.t },
+      out = {};
+    let m;
+    if (typeof shake === 'undefined') globalThis.shake = () => {};
+    /* 耐力球：粉碎重擊給 1 顆；震地全部消耗，每顆讓餘震多打一次（2 顆＝餘震 3 次） */
+    P.chg = {}; G.ground = []; m = mk(); G.mobs = [m]; m.ail.hs = 50;
+    actHit(A('smash'), 0); out.endGain = chgN('e');
+    gainChg('e'); actHit(A('quake'), 0);
+    const jg = G.ground.find(g => g.k === 'jagged'); out.endUse = [chgN('e'), jg.again];
+    let booms = 0; const h0 = m.hp;
+    for (let i = 0; i < 80; i++) { const h = m.hp; G.t += 0.05; groundTick(0.05); if (m.hp < h) booms++; }
+    out.after = [booms, G.ground.length];
+    /* 狂怒重砸：盛怒不夠只砸一下、不留地面；夠就花 10 點、多一道震波＋碎裂地面 */
+    G.ground = []; m = mk(); G.mobs = [m]; P.rage = 9; let h = m.hp;
+    actHit(A('furyslam'), 0); const d1 = h - m.hp; out.fury0 = [P.rage, G.ground.length];
+    P.rage = 12; h = m.hp; actHit(A('furyslam'), 0); out.fury1 = [P.rage, G.ground.length, h - m.hp > d1 * 1.5];
+    /* 霜波：可冰凍的怪直接冰凍，累積清掉；不是可冰凍的不會 */
+    G.ground = []; m = mk(); const m2 = mk({ y: P.y + 10 }); G.mobs = [m, m2]; m.ail.frz = 50;
+    actHit(A('frostwave'), 0); out.frost = [hasState(m, 'frozen'), hasState(m2, 'frozen')];
+    /* 霜牙：受招架的怪消耗受招架、留冰緩地面；沒受招架的不留 */
+    G.ground = []; m = mk(); G.mobs = [m]; actHit(A('frostfang'), 0); out.fang0 = G.ground.length;
+    applyParry(m); actHit(A('frostfang'), 0); out.fang1 = [parryOn(m), G.ground.filter(g => g.k === 'chill').length];
+    /* 劍陣：沒有飛劍不能用；有就插地（飛劍用掉）、再按引爆；沒引爆時間到自己爆 */
+    G.ground = []; P.swords = []; m = mk({ x: P.x + 60 }); G.mobs = [m];
+    out.arrWhy = skillWhy({ ...c('swordarray'), g: null }, { x: P.x + 60, y: P.y });
+    gainSwords(4, c('flyswords')); out.arrOk = skillWhy({ ...c('swordarray'), g: null }, { x: P.x + 60, y: P.y });
+    actHit(A('swordarray'), 0); const bl = G.ground.find(g => g.k === 'blades');
+    out.arr = [swordN(), !!bl, bl && bl.n]; h = m.hp;
+    actHit(A('swordarray'), 0); groundTick(0.01); out.arrBoom = [h > m.hp, G.ground.some(g => g.k === 'blades')];
+    gainSwords(2, c('flyswords')); actHit(A('swordarray'), 0); h = m.hp; G.t += 8.1; groundTick(8.1); out.arrEnd = [h > m.hp, G.ground.length];
+    /* 血怒：技能速度 +20、偷取 +3；每秒損失 4% 最大生命，生命剩 1 就不再扣；再按關掉 */
+    P.stk = {}; P.hp = ST.hp; actHit(A('bloodrage'), 0);
+    out.br = [stkN('bloodrage'), bufV('ss'), bufV('leech'), gemCfg(mkGem('clawchain', 5), 0).leech > ST.leech / 100];
+    stkTick(1); out.brLoss = +((ST.hp - P.hp) / ST.hp).toFixed(3);
+    P.hp = 1.5; stkTick(1); out.brMin = P.hp;
+    actHit(A('bloodrage'), 0); out.brOff = stkN('bloodrage');
+    Object.assign(G, { mobs: keep.mobs, ground: keep.ground, t: keep.t });
+    Object.assign(P, { chg: keep.chg, rage: keep.rage, stk: keep.stk, hp: keep.hp, swords: keep.swords, form: keep.form });
+    return out;
+  })()`);
+  ok(
+    'B 批近戰：粉碎重擊給耐力球、震地消耗後餘震 3 次；狂怒重砸花 10 盛怒才有第二道震波與地面；霜波冰凍可冰凍的怪；霜牙消耗受招架留冰緩地面',
+    b47.endGain === 1 &&
+      JSON.stringify([b47.endUse, b47.after, b47.fury0, b47.fury1, b47.frost, b47.fang0, b47.fang1]) ===
+        '[[0,2],[3,0],[9,0],[2,1,true],[true,false],0,[false,1]]',
+    JSON.stringify(b47)
+  );
+  ok(
+    'B 批近戰：劍陣要有飛劍、插地後再按引爆、8 秒自己爆；血怒給速度與偷取、每秒扣 4% 生命、剩 1 不再扣、再按關掉',
+    JSON.stringify([
+      b47.arrWhy,
+      b47.arrOk,
+      b47.arr,
+      b47.arrBoom,
+      b47.arrEnd,
+      b47.br,
+      b47.brLoss,
+      b47.brMin,
+      b47.brOff
+    ]) === '["要先用御劍訣召出飛劍","",[0,true,4],[true,false],[true,0],[1,20,3,true],0.04,1,0]',
+    JSON.stringify(b47)
+  );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',
     b.eat1.join() === 'true,false,true' &&
