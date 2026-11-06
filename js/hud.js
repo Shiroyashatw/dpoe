@@ -1263,7 +1263,7 @@ function devHTML() {
     .join('')}</div>
   ${next ? `<p class="tnext">${next}</p>` : ''}</div>
   <div class="mdr"><div class="msel"><b>這張的地圖詞</b><span class="c-gold">物品數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
-  <ul class="mmods">${card.mods.map(k => `<li class="d${MAPMOD[k].d}">${MAPMOD[k].t}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
+  <ul class="mmods">${card.mods.map(k => `<li class="d${MAPMOD[k].d}">${termify(MAPMOD[k].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
   <button class="btn pri" data-a="open" ${S.frag < c ? 'disabled' : ''}>${S.frag < c ? `碎片不夠（要 ${c}，有 ${S.frag}）` : `${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}${c ? ` · ${c} 碎片` : ''}`}</button></div></div>`;
 }
 
