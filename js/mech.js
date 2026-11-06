@@ -229,6 +229,8 @@ function groundTick(dt) {
     if (g.t >= g.dur && !g.done) {
       g.done = 1;
       if (g.after) boomAt(g.x, g.y, g.r, g.c, g.after);
+      /* 褻瀆儀式：腐化地面結束時給能量球 */
+      if (g.chg) gainChg(g.chg);
       /* 震地消耗的耐力球：每顆多一次餘震，隔 0.4 秒 */
       if (g.again > 0) g.again--, (g.done = 0), (g.t = g.dur - 0.4);
     }

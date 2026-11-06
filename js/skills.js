@@ -174,8 +174,13 @@ function skillWhy(c, at) {
     return ST.blood ? '生命不夠施放' : '魔力不足';
   if (c.k === 'banner' && (P.glory || 0) < 100) return '榮耀不夠（' + Math.floor(P.glory || 0) + '／100）';
   if (c.k === 'swordarray' && !swordN() && !G.ground.some(g => g.k === 'blades')) return '要先用御劍訣召出飛劍';
-  if ((c.k === 'corpseboom' || c.k === 'paperdoll') && !corpseNear(c.k === 'paperdoll' ? P : at, 250))
+  if (
+    (c.k === 'corpseboom' || c.k === 'paperdoll' || c.k === 'profane') &&
+    !corpseNear(c.k === 'paperdoll' ? P : at, 250)
+  )
     return '附近沒有屍體';
+  if (c.k === 'snap' && !stateMobs(at.x, at.y, c.D.r, SNAP_K).length) return '附近沒有冰凍、感電或點燃的敵人';
+  if (c.k === 'hexblast' && !stateMobs(at.x, at.y, 150, ['curse']).length) return '附近沒有被詛咒的敵人';
   const A = c.D.ammo && P.ammo && P.ammo[c.k];
   if (A && A.until > G.t) return '裝填中';
   return '';
@@ -276,6 +281,10 @@ function mobNear(x, y, r, far = 1e9) {
   return best;
 }
 const corpseNear = (o, r) => G.corpses.some(c => c.t > G.t && Math.hypot(c.x - o.x, c.y - o.y) < r);
+/* 裂解、破咒的目標：(x, y) 附近 r 內、身上有 ks 其中一種狀態的怪 */
+const stateMobs = (x, y, r, ks) =>
+  G.mobs.filter(m => m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r && ks.some(k => hasState(m, k)));
+const SNAP_K = ['frozen', 'shock', 'ign'];
 /* 每格畫面：出手中的動作 */
 function skillTick(a, dt, mx, my) {
   a.t += dt;
@@ -466,6 +475,39 @@ function actHit(a, idx) {
       const g = a.ang + (i - (n - 1) / 2) * spread * c.fan;
       shoot(g, D.spd, c, a, { boom: (D.r || 70) * ST.aoeM * c.aoe, fire: 1, life: 1.1 });
     }
+  } else if (a.k === 'thunderstorm') {
+    /* 雷暴：跟毒刃雨同一種範圍（updPools），多了濕透與落雷；品質：範圍 */
+    G.pools.push({ x: a.tx, y: a.ty, r: R * (1 + 0.2 * c.q), t: 0, dur: durOf(c), tick: 0, c, a, wet: 1 });
+    sfx('cast');
+  } else if (a.k === 'snap') {
+    /* 裂解：滑鼠附近每隻怪消耗一種元素異常（冰凍 > 感電 > 點燃），以牠為中心爆開那個元素、留殘留物（品質：機率多留一個） */
+    for (const m of stateMobs(a.tx, a.ty, R, SNAP_K)) {
+      const el = takeState(m, 'frozen')
+        ? 'cold'
+        : takeState(m, 'shock')
+          ? 'light'
+          : takeState(m, 'ign')
+            ? 'fire'
+            : null;
+      if (!el) continue;
+      boomAt(m.x, m.y, 90, c, 1, el);
+      dropRemnant(el, m.x, m.y);
+      if (qRoll(20 * c.q)) dropRemnant(el, m.x, m.y);
+    }
+    sfx('slam');
+  } else if (a.k === 'hexblast') {
+    /* 破咒：滑鼠附近被詛咒的怪消耗詛咒，以牠為中心混沌爆炸（品質：範圍） */
+    for (const m of stateMobs(a.tx, a.ty, 150, ['curse']))
+      if (takeState(m, 'curse')) fxs('dark', m.x, m.y, R), boomAt(m.x, m.y, R * (1 + 0.2 * c.q), c, 1, 'chaos');
+    sfx('slam');
+  } else if (a.k === 'profane') {
+    /* 褻瀆儀式：消耗一具屍體，原地留腐化地面（每 0.5 秒一次混沌擊中，吃凋零），結束時給暴擊球（品質：機率不消耗屍體） */
+    const cp = takeCorpse(a.tx, a.ty, 250);
+    if (!cp) return;
+    if (qRoll(20 * c.q)) G.corpses.push(cp);
+    fxs('dark', cp.x, cp.y, R);
+    sfx('cast');
+    addGround({ k: 'corrupt', x: cp.x, y: cp.y, r: R, dur: durOf(c), c, dps: 0.6, chg: 'p' });
   } else if (a.k === 'venom') {
     G.pools.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: durOf(c), tick: 0, c, a });
     sfx('cast');
@@ -687,6 +729,18 @@ function actHit2(a, idx, R, hitArc) {
         boom: 1,
         gas: R * ST.aoeM * c.aoe
       });
+  } else if (a.k === 'oilgrenade') {
+    /* 油手雷：破開（物理）後留油滑地面，火焰或引爆技能可以點爆（mech.js 的 detonate）；品質：油留更久 */
+    const dx = a.tx - P.x,
+      dy = a.ty - P.y;
+    for (let i = 0; i < c.proj; i++) {
+      const g = (i - (c.proj - 1) / 2) * 0.3 * c.fan,
+        r = R * ST.aoeM * c.aoe;
+      throwGrenade(c, P.x + dx * Math.cos(g) - dy * Math.sin(g), P.y + dx * Math.sin(g) + dy * Math.cos(g), {
+        r,
+        onBoom: (x, y) => addGround({ k: 'oil', x, y, r, dur: durOf(c) + 2 * c.q, c })
+      });
+    }
   } else if (a.k === 'grenade') {
     /* 多重投射：多的手雷以出手點為圓心往兩側散開 */
     const dx = a.tx - P.x,
@@ -1185,8 +1239,13 @@ function updPools(dt) {
     if (p.tick <= 0) {
       p.tick = 0.5;
       for (const m of G.mobs)
-        if (m.hp > 0 && Math.hypot(m.x - p.x, m.y - p.y) < p.r + m.r)
+        if (m.hp > 0 && Math.hypot(m.x - p.x, m.y - p.y) < p.r + m.r) {
+          /* 雷暴（p.wet）：範圍裡一直濕透，每次都有一道落雷 */
+          if (p.wet)
+            drench(m, 0.8),
+              fx({ k: 'zap', x: m.x + rnd(-30, 30), y: m.y - 220, x2: m.x, y2: m.y - m.sz * 0.4, dur: 0.15 });
           hitMob(m, p.c, 0, 0, { quiet: 1, a: p.a, mult: p.c.mult, from: p });
+        }
     }
   }
   G.pools = G.pools.filter(p => p.t < p.dur);

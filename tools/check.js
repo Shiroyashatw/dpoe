@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：99 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 99,
+    '品質：104 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 104,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -1811,8 +1811,8 @@ vm.runInContext(
       cl.remote === 'frosttrap,blastmine,ballista,firetotem,mirage' &&
       !cl.channel.length &&
       cl.nova === 'whirl,nova' &&
-      cl.sust === 'venom' &&
-      cl.cond === 'shadowstrike,blindpounce,banner,corpseboom,paperdoll,wolfpounce,swordarray',
+      cl.sust === 'venom,thunderstorm' &&
+      cl.cond === 'shadowstrike,blindpounce,banner,corpseboom,paperdoll,wolfpounce,swordarray,snap,hexblast,profane',
     JSON.stringify(cl)
   );
   const tagN = [
@@ -3775,6 +3775,61 @@ vm.runInContext(
       b47.brOff
     ]) === '["要先用御劍訣召出飛劍","",[0,true,4],[true,false],[true,0],[1,20,3,true],0.04,1,0]',
     JSON.stringify(b47)
+  );
+  /* 0.2.48 第 3 層 B 批（遠程與法術）：油手雷、雷暴、裂解、破咒、褻瀆儀式 */
+  const b48 = R(`(() => {
+    const c = k => gemCfg(mkGem(k, 5), 0),
+      A = (k, o) => ({ k, c: c(k), ang: 0, tx: P.x + 60, ty: P.y, hits: [0], n: 0, ...o }),
+      D = Object.values(MOBS)[0],
+      mk = (o = {}) => ({ D, x: P.x + 60, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      why = (k, at) => skillWhy({ ...c(k), g: null }, at || { x: P.x + 60, y: P.y }),
+      keep = { mobs: G.mobs, ground: G.ground, pools: G.pools, grenades: G.grenades, corpses: G.corpses, remnants: G.remnants, chg: P.chg, t: G.t },
+      out = {};
+    let m, h;
+    G.corpses = []; G.remnants = [];
+    /* 油手雷：1.5 秒後破開、留油滑地面（6 秒）；引爆技能點爆，油變成燃燒地面 */
+    G.grenades = []; G.ground = []; m = mk(); G.mobs = [m]; h = m.hp;
+    actHit(A('oilgrenade'), 0); out.oil0 = [G.grenades.length, G.ground.length];
+    for (let i = 0; i < 40; i++) (G.t += 0.05), grenadeTick(0.05);
+    const og = G.ground.find(g => g.k === 'oil'); out.oil1 = [G.grenades.length, !!og, og && og.dur, h > m.hp];
+    detonate(og.x, og.y, 10, c('grenade')); groundTick(0.01);
+    out.oil2 = [G.ground.some(g => g.k === 'oil'), G.ground.some(g => g.k === 'fire')];
+    /* 雷暴：範圍裡的怪濕透、每 0.5 秒被劈一次 */
+    G.ground = []; G.pools = []; m = mk(); const far = mk({ x: P.x + 900 }); G.mobs = [m, far]; h = m.hp;
+    actHit(A('thunderstorm'), 0); updPools(0.5);
+    out.storm = [G.pools.length, G.pools[0].dur, m.ail.wet > G.t, h > m.hp, !!far.ail.wet];
+    G.pools = [];
+    /* 裂解：沒有目標不能用；消耗冰凍、感電（一隻一種），造成傷害 */
+    m = mk(); const m2 = mk({ y: P.y + 30 }); G.mobs = [m, m2]; out.snapNo = why('snap');
+    m.ail.frozen = G.t + 3; m.ail.shock = G.t + 3; m2.ail.shock = G.t + 3; out.snapOk = why('snap'); h = m2.hp;
+    actHit(A('snap'), 0); out.snap = [hasState(m, 'frozen'), hasState(m, 'shock'), hasState(m2, 'shock'), h > m2.hp];
+    /* 破咒：沒有被詛咒的不能用；消耗詛咒、造成傷害 */
+    m = mk(); G.mobs = [m]; out.hexNo = why('hexblast');
+    curseMob(m, 'despair', 5); out.hexOk = why('hexblast'); h = m.hp;
+    actHit(A('hexblast'), 0); out.hex = [hasState(m, 'curse'), h > m.hp];
+    /* 褻瀆儀式：要屍體；消耗屍體留腐化地面、每 0.5 秒打一次、結束時給暴擊球 */
+    G.ground = []; P.chg = {}; m = mk(); G.mobs = [m]; out.proNo = why('profane');
+    G.corpses = [{ x: P.x + 60, y: P.y, sz: 20, mhp: 100, t: G.t + 15 }]; out.proOk = why('profane'); h = m.hp;
+    actHit(A('profane'), 0); const cg = G.ground.find(g => g.k === 'corrupt');
+    out.pro = [G.corpses.length, !!cg, cg && cg.dur];
+    groundTick(0.5); out.proHit = h > m.hp;
+    for (let i = 0; i < 13; i++) (G.t += 0.5), groundTick(0.5);
+    out.proEnd = [G.ground.length, chgN('p')];
+    Object.assign(G, { mobs: keep.mobs, ground: keep.ground, pools: keep.pools, grenades: keep.grenades, corpses: keep.corpses, remnants: keep.remnants, t: keep.t });
+    P.chg = keep.chg;
+    return out;
+  })()`);
+  ok(
+    'B 批遠程與法術：油手雷破開留油、引爆後變燃燒地面；雷暴讓範圍裡的怪濕透並落雷；裂解消耗冰凍與感電（一隻一種）',
+    JSON.stringify([b48.oil0, b48.oil1, b48.oil2, b48.storm, b48.snapNo, b48.snapOk, b48.snap]) ===
+      '[[1,0],[0,true,6,true],[false,true],[1,6,true,true,false],"附近沒有冰凍、感電或點燃的敵人","",[false,true,false,true]]',
+    JSON.stringify(b48)
+  );
+  ok(
+    'B 批遠程與法術：破咒要有詛咒、消耗後爆炸；褻瀆儀式要屍體、留腐化地面打怪、結束給暴擊球',
+    JSON.stringify([b48.hexNo, b48.hexOk, b48.hex, b48.proNo, b48.proOk, b48.pro, b48.proHit, b48.proEnd]) ===
+      '["附近沒有被詛咒的敵人","",[false,true],"附近沒有屍體","",[0,true,6],true,[0,1]]',
+    JSON.stringify(b48)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

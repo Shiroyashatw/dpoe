@@ -199,14 +199,14 @@ function draw() {
     }
   }
   for (const t of G.tele) teleCircle(t.x, t.y, t.r, t.t / t.dur);
-  /* 毒刃雨：紫色範圍＋落下的刀光 */
+  /* 毒刃雨：紫色範圍＋落下的刀光；雷暴（p.wet）同一種畫法，換成藍色 */
   for (const p of G.pools || []) {
     const a = Math.min(1, (p.dur - p.t) * 2);
-    CX.fillStyle = `rgba(150,80,220,${0.16 * a})`;
+    CX.fillStyle = p.wet ? `rgba(70,130,255,${0.16 * a})` : `rgba(150,80,220,${0.16 * a})`;
     CX.beginPath();
     CX.ellipse(p.x, p.y, p.r, p.r * 0.7, 0, 0, TAU);
     CX.fill();
-    CX.strokeStyle = `rgba(195,139,255,${0.5 * a})`;
+    CX.strokeStyle = p.wet ? `rgba(170,210,255,${0.5 * a})` : `rgba(195,139,255,${0.5 * a})`;
     CX.lineWidth = 2;
     for (let i = 0; i < 6; i++) {
       const k = (G.t * 3 + i * 0.37) % 1,

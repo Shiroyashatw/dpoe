@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.47';
+const VER = '0.2.48';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -1100,6 +1100,66 @@ const SKILLS = {
     wt: ['claw'],
     tags: ['cd'],
     d: '15 秒內技能速度提高 20%、生命偷取 +3%，但每秒損失 4% 最大生命（生命剩 1 就不再損失）；再按一次提早結束'
+  },
+  /* 0.2.48 第 3 層 B 批（遠程與法術）：油手雷＝製造油滑地面（爆裂手雷點爆）；雷暴＝製造濕透；
+     裂解＝收割冰凍／感電／點燃並留殘留物（接灌注新星）；破咒＝收割詛咒；褻瀆儀式＝屍體換腐化地面（吃凋零） */
+  oilgrenade: {
+    n: '油手雷',
+    ic: 'sk_poisontrap',
+    t: 0.35,
+    mp: 8,
+    m: 0.6,
+    r: 110,
+    dur: 6,
+    gren: [2, 4],
+    wt: ['xbow'],
+    tags: ['attack', 'proj', 'aoe'],
+    d: '丟出會彈跳的油手雷，1.5 秒後破開（物理範圍傷害），留下油滑地面 6 秒：站在上面的敵人被油纏身。油是可燃的，被火焰或引爆技能打到會爆炸、變成燃燒地面；可存 2 顆，各冷卻 4 秒'
+  },
+  thunderstorm: {
+    n: '雷暴',
+    ic: 'sk_bolt',
+    t: 0.5,
+    mp: 16,
+    m: 0.3,
+    r: 140,
+    dur: 6,
+    el: 'light',
+    tags: ['spell', 'aoe', 'dot', 'elem'],
+    d: '在滑鼠位置召來雷暴 6 秒：範圍裡的敵人一直是濕透的（感電機率 50% 更多、冰凍累積 25% 更多），每 0.5 秒被閃電劈一次'
+  },
+  snap: {
+    n: '裂解',
+    ic: 'sk_shatter',
+    t: 0.4,
+    mp: 12,
+    m: 1.4,
+    r: 140,
+    tags: ['spell', 'aoe', 'elem'],
+    d: '引爆滑鼠附近敵人身上的冰凍、感電或點燃（每隻一種，消耗掉）：以牠為中心造成那個元素的範圍傷害，並留下那個元素的殘留物。附近沒有這些狀態的敵人就不能用'
+  },
+  hexblast: {
+    n: '破咒',
+    ic: 'sk_exorcise',
+    t: 0.45,
+    mp: 12,
+    m: 1.8,
+    r: 110,
+    el: 'chaos',
+    tags: ['spell', 'aoe', 'occ'],
+    d: '引爆滑鼠附近被詛咒的敵人：消耗牠身上的詛咒，以牠為中心造成混沌範圍傷害。附近沒有被詛咒的敵人就不能用'
+  },
+  profane: {
+    n: '褻瀆儀式',
+    ic: 'sk_sacrifice',
+    t: 0.5,
+    mp: 14,
+    m: 0.5,
+    r: 120,
+    dur: 6,
+    el: 'chaos',
+    tags: ['spell', 'aoe', 'dot', 'occ'],
+    d: '消耗滑鼠附近的一具屍體，在原地留下腐化地面 6 秒（範圍裡的敵人每 0.5 秒受一次混沌傷害），結束時給 1 顆暴擊球；附近沒有屍體就不能用'
   }
 };
 /* 技能分類標籤（0.2.42，照 poe2db，名詞在 TERMS）：加在每招原本的 tags 後面。沒列的技能（詛咒、印記、召喚、擲矛…）沒有新標籤。
@@ -1154,6 +1214,11 @@ const CLS_TAGS = {
   frostfang: 'strike payoff',
   swordarray: 'cond',
   bloodrage: 'duration',
+  oilgrenade: 'grenade duration',
+  thunderstorm: 'duration sustained storm',
+  snap: 'payoff cond',
+  hexblast: 'payoff cond',
+  profane: 'duration cond',
   grenade: 'grenade',
   cu_enfeeble: 'cascade duration',
   cu_eleweak: 'cascade duration',
@@ -1274,6 +1339,11 @@ const supCat = k => SUP_CAT[k] || k;
 /* 寶石品質（0.2.29，docs/品質效果表.md）：0～20%；{數字} 是品質 20% 的值，顯示時照比例換算 */
 const GEM_Q_MAX = 20;
 const QUAL = {
+  oilgrenade: '油滑地面多留 {2} 秒',
+  thunderstorm: '雷暴範圍 +{20}%',
+  snap: '{20}% 機率多留一個殘留物',
+  hexblast: '爆炸範圍 +{20}%',
+  profane: '{20}% 機率不消耗屍體',
   shieldcharge: '反擊狀態多 {1} 秒',
   furyslam: '花盛怒時返還 {4} 點',
   frostwave: '直接冰凍敵人時，{20}% 機率得到 1 顆暴擊球',
