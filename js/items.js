@@ -300,8 +300,9 @@ const lackTxt = l => l.map(([n, a, b]) => `${n} ${a}／${b}`).join('、');
 /* 一件裝備給的能力值 */
 function itemAttr(it) {
   const r = { str: 0, dex: 0, int: 0 };
+  const B = it && baseOf(it);
   /* 固定詞（基底的 b）跟詞綴一樣算：項鍊有 +能力值 的基底 */
-  for (const a of it ? [...Object.entries(baseOf(it).b).map(([k, v]) => ({ k, v })), ...it.a] : []) {
+  for (const a of [...Object.entries(B ? B.b : {}).map(([k, v]) => ({ k, v })), ...((it && it.a) || [])]) {
     if (a.k === 'attrA') for (const k of ATTR) r[k] += a.v;
     else if (a.k in r) r[a.k] += a.v;
   }

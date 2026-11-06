@@ -2404,33 +2404,32 @@ vm.runInContext(
     PARTS.every(p => SYS.every(s => line(p, s).length === 6)) && B.filter(b => PARTS.includes(b.k)).length === 144,
     PARTS.flatMap(p => SYS.map(s => p + ' ' + s + ' ' + line(p, s).length)).join('、')
   );
-  /* 0.2.43 的最高值：單系、舊的混合基底 */
+  /* 階級 12 的單系防禦 */
   const CAP = {
       helm: { armor: 55, ev: 60, es: 60 },
       chest: { armor: 110, ev: 120, es: 100 },
-      gloves: { armor: 18, ev: 40, es: 12 },
-      boots: { armor: 18, ev: 40, es: 12 }
-    },
-    MIX = {
-      helm: { armor: 18, ev: 18, es: 22 },
-      chest: { armor: 40, ev: 40, es: 50 },
-      gloves: { armor: 12, ev: 12, es: 14 },
-      boots: { armor: 12, ev: 12, es: 14 }
+      gloves: { armor: 40, ev: 40, es: 33 },
+      boots: { armor: 40, ev: 40, es: 33 }
     },
     frz = [];
   for (const p of PARTS)
     for (const s of SYS) {
       const L = line(p, s),
         ks = s.split('+'),
-        top = k => (ks.length > 1 ? Math.max(Math.round(CAP[p][k] * 0.55), MIX[p][k]) : CAP[p][k]);
+        top = k => (ks.length > 1 ? Math.round(CAP[p][k] * 0.55) : CAP[p][k]),
+        /* 胸甲到階級 12 凍結；頭、手、鞋的階級 15 多 10% */
+        top15 = k => (p === 'chest' ? top(k) : Math.round(top(k) * 1.1));
       for (const k of ks) {
         const v = L.map(b => b.b[k]),
           at = lv => L.filter(b => b.lv === lv).map(b => b.b[k]);
-        if (at(12)[0] !== top(k) || at(15)[0] !== top(k) || Math.max(...v) !== top(k)) frz.push(`${p} ${s} ${k} 上限`);
-        if (v.some((x, i) => i && x < v[i - 1])) frz.push(`${p} ${s} ${k} 階級高防禦反而低`);
+        if (at(12)[0] !== top(k) || at(15)[0] !== top15(k) || Math.max(...v) !== top15(k))
+          frz.push(`${p} ${s} ${k} 上限`);
+        /* 手套、鞋子每階都要變高；頭與胸的舊基底已經到上限，只要不降 */
+        const flat = p === 'gloves' || p === 'boots' ? 0 : 1;
+        if (v.some((x, i) => i && x + flat <= v[i - 1])) frz.push(`${p} ${s} ${k} 階級高防禦沒有變高`);
       }
     }
-  ok('基底：防禦到階級 12 凍結（階級 15 相同）、混合約 55%＋55%、階級越高不會越低', !frz.length, frz.join('、'));
+  ok('基底：階級 12 上限、胸甲凍結、頭手鞋階級 15 多 10%、混合約 55%＋55%、階梯遞增', !frz.length, frz.join('、'));
   const impK = b =>
       Object.keys(b.b).filter(
         k => !(['helm', 'chest', 'gloves', 'boots', 'shield'].includes(b.k) && [...DEF, 'block'].includes(k))
@@ -2502,6 +2501,10 @@ vm.runInContext(
       const s = { lv: 1, pt: [], at: [], auras: [], asc: null, eq: { amulet: mkItem('a_amber', 1, 0) } };
       return eqCheck(s).tot.str === ATT_START + BASEI.a_amber.b.str;
     })()`)
+  );
+  ok(
+    '基底：itemAttr 遇到沒有 a 或查不到基底的物品不會丟例外',
+    R(`itemAttr(null).str === 0 && itemAttr({}).str === 0 && itemAttr({ b: 'a_amber' }).str === BASEI.a_amber.b.str`)
   );
   /* 商人：每種都賣得到新基底（階級 15 的、輕盾）。一件的機率約 4～10%，600 次都沒出現幾乎不可能 */
   R(`S = { maxT: 16, gold: 1e12, gamN: 0, inv: { w: 12, h: 6, items: [] } }`);
