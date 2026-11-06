@@ -11,7 +11,15 @@ const LVMAX = 300;
 /* 距離單位（0.2.42）：1 公尺 = 30 像素（約一個角色寬；主角半徑 16）。名字不能叫 M：game.js 的滑鼠狀態已經叫 M */
 const METER = 30;
 /* 100 級後每一級比前一級多 3% */
-const xpNeed = lv => Math.round(40 * Math.pow(Math.min(lv, 100), 1.7) * Math.pow(1.03, Math.max(0, lv - 100)));
+const xpLate = lv => Math.round(40 * Math.pow(Math.min(lv, 100), 1.7) * Math.pow(1.03, Math.max(0, lv - 100)));
+/* 1～19 級照劇情區調：9 張圖只殺到王出現也有 8600～9300 經驗，打完剛好 Lv20（每張圖約 2 級）；20～34 級慢慢接回原本的曲線，不會撞牆 */
+const xpNeed = lv => {
+  const e = Math.round(215 + 22.6 * lv);
+  if (lv < 20) return e;
+  if (lv >= 35) return xpLate(lv);
+  const t = (lv - 19) / 16;
+  return Math.round(e + (xpLate(lv) - e) * t * t * (3 - 2 * t));
+};
 
 /* ---------- 技能寶石（0.2.2）：技能欄固定 5 格（左鍵、右鍵、Q、E、R），每格 1 顆技能＋2 顆輔助 ----------
    t 出手時間（吃攻擊速度）、mp 魔力、cd 冷卻、m 傷害倍率、tags 標籤（輔助看標籤）、el 傷害全部轉成這個屬性、cls 主題（0.1 的職業） */

@@ -3724,7 +3724,7 @@ vm.runInContext(
 /* 世界地圖（world.js）：節點與路是種子的純函式、路走得回去、難度、洗卡、血霧、裂口 */
 {
   const R = s => vm.runInContext(s, ctx);
-  R(`var WS = (seed, o) => { const w = newWorld(); w.seed = seed; return { world: w, hunt: newHunt(), cards: {}, idols: [], frag: 0, maxT: 1, ...o }; };
+  R(`var WS = (seed, o) => { const w = newWorld(); w.seed = seed; return { world: w, hunt: newHunt(), cards: {}, idols: [], story: {}, frag: 0, maxT: 1, ...o }; };
     var WFP = seed => { const s = WS(seed), L = [];
       for (let q = -30; q <= 30; q++) for (let r = -30; r <= 30; r++) {
         if (wRing(q, r) > 30 || !wNode(seed, q, r)) continue;

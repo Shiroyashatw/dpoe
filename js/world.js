@@ -301,6 +301,7 @@ function wClear(s, k) {
   /* S.maxT、S.t16 留作內部欄位：昇華點、練習區、賭裝的物品等級都讀它們 */
   s.maxT = Math.max(s.maxT, Math.min(TMAX, Math.floor(d) + 1));
   if (d >= TMAX) s.t16 = 1;
+  if (i === 7) s.story.crow = 1;
   if (t === 'blood' || i === 7) huntGain(s);
   if (t === 'rift') {
     s.hunt.used = 1;

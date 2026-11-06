@@ -11,7 +11,7 @@ const W = +process.argv[2] || 844,
   shot = n => path.join(os.tmpdir(), `touch_${tag}_${n}.png`);
 let fail = 0;
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await b.newContext({
     viewport: { width: W, height: H },
     hasTouch: true,
@@ -495,9 +495,42 @@ let fail = 0;
         '#pasc',
         '.ax-tab',
         '.ax-pick'
+      ),
+      /* 世界地圖：世界區的節點（3 張卡＋洗卡＋開門）最擠 */
+      await inView(
+        () => {
+          closePanels();
+          S.frag = 99;
+          S.world.stage = STORY.length;
+          S.world.open = 1;
+          S.world.done = STORY.map(n => wKey(n.q, n.r));
+          S.world.at = '3,-1';
+          openPanel('device');
+          S.cards['4,-1'] = { c: [rollCard(5), rollCard(3), rollCard(1)], w: 0 };
+          wmSel('4,-1');
+        },
+        '#wms',
+        '.wm-rift',
+        '.wm-tools',
+        '.mc2',
+        '#pdev .btn.pri',
+        '[data-wm=wash]'
       )
     ];
-    ok('技能寶石與昇華石碑：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
+    ok('技能寶石、昇華石碑、世界地圖：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
+    ok(
+      '世界地圖：按鈕至少 44px、沒有橫向溢出',
+      await p.evaluate(() => {
+        const h = [...document.querySelectorAll('#pdev .wm-tools .btn, #pdev .wm-acts .btn')].map(
+          b => b.getBoundingClientRect().height
+        );
+        return (
+          h.every(x => x >= 44) &&
+          document.getElementById('wms').scrollWidth <= document.getElementById('wms').clientWidth + 1
+        );
+      })
+    );
+    await p.evaluate(() => closePanels());
   }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');

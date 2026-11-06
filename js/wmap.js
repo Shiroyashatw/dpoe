@@ -157,7 +157,8 @@ function wmTexel(h, up, b, wx, wy, tx, ty) {
   /* 樹林：一整片樹冠；燒過的地方只剩枯林 */
   if (h >= 0.22 && h < 0.58 && bm !== 'lava') {
     const f = wmFbm(X * 0.0052 + 17, Y * 0.0052 + 3, 3) + b * 0.02;
-    if (f > 0.535) return WM_WOOD[bm === 'mid' ? tint : bm][(((tx >> 1) * 3 + (ty >> 1) * 5 + ((f * 40) | 0)) % 3 + 3) % 3];
+    if (f > 0.535)
+      return WM_WOOD[bm === 'mid' ? tint : bm][((((tx >> 1) * 3 + (ty >> 1) * 5 + ((f * 40) | 0)) % 3) + 3) % 3];
     if (bm === 'mid' && cor < 0.45 && r > 0.16 && wmFbm(X * 0.0075 + 71, Y * 0.0075 + 13, 2) > 0.6)
       return ((tx >> 2) + (ty >> 1)) & 1 ? [104, 92, 50] : [76, 70, 42];
   }
@@ -706,6 +707,40 @@ const WM_ASH = Array.from({ length: 46 }, (_, i) => ({
 const WM_FLOCK = [0, 1, 2, 3].map(i => ({ a: i * 1.6, d: 420 + i * 260, v: 0.00006 + i * 0.00002 }));
 let wmBolt = null,
   wmBoltT = 5000;
+/* 下一目標：黃色箭頭，走出畫面時貼在邊緣指過去 */
+function wmGoalMark(now, still) {
+  if (!WM.goal) return;
+  const c = WM.cx,
+    { W, H } = WM,
+    [wx, wy] = wmPos(...wXY(WM.goal)),
+    [x, y] = wmS(wx, wy),
+    m = 30,
+    out = x < m || y < 70 || x > W - m || y > H - m,
+    bob = still ? 0 : Math.sin(now / 260) * 3,
+    px = clamp(x, m, W - m),
+    py = clamp(y, 70, H - m),
+    a = out ? Math.atan2(y - py, x - px) : Math.PI / 2,
+    ax = out ? px : x,
+    ay = out ? py : y - 34 + bob;
+  c.save();
+  c.translate(Math.round(ax), Math.round(ay));
+  c.rotate(a - Math.PI / 2);
+  c.fillStyle = '#17181b';
+  c.beginPath();
+  c.moveTo(-10, -8);
+  c.lineTo(10, -8);
+  c.lineTo(0, 10);
+  c.closePath();
+  c.fill();
+  c.fillStyle = WTYPE.story.c;
+  c.beginPath();
+  c.moveTo(-7, -6);
+  c.lineTo(7, -6);
+  c.lineTo(0, 6);
+  c.closePath();
+  c.fill();
+  c.restore();
+}
 function wmFx(now) {
   const c = WM.cx,
     { W, H, z } = WM,
@@ -713,7 +748,7 @@ function wmFx(now) {
     still = wmStill(),
     cull = (x, y) => x < -60 || y < -120 || x > W + 60 || y > H + 60,
     px = Math.max(2, Math.round(z * 3));
-  /* 走得到的節點：呼吸的外框，下一目標再加一圈 */
+  /* 走得到的節點：呼吸的外框 */
   const pulse = still ? 1 : 0.5 + 0.5 * Math.sin(now / 320);
   for (const n of WM.nodes) {
     if (!n.can) continue;
@@ -732,7 +767,17 @@ function wmFx(now) {
     c.stroke();
     c.globalAlpha = 1;
   }
+  wmGoalMark(now, still);
   if (!on) return;
+  /* 世界展開：紅色的環往外推 */
+  if (on > 0.02 && on < 0.995) {
+    const [x, y] = wmS(0, 0);
+    c.strokeStyle = `rgba(229,72,77,${0.7 * (1 - on)})`;
+    c.lineWidth = 40 * z + 6;
+    c.beginPath();
+    c.arc(x, y, (80 + on * 2400) * z * 0.92, 0, Math.PI * 2);
+    c.stroke();
+  }
   /* 裂口光柱，直通天上的裂縫 */
   c.globalCompositeOperation = 'lighter';
   for (const n of WM.nodes) {
@@ -871,7 +916,7 @@ const WM_ZMIN = 0.3,
   WM_ZMAX = 1.8;
 /* 鏡頭最遠到走過最遠的圈再往外 12 圈，不會一路拖到遠方狂烘 */
 function wmBound() {
-  let m = W_R;
+  let m = 16; /* 裂口最遠在第 25 圈，看得到才知道往哪走 */
   for (const k of S.world.done) m = Math.max(m, wRing(...wXY(k)));
   return (m + 12) * W_SZ * 1.8;
 }
@@ -973,6 +1018,8 @@ function wmInit() {
     TP.set(e.pointerId, { x: e.clientX, y: e.clientY });
     el.setPointerCapture(e.pointerId);
     WM.vx = WM.vy = 0;
+    /* 演出可以被打斷：一碰就停在現在的位置，迷霧直接散開 */
+    if (WM.anim) wmRevealEnd();
     if (TP.size === 2) {
       const [d, cx, cy] = pinchD();
       WM.pinch = { d, z: WM.z, cx, cy };
@@ -1019,7 +1066,8 @@ function wmInit() {
     if (g.m <= 8) return wmTap(e);
     const [a, b] = [g.h[0], g.h[g.h.length - 1]],
       t = (b[2] - a[2]) / 1000;
-    if (t > 0 && t < 0.2 && !wmStill()) {
+    /* 停住才放開就不滑：只看放開前一刻的速度 */
+    if (t > 0 && t < 0.2 && performance.now() - b[2] < 60 && !wmStill()) {
       WM.vx = -(b[0] - a[0]) / t / WM.z;
       WM.vy = -(b[1] - a[1]) / t / WM.z;
     }
@@ -1088,15 +1136,56 @@ function wmOpen() {
   }
   WM.on = true;
   WM.wipe = S.world.open ? 1 : 0;
+  WM.anim = null;
   WM.view = 'node';
   WM.vx = WM.vy = 0;
   wmNodes();
   WM.sel = WM.goal || null;
   PANEL.card = 0;
-  WM.z = 1.25;
+  WM.z = 1;
   if (WM.sel) wmCenter(WM.sel);
   else wmCenter(S.world.at);
   wmStamp();
+  if (wOpen(S) && !S.world.open) wmReveal();
+  else wmStory();
+}
+/* 劇情區：第一次走到這一步時播對話 */
+function wmStory() {
+  const n = STORY[S.world.stage];
+  if (n && !S.story[n.talk]) talkPlay(n.talk);
+}
+/* 世界展開：鏡頭拉遠，迷霧被紅色的環推開。一個人只看一次，碰一下就結束；減少動態時直接切，只留字幕 */
+function wmReveal() {
+  S.world.open = 1;
+  save();
+  const cap = $('wmcap'),
+    D = wmStill() ? 1 : 3400,
+    t0 = performance.now(),
+    z0 = WM.z,
+    x0 = WM.x,
+    y0 = WM.y;
+  cap.firstChild.textContent = '霧散開了。整片大陸都在燃燒。';
+  cap.hidden = false;
+  WM.sel = null;
+  wmPanel();
+  sfx('boss');
+  WM.anim = now => {
+    const f = Math.min(1, (now - t0) / D),
+      e = 1 - (1 - f) ** 4;
+    WM.z = z0 + (0.46 - z0) * e;
+    WM.x = x0 * (1 - e);
+    WM.y = y0 * (1 - e);
+    WM.wipe = e;
+    WM.dirty = true;
+    if (f >= 1) wmRevealEnd();
+  };
+}
+function wmRevealEnd() {
+  WM.anim = null;
+  WM.wipe = 1;
+  WM.dirty = true;
+  setTimeout(() => ($('wmcap').hidden = true), 1400);
+  if (WM.goal) wmSel(WM.goal);
 }
 /* 地圖上的文字：裂縫列、面板 */
 function wmStamp() {
@@ -1161,7 +1250,8 @@ function wmNodeHTML() {
   if (done) return head + '<p class="wm-note">已經走過，留在地圖上當路。</p>';
   /* 走不到的地方不抽卡：抽了也打不了 */
   if (!wCan(S, q, r)) return head + cor + `<p class="wm-note">${esc(why)}</p>`;
-  return head + cor + wmCardHTML(k, why, lv);
+  const blood = S.hunt.full ? `<p class="c-warn">血霧 ${S.hunt.v}%：每進一張扣 ${HUNT.cost}%，5★ 地圖變多</p>` : '';
+  return head + cor + blood + wmCardHTML(k, why, lv);
 }
 function wmQuestHTML() {
   const n = S.idols.length,

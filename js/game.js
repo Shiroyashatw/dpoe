@@ -157,6 +157,8 @@ function enterHideout() {
   dpsReset();
   ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
+  /* 打倒裂谷斷崖的王之後第一次回來：直接打開地圖播世界展開 */
+  if (wOpen(S) && !S.world.open) openPanel('device');
 }
 /* 開地圖：花碎片、地圖台前面出現傳送門 */
 /* 選了節點 k 的地圖卡 i：付碎片（只看星級），記住節點與這張卡（進地圖時套用）；回傳內部難度 */
