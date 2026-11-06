@@ -288,12 +288,12 @@ function recoupTick(dt) {
   P.recoup = R.filter(o => o.t > G.t);
 }
 /* 生命損失：不算傷害（不經能量護盾、護甲、抗性，不觸發被擊中），會致死 */
-function loseLife(v, why = '生命損失') {
+function loseLife(v, why = '生命損失', quiet) {
   if (G.state !== 'play' || !(v > 0)) return;
   P.hp -= v;
   lifeLost();
   P.lastHit = { n: why, el: '', d: 0 };
-  num(P.x, P.y - 60, v, 'hurt');
+  if (!quiet) num(P.x, P.y - 60, v, 'hurt');
   if (P.hp <= 0) die();
 }
 /* 獻祭：資源不夠回 false、不扣；獻祭生命不會降到 1 以下 */
@@ -575,6 +575,8 @@ function hitCalc(c, m, o = {}) {
   const angerX = m && ST.aq.anger && hasState(m, 'ign') ? ST.angerV * 0.5 * ST.aq.anger : 0;
   pre.fire += (sum * ((c.fireAdd || 0) * 100 + ST.fireAdd + angerX)) / 100;
   if (P.buf && P.buf.unholy > G.t) pre.chaos += sum * 0.3;
+  /* 風暴湧流：綁在武器上，只有攻擊吃得到 */
+  if (tg.includes('attack')) pre.light += (sum * bufV('gainL')) / 100;
   /* 3. 轉換：有屬性的攻擊技能把物理全部轉成那個屬性；再照天賦往後轉（物理→閃電→冰冷→火焰，每種最多轉 100%）
      轉過去的部分吃路上每一種屬性的提高（parts 的 ch） */
   let parts = DT.filter(k => pre[k]).map(k => ({ k, v: pre[k], ch: [k] }));
@@ -604,6 +606,7 @@ function hitCalc(c, m, o = {}) {
   const near = m ? dist(P, m) : o.avg ? 200 : 999,
     common =
       ST.dmgA +
+      bufV('dmgA') +
       (tg.includes('attack') ? ST.atkP : 0) +
       (tg.includes('melee') ? ST.meleeP : 0) +
       (tg.includes('proj') ? ST.projP : 0) +
@@ -639,6 +642,7 @@ function hitCalc(c, m, o = {}) {
   if (tg.includes('attack')) more *= 1 + ((P.rage || 0) * (1 + ST.rageEff / 100)) / 100;
   /* 天賦基石的全域更多／更少（0.2.17） */
   if (ST.more) more *= 1 + ST.more / 100;
+  more *= 1 + bufV('more') / 100;
   /* 0.2.23 基石與特色點：疾風步、投射物更多、自己的擊中（不是召喚物、場上單位） */
   if (ST.wind) more *= moving() ? 1.25 : 0.75;
   if (ST.projMore && tg.includes('proj')) more *= 1 + ST.projMore / 100;
@@ -1118,7 +1122,7 @@ const CURSES = {
 };
 /* 增益／減益的數值＝基礎 ×（1 + 效果%）×（1 + 幅度%），兩個分開相乘（0.2.42；光環效果 auraEff 歸增益效果）；幅度目前沒有來源 */
 const buffM = () => (1 + ST.buffEff / 100) * (1 + ST.buffMag / 100),
-  debuffM = () => (1 + ST.debuffEff / 100) * (1 + ST.debuffMag / 100);
+  debuffM = (mag = 0) => (1 + ST.debuffEff / 100) * (1 + (ST.debuffMag + mag) / 100);
 const curseV = (k, lv) => {
   const [a, b] = CURSES[k].v;
   return a + ((b - a) * (Math.min(20, lv) - 1)) / 19;
@@ -1126,7 +1130,7 @@ const curseV = (k, lv) => {
 function curseMob(m, k, lv, q = 0) {
   /* 無咒的（怪物旗標 m.hexproof）：不受詛咒；玩家有 hexPierce 時你的詛咒能影響無咒敵人 */
   if (m.hexproof && !ST.hexPierce) return;
-  const v = curseV(k, lv) * (1 - rarRed(m)) * debuffM();
+  const v = curseV(k, lv) * (1 - rarRed(m)) * debuffM(bufV('curseMag'));
   m.ail.curse = { k, v, t: G.t + 6 + 0.07 * lv, q };
   if (k === 'vuln') m.arm = m.arm0 * (1 - v / 100);
 }
@@ -1162,20 +1166,171 @@ function useChg(k) {
   return n;
 }
 
-/* ---------- Buff（同一種不疊加，只刷新時間） ---------- */
+/* ---------- Buff：新增一種只加一列，狀態圖示、到期、數值都從這張表來（第 12 批，企劃書 7.2） ----------
+   沒有 max：同一種不疊加，只刷新時間（gainBuff，P.buf[k] 是到期時間）。
+   有 max：層數增益（gainStk，P.stk[k] 是每層的到期時間，跟 a.wither 同一種寫法）：
+   t 秒數（沒寫＝不會到期；來源可以用 gainStk 的第三個參數指定）、own 每層各算各的（沒寫＝得到新層時全部刷新）、
+   lose 每 lose 秒掉一層（取代 t）、fade 效果隨剩餘時間線性遞減，到期前不能再獲得、
+   st 每層的數值（鍵名看 bufV 的呼叫處，都吃增益效果與幅度）、re 數值由 stats() 算（層數一變就重算 ST）、
+   human 變回人形時失去、drain [%, 秒] 到期時 x 秒內損失每層 y% 的生命魔力能量護盾、every＋on 生效期間每 x 秒呼叫一次 */
 const BUFF = {
-  onslaught: { n: '猛攻', d: '技能速度 +20%、移動速度 +10%' },
-  arcane: { n: '秘能波動', d: '施法速度 +15%、魔力回復更多 20%' },
-  unholy: { n: '不潔之力', d: '多造成全部傷害 30% 的混沌傷害' },
-  archon: { n: '元素化身', d: '法術的元素傷害更多 25%、冰凍累積 +100%、易燃 +100%、感電機率 +100%' },
-  phasing: { n: '相位', d: '可以穿過敵人' },
-  howl: { n: '怒號', d: '閃避值 +30%、滿血時傷害 +40%' }
+  onslaught: { n: '猛攻', ic: 'sk_hasteaura', d: '技能速度 +20%、移動速度 +10%' },
+  arcane: { n: '秘能波動', ic: 'sk_clarity', d: '施法速度 +15%、魔力回復更多 20%' },
+  unholy: { n: '不潔之力', ic: 'sk_despair', d: '多造成全部傷害 30% 的混沌傷害' },
+  archon: {
+    n: '元素化身',
+    ic: 'sk_elemweak',
+    d: '法術的元素傷害更多 25%、冰凍累積 +100%、易燃 +100%、感電機率 +100%'
+  },
+  phasing: { n: '相位', ic: 'sk_hasteaura', d: '可以穿過敵人' },
+  howl: { n: '怒號', ic: 'sk_bloodhowl', d: '閃避值 +30%、滿血時傷害 +40%' },
+  elusive: {
+    n: '靈巧',
+    ic: 'sk_shadowstep',
+    d: '移動速度提高 30%、15% 機率避開擊中，5 秒內遞減到 0；結束前不能再獲得',
+    max: 1,
+    t: 5,
+    fade: 1,
+    st: { moveP: 30, avoid: 15 }
+  },
+  dark: {
+    n: '黑暗低語',
+    ic: 'sk_wraith',
+    d: '每層詛咒幅度提高 4%；結束時 4 秒內每層損失 3% 生命、魔力、能量護盾',
+    max: 10,
+    t: 8,
+    st: { curseMag: 4 },
+    drain: [3, 4]
+  },
+  storm: {
+    n: '風暴湧流',
+    ic: 'sk_thunderstorm',
+    d: '每層攻擊獲得 3% 額外閃電傷害，每層各 5 秒',
+    max: 10,
+    t: 5,
+    own: 1,
+    st: { gainL: 3 }
+  },
+  prowess: {
+    n: '德魯伊之賦',
+    ic: 'sk_talisman',
+    d: '每層技能速度提高 10%、法術擊中多給 3 點盛怒，每層各 10 秒',
+    max: 3,
+    t: 10,
+    own: 1,
+    st: { ss: 10, rageSpell: 3 }
+  },
+  jade: { n: '翠玉', ic: 'sk_determination', d: '每層額外物理傷害減免 1%', max: 10, st: { physDr: 1 } },
+  unbound: {
+    n: '無縛潛能',
+    ic: 'sk_power',
+    d: '每層傷害提高 20%、護甲提高 10%、能量護盾提高 10%；每 5 秒掉一層，變回人形時全部失去',
+    max: 10,
+    lose: 5,
+    re: 1,
+    human: 1,
+    st: { dmgA: 20, armorP: 10, esP: 10 }
+  },
+  perfect: { n: '完美增益', ic: 'sk_deadeye', d: '每層傷害更多 5%，10 秒', max: 4, t: 10, st: { more: 5 } },
+  dyn: {
+    n: '奇術活力',
+    ic: 'sup_sp_charge',
+    d: '每 5 秒得到一顆能量球，種類看技能寶石的能力值需求',
+    max: 1,
+    every: 5,
+    on: dynChg
+  },
+  chalice: {
+    n: '滿溢聖杯',
+    ic: 'sk_vitality',
+    d: '生命與魔力藥劑每秒獲得 2 充能、恢復量提高 30%',
+    max: 1,
+    st: { flaskP: 30, flaskChg: 2 }
+  }
 };
 function gainBuff(k, t) {
   (P.buf = P.buf || {})[k] = Math.max(P.buf[k] || 0, G.t + t);
 }
 /* 讀檔時角色（P）還沒建立：當作沒有 buff */
 const hasBuff = k => !!(P && P.buf && P.buf[k] > G.t);
+/* 還沒到期的層（到期時間）；stats() 會讀，所以也要防 P 還沒建立 */
+const stkL = k => ((P && P.stk && P.stk[k]) || []).filter(t => t > G.t),
+  stkN = k => stkL(k).length,
+  stkClr = k => P.stk && (P.stk[k] = []);
+function gainStk(k, n = 1, t = BUFF[k].t) {
+  const b = BUFF[k],
+    L = stkL(k),
+    N = Math.min(b.max, L.length + n),
+    /* fade 的遞減照 b.t 算，來源不能改秒數 */
+    end = G.t + ((b.fade ? b.t : t) || Infinity);
+  if (b.fade && L.length) return;
+  (P.stk = P.stk || {})[k] = b.lose
+    ? Array.from({ length: N }, (_, i) => G.t + b.lose * (i + 1))
+    : b.own
+      ? [...L, ...Array(n).fill(end)].sort((x, y) => y - x).slice(0, N)
+      : Array(N).fill(end);
+}
+/* 所有層數增益給的某個數值的合計（st 的鍵）；fade 照剩餘時間打折 */
+function bufV(key) {
+  /* stats() 也會讀：純邏輯的工具（check.js）沒有 P */
+  if (typeof P === 'undefined' || !P || !P.stk) return 0;
+  let v = 0;
+  for (const k in P.stk) {
+    const b = BUFF[k],
+      x = b.st && b.st[key],
+      L = x ? stkL(k) : [];
+    if (L.length) v += x * (b.fade ? (L[0] - G.t) / b.t : L.length);
+  }
+  return v && v * buffM();
+}
+/* 層數影響 stats() 算的數值時重算；護符的抗性是直接加在 ST 上的，清掉記號讓下一格補回去 */
+function stkSync() {
+  ST = stats();
+  P.charmRes = {};
+  P.es = Math.min(P.es || 0, ST.es);
+}
+/* 層數增益每格（baseTick 呼叫）：層數一變就重算、到期損失；每 x 秒的效果；滿溢聖杯補藥劑 */
+function stkTick(dt) {
+  const dr = P.drain;
+  if (dr) {
+    const x = (dr.v / 100) * Math.min(dt, dr.t - (G.t - dt));
+    P.mp = Math.max(0, P.mp - ST.mp * x);
+    P.es = Math.max(0, (P.es || 0) - ST.es * x);
+    if (dr.t <= G.t) P.drain = null;
+    loseLife(ST.hp * x, dr.n, 1);
+  }
+  const C = (P.stkC = P.stkC || {});
+  for (const k in P.stk) {
+    const b = BUFF[k],
+      n = stkN(k),
+      n0 = C[k] || 0;
+    if (n !== n0) {
+      C[k] = n;
+      if (b.re) stkSync();
+      if (b.drain && !n) P.drain = { n: b.n, t: G.t + b.drain[1], v: (n0 * b.drain[0]) / b.drain[1] };
+    }
+    if (b.every && n && ((P.stkE = P.stkE || {})[k] = (P.stkE[k] || 0) + dt) >= b.every) (P.stkE[k] -= b.every), b.on();
+  }
+  /* 我們一瓶＝PoE2 的一次使用（10 充能） */
+  const fc = (bufV('flaskChg') / FLASK.chg) * dt;
+  if (fc) (P.flask = Math.min(FLASK.n, P.flask + fc)), (P.mflask = Math.min(FLASK.n, P.mflask + fc));
+}
+/* 奇術活力：球的種類照技能欄寶石的能力值需求加權（力量→耐力、敏捷→狂怒、智慧→暴擊）；都是 0 時平均 */
+function dynChg() {
+  const w = { str: 0, dex: 0, int: 0 };
+  for (const s of S.skills) {
+    const r = gemAttrReq(s && s.a);
+    for (const k in w) w[k] += r[k];
+  }
+  const tot = w.str + w.dex + w.int;
+  let x = Math.random() * (tot || 3);
+  for (const [k, c] of [
+    ['str', 'e'],
+    ['dex', 'f'],
+    ['int', 'p']
+  ])
+    if ((x -= tot ? w[k] : 1) < 0) return gainChg(c);
+}
 /* 貧血、貧魔、貧能量護盾（0.2.42）：低於最大值的 LOW（35%）；沒有最大值的算沒有 */
 const lowHp = () => P.hp < ST.hp * LOW,
   lowMp = () => P.mp < ST.mp * LOW,
@@ -1183,7 +1338,8 @@ const lowHp = () => P.hp < ST.hp * LOW,
 /* 技能速度、移動速度（給 speedMul／moveMul） */
 /* 0.2.42：技能速度（ST.ss、猛攻 +20%、流順之風每層 +2%）跟攻擊速度同一個「提高」池相加；ST.as 已在 asM 裡，這裡只乘上多出來的部分 */
 const buffSpeed = () =>
-  (1 + (ST.as + ST.ss + ((hasBuff('onslaught') ? 20 : 0) + 2 * (P.tail || 0)) * buffM()) / 100) / (1 + ST.as / 100);
+  (1 + (ST.as + ST.ss + bufV('ss') + ((hasBuff('onslaught') ? 20 : 0) + 2 * (P.tail || 0)) * buffM()) / 100) /
+  (1 + ST.as / 100);
 /* 疾風化身（0.2.25）：流順之風滿 10 層（0.2.42 起層數是整數、不消退） */
 const windFull = () => !!ST.windWalk && (P.tail || 0) >= 10;
 /* 流順之風每層移動速度 +1%（聚風再 +1%）；疾風化身：滿 10 層 +10%；狂風：每顆狂怒球 +4% 移動速度；捨身突襲：2 秒內 +30% */
@@ -1192,7 +1348,9 @@ const buffMove = () =>
   (windFull() ? 1.1 : 1) *
   (1 + (ST.gale ? 0.02 : 0.01) * (P.tail || 0) * buffM()) *
   (1 + ((ST.frenzyMs || 0) * chgN('f')) / 100) *
-  (ST.sacrifice && P.sacT > G.t ? 1.3 : 1);
+  (ST.sacrifice && P.sacT > G.t ? 1.3 : 1) *
+  /* 靈巧：跟 ST.ms 同一個「提高」池 */
+  (1 + bufV('moveP') / (100 + ST.ms));
 /* 攻擊速度的暫時加成：狂風（每顆狂怒球 +4%） */
 const atkBuf = () => 1 + ((ST.frenzyMs || 0) * chgN('f')) / 100;
 /* 施放時移動（0.2.25 底層）：出手中照移動方向走，基礎移動速度的 35%（不吃移動速度加成）。
@@ -1210,6 +1368,10 @@ function onHitBase(m, r, c) {
   /* 盛怒：近戰擊中 +1（每 0.5 秒最多一次），最多 30；停止 4 秒後每 0.2 秒掉 1 */
   if (melee && ST.rageHit && !(P.rageCd > G.t))
     (P.rage = Math.min(rageCap(), (P.rage || 0) + ST.rageHit)), (P.rageCd = G.t + 0.5), (P.rageT = G.t);
+  /* 德魯伊之賦：法術擊中給盛怒（每 0.5 秒最多一次，跟近戰同一個限制） */
+  const rs = r.spell ? bufV('rageSpell') : 0;
+  if (rs && !(P.rageCd > G.t))
+    (P.rage = Math.min(rageCap(), (P.rage || 0) + rs)), (P.rageCd = G.t + 0.5), (P.rageT = G.t);
   if (r.crit && ST.powOnCrit && roll(ST.powOnCrit)) gainChg('p');
   if (r.crit && qRoll(c.critChg)) gainChg('p');
   /* 觸電的品質：不能行動的怪被閃電擊中，跳一道電弧 */
@@ -1356,6 +1518,7 @@ function baseTick(dt) {
     }
   }
   bvTick(dt);
+  stkTick(dt);
   hfTick(dt);
   falconTick();
   leechTick(dt);
@@ -1407,6 +1570,9 @@ function hurtCalc(d, src, el, noEv) {
   }
   /* 格擋：真隨機（有上限、只減傷）；上限 50 套在幸運之後 */
   if (!noEv && !(P.ail && P.ail.hstun > G.t) && roll(capLuck(ST.block, 50, ST.lukBlock))) return { block: 1 };
+  /* 靈巧：避開擊中，真隨機（會遞減、只有幾秒） */
+  const av = bufV('avoid');
+  if (!noEv && av && roll(av)) return { ev: 1 };
   /* 偏斜（0.2.42）：閃避、格擋之後；這一下傷害 −40%（流順之風每層再 +1%）；紅光大招也有效 */
   const defl = roll(capLuck(deflCh(acc, ST.defl), 95, ST.lukDefl));
   if (defl) d *= 1 - Math.min(0.9, 0.4 + 0.01 * (P.tail || 0));
@@ -1431,7 +1597,8 @@ function hurtCalc(d, src, el, noEv) {
   const ad = k => 1 - ADAPT.less * ((P.adapt && P.adapt[k]) || 0),
     ep = { fire: 0, cold: 0, light: 0 };
   if (el === 'phys' && ST.physAsFire) (asFire = (d * ST.physAsFire) / 100), (d -= asFire);
-  if (el === 'phys') d *= 1 - Math.min(0.9, arm / (arm + 10 * d + 1));
+  /* 翠玉：額外物理傷害減免，跟護甲的減傷相加、一起吃 90% 上限 */
+  if (el === 'phys') d *= 1 - Math.min(0.9, arm / (arm + 10 * d + 1) + bufV('physDr') / 100);
   if (asFire) {
     const v = asFire * (1 - resHit('fire') / 100);
     (ep.fire += v), (d += v * ad('fire'));
@@ -1788,16 +1955,11 @@ const STATE = {
   chg_e: ['耐力球', 'sup_sp_heavy', '能量球資源'],
   chg_f: ['狂怒球', 'sk_anger', '能量球資源'],
   chg_p: ['暴擊球', 'sk_precise', '能量球資源'],
-  onslaught: ['猛攻', 'sk_hasteaura', BUFF.onslaught.d],
-  arcane: ['秘能波動', 'sk_clarity', BUFF.arcane.d],
-  unholy: ['不潔之力', 'sk_despair', BUFF.unholy.d],
-  archon: ['元素化身', 'sk_elemweak', BUFF.archon.d],
-  phasing: ['相位', 'sk_hasteaura', BUFF.phasing.d],
-  howl: ['怒號', 'sk_bloodhowl', BUFF.howl.d],
   frostMark: ['附加冰冷', 'sk_frostarrow', '冰凍印記給的效果'],
   voltMark: ['附加閃電', 'sk_arc', '電壓印記給的效果'],
   sac: ['捨身突襲', 'sk_hasteaura', '移動速度更快']
 };
+for (const k in BUFF) STATE[k] = [BUFF[k].n, BUFF[k].ic, BUFF[k].d];
 const curseIc = k => SKILLS['cu_' + k].ic;
 /* 怪物身上有哪些狀態（畫面用，回傳圖示名） */
 /* 剩餘時間比例 0～1（扇形倒數用）：第一次看到或被刷新時記下總時長；玩家（P）、怪物（m）共用 */
@@ -1897,7 +2059,12 @@ function playerStates() {
       bad: 1
     });
   }
-  for (const k of Object.keys(BUFF)) if (STATE[k]) add(k, P.buf && P.buf[k]);
+  for (const k in BUFF)
+    if (!BUFF[k].max) add(k, P.buf && P.buf[k]);
+    else if (stkN(k)) {
+      const u = Math.max(...stkL(k));
+      add(k, u === Infinity ? null : u, { c: stkN(k) });
+    }
   for (const k of ['frostMark', 'voltMark']) add(k, P.buf && P.buf[k]);
   for (const k of ['e', 'f', 'p']) if (chgN(k)) add('chg_' + k, P.chg[k].t, { c: chgN(k) });
   if (P.rage > 0) add('rage', null, { c: Math.ceil(P.rage) });

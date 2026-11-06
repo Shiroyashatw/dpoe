@@ -712,7 +712,7 @@ function stats(s = S) {
     }
   }
   o.spiritUsed = Math.round(o.spiritUsed * 10) / 10;
-  o.es = calc(o.es + pt.esF, o.esP + o.defP, 1, o.esTot);
+  o.es = calc(o.es + pt.esF, o.esP + o.defP + bufV('esP'), 1, o.esTot);
   /* 持武器的加成 */
   o.wt = (w && baseOf(w).wt) || 'unarmed';
   /* 天賦「持某武器時傷害」（0.2.17，15 種武器都有） */
@@ -731,7 +731,7 @@ function stats(s = S) {
   armB += (evB * o.evAsArmor) / 100;
   /* 偏斜值（0.2.42）：獲得基礎閃避的 x% 當作偏斜值（偏斜沒有提高％的池） */
   o.defl += (evB * o.evAsDefl) / 100;
-  o.armor = calc(armB, pt.armorP + o.defP, 1, o.armorTot);
+  o.armor = calc(armB, pt.armorP + o.defP + bufV('armorP'), 1, o.armorTot);
   o.ev = calc(evB, pt.evP + o.defP, 1, o.evTot);
   /* 基石：不動如山（閃避歸零）、混沌免疫（生命 1、能量護盾更多 30%） */
   if (o.stand) o.ev = 0;
