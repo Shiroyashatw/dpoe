@@ -11,9 +11,11 @@ function load() {
 }
 function save() {
   if (!S) return;
-  S.savedAt = Date.now();
+  /* 序章裡 S 是臨時角色，寫進存檔的永遠是真的那份 */
+  const s = PRO.real || S;
+  s.savedAt = Date.now();
   try {
-    localStorage.setItem(KEY + SLOT, JSON.stringify(S));
+    localStorage.setItem(KEY + SLOT, JSON.stringify(s));
   } catch (e) {
     console.warn('存檔失敗', e);
   }
@@ -23,6 +25,7 @@ function save() {
 function migrate(s) {
   if (!s || !s.v || s.v < 10) return newGame();
   const o = { ...newGame(), ...s };
+  if (!s.fresh) delete o.fresh;
   /* 存檔 11（0.2.2）：技能寶石、天賦樹、核心樹；0.2.1 以前固定的 5 招換成寶石 */
   if (s.v < 11) {
     o.skills = ['slash', 'blade', 'whirl', 'iai', 'storm'].map(g => ({ a: mkGem(g), s: [null, null] }));
@@ -234,10 +237,12 @@ function resize() {
 }
 /* 換成另一份存檔（雲端較新、登入帳號）：回藏身處重來 */
 function useSave(r) {
+  proAbort();
   S = migrate(r);
   enterHideout();
   applyOrient();
   save();
+  proBoot();
 }
 function start() {
   CV = $('cv');
@@ -247,13 +252,13 @@ function start() {
   S = migrate(load());
   ST = stats();
   hudInit();
-  firstHint();
   enterHideout();
   inputInit();
   treeInit();
   touchInit();
+  proBoot();
   cloudInit().then(remote => {
-    if (remote && remote.v >= 10 && (remote.savedAt || 0) > (S.savedAt || 0)) {
+    if (remote && remote.v >= 10 && (remote.savedAt || 0) > ((PRO.real || S).savedAt || 0)) {
       useSave(remote);
       hudWarn('已從雲端載入存檔');
     } else cloudPush();

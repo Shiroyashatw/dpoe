@@ -805,10 +805,6 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 .ddeath b { color: var(--bad); }
 
 /* 第一次玩的提示 */
-#hint { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); max-width: calc(100vw - 24px); padding: 10px 16px; font: 500 var(--fs) var(--font); color: var(--tx); background: var(--s1); border: 1px solid var(--fr); border-radius: 4px; pointer-events: auto; cursor: pointer; }
-#hint[hidden] { display: none; }
-#hint b, #hint small { display: block; }
-#hint small { margin-top: 2px; color: var(--dim); font-size: var(--fs-s); }
 
 /* 鍛造預覽：拿掉紅、加入綠 */
 .pvout { color: var(--warn) !important; }
@@ -1193,3 +1189,53 @@ body.touch.port .ax-chart { height: auto; width: 100%; max-width: 420px; align-s
   body.touch:not(.port) .ax-tab i { display: none; }
   body.touch:not(.port) .ax-side { grid-column: 2; grid-row: 3; }
 }
+
+/* 開場動畫（intro.js）：畫面在 canvas，這裡只有字幕、跳過、開始 */
+body.cine #hud { visibility: hidden; }
+#intro { position: fixed; inset: 0; z-index: 70; user-select: none; -webkit-user-select: none; }
+#intro[hidden] { display: none; }
+#ivg { position: absolute; inset: 0; z-index: 1; display: grid; place-content: center; justify-items: center; gap: 28px; background: #000; }
+#ivg[hidden] { display: none; }
+#ivg h1 { margin: 0; font: 900 clamp(32px, 7vmin, 56px) var(--serif); letter-spacing: 0.08em; color: var(--title); }
+#ivgo { min-width: 160px; }
+.ivskip { position: absolute; z-index: 2; top: calc(12px + env(safe-area-inset-top)); right: calc(12px + env(safe-area-inset-right)); min-height: 44px; padding: 0 18px; background: rgba(23, 24, 27, 0.72); }
+.ivb { position: absolute; left: 0; right: 0; bottom: 0; padding: 56px calc(24px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left)); text-align: center; pointer-events: none; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.72)); }
+#ivs { min-height: 3.2em; margin: 0 auto; max-width: 30em; display: flex; align-items: flex-end; justify-content: center; font: 900 clamp(16px, 3.4vmin, 24px)/1.6 var(--serif); letter-spacing: 0.04em; color: var(--title); text-wrap: balance; text-shadow: 0 1px 3px #000; opacity: 0; transition: opacity 320ms cubic-bezier(0.23, 1, 0.32, 1); }
+#ivs.on { opacity: 1; }
+/* 睜眼：上下兩片黑往外退 */
+#lid { position: fixed; inset: 0; z-index: 69; pointer-events: none; }
+#lid[hidden] { display: none; }
+#lid i { position: absolute; left: 0; right: 0; height: 50.5%; background: #000; animation: lidT 900ms cubic-bezier(0.32, 0.72, 0, 1) 120ms both; }
+#lid i:first-child { top: 0; }
+#lid i:last-child { bottom: 0; animation-name: lidB; }
+@keyframes lidT { to { transform: translateY(-100%); } }
+@keyframes lidB { to { transform: translateY(100%); } }
+/* 序章的目標列：一句話，做到才換 */
+#pro { position: absolute; left: 50%; top: 112px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 24px); padding: 6px 8px 6px 14px; background: var(--s1); border: 1px solid var(--fr); border-radius: 2px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
+#pro[hidden] { display: none; }
+#pron { color: var(--dim); font-size: var(--fs-s); font-variant-numeric: tabular-nums; white-space: nowrap; }
+#prot { flex: 1; font: 700 var(--fs) var(--font); color: var(--title); }
+#prot.in { animation: proin 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+@keyframes proin { from { opacity: 0; transform: translateY(4px); } }
+#pro .btn { flex: none; pointer-events: auto; white-space: nowrap; }
+#pro .btn.arm { color: var(--warn); }
+.pro-hl { outline: 2px solid var(--title); outline-offset: 2px; animation: prohl 1200ms ease-in-out infinite; }
+@keyframes prohl { 50% { outline-color: rgba(244, 245, 247, 0.2); } }
+/* 序章第 2 步：背包面板裡的引導，貼在格子上面；道具的閃框不能被隔壁蓋住 */
+.pro-inv { margin: 0 auto 8px; padding: 6px 10px; text-align: center; font: 700 var(--fs) var(--font); color: var(--title); background: var(--s3); border: 1px solid var(--fr-hi); border-radius: 2px; }
+.it.pro-hl { z-index: 2; outline-offset: 1px; }
+body.touch .ponly { display: none; }
+body.touch #pro { transform: none; max-width: none; left: calc(8px + env(safe-area-inset-left)); right: calc(76px + env(safe-area-inset-right)); top: calc(116px + env(safe-area-inset-top)); }
+body.touch:not(.port) #pro { left: calc(60px + env(safe-area-inset-left)); right: calc(150px + env(safe-area-inset-right)); top: calc(10px + env(safe-area-inset-top)); }
+/* 橫向高度不夠：地名讓位，王出現時目標列移到血條下面，還是不蓋主角 */
+body.touch:not(.port) #hud:has(#pro:not([hidden])) #area { display: none; }
+body.touch:not(.port) #hud:has(#bossbar:not([hidden])) #pro { top: calc(72px + env(safe-area-inset-top)); }
+body.touch #pro .btn { min-height: 44px; }
+/* 掌櫃的一句話 */
+.tsay { margin: 0 0 6px; color: var(--dim); font-size: var(--fs-s); }
+@media (prefers-reduced-motion: reduce) {
+  #lid i { animation: lidFade 500ms ease-out both; }
+  #lid i:last-child { animation-name: lidFade; }
+  #prot.in, .pro-hl { animation: none; }
+}
+@keyframes lidFade { to { opacity: 0; } }

@@ -78,9 +78,8 @@ function rollStar() {
 }
 /* 抽卡是照「條」抽，組越大越常出現：地面詞 10 條同組，每張卡先隨機留 3 條，整組的權重等於 3 條詞，其他詞的相對比例不變 */
 const GROUND_W = 3;
-function rollCard() {
-  const star = rollStar(),
-    [lo, hi] = STARS[star].n,
+function rollCard(star = rollStar()) {
+  const [lo, hi] = STARS[star].n,
     n = irnd(lo, hi),
     maxD = star <= 2 ? 2 : 3,
     gnd = Object.keys(MAPMOD).filter(k => MAPMOD[k].g === 'ground'),
@@ -97,7 +96,12 @@ function rollCard() {
   return { star, mods };
 }
 /* 這一批 8 張（存在存檔裡；進地圖時清掉，下次打開地圖台才抽新的） */
-const mapCards = s => (s.cards = s.cards || Array.from({ length: 8 }, rollCard));
+function mapCards(s) {
+  const c = (s.cards = s.cards || Array.from({ length: 8 }, () => rollCard()));
+  /* 買不起任何一張開放的卡（新玩家沒有碎片）：第一張換成第 1 階免費的 1★，不會卡住 */
+  if (!c.slice(0, cardsOpen(s)).some(x => mapCost(1, x.star) <= (s.frag || 0))) c[0] = rollCard(1);
+  return c;
+}
 /* 一張卡的獎勵合計 */
 function cardRew(card) {
   const r = [0, 0, 0];

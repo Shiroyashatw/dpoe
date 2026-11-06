@@ -700,7 +700,18 @@ vm.runInContext(
 }
 /* 投射物：每一招都吃多重投射（0.2.27）；自動化的規則（0.2.28）。載入 skills.js，用替身跑出手 */
 {
-  const c2 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  const c2 = {
+    console,
+    Math,
+    Date,
+    JSON,
+    Object,
+    Array,
+    Set,
+    location: { search: '' },
+    URLSearchParams,
+    document: { getElementById: () => ({ classList: { add() {}, remove() {} } }), querySelectorAll: () => [] }
+  };
   vm.createContext(c2);
   for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
@@ -2927,7 +2938,7 @@ vm.runInContext(
     'NPC：每個人都接得到對話、位置都有',
     R(`Object.keys(NPCS).every(id => TALKS[NPCS[id].talk(S)] && HIDE_ART.npc[id])`)
   );
-  ok('NPC：撿骨師在、赤鴉預設隱藏', R(`npcList().map(n => n.id).join() === 'bone'`));
+  ok('NPC：撿骨師、掌櫃在，赤鴉預設隱藏', R(`npcList().map(n => n.id).join() === 'bone,trader'`));
   R('S.story.crow = 1');
   ok('NPC：解鎖後赤鴉出現', R(`npcList().some(n => n.id === 'crow')`));
 }
@@ -3551,5 +3562,130 @@ vm.runInContext(
   );
   ok('投射物攻擊傷害只給投射物攻擊', b.ksPool.join() === '2,1,1', b.ksPool.join());
   ok('第 13～16 批全開不是 NaN', b.nan);
+}
+/* 開場與序章（0.2.44）：字幕一字不改、總長、地圖走得通、石牆擋得住、老存檔不動、新玩家拿到劍、版本號重跑、新玩家不會卡在地圖台 */
+{
+  const c2 = {
+    console,
+    Math,
+    Date,
+    JSON,
+    Object,
+    Array,
+    Set,
+    location: { search: '' },
+    URLSearchParams,
+    document: { getElementById: () => ({ classList: { add() {}, remove() {} } }), querySelectorAll: () => [] }
+  };
+  vm.createContext(c2);
+  for (const f of [
+    'core.js',
+    'data.js',
+    'items.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js',
+    'game.js',
+    'skills.js',
+    'intro.js',
+    'prologue.js'
+  ])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
+  const R2 = s => vm.runInContext(s, c2);
+  /* 字幕：照世界觀第 2 節的表，一字不改 */
+  const doc = fs.readFileSync(path.join(__dirname, '..', 'docs', '世界觀.md'), 'utf8'),
+    rows = doc
+      .split('## 2.')[1]
+      .split('## 3.')[0]
+      .split('\n')
+      .filter(l => /^\| \d /.test(l)),
+    want = rows.map(l => l.split('|')[3].trim().split('<br>')),
+    got = R2('SHOTS.map(s => s.lines)');
+  ok(
+    '開場：七個鏡頭的字幕跟世界觀一字不差',
+    want.length === 7 && JSON.stringify(want) === JSON.stringify(got),
+    JSON.stringify(want.flat().filter(l => !got.flat().includes(l)))
+  );
+  const len = R2('IV_LEN');
+  ok('開場：約 85 秒', len > 83 && len < 88, len);
+  /* 地圖：開到第幾道石牆，走得到哪裡 */
+  const M = R2('PRO_MAP'),
+    STEPS = R2('PRO_STEPS.map(s => ({ at: s.at, gate: s.gate }))'),
+    tiles = R2('proTiles()');
+  const reach = n => {
+    const t = Array.from(tiles);
+    M.gates.slice(0, n).forEach(([x0, y, x1]) => {
+      for (let x = x0; x <= x1; x++) t[y * M.cols + x] = 0;
+    });
+    const [sx, sy] = STEPS[0].at.map(Math.floor),
+      seen = new Set([sy * M.cols + sx]),
+      q = [...seen];
+    while (q.length) {
+      const i = q.pop();
+      for (const d of [1, -1, M.cols, -M.cols]) if (!t[i + d] && !seen.has(i + d)) seen.add(i + d), q.push(i + d);
+    }
+    return seen;
+  };
+  const exit = 1 * M.cols + 12;
+  ok(
+    '序章：每開一道石牆才走得更遠，全開才到得了出口',
+    M.gates.every((_, i) => reach(i + 1).size > reach(i).size) &&
+      reach(M.gates.length).has(exit) &&
+      !reach(M.gates.length - 1).has(exit)
+  );
+  const all = reach(M.gates.length);
+  ok(
+    '序章：每一步重來的起點都在地板上',
+    STEPS.filter(s => s.at).every(s => all.has(Math.floor(s.at[1]) * M.cols + Math.floor(s.at[0])))
+  );
+  /* 存檔：proBack 換回來 */
+  R2(`hudBar = () => {}; save = () => {}; closePanels = () => {}; enterHideout = () => {}; introStop = () => {};
+    var BOOT = ''; introGate = () => (BOOT = 'gate'); proStart = () => (BOOT = 'map'); proStep = i => (BOOT = 'step' + i);`);
+  ok(
+    '新存檔：沒有武器、有 fresh 旗標',
+    R2(`S = newGame(); !S.eq.weapon && S.fresh === 1 && S.skills[0].a.gem === 'slash' && !!S.eq.chest`)
+  );
+  ok(
+    '序章跳過（新玩家）：給一把劍、拿掉 fresh、會有設施提示',
+    R2(`S = newGame(); PRO.real = null; proBack(); S.eq.weapon.b === PRO_SWORD && !S.fresh && S.story.tips === 1`)
+  );
+  ok(
+    '序章結束（新玩家）：留下序章那把劍，不是新的',
+    R2(`var real = newGame(), tmp = newGame(); tmp.eq.weapon = mkItem(PRO_SWORD, 1, 0); var sid = tmp.eq.weapon.id;
+      tmp.story = real.story; PRO.real = real; S = tmp; proBack(); S === real && S.eq.weapon.id === sid && !PRO.real`)
+  );
+  ok(
+    '序章結束（老存檔）：裝備、等級、技能、天賦都不動，臨時角色的東西不留',
+    R2(`var old = newGame(); delete old.fresh; old.lv = 42; old.gold = 777; old.eq.weapon = mkItem('w_bow_0', 20, 2); old.pt = old.pt.slice(0, 1);
+      var snap = JSON.stringify(old); tmp = newGame(); tmp.gold = 1; tmp.lv = 9; tmp.eq.weapon = mkItem(PRO_SWORD, 1, 0);
+      tmp.story = old.story; tmp.orient = old.orient; tmp.sfx = old.sfx; PRO.real = old; S = tmp; proBack();
+      S === old && JSON.stringify(S) === snap && !S.story.tips`)
+  );
+  ok('序章結束（老存檔）：沒有設施提示', R2(`!proHint('asc')`));
+  const boot = st => R2(`BOOT = ''; S = newGame(); S.story = ${JSON.stringify(st)}; proBoot(); BOOT`);
+  ok(
+    '版本號：沒跑過＝開場、看過開場＝序章、第 7 步接回、跑過＝不跑、版本變了＝重跑',
+    boot({}) === 'gate' &&
+      boot({ intro: R2('PRO_VER') }) === 'map' &&
+      boot({ intro: R2('PRO_VER'), proS: 7 }) === 'step7' &&
+      boot({ prologue: R2('PRO_VER') }) === '' &&
+      boot({ prologue: R2('PRO_VER') - 1, intro: R2('PRO_VER') - 1 }) === 'gate'
+  );
+  ok(
+    '第 8 步收斂在 openWorld：序章結束、記版本號',
+    R2(`openPanel = () => {}; S = newGame(); PRO.on = true; PRO.i = 8; S.story.proS = 7; openWorld();
+      !PRO.on && S.story.prologue === PRO_VER && S.story.intro === PRO_VER && !S.story.proS`)
+  );
+  ok(
+    '地圖台：沒有碎片也一定有一張開放的免費卡（不會卡住）',
+    R2(`(() => {
+      for (let i = 0; i < 400; i++) {
+        const s = { frag: 0, maxT: 1 + (i % 7), cards: null };
+        if (!mapCards(s).slice(0, cardsOpen(s)).some(c => mapCost(1, c.star) === 0)) return false;
+      }
+      return true;
+    })()`)
+  );
 }
 process.exit(bad ? 1 : 0);

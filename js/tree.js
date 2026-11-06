@@ -37,6 +37,7 @@ function treeCanRefund(id) {
 }
 function treeOpen() {
   if (TREE.open) return treeClose();
+  if (proHint('tree', treeOpen)) return;
   closePanels();
   /* 起點的 6 個門大約在半徑 560 的圈上；窄螢幕（直立）縮到看得到全部的門 */
   Object.assign(TREE, { open: true, x: 0, y: 0, z: Math.min(0.55, (innerWidth / 2 - 30) / 560) });

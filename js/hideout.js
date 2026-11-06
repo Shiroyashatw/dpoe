@@ -103,6 +103,8 @@ function pracLeave() {
   for (const m of G.mobs) if (m.dummy) (m.ail = {}), (m.hp = m.mhp);
 }
 function hideTick() {
+  const near = nearProp();
+  if (near && (near.k === 'asc' || near.k === 'forge')) proHint(near.k);
   const z = HIDE_ART.zone,
     on = ((P.x - z.x) / z.rx) ** 2 + ((P.y - z.y) / z.ry) ** 2 < 1;
   if (on === PRAC.in) return;
