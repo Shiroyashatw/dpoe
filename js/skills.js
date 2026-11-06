@@ -1181,7 +1181,33 @@ function esAbsorb(d) {
 
 /* ---------- 召喚物（第 13～16 批，企劃書 7.3）：w.t 有值＝暫時召喚物，死了就沒了；沒有＝復甦召喚物，被擊殺後自動復活 ---------- */
 /* revive 復活秒數（另一隻復甦召喚物死亡時重算）；⚠️ healWait 幾秒沒受傷開始自癒、heal 每秒回最大生命的比例；giant 極大的更多與體型 */
-const MINION = { revive: 7.5, healWait: 4, heal: 0.2, giant: 0.2 };
+/* tauntR／tauntCd／tauntT（0.2.52）：魔像每 tauntCd 秒嘲諷 tauntR 內的怪 tauntT 秒（王減半） */
+const MINION = { revive: 7.5, healWait: 4, heal: 0.2, giant: 0.2, tauntR: 4 * METER, tauntCd: 4, tauntT: 3 };
+/* 召喚物生命（0.2.52，照 PoE2）：友方基礎生命（只看等級）× 種類比例；沒有護甲、抗性、閃避。
+   表是 Path of Building PoE2 的 monsterAllyLifeTable 取 6 個等級，中間用等比內插；比例比照殭屍 0.7、骷髏蠻兵 1.2 */
+const ALLY_LIFE = [
+    [1, 51],
+    [10, 382],
+    [30, 1571],
+    [60, 5308],
+    [80, 10084],
+    [100, 17980]
+  ],
+  ALLY_HPM = { golem: 1.2 };
+function allyBase(lv) {
+  let i = 1;
+  while (i < ALLY_LIFE.length - 1 && ALLY_LIFE[i][0] < lv) i++;
+  const [l0, h0] = ALLY_LIFE[i - 1],
+    [l1, h1] = ALLY_LIFE[i];
+  return h0 * Math.pow(h1 / h0, (Math.min(Math.max(lv, l0), l1) - l0) / (l1 - l0));
+}
+/* 等級：寶石叫的用那顆寶石的等級換成角色等級（gemReq），光環的用光環寶石，都沒有就用角色等級 */
+function allyLife(src, c) {
+  const ak = src === 'golem' ? 'golem' : src === 'aura' ? 'wolfsp' : null,
+    ag = ak && ((typeof S === 'object' && S && S.auras) || []).find(g => g && g.gem === ak),
+    g = (c && c.g) || ag;
+  return allyBase(g ? gemReq(Math.min(GEM_MAX, g.lv || 1)) : (S && S.lv) || 1) * (ALLY_HPM[src] || 0.7);
+}
 const giantM = w => (ST.minGiant || (w.c && w.c.giant) ? 1 + MINION.giant : 1);
 /* 召喚物受傷（目前沒有怪會打召喚物，要等召喚物 AI） */
 function allyHurt(w, d) {
@@ -1202,10 +1228,10 @@ function allyDie(w, killed) {
 /* ---------- 召喚戰狼：狼跟著你、咬最近的怪 ---------- */
 function callWolf(src, c, at = P, t = 0) {
   const p = floorNear(at.x, at.y, 30, 80, 14) || { x: at.x, y: at.y },
-    /* hp／mhp：取你的最大生命當底（紙人用屍體的最大生命） */
+    /* hp／mhp：照 PoE2 的友方生命（allyLife）；紙人在 actHit 改成屍體的最大生命 */
     w = { src, x: p.x, y: p.y, vx: 0, vy: 0, cd: rnd(0.2, 0.6), c, ph: Math.random() * TAU, t };
   w.r = 14 * giantM(w);
-  w.hp = w.mhp = ST.hp * giantM(w);
+  w.hp = w.mhp = allyLife(src, c) * giantM(w);
   G.allies.push(w);
 }
 /* 同伴這一下的倍率：寶石叫的狼吃群狼、紙人用寶石倍率、魔像與光環狼用左鍵技能打折 */
@@ -1224,6 +1250,17 @@ function updAllies(dt) {
     if (w.dead) (w.dead = 0), (w.hp = w.mhp), (w.x = P.x), (w.y = P.y), fxs('rise', P.x, P.y, 40);
     w.cd -= dt;
     w.ph += dt * 10;
+    /* 魔像的嘲諷（0.2.52）：每 4 秒嘲諷 4 公尺內的怪 3 秒（王 1.5 秒），被嘲諷的只打魔像（game.js 的 mobTarget）；附近沒有怪就先不放 */
+    if (w.src === 'golem' && (w.tcd = (w.tcd || 0) - dt) <= 0) {
+      const near = G.mobs.filter(m => m.hp > 0 && !m.dummy && !m.arrow && dist(m, w) < MINION.tauntR + m.r);
+      w.tcd = near.length ? MINION.tauntCd : 0.3;
+      for (const m of near) {
+        if (!m.aggro) aggroPack(m);
+        m.ail.tauntBy = w;
+        m.ail.tauntT = G.t + MINION.tauntT * (m.boss ? 0.5 : 1);
+      }
+      if (near.length) fx({ k: 'ring', x: w.x, y: w.y, r: MINION.tauntR, dur: 0.35, col: '#ffcf6b' });
+    }
     leechTick(dt, w, [['hp', w.mhp]]);
     /* 復甦召喚物：一段時間沒受傷就自癒 */
     if (!w.t && w.hp < w.mhp && G.t - (w.hurtT == null ? -99 : w.hurtT) >= MINION.healWait)

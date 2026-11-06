@@ -3459,6 +3459,8 @@ vm.runInContext(
   vm.runInContext(gs.slice(gs.indexOf('function doRoll'), gs.indexOf('/* mana：喝魔力藥劑')), c6);
   vm.runInContext(gs.slice(gs.indexOf('function hurtPlayer'), gs.indexOf('/* 死亡（PoE 式）')), c6);
   vm.runInContext(gs.slice(gs.indexOf('function updShots'), gs.indexOf('/* ---------- 主迴圈')), c6);
+  /* 0.2.52：怪物選目標、打召喚物的共用函式（liveAllies、mobTarget、mobHit、mobArea） */
+  vm.runInContext(gs.slice(gs.indexOf('const liveAllies'), gs.indexOf('function updMobs')), c6);
   R(
     `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; ST = stats(S); mechEnter();`
   );
@@ -3976,6 +3978,57 @@ vm.runInContext(
     JSON.stringify(c51) ===
       '{"n":13,"meta":true,"dup":[2,0.8,0.9],"nums":[5,1.55,1.45,1.32,70,50,0.04,65,0.32,0.32,0.32,0.32],"heavy":[1.15,1.5,1.22,1.7],"lv":[]}',
     JSON.stringify(c51)
+  );
+  /* 0.2.52 D1：怪物選目標、打召喚物、召喚物生命照 PoE2、魔像嘲諷 */
+  const d52 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (x, e = {}) => ({ D, x, y: 0, r: 12, sz: 20, hp: 1e6, mhp: 1e6, dmg: 100, el: 'phys', ail: {}, ...e }),
+      al = (x, e = {}) => ({ src: 'gem', x, y: 0, r: 14, hp: 500, mhp: 500, cd: 99, ph: 0, ...e }),
+      keep = { allies: G.allies, mobs: G.mobs, x: P.x, y: P.y, hp: P.hp, t: G.t, lv: S.lv, auras: S.auras },
+      r1 = v => +v.toFixed(1),
+      out = {};
+    P.x = 0; P.y = 0; G.mobs = [];
+    /* 一般怪：打最近的（狼比玩家近就打狼）；狼死了改打玩家；0.5 秒內不重選 */
+    const w = al(60), far = al(400), m = mk(100);
+    G.allies = [w, far];
+    out.near = mobTarget(m, 0) === w;
+    w.x = 300; out.hold = mobTarget(m, 0.1) === w;
+    out.repick = mobTarget(m, 0.5) === P;
+    w.x = 60; mobTarget(m, 0.6); w.dead = G.t + 5; out.deadSkip = mobTarget(m, 0) === P; w.dead = 0;
+    /* 王：平常只打玩家；被魔像嘲諷打魔像；嘲諷過了回來打玩家；被玩家嘲諷只打玩家 */
+    const bs = mk(100, { boss: 1 });
+    out.boss = [mobTarget(bs, 1) === P];
+    bs.ail.tauntBy = w; bs.ail.tauntT = G.t + 1.5; out.boss.push(mobTarget(bs, 1) === w);
+    G.t += 2; out.boss.push(mobTarget(bs, 1) === P); G.t -= 2;
+    m.ail.tauntBy = w; m.ail.tauntT = G.t + 3; m.ail.taunt = G.t + 3; out.pTaunt = mobTarget(m, 1) === P; m.ail = {};
+    /* 打召喚物：扣怪物的原始傷害（沒有減傷）；玩家不受影響；被擊殺進復甦；暫時的直接消失 */
+    const hp0 = P.hp; mobHit(m, w, 100); out.hit = [w.hp, P.hp === hp0];
+    mobHit(m, w, 1e4); out.kill = [w.dead > G.t, G.allies.includes(w)];
+    const tmp = al(60, { t: G.t + 8 }); G.allies.push(tmp); mobHit(m, tmp, 1e4); out.tmp = G.allies.includes(tmp);
+    /* 範圍招：圓裡的召喚物都吃，圓外的不吃 */
+    const a1 = al(50), a2 = al(500); G.allies = [a1, a2]; P.x = 9999;
+    mobArea(m, 40, 0, 60, 30, true); out.area = [a1.hp, a2.hp]; P.x = 0;
+    /* 召喚物生命照 PoE2：友方基礎生命（6 個等級內插）× 比例（狼 0.7、魔像 1.2），等級看寶石 */
+    S.lv = 1; S.auras = [];
+    out.base = [1, 10, 30, 45, 60, 100, 150].map(l => Math.round(allyBase(l)));
+    out.life = [r1(allyLife('gem', { g: { lv: 1 } })), r1(allyLife('golem')), Math.round(allyLife('gem', { g: { lv: 20 } })), Math.round(allyLife('gemt', { g: { lv: 20 } }))];
+    S.auras = [{ gem: 'golem', lv: 20 }]; out.golem20 = Math.round(allyLife('golem'));
+    Object.assign(G, { allies: keep.allies, mobs: keep.mobs, t: keep.t });
+    Object.assign(P, { x: keep.x, y: keep.y, hp: keep.hp });
+    S.lv = keep.lv; S.auras = keep.auras;
+    return out;
+  })()`);
+  ok(
+    'D1 目標：一般怪打最近的（玩家或召喚物）、0.5 秒重選、死掉的不選；王只打玩家，被魔像嘲諷才打魔像；被玩家嘲諷只打玩家',
+    JSON.stringify([d52.near, d52.hold, d52.repick, d52.deadSkip, d52.boss, d52.pTaunt]) ===
+      '[true,true,true,true,[true,true,true],true]',
+    JSON.stringify(d52)
+  );
+  ok(
+    'D1 召喚物：吃怪物的原始傷害、被擊殺進復甦、暫時的直接消失、範圍招波及；生命＝PoE2 友方生命 × 比例（Lv1 狼 35.7、魔像 61.2）',
+    JSON.stringify([d52.hit, d52.kill, d52.tmp, d52.area, d52.base, d52.life, d52.golem20]) ===
+      '[[400,true],[true,true],false,[470,500],[51,382,1571,2888,5308,17980,17980],[35.7,61.2,9426,9426],16158]',
+    JSON.stringify(d52)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

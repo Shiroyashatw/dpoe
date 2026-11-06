@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.51';
+const VER = '0.2.52';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -1249,7 +1249,7 @@ const AURAS = {
     ic: 'sk_guardtotem',
     sp: 30,
     fx: { golem: 1 },
-    d: '一隻石魔像跟著你打怪；你站在它旁邊時，受到的傷害少 20%（它替你擋）'
+    d: '一隻石魔像跟著你打怪，每 4 秒嘲諷 4 公尺內的敵人 3 秒（王 1.5 秒）：被嘲諷的敵人只打魔像。魔像會受傷，被擊殺 7.5 秒後在你身邊復活'
   }
 };
 const AURA_SLOTS = 3,

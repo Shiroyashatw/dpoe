@@ -953,6 +953,15 @@ function drawWolf(w) {
   /* 紙人兵、石魔像、戰狼 */
   const [im, sz] = w.src === 'doll' ? ['m_paperdoll', 34] : w.src === 'golem' ? ['m_golem', 52] : ['m_snowwolf', 36];
   spr(im, w.x, w.y, sz * giantM(w), { flip: (w.face || 0) > 0, sy: 1 + bob });
+  /* 生命條（0.2.52，召喚物會受傷了）：受傷才顯示，畫法跟怪物的小血條一樣，友方用綠色 */
+  if (w.hp < w.mhp) {
+    const bw = Math.max(36, w.r * 2.4),
+      y = w.y - sz * giantM(w) - 8;
+    CX.fillStyle = 'rgba(0,0,0,0.7)';
+    CX.fillRect(w.x - bw / 2 - 1, y - 1, bw + 2, 6);
+    CX.fillStyle = '#7bd36b';
+    CX.fillRect(w.x - bw / 2, y, (bw * Math.max(0, w.hp)) / w.mhp, 4);
+  }
 }
 
 /* 場上單位：陷阱（地上的齒輪）、地雷（閃紅點）、砲塔圖騰（十字弓）、圖騰（柱子）；砲塔圖騰、圖騰下面的小條是剩下的時間 */

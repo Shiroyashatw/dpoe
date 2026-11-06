@@ -2026,6 +2026,7 @@ const STATE = {
   intim: ['威嚇', 'sk_anger', '受到的傷害提高、造成的傷害降低'],
   counter: ['反擊狀態', 'sk_shieldcharge', '打到你的敵人會受招架'],
   seal: ['封印', 'ail_n_seal', '自己使用那一招時打破，每個封印讓範圍提高'],
+  revive: ['復甦', 'sk_command', '召喚物被擊殺了，倒數結束後在你身邊復活'],
   mark: ['印記', 'sk_markshot', '被印記的怪觸發時給你效果'],
   scorch: ['焦灼', 'sup_sp_gfire', '元素抗性降低'],
   brittle: ['易碎', 'sk_frostarrow', '被擊中時暴擊率提高'],
@@ -2051,6 +2052,7 @@ const STATE = {
   calm: ['平靜', 'ail_shield', '造成的傷害為 0'],
   weak: ['虛弱', 'ail_chgN', '移動速度 −20%、造成的傷害 −10%'],
   taunt: ['嘲諷', 'ail_mark', '只能以你為目標，對你以外的目標傷害少 10%'],
+  tauntG: ['嘲諷', 'ail_mark', '被魔像嘲諷：只能以魔像為目標'],
   wet: ['濕透', 'ail_burn', '感電機率 50% 更多、冰凍累積 25% 更多'],
   easy: ['易攻目標', 'ail_comboN', '下一次投射物攻擊擊中受到更多傷害，擊中後消耗'],
   over: ['超重', 'ail_slow', '每層緩速 10%，重新施加疊層並刷新'],
@@ -2124,6 +2126,7 @@ function mobStates(m) {
   if (a.anemia && a.anemia.t > G.t) add('anemia', a.anemia.t, Math.floor(a.anemia.v));
   if (a.easy && a.easy.t > G.t) add('easy', a.easy.t);
   for (const k of ['petr', 'calm', 'weak', 'taunt', 'wet', 'oiled', 'cons', 'howl']) if (a[k] > G.t) add(k, a[k]);
+  if (a.tauntT > G.t && !(a.taunt > G.t)) add('tauntG', a.tauntT);
   return o.filter((x, i) => o.findIndex(y => y.ic === x.ic) === i);
 }
 /* 玩家身上的狀態：{ k, n, ic, d, t 剩餘秒數（沒有時間的是 null）, c 層數, bad 負面 } */
@@ -2178,6 +2181,9 @@ function playerStates() {
   /* 封印（擴張輔助）：顯示累積最多的那一招有幾個 */
   const sealMax = Math.max(0, ...Object.values(P.seal || {}).map(x => x.n));
   if (sealMax) add('seal', null, { c: sealMax });
+  /* 等復甦的召喚物（0.2.52）：還要幾秒回來、有幾隻 */
+  const rv = (G.allies || []).filter(w => w.dead > G.t).map(w => w.dead);
+  if (rv.length) add('revive', Math.min(...rv), { c: rv.length });
   for (const k of ['fire', 'cold', 'light']) if (P.adapt && P.adapt[k]) add('ad_' + k, null, { c: P.adapt[k] });
   if (P.tail) add('tail', null, { c: Math.ceil(P.tail) });
   if (ST.sacrifice) add('sac', P.sacT);
