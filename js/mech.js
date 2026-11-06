@@ -523,7 +523,8 @@ const MIRAGE_NO = new Set([
   'paperdoll',
   'refract',
   'swordarray',
-  'furyslam'
+  'furyslam',
+  'chargeslam'
 ]);
 function mirageGem() {
   const gs = S.skills

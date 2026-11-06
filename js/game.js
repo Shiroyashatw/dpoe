@@ -428,6 +428,11 @@ function spawnMob(D, x, y, pack, elite) {
 const K = {},
   M = { x: 0, y: 0, L: 0, R: 0 };
 let CV, CX;
+/* 這一格技能的鍵還按著嗎（0.2.54，蓄力技能用）：桌機是滑鼠左右鍵與 Q／E／R，手機是那顆技能鍵。
+   技能程式只問這個，不自己判斷是不是手機 */
+const SLOT_HOLD = [null, null, 'q', 'e', 'r'];
+const slotHeld = i =>
+  !!((i === 0 && M.L) || (i === 1 && M.R) || (SLOT_HOLD[i] && K[SLOT_HOLD[i]]) || (TOUCH.sk && TOUCH.sk.i === i));
 function mouseWorld() {
   if (TOUCH.on) return touchAim();
   return { x: (M.x - CV.clientWidth / 2) / ZOOM + G.cam.x, y: (M.y - CV.clientHeight / 2) / ZOOM + G.cam.y };

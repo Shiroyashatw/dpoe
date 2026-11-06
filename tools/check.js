@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：135 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 135,
+    '品質：136 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 136,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -1804,12 +1804,12 @@ vm.runInContext(
     JSON.stringify([cl.melee, cl.slamNoAoe])
   );
   ok(
-    '技能分類：持續時間標籤＝有 dur；遠端＝場上單位＋幻影、召喚物不算；引導目前沒有；新星、經久、條件使用',
+    '技能分類：持續時間標籤＝有 dur；遠端＝場上單位＋幻影、召喚物不算；引導只有蓄力重砸；新星、經久、條件使用',
     !cl.dur.length &&
       !cl.unitNoRemote.length &&
       !cl.minionRemote.length &&
       cl.remote === 'frosttrap,blastmine,ballista,firetotem,mirage' &&
-      !cl.channel.length &&
+      cl.channel.join() === 'chargeslam' &&
       cl.nova === 'whirl,nova' &&
       cl.sust === 'venom,thunderstorm' &&
       cl.cond === 'shadowstrike,blindpounce,banner,corpseboom,paperdoll,wolfpounce,swordarray,snap,hexblast,profane',
@@ -4063,6 +4063,53 @@ vm.runInContext(
     JSON.stringify(d53) ===
       '{"hp":[["totem",51],["turret",51],["trap",null],["mine",null]],"tg":[true,true],"hit":31,"dead":[false,3,true],"place":[0.6,0,1,true]}',
     JSON.stringify(d53)
+  );
+  /* 0.2.54 E 批：蓄力（按住蓄、放開出手、輕點也放得出來、取消退魔力）與蓄力重砸 */
+  const e54 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = () => ({ D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} }),
+      c = gemCfg(mkGem('chargeslam', 5), 0),
+      keep = { mobs: G.mobs, ground: G.ground, act: P.act, mp: P.mp, t: G.t },
+      r2 = v => +v.toFixed(2),
+      out = {};
+    if (typeof moveBody === 'undefined') globalThis.moveBody = () => {};
+    if (typeof shake === 'undefined') globalThis.shake = () => {};
+    let HELD = true;
+    globalThis.slotHeld = () => HELD;
+    const start = () => (P.act = { k: 'chargeslam', c, t: 0, dur: 1e9, ang: 0, hits: [], n: 0, tx: P.x + 40, ty: P.y, charge: 1, ch: 0, slot: 2 });
+    const hitOf = n => {
+      G.ground = []; const m = mk(); G.mobs = [m];
+      const a = start(); HELD = true;
+      for (let k = 0; k < Math.round(n * 0.4 / 0.05); k++) skillTick(a, 0.05, 0, 0);
+      HELD = false; skillTick(a, 0.01, 0, 0);
+      const st = [a.charge, a.stg, a.dur < 10];
+      actHit(a, 0);
+      return [...st, 1e9 - m.hp, G.ground.filter(g => g.k === 'jagged').length];
+    };
+    const h0 = hitOf(0), h1 = hitOf(1), h3 = hitOf(3);
+    /* 按住超過 1.2 秒也只到 3 段；蓄滿後還按著就繼續等 */
+    const a = start(); HELD = true;
+    for (let k = 0; k < 60; k++) skillTick(a, 0.05, 0, 0);
+    out.cap = [r2(a.ch), a.charge, P.act === a];
+    out.stage = [h0.slice(0, 3), h1.slice(0, 3), h3.slice(0, 3)];
+    out.dmg = [r2(h1[3] / h0[3]), r2(h3[3] / h0[3])];
+    out.ground = [h0[4], h1[4], h3[4]];
+    /* 取消：退回魔力、動作清掉 */
+    start(); P.mp = 10; chargeCancel(); out.cancel = [P.mp === 10 + c.mp || pracFree(), P.act === null];
+    /* 自動化、觸發、轉圖騰插在蓄力技能上不相容；幻影不會用它 */
+    const g = mkGem('chargeslam', 5);
+    out.sup = ['autocast', 'totemc', 'heavy'].map(k => { const sp = mkGem(k, 1); g.sup = [sp, null]; return supOK(SKILLS.chargeslam, sp, g); });
+    out.tags = SKILLS.chargeslam.tags.includes('channel') && MIRAGE_NO.has('chargeslam');
+    Object.assign(G, { mobs: keep.mobs, ground: keep.ground, t: keep.t });
+    Object.assign(P, { act: keep.act, mp: keep.mp });
+    delete globalThis.slotHeld;
+    return out;
+  })()`);
+  ok(
+    'E 引導：按住蓄力最多 3 段、放開照段數出手、輕點是第 0 段；每段傷害更多 100%、蓄滿才留碎裂地面；取消退魔力；自動化與轉圖騰不相容',
+    JSON.stringify(e54) ===
+      '{"cap":[1.2,1,true],"stage":[[0,0,true],[0,1,true],[0,3,true]],"dmg":[2,4],"ground":[0,0,1],"cancel":[true,true],"sup":[false,false,true],"tags":true}',
+    JSON.stringify(e54)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

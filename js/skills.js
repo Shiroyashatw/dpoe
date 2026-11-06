@@ -15,6 +15,8 @@ const supOK = (D, sp, g) => {
   if (g && supDup(g, sp)) return false;
   /* 連鎖輔助：不能連鎖的投射物（閃電箭、一路穿透的冰霜彈）標成不相容 */
   if (sp.gem === 'chain' && D.noChain) return false;
+  /* 蓄力技能（0.2.54）要有人按住：自動化、觸發、轉圖騰都不相容 */
+  if (D.charge && (U.meta || U.conv)) return false;
   if (U.conv && (D.unit || D.noConv || D.tags.includes('move') || D.tags.includes('minion'))) return false;
   if (
     U.meta === 'auto' &&
@@ -242,6 +244,11 @@ function useSlot(i) {
   formFor(c.D);
   const ang = Math.atan2(w.y - P.y, w.x - P.x);
   P.face = ang;
+  /* 蓄力技能（0.2.54，企劃書 7.3 第 27 項）：按下開始蓄（魔力已經付了），放開才出手，在 skillTick 處理 */
+  if (D.charge) {
+    P.act = { k: c.k, c, t: 0, dur: 1e9, ang, hits: [], n: 0, tx: w.x, ty: w.y, charge: 1, ch: 0, slot: i };
+    return true;
+  }
   /* 陷阱、地雷、砲塔圖騰、圖騰：放在滑鼠位置（最遠 320） */
   if (c.unit) {
     /* 圖騰、砲塔圖騰（0.2.53）：放置要 UNIT_PLACE 秒，動作做完才出現（skillTick 的 a.pw）；陷阱、地雷照舊馬上放。
@@ -322,8 +329,32 @@ const stateMobs = (x, y, r, ks) =>
   G.mobs.filter(m => m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r && ks.some(k => hasState(m, k)));
 const SNAP_K = ['frozen', 'shock', 'ign'];
 /* 每格畫面：出手中的動作 */
+/* 取消蓄力（手機把技能鍵拖回去、手勢被系統取消）：什麼都沒發生，退回付掉的魔力（瓦爾契約付的是生命） */
+function chargeCancel() {
+  const a = P.act;
+  if (!a || !a.charge) return;
+  if (!pracFree()) ST.blood ? (P.hp = Math.min(ST.hp, P.hp + a.c.mp)) : addMp(a.c.mp);
+  P.act = null;
+}
 function skillTick(a, dt, mx, my) {
   a.t += dt;
+  if (a.charge) {
+    /* 蓄力中：可以慢慢走、跟著瞄準轉向；每滿一段有聲音（蓄滿不一樣），蓄滿後可以繼續按著；放開就照蓄到的段數出手。
+       輕點一下＝第 0 段。被僵直、翻滾會把 P.act 清掉（蓄的就沒了） */
+    const E = a.c.D.charge,
+      w = mouseWorld(),
+      seg = () => Math.floor(a.ch / E.step + 1e-6),
+      n0 = seg();
+    a.ang = P.face = Math.atan2(w.y - P.y, w.x - P.x);
+    (a.tx = w.x), (a.ty = w.y);
+    moveBody(P, mx * ST.spd * CAST_MOVE * dt, my * ST.spd * CAST_MOVE * dt);
+    a.ch = Math.min(E.max * E.step, a.ch + dt * (1 + 0.2 * a.c.q));
+    if (seg() > n0) (a.chT = G.t), sfx(seg() >= E.max ? 'perfect' : 'cast');
+    if (slotHeld(a.slot)) return;
+    Object.assign(a, { charge: 0, stg: seg(), t: 0, dur: actDur(a.c), hits: a.c.D.hits || [0.42], n: 0 });
+    sfx('swing');
+    return;
+  }
   if (a.sx != null) {
     const f = Math.min(1, a.t / a.dur),
       e = 1 - Math.pow(1 - f, 3);
@@ -912,6 +943,20 @@ function actHit2(a, idx, R, hitArc) {
     /* 血怒：開著再按就關掉 */
     if (stkN('bloodrage')) stkClr('bloodrage');
     else (P.brQ = c.q), gainStk('bloodrage', 1, durOf(c)), fxs('rage', P.x, P.y - 30, 40);
+  } else if (a.k === 'chargeslam') {
+    /* 蓄力重砸：a.stg＝蓄了幾段。每段傷害更多、範圍更大；蓄滿留碎裂地面，餘震照蓄滿的倍率打一半 */
+    const E = D.charge,
+      n = a.stg || 0,
+      mult = c.mult * (1 + (E.more * n) / 100),
+      r = R * (1 + (E.aoe * n) / 100),
+      x = P.x + cos * 40,
+      y = P.y + sin * 40;
+    fxs('slam', x, y, r);
+    fx({ k: 'ring', x, y, r, dur: 0.3 });
+    shake(0.08 + 0.04 * n);
+    sfx('slam');
+    around(x, y, r, 200 * c.kb, { mult });
+    if (n >= E.max) addGround({ k: 'jagged', x, y, r: r * 0.8, dur: 2, c: { ...c, mult }, after: 0.5 });
   } else if (a.k === 'bearmaul') {
     fxs('claw', P.x, P.y - 20, R, { rot: a.ang });
     fxs('slam', P.x + cos * R * 0.5, P.y + sin * R * 0.5, R * 0.5);

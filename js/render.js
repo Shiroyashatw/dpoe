@@ -692,7 +692,30 @@ function drawCharges() {
     CX.fill();
   });
 }
+/* 蓄力條（0.2.54）：蓄力技能按住時畫在腳下，一段一格；正在蓄的那格跟著時間長，滿一格變亮，全滿整條最亮。
+   顏色用介面的鐵灰階（DESIGN.md 的 locked-ink／bronze-bright／title-gold），不用黃色（黃色只給稀有度） */
+function chargeBar() {
+  const a = P.act;
+  if (!a || !a.charge) return;
+  const E = a.c.D.charge,
+    w = 14,
+    gap = 2,
+    W = E.max * w + (E.max - 1) * gap,
+    x0 = Math.round(P.x - W / 2),
+    y = Math.round(P.y + 12),
+    full = a.ch >= E.max * E.step - 1e-6,
+    flash = G.t - (a.chT == null ? -9 : a.chT) < 0.18;
+  CX.fillStyle = 'rgba(0,0,0,0.7)';
+  CX.fillRect(x0 - 1, y - 1, W + 2, 6);
+  for (let i = 0; i < E.max; i++) {
+    const f = Math.max(0, Math.min(1, a.ch / E.step - i));
+    if (!f) continue;
+    CX.fillStyle = full || (f >= 1 && flash) ? '#f4f5f7' : f >= 1 ? '#c3c7d0' : '#979ba5';
+    CX.fillRect(x0 + i * (w + gap), y, w * f, 4);
+  }
+}
 function drawHero() {
+  chargeBar();
   shadow(P.x, P.y, 18);
   const a = G.t < P.iuntil ? 0.8 : 1,
     flipF = Math.cos(P.face) < -0.05;

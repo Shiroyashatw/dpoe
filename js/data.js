@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.53';
+const VER = '0.2.54';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -154,7 +154,7 @@ const TERMS = {
   公尺: '距離單位：1 公尺 = 30 像素，約一個角色寬。',
   打擊: '用武器或身體直接打中的近戰攻擊；重擊不算打擊。吃「打擊傷害提高」。',
   重擊: '有範圍效果的近戰攻擊，不是直接用武器打擊；傷害仍是近戰。吃「重擊傷害提高」。',
-  引導: '引導技能可以長按來蓄力或延長使用時間。目前還沒有技能，也還沒有長按輸入。',
+  引導: '引導技能要按住：按下開始蓄力，放開才出手。蓄力中可以慢慢走、可以轉方向；被僵直、暈眩或翻滾會取消。輕點一下也放得出來，只是沒有蓄力。',
   遠端技能: '由圖騰、陷阱、地雷、砲塔圖騰或幻影替你放的技能；召喚物不算。',
   持續時間技能: '持續時間可以調整的技能；吃「技能持續時間」。',
   新星技能: '以自己為中心的圓形範圍；吃「新星傷害提高」。',
@@ -1162,6 +1162,19 @@ const SKILLS = {
     el: 'chaos',
     tags: ['spell', 'aoe', 'dot', 'occ'],
     d: '消耗滑鼠附近的一具屍體，在原地留下腐化地面 6 秒（範圍裡的敵人每 0.5 秒受一次混沌傷害），結束時給 1 顆暴擊球；附近沒有屍體就不能用'
+  },
+  /* 0.2.54 第 3 層 E 批：第一招引導技能。charge＝蓄力（企劃書 7.3 第 27 項）：max 段數、step 每段幾秒、more 每段傷害更多 %、aoe 每段範圍更大 % */
+  chargeslam: {
+    n: '蓄力重砸',
+    ic: 'sk_smite',
+    t: 0.45,
+    mp: 12,
+    m: 1.3,
+    r: 110,
+    charge: { max: 3, step: 0.4, more: 100, aoe: 20 },
+    wt: ['mace', 'flail'],
+    tags: ['attack', 'melee', 'aoe'],
+    d: '按住蓄力、放開砸地，最多蓄 1.2 秒共 3 段：每蓄一段傷害更多 100%、範圍更大 20%；蓄滿 3 段另外留下碎裂地面 2 秒，結束時餘震。輕點一下是沒蓄力的重砸'
   }
 };
 /* 技能分類標籤（0.2.42，照 poe2db，名詞在 TERMS）：加在每招原本的 tags 後面。沒列的技能（詛咒、印記、召喚、擲矛…）沒有新標籤。
@@ -1221,6 +1234,7 @@ const CLS_TAGS = {
   snap: 'payoff cond',
   hexblast: 'payoff cond',
   profane: 'duration cond',
+  chargeslam: 'slam channel',
   grenade: 'grenade',
   cu_enfeeble: 'cascade duration',
   cu_eleweak: 'cascade duration',
@@ -1439,6 +1453,7 @@ const supCat = k => SUP_CAT[k] || k;
 /* 寶石品質（0.2.29，docs/品質效果表.md）：0～20%；{數字} 是品質 20% 的值，顯示時照比例換算 */
 const GEM_Q_MAX = 20;
 const QUAL = {
+  chargeslam: '蓄力更快 {20}%',
   oilgrenade: '油滑地面多留 {2} 秒',
   thunderstorm: '雷暴範圍 +{20}%',
   snap: '{20}% 機率多留一個殘留物',
@@ -1693,7 +1708,8 @@ const GEM_LV = {
   cast_kill: 9,
   cast_dodge: 9,
   cast_block: 9,
-  cast_hurt: 9
+  cast_hurt: 9,
+  chargeslam: 5
 };
 const gemLv = k => GEM_LV[k] || 1;
 /* 輔助分級（0.2.51，企劃書 6.5）：II 是另一顆寶石，鍵＝I 的鍵＋'2'；跟 I 同分類（不能同插）、同圖示、同品質效果，使用等級 31。

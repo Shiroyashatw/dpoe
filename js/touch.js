@@ -288,7 +288,10 @@ function touchInit() {
     if (s && e.pointerId === s.id) {
       s.el.classList.remove('down');
       if (s.i === 0) M.L = 0;
-      else if (e.type === 'pointerup' && !(s.drag && s.cancel)) {
+      else if (P.act && P.act.charge && P.act.slot === s.i) {
+        /* 正在蓄力：放開由 skillTick 出手；拖回按鈕上或手勢被系統取消＝取消蓄力、退回魔力 */
+        if (e.type !== 'pointerup' || (s.drag && s.cancel)) chargeCancel();
+      } else if (e.type === 'pointerup' && !(s.drag && s.cancel)) {
         TOUCH.cast = !s.drag;
         useSlot(s.i);
         TOUCH.cast = false;
@@ -325,6 +328,11 @@ function touchInit() {
       drag: false
     };
     if (i === 0) M.L = 1;
+    else {
+      /* 蓄力技能（0.2.54）：按下就開始蓄，不等放開；瞄準跟平常一樣（沒拖＝最近的敵人，拖＝手動） */
+      const c = slotCfg(i);
+      if (c && c.D.charge) useSlot(i);
+    }
   });
   /* 右上選單、說明框的動作 */
   document.addEventListener('click', e => {
