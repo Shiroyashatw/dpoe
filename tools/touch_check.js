@@ -18,6 +18,7 @@ let fail = 0;
     isMobile: true,
     deviceScaleFactor: 2
   });
+  await ctx.route(/supabase/, r => r.abort()); /* 假存檔不能同步到正式雲端 */
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
@@ -401,7 +402,19 @@ let fail = 0;
   await touch('touchStart', [nd2]);
   await touch('touchEnd', []);
   await p.waitForTimeout(200);
-  ok('再點一次點亮', await p.evaluate(id => S.pt.includes(id), nd[0]));
+  /* 0.2.42 起過路點要先選能力值（#tattr），選了才算點亮 */
+  const attr = await p.evaluate(() => {
+    const b = document.querySelector('#tattr [data-ta^="attr:"]');
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  });
+  if (attr) {
+    await touch('touchStart', [attr]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(200);
+  }
+  ok('再點一次點亮', await p.evaluate(id => S.pt.includes(id), nd[0]), attr ? '過路點，選了能力值' : '');
   const z0 = await p.evaluate(() => TREE.z);
   await touch('touchStart', [
     [W / 2 - 40, H / 2],
