@@ -139,7 +139,8 @@ const TERMS = {
   耐力球: '能量球資源，最多 3 顆、15 秒。持有不加數值，由技能或昇華消耗。',
   幻影: '你的分身，隨機放你裝著的攻擊技能，傷害打折。',
   格擋值:
-    '盾的隱性：等於盾上的護甲 ×（1 + 盾的護甲更多）（盾上的護甲 = 基底護甲 × 品質 + 護甲詞綴）。大於 0 時每一下吸收 40% 傷害；打碎後要等它跑滿才再吸收。',
+    '每面盾都有：等於盾上的護甲 ×（1 + 盾的護甲更多）（盾上的護甲 = 基底護甲 × 品質 + 護甲詞綴）。大於 0 時每一下吸收 40% 傷害；打碎後要等它跑滿才再吸收。',
+  固定詞: '基底天生帶的詞，寫在基底數值下面。鍛造洗不掉，也不佔前後綴的名額。',
   公尺: '距離單位：1 公尺 = 30 像素，約一個角色寬。',
   打擊: '用武器或身體直接打中的近戰攻擊；重擊不算打擊。吃「打擊傷害提高」。',
   重擊: '有範圍效果的近戰攻擊，不是直接用武器打擊；傷害仍是近戰。吃「重擊傷害提高」。',
@@ -3157,7 +3158,7 @@ for (const k in WTN) STATN['w_' + k] = [`持${WTN[k]}時傷害`, '%'];
 const WT2 = new Set(['qstaff', 'bow', 'xbow', 'staff', 'traptool', 'talisman']);
 const DUAL = new Set(['sword', 'axe', 'dagger', 'claw']);
 const SPELLW = new Set(['staff', 'wand', 'sceptre', 'traptool']);
-/* 基底自帶的數值（固定詞綴）裡，詞綴表沒有的名字 */
+/* 固定詞（基底天生帶的詞，鍛造洗不掉、不佔前後綴）裡，詞綴表沒有的名字；這裡也沒有就用 STATN */
 const IMPN = {
   bleedCh: '擊中時 {}% 機率造成流血',
   impaleCh: '擊中時 {}% 機率穿刺',
@@ -3172,7 +3173,14 @@ const IMPN = {
   spellLv: '法術技能等級 +{}',
   castP: '施法速度 +{}%',
   regen: '每秒回復 {} 生命',
-  life: '最大生命 +{}'
+  life: '最大生命 +{}',
+  maxRes: '火焰、冰冷、閃電最大抗性 +{}%',
+  armBreak: '物理擊中會破甲',
+  rageHit: '近戰擊中時得到 {} 點盛怒',
+  chain: '投射物連鎖 +{} 次',
+  ammoN: '彈夾多裝填 {} 發',
+  grenN: '手雷技能多丟 {} 顆',
+  fullStrike: '屠戮打擊：擊中滿血的敵人前先移除 {}% 生命（有上限）'
 };
 const ELN = { phys: '物理', fire: '火焰', cold: '冰冷', light: '閃電', chaos: '混沌' };
 const ELC = { phys: '#fff3e0', fire: '#ff8a4c', cold: '#8fd6ff', light: '#ffe066', chaos: '#c38bff' };
@@ -3292,17 +3300,17 @@ const KINDS = {
     ]
   }
 };
-/* 基底：lv 從幾階開始掉、ic 圖示、b 固定數值（武器：物理傷害、攻擊速度；防具：護甲；飾品：固定詞綴） */
+/* 基底：lv 從幾階開始掉、ic 圖示、b 基底數值（武器：物理傷害、攻擊速度；防具：防禦）＋固定詞。固定詞執行時從這裡讀，不存在物品上 */
 /* ---------- 武器（0.2.9，照 PoE2 的 18 種類別，docs/開發參考.md 0.1 節）----------
-   每類 6 個基底（階級 1、3、6、9、12、15 開始掉）；傷害照階級成長，類別之間的差別靠攻擊速度、暴擊、固定詞綴與技能。
-   fam 武器類別（0.2.12：單手劍與雙手劍都是「劍」，技能共用；id 照舊）、two 雙手基底；m 傷害倍率（單手近戰＝1）、as 攻擊速度、crit 加在基礎 5% 上的暴擊、imp 固定詞綴（每階 ×1、×1.5、×2…）、ic 借用的圖示 */
+   每類 6 個基底（階級 1、3、6、9、12、15 開始掉）；傷害照階級成長，類別之間的差別靠攻擊速度、暴擊與技能，同一類的基底靠固定詞分開。
+   fam 武器類別（0.2.12：單手劍與雙手劍都是「劍」，技能共用；id 照舊）、two 雙手基底；m 傷害倍率（單手近戰＝1）、as 攻擊速度、crit 加在基礎 5% 上的暴擊、imps 每階的固定詞、ic 借用的圖示 */
 const WCLS = {
   sword1: {
     fam: 'sword',
     m: 1,
     as: 1.55,
     crit: 1,
-    imp: {},
+    imps: [{ acc: 30 }, { strikeP: 8 }, { bleedCh: 8 }, { critInc: 20 }, { critX: 20 }, { eleP: 18 }],
     ic: [0, 1, 17, 19, 20, 1],
     n: ['短劍', '闊劍', '彎刀', '長劍', '細劍', '符文劍']
   },
@@ -3312,7 +3320,7 @@ const WCLS = {
     m: 1.6,
     as: 1.35,
     crit: 1,
-    imp: {},
+    imps: [{ meleeP: 6 }, { critInc: 15 }, { aoe: 10 }, { cull: 1 }, { ss: 5 }, { bossP: 12 }],
     ic: [5, 18, 16, 5, 18, 5],
     n: ['雙手劍', '太刀', '闊刃大劍', '斬首劍', '野太刀', '王者大劍']
   },
@@ -3321,7 +3329,7 @@ const WCLS = {
     m: 1.05,
     as: 1.45,
     crit: 0,
-    imp: { bleedCh: 4 },
+    imps: [{ bleedCh: 4 }, { rageHit: 1 }, { meleeP: 10 }, { killHeal: 15 }, { ailMag: 15 }, { fullStrike: 15 }],
     ic: [2, 21, 2, 21, 2, 21],
     n: ['手斧', '戰斧', '鉞', '劈斧', '雙刃斧', '屠夫斧']
   },
@@ -3331,7 +3339,7 @@ const WCLS = {
     m: 1.7,
     as: 1.2,
     crit: 0,
-    imp: { bleedCh: 6 },
+    imps: [{ bleedCh: 6 }, { killHeal: 12 }, { slamP: 10 }, { cull: 1 }, { aoe: 12 }, { hsP: 30 }],
     ic: [6, 21, 6, 21, 6, 21],
     n: ['伐木斧', '巨斧', '開山斧', '劊子手斧', '月牙斧', '泰坦斧']
   },
@@ -3340,7 +3348,7 @@ const WCLS = {
     m: 1.05,
     as: 1.45,
     crit: 0,
-    imp: { critX: 8 },
+    imps: [{ critX: 8 }, { hsP: 15 }, { dazeCh: 15 }, { armBreak: 1 }, { bleedCh: 12 }, { noMiss: 1 }],
     ic: [8, 23, 8, 23, 8, 23],
     n: ['木棒', '釘頭錘', '戰鎚', '晨星', '狼牙棒', '雷神鎚']
   },
@@ -3350,7 +3358,7 @@ const WCLS = {
     m: 1.75,
     as: 1.15,
     crit: 0,
-    imp: { aoe: 6 },
+    imps: [{ aoe: 6 }, { hsP: 20 }, { slamP: 12 }, { armBreak: 1 }, { fireP: 25 }, { critX: 30 }],
     ic: [7, 7, 7, 7, 7, 7],
     n: ['大槌', '巨鎚', '大地之鎚', '破城鎚', '隕鐵鎚', '天罰鎚']
   },
@@ -3358,7 +3366,7 @@ const WCLS = {
     m: 1.35,
     as: 1.4,
     crit: 5,
-    imp: { block: 6 },
+    imps: [{ block: 6 }, { dazeCh: 12 }, { strikeP: 10 }, { onsKill: 15 }, { stunThrP: 30 }, { aoe: 15 }],
     ic: [4, 31, 4, 31, 4, 31],
     n: ['細杖', '鐵棍', '齊眉棍', '降魔杖', '金剛棍', '如意棍']
   },
@@ -3366,7 +3374,7 @@ const WCLS = {
     m: 1,
     as: 1.6,
     crit: 1,
-    imp: { impaleCh: 8 },
+    imps: [{ impaleCh: 8 }, { strikeP: 8 }, { projP: 12 }, { aoe: 10 }, { critInc: 25 }, { meleeP: 15 }],
     ic: [9, 10, 29, 30, 9, 29],
     n: ['短矛', '長槍', '三叉戟', '偃月矛', '龍膽槍', '方天戟']
   },
@@ -3374,7 +3382,7 @@ const WCLS = {
     m: 1.25,
     as: 1.25,
     crit: 1,
-    imp: { projP: 6 },
+    imps: [{ projP: 6 }, { acc: 60 }, { farP: 12 }, { critInc: 20 }, { pierce: 1 }, { chain: 1 }],
     ic: [3, 25, 11, 24, 3, 24],
     n: ['短弓', '竹弓', '長弓', '複合弓', '和弓', '重藤弓']
   },
@@ -3382,7 +3390,7 @@ const WCLS = {
     m: 1.4,
     as: 1.5,
     crit: 0,
-    imp: { projP: 8 },
+    imps: [{ projP: 8 }, { ss: 4 }, { ammoN: 1 }, { hsP: 20 }, { grenN: 1 }, { pierce: 1 }],
     ic: [12, 12, 26, 12, 26, 26],
     n: ['手弩', '輕弩', '連弩', '重弩', '攻城弩', '神機弩']
   },
@@ -3390,7 +3398,7 @@ const WCLS = {
     m: 0.85,
     as: 1.6,
     crit: 5,
-    imp: { critX: 10 },
+    imps: [{ critX: 10 }, { critInc: 15 }, { poisonCh: 15 }, { projP: 15 }, { mpLeech: 2 }, { powOnCrit: 15 }],
     ic: [13, 28, 13, 28, 13, 28],
     n: ['短刀', '匕首', '蛇牙匕首', '苦無', '儀式匕首', '刺客短刀']
   },
@@ -3398,7 +3406,7 @@ const WCLS = {
     m: 0.8,
     as: 1.65,
     crit: 1,
-    imp: { loh: 2 },
+    imps: [{ loh: 2 }, { bleedCh: 8 }, { critInc: 20 }, { ss: 5 }, { leech: 1 }, { onsKill: 20 }],
     ic: [27, 14, 27, 14, 27, 14],
     n: ['拳刃', '爪', '虎爪', '鷹爪', '鬼爪', '龍爪']
   },
@@ -3406,7 +3414,7 @@ const WCLS = {
     m: 1.1,
     as: 1.45,
     crit: 4,
-    imp: {},
+    imps: [{ dazeCh: 10 }, { aoe: 8 }, { bleedCh: 10 }, { critX: 15 }, { armBreak: 1 }, { lightP: 25 }],
     ic: [22, 22, 22, 22, 22, 22],
     n: ['鏈錘', '流星錘', '鐵蒺藜', '雙節錘', '晨星鏈錘', '天雷鏈錘']
   },
@@ -3414,7 +3422,7 @@ const WCLS = {
     m: 0.35,
     as: 1.2,
     crit: 0,
-    imp: { elemP: 15, spellLv: 0.5 },
+    imps: [{ elemP: 15 }, { occP: 22 }, { spellLv: 1 }, { fireP: 40 }, { coldP: 45 }, { lightP: 50 }],
     ic: [4, 31, 4, 31, 4, 31],
     n: ['木杖', '骨杖', '符杖', '龍骨杖', '水晶長杖', '雷霆杖']
   },
@@ -3422,7 +3430,7 @@ const WCLS = {
     m: 0.3,
     as: 1.3,
     crit: 0,
-    imp: { occP: 8, castP: 5 },
+    imps: [{ occP: 8 }, { chaosP: 15 }, { lightP: 25 }, { castP: 10 }, { arcaneHit: 15 }, { spellLv: 1 }],
     ic: [31, 31, 31, 31, 31, 31],
     n: ['短杖', '骨法杖', '雷擊木', '符咒杖', '聖杖', '星辰杖']
   },
@@ -3430,7 +3438,14 @@ const WCLS = {
     m: 0.3,
     as: 1.3,
     crit: 0,
-    imp: { spirit: 15 },
+    imps: [
+      { spirit: 15 },
+      { spirit: 23, minionP: 10 },
+      { spirit: 30, auraEff: 4 },
+      { spirit: 38, spellP: 12 },
+      { spirit: 45, esLeech: 1 },
+      { spirit: 53, spiritEff: 10 }
+    ],
     ic: [15, 15, 15, 15, 15, 15],
     n: ['銅權杖', '儀式權杖', '祭司權杖', '黃金權杖', '魂權杖', '王權']
   },
@@ -3438,7 +3453,7 @@ const WCLS = {
     m: 0.3,
     as: 1.2,
     crit: 0,
-    imp: { unitP: 10 },
+    imps: [{ aoe: 6 }, { bleedCh: 15 }, { fireP: 25 }, { ailMag: 20 }, { units: 1 }, { unitP: 35 }],
     ic: ['sup_sp_trap', 'sup_sp_mine', 'sup_sp_trap', 'sup_sp_mine', 'sup_sp_trap', 'sup_sp_mine'],
     n: ['機關匣', '捕獸器', '火藥匣', '符咒匣', '千機匣', '天工匣']
   },
@@ -3446,8 +3461,7 @@ const WCLS = {
     m: 1.45,
     as: 1.3,
     crit: 1,
-    /* 0.2.13：每一階的固定詞綴不一樣（imps 不乘階級倍率） */
-    imps: [{ block: 6 }, { priP: 12 }, { bleedCh: 15 }, { life: 40 }, { regen: 8 }, { priP: 20 }],
+    imps: [{ block: 6 }, { rageMax: 8 }, { bleedCh: 15 }, { life: 40 }, { regen: 8 }, { priP: 20 }],
     ic: ['asc_s_paw', 'asc_s_paw', 'asc_s_paw', 'asc_s_paw', 'asc_s_paw', 'asc_s_paw'],
     n: ['木魔符', '骨魔符', '獸牙魔符', '月石魔符', '古樹魔符', '龍魂魔符']
   }
@@ -3461,12 +3475,7 @@ const WEAPON_BASES = Object.entries(WCLS).flatMap(([wt, C]) =>
     const avg = 9 * Math.pow(1.12, lv - 1) * C.m,
       b = { dmg: [Math.max(1, Math.round(avg * 0.6)), Math.round(avg * 1.4)], as: C.as };
     if (C.crit) b.crit = C.crit;
-    const I = C.imps ? C.imps[i] : C.imp;
-    for (const k in I) {
-      const v = I[k] * (C.imps ? 1 : 1 + i * 0.5);
-      b[k] = k === 'spellLv' ? Math.floor(v) : Math.round(v);
-      if (!b[k]) delete b[k];
-    }
+    Object.assign(b, C.imps[i]);
     const ic = C.ic[i];
     return {
       id: `w_${wt}_${i}`,
@@ -3484,19 +3493,65 @@ const WEAPON_BASES = Object.entries(WCLS).flatMap(([wt, C]) =>
 const BASES = [
   /* 刀（單手）：暴擊率 */
   ...WEAPON_BASES,
-  /* 盾只有一種（0.2.9：不分盾與輕盾）；法器是單手法系武器的副手 */
-  { id: 's_wood', k: 'shield', n: '木盾', lv: 1, ic: 'gear_offhand_2', b: { armor: 12, block: 10 } },
-  { id: 's_round', k: 'shield', n: '圓盾', lv: 4, ic: 'gear_offhand_8', b: { armor: 28, ev: 20, block: 12 } },
-  { id: 's_iron', k: 'shield', n: '鳶盾', lv: 7, ic: 'gear_offhand_9', b: { armor: 50, block: 14 } },
-  { id: 's_bone', k: 'shield', n: '骨盾', lv: 10, ic: 'gear_offhand_10', b: { armor: 45, es: 30, block: 15 } },
-  { id: 's_tower', k: 'shield', n: '塔盾', lv: 13, ic: 'gear_offhand_3', b: { armor: 110, block: 18 } },
+  /* 盾 9 個＋輕盾 6 個，每個一條固定詞（block 是基底數值，不算）；輕盾是盾的一種：護甲低（格擋值也低）、有閃避，不綁技能。法器是單手法系武器的副手 */
+  { id: 's_wood', k: 'shield', n: '木盾', lv: 1, ic: 'gear_offhand_2', b: { armor: 12, block: 10, regen: 1 } },
+  { id: 's_round', k: 'shield', n: '圓盾', lv: 4, ic: 'gear_offhand_8', b: { armor: 28, ev: 20, block: 12, resF: 8 } },
+  { id: 's_iron', k: 'shield', n: '鳶盾', lv: 7, ic: 'gear_offhand_9', b: { armor: 50, block: 14, resL: 8 } },
+  { id: 's_bone', k: 'shield', n: '骨盾', lv: 10, ic: 'gear_offhand_10', b: { armor: 45, es: 30, block: 15, resX: 6 } },
+  { id: 's_tower', k: 'shield', n: '塔盾', lv: 13, ic: 'gear_offhand_3', b: { armor: 110, block: 18, life: 40 } },
+  { id: 's_hide', k: 'shield', n: '獸皮盾', lv: 3, ic: 'gear_offhand_2', b: { armor: 20, block: 11, stunThrP: 15 } },
+  {
+    id: 's_crest',
+    k: 'shield',
+    n: '紋章盾',
+    lv: 6,
+    ic: 'gear_offhand_9',
+    b: { armor: 34, es: 20, block: 13, resC: 8 }
+  },
+  { id: 's_dragon', k: 'shield', n: '龍鱗盾', lv: 12, ic: 'gear_offhand_9', b: { armor: 100, block: 17, resA: 5 } },
+  { id: 's_genbu', k: 'shield', n: '玄武盾', lv: 15, ic: 'gear_offhand_3', b: { armor: 110, block: 18, ailThrP: 25 } },
+  { id: 's_hand', k: 'shield', n: '手盾', lv: 1, ic: 'gear_offhand_8', b: { armor: 5, ev: 12, block: 9, rollCd: 4 } },
+  {
+    id: 's_buckler',
+    k: 'shield',
+    n: '小圓盾',
+    lv: 3,
+    ic: 'gear_offhand_8',
+    b: { armor: 10, ev: 22, block: 10, acc: 40 }
+  },
+  { id: 's_arm', k: 'shield', n: '臂盾', lv: 6, ic: 'gear_offhand_2', b: { armor: 18, ev: 38, block: 11, ms: 2 } },
+  { id: 's_rattan', k: 'shield', n: '藤牌', lv: 9, ic: 'gear_offhand_8', b: { armor: 26, ev: 56, block: 12, resA: 4 } },
+  {
+    id: 's_tiger',
+    k: 'shield',
+    n: '虎頭牌',
+    lv: 12,
+    ic: 'gear_offhand_9',
+    b: { armor: 36, ev: 76, block: 13, critInc: 12 }
+  },
+  {
+    id: 's_crane',
+    k: 'shield',
+    n: '鶴翼牌',
+    lv: 15,
+    ic: 'gear_offhand_3',
+    b: { armor: 36, ev: 76, block: 14, rollCd: 10 }
+  },
   { id: 'f_orb', k: 'focus', n: '水晶球', lv: 1, ic: 'gear_offhand_11', b: { es: 20 } },
   { id: 'f_rune', k: 'focus', n: '符文法珠', lv: 5, ic: 'gear_offhand_4', b: { es: 45, spellP: 6 } },
   { id: 'f_moon', k: 'focus', n: '月光法器', lv: 9, ic: 'gear_offhand_5', b: { es: 75, spellP: 10 } },
   { id: 'f_mirror', k: 'focus', n: '八卦鏡', lv: 13, ic: 'gear_offhand_12', b: { es: 110, spellP: 14 } },
+  { id: 'f_bell', k: 'focus', n: '法鈴', lv: 3, ic: 'gear_offhand_11', b: { es: 32, castP: 3 } },
+  { id: 'f_lotus', k: 'focus', n: '金蓮法器', lv: 15, ic: 'gear_offhand_5', b: { es: 110, castP: 8 } },
   { id: 'q_bamboo', k: 'quiver', n: '竹箭袋', lv: 1, ic: 'ail_n_arrow', b: { projP: 8 } },
   { id: 'q_feather', k: 'quiver', n: '羽箭袋', lv: 6, ic: 'ail_n_arrow', b: { projP: 12, crit: 2 } },
   { id: 'q_oni', k: 'quiver', n: '鬼箭袋', lv: 12, ic: 'ail_n_arrow', b: { projP: 16, critX: 15 } },
+  { id: 'q_fire', k: 'quiver', n: '火箭袋', lv: 3, ic: 'ail_n_arrow', b: { fire: [3, 5] } },
+  { id: 'q_saw', k: 'quiver', n: '鋸齒箭袋', lv: 9, ic: 'ail_n_arrow', b: { bleedCh: 15 } },
+  { id: 'q_pierce', k: 'quiver', n: '破甲箭袋', lv: 15, ic: 'ail_n_arrow', b: { pierce: 1 } },
+  /* 防具六系：每部位每系 6 個（舊基底的階級不動，新基底補 1、3、6、9、12、15 的空位）；
+     防禦到階級 12 凍結（上限＝0.2.43 該部位該系的最高值，階級 15 跟 12 相同），混合系約單系的 55%＋55%（不低於舊的混合基底）；
+     頭、手、鞋沒有固定詞，胸甲階級 12 起一條，靠固定詞分流 */
   { id: 'h_cloth', k: 'helm', n: '頭巾', lv: 1, ic: 'gear_helm_5', b: { armor: 6 } },
   { id: 'h_iron', k: 'helm', n: '鐵盔', lv: 6, ic: 'gear_helm_1', b: { armor: 22 } },
   { id: 'h_circlet', k: 'helm', n: '頭冠', lv: 2, ic: 'gear_helm_7', b: { es: 20 } },
@@ -3509,6 +3564,31 @@ const BASES = [
   { id: 'h_hachi', k: 'helm', n: '鉢金', lv: 8, ic: 'gear_helm_6', b: { armor: 18, ev: 18 } },
   { id: 'h_eboshi', k: 'helm', n: '烏帽子', lv: 8, ic: 'gear_helm_4', b: { armor: 18, es: 22 } },
   { id: 'h_kitsune', k: 'helm', n: '狐面', lv: 8, ic: 'gear_helm_8', b: { ev: 18, es: 22 } },
+  { id: 'h_leather', k: 'helm', n: '皮盔', lv: 3, ic: 'gear_helm_0', b: { armor: 12 } },
+  { id: 'h_doumou', k: 'helm', n: '兜鍪', lv: 9, ic: 'gear_helm_6', b: { armor: 36 } },
+  { id: 'h_kongo', k: 'helm', n: '金剛盔', lv: 15, ic: 'gear_helm_11', b: { armor: 55 } },
+  { id: 'h_bamboo', k: 'helm', n: '竹笠', lv: 3, ic: 'gear_helm_0', b: { ev: 14 } },
+  { id: 'h_mask', k: 'helm', n: '蒙面巾', lv: 9, ic: 'gear_helm_2', b: { ev: 40 } },
+  { id: 'h_karasu', k: 'helm', n: '鴉天狗面', lv: 15, ic: 'gear_helm_3', b: { ev: 60 } },
+  { id: 'h_crown', k: 'helm', n: '布冠', lv: 1, ic: 'gear_helm_5', b: { es: 12 } },
+  { id: 'h_jadecr', k: 'helm', n: '玉冠', lv: 6, ic: 'gear_helm_7', b: { es: 38 } },
+  { id: 'h_lotus', k: 'helm', n: '蓮華冠', lv: 12, ic: 'gear_helm_4', b: { es: 60 } },
+  { id: 'h_tennin', k: 'helm', n: '天人冠', lv: 15, ic: 'gear_helm_10', b: { es: 60 } },
+  { id: 'h_hitai', k: 'helm', n: '皮額當', lv: 1, ic: 'gear_helm_5', b: { armor: 3, ev: 4 } },
+  { id: 'h_tetsuhitai', k: 'helm', n: '鐵額當', lv: 3, ic: 'gear_helm_6', b: { armor: 7, ev: 8 } },
+  { id: 'h_jingasa', k: 'helm', n: '陣笠', lv: 6, ic: 'gear_helm_0', b: { armor: 12, ev: 14 } },
+  { id: 'h_suji', k: 'helm', n: '筋兜', lv: 12, ic: 'gear_helm_9', b: { armor: 30, ev: 33 } },
+  { id: 'h_hoshi', k: 'helm', n: '星兜', lv: 15, ic: 'gear_helm_9', b: { armor: 30, ev: 33 } },
+  { id: 'h_bousi', k: 'helm', n: '僧帽', lv: 1, ic: 'gear_helm_5', b: { armor: 3, es: 7 } },
+  { id: 'h_dokan', k: 'helm', n: '道冠', lv: 3, ic: 'gear_helm_7', b: { armor: 7, es: 14 } },
+  { id: 'h_tateeboshi', k: 'helm', n: '立烏帽子', lv: 6, ic: 'gear_helm_10', b: { armor: 12, es: 21 } },
+  { id: 'h_kineboshi', k: 'helm', n: '金烏帽', lv: 12, ic: 'gear_helm_4', b: { armor: 30, es: 33 } },
+  { id: 'h_shinkan', k: 'helm', n: '神官冠', lv: 15, ic: 'gear_helm_10', b: { armor: 30, es: 33 } },
+  { id: 'h_noh', k: 'helm', n: '能面', lv: 1, ic: 'gear_helm_8', b: { ev: 4, es: 7 } },
+  { id: 'h_paper', k: 'helm', n: '紙面', lv: 3, ic: 'gear_helm_8', b: { ev: 8, es: 14 } },
+  { id: 'h_hannya', k: 'helm', n: '般若面', lv: 6, ic: 'gear_helm_11', b: { ev: 14, es: 21 } },
+  { id: 'h_saru', k: 'helm', n: '猿面', lv: 12, ic: 'gear_helm_8', b: { ev: 33, es: 33 } },
+  { id: 'h_yasha', k: 'helm', n: '夜叉面', lv: 15, ic: 'gear_helm_11', b: { ev: 33, es: 33 } },
   { id: 'c_leather', k: 'chest', n: '皮甲', lv: 1, ic: 'gear_chest_0', b: { armor: 14 } },
   { id: 'c_chain', k: 'chest', n: '鎖子甲', lv: 5, ic: 'gear_chest_1', b: { armor: 45 } },
   { id: 'c_robe', k: 'chest', n: '法袍', lv: 2, ic: 'gear_chest_2', b: { es: 35 } },
@@ -3517,10 +3597,35 @@ const BASES = [
   /* 閃避系、混合（0.2.6） */
   { id: 'c_shinobi', k: 'chest', n: '忍裝束', lv: 1, ic: 'gear_chest_5', b: { ev: 16 } },
   { id: 'c_yako', k: 'chest', n: '夜行衣', lv: 6, ic: 'gear_chest_7', b: { ev: 50 } },
-  { id: 'c_kage', k: 'chest', n: '影武者裝', lv: 12, ic: 'gear_chest_10', b: { ev: 120 } },
+  { id: 'c_kage', k: 'chest', n: '影武者裝', lv: 12, ic: 'gear_chest_10', b: { ev: 120, ailThrP: 35 } },
   { id: 'c_katabira', k: 'chest', n: '鎖帷子', lv: 8, ic: 'gear_chest_4', b: { armor: 40, ev: 40 } },
   { id: 'c_sohei', k: 'chest', n: '僧兵鎧', lv: 8, ic: 'gear_chest_9', b: { armor: 40, es: 50 } },
   { id: 'c_miko', k: 'chest', n: '巫女服', lv: 8, ic: 'gear_chest_6', b: { ev: 40, es: 50 } },
+  { id: 'c_lamellar', k: 'chest', n: '札甲', lv: 3, ic: 'gear_chest_0', b: { armor: 28 } },
+  { id: 'c_gusoku', k: 'chest', n: '當世具足', lv: 12, ic: 'gear_chest_3', b: { armor: 110, stunThrP: 35 } },
+  { id: 'c_kongo', k: 'chest', n: '金剛鎧', lv: 15, ic: 'gear_chest_3', b: { armor: 110, regen: 15 } },
+  { id: 'c_tanka', k: 'chest', n: '短褐', lv: 3, ic: 'gear_chest_5', b: { ev: 30 } },
+  { id: 'c_tobi', k: 'chest', n: '飛衣', lv: 9, ic: 'gear_chest_7', b: { ev: 82 } },
+  { id: 'c_karasu', k: 'chest', n: '鴉羽衣', lv: 15, ic: 'gear_chest_10', b: { ev: 120, ms: 5 } },
+  { id: 'c_hemp', k: 'chest', n: '麻衣', lv: 1, ic: 'gear_chest_5', b: { es: 22 } },
+  { id: 'c_doupao', k: 'chest', n: '道袍', lv: 6, ic: 'gear_chest_8', b: { es: 66 } },
+  { id: 'c_shiju', k: 'chest', n: '紫綬仙衣', lv: 12, ic: 'gear_chest_11', b: { es: 100, esRec: 25 } },
+  { id: 'c_hagoromo', k: 'chest', n: '天人羽衣', lv: 15, ic: 'gear_chest_11', b: { es: 100, esDelay: 30 } },
+  { id: 'c_dou', k: 'chest', n: '皮胴', lv: 1, ic: 'gear_chest_0', b: { armor: 8, ev: 9 } },
+  { id: 'c_doumaru', k: 'chest', n: '胴丸', lv: 3, ic: 'gear_chest_4', b: { armor: 15, ev: 17 } },
+  { id: 'c_haramaki', k: 'chest', n: '腹卷', lv: 6, ic: 'gear_chest_4', b: { armor: 30, ev: 28 } },
+  { id: 'c_nanban', k: 'chest', n: '南蠻胴', lv: 12, ic: 'gear_chest_3', b: { armor: 61, ev: 66, life: 70 } },
+  { id: 'c_jinbaori', k: 'chest', n: '陣羽織', lv: 15, ic: 'gear_chest_10', b: { armor: 61, ev: 66, resL: 25 } },
+  { id: 'c_kesa', k: 'chest', n: '袈裟', lv: 1, ic: 'gear_chest_8', b: { armor: 8, es: 12 } },
+  { id: 'c_houi', k: 'chest', n: '法衣', lv: 3, ic: 'gear_chest_2', b: { armor: 15, es: 23 } },
+  { id: 'c_kato', k: 'chest', n: '裹頭袈裟', lv: 6, ic: 'gear_chest_9', b: { armor: 30, es: 36 } },
+  { id: 'c_kinran', k: 'chest', n: '錦襴袈裟', lv: 12, ic: 'gear_chest_11', b: { armor: 61, es: 55, maxRes: 1 } },
+  { id: 'c_myoo', k: 'chest', n: '明王鎧', lv: 15, ic: 'gear_chest_9', b: { armor: 61, es: 55, spirit: 25 } },
+  { id: 'c_byakue', k: 'chest', n: '白衣', lv: 1, ic: 'gear_chest_5', b: { ev: 9, es: 12 } },
+  { id: 'c_kariginu', k: 'chest', n: '狩衣', lv: 3, ic: 'gear_chest_6', b: { ev: 17, es: 23 } },
+  { id: 'c_joue', k: 'chest', n: '淨衣', lv: 6, ic: 'gear_chest_6', b: { ev: 28, es: 36 } },
+  { id: 'c_juni', k: 'chest', n: '十二單', lv: 12, ic: 'gear_chest_2', b: { ev: 66, es: 55, resX: 10 } },
+  { id: 'c_kakusho', k: 'chest', n: '鶴氅', lv: 15, ic: 'gear_chest_11', b: { ev: 66, es: 55, recoupHp: 10 } },
   { id: 'g_cloth', k: 'gloves', n: '布手套', lv: 1, ic: 'gear_gloves_0', b: { armor: 4 } },
   { id: 'g_silk', k: 'gloves', n: '絲手套', lv: 3, ic: 'gear_gloves_7', b: { es: 12 } },
   { id: 'g_iron', k: 'gloves', n: '鐵手甲', lv: 7, ic: 'gear_gloves_1', b: { armor: 18 } },
@@ -3531,6 +3636,33 @@ const BASES = [
   { id: 'g_kote', k: 'gloves', n: '籠手', lv: 8, ic: 'gear_gloves_9', b: { armor: 12, ev: 12 } },
   { id: 'g_juzu', k: 'gloves', n: '數珠手套', lv: 8, ic: 'gear_gloves_2', b: { armor: 12, es: 14 } },
   { id: 'g_nishiki', k: 'gloves', n: '繡手套', lv: 8, ic: 'gear_gloves_4', b: { ev: 12, es: 14 } },
+  { id: 'g_leather', k: 'gloves', n: '革手套', lv: 3, ic: 'gear_gloves_0', b: { armor: 9 } },
+  { id: 'g_steel', k: 'gloves', n: '鋼手甲', lv: 9, ic: 'gear_gloves_1', b: { armor: 18 } },
+  { id: 'g_oni', k: 'gloves', n: '鬼手甲', lv: 12, ic: 'gear_gloves_9', b: { armor: 18 } },
+  { id: 'g_kongo', k: 'gloves', n: '金剛手甲', lv: 15, ic: 'gear_gloves_1', b: { armor: 18 } },
+  { id: 'g_yugake', k: 'gloves', n: '指革', lv: 3, ic: 'gear_gloves_4', b: { ev: 10 } },
+  { id: 'g_igote', k: 'gloves', n: '射籠手', lv: 9, ic: 'gear_gloves_3', b: { ev: 28 } },
+  { id: 'g_karasu', k: 'gloves', n: '鴉手甲', lv: 15, ic: 'gear_gloves_6', b: { ev: 40 } },
+  { id: 'g_hemp', k: 'gloves', n: '麻手套', lv: 1, ic: 'gear_gloves_4', b: { es: 8 } },
+  { id: 'g_aya', k: 'gloves', n: '綾手套', lv: 6, ic: 'gear_gloves_7', b: { es: 12 } },
+  { id: 'g_ra', k: 'gloves', n: '羅手套', lv: 9, ic: 'gear_gloves_2', b: { es: 12 } },
+  { id: 'g_lotus', k: 'gloves', n: '蓮華手套', lv: 12, ic: 'gear_gloves_7', b: { es: 12 } },
+  { id: 'g_tennin', k: 'gloves', n: '天人手套', lv: 15, ic: 'gear_gloves_2', b: { es: 12 } },
+  { id: 'g_tekou', k: 'gloves', n: '手甲', lv: 1, ic: 'gear_gloves_3', b: { armor: 2, ev: 3 } },
+  { id: 'g_kogote', k: 'gloves', n: '小手', lv: 3, ic: 'gear_gloves_3', b: { armor: 5, ev: 6 } },
+  { id: 'g_shino', k: 'gloves', n: '篠籠手', lv: 6, ic: 'gear_gloves_9', b: { armor: 10, ev: 10 } },
+  { id: 'g_kusari', k: 'gloves', n: '鎖籠手', lv: 12, ic: 'gear_gloves_1', b: { armor: 12, ev: 22 } },
+  { id: 'g_hoshi', k: 'gloves', n: '星籠手', lv: 15, ic: 'gear_gloves_8', b: { armor: 12, ev: 22 } },
+  { id: 'g_mokuju', k: 'gloves', n: '木珠手套', lv: 1, ic: 'gear_gloves_2', b: { armor: 2, es: 4 } },
+  { id: 'g_doju', k: 'gloves', n: '銅珠手套', lv: 3, ic: 'gear_gloves_2', b: { armor: 5, es: 7 } },
+  { id: 'g_gyoku', k: 'gloves', n: '玉珠手套', lv: 6, ic: 'gear_gloves_2', b: { armor: 10, es: 7 } },
+  { id: 'g_shari', k: 'gloves', n: '舍利手套', lv: 12, ic: 'gear_gloves_7', b: { armor: 12, es: 14 } },
+  { id: 'g_myoo', k: 'gloves', n: '明王手套', lv: 15, ic: 'gear_gloves_8', b: { armor: 12, es: 14 } },
+  { id: 'g_sha', k: 'gloves', n: '紗手套', lv: 1, ic: 'gear_gloves_4', b: { ev: 3, es: 4 } },
+  { id: 'g_don', k: 'gloves', n: '緞手套', lv: 3, ic: 'gear_gloves_4', b: { ev: 6, es: 7 } },
+  { id: 'g_kinsen', k: 'gloves', n: '金線手套', lv: 6, ic: 'gear_gloves_7', b: { ev: 10, es: 7 } },
+  { id: 'g_hou', k: 'gloves', n: '鳳繡手套', lv: 12, ic: 'gear_gloves_8', b: { ev: 22, es: 14 } },
+  { id: 'g_tenne', k: 'gloves', n: '天衣手套', lv: 15, ic: 'gear_gloves_2', b: { ev: 22, es: 14 } },
   { id: 'b_straw', k: 'boots', n: '草鞋', lv: 1, ic: 'gear_boots_4', b: { armor: 4 } },
   { id: 'b_cloth', k: 'boots', n: '布靴', lv: 3, ic: 'gear_boots_2', b: { es: 12 } },
   { id: 'b_iron', k: 'boots', n: '鐵脛靴', lv: 7, ic: 'gear_boots_1', b: { armor: 18 } },
@@ -3541,15 +3673,63 @@ const BASES = [
   { id: 'b_sune', k: 'boots', n: '臑當', lv: 8, ic: 'gear_boots_8', b: { armor: 12, ev: 12 } },
   { id: 'b_sorei', k: 'boots', n: '僧鞋', lv: 8, ic: 'gear_boots_3', b: { armor: 12, es: 14 } },
   { id: 'b_kinu', k: 'boots', n: '絹鞋', lv: 8, ic: 'gear_boots_9', b: { ev: 12, es: 14 } },
+  { id: 'b_leather', k: 'boots', n: '革靴', lv: 3, ic: 'gear_boots_0', b: { armor: 9 } },
+  { id: 'b_steel', k: 'boots', n: '鋼脛靴', lv: 9, ic: 'gear_boots_1', b: { armor: 18 } },
+  { id: 'b_oni', k: 'boots', n: '鬼脛靴', lv: 12, ic: 'gear_boots_3', b: { armor: 18 } },
+  { id: 'b_kongo', k: 'boots', n: '金剛靴', lv: 15, ic: 'gear_boots_7', b: { armor: 18 } },
+  { id: 'b_asa', k: 'boots', n: '麻足袋', lv: 3, ic: 'gear_boots_5', b: { ev: 10 } },
+  { id: 'b_hien', k: 'boots', n: '飛燕足袋', lv: 9, ic: 'gear_boots_8', b: { ev: 28 } },
+  { id: 'b_shinko', k: 'boots', n: '神行足袋', lv: 15, ic: 'gear_boots_8', b: { ev: 40 } },
+  { id: 'b_hemp', k: 'boots', n: '麻靴', lv: 1, ic: 'gear_boots_5', b: { es: 8 } },
+  { id: 'b_aya', k: 'boots', n: '綾靴', lv: 6, ic: 'gear_boots_2', b: { es: 12 } },
+  { id: 'b_dou', k: 'boots', n: '道靴', lv: 9, ic: 'gear_boots_2', b: { es: 12 } },
+  { id: 'b_lotus', k: 'boots', n: '蓮華靴', lv: 12, ic: 'gear_boots_2', b: { es: 12 } },
+  { id: 'b_tennin', k: 'boots', n: '天人靴', lv: 15, ic: 'gear_boots_9', b: { es: 12 } },
+  { id: 'b_kawa', k: 'boots', n: '皮脛當', lv: 1, ic: 'gear_boots_0', b: { armor: 2, ev: 3 } },
+  { id: 'b_geta', k: 'boots', n: '木屐', lv: 3, ic: 'gear_boots_4', b: { armor: 5, ev: 6 } },
+  { id: 'b_kyahan', k: 'boots', n: '脛巾', lv: 6, ic: 'gear_boots_5', b: { armor: 10, ev: 10 } },
+  { id: 'b_kusari', k: 'boots', n: '鎖臑當', lv: 12, ic: 'gear_boots_3', b: { armor: 12, ev: 22 } },
+  { id: 'b_hoshi', k: 'boots', n: '星臑當', lv: 15, ic: 'gear_boots_7', b: { armor: 12, ev: 22 } },
+  { id: 'b_rakan', k: 'boots', n: '羅漢鞋', lv: 1, ic: 'gear_boots_4', b: { armor: 2, es: 4 } },
+  { id: 'b_bou', k: 'boots', n: '芒鞋', lv: 3, ic: 'gear_boots_4', b: { armor: 5, es: 7 } },
+  { id: 'b_unri', k: 'boots', n: '雲履', lv: 6, ic: 'gear_boots_3', b: { armor: 10, es: 7 } },
+  { id: 'b_shari', k: 'boots', n: '舍利鞋', lv: 12, ic: 'gear_boots_3', b: { armor: 12, es: 14 } },
+  { id: 'b_myoo', k: 'boots', n: '明王鞋', lv: 15, ic: 'gear_boots_7', b: { armor: 12, es: 14 } },
+  { id: 'b_shishu', k: 'boots', n: '繡鞋', lv: 1, ic: 'gear_boots_5', b: { ev: 3, es: 4 } },
+  { id: 'b_don', k: 'boots', n: '緞鞋', lv: 3, ic: 'gear_boots_9', b: { ev: 6, es: 7 } },
+  { id: 'b_kin', k: 'boots', n: '錦履', lv: 6, ic: 'gear_boots_9', b: { ev: 10, es: 7 } },
+  { id: 'b_hou', k: 'boots', n: '鳳履', lv: 12, ic: 'gear_boots_9', b: { ev: 22, es: 14 } },
+  { id: 'b_tenne', k: 'boots', n: '天衣履', lv: 15, ic: 'gear_boots_2', b: { ev: 22, es: 14 } },
   { id: 'bt_rope', k: 'belt', n: '繩帶', lv: 1, ic: 'gear_belt_0', b: { life: 10 } },
   { id: 'bt_leather', k: 'belt', n: '皮帶', lv: 6, ic: 'gear_belt_5', b: { life: 25 } },
+  { id: 'bt_linen', k: 'belt', n: '麻帶', lv: 3, ic: 'gear_belt_4', b: { mp: 15 } },
+  { id: 'bt_plate', k: 'belt', n: '鐵扣帶', lv: 6, ic: 'gear_belt_1', b: { armor: 30 } },
+  { id: 'bt_pouch', k: 'belt', n: '藥囊帶', lv: 9, ic: 'gear_belt_6', b: { flask: 20 } },
+  { id: 'bt_chain', k: 'belt', n: '鎖鏈帶', lv: 12, ic: 'gear_belt_2', b: { stunThrP: 25 } },
+  { id: 'bt_rune', k: 'belt', n: '符文帶', lv: 12, ic: 'gear_belt_3', b: { ailThrP: 20 } },
+  { id: 'bt_scale', k: 'belt', n: '龍鱗帶', lv: 15, ic: 'gear_belt_7', b: { regen: 10 } },
   { id: 'r_iron', k: 'ring', n: '鐵戒', lv: 1, ic: 'gear_ring_5', b: { life: 6 } },
   { id: 'r_ruby', k: 'ring', n: '紅玉戒', lv: 3, ic: 'gear_ring_0', b: { resF: 12 } },
   { id: 'r_sapph', k: 'ring', n: '藍玉戒', lv: 3, ic: 'gear_ring_1', b: { resC: 12 } },
   { id: 'r_topaz', k: 'ring', n: '黃玉戒', lv: 3, ic: 'gear_ring_2', b: { resL: 12 } },
+  { id: 'r_lazuli', k: 'ring', n: '琉璃戒', lv: 1, ic: 'gear_ring_1', b: { mp: 15 } },
+  { id: 'r_copper', k: 'ring', n: '銅戒', lv: 3, ic: 'gear_ring_3', b: { flat: [1, 4] } },
+  { id: 'r_amethyst', k: 'ring', n: '紫晶戒', lv: 6, ic: 'gear_ring_7', b: { resX: 8 } },
+  { id: 'r_emerald', k: 'ring', n: '翡翠戒', lv: 6, ic: 'gear_ring_8', b: { acc: 80 } },
+  { id: 'r_pearl', k: 'ring', n: '珍珠戒', lv: 9, ic: 'gear_ring_4', b: { castP: 6 } },
+  { id: 'r_prism', k: 'ring', n: '七彩戒', lv: 9, ic: 'gear_ring_10', b: { resA: 7 } },
+  { id: 'r_nether', k: 'ring', n: '冥玉戒', lv: 12, ic: 'gear_ring_11', b: { chaosP: 15 } },
+  { id: 'r_tenju', k: 'ring', n: '天珠戒', lv: 15, ic: 'gear_ring_6', b: { maxRes: 1 } },
   { id: 'a_jade', k: 'amulet', n: '玉珮', lv: 1, ic: 'gear_amulet_1', b: { life: 12 } },
   { id: 'a_coral', k: 'amulet', n: '珊瑚墜', lv: 5, ic: 'gear_amulet_2', b: { regen: 2 } },
-  { id: 'a_gold', k: 'amulet', n: '金鎖片', lv: 9, ic: 'gear_amulet_4', b: { crit: 8 } }
+  { id: 'a_gold', k: 'amulet', n: '金鎖片', lv: 9, ic: 'gear_amulet_4', b: { crit: 8 } },
+  { id: 'a_amber', k: 'amulet', n: '琥珀墜', lv: 3, ic: 'gear_amulet_0', b: { str: 12 } },
+  { id: 'a_turq', k: 'amulet', n: '綠松墜', lv: 3, ic: 'gear_amulet_1', b: { dex: 12 } },
+  { id: 'a_lapis', k: 'amulet', n: '青金墜', lv: 3, ic: 'gear_amulet_2', b: { int: 12 } },
+  { id: 'a_moon', k: 'amulet', n: '月長墜', lv: 7, ic: 'gear_amulet_8', b: { es: 25 } },
+  { id: 'a_blood', k: 'amulet', n: '血石墜', lv: 12, ic: 'gear_amulet_5', b: { life: 40 } },
+  { id: 'a_star', k: 'amulet', n: '星辰墜', lv: 12, ic: 'gear_amulet_7', b: { attrA: 6 } },
+  { id: 'a_sun', k: 'amulet', n: '日輪墜', lv: 15, ic: 'gear_amulet_9', b: { spirit: 12 } }
 ];
 /* ---------- 做裝的材料（0.2.6，企劃書 5.3、6.3、6.4）：放材料頁（S.mat），不佔背包，打怪自動吸收 ---------- */
 /* 8 類詞綴類別：鍛造時選一類（免費）決定對哪一類詞下手 */

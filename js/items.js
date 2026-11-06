@@ -152,7 +152,13 @@ const itemName = it =>
         ? it.nm + ' ' + baseOf(it).n
         : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
 const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + '～' + a.v[1] : a.v);
-/* 基底的數值（品質放大）＋固定詞綴 */
+/* 基底的數值（品質放大）＋固定詞 */
+const impText = (k, v) => {
+  if (AFF[k]) return affText({ k, v });
+  if (IMPN[k]) return IMPN[k].replace('{}', v);
+  const [n, u, sw] = STATN[k];
+  return sw ? n : `${n} +${v}${u}`;
+};
 const qMul = it => 1 + (it.q || 0);
 const DEFK = ['armor', 'ev', 'es'];
 function baseText(it) {
@@ -178,8 +184,7 @@ function baseText(it) {
   if (b.block) o.push(`格擋 ${b.block}%`);
   if (B.k === 'quiver') o.push('只有拿弓才能用');
   for (const k in b)
-    if (!['dmg', 'as', 'block', 'crit', ...DEFK].includes(k) || (k === 'crit' && !b.dmg))
-      o.push(AFF[k] ? affText({ k, v: b[k] }) : (IMPN[k] || k + ' {}').replace('{}', b[k]));
+    if (!['dmg', 'as', 'block', 'crit', ...DEFK].includes(k) || (k === 'crit' && !b.dmg)) o.push(impText(k, b[k]));
   return o.filter(Boolean);
 }
 /* 品質、插槽數、潛能（說明框用；舊存檔的裝備沒有就不顯示） */
@@ -295,7 +300,8 @@ const lackTxt = l => l.map(([n, a, b]) => `${n} ${a}／${b}`).join('、');
 /* 一件裝備給的能力值 */
 function itemAttr(it) {
   const r = { str: 0, dex: 0, int: 0 };
-  for (const a of (it && it.a) || []) {
+  /* 固定詞（基底的 b）跟詞綴一樣算：項鍊有 +能力值 的基底 */
+  for (const a of it ? [...Object.entries(baseOf(it).b).map(([k, v]) => ({ k, v })), ...it.a] : []) {
     if (a.k === 'attrA') for (const k of ATTR) r[k] += a.v;
     else if (a.k in r) r[a.k] += a.v;
   }
@@ -417,6 +423,8 @@ function stats(s = S) {
     debuffMag: 0,
     unitP: 0,
     units: 0,
+    ammoN: 0,
+    grenN: 0,
     rollCd: 0,
     fireAdd: 0,
     ...Object.fromEntries(Object.keys(WTN).map(k => ['w_' + k, 0])),
