@@ -47,7 +47,7 @@ function gemCfg(g, i) {
       critX: 0,
       leech: ST.leech / 100,
       /* 天賦的投射物數量、穿透（0.2.23）只給投射物技能 */
-      proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0),
+      proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0) + (D.gren ? ST.grenN : 0),
       pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
       /* 全域投射物連鎖（0.2.25，彈射）：打中後彈向 260 內最近、還沒打過的敵人 */
       chain: D.tags.includes('proj') && !D.noChain ? ST.chain : 0,
@@ -171,7 +171,7 @@ function skillWhy(c, at) {
 }
 /* 付費：彈藥、魔力（或生命、地獄火）、流順之風、冷卻 */
 function skillPay(c, i) {
-  if (c.D.ammo) ammoUse(c.k, c.D.ammo[0], c.D.ammo[1]);
+  if (c.D.ammo) ammoUse(c.k, c.D.ammo[0] + ST.ammoN, c.D.ammo[1]);
   if (ST.blood) sacrifice('hp', c.mp);
   else if (ST.hellfire) hfGain(c.mp);
   else payMp(c.mp);

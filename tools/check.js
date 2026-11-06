@@ -1600,7 +1600,7 @@ vm.runInContext(
     .join('\n');
   ok(
     '機率都走 roll：沒有殘留的 Math.random() * 100 <',
-    !/Math\.random\(\) \* 100 </.test(src.replace(/function roll[\s\S]*?\n}\n/, ''))
+    !/Math\.random\(\) \* 100 </.test(src.replace(/function roll[\s\S]*?\r?\n}\r?\n/, ''))
   );
 }
 /* 0.2.42 第 7 批：技能分類標籤、跟標籤的傷害池、持續時間、tAdd、條件函式、格擋值＝盾的護甲×（1＋更多）、鐵金剛三個點 */
@@ -2676,5 +2676,175 @@ vm.runInContext(
     JSON.stringify(fq)
   );
   ok('地面詞改權重：其他地圖詞的相對比例不變（每條差不到 0.2 個百分點）', fq.drift < 0.2, JSON.stringify(fq));
+}
+/* 基底擴充（0.2.44）：防具六系、凍結、固定詞分布、數量、商人、固定詞有效 */
+{
+  const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  vm.createContext(c4);
+  for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
+  const R = s => vm.runInContext(s, c4);
+  R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+     const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, hudWarn = t => (G.warn = t), die = () => {}, los = () => true, open = () => true, floorNear = () => null;`);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8'), c4, {
+    filename: 'skills.js'
+  });
+  const B = R('BASES'),
+    DEF = ['armor', 'ev', 'es'],
+    PARTS = ['helm', 'chest', 'gloves', 'boots'],
+    SYS = ['armor', 'ev', 'es', 'armor+ev', 'armor+es', 'ev+es'],
+    sys = b => DEF.filter(k => b.b[k]).join('+'),
+    line = (p, s) => B.filter(b => b.k === p && sys(b) === s).sort((x, y) => x.lv - y.lv);
+  ok(
+    '基底：頭、胸、手、鞋每部位每系 6 個，共 144 個',
+    PARTS.every(p => SYS.every(s => line(p, s).length === 6)) && B.filter(b => PARTS.includes(b.k)).length === 144,
+    PARTS.flatMap(p => SYS.map(s => p + ' ' + s + ' ' + line(p, s).length)).join('、')
+  );
+  /* 階級 12 的單系防禦 */
+  const CAP = {
+      helm: { armor: 55, ev: 60, es: 60 },
+      chest: { armor: 110, ev: 120, es: 100 },
+      gloves: { armor: 40, ev: 40, es: 33 },
+      boots: { armor: 40, ev: 40, es: 33 }
+    },
+    frz = [];
+  for (const p of PARTS)
+    for (const s of SYS) {
+      const L = line(p, s),
+        ks = s.split('+'),
+        top = k => (ks.length > 1 ? Math.round(CAP[p][k] * 0.55) : CAP[p][k]),
+        /* 胸甲到階級 12 凍結；頭、手、鞋的階級 15 多 10% */
+        top15 = k => (p === 'chest' ? top(k) : Math.round(top(k) * 1.1));
+      for (const k of ks) {
+        const v = L.map(b => b.b[k]),
+          at = lv => L.filter(b => b.lv === lv).map(b => b.b[k]);
+        if (at(12)[0] !== top(k) || at(15)[0] !== top15(k) || Math.max(...v) !== top15(k))
+          frz.push(`${p} ${s} ${k} 上限`);
+        /* 手套、鞋子每階都要變高；頭與胸的舊基底已經到上限，只要不降 */
+        const flat = p === 'gloves' || p === 'boots' ? 0 : 1;
+        if (v.some((x, i) => i && x + flat <= v[i - 1])) frz.push(`${p} ${s} ${k} 階級高防禦沒有變高`);
+      }
+    }
+  ok('基底：階級 12 上限、胸甲凍結、頭手鞋階級 15 多 10%、混合約 55%＋55%、階梯遞增', !frz.length, frz.join('、'));
+  const impK = b =>
+      Object.keys(b.b).filter(
+        k => !(['helm', 'chest', 'gloves', 'boots', 'shield'].includes(b.k) && [...DEF, 'block'].includes(k))
+      ),
+    want = b => (['shield', 'ring', 'amulet', 'belt'].includes(b.k) || (b.k === 'chest' && b.lv >= 12) ? 1 : 0),
+    impBad = B.filter(b => !['weapon', 'focus', 'quiver'].includes(b.k) && impK(b).length !== want(b));
+  ok('基底：固定詞只有盾、飾品、階級 12 起的胸甲，一個基底一條', !impBad.length, impBad.map(b => b.n).join('、'));
+  const cnt = k => B.filter(b => b.k === k).length,
+    light = B.filter(b => b.k === 'shield' && b.b.ev > b.b.armor);
+  ok(
+    '基底：戒指 12、項鍊 10、腰帶 8、盾 9＋輕盾 6、法器 6、箭袋 6',
+    cnt('ring') === 12 &&
+      cnt('amulet') === 10 &&
+      cnt('belt') === 8 &&
+      cnt('shield') === 15 &&
+      light.length === 6 &&
+      cnt('focus') === 6 &&
+      cnt('quiver') === 6,
+    ['ring', 'amulet', 'belt', 'shield', 'focus', 'quiver'].map(cnt).join() + ' 輕盾 ' + light.length
+  );
+  /* 武器：id 是 w_類別_階；同一類的 6 個固定詞都不一樣 */
+  const WC = R('Object.keys(WCLS)'),
+    wSame = WC.filter(c => {
+      const L = B.filter(b => b.id.startsWith(`w_${c}_`)).map(b =>
+        Object.keys(b.b)
+          .filter(k => !['dmg', 'as', 'crit'].includes(k))
+          .sort()
+          .join()
+      );
+      return L.length !== 6 || L.some(x => !x) || new Set(L).size !== 6;
+    });
+  ok('基底：武器每類 6 個，固定詞都不一樣', WC.length === 18 && !wSame.length, wSame.join());
+  const dup = a => a.filter((x, i) => a.indexOf(x) !== i);
+  ok(
+    '基底：id、名字不重複',
+    !dup(B.map(b => b.id)).length && !dup(B.map(b => b.n)).length,
+    [...dup(B.map(b => b.id)), ...dup(B.map(b => b.n))].join()
+  );
+  const isNum = v => (Array.isArray(v) ? v.length === 2 && v.every(Number.isFinite) : Number.isFinite(v)),
+    nanB = B.filter(b => !Object.values(b.b).every(isNum) || !Number.isFinite(b.lv)).map(b => b.n);
+  ok('基底：所有基底數值都不是 NaN', !nanB.length, nanB.join('、'));
+  /* 每條固定詞都有說明，而且穿上去數值真的變（打錯鍵名、stats 沒接到的會抓出來） */
+  const dead = R(`(() => {
+    const bad = [], SLOT = { weapon: 'weapon', focus: 'off', quiver: 'off', shield: 'off', helm: 'helm', chest: 'chest', gloves: 'gloves', boots: 'boots', belt: 'belt', ring: 'ring1', amulet: 'amulet' };
+    const ring = mkItem('r_iron', 10, 0);
+    ring.a = [{ k: 'attrA', v: 999, T: 1 }];
+    for (const b of BASES) {
+      const it = mkItem(b.id, 16, 0);
+      const txt = baseText(it).join();
+      if (/undefined|NaN|[{]}/.test(txt)) bad.push(b.n + ' 說明：' + txt);
+      const s = { lv: 100, pt: [], at: [], auras: [], asc: null, eq: { ring2: ring, [SLOT[b.k]]: it } };
+      if (b.k === 'focus') s.eq.weapon = mkItem('w_wand_0', 16, 0);
+      if (b.k === 'quiver') s.eq.weapon = mkItem('w_bow_0', 16, 0);
+      for (const k of Object.keys(b.b)) {
+        if (['dmg', 'as', 'crit'].includes(k) && b.k === 'weapon') continue;
+        const v = b.b[k], a = JSON.stringify(stats(s));
+        delete b.b[k];
+        const c = JSON.stringify(stats(s));
+        b.b[k] = v;
+        if (a === c) bad.push(b.n + ' ' + k + ' 沒有效果');
+      }
+    }
+    return bad;
+  })()`);
+  ok('基底：每條固定詞都有說明、穿上去數值會變', !dead.length, dead.slice(0, 8).join('；'));
+  ok(
+    '基底：項鍊的能力值固定詞算進能力值與需求',
+    R(`(() => {
+      const s = { lv: 1, pt: [], at: [], auras: [], asc: null, eq: { amulet: mkItem('a_amber', 1, 0) } };
+      return eqCheck(s).tot.str === ATT_START + BASEI.a_amber.b.str;
+    })()`)
+  );
+  ok(
+    '基底：itemAttr 遇到沒有 a 或查不到基底的物品不會丟例外',
+    R(`itemAttr(null).str === 0 && itemAttr({}).str === 0 && itemAttr({ b: 'a_amber' }).str === BASEI.a_amber.b.str`)
+  );
+  /* 商人：每種都賣得到新基底（階級 15 的、輕盾）。一件的機率約 4～10%，600 次都沒出現幾乎不可能 */
+  R(`S = { maxT: 16, gold: 1e12, gamN: 0, inv: { w: 12, h: 6, items: [] } }`);
+  const SELL = {
+      helm: 'h_kongo',
+      chest: 'c_kongo',
+      gloves: 'g_kongo',
+      boots: 'b_kongo',
+      belt: 'bt_scale',
+      ring: 'r_tenju',
+      amulet: 'a_sun',
+      shield: 's_crane',
+      focus: 'f_lotus',
+      quiver: 'q_pierce'
+    },
+    noSell = Object.keys(SELL).filter(
+      k =>
+        !R(
+          `(() => { for (let i = 0; i < 600; i++) { S.inv.items = []; if (gambleDo('${k}').it.b === '${SELL[k]}') return true; } })()`
+        )
+    );
+  ok('基底：商人賣得到新基底', !noSell.length, noSell.join());
+  /* 十字弓的固定詞：多裝填 1 發、多丟 1 顆手雷 */
+  R(
+    `S = { lv: 100, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 999, T: 1 }];`
+  );
+  const shots = id =>
+    R(`(() => {
+      S.eq.weapon = mkItem('${id}', 16, 0); ST = stats(S); P.ammo = {}; P.gren = {}; G.grenades = [];
+      const c = gemCfg(mkGem('apshot', 5), 0), g = gemCfg(mkGem('grenade', 5), 0);
+      for (let i = 0; i < 6; i++) skillPay(c, 0);
+      actHit({ k: 'grenade', c: g, ang: 0, tx: P.x + 200, ty: P.y, hits: [0], n: 0 }, 0);
+      return [P.ammo.apshot.n, !!P.ammo.apshot.until, G.grenades.length];
+    })()`);
+  ok(
+    '基底：連弩多裝填 1 發、攻城弩多 1 顆手雷、手弩都沒有',
+    JSON.stringify([shots('w_xbow_0'), shots('w_xbow_2'), shots('w_xbow_4')]) ===
+      JSON.stringify([
+        [0, true, 1],
+        [1, false, 1],
+        [0, true, 2]
+      ]),
+    JSON.stringify([shots('w_xbow_0'), shots('w_xbow_2'), shots('w_xbow_4')])
+  );
 }
 process.exit(bad ? 1 : 0);
