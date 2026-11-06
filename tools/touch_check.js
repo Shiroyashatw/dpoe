@@ -18,6 +18,8 @@ let fail = 0;
     isMobile: true,
     deviceScaleFactor: 2
   });
+  /* 測試絕對不能碰正式雲端：不擋的話每個乾淨環境都會匿名登入、多一筆存檔 */
+  await ctx.route('**/*.supabase.co/**', r => r.abort());
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));

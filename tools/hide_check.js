@@ -14,9 +14,13 @@ const ok = (n, c, info = '') => {
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
+  /* 測試絕對不能碰正式雲端：不擋的話每個乾淨環境都會匿名登入、多一筆存檔 */
+  await ctx.route('**/*.supabase.co/**', r => r.abort());
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
+  let cloud = 0;
+  p.on('response', r => /\.supabase\.co/.test(r.url()) && cloud++);
   const ready = () =>
     p.evaluate(() => typeof G === 'object' && !!G.scene && typeof treeInit === 'function').catch(() => false);
   const open = async () => {
@@ -281,6 +285,7 @@ const ok = (n, c, info = '') => {
   });
   ok('舊存檔補得上新欄位', old);
   ok('沒有 JS 錯誤', !errs.length, errs.slice(0, 3).join(' | '));
+  ok('全程沒有連到雲端', !cloud && (await p.evaluate(() => !CLOUD.uid)), cloud + ' 個回應');
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '全部通過');
   process.exit(bad ? 1 : 0);
