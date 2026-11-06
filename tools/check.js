@@ -5,7 +5,7 @@ const fs = require('fs'),
   path = require('path');
 const ctx = { console, Math, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+for (const f of ['data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const G = vm.runInContext(
   '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, gemUp, drillDo, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
@@ -359,9 +359,8 @@ ok(
       (c.star > 2 || c.mods.every(k => M[k].d <= 2))
     );
   }) &&
-    B('cardsOpen({ maxT: 1 })') === 3 &&
-    B('cardsOpen({ maxT: 16 })') === 8 &&
-    B('mapCost(16, 5)') === 23
+    B('mapCost(1)') === 0 &&
+    B('mapCost(5)') === 8
 );
 /* 0.2.10 技能用的底層新機制（企劃書 7.3、mech.js） */
 vm.runInContext(
@@ -3589,6 +3588,7 @@ vm.runInContext(
     'craft.js',
     'combat.js',
     'maps.js',
+    'world.js',
     'mech.js',
     'game.js',
     'skills.js',
@@ -3681,15 +3681,221 @@ vm.runInContext(
     R2(`openPanel = () => {}; S = newGame(); PRO.on = true; PRO.i = 8; S.story.proS = 7; openWorld();
       !PRO.on && S.story.prologue === PRO_VER && S.story.intro === PRO_VER && !S.story.proS`)
   );
+  /* 存檔 24：main.js 最後的 start() 不跑 */
+  vm.runInContext(
+    fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8').replace(/\nstart\(\);\s*$/, '\n'),
+    c2,
+    { filename: 'main.js' }
+  );
   ok(
-    '地圖台：沒有碎片也一定有一張開放的免費卡（不會卡住）',
+    '舊存檔（23）：保留等級、裝備、寶石、昇華點，地圖進度重置到劇情區第一個節點',
+    R2(`(() => {
+      const old = newGame();
+      delete old.fresh;
+      Object.assign(old, { v: 23, lv: 57, frag: 40, maxT: 13, t16: 0, cards: [rollCard(), rollCard()], card: rollCard(), tier: 9 });
+      delete old.world; delete old.hunt;
+      old.eq.weapon = mkItem('w_bow_0', 12, 2);
+      const id = old.eq.weapon.id, n = migrate(JSON.parse(JSON.stringify(old)));
+      return n.v === 24 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
+        n.world.stage === 0 && !n.world.done.length && n.world.at === '0,0' && Number.isInteger(n.world.seed) &&
+        n.hunt.v === 0 && !Array.isArray(n.cards) && !Object.keys(n.cards).length && !n.card;
+    })()`)
+  );
+  ok(
+    '存檔 24：還原後走過的節點、種子不變',
+    R2(`(() => {
+      const a = newGame();
+      a.world.done.push('0,0'); a.world.stage = 1; a.hunt.v = 40;
+      const n = migrate(JSON.parse(JSON.stringify(a)));
+      return n.world.seed === a.world.seed && n.world.done.length === 1 && n.hunt.v === 40;
+    })()`)
+  );
+  ok(
+    '節點的地圖卡：沒有碎片也一定有一張免費卡（不會卡住）',
     R2(`(() => {
       for (let i = 0; i < 400; i++) {
-        const s = { frag: 0, maxT: 1 + (i % 7), cards: null };
-        if (!mapCards(s).slice(0, cardsOpen(s)).some(c => mapCost(1, c.star) === 0)) return false;
+        const s = newGame();
+        if (!wCards(s, '5,0').c.some(c => mapCost(c.star) === 0)) return false;
       }
       return true;
     })()`)
+  );
+}
+/* 世界地圖（world.js）：節點與路是種子的純函式、路走得回去、難度、洗卡、血霧、裂口 */
+{
+  const R = s => vm.runInContext(s, ctx);
+  R(`var WS = (seed, o) => { const w = newWorld(); w.seed = seed; return { world: w, hunt: newHunt(), cards: {}, idols: [], frag: 0, maxT: 1, ...o }; };
+    var WFP = seed => { const s = WS(seed), L = [];
+      for (let q = -30; q <= 30; q++) for (let r = -30; r <= 30; r++) {
+        if (wRing(q, r) > 30 || !wNode(seed, q, r)) continue;
+        L.push([q, r, wType(s, q, r), wNear(seed, q, r).join('|')].join(':'));
+      }
+      return L.join(';'); };`);
+  const a = R('WFP(12345)');
+  R('RIFT_MEMO.clear()');
+  ok('世界：同種子同地圖（清掉快取重算也一樣）、不同種子不一樣', a === R('WFP(12345)') && a !== R('WFP(54321)'));
+  ok(
+    '世界：連線是對稱的（a 接 b 就是 b 接 a）',
+    R(`(() => { const s = 777;
+      for (let q = -25; q <= 25; q++) for (let r = -25; r <= 25; r++)
+        for (const [x, y] of wNode(s, q, r) ? wNear(s, q, r) : []) if (!wLinked(s, x, y, q, r)) return false;
+      return true; })()`)
+  );
+  const back = R(`(() => {
+    for (const seed of [1, 7, 12345, 99999, 2147483646]) {
+      for (let q = -45; q <= 45; q++) for (let r = -45; r <= 45; r++) {
+        if (!wNode(seed, q, r) || wRing(q, r) <= W_R) continue;
+        let x = q, y = r, n = 0;
+        while (wRing(x, y) > W_ROAD) {
+          const p = wInner(seed, x, y);
+          if (!p || !wLinked(seed, x, y, p[0], p[1])) return 'seed ' + seed + ' 斷在 ' + x + ',' + y;
+          [x, y] = p;
+          if (++n > 100) return '繞圈';
+        }
+      }
+      /* 第 4 圈整圈是環、接得到劇情終點 */
+      for (let i = 0; i < 24; i++) {
+        const [a, b] = ringHex(W_ROAD, i / 24), [c, d] = ringHex(W_ROAD, ((i + 1) % 24) / 24);
+        if (!wNode(seed, a, b) || !wLinked(seed, a, b, c, d)) return '環斷了';
+      }
+      const E = STORY[STORY_END];
+      if (!wNear(seed, E.q, E.r).some(([x, y]) => wRing(x, y) === W_ROAD)) return '劇情終點沒接到環';
+      if (wNear(seed, 0, 1).some(([x, y]) => STORY_I[wKey(x, y)] == null)) return '劇情區漏路';
+    }
+    return '';
+  })()`);
+  ok('世界：每個節點照內圈路都走得回劇情區（5 個種子、45 圈內）', !back, back);
+  ok(
+    '世界：空格約 11%、節點連線不是六邊都通',
+    R(`(() => { const s = 42; let n = 0, all = 0, deg = 0;
+      for (let q = -30; q <= 30; q++) for (let r = -30; r <= 30; r++) {
+        if (wRing(q, r) <= W_ROAD || wRing(q, r) > 30) continue;
+        all++; if (wNode(s, q, r)) { n++; deg += wNear(s, q, r).length; }
+      }
+      return 1 - n / all > 0.08 && 1 - n / all < 0.14 && deg / n > 2 && deg / n < 4; })()`)
+  );
+  ok(
+    '難度：節點等級 ↔ 內部難度對得起來、每圈 +3、83 封頂',
+    R(`(() => {
+      for (let L = 5; L <= 83; L++) if (mobLv(lvT(L)) !== L) return false;
+      return lvT(83) === 16 && wLv(4, 0) === 21 && wLv(10, 0) === 39 && wLv(25, 0) === 83 && wLv(26, 0) === 83 && wLv(5000, -2000) === 83 && wLv(3, -1) === 18 && wLv(0, 0) === 5;
+    })()`)
+  );
+  ok(
+    '難度：小數的內部難度數值都正常，整數的結果不變',
+    R(`(() => {
+      for (let t = 1; t <= 16; t += 0.05) {
+        const m = tierMob(t), p = poiseT(t), i = tierIlvl(t);
+        if (!(m.hp > 0 && m.dmg > 0 && p > 0 && Number.isInteger(i) && i >= 1 && i <= 16)) return false;
+      }
+      for (let t = 1; t <= 16; t++) if (poiseT(t) !== POISE_T[t - 1] || tierIlvl(t) !== t) return false;
+      return tierMob(1).hp === 0.8 && tierMob(3.5).hp > tierMob(3).hp && tierMob(3.5).hp < tierMob(4).hp;
+    })()`)
+  );
+  ok(
+    '地圖卡：每節點 3 張、換節點再回來不會變；洗卡費用看等級區間、每洗一次加倍',
+    R(`(() => {
+      const s = WS(5, { frag: 100 }), k = '5,0', c = wCards(s, k).c;
+      wCards(s, '6,0');
+      if (c.length !== 3 || wCards(s, k).c !== c) return false;
+      if (washCost(1, 0) !== 1 || washCost(30, 0) !== 1 || washCost(31, 0) !== 2 || washCost(60, 0) !== 2 || washCost(61, 0) !== 4 || washCost(61, 3) !== 32) return false;
+      /* 5,0 是 Lv24：1、2、4 */
+      if (!wWash(s, k) || s.frag !== 99 || !wWash(s, k) || s.frag !== 97 || !wWash(s, k) || s.frag !== 93) return false;
+      s.frag = 7;
+      return !wWash(s, k) && s.frag === 7 && wCards(s, k).w === 3;
+    })()`)
+  );
+  ok(
+    '血霧：只有血霧節點累積；滿了每進一張扣 25%、期間不累積，扣完回到累積',
+    R(`(() => {
+      const s = WS(5), blood = [];
+      for (let q = -20; q <= 20; q++) for (let r = -20; r <= 20; r++) if (wNode(5, q, r) && wType(s, q, r) === 'blood') blood.push(wKey(q, r));
+      const plain = (() => { for (let q = 5; q < 40; q++) if (wNode(5, q, 0) && wType(s, q, 0) === 'plain') return wKey(q, 0); })();
+      wClear(s, plain);
+      if (s.hunt.v !== 0) return 'plain';
+      blood.slice(0, 4).forEach(k => wClear(s, k));
+      if (s.hunt.v !== 80 || s.hunt.full) return 'gain';
+      s.cards = { x: 1 };
+      wClear(s, blood[4]);
+      if (s.hunt.v !== 100 || !s.hunt.full || s.cards.x) return 'full';
+      wClear(s, blood[5]);
+      if (s.hunt.v !== 100) return 'no gain';
+      huntEnter(s); huntEnter(s); huntEnter(s);
+      if (s.hunt.v !== 25 || !s.hunt.full) return 'enter';
+      huntEnter(s);
+      return s.hunt.v === 0 && !s.hunt.full ? '' : 'end';
+    })()`) === ''
+  );
+  ok(
+    '血霧：5★ 權重 ×3',
+    R(`(() => { const N = 60000, n = w => { let c = 0; for (let i = 0; i < N; i++) if (rollStar(w) === 5) c++; return c / N; };
+      const a = n(1), b = n(3); return Math.abs(a - 0.05) < 0.006 && Math.abs(b - 15 / 110) < 0.01; })()`)
+  );
+  ok(
+    '裂口：血霧滿才能進、一次血霧只開一道、打完點亮神像',
+    R(`(() => {
+      const seed = 9, s = WS(seed);
+      s.world.stage = STORY.length;
+      s.world.done = STORY.map(n => wKey(n.q, n.r));
+      const ks = Object.keys(wRifts(seed));
+      if (ks.length !== 12) return 'count';
+      const [a, b] = ks.map(wXY);
+      /* 把路走到裂口旁邊 */
+      for (const [q, r] of [a, b]) { const p = wNear(seed, q, r)[0]; s.world.done.push(wKey(...p)); }
+      if (wWhy(s, ...a) !== '血霧滿了才進得去') return 'lock';
+      s.hunt = { v: 100, full: 1, used: 0 };
+      if (wWhy(s, ...a) !== '') return 'open';
+      wClear(s, wKey(...a));
+      if (s.idols.length !== 1 || s.idols[0] !== wZod(s, ...a).z) return 'idol';
+      if (wWhy(s, ...b) !== '這次血霧已經開過一道裂口') return 'once';
+      s.hunt.v = 25; huntEnter(s);
+      s.hunt = { v: 100, full: 1, used: s.hunt.used };
+      return wWhy(s, ...b) === '' ? '' : 'next';
+    })()`) === ''
+  );
+  ok(
+    '裂口：十二隻打完前地圖上只有 12 道，打完後隨機出現約 3%',
+    R(`(() => {
+      const seed = 31, s = WS(seed);
+      let a = 0, b = 0, n = 0;
+      const scan = f => { for (let q = -40; q <= 40; q++) for (let r = -40; r <= 40; r++) if (wRing(q, r) > W_ROAD && wRing(q, r) <= 40 && wNode(seed, q, r) && wType(s, q, r) === 'rift') f(q, r); };
+      scan(() => a++);
+      s.idols = ZODIAC.map(z => z.z);
+      for (let q = -40; q <= 40; q++) for (let r = -40; r <= 40; r++) if (wRing(q, r) > W_ROAD && wRing(q, r) <= 40 && wNode(seed, q, r)) n++;
+      let okz = true;
+      scan((q, r) => { b++; if (!ZODIAC.includes(wZod(s, q, r))) okz = false; });
+      return a === 12 && (b - 12) / n > 0.02 && (b - 12) / n < 0.04 && okz;
+    })()`)
+  );
+  ok(
+    '世界：劇情區照順序、走完才開世界區；走過的不能再打；只有接到路的才進得去',
+    R(`(() => {
+      const seed = 3, s = WS(seed);
+      if (!wCan(s, 0, 0) || wCan(s, 0, 1) || wCan(s, 4, 0)) return 'start';
+      for (let i = 0; i < 8; i++) wClear(s, wKey(STORY[i].q, STORY[i].r));
+      if (wOpen(s) || wCan(s, 4, -1)) return 'lock';
+      wClear(s, '3,-1');
+      if (!wOpen(s) || !wCan(s, 4, -1) || wCan(s, 3, -1) || wCan(s, 20, 0)) return 'open';
+      const L = wList(s);
+      if (!L.includes('4,-1') || !L.includes('0,0') || !Object.keys(wRifts(seed)).every(k => L.includes(k))) return 'list';
+      return wWhy(s, 3, -1) === '已經走過' && s.world.at === '3,-1' ? '' : 'done';
+    })()`) === ''
+  );
+  ok(
+    '十二生肖：圖、招式、叫的小怪、墮落詞、神像的鍵都對得上',
+    R(
+      `ZODIAC.length === 12 && new Set(ZODIAC.map(z => z.z)).size === 12 && ZODIAC.every(z => z.pat.length >= 3 && MOBS[z.call] && MAPMOD[z.cor])`
+    ) &&
+      R('ZODIAC.map(z => z.sp)').every(has) &&
+      ['swipe', 'charge', 'slam', 'summon', 'nova', 'line', 'blink'].every(p =>
+        R('ZODIAC').some(z => z.pat.includes(p))
+      )
+  );
+  ok(
+    '十二生肖：墮落詞換掉同組的卡片詞，不疊加',
+    R(
+      `mapMods({ mods: ['poison', 'hp1'] }, 'poison').mpoi === 25 && mapMods({ mods: ['dmg1'] }, 'poison').mpoi === 25 && mapMods({ mods: ['hp1'] }).mhp === 20`
+    )
   );
 }
 /* 存檔 23：舊存檔裡的死亡紅花要拿掉、退靈魂、輔助放回寶石頁，別的寶石不動 */

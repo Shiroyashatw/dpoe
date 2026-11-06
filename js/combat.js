@@ -6,6 +6,8 @@
 /* ---------- 等級 ---------- */
 /* 地圖階級 → 怪物等級（第 1 階 Lv5、第 16 階 Lv83） */
 const mobLv = t => Math.round(5 + ((t - 1) * 78) / 15);
+/* 世界地圖的節點等級 → 內部難度（小數，放進 G.mapT）：mobLv(lvT(L)) === L */
+const lvT = lv => Math.max(1, 1 + ((lv - 5) * 15) / 78);
 /* 抗性進度懲罰（照 PoE2，只扣元素抗性） */
 const RES_PEN = [
   [65, 60],
@@ -35,6 +37,10 @@ const ailThr = t => 30 * tierMul(t).hp;
 const ailLow = (m, el) => (m.arrow ? 1 / 1.3 : m.ail.thrLow && m.ail.thrLow[el] > G.t ? 0.7 : 1);
 /* 穩固值（0.2.36，企劃書 7.2）：冰凍、觸電、沉重暈眩、釘身（0.2.42）共用。每階比例是 Path of Building 兩張表相除（T1～T16） */
 const POISE_T = [1.97, 2.03, 2.01, 1.96, 1.89, 1.82, 1.66, 1.46, 1.31, 1.26, 1.23, 1.19, 2.83, 3.02, 3.19, 3.35];
+const poiseT = t => {
+  const i = Math.floor(t) - 1;
+  return POISE_T[i] + ((POISE_T[i + 1] || POISE_T[i]) - POISE_T[i]) * (t - 1 - i);
+};
 /* k 累積係數、on 定身到期的欄位、sec 定身秒數、back 定身結束後 +500% 退回的秒數 */
 const POISE = {
   frz: { k: 2.1, on: 'frozen', sec: 4, back: 14, el: 'cold' },
@@ -51,7 +57,7 @@ function poise(m, k) {
   return (
     ailThr(t) *
     MOB_HP *
-    POISE_T[t - 1] *
+    poiseT(t) *
     (m.boss ? 18.78 : m.elite ? 3 : 1) *
     hpW *
     (POISE[k].el ? ailLow(m, POISE[k].el) : 1) *

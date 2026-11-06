@@ -169,6 +169,15 @@ function migrate(s) {
     gemPurge(o, 'redbloom');
     o.v = 23;
   }
+  /* 存檔 24：階級 1～16 換成世界地圖，地圖進度重置到劇情區第一個節點；等級、裝備、寶石不動，S.maxT 留作內部欄位 */
+  if (o.v < 24) {
+    o.world = newWorld();
+    o.hunt = newHunt();
+    o.cards = {};
+    delete o.card;
+    delete o.node;
+    o.v = 24;
+  }
   o.ptA = o.ptA || {};
   /* 舊過濾器 { on, rules: [{ rar, gem }] } → 第 1 組：開著＝符合稀有度的自動撿，關著＝全部顯示；寶石不進過濾器了 */
   if (!o.filter || !Array.isArray(o.filter.sets)) {

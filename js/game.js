@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 23,
+    v: 24,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -20,6 +20,10 @@ function newGame() {
     /* 商人賭裝連續幾件沒出稀有（0.2.28） */
     gamN: 0,
     frag: 0,
+    /* 世界地圖（world.js）：種子、走過的節點、每節點的地圖卡、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
+    world: newWorld(),
+    cards: {},
+    hunt: newHunt(),
     maxT: 1,
     tier: 1,
     eq: Object.fromEntries(EQS.map(e => [e.k, null])),

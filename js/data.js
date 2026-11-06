@@ -3163,12 +3163,15 @@ const TMAX = 16;
 const tierMul = t => ({ hp: Math.pow(1.32, t - 1), dmg: Math.pow(1.2, t - 1) });
 /* 0.2.27：前幾階放寬（T1～T3 兩成，T4、T5 漸回，避免 T3→T4 斷層）；只影響怪物生命與傷害，經驗、護甲、異常門檻仍看 tierMul */
 const TIER_EASE = [0.8, 0.8, 0.8, 0.87, 0.93];
+const tierEase = n => TIER_EASE[n - 1] || 1;
+/* 世界地圖的內部難度是小數：相鄰兩階之間內插 */
 const tierMob = t => {
   const m = tierMul(t),
-    e = TIER_EASE[t - 1] || 1;
+    i = Math.floor(t),
+    e = tierEase(i) + (tierEase(i + 1) - tierEase(i)) * (t - i);
   return { hp: m.hp * e, dmg: m.dmg * e };
 };
-const tierIlvl = t => t;
+const tierIlvl = t => Math.round(t);
 
 /* ---------- 抗性 ---------- */
 const RESK = ['fire', 'cold', 'light', 'chaos'];
@@ -4561,6 +4564,35 @@ const BOSSES = [
     pat: ['line', 'nova', 'charge', 'slam']
   }
 ];
+/* 墮落十二生肖（世界觀第 5 節）：z 神像的鍵（hide_bake 的 statues）、圖 z_*、招式是王的 7 招重組、cor 是 1 條墮落詞（MAPMOD 的鍵，進裂口就套用） */
+const ZODIAC = [
+  ['rat', '瘟噬鼠皇', 'hghost', 'chaos', ['swipe', 'summon', 'line'], 'poison'],
+  ['ox', '獄鎖魔牛', 'skel', 'phys', ['charge', 'slam', 'swipe'], 'cuTc'],
+  ['tiger', '血牙虎煞', 'wolf', 'phys', ['charge', 'swipe', 'blink'], 'bleed'],
+  ['rabbit', '月蝕狂兔', 'bat', 'cold', ['blink', 'nova', 'swipe'], 'spd2'],
+  ['dragon', '天墜邪龍', 'imp', 'fire', ['nova', 'line', 'slam'], 'pen'],
+  ['snake', '毒涎蛇姬', 'shroom', 'chaos', ['line', 'summon', 'nova'], 'gCorrupt'],
+  ['horse', '焚魂夢魘', 'imp', 'fire', ['charge', 'line', 'slam'], 'ignite'],
+  ['goat', '魔羊祭司', 'judge', 'chaos', ['summon', 'nova', 'blink'], 'cuEn'],
+  ['monkey', '雷魘猴王', 'paper', 'light', ['blink', 'line', 'swipe'], 'gShock'],
+  ['rooster', '業火冥雞', 'imp', 'fire', ['nova', 'charge', 'line'], 'gIgnite'],
+  ['dog', '冥府獄犬', 'bailiff', 'chaos', ['charge', 'summon', 'swipe'], 'maxres1'],
+  ['pig', '屠野魔豬', 'tslime', 'phys', ['charge', 'slam', 'summon'], 'boss']
+].map(([z, n, call, el, pat, cor]) => ({
+  z,
+  n,
+  sp: 'z_' + z,
+  hp: 480,
+  dmg: 22,
+  spd: 140,
+  r: 40,
+  sz: 124,
+  xp: 200,
+  call,
+  ...(el === 'phys' ? {} : { el }),
+  pat,
+  cor
+}));
 const bossPick = no => {
   const l = BOSSES.filter(b => b !== no);
   return l[Math.floor(Math.random() * l.length)];

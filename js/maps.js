@@ -1,6 +1,5 @@
-/* dungeonPOE · 地圖卡（0.2.7）：地圖台給 8 張卡（一開始 3 張，打越高開越多），星級 1～5＝詞綴數＝風險與獎勵；
-   階級（1～16）另外在地圖台選，決定怪物強度與物品等級。每把地圖打完才換一批（打開地圖台不會換，不能洗圖）。
-   規則在 docs/企劃書.md 第 4 節。純邏輯，check.js 也載入。 */
+/* dungeonPOE · 地圖卡（0.2.7）：星級 1～5＝詞綴數＝風險與獎勵。世界地圖每節點 3 張（world.js 的 wCards）；
+   節點等級決定怪物強度與物品等級。規則在 docs/企劃書.md 第 4 節。純邏輯，check.js 也載入。 */
 'use strict';
 
 /* 星級：顏色（藍黃紫橘紅）、詞綴數、出現權重（越高越少） */
@@ -67,13 +66,13 @@ const MAPMOD = {
 /* 每條詞的獎勵：危險度越高越多（物品數量、稀有度、材料，%） */
 const MOD_REW = [null, [4, 3, 4], [8, 6, 7], [13, 10, 11]];
 
-/* 地圖台開放幾張：一開始 3 張，每打開 3 階多 1 張，第 16 階 8 張 */
-const cardsOpen = s => Math.min(8, 3 + Math.floor((s.maxT - 1) / 3));
-/* 費用：階級 t 花 t−1 個碎片，每多一星再 +2 */
-const mapCost = (t, star = 1) => t - 1 + 2 * (star - 1);
-function rollStar() {
-  let r = Math.random() * STARS.reduce((a, s) => a + (s ? s.w : 0), 0);
-  for (let i = 1; i <= 5; i++) if ((r -= STARS[i].w) <= 0) return i;
+/* 費用只看星級：1★ 免費，每多一星 +2 碎片 */
+const mapCost = star => 2 * (star - 1);
+/* w5：5★ 的權重倍率（血霧期 ×3） */
+function rollStar(w5 = 1) {
+  const W = i => STARS[i].w * (i === 5 ? w5 : 1);
+  let r = Math.random() * (W(1) + W(2) + W(3) + W(4) + W(5));
+  for (let i = 1; i <= 5; i++) if ((r -= W(i)) <= 0) return i;
   return 1;
 }
 /* 抽卡是照「條」抽，組越大越常出現：地面詞 10 條同組，每張卡先隨機留 3 條，整組的權重等於 3 條詞，其他詞的相對比例不變 */
@@ -95,13 +94,6 @@ function rollCard(star = rollStar()) {
   }
   return { star, mods };
 }
-/* 這一批 8 張（存在存檔裡；進地圖時清掉，下次打開地圖台才抽新的） */
-function mapCards(s) {
-  const c = (s.cards = s.cards || Array.from({ length: 8 }, () => rollCard()));
-  /* 買不起任何一張開放的卡（新玩家沒有碎片）：第一張換成第 1 階免費的 1★，不會卡住 */
-  if (!c.slice(0, cardsOpen(s)).some(x => mapCost(1, x.star) <= (s.frag || 0))) c[0] = rollCard(1);
-  return c;
-}
 /* 一張卡的獎勵合計 */
 function cardRew(card) {
   const r = [0, 0, 0];
@@ -109,9 +101,11 @@ function cardRew(card) {
   return { qty: r[0], rar: r[1], mat: r[2] };
 }
 /* 進地圖時：把卡的詞綴合計成 G.mm（怪物、玩家、獎勵都讀它） */
-function mapMods(card) {
-  const o = { ...cardRew(card) };
-  for (const k of (card && card.mods) || [])
+function mapMods(card, cor) {
+  const o = { ...cardRew(card) },
+    L = (card && card.mods) || [];
+  /* cor：生肖王的墮落詞，同組的卡片詞換掉，不疊加 */
+  for (const k of cor ? [...L.filter(x => MAPMOD[x].g !== MAPMOD[cor].g), cor] : L)
     for (const [f, v] of Object.entries(MAPMOD[k].fx)) o[f] = typeof v === 'string' ? v : (o[f] || 0) + v;
   return o;
 }
