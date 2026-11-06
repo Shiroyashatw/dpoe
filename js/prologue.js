@@ -95,9 +95,16 @@ const PRO_STEPS = [
       !proHasSword()
         ? proKey('走到劍旁邊，按 F 撿起來', '走到劍旁邊，點地上的名字', '走到劍旁邊，點地上的名字')
         : PANEL.inv
-          ? proKey('點一下劍裝上', '點劍，再按「裝備」', '點劍，再按「裝備」')
+          ? proKey('點一下劍裝上', '點一下劍，再按「裝備」', '點一下劍，再按「裝備」')
           : proKey('按 I 打開背包', '點右上的背包', '點右上的背包'),
-    hl: () => (!proHasSword() ? '' : PANEL.inv ? '#pinv .it[data-src=inv]' : '[data-tm=inv]'),
+    hl: () =>
+      !proHasSword()
+        ? ''
+        : !PANEL.inv
+          ? '[data-tm=inv]'
+          : !$('tip').hidden && $('tip').classList.contains('act')
+            ? '#tip [data-tq=move]'
+            : '#pinv .it[data-src=inv]',
     done: () => !!S.eq.weapon
   },
   {
@@ -200,6 +207,8 @@ const PRO_STEPS = [
   }
 ];
 const proInD = () => P.y < 29 * TS;
+/* 第 2 步的引導放進背包面板：面板會蓋住目標列（手機直立蓋滿全螢幕）。invHTML 放在格子上面 */
+const proInv = () => (PRO.on && PRO.i === 1 && proHasSword() ? `<p class="pro-inv">${PRO_STEPS[1].t()}</p>` : '');
 /* 序章的怪：血量寫死，不吃階級倍率 */
 function proMob(D, x, y, hp) {
   const p = proXY([x, y]),
@@ -282,7 +291,9 @@ function proDied() {
 function proTick() {
   const s = PRO_STEPS[PRO.i];
   if (s.tick) s.tick();
-  if (PRO.txt !== s.t() || PRO.hl !== (s.hl ? s.hl() : '')) proBar();
+  const hl = s.hl ? s.hl() : '';
+  /* 面板重畫會洗掉高亮（class 跟著 HTML 一起換掉）：不見了就補回來 */
+  if (PRO.txt !== s.t() || PRO.hl !== hl || (hl && !document.querySelector('.pro-hl'))) proBar();
   if (G.state === 'play' && s.done()) sfx('pick'), proStep(PRO.i + 1);
 }
 /* 第 4 步：紅圈鎖定玩家，翻滾躲掉才算；用走的躲掉要再來一次。翻滾約 140 像素，半徑 100 從中心也翻得出去 */

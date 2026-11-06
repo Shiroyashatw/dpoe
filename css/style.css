@@ -1219,6 +1219,9 @@ body.cine #hud { visibility: hidden; }
 #pro .btn.arm { color: var(--warn); }
 .pro-hl { outline: 2px solid var(--title); outline-offset: 2px; animation: prohl 1200ms ease-in-out infinite; }
 @keyframes prohl { 50% { outline-color: rgba(244, 245, 247, 0.2); } }
+/* 序章第 2 步：背包面板裡的引導，貼在格子上面；道具的閃框不能被隔壁蓋住 */
+.pro-inv { margin: 0 auto 8px; padding: 6px 10px; text-align: center; font: 700 var(--fs) var(--font); color: var(--title); background: var(--s3); border: 1px solid var(--fr-hi); border-radius: 2px; }
+.it.pro-hl { z-index: 2; outline-offset: 1px; }
 body.touch .ponly { display: none; }
 body.touch #pro { transform: none; max-width: none; left: calc(8px + env(safe-area-inset-left)); right: calc(76px + env(safe-area-inset-right)); top: calc(116px + env(safe-area-inset-top)); }
 body.touch:not(.port) #pro { left: calc(60px + env(safe-area-inset-left)); right: calc(150px + env(safe-area-inset-right)); top: calc(10px + env(safe-area-inset-top)); }

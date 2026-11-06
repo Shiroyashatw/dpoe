@@ -699,7 +699,8 @@ function invHTML() {
       ).join('') + (pen ? `<span class="c-dim">這一階元素抗性 −${pen}%</span>` : '');
   /* 手機橫向一屏放不下裝備欄和背包：分頁，預設背包 */
   const land = LAND(),
-    tb = PANEL.invT || 'bag',
+    /* 序章第 2 步要點背包裡的劍：固定在背包分頁 */
+    tb = proInv() ? 'bag' : PANEL.invT || 'bag',
     invTabs = land
       ? `<span class="ftabs">${[
           ['bag', '背包'],
@@ -725,7 +726,7 @@ function invHTML() {
     land && tb === 'eq'
       ? ''
       : `<div class="ph2">背包 <span>${PANEL.sellM ? '點一下＝選取／取消' : TOUCH.on ? '按住拖＝搬移 · 點一下＝說明與動作' : PANEL.craft ? '拖曳擺放 · 點一下＝放上鍛造台' : `拖曳擺放 · 點一下＝裝備／收起${PANEL.stash ? '／放進倉庫' : ''}`}</span></div>
-  ${gridHTML(S.inv, 'inv')}`
+  ${proInv()}${gridHTML(S.inv, 'inv')}`
   }
   <div class="foot">${G.scene !== 'hide' ? `<span class="c-dim">回藏身處才能賣東西</span>` : PANEL.sellM ? sellBar() : `<div class="sell" data-sell="1">拖到這裡賣掉</div><button class="btn" data-a="sellm">批量賣出</button>`}</div>`;
 }

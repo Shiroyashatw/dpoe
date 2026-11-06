@@ -100,6 +100,51 @@ const fight = (p, sk) =>
       }),
     sk
   );
+/* 第 2 步的背包：面板裡看得到這一步要做什麼、要點的東西在畫面內而且亮著、沒被別的東西蓋住 */
+const bagGuide = async (p, text, label) => {
+  await p.waitForTimeout(250);
+  const r = await p.evaluate(() => {
+    const seen = e => {
+        const q = e.getBoundingClientRect(),
+          h = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2);
+        return (
+          q.width > 0 &&
+          q.left >= 0 &&
+          q.top >= 0 &&
+          q.right <= innerWidth &&
+          q.bottom <= innerHeight &&
+          !!h &&
+          (h === e || e.contains(h))
+        );
+      },
+      g = document.querySelector('#pinv .pro-inv'),
+      it = document.querySelector('#pinv .it[data-src=inv]');
+    return {
+      t: g && g.textContent,
+      gs: !!g && seen(g),
+      is: !!it && seen(it),
+      on: !!it && it.classList.contains('pro-hl'),
+      ol: it && getComputedStyle(it).outlineStyle
+    };
+  });
+  ok(`${label}：面板裡有引導「${text}」`, r.t === text && r.gs, JSON.stringify(r));
+  ok(`${label}：劍在畫面內、亮著`, r.is && r.on && r.ol === 'solid', JSON.stringify(r));
+};
+/* 裝上之後：面板收掉，回到下一步的目標列 */
+const bagDone = async (p, label) => {
+  await p.waitForTimeout(250);
+  const r = await p.evaluate(() => {
+    const e = $('prot').getBoundingClientRect();
+    return {
+      i: PRO.i,
+      on: !!S.eq.weapon,
+      inv: PANEL.inv,
+      g: !!document.querySelector('.pro-inv'),
+      bar: !$('pro').hidden && e.width > 0 && e.bottom <= innerHeight
+    };
+  });
+  ok(`${label}：裝上後引導收掉，回到第 3 步的目標列`, r.i === 2 && r.on && !r.inv && !r.g && r.bar, JSON.stringify(r));
+};
 /* 跑到進序章（動畫快轉） */
 const toMap = async p => {
   await p.click('#ivgo');
@@ -159,9 +204,11 @@ async function fresh() {
   await tt('2-2');
   await p.keyboard.press('i');
   await p.waitForSelector('#pinv:not([hidden]) .it');
+  await bagGuide(p, '點一下劍裝上', '桌機 1280×720');
   await p.screenshot({ path: shot('s2') });
   await p.click('#pinv .it[data-src=inv]');
   await stepIs(p, 2);
+  await bagDone(p, '桌機 1280×720');
   ok('第 3 步：劍裝上了、背包關了', await p.evaluate(() => !!S.eq.weapon && !PANEL.inv));
   await tt(3);
   /* 3 攻擊 */
@@ -291,6 +338,27 @@ async function fresh() {
   await p.ctxx.close();
 }
 /* 老存檔：Lv42、弓、金幣、地圖進度 */
+/* 桌機大尺寸：點一下就裝上，文字跟 1280×720 一樣 */
+async function desk() {
+  console.log('— 桌機 1440×900 第 2 步 —');
+  const p = await page(1440, 900);
+  await clean(p, 40);
+  await toMap(p);
+  await p.evaluate(() => {
+    proStep(1);
+    const d = G.drops[0];
+    Object.assign(P, { x: d.x, y: d.y + 60 });
+    pickup(d);
+  });
+  await p.keyboard.press('i');
+  await p.waitForSelector('#pinv:not([hidden]) .it');
+  await bagGuide(p, '點一下劍裝上', '桌機 1440×900');
+  await p.click('#pinv .it[data-src=inv]');
+  await stepIs(p, 2);
+  await bagDone(p, '桌機 1440×900');
+  ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
+  await p.ctxx.close();
+}
 async function veteran() {
   console.log('— 老存檔 —');
   const p = await page(1280, 720);
@@ -560,16 +628,32 @@ async function phone(w, h) {
   await p.waitForTimeout(200);
   ok('背包按鍵亮起來', await p.evaluate(() => document.querySelector('[data-tm=inv]').classList.contains('pro-hl')));
   await p.tap('.tmenu [data-tm=inv]');
-  await p.waitForTimeout(300);
+  const TEXT = '點一下劍，再按「裝備」';
+  await bagGuide(p, TEXT, tag);
   await p.screenshot({ path: shot(`s2_${tag}`) });
+  /* 橫向的裝備欄分頁看不到劍：這一步固定在背包分頁 */
+  if (h < 480) {
+    await p.tap('[data-invt=eq]');
+    await bagGuide(p, TEXT, tag + ' 按了裝備欄分頁');
+  }
   await p.tap('#pinv .it[data-src=inv]');
   await p.waitForTimeout(250);
   await p.screenshot({ path: shot(`s2b_${tag}`) });
   const eq = await p.$('[data-tq=move]');
   ok('點劍出現裝備按鈕', !!eq);
+  const eqs = await p.evaluate(() => {
+    const b = document.querySelector('[data-tq=move]'),
+      q = b.getBoundingClientRect();
+    return {
+      t: b.textContent,
+      on: b.classList.contains('pro-hl'),
+      in: q.top >= 0 && q.bottom <= innerHeight && q.left >= 0 && q.right <= innerWidth
+    };
+  });
+  ok('「裝備」鍵的字跟提示一致、亮著、在畫面內', eqs.t === '裝備' && eqs.on && eqs.in, JSON.stringify(eqs));
   if (eq) await eq.tap();
   await p.waitForFunction(() => PRO.i === 2, null, { timeout: 4000 }).catch(() => {});
-  ok('裝上了，進第 3 步', await p.evaluate(() => PRO.i === 2 && !!S.eq.weapon));
+  await bagDone(p, tag);
   /* 其他步驟的提示與亮的按鍵 */
   for (const [i, re, hl] of [
     [2, port ? /點一下畫面/ : /大鍵/, port ? '' : 's0'],
@@ -656,6 +740,7 @@ async function phone(w, h) {
   const only = process.argv[3];
   try {
     if (!only || only === 'fresh') await fresh();
+    if (!only || only === 'fresh') await desk();
     if (!only || only === 'vet') await veteran();
     if (!only || only === 'skip') await skips();
     if (!only || only === 'calm') await calm();
