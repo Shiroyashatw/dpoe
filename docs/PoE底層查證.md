@@ -198,7 +198,8 @@
 | 迅捷 Haste | ⚠️ poe2wiki 沒有這一頁 | 光環：攻擊速度、施法速度、移動速度依寶石等級；另有 Vaal Haste https://www.poewiki.net/wiki/Haste | 光環 |
 | 閃避 Elusive（第 12 批譯名「靈巧」） | poe2db 只寫提高移動速度、避開傷害、效果隨時間減少，⚠️ 沒有數字 https://poe2db.tw/us/Elusive | 一開始：15% 機率避開命中傷害、移動速度 +30%；每秒衰減 20%，要等結束才能再獲得 https://www.poewiki.net/wiki/Elusive | 詞綴、職業 |
 | 腎上腺素 Adrenaline | ⚠️ poe2wiki 沒有這一頁 | 傷害 +100%、攻擊／施法／移動速度 +25%、物理減傷 +10%；持有期間不能刷新 https://www.poewiki.net/wiki/Adrenaline | 天賦、職業 |
-| 相位 Phasing | ⚠️ 沒查到 | 可以穿過敵人；不算 buff https://www.poewiki.net/wiki/Phasing | 藥劑、詞綴 |
+| 迷蹤 Phasing（第 13～16 批由「相位」改名） | 穿過敵人不被阻擋 https://poe2db.tw/us/Phasing | 可以穿過敵人；不算 buff https://www.poewiki.net/wiki/Phasing | 藥劑、詞綴 |
+| 終極 Finality（只有 PoE2） | 最終打擊暴擊率提高 100%、打擊技能跳到最終打擊、不能獲得連擊；⚠️ poe2db 沒寫誰給 https://poe2db.tw/us/Finality | 沒有 | ⚠️ 來源不明 |
 | 不潔之力 Unholy Might | 獲得全部傷害 30% 的混沌傷害（DoT 吃不到）https://www.poe2wiki.net/wiki/Unholy_Might | 物理傷害 100% 轉成混沌，命中時 25% 機率造成凋零 https://www.poewiki.net/wiki/Unholy_Might | 藥劑、詞綴 |
 | 化身 Archon（只有 PoE2） | 持續 10 秒，結束後要再等 20 秒；Elemental Archon：法術元素傷害 more 25%、冰凍累積 +100%、易燃強度 +100%、感電機率 +100% https://www.poe2wiki.net/wiki/Archon | 沒有 | 職業或天賦 |
 | 守護 Guard（只有 PoE2） | 先吸收命中傷害（在減傷之後），最多最大生命的 200%；不疊加 https://www.poe2wiki.net/wiki/Guard | 沒有（PoE1 有 Guard 技能，但是不同機制） | 護符、藥劑詞綴 |
@@ -219,6 +220,29 @@
 | 滿溢聖杯 Overflowing Chalice（只有 PoE2） | 生命與魔力藥劑每秒 2 充能、恢復量 +30% https://poe2db.tw/us/Overflowing_Chalice | 沒有 | 族裔輔助 Uhtred's Rite（冷卻技能使用時給，持續時間＝冷卻秒數）https://poe2db.tw/us/Uhtreds_Rite |
 
 藥劑充能（第 12 批查）：每次使用 10 充能，上限 60～75 https://poe2db.tw/us/Life_Flasks 。
+
+### D2. 第 13～16 批（2026-11-06 查 poe2db；poe2wiki 擋爬蟲，只拿得到搜尋摘要）
+
+| 名詞 | 查到的 | 來源 |
+| --- | --- | --- |
+| 分裂 Fork | 第一次碰到敵人時一分為二，不裂化、不穿透；穿透、分裂、裂化優先於連鎖。Fork 輔助另有「分裂後傷害 30% 更少」 | https://poe2db.tw/us/Fork |
+| 迴旋 Return | 飛到終點或打到最後一個目標後回到發射的實體 | https://poe2db.tw/us/Returning |
+| 超限格擋率 | 沒有上限時超出最大格擋率的量 | https://poe2db.tw/us/Overcapped_Block_Chance |
+| 效果消耗 | 一次只能有一種消耗好處，技能優先於其他來源；消耗減益後敵人免疫它 1 秒 | https://poe2db.tw/us/Effect_Consumption |
+| 最終打擊 Final Strike | 招式序列的最後一下 | https://poe2db.tw/us/Final_Strike |
+| 擴散傷害 Splash | 打擊擊中時對周圍敵人多一次擊中，基礎半徑 1.5 公尺；雙手錘 3 種基底、傳奇武器有；⚠️ 沒寫吃不吃範圍效果 | https://poe2db.tw/us/Splash_Damage |
+| 只有最低或最高傷害 | 每種傷害各擲，各 50%；幸運擲兩次、有最高就最高；不幸相反 | https://poe2db.tw/us/Only_Minimum_or_Maximum_Damage |
+| 暴露弱點 | 生命條上共 45%、隨機分區塊；⚠️ 沒寫幾段；來源：Amazon 昇華（Predatory Instinct：50% 更多）、傳奇手套 The Master's Reach | https://poe2db.tw/us/Revealing_Weaknesses |
+| 封印 Seals | 只有自己使用的技能能封印；打破時照個數得到好處。Expand：最多 3 個、每 200% 施放時間 1 個、每個範圍提高 30%；Unleash：最多 2 個、每個重複一次、重複時傷害 50% 更少 | https://poe2db.tw/us/Seals_and_Sealed_Skills 、 https://poe2db.tw/us/Expand 、 https://poe2db.tw/us/Unleash |
+| 極大 Gigantic | 最大生命、傷害各 20% 更多，體型提高 20% | https://poe2db.tw/us/Gigantic |
+| 暫時召喚物 | 死後不復活 | https://poe2db.tw/us/Temporary_Minion |
+| 召喚物死亡及擊殺 | 時間到或被取消算死亡，「被擊殺時」不觸發；只有生命歸零才算被擊殺 | https://poe2db.tw/us/Minion_Death_and_Killing_Minions |
+| 復甦召喚物 | 一段時間沒受傷自癒，被擊殺後自動復活，另一隻死亡時重置；⚠️ poe2db 沒有秒數。搜尋摘要（poe2wiki）是 7.5 秒的窗口、每次死亡延長但總共最多 7.5 秒、論壇有人回報骷髏戰士 8 秒，互有出入，我們用 7.5 秒、每次重算 | https://poe2db.tw/us/Reviving_Minions 、 https://www.poe2wiki.net/wiki/Reviving_Minions |
+| 無法閃避翻滾或衝刺 | 基石 Unwavering Stance：不會被輕暈、不能翻滾或衝刺（我們只做後半） | https://poe2db.tw/us/Keywords |
+| 閃避翻滾無法躲避傷害 | 基石 Bulwark：翻滾無法躲避傷害，翻滾中受到的擊中傷害 30% 更少 | https://poe2db.tw/us/Keywords |
+| 預期擊退 | 沒有地形、實體、減免阻擋時的擊退距離；Punch Through 用它算易攻目標幅度 | https://poe2db.tw/us/Expected_Knockback |
+| 能力值基石 | 無法獲得固有加成＋每 2 點 1%：黑暗血鐮訓練（力量→能量護盾）、循環教義（敏捷→護甲）、騎士信條（智慧→閃避）、堅鐵之力（力量→投射物攻擊傷害）、鋼鐵意志（力量→法術傷害） | https://poe2db.tw/us/Black_Scythe_Training 、 https://poe2db.tw/us/Circular_Teachings 、 https://poe2db.tw/us/Knightly_Tenets 、 https://poe2db.tw/us/Iron_Grip 、 https://poe2db.tw/us/Iron_Will |
+| 標籤類 | 寶珠、捷光環、遣散、擲彈、鬥旗、疾風、風暴、可爆發、主要寶石、連結的輔助技能的定義 | https://poe2db.tw/us/Orb_Skills 、 https://poe2db.tw/us/Herald_Skills 、 https://poe2db.tw/us/Payoff_Skills 、 https://poe2db.tw/us/Grenade_Skills 、 https://poe2db.tw/us/Banner_Skills 、 https://poe2db.tw/us/Wind_Skills 、 https://poe2db.tw/us/Storm_Skills 、 https://poe2db.tw/us/Cascadable_Skills 、 https://poe2db.tw/us/Meta_Gems 、 https://poe2db.tw/us/Connected_Support_Gems |
 
 通則：PoE2 同一種 buff 不疊加，只取最強的；「buff 到期變慢」的效果彼此相加，最多慢 75%。https://www.poe2wiki.net/wiki/Buff 。PoE1 的球和藥劑效果都不算 buff。https://www.poewiki.net/wiki/Buff
 

@@ -73,7 +73,7 @@ function poisePin(m, k) {
 /* 累積：定身期間四條都暫停；inc＝累積提高 % */
 function poiseAdd(m, k, dmg, inc = 0) {
   const a = m.ail;
-  if (!(dmg > 0) || immob(a)) return;
+  if (!(dmg > 0) || immob(a) || (k === 'frz' && noAil(a, 'frozen'))) return;
   /* 目眩（0.2.42）：受到的沉重暈眩累積 +50% */
   const daze = k === 'hs' && a.daze > G.t ? 1.5 : 1;
   /* 濕透（第 10 批）：冰凍累積 25% 更多 */
@@ -100,6 +100,7 @@ const DEBUFF = {
   unbrT: 60,
   unbrHits: 10,
   cripT: 12,
+  consumeImm: 1 /* 效果消耗：消耗減益後對它免疫的秒數 */,
   stainNeed: 6 /* 血漬：流血累積 6 秒 */,
   stainT: 8 /* ⚠️ 血漬減益持續秒數 */,
   inciseCh: 10 /* 切割：每層流血機率 +10% */,
@@ -151,7 +152,7 @@ const dbT = (v, def) => (v === true ? def : v);
 const parryOn = m => !!(m && m.ail && m.ail.parried > G.t);
 const parryMore = () => 1 + (DEBUFF.parryMore * (1 + ST.parryMag / 100)) / 100;
 function applyParry(m) {
-  if (m && m.ail) m.ail.parried = G.t + DEBUFF.parryT * (1 + ST.parryDur / 100);
+  if (m && m.ail && !noAil(m.ail, 'parried')) m.ail.parried = G.t + DEBUFF.parryT * (1 + ST.parryDur / 100);
 }
 /* 不受影響（第 10 批）：ST.unaff = { chill: 1 } 之類，減益仍掛著、仍顯示，只是不發揮效果 */
 const unaff = k => !!(ST.unaff && ST.unaff[k]);
@@ -350,8 +351,12 @@ const still = () => !moving() && P.stillT != null && G.t - P.stillT >= 1;
 const DT = ['phys', 'fire', 'cold', 'light', 'chaos'];
 const SPELL_BASE = [7, 12];
 /* 法術的基礎傷害：看寶石等級（照 PoE2 每級成長很陡，Lv20 約 Lv1 的 69 倍，跟武器＋攻擊倍率同一個量級），不吃武器、不吃角色等級 */
-const spellDmg = (lv, avg) =>
-  (avg ? (SPELL_BASE[0] + SPELL_BASE[1]) / 2 : rnd(SPELL_BASE[0], SPELL_BASE[1])) * Math.pow(1.25, lv - 1);
+const spellDmg = (lv, avg, r) =>
+  (r
+    ? r(SPELL_BASE[0], SPELL_BASE[1], 'spell')
+    : avg
+      ? (SPELL_BASE[0] + SPELL_BASE[1]) / 2
+      : rnd(SPELL_BASE[0], SPELL_BASE[1])) * Math.pow(1.25, lv - 1);
 const isSpell = D => (D.tags || []).includes('spell') && !(D.tags || []).includes('attack');
 /* 目標身上的減益讓抗性變成多少（詛咒、曝曬、焦灼可以壓成負值；穿透最多穿到 0） */
 const IGNK = { fire: 'Fire', cold: 'Cold', light: 'Light', chaos: 'Chaos' };
@@ -533,34 +538,42 @@ function falconTick() {
 /* c 技能設定（slotCfg）、m 目標、o：mult 更多倍率、crit 必暴、minion、unit、fly 投射物飛行距離、
    avg 面板用的期望值（傷害取中間、暴擊算進期望、不動任何狀態），m 是 null */
 function hitCalc(c, m, o = {}) {
-  /* 傷害幸運（0.2.42）：範圍擲兩次取高（期望 = 下限 + 2/3 範圍） */
+  /* 傷害幸運（0.2.42）：範圍擲兩次取高（期望 = 下限 + 2/3 範圍）
+     只有最低或最高傷害（第 13～16 批）：每種傷害各擲一次，最低、最高各 50%；幸運時擲兩次，有一次最高就算最高（75%） */
   const lk = ST.lukDmg > 0,
-    rnd2 = o.avg
-      ? lk
-        ? (a, b) => (a + 2 * b) / 3
-        : (a, b) => (a + b) / 2
-      : lk
-        ? (a, b) => Math.max(rnd(a, b), rnd(a, b))
-        : rnd,
+    mm = ST.minmax || c.minmax,
+    hiP = lk ? 0.75 : 0.5,
+    hiOf = {},
+    rnd2 = mm
+      ? o.avg
+        ? (a, b) => a + (b - a) * hiP
+        : (a, b, k) => ((hiOf[k] = hiOf[k] == null ? Math.random() < hiP : hiOf[k]) ? b : a)
+      : o.avg
+        ? lk
+          ? (a, b) => (a + 2 * b) / 3
+          : (a, b) => (a + b) / 2
+        : lk
+          ? (a, b) => Math.max(rnd(a, b), rnd(a, b))
+          : rnd,
     D = c.D,
     tg = D.tags || [],
     spell = isSpell(D),
     pre = { phys: 0, fire: 0, cold: 0, light: 0, chaos: 0 };
   /* 1. 基礎：攻擊＝武器（含本地詞）×技能倍率；法術＝寶石 */
-  if (spell) pre[D.el || 'phys'] = spellDmg(c.lv || 1, o.avg) * D.m;
+  if (spell) pre[D.el || 'phys'] = spellDmg(c.lv || 1, o.avg, mm && rnd2) * D.m;
   else {
     /* 盾技能（0.2.13）：基礎換成盾的傷害（stats 的 sdmg），不吃武器的附加 */
     const W = D.shield ? ST.sdmg : ST.dmg;
-    pre.phys = rnd2(W[0], W[1]);
+    pre.phys = rnd2(W[0], W[1], 'phys');
     if (!D.shield)
       for (const k of ['fire', 'cold', 'light', 'chaos']) {
         const [lo, hi] = ST.wadd[k];
-        if (hi) pre[k] += rnd2(lo, hi);
+        if (hi) pre[k] += rnd2(lo, hi, k);
       }
     /* 2. 附加：飾品、手套的「攻擊附加」 */
     for (const k in ST.add) {
       const [lo, hi] = ST.add[k];
-      if (hi) pre[k === 'flat' ? 'phys' : k] += rnd2(lo, hi);
+      if (hi) pre[k === 'flat' ? 'phys' : k] += rnd2(lo, hi, k === 'flat' ? 'phys' : k);
     }
     /* 依防禦給的附加物理（0.2.25，鐵金剛的重如泰山：護甲的 x%） */
     pre.phys += defAdd();
@@ -610,6 +623,7 @@ function hitCalc(c, m, o = {}) {
       (tg.includes('attack') ? ST.atkP : 0) +
       (tg.includes('melee') ? ST.meleeP : 0) +
       (tg.includes('proj') ? ST.projP : 0) +
+      (tg.includes('proj') && tg.includes('attack') ? ST.projAtkP : 0) +
       (tg.includes('strike') ? ST.strikeP : 0) +
       (tg.includes('slam') ? ST.slamP : 0) +
       (tg.includes('nova') ? ST.novaP : 0) +
@@ -656,6 +670,8 @@ function hitCalc(c, m, o = {}) {
   /* 0.2.25 昇華：獵鷹印記（被印記的更多 10%）、遠射／近射（看投射物飛了多遠 o.fly） */
   if (m && m.ail && m.ail.mark && m.ail.mark.k === 'falcon') more *= 1.1;
   if (tg.includes('proj')) more *= projDistMore(o.fly || 0);
+  /* 暴露弱點（第 13～16 批）：對開放弱點的敵人更多 */
+  if (ST.weakMore && m && openWeak(m)) more *= 1 + ST.weakMore / 100;
   /* 範圍擴大的品質：目標周圍沒有其他怪 */
   if (c.solo && m && !nearMob(m, 200)) more *= 1 + c.solo;
   const sac = ST.sacrifice && P.sacT > G.t;
@@ -680,7 +696,13 @@ function hitCalc(c, m, o = {}) {
     pity = o.avg ? 0 : (P.noCritN || 0) * (ST.aq.precise || 0),
     chance = ST.noCrit
       ? 0
-      : Math.min(100, base * (1 + (ST.critInc + (c.critInc || 0)) / 100) + brit + cwN(m) * 0.5 + pity);
+      : Math.min(
+          100,
+          base * (1 + (ST.critInc + (c.critInc || 0) + (o.final && hasBuff('finality') ? 100 : 0)) / 100) +
+            brit +
+            cwN(m) * 0.5 +
+            pity
+        );
   if (o.avg) {
     const cm = 1 + (100 + ST.critX + (c.critX || 0) + ST.powCritX * chgN('p')) / 100,
       ch = ST.noCrit ? 0 : o.crit ? 100 : effCh(chance, ST.lukCrit),
@@ -745,6 +767,18 @@ function hitCalc(c, m, o = {}) {
   return { d, pre, post, crit, el: big, spell };
 }
 
+/* 暴露弱點（第 13～16 批，開關 reveal）：精英與王的生命條上標出共 45% 的區段（⚠️ 分 3 段、各 15%，每段落在各自的三分之一裡，不會黏在一起）；目前生命在區段裡＝開放弱點 */
+const weakSegs = m =>
+  m.weak ||
+  (m.weak = [0, 1, 2].map(i => {
+    const lo = i / 3 + Math.random() * (1 / 3 - 0.15);
+    return [lo, lo + 0.15];
+  }));
+const openWeak = m =>
+  !!ST.reveal && !!(m.boss || m.elite) && weakSegs(m).some(([a, b]) => m.hp / m.mhp >= a && m.hp / m.mhp < b);
+/* 預期擊退（第 13～16 批）：不受地形、單位、抵抗影響時擊退的公尺數；速度照 KB_F 衰減，積分＝速度 ÷ KB_F；暴擊 ×1.5 跟 hitMob 一致 */
+const KB_F = 9;
+const kbExp = (kb, crit) => (kb * (crit ? 1.5 : 1)) / KB_F / METER;
 /* 殘暴打擊（開關 savageGuard＝%，0.2.43；hurtPlayer 呼叫）：一下被移除至少 15% 最大生命，獲得該 % 最大生命的守護，4 秒（重新獲得是刷新，不疊） */
 function savageHit(d) {
   if (ST.savageGuard && d >= ST.hp * 0.15) (P.svgV = (ST.hp * ST.savageGuard) / 100), (P.svgT = G.t + 4);
@@ -843,7 +877,7 @@ const rivenOn = a => !!(a.riven && a.riven.t > G.t && a.broken > G.t),
   unbrOn = a => !!(a.unbr && a.unbr.t > G.t && a.daze > G.t),
   rivenAdd = a => (rivenOn(a) ? a.riven.v : 0) + (unbrOn(a) ? a.unbr.v : 0);
 /* 有這些狀態的敵人不能再被破甲 */
-const noBreak = a => rivenOn(a) || a.shatter > G.t;
+const noBreak = a => rivenOn(a) || a.shatter > G.t || noAil(a, 'broken');
 /* 近期（4 秒）切割消耗的層數 */
 function inciseRecent() {
   P.incN = (P.incN || []).filter(x => x[0] > G.t - RECENT);
@@ -878,7 +912,7 @@ function applyAil(m, r, c, use) {
   const igB = ailBase(p, 'ign');
   if (igB > 0) {
     flamAdd(a, (igB / thrF) * 20 * (archon ? 2 : 1));
-    if (roll(a.flam))
+    if (roll(a.flam) && !noAil(a, 'ign'))
       (a.ign = igniteOn(
         m,
         igB * 0.2 * (mag + ST.shaper / 100) * (1 + ST.ember / 100),
@@ -898,6 +932,7 @@ function applyAil(m, r, c, use) {
   /* 感電：每 4% 門檻 +1% 機率（化身 ×2、閃電箭更多），受到的傷害提高 20%、8 秒 */
   if (
     p.light > 0 &&
+    !noAil(a, 'shock') &&
     roll(
       (((p.light / thrL) * 100) / 4) *
         (archon ? 2 : 1) *
@@ -940,6 +975,7 @@ function applyAil(m, r, c, use) {
   if (
     (attack || c.spellBleed) &&
     ailBase(p, 'bleed') > 0 &&
+    !noAil(a, 'bleed') &&
     roll(ST.bleedCh + (c.bleedCh || 0) + DEBUFF.inciseCh * nInc)
   ) {
     if (nInc) (a.inc = 0), (P.incN = P.incN || []).push([G.t, nInc]);
@@ -947,7 +983,7 @@ function applyAil(m, r, c, use) {
     a.bleed = keepMax(a.bleed, ailBase(p, 'bleed') * 0.15 * mag * im, 5);
   }
   /* 附加火焰的品質：附加的火焰有機率直接點燃 */
-  if (c.addIgn && p.fire > 0 && qRoll(c.addIgn)) a.ign = igniteOn(m, p.fire * 0.2 * mag, 4, c, use);
+  if (c.addIgn && p.fire > 0 && !noAil(a, 'ign') && qRoll(c.addIgn)) a.ign = igniteOn(m, p.fire * 0.2 * mag, 4, c, use);
   if (ailBase(p, 'poi') > 0 && roll(ST.poisonCh + (c.poisonCh || 0))) {
     const n = 1 + ST.poiStack + (c.poiStack || 0);
     a.poi = (a.poi || []).filter(x => x.t > G.t);
@@ -1055,7 +1091,7 @@ function ailTick(m, dt) {
   if (bl > 0) {
     const agg = [a.bleed, ...(a.bleed.q || [])].some(x => x.t > G.t && x.agg);
     a.stainA = (a.stainA || 0) + dt * (m.mv || agg ? 2 : 1);
-    if (a.stainA >= DEBUFF.stainNeed) (a.stainA = 0), (a.stain = G.t + DEBUFF.stainT);
+    if (a.stainA >= DEBUFF.stainNeed && !noAil(a, 'stain')) (a.stainA = 0), (a.stain = G.t + DEBUFF.stainT);
   }
   if (d > 0) {
     m.hp -= d * dt;
@@ -1129,7 +1165,7 @@ const curseV = (k, lv) => {
 };
 function curseMob(m, k, lv, q = 0) {
   /* 無咒的（怪物旗標 m.hexproof）：不受詛咒；玩家有 hexPierce 時你的詛咒能影響無咒敵人 */
-  if (m.hexproof && !ST.hexPierce) return;
+  if ((m.hexproof && !ST.hexPierce) || noAil(m.ail, 'curse')) return;
   const v = curseV(k, lv) * (1 - rarRed(m)) * debuffM(bufV('curseMag'));
   m.ail.curse = { k, v, t: G.t + 6 + 0.07 * lv, q };
   if (k === 'vuln') m.arm = m.arm0 * (1 - v / 100);
@@ -1146,6 +1182,7 @@ const MARKS = {
   falcon: { n: '獵鷹印記', d: '被擊中時傷害更多 10% 並消耗（昇華「風行神射」）' }
 };
 function markMob(m, k, q = 0) {
+  if (noAil(m.ail, 'mark')) return;
   for (const o of G.mobs) if (o.ail && o.ail.mark && o.ail.mark.k === k && o !== m && !ST.multiMark) o.ail.mark = null;
   m.ail.mark = { k, q };
 }
@@ -1182,7 +1219,13 @@ const BUFF = {
     ic: 'sk_elemweak',
     d: '法術的元素傷害更多 25%、冰凍累積 +100%、易燃 +100%、感電機率 +100%'
   },
-  phasing: { n: '相位', ic: 'sk_hasteaura', d: '可以穿過敵人' },
+  /* 迷蹤（第 13～16 批，原「相位」）：玩家本來就不會被怪物擋住（moveBody 只推牆與擺設），之後加身體碰撞要讀 hasBuff('phasing') */
+  phasing: { n: '迷蹤', ic: 'sk_hasteaura', d: '可以穿過敵人' },
+  finality: {
+    n: '終極',
+    ic: 'sup_sp_exec',
+    d: '最終打擊暴擊率提高 100%、打擊技能直接跳到最終打擊、技能無法獲得連擊'
+  },
   howl: { n: '怒號', ic: 'sk_bloodhowl', d: '閃避值 +30%、滿血時傷害 +40%' },
   elusive: {
     n: '靈巧',
@@ -1637,6 +1680,8 @@ function hurtCalc(d, src, el, noEv) {
     const [k, v] = Object.entries(ep).sort((a, b) => b[1] - a[1])[0];
     if (v > 0) (P.adapt = P.adapt || {})[k] = Math.min(ADAPT.max, ((P.adapt || {})[k] || 0) + 1);
   }
+  /* 閃避翻滾無法躲避傷害：翻滾中受到的擊中傷害更少 */
+  if (ST.rollTank && P.roll) d *= 1 - ROLL.tank / 100;
   d = absorb(d * sm);
   return { d, crit, defl, supp };
 }

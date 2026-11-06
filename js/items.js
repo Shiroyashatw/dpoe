@@ -575,7 +575,19 @@ function stats(s = S) {
         'inciseMag',
         'hexPierce',
         'hstunNoEv',
-        'suppCh'
+        'suppCh',
+        /* 第 13～16 批：開關與數值（combat.js、mech.js、skills.js；目前沒有來源，見待做清單） */
+        ...Object.keys(ATT_KS),
+        'projAtkP',
+        'fork',
+        'projRet',
+        'splash',
+        'minmax',
+        'reveal',
+        'weakMore',
+        'noRoll',
+        'rollTank',
+        'minGiant'
       ].map(k => [k, 0])
     ),
     /* 不受影響：{ 減益種類: 1 }（ign、bleed、poison、chill、frozen、shock、curse、over、vine） */
@@ -647,12 +659,9 @@ function stats(s = S) {
     for (const a of it.a) if (!isLocal(it, a.k)) put(a.k, a.v);
   }
   o.add.phys = o.flat;
-  /* 能力值（eqCheck 已算好：起始＋過路點＋有效裝備）：1 力量 +2 生命、1 敏捷 +8 命中值、1 智慧 +2 魔力，吃後面的提高 */
+  /* 能力值（eqCheck 已算好：起始＋過路點＋有效裝備） */
   Object.assign(o, chk.tot);
   o.eqBad = [...chk.bad];
-  o.hp += 2 * o.str;
-  o.mp += 2 * o.int;
-  o.acc += 8 * o.dex;
   /* 天賦樹 */
   const pt = {
     hpP: 0,
@@ -687,6 +696,18 @@ function stats(s = S) {
     if (!v || (v.only && v.only !== wt0)) continue;
     for (const k in v) if (k !== 'only') k in pt ? (pt[k] += v[k]) : put(k, v[k]);
   }
+  /* 固有加成：1 力量 +2 生命、1 敏捷 +8 命中值、1 智慧 +2 魔力，吃後面的提高；能力值基石拿掉一種、改成每 2 點給 1% 別的提高 */
+  const noB = {};
+  for (const k in ATT_KS)
+    if (o[k]) {
+      const [a, to] = ATT_KS[k],
+        v = Math.floor(o[a] / 2);
+      noB[a] = 1;
+      to in pt ? (pt[to] += v) : (o[to] += v);
+    }
+  if (!noB.str) o.hp += 2 * o.str;
+  if (!noB.int) o.mp += 2 * o.int;
+  if (!noB.dex) o.acc += 8 * o.dex;
   /* 光環：照光環欄的順序預留精魂，精魂不夠的不生效；保留量 ÷ (1 + 效用) */
   o.spirit = calc(o.spirit, o.spiritP, 1, o.spiritTot);
   o.spiritUsed = 0;
@@ -768,6 +789,8 @@ function stats(s = S) {
   o.aoeM = 1 + o.aoe / 100;
   o.crit = Math.min(100, o.wcrit * (1 + o.critInc / 100));
   o.critM = 2 + o.critX / 100;
+  /* 超限格擋率（第 13～16 批）：沒有上限時超出 50 的部分（輕盾減半之前） */
+  o.blockOver = Math.max(0, Math.round(o.block * (1 + pt.blockInc / 100)) - 50);
   o.block = Math.min(50, Math.round(o.block * (1 + pt.blockInc / 100)));
   if (o.blockHalf && shI) o.block = Math.round(o.block / 2);
   /* 未限抗性：沒套上限的抗性（角色面板括號裡；有效抗性＝min(未限，最大抗性)） */

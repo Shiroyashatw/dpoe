@@ -23,9 +23,15 @@ function hasState(m, k) {
   if (k === 'parried') return a.parried > G.t;
   return false;
 }
-function takeState(m, k) {
+/* 效果消耗（第 13～16 批，企劃書 7.3）：同一下只能消耗一種，技能優先於其他來源（other＝不是技能的來源）；消耗減益後免疫它 1 秒，累積條不算減益 */
+const NO_IMM = new Set(['primed', 'pinprime', 'elcprime', 'frzprime']);
+function takeState(m, k, other) {
   if (!hasState(m, k)) return false;
-  const a = m.ail;
+  const a = m.ail,
+    tk = a.took;
+  if (tk && tk.t === G.t && (other || tk.skill)) return false;
+  a.took = { t: G.t, skill: !other };
+  if (!NO_IMM.has(k)) (a.imm = a.imm || {})[k] = G.t + DEBUFF.consumeImm;
   if (k === 'frozen') a.frozen = 0;
   else if (k === 'broken') (a.broken = 0), (m.arm = m.arm0);
   else if (k === 'primed') a.hs = 0;
@@ -292,7 +298,8 @@ function takeCorpse(x, y, r) {
 /* ---------- 6. 連擊與段數 ---------- */
 const COMBO_MAX = 10;
 function comboHit(a) {
-  if (!a || a.combo) return;
+  /* 終極：生效期間無法獲得連擊 */
+  if (!a || a.combo || hasBuff('finality')) return;
   a.combo = 1;
   if (a.c && a.c.k === 'combo') P.comboQ = a.c.q;
   P.combo = Math.min(COMBO_MAX, (P.combo || 0) + 1);
@@ -310,12 +317,34 @@ function useCombo() {
   P.combo = 0;
   return n;
 }
-/* 同一招 1 秒內再按＝下一段（0、1、2…，最多 max−1） */
-function nextStage(k, max = 3) {
+/* 同一招 1 秒內再按＝下一段（0、1、2…，最多 max−1）；最後一段是最終打擊，終極直接跳到那裡 */
+const STAGE_MAX = 3;
+const isFinal = st => st === STAGE_MAX - 1;
+function nextStage(k, max = STAGE_MAX) {
   const s = (P.stage = P.stage || {}),
-    cur = s[k] && G.t - s[k].t < 1 ? (s[k].n + 1) % max : 0;
+    cur = hasBuff('finality') ? max - 1 : s[k] && G.t - s[k].t < 1 ? (s[k].n + 1) % max : 0;
   s[k] = { n: cur, t: G.t };
   return cur;
+}
+
+/* ---------- 封印（第 13～16 批，企劃書 7.3）：D.seal = { max, every, aoe } 的技能隨時間累積封印（每 every 倍施放時間 1 個，最多 max），
+   只有你自己使用（useSlot）才打破，那次使用每個封印範圍提高 aoe %；自動化、觸發、場上單位不會打破 ---------- */
+function sealTick(dt) {
+  S.skills.forEach((s, i) => {
+    const g = s && s.a,
+      E = g && SKILLS[g.gem].seal,
+      q = E && ((P.seal = P.seal || {})[g.gem] = P.seal[g.gem] || { n: 0, t: 0 });
+    if (!E || q.n >= E.max) return;
+    q.t += dt;
+    const need = E.every * actDur(slotCfg(i));
+    if (q.t >= need) (q.t -= need), q.n++;
+  });
+}
+const sealN = k => (P.seal && P.seal[k] ? P.seal[k].n : 0);
+function sealBreak(k) {
+  const n = sealN(k);
+  if (P.seal && P.seal[k]) P.seal[k] = { n: 0, t: 0 };
+  return n;
 }
 
 /* ---------- 7. 招架與受招架、反擊狀態 ---------- */
@@ -589,7 +618,8 @@ function mechEnter() {
     glory: 0,
     form: null,
     ammo: {},
-    gren: {}
+    gren: {},
+    seal: {}
   });
 }
 function mechTick(dt) {
@@ -598,6 +628,7 @@ function mechTick(dt) {
   grenadeTick(dt);
   mirageTick();
   comboTick();
+  sealTick(dt);
   swordTick(dt);
   /* 榮耀消退：15 秒沒有獲得就每秒掉 2 點 */
   if (P.glory > 0 && G.t - (P.gloryT || 0) > 15) P.glory = Math.max(0, P.glory - 2 * dt);

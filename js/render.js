@@ -289,7 +289,13 @@ function draw() {
     }
   }
   /* 角色們（照 y 排序） */
-  const ents = G.mobs.filter(m => m.hp > 0).concat([P], G.allies || [], G.npcs);
+  const ents = G.mobs
+    .filter(m => m.hp > 0)
+    .concat(
+      [P],
+      (G.allies || []).filter(w => !w.dead),
+      G.npcs
+    );
   ents.sort((a, b) => a.y - b.y);
   /* 畫面外的不畫（留 150 給大隻的王與頭上的圖示） */
   const vx0 = G.cam.x - W / 2 - 150,
@@ -664,6 +670,11 @@ function drawMob(m) {
       CX.fillRect(m.x - w / 2 - 1, y - 1, w + 2, 6);
       CX.fillStyle = m.elite ? '#8ab4ff' : '#e5484d';
       CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
+      /* 暴露弱點：開放弱點的區段 */
+      if (ST.reveal && m.elite) {
+        CX.fillStyle = 'rgba(255, 215, 90, 0.6)';
+        for (const [a, b] of weakSegs(m)) CX.fillRect(m.x - w / 2 + w * a, y, w * (b - a), 4);
+      }
     }
   }
 }
@@ -940,7 +951,7 @@ function drawWolf(w) {
   const bob = w.mv ? Math.abs(Math.sin(w.ph)) * 0.08 : 0;
   /* 紙人兵、石魔像、戰狼 */
   const [im, sz] = w.src === 'doll' ? ['m_paperdoll', 34] : w.src === 'golem' ? ['m_golem', 52] : ['m_snowwolf', 36];
-  spr(im, w.x, w.y, sz, { flip: (w.face || 0) > 0, sy: 1 + bob });
+  spr(im, w.x, w.y, sz * giantM(w), { flip: (w.face || 0) > 0, sy: 1 + bob });
 }
 
 /* 場上單位：陷阱（地上的齒輪）、地雷（閃紅點）、砲塔圖騰（十字弓）、圖騰（柱子）；砲塔圖騰、圖騰下面的小條是剩下的時間 */

@@ -224,6 +224,13 @@ function hudTick() {
     if (show) $('bossn').textContent = b.D.n;
   }
   if (show) setV($('bossbar'), 'bhp', (b.hp / b.mhp).toFixed(3));
+  /* 暴露弱點：王的生命條上的區段（一隻王一組，換王才重畫） */
+  const wk = show && ST.reveal ? weakSegs(b) : null;
+  if (HV.weak !== wk) {
+    HV.weak = wk;
+    $('bossbar').querySelector('.bb').innerHTML =
+      '<i></i>' + (wk || []).map(([x, y]) => `<u style="left:${x * 100}%;width:${(y - x) * 100}%"></u>`).join('');
+  }
   const pr = G.scene === 'map' && !G.bossOut;
   if (HV.pr !== pr) $('prog').hidden = !(HV.pr = pr);
   if (pr) setV($('prog'), 'prog', Math.min(1, G.prog / G.need).toFixed(3));
@@ -713,7 +720,7 @@ function invHTML() {
   <div class="st">
     <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻擊速度 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b>${s.lukCrit ? `（有效 ${effCh(s.crit, 1).toFixed(1)}%）` : ''}</span><span title="打同等級普通怪的命中率（法術一律命中）">命中 <b>${s.acc}</b>（${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%）</span>
     ${ATTR.map(k => `<span title="${ATTN[k]}：${{ str: '1 點 +2 生命', dex: '1 點 +8 命中值', int: '1 點 +2 魔力' }[k]}">${ATTN[k]} <b>${s[k]}</b></span>`).join('')}
-    <span>生命 <b>${s.hp}</b></span>${s.es ? `<span>能量護盾 <b>${s.es}</b></span>` : ''}<span>護甲 <b>${s.armor}</b></span>${s.ev ? `<span>閃避 <b>${s.ev}</b></span>` : ''}<span>格擋 <b>${s.block}%</b>${s.lukBlock ? `（有效 ${capLuck(s.block, 50, 1).toFixed(1)}%）` : ''}</span>${s.defl ? `<span title="被擊中且沒閃避、格擋時，傷害 −40%">偏斜值 <b>${Math.round(s.defl)}</b>（${Math.round(capLuck(deflCh(15 + 6 * S.lv, s.defl), 95, s.lukDefl))}%）</span>` : ''}${s.thornAdd[1] ? `<span>荊棘 <b>${s.thornAdd[0]}–${s.thornAdd[1]}</b></span>` : ''}<span>精魂 <b>${s.spiritUsed}/${s.spirit}</b></span>
+    <span>生命 <b>${s.hp}</b></span>${s.es ? `<span>能量護盾 <b>${s.es}</b></span>` : ''}<span>護甲 <b>${s.armor}</b></span>${s.ev ? `<span>閃避 <b>${s.ev}</b></span>` : ''}<span>格擋 <b>${s.block}%</b>${s.lukBlock ? `（有效 ${capLuck(s.block, 50, 1).toFixed(1)}%）` : ''}${s.blockOver ? `（超限 +${s.blockOver}%）` : ''}</span>${s.defl ? `<span title="被擊中且沒閃避、格擋時，傷害 −40%">偏斜值 <b>${Math.round(s.defl)}</b>（${Math.round(capLuck(deflCh(15 + 6 * S.lv, s.defl), 95, s.lukDefl))}%）</span>` : ''}${s.thornAdd[1] ? `<span>荊棘 <b>${s.thornAdd[0]}–${s.thornAdd[1]}</b></span>` : ''}<span>精魂 <b>${s.spiritUsed}/${s.spirit}</b></span>
     ${res}
   </div></div>`
   }
@@ -766,7 +773,18 @@ const TAGN = {
   repeat: '重複技能',
   stack: '獲得疊層的技能',
   cond: '條件使用',
-  channel: '引導'
+  channel: '引導',
+  /* 第 13～16 批 */
+  orb: '寶珠技能',
+  herald: '捷光環技能',
+  payoff: '遣散技能',
+  grenade: '擲彈技能',
+  banner: '鬥旗技能',
+  wind: '疾風技能',
+  storm: '風暴技能',
+  cascade: '可爆發技能',
+  final: '最終打擊',
+  temp: '暫時召喚物'
 };
 function skillHTML() {
   /* 一列一招，升滿直接在列上；點一招或一顆寶石，動作都在下方的檢視區 skIns。空的格子點一下＝挑一顆裝上（data-gen） */

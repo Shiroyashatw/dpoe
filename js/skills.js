@@ -51,6 +51,9 @@ function gemCfg(g, i) {
       pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
       /* 全域投射物連鎖（0.2.25，彈射）：打中後彈向 260 內最近、還沒打過的敵人 */
       chain: D.tags.includes('proj') && !D.noChain ? ST.chain : 0,
+      /* 分裂、迴旋（第 13～16 批）：只給投射物技能；擲斧品質的迴旋是機率，在 shoot 的 o.back */
+      fork: D.tags.includes('proj') && !!ST.fork,
+      ret: D.tags.includes('proj') && !!ST.projRet,
       kb: 1,
       fireAdd: 0,
       pen: 0,
@@ -217,18 +220,21 @@ function useSlot(i) {
     sfx('throw');
     return true;
   }
-  const a = (P.act = {
-    k: c.k,
-    c,
-    t: 0,
-    dur: actDur(c),
-    ang,
-    hits: D.hits || [0.42],
-    n: 0,
-    tx: w.x,
-    ty: w.y,
-    stage: D.stage ? nextStage(c.k) : 0
-  });
+  const stage = D.stage ? nextStage(c.k) : 0,
+    a = (P.act = {
+      k: c.k,
+      c,
+      t: 0,
+      dur: actDur(c),
+      ang,
+      hits: D.hits || [0.42],
+      n: 0,
+      tx: w.x,
+      ty: w.y,
+      stage,
+      final: !!D.stage && isFinal(stage),
+      sealA: D.seal ? sealBreak(c.k) * D.seal.aoe : 0
+    });
   sfx(D.tags.includes('spell') ? 'cast' : D.tags.includes('proj') ? 'throw' : 'swing');
   if (D.parry) startParry(0.4), fxs('parry', P.x, P.y - 20, 50);
   /* 位移技能：衝向滑鼠（居合、跳砸）或撲向滑鼠附近的怪（影襲停在牠背後），途中無敵 */
@@ -297,7 +303,11 @@ function skillTick(a, dt, mx, my) {
 function actHit(a, idx) {
   const c = a.c,
     D = c.D,
-    R = (D.r || 0) * ST.aoeM * c.aoe * (ST.wt === 'spear' && D.tags.includes('melee') ? 1.25 : 1);
+    R =
+      (D.r || 0) *
+      (ST.aoeM + (a.sealA || 0) / 100) *
+      c.aoe *
+      (ST.wt === 'spear' && D.tags.includes('melee') ? 1.25 : 1);
   const hitArc = (ang, arc, r, kb, o) => {
     let n = 0;
     for (const m of G.mobs) {
@@ -459,7 +469,7 @@ function actHit(a, idx) {
   } else if (a.k === 'meteor') {
     G.meteors.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: D.delay, c, a });
   } else if (a.k === 'wolf') {
-    G.allies = G.allies.filter(w => w.src !== 'gem');
+    for (const w of G.allies.filter(w => w.src === 'gem')) allyDie(w);
     for (let i = 0; i < c.wolves; i++) callWolf('gem', c);
     fx({ k: 'ring', x: P.x, y: P.y, r: 90, dur: 0.35, col: '#9df29d' });
   } else actHit2(a, idx, R, hitArc);
@@ -728,9 +738,10 @@ function actHit2(a, idx, R, hitArc) {
     const cp = takeCorpse(P.x, P.y, 250);
     if (!cp) return;
     const dolls = G.allies.filter(w => w.src === 'doll');
-    if (dolls.length >= 4) G.allies.splice(G.allies.indexOf(dolls[0]), 1);
+    if (dolls.length >= 4) allyDie(dolls[0]);
     callWolf('doll', c, cp, G.t + 15);
-    G.allies[G.allies.length - 1].mhp = cp.mhp;
+    const nw = G.allies[G.allies.length - 1];
+    nw.hp = nw.mhp = cp.mhp * giantM(nw);
     fxs('rise', cp.x, cp.y, 40);
   } else if (a.k === 'redbloom') {
     /* 死亡紅花：舊的那排先爆，再往滑鼠方向鋪 5 朵（碰到牆就停） */
@@ -838,7 +849,9 @@ function shoot(ang, spd, c, a, o) {
     a,
     hit: new Set(),
     life: 0.9,
-    ...o
+    ...o,
+    /* 迴旋：會爆炸的投射物在終點爆炸，不飛回來 */
+    back: (o && o.back) || (c.ret && !(o && o.boom))
   });
 }
 /* 火球爆炸 */
@@ -876,6 +889,7 @@ const BASEC = () => ({
   poiStack: 0,
   impaleCh: 0
 });
+const SPLASH_R = 1.5 * METER;
 /* 打中一隻怪：o.a 出手、o.quiet 不停頓不震（狼、毒、反擊）、o.stun 暈眩、o.mult 改這一下的倍率（換成「更多」） */
 function hitMob(m, c, ang, kb, o = {}) {
   /* 不能穿牆：從出手的地方（o.from，預設是玩家）看不到就打不到 */
@@ -889,7 +903,16 @@ function hitMob(m, c, ang, kb, o = {}) {
     return num(m.x, m.y - m.sz, 0, 'miss', '未命中'), aggroPack(m);
   /* 投射物飛行距離（0.2.25）：飛出去的算飛了多遠，瞬間的算到目標的距離 */
   const fly = f.sx != null ? Math.hypot(f.x - f.sx, f.y - f.sy) : Math.hypot(m.x - f.x, m.y - f.y);
-  const r = hitCalc(c, m, { mult, crit, minion: o.minion, unit: a.unit, fly, trig: a.trig, keep: m.arrow });
+  const r = hitCalc(c, m, {
+    mult,
+    crit,
+    minion: o.minion,
+    unit: a.unit,
+    fly,
+    trig: a.trig,
+    keep: m.arrow,
+    final: a.final
+  });
   if (m.arrow) return arrowHit(m, r, c);
   const shocked = c.boltChain && hasState(m, 'shock');
   /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
@@ -923,6 +946,8 @@ function hitMob(m, c, ang, kb, o = {}) {
     const res = m.elite ? 0.5 : m.D.ai === 'slam' ? 0.4 : 1;
     m.vx += Math.cos(ang) * kb * res * (r.crit ? 1.5 : 1);
     m.vy += Math.sin(ang) * kb * res * (r.crit ? 1.5 : 1);
+    /* 預期擊退（第 13～16 批）：技能欄位 c.kbEasy＝每公尺預期擊退距離的易攻目標幅度 %（來源例：輔助 Punch Through） */
+    if (c.kbEasy && kb > 0) m.ail.easy = { v: c.kbEasy * kbExp(kb, r.crit), t: G.t + DEBUFF.easyT };
     /* 重擊輔助的品質：擊退方向貼著牆就沉重暈眩 */
     if (
       kb > 0 &&
@@ -954,6 +979,11 @@ function hitMob(m, c, ang, kb, o = {}) {
   /* 友方偷取相同數值（開關）：友方擊中用你的生命偷取總值（不再吃加成）回復自己 */
   if (ST.allyLeech && o.from && o.from.mhp && G.allies.includes(o.from))
     leechAdd('hp', r.d * (c.leech != null ? c.leech : ST.leech / 100), o.from);
+  /* 擴散傷害（第 13～16 批）：打擊技能對被打中的敵人 1.5 公尺內的其他敵人多一次擊中（走 hitMob，多的那一下不再擴散） */
+  if ((ST.splash || c.splash) && !o.splash && !o.minion && (c.D.tags || []).includes('strike'))
+    for (const x of G.mobs)
+      if (x !== m && x.hp > 0 && !x.arrow && dist(x, m) < SPLASH_R + x.r)
+        hitMob(x, c, angTo(m, x), 0, { a, quiet: 1, from: m, splash: 1 });
   /* 劍的招牌點（0.2.23）：近戰擊中有機率再打一次（再打的那一下不會再觸發） */
   if (m.hp <= 0) {
     if (r.crit && !o.minion && !a.unit) reapBoom(m);
@@ -1004,24 +1034,34 @@ function esAbsorb(d) {
   return d;
 }
 
+/* ---------- 召喚物（第 13～16 批，企劃書 7.3）：w.t 有值＝暫時召喚物，死了就沒了；沒有＝復甦召喚物，被擊殺後自動復活 ---------- */
+/* revive 復活秒數（另一隻復甦召喚物死亡時重算）；⚠️ healWait 幾秒沒受傷開始自癒、heal 每秒回最大生命的比例；giant 極大的更多與體型 */
+const MINION = { revive: 7.5, healWait: 4, heal: 0.2, giant: 0.2 };
+const giantM = w => (ST.minGiant || (w.c && w.c.giant) ? 1 + MINION.giant : 1);
+/* 召喚物受傷（目前沒有怪會打召喚物，要等召喚物 AI） */
+function allyHurt(w, d) {
+  if (w.dead) return;
+  w.hp -= d;
+  w.hurtT = G.t;
+  if (w.hp <= 0) allyDie(w, true);
+}
+/* killed＝生命歸零（被擊殺）；沒寫＝時間到或被取消，算死亡但「被擊殺時」不觸發，也不會復活 */
+function allyDie(w, killed) {
+  evMark('mdie');
+  if (killed) evMark('mkill');
+  if (w.t || !killed) return void (G.allies = G.allies.filter(o => o !== w));
+  w.hp = 0;
+  w.dead = G.t + MINION.revive;
+  for (const o of G.allies) if (o.dead) o.dead = w.dead;
+}
 /* ---------- 召喚戰狼：狼跟著你、咬最近的怪 ---------- */
 function callWolf(src, c, at = P, t = 0) {
-  const p = floorNear(at.x, at.y, 30, 80, 14) || { x: at.x, y: at.y };
-  /* hp／mhp：友方偷取用（友方目前不會受傷，生命取你的最大生命當底） */
-  G.allies.push({
-    src,
-    x: p.x,
-    y: p.y,
-    vx: 0,
-    vy: 0,
-    r: 14,
-    cd: rnd(0.2, 0.6),
-    c,
-    ph: Math.random() * TAU,
-    t,
-    hp: ST.hp,
-    mhp: ST.hp
-  });
+  const p = floorNear(at.x, at.y, 30, 80, 14) || { x: at.x, y: at.y },
+    /* hp／mhp：取你的最大生命當底（紙人用屍體的最大生命） */
+    w = { src, x: p.x, y: p.y, vx: 0, vy: 0, cd: rnd(0.2, 0.6), c, ph: Math.random() * TAU, t };
+  w.r = 14 * giantM(w);
+  w.hp = w.mhp = ST.hp * giantM(w);
+  G.allies.push(w);
 }
 /* 同伴這一下的倍率：寶石叫的狼吃群狼、紙人用寶石倍率、魔像與光環狼用左鍵技能打折 */
 const ALLY_RATE = 0.8;
@@ -1035,9 +1075,14 @@ const allyMult = (w, c) =>
         : 0.4;
 function updAllies(dt) {
   for (const w of G.allies) {
+    if (w.dead > G.t) continue;
+    if (w.dead) (w.dead = 0), (w.hp = w.mhp), (w.x = P.x), (w.y = P.y), fxs('rise', P.x, P.y, 40);
     w.cd -= dt;
     w.ph += dt * 10;
     leechTick(dt, w, [['hp', w.mhp]]);
+    /* 復甦召喚物：一段時間沒受傷就自癒 */
+    if (!w.t && w.hp < w.mhp && G.t - (w.hurtT == null ? -99 : w.hurtT) >= MINION.healWait)
+      w.hp = Math.min(w.mhp, w.hp + w.mhp * MINION.heal * dt);
     let t = null,
       bd = 420;
     for (const m of G.mobs)
@@ -1058,7 +1103,7 @@ function updAllies(dt) {
       w.cd = ALLY_RATE;
       fx({ k: 'claw', x: w.x, y: w.y, ang: angTo(w, t), r: 34, dur: 0.12 });
       const c = w.c || slotCfg(0) || BASEC(),
-        mult = allyMult(w, c);
+        mult = allyMult(w, c) * giantM(w);
       /* 群狼的品質：狼咬中有機率流血 */
       const cc = c.wolfBl ? { ...c, bleedCh: c.wolfBl, spellBleed: 1 } : c;
       hitMob(t, cc, angTo(w, t), 60, { quiet: 1, mult, minion: 1, from: w });
@@ -1109,17 +1154,17 @@ function updSkills(dt) {
   /* 戰狼精魂光環 */
   const aw = G.allies.some(w => w.src === 'aura');
   if (fightOn() && ST.auraWolf && !aw) callWolf('aura');
-  else if (!ST.auraWolf && aw) G.allies = G.allies.filter(w => w.src !== 'aura');
+  else if (!ST.auraWolf && aw) for (const w of G.allies.filter(w => w.src === 'aura')) allyDie(w);
   /* 召喚魔像（光環欄）：拿權杖才會出來 */
   const gm = G.allies.some(w => w.src === 'golem'),
     gOn = ST.auraGolem;
   if (fightOn() && gOn && !gm) callWolf('golem');
-  else if (!gOn && gm) G.allies = G.allies.filter(w => w.src !== 'golem');
+  else if (!gOn && gm) for (const w of G.allies.filter(w => w.src === 'golem')) allyDie(w);
   /* 紙人 15 秒就消失；品質：有機率留下屍體 */
   for (const w of G.allies)
     if (w.src === 'doll' && w.t <= G.t && qRoll(20 * (w.c.q || 0)))
       G.corpses.push({ x: w.x, y: w.y, sz: 20, mhp: w.mhp || 100, t: G.t + 15 });
-  G.allies = G.allies.filter(w => !w.t || w.t > G.t);
+  for (const w of G.allies.filter(w => w.t && w.t <= G.t)) allyDie(w);
   updAllies(dt);
   updPools(dt);
   updUnits(dt);

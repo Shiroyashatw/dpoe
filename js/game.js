@@ -575,6 +575,7 @@ function pushTiles(o) {
 }
 function doRoll() {
   if (P.roll || G.state !== 'play' || (P.cds.roll || 0) > 0 || pHeavy()) return;
+  if (ST.noRoll) return hudWarn('無法閃避翻滾');
   let dx = P.mdx || 0,
     dy = P.mdy || 0;
   if (!dx && !dy) (dx = Math.cos(P.face)), (dy = Math.sin(P.face));
@@ -589,7 +590,8 @@ function doRoll() {
       t = mobNear(mw.x, mw.y, 200);
     if (w && t) (w.x = t.x), (w.y = t.y + t.r), (w.cd = 0);
   }
-  P.iuntil = G.t + ROLL.iframe;
+  /* 閃避翻滾無法躲避傷害：沒有無敵與完美閃避（hurtPlayer），傷害在 hurtCalc 打折 */
+  if (!ST.rollTank) P.iuntil = G.t + ROLL.iframe;
   sfx('roll');
 }
 /* mana：喝魔力藥劑（2）回魔力，不然喝生命藥劑（1）回生命；藥劑效果的詞綴與地圖詞兩種都算 */
@@ -608,7 +610,7 @@ function drinkFlask(mana) {
 /* noEv：躲不掉的（王的紅光大招、地上的陷阱）；其他擊中都可以被閃避、格擋 */
 function hurtPlayer(d, src, el = 'phys', noEv) {
   if (G.state !== 'play') return;
-  if (P.roll && P.roll.t < perfWin()) {
+  if (!ST.rollTank && P.roll && P.roll.t < perfWin()) {
     if (!G.slow) {
       G.slow = ROLL.slow;
       P.critNext = 1;
@@ -643,7 +645,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   /* 流順之風：被擊中清空 */
   P.tail = 0;
   /* 召喚魔像：站在它旁邊受到的傷害少 20%；品質：有機率替你擋下這一下 */
-  if (G.allies.some(w => w.src === 'golem' && dist(w, P) < 200)) {
+  if (G.allies.some(w => w.src === 'golem' && !w.dead && dist(w, P) < 200)) {
     if (qRoll(20 * (ST.aq.golem || 0))) return num(P.x, P.y - 60, 0, 'block', '魔像');
     d *= 0.8;
   }
@@ -990,7 +992,7 @@ function updMobs(dt) {
     if (mobTick(m, dt)) continue;
     if (m.vx || m.vy) {
       moveBody(m, m.vx * dt, m.vy * dt);
-      const f = Math.exp(-dt * 9);
+      const f = Math.exp(-dt * KB_F);
       m.vx *= f;
       m.vy *= f;
       if (Math.abs(m.vx) + Math.abs(m.vy) < 4) m.vx = m.vy = 0;
@@ -1244,9 +1246,11 @@ function updShots(dt) {
     s.life -= dt;
     /* 盾牌投擲飛回來：追著玩家，碰到就收回 */
     if (s.ret) {
-      const g = Math.atan2(P.y - 20 - s.y, P.x - s.x);
+      /* 迴旋：飛回發射者；場上單位射的回到單位的位置（射出的位置） */
+      const h = s.a && s.a.unit ? { x: s.sx, y: s.sy } : P,
+        g = Math.atan2(h.y - 20 - s.y, h.x - s.x);
       (s.vx = Math.cos(g) * 900), (s.vy = Math.sin(g) * 900), (s.life = 1);
-      if (Math.hypot(P.x - s.x, P.y - 20 - s.y) < 30) s.life = 0;
+      if (Math.hypot(h.x - s.x, h.y - 20 - s.y) < 30) s.life = 0;
       /* 擲斧的品質：回程再打一次 */
       if (s.back)
         for (const m of G.mobs) {
@@ -1294,6 +1298,12 @@ function updShots(dt) {
                 v = Math.hypot(s.vx, s.vy);
               (s.vx = Math.cos(g) * v), (s.vy = Math.sin(g) * v), (s.ang = g), (s.life = 0.7);
             } else s.ret = 1;
+            break;
+          }
+          /* 分裂（第 13～16 批）：第一次擊中時一分為二，這一下不穿透、不連鎖；分出來的不會再分 */
+          if (s.c.fork && !s.noFork) {
+            shotFork(s, s.ang - 0.35), shotFork(s, s.ang + 0.35);
+            s.life = 0;
             break;
           }
           if (s.pierce-- <= 0) {
