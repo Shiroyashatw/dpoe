@@ -80,7 +80,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .panel[hidden] { display: none !important; }
 #pinv { right: 16px; width: 476px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pstash { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
-#pdev { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(860px, calc(100vw - 24px)); height: min(640px, calc(100vh - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pdev { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes inR { from { opacity: 0; transform: translateX(24px); } }
 @keyframes inL { from { opacity: 0; transform: translateX(-24px); } }
 @keyframes pop { from { opacity: 0; } }
@@ -139,6 +139,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .tinfo { display: grid; gap: 4px; padding: 10px 12px; background: rgba(0, 0, 0, 0.35); border-radius: var(--rad); }
 .tinfo div { display: flex; justify-content: space-between; gap: 12px; }
 .tinfo span { color: var(--dim); }
+#pdev p { font-size: var(--fs-s); margin: 10px 0; }
 /* 昇華石碑（0.2.25）：兩張卡並排（窄螢幕上下排），大點照選擇組合併成一行 */
 #pasc { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(980px, calc(100vw - 24px)); height: min(720px, calc(100vh - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pshop { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
@@ -148,6 +149,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .shopres .ic { width: 36px; height: 36px; flex: none; }
 .shopres b { display: block; font-size: var(--fs); }
 .shopres small { color: var(--dim); font-size: var(--fs-s); }
+#pdev .btn { width: 100%; }
 
 /* ---------- 說明框 ---------- */
 #tip { position: fixed; z-index: 30; max-width: 300px; padding: 10px 12px; background: rgba(14, 11, 10, 0.97); border: 1px solid rgba(205, 210, 220, 0.3); border-radius: var(--rad); pointer-events: none; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7); }
@@ -361,6 +363,7 @@ body.touch .tmenu { display: flex; gap: 6px; position: fixed; top: calc(8px + en
 body.touch .panel { top: calc(6px + env(safe-area-inset-top)); max-height: calc(100dvh - 12px); padding: 10px; overscroll-behavior: contain; }
 body.touch #pinv { right: calc(6px + env(safe-area-inset-right)); width: calc(50vw - 9px); }
 body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); width: calc(50vw - 9px); }
+body.touch #pdev { width: min(440px, calc(100vw - 12px)); max-height: calc(100dvh - 12px); }
 body.touch #pshop, body.touch #pflt { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch .eqrow { flex-wrap: wrap; gap: 8px; }
 body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-space: normal; }
@@ -469,8 +472,13 @@ body.touch #pcraft { left: calc(6px + env(safe-area-inset-left)); width: calc(50
 .mcard.on { border-color: var(--sc); background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px var(--sc); }
 .mcard.lock { color: var(--dim); opacity: 0.5; cursor: default; }
 button.mcard:active { transform: scale(0.96); }
+.mmods { columns: 2; column-gap: 14px; margin: 10px 0; padding-left: 18px; font-size: var(--fs-s); }
+.mmods li { break-inside: avoid; }
+.mmods .d2 { color: var(--warn); } .mmods .d3 { color: var(--bad); }
 .c-warn { color: var(--warn); }
+@media (max-width: 600px) { .mmods { columns: 1; } }
 /* 主要按鈕固定在地圖台底部（手機橫向一屏放不下時也按得到） */
+#pdev .btn.pri { position: sticky; bottom: -14px; box-shadow: 0 -10px 14px var(--panel); }
 
 :root {
   /* 0.2.34 鑄鐵銀框：鐵灰四階、銀灰框、鋼藍灰標題帶與主按鈕（紅色只代表危險）；黃色只留給稀有度 */
@@ -712,6 +720,29 @@ body.touch.port .panel > .ph:first-child .x { display: none; }
 body.touch.port #pdev > .ph:first-child .x, body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x, body.touch.port #pflt > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x, body.touch.port #pshop > .ph:first-child .x { display: grid; }
 
 /* ---------- 0.2.14 地圖台：◀ 階級 ▶、三張大卡、選中的卡展開地圖詞 ---------- */
+.tstep { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; margin: 2px 0 6px; }
+.tstep .btn { padding: 0; display: grid; place-items: center; color: var(--title); }
+.tstep .ico { width: 20px; height: 20px; }
+.tstep div { text-align: center; }
+.tstep b { display: block; font: 700 22px/1.2 var(--serif); color: var(--title); letter-spacing: 0.06em; }
+.tstep small { display: block; color: var(--dim); font-size: var(--fs-s); }
+.tnext { margin: 0 0 10px; text-align: center; font-size: var(--fs-s); color: var(--dim); }
+.mcards2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; margin: 4px 0 6px; }
+.mc2 { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 6px; font: 500 var(--fs-s) var(--font); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
+.mc2:hover { border-color: var(--fr); }
+.mc2:active { transform: scale(0.97); }
+.mc2.on { border-color: var(--sc); box-shadow: inset 0 0 0 1px var(--sc), inset 0 0 18px rgba(0, 0, 0, 0.6); background: linear-gradient(180deg, #261d13, #0e0b08); }
+.mstar { font-size: 18px; color: var(--sc); letter-spacing: 1px; }
+.mdang { font-weight: 700; }
+.mdang.d1 { color: var(--good); } .mdang.d2 { color: var(--warn); } .mdang.d3 { color: var(--bad); }
+.mrew { color: var(--gold); }
+.mcost { color: var(--dim); }
+.msel { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--line); font-size: var(--fs-s); }
+.msel b { font-family: var(--serif); color: var(--title); font-size: var(--fs); }
+body.touch.port .mcards2 { grid-template-columns: 1fr; }
+body.touch.port .mc2 { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; text-align: left; justify-items: start; padding: 10px 12px; column-gap: 12px; }
+body.touch.port .mc2 .mstar { grid-row: 1 / 3; align-self: center; }
+body.touch.port .mc2 .mcost { grid-column: 3; grid-row: 1 / 3; align-self: center; }
 
 /* ---------- 0.2.14 裝備：人形欄放大置中、空格是淡淡的部位圖示、數值在下面 ---------- */
 .eqrow.col { flex-direction: column; align-items: center; gap: 10px; }
@@ -752,6 +783,7 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 #bossbar .bb { box-shadow: none; border: 1px solid var(--fr); }
 #tip > b:first-child { font-family: var(--font); letter-spacing: 0; }
 #area, #warn { font-family: var(--font); letter-spacing: 0; }
+.tstep b { font-family: var(--font); letter-spacing: 0; }
 #ptree .tbar { background: var(--s2); border-bottom: 1px solid var(--fr-o); }
 #tsvg line.on, #tsvg path.on { stroke: var(--sel); }
 ::selection { background: rgba(86, 108, 128, 0.75); color: #fff; }
@@ -806,7 +838,14 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 body.touch.port.pair #pskill { height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.62); }
 body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.62); }
 
+/* 手機橫向（畫面矮）：地圖台左右兩欄、材料一排、說明框更緊湊 */
 @media (max-height: 480px) {
+  body.touch:not(.port) #pdev { width: calc(100vw - 12px); }
+  body.touch:not(.port) .devw { display: flex; }
+  body.touch:not(.port) .mdl, body.touch:not(.port) .mdr { flex: 1; min-width: 0; }
+  body.touch:not(.port) .mcards2 { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+  body.touch:not(.port) .mc2 { padding: 4px; }
+  body.touch:not(.port) .mmods { columns: 1; margin: 4px 0; }
   body.touch:not(.port) .mats { flex-wrap: nowrap; overflow-x: auto; margin: 4px 0; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -824,7 +863,7 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
 .ph .x, .tbar .x { color: #fff; background: rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.28); }
 .ph .x:hover, .tbar .x:hover { color: #fff; background: rgba(0, 0, 0, 0.45); border-color: #fff; }
 .ph2 { font: 900 16px var(--serif); letter-spacing: 0.06em; color: var(--title); border-bottom: 1px solid var(--fr); }
-.btn, .sk, .shopb, .gtab, .ftabs button, .fseg button { border-radius: 0; }
+.btn, .sk, .shopb, .mc2, .gtab, .ftabs button, .fseg button { border-radius: 0; }
 .btn { background: linear-gradient(180deg, var(--s3), var(--s2)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1); }
 .btn.pri { font-weight: 700; font-size: 15px; }
 .tbar .tabs button.on, .ftabs button.on, .gkind .btn.on, .chip.on, .fseg button.on { background: var(--sel); border-color: var(--sel); color: var(--sel-ink); }
@@ -939,7 +978,7 @@ body.touch .gplist { max-height: 40vh; }
 /* ---------- 技能寶石：一列一招、升滿在列上，下方檢視區放動作（gx-） ---------- */
 .ph .gx-res, .ax-sum { white-space: nowrap; }
 .ph .gx-res b { font-variant-numeric: tabular-nums; }
-#pskill .ph > b, #pdev .ph > b, #pasc .ph > b, #pgem .ph > b { flex: none; white-space: nowrap; }
+#pskill .ph > b, #pasc .ph > b, #pgem .ph > b { flex: none; white-space: nowrap; }
 #pskill { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
 #pskill > .ph { flex: none; margin-bottom: 0; }
 .gx-bar { flex: none; display: flex; gap: 8px; padding: 6px 0; }
@@ -1018,48 +1057,6 @@ body.touch .gplist { max-height: 40vh; }
 #pgem .ph2 { margin-top: 8px; }
 #pgem .gcard b { display: inline; }
 
-/* ---------- 地圖台：階級尺、卡片清單、選中的卡（mx-） ---------- */
-#pdev { display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 14px; overflow: hidden; padding-bottom: 12px; }
-#pdev > .ph { grid-column: 1 / -1; margin-bottom: 10px; }
-.mx-top { grid-column: 1 / -1; padding-bottom: 10px; }
-.mx-ruler { position: relative; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
-.mx-t { flex: 1 0 34px; height: 34px; padding: 0; font: 700 var(--fs) var(--font); font-variant-numeric: tabular-nums; color: var(--dim); background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
-.mx-t:hover:not(.lock) { color: var(--title); border-color: var(--fr); }
-.mx-t:active:not(.lock) { transform: scale(0.95); }
-.mx-t.on { color: var(--sel-ink); background: var(--sel); border-color: var(--sel); }
-.mx-t.lock { color: var(--lock); border-style: dashed; cursor: default; opacity: 0.55; }
-.mx-info { margin: 8px 0 0; font-size: var(--fs-s); color: var(--dim); }
-.mx-list { min-height: 0; overflow-y: auto; display: grid; gap: 4px; align-content: start; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
-.mx-c { display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; min-height: 56px; padding: 6px 10px; text-align: left; font: 500 var(--fs-s) var(--font); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
-.mx-c:hover { border-color: var(--fr); }
-.mx-c:active { transform: scale(0.99); }
-.mx-c.on { background: var(--s3); border-color: var(--sc); box-shadow: inset 0 0 0 1px var(--sc); }
-.mx-st { display: flex; color: var(--sc); }
-.mxs { width: 14px; height: 14px; fill: currentColor; stroke: none; }
-.mx-rw b { font-size: var(--fs); color: var(--title); font-variant-numeric: tabular-nums; }
-.mx-co { color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.mx-dg { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 2px 6px; }
-.mx-k { font-style: normal; font-weight: 700; color: var(--bad); }
-.mx-k::after { content: '·'; margin-left: 6px; color: var(--fr); }
-.mx-n { font-style: normal; color: var(--dim); }
-.mx-lock { display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; font-size: var(--fs-s); color: var(--lock); border: 1px dashed var(--fr-o); border-radius: 2px; }
-.mx-lock .ico { width: 14px; height: 14px; }
-.mx-det { min-height: 0; display: flex; flex-direction: column; gap: 8px; }
-.mx-sc { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
-.mx-det .btn.pri { flex: none; }
-.mx-rew { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--fr-o); border: 1px solid var(--fr-o); }
-.mx-rew div { padding: 6px 4px; text-align: center; background: var(--s0); }
-.mx-rew b { display: block; font: 700 var(--fs-l)/1.2 var(--font); color: var(--title); font-variant-numeric: tabular-nums; }
-.mx-rew small { font-size: 11px; color: var(--dim); }
-.mx-mods { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
-.mx-mods h5 { margin: 0 0 2px; font: 700 11px var(--font); color: var(--dim); }
-.mx-mods h5 i { font-style: normal; }
-.mx-mods p { margin: 0; font-size: var(--fs-s); line-height: 1.5; }
-.mx-mods .d3 h5, .mx-mods .d3 p { color: var(--bad); }
-.mx-mods .d3 p { font-weight: 700; }
-.mx-mods .d2 p { color: var(--warn); }
-.mx-mods .term { color: inherit; }
-
 /* ---------- 昇華石碑：頁籤、盤面（位置跟天賦樹中間一樣）、說明列與大點清單（ax-） ---------- */
 #pasc { display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 14px; overflow: hidden; padding-bottom: 12px; }
 #pasc > .ph { grid-column: 1 / -1; margin-bottom: 10px; }
@@ -1108,17 +1105,14 @@ body.touch .gplist { max-height: 40vh; }
 .ax-r span { color: var(--dim); }
 .ax-note { padding: 6px 8px 2px; font-size: 11px; color: var(--dim); }
 .ax-pick { flex: none; width: 100%; }
-.gx-row:focus-visible, .gx-ac:focus-visible, .mx-t:focus-visible, .mx-c:focus-visible, .ax-tab:focus-visible, .ax-n:focus-visible, .ax-r:focus-visible, .sock.emp:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
+.gx-row:focus-visible, .gx-ac:focus-visible, .ax-tab:focus-visible, .ax-n:focus-visible, .ax-r:focus-visible, .sock.emp:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
 
-/* ---------- 三個面板的手機版 ---------- */
+/* ---------- 技能寶石、昇華石碑的手機版 ---------- */
 body.touch .sock.sup { width: 40px; height: 40px; }
 /* 孔 40 加間距才夠 44 的點擊區 */
 body.touch .sock.sup::after { content: ''; position: absolute; inset: -2px; }
 body.touch .gx-k .sock.act { width: 44px; height: 44px; }
 body.touch .gx-row { grid-template-columns: 48px minmax(0, 1fr) 66px; padding: 4px 4px 4px 2px; }
-body.touch #pdev .mx-rew { display: flex; flex-wrap: wrap; gap: 0 10px; background: none; border: 0; }
-body.touch #pdev .mx-rew div { display: flex; flex-direction: row-reverse; gap: 3px; align-items: baseline; padding: 0; background: none; }
-body.touch #pdev .mx-rew b, body.touch #pdev .mx-rew small { font-size: var(--fs-s); }
 /* 盤面：手機圖示縮小、點擊區不縮，名字看下面的清單 */
 body.touch .ax-n.b0 { width: 22px; height: 22px; }
 body.touch .ax-n.b1 { width: 36px; height: 36px; }
@@ -1131,18 +1125,13 @@ body.touch .ax-l { display: none; }
 body.touch:not(.port) .ph .sw { display: block; width: auto; padding: 0 12px; margin-left: auto; }
 body.touch:not(.port) .ph .sw + .x { margin-left: 0; }
 
-/* 手機直立：清單在上、動作在拇指區；寶石的檢視區選中時佔掉背包那半邊 */
+/* 手機直立：動作在拇指區；寶石的檢視區選中時佔掉背包那半邊 */
 body.touch.port .gx-c { display: grid; }
 body.touch.port .gx-d { padding-right: 28px; }
 body.touch.port.pair.gxs #pskill { bottom: 0; height: auto; }
 body.touch.port #pskill { --pp: 10px; padding-left: 10px; padding-right: 10px; }
 body.touch.port .gx-ins { max-height: 46vh; }
 body.touch.port .gx-bar { padding: 8px 0; }
-body.touch.port #pdev { height: auto; bottom: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; }
-body.touch.port .mx-t { flex: 0 0 44px; height: 40px; }
-body.touch.port .mx-list { padding-right: 0; }
-body.touch.port .mx-det { height: 38vh; padding-top: 8px; margin-top: 6px; border-top: 1px solid var(--fr); }
-body.touch.port .mx-c { padding: 6px 8px; }
 body.touch.port #pasc { height: auto; bottom: 0; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 0; }
 body.touch.port #pasc > * { flex: none; }
 body.touch.port .ax-side { display: contents; }
@@ -1155,20 +1144,13 @@ body.touch.port .ax-tab .ic { width: 28px; height: 28px; }
 body.touch.port .ax-tab i { display: inline; margin-left: 2px; }
 body.touch.port .ax-chart { height: auto; width: 100%; max-width: 420px; align-self: center; margin-bottom: 8px; }
 
-/* 手機橫向（畫面矮）：都是左右兩欄，一屏看完 */
+/* 手機橫向（畫面矮）：左右兩欄，一屏看完 */
 @media (max-height: 480px) {
   body.touch:not(.port) #pskill { width: calc(100vw - 12px); display: grid; grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); column-gap: 10px; }
   body.touch:not(.port) #pskill > .ph { grid-column: 1 / -1; padding-top: 4px; padding-bottom: 4px; }
   body.touch:not(.port) .gx-bar { grid-column: 2; grid-row: 2; }
   body.touch:not(.port) .gx-list { grid-column: 1; grid-row: 2 / 4; margin: 0; padding: 4px 4px 0 6px; }
   body.touch:not(.port) .gx-ins { grid-column: 2; grid-row: 3; max-height: none; margin: 0 0 8px; padding: 6px 8px; border: 1px solid var(--fr-o); }
-  body.touch:not(.port) #pdev { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: none; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
-  body.touch:not(.port) #pdev > .ph { margin-bottom: 6px; padding-top: 4px; padding-bottom: 4px; }
-  body.touch:not(.port) .mx-top { grid-column: 1; padding-bottom: 6px; }
-  body.touch:not(.port) .mx-t { flex: 0 0 44px; height: 36px; }
-  body.touch:not(.port) .mx-info { margin-top: 4px; white-space: nowrap; overflow: hidden; }
-  body.touch:not(.port) .mx-list { grid-column: 1; grid-row: 3; }
-  body.touch:not(.port) .mx-det { grid-column: 2; grid-row: 2 / 4; }
   body.touch:not(.port) #pasc { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: none; grid-template-columns: auto minmax(0, 1fr); padding-top: 8px; padding-bottom: 8px; }
   body.touch:not(.port) #pasc > .ph { grid-column: 2; grid-row: 1; margin: -8px calc(-1 * var(--pp)) 6px 0; padding-top: 4px; padding-bottom: 4px; }
   body.touch:not(.port) .ax-chart { grid-column: 1; grid-row: 1 / 4; height: calc(100dvh - 30px); width: auto; max-width: none; align-self: center; }

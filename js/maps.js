@@ -12,14 +12,14 @@ const STARS = [
   { c: '#ff9f43', n: [10, 12], w: 11 },
   { c: '#ff5a5a', n: [13, 15], w: 5 }
 ];
-/* 地圖詞：d 危險度（1 溫和、2 中等、3 致命；1～2★ 只抽 1～2）、g 同一組只會出一條、fx 效果（G.mm 合計）、s 致命詞寫在卡上的短名 */
+/* 地圖詞：d 危險度（1 溫和、2 中等、3 致命；1～2★ 只抽 1～2）、g 同一組只會出一條、fx 效果（G.mm 合計） */
 const MAPMOD = {
   hp1: { d: 1, g: 'hp', t: '怪物生命 +20%', fx: { mhp: 20 } },
   hp2: { d: 2, g: 'hp', t: '怪物生命 +40%', fx: { mhp: 40 } },
-  hp3: { d: 3, g: 'hp', t: '怪物生命 +80%', s: '怪物生命 +80%', fx: { mhp: 80 } },
+  hp3: { d: 3, g: 'hp', t: '怪物生命 +80%', fx: { mhp: 80 } },
   dmg1: { d: 1, g: 'dmg', t: '怪物傷害 +15%', fx: { mdmg: 15 } },
   dmg2: { d: 2, g: 'dmg', t: '怪物傷害 +30%', fx: { mdmg: 30 } },
-  dmg3: { d: 3, g: 'dmg', t: '怪物傷害 +50%', s: '怪物傷害 +50%', fx: { mdmg: 50 } },
+  dmg3: { d: 3, g: 'dmg', t: '怪物傷害 +50%', fx: { mdmg: 50 } },
   spd1: { d: 1, g: 'spd', t: '怪物移動速度 +10%', fx: { mspd: 10 } },
   spd2: { d: 2, g: 'spd', t: '怪物移動速度 +20%', fx: { mspd: 20 } },
   res1: { d: 1, g: 'res', t: '怪物元素抗性 +20%', fx: { mres: 20 } },
@@ -33,34 +33,22 @@ const MAPMOD = {
   cold: { d: 1, g: 'addC', t: '怪物多造成 20% 的冰冷傷害', fx: { addC: 20 } },
   light: { d: 1, g: 'addL', t: '怪物多造成 20% 的閃電傷害', fx: { addL: 20 } },
   crit1: { d: 2, g: 'crit', t: '怪物暴擊率 +10%', fx: { mcrit: 10 } },
-  crit2: {
-    d: 3,
-    g: 'crit',
-    t: '怪物暴擊率 +25%、暴擊傷害加成 +50%',
-    s: '怪物暴擊 +25%',
-    fx: { mcrit: 25, mcritX: 0.5 }
-  },
+  crit2: { d: 3, g: 'crit', t: '怪物暴擊率 +25%、暴擊傷害加成 +50%', fx: { mcrit: 25, mcritX: 0.5 } },
   bleed: { d: 2, g: 'bleed', t: '怪物擊中時 25% 機率讓你流血', fx: { mbleed: 25 } },
   poison: { d: 2, g: 'poison', t: '怪物擊中時 25% 機率讓你中毒', fx: { mpoi: 25 } },
   ignite: { d: 2, g: 'ignite', t: '怪物擊中時 25% 機率點燃你', fx: { mign: 25 } },
   regen1: { d: 1, g: 'regen', t: '你的生命回復 −40%', fx: { pregen: -40 } },
-  regen3: { d: 3, g: 'regen', t: '你不能回復生命（藥劑、生命偷取除外）', s: '不能回復生命', fx: { pregen: -100 } },
+  regen3: { d: 3, g: 'regen', t: '你不能回復生命（藥劑、生命偷取除外）', fx: { pregen: -100 } },
   flask: { d: 1, g: 'flask', t: '藥劑回復 −30%', fx: { pflask: -30 } },
   maxres1: { d: 2, g: 'maxres', t: '你的最大元素抗性 −10%', fx: { pmaxres: -10 } },
-  maxres3: { d: 3, g: 'maxres', t: '你的最大元素抗性 −20%', s: '最大抗性 −20%', fx: { pmaxres: -20 } },
+  maxres3: { d: 3, g: 'maxres', t: '你的最大元素抗性 −20%', fx: { pmaxres: -20 } },
   es: { d: 2, g: 'es', t: '能量護盾充能速度 −40%', fx: { pes: -40 } },
   leech: { d: 1, g: 'leech', t: '生命偷取 −50%', fx: { pleech: -50 } },
   cuEle: { d: 2, g: 'curse', t: '你被「元素要害」詛咒（元素抗性 −20%）', fx: { pcurse: 'eleweak', pcv: 20 } },
   cuTc: { d: 2, g: 'curse', t: '你被「時空鎖鏈」詛咒（緩速 15%）', fx: { pcurse: 'tchains', pcv: 15 } },
-  cuEn: {
-    d: 3,
-    g: 'curse',
-    t: '你被「衰弱」詛咒（造成的傷害更少 20%）',
-    s: '衰弱詛咒',
-    fx: { pcurse: 'enfeeble', pcv: 20 }
-  },
+  cuEn: { d: 3, g: 'curse', t: '你被「衰弱」詛咒（造成的傷害更少 20%）', fx: { pcurse: 'enfeeble', pcv: 20 } },
   cuVu: { d: 2, g: 'curse', t: '你被「脆弱」詛咒（護甲 −30%）', fx: { pcurse: 'vuln', pcv: 30 } },
-  pen: { d: 3, g: 'pen', t: '怪物穿透你 15% 的元素抗性', s: '穿透抗性 15%', fx: { mpen: 15 } },
+  pen: { d: 3, g: 'pen', t: '怪物穿透你 15% 的元素抗性', fx: { mpen: 15 } },
   /* 0.2.42 堅韌：怪物受到的傷害 ÷ (1 + 30%)，約少打 23%，跟「怪物生命 +30%」差不多，危險度 2 */
   tough: { d: 2, g: 'tough', t: '怪物堅韌 +30%', fx: { mtough: 30 } },
   /* 第 11 批：怪物死亡留下怪物方的地面（mech.js 的 mobGround），同組一張卡最多一種。
@@ -110,16 +98,6 @@ function rollCard() {
 }
 /* 這一批 8 張（存在存檔裡；進地圖時清掉，下次打開地圖台才抽新的） */
 const mapCards = s => (s.cards = s.cards || Array.from({ length: 8 }, rollCard));
-/* 地圖台的清單：獎勵高的排前面（i 是在 S.cards 的位置）；預選買得起的最肥一張 */
-const cardOrder = s =>
-  mapCards(s)
-    .slice(0, cardsOpen(s))
-    .map((c, i) => ({ c, i }))
-    .sort((a, b) => cardRew(b.c).qty - cardRew(a.c).qty || b.c.star - a.c.star);
-function bestCard(s, t) {
-  const L = cardOrder(s);
-  return (L.find(x => s.frag >= mapCost(t, x.c.star)) || L[0]).i;
-}
 /* 一張卡的獎勵合計 */
 function cardRew(card) {
   const r = [0, 0, 0];

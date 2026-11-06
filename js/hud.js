@@ -290,7 +290,7 @@ function openPanel(k) {
   } else if (k === 'device') {
     PANEL.device = true;
     PANEL.pick = S.maxT;
-    PANEL.card = bestCard(S, S.maxT);
+    PANEL.card = 0;
   } else PANEL[k] = true;
   /* 手機直立：選中才佔掉背包那半邊；桌機與橫向在 hudPanels 預選第一招 */
   if (k === 'skill' && PORT()) SKUI.sel = null;
@@ -631,12 +631,7 @@ function hudPanels() {
           : ''
       }${st === 'gems' ? gemPageHTML() : gridHTML(S[st], st)}`;
   }
-  if (PANEL.device) {
-    panelHTML($('pdev'), devHTML(), ['.mx-list', '.mx-sc']);
-    const r = $('pdev').querySelector('.mx-ruler'),
-      on = r.querySelector('.on');
-    r.scrollLeft = on.offsetLeft - r.offsetLeft - (r.clientWidth - on.offsetWidth) / 2;
-  }
+  if (PANEL.device) $('pdev').innerHTML = devHTML();
   if (PANEL.asc) panelHTML($('pasc'), ascHTML(), ['', '.ax-list']);
   if (PANEL.shop) $('pshop').innerHTML = shopHTML();
 }
@@ -1407,29 +1402,8 @@ function shopHTML() {
   ${shopSel()}
   ${GAMBLE.map(([n, xs]) => `<div class="ph2">${n}</div><div class="shopg">${xs.map(x => `<button class="shopb ${SHOPUI.sel === x.id ? 'on' : ''}" data-a="gsel:${x.id}">${icHTML(gamBases(x)[0].ic)}<span>${x.n}</span></button>`).join('')}</div>`).join('')}`;
 }
-const MXSTAR = `<svg class="ico mxs" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.6l1.9 4 4.4.6-3.2 3.1.8 4.4L8 11.6l-3.9 2.1.8-4.4L1.7 6.2l4.4-.6z"/></svg>`;
-/* 地圖台右邊：這張卡的獎勵與全部地圖詞，照危險度分組 */
-function devDet(cd) {
-  const rw = cardRew(cd),
-    mods = [
-      [3, '致命'],
-      [2, '中等'],
-      [1, '溫和']
-    ]
-      .map(([d, n]) => {
-        const L = cd.mods.filter(k => MAPMOD[k].d === d);
-        return L.length
-          ? `<li class="d${d}"><h5>${n} <i>${L.length}</i></h5>${L.map(k => `<p>${termify(MAPMOD[k].t)}</p>`).join('')}</li>`
-          : '';
-      })
-      .join('');
-  return `<div class="mx-rew"><div><b>+${rw.qty}%</b><small>物品數量</small></div><div><b>+${rw.rar}%</b><small>稀有度</small></div><div><b>+${rw.mat}%</b><small>材料</small></div></div>
-  <ul class="mx-mods">${mods || '<li><p>沒有地圖詞</p></li>'}</ul>`;
-}
 function devHTML() {
-  /* 地圖台（0.2.7）：上面選階級（怪物強度、物品等級），下面選一張地圖卡（星級＝詞綴數＝風險與獎勵）；
-     階級尺直接點；清單照獎勵排序、致命詞寫在卡上，右邊是選中的卡的全部地圖詞。
-     預留：狩獵之血的進度條放 .mx-top 最下面，生肖王卡排在 .mx-list 最上面 */
+  /* 地圖台（0.2.7）：上面選階級（怪物強度、物品等級），下面選一張地圖卡（星級＝詞綴數＝風險與獎勵） */
   const t = PANEL.pick,
     cards = mapCards(S),
     open = cardsOpen(S),
@@ -1437,44 +1411,37 @@ function devHTML() {
     card = cards[i],
     c = mapCost(t, card.star),
     m = tierMob(t),
+    rw = cardRew(card),
     lv = mobLv(t);
-  const ruler = Array.from({ length: TMAX }, (_, k) => {
-      const n = k + 1,
-        lock = n > S.maxT;
-      return `<button class="mx-t ${n === t ? 'on' : ''} ${lock ? 'lock' : ''}" ${lock ? `disabled title="打倒階級 ${S.maxT} 的王開放下一階"` : `data-tier="${n}"`} aria-label="階級 ${n}${lock ? '（還沒開放）' : ''}" aria-pressed="${n === t}">${n}</button>`;
-    }).join(''),
-    list = cardOrder(S)
-      .map(({ c: cd, i: k }) => {
-        const r = cardRew(cd),
-          cc = mapCost(t, cd.star),
-          d3 = cd.mods.filter(x => MAPMOD[x].d === 3),
-          rest = cd.mods.length - d3.length;
-        return `<button class="mx-c ${k === i ? 'on' : ''}" data-card="${k}" style="--sc:${STARS[cd.star].c}">
-        <span class="mx-st" aria-label="${cd.star} 星">${MXSTAR.repeat(cd.star)}</span>
-        <span class="mx-rw"><b>+${r.qty}%</b> 數量 · <b>+${r.rar}%</b> 稀有</span>
-        <span class="mx-co ${S.frag < cc ? 'c-bad' : ''}">${cc ? `${cc} 碎片` : '免費'}</span>
-        <span class="mx-dg">${d3.map(x => `<i class="mx-k">${MAPMOD[x].s}</i>`).join('')}<i class="mx-n">${d3.length ? `＋${rest} 條` : cd.mods.length ? `${cd.mods.length} 條，沒有致命詞` : '沒有詞'}</i></span></button>`;
-      })
-      .join(''),
-    more =
-      cards.length > open ? `<div class="mx-lock">${ICO.lock}再打到階級 ${3 * (open - 2) + 1} 多開一張卡</div>` : '';
-  return `<div class="ph"><b>地圖台</b><span>地圖碎片 <b class="c-gold">${S.frag}</b></span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="mx-top"><div class="mx-ruler" role="group" aria-label="階級">${ruler}</div>
-    <p class="mx-info">怪物 Lv ${lv} · 生命 ×${m.hp.toFixed(1)} · 傷害 ×${m.dmg.toFixed(1)}${resPen(lv) ? ` · <span class="c-warn">元素抗性 −${resPen(lv)}%</span>` : ''}</p></div>
-  <div class="mx-list">${list}${more}</div>
-  <div class="mx-det"><div class="mx-sc">${devDet(card)}</div>
-  <button class="btn pri" data-a="open" ${S.frag < c ? 'disabled' : ''}>${S.frag < c ? `碎片不夠（要 ${c}，有 ${S.frag}）` : `${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}${c ? ` · ${c} 碎片` : ''}`}</button></div>`;
+  /* 0.2.14：預設最高階、◀ ▶ 往下選；只列開放的卡（大卡：星級、危險、獎勵、費用），選中的那張展開地圖詞 */
+  const danger = cd => Math.max(1, ...cd.mods.map(k => MAPMOD[k].d)),
+    DN = ['', '低', '中', '高'],
+    next = cards.length > open ? `再打到階級 ${3 * (open - 2) + 1} 多開一張卡` : '';
+  return `<div class="ph"><b>地圖台</b><span>地圖碎片 <b class="c-gold">${S.frag}</b> · 打完一張才換一批卡</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="devw"><div class="mdl"><div class="tstep">
+    <button class="btn" data-tier="${t - 1}" ${t <= 1 ? 'disabled' : ''} aria-label="低一階">${ICO.prev}</button>
+    <div><b>階級 ${t}</b><small>怪物 Lv ${lv} · 生命 ×${m.hp.toFixed(1)} · 傷害 ×${m.dmg.toFixed(1)}${resPen(lv) ? ` · <span class="c-warn">元素抗性 −${resPen(lv)}%</span>` : ''}</small></div>
+    <button class="btn" data-tier="${t + 1}" ${t >= S.maxT ? 'disabled' : ''} aria-label="高一階">${ICO.next}</button>
+  </div>
+  ${S.maxT < TMAX ? `<p class="tnext">打倒階級 ${S.maxT} 的王開放階級 ${S.maxT + 1}</p>` : ''}
+  <div class="mcards2">${cards
+    .slice(0, open)
+    .map((cd, k) => {
+      const r = cardRew(cd),
+        d = danger(cd),
+        cc = mapCost(t, cd.star);
+      return `<button class="mc2 ${k === i ? 'on' : ''}" data-card="${k}" style="--sc:${STARS[cd.star].c}">
+        <span class="mstar">${'★'.repeat(cd.star)}</span>
+        <span class="mdang d${d}">危險 ${DN[d]}</span>
+        <span class="mrew">數量 +${r.qty}% · 稀有 +${r.rar}%</span>
+        <span class="mcost ${S.frag < cc ? 'c-bad' : ''}">${cc ? `${cc} 碎片` : '免費'}</span></button>`;
+    })
+    .join('')}</div>
+  ${next ? `<p class="tnext">${next}</p>` : ''}</div>
+  <div class="mdr"><div class="msel"><b>這張的地圖詞</b><span class="c-gold">物品數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
+  <ul class="mmods">${card.mods.map(k => `<li class="d${MAPMOD[k].d}">${termify(MAPMOD[k].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
+  <button class="btn pri" data-a="open" ${S.frag < c ? 'disabled' : ''}>${S.frag < c ? `碎片不夠（要 ${c}，有 ${S.frag}）` : `${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}${c ? ` · ${c} 碎片` : ''}`}</button></div></div>`;
 }
-/* 滑鼠滑過卡片就預覽，不用點；離開清單回到選中的卡 */
-document.addEventListener('pointerover', e => {
-  if (e.pointerType !== 'mouse' || !PANEL.device) return;
-  const b = e.target.closest('#pdev [data-card]'),
-    sc = document.querySelector('#pdev .mx-sc');
-  if (!sc) return;
-  if (b) (sc.innerHTML = devDet(mapCards(S)[+b.dataset.card])), (sc.dataset.pv = 1);
-  else if (sc.dataset.pv && !e.target.closest('.mx-det'))
-    (sc.innerHTML = devDet(mapCards(S)[PANEL.card || 0])), delete sc.dataset.pv;
-});
 
 /* ---------- 寶石頁（0.2.35）：倉庫的清單式分頁、不限數量；主動／輔助／光環三組，上面有類型篩選與搜尋 ---------- */
 const GP = { k: 'all', q: '' };

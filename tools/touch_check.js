@@ -438,7 +438,7 @@ let fail = 0;
       closePanels();
       S.frag = 99;
       openPanel('device');
-      const m = document.querySelector('#pdev .mx-mods').getBoundingClientRect(),
+      const m = document.querySelector('#pdev .mmods').getBoundingClientRect(),
         k = document.querySelector('#pdev .btn.pri').getBoundingClientRect();
       closePanels();
       return [g.top, m.top, k.bottom, innerHeight].map(Math.round);
@@ -449,7 +449,7 @@ let fail = 0;
       fold.join()
     );
   }
-  /* 技能寶石、地圖台、昇華石碑：面板不出畫面、主要動作看得到（等面板滑入的動畫跑完才量） */
+  /* 技能寶石、昇華石碑：面板不出畫面、主要動作看得到（等面板滑入的動畫跑完才量） */
   {
     const inView = async (open, ...sel) => {
       await p.evaluate(open);
@@ -483,15 +483,6 @@ let fail = 0;
       await inView(
         () => {
           closePanels();
-          openPanel('device');
-        },
-        '#pdev',
-        '.mx-c',
-        '#pdev .btn.pri'
-      ),
-      await inView(
-        () => {
-          closePanels();
           S.asc = null;
           S.at = [];
           ASCUI.v = null;
@@ -502,7 +493,7 @@ let fail = 0;
         '.ax-pick'
       )
     ];
-    ok('三面板：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
+    ok('技能寶石與昇華石碑：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
   }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');

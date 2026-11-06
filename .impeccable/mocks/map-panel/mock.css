@@ -1,0 +1,71 @@
+/* 地圖台 mock 的樣式：只用 css/style.css :root 的變數；不上線。放在舊樣式後面，所以要蓋掉舊的 #pdev 規則 */
+#pdev { width: min(860px, calc(100vw - 24px)); height: min(640px, calc(100vh - 24px)); }
+#pdev .btn.pri { position: static; bottom: auto; box-shadow: none; }
+#pdev .btn.pri { width: 100%; }
+#pdev p.mx-info, #pdev .mx-mods p { font-size: var(--fs-s); }
+#pdev p.mx-info { margin: 8px 0 0; }
+#pdev .mx-mods p { margin: 0; line-height: 1.5; }
+.mx-hunt { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; margin-top: 8px; font-size: var(--fs-s); color: var(--tx); }
+.mx-hunt .pb { height: 6px; background: var(--s0); border: 1px solid var(--fr-o); }
+.mx-hunt .pb i { display: block; height: 100%; width: calc(var(--v) * 100%); background: var(--bad); }
+.mx-c.zod { border-color: var(--bad); }
+#pdev { display: grid; grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 14px; overflow: hidden; padding-bottom: 12px; }
+#pdev > .ph { grid-column: 1 / -1; margin-bottom: 10px; }
+.mx-top { grid-column: 1 / -1; padding-bottom: 10px; }
+.mx-ruler { position: relative; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.mx-t { flex: 1 0 34px; height: 34px; padding: 0; font: 700 var(--fs) var(--font); font-variant-numeric: tabular-nums; color: var(--dim); background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
+.mx-t:hover:not(.lock) { color: var(--title); border-color: var(--fr); }
+.mx-t:active:not(.lock) { transform: scale(0.95); }
+.mx-t.on { color: var(--sel-ink); background: var(--sel); border-color: var(--sel); }
+.mx-t.lock { color: var(--lock); border-style: dashed; cursor: default; opacity: 0.55; }
+.mx-info { margin: 8px 0 0; font-size: var(--fs-s); color: var(--dim); }
+.mx-list { min-height: 0; overflow-y: auto; display: grid; gap: 4px; align-content: start; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
+.mx-c { display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; min-height: 56px; padding: 6px 10px; text-align: left; font: 500 var(--fs-s) var(--font); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
+.mx-c:hover { border-color: var(--fr); }
+.mx-c:active { transform: scale(0.99); }
+.mx-c.on { background: var(--s3); border-color: var(--sc); box-shadow: inset 0 0 0 1px var(--sc); }
+.mx-st { display: flex; color: var(--sc); }
+.mxs { width: 14px; height: 14px; fill: currentColor; stroke: none; }
+.mx-rw b { font-size: var(--fs); color: var(--title); font-variant-numeric: tabular-nums; }
+.mx-co { color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mx-dg { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 2px 6px; }
+.mx-k { font-style: normal; font-weight: 700; color: var(--bad); }
+.mx-k::after { content: '·'; margin-left: 6px; color: var(--fr); }
+.mx-n { font-style: normal; color: var(--dim); }
+.mx-lock { display: flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; font-size: var(--fs-s); color: var(--lock); border: 1px dashed var(--fr-o); border-radius: 2px; }
+.mx-lock .ico { width: 14px; height: 14px; }
+.mx-det { min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.mx-sc { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
+.mx-det .btn.pri { flex: none; }
+.mx-rew { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--fr-o); border: 1px solid var(--fr-o); }
+.mx-rew div { padding: 6px 4px; text-align: center; background: var(--s0); }
+.mx-rew b { display: block; font: 700 var(--fs-l)/1.2 var(--font); color: var(--title); font-variant-numeric: tabular-nums; }
+.mx-rew small { font-size: 11px; color: var(--dim); }
+.mx-mods { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.mx-mods h5 { margin: 0 0 2px; font: 700 11px var(--font); color: var(--dim); }
+.mx-mods h5 i { font-style: normal; }
+.mx-mods p { margin: 0; font-size: var(--fs-s); line-height: 1.5; }
+.mx-mods .d3 h5, .mx-mods .d3 p { color: var(--bad); }
+.mx-mods .d3 p { font-weight: 700; }
+.mx-mods .d2 p { color: var(--warn); }
+.mx-mods .term { color: inherit; }
+body.touch #pdev .mx-rew { display: flex; flex-wrap: wrap; gap: 0 10px; background: none; border: 0; }
+body.touch #pdev .mx-rew div { display: flex; flex-direction: row-reverse; gap: 3px; align-items: baseline; padding: 0; background: none; }
+body.touch #pdev .mx-rew b, body.touch #pdev .mx-rew small { font-size: var(--fs-s); }
+body.touch.port #pdev { width: auto; height: auto; bottom: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; }
+body.touch.port .mx-t { flex: 0 0 44px; height: 40px; }
+body.touch.port .mx-list { padding-right: 0; }
+body.touch.port .mx-det { height: 38vh; padding-top: 8px; margin-top: 6px; border-top: 1px solid var(--fr); }
+body.touch.port .mx-c { padding: 6px 8px; }
+.mx-t:focus-visible, .mx-c:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
+body.touch #pdev { width: min(860px, calc(100vw - 12px)); }
+@media (max-height: 480px) {
+  body.touch:not(.port) #pdev { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: none; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  body.touch:not(.port) #pdev > .ph { margin-bottom: 6px; padding-top: 4px; padding-bottom: 4px; }
+  body.touch:not(.port) .mx-top { grid-column: 1; padding-bottom: 6px; }
+  body.touch:not(.port) .mx-t { flex: 0 0 44px; height: 36px; }
+  body.touch:not(.port) .mx-info { margin-top: 4px; white-space: nowrap; overflow: hidden; }
+  body.touch:not(.port) .mx-list { grid-column: 1; grid-row: 3; }
+  body.touch:not(.port) .mx-det { grid-column: 2; grid-row: 2 / 4; }
+  body.touch:not(.port) #pdev p.mx-info { margin-top: 4px; white-space: nowrap; overflow: hidden; }
+}
