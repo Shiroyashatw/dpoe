@@ -602,6 +602,10 @@ function hitCalc(c, m, o = {}) {
   /* 憤怒的品質：對點燃中的怪，光環效果最多 ×1.5 */
   const angerX = m && ST.aq.anger && hasState(m, 'ign') ? ST.angerV * 0.5 * ST.aq.anger : 0;
   pre.fire += (sum * ((c.fireAdd || 0) * 100 + ST.fireAdd + angerX)) / 100;
+  /* 0.2.50 附加冰冷／閃電／混沌輔助：跟附加火焰同一步、同一個基準（sum），彼此相加 */
+  pre.cold += sum * (c.coldAdd || 0);
+  pre.light += sum * (c.lightAdd || 0);
+  pre.chaos += sum * (c.chaosAdd || 0);
   if (P.buf && P.buf.unholy > G.t) pre.chaos += sum * 0.3;
   /* 風暴湧流：綁在武器上，只有攻擊吃得到 */
   if (tg.includes('attack')) pre.light += (sum * bufV('gainL')) / 100;
@@ -2021,6 +2025,7 @@ const STATE = {
   parried: ['受招架', 'sup_sp_heavy', '受到的攻擊傷害更多、無法閃避攻擊'],
   intim: ['威嚇', 'sk_anger', '受到的傷害提高、造成的傷害降低'],
   counter: ['反擊狀態', 'sk_shieldcharge', '打到你的敵人會受招架'],
+  seal: ['封印', 'ail_n_seal', '自己使用那一招時打破，每個封印讓範圍提高'],
   mark: ['印記', 'sk_markshot', '被印記的怪觸發時給你效果'],
   scorch: ['焦灼', 'sup_sp_gfire', '元素抗性降低'],
   brittle: ['易碎', 'sk_frostarrow', '被擊中時暴擊率提高'],
@@ -2170,6 +2175,9 @@ function playerStates() {
   for (const k of ['e', 'f', 'p']) if (chgN(k)) add('chg_' + k, P.chg[k].t, { c: chgN(k) });
   if (P.rage > 0) add('rage', null, { c: Math.ceil(P.rage) });
   add('counter', P.counterT);
+  /* 封印（擴張輔助）：顯示累積最多的那一招有幾個 */
+  const sealMax = Math.max(0, ...Object.values(P.seal || {}).map(x => x.n));
+  if (sealMax) add('seal', null, { c: sealMax });
   for (const k of ['fire', 'cold', 'light']) if (P.adapt && P.adapt[k]) add('ad_' + k, null, { c: P.adapt[k] });
   if (P.tail) add('tail', null, { c: Math.ceil(P.tail) });
   if (ST.sacrifice) add('sac', P.sacT);

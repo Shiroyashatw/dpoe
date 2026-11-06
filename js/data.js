@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.49';
+const VER = '0.2.50';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -1392,6 +1392,30 @@ const SUPPORTS = {
     need: ['spell'],
     meta: 'block',
     d: '主要寶石。這招法術改成自動施放：你格擋時累積能量（每次 +25），滿 100 自動對最近的敵人施放；不能手動施放'
+  },
+  /* 0.2.50 第 3 層 C2：要小改底層的 7 顆。附加冰冷／閃電／混沌跟附加火焰一樣可以同插（照 PoE，不設分類限制） */
+  coldadd: { n: '附加冰冷', ic: 'sup_sp_gcold', need: [], d: '多造成傷害 25% 的冰冷附加傷害' },
+  lightadd: { n: '附加閃電', ic: 'sup_sp_cvlight', need: [], d: '多造成傷害 25% 的閃電附加傷害' },
+  chaosadd: { n: '附加混沌', ic: 'sup_sp_gchaos', need: [], d: '多造成傷害 25% 的混沌附加傷害' },
+  mpleech: { n: '魔力偷取', ic: 'sup_sp_mpleech', need: [], d: '擊中傷害的 2% 吸取為魔力（1 秒內回完）' },
+  cast_hurt: {
+    n: '受傷施放',
+    ic: 'sup_sp_stun',
+    need: ['spell'],
+    meta: 'hurt',
+    d: '主要寶石。這招法術改成自動施放：你被擊中時累積能量（每次 +15，被閃避、格擋、招架掉的不算），滿 100 自動對最近的敵人施放；不能手動施放'
+  },
+  expand: {
+    n: '擴張',
+    ic: 'sup_sp_foes',
+    need: ['aoe'],
+    d: '這招隨時間累積封印（每 2 倍施放時間 1 個，最多 3 個）；你自己使用時打破全部封印，每個讓這次的範圍提高 30%。自動施放、觸發、場上單位不會打破，也不受益'
+  },
+  punch: {
+    n: '貫穿拳',
+    ic: 'sup_sp_combo',
+    need: ['melee'],
+    d: '近戰擊退敵人時，讓牠成為易攻目標 4 秒：你下一次投射物攻擊擊中牠的傷害更高（每公尺預期擊退 3%），擊中後消耗。王不會被擊退，所以沒有效果'
   }
 };
 /* 輔助的分類（0.2.9，照 PoE2 0.3）：同一分類不能插在同一顆技能上，可以跨技能重複；沒寫的分類就是自己（同一顆不能插兩次） */
@@ -1404,6 +1428,7 @@ const SUP_CAT = {
   cast_kill: 'meta',
   cast_dodge: 'meta',
   cast_block: 'meta',
+  cast_hurt: 'meta',
   /* 迴旋會搶在連鎖前面（穿透用完就飛回來），同插連鎖等於白插 */
   ret: 'chain',
   focus: 'area'
@@ -1512,6 +1537,13 @@ const QUAL = {
   cast_kill: '自動施放時，{20}% 機率再放一次',
   cast_dodge: '自動施放時，{20}% 機率再放一次',
   cast_block: '自動施放時，{20}% 機率再放一次',
+  cast_hurt: '自動施放時，{20}% 機率再放一次',
+  coldadd: '附加的比例 +{5}%',
+  lightadd: '附加的比例 +{5}%',
+  chaosadd: '附加的比例 +{5}%',
+  mpleech: '多吸取 {1}%',
+  expand: '每個封印的範圍再 +{10}%',
+  punch: '每公尺再 +{1}%',
   fork: '傷害的代價減少 {10}%',
   chain: '傷害的代價減少 {10}%',
   ret: '傷害的代價減少 {10}%',

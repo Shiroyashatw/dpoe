@@ -323,11 +323,15 @@ function nextStage(k, max = STAGE_MAX) {
 function sealTick(dt) {
   S.skills.forEach((s, i) => {
     const g = s && s.a,
-      E = g && SKILLS[g.gem].seal,
+      /* 技能本身的封印，或插了擴張輔助（0.2.50，gemCfg 的 c.seal；不相容時沒有 c.seal） */
+      c = g && (SKILLS[g.gem].seal || (g.sup || []).some(x => x && x.gem === 'expand')) ? slotCfg(i) : null,
+      E = c && (SKILLS[g.gem].seal || c.seal),
       q = E && ((P.seal = P.seal || {})[g.gem] = P.seal[g.gem] || { n: 0, t: 0 });
+    /* 輔助拔掉了：累積的封印清掉 */
+    if (g && !E && P.seal && P.seal[g.gem]) delete P.seal[g.gem];
     if (!E || q.n >= E.max) return;
     q.t += dt;
-    const need = E.every * actDur(slotCfg(i));
+    const need = E.every * actDur(c);
     if (q.t >= need) (q.t -= need), q.n++;
   });
 }
@@ -363,7 +367,7 @@ function tryParry(m) {
 }
 
 /* ---------- 8. 能量與觸發（Meta 寶石） ---------- */
-const ENERGY = { crit: 10, perfect: 40, block: 25, kill: 5 };
+const ENERGY = { crit: 10, perfect: 40, block: 25, kill: 5, hurt: 15 };
 /* 事件：插了觸發輔助（暴擊施放）的法術照輔助的條件累積能量（存在輔助寶石上），滿 100 對最近的敵人施放那招 */
 function metaEvent(kind, near) {
   const full = [];

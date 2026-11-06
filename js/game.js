@@ -653,6 +653,8 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   }
   d = r.d;
   evMark('hurt');
+  /* 受傷施放（0.2.50）：真的被擊中才算，閃避、格擋、招架在上面就回去了 */
+  metaEvent('hurt');
   if (r.defl) num(P.x, P.y - 60, 0, 'ev', '偏斜');
   /* 荊棘反擊（0.2.42）：近戰怪擊中你時反彈荊棘傷害，同一隻怪 0.3 秒最多一次 */
   thornHit(src);

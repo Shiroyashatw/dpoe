@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：115 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 115,
+    '品質：122 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 122,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3890,6 +3890,47 @@ vm.runInContext(
     JSON.stringify([c49.pen, c49.giant, c49.night, c49.cull, c49.meta, c49.metaCat]) ===
       '[25,[1,0],[1,0],[true,false,false],[true,true,true],1]',
     JSON.stringify(c49)
+  );
+  /* 0.2.50 C2：附加冰冷／閃電／混沌（可以同插）、魔力偷取、受傷施放、擴張（封印）、貫穿拳 */
+  const c50 = R(`(() => {
+    const cf = (k, sups, q = 0) => {
+        const g = mkGem(k, 5);
+        g.sup = sups.map(x => ({ ...mkGem(x, 1), q }));
+        return gemCfg(g, 0);
+      },
+      r2 = v => +v.toFixed(2),
+      m = () => ({ D: Object.values(MOBS)[0], x: 60, y: 0, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} }),
+      out = {};
+    /* 四顆附加可以插在同一招，各加各的元素 */
+    const all = cf('slash', ['fireadd', 'coldadd', 'lightadd', 'chaosadd']), b0 = hitCalc(cf('slash', []), m()).pre, b4 = hitCalc(all, m()).pre;
+    out.add = [all.fireAdd, all.coldAdd, all.lightAdd, all.chaosAdd, b0.cold + b0.light + b0.chaos === 0, b4.cold > 0 && r2(b4.cold / b4.light) === 1 && r2(b4.cold / b4.chaos) === 1];
+    out.addQ = r2(cf('slash', ['coldadd'], 20).coldAdd);
+    out.mp = [cf('slash', ['mpleech']).mpLeech, r2(cf('slash', ['mpleech'], 20).mpLeech)];
+    out.punch = [cf('slash', ['punch']).kbEasy, cf('fireball', ['punch']).kbEasy || 0];
+    /* 受傷施放：被擊中 +15，跟其他觸發輔助同分類 */
+    const keep = S.skills[0].a, g = mkGem('fireball', 5);
+    g.sup = [mkGem('cast_hurt', 1), mkGem('cast_crit', 1)];
+    S.skills[0].a = g;
+    metaEvent('hurt'); metaEvent('kill');
+    out.hurt = [r2(g.sup[0].en / (1 + ST.energyP / 100)), supOK(SKILLS.fireball, g.sup[1], g)];
+    /* 擴張：隨時間累積封印（每 2 倍施放時間 1 個，最多 3）；拔掉輔助就清掉 */
+    const q = mkGem('quake', 5);
+    q.sup = [mkGem('expand', 1), null];
+    S.skills[0].a = q; P.seal = {};
+    const c = slotCfg(0), one = 2 * actDur(c);
+    sealTick(one * 0.9); const n0 = sealN('quake');
+    sealTick(one * 0.2); const n1 = sealN('quake');
+    for (let k = 0; k < 6; k++) sealTick(one); const n3 = sealN('quake');
+    out.seal = [c.seal.max, c.seal.aoe, n0, n1, n3];
+    q.sup = [null, null]; sealTick(0.1); out.sealOff = sealN('quake');
+    S.skills[0].a = keep; P.seal = {};
+    return out;
+  })()`);
+  ok(
+    'C2 輔助：四顆附加可以同插、各加 25% 的那種元素（品質 20% 是 30%）；魔力偷取 2%（品質 3%）；貫穿拳只給近戰；受傷施放 +15 且跟暴擊施放只能插一顆；擴張累積封印最多 3 個、拔掉就清掉',
+    JSON.stringify(c50) ===
+      '{"add":[0.25,0.25,0.25,0.25,true,true],"addQ":0.3,"mp":[0.02,0.03],"punch":[3,0],"hurt":[15,false],"seal":[3,30,0,1,3],"sealOff":0}',
+    JSON.stringify(c50)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

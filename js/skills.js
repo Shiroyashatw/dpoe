@@ -116,6 +116,15 @@ function gemCfg(g, i) {
     else if (k === 'giant') (c.giant = 1), (c.more *= 1 + 0.1 * sq);
     else if (k === 'cull') (c.cull = 1), (c.cullQ = sq);
     else if (k === 'nightblade') (c.elusive = 1), (c.critInc += 20 * sq);
+    /* 0.2.50 C2：附加冰冷／閃電／混沌（可以同插）、魔力偷取、擴張（封印）、貫穿拳（預期擊退） */ else if (
+      k === 'coldadd'
+    )
+      c.coldAdd = (c.coldAdd || 0) + 0.25 + 0.05 * sq;
+    else if (k === 'lightadd') c.lightAdd = (c.lightAdd || 0) + 0.25 + 0.05 * sq;
+    else if (k === 'chaosadd') c.chaosAdd = (c.chaosAdd || 0) + 0.25 + 0.05 * sq;
+    else if (k === 'mpleech') c.mpLeech = 0.02 + 0.01 * sq;
+    else if (k === 'expand') c.seal = { max: 3, every: 2, aoe: 30 + 10 * sq };
+    else if (k === 'punch') c.kbEasy = 3 + sq;
     else if (k === 'autocast') c.auto = sp;
     else if (SUPPORTS[k].conv && !c.conv) {
       c.conv = SUPPORTS[k].conv;
@@ -250,7 +259,7 @@ function useSlot(i) {
       ty: w.y,
       stage,
       final: !!D.stage && isFinal(stage),
-      sealA: D.seal ? sealBreak(c.k) * D.seal.aoe : 0
+      sealA: D.seal || c.seal ? sealBreak(c.k) * (D.seal || c.seal).aoe : 0
     });
   sfx(D.tags.includes('spell') ? 'cast' : D.tags.includes('proj') ? 'throw' : 'swing');
   if (D.parry) startParry(0.4), fxs('parry', P.x, P.y - 20, 50);
@@ -1106,7 +1115,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (c.leech && ST.vaal) P.hp = Math.min(ST.hp, P.hp + lr);
   else if (c.leech) leechAdd('hp', lr);
   const lm = 1 + MM('pleech') / 100;
-  if (ST.mpLeech) leechAdd('mp', (r.d * ST.mpLeech * lm) / 100);
+  if (ST.mpLeech || c.mpLeech) leechAdd('mp', r.d * (ST.mpLeech / 100 + (c.mpLeech || 0)) * lm);
   if (ST.esLeech) leechAdd('es', (r.d * ST.esLeech * lm) / 100);
   if (ST.rageLeech) leechAdd('rage', (r.d * ST.rageLeech * lm) / 100);
   /* 友方偷取相同數值（開關）：友方擊中用你的生命偷取總值（不再吃加成）回復自己 */
