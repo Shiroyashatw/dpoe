@@ -1122,6 +1122,7 @@ function wmSel(k) {
   WM.dirty = true;
   sfx('click');
   wmPanel();
+  save(); /* 卡是選到節點才抽的：馬上存，重新整理不能白洗 */
 }
 /* 打開世界地圖：seed 換了（換存檔）就清快取，鏡頭回到目前位置 */
 function wmOpen() {
@@ -1137,6 +1138,7 @@ function wmOpen() {
   WM.on = true;
   WM.wipe = S.world.open ? 1 : 0;
   WM.anim = null;
+  $('wmcap').hidden = true; /* 演出到一半按 Esc 關掉的話字幕還留著 */
   WM.view = 'node';
   WM.vx = WM.vy = 0;
   wmNodes();

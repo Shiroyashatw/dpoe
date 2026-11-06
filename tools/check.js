@@ -2939,7 +2939,8 @@ vm.runInContext(
   ok('NPC：對話的角色與接續都存在', !bad2.length, bad2.join());
   ok(
     'NPC：每個人都接得到對話、位置都有',
-    R(`Object.keys(NPCS).every(id => TALKS[NPCS[id].talk(S)] && HIDE_ART.npc[id])`)
+    /* 破曉哨兵只在世界地圖的對話裡說話，不在藏身處 */
+    R(`Object.keys(NPCS).every(id => id === 'dawn' || (TALKS[NPCS[id].talk(S)] && HIDE_ART.npc[id]))`)
   );
   ok('NPC：撿骨師、掌櫃在，赤鴉預設隱藏', R(`npcList().map(n => n.id).join() === 'bone,trader'`));
   R('S.story.crow = 1');

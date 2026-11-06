@@ -1224,6 +1224,7 @@ body.touch #pro .btn { min-height: 44px; }
 #wmc.drag { cursor: grabbing; }
 .wm-rift { position: absolute; left: 50%; top: calc(10px + env(safe-area-inset-top)); transform: translateX(-50%); max-width: calc(100% - 16px); min-height: 32px; padding: 4px 14px; font: 500 var(--fs-s)/1.4 var(--font); color: var(--dim); background: rgba(23, 24, 27, 0.9); border: 1px solid #7a2b2e; border-radius: 2px; cursor: pointer; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .wm-rift:hover { color: var(--title); border-color: var(--bad); }
+.wm-rift:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
 .wm-rift:active { transform: translateX(-50%) scale(0.97); }
 .wm-rift > b { margin-right: 8px; font: 700 15px var(--serif); color: #ffb9ad; letter-spacing: 0.05em; }
 .wm-hunt { display: block; height: 4px; margin-top: 4px; background: var(--s0); }
