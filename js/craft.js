@@ -279,13 +279,22 @@ function gemUp(g) {
   g.lv++;
   return null;
 }
-/* 升滿（0.2.24）：一直升到角色能用的最高級（或滿級），靈魂不夠就停在買得起的最高級 */
+/* 升滿（0.2.24）：一直升到角色能用的最高級（或滿級），靈魂不夠就停在買得起的最高級；
+   寶石等級會拉高能力值需求，停在升完還能用的最高級（硬要升走 gemUp，面板上有警告） */
 function gemMaxCheck(g) {
   const cap = gemCap(S.lv);
   let lv = g.lv,
-    c = 0;
-  while (lv < cap && c + soulCost(lv) <= MAT().soul) c += soulCost(lv++);
-  return { lv, c, why: lv > g.lv ? null : gemUpCheck(g).why };
+    c = 0,
+    stop = null;
+  while (lv < cap && c + soulCost(lv) <= MAT().soul) {
+    const l = gemLack({ ...g, lv: lv + 1 });
+    if (l.length) {
+      stop = `Lv ${lv + 1} 要${lackTxt(l)}`;
+      break;
+    }
+    c += soulCost(lv++);
+  }
+  return { lv, c, why: lv > g.lv ? null : stop || gemUpCheck(g).why };
 }
 function gemUpMax(g) {
   const { lv, c, why } = gemMaxCheck(g);
@@ -293,6 +302,28 @@ function gemUpMax(g) {
   MAT().soul -= c;
   g.lv = lv;
   return null;
+}
+/* 全部升滿：一次升一級、最低等的先升，靈魂不夠時大家平均；跟 gemMaxCheck 一樣不會升到失效。回傳總花費與每顆的目標等級 */
+function gemAllPlan(gems) {
+  const cap = gemCap(S.lv),
+    L = gems.map(g => ({ g, lv: g.lv }));
+  let c = 0;
+  for (;;) {
+    let b = null;
+    for (const x of L) {
+      if (x.lv >= cap || c + soulCost(x.lv) > MAT().soul || gemLack({ ...x.g, lv: x.lv + 1 }).length) continue;
+      if (!b || x.lv < b.lv) b = x;
+    }
+    if (!b) break;
+    c += soulCost(b.lv++);
+  }
+  return { c, L: L.filter(x => x.lv > x.g.lv) };
+}
+function gemUpAll(gems) {
+  const { c, L } = gemAllPlan(gems);
+  MAT().soul -= c;
+  for (const x of L) x.g.lv = x.lv;
+  return L.length;
 }
 /* 品質（0.2.29）：花精粉，只能升不能降 */
 function gemQCheck(g) {

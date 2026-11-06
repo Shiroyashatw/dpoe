@@ -18,8 +18,7 @@ let fail = 0;
     isMobile: true,
     deviceScaleFactor: 2
   });
-  /* 測試絕對不能碰正式雲端：不擋的話每個乾淨環境都會匿名登入、多一筆存檔 */
-  await ctx.route('**/*.supabase.co/**', r => r.abort());
+  await ctx.route(/supabase/, r => r.abort()); /* 假存檔不能同步到正式雲端 */
   const p = await ctx.newPage();
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
@@ -403,7 +402,19 @@ let fail = 0;
   await touch('touchStart', [nd2]);
   await touch('touchEnd', []);
   await p.waitForTimeout(200);
-  ok('再點一次點亮', await p.evaluate(id => S.pt.includes(id), nd[0]));
+  /* 0.2.42 起過路點要先選能力值（#tattr），選了才算點亮 */
+  const attr = await p.evaluate(() => {
+    const b = document.querySelector('#tattr [data-ta^="attr:"]');
+    if (!b) return null;
+    const r = b.getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  });
+  if (attr) {
+    await touch('touchStart', [attr]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(200);
+  }
+  ok('再點一次點亮', await p.evaluate(id => S.pt.includes(id), nd[0]), attr ? '過路點，選了能力值' : '');
   const z0 = await p.evaluate(() => TREE.z);
   await touch('touchStart', [
     [W / 2 - 40, H / 2],
@@ -437,6 +448,52 @@ let fail = 0;
       fold[0] < fold[3] - 100 && fold[1] < fold[3] - 60 && fold[2] <= fold[3],
       fold.join()
     );
+  }
+  /* 技能寶石、昇華石碑：面板不出畫面、主要動作看得到（等面板滑入的動畫跑完才量） */
+  {
+    const inView = async (open, ...sel) => {
+      await p.evaluate(open);
+      await p.waitForTimeout(260);
+      return p.evaluate(
+        sel =>
+          sel.map(q => {
+            const r = document.querySelector(q).getBoundingClientRect();
+            return r.left >= -0.5 && r.top >= -0.5 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5;
+          }),
+        sel
+      );
+    };
+    const L = [
+      await inView(
+        () => {
+          treeClose();
+          closePanels();
+          S.lv = 72;
+          S.frag = 99;
+          S.skills[0].a = mkGem('slash', 10);
+          changed();
+          openPanel('skill');
+          SKUI.sel = '0:a';
+          hudPanels();
+        },
+        '#pskill',
+        '.gx-row',
+        '.gx-acts'
+      ),
+      await inView(
+        () => {
+          closePanels();
+          S.asc = null;
+          S.at = [];
+          ASCUI.v = null;
+          openPanel('asc');
+        },
+        '#pasc',
+        '.ax-tab',
+        '.ax-pick'
+      )
+    ];
+    ok('技能寶石與昇華石碑：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
   }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');
