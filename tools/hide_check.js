@@ -232,6 +232,92 @@ const ok = (n, c, info = '') => {
     via.wolf > 0 && via.totem > 0 && via.ground > 0,
     JSON.stringify(via)
   );
+  /* 第 11 批：盲擊撲留下的煙霧要真的致盲稻草人，也要畫得出來 */
+  const smoke = await p.evaluate(async () => {
+    const m = G.mobs.find(x => x.dummy && !x.boss && !x.elite),
+      w = { x: m.x, y: m.y },
+      D = SKILLS.blindpounce,
+      keep = [S.eq.weapon, S.skills[2].a],
+      draw = drawMech;
+    let drawn = 0;
+    drawMech = () => {
+      if (G.ground.some(g => g.k === 'smoke')) drawn++;
+      draw();
+    };
+    for (const b of BASES.filter(x => x.k === 'weapon')) {
+      S.eq.weapon = mkItem(b.id, 1, 0);
+      ST = stats();
+      if (wtOK(D)) break;
+    }
+    S.skills[2].a = mkGem('blindpounce');
+    Object.assign(P, { x: m.x + 40, y: m.y + 40, act: null });
+    mouseWorld = () => w;
+    const fired = useSlot(2);
+    await new Promise(r => setTimeout(r, 900));
+    const out = {
+      fired,
+      ground: G.ground.some(g => g.k === 'smoke'),
+      blind: m.ail.blind > G.t,
+      drawn,
+      why: skillWhy(slotCfg(2), w),
+      tot: DPS.tot
+    };
+    drawMech = draw;
+    G.ground.length = 0;
+    S.eq.weapon = keep[0];
+    S.skills[2].a = keep[1];
+    ST = stats();
+    return out;
+  });
+  ok(
+    '盲擊撲的煙霧：致盲稻草人、畫得出來',
+    smoke.fired && smoke.ground && smoke.blind && smoke.drawn > 0,
+    JSON.stringify(smoke)
+  );
+  /* 裝備基底：每把武器（含固定詞）、單手再配輕盾，DPS 統計要跟實際造成的傷害一分不差 */
+  const audit = await p.evaluate(() => {
+    const hc = hitCalc,
+      keep = [S.eq.weapon, S.eq.off],
+      /* 輕盾排在盾的最後 6 個（data.js），每把武器輪流配一面，6 面都用到 */
+      light = BASES.filter(b => b.k === 'shield').slice(-6),
+      m = G.mobs.find(x => x.dummy && x.boss),
+      bad = [];
+    let sum = 0,
+      n = 0,
+      nl = 0;
+    /* 擊中＝算出來的傷害＋滿血時的屠戮打擊（hitMob 接著會先扣這兩筆） */
+    hitCalc = (c, x, o) => {
+      const r = hc(c, x, o);
+      sum += r.d + fullCut(x);
+      return r;
+    };
+    for (const b of BASES.filter(x => x.k === 'weapon'))
+      for (const off of [null, light[n % 6]]) {
+        S.eq.weapon = mkItem(b.id, 16, 0);
+        S.eq.off = off ? mkItem(off.id, 16, 0) : null;
+        if (off && !offOK(S.eq.weapon, S.eq.off)) continue;
+        ST = stats();
+        dpsReset();
+        sum = 0;
+        if (off) nl++;
+        const c = slotCfg(0) || BASEC;
+        for (let i = 0; i < 12; i++) hitMob(m, c, 0, 0, { quiet: 1 });
+        n++;
+        if (!Number.isFinite(DPS.tot) || !Number.isFinite(sum) || Math.abs(DPS.tot - sum) > 1e-6 * Math.max(1, sum))
+          bad.push(`${b.id}${off ? '+盾' : ''}：統計 ${DPS.tot}、實際 ${sum}`);
+      }
+    hitCalc = hc;
+    S.eq.weapon = keep[0];
+    S.eq.off = keep[1];
+    ST = stats();
+    dpsReset();
+    return { n, nl, light: light.every(b => b.b.ev > b.b.armor), bad: bad.slice(0, 5), hp: m.hp > 0 };
+  });
+  ok(
+    `每把武器與輕盾的 DPS 都對得上（${audit.n} 組，配輕盾 ${audit.nl} 組）`,
+    audit.n > 50 && audit.nl > 20 && audit.light && !audit.bad.length && audit.hp,
+    JSON.stringify(audit)
+  );
   /* 7. 離開石圈：場上清掉 */
   await p.evaluate(async () => {
     addGround({ k: 'oil', x: P.x, y: P.y, r: 60 });

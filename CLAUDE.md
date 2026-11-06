@@ -53,7 +53,7 @@
 | `tools/dmg_check.js` | 傷害與防禦的驗收：Lv30／60／90 × 三套配裝打王的秒數、王一招打掉多少生命（`--why` 印出每一層的數字）；改了傷害、防禦、天賦、詞綴、怪物數值後跑 |
 | `tools/touch_check.js` | 手機操作測試（Playwright 模擬觸控，送真的觸控事件）：搖桿、普攻連打、技能點／拖／取消、翻滾、按鈕不重疊、面板不出畫面、點道具的動作、天賦樹點兩次與兩指縮放；`node tools/touch_check.js 寬 高 [網址]` |
 | `tools/hide_bake.js` | 藏身處烘圖（0.2.44）：地形、擺設、光都在這支（`L`、`PROPS`、`ZONE`、`layout`），`node tools/hide_bake.js` 寫 `img/hide-*.png` 與 `js/hideart.js`，並檢查每個設施從出生點走得到 |
-| `tools/hide_check.js` | 藏身處實測（Playwright）：走到每個設施、打三隻稻草人、實戰模式、DPS、召喚物圖騰地面、清場、傳送門、存檔還原；`node tools/hide_check.js [網址]`（`PW_CHROME` 指定瀏覽器） |
+| `tools/hide_check.js` | 藏身處實測（Playwright）：走到每個設施、打三隻稻草人、實戰模式、DPS、召喚物圖騰地面、盲擊撲的煙霧、每把武器配輕盾的 DPS 對帳、清場、傳送門、存檔還原；`node tools/hide_check.js [網址]`（`PW_CHROME` 指定瀏覽器） |
 | `tools/ui_frame.py` | 鑄鐵銀框的九宮格素材 `img/ui/frame.png`（CSS 的 `border-image`） |
 | `supabase/migrations/` | `dungeon_saves` 表、`dungeon_market` 市集表與函式 |
 

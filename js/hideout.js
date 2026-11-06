@@ -56,13 +56,13 @@ function dummyBuild() {
   }
 }
 /* 各種傷害都直接寫 m.hp（擊中、持續傷害、召喚物、百分比爆炸），統計攔在這裡才不會漏；
-   歸零的寫入（撲殺）不算傷害，扣到 0 以下就補滿，所以不會走到 killMob */
+   歸零的寫入（撲殺）不算傷害、直接補滿，扣到 0 以下也補滿，所以不會走到 killMob */
 function dummyArm(m) {
   let hp = m.hp;
   Object.defineProperty(m, 'hp', {
     get: () => hp,
     set(v) {
-      if (v === 0) return;
+      if (v === 0) return void (hp = m.mhp);
       if (v < hp) dpsAdd(hp - v, PRAC.dot), (m.hitT = G.t);
       hp = v > 0 ? v : m.mhp;
     }
