@@ -234,7 +234,8 @@ const cullAt = m => (m.boss ? 0.05 : m.elite ? 0.1 : 0.35);
 const fullCap = m => (m.boss ? 5 : m.elite ? 15 : 30);
 /* 屠戮打擊要先移除的生命（只對滿血）；撲殺（擊中後還活著、低於門檻） */
 const fullCut = m => (ST.fullStrike && m.hp >= m.mhp ? (m.mhp * Math.min(ST.fullStrike, fullCap(m))) / 100 : 0);
-const culled = m => !!ST.cull && m.hp > 0 && m.hp < m.mhp * cullAt(m);
+/* c：這一下的技能設定（撲殺輔助只對插著它的那一招有效） */
+const culled = (m, c) => !!(ST.cull || (c && c.cull)) && m.hp > 0 && m.hp < m.mhp * cullAt(m);
 const addMp = v => (P.mp = Math.min(ST.mp, P.mp + v));
 /* 盛怒上限（基礎 30，加上 rageMax）；每點盛怒讓攻擊傷害更多 1% ×（1 + rageEff%） */
 const rageCap = () => 30 + ST.rageMax;

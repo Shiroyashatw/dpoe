@@ -13,6 +13,8 @@ const supOK = (D, sp, g) => {
   /* Meta 寶石的孔插的是法術，不是輔助 */
   if (!U) return false;
   if (g && supDup(g, sp)) return false;
+  /* 連鎖輔助：不能連鎖的投射物（閃電箭、一路穿透的冰霜彈）標成不相容 */
+  if (sp.gem === 'chain' && D.noChain) return false;
   if (U.conv && (D.unit || D.noConv || D.tags.includes('move') || D.tags.includes('minion'))) return false;
   if (
     U.meta === 'auto' &&
@@ -105,6 +107,15 @@ function gemCfg(g, i) {
     else if (k === 'wither') (c.wither = 1), (c.witherMax = 10 + 2 * Math.floor(sq * 4));
     else if (k === 'blind') (c.blind = 1), (c.blindQ = sq);
     else if (k === 'arcane') (c.arcane = 1), (c.arcKill = sq);
+    /* 0.2.49 C1：分裂、連鎖、迴旋（投射物）；集中效應；抗性穿透；極大；撲殺；夜刃 */ else if (k === 'fork')
+      (c.fork = true), (c.more *= 0.8 + 0.1 * sq);
+    else if (k === 'chain') (c.chain += 2), (c.more *= 0.8 + 0.1 * sq);
+    else if (k === 'ret') (c.ret = true), (c.more *= 0.8 + 0.1 * sq);
+    else if (k === 'focus') (c.aoe *= 0.7 + 0.1 * sq), (c.more *= 1.3);
+    else if (k === 'elepen') c.pen += 25 + 5 * sq;
+    else if (k === 'giant') (c.giant = 1), (c.more *= 1 + 0.1 * sq);
+    else if (k === 'cull') (c.cull = 1), (c.cullQ = sq);
+    else if (k === 'nightblade') (c.elusive = 1), (c.critInc += 20 * sq);
     else if (k === 'autocast') c.auto = sp;
     else if (SUPPORTS[k].conv && !c.conv) {
       c.conv = SUPPORTS[k].conv;
@@ -1047,13 +1058,16 @@ function hitMob(m, c, ang, kb, o = {}) {
   if ((c.D.tags || []).includes('melee') && !o.quiet) comboHit(a);
   hitGlory(m, r.crit, o.glory || 1);
   if (r.crit && !a.trig) metaEvent('crit', m);
+  /* 夜刃輔助：這招暴擊時獲得靈巧（結束前不能再獲得，gainStk 自己會擋） */
+  if (r.crit && c.elusive) gainStk('elusive');
   if (ST.wt === 'qstaff' && (c.D.tags || []).includes('melee') && !o.quiet) P.mp = Math.min(ST.mp, P.mp + 1);
   /* 屠戮打擊（0.2.42）：擊中滿血的敵人，先移除 min(x%, 上限) 的生命；撲殺：擊中後生命低於門檻直接殺死 */
   const cut = fullCut(m);
   if (cut) (m.hp -= cut), num(m.x, m.y - m.sz * 1.3, 0, 'ev', '屠戮');
   const hp0 = m.hp;
   m.hp -= r.d;
-  if (culled(m)) (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺');
+  if (culled(m, c))
+    (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺'), qRoll(20 * (c.cullQ || 0)) && gainChg('f');
   /* 事件（0.2.43，擊中造成擊殺才算，持續傷害不算）：溢出 ovkSplash＝%（溢出傷害打給 2 公尺內的敵人）、最後一擊 kbEs＝%（打死感電的敵人回復最大能量護盾） */
   if (hp0 > 0 && m.hp <= 0) hitKill(m, hp0, r);
   if (a) a.any = 1;

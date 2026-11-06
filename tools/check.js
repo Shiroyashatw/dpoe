@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：104 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 104,
+    '品質：115 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 115,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3830,6 +3830,66 @@ vm.runInContext(
     JSON.stringify([b48.hexNo, b48.hexOk, b48.hex, b48.proNo, b48.proOk, b48.pro, b48.proHit, b48.proEnd]) ===
       '["附近沒有被詛咒的敵人","",[false,true],"附近沒有屍體","",[0,true,6],true,[0,1]]',
     JSON.stringify(b48)
+  );
+  /* 0.2.49 C1：11 顆輔助（機制本來就在底層，這裡驗寶石有接上、分類有擋） */
+  const c49 = R(`(() => {
+    const cf = (k, sups, q = 0) => {
+        const g = mkGem(k, 5);
+        g.sup = sups.map(x => ({ ...mkGem(x, 1), q }));
+        return gemCfg(g, 0);
+      },
+      r2 = v => +v.toFixed(2),
+      /* 前面的測試可能把天賦的分裂、迴旋開著：這裡只看輔助 */
+      st0 = [ST.fork, ST.projRet, ST.chain],
+      out = {};
+    ST.fork = ST.projRet = false;
+    ST.chain = 0;
+    const base = cf('axethrow', []);
+    const f = cf('axethrow', ['fork']), ch = cf('axethrow', ['chain']), rt = cf('axethrow', ['ret']);
+    out.proj = [!!f.fork, r2(f.more / base.more), ch.chain - base.chain, r2(ch.more / base.more), !!rt.ret, r2(rt.more / base.more)];
+    /* 分裂＋連鎖可以同插；連鎖＋迴旋同分類，只有一顆生效 */
+    const fc = cf('axethrow', ['fork', 'chain']), cr = cf('axethrow', ['chain', 'ret']);
+    out.cat = [!!fc.fork, fc.chain - base.chain, (cr.chain - base.chain === 2 ? 1 : 0) + (cr.ret ? 1 : 0)];
+    out.q = r2(cf('axethrow', ['fork'], 20).more / base.more);
+    /* 一路穿透的冰霜彈、閃電箭插連鎖沒有效果（不相容） */
+    out.noChain = [cf('frostbolt', ['chain']).chain, r2(cf('frostbolt', ['chain']).more / cf('frostbolt', []).more), cf('split', ['chain']).chain];
+    const q0 = cf('quake', []), fo = cf('quake', ['focus']), fa = cf('quake', ['focus', 'area']);
+    out.focus = [r2(fo.aoe / q0.aoe), r2(fo.more / q0.more), fa.aoe === fo.aoe || r2(fa.aoe / q0.aoe) === 1.4];
+    out.pen = cf('fireball', ['elepen']).pen - cf('fireball', []).pen;
+    out.giant = [cf('wolf', ['giant']).giant || 0, cf('fireball', ['giant']).giant || 0];
+    out.night = [cf('slash', ['nightblade']).elusive || 0, cf('fireball', ['nightblade']).elusive || 0];
+    /* 撲殺只對插著的那一招有效（普通怪 35%） */
+    const m = { D: Object.values(MOBS)[0], hp: 30, mhp: 100, ail: {} };
+    out.cull = [culled(m, cf('slash', ['cull'])), culled(m, cf('slash', [])), culled({ ...m, hp: 40 }, cf('slash', ['cull']))];
+    /* 三顆觸發輔助：各自的事件累積各自的能量；跟暴擊施放同分類 */
+    const keep = S.skills[0].a;
+    out.meta = [];
+    for (const [k, ev, en] of [['cast_kill', 'kill', 5], ['cast_dodge', 'perfect', 40], ['cast_block', 'block', 25]]) {
+      const g = mkGem('fireball', 5);
+      g.sup = [mkGem(k, 1), null];
+      S.skills[0].a = g;
+      metaEvent(ev);
+      metaEvent('crit');
+      out.meta.push(r2(g.sup[0].en / (1 + ST.energyP / 100)) === en);
+    }
+    const g2 = mkGem('fireball', 5);
+    g2.sup = [mkGem('cast_kill', 1), mkGem('cast_crit', 1)];
+    out.metaCat = [supOK(SKILLS.fireball, g2.sup[0], g2), supOK(SKILLS.fireball, g2.sup[1], g2)].filter(Boolean).length;
+    S.skills[0].a = keep;
+    [ST.fork, ST.projRet, ST.chain] = st0;
+    return out;
+  })()`);
+  ok(
+    'C1 輔助：分裂、連鎖 +2、迴旋各讓傷害更少 20%（品質 20% 剩 10%）；分裂可以配連鎖，連鎖與迴旋只有一顆生效；集中效應範圍 ×0.7、更多 30%，不能配範圍擴大',
+    JSON.stringify([c49.proj, c49.cat, c49.q, c49.focus, c49.noChain]) ===
+      '[[true,0.8,2,0.8,true,0.8],[true,2,1],0.9,[0.7,1.3,true],[0,1,0]]',
+    JSON.stringify(c49)
+  );
+  ok(
+    'C1 輔助：抗性穿透 +25、極大只給召喚、夜刃只給攻擊、撲殺只對插著的那一招（普通怪 35% 以下）、三顆觸發輔助各吃各的事件且跟暴擊施放只能插一顆',
+    JSON.stringify([c49.pen, c49.giant, c49.night, c49.cull, c49.meta, c49.metaCat]) ===
+      '[25,[1,0],[1,0],[true,false,false],[true,true,true],1]',
+    JSON.stringify(c49)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

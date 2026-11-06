@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.48';
+const VER = '0.2.49';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -506,6 +506,8 @@ const SKILLS = {
     m: 1.1,
     spd: 640,
     el: 'cold',
+    /* 穿過所有敵人，穿透永遠用不完，所以連鎖輪不到（0.2.49：輔助會標成不相容） */
+    noChain: 1,
     tags: ['spell', 'proj', 'elem'],
     d: '往前飛的冰彈，穿過所有敵人、越遠越弱；冰緩 2 秒（移動變慢）'
   },
@@ -1329,10 +1331,83 @@ const SUPPORTS = {
     need: ['spell'],
     meta: 'crit',
     d: '主要寶石。這招法術改成自動施放：你暴擊時累積能量（每次 +10），滿 100 自動對那個敵人施放；不能手動施放'
+  },
+  /* 0.2.49 第 3 層 C1：底層已經有、只差一顆寶石的 11 顆（企劃書 6.1）。
+     擊中的順序（game.js 的 updShots）：分裂 → 穿透 → 迴旋或連鎖；迴旋會搶在連鎖前面，所以兩顆同一分類、不能同插 */
+  fork: {
+    n: '分裂',
+    ic: 'sup_sp_proj',
+    need: ['proj'],
+    d: '投射物第一次擊中敵人時一分為二（分出來的不會再分裂，還是會穿透、連鎖）；傷害更少 20%'
+  },
+  chain: {
+    n: '連鎖',
+    ic: 'sup_sp_chain',
+    need: ['proj'],
+    d: '投射物穿透用完後，多彈向附近 2 隻沒打過的敵人；傷害更少 20%。分裂、穿透會先發生，所以一路穿透的冰霜彈和閃電箭不能用；不能跟迴旋插在同一招'
+  },
+  ret: {
+    n: '迴旋',
+    ic: 'sup_sp_ext',
+    need: ['proj'],
+    d: '投射物飛到終點或打完最後一個目標後飛回來，回程再打一次；傷害更少 20%。會爆炸的投射物沒有效果；不能跟連鎖插在同一招'
+  },
+  focus: { n: '集中效應', ic: 'sup_sp_conc', need: ['aoe'], d: '範圍 −30%，傷害更多 30%。不能跟範圍擴大插在同一招' },
+  elepen: { n: '抗性穿透', ic: 'sup_sp_eff', need: [], d: '這招的擊中穿透敵人 25% 抗性' },
+  giant: {
+    n: '極大',
+    ic: 'sup_sp_horde',
+    need: ['minion'],
+    d: '這招的召喚物變成極大：最大生命、傷害各更多 20%，體型更大'
+  },
+  cull: {
+    n: '撲殺',
+    ic: 'sup_sp_exec',
+    need: [],
+    d: '這招擊中後，生命低於門檻的敵人直接死亡（普通 35%、菁英 10%、王 5%）'
+  },
+  nightblade: {
+    n: '夜刃',
+    ic: 'sup_sp_melee',
+    need: ['attack'],
+    d: '這招暴擊時獲得靈巧：移動速度提高 30%、15% 機率避開擊中，5 秒內遞減到 0；結束前不能再獲得'
+  },
+  cast_kill: {
+    n: '擊殺施放',
+    ic: 'sup_sp_boom',
+    need: ['spell'],
+    meta: 'kill',
+    d: '主要寶石。這招法術改成自動施放：你擊殺敵人時累積能量（每次 +5），滿 100 自動對最近的敵人施放；不能手動施放'
+  },
+  cast_dodge: {
+    n: '完美閃避施放',
+    ic: 'sup_sp_deployfast',
+    need: ['spell'],
+    meta: 'perfect',
+    d: '主要寶石。這招法術改成自動施放：你完美閃避時累積能量（每次 +40），滿 100 自動對最近的敵人施放；不能手動施放'
+  },
+  cast_block: {
+    n: '格擋施放',
+    ic: 'sup_sp_deploy',
+    need: ['spell'],
+    meta: 'block',
+    d: '主要寶石。這招法術改成自動施放：你格擋時累積能量（每次 +25），滿 100 自動對最近的敵人施放；不能手動施放'
   }
 };
 /* 輔助的分類（0.2.9，照 PoE2 0.3）：同一分類不能插在同一顆技能上，可以跨技能重複；沒寫的分類就是自己（同一顆不能插兩次） */
-const SUP_CAT = { scorch: 'alt', brittle: 'alt', sap: 'alt', cast_crit: 'meta', autocast: 'meta' };
+const SUP_CAT = {
+  scorch: 'alt',
+  brittle: 'alt',
+  sap: 'alt',
+  cast_crit: 'meta',
+  autocast: 'meta',
+  cast_kill: 'meta',
+  cast_dodge: 'meta',
+  cast_block: 'meta',
+  /* 迴旋會搶在連鎖前面（穿透用完就飛回來），同插連鎖等於白插 */
+  ret: 'chain',
+  focus: 'area'
+};
 /* 自動化：附加的冷卻（品質照比例減，品質 20% 是 6.4 秒）、魔力倍率 */
 const AUTO = { cd: 8, mp: 1.4 };
 const supCat = k => SUP_CAT[k] || k;
@@ -1434,6 +1509,17 @@ const QUAL = {
   arcane: '法術擊殺時，秘能波動延長 {1} 秒',
   totemc: '立下圖騰時，{20}% 機率立刻施放一次',
   cast_crit: '自動施放時，{20}% 機率再放一次',
+  cast_kill: '自動施放時，{20}% 機率再放一次',
+  cast_dodge: '自動施放時，{20}% 機率再放一次',
+  cast_block: '自動施放時，{20}% 機率再放一次',
+  fork: '傷害的代價減少 {10}%',
+  chain: '傷害的代價減少 {10}%',
+  ret: '傷害的代價減少 {10}%',
+  focus: '範圍的代價減少 {10}%',
+  elepen: '多穿透 {5}% 抗性',
+  giant: '召喚物的傷害再更多 {10}%',
+  cull: '撲殺敵人時，{20}% 機率得到 1 顆狂怒球',
+  nightblade: '暴擊率提高 {20}%',
   autocast: '附加冷卻 8 秒降到 {6.4:8} 秒',
   anger: '對點燃中的怪，光環效果 ×{1.5:1}',
   precise: '每次沒暴擊，下一次暴擊率 +{1}%，暴擊後清零',
