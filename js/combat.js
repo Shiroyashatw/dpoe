@@ -400,6 +400,8 @@ function takenInc(m, k) {
   if (k === 'phys' && a.broken > G.t) v += 20 + (a.shatter > G.t ? DEBUFF.shatterMore : 0);
   return v;
 }
+/* 玩家受到的傷害提高：跟怪物同一池相加（照 PoE2）；不受影響（`unaff`）擋掉感電 */
+const takenP = k => takenInc(P, k) - (P.ail && P.ail.shock > G.t && unaff('shock') ? 20 : 0);
 const toughOf = m => (m.tough || 0) + MM('mtough');
 /* 0.2.25 底層 ---------- */
 /* 依防禦給附加物理傷害：「護甲的 x%」（addArm），閃避、能量護盾之後要用再加 */
@@ -1525,13 +1527,13 @@ function baseTick(dt) {
   if (a.ign && a.ign.t > G.t && !unaff('ign')) d += ailEff(a.ign) * (1 - effRes('fire') / 100);
   if (a.bleed && a.bleed.t > G.t && !unaff('bleed')) (d += ailEff(a.bleed)), (skipEs += ailEff(a.bleed));
   if (a.poi && a.poi.t > G.t && !unaff('poison')) {
-    const v = a.poi.dps * (1 - effRes('chaos') / 100) * (1 + (5 * witherN(a)) / 100);
+    const v = a.poi.dps * (1 - effRes('chaos') / 100) * (1 + takenP('chaos') / 100);
     (d += v), (skipEs += v);
   }
   /* 站在地面上的持續傷害（第 11 批）：跟流血、中毒一樣跳過能量護盾；只算最強一塊，荊棘地面只有移動時才算 */
   const gd = a.gd && a.gd.t > G.t && (!a.gd.mv || moving()) ? a.gd : null;
   if (gd) {
-    const v = gd.v * (gd.el === 'phys' ? 1 : (1 - effRes(gd.el) / 100) * (1 + (5 * witherN(a)) / 100));
+    const v = gd.v * (gd.el === 'phys' ? 1 : 1 - effRes(gd.el) / 100) * (1 + takenP(gd.el) / 100);
     (d += v), (skipEs += v);
   }
   if (a.frz) a.frz = Math.max(0, a.frz - 20 * dt);
@@ -1648,8 +1650,6 @@ function hurtCalc(d, src, el, noEv) {
   } else if (el !== 'phys') {
     d *= 1 - resHit(el) / 100;
     if (el in ep) (ep[el] = d), (d *= ad(el));
-    /* 凋零：受到的混沌傷害提高 */
-    if (el === 'chaos' && P.ail) d *= 1 + (5 * witherN(P.ail)) / 100;
   }
   /* 地圖詞「怪物多造成 20% 的某元素傷害」：另外照那個元素的抗性算 */
   for (const [f, k] of [
@@ -1661,7 +1661,7 @@ function hurtCalc(d, src, el, noEv) {
       const v = ((pre * MM(f)) / 100) * (1 - resHit(k) / 100);
       (ep[k] += v), (d += v * ad(k));
     }
-  if (P.ail && P.ail.shock > G.t && !unaff('shock')) d *= 1.2;
+  d *= 1 + takenP(el) / 100;
   if (el !== 'phys' && el !== 'chaos' && formOf() && formOf().eleTaken) d *= formOf().eleTaken;
   /* 壓抑（開關 suppCh，機率上限 100%）：被壓抑的擊中傷害與它造成的異常傷害各防止 50%（異常照上，只是傷害減半） */
   const supp = ST.suppCh > 0 && roll(Math.min(DEBUFF.suppMax, ST.suppCh)),

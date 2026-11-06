@@ -2339,6 +2339,13 @@ vm.runInContext(
     j10(b10.vine) === '[0.76,1]' && b10.vineCap === 5 && j10(b10.vineMove) === '[3,1]' && j10(b10.vineGone) === '[0,1]',
     j10([b10.vine, b10.vineCap, b10.vineMove, b10.vineGone])
   );
+  /* 感電照 PoE2：玩家跟怪物一樣跟其他「受到的傷害提高」相加，不另外乘 */
+  ok(
+    '玩家的感電與凋零同池相加（20% + 10% ＝ 30%，不是 ×1.2×1.1）',
+    R(
+      `(() => { const a0 = P.ail; P.ail = { shock: G.t + 5, wither: [G.t + 5, G.t + 5] }; const v = takenP('chaos'); P.ail = a0; return v; })()`
+    ) === 30
+  );
   ok(
     '不受影響：冰緩、感電、超重仍掛著、仍顯示，但不緩速、不多受傷',
     j10(b10.unaff) === '[0.48,1,true,3]',
