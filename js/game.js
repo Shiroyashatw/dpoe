@@ -52,7 +52,7 @@ function newGame() {
   /* 昇華（0.2.25）：藏身處的昇華石碑選，S.at 是點過的點（a_st 是起點） */
   s.asc = null;
   s.at = [];
-  s.auras = Array(AURA_SLOTS).fill(null);
+  s.auras = [null];
   s.charms = [null, null, null];
   s.eq.chest = mkItem('c_leather', 1, 0);
   s.mat = newMat();

@@ -793,6 +793,8 @@ const TAGN = {
 };
 function skillHTML() {
   /* 一列一招，升滿直接在列上；點一招或一顆寶石，動作都在下方的檢視區 skIns。空的格子點一下＝挑一顆裝上（data-gen） */
+  /* 光環欄會縮（changed 把空格收到最後），選的格子可能已經沒東西了 */
+  if (SKUI.sel && !slotGet('sock', SKUI.sel)) SKUI.sel = null;
   const M = MAT(),
     sel = SKUI.sel,
     all = gemAllPlan(eqGems()),
@@ -830,12 +832,12 @@ function skillHTML() {
       return `<div class="gx-row ${sel && sel.split(':')[0] === '' + i ? 'on' : ''}" data-gx="sel:${key}" role="button" tabindex="0"><div class="gx-k"><kbd>${SLOTKEY[i]}</kbd>${sock(key, g, 'act', '技能')}</div><div class="gx-main"><div class="gx-l1"><b>${esc(c.D.n)}</b><span class="gx-lv">Lv ${g.lv}${c.lv > g.lv ? ` <i>+${c.lv - g.lv}</i>` : ''}</span>${off}<span class="gx-dps">${val != null ? `${lab} <i class="skv el-${N.el || 'phys'}">${fmtN(val)}</i>` : N.eff ? esc(N.eff) : ''}</span></div><div class="links">${holes}</div></div><div class="gx-r">${upBtn(g, key)}</div></div>`;
     })
     .join('');
-  const auras = `<div class="gx-aura"><div class="gx-ah"><b>光環</b><span>精魂 ${ST.spiritUsed}/${ST.spirit}</span></div><div class="gx-as">${S.auras
+  const auras = `<div class="gx-aura"><div class="gx-ah"><b>光環</b><span>精魂</span><span>${ST.spiritUsed}/${ST.spirit}</span></div><div class="gx-as">${S.auras
     .map((g, j) => {
       const key = 'A:' + j,
         on = g && ST.auraOn.includes(g.gem);
       const bad = g && g.sup && g.sup.some(x => x && !supOK(AURAS[g.gem], x, g));
-      return `<div class="gx-ac ${sel && sel.startsWith(key) ? 'on' : ''}" ${g ? `data-gx="sel:${key}" role="button" tabindex="0"` : ''}>${sock(key, g, 'act', '光環', g && (!on || bad))}<span>${g ? `<b>${esc(AURAS[g.gem].n)}</b><small class="${on ? '' : 'c-bad'}">${on ? `Lv ${g.lv}` : auraWhy(g, 1)}</small>` : '<small class="c-dim">空的</small>'}</span></div>`;
+      return `<div class="gx-ac ${sel && sel.startsWith(key) ? 'on' : ''}" ${g ? `data-gx="sel:${key}" role="button" tabindex="0"` : ''}>${sock(key, g, 'act', '光環', g && (!on || bad))}<span>${g ? `<b>${esc(AURAS[g.gem].n)}</b><small class="${on ? '' : 'c-bad'}">${on ? `Lv ${g.lv}` : auraWhy(g, 1)}</small>` : '<small class="c-dim">加光環</small>'}</span></div>`;
     })
     .join('')}</div></div>`;
   return `<div class="ph"><b>技能寶石</b><span class="gx-res">靈魂 <b>${fmtN(M.soul)}</b> · 粉 <b>${M.dust}／${M.fine}／${M.rare}</b></span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
@@ -853,6 +855,16 @@ function auraWhy(g, short) {
     ST.auraOn.some(k => k !== g.gem && AURAS[k].tags.includes('companion'))
   )
     return short ? '有夥伴' : '同時只能有 1 隻夥伴，沒有生效';
+  /* 同名只算排前面那顆；魔像（0.2.63）同時存在的種類有上限 golemMax */
+  if (S.auras.findIndex(x => x && x.gem === g.gem) !== S.auras.indexOf(g))
+    return short ? '已插同名' : '同名的光環只能插一顆，沒有生效';
+  /* 順序跟 stats() 一樣：先看上限（排在它前面、生效的魔像夠多才算滿），沒滿才是精魂不夠 */
+  if (
+    isGolem(g.gem) &&
+    S.auras.slice(0, S.auras.indexOf(g)).filter(x => x && isGolem(x.gem) && ST.auraOn.includes(x.gem)).length >=
+      ST.golemMax
+  )
+    return short ? '魔像已滿' : `魔像已滿（同時最多 ${ST.golemMax} 種），沒有生效`;
   return short ? '缺精魂' : '精魂不夠，沒有生效';
 }
 /* 光環寶石的孔（0.2.57 F3）：光環卡放不下，畫在下方的檢視區；開孔跟技能寶石一樣 */
@@ -1239,11 +1251,11 @@ function gemTabs(kind) {
     tabs = [
       by(
         '光環',
-        Object.keys(AURAS).filter(k => !AURAS[k].fx.wolf)
+        Object.keys(AURAS).filter(k => !AURAS[k].tags.includes('minion'))
       ),
       by(
         '召喚',
-        Object.keys(AURAS).filter(k => AURAS[k].fx.wolf)
+        Object.keys(AURAS).filter(k => AURAS[k].tags.includes('minion'))
       )
     ];
   return tabs.filter(t => t.ks.length);
@@ -1276,10 +1288,7 @@ function gemHTML() {
     old = to && slotGet('sock', to),
     own = to ? [...S.inv.items, ...S.gems].filter(g => g.gem && gemFits(g.gem)) : [],
     where =
-      to &&
-      (to[0] === 'A'
-        ? `光環欄 ${+to.split(':')[1] + 1}`
-        : `${SLOTKEY[to.split(':')[0]]} 技能欄${to.endsWith(':a') ? '' : '的輔助孔'}`);
+      to && (to[0] === 'A' ? '光環欄' : `${SLOTKEY[to.split(':')[0]]} 技能欄${to.endsWith(':a') ? '' : '的輔助孔'}`);
   const head = `<div class="ph"><b>${to ? `挑一顆${to[0] === 'A' ? '光環' : to.endsWith(':a') ? '技能' : '輔助'}` : '生成寶石'}</b><span>${to ? `裝到${where} · ` : ''}靈魂 <b class="c-gold">${MAT().soul}</b> · 角色 Lv ${S.lv}${to ? '' : ' · 寶石不能賣'}</span><button class="x" aria-label="關閉" data-gm="close">${ICO.x}</button></div>
   ${
     to
@@ -1578,7 +1587,8 @@ const slotFits = (src, key, it) =>
       : !!it.gem &&
         !slotLack(src, key, it).length &&
         (/^A:\d+$/.test(key)
-          ? isAura(it)
+          ? /* 同名的光環只能插一顆（換掉同一格的自己不算） */
+            isAura(it) && !S.auras.some((x, j) => x && x !== it && x.gem === it.gem && j !== +key.slice(2))
           : key.endsWith(':a')
             ? !isSup(it) && !isAura(it)
             : isSup(it) && sockFits(sockHost(key), +key.split(':').pop(), it));
@@ -1617,6 +1627,12 @@ function changed() {
     if (gridAuto(S.inv, off)) (S.eq.off = null), hudWarn(why + '：副手收進背包');
     else hudWarn('背包滿了：副手沒有作用（' + why + '）');
   }
+  /* 光環欄沒有格數：拿掉的空格收起來，尾巴永遠留一個空格給下一顆 */
+  /* 選取跟著那顆寶石走（往前遞補後編號會變）；那顆不在了就取消選取 */
+  const sk = SKUI.sel && SKUI.sel[0] === 'A' ? SKUI.sel.split(':') : null,
+    selHost = sk && S.auras[+sk[1]];
+  S.auras.splice(0, S.auras.length, ...S.auras.filter(Boolean), null);
+  if (sk) SKUI.sel = selHost ? ['A', S.auras.indexOf(selHost), ...sk.slice(2)].join(':') : null;
   const hpF = P.hp / ST.hp;
   ST = stats();
   P.hp = Math.min(ST.hp, Math.max(1, hpF * ST.hp));
@@ -1690,7 +1706,7 @@ function quickMove(src, it, eqk) {
 function gemSlotFor(it) {
   if (isAura(it)) {
     const j = S.auras.findIndex(g => !g);
-    return j < 0 ? null : 'A:' + j;
+    return j < 0 || S.auras.some(g => g && g.gem === it.gem) ? null : 'A:' + j;
   }
   for (let i = 0; i < NSLOT; i++) {
     const sl = S.skills[i];
@@ -1706,7 +1722,7 @@ function gemSlotFor(it) {
     }
   }
   if (isSup(it))
-    for (let i = 0; i < AURA_SLOTS; i++) {
+    for (let i = 0; i < S.auras.length; i++) {
       const a = S.auras[i],
         j = a && a.sup && supOK(AURAS[a.gem], it) ? a.sup.findIndex(x => !x) : -1;
       if (j >= 0 && sockFits(a, j, it)) return 'A:' + i + ':' + j;
@@ -1925,7 +1941,13 @@ function gemTip(it) {
   if (isAura(it)) {
     const on = S.auras.includes(it),
       act = on && ST.auraOn.includes(it.gem);
-    html += `<p class="base">預留精魂 ${D.sp} · 效果 ×${((1 + 0.03 * (it.lv - 1)) * (1 + (ST.auraEff + ST.buffEff) / 100) * (1 + ST.buffMag / 100)).toFixed(2)}（等級與光環效果）</p>`;
+    const gol = isGolem(it.gem),
+      mul =
+        (1 + 0.03 * (it.lv - 1)) *
+        (1 + (gol ? ST.buffEff : ST.auraEff + ST.buffEff) / 100) *
+        (1 + ST.buffMag / 100) *
+        (gol ? 1 + ST.golemEff / 100 : 1);
+    html += `<p class="base">預留精魂 ${D.sp} · 效果 ×${mul.toFixed(2)}（${gol ? '等級與魔像增益效果' : '等級與光環效果'}）</p>`;
     if (on && !act) html += `<p class="c-bad">${auraWhy(it)}</p>`;
   } else if (sup)
     html += `<p class="base">${D.need.length ? '要有標籤：' + D.need.map(t => TAGN[t]).join('、') : '所有技能都能用'}</p>`;

@@ -28,7 +28,11 @@ const supOK = (D, sp, g) => {
     return false;
   if (U.all && !U.all.every(t => D.tags.includes(t))) return false;
   /* 光環寶石（0.2.57 F3）：只有接上效果的輔助算相容，不限標籤的（狂暴、致命…）插了沒有用 */
-  if (D.sp != null) return AURA_SUP.has(U.base || sp.gem) && U.need.some(t => D.tags.includes(t));
+  if (D.sp != null) {
+    /* 群狼只有戰狼精魂（狼）與魔像用得到；獻祭等其他 minion 光環插了沒人讀 */
+    if (sp.gem === 'pack' && !D.fx.wolf && !D.tags.includes('golem')) return false;
+    return AURA_SUP.has(U.base || sp.gem) && U.need.some(t => D.tags.includes(t));
+  }
   return !U.need.length || U.need.some(t => D.tags.includes(t));
 };
 /* 一格技能的實際數值（技能等級＋輔助＋天賦冷卻時間恢復率）；觸發、幻影直接用 gemCfg（i = −1）；c.g 是寶石本身 */
@@ -228,7 +232,7 @@ function skillWhy(c, at) {
     return '附近沒有屍體';
   if (c.k === 'snap' && !stateMobs(at.x, at.y, c.D.r, SNAP_K).length) return '附近沒有冰凍、感電或點燃的敵人';
   if (c.k === 'hexblast' && !stateMobs(at.x, at.y, 150, ['curse']).length) return '附近沒有被詛咒的敵人';
-  if (c.D.cmd && !cmdAllies(c.D.cmd).length) return c.D.cmd === 'golem' ? '要有召喚魔像' : '要有戰狼精魂的狼';
+  if (c.D.cmd && !cmdAllies(c.D.cmd).length) return c.D.cmd === 'golem' ? '要有巨石魔像' : '要有戰狼精魂的狼';
   const A = c.D.ammo && P.ammo && P.ammo[c.k];
   if (A && A.until > G.t) return '裝填中';
   return '';
@@ -1488,7 +1492,7 @@ const ALLY_LIFE = [
     [80, 10084],
     [100, 17980]
   ],
-  ALLY_HPM = { golem: 1.2, totem: 1 };
+  ALLY_HPM = { golem: 1.2, totem: 1 }; /* 6 種魔像都用 golem 的比例 */
 function allyBase(lv) {
   let i = 1;
   while (i < ALLY_LIFE.length - 1 && ALLY_LIFE[i][0] < lv) i++;
@@ -1498,10 +1502,13 @@ function allyBase(lv) {
 }
 /* 等級：寶石叫的用那顆寶石的等級換成角色等級（gemReq），光環的用光環寶石，都沒有就用角色等級 */
 function allyLife(src, c) {
-  const ak = src === 'golem' ? 'golem' : src === 'aura' ? 'wolfsp' : null,
+  const ak = isGolem(src) ? src : src === 'aura' ? 'wolfsp' : null,
     ag = ak && ((typeof S === 'object' && S && S.auras) || []).find(g => g && g.gem === ak),
     g = (c && c.g) || ag;
-  return allyBase(g ? gemReq(Math.min(GEM_MAX, g.lv || 1)) : (S && S.lv) || 1) * (ALLY_HPM[src] || 0.7);
+  return (
+    allyBase(g ? gemReq(Math.min(GEM_MAX, g.lv || 1)) : (S && S.lv) || 1) *
+    (ALLY_HPM[isGolem(src) ? 'golem' : src] || 0.7)
+  );
 }
 const giantM = w => (ST.minGiant || (w.c && w.c.giant) ? 1 + MINION.giant : 1);
 /* 召喚物受傷（目前沒有怪會打召喚物，要等召喚物 AI） */
@@ -1517,8 +1524,8 @@ function allyDie(w, killed) {
   if (killed) evMark('mkill');
   if (w.t || !killed) return void (G.allies = G.allies.filter(o => o !== w));
   w.hp = 0;
-  /* 獻祭（0.2.59）：召喚物復甦時間 +50%（⚠️ 暫定，PoE2 數字查不到） */
-  w.dead = G.t + MINION.revive * (ST.offering ? 1.5 : 1);
+  /* 獻祭寶石（0.2.63）：復甦時間 +40～59%、品質讓復甦加快（items.js 的 stats 算 reviveT；沒開就是 1） */
+  w.dead = G.t + MINION.revive * ST.reviveT;
   for (const o of G.allies) if (o.dead) o.dead = w.dead;
 }
 /* ---------- 召喚戰狼：狼跟著你、咬最近的怪 ---------- */
@@ -1538,8 +1545,8 @@ const allyMult0 = (w, c) =>
     ? c.mult * c.wolfM
     : w.src === 'doll'
       ? c.mult
-      : w.src === 'golem'
-        ? c.mult * 0.8 * (ST.packM_golem || 1)
+      : isGolem(w.src)
+        ? c.mult * 0.8 * (ST['packM_' + w.src] || 1)
         : 0.4 * (ST.packM_wolfsp || 1);
 function updAllies(dt) {
   for (const w of G.allies) {
@@ -1641,11 +1648,16 @@ function updSkills(dt) {
     nw = ST.auraWolf || 0;
   if (fightOn() && aw.length < nw) callWolf('aura');
   else for (const w of aw.slice(nw)) allyDie(w);
-  /* 召喚魔像（光環欄）：拿權杖才會出來 */
-  const gm = G.allies.some(w => w.src === 'golem'),
-    gOn = ST.auraGolem;
-  if (fightOn() && gOn && !gm) callWolf('golem');
-  else if (!gOn && gm) for (const w of G.allies.filter(w => w.src === 'golem')) allyDie(w);
+  /* 魔像（光環欄，0.2.63）：生效的每種各一隻（src＝光環的鍵）；上限與精魂在 stats() 的 auraOn 已經算好，不生效的收掉 */
+  const gOn = ST.auraOn.filter(isGolem);
+  for (const k of gOn) if (fightOn() && !G.allies.some(w => w.src === k)) callWolf(k);
+  for (const w of G.allies.filter(w => isGolem(w.src) && !gOn.includes(w.src))) allyDie(w);
+  /* 魔像死了或復活：增益跟著有或沒有（stats() 讀 G.allies），變了就重算 */
+  const gd = G.allies
+    .filter(w => isGolem(w.src) && w.dead > G.t)
+    .map(w => w.src)
+    .join();
+  if (gd !== (P.golDown || '')) (P.golDown = gd), stkSync();
   /* 紙人 15 秒就消失；品質：有機率留下屍體 */
   for (const w of G.allies)
     if (w.src === 'doll' && w.t <= G.t && qRoll(20 * (w.c.q || 0)))

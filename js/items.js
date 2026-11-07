@@ -422,6 +422,11 @@ function stats(s = S) {
     ss: 0,
     spirit: SPIRIT0,
     auraEff: 0,
+    /* 0.2.63：魔像同時存在的上限、魔像增益效果、每秒回復最大生命的 %、召喚物復甦時間倍率（獻祭寶石算） */
+    golemMax: 1,
+    golemEff: 0,
+    regenP: 0,
+    reviveT: 1,
     /* 0.2.42 能力總量的「增添能力總量」（目前沒有來源）、獲得、效用、增益／減益的效果與幅度 */
     spiritP: 0,
     lifeTot: 0,
@@ -766,6 +771,9 @@ function stats(s = S) {
     if (A.her && (wt0 === 'unarmed' || SPELLW.has(wt0))) continue;
     /* 夥伴（0.2.60 J3，照 PoE2）：同時只能有 1 隻，光環欄排後面的不生效 */
     if (A.tags.includes('companion') && o.auraOn.some(k => AURAS[k].tags.includes('companion'))) continue;
+    /* 同名的光環只算一顆（hud 的 slotFits 也擋）；魔像（0.2.63）同時最多 golemMax 種，超過的不召、不預留精魂 */
+    if (s.auras.findIndex(x => x && x.gem === g.gem) !== s.auras.indexOf(g)) continue;
+    if (isGolem(g.gem) && o.auraOn.filter(isGolem).length >= o.golemMax) continue;
     /* 光環寶石孔裡的輔助（0.2.57 F3）：sq 品質 0～1 */
     const sup = {};
     for (const x of g.sup || [])
@@ -775,10 +783,11 @@ function stats(s = S) {
     if (o.spiritUsed + sp > o.spirit) continue;
     o.spiritUsed += sp;
     o.auraOn.push(g.gem);
+    /* 魔像的增益不吃光環效果（auraEff）：吃增益效果與幅度（buffEff、buffMag）與魔像增益效果 golemEff（下面的 gm） */
     const ae = sup.auraeff,
       m =
         (1 + 0.03 * (g.lv - 1)) *
-        (1 + (o.auraEff + o.buffEff) / 100) *
+        (1 + (isGolem(g.gem) ? o.buffEff : o.auraEff + o.buffEff) / 100) *
         (1 + o.buffMag / 100) *
         (ae ? 1 + (25 + (ae.lv - 1) + 5 * ae.sq) / 100 : 1);
     /* 光環的品質（0.2.29）：0～1 */
@@ -794,10 +803,15 @@ function stats(s = S) {
     /* 群狼：戰狼精魂多 1 隻、光環的狼與魔像傷害更多 30% */
     if (sup.pack) o['packM_' + g.gem] = 1.3;
     if (g.gem === 'anger') o.angerV = A.fx.fireAdd * m;
-    for (const k in A.fx) {
-      const v = A.fx[k] * m;
+    /* 獻祭（0.2.63）：復甦時間 +40%（每級 +1%），品質每 1% 復甦加快 0.25% */
+    if (g.gem === 'offer') o.reviveT = (1 + (39 + g.lv) / 100) / (1 + 0.05 * o.aq.offer);
+    /* 魔像（0.2.63）：增益吃魔像增益效果與品質（Lv20 +10%，巨石的品質是替你擋下一下，不加增益）；那隻魔像死了、等復活的那段沒有增益（skills.js 的 updSkills 看到死活變了會重算） */
+    const down =
+        isGolem(g.gem) && typeof G === 'object' && G.allies && G.allies.some(x => x.src === g.gem && x.dead > G.t),
+      gm = isGolem(g.gem) ? (1 + o.golemEff / 100) * (g.gem === 'golem' ? 1 : 1 + 0.1 * o.aq[g.gem]) : 1;
+    for (const k in down ? {} : A.fx) {
+      const v = A.fx[k] * m * gm;
       if (k === 'wolf') o.auraWolf = sup.pack ? 2 : 1;
-      else if (k === 'golem') o.auraGolem = 1;
       else if (k === 'resA') for (const r of ['fire', 'cold', 'light']) o.res[r] += Math.round(v);
       else if (k in pt) pt[k] += v;
       else put(k, v);
@@ -828,6 +842,8 @@ function stats(s = S) {
   /* 基石：不動如山（閃避歸零）、混沌免疫（生命 1、能量護盾更多 30%） */
   if (o.stand) o.ev = 0;
   if (o.ci) (o.hp = 1), (o.es = Math.round(o.es * 1.3));
+  /* 每秒回復最大生命的 x%（巨石魔像）：用最後的最大生命換成每秒回復量 */
+  o.regen += (o.hp * o.regenP) / 100;
   /* 命中（0.2.22）：基礎 30 ＋ 每級 6 ＋ 裝備、天賦的命中值，再乘提高（Lv1 打第 1 階的 Lv5 怪約 90%） */
   o.acc = calc(30 + 6 * lv + o.acc, o.accP, 1, o.accTot);
   o.mp = calc(o.mp + pt.mana, pt.mpP, 1, o.manaTot);

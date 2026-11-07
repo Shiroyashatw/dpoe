@@ -293,9 +293,9 @@ function takeCorpse(x, y, r) {
   }
   return best;
 }
-/* 獻祭（0.2.59 J2，天賦開關 ST.offering，第 4 層填）：附近沒有屍體時，可以用一隻復甦召喚物（不會自己消失、還活著的）代替 */
+/* 獻祭（0.2.59 J2 天賦開關，0.2.63 改成精魂寶石「獻祭」，開在光環欄才算）：附近沒有屍體時，可以用一隻復甦召喚物（不會自己消失、還活著的）代替 */
 const offerAlly = (x, y, r) =>
-  ST.offering ? G.allies.find(w => !w.t && !(w.dead > G.t) && Math.hypot(w.x - x, w.y - y) < r) : null;
+  ST.auraOn.includes('offer') ? G.allies.find(w => !w.t && !(w.dead > G.t) && Math.hypot(w.x - x, w.y - y) < r) : null;
 
 /* ---------- 6. 連擊與段數 ---------- */
 const COMBO_MAX = 10;

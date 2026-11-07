@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：151 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 151,
+    '品質：157 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 157,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -4209,23 +4209,25 @@ vm.runInContext(
       with1 = (a, k, lv = 1) => { const g = mkGem(a, 1); g.sup = [k ? mkGem(k, lv) : null, null]; return g; },
       out = {};
     out.so = [mkGem('anger', 1).so, mkGem('h_ice', 1).sup.length, !drillCheck(mkGem('anger', 1)).why || drillCheck(mkGem('anger', 1)).why.includes('不夠')];
-    out.ok = [ok('anger', 'auraeff'), ok('h_ash', 'auraeff'), ok('h_ash', 'spiriteff'), ok('anger', 'area'), ok('h_ash', 'area'), ok('h_ash', 'area2'), ok('h_ash', 'focus'), ok('anger', 'fury'), ok('wolfsp', 'pack'), ok('golem', 'pack'), ok('wolfsp', 'giant'), supOK(SKILLS.cleave, sp('area'))];
+    out.ok = [ok('anger', 'auraeff'), ok('h_ash', 'auraeff'), ok('h_ash', 'spiriteff'), ok('anger', 'area'), ok('h_ash', 'area'), ok('h_ash', 'area2'), ok('h_ash', 'focus'), ok('anger', 'fury'), ok('wolfsp', 'pack'), ok('golem', 'pack'), ok('wolfsp', 'giant'), supOK(SKILLS.cleave, sp('area')), ok('offer', 'pack'), ok('golem', 'auraeff'), ok('g_fire', 'pack')];
     S.eq.weapon = mkItem(BASES.find(b => b.k === 'weapon' && b.wt === 'mace').id, 16, 0); S.eq.off = null;
     const st = gs => ((S.auras = gs), stats());
     const a0 = st([with1('anger')]), a1 = st([with1('anger', 'auraeff', 6)]), a2 = st([with1('anger', 'spiriteff')]);
     out.eff = [Math.round((a1.angerV / a0.angerV) * 100), a0.spiritUsed, a2.spiritUsed];
     const h1 = st([with1('h_ash', 'area')]), h2 = st([with1('h_ash', 'focus')]);
     out.her = [h1.herA.ash, h1.herM.ash, h2.herA.ash, h2.herM.ash];
-    /* 戰狼精魂要 40 精魂（起始 30 開不了），用魔像驗群狼的倍率 */
+    /* 戰狼精魂、魔像都要 40 精魂（起始 30 開不了），給 300 精魂，用魔像驗群狼的倍率 */
+    PTREE.I.zz = { s: { spirit: 300 } }; keep.pt = S.pt; S.pt = ['zz'];
     const w1 = st([with1('golem', 'pack')]), w0 = st([with1('golem')]);
-    out.wolf = [w0.auraGolem, w1.packM_golem, !!w0.packM_golem];
+    out.wolf = [w0.auraOn.includes('golem'), w1.packM_golem, !!w0.packM_golem];
+    delete PTREE.I.zz; S.pt = keep.pt;
     Object.assign(S, { eq: keep.eq, auras: keep.au }); ST = stats();
     return out;
   })()`);
   ok(
-    'F3 光環的孔：光環寶石 2 孔、可以開孔；只有接上效果的輔助相容（光環效果只給有數值的光環、範圍與集中給捷光環、群狼給召喚，狂暴與極大不相容）；效果 +30%（6 級）、精魂 30→24、捷光環範圍 ×1.4／集中 ×0.7 更多 30%、群狼讓魔像更多 30%',
+    'F3 光環的孔：光環寶石 2 孔、可以開孔；只有接上效果的輔助相容（光環效果只給有數值的光環、範圍與集中給捷光環、群狼給戰狼精魂與魔像、不給獻祭，狂暴與極大不相容）；效果 +30%（6 級）、精魂 30→24、捷光環範圍 ×1.4／集中 ×0.7 更多 30%、群狼讓魔像更多 30%',
     JSON.stringify(f57) ===
-      '{"so":[2,2,true],"ok":[true,false,true,false,true,true,true,false,true,true,false,true],"eff":[130,30,24],"her":[1.4,1,0.7,1.3],"wolf":[1,1.3,false]}',
+      '{"so":[2,2,true],"ok":[true,false,true,false,true,true,true,false,true,true,false,true,false,false,true],"eff":[130,30,24],"her":[1.4,1,0.7,1.3],"wolf":[true,1.3,false]}',
     JSON.stringify(f57)
   );
   /* 0.2.58 J1：命令技能（要有召喚物、狼撲咬流血、魔像暈眩嘲諷）、傀儡大師（命令技能速度、移動懲罰） */
@@ -4258,43 +4260,131 @@ vm.runInContext(
   ok(
     'J1 命令技能：沒有召喚物按不出來；圍獵讓狼撲到目標身邊咬、必定流血；震地怒吼打魔像周圍 150、暈眩（王不會）、嘲諷；傀儡大師 5 層命令技能快 1.5 倍、移動懲罰 −50%，其他技能不變',
     JSON.stringify(j58) ===
-      '{"why":["要有戰狼精魂的狼","要有召喚魔像"],"why2":["",""],"wolf":[true,true,28],"golem":[true,true,true,true,true,true],"puppet":[5,1.5,1,0.675,0.35]}',
+      '{"why":["要有戰狼精魂的狼","要有巨石魔像"],"why2":["",""],"wolf":[true,true,28],"golem":[true,true,true,true,true,true],"puppet":[5,1.5,1,0.675,0.35]}',
     JSON.stringify(j58)
   );
-  /* 0.2.59 J2：獻祭（天賦開關 ST.offering）：沒有屍體時用復甦召喚物代替，那隻死掉、復甦慢 50%；紙人（會消失的）不算 */
+  /* 0.2.59 J2（0.2.63 改成精魂寶石「獻祭」）：沒有屍體時用復甦召喚物代替，那隻死掉、復甦慢 40%（Lv1）；紙人（會消失的）不算 */
   const j59 = R(`(() => {
-    const keep = { allies: G.allies, corpses: G.corpses, off: ST.offering },
+    const keep = { allies: G.allies, corpses: G.corpses, au: S.auras, pt: S.pt, st: ST },
       doll = { src: 'doll', x: P.x + 10, y: P.y, r: 14, hp: 50, mhp: 50, t: G.t + 10 },
       wolf = { src: 'gem', x: P.x + 60, y: P.y, r: 14, hp: 80, mhp: 80, t: 0 },
       out = {};
+    PTREE.I.zz = { s: { spirit: 300 } };
+    const use = gs => { S.auras = gs; S.pt = ['zz']; ST = stats(S); };
     G.corpses = []; G.allies = [doll, wolf];
-    ST.offering = 0; out.off = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
-    ST.offering = 1; out.near = corpseNear(P, 250);
+    use([null]); out.off = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
+    use([mkGem('offer', 1)]); out.near = corpseNear(P, 250);
     const cp = takeCorpse(P.x, P.y, 250);
     out.take = [!!cp && cp.ally, cp && cp.mhp, wolf.dead > G.t, +(wolf.dead - G.t).toFixed(2), doll.dead == null, G.corpses.length];
     out.again = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
-    Object.assign(G, { allies: keep.allies, corpses: keep.corpses }); ST.offering = keep.off;
+    out.noTalent = ST.offering === undefined && !('offering' in stats({ ...S, auras: [null] }));
+    delete PTREE.I.zz;
+    Object.assign(G, { allies: keep.allies, corpses: keep.corpses }); Object.assign(S, { auras: keep.au, pt: keep.pt }); ST = keep.st;
     return out;
   })()`);
   ok(
-    'J2 獻祭：關著時沒有屍體就是沒有；開著時用復甦召喚物代替（那隻死掉、復甦 7.5→11.25 秒），會消失的紙人不算、不會變出真的屍體',
-    JSON.stringify(j59) === '{"off":[false,null],"near":true,"take":[1,80,true,11.25,true,0],"again":[false,null]}',
+    'J2 獻祭寶石：沒開時沒有屍體就是沒有；開在光環欄時用復甦召喚物代替（那隻死掉、復甦 7.5→10.5 秒），會消失的紙人不算、不會變出真的屍體；天賦開關 ST.offering 不存在',
+    JSON.stringify(j59) ===
+      '{"off":[false,null],"near":true,"take":[1,80,true,10.5,true,0],"again":[false,null],"noTalent":true}',
     JSON.stringify(j59)
   );
-  /* 0.2.60 J3：夥伴同時只能有 1 隻（光環欄排前面的生效，後面的不預留精魂） */
+  /* 0.2.60 J3（0.2.63 魔像不再是夥伴）：夥伴只剩戰狼精魂；魔像與戰狼精魂精魂夠就可以同時放，順序不影響 */
   const j60 = R(`(() => {
-    const keep = S.auras;
+    const keep = { au: S.auras, pt: S.pt, st: ST };
+    PTREE.I.zz = { s: { spirit: 300 } };
+    S.pt = ['zz'];
     S.auras = [mkGem('golem', 1), mkGem('wolfsp', 1), null];
-    const a = stats();
+    const a = stats(S);
     S.auras = [mkGem('wolfsp', 1), mkGem('golem', 1), null];
-    const b = stats();
-    S.auras = keep;
-    return [a.auraOn.join(), !!a.auraGolem, !!a.auraWolf, a.spiritUsed, b.auraOn.join()];
+    const b = stats(S);
+    delete PTREE.I.zz;
+    Object.assign(S, { auras: keep.au, pt: keep.pt }); ST = keep.st;
+    return [a.auraOn.join(), !!a.auraWolf, a.spiritUsed, b.auraOn.join(), AURAS.golem.tags.includes('companion'), AURAS.wolfsp.tags.includes('companion')];
   })()`);
   ok(
-    'J3 夥伴：魔像與戰狼精魂同時放，只有排前面的生效、後面的不預留精魂（戰狼精魂 40 精魂開不了時，後面的魔像照樣生效）',
-    JSON.stringify(j60) === '["golem",true,false,30,"golem"]',
+    'J3 夥伴：標籤只剩戰狼精魂，魔像不是夥伴（精魂夠時魔像與戰狼精魂同時生效，各 40、共預留 80）',
+    JSON.stringify(j60) === '["golem,wolfsp",true,80,"wolfsp,golem",false,true]',
     JSON.stringify(j60)
+  );
+  /* 0.2.63 3A：魔像 6 種（各召得出、一種一隻、上限 golemMax、增益進 stats() 且死了沒有）、光環欄只看精魂（同名一顆）、獻祭寶石的數字 */
+  const a63 = R(`(() => {
+    const keep = { au: S.auras, pt: S.pt, st: ST, al: G.allies, sc: G.scene, mobs: G.mobs, cp: G.corpses, gd: P.golDown },
+      GK = ['golem', 'g_fire', 'g_ice', 'g_thunder', 'g_chaos', 'g_flesh'],
+      out = {};
+    PTREE.I.zz = { s: { spirit: 300, armorF: 100 } };
+    PTREE.I.zy = { s: { spirit: 300, armorF: 100, golemMax: 1, golemEff: 50 } }; /* 上限 1＋1＝2 */
+    PTREE.I.zx = { s: { spirit: 300, armorF: 100, auraEff: 50 } };
+    PTREE.I.zw = { s: { spirit: 300, armorF: 100, buffMag: 50 } };
+    const use = (gs, pt = ['zz']) => { S.auras = gs; S.pt = pt; ST = stats(S); },
+      who = () => G.allies.filter(w => AURAS[w.src]).map(w => w.src).join(),
+      g = (k, lv = 1, q = 0) => Object.assign(mkGem(k, lv), { q });
+    G.mobs = []; G.corpses = []; G.scene = 'map'; P.golDown = '';
+    /* 預設值 */
+    use([null], []);
+    const b0 = ST;
+    out.def = [b0.golemMax, b0.golemEff, b0.regenP, b0.reviveT, AURAS.wolfsp.tags.includes('companion'), GK.every(k => AURAS[k].tags.includes('golem') && !AURAS[k].tags.includes('companion'))];
+    /* 6 種各召得出（hp 照 allyLife）、再跑一次還是一隻 */
+    out.summon = GK.map(k => {
+      G.allies = []; use([g(k)]);
+      updSkills(0.01); updSkills(0.01);
+      const a = G.allies.filter(w => w.src === k);
+      return [ST.auraOn.includes(k), a.length, a[0] && Math.round(a[0].mhp) === Math.round(allyLife(k))];
+    });
+    /* 上限 1：排前面的召、第二種不召不預留精魂；上限 2：兩種都在；上限掉回 1：後面那隻收掉 */
+    G.allies = []; use([g('g_fire'), g('golem')]); updSkills(0.01);
+    out.cap1 = [ST.auraOn.join(), who(), ST.spiritUsed];
+    use([g('g_fire'), g('golem'), g('g_ice')], ['zy']); updSkills(0.01);
+    out.cap2 = [ST.auraOn.join(), who(), ST.spiritUsed];
+    use([g('g_fire'), g('golem')]); updSkills(0.01);
+    out.back = [ST.auraOn.join(), who()];
+    /* 同名只算一顆 */
+    use([g('g_fire', 1), g('g_fire', 9)], ['zy']);
+    out.dup = [ST.auraOn.join(), ST.spiritUsed];
+    /* 增益進 stats()：每種一個、Lv1／Lv11 +30%／golemEff 50% ／品質 20 +10% */
+    const base = stats({ ...S, auras: [null], pt: ['zz'] }),
+      d = (k, key, o = {}) => {
+        const s = stats({ ...S, auras: [g(k, o.lv || 1, o.q || 0)], pt: o.pt || ['zz'] });
+        return +(key === 'regenP' ? ((s.regen - base.regen) / s.hp) * 100 : s[key] - base[key]).toFixed(2);
+      };
+    out.fx = [d('g_fire', 'dmgA'), d('g_fire', 'aoe'), d('g_ice', 'critInc'), d('g_ice', 'accP'), d('g_thunder', 'ss'), d('g_chaos', 'ailMag'), d('g_flesh', 'minionP'), d('golem', 'regenP')];
+    out.armor = +(stats({ ...S, auras: [g('golem')], pt: ['zz'] }).armor / base.armor).toFixed(2);
+    out.scale = [d('g_fire', 'dmgA', { lv: 11 }), d('g_fire', 'dmgA', { pt: ['zy'] }), d('g_fire', 'dmgA', { q: 20 }), d('g_fire', 'dmgA', { pt: ['zx'] }), d('g_fire', 'dmgA', { pt: ['zw'] })];
+    /* 活著才有：魔像死了（等復活）增益沒有，updSkills 看到死活變了會重算，復活後回來 */
+    G.allies = []; use([g('g_fire')]); updSkills(0.01);
+    const w = G.allies.find(x => x.src === 'g_fire'), up = ST.dmgA;
+    allyDie(w, 1); updSkills(0.01);
+    const down = ST.dmgA;
+    G.t += 100; updSkills(0.01);
+    out.alive = [+(up - base.dmgA).toFixed(2), +(down - base.dmgA).toFixed(2), +(ST.dmgA - base.dmgA).toFixed(2)];
+    /* 獻祭寶石：復甦 +40%（Lv1）～+59%（Lv20）、品質 20 復甦快 5% */
+    const rv = (lv, q) => +stats({ ...S, auras: [g('offer', lv, q)], pt: ['zz'] }).reviveT.toFixed(4);
+    out.offer = [rv(1, 0), rv(20, 0), rv(1, 20), rv(10, 0)];
+    out.offerSp = stats({ ...S, auras: [g('offer')], pt: ['zz'] }).spiritUsed;
+    delete PTREE.I.zz; delete PTREE.I.zy; delete PTREE.I.zx; delete PTREE.I.zw;
+    Object.assign(S, { auras: keep.au, pt: keep.pt }); ST = keep.st;
+    Object.assign(G, { allies: keep.al, scene: keep.sc, mobs: keep.mobs, corpses: keep.cp }); P.golDown = keep.gd;
+    return out;
+  })()`);
+  ok(
+    '3A 魔像：預設上限 1／效果 0／復甦倍率 1，6 種都不是夥伴；各召得出且一種一隻；上限 1 時第二種不召（不預留精魂，一隻 40）、上限 2 兩種都在、掉回 1 收掉後面的；同名只算一顆',
+    JSON.stringify([a63.def, a63.summon, a63.cap1, a63.cap2, a63.back, a63.dup]) ===
+      '[[1,0,0,1,true,true],[[true,1,true],[true,1,true],[true,1,true],[true,1,true],[true,1,true],[true,1,true]],["g_fire","g_fire",40],["g_fire,golem","g_fire,golem",80],["g_fire","g_fire"],["g_fire",40]]',
+    JSON.stringify(a63)
+  );
+  ok(
+    '3A 魔像增益：火（傷害 +20、範圍 +10）、冰（暴擊率 +30、命中 +20）、雷（技能速度 +8）、混沌（異常強度 +15）、腐屍（召喚物傷害 +20）、巨石（回生命 0.5%／秒、護甲提高）；Lv11 ×1.3、魔像增益效果 50% ×1.5、品質 20 ×1.1、增益效果幅度 50% ×1.5、光環效果 50% 不影響；魔像死了沒有、復活回來',
+    JSON.stringify([a63.fx, a63.armor, a63.scale, a63.alive]) ===
+      '[[20,10,30,20,8,15,20,0.5],1.2,[26,30,22,20,30],[20,0,20]]',
+    JSON.stringify(a63)
+  );
+  ok(
+    '3A 新能力 golemMax／golemEff／regenP 有 STATN 名字',
+    R(`['golemMax', 'golemEff', 'regenP'].every(k => STATN[k])`)
+  );
+  ok(
+    '3A 獻祭寶石：預留 60 精魂；復甦時間 ×1.40（Lv1）～×1.59（Lv20）、Lv10 ×1.49、品質 20 復甦快 5%（1.4÷1.05）',
+    JSON.stringify([a63.offer, a63.offerSp]) === '[[1.4,1.59,1.3333,1.49],60]',
+    JSON.stringify(a63)
   );
   /* 0.2.60 K1：先祖強化（戰爭之拳：重擊每 6 秒更多 30%、範圍 +25%；先祖呼喚：打擊每 5 秒多打 2 隻、不重複） */
   const k60 = R(`(() => {

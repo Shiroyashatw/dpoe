@@ -970,14 +970,16 @@ function plate(txt, x, y, col, a) {
 /* 戰狼：跟著你的狼（腳下綠圈） */
 function drawWolf(w) {
   shadow(w.x, w.y, 13);
-  CX.strokeStyle = 'rgba(157,242,157,0.6)';
+  /* 魔像（0.2.63）：圖與腳下圈的顏色看 AURAS[src] 的 mon、col */
+  const A = AURAS[w.src];
+  CX.strokeStyle = A && A.col ? A.col : 'rgba(157,242,157,0.6)';
   CX.lineWidth = 1.5;
   CX.beginPath();
   CX.ellipse(w.x, w.y, 16, 6, 0, 0, TAU);
   CX.stroke();
   const bob = w.mv ? Math.abs(Math.sin(w.ph)) * 0.08 : 0;
-  /* 紙人兵、石魔像、戰狼 */
-  const [im, sz] = w.src === 'doll' ? ['m_paperdoll', 34] : w.src === 'golem' ? ['m_golem', 52] : ['m_snowwolf', 36];
+  /* 紙人兵、魔像、戰狼 */
+  const [im, sz] = w.src === 'doll' ? ['m_paperdoll', 34] : isGolem(w.src) ? [A.mon, 52] : ['m_snowwolf', 36];
   spr(im, w.x, w.y, sz * giantM(w), { flip: (w.face || 0) > 0, sy: 1 + bob });
   /* 生命條（0.2.52，召喚物會受傷了）：受傷才顯示，畫法跟怪物的小血條一樣，友方用綠色 */
   if (w.hp < w.mhp) {

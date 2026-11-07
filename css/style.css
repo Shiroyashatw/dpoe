@@ -1028,11 +1028,11 @@ body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
 .gx-up small, .gx-b small { font: 500 11px var(--font); color: var(--dim); font-variant-numeric: tabular-nums; }
 .gx-up.arm { border-color: var(--warn); color: var(--warn); }
 .gx-why { font: 500 11px/1.25 var(--font); color: var(--dim); text-align: center; }
-.gx-aura { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 8px; align-items: center; margin-top: 4px; padding: 6px 0; border-top: 1px solid var(--line); }
+.gx-aura { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 8px; align-items: start; margin-top: 4px; padding: 6px 0; border-top: 1px solid var(--line); }
 .gx-ah { display: grid; justify-items: center; line-height: 1.25; }
 .gx-ah b { font: 700 var(--fs-s) var(--font); color: var(--tx); }
 .gx-ah span { font-size: 11px; color: var(--dim); white-space: nowrap; }
-.gx-as { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.gx-as { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
 .gx-ac { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 2px; border: 1px solid transparent; border-radius: 2px; cursor: pointer; }
 .gx-ac.on { background: var(--hl-on); border-color: var(--fr-o); }
 .gx-ac .sock.act { width: 36px; height: 36px; flex: none; }
