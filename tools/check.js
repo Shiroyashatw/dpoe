@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：136 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 136,
+    '品質：138 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 138,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3364,8 +3364,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '層數增益：十列（含血怒）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 10 && !b.bad.length,
+    '層數增益：十二列（含血怒、戰吼強化）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 12 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(
@@ -4110,6 +4110,50 @@ vm.runInContext(
     JSON.stringify(e54) ===
       '{"cap":[1.2,1,true],"stage":[[0,0,true],[0,1,true],[0,3,true]],"dmg":[2,4],"ground":[0,0,1],"cancel":[true,true],"sup":[false,false,true],"tags":true}',
     JSON.stringify(e54)
+  );
+  /* 0.2.55 F1：戰吼的強化攻擊（強度每 10 點 1 下、最多 5 下、8 秒）、出手扣 1、震地的餘震、跳過冷卻 */
+  const f55 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = o => ({ D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, ground: G.ground, stk: P.stk, chg: P.chg, rage: P.rage, t: G.t },
+      act = (k, lv = 5) => ({ k, c: gemCfg(mkGem(k, lv), 0), t: 0, dur: 0.5, ang: 0, hits: [0], n: 0, tx: P.x + 40, ty: P.y }),
+      out = {};
+    if (typeof shake === 'undefined') globalThis.shake = () => {};
+    const str = ms => { G.mobs = ms; P.stk = {}; return cryEmpower(250, 'emInf'); };
+    out.str = [str([mk()]), str([mk({ elite: 1 })]), str([mk({ boss: 1 })]), str(Array.from({ length: 60 }, () => mk()))];
+    /* 狂暴戰吼：強化近戰，每下更多 30%＋每級 1%；戰吼自己、法術不扣；8 秒到期 */
+    G.mobs = [mk({ elite: 1 })]; P.stk = {};
+    actHit(act('warcry'), 0);
+    const a1 = act('cleave'), a2 = act('cleave'), w = act('warcry'), sp = act('fireball');
+    empUse(w); empUse(sp); const n1 = stkN('emInf');
+    empUse(a1); empUse(a2);
+    out.inf = [n1, Math.round(a1.c.more / a2.c.more * 100), stkN('emInf')];
+    gainStk('emInf', 2); G.t += 8.01; out.exp = stkN('emInf');
+    /* 震地戰吼：打周圍、強化重擊；強化的重擊結束後原地餘震 ×0.5 */
+    const m = mk({ elite: 1 }); G.mobs = [m]; G.ground = []; P.stk = {};
+    actHit(act('seiscry'), 0);
+    out.seis = [stkN('emSeis'), m.hp < 1e9];
+    const q = act('quake'); empUse(q); actHit(q, 0); aftershock(q);
+    const g = G.ground.find(o => o.k === 'aftershock');
+    const hp0 = m.hp; for (let i = 0; i < 10; i++) G.t += 0.05, groundTick(0.05);
+    out.after = [q.emS, stkN('emSeis'), !!g && g.after, m.hp < hp0, G.ground.some(o => o.k === 'aftershock')];
+    /* 跳過冷卻：激怒戰吼先花 10 盛怒，否則 1 顆耐力球；不是戰吼、都沒有就不行 */
+    P.chg = {}; P.rage = 0;
+    const wc = act('warcry').c, rg = mkGem('warcry', 5); rg.sup = [mkGem('ragecry', 1), null];
+    const rc = gemCfg(rg, 0);
+    out.skip0 = [cdSkip(wc), cdSkip(act('cleave').c)];
+    gainChg('e', 2); cdSkip(wc)(); out.skipE = chgN('e');
+    P.rage = 15; cdSkip(rc)(); out.skipR = [P.rage, chgN('e')];
+    P.rage = 5; cdSkip(rc)(); out.skipR2 = [P.rage, chgN('e')];
+    Object.assign(G, { mobs: keep.mobs, ground: keep.ground, t: keep.t });
+    Object.assign(P, { stk: keep.stk, chg: keep.chg, rage: keep.rage });
+    return out;
+  })()`);
+  ok(
+    'F1 戰吼：強度每 10 點強化 1 下（普通 1、精英 10、王 20、最多 5）、8 秒；狂暴戰吼強化近戰更多 34%（5 級）、出手扣 1、戰吼與法術不扣；震地戰吼打周圍、強化重擊原地餘震 ×0.5；冷卻中先花 10 盛怒再花耐力球',
+    JSON.stringify(f55) ===
+      '{"str":[0,1,2,5],"inf":[1,134,0],"exp":0,"seis":[1,true],"after":[1,0,0.5,true,false],"skip0":[null,null],"skipE":1,"skipR":[5,1],"skipR2":[5,0]}',
+    JSON.stringify(f55)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

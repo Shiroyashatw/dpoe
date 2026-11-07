@@ -49,6 +49,7 @@ const ACT_ROW = {
   rend: 3,
   cleave: 4,
   warcry: 5,
+  seiscry: 5,
   smash: 4,
   leap: 4,
   fissure: 4,

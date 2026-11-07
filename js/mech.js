@@ -77,6 +77,8 @@ const GROUND = {
     on: a => noAil(a, 'chill') || (a.chill = { v: 30, t: G.t + 0.5 })
   },
   blades: { n: '劍陣', col: '#e8e2d6' },
+  /* 0.2.55：震地戰吼強化的重擊，原地 0.4 秒後的餘震（skills.js 的 empUse） */
+  aftershock: { n: '餘震', col: '#b08a5a' },
   cons: {
     n: '奉獻地面',
     col: '#ffe08a',
@@ -524,7 +526,8 @@ const MIRAGE_NO = new Set([
   'refract',
   'swordarray',
   'furyslam',
-  'chargeslam'
+  'chargeslam',
+  'seiscry'
 ]);
 function mirageGem() {
   const gs = S.skills

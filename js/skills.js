@@ -220,6 +220,39 @@ function skillPay(c, i) {
   galeUse();
   if (c.cd) P.cds['s' + i] = c.cd;
 }
+/* ---------- 戰吼（0.2.55 第 3 層 F1，企劃書 7.3） ---------- */
+/* 範圍內敵人的強度每 10 點強化接下來的 1 下（普通 1、精英 10、王 20），最多 5 下；回傳強化了幾下 */
+function cryEmpower(R, k) {
+  let s = 0;
+  for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) s += m.boss ? 20 : m.elite ? 10 : 1;
+  const n = Math.min(BUFF[k].max, Math.floor(s / 10));
+  if (n) gainStk(k, n);
+  return n;
+}
+/* 出手時用掉強化，每種各扣 1（戰吼自己不扣）：狂暴＝近戰攻擊傷害更多，震地＝重擊結束後原地多一次餘震 */
+function empUse(a) {
+  const tg = a.c.D.tags,
+    use = k => stkN(k) && (P.stk[k] = stkL(k).slice(1));
+  if (tg.includes('warcry') || !tg.includes('attack')) return;
+  if (tg.includes('melee') && use('emInf')) a.c.more *= 1 + (P.emInfV || 30) / 100;
+  if (tg.includes('slam') && use('emSeis')) a.emS = 1;
+}
+/* 餘震：打中的位置的中心、蓋住打中的怪的範圍，0.4 秒後打一次（mech.js 的地面 after） */
+function aftershock(a) {
+  const H = a.emH,
+    x = H.reduce((v, p) => v + p.x, 0) / H.length,
+    y = H.reduce((v, p) => v + p.y, 0) / H.length,
+    r = Math.max(60, ...H.map(p => Math.hypot(p.x - x, p.y - y) + 30));
+  addGround({ k: 'aftershock', x, y, r, dur: 0.4, c: a.c, after: 0.5 + 0.2 * (P.emSeisQ || 0) });
+}
+/* 冷卻中的戰吼：連結激怒戰吼就先花 10 盛怒，否則花 1 顆耐力球；回傳付費的函式（付不起回傳 null） */
+function cdSkip(c) {
+  if (!c.D.tags.includes('warcry')) return null;
+  const rs = (c.g.sup || []).find(sp => sp && sp.gem === 'ragecry' && supOK(c.D, sp, c.g));
+  if (rs && (P.rage || 0) >= 10) return () => qRoll(20 * ((rs.q || 0) / GEM_Q_MAX)) || (P.rage -= 10);
+  if (chgN('e')) return () => --P.chg.e.n || (P.chg.e = null);
+  return null;
+}
 function useSlot(i) {
   if (P.act || P.roll || G.state !== 'play') return false;
   if (!fightOn()) return pracHint(), false;
@@ -229,14 +262,18 @@ function useSlot(i) {
   const mt = metaOf(c.g);
   if (mt) return hudWarn(`${c.D.n}插了${SUPPORTS[mt.gem].n}：會自動施放，不能手動`), false;
   if (!wtOK(c.D)) return hudWarn(c.D.n + '：' + wtNeed(c.D)), false;
-  if ((P.cds['s' + i] || 0) > 0) return false;
+  const skip = (P.cds['s' + i] || 0) > 0 && cdSkip(c);
+  if ((P.cds['s' + i] || 0) > 0 && !skip) return false;
   const w = mouseWorld(),
     D = c.D,
     tm = D.toMob && mobNear(w.x, w.y, 150, D.dist);
   const why = skillWhy(c, w) || (D.toMob && !tm && '滑鼠附近沒有敵人');
   if (why) return hudWarn(why), false;
   if (D.gren && !pracFree() && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('手雷還沒好'), false;
+  const cd0 = P.cds['s' + i];
   skillPay(c, i);
+  /* 跳過冷卻：花掉盛怒或耐力球，原本的冷卻照走 */
+  if (skip) (P.cds['s' + i] = cd0), skip();
   if (c.k === 'smash') P.smashQ = 0;
   /* 狼撲的品質：撲向被印記的怪不花魔力 */
   if (c.k === 'wolfpounce' && tm && tm.ail.mark && qRoll(20 * c.q)) addMp(c.mp);
@@ -284,6 +321,7 @@ function useSlot(i) {
       final: !!D.stage && isFinal(stage),
       sealA: D.seal || c.seal ? sealBreak(c.k) * (D.seal || c.seal).aoe : 0
     });
+  empUse(a);
   sfx(D.tags.includes('spell') ? 'cast' : D.tags.includes('proj') ? 'throw' : 'swing');
   if (D.parry) startParry(0.4), fxs('parry', P.x, P.y - 20, 50);
   /* 位移技能：衝向滑鼠（居合、跳砸）或撲向滑鼠附近的怪（影襲停在牠背後），途中無敵 */
@@ -352,6 +390,7 @@ function skillTick(a, dt, mx, my) {
     if (seg() > n0) (a.chT = G.t), sfx(seg() >= E.max ? 'perfect' : 'cast');
     if (slotHeld(a.slot)) return;
     Object.assign(a, { charge: 0, stg: seg(), t: 0, dur: actDur(a.c), hits: a.c.D.hits || [0.42], n: 0 });
+    empUse(a);
     sfx('swing');
     return;
   }
@@ -386,6 +425,7 @@ function skillTick(a, dt, mx, my) {
   if (a.t >= a.dur) {
     /* 圖騰、砲塔圖騰：放置動作做完才出現（被打斷就沒放出來） */
     if (a.pw) placeUnit(a.c, a.pw);
+    if (a.emH) aftershock(a);
     P.act = null;
   }
 }
@@ -706,6 +746,16 @@ function actHit2(a, idx, R, hitArc) {
     fxs('rage', P.x, P.y - 30, 40);
     fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#ff6b3d' });
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) (m.ail.intim = G.t + durOf(c)), (m.ail.intimQ = c.q);
+    if (cryEmpower(R, 'emInf')) P.emInfV = 30 + (c.lv - 1);
+  } else if (a.k === 'seiscry') {
+    /* 震地戰吼：周圍傷害＋擊退，瀕臨沉重暈眩的粉碎重擊（給耐力球） */
+    fxs('slam', P.x, P.y, R * 0.6);
+    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#b08a5a' });
+    sfx('slam');
+    shake(0.1);
+    for (const m of G.mobs)
+      if (m.hp > 0 && dist(P, m) < R + m.r) crush(m), hitMob(m, c, angTo(P, m), 260 * c.kb, { a });
+    if (cryEmpower(R, 'emSeis')) P.emSeisQ = c.q;
   } else if (a.k === 'smash') {
     /* 重擊：打前方最近的一隻；瀕臨沉重暈眩就粉碎重擊（直接沉重暈眩）並震傷周圍 */
     let t = null,
@@ -1118,6 +1168,7 @@ function hitMob(m, c, ang, kb, o = {}) {
     final: a.final
   });
   if (m.arrow) return arrowHit(m, r, c);
+  if (a.emS) (a.emH = a.emH || []).push({ x: m.x, y: m.y });
   const shocked = c.boltChain && hasState(m, 'shock');
   /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
   if (ST.mirageH && !a.trig && !o.minion && !a.unit && !o.again) mirageHunt();

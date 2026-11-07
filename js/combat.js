@@ -1336,6 +1336,9 @@ const BUFF = {
     every: 5,
     on: dynChg
   },
+  /* 0.2.55 F1：戰吼的強化攻擊（skills.js 的 cryEmpower／empUse），一層＝一下；數值在出手時算，不走 st */
+  emInf: { n: '狂暴強化', ic: 'sk_warcry', d: '接下來的近戰攻擊傷害更多，每次出手用掉 1 層', max: 5, t: 8 },
+  emSeis: { n: '震地強化', ic: 'sk_battlecry', d: '接下來的重擊在原地多一次餘震，每次出手用掉 1 層', max: 5, t: 8 },
   chalice: {
     n: '滿溢聖杯',
     ic: 'sk_vitality',
