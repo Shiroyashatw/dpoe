@@ -248,7 +248,7 @@ function igniteAt(x, y, c) {
 /* ---------- 4. 殘留物與灌注 ---------- */
 /* 技能欄裝著會吃灌注的技能（目前只有灌注新星 nova）才會產生殘留物 */
 const REMN = { fire: '火焰殘留', cold: '冰霜殘留', light: '閃電殘留' };
-const hasInfSkill = () => S.skills.some(s => s && s.a && s.a.gem === 'nova');
+const hasInfSkill = () => S.skills.some(s => s && s.a && SKILLS[s.a.gem] && SKILLS[s.a.gem].inf);
 function dropRemnant(el, x, y) {
   if (G.remnants.length < 20 && hasInfSkill())
     G.remnants.push({ el, x: x + rnd(-20, 20), y: y + rnd(-20, 20), t: G.t + 15 });
@@ -256,15 +256,17 @@ function dropRemnant(el, x, y) {
 const infN = el => (P.inf && P.inf[el] && P.inf[el].t > G.t ? P.inf[el].n : 0);
 function takeInf(el) {
   if (!infN(el)) return false;
-  P.inf[el].n--;
+  /* 不滅灌注（infKeep）：有機率不消耗灌注，這一下照算 */
+  if (!roll(ST.infKeep)) P.inf[el].n--;
   return true;
 }
 function remnantTick() {
   for (const r of G.remnants)
-    if (Math.hypot(r.x - P.x, r.y - P.y) < 40) {
+    if (Math.hypot(r.x - P.x, r.y - P.y) < 40 * (1 + ST.remnantR / 100)) {
       const I = (P.inf = P.inf || {}),
         cur = infN(r.el);
-      I[r.el] = { n: Math.min(3, cur + 1), t: G.t + 20 };
+      /* 殘留引力（remnantR 拾取範圍）、雙重殘留（remnantDbl 多 1 層）、恆久灌注（infDur 持續時間） */
+      I[r.el] = { n: Math.min(3, cur + 1 + (roll(ST.remnantDbl) ? 1 : 0)), t: G.t + 20 * (1 + ST.infDur / 100) };
       r.t = 0;
       fx({ k: 'ring', x: P.x, y: P.y, r: 30, dur: 0.25, col: ELC[r.el] });
     }
@@ -434,7 +436,8 @@ function throwGrenade(c, tx, ty, o = {}) {
     vx: Math.cos(ang) * sp,
     vy: Math.sin(ang) * sp,
     c,
-    fuse: o.fuse || 1.5,
+    /* 引爆時間（grenFuse，負的＝更快；最少 20%） */
+    fuse: (o.fuse || 1.5) * Math.max(0.2, 1 + ST.grenFuse / 100),
     r: o.r || 100,
     mul: o.mul || 1,
     el: o.el,
@@ -463,6 +466,8 @@ function grenadeTick(dt) {
     if (n.fuse <= 0) {
       n.done = 1;
       boomAt(n.x, n.y, n.r, n.c, n.mul, n.el);
+      /* 連環引爆（grenTwice）：有機率再爆一次 */
+      if (roll(ST.grenTwice)) boomAt(n.x, n.y, n.r, n.c, n.mul, n.el);
       fxs('boom', n.x, n.y, n.r);
       sfx('slam');
       if (n.onBoom) n.onBoom(n.x, n.y);

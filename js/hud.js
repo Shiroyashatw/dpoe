@@ -158,8 +158,8 @@ function hudTick() {
     let cd = 0,
       txt = '';
     if (k === 'flask' || k === 'mflask') {
-      cd = P[k] >= 1 ? 0 : 1 - (P[k] % 1);
-      txt = Math.floor(P[k]) + '';
+      cd = P[k] >= flaskNeed() ? 0 : 1 - P[k] / flaskNeed();
+      txt = Math.floor(P[k] / flaskNeed() + 1e-9) + ''; /* 還能喝幾次（跟 drinkFlask 同一個算法） */
     } else if (k === 'roll') cd = (P.cds.roll || 0) / (ROLL.cd + ROLL.t);
     else if (c && c.cd) {
       cd = (P.cds[k] || 0) / c.cd;

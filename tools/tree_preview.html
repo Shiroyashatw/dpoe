@@ -30,7 +30,6 @@
       <button data-v="all">整棵樹</button>
       <span id="starts"></span>
       <button data-v="rim">外圍</button>
-      <button data-t="lock" class="on">鎖住的預留叢集</button>
       <button data-t="label">主題名</button>
       <button data-t="info" class="on">驗收數字</button>
     </div>
@@ -225,7 +224,7 @@
       document.getElementById('legend').innerHTML =
         Object.keys(PT_FAM)
           .map(k => `<span><i style="background:${PT_FAM[k]}"></i>${PT_FAMN[k]}</span>`)
-          .join('') + '<span><i style="background:#5a5d66"></i>預留（鎖住）</span>';
+          .join('') + (PT_RSV.length ? '<span><i style="background:#5a5d66"></i>預留（鎖住）</span>' : '');
       document.getElementById('info').hidden = !V.info;
       /* 上方列在窄視窗會換行，驗收數字的面板要接在它下面 */
       const place = () => (document.getElementById('info').style.top = document.getElementById('bar').offsetHeight + 'px');

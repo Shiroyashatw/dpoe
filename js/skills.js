@@ -60,7 +60,7 @@ function gemCfg(g, i) {
       critX: 0,
       leech: (ST.leech + bufV('leech')) / 100,
       /* 天賦的投射物數量、穿透（0.2.23）只給投射物技能 */
-      proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0) + (D.gren ? ST.grenN : 0),
+      proj: (D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0) + (D.gren ? ST.grenN + ST.grenProj : 0),
       pierce: (D.pierce || 0) + (D.tags.includes('proj') ? ST.pierce : 0),
       /* 全域投射物連鎖（0.2.25，彈射）：打中後彈向 260 內最近、還沒打過的敵人 */
       chain: D.tags.includes('proj') && !D.noChain ? ST.chain : 0,
@@ -156,7 +156,10 @@ function gemCfg(g, i) {
   }
   if (c.auto) (c.cd += AUTO.cd * (1 - (c.auto.q || 0) / 100)), (c.mp *= AUTO.mp);
   /* 亡靈執政官：命令技能冷卻恢復 +200%（冷卻 ÷3） */
-  if (D.cmd && P && hasBuff('uArchon')) c.cdrP += 200;
+  if (D.cmd && P && hasBuff('uArchon')) c.cdrP += 200 * (1 + ST.archEff / 100);
+  /* 0.2.67：命令技能與戰吼的冷卻恢復、戰吼範圍 */
+  if (D.cmd) c.cdrP += ST.cmdCdr;
+  if (D.tags.includes('warcry')) c.cdrP += ST.cryCdr;
   c.cd /= 1 + c.cdrP / 100; /* 冷卻時間恢復率：冷卻 ÷ (1 + x/100)，沒有上限 */
   /* 效用：魔力消耗 ÷ (1 + 效用%) */
   c.mp = D.mp ? Math.max(1, Math.round(c.mp / (1 + ST.mpEff / 100))) : 0;
@@ -174,7 +177,7 @@ const actDur = c =>
   c.D.t /
     (c.D.shield ? ST.sasM : ST.asM) /
     c.speed /
-    speedMul() /
+    speedMul(c.D.tags.includes('warcry') ? ST.crySpd : 0) /
     (isSpell(c.D) ? 1 : atkBuf()) /
     (c.D.cmd ? 1 + bufV('cmdSpd') / 100 : 1) +
   (c.D.tAdd || 0);
@@ -182,7 +185,13 @@ const actDur = c =>
 const castMove = c => 1 - (1 - CAST_MOVE) * (c && c.D.cmd ? Math.max(0, 1 - bufV('cmdMv') / 100) : 1);
 /* 命令技能（0.2.58 J1）：活著的那種召喚物；傀儡大師讓召喚物執行命令的傷害提高 */
 const cmdAllies = src => G.allies.filter(w => w.src === src && !(w.dead > G.t));
-const cmdMul = () => 1 + bufV('cmdDmg') / 100;
+/* 傷害提高：傀儡大師的層數、天賦 cmdP、場上每種活著的召喚物 cmdPerType（0.2.67；戰狼的兩種算同一種） */
+const cmdMul = () =>
+  1 +
+  (bufV('cmdDmg') +
+    ST.cmdP +
+    ST.cmdPerType * new Set(G.allies.filter(w => !(w.dead > G.t)).map(w => (w.src === 'gemt' ? 'gem' : w.src))).size) /
+    100;
 /* 技能基礎攻擊時間（只在技能面板顯示）：技能的 t 除以武器每秒攻擊次數（1.1 是 t 的基準），法術就是 t */
 const baseT = c => c.D.t / (isSpell(c.D) ? 1 : (c.D.shield ? 1.2 : ST.waps) / 1.1);
 /* 持續時間（0.2.42）：只有 duration 標籤的技能吃「技能持續時間」 */
@@ -265,16 +274,43 @@ function cryEmpower(R, k) {
   if (n) gainStk(k, n);
   return n;
 }
+/* 爆破專家（grenFireX，0.2.67）：近期（8 秒）每用過一種不同的榴彈，這一顆多 x% 的額外火焰傷害 */
+function grenCast(c) {
+  (P.grenUsed = P.grenUsed || {})[c.k] = G.t;
+  if (ST.grenFireX) c.fireAdd += (ST.grenFireX * Object.values(P.grenUsed).filter(t => G.t - t < 8).length) / 100;
+}
+/* 戰吼的天賦效果（0.2.67）：回復生命與魔力、範圍內敵人暴擊弱點與虛弱；記下近期用過哪幾種戰吼（cryTypes，連吼） */
+function cryFx(R, c) {
+  (P.cryUsed = P.cryUsed || {})[c.k] = G.t;
+  if (ST.cryHeal) (P.hp = Math.min(ST.hp, P.hp + (ST.hp * ST.cryHeal) / 100)), addMp((ST.mp * ST.cryHeal) / 100);
+  for (const m of G.mobs)
+    if (m.hp > 0 && !m.arrow && dist(P, m) < R + m.r) {
+      if (ST.cryWeak) addCw(m, ST.cryWeak);
+      if (ST.cryDebil) m.ail.weak = Math.max(m.ail.weak || 0, G.t + 4);
+    }
+}
+const cryTypes = () => Object.values((P && P.cryUsed) || {}).filter(t => G.t - t < 8).length;
 /* 出手時用掉強化，每種各扣 1（戰吼自己不扣）：狂暴＝近戰攻擊傷害更多，震地＝重擊結束後原地多一次餘震 */
 function empUse(a) {
   const tg = a.c.D.tags,
     use = k => stkN(k) && (P.stk[k] = stkL(k).slice(1));
   if (tg.includes('warcry') || !tg.includes('attack')) return;
-  if (tg.includes('melee') && use('emInf')) a.c.more *= 1 + (P.emInfV || 30) / 100;
-  if (tg.includes('slam') && use('emSeis')) a.emS = 1;
-  /* 先祖強化（0.2.60 K1）：插了那顆輔助的招才用得到；用掉後照間隔重新計時 */
-  const anc = (k, s, t) => a.c[s] != null && stkN(k) && (stkClr(k), ((P.ancT = P.ancT || {})[k] = G.t + t - a.c[s]), 1);
-  if (tg.includes('slam') && anc('ancF', 'fistwar', 6)) (a.c.more *= 1.3), (a.c.aoe *= 1.25);
+  /* 強化攻擊的天賦（0.2.67）：用掉一層強化（或先祖強化）的這一下，傷害提高、沉重暈眩累積、物理轉火焰、加劇流血、出手中暈眩門檻（pStunThr） */
+  const emp = () => {
+    a.emp = 1;
+    a.c.empP = (a.c.empP || 0) + ST.empP;
+    a.c.empAgg = ST.empAgg;
+    a.c.hsM *= 1 + ST.empHs / 100;
+    a.c.cvF = (a.c.cvF || 0) + ST.empFire;
+  };
+  if (tg.includes('melee') && use('emInf')) (a.c.more *= 1 + (P.emInfV || 30) / 100), emp();
+  if (tg.includes('slam') && use('emSeis')) (a.emS = 1), emp();
+  /* 先祖強化（0.2.60 K1）：插了那顆輔助的招才用得到；用掉後照間隔重新計時。引導之手（ancHs）：沉重暈眩菁英或王後 4 秒內等於好了 */
+  const anc = (k, s, t) =>
+    a.c[s] != null &&
+    (stkN(k) || (ST.ancHs && P.ancHsT > G.t)) &&
+    (stkClr(k), (P.ancHsT = 0), ((P.ancT = P.ancT || {})[k] = G.t + t - a.c[s]), emp(), (a.c.empP += ST.ancP), 1);
+  if (tg.includes('slam') && anc('ancF', 'fistwar', 6)) (a.c.more *= 1.3), (a.c.aoe *= 1.25 + ST.ancAoe / 100);
   if (tg.includes('strike') && anc('ancC', 'ancall', 5)) a.ancS = 1;
 }
 /* 每格：技能欄有插戰爭之拳／先祖呼喚（相容的）而且間隔到了，就亮先祖強化 */
@@ -322,7 +358,8 @@ function useSlot(i) {
     tm = D.toMob && mobNear(w.x, w.y, 150, D.dist);
   const why = skillWhy(c, w) || (D.toMob && !tm && '滑鼠附近沒有敵人');
   if (why) return hudWarn(why), false;
-  if (D.gren && !pracFree() && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('榴彈還沒好'), false;
+  if (D.gren && !pracFree() && !grenadeReady(c.k, D.gren[0] + ST.grenUse, D.gren[1]))
+    return hudWarn('榴彈還沒好'), false;
   const cd0 = P.cds['s' + i];
   skillPay(c, i);
   /* 跳過冷卻：花掉盛怒或耐力球，原本的冷卻照走 */
@@ -353,7 +390,7 @@ function useSlot(i) {
       k: c.k,
       c,
       t: 0,
-      dur: (slow ? UNIT_PLACE : 0.25) / c.speed,
+      dur: (slow ? UNIT_PLACE / (1 + ST.placeSpd / 100) : 0.25) / c.speed,
       ang,
       hits: [],
       n: 0,
@@ -495,7 +532,7 @@ function actHit(a, idx) {
     D = c.D,
     R =
       (D.r || 0) *
-      (ST.aoeM + (a.sealA || 0) / 100) *
+      (ST.aoeM + ((a.sealA || 0) + (D.tags.includes('warcry') ? ST.cryAoe : 0)) / 100) *
       c.aoe *
       (ST.wt === 'spear' && D.tags.includes('melee') ? 1.25 : 1);
   const hitArc = (ang, arc, r, kb, o) => {
@@ -800,6 +837,7 @@ function actHit2(a, idx, R, hitArc) {
     sfx('slam');
     hitArc(a.ang, D.arc, R, 200 * c.kb);
   } else if (a.k === 'warcry') {
+    cryFx(R, c);
     P.rage = Math.min(rageCap(), (P.rage || 0) + 15);
     P.rageT = G.t;
     fxs('rage', P.x, P.y - 30, 40);
@@ -808,6 +846,7 @@ function actHit2(a, idx, R, hitArc) {
     if (cryEmpower(R, 'emInf')) P.emInfV = 30 + (c.lv - 1);
   } else if (a.k === 'seiscry') {
     /* 震地戰吼：周圍傷害＋擊退，瀕臨沉重暈眩的粉碎重擊（給耐力球） */
+    cryFx(R, c);
     fxs('slam', P.x, P.y, R * 0.6);
     fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#b08a5a' });
     sfx('slam');
@@ -820,8 +859,13 @@ function actHit2(a, idx, R, hitArc) {
     const c0 = slotCfg(0) || BASEC(),
       L = cmdAllies(D.cmd);
     if (qRoll(20 * c.q)) gainStk('puppet');
-    /* 亡靈執政官（0.2.61 K2）：用命令技能時 15% */
-    if (roll(15)) gainArchon('uArchon');
+    /* 傀儡大師的滿溢機率（0.2.67）：用命令技能時多給的層數；召之即來：復活一隻等復甦的召喚物 */
+    const pn = surpass(ST.puppetCh);
+    if (pn) gainStk('puppet', pn);
+    const dead = ST.cmdRevive && roll(ST.cmdRevive) && G.allies.find(x => !x.t && x.dead > G.t);
+    if (dead) (dead.dead = G.t), fxs('rise', dead.x, dead.y, 40);
+    /* 亡靈執政官（0.2.61 K2）：用命令技能時 15%（天賦 uArchCh 再加） */
+    if (roll(15 + ST.uArchCh)) gainArchon('uArchon');
     if (D.cmd === 'aura') {
       const t = nearMob({ x: a.tx, y: a.ty }, 150);
       for (const w of t ? L : []) {
@@ -949,6 +993,7 @@ function actHit2(a, idx, R, hitArc) {
         gas: R * ST.aoeM * c.aoe
       });
   } else if (a.k === 'oilgrenade') {
+    grenCast(c);
     /* 油榴彈：破開（物理）後留油滑地面，火焰或引爆技能可以點爆（mech.js 的 detonate）；品質：油留更久 */
     const dx = a.tx - P.x,
       dy = a.ty - P.y;
@@ -961,6 +1006,7 @@ function actHit2(a, idx, R, hitArc) {
       });
     }
   } else if (a.k === 'grenade') {
+    grenCast(c);
     /* 多重投射：多的榴彈以出手點為圓心往兩側散開 */
     const dx = a.tx - P.x,
       dy = a.ty - P.y;
@@ -1264,7 +1310,9 @@ function hitMob(m, c, ang, kb, o = {}) {
     fly,
     trig: a.trig,
     keep: m.arrow,
-    final: a.final
+    final: a.final,
+    her: o.her,
+    comp: !!(o.minion && o.from && o.from.src === 'aura')
   });
   if (m.arrow) return arrowHit(m, r, c);
   if (a.emS) (a.emH = a.emH || []).push({ x: m.x, y: m.y });
@@ -1344,6 +1392,9 @@ function hitMob(m, c, ang, kb, o = {}) {
   /* 瓦爾契約（基石）：生命偷取立即回復 */
   if (c.leech && ST.vaal) P.hp = Math.min(ST.hp, P.hp + lr);
   else if (c.leech) leechAdd('hp', lr);
+  /* 渴血盟友（compLeech，0.2.67）：你偷取生命時，每隻活著的夥伴也偷取同樣的量 */
+  if (ST.compLeech && c.leech && !o.minion)
+    for (const w of G.allies) if (w.src === 'aura' && !(w.dead > G.t)) leechAdd('hp', lr, w);
   const lm = 1 + MM('pleech') / 100;
   if (ST.mpLeech || c.mpLeech) leechAdd('mp', r.d * (ST.mpLeech / 100 + (c.mpLeech || 0)) * lm);
   if (ST.esLeech) leechAdd('es', (r.d * ST.esLeech * lm) / 100);
@@ -1360,6 +1411,9 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (m.hp <= 0) {
     if (r.crit && !o.minion && !a.unit) reapBoom(m);
     if (c.arcKill && hasBuff('arcane')) P.buf.arcane += c.arcKill;
+    /* 擊殺時獲得波動（volKill，你自己的擊殺）；夥伴的擊殺：夥伴獲得猛攻（compOns）（0.2.67） */
+    if (!o.minion && !a.unit && ST.volKill && roll(ST.volKill)) volGain(1);
+    if (o.minion && o.from && o.from.src === 'aura' && ST.compOns && roll(ST.compOns)) o.from.onsT = G.t + 4;
     /* 召喚戰狼的品質：咬死怪多一隻臨時狼（同時最多 4 隻） */
     if (o.minion && c.k === 'wolf' && qRoll(20 * (c.q || 0)) && G.allies.filter(w => w.src === 'gemt').length < 4)
       callWolf('gemt', c, m, G.t + 8);
@@ -1386,10 +1440,12 @@ function volBoom(keep = 0) {
   loseLife(Math.min(P.hp - 1, d), '波動');
   gainStk('volPow', n);
   fxs('dark', P.x, P.y, 50 + n * 2);
+  /* 失衡（volRegain）：引爆時有機率保留全部層數 */
+  if (!keep && roll(ST.volRegain)) keep = n;
   if (keep) gainStk('vol', keep), (P.volT = G.t);
 }
 function volTick() {
-  if (stkN('vol') && G.t - (P.volT || 0) >= VOL.boom) volBoom();
+  if (stkN('vol') && G.t - (P.volT || 0) >= VOL.boom * (1 + ST.volDelay / 100)) volBoom();
 }
 /* ---------- 無縛化身（0.2.61 K2，照 PoE2 的 Unbound Avatar） ---------- */
 /* 元素異常的快照：打中前後比較，新上的（或刷新的）才算 */
@@ -1411,6 +1467,8 @@ function furyGain(b, n) {
 /* ---------- 捷光環（0.2.56 第 3 層 F2，企劃書 7.3 第 29 項） ---------- */
 /* 你自己的攻擊（不是召喚物、場上單位）；捷光環自己的傷害帶 o.her，可以觸發別的捷光環、不能觸發自己 */
 const herAtk = (c, o, a) => !o.minion && !a.unit && (c.D.tags || []).includes('attack');
+/* 捷光環傷害提高 herP（0.2.67）：寒冰、雷霆的落雷走 hitMob，進 hitCalc 的提高池（o.her）；灰燼的點燃不走 hitCalc，所以點燃自己乘 herX */
+const herX = () => 1 + ST.herP / 100;
 const herMul = k => (0.5 + 0.03 * (ST.her[k] - 1)) * ST.herM[k];
 const herR = k => AURAS['h_' + k].r * (1 + 0.2 * (ST.aq['h_' + k] || 0)) * ST.herA[k];
 function heraldBoom(k, x, y, c, el, flag) {
@@ -1434,7 +1492,7 @@ function heraldKill(m, c, o, a) {
   const over = -m.hp;
   if (H.ash && o.her !== 'ash' && over > m.mhp * 0.2) {
     const r = herR('ash'),
-      dps = over * (0.17 + 0.003 * (H.ash - 1)) * 0.2 * ST.herM.ash;
+      dps = over * (0.17 + 0.003 * (H.ash - 1)) * 0.2 * ST.herM.ash * herX();
     fx({ k: 'ring', x: m.x, y: m.y, r, dur: 0.3, col: ELC.fire });
     for (const x of G.mobs)
       if (x !== m && x.hp > 0 && x.ail && !noAil(x.ail, 'ign') && dist(x, m) < r + x.r)
@@ -1521,7 +1579,10 @@ function allyLife(src, c) {
 }
 const giantM = w => (ST.minGiant || (w.c && w.c.giant) ? 1 + MINION.giant : 1);
 /* 召喚物生命輔助（0.2.66）：寶石叫的看 c.minL，光環（魔像、戰狼精魂）看 stats() 算好的 minL_光環鍵 */
-const lifeM = (src, c) => (c && c.minL) || ST['minL_' + (src === 'aura' ? 'wolfsp' : src)] || 1;
+/* 0.2.67：天賦 minLife（全部召喚物）、compLife（夥伴＝戰狼精魂的狼） */
+const lifeM = (src, c) =>
+  ((c && c.minL) || ST['minL_' + (src === 'aura' ? 'wolfsp' : src)] || 1) *
+  (1 + (ST.minLife + (src === 'aura' ? ST.compLife : 0)) / 100);
 /* 召喚物受傷（目前沒有怪會打召喚物，要等召喚物 AI） */
 function allyHurt(w, d) {
   if (w.dead) return;
@@ -1532,11 +1593,11 @@ function allyHurt(w, d) {
 /* killed＝生命歸零（被擊殺）；沒寫＝時間到或被取消，算死亡但「被擊殺時」不觸發，也不會復活 */
 function allyDie(w, killed) {
   evMark('mdie');
-  if (killed) evMark('mkill');
+  if (killed) evMark('mkill'), ST.volAlly && volGain(ST.volAlly);
   if (w.t || !killed) return void (G.allies = G.allies.filter(o => o !== w));
   w.hp = 0;
   /* 獻祭寶石（0.2.63）：復甦時間 +40～59%、品質讓復甦加快（items.js 的 stats 算 reviveT；沒開就是 1） */
-  w.dead = G.t + MINION.revive * ST.reviveT;
+  w.dead = G.t + (MINION.revive * ST.reviveT) / (1 + ST.reviveSpd / 100);
   for (const o of G.allies) if (o.dead) o.dead = w.dead;
 }
 /* ---------- 召喚戰狼：狼跟著你、咬最近的怪 ---------- */
@@ -1550,7 +1611,7 @@ function callWolf(src, c, at = P, t = 0) {
 }
 /* 同伴這一下的倍率：寶石叫的狼吃群狼、紙人用寶石倍率、魔像與光環狼用左鍵技能打折 */
 const ALLY_RATE = 0.8;
-const allyMult = (w, c) => allyMult0(w, c) * (hasBuff('uArchon') ? 1.25 : 1);
+const allyMult = (w, c) => allyMult0(w, c) * (hasBuff('uArchon') ? archM() : 1);
 const allyMult0 = (w, c) =>
   w.src === 'gem' || w.src === 'gemt'
     ? c.mult * c.wolfM
@@ -1562,7 +1623,11 @@ const allyMult0 = (w, c) =>
 function updAllies(dt) {
   for (const w of G.allies) {
     if (w.dead > G.t) continue;
-    if (w.dead) (w.dead = 0), (w.hp = w.mhp), (w.x = P.x), (w.y = P.y), fxs('rise', P.x, P.y, 40);
+    if (w.dead) {
+      (w.dead = 0), (w.hp = w.mhp), (w.x = P.x), (w.y = P.y), fxs('rise', P.x, P.y, 40);
+      /* 復甦者（reviveHeal）：召喚物復甦時你回復最大生命的 x% */
+      if (ST.reviveHeal) P.hp = Math.min(ST.hp, P.hp + (ST.hp * ST.reviveHeal) / 100);
+    }
     w.cd -= dt;
     w.ph += dt * 10;
     /* 魔像的嘲諷（0.2.52）：每 4 秒嘲諷 4 公尺內的怪 3 秒（王 1.5 秒），被嘲諷的只打魔像（game.js 的 mobTarget）；附近沒有怪就先不放 */
@@ -1592,17 +1657,27 @@ function updAllies(dt) {
     w.mv = d > (t ? t.r + 20 : 50);
     if (w.mv) {
       const a = angTo(w, goal),
-        sp = (d > 300 && !t ? 420 : 280) * (1 + bufV('allyMs') / 100);
+        sp =
+          (d > 300 && !t ? 420 : 280) *
+          (1 + (bufV('allyMs') + (w.src === 'aura' ? ST.compMs : 0) + (w.onsT > G.t ? 10 : 0)) / 100);
       moveBody(w, Math.cos(a) * sp * dt, Math.sin(a) * sp * dt);
       w.face = Math.cos(a);
     }
     if (t && d < t.r + 30 && w.cd <= 0) {
-      w.cd = ALLY_RATE / (1 + (ST.minAs + bufV('allySs')) / 100);
+      w.cd = ALLY_RATE / (1 + (ST.minAs + bufV('allySs') + (w.onsT > G.t ? 20 : 0)) / 100);
       fx({ k: 'claw', x: w.x, y: w.y, ang: angTo(w, t), r: 34, dur: 0.12 });
       const c = w.c || slotCfg(0) || BASEC(),
+        aw = w.src === 'aura',
         mult = allyMult(w, c) * giantM(w);
-      /* 群狼的品質：狼咬中有機率流血 */
-      const cc = c.wolfBl ? { ...c, bleedCh: c.wolfBl, spellBleed: 1 } : c;
+      /* 群狼的品質：狼咬中有機率流血；夥伴（戰狼精魂）的天賦：中毒、多冰冷、多混沌（0.2.67） */
+      let cc = c.wolfBl ? { ...c, bleedCh: c.wolfBl, spellBleed: 1 } : c;
+      if (aw && (ST.compPoi || ST.compCold || ST.compChaos))
+        cc = {
+          ...cc,
+          poisonCh: (cc.poisonCh || 0) + ST.compPoi,
+          coldAdd: (cc.coldAdd || 0) + ST.compCold / 100,
+          chaosAdd: (cc.chaosAdd || 0) + ST.compChaos / 100
+        };
       hitMob(t, cc, angTo(w, t), 60, { quiet: 1, mult, minion: 1, from: w });
     }
     if (dist(w, P) > 900) (w.x = P.x), (w.y = P.y);
@@ -1651,8 +1726,13 @@ function updPools(dt) {
 const ES_DELAY = 4;
 function updSkills(dt) {
   /* 能量護盾（0.2.42）：4 秒沒受傷開始充能（天賦 esDelay 縮短延遲），每秒 12.5% */
-  if (ST.es && P.es < ST.es && G.t - (P.lastHurt || -9) > ES_DELAY / (1 + ST.esDelay / 100))
+  const esCh = ST.es && P.es < ST.es && G.t - (P.lastHurt || -9) > ES_DELAY / (1 + ST.esDelay / 100);
+  if (esCh) {
+    /* 暴雪執政官（archBliz）：能量護盾開始充能時獲得冰霜執政官 */
+    if (!P.esCh && ST.archBliz) gainArchon('iArchon');
     P.es = Math.min(ST.es, P.es + ST.es * 0.125 * (1 + (ST.esRec + MM('pes')) / 100) * dt);
+  }
+  P.esCh = esCh;
   /* 戰狼精魂光環 */
   /* 0.2.57：群狼插在戰狼精魂上是 2 隻 */
   const aw = G.allies.filter(w => w.src === 'aura'),
@@ -1693,7 +1773,7 @@ function autoTick() {
         .filter(m => m.hp > 0 && dist(m, P) < AUTO_R && los(P.x, P.y, m.x, m.y))
         .sort((a, b) => dist(a, P) - dist(b, P))[0];
     if (!t || !wtOK(c.D) || skillWhy(c, t)) continue;
-    if (c.D.gren && !grenadeReady(c.k, c.D.gren[0], c.D.gren[1])) continue;
+    if (c.D.gren && !grenadeReady(c.k, c.D.gren[0] + ST.grenUse, c.D.gren[1])) continue;
     skillPay(c, i);
     formFor(c.D);
     if (c.unit) placeUnit(c, t);
@@ -1713,9 +1793,9 @@ function skillsEnter() {
 }
 
 /* 出手速度、移動速度：buff 與冰緩、冰凍（combat.js） */
-function speedMul() {
+function speedMul(extra = 0) {
   return (
-    buffSpeed() *
+    buffSpeed(extra) *
     Math.max(0.3, playerSlow()) *
     ((formOf() && formOf().atk) || 1) *
     (P.rolledT > G.t ? 1 + 0.05 * (ST.aq.swift || 0) : 1)
@@ -1771,7 +1851,8 @@ function placeUnit(c, w) {
     rate = D.rate || Math.max(0.5, D.t * 1.8);
   const u = { type, x, y, c, t: 0, dur, cd: 0.3, rate };
   /* 圖騰、砲塔圖騰有生命（0.2.53，照 PoE2：友方基礎生命 × 1，等級看寶石），怪物會打；陷阱、地雷沒有 */
-  if (type === 'totem' || type === 'turret') (u.r = 14), (u.hp = u.mhp = allyLife('totem', c));
+  if (type === 'totem' || type === 'turret')
+    (u.r = 14), (u.hp = u.mhp = allyLife('totem', c) * (1 + ST.totemLife / 100));
   G.units.push(u);
   /* 轉圖騰的品質：立下時立刻施放一次 */
   if (type === 'totem' && qRoll(c.totemCast)) {
@@ -1869,7 +1950,7 @@ function updUnits(dt) {
       }
     } else if ((u.cd -= dt) <= 0) {
       const m = near(u, 480);
-      if (m) (u.cd = u.rate), unitFire(u, m);
+      if (m) (u.cd = u.rate / (1 + ST.totemSpd / 100)), unitFire(u, m);
     }
     if (u.t < u.dur) keep.push(u);
     /* 火焰圖騰的品質：時間到時自爆 */ else if (u.c.k === 'firetotem' && u.c.q)

@@ -138,7 +138,7 @@ function treeRender() {
     .map(k => `<span class="lg" style="--c:${PT_FAM[k]}">${PT_FAMN[k]}</span>`)
     .join(
       ''
-    )}<span class="lg lk">鎖住＝還沒開放</span>　<b>操作</b> 點亮著的點＝點下去，再點＝退回 · 拖曳移動 · 滾輪縮放　金框大圓是基石（有代價）</p>`;
+    )}${PTREE.N.some(n => n.lock) ? '<span class="lg lk">鎖住＝還沒開放</span>　' : ''}<b>操作</b> 點亮著的點＝點下去，再點＝退回 · 拖曳移動 · 滾輪縮放　金框大圓是基石（有代價）</p>`;
   /* 之後選取、點亮只改 class，不重畫整棵樹（一千多個點，手機重畫會卡） */
   const tg = $('tg'),
     eEls = tg.querySelectorAll('.tc.e');

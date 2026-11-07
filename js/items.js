@@ -460,6 +460,8 @@ function stats(s = S) {
         .split(' ')
         .map(k => [k, 0])
     ),
+    /* 0.2.67 第 4 層 A 新增的能力（data.js 的 PT_NEW） */
+    ...Object.fromEntries(Object.keys(PT_NEW).map(k => [k, 0])),
     more: 0,
     lowHp: 0,
     fullHp: 0,
@@ -782,7 +784,10 @@ function stats(s = S) {
     for (const x of g.sup || [])
       if (x && supOK(A, x, g))
         sup[SUPPORTS[x.gem].base || x.gem] = { lv: x.lv, sq: (x.q || 0) / GEM_Q_MAX, t2: SUPPORTS[x.gem].tier === 2 };
-    const sp = (A.sp * (sup.spiriteff ? 1 - (20 + 5 * sup.spiriteff.sq) / 100 : 1)) / (1 + o.spiritEff / 100);
+    /* 精魂效用：夥伴（戰狼精魂）再加 compSpirit、捷光環再加 herSpirit（0.2.67） */
+    const sp =
+      (A.sp * (sup.spiriteff ? 1 - (20 + 5 * sup.spiriteff.sq) / 100 : 1)) /
+      (1 + (o.spiritEff + (A.tags.includes('companion') ? o.compSpirit : 0) + (A.her ? o.herSpirit : 0)) / 100);
     if (o.spiritUsed + sp > o.spirit) continue;
     o.spiritUsed += sp;
     o.auraOn.push(g.gem);

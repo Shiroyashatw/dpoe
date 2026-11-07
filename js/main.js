@@ -201,6 +201,12 @@ function migrate(s) {
     o.ptA = {};
     o.v = 26;
   }
+  /* 存檔 27：天賦樹解鎖預留叢集、新增 12 個主題（0.2.67，點的編號全部換了），天賦點全部退回 */
+  if (o.v < 27) {
+    o.pt = [...PT_START];
+    o.ptA = {};
+    o.v = 27;
+  }
   o.ptA = o.ptA || {};
   /* 存檔裡有樹上已經沒有的點（重烘過）也全部退回，不然算數值會壞 */
   if (o.pt.some(id => !PTREE.I[id])) (o.pt = [...PT_START]), (o.ptA = {});

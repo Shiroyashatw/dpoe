@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 26,
+    v: 27,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -624,10 +624,12 @@ function doRoll() {
 /* mana：喝魔力藥劑（2）回魔力，不然喝生命藥劑（1）回生命；藥劑效果的詞綴與地圖詞兩種都算 */
 function drinkFlask(mana) {
   if (!fightOn() || G.state !== 'play') return;
-  const k = mana ? 'mflask' : 'flask';
-  if (P[k] < 1) return hudWarn((mana ? '魔力' : '生命') + '藥劑用完了：殺怪會補');
-  P[k] -= 1;
-  const v = 1 + (ST.flask + MM('pflask') + bufV('flaskP')) / 100;
+  /* 謹慎調配（flaskUse）：一次少用 x% 充能，剩的夠就能喝；魔力泉（mpFlask）：魔力藥劑回復更多 */
+  const k = mana ? 'mflask' : 'flask',
+    use = flaskNeed();
+  if (P[k] < use) return hudWarn((mana ? '魔力' : '生命') + '藥劑用完了：殺怪會補');
+  P[k] -= use;
+  const v = 1 + (ST.flask + MM('pflask') + bufV('flaskP') + (mana ? ST.mpFlask : 0)) / 100;
   if (mana) P.mheal += ST.mp * FLASK.mp * v;
   else P.heal += ST.hp * FLASK.heal * v;
   fx({ k: 'heal', x: P.x, y: P.y, dur: 0.5 });
@@ -661,6 +663,15 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
     return;
   }
   d = r.d;
+  /* 信賴夥伴（compShare）：一部分擊中傷害由夥伴（戰狼精魂的狼）承擔，最多一半 */
+  if (ST.compShare && d > 0) {
+    const w = G.allies.find(x => x.src === 'aura' && !(x.dead > G.t));
+    if (w) {
+      const sh = (d * Math.min(50, ST.compShare)) / 100;
+      d -= sh;
+      allyHurt(w, sh);
+    }
+  }
   evMark('hurt');
   /* 受傷施放（0.2.50）：真的被擊中才算，閃避、格擋、招架在上面就回去了 */
   metaEvent('hurt');
@@ -733,7 +744,7 @@ function killMob(m) {
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
   if (m.summoned || PRO.on) return;
   G.kills++;
-  const fk = FLASK.perKill * (m.elite ? 3 : m.boss ? 10 : 1);
+  const fk = FLASK.perKill * (m.elite ? 3 : m.boss ? 10 : 1) * (1 + ST.flaskChg / 100);
   P.flask = Math.min(FLASK.n, P.flask + fk);
   P.mflask = Math.min(FLASK.n, P.mflask + fk);
   gainXp(Math.max(1, Math.round(m.D.xp * tierMul(t).hp * (m.elite ? 4 : 1) * xpMul(S.lv, mobLv(t)))));

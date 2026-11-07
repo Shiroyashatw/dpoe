@@ -70,6 +70,8 @@ const immob = a => a.frozen > G.t || a.elcT > G.t || a.hstun > G.t || a.pinT > G
 function poisePin(m, k, sec = POISE[k].sec) {
   const q = POISE[k],
     a = m.ail;
+  if (k === 'hs' && ST && ST.ancHs && (m.boss || m.elite))
+    P.ancHsT = G.t + 4; /* ST：工具（dmg_check）算穩固值時還沒有 */
   a[q.on] = G.t + sec;
   (a.psT = a.psT || {})[k] = G.t + sec + q.back;
   a[k] = 0;
@@ -162,7 +164,8 @@ function applyParry(m) {
   if (m && m.ail && !noAil(m.ail, 'parried')) m.ail.parried = G.t + DEBUFF.parryT * (1 + ST.parryDur / 100);
 }
 /* 不受影響（第 10 批）：ST.unaff = { chill: 1 } 之類，減益仍掛著、仍顯示，只是不發揮效果 */
-const unaff = k => !!(ST.unaff && ST.unaff[k]);
+const unaff = k =>
+  !!(ST.unaff && ST.unaff[k]) || !!(ST.archImm && (k === 'frozen' || k === 'chill' || k === 'shock') && archOn());
 
 /* ---------- 命中（0.2.22，照 PoE2）：命中率 = 1.25 × 命中 ÷（命中 ＋ 0.3 × 閃避），5%～100%；用熵值不擲骰 ---------- */
 const hitChance = (acc, ev) => Math.max(0.05, Math.min(1, (1.25 * acc) / (acc + 0.3 * ev)));
@@ -278,6 +281,10 @@ function lifeRecTick(dt) {
 /* 能量護盾保護魔力（基石）：魔力費用先扣能量護盾；可用資源＝護盾＋魔力 */
 const mpAvail = () => P.mp + (ST.esMana ? P.es || 0 : 0);
 function payMp(v) {
+  if (ST.archStorm) {
+    P.mpSpent = (P.mpSpent || 0) + v;
+    if (P.mpSpent >= ST.mp) (P.mpSpent -= ST.mp), gainArchon('lArchon');
+  }
   if (ST.esMana) {
     const e = Math.min(P.es || 0, v);
     (P.es -= e), (v -= e);
@@ -403,6 +410,8 @@ function resOf(m, k, pen = 0) {
   } else if (a.curse && a.curse.k === 'despair') r -= cuV(a);
   return r > 0 ? Math.max(0, r - pen) : r;
 }
+/* 喝一次藥劑要幾點充能（謹慎調配：flaskUse 減少，最多 75%）；game.js 的 drinkFlask、hud.js 的藥劑鈕（還能喝幾次、冷卻圈）共用 */
+const flaskNeed = () => 1 - Math.min(75, ST.flaskUse) / 100;
 /* 目標「受到的傷害提高」：感電、威嚇、凋零（只混沌）、完全破甲（只物理，破碎護甲再 +20%、相加） */
 function takenInc(m, k) {
   const a = m.ail || {};
@@ -410,7 +419,8 @@ function takenInc(m, k) {
   if (a.shock > G.t) v += 20;
   if (a.intim > G.t) v += 10;
   if (k === 'chaos') v += 5 * witherN(a);
-  if (k === 'phys' && a.broken > G.t) v += 20 + (a.shatter > G.t ? DEBUFF.shatterMore : 0);
+  if (k === 'phys' && a.broken > G.t)
+    v += (20 + (a.shatter > G.t ? DEBUFF.shatterMore : 0)) * (1 + ST.fullBreakEff / 100);
   return v;
 }
 /* 玩家受到的傷害提高：跟怪物同一池相加（照 PoE2）；不受影響（`unaff`）擋掉感電 */
@@ -679,8 +689,30 @@ function hitCalc(c, m, o = {}) {
       (m && m.hp < m.mhp * 0.35 ? ST.lowEnemyP : 0) +
       (m && m.ail && m.ail.blind > G.t ? ST.blindP : 0) +
       (P.form ? ST.formP : 0) +
-      (bannerOn() ? G.banner.buff.dmg || 0 : 0);
-  const typeInc = { phys: ST.physP, fire: ST.fireP, cold: ST.coldP, light: ST.lightP, chaos: ST.chaosP },
+      (bannerOn() ? G.banner.buff.dmg || 0 : 0) +
+      /* 0.2.67（第 4 層 A；全部是「提高」，同一池相加）：強化攻擊（skills.js 的 empUse 記在 c.empP）、戰吼、連吼（近期每種戰吼，所有傷害）、
+         夥伴的擊中（o.comp：夥伴傷害、對禁錮的敵人）、鼓舞盟友（夥伴傷害的提高也套用在你身上）、捷光環自己的傷害（o.her）、
+         榴彈、灌注技能、有捷光環時、對完全破甲的敵人、有護符生效時 */
+      (c.empP || 0) +
+      (tg.includes('warcry') ? ST.cryDmg : 0) +
+      (ST.cryMulti ? ST.cryMulti * cryTypes() : 0) +
+      (o.comp ? ST.compP + (m && m.ail && immob(m.ail) ? ST.compImmob : 0) : 0) +
+      (ST.compInspire && !o.minion && !o.unit ? ST.compP : 0) +
+      (o.her ? ST.herP : 0) +
+      (D.gren ? ST.grenP : 0) +
+      (D.inf ? ST.infP : 0) +
+      (ST.herOn && ST.her ? ST.herOn : 0) +
+      (m && m.ail && m.ail.broken > G.t ? ST.brokenP : 0) +
+      (ST.charmOnP && charmsOn().some(it => it.on > G.t) ? ST.charmOnP : 0);
+  /* 先驅之焰／霜／雷（0.2.67）：有灰燼／寒冰／雷霆捷光環時，火焰／冰冷／閃電傷害提高 */
+  const hr = ST.her || {},
+    typeInc = {
+      phys: ST.physP,
+      fire: ST.fireP + (hr.ash ? ST.herEleF : 0),
+      cold: ST.coldP + (hr.ice ? ST.herEleC : 0),
+      light: ST.lightP + (hr.thunder ? ST.herEleL : 0),
+      chaos: ST.chaosP
+    },
     incOf = ch => ch.reduce((t, k) => t + typeInc[k], 0) + (ch.some(k => ELEK.includes(k)) ? ST.eleP : 0);
   /* 5. 更多：輔助、昇華、盛怒（只有攻擊）、化身（法術的元素） */
   let more = (o.mult || 1) * (c.more || 1);
@@ -718,7 +750,7 @@ function hitCalc(c, m, o = {}) {
   for (const k of DT) pre[k] = 0;
   for (const p of parts) {
     let mk = more;
-    if (spell && ELEK.includes(p.k) && ea) mk *= 1.25;
+    if (spell && ELEK.includes(p.k) && ea) mk *= archM();
     if (ELEK.includes(p.k) && ub) mk *= 1.4;
     if (ST.avatar && (p.k === 'cold' || p.k === 'light')) mk *= 0.7;
     if (sac && p.k === 'phys') mk *= 1.15;
@@ -734,13 +766,23 @@ function hitCalc(c, m, o = {}) {
       ? 0
       : Math.min(
           100,
-          base * (1 + (ST.critInc + (c.critInc || 0) + (o.final && hasBuff('finality') ? 100 : 0)) / 100) +
+          base *
+            (1 +
+              (ST.critInc +
+                (c.critInc || 0) +
+                (o.final && hasBuff('finality') ? 100 : 0) +
+                (ST.volCrit ? ST.volCrit * stkN('volPow') : 0) +
+                (ST.archCrit && archOn() ? ST.archCrit : 0)) /
+                100) +
             brit +
             cwN(m) * 0.5 +
             pity
         );
   if (o.avg) {
-    const cm = 1 + (100 + ST.critX + (c.critX || 0) + ST.powCritX * chgN('p')) / 100,
+    const cm =
+        1 +
+        (100 + ST.critX + (c.critX || 0) + ST.powCritX * chgN('p') + (ST.archCritX && archOn() ? ST.archCritX : 0)) /
+          100,
       ch = ST.noCrit ? 0 : o.crit ? 100 : effCh(chance, ST.lukCrit),
       sum = DT.reduce((s, k) => s + pre[k], 0),
       big = DT.reduce((b, k) => (pre[k] > pre[b] ? k : b), 'phys');
@@ -770,7 +812,15 @@ function hitCalc(c, m, o = {}) {
   if (crit) {
     /* 致命陰影（0.2.26）：每顆暴擊球暴擊傷害加成 +x% */
     const cm =
-      1 + ((100 + ST.critX + (c.critX || 0) + (P.critNext ? 50 : 0) + ST.powCritX * chgN('p')) / 100) * INEV ** rerolls;
+      1 +
+      ((100 +
+        ST.critX +
+        (c.critX || 0) +
+        (P.critNext ? 50 : 0) +
+        ST.powCritX * chgN('p') +
+        (ST.archCritX && archOn() ? ST.archCritX : 0)) /
+        100) *
+        INEV ** rerolls;
     for (const k of DT) pre[k] *= hits > 1 ? cm * cm : cm;
   }
   if (!o.keep) P.critNext = 0;
@@ -950,7 +1000,7 @@ function applyAil(m, r, c, use) {
   /* 點燃：火焰傷害疊易燃（每 5% 門檻 +1% 機率），中了清零 */
   /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；餘燼：點燃更多、持續時間 −25% */
   /* 加劇任何流血（開關 aggHit，攻擊擊中時）：先加劇現有的，這一下新上的不算 */
-  if (ST.aggHit && attack) aggBleed(m);
+  if ((ST.aggHit || (c.empAgg && roll(c.empAgg))) && attack) aggBleed(m);
   /* 第 10 批：卸防姿態承受的擊中數（這一下之後才算）；濕透先上，這一下就吃得到 */
   if (a.unbr && --a.unbr.n <= 0) a.unbr = null;
   if (c.drench) drench(m, dbT(c.drench, DEBUFF.wetT));
@@ -1042,7 +1092,10 @@ function applyAil(m, r, c, use) {
   if (ailBase(p, 'poi') > 0 && roll(ST.poisonCh + (c.poisonCh || 0))) {
     const n = 1 + ST.poiStack + (c.poiStack || 0);
     a.poi = (a.poi || []).filter(x => x.t > G.t);
-    a.poi.push({ dps: ailBase(p, 'poi') * 0.2 * (mag + ST.poiMag / 100), t: G.t + 2 });
+    a.poi.push({
+      dps: ailBase(p, 'poi') * 0.2 * (mag + ST.poiMag / 100) * (1 + (ST.volDot * stkN('vol')) / 100),
+      t: G.t + 2
+    });
     a.poi.sort((x, y) => y.dps - x.dps);
     a.poi.length = Math.min(a.poi.length, n);
     /* 劇毒的品質：疊滿時結算一部分剩餘毒傷 */
@@ -1053,13 +1106,17 @@ function applyAil(m, r, c, use) {
   }
   /* 破甲：物理擊中扣護甲（普通 ×3、菁英 ×2），扣到 0＝完全破甲 12 秒 */
   /* 鐵砧之重（0.2.25）：任何擊中都依你護甲的 x% 破甲 */
+  /* 0.2.67：法術暴擊時依物理傷害破甲（critBreak）、破甲量 armBreakP、持續時間 armBreakDur */
   const brk =
-    (p.phys > 0 && (ST.armBreak || c.armBreak || (c.k === 'ballista' && qRoll(20 * cq))) ? p.phys : 0) +
-    (ST.armBreakArm * ST.armor) / 100;
+    ((p.phys > 0 && (ST.armBreak || c.armBreak || (c.k === 'ballista' && qRoll(20 * cq))) ? p.phys : 0) +
+      (ST.armBreakArm * ST.armor) / 100 +
+      (ST.critBreak && sp && r.crit ? p.phys : 0)) *
+    (1 + ST.armBreakP / 100);
   if (brk > 0 && !(a.broken > G.t) && !noBreak(a)) {
+    const bt = 12 * (1 + ST.armBreakDur / 100);
     m.arm -= brk * (m.boss ? 1 : m.elite ? 2 : 3);
-    a.abT = G.t + 12;
-    if (m.arm <= 0) (m.arm = 0), (a.broken = G.t + 12);
+    a.abT = G.t + bt;
+    if (m.arm <= 0) (m.arm = 0), (a.broken = G.t + bt);
   }
   /* 穿刺：存 30% 物理（只有長矛） */
   if (attack && p.phys > 0 && ST.wt === 'spear' && roll(ST.impaleCh + (c.impaleCh || 0)))
@@ -1402,15 +1459,19 @@ const ARCHONS = { fArchon: 'fire', iArchon: 'cold', lArchon: 'light', uArchon: n
   ARCH_T = 10,
   ARCH_REC = 20;
 const archOn = () => Object.keys(ARCHONS).find(hasBuff);
+/* 執政官效果（天賦 archEff）：「更多 25%」「冷卻恢復 +200%」都吃 */
+const archM = () => 1 + 0.25 * (1 + ST.archEff / 100);
 /* 現在生效的元素執政官轉成哪種元素（沒有就 null） */
 const elArch = () => {
   const k = archOn();
   return k ? ARCHONS[k] : null;
 };
 function gainArchon(k) {
-  if (archOn() || G.t < (P.archEnd == null ? -1e9 : P.archEnd + ARCH_REC)) return false;
-  gainBuff(k, ARCH_T);
-  P.archEnd = G.t + ARCH_T;
+  if (archOn() || G.t < (P.archEnd == null ? -1e9 : P.archEnd + ARCH_REC * Math.max(0.25, 1 + ST.archRec / 100)))
+    return false;
+  const t = ARCH_T * (1 + ST.archDur / 100);
+  gainBuff(k, t);
+  P.archEnd = G.t + t;
   return true;
 }
 function loseArchon(k) {
@@ -1422,10 +1483,12 @@ function loseArchon(k) {
 const stkL = k => ((P && P.stk && P.stk[k]) || []).filter(t => t > G.t),
   stkN = k => stkL(k).length,
   stkClr = k => P.stk && (P.stk[k] = []);
+/* 層數上限：傀儡大師加 puppetMax、波動加 volMax（0.2.67 天賦） */
+const stkMax = k => BUFF[k].max + (k === 'puppet' ? ST.puppetMax : k === 'vol' ? ST.volMax : 0);
 function gainStk(k, n = 1, t = BUFF[k].t) {
   const b = BUFF[k],
     L = stkL(k),
-    N = Math.min(b.max, L.length + n),
+    N = Math.min(stkMax(k), L.length + n),
     /* fade 的遞減照 b.t 算，來源不能改秒數 */
     end = G.t + ((b.fade ? b.t : t) || Infinity);
   if (b.fade && L.length) return;
@@ -1444,7 +1507,7 @@ function bufV(key) {
     const b = BUFF[k],
       x = b.st && b.st[key],
       L = x ? stkL(k) : [];
-    if (L.length) v += x * (b.fade ? (L[0] - G.t) / b.t : L.length);
+    if (L.length) v += x * (b.fade ? (L[0] - G.t) / b.t : L.length) * (k === 'puppet' ? 1 + ST.puppetEff / 100 : 1);
   }
   return v && v * buffM();
 }
@@ -1502,8 +1565,8 @@ const lowHp = () => P.hp < ST.hp * LOW,
   lowEs = () => ST.es > 0 && P.es < ST.es * LOW;
 /* 技能速度、移動速度（給 speedMul／moveMul） */
 /* 0.2.42：技能速度（ST.ss、猛攻 +20%、流順之風每層 +2%）跟攻擊速度同一個「提高」池相加；ST.as 已在 asM 裡，這裡只乘上多出來的部分 */
-const buffSpeed = () =>
-  (1 + (ST.as + ST.ss + bufV('ss') + ((hasBuff('onslaught') ? 20 : 0) + 2 * (P.tail || 0)) * buffM()) / 100) /
+const buffSpeed = (extra = 0) =>
+  (1 + (ST.as + ST.ss + extra + bufV('ss') + ((hasBuff('onslaught') ? 20 : 0) + 2 * (P.tail || 0)) * buffM()) / 100) /
   (1 + ST.as / 100);
 /* 疾風化身（0.2.25）：流順之風滿 10 層（0.2.42 起層數是整數、不消退） */
 const windFull = () => !!ST.windWalk && (P.tail || 0) >= 10;
@@ -1515,7 +1578,7 @@ const buffMove = () =>
   (1 + ((ST.frenzyMs || 0) * chgN('f')) / 100) *
   (ST.sacrifice && P.sacT > G.t ? 1.3 : 1) *
   /* 靈巧：跟 ST.ms 同一個「提高」池 */
-  (1 + bufV('moveP') / (100 + ST.ms));
+  (1 + (bufV('moveP') + (ST.charmOnMs && charmsOn().some(it => it.on > G.t) ? ST.charmOnMs : 0)) / (100 + ST.ms));
 /* 攻擊速度的暫時加成：狂風（每顆狂怒球 +4%） */
 const atkBuf = () => 1 + ((ST.frenzyMs || 0) * chgN('f')) / 100;
 /* 施放時移動（0.2.25 底層）：出手中照移動方向走，基礎移動速度的 35%（不吃移動速度加成）。
@@ -1850,7 +1913,8 @@ function mobAilPlayer(m, d, el, dm = 1) {
   trigCharms(el, a);
 }
 /* 玩家暈眩（0.2.42，照 PoE2）：門檻＝最大生命 ×（1 + 暈眩門檻提高）；時間 ÷ (1 + 暈眩恢復) */
-const pStunThr = () => (ST.hp + (ST.es * ST.esAsThr) / 100) * (1 + ST.stunThrP / 100),
+const pStunThr = () =>
+    (ST.hp + (ST.es * ST.esAsThr) / 100) * (1 + (ST.stunThrP + (P.act && P.act.emp ? ST.empThr : 0)) / 100),
   pStunSec = s => s / (1 + ST.stunRec / 100),
   /* 僵直中不能出招（可以移動、翻滾）；沉重暈眩中不能動、翻滾、格擋、出招 */
   pStagger = () => P.stag > G.t,
@@ -2044,8 +2108,8 @@ function trigCharms(el, a) {
       (C.on !== el && a[C.on] && (a[C.on].t || a[C.on]) > G.t);
     if (!hit) continue;
     it.ch -= C.use;
-    it.on = G.t + C.dur;
-    (a.imm = a.imm || {})[C.fx] = G.t + C.dur;
+    it.on = G.t + C.dur * (1 + ST.charmEff / 100);
+    (a.imm = a.imm || {})[C.fx] = G.t + C.dur * (1 + ST.charmEff / 100);
     if (['ign', 'bleed', 'poi', 'shock', 'frz'].includes(C.fx)) a[C.fx === 'frz' ? 'frozen' : C.fx] = null;
     fx({ k: 'ring', x: P.x, y: P.y, r: 46, dur: 0.3, col: '#ffd166' });
     sfx('drink');
@@ -2055,8 +2119,9 @@ function trigCharms(el, a) {
 function chargeCharms(m) {
   for (const it of charmsOn()) {
     const C = CHARMS[it.charm];
-    it.ch = Math.min(C.max, (it.ch || 0) + (m.boss ? 10 : m.elite ? 3 : 1));
-    if (C.on === 'rareKill' && (m.boss || m.elite) && it.ch >= C.use) (it.ch -= C.use), (it.on = G.t + C.dur);
+    it.ch = Math.min(C.max, (it.ch || 0) + (m.boss ? 10 : m.elite ? 3 : 1) * (1 + ST.charmChg / 100));
+    if (C.on === 'rareKill' && (m.boss || m.elite) && it.ch >= C.use)
+      (it.ch -= C.use), (it.on = G.t + C.dur * (1 + ST.charmEff / 100));
   }
 }
 function tickCharms() {

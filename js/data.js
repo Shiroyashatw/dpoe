@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.66';
+const VER = '0.2.67';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -625,6 +625,7 @@ const SKILLS = {
     m: 1.3,
     r: 165,
     el: 'fire',
+    inf: 1 /* 灌注技能（吃灌注傷害 infP、會留下殘留物 mech.js 的 hasInfSkill） */,
     tags: ['spell', 'aoe', 'elem'],
     d: '以自己為中心爆出一圈火焰；有火灌注就消耗 1 層，範圍 ×1.5 並留下燃燒地面；有冰灌注就消耗 1 層，留下冰緩地面（灌注：撿起元素殘留物得到，點燃、冰緩、感電中的怪死掉會留下）'
   },
@@ -2793,6 +2794,13 @@ const PT_THEME = [
     rg: [0, 0, 0, 0, 3, 2],
     sm: [{ minionP: 10 }],
     nt: [
+      /* 0.2.67 §3.10：召喚物防禦（骨甲、不死軍團、復甦者）、哨兵、魔像 */
+      ['魔像之主', { golemMax: 1 }],
+      ['復甦者', { reviveHeal: 2 }],
+      ['骨甲', { minLife: 30 }],
+      ['不死軍團', { reviveSpd: 35 }],
+      ['哨兵', { dmgA: 10, minionP: 15 }],
+      ['魔像共鳴', { golemEff: 25, minionP: 10 }],
       ['血脈相連', { allyLeech: 1, minionP: 10 }],
       ['巨靈', { minGiant: 1, minionP: 10 }],
       ['嗜血群獸', { minionP: 15, onsKill: 20 }],
@@ -2877,6 +2885,10 @@ const PT_THEME = [
     rg: [1, 1, 0, 0, 0, 3],
     sm: [{ unitP: 10 }],
     nt: [
+      /* 0.2.67 §3.11：圖騰生命、放置速度、圖騰攻擊與施法速度 */
+      ['堅實圖騰', { totemLife: 40 }],
+      ['迅速佈陣', { placeSpd: 30, unitP: 10 }],
+      ['先祖齊心', { totemSpd: 12, placeSpd: 15 }],
       ['堡壘工匠', { unitP: 25, units: 1 }],
       ['砲陣', { unitP: 25, projP: 8 }],
       ['紮根', { stillP: 30 }],
@@ -3709,6 +3721,171 @@ const PT_THEME = [
       ['破勢反擊', { parryR: 20, armorP: 15 }, '護甲'],
       ['借勢', { parryMag: 20, evP: 10 }, '身法']
     ]
+  },
+  /* 0.2.67 解鎖預留叢集（夥伴～先祖強化）與新主題（榴彈、灌注、護符與藥劑、破甲）；規格與 ⚠️ 暫定在 docs/天賦修正提案.md §3、§4 */
+  {
+    n: '夥伴',
+    ic: 'asc_s_paw',
+    rg: [0, 2, 0, 0, 0, 4],
+    sm: [{ compP: 12 }, { compLife: 12 }],
+    nt: [
+      ['猿之羈絆', { compP: 20, compLife: 20 }],
+      ['貓之羈絆', { compMs: 20 }],
+      ['狼之羈絆', { compOns: 50 }],
+      ['蝮蛇之羈絆', { compPoi: 40 }],
+      ['貓頭鷹之羈絆', { compCold: 12 }],
+      ['曼巴之羈絆', { compChaos: 12 }],
+      ['信賴夥伴', { compShare: 5, compLife: 20 }],
+      ['隨和', { compSpirit: 25 }],
+      ['鼓舞盟友', { compInspire: 1 }],
+      ['渴血盟友', { compLeech: 1 }],
+      ['終身摯友', { reviveSpd: 35 }],
+      ['圍獵本能', { compImmob: 60 }]
+    ]
+  },
+  {
+    n: '戰吼',
+    ic: 'sk_warcry',
+    rg: [5, 0, 0, 0, 0, 0],
+    sm: [{ empP: 12 }, { cryCdr: 10 }, { crySpd: 10 }],
+    nt: [
+      ['怒吼回響', { crySpd: 25, cryCdr: 18 }],
+      ['戰場之聲', { cryAoe: 30 }],
+      ['振奮', { cryHeal: 2 }],
+      ['血染戰吼', { empP: 30, empAgg: 20 }],
+      ['撼人心魄', { empHs: 50, empThr: 100 }],
+      ['熔火戰吼', { empFire: 15 }],
+      ['戰吼的重量', { cryWeak: 3 }],
+      ['連吼', { cryMulti: 20 }],
+      ['戰吼之力', { cryDmg: 40 }],
+      ['威壓', { cryDebil: 1 }]
+    ]
+  },
+  {
+    n: '命令技能',
+    ic: 'sk_command',
+    rg: [0, 0, 0, 0, 5, 0],
+    sm: [{ cmdCdr: 20 }, { cmdP: 20 }],
+    nt: [
+      ['師徒', { cmdP: 100, minAs: -15 }],
+      ['一呼百應', { cmdCdr: 25, cmdP: 25 }],
+      ['召之即來', { cmdRevive: 25 }],
+      ['亡靈統帥', { uArchCh: 15 }],
+      ['眾志成城', { cmdPerType: 10 }]
+    ]
+  },
+  {
+    n: '傀儡大師',
+    ic: 'sk_possession',
+    rg: [0, 0, 0, 0, 5, 0],
+    sm: [{ puppetCh: 15 }, { puppetEff: 15 }],
+    nt: [
+      ['傀儡大師', { puppetCh: 35 }],
+      ['操線人', { puppetMax: 1, mpEff: 8 }],
+      ['百傀', { puppetCh: 25, cmdRevive: 25 }]
+    ]
+  },
+  {
+    n: '捷光環',
+    ic: 'asc_s_spark',
+    rg: [0, 0, 2, 3, 0, 0],
+    sm: [{ herP: 20 }, { herSpirit: 8 }, { herOn: 12 }],
+    nt: [
+      ['先驅之焰', { herEleF: 40 }],
+      ['先驅之霜', { herEleC: 40 }],
+      ['先驅之雷', { herEleL: 40 }],
+      ['傳令官', { herSpirit: 20 }],
+      ['預兆', { herP: 30, aoe: 10 }]
+    ]
+  },
+  {
+    n: '波動',
+    ic: 'sup_sp_boom',
+    rg: [0, 0, 5, 0, 0, 0],
+    sm: [{ volKill: 3 }, { volDelay: 15 }, { chaosP: 10 }],
+    nt: [
+      ['失衡', { volRegain: 25 }],
+      ['精準波動', { volCrit: 1 }],
+      ['危機漸長', { volDot: 1 }],
+      ['不穩定的羈絆', { volAlly: 3 }],
+      ['受控混沌', { volMax: 10 }]
+    ]
+  },
+  {
+    n: '執政官',
+    ic: 'sk_phoenix',
+    rg: [0, 0, 0, 5, 0, 0],
+    sm: [{ archDur: 10 }, { archEff: 10 }],
+    nt: [
+      ['風暴執政官', { archStorm: 1 }],
+      ['暴雪執政官', { archBliz: 1 }],
+      ['耗盡之力', { archCrit: 30, archCritX: 50, archRec: 30 }],
+      ['化身無畏', { archImm: 1 }],
+      ['再起', { archRec: -25 }]
+    ]
+  },
+  {
+    n: '先祖強化',
+    ic: 'sk_ancestral',
+    rg: [5, 0, 0, 0, 0, 0],
+    sm: [{ ancP: 8, ancAoe: 4 }],
+    nt: [
+      ['引導之手', { ancHs: 1, ancP: 30 }],
+      ['傳承', { ancAoe: 30 }]
+    ]
+  },
+  {
+    n: '榴彈',
+    ic: 'sk_detonate',
+    rg: [0, 4, 2, 0, 0, 0],
+    sm: [{ grenP: 12 }, { grenCd: 15 }],
+    nt: [
+      ['易爆榴彈', { grenFuse: -25 }],
+      ['集束榴彈', { grenFuse: 50, grenProj: 1 }],
+      ['擲彈兵', { grenUse: 1 }],
+      ['連環引爆', { grenTwice: 15 }],
+      ['爆破專家', { grenFireX: 4 }],
+      ['工兵彈', { grenCd: 40, grenP: -80 }]
+    ]
+  },
+  {
+    n: '灌注',
+    ic: 'asc_s_flame',
+    rg: [0, 0, 0, 5, 0, 0],
+    sm: [{ infP: 10 }, { infDur: 15 }, { remnantR: 20 }],
+    nt: [
+      ['灌注之力', { infP: 30 }],
+      ['恆久灌注', { infDur: 40 }],
+      ['殘留引力', { remnantR: 60 }],
+      ['雙重殘留', { remnantDbl: 20 }],
+      ['不滅灌注', { infKeep: 20 }]
+    ]
+  },
+  {
+    n: '護符與藥劑',
+    ic: 'asc_s_potion',
+    inner: 1,
+    rg: [2, 2, 2, 2, 2, 2],
+    sm: [{ flaskChg: 10 }, { charmChg: 10 }, { mpFlask: 10 }],
+    nt: [
+      ['謹慎調配', { flaskUse: 20 }],
+      ['煉金', { flaskChg: 25, charmChg: 25 }],
+      ['幸運兔腳', { charmOnP: 30, charmOnMs: 6 }],
+      ['護身符', { charmEff: 25 }],
+      ['魔力泉', { mpFlask: 30, mpReg: 10 }]
+    ]
+  },
+  {
+    n: '破甲',
+    ic: 'sup_sp_pen',
+    rg: [4, 2, 0, 0, 0, 0],
+    sm: [{ armBreakP: 15 }, { fullBreakEff: 10 }, { armBreakDur: 15 }],
+    nt: [
+      ['碎甲重手', { armBreakP: 40 }],
+      ['無可修復', { fullBreakEff: 30, armBreakDur: 30 }],
+      ['對破甲敵人', { brokenP: 25 }],
+      ['裂甲暴擊', { critBreak: 1 }]
+    ]
   }
 ];
 const PT_TH = Object.fromEntries(PT_THEME.map((t, i) => [t.n, i]));
@@ -3799,7 +3976,37 @@ const PT_ICONS = (() => {
     持續時間: ['tree_n133', 'tree_n134', 'tree_n136', 'tree_n041', 'tree_n118'],
     詛咒: ['tree_n071', 'tree_n041', 'tree_n131', 'tree_n061', 'tree_n104'],
     盛怒: ['tree_n006', 'tree_n097', 'tree_n011', 'tree_n127'],
-    招架: ['tree_n107', 'tree_n105', 'tree_n098', 'tree_n108', 'tree_n121']
+    招架: ['tree_n107', 'tree_n105', 'tree_n098', 'tree_n108', 'tree_n121'],
+    /* 0.2.67 解鎖與新主題：借 sk_*、sup_*、asc_*、tree_n 現成的圖，不產新圖 */
+    夥伴: [
+      'asc_s_paw',
+      'sup_ln_pack',
+      'sup_sp_pet',
+      'sk_inspire',
+      'sk_regenaura',
+      'sk_provoke',
+      ...AF('tamer').slice(0, 5)
+    ],
+    戰吼: [
+      'sk_warcry',
+      'sk_battlecry',
+      'sk_bloodhowl',
+      'sk_crytotem',
+      'sk_berserk',
+      'sk_rage',
+      'sk_daunt',
+      'sk_provoke'
+    ],
+    命令技能: ['sk_command', 'sk_possession', 'sk_frenzy', 'sk_daunt', 'sk_skeleton', 'sk_bonewall'],
+    傀儡大師: ['sk_possession', 'sk_command', 'sk_skelmage', 'sk_souldrain', 'sk_essence'],
+    捷光環: ['asc_s_spark', 'sk_ballight', 'sk_phoenix', 'sk_glacier', 'sk_staticfield', 'sk_hasteaura'],
+    波動: ['sup_sp_boom', 'sup_sp_ext', 'sk_voidrift', 'sk_doom', 'sk_bloodburst', 'sk_contagion'],
+    執政官: ['sk_phoenix', 'sk_glacier', 'sk_ballight', 'sk_skeleton', 'sk_elemweak', 'sk_power'],
+    先祖強化: ['sk_ancestral', 'sup_sp_brutal', 'sup_sp_combo', 'sk_groundslam', 'sk_bash'],
+    榴彈: ['sk_detonate', 'sk_blastmine', 'sk_fireburst', 'sk_firewall', 'sk_barrage', 'sk_smokebomb'],
+    灌注: ['asc_s_flame', 'asc_s_ice', 'asc_s_bolt', 'sk_essence', 'sk_inferno', 'sk_coldsnap'],
+    護符與藥劑: ['asc_s_potion', 'asc_s_heartx', 'it_coindart', 'sk_heal', 'sk_purify', 'sk_regenaura'],
+    破甲: ['sup_sp_pen', 'ail_vul', 'ail_n_seal', 'sk_bonecrush', 'sk_eviscerate', 'asc_s_anvil', 'sk_crosscut']
   };
 })();
 const PT_STAT_IC = {
@@ -3915,68 +4122,116 @@ const PT_STAT_IC = {
   castP: 'sup_sp_fastcast',
   ailMag: 'sup_sp_dmg',
   pen: 'sup_sp_brutal',
-  resF: 'sup_ln_iron'
+  resF: 'sup_ln_iron',
+  /* 0.2.67 新能力的小點圖示（沒列的用主題自己的圖） */
+  compP: 'asc_s_paw',
+  compLife: 'asc_s_paw',
+  minLife: 'asc_s_paw',
+  reviveSpd: 'asc_s_paw',
+  empP: 'sk_warcry',
+  cryCdr: 'sup_sp_cd',
+  crySpd: 'asc_s_wind',
+  cmdCdr: 'sk_command',
+  cmdP: 'sk_command',
+  puppetCh: 'sk_possession',
+  puppetEff: 'sk_possession',
+  herP: 'asc_s_spark',
+  herSpirit: 'asc_s_lotus',
+  herOn: 'asc_s_spark',
+  volKill: 'sup_sp_boom',
+  volDelay: 'sup_sp_boom',
+  archDur: 'sk_phoenix',
+  archEff: 'sk_phoenix',
+  ancP: 'sk_ancestral',
+  totemLife: 'asc_s_rune',
+  placeSpd: 'asc_s_rune',
+  totemSpd: 'asc_s_rune',
+  grenP: 'sk_detonate',
+  grenFuse: 'sk_detonate',
+  infP: 'asc_s_flame',
+  infDur: 'asc_s_flame',
+  remnantR: 'asc_s_flame',
+  flaskChg: 'asc_s_potion',
+  charmChg: 'asc_s_potion',
+  mpFlask: 'asc_s_potion',
+  charmEff: 'asc_s_potion',
+  armBreakP: 'sup_sp_pen',
+  fullBreakEff: 'sup_sp_pen',
+  armBreakDur: 'sup_sp_pen'
 };
 /* 主題的整體權重：新主題多了 20 個，用這張表把每個主題的叢集數調到 PoE天賦結構.md 5.5 的比例（rg 只管方向） */
 const PT_RW = {
   生命: 1.47,
-  護甲: 2.13,
+  護甲: 1.79,
   格擋與盾: 1.72,
   近戰: 2.48,
-  攻擊速度: 1.52,
-  投射物: 2.46,
-  身法: 1.21,
-  暴擊率: 1.28,
-  暴擊傷害加成: 0.74,
-  命中: 0.51,
-  陷阱地雷: 1.46,
-  異常: 1.03,
+  攻擊速度: 1.47,
+  投射物: 3.88,
+  身法: 1.78,
+  暴擊率: 1.41,
+  暴擊傷害加成: 0.91,
+  命中: 0.34,
+  陷阱地雷: 1.19,
+  異常: 1.51,
   元素: 1.05,
   元素技能: 1.49,
   法術: 1.83,
   能量護盾: 1.14,
   魔力冷卻: 0.57,
   秘術技能: 0.98,
-  召喚: 1.56,
+  召喚: 2.6,
   精魂光環: 1.11,
-  原始技能: 1.86,
-  砲塔圖騰: 0.78,
+  原始技能: 1.24,
+  砲塔圖騰: 0.95,
   範圍: 0.58,
-  攻擊: 1.66,
-  物理: 1.32,
-  火焰: 1.45,
+  攻擊: 1.71,
+  物理: 1.04,
+  火焰: 1.92,
   冰冷: 1.89,
-  閃電: 1.16,
-  混沌: 0.77,
-  流血: 1.04,
+  閃電: 1.28,
+  混沌: 1.08,
+  流血: 1.1,
   中毒: 1.02,
-  偷取: 0.88,
+  偷取: 1.34,
   回復: 0.97,
-  打擊: 0.73,
+  打擊: 0.8,
   重擊: 1.02,
-  暈眩: 1.35,
+  暈眩: 1.75,
   堅韌: 1.4,
   荊棘: 1.38,
   偏斜: 1.06,
   持續時間: 0.68,
-  詛咒: 0.4,
-  盛怒: 0.62,
-  招架: 2.09,
+  詛咒: 0.56,
+  盛怒: 1.87,
+  招架: 2.05,
   劍術: 1.96,
   斧術: 2.52,
   錘術: 0.84,
   鏈錘術: 1.77,
-  長矛術: 3.38,
-  弓術: 1.32,
+  長矛術: 2.99,
+  弓術: 1.27,
   十字弓術: 1.31,
   匕首術: 1.12,
   爪術: 1.26,
   機關術: 1.22,
-  長杖術: 0.85,
-  法杖術: 0.65,
-  權杖術: 0.71,
+  長杖術: 0.83,
+  法杖術: 0.66,
+  權杖術: 0.73,
   魔符術: 2.89,
-  棍術: 3.54
+  棍術: 3.54,
+  /* 0.2.67：解鎖預留叢集後叢集數整個重抽，用迭代把舊主題調回原本的叢集數、新主題照提案 §3、§4 的叢集欄（差一兩個）；烘完所有新鍵都要上樹 */
+  夥伴: 1.42,
+  戰吼: 2.17,
+  命令技能: 0.59,
+  傀儡大師: 0.43,
+  捷光環: 0.46,
+  波動: 0.75,
+  執政官: 0.25,
+  先祖強化: 0.28,
+  榴彈: 0.84,
+  灌注: 0.83,
+  護符與藥劑: 1.06,
+  破甲: 1.6
 };
 const PT_R0 = 470;
 /* 0.2.45 天賦樹重做新增的能力（PoE2 樹上有、我們底層本來就有機制；掛勾在 combat.js、items.js、skills.js、mech.js） */
@@ -4008,6 +4263,110 @@ Object.assign(STATN, {
   grenCd: ['榴彈冷卻恢復', '%'],
   reloadP: ['裝填速度', '%']
 });
+/* 0.2.67 第 4 層 A：解鎖預留叢集與新主題的能力（天賦樹上有、機制各有讀取點，docs/天賦修正提案.md §3、§4；第三格 1＝開關）。
+   items.js 的 stats() 預設全部 0，tools/check.js 逐個檢查有來源、有讀取點 */
+const PT_NEW = {
+  /* 夥伴（戰狼精魂的狼，skills.js 的 updAllies／allyMult0／lifeM、game.js 的 hurtPlayer、items.js 的 stats） */
+  compP: ['夥伴傷害', '%'],
+  compLife: ['夥伴生命', '%'],
+  compMs: ['夥伴移動速度', '%'],
+  compOns: ['夥伴擊殺時，夥伴獲得猛攻的機率', '%'],
+  compPoi: ['夥伴擊中時造成中毒的機率', '%'],
+  compCold: ['夥伴多造成冰冷傷害（原傷害的）', '%'],
+  compChaos: ['夥伴多造成混沌傷害（原傷害的）', '%'],
+  compShare: ['你受到的擊中由夥伴承擔', '%'],
+  compSpirit: ['夥伴精魂效用', '%'],
+  compInspire: ['夥伴傷害的提高也套用在你身上', '', 1],
+  compLeech: ['你偷取生命時，夥伴也偷取同樣的量', '', 1],
+  compImmob: ['夥伴對禁錮的敵人傷害', '%'],
+  /* 召喚物（skills.js 的 allyDie／callWolf） */
+  minLife: ['召喚物生命', '%'],
+  reviveSpd: ['召喚物復甦加快', '%'],
+  reviveHeal: ['召喚物復甦時，你回復最大生命的', '%'],
+  /* 戰吼與強化攻擊（skills.js 的 gemCfg／actDur／cryFx／empUse、combat.js 的 hitCalc） */
+  empP: ['強化攻擊傷害', '%'],
+  cryCdr: ['戰吼冷卻恢復', '%'],
+  crySpd: ['戰吼速度', '%'],
+  cryAoe: ['戰吼範圍', '%'],
+  cryHeal: ['使用戰吼時回復生命與魔力（各最大值的）', '%'],
+  empAgg: ['強化攻擊加劇流血的機率', '%'],
+  empHs: ['強化攻擊的沉重暈眩累積', '%'],
+  empThr: ['強化攻擊出手中，暈眩門檻', '%'],
+  empFire: ['強化攻擊的物理傷害轉成火焰', '%'],
+  cryWeak: ['戰吼使範圍內敵人獲得暴擊弱點（層）', ''],
+  cryMulti: ['近期每用過一種不同的戰吼，所有傷害', '%'],
+  cryDmg: ['戰吼傷害', '%'],
+  cryDebil: ['戰吼使範圍內敵人虛弱（4 秒）', '', 1],
+  /* 命令技能與傀儡大師（skills.js 的 gemCfg／cmdMul／actHit、combat.js 的 gainStk／bufV） */
+  cmdCdr: ['命令技能冷卻恢復', '%'],
+  cmdP: ['命令技能傷害', '%'],
+  cmdRevive: ['使用命令技能時，復活一隻召喚物的機率', '%'],
+  uArchCh: ['使用命令技能時，獲得亡靈執政官的機率', '%'],
+  cmdPerType: ['場上每種召喚物，命令技能傷害', '%'],
+  puppetCh: ['使用命令技能時，獲得傀儡大師的滿溢機率', '%'],
+  puppetEff: ['傀儡大師效果', '%'],
+  puppetMax: ['傀儡大師層數上限', ''],
+  /* 捷光環（skills.js 的 herMul／heraldKill／heraldBoom、hitCalc、stats） */
+  herP: ['捷光環傷害', '%'],
+  herSpirit: ['捷光環精魂效用', '%'],
+  herOn: ['有捷光環時傷害', '%'],
+  herEleF: ['有灰燼捷光環時，火焰傷害', '%'],
+  herEleC: ['有寒冰捷光環時，冰冷傷害', '%'],
+  herEleL: ['有雷霆捷光環時，閃電傷害', '%'],
+  /* 波動（skills.js 的 volTick／volBoom／volGain、allyDie、hitMob、combat.js 的 applyAil／hitCalc） */
+  volKill: ['擊殺時獲得 1 層波動的機率', '%'],
+  volDelay: ['波動引爆延遲', '%'],
+  volRegain: ['波動引爆時保留全部層數的機率', '%'],
+  volCrit: ['每層波動之力，暴擊率提高', '%'],
+  volDot: ['每層波動，混沌持續傷害', '%'],
+  volAlly: ['召喚物被擊殺時，獲得波動層數', ''],
+  volMax: ['波動層數上限', ''],
+  /* 執政官（combat.js 的 gainArchon／payMp／unaff／hitCalc／applyAil、skills.js 的 updSkills） */
+  archDur: ['執政官持續時間', '%'],
+  archEff: ['執政官效果', '%'],
+  archStorm: ['累計花掉等同最大魔力的魔力時，獲得閃電執政官', '', 1],
+  archBliz: ['能量護盾開始充能時，獲得冰霜執政官', '', 1],
+  archCrit: ['有執政官時，暴擊率提高', '%'],
+  archCritX: ['有執政官時，暴擊傷害加成', '%'],
+  archRec: ['執政官恢復期', '%'],
+  archImm: ['有執政官時，免疫冰凍、冰緩與感電', '', 1],
+  /* 先祖強化（skills.js 的 empUse／poisePin） */
+  ancP: ['先祖強化的傷害', '%'],
+  ancAoe: ['先祖強化的範圍', '%'],
+  ancHs: ['沉重暈眩菁英或王後 4 秒內，下一次攻擊獲得先祖強化', '', 1],
+  /* 場上單位（skills.js 的 placeUnit／updUnits／useSlot） */
+  totemLife: ['圖騰與砲塔圖騰生命', '%'],
+  placeSpd: ['圖騰與砲塔圖騰放置速度', '%'],
+  totemSpd: ['圖騰與砲塔圖騰的攻擊與施法速度', '%'],
+  /* 榴彈（mech.js 的 throwGrenade／grenadeTick、skills.js 的 gemCfg／useSlot） */
+  grenP: ['榴彈傷害', '%'],
+  grenFuse: ['榴彈引爆時間', '%'],
+  grenProj: ['榴彈數量', ''],
+  grenUse: ['榴彈次數', ''],
+  grenTwice: ['榴彈再爆一次的機率', '%'],
+  grenFireX: ['近期每用過一種不同的榴彈，額外火焰傷害（原傷害的）', '%'],
+  /* 灌注（mech.js 的 dropRemnant／remnantTick／takeInf、hitCalc） */
+  infP: ['灌注技能傷害', '%'],
+  infDur: ['灌注持續時間', '%'],
+  remnantR: ['殘留物拾取範圍', '%'],
+  remnantDbl: ['拾取殘留物時，多獲得 1 層灌注的機率', '%'],
+  infKeep: ['灌注技能不消耗灌注的機率（效果照算）', '%'],
+  /* 護符與藥劑（game.js 的 killMob／drinkFlask、combat.js 的 chargeCharms／trigCharms） */
+  flaskChg: ['藥劑充能獲得', '%'],
+  charmChg: ['護符充能獲得', '%'],
+  mpFlask: ['魔力藥劑回復', '%'],
+  flaskUse: ['藥劑充能消耗減少', '%'],
+  charmEff: ['護符效果持續時間', '%'],
+  charmOnP: ['有護符生效時，傷害', '%'],
+  charmOnMs: ['有護符生效時，移動速度', '%'],
+  /* 破甲（combat.js 的 applyAil／takenInc／hitCalc） */
+  armBreakP: ['破甲量', '%'],
+  fullBreakEff: ['完全破甲效果', '%'],
+  armBreakDur: ['破甲持續時間', '%'],
+  brokenP: ['對完全破甲的敵人傷害', '%'],
+  critBreak: ['法術暴擊時，依物理傷害破甲', '', 1]
+};
+Object.assign(STATN, PT_NEW);
 /* 小點的變體與複合詞（0.2.45，照 PoE2：小點有 601 種、18% 是兩條詞）：接在每個主題的 sub 後面，
    每個叢集大部分小點是主詞（sm 輪流），夾 1～3 個從 sub 輪流抽的變體（tools/tree_bake.js 第 8 步）。
    複合詞每條約單詞的 6～7 成；只用底層已經有的能力。加一條不用重烘，改條數要重烘（編號會換） */
@@ -4062,13 +4421,24 @@ const PT_SMX = {
     { occP: 6, debuffMag: 3 },
     { occP: 6, aoe: 3 }
   ],
-  召喚: [{ minionP: 6, minAs: 3 }, { minAs: 4 }, { minionP: 6, auraEff: 2 }],
+  召喚: [
+    { minionP: 6, minAs: 3 },
+    { minAs: 4 },
+    { minionP: 6, auraEff: 2 },
+    { minLife: 12 },
+    { reviveSpd: 12 },
+    { minionP: 10, dmgA: 10 },
+    { golemEff: 10 }
+  ],
   精魂光環: [{ auraEff: 3, presArea: 6 }, { presArea: 10 }, { gloryP: 10 }],
   原始技能: [{ priP: 6, formP: 6 }, { formP: 10 }, { formArm: 10 }, { priP: 6, life: 5 }],
   砲塔圖騰: [
     { unitP: 6, durP: 5 },
     { unitP: 6, ss: 2 },
-    { unitP: 6, aoe: 3 }
+    { unitP: 6, aoe: 3 },
+    { totemLife: 15 },
+    { placeSpd: 15 },
+    { totemSpd: 6 }
   ],
   範圍: [{ aoe: 3, aoeP: 6 }, { aoeP: 10 }, { aoe: 3, durP: 4 }],
   劍術: [
@@ -4200,7 +4570,23 @@ const PT_SMX = {
   招架: [
     { parryMag: 3, hsP: 8 },
     { parryMag: 3, armorP: 6 }
-  ]
+  ],
+  /* 0.2.67 新主題（sm 是主詞，這裡是手寫的變體；複合詞在 PT_PAIR） */
+  夥伴: [
+    { compLife: 8, armorP: 6 },
+    { compP: 8, dmgA: 6 }
+  ],
+  戰吼: [{ empP: 8, bleedCh: 5 }],
+  命令技能: [{ minionP: 6, cmdCdr: 10 }],
+  傀儡大師: [{ puppetCh: 10, cmdCdr: 8 }],
+  捷光環: [{ herP: 12, aoe: 3 }],
+  波動: [{ volKill: 2, chaosP: 6 }],
+  執政官: [{ archDur: 6, archEff: 6 }],
+  先祖強化: [{ ancP: 12 }, { ancAoe: 8 }],
+  榴彈: [{ grenP: 8, aoe: 5 }, { grenFuse: -15 }],
+  灌注: [{ spellP: 6, infP: 6 }],
+  護符與藥劑: [{ flaskChg: 6, flask: 6 }, { charmEff: 8 }],
+  破甲: [{ physP: 6, armBreakP: 10 }]
 };
 for (const T of PT_THEME) if (PT_SMX[T.n]) T.sub = [...(T.sub || []), ...PT_SMX[T.n]];
 /* 複合詞的配對表（0.2.45，把小點補到約 450 種；PoE2 有 482 個「A 和 B」的小點，幾乎每一對都不一樣）：
@@ -4264,7 +4650,18 @@ const PT_PAIR = {
   持續時間: 'spellP:6 minionP:6 unitP:6 occP:6 elemP:6 ailMag:6 mpReg:6 poiMag:6',
   詛咒: 'chaosP:4 critInc:6 spellP:6 esP:7 int:3 mpReg:6 minionP:6 ailMag:6',
   盛怒: 'physP:6 slamP:6 strikeP:6 hsP:9 leech:0.2 armorP:7 str:3 critX:9',
-  招架: 'blockInc:3 meleeP:6 stunThrP:6 as:2 evP:7 physP:6 str:3 critInc:6'
+  招架: 'blockInc:3 meleeP:6 stunThrP:6 as:2 evP:7 physP:6 str:3 critInc:6',
+  夥伴: 'minionP:6 life:6 regen:1 ms:1 armorP:7 minAs:3 spirit:3 leech:0.2',
+  戰吼: 'physP:6 meleeP:6 slamP:6 strikeP:6 aoe:3 hsP:9 as:2 str:3',
+  命令技能: 'minionP:6 minAs:3 life:6 durP:5 regen:1 mpReg:6 occP:6',
+  傀儡大師: 'minionP:6 minAs:3 cdr:2 mpReg:6 int:3 occP:6',
+  捷光環: 'auraEff:3 eleP:6 critInc:6 spellP:6 atkP:6 presArea:6 mpReg:6',
+  波動: 'critInc:6 occP:6 spellP:6 esP:7 aoe:3 poiMag:6 life:6',
+  執政官: 'spellP:6 eleP:6 durP:5 critInc:6 castP:2 esP:7 int:3 mpReg:6',
+  榴彈: 'projP:6 eleP:6 fireP:7 aoe:3 as:2 critInc:6 cdr:2',
+  灌注: 'eleP:6 castP:2 aoe:3 durP:5 mpReg:6 critInc:6 esP:7',
+  護符與藥劑: 'flask:6 life:6 regen:1 armorP:7 evP:7 esP:7 mpReg:6 ms:1',
+  破甲: 'physP:6 meleeP:6 hsP:9 str:3 armorP:7 as:2 critInc:6 aoe:3'
 };
 for (const T of PT_THEME) {
   if (!PT_PAIR[T.n]) continue;
@@ -4301,12 +4698,12 @@ const PT_FAMN = {
 };
 const PT_FAM_OF = (() => {
   const F = {
-      r: '生命 護甲 格擋與盾 近戰 攻擊 物理 流血 偷取 回復 打擊 重擊 暈眩 堅韌 荊棘 盛怒 招架 劍術 斧術 錘術 鏈錘術',
-      g: '攻擊速度 投射物 身法 命中 異常 中毒 偏斜 長矛術 弓術 十字弓術 匕首術 爪術',
-      b: '暴擊率 暴擊傷害加成 法術 能量護盾 魔力冷卻 範圍 冰冷 閃電 持續時間 長杖術 法杖術',
-      o: '元素 元素技能 火焰',
-      p: '秘術技能 精魂光環 混沌 詛咒 權杖術',
-      t: '陷阱地雷 召喚 砲塔圖騰 機關術',
+      r: '生命 護甲 格擋與盾 近戰 攻擊 物理 流血 偷取 回復 打擊 重擊 暈眩 堅韌 荊棘 盛怒 招架 劍術 斧術 錘術 鏈錘術 戰吼 先祖強化 護符與藥劑 破甲',
+      g: '攻擊速度 投射物 身法 命中 異常 中毒 偏斜 長矛術 弓術 十字弓術 匕首術 爪術 榴彈',
+      b: '暴擊率 暴擊傷害加成 法術 能量護盾 魔力冷卻 範圍 冰冷 閃電 持續時間 長杖術 法杖術 執政官',
+      o: '元素 元素技能 火焰 捷光環 灌注',
+      p: '秘術技能 精魂光環 混沌 詛咒 權杖術 波動',
+      t: '陷阱地雷 召喚 砲塔圖騰 機關術 夥伴 命令技能 傀儡大師',
       n: '原始技能 魔符術 棍術',
       a: '基礎'
     },
@@ -4315,22 +4712,9 @@ const PT_FAM_OF = (() => {
   return o;
 })();
 for (const T of PT_THEME) (T.fam = PT_FAM_OF[T.n] || 'a'), (T.c = PT_FAM[T.fam]);
-/* 預留叢集（樹上看得到、鎖住不能點；PoE2 樹上有、我們底層還沒有，docs/待做清單.md 第 3、4 層）：名字、放哪幾條路、幾個。
-   機制做好後：把那一列拿掉、主題加進 PT_THEME、重烘（node tools/tree_bake.js），照 docs/天賦樹設計.md */
-const PT_RSV = [
-  ['夥伴', [5, 1], 10],
-  ['戰吼', [0], 8],
-  ['召喚物防禦', [4], 5],
-  ['命令技能', [4], 4],
-  ['捷光環', [2, 3], 3],
-  ['波動', [2], 3],
-  ['獻祭', [4], 3],
-  ['執政官', [3], 2],
-  ['傀儡大師', [4], 2],
-  ['圖騰生命', [5], 2],
-  ['先祖強化', [0], 1],
-  ['哨兵', [4], 1]
-];
+/* 預留叢集（樹上看得到、鎖住不能點；單一入口、不擋路）：名字、放哪幾條路、幾個。0.2.67 全部解鎖，清空（tools/tree_bake.js 的第 6 步、tree.js 的鎖住點都留著，
+   以後 PoE2 樹上有、底層還沒有的機制要先佔位置時，再往這裡加一列：[名字, [路], 個數]）。解鎖：把那一列拿掉、主題加進 PT_THEME、重烘，照 docs/天賦樹設計.md */
+const PT_RSV = [];
 /* 起點模板的小點（六條路同一套形狀：第 1 步傷害與防禦各一個，各分成兩條路擇一的菱形）：
    d 傷害菱形、f 防禦菱形，各是 [主詞, 另一條路]；一格＝[主題名, 用那個主題的第幾種小點, 自訂的詞（可省）] */
 const PT_STARTS = [

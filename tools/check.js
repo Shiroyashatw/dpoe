@@ -357,10 +357,16 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       cut = T.N.filter(n => !n.lock && free[n.id] === undefined).length,
       multi = locked.filter(ns => ns.flatMap(n => A[n.id].filter(o => !T.I[o].lock)).length !== 1).length,
       want = RSV.reduce((s, r) => s + r[2], 0);
+    /* 0.2.67 起預留叢集全部解鎖（表是空的）；以後再佔位置時這條仍檢查：數量對、各只有一個入口、不擋路 */
     ok(
-      `鎖住的預留叢集 ${locked.length} 個（表上 ${want} 個）、各只有一個入口、不擋路`,
-      locked.length === want && !multi && !cut,
+      `預留叢集：表上 ${want} 個、樹上鎖住 ${locked.length} 個（0.2.67 全部解鎖＝0）、各只有一個入口、不擋路`,
+      want === 0 && locked.length === want && !multi && !cut,
       `入口不是 1 個的 ${multi}、被擋住的點 ${cut}`
+    );
+    ok(
+      `主題 ${TH.length - 1} 個（58 個舊的＋0.2.67 新增 12 個，不含過路用的「基礎」）`,
+      TH.length - 1 === 70,
+      TH.length - 1
     );
   }
   /* 烘的檔要跟工具一致；形狀不重複、沒有跑版 */
@@ -391,7 +397,9 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
         ignFire ignCold ignLight ignChaos aggHit aggIgn aggAll bleedAll poiAll forkCrit inevCrit ovkSplash kbEs savageGuard parryMag parryDur parryR bvNoCrit
         overwhelm incise inciseMag hexPierce hstunNoEv suppCh buffMag debuffMag blackScythe circular knightly ironGrip ironWill fork projRet splash minmax reveal
         weakMore noRoll noStag rollTank minGiant surrP isoP killP presP lowMpP lowEsP dynOn crushOn crippleOn weakenOn compoundOn unChill unPoi unBleed esDelay esRec
-        stunThrP stunRec immobP dazeCh`.split(/\s+/),
+        stunThrP stunRec immobP dazeCh`
+          .split(/\s+/)
+          .concat(Object.keys(vm.runInContext('PT_NEW', ctx))),
       miss = need.filter(k => !has.has(k)),
       STATN = vm.runInContext('STATN', ctx),
       noName = [...has].filter(k => k !== 'only' && !STATN[k]),
@@ -438,6 +446,32 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     `0.2.45 新增的 ${K.length} 個能力：預設是 0、天賦給了讀得到`,
     K.every(k => o0[k] === 0 && o1[k] === 7),
     K.filter(k => o0[k] !== 0 || o1[k] !== 7).join(' ')
+  );
+}
+{
+  /* 0.2.67 第 4 層 A 新增的能力（data.js 的 PT_NEW）：預設 0、天賦給了讀得到、樹上有（上面「每個能力都有天賦來源」）、
+     而且 skills.js／combat.js／mech.js／game.js／items.js（精魂效用）至少有一處讀它（讀取點）；STATN 有名字與單位 */
+  const NEW = vm.runInContext('PT_NEW', ctx),
+    K = Object.keys(NEW),
+    o0 = G.stats({ lv: 50, eq: {}, pt: [] });
+  G.PTREE.I.zz = { s: Object.fromEntries(K.map(k => [k, 7])) };
+  const o1 = G.stats({ lv: 50, eq: {}, pt: ['zz'] });
+  delete G.PTREE.I.zz;
+  const src = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js']
+      .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+      .join('\n'),
+    noRead = K.filter(k => !new RegExp('\\b' + k + '\\b').test(src)),
+    STATN = vm.runInContext('STATN', ctx),
+    noName = K.filter(k => !STATN[k] || !STATN[k][0]);
+  ok(
+    `0.2.67 新增的 ${K.length} 個能力：預設是 0、天賦給了讀得到、都有名字`,
+    K.length >= 80 && K.every(k => o0[k] === 0 && o1[k] === 7) && !noName.length,
+    K.filter(k => o0[k] !== 0 || o1[k] !== 7).join(' ') + noName.join(' ')
+  );
+  ok(
+    '0.2.67 新增的能力每個都有機制讀取點（skills／combat／mech／game／items 至少一處用到）',
+    !noRead.length,
+    noRead.join(' ')
   );
 }
 {
@@ -4267,6 +4301,99 @@ vm.runInContext(
       '{"why":["要有戰狼精魂的狼","要有巨石魔像"],"why2":["",""],"wolf":[true,true,28],"golem":[true,true,true,true,true,true],"puppet":[5,1.5,1,0.675,0.35]}',
     JSON.stringify(j58)
   );
+  /* 0.2.67 第 4 層 A：新能力的機制（挑幾個有代表性的；每個鍵都有讀取點由上面的靜態檢查負責） */
+  const t67 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = o => ({ D, x: P.x + 50, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, allies: G.allies, stk: P.stk, buf: P.buf, hp: P.hp, ae: P.archEnd, gr: G.grenades, cu: P.cryUsed },
+      out = {},
+      set = o => Object.assign(ST, o),
+      r2 = x => Math.round(x * 100) / 100;
+    try {
+      G.mobs = []; G.allies = []; P.stk = {}; P.buf = {}; G.grenades = []; P.cryUsed = {}; P.archEnd = null;
+      /* 戰吼：冷卻恢復、速度（技能速度的提高池；範圍 cryAoe 在 actHit 的範圍提高池，沒有單獨量） */
+      const wc = () => gemCfg(mkGem('warcry', 1), 0), w0 = wc(), a0 = actDur(w0);
+      set({ cryCdr: 100, crySpd: 100 });
+      const w1 = wc();
+      out.cry = [r2(w0.cd / w1.cd), r2(a0 / actDur(w1)), w1.aoe === w0.aoe];
+      set({ cryCdr: 0, crySpd: 0 });
+      /* 戰吼：回復、暴擊弱點、虛弱、連吼（近期每種戰吼） */
+      const m = mk({});
+      G.mobs = [m]; P.hp = 1; set({ cryHeal: 10, cryWeak: 3, cryDebil: 1 });
+      cryFx(300, w0);
+      out.cryFx = [P.hp > 1, cwN(m), m.ail.weak > G.t, cryTypes()];
+      cryFx(300, { k: 'seiscry' });
+      out.cryTypes = cryTypes();
+      set({ cryHeal: 0, cryWeak: 0, cryDebil: 0 });
+      /* 強化攻擊：傷害、沉重暈眩、轉火焰、加劇流血、出手中暈眩門檻；用掉一層 */
+      const a = { c: { D: { tags: ['attack', 'melee'] }, more: 1, hsM: 1, cvF: 0 } };
+      P.stk = { emInf: [G.t + 5, G.t + 5] };
+      set({ empP: 20, empHs: 50, empFire: 15, empAgg: 30, empThr: 100 });
+      empUse(a);
+      out.emp = [a.emp, a.c.empP, a.c.hsM, a.c.cvF, a.c.empAgg, stkN('emInf')];
+      P.act = a; const t1 = pStunThr(); set({ empThr: 0 }); const t0 = pStunThr(); P.act = null;
+      out.empThr = r2(t1 / t0);
+      set({ empP: 0, empHs: 0, empFire: 0, empAgg: 0 });
+      const c0 = { D: { tags: ['attack', 'melee'], m: 1, el: 'phys' }, mult: 1, more: 1, aoe: 1, critInc: 0, critX: 0 }, d0 = hitCalc(c0, null, { avg: 1, keep: 1 }).d;
+      out.empHit = hitCalc({ ...c0, empP: 100 }, null, { avg: 1, keep: 1 }).d > d0;
+      /* 「提高」都進 hitCalc 的提高池（跟其他提高相加，不另外乘）：沒有別的提高時，+x% 就是正好 ×(1 + x%) */
+      const hc = (o = {}, c = c0) => hitCalc(c, null, { avg: 1, keep: 1, ...o });
+      set({ cryMulti: 20 }); out.cryMulti = r2(hc().d / d0); set({ cryMulti: 0 }); /* 近期用過 2 種戰吼：+40% 所有傷害 */
+      set({ compP: 100, compInspire: 1 });
+      out.inspire = [r2(hc().d / d0), r2(hc({ minion: 1 }).d / d0)]; /* 你的擊中 ×2；夥伴自己的（minion）不吃鼓舞 */
+      set({ compInspire: 0 });
+      out.comp = [r2(hc({ comp: true, minion: 1 }).d / d0), r2(hc({ minion: 1 }).d / d0)]; set({ compP: 0 });
+      set({ herP: 100 }); out.her = [r2(hc({ her: 'ice' }).d / d0), r2(hc().d / d0)]; set({ herP: 0 });
+      const cf = { ...c0, D: { ...c0.D, el: 'fire' } }, f0 = hc({}, cf).d;
+      ST.her = { ash: 1 }; set({ herEleF: 50, herEleC: 50 }); out.herEle = r2(hc({}, cf).d / f0); set({ herEleF: 0, herEleC: 0 }); delete ST.her;
+      const e0 = hc(); P.stk = { volPow: [G.t + 5, G.t + 5, G.t + 5] }; set({ volCrit: 10 });
+      out.volCrit = r2(hc().ch / e0.ch); set({ volCrit: 0 }); P.stk = {};
+      P.buf = { fArchon: G.t + 5 }; set({ archCritX: 50, archCrit: 20 });
+      out.archCrit = [r2(hc().cm - e0.cm), r2(hc().ch / e0.ch)]; set({ archCritX: 0, archCrit: 0 }); P.buf = {};
+      const bel = S.eq.belt, chs = S.charms; S.eq.belt = { cs: 1 }; S.charms = [{ charm: 'c_ruby', on: G.t + 5 }];
+      set({ charmOnMs: 50, charmOnP: 100 }); const mv1 = buffMove(), cp1 = hc().d; S.charms[0].on = 0; out.charm = [r2(mv1 / buffMove()), r2(cp1 / hc().d)]; set({ charmOnMs: 0, charmOnP: 0 });
+      S.eq.belt = bel; S.charms = chs;
+      /* 命令技能：傷害提高（傀儡大師 + cmdP + 場上每種召喚物） */
+      G.allies = [{ src: 'aura' }, { src: 'golem' }, { src: 'gemt' }, { src: 'gem' }];
+      set({ cmdP: 100, cmdPerType: 10 }); out.cmdMul = r2(cmdMul()); set({ cmdP: 0, cmdPerType: 0 });
+      G.allies = [];
+      /* 層數上限：傀儡大師 +2、波動 +10 */
+      set({ puppetMax: 2, volMax: 10 });
+      gainStk('puppet', 99); gainStk('vol', 99);
+      out.stk = [stkN('puppet'), stkN('vol')];
+      set({ puppetMax: 0, volMax: 0 }); P.stk = {};
+      /* 傀儡大師效果 */
+      gainStk('puppet', 1); const pv = bufV('cmdDmg'); set({ puppetEff: 100 }); out.puppetEff = r2(bufV('cmdDmg') / pv); set({ puppetEff: 0 }); P.stk = {};
+      /* 執政官：持續時間 +100%、恢復期 −50%（archRec 是恢復期長短的變化，負的縮短）；效果（更多 25%） */
+      G.t = 1000; P.archEnd = null; set({ archDur: 100, archRec: -50 });
+      gainArchon('fArchon');
+      const dur = P.buf.fArchon - G.t;
+      G.t += 20.1; const early = gainArchon('iArchon'); /* 持續 20 秒結束後，恢復期 10 秒還沒過 */
+      G.t += 10; const late = gainArchon('iArchon');
+      P.buf = {}; P.archEnd = G.t; set({ archRec: 100 }); G.t += 20.1; const slow = gainArchon('iArchon'); /* 恢復期 20 秒變長 100% ＝ 40 秒，過了 20 秒還沒好 */
+      G.t += 20; const slow2 = gainArchon('iArchon');
+      out.arch = [r2(dur), early, late, slow, slow2];
+      set({ archDur: 0, archRec: 0, archEff: 100 }); out.archM = r2(archM()); set({ archEff: 0 });
+      P.buf = {}; P.archEnd = null;
+      /* 完全破甲效果 */
+      const bm = mk({}); bm.ail.broken = G.t + 5; const b0 = takenInc(bm, 'phys'); set({ fullBreakEff: 50 }); out.broken = [b0, r2(takenInc(bm, 'phys')), takenInc(bm, 'fire')]; set({ fullBreakEff: 0 });
+      /* 召喚物復甦加快 */
+      const al = { src: 'aura', hp: 1, mhp: 1 };
+      G.allies = [al]; set({ reviveSpd: 100 });
+      allyDie(al, true);
+      out.revive = r2((al.dead - G.t) / MINION.revive / ST.reviveT); set({ reviveSpd: 0 });
+      /* 榴彈引爆時間 −50% */
+      set({ grenFuse: -50 }); throwGrenade({}, P.x + 100, P.y, {}); out.fuse = r2(G.grenades[0].fuse); set({ grenFuse: 0 });
+    } catch (e) { out.err = String(e && e.stack || e).slice(0, 300); }
+    Object.assign(G, { mobs: keep.mobs, allies: keep.allies, grenades: keep.gr }); Object.assign(P, { stk: keep.stk, buf: keep.buf, hp: keep.hp, archEnd: keep.ae, cryUsed: keep.cu });
+    return out;
+  })()`);
+  ok(
+    '0.2.67 新能力的機制：戰吼冷卻／範圍／速度、戰吼回復／暴擊弱點／虛弱／連吼、強化攻擊、命令傷害、傀儡大師與波動層數上限、傀儡大師效果、執政官持續／恢復期／效果、完全破甲效果、召喚物復甦加快、榴彈引爆時間',
+    JSON.stringify(t67) ===
+      '{"cry":[2,2,true],"cryFx":[true,3,true,1],"cryTypes":2,"emp":[1,20,1.5,15,30,1],"empThr":2,"empHit":true,"cryMulti":1.4,"inspire":[2,1],"comp":[2,1],"her":[2,1],"herEle":1.5,"volCrit":1.3,"archCrit":[0.5,1.2],"charm":[1.5,2],"cmdMul":2.3,"stk":[7,40],"puppetEff":2,"arch":[20,false,true,false,true],"archM":1.5,"broken":[20,30,0],"revive":0.5,"fuse":0.75}',
+    JSON.stringify(t67)
+  );
   /* 0.2.59 J2（0.2.63 改成精魂寶石「獻祭」）：沒有屍體時用復甦召喚物代替，那隻死掉、復甦慢 40%（Lv1）；紙人（會消失的）不算 */
   const j59 = R(`(() => {
     const keep = { allies: G.allies, corpses: G.corpses, au: S.auras, pt: S.pt, st: ST },
@@ -5033,9 +5160,18 @@ vm.runInContext(
       delete old.world; delete old.hunt;
       old.eq.weapon = mkItem('w_bow_0', 12, 2);
       const id = old.eq.weapon.id, n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 26 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
+      return n.v === 27 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
         n.world.stage === 0 && !n.world.done.length && n.world.at === '0,0' && Number.isInteger(n.world.seed) &&
         n.hunt.v === 0 && !Array.isArray(n.cards) && !Object.keys(n.cards).length && !n.card;
+    })()`)
+  );
+  ok(
+    '舊存檔（26）：天賦點全部退回起點、能力值選擇清空，其他不動',
+    R2(`(() => {
+      const old = newGame();
+      Object.assign(old, { v: 26, lv: 40, pt: [...PT_START, PTREE.N[40].id], ptA: { zz: 'd' } });
+      const n = migrate(JSON.parse(JSON.stringify(old)));
+      return n.v === 27 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length;
     })()`)
   );
   ok(
