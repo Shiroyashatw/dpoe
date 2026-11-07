@@ -80,6 +80,8 @@ function gemCfg(g, i) {
       blind: D.blind,
       hsM: D.hsM || 1,
       pin: D.pin || 0,
+      /* 嘲諷（combat.js 的 applyAil 讀 c.taunt）：true＝預設 3 秒，來源是盾衝 */
+      taunt: D.taunt || 0,
       wolves: (D.cnt || 0) + ST.wolfN,
       wolfM: 1,
       /* 品質（0.2.29）0～1；fan 扇形角度倍率（多重投射的品質） */
@@ -1777,12 +1779,31 @@ function unitFire(u, tgt, mul = 1) {
     ang = tgt ? Math.atan2(tgt.y - u.y, tgt.x - u.x) : 0,
     a = { k: c.k, c, ang, tx: tgt ? tgt.x : u.x, ty: tgt ? tgt.y : u.y, hits: [0], n: 0, unit: 1, mul };
   if (D.unit === 'trap' || D.unit === 'mine') {
-    const r = (D.r || 100) * ST.aoeM * c.aoe;
-    fx({ k: 'ring', x: u.x, y: u.y, r, dur: 0.35, col: D.el === 'cold' ? '#8fd6ff' : '#ff8a4c' });
+    const r = (D.r || 100) * ST.aoeM * c.aoe,
+      /* 閃電陷阱（0.2.64）：場上每多一個其他陷阱，本體這一下傷害 +20%（品質再加）；閃電連鎖到每個其他陷阱，在那裡也爆一次（半傷害，不吃這個加成，免得平方成長） */
+      others = D.chainTrap ? G.units.filter(x => x !== u && x.type === 'trap' && !x.spent) : [],
+      col = { cold: '#8fd6ff', light: '#ffe066', fire: '#ff8a4c' }[D.el] || '#cfd8e3';
+    /* 同一格已經爆掉、還在 G.units 裡的陷阱不算（冰霜陷阱的品質讓它留下時在 updUnits 清掉） */
+    u.spent = 1;
+    const boom = (p, o) => {
+      fx({ k: 'ring', x: p.x, y: p.y, r, dur: 0.35, col });
+      for (const m of G.mobs)
+        if (m.hp > 0 && Math.hypot(m.x - p.x, m.y - p.y) < r + m.r) {
+          hitMob(m, c, Math.atan2(m.y - p.y, m.x - p.x), 140, { a, stun: D.stun, from: p, ...o });
+          /* 捕獸夾：直接釘身（王除外，只吃 c.pin 的累積；還在剛釘完的穩固值退回期內的也只累積，不直接釘）；閃電陷阱：感電 */
+          if (D.pinSec && !m.boss && m.hp > 0 && !(m.ail.psT && m.ail.psT.pin > G.t))
+            poisePin(m, 'pin', D.pinSec + (c.q || 0));
+          if (D.chainTrap && m.hp > 0 && !noAil(m.ail, 'shock')) m.ail.shock = G.t + 8;
+        }
+    };
     sfx('slam');
-    for (const m of G.mobs)
-      if (m.hp > 0 && Math.hypot(m.x - u.x, m.y - u.y) < r + m.r)
-        hitMob(m, c, Math.atan2(m.y - u.y, m.x - u.x), 140, { a, stun: D.stun, from: u });
+    boom(u, others.length ? { mult: c.mult * (1 + (D.chainTrap + 0.1 * (c.q || 0)) * others.length) } : {});
+    for (const x of others) {
+      fx({ k: 'zap', x: u.x, y: u.y, x2: x.x, y2: x.y, dur: 0.25 });
+      boom(x, { mult: c.mult * 0.5 });
+    }
+    /* 火焰陷阱：留下燃燒地面（跟灌注新星、油地面同一種，吃點燃） */
+    if (D.gndDur) addGround({ k: 'fire', x: u.x, y: u.y, r, dur: D.gndDur + 2 * (c.q || 0), c, dps: 0.3 });
     return;
   }
   /* 其他：暫時把施放點換成單位的位置，照原本的技能出手（出手完放回來） */
@@ -1823,7 +1844,7 @@ function updUnits(dt) {
       if (m) {
         unitFire(u, m);
         /* 冰霜陷阱的品質：有機率留在原地 */
-        if (u.c.k === 'frosttrap' && qRoll(20 * (u.c.q || 0))) (u.t = 0), keep.push(u);
+        if (u.c.k === 'frosttrap' && qRoll(20 * (u.c.q || 0))) (u.t = 0), (u.spent = 0), keep.push(u);
         continue;
       }
     } else if (u.type === 'mine') {

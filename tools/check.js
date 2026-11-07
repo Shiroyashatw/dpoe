@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：157 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 157,
+    '品質：160 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 160,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -1808,7 +1808,7 @@ vm.runInContext(
     !cl.dur.length &&
       !cl.unitNoRemote.length &&
       !cl.minionRemote.length &&
-      cl.remote === 'frosttrap,blastmine,ballista,firetotem,mirage' &&
+      cl.remote === 'frosttrap,blastmine,beartrap,lightningtrap,firetrap,ballista,firetotem,mirage' &&
       cl.channel.join() === 'chargeslam' &&
       cl.nova === 'whirl,nova' &&
       cl.sust === 'venom,thunderstorm' &&
@@ -2881,7 +2881,7 @@ vm.runInContext(
   );
   ok(
     '地面地圖詞 10 條：寫在卡面上、同組一張卡最多一種、危險度 1～2、種類都存在',
-    g.mods.join() === '10,true,true,true,46' && g.one,
+    g.mods.join() === '10,true,true,true,48' && g.one,
     JSON.stringify([g.mods, g.one])
   );
   ok(
@@ -3461,6 +3461,10 @@ vm.runInContext(
   vm.runInContext(gs.slice(gs.indexOf('function updShots'), gs.indexOf('/* ---------- 主迴圈')), c6);
   /* 0.2.52：怪物選目標、打召喚物的共用函式（liveAllies、mobTarget、mobHit、mobArea） */
   vm.runInContext(gs.slice(gs.indexOf('const liveAllies'), gs.indexOf('function updMobs')), c6);
+  /* 0.2.64：怪物找路（flowFill／flowUpd／flowOf／flowAng）、生怪（spawnMob 的無咒） */
+  R(`const TS = 48`);
+  vm.runInContext(gs.slice(gs.indexOf('const DIR8'), gs.indexOf('/* ---------- 怪物的目標')), c6);
+  vm.runInContext(gs.slice(gs.indexOf('function spawnMob'), gs.indexOf('/* ---------- 輸入')), c6);
   R(
     `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; ST = stats(S); mechEnter();`
   );
@@ -4385,6 +4389,181 @@ vm.runInContext(
     '3A 獻祭寶石：預留 60 精魂；復甦時間 ×1.40（Lv1）～×1.59（Lv20）、Lv10 ×1.49、品質 20 復甦快 5%（1.4÷1.05）',
     JSON.stringify([a63.offer, a63.offerSp]) === '[[1.4,1.59,1.3333,1.49],60]',
     JSON.stringify(a63)
+  );
+  /* 0.2.64 3B：陷阱 3 招、雙手錘擴散固定詞、無咒、藤蔓、濕透、受招架詞綴、嘲諷、找路指定目標 */
+  const b64 = R(`(() => {
+    const D0 = Object.values(MOBS)[0],
+      mk = (x, o = {}) => ({ D: D0, x, y: 0, r: 12, sz: 20, hp: 1e6, mhp: 1e6, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, dmg: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, units: G.units, ground: G.ground, t: G.t, st: ST, ail: P.ail, mm: G.mm, mapT: G.mapT, tiles: G.tiles, x: P.x, y: P.y },
+      rnd0 = Math.random, out = {};
+    /* 先做要真隨機的：詞綴出現在哪些基底 */
+    const cnt = (id, k) => { let n = 0; for (let i = 0; i < 600; i++) if (mkItem(id, 30, 2).a.some(a => a.k === k)) n++; return n; };
+    out.pool = [cnt('w_spear_5', 'parryMag') > 0, cnt('w_spear_5', 'parryDur') > 0, cnt('s_buckler', 'parryMag') > 0, cnt('s_crane', 'parryDur') > 0,
+      cnt('w_sword1_5', 'parryMag') + cnt('w_mace2_1', 'parryDur') + cnt('s_tower', 'parryMag') + cnt('s_wood', 'parryDur')];
+    out.rng = [tierRange('parryMag', 6), tierRange('parryMag', 1), tierRange('parryDur', 6), tierRange('parryDur', 1)];
+    Math.random = () => 0.5;
+    try {
+      ST = { ...ST, noCrit: 1, noMiss: 1 };
+      G.mm = null; G.mapT = 5; G.t = 100; G.units = []; G.ground = []; P.ail = {};
+      const U = (c, x = 0) => ({ type: 'trap', x, y: 0, c, t: 1, dur: 30, cd: 0.3, rate: 1 });
+      /* 捕獸夾：被夾到的（王除外）釘身 2 秒、品質 +1 秒；範圍外不動；王只累積 */
+      const cb = gemCfg(mkGem('beartrap', 1), 0), cq = gemCfg(Object.assign(mkGem('beartrap', 1), { q: 20 }), 0);
+      let m1 = mk(30), m2 = mk(40, { boss: 1 }), m3 = mk(900), m4 = mk(30);
+      G.mobs = [m1, m2, m3, m4]; G.units = [U(cb)];
+      unitFire(G.units[0], m1);
+      const q4 = mk(30); G.mobs = [q4]; unitFire(U(cq), q4);
+      out.bear = [+(m1.ail.pinT - G.t).toFixed(2), m2.ail.pinT > G.t, m2.ail.pin > 0, !!m3.ail.pinT, immob(m1.ail), m1.hp < 1e6, +(q4.ail.pinT - G.t).toFixed(2), cb.pin, cb.D.tags.includes('trap')];
+      /* 退回期內的菁英（剛釘完、穩固值 +500% 還沒退回）不會被直接釘，只累積；退回期過了才又釘得到 */
+      const el = mk(30, { elite: 1 }); G.mobs = [el]; unitFire(U(cb), el);
+      const pin1 = +(el.ail.pinT - G.t).toFixed(2), back = el.ail.psT.pin > el.ail.pinT;
+      G.t += 3; const pinEnd = el.ail.pinT; unitFire(U(cb), el);
+      const noRe = el.ail.pinT === pinEnd, accu = el.ail.pin > 0;
+      G.t = el.ail.psT.pin + 0.1; unitFire(U(cb), el);
+      out.bearBack = [pin1, back, noRe, accu, el.ail.pinT > G.t];
+      /* 閃電陷阱：場上其他陷阱每個 +20%（品質再 +10%）；連鎖到每個其他陷阱半傷害、被打到的都感電 */
+      const cl = gemCfg(mkGem('lightningtrap', 1), 0), clq = gemCfg(Object.assign(mkGem('lightningtrap', 1), { q: 20 }), 0);
+      const zap = (n, c = cl) => {
+        const u = U(c); G.units = [u];
+        for (let i = 1; i <= n; i++) G.units.push(U(c, 400 * i));
+        const a = mk(30), b = mk(400), z = mk(1200);
+        G.mobs = [a, b, z]; unitFire(u, a);
+        return [1e6 - a.hp, 1e6 - b.hp, a.ail.shock > G.t, b.ail.shock > G.t, !!z.ail.shock];
+      };
+      const z0 = zap(0), z1 = zap(1), z2 = zap(2), zq = zap(2, clq);
+      out.zap = [z0[1], +(z1[0] / z0[0]).toFixed(2), +(z2[0] / z0[0]).toFixed(2), +(z1[1] / z0[0]).toFixed(2), z0[2], z1[2], z1[3], z1[4], +(zq[0] / z0[0]).toFixed(2), +(z2[1] / z0[0]).toFixed(2), +(zq[1] / z0[0]).toFixed(2)];
+      /* 場上已經爆掉的陷阱不算 */
+      const us = U(cl), ud = U(cl, 400); ud.spent = 1; G.units = [us, ud]; const sa = mk(30); G.mobs = [sa]; unitFire(us, sa);
+      out.zapSpent = (1e6 - sa.hp) === z0[0];
+      /* 火焰陷阱：爆開留燃燒地面 4 秒（品質 +2 秒），地面會再打；範圍外的怪不吃 */
+      const cf = gemCfg(mkGem('firetrap', 1), 0), cfq = gemCfg(Object.assign(mkGem('firetrap', 1), { q: 20 }), 0);
+      G.ground = []; const f1 = mk(30), f2 = mk(900); G.mobs = [f1, f2]; unitFire(U(cf), f1);
+      const g0 = G.ground[0], hit = 1e6 - f1.hp; groundTick(0.5);
+      out.fire = [G.ground.length, g0.k, g0.dur, g0.dps, hit > 0, f1.hp < 1e6 - hit, f2.hp === 1e6];
+      G.ground = []; unitFire(U(cfq), mk(30)); out.fireQ = G.ground[0].dur;
+      out.skills = ['beartrap', 'lightningtrap', 'firetrap'].map(k => [SKILLS[k].wt.join(), SKILLS[k].unit, SKILLS[k].tags.join(), SKILLS[k].ic, !!QUAL[k], gemLv(k)]);
+      G.ground = [];
+      /* 雙手錘 3 種基底有擴散固定詞；道具說明看得到；裝上去 ST.splash；其他基底沒有 */
+      const spl = [0, 1, 2, 3, 4, 5].map(i => BASEI['w_mace2_' + i].b.splash || 0).join('');
+      PTREE.I.zz = { s: { str: 200, dex: 200 } }; /* 夠力量敏捷，裝備才不會失效 */
+      const wp = id => ({ ...mkItem(id, 1, 0), q: 0 }), eq = (e, o = {}) => stats({ ...S, pt: ['zz'], eq: e, ...o });
+      out.splash = [spl, impText('splash', 1), baseText(wp('w_mace2_3')).includes('打擊造成擴散傷害'), eq({ weapon: wp('w_mace2_1') }).splash, eq({ weapon: wp('w_mace2_0') }).splash || 0];
+      /* 受招架詞綴：裝上去進 ST、幅度的算式吃得到 */
+      const sh = it => eq({ off: { ...mkItem('s_buckler', 1, 2), a: [it] } }), spear = eq({ weapon: { ...mkItem('w_spear_2', 1, 2), a: [{ k: 'parryDur', T: 1, v: 25 }] } });
+      const sp = sh({ k: 'parryMag', T: 1, v: 20 }), sd = sh({ k: 'parryDur', T: 1, v: 30 });
+      const pm0 = parryMore(); ST = { ...ST, parryMag: 100 }; const pm1 = parryMore(); ST = { ...ST, parryMag: 0, parryDur: 50 }; const m5 = mk(0); applyParry(m5);
+      out.parryAff = [sp.parryMag, sd.parryDur, sp.parryDur || 0, +(pm1 / pm0).toFixed(2), +(m5.ail.parried - G.t).toFixed(2), AFF.parryMag.p, AFF.parryDur.p, affCls('parryMag'), affCls('parryDur'), spear.parryDur, spear.eqBad.length];
+      delete PTREE.I.zz;
+      /* 無咒：怪物自己帶（判官、鬼道士）、地圖詞、生怪時看得到；詛咒擋下，hexPierce 才能詛咒；一般怪照常 */
+      G.mapT = 5; G.mm = null; G.mobs = [];
+      const sm = (D, mm) => { G.mm = mm; return spawnMob(D, 0, 0, 1, false).hexproof; };
+      out.hex = [MOBS.judge.hexproof, MOBS.priest.hexproof, sm(MOBS.judge, null), sm(MOBS.slime, null), sm(MOBS.slime, { mhex: 1 }), MM('mhex'), mapMods({ mods: ['hexproof'] }).mhex, MAPMOD.hexproof.d];
+      G.mm = null; G.mobs = [];
+      const hm = mk(0, { hexproof: 1 }); curseMob(hm, 'enfeeble', 5); const hx0 = !!hm.ail.curse;
+      ST = { ...ST, hexPierce: 1 }; curseMob(hm, 'enfeeble', 5); const hx1 = !!hm.ail.curse; ST = { ...ST, hexPierce: 0 };
+      const nm = mk(0); curseMob(nm, 'enfeeble', 5);
+      out.hexCurse = [hx0, hx1, !!nm.ail.curse];
+      /* 緩速藤蔓：毒菇、毒樹蛙打中你施加 1 層，別的怪不施加 */
+      P.ail = {}; mobAilPlayer({ D: MOBS.shroom, ail: {} }, 10, 'chaos'); const v1 = P.ail.vine ? P.ail.vine.n : 0;
+      mobAilPlayer({ D: MOBS.treefrog, ail: {} }, 10, 'chaos'); const v2 = P.ail.vine.n;
+      P.ail = {}; mobAilPlayer({ D: MOBS.slime, ail: {} }, 10, 'phys');
+      out.vine = [v1, v2, P.ail.vine ? P.ail.vine.n : 0, MOBS.shroom.vine, MOBS.treefrog.vine];
+      /* 濕透（玩家方）：感電機率 50% 更多、冰凍累積 25% 更多，狀態圖示看得到；地圖詞 pwet */
+      const thr = (ST.hp / 2 + (ST.es * ST.esAsThr) / 100) * (1 + ST.ailThrP / 100);
+      Math.random = () => 0.12;
+      const shk = wet => { P.ail = wet ? { wet: G.t + 1e9 } : {}; mobAilPlayer({ D: D0, ail: {} }, thr * 0.4, 'light'); return P.ail.shock > G.t; };
+      const frz = wet => { P.ail = wet ? { wet: G.t + 1e9 } : {}; mobAilPlayer({ D: D0, ail: {} }, thr * 0.4, 'cold'); return +P.ail.frz.toFixed(2); };
+      out.wet = [shk(false), shk(true), frz(false), frz(true), MAPMOD.wet.fx.pwet, MAPMOD.wet.d, mapMods({ mods: ['wet'] }).pwet];
+      Math.random = () => 0.5;
+      P.ail = { wet: G.t + 1e9 }; out.wetIc = playerStates().some(s => s.k === 'wet' && s.bad); out.wetIcon = STATE.wet[1];
+      P.ail = {};
+      /* 技能嘲諷：盾衝帶 c.taunt（預設 3 秒）→ 被打到的怪只打你；沒有的招不嘲諷 */
+      const sc = gemCfg(mkGem('shieldcharge', 1), 0), t0 = mk(0), P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 };
+      applyAil(t0, { pre: P0, post: P0 }, sc);
+      const t1 = mk(0); applyAil(t1, { pre: P0, post: P0 }, gemCfg(mkGem('slash', 1), 0));
+      const al = { x: 10, y: 0, r: 12, hp: 100, mhp: 100, dead: 0 }; G.allies = [al];
+      const t2 = mk(100); t2.ail.taunt = G.t + 3; t2.ail.tauntBy = al; t2.ail.tauntT = G.t + 3;
+      out.taunt = [SKILLS.shieldcharge.taunt, sc.taunt, +(t0.ail.taunt - G.t).toFixed(2), !!t1.ail.taunt, gemCfg(mkGem('slash', 1), 0).taunt, mobTarget(t2, 0) === P];
+      G.allies = [];
+      /* 找路指定目標：牆（x=4、列 1～3）把怪（3,2）跟召喚物（5,2）隔開，缺口在最上面；玩家在怪的左邊 */
+      const C = 9, Rw = 4; G.cols = C; G.rows = Rw;
+      G.tiles = new Uint8Array(C * Rw); for (let y = 1; y < Rw; y++) G.tiles[y * C + 4] = 1;
+      P.x = 0.5 * 48; P.y = 2.5 * 48;
+      const fm = { x: 3.5 * 48, y: 2.5 * 48 }, fa = { x: 5.5 * 48, y: 2.5 * 48, hp: 50, dead: 0 };
+      G.flowT = 0; flowUpd();
+      const d1 = flowOf(fa), d2 = flowOf(fa), fp = flowOf(P);
+      const ang = a => +a.toFixed(2);
+      out.flow = [ang(flowAng(fm)), ang(flowAng(fm, P)), ang(flowAng(fm, fa)), d1 === d2, fp === G.flow, d1 !== fp, d1[2 * C + 5], d1[2 * C + 3]];
+      G.flowT = 0; flowUpd(); out.flowNew = flowOf(fa) !== d1;
+      /* 走過去：沿著找路的方向走到召喚物旁邊（不是繞去找玩家） */
+      const w = { x: fm.x, y: fm.y }; let steps = 0;
+      for (; steps < 200 && Math.hypot(w.x - fa.x, w.y - fa.y) > 60; steps++) { const a = flowAng(w, fa); w.x += Math.cos(a) * 12; w.y += Math.sin(a) * 12; }
+      out.flowWalk = [steps < 60, w.y < 2 * 48];
+      Object.assign(G, { tiles: keep.tiles });
+    } finally {
+      Math.random = rnd0;
+      ST = keep.st; Object.assign(G, { mobs: keep.mobs, units: keep.units, ground: keep.ground, t: keep.t, mm: keep.mm, mapT: keep.mapT }); P.ail = keep.ail; P.x = keep.x; P.y = keep.y;
+    }
+    return out;
+  })()`);
+  ok(
+    '3B 捕獸夾：被夾到的釘身 2 秒（品質 +1 秒）、王不釘身只累積、範圍外不受影響；陷阱標籤、c.pin 有',
+    JSON.stringify(b64.bear) === '[2,false,true,false,true,true,3,1,true]',
+    JSON.stringify(b64.bear)
+  );
+  ok(
+    '3B 捕獸夾退回期：剛釘完的菁英（還在穩固值退回期）再被夾不會直接釘，只累積釘身；退回期過了才又釘得到',
+    JSON.stringify(b64.bearBack) === '[2,true,true,true,true]',
+    JSON.stringify(b64.bearBack)
+  );
+  ok(
+    '3B 閃電陷阱：本體每多一個其他陷阱 +20%（品質 +10%）；連鎖到其他陷阱永遠是半傷害（不吃加成，2 個、品質都一樣）；被打到的感電（包括只有自己一個時）、太遠的不受影響；爆掉的陷阱不算',
+    JSON.stringify([b64.zap, b64.zapSpent]) === '[[0,1.2,1.4,0.5,true,true,true,false,1.6,0.5,0.5],true]',
+    JSON.stringify([b64.zap, b64.zapSpent])
+  );
+  ok(
+    '3B 火焰陷阱：爆開留燃燒地面 4 秒（品質 +2 秒、每秒 30%），地面會再打；3 招都在陷阱器、遠端、有圖示與品質說明',
+    JSON.stringify([b64.fire, b64.fireQ, b64.skills]) ===
+      '[[1,"fire",4,0.3,true,true,true],6,[["traptool","trap","spell,trap,aoe,remote","sk_trapshot",true,3],["traptool","trap","spell,trap,aoe,remote","sk_spark",true,7],["traptool","trap","spell,trap,aoe,remote","sk_firewall",true,5]]]' &&
+      b64.skills.every(r => has(r[3])),
+    JSON.stringify([b64.fire, b64.fireQ, b64.skills])
+  );
+  ok(
+    '3B 雙手錘 3 種基底（巨鎚、破城鎚、天罰鎚）有擴散固定詞，說明看得到、裝上去 ST.splash 是 1、其他基底沒有',
+    JSON.stringify(b64.splash) === '["010101","打擊造成擴散傷害",true,1,0]',
+    JSON.stringify(b64.splash)
+  );
+  ok(
+    '3B 受招架詞綴：輕盾與長矛才出（其他盾、劍、錘不出）、T6 4～7 到 T1 21～24（持續時間 6～11 到 31～36）、裝上去進 ST、幅度與持續時間算得到',
+    JSON.stringify([b64.pool, b64.rng, b64.parryAff]) ===
+      '[[true,true,true,true,0],[[4,7],[21,24],[6,11],[31,36]],[20,30,0,1.33,3,0,0,"def","def",25,0]]',
+    JSON.stringify([b64.pool, b64.rng, b64.parryAff])
+  );
+  ok(
+    '3B 無咒：判官與鬼道士自己無咒、地圖詞「怪物無咒」讓全部怪無咒、生怪時帶上；詛咒擋下，hexPierce 才能詛咒，一般怪照常',
+    JSON.stringify([b64.hex, b64.hexCurse]) === '[[1,1,1,0,1,1,1,1],[false,true,true]]',
+    JSON.stringify([b64.hex, b64.hexCurse])
+  );
+  ok(
+    '3B 緩速藤蔓：毒菇、毒樹蛙打中你各施加 1 層（疊 2 層），別的怪不施加',
+    JSON.stringify(b64.vine) === '[1,2,0,1,1]',
+    JSON.stringify(b64.vine)
+  );
+  ok(
+    '3B 濕透（玩家）：感電機率 ×1.5（機率 10% 的擊中，擲 12 只有濕透時感電）、冰凍累積 ×1.25、狀態圖示；地圖詞「濕透」讓玩家進圖就濕',
+    JSON.stringify([b64.wet, b64.wetIc]) === '[[false,true,20,25,1,1,1],true]' &&
+      b64.wetIcon === 'sk_blizzard' &&
+      has(b64.wetIcon),
+    JSON.stringify([b64.wet, b64.wetIc])
+  );
+  ok(
+    '3B 嘲諷：盾衝帶 c.taunt（預設 3 秒）、別的招不嘲諷；被嘲諷的怪只打玩家（就算召喚物比較近）',
+    JSON.stringify(b64.taunt) === '[true,true,3,false,0,true]',
+    JSON.stringify(b64.taunt)
+  );
+  ok(
+    '3B 找路指定目標：以召喚物為終點的路跟以玩家為終點的路不同（怪在牆這一邊，玩家往左、召喚物在牆後要往上繞）、同一個 0.25 秒共用、換一次重算；照路走得到召喚物旁邊',
+    JSON.stringify([b64.flow, b64.flowNew, b64.flowWalk]) === '[[3.14,3.14,-1.57,true,true,true,0,6],true,[true,true]]',
+    JSON.stringify([b64.flow, b64.flowNew, b64.flowWalk])
   );
   /* 0.2.60 K1：先祖強化（戰爭之拳：重擊每 6 秒更多 30%、範圍 +25%；先祖呼喚：打擊每 5 秒多打 2 隻、不重複） */
   const k60 = R(`(() => {

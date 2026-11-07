@@ -67,11 +67,11 @@ function poise(m, k) {
 /* 禁錮（0.2.42，照 PoE2）＝不能移動的總稱：冰凍、觸電、沉重暈眩、釘身、石化（第 10 批）；本身不加傷害，「對禁錮的敵人傷害提高」才吃 */
 const immob = a => a.frozen > G.t || a.elcT > G.t || a.hstun > G.t || a.pinT > G.t || a.petr > G.t;
 /* 定身：不管是累滿還是粉碎重擊、撞牆，之後穩固值都 +500%，從定身結束開始退回 */
-function poisePin(m, k) {
+function poisePin(m, k, sec = POISE[k].sec) {
   const q = POISE[k],
     a = m.ail;
-  a[q.on] = G.t + q.sec;
-  (a.psT = a.psT || {})[k] = G.t + q.sec + q.back;
+  a[q.on] = G.t + sec;
+  (a.psT = a.psT || {})[k] = G.t + sec + q.back;
   a[k] = 0;
   /* 釘身觸發時僵直一次（王不吃僵直） */
   if (k === 'pin' && !m.boss) m.stun = Math.max(m.stun || 0, 0.5);
@@ -1223,7 +1223,8 @@ const curseV = (k, lv) => {
 /* dm：技能持續時間的倍率（詛咒技能是持續時間技能） */
 function curseMob(m, k, lv, q = 0, dm = 1) {
   /* 無咒的（怪物旗標 m.hexproof）：不受詛咒；玩家有 hexPierce 時你的詛咒能影響無咒敵人 */
-  if ((m.hexproof && !ST.hexPierce) || noAil(m.ail, 'curse')) return;
+  if (m.hexproof && !ST.hexPierce) return num(m.x, m.y - m.sz * 1.3, 0, 'ev', '無咒');
+  if (noAil(m.ail, 'curse')) return;
   const v = curseV(k, lv) * (1 - rarRed(m)) * debuffM(bufV('curseMag'));
   m.ail.curse = { k, v, t: G.t + (6 + 0.07 * lv) * dm, q };
   if (k === 'vuln') m.arm = m.arm0 * (1 - v / 100);
@@ -1830,10 +1831,13 @@ function mobAilPlayer(m, d, el, dm = 1) {
     const v = Math.min(50, (d / thr) * 100);
     if (v >= 30) a.chill = { v, t: G.t + 2 };
   }
-  if (el === 'light' && !imm('shock') && roll(((d / thr) * 100) / 4)) a.shock = G.t + 4;
+  /* 濕透（地圖詞「濕透」、玩家方沒有別的來源）：感電機率 50% 更多、冰凍累積 25% 更多，跟怪物身上的濕透同一組數字 */
+  const wet = a.wet > G.t;
+  if (el === 'light' && !imm('shock') && roll((((d / thr) * 100) / 4) * (wet ? 1 + DEBUFF.wetShock / 100 : 1)))
+    a.shock = G.t + 4;
   /* 冰凍累積：滿了凍住 1.5 秒（玩家的比怪物短，不然太難受） */
   if (el === 'cold' && !imm('frz') && !ST.stand) {
-    a.frz = (a.frz || 0) + (d / thr) * 50;
+    a.frz = (a.frz || 0) + (d / thr) * 50 * (wet ? 1 + DEBUFF.wetFrz / 100 : 1);
     if (a.frz >= 100) (a.frozen = G.t + 1.5), (a.frz = 0);
   }
   if (!imm('bleed') && !ST.ci && Math.random() < (ail === 'bleed' ? 0.25 : 0) + MM('mbleed') / 100)
@@ -2122,7 +2126,7 @@ const STATE = {
   weak: ['虛弱', 'ail_chgN', '移動速度 −20%、造成的傷害 −10%'],
   taunt: ['嘲諷', 'ail_mark', '只能以你為目標，對你以外的目標傷害少 10%'],
   tauntG: ['嘲諷', 'ail_mark', '被魔像嘲諷：只能以魔像為目標'],
-  wet: ['濕透', 'ail_burn', '感電機率 50% 更多、冰凍累積 25% 更多'],
+  wet: ['濕透', 'sk_blizzard', '感電機率 50% 更多、冰凍累積 25% 更多'],
   easy: ['易攻目標', 'ail_comboN', '下一次投射物攻擊擊中受到更多傷害，擊中後消耗'],
   over: ['超重', 'ail_slow', '每層緩速 10%，重新施加疊層並刷新'],
   vine: ['緩速藤蔓', 'ail_n_corrode', '每層移動速度 −8%；移動會逐漸移除層數'],
@@ -2220,6 +2224,7 @@ function playerStates() {
   add('blind', a.blind, bad);
   add('exp', a.exp, bad);
   add('oiled', a.oiled, bad);
+  add('wet', a.wet, bad);
   if (witherN(a)) add('wither', Math.max(...a.wither), { bad: 1, c: witherN(a) });
   if (a.gd) add('gd', a.gd.t, { bad: 1, n: a.gd.n });
   add('cons', a.cons);

@@ -283,6 +283,8 @@ function enterMap(t) {
   G.deco = decorate(rooms);
   newPlayer((st.cx * CHUNK + 7) * TS, (st.cy * CHUNK + 7) * TS);
   if (G.mm.pcurse) P.ail = { curse: { k: G.mm.pcurse, v: G.mm.pcv, t: 1e9 } };
+  /* 地圖詞「濕透」：整張圖都是濕透（drench 的長秒數；combat.js 的 mobAilPlayer 讀 a.wet） */
+  if (G.mm.pwet) (P.ail = P.ail || {}), drench(P, 1e9);
   /* 怪物：起點以外的房間各 2～3 群，每 4 群一隻菁英 */
   let pk = 0,
     pts = 0;
@@ -410,6 +412,8 @@ function spawnMob(D, x, y, pack, elite) {
     hp: D.hp * m.hp * e.hp * MOB_HP * (1 + MM('mhp') / 100),
     dmg: D.dmg * m.dmg * e.dmg * (1 + MM('mdmg') / 100),
     el: D.el || 'phys',
+    /* 無咒（combat.js 的 curseMob）：怪物自己帶（D.hexproof，判官、鬼道士）或地圖詞「怪物無咒」 */
+    hexproof: D.hexproof || MM('mhex') ? 1 : 0,
     st: 'idle',
     t: 0,
     cd: rnd(0.3, 1),
@@ -959,15 +963,14 @@ const DIR8 = [
   [-1, 1],
   [-1, -1]
 ];
-function flowUpd() {
-  if (!G.tiles || G.flowT > G.t) return;
-  G.flowT = G.t + 0.25;
+/* 從 (ox, oy) 所在的格子做 BFS，d 是裝距離的陣列（沒走到的是 −1） */
+function flowFill(d, ox, oy) {
   const C = G.cols,
     R = G.rows,
-    d = G.flow && G.flow.length === C * R ? G.flow.fill(-1) : (G.flow = new Int16Array(C * R).fill(-1)),
-    s = Math.floor(P.y / TS) * C + Math.floor(P.x / TS),
+    s = Math.floor(oy / TS) * C + Math.floor(ox / TS),
     q = new Int32Array(C * R);
-  if (s < 0 || s >= C * R) return;
+  d.fill(-1);
+  if (s < 0 || s >= C * R) return d;
   let h = 0,
     n = 0;
   d[s] = 0;
@@ -985,13 +988,28 @@ function flowUpd() {
       q[n++] = j;
     }
   }
+  return d;
+}
+function flowUpd() {
+  if (!G.tiles || G.flowT > G.t) return;
+  G.flowT = G.t + 0.25;
+  const n = G.cols * G.rows;
+  G.flow = flowFill(G.flow && G.flow.length === n ? G.flow : new Int16Array(n), P.x, P.y);
+  G.flowX = new Map();
+}
+/* 以目標 T 為終點的路（0.2.64）：玩家用每 0.25 秒算好的 G.flow；召喚物、圖騰這種目標第一次有怪要用時才算，同一個 0.25 秒內共用 */
+function flowOf(T) {
+  if (T === P) return G.flow;
+  const X = G.flowX || (G.flowX = new Map());
+  if (!X.has(T)) X.set(T, flowFill(new Int16Array(G.cols * G.rows), T.x, T.y));
+  return X.get(T);
 }
 /* 往距離最小的鄰格走（斜走要兩邊都不是牆，免得卡在牆角） */
-function flowAng(m) {
+function flowAng(m, T = P) {
   const C = G.cols,
     x = Math.floor(m.x / TS),
     y = Math.floor(m.y / TS),
-    f = G.flow,
+    f = flowOf(T),
     at = (cx, cy) => (cx < 0 || cy < 0 || cx >= C || cy >= G.rows ? -1 : f[cy * C + cx]);
   let bx = 0,
     by = 0,
@@ -1001,7 +1019,7 @@ function flowAng(m) {
     if (v < 0 || v >= bv || (dx && dy && (at(x + dx, y) < 0 || at(x, y + dy) < 0))) continue;
     (bv = v), (bx = x + dx), (by = y + dy);
   }
-  return bv < 1e9 ? Math.atan2((by + 0.5) * TS - m.y, (bx + 0.5) * TS - m.x) : angTo(m, P);
+  return bv < 1e9 ? Math.atan2((by + 0.5) * TS - m.y, (bx + 0.5) * TS - m.x) : angTo(m, T);
 }
 /* ---------- 怪物的目標（0.2.52，企劃書 4.1）----------
    一般怪：打離自己最近、看得到的玩家或召喚物，每 0.5 秒重選一次。王：平常只打玩家。
@@ -1074,9 +1092,9 @@ function updMobs(dt) {
       dT = dist(m, T);
     if (m.st === 'idle' || m.st === 'move') {
       m.st = 'move';
-      /* 看得到目標就直走，看不到就照找路的方向繞過去（找路只算到玩家的方向） */
+      /* 看得到目標就直走，看不到就照找路的方向繞過去（0.2.64：找路的終點是目標，牆後的召喚物也一樣） */
       const see = los(m.x, m.y, T.x, T.y),
-        a = see ? angTo(m, T) : flowAng(m);
+        a = see ? angTo(m, T) : flowAng(m, T);
       let want = 1;
       if (!see) want = 1;
       else if (FAR_AI[D.ai]) want = dT > 300 ? 1 : dT < 200 ? -1 : 0;
@@ -1208,7 +1226,7 @@ function bossAI(m, dt) {
   if (m.st === 'idle' || m.st === 'move') {
     m.st = 'move';
     const see = los(m.x, m.y, T.x, T.y),
-      a = see ? angTo(m, T) : flowAng(m);
+      a = see ? angTo(m, T) : flowAng(m, T);
     if (dT > 90 || !see) {
       const cs = mobSpd(m);
       moveBody(m, Math.cos(a) * m.D.spd * cs * (rage < 1 ? 1.25 : 1) * dt, Math.sin(a) * m.D.spd * cs * dt);

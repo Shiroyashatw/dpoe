@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.63';
+const VER = '0.2.64';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -682,6 +682,49 @@ const SKILLS = {
     tags: ['spell', 'mine', 'aoe'],
     d: '埋下地雷（可以疊好幾顆）；最後一顆埋下 1.2 秒後一起引爆，每多一顆全部 +10% 傷害'
   },
+  /* 0.2.64（第 3 層 I 批，給第 5 層詭雷師）：陷阱器補 3 招。⚠️ 數值暫定：照冰霜陷阱、爆裂地雷的量級（m 1.4～1.6、魔力 8～10、範圍 100～110） */
+  beartrap: {
+    n: '捕獸夾',
+    ic: 'sk_trapshot',
+    t: 0.3,
+    mp: 10,
+    m: 1.2,
+    r: 90,
+    pin: 1,
+    pinSec: 2,
+    unit: 'trap',
+    wt: ['traptool'],
+    tags: ['spell', 'trap', 'aoe'],
+    d: '丟出捕獸夾，敵人靠近就夾住：範圍物理傷害，被夾到的敵人（王除外）釘身 2 秒，不能移動、不能被擊退（王，以及剛釘完還在穩固值退回期的敵人，只累積釘身）'
+  },
+  lightningtrap: {
+    n: '閃電陷阱',
+    ic: 'sk_spark',
+    t: 0.3,
+    mp: 10,
+    m: 1.4,
+    r: 100,
+    el: 'light',
+    chainTrap: 0.2,
+    unit: 'trap',
+    wt: ['traptool'],
+    tags: ['spell', 'trap', 'aoe'],
+    d: '丟出陷阱，敵人靠近就爆開：範圍閃電傷害，場上每多一個其他陷阱，這一下傷害 +20%；閃電再連鎖到每個其他陷阱，在那裡也爆一次（固定半傷害，不吃這個加成），被打到的敵人感電'
+  },
+  firetrap: {
+    n: '火焰陷阱',
+    ic: 'sk_firewall',
+    t: 0.3,
+    mp: 10,
+    m: 1.1,
+    r: 100,
+    el: 'fire',
+    gndDur: 4,
+    unit: 'trap',
+    wt: ['traptool'],
+    tags: ['spell', 'trap', 'aoe'],
+    d: '丟出陷阱，敵人靠近就爆開：範圍火焰傷害，並留下燃燒地面 4 秒（每秒 30% 的傷害，可以點燃）'
+  },
   ballista: {
     n: '弩砲塔圖騰',
     ic: 'sk_ballista',
@@ -1093,8 +1136,9 @@ const SKILLS = {
     dur: 2,
     off: 'shield',
     shield: 1,
+    taunt: true,
     tags: ['attack', 'melee', 'move', 'cd'],
-    d: '舉盾往前突刺一小段（途中不是無敵），撞到的敵人受一次盾擊。之後 2 秒內是反擊狀態：打到你的敵人都會受招架（受到的攻擊傷害 50% 更多、無法閃避），你受到的傷害照常結算。基礎傷害看盾的護甲與閃避'
+    d: '舉盾往前突刺一小段（途中不是無敵），撞到的敵人受一次盾擊並被嘲諷 3 秒（只能以你為目標）。之後 2 秒內是反擊狀態：打到你的敵人都會受招架（受到的攻擊傷害 50% 更多、無法閃避），你受到的傷害照常結算。基礎傷害看盾的護甲與閃避'
   },
   furyslam: {
     n: '狂怒重砸',
@@ -1251,6 +1295,9 @@ const CLS_TAGS = {
   meteor: 'repeat cascade',
   frosttrap: 'remote',
   blastmine: 'remote',
+  beartrap: 'remote',
+  lightningtrap: 'remote',
+  firetrap: 'remote',
   ballista: 'remote duration',
   firetotem: 'remote duration',
   mirage: 'remote duration',
@@ -1717,6 +1764,9 @@ const QUAL = {
   wolf: '狼咬死怪時，{20}% 機率多一隻臨時狼 8 秒',
   frosttrap: '爆開時 {20}% 機率留在原地，可以再觸發一次',
   blastmine: '爆炸時 {20}% 機率彈出 1 顆小地雷（0.5 秒後爆，傷害 ×0.5）',
+  beartrap: '釘身時間 +{1} 秒',
+  lightningtrap: '每個其他陷阱的傷害加成再 +{10}%',
+  firetrap: '燃燒地面多 {2} 秒',
   ballista: '擊中 {20}% 機率削減護甲',
   firetotem: '時間到時自爆，倍率 ×{1}',
   mirage: '分身消失時，{20}% 機率留下新分身 2 秒',
@@ -1870,6 +1920,9 @@ const GEM_LV = {
   venom: 5,
   nova: 5,
   blastmine: 5,
+  beartrap: 3,
+  firetrap: 5,
+  lightningtrap: 7,
   ballista: 5,
   cu_enfeeble: 5,
   mk_sniper: 5,
@@ -5100,7 +5153,15 @@ const WCLS = {
     m: 1.75,
     as: 1.15,
     crit: 0,
-    imps: [{ aoe: 6 }, { hsP: 20 }, { slamP: 12 }, { armBreak: 1 }, { fireP: 25 }, { critX: 30 }],
+    /* 0.2.64：巨鎚、破城鎚、天罰鎚多一條「打擊造成擴散傷害」（PoE2 雙手錘 26 種裡有 3 種，基底全表 3.3） */
+    imps: [
+      { aoe: 6 },
+      { hsP: 20, splash: 1 },
+      { slamP: 12 },
+      { armBreak: 1, splash: 1 },
+      { fireP: 25 },
+      { critX: 30, splash: 1 }
+    ],
     ic: [7, 7, 7, 7, 7, 7],
     n: ['大槌', '巨鎚', '大地之鎚', '破城鎚', '隕鐵鎚', '天罰鎚']
   },
@@ -5209,6 +5270,8 @@ const WCLS = {
   }
 };
 const WLV = [1, 3, 6, 9, 12, 15];
+/* 0.2.64：輕盾與長矛才出的招架詞綴（AFF 的 parryMag、parryDur） */
+const PARRY_AFF = ['parryMag', 'parryDur'];
 /* 法系武器（長杖、法杖、權杖、陷阱器）的詞綴池：法術方向，不出攻擊詞 */
 const SPELL_AFF = ['spellP', 'critInc', 'critX', 'mp', 'es', 'life', 'spirit', 'aoe'];
 const WEAPON_BASES = Object.entries(WCLS).flatMap(([wt, C]) =>
@@ -5228,6 +5291,7 @@ const WEAPON_BASES = Object.entries(WCLS).flatMap(([wt, C]) =>
       wt: C.fam || wt,
       ...(C.two || WT2.has(wt) ? { two: 1 } : {}),
       ...(SPELLW.has(C.fam || wt) ? { aff: SPELL_AFF } : {}),
+      ...(wt === 'spear' ? { aff: [...KINDS.weapon.aff, ...PARRY_AFF] } : {}),
       b
     };
   })
@@ -5477,7 +5541,7 @@ const BASES = [
 /* 8 類詞綴類別：鍛造時選一類（免費）決定對哪一類詞下手 */
 const ACLS = [
   { k: 'life', n: '生命', ic: 'asc_s_heart', aff: ['life', 'regen', 'loh', 'flask'] },
-  { k: 'def', n: '防禦', ic: 'asc_s_shield', aff: ['armor', 'ev', 'es', 'block', 'thorn'] },
+  { k: 'def', n: '防禦', ic: 'asc_s_shield', aff: ['armor', 'ev', 'es', 'block', 'thorn', 'parryMag', 'parryDur'] },
   { k: 'ele', n: '元素', ic: 'asc_s_flame', aff: ['fire', 'cold', 'light', 'chaos'] },
   { k: 'phys', n: '物理', ic: 'asc_s_sword', aff: ['dmgP', 'flat'] },
   { k: 'crit', n: '暴擊', ic: 'asc_s_eye', aff: ['crit', 'critX', 'acc'] },
@@ -5504,6 +5568,10 @@ const dustCost = (it, k = 'dust') =>
   k === 'dust' ? Math.round(8 * (1 + it.L / 3)) : 1 + Math.floor(it.L / (k === 'fine' ? 20 : 30));
 /* 淬鍊的金幣：每按一次 +10%，最多 2 倍 */
 const temperCost = (it, single) => Math.round(3 * (1 + it.L) * Math.min(2, 1 + 0.1 * (it.tmp || 0)) * (single ? 3 : 1));
+/* 0.2.64：輕盾（6 面）多出「受招架幅度、受招架持續時間」兩條詞（PoE2 的招架盾；長矛在 WEAPON_BASES）；其他盾沒有招架，不出 */
+for (const b of BASES)
+  if (['s_hand', 's_buckler', 's_arm', 's_rattan', 's_tiger', 's_crane'].includes(b.id))
+    b.aff = [...KINDS.shield.aff, ...PARRY_AFF];
 const BASEI = Object.fromEntries(BASES.map(b => [b.id, b]));
 
 /* 詞綴：p 前綴（1）／後綴（0）、r：[T6 的最小, T1 的最大]、add 是「附加 a～b」兩個數 */
@@ -5546,7 +5614,10 @@ const AFF = {
   str: { p: 0, n: '力量 +{}', r: [5, 33] },
   dex: { p: 0, n: '敏捷 +{}', r: [5, 33] },
   int: { p: 0, n: '智慧 +{}', r: [5, 33] },
-  attrA: { p: 0, n: '全能力值 +{}', r: [2, 13] }
+  attrA: { p: 0, n: '全能力值 +{}', r: [2, 13] },
+  /* 0.2.64：招架詞綴（輕盾、長矛才出）；⚠️ 暫定：天賦小點 +5、大點 +15～25，所以裝備給 T6 4～T1 24 */
+  parryMag: { p: 0, n: '受招架幅度 +{}%', r: [4, 24] },
+  parryDur: { p: 0, n: '受招架持續時間 +{}%', r: [6, 36] }
 };
 /* 詞綴階級數（0.2.41 從 12 階改回 6 階）：T6（最低）～T1（最高）各一段；物品等級越高，能出現的最高階越高 */
 const AFF_T = 6;
@@ -5671,7 +5742,8 @@ const MOBS = {
     reach: 300,
     cd: 2.2,
     xp: 7,
-    el: 'chaos'
+    el: 'chaos',
+    vine: 1
   },
   bear: {
     n: '黑熊',
@@ -5831,7 +5903,8 @@ const MOBS = {
     reach: 360,
     cd: 2.5,
     xp: 8,
-    el: 'chaos'
+    el: 'chaos',
+    vine: 1
   },
   lantern: {
     n: '燈籠鬼',
@@ -6017,7 +6090,8 @@ const MOBS = {
     wind: 0.8,
     reach: 340,
     cd: 4.5,
-    xp: 12
+    xp: 12,
+    hexproof: 1
   },
   priest: {
     n: '鬼道士',
@@ -6033,7 +6107,8 @@ const MOBS = {
     reach: 340,
     cd: 5,
     xp: 12,
-    el: 'chaos'
+    el: 'chaos',
+    hexproof: 1
   }
 };
 /* 一群的組成 */
