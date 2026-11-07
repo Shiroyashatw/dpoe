@@ -907,6 +907,233 @@ vm.runInContext(
     pw + ' ' + cw40
   );
 }
+/* 0.2.69 第 5 層 5-1 血魔（企劃書 7.4）：血價、豐血、腐血、枯血、赤鐮、血之饗宴、昇華技能（赤鐮的寶石）。
+   機率一律用 100%／0% 的來源，不靠亂數 */
+{
+  const c7 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  vm.createContext(c7);
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c7, { filename: f });
+  const R = s => vm.runInContext(s, c7);
+  R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x), angDiff = (a, b) => Math.abs(((a - b + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+     var WARN = '', DEAD = 0; const TAU = Math.PI * 2;
+     const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, sparks = () => {}, hudWarn = t => (WARN = t), los = () => true, open = () => true, floorNear = () => null, isWall = () => false,
+       die = () => DEAD++, killMob = m => (m.hp = 0), aggroPack = () => {}, thornHit = () => {}, mobNear = () => null, mouseWorld = () => ({ x: 0, y: 0 });`);
+  vm.runInContext(
+    fs
+      .readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8')
+      .replace(/\r/g, '')
+      .replace('function mobNear(', 'function mobNear_(')
+      .replace('function thornHit(', 'function thornHit_('),
+    c7,
+    { filename: 'skills.js' }
+  );
+  R(
+    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })), gems: [], inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat() }; ST = stats(S); mechEnter();`
+  );
+  const b = R(`(() => {
+    const o = {}, D = Object.values(MOBS)[0], P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 },
+      mk = (x = 40, y = 0, e = {}) => ({ D, x, y, r: 12, sz: 20, hp: 1e6, mhp: 1e6, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, dmg: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...e }),
+      r2 = v => Math.round(v * 100) / 100,
+      base = { ...ST },
+      reset = () => {
+        G.t = 100; G.mm = null; G.mobs = []; G.shots = []; G.allies = []; G.state = 'play'; G.scene = 'map'; DEAD = 0; WARN = '';
+        ST = { ...base, dmg: [100, 100], wadd: { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] }, add: { flat: [0, 0], fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] }, armor: 0, block: 0, defl: 0, ev: 0, hp: 1000, mp: 1000, es: 0, noCrit: 1, noMiss: 1 };
+        Object.assign(P, { x: 0, y: 0, vx: 0, vy: 0, face: 0, hp: 1000, mp: 1000, es: 0, ail: {}, buf: {}, stk: null, chg: {}, rage: 0, leech: null, lifeLost: -9, cds: {}, evE: null, lastHit: null });
+      },
+      atk = { D: { tags: ['attack', 'melee'] }, q: 0, ailMag: 0, bleedCh: 100 },
+      apply = (m, c = {}) => applyAil(m, { pre: P0, post: P0 }, { ...atk, ...c }, {}),
+      A = (k, g) => ({ k, c: gemCfg(g || mkGem(k, 5), 0), ang: 0, tx: 60, ty: 0, hits: [0], n: 0 });
+
+    /* 血價：有流血機率的攻擊技能 魔力照付、另外獻祭 5% 最大生命、這一招的流血更多 40%；低於 35% 不獻祭也不加成；沒流血機率的、法術不算；練習區不扣生命但有加成 */
+    reset(); ST.bloodPrice = 40; ST.bleedCh = 0;
+    let c = gemCfg(mkGem('cleave', 5), 0), mp0 = P.mp; skillPay(c, 0);
+    o.price = [Math.round(1000 - P.hp), mp0 - P.mp === c.mp && c.mp > 0, c.bleedMore, P.lifeLost === -9];
+    P.hp = 349; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.low = [P.hp, c.bleedMore || 0];
+    P.hp = 350; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.edge = [P.hp, c.bleedMore];
+    P.hp = 1000; c = gemCfg(mkGem('slash', 5), 0); skillPay(c, 0); o.noBleed = [P.hp, c.bleedMore || 0];
+    ST.bleedCh = 10; c = gemCfg(mkGem('slash', 5), 0); skillPay(c, 0); o.gearBleed = [P.hp, c.bleedMore];
+    P.hp = 1000; c = gemCfg(mkGem('fireball', 5), 0); skillPay(c, 0); o.spell = [P.hp, c.bleedMore || 0]; ST.bleedCh = 0;
+    P.hp = 1000; ST.bloodPrice = 0; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.off = [P.hp, c.bleedMore || 0]; ST.bloodPrice = 40;
+    P.hp = 1000; G.scene = 'hide'; PRAC.in = true; PRAC.real = false; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.prac = [P.hp, c.bleedMore]; PRAC.in = false; G.scene = 'map';
+    /* 赤鐮不觸發血價（它打到的目標 1 秒內免疫流血，加成是浪費） */
+    ST.bleedCh = 10; P.hp = 1000; c = gemCfg(mkGem('sickle', 5), 0); skillPay(c, 0); o.sickleNo = [P.hp, c.bleedMore || 0]; ST.bleedCh = 0;
+    /* 血魔法（基石）照舊算失去生命：重設生命充能的延遲 */
+    P.hp = 1000; P.lifeLost = -9; ST.blood = 1; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.bloodLaw = P.lifeLost === G.t; ST.blood = 0; P.lifeLost = -9;
+    let m1 = mk(), m2 = mk(); apply(m1); apply(m2, { bleedMore: 40 });
+    o.more = r2(m2.ail.bleed.dps / m1.ail.bleed.dps);
+    /* 自動化施放（autoTick 先付費、castGem 重做設定）也要帶著流血更多 40%：拿同一隻怪比有沒有血價，流血每秒傷害差 1.4 倍 */
+    const autoBleed = bp => {
+      reset(); ST.bleedCh = 100; ST.wt = 'axe'; ST.bloodPrice = bp;
+      S.skills[0].a = mkGem('cleave', 1); S.skills[0].a.sup[0] = mkGem('autocast', 1);
+      const m = mk(40, 0); G.mobs = [m]; P.cds = {};
+      autoTick();
+      S.skills[0].a = null;
+      return [m.ail.bleed ? m.ail.bleed.dps : 0, Math.round(1000 - P.hp)];
+    };
+    const au0 = autoBleed(0), au1 = autoBleed(40);
+    o.auto = [au0[1], au1[1], au0[0] > 0 && r2(au1[0] / au0[0])];
+
+    /* 腐血：造成流血時也給 1 層腐化之血（每層每秒＝那一擊物理的 7.5%，不吃流血加成）；沒造成流血就沒有 */
+    reset(); ST.rotBlood = 1;
+    m1 = mk(); apply(m1, { bleedMore: 40 }); ST.bleedMag = 100; m2 = mk(); apply(m2); ST.bleedMag = 0;
+    o.rot = [m1.ail.cb.length, m1.ail.cb[0].dps, m2.ail.cb[0].dps, m2.ail.bleed.dps > m1.ail.bleed.dps * 0.9];
+    m1 = mk(); apply(m1, { bleedCh: 0 }); o.rotNo = !m1.ail.cb;
+    /* 枯血：擊中施加缺血，腐化之血上限 10 → 20（吃減益效果幅度：+10% 時 21） */
+    const fill = (a) => { const m = mk(); for (let i = 0; i < 40; i++) apply(m, a); return m.ail.cb.length; };
+    reset(); ST.rotBlood = 1; o.cap0 = fill();
+    ST.anemiaHit = 10; o.cap1 = fill();
+    ST.debuffMag = 10; o.cap2 = fill(); ST.debuffMag = 0; ST.anemiaHit = 0;
+
+    /* 赤鐮：範圍內每隻的流血與腐化之血剩下的傷害一次結算（每秒傷害 × 剩餘秒數＝40＋40）；後面的、遠的不動；結算後 1 秒內不再被施加 */
+    reset();
+    const dots = m => { m.ail.bleed = { dps: 10, t: G.t + 4 }; m.ail.cb = [{ dps: 5, t: G.t + 3 }, { dps: 5, t: G.t + 5 }]; return m; };
+    let hq; const g0 = mkGem('sickle', 5); let ma = dots(mk(40, 0)), mb = dots(mk(50, 30)), back = dots(mk(-60, 0)), far = dots(mk(600, 0)), z = mk(40, 0);
+    G.mobs = [z]; let h = z.hp; actHit(A('sickle', g0), 0); const hitOnly = h - z.hp;
+    G.mobs = [ma, mb, back, far]; const hs = [ma, mb, back, far].map(m => m.hp);
+    actHit(A('sickle', g0), 0);
+    o.left = r2(bloodLeft(dots(mk())));
+    /* 流血有備份（.q）：最強 10／4 秒到期，備份 6／5 秒、3／8 秒接手 → 40 ＋ 6 ＋ 9；移動時全部 ×2；備份一起清掉 */
+    const bq = () => { const m = mk(); m.ail.bleed = { dps: 10, t: G.t + 4, q: [{ dps: 6, t: G.t + 5 }, { dps: 3, t: G.t + 8 }] }; return m; };
+    const mq = bq(); o.leftQ = [r2(bloodLeft(mq)), r2(bloodLeft({ ...bq(), mv: 1 }))];
+    G.mobs = [mq]; hq = mq.hp; actHit(A('sickle', g0), 0); o.settleQ = r2(hq - mq.hp - hitOnly);
+    o.settle = [ma, mb].map((m, i) => r2(hs[i] - m.hp - hitOnly));
+    o.kept = [back, far].map((m, i) => r2(hs[i + 2] - m.hp) === 0 && hasState(m, 'blood'));
+    o.cleared = [!hasState(ma, 'blood'), ma.ail.bleed === null, ma.ail.cb === null, ma.ail.imm.bleed > G.t, ma.ail.imm.cb > G.t];
+    apply(ma); const bl0 = !!ma.ail.bleed; cbAdd(ma.ail, 5); o.immCb0 = !ma.ail.cb;
+    G.t += 1.01; ST.rotBlood = 1; apply(ma); o.imm = [bl0, !!ma.ail.bleed, !!(ma.ail.cb && ma.ail.cb.length)];
+    /* 血之饗宴：結算的 20% 變成生命回復（整揮加總成一筆、1 秒回完）；最多算到敵人剩下的生命 */
+    reset(); ST.sickleHeal = 20; P.hp = 500;
+    G.mobs = [dots(mk(40, 0)), dots(mk(50, 30))]; actHit(A('sickle', g0), 0);
+    for (let i = 0; i < 11; i++) { G.t += 0.1; leechTick(0.1); }
+    o.heal = [r2(P.hp - 500), !P.leech || !P.leech.feast];
+    /* 饗宴跟一般生命偷取各自一筆、同時回（不互相丟掉） */
+    reset(); P.hp = 500; leechAdd('hp', 100); leechAdd('feast', 32);
+    for (let i = 0; i < 11; i++) { G.t += 0.1; leechTick(0.1); }
+    o.both = r2(P.hp - 500);
+    reset(); P.hp = 500; ST.sickleHeal = 20; const ml = dots(mk(40, 0, { hp: 10 })); G.mobs = [ml]; actHit(A('sickle', g0), 0);
+    for (let i = 0; i < 11; i++) { G.t += 0.1; leechTick(0.1); }
+    o.healCap = r2(P.hp - 500);
+    reset(); P.hp = 500; ST.sickleHeal = 0; G.mobs = [dots(mk(40, 0))]; actHit(A('sickle', g0), 0); o.noHeal = P.hp;
+
+    /* 昇華技能：點亮赤鐮就在寶石頁送 1 顆（不重複送）、退點／換昇華就收回（裝著的也收，升級的靈魂退回）；赤鐮不在生成視窗的任何一頁；沒點亮不能用 */
+    reset();
+    S.asc = 'blood'; S.at = ['a_st', 'a_s5', 'a_sickle'];
+    ascSync(S); ascSync(S);
+    const cnt = () => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === 'sickle').length;
+    o.gem = [cnt(), S.gems.length];
+    S.skills[0].a = S.gems.pop(); S.skills[0].a.lv = 3; const soul0 = S.mat.soul || 0; S.skills[0].a.sup[0] = mkGem('leech', 1);
+    ascSync(S); o.equipped = cnt();
+    ST = stats(S); o.use = [ST.sickle, !!wtOK(SKILLS.sickle)];
+    S.at = ['a_st', 'a_s5']; ascSync(S);
+    o.gone = [cnt(), S.skills[0].a, (S.mat.soul || 0) - soul0 === soulCost(1) + soulCost(2), S.gems.some(g => g.gem === 'leech')];
+    ST = stats(S); o.noUse = [ST.sickle, !!wtOK(SKILLS.sickle), wtNeed(SKILLS.sickle)];
+    S.at = ['a_st', 'a_s5', 'a_sickle']; ascSync(S); const had = cnt(); S.asc = 'wind'; S.at = ['a_st']; ascSync(S); o.swap = [had, cnt()];
+    const D2 = SKILLS.sickle; o.noTab = !D2.wt && !D2.off && !['elem', 'occ', 'pri'].some(t => D2.tags.includes(t));
+    o.statn = ['bloodPrice', 'richBlood', 'rotBlood', 'anemiaHit', 'sickle', 'sickleHeal'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const j = x => JSON.stringify(x);
+  ok(
+    '血價：有流血機率的攻擊技能照付魔力、另外獻祭 5% 最大生命並加成（不重設生命充能的延遲）；低於 35% 不獻祭不加成；沒流血機率的、法術與赤鐮不算；練習區不扣生命；基石血魔法照舊重設延遲',
+    j(b.price) === '[50,true,40,true]' &&
+      j(b.sickleNo) === '[1000,0]' &&
+      b.bloodLaw &&
+      j(b.low) === '[349,0]' &&
+      j(b.edge) === '[300,40]' &&
+      j(b.noBleed) === '[1000,0]' &&
+      j(b.gearBleed) === '[950,40]' &&
+      j(b.spell) === '[1000,0]' &&
+      j(b.off) === '[1000,0]' &&
+      j(b.prac) === '[1000,40]',
+    j([b.price, b.sickleNo, b.bloodLaw, b.low, b.edge, b.noBleed, b.gearBleed, b.spell, b.off, b.prac])
+  );
+  ok(
+    '血價：這一招的流血傷害更多 40%（×1.4）；自動化施放（autoTick 付費、castGem 重做設定）也一樣 ×1.4、也扣 5%',
+    b.more === 1.4 && j(b.auto) === '[0,50,1.4]',
+    j([b.more, b.auto])
+  );
+  ok(
+    '腐血：造成流血時也給 1 層腐化之血（每層每秒＝物理 7.5，不吃血價與流血強度）；沒造成流血就沒有',
+    j(b.rot) === '[1,7.5,7.5,true]' && b.rotNo,
+    j([b.rot, b.rotNo])
+  );
+  ok(
+    '枯血：腐化之血上限 10 → 20（減益效果幅度 +10% 時 21）',
+    b.cap0 === 10 && b.cap1 === 20 && b.cap2 === 21,
+    j([b.cap0, b.cap1, b.cap2])
+  );
+  ok(
+    '赤鐮：範圍內每隻的流血與腐化之血剩下的傷害一次結算（每秒傷害 × 剩餘秒數＝80；流血有備份時照到期時間切段：10／4 秒＋備份 6／5 秒、3／8 秒＝55，移動 ×2＝110），背後與太遠的不動；清掉（備份一起）、1 秒內不再被施加流血與腐化之血',
+    b.left === 80 &&
+      j(b.leftQ) === '[55,110]' &&
+      b.settleQ === 55 &&
+      j(b.settle) === '[80,80]' &&
+      j(b.kept) === '[true,true]' &&
+      j(b.cleared) === '[true,true,true,true,true]' &&
+      b.immCb0 &&
+      j(b.imm) === '[false,true,true]',
+    j([b.left, b.leftQ, b.settleQ, b.settle, b.kept, b.cleared, b.immCb0, b.imm])
+  );
+  ok(
+    '血之饗宴：結算的 20% 變成生命回復（兩隻共 160 → 32，1 秒回完）；最多算到敵人剩下的生命（10 → 2）；沒點就不回；跟一般生命偷取各自一筆、同時回（100＋32＝132）',
+    j(b.heal) === '[32,true]' && b.healCap === 2 && b.noHeal === 500 && b.both === 132,
+    j([b.heal, b.healCap, b.noHeal, b.both])
+  );
+  ok(
+    '赤鐮是昇華技能：點亮就在寶石頁送 1 顆（不重複）、退點收回（裝著的也收、升級的靈魂退回、插著的輔助放回寶石頁）、換昇華也收；沒點亮不能用；不在生成視窗',
+    j(b.gem) === '[1,1]' &&
+      b.equipped === 1 &&
+      j(b.use) === '[1,true]' &&
+      j(b.gone) === '[0,null,true,true]' &&
+      j(b.noUse) === '[0,false,"要點亮昇華點「赤鐮」"]' &&
+      j(b.swap) === '[1,0]' &&
+      b.noTab,
+    j([b.gem, b.equipped, b.use, b.gone, b.noUse, b.swap, b.noTab])
+  );
+  /* 豐血：裝備與天賦給的生命（+x 與提高 %）×1.5、昇華小點的提高與角色等級、能力值給的不乘；無法獲得能量護盾 */
+  G.PTREE.I.zz = { s: { life: 40, hpP: 20 } };
+  const bl = G.BASEI.r_iron.b.life,
+    ring = Object.assign(G.mkItem('r_iron', 16, 0), {
+      a: [
+        { k: 'life', v: 100, T: 1 },
+        { k: 'es', v: 100, T: 1 }
+      ]
+    }),
+    s0 = (eq, pt, asc, at) => G.stats({ lv: 90, eq, pt, asc, at, auras: [], charms: [] }),
+    X = s0({ ring1: Object.assign(G.mkItem('r_iron', 16, 0), { a: [] }) }, []).hp,
+    hA = s0({ ring1: ring }, ['zz']),
+    hB = s0({ ring1: ring }, ['zz'], 'blood', ['a_st', 'a_s1', 'a_price', 'a_s2', 'a_rich']),
+    hC = s0({ ring1: ring }, ['zz'], 'blood', ['a_st', 'a_s3', 'a_rot']);
+  G.PTREE.I.zci = { s: { ci: 1 } };
+  const hD = s0({ ring1: ring }, ['zz', 'zci'], 'blood', ['a_st', 'a_s1', 'a_price', 'a_s2', 'a_rich']);
+  delete G.PTREE.I.zci;
+  delete G.PTREE.I.zz;
+  ok(
+    '豐血：裝備與天賦的生命（+x 與提高 %）×1.5，昇華小點的提高、角色等級與能力值給的生命不乘；無法獲得能量護盾（沒點豐血時照常）；跟基石混沌免疫一起＝生命 1、護盾 0',
+    hA.hp === Math.round((X + 140) * 1.2) &&
+      hA.es === 100 &&
+      hB.hp === Math.round((X - bl + 1.5 * (bl + 140)) * (1 + (30 + 5) / 100)) &&
+      hB.es === 0 &&
+      hC.hp === hA.hp &&
+      hC.es === 100 &&
+      hD.hp === 1 &&
+      hD.es === 0,
+    [X, hA.hp, hA.es, hB.hp, hB.es, hC.hp, hC.es, hD.hp, hD.es].join()
+  );
+  const srcB = ['skills.js', 'combat.js', 'mech.js', 'items.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '血魔的 6 個新能力：STATN 有名字、stats 預設是 0、機制至少一處讀取（sickle 是技能欄位的 wtOK 用 ST[D.asc] 讀）',
+    !b.statn.length &&
+      ['bloodPrice', 'richBlood', 'rotBlood', 'anemiaHit', 'sickleHeal'].every(k =>
+        new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcB)
+      ),
+    b.statn.join(' ')
+  );
+}
 /* 0.2.27 物理傷害不能走抗性（NaN＝無敵）；T1～T5 放寬；魔力回復與消耗 */
 {
   const R = s => vm.runInContext(s, ctx);
@@ -1097,8 +1324,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：162 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 162,
+    '品質：163 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 163,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */

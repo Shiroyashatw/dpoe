@@ -1072,7 +1072,7 @@ body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
 #pasc > .ph { grid-column: 1 / -1; margin-bottom: 10px; }
 .ax-reset { margin-left: auto; flex: none; white-space: nowrap; }
 #pasc .ph .ax-reset + .x { margin-left: 0; }
-.ax-tabs { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding-bottom: 10px; }
+.ax-tabs { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding-bottom: 10px; }
 .ax-tab { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 4px 10px; font: 700 var(--fs) var(--serif); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; text-align: left; }
 .ax-tab:hover { border-color: var(--fr); }
 .ax-tab:active { transform: scale(0.98); }

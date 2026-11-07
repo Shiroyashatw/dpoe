@@ -242,6 +242,17 @@ Object.assign(BUILDS, {
     wt: 'mace',
     off: 'shield',
     sk: 'shieldcrush'
+  },
+  /* 0.2.69：血魔（斧＋流血，企劃書 7.4）。流血與腐化之血當作一直掛著：流血每秒＝每一下物理 ×15%×流血加成×血價更多，
+     腐化之血疊滿上限（10＋缺血）、每層每秒＝每一下物理 ×7.5%；赤鐮的結算只是把持續傷害提早收，沒另外算進 DPS，
+     另外印出「赤鐮一下約結算多少」（流血剩 5 秒、腐化之血平均剩 2.5 秒）與血價每秒扣的生命 */
+  血魔: {
+    tree: WT('axe', { meleeP: 2, bleedCh: 2, bleedMag: 2, ailMag: 1 }),
+    gear: WG,
+    wt: 'axe',
+    sk: 'cleave',
+    asc: ['blood', 's1', 'price', 's3', 'rot', 's4', 'wither', 's5', 'sickle'],
+    blood: 1
   }
 });
 /* 0.2.36 穩固值：同樣扣完減傷的總傷害，全部換成一種累積，30 秒打死王時定得住幾次（用真的 poiseAdd，打不打得中、抗性不算） */
@@ -386,12 +397,23 @@ for (SD = 0; SD < SEEDS; SD++)
       if (ST.powCritX) R('P.chg = { p: { n: 3, t: 1e9 } }');
       if (ST.cwHit) boss.ail.cw = Array(ST.cwMax || 20).fill(1e9);
       let fireSum = 0,
+        physSum = 0,
         crits = 0;
       for (let i = 0; i < N; i++) {
         const r = R(`hitCalc(c, boss, { fly: ${B.fly || 0} })`);
         sum += r.d;
         fireSum += r.pre.fire;
+        physSum += r.pre.phys;
         crits += r.crit ? 1 : 0;
+      }
+      /* 血魔：流血與腐化之血的每秒傷害（持續傷害不吃護甲）；赤鐮一下結算約多少 */
+      let bleedDps = 0,
+        cbDps = 0;
+      if (B.blood) {
+        const ph = physSum / N,
+          cap = ST.rotBlood ? R('DEBUFF.cbMax') + Math.floor(ST.anemiaHit * R('debuffM()')) : 0;
+        bleedDps = ph * 0.15 * (1 + (ST.ailMag + ST.bleedMag) / 100) * (1 + ST.bloodPrice / 100);
+        cbDps = cap * ph * R('DEBUFF.rotDps');
       }
       const ignDps = B.ign
         ? (fireSum / N) *
@@ -414,7 +436,12 @@ for (SD = 0; SD < SEEDS; SD++)
         rate = spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
         /* 0.2.22：攻擊要乘命中率（法術一律命中） */
         hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
-        dps = hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc + ignDps + cocDps,
+        dps =
+          hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc +
+          ignDps +
+          cocDps +
+          bleedDps +
+          cbDps,
         hitDmg = bossD.dmg * tm.dmg * R('BOSS_DMG') * 1.4,
         /* 0.2.25：無盡箭矢的投射物 +1 已經在 ST.proj */
         ehp = ST.hp + ST.es,
@@ -442,6 +469,10 @@ for (SD = 0; SD < SEEDS; SD++)
             .padStart(4) + '%',
           ST.bv ? `格擋值 ${ST.bv}` : '',
           B.asc ? `昇華 ${S.at.length - 1} 點` : '',
+          B.blood && ST.sickle
+            ? `赤鐮一下約結算 ${Math.round(bleedDps * 5 + cbDps * 2.5)}（王生命 ${(((bleedDps * 5 + cbDps * 2.5) / boss.mhp) * 100).toFixed(1)}%）`
+            : '',
+          B.blood && ST.bloodPrice ? `血價每秒 −${(rate * R('DEBUFF.bloodSac')).toFixed(0)}% 最大生命` : '',
           ST.eqBad.length ? `❌穿不起 ${ST.eqBad.join('/')}` : '',
           `過路${JSON.stringify(Object.values(S.ptA).reduce((m, c) => ((m[c] = (m[c] || 0) + 1), m), {}))}${S.pt.filter(id => R('PTREE').I[id].s && R('PTREE').I[id].s.attr).length}點 失效${R('eqCheck(S).bad.size')} 能力值${ST.str}/${ST.dex}/${ST.int} 最高需求${S.need.str}/${S.need.dex}/${S.need.int} 等級${S.need.lv}`
         ].join(' ')

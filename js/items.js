@@ -150,6 +150,25 @@ function gemPurge(o, k) {
   for (const b of [o.inv, o.stash, o.temp]) if (b) b.items = b.items.filter(g => !gone(g));
   o.gems.push(...back);
 }
+/* 昇華給的技能（0.2.69，SKILLS 的 asc＝昇華大點的能力鍵，例：血魔的赤鐮）：點亮那個點就在寶石頁送一顆（沒有才送），
+   退點或換昇華就收回（gemPurge 會退升級用的靈魂）。tree.js 的 treeChanged、main.js 的 migrate 呼叫 */
+const ascHas = (o, key) => {
+  const N = o.asc && ASC[o.asc] && ASC[o.asc].N;
+  return !!N && (o.at || []).some(id => N[id.slice(2)] && N[id.slice(2)][3] && key in N[id.slice(2)][3]);
+};
+function ascSync(o = S) {
+  for (const k in SKILLS) {
+    const key = SKILLS[k].asc;
+    if (!key) continue;
+    const own = [
+      ...o.skills.map(s => s.a),
+      ...o.gems,
+      ...[o.inv, o.stash, o.temp].flatMap(b => (b ? b.items : []))
+    ].some(g => g && g.gem === k);
+    if (!ascHas(o, key)) gemPurge(o, k);
+    else if (!own) o.gems.push(mkGem(k));
+  }
+}
 const gemOf = it => SKILLS[it.gem] || SUPPORTS[it.gem] || AURAS[it.gem];
 const isAura = it => !!AURAS[it.gem];
 const isSup = it => !!SUPPORTS[it.gem];
@@ -573,6 +592,13 @@ function stats(s = S) {
         'reap',
         'hexCoc',
         'hexBurst',
+        /* 0.2.69 血魔（data.js 的 ASC.blood；combat.js 的 bloodPay／cbAdd、mech.js 的 takeState、skills.js 的赤鐮讀） */
+        'bloodPrice',
+        'richBlood',
+        'rotBlood',
+        'anemiaHit',
+        'sickle',
+        'sickleHeal',
         /* 0.2.42 第 6 批：撲殺、屠戮打擊（%）、幸運、荊棘、偏斜（combat.js） */
         'cull',
         'fullStrike',
@@ -661,8 +687,10 @@ function stats(s = S) {
       };
     },
     isLocal = (it, k) => baseOf(it).k === 'weapon' && (['dmgP', 'as', 'crit', 'flat'].includes(k) || !!o.wadd[k]);
+  /* 裝備給的生命（豐血只放大裝備與天賦的，角色等級與能力值給的不算） */
+  let lifeEq = 0;
   const put = (k, v) => {
-    if (k === 'life') o.hp += v;
+    if (k === 'life') (o.hp += v), (lifeEq += v);
     else if (k === 'resF') o.res.fire += v;
     else if (k === 'resC') o.res.cold += v;
     else if (k === 'resL') o.res.light += v;
@@ -719,7 +747,8 @@ function stats(s = S) {
     }
   }
   /* 昇華（0.2.25）：小點的數值跟天賦一樣加；大點是開關或數值（only＝拿那種武器才生效） */
-  const AT = s.asc && ascNodes(s.asc);
+  const treeHpP = pt.hpP,
+    AT = s.asc && ascNodes(s.asc);
   for (const id of (AT && s.at) || []) {
     const n = AT.I[id],
       v = n && (n.fx || n.s);
@@ -815,11 +844,14 @@ function stats(s = S) {
   /* 盾的防禦提高（shieldDef，0.2.68）：盾本身的護甲、閃避、能量護盾再加這個 %，進各自的基礎值（之後吃全部的提高） */
   o.es += (shOf('es') * o.shieldDef) / 100;
   o.es = calc(o.es + pt.esF, o.esP + o.defP + bufV('esP'), 1, o.esTot);
+  /* 豐血（0.2.69 血魔，企劃書 7.4）：無法獲得能量護盾；裝備與天賦給的生命（+x 與提高 %）再多 richBlood%（昇華小點的提高、角色等級、能力值給的不算） */
+  if (o.richBlood) o.es = 0;
   /* 持武器的加成 */
   o.wt = (w && baseOf(w).wt) || 'unarmed';
   /* 天賦「持某武器時傷害」（0.2.17，15 種武器都有） */
   o.dmgA += o['w_' + o.wt] || 0;
-  o.hp = calc(o.hp + pt.life, pt.hpP, 1, o.lifeTot);
+  const rb = o.richBlood / 100;
+  o.hp = calc(o.hp + pt.life + rb * (lifeEq + pt.life), pt.hpP + rb * treeHpP, 1, o.lifeTot);
   /* 護甲、閃避：基礎 → 轉換（鐵壁：基礎閃避全轉成護甲）→ 獲得（基礎閃避的 x% 當作護甲）→ 各自的提高 */
   let armB = o.armor + pt.armorF + (shArm * (o.shArmMore + o.shieldDef)) / 100,
     evB = o.ev + pt.evF + (shOf('ev') * o.shieldDef) / 100;

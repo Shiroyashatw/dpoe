@@ -116,6 +116,11 @@ const DEBUFF = {
   inciseMax: 10,
   cbT: 5 /* 腐化之血 */,
   cbMax: 10,
+  /* 0.2.69 血魔（⚠️ 全部暫定，企劃書 7.4）：血價每下獻祭最大生命 %、生命低於這個 % 不獻祭也不加成；
+     腐血給的腐化之血，每層每秒物理傷害＝那一擊物理傷害的幾倍（流血是 0.15，這是它的一半） */
+  bloodSac: 5,
+  bloodLow: 35,
+  rotDps: 0.075,
   anemiaT: 8 /* ⚠️ 缺血持續秒數 */,
   petrifyT: 3 /* ⚠️ 王減半 */,
   weakT: 1,
@@ -256,19 +261,21 @@ function leechTick(
     ['hp', ST.hp],
     ['mp', ST.mp],
     ['es', ST.es],
-    ['rage', rageCap()]
+    ['rage', rageCap()],
+    /* 血之饗宴（赤鐮結算的回復，0.2.69）：回的也是生命，但跟一般的生命偷取各自一筆、同時回 */
+    ['feast', ST.hp, 'hp']
   ]
 ) {
   const L = who.leech;
   if (!L) return;
-  for (const [r, mx] of caps) {
+  for (const [r, mx, to = r] of caps) {
     const o = L[r];
     if (!o) continue;
-    if (o.t <= G.t || (who[r] || 0) >= mx) delete L[r];
+    if (o.t <= G.t || (who[to] || 0) >= mx) delete L[r];
     else {
-      who[r] = Math.min(mx, (who[r] || 0) + o.rate * dt);
+      who[to] = Math.min(mx, (who[to] || 0) + o.rate * dt);
       /* 回復盛怒像擊中得盛怒一樣重設消退計時 */
-      if (r === 'rage') who.rageT = G.t;
+      if (to === 'rage') who.rageT = G.t;
     }
   }
 }
@@ -312,12 +319,21 @@ function loseLife(v, why = '生命損失', quiet) {
   if (!quiet) num(P.x, P.y - 60, v, 'hurt');
   if (P.hp <= 0) die();
 }
-/* 獻祭：資源不夠回 false、不扣；獻祭生命不會降到 1 以下 */
-function sacrifice(res, v) {
+/* 獻祭：資源不夠回 false、不扣；獻祭生命不會降到 1 以下；quiet＝不重設生命充能的延遲（血價用，血魔法照舊算失去生命） */
+function sacrifice(res, v, quiet) {
   if (res === 'hp' ? P.hp <= v + 1 : P[res] < v) return false;
   P[res] -= v;
-  if (res === 'hp') lifeLost();
+  if (res === 'hp' && !quiet) lifeLost();
   return true;
+}
+/* 血價（0.2.69 血魔大點 bloodPrice＝流血傷害更多 %）：有流血機率的攻擊技能照常花魔力，另外獻祭最大生命 5%，這一招（c）的流血傷害更多；
+   生命低於 35% 不獻祭也不加成（skillPay 呼叫，c 就是出手用的那份設定）。赤鐮（昇華技能）不算：它打到的目標 1 秒內免疫流血，加成是浪費。
+   獻祭的生命不算受傷：不重設生命充能的延遲、不觸發被擊中的效果 */
+function bloodPay(c) {
+  if (!ST.bloodPrice || c.D.asc || !c.D.tags.includes('attack') || !(ST.bleedCh + c.bleedCh > 0)) return;
+  /* 練習區（不花資源）不扣生命，但照樣有加成，才看得到實戰的傷害 */
+  if (P.hp >= (ST.hp * DEBUFF.bloodLow) / 100 && (pracFree() || sacrifice('hp', (ST.hp * DEBUFF.bloodSac) / 100, true)))
+    c.bleedMore = ST.bloodPrice;
 }
 const nearMob = (m, r, ok) =>
   G.mobs
@@ -1075,10 +1091,12 @@ function applyAil(m, r, c, use) {
     const agg = ST.aggAll ? { agg: 1 } : undefined;
     a.bleed = keepMax(
       a.bleed,
-      ailBase(p, 'bleed') * 0.15 * (mag + ST.bleedMag / 100),
+      ailBase(p, 'bleed') * 0.15 * (mag + ST.bleedMag / 100) * (1 + (c.bleedMore || 0) / 100),
       (agg ? 2 : 5) * (1 + ST.bleedDur / 100),
       agg
     );
+    /* 腐血（血魔）：造成流血時也給腐化之血；每層的傷害不吃流血的加成（流血強度、血價的更多、加劇） */
+    if (ST.rotBlood) cbAdd(a, ailBase(p, 'bleed') * DEBUFF.rotDps, ST.rotBlood);
   }
   /* 附加火焰的品質：附加的火焰有機率直接點燃 */
   if (c.addIgn && p.fire > 0 && !noAil(a, 'ign') && qRoll(c.addIgn))
@@ -1133,6 +1151,17 @@ function applyAil(m, r, c, use) {
   if (c.intim) a.intim = G.t + 4;
   debuffsOn(m, p, c);
 }
+/* 腐化之血加 n 層（每層每秒 dps 的物理持續傷害、各 5 秒；上限＝10＋缺血幅度）；被收割後 1 秒內不再被施加（mech.js 的 takeState） */
+function cbAdd(a, dps, n = 1) {
+  if (noAil(a, 'cb')) return;
+  const cb = (a.cb = (a.cb || []).filter(x => x.t > G.t)),
+    mx = DEBUFF.cbMax + (a.anemia && a.anemia.t > G.t ? Math.floor(a.anemia.v) : 0);
+  for (let i = 0; i < n; i++) {
+    cb.push({ dps, t: G.t + DEBUFF.cbT });
+    cb.sort((x, y) => y.t - x.t);
+    if (cb.length > mx) cb.pop(); /* 滿了就換掉最舊的；上限縮小時不一次砍掉已有的層 */
+  }
+}
 /* 第 10 批的技能欄位減益（applyAil 最後呼叫）；來源只有技能欄位，沒有技能接的先不會發生 */
 function debuffsOn(m, p, c) {
   const a = m.ail,
@@ -1157,14 +1186,10 @@ function debuffsOn(m, p, c) {
     if (m.ev <= 0) a.crip = G.t + DEBUFF.cripT;
   }
   /* 缺血：目標的腐化之血層數上限 = 10 + 缺血幅度（乘減益幅度）；腐化之血：c.corrupt ＝每層每秒的物理持續傷害，每層獨立 5 秒 */
-  if (c.anemia) a.anemia = { v: c.anemia * dm, t: G.t + DEBUFF.anemiaT };
-  if (c.corrupt) {
-    const cb = (a.cb = (a.cb || []).filter(x => x.t > G.t)),
-      mx = DEBUFF.cbMax + (a.anemia && a.anemia.t > G.t ? Math.floor(a.anemia.v) : 0);
-    cb.push({ dps: c.corrupt, t: G.t + DEBUFF.cbT });
-    cb.sort((x, y) => y.t - x.t);
-    if (cb.length > mx) cb.pop(); /* 滿了就換掉最舊的；上限縮小時不一次砍掉已有的層 */
-  }
+  /* 枯血（血魔，ST.anemiaHit）：每次擊中都施加缺血，幅度跟技能欄位的 c.anemia 取大的 */
+  const ane = Math.max(c.anemia || 0, ST.anemiaHit);
+  if (ane) a.anemia = { v: ane * dm, t: G.t + DEBUFF.anemiaT };
+  if (c.corrupt) cbAdd(a, c.corrupt);
   /* 控制與減益（秒數由施加者給，true＝預設） */
   if (c.petrify) a.petr = G.t + dbT(c.petrify, DEBUFF.petrifyT) * (m.boss ? 0.5 : 1);
   if (c.calm) a.calm = G.t + dbT(c.calm, 1);

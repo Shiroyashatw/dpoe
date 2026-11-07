@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.68';
+const VER = '0.2.69';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -788,6 +788,19 @@ const SKILLS = {
     tags: ['attack', 'melee'],
     d: '近戰一斬；目標在流血就消耗流血，一次結算剩下的流血傷害 ×1.5，並讓附近 120 內的敵人也流血'
   },
+  /* 0.2.69 昇華技能（血魔的赤鐮）：不綁武器；點亮昇華的「赤鐮」才有（asc＝那個點的能力鍵，items.js 的 ascSync 送一顆寶石、退點收回） */
+  sickle: {
+    n: '赤鐮',
+    ic: 'sk_hack',
+    t: 0.5,
+    mp: 8,
+    m: 1.1,
+    r: 115,
+    arc: 2.4,
+    asc: 'sickle',
+    tags: ['attack', 'melee'],
+    d: '弧形揮砍（不綁武器）；範圍內敵人身上的流血與腐化之血，剩下的傷害一次結算（每秒傷害 × 剩餘秒數的物理傷害），結算後牠 1 秒內不會再被施加流血與腐化之血'
+  },
   cleave: {
     n: '劈砍',
     ic: 'sk_cleave',
@@ -1300,6 +1313,7 @@ const CLS_TAGS = {
   mirage: 'remote duration',
   axethrow: 'repeat',
   rend: 'strike payoff',
+  sickle: 'strike payoff',
   cleave: 'slam',
   warcry: 'stack cascade duration',
   smash: 'strike',
@@ -1772,6 +1786,7 @@ const QUAL = {
   mirage: '分身消失時，{20}% 機率留下新分身 2 秒',
   axethrow: '{20}% 機率飛回手上，回程再打一次',
   rend: '{20}% 機率不消耗流血',
+  sickle: '範圍 +{10}%',
   cleave: '打中流血中的怪時，沉重暈眩累積再 +{40}%',
   warcry: '被威嚇的怪死亡時，{20}% 機率 +1 點盛怒',
   seiscry: '強化重擊的餘震傷害倍率 +{0.2}',
@@ -5273,8 +5288,82 @@ const ASC = {
       ]
     },
     E: 'st-s1 s1-after after-s2 s2-strike st-s3 s3-deadly deadly-s4 s4-hunt deadly-s5 s5-reap st-s6 s6-hex hex-s7 s7-burst'
+  },
+  /* 0.2.69 第三批：血魔（A 拿命換傷害；D 花血疊流血與腐化之血，用赤鐮收割、收割再回血）。不綁武器；三條分支都是「小 → 大 → 小 → 大」，6 個小點各接自己的大點。
+     數字都是 ⚠️ 暫定（常數在 combat.js 的 DEBUFF） */
+  blood: {
+    n: '血魔',
+    ic: 'asc_bloodmage_c',
+    d: '拿命換傷害：花血疊流血與腐化之血，用赤鐮一次收割，收割再回血。',
+    N: {
+      st: [0, 0],
+      s1: [0, -80, { bleedMag: 10 }],
+      price: [
+        0,
+        -160,
+        '血價',
+        { bloodPrice: 40 },
+        '有流血機率的攻擊技能照常花魔力，另外獻祭 5% 最大生命，這一招的流血傷害更多 40%；生命低於 35% 時不獻祭、也不加成',
+        'asc_bloodmage_b0'
+      ],
+      s2: [0, -240, { hpP: 5 }],
+      rich: [
+        0,
+        -320,
+        '豐血',
+        { richBlood: 50 },
+        '無法獲得能量護盾；裝備與天賦給的生命（+x 與提高 %）×1.5，角色等級與能力值給的生命不算（跟基石混沌免疫一起點時生命 1、護盾 0，等於一碰就死）',
+        'asc_bloodmage_b3'
+      ],
+      s3: [75, 45, { bleedCh: 10 }],
+      rot: [
+        155,
+        90,
+        '腐血',
+        { rotBlood: 1 },
+        '造成流血時也給 1 層腐化之血（每層獨立 5 秒、最多 10 層；每層每秒的物理持續傷害＝那一擊物理傷害的 7.5%，不吃流血加成）',
+        'asc_bloodmage_b5'
+      ],
+      s4: [235, 135, { debuffMag: 10 }],
+      wither: [
+        315,
+        180,
+        '枯血',
+        { anemiaHit: 10 },
+        '擊中施加缺血（8 秒）：腐化之血的層數上限 10 → 20（缺血的幅度吃減益效果幅度）',
+        'asc_bloodmage_b2'
+      ],
+      s5: [-75, 45, { aoe: 10 }],
+      sickle: [
+        -155,
+        90,
+        '赤鐮',
+        { sickle: 1 },
+        '給技能「赤鐮」（寶石頁自動有一顆、退點收回）：不綁武器的弧形揮砍，把範圍內敵人身上流血與腐化之血剩下的傷害一次結算（每秒傷害 × 剩餘秒數）；結算後牠 1 秒內不會再被施加流血與腐化之血',
+        'asc_bloodmage_b4'
+      ],
+      s6: [-235, 135, { leech: 0.5 }],
+      feast: [
+        -315,
+        180,
+        '血之饗宴',
+        { sickleHeal: 20 },
+        '赤鐮結算的傷害有 20% 變成你的生命回復（1 秒內回完，最多算到敵人剩下的生命）',
+        'asc_bloodmage_b1'
+      ]
+    },
+    E: 'st-s1 s1-price price-s2 s2-rich st-s3 s3-rot rot-s4 s4-wither st-s5 s5-sickle sickle-s6 s6-feast'
   }
 };
+/* 0.2.69 血魔的新能力（STATN 的名字；stats() 預設 0、combat.js／skills.js／mech.js 讀） */
+Object.assign(STATN, {
+  bloodPrice: ['血價：有流血機率的攻擊獻祭生命，那一招的流血傷害更多', '%'],
+  richBlood: ['豐血：裝備與天賦給的生命再多，且無法獲得能量護盾', '%'],
+  rotBlood: ['造成流血時給腐化之血層數', ''],
+  anemiaHit: ['擊中施加缺血（腐化之血的層數上限 +）', ''],
+  sickle: ['有赤鐮技能', '', 1],
+  sickleHeal: ['赤鐮結算的傷害變成生命回復', '%']
+});
 /* 一個昇華的點與線（id 加 a_ 前綴，跟天賦樹分開） */
 function ascNodes(k) {
   const A = ASC[k];

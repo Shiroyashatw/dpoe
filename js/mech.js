@@ -16,6 +16,8 @@ function hasState(m, k) {
   if (k === 'frzprime') return !immob(a) && (a.frz || 0) >= PRIMED(m);
   if (k === 'stain') return a.stain > G.t;
   if (k === 'bleed') return !!(a.bleed && a.bleed.t > G.t);
+  /* 血（0.2.69 赤鐮）：流血或腐化之血，兩種一起收 */
+  if (k === 'blood') return !!(a.bleed && a.bleed.t > G.t) || !!(a.cb && a.cb.some(x => x.t > G.t));
   if (k === 'ign') return !!(a.ign && a.ign.t > G.t);
   if (k === 'shock') return a.shock > G.t;
   if (k === 'curse') return !!(a.curse && a.curse.t > G.t);
@@ -24,7 +26,7 @@ function hasState(m, k) {
   return false;
 }
 /* 效果消耗（第 13～16 批，企劃書 7.3）：同一下只能消耗一種，技能優先於其他來源（other＝不是技能的來源）；消耗減益後免疫它 1 秒，累積條不算減益 */
-const NO_IMM = new Set(['primed', 'pinprime', 'elcprime', 'frzprime']);
+const NO_IMM = new Set(['primed', 'pinprime', 'elcprime', 'frzprime', 'blood']);
 function takeState(m, k, other) {
   if (!hasState(m, k)) return false;
   const a = m.ail,
@@ -32,7 +34,10 @@ function takeState(m, k, other) {
   if (tk && tk.t === G.t && (other || tk.skill)) return false;
   a.took = { t: G.t, skill: !other };
   if (!NO_IMM.has(k)) (a.imm = a.imm || {})[k] = G.t + DEBUFF.consumeImm;
-  if (k === 'frozen') a.frozen = 0;
+  /* 血：流血與腐化之血一起清掉，兩種各自免疫 1 秒（noAil：applyAil 的流血、combat.js 的 cbAdd） */
+  if (k === 'blood')
+    (a.bleed = null), (a.cb = null), (a.imm = a.imm || {}), (a.imm.bleed = a.imm.cb = G.t + DEBUFF.consumeImm);
+  else if (k === 'frozen') a.frozen = 0;
   else if (k === 'broken') (a.broken = 0), (m.arm = m.arm0);
   else if (k === 'primed') a.hs = 0;
   else if (k === 'pinprime') a.pin = 0;
@@ -41,6 +46,20 @@ function takeState(m, k, other) {
   else if (k === 'bleed' || k === 'ign' || k === 'curse' || k === 'mark') a[k] = null;
   else a[k] = 0;
   return true;
+}
+/* 流血與腐化之血剩下的傷害：赤鐮收割用。流血每一刻只有「還沒到期的最大每秒傷害」在跑（移動、加劇 ×2 照 bleedNow），
+   最強的到期由備份（.q）接手，所以把最強那筆和所有備份照到期時間切段，每段 ＝ 該段還沒到期的最大每秒傷害 × 段長；腐化之血每層各算自己的剩餘 */
+function bloodLeft(m) {
+  const a = m.ail || {},
+    L = a.bleed ? [a.bleed, ...(a.bleed.q || [])].filter(x => x.t > G.t).sort((x, y) => x.t - y.t) : [],
+    best = [];
+  let top = 0,
+    v = 0,
+    t0 = G.t;
+  for (let i = L.length - 1; i >= 0; i--) best[i] = top = Math.max(top, L[i].dps * (L[i].agg || m.mv ? 2 : 1));
+  L.forEach((x, i) => ((v += best[i] * (x.t - t0)), (t0 = x.t)));
+  for (const x of a.cb || []) if (x.t > G.t) v += x.dps * (x.t - G.t);
+  return v;
 }
 /* 粉碎重擊：打中瀕臨沉重暈眩的怪直接沉重暈眩 */
 function crush(m) {
@@ -415,10 +434,11 @@ function hexBurst(t) {
     if (sp && SUPPORTS[sp.gem].meta === 'crit') castGem(g, t);
   }
 }
-/* 不經技能欄、直接施放一顆技能寶石（觸發、幻影用） */
-function castGem(g, t) {
+/* 不經技能欄、直接施放一顆技能寶石（觸發、幻影、自動化用）；bleedMore：自動化先付了血價，加成要帶過來（gemCfg 重做設定會丟掉） */
+function castGem(g, t, bleedMore) {
   const c = gemCfg(g, -1);
   if (!c || gemLack(g).length) return; /* 能力值不夠的寶石不能觸發 */
+  if (bleedMore) c.bleedMore = bleedMore;
   const ang = Math.atan2(t.y - P.y, t.x - P.x);
   actHit({ k: c.k, c, t: 0, dur: 0.1, ang, hits: [0], n: 0, tx: t.x, ty: t.y, trig: 1 }, 0);
 }

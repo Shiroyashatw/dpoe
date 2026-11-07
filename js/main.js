@@ -227,6 +227,7 @@ function migrate(s) {
   const AT = o.asc && ascNodes(o.asc);
   if (!AT) (o.asc = null), (o.at = []);
   else if (!o.at.length || o.at.some(id => !AT.I[id]) || !ascFeasible(AT, o.at)) o.at = ['a_st'];
+  ascSync(o);
   /* 0.2.9：武器照 PoE2 的 18 種類別重做；舊基底換成同一族的新類別、最接近的階級（等級、稀有度、詞綴都保留） */
   const OLDW = {
     sword1: ['w_katana', 'w_moon', 'w_demon'],

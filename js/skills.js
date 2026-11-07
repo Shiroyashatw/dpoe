@@ -91,6 +91,8 @@ function gemCfg(g, i) {
     };
   /* 閃電箭：品質每 1% 物理轉閃電 +1%、感電機率更多 +1% */
   if (D.cvL) (c.cvL = D.cvL + (g.q || 0)), (c.shockMore = D.shockMore + (g.q || 0)), (c.boltChain = 1);
+  /* 赤鐮的品質：範圍 +10% */
+  if (g.gem === 'sickle') c.aoe *= 1 + 0.1 * c.q;
   /* 重擊的品質：粉碎重擊後的下一下 */
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
   for (const sp of g.sup || []) {
@@ -226,9 +228,12 @@ function skillNums(c) {
 /* 盾技能（D.off）要副手拿盾；wtNeed 沒有限制時是空字串 */
 /* 空手（ST.wt 'unarmed'）不能用限定武器的技能，只有預設攻擊斬擊可以 */
 const wtOK = D =>
-  (!D.wt || D.wt.includes(ST.wt) || (ST.wt === 'unarmed' && D === SKILLS.slash)) && (!D.off || ST.shield);
-const wtNeed = D => (D.wt ? '要拿' + D.wt.map(w => WTN[w]).join('或') : D.off ? '副手要拿盾' : '');
-const needTxt = D => '需要：' + (D.wt ? D.wt.map(w => WTN[w]).join('、') : '副手的盾');
+  (!D.wt || D.wt.includes(ST.wt) || (ST.wt === 'unarmed' && D === SKILLS.slash)) &&
+  (!D.off || ST.shield) &&
+  (!D.asc || ST[D.asc]);
+const wtNeed = D =>
+  D.wt ? '要拿' + D.wt.map(w => WTN[w]).join('或') : D.off ? '副手要拿盾' : D.asc ? `要點亮昇華點「${D.n}」` : '';
+const needTxt = D => '需要：' + (D.wt ? D.wt.map(w => WTN[w]).join('、') : D.asc ? `昇華點「${D.n}」` : '副手的盾');
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */
 const metaOf = g =>
   g && (g.sup || []).find(x => x && SUPPORTS[x.gem] && SUPPORTS[x.gem].meta && supOK(SKILLS[g.gem], x, g));
@@ -260,6 +265,7 @@ function skillWhy(c, at) {
 }
 /* 付費：彈藥、魔力（或生命、地獄火）、流順之風、冷卻 */
 function skillPay(c, i) {
+  bloodPay(c);
   if (pracFree()) return;
   if (c.D.ammo) ammoUse(c.k, c.D.ammo[0] + ST.ammoN, c.D.ammo[1]);
   if (ST.blood) sacrifice('hp', c.mp);
@@ -835,6 +841,26 @@ function actHit2(a, idx, R, hitArc) {
         if (o.hp > 0 && o !== m && dist(o, m) < 120 + o.r) o.ail.bleed = keepMax(o.ail.bleed, b.dps, 5);
       dotHit(m, b.dps * (b.t - G.t) * 1.5, 'phys');
     }
+  } else if (a.k === 'sickle') {
+    /* 赤鐮（0.2.69 血魔）：弧形揮砍。先把範圍內每隻身上流血與腐化之血剩下的傷害一次結算（物理持續傷害、不吃暴擊與護甲；結算後 1 秒內不再被施加），
+       再打這一下；血之饗宴（sickleHeal）：結算的傷害 x%（最多算到敵人剩下的生命）當作生命偷取，整揮加總成一筆 */
+    fx({ k: 'slash', x: P.x, y: P.y, ang: a.ang, r: R, arc: D.arc, dur: 0.2 });
+    fxs('dslash', P.x, P.y - 20, R, { rot: a.ang });
+    let heal = 0;
+    for (const m of G.mobs) {
+      if (m.hp <= 0) continue;
+      const dd = dist(P, m);
+      if (!(dd < R + m.r && angDiff(angTo(P, m), a.ang) < D.arc / 2 + m.r / Math.max(dd, 1) && los(P.x, P.y, m.x, m.y)))
+        continue;
+      const v = bloodLeft(m);
+      if (v > 0 && takeState(m, 'blood')) {
+        fxs('bleed', m.x, m.y - m.sz * 0.5, 30);
+        heal += Math.min(v, m.hp);
+        dotHit(m, v, 'phys');
+      }
+      if (m.hp > 0) hitMob(m, c, angTo(P, m), 150 * c.kb, { a });
+    }
+    if (ST.sickleHeal && heal > 0) leechAdd('feast', (heal * ST.sickleHeal) / 100);
   } else if (a.k === 'cleave') {
     fxs('cleave', P.x + cos * R * 0.5, P.y + sin * R * 0.5, R * 0.6);
     sfx('slam');
@@ -1782,7 +1808,7 @@ function autoTick() {
     skillPay(c, i);
     formFor(c.D);
     if (c.unit) placeUnit(c, t);
-    else castGem(g, t);
+    else castGem(g, t, c.bleedMore);
     sfx(c.D.tags.includes('spell') ? 'cast' : 'throw');
   }
 }

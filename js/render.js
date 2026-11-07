@@ -47,6 +47,7 @@ const ACT_ROW = {
   mirage: 5,
   axethrow: 5,
   rend: 3,
+  sickle: 3,
   cleave: 4,
   warcry: 5,
   seiscry: 5,
