@@ -1153,7 +1153,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   let mult = (o.mult ? o.mult / (c.mult || 1) : 1) * (a.mul || 1),
     crit = !!(a.crit || o.crit);
   /* 0.2.22：攻擊可能被閃避（熵值，combat.js 的 hitRoll） */
-  if (!m.arrow && !hitRoll(m, c, { minion: o.minion, unit: a.unit }))
+  if (!m.arrow && !hitRoll(m, c, { minion: o.minion, unit: a.unit, sure: o.her }))
     return num(m.x, m.y - m.sz, 0, 'miss', '未命中'), aggroPack(m);
   /* 投射物飛行距離（0.2.25）：飛出去的算飛了多遠，瞬間的算到目標的距離 */
   const fly = f.sx != null ? Math.hypot(f.x - f.sx, f.y - f.sy) : Math.hypot(m.x - f.x, m.y - f.y);
@@ -1194,7 +1194,8 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (culled(m, c))
     (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺'), qRoll(20 * (c.cullQ || 0)) && gainChg('f');
   /* 事件（0.2.43，擊中造成擊殺才算，持續傷害不算）：溢出 ovkSplash＝%（溢出傷害打給 2 公尺內的敵人）、最後一擊 kbEs＝%（打死感電的敵人回復最大能量護盾） */
-  if (hp0 > 0 && m.hp <= 0) hitKill(m, hp0, r);
+  heraldHit(m, c, o, a);
+  if (hp0 > 0 && m.hp <= 0) hitKill(m, hp0, r), heraldKill(m, c, o, a);
   if (a) a.any = 1;
   m.flash = 0.09;
   m.sq = 1;
@@ -1253,6 +1254,48 @@ function hitMob(m, c, ang, kb, o = {}) {
   } else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && roll(ST.dbl))
     hitMob(m, c, ang, 0, { ...o, again: 1, quiet: 1 });
   if (shocked) boltChain(m, c, a);
+}
+
+/* ---------- 捷光環（0.2.56 第 3 層 F2，企劃書 7.3 第 29 項） ---------- */
+/* 你自己的攻擊（不是召喚物、場上單位）；捷光環自己的傷害帶 o.her，可以觸發別的捷光環、不能觸發自己 */
+const herAtk = (c, o, a) => !o.minion && !a.unit && (c.D.tags || []).includes('attack');
+const herMul = k => 0.5 + 0.03 * (ST.her[k] - 1);
+const herR = k => AURAS['h_' + k].r * (1 + 0.2 * (ST.aq['h_' + k] || 0));
+function heraldBoom(k, x, y, c, el, flag) {
+  const r = herR(k),
+    cc = { ...c, ...flag, D: { ...c.D, el, tags: [...(c.D.tags || []), 'aoe'] } };
+  fx({ k: 'ring', x, y, r, dur: 0.3, col: ELC[el] });
+  fxs(k === 'ice' ? 'shatter' : 'thunder', x, y, r);
+  for (const m of G.mobs)
+    if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r)
+      hitMob(m, cc, Math.atan2(m.y - y, m.x - x), 60, {
+        quiet: 1,
+        mult: (c.mult || 1) * herMul(k),
+        from: { x, y },
+        her: k
+      });
+}
+/* 擊殺：灰燼看溢殺、寒冰看冰凍、雷霆看感電（m.hp 已經扣完，-m.hp＝溢出） */
+function heraldKill(m, c, o, a) {
+  const H = ST.her;
+  if (!H || !herAtk(c, o, a)) return;
+  const over = -m.hp;
+  if (H.ash && o.her !== 'ash' && over > m.mhp * 0.2) {
+    const r = herR('ash'),
+      dps = over * (0.17 + 0.003 * (H.ash - 1)) * 0.2;
+    fx({ k: 'ring', x: m.x, y: m.y, r, dur: 0.3, col: ELC.fire });
+    for (const x of G.mobs)
+      if (x !== m && x.hp > 0 && x.ail && !noAil(x.ail, 'ign') && dist(x, m) < r + x.r)
+        x.ail.ign = keepMax(x.ail.ign, dps, 3);
+  }
+  if (H.ice && o.her !== 'ice' && hasState(m, 'frozen')) heraldBoom('ice', m.x, m.y, c, 'cold', { noFrz: 1 });
+  if (H.thunder && o.her !== 'thunder' && hasState(m, 'shock')) gainStk('herT', 3);
+}
+/* 擊中沒殺死：雷霆的落雷（捷光環自己的傷害不算） */
+function heraldHit(m, c, o, a) {
+  if (!ST.her || !ST.her.thunder || o.her || !stkN('herT') || !herAtk(c, o, a)) return;
+  P.stk.herT = stkL('herT').slice(1);
+  heraldBoom('thunder', m.x, m.y, c, 'light', { noShock: 1 });
 }
 
 /* 荊棘反擊（hurtPlayer 呼叫）：近戰怪（近戰、撲咬）擊中你時，同一隻怪 0.3 秒最多一次；不走 hitCalc（不算攻擊、不算法術），吃護甲、不暴擊 */

@@ -761,6 +761,9 @@ function stats(s = S) {
   for (const g of s.auras || []) {
     if (!g) continue;
     const A = AURAS[g.gem];
+    /* 捷光環要拿非法系武器（照 PoE2），不然不預留、不生效 */
+    const wt0 = (w && baseOf(w).wt) || 'unarmed';
+    if (A.her && (wt0 === 'unarmed' || SPELLW.has(wt0))) continue;
     const sp = A.sp / (1 + o.spiritEff / 100);
     if (o.spiritUsed + sp > o.spirit) continue;
     o.spiritUsed += sp;
@@ -768,6 +771,7 @@ function stats(s = S) {
     const m = (1 + 0.03 * (g.lv - 1)) * (1 + (o.auraEff + o.buffEff) / 100) * (1 + o.buffMag / 100);
     /* 光環的品質（0.2.29）：0～1 */
     o.aq[g.gem] = (g.q || 0) / GEM_Q_MAX;
+    if (A.her) (o.her = o.her || {})[A.her] = g.lv;
     if (g.gem === 'anger') o.angerV = A.fx.fireAdd * m;
     for (const k in A.fx) {
       const v = A.fx[k] * m;

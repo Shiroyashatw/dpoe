@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：138 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 138,
+    '品質：141 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 141,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3364,8 +3364,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '層數增益：十二列（含血怒、戰吼強化）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 12 && !b.bad.length,
+    '層數增益：十三列（含血怒、戰吼強化、雷霆落雷）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 13 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(
@@ -4154,6 +4154,50 @@ vm.runInContext(
     JSON.stringify(f55) ===
       '{"str":[0,1,2,5],"inf":[1,134,0],"exp":0,"seis":[1,true],"after":[1,0,0.5,true,false],"skip0":[null,null],"skipE":1,"skipR":[5,1],"skipR2":[5,0]}',
     JSON.stringify(f55)
+  );
+  /* 0.2.56 F2：捷光環（攻擊擊殺觸發、要拿非法系武器、彼此觸發但不觸發自己） */
+  const f56 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (dx, o) => ({ D, x: P.x + 40 + dx, y: P.y, r: 12, sz: 20, hp: 100, mhp: 100, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, stk: P.stk, eq: { ...S.eq }, au: S.auras, st: ST },
+      atk = gemCfg(mkGem('cleave', 5), 0),
+      spl = gemCfg(mkGem('fireball', 5), 0),
+      big = 1e6,
+      out = {};
+    /* 拿錘：三顆都生效、記等級；拿法杖：不生效、不預留精魂 */
+    const wb = k => BASES.find(b => b.k === 'weapon' && b.wt === k);
+    S.auras = [mkGem('h_ash', 1), mkGem('h_ice', 1), mkGem('h_thunder', 1)];
+    S.eq.weapon = mkItem(wb('mace').id, 16, 0); S.eq.off = null; ST = stats();
+    S.eq.weapon = mkItem(wb('wand').id, 16, 0); const sw = stats();
+    S.eq.weapon = mkItem(wb('mace').id, 16, 0); ST = stats();
+    out.on = [ST.auraOn.filter(k => AURAS[k].her).length, JSON.stringify(ST.her), sw.auraOn.filter(k => AURAS[k].her).length];
+    ST.her = { ash: 1, ice: 1, thunder: 1 };
+    const kill = (m, c) => hitMob(m, c, 0, 0, { mult: big, quiet: 1 });
+    /* 灰燼：溢殺超過 20% 點燃 72 內的、遠的不點；法術擊殺不算 */
+    let A = mk(0), B = mk(30), Far = mk(200); G.mobs = [A, B, Far]; P.stk = {};
+    kill(A, atk); out.ash = [!!(B.ail.ign && B.ail.ign.t > G.t), !Far.ail.ign];
+    A = mk(0); B = mk(30); G.mobs = [A, B]; kill(A, spl); out.ashSpell = !B.ail.ign;
+    /* 寒冰：冰凍的被攻擊打死冰爆，96 內受冰冷傷害、不會被冰凍 */
+    A = mk(0, { ail: { frozen: G.t + 5 } }); B = mk(60, { hp: 1e9, mhp: 1e9 }); G.mobs = [A, B];
+    kill(A, atk); out.ice = [B.hp < 1e9, !(B.ail.frz > 0)];
+    /* 雷霆：打死感電的給 3 下；接下來每次擊中落雷用掉 1 下 */
+    A = mk(0, { ail: { shock: G.t + 5 } }); B = mk(0, { hp: 1e9, mhp: 1e9 }); const C = mk(40, { hp: 1e9, mhp: 1e9 }); G.mobs = [A, B, C];
+    kill(A, atk); const n0 = stkN('herT');
+    const hc = C.hp; hitMob(B, atk, 0, 0, { quiet: 1 }); out.thunder = [n0, stkN('herT'), C.hp < hc, !(C.ail.shock > G.t)];
+    hitMob(B, spl, 0, 0, { quiet: 1 }); out.thSpell = stkN('herT');
+    /* 互相觸發：雷霆落雷打死冰凍的敵人 → 冰爆；寒冰的冰爆不觸發寒冰 */
+    P.stk = {}; gainStk('herT', 3);
+    A = mk(0, { hp: 1e9, mhp: 1e9 }); const F = mk(20, { hp: 1, mhp: 1e9, ail: { frozen: G.t + 5 } }), E = mk(90, { hp: 1e9, mhp: 1e9 });
+    G.mobs = [A, F, E]; const he = E.hp;
+    hitMob(A, atk, 0, 0, { quiet: 1 }); out.chain = [F.hp <= 0, E.hp < he];
+    Object.assign(G, { mobs: keep.mobs }); Object.assign(S, { eq: keep.eq, auras: keep.au }); P.stk = keep.stk; ST = stats();
+    return out;
+  })()`);
+  ok(
+    'F2 捷光環：拿錘生效（精魂 30 只開得了第一顆）、拿法杖不生效；灰燼溢殺點燃 72 內、法術擊殺不算；寒冰冰爆不冰凍；雷霆打死感電給 3 下、每下落雷用 1 下、不感電、法術不扣；雷霆落雷打死冰凍的會冰爆',
+    JSON.stringify(f56) ===
+      '{"on":[1,"{\\"ash\\":1}",0],"ash":[true,true],"ashSpell":true,"ice":[true,true],"thunder":[3,2,true,true],"thSpell":2,"chain":[true,true]}',
+    JSON.stringify(f56)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

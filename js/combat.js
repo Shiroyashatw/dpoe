@@ -170,7 +170,7 @@ const hitChance = (acc, ev) => Math.max(0.05, Math.min(1, (1.25 * acc) / (acc + 
 const mobEv = (lv, m) => 6 * lv * (m && m.boss ? 2.22 : m && m.elite ? 1.9 : 1.57);
 /* 玩家的攻擊打不打得中：法術、召喚物、場上單位、持續傷害一律命中；基石「堅定技巧」必中 */
 function hitRoll(m, c, o = {}) {
-  if (ST.noMiss || o.minion || o.unit || isSpell(c.D) || !m.ev) return true;
+  if (ST.noMiss || o.minion || o.unit || o.sure || isSpell(c.D) || !m.ev) return true;
   /* 受招架的敵人無法閃避攻擊；沉重暈眩的敵人無法閃避你的擊中（開關 hstunNoEv，易攻目標天賦版） */
   if (parryOn(m) || (ST.hstunNoEv && m.ail && m.ail.hstun > G.t)) return true;
   const ch = hitChance(
@@ -960,11 +960,12 @@ function applyAil(m, r, c, use) {
     const v = Math.min(50, ((p.cold / thrC) * 100 + 0) * (mag + ST.chillMag / 100)) * rr;
     if (v >= 30 * rr && (!a.chill || a.chill.t <= G.t || v >= a.chill.v)) a.chill = { v, t: G.t + 8 };
     /* 冰凍累積（穩固值）；印記、化身都是累積提高 */
-    poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + (archon ? 100 : 0));
+    if (!c.noFrz) poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + (archon ? 100 : 0));
   }
   /* 感電：每 4% 門檻 +1% 機率（化身 ×2、閃電箭更多），受到的傷害提高 20%、8 秒 */
   if (
     p.light > 0 &&
+    !c.noShock &&
     !noAil(a, 'shock') &&
     roll(
       (((p.light / thrL) * 100) / 4) *
@@ -1339,6 +1340,8 @@ const BUFF = {
   /* 0.2.55 F1：戰吼的強化攻擊（skills.js 的 cryEmpower／empUse），一層＝一下；數值在出手時算，不走 st */
   emInf: { n: '狂暴強化', ic: 'sk_warcry', d: '接下來的近戰攻擊傷害更多，每次出手用掉 1 層', max: 5, t: 8 },
   emSeis: { n: '震地強化', ic: 'sk_battlecry', d: '接下來的重擊在原地多一次餘震，每次出手用掉 1 層', max: 5, t: 8 },
+  /* 0.2.56 F2：雷霆捷光環的落雷（skills.js 的 heraldHit），一層＝一下 */
+  herT: { n: '雷霆落雷', ic: 'sk_staticfield', d: '接下來的攻擊擊中會落雷，每下用掉 1 層', max: 3, t: 8 },
   chalice: {
     n: '滿溢聖杯',
     ic: 'sk_vitality',
