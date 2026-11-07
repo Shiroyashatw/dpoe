@@ -848,6 +848,11 @@ const SKUI = { sel: null, calc: 0 };
 function auraWhy(g, short) {
   const wt = ST.wt;
   if (AURAS[g.gem].her && (wt === 'unarmed' || SPELLW.has(wt))) return short ? '要武器' : '要拿非法系武器，沒有生效';
+  if (
+    AURAS[g.gem].tags.includes('companion') &&
+    ST.auraOn.some(k => k !== g.gem && AURAS[k].tags.includes('companion'))
+  )
+    return short ? '有夥伴' : '同時只能有 1 隻夥伴，沒有生效';
   return short ? '缺精魂' : '精魂不夠，沒有生效';
 }
 /* 光環寶石的孔（0.2.57 F3）：光環卡放不下，畫在下方的檢視區；開孔跟技能寶石一樣 */

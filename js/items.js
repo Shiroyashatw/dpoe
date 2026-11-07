@@ -764,6 +764,8 @@ function stats(s = S) {
     /* 捷光環要拿非法系武器（照 PoE2），不然不預留、不生效 */
     const wt0 = (w && baseOf(w).wt) || 'unarmed';
     if (A.her && (wt0 === 'unarmed' || SPELLW.has(wt0))) continue;
+    /* 夥伴（0.2.60 J3，照 PoE2）：同時只能有 1 隻，光環欄排後面的不生效 */
+    if (A.tags.includes('companion') && o.auraOn.some(k => AURAS[k].tags.includes('companion'))) continue;
     /* 光環寶石孔裡的輔助（0.2.57 F3）：sq 品質 0～1 */
     const sup = {};
     for (const x of g.sup || [])

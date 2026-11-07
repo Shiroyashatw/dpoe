@@ -4244,11 +4244,7 @@ vm.runInContext(
     out.why2 = [skillWhy(act('cmd_wolf').c, P), skillWhy(act('cmd_golem').c, P)];
     const t = mk(200), g1 = mk(330), g2 = mk(600), boss = mk(280, { boss: 1 });
     G.mobs = [t, g1, g2, boss];
-    /* 這裡的 mobNear 被換成假的（上面 3449 行），圍獵要真的找目標 */
-    const mn = mobNear;
-    mobNear = mobNear_;
     actHit(act('cmd_wolf'), 0);
-    mobNear = mn;
     out.wolf = [t.hp < 1e9, !!(t.ail.bleed && t.ail.bleed.t > G.t), Math.round(dist(wolf, t))];
     actHit(act('cmd_golem'), 0);
     out.golem = [g1.hp < 1e9, g1.stun >= 1, g1.ail.tauntBy === gol, g2.hp === 1e9, !(boss.stun >= 1), boss.ail.tauntBy === gol];
@@ -4264,6 +4260,41 @@ vm.runInContext(
     JSON.stringify(j58) ===
       '{"why":["要有戰狼精魂的狼","要有召喚魔像"],"why2":["",""],"wolf":[true,true,28],"golem":[true,true,true,true,true,true],"puppet":[5,1.5,1,0.675,0.35]}',
     JSON.stringify(j58)
+  );
+  /* 0.2.59 J2：獻祭（天賦開關 ST.offering）：沒有屍體時用復甦召喚物代替，那隻死掉、復甦慢 50%；紙人（會消失的）不算 */
+  const j59 = R(`(() => {
+    const keep = { allies: G.allies, corpses: G.corpses, off: ST.offering },
+      doll = { src: 'doll', x: P.x + 10, y: P.y, r: 14, hp: 50, mhp: 50, t: G.t + 10 },
+      wolf = { src: 'gem', x: P.x + 60, y: P.y, r: 14, hp: 80, mhp: 80, t: 0 },
+      out = {};
+    G.corpses = []; G.allies = [doll, wolf];
+    ST.offering = 0; out.off = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
+    ST.offering = 1; out.near = corpseNear(P, 250);
+    const cp = takeCorpse(P.x, P.y, 250);
+    out.take = [!!cp && cp.ally, cp && cp.mhp, wolf.dead > G.t, +(wolf.dead - G.t).toFixed(2), doll.dead == null, G.corpses.length];
+    out.again = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
+    Object.assign(G, { allies: keep.allies, corpses: keep.corpses }); ST.offering = keep.off;
+    return out;
+  })()`);
+  ok(
+    'J2 獻祭：關著時沒有屍體就是沒有；開著時用復甦召喚物代替（那隻死掉、復甦 7.5→11.25 秒），會消失的紙人不算、不會變出真的屍體',
+    JSON.stringify(j59) === '{"off":[false,null],"near":true,"take":[1,80,true,11.25,true,0],"again":[false,null]}',
+    JSON.stringify(j59)
+  );
+  /* 0.2.60 J3：夥伴同時只能有 1 隻（光環欄排前面的生效，後面的不預留精魂） */
+  const j60 = R(`(() => {
+    const keep = S.auras;
+    S.auras = [mkGem('golem', 1), mkGem('wolfsp', 1), null];
+    const a = stats();
+    S.auras = [mkGem('wolfsp', 1), mkGem('golem', 1), null];
+    const b = stats();
+    S.auras = keep;
+    return [a.auraOn.join(), !!a.auraGolem, !!a.auraWolf, a.spiritUsed, b.auraOn.join()];
+  })()`);
+  ok(
+    'J3 夥伴：魔像與戰狼精魂同時放，只有排前面的生效、後面的不預留精魂（戰狼精魂 40 精魂開不了時，後面的魔像照樣生效）',
+    JSON.stringify(j60) === '["golem",true,false,30,"golem"]',
+    JSON.stringify(j60)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

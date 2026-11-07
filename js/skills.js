@@ -377,7 +377,8 @@ function mobNear(x, y, r, far = 1e9) {
   }
   return best;
 }
-const corpseNear = (o, r) => G.corpses.some(c => c.t > G.t && Math.hypot(c.x - o.x, c.y - o.y) < r);
+const corpseNear = (o, r) =>
+  G.corpses.some(c => c.t > G.t && Math.hypot(c.x - o.x, c.y - o.y) < r) || !!offerAlly(o.x, o.y, r);
 /* 裂解、破咒的目標：(x, y) 附近 r 內、身上有 ks 其中一種狀態的怪 */
 const stateMobs = (x, y, r, ks) =>
   G.mobs.filter(m => m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r && ks.some(k => hasState(m, k)));
@@ -632,7 +633,7 @@ function actHit(a, idx) {
     /* 褻瀆儀式：消耗一具屍體，原地留腐化地面（每 0.5 秒一次混沌擊中，吃凋零），結束時給暴擊球（品質：機率不消耗屍體） */
     const cp = takeCorpse(a.tx, a.ty, 250);
     if (!cp) return;
-    if (qRoll(20 * c.q)) G.corpses.push(cp);
+    if (!cp.ally && qRoll(20 * c.q)) G.corpses.push(cp);
     fxs('dark', cp.x, cp.y, R);
     sfx('cast');
     addGround({ k: 'corrupt', x: cp.x, y: cp.y, r: R, dur: durOf(c), c, dps: 0.6, chg: 'p' });
@@ -779,7 +780,7 @@ function actHit2(a, idx, R, hitArc) {
       L = cmdAllies(D.cmd);
     if (qRoll(20 * c.q)) gainStk('puppet');
     if (D.cmd === 'aura') {
-      const t = mobNear(a.tx, a.ty, 150);
+      const t = nearMob({ x: a.tx, y: a.ty }, 150);
       for (const w of t ? L : []) {
         const g = angTo(t, w);
         fxs('blink', w.x, w.y);
@@ -967,7 +968,7 @@ function actHit2(a, idx, R, hitArc) {
     /* 屍體最大生命 10%（每級 +3%）的火焰範圍傷害，只吃抗性；也是引爆技能 */
     const cp = takeCorpse(a.tx, a.ty, 250);
     if (!cp) return;
-    if (qRoll(20 * c.q)) G.corpses.push(cp);
+    if (!cp.ally && qRoll(20 * c.q)) G.corpses.push(cp);
     const r = R * ST.aoeM * c.aoe,
       d = cp.mhp * 0.1 * (1 + 0.03 * (c.lv - 1));
     fxs('dark', cp.x, cp.y, r);
@@ -1432,7 +1433,8 @@ function allyDie(w, killed) {
   if (killed) evMark('mkill');
   if (w.t || !killed) return void (G.allies = G.allies.filter(o => o !== w));
   w.hp = 0;
-  w.dead = G.t + MINION.revive;
+  /* 獻祭（0.2.59）：召喚物復甦時間 +50%（⚠️ 暫定，PoE2 數字查不到） */
+  w.dead = G.t + MINION.revive * (ST.offering ? 1.5 : 1);
   for (const o of G.allies) if (o.dead) o.dead = w.dead;
 }
 /* ---------- 召喚戰狼：狼跟著你、咬最近的怪 ---------- */
