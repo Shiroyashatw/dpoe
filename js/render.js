@@ -103,6 +103,65 @@ function heroCell(row, col, x, y, flip, al, o = {}) {
 }
 /* 角度 → 第 0 列的方向格 */
 const dirCol = a => (2 - (((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8) + 8) % 8;
+/* 手上的裝備（主手武器、副手）：裝備的圖示縮小疊在主角手上，不新增美術。
+   武器圖示大多是「握柄在左下、槍尖朝右上」；例外：直立（槍頭朝上、握柄在底）與弓（弧面朝右、握在中間）。
+   武器照朝向 a 轉到槍尖指向 a（朝左時上下翻），sw 是出手時再多轉的弧度（副手的武器再張開 0.45）；
+   槍尖朝上而且這一格看得到臉（face）時畫在身體後面，不然會蓋住臉；其他時候畫在前面（背對鏡頭也看得到）。
+   副手的盾、法器不轉，直立畫在另一側手邊（不會蓋到臉，一律在前面）；箭袋是背在背上的、魔符與陷阱器的圖示不是武器的樣子，不畫 */
+const WOV_UP = [7, 21, 23, 31],
+  WOV_BOW = [3, 11, 24, 25];
+function heldItem(it, a, al, off, sw, front, face) {
+  const b = it && baseOf(it),
+    n = b && /^gear_weapon_\d+$/.test(b.ic) ? +b.ic.slice(12) : -1,
+    g = b && (n >= 0 || (off && b.k !== 'quiver')) && artImg(b.ic);
+  if (!g || !g.im.naturalWidth) return;
+  const [sx, sy, w, h] = g.r,
+    bow = WOV_BOW.includes(n),
+    up = WOV_UP.includes(n),
+    k = bow ? 1 : n < 0 ? 0.6 : b.two ? 0.9 : 0.7,
+    c = Math.cos(a),
+    s = Math.sin(a),
+    r = bow ? 0 : sw - (off ? 0.45 : 0),
+    th = a + (c < 0 ? -r : r); /* 槍尖在畫面上的方向（朝左時擺動反過來） */
+  if ((n < 0 || !face || Math.sin(th) >= -0.5) !== front) return;
+  CX.save();
+  /* 主手在身前（右手：朝上下時偏一邊）、副手在另一側 */
+  CX.translate(
+    Math.round(P.x + (off ? s * 9 + c * 3 : c * (bow ? 14 : 6) - s * 7)),
+    Math.round(P.y - 26 + (off ? -Math.abs(c) * 2 : s * 3))
+  );
+  CX.globalAlpha = al;
+  if (n < 0) CX.drawImage(g.im, sx, sy, w, h, (-w / 2) * k, (-h / 2) * k, w * k, h * k);
+  else {
+    CX.rotate(a);
+    if (c < 0) CX.scale(1, -1);
+    /* 本地座標的 +x 是槍尖方向：先照出手擺動（弓不擺），再把圖轉到槍尖朝 +x，握點放在原點 */
+    CX.rotate(bow ? 0 : r + (up ? Math.PI / 2 : Math.PI / 4));
+    const [gx, gy] = bow ? [16, 16] : up ? [16, 26] : [7, 26];
+    CX.drawImage(g.im, sx, sy, w, h, -gx * k, -gy * k, w * k, h * k);
+  }
+  CX.restore();
+}
+/* front：false 畫在主角後面那一輪、true 畫在前面那一輪（每件自己決定在哪一輪）；副手先畫，武器壓在上面 */
+function heldGear(a, al, sw, front, face) {
+  heldItem(S.eq.off, a, al, 1, sw, front, face);
+  heldItem(S.eq.weapon, a, al, 0, sw, front, face);
+}
+/* 出手時武器多轉的弧度（動作列：3 揮砍、4 砸地、8 旋轉揮擊；p 是出手進度 0～1）：揮砍舉起、掃到前、收回，砸地舉高再壓下，旋轉轉一圈，施法不動 */
+function heldSwing(row, p) {
+  const sm = t => (t = Math.min(1, Math.max(0, t))) * t * (3 - 2 * t);
+  return row === 3
+    ? p < 0.2
+      ? -1.2 * sm(p / 0.2)
+      : p < 0.6
+        ? -1.2 + 2.4 * sm((p - 0.2) / 0.4)
+        : 1.2 * (1 - sm((p - 0.6) / 0.4))
+    : row === 4
+      ? -1.6 * (sm(p / 0.3) - sm((p - 0.3) / 0.25))
+      : row === 8
+        ? TAU * sm(p)
+        : 0;
+}
 
 let DARK;
 let ZOOM = 1.35; /* 手機照螢幕高度調（main.js 的 resize） */
@@ -729,23 +788,32 @@ function drawHero() {
     if (Math.random() < 0.6) fx({ k: 'dust', x: P.x + rnd(-10, 10), y: P.y, dur: 0.35 });
     return;
   }
-  if (P.act && P.act.k !== 'iai') {
+  const hit = P.act && P.act.k !== 'iai',
+    row = hit ? (P.act.place ? 5 : ACT_ROW[P.act.k] || 3) : 0,
+    wa = P.act ? P.act.ang : P.face,
+    sw = hit ? heldSwing(row, P.act.t / P.act.dur) : 0,
+    run = !hit && (P.mv || (P.act && P.act.k === 'iai')),
+    dx = P.act ? Math.cos(P.act.ang) : P.mdx,
+    dy = P.act ? Math.sin(P.act.ang) : P.mdy,
+    col = dirCol(P.face),
+    /* 這一格看得到臉嗎：出手與跑步側面看得到，跑步往上（背面）與站著朝北（第 3～5 格）看不到 */
+    face = hit || (run ? !(dy < -0.6 && Math.abs(dx) < 0.8) : col < 3 || col > 5);
+  heldGear(wa, a, sw, false, face);
+  if (hit) {
     /* 出手：照技能播 9 格動畫，往左就鏡像 */
     const f = Math.min(8, Math.floor((P.act.t / P.act.dur) * 9));
-    heroCell(P.act.place ? 5 : ACT_ROW[P.act.k] || 3, f, P.x, P.y, Math.cos(P.act.ang) < -0.05, a);
-  } else if (P.mv || (P.act && P.act.k === 'iai')) {
-    const dx = P.act ? Math.cos(P.act.ang) : P.mdx,
-      dy = P.act ? Math.sin(P.act.ang) : P.mdy,
-      fr = Math.floor(G.t * 12) % 8;
+    heroCell(row, f, P.x, P.y, Math.cos(P.act.ang) < -0.05, a);
+  } else if (run) {
+    const fr = Math.floor(G.t * 12) % 8;
     /* 往上跑用背面，其他用側面（往左鏡像） */
-    if (dy < -0.6 && Math.abs(dx) < 0.8) heroCell(7, fr, P.x, P.y, false, a);
+    if (!face) heroCell(7, fr, P.x, P.y, false, a);
     else heroCell(6, fr, P.x, P.y, dx < -0.05 || (Math.abs(dx) <= 0.05 && flipF), a);
   } else {
-    const col = dirCol(P.face);
     if (col === 0) heroCell(1, Math.floor(G.t * 8) % 8, P.x, P.y, false, a);
     else heroCell(0, col, P.x, P.y, false, a);
   }
   if (P.hurtT > 0.25) heroCell(0, dirCol(P.face), P.x, P.y, false, 0.6, { white: 1 });
+  heldGear(wa, a, sw, true, face);
   drawCharges();
   /* 完美閃避後的下一擊：刀光 */
   if (P.critNext) {
