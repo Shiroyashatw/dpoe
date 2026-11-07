@@ -60,7 +60,8 @@ function migrate(s) {
     ...o.stash.items,
     ...o.temp.items,
     ...o.skills.flatMap(k => [k.a, ...(k.s || []), ...((k.a && k.a.sup) || [])]),
-    ...o.auras
+    ...o.auras,
+    ...o.auras.flatMap(g => (g && g.sup) || [])
   ])
     if (it && it.id > IID) IID = it.id;
   /* 0.2.6：輔助改插在技能寶石自己的孔裡（舊的技能欄輔助搬過去；沒有技能寶石的輔助收進背包）、材料頁、書庫 */
@@ -70,8 +71,16 @@ function migrate(s) {
   o.mat.fine = o.mat.fine || 0;
   o.mat.rare = o.mat.rare || 0;
   delete o.lib; /* 0.2.35：寶石書庫早就不用了 */
-  for (const it of [...o.inv.items, ...o.stash.items, ...o.skills.map(k => k.a)])
-    if (it && SKILLS[it.gem] && !it.sup) (it.so = 2), (it.sup = [null, null]);
+  /* 0.2.57：光環寶石也有孔 */
+  for (const it of [
+    ...o.inv.items,
+    ...o.stash.items,
+    ...((o.temp && o.temp.items) || []),
+    ...(o.gems || []),
+    ...o.skills.map(k => k.a),
+    ...o.auras
+  ])
+    if (it && (SKILLS[it.gem] || AURAS[it.gem]) && !it.sup) (it.so = 2), (it.sup = [null, null]);
   for (const k of o.skills) {
     if (k.s) {
       k.s.forEach((sp, j) => {

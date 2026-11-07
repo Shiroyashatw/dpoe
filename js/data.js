@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.56';
+const VER = '0.2.57';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -1261,17 +1261,53 @@ const CLS_TAGS = {
 for (const k in CLS_TAGS) SKILLS[k].tags.push(...CLS_TAGS[k].split(' '));
 /* 光環（0.2.4，照 PoE2）：插在光環欄、開著就一直生效，預留精魂；效果跟著寶石等級與光環效果變強 */
 const AURAS = {
-  anger: { n: '憤怒', ic: 'sk_anger', sp: 30, fx: { fireAdd: 15 }, d: '多造成傷害 15% 的火焰傷害' },
-  precise: { n: '精準', ic: 'sk_precise', sp: 30, fx: { crit: 5, critX: 20 }, d: '暴擊率 +5%、暴擊傷害加成 +20%' },
-  swift: { n: '迅捷', ic: 'sk_hasteaura', sp: 40, fx: { as: 10, ms: 8 }, d: '攻擊速度 +10%、移動速度 +8%' },
-  iron: { n: '堅毅', ic: 'sk_determination', sp: 30, fx: { armorP: 40, regen: 4 }, d: '護甲 +40%、每秒回復 4 生命' },
-  purity: { n: '純淨', ic: 'sk_purityaura', sp: 30, fx: { resA: 15 }, d: '全部抗性 +15%' },
-  clarity: { n: '冥思', ic: 'sk_clarity', sp: 30, fx: { esP: 25, mpReg: 40 }, d: '能量護盾 +25%、魔力回復 +40%' },
+  anger: {
+    n: '憤怒',
+    ic: 'sk_anger',
+    sp: 30,
+    tags: ['aura', 'buff'],
+    fx: { fireAdd: 15 },
+    d: '多造成傷害 15% 的火焰傷害'
+  },
+  precise: {
+    n: '精準',
+    ic: 'sk_precise',
+    sp: 30,
+    tags: ['aura', 'buff'],
+    fx: { crit: 5, critX: 20 },
+    d: '暴擊率 +5%、暴擊傷害加成 +20%'
+  },
+  swift: {
+    n: '迅捷',
+    ic: 'sk_hasteaura',
+    sp: 40,
+    tags: ['aura', 'buff'],
+    fx: { as: 10, ms: 8 },
+    d: '攻擊速度 +10%、移動速度 +8%'
+  },
+  iron: {
+    n: '堅毅',
+    ic: 'sk_determination',
+    sp: 30,
+    tags: ['aura', 'buff'],
+    fx: { armorP: 40, regen: 4 },
+    d: '護甲 +40%、每秒回復 4 生命'
+  },
+  purity: { n: '純淨', ic: 'sk_purityaura', sp: 30, tags: ['aura', 'buff'], fx: { resA: 15 }, d: '全部抗性 +15%' },
+  clarity: {
+    n: '冥思',
+    ic: 'sk_clarity',
+    sp: 30,
+    tags: ['aura', 'buff'],
+    fx: { esP: 25, mpReg: 40 },
+    d: '能量護盾 +25%、魔力回復 +40%'
+  },
   wolfsp: {
     n: '戰狼精魂',
     ic: 'sk_command',
     sp: 40,
     fx: { wolf: 1 },
+    tags: ['aura', 'minion'],
     d: '一隻戰狼一直跟著你（不用放技能，換地圖也在）'
   },
   golem: {
@@ -1279,14 +1315,16 @@ const AURAS = {
     ic: 'sk_guardtotem',
     sp: 30,
     fx: { golem: 1 },
+    tags: ['aura', 'minion'],
     d: '一隻石魔像跟著你打怪，每 4 秒嘲諷 4 公尺內的敵人 3 秒（王 1.5 秒）：被嘲諷的敵人只打魔像。魔像會受傷，被擊殺 7.5 秒後在你身邊復活'
   },
-  /* 0.2.56 第 3 層 F2：捷光環（照 PoE2）。只有你的攻擊擊殺會觸發、要拿非法系武器；her＝skills.js 的 heraldKill 用的種類，r 範圍 */
+  /* tags（0.2.57 F3）：光環寶石的孔用它判斷輔助相不相容（skills.js 的 supOK）。0.2.56 第 3 層 F2：捷光環（照 PoE2）。只有你的攻擊擊殺會觸發、要拿非法系武器；her＝skills.js 的 heraldKill 用的種類，r 範圍 */
   h_ash: {
     n: '灰燼捷光環',
     ic: 'sk_inferno',
     sp: 30,
     fx: {},
+    tags: ['aura', 'herald', 'aoe'],
     her: 'ash',
     r: 72,
     d: '攻擊擊殺時，溢出的傷害超過敵人最大生命 20% 就爆開，點燃周圍 72 內的敵人 3 秒（點燃的基礎是溢出傷害的 17%，寶石每級 +0.3%）。要拿非法系武器'
@@ -1296,6 +1334,7 @@ const AURAS = {
     ic: 'sk_iceshatter',
     sp: 30,
     fx: {},
+    tags: ['aura', 'herald', 'aoe'],
     her: 'ice',
     r: 96,
     d: '攻擊擊殺冰凍的敵人時冰爆，對周圍 96 內的敵人造成那一下攻擊 50% 的冰冷傷害（寶石每級 +3%）；冰爆不會冰凍。要拿非法系武器'
@@ -1305,6 +1344,7 @@ const AURAS = {
     ic: 'sk_staticfield',
     sp: 30,
     fx: {},
+    tags: ['aura', 'herald', 'aoe'],
     her: 'thunder',
     r: 60,
     d: '攻擊擊殺感電的敵人後，接下來 3 下攻擊擊中會落雷：對周圍 60 內的敵人造成那一下攻擊 50% 的閃電傷害（寶石每級 +3%），不能閃避、不會感電。要拿非法系武器'
@@ -1324,6 +1364,9 @@ const SUPPORTS = {
   cdr: { n: '冷卻時間恢復', ic: 'sup_sp_cd', need: ['cd'], d: '冷卻時間恢復率 +50%' },
   /* 0.2.55 F1：冷卻中花盛怒直接吼（skills.js 的 useSlot） */
   ragecry: { n: '激怒戰吼', ic: 'sup_sp_cry', need: ['warcry'], d: '冷卻中可以花 10 點盛怒直接使用' },
+  /* 0.2.57 F3：光環類輔助（items.js 的 stats 讀光環寶石的孔） */
+  auraeff: { n: '光環效果', ic: 'sup_sp_echo', need: ['buff'], d: '光環的數值 +25%（寶石每級 +1%）' },
+  spiriteff: { n: '精魂減免', ic: 'sup_sp_eff', need: ['aura'], d: '預留的精魂 −20%' },
   fireadd: { n: '附加火焰', ic: 'sup_sp_gfire', need: [], d: '多造成傷害 25% 的火焰附加傷害' },
   heavy: { n: '重擊', ic: 'sup_sp_heavy', need: ['melee'], d: '擊退 ×2、傷害更多 15%、沉重暈眩累積 +50%' },
   pack: { n: '群狼', ic: 'sup_sp_pet', need: ['minion'], d: '多 1 隻狼、狼的傷害更多 30%' },
@@ -1578,6 +1621,8 @@ const QUAL = {
   leech: '生命全滿時，吸到的量 {20}% 轉成魔力',
   cdr: '任何擊殺讓這招冷卻 −{0.2} 秒',
   ragecry: '花盛怒跳過冷卻時，{20}% 機率不花',
+  auraeff: '光環的數值再 +{5}%',
+  spiriteff: '預留的精魂再 −{5}%',
   fireadd: '附加的火焰 {20}% 機率點燃',
   heavy: '把怪擊退到牆邊時，{20}% 機率沉重暈眩',
   pack: '狼咬中時 {20}% 機率流血',
@@ -1765,7 +1810,9 @@ const GEM_LV = {
   cast_hurt: 9,
   chargeslam: 5,
   seiscry: 3,
-  ragecry: 5
+  ragecry: 5,
+  auraeff: 5,
+  spiriteff: 5
 };
 const gemLv = k => GEM_LV[k] || 1;
 /* 輔助分級（0.2.51，企劃書 6.5）：II 是另一顆寶石，鍵＝I 的鍵＋'2'；跟 I 同分類（不能同插）、同圖示、同品質效果，使用等級 31。

@@ -8,6 +8,8 @@ const SLOTKEY = ['左鍵', '右鍵', 'Q', 'E', 'R'];
 /* 同一顆技能上已經有同分類的輔助（排在前面的那顆才算） */
 const supDup = (g, sp) =>
   !!g && g.sup.some(x => x && x !== sp && supCat(x.gem) === supCat(sp.gem) && g.sup.indexOf(x) < g.sup.indexOf(sp));
+/* 插在光環上有效果的輔助（items.js 的 stats、捷光環、戰狼與魔像讀它們） */
+const AURA_SUP = new Set(['auraeff', 'spiriteff', 'area', 'focus', 'pack']);
 const supOK = (D, sp, g) => {
   const U = SUPPORTS[sp.gem];
   /* Meta 寶石的孔插的是法術，不是輔助 */
@@ -24,6 +26,8 @@ const supOK = (D, sp, g) => {
   )
     return false;
   if (U.all && !U.all.every(t => D.tags.includes(t))) return false;
+  /* 光環寶石（0.2.57 F3）：只有接上效果的輔助算相容，不限標籤的（狂暴、致命…）插了沒有用 */
+  if (D.sp != null) return AURA_SUP.has(U.base || sp.gem) && U.need.some(t => D.tags.includes(t));
   return !U.need.length || U.need.some(t => D.tags.includes(t));
 };
 /* 一格技能的實際數值（技能等級＋輔助＋天賦冷卻時間恢復率）；觸發、幻影直接用 gemCfg（i = −1）；c.g 是寶石本身 */
@@ -1259,8 +1263,8 @@ function hitMob(m, c, ang, kb, o = {}) {
 /* ---------- 捷光環（0.2.56 第 3 層 F2，企劃書 7.3 第 29 項） ---------- */
 /* 你自己的攻擊（不是召喚物、場上單位）；捷光環自己的傷害帶 o.her，可以觸發別的捷光環、不能觸發自己 */
 const herAtk = (c, o, a) => !o.minion && !a.unit && (c.D.tags || []).includes('attack');
-const herMul = k => 0.5 + 0.03 * (ST.her[k] - 1);
-const herR = k => AURAS['h_' + k].r * (1 + 0.2 * (ST.aq['h_' + k] || 0));
+const herMul = k => (0.5 + 0.03 * (ST.her[k] - 1)) * ST.herM[k];
+const herR = k => AURAS['h_' + k].r * (1 + 0.2 * (ST.aq['h_' + k] || 0)) * ST.herA[k];
 function heraldBoom(k, x, y, c, el, flag) {
   const r = herR(k),
     cc = { ...c, ...flag, D: { ...c.D, el, tags: [...(c.D.tags || []), 'aoe'] } };
@@ -1282,7 +1286,7 @@ function heraldKill(m, c, o, a) {
   const over = -m.hp;
   if (H.ash && o.her !== 'ash' && over > m.mhp * 0.2) {
     const r = herR('ash'),
-      dps = over * (0.17 + 0.003 * (H.ash - 1)) * 0.2;
+      dps = over * (0.17 + 0.003 * (H.ash - 1)) * 0.2 * ST.herM.ash;
     fx({ k: 'ring', x: m.x, y: m.y, r, dur: 0.3, col: ELC.fire });
     for (const x of G.mobs)
       if (x !== m && x.hp > 0 && x.ail && !noAil(x.ail, 'ign') && dist(x, m) < r + x.r)
@@ -1398,8 +1402,8 @@ const allyMult = (w, c) =>
     : w.src === 'doll'
       ? c.mult
       : w.src === 'golem'
-        ? c.mult * 0.8
-        : 0.4;
+        ? c.mult * 0.8 * (ST.packM_golem || 1)
+        : 0.4 * (ST.packM_wolfsp || 1);
 function updAllies(dt) {
   for (const w of G.allies) {
     if (w.dead > G.t) continue;
@@ -1495,9 +1499,11 @@ function updSkills(dt) {
   if (ST.es && P.es < ST.es && G.t - (P.lastHurt || -9) > ES_DELAY / (1 + ST.esDelay / 100))
     P.es = Math.min(ST.es, P.es + ST.es * 0.125 * (1 + (ST.esRec + MM('pes')) / 100) * dt);
   /* 戰狼精魂光環 */
-  const aw = G.allies.some(w => w.src === 'aura');
-  if (fightOn() && ST.auraWolf && !aw) callWolf('aura');
-  else if (!ST.auraWolf && aw) for (const w of G.allies.filter(w => w.src === 'aura')) allyDie(w);
+  /* 0.2.57：群狼插在戰狼精魂上是 2 隻 */
+  const aw = G.allies.filter(w => w.src === 'aura'),
+    nw = ST.auraWolf || 0;
+  if (fightOn() && aw.length < nw) callWolf('aura');
+  else for (const w of aw.slice(nw)) allyDie(w);
   /* 召喚魔像（光環欄）：拿權杖才會出來 */
   const gm = G.allies.some(w => w.src === 'golem'),
     gOn = ST.auraGolem;

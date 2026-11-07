@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：141 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 141,
+    '品質：143 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 143,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -4172,6 +4172,8 @@ vm.runInContext(
     S.eq.weapon = mkItem(wb('mace').id, 16, 0); ST = stats();
     out.on = [ST.auraOn.filter(k => AURAS[k].her).length, JSON.stringify(ST.her), sw.auraOn.filter(k => AURAS[k].her).length];
     ST.her = { ash: 1, ice: 1, thunder: 1 };
+    ST.herA = { ash: 1, ice: 1, thunder: 1 };
+    ST.herM = { ash: 1, ice: 1, thunder: 1 };
     const kill = (m, c) => hitMob(m, c, 0, 0, { mult: big, quiet: 1 });
     /* 灰燼：溢殺超過 20% 點燃 72 內的、遠的不點；法術擊殺不算 */
     let A = mk(0), B = mk(30), Far = mk(200); G.mobs = [A, B, Far]; P.stk = {};
@@ -4198,6 +4200,33 @@ vm.runInContext(
     JSON.stringify(f56) ===
       '{"on":[1,"{\\"ash\\":1}",0],"ash":[true,true],"ashSpell":true,"ice":[true,true],"thunder":[3,2,true,true],"thSpell":2,"chain":[true,true]}',
     JSON.stringify(f56)
+  );
+  /* 0.2.57 F3：光環寶石的孔與輔助（相容只看接上效果的、效果、精魂、捷光環範圍、群狼） */
+  const f57 = R(`(() => {
+    const keep = { eq: { ...S.eq }, au: S.auras, st: ST },
+      sp = k => mkGem(k, 1),
+      ok = (a, k) => supOK(AURAS[a], sp(k), mkGem(a, 1)),
+      with1 = (a, k, lv = 1) => { const g = mkGem(a, 1); g.sup = [k ? mkGem(k, lv) : null, null]; return g; },
+      out = {};
+    out.so = [mkGem('anger', 1).so, mkGem('h_ice', 1).sup.length, !drillCheck(mkGem('anger', 1)).why || drillCheck(mkGem('anger', 1)).why.includes('不夠')];
+    out.ok = [ok('anger', 'auraeff'), ok('h_ash', 'auraeff'), ok('h_ash', 'spiriteff'), ok('anger', 'area'), ok('h_ash', 'area'), ok('h_ash', 'area2'), ok('h_ash', 'focus'), ok('anger', 'fury'), ok('wolfsp', 'pack'), ok('golem', 'pack'), ok('wolfsp', 'giant'), supOK(SKILLS.cleave, sp('area'))];
+    S.eq.weapon = mkItem(BASES.find(b => b.k === 'weapon' && b.wt === 'mace').id, 16, 0); S.eq.off = null;
+    const st = gs => ((S.auras = gs), stats());
+    const a0 = st([with1('anger')]), a1 = st([with1('anger', 'auraeff', 6)]), a2 = st([with1('anger', 'spiriteff')]);
+    out.eff = [Math.round((a1.angerV / a0.angerV) * 100), a0.spiritUsed, a2.spiritUsed];
+    const h1 = st([with1('h_ash', 'area')]), h2 = st([with1('h_ash', 'focus')]);
+    out.her = [h1.herA.ash, h1.herM.ash, h2.herA.ash, h2.herM.ash];
+    /* 戰狼精魂要 40 精魂（起始 30 開不了），用魔像驗群狼的倍率 */
+    const w1 = st([with1('golem', 'pack')]), w0 = st([with1('golem')]);
+    out.wolf = [w0.auraGolem, w1.packM_golem, !!w0.packM_golem];
+    Object.assign(S, { eq: keep.eq, auras: keep.au }); ST = stats();
+    return out;
+  })()`);
+  ok(
+    'F3 光環的孔：光環寶石 2 孔、可以開孔；只有接上效果的輔助相容（光環效果只給有數值的光環、範圍與集中給捷光環、群狼給召喚，狂暴與極大不相容）；效果 +30%（6 級）、精魂 30→24、捷光環範圍 ×1.4／集中 ×0.7 更多 30%、群狼讓魔像更多 30%',
+    JSON.stringify(f57) ===
+      '{"so":[2,2,true],"ok":[true,false,true,false,true,true,true,false,true,true,false,true],"eff":[130,30,24],"her":[1.4,1,0.7,1.3],"wolf":[1,1.3,false]}',
+    JSON.stringify(f57)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',
