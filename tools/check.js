@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：143 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 143,
+    '品質：145 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 145,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3364,8 +3364,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '層數增益：十三列（含血怒、戰吼強化、雷霆落雷）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 13 && !b.bad.length,
+    '層數增益：十四列（含血怒、戰吼強化、雷霆落雷、傀儡大師）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 14 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(
@@ -4227,6 +4227,43 @@ vm.runInContext(
     JSON.stringify(f57) ===
       '{"so":[2,2,true],"ok":[true,false,true,false,true,true,true,false,true,true,false,true],"eff":[130,30,24],"her":[1.4,1,0.7,1.3],"wolf":[1,1.3,false]}',
     JSON.stringify(f57)
+  );
+  /* 0.2.58 J1：命令技能（要有召喚物、狼撲咬流血、魔像暈眩嘲諷）、傀儡大師（命令技能速度、移動懲罰） */
+  const j58 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (dx, o) => ({ D, x: P.x + dx, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, allies: G.allies, stk: P.stk },
+      act = k => ({ k, c: gemCfg(mkGem(k, 1), 0), t: 0, dur: 0.3, ang: 0, hits: [0], n: 0, tx: P.x + 200, ty: P.y }),
+      out = {};
+    if (typeof shake === 'undefined') globalThis.shake = () => {};
+    G.allies = []; P.stk = {};
+    out.why = [skillWhy(act('cmd_wolf').c, P), skillWhy(act('cmd_golem').c, P)];
+    const wolf = { src: 'aura', x: P.x, y: P.y, r: 14, hp: 100, mhp: 100, c: null },
+      gol = { src: 'golem', x: P.x + 300, y: P.y, r: 14, hp: 100, mhp: 100, c: null };
+    G.allies = [wolf, gol];
+    out.why2 = [skillWhy(act('cmd_wolf').c, P), skillWhy(act('cmd_golem').c, P)];
+    const t = mk(200), g1 = mk(330), g2 = mk(600), boss = mk(280, { boss: 1 });
+    G.mobs = [t, g1, g2, boss];
+    /* 這裡的 mobNear 被換成假的（上面 3449 行），圍獵要真的找目標 */
+    const mn = mobNear;
+    mobNear = mobNear_;
+    actHit(act('cmd_wolf'), 0);
+    mobNear = mn;
+    out.wolf = [t.hp < 1e9, !!(t.ail.bleed && t.ail.bleed.t > G.t), Math.round(dist(wolf, t))];
+    actHit(act('cmd_golem'), 0);
+    out.golem = [g1.hp < 1e9, g1.stun >= 1, g1.ail.tauntBy === gol, g2.hp === 1e9, !(boss.stun >= 1), boss.ail.tauntBy === gol];
+    /* 傀儡大師 5 層：命令技能出手時間 ÷1.5、移動懲罰 −50%；其他技能不變 */
+    const c = act('cmd_golem').c, o = act('cleave').c, d0 = [actDur(c), actDur(o)];
+    gainStk('puppet', 5);
+    out.puppet = [stkN('puppet'), +(d0[0] / actDur(c)).toFixed(2), +(d0[1] / actDur(o)).toFixed(2), +castMove(c).toFixed(3), castMove(o)];
+    Object.assign(G, { mobs: keep.mobs, allies: keep.allies }); P.stk = keep.stk;
+    return out;
+  })()`);
+  ok(
+    'J1 命令技能：沒有召喚物按不出來；圍獵讓狼撲到目標身邊咬、必定流血；震地怒吼打魔像周圍 150、暈眩（王不會）、嘲諷；傀儡大師 5 層命令技能快 1.5 倍、移動懲罰 −50%，其他技能不變',
+    JSON.stringify(j58) ===
+      '{"why":["要有戰狼精魂的狼","要有召喚魔像"],"why2":["",""],"wolf":[true,true,28],"golem":[true,true,true,true,true,true],"puppet":[5,1.5,1,0.675,0.35]}',
+    JSON.stringify(j58)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

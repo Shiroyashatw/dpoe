@@ -753,6 +753,7 @@ function itemHTML(it, src, eqk) {
 }
 /* 技能寶石面板：5 個技能欄，每欄 1 顆技能＋2 顆輔助 */
 const TAGN = {
+  command: '命令',
   attack: '攻擊',
   melee: '近戰',
   proj: '投射物',

@@ -151,7 +151,18 @@ function gemCfg(g, i) {
 /* 出手一次要幾秒（useSlot 與面板共用） */
 /* tAdd（0.2.42）：增加技能使用時間，固定秒數、不吃任何速度，加在最後 */
 const actDur = c =>
-  c.D.t / (c.D.shield ? ST.sasM : ST.asM) / c.speed / speedMul() / (isSpell(c.D) ? 1 : atkBuf()) + (c.D.tAdd || 0);
+  c.D.t /
+    (c.D.shield ? ST.sasM : ST.asM) /
+    c.speed /
+    speedMul() /
+    (isSpell(c.D) ? 1 : atkBuf()) /
+    (c.D.cmd ? 1 + bufV('cmdSpd') / 100 : 1) +
+  (c.D.tAdd || 0);
+/* 出手時能走多快（CAST_MOVE）；命令技能吃傀儡大師的移動懲罰減少 */
+const castMove = c => 1 - (1 - CAST_MOVE) * (c && c.D.cmd ? Math.max(0, 1 - bufV('cmdMv') / 100) : 1);
+/* 命令技能（0.2.58 J1）：活著的那種召喚物；傀儡大師讓召喚物執行命令的傷害提高 */
+const cmdAllies = src => G.allies.filter(w => w.src === src && !(w.dead > G.t));
+const cmdMul = () => 1 + bufV('cmdDmg') / 100;
 /* 技能基礎攻擊時間（只在技能面板顯示）：技能的 t 除以武器每秒攻擊次數（1.1 是 t 的基準），法術就是 t */
 const baseT = c => c.D.t / (isSpell(c.D) ? 1 : (c.D.shield ? 1.2 : ST.waps) / 1.1);
 /* 持續時間（0.2.42）：只有 duration 標籤的技能吃「技能持續時間」 */
@@ -210,6 +221,7 @@ function skillWhy(c, at) {
     return '附近沒有屍體';
   if (c.k === 'snap' && !stateMobs(at.x, at.y, c.D.r, SNAP_K).length) return '附近沒有冰凍、感電或點燃的敵人';
   if (c.k === 'hexblast' && !stateMobs(at.x, at.y, 150, ['curse']).length) return '附近沒有被詛咒的敵人';
+  if (c.D.cmd && !cmdAllies(c.D.cmd).length) return c.D.cmd === 'golem' ? '要有召喚魔像' : '要有戰狼精魂的狼';
   const A = c.D.ammo && P.ammo && P.ammo[c.k];
   if (A && A.until > G.t) return '裝填中';
   return '';
@@ -423,7 +435,8 @@ function skillTick(a, dt, mx, my) {
     } else if (f >= 1 && !a.n++) actHit(a, 0);
   } else {
     /* 施放時移動（combat.js 的 CAST_MOVE） */
-    moveBody(P, mx * ST.spd * CAST_MOVE * dt, my * ST.spd * CAST_MOVE * dt);
+    const cm = castMove(a.c);
+    moveBody(P, mx * ST.spd * cm * dt, my * ST.spd * cm * dt);
     while (a.n < a.hits.length && a.t >= a.dur * a.hits[a.n]) actHit(a, a.n++);
   }
   if (a.t >= a.dur) {
@@ -760,6 +773,43 @@ function actHit2(a, idx, R, hitArc) {
     for (const m of G.mobs)
       if (m.hp > 0 && dist(P, m) < R + m.r) crush(m), hitMob(m, c, angTo(P, m), 260 * c.kb, { a });
     if (cryEmpower(R, 'emSeis')) P.emSeisQ = c.q;
+  } else if (D.cmd) {
+    /* 命令技能：召喚物用你左鍵技能的數值（跟平常攻擊一樣），傷害 ×2 再吃傀儡大師；品質給傀儡大師一層 */
+    const c0 = slotCfg(0) || BASEC(),
+      L = cmdAllies(D.cmd);
+    if (qRoll(20 * c.q)) gainStk('puppet');
+    if (D.cmd === 'aura') {
+      const t = mobNear(a.tx, a.ty, 150);
+      for (const w of t ? L : []) {
+        const g = angTo(t, w);
+        fxs('blink', w.x, w.y);
+        (w.x = t.x + Math.cos(g) * (t.r + 16)), (w.y = t.y + Math.sin(g) * (t.r + 16));
+        fx({ k: 'claw', x: w.x, y: w.y, ang: angTo(w, t), r: 40, dur: 0.15 });
+        hitMob(t, { ...c0, bleedCh: 100, spellBleed: 1 }, angTo(w, t), 80, {
+          quiet: 1,
+          minion: 1,
+          from: w,
+          mult: allyMult(w, c0) * giantM(w) * 2 * cmdMul()
+        });
+      }
+    } else
+      for (const w of L) {
+        fxs('slam', w.x, w.y, R * 0.6);
+        fx({ k: 'ring', x: w.x, y: w.y, r: R, dur: 0.35, col: '#ffcf6b' });
+        sfx('slam');
+        for (const m of G.mobs)
+          if (m.hp > 0 && dist(m, w) < R + m.r) {
+            hitMob(m, c0, angTo(w, m), 120, {
+              quiet: 1,
+              minion: 1,
+              from: w,
+              mult: allyMult(w, c0) * giantM(w) * 2 * cmdMul()
+            });
+            if (!m.boss) m.stun = Math.max(m.stun || 0, 1);
+            m.ail.tauntBy = w;
+            m.ail.tauntT = G.t + MINION.tauntT * (m.boss ? 0.5 : 1);
+          }
+      }
   } else if (a.k === 'smash') {
     /* 重擊：打前方最近的一隻；瀕臨沉重暈眩就粉碎重擊（直接沉重暈眩）並震傷周圍 */
     let t = null,
@@ -1437,12 +1487,12 @@ function updAllies(dt) {
     w.mv = d > (t ? t.r + 20 : 50);
     if (w.mv) {
       const a = angTo(w, goal),
-        sp = d > 300 && !t ? 420 : 280;
+        sp = (d > 300 && !t ? 420 : 280) * (1 + bufV('allyMs') / 100);
       moveBody(w, Math.cos(a) * sp * dt, Math.sin(a) * sp * dt);
       w.face = Math.cos(a);
     }
     if (t && d < t.r + 30 && w.cd <= 0) {
-      w.cd = ALLY_RATE / (1 + ST.minAs / 100);
+      w.cd = ALLY_RATE / (1 + (ST.minAs + bufV('allySs')) / 100);
       fx({ k: 'claw', x: w.x, y: w.y, ang: angTo(w, t), r: 34, dur: 0.12 });
       const c = w.c || slotCfg(0) || BASEC(),
         mult = allyMult(w, c) * giantM(w);

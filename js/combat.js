@@ -1340,6 +1340,16 @@ const BUFF = {
   /* 0.2.55 F1：戰吼的強化攻擊（skills.js 的 cryEmpower／empUse），一層＝一下；數值在出手時算，不走 st */
   emInf: { n: '狂暴強化', ic: 'sk_warcry', d: '接下來的近戰攻擊傷害更多，每次出手用掉 1 層', max: 5, t: 8 },
   emSeis: { n: '震地強化', ic: 'sk_battlecry', d: '接下來的重擊在原地多一次餘震，每次出手用掉 1 層', max: 5, t: 8 },
+  /* 0.2.58 J1：傀儡大師（照 PoE2），用命令技能時獲得；鍵：cmdSpd 命令技能速度、cmdMv 施放移動懲罰減少、cmdDmg 召喚物命令傷害、allyMs／allySs 召喚物移動與技能速度 */
+  puppet: {
+    n: '傀儡大師',
+    ic: 'sk_possession',
+    d: '每層命令技能速度 +10%、移動懲罰 −10%，召喚物執行命令的傷害 +10%、移動速度 +2%、技能速度 +3%；每層各 8 秒',
+    max: 5,
+    t: 8,
+    own: 1,
+    st: { cmdSpd: 10, cmdMv: 10, cmdDmg: 10, allyMs: 2, allySs: 3 }
+  },
   /* 0.2.56 F2：雷霆捷光環的落雷（skills.js 的 heraldHit），一層＝一下 */
   herT: { n: '雷霆落雷', ic: 'sk_staticfield', d: '接下來的攻擊擊中會落雷，每下用掉 1 層', max: 3, t: 8 },
   chalice: {
