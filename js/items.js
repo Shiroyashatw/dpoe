@@ -577,21 +577,11 @@ function stats(s = S) {
         'cull',
         'fullStrike',
         /* 0.2.43 第 9 批：進攻機制的開關（combat.js） */
-        'ignFire',
-        'ignCold',
-        'ignLight',
-        'ignChaos',
         'aggHit',
         'aggIgn',
-        'bleedAll',
-        'poiAll',
-        'forkCrit',
         'inevCrit',
-        'ovkSplash',
-        'kbEs',
         'savageGuard',
         'lukCrit',
-        'lukBlock',
         'lukDmg',
         'lukDefl',
         'thornP',
@@ -602,24 +592,14 @@ function stats(s = S) {
         'parryDur',
         'parryR',
         'bvNoCrit',
-        'overwhelm',
-        'incise',
-        'inciseMag',
-        'hexPierce',
         'hstunNoEv',
-        'suppCh',
         /* 第 13～16 批：開關與數值（combat.js、mech.js、skills.js） */
         ...Object.keys(ATT_KS),
         'projAtkP',
         'fork',
-        'projRet',
         'splash',
-        'minmax',
-        'reveal',
-        'weakMore',
         'noRoll',
         'rollTank',
-        'minGiant',
         /* 天賦擴充：異常強度分種類、條件傷害、基石與開關 */
         'bleedMag',
         'poiMag',
@@ -633,10 +613,7 @@ function stats(s = S) {
         'dynOn',
         'aggAll',
         'noStag',
-        'crushOn',
         'crippleOn',
-        'weakenOn',
-        'compoundOn',
         'unChill',
         'unPoi',
         'unBleed'
@@ -829,20 +806,23 @@ function stats(s = S) {
     }
   }
   o.spiritUsed = Math.round(o.spiritUsed * 10) / 10;
+  /* 盾的護甲（基底照品質＋盾上的護甲詞）：格擋值＝這個數 ×（1 + 盾的護甲更多）（0.2.42；鐵金剛的鐵壁之盾、重盾前進、小點都是「盾的護甲更多」，相加） */
+  const shI = off && offOK(w, off) && baseOf(off).k === 'shield' ? off : null,
+    /* 盾上的護甲、閃避、能量護盾（基底照品質＋詞綴） */
+    shOf = k =>
+      shI ? Math.round((baseOf(shI).b[k] || 0) * qMul(shI)) + shI.a.reduce((t, a) => t + (a.k === k ? a.v : 0), 0) : 0,
+    shArm = shOf('armor');
+  /* 盾的防禦提高（shieldDef，0.2.68）：盾本身的護甲、閃避、能量護盾再加這個 %，進各自的基礎值（之後吃全部的提高） */
+  o.es += (shOf('es') * o.shieldDef) / 100;
   o.es = calc(o.es + pt.esF, o.esP + o.defP + bufV('esP'), 1, o.esTot);
   /* 持武器的加成 */
   o.wt = (w && baseOf(w).wt) || 'unarmed';
   /* 天賦「持某武器時傷害」（0.2.17，15 種武器都有） */
   o.dmgA += o['w_' + o.wt] || 0;
   o.hp = calc(o.hp + pt.life, pt.hpP, 1, o.lifeTot);
-  /* 盾的護甲（基底照品質＋盾上的護甲詞）：格擋值＝這個數 ×（1 + 盾的護甲更多）（0.2.42；鐵金剛的鐵壁之盾、重盾前進、小點都是「盾的護甲更多」，相加） */
-  const shI = off && offOK(w, off) && baseOf(off).k === 'shield' ? off : null,
-    shArm = shI
-      ? Math.round((baseOf(shI).b.armor || 0) * qMul(shI)) + shI.a.reduce((t, a) => t + (a.k === 'armor' ? a.v : 0), 0)
-      : 0;
   /* 護甲、閃避：基礎 → 轉換（鐵壁：基礎閃避全轉成護甲）→ 獲得（基礎閃避的 x% 當作護甲）→ 各自的提高 */
-  let armB = o.armor + pt.armorF + (shArm * o.shArmMore) / 100,
-    evB = o.ev + pt.evF;
+  let armB = o.armor + pt.armorF + (shArm * (o.shArmMore + o.shieldDef)) / 100,
+    evB = o.ev + pt.evF + (shOf('ev') * o.shieldDef) / 100;
   o.bv = Math.round(shArm * (1 + o.shArmMore / 100));
   if (o.ironRef) (armB += evB), (evB = 0);
   armB += (evB * o.evAsArmor) / 100;
@@ -850,6 +830,9 @@ function stats(s = S) {
   o.defl += (evB * o.evAsDefl) / 100;
   o.armor = calc(armB, pt.armorP + o.defP + bufV('armorP'), 1, o.armorTot);
   o.ev = calc(evB, pt.evP + o.defP, 1, o.evTot);
+  /* 被包圍時護甲、閃避（surrArm／surrEv）要跟身上的提高相加，combat.js 的 hurtCalc 用這兩個換算 */
+  o.armInc = pt.armorP + o.defP + bufV('armorP');
+  o.evInc = pt.evP + o.defP;
   /* 基石：不動如山（閃避歸零）、混沌免疫（生命 1、能量護盾更多 30%） */
   if (o.stand) o.ev = 0;
   if (o.ci) (o.hp = 1), (o.es = Math.round(o.es * 1.3));

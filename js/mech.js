@@ -306,7 +306,7 @@ function comboHit(a) {
   if (!a || a.combo || hasBuff('finality')) return;
   a.combo = 1;
   if (a.c && a.c.k === 'combo') P.comboQ = a.c.q;
-  P.combo = Math.min(COMBO_MAX, (P.combo || 0) + 1);
+  P.combo = Math.min(COMBO_MAX, (P.combo || 0) + 1 + (qRoll(ST.comboCh) ? 1 : 0));
   P.comboT = G.t;
 }
 /* 連打的品質：超時時留下一部分（mechTick），不整組歸零 */

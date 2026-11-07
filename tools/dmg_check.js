@@ -255,7 +255,8 @@ for (const t of [1, 4, 8, 12, 13, 16]) {
     mobHp = avgMob * tm.hp * R('MOB_HP'),
     fill = { frz: 2.1, elc: 1.7, hs: 0.58 * 2.25 },
     pct = (v, hp) => ((v / hp) * 100).toFixed(0) + '%';
-  R(`G.mapT = ${t}; G.t = 0`);
+  /* poiseAdd 會讀 ST.immobBuild（0.2.68）：這張表沒有配裝，給一份空角色的數值 */
+  R(`ST = stats({ lv: 1, eq: {}, pt: [], asc: null, at: [], auras: [], charms: [] }); G.mapT = ${t}; G.t = 0`);
   const po = R(`poise({ boss: 1, ail: {} }, 'frz')`),
     run = (k, dmg) => {
       ctx.b = { boss: 1, ail: {} };

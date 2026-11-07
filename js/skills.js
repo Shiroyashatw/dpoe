@@ -51,7 +51,9 @@ function gemCfg(g, i) {
       mult: gemMult(D, lv),
       more: 1,
       aoe: 1,
-      speed: D.tags.includes('spell') ? (1 + ST.castP / 100) * (hasBuff('arcane') ? 1.15 : 1) : 1,
+      speed: D.tags.includes('spell')
+        ? (1 + ST.castP / 100) * (hasBuff('arcane') ? 1 + 0.15 * (1 + ST.arcaneEff / 100) : 1)
+        : 1,
       mp: D.mp * gemMpMul(g.lv),
       cd: D.cd || 0,
       cdrP: ST.cdr,
@@ -66,7 +68,6 @@ function gemCfg(g, i) {
       chain: D.tags.includes('proj') && !D.noChain ? ST.chain : 0,
       /* 分裂、迴旋（第 13～16 批）：只給投射物技能；擲斧品質的迴旋是機率，在 shoot 的 o.back */
       fork: D.tags.includes('proj') && !!ST.fork,
-      ret: D.tags.includes('proj') && !!ST.projRet,
       kb: 1,
       fireAdd: 0,
       pen: 0,
@@ -182,7 +183,9 @@ const actDur = c =>
     (c.D.cmd ? 1 + bufV('cmdSpd') / 100 : 1) +
   (c.D.tAdd || 0);
 /* 出手時能走多快（CAST_MOVE）；命令技能吃傀儡大師的移動懲罰減少 */
-const castMove = c => 1 - (1 - CAST_MOVE) * (c && c.D.cmd ? Math.max(0, 1 - bufV('cmdMv') / 100) : 1);
+const castMove = c =>
+  1 -
+  (1 - Math.min(1, CAST_MOVE * (1 + ST.castMoveP / 100))) * (c && c.D.cmd ? Math.max(0, 1 - bufV('cmdMv') / 100) : 1);
 /* 命令技能（0.2.58 J1）：活著的那種召喚物；傀儡大師讓召喚物執行命令的傷害提高 */
 const cmdAllies = src => G.allies.filter(w => w.src === src && !(w.dead > G.t));
 /* 傷害提高：傀儡大師的層數、天賦 cmdP、場上每種活著的召喚物 cmdPerType（0.2.67；戰狼的兩種算同一種） */
@@ -480,7 +483,7 @@ function skillTick(a, dt, mx, my) {
       n0 = seg();
     a.ang = P.face = Math.atan2(w.y - P.y, w.x - P.x);
     (a.tx = w.x), (a.ty = w.y);
-    moveBody(P, mx * ST.spd * CAST_MOVE * dt, my * ST.spd * CAST_MOVE * dt);
+    moveBody(P, mx * ST.spd * castMove(a.c) * dt, my * ST.spd * castMove(a.c) * dt);
     a.ch = Math.min(E.max * E.step, a.ch + dt * (1 + 0.2 * a.c.q));
     if (seg() > n0) (a.chT = G.t), sfx(seg() >= E.max ? 'perfect' : 'cast');
     if (slotHeld(a.slot)) return;
@@ -628,7 +631,7 @@ function actHit(a, idx) {
         const d = Math.hypot(m.x - a.tx, m.y - a.ty);
         if (d < bd) (bd = d), (cur = m);
       }
-    let jumps = D.chain + (c.proj - 1) + (c.chain || 0);
+    let jumps = D.chain + (c.proj - 1) + (c.chain || 0) + (qRoll(ST.chainL) ? 1 : 0);
     for (let k = 0; cur && k <= jumps; k++) {
       /* 電弧的品質：感電的怪不算跳數 */
       if (hasState(cur, 'shock') && qRoll(20 * c.q)) jumps++;
@@ -1231,6 +1234,7 @@ function shotFork(s, ang) {
 }
 function shoot(ang, spd, c, a, o) {
   if (windFull()) spd *= 1.3; /* 疾風化身：投射物速度 +30% */
+  spd *= Math.max(0.2, 1 + ST.projSpd / 100); /* 天賦：投射物速度（風箏手、短射） */
   G.shots.push({
     x: P.x + Math.cos(ang) * 20,
     y: P.y - 18 + Math.sin(ang) * 20,
@@ -1239,7 +1243,8 @@ function shoot(ang, spd, c, a, o) {
     ang,
     r: 10,
     pierce: c.pierce,
-    chain: c.chain || 0,
+    /* 連鎖：輔助給的固定次數，加上天賦的機率（chainCh 投射物、chainL 閃電技能，每顆各擲一次） */
+    chain: (c.chain || 0) + (qRoll(ST.chainCh) ? 1 : 0) + ((c.D.el === 'light' || c.cvL) && qRoll(ST.chainL) ? 1 : 0),
     /* 射出的位置（投射物飛行距離：遠射、近射） */
     sx: P.x,
     sy: P.y,
@@ -1354,15 +1359,15 @@ function hitMob(m, c, ang, kb, o = {}) {
   m.hp -= r.d;
   if (culled(m, c))
     (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺'), qRoll(20 * (c.cullQ || 0)) && gainChg('f');
-  /* 事件（0.2.43，擊中造成擊殺才算，持續傷害不算）：溢出 ovkSplash＝%（溢出傷害打給 2 公尺內的敵人）、最後一擊 kbEs＝%（打死感電的敵人回復最大能量護盾） */
   heraldHit(m, c, o, a);
-  if (hp0 > 0 && m.hp <= 0) hitKill(m, hp0, r), heraldKill(m, c, o, a);
+  if (hp0 > 0 && m.hp <= 0) heraldKill(m, c, o, a);
   if (a) a.any = 1;
   m.flash = 0.09;
   m.sq = 1;
   if (o.stun && !m.boss) m.stun = o.stun;
   if (o.blind) m.ail.blind = G.t + 4;
   if (!m.boss && kb && !(m.ail.pinT > G.t)) {
+    kb *= 1 + ST.kbP / 100; /* 天賦：擊退距離 */
     const res = m.elite ? 0.5 : m.D.ai === 'slam' ? 0.4 : 1;
     m.vx += Math.cos(ang) * kb * res * (r.crit ? 1.5 : 1);
     m.vy += Math.sin(ang) * kb * res * (r.crit ? 1.5 : 1);
@@ -1577,7 +1582,7 @@ function allyLife(src, c) {
     (ALLY_HPM[isGolem(src) ? 'golem' : src] || 0.7)
   );
 }
-const giantM = w => (ST.minGiant || (w.c && w.c.giant) ? 1 + MINION.giant : 1);
+const giantM = w => (w.c && w.c.giant ? 1 + MINION.giant : 1);
 /* 召喚物生命輔助（0.2.66）：寶石叫的看 c.minL，光環（魔像、戰狼精魂）看 stats() 算好的 minL_光環鍵 */
 /* 0.2.67：天賦 minLife（全部召喚物）、compLife（夥伴＝戰狼精魂的狼） */
 const lifeM = (src, c) =>

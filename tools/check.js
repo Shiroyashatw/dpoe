@@ -364,8 +364,8 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       `入口不是 1 個的 ${multi}、被擋住的點 ${cut}`
     );
     ok(
-      `主題 ${TH.length - 1} 個（58 個舊的＋0.2.67 新增 12 個，不含過路用的「基礎」）`,
-      TH.length - 1 === 70,
+      `主題 ${TH.length - 1} 個（58 個舊的＋0.2.67 新增 12 個＋0.2.68 全域防禦，不含過路用的「基礎」）`,
+      TH.length - 1 === 71,
       TH.length - 1
     );
   }
@@ -373,7 +373,9 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
   {
     const { ptreeGen2, pt2Audit } = require('./tree_bake.js'),
       B = vm.runInContext('PT_BAKE', ctx),
-      T2 = ptreeGen2(vm.runInContext('({ PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS })', ctx)),
+      T2 = ptreeGen2(
+        vm.runInContext('({ PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS, PT_FIX })', ctx)
+      ),
       A2 = pt2Audit(T2),
       same =
         T2.N.length === B.N.length &&
@@ -393,11 +395,11 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     const has = new Set(T.N.flatMap(n => Object.keys(n.s || {}))),
       need =
         `atkP physP fireP coldP lightP chaosP strikeP slamP novaP sustP durP projAtkP bleedMag poiMag ignMag rageMax rageEff rageLeech rageHit
-        mpLeech esLeech allyLeech lifeRec esMana recoupHp recoupMp evAsArmor cull lukCrit lukBlock lukDmg lukDefl thornP thorn defl evAsDefl
-        ignFire ignCold ignLight ignChaos aggHit aggIgn aggAll bleedAll poiAll forkCrit inevCrit ovkSplash kbEs savageGuard parryMag parryDur parryR bvNoCrit
-        overwhelm incise inciseMag hexPierce hstunNoEv suppCh buffMag debuffMag blackScythe circular knightly ironGrip ironWill fork projRet splash minmax reveal
-        weakMore noRoll noStag rollTank minGiant surrP isoP killP presP lowMpP lowEsP dynOn crushOn crippleOn weakenOn compoundOn unChill unPoi unBleed esDelay esRec
-        stunThrP stunRec immobP dazeCh`
+        mpLeech esLeech allyLeech lifeRec esMana recoupHp recoupMp evAsArmor cull lukCrit lukDmg lukDefl thornP thorn defl evAsDefl
+        aggHit aggIgn aggAll inevCrit savageGuard parryMag parryDur parryR bvNoCrit
+        hstunNoEv buffMag debuffMag blackScythe circular knightly ironGrip ironWill fork splash
+        noRoll noStag rollTank surrP isoP killP presP lowMpP lowEsP dynOn crippleOn unChill unPoi unBleed esDelay esRec
+        stunThrP stunRec immobP dazeCh projCh spellProjCh golemMax golemEff`
           .split(/\s+/)
           .concat(Object.keys(vm.runInContext('PT_NEW', ctx))),
       miss = need.filter(k => !has.has(k)),
@@ -407,6 +409,64 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       /* 沒有過路小點：每個小點都跟某個大點連在一起（鎖住的也算） */
       way = C.filter(ns => !ns.some(n => n.big)).length;
     ok('每個能力都有天賦來源（fullStrike 留給昇華）', !miss.length && !has.has('fullStrike'), miss.join(' '));
+    /* 0.2.68：拿掉 23 個大點後，沒有任何來源（天賦、輔助、裝備固定詞與詞綴、昇華、品質）會寫入的能力是死碼，已經從 STATN、stats() 預設、機制讀取點全部刪掉
+       （輔助用的是技能欄位 c.*，不受影響）。DEAD 是刪掉的 23 個，不能再出現；OFF 是「不在樹上、但有真的來源」的能力（現在是空的），
+       每個一定要在 ASC／SUPPORTS／AFF／IMPN／QUAL 之一被寫入 */
+    const DEAD =
+        `lukBlock ignFire ignCold ignLight ignChaos bleedAll poiAll forkCrit ovkSplash kbEs overwhelm incise inciseMag hexPierce suppCh
+        projRet minmax reveal weakMore minGiant crushOn weakenOn compoundOn`.split(/\s+/),
+      OFF = [],
+      jsSrc = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js', 'data.js', 'hud.js', 'render.js']
+        .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+        .join('\n'),
+      writers = JSON.stringify(
+        ['ASC', 'SUPPORTS', 'AFF', 'IMPN', 'QUAL'].map(n =>
+          vm.runInContext('typeof ' + n + " !== 'undefined' ? " + n + ' : {}', ctx)
+        )
+      ),
+      alive = k =>
+        new RegExp('(?<!c\\.)\\b' + k + '\\b').test(jsSrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')),
+      STATN2 = vm.runInContext('STATN', ctx);
+    ok(
+      `沒有任何來源的 ${DEAD.length} 個能力已經從 STATN、stats() 預設、機制全部刪掉（技能欄位 c.overwhelm、c.minmax 留著）`,
+      DEAD.length === 23 && DEAD.every(k => !STATN2[k] && !alive(k)),
+      DEAD.filter(k => STATN2[k] || alive(k)).join(' ')
+    );
+    ok(
+      `不在樹上的能力（${OFF.length} 個）一定有來源：ASC／SUPPORTS／AFF／IMPN／QUAL 之一寫入`,
+      OFF.every(k => !has.has(k) && writers.includes('"' + k + '"')),
+      OFF.filter(k => has.has(k) || !writers.includes('"' + k + '"')).join(' ')
+    );
+    const GONE =
+      `迴旋鏢 溢勁 純焰 純冰 純電 虛無 衰敗 積焰 撼地 咒無可避 洞穿弱點 孤擲 雙連枷 雙岔矛 血流成河 萬毒 巨靈 電能回收 鎮壓之力 鎮山 銳不可當 法術壓制 幸運之盾`.split(
+        ' '
+      );
+    ok(
+      `拿掉的 ${GONE.length} 個大點名字不在樹上`,
+      GONE.length === 23 && GONE.every(n => !T.N.some(x => x.n === n)),
+      GONE.filter(n => T.N.some(x => x.n === n)).join(' ')
+    );
+    /* 4B 新增與替代的大點名字全部上樹（排在 nt 前段才保證抽得到；提案指定的 5 個曾經沒上樹）；新變體各至少 6 個小點 */
+    const NEWN =
+        `巨盾 風箏手 致命精準 靜電充能 靈能壁 鎖鏈暴擊 貫矛 蠻力 重壓 山岳 破軍 燎原 餘燼不熄 重霜 導電 凋零之觸 血債難償 凌遲 細切 蝕骨之毒 連環打擊 震顫 廣咒 惡語
+        詭射 短射 分支閃電 濕透 忍痛 不滅怒火 鬥志回流 炎熱餘韻 高貴之狼 節奏脈輪 連環制動 纏綿 易傷體質 漫長寒冬 綿長出血 纏毒 強電流 連鎖咒術 不受阻 清場 符文護佑
+        鐵壁之心 岩心 靈能屏障 不撓`.split(/\s+/),
+      onTree = new Set(T.N.filter(n => n.big === 1).map(n => n.n)),
+      smallOf = k => T.N.filter(n => !n.big && n.s && k in n.s).length;
+    ok(
+      `4B 新增與替代的 ${NEWN.length} 個大點名字全部上樹`,
+      new Set(NEWN).size === NEWN.length && NEWN.every(n => onTree.has(n)),
+      NEWN.filter(n => !onTree.has(n)).join(' ')
+    );
+    ok(
+      `新變體夠多：受到的緩速降低 ${smallOf('slowRes')}、定身累積 ${smallOf('immobBuild')}、存在範圍 ${smallOf('presArea')} 個小點（各 ≥ 6）`,
+      ['slowRes', 'immobBuild', 'presArea'].every(k => smallOf(k) >= 6)
+    );
+    ok(
+      '全域防禦的 {defP, resA} 小點與棍術的連擊複合詞各至少 1 個上樹',
+      T.N.some(n => !n.big && n.s && n.s.defP && 'resA' in n.s) &&
+        T.N.some(n => !n.big && n.s && n.s.w_qstaff && 'comboCh' in n.s)
+    );
     ok('天賦點的每個鍵都有 STATN 名字', !noName.length, noName.join(' '));
     ok('每個天賦點都有圖示', !noIc.length, noIc.slice(0, 5).join(' '));
     ok(
@@ -426,6 +486,55 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     ok(`小點 ${kinds} 種（≥ 420）、兩條詞的佔 ${Math.round(100 * two)}%（≤ 32%）`, kinds >= 420 && two <= 0.32);
   }
   ok('15 種武器都有專精叢集', !wp.length, wp.join(','));
+  /* 0.2.68：重烘時調路（4A 驗收發現所有叢集重抽後武器專精換了路）、固定擺法的路線、全域防禦只在 4 個叢集 */
+  {
+    const BK = vm.runInContext('PT_BAKE', ctx),
+      FIX = vm.runInContext('PT_FIX', ctx),
+      road = c => Math.round((((Math.atan2(c[0], -c[1]) * 180) / Math.PI + 360) % 360) / 60) % 6,
+      /* 企劃書第 7 節：劍斧錘鏈錘＝鬥士、長矛＝遊俠與鬥士、弓十字弓＝遊俠、匕首爪陷阱器＝暗影、長杖＝魔導、法杖權杖＝死靈、魔符細杖＝自然 */
+      WROAD = {
+        sword: [0],
+        axe: [0],
+        mace: [0],
+        flail: [0],
+        spear: [0, 1],
+        bow: [1],
+        xbow: [1],
+        dagger: [2],
+        claw: [2],
+        traptool: [2],
+        staff: [3],
+        wand: [4],
+        sceptre: [4],
+        talisman: [5],
+        qstaff: [5]
+      },
+      per = n => BK.C.filter(c => c[2] === TH.findIndex(t => t.n === n)).map(road),
+      badW = TH.filter(t => t.wp && WROAD[t.wp])
+        .filter(t => per(t.n).filter(r => WROAD[t.wp].includes(r)).length * 2 < per(t.n).length)
+        .map(t => t.n + ' ' + per(t.n).join('')),
+      es = per('能量護盾').filter(r => r === 2).length,
+      badF = FIX.filter(([n, rs]) => per(n).sort().join() !== [...rs].sort().join()).map(([n]) => n),
+      di = TH.findIndex(t => t.n === '全域防禦'),
+      defN = T.N.filter(n => n.s && 'defP' in n.s),
+      defCl = new Set(defN.map(n => n.id.split('_')[0]));
+    ok('每種武器專精的叢集至少一半在企劃書第 7 節寫的那條路', !badW.length, badW.join('、'));
+    ok(`能量護盾叢集在暗影之路 ${es} 個（≥ 3，混沌免疫的護盾來源）`, es >= 3);
+    /* 防禦下限（0.2.67 是護甲 11 個叢集、鬥士之路 6 個、能量護盾 13 個；拆掉全域防禦後坦克、混沌免疫要靠這些點補回來） */
+    ok(
+      `護甲叢集 ${per('護甲').length} 個（≥ 11）、鬥士之路 ${per('護甲').filter(r => r === 0).length} 個（≥ 5）；能量護盾叢集 ${per('能量護盾').length} 個（≥ 13）`,
+      per('護甲').length >= 11 && per('護甲').filter(r => r === 0).length >= 5 && per('能量護盾').length >= 13
+    );
+    ok(
+      '固定擺法（PT_FIX）：全域防禦、夥伴、戰吼、命令技能、傀儡大師、捷光環、波動、執政官、先祖強化、榴彈、灌注、護符與藥劑、破甲 13 個主題的叢集數與路線照表',
+      !badF.length,
+      badF.join(' ')
+    );
+    ok(
+      `全域防禦 4 個叢集：鬥士之路 2、魔導之路 2；全樹的 defP 只出現在這 4 個叢集（${defN.length} 個點）`,
+      per('全域防禦').sort().join() === '0,0,3,3' && defCl.size === 4 && defN.every(n => n.th === di)
+    );
+  }
   ok(
     `大點全部手寫（${nts.length} 個，名字不重複）`,
     !auto && new Set(nts.map(n => n.n)).size === nts.length,
@@ -464,12 +573,12 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     STATN = vm.runInContext('STATN', ctx),
     noName = K.filter(k => !STATN[k] || !STATN[k][0]);
   ok(
-    `0.2.67 新增的 ${K.length} 個能力：預設是 0、天賦給了讀得到、都有名字`,
+    `0.2.67／0.2.68 新增的 ${K.length} 個能力（PT_NEW）：預設是 0、天賦給了讀得到、都有名字`,
     K.length >= 80 && K.every(k => o0[k] === 0 && o1[k] === 7) && !noName.length,
     K.filter(k => o0[k] !== 0 || o1[k] !== 7).join(' ') + noName.join(' ')
   );
   ok(
-    '0.2.67 新增的能力每個都有機制讀取點（skills／combat／mech／game／items 至少一處用到）',
+    '0.2.67／0.2.68 新增的能力每個都有機制讀取點（skills／combat／mech／game／items 至少一處用到）',
     !noRead.length,
     noRead.join(' ')
   );
@@ -1689,7 +1798,7 @@ vm.runInContext(
     out.eff = [effCh(50, 1), effCh(50, 0, 1), effCh(50, 1, 1), effCh(150, 1)];
     out.cap = [capLuck(40, 50, 1), capLuck(20, 50, 1)].map(Math.round);
     /* 閃避仍是熵值：不管亂數，100 次剛好躲掉 95 次（命中率 5%） */
-    Math.random = () => 0.5; Object.assign(ST, { ev: 1e9, defl: 0, block: 0, armor: 0, physAsFire: 0, lukBlock: 0, lukDefl: 0 }); P.ail = {}; P.evE = 0; P.tail = 0;
+    Math.random = () => 0.5; Object.assign(ST, { ev: 1e9, defl: 0, block: 0, armor: 0, physAsFire: 0, lukDefl: 0 }); P.ail = {}; P.evE = 0; P.tail = 0;
     let evs = 0; for (let i = 0; i < 100; i++) if (hurtCalc(100, null, 'phys', 0).ev) evs++;
     out.ent = evs;
     /* 偏斜公式 */
@@ -2023,7 +2132,7 @@ vm.runInContext(
       mk = (o = {}) => ({ D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
       loss = (m, t) => { G.t = t; const h = m.hp; ailTick(m, 1); return Math.round((h - m.hp) * 1000) / 1000; },
       st0 = { ...ST };
-    Object.assign(ST, { noCrit: 1, noMiss: 1, aggHit: 0, aggIgn: 0, shaper: 0, ember: 0, ailMag: 0, bleedAll: 0, poiAll: 0, forkCrit: 0, inevCrit: 0, ignFire: 0, ignCold: 0, ignLight: 0, ignChaos: 0 });
+    Object.assign(ST, { noCrit: 1, noMiss: 1, aggHit: 0, aggIgn: 0, shaper: 0, ember: 0, ailMag: 0, inevCrit: 0 });
     Object.assign(G, { t: 100, scene: 'map', mapT: 1, mm: null, mobs: [], allies: [], state: 'play' });
     /* 備份佇列：弱的備份在最強一筆結束後接手；強的後到變成最強、舊的退成備份；同強度刷新時間 */
     let m = mk(), a = m.ail;
@@ -2063,10 +2172,6 @@ vm.runInContext(
     /* 移動目標：普通流血也 ×2，所以加劇 100 對普通 150 要打 300；靜止則加劇的 200 勝過 150 */
     const mb = mv => { const t = mk({ mv }); G.t = 100; t.ail.bleed = keepMax(t.ail.bleed, 100, 8); aggravate(t, 'bleed'); t.ail.bleed = keepMax(t.ail.bleed, 150, 8); t.ail.mark = { k: 'hound', t: 200 }; const h = t.ail.hs || 0; const l = loss(t, 101); return [l, Math.round(((t.ail.hs || 0) - h) * 1000) / 1000]; };
     out.mvBleed = [mb(1), mb(0)];
-    /* 純元素擊中：bleedAll／poiAll 開才有流血、中毒；關閉時不變 */
-    const pf = { phys: 0, fire: 50, cold: 0, light: 0, chaos: 0 }, rf = { pre: pf, post: pf }, cb = { D: { tags: ['attack'] }, q: 0, bleedCh: 100, poisonCh: 100 };
-    const pureF = () => { const t = mk(); G.t = 100; applyAil(t, rf, cb, {}); return [!!t.ail.bleed, !!(t.ail.poi && t.ail.poi.length)]; };
-    out.pure0 = pureF(); ST.bleedAll = 1; ST.poiAll = 1; out.pure1 = pureF(); ST.bleedAll = ST.poiAll = 0;
     G.t = 100;
     /* 惡化點燃：同一次使用再點燃同一目標，移除舊筆、新筆幅度 × 累計筆數 */
     const pre = { phys: 0, fire: 0.001, cold: 0, light: 0, chaos: 0 }, rr = { pre, post: pre }, ci = { D: { tags: [] }, q: 0, addIgn: 100 };
@@ -2081,12 +2186,6 @@ vm.runInContext(
     const pp = { phys: 1, fire: 2, cold: 4, light: 8, chaos: 16 };
     out.base = [ailBase(pp, 'ign'), ailBase(pp, 'bleed'), ailBase(pp, 'poi')];
     ST.shaper = 1; out.shaper = ailBase(pp, 'ign'); ST.shaper = 0;
-    ST.bleedAll = 1; ST.poiAll = 1; out.all = [ailBase(pp, 'bleed'), ailBase(pp, 'poi')]; ST.bleedAll = ST.poiAll = 0;
-    /* 無視抗性：負抗性也不吃；其他種類不受影響 */
-    const rm = mk({ res: { fire: -50, cold: 30, light: 0, chaos: -20 } });
-    out.res0 = [resOf(rm, 'fire'), resOf(rm, 'cold'), resOf(rm, 'chaos')];
-    ST.ignFire = 1; ST.ignChaos = 1; out.res1 = [resOf(rm, 'fire'), resOf(rm, 'fire', 20), resOf(rm, 'cold'), resOf(rm, 'chaos')];
-    ST.ignFire = ST.ignChaos = 0;
     /* 空手：獨立類別、2～5、1.65、暴擊 5%；限定武器的技能不能用、預設攻擊斬擊可以 */
     const s0 = { lv: 1, eq: Object.fromEntries(EQS.map(e => [e.k, null])), pt: [], ptA: {}, asc: null, at: [], auras: [], charms: [] }, un = stats(s0);
     out.unarmed = [un.wt, un.dmg.join(), un.waps, un.crit];
@@ -2095,34 +2194,19 @@ vm.runInContext(
     const cf = gemCfg(mkGem('split', 5), 0), mc = (n) => { let t = 0; for (let i = 0; i < n; i++) t += hitCalc(cf, null, { keep: 1 }).d; return t / n; };
     ST.noCrit = 0; ST.dmg = [100, 100]; ST.wcrit = 30; ST.critInc = 0; ST.critX = 0; ST.lukCrit = 0; P.critNext = 0;
     const cr = {};
-    for (const [k, f, i, l] of [['base', 0, 0, 0], ['fork', 1, 0, 0], ['inev', 0, 1, 0], ['both', 1, 1, 0], ['lucky', 1, 1, 1]]) {
-      ST.forkCrit = f; ST.inevCrit = i; ST.lukCrit = l;
+    for (const [k, i, l] of [['base', 0, 0], ['inev', 1, 0], ['lucky', 1, 1]]) {
+      ST.inevCrit = i; ST.lukCrit = l;
       const av = hitCalc(cf, null, { avg: 1, keep: 1 }).d, sm = mc(40000);
       cr[k] = [Math.round(av), Math.abs(sm / av - 1) < 0.02];
     }
     out.cr = cr;
-    ST.wcrit = 0; ST.forkCrit = 1; ST.inevCrit = 1; ST.lukCrit = 0; const z = hitCalc(cf, null, { keep: 1 }); out.zero = [z.crit, hitCalc(cf, null, { avg: 1, keep: 1 }).ch];
-    ST.forkCrit = ST.inevCrit = 0; ST.wcrit = 5; ST.noCrit = 1;
+    ST.wcrit = 0; ST.inevCrit = 1; ST.lukCrit = 0; const z = hitCalc(cf, null, { keep: 1 }); out.zero = [z.crit, hitCalc(cf, null, { avg: 1, keep: 1 }).ch];
+    ST.inevCrit = 0; ST.wcrit = 5; ST.noCrit = 1;
     /* 滿溢機率：215% ＝ 2 次，再 15% 第 3 次 */
     const sp = { 2: 0, 3: 0, other: 0 }; for (let i = 0; i < 20000; i++) { const n = surpass(215); n === 2 || n === 3 ? sp[n]++ : sp.other++; }
     out.sp = [sp.other, Math.round(sp[3] / 200), surpass(0), surpass(-5), surpass(100), surpass(300), surpass(99) <= 1];
-    /* 溢出：擊中擊殺才算，溢出的 x% 打 2 公尺（60）內；最後一擊：打死感電的敵人回復能量護盾；持續傷害都不算 */
     globalThis.aggroPack = globalThis.sparks = globalThis.hitstop = () => {}; globalThis.killMob = m => { m.dead = 1; };
-    const cf2 = { ...gemCfg(mkGem('split', 5), 0), leech: 0 }; ST.dmg = [100, 100]; ST.es = 1000; P.es = 0; G.t = 100;
-    const dd = (() => { const t = mk(); hitMob(t, cf2, 0, 0); return 1e9 - t.hp; })();
-    const grp = (hp, o = {}) => { const t = mk({ hp, mhp: 100, ...o }), n1 = mk({ x: P.x + 80, hp: 1000, mhp: 1000 }), far = mk({ x: P.x + 400, hp: 1000, mhp: 1000 }); G.mobs = [t, n1, far]; return [t, n1, far]; };
-    let [t1, n1, f1] = grp(10);
-    hitMob(t1, cf2, 0, 0); out.ovk0 = [t1.dead, n1.hp];
-    ST.ovkSplash = 30; [t1, n1, f1] = grp(10);
-    hitMob(t1, cf2, 0, 0); out.ovk = [t1.dead, Math.abs((1000 - n1.hp) - (dd - 10) * 0.3) < 0.01, f1.hp];
-    [t1, n1, f1] = grp(1e9, { mhp: 1e9 }); hitMob(t1, cf2, 0, 0); out.ovkAlive = [t1.dead || 0, n1.hp];
-    [t1, n1, f1] = grp(10); dotHit(t1, 500, 'phys'); out.ovkDot = [t1.dead, n1.hp];
-    ST.ovkSplash = 0;
-    ST.kbEs = 10; [t1] = grp(10, { ail: { shock: 200 } }); hitMob(t1, cf2, 0, 0); out.kb = [t1.dead, P.es];
-    const rnd1 = Math.random; Math.random = () => 0.999; P.es = 0; [t1] = grp(10); hitMob(t1, cf2, 0, 0); out.kbNo = P.es; Math.random = rnd1;
-    [t1] = grp(10, { ail: { shock: 200 } }); dotHit(t1, 500, 'phys'); out.kbDot = P.es;
-    [t1] = grp(1e9, { mhp: 1e9, ail: { shock: 200 } }); hitMob(t1, cf2, 0, 0); out.kbAlive = P.es; ST.kbEs = 0;
-    G.mobs = [];
+    ST.dmg = [100, 100]; ST.es = 1000; P.es = 0; G.t = 100; G.mobs = [];
     /* 殘暴打擊：一下被移除至少 15% 最大生命才有守護，x% 最大生命、4 秒；先吸收（在格擋值之後） */
     ST.hp = 1000; ST.bv = 0; ST.savageGuard = 10; P.svgV = 0; P.guardV = 0; G.t = 300;
     savageHit(149); out.sv0 = P.svgV || 0;
@@ -2136,11 +2220,6 @@ vm.runInContext(
     '流血在移動目標上取實際最大的一筆：移動時 加劇 100 vs 普通 150 → 300、靜止時加劇 200 勝過 150',
     b9.mvBleed[0][0] === 300 && b9.mvBleed[1][0] === 200,
     j9(b9.mvBleed)
-  );
-  ok(
-    'bleedAll／poiAll：純火焰擊中開了才有流血、中毒；關閉時沒有',
-    j9(b9.pure0) === '[false,false]' && j9(b9.pure1) === '[true,true]',
-    j9([b9.pure0, b9.pure1])
   );
   ok(
     '備份佇列：最強一筆造成傷害、強的後到舊的退成備份、弱的備份在最強一筆結束後接手',
@@ -2175,14 +2254,9 @@ vm.runInContext(
     j9([b9.comp, b9.compOther, b9.compOff])
   );
   ok(
-    '有助於異常的傷害：預設表（點燃 火、流血 物理、中毒 物理＋混沌）；火焰塑造者＝點燃吃物理冰冷閃電；流血／中毒的開關',
-    j9(b9.base) === '[2,1,17]' && b9.shaper === 15 && j9(b9.all) === '[31,31]',
-    j9([b9.base, b9.shaper, b9.all])
-  );
-  ok(
-    '無視抗性：該種傷害當抗性 0（負抗性也不吃、穿透也不變負），其他種類不受影響',
-    j9(b9.res0) === '[-50,30,-20]' && j9(b9.res1) === '[0,0,30,0]',
-    j9([b9.res0, b9.res1])
+    '有助於異常的傷害：預設表（點燃 火、流血 物理、中毒 物理＋混沌）；火焰塑造者＝點燃吃物理冰冷閃電',
+    j9(b9.base) === '[2,1,17]' && b9.shaper === 15,
+    j9([b9.base, b9.shaper])
   );
   ok(
     '空手：獨立類別 unarmed、物理 2～5、每秒攻擊 1.65、暴擊 5%；不能用限定武器的技能，預設攻擊斬擊可以',
@@ -2190,11 +2264,10 @@ vm.runInContext(
     j9([b9.unarmed, b9.unW])
   );
   ok(
-    '分岔／絕對暴擊：期望值跟實際擲骰平均一致（含幸運）、分岔 ＞ 一般、絕對暴擊 ＞ 一般；暴擊率 0 不會卡住也不暴擊',
+    '絕對暴擊：期望值跟實際擲骰平均一致（含幸運）、絕對暴擊 ＞ 一般；暴擊率 0 不會卡住也不暴擊',
     Object.values(b9.cr).every(x => x[1]) &&
-      b9.cr.fork[0] > b9.cr.base[0] &&
       b9.cr.inev[0] > b9.cr.base[0] &&
-      b9.cr.both[0] > b9.cr.fork[0] &&
+      b9.cr.lucky[0] > b9.cr.inev[0] &&
       j9(b9.zero) === '[false,0]',
     j9(b9.cr) + j9(b9.zero)
   );
@@ -2208,19 +2281,6 @@ vm.runInContext(
       b9.sp[5] === 3 &&
       b9.sp[6],
     j9(b9.sp)
-  );
-  ok(
-    '溢出：擊中擊殺才把溢出的 x% 打給 2 公尺內的敵人（遠的、沒殺死、持續傷害殺死都不算）',
-    j9(b9.ovk0) === '[1,1000]' &&
-      j9(b9.ovk) === '[1,true,1000]' &&
-      j9(b9.ovkAlive) === '[0,1000]' &&
-      j9(b9.ovkDot) === '[1,1000]',
-    j9([b9.ovk0, b9.ovk, b9.ovkAlive, b9.ovkDot])
-  );
-  ok(
-    '最後一擊：擊中殺死感電的敵人回復 x% 最大能量護盾；沒感電、沒殺死、持續傷害都不算',
-    j9(b9.kb) === '[1,100]' && b9.kbNo === 0 && b9.kbDot === 0 && b9.kbAlive === 0,
-    j9([b9.kb, b9.kbNo, b9.kbDot, b9.kbAlive])
   );
   ok(
     '殘暴打擊：一下被移除至少 15% 最大生命才獲得 x% 最大生命的守護、4 秒、先吸收；過期不吸收；沒開關沒有',
@@ -2245,8 +2305,6 @@ vm.runInContext(
     ST.bleedMag = 100; m = mk(); apply(m); out.bleed = [rd(m.ail.bleed.dps / b0), rd(m.ail.poi[0].dps / p0)]; ST.bleedMag = 0;
     ST.poiMag = 100; m = mk(); apply(m); out.poi = [rd(m.ail.bleed.dps / b0), rd(m.ail.poi[0].dps / p0)]; ST.poiMag = 0;
     const ig = { addIgn: 100 }; m = mk(); apply(m, ig, F0); const i0 = m.ail.ign.dps; ST.ignMag = 100; m = mk(); apply(m, ig, F0); out.ign = rd(m.ail.ign.dps / i0); ST.ignMag = 0;
-    /* 惡化點燃的開關等於技能欄位 compound */
-    ST.compoundOn = 1; m = mk(); const u = {}; apply(m, ig, F0); const c1 = m.ail.ign.dps; applyAil(m, { pre: F0, post: F0 }, { ...atk, ...ig }, u); applyAil(m, { pre: F0, post: F0 }, { ...atk, ...ig }, u); out.comp = rd(m.ail.ign.dps / c1); ST.compoundOn = 0;
     /* 緋紅猛攻：新上的流血是加劇、2 秒 */
     ST.aggAll = 1; m = mk(); apply(m); out.agg = [m.ail.bleed.agg, rd(m.ail.bleed.t - G.t), rd(bleedNow(m.ail, 0) / m.ail.bleed.dps)]; ST.aggAll = 0;
     m = mk(); apply(m); out.agg0 = m.ail.bleed.agg || 0;
@@ -2258,11 +2316,8 @@ vm.runInContext(
     out.pres = dbl('presP'); ST.presP = 100; out.presFar = rd(hit(mk({ x: 400 })) / h0); ST.presP = 0;
     out.isoAlone = dbl('isoP'); G.mobs = [mk({ x: 50 }), mk({ x: 60 })]; ST.isoP = 100; out.isoCrowd = rd(hit(G.mobs[0]) / h0); ST.isoP = 0;
     G.mobs = []; out.surrNo = dbl('surrP'); G.mobs = [0, 1, 2, 3, 4].map(i => mk({ x: 10 + i })); out.surrYes = dbl('surrP'); G.mobs = [];
-    /* 減益開關：要符合條件才施加 */
-    const slam = { D: { tags: ['attack', 'slam'], m: 1 } };
-    ST.crushOn = 1; m = mk(); debuffsOn(m, P0, { ...atk }); out.crush0 = m.ail.crush > 0; m = mk(); debuffsOn(m, P0, { ...atk, ...slam }); out.crush1 = m.ail.crush > G.t; ST.crushOn = 0;
+    /* 減益開關（跛行）：要符合條件才施加 */
     ST.crippleOn = 1; m = mk({ ev: 1000, ev0: 1000 }); debuffsOn(m, P0, atk); out.crip0 = m.ev; m.ail.bleed = { dps: 1, t: G.t + 5 }; debuffsOn(m, P0, atk); out.crip1 = m.ev; ST.crippleOn = 0;
-    ST.weakenOn = 1; m = mk(); debuffsOn(m, P0, atk); out.weak0 = m.ail.weak > 0; m.ail.curse = { k: 'vuln', v: 1, t: G.t + 5 }; debuffsOn(m, P0, atk); out.weak1 = m.ail.weak > G.t; ST.weakenOn = 0;
     /* 磐石姿態不會僵直；奇術活力常駐 */
     const rnd0 = Math.random; Math.random = () => 0; P.act = {}; P.stag = 0; ST.noStag = 1; playerStagger(1e6); out.stag0 = P.stag; ST.noStag = 0; playerStagger(1e6); out.stag1 = P.stag > 0; Math.random = rnd0;
     ST.dynOn = 1; P.stk = {}; baseTick(0.016); out.dyn = stkN('dyn'); ST.dynOn = 0;
@@ -2275,7 +2330,6 @@ vm.runInContext(
     jx([bx.bleed, bx.poi, bx.ign]) === '[[2,1],[1,2],2]',
     jx([bx.bleed, bx.poi, bx.ign])
   );
-  ok('惡化點燃的天賦開關等於技能欄位', bx.comp > 1, bx.comp);
   ok(
     '緋紅猛攻：流血都是加劇（×2）、2 秒；沒開關不是',
     jx(bx.agg) === '[1,2,2]' && bx.agg0 === 0,
@@ -2299,11 +2353,7 @@ vm.runInContext(
     ]) === '[1,2,1,2,1,2,2,1,2,1,1,2]',
     jx(bx)
   );
-  ok(
-    '壓碎只有重擊、跛行只對流血、虛弱只對被詛咒',
-    !bx.crush0 && bx.crush1 && bx.crip0 === 1000 && bx.crip1 < 1000 && !bx.weak0 && bx.weak1,
-    jx(bx)
-  );
+  ok('跛行只對流血的敵人', bx.crip0 === 1000 && bx.crip1 < 1000, jx(bx));
   ok(
     '不會僵直開關有效；奇術活力常駐得到 1 層',
     bx.stag0 === 0 && bx.stag1 && bx.dyn === 1,
@@ -2326,7 +2376,7 @@ vm.runInContext(
       apply = (m, pre, c) => applyAil(m, { pre, post: pre }, { ...atk, ...c }),
       P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 },
       hit = (m, c = atk) => hitCalc(c, m, { keep: 1 }).d;
-    Object.assign(ST, { noCrit: 1, noMiss: 0, dmg: [100, 100], ev: 0, block: 0, defl: 0, physP: 0, dmgA: 0, atkP: 0, meleeP: 0, projP: 0, strikeP: 0, parryMag: 0, parryDur: 0, parryR: 0, bvNoCrit: 0, overwhelm: 0, incise: 0, inciseMag: 0, hexPierce: 0, hstunNoEv: 0, suppCh: 0, unaff: {}, debuffEff: 0, debuffMag: 0, bleedCh: 0, poisonCh: 0, dazeCh: 0, acc: 1, bv: 0 });
+    Object.assign(ST, { noCrit: 1, noMiss: 0, dmg: [100, 100], ev: 0, block: 0, defl: 0, physP: 0, dmgA: 0, atkP: 0, meleeP: 0, projP: 0, strikeP: 0, parryMag: 0, parryDur: 0, parryR: 0, bvNoCrit: 0, hstunNoEv: 0, unaff: {}, debuffEff: 0, debuffMag: 0, bleedCh: 0, poisonCh: 0, dazeCh: 0, acc: 1, bv: 0 });
     ST.wadd = { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] };
     ST.add = {};
     Object.assign(G, { t: 100, scene: 'map', mapT: 1, mm: null, mobs: [], allies: [], state: 'play' });
@@ -2361,7 +2411,6 @@ vm.runInContext(
     const rr = (c, mm) => rd(hit(mm || m, c) / base);
     out.red = [rr(atk), rr({ ...atk, overwhelm: 30 }), rr({ ...atk, overwhelm: 95 })];
     m.ail.crush = G.t + 4; out.crush = [rr(atk), rr({ ...atk, overwhelm: 30 })];
-    ST.overwhelm = 30; out.stOver = rr(atk); ST.overwhelm = 0;
     m = mk({ arm: 0 }); m.ail.crush = G.t + 4; out.crushNeg = rr(atk, m); m.ail.crush = G.t - 1; out.crushOff = rr(atk, m);
     apply(m = mk(), P0, { crush: true }); out.crushOn = [m.ail.crush - G.t, hit(m) / base > 1.14];
     /* 破碎護甲：只對完全破甲的敵人施加、物理 +20% 相加；有它或碎甲不能再破甲 */
@@ -2410,19 +2459,15 @@ vm.runInContext(
     G.t = 100; m = mk(); m.ail.bleed = keepMax(null, 1, 4); for (let i = 1; i <= 3; i++) { G.t = 100 + i; ailTick(m, 1); } const part = m.ail.stainA;
     G.t = 110; ailTick(m, 1); ailTick(m, 1); const paused = m.ail.stainA; m.ail.bleed = keepMax(null, 1, 20); G.t = 111; ailTick(m, 1); out.stainPause = [part, paused, m.ail.stainA];
     G.t = 100; m = mk(); m.ail.cb = [{ dps: 5, t: G.t + 50 }]; for (let i = 0; i < 10; i++) { G.t += 1; ailTick(m, 1); } out.stainCb = [m.ail.stainA || 0, hasState(m, 'stain')];
-    /* 切割：擊中給 1 層，每層流血機率 +10%（上限 10 層），上流血全清；inciseMag：近期每消耗 1 層流血幅度 3% 更多（上限 30%） */
+    /* 切割：攻擊擊中有機率（天賦 inciseCh）給 1 層，每層流血機率 +10%（上限 10 層），上流血全清 */
     const bleedHit = (m, p = 1000) => apply(m, { ...P0, phys: p }, { bleedCh: 0 });
-    G.t = 100; ST.incise = 1; Math.random = () => 0.55; m = mk(); const lay = [];
+    G.t = 100; ST.inciseCh = 100; Math.random = () => 0.55; m = mk(); const lay = [];
     for (let i = 0; i < 5; i++) bleedHit(m), lay.push(m.ail.inc);
-    out.incLayers = [lay.join(), !!m.ail.bleed]; bleedHit(m); out.incBleed = [!!m.ail.bleed, m.ail.inc, P.incN.length];
-    G.t = 100; P.incN = []; m = mk(); m.ail.inc = 10; ST.incise = 0; Math.random = () => 0.999; bleedHit(m); out.incCap = [!!m.ail.bleed, m.ail.inc];
-    ST.incise = 0; Math.random = () => 0.001; m = mk(); bleedHit(m); out.incOff = [m.ail.inc || 0, !!m.ail.bleed];
-    ST.incise = 1; m = mk(); m.ail.inc = 10; Math.random = () => 0.999; bleedHit(m); out.incMax = [m.ail.bleed ? 1 : 0, m.ail.inc]; m = mk(); m.ail.inc = 10; ST.bleedCh = -100; bleedHit(m); out.incMax2 = m.ail.inc; ST.bleedCh = 0;
-    const bd = n => { P.incN = []; const t = mk(); t.ail.inc = n; Math.random = () => 0; ST.incise = 0; bleedHit(t); return t.ail.bleed ? t.ail.bleed.dps : 0; };
-    ST.inciseMag = 0; const d0 = bd(6); ST.inciseMag = 1; out.incMag = [rd(bd(6) / d0), rd(bd(10) / d0), rd(bd(20) / d0)];
-    P.incN = [[G.t - 1, 4]]; const t2 = mk(); t2.ail.inc = 2; Math.random = () => 0; bleedHit(t2); out.incMagRecent = rd(t2.ail.bleed.dps / d0);
-    P.incN = [[G.t - 9, 4]]; const t3 = mk(); t3.ail.inc = 2; bleedHit(t3); out.incMagOld = rd(t3.ail.bleed.dps / d0);
-    ST.inciseMag = 0; ST.incise = 0; Math.random = rnd0; P.incN = [];
+    out.incLayers = [lay.join(), !!m.ail.bleed]; bleedHit(m); out.incBleed = [!!m.ail.bleed, m.ail.inc];
+    G.t = 100; m = mk(); m.ail.inc = 10; ST.inciseCh = 0; Math.random = () => 0.999; bleedHit(m); out.incCap = [!!m.ail.bleed, m.ail.inc];
+    ST.inciseCh = 0; Math.random = () => 0.001; m = mk(); bleedHit(m); out.incOff = [m.ail.inc || 0, !!m.ail.bleed];
+    ST.inciseCh = 100; m = mk(); m.ail.inc = 10; Math.random = () => 0.999; bleedHit(m); out.incMax = [m.ail.bleed ? 1 : 0, m.ail.inc]; m = mk(); m.ail.inc = 10; ST.bleedCh = -100; bleedHit(m); out.incMax2 = m.ail.inc; ST.bleedCh = 0;
+    ST.inciseCh = 0; Math.random = rnd0;
     /* 腐化之血：每層獨立 5 秒、最多 10 層、不是流血（不累積血漬）；缺血提高上限（乘減益幅度）；上限縮小不砍已有的層 */
     G.t = 100; m = mk(); for (let i = 0; i < 12; i++) apply(m, P0, { corrupt: 10 });
     out.cb = [m.ail.cb.length, rd((() => { const h = m.hp; G.t = 101; ailTick(m, 1); return h - m.hp; })()), m.ail.bleed || null, m.ail.stainA || 0];
@@ -2447,8 +2492,8 @@ vm.runInContext(
     const fz = { ...P0, phys: 0, cold: thr * 0.3 }, fa = mm => { apply(mm, fz, {}); return mm.ail.frz || 0; };
     m = mk(); const f0 = fa(m); m = mk(); drench(m); const f1 = fa(m); const f2 = (() => { const t = mk(); t.ail.wet = G.t - 1; return fa(t); })();
     out.wetFrz = [rd(f1 / f0), rd(f2 / f0)];
-    /* 無咒的：curseMob 直接跳過，hexPierce 開了才能詛咒 */
-    m = mk({ hexproof: 1 }); curseMob(m, 'enfeeble', 5); const hx0 = !!m.ail.curse; ST.hexPierce = 1; curseMob(m, 'enfeeble', 5); out.hex = [hx0, !!m.ail.curse]; ST.hexPierce = 0;
+    /* 無咒的：curseMob 直接跳過 */
+    m = mk({ hexproof: 1 }); curseMob(m, 'enfeeble', 5); curseMob(m, 'enfeeble', 5); out.hex = !!m.ail.curse;
     m = mk(); curseMob(m, 'enfeeble', 5); out.hexNormal = !!m.ail.curse;
     /* 超重：每層緩速 10%、4 秒、重上疊層並刷新、最多 5 層 */
     G.t = 100; P.ail = {}; encumber(); encumber(); out.over = [P.ail.over.n, rd(playerSlow())]; G.t = 102; encumber(); out.overRe = [P.ail.over.n, rd(P.ail.over.t - G.t)];
@@ -2460,11 +2505,6 @@ vm.runInContext(
     P.ail = { chill: { v: 40, t: G.t + 5 }, shock: G.t + 5 }; encumber(2);
     const sl0 = rd(playerSlow()), sh0x = (() => { P.hp = 1e6; return hurtCalc(100, mk(), 'phys').d; })(); ST.unaff = { chill: 1, shock: 1, over: 1 };
     out.unaff = [sl0, rd(playerSlow()), sh0x > hurtCalc(100, mk(), 'phys').d, playerStates().filter(x => ['chill', 'shock', 'over'].includes(x.k)).length]; ST.unaff = {};
-    /* 壓抑：機率（上限 100%）、擊中傷害與異常傷害各防止 50%（異常照上） */
-    P.ail = {}; ST.ev = 0; ST.block = 0; ST.defl = 0; Math.random = () => 0; m = mk({ D: { ...D, ail: '' } });
-    const hs = () => { P.ail = {}; P.evE = 0; const r = hurtCalc(1000, m, 'fire'); return [r.d, P.ail.ign ? P.ail.ign.dps : 0, !!r.supp]; };
-    const u0 = hs(); ST.suppCh = 250; const u1 = hs(); ST.suppCh = 0; out.supp = [rd(u1[0] / u0[0]), rd(u1[1] / u0[1]), u0[2], u1[2], u0[1] > 0];
-    Math.random = rnd0;
     /* 無法被暴擊：有格擋值（bvUp）才算；用盡就不算 */
     Math.random = () => 0; m = mk({ boss: 1 }); P.ail = {}; ST.bv = 1000; P.bv = 500; P.bvRe = null;
     const cr0 = hurtCalc(100, m, 'phys').crit; ST.bvNoCrit = 1; const cr1 = hurtCalc(100, m, 'phys').crit; P.bv = 0; P.bvRe = G.t; const cr2 = hurtCalc(100, m, 'phys').crit;
@@ -2498,9 +2538,9 @@ vm.runInContext(
     j10([b10.counter, b10.counterEnd])
   );
   ok(
-    '物理減傷順序：護甲 90% → 鎮壓（扣百分點、最多扣到 0）→ 壓碎（−15 個百分點）',
-    j10(b10.red) === '[0.1,0.4,1]' && j10(b10.crush) === '[0.25,0.55]' && b10.stOver === 0.55,
-    j10([b10.red, b10.crush, b10.stOver])
+    '物理減傷順序：護甲 90% → 鎮壓（技能欄位 overwhelm，扣百分點、最多扣到 0）→ 壓碎（−15 個百分點）',
+    j10(b10.red) === '[0.1,0.4,1]' && j10(b10.crush) === '[0.25,0.55]',
+    j10([b10.red, b10.crush])
   );
   ok(
     '壓碎可以讓物理減傷變負（沒護甲 → 受到 115%）、到期恢復；技能欄位 crush 上 4 秒',
@@ -2563,19 +2603,14 @@ vm.runInContext(
     j10([b10.stain5, b10.stain6, b10.stainMv, b10.stainAgg, b10.stainPause, b10.stainCb])
   );
   ok(
-    '切割：擊中給 1 層、每層流血機率 +10%、上流血時全部移除；沒開關不給層數；層數有上限 10',
+    '切割：攻擊擊中有機率給 1 層、每層流血機率 +10%、上流血時全部移除；沒機率不給層數；層數有上限 10',
     j10(b10.incLayers) === '["1,2,3,4,5",false]' &&
-      j10(b10.incBleed) === '[true,0,1]' &&
+      j10(b10.incBleed) === '[true,0]' &&
       j10(b10.incCap) === '[true,0]' &&
       j10(b10.incOff) === '[0,false]' &&
       j10(b10.incMax) === '[1,0]' &&
       b10.incMax2 === 10,
     j10([b10.incLayers, b10.incBleed, b10.incCap, b10.incOff, b10.incMax, b10.incMax2])
-  );
-  ok(
-    '切割幅度（inciseMag）：近期每消耗 1 層流血幅度 3% 更多、上限 30%、超過 4 秒的不算',
-    j10(b10.incMag) === '[1.18,1.3,1.3]' && b10.incMagRecent === 1.18 && b10.incMagOld === 1.06,
-    j10([b10.incMag, b10.incMagRecent, b10.incMagOld])
   );
   ok(
     '腐化之血：最多 10 層、每層獨立 5 秒、不是流血（沒有流血）；缺血 +3 → 13 層（乘減益幅度 1.5 → 14）；上限縮小不砍已有的層',
@@ -2616,11 +2651,7 @@ vm.runInContext(
       j10(b10.wetFrz) === '[1.25,1]',
     j10([b10.wet, b10.wet5, b10.wetKeep, b10.wetFn, b10.wetShock, b10.wetFrz])
   );
-  ok(
-    '無咒的：curseMob 直接跳過；hexPierce 開了才能詛咒；一般敵人照常',
-    j10(b10.hex) === '[false,true]' && b10.hexNormal,
-    j10([b10.hex, b10.hexNormal])
-  );
+  ok('無咒的：curseMob 直接跳過；一般敵人照常', b10.hex === false && b10.hexNormal, j10([b10.hex, b10.hexNormal]));
   ok(
     '超重：每層緩速 10%、重上疊層並刷新 4 秒、最多 5 層、到期恢復',
     j10(b10.over) === '[2,0.8]' && j10(b10.overRe) === '[3,4]' && j10(b10.overCap) === '[5,0.5]' && b10.overEnd === 1,
@@ -2644,11 +2675,6 @@ vm.runInContext(
     j10(b10.unaff)
   );
   ok(
-    '壓抑：機率上限 100%、被壓抑的擊中傷害與異常傷害各防止 50%（異常照上）、沒機率不壓抑',
-    j10(b10.supp) === '[0.5,0.5,false,true,true]',
-    j10(b10.supp)
-  );
-  ok(
     'bvNoCrit：有格擋值時不會被暴擊，格擋值打碎後恢復；沒開關照常',
     j10(b10.bvNoCrit) === '[true,false,true]',
     j10(b10.bvNoCrit)
@@ -2657,7 +2683,6 @@ vm.runInContext(
     '受招架',
     '不受影響',
     '鎮壓',
-    '壓抑',
     '嘲諷',
     '可觸電',
     '可冰凍',
@@ -2680,8 +2705,8 @@ vm.runInContext(
     '缺血'
   ];
   ok(
-    '第 10 批名詞卡 24 張都在，舊名「失衡」沒有留下',
-    need10.length === 24 &&
+    '第 10 批名詞卡 23 張都在，舊名「失衡」沒有留下',
+    need10.length === 23 &&
       need10.every(k => R(`!!TERMS['${k}']`)) &&
       !R(`'失衡' in TERMS || Object.values(STATE).some(s => s[0] === '失衡')`),
     need10.filter(k => !R(`!!TERMS['${k}']`)).join()
@@ -2915,7 +2940,7 @@ vm.runInContext(
   );
   ok(
     '地面地圖詞 10 條：寫在卡面上、同組一張卡最多一種、危險度 1～2、種類都存在',
-    g.mods.join() === '10,true,true,true,48' && g.one,
+    g.mods.join() === '10,true,true,true,49' && g.one,
     JSON.stringify([g.mods, g.one])
   );
   ok(
@@ -3523,8 +3548,8 @@ vm.runInContext(
     o.tags = [tagOf('venom').includes('orb'), tagOf('rend').includes('payoff'), tagOf('fissure').includes('payoff'), tagOf('grenade').includes('grenade'), tagOf('banner').includes('banner'), tagOf('warcry').includes('cascade'), tagOf('nova').includes('cascade'), tagOf('meteor').includes('cascade'), tagOf('cu_vuln').includes('cascade'), tagOf('slash').includes('final'), tagOf('chainsweep').includes('final'), tagOf('paperdoll').includes('temp')];
     o.tagNo = [tagOf('fireball').includes('cascade'), tagOf('smash').includes('payoff'), tagOf('thrust').includes('payoff')];
     o.stageFinal = Object.keys(SKILLS).filter(k => !!SKILLS[k].stage !== tagOf(k).includes('final'));
-    o.terms = ['寶珠技能','捷光環技能','遣散技能','擲彈技能','鬥旗技能','疾風技能','風暴技能','可爆發技能','主要寶石','連結的輔助技能','分裂','迴旋','超限格擋率','效果消耗','最終打擊','終極','擴散傷害','只有最低或最高傷害','暴露弱點','封印','極大','暫時召喚物','召喚物死亡及擊殺召喚物','復甦召喚物','迷蹤','無法閃避翻滾或衝刺','閃避翻滾無法躲避傷害','預期擊退','黑暗血鐮訓練','循環教義','騎士信條','堅鐵之力','鋼鐵意志','無法獲得力量的固有加成','無法獲得敏捷的固有加成','無法獲得智慧的固有加成'].filter(k => !TERMS[k]);
-    o.statn = [...Object.keys(ATT_KS), 'projAtkP', 'fork', 'projRet', 'splash', 'minmax', 'reveal', 'weakMore', 'noRoll', 'rollTank', 'minGiant'].filter(k => !STATN[k] || !(k in base));
+    o.terms = ['寶珠技能','捷光環技能','遣散技能','擲彈技能','鬥旗技能','疾風技能','風暴技能','可爆發技能','主要寶石','連結的輔助技能','分裂','迴旋','超限格擋率','效果消耗','最終打擊','終極','擴散傷害','只有最低或最高傷害','封印','極大','暫時召喚物','召喚物死亡及擊殺召喚物','復甦召喚物','迷蹤','無法閃避翻滾或衝刺','閃避翻滾無法躲避傷害','預期擊退','黑暗血鐮訓練','循環教義','騎士信條','堅鐵之力','鋼鐵意志','無法獲得力量的固有加成','無法獲得敏捷的固有加成','無法獲得智慧的固有加成'].filter(k => !TERMS[k]);
+    o.statn = [...Object.keys(ATT_KS), 'projAtkP', 'fork', 'splash', 'noRoll', 'rollTank'].filter(k => !STATN[k] || !(k in base));
 
     /* 分裂：第一次擊中變 2 支、原本的消失、不扣穿透；分出來的打到別隻不再分 */
     reset(); P.x = P.y = 500;
@@ -3540,15 +3565,16 @@ vm.runInContext(
     reset(); ST.fork = 1; o.forkCfg = [gemCfg(mkGem('axethrow', 1), 0).fork, gemCfg(mkGem('slash', 1), 0).fork];
 
     /* 迴旋：飛到終點或打完最後一個目標後飛回來，回程再打一次；投射物技能才有；會爆炸的不飛回來 */
-    reset(); ST.projRet = 1; o.retCfg = [gemCfg(mkGem('axethrow', 1), 0).ret, gemCfg(mkGem('slash', 1), 0).ret];
-    const cr = gemCfg(mkGem('axethrow', 1), 0); cr.pierce = 0;
+    reset(); const gr = mkGem('axethrow', 1); gr.sup = [mkGem('ret', 1)];
+    o.retCfg = [!!gemCfg(gr, 0).ret, !!gemCfg(mkGem('slash', 1), 0).ret];
+    const cr = gemCfg(gr, 0); cr.pierce = 0;
     P.x = P.y = 500;
     const m3 = mk(700, 482); G.mobs = [m3];
     shot(cr); const sr = G.shots[0];
     let hitN = 0, hp0 = m3.hp;
     for (let i = 0; i < 180 && G.shots.length; i++) { updShots(1 / 60); if (m3.hp < hp0) (hitN++, (hp0 = m3.hp)); }
     o.ret = [!!sr.back, hitN, G.shots.length];
-    reset(); ST.projRet = 1; const cb = gemCfg(mkGem('axethrow', 1), 0);
+    reset(); const cb = gemCfg(gr, 0);
     shoot(0, 800, cb, {}, { boom: 40 }); o.retBoom = !!G.shots[0].back;
     /* 場上單位射的飛回單位的位置 */
     reset(); const cu = { ...gemCfg(mkGem('axethrow', 1), 0), ret: true };
@@ -3615,25 +3641,16 @@ vm.runInContext(
     hitMob(uA, { ...ATK, splash: 1 }, 0, 0, { quiet: 1 }); o.splC = uB.hp < 1e6;
 
     /* 只有最低或最高傷害：只有兩種值、各 50%；幸運 75%；每種傷害各擲；面板期望值一致 */
-    reset(); ST.dmg = [100, 300]; ST.minmax = 1;
-    const seen = {}; for (let i = 0; i < 4000; i++) { const v = Math.round(hitCalc(ATK, null).pre.phys); seen[v] = (seen[v] || 0) + 1; }
-    o.mmV = Object.keys(seen).sort((x, y) => x - y).join(); o.mmP = seen[300] / 4000; o.mmA = r2(avg(ATK));
-    ST.lukDmg = 1; let hi = 0; for (let i = 0; i < 4000; i++) if (hitCalc(ATK, null).pre.phys > 200) hi++;
-    o.mmL = hi / 4000; o.mmAL = r2(avg(ATK));
-    reset(); ST.dmg = [100, 300]; ST.wadd = { ...ST.wadd, fire: [100, 300] }; ST.minmax = 1;
-    let mix = 0; for (let i = 0; i < 2000; i++) { const p = hitCalc(ATK, null).pre; if ((p.phys > 200) !== (p.fire > 200)) mix++; }
+    reset(); const ATKM = { ...ATK, minmax: 1 }, SPLM = { ...SPL, minmax: 1 }; ST.dmg = [100, 300];
+    const seen = {}; for (let i = 0; i < 4000; i++) { const v = Math.round(hitCalc(ATKM, null).pre.phys); seen[v] = (seen[v] || 0) + 1; }
+    o.mmV = Object.keys(seen).sort((x, y) => x - y).join(); o.mmP = seen[300] / 4000; o.mmA = r2(avg(ATKM));
+    ST.lukDmg = 1; let hi = 0; for (let i = 0; i < 4000; i++) if (hitCalc(ATKM, null).pre.phys > 200) hi++;
+    o.mmL = hi / 4000; o.mmAL = r2(avg(ATKM));
+    reset(); ST.dmg = [100, 300]; ST.wadd = { ...ST.wadd, fire: [100, 300] };
+    let mix = 0; for (let i = 0; i < 2000; i++) { const p = hitCalc(ATKM, null).pre; if ((p.phys > 200) !== (p.fire > 200)) mix++; }
     o.mmMix = mix / 2000;
-    reset(); ST.minmax = 1; const sv = new Set(); for (let i = 0; i < 500; i++) sv.add(Math.round(hitCalc(SPL, null).pre.fire)); o.mmS = sv.size;
+    reset(); const sv = new Set(); for (let i = 0; i < 500; i++) sv.add(Math.round(hitCalc(SPLM, null).pre.fire)); o.mmS = sv.size;
     reset(); ST.dmg = [100, 300]; const sa = new Set(); for (let i = 0; i < 200; i++) sa.add(Math.round(hitCalc(ATK, null).pre.phys)); o.mmOff = sa.size > 2;
-
-    /* 暴露弱點：精英與王才有；3 段、合計 45%、不重疊；生命在區段裡才算開放弱點；更多 */
-    reset();
-    const mw = mk(0, 0, { elite: 1 }); o.weak0 = openWeak(mw); ST.reveal = 1;
-    const seg = weakSegs(mw); o.weakSeg = [seg.length, r2(seg.reduce((t, [a, b]) => t + b - a, 0)), seg.every((x, i) => i === 0 || x[0] >= seg[i - 1][1]), seg[0][0] >= 0, seg[2][1] <= 1];
-    const mwN = mk(); mwN.weak = seg; mwN.hp = mwN.mhp * ((seg[1][0] + seg[1][1]) / 2); o.weakN = openWeak(mwN);
-    mw.hp = mw.mhp * ((seg[1][0] + seg[1][1]) / 2); o.weak1 = openWeak(mw);
-    mw.hp = mw.mhp * (seg[0][1] + (seg[1][0] - seg[0][1]) / 2); o.weak2 = seg[1][0] > seg[0][1] ? openWeak(mw) : false;
-    mw.hp = mw.mhp * ((seg[1][0] + seg[1][1]) / 2); ST.weakMore = 50; const dW = hitCalc(ATK, mw).d, dN = hitCalc(ATK, mk()).d; o.weakM = r2(dW / dN);
 
     /* 封印：每 every 倍施放時間 1 個、最多 max、打破歸零；沒有 D.seal 的不累積；範圍吃進提高池 */
     reset();
@@ -3647,9 +3664,9 @@ vm.runInContext(
 
     /* 極大 */
     reset(); callWolf('gem', null); const w0 = G.allies[0];
-    ST.minGiant = 1; callWolf('gem', null); const w1 = G.allies[1];
+    callWolf('gem', { giant: 1 }); const w1 = G.allies[1];
     o.giant = [r2(w1.mhp / w0.mhp), r2(w1.r / 14), giantM(w1)];
-    ST.minGiant = 0; callWolf('gem', { giant: 1 }); o.giantC = [r2(G.allies[2].mhp / w0.mhp), giantM(w0)];
+    callWolf('gem', { giant: 1 }); o.giantC = [r2(G.allies[2].mhp / w0.mhp), giantM(w0)];
 
     /* 暫時召喚物、死亡與擊殺：時間到算死亡不算被擊殺；被打死算被擊殺；暫時的不復活 */
     reset(); P.ev = {}; callWolf('doll', { q: 0 }, P, G.t + 15); G.t += 15.1; updSkills(0);
@@ -3676,8 +3693,8 @@ vm.runInContext(
     reset(); ST.hp = 1000; callWolf('golem', null); allyHurt(G.allies[0], 1e12);
     let tk = 0; const hg = hurtCalc; o.golemDead = !G.allies.some(w => w.src === 'golem' && !w.dead && dist(w, P) < 200);
     /* 紙人的生命照屍體，極大也吃 */
-    reset(); ST.minGiant = 1; G.corpses = [{ x: 0, y: 0, mhp: 200, t: G.t + 9 }];
-    callWolf('doll', { q: 0 }, P, G.t + 15); const nd = G.allies[0]; nd.hp = nd.mhp = 200 * giantM(nd); o.dollHp = nd.mhp;
+    reset(); G.corpses = [{ x: 0, y: 0, mhp: 200, t: G.t + 9 }];
+    callWolf('doll', { q: 0, giant: 1 }, P, G.t + 15); const nd = G.allies[0]; nd.hp = nd.mhp = 200 * giantM(nd); o.dollHp = nd.mhp;
 
     /* 無法閃避翻滾 */
     reset(); ST.noRoll = 1; doRoll(); o.noRoll = [P.roll, WARN];
@@ -3722,7 +3739,7 @@ vm.runInContext(
     /* 投射物攻擊傷害只給投射物攻擊 */
     reset(); ST.projAtkP = 100; const pA = avg(PROJ), aA = avg(ATK), sA2 = avg(SPL); ST.projAtkP = 0; o.ksPool = [r2(pA / avg(PROJ)), r2(aA / avg(ATK)), r2(sA2 / avg(SPL))];
     /* 全開也不是 NaN */
-    reset(); Object.assign(ST, { fork: 1, projRet: 1, splash: 1, minmax: 1, reveal: 1, weakMore: 50, rollTank: 1, minGiant: 1, projAtkP: 50 });
+    reset(); Object.assign(ST, { fork: 1, splash: 1, rollTank: 1, projAtkP: 50 });
     const vals = [avg(ATK), avg(PROJ), avg(SPL), hurtCalc(100, null, 'phys', 1).d, kbExp(100)];
     o.nan = vals.every(Number.isFinite);
     return JSON.parse(JSON.stringify(o));
@@ -3880,9 +3897,9 @@ vm.runInContext(
       },
       r2 = v => +v.toFixed(2),
       /* 前面的測試可能把天賦的分裂、迴旋開著：這裡只看輔助 */
-      st0 = [ST.fork, ST.projRet, ST.chain],
+      st0 = [ST.fork, ST.chain],
       out = {};
-    ST.fork = ST.projRet = false;
+    ST.fork = false;
     ST.chain = 0;
     const base = cf('axethrow', []);
     const f = cf('axethrow', ['fork']), ch = cf('axethrow', ['chain']), rt = cf('axethrow', ['ret']);
@@ -3916,7 +3933,7 @@ vm.runInContext(
     g2.sup = [mkGem('cast_kill', 1), mkGem('cast_crit', 1)];
     out.metaCat = [supOK(SKILLS.fireball, g2.sup[0], g2), supOK(SKILLS.fireball, g2.sup[1], g2)].filter(Boolean).length;
     S.skills[0].a = keep;
-    [ST.fork, ST.projRet, ST.chain] = st0;
+    [ST.fork, ST.chain] = st0;
     return out;
   })()`);
   ok(
@@ -4394,6 +4411,118 @@ vm.runInContext(
       '{"cry":[2,2,true],"cryFx":[true,3,true,1],"cryTypes":2,"emp":[1,20,1.5,15,30,1],"empThr":2,"empHit":true,"cryMulti":1.4,"inspire":[2,1],"comp":[2,1],"her":[2,1],"herEle":1.5,"volCrit":1.3,"archCrit":[0.5,1.2],"charm":[1.5,2],"cmdMul":2.3,"stk":[7,40],"puppetEff":2,"arch":[20,false,true,false,true],"archM":1.5,"broken":[20,30,0],"revive":0.5,"fuse":0.75}',
     JSON.stringify(t67)
   );
+  /* 0.2.68 第 4 層 B：效果歸位的機制（每個鍵都有讀取點由上面的靜態檢查負責；這裡量有代表性的，kbP、markDur、
+     surrEv 只有讀取點檢查，沒有實測） */
+  const t68 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = o => ({ D, x: P.x + 50, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, ev0: 0, vx: 0, vy: 0, aggro: 1, acc: 100, spdM: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { st: { ...ST }, g: { t: G.t, mapT: G.mapT, mobs: G.mobs, mm: G.mm, state: G.state, shots: G.shots }, p: { ail: P.ail, buf: P.buf, chg: P.chg, hp: P.hp, mp: P.mp, es: P.es, rage: P.rage, rageT: P.rageT, combo: P.combo, comboT: P.comboT, chgFireT: P.chgFireT } },
+      out = {}, set = o => Object.assign(ST, o), r2 = x => Math.round(x * 100) / 100;
+    try {
+      Object.assign(G, { t: 100, mapT: 1, mobs: [], mm: null, state: 'play', shots: [] });
+      Object.assign(P, { ail: {}, buf: {}, chg: {}, hp: 100, mp: 100, es: 0, rage: 0, combo: 0, chgFireT: 0, x: 0, y: 0 });
+      set({ noCrit: 1, ailMag: 0, bleedMag: 0, poiMag: 0, ignMag: 0, flamP: 0, frzP: 0, chillMag: 0, shockCh: 0, hp: 1000, mp: 100, es: 0, armor: 0 });
+      const atk = { D: { tags: ['attack'], m: 1 }, mult: 1, more: 1, kb: 1, q: 0, leech: 0 },
+        P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 },
+        L0 = { phys: 0, fire: 0, cold: 0, light: 1e6, chaos: 0 },
+        C0 = { phys: 0, fire: 0, cold: 1e6, light: 0, chaos: 0 },
+        F0 = { phys: 0, fire: 1e6, cold: 0, light: 0, chaos: 0 },
+        apply = (m, pre = P0, c = {}) => applyAil(m, { pre, post: pre }, { ...atk, ...c }, {}),
+        c0 = { D: { tags: ['attack', 'melee'], m: 1, el: 'phys' }, mult: 1, more: 1, aoe: 1, critInc: 0, critX: 0 },
+        hc = (c = c0, m = null, o = {}) => hitCalc(c, m, { avg: 1, keep: 1, ...o }).d;
+      /* 感電效果、凋零效果（只放大你施加給怪物的，玩家身上照舊 20%） */
+      const sm = mk(); sm.ail.shock = G.t + 5;
+      const s0 = takenInc(sm, 'phys'); set({ shockMag: 50 }); const s1 = takenInc(sm, 'phys');
+      P.ail = { shock: G.t + 5 }; out.shock = [s0, s1, takenInc(P, 'phys')]; P.ail = {}; set({ shockMag: 0 });
+      sm.ail = { wither: [G.t + 4, G.t + 4] }; const w0 = takenInc(sm, 'chaos'); set({ witherEff: 50 }); out.wither = [w0, takenInc(sm, 'chaos')]; set({ witherEff: 0 });
+      /* 重霜：對冰凍的敵人無視非負的元素抗性（負的照吃，混沌不算） */
+      const fm = mk({ res: { fire: 40, cold: -20, light: 0, chaos: 40 } }); fm.ail.frozen = G.t + 3;
+      const rr = () => ['fire', 'cold', 'chaos'].map(k => resOf(fm, k));
+      const r0 = rr(); set({ frzIgnRes: 1 }); const r1 = rr(); fm.ail.frozen = 0; out.frzIgnRes = [r0, r1, rr()]; set({ frzIgnRes: 0 });
+      /* 五種持續時間（流血 5、中毒 2、點燃 4、感電 8、冰緩 8 秒） */
+      set({ bleedCh: 100, poisonCh: 100 });
+      const dur = () => {
+        const a = mk(), b = mk(), c = mk(), d = mk();
+        apply(a); apply(b, F0); apply(c, L0); apply(d, C0);
+        return [a.ail.bleed.t - G.t, a.ail.poi[0].t - G.t, b.ail.ign.t - G.t, c.ail.shock - G.t, d.ail.chill.t - G.t].map(r2);
+      };
+      const du0 = dur(); set({ bleedDur: 100, poiDur: 50, ignDur: 50, shockDur: 50, chillDur: 100 });
+      out.dur = [du0, dur()]; set({ bleedDur: 0, poiDur: 0, ignDur: 0, shockDur: 0, chillDur: 0 });
+      /* 異常機率：流血機率 ×(1 + ailCh)（跑 3000 次看比例） */
+      set({ bleedCh: 20, poisonCh: 0 });
+      const frac = () => { let n = 0; for (let i = 0; i < 3000; i++) { const x = mk(); apply(x); if (x.ail.bleed) n++; } return n / 3000; };
+      const b0 = frac(); set({ ailCh: 100 }); const b1 = frac(); set({ ailCh: 0 });
+      out.ailCh = b1 / b0 > 1.7 && b1 / b0 < 2.3;
+      /* 切割機率：攻擊擊中給 1 層，沒有機率就沒有 */
+      set({ bleedCh: 0, poisonCh: 0, inciseCh: 100 }); let m = mk(); apply(m); const i1 = m.ail.inc || (m.ail.bleed ? 1 : 0); /* bleedCh 是 0，有流血一定是切割的層數（每層 +10%）骰中了，層數歸 0 */
+      set({ inciseCh: 0 }); m = mk(); apply(m); out.incise = [i1, m.ail.inc || 0];
+      /* 濕透大點：閃電傷害的 5% 額外獲得為冰冷傷害（閃電不少、物理沒有閃電就沒有；也不再使敵人濕透） */
+      const cl = { ...c0, D: { ...c0.D, el: 'light' } }, l0 = hc(cl), pp0 = hc();
+      set({ drenchOn: 1 }); const dn1 = hc(cl), dn2 = hc(); m = mk(); apply(m, L0); out.drench = [r2(dn1 / l0), r2(dn2 / pp0), m.ail.wet > G.t ? 1 : 0]; set({ drenchOn: 0 });
+      /* 緩速效果：阻礙／跛行的 30% 緩速放大 */
+      m = mk(); m.ail.hinder = G.t + 4; const sp0 = mobSpd(m); set({ slowMag: 100 }); out.slowMag = [r2(sp0), r2(mobSpd(m))]; set({ slowMag: 0 });
+      /* 定身累積 */
+      const ps = () => { const x = mk(); poiseAdd(x, 'hs', 1); return x.ail.hs; };
+      const h0 = ps(); set({ immobBuild: 100 }); out.immob = r2(ps() / h0); set({ immobBuild: 0 });
+      /* 提高池：觸發法術、引導技能、對受異常的敵人、火焰（消耗能量球後 4 秒）、印記效果（獵鷹印記 +10%） */
+      const d0 = hc();
+      set({ trigP: 100 }); out.trig = [r2(hc(c0, null, { trig: 1 }) / d0), r2(hc() / d0)]; set({ trigP: 0 });
+      set({ chanP: 100 }); out.chan = [r2(hc({ ...c0, D: { ...c0.D, charge: 1 } }) / d0), r2(hc() / d0)]; set({ chanP: 0 });
+      const am = mk(); am.ail.bleed = { dps: 1, t: G.t + 5 };
+      set({ ailEnemyP: 100 }); out.ailEnemy = r2(hc(c0, am) / hc(c0, mk())); set({ ailEnemyP: 0 });
+      const cf = { ...c0, D: { ...c0.D, el: 'fire' } }, f0 = hc(cf);
+      gainChg('e', 2); set({ chgUseHeal: 3, chgUseFire: 100 }); P.hp = 100; useChg('e');
+      out.chg = [Math.round(P.hp), r2(hc(cf) / f0), r2(hc() / d0)]; P.chgFireT = 0; set({ chgUseHeal: 0, chgUseFire: 0 });
+      const fk = mk(); fk.ail.mark = { k: 'falcon' }; const k0 = hc(c0, fk) / hc(c0, mk()); set({ markEff: 100 }); out.mark = [r2(k0), r2(hc(c0, fk) / hc(c0, mk()))]; set({ markEff: 0 });
+      /* 受到的緩速降低（上限 75%）、減益消逝速度 */
+      P.ail = { chill: { v: 40, t: G.t + 5 } }; const sl0 = playerSlow(); set({ slowRes: 50 }); const sl1 = playerSlow();
+      P.ail = { vine: { n: 5, acc: 0 } }; const vn1 = vineSlow(); set({ slowRes: 200 }); out.slowRes = [r2(sl0), r2(sl1), r2(vn1), r2(vineSlow())]; set({ slowRes: 0 });
+      P.ail = { shock: G.t + 4, chill: { t: G.t + 4, v: 30 } }; set({ debuffExp: 50 }); debuffExpTick(P.ail, 1);
+      out.debuffExp = [r2(P.ail.shock - G.t), r2(P.ail.chill.t - G.t)]; set({ debuffExp: 0 }); P.ail = {};
+      /* 連擊機率、施法時的移動速度、秘能波動效果 */
+      P.combo = 0; set({ comboCh: 100 }); comboHit({}); const cb = P.combo; set({ comboCh: 0 });
+      const cm0 = castMove({ D: {} }); set({ castMoveP: 100 });
+      out.combo = [cb, r2(cm0), r2(castMove({ D: {} }))]; set({ castMoveP: 0 });
+      P.buf = { arcane: G.t + 10 }; const gm = mkGem('fireball', 1), ar0 = gemCfg(gm, 0).speed; set({ arcaneEff: 100 });
+      out.arcane = [r2(ar0), r2(gemCfg(gm, 0).speed)]; set({ arcaneEff: 0 }); P.buf = {};
+      /* 盛怒消退延後（4 秒＋x 秒）、被擊中得到盛怒、傷害先扣魔力（跟基石相加） */
+      const rd = () => { P.rage = 10; P.rageT = G.t - 5; P.rageDec = 0; baseTick(0.5); return P.rage; };
+      const rg0 = rd(); set({ rageDelay: 2 }); out.rageDelay = [rg0, rd()]; set({ rageDelay: 0 }); P.rage = 0;
+      const hurt = () => { P.hp = 1000; P.mp = 100; P.rage = 0; hurtPlayer(100, null, 'phys', true); return [Math.round(1000 - P.hp), Math.round(P.mp), P.rage]; };
+      const hu0 = hurt(); set({ momP: 50, rageHurt: 3 }); out.hurt = [hu0, hurt()]; set({ momP: 0, rageHurt: 0 });
+      /* 被包圍時護甲（要先有 5 隻在 3 公尺內） */
+      set({ armor: 1000, armInc: 0 }); G.mobs = [0, 1, 2, 3, 4].map(i => mk({ x: 10 + i }));
+      const sa0 = hurtCalc(100, null, 'phys', true).d; set({ surrArm: 100 }); const sa1 = hurtCalc(100, null, 'phys', true).d; set({ surrArm: 0, armor: 0 });
+      out.surrArm = [Math.round(sa0), Math.round(sa1)]; G.mobs = [];
+      /* 投射物速度、投射物與閃電技能的連鎖機率 */
+      const sh = (el, c = {}) => { shoot(0, 100, { D: { tags: ['proj'], el }, pierce: 0, ...c }, {}, {}); return G.shots[G.shots.length - 1]; };
+      const v0 = sh('phys').vx; set({ projSpd: 30 }); const v1 = sh('phys').vx; set({ projSpd: 0 });
+      set({ chainCh: 100 }); const ch1 = sh('phys').chain, ch2 = sh('light').chain; set({ chainCh: 0, chainL: 100 });
+      out.shot = [r2(v0), r2(v1), ch1, ch2, sh('phys').chain, sh('light').chain]; set({ chainL: 0 });
+      /* 召喚物與場上單位用自己的命中值（玩家的 80%）；致盲地圖詞 pacc −20% */
+      set({ acc: 100, noMiss: 0 });
+      const hits = (o, mm) => { G.mm = mm || null; const e = mk({ ev: 333.33, evE: 50, evM: 50 }); let n = 0; for (let i = 0; i < 1000; i++) if (hitRoll(e, atk, o)) n++; G.mm = null; return n; };
+      const ha = hits({}), hb = hits({ minion: 1 }), hu = hits({ unit: 1 }), hm = hits({}, { pacc: -20 });
+      const hb2 = hits({ minion: 1 }, { pacc: -20 });
+      out.acc = [ha > 600 && ha < 650, hb > 540 && hb < 570, hu === hb, Math.abs(hm - hb) <= 1, hb2 === hb];
+      /* 盾的防禦提高：盾上的護甲再加（天賦拿 +100% ＝ 多一倍的盾護甲） */
+      const eq = { weapon: mkItem('w_sword1_0', 16, 0), off: mkItem('s_iron', 16, 0), ring1: Object.assign(mkItem('r_iron', 16, 0), { a: [{ k: 'attrA', v: 99, T: 1 }] }) },
+        shA = Math.round((baseOf(eq.off).b.armor || 0) * qMul(eq.off)) + eq.off.a.reduce((t, a) => t + (a.k === 'armor' ? a.v : 0), 0),
+        a0 = stats({ lv: 50, eq, pt: [], asc: null, at: [], auras: [], charms: [] }).armor;
+      PTREE.I.zz = { s: { shieldDef: 100 } };
+      const a1 = stats({ lv: 50, eq, pt: ['zz'], asc: null, at: [], auras: [], charms: [] }).armor; delete PTREE.I.zz;
+      out.shield = [shA > 0, Math.abs(a1 - a0 - shA) <= 2];
+    } catch (e) { out.err = String(e && e.stack || e).slice(0, 300); }
+    for (const k in ST) if (!(k in keep.st)) delete ST[k];
+    Object.assign(ST, keep.st); Object.assign(G, keep.g); Object.assign(P, keep.p);
+    return out;
+  })()`);
+  ok(
+    '0.2.68 新能力的機制：感電效果／凋零效果、重霜無視抗性、五種持續時間、異常機率、切割機率、濕透、緩速效果、定身累積、觸發法術／引導／對受異常的敵人／能量球消耗／印記效果、受到的緩速降低、減益消逝、連擊機率、施法移動、秘能波動效果、盛怒延後、被擊中得盛怒、傷害先扣魔力、被包圍護甲、投射物速度與連鎖、召喚物與場上單位的命中、盾的防禦提高',
+    JSON.stringify(t68) ===
+      '{"shock":[20,30,20],"wither":[10,15],"frzIgnRes":[[40,-20,40],[0,-20,40],[40,-20,40]],"dur":[[5,2,4,8,8],[10,3,6,12,16]],"ailCh":true,"incise":[1,0],"drench":[1.05,1,0],"slowMag":[0.7,0.4],"immob":2,"trig":[2,1],"chan":[2,1],"ailEnemy":2,"chg":[160,2,1],"mark":[1.1,1.2],"slowRes":[0.6,0.8,0.8,0.9],"debuffExp":[3.5,3.5],"combo":[2,0.35,0.7],"arcane":[1.15,1.3],"rageDelay":[8,10],"hurt":[[100,100,0],[50,50,3]],"surrArm":[50,33],"shot":[100,130,1,1,0,1],"acc":[true,true,true,true,true],"shield":[true,true]}',
+    JSON.stringify(t68)
+  );
   /* 0.2.59 J2（0.2.63 改成精魂寶石「獻祭」）：沒有屍體時用復甦召喚物代替，那隻死掉、復甦慢 40%（Lv1）；紙人（會消失的）不算 */
   const j59 = R(`(() => {
     const keep = { allies: G.allies, corpses: G.corpses, au: S.auras, pt: S.pt, st: ST },
@@ -4580,15 +4709,14 @@ vm.runInContext(
       const pm0 = parryMore(); ST = { ...ST, parryMag: 100 }; const pm1 = parryMore(); ST = { ...ST, parryMag: 0, parryDur: 50 }; const m5 = mk(0); applyParry(m5);
       out.parryAff = [sp.parryMag, sd.parryDur, sp.parryDur || 0, +(pm1 / pm0).toFixed(2), +(m5.ail.parried - G.t).toFixed(2), AFF.parryMag.p, AFF.parryDur.p, affCls('parryMag'), affCls('parryDur'), spear.parryDur, spear.eqBad.length];
       delete PTREE.I.zz;
-      /* 無咒：怪物自己帶（判官、鬼道士）、地圖詞、生怪時看得到；詛咒擋下，hexPierce 才能詛咒；一般怪照常 */
+      /* 無咒：怪物自己帶（判官、鬼道士）、地圖詞、生怪時看得到；詛咒擋下；一般怪照常 */
       G.mapT = 5; G.mm = null; G.mobs = [];
       const sm = (D, mm) => { G.mm = mm; return spawnMob(D, 0, 0, 1, false).hexproof; };
       out.hex = [MOBS.judge.hexproof, MOBS.priest.hexproof, sm(MOBS.judge, null), sm(MOBS.slime, null), sm(MOBS.slime, { mhex: 1 }), MM('mhex'), mapMods({ mods: ['hexproof'] }).mhex, MAPMOD.hexproof.d];
       G.mm = null; G.mobs = [];
       const hm = mk(0, { hexproof: 1 }); curseMob(hm, 'enfeeble', 5); const hx0 = !!hm.ail.curse;
-      ST = { ...ST, hexPierce: 1 }; curseMob(hm, 'enfeeble', 5); const hx1 = !!hm.ail.curse; ST = { ...ST, hexPierce: 0 };
       const nm = mk(0); curseMob(nm, 'enfeeble', 5);
-      out.hexCurse = [hx0, hx1, !!nm.ail.curse];
+      out.hexCurse = [hx0, !!nm.ail.curse];
       /* 緩速藤蔓：毒菇、毒樹蛙打中你施加 1 層，別的怪不施加 */
       P.ail = {}; mobAilPlayer({ D: MOBS.shroom, ail: {} }, 10, 'chaos'); const v1 = P.ail.vine ? P.ail.vine.n : 0;
       mobAilPlayer({ D: MOBS.treefrog, ail: {} }, 10, 'chaos'); const v2 = P.ail.vine.n;
@@ -4666,8 +4794,8 @@ vm.runInContext(
     JSON.stringify([b64.pool, b64.rng, b64.parryAff])
   );
   ok(
-    '3B 無咒：判官與鬼道士自己無咒、地圖詞「怪物無咒」讓全部怪無咒、生怪時帶上；詛咒擋下，hexPierce 才能詛咒，一般怪照常',
-    JSON.stringify([b64.hex, b64.hexCurse]) === '[[1,1,1,0,1,1,1,1],[false,true,true]]',
+    '3B 無咒：判官與鬼道士自己無咒、地圖詞「怪物無咒」讓全部怪無咒、生怪時帶上；詛咒擋下，一般怪照常',
+    JSON.stringify([b64.hex, b64.hexCurse]) === '[[1,1,1,0,1,1,1,1],[false,true]]',
     JSON.stringify([b64.hex, b64.hexCurse])
   );
   ok(
@@ -4961,11 +5089,6 @@ vm.runInContext(
     JSON.stringify([b.mmV, b.mmP, b.mmA, b.mmL, b.mmAL, b.mmMix, b.mmS, b.mmOff])
   );
   ok(
-    '暴露弱點：開關關著沒有；精英與王 3 段共 45%；生命在區段裡才算；對開放弱點更多',
-    !b.weak0 && b.weakSeg.join() === '3,0.45,true,true,true' && !b.weakN && b.weak1 && !b.weak2 && b.weakM === 1.5,
-    JSON.stringify([b.weak0, b.weakSeg, b.weakN, b.weak1, b.weak2, b.weakM])
-  );
-  ok(
     '封印：照施放時間累積、到上限停、打破歸零；沒有 D.seal 的不累積',
     b.seal1 === 1 && b.seal2.join() === '3,0' && b.seal3.join() === '3,0,0',
     JSON.stringify([b.seal1, b.seal2, b.seal3])
@@ -5160,7 +5283,7 @@ vm.runInContext(
       delete old.world; delete old.hunt;
       old.eq.weapon = mkItem('w_bow_0', 12, 2);
       const id = old.eq.weapon.id, n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 27 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
+      return n.v === 28 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
         n.world.stage === 0 && !n.world.done.length && n.world.at === '0,0' && Number.isInteger(n.world.seed) &&
         n.hunt.v === 0 && !Array.isArray(n.cards) && !Object.keys(n.cards).length && !n.card;
     })()`)
@@ -5171,7 +5294,19 @@ vm.runInContext(
       const old = newGame();
       Object.assign(old, { v: 26, lv: 40, pt: [...PT_START, PTREE.N[40].id], ptA: { zz: 'd' } });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 27 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length;
+      return n.v === 28 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length;
+    })()`)
+  );
+  ok(
+    '舊存檔（27）：0.2.68 重烘後天賦點全部退回起點、能力值選擇清空，其他不動；28 不再退',
+    R2(`(() => {
+      const old = newGame();
+      Object.assign(old, { v: 27, lv: 40, pt: [...PT_START, PTREE.N[40].id], ptA: { zz: 'd' } });
+      const n = migrate(JSON.parse(JSON.stringify(old)));
+      const keep = newGame();
+      Object.assign(keep, { v: 28, lv: 40, pt: [...PT_START, PTREE.N[40].id] });
+      const k = migrate(JSON.parse(JSON.stringify(keep)));
+      return n.v === 28 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length && k.pt.length === 7;
     })()`)
   );
   ok(

@@ -733,11 +733,6 @@ function drawMob(m) {
       CX.fillRect(m.x - w / 2 - 1, y - 1, w + 2, 6);
       CX.fillStyle = m.elite ? '#8ab4ff' : '#e5484d';
       CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
-      /* 暴露弱點：開放弱點的區段 */
-      if (ST.reveal && m.elite) {
-        CX.fillStyle = 'rgba(255, 215, 90, 0.6)';
-        for (const [a, b] of weakSegs(m)) CX.fillRect(m.x - w / 2 + w * a, y, w * (b - a), 4);
-      }
     }
   }
 }

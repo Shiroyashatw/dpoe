@@ -100,7 +100,8 @@ const PT2_STYLE = [
 ];
 
 function ptreeGen2(env) {
-  const { PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS } = env;
+  const { PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS } = env,
+    PT_FIX = env.PT_FIX || [];
   const R0 = 470,
     GAP = 350,
     RAD = Math.PI / 180,
@@ -1134,6 +1135,37 @@ function ptreeGen2(env) {
       got.push(c);
     }
   }
+  /* ---------- 6b. 固定擺法（PT_FIX，0.2.68）：跟預留叢集同一套挑法（單一入口的死路、彼此隔 450），但不鎖，
+     直接指定主題。每個叢集的大點數照「剩下的手寫大點 ÷ 剩下的叢集」挑，手寫的大點剛好分完、全部上樹 ---------- */
+  for (const [name, roads, ddMin = 0.35] of PT_FIX) {
+    const T = PT_THEME[PT_TH[name]],
+      got = [];
+    let rest = T.nt.length;
+    roads.forEach((rd, k) => {
+      const after = roads.length - k - 1,
+        per = Math.max(1, Math.min(Math.ceil(rest / (after + 1)), rest - after)),
+        c = shuffle(
+          CL.filter(
+            (c, ci) =>
+              !c.st &&
+              !c.lock &&
+              !c.fix &&
+              !c.hub2 &&
+              c.par == null &&
+              !hasKid.has(ci) &&
+              c.dd > ddMin &&
+              c.n <= 12 &&
+              c.n - c.nt - c.lead >= 2 /* 至少 2 個小點，主詞才輪得到 */ &&
+              c.nt >= 1 &&
+              c.nt <= per &&
+              roadOf(c) === rd &&
+              !got.some(o => dst(o, c) < 450)
+          )
+        ).sort((a, b) => b.nt - a.nt)[0];
+      if (!c) throw new Error(`PT_FIX：「${name}」在第 ${rd} 條路找不到單一入口的死路叢集（大點 1～${per} 個）`);
+      (c.th = PT_TH[name]), (c.fix = 1), got.push(c), (rest -= c.nt);
+    });
+  }
   /* ---------- 7. 主題：邊界銳利（中間 2/3 是自己的，只有邊界一條混搭）、最內圈不混、長矛混合帶 ---------- */
   const NO1 = { 近戰: 1, 招架: 1, 打擊: 1 },
     rgOf = (T, g) => (g === 1 && NO1[T.n] ? 0 : T.rg[g]),
@@ -1146,6 +1178,7 @@ function ptreeGen2(env) {
   for (const c of CL) famNt[rootOf(c).id] = (famNt[rootOf(c).id] || 0) + c.nt;
   for (const n of N) if (n.st && n.big === 1 && !n.gate) left[n.th]--;
   for (const c of CL) if (c.st && c.par == null) left[c.th] -= famNt[c.id];
+  for (const c of CL) if (c.fix) left[c.th] -= famNt[c.id];
   const byR = [...CL].sort((a, b) => a.dd - b.dd);
   for (const c of byR) {
     if (c.th != null || c.par != null || c.lock) continue;
@@ -1191,6 +1224,7 @@ function ptreeGen2(env) {
           c =>
             !c.st &&
             !c.lock &&
+            !c.fix &&
             c.par == null &&
             roadOf(c) === T.rg.indexOf(3) &&
             c.dd > 0.45 &&
@@ -1214,7 +1248,8 @@ function ptreeGen2(env) {
   const ADJ = {};
   for (const [a, b] of E) (ADJ[a] = ADJ[a] || []).push(b), (ADJ[b] = ADJ[b] || []).push(a);
   const ntK = PT_THEME.map(() => 0),
-    subK = PT_THEME.map(() => 0);
+    subK = PT_THEME.map(() => 0),
+    smK = PT_THEME.map(() => 0);
   for (const n of N) if (n.st && n.big === 1 && !n.gate) n.v = ntK[n.th]++;
   for (const c of byR) {
     if (c.lock) {
@@ -1231,7 +1266,7 @@ function ptreeGen2(env) {
       qu = [c.hub];
     for (let h = 0; h < qu.length; h++)
       for (const o of ADJ[qu[h]]) if (set.has(o) && dep[o] === undefined) (dep[o] = dep[qu[h]] + 1), qu.push(o);
-    c.p = (ci + c.th) % T.sm.length;
+    c.p = 0;
     const pick = () => (nSub ? T.sm.length + (subK[c.th]++ % nSub) : (c.p + 1) % T.sm.length),
       /* 接在別的叢集後面的兩邊對調，才不會跟前一個叢集的同一條詞連在一起 */
       side = id => (I[id].sd === 1) !== (c.par != null),
@@ -1243,9 +1278,11 @@ function ptreeGen2(env) {
       odd = A.filter(id => dep[id] % 2).sort((x, y) => dep[x] - dep[y]),
       qs = new Set([...odd, ...A.filter(id => !odd.includes(id))].slice(0, want));
     if (want && !qs.size && body.length) qs.add([...body].sort((x, y) => dep[y] - dep[x])[0]);
+    /* 主詞照主題輪流（小主題的每一條主詞都用得到）；整個叢集的小點都是變體時不佔用輪流的名額 */
+    const rs = new Set(body.length >= 8 && B.length ? B.slice(0, 2) : []);
+    if (body.some(id => !qs.has(id) && !rs.has(id))) c.p = smK[c.th]++ % T.sm.length;
     c.q = qs.size ? pick() : c.p;
     c.r = body.length >= 8 && B.length ? pick() : null;
-    const rs = new Set(B.slice(0, 2));
     for (const id of c.ids) {
       const n = I[id];
       n.th = c.th;
@@ -1443,7 +1480,7 @@ if (typeof require !== 'undefined' && require.main === module) {
     };
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(js('data.js'), 'utf8'), ctx, { filename: 'data.js' });
-  const env = vm.runInContext('({ PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS })', ctx),
+  const env = vm.runInContext('({ PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS, PT_FIX })', ctx),
     T = ptreeGen2(env),
     A = pt2Audit(T),
     bad = A.線交叉 + A.線壓到點 + A.兩點太近 + A.夾角小於12度,

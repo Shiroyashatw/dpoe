@@ -582,8 +582,6 @@ body.touch .panel { --pp: 10px; }
 #bossbar b { font: 700 var(--fs-l) var(--serif); color: var(--title); letter-spacing: 0.14em; text-shadow: 0 1px 3px #000, 0 0 12px rgba(0, 0, 0, 0.9); }
 #bossbar .bb { height: 14px; margin-top: 6px; background: #080505; border: 1px solid var(--fr-o); box-shadow: 0 0 0 1px var(--fr), 0 0 0 3px #0a0806, 0 4px 14px rgba(0, 0, 0, 0.8); }
 #bossbar .bb i { background: linear-gradient(180deg, #d9443a, #7e1610 60%, #5a0e0a); }
-#bossbar .bb { position: relative; }
-#bossbar .bb u { position: absolute; top: 0; bottom: 0; background: rgba(255, 215, 90, 0.4); }
 #prog b { font: 700 var(--fs-s) var(--serif); color: var(--dim); letter-spacing: 0.1em; }
 #prog .pb { height: 7px; background: var(--s0); border: 1px solid var(--fr-o); }
 #prog .pb i { background: linear-gradient(90deg, #7a4a14, #e1a54c); }

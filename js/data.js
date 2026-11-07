@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.67';
+const VER = '0.2.68';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -136,7 +136,6 @@ const TERMS = {
   不幸: '機率擲兩次取壞的結果，有效機率 = p²。幸運與不幸同時有就抵消。',
   有效機率: '算進幸運、不幸、上限之後，實際會發生的機率。角色面板在有幸運時顯示「有效 x%」。',
   荊棘: '獨立的傷害類別，不算攻擊、不算法術，只吃「荊棘傷害提高」；吃怪物的護甲與抗性。來源：胸甲的附加荊棘物理傷害。',
-  無視抗性: '你的傷害完全不被目標該種抗性修改（負抗性也不吃），跟「穿透」不同（穿透只是降低抗性）。',
   溢出: '擊中造成擊殺時，傷害超出敵人剩餘生命的部分。只算擊中，持續傷害不算。',
   空手: '沒有裝備武器的狀態：物理 2～5、每秒攻擊 1.65、暴擊率 5%，不能用限定武器的技能，預設攻擊是斬擊。',
   空手攻擊: '空手狀態下、使用空手基礎傷害的攻擊。',
@@ -147,9 +146,8 @@ const TERMS = {
   有助於異常狀態的傷害:
     '計算某個異常時，把更多種傷害一起算進去（例：火焰塑造者讓物理、冰冷、閃電也算進點燃）。流血與中毒只增加幅度，施加機率仍要別的來源。',
   最後一擊: '把目標生命降到 0 的擊中傷害；持續傷害不算。',
-  分岔暴擊: '暴擊率判定兩次，任一次成功就暴擊；兩次都成功，暴擊傷害加成套用兩次（暴擊率幸運時兩次各自幸運）。',
   絕對暴擊: '沒骰中暴擊就重骰到成功；每重骰一次，暴擊傷害加成 30% 更少。',
-  重骰暴擊率: '分岔暴擊、絕對暴擊這類「多骰暴擊率」效果的統稱。',
+  重骰暴擊率: '絕對暴擊這類「多骰暴擊率」效果的統稱。',
   滿溢機率: '機率可以超過 100%：每個 100% 多發生一次，剩下的部分再判定一次（215% ＝ 2 次，再 15% 機率第 3 次）。',
   惡化點燃:
     '同一次使用再次點燃同一個目標時，移除舊的點燃，新的點燃幅度乘上這次使用累計的點燃筆數（3 次＝ 3 倍）。反射與油地面造成的點燃不算。',
@@ -201,7 +199,6 @@ const TERMS = {
     '受到的攻擊傷害 50% 更多、無法閃避攻擊，2 秒；招架成功、格擋值被打碎（4 公尺內所有敵人）時施加，可被收割。幅度、持續時間、衝擊範圍都有能力可以放大。',
   不受影響: '對你沒影響的減益仍可以施加在你身上、仍會顯示，只是不發揮效果（例：不受冰緩影響）。',
   鎮壓: '從目標的物理傷害減免扣掉指定的百分點，最多扣到 0（不會變成受到更多）；在護甲之後、壓碎之前。',
-  壓抑: '被壓抑的擊中，傷害與它造成的異常傷害各防止 50%（異常照上，只是傷害減半）；機率上限 100%。',
   嘲諷: '被嘲諷的敵人只能以你為目標，對你以外的目標傷害少 10%，3 秒；目前怪物只打你，旗標先留著。',
   可觸電: '觸電累積到門檻（普通 40%、稀有 60%、王 70%）的狀態；本身沒有效果，給技能判斷用，可被收割。',
   可冰凍: '冰凍累積到門檻（普通 40%、稀有 60%、王 70%）的狀態；本身沒有效果，給技能判斷用，可被收割。',
@@ -209,7 +206,7 @@ const TERMS = {
   腐化之血: '每層獨立的物理持續傷害，5 秒，最多 10 層；不是流血，不吃任何流血加成，也不會因移動加倍。',
   緩速藤蔓: '怪物施加給你，每層移動速度 −8%，最多 5 層；移動時會逐漸移除層數。',
   石化: '不能移動、不能行動，算禁錮；3 秒，王減半。',
-  無咒: '無咒的敵人不受詛咒；你有「能影響無咒敵人」的能力時例外。',
+  無咒: '無咒的敵人不受詛咒。',
   血漬: '敵人流血時累積，滿 6 秒得到的減益；敵人在移動或流血被加劇時累積 ×2，流血斷掉暫停（不歸零）。目前沒有技能消耗它。',
   切割: '擊中給 1 層，每層擊中造成流血的機率 +10%，最多 10 層；造成流血後全部移除。近期每消耗 1 層，流血幅度 3% 更多（上限 30%）。',
   跛行: '扣敵人當下的閃避值（普通怪 ×3、菁英 ×2、王 ×1），扣到 0 就是完全跛行 12 秒：你的攻擊必定命中。',
@@ -290,7 +287,6 @@ const TERMS = {
   終極: '增益：最終打擊暴擊率提高 100%，打擊技能直接跳到最終打擊；生效期間技能無法獲得連擊。',
   擴散傷害: '打擊技能擊中時，對被打中的敵人 1.5 公尺內的其他敵人多一次擊中。',
   只有最低或最高傷害: '擊中不在範圍內擲骰，每種傷害各自 50% 最低、50% 最高。傷害幸運時擲兩次，有一次最高就算最高。',
-  暴露弱點: '精英與王的生命條上標出共 45% 的區段，目前生命落在區段裡就是開放弱點。',
   封印: '封印技能隨時間累積封印（每 200% 施放時間 1 個）；你自己使用時全部打破，那次使用照個數變強。',
   /* 第 13～16 批：召喚物 */
   極大: '召喚物最大生命更多 20%、傷害更多 20%、體型提高 20%。',
@@ -2209,7 +2205,6 @@ const STATN = {
   cull: ['撲殺：擊中後生命低於門檻的敵人直接死亡（普通 35%、菁英 10%、王 5%）', '', 1],
   fullStrike: ['屠戮打擊：擊中滿血的敵人前，先移除生命（上限：普通 30%、菁英 15%、王 5%）', '%'],
   lukCrit: ['暴擊幸運', '', 1],
-  lukBlock: ['格擋幸運', '', 1],
   lukDmg: ['傷害幸運（傷害範圍擲兩次取高）', '', 1],
   lukDefl: ['偏斜幸運', '', 1],
   thornP: ['荊棘傷害', '%'],
@@ -2301,9 +2296,9 @@ const PT_THEME = [
     ic: 'asc_s_shield',
     inner: 1,
     rg: [3, 0, 0, 0, 0, 2],
-    sm: [{ armorP: 12, defP: 4 }],
+    sm: [{ armorP: 12 }, { armEle: 5 }],
     nt: [
-      ['鐵骨', { armorP: 25, resA: 3, defP: 10, stunThrP: 15 }],
+      ['鐵骨', { armorP: 25, resA: 3, stunThrP: 15 }],
       ['閃甲', { evAsArmor: 15 }, '身法'],
       ['金剛', { armorP: 20, armBreak: 1 }],
       ['熔岩鎧', { maxResF: 1, resF: 12 }],
@@ -2334,7 +2329,7 @@ const PT_THEME = [
     rg: [3, 0, 0, 0, 0, 1],
     sm: [{ blockInc: 5 }, { shieldP: 10 }],
     nt: [
-      ['幸運之盾', { lukBlock: 1, blockInc: -15 }],
+      ['巨盾', { shieldDef: 30, blockInc: 5 }],
       ['銅牆', { blockInc: 12, armorP: 10 }],
       ['以盾為劍', { shieldP: 25, blockInc: 4 }],
       ['盾反', { shieldP: 20, rageHit: 1 }],
@@ -2413,8 +2408,10 @@ const PT_THEME = [
     sm: [{ projP: 10 }],
     sub: [{ projAtkP: 10 }],
     nt: [
+      ['詭射', { chainCh: 15, projP: 10 }],
+      ['短射', { projSpd: -30, closeP: 20 }],
       ['分光', { fork: 1, projP: 10 }],
-      ['迴旋鏢', { projRet: 1, projP: -15 }],
+      ['風箏手', { projSpd: 30, projP: 15 }],
       ['鷹眼', { projP: 25, critInc: 10 }],
       ['穿雲', { projP: 20, as: 3 }],
       ['連珠', { projP: 40, closeP: -30 }],
@@ -2447,11 +2444,12 @@ const PT_THEME = [
     ic: 'asc_s_feather',
     inner: 1,
     rg: [0, 3, 2, 0, 0, 0],
-    sm: [{ evP: 12, defP: 4 }, { ms: 2 }],
+    sm: [{ evP: 12 }, { ms: 2 }],
     nt: [
+      ['不受阻', { slowRes: 30 }],
       ['踏雪', { unChill: 1, ms: 3 }],
       ['輕功', { ms: 4, rollCd: 15 }],
-      ['殘影', { evP: 25, tailwind: 1, defP: 12 }],
+      ['殘影', { evP: 25, tailwind: 1 }],
       ['游擊', { movP: 25, evP: 10 }],
       ['閃身反擊', { afterRoll: 40, evP: -10 }],
       ['疾行狩獵', { onsKill: 30, ms: 2 }],
@@ -2476,7 +2474,7 @@ const PT_THEME = [
     sm: [{ critInc: 10 }],
     nt: [
       ['天眼', { lukCrit: 1, critX: -30 }],
-      ['洞穿弱點', { reveal: 1, weakMore: 15 }],
+      ['致命精準', { critInc: 25, accP: 15 }],
       ['孤影', { critInc: 15, isoP: 25 }],
       ['一擊脫離', { afterRoll: 25, critInc: 10 }],
       ['心眼', { critInc: 20, critX: 10 }, '暴擊傷害加成'],
@@ -2585,6 +2583,8 @@ const PT_THEME = [
     rg: [1, 0, 3, 0, 1, 2],
     sm: [{ ailMag: 10 }, { bleedCh: 5 }, { poisonCh: 8 }],
     nt: [
+      ['易傷體質', { ailCh: 20 }],
+      ['纏綿', { bleedDur: 15, poiDur: 15, ignDur: 15, shockDur: 15, chillDur: 15 }],
       ['放血', { bleedCh: 25, ailMag: 10 }],
       ['劇毒', { poisonCh: 25, poiStack: 1 }],
       ['疫病之源', { poiStack: 2, poisonCh: 10 }],
@@ -2674,6 +2674,7 @@ const PT_THEME = [
     rg: [0, 0, 0, 3, 2, 0],
     sm: [{ spellP: 10 }, { mpEff: 6 }],
     nt: [
+      ['連鎖咒術', { trigP: 30 }],
       ['咒法', { spellP: 20, castP: 5 }],
       ['秘法', { spellP: 20, arcaneHit: 20 }],
       ['血咒', { spellP: 20, lowHp: 20 }],
@@ -2701,14 +2702,14 @@ const PT_THEME = [
     c: '#7aa8ff',
     ic: 'asc_s_drop',
     inner: 1,
-    rg: [0, 0, 1, 3, 2, 0],
-    sm: [{ esP: 12, defP: 5 }],
+    rg: [0, 0, 3, 3, 1, 0],
+    sm: [{ esP: 12 }],
     sub: [{ esDelay: 6 }, { esRec: 10 }],
     nt: [
-      ['電能回收', { kbEs: 5, esP: 10 }],
+      ['靜電充能', { esRec: 20, esDelay: 10 }],
       ['絕境靈壓', { lowEsP: 30, esP: 10 }],
-      ['法術壓制', { suppCh: 10, esP: 15 }],
-      ['靈障', { esP: 25, esF: 15, defP: 15 }],
+      ['靈能壁', { esP: 20, esAsThr: 10 }],
+      ['靈障', { esP: 25, esF: 15 }],
       ['快速充能', { esRec: 30, esP: 10, esDelay: 40 }],
       ['寒霜屏障', { maxResC: 1, resC: 12 }],
       ['靈魂屏障', { esP: 20, resA: 3 }],
@@ -2802,7 +2803,6 @@ const PT_THEME = [
       ['哨兵', { dmgA: 10, minionP: 15 }],
       ['魔像共鳴', { golemEff: 25, minionP: 10 }],
       ['血脈相連', { allyLeech: 1, minionP: 10 }],
-      ['巨靈', { minGiant: 1, minionP: 10 }],
       ['嗜血群獸', { minionP: 15, onsKill: 20 }],
       ['群狼', { minionP: 20, spirit: 10 }],
       ['狼王', { wolfN: 1 }],
@@ -2832,7 +2832,7 @@ const PT_THEME = [
     c: '#c38bff',
     ic: 'asc_s_lotus',
     rg: [0, 0, 0, 1, 3, 0],
-    sm: [{ auraEff: 4 }, { spiritEff: 8 }],
+    sm: [{ auraEff: 4 }, { spiritEff: 8 }, { presArea: 8 }],
     sub: [{ buffMag: 4 }],
     nt: [
       ['存在感', { presP: 20, auraEff: 5 }],
@@ -2997,7 +2997,7 @@ const PT_THEME = [
     [3, 1, 0, 0, 0, 0],
     [
       ['鏈舞', { w_flail: 25, critInc: 15 }],
-      ['雙連枷', { only: 'flail', forkCrit: 1 }],
+      ['鎖鏈暴擊', { only: 'flail', critInc: 30, critX: 20 }],
       ['破陣鏈', { only: 'flail', armBreak: 1, w_flail: 15 }],
       ['旗手', { w_flail: 20, aoe: 6 }],
       ['鐵鏈', { w_flail: 25, armorP: 10 }],
@@ -3015,7 +3015,7 @@ const PT_THEME = [
     [1, 3, 0, 0, 0, 0],
     [
       ['穿刺', { w_spear: 25, impaleCh: 25 }],
-      ['雙岔矛', { only: 'spear', forkCrit: 1 }],
+      ['貫矛', { w_spear: 25, impaleCh: 10 }],
       ['長槍陣', { w_spear: 20, aoe: 8 }],
       ['投槍', { w_spear: 25, projP: 10 }, '投射物'],
       ['貫日', { only: 'spear', impaleCh: 40 }],
@@ -3030,6 +3030,7 @@ const PT_THEME = [
     'gear_weapon_3',
     [0, 3, 1, 0, 0, 0],
     [
+      ['高貴之狼', { markEff: 30 }],
       ['百步一殺', { only: 'bow', cull: 1 }],
       ['百步穿楊', { w_bow: 25, farP: 15 }],
       ['連珠箭', { w_bow: 25, as: 3 }],
@@ -3202,6 +3203,7 @@ const PT_THEME = [
     'asc_moon_c',
     [1, 0, 0, 0, 0, 3],
     [
+      ['節奏脈輪', { comboCh: 30 }],
       ['武僧', { w_qstaff: 25, as: 3 }],
       ['風雷棍', { only: 'qstaff', afterRoll: 30, rollCd: 20 }],
       ['禪定', { w_qstaff: 20, powOnCrit: 15 }],
@@ -3252,9 +3254,10 @@ const PT_THEME = [
     rg: [3, 1, 1, 0, 0, 2],
     sm: [{ physP: 10 }],
     nt: [
+      ['破軍', { physP: 20, immobBuild: 15 }],
       ['天命一擊', { lukDmg: 1, as: -5 }],
-      ['孤擲', { minmax: 1, physP: 15 }],
-      ['鎮壓之力', { overwhelm: 8, physP: 15 }],
+      ['蠻力', { physP: 25, hsP: 10 }],
+      ['重壓', { twoP: 40, hsP: 20, as: -5 }],
       ['蠻勁', { physP: 25, str: 10 }],
       ['筋骨', { physP: 20, hsP: 15 }, '暈眩'],
       ['破甲重手', { physP: 20, armBreak: 1 }],
@@ -3262,14 +3265,13 @@ const PT_THEME = [
       ['剛猛', { physP: 25, critX: 15 }],
       ['鋒銳', { physP: 20, critInc: 15 }, '暴擊率'],
       ['血鋒', { physP: 20, bleedCh: 15 }, '流血'],
-      ['鎮山', { overwhelm: 5, armorP: 15 }, '護甲'],
+      ['山岳', { armorP: 20, stunThrP: 15 }, '護甲'],
       ['穿骨', { physP: 20, bossP: 10 }],
       ['鐵拳', { physP: 20, meleeP: 10 }, '近戰'],
       ['重矢', { physP: 20, projP: 10 }, '投射物'],
       ['剛力', { physP: 30, ms: -3 }],
       ['物盡其用', { physP: 20, atkP: 10 }, '攻擊'],
       ['鈍擊', { physP: 20, dazeCh: 10 }],
-      ['銳不可當', { physP: 15, overwhelm: 5 }],
       ['崩山', { physP: 25, aoe: 6 }],
       ['破膽', { physP: 20, surrP: 15 }],
       ['沉重一擊', { physP: 25, slamP: 10 }, '重擊'],
@@ -3281,11 +3283,12 @@ const PT_THEME = [
     c: '#e8743b',
     ic: 'tree_s05',
     rg: [1, 0, 0, 3, 1, 1],
-    sm: [{ fireP: 12 }],
+    sm: [{ fireP: 12 }, { flamP: 12 }],
     sub: [{ ignMag: 10 }],
     nt: [
-      ['純焰', { ignFire: 1, coldP: -30, lightP: -30 }],
-      ['積焰', { compoundOn: 1, ignMag: 15 }],
+      ['炎熱餘韻', { chgUseFire: 15, fireP: 10 }],
+      ['燎原', { fireP: 20, ignDur: 25 }],
+      ['餘燼不熄', { ignMag: 15, ignDur: 25 }],
       ['焚身', { fireP: 25, ignMag: 15 }],
       ['灼燒', { fireP: 20, ignMag: 20 }],
       ['燎原之勢', { fireP: 25, aoe: 6 }],
@@ -3310,10 +3313,10 @@ const PT_THEME = [
     c: '#6fb7e9',
     ic: 'tree_s11',
     rg: [0, 1, 1, 3, 1, 0],
-    sm: [{ coldP: 12 }],
-    sub: [{ frzP: 15 }],
+    sm: [{ coldP: 12 }, { frzP: 15 }],
     nt: [
-      ['純冰', { ignCold: 1, fireP: -30, lightP: -30 }],
+      ['漫長寒冬', { chillDur: 25 }],
+      ['重霜', { frzP: 20, frzIgnRes: 1 }],
       ['凜冬', { coldP: 25, frzP: 15 }],
       ['寒徹', { coldP: 20, pen: 6 }],
       ['冰封千里', { coldP: 20, aoe: 8 }],
@@ -3342,10 +3345,13 @@ const PT_THEME = [
     c: '#e6cc4a',
     ic: 'tree_s09',
     rg: [0, 1, 2, 3, 0, 0],
-    sm: [{ lightP: 12 }],
+    sm: [{ lightP: 12 }, { shockCh: 12 }],
     sub: [{ elcP: 15 }],
     nt: [
-      ['純電', { ignLight: 1, fireP: -30, coldP: -30 }],
+      ['強電流', { shockMag: 25 }],
+      ['濕透', { shockCh: 40, drenchOn: 1 }],
+      ['分支閃電', { chainL: 60 }],
+      ['導電', { lightP: 20, shockDur: 25 }],
       ['奔雷', { lightP: 25, pen: 8 }],
       ['過載', { lightP: 20, elcP: 25 }],
       ['引雷', { lightP: 25, elcP: 15 }],
@@ -3374,7 +3380,7 @@ const PT_THEME = [
     rg: [0, 0, 2, 0, 3, 1],
     sm: [{ chaosP: 7 }],
     nt: [
-      ['虛無', { ignChaos: 1, resX: -20 }],
+      ['凋零之觸', { chaosP: 20, witherEff: 15 }],
       ['混沌之觸', { chaosP: 25, poisonCh: 10 }, '中毒'],
       ['深淵', { chaosP: 25, resX: 10 }],
       ['腐蝕', { chaosP: 20, ailMag: 15 }, '異常'],
@@ -3399,12 +3405,13 @@ const PT_THEME = [
     rg: [3, 0, 2, 0, 1, 1],
     sm: [{ bleedCh: 5 }, { bleedMag: 10 }],
     nt: [
+      ['綿長出血', { bleedDur: 25 }],
       ['撕裂舊傷', { aggHit: 1, bleedMag: 10 }],
       ['血線', { aggIgn: 1, bleedMag: 15 }, '火焰'],
-      ['血流成河', { bleedAll: 1, bleedCh: 10 }],
-      ['凌遲', { incise: 1, inciseMag: 1 }],
+      ['血債難償', { bleedCh: 15, bleedMag: 15 }],
       ['跛足', { crippleOn: 1, bleedCh: 10 }],
-      ['細切', { incise: 1, bleedCh: 20 }],
+      ['凌遲', { inciseCh: 25, bleedMag: 10 }],
+      ['細切', { inciseCh: 20, bleedCh: 10 }],
       ['血濺三尺', { bleedMag: 25, critX: 10 }],
       ['放血術', { bleedCh: 20, bleedMag: 10 }],
       ['動脈', { bleedCh: 25, bossP: 10 }],
@@ -3422,7 +3429,9 @@ const PT_THEME = [
     rg: [0, 1, 3, 0, 2, 1],
     sm: [{ poisonCh: 8 }, { poiMag: 10 }],
     nt: [
-      ['萬毒', { poiAll: 1, poisonCh: 10 }],
+      ['纏毒', { poiDur: 25 }],
+      ['抗毒', { unPoi: 1, resX: 10 }],
+      ['蝕骨之毒', { poisonCh: 15, poiMag: 15 }],
       ['見血封喉', { poisonCh: 25, poiMag: 15 }],
       ['毒深', { poiStack: 1, poiMag: 15 }],
       ['蛇毒', { poiMag: 25, poisonCh: 10 }],
@@ -3432,7 +3441,6 @@ const PT_THEME = [
       ['毒液', { poiMag: 20, chaosP: 10 }, '混沌'],
       ['毒刃', { poisonCh: 20, atkP: 10 }, '攻擊'],
       ['毒咒', { poiMag: 15, debuffMag: 10 }, '詛咒'],
-      ['抗毒', { unPoi: 1, resX: 10 }],
       ['積毒', { poiStack: 1, poisonCh: 15 }],
       ['毒巢', { poiMag: 20, unitP: 10 }, '陷阱地雷'],
       ['毒蠆', { poisonCh: 20, ms: 2 }],
@@ -3498,8 +3506,9 @@ const PT_THEME = [
     rg: [3, 1, 1, 0, 0, 1],
     sm: [{ strikeP: 10 }],
     nt: [
+      ['清場', { kbP: 30, aoe: 10 }],
       ['餘波', { splash: 1, strikeP: 15 }],
-      ['溢勁', { ovkSplash: 20, strikeP: 15 }],
+      ['連環打擊', { strikeP: 20, as: 4 }],
       ['連打', { strikeP: 25, as: 3 }],
       ['精準連擊', { strikeP: 25, critInc: 15 }],
       ['一閃', { strikeP: 40, as: -5 }],
@@ -3520,7 +3529,7 @@ const PT_THEME = [
     rg: [3, 0, 0, 0, 0, 2],
     sm: [{ slamP: 10 }],
     nt: [
-      ['撼地', { crushOn: 1, slamP: 15 }],
+      ['震顫', { slamP: 20, hsP: 15 }],
       ['震天', { slamP: 25, aoe: 8 }],
       ['地裂山崩', { slamP: 40, as: -5 }],
       ['千鈞', { slamP: 20, hsP: 25 }, '暈眩'],
@@ -3544,6 +3553,7 @@ const PT_THEME = [
     sm: [{ hsP: 15 }],
     sub: [{ immobP: 10 }],
     nt: [
+      ['連環制動', { immobBuild: 25 }],
       ['破綻大開', { hstunNoEv: 1, hsP: 15 }],
       ['昏沉', { dazeCh: 15, hsP: 10 }],
       ['重創筋骨', { hsP: 30, immobP: 10 }],
@@ -3663,8 +3673,8 @@ const PT_THEME = [
     rg: [0, 0, 1, 1, 4, 0],
     sm: [{ debuffMag: 5 }],
     nt: [
-      ['咒無可避', { hexPierce: 1, debuffMag: 10 }],
-      ['衰敗', { weakenOn: 1, debuffMag: 10 }],
+      ['廣咒', { debuffMag: 10, aoe: 15 }],
+      ['惡語', { debuffMag: 15, occP: 10 }],
       ['厄運', { debuffMag: 20, occP: 10 }],
       ['咒術師', { debuffMag: 18, durP: -15 }],
       ['纏身', { debuffMag: 10, durP: 15 }],
@@ -3689,10 +3699,13 @@ const PT_THEME = [
     rg: [3, 0, 0, 0, 0, 2],
     sm: [{ rageEff: 4 }],
     nt: [
+      ['怒血', { rageLeech: 0.2, rageMax: 4 }],
+      ['忍痛', { rageHurt: 3, stunThrP: 10 }],
+      ['不滅怒火', { rageDelay: 2 }],
+      ['鬥志回流', { chgUseHeal: 3, rageEff: 5 }],
       ['怒髮衝冠', { rageMax: 8, rageHit: 1 }],
       ['狂怒', { rageEff: 15, meleeP: 10 }],
       ['無止怒火', { rageMax: 15, as: -5 }],
-      ['怒血', { rageLeech: 0.2, rageMax: 4 }],
       ['野獸之怒', { rageHit: 1, rageEff: 8 }],
       ['怒火中燒', { rageMax: 4, fireP: 10 }, '火焰'],
       ['戰吼', { rageEff: 15, hpP: 2 }],
@@ -3726,58 +3739,58 @@ const PT_THEME = [
   {
     n: '夥伴',
     ic: 'asc_s_paw',
-    rg: [0, 2, 0, 0, 0, 4],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ compP: 12 }, { compLife: 12 }],
     nt: [
-      ['猿之羈絆', { compP: 20, compLife: 20 }],
+      ['信賴夥伴', { compShare: 5, compLife: 20 }],
+      ['隨和', { compSpirit: 25 }],
+      ['鼓舞盟友', { compInspire: 1 }],
+      ['渴血盟友', { compLeech: 1 }],
+      ['圍獵本能', { compImmob: 60 }],
       ['貓之羈絆', { compMs: 20 }],
       ['狼之羈絆', { compOns: 50 }],
       ['蝮蛇之羈絆', { compPoi: 40 }],
       ['貓頭鷹之羈絆', { compCold: 12 }],
       ['曼巴之羈絆', { compChaos: 12 }],
-      ['信賴夥伴', { compShare: 5, compLife: 20 }],
-      ['隨和', { compSpirit: 25 }],
-      ['鼓舞盟友', { compInspire: 1 }],
-      ['渴血盟友', { compLeech: 1 }],
-      ['終身摯友', { reviveSpd: 35 }],
-      ['圍獵本能', { compImmob: 60 }]
+      ['猿之羈絆', { compP: 20, compLife: 20 }],
+      ['終身摯友', { reviveSpd: 35 }]
     ]
   },
   {
     n: '戰吼',
     ic: 'sk_warcry',
-    rg: [5, 0, 0, 0, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ empP: 12 }, { cryCdr: 10 }, { crySpd: 10 }],
     nt: [
+      ['戰吼的重量', { cryWeak: 3 }],
+      ['連吼', { cryMulti: 20 }],
+      ['戰吼之力', { cryDmg: 40 }],
+      ['威壓', { cryDebil: 1 }],
       ['怒吼回響', { crySpd: 25, cryCdr: 18 }],
       ['戰場之聲', { cryAoe: 30 }],
       ['振奮', { cryHeal: 2 }],
       ['血染戰吼', { empP: 30, empAgg: 20 }],
       ['撼人心魄', { empHs: 50, empThr: 100 }],
-      ['熔火戰吼', { empFire: 15 }],
-      ['戰吼的重量', { cryWeak: 3 }],
-      ['連吼', { cryMulti: 20 }],
-      ['戰吼之力', { cryDmg: 40 }],
-      ['威壓', { cryDebil: 1 }]
+      ['熔火戰吼', { empFire: 15 }]
     ]
   },
   {
     n: '命令技能',
     ic: 'sk_command',
-    rg: [0, 0, 0, 0, 5, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ cmdCdr: 20 }, { cmdP: 20 }],
     nt: [
-      ['師徒', { cmdP: 100, minAs: -15 }],
-      ['一呼百應', { cmdCdr: 25, cmdP: 25 }],
+      ['眾志成城', { cmdPerType: 10 }],
       ['召之即來', { cmdRevive: 25 }],
       ['亡靈統帥', { uArchCh: 15 }],
-      ['眾志成城', { cmdPerType: 10 }]
+      ['師徒', { cmdP: 100, minAs: -15 }],
+      ['一呼百應', { cmdCdr: 25, cmdP: 25 }]
     ]
   },
   {
     n: '傀儡大師',
     ic: 'sk_possession',
-    rg: [0, 0, 0, 0, 5, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ puppetCh: 15 }, { puppetEff: 15 }],
     nt: [
       ['傀儡大師', { puppetCh: 35 }],
@@ -3788,7 +3801,7 @@ const PT_THEME = [
   {
     n: '捷光環',
     ic: 'asc_s_spark',
-    rg: [0, 0, 2, 3, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ herP: 20 }, { herSpirit: 8 }, { herOn: 12 }],
     nt: [
       ['先驅之焰', { herEleF: 40 }],
@@ -3801,7 +3814,7 @@ const PT_THEME = [
   {
     n: '波動',
     ic: 'sup_sp_boom',
-    rg: [0, 0, 5, 0, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ volKill: 3 }, { volDelay: 15 }, { chaosP: 10 }],
     nt: [
       ['失衡', { volRegain: 25 }],
@@ -3814,7 +3827,7 @@ const PT_THEME = [
   {
     n: '執政官',
     ic: 'sk_phoenix',
-    rg: [0, 0, 0, 5, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ archDur: 10 }, { archEff: 10 }],
     nt: [
       ['風暴執政官', { archStorm: 1 }],
@@ -3827,7 +3840,7 @@ const PT_THEME = [
   {
     n: '先祖強化',
     ic: 'sk_ancestral',
-    rg: [5, 0, 0, 0, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ ancP: 8, ancAoe: 4 }],
     nt: [
       ['引導之手', { ancHs: 1, ancP: 30 }],
@@ -3837,7 +3850,7 @@ const PT_THEME = [
   {
     n: '榴彈',
     ic: 'sk_detonate',
-    rg: [0, 4, 2, 0, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ grenP: 12 }, { grenCd: 15 }],
     nt: [
       ['易爆榴彈', { grenFuse: -25 }],
@@ -3851,40 +3864,53 @@ const PT_THEME = [
   {
     n: '灌注',
     ic: 'asc_s_flame',
-    rg: [0, 0, 0, 5, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ infP: 10 }, { infDur: 15 }, { remnantR: 20 }],
     nt: [
+      ['雙重殘留', { remnantDbl: 20 }],
+      ['不滅灌注', { infKeep: 20 }],
       ['灌注之力', { infP: 30 }],
       ['恆久灌注', { infDur: 40 }],
-      ['殘留引力', { remnantR: 60 }],
-      ['雙重殘留', { remnantDbl: 20 }],
-      ['不滅灌注', { infKeep: 20 }]
+      ['殘留引力', { remnantR: 60 }]
     ]
   },
   {
     n: '護符與藥劑',
     ic: 'asc_s_potion',
-    inner: 1,
-    rg: [2, 2, 2, 2, 2, 2],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ flaskChg: 10 }, { charmChg: 10 }, { mpFlask: 10 }],
     nt: [
       ['謹慎調配', { flaskUse: 20 }],
       ['煉金', { flaskChg: 25, charmChg: 25 }],
       ['幸運兔腳', { charmOnP: 30, charmOnMs: 6 }],
       ['護身符', { charmEff: 25 }],
-      ['魔力泉', { mpFlask: 30, mpReg: 10 }]
+      ['魔力泉', { mpFlask: 30, mpReg: 10 }],
+      ['符文護佑', { charmChg: 30 }]
     ]
   },
   {
     n: '破甲',
     ic: 'sup_sp_pen',
-    rg: [4, 2, 0, 0, 0, 0],
+    rg: [0, 0, 0, 0, 0, 0] /* 固定擺法 PT_FIX */,
     sm: [{ armBreakP: 15 }, { fullBreakEff: 10 }, { armBreakDur: 15 }],
     nt: [
-      ['碎甲重手', { armBreakP: 40 }],
-      ['無可修復', { fullBreakEff: 30, armBreakDur: 30 }],
       ['對破甲敵人', { brokenP: 25 }],
-      ['裂甲暴擊', { critBreak: 1 }]
+      ['裂甲暴擊', { critBreak: 1 }],
+      ['碎甲重手', { armBreakP: 40 }],
+      ['無可修復', { fullBreakEff: 30, armBreakDur: 30 }]
+    ]
+  },
+  /* 0.2.68 全域防禦（提案 §1）：全樹的 defP 只在這個主題，固定在鬥士之路與魔導之路各 2 個叢集（PT_FIX），每點只給 2% */
+  {
+    n: '全域防禦',
+    ic: 'asc_s_shield',
+    rg: [0, 0, 0, 0, 0, 0],
+    sm: [{ defP: 2 }],
+    nt: [
+      ['鐵壁之心', { defP: 2, stunThrP: 15 }],
+      ['岩心', { defP: 2, resA: 8 }],
+      ['靈能屏障', { defP: 2, esDelay: 15 }],
+      ['不撓', { defP: 2, stunRec: 20 }]
     ]
   }
 ];
@@ -4096,7 +4122,6 @@ const PT_STAT_IC = {
   cull: 'asc_s_sword',
   fullStrike: 'asc_s_sword',
   lukCrit: 'asc_s_eye',
-  lukBlock: 'asc_s_anvil',
   lukDmg: 'sup_sp_dmg',
   lukDefl: 'asc_s_feather',
   thornP: 'tree_n107',
@@ -4161,77 +4186,65 @@ const PT_STAT_IC = {
 };
 /* 主題的整體權重：新主題多了 20 個，用這張表把每個主題的叢集數調到 PoE天賦結構.md 5.5 的比例（rg 只管方向） */
 const PT_RW = {
-  生命: 1.47,
-  護甲: 1.79,
-  格擋與盾: 1.72,
-  近戰: 2.48,
-  攻擊速度: 1.47,
-  投射物: 3.88,
-  身法: 1.78,
-  暴擊率: 1.41,
-  暴擊傷害加成: 0.91,
-  命中: 0.34,
-  陷阱地雷: 1.19,
-  異常: 1.51,
-  元素: 1.05,
-  元素技能: 1.49,
-  法術: 1.83,
-  能量護盾: 1.14,
-  魔力冷卻: 0.57,
-  秘術技能: 0.98,
-  召喚: 2.6,
-  精魂光環: 1.11,
-  原始技能: 1.24,
-  砲塔圖騰: 0.95,
-  範圍: 0.58,
-  攻擊: 1.71,
-  物理: 1.04,
-  火焰: 1.92,
-  冰冷: 1.89,
-  閃電: 1.28,
-  混沌: 1.08,
-  流血: 1.1,
-  中毒: 1.02,
-  偷取: 1.34,
-  回復: 0.97,
-  打擊: 0.8,
-  重擊: 1.02,
-  暈眩: 1.75,
-  堅韌: 1.4,
-  荊棘: 1.38,
+  生命: 3.9,
+  護甲: 4.19,
+  格擋與盾: 12,
+  近戰: 5.57,
+  攻擊速度: 1.21,
+  投射物: 2.11,
+  身法: 1.25,
+  暴擊率: 4.82,
+  暴擊傷害加成: 1.46,
+  命中: 0.74,
+  陷阱地雷: 11.48,
+  異常: 3.17,
+  元素: 1.16,
+  元素技能: 12,
+  法術: 2.96,
+  能量護盾: 1.77,
+  魔力冷卻: 1.16,
+  秘術技能: 2.31,
+  召喚: 12,
+  精魂光環: 1.79,
+  原始技能: 7.18,
+  砲塔圖騰: 3.07,
+  範圍: 1.3,
+  攻擊: 1.7,
+  物理: 1.41,
+  火焰: 12,
+  冰冷: 2.67,
+  閃電: 2.34,
+  混沌: 1.98,
+  流血: 0.51,
+  中毒: 1.12,
+  偷取: 2.04,
+  回復: 1.36,
+  打擊: 0.81,
+  重擊: 1.59,
+  暈眩: 2.34,
+  堅韌: 3.28,
+  荊棘: 2.86,
   偏斜: 1.06,
-  持續時間: 0.68,
-  詛咒: 0.56,
-  盛怒: 1.87,
-  招架: 2.05,
-  劍術: 1.96,
-  斧術: 2.52,
-  錘術: 0.84,
-  鏈錘術: 1.77,
-  長矛術: 2.99,
-  弓術: 1.27,
-  十字弓術: 1.31,
-  匕首術: 1.12,
-  爪術: 1.26,
-  機關術: 1.22,
-  長杖術: 0.83,
-  法杖術: 0.66,
-  權杖術: 0.73,
-  魔符術: 2.89,
-  棍術: 3.54,
-  /* 0.2.67：解鎖預留叢集後叢集數整個重抽，用迭代把舊主題調回原本的叢集數、新主題照提案 §3、§4 的叢集欄（差一兩個）；烘完所有新鍵都要上樹 */
-  夥伴: 1.42,
-  戰吼: 2.17,
-  命令技能: 0.59,
-  傀儡大師: 0.43,
-  捷光環: 0.46,
-  波動: 0.75,
-  執政官: 0.25,
-  先祖強化: 0.28,
-  榴彈: 0.84,
-  灌注: 0.83,
-  護符與藥劑: 1.06,
-  破甲: 1.6
+  持續時間: 0.51,
+  詛咒: 1.95,
+  盛怒: 1.52,
+  招架: 3.59,
+  劍術: 1.14,
+  斧術: 2.67,
+  錘術: 5.2,
+  鏈錘術: 6.6,
+  長矛術: 5.31,
+  弓術: 0.82,
+  十字弓術: 4.72,
+  匕首術: 3.65,
+  爪術: 0.89,
+  機關術: 0.38,
+  長杖術: 1.31,
+  法杖術: 1.9,
+  權杖術: 1.5,
+  魔符術: 7.08,
+  棍術: 6.2
+  /* 0.2.67 起新主題多了，叢集數整個重抽，用迭代把舊主題調回原本的叢集數；0.2.68 起 13 個新主題（全域防禦、夥伴、戰吼…）改成固定擺法 PT_FIX，不用權重 */
 };
 const PT_R0 = 470;
 /* 0.2.45 天賦樹重做新增的能力（PoE2 樹上有、我們底層本來就有機制；掛勾在 combat.js、items.js、skills.js、mech.js） */
@@ -4364,7 +4377,45 @@ const PT_NEW = {
   fullBreakEff: ['完全破甲效果', '%'],
   armBreakDur: ['破甲持續時間', '%'],
   brokenP: ['對完全破甲的敵人傷害', '%'],
-  critBreak: ['法術暴擊時，依物理傷害破甲', '', 1]
+  critBreak: ['法術暴擊時，依物理傷害破甲', '', 1],
+  /* 0.2.68 第 4 層 B：效果歸位（docs/天賦修正提案.md §2、§5）。讀取點：combat.js 的 takenInc／resOf／poiseAdd／applyAil／hitCalc／useChg／
+     hitRoll／hurtCalc／mobSpd／playerSlow／baseTick／onHitBase／onKillBase、skills.js 的 shoot／castMove／gemCfg／hitMob、
+     game.js 的 hurtPlayer／mpRegen、mech.js 的 comboHit、items.js 的 stats */
+  shockMag: ['感電效果', '%'],
+  bleedDur: ['流血持續時間', '%'],
+  poiDur: ['中毒持續時間', '%'],
+  ignDur: ['點燃持續時間', '%'],
+  shockDur: ['感電持續時間', '%'],
+  chillDur: ['冰緩持續時間', '%'],
+  ailCh: ['異常機率（流血、中毒、感電的機率，易燃與冰凍的累積）', '%'],
+  inciseCh: ['攻擊擊中時造成切割的機率', '%'],
+  slowMag: ['你造成的緩速效果', '%'],
+  witherEff: ['凋零效果', '%'],
+  frzIgnRes: ['對冰凍的敵人，擊中無視非負的元素抗性', '', 1],
+  drenchOn: ['閃電傷害的 5% 額外獲得為冰冷傷害', '', 1],
+  immobBuild: ['定身累積（沉重暈眩、冰凍、釘身、觸電的累積）', '%'],
+  ailEnemyP: ['對受異常（流血、中毒、點燃、感電、冰緩、冰凍）的敵人傷害', '%'],
+  markEff: ['印記效果', '%'],
+  markDur: ['印記觸發後給的增益持續時間', '%'],
+  trigP: ['觸發法術傷害', '%'],
+  slowRes: ['受到的緩速效果降低（上限 75%）', '%'],
+  chgUseHeal: ['每消耗 1 顆耐力球，回復最大生命的', '%'],
+  chgUseFire: ['消耗能量球後 4 秒內，火焰傷害', '%'],
+  kbP: ['擊退距離', '%'],
+  chainCh: ['投射物多連鎖一次的機率', '%'],
+  chainL: ['閃電技能多連鎖一次的機率', '%'],
+  comboCh: ['近戰擊中時多獲得 1 層連擊的機率', '%'],
+  projSpd: ['投射物速度', '%'],
+  chanP: ['引導（蓄力）技能傷害', '%'],
+  castMoveP: ['施法時的移動速度', '%'],
+  arcaneEff: ['秘能波動效果', '%'],
+  rageHurt: ['被擊中時得到盛怒', ''],
+  rageDelay: ['盛怒消退延後', '秒'],
+  surrArm: ['被包圍時護甲', '%'],
+  surrEv: ['被包圍時閃避', '%'],
+  shieldDef: ['盾的護甲、閃避、能量護盾', '%'],
+  debuffExp: ['玩家身上的減益消逝速度', '%'],
+  momP: ['傷害先扣魔力', '%']
 };
 Object.assign(STATN, PT_NEW);
 /* 小點的變體與複合詞（0.2.45，照 PoE2：小點有 601 種、18% 是兩條詞）：接在每個主題的 sub 後面，
@@ -4376,20 +4427,34 @@ const PT_SMX = {
     { life: 6, stunThrP: 5 },
     { regen: 1, flask: 6 }
   ],
-  護甲: [{ armorP: 8, evP: 8 }, { armorP: 8, esP: 8 }, { armorP: 8, life: 5 }, { armEle: 5 }],
-  格擋與盾: [
-    { blockInc: 3, armorP: 6 },
-    { shieldP: 6, blockInc: 2 }
+  護甲: [
+    { armorP: 8, surrArm: 15 },
+    { armorP: 8, evP: 8 },
+    { armorP: 8, esP: 8 },
+    { armorP: 8, life: 5 }
   ],
+  格擋與盾: [{ blockInc: 3, armorP: 6 }, { shieldP: 6, blockInc: 2 }, { shieldDef: 10 }],
   近戰: [{ meleeP: 6, as: 2 }, { meleeP: 6, hsP: 8 }, { twoP: 10 }, { oneP: 10 }],
   攻擊速度: [{ as: 2, acc: 20 }, { as: 2, dex: 3 }, { ss: 3 }, { dualP: 10 }],
   投射物: [
     { projP: 6, as: 2 },
     { projP: 6, critInc: 6 },
     { projP: 6, acc: 20 },
-    { projP: 6, meleeP: 6 }
+    { projP: 6, meleeP: 6 },
+    { projSpd: 10 },
+    { markEff: 10 },
+    { projCh: 10 }
   ],
-  身法: [{ evP: 8, esP: 8 }, { evP: 8, ms: 1 }, { blindCh: 5 }, { blindP: 10 }],
+  身法: [
+    { slowRes: 10 },
+    { evP: 8, surrEv: 15 },
+    { evP: 8, esP: 8 },
+    { slowRes: 10 },
+    { evP: 8, ms: 1 },
+    { blindCh: 5 },
+    { blindP: 10 },
+    { castMoveP: 10 }
+  ],
   暴擊率: [
     { critInc: 6, accP: 5 },
     { critInc: 6, critX: 8 },
@@ -4406,16 +4471,33 @@ const PT_SMX = {
     { acc: 20, atkP: 5 }
   ],
   陷阱地雷: [{ unitP: 6, aoe: 3 }, { unitP: 6, critInc: 5 }, { grenCd: 8 }, { unitP: 6, durP: 5 }],
-  異常: [{ ailMag: 6, durP: 4 }, { flamP: 12 }, { shockCh: 12 }, { chillMag: 8 }],
-  元素: [{ eleP: 6, atkP: 6 }, { eleP: 6, spellP: 6 }, { expEff: 8 }],
+  異常: [
+    { ailMag: 6, ailEnemyP: 10 },
+    { ailMag: 6, durP: 4 },
+    { flamP: 12 },
+    { shockCh: 12 },
+    { chillMag: 8 },
+    { ailCh: 8 }
+  ],
+  元素: [{ eleP: 6, ailEnemyP: 10 }, { eleP: 6, atkP: 6 }, { eleP: 6, spellP: 6 }, { expEff: 8 }],
   元素技能: [
     { elemP: 6, ss: 2 },
     { elemP: 6, aoe: 3 },
     { elemP: 6, mpReg: 5 }
   ],
-  法術: [{ castP: 3 }, { spellP: 6, castP: 2 }, { spellP: 6, critInc: 5 }, { spellP: 6, mpReg: 5 }],
+  法術: [
+    { spellProjCh: 15 },
+    { spellP: 6, trigP: 10 },
+    { castP: 3 },
+    { spellP: 6, castP: 2 },
+    { spellP: 6, critInc: 5 },
+    { spellP: 6, mpReg: 5 },
+    { castMoveP: 10 },
+    { chanP: 10 },
+    { arcaneEff: 10 }
+  ],
   能量護盾: [{ esP: 8, mpReg: 5 }, { esAsThr: 8 }, { esDelay: 4, esRec: 6 }],
-  魔力冷卻: [{ mpReg: 6, mpP: 3 }, { cdr: 3 }, { mpReg: 6, castP: 2 }, { energyP: 8 }],
+  魔力冷卻: [{ momP: 6 }, { arcaneEff: 10 }, { mpReg: 6, mpP: 3 }, { cdr: 3 }, { mpReg: 6, castP: 2 }, { energyP: 8 }],
   秘術技能: [
     { occP: 6, durP: 4 },
     { occP: 6, debuffMag: 3 },
@@ -4430,7 +4512,7 @@ const PT_SMX = {
     { minionP: 10, dmgA: 10 },
     { golemEff: 10 }
   ],
-  精魂光環: [{ auraEff: 3, presArea: 6 }, { presArea: 10 }, { gloryP: 10 }],
+  精魂光環: [{ presArea: 8 }, { auraEff: 3, presArea: 6 }, { gloryP: 10 }, { presArea: 8 }, { presArea: 8 }],
   原始技能: [{ priP: 6, formP: 6 }, { formP: 10 }, { formArm: 10 }, { priP: 6, life: 5 }],
   砲塔圖騰: [
     { unitP: 6, durP: 5 },
@@ -4449,10 +4531,7 @@ const PT_SMX = {
     { w_axe: 6, bleedCh: 3 },
     { w_axe: 6, as: 2 }
   ],
-  錘術: [
-    { w_mace: 6, hsP: 8 },
-    { w_mace: 6, aoe: 3 }
-  ],
+  錘術: [{ w_mace: 6, hsP: 8 }, { w_mace: 6, aoe: 3 }, { chanP: 10 }],
   鏈錘術: [
     { w_flail: 6, critInc: 5 },
     { w_flail: 6, armorP: 6 }
@@ -4462,10 +4541,7 @@ const PT_SMX = {
     { w_spear: 6, meleeP: 6 },
     { w_spear: 6, as: 2 }
   ],
-  弓術: [
-    { w_bow: 6, as: 2 },
-    { w_bow: 6, critInc: 5 }
-  ],
+  弓術: [{ markDur: 10 }, { markEff: 10 }, { projCh: 10 }, { w_bow: 6, as: 2 }, { w_bow: 6, critInc: 5 }],
   十字弓術: [{ w_xbow: 6, reloadP: 8 }, { reloadP: 10 }, { w_xbow: 6, grenCd: 5 }],
   匕首術: [
     { w_dagger: 6, critInc: 5 },
@@ -4495,56 +4571,76 @@ const PT_SMX = {
     { w_talisman: 6, formP: 6 },
     { w_talisman: 6, priP: 6 }
   ],
-  棍術: [
-    { w_qstaff: 6, as: 2 },
-    { w_qstaff: 6, critInc: 5 }
-  ],
+  棍術: [{ w_qstaff: 6, comboCh: 10 }, { w_qstaff: 6, as: 2 }, { w_qstaff: 6, critInc: 5 }, { chanP: 10 }],
   攻擊: [{ atkP: 6, acc: 20 }, { atkP: 6, as: 2 }, { atkP: 6, eleP: 6 }, { lowEnemyP: 10 }],
   物理: [
     { physP: 6, critInc: 5 },
     { physP: 6, hsP: 8 },
     { physP: 6, bleedCh: 3 }
   ],
-  火焰: [{ penF: 6 }, { fireP: 8, aoe: 3 }, { flamP: 15 }, { fireP: 8, atkP: 6 }],
-  冰冷: [{ penC: 6 }, { chillMag: 10 }, { coldP: 8, durP: 4 }, { frzP: 10, coldP: 6 }],
-  閃電: [{ penL: 6 }, { shockCh: 15 }, { lightP: 8, ss: 2 }, { lightP: 8, critInc: 5 }],
+  火焰: [{ penF: 6 }, { fireP: 8, aoe: 3 }, { fireP: 8, atkP: 6 }, { ignDur: 10 }],
+  冰冷: [
+    { coldP: 6, slowMag: 8 },
+    { penC: 6 },
+    { chillMag: 10 },
+    { coldP: 8, durP: 4 },
+    { frzP: 10, coldP: 6 },
+    { chillDur: 10 }
+  ],
+  閃電: [{ penL: 6 }, { lightP: 8, ss: 2 }, { lightP: 8, critInc: 5 }, { shockMag: 10 }, { shockDur: 10 }],
   混沌: [
     { chaosP: 5, durP: 4 },
     { chaosP: 5, poiMag: 6 },
     { chaosP: 5, debuffMag: 3 }
   ],
   流血: [
+    { bleedDur: 10 },
+    { inciseCh: 8 },
     { bleedMag: 6, physP: 6 },
     { bleedCh: 3, atkP: 6 },
     { bleedMag: 6, durP: 4 }
   ],
-  中毒: [
-    { poiMag: 6, chaosP: 4 },
-    { poisonCh: 5, as: 2 },
-    { poiMag: 6, durP: 4 }
-  ],
+  中毒: [{ poiMag: 6, chaosP: 4 }, { poisonCh: 5, as: 2 }, { poiMag: 6, durP: 4 }, { poiDur: 10 }],
   偷取: [
     { leech: 0.2, atkP: 6 },
     { leech: 0.2, life: 5 }
   ],
   回復: [
+    { slowRes: 10 },
     { recoupHp: 2, regen: 1 },
     { flask: 6, life: 5 },
+    { slowRes: 10 },
     { recoupHp: 2, armorP: 6 }
   ],
   打擊: [
+    { strikeP: 6, kbP: 10 },
     { strikeP: 6, as: 2 },
     { strikeP: 6, critInc: 5 },
     { strikeP: 6, meleeP: 6 }
   ],
   重擊: [
+    { immobBuild: 10 },
     { slamP: 6, aoe: 3 },
+    { immobBuild: 10 },
+    { immobBuild: 10 },
     { slamP: 6, hsP: 8 },
-    { slamP: 6, physP: 6 }
+    { slamP: 6, physP: 6 },
+    { immobBuild: 10 }
   ],
-  暈眩: [{ hsP: 10, meleeP: 6 }, { pinP: 15 }, { hsP: 10, physP: 6 }],
+  暈眩: [
+    { immobBuild: 10 },
+    { hsP: 10, meleeP: 6 },
+    { immobBuild: 10 },
+    { immobBuild: 10 },
+    { pinP: 15 },
+    { hsP: 10, physP: 6 },
+    { immobBuild: 10 }
+  ],
   堅韌: [
+    { debuffExp: 10 },
+    { slowRes: 10 },
     { stunThrP: 6, armorP: 6 },
+    { slowRes: 10 },
     { stunThrP: 6, life: 5 },
     { stunRec: 6, regen: 1 }
   ],
@@ -4563,10 +4659,7 @@ const PT_SMX = {
     { debuffMag: 3, durP: 5 },
     { debuffMag: 3, occP: 6 }
   ],
-  盛怒: [
-    { rageEff: 3, meleeP: 6 },
-    { rageEff: 3, as: 2 }
-  ],
+  盛怒: [{ rageEff: 3, meleeP: 6 }, { rageEff: 3, as: 2 }, { rageHit: 1 }],
   招架: [
     { parryMag: 3, hsP: 8 },
     { parryMag: 3, armorP: 6 }
@@ -4586,7 +4679,12 @@ const PT_SMX = {
   榴彈: [{ grenP: 8, aoe: 5 }, { grenFuse: -15 }],
   灌注: [{ spellP: 6, infP: 6 }],
   護符與藥劑: [{ flaskChg: 6, flask: 6 }, { charmEff: 8 }],
-  破甲: [{ physP: 6, armBreakP: 10 }]
+  破甲: [{ physP: 6, armBreakP: 10 }],
+  全域防禦: [
+    { defP: 2, resA: 3 },
+    { defP: 2, life: 6 },
+    { defP: 2, stunThrP: 6 }
+  ]
 };
 for (const T of PT_THEME) if (PT_SMX[T.n]) T.sub = [...(T.sub || []), ...PT_SMX[T.n]];
 /* 複合詞的配對表（0.2.45，把小點補到約 450 種；PoE2 有 482 個「A 和 B」的小點，幾乎每一對都不一樣）：
@@ -4698,7 +4796,7 @@ const PT_FAMN = {
 };
 const PT_FAM_OF = (() => {
   const F = {
-      r: '生命 護甲 格擋與盾 近戰 攻擊 物理 流血 偷取 回復 打擊 重擊 暈眩 堅韌 荊棘 盛怒 招架 劍術 斧術 錘術 鏈錘術 戰吼 先祖強化 護符與藥劑 破甲',
+      r: '全域防禦 生命 護甲 格擋與盾 近戰 攻擊 物理 流血 偷取 回復 打擊 重擊 暈眩 堅韌 荊棘 盛怒 招架 劍術 斧術 錘術 鏈錘術 戰吼 先祖強化 護符與藥劑 破甲',
       g: '攻擊速度 投射物 身法 命中 異常 中毒 偏斜 長矛術 弓術 十字弓術 匕首術 爪術 榴彈',
       b: '暴擊率 暴擊傷害加成 法術 能量護盾 魔力冷卻 範圍 冰冷 閃電 持續時間 長杖術 法杖術 執政官',
       o: '元素 元素技能 火焰 捷光環 灌注',
@@ -4715,6 +4813,24 @@ for (const T of PT_THEME) (T.fam = PT_FAM_OF[T.n] || 'a'), (T.c = PT_FAM[T.fam])
 /* 預留叢集（樹上看得到、鎖住不能點；單一入口、不擋路）：名字、放哪幾條路、幾個。0.2.67 全部解鎖，清空（tools/tree_bake.js 的第 6 步、tree.js 的鎖住點都留著，
    以後 PoE2 樹上有、底層還沒有的機制要先佔位置時，再往這裡加一列：[名字, [路], 個數]）。解鎖：把那一列拿掉、主題加進 PT_THEME、重烘，照 docs/天賦樹設計.md */
 const PT_RSV = [];
+/* 固定擺法（0.2.68，跟 PT_RSV 同一套：單一入口的死路，但不鎖）：[主題, [路…], 最內圈(0～1，可省)]；路每寫一次＝一個叢集。
+   該主題的 rg 要全部寫 0、PT_RW 不用寫（不會被隨機抽到）。叢集挑「大點數」剛好分完手寫的大點（tools/tree_bake.js 6b），
+   所以這些主題的手寫大點一定全部上樹。全域防禦＝鬥士之路、魔導之路各 2 個；其他是提案 §3、§4 的路線與叢集數（4A 驗收記下來沒照做的） */
+const PT_FIX = [
+  ['全域防禦', [0, 0, 3, 3]],
+  ['夥伴', [5, 5, 5, 5, 1, 1]],
+  ['戰吼', [0, 0, 0, 0, 0, 0]],
+  ['命令技能', [4, 4, 4]],
+  ['傀儡大師', [4, 4]],
+  ['捷光環', [2, 3, 3]],
+  ['波動', [2, 2, 2]],
+  ['執政官', [3, 3, 3]],
+  ['先祖強化', [0]],
+  ['榴彈', [1, 1, 1, 2]],
+  ['灌注', [3, 3, 3]],
+  ['護符與藥劑', [0, 1, 2, 3, 4, 5]],
+  ['破甲', [0, 0, 0, 1]]
+];
 /* 起點模板的小點（六條路同一套形狀：第 1 步傷害與防禦各一個，各分成兩條路擇一的菱形）：
    d 傷害菱形、f 防禦菱形，各是 [主詞, 另一條路]；一格＝[主題名, 用那個主題的第幾種小點, 自訂的詞（可省）] */
 const PT_STARTS = [
@@ -5284,38 +5400,19 @@ Object.assign(STATN, {
   ironWill: ['鋼鐵意志', '', 1],
   projAtkP: ['投射物攻擊傷害', '%'],
   fork: ['投射物分裂', '', 1],
-  projRet: ['投射物迴旋', '', 1],
   splash: ['打擊造成擴散傷害', '', 1],
-  minmax: ['只有最低或最高傷害', '', 1],
-  reveal: ['暴露精英與王的弱點', '', 1],
-  weakMore: ['對開放弱點的敵人傷害更多', '%'],
   noRoll: ['無法閃避翻滾或衝刺', '', 1],
   rollTank: ['閃避翻滾無法躲避傷害', '', 1],
-  minGiant: ['召喚物極大', '', 1],
   /* 天賦擴充：第 9、10 批原本沒有名字的開關 */
-  ignFire: ['火焰傷害無視抗性', '', 1],
-  ignCold: ['冰冷傷害無視抗性', '', 1],
-  ignLight: ['閃電傷害無視抗性', '', 1],
-  ignChaos: ['混沌傷害無視抗性', '', 1],
   aggHit: ['攻擊擊中時加劇任何流血', '', 1],
   aggIgn: ['加劇流血時也加劇所有點燃', '', 1],
-  bleedAll: ['所有擊中傷害都有助於流血', '', 1],
-  poiAll: ['所有擊中傷害都有助於中毒', '', 1],
-  forkCrit: ['分岔暴擊', '', 1],
   inevCrit: ['絕對暴擊', '', 1],
-  ovkSplash: ['溢出的傷害濺到 2 公尺內的敵人', '%'],
-  kbEs: ['最後一擊打死感電的敵人時回復能量護盾（最大值的）', '%'],
   savageGuard: ['殘暴打擊：獲得最大生命的守護', '%'],
   parryMag: ['受招架幅度', '%'],
   parryDur: ['受招架持續時間', '%'],
   parryR: ['格擋值碎開的衝擊範圍', '%'],
   bvNoCrit: ['有格擋值時無法被暴擊', '', 1],
-  overwhelm: ['鎮壓（百分點）', '%'],
-  incise: ['擊中時給切割', '', 1],
-  inciseMag: ['近期每消耗 1 層切割，流血幅度更多 3%', '', 1],
-  hexPierce: ['你的詛咒能影響無咒的敵人', '', 1],
   hstunNoEv: ['被沉重暈眩的敵人無法閃避你的擊中', '', 1],
-  suppCh: ['受到的擊中被壓抑的機率', '%'],
   buffMag: ['增益效果幅度', '%'],
   debuffMag: ['減益效果幅度', '%'],
   thorn: ['附加荊棘物理傷害', ''],
@@ -5332,10 +5429,7 @@ Object.assign(STATN, {
   dynOn: ['奇術活力常駐', '', 1],
   aggAll: ['你造成的流血都被加劇，持續時間 −60%', '', 1],
   noStag: ['不會僵直', '', 1],
-  crushOn: ['重擊擊中時壓碎', '', 1],
   crippleOn: ['擊中流血的敵人時跛行', '', 1],
-  weakenOn: ['擊中被詛咒的敵人時虛弱', '', 1],
-  compoundOn: ['點燃都是惡化點燃', '', 1],
   unChill: ['不受冰緩影響', '', 1],
   unPoi: ['不受中毒影響', '', 1],
   unBleed: ['不受流血影響', '', 1]

@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 27,
+    v: 28,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -493,7 +493,7 @@ function updPlayer(dt) {
   for (const k in P.cds) P.cds[k] = Math.max(0, P.cds[k] - dt);
   /* 冥思的品質：貧魔時回復更多 */
   const lowM = lowMp() ? 1 + 0.4 * (ST.aq.clarity || 0) : 1;
-  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1.2 : 1) * lowM * dt);
+  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1 + 0.2 * (1 + ST.arcaneEff / 100) : 1) * lowM * dt);
   if (fightOn()) baseTick(dt);
   if (ST.regen && !ST.vaal) P.hp = Math.min(ST.hp, P.hp + ST.regen * Math.max(0, 1 + MM('pregen') / 100) * dt);
   if (P.heal > 0) {
@@ -690,11 +690,13 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   /* 熊掌的品質：熊形態被擊中得盛怒 */
   if (P.form === 'bear' && qRoll(20 * (P.bearQ || 0)))
     (P.rage = Math.min(rageCap(), (P.rage || 0) + 1)), (P.rageT = G.t);
+  /* 被擊中得到盛怒（rageHurt，0.2.68） */
+  if (ST.rageHurt) (P.rage = Math.min(rageCap(), (P.rage || 0) + ST.rageHurt)), (P.rageT = G.t);
   if (d > 0) recoupAdd(d);
   d = esAbsorb(d);
-  /* 心靈凌駕（基石）：40% 先扣魔力 */
-  if (ST.mom && d > 0) {
-    const t = Math.min(P.mp, d * 0.4);
+  /* 心靈凌駕（基石）：40% 先扣魔力；小點（momP）跟它相加，最多 80% */
+  if ((ST.mom || ST.momP) && d > 0) {
+    const t = Math.min(P.mp, (d * Math.min(80, (ST.mom ? 40 : 0) + ST.momP)) / 100);
     (P.mp -= t), (d -= t);
   }
   if (d <= 0) return;
