@@ -134,6 +134,7 @@ function gemCfg(g, i) {
     else if (k === 'mpleech') c.mpLeech = 0.02 + 0.01 * sq;
     else if (k === 'expand') c.seal = { max: 3, every: 2, aoe: 30 + 10 * sq };
     else if (k === 'punch') c.kbEasy = 3 + sq;
+    else if (k === 'fistwar' || k === 'ancall') c[k] = sq;
     else if (k === 'autocast') c.auto = sp;
     else if (SUPPORTS[k].conv && !c.conv) {
       c.conv = SUPPORTS[k].conv;
@@ -252,6 +253,23 @@ function empUse(a) {
   if (tg.includes('warcry') || !tg.includes('attack')) return;
   if (tg.includes('melee') && use('emInf')) a.c.more *= 1 + (P.emInfV || 30) / 100;
   if (tg.includes('slam') && use('emSeis')) a.emS = 1;
+  /* 先祖強化（0.2.60 K1）：插了那顆輔助的招才用得到；用掉後照間隔重新計時 */
+  const anc = (k, s, t) => a.c[s] != null && stkN(k) && (stkClr(k), ((P.ancT = P.ancT || {})[k] = G.t + t - a.c[s]), 1);
+  if (tg.includes('slam') && anc('ancF', 'fistwar', 6)) (a.c.more *= 1.3), (a.c.aoe *= 1.25);
+  if (tg.includes('strike') && anc('ancC', 'ancall', 5)) a.ancS = 1;
+}
+/* 每格：技能欄有插戰爭之拳／先祖呼喚（相容的）而且間隔到了，就亮先祖強化 */
+function ancTick() {
+  for (const [k, s] of [
+    ['ancF', 'fistwar'],
+    ['ancC', 'ancall']
+  ]) {
+    const has = S.skills.some(
+      x => x.a && (x.a.sup || []).some(sp => sp && sp.gem === s && supOK(SKILLS[x.a.gem], sp, x.a))
+    );
+    if (!has) stkN(k) && stkClr(k);
+    else if (!stkN(k) && G.t >= ((P.ancT && P.ancT[k]) || 0)) gainStk(k);
+  }
 }
 /* 餘震：打中的位置的中心、蓋住打中的怪的範圍，0.4 秒後打一次（mech.js 的地面 after） */
 function aftershock(a) {
@@ -1205,6 +1223,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   const f = o.from || P;
   if (!los(f.x, f.y, m.x, m.y)) return;
   const a = o.a || {};
+  if (!o.anc && a.ancSet && a.ancN === a.n && a.ancSet.has(m)) return;
   let mult = (o.mult ? o.mult / (c.mult || 1) : 1) * (a.mul || 1),
     crit = !!(a.crit || o.crit);
   /* 0.2.22：攻擊可能被閃避（熵值，combat.js 的 hitRoll） */
@@ -1224,6 +1243,17 @@ function hitMob(m, c, ang, kb, o = {}) {
   });
   if (m.arrow) return arrowHit(m, r, c);
   if (a.emS) (a.emH = a.emH || []).push({ x: m.x, y: m.y });
+  /* 先祖強化的打擊：第一個打中的敵人身邊再打 2 隻（不重複、不連鎖） */
+  if (a.ancS === 1) {
+    a.ancS = 2;
+    const ex = G.mobs
+      .filter(x => x !== m && x.hp > 0 && !x.arrow && dist(x, m) < 150 + x.r)
+      .sort((x, y) => dist(x, m) - dist(y, m))
+      .slice(0, 2);
+    /* 同一段出手裡，被多打的那 2 隻不會再被原本的範圍打一次 */
+    (a.ancSet = new Set(ex)), (a.ancN = a.n);
+    ex.forEach(x => hitMob(x, c, angTo(m, x), kb, { a, quiet: 1, from: m, anc: 1 }));
+  }
   const shocked = c.boltChain && hasState(m, 'shock');
   /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
   if (ST.mirageH && !a.trig && !o.minion && !a.unit && !o.again) mirageHunt();
@@ -1569,7 +1599,7 @@ function updSkills(dt) {
   updAllies(dt);
   updPools(dt);
   updUnits(dt);
-  if (fightOn()) mechTick(dt), autoTick();
+  if (fightOn()) mechTick(dt), autoTick(), ancTick();
   if (G.scene === 'hide') hideTick();
 }
 /* 自動化（0.2.28）：冷卻好了、魔力夠、480 內看得到敵人就放；不佔玩家的出手（P.act），砲塔圖騰、圖騰放在敵人方向 */

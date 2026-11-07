@@ -1340,6 +1340,9 @@ const BUFF = {
   /* 0.2.55 F1：戰吼的強化攻擊（skills.js 的 cryEmpower／empUse），一層＝一下；數值在出手時算，不走 st */
   emInf: { n: '狂暴強化', ic: 'sk_warcry', d: '接下來的近戰攻擊傷害更多，每次出手用掉 1 層', max: 5, t: 8 },
   emSeis: { n: '震地強化', ic: 'sk_battlecry', d: '接下來的重擊在原地多一次餘震，每次出手用掉 1 層', max: 5, t: 8 },
+  /* 0.2.60 K1：先祖強化好了（skills.js 的 ancTick 給、empUse 用掉），沒有到期 */
+  ancF: { n: '戰爭之拳', ic: 'sup_sp_brutal', d: '下一次重擊被先祖強化：傷害更多 30%、範圍更大 25%', max: 1 },
+  ancC: { n: '先祖呼喚', ic: 'sup_sp_combo', d: '下一次打擊被先祖強化：多打 2 個敵人', max: 1 },
   /* 0.2.58 J1：傀儡大師（照 PoE2），用命令技能時獲得；鍵：cmdSpd 命令技能速度、cmdMv 施放移動懲罰減少、cmdDmg 召喚物命令傷害、allyMs／allySs 召喚物移動與技能速度 */
   puppet: {
     n: '傀儡大師',

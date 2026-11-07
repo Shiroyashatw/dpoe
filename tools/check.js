@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：145 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 145,
+    '品質：147 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 147,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3364,8 +3364,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '層數增益：十四列（含血怒、戰吼強化、雷霆落雷、傀儡大師）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 14 && !b.bad.length,
+    '層數增益：十六列（含血怒、戰吼強化、雷霆落雷、傀儡大師、先祖強化）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 16 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(
@@ -4295,6 +4295,41 @@ vm.runInContext(
     'J3 夥伴：魔像與戰狼精魂同時放，只有排前面的生效、後面的不預留精魂（戰狼精魂 40 精魂開不了時，後面的魔像照樣生效）',
     JSON.stringify(j60) === '["golem",true,false,30,"golem"]',
     JSON.stringify(j60)
+  );
+  /* 0.2.60 K1：先祖強化（戰爭之拳：重擊每 6 秒更多 30%、範圍 +25%；先祖呼喚：打擊每 5 秒多打 2 隻、不重複） */
+  const k60 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (dx, o) => ({ D, x: P.x + dx, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { sk: S.skills.map(x => x.a), stk: P.stk, ancT: P.ancT, mobs: G.mobs, t: G.t },
+      gem = (k, sp) => { const g = mkGem(k, 1); g.sup = [sp ? mkGem(sp, 1) : null, null]; return g; },
+      act = g => ({ k: g.gem, c: gemCfg(g, 0), t: 0, dur: 0.5, ang: 0, hits: [0], n: 1, tx: P.x + 40, ty: P.y }),
+      out = {};
+    P.stk = {}; P.ancT = {};
+    S.skills.forEach(x => (x.a = null));
+    ancTick(); out.none = stkN('ancF');
+    const lg = gem('leap', 'fistwar'); S.skills[0].a = lg;
+    ancTick(); out.ready = stkN('ancF');
+    const a1 = act(lg), base = act(gem('leap'));
+    empUse(a1);
+    out.fist = [+(a1.c.more / base.c.more).toFixed(2), +(a1.c.aoe / base.c.aoe).toFixed(2), stkN('ancF')];
+    ancTick(); const n1 = stkN('ancF'); G.t += 6.01; ancTick(); out.cd = [n1, stkN('ancF')];
+    const a2 = act(lg); empUse(a2); const a3 = act(lg); empUse(a3); out.once = [+(a2.c.more / base.c.more).toFixed(2), +(a3.c.more / base.c.more).toFixed(2)];
+    /* 打擊：第一隻身邊 150 內最近的 2 隻多挨一下，同一段出手不再被原本的範圍重複打 */
+    const sg = gem('slash', 'ancall'); S.skills[0].a = sg; ancTick();
+    const a4 = act(sg); empUse(a4);
+    const m1 = mk(40), m2 = mk(80), m3 = mk(120), m4 = mk(500); G.mobs = [m1, m2, m3, m4];
+    hitMob(m1, a4.c, 0, 0, { a: a4, quiet: 1 });
+    const hp2 = m2.hp; hitMob(m2, a4.c, 0, 0, { a: a4, quiet: 1 });
+    out.call = [m2.hp < 1e9, m3.hp < 1e9, m4.hp === 1e9, m2.hp === hp2];
+    S.skills.forEach((x, i) => (x.a = keep.sk[i]));
+    Object.assign(P, { stk: keep.stk, ancT: keep.ancT }); Object.assign(G, { mobs: keep.mobs, t: keep.t });
+    return out;
+  })()`);
+  ok(
+    'K1 先祖強化：沒插輔助不亮；戰爭之拳亮了下一次重擊更多 30%、範圍 ×1.25，用掉 6 秒後再亮、只吃一次；先祖呼喚讓打擊多打附近 2 隻、同一段不重複打',
+    JSON.stringify(k60) ===
+      '{"none":0,"ready":1,"fist":[1.3,1.25,0],"cd":[0,1],"once":[1.3,1],"call":[true,true,true,true]}',
+    JSON.stringify(k60)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

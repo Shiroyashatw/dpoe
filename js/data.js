@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.59';
+const VER = '0.2.60';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -63,6 +63,8 @@ const TERMS = {
   能量護盾偷取: '擊中傷害的 x% 在 1 秒內回復為能量護盾。規則同生命偷取，跟生命偷取各自獨立。',
   盛怒: '近戰擊中時累積，每點讓攻擊傷害更多 1%，預設最多 30 點（上限可以提高、每點效果可以放大）；停止 4 秒後每 0.2 秒掉 1 點。',
   夥伴: '可以復活、能力比一般召喚物更強的召喚物（戰狼精魂、召喚魔像），同時只能有 1 隻；光環欄排後面的夥伴不生效。夥伴有自己的命令技能。',
+  先祖強化:
+    '被先祖強化的重擊傷害更多 30%、範圍更大 25%；被強化的打擊多打 2 個敵人。來源：輔助戰爭之拳（重擊，每 6 秒）、先祖呼喚（打擊，每 5 秒）；好了的時候狀態列會亮。',
   命令技能:
     '叫你的常駐召喚物放大招的技能，放在技能欄、有冷卻；身上要有那種召喚物才按得出來（戰狼精魂的狼「圍獵」、召喚魔像「震地怒吼」）。',
   傀儡大師:
@@ -1397,6 +1399,19 @@ const SUPPORTS = {
   /* 0.2.57 F3：光環類輔助（items.js 的 stats 讀光環寶石的孔） */
   auraeff: { n: '光環效果', ic: 'sup_sp_echo', need: ['buff'], d: '光環的數值 +25%（寶石每級 +1%）' },
   spiriteff: { n: '精魂減免', ic: 'sup_sp_eff', need: ['aura'], d: '預留的精魂 −20%' },
+  /* 0.2.60 K1：先祖強化（照 PoE2 的 Fist of War、Ancestral Call；skills.js 的 ancTick／empUse） */
+  fistwar: {
+    n: '戰爭之拳',
+    ic: 'sup_sp_brutal',
+    need: ['slam'],
+    d: '每 6 秒，這招的下一次重擊被先祖強化：傷害更多 30%、範圍更大 25%'
+  },
+  ancall: {
+    n: '先祖呼喚',
+    ic: 'sup_sp_combo',
+    need: ['strike'],
+    d: '每 5 秒，這招的下一次打擊被先祖強化：多打 2 個敵人'
+  },
   fireadd: { n: '附加火焰', ic: 'sup_sp_gfire', need: [], d: '多造成傷害 25% 的火焰附加傷害' },
   heavy: { n: '重擊', ic: 'sup_sp_heavy', need: ['melee'], d: '擊退 ×2、傷害更多 15%、沉重暈眩累積 +50%' },
   pack: { n: '群狼', ic: 'sup_sp_pet', need: ['minion'], d: '多 1 隻狼、狼的傷害更多 30%' },
@@ -1655,6 +1670,8 @@ const QUAL = {
   ragecry: '花盛怒跳過冷卻時，{20}% 機率不花',
   auraeff: '光環的數值再 +{5}%',
   spiriteff: '預留的精魂再 −{5}%',
+  fistwar: '先祖強化的間隔 −{1} 秒',
+  ancall: '先祖強化的間隔 −{1} 秒',
   fireadd: '附加的火焰 {20}% 機率點燃',
   heavy: '把怪擊退到牆邊時，{20}% 機率沉重暈眩',
   pack: '狼咬中時 {20}% 機率流血',
@@ -1846,7 +1863,9 @@ const GEM_LV = {
   cmd_wolf: 9,
   cmd_golem: 3,
   auraeff: 5,
-  spiriteff: 5
+  spiriteff: 5,
+  fistwar: 5,
+  ancall: 5
 };
 const gemLv = k => GEM_LV[k] || 1;
 /* 輔助分級（0.2.51，企劃書 6.5）：II 是另一顆寶石，鍵＝I 的鍵＋'2'；跟 I 同分類（不能同插）、同圖示、同品質效果，使用等級 31。
