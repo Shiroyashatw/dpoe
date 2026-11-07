@@ -447,6 +447,9 @@ function stats(s = S) {
     units: 0,
     ammoN: 0,
     grenN: 0,
+    /* 0.2.66：滿溢機率（攻擊投射物、法術投射物；gemCfg 的 surpass） */
+    projCh: 0,
+    spellProjCh: 0,
     rollCd: 0,
     fireAdd: 0,
     ...Object.fromEntries(Object.keys(WTN).map(k => ['w_' + k, 0])),
@@ -802,6 +805,9 @@ function stats(s = S) {
     }
     /* 群狼：戰狼精魂多 1 隻、光環的狼與魔像傷害更多 30% */
     if (sup.pack) o['packM_' + g.gem] = 1.3;
+    /* 召喚物傷害、生命（0.2.66）：skills.js 的 allyMult0、lifeM 讀 */
+    if (sup.mindmg) o['minM_' + g.gem] = 1.25 + 0.05 * sup.mindmg.sq;
+    if (sup.minlife) o['minL_' + g.gem] = 1.3 + 0.05 * sup.minlife.sq;
     if (g.gem === 'anger') o.angerV = A.fx.fireAdd * m;
     /* 獻祭（0.2.63）：復甦時間 +40%（每級 +1%），品質每 1% 復甦加快 0.25% */
     if (g.gem === 'offer') o.reviveT = (1 + (39 + g.lv) / 100) / (1 + 0.05 * o.aq.offer);

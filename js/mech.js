@@ -1,5 +1,5 @@
 /* dungeonPOE · 技能用的底層新機制（0.2.10，照 PoE2；規則在 docs/企劃書.md 7.3）：
-   收割、地面效果與引爆技能、殘留物與灌注、屍體、連擊與段數、招架與受招架、能量與觸發（Meta）、手雷、彈藥、飛劍、幻影、
+   收割、地面效果與引爆技能、殘留物與灌注、屍體、連擊與段數、招架與受招架、能量與觸發（Meta）、榴彈、彈藥、飛劍、幻影、
    旗幟與榮耀、變身。技能（0.2.11 起）只呼叫這裡的函式，不自己發明規則。 */
 'use strict';
 
@@ -179,7 +179,7 @@ function groundOn(g, G0, dt) {
     if (G0.el) trigCharms(G0.el, P.ail);
   } else for (const m of G.mobs) if (m.hp > 0 && inGround(g, m)) G0.on(m.ail, m, g, dt);
 }
-/* 引爆：範圍裡可燃的地面爆炸（油變成燃燒地面）、手雷提早爆、插地的飛劍爆。
+/* 引爆：範圍裡可燃的地面爆炸（油變成燃燒地面）、榴彈提早爆、插地的飛劍爆。
    誰點的爆炸算誰的：怪物方的油沒有 g.c，用點燃它的那一招算傷害，只傷怪物 */
 function detonate(x, y, r, c) {
   for (const g of G.ground) {
@@ -421,8 +421,8 @@ function castGem(g, t) {
   actHit({ k: c.k, c, t: 0, dur: 0.1, ang, hits: [0], n: 0, tx: t.x, ty: t.y, trig: 1 }, 0);
 }
 
-/* ---------- 9. 手雷 ---------- */
-/* 丟手雷：往目標飛，落地彈跳，引信到或被引爆才爆；o：fuse、r 爆炸半徑、mul、el、onBoom(x, y) */
+/* ---------- 9. 榴彈 ---------- */
+/* 丟榴彈：往目標飛，落地彈跳，引信到或被引爆才爆；o：fuse、r 爆炸半徑、mul、el、onBoom(x, y) */
 function throwGrenade(c, tx, ty, o = {}) {
   const f = o.from || P,
     ang = Math.atan2(ty - f.y, tx - f.x),
@@ -442,7 +442,7 @@ function throwGrenade(c, tx, ty, o = {}) {
     t: 0
   });
 }
-/* 手雷技能的次數：用掉的每顆各自冷卻 */
+/* 榴彈技能的次數：用掉的每顆各自冷卻 */
 function grenadeReady(k, max, cd) {
   const q = ((P.gren = P.gren || {})[k] = (P.gren[k] || []).filter(t => t > G.t));
   if (q.length >= max) return false;
@@ -719,7 +719,7 @@ function drawMech() {
   }
   CX.globalAlpha = 1;
   for (const n of G.grenades) {
-    /* 手雷：畫火瓶的圖示轉著飛，圖還沒載好才畫圓點 */
+    /* 榴彈：畫火瓶的圖示轉著飛，圖還沒載好才畫圓點 */
     const im = artImg('it_firebottle');
     if (im && im.im.naturalWidth) {
       CX.save();

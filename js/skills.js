@@ -9,7 +9,7 @@ const SLOTKEY = ['左鍵', '右鍵', 'Q', 'E', 'R'];
 const supDup = (g, sp) =>
   !!g && g.sup.some(x => x && x !== sp && supCat(x.gem) === supCat(sp.gem) && g.sup.indexOf(x) < g.sup.indexOf(sp));
 /* 插在光環上有效果的輔助（items.js 的 stats、捷光環、戰狼與魔像讀它們） */
-const AURA_SUP = new Set(['auraeff', 'spiriteff', 'area', 'focus', 'pack']);
+const AURA_SUP = new Set(['auraeff', 'spiriteff', 'area', 'focus', 'pack', 'mindmg', 'minlife']);
 const supOK = (D, sp, g) => {
   const U = SUPPORTS[sp.gem];
   /* Meta 寶石的孔插的是法術，不是輔助 */
@@ -29,8 +29,8 @@ const supOK = (D, sp, g) => {
   if (U.all && !U.all.every(t => D.tags.includes(t))) return false;
   /* 光環寶石（0.2.57 F3）：只有接上效果的輔助算相容，不限標籤的（狂暴、致命…）插了沒有用 */
   if (D.sp != null) {
-    /* 群狼只有戰狼精魂（狼）與魔像用得到；獻祭等其他 minion 光環插了沒人讀 */
-    if (sp.gem === 'pack' && !D.fx.wolf && !D.tags.includes('golem')) return false;
+    /* 群狼、召喚物傷害與生命只有戰狼精魂（狼）與魔像用得到；獻祭等其他 minion 光環插了沒人讀 */
+    if (['pack', 'mindmg', 'minlife'].includes(sp.gem) && !D.fx.wolf && !D.tags.includes('golem')) return false;
     return AURA_SUP.has(U.base || sp.gem) && U.need.some(t => D.tags.includes(t));
   }
   return !U.need.length || U.need.some(t => D.tags.includes(t));
@@ -133,6 +133,8 @@ function gemCfg(g, i) {
     else if (k === 'focus') (c.aoe *= 0.7 + 0.1 * sq), (c.more *= 1.3);
     else if (k === 'elepen') c.pen += 25 + 5 * sq;
     else if (k === 'giant') (c.giant = 1), (c.more *= 1 + 0.1 * sq);
+    else if (k === 'mindmg') c.more *= 1.25 + 0.05 * sq;
+    else if (k === 'minlife') c.minL = 1.3 + 0.05 * sq;
     else if (k === 'cull') (c.cull = 1), (c.cullQ = sq);
     else if (k === 'nightblade') (c.elusive = 1), (c.critInc += 20 * sq);
     else if (k === 'coldadd') c.coldAdd = (c.coldAdd || 0) + add;
@@ -159,6 +161,11 @@ function gemCfg(g, i) {
   /* 效用：魔力消耗 ÷ (1 + 效用%) */
   c.mp = D.mp ? Math.max(1, Math.round(c.mp / (1 + ST.mpEff / 100))) : 0;
   c.unit = D.unit || c.conv;
+  /* 滿溢機率（0.2.66）：攻擊讀 projCh、法術讀 spellProjCh，出手時多射 surpass 支；projEv 是期望值，面板顯示用（每次叫 gemCfg 都重擲，不能直接顯示 proj） */
+  if (D.tags.includes('proj')) {
+    const p = isSpell(D) ? ST.spellProjCh : ST.projCh;
+    (c.projEv = c.proj + p / 100), (c.proj += surpass(p));
+  }
   return c;
 }
 /* 出手一次要幾秒（useSlot 與面板共用） */
@@ -315,7 +322,7 @@ function useSlot(i) {
     tm = D.toMob && mobNear(w.x, w.y, 150, D.dist);
   const why = skillWhy(c, w) || (D.toMob && !tm && '滑鼠附近沒有敵人');
   if (why) return hudWarn(why), false;
-  if (D.gren && !pracFree() && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('手雷還沒好'), false;
+  if (D.gren && !pracFree() && !grenadeReady(c.k, D.gren[0], D.gren[1])) return hudWarn('榴彈還沒好'), false;
   const cd0 = P.cds['s' + i];
   skillPay(c, i);
   /* 跳過冷卻：花掉盛怒或耐力球，原本的冷卻照走 */
@@ -942,7 +949,7 @@ function actHit2(a, idx, R, hitArc) {
         gas: R * ST.aoeM * c.aoe
       });
   } else if (a.k === 'oilgrenade') {
-    /* 油手雷：破開（物理）後留油滑地面，火焰或引爆技能可以點爆（mech.js 的 detonate）；品質：油留更久 */
+    /* 油榴彈：破開（物理）後留油滑地面，火焰或引爆技能可以點爆（mech.js 的 detonate）；品質：油留更久 */
     const dx = a.tx - P.x,
       dy = a.ty - P.y;
     for (let i = 0; i < c.proj; i++) {
@@ -954,7 +961,7 @@ function actHit2(a, idx, R, hitArc) {
       });
     }
   } else if (a.k === 'grenade') {
-    /* 多重投射：多的手雷以出手點為圓心往兩側散開 */
+    /* 多重投射：多的榴彈以出手點為圓心往兩側散開 */
     const dx = a.tx - P.x,
       dy = a.ty - P.y;
     for (let i = 0; i < c.proj; i++) {
@@ -963,7 +970,7 @@ function actHit2(a, idx, R, hitArc) {
       throwGrenade(c, P.x + dx * Math.cos(g) - dy * Math.sin(g), P.y + dx * Math.sin(g) + dy * Math.cos(g), {
         r,
         el: 'fire',
-        /* 爆裂手雷的品質：爆炸分出小手雷（小手雷不會再分） */
+        /* 爆裂榴彈的品質：爆炸分出小榴彈（小榴彈不會再分） */
         onBoom: (x, y) =>
           qRoll(20 * c.q) &&
           throwGrenade(c, x + rnd(-90, 90), y + rnd(-90, 90), {
@@ -1019,7 +1026,7 @@ function actHit2(a, idx, R, hitArc) {
     if (dolls.length >= 4) allyDie(dolls[0]);
     callWolf('doll', c, cp, G.t + durOf(c));
     const nw = G.allies[G.allies.length - 1];
-    nw.hp = nw.mhp = cp.mhp * giantM(nw);
+    nw.hp = nw.mhp = cp.mhp * giantM(nw) * lifeM('doll', c);
     fxs('rise', cp.x, cp.y, 40);
   } else if (a.k === 'furyslam') {
     /* 狂怒重砸：砸周圍一圈；盛怒夠就花掉，多一道更大的震波＋碎裂地面（品質：返還盛怒） */
@@ -1513,6 +1520,8 @@ function allyLife(src, c) {
   );
 }
 const giantM = w => (ST.minGiant || (w.c && w.c.giant) ? 1 + MINION.giant : 1);
+/* 召喚物生命輔助（0.2.66）：寶石叫的看 c.minL，光環（魔像、戰狼精魂）看 stats() 算好的 minL_光環鍵 */
+const lifeM = (src, c) => (c && c.minL) || ST['minL_' + (src === 'aura' ? 'wolfsp' : src)] || 1;
 /* 召喚物受傷（目前沒有怪會打召喚物，要等召喚物 AI） */
 function allyHurt(w, d) {
   if (w.dead) return;
@@ -1536,7 +1545,7 @@ function callWolf(src, c, at = P, t = 0) {
     /* hp／mhp：照 PoE2 的友方生命（allyLife）；紙人在 actHit 改成屍體的最大生命 */
     w = { src, x: p.x, y: p.y, vx: 0, vy: 0, cd: rnd(0.2, 0.6), c, ph: Math.random() * TAU, t };
   w.r = 14 * giantM(w);
-  w.hp = w.mhp = allyLife(src, c) * giantM(w);
+  w.hp = w.mhp = allyLife(src, c) * giantM(w) * lifeM(src, c);
   G.allies.push(w);
 }
 /* 同伴這一下的倍率：寶石叫的狼吃群狼、紙人用寶石倍率、魔像與光環狼用左鍵技能打折 */
@@ -1548,8 +1557,8 @@ const allyMult0 = (w, c) =>
     : w.src === 'doll'
       ? c.mult
       : isGolem(w.src)
-        ? c.mult * 0.8 * (ST['packM_' + w.src] || 1)
-        : 0.4 * (ST.packM_wolfsp || 1);
+        ? c.mult * 0.8 * (ST['packM_' + w.src] || 1) * (ST['minM_' + w.src] || 1)
+        : 0.4 * (ST.packM_wolfsp || 1) * (ST.minM_wolfsp || 1);
 function updAllies(dt) {
   for (const w of G.allies) {
     if (w.dead > G.t) continue;

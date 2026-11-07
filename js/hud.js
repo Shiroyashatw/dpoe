@@ -1057,7 +1057,8 @@ function skDetail(g) {
     rows.push(row('基礎攻擊時間', `${baseT(c).toFixed(2)} 秒`), row('出手', `${actDur(c).toFixed(2)} 秒`));
     if (D.tAdd) rows.push(row('增加使用時間', `+${D.tAdd} 秒（不吃速度）`));
   }
-  if (D.tags.includes('proj')) rows.push(row('投射物', c.proj));
+  /* 滿溢機率讓每次出手的發數會跳，面板顯示期望值（skills.js 的 projEv） */
+  if (D.tags.includes('proj')) rows.push(row('投射物', +c.projEv.toFixed(2)));
   const sups = (g.sup || [])
       .filter(sp => sp && supOK(D, sp, g))
       .map(sp => {
@@ -1197,7 +1198,7 @@ const SUPTAB = {
   異常: ['bleed', 'poison', 'poistack', 'ailmag', 'armbreak', 'wither', 'blind', 'pin'],
   元素: ['scorch', 'brittle', 'sap', 'expose', 'elec'],
   法術: ['arcane', 'cast_crit', 'cast_kill', 'cast_dodge', 'cast_block', 'cast_hurt'],
-  召喚: ['pack', 'giant'],
+  召喚: ['pack', 'giant', 'mindmg', 'minlife'],
   轉換: ['totemc']
 };
 function gemTabs(kind) {

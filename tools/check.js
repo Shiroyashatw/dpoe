@@ -525,12 +525,12 @@ vm.runInContext(
   const am = R(
     'G.t = 0; [ammoUse("k", 3, 1), ammoUse("k", 3, 1), ammoUse("k", 3, 1), ammoUse("k", 3, 1), (G.t = 1.1, ammoUse("k", 3, 1))]'
   );
-  /* 手雷次數：2 顆，各自冷卻 */
+  /* 榴彈次數：2 顆，各自冷卻 */
   const gr = R(
     'G.t = 0; [grenadeReady("g", 2, 3), grenadeReady("g", 2, 3), grenadeReady("g", 2, 3), (G.t = 3.1, grenadeReady("g", 2, 3))]'
   );
   ok(
-    '彈藥與手雷次數',
+    '彈藥與榴彈次數',
     am.join() === 'true,true,true,false,true' && gr.join() === 'true,true,false,true',
     am + ' ' + gr
   );
@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：160 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 160,
+    '品質：162 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 162,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3097,7 +3097,7 @@ vm.runInContext(
         )
     );
   ok('基底：商人賣得到新基底', !noSell.length, noSell.join());
-  /* 十字弓的固定詞：多裝填 1 發、多丟 1 顆手雷 */
+  /* 十字弓的固定詞：多裝填 1 發、多丟 1 顆榴彈 */
   R(
     `S = { lv: 100, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 999, T: 1 }];`
   );
@@ -3110,7 +3110,7 @@ vm.runInContext(
       return [P.ammo.apshot.n, !!P.ammo.apshot.until, G.grenades.length];
     })()`);
   ok(
-    '基底：連弩多裝填 1 發、攻城弩多 1 顆手雷、手弩都沒有',
+    '基底：連弩多裝填 1 發、攻城弩多 1 顆榴彈、手弩都沒有',
     JSON.stringify([shots('w_xbow_0'), shots('w_xbow_2'), shots('w_xbow_4')]) ===
       JSON.stringify([
         [0, true, 1],
@@ -3782,7 +3782,7 @@ vm.runInContext(
     ]) === '["要先用御劍訣召出飛劍","",[0,true,4],[true,false],[true,0],[1,20,3,true],0.04,1,0]',
     JSON.stringify(b47)
   );
-  /* 0.2.48 第 3 層 B 批（遠程與法術）：油手雷、雷暴、裂解、破咒、褻瀆儀式 */
+  /* 0.2.48 第 3 層 B 批（遠程與法術）：油榴彈、雷暴、裂解、破咒、褻瀆儀式 */
   const b48 = R(`(() => {
     const c = k => gemCfg(mkGem(k, 5), 0),
       A = (k, o) => ({ k, c: c(k), ang: 0, tx: P.x + 60, ty: P.y, hits: [0], n: 0, ...o }),
@@ -3793,7 +3793,7 @@ vm.runInContext(
       out = {};
     let m, h;
     G.corpses = []; G.remnants = [];
-    /* 油手雷：1.5 秒後破開、留油滑地面（6 秒）；引爆技能點爆，油變成燃燒地面 */
+    /* 油榴彈：1.5 秒後破開、留油滑地面（6 秒）；引爆技能點爆，油變成燃燒地面 */
     G.grenades = []; G.ground = []; m = mk(); G.mobs = [m]; h = m.hp;
     actHit(A('oilgrenade'), 0); out.oil0 = [G.grenades.length, G.ground.length];
     for (let i = 0; i < 40; i++) (G.t += 0.05), grenadeTick(0.05);
@@ -3826,7 +3826,7 @@ vm.runInContext(
     return out;
   })()`);
   ok(
-    'B 批遠程與法術：油手雷破開留油、引爆後變燃燒地面；雷暴讓範圍裡的怪濕透並落雷；裂解消耗冰凍與感電（一隻一種）',
+    'B 批遠程與法術：油榴彈破開留油、引爆後變燃燒地面；雷暴讓範圍裡的怪濕透並落雷；裂解消耗冰凍與感電（一隻一種）',
     JSON.stringify([b48.oil0, b48.oil1, b48.oil2, b48.storm, b48.snapNo, b48.snapOk, b48.snap]) ===
       '[[1,0],[0,true,6,true],[false,true],[1,6,true,true,false],"附近沒有冰凍、感電或點燃的敵人","",[false,true,false,true]]',
     JSON.stringify(b48)
@@ -4565,6 +4565,125 @@ vm.runInContext(
     JSON.stringify([b64.flow, b64.flowNew, b64.flowWalk]) === '[[3.14,3.14,-1.57,true,true,true,0,6],true,[true,true]]',
     JSON.stringify([b64.flow, b64.flowNew, b64.flowWalk])
   );
+  /* 0.2.66 3C：滿溢機率（projCh／spellProjCh）、弓與箭袋的固定詞、召喚物傷害與生命輔助 */
+  const c66 = R(`(() => {
+    const keep = { st: ST, au: S.auras, pt: S.pt, al: G.allies, sc: G.scene, mobs: G.mobs, cp: G.corpses, gd: P.golDown },
+      out = {};
+    PTREE.I.zv = { s: { spirit: 300, projCh: 215, spellProjCh: 115 } };
+    PTREE.I.zu = { s: { spirit: 300 } };
+    const ring = () => { const r = mkItem('r_iron', 10, 0); r.a = [{ k: 'attrA', v: 999, T: 1 }]; return r; },
+      st = (eq, pt = [], au = [null]) => stats({ ...S, lv: 100, eq: { ring1: ring(), ...eq }, pt, auras: au }),
+      mean = (n, f) => { let t = 0; for (let i = 0; i < n; i++) t += f(); return t / n; },
+      kinds = (n, f) => [...new Set(Array.from({ length: n }, f))].sort().join();
+    /* 能力：預設 0、有名字、固定詞有說明 */
+    ST = st({});
+    out.def = [ST.projCh, ST.spellProjCh, !!STATN.projCh, !!STATN.spellProjCh, impText('projCh', 15)];
+    /* 弓（複合弓、和弓、重藤弓 +15）與箭袋（羽箭袋、鬼箭袋 +10，要拿弓才有效） */
+    out.bow = [0, 1, 2, 3, 4, 5].map(i => st({ weapon: mkItem('w_bow_' + i, 16, 0) }).projCh);
+    out.quiver = ['q_bamboo', 'q_feather', 'q_oni', 'q_fire', 'q_saw', 'q_pierce'].map(k => st({ weapon: mkItem('w_bow_5', 16, 0), off: mkItem(k, 16, 0) }).projCh);
+    out.quiverNoBow = st({ weapon: mkItem('w_sword1_0', 16, 0), off: mkItem('q_oni', 16, 0) }).projCh;
+    out.txt = [baseText(mkItem('w_bow_4', 16, 0)).includes('攻擊投射物的滿溢機率 +15%'), baseText(mkItem('q_oni', 16, 0)).includes('攻擊投射物的滿溢機率 +10%')];
+    /* 出手數：攻擊讀 projCh（215：多 2 支、15% 再多 1 支），法術讀 spellProjCh（115）；沒有投射物標籤的招不動；projEv 是期望值、每次叫都一樣 */
+    ST = st({}, ['zv']);
+    out.st = [ST.projCh, ST.spellProjCh];
+    const base = k => { const s0 = ST; ST = st({}); const n = gemCfg(mkGem(k, 5), 0).proj; ST = s0; return n; },
+      extra = k => gemCfg(mkGem(k, 5), 0).proj - base(k);
+    out.avg = [mean(2000, () => extra('split')), mean(2000, () => extra('fireball'))];
+    out.kinds = [kinds(400, () => extra('split')), kinds(400, () => extra('fireball'))];
+    out.slash = [gemCfg(mkGem('slash', 5), 0).proj, gemCfg(mkGem('slash', 5), 0).projEv === undefined];
+    out.ev = [...new Set(Array.from({ length: 50 }, () => +(gemCfg(mkGem('split', 5), 0).projEv - base('split')).toFixed(4)))];
+    ST = st({});
+    out.zero = [mean(300, () => gemCfg(mkGem('split', 5), 0).proj - base('split')), gemCfg(mkGem('split', 5), 0).projEv === 1];
+    /* 召喚物輔助：只能插召喚技能與魔像、戰狼精魂；各自一類（可以同插、不能插兩顆一樣的） */
+    const ok1 = (D, k) => supOK(D, mkGem(k, 1), mkGem('wolf', 1)),
+      withSup = (host, ...ks) => { host.sup = ks.map(k => mkGem(k, 1)); return host; };
+    out.fit = ['mindmg', 'minlife'].map(k => ['wolf', 'paperdoll'].every(x => ok1(SKILLS[x], k)) && ['slash', 'split', 'fireball', 'frosttrap', 'axethrow'].every(x => !ok1(SKILLS[x], k)));
+    out.fitAura = ['mindmg', 'minlife'].map(k => ['wolfsp', 'golem', 'g_fire', 'g_ice', 'g_thunder', 'g_chaos', 'g_flesh'].map(x => supOK(AURAS[x], mkGem(k, 1), mkGem(x, 1))).join() + '|' + ['offer', 'anger'].map(x => supOK(AURAS[x], mkGem(k, 1), mkGem(x, 1))).join());
+    const w2 = withSup(mkGem('wolf', 1), 'mindmg', 'minlife'), w3 = withSup(mkGem('wolf', 1), 'mindmg', 'mindmg');
+    out.cat = [supCat('mindmg') !== supCat('minlife'), supOK(SKILLS.wolf, w2.sup[0], w2) && supOK(SKILLS.wolf, w2.sup[1], w2), supOK(SKILLS.wolf, w3.sup[0], w3), supOK(SKILLS.wolf, w3.sup[1], w3)];
+    out.meta = ['mindmg', 'minlife'].map(k => [SUPPORTS[k].ic, gemLv(k) > 0, !!QUAL[k]]);
+    /* 寶石叫的召喚物：傷害更多 25%（品質 20 → 30%，面板數字也跟著）、生命更多 30%（品質 20 → 35%） */
+    const wcfg = (k, q = 0) => { const g = mkGem('wolf', 1); if (k) { g.sup[0] = mkGem(k, 1); g.sup[0].q = q; } return gemCfg(g, 0); },
+      hit = c => skillNums(c).hit,
+      life = c => { G.allies = []; callWolf('gem', c); return G.allies[0].mhp; };
+    out.dmg = [hit(wcfg('mindmg')) / hit(wcfg()), hit(wcfg('mindmg', 20)) / hit(wcfg()), hit(wcfg('minlife')) / hit(wcfg())].map(v => +v.toFixed(3));
+    out.minL = [wcfg().minL, wcfg('minlife').minL, wcfg('minlife', 20).minL, wcfg('mindmg').minL];
+    out.life = [life(wcfg('minlife')) / life(wcfg()), life(wcfg('minlife', 20)) / life(wcfg()), life(wcfg('mindmg')) / life(wcfg())].map(v => +v.toFixed(3));
+    /* 光環（魔像、戰狼精魂）：stats() 算好 minM_／minL_ 鍵，allyMult0 與 callWolf 讀；沒插是沒有、獻祭插不上 */
+    const aur = (k, ...sup) => { const g = mkGem(k, 1); sup.forEach((x, i) => { g.sup[i] = mkGem(x[0], 1); g.sup[i].q = x[1] || 0; }); return g; },
+      keyOf = (k, key, ...sup) => stats({ ...S, auras: [aur(k, ...sup)], pt: ['zu'] })[key];
+    out.auraKey = [keyOf('golem', 'minM_golem', ['mindmg']), keyOf('golem', 'minM_golem', ['mindmg', 20]), keyOf('golem', 'minL_golem', ['minlife']), keyOf('golem', 'minL_golem', ['minlife', 20]), keyOf('golem', 'minM_golem'), keyOf('wolfsp', 'minM_wolfsp', ['mindmg']), keyOf('wolfsp', 'minL_wolfsp', ['minlife']), keyOf('offer', 'minM_offer', ['mindmg'])];
+    const mult = (k, ...sup) => { S.auras = [aur(k, ...sup)]; S.pt = ['zu']; ST = stats(S); return allyMult({ src: k === 'wolfsp' ? 'aura' : k }, { mult: 1, more: 1 }); };
+    out.auraDmg = [mult('golem', ['mindmg']) / mult('golem'), mult('wolfsp', ['mindmg']) / mult('wolfsp'), mult('g_fire', ['mindmg', 20]) / mult('g_fire')].map(v => +v.toFixed(3));
+    G.mobs = []; G.corpses = []; G.scene = 'map'; P.golDown = '';
+    const aura = (k, ...sup) => { G.allies = []; S.auras = [aur(k, ...sup)]; S.pt = ['zu']; ST = stats(S); updSkills(0.01); return Math.max(0, ...G.allies.map(w => w.mhp)); };
+    out.auraLife = [aura('golem', ['minlife']) / aura('golem'), aura('g_fire', ['minlife', 20]) / aura('g_fire'), aura('wolfsp', ['minlife']) / aura('wolfsp'), aura('golem', ['mindmg']) / aura('golem')].map(v => +v.toFixed(3));
+    delete PTREE.I.zv; delete PTREE.I.zu;
+    Object.assign(S, { auras: keep.au, pt: keep.pt }); ST = keep.st;
+    Object.assign(G, { allies: keep.al, scene: keep.sc, mobs: keep.mobs, corpses: keep.cp }); P.golDown = keep.gd;
+    return out;
+  })()`);
+  ok(
+    '3C 滿溢機率：預設 0、攻擊與法術各一個能力（有 STATN 名字與固定詞說明）、天賦或詞綴給得進 stats()',
+    JSON.stringify([c66.def, c66.st]) === '[[0,0,true,true,"攻擊投射物的滿溢機率 +15%"],[215,115]]',
+    JSON.stringify([c66.def, c66.st])
+  );
+  ok(
+    '3C 弓與箭袋的固定詞：複合弓、和弓、重藤弓 +15%，羽箭袋、鬼箭袋 +10%（拿弓才有效、沒拿弓是 0），說明框寫得出來',
+    JSON.stringify([c66.bow, c66.quiver, c66.quiverNoBow, c66.txt]) ===
+      '[[0,0,0,15,15,15],[15,25,25,15,15,15],0,[true,true]]',
+    JSON.stringify([c66.bow, c66.quiver, c66.quiverNoBow, c66.txt])
+  );
+  ok(
+    '3C 滿溢機率的出手數：projCh 215 平均多 2.15 支（2000 次誤差 < 0.05）、只會是 2 或 3 支；法術讀 spellProjCh（115 平均 1.15、1 或 2 支）；沒有就是 0；非投射物的招不動',
+    Math.abs(c66.avg[0] - 2.15) < 0.05 &&
+      Math.abs(c66.avg[1] - 1.15) < 0.05 &&
+      c66.kinds.join('|') === '2,3|1,2' &&
+      c66.zero[0] === 0 &&
+      c66.zero[1] &&
+      c66.slash[0] === 1 &&
+      c66.slash[1],
+    JSON.stringify([c66.avg, c66.kinds, c66.zero, c66.slash])
+  );
+  ok(
+    '3C 面板的投射物數字是期望值：projEv 每次叫都一樣（多 2.15），不跟著出手的 2 或 3 跳',
+    JSON.stringify(c66.ev) === '[2.15]',
+    JSON.stringify(c66.ev)
+  );
+  ok(
+    '3C 召喚物輔助：召喚戰狼、召喚紙人插得上；斬擊、閃電箭、火球、冰霜陷阱、擲斧插不上；魔像 6 種與戰狼精魂插得上，獻祭、憤怒光環插不上；兩顆各自一類（可以同插、同一種不能插兩顆）；圖示、等級、品質說明都有',
+    JSON.stringify(c66.fit) === '[true,true]' &&
+      JSON.stringify(c66.fitAura) ===
+        '["true,true,true,true,true,true,true|false,false","true,true,true,true,true,true,true|false,false"]' &&
+      JSON.stringify(c66.cat) === '[true,true,true,false]' &&
+      c66.meta.every(m => has(m[0]) && m[1] && m[2]),
+    JSON.stringify([c66.fit, c66.fitAura, c66.cat, c66.meta])
+  );
+  ok(
+    '3C 召喚物傷害與生命（寶石叫的）：傷害 ×1.25（品質 20 ×1.30），生命的輔助不改傷害；生命 ×1.30（品質 20 ×1.35），傷害的輔助不改生命',
+    JSON.stringify([c66.dmg, c66.minL, c66.life]) === '[[1.25,1.3,1],[null,1.3,1.35,null],[1.3,1.35,1]]',
+    JSON.stringify([c66.dmg, c66.minL, c66.life])
+  );
+  ok(
+    '3C 召喚物傷害與生命（光環的魔像、戰狼精魂）：stats() 算好 minM_／minL_（傷害 1.25／品質 20 1.30、生命 1.30／品質 20 1.35；沒插是沒有、獻祭插不上），傷害倍率與召出來的生命照著放大，插錯那種不改另一個',
+    JSON.stringify([c66.auraKey, c66.auraDmg, c66.auraLife]) ===
+      '[[1.25,1.3,1.3,1.35,null,1.25,1.3,null],[1.25,1.25,1.3],[1.3,1.35,1.3,1]]',
+    JSON.stringify([c66.auraKey, c66.auraDmg, c66.auraLife])
+  );
+  {
+    /* 榴彈改名（0.2.66）：程式與現行文件不再有舊名字（PoE 研究文件與 CHANGELOG 舊紀錄保留） */
+    const old = '手雷',
+      root = path.join(__dirname, '..'),
+      files = [
+        ...fs
+          .readdirSync(path.join(root, 'js'))
+          .filter(f => f.endsWith('.js'))
+          .map(f => 'js/' + f),
+        ...['企劃書', '品質效果表', '開發參考', '待做清單', '天賦修正提案'].map(f => 'docs/' + f + '.md')
+      ],
+      left = files.filter(f => fs.readFileSync(path.join(root, f), 'utf8').includes(old));
+    ok('榴彈改名：js 與現行文件裡沒有舊名字', !left.length, left.join());
+  }
   /* 0.2.60 K1：先祖強化（戰爭之拳：重擊每 6 秒更多 30%、範圍 +25%；先祖呼喚：打擊每 5 秒多打 2 隻、不重複） */
   const k60 = R(`(() => {
     const D = Object.values(MOBS)[0],

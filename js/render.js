@@ -191,7 +191,7 @@ function draw() {
     bDecals(W, H);
   }
   bDeco(W, H);
-  /* 地面效果、屍體、殘留物、手雷、幻影、旗幟、飛劍（mech.js） */
+  /* 地面效果、屍體、殘留物、榴彈、幻影、旗幟、飛劍（mech.js） */
   if (G.ground) drawMech();
   if (PRO.on) proDraw();
   /* 預警：怪物出手前地上的紅色範圍 */
@@ -1060,21 +1060,33 @@ function drawWolf(w) {
   }
 }
 
+/* 陷阱的屬性色 [圓環, 旋轉小點]：物理灰、閃電黃、火焰橙、冰霜青（0.2.66；圓環中心再畫技能圖示） */
+const TRAP_COL = {
+  phys: ['#b4b9c2', '#e4e7ec'],
+  light: ['#ffe066', '#fff3b0'],
+  fire: ['#ff8a4c', '#ffc9a0'],
+  cold: ['#8fd6ff', '#cfe9ff']
+};
 /* 場上單位：陷阱（地上的齒輪）、地雷（閃紅點）、砲塔圖騰（十字弓）、圖騰（柱子）；砲塔圖騰、圖騰下面的小條是剩下的時間 */
 function drawUnit(u) {
   const D = u.c.D;
   shadow(u.x, u.y, 12);
   if (u.type === 'trap') {
-    CX.strokeStyle = u.t > 0.4 ? '#8fd6ff' : 'rgba(143,214,255,0.4)';
+    const [rc, dc] = TRAP_COL[D.el] || TRAP_COL.phys;
+    CX.save();
+    CX.globalAlpha = u.t > 0.4 ? 1 : 0.4;
+    CX.strokeStyle = rc;
     CX.lineWidth = 3;
     CX.beginPath();
     CX.arc(u.x, u.y - 4, 11, 0, TAU);
     CX.stroke();
+    CX.restore();
     for (let k = 0; k < 6; k++) {
       const a = (k / 6) * TAU + G.t;
-      CX.fillStyle = '#cfe9ff';
+      CX.fillStyle = dc;
       CX.fillRect(u.x + Math.cos(a) * 14 - 2, u.y - 4 + Math.sin(a) * 14 - 2, 4, 4);
     }
+    spr(D.ic, u.x, u.y + 2, 12);
   } else if (u.type === 'mine') {
     CX.fillStyle = '#4a3d33';
     CX.beginPath();
