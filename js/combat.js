@@ -634,6 +634,9 @@ function hitCalc(c, m, o = {}) {
       p.v *= 1 - Math.min(100, tot) / 100;
     }
   }
+  /* 元素執政官：法術的元素傷害全部轉成那種元素（轉過去的部分吃路上每一種的提高） */
+  const ea = spell && elArch();
+  if (ea) for (const p of parts) if (ELEK.includes(p.k) && p.k !== ea) (p.k = ea), p.ch.push(ea);
   /* 4. 提高：同一池相加 */
   const near = m ? dist(P, m) : o.avg ? 200 : 999,
     common =
@@ -708,11 +711,13 @@ function hitCalc(c, m, o = {}) {
   if (spell && ST.boil && P.hf > ST.hfMax / 2) more *= 1 + ST.boil / 100;
   if (ST.perfMore && P.pfT > G.t) more *= 1 + ST.perfMore / 100;
   if (spell && o.trig && ST.hexCoc) more *= 1 + ST.hexCoc / 100;
-  const reb = ST.reborn && P.rebT > G.t;
+  const reb = ST.reborn && P.rebT > G.t,
+    ub = hasBuff('unboundAv') && !o.minion && !o.unit;
   for (const k of DT) pre[k] = 0;
   for (const p of parts) {
     let mk = more;
-    if (spell && ELEK.includes(p.k) && P.buf && P.buf.archon > G.t) mk *= 1.25;
+    if (spell && ELEK.includes(p.k) && ea) mk *= 1.25;
+    if (ELEK.includes(p.k) && ub) mk *= 1.4;
     if (ST.avatar && (p.k === 'cold' || p.k === 'light')) mk *= 0.7;
     if (sac && p.k === 'phys') mk *= 1.15;
     if (reb && p.k === 'fire') mk *= 1 + ST.reborn / 100;
@@ -929,7 +934,12 @@ function applyAil(m, r, c, use) {
     thrL = thr * ailLow(m, 'light'),
     p = r.pre,
     po = r.post,
-    archon = P.buf && P.buf.archon > G.t,
+    sp = isSpell(c.D),
+    /* 無縛：元素異常機率更多 80%、冰凍累積更多 40%；執政官只給法術 */
+    ub = hasBuff('unboundAv') ? 1.8 : 1,
+    fA = sp && hasBuff('fArchon') ? 2 : 1,
+    iA = sp && hasBuff('iArchon') ? 100 : 0,
+    lA = sp && hasBuff('lArchon') ? 2 : 1,
     mk = a.mark && a.mark.k,
     mag = 1 + (ST.ailMag + (c.ailMag || 0)) / 100,
     ignM = mag + ST.ignMag / 100,
@@ -944,7 +954,7 @@ function applyAil(m, r, c, use) {
   if (c.drench) drench(m, dbT(c.drench, DEBUFF.wetT));
   const igB = ailBase(p, 'ign');
   if (igB > 0) {
-    flamAdd(a, (igB / thrF) * 20 * (archon ? 2 : 1) * (1 + ST.flamP / 100));
+    flamAdd(a, (igB / thrF) * 20 * ub * fA * (1 + ST.flamP / 100));
     if (roll(a.flam) && !noAil(a, 'ign'))
       (a.ign = igniteOn(
         m,
@@ -953,14 +963,16 @@ function applyAil(m, r, c, use) {
         c,
         use
       )),
-        (a.flam = 0);
+        (a.flam = 0),
+        /* 仲裁點燃（0.2.61）：火焰法術點燃時獲得火焰執政官 */
+        c.arbiter && sp && gainArchon('fArchon');
   }
   /* 冰緩：效果看傷害÷門檻，低於 30% 不生效，最高 50%；8 秒 */
   if (p.cold > 0) {
     const v = Math.min(50, ((p.cold / thrC) * 100 + 0) * (mag + ST.chillMag / 100)) * rr;
     if (v >= 30 * rr && (!a.chill || a.chill.t <= G.t || v >= a.chill.v)) a.chill = { v, t: G.t + 8 };
     /* 冰凍累積（穩固值）；印記、化身都是累積提高 */
-    if (!c.noFrz) poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + (archon ? 100 : 0));
+    if (!c.noFrz) poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + iA + (ub > 1 ? 40 : 0));
   }
   /* 感電：每 4% 門檻 +1% 機率（化身 ×2、閃電箭更多），受到的傷害提高 20%、8 秒 */
   if (
@@ -969,7 +981,8 @@ function applyAil(m, r, c, use) {
     !noAil(a, 'shock') &&
     roll(
       (((p.light / thrL) * 100) / 4) *
-        (archon ? 2 : 1) *
+        ub *
+        lA *
         (1 + ST.shockCh / 100) *
         (1 + (c.shockMore || 0) / 100) *
         (a.wet > G.t ? 1 + DEBUFF.wetShock / 100 : 1)
@@ -1257,11 +1270,16 @@ const BUFF = {
   onslaught: { n: '猛攻', ic: 'sk_hasteaura', d: '技能速度 +20%、移動速度 +10%' },
   arcane: { n: '秘能波動', ic: 'sk_clarity', d: '施法速度 +15%、魔力回復更多 20%' },
   unholy: { n: '不潔之力', ic: 'sk_despair', d: '多造成全部傷害 30% 的混沌傷害' },
-  archon: {
-    n: '元素化身',
-    ic: 'sk_elemweak',
-    d: '法術的元素傷害更多 25%、冰凍累積 +100%、易燃 +100%、感電機率 +100%'
+  /* 0.2.61 K2：無縛（無縛化身精魂寶石，skills.js 的 furyGain）與四種執政官（gainArchon；10 秒、有一種時不能再獲得、結束後 20 秒恢復期） */
+  unboundAv: { n: '無縛', ic: 'sk_elemweak', d: '元素傷害更多 40%、元素異常機率更多 80%、冰凍累積更多 40%' },
+  fArchon: {
+    n: '火焰執政官',
+    ic: 'sk_phoenix',
+    d: '法術的元素傷害更多 25%、全部轉成火焰，法術點燃機率更多 100%；用非瞬發的攻擊會失去'
   },
+  iArchon: { n: '冰霜執政官', ic: 'sk_glacier', d: '法術的元素傷害更多 25%、全部轉成冰冷，法術冰凍累積更多 100%' },
+  lArchon: { n: '閃電執政官', ic: 'sk_ballight', d: '法術的元素傷害更多 25%、全部轉成閃電，法術感電機率更多 100%' },
+  uArchon: { n: '亡靈執政官', ic: 'sk_skeleton', d: '召喚物傷害更多 25%、命令技能冷卻恢復 +200%' },
   /* 迷蹤（第 13～16 批，原「相位」）：玩家本來就不會被怪物擋住（moveBody 只推牆與擺設），之後加身體碰撞要讀 hasBuff('phasing') */
   phasing: { n: '迷蹤', ic: 'sk_hasteaura', d: '可以穿過敵人' },
   finality: {
@@ -1368,6 +1386,27 @@ function gainBuff(k, t) {
 }
 /* 讀檔時角色（P）還沒建立：當作沒有 buff */
 const hasBuff = k => !!(P && P.buf && P.buf[k] > G.t);
+/* 執政官（0.2.61 K2，照 PoE2）：持續 10 秒；有任何一種時不能再獲得；結束（或提早失去）後 20 秒恢復期 */
+const ARCHONS = { fArchon: 'fire', iArchon: 'cold', lArchon: 'light', uArchon: null },
+  ARCH_T = 10,
+  ARCH_REC = 20;
+const archOn = () => Object.keys(ARCHONS).find(hasBuff);
+/* 現在生效的元素執政官轉成哪種元素（沒有就 null） */
+const elArch = () => {
+  const k = archOn();
+  return k ? ARCHONS[k] : null;
+};
+function gainArchon(k) {
+  if (archOn() || G.t < (P.archEnd == null ? -1e9 : P.archEnd + ARCH_REC)) return false;
+  gainBuff(k, ARCH_T);
+  P.archEnd = G.t + ARCH_T;
+  return true;
+}
+function loseArchon(k) {
+  if (!hasBuff(k)) return;
+  P.buf[k] = G.t;
+  P.archEnd = G.t;
+}
 /* 還沒到期的層（到期時間）；stats() 會讀，所以也要防 P 還沒建立 */
 const stkL = k => ((P && P.stk && P.stk[k]) || []).filter(t => t > G.t),
   stkN = k => stkL(k).length,
@@ -2052,6 +2091,7 @@ const STATE = {
   sap: ['殘喘', 'sk_arc', '造成的傷害降低'],
   exp: ['曝曬', 'sk_elemweak', '元素抗性降低'],
   rage: ['盛怒', 'sk_anger', '攻擊傷害更多'],
+  fury: ['無縛之怒', 'sk_summongod', '元素異常打中時累積，滿 100 進入無縛'],
   ad_fire: ['火焰適應', 'sup_sp_gfire', '每層受到的火焰傷害少 10%；離開地圖清掉'],
   ad_cold: ['冰冷適應', 'sup_sp_gcold', '每層受到的冰冷傷害少 10%；離開地圖清掉'],
   ad_light: ['閃電適應', 'sup_sp_glight', '每層受到的閃電傷害少 10%；離開地圖清掉'],
@@ -2196,6 +2236,7 @@ function playerStates() {
   for (const k of ['frostMark', 'voltMark']) add(k, P.buf && P.buf[k]);
   for (const k of ['e', 'f', 'p']) if (chgN(k)) add('chg_' + k, P.chg[k].t, { c: chgN(k) });
   if (P.rage > 0) add('rage', null, { c: Math.ceil(P.rage) });
+  if (ST.unbAv && P.fury > 0) add('fury', null, { c: P.fury });
   add('counter', P.counterT);
   /* 封印（擴張輔助）：顯示累積最多的那一招有幾個 */
   const sealMax = Math.max(0, ...Object.values(P.seal || {}).map(x => x.n));

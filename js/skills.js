@@ -19,6 +19,7 @@ const supOK = (D, sp, g) => {
   if (sp.gem === 'chain' && D.noChain) return false;
   /* 蓄力技能（0.2.54）要有人按住：自動化、觸發、轉圖騰都不相容 */
   if (D.charge && (U.meta || U.conv)) return false;
+  if (sp.gem === 'arbiter' && D.el !== 'fire') return false;
   if (U.conv && (D.unit || D.noConv || D.tags.includes('move') || D.tags.includes('minion'))) return false;
   if (
     U.meta === 'auto' &&
@@ -135,6 +136,7 @@ function gemCfg(g, i) {
     else if (k === 'expand') c.seal = { max: 3, every: 2, aoe: 30 + 10 * sq };
     else if (k === 'punch') c.kbEasy = 3 + sq;
     else if (k === 'fistwar' || k === 'ancall') c[k] = sq;
+    else if (k === 'arbiter') (c.arbiter = 1), (c.ailMag += 20 * sq);
     else if (k === 'autocast') c.auto = sp;
     else if (SUPPORTS[k].conv && !c.conv) {
       c.conv = SUPPORTS[k].conv;
@@ -143,6 +145,8 @@ function gemCfg(g, i) {
     }
   }
   if (c.auto) (c.cd += AUTO.cd * (1 - (c.auto.q || 0) / 100)), (c.mp *= AUTO.mp);
+  /* 亡靈執政官：命令技能冷卻恢復 +200%（冷卻 ÷3） */
+  if (D.cmd && P && hasBuff('uArchon')) c.cdrP += 200;
   c.cd /= 1 + c.cdrP / 100; /* 冷卻時間恢復率：冷卻 ÷ (1 + x/100)，沒有上限 */
   /* 效用：魔力消耗 ÷ (1 + 效用%) */
   c.mp = D.mp ? Math.max(1, Math.round(c.mp / (1 + ST.mpEff / 100))) : 0;
@@ -309,6 +313,8 @@ function useSlot(i) {
   /* 跳過冷卻：花掉盛怒或耐力球，原本的冷卻照走 */
   if (skip) (P.cds['s' + i] = cd0), skip();
   if (c.k === 'smash') P.smashQ = 0;
+  /* 火焰執政官（0.2.61）：用非瞬發的攻擊會失去 */
+  if (D.tags.includes('attack') && D.t > 0) loseArchon('fArchon');
   /* 狼撲的品質：撲向被印記的怪不花魔力 */
   if (c.k === 'wolfpounce' && tm && tm.ail.mark && qRoll(20 * c.q)) addMp(c.mp);
   /* 變身（mech.js）：用了不是這個形態的技能就變回來 */
@@ -797,6 +803,8 @@ function actHit2(a, idx, R, hitArc) {
     const c0 = slotCfg(0) || BASEC(),
       L = cmdAllies(D.cmd);
     if (qRoll(20 * c.q)) gainStk('puppet');
+    /* 亡靈執政官（0.2.61 K2）：用命令技能時 15% */
+    if (roll(15)) gainArchon('uArchon');
     if (D.cmd === 'aura') {
       const t = nearMob({ x: a.tx, y: a.ty }, 150);
       for (const w of t ? L : []) {
@@ -1257,7 +1265,9 @@ function hitMob(m, c, ang, kb, o = {}) {
   const shocked = c.boltChain && hasState(m, 'shock');
   /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
   if (ST.mirageH && !a.trig && !o.minion && !a.unit && !o.again) mirageHunt();
+  const ail0 = ST.unbAv && !o.minion && !a.unit && ailSnap(m.ail);
   applyAil(m, r, c, a);
+  if (ail0) furyGain(ail0, ailSnap(m.ail));
   if (c.k === 'axethrow' && hasState(m, 'bleed')) fxs('bleed', m.x, m.y - m.sz * 0.5, 30);
   onHitBase(m, r, c);
   /* 近期事件（combat.js 的 recent）：你自己的擊中與暴擊，不算召喚物與場上單位 */
@@ -1339,6 +1349,23 @@ function hitMob(m, c, ang, kb, o = {}) {
   } else if (ST.dbl && !o.again && (c.D.tags || []).includes('melee') && roll(ST.dbl))
     hitMob(m, c, ang, 0, { ...o, again: 1, quiet: 1 });
   if (shocked) boltChain(m, c, a);
+}
+
+/* ---------- 無縛化身（0.2.61 K2，照 PoE2 的 Unbound Avatar） ---------- */
+/* 元素異常的快照：打中前後比較，新上的（或刷新的）才算 */
+const ailSnap = a => ({
+  ign: a.ign && a.ign.t,
+  chill: a.chill && a.chill.t,
+  frozen: a.frozen || 0,
+  shock: a.shock || 0
+});
+function furyGain(b, n) {
+  if (hasBuff('unboundAv')) return;
+  const T = (P.furyT = P.furyT || {});
+  for (const k in n)
+    if (n[k] && n[k] > G.t && n[k] !== b[k] && !(T[k] > G.t)) (T[k] = G.t + 0.2), (P.fury = (P.fury || 0) + 10);
+  if ((P.fury || 0) >= 100)
+    (P.fury = 0), gainBuff('unboundAv', 10 + 2 * (ST.aq.unboundav || 0)), fxs('pillar', P.x, P.y, 60);
 }
 
 /* ---------- 捷光環（0.2.56 第 3 層 F2，企劃書 7.3 第 29 項） ---------- */
@@ -1478,7 +1505,8 @@ function callWolf(src, c, at = P, t = 0) {
 }
 /* 同伴這一下的倍率：寶石叫的狼吃群狼、紙人用寶石倍率、魔像與光環狼用左鍵技能打折 */
 const ALLY_RATE = 0.8;
-const allyMult = (w, c) =>
+const allyMult = (w, c) => allyMult0(w, c) * (hasBuff('uArchon') ? 1.25 : 1);
+const allyMult0 = (w, c) =>
   w.src === 'gem' || w.src === 'gemt'
     ? c.mult * c.wolfM
     : w.src === 'doll'

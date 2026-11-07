@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：147 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 147,
+    '品質：149 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 149,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -4330,6 +4330,44 @@ vm.runInContext(
     JSON.stringify(k60) ===
       '{"none":0,"ready":1,"fist":[1.3,1.25,0],"cd":[0,1],"once":[1.3,1],"call":[true,true,true,true]}',
     JSON.stringify(k60)
+  );
+  /* 0.2.61 K2：執政官（10 秒、互斥、20 秒恢復期、法術元素轉換＋更多 25%、亡靈）、無縛化身（怒 → 無縛）、仲裁點燃 */
+  const k61 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      m = { D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} },
+      keep = { buf: P.buf, end: P.archEnd, t: G.t, fury: P.fury, furyT: P.furyT, ub: ST.unbAv },
+      fb = gemCfg(mkGem('frostbolt', 1), 0),
+      out = {};
+    P.buf = {}; P.archEnd = null;
+    /* avg：期望值，回傳 d 與最大的元素 el */
+    const sum = r => r.d,
+      el = r => r.el;
+    const r0 = hitCalc(fb, m, { avg: 1 });
+    out.rule = [gainArchon('lArchon'), gainArchon('iArchon'), hasBuff('lArchon')];
+    const r1 = hitCalc(fb, m, { avg: 1 });
+    out.conv = [el(r0), el(r1), +(sum(r1) / sum(r0)).toFixed(2)];
+    G.t += 10.01; out.rec = [hasBuff('lArchon'), gainArchon('fArchon')];
+    G.t += 20; out.after = gainArchon('fArchon');
+    loseArchon('fArchon'); out.lose = [hasBuff('fArchon'), gainArchon('uArchon')];
+    G.t += 20.01; gainArchon('uArchon');
+    const cg = gemCfg(mkGem('cmd_golem', 1), 0), w = { src: 'golem' }, c0 = BASEC();
+    out.undead = [+(allyMult(w, c0) / allyMult0(w, c0)).toFixed(2), +(SKILLS.cmd_golem.cd / cg.cd).toFixed(2)];
+    /* 無縛之怒：新的元素異常 +10（同一種 0.2 秒一次），滿 100 進入無縛 10 秒，期間不累積 */
+    P.buf = {}; P.fury = 0; P.furyT = {}; ST.unbAv = 1;
+    const b = { ign: 0, chill: 0, frozen: 0, shock: 0 };
+    furyGain(b, { ...b, shock: G.t + 8 }); furyGain(b, { ...b, shock: G.t + 8 }); const f1 = P.fury;
+    for (let i = 0; i < 9; i++) (G.t += 0.21), furyGain(b, { ...b, ign: G.t + 4 });
+    out.fury = [f1, P.fury, hasBuff('unboundAv')];
+    furyGain(b, { ...b, chill: G.t + 8 }); out.furyOn = P.fury;
+    out.arb = [supOK(SKILLS.fireball, mkGem('arbiter', 1)), supOK(SKILLS.frostbolt, mkGem('arbiter', 1))];
+    Object.assign(P, { buf: keep.buf, archEnd: keep.end, fury: keep.fury, furyT: keep.furyT }); G.t = keep.t; ST.unbAv = keep.ub;
+    return out;
+  })()`);
+  ok(
+    'K2 執政官：10 秒、有一種時不能再獲得、結束後 20 秒恢復期、提早失去從那時算；閃電執政官把法術的冰冷轉成閃電、更多 25%；亡靈執政官召喚物 ×1.25、命令冷卻 ÷3；無縛之怒 +10、同一種 0.2 秒一次、滿 100 進入無縛、期間不累積；仲裁點燃只插火焰法術',
+    JSON.stringify(k61) ===
+      '{"rule":[true,false,true],"conv":["cold","light",1.25],"rec":[false,false],"after":true,"lose":[false,false],"undead":[1.25,3],"fury":[10,0,true],"furyOn":0,"arb":[true,false]}',
+    JSON.stringify(k61)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',
