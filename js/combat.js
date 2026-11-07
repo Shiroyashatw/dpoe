@@ -609,6 +609,8 @@ function hitCalc(c, m, o = {}) {
   if (P.buf && P.buf.unholy > G.t) pre.chaos += sum * 0.3;
   /* 風暴湧流：綁在武器上，只有攻擊吃得到 */
   if (tg.includes('attack')) pre.light += (sum * bufV('gainL')) / 100;
+  /* 波動之力（0.2.62）：攻擊、法術都吃 */
+  pre.chaos += (sum * bufV('gainC')) / 100;
   /* 3. 轉換：有屬性的攻擊技能把物理全部轉成那個屬性；再照天賦往後轉（物理→閃電→冰冷→火焰，每種最多轉 100%）
      轉過去的部分吃路上每一種屬性的提高（parts 的 ch） */
   let parts = DT.filter(k => pre[k]).map(k => ({ k, v: pre[k], ch: [k] }));
@@ -1358,6 +1360,14 @@ const BUFF = {
   /* 0.2.55 F1：戰吼的強化攻擊（skills.js 的 cryEmpower／empUse），一層＝一下；數值在出手時算，不走 st */
   emInf: { n: '狂暴強化', ic: 'sk_warcry', d: '接下來的近戰攻擊傷害更多，每次出手用掉 1 層', max: 5, t: 8 },
   emSeis: { n: '震地強化', ic: 'sk_battlecry', d: '接下來的重擊在原地多一次餘震，每次出手用掉 1 層', max: 5, t: 8 },
+  /* 0.2.62 K3：波動（層數由 skills.js 的 volGain 管，4 秒沒獲得就 volBoom）與爆完的波動之力 */
+  vol: {
+    n: '波動',
+    ic: 'sup_sp_boom',
+    d: '4 秒沒有再獲得就爆開：每層受到 0.5% 最大生命的物理傷害，然後換成波動之力',
+    max: 30
+  },
+  volPow: { n: '波動之力', ic: 'sk_voidrift', d: '每層多造成 1% 的混沌傷害，10 秒', max: 30, t: 10, st: { gainC: 1 } },
   /* 0.2.60 K1：先祖強化好了（skills.js 的 ancTick 給、empUse 用掉），沒有到期 */
   ancF: { n: '戰爭之拳', ic: 'sup_sp_brutal', d: '下一次重擊被先祖強化：傷害更多 30%、範圍更大 25%', max: 1 },
   ancC: { n: '先祖呼喚', ic: 'sup_sp_combo', d: '下一次打擊被先祖強化：多打 2 個敵人', max: 1 },

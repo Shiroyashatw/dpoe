@@ -137,6 +137,8 @@ function gemCfg(g, i) {
     else if (k === 'punch') c.kbEasy = 3 + sq;
     else if (k === 'fistwar' || k === 'ancall') c[k] = sq;
     else if (k === 'arbiter') (c.arbiter = 1), (c.ailMag += 20 * sq);
+    else if (k === 'volat') c.volat = 1 + sq;
+    else if (k === 'cathar') c.cathar = 1 + sq;
     else if (k === 'autocast') c.auto = sp;
     else if (SUPPORTS[k].conv && !c.conv) {
       c.conv = SUPPORTS[k].conv;
@@ -313,6 +315,8 @@ function useSlot(i) {
   /* 跳過冷卻：花掉盛怒或耐力球，原本的冷卻照走 */
   if (skip) (P.cds['s' + i] = cd0), skip();
   if (c.k === 'smash') P.smashQ = 0;
+  /* 宣洩（0.2.62）：10 層以上就引爆（品質：機率保留一半） */
+  if (c.cathar && stkN('vol') >= VOL.cath) volBoom(qRoll(20 * (c.cathar - 1)) ? Math.floor(stkN('vol') / 2) : 0);
   /* 火焰執政官（0.2.61）：用非瞬發的攻擊會失去 */
   if (D.tags.includes('attack') && D.t > 0) loseArchon('fArchon');
   /* 狼撲的品質：撲向被印記的怪不花魔力 */
@@ -1280,6 +1284,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (r.crit && !a.trig) metaEvent('crit', m);
   /* 夜刃輔助：這招暴擊時獲得靈巧（結束前不能再獲得，gainStk 自己會擋） */
   if (r.crit && c.elusive) gainStk('elusive');
+  if (r.crit && c.volat && !o.minion && !a.unit) volGain(qRoll(20 * (c.volat - 1)) ? 2 : 1);
   if (ST.wt === 'qstaff' && (c.D.tags || []).includes('melee') && !o.quiet) P.mp = Math.min(ST.mp, P.mp + 1);
   /* 屠戮打擊（0.2.42）：擊中滿血的敵人，先移除 min(x%, 上限) 的生命；撲殺：擊中後生命低於門檻直接殺死 */
   const cut = fullCut(m);
@@ -1351,6 +1356,28 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (shocked) boltChain(m, c, a);
 }
 
+/* ---------- 波動（0.2.62 K3，照 PoE2 的 Volatility） ---------- */
+const VOL = { gap: 0.1, boom: 4, hurt: 0.5, cath: 10 };
+/* 每 0.1 秒最多獲得一次；記最後一次獲得的時間，4 秒後爆 */
+function volGain(n) {
+  if (G.t < (P.volT || -9) + VOL.gap) return;
+  P.volT = G.t;
+  gainStk('vol', n);
+}
+/* 爆開：每層 0.5% 最大生命的物理傷害（吃護甲，最多扣到剩 1）；換成等量的波動之力；keep＝保留的層數（宣洩的品質） */
+function volBoom(keep = 0) {
+  const n = stkN('vol');
+  if (!n) return;
+  stkClr('vol');
+  const d = hurtCalc((ST.hp * VOL.hurt * n) / 100, null, 'phys', 1).d || 0;
+  loseLife(Math.min(P.hp - 1, d), '波動');
+  gainStk('volPow', n);
+  fxs('dark', P.x, P.y, 50 + n * 2);
+  if (keep) gainStk('vol', keep), (P.volT = G.t);
+}
+function volTick() {
+  if (stkN('vol') && G.t - (P.volT || 0) >= VOL.boom) volBoom();
+}
 /* ---------- 無縛化身（0.2.61 K2，照 PoE2 的 Unbound Avatar） ---------- */
 /* 元素異常的快照：打中前後比較，新上的（或刷新的）才算 */
 const ailSnap = a => ({
@@ -1627,7 +1654,7 @@ function updSkills(dt) {
   updAllies(dt);
   updPools(dt);
   updUnits(dt);
-  if (fightOn()) mechTick(dt), autoTick(), ancTick();
+  if (fightOn()) mechTick(dt), autoTick(), ancTick(), volTick();
   if (G.scene === 'hide') hideTick();
 }
 /* 自動化（0.2.28）：冷卻好了、魔力夠、480 內看得到敵人就放；不佔玩家的出手（P.act），砲塔圖騰、圖騰放在敵人方向 */

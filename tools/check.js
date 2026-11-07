@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：149 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 149,
+    '品質：151 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 151,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3364,8 +3364,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '層數增益：十六列（含血怒、戰吼強化、雷霆落雷、傀儡大師、先祖強化）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 16 && !b.bad.length,
+    '層數增益：十八列（含血怒、戰吼強化、雷霆落雷、傀儡大師、先祖強化、波動）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 18 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(
@@ -4368,6 +4368,33 @@ vm.runInContext(
     JSON.stringify(k61) ===
       '{"rule":[true,false,true],"conv":["cold","light",1.25],"rec":[false,false],"after":true,"lose":[false,false],"undead":[1.25,3],"fury":[10,0,true],"furyOn":0,"arb":[true,false]}',
     JSON.stringify(k61)
+  );
+  /* 0.2.62 K3：波動（0.1 秒一次、最多 30、4 秒沒獲得就爆、傷到自己但不致死、換波動之力加混沌） */
+  const k62 = R(`(() => {
+    const keep = { stk: P.stk, hp: P.hp, volT: P.volT, t: G.t, st: G.state },
+      out = {};
+    P.stk = {}; P.volT = -9; G.state = 'play';
+    volGain(1); volGain(1); const n1 = stkN('vol');
+    for (let i = 0; i < 40; i++) (G.t += 0.11), volGain(1);
+    out.gain = [n1, stkN('vol')];
+    P.hp = ST.hp; G.t += 3.9; volTick(); const n2 = stkN('vol');
+    G.t += 0.2; volTick();
+    const lost = ST.hp - P.hp, raw = ST.hp * 0.005 * 30;
+    out.boom = [n2, stkN('vol'), lost > 0 && lost <= raw + 0.01, stkN('volPow')];
+    P.hp = 5; for (let i = 0; i < 30; i++) (G.t += 0.11), volGain(1); G.t += 4.1; volTick(); out.alive = P.hp >= 1;
+    const fb = gemCfg(mkGem('fireball', 1), 0), m = { D: Object.values(MOBS)[0], x: P.x + 40, y: P.y, r: 12, hp: 1e9, mhp: 1e9, arm: 0, ev: 0, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} };
+    P.stk = {}; const d0 = hitCalc(fb, m, { avg: 1 }).d; gainStk('volPow', 30); const d1 = hitCalc(fb, m, { avg: 1 }).d;
+    out.pow = d1 > d0;
+    /* 宣洩：10 層以上用這招就引爆 */
+    P.stk = {}; P.hp = ST.hp; for (let i = 0; i < 12; i++) (G.t += 0.11), volGain(1);
+    out.cath = [supOK(SKILLS.fireball, mkGem('cathar', 1)), stkN('vol')];
+    Object.assign(P, { stk: keep.stk, hp: keep.hp, volT: keep.volT }); G.t = keep.t; G.state = keep.st;
+    return out;
+  })()`);
+  ok(
+    'K3 波動：每 0.1 秒最多一層、最多 30 層；4 秒沒再獲得才爆，扣自己生命（吃護甲、不超過每層 0.5%）、不會被炸死，換 30 層波動之力、法術傷害變高',
+    JSON.stringify(k62) === '{"gain":[1,30],"boom":[30,0,true,30],"alive":true,"pow":true,"cath":[true,12]}',
+    JSON.stringify(k62)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',
