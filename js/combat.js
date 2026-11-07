@@ -170,7 +170,7 @@ const hitChance = (acc, ev) => Math.max(0.05, Math.min(1, (1.25 * acc) / (acc + 
 const mobEv = (lv, m) => 6 * lv * (m && m.boss ? 2.22 : m && m.elite ? 1.9 : 1.57);
 /* 玩家的攻擊打不打得中：法術、召喚物、場上單位、持續傷害一律命中；基石「堅定技巧」必中 */
 function hitRoll(m, c, o = {}) {
-  if (ST.noMiss || o.minion || o.unit || isSpell(c.D) || !m.ev) return true;
+  if (ST.noMiss || o.minion || o.unit || o.sure || isSpell(c.D) || !m.ev) return true;
   /* 受招架的敵人無法閃避攻擊；沉重暈眩的敵人無法閃避你的擊中（開關 hstunNoEv，易攻目標天賦版） */
   if (parryOn(m) || (ST.hstunNoEv && m.ail && m.ail.hstun > G.t)) return true;
   const ch = hitChance(
@@ -609,6 +609,8 @@ function hitCalc(c, m, o = {}) {
   if (P.buf && P.buf.unholy > G.t) pre.chaos += sum * 0.3;
   /* 風暴湧流：綁在武器上，只有攻擊吃得到 */
   if (tg.includes('attack')) pre.light += (sum * bufV('gainL')) / 100;
+  /* 波動之力（0.2.62）：攻擊、法術都吃 */
+  pre.chaos += (sum * bufV('gainC')) / 100;
   /* 3. 轉換：有屬性的攻擊技能把物理全部轉成那個屬性；再照天賦往後轉（物理→閃電→冰冷→火焰，每種最多轉 100%）
      轉過去的部分吃路上每一種屬性的提高（parts 的 ch） */
   let parts = DT.filter(k => pre[k]).map(k => ({ k, v: pre[k], ch: [k] }));
@@ -634,6 +636,9 @@ function hitCalc(c, m, o = {}) {
       p.v *= 1 - Math.min(100, tot) / 100;
     }
   }
+  /* 元素執政官：法術的元素傷害全部轉成那種元素（轉過去的部分吃路上每一種的提高） */
+  const ea = spell && elArch();
+  if (ea) for (const p of parts) if (ELEK.includes(p.k) && p.k !== ea) (p.k = ea), p.ch.push(ea);
   /* 4. 提高：同一池相加 */
   const near = m ? dist(P, m) : o.avg ? 200 : 999,
     common =
@@ -708,11 +713,13 @@ function hitCalc(c, m, o = {}) {
   if (spell && ST.boil && P.hf > ST.hfMax / 2) more *= 1 + ST.boil / 100;
   if (ST.perfMore && P.pfT > G.t) more *= 1 + ST.perfMore / 100;
   if (spell && o.trig && ST.hexCoc) more *= 1 + ST.hexCoc / 100;
-  const reb = ST.reborn && P.rebT > G.t;
+  const reb = ST.reborn && P.rebT > G.t,
+    ub = hasBuff('unboundAv') && !o.minion && !o.unit;
   for (const k of DT) pre[k] = 0;
   for (const p of parts) {
     let mk = more;
-    if (spell && ELEK.includes(p.k) && P.buf && P.buf.archon > G.t) mk *= 1.25;
+    if (spell && ELEK.includes(p.k) && ea) mk *= 1.25;
+    if (ELEK.includes(p.k) && ub) mk *= 1.4;
     if (ST.avatar && (p.k === 'cold' || p.k === 'light')) mk *= 0.7;
     if (sac && p.k === 'phys') mk *= 1.15;
     if (reb && p.k === 'fire') mk *= 1 + ST.reborn / 100;
@@ -929,7 +936,12 @@ function applyAil(m, r, c, use) {
     thrL = thr * ailLow(m, 'light'),
     p = r.pre,
     po = r.post,
-    archon = P.buf && P.buf.archon > G.t,
+    sp = isSpell(c.D),
+    /* 無縛：元素異常機率更多 80%、冰凍累積更多 40%；執政官只給法術 */
+    ub = hasBuff('unboundAv') ? 1.8 : 1,
+    fA = sp && hasBuff('fArchon') ? 2 : 1,
+    iA = sp && hasBuff('iArchon') ? 100 : 0,
+    lA = sp && hasBuff('lArchon') ? 2 : 1,
     mk = a.mark && a.mark.k,
     mag = 1 + (ST.ailMag + (c.ailMag || 0)) / 100,
     ignM = mag + ST.ignMag / 100,
@@ -944,7 +956,7 @@ function applyAil(m, r, c, use) {
   if (c.drench) drench(m, dbT(c.drench, DEBUFF.wetT));
   const igB = ailBase(p, 'ign');
   if (igB > 0) {
-    flamAdd(a, (igB / thrF) * 20 * (archon ? 2 : 1) * (1 + ST.flamP / 100));
+    flamAdd(a, (igB / thrF) * 20 * ub * fA * (1 + ST.flamP / 100));
     if (roll(a.flam) && !noAil(a, 'ign'))
       (a.ign = igniteOn(
         m,
@@ -953,22 +965,26 @@ function applyAil(m, r, c, use) {
         c,
         use
       )),
-        (a.flam = 0);
+        (a.flam = 0),
+        /* 仲裁點燃（0.2.61）：火焰法術點燃時獲得火焰執政官 */
+        c.arbiter && sp && gainArchon('fArchon');
   }
   /* 冰緩：效果看傷害÷門檻，低於 30% 不生效，最高 50%；8 秒 */
   if (p.cold > 0) {
     const v = Math.min(50, ((p.cold / thrC) * 100 + 0) * (mag + ST.chillMag / 100)) * rr;
     if (v >= 30 * rr && (!a.chill || a.chill.t <= G.t || v >= a.chill.v)) a.chill = { v, t: G.t + 8 };
     /* 冰凍累積（穩固值）；印記、化身都是累積提高 */
-    poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + (archon ? 100 : 0));
+    if (!c.noFrz) poiseAdd(m, 'frz', po.cold, ST.frzP + (mk === 'freeze' ? 50 : 0) + iA + (ub > 1 ? 40 : 0));
   }
   /* 感電：每 4% 門檻 +1% 機率（化身 ×2、閃電箭更多），受到的傷害提高 20%、8 秒 */
   if (
     p.light > 0 &&
+    !c.noShock &&
     !noAil(a, 'shock') &&
     roll(
       (((p.light / thrL) * 100) / 4) *
-        (archon ? 2 : 1) *
+        ub *
+        lA *
         (1 + ST.shockCh / 100) *
         (1 + (c.shockMore || 0) / 100) *
         (a.wet > G.t ? 1 + DEBUFF.wetShock / 100 : 1)
@@ -1256,11 +1272,16 @@ const BUFF = {
   onslaught: { n: '猛攻', ic: 'sk_hasteaura', d: '技能速度 +20%、移動速度 +10%' },
   arcane: { n: '秘能波動', ic: 'sk_clarity', d: '施法速度 +15%、魔力回復更多 20%' },
   unholy: { n: '不潔之力', ic: 'sk_despair', d: '多造成全部傷害 30% 的混沌傷害' },
-  archon: {
-    n: '元素化身',
-    ic: 'sk_elemweak',
-    d: '法術的元素傷害更多 25%、冰凍累積 +100%、易燃 +100%、感電機率 +100%'
+  /* 0.2.61 K2：無縛（無縛化身精魂寶石，skills.js 的 furyGain）與四種執政官（gainArchon；10 秒、有一種時不能再獲得、結束後 20 秒恢復期） */
+  unboundAv: { n: '無縛', ic: 'sk_elemweak', d: '元素傷害更多 40%、元素異常機率更多 80%、冰凍累積更多 40%' },
+  fArchon: {
+    n: '火焰執政官',
+    ic: 'sk_phoenix',
+    d: '法術的元素傷害更多 25%、全部轉成火焰，法術點燃機率更多 100%；用非瞬發的攻擊會失去'
   },
+  iArchon: { n: '冰霜執政官', ic: 'sk_glacier', d: '法術的元素傷害更多 25%、全部轉成冰冷，法術冰凍累積更多 100%' },
+  lArchon: { n: '閃電執政官', ic: 'sk_ballight', d: '法術的元素傷害更多 25%、全部轉成閃電，法術感電機率更多 100%' },
+  uArchon: { n: '亡靈執政官', ic: 'sk_skeleton', d: '召喚物傷害更多 25%、命令技能冷卻恢復 +200%' },
   /* 迷蹤（第 13～16 批，原「相位」）：玩家本來就不會被怪物擋住（moveBody 只推牆與擺設），之後加身體碰撞要讀 hasBuff('phasing') */
   phasing: { n: '迷蹤', ic: 'sk_hasteaura', d: '可以穿過敵人' },
   finality: {
@@ -1336,6 +1357,32 @@ const BUFF = {
     every: 5,
     on: dynChg
   },
+  /* 0.2.55 F1：戰吼的強化攻擊（skills.js 的 cryEmpower／empUse），一層＝一下；數值在出手時算，不走 st */
+  emInf: { n: '狂暴強化', ic: 'sk_warcry', d: '接下來的近戰攻擊傷害更多，每次出手用掉 1 層', max: 5, t: 8 },
+  emSeis: { n: '震地強化', ic: 'sk_battlecry', d: '接下來的重擊在原地多一次餘震，每次出手用掉 1 層', max: 5, t: 8 },
+  /* 0.2.62 K3：波動（層數由 skills.js 的 volGain 管，4 秒沒獲得就 volBoom）與爆完的波動之力 */
+  vol: {
+    n: '波動',
+    ic: 'sup_sp_boom',
+    d: '4 秒沒有再獲得就爆開：每層受到 0.5% 最大生命的物理傷害，然後換成波動之力',
+    max: 30
+  },
+  volPow: { n: '波動之力', ic: 'sk_voidrift', d: '每層多造成 1% 的混沌傷害，10 秒', max: 30, t: 10, st: { gainC: 1 } },
+  /* 0.2.60 K1：先祖強化好了（skills.js 的 ancTick 給、empUse 用掉），沒有到期 */
+  ancF: { n: '戰爭之拳', ic: 'sup_sp_brutal', d: '下一次重擊被先祖強化：傷害更多 30%、範圍更大 25%', max: 1 },
+  ancC: { n: '先祖呼喚', ic: 'sup_sp_combo', d: '下一次打擊被先祖強化：多打 2 個敵人', max: 1 },
+  /* 0.2.58 J1：傀儡大師（照 PoE2），用命令技能時獲得；鍵：cmdSpd 命令技能速度、cmdMv 施放移動懲罰減少、cmdDmg 召喚物命令傷害、allyMs／allySs 召喚物移動與技能速度 */
+  puppet: {
+    n: '傀儡大師',
+    ic: 'sk_possession',
+    d: '每層命令技能速度 +10%、移動懲罰 −10%，召喚物執行命令的傷害 +10%、移動速度 +2%、技能速度 +3%；每層各 8 秒',
+    max: 5,
+    t: 8,
+    own: 1,
+    st: { cmdSpd: 10, cmdMv: 10, cmdDmg: 10, allyMs: 2, allySs: 3 }
+  },
+  /* 0.2.56 F2：雷霆捷光環的落雷（skills.js 的 heraldHit），一層＝一下 */
+  herT: { n: '雷霆落雷', ic: 'sk_staticfield', d: '接下來的攻擊擊中會落雷，每下用掉 1 層', max: 3, t: 8 },
   chalice: {
     n: '滿溢聖杯',
     ic: 'sk_vitality',
@@ -1349,6 +1396,27 @@ function gainBuff(k, t) {
 }
 /* 讀檔時角色（P）還沒建立：當作沒有 buff */
 const hasBuff = k => !!(P && P.buf && P.buf[k] > G.t);
+/* 執政官（0.2.61 K2，照 PoE2）：持續 10 秒；有任何一種時不能再獲得；結束（或提早失去）後 20 秒恢復期 */
+const ARCHONS = { fArchon: 'fire', iArchon: 'cold', lArchon: 'light', uArchon: null },
+  ARCH_T = 10,
+  ARCH_REC = 20;
+const archOn = () => Object.keys(ARCHONS).find(hasBuff);
+/* 現在生效的元素執政官轉成哪種元素（沒有就 null） */
+const elArch = () => {
+  const k = archOn();
+  return k ? ARCHONS[k] : null;
+};
+function gainArchon(k) {
+  if (archOn() || G.t < (P.archEnd == null ? -1e9 : P.archEnd + ARCH_REC)) return false;
+  gainBuff(k, ARCH_T);
+  P.archEnd = G.t + ARCH_T;
+  return true;
+}
+function loseArchon(k) {
+  if (!hasBuff(k)) return;
+  P.buf[k] = G.t;
+  P.archEnd = G.t;
+}
 /* 還沒到期的層（到期時間）；stats() 會讀，所以也要防 P 還沒建立 */
 const stkL = k => ((P && P.stk && P.stk[k]) || []).filter(t => t > G.t),
   stkN = k => stkL(k).length,
@@ -2033,6 +2101,7 @@ const STATE = {
   sap: ['殘喘', 'sk_arc', '造成的傷害降低'],
   exp: ['曝曬', 'sk_elemweak', '元素抗性降低'],
   rage: ['盛怒', 'sk_anger', '攻擊傷害更多'],
+  fury: ['無縛之怒', 'sk_summongod', '元素異常打中時累積，滿 100 進入無縛'],
   ad_fire: ['火焰適應', 'sup_sp_gfire', '每層受到的火焰傷害少 10%；離開地圖清掉'],
   ad_cold: ['冰冷適應', 'sup_sp_gcold', '每層受到的冰冷傷害少 10%；離開地圖清掉'],
   ad_light: ['閃電適應', 'sup_sp_glight', '每層受到的閃電傷害少 10%；離開地圖清掉'],
@@ -2177,6 +2246,7 @@ function playerStates() {
   for (const k of ['frostMark', 'voltMark']) add(k, P.buf && P.buf[k]);
   for (const k of ['e', 'f', 'p']) if (chgN(k)) add('chg_' + k, P.chg[k].t, { c: chgN(k) });
   if (P.rage > 0) add('rage', null, { c: Math.ceil(P.rage) });
+  if (ST.unbAv && P.fury > 0) add('fury', null, { c: P.fury });
   add('counter', P.counterT);
   /* 封印（擴張輔助）：顯示累積最多的那一招有幾個 */
   const sealMax = Math.max(0, ...Object.values(P.seal || {}).map(x => x.n));

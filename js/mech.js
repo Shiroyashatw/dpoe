@@ -77,6 +77,8 @@ const GROUND = {
     on: a => noAil(a, 'chill') || (a.chill = { v: 30, t: G.t + 0.5 })
   },
   blades: { n: '劍陣', col: '#e8e2d6' },
+  /* 0.2.55：震地戰吼強化的重擊，原地 0.4 秒後的餘震（skills.js 的 empUse） */
+  aftershock: { n: '餘震', col: '#b08a5a' },
   cons: {
     n: '奉獻地面',
     col: '#ffe08a',
@@ -283,8 +285,17 @@ function takeCorpse(x, y, r) {
     if (c.t > G.t && d < bd) (bd = d), (best = c);
   }
   if (best) G.corpses.splice(G.corpses.indexOf(best), 1);
+  else if ((best = offerAlly(x, y, r))) {
+    /* 獻祭：用掉的召喚物當場死亡、照復甦規則回來；給的「屍體」是牠自己（ally：品質的不消耗不會把牠變成真的屍體） */
+    allyDie(best, 1);
+    fxs('dark', best.x, best.y, 40);
+    best = { x: best.x, y: best.y, sz: 20, mhp: best.mhp, ally: 1 };
+  }
   return best;
 }
+/* 獻祭（0.2.59 J2，天賦開關 ST.offering，第 4 層填）：附近沒有屍體時，可以用一隻復甦召喚物（不會自己消失、還活著的）代替 */
+const offerAlly = (x, y, r) =>
+  ST.offering ? G.allies.find(w => !w.t && !(w.dead > G.t) && Math.hypot(w.x - x, w.y - y) < r) : null;
 
 /* ---------- 6. 連擊與段數 ---------- */
 const COMBO_MAX = 10;
@@ -524,7 +535,8 @@ const MIRAGE_NO = new Set([
   'refract',
   'swordarray',
   'furyslam',
-  'chargeslam'
+  'chargeslam',
+  'seiscry'
 ]);
 function mirageGem() {
   const gs = S.skills

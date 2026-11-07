@@ -1051,6 +1051,9 @@ body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
 .gx-d i { font-style: normal; }
 .gx-txt { margin: 6px 0 0; font-size: var(--fs-s); line-height: 1.45; color: var(--dim); }
 .gx-txt.c-bad { color: var(--bad); } .gx-txt.c-warn { color: var(--warn); }
+/* 0.2.57：光環寶石的孔（光環卡放不下，畫在檢視區） */
+.gx-al { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin-top: 8px; }
+.gx-al > small { font-size: 11px; color: var(--dim); white-space: nowrap; }
 .gx-acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
 .gx-b { display: grid; gap: 0; padding: 4px; min-height: 44px; font-size: var(--fs-s); line-height: 1.25; }
 .gx-sub { display: flex; gap: 6px; margin-top: 6px; }

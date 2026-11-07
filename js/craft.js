@@ -343,7 +343,7 @@ function gemQUp(g, all) {
 }
 function drillCheck(g) {
   const so = g.so || 0;
-  if (!SKILLS[g.gem]) return { why: '只有技能寶石能開孔' };
+  if (!SKILLS[g.gem] && !AURAS[g.gem]) return { why: '只有技能與光環寶石能開孔' };
   if (so >= GEM_SO_MAX) return { why: '已經 5 孔' };
   const k = Math.max(0, so - 2),
     [m, n] = DRILL[k];

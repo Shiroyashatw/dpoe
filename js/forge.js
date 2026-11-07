@@ -131,7 +131,7 @@ document.addEventListener('click', e => {
     err = temperDo(it, v === 'all' ? null : +v);
     if (!err) (CRAFT.log = `淬鍊完成 · 完美度 ${Math.round(perfection(it) * 100)}%`), sfx('coin');
   } else if (k === 'dri') {
-    const a = S.skills[+v].a;
+    const a = v === 'A' ? S.auras[+x] : S.skills[+v].a;
     if (a) err = drillDo(a);
     if (!err) sfx('equip');
   }

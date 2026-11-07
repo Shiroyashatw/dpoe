@@ -954,8 +954,8 @@ vm.runInContext(
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：136 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 136,
+    '品質：151 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 151,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3364,8 +3364,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '層數增益：十列（含血怒）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 10 && !b.bad.length,
+    '層數增益：十八列（含血怒、戰吼強化、雷霆落雷、傀儡大師、先祖強化、波動）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 18 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(
@@ -4110,6 +4110,291 @@ vm.runInContext(
     JSON.stringify(e54) ===
       '{"cap":[1.2,1,true],"stage":[[0,0,true],[0,1,true],[0,3,true]],"dmg":[2,4],"ground":[0,0,1],"cancel":[true,true],"sup":[false,false,true],"tags":true}',
     JSON.stringify(e54)
+  );
+  /* 0.2.55 F1：戰吼的強化攻擊（強度每 10 點 1 下、最多 5 下、8 秒）、出手扣 1、震地的餘震、跳過冷卻 */
+  const f55 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = o => ({ D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, ground: G.ground, stk: P.stk, chg: P.chg, rage: P.rage, t: G.t },
+      act = (k, lv = 5) => ({ k, c: gemCfg(mkGem(k, lv), 0), t: 0, dur: 0.5, ang: 0, hits: [0], n: 0, tx: P.x + 40, ty: P.y }),
+      out = {};
+    if (typeof shake === 'undefined') globalThis.shake = () => {};
+    const str = ms => { G.mobs = ms; P.stk = {}; return cryEmpower(250, 'emInf'); };
+    out.str = [str([mk()]), str([mk({ elite: 1 })]), str([mk({ boss: 1 })]), str(Array.from({ length: 60 }, () => mk()))];
+    /* 狂暴戰吼：強化近戰，每下更多 30%＋每級 1%；戰吼自己、法術不扣；8 秒到期 */
+    G.mobs = [mk({ elite: 1 })]; P.stk = {};
+    actHit(act('warcry'), 0);
+    const a1 = act('cleave'), a2 = act('cleave'), w = act('warcry'), sp = act('fireball');
+    empUse(w); empUse(sp); const n1 = stkN('emInf');
+    empUse(a1); empUse(a2);
+    out.inf = [n1, Math.round(a1.c.more / a2.c.more * 100), stkN('emInf')];
+    gainStk('emInf', 2); G.t += 8.01; out.exp = stkN('emInf');
+    /* 震地戰吼：打周圍、強化重擊；強化的重擊結束後原地餘震 ×0.5 */
+    const m = mk({ elite: 1 }); G.mobs = [m]; G.ground = []; P.stk = {};
+    actHit(act('seiscry'), 0);
+    out.seis = [stkN('emSeis'), m.hp < 1e9];
+    const q = act('quake'); empUse(q); actHit(q, 0); aftershock(q);
+    const g = G.ground.find(o => o.k === 'aftershock');
+    const hp0 = m.hp; for (let i = 0; i < 10; i++) G.t += 0.05, groundTick(0.05);
+    out.after = [q.emS, stkN('emSeis'), !!g && g.after, m.hp < hp0, G.ground.some(o => o.k === 'aftershock')];
+    /* 跳過冷卻：激怒戰吼先花 10 盛怒，否則 1 顆耐力球；不是戰吼、都沒有就不行 */
+    P.chg = {}; P.rage = 0;
+    const wc = act('warcry').c, rg = mkGem('warcry', 5); rg.sup = [mkGem('ragecry', 1), null];
+    const rc = gemCfg(rg, 0);
+    out.skip0 = [cdSkip(wc), cdSkip(act('cleave').c)];
+    gainChg('e', 2); cdSkip(wc)(); out.skipE = chgN('e');
+    P.rage = 15; cdSkip(rc)(); out.skipR = [P.rage, chgN('e')];
+    P.rage = 5; cdSkip(rc)(); out.skipR2 = [P.rage, chgN('e')];
+    Object.assign(G, { mobs: keep.mobs, ground: keep.ground, t: keep.t });
+    Object.assign(P, { stk: keep.stk, chg: keep.chg, rage: keep.rage });
+    return out;
+  })()`);
+  ok(
+    'F1 戰吼：強度每 10 點強化 1 下（普通 1、精英 10、王 20、最多 5）、8 秒；狂暴戰吼強化近戰更多 34%（5 級）、出手扣 1、戰吼與法術不扣；震地戰吼打周圍、強化重擊原地餘震 ×0.5；冷卻中先花 10 盛怒再花耐力球',
+    JSON.stringify(f55) ===
+      '{"str":[0,1,2,5],"inf":[1,134,0],"exp":0,"seis":[1,true],"after":[1,0,0.5,true,false],"skip0":[null,null],"skipE":1,"skipR":[5,1],"skipR2":[5,0]}',
+    JSON.stringify(f55)
+  );
+  /* 0.2.56 F2：捷光環（攻擊擊殺觸發、要拿非法系武器、彼此觸發但不觸發自己） */
+  const f56 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (dx, o) => ({ D, x: P.x + 40 + dx, y: P.y, r: 12, sz: 20, hp: 100, mhp: 100, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, stk: P.stk, eq: { ...S.eq }, au: S.auras, st: ST },
+      atk = gemCfg(mkGem('cleave', 5), 0),
+      spl = gemCfg(mkGem('fireball', 5), 0),
+      big = 1e6,
+      out = {};
+    /* 拿錘：三顆都生效、記等級；拿法杖：不生效、不預留精魂 */
+    const wb = k => BASES.find(b => b.k === 'weapon' && b.wt === k);
+    S.auras = [mkGem('h_ash', 1), mkGem('h_ice', 1), mkGem('h_thunder', 1)];
+    S.eq.weapon = mkItem(wb('mace').id, 16, 0); S.eq.off = null; ST = stats();
+    S.eq.weapon = mkItem(wb('wand').id, 16, 0); const sw = stats();
+    S.eq.weapon = mkItem(wb('mace').id, 16, 0); ST = stats();
+    out.on = [ST.auraOn.filter(k => AURAS[k].her).length, JSON.stringify(ST.her), sw.auraOn.filter(k => AURAS[k].her).length];
+    ST.her = { ash: 1, ice: 1, thunder: 1 };
+    ST.herA = { ash: 1, ice: 1, thunder: 1 };
+    ST.herM = { ash: 1, ice: 1, thunder: 1 };
+    const kill = (m, c) => hitMob(m, c, 0, 0, { mult: big, quiet: 1 });
+    /* 灰燼：溢殺超過 20% 點燃 72 內的、遠的不點；法術擊殺不算 */
+    let A = mk(0), B = mk(30), Far = mk(200); G.mobs = [A, B, Far]; P.stk = {};
+    kill(A, atk); out.ash = [!!(B.ail.ign && B.ail.ign.t > G.t), !Far.ail.ign];
+    A = mk(0); B = mk(30); G.mobs = [A, B]; kill(A, spl); out.ashSpell = !B.ail.ign;
+    /* 寒冰：冰凍的被攻擊打死冰爆，96 內受冰冷傷害、不會被冰凍 */
+    A = mk(0, { ail: { frozen: G.t + 5 } }); B = mk(60, { hp: 1e9, mhp: 1e9 }); G.mobs = [A, B];
+    kill(A, atk); out.ice = [B.hp < 1e9, !(B.ail.frz > 0)];
+    /* 雷霆：打死感電的給 3 下；接下來每次擊中落雷用掉 1 下 */
+    A = mk(0, { ail: { shock: G.t + 5 } }); B = mk(0, { hp: 1e9, mhp: 1e9 }); const C = mk(40, { hp: 1e9, mhp: 1e9 }); G.mobs = [A, B, C];
+    kill(A, atk); const n0 = stkN('herT');
+    const hc = C.hp; hitMob(B, atk, 0, 0, { quiet: 1 }); out.thunder = [n0, stkN('herT'), C.hp < hc, !(C.ail.shock > G.t)];
+    hitMob(B, spl, 0, 0, { quiet: 1 }); out.thSpell = stkN('herT');
+    /* 互相觸發：雷霆落雷打死冰凍的敵人 → 冰爆；寒冰的冰爆不觸發寒冰 */
+    P.stk = {}; gainStk('herT', 3);
+    A = mk(0, { hp: 1e9, mhp: 1e9 }); const F = mk(20, { hp: 1, mhp: 1e9, ail: { frozen: G.t + 5 } }), E = mk(90, { hp: 1e9, mhp: 1e9 });
+    G.mobs = [A, F, E]; const he = E.hp;
+    hitMob(A, atk, 0, 0, { quiet: 1 }); out.chain = [F.hp <= 0, E.hp < he];
+    Object.assign(G, { mobs: keep.mobs }); Object.assign(S, { eq: keep.eq, auras: keep.au }); P.stk = keep.stk; ST = stats();
+    return out;
+  })()`);
+  ok(
+    'F2 捷光環：拿錘生效（精魂 30 只開得了第一顆）、拿法杖不生效；灰燼溢殺點燃 72 內、法術擊殺不算；寒冰冰爆不冰凍；雷霆打死感電給 3 下、每下落雷用 1 下、不感電、法術不扣；雷霆落雷打死冰凍的會冰爆',
+    JSON.stringify(f56) ===
+      '{"on":[1,"{\\"ash\\":1}",0],"ash":[true,true],"ashSpell":true,"ice":[true,true],"thunder":[3,2,true,true],"thSpell":2,"chain":[true,true]}',
+    JSON.stringify(f56)
+  );
+  /* 0.2.57 F3：光環寶石的孔與輔助（相容只看接上效果的、效果、精魂、捷光環範圍、群狼） */
+  const f57 = R(`(() => {
+    const keep = { eq: { ...S.eq }, au: S.auras, st: ST },
+      sp = k => mkGem(k, 1),
+      ok = (a, k) => supOK(AURAS[a], sp(k), mkGem(a, 1)),
+      with1 = (a, k, lv = 1) => { const g = mkGem(a, 1); g.sup = [k ? mkGem(k, lv) : null, null]; return g; },
+      out = {};
+    out.so = [mkGem('anger', 1).so, mkGem('h_ice', 1).sup.length, !drillCheck(mkGem('anger', 1)).why || drillCheck(mkGem('anger', 1)).why.includes('不夠')];
+    out.ok = [ok('anger', 'auraeff'), ok('h_ash', 'auraeff'), ok('h_ash', 'spiriteff'), ok('anger', 'area'), ok('h_ash', 'area'), ok('h_ash', 'area2'), ok('h_ash', 'focus'), ok('anger', 'fury'), ok('wolfsp', 'pack'), ok('golem', 'pack'), ok('wolfsp', 'giant'), supOK(SKILLS.cleave, sp('area'))];
+    S.eq.weapon = mkItem(BASES.find(b => b.k === 'weapon' && b.wt === 'mace').id, 16, 0); S.eq.off = null;
+    const st = gs => ((S.auras = gs), stats());
+    const a0 = st([with1('anger')]), a1 = st([with1('anger', 'auraeff', 6)]), a2 = st([with1('anger', 'spiriteff')]);
+    out.eff = [Math.round((a1.angerV / a0.angerV) * 100), a0.spiritUsed, a2.spiritUsed];
+    const h1 = st([with1('h_ash', 'area')]), h2 = st([with1('h_ash', 'focus')]);
+    out.her = [h1.herA.ash, h1.herM.ash, h2.herA.ash, h2.herM.ash];
+    /* 戰狼精魂要 40 精魂（起始 30 開不了），用魔像驗群狼的倍率 */
+    const w1 = st([with1('golem', 'pack')]), w0 = st([with1('golem')]);
+    out.wolf = [w0.auraGolem, w1.packM_golem, !!w0.packM_golem];
+    Object.assign(S, { eq: keep.eq, auras: keep.au }); ST = stats();
+    return out;
+  })()`);
+  ok(
+    'F3 光環的孔：光環寶石 2 孔、可以開孔；只有接上效果的輔助相容（光環效果只給有數值的光環、範圍與集中給捷光環、群狼給召喚，狂暴與極大不相容）；效果 +30%（6 級）、精魂 30→24、捷光環範圍 ×1.4／集中 ×0.7 更多 30%、群狼讓魔像更多 30%',
+    JSON.stringify(f57) ===
+      '{"so":[2,2,true],"ok":[true,false,true,false,true,true,true,false,true,true,false,true],"eff":[130,30,24],"her":[1.4,1,0.7,1.3],"wolf":[1,1.3,false]}',
+    JSON.stringify(f57)
+  );
+  /* 0.2.58 J1：命令技能（要有召喚物、狼撲咬流血、魔像暈眩嘲諷）、傀儡大師（命令技能速度、移動懲罰） */
+  const j58 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (dx, o) => ({ D, x: P.x + dx, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { mobs: G.mobs, allies: G.allies, stk: P.stk },
+      act = k => ({ k, c: gemCfg(mkGem(k, 1), 0), t: 0, dur: 0.3, ang: 0, hits: [0], n: 0, tx: P.x + 200, ty: P.y }),
+      out = {};
+    if (typeof shake === 'undefined') globalThis.shake = () => {};
+    G.allies = []; P.stk = {};
+    out.why = [skillWhy(act('cmd_wolf').c, P), skillWhy(act('cmd_golem').c, P)];
+    const wolf = { src: 'aura', x: P.x, y: P.y, r: 14, hp: 100, mhp: 100, c: null },
+      gol = { src: 'golem', x: P.x + 300, y: P.y, r: 14, hp: 100, mhp: 100, c: null };
+    G.allies = [wolf, gol];
+    out.why2 = [skillWhy(act('cmd_wolf').c, P), skillWhy(act('cmd_golem').c, P)];
+    const t = mk(200), g1 = mk(330), g2 = mk(600), boss = mk(280, { boss: 1 });
+    G.mobs = [t, g1, g2, boss];
+    actHit(act('cmd_wolf'), 0);
+    out.wolf = [t.hp < 1e9, !!(t.ail.bleed && t.ail.bleed.t > G.t), Math.round(dist(wolf, t))];
+    actHit(act('cmd_golem'), 0);
+    out.golem = [g1.hp < 1e9, g1.stun >= 1, g1.ail.tauntBy === gol, g2.hp === 1e9, !(boss.stun >= 1), boss.ail.tauntBy === gol];
+    /* 傀儡大師 5 層：命令技能出手時間 ÷1.5、移動懲罰 −50%；其他技能不變 */
+    const c = act('cmd_golem').c, o = act('cleave').c, d0 = [actDur(c), actDur(o)];
+    gainStk('puppet', 5);
+    out.puppet = [stkN('puppet'), +(d0[0] / actDur(c)).toFixed(2), +(d0[1] / actDur(o)).toFixed(2), +castMove(c).toFixed(3), castMove(o)];
+    Object.assign(G, { mobs: keep.mobs, allies: keep.allies }); P.stk = keep.stk;
+    return out;
+  })()`);
+  ok(
+    'J1 命令技能：沒有召喚物按不出來；圍獵讓狼撲到目標身邊咬、必定流血；震地怒吼打魔像周圍 150、暈眩（王不會）、嘲諷；傀儡大師 5 層命令技能快 1.5 倍、移動懲罰 −50%，其他技能不變',
+    JSON.stringify(j58) ===
+      '{"why":["要有戰狼精魂的狼","要有召喚魔像"],"why2":["",""],"wolf":[true,true,28],"golem":[true,true,true,true,true,true],"puppet":[5,1.5,1,0.675,0.35]}',
+    JSON.stringify(j58)
+  );
+  /* 0.2.59 J2：獻祭（天賦開關 ST.offering）：沒有屍體時用復甦召喚物代替，那隻死掉、復甦慢 50%；紙人（會消失的）不算 */
+  const j59 = R(`(() => {
+    const keep = { allies: G.allies, corpses: G.corpses, off: ST.offering },
+      doll = { src: 'doll', x: P.x + 10, y: P.y, r: 14, hp: 50, mhp: 50, t: G.t + 10 },
+      wolf = { src: 'gem', x: P.x + 60, y: P.y, r: 14, hp: 80, mhp: 80, t: 0 },
+      out = {};
+    G.corpses = []; G.allies = [doll, wolf];
+    ST.offering = 0; out.off = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
+    ST.offering = 1; out.near = corpseNear(P, 250);
+    const cp = takeCorpse(P.x, P.y, 250);
+    out.take = [!!cp && cp.ally, cp && cp.mhp, wolf.dead > G.t, +(wolf.dead - G.t).toFixed(2), doll.dead == null, G.corpses.length];
+    out.again = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
+    Object.assign(G, { allies: keep.allies, corpses: keep.corpses }); ST.offering = keep.off;
+    return out;
+  })()`);
+  ok(
+    'J2 獻祭：關著時沒有屍體就是沒有；開著時用復甦召喚物代替（那隻死掉、復甦 7.5→11.25 秒），會消失的紙人不算、不會變出真的屍體',
+    JSON.stringify(j59) === '{"off":[false,null],"near":true,"take":[1,80,true,11.25,true,0],"again":[false,null]}',
+    JSON.stringify(j59)
+  );
+  /* 0.2.60 J3：夥伴同時只能有 1 隻（光環欄排前面的生效，後面的不預留精魂） */
+  const j60 = R(`(() => {
+    const keep = S.auras;
+    S.auras = [mkGem('golem', 1), mkGem('wolfsp', 1), null];
+    const a = stats();
+    S.auras = [mkGem('wolfsp', 1), mkGem('golem', 1), null];
+    const b = stats();
+    S.auras = keep;
+    return [a.auraOn.join(), !!a.auraGolem, !!a.auraWolf, a.spiritUsed, b.auraOn.join()];
+  })()`);
+  ok(
+    'J3 夥伴：魔像與戰狼精魂同時放，只有排前面的生效、後面的不預留精魂（戰狼精魂 40 精魂開不了時，後面的魔像照樣生效）',
+    JSON.stringify(j60) === '["golem",true,false,30,"golem"]',
+    JSON.stringify(j60)
+  );
+  /* 0.2.60 K1：先祖強化（戰爭之拳：重擊每 6 秒更多 30%、範圍 +25%；先祖呼喚：打擊每 5 秒多打 2 隻、不重複） */
+  const k60 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      mk = (dx, o) => ({ D, x: P.x + dx, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
+      keep = { sk: S.skills.map(x => x.a), stk: P.stk, ancT: P.ancT, mobs: G.mobs, t: G.t },
+      gem = (k, sp) => { const g = mkGem(k, 1); g.sup = [sp ? mkGem(sp, 1) : null, null]; return g; },
+      act = g => ({ k: g.gem, c: gemCfg(g, 0), t: 0, dur: 0.5, ang: 0, hits: [0], n: 1, tx: P.x + 40, ty: P.y }),
+      out = {};
+    P.stk = {}; P.ancT = {};
+    S.skills.forEach(x => (x.a = null));
+    ancTick(); out.none = stkN('ancF');
+    const lg = gem('leap', 'fistwar'); S.skills[0].a = lg;
+    ancTick(); out.ready = stkN('ancF');
+    const a1 = act(lg), base = act(gem('leap'));
+    empUse(a1);
+    out.fist = [+(a1.c.more / base.c.more).toFixed(2), +(a1.c.aoe / base.c.aoe).toFixed(2), stkN('ancF')];
+    ancTick(); const n1 = stkN('ancF'); G.t += 6.01; ancTick(); out.cd = [n1, stkN('ancF')];
+    const a2 = act(lg); empUse(a2); const a3 = act(lg); empUse(a3); out.once = [+(a2.c.more / base.c.more).toFixed(2), +(a3.c.more / base.c.more).toFixed(2)];
+    /* 打擊：第一隻身邊 150 內最近的 2 隻多挨一下，同一段出手不再被原本的範圍重複打 */
+    const sg = gem('slash', 'ancall'); S.skills[0].a = sg; ancTick();
+    const a4 = act(sg); empUse(a4);
+    const m1 = mk(40), m2 = mk(80), m3 = mk(120), m4 = mk(500); G.mobs = [m1, m2, m3, m4];
+    hitMob(m1, a4.c, 0, 0, { a: a4, quiet: 1 });
+    const hp2 = m2.hp; hitMob(m2, a4.c, 0, 0, { a: a4, quiet: 1 });
+    out.call = [m2.hp < 1e9, m3.hp < 1e9, m4.hp === 1e9, m2.hp === hp2];
+    S.skills.forEach((x, i) => (x.a = keep.sk[i]));
+    Object.assign(P, { stk: keep.stk, ancT: keep.ancT }); Object.assign(G, { mobs: keep.mobs, t: keep.t });
+    return out;
+  })()`);
+  ok(
+    'K1 先祖強化：沒插輔助不亮；戰爭之拳亮了下一次重擊更多 30%、範圍 ×1.25，用掉 6 秒後再亮、只吃一次；先祖呼喚讓打擊多打附近 2 隻、同一段不重複打',
+    JSON.stringify(k60) ===
+      '{"none":0,"ready":1,"fist":[1.3,1.25,0],"cd":[0,1],"once":[1.3,1],"call":[true,true,true,true]}',
+    JSON.stringify(k60)
+  );
+  /* 0.2.61 K2：執政官（10 秒、互斥、20 秒恢復期、法術元素轉換＋更多 25%、亡靈）、無縛化身（怒 → 無縛）、仲裁點燃 */
+  const k61 = R(`(() => {
+    const D = Object.values(MOBS)[0],
+      m = { D, x: P.x + 40, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} },
+      keep = { buf: P.buf, end: P.archEnd, t: G.t, fury: P.fury, furyT: P.furyT, ub: ST.unbAv },
+      fb = gemCfg(mkGem('frostbolt', 1), 0),
+      out = {};
+    P.buf = {}; P.archEnd = null;
+    /* avg：期望值，回傳 d 與最大的元素 el */
+    const sum = r => r.d,
+      el = r => r.el;
+    const r0 = hitCalc(fb, m, { avg: 1 });
+    out.rule = [gainArchon('lArchon'), gainArchon('iArchon'), hasBuff('lArchon')];
+    const r1 = hitCalc(fb, m, { avg: 1 });
+    out.conv = [el(r0), el(r1), +(sum(r1) / sum(r0)).toFixed(2)];
+    G.t += 10.01; out.rec = [hasBuff('lArchon'), gainArchon('fArchon')];
+    G.t += 20; out.after = gainArchon('fArchon');
+    loseArchon('fArchon'); out.lose = [hasBuff('fArchon'), gainArchon('uArchon')];
+    G.t += 20.01; gainArchon('uArchon');
+    const cg = gemCfg(mkGem('cmd_golem', 1), 0), w = { src: 'golem' }, c0 = BASEC();
+    out.undead = [+(allyMult(w, c0) / allyMult0(w, c0)).toFixed(2), +(SKILLS.cmd_golem.cd / cg.cd).toFixed(2)];
+    /* 無縛之怒：新的元素異常 +10（同一種 0.2 秒一次），滿 100 進入無縛 10 秒，期間不累積 */
+    P.buf = {}; P.fury = 0; P.furyT = {}; ST.unbAv = 1;
+    const b = { ign: 0, chill: 0, frozen: 0, shock: 0 };
+    furyGain(b, { ...b, shock: G.t + 8 }); furyGain(b, { ...b, shock: G.t + 8 }); const f1 = P.fury;
+    for (let i = 0; i < 9; i++) (G.t += 0.21), furyGain(b, { ...b, ign: G.t + 4 });
+    out.fury = [f1, P.fury, hasBuff('unboundAv')];
+    furyGain(b, { ...b, chill: G.t + 8 }); out.furyOn = P.fury;
+    out.arb = [supOK(SKILLS.fireball, mkGem('arbiter', 1)), supOK(SKILLS.frostbolt, mkGem('arbiter', 1))];
+    Object.assign(P, { buf: keep.buf, archEnd: keep.end, fury: keep.fury, furyT: keep.furyT }); G.t = keep.t; ST.unbAv = keep.ub;
+    return out;
+  })()`);
+  ok(
+    'K2 執政官：10 秒、有一種時不能再獲得、結束後 20 秒恢復期、提早失去從那時算；閃電執政官把法術的冰冷轉成閃電、更多 25%；亡靈執政官召喚物 ×1.25、命令冷卻 ÷3；無縛之怒 +10、同一種 0.2 秒一次、滿 100 進入無縛、期間不累積；仲裁點燃只插火焰法術',
+    JSON.stringify(k61) ===
+      '{"rule":[true,false,true],"conv":["cold","light",1.25],"rec":[false,false],"after":true,"lose":[false,false],"undead":[1.25,3],"fury":[10,0,true],"furyOn":0,"arb":[true,false]}',
+    JSON.stringify(k61)
+  );
+  /* 0.2.62 K3：波動（0.1 秒一次、最多 30、4 秒沒獲得就爆、傷到自己但不致死、換波動之力加混沌） */
+  const k62 = R(`(() => {
+    const keep = { stk: P.stk, hp: P.hp, volT: P.volT, t: G.t, st: G.state },
+      out = {};
+    P.stk = {}; P.volT = -9; G.state = 'play';
+    volGain(1); volGain(1); const n1 = stkN('vol');
+    for (let i = 0; i < 40; i++) (G.t += 0.11), volGain(1);
+    out.gain = [n1, stkN('vol')];
+    P.hp = ST.hp; G.t += 3.9; volTick(); const n2 = stkN('vol');
+    G.t += 0.2; volTick();
+    const lost = ST.hp - P.hp, raw = ST.hp * 0.005 * 30;
+    out.boom = [n2, stkN('vol'), lost > 0 && lost <= raw + 0.01, stkN('volPow')];
+    P.hp = 5; for (let i = 0; i < 30; i++) (G.t += 0.11), volGain(1); G.t += 4.1; volTick(); out.alive = P.hp >= 1;
+    const fb = gemCfg(mkGem('fireball', 1), 0), m = { D: Object.values(MOBS)[0], x: P.x + 40, y: P.y, r: 12, hp: 1e9, mhp: 1e9, arm: 0, ev: 0, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} };
+    P.stk = {}; const d0 = hitCalc(fb, m, { avg: 1 }).d; gainStk('volPow', 30); const d1 = hitCalc(fb, m, { avg: 1 }).d;
+    out.pow = d1 > d0;
+    /* 宣洩：10 層以上用這招就引爆 */
+    P.stk = {}; P.hp = ST.hp; for (let i = 0; i < 12; i++) (G.t += 0.11), volGain(1);
+    out.cath = [supOK(SKILLS.fireball, mkGem('cathar', 1)), stkN('vol')];
+    Object.assign(P, { stk: keep.stk, hp: keep.hp, volT: keep.volT }); G.t = keep.t; G.state = keep.st;
+    return out;
+  })()`);
+  ok(
+    'K3 波動：每 0.1 秒最多一層、最多 30 層；4 秒沒再獲得才爆，扣自己生命（吃護甲、不超過每層 0.5%）、不會被炸死，換 30 層波動之力、法術傷害變高',
+    JSON.stringify(k62) === '{"gain":[1,30],"boom":[30,0,true,30],"alive":true,"pow":true,"cath":[true,12]}',
+    JSON.stringify(k62)
   );
   ok(
     '效果消耗：同一下只消耗一種、技能優先、下一下可以再消耗',

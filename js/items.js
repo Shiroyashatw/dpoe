@@ -133,7 +133,7 @@ function dropItem(ilvl, bonus) {
 /* 技能寶石自己有孔（0.2.6，照 PoE2）：一開始 2 孔、最多 5 孔，輔助插在 sup 裡 */
 function mkGem(g, lv = 1) {
   const it = { id: ++IID, gem: g, lv, xp: 0, r: 3, a: [], L: lv };
-  if (SKILLS[g]) (it.so = 2), (it.sup = [null, null]);
+  if (SKILLS[g] || AURAS[g]) (it.so = 2), (it.sup = [null, null]);
   return it;
 }
 /* 舊存檔裡被刪除的技能寶石：拿掉、退回升級的靈魂、孔裡的輔助放回寶石頁（存檔 23，死亡紅花） */
@@ -761,17 +761,42 @@ function stats(s = S) {
   for (const g of s.auras || []) {
     if (!g) continue;
     const A = AURAS[g.gem];
-    const sp = A.sp / (1 + o.spiritEff / 100);
+    /* 捷光環要拿非法系武器（照 PoE2），不然不預留、不生效 */
+    const wt0 = (w && baseOf(w).wt) || 'unarmed';
+    if (A.her && (wt0 === 'unarmed' || SPELLW.has(wt0))) continue;
+    /* 夥伴（0.2.60 J3，照 PoE2）：同時只能有 1 隻，光環欄排後面的不生效 */
+    if (A.tags.includes('companion') && o.auraOn.some(k => AURAS[k].tags.includes('companion'))) continue;
+    /* 光環寶石孔裡的輔助（0.2.57 F3）：sq 品質 0～1 */
+    const sup = {};
+    for (const x of g.sup || [])
+      if (x && supOK(A, x, g))
+        sup[SUPPORTS[x.gem].base || x.gem] = { lv: x.lv, sq: (x.q || 0) / GEM_Q_MAX, t2: SUPPORTS[x.gem].tier === 2 };
+    const sp = (A.sp * (sup.spiriteff ? 1 - (20 + 5 * sup.spiriteff.sq) / 100 : 1)) / (1 + o.spiritEff / 100);
     if (o.spiritUsed + sp > o.spirit) continue;
     o.spiritUsed += sp;
     o.auraOn.push(g.gem);
-    const m = (1 + 0.03 * (g.lv - 1)) * (1 + (o.auraEff + o.buffEff) / 100) * (1 + o.buffMag / 100);
+    const ae = sup.auraeff,
+      m =
+        (1 + 0.03 * (g.lv - 1)) *
+        (1 + (o.auraEff + o.buffEff) / 100) *
+        (1 + o.buffMag / 100) *
+        (ae ? 1 + (25 + (ae.lv - 1) + 5 * ae.sq) / 100 : 1);
     /* 光環的品質（0.2.29）：0～1 */
     o.aq[g.gem] = (g.q || 0) / GEM_Q_MAX;
+    if (A.her) {
+      (o.her = o.her || {})[A.her] = g.lv;
+      /* 範圍擴大、集中效應：範圍倍率 herA、傷害更多 herM（skills.js 的 herR／herMul） */
+      const ar = sup.area,
+        fo = sup.focus;
+      (o.herA = o.herA || {})[A.her] = (ar ? (ar.t2 ? 1.55 : 1.4) : 1) * (fo ? 0.7 + 0.1 * fo.sq : 1);
+      (o.herM = o.herM || {})[A.her] = fo ? 1.3 : 1;
+    }
+    /* 群狼：戰狼精魂多 1 隻、光環的狼與魔像傷害更多 30% */
+    if (sup.pack) o['packM_' + g.gem] = 1.3;
     if (g.gem === 'anger') o.angerV = A.fx.fireAdd * m;
     for (const k in A.fx) {
       const v = A.fx[k] * m;
-      if (k === 'wolf') o.auraWolf = 1;
+      if (k === 'wolf') o.auraWolf = sup.pack ? 2 : 1;
       else if (k === 'golem') o.auraGolem = 1;
       else if (k === 'resA') for (const r of ['fire', 'cold', 'light']) o.res[r] += Math.round(v);
       else if (k in pt) pt[k] += v;
