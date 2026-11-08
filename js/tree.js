@@ -269,11 +269,22 @@ function treeToggle(id) {
     have = asc ? S.at : S.pt;
   if (have.includes(id)) {
     if (!treeCanRefund(id)) return hudWarn(id === 'a_st' || PT_START.includes(id) ? '起點不能退' : '先退後面的點');
+    /* 退掉鎖欄位的點不會有裝備要脫；退掉第三隻手要把那枚戒指脫到背包（放不下就擋下來） */
+    const why =
+      asc &&
+      eqUnloadWhy(
+        S,
+        have.filter(x => x !== id)
+      );
+    if (why) return hudWarn(why);
     have.splice(have.indexOf(id), 1);
     delete S.ptA[id];
   } else if (treeCan(id)) {
     /* 過路點：先選要加哪一項能力值（treePick 才真的點下去） */
     if (!asc && PTREE.I[id].s.attr) return treeAttrAsk(id);
+    /* 點亮鎖欄位的點（甲蟲之殼、腹蛇之眼）：那欄的裝備脫到背包（滿了放臨時頁），都放不下就擋下來 */
+    const why = asc && eqUnloadWhy(S, [...have, id]);
+    if (why) return hudWarn(why);
     have.push(id);
   } else if (asc && ascLeft() <= 0) return hudWarn('沒有昇華點了：Lv 31、63、83 地圖的王第一次打倒各 +2');
   else if (asc && ascT().I[id].g && S.at.some(o => ascT().I[o].g === ascT().I[id].g))

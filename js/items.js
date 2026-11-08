@@ -136,7 +136,42 @@ const ascHas = (o, key) => {
   const N = o.asc && ASC[o.asc] && ASC[o.asc].N;
   return !!N && (o.at || []).some(id => N[id.slice(2)] && N[id.slice(2)][3] && key in N[id.slice(2)][3]);
 };
+/* 昇華點亮的數值加總（0.2.74）：大點讀 fx、小點讀自己的數值；eqCheck 的能力值需求（巨臂 strFlat、intZero）與小點的力量用 */
+function ascSum(o, key) {
+  const N = o.asc && ASC[o.asc] && ASC[o.asc].N;
+  return N
+    ? (o.at || []).reduce((t, id) => {
+        const e = N[id.slice(2)],
+          v = e && (e[3] || (typeof e[2] === 'object' ? e[2] : null));
+        return t + ((v && v[key]) || 0);
+      }, 0)
+    : 0;
+}
+/* 鎖欄位（0.2.74 異變者）：欄位開不開。第三枚戒指要點亮第三隻手才開；腰帶、頭部被甲蟲之殼、腹蛇之眼鎖住（EQ_LOCK：能力鍵 → 欄位） */
+const EQ_LOCK = { noBelt: 'belt', noHelm: 'helm' };
+const eqOpen = (o, k) =>
+  k === 'ring3' ? ascHas(o, 'ring3') : !Object.keys(EQ_LOCK).some(f => EQ_LOCK[f] === k && ascHas(o, f));
+/* 點亮或退回之後，被關掉的欄位裡的裝備要脫到背包（滿了放臨時頁）；放不下就擋下來（藏身處丟地上＝丟掉，會弄丟裝備）。at 是之後的昇華點；回傳空字串＝放得下 */
+function eqUnloadWhy(o, at, asc = o.asc) {
+  const o2 = { ...o, at, asc },
+    need = EQS.filter(e => o.eq[e.k] && !eqOpen(o2, e.k)).map(e => o.eq[e.k]);
+  if (!need.length) return '';
+  const cl = g => ({ ...g, items: [...g.items] }),
+    inv = cl(o.inv),
+    tmp = o.temp && cl(o.temp);
+  for (const it of need)
+    if (!gridAuto(inv, it) && !(tmp && gridAuto(tmp, it))) return '背包和臨時倉庫都放不下要脫下的裝備：先騰出空間';
+  return '';
+}
+function eqUnload(o) {
+  for (const e of EQS) {
+    const it = o.eq[e.k];
+    if (!it || eqOpen(o, e.k)) continue;
+    if (gridAuto(o.inv, it) || (o.temp && gridAuto(o.temp, it))) o.eq[e.k] = null;
+  }
+}
 function ascSync(o = S) {
+  eqUnload(o);
   for (const k in SKILLS) {
     const key = SKILLS[k].asc;
     if (!key) continue;
@@ -381,15 +416,25 @@ function eqCheck(s) {
     /* 大點的固定能力值也算進需求（stats 的 put 會再加進 o，這裡只管需求與顯示的總量） */
     if (n) for (const a of ATTR) if (n.s[a]) pts[a] += n.s[a];
   }
-  const es = EQS.filter(e => s.eq[e.k] && !(e.k === 'off' && !offOK(s.eq.weapon, s.eq.off)));
+  /* 昇華（0.2.74 異變者）：小點的力量、巨臂的力量 +100、智慧視為 0（需求與總量都是 0，裝備給的智慧也不算）；關著的欄位裡的裝備不算 */
+  pts.str += ascSum(s, 'str') + ascSum(s, 'strFlat');
+  const iz = ascSum(s, 'intZero') > 0,
+    ia = it => {
+      const r = itemAttr(it);
+      if (iz) r.int = 0;
+      return r;
+    };
+  if (iz) pts.int = 0;
+  for (const e of EQS) if (s.eq[e.k] && !eqOpen(s, e.k)) bad.add(e.k);
+  const es = EQS.filter(e => s.eq[e.k] && !bad.has(e.k) && !(e.k === 'off' && !offOK(s.eq.weapon, s.eq.off)));
   let tot;
   for (let again = true; again; ) {
     tot = { ...pts };
-    for (const e of es) if (!bad.has(e.k)) for (const [k, v] of Object.entries(itemAttr(s.eq[e.k]))) tot[k] += v;
+    for (const e of es) if (!bad.has(e.k)) for (const [k, v] of Object.entries(ia(s.eq[e.k]))) tot[k] += v;
     again = false;
     for (const e of es) {
       const it = s.eq[e.k],
-        own = itemAttr(it),
+        own = ia(it),
         q = itemReq(it);
       if (!bad.has(e.k) && (lv < q.lv || ATTR.some(k => tot[k] - own[k] < q[k]))) bad.add(e.k), (again = true);
     }
@@ -668,6 +713,72 @@ function stats(s = S) {
         'surrTaken',
         'vanguard',
         'spearHold',
+        /* 0.2.74 潮汐（data.js 的 ASC.tide；combat.js 的 hitCalc／applyAil／onKillBase／mobAilPlayer／freezeBackHit、skills.js 的 hitMob／actHit、mech.js 的 GROUND.salt 讀） */
+        'cvCL',
+        'convKeepShock',
+        'convKeepChill',
+        'shockSpread',
+        'tideMore',
+        'noFire',
+        'tidepull',
+        'tideStk',
+        'freezeBack',
+        'unFreeze',
+        'chillInvert',
+        /* 0.2.74 賭徒（data.js 的 ASC.gambler；combat.js 的 hitCalc／jackpotRoll／takenInc／hurtCalc、skills.js 的 gemCfg／actHit、game.js 的 killMob 讀） */
+        'jackpotCh',
+        'jackpotX',
+        'jackpotLess',
+        'betStep',
+        'allin',
+        'flipRes',
+        'nonCritLess',
+        'roulette',
+        'halfHitCh',
+        'takenUp',
+        'hitLess',
+        'mpCostUp',
+        'rarP',
+        /* 0.2.74 異變者（data.js 的 ASC.mutant） */
+        'corGearP',
+        'corGearHp',
+        'ring3',
+        'noFlask',
+        'regenInc',
+        'strFlat',
+        'intZero',
+        'noEvade',
+        'evZero',
+        'noBelt',
+        'unCurse',
+        'unBlind',
+        'cursedMore',
+        'noHelm',
+        /* 0.2.74 追獵者（data.js 的 ASC.stalker；combat.js 的 flaskDrunk／flaskCost／absorb／applyAil、game.js 的 killMob、skills.js 的 actHit／skillWhy 讀） */
+        'gasflask',
+        'windflask',
+        'stoneflask',
+        'flaskBurst',
+        'flaskPoi',
+        'flaskHalf',
+        'poiKillChg',
+        /* 0.2.74 神裔（data.js 的 GODSON／ASC.godson；規則在企劃書 7.3 第 47 項） */
+        'poiSpread',
+        'hsDbl',
+        'hstunTaken',
+        'bleedStack',
+        'rollFar',
+        'rollCrit',
+        'meteorN',
+        'witherAll',
+        'fireTrail',
+        'curseMagP',
+        'curseSpread',
+        'shockChain',
+        'ignBurst',
+        'minionWall',
+        'minionDieHeal',
+        'rampage',
         /* 0.2.42 第 6 批：撲殺、屠戮打擊（%）、幸運、荊棘、偏斜（combat.js） */
         'cull',
         'fullStrike',
@@ -843,10 +954,24 @@ function stats(s = S) {
     const n = AT.I[id],
       v = n && (n.fx || n.s);
     if (!v || (v.only && v.only !== wt0)) continue;
-    for (const k in v) if (k !== 'only') k in pt ? (pt[k] += v[k]) : put(k, v[k]);
+    /* 力量、敏捷、智慧已經在 eqCheck 的總量裡（Object.assign(o, chk.tot)），這裡不再加一次 */
+    for (const k in v) if (k !== 'only' && !ATTR.includes(k)) k in pt ? (pt[k] += v[k]) : put(k, v[k]);
   }
+  /* 變異核心（0.2.74 異變者）：裝備的腐化裝備每件傷害提高、最大生命 +%（最多 6 件；失效、關著欄位裡的不算） */
+  if (o.corGearP || o.corGearHp) {
+    const n = Math.min(6, EQS.filter(e => s.eq[e.k] && s.eq[e.k].cor && !chk.bad.has(e.k)).length);
+    o.dmgA += o.corGearP * n;
+    pt.hpP += o.corGearHp * n;
+  }
+  /* 命運輪盤（0.2.74 賭徒 roulette）：這張圖抽到的兩種籌碼（game.js 的 enterMap 放進 G.rou，maps.js 的 ROUL）的能力，跟昇華點一樣加成 */
+  if (o.roulette && typeof G === 'object' && G && G.rou)
+    for (const id of G.rou)
+      for (const [k, v] of Object.entries(ROUL.find(x => x.id === id).fx || {})) k in pt ? (pt[k] += v) : put(k, v);
   if (o.unChill) o.unaff.chill = 1;
+  if (o.unFreeze) o.unaff.frozen = 1;
   if (o.unPoi) o.unaff.poison = 1;
+  if (o.unCurse) o.unaff.curse = 1;
+  if (o.unBlind) o.unaff.blind = 1;
   if (o.unBleed) o.unaff.bleed = 1;
   /* 固有加成：1 力量 +2 生命、1 敏捷 +8 命中值、1 智慧 +2 魔力，吃後面的提高；能力值基石拿掉一種、改成每 2 點給 1% 別的提高 */
   const noB = {};
@@ -961,10 +1086,10 @@ function stats(s = S) {
   o.armInc = pt.armorP + o.defP + bufV('armorP');
   o.evInc = pt.evP + o.defP;
   /* 基石：不動如山（閃避歸零）、混沌免疫（生命 1、能量護盾更多 30%） */
-  if (o.stand) o.ev = 0;
+  if (o.stand || o.evZero) o.ev = 0;
   if (o.ci) (o.hp = 1), (o.es = Math.round(o.es * 1.3));
   /* 每秒回復最大生命的 x%（巨石魔像）：用最後的最大生命換成每秒回復量 */
-  o.regen += (o.hp * o.regenP) / 100;
+  o.regen = (o.regen + (o.hp * o.regenP) / 100) * (1 + o.regenInc / 100);
   /* 命中（0.2.22）：基礎 30 ＋ 每級 6 ＋ 裝備、天賦的命中值，再乘提高（Lv1 打第 1 階的 Lv5 怪約 90%） */
   o.acc = calc(30 + 6 * lv + o.acc, o.accP, 1, o.accTot);
   o.mp = calc(o.mp + pt.mana, pt.mpP, 1, o.manaTot);

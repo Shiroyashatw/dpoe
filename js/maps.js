@@ -70,6 +70,57 @@ const MAPMOD = {
 /* 每條詞的獎勵：危險度越高越多（物品數量、稀有度、材料，%） */
 const MOD_REW = [null, [4, 3, 4], [8, 6, 7], [13, 10, 11]];
 
+/* 命運輪盤（0.2.74 賭徒的大點）：6 種籌碼，每種是強正面＋小代價；進圖時從中抽 2 種（rouletteOf，照地圖卡的種子，開地圖卡時就看得到）。
+   fx 進 stats()（items.js，能力鍵都是既有的或 STATN 的），m 進 G.mm（跟地圖詞一樣：掉落與怪物生命）；t 是卡片與狀態列的說明 */
+const ROUL = [
+  { id: 'red', n: '紅', c: '#ff5a5a', t: '傷害更多 30%、受到的傷害提高 15%', fx: { more: 30, takenUp: 15 } },
+  { id: 'black', n: '黑', c: '#aab4c4', t: '受到的擊中傷害更少 30%、傷害更少 10%', fx: { hitLess: 30, more: -10 } },
+  {
+    id: 'gold',
+    n: '金',
+    c: '#ffd166',
+    t: '物品稀有度 +60%、掉落數量 +30%、怪物生命 +20%',
+    m: { rar: 60, qty: 30, mhp: 20 }
+  },
+  {
+    id: 'green',
+    n: '綠',
+    c: '#6ee06e',
+    t: '技能速度提高 25%、移動速度 +20%、魔力消耗 +30%',
+    fx: { ss: 25, ms: 20, mpCostUp: 30 }
+  },
+  {
+    id: 'blue',
+    n: '藍',
+    c: '#5ad1ff',
+    t: '異常機率 +100%、異常強度 +50%、異常持續 −30%',
+    fx: { ailCh: 100, ailMag: 50, ignDur: -30, bleedDur: -30, poiDur: -30, chillDur: -30, shockDur: -30 }
+  },
+  {
+    id: 'purple',
+    n: '紫',
+    c: '#c38bff',
+    t: '暴擊率提高 100%、暴擊加成 +50%、非暴擊傷害更少 20%',
+    fx: { critInc: 100, critX: 50, nonCritLess: 20 }
+  }
+];
+/* 這張卡的輪盤：[籌碼 id, 籌碼 id]（照 ROUL 的順序，兩種不同）。種子是卡片的 seed（rollCard 抽的、存在存檔的卡裡）；
+   沒有 seed 的卡（主線固定卡、舊存檔的卡）改用節點＋星級＋地圖詞，一樣固定。純函式：同一張卡每次都一樣，存檔還原後也一樣 */
+function rouletteOf(card, node) {
+  const str =
+    card && card.seed != null
+      ? 's' + card.seed
+      : (node || '') + '|' + (card ? card.star + ':' + (card.mods || []).join() : '');
+  let a = 2166136261;
+  for (let i = 0; i < str.length; i++) a = Math.imul(a ^ str.charCodeAt(i), 16777619);
+  const nx = () => (a = (Math.imul(a, 1664525) + 1013904223) >>> 0) / 4294967296,
+    i = Math.floor(nx() * ROUL.length);
+  let j = Math.floor(nx() * (ROUL.length - 1));
+  if (j >= i) j++;
+  return [ROUL[Math.min(i, j)].id, ROUL[Math.max(i, j)].id];
+}
+const rouletteTxt = ids => ids.map(id => ROUL.find(x => x.id === id)).map(r => `${r.n}籌碼：${r.t}`);
+
 /* 費用只看星級：1★ 免費，每多一星 +2 碎片 */
 const mapCost = star => 2 * (star - 1);
 /* w5：5★ 的權重倍率（血霧期 ×3） */
@@ -96,7 +147,8 @@ function rollCard(star = rollStar()) {
     used.add(MAPMOD[k].g);
     mods.push(k);
   }
-  return { star, mods };
+  /* seed：地圖種子（命運輪盤用，rouletteOf） */
+  return { star, mods, seed: Math.floor(Math.random() * 2147483647) };
 }
 /* 一張卡的獎勵合計 */
 function cardRew(card) {
@@ -105,9 +157,12 @@ function cardRew(card) {
   return { qty: r[0], rar: r[1], mat: r[2] };
 }
 /* 進地圖時：把卡的詞綴合計成 G.mm（怪物、玩家、獎勵都讀它） */
-function mapMods(card, cor) {
+function mapMods(card, cor, rou) {
   const o = { ...cardRew(card) },
     L = (card && card.mods) || [];
+  /* 命運輪盤抽到的籌碼（金籌碼的掉落與怪物生命）；能力類的籌碼在 items.js 的 stats */
+  for (const id of rou || [])
+    for (const [f, v] of Object.entries(ROUL.find(x => x.id === id).m || {})) o[f] = (o[f] || 0) + v;
   /* cor：生肖王的墮落詞，同組的卡片詞換掉，不疊加 */
   for (const k of cor ? [...L.filter(x => MAPMOD[x].g !== MAPMOD[cor].g), cor] : L)
     for (const [f, v] of Object.entries(MAPMOD[k].fx)) o[f] = typeof v === 'string' ? v : (o[f] || 0) + v;

@@ -1173,6 +1173,8 @@ const RA = (() => {
   /* 翻滾與投射物飛行也真的跑（game.js 的 doRoll、updShots） */
   const gs8 = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, '');
   vm.runInContext(gs8.slice(gs8.indexOf('function doRoll'), gs8.indexOf('/* mana：喝魔力藥劑')), c8);
+  /* 喝藥劑（drinkFlask，蟾蜍之血的 noFlask 實測用） */
+  vm.runInContext(gs8.slice(gs8.indexOf('/* mana：喝魔力藥劑'), gs8.indexOf('/* 受傷：完美閃避')), c8);
   vm.runInContext(gs8.slice(gs8.indexOf('function updShots'), gs8.indexOf('/* ---------- 主迴圈')), c8);
   R(
     `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })), gems: [], inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat() }; ST = stats(S); mechEnter();`
@@ -2054,6 +2056,1575 @@ const RA = (() => {
     );
   }
 }
+/* 第四批昇華的共用：數一個昇華合法的 8 點組合有幾種（RA 的程式裡用，企劃書 7.4 每個昇華的設計數字） */
+const ASC_COMBOS = `const combos = k => {
+    const T = ascNodes(k), seen = new Set();
+    let n = 0;
+    const walk = set => {
+      const key = [...set].sort().join();
+      if (seen.has(key)) return;
+      seen.add(key);
+      if (set.length === 9) return void n++;
+      for (const x of T.N) if (!set.includes(x.id) && (T.ADJ[x.id] || []).some(y => set.includes(y)) && ascFeasible(T, [...set, x.id])) walk([...set, x.id]);
+    };
+    walk(['a_st']);
+    return n;
+  };`;
+/* 0.2.74 第四批 · 潮汐（企劃書 7.4）：潮起／潮落（轉換保留原異常）、驚濤（感電擴散，每隻只接一次不遞迴）、潮滅（冰雷更多、不能造成火焰）、汐引（昇華技能：拉怪不拉王、鹹水地面）、
+   浪潮之心（冰凍或感電得層數）、寒潮反擊（擊中你的敵人累積冰凍）、海神之軀（不冰緩不冰凍、被冰冷擊中移動速度提高）。機率一律用固定的 Math.random 取代，整段連跑兩次要得到一模一樣的結果 */
+{
+  const run = () =>
+    RA(`(() => {
+    ${ASC_COMBOS}
+    const o = {},
+      st = (at, eq = {}) => stats({ lv: 90, eq, pt: [], asc: 'tide', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
+      cfgOf = (k, lv = 5) => gemCfg(mkGem(k, lv), 0),
+      rnd0 = Math.random,
+      T = ascNodes('tide'),
+      s0 = st([]),
+      rs = () => { reset(); G.ground = []; Object.assign(P, { stag: 0, act: null }); };
+
+    /* 點亮的數值與預設 */
+    let s = st(['s1', 'rise']);
+    o.rise = [s.eleP, s.cvLC, s.convKeepShock, s.cvCL, s.convKeepChill];
+    s = st(['s1', 'fall']);
+    o.fall = [s.eleP, s.cvCL, s.convKeepChill, s.cvLC, s.convKeepShock];
+    s = st(['s1', 'rise', 's2', 'surge']);
+    o.surge = [s.shockCh, s.shockSpread];
+    s = st(['s1', 'fall', 's3', 'ebb']);
+    o.ebb = [s.coldP, s.lightP, s.tideMore, s.noFire];
+    s = st(['s4', 'pull', 's5', 'heart']);
+    o.pull = [s.spellP, s.tidepull, s.frzP, s.tideStk];
+    s = st(['s6', 'back', 's7', 'god']);
+    o.god = [s.hp > s0.hp, s.res.cold - s0.res.cold, s.freezeBack, s.unChill, s.unFreeze, s.chillInvert, s.unaff.chill, s.unaff.frozen];
+    o.def0 = ['cvCL', 'convKeepShock', 'convKeepChill', 'shockSpread', 'tideMore', 'noFire', 'tidepull', 'tideStk', 'freezeBack', 'unFreeze', 'chillInvert'].map(k => base[k]);
+    o.tree = [T.N.filter(n => n.big === 1).length, T.N.filter(n => !n.big && n.id !== 'a_st').length, T.N.filter(n => n.g === 'tide').map(n => n.n).join(), combos('tide')];
+    o.grp = [ascFeasible(T, ['a_st', 'a_s1', 'a_rise']), ascFeasible(T, ['a_st', 'a_s1', 'a_rise', 'a_fall']), ascFeasible(T, ['a_st', 'a_s1', 'a_fall', 'a_s2'])];
+
+    /* 潮起：閃電 50% 轉成冰冷，轉過去的冰冷記在 keep.light（算進感電）；潮落反過來；沒點「保留」就沒有 keep */
+    const arc = cfgOf('arc'), bolt = cfgOf('frostbolt');
+    rs(); ST.cvLC = 50; ST.convKeepShock = 1;
+    let h = hitCalc(arc, mk(), {});
+    o.rise1 = [r2(h.pre.cold / h.pre.light), h.keep.light === h.pre.cold, h.keep.cold, r2(h.kp.light) === r2(h.post.cold)];
+    ST.convKeepShock = 0; h = hitCalc(arc, mk(), {}); o.rise0 = [r2(h.pre.cold / h.pre.light), h.keep.light];
+    rs(); ST.cvCL = 50; ST.convKeepChill = 1;
+    h = hitCalc(bolt, mk(), {});
+    o.fall1 = [r2(h.pre.light / h.pre.cold), h.keep.cold === h.pre.light, h.keep.light];
+    ST.convKeepChill = 0; h = hitCalc(bolt, mk(), {}); o.fall0 = [r2(h.pre.light / h.pre.cold), h.keep.cold];
+    /* 本來就是冰冷的傷害（沒有轉換）不算 keep：潮起只記「閃電轉過去的」 */
+    rs(); ST.cvLC = 50; ST.convKeepShock = 1; h = hitCalc(bolt, mk(), {}); o.rise2 = [h.keep.light, h.pre.light];
+
+    /* 感電機率真的把 keep 算進去：用固定的 Math.random 夾在「有 keep」和「沒有」兩個機率之間 */
+    const shockWin = flag => {
+      rs(); ST.cvLC = 50; ST.convKeepShock = flag;
+      const m = mk(), r = hitCalc(arc, m, {}), thr = ailThr(G.mapT) * MOB_HP,
+        pNo = (r.pre.light / thr) * 25, pYes = ((r.pre.light + r.pre.cold) / thr) * 25;
+      Math.random = () => (pNo + pYes) / 200;
+      applyAil(m, r, arc, {});
+      Math.random = rnd0;
+      return [m.ail.shock > G.t, pNo < pYes];
+    };
+    o.shock = [shockWin(1), shockWin(0)];
+    /* 冰緩、冰凍累積也算 keep（用假的 r 精準控制：冷傷只有 20% 門檻→不冰緩；再加 20% 的 keep→冰緩 40%；冰凍累積正好是兩倍） */
+    const fakeR = (cold, kc, kpc) => ({ pre: { phys: 0, fire: 0, cold, light: 0, chaos: 0 }, post: { phys: 0, fire: 0, cold, light: 0, chaos: 0 }, keep: { cold: kc, light: 0 }, kp: { cold: kpc, light: 0 } });
+    rs(); const thrC = ailThr(G.mapT) * MOB_HP;
+    let m = mk(); applyAil(m, fakeR(0.2 * thrC, 0, 0), bolt, {}); const frz0 = m.ail.frz;
+    o.chill0 = [!!m.ail.chill, r2(frz0)];
+    m = mk(); applyAil(m, fakeR(0.2 * thrC, 0.2 * thrC, 0.2 * thrC), bolt, {});
+    o.chill1 = [!!m.ail.chill, r2(m.ail.chill.v), r2(m.ail.frz / frz0)];
+
+    /* 潮滅：不能造成火焰（火球整下歸零；物理 50% 轉火焰 + 附加火焰 → 火焰 0、物理那一半照舊）；冰冷與閃電更多 25%（火、物理不變） */
+    rs(); const fb = cfgOf('fireball'), sl = cfgOf('slash'), avg = (c, k = 'd') => r2(hitCalc(c, null, { avg: 1, keep: 1 })[k]);
+    ST.noFire = 0; h = hitCalc(fb, mk(), {}); const fire0 = h.pre.fire;
+    ST.noFire = 1; h = hitCalc(fb, mk(), {}); o.noFire1 = [fire0 > 0, h.pre.fire, h.d, avg(fb)];
+    rs(); ST.cvPF = 50; ST.fireAdd = 30;
+    h = hitCalc(sl, mk(), {}); const phys0 = h.pre.phys, f0 = h.pre.fire;
+    ST.noFire = 1; h = hitCalc(sl, mk(), {}); o.noFire2 = [f0 > 0, h.pre.fire, r2(h.pre.phys / phys0)];
+    rs(); const base4 = [arc, bolt, fb, sl].map(c => avg(c)); ST.tideMore = 25; const more4 = [arc, bolt, fb, sl].map(c => avg(c));
+    o.more = more4.map((v, i) => r2(v / base4[i]));
+    rs(); ST.cvLC = 50; const cv0 = avg(arc); ST.tideMore = 25; o.moreCv = r2(avg(arc) / cv0);
+
+    /* 驚濤：感電的敵人死掉，剩餘時間照搬給 3 公尺（90＋半徑）內的敵人；比牠長的不縮短、免疫的、死的、太遠的都不動；
+       只在死亡時做一次，被傳到的敵人自己死掉才再傳（每次死亡只看自己 3 公尺內，不會一路傳下去） */
+    rs(); ST.shockSpread = 1; G.t = 100;
+    const dead = mk(0, 0, { ail: { shock: G.t + 5 } }), near = mk(60, 0), far = mk(200, 0), longer = mk(0, 70, { ail: { shock: G.t + 9 } }),
+      corpse = mk(30, 0, { hp: 0 }), imm = mk(0, 40, { ail: { imm: { shock: G.t + 99 } } }), chain = mk(130, 0);
+    G.mobs = [dead, near, far, longer, corpse, imm, chain];
+    onKillBase(dead); onKillBase(dead);
+    o.spread = [near, far, longer, corpse, imm, chain].map(x => r2((x.ail.shock || G.t) - G.t));
+    onKillBase(near);
+    o.spread2 = [chain, far].map(x => r2((x.ail.shock || G.t) - G.t));
+    ST.shockSpread = 0; const dead2 = mk(0, 0, { ail: { shock: G.t + 5 } }), nb = mk(40, 0); G.mobs = [dead2, nb]; onKillBase(dead2); o.spreadOff = !nb.ail.shock;
+    const dead3 = mk(0, 0, { ail: { shock: G.t - 1 } }); ST.shockSpread = 1; G.mobs = [dead3, nb]; onKillBase(dead3); o.spreadOld = !nb.ail.shock;
+
+    /* 浪潮之心：新上感電或冰凍就 +1 層（一下 1 層、最多 10、4 秒、再得到一起刷新）；沒新上、召喚物的擊中、沒點的不算；每層冰冷與閃電傷害提高 5%、移動速度 +1% */
+    const hitOn = (c, ex = {}) => { const z = mk(40, 0); G.mobs = [z]; hitMob(z, c, 0, 0, { a: {}, ...ex }); return z; };
+    rs(); ST.tideStk = 1; const arc20 = cfgOf('arc', 20), bolt20 = cfgOf('frostbolt', 20);
+    Math.random = () => 0;
+    hitOn(arc20); o.stk1 = stkN('tide');
+    for (let i = 0; i < 12; i++) { G.t += 0.5; hitOn(arc20); }
+    o.stkMax = [stkN('tide'), stkMax('tide')];
+    const dmg10 = [avg(arc), avg(bolt), avg(sl)], mv10 = buffMove();
+    G.t += 5; o.stkEnd = [stkN('tide'), bufV('tideEle')];
+    const dmg0 = [avg(arc), avg(bolt), avg(sl)], mv0 = buffMove();
+    o.stkEff = [dmg10.map((v, i) => r2(v / dmg0[i])), r2(mv10 / mv0), r2(1 + 10 / (100 + ST.ms))];
+    G.t = 100; P.stk = null; hitOn(arc20, { minion: 1 }); o.stkMinion = stkN('tide');
+    hitOn(arc20, { a: { unit: 1 } }); o.stkUnit = stkN('tide');
+    ST.tideStk = 0; hitOn(arc20); o.stkOff = stkN('tide');
+    ST.tideStk = 1; Math.random = () => 0.9999; G.t += 1; hitOn(arc); o.stkNoShock = stkN('tide');
+    Math.random = () => 0.9999; G.t += 1; hitOn(bolt20); o.stkFrz = stkN('tide');
+    Math.random = rnd0;
+
+    /* 寒潮反擊：擊中你的敵人累積冰凍＝你受到的傷害 100%（吃冰凍累積提高）；彈幕（src.src）也算；沒點、沒有傷害、死掉的不算 */
+    rs(); ST.freezeBack = 1; ST.frzP = 0;
+    m = mk(); freezeBackHit(m, 30); const fz = m.ail.frz;
+    o.back = [fz > 0, fz < 100];
+    ST.frzP = 100; m = mk(); freezeBackHit({ src: m }, 30); o.backInc = r2(m.ail.frz / fz);
+    ST.frzP = 0; m = mk(); freezeBackHit(m, 60); o.backDmg = r2(m.ail.frz / fz);
+    ST.frzP = 0; m = mk(); freezeBackHit(m, 400); o.backFreeze = [m.ail.frozen > G.t, m.ail.frz];
+    m = mk(); freezeBackHit(m, 0); freezeBackHit(null, 100); freezeBackHit(mk(40, 0, { hp: 0 }), 100); o.backNone = [m.ail.frz || 0];
+    ST.freezeBack = 0; m = mk(); freezeBackHit(m, 100); o.backOff = m.ail.frz || 0;
+
+    /* 海神之軀：不會被冰凍（累積滿了也不凍）；冰緩不發揮（仍掛著）；被冰冷擊中、踩到冰緩地面移動速度 +20%（4 秒）；其他屬性、怪物踩的不算 */
+    const cold = (unf, inv) => {
+      rs(); ST.chillInvert = inv; ST.unaff = unf ? { frozen: 1, chill: 1 } : {}; P.ail = {}; P.evE = 0;
+      mobAilPlayer(mk(), 1000, 'cold');
+      return [P.ail.frozen > G.t, !!P.ail.chill, r2(playerSlow()), hasBuff('tideRush'), r2(buffMove())];
+    };
+    o.coldOff = cold(0, 0); o.coldOn = cold(1, 1);
+    o.coldInv = cold(0, 1)[3]; o.coldUnf = cold(1, 0)[3];
+    rs(); ST.chillInvert = 1; mobAilPlayer(mk(), 100, 'fire'); o.fire = hasBuff('tideRush');
+    rs(); ST.chillInvert = 1; P.ail = {}; GROUND.chill.on(P.ail, P, {}, 0.1); o.gndP = [hasBuff('tideRush'), P.ail.chill && P.ail.chill.v];
+    rs(); ST.chillInvert = 1; const zz = mk(); GROUND.chill.on(zz.ail, zz, {}, 0.1); o.gndM = [hasBuff('tideRush'), zz.ail.chill && zz.ail.chill.v];
+    rs(); ST.chillInvert = 0; P.ail = {}; GROUND.chill.on(P.ail, P, {}, 0.1); o.gndOff = hasBuff('tideRush');
+    rs(); ST.chillInvert = 1; gainBuff('tideRush', 4); G.t += 4.1; o.rushEnd = hasBuff('tideRush');
+    rs(); ST.chillInvert = 1; gainBuff('tideRush', 4); const mvOn = buffMove(); P.buf = {}; o.rushMove = r2(mvOn / buffMove());
+
+    /* 汐引：昇華技能，點亮送寶石（不重複）、退點收回；沒點亮不能用；不綁武器 */
+    rs(); S.asc = 'tide'; S.at = ['a_st', 'a_s4', 'a_pull']; ascSync(S); ascSync(S);
+    const cnt = () => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === 'tidepull').length;
+    o.gem = [cnt(), S.gems.length];
+    ST = stats(S); o.use = [ST.tidepull, !!wtOK(SKILLS.tidepull)];
+    S.at = ['a_st', 'a_s4']; ascSync(S); ST = stats(S);
+    o.gone = [cnt(), ST.tidepull, !!wtOK(SKILLS.tidepull), wtNeed(SKILLS.tidepull)];
+    S.at = ['a_st']; S.asc = null;
+    const D = SKILLS.tidepull;
+    o.sk = [D.cd, D.r, D.el, D.lightAdd, !D.wt, D.tags.includes('spell'), D.asc];
+    rs(); h = hitCalc(cfgOf('tidepull'), mk(), {});
+    o.skHit = [h.pre.cold > 0, r2(h.pre.light / h.pre.cold), h.pre.phys, h.pre.fire];
+    /* 拉怪與鹹水地面：圈裡每隻受一次擊中；拉到離中心 20%（速度 d×9×0.8，KB_F 9）；王不拉但吃擊中、菁英一半、釘身的不動；圈外、死的不動 */
+    rs(); ST.tidepull = 1; ST.aoeM = 1;
+    const ac = A('tidepull'); ac.tx = 300; ac.ty = 0;
+    const inM = mk(400, 0), inB = mk(300, 100, { boss: 1 }), inE = mk(200, 0, { elite: 1 }), out = mk(700, 0), pin = mk(300, -100, { ail: { pinT: G.t + 9 } }), dd = mk(330, 0, { hp: 0 }), vert = mk(300, 50);
+    G.mobs = [inM, inB, inE, out, pin, dd, vert];
+    actHit(ac, 0);
+    o.pullHit = [inM, inB, inE, out, pin, dd].map(x => (x.hp < 1e6 && x.hp > 0) || x === dd);
+    o.pullV = [inM.vx, inB.vx, inB.vy, inE.vx, out.vx, pin.vx, pin.vy, dd.vx, vert.vy].map(x => r2(x || 0));
+    o.pullEnd = [r2(-inM.vx / KB_F), r2(-vert.vy / KB_F)];
+    o.salt = G.ground.filter(g => g.k === 'salt').map(g => [g.x, g.y, g.r, g.dur, !g.side]);
+    /* 品質每 1% 多留 0.1 秒（20% 品質 +2 秒） */
+    rs(); ST.tidepull = 1; const qg = mkGem('tidepull', 5); qg.q = 20; const aq = { k: 'tidepull', c: gemCfg(qg, 0), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 };
+    G.mobs = []; actHit(aq, 0); o.saltQ = G.ground.map(g => g.dur);
+    /* 鹹水地面：站在上面的敵人冰緩 30%、標記鹹水（0.2 秒）；離開／過期後沒有；圈外沒有；玩家自己不吃（它是玩家方的地面） */
+    rs(); const sg = mk(0, 0), so = mk(900, 0); G.mobs = [sg, so]; P.x = 2000; P.y = 2000;
+    addGround({ k: 'salt', x: 0, y: 0, r: 150, dur: 3 }); groundTick(0.1);
+    o.saltOn = [sg.ail.chill && sg.ail.chill.v, sg.ail.salt > G.t, !so.ail.chill, !so.ail.salt, !P.ail.chill && !P.ail.salt];
+    G.t += 0.3; o.saltGone = [sg.ail.salt > G.t];
+    /* 鹹水地面上你的閃電擊中必定感電（Math.random 設成 0.9999＝自然機率擲不中）；沒閃電傷害、沒鹹水、免疫的不會 */
+    const lightR = light => ({ pre: { phys: 0, fire: 0, cold: 0, light, chaos: 0 }, post: { phys: 0, fire: 0, cold: 0, light, chaos: 0 } });
+    Math.random = () => 0.9999;
+    const shockOf = (salt, light = 1, ex = {}) => { rs(); const z = mk(0, 0, { ail: { ...(salt ? { salt: G.t + 0.2 } : {}), ...ex } }); applyAil(z, lightR(light), arc, {}); return z.ail.shock > G.t; };
+    o.saltShock = [shockOf(1), shockOf(0), shockOf(1, 0), shockOf(1, 1, { imm: { shock: G.t + 99 } })];
+    Math.random = rnd0;
+    o.statn = ['cvCL', 'convKeepShock', 'convKeepChill', 'shockSpread', 'tideMore', 'noFire', 'tidepull', 'tideStk', 'freezeBack', 'unFreeze', 'chillInvert'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    o.flags = ['convKeepShock', 'convKeepChill', 'shockSpread', 'noFire', 'tidepull', 'tideStk', 'freezeBack', 'unFreeze', 'chillInvert'].filter(k => STATN[k][2] !== 1);
+    o.buff = [BUFF.tide.max, BUFF.tide.t, JSON.stringify(BUFF.tide.st), BUFF.tideRush.n];
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const g = run(),
+    g2 = run(),
+    j = x => JSON.stringify(x);
+  ok(
+    '潮汐：固定熵值，整段實測連跑 2 次結果一模一樣（沒有用真亂數）',
+    j(g) === j(g2),
+    j(g) !== j(g2)
+      ? Object.keys(g)
+          .filter(k => j(g[k]) !== j(g2[k]))
+          .join()
+      : ''
+  );
+  ok(
+    '潮汐小點與大點的數值：元素傷害 10%／感電機率 15%／冰冷與閃電傷害 10%／法術傷害 10%／冰凍累積 15%／生命 5%／冰冷抗性 10%；潮起 閃電轉冰冷 50%、潮落 冰冷轉閃電 50%（各自帶保留異常的開關）；11 個新鍵預設 0',
+    j(g.rise) === '[10,50,1,0,0]' &&
+      j(g.fall) === '[10,50,1,0,0]' &&
+      j(g.surge) === '[15,1]' &&
+      j(g.ebb) === '[10,10,25,1]' &&
+      j(g.pull) === '[10,1,15,1]' &&
+      j(g.god) === '[true,10,1,1,1,1,1,1]' &&
+      j(g.def0) === '[0,0,0,0,0,0,0,0,0,0,0]',
+    j([g.rise, g.fall, g.surge, g.ebb, g.pull, g.god, g.def0])
+  );
+  ok(
+    '潮汐：8 大（潮起／潮落二選一）7 小、合法的 8 點組合剛好 21 種；潮起和潮落不能同時拿，拿潮落之後可以接驚濤的小點',
+    j(g.tree) === '[8,7,"潮起,潮落",21]' && j(g.grp) === '[true,false,true]',
+    j([g.tree, g.grp])
+  );
+  ok(
+    '潮起／潮落：閃電（冰冷）傷害 50% 轉成冰冷（閃電），轉過去的那份記在 keep（閃電→冰冷的算 keep.light、冰冷→閃電的算 keep.cold）；沒點保留的開關沒有 keep；本來就是冰冷的不算',
+    j(g.rise1) === '[1,true,0,true]' &&
+      j(g.rise0) === '[1,0]' &&
+      j(g.fall1) === '[1,true,0]' &&
+      j(g.fall0) === '[1,0]' &&
+      j(g.rise2) === '[0,0]',
+    j([g.rise1, g.rise0, g.fall1, g.fall0, g.rise2])
+  );
+  ok(
+    '潮起：轉過去的冰冷真的算進感電機率（機率夾在有／沒有 keep 之間時，有 keep 感電、沒有不感電）；潮落：冷傷只有 20% 門檻不冰緩，加上 20% 的 keep 就冰緩 40%，冰凍累積正好 2 倍',
+    j(g.shock) === '[[true,true],[false,true]]' && j(g.chill0) === '[false,22.22]' && j(g.chill1) === '[true,40,2]',
+    j([g.shock, g.chill0, g.chill1])
+  );
+  ok(
+    '潮滅：不能造成火焰（火球整下歸零；物理 50% 轉火焰 + 附加火焰 → 火焰 0、物理那一半照舊）；冰冷與閃電傷害更多 25%（電弧、冰霜彈 ×1.25，火球、斬擊不變；轉換出來的也算）',
+    j(g.noFire1) === '[true,0,0,0]' &&
+      j(g.noFire2) === '[true,0,1]' &&
+      j(g.more) === '[1.25,1.25,1,1]' &&
+      g.moreCv === 1.25,
+    j([g.noFire1, g.noFire2, g.more, g.moreCv])
+  );
+  ok(
+    '驚濤：感電的敵人死掉，剩餘時間（5 秒）照搬給 3 公尺內的敵人；比牠長的不縮短（9）、免疫的、死的、太遠的不動；連死兩次結果一樣；傳到的敵人沒死就不再往下傳（130 外的那隻要等 60 外的那隻死掉才感電）；沒點、已過期的感電不擴散',
+    j(g.spread) === '[5,0,9,0,0,0]' && j(g.spread2) === '[5,0]' && g.spreadOff === true && g.spreadOld === true,
+    j([g.spread, g.spread2, g.spreadOff, g.spreadOld])
+  );
+  ok(
+    '浪潮之心：新上感電或冰凍就 +1 層（連續 13 下最多 10 層）、4 秒後消失；每層冰冷與閃電傷害提高 5%（電弧、冰霜彈 ×1.5，斬擊不變）、移動速度 +1%；召喚物與場上單位的擊中、沒點的、沒有新上異常的不算；冰凍也算',
+    g.stk1 === 1 &&
+      j(g.stkMax) === '[10,10]' &&
+      j(g.stkEnd) === '[0,0]' &&
+      j(g.stkEff) === '[[1.5,1.5,1],1.1,1.1]' &&
+      g.stkMinion === 0 &&
+      g.stkUnit === 0 &&
+      g.stkOff === 0 &&
+      g.stkNoShock === 0 &&
+      g.stkFrz === 1,
+    j([g.stk1, g.stkMax, g.stkEnd, g.stkEff, g.stkMinion, g.stkUnit, g.stkOff, g.stkNoShock, g.stkFrz])
+  );
+  ok(
+    '寒潮反擊：擊中你的敵人累積冰凍＝你受到的傷害的 100%（吃冰凍累積提高 +100% 就是 2 倍、傷害 2 倍就是 2 倍）；彈幕（src.src）也算；累滿會凍住；沒傷害、沒來源、死掉的、沒點的不算；hurtPlayer 真的呼叫（thornHit 後面）',
+    j(g.back) === '[true,true]' &&
+      g.backInc === 2 &&
+      g.backDmg === 2 &&
+      g.backFreeze[0] === true &&
+      j(g.backNone) === '[0]' &&
+      g.backOff === 0 &&
+      /thornHit\(src\);\s*freezeBackHit\(src, d\)/.test(
+        fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8')
+      ),
+    j([g.back, g.backInc, g.backDmg, g.backFreeze, g.backNone, g.backOff])
+  );
+  ok(
+    '海神之軀：沒點時被冰冷擊中會凍住、冰緩；點了不會被凍（累積滿了也不凍）、冰緩掛著但不減速；被冰冷擊中或踩到冰緩地面移動速度 +20%（4 秒後沒有）；火焰擊中、怪物踩的地面、沒點的不算',
+    j(g.coldOff) === '[true,true,0,false,1]' &&
+      j(g.coldOn) === '[false,true,1,true,1.2]' &&
+      g.coldInv === true &&
+      g.coldUnf === false &&
+      g.fire === false &&
+      j(g.gndP) === '[true,30]' &&
+      j(g.gndM) === '[false,30]' &&
+      g.gndOff === false &&
+      g.rushEnd === false &&
+      g.rushMove === 1.2,
+    j([g.coldOff, g.coldOn, g.coldInv, g.coldUnf, g.fire, g.gndP, g.gndM, g.gndOff, g.rushEnd, g.rushMove])
+  );
+  ok(
+    '汐引（昇華技能）：點亮送 1 顆寶石（不重複）、退點收回、沒點亮不能用；不綁武器、冷卻 8 秒、冰冷＋閃電的法術擊中（兩種各一半、沒有物理與火焰）',
+    j(g.gem) === '[1,1]' &&
+      j(g.use) === '[1,true]' &&
+      j(g.gone) === '[0,0,false,"要點亮昇華點「汐引」"]' &&
+      j(g.sk) === '[8,150,"cold",1,true,true,"tidepull"]' &&
+      j(g.skHit) === '[true,1,0,0]',
+    j([g.gem, g.use, g.gone, g.sk, g.skHit])
+  );
+  ok(
+    '汐引：圈內每隻受一次擊中；拉向中心（速度 = 距離 × 9 × 0.8，拉完離中心 20%）；王不拉但吃擊中、菁英拉一半、釘身的不動；圈外與死掉的不動；留下鹹水地面 3 秒（品質 20% 多 2 秒）、半徑 150、玩家方',
+    j(g.pullHit) === '[true,true,true,false,true,true]' &&
+      j(g.pullV) === '[-720,0,0,360,0,0,0,0,-360]' &&
+      j(g.pullEnd) === '[80,40]' &&
+      j(g.salt) === '[[300,0,150,3,true]]' &&
+      j(g.saltQ) === '[5]',
+    j([g.pullHit, g.pullV, g.pullEnd, g.salt, g.saltQ])
+  );
+  ok(
+    '鹹水地面：站在上面的敵人冰緩 30% 並標記鹹水、離開 0.2 秒後沒有、圈外與玩家自己不受影響；你的閃電擊中對有鹹水標記的敵人必定感電（自然機率擲不中也感電）；沒鹹水、沒有閃電傷害、免疫感電的不會',
+    j(g.saltOn) === '[30,true,true,true,true]' &&
+      j(g.saltGone) === '[false]' &&
+      j(g.saltShock) === '[true,false,false,false]',
+    j([g.saltOn, g.saltGone, g.saltShock])
+  );
+  const srcT = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '潮汐的 11 個新能力：STATN 有名字、開關第三格是 1、stats 預設是 0、機制至少一處讀取（tidepull 是技能欄位的 wtOK 用 ST[D.asc] 讀）；浪潮之心的層數表（10 層、4 秒、冰冷與閃電傷害＋移動速度）',
+    !g.statn.length &&
+      !g.flags.length &&
+      [
+        'cvCL',
+        'convKeepShock',
+        'convKeepChill',
+        'shockSpread',
+        'tideMore',
+        'noFire',
+        'tideStk',
+        'freezeBack',
+        'unFreeze',
+        'chillInvert'
+      ].every(k => new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcT)) &&
+      j(g.buff) === '[10,4,"{\\"tideEle\\":5,\\"moveP\\":1}","海神之軀"]',
+    j([g.statn, g.flags, g.buff])
+  );
+}
+/* 0.2.74 第四批 · 賭徒（企劃書 7.4）：豪賭（大獎 ×2.8、沒開出更少 25%）、累積賭注（連續 4 次沒開出第 5 下必開；原設計的 ×4 拿掉，太強）、梭哈（昇華技能：3 秒全大獎、受傷 +50%）、
+   逆轉賠率（50% 把元素抗性視為負值）、手氣正旺（幸運＋沒暴擊更少 20%）、命運輪盤（照地圖卡的種子抽 2 種籌碼、同一張卡永遠一樣）、天公疼憨人（受擊 50% 減半）。
+   機率用固定的 Math.random（常數或固定種子），整段連跑兩次要得到一模一樣的結果 */
+{
+  const run = () =>
+    RA(`(() => {
+    ${ASC_COMBOS}
+    const o = {},
+      st = (at, eq = {}) => stats({ lv: 90, eq, pt: [], asc: 'gambler', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
+      cfgOf = (k, lv = 5) => gemCfg(mkGem(k, lv), 0),
+      rnd0 = Math.random,
+      T = ascNodes('gambler'),
+      s0 = st([]),
+      rs = () => { reset(); G.ground = []; G.rou = null; Object.assign(P, { stag: 0, act: null, bet: 0 }); },
+      /* 固定種子的亂數（mulberry32），驗期望值用 */
+      seeded = seed => () => { let t = (seed = (seed + 0x6d2b79f5) | 0); t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; },
+      sl = cfgOf('slash'),
+      dOf = (c = sl, ex = {}, m = mk()) => hitCalc(c, m, ex),
+      d0 = (() => { reset(); return hitCalc(sl, mk(), {}).d; })();
+
+    /* 點亮的數值與預設 */
+    let s = st(['s1', 'gamble']);
+    o.gamble = [s.jackpotCh, s.jackpotX, s.jackpotLess, s.betStep, s.dmgA - s0.dmgA];
+    s = st(['s1', 'gamble', 's2', 'bet']);
+    o.bet = [s.jackpotCh, s.jackpotX, s.jackpotLess, s.betStep, s.as, s.castP];
+    s = st(['s1', 'gamble', 's3', 'allin']);
+    o.allin = [s.allin, s.cdr];
+    s = st(['s4', 'flip', 's5', 'luck']);
+    o.flip = [s.eleP, s.flipRes, s.critX, s.lukCrit, s.lukDmg, s.nonCritLess];
+    s = st(['s6', 'wheel', 's7', 'fate']);
+    o.wheel = [s.rarP, s.roulette, s.hp > s0.hp, s.halfHitCh];
+    o.def0 = ['jackpotCh', 'jackpotX', 'jackpotLess', 'betStep', 'allin', 'flipRes', 'nonCritLess', 'roulette', 'halfHitCh', 'takenUp', 'hitLess', 'mpCostUp', 'rarP'].map(k => base[k]);
+    o.tree = [T.N.filter(n => n.big === 1).length, T.N.filter(n => !n.big && n.id !== 'a_st').length, T.N.filter(n => n.g).length, combos('gambler')];
+
+    /* 豪賭：開出大獎 ×2.8、沒開出更少 25%（用常數亂數：0.1 擲得中 40%、0.9 擲不中）；召喚物與場上單位不算；沒點沒有 */
+    rs(); ST.jackpotCh = 40; ST.jackpotX = 2.8; ST.jackpotLess = 25;
+    Math.random = () => 0.1; let h = dOf(); o.win = [r2(h.d / d0), h.jackpot, P.bet];
+    Math.random = () => 0.9; h = dOf(); o.lose = [r2(h.d / d0), h.jackpot, P.bet];
+    Math.random = () => 0.1; h = dOf(sl, { minion: 1 }); o.minion = [r2(h.d / d0), h.jackpot];
+    h = dOf(sl, { unit: 1 }); o.unit = [r2(h.d / d0), h.jackpot];
+    ST.jackpotCh = 0; h = dOf(); o.off = [r2(h.d / d0), h.jackpot];
+    Math.random = rnd0;
+    /* 面板的期望倍率：沒有累積賭注＝0.4×2.8＋0.6×0.75；累積賭注（+15%）照一輪平均 */
+    rs(); ST.jackpotCh = 40; ST.jackpotX = 2.8; ST.jackpotLess = 25;
+    o.ev0 = [r2(hitCalc(sl, null, { avg: 1, keep: 1 }).d / d0), r2(jackpotEV())];
+    ST.betStep = 15; ST.jackpotX = 2.8; o.ev1 = [r2(hitCalc(sl, null, { avg: 1, keep: 1 }).d / d0), r2(jackpotEV())];
+    h = hitCalc(sl, null, { avg: 1, keep: 1, minion: 1 }); o.evMinion = r2(h.d / d0);
+
+    /* 累積賭注：沒開出的每下讓下一次 +15%（連續 4 次沒開出時第 5 下必開，開出後歸零）；常數 0.99 只有 100% 才擲得中，0.5 在第 2 下（55%）擲中 */
+    rs(); ST.jackpotCh = 40; ST.jackpotX = 2.8; ST.jackpotLess = 25; ST.betStep = 15;
+    Math.random = () => 0.99;
+    o.seq = Array.from({ length: 6 }, () => { const j = dOf().jackpot; return [j, P.bet]; });
+    rs(); ST.jackpotCh = 40; ST.jackpotX = 2.8; ST.jackpotLess = 25; ST.betStep = 15;
+    Math.random = () => 0.5;
+    o.seq2 = Array.from({ length: 4 }, () => { const j = dOf().jackpot; return [j, P.bet]; });
+    rs(); ST.jackpotCh = 40; ST.jackpotX = 2.8; ST.jackpotLess = 25; ST.betStep = 0;
+    Math.random = () => 0.99; o.noBet = Array.from({ length: 3 }, () => { dOf(); return P.bet; });
+    Math.random = rnd0;
+    /* 固定種子驗期望值：連打 20000 下，平均倍率要接近 jackpotEV（誤差 < 0.03）；連續沒開出最多 4 次（第 5 下必開）、開出的比例 */
+    const sim = (ch, X, step) => {
+      rs(); ST.jackpotCh = ch; ST.jackpotX = X; ST.jackpotLess = 25; ST.betStep = step;
+      Math.random = seeded(12345);
+      let sum = 0, wins = 0, run0 = 0, maxRun = 0; const N = 20000;
+      for (let i = 0; i < N; i++) { const r = dOf(); sum += r.d / d0; if (r.jackpot) (wins++, (run0 = 0)); else maxRun = Math.max(maxRun, ++run0); }
+      Math.random = rnd0;
+      return [r2(sum / N), r2(jackpotEV()), maxRun, r2(wins / N)];
+    };
+    const m0 = sim(40, 2.8, 0), m1 = sim(40, 2.8, 15);
+    o.simOK = [Math.abs(m0[0] - m0[1]) < 0.03, Math.abs(m1[0] - m1[1]) < 0.03, m0[2] > 4, m1[2] <= 4, m1[3] > 0.4];
+    o.sim = [m0, m1];
+    /* 梭哈：3 秒內必開大獎（常數 0.99 本來擲不中）、不累積賭注；過了就沒有 */
+    rs(); ST.jackpotCh = 40; ST.jackpotX = 2.8; ST.jackpotLess = 25; ST.betStep = 15;
+    Math.random = () => 0.99; gainBuff('allin', 4);
+    o.inAllin = [dOf().jackpot, dOf().jackpot, P.bet]; G.t += 4.1;
+    o.afterAllin = [dOf().jackpot, P.bet];
+    /* 梭哈期間受到的傷害提高 50%（跟紅籌碼 +15% 同一池相加）；過了沒有 */
+    rs(); ST.takenUp = 0; const t0 = r2(hurtCalc(100, null, 'phys', 1).d);
+    gainBuff('allin', 4); o.taken = [r2(hurtCalc(100, null, 'phys', 1).d / t0)]; ST.takenUp = 15; o.taken2 = r2(hurtCalc(100, null, 'phys', 1).d / t0);
+    G.t += 4.1; o.taken3 = r2(hurtCalc(100, null, 'phys', 1).d / t0); ST.takenUp = 0;
+    Math.random = rnd0;
+
+    /* 梭哈技能：點亮送寶石（不重複）、退點收回、沒點亮不能用、不綁武器；冷卻 20 秒；用了就有 4 秒（品質多 1 秒） */
+    rs(); S.asc = 'gambler'; S.at = ['a_st', 'a_s1', 'a_gamble', 'a_s3', 'a_allin']; ascSync(S); ascSync(S);
+    const cnt = () => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === 'allin').length;
+    o.gem = [cnt(), S.gems.length];
+    ST = stats(S); o.use = [ST.allin, !!wtOK(SKILLS.allin)];
+    S.at = ['a_st', 'a_s1', 'a_gamble', 'a_s3']; ascSync(S); ST = stats(S);
+    o.gone = [cnt(), ST.allin, !!wtOK(SKILLS.allin), wtNeed(SKILLS.allin)];
+    S.at = ['a_st']; S.asc = null;
+    const D = SKILLS.allin;
+    o.sk = [D.cd, D.dur, !D.wt, D.asc, D.m];
+    rs(); ST.allin = 1; actHit(A('allin'), 0); o.cast = [hasBuff('allin')]; G.t += 2.9; o.cast2 = hasBuff('allin'); G.t += 0.2; o.cast3 = hasBuff('allin');
+    rs(); const qg = mkGem('allin', 5); qg.q = 20; actHit({ k: 'allin', c: gemCfg(qg, 0), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); G.t += 3.9; o.castQ = hasBuff('allin'); G.t += 0.2; o.castQ2 = hasBuff('allin');
+
+    /* 逆轉賠率：50% 把元素抗性視為負值（75% → −75%＝這一元素傷害 ×7）；穿透不影響（先翻再不穿）、混沌不算、本來是負的照舊、物理不變；召喚物不算；沒點沒有 */
+    /* 武器攻擊的傷害是固定的（法術的傷害範圍會跟著常數亂數變）；cvF 100＝物理全部轉成火焰 */
+    const fb = { ...sl, cvF: 100 }, resM = (r, ex = {}) => mk(40, 0, { res: { fire: r, cold: r, light: r, chaos: r }, ...ex });
+    const ratio = (flipOn, rr, pen = 0, c = fb, ex = {}) => {
+      rs(); ST.flipRes = 50; ST.pen = pen;
+      Math.random = () => (flipOn ? 0.1 : 0.9);
+      const m = resM(rr), x = hitCalc(c, m, ex);
+      Math.random = rnd0;
+      return x;
+    };
+    const a1 = ratio(0, 75), a2 = ratio(1, 75);
+    o.flip75 = [r2(a2.d / a1.d)];
+    const b1 = ratio(0, 75, 50), b2 = ratio(1, 75, 50);
+    o.flipPen = [r2(b1.d / a1.d), r2(b2.d / a1.d)];
+    const n1 = ratio(0, -30), n2 = ratio(1, -30);
+    o.flipNeg = [r2(n2.d / n1.d)];
+    const ch = { ...sl, chaosAdd: 1 }, c1 = ratio(0, 75, 0, ch), c2 = ratio(1, 75, 0, ch);
+    o.flipChaos = [r2(c2.post.chaos / c1.post.chaos), r2(c2.post.phys / c1.post.phys), r2(c2.post.phys / c2.pre.phys)];
+    o.flipMinion = [r2(ratio(1, 75, 0, fb, { minion: 1 }).d / a1.d)];
+    rs(); ST.flipRes = 0; Math.random = () => 0.1; o.flipOff = [r2(hitCalc(fb, resM(75), {}).d / a1.d)]; Math.random = rnd0;
+
+    /* 手氣正旺：沒暴擊的擊中更少 20%（暴擊的不變）；面板的期望值算進去；召喚物不算；暴擊率與傷害範圍幸運（stats 的 lukCrit、lukDmg 大於 0） */
+    const crit = (cr, rr) => { rs(); ST.noCrit = 0; ST.wcrit = 50; ST.nonCritLess = rr; Math.random = () => cr; const x = dOf(); Math.random = rnd0; return x; };
+    const k0 = crit(0.99, 0), k1 = crit(0.99, 20), k2 = crit(0.0, 20), k3 = crit(0.0, 0);
+    o.nonCrit = [r2(k1.d / k0.d), r2(k2.d / k3.d), k1.crit, k2.crit];
+    rs(); ST.noCrit = 0; ST.wcrit = 50; ST.nonCritLess = 20;
+    const av1 = hitCalc(sl, null, { avg: 1, keep: 1 }).d; ST.nonCritLess = 0; const av0 = hitCalc(sl, null, { avg: 1, keep: 1 }).d;
+    o.nonCritAvg = r2(av1 / av0);
+    ST.nonCritLess = 20; Math.random = () => 0.99; o.nonCritMinion = r2(dOf(sl, { minion: 1 }).d / crit(0.99, 0).d); Math.random = rnd0;
+
+    /* 天公疼憨人：受到的擊中 50% 機率傷害減半（0.1 擲得中、0.9 擲不中）；黑籌碼：受到的擊中傷害更少 30%；沒點沒有 */
+    const hurt = (v, ex = {}) => { rs(); Object.assign(ST, { halfHitCh: 50, hitLess: 0, ...ex }); P.evE = 0; Math.random = () => v; const x = hurtCalc(100, null, 'phys', 1); Math.random = rnd0; return x; };
+    const hb = hurt(0.9);
+    o.half = [r2(hurt(0.1).d / hb.d), hurt(0.1).half, hurt(0.9).half, r2(hurt(0.1, { halfHitCh: 0 }).d / hb.d)];
+    o.hitLess = [r2(hurt(0.9, { hitLess: 30 }).d / hb.d), r2(hurt(0.1, { hitLess: 30 }).d / hb.d)];
+
+    /* 魔力消耗增加（綠籌碼 +30%）：技能的魔力 ×1.3；稀有度（rarP）進掉落 */
+    const bigMp = Object.keys(SKILLS).sort((x, y) => SKILLS[y].mp - SKILLS[x].mp)[0];
+    rs(); const mp0 = cfgOf(bigMp).mp; ST.mpCostUp = 30; const mp1 = cfgOf(bigMp).mp; ST.mpCostUp = 0; o.mpCost = [mp0 >= 20, Math.abs(mp1 / mp0 - 1.3) < 0.03, cfgOf('slash').mp > 0];
+
+    /* 命運輪盤：照卡片的種子抽 2 種（兩種不同、照 ROUL 順序）；同一張卡每次一樣（存檔來回也一樣）；不同的卡抽得到全部 15 種組合、每種籌碼被抽到的比例差不多；
+       沒有 seed 的卡（主線固定卡、舊存檔）照節點＋星級＋地圖詞，一樣固定 */
+    const cardA = { star: 3, mods: ['hp1'], seed: 123456789 }, cardB = { star: 3, mods: ['hp1'], seed: 987654321 }, rc1 = rollCard(3), rc2 = rollCard(3);
+    const ra = rouletteOf(cardA, 'n1'), ra2 = rouletteOf(JSON.parse(JSON.stringify(cardA)), 'n1');
+    o.rouSame = [ra.join(), ra2.join(), ra.length, ra[0] !== ra[1], ROUL.findIndex(x => x.id === ra[0]) < ROUL.findIndex(x => x.id === ra[1]), cardA.seed !== cardB.seed, Number.isInteger(rc1.seed) && rc1.seed !== rc2.seed];
+    o.rouNode = [rouletteOf(cardA, 'n1').join() === rouletteOf(cardA, 'n2').join()];
+    const old = { star: 2, mods: ['hp1', 'dmg1'] };
+    o.rouOld = [rouletteOf(old, 'q1,r2').join() === rouletteOf({ ...old }, 'q1,r2').join(), rouletteOf(old, 'q1,r2').length];
+    const pairs = {}, cnt1 = {};
+    for (let i = 0; i < 3000; i++) { const p = rouletteOf({ star: 1, mods: [], seed: i * 7919 + 13 }); pairs[p.join()] = (pairs[p.join()] || 0) + 1; for (const id of p) cnt1[id] = (cnt1[id] || 0) + 1; }
+    o.rouAll = [Object.keys(pairs).length, Math.min(...Object.values(pairs)) > 120, Math.min(...Object.values(cnt1)) > 800, Math.max(...Object.values(cnt1)) < 1200, ROUL.length];
+    o.rouTxt = rouletteTxt(ra).map(t => /籌碼：/.test(t));
+    /* 進圖：金籌碼的掉落與怪物生命進 G.mm（跟地圖詞同一條路）、能力籌碼進 stats（要點亮輪盤；沒點或沒抽到不生效）；進圖前後（G.rou 清掉）回到沒有 */
+    const mm0 = mapMods(cardA, null), mm1 = mapMods(cardA, null, ['gold', 'red']);
+    o.mm = [mm1.qty - mm0.qty, mm1.rar - mm0.rar, (mm1.mhp || 0) - (mm0.mhp || 0), mapMods(cardA, null, ['red', 'purple']).qty === mm0.qty];
+    const sw = (rou, at = ['a_st', 'a_s6', 'a_wheel']) => { G.rou = rou; return stats({ lv: 90, eq: {}, pt: [], asc: 'gambler', at, auras: [], charms: [] }); };
+    const sN = sw(null), sRP = sw(['red', 'purple']), sBG = sw(['black', 'green']), sBl = sw(['blue', 'gold']), sOff = sw(['red', 'purple'], ['a_st']);
+    o.chipRP = [sRP.more - sN.more, sRP.takenUp, sRP.critInc - sN.critInc, sRP.critX - sN.critX, sRP.nonCritLess];
+    o.chipBG = [sBG.hitLess, sBG.more - sN.more, sBG.ss - sN.ss, sBG.ms - sN.ms, sBG.mpCostUp];
+    o.chipBl = [sBl.ailCh - sN.ailCh, sBl.ailMag - sN.ailMag, sBl.ignDur - sN.ignDur, sBl.bleedDur - sN.bleedDur, sBl.poiDur - sN.poiDur, sBl.chillDur - sN.chillDur, sBl.shockDur - sN.shockDur, sBl.more - sN.more];
+    o.chipOff = [sOff.more - sN.more, sOff.takenUp, sOff.nonCritLess];
+    G.rou = null;
+    o.chipKeys = ROUL.flatMap(r => Object.keys(r.fx || {})).filter(k => !(k in base));
+    /* 狀態列：賭注（連續沒開出幾次）與兩個籌碼 */
+    rs(); ST.jackpotCh = 40; ST.betStep = 15; ST.roulette = 1; G.rou = ['red', 'blue']; P.bet = 2;
+    const sts = playerStates(); o.states = [sts.filter(x => x.k === 'bet').map(x => [x.c, x.sc, /55|70/.test(x.d)])[0], sts.filter(x => /^rou_/.test(x.k)).map(x => x.k + ':' + x.col).join()];
+    ST.roulette = 0; o.statesOff = playerStates().filter(x => /^rou_/.test(x.k)).length; G.rou = null;
+    Math.random = rnd0;
+    o.statn = ['jackpotCh', 'jackpotX', 'jackpotLess', 'betStep', 'allin', 'flipRes', 'nonCritLess', 'roulette', 'halfHitCh', 'takenUp', 'hitLess', 'mpCostUp', 'rarP'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    o.flags = ['allin', 'roulette'].filter(k => STATN[k][2] !== 1);
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const g = run(),
+    g2 = run(),
+    j = x => JSON.stringify(x);
+  ok(
+    '賭徒：固定熵值（常數與固定種子），整段實測連跑 2 次結果一模一樣（沒有用真亂數）',
+    j(g) === j(g2),
+    j(g) !== j(g2)
+      ? Object.keys(g)
+          .filter(k => j(g[k]) !== j(g2[k]))
+          .join()
+      : ''
+  );
+  ok(
+    '賭徒小點與大點的數值：傷害 10%／攻擊與施法速度 5%／冷卻恢復 10%／元素傷害 10%／暴擊加成 15%／物品稀有度 15%／生命 5%；豪賭 40%／×2.8／更少 25%、累積賭注 +15%（不加倍率）、梭哈、逆轉賠率 50%、手氣正旺（幸運、沒暴擊更少 20%）、命運輪盤、天公疼憨人 50%；13 個新鍵預設 0',
+    j(g.gamble) === '[40,2.8,25,0,10]' &&
+      j(g.bet) === '[40,2.8,25,15,5,5]' &&
+      j(g.allin) === '[1,10]' &&
+      j(g.flip) === '[10,50,15,1,1,20]' &&
+      j(g.wheel) === '[15,1,true,50]' &&
+      j(g.def0) === '[0,0,0,0,0,0,0,0,0,0,0,0,0]',
+    j([g.gamble, g.bet, g.allin, g.flip, g.wheel, g.def0])
+  );
+  ok('賭徒：7 大 7 小、沒有選擇組、合法的 8 點組合剛好 11 種', j(g.tree) === '[7,7,0,11]', j(g.tree));
+  ok(
+    '豪賭：開出大獎 ×2.8（真隨機）、沒開出更少 25%；召喚物與場上單位的擊中不算；沒點沒有；面板的期望倍率＝0.4×2.8＋0.6×0.75＝1.57（有累積賭注照一輪平均約 1.79）、召喚物的面板不乘',
+    j(g.win) === '[2.8,true,0]' &&
+      j(g.lose) === '[0.75,false,0]' &&
+      j(g.minion) === '[1,false]' &&
+      j(g.unit) === '[1,false]' &&
+      j(g.off) === '[1,false]' &&
+      j(g.ev0) === '[1.57,1.57]' &&
+      j(g.ev1) === '[1.79,1.79]' &&
+      g.evMinion === 1,
+    j([g.win, g.lose, g.minion, g.unit, g.off, g.ev0, g.ev1, g.evMinion])
+  );
+  ok(
+    '累積賭注：沒開出的每下 +15%（連續 4 次沒開出，第 5 下必開，開出後歸零）；擲 0.5 的話第 2 下（55%）就開；沒有累積賭注時連續沒開出不累積；固定種子連打 20000 下：平均倍率跟期望值差 < 0.03（無賭注 1.57、有賭注 1.79）、無賭注會連續很多下沒開出、有賭注最多連續 4 下沒開出、有賭注的開出率超過 40%',
+    j(g.seq) === '[[false,1],[false,2],[false,3],[false,4],[true,0],[false,1]]' &&
+      j(g.seq2) === '[[false,1],[true,0],[false,1],[true,0]]' &&
+      j(g.noBet) === '[0,0,0]' &&
+      j(g.simOK) === '[true,true,true,true,true]',
+    j([g.seq, g.seq2, g.noBet, g.sim, g.simOK])
+  );
+  ok(
+    '梭哈：3 秒內擊中必開大獎（常數擲不中也開）、不累積賭注；過了就沒有；期間受到的傷害提高 50%（跟紅籌碼的 15% 同一池相加 ＝ 1.65）、過了只剩 15%',
+    j(g.inAllin) === '[true,true,0]' &&
+      j(g.afterAllin) === '[false,1]' &&
+      j(g.taken) === '[1.5]' &&
+      g.taken2 === 1.65 &&
+      g.taken3 === 1.15,
+    j([g.inAllin, g.afterAllin, g.taken, g.taken2, g.taken3])
+  );
+  ok(
+    '梭哈（昇華技能）：點亮送 1 顆寶石（不重複）、退點收回、沒點亮不能用；不綁武器、冷卻 20 秒、持續 3 秒（驗收後 4 → 3）；用了有 3 秒（品質 20% 多 1 秒＝4 秒）',
+    j(g.gem) === '[1,1]' &&
+      j(g.use) === '[1,true]' &&
+      j(g.gone) === '[0,0,false,"要點亮昇華點「梭哈」"]' &&
+      j(g.sk) === '[20,3,true,"allin",0]' &&
+      j(g.cast) === '[true]' &&
+      g.cast2 === true &&
+      g.cast3 === false &&
+      g.castQ === true &&
+      g.castQ2 === false,
+    j([g.gem, g.use, g.gone, g.sk, g.cast, g.cast2, g.cast3, g.castQ, g.castQ2])
+  );
+  ok(
+    '逆轉賠率：50% 把元素抗性視為負值（75% 抗 → 火焰傷害 ×7）；穿透先不先都一樣（有 50% 穿透時沒翻 ×3、翻了 ×7，穿透不加成）；原本是負的（−30%）不變；混沌與物理不變；召喚物不算；沒點不翻',
+    j(g.flip75) === '[7]' &&
+      j(g.flipPen) === '[3,7]' &&
+      j(g.flipNeg) === '[1]' &&
+      j(g.flipChaos) === '[1,1,1]' &&
+      j(g.flipMinion) === '[1]' &&
+      j(g.flipOff) === '[1]',
+    j([g.flip75, g.flipPen, g.flipNeg, g.flipChaos, g.flipMinion, g.flipOff])
+  );
+  ok(
+    '手氣正旺：沒暴擊的擊中更少 20%（暴擊的不變）；面板的期望值＝暴擊率 50% 時 ×0.93；召喚物不算',
+    j(g.nonCrit) === '[0.8,1,false,true]' && g.nonCritAvg === 0.93 && g.nonCritMinion === 1,
+    j([g.nonCrit, g.nonCritAvg, g.nonCritMinion])
+  );
+  ok(
+    '天公疼憨人：受到的擊中 50% 機率傷害減半（hurtCalc 回傳 half、hurtPlayer 跳「閃」）；沒點沒有；黑籌碼：受到的擊中傷害更少 30%（跟減半相乘）；綠籌碼：魔力消耗 +30%',
+    j(g.half) === '[0.5,true,false,1]' &&
+      j(g.hitLess) === '[0.7,0.35]' &&
+      j(g.mpCost) === '[true,true,true]' &&
+      /r\.half\) num\(P\.x, P\.y - 78, 0, 'ev', '閃'\)/.test(
+        fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8')
+      ),
+    j([g.half, g.hitLess, g.mpCost])
+  );
+  ok(
+    '命運輪盤：照卡片的種子抽 2 種（兩種不同、照 ROUL 順序），同一張卡每次一樣（JSON 存檔來回也一樣、跟節點無關）、不同的卡種子不同；沒有種子的卡（主線、舊存檔）照節點＋星級＋地圖詞一樣固定；3000 張卡 15 種組合都出現、每種籌碼被抽到的次數差不多（800～1200）；說明文字齊全',
+    j(g.rouSame) === '["black,blue","black,blue",2,true,true,true,true]' &&
+      j(g.rouNode) === '[true]' &&
+      j(g.rouOld) === '[true,2]' &&
+      j(g.rouAll) === '[15,true,true,true,6]' &&
+      j(g.rouTxt) === '[true,true]',
+    j([g.rouSame, g.rouNode, g.rouOld, g.rouAll, g.rouTxt])
+  );
+  ok(
+    '命運輪盤籌碼的效果：金＝稀有度 +60%、掉落數量 +30%、怪物生命 +20%（進 G.mm，不進 stats）；紅＝傷害更多 30%＋受到的傷害提高 15%；紫＝暴擊率提高 100%、暴擊加成 +50%、非暴擊更少 20%；黑＝受到的擊中更少 30%、傷害更少 10%；綠＝技能速度 25%、移動速度 20%、魔力消耗 30%；藍＝異常機率 100%、強度 50%、五種持續 −30%；沒點亮輪盤或這張圖沒抽到就沒有；每個能力鍵都是 stats 有的；狀態列顯示賭注（連續沒開出 2 次→55%）與 2 個籌碼（輪盤沒點就沒有）',
+    j(g.mm) === '[30,60,20,true]' &&
+      j(g.chipRP) === '[30,15,100,50,20]' &&
+      j(g.chipBG) === '[30,-10,25,20,30]' &&
+      j(g.chipBl) === '[100,50,-30,-30,-30,-30,-30,0]' &&
+      j(g.chipOff) === '[0,0,0]' &&
+      !g.chipKeys.length &&
+      j(g.states) === '[[2,1,true],"rou_red:#ff5a5a,rou_blue:#5ad1ff"]' &&
+      g.statesOff === 0,
+    j([g.mm, g.chipRP, g.chipBG, g.chipBl, g.chipOff, g.chipKeys, g.states, g.statesOff])
+  );
+  const srcG = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '賭徒的 13 個新能力：STATN 有名字、開關（allin、roulette）第三格是 1、stats 預設是 0、機制至少一處讀取（allin 是技能欄位的 wtOK 讀、roulette 是 items.js 的 stats 讀）；進圖時 enterMap 才抽輪盤（G.rou）並進 mapMods、離開地圖清掉（resetWorld）、killMob 的稀有度加 rarP',
+    !g.statn.length &&
+      !g.flags.length &&
+      [
+        'jackpotCh',
+        'jackpotX',
+        'jackpotLess',
+        'betStep',
+        'flipRes',
+        'nonCritLess',
+        'halfHitCh',
+        'takenUp',
+        'hitLess',
+        'mpCostUp',
+        'rarP'
+      ].every(k => new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcG)) &&
+      /G\.rou = ascHas\(S, 'roulette'\) \? rouletteOf\(S\.card, G\.node\) : null;\s*G\.mm = mapMods\(S\.card, G\.zod && G\.zod\.cor, G\.rou\)/.test(
+        srcG
+      ) &&
+      /rou: null,/.test(srcG) &&
+      /rar: MM\('rar'\) \+ ST\.rarP/.test(srcG),
+    j([g.statn, g.flags])
+  );
+}
+/* 0.2.74 第四批 · 異變者（企劃書 7.4）：變異核心（腐化裝備計數）、第三隻手（ring3 欄位、退點脫回背包）、蟾蜍之血（免疫、回復、不能喝藥）、巨臂（力量＋100、智慧視為 0 進需求判定）、
+   複眼（擊中不能被閃避、暴擊、閃避 0）、甲蟲之殼（鎖腰帶）、腹蛇之眼（免疫詛咒致盲、對被詛咒的更多、鎖頭部）。機率用常數，整段連跑兩次要一模一樣 */
+{
+  const run = () =>
+    RA(`(() => {
+    ${ASC_COMBOS}
+    const o = {},
+      st = (at, eq = {}, extra = {}) => stats({ lv: 90, eq, pt: [], asc: 'mutant', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [], ...extra }),
+      rnd0 = Math.random,
+      T = ascNodes('mutant'),
+      s0 = st([]),
+      rs = () => { reset(); G.ground = []; Object.assign(P, { stag: 0, act: null }); },
+      ring = (a = []) => Object.assign(mkItem('r_iron', 16, 0), { a }),
+      attrRing = () => ring([{ k: 'attrA', v: 200, T: 1 }]),
+      cor = it => Object.assign(it, { cor: 1 });
+
+    /* 點亮的數值與預設 */
+    let s = st(['s1', 'core']);
+    o.core = [s.res.fire - s0.res.fire, s.corGearP, s.corGearHp];
+    s = st(['s1', 'core', 's2', 'hand']);
+    o.hand = [s.hp > st(['s1', 'core']).hp, s.ring3];
+    s = st(['s1', 'core', 's3', 'toad']);
+    o.toad = [s.regenInc, s.unPoi, s.unBleed, s.regenP, s.noFlask, s.unaff.poison, s.unaff.bleed, s.regen > st(['s1', 'core']).regen];
+    s = st(['s4', 'arm', 's5', 'eye']);
+    o.arm = [s.str - s0.str, s.intZero, s.int, s.meleeP - s0.meleeP, s.critInc - s0.critInc, s.noEvade, s.evZero, s.ev];
+    s = st(['s6', 'shell', 's7', 'viper']);
+    o.shell = [s.esP - s0.esP, s.noBelt, s.accP - s0.accP, s.unCurse, s.unBlind, s.cursedMore, s.noHelm, s.unaff.curse, s.unaff.blind];
+    o.def0 = ['corGearP', 'corGearHp', 'ring3', 'noFlask', 'regenInc', 'strFlat', 'intZero', 'noEvade', 'evZero', 'noBelt', 'unCurse', 'unBlind', 'cursedMore', 'noHelm'].map(k => base[k]);
+    o.tree = [T.N.filter(n => n.big === 1).length, T.N.filter(n => !n.big && n.id !== 'a_st').length, T.N.filter(n => n.g).length, combos('mutant')];
+
+    /* 變異核心：每件腐化裝備傷害提高 8%（dmgA）、最大生命 +3%（hpP），最多算 6 件；沒腐化的、關著欄位裡的不算；沒點沒有 */
+    const gear = (n) => {
+      const E = { weapon: mkItem('w_sword1_0', 1, 0), helm: mkItem('h_kasa', 1, 0), chest: mkItem('c_leather', 1, 0), gloves: mkItem('g_cloth', 1, 0), boots: mkItem('b_straw', 1, 0), amulet: mkItem('a_jade', 1, 0), ring1: ring(), ring2: ring() };
+      Object.values(E).slice(0, n).forEach(cor);
+      return E;
+    };
+    const cs = n => { const x = st(['s1', 'core'], gear(n)); return [x.dmgA - st(['s1'], gear(n)).dmgA, x.hp / st(['s1'], gear(n)).hp]; };
+    o.corN = [0, 1, 3, 6, 8].map(n => cs(n)[0]);
+    o.corHp = [0, 1, 6, 8].map(n => r2(cs(n)[1]));
+    o.corOff = st(['s1'], gear(6)).dmgA - st([], gear(0)).dmgA;
+
+    /* 第三隻手：ring3 欄位平常關著（裡面的戒指不算數值、算失效）、點亮才開（戒指的數值才進來）；退點時那枚戒指脫回背包 */
+    const lifeRing = () => ring([{ k: 'life', v: 100, T: 1 }]);
+    S.inv = { w: 12, h: 8, items: [] }; S.temp = { w: 12, h: 12, items: [] };
+    const E3 = { ring1: ring(), ring2: ring(), ring3: lifeRing() };
+    const closed = st(['s1', 'core'], E3), opened = st(['s1', 'core', 's2', 'hand'], E3), none = st(['s1', 'core'], { ring1: ring(), ring2: ring() });
+    o.ring3 = [closed.hp === none.hp, closed.eqBad.join(), opened.hp - none.hp - (opened.hp - none.hp) + (opened.hp > closed.hp ? 1 : 0), opened.eqBad.length, EQS.some(e => e.k === 'ring3' && e.t === 'ring')];
+    S.asc = 'mutant'; S.at = ['a_st', 'a_s1', 'a_core', 'a_s2', 'a_hand'];
+    o.open = [eqOpen(S, 'ring3'), eqOpen(S, 'belt'), eqOpen(S, 'helm')];
+    S.eq = { ring3: lifeRing() }; const it3 = S.eq.ring3;
+    ascSync(S); o.keep3 = [S.eq.ring3 === it3, S.inv.items.length];
+    o.why0 = eqUnloadWhy(S, ['a_st', 'a_s1', 'a_core']);
+    S.at = ['a_st', 'a_s1', 'a_core']; ascSync(S);
+    o.back3 = [S.eq.ring3, S.inv.items.length, S.inv.items[0] === it3, Number.isInteger(S.inv.items[0].x), eqOpen(S, 'ring3')];
+    /* 背包滿了放臨時頁；兩邊都滿了擋下來（eqUnloadWhy 回傳原因、eqUnload 留著不動，不弄丟裝備，欄位裡的戒指算失效） */
+    const fillG = (w, h) => ({ w, h, items: [Object.assign(mkItem('r_iron', 1, 0), { x: 0, y: 0 })] }),
+      handAt = ['a_st', 'a_s1', 'a_core', 'a_s2', 'a_hand'], coreAt = ['a_st', 'a_s1', 'a_core'];
+    S.at = handAt; S.eq = { ring3: lifeRing() }; S.inv = fillG(1, 1); S.temp = { w: 12, h: 12, items: [] };
+    const ringT = S.eq.ring3; o.whyTemp = eqUnloadWhy(S, coreAt);
+    S.at = coreAt; ascSync(S);
+    o.toTemp = [S.eq.ring3, S.temp.items[0] === ringT, S.inv.items.length];
+    S.at = handAt; S.eq = { ring3: lifeRing() }; S.inv = fillG(1, 1); S.temp = fillG(1, 1);
+    const keep2 = S.eq.ring3; o.whyBoth = eqUnloadWhy(S, coreAt);
+    S.at = coreAt; ascSync(S);
+    o.stuck = [S.eq.ring3 === keep2, S.inv.items.length, S.temp.items.length, stats(S).eqBad.includes('ring3')];
+    S.inv = { w: 12, h: 8, items: [] }; S.temp = { w: 12, h: 12, items: [] };
+
+    /* 鎖欄位：甲蟲之殼鎖腰帶（腰帶脫到背包、護符槽消失、欄位關著）、腹蛇之眼鎖頭部（頭盔脫到背包）；退點解鎖；沒鎖的欄位不動 */
+    S.asc = 'mutant'; S.at = ['a_st']; S.eq = { belt: mkItem('bt_rope', 1, 0), helm: mkItem('h_kasa', 1, 0), ring1: ring() };
+    const belt = S.eq.belt, helm = S.eq.helm;
+    o.slots0 = [charmSlots(S), eqOpen(S, 'belt'), eqOpen(S, 'helm')];
+    S.at = ['a_st', 'a_s6', 'a_shell']; ascSync(S);
+    o.lockBelt = [S.eq.belt, S.eq.helm === helm, S.inv.items.includes(belt), charmSlots(S), eqOpen(S, 'belt'), eqOpen(S, 'helm')];
+    S.at = ['a_st', 'a_s6', 'a_shell', 'a_s7', 'a_viper']; ascSync(S);
+    o.lockHelm = [S.eq.helm, S.inv.items.includes(helm), eqOpen(S, 'belt'), eqOpen(S, 'helm'), !!S.eq.ring1, S.inv.items.length, S.temp.items.length];
+    /* 關著的欄位裡硬塞的裝備不算（失效）：腰帶給的護符槽不算、頭盔的閃避不算 */
+    S.eq.helm = mkItem('h_hood', 1, 0); const lk = stats(S); o.lockStuck = [lk.eqBad.includes('helm'), lk.ev === st(['s6', 'shell', 's7', 'viper'], {}).ev];
+    S.eq.belt = mkItem('bt_rope', 1, 0); o.lockCharm = charmSlots(S);
+    S.at = ['a_st']; S.eq = { belt: mkItem('bt_rope', 1, 0) }; ascSync(S); o.unlock = [eqOpen(S, 'belt'), eqOpen(S, 'helm'), charmSlots(S) > 0];
+    S.at = ['a_st']; S.asc = null; S.eq = {};
+
+    /* 巨臂：力量 +100 與小點 +15（只算一次，沒有重複計算）、近戰 +20%；智慧視為 0（總量 0、裝備給的智慧不算、需要智慧的裝備與技能寶石放不上）；力量裝備照常、力量需求靠 +100 過關 */
+    const wand = mkItem('w_wand_5', 16, 0), ar = attrRing();
+    const noArm = st(['s1', 'core'], { weapon: wand, ring1: ar }), withArm = st(['s4', 'arm'], { weapon: wand, ring1: ar });
+    o.armReq = [noArm.eqBad.length, withArm.eqBad.join(), noArm.int > 100, withArm.int];
+    const mace = mkItem('w_mace1_5', 16, 0),
+      swNoArm = st(['s1', 'core'], { weapon: mace }), swArm = st(['s4', 'arm'], { weapon: mace });
+    o.armStr = [swNoArm.eqBad.join(), swArm.eqBad.join(), swArm.str - swNoArm.str];
+    const gl = g => gemLack(mkGem('fireball', 5), g).map(x => x[0]).join();
+    o.armGem = [gl({ str: 999, dex: 999, int: 999 }), gl(withArm), withArm.int];
+    o.armGem2 = [gemLack(mkGem('cleave', 5), withArm).length, gemLack(mkGem('cleave', 5), noArm).length > 0];
+    /* 力量的小點（+15）不會因為在 stats 又加一次而變成 +30 */
+    o.armSmall = [st(['s4']).str - s0.str, st(['s4', 'arm']).str - s0.str];
+
+    /* 複眼：你自己的擊中不能被閃避（怪物閃避超高也必中，召喚物不算）；暴擊率提高 60%（加小點 15%）；閃避值歸零 */
+    rs(); ST.noMiss = 0; ST.acc = 100; const hm = () => mk(40, 0, { ev: 1e6 }), cl = gemCfg(mkGem('slash', 5), 0);
+    Math.random = () => 0; ST.noEvade = 0; const m0 = hm(); const miss = hitRoll(m0, cl, {});
+    ST.noEvade = 1; const hit1 = hitRoll(hm(), cl, {}), hitMin = hitRoll(hm(), cl, { minion: 1 }); Math.random = rnd0;
+    o.noEvade = [miss, hit1, hitMin];
+    const evH = { helm: mkItem('h_hood', 1, 0), ring1: attrRing() };
+    o.evZero = [st(['s4', 'arm'], evH).ev > 0, st(['s4', 'arm', 's5', 'eye'], evH).ev];
+
+    /* 蟾蜍之血：不能使用藥劑（生命、魔力藥劑都鎖住、充能不扣）；沒點時照常。drinkFlask 是 game.js 的真函式 */
+    rs(); P.flask = 3; P.mflask = 3; ST.noFlask = 0; drinkFlask(); drinkFlask(1);
+    o.flaskOk = [r2(P.flask), r2(P.mflask)];
+    P.flask = 3; P.mflask = 3; P.heal = 0; ST.noFlask = 1; WARN = ''; drinkFlask(); drinkFlask(1);
+    o.flaskNo = [P.flask, P.mflask, P.heal, WARN];
+
+    /* 腹蛇之眼：不受詛咒（元素要害不減抗性）、不受致盲（閃避與命中不打折）；對被詛咒的敵人傷害更多 15%（詛咒過期就沒有） */
+    rs(); P.ail = { curse: { k: 'eleweak', t: G.t + 99, v: 20 } }; ST.res = { fire: 50, cold: 50, light: 50, chaos: 0 }; ST.maxRes = { fire: 75, cold: 75, light: 75, chaos: 75 };
+    ST.unaff = {}; const r1 = effRes('fire'); ST.unaff = { curse: 1 }; const r2e = effRes('fire'); ST.unaff = {};
+    o.curse = [r1, r2e];
+    const evAfter = unf => { rs(); ST.ev = 500; P.evE = 0; P.ail = { blind: G.t + 99 }; ST.unaff = unf ? { blind: 1 } : {}; hurtCalc(100, null, 'phys'); return r2(P.evE); };
+    o.blind = [evAfter(0) > evAfter(1), evAfter(1)];
+    rs(); ST.cursedMore = 15; const sl = gemCfg(mkGem('slash', 5), 0), plain = hitCalc(sl, mk(), {}).d;
+    const cm1 = hitCalc(sl, mk(40, 0, { ail: { curse: { k: 'vuln', t: G.t + 99, v: 0 } } }), {}).d, cm2 = hitCalc(sl, mk(40, 0, { ail: { curse: { k: 'vuln', t: G.t - 1, v: 0 } } }), {}).d;
+    ST.cursedMore = 0; const cm3 = hitCalc(sl, mk(40, 0, { ail: { curse: { k: 'vuln', t: G.t + 99, v: 0 } } }), {}).d;
+    o.cursedMore = [r2(cm1 / plain), r2(cm2 / plain), r2(cm3 / plain)];
+    /* 蟾蜍之血的小點：生命回復 +20%（regen 乘上去，不是加上去） */
+    const rg = st(['s1', 'core', 's3', 'toad'], {}), rg0 = st(['s1', 'core'], {}).regen;
+    o.regenInc = [r2(rg.regen), r2((rg0 + (rg.hp * 1.5) / 100) * 1.2), rg.regenInc];
+    o.statn = ['corGearP', 'corGearHp', 'ring3', 'noFlask', 'regenInc', 'strFlat', 'intZero', 'noEvade', 'evZero', 'noBelt', 'unCurse', 'unBlind', 'cursedMore', 'noHelm'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    o.flags = ['ring3', 'noFlask', 'intZero', 'noEvade', 'evZero', 'noBelt', 'unCurse', 'unBlind', 'noHelm'].filter(k => STATN[k][2] !== 1);
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const g = run();
+  const g2 = run(),
+    j = x => JSON.stringify(x);
+  ok(
+    '異變者：固定熵值（常數亂數），整段實測連跑 2 次結果一模一樣（沒有用真亂數）',
+    j(g) === j(g2),
+    j(g) !== j(g2)
+      ? Object.keys(g)
+          .filter(k => j(g[k]) !== j(g2[k]))
+          .join()
+      : ''
+  );
+  ok(
+    '異變者小點與大點的數值：全部抗性 5%／生命 5%／生命回復 20%／力量 15／暴擊率 15%／護甲 15%／命中值 15%；變異核心 8%＋3%、蟾蜍之血（免疫中毒流血、每秒 1.5%、不能喝藥）、巨臂（力量 +100、近戰 +20%、智慧 0）、複眼（必中、暴擊 +60%、閃避 0）、甲蟲之殼（護甲與能量護盾 +40%、鎖腰帶）、腹蛇之眼（免疫詛咒致盲、對被詛咒更多 15%、鎖頭部）；14 個新鍵預設 0',
+    j(g.core) === '[5,8,3]' &&
+      j(g.hand) === '[true,1]' &&
+      j(g.toad) === '[20,1,1,1.5,1,1,1,true]' &&
+      j(g.arm) === '[115,1,0,20,75,1,1,0]' &&
+      j(g.shell) === '[40,1,15,1,1,15,1,1,1]' &&
+      j(g.def0) === '[0,0,0,0,0,0,0,0,0,0,0,0,0,0]',
+    j([g.core, g.hand, g.toad, g.arm, g.shell, g.def0])
+  );
+  ok('異變者：7 大 7 小、沒有選擇組、合法的 8 點組合剛好 11 種', j(g.tree) === '[7,7,0,11]', j(g.tree));
+  ok(
+    '變異核心：每件腐化裝備傷害提高 8%、最大生命 +3%（0、1、3、6、8 件＝0／8／24／48／48，最多算 6 件）；沒點變異核心沒有',
+    j(g.corN) === '[0,8,24,48,48]' && j(g.corHp) === '[1,1.03,1.18,1.18]' && g.corOff === 0,
+    j([g.corN, g.corHp, g.corOff])
+  );
+  ok(
+    '第三隻手：ring3 欄位（戒指）平常是關著的，裡面的戒指不算數值、算失效；點亮才開（戒指的生命進來）；退點時那枚戒指脫回背包（有位置）、欄位關上；點亮時裝備不動',
+    j(g.ring3) === '[true,"ring3",1,0,true]' &&
+      j(g.open) === '[true,true,true]' &&
+      j(g.keep3) === '[true,0]' &&
+      g.why0 === '' &&
+      j(g.back3) === '[null,1,true,true,false]',
+    j([g.ring3, g.open, g.keep3, g.why0, g.back3])
+  );
+  ok(
+    '脫下裝備放不下時：背包滿了放臨時頁（eqUnloadWhy 說放得下）；背包與臨時頁都滿了就擋下來（說明原因、eqUnload 不動、裝備留在欄位裡算失效，不弄丟）',
+    g.whyTemp === '' &&
+      j(g.toTemp) === '[null,true,1]' &&
+      g.whyBoth === '背包和臨時倉庫都放不下要脫下的裝備：先騰出空間' &&
+      j(g.stuck) === '[true,1,1,true]',
+    j([g.whyTemp, g.toTemp, g.whyBoth, g.stuck])
+  );
+  ok(
+    '鎖欄位：甲蟲之殼鎖腰帶（腰帶脫到背包、護符槽消失、欄位關著、頭部不動）、腹蛇之眼鎖頭部（頭盔脫到背包、戒指不動）；關著的欄位裡硬塞的裝備算失效（頭盔的閃避不算、腰帶沒有護符槽）；退點（昇華點退光）全部解鎖',
+    j(g.slots0) === '[1,true,true]' &&
+      j(g.lockBelt) === '[null,true,true,0,false,true]' &&
+      j(g.lockHelm) === '[null,true,false,false,true,2,0]' &&
+      j(g.lockStuck) === '[true,true]' &&
+      g.lockCharm === 0 &&
+      j(g.unlock) === '[true,true,true]',
+    j([g.slots0, g.lockBelt, g.lockHelm, g.lockStuck, g.lockCharm, g.unlock])
+  );
+  ok(
+    '巨臂：力量 +100（加小點 +15＝115，只算一次）、智慧視為 0（總量 0、裝備給的智慧不算）：要智慧的法杖穿不上（沒點巨臂時有能力值戒指就穿得上）、要智慧的技能寶石（火球）插不了（沒需求時不缺）；力量 +100 讓重錘（要力量 123）穿得上',
+    j(g.armReq) === '[0,"weapon",true,0]' &&
+      j(g.armStr) === '["weapon","",115]' &&
+      j(g.armGem) === '["","智慧",0]' &&
+      j(g.armSmall) === '[15,115]',
+    j([g.armReq, g.armStr, g.armGem, g.armSmall])
+  );
+  ok(
+    '複眼：你自己的擊中不能被閃避（怪物閃避 100 萬也必中；沒點會 miss；召喚物的擊中不算）；暴擊率提高 60%；閃避值歸零（沒點時戴閃避頭盔有閃避）',
+    j(g.noEvade) === '[false,true,false]' && j(g.evZero) === '[true,0]',
+    j([g.noEvade, g.evZero])
+  );
+  ok(
+    '蟾蜍之血：不能使用藥劑（drinkFlask 真的擋下：生命與魔力藥劑的充能不扣、不回血、跳「蟾蜍之血：不能使用藥劑」）；沒點照常喝；每秒回復 1.5% 最大生命、小點生命回復 +20% 是乘上去的（不是加上去）',
+    j(g.flaskOk) === '[2,2]' &&
+      j(g.flaskNo) === '[3,3,0,"蟾蜍之血：不能使用藥劑"]' &&
+      g.regenInc[0] === g.regenInc[1] &&
+      g.regenInc[2] === 20,
+    j([g.flaskOk, g.flaskNo, g.regenInc])
+  );
+  ok(
+    '腹蛇之眼：不受詛咒（元素要害不減抗性：抗性 20 → 40）、不受致盲（閃避的熵值累積不打折）；對被詛咒的敵人傷害更多 15%（詛咒過期、沒點就沒有）',
+    j(g.curse) === '[20,40]' && g.blind[0] === true && j(g.cursedMore) === '[1.15,1,1]',
+    j([g.curse, g.blind, g.cursedMore])
+  );
+  const srcM = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js', 'hud.js', 'tree.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '異變者的 14 個新能力：STATN 有名字、開關第三格是 1、stats 預設是 0、機制至少一處讀取（strFlat／intZero 是 eqCheck 的 ascSum 讀）；介面真的接上：invHTML 畫 ring3 與鎖、slotFits／quickMove／比較都檢查 eqOpen、點亮與退點前檢查放不放得下（treeToggle、重置、換昇華）、charmSlots 看欄位開不開',
+    !g.statn.length &&
+      !g.flags.length &&
+      ['corGearP', 'corGearHp', 'noFlask', 'regenInc', 'noEvade', 'evZero', 'unCurse', 'unBlind', 'cursedMore'].every(
+        k => new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcM)
+      ) &&
+      /ascSum\(s, 'strFlat'\)/.test(srcM) &&
+      /ascSum\(s, 'intZero'\)/.test(srcM) &&
+      /ring3: \[204, 156, 36, 36\]/.test(srcM) &&
+      /eqOpen\(S, key\) &&/.test(srcM) &&
+      /eqTakes\(e, k\) && eqOpen\(S, e\.k\)/.test(srcM) &&
+      (srcM.match(/eqUnloadWhy\(/g) || []).length >= 5 &&
+      /b && eqOpen\(s, 'belt'\)/.test(srcM),
+    j([g.statn, g.flags])
+  );
+}
+/* 0.2.74 第四批 · 追獵者（企劃書 7.4）：三瓶藥劑技能（毒霧、疾風、石膚：沒有冷卻共用 0.5 秒、花 1 瓶生命藥劑的充能、不能插輔助、算喝藥）、煉毒師（中毒 +3 層／持續 −30%）、
+   催毒（喝藥時 8 公尺內中毒的敵人毒爆 50%）、以毒攻毒（藥劑技能生效期間必定中毒＋25%）、調製（藥劑技能充能 −50%、殺中毒的敵人 +3 點充能）。機率用常數，整段連跑兩次要一模一樣 */
+{
+  const gameSrc = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, ''),
+    killBlock = (gameSrc.match(/ {2}\/\* 調製[\s\S]*?\n {2}\}\n/) || [''])[0];
+  const run = () =>
+    RA(`(() => {
+    ${ASC_COMBOS}
+    const o = {},
+      st = (at, eq = {}) => stats({ lv: 90, eq, pt: [], asc: 'stalker', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
+      cfgOf = (k, lv = 5) => gemCfg(mkGem(k, lv), 0),
+      rnd0 = Math.random,
+      T = ascNodes('stalker'),
+      s0 = st([]),
+      rs = () => { reset(); G.ground = []; Object.assign(ST, { str: 999, dex: 999, int: 999 }); Object.assign(P, { stag: 0, act: null, flask: 3, mflask: 3, flaskT: 0, buf: {} }); },
+      killCharge = ${JSON.stringify(killBlock)};
+
+    /* 點亮的數值與預設 */
+    let s = st(['s1', 'gas']);
+    o.gas = [s.chaosP - s0.chaosP, s.gasflask, s.windflask, s.stoneflask];
+    s = st(['s1', 'gas', 's2', 'alch']);
+    o.alch = [s.poiDur, s.poiStack];
+    s = st(['s1', 'gas', 's3', 'burst']);
+    o.burst = [s.ailMag, s.flaskBurst];
+    s = st(['s4', 'wind', 's5', 'selfpoi']);
+    o.wind = [s.flask, s.windflask, s.poisonCh, s.flaskPoi];
+    s = st(['s6', 'stone', 's7', 'brew']);
+    o.stone = [s.hp > s0.hp, s.stoneflask, s.flaskChg, s.flaskHalf, s.poiKillChg];
+    o.def0 = ['gasflask', 'windflask', 'stoneflask', 'flaskBurst', 'flaskPoi', 'flaskHalf', 'poiKillChg'].map(k => base[k]);
+    o.tree = [T.N.filter(n => n.big === 1).length, T.N.filter(n => !n.big && n.id !== 'a_st').length, T.N.filter(n => n.g).length, combos('stalker')];
+
+    /* 三瓶昇華技能：點亮送寶石（不重複）、退點收回、沒點亮不能用；不綁武器、沒有冷卻、標籤 flask、不花魔力；任何輔助都插不了（supOK） */
+    rs(); S.asc = 'stalker'; S.at = ['a_st', 'a_s1', 'a_gas', 'a_s4', 'a_wind', 'a_s6', 'a_stone']; ascSync(S); ascSync(S);
+    const cnt = k => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === k).length;
+    o.gem = [cnt('gasflask'), cnt('windflask'), cnt('stoneflask')];
+    ST = stats(S); o.use = [ST.gasflask, ST.windflask, ST.stoneflask, !!wtOK(SKILLS.gasflask), !!wtOK(SKILLS.windflask), !!wtOK(SKILLS.stoneflask)];
+    S.at = ['a_st', 'a_s1', 'a_gas']; ascSync(S); ST = stats(S);
+    o.gone = [cnt('gasflask'), cnt('windflask'), cnt('stoneflask'), !!wtOK(SKILLS.windflask), wtNeed(SKILLS.stoneflask)];
+    S.at = ['a_st']; S.asc = null;
+    o.sk = ['gasflask', 'windflask', 'stoneflask'].map(k => { const D = SKILLS[k]; return [!D.wt, D.asc === k, D.tags.includes('flask'), D.mp, D.cd || 0, D.fdur]; });
+    o.noSup = ['fury', 'haste', 'multi', 'poison', 'area'].map(k => supOK(SKILLS.gasflask, mkGem(k, 1), null)).filter(Boolean).length;
+    o.supStill = supOK(SKILLS.slash, mkGem('fury', 1), null);
+
+    /* 花充能與間隔：1 瓶（謹慎調配 flaskUse 少用 x%、調製再 −50%）；共用 0.5 秒；充能不夠、蟾蜍之血不能放；跟紅水同一池（P.flask）；練習區不扣 */
+    const pay = (ex = {}) => { rs(); ST.gasflask = 1; Object.assign(ST, ex); const c = cfgOf('gasflask'), w = skillWhy(c, { x: 0, y: 0 }); const f0 = P.flask; skillPay(c, 0); return [w, r2(f0 - P.flask)]; };
+    o.pay = [pay(), pay({ flaskUse: 50 }), pay({ flaskHalf: 1 }), pay({ flaskUse: 50, flaskHalf: 1 })];
+    rs(); ST.gasflask = 1; let c1 = cfgOf('gasflask'); skillPay(c1, 0);
+    o.gap = [skillWhy(c1, { x: 0, y: 0 }), r2(P.flaskT - G.t)]; G.t += 0.51; o.gap2 = skillWhy(c1, { x: 0, y: 0 });
+    rs(); ST.gasflask = 1; P.flask = 0.4; o.empty = skillWhy(cfgOf('gasflask'), { x: 0, y: 0 });
+    rs(); ST.gasflask = 1; P.flask = 0.4; ST.flaskHalf = 1; o.emptyHalf = skillWhy(cfgOf('gasflask'), { x: 0, y: 0 });
+    rs(); ST.gasflask = 1; P.flask = 0.6; ST.flaskHalf = 1; o.halfOK = skillWhy(cfgOf('gasflask'), { x: 0, y: 0 });
+    rs(); ST.gasflask = 1; ST.noFlask = 1; o.noFlask = skillWhy(cfgOf('gasflask'), { x: 0, y: 0 });
+    rs(); ST.gasflask = 1; P.flask = 0; PRAC.in = true; G.scene = 'hide'; const pf0 = P.flask; skillPay(cfgOf('gasflask'), 0); o.prac = [P.flask === pf0, pracFree()]; PRAC.in = false; G.scene = 'map';
+
+    /* 毒霧藥劑：算喝藥；圈內（半徑 120）每 0.5 秒受一次混沌擊中（武器傷害 ×0.4 轉成混沌）並必定中毒；圈外不動；持續 3 秒（吃藥劑效果 50% → 4.5 秒、品質 20% 再 +1 秒） */
+    const gas = (ex = {}, q = 0) => {
+      rs(); ST.gasflask = 1; Object.assign(ST, ex);
+      const g0 = mkGem('gasflask', 5); g0.q = q; const c = gemCfg(g0, 0), a = { k: 'gasflask', c, ang: 0, tx: 300, ty: 0, hits: [0], n: 0 };
+      const inM = mk(380, 0), out = mk(500, 0);
+      G.mobs = [inM, out]; actHit(a, 0);
+      return { g: G.ground.find(g => g.k === 'gas'), inM, out, c, a };
+    };
+    let r = gas();
+    o.gasSet = [!!r.g, r.g.x, r.g.r, r2(r.g.dur), r.g.dps];
+    Math.random = () => 0.9999;
+    groundTick(0.01);
+    const cc = { ...r.c, poisonCh: 100 }, ex1 = hitCalc(cc, mk(380, 0), { mult: 0.4 });
+    o.gasHit = [r.inM.hp < 1e6, r.out.hp === 1e6, (r.inM.ail.poi || []).length, r2(1e6 - r.inM.hp) === r2(ex1.d), ex1.pre.chaos > 0 && ex1.pre.phys === 0];
+    Math.random = rnd0;
+    o.gasDur = [r2(gas({ flask: 50 }).g.dur), r2(gas({}, 20).g.dur), r2(gas({ flask: 50 }, 20).g.dur)];
+    o.gasDrunk = [P.ev && P.ev.flask === G.t];
+
+    /* 疾風藥劑：4 秒猛攻（技能速度 +20%）＋迷蹤＋移動速度 +20%（猛攻 +10% 另外算）；吃藥劑效果；過了就沒有 */
+    rs(); ST.windflask = 1; const mv0 = buffMove(), ss0 = buffSpeed(0);
+    actHit({ k: 'windflask', c: cfgOf('windflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0);
+    o.wind4 = [hasBuff('onslaught'), hasBuff('phasing'), hasBuff('windflask'), r2(buffMove() / mv0), r2(buffSpeed(0) / ss0)];
+    G.t += 3.9; o.windOn = hasBuff('windflask'); G.t += 0.2; o.windOff = [hasBuff('windflask'), hasBuff('onslaught'), hasBuff('phasing'), r2(buffMove() / mv0)];
+    rs(); ST.windflask = 1; ST.flask = 50; actHit({ k: 'windflask', c: cfgOf('windflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); G.t += 5.9; o.windEff = [hasBuff('windflask')]; G.t += 0.2; o.windEff2 = hasBuff('windflask');
+
+    /* 石膚藥劑：守護（最大生命 30%，吃藥劑效果）吸收接下來的擊中、期間（4 秒）不會被擊退；守護用完或時間到就沒有；沒喝沒有 */
+    rs(); ST.stoneflask = 1; ST.hp = 1000; P.hp = 1000;
+    actHit({ k: 'stoneflask', c: cfgOf('stoneflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0);
+    o.stone0 = [hasBuff('stone'), P.stoneV];
+    o.absorb = [absorb(100), P.stoneV, absorb(500), P.stoneV, absorb(100)];
+    P.stoneV = 300; ST.armor = 0; P.evE = 0; P.ail = {}; o.hurtStone = r2(hurtCalc(100, null, 'phys', 1).d);
+    G.t += 4.1; P.stoneV = 300; o.stoneGone = [hasBuff('stone'), absorb(100)];
+    rs(); ST.stoneflask = 1; ST.hp = 1000; ST.flask = 50; actHit({ k: 'stoneflask', c: cfgOf('stoneflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); o.stoneEff = P.stoneV;
+    rs(); o.noStone = [hasBuff('stone'), P.stoneV || 0, absorb(100)];
+
+    /* 催毒：使用藥劑（紅水、藍水、三瓶技能，同一個事件）時，8 公尺（240＋半徑）內中毒的敵人立刻結算剩餘中毒傷害的 50%（混沌、吃抗性），結算掉的從中毒扣掉（剩餘時間減半）；
+       遠的、沒中毒的、中毒過期的、死掉的不動；結算會殺怪但不會連鎖（結算只扣血、不擴散）；沒點沒有；再喝一口再結算剩下的一半 */
+    const pz = (x, ex = {}) => mk(x, 0, { ail: { poi: [{ dps: 10, t: G.t + 5 }, { dps: 4, t: G.t + 10 }] }, ...ex });
+    rs(); ST.flaskBurst = 50; ST.drink = 0;
+    const b1 = pz(100), b2 = pz(200, { res: { fire: 0, cold: 0, light: 0, chaos: 50 } }), b3 = pz(400), b4 = mk(100, 0), b5 = pz(100, { hp: 0 }), b6 = mk(100, 0, { ail: { poi: [{ dps: 99, t: G.t - 1 }] } }), b7 = pz(100, { hp: 20 });
+    G.mobs = [b1, b2, b3, b4, b5, b6, b7];
+    flaskDrunk();
+    o.burst1 = [r2(1e6 - b1.hp), r2(1e6 - b2.hp), b3.hp, b4.hp, b5.hp, b6.hp, b7.hp, r2(b1.ail.poi[0].t - G.t), r2(b1.ail.poi[1].t - G.t), P.ev.flask === G.t];
+    flaskDrunk(); o.burst2 = r2(1e6 - b1.hp);
+    ST.flaskBurst = 0; const b8 = pz(100); G.mobs = [b8]; flaskDrunk(); o.burstOff = b8.hp;
+    ST.flaskBurst = 50; const b9 = pz(100); G.mobs = [b9]; P.flask = 3; P.heal = 0; G.scene = 'map'; G.state = 'play'; drinkFlask(); o.burstRed = [b9.hp < 1e6, P.heal > 0, r2(P.flask)];
+    const b10 = pz(100); G.mobs = [b10]; P.mflask = 3; P.mheal = 0; drinkFlask(1); o.burstBlue = [b10.hp < 1e6, P.mheal > 0];
+    const b11 = pz(100); G.mobs = [b11]; ST.gasflask = 1; actHit({ k: 'gasflask', c: cfgOf('gasflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); o.burstSkill = b11.hp < 1e6;
+
+    /* 以毒攻毒：藥劑技能生效期間（flaskAct）你的擊中必定中毒、中毒傷害更多 25%（自然機率擲不中也中毒）；沒生效、沒點的不會；過期就沒有 */
+    const pois = (act, fp, pc = 0) => { rs(); ST.flaskPoi = fp; ST.poisonCh = pc; if (act) gainBuff('flaskAct', 4); Math.random = () => 0.9999; const z = mk(); applyAil(z, { pre: { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 }, post: { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 } }, { ...cfgOf('slash'), poisonCh: 0 }, {}); Math.random = rnd0; return (z.ail.poi || []).map(x => r2(x.dps)); };
+    const pa = pois(1, 25), pb = pois(1, 0), pc = pois(0, 25), pbase = pois(0, 0, 100);
+    o.flaskPoi = [pa.length, r2(pa[0] / pbase[0]), pb.length, pc.length, pbase.length];
+    rs(); ST.flaskPoi = 25; ST.gasflask = 1; actHit({ k: 'gasflask', c: cfgOf('gasflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); o.actBuff = [hasBuff('flaskAct')]; G.t += 3.1; o.actBuff2 = hasBuff('flaskAct');
+    rs(); ST.flaskPoi = 0; ST.gasflask = 1; actHit({ k: 'gasflask', c: cfgOf('gasflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); o.actBuffOff = hasBuff('flaskAct');
+
+    /* 調製：殺死中毒的敵人多得 3 點藥劑充能（10 點＝1 瓶 ＝ 0.3 瓶，紅藍水都得、吃藥劑充能獲得）、最多滿瓶；沒中毒的、沒點的不得（game.js 的 killMob 那一段原文直接跑） */
+    const kill = (m, ex = {}) => { rs(); Object.assign(ST, { poiKillChg: 3, flaskChg: 0 }, ex); P.flask = 1; P.mflask = 1; new Function('m', 'ST', 'P', 'FLASK', 'G', killCharge)(m, ST, P, FLASK, G); return [r2(P.flask), r2(P.mflask)]; };
+    o.killChg = [kill(pz(100)), kill(mk(100, 0)), kill(pz(100), { poiKillChg: 0 }), kill(pz(100), { flaskChg: 100 }), kill(mk(100, 0, { ail: { poi: [{ dps: 5, t: G.t - 1 }] } }))];
+    rs(); ST.poiKillChg = 3; ST.flaskChg = 0; P.flask = 2.9; P.mflask = 2.9; new Function('m', 'ST', 'P', 'FLASK', 'G', killCharge)(pz(100), ST, P, FLASK, G); o.killCap = [P.flask, P.mflask];
+    o.killSrc = killCharge.length > 40;
+
+    /* 煉毒師：中毒最多再疊 3 層（同一個敵人連打 6 下＝4 筆，沒點 1 筆）、每筆持續 −30%（2 秒 → 1.4 秒）；吃進 stats 的 poiStack、poiDur */
+    const stack = (n, dur) => { rs(); ST.poiStack = n; ST.poiDur = dur; Math.random = () => 0; const z = mk(); for (let i = 0; i < 6; i++) applyAil(z, { pre: { phys: 100 - i, fire: 0, cold: 0, light: 0, chaos: 0 }, post: { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 } }, { ...cfgOf('slash'), poisonCh: 100 }, {}); Math.random = rnd0; return [z.ail.poi.length, r2(z.ail.poi[0].t - G.t)]; };
+    o.stack = [stack(0, 0), stack(3, -30), st(['s1', 'gas', 's2', 'alch']).poiStack];
+    o.statn = ['gasflask', 'windflask', 'stoneflask', 'flaskBurst', 'flaskPoi', 'flaskHalf', 'poiKillChg'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    o.flags = ['gasflask', 'windflask', 'stoneflask', 'flaskHalf'].filter(k => STATN[k][2] !== 1);
+    o.buff = ['windflask', 'stone', 'flaskAct'].map(k => !!(BUFF[k] && BUFF[k].n && BUFF[k].ic && !BUFF[k].max));
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const g = run();
+  const g2 = run(),
+    j = x => JSON.stringify(x);
+  ok(
+    '追獵者：固定熵值（常數亂數），整段實測連跑 2 次結果一模一樣（沒有用真亂數）',
+    j(g) === j(g2),
+    j(g) !== j(g2)
+      ? Object.keys(g)
+          .filter(k => j(g[k]) !== j(g2[k]))
+          .join()
+      : ''
+  );
+  ok(
+    '追獵者小點與大點的數值：混沌傷害 10%／中毒持續 15%／異常強度 10%／藥劑效果 15%／中毒機率 15%／生命 5%／藥劑充能獲得 20%；煉毒師（中毒 +3 層、持續 −30%）、催毒 50%、以毒攻毒 25%、調製（充能 −50%、殺中毒 +3 點）；7 個新鍵預設 0',
+    j(g.gas) === '[10,1,0,0]' &&
+      j(g.alch) === '[-15,3]' &&
+      j(g.burst) === '[10,50]' &&
+      j(g.wind) === '[15,1,15,25]' &&
+      j(g.stone) === '[true,1,20,1,3]' &&
+      j(g.def0) === '[0,0,0,0,0,0,0]',
+    j([g.gas, g.alch, g.burst, g.wind, g.stone, g.def0])
+  );
+  ok('追獵者：7 大 7 小、沒有選擇組、合法的 8 點組合剛好 11 種', j(g.tree) === '[7,7,0,11]', j(g.tree));
+  ok(
+    '三瓶昇華技能：點亮送寶石（各 1 顆、不重複）、退點收回、沒點亮不能用；不綁武器、沒有冷卻、不花魔力、標籤 flask、持續 3／4／4 秒；任何輔助（狂暴、加速、多重投射、毒、範圍）都插不了，普通技能照常',
+    j(g.gem) === '[1,1,1]' &&
+      j(g.use) === '[1,1,1,true,true,true]' &&
+      j(g.gone) === '[1,0,0,false,"要點亮昇華點「石膚藥劑」"]' &&
+      j(g.sk) === '[[true,true,true,0,0,3],[true,true,true,0,0,4],[true,true,true,0,0,4]]' &&
+      g.noSup === 0 &&
+      g.supStill === true,
+    j([g.gem, g.use, g.gone, g.sk, g.noSup, g.supStill])
+  );
+  ok(
+    '花充能與間隔：每次用 1 瓶生命藥劑的充能（跟紅水同一池 P.flask；謹慎調配少用 50% → 0.5；調製 −50% → 0.5；兩個都有 → 0.25）；共用 0.5 秒間隔；充能不夠（調製後 0.5 瓶就夠）、蟾蜍之血不能放；練習區不扣',
+    j(g.pay) === '[["",1],["",0.5],["",0.5],["",0.25]]' &&
+      j(g.gap) === '["藥劑技能共用 0.5 秒間隔",0.5]' &&
+      g.gap2 === '' &&
+      g.empty === '生命藥劑用完了：殺怪會補' &&
+      g.emptyHalf === '生命藥劑用完了：殺怪會補' &&
+      g.halfOK === '' &&
+      g.noFlask === '蟾蜍之血：不能使用藥劑' &&
+      j(g.prac) === '[true,true]',
+    j([g.pay, g.gap, g.gap2, g.empty, g.emptyHalf, g.halfOK, g.noFlask, g.prac])
+  );
+  ok(
+    '毒霧藥劑：在滑鼠位置留下毒霧（半徑 120、0.5 秒一次）；圈內每次受一次混沌擊中（主手武器傷害 ×0.4 轉成混沌，沒有物理）並必定中毒（自然機率擲不中也中毒）、圈外不動；持續 3 秒（藥劑效果 +50% → 4.5 秒、品質 20% 再 +1 秒）；算使用藥劑（記近期事件）',
+    j(g.gasSet) === '[true,300,120,3,0.8]' &&
+      j(g.gasHit) === '[true,true,1,true,true]' &&
+      j(g.gasDur) === '[4.5,4,5.5]' &&
+      j(g.gasDrunk) === '[true]',
+    j([g.gasSet, g.gasHit, g.gasDur, g.gasDrunk])
+  );
+  ok(
+    '疾風藥劑：4 秒猛攻（技能速度 +20%）＋迷蹤＋移動速度再 +20%（跟猛攻的 +10% 相乘＝×1.32）；吃藥劑效果（+50% → 6 秒）；過了全部消失',
+    j(g.wind4) === '[true,true,true,1.32,1.2]' &&
+      g.windOn === true &&
+      j(g.windOff) === '[false,false,false,1]' &&
+      j(g.windEff) === '[true]' &&
+      g.windEff2 === false,
+    j([g.wind4, g.windOn, g.windOff, g.windEff, g.windEff2])
+  );
+  ok(
+    '石膚藥劑：守護最大生命的 30%（吃藥劑效果：+50% → 45%）吸收接下來的擊中（先扣守護、用完才扣生命）；4 秒內不會被擊退（hurtPlayer 看 hasBuff(stone)）；時間到或沒喝就沒有',
+    j(g.stone0) === '[true,300]' &&
+      j(g.absorb) === '[0,200,300,0,100]' &&
+      g.hurtStone === 0 &&
+      j(g.stoneGone) === '[false,100]' &&
+      g.stoneEff === 450 &&
+      j(g.noStone) === '[false,450,100]' &&
+      /!vgDash\(\) && !hasBuff\('stone'\)/.test(fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8')),
+    j([g.stone0, g.absorb, g.hurtStone, g.stoneGone, g.stoneEff, g.noStone])
+  );
+  ok(
+    '催毒：使用藥劑（紅水、藍水、毒霧技能，同一個 flaskDrunk 事件）時，8 公尺內中毒的敵人立刻結算剩餘中毒傷害的 50%（10×5＋4×10＝90 → 45，吃混沌抗性：50% 抗 → 22.5），結算掉的從中毒扣掉（剩餘 5 秒 → 2.5、10 秒 → 5）；遠的、沒中毒的、中毒過期的、死掉的不動；會殺怪（生命 20）不連鎖；再喝一口再結算剩下的一半（累計 67.5）；沒點沒有',
+    j(g.burst1) === '[45,22.5,1000000,1000000,0,1000000,0,2.5,5,true]' &&
+      g.burst2 === 67.5 &&
+      g.burstOff === 1000000 &&
+      j(g.burstRed) === '[true,true,2]' &&
+      j(g.burstBlue) === '[true,true]' &&
+      g.burstSkill === true,
+    j([g.burst1, g.burst2, g.burstOff, g.burstRed, g.burstBlue, g.burstSkill])
+  );
+  ok(
+    '以毒攻毒：藥劑技能生效期間（BUFF.flaskAct，毒霧 3 秒過了就沒有）你的擊中必定中毒（自然機率擲不中也中）、中毒傷害更多 25%；沒生效、沒點的不中毒；沒點時藥劑技能不給 flaskAct',
+    j(g.flaskPoi) === '[1,1.25,0,0,1]' && j(g.actBuff) === '[true]' && g.actBuff2 === false && g.actBuffOff === false,
+    j([g.flaskPoi, g.actBuff, g.actBuff2, g.actBuffOff])
+  );
+  ok(
+    '調製：殺死中毒的敵人多得 3 點藥劑充能（0.3 瓶，紅藍水都得；藥劑充能獲得 +100% → 0.6）、最多滿瓶（3）；沒中毒、中毒過期、沒點的不得（直接跑 game.js killMob 那一段原文）',
+    g.killSrc === true && j(g.killChg) === '[[1.3,1.3],[1,1],[1,1],[1.6,1.6],[1,1]]' && j(g.killCap) === '[3,3]',
+    j([g.killSrc, g.killChg, g.killCap])
+  );
+  ok(
+    '煉毒師：中毒最多再疊 3 層（連打 6 下＝4 筆，沒點只有 1 筆）、每筆持續 −30%（2 秒 → 1.4 秒）',
+    j(g.stack) === '[[1,2],[4,1.4],3]',
+    j(g.stack)
+  );
+  const srcS = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js', 'hud.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '追獵者的 7 個新能力：STATN 有名字、開關第三格是 1（flaskBurst、flaskPoi、poiKillChg 是數值）、stats 預設是 0、機制至少一處讀取（三瓶是技能欄位的 wtOK 讀）；三個新 BUFF 有名字圖示；drinkFlask 跟藥劑技能都呼叫 flaskDrunk、藥劑效果共用 flaskEff；技能列顯示還能放幾次',
+    !g.statn.length &&
+      !g.flags.length &&
+      j(g.buff) === '[true,true,true]' &&
+      ['flaskBurst', 'flaskPoi', 'flaskHalf', 'poiKillChg'].every(k =>
+        new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcS)
+      ) &&
+      (srcS.match(/flaskDrunk\(\)/g) || []).length >= 2 &&
+      /const v = flaskEff\(\) \+/.test(srcS) &&
+      /isFlaskSk\(c\.D\)/.test(srcS) &&
+      /還能放幾次/.test(srcS),
+    j([g.statn, g.flags, g.buff])
+  );
+}
+/* 0.2.74 第四批 · 神裔（企劃書 7.4）：12 條輻條各 小 → 大、任拿 4 條（495 組合）；十二位神各一條規則改寫：子鼠（中毒傳染）、丑牛（沉重暈眩加倍＋受傷 +30%）、寅虎（流血疊 3 層）、
+   卯兔（翻滾遠＋翻滾後必暴）、辰龍（每第 10 次擊中落隕石）、巳蛇（混沌擊中必凋零）、午馬（燃燒足跡）、未羊（詛咒傳染）、申猴（感電連鎖）、酉雞（點燃瞬結 50%）、戌狗（召喚物承傷）、亥豬（殺戮）。
+   傳染／連鎖類驗每個目標只觸發一次、不遞迴；子鼠 × 未羊 × 申猴同時拿整段結算會停。機率用常數，整段連跑兩次要一模一樣 */
+{
+  const gameSrcT = fs
+    .readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8')
+    .split(String.fromCharCode(13))
+    .join('');
+  const run = () =>
+    RA(`(() => {
+    ${ASC_COMBOS}
+    const o = {},
+      GOD = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'],
+      st = (...names) => stats({ lv: 90, eq: {}, pt: [], asc: 'godson', at: ['a_st', ...names.flatMap(n => ['a_s_' + n, 'a_' + n])], auras: [], charms: [] }),
+      cfgOf = (k, lv = 5) => gemCfg(mkGem(k, lv), 0),
+      rnd0 = Math.random,
+      T = ascNodes('godson'),
+      s0 = st(),
+      rs = () => { reset(); G.ground = []; G.allies = []; Object.assign(P, { stag: 0, act: null, ev: {}, metN: 0, trailT: 0, rollCritT: 0, movT: -9, stk: null, hp: 1000 }); },
+      sl = cfgOf('slash'),
+      kills = [],
+      /* 結算：生命 ≤ 0 的怪死一次（onKillBase 一次），死掉之後的連鎖再死的也處理；超過 100 輪就是卡死 */
+      settle = (all) => { let n = 0, again = true; while (again && n++ < 100) { again = false; for (const m of all) if (m.hp <= 0 && !m.dead) { m.dead = 1; kills.push(m); onKillBase(m); again = true; } } return n; };
+
+    /* 結構：25 個點（起點＋12 小＋12 大）、12 條輻條各 小 → 大、495 種合法組合、沒有選擇組；環形座標（大點半徑 215、小點半徑 110、從正上方順時針、子鼠起）；名字＝地支＋生肖、說明第一句寫神的身分、圖示是生肖圖 */
+    const polar = id => { const n = T.I[id], a = Math.atan2(n.y, n.x); return [Math.round(Math.hypot(n.x, n.y)), Math.round(((a * 180) / Math.PI + 90 + 360) % 360)]; };
+    o.tree = [T.N.length, T.N.filter(n => n.big === 1).length, T.N.filter(n => !n.big && n.id !== 'a_st').length, T.N.filter(n => n.g).length, combos('godson'), ASC.godson.E.split(' ').length];
+    o.ring = [GOD.map(k => polar('a_' + k)[1]).join(), GOD.every(k => polar('a_' + k)[0] === 215), GOD.every(k => polar('a_s_' + k)[0] === 110)];
+    o.names = [GOD.map(k => T.I['a_' + k].n).join(''), GOD.every(k => /之神：/.test(T.I['a_' + k].d)), GOD.every(k => T.I['a_' + k].ic === 'z_' + k)];
+    o.spoke = GOD.every(k => T.ADJ['a_' + k].length === 1 && T.ADJ['a_' + k][0] === 'a_s_' + k && T.ADJ['a_s_' + k].length === 2);
+    o.three = ascFeasible(T, ['a_st', 'a_s_rat', 'a_rat', 'a_s_goat', 'a_goat', 'a_s_monkey', 'a_monkey']);
+
+    /* 12 位神點亮的數值與預設：每條輻條的小點＋大點 */
+    const want = {
+      rat: { poiDur: 15, poiSpread: 1 }, ox: { meleeP: 10, hsDbl: 1, hstunTaken: 30 }, tiger: { bleedCh: 15, bleedStack: 2 }, rabbit: { critX: 15, rollFar: 50, rollCrit: 1 },
+      dragon: { fireP: 15, meteorN: 10 }, snake: { chaosP: 10, witherAll: 1 }, horse: { ms: 15, fireTrail: 1 }, goat: { curseMagP: 35, curseSpread: 1 },
+      monkey: { lightP: 10, shockChain: 1 }, rooster: { ignMag: 15, ignBurst: 50 }, dog: { minLife: 10, minionWall: 30, minionDieHeal: 5 }, pig: { rampage: 1 }
+    };
+    o.stats = GOD.map(k => { const s = st(k); return Object.entries(want[k]).every(([x, v]) => r2((s[x] || 0) - (base[x] || 0)) === v) && s.hp >= s0.hp; }).filter(x => !x).length;
+    o.pigHp = st('pig').hp > s0.hp;
+    o.def0 = ['poiSpread', 'hsDbl', 'hstunTaken', 'bleedStack', 'rollFar', 'rollCrit', 'meteorN', 'witherAll', 'fireTrail', 'curseMagP', 'curseSpread', 'shockChain', 'ignBurst', 'minionWall', 'minionDieHeal', 'rampage'].map(k => base[k]);
+
+    /* 子鼠：中毒的敵人死亡時，每一筆中毒（同樣每秒傷害、剩餘時間）傳給 3 公尺（90＋半徑）內的其他敵人，疊層上限 1＋中毒疊層（沒有煉毒師是 1 筆、留最強的）；每個目標每次死亡只收一次；遠的、死的不傳；沒點沒有 */
+    const poi = () => [{ dps: 10, t: G.t + 5 }, { dps: 4, t: G.t + 10 }];
+    const spread = (stack, on = 1) => {
+      rs(); ST.poiSpread = on; ST.poiStack = stack;
+      const d = mk(0, 0, { ail: { poi: poi() } }), nr = mk(60, 0), far = mk(200, 0), dead = mk(30, 0, { hp: 0 }), old = mk(0, 70, { ail: { poi: [{ dps: 1, t: G.t + 2 }, { dps: 99, t: G.t - 1 }] } });
+      G.mobs = [d, nr, far, dead, old]; onKillBase(d);
+      return [nr.ail.poi || [], far.ail.poi || [], dead.ail.poi || [], old.ail.poi || []].map(L => L.map(x => [x.dps, r2(x.t - G.t)]));
+    };
+    o.poi = [spread(5), spread(0), spread(5, 0)];
+    /* 傳到的敵人自己死了才再傳：下一代（距離 60 外 130 的那隻）要等 nr 死掉才收到；一次死亡不會一路傳下去 */
+    rs(); ST.poiSpread = 1; ST.poiStack = 5; const g1 = mk(0, 0, { ail: { poi: poi() } }), g2 = mk(60, 0), g3 = mk(130, 0); G.mobs = [g1, g2, g3];
+    onKillBase(g1); o.gen1 = [(g2.ail.poi || []).length, (g3.ail.poi || []).length]; onKillBase(g2); o.gen2 = [(g3.ail.poi || []).length];
+
+    /* 丑牛：你的擊中累積的沉重暈眩加倍；沉重暈眩中的敵人受到的傷害提高 30%（跟感電相加）；結束後沒有；沒點沒有 */
+    const hsAcc = on => { rs(); ST.hsDbl = on; const m = mk(); applyAil(m, { pre: { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 }, post: { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 } }, sl, {}); return m.ail.hs || 0; };
+    o.hs = [r2(hsAcc(1) / hsAcc(0))];
+    const dmgAt = (ex, taken) => { rs(); ST.hstunTaken = taken; const m = mk(40, 0, { ail: ex }); return hitCalc(sl, m, {}).d; };
+    const d0 = dmgAt({}, 30);
+    o.hsTaken = [r2(dmgAt({ hstun: G.t + 2 }, 30) / d0), r2(dmgAt({ hstun: G.t - 1 }, 30) / d0), r2(dmgAt({ hstun: G.t + 2 }, 0) / d0), r2(dmgAt({ hstun: G.t + 2, shock: G.t + 5 }, 30) / dmgAt({ shock: G.t + 5 }, 30))];
+
+    /* 寅虎：流血最強的 1＋2 筆同時算（各自吃移動與加劇加倍）；過期的不算；沒點只算最強的一筆；ailTick 真的照這個數字扣血 */
+    const bleeds = (n, mv, ex = []) => { rs(); ST.bleedStack = n; const m = mk(0, 0, { mv }); for (const [dps, dt] of [[10, 5], [8, 5], [6, 5], [4, 5], ...ex]) m.ail.bleed = keepMax(m.ail.bleed, dps, dt); return m; };
+    o.bleed = [bleedNow(bleeds(0, 0).ail, 0), bleedNow(bleeds(2, 0).ail, 0), bleedNow(bleeds(2, 1).ail, 1), bleedNow(bleeds(5, 0).ail, 0)];
+    const bm = bleeds(2, 0); const bh = bm.hp; ailTick(bm, 1); o.bleedTick = r2(bh - bm.hp);
+    const be = bleeds(2, 0); G.t += 6; o.bleedExp = bleedNow(be.ail, 0);
+
+    /* 卯兔：翻滾結束後 1 秒內你的第一次擊中必定暴擊（用掉）；過了 1 秒、召喚物的擊中不消耗、沒點沒有；翻滾距離 +50%（game.js 的 updPlayer 乘上去）；面板的期望值不算 */
+    const rc = (ex = {}, o2 = {}, ro = 1, dt = 0) => { rs(); ST.noCrit = 0; ST.wcrit = 0; ST.rollCrit = ro; Object.assign(ST, ex); P.rollCritT = G.t + 1; G.t += dt; Math.random = () => 0.99; const a = hitCalc(sl, mk(), o2), b = hitCalc(sl, mk(), {}); Math.random = rnd0; return [a.crit, b.crit, P.rollCritT]; };
+    o.rollCrit = [rc(), rc({}, { minion: 1 }), rc({}, {}, 0), rc({}, {}, 1, 1.1), rc({}, { keep: 1 })];
+    const gsrc = ${JSON.stringify(gameSrcT)};
+    o.rollSrc = [/\\(1 \\+ ST\\.rollFar \\/ 100\\)/.test(gsrc), /if \\(ST\\.rollCrit\\) P\\.rollCritT = G\\.t \\+ 1/.test(gsrc)];
+
+    /* 辰龍：你自己的第 10 次擊中，一顆隕石落在目標上：半徑 150（＋半徑）內的敵人受火焰傷害（那一下擊中前總傷害的 150%、吃火焰抗性）；召喚物、場上單位的擊中不算次數；之後從 0 重算；遠的不受；沒點沒有 */
+    rs(); ST.meteorN = 10; const tg = mk(40, 0), by = mk(140, 0), fr = mk(400, 0, { res: { fire: 0, cold: 0, light: 0, chaos: 0 } }); G.mobs = [tg, by, fr];
+    const pre = hitCalc(sl, mk(), {}).pre, exp = 1.5 * Object.values(pre).reduce((a, b) => a + b, 0);
+    for (let i = 0; i < 9; i++) hitMob(tg, sl, 0, 0, { a: {} }); o.meteor9 = [P.metN, by.hp];
+    hitMob(tg, sl, 0, 0, { a: {}, minion: 1 }); hitMob(tg, sl, 0, 0, { a: { unit: 1 } }); o.meteorMin = P.metN;
+    hitMob(tg, sl, 0, 0, { a: {} }); o.meteor10 = [P.metN, r2(1e6 - by.hp), r2(exp), fr.hp];
+    ST.meteorN = 0; for (let i = 0; i < 12; i++) hitMob(tg, sl, 0, 0, { a: {} }); o.meteorOff = [P.metN, r2(1e6 - by.hp)];
+    rs(); ST.meteorN = 10; P.metN = 4; const sts = playerStates().find(x => x.k === 'meteor'); o.meteorSt = sts ? [sts.c, sts.sc] : null;
+
+    /* 巳蛇：你的混沌擊中造成凋零（不用插輔助），最多 15 層（輔助給更多就照輔助）；每層受到的混沌傷害提高 6%（沒點 5%）；沒有混沌傷害的擊中不給；沒點沒有凋零 */
+    const wit = (on, pre2, ex = {}, n = 20) => { rs(); ST.witherAll = on; const m = mk(); for (let i = 0; i < n; i++) applyAil(m, { pre: { phys: 0, fire: 0, cold: 0, light: 0, chaos: 0, ...pre2 }, post: { phys: 0, fire: 0, cold: 0, light: 0, chaos: 0 } }, { ...sl, ...ex }, {}); return m; };
+    o.wither = [witherN(wit(1, { chaos: 100 }).ail), takenInc(wit(1, { chaos: 100 }), 'chaos') && takenInc(wit(1, { chaos: 100 }), 'chaos'), witherN(wit(1, { phys: 100 }).ail), witherN(wit(0, { chaos: 100 }).ail), witherN(wit(0, { chaos: 100 }, { wither: 1, witherMax: 10 }).ail), witherN(wit(1, { chaos: 100 }, { wither: 1, witherMax: 20 }).ail)];
+    o.witherTaken = [takenInc(wit(1, { chaos: 100 }), 'chaos'), takenInc(wit(0, { chaos: 100 }, { wither: 1, witherMax: 10 }), 'chaos')];
+
+    /* 午馬：移動時每 0.3 秒在腳下留一塊燃燒地面（半徑 45、1.5 秒、玩家方、吃基礎攻擊的火焰傷害 20%／秒）；站著不動、沒點沒有；同時最多 12 塊；地面上的敵人每 0.5 秒受一次火焰擊中（傷害＝這個擊中的 20% × 0.5） */
+    rs(); ST.fireTrail = 1; P.movT = G.t; P.x = 100; P.y = 0;
+    for (let i = 0; i < 6; i++) { G.t += 0.15; P.movT = G.t; fireTrailTick(0.15); }
+    const tr = G.ground.filter(g => g.trail); o.trail = [tr.length, tr[0] && tr[0].k, tr[0] && tr[0].r, tr[0] && tr[0].dur, tr[0] && tr[0].dps, tr[0] && !tr[0].side, tr[0] && tr[0].c.D.el];
+    rs(); ST.fireTrail = 1; P.movT = -9; G.t += 5; for (let i = 0; i < 10; i++) fireTrailTick(0.15); o.trailStill = G.ground.length;
+    rs(); ST.fireTrail = 1; for (let i = 0; i < 80; i++) { G.t += 0.05; P.movT = G.t; fireTrailTick(0.3); } o.trailCap = G.ground.filter(g => g.trail).length;
+    rs(); ST.fireTrail = 1; P.movT = G.t; P.x = 300; P.y = 0; fireTrailTick(0.01); const tg2 = G.ground.find(g => g.trail), tm2 = mk(320, 0); G.mobs = [tm2]; P.x = 2000;
+    groundTick(0.01); const ex2 = hitCalc(tg2.c, mk(), { mult: 0.1 }).d; o.trailHit = [r2(1e6 - tm2.hp) === r2(ex2), ex2 > 0];
+
+    /* 未羊：詛咒效果幅度 +25%；被詛咒的敵人死亡時，詛咒（剩餘時間、同樣的強度）傳給 3 公尺內沒有詛咒的敵人；已經有詛咒的不蓋、無咒的不傳、遠的不傳、過期的詛咒不傳；脆弱的護甲減免也一起傳；沒點沒有 */
+    const cu = () => ({ k: 'eleweak', t: G.t + 5, v: 20 });
+    rs(); ST.curseSpread = 1;
+    const cd = mk(0, 0, { ail: { curse: cu() } }), cn = mk(60, 0), cf = mk(200, 0), ch = mk(0, 50, { hexproof: 1 }), ck = mk(0, 70, { ail: { curse: { k: 'vuln', t: G.t + 9, v: 30 } } });
+    G.mobs = [cd, cn, cf, ch, ck]; onKillBase(cd);
+    o.curse = [cn.ail.curse && [cn.ail.curse.k, cn.ail.curse.v, r2(cn.ail.curse.t - G.t)], cf.ail.curse || null, ch.ail.curse || null, ck.ail.curse.k, r2(ck.ail.curse.t - G.t)];
+    rs(); ST.curseSpread = 1; const vd = mk(0, 0, { ail: { curse: { k: 'vuln', t: G.t + 5, v: 30 } } }), vn = mk(60, 0, { arm: 100, arm0: 100 }); G.mobs = [vd, vn]; onKillBase(vd); o.curseVuln = [vn.ail.curse && vn.ail.curse.k, vn.arm];
+    rs(); ST.curseSpread = 1; const od = mk(0, 0, { ail: { curse: { k: 'eleweak', t: G.t - 1, v: 20 } } }), on2 = mk(60, 0); G.mobs = [od, on2]; onKillBase(od); o.curseOld = !on2.ail.curse;
+    rs(); ST.curseSpread = 0; const pd = mk(0, 0, { ail: { curse: cu() } }), pn = mk(60, 0); G.mobs = [pd, pn]; onKillBase(pd); o.curseOff = !pn.ail.curse;
+    rs(); ST.curseSpread = 1; G.mm = { mhex: 1 }; const hd = mk(0, 0, { ail: { curse: cu() } }), hn = mk(60, 0); G.mobs = [hd, hn]; onKillBase(hd); o.curseHex = !hn.ail.curse; G.mm = null;
+    const cv = mp => { rs(); ST.curseMagP = mp; const m = mk(); curseMob(m, 'eleweak', 5); return m.ail.curse.v; };
+    o.curseMag = [r2(cv(25) / cv(0)), r2(cv(35) / cv(0))];
+
+    /* 申猴：你擊中感電的敵人時，閃電跳到 3 公尺內最近的另一隻（那一下擊中前總傷害的 50%、吃閃電抗性、必定感電），每下一次；跳過去的不再跳；沒感電的、召喚物與場上單位的擊中、遠的、沒點的不跳 */
+    const chainSet = (ex = {}, o2 = {}) => {
+      rs(); ST.shockChain = 1; Object.assign(ST, ex);
+      const tg3 = mk(0, 0, { ail: { shock: G.t + 5 } }), n1 = mk(60, 0), n2 = mk(80, 0), nf = mk(300, 0), sec = mk(150, 0);
+      G.mobs = [tg3, n1, n2, nf, sec]; Math.random = () => 0.9999; hitMob(tg3, sl, 0, 0, { a: {}, ...o2 }); Math.random = rnd0;
+      return { l: [n1, n2, nf, sec].map(x => r2(1e6 - x.hp)), sh: [n1, n2, nf, sec].map(x => r2((x.ail.shock || G.t) - G.t)) };
+    };
+    const ch1 = chainSet(), pre3 = hitCalc(sl, mk(), {}).pre, exp3 = 0.5 * Object.values(pre3).reduce((a, b) => a + b, 0);
+    o.chain = [ch1.l[0] > 0 && r2(ch1.l[0]) === r2(exp3), ch1.l[1], ch1.l[2], ch1.l[3], ch1.sh];
+    o.chainNo = [chainSet({}, { minion: 1 }).l[0], chainSet({}, { a: { unit: 1 } }).l[0], chainSet({ shockChain: 0 }).l[0]];
+    rs(); ST.shockChain = 1; const uns = mk(0, 0), nu = mk(60, 0); G.mobs = [uns, nu]; Math.random = () => 0.9999; hitMob(uns, sl, 0, 0, { a: {} }); Math.random = rnd0; o.chainUnshocked = nu.hp;
+    rs(); ST.shockChain = 1; const rl = mk(60, 0, { res: { fire: 0, cold: 0, light: 50, chaos: 0 } }), tr3 = mk(0, 0, { ail: { shock: G.t + 5 } }); G.mobs = [tr3, rl]; Math.random = () => 0.9999; hitMob(tr3, sl, 0, 0, { a: {} }); Math.random = rnd0; o.chainRes = r2((1e6 - rl.hp) / exp3);
+
+    /* 酉雞：你點燃敵人時，立刻造成那次點燃總傷害（每秒 × 持續）的 50%（吃火焰抗性），剩下 50% 照常燒（這一筆每秒傷害減半）；總傷害不變；沒點沒有 */
+    const ign = (bp, fr2 = 0) => {
+      rs(); ST.ignBurst = bp; ST.ignDur = 0; const m = mk(40, 0, { res: { fire: fr2, cold: 0, light: 0, chaos: 0 } }); m.ail.flam = 100; m.ail.flamT = G.t + 8;
+      const r = { pre: { phys: 0, fire: 100, cold: 0, light: 0, chaos: 0 }, post: { phys: 0, fire: 100, cold: 0, light: 0, chaos: 0 } };
+      Math.random = () => 0; applyAil(m, r, { ...sl, D: { ...sl.D, tags: ['attack'] } }, {}); Math.random = rnd0;
+      return [r2(1e6 - m.hp), m.ail.ign ? r2(m.ail.ign.dps) : -1];
+    };
+    const i0 = ign(0), i1 = ign(50), i2 = ign(50, 50);
+    o.ign = [i0[0], i1[1] * 2 === i0[1], r2(i1[0]), r2(i0[1] * 4 * 0.5), r2(i1[0] + i1[1] * 4), r2(i0[1] * 4), r2(i2[0] / i1[0])];
+
+    /* 戌狗：你受到的擊中傷害 30% 改由最近的召喚物承受（沒有召喚物就照常；死掉的、復甦中的不算）；召喚物被擊殺時你回復 5% 最大生命（時間到消失、沒點不回）；hurtPlayer 這一段原文直接跑 */
+    const gsrc2 = gsrc.replace(/\\r/g, ''), wall = (gsrc2.match(/ {2}\\/\\* 戌狗[\\s\\S]*?\\n {2}\\}\\n/) || [''])[0];
+    const wallRun = (allies, ex = {}) => { rs(); Object.assign(ST, { minionWall: 30, minionDieHeal: 5, hp: 1000 }, ex); G.allies = allies; P.hp = 500; const f = new Function('ST', 'G', 'P', 'dist', 'allyHurt', 'd', wall + ' return d;'); return f(ST, G, P, dist, allyHurt, 100); };
+    const wa = { x: 50, y: 0, hp: 1000, mhp: 1000, src: 'golem' }, wb = { x: 300, y: 0, hp: 1000, mhp: 1000, src: 'golem' }, wd = { x: 10, y: 0, hp: 1000, mhp: 1000, dead: G.t + 99 };
+    o.wall = [wallRun([wa, wb, wd]), wa.hp, wb.hp, wd.hp, wallRun([]), wallRun([wd]), wallRun([{ x: 5, y: 0, hp: 1000, mhp: 1000 }], { minionWall: 0 })];
+    const wk = { x: 5, y: 0, hp: 20, mhp: 1000, src: 'golem' }; const hp0 = (() => { rs(); return 500; })(); wallRun([wk]); o.wallDie = [P.hp - hp0, wk.hp <= 0, wk.dead > G.t];
+    const wk2 = { x: 5, y: 0, hp: 20, mhp: 1000, src: 'golem' }; wallRun([wk2], { minionDieHeal: 0 }); o.wallNoHeal = P.hp - hp0;
+    rs(); ST.minionDieHeal = 5; ST.hp = 1000; P.hp = 500; const wt = { x: 5, y: 0, hp: 20, mhp: 1000, src: 'gemt', t: G.t + 5 }; G.allies = [wt]; allyDie(wt, false); o.wallTimed = [P.hp, G.allies.length];
+    allyDie({ x: 5, y: 0, hp: 0, mhp: 1000, src: 'gemt', t: G.t + 5 }, true); o.wallKilled = P.hp;
+
+    /* 亥豬：擊殺得到 1 層殺戮（最多 10 層）；每層傷害提高 5%（10 層 ×1.5）、移動速度 +2%；再擊殺全部刷新、4 秒沒擊殺全部消失；沒點沒有 */
+    rs(); ST.rampage = 1; const rb = () => mk(900, 900);
+    onKillBase(rb()); o.ramp1 = stkN('rampage');
+    for (let i = 0; i < 12; i++) onKillBase(rb()); o.rampMax = [stkN('rampage'), stkMax('rampage')];
+    const av = () => r2(hitCalc(sl, null, { avg: 1, keep: 1 }).d), mvB = () => buffMove();
+    const dmgRamp = av(), mvRamp = mvB(); G.t += 5; const dmgNo = av(), mvNo = mvB();
+    o.rampEff = [r2(dmgRamp / dmgNo), r2(mvRamp / mvNo), r2(1 + 20 / (100 + ST.ms)), stkN('rampage')];
+    rs(); ST.rampage = 1; onKillBase(rb()); onKillBase(rb()); G.t += 3; onKillBase(rb()); G.t += 3.5; const alive = stkN('rampage'); G.t += 1; o.rampRefresh = [alive, stkN('rampage')];
+    rs(); ST.rampage = 0; onKillBase(rb()); o.rampOff = stkN('rampage');
+
+    /* 子鼠 × 未羊 × 申猴（加上亥豬）同時拿：一群怪（有中毒、詛咒、感電）打死其中一隻，傳染與連鎖會一路傳下去，但每隻怪只死一次、結算在 100 輪內停下（不卡死、不遞迴），所有數字有限 */
+    rs(); Object.assign(ST, { poiSpread: 1, curseSpread: 1, shockChain: 1, rampage: 1, poiStack: 3 });
+    const pack = Array.from({ length: 8 }, (_, i) => mk(i * 70, (i % 2) * 40, { hp: i === 0 ? 5 : 4e3, ail: { poi: poi(), curse: cu(), shock: G.t + 6 } }));
+    G.mobs = pack; kills.length = 0;
+    Math.random = () => 0.9999; hitMob(pack[0], sl, 0, 0, { a: {} });
+    for (let r = 0; r < 6; r++) { for (const m of pack) if (m.hp > 0) hitMob(m, sl, 0, 0, { a: {} }); }
+    const rounds = settle(pack); Math.random = rnd0;
+    o.combo = [rounds < 100, kills.length === new Set(kills).size, pack.every(m => Number.isFinite(m.hp) && Number.isFinite(m.ail.shock) && (m.ail.poi || []).every(x => Number.isFinite(x.dps) && Number.isFinite(x.t))), kills.length >= 1, pack.every(m => (m.ail.poi || []).length <= 4)];
+    o.statn = ['poiSpread', 'hsDbl', 'hstunTaken', 'bleedStack', 'rollFar', 'rollCrit', 'meteorN', 'witherAll', 'fireTrail', 'curseMagP', 'curseSpread', 'shockChain', 'ignBurst', 'minionWall', 'minionDieHeal', 'rampage'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    o.flags = ['poiSpread', 'hsDbl', 'rollCrit', 'witherAll', 'fireTrail', 'curseSpread', 'shockChain', 'rampage'].filter(k => STATN[k][2] !== 1);
+    o.buff = [BUFF.rampage.max, BUFF.rampage.t, JSON.stringify(BUFF.rampage.st), !BUFF.rampage.own];
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const g = run();
+  const g2 = run(),
+    j = x => JSON.stringify(x);
+  ok(
+    '神裔：固定熵值（常數亂數），整段實測連跑 2 次結果一模一樣（沒有用真亂數）',
+    j(g) === j(g2),
+    j(g) !== j(g2)
+      ? Object.keys(g)
+          .filter(k => j(g[k]) !== j(g2[k]))
+          .join()
+      : ''
+  );
+  ok(
+    '神裔結構：25 個點（起點＋12 小＋12 大）、12 條輻條各 小 → 大（大點只連自己的小點）、沒有選擇組、合法的 8 點組合剛好 495 種（C(12,4)）；環形座標：大點半徑 215、小點半徑 110、從正上方順時針每 30 度、子鼠起；名字＝地支＋生肖、說明第一句寫神的身分、圖示是生肖圖；子鼠、未羊、申猴同時拿合法',
+    j(g.tree) === '[25,12,12,0,495,24]' &&
+      j(g.ring) === '["0,30,60,90,120,150,180,210,240,270,300,330",true,true]' &&
+      j(g.names) === '["子鼠丑牛寅虎卯兔辰龍巳蛇午馬未羊申猴酉雞戌狗亥豬",true,true]' &&
+      g.spoke === true &&
+      g.three === true,
+    j([g.tree, g.ring, g.names, g.spoke, g.three])
+  );
+  ok(
+    '神裔 12 位神點亮的數值：每條輻條的小點＋大點照表（子鼠中毒持續 15／丑牛近戰 10／寅虎流血機率 15／卯兔暴擊加成 15／辰龍火焰 15／巳蛇混沌 10／午馬移速 5＋10／未羊詛咒效果 10＋25／申猴閃電 10／酉雞點燃 15／戌狗召喚物生命 10／亥豬生命 5%）；16 個新鍵預設 0',
+    g.stats === 0 && g.pigHp === true && j(g.def0) === '[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]',
+    j([g.stats, g.pigHp, g.def0])
+  );
+  ok(
+    '子鼠：中毒的敵人死亡時，每一筆中毒（同樣每秒傷害、剩餘時間）傳給 3 公尺內的其他敵人（沒有煉毒師只留最強的 1 筆、有就都留）；遠的、死的不傳、目標原本的中毒保留、過期的清掉；每個目標每次死亡只收一次；傳到的敵人自己死了才再往下傳（不遞迴）；沒點沒有',
+    j(g.poi) ===
+      '[[[[10,5],[4,10]],[],[],[[10,5],[4,10],[1,2]]],[[[10,5]],[],[],[[10,5]]],[[],[],[],[[1,2],[99,-1]]]]' &&
+      j(g.gen1) === '[2,0]' &&
+      j(g.gen2) === '[2]',
+    j([g.poi, g.gen1, g.gen2])
+  );
+  ok(
+    '丑牛：你的擊中累積的沉重暈眩加倍（×2）；沉重暈眩中的敵人受到的傷害提高 30%（跟感電相加：50% ÷ 20% ＝ ×1.25）、結束後與沒點時沒有',
+    j(g.hs) === '[2]' && j(g.hsTaken) === '[1.3,1,1,1.25]',
+    j([g.hs, g.hsTaken])
+  );
+  ok(
+    '寅虎：流血最強的 1＋2 筆同時算（10＋8＋6＝24）、移動時各自 ×2（48）、疊層設很大就全算（28）；過期的不算；沒點只算最強的一筆；ailTick 真的照這個數字扣血',
+    j(g.bleed) === '[10,24,48,28]' && g.bleedTick === 24 && g.bleedExp === 0,
+    j([g.bleed, g.bleedTick, g.bleedExp])
+  );
+  ok(
+    '卯兔：翻滾結束後 1 秒內你的第一次擊中必定暴擊（用掉：第二下就沒有）；召喚物的擊中不消耗；過了 1 秒、沒點、面板的期望值（keep）都不算；翻滾距離 +50%、結束時給 1 秒的暴擊（game.js 的 updPlayer）',
+    j(g.rollCrit) === '[[true,false,0],[false,true,0],[false,false,101],[false,false,101],[false,true,0]]' &&
+      j(g.rollSrc) === '[true,true]',
+    j([g.rollCrit, g.rollSrc])
+  );
+  ok(
+    '辰龍：你自己的第 10 次擊中，一顆隕石落在目標上，半徑 150（＋半徑）內的敵人受火焰傷害（那一下擊中前總傷害的 150%＝189.37、吃火焰抗性），遠的不受；召喚物、場上單位的擊中不算次數；之後從 0 重算；沒點沒有；狀態列顯示計數',
+    j(g.meteor9) === '[9,1000000]' &&
+      g.meteorMin === 9 &&
+      j(g.meteor10) === '[0,189.37,189.37,1000000]' &&
+      j(g.meteorOff) === '[0,189.37]' &&
+      j(g.meteorSt) === '[4,1]',
+    j([g.meteor9, g.meteorMin, g.meteor10, g.meteorOff, g.meteorSt])
+  );
+  ok(
+    '巳蛇：你的混沌擊中造成凋零（不用插輔助），最多 15 層（輔助給更多就照輔助：10、20）；每層受到的混沌傷害提高 6%（15 層 ＝ 90，沒點只靠輔助 10 層 ＝ 50）；沒有混沌傷害的擊中不給；沒點沒有',
+    j(g.wither) === '[15,90,0,0,10,20]' && j(g.witherTaken) === '[90,50]',
+    j([g.wither, g.witherTaken])
+  );
+  ok(
+    '午馬：移動時每 0.3 秒在腳下留一塊燃燒地面（0.9 秒內 3 塊、半徑 45、1.5 秒、玩家方、傷害＝基礎攻擊的火焰 20%／秒）；站著不動、沒點沒有；同時最多 12 塊；地面上的敵人每 0.5 秒受一次火焰擊中（傷害跟直接算的一模一樣）；移動速度 +10',
+    j(g.trail) === '[3,"fire",45,1.5,0.2,true,"fire"]' &&
+      g.trailStill === 0 &&
+      g.trailCap === 12 &&
+      j(g.trailHit) === '[true,true]',
+    j([g.trail, g.trailStill, g.trailCap, g.trailHit])
+  );
+  ok(
+    '未羊：詛咒效果幅度 +25%（小點 +10 → ×1.35）；被詛咒的敵人死亡時，詛咒（剩餘 5 秒、同樣強度）傳給 3 公尺內沒有詛咒的敵人；已經有詛咒的（脆弱）不蓋、無咒的、地圖詞無咒、遠的、過期的不傳；脆弱的護甲減免也一起傳（100 → 70）；沒點沒有',
+    j(g.curse) === '[["eleweak",20,5],null,null,"vuln",9]' &&
+      j(g.curseVuln) === '["vuln",70]' &&
+      g.curseOld === true &&
+      g.curseOff === true &&
+      g.curseHex === true &&
+      j(g.curseMag) === '[1.25,1.35]',
+    j([g.curse, g.curseVuln, g.curseOld, g.curseOff, g.curseHex, g.curseMag])
+  );
+  ok(
+    '申猴：你擊中感電的敵人時，閃電跳到 3 公尺內最近的另一隻（那一下擊中前總傷害的 50%、吃閃電抗性、必定感電 8 秒），每下一次（第二近的、遠的不受）；跳過去的不再跳；沒感電的、召喚物與場上單位的擊中、沒點的不跳',
+    j(g.chain) === '[true,0,0,0,[8,0,0,0]]' &&
+      j(g.chainNo) === '[0,0,0]' &&
+      g.chainUnshocked === 1000000 &&
+      g.chainRes === 0.5,
+    j([g.chain, g.chainNo, g.chainUnshocked, g.chainRes])
+  );
+  ok(
+    '酉雞：你的擊中造成點燃時（地面、灰燼捷光環、焚城傳的點燃不算），立刻造成那次點燃總傷害（每秒 × 持續）的 50%（吃火焰抗性：50% 抗只剩一半），這一筆每秒傷害減半、總傷害不變（40＋10×4＝80 ＝ 沒點的 20×4）；沒點沒有瞬結',
+    j(g.ign) === '[0,true,40,40,80,80,0.5]',
+    j(g.ign)
+  );
+  ok(
+    '戌狗：你受到的擊中傷害 30% 改由最近的召喚物承受（970／1000，遠的與死掉的不受；沒有召喚物、沒點照常）；召喚物被擊殺時你回復 5% 最大生命（時間到消失不回、沒點不回）；hurtPlayer 這一段原文直接跑',
+    j(g.wall) === '[70,970,1000,1000,100,100,100]' &&
+      j(g.wallDie) === '[50,true,true]' &&
+      g.wallNoHeal === 0 &&
+      j(g.wallTimed) === '[500,0]' &&
+      g.wallKilled === 550,
+    j([g.wall, g.wallDie, g.wallNoHeal, g.wallTimed, g.wallKilled])
+  );
+  ok(
+    '亥豬：擊殺得到 1 層殺戮（最多 10 層）；每層傷害提高 5%（10 層 ×1.5）、移動速度 +2%（×1.2）；再擊殺全部刷新（3 層撐到最後一次擊殺後 3.5 秒）、4 秒沒擊殺全部消失；沒點沒有',
+    g.ramp1 === 1 &&
+      j(g.rampMax) === '[10,10]' &&
+      j(g.rampEff) === '[1.5,1.2,1.2,0]' &&
+      j(g.rampRefresh) === '[3,0]' &&
+      g.rampOff === 0,
+    j([g.ramp1, g.rampMax, g.rampEff, g.rampRefresh, g.rampOff])
+  );
+  ok(
+    '子鼠 × 未羊 × 申猴（加亥豬）同時拿：一群 8 隻有中毒、詛咒、感電的怪，打死其中一隻、再每隻多打幾下，傳染與連鎖一路傳，每隻怪只死一次、結算 100 輪內停下（不卡死、不遞迴）、中毒筆數不超過上限、所有數字有限',
+    j(g.combo) === '[true,true,true,true,true]',
+    j(g.combo)
+  );
+  const srcN = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js', 'hud.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '神裔的 16 個新能力：STATN 有名字、開關第三格是 1、stats 預設是 0、機制至少一處讀取；殺戮的層數表（10 層、4 秒、傷害提高 5＋移動速度 2、得到新層全部刷新）',
+    !g.statn.length &&
+      !g.flags.length &&
+      j(g.buff) === '[10,4,"{\\"dmgA\\":5,\\"moveP\\":2}",true]' &&
+      [
+        'poiSpread',
+        'hsDbl',
+        'hstunTaken',
+        'bleedStack',
+        'rollFar',
+        'rollCrit',
+        'meteorN',
+        'witherAll',
+        'fireTrail',
+        'curseMagP',
+        'curseSpread',
+        'shockChain',
+        'ignBurst',
+        'minionWall',
+        'minionDieHeal',
+        'rampage'
+      ].every(k => new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcN)),
+    j([g.statn, g.flags, g.buff])
+  );
+}
+/* 0.2.74 驗收後修正（Opus 驗收）：① killMob 同一隻怪只死一次（辰龍的隕石會在這一下結算前先打死目標，原本兩條路都呼叫 killMob，經驗、掉落、擊殺數、onKillBase 的傳染都算兩份；RA 環境把 killMob
+   換成 m => (m.hp = 0)，抓不到，所以這裡直接跑 game.js 的 killMob 原文）；② 地面與持續傷害每 0.5 秒的那一下（o.dot）不算「你的擊中」：不吃卯兔的必暴、不擲豪賭大獎與賭注、不推進辰龍計數、不觸發申猴連鎖；
+   ③ 鹹水地面不降級原本更強更長的冰緩；④ 蟾蜍之血變灰的藥劑鈕與翻滾圖示重畫技能列後的快取一併清掉 */
+{
+  const gsrc = fs
+      .readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8')
+      .split(String.fromCharCode(13))
+      .join(''),
+    killSrc = (gsrc.match(/function killMob\(m\) \{[\s\S]*?\n\}\n(?=function bossDown)/) || [''])[0];
+  const killRun = (mobs, twice) => {
+    const calls = { xp: 0, base: 0, prog: 0, boss: 0, drops: 0, onKill: 0 },
+      G = { mapT: 5, kills: 0, star: 1, curP: 0, hunt: 0, zod: null },
+      P = { x: 0, flask: 0, mflask: 0 },
+      ST = { flaskChg: 0, poiKillChg: 0, rarP: 0 },
+      nop = () => {},
+      f = new Function(
+        'G',
+        'P',
+        'ST',
+        'calls',
+        'FLASK',
+        'PRO',
+        'S',
+        'fx',
+        'sparks',
+        'rnd',
+        'TAU',
+        'mobGround',
+        'tierMul',
+        'xpMul',
+        'mobLv',
+        'MM',
+        'tierIlvl',
+        'killMat',
+        'num',
+        'dropGear',
+        'dropAt',
+        'dropCharm',
+        'gainXp',
+        'onKillBase',
+        'onKill',
+        'addProg',
+        'bossDown',
+        'spawnMob',
+        killSrc + '; return killMob;'
+      )(
+        G,
+        P,
+        ST,
+        calls,
+        { perKill: 0.1, n: 3, chg: 10 },
+        { on: false },
+        { lv: 60 },
+        nop,
+        nop,
+        () => 0,
+        6,
+        nop,
+        () => ({ hp: 1 }),
+        () => 1,
+        () => 20,
+        () => 0,
+        () => 5,
+        () => [],
+        nop,
+        () => (calls.drops++, []),
+        nop,
+        nop,
+        () => calls.xp++,
+        () => calls.base++,
+        () => calls.onKill++,
+        () => calls.prog++,
+        () => calls.boss++,
+        nop
+      );
+    for (const m of mobs) {
+      f(m);
+      if (twice) f(m);
+    }
+    return [G.kills, calls.xp, calls.base, calls.onKill, calls.prog, calls.boss, calls.drops];
+  };
+  const mob = (ex = {}) => ({ hp: 5, mhp: 5, x: 0, y: 0, sz: 20, D: { sp: 'x', xp: 10 }, ail: {}, ...ex });
+  ok(
+    'killMob 同一隻怪只死一次：連叫兩次（辰龍的隕石先打死目標、這一下結算又打死）擊殺數、經驗、掉落判定、onKillBase、onKill、首領進度、bossDown 都只算一份；兩隻不同的怪各算一份；召喚出來的小怪也只標記一次；killMob 開頭有 dead 保險（game.js 原文直接跑）',
+    killSrc.length > 200 &&
+      /^function killMob\(m\) \{\s*\/\*[^*]*\*\/\s*if \(m\.dead\) return;\s*m\.dead = 1;/.test(killSrc) &&
+      JSON.stringify(killRun([mob()], 1)) === '[1,1,1,1,1,0,1]' &&
+      JSON.stringify(killRun([mob({ boss: 1 })], 1)) === '[1,1,1,1,1,1,1]' &&
+      JSON.stringify(killRun([mob({ elite: 1 })], 1)) === '[1,1,1,1,1,0,1]' &&
+      JSON.stringify(killRun([mob(), mob()], 1)) === '[2,2,2,2,2,0,2]' &&
+      JSON.stringify(killRun([mob({ summoned: 1 })], 1)) === '[0,0,0,0,0,0,0]' &&
+      killRun([mob()], 0).join() === killRun([mob()], 1).join(),
+    JSON.stringify([killRun([mob()], 1), killRun([mob({ boss: 1 })], 1), killRun([mob(), mob()], 1)])
+  );
+  const run = () =>
+    RA(`(() => {
+    const o = {},
+      rnd0 = Math.random,
+      sl = gemCfg(mkGem('slash', 5), 0),
+      rs = () => { reset(); G.ground = []; Object.assign(P, { stag: 0, act: null, ev: {}, metN: 0, bet: 0, rollCritT: 0, stk: null }); },
+      pre = (() => { reset(); return hitCalc(sl, mk(), {}); })();
+
+    /* 地面每 0.5 秒的擊中（groundTick 傳 dot）：真的跑 groundTick，毒霧地面打圈內的怪，卯兔的必暴、辰龍的計數、賭注條、豪賭大獎、申猴的連鎖都不動；技能直接擊中照常 */
+    rs(); Object.assign(ST, { meteorN: 10, rollCrit: 1, jackpotCh: 40, betStep: 15, jackpotX: 2.8, jackpotLess: 25, nonCritLess: 20, shockChain: 1, noCrit: 0, wcrit: 0 });
+    P.metN = 9; P.rollCritT = G.t + 1;
+    const g1 = mk(0, 0, { ail: { shock: G.t + 5 } }), g2 = mk(60, 0), g3 = mk(30, 0);
+    G.mobs = [g1, g2, g3]; Math.random = () => 0.99;
+    addGround({ k: 'gas', x: 0, y: 0, r: 100, dur: 3, c: sl, dps: 0.8 }); groundTick(0.01);
+    o.ground = [g1.hp < 1e6 && g2.hp < 1e6 && g3.hp < 1e6, P.metN, P.rollCritT > G.t, P.bet, g2.ail.shock || 0];
+    rs(); Object.assign(ST, { rollCrit: 1, jackpotCh: 40, betStep: 15, jackpotX: 2.8, jackpotLess: 25, nonCritLess: 20, noCrit: 0, wcrit: 0 }); P.rollCritT = G.t + 1; Math.random = () => 0.99;
+    const dd = hitCalc(sl, mk(), { dot: 1 });
+    o.dotCalc = [dd.jackpot, dd.crit, P.rollCritT > G.t, P.bet, r2(dd.d / pre.d)];
+    const hn = hitCalc(sl, mk(), {});
+    o.nonDot = [hn.crit, P.rollCritT, P.bet]; Math.random = rnd0;
+    /* 直接擊中：計數 +1、消耗必暴、動賭注 */
+    rs(); Object.assign(ST, { meteorN: 10, rollCrit: 1, jackpotCh: 40, betStep: 15, jackpotX: 2.8, jackpotLess: 25, shockChain: 1 });
+    P.metN = 4; P.rollCritT = G.t + 1; const d1 = mk(0, 0, { ail: { shock: G.t + 5 } }), d2 = mk(60, 0); G.mobs = [d1, d2]; Math.random = () => 0.99;
+    hitMob(d1, sl, 0, 0, { a: {} }); o.direct = [P.metN, P.rollCritT, P.bet, d2.hp < 1e6, d2.ail.shock > G.t]; Math.random = rnd0;
+    rs(); Object.assign(ST, { meteorN: 10, rollCrit: 1, jackpotCh: 40, shockChain: 1 });
+    P.metN = 4; P.rollCritT = G.t + 1; const e1 = mk(0, 0, { ail: { shock: G.t + 5 } }), e2 = mk(60, 0); G.mobs = [e1, e2]; Math.random = () => 0.99;
+    hitMob(e1, sl, 0, 0, { a: {}, dot: 1 }); o.dotHit = [P.metN, P.rollCritT > G.t, P.bet, e2.hp, e2.ail.shock || 0]; Math.random = rnd0;
+    rs(); const srcs = ${JSON.stringify(
+      ['skills.js', 'mech.js']
+        .map(f =>
+          fs
+            .readFileSync(path.join(__dirname, '..', 'js', f), 'utf8')
+            .split(String.fromCharCode(13))
+            .join('')
+        )
+        .join('\n')
+    )};
+    o.callers = [(srcs.match(/dot: 1/g) || []).length >= 3, /hitMob\\(m, p\\.c, 0, 0, \\{[^}]*dot: 1/.test(srcs), /hitMob\\(m, s\\.c, angTo\\(P, m\\), 0, \\{[^}]*dot: 1/.test(srcs)];
+
+    /* 鹹水地面：原本更強更長的冰緩不降級（強度取大、時間取長）；比較弱的升到 30%、0.5 秒；免疫冰緩的不給；一律標記鹹水 */
+    const salt = (c0, ex = {}) => { rs(); const a = { ...ex }; if (c0) a.chill = c0; GROUND.salt.on(a); return [a.chill ? [a.chill.v, r2(a.chill.t - G.t)] : null, a.salt > G.t]; };
+    o.salt = [salt(null), salt({ v: 50, t: G.t + 8 }), salt({ v: 20, t: G.t + 0.1 }), salt({ v: 40, t: G.t + 0.2 }), salt({ v: 50, t: G.t - 1 }), salt(null, { imm: { chill: G.t + 9 } })];
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const g = run(),
+    j = x => JSON.stringify(x);
+  ok(
+    '地面與持續傷害（o.dot：groundTick、updPools、swordTick 傳）不算「你的擊中」：毒霧地面 tick 打了圈內 3 隻，但辰龍計數不動（9）、卯兔的必暴沒被用掉、賭注條不動、申猴不連鎖；hitCalc 的 dot 不擲豪賭大獎；技能直接擊中照常（計數 +1、必暴用掉、賭注條動、連鎖）',
+    j(g.ground) === '[true,9,true,0,0]' &&
+      j(g.dotCalc) === '[false,false,true,0,1]' &&
+      j(g.nonDot) === '[true,0,1]' &&
+      j(g.direct) === '[5,0,1,true,true]' &&
+      j(g.dotHit) === '[4,true,0,1000000,0]' &&
+      j(g.callers) === '[true,true,true]',
+    j([g.ground, g.dotCalc, g.nonDot, g.direct, g.dotHit, g.callers])
+  );
+  ok(
+    '鹹水地面不降級冰緩：原本 50%、8 秒的不動；20%、0.1 秒的升到 30%、0.5 秒；40%、0.2 秒的強度留 40%、時間延到 0.5 秒；過期的重新給 30%；免疫冰緩的不給；都標記鹹水；蟾蜍之血的藥劑鈕與翻滾的重畫快取一併清（hud.js）',
+    j(g.salt) === '[[[30,0.5],true],[[50,8],true],[[30,0.5],true],[[40,0.5],true],[[30,0.5],true],[null,true]]' &&
+      /\(cd\|t\|n\)\(flask\|mflask\|roll\)/.test(fs.readFileSync(path.join(__dirname, '..', 'js', 'hud.js'), 'utf8')),
+    j(g.salt)
+  );
+}
 /* 0.2.27 物理傷害不能走抗性（NaN＝無敵）；T1～T5 放寬；魔力回復與消耗 */
 {
   const R = s => vm.runInContext(s, ctx);
@@ -2244,8 +3815,8 @@ const RA = (() => {
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
   /* 品質（0.2.29） */
   ok(
-    '品質：163 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 164,
+    '品質：168 顆寶石都有效果說明，沒有多的',
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 169,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
@@ -3092,7 +4663,7 @@ const RA = (() => {
       !cl.minionRemote.length &&
       cl.remote === 'frosttrap,blastmine,beartrap,lightningtrap,firetrap,ballista,firetotem,mirage' &&
       cl.channel.join() === 'chargeslam' &&
-      cl.nova === 'whirl,nova' &&
+      cl.nova === 'whirl,nova,tidepull' &&
       cl.sust === 'venom,thunderstorm' &&
       cl.cond === 'shadowstrike,blindpounce,banner,corpseboom,paperdoll,wolfpounce,swordarray,snap,hexblast,profane',
     JSON.stringify(cl)
@@ -3978,7 +5549,7 @@ const RA = (() => {
   })()`);
   ok(
     '地面：每種分陣營的地面雙向跑 3 秒，數值都不是 NaN',
-    g.kinds.length === 10 && !g.nan.length,
+    g.kinds.length === 11 && !g.nan.length,
     g.kinds + ' ' + g.nan.join(' | ')
   );
   ok(
@@ -4562,8 +6133,8 @@ const RA = (() => {
     return o;
   })()`);
   ok(
-    '層數增益：十八列（含血怒、戰吼強化、雷霆落雷、傀儡大師、先祖強化、波動）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
-    b.rows.length === 18 && !b.bad.length,
+    '層數增益：二十列（含血怒、戰吼強化、雷霆落雷、傀儡大師、先祖強化、波動、潮汐、殺戮）都有疊層、上限、狀態圖示與層數、不是 NaN、到期或清掉',
+    b.rows.length === 20 && !b.bad.length,
     b.rows.join() + ' ' + b.bad.join(' | ')
   );
   ok(

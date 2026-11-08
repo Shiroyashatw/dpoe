@@ -107,7 +107,7 @@ function hudBar() {
               : icHTML(b.ic);
     return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
   }).join('');
-  for (const k in HV) if (/^[tn]s\d|^cds\d/.test(k)) delete HV[k];
+  for (const k in HV) if (/^[tn]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$/.test(k)) delete HV[k];
 }
 function tipOf(b) {
   if (b.slot == null) return `${b.n}\n${b.d}`;
@@ -161,13 +161,21 @@ function hudTick() {
       cd = P[k] >= flaskNeed() ? 0 : 1 - P[k] / flaskNeed();
       txt = Math.floor(P[k] / flaskNeed() + 1e-9) + ''; /* 還能喝幾次（跟 drinkFlask 同一個算法） */
     } else if (k === 'roll') cd = (P.cds.roll || 0) / (ROLL.cd + ROLL.t);
-    else if (c && c.cd) {
+    else if (c && isFlaskSk(c.D)) {
+      /* 藥劑技能（0.2.74 追獵者）：還能放幾次（跟紅水同一池）；共用 0.5 秒間隔畫成冷卻圈 */
+      const n = Math.floor(P.flask / flaskCost() + 1e-9);
+      txt = String(n);
+      cd = P.flaskT > G.t ? (P.flaskT - G.t) / 0.5 : n ? 0 : 1 - P.flask / flaskCost();
+    } else if (c && c.cd) {
       cd = (P.cds[k] || 0) / c.cd;
       if (P.cds[k] > 0) txt = Math.ceil(P.cds[k]) + '';
     }
     setV(el, 'cd' + k, cd.toFixed(2));
     setT(el.querySelector('u'), 't' + k, txt);
-    const no = (c && ((!hell && !pracFree() && mpAvail() < c.mp) || !wtOK(c.D))) || !fightOn();
+    const no =
+      (c && ((!hell && !pracFree() && mpAvail() < c.mp) || !wtOK(c.D))) ||
+      !fightOn() ||
+      (ST.noFlask && (k === 'flask' || k === 'mflask'));
     if (HV['n' + k] !== no) el.classList.toggle('no', (HV['n' + k] = no));
   }
   /* 翻滾冷卻：桌機畫在游標旁（直立是技能鍵旁的小圖示，照上面的 .sk 一起更新） */
@@ -212,7 +220,7 @@ function hudTick() {
     $('mech').innerHTML = sts
       .map(
         s =>
-          `<button class="stc ${s.bad ? 'bad' : ''}" data-st="${esc(s.n + '：' + s.d)}" aria-label="${esc(s.n)}">${icHTML(s.ic)}<i></i>${s.c > 1 ? `<b>${s.c}</b>` : ''}</button>`
+          `<button class="stc ${s.bad ? 'bad' : ''}" ${s.col ? `style="border-color:${s.col}"` : ''} data-st="${esc(s.n + '：' + s.d)}" aria-label="${esc(s.n)}">${icHTML(s.ic)}<i></i>${s.c > 1 || s.sc ? `<b>${s.c}</b>` : ''}</button>`
       )
       .join('');
   }
@@ -677,6 +685,8 @@ const EQPOS = {
   belt: [124, 196, 72, 36],
   amulet: [204, 36, 36, 36],
   ring2: [204, 116, 36, 36],
+  /* 第三隻手（0.2.74 異變者）：第二枚戒指的下面，沒點亮就不畫 */
+  ring3: [204, 156, 36, 36],
   off: [248, 0, 72, 108],
   boots: [248, 116, 72, 72]
 };
@@ -690,9 +700,12 @@ function invHTML() {
     z = Math.min(TOUCH.on ? 1.3 : 1.15, (($('pinv').clientWidth || 476) - pp) / 320),
     eqs =
       EQS.map(e => {
+        /* 鎖欄位（0.2.74 異變者）：第三枚戒指沒點亮就不畫；腰帶、頭部被昇華鎖住畫成鎖（裝備已經脫到背包） */
+        if (e.k === 'ring3' && !eqOpen(S, 'ring3')) return '';
         const [x, y, w, h] = EQPOS[e.k].map(v => Math.round(v * z)),
-          it = S.eq[e.k];
-        return `<div class="eqs ${it ? 'r' + it.r : ''} ${s.eqBad.includes(e.k) ? 'noreq' : ''}" data-eq="${e.k}" ${it ? '' : `data-tip="${e.n}"`} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', e.k) : `<span class="eqg">${icHTML(slotIc(e))}</span>`}</div>`;
+          it = S.eq[e.k],
+          lock = !eqOpen(S, e.k);
+        return `<div class="eqs ${it ? 'r' + it.r : ''} ${s.eqBad.includes(e.k) && !lock ? 'noreq' : ''} ${lock ? 'lock' : ''}" data-eq="${e.k}" ${it ? '' : `data-tip="${e.n}${lock ? '：被昇華鎖住，退點才能用' : ''}"`} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', e.k) : lock ? `<small>${ICO.lock}</small>` : `<span class="eqg">${icHTML(slotIc(e))}</span>`}</div>`;
       }).join('') +
       /* 護符槽：腰帶給幾格就開幾格（照 PoE2） */
       [0, 1, 2]
@@ -780,6 +793,7 @@ const TAGN = {
   slam: '重擊',
   nova: '新星技能',
   duration: '持續時間技能',
+  flask: '藥劑技能',
   sustained: '經久技能',
   remote: '遠端技能',
   repeat: '重複技能',
@@ -1447,6 +1461,8 @@ document.addEventListener('click', e => {
     }
   } else if (k === 't') treeToggle(id);
   else if (k === 'reset') {
+    const why = eqUnloadWhy(S, ['a_st']);
+    if (why) return hudWarn(why);
     if (!confirm2(b, '再按一次')) return;
     S.at = ['a_st'];
     treeChanged();
@@ -1632,7 +1648,8 @@ const slotFits = (src, key, it) =>
     : src === 'eq' && /^ch\d$/.test(key)
       ? !!it.charm && +key[2] < charmSlots(S)
       : src === 'eq'
-        ? eqTakes(
+        ? eqOpen(S, key) &&
+          eqTakes(
             EQS.find(q => q.k === key),
             kindOf(it)
           ) &&
@@ -1734,13 +1751,13 @@ function quickMove(src, it, eqk) {
   } else {
     if (it.uid) return hudWarn('找撿骨師鑑定：未鑑定的不能裝備');
     const k = kindOf(it),
-      slots = EQS.filter(e => eqTakes(e, k)),
+      slots = EQS.filter(e => eqTakes(e, k) && eqOpen(S, e.k)),
       /* 武器：主手空著放主手；主手有武器、而且副手能拿這把（權杖、雙持）才放副手，不然換掉主手 */
       e =
         k === 'weapon'
           ? EQS.find(q => q.k === (S.eq.weapon && !S.eq.off && offOK(S.eq.weapon, it) ? 'off' : 'weapon'))
           : slots.find(e => !S.eq[e.k]) || slots[0];
-    if (!e) return;
+    if (!e) return EQS.some(q => eqTakes(q, k)) && hudWarn('這個部位的欄位被昇華鎖住：退點才能用');
     if (e.k === 'off' && !offOK(S.eq.weapon, it)) return hudWarn(offWhy(S.eq.weapon, it));
     const lack = eqLack(S, it, e.k);
     if (lack.length) return hudWarn('不符合需求：' + lackTxt(lack));
@@ -2101,7 +2118,9 @@ function itemTip(it, cmp) {
   if (it.so) html += `<p class="rune">符文 ${'○'.repeat(it.so)}<small>（還沒有符文）</small></p>`;
   if (cmp && !un) {
     /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄 */
-    const slots = EQS.filter(e => eqTakes(e, B.k) && (e.k !== 'off' || B.k !== 'weapon' || offOK(S.eq.weapon, it))),
+    const slots = EQS.filter(
+        e => eqTakes(e, B.k) && eqOpen(S, e.k) && (e.k !== 'off' || B.k !== 'weapon' || offOK(S.eq.weapon, it))
+      ),
       e = B.k === 'weapon' ? slots[0] : slots.find(e => !S.eq[e.k]) || slots[0],
       cur = S.eq[e.k],
       a = ST;
@@ -2347,7 +2366,9 @@ function act(a) {
     sfx(r.it.r === 2 ? 'lvup' : 'equip');
     changed();
   } else if (a.startsWith('asc:')) {
-    /* 選昇華／換昇華：點數全部退回 */
+    /* 選昇華／換昇華：點數全部退回（被關掉的欄位裡的裝備脫到背包，放不下就擋下來） */
+    const why = eqUnloadWhy(S, ['a_st'], a.slice(4));
+    if (why) return hudWarn(why);
     S.asc = a.slice(4);
     S.at = ['a_st'];
     ASCUI.n = null;

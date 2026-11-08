@@ -1206,8 +1206,10 @@ const WM_DN = ['', '低', '中', '高'];
 function wmCardHTML(k, why, lv) {
   const i = STORY_I[k];
   if (i != null) {
-    const c = STORY[i].card;
-    return `<ul class="mmods wm-mods">${c.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
+    const c = STORY[i].card,
+      sr = ascHas(S, 'roulette') ? rouletteOf(c, k).map(id => ROUL.find(x => x.id === id)) : [];
+    return `${sr.length ? `<ul class="wm-rou" aria-label="命運輪盤">${sr.map(r => `<li style="--rc:${r.c}"><b>${r.n}籌碼</b> ${esc(r.t)}</li>`).join('')}</ul>` : ''}
+      <ul class="mmods wm-mods">${c.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
       <p class="wm-note">主線是固定內容，不用選地圖卡</p>
       <button class="btn pri" data-a="open">${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}</button>`;
   }
@@ -1217,7 +1219,9 @@ function wmCardHTML(k, why, lv) {
     c = mapCost(card.star),
     rw = cardRew(card),
     wc = washCost(lv, o.w),
-    danger = cd => Math.max(1, ...cd.mods.map(x => MAPMOD[x].d));
+    danger = cd => Math.max(1, ...cd.mods.map(x => MAPMOD[x].d)),
+    /* 命運輪盤（賭徒的大點）：這張卡進圖會抽到的兩種籌碼，開卡片時就看得到（不想要就換一張）；沒點輪盤的人不顯示 */
+    rou = cd => (ascHas(S, 'roulette') ? rouletteOf(cd, k).map(id => ROUL.find(x => x.id === id)) : []);
   return `<div class="mcards2 wm-cards">${o.c
     .map((cd, j) => {
       const d = danger(cd),
@@ -1225,10 +1229,25 @@ function wmCardHTML(k, why, lv) {
       return `<button class="mc2 ${j === n ? 'on' : ''}" data-card="${j}" style="--sc:${STARS[cd.star].c}">
         <span class="mstar">${'★'.repeat(cd.star)}</span>
         <span class="mdang d${d}">危險 ${WM_DN[d]}</span>
-        <span class="mcost ${S.frag < cc ? 'c-bad' : ''}">${cc ? `${cc} 碎片` : '免費'}</span></button>`;
+        <span class="mcost ${S.frag < cc ? 'c-bad' : ''}">${cc ? `${cc} 碎片` : '免費'}</span>${
+          rou(cd).length
+            ? `<span class="mrou" title="命運輪盤：${rou(cd)
+                .map(r => r.n)
+                .join('、')}">${rou(cd)
+                .map(r => `<i style="background:${r.c}"></i>`)
+                .join('')}</span>`
+            : ''
+        }</button>`;
     })
     .join('')}</div>
     <div class="msel"><b>這張的地圖詞</b><span class="c-gold" title="數量：裝備與通貨的件數；稀有度：黃裝比例與 ★、追憶的機率；材料：崇高石與精髓的機率">數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
+    ${
+      rou(card).length
+        ? `<ul class="wm-rou" aria-label="命運輪盤">${rou(card)
+            .map(r => `<li style="--rc:${r.c}"><b>${r.n}籌碼</b> ${esc(r.t)}</li>`)
+            .join('')}</ul>`
+        : ''
+    }
     <ul class="mmods wm-mods">${card.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
     <div class="wm-acts"><button class="btn" data-wm="wash" ${S.frag < wc ? 'disabled' : ''} title="換一批新的卡">洗卡 · ${wc} 碎片</button>
     <button class="btn pri" data-a="open" ${why || S.frag < c ? 'disabled' : ''} ${why ? `title="${esc(why)}"` : ''}>${why || (S.frag < c ? `碎片不夠（要 ${c}，有 ${S.frag}）` : `${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}${c ? ` · ${c} 碎片` : ''}`)}</button></div>`;

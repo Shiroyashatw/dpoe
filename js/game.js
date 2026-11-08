@@ -100,6 +100,7 @@ function resetWorld(W, H) {
     need: 1,
     state: 'play',
     portal: null,
+    rou: null,
     hs: 0,
     slow: 0,
     trauma: 0,
@@ -221,7 +222,9 @@ function enterMap(t) {
     huntEnter(S);
     delete S.cards[G.node];
   }
-  G.mm = mapMods(S.card, G.zod && G.zod.cor);
+  /* 命運輪盤（0.2.74 賭徒）：點了輪盤才抽（照這張卡的種子，地圖卡上已經看過）；籌碼在 stats()（G.rou）與地圖詞（G.mm）裡生效 */
+  G.rou = ascHas(S, 'roulette') ? rouletteOf(S.card, G.node) : null;
+  G.mm = mapMods(S.card, G.zod && G.zod.cor, G.rou);
   G.star = (S.card && S.card.star) || 1;
   S.node = S.card = null;
   const tiles = (G.tiles = new Uint8Array(cols * rows).fill(1));
@@ -526,11 +529,16 @@ function updPlayer(dt) {
   if (P.roll) {
     const r = P.roll;
     r.t += dt;
-    const sp = (ROLL.dist / ROLL.t) * 1.6 * (1 - r.t / ROLL.t);
+    /* 卯兔（0.2.74 神裔 rollFar）：翻滾距離 +x% */
+    const sp = (ROLL.dist / ROLL.t) * 1.6 * (1 - r.t / ROLL.t) * (1 + ST.rollFar / 100);
     moveBody(P, r.dx * sp * dt, r.dy * sp * dt);
     (P.movT = G.t), (P.stillT = null);
     rollThrough();
-    if (r.t >= ROLL.t) P.roll = null;
+    if (r.t >= ROLL.t) {
+      P.roll = null;
+      /* 翻滾結束後 1 秒內第一次擊中必定暴擊（combat.js 的 hitCalc） */
+      if (ST.rollCrit) P.rollCritT = G.t + 1;
+    }
     return;
   }
   /* 面板打開時不吃移動鍵以外的東西；打字時（輸入框）不動 */
@@ -642,12 +650,15 @@ function doRoll() {
 /* mana：喝魔力藥劑（2）回魔力，不然喝生命藥劑（1）回生命；藥劑效果的詞綴與地圖詞兩種都算 */
 function drinkFlask(mana) {
   if (!fightOn() || G.state !== 'play') return;
+  /* 蟾蜍之血（0.2.74 異變者 noFlask）：不能使用藥劑（生命與魔力藥劑都鎖住） */
+  if (ST.noFlask) return hudWarn('蟾蜍之血：不能使用藥劑');
   /* 謹慎調配（flaskUse）：一次少用 x% 充能，剩的夠就能喝；魔力泉（mpFlask）：魔力藥劑回復更多 */
   const k = mana ? 'mflask' : 'flask',
     use = flaskNeed();
   if (P[k] < use) return hudWarn((mana ? '魔力' : '生命') + '藥劑用完了：殺怪會補');
   P[k] -= use;
-  const v = 1 + (ST.flask + MM('pflask') + bufV('flaskP') + (mana ? ST.mpFlask : 0)) / 100;
+  flaskDrunk();
+  const v = flaskEff() + (mana ? ST.mpFlask : 0) / 100;
   if (mana) P.mheal += ST.mp * FLASK.mp * v;
   else P.heal += ST.hp * FLASK.heal * v;
   fx({ k: 'heal', x: P.x, y: P.y, dur: 0.5 });
@@ -690,12 +701,23 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
       allyHurt(w, sh);
     }
   }
+  /* 戌狗（0.2.74 神裔 minionWall）：擊中傷害的一部分由最近的活著的召喚物承受（沒有召喚物就照常） */
+  if (ST.minionWall && d > 0) {
+    const w = G.allies.filter(x => !(x.dead > G.t)).sort((p, q) => dist(p, P) - dist(q, P))[0];
+    if (w) {
+      const sh = (d * Math.min(100, ST.minionWall)) / 100;
+      d -= sh;
+      allyHurt(w, sh);
+    }
+  }
   evMark('hurt');
   /* 受傷施放（0.2.50）：真的被擊中才算，閃避、格擋、招架在上面就回去了 */
   metaEvent('hurt');
   if (r.defl) num(P.x, P.y - 60, 0, 'ev', '偏斜');
+  if (r.half) num(P.x, P.y - 78, 0, 'ev', '閃');
   /* 荊棘反擊（0.2.42）：近戰怪擊中你時反彈荊棘傷害，同一隻怪 0.3 秒最多一次 */
   thornHit(src);
+  freezeBackHit(src, d);
   /* 暈眩（0.2.42）：僵直看每一下的傷害；沉重暈眩只有王的紅光大招累積 */
   playerStagger(d);
   const boss = src && src.D ? src : src && src.src && src.src.D ? src.src : null;
@@ -728,7 +750,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   num(P.x, P.y - 60, d, 'hurt');
   sfx('hurt');
   /* 不動如山（基石）；昇華的巍然不動：格擋值還在時不會被擊退；先登（0.2.71）衝刺中也不會 */
-  if (src && !ST.stand && !(ST.unmov && bvUp()) && !vgDash()) {
+  if (src && !ST.stand && !(ST.unmov && bvUp()) && !vgDash() && !hasBuff('stone')) {
     const a = angTo(src, P);
     P.vx += Math.cos(a) * 160;
     P.vy += Math.sin(a) * 160;
@@ -756,6 +778,9 @@ function aggroPack(m) {
   for (const o of G.mobs) if (o.pack === m.pack) o.aggro = 1;
 }
 function killMob(m) {
+  /* 同一隻怪只死一次（辰龍的隕石會在這一下結算前先打死目標，兩條路都會呼叫 killMob：經驗、掉落、擊殺數與 onKillBase 的傳染都不能算兩份） */
+  if (m.dead) return;
+  m.dead = 1;
   m.hp = 0;
   const t = G.mapT;
   fx({ k: 'die', x: m.x, y: m.y, sp: m.D.sp, sz: m.sz, dur: 0.45, flip: m.x > P.x });
@@ -767,6 +792,11 @@ function killMob(m) {
   const fk = FLASK.perKill * (m.elite ? 3 : m.boss ? 10 : 1) * (1 + ST.flaskChg / 100);
   P.flask = Math.min(FLASK.n, P.flask + fk);
   P.mflask = Math.min(FLASK.n, P.mflask + fk);
+  /* 調製（0.2.74 追獵者 poiKillChg）：殺死中毒的敵人多得藥劑充能（10 點＝1 瓶，吃藥劑充能獲得） */
+  if (ST.poiKillChg && m.ail && (m.ail.poi || []).some(x => x.t > G.t)) {
+    const v = (ST.poiKillChg / FLASK.chg) * (1 + ST.flaskChg / 100);
+    (P.flask = Math.min(FLASK.n, P.flask + v)), (P.mflask = Math.min(FLASK.n, P.mflask + v));
+  }
   gainXp(Math.max(1, Math.round(m.D.xp * tierMul(t).hp * (m.elite ? 4 : 1) * xpMul(S.lv, mobLv(t)))));
   /* 材料：靈魂與通貨自動進材料頁，跳字提醒（0.2.72：小怪只掉通貨，裝備是菁英與王才有，企劃書 5.4.5；
      地圖詞：數量＝裝備與通貨的件數、稀有度＝黃裝比例＋★ 與追憶的機率、材料＝崇高與精髓的機率） */
@@ -776,7 +806,7 @@ function killMob(m) {
     ilvl: tierIlvl(t),
     tier: t,
     qty: MM('qty'),
-    rar: MM('rar'),
+    rar: MM('rar') + ST.rarP,
     mat: MM('mat'),
     hunt: G.hunt,
     zod: !!G.zod

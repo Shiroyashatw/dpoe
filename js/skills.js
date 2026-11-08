@@ -11,6 +11,8 @@ const supDup = (g, sp) =>
 /* 插在光環上有效果的輔助（items.js 的 stats、捷光環、戰狼與魔像讀它們） */
 const AURA_SUP = new Set(['auraeff', 'spiriteff', 'area', 'focus', 'pack', 'mindmg', 'minlife']);
 const supOK = (D, sp, g) => {
+  /* 藥劑技能（0.2.74 追獵者）不能插輔助 */
+  if (D.tags && D.tags.includes('flask')) return false;
   const U = SUPPORTS[sp.gem];
   /* Meta 寶石的孔插的是法術，不是輔助 */
   if (!U) return false;
@@ -93,6 +95,8 @@ function gemCfg(g, i) {
   if (D.cvL) (c.cvL = D.cvL + (g.q || 0)), (c.shockMore = D.shockMore + (g.q || 0)), (c.boltChain = 1);
   /* 赤鐮的品質：範圍 +10% */
   if (g.gem === 'sickle') c.aoe *= 1 + 0.1 * c.q;
+  /* 汐引：再附加等量的閃電（冰冷＋閃電的法術擊中） */
+  if (D.lightAdd) c.lightAdd = D.lightAdd;
   /* 大開大合（0.2.70 角鬥士）：雙手時每點盛怒範圍提高（跟範圍的提高同一池，所以除掉原本的提高再乘；stats() 沒拿雙手就歸零） */
   if (ST.rageAoe && P && P.rage) c.aoe *= (100 + ST.aoe + ST.rageAoe * P.rage) / (100 + ST.aoe);
   /* 重裝彈頭（0.2.70 千機）：彈藥技能每發更多、穿透 +1（彈夾減半在 mech.js 的 clipOf） */
@@ -169,7 +173,7 @@ function gemCfg(g, i) {
   if (D.tags.includes('warcry')) c.cdrP += ST.cryCdr;
   c.cd /= 1 + c.cdrP / 100; /* 冷卻時間恢復率：冷卻 ÷ (1 + x/100)，沒有上限 */
   /* 效用：魔力消耗 ÷ (1 + 效用%) */
-  c.mp = D.mp ? Math.max(1, Math.round(c.mp / (1 + ST.mpEff / 100))) : 0;
+  c.mp = D.mp ? Math.max(1, Math.round((c.mp * (1 + ST.mpCostUp / 100)) / (1 + ST.mpEff / 100))) : 0;
   c.unit = D.unit || c.conv;
   /* 詭雷師（0.2.70）：陷阱與地雷的範圍提高（跟範圍提高同一池，所以除掉原本的提高再乘）、傷害更多 */
   if (c.unit === 'trap' || c.unit === 'mine') {
@@ -255,6 +259,12 @@ const pracFree = () => G.scene === 'hide' && PRAC.in && !PRAC.real;
 /* 放不放得出來（手動與自動共用）：回傳不能放的原因。地獄火（0.2.26）不扣魔力、改成累積，所以不檢查魔力；血魔法優先 */
 function skillWhy(c, at) {
   if (c.g && gemLack(c.g).length) return '能力值不足';
+  /* 藥劑技能（0.2.74 追獵者）：共用 0.5 秒間隔；用生命藥劑的充能（練習區不扣）；蟾蜍之血不能用 */
+  if (isFlaskSk(c.D)) {
+    if (ST.noFlask) return '蟾蜍之血：不能使用藥劑';
+    if (P.flaskT > G.t) return '藥劑技能共用 0.5 秒間隔';
+    if (!pracFree() && P.flask < flaskCost() - 1e-9) return '生命藥劑用完了：殺怪會補';
+  }
   const hell = ST.hellfire && !ST.blood;
   if (!pracFree() && (ST.blood ? P.hp <= c.mp + 1 : !hell && mpAvail() < c.mp))
     return ST.blood ? '生命不夠施放' : '魔力不足';
@@ -275,7 +285,9 @@ function skillWhy(c, at) {
 /* 付費：彈藥、魔力（或生命、地獄火）、流順之風、冷卻 */
 function skillPay(c, i) {
   bloodPay(c);
+  if (isFlaskSk(c.D)) P.flaskT = G.t + 0.5;
   if (pracFree()) return;
+  if (isFlaskSk(c.D)) return void (P.flask = Math.max(0, P.flask - flaskCost()));
   if (c.D.ammo) ammoUse(c.k, clipOf(c.D), c.D.ammo[1]);
   if (ST.blood) sacrifice('hp', c.mp);
   else if (ST.hellfire) hfGain(c.mp);
@@ -753,6 +765,21 @@ function actHit(a, idx) {
   } else if (a.k === 'thunderstorm') {
     /* 雷暴：跟毒刃雨同一種範圍（updPools），多了濕透與落雷；品質：範圍 */
     G.pools.push({ x: a.tx, y: a.ty, r: R * (1 + 0.2 * c.q), t: 0, dur: durOf(c), tick: 0, c, a, wet: 1 });
+    sfx('cast');
+  } else if (a.k === 'tidepull') {
+    /* 汐引（0.2.74 潮汐）：在滑鼠位置掀起浪潮：範圍內每隻受一次冰冷＋閃電的法術擊中，然後拉向中心（王不拉、菁英減半、釘身的不動；約拉到離中心 20% 處），
+       留下鹹水地面 3 秒（品質每 1% 多留 0.1 秒；站在上面冰緩 30%、閃電擊中必定感電）。用 G.mobs 的快照，擊殺不會改到迴圈 */
+    const hit = G.mobs.filter(m => m.hp > 0 && !m.arrow && Math.hypot(m.x - a.tx, m.y - a.ty) < R + m.r);
+    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: ELC.cold });
+    fxs('frost', a.tx, a.ty, R);
+    for (const m of hit) hitMob(m, c, Math.atan2(m.y - a.ty, m.x - a.tx), 0, { a });
+    for (const m of hit) {
+      const d = Math.hypot(m.x - a.tx, m.y - a.ty);
+      if (m.hp <= 0 || m.boss || d < 2 || m.ail.pinT > G.t) continue;
+      const v = d * KB_F * 0.8 * (m.elite ? 0.5 : 1);
+      (m.vx -= ((m.x - a.tx) / d) * v), (m.vy -= ((m.y - a.ty) / d) * v);
+    }
+    addGround({ k: 'salt', x: a.tx, y: a.ty, r: R, dur: GROUND.salt.dur + 2 * c.q });
     sfx('cast');
   } else if (a.k === 'snap') {
     /* 裂解：滑鼠附近每隻怪消耗一種元素異常（冰凍 > 感電 > 點燃），以牠為中心爆開那個元素、留殘留物（品質：機率多留一個） */
@@ -1240,6 +1267,32 @@ function actHit2(a, idx, R, hitArc) {
     /* 血怒：開著再按就關掉 */
     if (stkN('bloodrage')) stkClr('bloodrage');
     else (P.brQ = c.q), gainStk('bloodrage', 1, durOf(c)), fxs('rage', P.x, P.y - 30, 40);
+  } else if (isFlaskSk(D)) {
+    /* 藥劑技能（0.2.74 追獵者）：算使用藥劑（催毒），持續時間與效果吃藥劑效果（品質多 1 秒）；藥劑生效期間給以毒攻毒讀（BUFF.flaskAct） */
+    const t = D.fdur * flaskEff() + c.q;
+    flaskDrunk();
+    ST.flaskPoi && gainBuff('flaskAct', t);
+    if (a.k === 'gasflask') {
+      /* 毒霧：地面 'gas'（mech.js）每 0.5 秒對圈內擊中一次並必定中毒；每下＝主手武器傷害 ×0.4 轉混沌（dps 0.8 × 0.5 秒） */
+      addGround({ k: 'gas', x: a.tx, y: a.ty, r: R, dur: t, c, dps: 0.8 });
+      fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: '#8fd16b' });
+    } else if (a.k === 'windflask') {
+      gainBuff('onslaught', t);
+      gainBuff('phasing', t);
+      gainBuff('windflask', t);
+      fxs('rage', P.x, P.y - 30, 40);
+    } else {
+      /* 石膚：守護（P.stoneV，combat.js 的 absorb）最多最大生命的 30%（吃藥劑效果），期間不會被擊退（hurtPlayer） */
+      gainBuff('stone', t);
+      P.stoneV = ST.hp * 0.3 * flaskEff();
+      fx({ k: 'ring', x: P.x, y: P.y, r: 50, dur: 0.4, col: '#b8c4d4' });
+    }
+    sfx('drink');
+  } else if (a.k === 'allin') {
+    /* 梭哈（0.2.74 賭徒）：durOf 秒內你的擊中全部開出大獎，這段時間受到的傷害提高 50%（combat.js 的 jackpotRoll、takenInc；品質多 1 秒） */
+    gainBuff('allin', durOf(c) + c.q);
+    fxs('rage', P.x, P.y - 30, 40);
+    sfx('cast');
   } else if (a.k === 'chargeslam') {
     /* 蓄力重砸：a.stg＝蓄了幾段。每段傷害更多、範圍更大；蓄滿留碎裂地面，餘震照蓄滿的倍率打一半 */
     const E = D.charge,
@@ -1417,6 +1470,7 @@ function hitMob(m, c, ang, kb, o = {}) {
     keep: m.arrow,
     final: a.final,
     her: o.her,
+    dot: o.dot,
     comp: !!(o.minion && o.from && o.from.src === 'aura')
   });
   if (m.arrow) return arrowHit(m, r, c);
@@ -1433,11 +1487,19 @@ function hitMob(m, c, ang, kb, o = {}) {
     ex.forEach(x => hitMob(x, c, angTo(m, x), kb, { a, quiet: 1, from: m, anc: 1 }));
   }
   const shocked = c.boltChain && hasState(m, 'shock');
+  /* 辰龍、申猴（0.2.74 神裔）：你自己的擊中（不算召喚物、場上單位、擴散、再打一次）：第 N 次擊中落下隕石；擊中感電的敵人時閃電跳到 3 公尺內另一個敵人 */
+  const own = !o.minion && !a.unit && !o.splash && !o.again && !o.anc && !o.dot;
+  if (ST.meteorN && own && (P.metN = (P.metN || 0) + 1) >= ST.meteorN) (P.metN = 0), meteorFall(m, r);
+  if (ST.shockChain && own && hasState(m, 'shock')) shockJump(m, r);
   /* 幻影獵手（昇華）：你自己的擊中累積熵值，滿了生成幻影（幻影、觸發的不算） */
   if (ST.mirageH && !a.trig && !o.minion && !a.unit && !o.again) mirageHunt();
-  const ail0 = ST.unbAv && !o.minion && !a.unit && ailSnap(m.ail);
+  const ail0 = (ST.unbAv || ST.tideStk) && !o.minion && !a.unit && ailSnap(m.ail);
   applyAil(m, r, c, a);
-  if (ail0) furyGain(ail0, ailSnap(m.ail));
+  if (ail0) {
+    const ail1 = ailSnap(m.ail);
+    ST.unbAv && furyGain(ail0, ail1);
+    ST.tideStk && tideGain(ail0, ail1);
+  }
   if (c.k === 'axethrow' && hasState(m, 'bleed')) fxs('bleed', m.x, m.y - m.sz * 0.5, 30);
   onHitBase(m, r, c);
   /* 近期事件（combat.js 的 recent）：你自己的擊中與暴擊，不算召喚物與場上單位 */
@@ -1486,8 +1548,8 @@ function hitMob(m, c, ang, kb, o = {}) {
       poisePin(m, 'hs');
   }
   aggroPack(m);
-  num(m.x, m.y - m.sz, r.d, r.crit ? 'crit' : r.el);
-  fxs(r.crit ? 'crit' : 'hit', m.x, m.y - m.sz * 0.3, m.sz * (r.crit ? 0.8 : 0.5));
+  num(m.x, m.y - m.sz, r.d, r.jackpot ? 'jackpot' : r.crit ? 'crit' : r.el);
+  fxs(r.crit || r.jackpot ? 'crit' : 'hit', m.x, m.y - m.sz * 0.3, m.sz * (r.crit || r.jackpot ? 0.8 : 0.5));
   if (!o.quiet) {
     sparks(m.x, m.y - m.sz * 0.4, ang, r.crit ? 10 : 5, r.crit ? '#ffd166' : ELC[r.el]);
     sfx(r.crit ? 'crit' : 'hit');
@@ -1534,6 +1596,23 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (shocked) boltChain(m, c, a);
 }
 
+/* 辰龍的隕石：落在目標上，半徑 150 內的敵人受火焰範圍傷害（那一下擊中的 150%，擊中前的總傷害；吃火焰抗性，不走 hitMob 所以不會再算擊中數） */
+function meteorFall(m, r) {
+  const v = DT.reduce((s, k) => s + r.pre[k], 0) * 1.5;
+  fx({ k: 'ring', x: m.x, y: m.y, r: 150, dur: 0.4, col: ELC.fire });
+  fxs('boom', m.x, m.y, 150);
+  for (const o of G.mobs.slice()) if (o.hp > 0 && !o.arrow && dist(o, m) < 150 + o.r) dotHit(o, v, 'fire');
+}
+/* 申猴的連鎖：最近的另一隻（3 公尺＋半徑內）受閃電傷害（那一下擊中的 50%，吃閃電抗性）並必定感電；不走 hitMob，所以跳過去的不會再跳 */
+function shockJump(m, r) {
+  const o = G.mobs
+    .filter(x => x !== m && x.hp > 0 && !x.arrow && x.ail && dist(x, m) < 3 * METER + x.r)
+    .sort((x, y) => dist(x, m) - dist(y, m))[0];
+  if (!o) return;
+  fx({ k: 'zap', x: m.x, y: m.y - m.sz * 0.4, x2: o.x, y2: o.y - o.sz * 0.4, dur: 0.18 });
+  if (!noAil(o.ail, 'shock')) o.ail.shock = Math.max(o.ail.shock || 0, G.t + 8 * (1 + ST.shockDur / 100));
+  dotHit(o, DT.reduce((s, k) => s + r.pre[k], 0) * 0.5, 'light');
+}
 /* ---------- 波動（0.2.62 K3，照 PoE2 的 Volatility） ---------- */
 const VOL = { gap: 0.1, boom: 4, hurt: 0.5, cath: 10 };
 /* 每 0.1 秒最多獲得一次；記最後一次獲得的時間，4 秒後爆 */
@@ -1566,6 +1645,10 @@ const ailSnap = a => ({
   frozen: a.frozen || 0,
   shock: a.shock || 0
 });
+/* 浪潮之心（0.2.74 潮汐）：這一下新上（或刷新）了感電或冰凍就 +1 層潮汐（一下最多 1 層） */
+function tideGain(b, n) {
+  if ((n.shock > G.t && n.shock !== b.shock) || (n.frozen > G.t && n.frozen !== b.frozen)) gainStk('tide');
+}
 function furyGain(b, n) {
   if (hasBuff('unboundAv')) return;
   const T = (P.furyT = P.furyT || {});
@@ -1712,6 +1795,8 @@ function allyHurt(w, d) {
 function allyDie(w, killed) {
   evMark('mdie');
   if (killed) evMark('mkill'), ST.volAlly && volGain(ST.volAlly);
+  /* 戌狗（0.2.74 神裔 minionDieHeal）：召喚物被擊殺時你回復最大生命的 x% */
+  if (killed && ST.minionDieHeal) P.hp = Math.min(ST.hp, P.hp + (ST.hp * ST.minionDieHeal) / 100);
   if (w.t || !killed) return void (G.allies = G.allies.filter(o => o !== w));
   w.hp = 0;
   /* 獻祭寶石（0.2.63）：復甦時間 +40～59%、品質讓復甦加快（items.js 的 stats 算 reviveT；沒開就是 1） */
@@ -1815,7 +1900,7 @@ function updPools(dt) {
           if (p.wet)
             drench(m, 0.8),
               fx({ k: 'zap', x: m.x + rnd(-30, 30), y: m.y - 220, x2: m.x, y2: m.y - m.sz * 0.4, dur: 0.15 });
-          hitMob(m, p.c, 0, 0, { quiet: 1, a: p.a, mult: p.c.mult, from: p });
+          hitMob(m, p.c, 0, 0, { quiet: 1, a: p.a, mult: p.c.mult, from: p, dot: 1 });
         }
     }
   }

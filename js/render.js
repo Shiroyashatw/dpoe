@@ -49,6 +49,11 @@ const ACT_ROW = {
   rend: 3,
   sickle: 3,
   vanguard: 3,
+  tidepull: 5,
+  allin: 5,
+  gasflask: 5,
+  windflask: 5,
+  stoneflask: 5,
   cleave: 4,
   warcry: 5,
   seiscry: 5,
@@ -466,7 +471,7 @@ function draw() {
     if (TOUCH.on && n.c === 'lv') continue;
     const f = n.t / 0.9,
       pop = n.t < 0.08 ? 1 + (0.08 - n.t) * 8 : 1,
-      y = n.y - 30 * Math.sqrt(f) - (n.c === 'crit' ? 10 : 0);
+      y = n.y - 30 * Math.sqrt(f) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
     const st = {
       phys: ['#fff3e0', 15],
       fire: [ELC.fire, 15],
@@ -477,6 +482,8 @@ function draw() {
       block: ['#cfd8e3', 16],
       hit: ['#fff3e0', 15],
       crit: ['#ffd166', 24],
+      /* 豪賭的大獎（0.2.74 賭徒）：金色、更大 */
+      jackpot: ['#ffc21a', 30],
       hurt: ['#ff5a5a', 17],
       gold: ['#ffd166', 14],
       lv: ['#ffd166', 26],
@@ -492,17 +499,19 @@ function draw() {
     const txt =
       n.c === 'gold'
         ? '+' + n.v + ' 金'
-        : n.c === 'frag'
-          ? '+' + n.v + ' 碎片'
-          : n.c === 'block'
-            ? '格擋'
-            : n.c === 'lv'
-              ? '升級！Lv ' + n.v
-              : n.c === 'perfect'
-                ? '完美閃避'
-                : n.c === 'ev'
-                  ? '閃避'
-                  : n.txt || n.v;
+        : n.c === 'jackpot'
+          ? '大獎 ' + n.v
+          : n.c === 'frag'
+            ? '+' + n.v + ' 碎片'
+            : n.c === 'block'
+              ? '格擋'
+              : n.c === 'lv'
+                ? '升級！Lv ' + n.v
+                : n.c === 'perfect'
+                  ? '完美閃避'
+                  : n.c === 'ev'
+                    ? '閃避'
+                    : n.txt || n.v;
     CX.lineWidth = 4;
     CX.strokeStyle = 'rgba(0,0,0,0.8)';
     CX.strokeText(txt, n.x, y);

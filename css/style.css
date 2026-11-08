@@ -1328,6 +1328,10 @@ body.touch #pro .btn { min-height: 44px; }
 .wm-cards .mc2 { min-height: 72px; padding: 8px 4px; }
 .wm-body .msel { margin: 0; }
 .wm-mods { columns: 1; margin: 0; }
+.mrou { display: flex; gap: 4px; margin-top: 1px; } .mrou i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }
+.wm-rou { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 4px; font-size: var(--fs-s); line-height: 1.45; }
+.wm-rou li { padding: 2px 0 2px 8px; border-left: 3px solid var(--rc, var(--fr)); color: var(--tx); }
+.wm-rou b { color: var(--rc, var(--warn)); }
 .wm-acts { position: sticky; bottom: -14px; display: grid; gap: 6px; margin-top: auto; padding-top: 8px; background: linear-gradient(transparent, var(--s1) 8px); }
 .wm-acts .btn, .wm-body > .btn { width: 100%; }
 .wm-q { margin: 4px 0; padding: 0; list-style: none; display: grid; gap: 6px; }

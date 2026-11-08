@@ -93,7 +93,25 @@ const GROUND = {
     col: '#8fd6ff',
     el: 'cold',
     dur: 4,
-    on: a => noAil(a, 'chill') || (a.chill = { v: 30, t: G.t + 0.5 })
+    on(a, t) {
+      /* 海神之軀（0.2.74 潮汐）：踩到冰緩地面反而移動速度提高（玩家方的冰緩地面只會打到怪物，這是怪物方的地面踩到你） */
+      if (t === P && ST.chillInvert) gainBuff('tideRush', 4);
+      noAil(a, 'chill') || (a.chill = { v: 30, t: G.t + 0.5 });
+    }
+  },
+  /* 0.2.74 汐引留下的鹹水地面（玩家方）：站在上面的敵人冰緩 30%、你的閃電擊中必定感電（a.salt，combat.js 的 applyAil 讀） */
+  salt: {
+    n: '鹹水地面',
+    col: '#6fd3ff',
+    el: 'cold',
+    dur: 3,
+    on(a) {
+      a.salt = G.t + 0.2;
+      /* 原本更強、更長的冰緩（例：冰系招式的 50%、8 秒）不降級：強度取大、時間取長 */
+      if (noAil(a, 'chill')) return;
+      const c0 = a.chill && a.chill.t > G.t ? a.chill : null;
+      a.chill = { ...c0, v: c0 ? Math.max(c0.v, 30) : 30, t: c0 ? Math.max(c0.t, G.t + 0.5) : G.t + 0.5 };
+    }
   },
   blades: { n: '劍陣', col: '#e8e2d6' },
   /* 0.2.55：震地戰吼強化的重擊，原地 0.4 秒後的餘震（skills.js 的 empUse） */
@@ -244,7 +262,8 @@ function groundTick(dt) {
           hitMob(m, g.k === 'gas' ? { ...g.c, poisonCh: 100 } : g.c, 0, 0, {
             quiet: 1,
             mult: g.c.mult * g.dps * 0.5,
-            from: g
+            from: g,
+            dot: 1
           });
         }
     }
@@ -571,7 +590,7 @@ function swordTick(dt) {
   P.swT = 0.6;
   for (const s of P.swords || []) {
     const m = s.t > G.t && s.c.q && mobNear(P.x, P.y, 110);
-    if (m) hitMob(m, s.c, angTo(P, m), 0, { quiet: 1, mult: s.c.mult * 0.3 * s.c.q });
+    if (m) hitMob(m, s.c, angTo(P, m), 0, { quiet: 1, mult: s.c.mult * 0.3 * s.c.q, dot: 1 });
   }
 }
 const swordN = () => (P.swords || []).filter(s => s.t > G.t).length;

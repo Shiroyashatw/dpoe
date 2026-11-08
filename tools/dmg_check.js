@@ -74,9 +74,11 @@ function route(w, pts) {
   return [...have];
 }
 /* 裝備：每一欄挑同階級的稀有裝（照權重從 4 件裡挑最好的，接近一般玩家） */
-function gear(t, want, wt, off, L = 999) {
+function gear(t, want, wt, off, L = 999, noInt) {
   const eq = {};
   for (const e of R('EQS')) {
+    /* 第三枚戒指（0.2.74 異變者的第三隻手）平常是關著的，不配裝備 */
+    if (e.k === 'ring3') continue;
     let best = null,
       bv = -1;
     for (let i = 0; i < 4; i++) {
@@ -88,7 +90,9 @@ function gear(t, want, wt, off, L = 999) {
           1 + Math.round(((b.lv - 1) * 82) / 15) <= L &&
           (e.k !== 'weapon' || b.wt === wt) &&
           (e.k !== 'off' || !off || b.k === off) &&
-          (e.k !== 'weapon' || !off || !b.two)
+          (e.k !== 'weapon' || !off || !b.two) &&
+          /* 異變者的巨臂：智慧視為 0，不挑要智慧的基底（能量護盾系防具） */
+          (!noInt || !(b.b && b.b.es))
       );
       if (!pool.length) break;
       const b = pool[Math.floor(sMath.random() * pool.length)],
@@ -341,6 +345,61 @@ Object.assign(BUILDS, {
     asc: ['breaker', 's1', 'loud', 's3', 'horde', 's2', 'echo', 's4', 'van'],
     gearOf: '戰吼＊',
     cry: 1
+  },
+  /* 0.2.74 第四批（企劃書 7.4）。各自的假設標在輸出的 ⚠️，對照組（名字加「－」，自動產生）兩邊的模型旗標一樣。
+     潮汐（長杖＋電弧，冰冷＋閃電）：⚠️ 浪潮之心當作一直 10 層（要一直造成感電或冰凍，每層冰冷與閃電傷害提高 5%）；潮落（冰冷轉閃電）、驚濤、汐引的拉怪與鹹水地面、
+     寒潮反擊、海神之軀在打單一王的模型裡看不到價值（它們是群怪與生存） */
+  潮汐: {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_staff: 2, castP: 3, pen: 2, coldP: 2, lightP: 2, ailMag: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'staff',
+    sk: 'arc',
+    asc: ['tide', 's1', 'fall', 's3', 'ebb', 's4', 'pull', 's5', 'heart'],
+    tide: 1
+  },
+  /* 賭徒（長杖＋火球）：⚠️ 豪賭與累積賭注照真的擲（每格連續 400 下，P.bet 一路累積，所以平均＝期望值）、逆轉賠率照這張表王的火焰抗性；
+     梭哈（0.2.74 驗收後補）⚠️ 假設一冷卻好就放（常開）：開著的比例＝持續時間 ÷ 實際冷卻（20 秒 ÷ (1 + 冷卻恢復)），那段時間每下都是大獎（×`jackpotX`、沒有沒開出的 −25%、不累積賭注）；
+     受到的傷害 +50%、命運輪盤、天公疼憨人不算。路線：豪賭、累積賭注、梭哈、逆轉賠率（不拿手氣正旺）；Lv30／60 的點跟之前一樣（梭哈要到 Lv90 才有） */
+  賭徒: {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_staff: 2, castP: 3, pen: 2, fireP: 2, ailMag: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'staff',
+    sk: 'fireball',
+    asc: ['gambler', 's1', 'gamble', 's2', 'bet', 's3', 'allin', 's4', 'flip'],
+    gamb: 1
+  },
+  /* 異變者（劍＋斬擊）：⚠️ 變異核心當作 4 件裝備是腐化的（對照組同樣的 4 件也腐化，只是沒有昇華點所以沒作用）；甲蟲之殼鎖腰帶（腰帶的數值不算，護符沒算）；
+     複眼的必中、閃避歸零，蟾蜍之血、腹蛇之眼、第三隻手在這張表看不到價值（是生存與第三枚戒指，沒配多一枚戒指的裝備） */
+  異變者: {
+    tree: WT('sword', { meleeP: 2 }),
+    gear: WG,
+    wt: 'sword',
+    sk: 'slash',
+    asc: ['mutant', 's4', 'arm', 's5', 'eye', 's1', 'core', 's6', 'shell'],
+    cor: 4,
+    noInt: 1
+  },
+  /* 追獵者（斧＋劈砍＋毒霧藥劑）：⚠️ 中毒當作穩態（同時存在的筆數＝每秒中毒次數 × 持續時間，上限 1＋煉毒師的層數；每筆每秒＝每下可中毒傷害 ×20% × 異常強度）；
+     毒霧藥劑只用起始的 3 瓶（沒算殺怪補充能；調製讓一瓶只花一半）：開著的時間 ＝ 瓶數 ÷ 每次花的瓶數 × 持續時間，佔打王時間的比例＝「藥劑開著的比例」，那段時間才有毒霧
+     （每秒 2 次混沌擊中、必定中毒）與以毒攻毒（擊中必定中毒、中毒更多 25%）；催毒只是把中毒提早結算（總傷害不變，沒算）；疾風藥劑、石膚藥劑在這張表看不到價值 */
+  追獵者: {
+    tree: WT('axe', { meleeP: 2, poisonCh: 3, chaosP: 2, ailMag: 1 }),
+    gear: WG,
+    wt: 'axe',
+    sk: 'cleave',
+    asc: ['stalker', 's1', 'gas', 's4', 'wind', 's5', 'selfpoi', 's2', 'alch'],
+    flaskB: 1
+  },
+  /* 神裔（劍＋斬擊）：⚠️ 挑一組固定的 4 條輻條：辰龍、亥豬、丑牛、寅虎（照這個順序點）。這張表看得到的只有：辰龍（每第 10 次擊中的隕石，單體打王時目標自己吃一發：每秒 次數 ÷ 10 × 150% × 擊中前總傷害，吃火焰抗性）、
+     亥豬（⚠️ 當作一直 10 層殺戮：實際要先殺怪才有，打單一王沒有）；丑牛（沉重暈眩中才有 +30%）、寅虎（沒有流血的劍）、其餘 8 位神在單一王的模型裡看不到價值（傳染、連鎖、足跡、詛咒、點燃瞬結、召喚物承傷）。
+     所以比值只看得到「最樂觀的情況」，不代表神裔強度；真正的價值（群怪）要上線後看數據 */
+  神裔: {
+    tree: WT('sword', { meleeP: 2 }),
+    gear: WG,
+    wt: 'sword',
+    sk: 'slash',
+    asc: ['godson', 's_dragon', 'dragon', 's_pig', 'pig', 's_ox', 'ox', 's_tiger', 'tiger'],
+    god: 1
   }
 });
 /* 0.2.73 昇華前後比：每個昇華一個「同裝備、同路線、沒有昇華」的對照（名字加「－」；千機／統治君王／詭雷師／破陣者的對照是上面的「＊」）。
@@ -422,7 +481,7 @@ for (SD = 0; SD < SEEDS; SD++)
       const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
         S = {
           lv: L,
-          eq: gear(t, B.gear, B.wt, B.off, L),
+          eq: gear(t, B.gear, B.wt, B.off, L, B.noInt),
           pt: [],
           ptA: {},
           asc: B.asc ? B.asc[0] : null,
@@ -430,6 +489,9 @@ for (SD = 0; SD < SEEDS; SD++)
           auras: [],
           charms: []
         };
+      /* 被昇華鎖住的欄位（異變者的甲蟲之殼鎖腰帶、腹蛇之眼鎖頭部）：遊戲裡裝備會脫到背包，這裡直接拿掉，不然永遠算「穿不起」 */
+      ctx.S = S;
+      for (const k of Object.keys(S.eq)) (ctx.__k = k), R('eqOpen(S, __k)') || delete S.eq[k];
       /* 過路點的能力值：一點一點補，每點選「讓全身裝備缺的能力值總和降最多」的那一項（用 eqLack，自己給的不算自己），都不缺就加力量。
        能力值點只佔全樹 7.5%：穿不起時像玩家一樣繞去拿，路線給能力值點權重（aw），由小到大試到穿得起 */
       /* 級距要細：一口氣從 8 跳到 16 會多繞幾十個能力值點（0.2.45 箭雨 Lv90 繞了 109 點） */
@@ -475,6 +537,11 @@ for (SD = 0; SD < SEEDS; SD++)
         S.eq.ring2 = S.eq.ring2 || R("mkItem('r_iron', 1, 0)");
         S.eq.ring2.a = [...S.eq.ring2.a, { k: 'spirit', v: B.spirit, T: 1 }];
       }
+      /* 腐化的裝備件數（變異核心的假設）：兩邊同樣的件數，沒有昇華點就沒有作用 */
+      if (B.cor)
+        Object.values(S.eq)
+          .slice(0, B.cor)
+          .forEach(it => it && (it.cor = 1));
       ctx.S = S;
       R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');
       const ST = R('ST'),
@@ -521,11 +588,17 @@ for (SD = 0; SD < SEEDS; SD++)
       }
       if (ST.heavyAmmo && D.ammo) c.more *= 1 + ST.heavyAmmo / 100; /* gemCfg 才有的重裝彈頭，這裡手動補 */
       if (B.falcon) boss.ail.mark = { k: 'falcon' };
+      /* 浪潮之心：一直 10 層（只有點了才有；對照組沒有） */
+      if (B.tide && ST.tideStk) R('P.stk = { tide: Array(10).fill(1e9) }');
+      /* 神裔的殺戮：一直 10 層（只有點了亥豬才有；對照組沒有） */
+      if (B.god && ST.rampage) R('P.stk = { rampage: Array(10).fill(1e9) }');
       /* 點燃一直掛著（炙烤的火焰曝曬才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
       if (B.ign) boss.ail.ign = { dps: 1, t: 1e9 };
       if (ST.powCritX) R('P.chg = { p: { n: 3, t: 1e9 } }');
       if (ST.cwHit) boss.ail.cw = Array(ST.cwMax || 20).fill(1e9);
       let fireSum = 0,
+        preSum = 0,
+        poiSum = 0,
         physSum = 0,
         crits = 0;
       for (let i = 0; i < N; i++) {
@@ -533,6 +606,8 @@ for (SD = 0; SD < SEEDS; SD++)
           `hitCalc(c, boss, { fly: ${B.fly || 0}, unit: ${B.trap ? 1 : 0} })`
         ); /* 陷阱是場上單位：吃場上單位傷害，不吃「你自己的擊中」*/
         sum += r.d;
+        if (B.god) preSum += Object.values(r.pre).reduce((a, b) => a + b, 0);
+        if (B.flaskB) (ctx.__p = r.pre), (poiSum += R("ailBase(__p, 'poi')"));
         fireSum += r.pre.fire;
         physSum += r.pre.phys;
         crits += r.crit ? 1 : 0;
@@ -603,8 +678,67 @@ for (SD = 0; SD < SEEDS; SD++)
         /* 腐化之血的層數：每下擊中給 rotBlood 層、各 cbT 秒 → 穩態層數＝攻速 × rotBlood × cbT，上限 cbCap（0.2.73 起，原本當一直滿） */
         cbN = Math.min(cbCap, rate * (ST.rotBlood || 0) * (B.blood ? R('DEBUFF.cbT') : 0)),
         cbDps = cbN * (physSum / N) * (B.blood ? R('DEBUFF.rotDps') : 0),
+        /* 追獵者：中毒的穩態 DPS ＋ 毒霧開著時的毒霧擊中（見配裝說明）；對照組只有主技能打出來的中毒 */
+        /* 神裔：辰龍的隕石（單體打王時目標自己吃一發） */
+        godDps =
+          B.god && ST.meteorN
+            ? ((rate * hc) / ST.meteorN) * 1.5 * (preSum / N) * (1 - R(`resOf(boss, 'fire')`) / 100)
+            : 0,
+        /* 賭徒的梭哈：開著的比例 × (每下都是大獎 − 平常的期望傷害)；平常的期望傷害 ＝ 沒豪賭的一下 × jackpotEV */
+        allinAdd =
+          B.gamb && ST.allin && ST.jackpotCh
+            ? (() => {
+                const A = R('SKILLS').allin,
+                  duty = Math.min(1, A.dur / (A.cd / (1 + ST.cdr / 100)));
+                return duty * ((hit / R('jackpotEV()')) * ST.jackpotX - hit);
+              })()
+            : 0,
+        flaskDps = B.flaskB
+          ? (() => {
+              const per = poiSum / N /* 每下可中毒的傷害（物理＋混沌，已吃提高、更多） */,
+                mag = 1 + (ST.ailMag + ST.poiMag) / 100,
+                dur = 2 * (1 + ST.poiDur / 100),
+                cap = 1 + ST.poiStack,
+                chaosRes = 1 - R(`resOf(boss, 'chaos')`) / 100,
+                taken = 1 + R(`takenInc(boss, 'chaos')`) / 100,
+                lam = rate * hc,
+                chance = Math.min(1, (ST.poisonCh * (1 + ST.ailCh / 100)) / 100),
+                pois = (l, dpsEach) => Math.min(cap, l * dur) * dpsEach * chaosRes * taken;
+              /* 毒霧開著的比例：起始 3 瓶，T0＝只靠主技能的打王時間 */
+              const cost = R('flaskCost')(),
+                up = ST.gasflask
+                  ? Math.min(1, ((3 / cost) * 3 * (1 + ST.flask / 100)) / (boss.mhp / (hit * rate * hc + 1e-9)))
+                  : 0,
+                base = pois(lam * chance, per * 0.2 * mag),
+                fpo = ST.flaskPoi ? 1.25 : 1;
+              let act = base;
+              if (ST.gasflask) {
+                ctx.gcf = {
+                  ...c,
+                  D: R('SKILLS').gasflask,
+                  mult: R('gemMult')(R('SKILLS').gasflask, lv),
+                  poisonCh: 100
+                };
+                let gs = 0,
+                  gp = 0;
+                for (let i = 0; i < N; i++) {
+                  const gr = R('hitCalc(gcf, boss, { mult: 0.4 })');
+                  gs += gr.d;
+                  ctx.__p = gr.pre;
+                  gp += R("ailBase(__p, 'poi')");
+                }
+                const gasHit = (gs / N) * 2 * hc,
+                  lamAll = lam * (ST.flaskPoi ? 1 : chance) + 2,
+                  perAll = (per * lam * (ST.flaskPoi ? 1 : chance) + (gp / N) * 2) / lamAll;
+                act = pois(lamAll, perAll * 0.2 * mag * fpo) + gasHit;
+              }
+              return (1 - up) * base + up * act - base;
+            })()
+          : 0,
         dps =
-          hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc * ammoF +
+          flaskDps +
+          godDps +
+          (hit + allinAdd) * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc * ammoF +
           grenDps +
           golemDps +
           ignDps +
@@ -652,6 +786,19 @@ for (SD = 0; SD < SEEDS; SD++)
           /* 0.2.73 假設都標出來（前後比的時候兩邊一樣，比值只看昇華本身） */
           B.fly || B.falcon ? `⚠️ 假設：${B.fly ? `狙射飛 ${B.fly}` : ''}${B.falcon ? '、王一直有獵鷹印記' : ''}` : '',
           B.ign ? '⚠️ 假設：點燃一直掛在王身上' : '',
+          B.god
+            ? '⚠️ 假設：固定 4 條輻條（辰龍、亥豬、丑牛、寅虎）、殺戮一直 10 層、只算得到辰龍的隕石與亥豬；其他神單體看不到'
+            : '',
+          B.flaskB
+            ? '⚠️ 假設：中毒穩態、毒霧只用起始 3 瓶（開著的比例看打王時間）、催毒只提早結算不算、疾風與石膚藥劑不算'
+            : '',
+          B.cor ? `⚠️ 假設：${B.cor} 件裝備是腐化的（變異核心）、複眼必中、甲蟲之殼鎖腰帶、其餘大點不算` : '',
+          B.gamb
+            ? '⚠️ 假設：豪賭與累積賭注照真的擲（賭注一路累積）、逆轉賠率照王的火焰抗性；受到的傷害 +50%、命運輪盤、天公疼憨人不算（梭哈常開）'
+            : '',
+          B.tide
+            ? '⚠️ 假設：浪潮之心一直 10 層（每層冰冷與閃電傷害提高 5%），潮落的轉換、驚濤、汐引、反擊、海神之軀不算'
+            : '',
           B.coc
             ? `⚠️ 假設：每次暴擊都觸發暴擊施放${ST.powCritX ? '、暴擊球 3 顆' : ''}${ST.cwHit ? '、暴擊弱點堆滿' : ''}`
             : '',
