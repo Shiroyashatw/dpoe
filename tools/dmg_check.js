@@ -1,5 +1,5 @@
 /* dungeonPOE 0.2.7 · 傷害與防禦的驗收（企劃書 7.2）：Lv30／60／90 各三套典型配裝（天賦路線＋同階級稀有裝），
-   算打王幾秒、王一招打掉多少生命、各屬性減傷。用法：node tools/dmg_check.js [每格模擬次數，預設 400] [--seeds 種子數，預設 20] [--why] */
+   算打王幾秒、王一招打掉多少生命、各屬性減傷。用法：node tools/dmg_check.js [每格模擬次數，預設 400] [--seeds 種子數，預設 20] [--why] [--only 配裝名,配裝名…]（只跑列出的，亂數種子不變）*/
 'use strict';
 const fs = require('fs'),
   vm = require('vm'),
@@ -169,7 +169,7 @@ const BUILDS = {
     wt: 'bow',
     sk: 'split',
     asc: ['wind', 's3', 'far', 's4', 'endless', 's5', 'falcon', 's1', 'gale'],
-    /* 遠射：當作平均飛 400（更多 24%）；獵鷹印記：當作每一下都打到被印記的（更多 10%） */
+    /* 狙射：當作平均飛 400（更多 24%）；獵鷹印記：當作每一下都打到被印記的（更多 10%） */
     fly: 400,
     falcon: 1
   },
@@ -343,6 +343,16 @@ Object.assign(BUILDS, {
     cry: 1
   }
 });
+/* 0.2.73 昇華前後比：每個昇華一個「同裝備、同路線、沒有昇華」的對照（名字加「－」；千機／統治君王／詭雷師／破陣者的對照是上面的「＊」）。
+   追加在最後面，前面每一格的亂數種子不變；昇華專屬的假設（狙射的飛行距離、獵鷹印記）對照組沒有，其餘模型旗標（點燃、暴擊施放、流血、盛怒）兩邊一樣 */
+for (const [bn, B] of Object.entries({ ...BUILDS }))
+  if (B.asc && !B.gearOf) {
+    const { asc, fly, falcon, ...rest } = B;
+    BUILDS[bn + '－'] = { ...rest, gearOf: bn };
+  }
+const TWIN = { 千機: '十字弓＊', 統治君王: '魔像＊', 詭雷師: '詭雷＊', 破陣者: '戰吼＊' };
+for (const [bn, B] of Object.entries(BUILDS)) if (B.asc && !B.gearOf) TWIN[bn] = bn + '－';
+const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1].split(',') : null;
 /* 0.2.36 穩固值：同樣扣完減傷的總傷害，全部換成一種累積，30 秒打死王時定得住幾次（用真的 poiseAdd，打不打得中、抗性不算） */
 console.log(
   '階級  王生命    穩固值  累滿占王生命 冰/電/暈(近戰物理)  30 秒打死：定住次數 冰/電/暈  第一次(秒)  累滿占生命 精英/普通'
@@ -395,7 +405,8 @@ console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  �
 /* 0.2.47：裝備是隨機擲的，同一套配裝換種子打王秒數可以差三倍，所以每格跑 SEEDS 個種子；
    明細只印第一個種子，最後印平均（--seeds n，預設 20，Opus 用 30 個種子比對過：5 個種子太少，一把運氣好壞的裝備就讓平均跳一倍） */
 const SEEDS = +(process.argv[process.argv.indexOf('--seeds') + 1] || 20) || 20,
-  AVG = {};
+  AVG = {},
+  HIT = {};
 let SD = 0;
 const out = (...a) => SD || console.log(...a);
 for (SD = 0; SD < SEEDS; SD++)
@@ -406,6 +417,7 @@ for (SD = 0; SD < SEEDS; SD++)
     for (const [bn, B] of Object.entries(BUILDS)) {
       /* 每一格自己的亂數種子：新增配裝不會讓別格的數字跟著變（0.2.46）；gearOf＝跟那一套抽同一組裝備與路線（比昇華前後用） */
       bidx[bn] = bi++;
+      if (ONLY && !ONLY.includes(bn)) continue;
       seed = 12345 + L * 1000 + bidx[B.gearOf || bn] + SD * 100000;
       const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
         S = {
@@ -509,7 +521,7 @@ for (SD = 0; SD < SEEDS; SD++)
       }
       if (ST.heavyAmmo && D.ammo) c.more *= 1 + ST.heavyAmmo / 100; /* gemCfg 才有的重裝彈頭，這裡手動補 */
       if (B.falcon) boss.ail.mark = { k: 'falcon' };
-      /* 點燃一直掛著（焦土的火焰曝曬才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
+      /* 點燃一直掛著（炙烤的火焰曝曬才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
       if (B.ign) boss.ail.ign = { dps: 1, t: 1e9 };
       if (ST.powCritX) R('P.chg = { p: { n: 3, t: 1e9 } }');
       if (ST.cwHit) boss.ail.cw = Array(ST.cwMax || 20).fill(1e9);
@@ -526,14 +538,9 @@ for (SD = 0; SD < SEEDS; SD++)
         crits += r.crit ? 1 : 0;
       }
       /* 血魔：流血與腐化之血的每秒傷害（持續傷害不吃護甲）；赤鐮一下結算約多少 */
-      let bleedDps = 0,
-        cbDps = 0;
-      if (B.blood) {
-        const ph = physSum / N,
-          cap = ST.rotBlood ? R('DEBUFF.cbMax') + Math.floor(ST.anemiaHit * R('debuffM()')) : 0;
-        bleedDps = ph * 0.15 * (1 + (ST.ailMag + ST.bleedMag) / 100) * (1 + ST.bloodPrice / 100);
-        cbDps = cap * ph * R('DEBUFF.rotDps');
-      }
+      let bleedDps = 0;
+      const cbCap = B.blood && ST.rotBlood ? R('DEBUFF.cbMax') + Math.floor(ST.anemiaHit * R('debuffM()')) : 0;
+      if (B.blood) bleedDps = (physSum / N) * 0.15 * (1 + (ST.ailMag + ST.bleedMag) / 100) * (1 + ST.bloodPrice / 100);
       const ignDps = B.ign
         ? (fireSum / N) *
           0.2 *
@@ -593,6 +600,9 @@ for (SD = 0; SD < SEEDS; SD++)
         rate = B.trap ? trapTrig : spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
         /* 0.2.22：攻擊要乘命中率（法術一律命中） */
         hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
+        /* 腐化之血的層數：每下擊中給 rotBlood 層、各 cbT 秒 → 穩態層數＝攻速 × rotBlood × cbT，上限 cbCap（0.2.73 起，原本當一直滿） */
+        cbN = Math.min(cbCap, rate * (ST.rotBlood || 0) * (B.blood ? R('DEBUFF.cbT') : 0)),
+        cbDps = cbN * (physSum / N) * (B.blood ? R('DEBUFF.rotDps') : 0),
         dps =
           hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc * ammoF +
           grenDps +
@@ -607,10 +617,16 @@ for (SD = 0; SD < SEEDS; SD++)
         fire = R(`ST.res.fire`) && R(`effRes('fire')`),
         fireHit = hitDmg * (1 - R(`effRes('fire')`) / 100),
         physHit0 = hitDmg * (1 - Math.min(0.9, ST.armor / (ST.armor + 10 * hitDmg + 1))),
-        /* 0.2.25 格擋值：滿的時候先吸收 40%（重盾前進 60%），最多吸到格擋值 */
-        bvAb = d => Math.min(ST.bv, d * (ST.heavyShield ? 0.6 : 0.4)),
+        /* 0.2.25 格擋值：滿的時候先吸收 40%（重盾前進 50%，讀 combat.js 的 BV.absHeavy），最多吸到格擋值 */
+        bvAb = d => Math.min(ST.bv, d * R(ST.heavyShield ? 'BV.absHeavy' : 'BV.abs')),
         physHit = physHit0 - bvAb(physHit0);
       ((AVG[bn] = AVG[bn] || {})[L] = AVG[bn][L] || []).push(boss.mhp / dps);
+      /* 王一招打掉多少生命（只記第一個種子）：昇華前後比與坦克檢查用 */
+      if (!SD)
+        (HIT[bn] = HIT[bn] || {})[L] = [
+          Math.round(((fireHit - bvAb(fireHit)) / ehp) * 100),
+          Math.round((physHit / ehp) * 100)
+        ];
       out(
         [
           String(L).padStart(3),
@@ -632,6 +648,14 @@ for (SD = 0; SD < SEEDS; SD++)
             ? `赤鐮一下約結算 ${Math.round(bleedDps * 5 + cbDps * 2.5)}（王生命 ${(((bleedDps * 5 + cbDps * 2.5) / boss.mhp) * 100).toFixed(1)}%）`
             : '',
           B.blood && ST.bloodPrice ? `血價每秒 −${(rate * R('DEBUFF.bloodSac')).toFixed(0)}% 最大生命` : '',
+          B.blood && ST.rotBlood ? `腐化之血 ${cbN.toFixed(1)} 層（上限 ${cbCap}）` : '',
+          /* 0.2.73 假設都標出來（前後比的時候兩邊一樣，比值只看昇華本身） */
+          B.fly || B.falcon ? `⚠️ 假設：${B.fly ? `狙射飛 ${B.fly}` : ''}${B.falcon ? '、王一直有獵鷹印記' : ''}` : '',
+          B.ign ? '⚠️ 假設：點燃一直掛在王身上' : '',
+          B.coc
+            ? `⚠️ 假設：每次暴擊都觸發暴擊施放${ST.powCritX ? '、暴擊球 3 顆' : ''}${ST.cwHit ? '、暴擊弱點堆滿' : ''}`
+            : '',
+          B.blood ? '⚠️ 假設：流血一直掛著（腐化之血的層數照攻速估）' : '',
           B.ammo
             ? `⚠️ 估算：裝填係數 ${ammoF.toFixed(2)}、彈夾 ${R('clipOf')(D)}、榴彈 ${Math.round(grenDps)}/秒（占 ${Math.round((grenDps / dps) * 100)}%）、王一直完全破甲`
             : '',
@@ -697,3 +721,28 @@ for (const [bn, o] of Object.entries(AVG))
         })
         .join('  ')
   );
+/* 0.2.73 昇華前後比：昇華 ÷ 同裝備沒昇華的對照（TWIN）；離譜＝< 0.40（太強）或 > 1.10（昇華反而變慢）。
+   有格擋值的坦克系（鐵金剛）第 16 階（Lv90）被王打一下（火／物取大的）< 10% 生命＝太硬。⚠️ 前面各配裝的假設（盛怒常滿、強化常駐、點燃常掛…）兩邊一樣，比值只看昇華本身 */
+console.log('\n昇華 vs 沒昇華（打王平均秒數；比值＝昇華 ÷ 對照，離譜：< 0.40 太強、> 1.10 變慢）');
+const mean = v => v.reduce((a, b) => a + b, 0) / v.length;
+for (const [bn, tw] of Object.entries(TWIN))
+  if (AVG[bn] && AVG[tw]) {
+    const cells = [30, 60, 90].map(L => {
+      const a = mean(AVG[bn][L]),
+        b = mean(AVG[tw][L]),
+        r = a / b;
+      return `${a.toFixed(1)}／${b.toFixed(1)} ＝ ${r.toFixed(2)}${r < 0.4 ? ' ❌太強' : r > 1.1 ? ' ❌變慢' : ''}`.padEnd(
+        24
+      );
+    });
+    console.log(bn.padEnd(5, '　') + '（對照 ' + tw + '）  ' + cells.join('  '));
+  }
+for (const bn of Object.keys(HIT).filter(k => BUILDS[k].off === 'shield')) {
+  const h = HIT[bn][90],
+    mx = Math.max(...h);
+  console.log(
+    `${bn.padEnd(5, '　')} 被王打一下（火／物 %生命，第一個種子）：` +
+      [30, 60, 90].map(L => `Lv${L} ${HIT[bn][L].join('／')}`).join('  ') +
+      (mx < 10 ? '  ❌太硬（Lv90 < 10%）' : '')
+  );
+}

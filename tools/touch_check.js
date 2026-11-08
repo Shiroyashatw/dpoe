@@ -496,6 +496,47 @@ let fail = 0;
         '.ax-tab',
         '.ax-pick'
       ),
+      /* 0.2.73：點過點、出現「重置」後，標題列的 × 也要在畫面內（667×375 曾被擠出去） */
+      await inView(
+        () => {
+          closePanels();
+          S.asc = 'iron';
+          S.at = ['a_st', 'a_s1', 'a_wall'];
+          ASCUI.v = 'iron';
+          openPanel('asc');
+        },
+        '#pasc',
+        '.ax-reset',
+        '#pasc .ph .x'
+      ),
+      /* 0.2.73：按下「重置」變成「再按一次」的 2.5 秒內，× 與按鈕都在畫面內，點數那行不蓋到標題、按鈕與 × */
+      await inView(
+        async () => {
+          closePanels();
+          S.asc = 'iron';
+          S.at = ['a_st', 'a_s1', 'a_wall'];
+          ASCUI.v = 'iron';
+          openPanel('asc');
+          await new Promise(r => setTimeout(r, 200));
+          document.querySelector('.ax-reset').click();
+        },
+        '#pasc',
+        '.ax-reset.arm',
+        '#pasc .ph .x'
+      ),
+      [
+        await p.evaluate(() => {
+          const r = s => document.querySelector(s).getBoundingClientRect(),
+            [t, sum, btn, x] = ['#pasc .ph > b', '.ax-sum', '.ax-reset', '#pasc .ph .x'].map(r),
+            apart = (a, b) =>
+              a.right <= b.left + 0.5 || b.right <= a.left + 0.5 || a.bottom <= b.top + 0.5 || b.bottom <= a.top + 0.5;
+          /* 點數那行的字有沒有溢出它的格子（框不重疊但字蓋到按鈕，667×375 曾這樣） */
+          const out = document.querySelector('.ax-sum');
+          return (
+            apart(t, btn) && apart(sum, btn) && apart(btn, x) && apart(sum, x) && out.scrollWidth <= out.clientWidth + 1
+          );
+        })
+      ],
       /* 世界地圖：世界區的節點（3 張卡＋洗卡＋開門）最擠 */
       await inView(
         () => {

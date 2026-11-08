@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.72';
+const VER = '0.2.73';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -5022,7 +5022,7 @@ const ASC = {
       far: [
         -105,
         -150,
-        '遠射',
+        '狙射',
         { farShot: 30 },
         '投射物飛得越遠傷害越高，飛到 500 以上時傷害更多 30%',
         'asc_hunter_b1',
@@ -5047,7 +5047,7 @@ const ASC = {
         'shot'
       ],
       s4: [0, -250, { as: 4 }],
-      endless: [0, -335, '無盡箭矢', { proj: 1 }, '投射物 +1', 'asc_hunter_e'],
+      endless: [0, -335, '無盡箭矢', { proj: 1, projMore: -20 }, '投射物 +1，投射物傷害更少 20%', 'asc_hunter_e'],
       s5: [75, 60, { accP: 10 }],
       falcon: [
         155,
@@ -5102,7 +5102,7 @@ const ASC = {
         -300,
         '重盾前進',
         { shArmMore: 100, heavyShield: 1 },
-        '盾的護甲翻倍（格擋值跟著翻倍），每一下吸收 40% → 60%',
+        '盾的護甲翻倍（格擋值跟著翻倍），每一下吸收 40% → 50%',
         'asc_phalanx_b1',
         'shd'
       ],
@@ -5110,7 +5110,7 @@ const ASC = {
       stand: [
         145,
         -300,
-        '不動如山',
+        '巍然不動',
         { unmov: 1 },
         '格擋值大於 0 時不會被擊退、不會沉重暈眩；格擋值碎掉後 5 秒跑滿（原本 8 秒）',
         'asc_phalanx_e',
@@ -5121,8 +5121,8 @@ const ASC = {
         155,
         115,
         '重如泰山',
-        { only: 'mace', addArm: 3 },
-        '持錘時：攻擊擊中附加等於護甲 3% 的物理傷害',
+        { only: 'mace', addArm: 1.5 },
+        '持錘時：攻擊擊中附加等於護甲 1.5% 的物理傷害',
         'asc_crusher_b0'
       ],
       s5: [255, 85, { hsP: 15 }],
@@ -5216,12 +5216,12 @@ const ASC = {
       f1: [230, 90, { ailMag: 10 }],
       spread: [330, 60, '焚城', { igSpread: 1 }, '被點燃的敵人死掉時，點燃傳給 200 內的其他敵人', 'asc_pyro_b4'],
       f2: [225, 170, { fireP: 10 }],
-      ember: [310, 190, '餘燼', { ember: 25 }, '點燃傷害更多 25%、持續時間 −25%', 'asc_pyro_b5'],
+      ember: [310, 190, '速燃', { ember: 25 }, '點燃傷害更多 25%、持續時間 −25%', 'asc_pyro_b5'],
       f3: [170, 215, { pen: 5 }],
       scorch: [
         215,
         275,
-        '焦土',
+        '炙烤',
         { fireExp: 15 },
         '點燃中的敵人被火焰曝曬：火焰抗性 −15%（魔法、稀有、王少一點）',
         'asc_pyro_e'
@@ -5256,7 +5256,7 @@ const ASC = {
         'asc_shadow_b0'
       ],
       s2: [-255, 0, { ms: 4 }],
-      strike: [-340, 0, '影襲', { rollBlind: 5 }, '翻滾穿過敵人時，給它致盲與 5 層暴擊弱點', 'asc_shadow_b1'],
+      strike: [-340, 0, '穿影', { rollBlind: 5 }, '翻滾穿過敵人時，給它致盲與 5 層暴擊弱點', 'asc_shadow_b1'],
       s3: [0, -75, { critInc: 15 }],
       deadly: [
         0,

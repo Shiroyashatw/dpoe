@@ -238,7 +238,7 @@ function migrate(s) {
     };
     for (const set of (o.filter && o.filter.sets) || []) for (const r of set.rules || []) if (r.c) delete r.c.pot;
     /* 0.2.72 起地上的裝備全是未鑑定，詞綴條件對未鑑定永遠不符合，過濾器又是「第一條符合的規則勝出」：
-       每條開著、有詞綴條件、動作不是隱藏的規則，複製一條「同樣條件、拿掉詞綴條件、動作改顯示」（沒寫稀有度就是黃裝），
+       每條開著、有詞綴條件、動作不是隱藏的規則，複製一條「同樣條件、拿掉詞綴條件、動作改顯示」（沒寫稀有度就是藍＋黃；高亮色沿用原規則），
        插在它後面第一條「隱藏」規則之前，後面沒有隱藏規則就放在最後（預設之前）；這樣前面的規則照舊先贏、後面的隱藏不會把黃裝藏掉。
        已經有同一條的不重複。決定要不要撿，鑑定後再用詞綴整理背包 */
     for (const set of (o.filter && o.filter.sets) || []) {
@@ -246,11 +246,11 @@ function migrate(s) {
       for (let i = 0; i < R.length; i++) {
         if (!(R[i].on && R[i].c && R[i].c.aff && R[i].act !== 'hide')) continue;
         const { aff, ...c } = R[i].c,
-          key = JSON.stringify(c.rar ? c : { ...c, rar: [2] });
+          key = JSON.stringify(c.rar ? c : { ...c, rar: [1, 2] });
         if (R.some(x => x.act === 'show' && JSON.stringify(x.c) === key)) continue;
         let j = R.findIndex((x, k) => k > i && x.act === 'hide');
         if (j < 0) j = R.length;
-        R.splice(j, 0, { on: 1, c: JSON.parse(key), act: 'show', col: 0 });
+        R.splice(j, 0, { on: 1, c: JSON.parse(key), act: 'show', col: R[i].col });
       }
     }
     o.v = 29;

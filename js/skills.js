@@ -924,7 +924,9 @@ function actHit2(a, idx, R, hitArc) {
       if (v > 0 && takeState(m, 'blood')) {
         fxs('bleed', m.x, m.y - m.sz * 0.5, 30);
         heal += Math.min(v, m.hp);
-        dotHit(m, v, 'phys');
+        /* 結算的數字往上偏一行，才不會跟下面這一下的擊中數字疊在一起 */
+        dotHit(m, v, 'phys', true);
+        num(m.x, m.y - m.sz - 32, v, 'phys');
       }
       if (m.hp > 0) hitMob(m, c, angTo(P, m), 150 * c.kb, { a });
     }
@@ -1343,7 +1345,7 @@ function shoot(ang, spd, c, a, o) {
     pierce: c.pierce,
     /* 連鎖：輔助給的固定次數，加上天賦的機率（chainCh 投射物、chainL 閃電技能，每顆各擲一次） */
     chain: (c.chain || 0) + (qRoll(ST.chainCh) ? 1 : 0) + ((c.D.el === 'light' || c.cvL) && qRoll(ST.chainL) ? 1 : 0),
-    /* 射出的位置（投射物飛行距離：遠射、近射） */
+    /* 射出的位置（投射物飛行距離：狙射、近射） */
     sx: P.x,
     sy: P.y,
     c,

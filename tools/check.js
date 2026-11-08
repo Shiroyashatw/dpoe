@@ -793,6 +793,49 @@ vm.runInContext(
       );
     }
   }
+  /* 0.2.73 撞名：昇華點名與昇華技能名都不能跟技能、基石、天賦大點、主題（小點名）、別的昇華點同名。
+     昇華技能的名字跟送它的點同名是故意的（赤鐮、先登），不算；名字跟點不同的昇華技能（SKILLS 有 asc、名字不是送它那個點的名字）照樣要比 */
+  {
+    const nodeOf = {};
+    for (const k of Object.keys(ASC))
+      for (const [id, v] of Object.entries(ASC[k].N))
+        if (id !== 'st' && v[3] && typeof v[2] === 'string') for (const key of Object.keys(v[3])) nodeOf[key] = v[2];
+    const dupNames = skills => {
+      const src = new Map(),
+        add = (n, s) => src.set(n, [...(src.get(n) || []), s]);
+      for (const s of Object.values(skills)) {
+        if (!s.asc) add(s.n, '技能');
+        else if (s.n !== nodeOf[s.asc]) add(s.n, '昇華技能');
+      }
+      for (const k of R('PT_KEYS')) add(k.n, '基石');
+      for (const t of R('PT_THEME')) {
+        add(t.n, '主題');
+        for (const [n] of t.nt || []) add(n, '天賦大點');
+      }
+      for (const k of Object.keys(ASC)) {
+        add(ASC[k].n, '昇華');
+        for (const [id, v] of Object.entries(ASC[k].N)) if (id !== 'st' && typeof v[2] === 'string') add(v[2], '昇華');
+      }
+      return [...src]
+        .filter(([, s]) => s.some(x => x.startsWith('昇華')) && s.length > 1)
+        .map(([n, s]) => `${n}（${s.join('、')}）`);
+    };
+    const dup = dupNames(G.SKILLS);
+    ok('昇華點名與昇華技能名不跟技能、基石、天賦大點、主題、別的昇華點同名', !dup.length, dup.join('；'));
+    /* 抓得到：名字跟點不同的昇華技能，撞到一般技能、基石、天賦大點、別的昇華點（鐵金剛的點）都要被抓 */
+    const plain = Object.values(G.SKILLS).find(s => !s.asc).n,
+      fake = n => dupNames({ ...G.SKILLS, fake: { n, asc: 'sickle' } }).length;
+    ok(
+      '撞名檢查抓得到名字跟點不同的昇華技能（撞技能、基石、天賦大點、昇華點各一種）；同名的不誤報',
+      fake(plain) === 1 &&
+        fake(R('PT_KEYS')[0].n) === 1 &&
+        fake(R('PT_THEME').find(t => t.nt && t.nt.length).nt[0][0]) === 1 &&
+        fake('巍然不動') === 1 &&
+        fake('赤鐮') === 0 &&
+        fake('全新的名字') === 0,
+      [fake(plain), fake(R('PT_KEYS')[0].n), fake('巍然不動'), fake('赤鐮'), fake('全新的名字')].join()
+    );
+  }
   /* 底層：格擋值、暴擊弱點、熵值、投射物飛行距離 */
   R(`G = { t: 0, mapT: 16, scene: 'map', mobs: [] };
      S = { lv: 90, eq: { weapon: mkItem('w_mace1_5', 16, 0), off: mkItem('s_tower', 16, 0), ring1: Object.assign(mkItem('r_iron', 16, 0), { a: [{ k: 'attrA', v: 99, T: 1 }] }) }, pt: [...PT_START], asc: null, at: [], auras: [], charms: [] };
@@ -832,7 +875,7 @@ vm.runInContext(
   R('ST.farShot = 0; ST.nearShot = 30');
   const near = [R('projDistMore(0)'), R('projDistMore(150)'), R('projDistMore(300)')];
   ok(
-    '暴擊弱點最多 20 層、4 秒；熵值每 5 次 +20 必定觸發 2 次／10 次；遠射、近射的更多照飛行距離',
+    '暴擊弱點最多 20 層、4 秒；熵值每 5 次 +20 必定觸發 2 次／10 次；狙射、近射的更多照飛行距離',
     cw.join() === '20,0' && ent === 2 && far.join() === '1,1.15,1.3' && near.join() === '1.3,1.15,1',
     [cw, ent, far, near].join(' ')
   );
@@ -3203,7 +3246,7 @@ const RA = (() => {
   const b0 = bv[0];
   ok('格擋值：沒昇華＝盾上的護甲（基底護甲×品質＋護甲詞）', b0 > 0 && bv[1] === b0, bv.slice(0, 2).join());
   ok(
-    '鐵金剛：鐵壁之盾 ×2、小點再 +25%（×2.25）、重盾前進再 +100%（×3.25，不再翻倍），格擋值＝盾的護甲×（1＋更多）；重盾前進保留吸收 60%；鐵壁之盾仍是格擋機率減半',
+    '鐵金剛：鐵壁之盾 ×2、小點再 +25%（×2.25）、重盾前進再 +100%（×3.25，不再翻倍），格擋值＝盾的護甲×（1＋更多）；重盾前進保留吸收（0.2.73 起 50%）；鐵壁之盾仍是格擋機率減半',
     bv[2] === b0 * 2 &&
       bv[3] === 100 &&
       bv[4] === 0 &&
@@ -6247,6 +6290,64 @@ const RA = (() => {
   );
   ok('投射物攻擊傷害只給投射物攻擊', b.ksPool.join() === '2,1,1', b.ksPool.join());
   ok('第 13～16 批全開不是 NaN', b.nan);
+  /* 0.2.73 玩家沉重暈眩（條與暈住 0.2.42 就有，這版補整條流程的實測與巍然不動）：只有王的紅光大招（noEv）累積，
+     累滿暈 3 秒（不能移動、翻滾、格擋、出招，翻滾取消），暈眩恢復縮短、暈眩門檻提高累積變慢、巍然不動（unmov）格擋值還在時免疫 */
+  const hv = R(`(() => {
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) };
+    const D = Object.values(MOBS)[0], boss = { D, boss: 1 }, mob = { D }, st0 = stats(S), out = {}, rnd0 = Math.random, r2 = v => Math.round(v * 100) / 100,
+      reset = (o = {}) => {
+        G.t = 300; G.mm = null; G.mobs = []; G.state = 'play'; G.scene = 'map'; WARN = ''; Math.random = rnd0;
+        ST = { ...st0, hp: 1000, es: 0, armor: 0, block: 0, defl: 0, ev: 0, noStag: 1, stunRec: 0, stunThrP: 0, unmov: 0, rollTank: 0, wt: 'sword', str: 999, dex: 999, int: 999, ...o };
+        Object.assign(P, { x: 0, y: 0, vx: 0, vy: 0, hp: 1e9, mp: 1e4, es: 0, bv: 0, bvRe: null, ail: {}, buf: {}, stag: 0, act: null, roll: null, iuntil: 0, cds: {}, mdx: 1, mdy: 0, face: 0 });
+        S.skills[0].a = mkGem('slash', 5);
+      },
+      hit = (d, src, el = 'phys', noEv = true) => hurtPlayer(d, src, el, noEv),
+      hs = () => r2((P.ail && P.ail.hs) || 0),
+      stunned = () => !!(P.ail && P.ail.hstun > G.t);
+    /* 只有王的紅光大招累積：一般怪、陷阱（沒有來源）、王的非紅光都不累積；王的投射物（來源是王）累積 */
+    reset();
+    for (let i = 0; i < 6; i++) hit(400, mob);
+    for (let i = 0; i < 6; i++) hit(400, null);
+    for (let i = 0; i < 6; i++) hit(400, boss, 'phys', false);
+    out.no = [hs(), stunned()];
+    reset(); hit(400, { src: boss }); out.proj = hs();
+    /* 王的紅光連打：400 物理 ÷ 門檻 1000 × 0.58 × 1.5 ＝ 每下 34.8%，第 3 下累滿暈 3 秒、條歸零 */
+    reset(); hit(400, boss); const h1 = hs(); hit(400, boss); const h2 = hs(); hit(400, boss);
+    out.fill = [h1, h2, hs(), P.ail.hstun === 303, P.ail.hsB === 319.5];
+    /* 暈住中：不能移動（移動倍率 0）、不能出招（手動與自動）、不能翻滾、不能格擋；暈住期間不累積；狀態列有圖示 */
+    ST.block = 100; Math.random = () => 0;
+    P.hp = 1e9; const bl = hurtCalc(100, null, 'phys', false);
+    Math.random = rnd0;
+    out.stun = [playerSlow(), moveMul(), useSlot(0), (doRoll(), !P.roll), !bl.block, playerStates().map(x => x.k).join()];
+    hit(400, boss); out.keep = [hs(), P.ail.hstun === 303];
+    /* 控制組：沒暈時能動、能出招、能翻滾、會格擋 */
+    reset({ block: 100 }); Math.random = () => 0;
+    const bl0 = hurtCalc(100, null, 'phys', false);
+    out.free = [playerSlow() === 1, moveMul() > 0, useSlot(0), (P.act = null, doRoll(), !!P.roll), !!bl0.block];
+    /* 暈完後：門檻 +500% 退回中（剛暈完約 ÷6），可以動；暈眩恢復 100% 縮成 1.5 秒；暈眩門檻 +100% 累積減半 */
+    reset(); hit(400, boss); hit(400, boss); hit(400, boss); G.t = 303.01; hit(400, boss);
+    out.after = [hs() > 5.7 && hs() < 5.9, playerSlow() === 1, useSlot(0)];
+    reset({ stunRec: 100 }); hit(1e6, boss); out.rec = P.ail.hstun === 301.5;
+    reset({ stunThrP: 100 }); hit(400, boss); out.thr = hs();
+    /* 巍然不動：格擋值還在時免疫（連打 6 下不累積）；格擋值碎了（P.bv 0）就照常累積 */
+    reset({ unmov: 1, bv: 1e9 }); P.bv = 1e9;
+    for (let i = 0; i < 6; i++) hit(400, boss);
+    out.unmov = [hs(), stunned()];
+    P.bv = 0; P.bvRe = G.t; for (let i = 0; i < 3; i++) hit(400, boss);
+    out.unmovBroken = [stunned()];
+    reset({ bv: 1e9 }); P.bv = 1e9; for (let i = 0; i < 6; i++) hit(400, boss);
+    out.noUnmov = [stunned()];
+    /* 翻滾取消（閃避翻滾 rollTank 沒有無敵，翻滾中也會被暈）：暈住當下翻滾與出手都取消 */
+    reset({ rollTank: 1 }); doRoll(); const rolled = !!P.roll; hit(1e6, boss);
+    out.cancel = [rolled, P.roll === null, P.act === null, stunned()];
+    return out;
+  })()`);
+  ok(
+    '玩家沉重暈眩：只有王的紅光大招累積（一般怪、陷阱、非紅光不會）、累滿暈 3 秒不能動／出招／翻滾／格擋、暈眩恢復縮短、暈眩門檻減慢累積、結束後門檻 +500%、巍然不動（格擋值還在）免疫、翻滾取消',
+    JSON.stringify(hv) ===
+      '{"no":[0,false],"proj":34.8,"fill":[34.8,69.6,0,true,true],"stun":[0,0,false,true,true,"hstunP"],"keep":[0,true],"free":[true,true,true,true,true],"after":[true,true,true],"rec":true,"thr":17.4,"unmov":[0,false],"unmovBroken":[true],"noUnmov":[true],"cancel":[true,true,true,true]}',
+    JSON.stringify(hv)
+  );
 }
 /* 開場與序章（0.2.44）：字幕一字不改、總長、地圖走得通、石牆擋得住、老存檔不動、新玩家拿到劍、版本號重跑、新玩家不會卡在地圖台 */
 {
@@ -6437,13 +6538,13 @@ const RA = (() => {
     );
   }
   /* 存檔 29 的過濾器（第一條符合的規則勝出，詞綴條件對未鑑定永遠不符合）：每條有詞綴條件、動作不是隱藏的規則，複製一條「同條件、拿掉詞綴、動作改顯示」
-     （沒寫稀有度＝黃裝），插在它後面第一條「隱藏」規則之前，沒有就放最後（預設之前）；已經有的不重複；再讀一次不重複補 */
+     （沒寫稀有度＝藍＋黃 rar [1, 2]；高亮色沿用原規則 col），插在它後面第一條「隱藏」規則之前，沒有就放最後（預設之前）；已經有的不重複；再讀一次不重複補 */
   {
     const r = R2(`(() => {
       const mk = (def, rules) => ({ rules, def: { act: def, col: 0 } }),
         aff = (act, c = {}) => ({ on: 1, c: { ...c, aff: { ks: ['x'], n: 1 } }, act, col: 0 }),
         rule = (c, act) => ({ on: 1, c, act, col: 0 }),
-        yel = rule({ rar: [2] }, 'show');
+        yel = rule({ rar: [1, 2] }, 'show');
       const old = newGame();
       delete old.fresh;
       old.v = 28;
@@ -6452,7 +6553,7 @@ const RA = (() => {
         mk('hide', [yel, aff('pick')]),                                    // 1 已經有同一條
         mk('show', [aff('pick')]),                                         // 2 預設顯示也補
         mk('hide', [rule({ rar: [1] }, 'pick')]),                          // 3 沒有詞綴條件：不動
-        mk('hide', [aff('hl'), rule({ kind: ['weapon'] }, 'pick')]),       // 4 後面有別的規則
+        mk('hide', [{ ...aff('hl'), col: 3 }, rule({ kind: ['weapon'] }, 'pick')]), // 4 後面有別的規則、原規則有高亮色 3
         mk('show', [aff('pick', { rar: [2] }), rule({ rar: [2] }, 'hide')]), // 5 有詞綴的黃裝 → 撿、黃裝 → 隱藏、預設顯示
         mk('hide', [aff('pick'), rule({ rar: [2], q: 20 }, 'pick')])       // 6 預設隱藏、後面還有「黃裝品質 ≥ 20 → 撿」
       ] };
@@ -6466,16 +6567,18 @@ const RA = (() => {
         len: n.filter.sets.map(s => s.rules.length).join(),
         again: again.filter.sets.map(s => s.rules.length).join(),
         acts: n.filter.sets.map((s, i) => s.rules.map(x => x.act).join('>')).join(' | '),
+        col4: n.filter.sets[4].rules.map(x => x.col).join(),
         res: [0, 1, 2, 3, 4, 5, 6].map(row).join(' | ')
       };
     })()`);
     ok(
-      '舊存檔（28→29）的過濾器：有詞綴條件、動作不是隱藏的規則，在它後面第一條「隱藏」規則之前補一條「同條件、拿掉詞綴、改顯示」（沒有隱藏規則就放最後）；已經有的不重複、沒有詞綴條件的不動、再讀一次不重複補；有詞綴的黃裝撿＋黃裝隱藏的組（5）未鑑定黃裝改成顯示、預設隱藏還有「品質 ≥ 20 → 撿」的組（6）22% 那件照樣自動撿、5% 那件顯示',
+      '舊存檔（28→29）的過濾器：有詞綴條件、動作不是隱藏的規則，在它後面第一條「隱藏」規則之前補一條「同條件、拿掉詞綴、改顯示」（沒有隱藏規則就放最後；沒寫稀有度補藍＋黃、高亮色沿用原規則）；已經有的不重複、沒有詞綴條件的不動、再讀一次不重複補；有詞綴的黃裝撿＋黃裝隱藏的組（5）未鑑定黃裝改成顯示、預設隱藏還有「品質 ≥ 20 → 撿」的組（6）22% 那件照樣自動撿、5% 那件顯示',
       r.len === '2,2,2,1,3,3,3' &&
         r.again === r.len &&
         r.acts === 'pick>show | show>pick | pick>show | pick | hl>pick>show | pick>show>hide | pick>pick>show' &&
+        r.col4 === '3,0,3' &&
         r.res ===
-          'show/show/hide | show/show/hide | show/show/show | hide/hide/pick | show/show/hide | show/show/show | pick/show/hide',
+          'show/show/show | show/show/show | show/show/show | hide/hide/pick | show/show/show | show/show/show | pick/show/show',
       JSON.stringify(r)
     );
   }

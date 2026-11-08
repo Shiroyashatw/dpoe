@@ -1447,7 +1447,7 @@ document.addEventListener('click', e => {
     }
   } else if (k === 't') treeToggle(id);
   else if (k === 'reset') {
-    if (!confirm2(b, '再按一次：退回昇華點')) return;
+    if (!confirm2(b, '再按一次')) return;
     S.at = ['a_st'];
     treeChanged();
   }

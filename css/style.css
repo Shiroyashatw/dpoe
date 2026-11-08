@@ -1137,6 +1137,8 @@ body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
 #pasc { display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 14px; overflow: hidden; padding-bottom: 12px; }
 #pasc > .ph { grid-column: 1 / -1; margin-bottom: 10px; }
 .ax-reset { margin-left: auto; flex: none; white-space: nowrap; }
+/* 「再按一次」比「重置」寬 24px：左右 padding 縮掉，390 寬的標題列才不會把 × 擠扁或擠出畫面 */
+.ax-reset.arm { padding-inline: 3px; }
 #pasc .ph .ax-reset + .x { margin-left: 0; }
 .ax-tabs { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding-bottom: 10px; }
 .ax-tab { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 4px 10px; font: 700 var(--fs) var(--serif); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; text-align: left; }
@@ -1229,6 +1231,12 @@ body.touch.port .ax-chart { height: auto; width: 100%; max-width: 420px; align-s
   body.touch:not(.port) .gx-ins { grid-column: 2; grid-row: 3; max-height: none; margin: 0 0 8px; padding: 6px 8px; border: 1px solid var(--fr-o); }
   body.touch:not(.port) #pasc { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: none; grid-template-columns: auto minmax(0, 1fr); padding-top: 8px; padding-bottom: 8px; }
   body.touch:not(.port) #pasc > .ph { grid-column: 2; grid-row: 1; margin: -8px calc(-1 * var(--pp)) 6px 0; padding-top: 4px; padding-bottom: 4px; }
+  /* 標題列只有 278 寬（667×375）：標題與點數疊成兩行、重置與 × 留在右邊，不會把 × 擠出畫面 */
+  body.touch:not(.port) #pasc > .ph { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0 8px; align-items: center; }
+  body.touch:not(.port) #pasc > .ph > b { grid-column: 1; grid-row: 1; font-size: 18px; }
+  body.touch:not(.port) #pasc > .ph > .ax-sum { grid-column: 1; grid-row: 2; line-height: 1.25; }
+  body.touch:not(.port) #pasc > .ph > .ax-reset { grid-column: 2; grid-row: 1 / 3; margin: 0; }
+  body.touch:not(.port) #pasc > .ph > .x { grid-column: 3; grid-row: 1 / 3; margin: 0; }
   body.touch:not(.port) .ax-chart { grid-column: 1; grid-row: 1 / 4; height: calc(100dvh - 30px); width: auto; max-width: none; align-self: center; }
   body.touch:not(.port) .ax-tabs { grid-column: 2; grid-row: 2; padding-bottom: 6px; }
   body.touch:not(.port) .ax-tab { flex-direction: column; justify-content: center; min-height: 44px; padding: 2px; gap: 0; font-size: 11px; white-space: nowrap; }

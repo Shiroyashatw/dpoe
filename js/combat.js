@@ -424,7 +424,7 @@ function resOf(m, k, pen = 0) {
     if (a.curse && a.curse.k === 'eleweak') r -= cuV(a);
     r -= expOf(a, k) * (1 - rarRed(m)) * debuffM();
     if (a.scorch && a.scorch.t > G.t) r -= a.scorch.v;
-    /* 火焰曝曬（0.2.26，焦土）：點燃中的敵人火焰抗性 −x%（稀有度減效果，跟曝曬一樣） */
+    /* 火焰曝曬（0.2.26，炙烤）：點燃中的敵人火焰抗性 −x%（稀有度減效果，跟曝曬一樣） */
     if (k === 'fire' && ST.fireExp && a.ign && a.ign.t > G.t) r -= ST.fireExp * (1 - rarRed(m)) * debuffM();
   } else if (a.curse && a.curse.k === 'despair') r -= cuV(a);
   /* 重霜（frzIgnRes）：對冰凍的敵人，擊中無視非負的元素抗性（負的照吃） */
@@ -465,8 +465,8 @@ const toughOf = m => (m.tough || 0) + MM('mtough');
 /* 0.2.25 底層 ---------- */
 /* 依防禦給附加物理傷害：「護甲的 x%」（addArm），閃避、能量護盾之後要用再加 */
 const defAdd = () => (ST.addArm ? (ST.armor * ST.addArm) / 100 : 0);
-/* 投射物飛行距離（遠射、近射）：fly＝投射物從射出到打中飛了多遠（瞬間的投射物用到目標的距離）
-   遠射：0 → 500 線性到更多 farShot%；近射：貼臉更多 nearShot%，300（中距離）降到 0 */
+/* 投射物飛行距離（狙射、近射）：fly＝投射物從射出到打中飛了多遠（瞬間的投射物用到目標的距離）
+   狙射：0 → 500 線性到更多 farShot%；近射：貼臉更多 nearShot%，300（中距離）降到 0 */
 const PROJ_FAR = 500,
   PROJ_MID = 300;
 const projDistMore = fly =>
@@ -489,9 +489,9 @@ function entropy(k, v) {
   return true;
 }
 /* 格擋值（0.2.25，每面盾都有：格擋值＝盾的護甲，stats 的 ST.bv）：
-   大於 0 時每一下吸收 40%（重盾前進 60%），在守護之前；2 秒沒被打開始回，每秒 25%；
-   打碎（歸 0）後 8 秒（不動如山 5 秒）從 0 跑滿，跑滿前不吸收 */
-const BV = { abs: 0.4, absHeavy: 0.6, wait: 2, rate: 0.25, re: 8, reStand: 5 };
+   大於 0 時每一下吸收 40%（重盾前進 50%，0.2.73 從 60% 降），在守護之前；2 秒沒被打開始回，每秒 25%；
+   打碎（歸 0）後 8 秒（巍然不動 5 秒）從 0 跑滿，跑滿前不吸收 */
+const BV = { abs: 0.4, absHeavy: 0.5, wait: 2, rate: 0.25, re: 8, reStand: 5 };
 /* 適應：最多 5 層、每層該元素承受 −10%（沒有持續時間，離開地圖清掉） */
 const ADAPT = { max: 5, less: 0.1 };
 const bvUp = () => ST.bv > 0 && P.bv > 0 && P.bvRe == null;
@@ -569,7 +569,7 @@ function onPerfect() {
   P.pfT = G.t + 2;
   P.cds.roll = 0;
 }
-/* 影襲（0.2.26）：翻滾穿過敵人時給致盲與 x 層暴擊弱點（每次翻滾每隻一次） */
+/* 穿影（0.2.26）：翻滾穿過敵人時給致盲與 x 層暴擊弱點（每次翻滾每隻一次） */
 function rollThrough() {
   if (!ST.rollBlind || !P.roll) return;
   const h = (P.roll.hit = P.roll.hit || new Set());
@@ -778,7 +778,7 @@ function hitCalc(c, m, o = {}) {
   const ez = m && m.ail && m.ail.easy;
   if (ez && ez.t > G.t && tg.includes('proj') && tg.includes('attack') && !o.avg)
     (more *= 1 + ez.v / 100), (m.ail.easy = null);
-  /* 0.2.25 昇華：獵鷹印記（被印記的更多 10%）、遠射／近射（看投射物飛了多遠 o.fly） */
+  /* 0.2.25 昇華：獵鷹印記（被印記的更多 10%）、狙射／近射（看投射物飛了多遠 o.fly） */
   if (m && m.ail && m.ail.mark && m.ail.mark.k === 'falcon') more *= 1 + 0.1 * (1 + ST.markEff / 100);
   if (tg.includes('proj')) more *= projDistMore(o.fly || 0);
   /* 範圍擴大的品質：目標周圍沒有其他怪 */
@@ -1013,7 +1013,7 @@ function applyAil(m, r, c, use) {
     attack = (c.D.tags || []).includes('attack'),
     rr = 1 - rarRed(m);
   /* 點燃：火焰傷害疊易燃（每 5% 門檻 +1% 機率），中了清零 */
-  /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；餘燼：點燃更多、持續時間 −25% */
+  /* 火焰塑造者（0.2.26）：物理、冰冷、閃電也累積易燃（點燃的基礎跟著算這幾種）、點燃傷害提高；速燃：點燃更多、持續時間 −25% */
   /* 加劇任何流血（開關 aggHit，攻擊擊中時）：先加劇現有的，這一下新上的不算 */
   if ((ST.aggHit || (c.empAgg && roll(c.empAgg))) && attack) aggBleed(m);
   /* 第 10 批：卸防姿態承受的擊中數（這一下之後才算）；濕透先上，這一下就吃得到 */
@@ -2008,10 +2008,11 @@ function playerStagger(d) {
   if (p >= 0.15 && Math.random() < p) (P.stag = G.t + pStunSec(0.5)), (P.act = null);
 }
 /* 玩家的沉重暈眩條：只有王的紅光大招（noEv）會累積。比照怪物的 poise()：每下累積 % ＝ 傷害 × 0.58 × 100 ÷ 門檻
-   （物理 ×1.5、冰冷不累積）；累滿暈住 3 秒、條歸零；結束後門檻 +500%、16.5 秒線性退回；暈住期間不累積；8 秒沒累積每秒退 5%（baseTick） */
+   （物理 ×1.5、冰冷不累積）；累滿暈住 3 秒、條歸零（出招與翻滾取消）；結束後門檻 +500%、16.5 秒線性退回；暈住期間不累積；8 秒沒累積每秒退 5%（baseTick）。
+   巍然不動（昇華鐵金剛 unmov）：格擋值還在時不累積 */
 function playerHeavy(d, el) {
   const a = (P.ail = P.ail || {});
-  if (el === 'cold' || !(d > 0) || a.hstun > G.t || vgDash()) return;
+  if (el === 'cold' || !(d > 0) || a.hstun > G.t || vgDash() || (ST.unmov && bvUp())) return;
   const left = Math.max(0, Math.min(1, ((a.hsB || 0) - G.t) / 16.5));
   a.hs = (a.hs || 0) + (d * 0.58 * (el === 'phys' ? 1.5 : 1) * 100) / (pStunThr() * (1 + 5 * left));
   a.hsA = G.t;
@@ -2019,7 +2020,7 @@ function playerHeavy(d, el) {
     a.hstun = G.t + pStunSec(3);
     a.hsB = a.hstun + 16.5;
     a.hs = 0;
-    P.act = null;
+    P.act = P.roll = null;
   }
 }
 /* 玩家被冰緩、時空鎖鏈時的移動、出手倍率 */
