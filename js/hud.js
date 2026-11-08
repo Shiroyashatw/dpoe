@@ -1214,6 +1214,11 @@ function gemTabs(kind) {
         '盾',
         K.filter(k => SKILLS[k].off === 'shield')
       ),
+      /* 戰吼（0.2.71 起不綁武器，原本在斧、錘・鏈錘兩頁） */
+      by(
+        '戰吼',
+        K.filter(k => !SKILLS[k].wt && tg(k, 'warcry'))
+      ),
       ...[
         ['elem', '元素'],
         ['occ', '秘術'],

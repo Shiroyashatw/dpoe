@@ -316,13 +316,15 @@ function itemReq(it) {
   for (const k of ks) r[k] = Math.round((ks.length > 1 ? 0.9 : 1.6) * r.lv);
   return r;
 }
-/* 技能寶石的能力值需求：顏色看限定的武器類別（不限武器：法術＝智慧、攻擊＝力量；盾技能＝力量）；
+/* 技能寶石的能力值需求：顏色看限定的武器類別（不限武器：法術＝智慧、攻擊＝力量；盾技能＝力量；技能自己指定 D.at 的照它，
+   例：戰吼 0.2.71 起不限武器，但需求維持原本斧／錘・鏈錘時的顏色）；
    單色 1.6×寶石目前的需求等級、多色各 0.9×；每插一顆輔助，每個顏色 +5。光環與輔助沒有需求 */
 function gemAttrReq(g) {
   const r = { str: 0, dex: 0, int: 0 };
   if (!g || !g.gem || isSup(g) || isAura(g)) return r;
   const D = SKILLS[g.gem],
-    ks = D.wt ? [...new Set(D.wt.flatMap(w => WATT[w]))] : [D.off || !D.tags.includes('spell') ? 'str' : 'int'],
+    ks =
+      D.at || (D.wt ? [...new Set(D.wt.flatMap(w => WATT[w]))] : [D.off || !D.tags.includes('spell') ? 'str' : 'int']),
     add = 5 * (g.sup || []).filter(Boolean).length;
   for (const k of ks) r[k] = Math.round((ks.length > 1 ? 0.9 : 1.6) * gemReq(g.lv || 1)) + add;
   return r;
@@ -631,6 +633,17 @@ function stats(s = S) {
         'blindCrit',
         'rearm',
         'unitMore',
+        /* 0.2.71 破陣者（data.js 的 ASC.breaker；skills.js 的 cryEmpower／empUse／vanguardLand／skillTick、combat.js 的 gainChg／stkMax／hurtCalc／hitCalc／takenInc／baseTick、mech.js 的 tryParry 讀） */
+        'cryDbl',
+        'empCdr',
+        'cryChg',
+        'chg_e',
+        'chgEDef',
+        'chgEHold',
+        'surrMore',
+        'surrTaken',
+        'vanguard',
+        'spearHold',
         /* 0.2.42 第 6 批：撲殺、屠戮打擊（%）、幸運、荊棘、偏斜（combat.js） */
         'cull',
         'fullStrike',

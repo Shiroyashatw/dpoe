@@ -355,6 +355,7 @@ function treeChanged() {
   const hpF = P.hp / ST.hp;
   ascSync();
   ST = stats();
+  chgHoldSync();
   P.hp = Math.min(ST.hp, Math.max(1, hpF * ST.hp));
   P.mp = Math.min(ST.mp, P.mp);
   save();

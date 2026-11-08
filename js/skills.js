@@ -284,13 +284,29 @@ function skillPay(c, i) {
   if (c.cd) P.cds['s' + i] = c.cd;
 }
 /* ---------- 戰吼（0.2.55 第 3 層 F1，企劃書 7.3） ---------- */
-/* 範圍內敵人的強度每 10 點強化接下來的 1 下（普通 1、精英 10、王 20），最多 5 下；回傳強化了幾下 */
+/* 範圍內敵人的強度（combat.js 的 foeStr）每 10 點強化接下來的 1 下，最多 5 下；回傳強化了幾下。
+   先聲奪人（cryDbl，0.2.71）：每 5 點 1 下、上限 10 下（stkMax 也加倍）；越戰越勇（cryChg）：同一次強度每 10 點 1 顆耐力球、最多 3 顆（不吃加倍） */
 function cryEmpower(R, k) {
-  let s = 0;
-  for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) s += m.boss ? 20 : m.elite ? 10 : 1;
-  const n = Math.min(BUFF[k].max, Math.floor(s / 10));
+  const s = foeStr(R),
+    d = ST.cryDbl ? 2 : 1,
+    n = Math.min(BUFF[k].max * d, Math.floor((s * d) / 10)),
+    b = ST.cryChg ? Math.min(3, Math.floor(s / 10)) : 0;
   if (n) gainStk(k, n);
+  if (b) gainChg('e', b);
   return n;
+}
+/* 所有戰吼寶石（技能欄裡有 warcry 標籤的）的冷卻恢復 sec 秒：吼聲不絕（empUse）、先登到達（Infinity＝歸零） */
+function cryCd(sec) {
+  S.skills.forEach((x, i) => {
+    if (x.a && SKILLS[x.a.gem].tags.includes('warcry') && P.cds['s' + i] > 0)
+      P.cds['s' + i] = Math.max(0, P.cds['s' + i] - sec);
+  });
+}
+/* 先登到達（0.2.71 破陣者）：所有戰吼冷卻歸零；一夫當關（spearHold）：持長矛時舉矛招架那麼多秒（mech.js 的 tryParry 擋下給耐力球） */
+function vanguardLand() {
+  cryCd(Infinity);
+  if (ST.spearHold && ST.wt === 'spear')
+    (P.holdT = G.t + ST.spearHold), startParry(ST.spearHold), fxs('parry', P.x, P.y - 20, 50);
 }
 /* 斷後（rearGuard，0.2.70 千機）：在 (x, y) 落一顆你裝著的第一種榴彈（爆裂榴彈或油榴彈），不花榴彈次數、不吃多重投射 */
 function dropGrenade(x, y) {
@@ -325,7 +341,13 @@ const cryTypes = () => Object.values((P && P.cryUsed) || {}).filter(t => G.t - t
 /* 出手時用掉強化，每種各扣 1（戰吼自己不扣）：狂暴＝近戰攻擊傷害更多，震地＝重擊結束後原地多一次餘震 */
 function empUse(a) {
   const tg = a.c.D.tags,
-    use = k => stkN(k) && (P.stk[k] = stkL(k).slice(1));
+    /* 吼聲不絕（empCdr，0.2.71）：每用掉 1 層，所有戰吼的冷卻恢復 */
+    use = k => {
+      if (!stkN(k)) return false;
+      P.stk[k] = stkL(k).slice(1);
+      if (ST.empCdr) cryCd(ST.empCdr);
+      return true;
+    };
   if (tg.includes('warcry') || !tg.includes('attack')) return;
   /* 強化攻擊的天賦（0.2.67）：用掉一層強化（或先祖強化）的這一下，傷害提高、沉重暈眩累積、物理轉火焰、加劇流血、出手中暈眩門檻（pStunThr） */
   const emp = () => {
@@ -540,6 +562,15 @@ function skillTick(a, dt, mx, my) {
           hitMob(m, a.c, a.ang + Math.PI / 2, 220, { a });
           if (a.c.i >= 0 && a.c.q) P.cds['s' + a.c.i] *= 1 - 0.1 * a.c.q;
         }
+    } else if (a.k === 'vanguard') {
+      /* 先登（0.2.71）：路上撞到的每隻怪受一次近戰擊中並被擊退（品質：擊退更遠）；到達時戰吼冷卻歸零 */
+      for (const m of G.mobs)
+        if (m.hp > 0 && !a.hit.has(m) && dist(P, m) < m.r + 40) {
+          a.hit.add(m);
+          fxs('blunt', m.x, m.y - m.sz * 0.3, 45);
+          hitMob(m, a.c, a.ang, 220 * a.c.kb * (1 + 0.2 * a.c.q), { a });
+        }
+      if (f >= 1 && !a.n++) vanguardLand();
     } else if (a.k === 'shieldcharge') {
       /* 盾衝：路上撞到的每隻怪受一次盾擊 */
       for (const m of G.mobs)

@@ -327,6 +327,20 @@ Object.assign(BUILDS, {
     asc: ['trapper', 's7', 'heavy', 's4', 'gadget', 's5', 'shadow', 's1', 'zone'],
     gearOf: '詭雷＊',
     trap: 1
+  },
+  /* 0.2.71：破陣者（斧＋狂暴戰吼＋劈砍，企劃書 7.4）。⚠️ 假設：強化常駐（劈砍每下更多 30%＋寶石等級、強化攻擊傷害提高 empP）、15 盛怒、威嚇常掛在王身上；
+     打王時周圍強度 20（王 20 點）→ 萬夫莫敵攻擊更多 20%（受傷提高 10% 是代價，不在這張表的打王秒數裡）。先聲奪人（強化次數）與吼聲不絕（冷卻回復）在
+     「強化常駐」的假設下看不出價值（它們的價值是在怪堆裡讓強化接得上），先登（衝刺）、耐力球減傷與不消失、一夫當關（持矛）也不在單一王的模型裡。
+     「戰吼＊」同一套模型沒有昇華，破陣者要跟它比 */
+  '戰吼＊': { tree: WT('axe', { meleeP: 2 }), gear: WG, wt: 'axe', sk: 'cleave', cry: 1 },
+  破陣者: {
+    tree: WT('axe', { meleeP: 2 }),
+    gear: WG,
+    wt: 'axe',
+    sk: 'cleave',
+    asc: ['breaker', 's1', 'loud', 's3', 'horde', 's2', 'echo', 's4', 'van'],
+    gearOf: '戰吼＊',
+    cry: 1
   }
 });
 /* 0.2.36 穩固值：同樣扣完減傷的總傷害，全部換成一種累積，30 秒打死王時定得住幾次（用真的 poiseAdd，打不打得中、抗性不算） */
@@ -481,6 +495,13 @@ for (SD = 0; SD < SEEDS; SD++)
         R('P.rage = __rage');
         if (ST.vent && D.rageCost) c.more *= 1 + (ST.vent * D.rageCost) / 100;
       }
+      if (B.cry) {
+        c.more *= 1 + (30 + lv - 1) / 100; /* 狂暴戰吼強化：每下更多 30%，寶石每級 +1% */
+        c.empP = (c.empP || 0) + ST.empP;
+        R('P.rage = 15');
+        boss.ail.intim = 1e9;
+        R('P.surrStr = ' + (ST.surrMore ? 20 : 0)); /* 王 20 點強度 */
+      }
       if (B.broken) (boss.arm = 0), (boss.ail.broken = 1e9);
       if (B.trap) {
         if (ST.unitMore) c.more *= 1 + ST.unitMore / 100; /* gemCfg 才有的重磅炸藥，這裡手動補 */
@@ -619,6 +640,9 @@ for (SD = 0; SD < SEEDS; SD++)
             : '',
           B.golems
             ? `⚠️ 估算：魔像 ${nGol} 隻（上限 ${ST.golemMax}）、約 ${Math.round(golemDps)}/秒（占 ${Math.round((golemDps / dps) * 100)}%）、增益效果 +${ST.golemEff}%${ST.colossus ? '、巨像' : ''}`
+            : '',
+          B.cry
+            ? `⚠️ 假設：強化常駐（更多 ${30 + lv - 1}%、強化攻擊傷害提高 ${ST.empP}%）、15 盛怒、威嚇常掛、打王強度 20（萬夫莫敵更多 ${(ST.surrMore * 20) / 2}%、受傷提高 ${(ST.surrTaken * 20) / 2}%）`
             : '',
           B.rage
             ? `⚠️ 盛怒當作一直滿（${R('P.rage')} 點，每點更多 ${(1 + ST.rageEff / 100).toFixed(2)}%）、每下一道震波`

@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.70';
+const VER = '0.2.71';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -801,6 +801,20 @@ const SKILLS = {
     tags: ['attack', 'melee'],
     d: '弧形揮砍（不綁武器）；範圍內敵人身上的流血與腐化之血，剩下的傷害一次結算（每秒傷害 × 剩餘秒數的物理傷害），結算後牠 1 秒內不會再被施加流血與腐化之血'
   },
+  /* 0.2.71 昇華技能（破陣者的先登）：不綁武器；衝刺中不會被擊退與暈眩（不是無敵，noInv），路上撞到的敵人受一次近戰擊中並被擊退；到達時所有戰吼冷卻歸零（skills.js 的 vanguardLand） */
+  vanguard: {
+    n: '先登',
+    ic: 'sk_valor',
+    t: 0.25,
+    mp: 12,
+    cd: 6,
+    m: 1.2,
+    dist: 300,
+    noInv: 1,
+    asc: 'vanguard',
+    tags: ['attack', 'melee', 'move', 'cd'],
+    d: '衝向滑鼠位置（最遠 300，不綁武器；衝刺中不會被擊退、不會暈眩，但不是無敵），路上撞到的敵人受一次近戰擊中（×1.2）並被擊退；到達時你所有戰吼的冷卻歸零'
+  },
   cleave: {
     n: '劈砍',
     ic: 'sk_cleave',
@@ -824,9 +838,9 @@ const SKILLS = {
     m: 0,
     r: 250,
     dur: 4,
-    wt: ['axe'],
+    at: ['str', 'dex'],
     tags: ['warcry', 'aoe', 'cd'],
-    d: '立刻得到 15 點盛怒（攻擊傷害更多 1%／點），周圍 250 內的敵人被威嚇 4 秒（受到的傷害 +10%、造成的傷害 −10%）；強化接下來的近戰攻擊，每下傷害更多 30%（寶石每升 1 級 +1%）'
+    d: '任何武器都能用。立刻得到 15 點盛怒（攻擊傷害更多 1%／點），周圍 250 內的敵人被威嚇 4 秒（受到的傷害 +10%、造成的傷害 −10%）；強化接下來的近戰攻擊，每下傷害更多 30%（寶石每升 1 級 +1%）'
   },
   /* 0.2.58 J1：命令技能（照 PoE2 的 Command）：叫你的常駐召喚物放大招；cmd＝要哪種召喚物（skills.js 的 cmdAllies），冷卻不吃你的冷卻恢復以外的東西 */
   cmd_wolf: {
@@ -862,9 +876,9 @@ const SKILLS = {
     cd: 8,
     m: 0.8,
     r: 250,
-    wt: ['mace', 'flail'],
+    at: ['str', 'int'],
     tags: ['attack', 'warcry', 'aoe', 'cd'],
-    d: '對周圍 250 內的敵人造成傷害並擊退，瀕臨沉重暈眩的直接沉重暈眩（粉碎重擊，給 1 顆耐力球）；強化接下來的重擊，每下在 0.4 秒後原地多一次餘震（×0.5）'
+    d: '任何武器都能用。對周圍 250 內的敵人造成傷害並擊退，瀕臨沉重暈眩的直接沉重暈眩（粉碎重擊，給 1 顆耐力球）；強化只對重擊有效（錘、鏈錘才有重擊）：每下在 0.4 秒後原地多一次餘震（×0.5）'
   },
   smash: {
     n: '重擊',
@@ -1314,6 +1328,7 @@ const CLS_TAGS = {
   axethrow: 'repeat',
   rend: 'strike payoff',
   sickle: 'strike payoff',
+  vanguard: 'strike',
   cleave: 'slam',
   warcry: 'stack cascade duration',
   smash: 'strike',
@@ -1787,6 +1802,7 @@ const QUAL = {
   axethrow: '{20}% 機率飛回手上，回程再打一次',
   rend: '{20}% 機率不消耗流血',
   sickle: '範圍 +{10}%',
+  vanguard: '撞到的敵人被擊退得更遠 +{20}%',
   cleave: '打中流血中的怪時，沉重暈眩累積再 +{40}%',
   warcry: '被威嚇的怪死亡時，{20}% 機率 +1 點盛怒',
   seiscry: '強化重擊的餘震傷害倍率 +{0.2}',
@@ -5594,6 +5610,80 @@ const ASC = {
       ]
     },
     E: 'st-s1 s1-zone zone-s2 s2-chain zone-s3 s3-carpet st-s4 s4-gadget gadget-s5 s5-shadow gadget-s6 s6-rearm st-s7 s7-heavy'
+  },
+  /* 0.2.71 第三批：破陣者（戰吼＋突入＋耐力球；A 衝進怪堆吼一聲、怪越多越強；D 先登衝進去（戰吼立刻可用）→ 吼 → 打強化攻擊、每用掉一層戰吼冷卻回 1 秒 → 再吼）。
+     不綁武器，只有一夫當關要持長矛；三條分支各是「小 → 大 → 小 → 大」，戰吼線在先聲奪人後分兩條。數字都是 ⚠️ 暫定 */
+  breaker: {
+    n: '破陣者',
+    ic: 'asc_valkyrie_c',
+    d: '戰吼與突入：衝進怪堆吼一聲，怪越多強化越多、耐力球越多，再吼再衝。',
+    N: {
+      st: [0, 0],
+      s1: [-85, 0, { crySpd: 20 }],
+      loud: [
+        -170,
+        0,
+        '先聲奪人',
+        { cryDbl: 1 },
+        '戰吼強化的次數加倍：範圍內每 5 點強度強化 1 下（原本 10 點），上限 10 下（原本 5 下）；強度：普通 1、菁英 10、王 20',
+        'asc_phalanx_b4'
+      ],
+      s2: [-240, -65, { empP: 15 }],
+      echo: [
+        -325,
+        -95,
+        '吼聲不絕',
+        { empCdr: 1 },
+        '每用掉 1 層強化攻擊，你所有戰吼的冷卻恢復 1 秒（只對冷卻中的戰吼有作用）',
+        'asc_phalanx_b3'
+      ],
+      s3: [-240, 65, { cryAoe: 20 }, null, null, 'sup_sp_aoe'],
+      horde: [
+        -325,
+        95,
+        '萬夫莫敵',
+        { surrMore: 2, surrTaken: 1 },
+        '附近 250 內敵人的強度（普通 1、菁英 10、王 20，最多算 30 點）每 2 點：你的攻擊傷害更多 2%、你受到的傷害提高 1%（最多更多 30%、提高 15%）',
+        'asc_phalanx_b5'
+      ],
+      s4: [45, -75, { ms: 5 }],
+      van: [
+        90,
+        -155,
+        '先登',
+        { vanguard: 1 },
+        '給技能「先登」（寶石頁自動有一顆、退點收回；不綁武器）：衝向滑鼠位置（最遠 300），路上撞到的敵人受一次近戰擊中（武器傷害 ×1.2）並被擊退，衝刺中不會被擊退、不會暈眩（不是無敵）；到達時你所有戰吼的冷卻歸零。冷卻 6 秒',
+        'asc_phalanx_c0'
+      ],
+      s5: [135, -235, { meleeP: 10 }],
+      hold: [
+        180,
+        -315,
+        '一夫當關',
+        { spearHold: 1.5 },
+        '持長矛時，先登到達後 1.5 秒內舉矛招架：被近戰或投射物打到就擋下，攻擊者受招架；每次擋下得到 1 顆耐力球（每 0.5 秒最多一次）。沒拿長矛沒有作用',
+        'asc_phalanx_b2'
+      ],
+      s6: [45, 75, { chgDur: 20 }, null, null, 'sup_sp_charge'],
+      valor: [
+        90,
+        155,
+        '越戰越勇',
+        { cryChg: 1, chg_e: 2 },
+        '戰吼時，範圍內每 10 點強度得到 1 顆耐力球（每次最多 3 顆；跟強化同一次計算，先聲奪人不加倍這個）；耐力球上限 +2',
+        'asc_phalanx_c1'
+      ],
+      s7: [135, 235, { hpP: 5 }],
+      brass: [
+        180,
+        315,
+        '銅皮鐵骨',
+        { chgEDef: 5, chgEHold: 1 },
+        '耐力球持有就有效：每顆讓你受到的擊中傷害更少 5%；你的耐力球不會隨時間消失，只會被消耗（跳過戰吼冷卻、震地怒吼等照樣會用掉）',
+        'asc_phalanx_c2'
+      ]
+    },
+    E: 'st-s1 s1-loud loud-s2 s2-echo loud-s3 s3-horde st-s4 s4-van van-s5 s5-hold st-s6 s6-valor valor-s7 s7-brass'
   }
 };
 /* 0.2.69 血魔的新能力（STATN 的名字；stats() 預設 0、combat.js／skills.js／mech.js 讀） */
@@ -5644,6 +5734,19 @@ Object.assign(STATN, {
   blindCrit: ['對致盲的敵人暴擊率', '%'],
   rearm: ['雙重機關：陷阱觸發後重新上膛再觸發一次', '', 1],
   unitMore: ['陷阱與地雷的傷害更多', '%']
+});
+/* 0.2.71 破陣者的新能力（stats() 預設 0、skills.js 的 cryEmpower／empUse／vanguardLand／skillTick、combat.js 的 gainChg／stkMax／hurtCalc／hitCalc／takenInc／baseTick、mech.js 的 tryParry 讀；耐力球上限 chg_e 之前只有讀取點） */
+Object.assign(STATN, {
+  cryDbl: ['先聲奪人：戰吼強化的次數加倍（每 5 點強度 1 下、上限 10 下）', '', 1],
+  empCdr: ['吼聲不絕：每用掉 1 層強化攻擊，戰吼冷卻恢復', '秒'],
+  cryChg: ['越戰越勇：戰吼時每 10 點強度得到 1 顆耐力球（最多 3）', '', 1],
+  chg_e: ['耐力球上限', ''],
+  chgEDef: ['銅皮鐵骨：每顆耐力球讓受到的擊中傷害更少', '%'],
+  chgEHold: ['銅皮鐵骨：耐力球不會隨時間消失', '', 1],
+  surrMore: ['萬夫莫敵：周圍敵人每 2 點強度，攻擊傷害更多', '%'],
+  surrTaken: ['萬夫莫敵：周圍敵人每 2 點強度，受到的傷害提高', '%'],
+  vanguard: ['有先登技能', '', 1],
+  spearHold: ['一夫當關：持長矛時先登到達後舉矛招架的秒數', '秒']
 });
 /* 一個昇華的點與線（id 加 a_ 前綴，跟天賦樹分開） */
 function ascNodes(k) {

@@ -711,8 +711,8 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   P.hurtT = 0.35;
   num(P.x, P.y - 60, d, 'hurt');
   sfx('hurt');
-  /* 不動如山（基石）；昇華的不動如山：格擋值還在時不會被擊退 */
-  if (src && !ST.stand && !(ST.unmov && bvUp())) {
+  /* 不動如山（基石）；昇華的不動如山：格擋值還在時不會被擊退；先登（0.2.71）衝刺中也不會 */
+  if (src && !ST.stand && !(ST.unmov && bvUp()) && !vgDash()) {
     const a = angTo(src, P);
     P.vx += Math.cos(a) * 160;
     P.vy += Math.sin(a) * 160;

@@ -399,6 +399,8 @@ function tryParry(m) {
   applyParry(m);
   fxs('block', P.x, P.y);
   num(P.x, P.y - 60, 0, 'block', '招架');
+  /* 一夫當關（0.2.71 破陣者）：先登到達後的招架窗（P.holdT）裡每次擋下得到 1 顆耐力球，每 0.5 秒最多一次 */
+  if (P.holdT > G.t && G.t >= (P.holdN || 0)) (P.holdN = G.t + 0.5), gainChg('e');
   return true;
 }
 

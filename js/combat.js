@@ -372,6 +372,10 @@ const recent = e => {
 };
 const foes = () => G.mobs.filter(o => o.hp > 0 && !o.arrow);
 const surrounded = () => foes().filter(o => Math.hypot(o.x - P.x, o.y - P.y) <= 3 * METER).length >= 5;
+/* 範圍內敵人的強度（0.2.71，企劃書 7.3 第 28、42 項）：普通 1、菁英 10、王 20；戰吼的強化攻擊（skills.js 的 cryEmpower）與萬夫莫敵（baseTick 存在 P.surrStr）共用 */
+const foeStr = R => foes().reduce((t, m) => t + (dist(P, m) < R + m.r ? (m.boss ? 20 : m.elite ? 10 : 1) : 0), 0);
+const SURR_R = 250,
+  SURR_MAX = 30;
 const isolated = m => !foes().some(o => o !== m && Math.hypot(o.x - m.x, o.y - m.y) <= 6 * METER);
 const closeRange = m => Math.hypot(m.x - P.x, m.y - P.y) <= 2 * METER;
 const presence = (x, y) => Math.hypot(x - P.x, y - P.y) <= 4 * METER * (1 + ST.presArea / 100);
@@ -446,6 +450,8 @@ function takenInc(m, k) {
   if (a.intim > G.t) v += 10;
   /* 怒火不熄（0.2.70 角鬥士）：玩家每點盛怒，受到的傷害提高（跟感電同一池相加） */
   if (!mine && ST.rageTaken) v += ST.rageTaken * (P.rage || 0);
+  /* 萬夫莫敵（0.2.71 破陣者）：周圍敵人每 2 點強度，受到的傷害提高 x%（同一池相加） */
+  if (!mine && ST.surrTaken) v += (ST.surrTaken * (P.surrStr || 0)) / 2;
   if (k === 'chaos') v += 5 * witherN(a) * (mine ? 1 + ST.witherEff / 100 : 1);
   if (k === 'phys' && a.broken > G.t)
     v += (20 + (a.shatter > G.t ? DEBUFF.shatterMore : 0)) * (1 + ST.fullBreakEff / 100);
@@ -755,6 +761,8 @@ function hitCalc(c, m, o = {}) {
   const pc = P.ail && P.ail.curse;
   if (pc && pc.k === 'enfeeble' && pc.t > G.t && !unaff('curse')) more *= 1 - cuV(P.ail) / 100;
   if (tg.includes('attack')) more *= 1 + ((P.rage || 0) * (1 + ST.rageEff / 100)) / 100;
+  /* 萬夫莫敵（0.2.71 破陣者）：周圍敵人每 2 點強度，攻擊傷害更多 x%（每格算一次存在 P.surrStr，baseTick） */
+  if (ST.surrMore && tg.includes('attack')) more *= 1 + (ST.surrMore * (P.surrStr || 0)) / 2 / 100;
   /* 天賦基石的全域更多／更少（0.2.17） */
   if (ST.more) more *= 1 + ST.more / 100;
   more *= 1 + bufV('more') / 100;
@@ -1336,9 +1344,20 @@ const chgMax = k => 3 + (ST['chg_' + k] || 0);
 function gainChg(k, n = 1) {
   const c = (P.chg = P.chg || {}),
     cur = c[k] && c[k].t > G.t ? c[k].n : 0;
-  c[k] = { n: Math.min(chgMax(k), cur + n + (qRoll(ST.chgMore) ? 1 : 0)), t: G.t + 15 * (1 + ST.chgDur / 100) };
+  /* 銅皮鐵骨（0.2.71）：耐力球不會隨時間消失（t＝Infinity，只會被 useChg／cdSkip 消耗；狀態列不顯示倒數） */
+  c[k] = {
+    n: Math.min(chgMax(k), cur + n + (qRoll(ST.chgMore) ? 1 : 0)),
+    t: k === 'e' && ST.chgEHold ? Infinity : G.t + 15 * (1 + ST.chgDur / 100)
+  };
 }
 const chgN = k => (P.chg && P.chg[k] && P.chg[k].t > G.t ? P.chg[k].n : 0);
+/* 天賦或昇華變動後（tree.js 的 treeChanged，ST 重算完呼叫）：顆數夾到新的上限（退掉越戰越勇的 +2）；
+   銅皮鐵骨（chgEHold）退點了，不會到期的耐力球（t＝Infinity）改回一般的 15 秒倒數 */
+function chgHoldSync() {
+  for (const k in (P && P.chg) || {}) if (P.chg[k]) P.chg[k].n = Math.min(P.chg[k].n, chgMax(k));
+  const c = P && P.chg && P.chg.e;
+  if (c && c.t === Infinity && !ST.chgEHold) c.t = G.t + 15 * (1 + ST.chgDur / 100);
+}
 /* 消耗全部，回傳消耗了幾顆 */
 function useChg(k) {
   const n = chgN(k);
@@ -1358,6 +1377,8 @@ function useChg(k) {
    lose 每 lose 秒掉一層（取代 t）、fade 效果隨剩餘時間線性遞減，到期前不能再獲得、
    st 每層的數值（鍵名看 bufV 的呼叫處，都吃增益效果與幅度）、re 數值由 stats() 算（層數一變就重算 ST）、
    human 變回人形時失去、drain [%, 秒] 到期時 x 秒內損失每層 y% 的生命魔力能量護盾、every＋on 生效期間每 x 秒呼叫一次 */
+/* 戰吼強化的兩種層數（skills.js 的 cryEmpower）；先聲奪人（cryDbl）讓每 5 點強度 1 下、上限加倍 */
+const CRY_EMP = ['emInf', 'emSeis'];
 const BUFF = {
   onslaught: { n: '猛攻', ic: 'sk_hasteaura', d: '技能速度 +20%、移動速度 +10%' },
   arcane: { n: '秘能波動', ic: 'sk_clarity', d: '施法速度 +15%、魔力回復更多 20%' },
@@ -1516,7 +1537,9 @@ const stkL = k => ((P && P.stk && P.stk[k]) || []).filter(t => t > G.t),
   stkN = k => stkL(k).length,
   stkClr = k => P.stk && (P.stk[k] = []);
 /* 層數上限：傀儡大師加 puppetMax、波動加 volMax（0.2.67 天賦） */
-const stkMax = k => BUFF[k].max + (k === 'puppet' ? ST.puppetMax : k === 'vol' ? ST.volMax : 0);
+const stkMax = k =>
+  BUFF[k].max +
+  (k === 'puppet' ? ST.puppetMax : k === 'vol' ? ST.volMax : ST.cryDbl && CRY_EMP.includes(k) ? BUFF[k].max : 0);
 function gainStk(k, n = 1, t = BUFF[k].t) {
   const b = BUFF[k],
     L = stkL(k),
@@ -1746,6 +1769,8 @@ function debuffExpTick(a, dt) {
 /* 玩家這一格：盛怒消退、能量球與 buff 到期、玩家身上的異常、護符 */
 function baseTick(dt) {
   if (ST.dynOn && !stkN('dyn')) gainStk('dyn');
+  /* 萬夫莫敵（0.2.71 破陣者）：每格算一次周圍 250 內的敵人強度，最多算 30 點（hitCalc 與 takenInc 讀 P.surrStr） */
+  P.surrStr = ST.surrMore || ST.surrTaken ? Math.min(SURR_MAX, foeStr(SURR_R)) : 0;
   /* 怒火不熄（0.2.70 角鬥士）：盛怒停手不消退 */
   if (P.rage && !ST.rageHold && G.t - (P.rageT || 0) > 4 + ST.rageDelay) {
     P.rageDec = (P.rageDec || 0) + dt;
@@ -1919,6 +1944,8 @@ function hurtCalc(d, src, el, noEv) {
   }
   /* 閃避翻滾無法躲避傷害：翻滾中受到的擊中傷害更少 */
   if (ST.rollTank && P.roll) d *= 1 - ROLL.tank / 100;
+  /* 銅皮鐵骨（0.2.71 破陣者）：持有的每顆耐力球讓擊中傷害更少（更少，跟其他減傷相乘；持續傷害不算） */
+  if (ST.chgEDef) d *= 1 - (ST.chgEDef * chgN('e')) / 100;
   d = absorb(d);
   return { d, crit, defl };
 }
@@ -1959,6 +1986,8 @@ function mobAilPlayer(m, d, el, dm = 1) {
   if (m.D.vine) vineAdd(m.D.vine);
   trigCharms(el, a);
 }
+/* 先登（0.2.71 破陣者）衝刺中：不會被擊退、不會暈眩（僵直與沉重暈眩的累積都不算），但不是無敵 */
+const vgDash = () => !!(P.act && P.act.k === 'vanguard' && P.act.sx != null);
 /* 玩家暈眩（0.2.42，照 PoE2）：門檻＝最大生命 ×（1 + 暈眩門檻提高）；時間 ÷ (1 + 暈眩恢復) */
 const pStunThr = () =>
     (ST.hp + (ST.es * ST.esAsThr) / 100) * (1 + (ST.stunThrP + (P.act && P.act.emp ? ST.empThr : 0)) / 100),
@@ -1968,7 +1997,7 @@ const pStunThr = () =>
   pHeavy = () => !!(P.ail && P.ail.hstun > G.t);
 /* 僵直：被擊中時機率＝傷害 ÷ 門檻，低於 15% 不算（跟怪物的僵直一樣）；打斷正在出的招 */
 function playerStagger(d) {
-  if (ST.noStag) return;
+  if (ST.noStag || vgDash()) return;
   const p = d / pStunThr();
   if (p >= 0.15 && Math.random() < p) (P.stag = G.t + pStunSec(0.5)), (P.act = null);
 }
@@ -1976,7 +2005,7 @@ function playerStagger(d) {
    （物理 ×1.5、冰冷不累積）；累滿暈住 3 秒、條歸零；結束後門檻 +500%、16.5 秒線性退回；暈住期間不累積；8 秒沒累積每秒退 5%（baseTick） */
 function playerHeavy(d, el) {
   const a = (P.ail = P.ail || {});
-  if (el === 'cold' || !(d > 0) || a.hstun > G.t) return;
+  if (el === 'cold' || !(d > 0) || a.hstun > G.t || vgDash()) return;
   const left = Math.max(0, Math.min(1, ((a.hsB || 0) - G.t) / 16.5));
   a.hs = (a.hs || 0) + (d * 0.58 * (el === 'phys' ? 1.5 : 1) * 100) / (pStunThr() * (1 + 5 * left));
   a.hsA = G.t;
@@ -2363,7 +2392,8 @@ function playerStates() {
       add(k, u === Infinity ? null : u, { c: stkN(k) });
     }
   for (const k of ['frostMark', 'voltMark']) add(k, P.buf && P.buf[k]);
-  for (const k of ['e', 'f', 'p']) if (chgN(k)) add('chg_' + k, P.chg[k].t, { c: chgN(k) });
+  for (const k of ['e', 'f', 'p'])
+    if (chgN(k)) add('chg_' + k, P.chg[k].t === Infinity ? null : P.chg[k].t, { c: chgN(k) });
   if (P.rage > 0) add('rage', null, { c: Math.ceil(P.rage) });
   if (ST.unbAv && P.fury > 0) add('fury', null, { c: P.fury });
   add('counter', P.counterT);

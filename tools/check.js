@@ -1669,6 +1669,385 @@ const RA = (() => {
     g.statn.join(' ')
   );
 }
+/* 0.2.71 第 5 層 5-6 破陣者（企劃書 7.4）：先聲奪人（強化加倍）、吼聲不絕（用掉強化回戰吼冷卻）、萬夫莫敵（周圍強度換更多／受傷提高）、
+   先登（昇華技能、衝刺、到達戰吼冷卻歸零）、一夫當關（持矛招架＋耐力球）、越戰越勇（戰吼給耐力球、上限）、銅皮鐵骨（耐力球減傷、不消失）、戰吼不限武器。
+   機率一律用 100%／0% 的來源（固定熵值：reset() 的 noCrit／noMiss、chgMore 0），整段在 vm 裡連跑兩次要得到一模一樣的結果 */
+{
+  const run = () =>
+    RA(`(() => {
+    const o = {},
+      st = (at, eq = {}) => stats({ lv: 90, eq, pt: [], asc: 'breaker', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
+      nm = (n, e = {}) => Array.from({ length: n }, (_, i) => mk(50 + (i % 10) * 8, (i % 7) * 10 - 30, e)),
+      emp = k => { P.stk = {}; const n = cryEmpower(250, k); return [n, stkN(k)]; },
+      hitD = (k, m = mk(40, 0)) => r2(hitCalc(gemCfg(mkGem(k, 5), 0), m, { avg: 1, keep: 1 }).d),
+      sl = k => SKILLS[k];
+    /* reset() 不清的出手與招架狀態：連跑第二次時不能帶著上一次的僵直、招架窗 */
+    const rs = () => { reset(); Object.assign(P, { stag: 0, parryT: 0, holdT: 0, holdN: 0, act: null, surrStr: 0, counterT: 0 }); };
+    globalThis.moveBody = (b, dx, dy) => { b.x += dx; b.y += dy; };
+
+    /* 點亮的數值 */
+    let s = st(['s1', 'loud']);
+    o.loud = [s.crySpd, s.cryDbl];
+    s = st(['s1', 'loud', 's2', 'echo']);
+    o.echo = [s.empP, s.empCdr];
+    s = st(['s1', 'loud', 's3', 'horde']);
+    o.horde = [s.cryAoe, s.surrMore, s.surrTaken];
+    s = st(['s4', 'van', 's5', 'hold']);
+    o.van = [s.ms, s.vanguard, s.meleeP, s.spearHold];
+    s = st(['s6', 'valor', 's7', 'brass']);
+    o.valor = [s.chgDur, s.cryChg, s.chg_e, s.hp > st(['s6', 'valor']).hp, s.chgEDef, s.chgEHold];
+    o.def0 = [base.cryDbl, base.empCdr, base.cryChg, base.chg_e, base.chgEDef, base.chgEHold, base.surrMore, base.surrTaken, base.vanguard, base.spearHold];
+
+    /* 先聲奪人：每 5 點強度 1 下、上限 10 下（原本每 10 點 1 下、上限 5 下）；強度 普通 1、菁英 10、王 20。[回傳強化了幾下, 身上有幾層] */
+    rs(); ST.cryDbl = 0;
+    G.mobs = nm(10); o.off10 = emp('emInf');
+    G.mobs = nm(100); o.off100 = emp('emInf');
+    G.mobs = [mk(40, 0, { boss: 1 })]; o.offBoss = emp('emInf');
+    ST.cryDbl = 1;
+    G.mobs = nm(10); o.on10 = emp('emInf');
+    G.mobs = nm(50); o.on50 = emp('emInf');
+    G.mobs = nm(100); o.on100 = emp('emInf'); o.on100s = emp('emSeis');
+    G.mobs = [mk(40, 0, { boss: 1 })]; o.onBoss = emp('emInf');
+    G.mobs = [mk(40, 0, { elite: 1 }), mk(60, 0, { elite: 1 }), mk(80, 0, { elite: 1 }), mk(100, 0, { elite: 1 }), mk(120, 0, { elite: 1 })]; o.on5e = emp('emInf');
+    /* 範圍外不算（250 + 半徑 12 以外）；死掉的不算 */
+    G.mobs = [mk(500, 0, { boss: 1 }), mk(40, 0, { boss: 1, hp: 0 })]; o.out = emp('emInf');
+    /* 真的吼一次（狂暴戰吼的出手，actHit）：王 → 4 下；層數存在 P.stk */
+    rs(); ST.cryDbl = 1; ST.wt = 'axe'; G.mobs = [mk(40, 0, { boss: 1 })]; P.stk = {};
+    actHit(A('warcry'), 0); o.cast = [stkN('emInf'), P.emInfV];
+    ST.cryDbl = 0; P.stk = {}; actHit(A('warcry'), 0); o.cast0 = [stkN('emInf')];
+    /* 吼的是別種武器也一樣：不限武器（沒有 wt，任何武器 wtOK） */
+    rs(); o.wt = [sl('warcry').wt === undefined, sl('seiscry').wt === undefined, ['axe', 'sword', 'spear', 'mace', 'bow', 'unarmed'].map(w => { ST.wt = w; return !!(wtOK(sl('warcry')) && wtOK(sl('seiscry'))); }).every(Boolean)];
+
+    /* 吼聲不絕：每用掉 1 層強化，所有戰吼的冷卻恢復 1 秒（只有戰吼；沒在冷卻的不動；沒點沒有） */
+    rs(); ST.empCdr = 1; ST.wt = 'axe';
+    S.skills[1].a = mkGem('warcry', 5); S.skills[2].a = mkGem('seiscry', 5); S.skills[3].a = mkGem('slash', 5); S.skills[4].a = mkGem('warcry', 5);
+    P.cds = { s1: 8, s2: 6, s3: 5, s4: 0 }; P.stk = { emInf: [G.t + 9, G.t + 9, G.t + 9] };
+    empUse(A('slash')); o.cdr1 = [P.cds.s1, P.cds.s2, P.cds.s3, P.cds.s4, stkN('emInf')];
+    empUse(A('slash')); empUse(A('slash')); o.cdr3 = [P.cds.s1, P.cds.s2, stkN('emInf')];
+    empUse(A('slash')); o.cdrNone = [P.cds.s1, stkN('emInf')];
+    P.cds.s1 = 8; ST.empCdr = 0; P.stk = { emInf: [G.t + 9] }; empUse(A('slash')); o.cdrOff = [P.cds.s1, stkN('emInf')];
+    ST.empCdr = 1; P.cds.s1 = 0.5; P.stk = { emInf: [G.t + 9] }; empUse(A('slash')); o.cdrFloor = P.cds.s1;
+    /* 震地的強化（emSeis）用掉也回；戰吼自己不扣強化、也不回 */
+    P.cds.s1 = 8; P.stk = { emSeis: [G.t + 9] }; empUse(A('quake')); o.cdrSeis = [P.cds.s1, stkN('emSeis')];
+    P.cds.s1 = 8; P.stk = { emInf: [G.t + 9] }; empUse(A('warcry')); o.cdrSelf = [P.cds.s1, stkN('emInf')];
+
+    /* 萬夫莫敵：周圍 250 內敵人的強度每 2 點，攻擊傷害更多 2%、受到的傷害提高 1%，最多算 30 點。baseTick 每格存在 P.surrStr */
+    rs(); ST.surrMore = 2; ST.surrTaken = 1; o.surr = []; o.surrStr = [];
+    const b0 = hitD('slash'), t0 = r2(hurtCalc(100, null, 'phys', 1).d);
+    for (const n of [10, 20, 30, 40]) {
+      G.mobs = nm(n); baseTick(0.016);
+      o.surrStr.push(P.surrStr);
+      o.surr.push([r2(hitD('slash') / b0 * 100 - 100), r2(hurtCalc(100, null, 'phys', 1).d - t0)]);
+    }
+    G.mobs = [mk(40, 0, { boss: 1 }), mk(500, 0, { boss: 1 })]; baseTick(0.016); o.surrBoss = [P.surrStr, r2(hitD('slash') / b0 * 100 - 100), r2(hurtCalc(100, null, 'phys', 1).d - t0)];
+    G.mobs = nm(30); baseTick(0.016);
+    const f0 = hitD('fireball'); ST.surrMore = 0; const f1 = hitD('fireball'); ST.surrMore = 2; o.surrSpell = [f0 === f1];
+    ST.surrMore = 0; ST.surrTaken = 0; G.mobs = nm(30); baseTick(0.016); o.surrOff = [P.surrStr, r2(hitD('slash') / b0 * 100 - 100), r2(hurtCalc(100, null, 'phys', 1).d - t0)];
+    ST.surrMore = 2; ST.surrTaken = 1; G.mobs = []; baseTick(0.016); o.surrNone = P.surrStr;
+
+    /* 先登：技能、衝刺、路上撞到的敵人、到達時戰吼冷卻歸零、持劍也能用、不是無敵 */
+    rs(); ST.wt = 'sword'; ST.vanguard = 0; ST.str = ST.dex = ST.int = 999;
+    S.skills[0].a = mkGem('vanguard', 5);
+    o.vgOff = [!!wtOK(sl('vanguard')), wtNeed(sl('vanguard')), useSlot(0), WARN];
+    ST.vanguard = 1; WARN = '';
+    o.vgTags = [sl('vanguard').tags.join(), sl('vanguard').wt === undefined, sl('vanguard').cd, sl('vanguard').dist, sl('vanguard').asc];
+    S.skills[1].a = mkGem('warcry', 5); S.skills[2].a = mkGem('seiscry', 5); P.cds = { s1: 8, s2: 6 };
+    P.x = -250; P.y = 0;
+    const on = mk(-150, 0), on2 = mk(-60, 20), off = mk(-100, 300), at = mk(0, 0);
+    G.mobs = [on, on2, off, at];
+    o.vgUse = useSlot(0);
+    const a0 = P.act, dash = [];
+    o.vgAct = [a0.k, a0.sx, r2(a0.d)];
+    let n = 0;
+    while (P.act && n++ < 200) {
+      G.t += 0.02; skillTick(P.act, 0.02, 0, 0);
+      if (P.act && n === 3) {
+        /* 衝刺中：不會暈眩（僵直、沉重暈眩都不累積）、不是無敵 */
+        playerStagger(1e9); playerHeavy(1e9, 'phys');
+        dash.push([vgDash(), P.stag || 0, (P.ail && P.ail.hs) || 0, P.iuntil <= G.t]);
+      }
+    }
+    o.vgDash = dash[0];
+    o.vgEnd = [vgDash(), r2(P.x), r2(P.y), r2(P.cds.s1), r2(P.cds.s2), P.cds.s0 > 0];
+    o.vgHit = [on, on2, off, at].map(m => [m.hp < m.mhp, m.vx > 0]);
+    const d1 = on.mhp - on.hp, d2 = on2.mhp - on2.hp;
+    o.vgDmg = [d1 > 0 && Math.abs(d1 - d2) < 1e-6];
+    o.vgMult = [sl('vanguard').m];
+    ST.wt = 'axe'; o.vgAxe = [!!wtOK(sl('vanguard'))]; ST.wt = 'unarmed'; o.vgBare = [!!wtOK(sl('vanguard'))];
+    /* 衝刺結束後暈眩照常（P.act 沒了 vgDash 就是 false） */
+    P.stag = 0; playerStagger(1e9); o.vgAfter = [P.stag > G.t];
+    /* 品質：擊退更遠（20% 品質 ＋20%） */
+    rs(); ST.wt = 'sword'; ST.vanguard = 1; ST.str = 999; P.x = -250; P.y = 0;
+    const kbOf = q => { const g = mkGem('vanguard', 5); g.q = q; S.skills[0].a = g; const m = mk(-150, 0); G.mobs = [m]; P.act = null; P.cds = {}; P.x = -250; useSlot(0); let k = 0; while (P.act && k++ < 200) { G.t += 0.02; skillTick(P.act, 0.02, 0, 0); } return m.vx; };
+    const k0 = kbOf(0), k20 = kbOf(20);
+    o.vgKb = [k0 > 0, r2(k20 / k0)];
+
+    /* 一夫當關：持矛時先登到達後舉矛招架 1.5 秒，擋下 1 顆耐力球、每 0.5 秒最多一次；沒拿矛沒有招架 */
+    const land = (wt, hold) => {
+      rs(); ST.wt = wt; ST.vanguard = 1; ST.spearHold = hold; ST.str = 999; P.x = -250; P.y = 0; P.cds = {};
+      S.skills[0].a = mkGem('vanguard', 5); G.mobs = [mk(900, 900)]; useSlot(0);
+      let k = 0; while (P.act && k++ < 200) { G.t += 0.02; skillTick(P.act, 0.02, 0, 0); }
+      return k;
+    };
+    land('spear', 1.5);
+    const mm = mk(40, 0), win = P.parryT - G.t;
+    o.holdWin = [r2(win), P.holdT > G.t];
+    const par = () => { const r = hurtCalc(50, mm, 'phys'); return [r.parry || 0, chgN('e')]; };
+    mm.ail.parried = 0; o.hold1 = par();
+    mm.ail.parried = 0; o.hold2 = par();
+    G.t += 0.3; mm.ail.parried = 0; o.hold3 = par();
+    G.t += 0.3; mm.ail.parried = 0; o.hold4 = par();
+    o.holdParry = [parryOn(mm)];
+    G.t += 2; mm.ail.parried = 0; o.hold5 = par();
+    land('sword', 1.5); o.holdSword = [P.parryT > G.t, hurtCalc(50, mm, 'phys').parry || 0, chgN('e')];
+    land('spear', 0); o.holdOff = [P.parryT > G.t, hurtCalc(50, mm, 'phys').parry || 0];
+    /* 別的招架（招架反擊的 0.4 秒窗）不是先登的招架窗，擋下不給耐力球 */
+    rs(); ST.wt = 'spear'; ST.spearHold = 1.5; startParry(0.4); o.holdOther = [hurtCalc(50, mm, 'phys').parry || 0, chgN('e')];
+
+    /* 越戰越勇：戰吼時每 10 點強度 1 顆耐力球（每次最多 3、跟強化同一次計算、先聲奪人不加倍）；耐力球上限 +2 */
+    rs(); ST.wt = 'axe'; ST.cryChg = 1; ST.chg_e = 2; ST.cryDbl = 0;
+    const cry = (k, n, e) => { P.chg = {}; P.stk = {}; G.mobs = nm(n, e); actHit(A(k), 0); return chgN('e'); };
+    o.chg = [cry('warcry', 9), cry('warcry', 10), cry('warcry', 25), cry('warcry', 80), cry('seiscry', 25)];
+    ST.cryDbl = 1; o.chgDbl = [cry('warcry', 25), cry('warcry', 80)];
+    ST.cryDbl = 0; ST.chg_e = 0; o.chgCap3 = [cry('warcry', 80)];
+    ST.chg_e = 2; P.chg = {}; P.stk = {}; G.mobs = nm(80); actHit(A('warcry'), 0); actHit(A('warcry'), 0); o.chgCap5 = [chgN('e'), chgMax('e')];
+    ST.cryChg = 0; o.chgOff = [cry('warcry', 80)];
+    ST.cryChg = 1; o.chgBoss = [cry('warcry', 1, { boss: 1 }), cry('warcry', 2, { elite: 1 })];
+
+    /* 銅皮鐵骨：持有的每顆耐力球讓擊中傷害更少 5%（3 顆＝更少 15%，跟別的減傷相乘）；不會隨時間消失、仍會被消耗；狀態列不顯示倒數 */
+    rs(); ST.chgEDef = 5; ST.chgEHold = 1;
+    const hd = () => r2(hurtCalc(100, null, 'phys', 1).d);
+    P.chg = {}; o.def0n = hd();
+    P.chg = { e: { n: 3, t: G.t + 99 } }; o.def3 = hd();
+    P.chg = { e: { n: 5, t: G.t + 99 } }; o.def5 = hd();
+    ST.rollTank = 1; P.roll = { t: 0 }; P.chg = { e: { n: 3, t: G.t + 99 } }; o.defMul = hd(); ST.rollTank = 0; P.roll = null;
+    ST.chgEDef = 0; o.defOff = hd(); ST.chgEDef = 5;
+    P.chg = {}; gainChg('e'); gainChg('e'); gainChg('e'); gainChg('f');
+    o.holdChg = [P.chg.e.t === Infinity, chgN('e'), P.chg.f.t === Infinity];
+    G.t += 10000; o.holdLater = [chgN('e'), chgN('f')];
+    o.holdState = (() => { const x = playerStates().find(v => v.k === 'chg_e'); return x ? [x.c, x.t, x.f] : null; })();
+    o.holdUse = [useChg('e'), chgN('e')];
+    ST.chgEHold = 0; P.chg = {}; G.t = 100; gainChg('e'); const t0e = P.chg.e.t - G.t; G.t += 16; o.expire = [r2(t0e), chgN('e')];
+    /* 跳過戰吼冷卻（cdSkip）照樣花耐力球 */
+    ST.chgEHold = 1; G.t = 100; P.chg = {}; gainChg('e', 2); const sk = cdSkip(gemCfg(mkGem('warcry', 5), 1)); sk(); o.holdSkip = [chgN('e')]; sk(); o.holdSkip2 = [chgN('e'), P.chg.e];
+    /* 耐力球 +2 上限：沒有 chg_e 是 3、有是 5 */
+    ST.chg_e = 2; P.chg = {}; gainChg('e', 9); o.max5 = chgN('e'); ST.chg_e = 0; P.chg = {}; gainChg('e', 9); o.max3 = chgN('e');
+
+    /* 戰吼不限武器之後能力值需求維持原本（SKILLS 的 at）：0.2.70 的斧＋狂暴戰吼 Lv15 仍是力量 58／敏捷 58，震地戰吼是力量 58／智慧 58（原本錘＋鏈錘取聯集） */
+    const rq = (k, lv) => { const r = gemAttrReq(mkGem(k, lv)); return [r.str, r.dex, r.int]; };
+    o.req = [rq('warcry', 15), rq('seiscry', 15), rq('warcry', 1), rq('seiscry', 1), rq('cleave', 15), rq('fireball', 15)];
+    o.reqLack = [gemLack(mkGem('warcry', 15), { str: 58, dex: 58, int: 0 }).length, gemLack(mkGem('warcry', 15), { str: 102, dex: 0, int: 0 }).length];
+
+    /* 銅皮鐵骨退點（treeChanged → chgHoldSync）：不會到期的球改回 15 秒倒數、顆數夾到上限；只退越戰越勇（上限 −2）時球照樣不會到期 */
+    rs(); ST.chgEHold = 1; ST.chg_e = 2; P.chg = {}; gainChg('e', 5); gainChg('f', 5); P.chg.f.n = 5; /* 狂怒球本來上限 3，這裡硬塞 5 模擬上限降低 */
+    o.sync0 = [chgN('e'), P.chg.e.t === Infinity, chgN('f')];
+    ST.chgEHold = 0; ST.chg_e = 0; chgHoldSync();
+    o.sync1 = [chgN('e'), r2(P.chg.e.t - G.t), chgN('f'), r2(P.chg.f.t - G.t)];
+    G.t += 16; o.sync2 = [chgN('e'), chgN('f')];
+    rs(); ST.chgEHold = 1; ST.chg_e = 2; P.chg = {}; gainChg('e', 5); ST.chg_e = 0; chgHoldSync(); o.syncKeep = [chgN('e'), P.chg.e.t === Infinity];
+    rs(); ST.chgEHold = 1; ST.chg_e = 2; P.chg = {}; gainChg('e', 5); ST.chgEHold = 0; chgHoldSync(); o.syncCap = [chgN('e'), r2(P.chg.e.t - G.t)];
+    rs(); P.chg = {}; chgHoldSync(); P.chg = { e: null }; chgHoldSync(); o.syncNone = [1];
+    o.statn = ['cryDbl', 'empCdr', 'cryChg', 'chg_e', 'chgEDef', 'chgEHold', 'surrMore', 'surrTaken', 'vanguard', 'spearHold'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    o.flags = ['cryDbl', 'cryChg', 'chgEHold', 'vanguard'].filter(k => STATN[k][2] !== 1);
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const g = run(),
+    g2 = run();
+  const j = x => JSON.stringify(x);
+  ok(
+    '破陣者：固定熵值，整段實測連跑 2 次結果一模一樣（沒有用真亂數）',
+    j(g) === j(g2),
+    j(g) !== j(g2)
+      ? Object.keys(g)
+          .filter(k => j(g[k]) !== j(g2[k]))
+          .join()
+      : ''
+  );
+  ok(
+    '破陣者小點與大點的數值：戰吼速度 20／強化攻擊 15／戰吼範圍 20／移動速度 5／近戰 10／能量球持續 20／生命 5%；大點的鍵與預設 0',
+    j(g.loud) === '[20,1]' &&
+      j(g.echo) === '[15,1]' &&
+      j(g.horde) === '[20,2,1]' &&
+      j(g.van) === '[5,1,10,1.5]' &&
+      j(g.valor) === '[20,1,2,true,5,1]' &&
+      j(g.def0) === '[0,0,0,0,0,0,0,0,0,0]',
+    j([g.loud, g.echo, g.horde, g.van, g.valor, g.def0])
+  );
+  ok(
+    '先聲奪人：沒點時 10 隻普通怪 1 下、100 隻封頂 5 下、王 2 下；點了 10 隻 2 下（每 5 點 1 下）、5 隻菁英 10 下、100 隻封頂 10 下（兩種強化都是）、王 4 下；範圍外與死掉的不算',
+    j(g.off10) === '[1,1]' &&
+      j(g.off100) === '[5,5]' &&
+      j(g.offBoss) === '[2,2]' &&
+      j(g.on10) === '[2,2]' &&
+      j(g.on50) === '[10,10]' &&
+      j(g.on100) === '[10,10]' &&
+      j(g.on100s) === '[10,10]' &&
+      j(g.onBoss) === '[4,4]' &&
+      j(g.on5e) === '[10,10]' &&
+      j(g.out) === '[0,0]',
+    j([g.off10, g.off100, g.offBoss, g.on10, g.on50, g.on100, g.on100s, g.onBoss, g.on5e, g.out])
+  );
+  ok(
+    '先聲奪人：真的吼一次（狂暴戰吼的出手）王 → 4 下、強化傷害照寶石等級 +34%（Lv5）；沒點 2 下',
+    j(g.cast) === '[4,34]' && j(g.cast0) === '[2]',
+    j([g.cast, g.cast0])
+  );
+  ok(
+    '戰吼不限武器：狂暴戰吼、震地戰吼沒有 wt，斧、劍、矛、錘、弓、徒手都能用（wtOK）',
+    j(g.wt) === '[true,true,true]',
+    j(g.wt)
+  );
+  ok(
+    '吼聲不絕：每用掉 1 層強化，所有戰吼（狂暴、震地、第二顆狂暴）的冷卻恢復 1 秒；不是戰吼的招、沒在冷卻的不動；用完不再回；沒點不回；回到 0 為止；震地的強化也算；戰吼自己不扣不回',
+    j(g.cdr1) === '[7,5,5,0,2]' &&
+      j(g.cdr3) === '[5,3,0]' &&
+      j(g.cdrNone) === '[5,0]' &&
+      j(g.cdrOff) === '[8,0]' &&
+      g.cdrFloor === 0 &&
+      j(g.cdrSeis) === '[7,0]' &&
+      j(g.cdrSelf) === '[8,1]',
+    j([g.cdr1, g.cdr3, g.cdrNone, g.cdrOff, g.cdrFloor, g.cdrSeis, g.cdrSelf])
+  );
+  ok(
+    '萬夫莫敵：周圍強度 10／20／30／40 → 攻擊更多 10／20／30／30%、受到的傷害提高 5／10／15／15%（最多算 30 點）；王一隻 20 點＝20%／10%（範圍外的王不算）；法術不吃；沒點、沒敵人是 0',
+    j(g.surrStr) === '[10,20,30,30]' &&
+      j(g.surr) === '[[10,5],[20,10],[30,15],[30,15]]' &&
+      j(g.surrBoss) === '[20,20,10]' &&
+      j(g.surrSpell) === '[true]' &&
+      j(g.surrOff) === '[0,0,0]' &&
+      g.surrNone === 0,
+    j([g.surrStr, g.surr, g.surrBoss, g.surrSpell, g.surrOff, g.surrNone])
+  );
+  ok(
+    '先登：沒點亮不能用（「要點亮昇華點「先登」」）；點亮後持劍、持斧、徒手都能用；標籤 attack melee move cd、不綁武器、冷卻 6、最遠 300',
+    j(g.vgOff) === '[false,"要點亮昇華點「先登」",false,"先登：要點亮昇華點「先登」"]' &&
+      g.vgTags[0] === 'attack,melee,move,cd,strike' &&
+      g.vgTags[1] === true &&
+      g.vgTags[2] === 6 &&
+      g.vgTags[3] === 300 &&
+      g.vgTags[4] === 'vanguard' &&
+      j(g.vgAxe) === '[true]' &&
+      j(g.vgBare) === '[true]',
+    j([g.vgOff, g.vgTags, g.vgAxe, g.vgBare])
+  );
+  ok(
+    '先登：衝向滑鼠最遠 300（這裡 250）；路上撞到的兩隻各受一次擊中並被擊退（傷害一樣）、300 外的不受；衝刺中不暈眩（僵直、沉重暈眩不累積）也不是無敵；衝刺後暈眩照常',
+    g.vgUse === true &&
+      j(g.vgAct) === '["vanguard",-250,250]' &&
+      j(g.vgHit) === '[[true,true],[true,true],[false,false],[true,true]]' &&
+      j(g.vgDmg) === '[true]' &&
+      j(g.vgDash) === '[true,0,0,true]' &&
+      j(g.vgAfter) === '[true]',
+    j([g.vgUse, g.vgAct, g.vgHit, g.vgDmg, g.vgDash, g.vgAfter])
+  );
+  ok(
+    '先登：到達時所有戰吼冷卻歸零（8、6 → 0）、先登自己進冷卻；站定在滑鼠位置；技能倍率 ×1.2；品質 20% 擊退 ×1.2',
+    j(g.vgEnd) === '[false,0,0,0,0,true]' && g.vgMult[0] === 1.2 && g.vgKb[0] === true && g.vgKb[1] === 1.2,
+    j([g.vgEnd, g.vgMult, g.vgKb])
+  );
+  ok(
+    '一夫當關：持矛時先登到達後舉矛招架 1.5 秒（擋下、攻擊者受招架），每次擋下 1 顆耐力球、每 0.5 秒最多一次（0.3 秒再擋不給、0.6 秒後給）；招架窗過了不擋；持劍、沒點沒有招架；別的招架（反擊）不給耐力球',
+    j(g.holdWin) === '[1.5,true]' &&
+      j(g.hold1) === '[1,1]' &&
+      j(g.hold2) === '[1,1]' &&
+      j(g.hold3) === '[1,1]' &&
+      j(g.hold4) === '[1,2]' &&
+      j(g.holdParry) === '[true]' &&
+      j(g.hold5) === '[0,2]' &&
+      j(g.holdSword) === '[false,0,0]' &&
+      j(g.holdOff) === '[false,0]' &&
+      j(g.holdOther) === '[1,0]',
+    j([g.holdWin, g.hold1, g.hold2, g.hold3, g.hold4, g.holdParry, g.hold5, g.holdSword, g.holdOff, g.holdOther])
+  );
+  ok(
+    '越戰越勇：戰吼時每 10 點強度 1 顆耐力球（9→0、10→1、25→2、80→3 每次最多 3；震地戰吼也一樣）、先聲奪人不加倍；上限 3+2＝5（沒有 +2 是 3，連吼兩次 6 顆封頂 5）；沒點沒有；一隻王 2 顆、2 隻菁英 2 顆',
+    j(g.chg) === '[0,1,2,3,2]' &&
+      j(g.chgDbl) === '[2,3]' &&
+      j(g.chgCap3) === '[3]' &&
+      j(g.chgCap5) === '[5,5]' &&
+      j(g.chgOff) === '[0]' &&
+      j(g.chgBoss) === '[2,2]' &&
+      g.max5 === 5 &&
+      g.max3 === 3,
+    j([g.chg, g.chgDbl, g.chgCap3, g.chgCap5, g.chgOff, g.chgBoss, g.max5, g.max3])
+  );
+  ok(
+    '銅皮鐵骨：持有 3 顆受擊更少 15%（100 → 85）、5 顆更少 25%、沒有球／沒點不減；跟翻滾減傷相乘（×0.7×0.85 ＝ 59.5）',
+    g.def0n === 100 && g.def3 === 85 && g.def5 === 75 && g.defMul === 59.5 && g.defOff === 100,
+    j([g.def0n, g.def3, g.def5, g.defMul, g.defOff])
+  );
+  ok(
+    '銅皮鐵骨：耐力球不會隨時間消失（過 10000 秒還在，狂怒球照常 15 秒）、useChg 仍會消耗、跳過戰吼冷卻（cdSkip）照樣花球；狀態列不顯示倒數（t 是 null）；沒點時 15 秒後消失',
+    j(g.holdChg) === '[true,3,false]' &&
+      j(g.holdLater) === '[3,0]' &&
+      j(g.holdState) === '[3,null,1]' &&
+      j(g.holdUse) === '[3,0]' &&
+      j(g.expire) === '[15,0]' &&
+      j(g.holdSkip) === '[1]' &&
+      j(g.holdSkip2) === '[0,null]',
+    j([g.holdChg, g.holdLater, g.holdState, g.holdUse, g.expire, g.holdSkip, g.holdSkip2])
+  );
+  ok(
+    '戰吼的能力值需求維持原本：0.2.70 的斧＋狂暴戰吼 Lv15 仍是力量 58／敏捷 58（Lv1 是 1／1）、震地戰吼力量 58／智慧 58（原本錘＋鏈錘取聯集）；別的技能不受影響（劈砍 力量 58／敏捷 58、火球 智慧 102）；力量 58／敏捷 58 夠、力量 102 敏捷 0 不夠',
+    j(g.req) === '[[58,58,0],[58,0,58],[1,1,0],[1,0,1],[58,58,0],[0,0,102]]' && j(g.reqLack) === '[0,1]',
+    j([g.req, g.reqLack])
+  );
+  ok(
+    '銅皮鐵骨退點：5 顆不會到期的耐力球 → 退點（ST 重算、treeChanged 呼叫 chgHoldSync）→ 夾到上限 3 顆、改回 15 秒倒數（別種球超過上限的也夾到 3、本來就是 15 秒）、16 秒後消失；只退越戰越勇（上限 −2）球照樣不會到期；只退銅皮鐵骨（上限還是 5）5 顆照留、改回倒數；沒有球不出錯；tree.js 的 treeChanged 真的有呼叫',
+    j(g.sync0) === '[5,true,5]' &&
+      j(g.sync1) === '[3,15,3,15]' &&
+      j(g.sync2) === '[0,0]' &&
+      j(g.syncKeep) === '[3,true]' &&
+      j(g.syncCap) === '[5,15]' &&
+      /function treeChanged\(\)\s*\{[^}]*chgHoldSync\(\)/.test(
+        fs.readFileSync(path.join(__dirname, '..', 'js', 'tree.js'), 'utf8')
+      ),
+    j([g.sync0, g.sync1, g.sync2, g.syncKeep, g.syncCap])
+  );
+  const srcB6 = ['skills.js', 'combat.js', 'mech.js', 'game.js', 'items.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '破陣者的 10 個新能力：STATN 有名字、開關（cryDbl、cryChg、chgEHold、vanguard）第三格是 1、stats 預設是 0、機制至少一處讀取（chg_e 是 chgMax 讀、vanguard 是技能欄位的 wtOK 用 ST[D.asc] 讀）',
+    !g.statn.length &&
+      !g.flags.length &&
+      ['cryDbl', 'empCdr', 'cryChg', 'chgEDef', 'chgEHold', 'surrMore', 'surrTaken', 'spearHold'].every(k =>
+        new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcB6)
+      ) &&
+      /ST\[\s*'chg_'\s*\+\s*k\s*\]/.test(srcB6),
+    j([g.statn, g.flags])
+  );
+  /* 石碑：合法的 8 點組合 11 種；小點都有圖示；7 大 7 小、沒有選擇組；先登給技能 */
+  {
+    const T = vm.runInContext(`ascNodes('breaker')`, ctx),
+      big = id => T.I[id].big === 1,
+      can = set => id =>
+        !set.includes(id) &&
+        (T.ADJ[id] || []).some(o => set.includes(o)) &&
+        vm.runInContext('ascFeasible', ctx)(T, [...set, id]),
+      seen8 = new Set(),
+      all = [],
+      walk = set => {
+        const key = [...set].sort().join();
+        if (seen8.has(key)) return;
+        seen8.add(key);
+        if (set.length === 9) return all.push(set);
+        for (const id of T.N.map(n => n.id).filter(can(set))) walk([...set, id]);
+      };
+    walk(['a_st']);
+    ok(
+      '破陣者：7 大 7 小、沒有選擇組、合法的 8 點組合剛好 11 種；一夫當關有說明提到「沒拿長矛沒有作用」、銅皮鐵骨提到「只會被消耗」',
+      T.N.filter(n => n.big === 1).length === 7 &&
+        T.N.filter(n => !n.big && n.id !== 'a_st').length === 7 &&
+        !T.N.some(n => n.g) &&
+        all.length === 11 &&
+        /沒拿長矛沒有作用/.test(T.I.a_hold.d) &&
+        /只會被消耗/.test(T.I.a_brass.d) &&
+        T.I.a_van.fx.vanguard === 1,
+      j([T.N.filter(n => n.big === 1).length, all.length])
+    );
+  }
+}
 /* 0.2.27 物理傷害不能走抗性（NaN＝無敵）；T1～T5 放寬；魔力回復與消耗 */
 {
   const R = s => vm.runInContext(s, ctx);
@@ -1860,7 +2239,7 @@ const RA = (() => {
   /* 品質（0.2.29） */
   ok(
     '品質：163 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 163,
+    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 164,
     R(`Object.keys(QUAL).length`)
   );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */

@@ -48,6 +48,7 @@ const ACT_ROW = {
   axethrow: 5,
   rend: 3,
   sickle: 3,
+  vanguard: 3,
   cleave: 4,
   warcry: 5,
   seiscry: 5,
@@ -784,11 +785,12 @@ function drawHero() {
     if (Math.random() < 0.6) fx({ k: 'dust', x: P.x + rnd(-10, 10), y: P.y, dur: 0.35 });
     return;
   }
-  const hit = P.act && P.act.k !== 'iai',
+  const dash = P.act && (P.act.k === 'iai' || P.act.k === 'vanguard'),
+    hit = P.act && !dash,
     row = hit ? (P.act.place ? 5 : ACT_ROW[P.act.k] || 3) : 0,
     wa = P.act ? P.act.ang : P.face,
     sw = hit ? heldSwing(row, P.act.t / P.act.dur) : 0,
-    run = !hit && (P.mv || (P.act && P.act.k === 'iai')),
+    run = !hit && (P.mv || dash),
     dx = P.act ? Math.cos(P.act.ang) : P.mdx,
     dy = P.act ? Math.sin(P.act.ang) : P.mdy,
     col = dirCol(P.face),
