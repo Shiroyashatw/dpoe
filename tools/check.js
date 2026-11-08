@@ -8,7 +8,7 @@ vm.createContext(ctx);
 for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const G = vm.runInContext(
-  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, gemUp, drillDo, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
+  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, libUp, libUpCheck, libLv, drillDo, newSlot, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
   ctx
 );
 let bad = 0;
@@ -16,6 +16,13 @@ const ok = (name, cond, info = '') => {
   console.log((cond ? '✅ ' : '❌ ') + name + (cond ? '' : ' ' + info));
   if (!cond) bad++;
 };
+/* 0.2.75 目錄版測試的小幫手（在各個 vm 環境裡 R(HELP) 一次）：AU 做一個光環欄的項目並設目錄等級（sup 是 [輔助鍵, 等級] 們）、
+   SK 把技能（與孔裡的輔助）放進技能格 i、EQ 把 mkGem 做的技能設定放進格 i（null＝清空）；等級都進 S.lib，沒有 S.lib 就補 */
+const HELP = `var libSet = (k, lv) => { S.lib = S.lib || { sk: {}, sup: {}, aura: {}, aw: {} }; S.lib[libKind(k)][k] = lv; },
+  rec = (k, lv, sup) => { libSet(k, lv); sup.forEach(x => libSet(x[0], x[1] || 1)); const n = Math.max(2, sup.length); return { k, so: Array.from({ length: n }, (_, j) => (sup[j] ? sup[j][0] : null)), n }; },
+  AU = (k, lv = 1, ...sup) => rec(k, lv, sup),
+  SK = (i, k, lv = 1, ...sup) => (S.skills[i] = rec(k, lv, sup)),
+  EQ = (i, g) => (g ? ((S.skills[i] = rec(g.gem, g.lv, (g.sup || []).map(x => x && [x.gem, x.lv]).filter(Boolean))), (S.lib.aw = S.lib.aw || {}), g.aw ? (S.lib.aw[g.gem] = g.aw) : delete S.lib.aw[g.gem], S.skills[i]) : (S.skills[i] = newSlot()));`;
 /* 1. 圖都在：基底、怪物、王 */
 const art = fs.readFileSync(path.join(__dirname, '..', 'js', 'art.js'), 'utf8'),
   has = n => new RegExp(`^\\s*'?${n}'?:`, 'm').test(art);
@@ -70,27 +77,27 @@ ok(
   }
   ok('每種武器的數值都不是 NaN', !nan.length, nan.join('；'));
   /* 0.2.72 鍛造：新的通貨做裝（單元測試在檔案最後的「裝備重做」一段）；這裡只先給材料，寶石測試要靈魂 */
-  vm.runInContext('var S = { gold: 1e12, lv: 60, mat: null, lib: [] }', ctx);
+  vm.runInContext('var S = { gold: 1e12, lv: 60, mat: null, lib: { sk: {}, sup: {}, aura: {}, aw: {} } }', ctx);
   vm.runInContext('S.mat = newMat(); S.mat.soul = 1e12;', ctx);
-  const g = G.mkGem('fireball', 1);
+  const sl = G.newSlot();
   let up = 0;
-  while (!G.gemUp(g)) up++;
+  while (!G.libUp('fireball')) up++;
   /* 0.2.40：角色 Lv60 只能升到 14 級（Lv15 要 64），升到 90 才能到 20 */
-  const why60 = G.gemUp(g);
+  const why60 = G.libUp('fireball');
   ok(
-    '寶石等級門檻照 PoE2：角色 Lv60 停在 14 級',
-    g.lv === 14 && why60 === 'Lv 15 要角色 Lv 64',
-    `Lv ${g.lv}：${why60}`
+    '目錄等級門檻照 PoE2：角色 Lv60 停在 14 級',
+    G.libLv('fireball') === 14 && why60 === 'Lv 15 要角色 Lv 64',
+    `Lv ${G.libLv('fireball')}：${why60}`
   );
   vm.runInContext('S.lv = 90', ctx);
-  while (!G.gemUp(g)) up++;
+  while (!G.libUp('fireball')) up++;
   vm.runInContext('S.lv = 60', ctx);
   let dr = 0;
-  while (!G.drillDo(g)) dr++;
+  while (!G.drillDo(sl)) dr++;
   ok(
-    '寶石：靈魂升到 20 級為止、開孔開到 5 孔為止',
-    g.lv === 20 && up === 19 && g.so === 5 && g.sup.length === 5 && dr === 3,
-    `Lv ${g.lv}、${g.so} 孔`
+    '目錄：靈魂升到 20 級為止、開孔開到 5 孔為止',
+    G.libLv('fireball') === 20 && up === 19 && sl.n === 5 && sl.so.length === 5 && dr === 3,
+    `Lv ${G.libLv('fireball')}、${sl.n} 孔`
   );
   ok('雙手武器不能拿副手、箭袋只有弓能用', !rules.length, rules.map(([w, o]) => w.b + '+' + o.b).join('、'));
 }
@@ -374,7 +381,7 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     ok('每個能力都有天賦來源（fullStrike 留給昇華）', !miss.length && !has.has('fullStrike'), miss.join(' '));
     /* 0.2.68：拿掉 23 個大點後，沒有任何來源（天賦、輔助、裝備固定詞與詞綴、昇華、品質）會寫入的能力是死碼，已經從 STATN、stats() 預設、機制讀取點全部刪掉
        （輔助用的是技能欄位 c.*，不受影響）。DEAD 是刪掉的 23 個，不能再出現；OFF 是「不在樹上、但有真的來源」的能力（現在是空的），
-       每個一定要在 ASC／SUPPORTS／AFF／IMPN／QUAL 之一被寫入 */
+       每個一定要在 ASC／SUPPORTS／AFF／IMPN／AWK 之一被寫入 */
     const DEAD =
         `lukBlock ignFire ignCold ignLight ignChaos bleedAll poiAll forkCrit ovkSplash kbEs overwhelm incise inciseMag hexPierce suppCh
         projRet minmax reveal weakMore minGiant crushOn weakenOn compoundOn`.split(/\s+/),
@@ -383,7 +390,7 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
         .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
         .join('\n'),
       writers = JSON.stringify(
-        ['ASC', 'SUPPORTS', 'AFF', 'IMPN', 'QUAL'].map(n =>
+        ['ASC', 'SUPPORTS', 'AFF', 'IMPN', 'AWK'].map(n =>
           vm.runInContext('typeof ' + n + " !== 'undefined' ? " + n + ' : {}', ctx)
         )
       ),
@@ -396,7 +403,7 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       DEAD.filter(k => STATN2[k] || alive(k)).join(' ')
     );
     ok(
-      `不在樹上的能力（${OFF.length} 個）一定有來源：ASC／SUPPORTS／AFF／IMPN／QUAL 之一寫入`,
+      `不在樹上的能力（${OFF.length} 個）一定有來源：ASC／SUPPORTS／AFF／IMPN／AWK 之一寫入`,
       OFF.every(k => !has.has(k) && writers.includes('"' + k + '"')),
       OFF.filter(k => has.has(k) || !writers.includes('"' + k + '"')).join(' ')
     );
@@ -671,11 +678,13 @@ vm.runInContext(
   ok('穩固值', po.join() === 'true,50,true,10,6,3.5,1,50,45,3,2', po.join());
   /* 灌注：撿殘留物 +1（最多 3），消耗 −1 */
   const inf =
-    R(`S.skills = [{ a: { gem: 'nova' } }]; G.t = 0; for (let i = 0; i < 5; i++) dropRemnant('fire', 0, 0), remnantTick();
+    R(`S.skills = [{ k: 'nova', so: [], n: 2 }]; G.t = 0; for (let i = 0; i < 5; i++) dropRemnant('fire', 0, 0), remnantTick();
     [infN('fire'), takeInf('fire'), infN('fire'), takeInf('cold')]`);
   ok('灌注', inf.join() === '3,true,2,false', inf.join());
   /* 技能欄沒有吃灌注的技能：不產生殘留物 */
-  const nr = R(`S.skills = [{ a: { gem: 'slash' } }]; G.remnants = []; dropRemnant('fire', 0, 0); G.remnants.length`);
+  const nr = R(
+    `S.skills = [{ k: 'slash', so: [], n: 2 }]; G.remnants = []; dropRemnant('fire', 0, 0); G.remnants.length`
+  );
   ok('沒有灌注技能不掉殘留物', nr === 0, nr);
   /* 飛劍：最多 10 把、15 秒 */
   const sw = R('P.x = 0; gainSwords(7, {}); gainSwords(7, {}); var n1 = swordN(); G.t += 16; [n1, swordN()]');
@@ -944,7 +953,8 @@ vm.runInContext(
     { filename: 'skills.js' }
   );
   R(
-    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })), gems: [], inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat() }; ST = stats(S); mechEnter();`
+    `${HELP}
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()), inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat() }; ST = stats(S); mechEnter();`
   );
   const b = R(`(() => {
     const o = {}, D = Object.values(MOBS)[0], P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 },
@@ -980,10 +990,10 @@ vm.runInContext(
     /* 自動化施放（autoTick 先付費、castGem 重做設定）也要帶著流血更多 40%：拿同一隻怪比有沒有血價，流血每秒傷害差 1.4 倍 */
     const autoBleed = bp => {
       reset(); ST.bleedCh = 100; ST.wt = 'axe'; ST.bloodPrice = bp;
-      S.skills[0].a = mkGem('cleave', 1); S.skills[0].a.sup[0] = mkGem('autocast', 1);
+      SK(0, 'cleave', 1, ['autocast', 1]);
       const m = mk(40, 0); G.mobs = [m]; P.cds = {};
       autoTick();
-      S.skills[0].a = null;
+      S.skills[0] = newSlot();
       return [m.ail.bleed ? m.ail.bleed.dps : 0, Math.round(1000 - P.hp)];
     };
     const au0 = autoBleed(0), au1 = autoBleed(40);
@@ -1031,19 +1041,17 @@ vm.runInContext(
     o.healCap = r2(P.hp - 500);
     reset(); P.hp = 500; ST.sickleHeal = 0; G.mobs = [dots(mk(40, 0))]; actHit(A('sickle', g0), 0); o.noHeal = P.hp;
 
-    /* 昇華技能：點亮赤鐮就在寶石頁送 1 顆（不重複送）、退點／換昇華就收回（裝著的也收，升級的靈魂退回）；赤鐮不在生成視窗的任何一頁；沒點亮不能用 */
+    /* 昇華技能（0.2.75 起技能不是道具）：點亮赤鐮才選得到、能用；格子裡的在退點／換昇華時拿掉，等級與孔裡的輔助（目錄）還在；沒點亮不能用 */
     reset();
     S.asc = 'blood'; S.at = ['a_st', 'a_s5', 'a_sickle'];
     ascSync(S); ascSync(S);
-    const cnt = () => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === 'sickle').length;
-    o.gem = [cnt(), S.gems.length];
-    S.skills[0].a = S.gems.pop(); S.skills[0].a.lv = 3; const soul0 = S.mat.soul || 0; S.skills[0].a.sup[0] = mkGem('leech', 1);
-    ascSync(S); o.equipped = cnt();
+    SK(0, 'sickle', 3, ['leech', 1]);
+    ascSync(S); o.equipped = S.skills[0].k === 'sickle';
     ST = stats(S); o.use = [ST.sickle, !!wtOK(SKILLS.sickle)];
     S.at = ['a_st', 'a_s5']; ascSync(S);
-    o.gone = [cnt(), S.skills[0].a, (S.mat.soul || 0) - soul0 === soulCost(1) + soulCost(2), S.gems.some(g => g.gem === 'leech')];
+    o.gone = [S.skills[0].k, libLv('sickle'), libLv('leech')];
     ST = stats(S); o.noUse = [ST.sickle, !!wtOK(SKILLS.sickle), wtNeed(SKILLS.sickle)];
-    S.at = ['a_st', 'a_s5', 'a_sickle']; ascSync(S); const had = cnt(); S.asc = 'wind'; S.at = ['a_st']; ascSync(S); o.swap = [had, cnt()];
+    S.at = ['a_st', 'a_s5', 'a_sickle']; ascSync(S); SK(0, 'sickle', 3); const had = S.skills[0].k; S.asc = 'wind'; S.at = ['a_st']; ascSync(S); o.swap = [had, S.skills[0].k];
     const D2 = SKILLS.sickle; o.noTab = !D2.wt && !D2.off && !['elem', 'occ', 'pri'].some(t => D2.tags.includes(t));
     o.statn = ['bloodPrice', 'richBlood', 'rotBlood', 'anemiaHit', 'sickle', 'sickleHeal'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
     return JSON.parse(JSON.stringify(o));
@@ -1096,15 +1104,204 @@ vm.runInContext(
     j([b.heal, b.healCap, b.noHeal, b.both])
   );
   ok(
-    '赤鐮是昇華技能：點亮就在寶石頁送 1 顆（不重複）、退點收回（裝著的也收、升級的靈魂退回、插著的輔助放回寶石頁）、換昇華也收；沒點亮不能用；不在生成視窗',
-    j(b.gem) === '[1,1]' &&
-      b.equipped === 1 &&
+    '赤鐮是昇華技能：點亮才選得到、能用；退點／換昇華從格子拿掉但目錄等級還在（Lv3、孔裡的輔助 Lv1）；沒點亮不能用',
+    b.equipped === true &&
       j(b.use) === '[1,true]' &&
-      j(b.gone) === '[0,null,true,true]' &&
+      j(b.gone) === '[null,3,1]' &&
       j(b.noUse) === '[0,false,"要點亮昇華點「赤鐮」"]' &&
-      j(b.swap) === '[1,0]' &&
+      j(b.swap) === '["sickle",null]' &&
       b.noTab,
-    j([b.gem, b.equipped, b.use, b.gone, b.noUse, b.swap, b.noTab])
+    j([b.equipped, b.use, b.gone, b.noUse, b.swap, b.noTab])
+  );
+  /* 0.2.75 目錄（企劃書 6.1）：等級查 S.lib 對每格生效；輔助升一次，插了它的招一起受惠；換招再換回來等級還在；同類輔助照舊互斥；skGem 做出來的設定跟 mkGem 手做的同一組數字 */
+  const cat = R(`(() => {
+    const keep = [S.skills, S.lib, S.mat.soul, S.lv], o = {}, strip = c => JSON.stringify({ ...c, g: 0, D: 0 });
+    S.lv = 90; S.mat.soul = 1e9; S.lib = { sk: {}, sup: {}, aura: {}, aw: {} };
+    S.skills = [0, 1, 2, 3, 4].map(() => newSlot());
+    S.skills[0] = { k: 'fireball', so: ['fury', null], n: 2 };
+    S.skills[1] = { k: 'cleave', so: [null, 'fury'], n: 2 };
+    S.skills[2] = { k: 'frostbolt', so: ['fury', 'fury2'], n: 2 };
+    o.lv1 = [skGem(0).lv, skGem(0).sup[0].lv, skGem(3)];
+    for (let i = 0; i < 4; i++) libUp('fireball');
+    o.lv2 = [skGem(0).lv, skGem(1).lv, libLv('fireball')];
+    const m0 = [gemCfg(skGem(0), 0).more, gemCfg(skGem(1), 1).more];
+    libUp('fury'); libUp('fury');
+    o.share = [skGem(0).sup[0].lv, skGem(1).sup[1].lv, skGem(2).sup[0].lv, +(gemCfg(skGem(1), 1).more / m0[1]).toFixed(4)];
+    S.skills[0].k = 'slash'; const away = skGem(0).lv; S.skills[0].k = 'fireball';
+    o.back = [away, skGem(0).lv];
+    const v = skGem(2);
+    o.cat = [supOK(SKILLS.frostbolt, v.sup[0], v), supOK(SKILLS.frostbolt, v.sup[1], v)];
+    const a = mkGem('fireball', libLv('fireball')); a.sup[0] = mkGem('fury', libLv('fury'));
+    o.same = strip(gemCfg(skGem(0), 0)) === strip(gemCfg(a, 0));
+    o.price = [libUpCheck('fury').c === soulCost(libLv('fury')), libUpCheck('fireball').c === soulCost(libLv('fireball'))];
+    [S.skills, S.lib, S.mat.soul, S.lv] = keep;
+    return o;
+  })()`);
+  ok(
+    '目錄（0.2.75）：等級查 S.lib 對每格生效（沒記的 Lv 1）；輔助升一次，兩格的招一起受惠（Lv 1 → 3）、更多 ×1.02；換招回來等級還在；同類輔助互斥（狂暴＋狂暴 II 只算第一顆）；skGem 做的設定跟 mkGem 手做的一樣；升級價錢＝soulCost(目前等級)',
+    j(cat.lv1) === '[1,1,null]' &&
+      j(cat.lv2) === '[5,1,5]' &&
+      j(cat.share) === '[3,3,3,1.02]' &&
+      j(cat.back) === '[1,5]' &&
+      j(cat.cat) === '[true,false]' &&
+      cat.same &&
+      j(cat.price) === '[true,true]',
+    j(cat)
+  );
+  /* 0.2.75 覺醒（企劃書 6.3）：資料 → A → B → 標籤 → 覺醒石花費與切換 → 掉落 */
+  const aw = R(`(() => {
+    const keepST = ST;
+    ST = { ...stats(S), dmg: [10, 20], sdmg: [10, 20] };
+    const o = {}, K = Object.keys(SKILLS), r2 = v => +v.toFixed(4);
+    o.A = K.filter(k => !(AWK[k] && AWK[k].A && AWK[k].A.n && AWK[k].A.d && !AWK[k].A.d.includes('{') && !AWK[k].A.d.includes('品質'))).join();
+    const bound = K.filter(k => SKILLS[k].wt);
+    o.B = [bound.length, bound.filter(k => !(AWK[k] && AWK[k].B)).join(), K.filter(k => AWK[k].B).length, K.filter(k => AWK[k].B && !SKILLS[k].wt && k !== 'meteor').join()];
+    o.fxKeys = K.filter(k => AWK[k].B && Object.keys(AWK[k].B.fx).some(f => !FXN[f])).join();
+    /* 靜態規則：補丁要有東西讀——cd 要打在本來就有冷卻的招、aoe 要打在有範圍的招（D.r）、印記（挑目標的半徑）、鬥旗、劍陣 */
+    o.bStatic = K.filter(k => AWK[k].B && ((AWK[k].B.fx.cd && !(SKILLS[k].cd > 0)) || (AWK[k].B.fx.aoe && !(SKILLS[k].r || SKILLS[k].mark || ['banner', 'swordarray'].includes(k))))).join();
+    /* 名字不跟技能、輔助、光環、基石、天賦大點、昇華點、別的覺醒重複 */
+    const used = new Map(), add = (n, s) => used.set(n, [...(used.get(n) || []), s]);
+    for (const k in SKILLS) add(SKILLS[k].n, '技能');
+    for (const k in SUPPORTS) add(SUPPORTS[k].n, '輔助');
+    for (const k in AURAS) add(AURAS[k].n, '光環');
+    for (const k of PT_KEYS) add(k.n, '基石');
+    for (const t of PT_THEME) { add(t.n, '主題'); for (const [n] of t.nt || []) add(n, '天賦大點'); }
+    for (const a of Object.keys(ASC)) { add(ASC[a].n, '昇華'); for (const [id, v] of Object.entries(ASC[a].N)) if (id !== 'st' && typeof v[2] === 'string') add(v[2], '昇華'); }
+    const names = K.flatMap(k => [AWK[k].A.n, AWK[k].B && AWK[k].B.n].filter(Boolean));
+    o.dupSelf = names.filter((n, i) => names.indexOf(n) !== i).join();
+    o.dupOther = names.filter(n => used.has(n)).map(n => n + ':' + used.get(n).join('/')).join();
+    /* A：更多 15%（有傷害的招）、品質效果的旗標 q＝1；沒覺醒 q＝0 */
+    const V = (k, w) => Object.assign(mkGem(k, 5), { aw: w });
+    const bad = [], aMore = [];
+    for (const k of K) {
+      const c0 = gemCfg(V(k, ''), 0), cA = gemCfg(V(k, 'A'), 0);
+      if (c0.q !== 0 || cA.q !== 1) bad.push(k + ':q');
+      aMore.push(r2(cA.more / c0.more) === (SKILLS[k].m ? 1.15 : 1));
+      const n = skillNums(cA);
+      if (Object.values(n).some(x => typeof x === 'number' && !Number.isFinite(x))) bad.push(k + ':NaN');
+    }
+    o.aBad = bad.join();
+    o.aMore = aMore.every(Boolean);
+    /* B：每條補丁都真的套進 cfg（相乘的鍵看倍率、相加的鍵看差），沒有 NaN */
+    const bb = [];
+    for (const k of K.filter(k => AWK[k].B)) {
+      const c0 = gemCfg(V(k, ''), 0), cB = gemCfg(V(k, 'B'), 0), fx = AWK[k].B.fx;
+      for (const f in fx) {
+        const mul = ['more', 'aoe', 'speed', 'kb', 'mp', 'cd'].includes(f);
+        /* 相乘的鍵：本來是 0 的不算通過（乘 0 還是 0，補丁沒有東西可改） */
+        const badF = !mul ? Math.abs((cB[f] || 0) - (c0[f] || 0) - fx[f]) > 1e-9 : f === 'mp' ? Math.abs(cB.mp - Math.max(1, Math.round(c0.mp * fx.mp))) > 1 : !c0[f] || Math.abs(cB[f] / c0[f] - fx[f]) > 1e-9;
+        if (badF) bb.push(k + ':' + f);
+      }
+      if (Object.values(skillNums(cB)).some(x => typeof x === 'number' && !Number.isFinite(x))) bb.push(k + ':NaN');
+    }
+    o.bBad = bb.join();
+    /* 標籤（機制）：B 的 tags 能改標籤、輔助相容性跟著變；A 與沒覺醒是同一份定義。現在沒有任何一條 B 改標籤（三連隕石的投射物標籤只剩懲罰，驗收退回），這裡用一條假的驗機制 */
+    const mp = { gem: 'multi', lv: 1 }, b0 = AWK.slash.B;
+    AWK.slash.B = { n: '測試', fx: {}, tags: { add: ['proj'] } };
+    delete AWD.slash;
+    o.tags = [supOK(SKILLS.slash, mp, null), supOK(awD('slash', 'B'), mp, null), awD('slash', 'A') === SKILLS.slash, awD('slash', 'B').tags.includes('proj'), SKILLS.slash.tags.includes('proj')];
+    AWK.slash.B = b0;
+    delete AWD.slash;
+    o.realTags = K.filter(k => AWK[k].B && AWK[k].B.tags).join();
+    o.noProj = [supOK(awD('meteor', 'B'), mp, null), awD('meteor', 'B') === SKILLS.meteor];
+    /* 補丁的讀取點（實跑）：鬥旗的旗子半徑、劍陣的半徑、印記挑目標的半徑、砲塔的射擊間隔 */
+    P.glory = 100;
+    const ban = w => { G.banner = null; P.glory = 100; actHit({ k: 'banner', c: gemCfg(V('banner', w), 0), ang: 0, tx: P.x, ty: P.y, hits: [0], n: 0 }, 0); return G.banner && Math.round(G.banner.r); };
+    o.banner = [ban(''), ban('B')];
+    const arr = w => { P.swords = []; gainSwords(6, gemCfg(V('flyswords', ''), 0)); G.ground = G.ground.filter(g => g.k !== 'blades'); actHit({ k: 'swordarray', c: gemCfg(V('swordarray', w), 0), ang: 0, tx: P.x + 100, ty: P.y, hits: [0], n: 0 }, 0); const g = G.ground.find(g => g.k === 'blades'); return g && Math.round(g.r); };
+    o.array = [arr(''), arr('B')];
+    const mkd = (k, w) => { const D0 = Object.values(MOBS)[0], mm = x => ({ D: D0, x, y: 0, r: 12, sz: 20, hp: 1e6, mhp: 1e6, ail: {} }), a = mm(P.x + 300); G.mobs = [a]; actHit({ k, c: gemCfg(V(k, w), 0), ang: 0, tx: P.x + 300 + 140, ty: P.y, hits: [0], n: 0 }, 0); return a.ail.mark ? 1 : 0; };
+    o.mark = ['mk_volt', 'mk_warlord', 'mk_sniper'].map(k => mkd(k, '') + '>' + mkd(k, 'B')).join(' ');
+    const tur = w => { G.units = []; putUnit(gemCfg(V('ballista', w), 0), 'turret', P.x + 50, P.y); return +G.units[G.units.length - 1].rate.toFixed(3); };
+    o.turret = [tur(''), tur('B')];
+    G.units = []; G.banner = null; G.mobs = [];
+    o.vol = [gemCfg(V('meteor', 'B'), 0).volley, gemCfg(V('meteor', ''), 0).volley || 0];
+    const fall = w => { G.meteors = []; actHit({ k: 'meteor', c: gemCfg(V('meteor', w), 0), ang: 0, tx: 100, ty: 0, hits: [0], n: 0 }, 0); return G.meteors.length; };
+    o.fall = [fall(''), fall('A'), fall('B'), G.meteors.map(m => Math.round(m.x)).join()];
+    /* 花費與切換 */
+    const keep = [S.lib, S.mat, S.skills];
+    S.lib = { sk: {}, sup: {}, aura: {}, aw: {} }; S.mat = newMat(); S.skills = [0, 1, 2, 3, 4].map(() => newSlot());
+    const st = () => S.mat.awk;
+    o.noStone = [awakeDo('meteor', 'A'), awOf('meteor'), st()];
+    S.mat.awk = 2;
+    o.noB = [awakeDo('fireball', 'B'), st(), awOf('fireball')];
+    o.pay = [awakeDo('meteor', 'B'), st(), awOf('meteor')];
+    o.free = [awakeDo('meteor', 'A'), st(), awOf('meteor'), awakeDo('meteor', 'B'), st(), awakeDo('meteor', 'B'), st()];
+    o.noUndo = [awakeDo('meteor', ''), awOf('meteor')];
+    S.skills[0].k = 'meteor'; const lvAw = skGem(0).aw; S.skills[0].k = 'slash'; const away = skGem(0).aw; S.skills[0].k = 'meteor';
+    o.back = [lvAw, away, skGem(0).aw];
+    [S.lib, S.mat, S.skills] = keep;
+    ST = keepST;
+    return o;
+  })()`);
+  ok(
+    '覺醒（0.2.75）資料：82 招都有 A（名字與說明、沒有留 {}）、綁武器的 48 招加隕石有 B、B 的補丁鍵都認得、名字不重複也不撞技能／輔助／光環／基石／天賦大點／昇華點',
+    aw.A === '' && j(aw.B) === '[48,"",49,""]' && aw.fxKeys === '' && aw.dupSelf === '' && aw.dupOther === '',
+    j([aw.A, aw.B, aw.fxKeys, aw.dupSelf, aw.dupOther])
+  );
+  ok(
+    '覺醒 A：每招 q 從 0 變 1（原本的品質效果）、有傷害的招更多 ×1.15、數字沒有 NaN',
+    aw.aBad === '' && aw.aMore,
+    j([aw.aBad, aw.aMore])
+  );
+  ok(
+    '覺醒 B 的補丁有東西讀：cd 只打在有冷卻的招、aoe 只打在有範圍／印記／鬥旗／劍陣的招（靜態）；鬥旗半徑 220 → 308、劍陣半徑變大、印記挑目標半徑變大（140 外的怪原本不會被標）、砲塔射擊間隔 ÷ 出手速度（實跑）',
+    aw.bStatic === '' &&
+      j(aw.banner) === '[220,308]' &&
+      aw.array[1] > aw.array[0] &&
+      aw.mark === '0>1 0>1 0>1' &&
+      aw.turret[1] < aw.turret[0],
+    j([aw.bStatic, aw.banner, aw.array, aw.mark, aw.turret])
+  );
+  ok(
+    '覺醒 B：49 條補丁都真的套進設定（相乘的鍵看倍率且本來不能是 0、相加的看差）、數字沒有 NaN；三連隕石同時 3 顆（落點繞著滑鼠位置）、沒覺醒與 A 是 1 顆',
+    aw.bBad === '' && j(aw.vol) === '[3,0]' && j(aw.fall.slice(0, 3)) === '[1,1,3]',
+    j([aw.bBad, aw.vol, aw.fall])
+  );
+  ok(
+    '覺醒改標籤（機制，用一條假 B 驗）：B 的 tags 加投射物後多重投射從不相容變成插得上、A 與沒覺醒用同一份定義、SKILLS 本身沒被改；真的 B 沒有一條改標籤，三連隕石不能插多重投射',
+    j(aw.tags) === '[false,true,true,true,false]' && aw.realTags === '' && j(aw.noProj) === '[false,true]',
+    j([aw.tags, aw.realTags, aw.noProj])
+  );
+  ok(
+    '覺醒石：沒有就不能覺醒、沒 B 的招選 B 擋下不花；第一次花 1 顆，之後 A／B 免費切換、已經是那個擋下；不能拆掉；換招再換回來還在',
+    j(aw.noStone) === '["要 1 顆覺醒石","",0]' &&
+      j(aw.noB) === '["變化版製作中",2,""]' &&
+      j(aw.pay) === '[null,1,"B"]' &&
+      j(aw.free) === '[null,1,"A",null,1,"已經是這個覺醒",1]' &&
+      j(aw.noUndo) === '["這招不能覺醒","B"]' &&
+      j(aw.back) === '["B","","B"]',
+    j([aw.noStone, aw.noB, aw.pay, aw.free, aw.noUndo, aw.back])
+  );
+  /* 覺醒石掉落（企劃書 5.7）：生肖王保底 1、階級 10 以上的王 3%（偽隨機：連續沒中不超過 prdMax）；階級不到、菁英、小怪都沒有 */
+  const awd = R(`(() => {
+    const o = {}, keep = [S.prd, Math.random];
+    let seed = 7;
+    Math.random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const n = 20000, boss = { star: 1, ilvl: 10, tier: 12 },
+      cnt = (kind, opt) => { let c = 0; for (let i = 0; i < n; i++) c += dropCur(kind, opt).cur.awk || 0; return c; };
+    S.prd = PRD0();
+    o.zod = [dropCur(2, { ...boss, tier: 5, zod: 1 }).cur.awk, dropCur(2, { ...boss, zod: 1 }).cur.awk];
+    S.prd = PRD0(); o.low = cnt(2, { ...boss, tier: 9 });
+    S.prd = PRD0(); o.elite = cnt(1, boss); o.mob = cnt(0, boss);
+    S.prd = PRD0(); o.rate = cnt(2, boss) / n;
+    S.prd = PRD0(); let run = 0, worst = 0;
+    for (let i = 0; i < 5000; i++) { if (dropCur(2, boss).cur.awk) run = 0; else worst = Math.max(worst, ++run); }
+    o.worst = [worst, prdMax(AWK_P)];
+    o.cur = [CUR.awk.n, newMat().awk, PRD0().awk];
+    [S.prd, Math.random] = keep;
+    return o;
+  })()`);
+  ok(
+    '覺醒石掉落：生肖王一定 1 顆（階級不到也有）；階級 10 以上的王 3%（兩萬次誤差 < 0.4%）、連續沒中不超過保底上限；階級 9 的王、菁英、小怪都沒有；通貨與保底計數器有這一格',
+    j(awd.zod) === '[1,1]' &&
+      awd.low === 0 &&
+      awd.elite === 0 &&
+      awd.mob === 0 &&
+      Math.abs(awd.rate - 0.03) < 0.004 &&
+      awd.worst[0] <= awd.worst[1] &&
+      j(awd.cur) === '["覺醒石",0,0]',
+    j(awd)
   );
   /* 豐血：裝備與天賦給的生命（+x 與提高 %）×1.5、昇華小點的提高與角色等級、能力值給的不乘；無法獲得能量護盾 */
   G.PTREE.I.zz = { s: { life: 40, hpP: 20 } };
@@ -1177,7 +1374,8 @@ const RA = (() => {
   vm.runInContext(gs8.slice(gs8.indexOf('/* mana：喝魔力藥劑'), gs8.indexOf('/* 受傷：完美閃避')), c8);
   vm.runInContext(gs8.slice(gs8.indexOf('function updShots'), gs8.indexOf('/* ---------- 主迴圈')), c8);
   R(
-    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })), gems: [], inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat() }; ST = stats(S); mechEnter();`
+    `${HELP}
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()), inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat() }; ST = stats(S); mechEnter();`
   );
   R(`var P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 }, MKD = Object.values(MOBS)[0], base = { ...ST }, r2 = v => Math.round(v * 100) / 100,
      mk = (x = 40, y = 0, e = {}) => ({ D: MKD, x, y, r: 12, sz: 20, hp: 1e6, mhp: 1e6, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, dmg: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...e }),
@@ -1185,7 +1383,7 @@ const RA = (() => {
        G.t = 100; G.mm = null; G.mobs = []; G.shots = []; G.allies = []; G.grenades = []; G.units = []; G.state = 'play'; G.scene = 'map'; DEAD = 0; WARN = '';
        ST = { ...base, dmg: [100, 100], wadd: { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] }, add: { flat: [0, 0], fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] }, armor: 0, block: 0, defl: 0, ev: 0, hp: 1000, mp: 1000, es: 0, noCrit: 1, noMiss: 1 };
        Object.assign(P, { x: 0, y: 0, vx: 0, vy: 0, face: 0, hp: 1000, mp: 1000, es: 0, ail: {}, buf: {}, stk: null, chg: {}, rage: 0, leech: null, lifeLost: -9, cds: {}, evE: null, lastHit: null, ammo: {}, gren: {}, rageCd: 0, rageDec: 0, mdx: 1, mdy: 0, roll: null, iuntil: 0, form: null, hurtT: 0 });
-       S.skills = [0, 1, 2, 3, 4].map(() => ({ a: null }));
+       S.skills = [0, 1, 2, 3, 4].map(() => newSlot());
      },
      A = (k, g) => ({ k, c: gemCfg(g || mkGem(k, 5), 0), ang: 0, tx: 60, ty: 0, hits: [0], n: 0 });`);
   return R;
@@ -1340,7 +1538,7 @@ const RA = (() => {
       st = (at, eq = {}) => stats({ lv: 90, eq, pt: [], asc: 'engineer', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
       apG = () => mkGem('apshot', 5),
       grG = () => mkGem('grenade', 5),
-      eq2 = (...gs) => { S.skills = [0, 1, 2, 3, 4].map(() => ({ a: null })); gs.forEach((x, i) => (S.skills[i].a = x)); },
+      eq2 = (...gs) => { S.skills = [0, 1, 2, 3, 4].map(() => newSlot()); gs.forEach((x, i) => EQ(i, x)); },
       /* 打一發穿甲彈：付費（彈藥、魔力）→ 出手 → 子彈飛到怪身上 */
       fire = (g, m) => { const c = gemCfg(g, 0); skillPay(c, 0); actHit({ k: 'apshot', c, ang: 0, tx: 60, ty: 0, hits: [0], n: 0 }, 0); for (let i = 0; i < 12 && G.shots.length; i++) updShots(1 / 60); return m ? 1e6 - m.hp : 0; },
       boomG = (x, y) => { const c = gemCfg(grG(), -1); throwGrenade(c, x, y, { from: { x, y }, r: 100, fuse: 0.001 }); grenadeTick(0.01); };
@@ -1367,7 +1565,7 @@ const RA = (() => {
     /* 斷後：彈夾打空的那一發，在命中處留一顆你裝著的榴彈（每次出手一顆、不花榴彈次數）；前面的發數不留；沒點、沒裝榴彈不留 */
     const rear = (flag, withGr = true, q = 0, proj = 0) => {
       reset(); ST.rearGuard = flag; ST.proj = proj;
-      const a = apG(); a.q = q; eq2(a, withGr ? grG() : null);
+      const a = apG(); a.aw = q ? 'A' : ''; eq2(a, withGr ? grG() : null);
       const m = mk(40, 0); G.mobs = [m];
       const out = [];
       for (let i = 0; i < 6; i++) { fire(a, m); out.push(G.grenades.length); m.hp = 1e6; }
@@ -1375,7 +1573,7 @@ const RA = (() => {
     };
     o.rear = [rear(1), rear(0), rear(1, false), rear(1, true, 0, 1)];
     /* 跟穿甲彈品質的「最後一發爆炸」疊：同樣最後一發，有品質的比較痛，榴彈照樣留 */
-    const lastDmg = q => { reset(); ST.rearGuard = 1; const a = apG(); a.q = q; eq2(a, grG()); const m = mk(40, 0); G.mobs = [m]; let d = 0; for (let i = 0; i < 6; i++) { d = fire(a, m); m.hp = 1e6; } return [d, G.grenades.length]; };
+    const lastDmg = q => { reset(); ST.rearGuard = 1; const a = apG(); a.aw = q ? 'A' : ''; eq2(a, grG()); const m = mk(40, 0); G.mobs = [m]; let d = 0; for (let i = 0; i < 6; i++) { d = fire(a, m); m.hp = 1e6; } return [d, G.grenades.length]; };
     const qa = lastDmg(0), qb = lastDmg(20); o.rearQ = [qb[0] > qa[0], qa[1], qb[1]];
     /* 斷後留的榴彈：油榴彈也行 */
     reset(); ST.rearGuard = 1; const ag = apG(); eq2(ag, mkGem('oilgrenade', 5)); const mo = mk(40, 0); G.mobs = [mo]; for (let i = 0; i < 6; i++) { fire(ag, mo); mo.hp = 1e6; } o.rearOil = G.grenades.length && G.grenades[0].c.k;
@@ -1474,7 +1672,7 @@ const RA = (() => {
   const g = RA(`(() => {
     const o = {},
       ring = () => Object.assign(mkItem('r_iron', 1, 0), { a: [{ k: 'spirit', v: 300, T: 1 }] }),
-      aur = (...k) => k.map(x => mkGem(x, 5)),
+      aur = (...k) => k.map(x => AU(x, 5)),
       st = (at, auras = []) => stats({ lv: 90, eq: { ring1: ring() }, pt: [], asc: 'ruler', at: ['a_st', ...at.map(x => 'a_' + x)], auras, charms: [] }),
       four = () => aur('golem', 'g_fire', 'g_ice', 'g_thunder'),
       B1 = ['s1', 'bond'], B2 = ['s3', 'lord'], CO = ['s5', 'pact', 's6', 'colossus'];
@@ -1728,7 +1926,7 @@ const RA = (() => {
 
     /* 吼聲不絕：每用掉 1 層強化，所有戰吼的冷卻恢復 1 秒（只有戰吼；沒在冷卻的不動；沒點沒有） */
     rs(); ST.empCdr = 1; ST.wt = 'axe';
-    S.skills[1].a = mkGem('warcry', 5); S.skills[2].a = mkGem('seiscry', 5); S.skills[3].a = mkGem('slash', 5); S.skills[4].a = mkGem('warcry', 5);
+    EQ(1, mkGem('warcry', 5)); EQ(2, mkGem('seiscry', 5)); EQ(3, mkGem('slash', 5)); EQ(4, mkGem('warcry', 5));
     P.cds = { s1: 8, s2: 6, s3: 5, s4: 0 }; P.stk = { emInf: [G.t + 9, G.t + 9, G.t + 9] };
     empUse(A('slash')); o.cdr1 = [P.cds.s1, P.cds.s2, P.cds.s3, P.cds.s4, stkN('emInf')];
     empUse(A('slash')); empUse(A('slash')); o.cdr3 = [P.cds.s1, P.cds.s2, stkN('emInf')];
@@ -1755,11 +1953,11 @@ const RA = (() => {
 
     /* 先登：技能、衝刺、路上撞到的敵人、到達時戰吼冷卻歸零、持劍也能用、不是無敵 */
     rs(); ST.wt = 'sword'; ST.vanguard = 0; ST.str = ST.dex = ST.int = 999;
-    S.skills[0].a = mkGem('vanguard', 5);
+    EQ(0, mkGem('vanguard', 5));
     o.vgOff = [!!wtOK(sl('vanguard')), wtNeed(sl('vanguard')), useSlot(0), WARN];
     ST.vanguard = 1; WARN = '';
     o.vgTags = [sl('vanguard').tags.join(), sl('vanguard').wt === undefined, sl('vanguard').cd, sl('vanguard').dist, sl('vanguard').asc];
-    S.skills[1].a = mkGem('warcry', 5); S.skills[2].a = mkGem('seiscry', 5); P.cds = { s1: 8, s2: 6 };
+    EQ(1, mkGem('warcry', 5)); EQ(2, mkGem('seiscry', 5)); P.cds = { s1: 8, s2: 6 };
     P.x = -250; P.y = 0;
     const on = mk(-150, 0), on2 = mk(-60, 20), off = mk(-100, 300), at = mk(0, 0);
     G.mobs = [on, on2, off, at];
@@ -1786,14 +1984,14 @@ const RA = (() => {
     P.stag = 0; playerStagger(1e9); o.vgAfter = [P.stag > G.t];
     /* 品質：擊退更遠（20% 品質 ＋20%） */
     rs(); ST.wt = 'sword'; ST.vanguard = 1; ST.str = 999; P.x = -250; P.y = 0;
-    const kbOf = q => { const g = mkGem('vanguard', 5); g.q = q; S.skills[0].a = g; const m = mk(-150, 0); G.mobs = [m]; P.act = null; P.cds = {}; P.x = -250; useSlot(0); let k = 0; while (P.act && k++ < 200) { G.t += 0.02; skillTick(P.act, 0.02, 0, 0); } return m.vx; };
+    const kbOf = q => { const g = mkGem('vanguard', 5); g.aw = q ? 'A' : ''; EQ(0, g); const m = mk(-150, 0); G.mobs = [m]; P.act = null; P.cds = {}; P.x = -250; useSlot(0); let k = 0; while (P.act && k++ < 200) { G.t += 0.02; skillTick(P.act, 0.02, 0, 0); } return m.vx; };
     const k0 = kbOf(0), k20 = kbOf(20);
     o.vgKb = [k0 > 0, r2(k20 / k0)];
 
     /* 一夫當關：持矛時先登到達後舉矛招架 1.5 秒，擋下 1 顆耐力球、每 0.5 秒最多一次；沒拿矛沒有招架 */
     const land = (wt, hold) => {
       rs(); ST.wt = wt; ST.vanguard = 1; ST.spearHold = hold; ST.str = 999; P.x = -250; P.y = 0; P.cds = {};
-      S.skills[0].a = mkGem('vanguard', 5); G.mobs = [mk(900, 900)]; useSlot(0);
+      EQ(0, mkGem('vanguard', 5)); G.mobs = [mk(900, 900)]; useSlot(0);
       let k = 0; while (P.act && k++ < 200) { G.t += 0.02; skillTick(P.act, 0.02, 0, 0); }
       return k;
     };
@@ -2200,10 +2398,11 @@ const ASC_COMBOS = `const combos = k => {
     rs(); ST.chillInvert = 1; gainBuff('tideRush', 4); G.t += 4.1; o.rushEnd = hasBuff('tideRush');
     rs(); ST.chillInvert = 1; gainBuff('tideRush', 4); const mvOn = buffMove(); P.buf = {}; o.rushMove = r2(mvOn / buffMove());
 
-    /* 汐引：昇華技能，點亮送寶石（不重複）、退點收回；沒點亮不能用；不綁武器 */
+    /* 汐引：昇華技能，點亮才選得到（0.2.75 起不是道具）、退點從格子拿掉（等級留在目錄）；沒點亮不能用；不綁武器 */
     rs(); S.asc = 'tide'; S.at = ['a_st', 'a_s4', 'a_pull']; ascSync(S); ascSync(S);
-    const cnt = () => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === 'tidepull').length;
-    o.gem = [cnt(), S.gems.length];
+    SK(0, 'tidepull', 5);
+    const cnt = () => S.skills.filter(s => s.k === 'tidepull').length;
+    o.gem = [cnt(), libLv('tidepull')];
     ST = stats(S); o.use = [ST.tidepull, !!wtOK(SKILLS.tidepull)];
     S.at = ['a_st', 'a_s4']; ascSync(S); ST = stats(S);
     o.gone = [cnt(), ST.tidepull, !!wtOK(SKILLS.tidepull), wtNeed(SKILLS.tidepull)];
@@ -2223,7 +2422,7 @@ const ASC_COMBOS = `const combos = k => {
     o.pullEnd = [r2(-inM.vx / KB_F), r2(-vert.vy / KB_F)];
     o.salt = G.ground.filter(g => g.k === 'salt').map(g => [g.x, g.y, g.r, g.dur, !g.side]);
     /* 品質每 1% 多留 0.1 秒（20% 品質 +2 秒） */
-    rs(); ST.tidepull = 1; const qg = mkGem('tidepull', 5); qg.q = 20; const aq = { k: 'tidepull', c: gemCfg(qg, 0), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 };
+    rs(); ST.tidepull = 1; const qg = mkGem('tidepull', 5); qg.aw = 'A'; const aq = { k: 'tidepull', c: gemCfg(qg, 0), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 };
     G.mobs = []; actHit(aq, 0); o.saltQ = G.ground.map(g => g.dur);
     /* 鹹水地面：站在上面的敵人冰緩 30%、標記鹹水（0.2 秒）；離開／過期後沒有；圈外沒有；玩家自己不吃（它是玩家方的地面） */
     rs(); const sg = mk(0, 0), so = mk(900, 0); G.mobs = [sg, so]; P.x = 2000; P.y = 2000;
@@ -2338,7 +2537,7 @@ const ASC_COMBOS = `const combos = k => {
   );
   ok(
     '汐引（昇華技能）：點亮送 1 顆寶石（不重複）、退點收回、沒點亮不能用；不綁武器、冷卻 8 秒、冰冷＋閃電的法術擊中（兩種各一半、沒有物理與火焰）',
-    j(g.gem) === '[1,1]' &&
+    j(g.gem) === '[1,5]' &&
       j(g.use) === '[1,true]' &&
       j(g.gone) === '[0,0,false,"要點亮昇華點「汐引」"]' &&
       j(g.sk) === '[8,150,"cold",1,true,true,"tidepull"]' &&
@@ -2465,10 +2664,11 @@ const ASC_COMBOS = `const combos = k => {
     G.t += 4.1; o.taken3 = r2(hurtCalc(100, null, 'phys', 1).d / t0); ST.takenUp = 0;
     Math.random = rnd0;
 
-    /* 梭哈技能：點亮送寶石（不重複）、退點收回、沒點亮不能用、不綁武器；冷卻 20 秒；用了就有 4 秒（品質多 1 秒） */
+    /* 梭哈技能：點亮才選得到、退點從格子拿掉（等級留在目錄）、沒點亮不能用、不綁武器；冷卻 20 秒；用了就有 4 秒（覺醒多 1 秒） */
     rs(); S.asc = 'gambler'; S.at = ['a_st', 'a_s1', 'a_gamble', 'a_s3', 'a_allin']; ascSync(S); ascSync(S);
-    const cnt = () => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === 'allin').length;
-    o.gem = [cnt(), S.gems.length];
+    SK(0, 'allin', 5);
+    const cnt = () => S.skills.filter(s => s.k === 'allin').length;
+    o.gem = [cnt(), libLv('allin')];
     ST = stats(S); o.use = [ST.allin, !!wtOK(SKILLS.allin)];
     S.at = ['a_st', 'a_s1', 'a_gamble', 'a_s3']; ascSync(S); ST = stats(S);
     o.gone = [cnt(), ST.allin, !!wtOK(SKILLS.allin), wtNeed(SKILLS.allin)];
@@ -2476,7 +2676,7 @@ const ASC_COMBOS = `const combos = k => {
     const D = SKILLS.allin;
     o.sk = [D.cd, D.dur, !D.wt, D.asc, D.m];
     rs(); ST.allin = 1; actHit(A('allin'), 0); o.cast = [hasBuff('allin')]; G.t += 2.9; o.cast2 = hasBuff('allin'); G.t += 0.2; o.cast3 = hasBuff('allin');
-    rs(); const qg = mkGem('allin', 5); qg.q = 20; actHit({ k: 'allin', c: gemCfg(qg, 0), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); G.t += 3.9; o.castQ = hasBuff('allin'); G.t += 0.2; o.castQ2 = hasBuff('allin');
+    rs(); const qg = mkGem('allin', 5); qg.aw = 'A'; actHit({ k: 'allin', c: gemCfg(qg, 0), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); G.t += 3.9; o.castQ = hasBuff('allin'); G.t += 0.2; o.castQ2 = hasBuff('allin');
 
     /* 逆轉賠率：50% 把元素抗性視為負值（75% → −75%＝這一元素傷害 ×7）；穿透不影響（先翻再不穿）、混沌不算、本來是負的照舊、物理不變；召喚物不算；沒點沒有 */
     /* 武器攻擊的傷害是固定的（法術的傷害範圍會跟著常數亂數變）；cvF 100＝物理全部轉成火焰 */
@@ -2604,7 +2804,7 @@ const ASC_COMBOS = `const combos = k => {
   );
   ok(
     '梭哈（昇華技能）：點亮送 1 顆寶石（不重複）、退點收回、沒點亮不能用；不綁武器、冷卻 20 秒、持續 3 秒（驗收後 4 → 3）；用了有 3 秒（品質 20% 多 1 秒＝4 秒）',
-    j(g.gem) === '[1,1]' &&
+    j(g.gem) === '[1,5]' &&
       j(g.use) === '[1,true]' &&
       j(g.gone) === '[0,0,false,"要點亮昇華點「梭哈」"]' &&
       j(g.sk) === '[20,3,true,"allin",0]' &&
@@ -2946,9 +3146,10 @@ const ASC_COMBOS = `const combos = k => {
     o.def0 = ['gasflask', 'windflask', 'stoneflask', 'flaskBurst', 'flaskPoi', 'flaskHalf', 'poiKillChg'].map(k => base[k]);
     o.tree = [T.N.filter(n => n.big === 1).length, T.N.filter(n => !n.big && n.id !== 'a_st').length, T.N.filter(n => n.g).length, combos('stalker')];
 
-    /* 三瓶昇華技能：點亮送寶石（不重複）、退點收回、沒點亮不能用；不綁武器、沒有冷卻、標籤 flask、不花魔力；任何輔助都插不了（supOK） */
+    /* 三瓶昇華技能：點亮才選得到、退點從格子拿掉、沒點亮不能用；不綁武器、沒有冷卻、標籤 flask、不花魔力；任何輔助都插不了（supOK） */
     rs(); S.asc = 'stalker'; S.at = ['a_st', 'a_s1', 'a_gas', 'a_s4', 'a_wind', 'a_s6', 'a_stone']; ascSync(S); ascSync(S);
-    const cnt = k => [...S.skills.map(s => s.a), ...S.gems, ...S.inv.items, ...S.stash.items].filter(g => g && g.gem === k).length;
+    SK(0, 'gasflask', 1); SK(1, 'windflask', 1); SK(2, 'stoneflask', 1);
+    const cnt = k => S.skills.filter(s => s.k === k).length;
     o.gem = [cnt('gasflask'), cnt('windflask'), cnt('stoneflask')];
     ST = stats(S); o.use = [ST.gasflask, ST.windflask, ST.stoneflask, !!wtOK(SKILLS.gasflask), !!wtOK(SKILLS.windflask), !!wtOK(SKILLS.stoneflask)];
     S.at = ['a_st', 'a_s1', 'a_gas']; ascSync(S); ST = stats(S);
@@ -2972,7 +3173,7 @@ const ASC_COMBOS = `const combos = k => {
     /* 毒霧藥劑：算喝藥；圈內（半徑 120）每 0.5 秒受一次混沌擊中（武器傷害 ×0.4 轉成混沌）並必定中毒；圈外不動；持續 3 秒（吃藥劑效果 50% → 4.5 秒、品質 20% 再 +1 秒） */
     const gas = (ex = {}, q = 0) => {
       rs(); ST.gasflask = 1; Object.assign(ST, ex);
-      const g0 = mkGem('gasflask', 5); g0.q = q; const c = gemCfg(g0, 0), a = { k: 'gasflask', c, ang: 0, tx: 300, ty: 0, hits: [0], n: 0 };
+      const g0 = mkGem('gasflask', 5); g0.aw = q ? 'A' : ''; const c = gemCfg(g0, 0), a = { k: 'gasflask', c, ang: 0, tx: 300, ty: 0, hits: [0], n: 0 };
       const inM = mk(380, 0), out = mk(500, 0);
       G.mobs = [inM, out]; actHit(a, 0);
       return { g: G.ground.find(g => g.k === 'gas'), inM, out, c, a };
@@ -3724,7 +3925,8 @@ const ASC_COMBOS = `const combos = k => {
     filename: 'skills.js'
   });
   R(
-    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: ['a_st'], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; S.eq.off = mkItem(BASES.find(b => b.k === 'shield').id, 10, 0); S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 99, T: 1 }]; ST = stats(S); ST.cdr = 0;`
+    `${HELP}
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: ['a_st'], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()) }; S.eq.off = mkItem(BASES.find(b => b.k === 'shield').id, 10, 0); S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 99, T: 1 }]; ST = stats(S); ST.cdr = 0;`
   );
   const count = (k, multi) =>
     R(`(() => {
@@ -3782,15 +3984,13 @@ const ASC_COMBOS = `const combos = k => {
       !['iai', 'frosttrap', 'blastmine', 'wolf', 'paperdoll'].some(k => cfg(k)[0])
   );
   ok(
-    '自動化：品質 20% 附加冷卻 6.4 秒',
+    '自動化：附加冷卻 8 秒（品質拔掉了）',
     Math.abs(
-      R(
-        `(() => { const g = mkGem('fireball', 5); g.sup[0] = mkGem('autocast', 1); g.sup[0].q = 20; return gemCfg(g, 0).cd; })()`
-      ) - 6.4
+      R(`(() => { const g = mkGem('fireball', 5); g.sup[0] = mkGem('autocast', 1); return gemCfg(g, 0).cd; })()`) - 8
     ) < 1e-9
   );
   const run = R(`(() => {
-    const g = mkGem('fireball', 5); g.sup[0] = mkGem('autocast', 1); S.skills[0].a = g;
+    const g = mkGem('fireball', 5); g.sup[0] = mkGem('autocast', 1); EQ(0, g);
     G.shots = []; G.mobs = []; P.mp = 1e4; P.cds = {};
     autoTick(); const none = G.shots.length;
     G.mobs = [{ x: P.x + 300, y: P.y, hp: 10, ail: {} }];
@@ -3813,12 +4013,6 @@ const ASC_COMBOS = `const combos = k => {
   ok('技能面板的數字沒有 NaN', !badn.length, JSON.stringify(badn));
   const nod = nums.filter(([, h, , , , ef]) => h == null && !ef).map(x => x[0]);
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
-  /* 品質（0.2.29） */
-  ok(
-    '品質：168 顆寶石都有效果說明，沒有多的',
-    R(`Object.keys({ ...SKILLS, ...SUPPORTS, ...AURAS }).every(k => QUAL[k]) && Object.keys(QUAL).length`) === 169,
-    R(`Object.keys(QUAL).length`)
-  );
   /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
   const bow = R(`(() => {
     G.mobs = []; G.t = 100; G.kills = 0; ST.chain = 3; ST.dmg = [100, 100]; globalThis.spawnMob = (D, x, y) => mk(x - P.x); globalThis.aggroPack = globalThis.sparks = globalThis.hitstop = globalThis.killMob = () => {};
@@ -3826,7 +4020,7 @@ const ASC_COMBOS = `const combos = k => {
       mk = x => { const m = { D, x: P.x + x, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {} }; G.mobs.push(m); return m; },
       [a, b, c, d] = [40, 80, 120, 160].map(mk),
       g = mkGem('split', 5);
-    g.q = 20;
+    g.aw = 'A';
     const cf = gemCfg(g, 0), pre = hitCalc(cf, a, { keep: 1 }).pre, hurt = m => m.hp < m.mhp, out = [];
     out.push(Math.round((pre.light / (pre.light + pre.phys)) * 100), cf.chain, cf.proj);
     hitMob(a, cf, 0, 0);
@@ -3924,38 +4118,12 @@ const ASC_COMBOS = `const combos = k => {
     ctl
   );
   ok(
-    '品質：說明的數字照比例換算',
-    R(`[qualText('fury', 0), qualText('fury', 10), qualText('autocast', 20), qualText('fireball', 10)].join('|')`) ===
-      '魔力倍率 ×1.4 降到 ×1.4|魔力倍率 ×1.4 降到 ×1.3|附加冷卻 8 秒降到 6.4 秒|爆炸處留下燃燒地面 0.75 秒',
-    R(`qualText('fury', 10)`)
-  );
-  const qc = R(`(() => {
-    S.mat = newMat(); S.mat.soul = 750;
-    const a = mkGem('fireball', 1), b = mkGem('multi', 1), o = mkGem('anger', 1);
-    gemQUp(a); const a1 = [a.q, S.mat.soul];
-    gemQUp(b); const b1 = [b.q, S.mat.soul];
-    gemQUp(a, 1); const a2 = [a.q, S.mat.soul];
-    const whyFull = gemQCheck(a).why;
-    S.mat.soul = 150; gemQUp(b, 1); const b2 = [b.q, S.mat.soul];
-    S.mat.soul = 70; gemQUp(o, 1); const o1 = [o.q, S.mat.soul, gemQCheck(o).why];
-    return JSON.stringify([a1, b1, a2, whyFull, b2, o1]);
-  })()`);
-  ok(
-    '品質：花靈魂（技能、光環每 1% 30 魂，輔助每次 2% 60 魂），靈魂不夠時能升多少升多少',
-    qc === '[[1,720],[2,660],[20,90],"品質已滿",[6,30],[2,10,"靈魂不夠（要 30）"]]',
-    qc
-  );
-  const qs = R(`(() => {
-    const cf = (k, sp, lv = 5) => { const g = mkGem(k, lv); g.q = 20; const x = mkGem(sp, 1); x.q = 20; g.sup[0] = x; return gemCfg(g, 0); };
-    const fb = mkGem('fireball', 10), fq = mkGem('fireball', 10); fq.q = 20;
-    return JSON.stringify([cf('fireball', 'multi').fan, cf('fireball', 'fury').mp / gemCfg(mkGem('fireball', 5), 0).mp,
-      cf('slash', 'bleed').ailMag, cf('fireball', 'poison').ailMag, cf('chaosbolt', 'wither').witherMax,
-      gemCfg(fq, 0).mult === gemCfg(fb, 0).mult, gemCfg(fq, 0).q]);
-  })()`);
-  ok(
-    '品質：多重投射角度減半、狂暴魔力 ×1.2、流血中毒強度 +20、凋零 18 層、品質不加技能倍率',
-    /^\[0\.5,1\.\d+,20,20,18,true,1\]$/.test(qs) && Math.abs(JSON.parse(qs)[1] - 1.2) < 0.15,
-    qs
+    '品質拔掉了（0.2.75）：沒有技能／輔助／光環的品質函式與常數；輔助、光環沒有品質欄位',
+    R(
+      `[typeof gemQUp, typeof gemQCheck, typeof GEM_Q_SOUL, typeof gemQStep, typeof gemUp, typeof gemUpMax, typeof gemUpAll].join()`
+    ) === 'undefined,undefined,undefined,undefined,undefined,undefined,undefined' &&
+      R(`gemCfg(Object.assign(mkGem('fireball', 5), { q: 20 }), 0).q`) === 0 &&
+      R(`gemCfg(Object.assign(mkGem('fireball', 5), { aw: 'A' }), 0).q`) === 1
   );
   /* 0.2.30 狀態圖示、鍛造預覽 */
   const si = R(`[...Object.values(STATE).map(s => s[1]), ...Object.keys(CURSES).map(curseIc)]`).filter(
@@ -4095,7 +4263,7 @@ const ASC_COMBOS = `const combos = k => {
     out.gain = [ga.armor, ga.ev];
     out.es = o([{ k: 'es', v: 50 }, { k: 'defP', v: 100 }, { k: 'esTot', v: 10 }]).es;
     out.tot = [o([], ['x6']).hp, o([{ k: 'lifeTot', v: 20 }], ['x6']).hp, o([{ k: 'accTot', v: 5 }]).acc - o([]).acc, o([{ k: 'spiritTot', v: 5 }]).spirit - o([]).spirit];
-    const au = [{ gem: 'precise', lv: 1, q: 0 }];
+    const au = [{ k: 'precise', so: [null, null], n: 2 }];
     out.spirit = [o([], [], au).spiritUsed, o([{ k: 'spiritEff', v: 50 }], [], au).spiritUsed];
     out.auraM = [o([], [], au).critInc, o([{ k: 'buffEff', v: 50 }, { k: 'buffMag', v: 100 }], [], au).critInc, o([{ k: 'auraEff', v: 50 }], [], au).critInc];
     const mpk = Object.keys(SKILLS).find(k => SKILLS[k].mp > 0), mp0 = gemCfg(mkGem(mpk, 10), 0).mp;
@@ -4621,7 +4789,8 @@ const ASC_COMBOS = `const combos = k => {
     filename: 'skills.js'
   });
   R(
-    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; S.eq.weapon = mkItem('w_mace1_0', 10, 0); S.eq.off = mkItem(BASES.find(b => b.k === 'shield').id, 10, 0); S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 99, T: 1 }]; ST = stats(S);`
+    `${HELP}
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()) }; S.eq.weapon = mkItem('w_mace1_0', 10, 0); S.eq.off = mkItem(BASES.find(b => b.k === 'shield').id, 10, 0); S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 99, T: 1 }]; ST = stats(S);`
   );
   const hudSrc = fs.readFileSync(path.join(__dirname, '..', 'js', 'hud.js'), 'utf8');
   /* 1. 分類標籤 */
@@ -4776,7 +4945,7 @@ const ASC_COMBOS = `const combos = k => {
     G.t = 104; out.push(recent('kill'), recent('crit'));
     G.t = 104.01; out.push(recent('kill'));
     G.t = 50; out.push(recent('kill'));
-    G.t = 103.5; const g = mkGem('slash', 5); g.sup[0] = mkGem('haste', 1); g.sup[0].q = 20;
+    G.t = 103.5; const g = mkGem('slash', 5); g.sup[0] = mkGem('haste', 1);
     const sp = () => gemCfg(g, 0).speed; out.push(+sp().toFixed(4)); G.t = 104.1; out.push(+sp().toFixed(4));
     const ring = n => Array.from({ length: n }, (_, i) => mob(80 * Math.cos(i), 80 * Math.sin(i)));
     G.mobs = ring(5); out.push(surrounded());
@@ -4792,8 +4961,8 @@ const ASC_COMBOS = `const combos = k => {
     return out;
   })()`);
   ok(
-    '條件：近期＝4 秒（擊殺、擊中各自記、沒記的不算、時間倒退不算）；連擊輔助的品質改吃近期擊殺（3.5 秒還在、4.1 秒沒了）',
-    cd.slice(0, 4).join() === 'false,true,false,false' && cd[4] === false && cd[5] === 1.4375 && cd[6] === 1.25,
+    '條件：近期＝4 秒（擊殺、擊中各自記、沒記的不算、時間倒退不算）；急速輔助不再有近期擊殺的品質加成（3.5 秒、4.1 秒都是 ×1.25）',
+    cd.slice(0, 4).join() === 'false,true,false,false' && cd[4] === false && cd[5] === 1.25 && cd[6] === 1.25,
     cd.slice(0, 7).join()
   );
   ok(
@@ -4884,8 +5053,9 @@ const ASC_COMBOS = `const combos = k => {
     out.mvBleed = [mb(1), mb(0)];
     G.t = 100;
     /* 惡化點燃：同一次使用再點燃同一目標，移除舊筆、新筆幅度 × 累計筆數 */
-    const pre = { phys: 0, fire: 0.001, cold: 0, light: 0, chaos: 0 }, rr = { pre, post: pre }, ci = { D: { tags: [] }, q: 0, addIgn: 100 };
-    const hitI = (m, c, use) => applyAil(m, rr, c, use);
+    const pre = { phys: 0, fire: 0.001, cold: 0, light: 0, chaos: 0 }, rr = { pre, post: pre }, ci = { D: { tags: [] }, q: 0 };
+    /* 易燃一律 100：每一下都點燃（原本靠附加火焰輔助的品質，0.2.75 品質拔掉了） */
+    const hitI = (m, c, use) => ((m.ail.flam = 100), (m.ail.flamT = G.t + 8), applyAil(m, rr, c, use));
     G.t = 100; m = mk(); a = m.ail; a.flam = 0;
     const u = {}, ca = { ...ci, compound: 1 };
     hitI(m, ca, u); const d1 = a.ign.dps; hitI(m, ca, u); const d2 = a.ign.dps; hitI(m, ca, u); const d3 = a.ign.dps;
@@ -5014,7 +5184,7 @@ const ASC_COMBOS = `const combos = k => {
     let m = mk(); apply(m); const b0 = m.ail.bleed.dps, p0 = m.ail.poi[0].dps;
     ST.bleedMag = 100; m = mk(); apply(m); out.bleed = [rd(m.ail.bleed.dps / b0), rd(m.ail.poi[0].dps / p0)]; ST.bleedMag = 0;
     ST.poiMag = 100; m = mk(); apply(m); out.poi = [rd(m.ail.bleed.dps / b0), rd(m.ail.poi[0].dps / p0)]; ST.poiMag = 0;
-    const ig = { addIgn: 100 }; m = mk(); apply(m, ig, F0); const i0 = m.ail.ign.dps; ST.ignMag = 100; m = mk(); apply(m, ig, F0); out.ign = rd(m.ail.ign.dps / i0); ST.ignMag = 0;
+    const igA = () => { m = mk(); m.ail.flam = 100; m.ail.flamT = G.t + 8; apply(m, {}, F0); return m.ail.ign.dps; }; const i0 = igA(); ST.ignMag = 100; out.ign = rd(igA() / i0); ST.ignMag = 0;
     /* 緋紅猛攻：新上的流血是加劇、2 秒 */
     ST.aggAll = 1; m = mk(); apply(m); out.agg = [m.ail.bleed.agg, rd(m.ail.bleed.t - G.t), rd(bleedNow(m.ail, 0) / m.ail.bleed.dps)]; ST.aggAll = 0;
     m = mk(); apply(m); out.agg0 = m.ail.bleed.agg || 0;
@@ -5437,7 +5607,8 @@ const ASC_COMBOS = `const combos = k => {
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8'), c4, {
     filename: 'skills.js'
   });
-  R(`S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; ST = stats(S);
+  R(`${HELP}
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()) }; ST = stats(S);
      mechEnter();
      Object.assign(ST, { hp: 1000, es: 0, ev: 1000, acc: 1000, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, maxRes: { fire: 75, cold: 75, light: 75, chaos: 75 }, armor: 0, block: 0, defl: 0 });`);
   const g = R(`(() => {
@@ -5868,7 +6039,8 @@ const ASC_COMBOS = `const combos = k => {
   ok('基底：商人賣得到新基底', !noSell.length, noSell.join());
   /* 十字弓的固定詞：多裝填 1 發、多丟 1 顆榴彈 */
   R(
-    `S = { lv: 100, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 999, T: 1 }];`
+    `${HELP}
+    S = { lv: 100, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()) }; S.eq.ring1 = mkItem('r_iron', 10, 0); S.eq.ring1.a = [{ k: 'attrA', v: 999, T: 1 }];`
   );
   const shots = id =>
     R(`(() => {
@@ -5974,44 +6146,6 @@ const ASC_COMBOS = `const combos = k => {
   R('S.story.crow = 1');
   ok('NPC：解鎖後赤鴉出現', R(`npcList().some(n => n.id === 'crow')`));
 }
-/* 技能寶石改版：升滿不把寶石升到失效、全部升滿平均分 */
-{
-  const R = s => vm.runInContext(s, ctx);
-  R(`var mkG = (k, lv) => Object.assign(mkGem(k), { lv });
-     S = { lv: 72, eq: {}, pt: [...PT_START], ptA: {}, asc: null, at: [], auras: [], charms: [], mat: Object.assign(newMat(), { soul: 1e7 }) };
-     ST = stats(S);`);
-  ok(
-    '升滿：停在升完還能用的最高級，原因寫得出來',
-    R(`(() => {
-      const g = mkG('slash', 1), a = gemMaxCheck(g), free = gemLack({ ...g, lv: a.lv }).length;
-      const next = gemLack({ ...g, lv: a.lv + 1 }).length;
-      const top = mkG('slash', a.lv), b = gemMaxCheck(top);
-      return a.lv > 1 && !free && next > 0 && !!b.why && /要/.test(b.why);
-    })()`)
-  );
-  ok(
-    '升滿：輔助與光環沒有能力值需求，升到角色上限',
-    R(`gemMaxCheck(mkG('fury', 1)).lv === gemCap(S.lv) && gemMaxCheck(mkG('anger', 1)).lv === gemCap(S.lv)`)
-  );
-  ok(
-    '全部升滿：靈魂不夠時最低等的先升、花費不超過持有、不把任何一顆升到失效',
-    R(`(() => {
-      S.mat.soul = 500;
-      const L = [mkG('fury', 2), mkG('crit', 9), mkG('area', 2), mkG('slash', 3)], before = L[1].lv, P = gemAllPlan(L);
-      const c = P.c, n = gemUpAll(L), lv = L.map(g => g.lv);
-      return c <= 500 && S.mat.soul === 500 - c && n === P.L.length && L[1].lv === before && lv[0] > 2 && lv[2] > 2 && Math.abs(lv[0] - lv[2]) <= 1 && !L.some(g => gemLack(g).length);
-    })()`)
-  );
-  ok(
-    '全部升滿：靈魂夠的時候跟一顆一顆升滿花的一樣',
-    R(`(() => {
-      S.mat.soul = 1e7;
-      const A = mkG('fury', 4), B = mkG('crit', 7), c = gemAllPlan([A, B]).c;
-      const one = gemMaxCheck(A).c + gemMaxCheck(B).c;
-      return c === one;
-    })()`)
-  );
-}
 /* 第 12 批：增益與資源（combat.js 的 BUFF）：疊層、上限、到期、數值生效、不是 NaN；奇術活力、滿溢聖杯 */
 {
   const c5 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
@@ -6030,7 +6164,8 @@ const ASC_COMBOS = `const combos = k => {
   const gs = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, '');
   vm.runInContext(gs.slice(gs.indexOf('function drinkFlask'), gs.indexOf('/* 受傷：完美閃避')), c5);
   R(
-    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; ST = stats(S); mechEnter();`
+    `${HELP}
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()) }; ST = stats(S); mechEnter();`
   );
   const b = R(`(() => {
     const o = {}, D = Object.values(MOBS)[0],
@@ -6118,10 +6253,10 @@ const ASC_COMBOS = `const combos = k => {
       nChg = () => chgN('e') + chgN('f') + chgN('p');
     reset(); run(6); o.dy0 = nChg();
     reset(); gainStk('dyn'); run(4.9); const dy1 = nChg(); run(0.2); o.dy = [dy1, nChg()];
-    o.dyT = [['str', 'e'], ['dex', 'f'], ['int', 'p']].map(([a, c]) => { reset(); S.skills[0].a = mkGem(only(a), 5); dynChg(); return chgN(c); });
-    reset(); S.skills[0].a = mkGem(only('str'), 5); S.skills[1].a = mkGem(only('int'), 5);
+    o.dyT = [['str', 'e'], ['dex', 'f'], ['int', 'p']].map(([a, c]) => { reset(); EQ(0, mkGem(only(a), 5)); dynChg(); return chgN(c); });
+    reset(); EQ(0, mkGem(only('str'), 5)); EQ(1, mkGem(only('int'), 5));
     const seen = { e: 0, f: 0, p: 0 }; for (let i = 0; i < 300; i++) { P.chg = {}; dynChg(); for (const c in seen) seen[c] += chgN(c); } o.dyW = seen;
-    S.skills[0].a = S.skills[1].a = null; reset(); dynChg(); o.dyNone = nChg();
+    EQ(0, null); EQ(1, null); reset(); dynChg(); o.dyNone = nChg();
     /* 滿溢聖杯：每秒 2 充能＝0.2 瓶、恢復量跟藥劑效果同池、到上限為止 */
     reset(); P.flask = 0; P.mflask = 1; gainStk('chalice', 1, 10); run(1); o.fl = [r2(P.flask), r2(P.mflask)]; run(10); o.fl2 = r2(P.flask);
     reset(); P.flask = P.mflask = 2.99; gainStk('chalice', 1, 5); run(2); o.fl3 = [P.flask, P.mflask];
@@ -6235,7 +6370,8 @@ const ASC_COMBOS = `const combos = k => {
   vm.runInContext(gs.slice(gs.indexOf('const DIR8'), gs.indexOf('/* ---------- 怪物的目標')), c6);
   vm.runInContext(gs.slice(gs.indexOf('function spawnMob'), gs.indexOf('/* ---------- 輸入')), c6);
   R(
-    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) }; ST = stats(S); mechEnter();`
+    `${HELP}
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()) }; ST = stats(S); mechEnter();`
   );
   const b = R(`(() => {
     const o = {}, D = Object.values(MOBS)[0],
@@ -6258,7 +6394,7 @@ const ASC_COMBOS = `const combos = k => {
     o.tags = [tagOf('venom').includes('orb'), tagOf('rend').includes('payoff'), tagOf('fissure').includes('payoff'), tagOf('grenade').includes('grenade'), tagOf('banner').includes('banner'), tagOf('warcry').includes('cascade'), tagOf('nova').includes('cascade'), tagOf('meteor').includes('cascade'), tagOf('cu_vuln').includes('cascade'), tagOf('slash').includes('final'), tagOf('chainsweep').includes('final'), tagOf('paperdoll').includes('temp')];
     o.tagNo = [tagOf('fireball').includes('cascade'), tagOf('smash').includes('payoff'), tagOf('thrust').includes('payoff')];
     o.stageFinal = Object.keys(SKILLS).filter(k => !!SKILLS[k].stage !== tagOf(k).includes('final'));
-    o.terms = ['寶珠技能','捷光環技能','遣散技能','擲彈技能','鬥旗技能','疾風技能','風暴技能','可爆發技能','主要寶石','連結的輔助技能','分裂','迴旋','超限格擋率','效果消耗','最終打擊','終極','擴散傷害','只有最低或最高傷害','封印','極大','暫時召喚物','召喚物死亡及擊殺召喚物','復甦召喚物','迷蹤','無法閃避翻滾或衝刺','閃避翻滾無法躲避傷害','預期擊退','黑暗血鐮訓練','循環教義','騎士信條','堅鐵之力','鋼鐵意志','無法獲得力量的固有加成','無法獲得敏捷的固有加成','無法獲得智慧的固有加成'].filter(k => !TERMS[k]);
+    o.terms = ['寶珠技能','捷光環技能','遣散技能','擲彈技能','鬥旗技能','疾風技能','風暴技能','可爆發技能','主要輔助','連結的輔助技能','分裂','迴旋','超限格擋率','效果消耗','最終打擊','終極','擴散傷害','只有最低或最高傷害','封印','極大','暫時召喚物','召喚物死亡及擊殺召喚物','復甦召喚物','迷蹤','無法閃避翻滾或衝刺','閃避翻滾無法躲避傷害','預期擊退','黑暗血鐮訓練','循環教義','騎士信條','堅鐵之力','鋼鐵意志','無法獲得力量的固有加成','無法獲得敏捷的固有加成','無法獲得智慧的固有加成'].filter(k => !TERMS[k]);
     o.statn = [...Object.keys(ATT_KS), 'projAtkP', 'fork', 'splash', 'noRoll', 'rollTank'].filter(k => !STATN[k] || !(k in base));
 
     /* 分裂：第一次擊中變 2 支、原本的消失、不扣穿透；分出來的打到別隻不再分 */
@@ -6365,12 +6501,12 @@ const ASC_COMBOS = `const combos = k => {
     /* 封印：每 every 倍施放時間 1 個、最多 max、打破歸零；沒有 D.seal 的不累積；範圍吃進提高池 */
     reset();
     SKILLS.frostbolt.seal = { max: 3, every: 2, aoe: 30 };
-    S.skills[0].a = mkGem('frostbolt', 1); S.skills[1].a = mkGem('arc', 1);
+    EQ(0, mkGem('frostbolt', 1)); EQ(1, mkGem('arc', 1));
     const per = 2 * actDur(slotCfg(0));
     sealTick(per * 1.5); o.seal1 = sealN('frostbolt');
     for (let i = 0; i < 20; i++) sealTick(per); o.seal2 = [sealN('frostbolt'), sealN('arc')];
     o.seal3 = [sealBreak('frostbolt'), sealN('frostbolt'), sealBreak('arc')];
-    delete SKILLS.frostbolt.seal; S.skills[0].a = S.skills[1].a = null;
+    delete SKILLS.frostbolt.seal; EQ(0, null); EQ(1, null);
 
     /* 極大 */
     reset(); callWolf('gem', null); const w0 = G.allies[0];
@@ -6600,9 +6736,9 @@ const ASC_COMBOS = `const combos = k => {
   );
   /* 0.2.49 C1：11 顆輔助（機制本來就在底層，這裡驗寶石有接上、分類有擋） */
   const c49 = R(`(() => {
-    const cf = (k, sups, q = 0) => {
+    const cf = (k, sups) => {
         const g = mkGem(k, 5);
-        g.sup = sups.map(x => ({ ...mkGem(x, 1), q }));
+        g.sup = sups.map(x => mkGem(x, 1));
         return gemCfg(g, 0);
       },
       r2 = v => +v.toFixed(2),
@@ -6617,7 +6753,6 @@ const ASC_COMBOS = `const combos = k => {
     /* 分裂＋連鎖可以同插；連鎖＋迴旋同分類，只有一顆生效 */
     const fc = cf('axethrow', ['fork', 'chain']), cr = cf('axethrow', ['chain', 'ret']);
     out.cat = [!!fc.fork, fc.chain - base.chain, (cr.chain - base.chain === 2 ? 1 : 0) + (cr.ret ? 1 : 0)];
-    out.q = r2(cf('axethrow', ['fork'], 20).more / base.more);
     /* 一路穿透的冰霜彈、閃電箭插連鎖沒有效果（不相容） */
     out.noChain = [cf('frostbolt', ['chain']).chain, r2(cf('frostbolt', ['chain']).more / cf('frostbolt', []).more), cf('split', ['chain']).chain];
     const q0 = cf('quake', []), fo = cf('quake', ['focus']), fa = cf('quake', ['focus', 'area']);
@@ -6629,27 +6764,28 @@ const ASC_COMBOS = `const combos = k => {
     const m = { D: Object.values(MOBS)[0], hp: 30, mhp: 100, ail: {} };
     out.cull = [culled(m, cf('slash', ['cull'])), culled(m, cf('slash', [])), culled({ ...m, hp: 40 }, cf('slash', ['cull']))];
     /* 三顆觸發輔助：各自的事件累積各自的能量；跟暴擊施放同分類 */
-    const keep = S.skills[0].a;
+    const keep = skGem(0);
     out.meta = [];
     for (const [k, ev, en] of [['cast_kill', 'kill', 5], ['cast_dodge', 'perfect', 40], ['cast_block', 'block', 25]]) {
       const g = mkGem('fireball', 5);
       g.sup = [mkGem(k, 1), null];
-      S.skills[0].a = g;
+      EQ(0, g);
+      P.metaEn = {};
       metaEvent(ev);
       metaEvent('crit');
-      out.meta.push(r2(g.sup[0].en / (1 + ST.energyP / 100)) === en);
+      out.meta.push(r2(P.metaEn[0] / (1 + ST.energyP / 100)) === en);
     }
     const g2 = mkGem('fireball', 5);
     g2.sup = [mkGem('cast_kill', 1), mkGem('cast_crit', 1)];
     out.metaCat = [supOK(SKILLS.fireball, g2.sup[0], g2), supOK(SKILLS.fireball, g2.sup[1], g2)].filter(Boolean).length;
-    S.skills[0].a = keep;
+    EQ(0, keep);
     [ST.fork, ST.chain] = st0;
     return out;
   })()`);
   ok(
-    'C1 輔助：分裂、連鎖 +2、迴旋各讓傷害更少 20%（品質 20% 剩 10%）；分裂可以配連鎖，連鎖與迴旋只有一顆生效；集中效應範圍 ×0.7、更多 30%，不能配範圍擴大',
-    JSON.stringify([c49.proj, c49.cat, c49.q, c49.focus, c49.noChain]) ===
-      '[[true,0.8,2,0.8,true,0.8],[true,2,1],0.9,[0.7,1.3,true],[0,1,0]]',
+    'C1 輔助：分裂、連鎖 +2、迴旋各讓傷害更少 20%；分裂可以配連鎖，連鎖與迴旋只有一顆生效；集中效應範圍 ×0.7、更多 30%，不能配範圍擴大',
+    JSON.stringify([c49.proj, c49.cat, c49.focus, c49.noChain]) ===
+      '[[true,0.8,2,0.8,true,0.8],[true,2,1],[0.7,1.3,true],[0,1,0]]',
     JSON.stringify(c49)
   );
   ok(
@@ -6660,9 +6796,9 @@ const ASC_COMBOS = `const combos = k => {
   );
   /* 0.2.50 C2：附加冰冷／閃電／混沌（可以同插）、魔力偷取、受傷施放、擴張（封印）、貫穿拳 */
   const c50 = R(`(() => {
-    const cf = (k, sups, q = 0) => {
+    const cf = (k, sups) => {
         const g = mkGem(k, 5);
-        g.sup = sups.map(x => ({ ...mkGem(x, 1), q }));
+        g.sup = sups.map(x => mkGem(x, 1));
         return gemCfg(g, 0);
       },
       r2 = v => +v.toFixed(2),
@@ -6671,32 +6807,31 @@ const ASC_COMBOS = `const combos = k => {
     /* 四顆附加可以插在同一招，各加各的元素 */
     const all = cf('slash', ['fireadd', 'coldadd', 'lightadd', 'chaosadd']), b0 = hitCalc(cf('slash', []), m()).pre, b4 = hitCalc(all, m()).pre;
     out.add = [all.fireAdd, all.coldAdd, all.lightAdd, all.chaosAdd, b0.cold + b0.light + b0.chaos === 0, b4.cold > 0 && r2(b4.cold / b4.light) === 1 && r2(b4.cold / b4.chaos) === 1];
-    out.addQ = r2(cf('slash', ['coldadd'], 20).coldAdd);
-    out.mp = [cf('slash', ['mpleech']).mpLeech, r2(cf('slash', ['mpleech'], 20).mpLeech)];
+    out.mp = [cf('slash', ['mpleech']).mpLeech];
     out.punch = [cf('slash', ['punch']).kbEasy, cf('fireball', ['punch']).kbEasy || 0];
     /* 受傷施放：被擊中 +15，跟其他觸發輔助同分類 */
-    const keep = S.skills[0].a, g = mkGem('fireball', 5);
+    const keep = skGem(0), g = mkGem('fireball', 5);
     g.sup = [mkGem('cast_hurt', 1), mkGem('cast_crit', 1)];
-    S.skills[0].a = g;
+    EQ(0, g); P.metaEn = {};
     metaEvent('hurt'); metaEvent('kill');
-    out.hurt = [r2(g.sup[0].en / (1 + ST.energyP / 100)), supOK(SKILLS.fireball, g.sup[1], g)];
+    out.hurt = [r2(P.metaEn[0] / (1 + ST.energyP / 100)), supOK(SKILLS.fireball, g.sup[1], g)];
     /* 擴張：隨時間累積封印（每 2 倍施放時間 1 個，最多 3）；拔掉輔助就清掉 */
     const q = mkGem('quake', 5);
     q.sup = [mkGem('expand', 1), null];
-    S.skills[0].a = q; P.seal = {};
+    EQ(0, q); P.seal = {};
     const c = slotCfg(0), one = 2 * actDur(c);
     sealTick(one * 0.9); const n0 = sealN('quake');
     sealTick(one * 0.2); const n1 = sealN('quake');
     for (let k = 0; k < 6; k++) sealTick(one); const n3 = sealN('quake');
     out.seal = [c.seal.max, c.seal.aoe, n0, n1, n3];
-    q.sup = [null, null]; sealTick(0.1); out.sealOff = sealN('quake');
-    S.skills[0].a = keep; P.seal = {};
+    q.sup = [null, null]; EQ(0, q); sealTick(0.1); out.sealOff = sealN('quake');
+    EQ(0, keep); P.seal = {};
     return out;
   })()`);
   ok(
-    'C2 輔助：四顆附加可以同插、各加 25% 的那種元素（品質 20% 是 30%）；魔力偷取 2%（品質 3%）；貫穿拳只給近戰；受傷施放 +15 且跟暴擊施放只能插一顆；擴張累積封印最多 3 個、拔掉就清掉',
+    'C2 輔助：四顆附加可以同插、各加 25% 的那種元素；魔力偷取 2%；貫穿拳只給近戰；受傷施放 +15 且跟暴擊施放只能插一顆；擴張累積封印最多 3 個、拔掉就清掉',
     JSON.stringify(c50) ===
-      '{"add":[0.25,0.25,0.25,0.25,true,true],"addQ":0.3,"mp":[0.02,0.03],"punch":[3,0],"hurt":[15,false],"seal":[3,30,0,1,3],"sealOff":0}',
+      '{"add":[0.25,0.25,0.25,0.25,true,true],"mp":[0.02],"punch":[3,0],"hurt":[15,false],"seal":[3,30,0,1,3],"sealOff":0}',
     JSON.stringify(c50)
   );
   /* 0.2.51 C3：輔助 II 分級（13 顆）、新寶石的使用等級、重擊輔助真的加沉重暈眩累積 */
@@ -6711,10 +6846,10 @@ const ASC_COMBOS = `const combos = k => {
       out = {};
     const II = Object.keys(SUPPORTS).filter(k => SUPPORTS[k].tier === 2);
     out.n = II.length;
-    /* 每顆 II：名字加 II、跟 I 同分類、同圖示、有品質效果、使用等級 31 */
+    /* 每顆 II：名字加 II、跟 I 同分類、同圖示 */
     out.meta = II.every(k => {
       const U = SUPPORTS[k], B = SUPPORTS[U.base];
-      return U.n === B.n + ' II' && supCat(k) === supCat(U.base) && U.ic === B.ic && QUAL[k] === QUAL[U.base] && gemLv(k) === 31 && U.d !== B.d;
+      return U.n === B.n + ' II' && supCat(k) === supCat(U.base) && U.ic === B.ic && U.d !== B.d;
     });
     /* I 跟 II 不能插在同一招：後插的那顆不生效 */
     const both = cf('axethrow', ['multi', 'multi2']), one = cf('axethrow', ['multi']), two = cf('axethrow', ['multi2']);
@@ -6735,13 +6870,12 @@ const ASC_COMBOS = `const combos = k => {
     ];
     out.heavy = [r2(cf('slash', ['heavy']).more / cf('slash', []).more), cf('slash', ['heavy']).hsM, r2(cf('slash', ['heavy2']).more / cf('slash', []).more), cf('slash', ['heavy2']).hsM];
     /* 使用等級：新寶石都有設，沒有哪一顆還是預設的 1 卻不在名單裡 */
-    out.lv = ['shieldcharge', 'furyslam', 'bloodrage', 'frostwave', 'frostfang', 'swordarray', 'oilgrenade', 'thunderstorm', 'profane', 'snap', 'hexblast', 'fork', 'chain', 'ret', 'focus', 'elepen', 'giant', 'cull', 'nightblade', 'cast_kill', 'cast_dodge', 'cast_block', 'cast_hurt', 'coldadd', 'lightadd', 'chaosadd', 'mpleech', 'expand', 'punch'].filter(k => !GEM_LV[k]);
     return out;
   })()`);
   ok(
-    'C3 分級：13 顆 II 都跟 I 同分類、同圖示、使用等級 31，I 與 II 同插只算一顆；II 的數字照表；重擊輔助的沉重暈眩累積 ×1.5（II ×1.7）；新寶石都有使用等級',
+    'C3 分級：13 顆 II 都跟 I 同分類、同圖示，I 與 II 同插只算一顆；II 的數字照表；重擊輔助的沉重暈眩累積 ×1.5（II ×1.7）',
     JSON.stringify(c51) ===
-      '{"n":13,"meta":true,"dup":[2,0.8,0.9],"nums":[5,1.55,1.45,1.32,70,50,0.04,65,0.32,0.32,0.32,0.32],"heavy":[1.15,1.5,1.22,1.7],"lv":[]}',
+      '{"n":13,"meta":true,"dup":[2,0.8,0.9],"nums":[5,1.55,1.45,1.32,70,50,0.04,65,0.32,0.32,0.32,0.32],"heavy":[1.15,1.5,1.22,1.7]}',
     JSON.stringify(c51)
   );
   /* 0.2.52 D1：怪物選目標、打召喚物、召喚物生命照 PoE2、魔像嘲諷 */
@@ -6777,7 +6911,7 @@ const ASC_COMBOS = `const combos = k => {
     S.lv = 1; S.auras = [];
     out.base = [1, 10, 30, 45, 60, 100, 150].map(l => Math.round(allyBase(l)));
     out.life = [r1(allyLife('gem', { g: { lv: 1 } })), r1(allyLife('golem')), Math.round(allyLife('gem', { g: { lv: 20 } })), Math.round(allyLife('gemt', { g: { lv: 20 } }))];
-    S.auras = [{ gem: 'golem', lv: 20 }]; out.golem20 = Math.round(allyLife('golem'));
+    S.auras = [AU('golem', 20)]; out.golem20 = Math.round(allyLife('golem'));
     Object.assign(G, { allies: keep.allies, mobs: keep.mobs, t: keep.t });
     Object.assign(P, { x: keep.x, y: keep.y, hp: keep.hp });
     S.lv = keep.lv; S.auras = keep.auras;
@@ -6931,7 +7065,7 @@ const ASC_COMBOS = `const combos = k => {
       out = {};
     /* 拿錘：三顆都生效、記等級；拿法杖：不生效、不預留精魂 */
     const wb = k => BASES.find(b => b.k === 'weapon' && b.wt === k);
-    S.auras = [mkGem('h_ash', 1), mkGem('h_ice', 1), mkGem('h_thunder', 1)];
+    S.auras = [AU('h_ash', 1), AU('h_ice', 1), AU('h_thunder', 1)];
     S.eq.weapon = mkItem(wb('mace').id, 16, 0); S.eq.off = null; ST = stats();
     S.eq.weapon = mkItem(wb('wand').id, 16, 0); const sw = stats();
     S.eq.weapon = mkItem(wb('mace').id, 16, 0); ST = stats();
@@ -6971,14 +7105,14 @@ const ASC_COMBOS = `const combos = k => {
     const keep = { eq: { ...S.eq }, au: S.auras, st: ST },
       sp = k => mkGem(k, 1),
       ok = (a, k) => supOK(AURAS[a], sp(k), mkGem(a, 1)),
-      with1 = (a, k, lv = 1) => { const g = mkGem(a, 1); g.sup = [k ? mkGem(k, lv) : null, null]; return g; },
+      with1 = (a, k, lv = 1) => AU(a, 1, ...(k ? [[k, lv]] : [])),
       out = {};
-    out.so = [mkGem('anger', 1).so, mkGem('h_ice', 1).sup.length, !drillCheck(mkGem('anger', 1)).why || drillCheck(mkGem('anger', 1)).why.includes('不夠')];
+    out.so = [AU('anger').n, AU('h_ice').so.length, !drillCheck(AU('anger')).why || drillCheck(AU('anger')).why.includes('不夠')];
     out.ok = [ok('anger', 'auraeff'), ok('h_ash', 'auraeff'), ok('h_ash', 'spiriteff'), ok('anger', 'area'), ok('h_ash', 'area'), ok('h_ash', 'area2'), ok('h_ash', 'focus'), ok('anger', 'fury'), ok('wolfsp', 'pack'), ok('golem', 'pack'), ok('wolfsp', 'giant'), supOK(SKILLS.cleave, sp('area')), ok('offer', 'pack'), ok('golem', 'auraeff'), ok('g_fire', 'pack')];
     S.eq.weapon = mkItem(BASES.find(b => b.k === 'weapon' && b.wt === 'mace').id, 16, 0); S.eq.off = null;
     const st = gs => ((S.auras = gs), stats());
     const a0 = st([with1('anger')]), a1 = st([with1('anger', 'auraeff', 6)]), a2 = st([with1('anger', 'spiriteff')]);
-    out.eff = [Math.round((a1.angerV / a0.angerV) * 100), a0.spiritUsed, a2.spiritUsed];
+    out.eff = [Math.round((a1.fireAdd / a0.fireAdd) * 100), a0.spiritUsed, a2.spiritUsed];
     const h1 = st([with1('h_ash', 'area')]), h2 = st([with1('h_ash', 'focus')]);
     out.her = [h1.herA.ash, h1.herM.ash, h2.herA.ash, h2.herM.ash];
     /* 戰狼精魂、魔像都要 40 精魂（起始 30 開不了），給 300 精魂，用魔像驗群狼的倍率 */
@@ -7243,7 +7377,7 @@ const ASC_COMBOS = `const combos = k => {
     const use = gs => { S.auras = gs; S.pt = ['zz']; ST = stats(S); };
     G.corpses = []; G.allies = [doll, wolf];
     use([null]); out.off = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
-    use([mkGem('offer', 1)]); out.near = corpseNear(P, 250);
+    use([AU('offer', 1)]); out.near = corpseNear(P, 250);
     const cp = takeCorpse(P.x, P.y, 250);
     out.take = [!!cp && cp.ally, cp && cp.mhp, wolf.dead > G.t, +(wolf.dead - G.t).toFixed(2), doll.dead == null, G.corpses.length];
     out.again = [corpseNear(P, 250), takeCorpse(P.x, P.y, 250)];
@@ -7263,9 +7397,9 @@ const ASC_COMBOS = `const combos = k => {
     const keep = { au: S.auras, pt: S.pt, st: ST };
     PTREE.I.zz = { s: { spirit: 300 } };
     S.pt = ['zz'];
-    S.auras = [mkGem('golem', 1), mkGem('wolfsp', 1), null];
+    S.auras = [AU('golem', 1), AU('wolfsp', 1), null];
     const a = stats(S);
-    S.auras = [mkGem('wolfsp', 1), mkGem('golem', 1), null];
+    S.auras = [AU('wolfsp', 1), AU('golem', 1), null];
     const b = stats(S);
     delete PTREE.I.zz;
     Object.assign(S, { auras: keep.au, pt: keep.pt }); ST = keep.st;
@@ -7287,7 +7421,7 @@ const ASC_COMBOS = `const combos = k => {
     PTREE.I.zw = { s: { spirit: 300, armorF: 100, buffMag: 50 } };
     const use = (gs, pt = ['zz']) => { S.auras = gs; S.pt = pt; ST = stats(S); },
       who = () => G.allies.filter(w => AURAS[w.src]).map(w => w.src).join(),
-      g = (k, lv = 1, q = 0) => Object.assign(mkGem(k, lv), { q });
+      g = (k, lv = 1) => AU(k, lv);
     G.mobs = []; G.corpses = []; G.scene = 'map'; P.golDown = '';
     /* 預設值 */
     use([null], []);
@@ -7310,15 +7444,15 @@ const ASC_COMBOS = `const combos = k => {
     /* 同名只算一顆 */
     use([g('g_fire', 1), g('g_fire', 9)], ['zy']);
     out.dup = [ST.auraOn.join(), ST.spiritUsed];
-    /* 增益進 stats()：每種一個、Lv1／Lv11 +30%／golemEff 50% ／品質 20 +10% */
+    /* 增益進 stats()：每種一個、Lv1／Lv11 +30%／golemEff 50% */
     const base = stats({ ...S, auras: [null], pt: ['zz'] }),
       d = (k, key, o = {}) => {
-        const s = stats({ ...S, auras: [g(k, o.lv || 1, o.q || 0)], pt: o.pt || ['zz'] });
+        const s = stats({ ...S, auras: [g(k, o.lv || 1)], pt: o.pt || ['zz'] });
         return +(key === 'regenP' ? ((s.regen - base.regen) / s.hp) * 100 : s[key] - base[key]).toFixed(2);
       };
     out.fx = [d('g_fire', 'dmgA'), d('g_fire', 'aoe'), d('g_ice', 'critInc'), d('g_ice', 'accP'), d('g_thunder', 'ss'), d('g_chaos', 'ailMag'), d('g_flesh', 'minionP'), d('golem', 'regenP')];
     out.armor = +(stats({ ...S, auras: [g('golem')], pt: ['zz'] }).armor / base.armor).toFixed(2);
-    out.scale = [d('g_fire', 'dmgA', { lv: 11 }), d('g_fire', 'dmgA', { pt: ['zy'] }), d('g_fire', 'dmgA', { q: 20 }), d('g_fire', 'dmgA', { pt: ['zx'] }), d('g_fire', 'dmgA', { pt: ['zw'] })];
+    out.scale = [d('g_fire', 'dmgA', { lv: 11 }), d('g_fire', 'dmgA', { pt: ['zy'] }), d('g_fire', 'dmgA', { pt: ['zx'] }), d('g_fire', 'dmgA', { pt: ['zw'] })];
     /* 活著才有：魔像死了（等復活）增益沒有，updSkills 看到死活變了會重算，復活後回來 */
     G.allies = []; use([g('g_fire')]); updSkills(0.01);
     const w = G.allies.find(x => x.src === 'g_fire'), up = ST.dmgA;
@@ -7326,9 +7460,9 @@ const ASC_COMBOS = `const combos = k => {
     const down = ST.dmgA;
     G.t += 100; updSkills(0.01);
     out.alive = [+(up - base.dmgA).toFixed(2), +(down - base.dmgA).toFixed(2), +(ST.dmgA - base.dmgA).toFixed(2)];
-    /* 獻祭寶石：復甦 +40%（Lv1）～+59%（Lv20）、品質 20 復甦快 5% */
-    const rv = (lv, q) => +stats({ ...S, auras: [g('offer', lv, q)], pt: ['zz'] }).reviveT.toFixed(4);
-    out.offer = [rv(1, 0), rv(20, 0), rv(1, 20), rv(10, 0)];
+    /* 獻祭寶石：復甦 +40%（Lv1）～+59%（Lv20） */
+    const rv = lv => +stats({ ...S, auras: [g('offer', lv)], pt: ['zz'] }).reviveT.toFixed(4);
+    out.offer = [rv(1), rv(20), rv(10)];
     out.offerSp = stats({ ...S, auras: [g('offer')], pt: ['zz'] }).spiritUsed;
     delete PTREE.I.zz; delete PTREE.I.zy; delete PTREE.I.zx; delete PTREE.I.zw;
     Object.assign(S, { auras: keep.au, pt: keep.pt }); ST = keep.st;
@@ -7342,9 +7476,9 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(a63)
   );
   ok(
-    '3A 魔像增益：火（傷害 +20、範圍 +10）、冰（暴擊率 +30、命中 +20）、雷（技能速度 +8）、混沌（異常強度 +15）、腐屍（召喚物傷害 +20）、巨石（回生命 0.5%／秒、護甲提高）；Lv11 ×1.3、魔像增益效果 50% ×1.5、品質 20 ×1.1、增益效果幅度 50% ×1.5、光環效果 50% 不影響；魔像死了沒有、復活回來',
+    '3A 魔像增益：火（傷害 +20、範圍 +10）、冰（暴擊率 +30、命中 +20）、雷（技能速度 +8）、混沌（異常強度 +15）、腐屍（召喚物傷害 +20）、巨石（回生命 0.5%／秒、護甲提高）；Lv11 ×1.3、魔像增益效果 50% ×1.5、增益效果幅度 50% ×1.5、光環效果 50% 不影響；魔像死了沒有、復活回來',
     JSON.stringify([a63.fx, a63.armor, a63.scale, a63.alive]) ===
-      '[[20,10,30,20,8,15,20,0.5],1.2,[26,30,22,20,30],[20,0,20]]',
+      '[[20,10,30,20,8,15,20,0.5],1.2,[26,30,20,30],[20,0,20]]',
     JSON.stringify(a63)
   );
   ok(
@@ -7352,8 +7486,8 @@ const ASC_COMBOS = `const combos = k => {
     R(`['golemMax', 'golemEff', 'regenP'].every(k => STATN[k])`)
   );
   ok(
-    '3A 獻祭寶石：預留 60 精魂；復甦時間 ×1.40（Lv1）～×1.59（Lv20）、Lv10 ×1.49、品質 20 復甦快 5%（1.4÷1.05）',
-    JSON.stringify([a63.offer, a63.offerSp]) === '[[1.4,1.59,1.3333,1.49],60]',
+    '3A 獻祭寶石：預留 60 精魂；復甦時間 ×1.40（Lv1）～×1.59（Lv20）、Lv10 ×1.49',
+    JSON.stringify([a63.offer, a63.offerSp]) === '[[1.4,1.59,1.49],60]',
     JSON.stringify(a63)
   );
   /* 0.2.64 3B：陷阱 3 招、雙手錘擴散固定詞、無咒、藤蔓、濕透、受招架詞綴、嘲諷、找路指定目標 */
@@ -7373,7 +7507,7 @@ const ASC_COMBOS = `const combos = k => {
       G.mm = null; G.mapT = 5; G.t = 100; G.units = []; G.ground = []; P.ail = {};
       const U = (c, x = 0) => ({ type: 'trap', x, y: 0, c, t: 1, dur: 30, cd: 0.3, rate: 1 });
       /* 捕獸夾：被夾到的（王除外）釘身 2 秒、品質 +1 秒；範圍外不動；王只累積 */
-      const cb = gemCfg(mkGem('beartrap', 1), 0), cq = gemCfg(Object.assign(mkGem('beartrap', 1), { q: 20 }), 0);
+      const cb = gemCfg(mkGem('beartrap', 1), 0), cq = gemCfg(Object.assign(mkGem('beartrap', 1), { aw: 'A' }), 0);
       let m1 = mk(30), m2 = mk(40, { boss: 1 }), m3 = mk(900), m4 = mk(30);
       G.mobs = [m1, m2, m3, m4]; G.units = [U(cb)];
       unitFire(G.units[0], m1);
@@ -7387,7 +7521,7 @@ const ASC_COMBOS = `const combos = k => {
       G.t = el.ail.psT.pin + 0.1; unitFire(U(cb), el);
       out.bearBack = [pin1, back, noRe, accu, el.ail.pinT > G.t];
       /* 閃電陷阱：場上其他陷阱每個 +20%（品質再 +10%）；連鎖到每個其他陷阱半傷害、被打到的都感電 */
-      const cl = gemCfg(mkGem('lightningtrap', 1), 0), clq = gemCfg(Object.assign(mkGem('lightningtrap', 1), { q: 20 }), 0);
+      const cl = gemCfg(mkGem('lightningtrap', 1), 0), clq = gemCfg(Object.assign(mkGem('lightningtrap', 1), { aw: 'A' }), 0);
       const zap = (n, c = cl) => {
         const u = U(c); G.units = [u];
         for (let i = 1; i <= n; i++) G.units.push(U(c, 400 * i));
@@ -7401,12 +7535,12 @@ const ASC_COMBOS = `const combos = k => {
       const us = U(cl), ud = U(cl, 400); ud.spent = 1; G.units = [us, ud]; const sa = mk(30); G.mobs = [sa]; unitFire(us, sa);
       out.zapSpent = (1e6 - sa.hp) === z0[0];
       /* 火焰陷阱：爆開留燃燒地面 4 秒（品質 +2 秒），地面會再打；範圍外的怪不吃 */
-      const cf = gemCfg(mkGem('firetrap', 1), 0), cfq = gemCfg(Object.assign(mkGem('firetrap', 1), { q: 20 }), 0);
+      const cf = gemCfg(mkGem('firetrap', 1), 0), cfq = gemCfg(Object.assign(mkGem('firetrap', 1), { aw: 'A' }), 0);
       G.ground = []; const f1 = mk(30), f2 = mk(900); G.mobs = [f1, f2]; unitFire(U(cf), f1);
       const g0 = G.ground[0], hit = 1e6 - f1.hp; groundTick(0.5);
       out.fire = [G.ground.length, g0.k, g0.dur, g0.dps, hit > 0, f1.hp < 1e6 - hit, f2.hp === 1e6];
       G.ground = []; unitFire(U(cfq), mk(30)); out.fireQ = G.ground[0].dur;
-      out.skills = ['beartrap', 'lightningtrap', 'firetrap'].map(k => [SKILLS[k].wt.join(), SKILLS[k].unit, SKILLS[k].tags.join(), SKILLS[k].ic, !!QUAL[k], gemLv(k)]);
+      out.skills = ['beartrap', 'lightningtrap', 'firetrap'].map(k => [SKILLS[k].wt.join(), SKILLS[k].unit, SKILLS[k].tags.join(), SKILLS[k].ic]);
       G.ground = [];
       /* 雙手錘 3 種基底有擴散固定詞；道具說明看得到；裝上去 ST.splash；其他基底沒有 */
       const spl = [0, 1, 2, 3, 4, 5].map(i => BASEI['w_mace2_' + i].b.splash || 0).join('');
@@ -7481,14 +7615,14 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(b64.bearBack)
   );
   ok(
-    '3B 閃電陷阱：本體每多一個其他陷阱 +20%（品質 +10%）；連鎖到其他陷阱永遠是半傷害（不吃加成，2 個、品質都一樣）；被打到的感電（包括只有自己一個時）、太遠的不受影響；爆掉的陷阱不算',
-    JSON.stringify([b64.zap, b64.zapSpent]) === '[[0,1.2,1.4,0.5,true,true,true,false,1.6,0.5,0.5],true]',
+    '3B 閃電陷阱：本體每多一個其他陷阱 +20%（覺醒 A 再 +10%、傷害更多 15%：1.6 × 1.15 ＝ 1.84）；連鎖到其他陷阱永遠是半傷害（不吃每個陷阱的加成，只吃傷害更多：0.5、覺醒 A ×1.15 ＝ 0.57）；被打到的感電（包括只有自己一個時）、太遠的不受影響；爆掉的陷阱不算',
+    JSON.stringify([b64.zap, b64.zapSpent]) === '[[0,1.2,1.4,0.5,true,true,true,false,1.84,0.5,0.57],true]',
     JSON.stringify([b64.zap, b64.zapSpent])
   );
   ok(
-    '3B 火焰陷阱：爆開留燃燒地面 4 秒（品質 +2 秒、每秒 30%），地面會再打；3 招都在陷阱器、遠端、有圖示與品質說明',
+    '3B 火焰陷阱：爆開留燃燒地面 4 秒（品質 +2 秒、每秒 30%），地面會再打；3 招都在陷阱器、遠端、有圖示',
     JSON.stringify([b64.fire, b64.fireQ, b64.skills]) ===
-      '[[1,"fire",4,0.3,true,true,true],6,[["traptool","trap","spell,trap,aoe,remote","sk_trapshot",true,3],["traptool","trap","spell,trap,aoe,remote","sk_spark",true,7],["traptool","trap","spell,trap,aoe,remote","sk_firewall",true,5]]]' &&
+      '[[1,"fire",4,0.3,true,true,true],6,[["traptool","trap","spell,trap,aoe,remote","sk_trapshot"],["traptool","trap","spell,trap,aoe,remote","sk_spark"],["traptool","trap","spell,trap,aoe,remote","sk_firewall"]]]' &&
       b64.skills.every(r => has(r[3])),
     JSON.stringify([b64.fire, b64.fireQ, b64.skills])
   );
@@ -7566,23 +7700,23 @@ const ASC_COMBOS = `const combos = k => {
     out.fitAura = ['mindmg', 'minlife'].map(k => ['wolfsp', 'golem', 'g_fire', 'g_ice', 'g_thunder', 'g_chaos', 'g_flesh'].map(x => supOK(AURAS[x], mkGem(k, 1), mkGem(x, 1))).join() + '|' + ['offer', 'anger'].map(x => supOK(AURAS[x], mkGem(k, 1), mkGem(x, 1))).join());
     const w2 = withSup(mkGem('wolf', 1), 'mindmg', 'minlife'), w3 = withSup(mkGem('wolf', 1), 'mindmg', 'mindmg');
     out.cat = [supCat('mindmg') !== supCat('minlife'), supOK(SKILLS.wolf, w2.sup[0], w2) && supOK(SKILLS.wolf, w2.sup[1], w2), supOK(SKILLS.wolf, w3.sup[0], w3), supOK(SKILLS.wolf, w3.sup[1], w3)];
-    out.meta = ['mindmg', 'minlife'].map(k => [SUPPORTS[k].ic, gemLv(k) > 0, !!QUAL[k]]);
-    /* 寶石叫的召喚物：傷害更多 25%（品質 20 → 30%，面板數字也跟著）、生命更多 30%（品質 20 → 35%） */
-    const wcfg = (k, q = 0) => { const g = mkGem('wolf', 1); if (k) { g.sup[0] = mkGem(k, 1); g.sup[0].q = q; } return gemCfg(g, 0); },
+    out.meta = ['mindmg', 'minlife'].map(k => [SUPPORTS[k].ic]);
+    /* 技能叫的召喚物：傷害更多 25%（面板數字也跟著）、生命更多 30% */
+    const wcfg = k => { const g = mkGem('wolf', 1); if (k) g.sup[0] = mkGem(k, 1); return gemCfg(g, 0); },
       hit = c => skillNums(c).hit,
       life = c => { G.allies = []; callWolf('gem', c); return G.allies[0].mhp; };
-    out.dmg = [hit(wcfg('mindmg')) / hit(wcfg()), hit(wcfg('mindmg', 20)) / hit(wcfg()), hit(wcfg('minlife')) / hit(wcfg())].map(v => +v.toFixed(3));
-    out.minL = [wcfg().minL, wcfg('minlife').minL, wcfg('minlife', 20).minL, wcfg('mindmg').minL];
-    out.life = [life(wcfg('minlife')) / life(wcfg()), life(wcfg('minlife', 20)) / life(wcfg()), life(wcfg('mindmg')) / life(wcfg())].map(v => +v.toFixed(3));
+    out.dmg = [hit(wcfg('mindmg')) / hit(wcfg()), hit(wcfg('minlife')) / hit(wcfg())].map(v => +v.toFixed(3));
+    out.minL = [wcfg().minL, wcfg('minlife').minL, wcfg('mindmg').minL];
+    out.life = [life(wcfg('minlife')) / life(wcfg()), life(wcfg('mindmg')) / life(wcfg())].map(v => +v.toFixed(3));
     /* 光環（魔像、戰狼精魂）：stats() 算好 minM_／minL_ 鍵，allyMult0 與 callWolf 讀；沒插是沒有、獻祭插不上 */
-    const aur = (k, ...sup) => { const g = mkGem(k, 1); sup.forEach((x, i) => { g.sup[i] = mkGem(x[0], 1); g.sup[i].q = x[1] || 0; }); return g; },
-      keyOf = (k, key, ...sup) => stats({ ...S, auras: [aur(k, ...sup)], pt: ['zu'] })[key];
-    out.auraKey = [keyOf('golem', 'minM_golem', ['mindmg']), keyOf('golem', 'minM_golem', ['mindmg', 20]), keyOf('golem', 'minL_golem', ['minlife']), keyOf('golem', 'minL_golem', ['minlife', 20]), keyOf('golem', 'minM_golem'), keyOf('wolfsp', 'minM_wolfsp', ['mindmg']), keyOf('wolfsp', 'minL_wolfsp', ['minlife']), keyOf('offer', 'minM_offer', ['mindmg'])];
+    const aur = (k, ...sup) => AU(k, 1, ...sup.map(x => [x[0], 1])),
+      keyOf = (k, key, ...sup) => { const a = aur(k, ...sup); return stats({ ...S, auras: [a], pt: ['zu'] })[key]; };
+    out.auraKey = [keyOf('golem', 'minM_golem', ['mindmg']), keyOf('golem', 'minL_golem', ['minlife']), keyOf('golem', 'minM_golem'), keyOf('wolfsp', 'minM_wolfsp', ['mindmg']), keyOf('wolfsp', 'minL_wolfsp', ['minlife']), keyOf('offer', 'minM_offer', ['mindmg'])];
     const mult = (k, ...sup) => { S.auras = [aur(k, ...sup)]; S.pt = ['zu']; ST = stats(S); return allyMult({ src: k === 'wolfsp' ? 'aura' : k }, { mult: 1, more: 1 }); };
-    out.auraDmg = [mult('golem', ['mindmg']) / mult('golem'), mult('wolfsp', ['mindmg']) / mult('wolfsp'), mult('g_fire', ['mindmg', 20]) / mult('g_fire')].map(v => +v.toFixed(3));
+    out.auraDmg = [mult('golem', ['mindmg']) / mult('golem'), mult('wolfsp', ['mindmg']) / mult('wolfsp'), mult('g_fire', ['mindmg']) / mult('g_fire')].map(v => +v.toFixed(3));
     G.mobs = []; G.corpses = []; G.scene = 'map'; P.golDown = '';
     const aura = (k, ...sup) => { G.allies = []; S.auras = [aur(k, ...sup)]; S.pt = ['zu']; ST = stats(S); updSkills(0.01); return Math.max(0, ...G.allies.map(w => w.mhp)); };
-    out.auraLife = [aura('golem', ['minlife']) / aura('golem'), aura('g_fire', ['minlife', 20]) / aura('g_fire'), aura('wolfsp', ['minlife']) / aura('wolfsp'), aura('golem', ['mindmg']) / aura('golem')].map(v => +v.toFixed(3));
+    out.auraLife = [aura('golem', ['minlife']) / aura('golem'), aura('g_fire', ['minlife']) / aura('g_fire'), aura('wolfsp', ['minlife']) / aura('wolfsp'), aura('golem', ['mindmg']) / aura('golem')].map(v => +v.toFixed(3));
     delete PTREE.I.zv; delete PTREE.I.zu;
     Object.assign(S, { auras: keep.au, pt: keep.pt }); ST = keep.st;
     Object.assign(G, { allies: keep.al, scene: keep.sc, mobs: keep.mobs, corpses: keep.cp }); P.golDown = keep.gd;
@@ -7616,23 +7750,23 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(c66.ev)
   );
   ok(
-    '3C 召喚物輔助：召喚戰狼、召喚紙人插得上；斬擊、閃電箭、火球、冰霜陷阱、擲斧插不上；魔像 6 種與戰狼精魂插得上，獻祭、憤怒光環插不上；兩顆各自一類（可以同插、同一種不能插兩顆）；圖示、等級、品質說明都有',
+    '3C 召喚物輔助：召喚戰狼、召喚紙人插得上；斬擊、閃電箭、火球、冰霜陷阱、擲斧插不上；魔像 6 種與戰狼精魂插得上，獻祭、憤怒光環插不上；兩顆各自一類（可以同插、同一種不能插兩顆）；圖示都有',
     JSON.stringify(c66.fit) === '[true,true]' &&
       JSON.stringify(c66.fitAura) ===
         '["true,true,true,true,true,true,true|false,false","true,true,true,true,true,true,true|false,false"]' &&
       JSON.stringify(c66.cat) === '[true,true,true,false]' &&
-      c66.meta.every(m => has(m[0]) && m[1] && m[2]),
+      c66.meta.every(m => has(m[0])),
     JSON.stringify([c66.fit, c66.fitAura, c66.cat, c66.meta])
   );
   ok(
-    '3C 召喚物傷害與生命（寶石叫的）：傷害 ×1.25（品質 20 ×1.30），生命的輔助不改傷害；生命 ×1.30（品質 20 ×1.35），傷害的輔助不改生命',
-    JSON.stringify([c66.dmg, c66.minL, c66.life]) === '[[1.25,1.3,1],[null,1.3,1.35,null],[1.3,1.35,1]]',
+    '3C 召喚物傷害與生命（技能叫的）：傷害 ×1.25，生命的輔助不改傷害；生命 ×1.30，傷害的輔助不改生命',
+    JSON.stringify([c66.dmg, c66.minL, c66.life]) === '[[1.25,1],[null,1.3,null],[1.3,1]]',
     JSON.stringify([c66.dmg, c66.minL, c66.life])
   );
   ok(
-    '3C 召喚物傷害與生命（光環的魔像、戰狼精魂）：stats() 算好 minM_／minL_（傷害 1.25／品質 20 1.30、生命 1.30／品質 20 1.35；沒插是沒有、獻祭插不上），傷害倍率與召出來的生命照著放大，插錯那種不改另一個',
+    '3C 召喚物傷害與生命（光環的魔像、戰狼精魂）：stats() 算好 minM_／minL_（傷害 1.25、生命 1.30；沒插是沒有、獻祭插不上），傷害倍率與召出來的生命照著放大，插錯那種不改另一個',
     JSON.stringify([c66.auraKey, c66.auraDmg, c66.auraLife]) ===
-      '[[1.25,1.3,1.3,1.35,null,1.25,1.3,null],[1.25,1.25,1.3],[1.3,1.35,1.3,1]]',
+      '[[1.25,1.3,null,1.25,1.3,null],[1.25,1.25,1.25],[1.3,1.3,1.3,1]]',
     JSON.stringify([c66.auraKey, c66.auraDmg, c66.auraLife])
   );
   {
@@ -7653,14 +7787,14 @@ const ASC_COMBOS = `const combos = k => {
   const k60 = R(`(() => {
     const D = Object.values(MOBS)[0],
       mk = (dx, o) => ({ D, x: P.x + dx, y: P.y, r: 12, sz: 20, hp: 1e9, mhp: 1e9, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, aggro: 1, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...o }),
-      keep = { sk: S.skills.map(x => x.a), stk: P.stk, ancT: P.ancT, mobs: G.mobs, t: G.t },
+      keep = { sk: S.skills.map((_, i) => skGem(i)), stk: P.stk, ancT: P.ancT, mobs: G.mobs, t: G.t },
       gem = (k, sp) => { const g = mkGem(k, 1); g.sup = [sp ? mkGem(sp, 1) : null, null]; return g; },
       act = g => ({ k: g.gem, c: gemCfg(g, 0), t: 0, dur: 0.5, ang: 0, hits: [0], n: 1, tx: P.x + 40, ty: P.y }),
       out = {};
     P.stk = {}; P.ancT = {};
-    S.skills.forEach(x => (x.a = null));
+    S.skills.forEach((_, i) => EQ(i, null));
     ancTick(); out.none = stkN('ancF');
-    const lg = gem('leap', 'fistwar'); S.skills[0].a = lg;
+    const lg = gem('leap', 'fistwar'); EQ(0, lg);
     ancTick(); out.ready = stkN('ancF');
     const a1 = act(lg), base = act(gem('leap'));
     empUse(a1);
@@ -7668,13 +7802,13 @@ const ASC_COMBOS = `const combos = k => {
     ancTick(); const n1 = stkN('ancF'); G.t += 6.01; ancTick(); out.cd = [n1, stkN('ancF')];
     const a2 = act(lg); empUse(a2); const a3 = act(lg); empUse(a3); out.once = [+(a2.c.more / base.c.more).toFixed(2), +(a3.c.more / base.c.more).toFixed(2)];
     /* 打擊：第一隻身邊 150 內最近的 2 隻多挨一下，同一段出手不再被原本的範圍重複打 */
-    const sg = gem('slash', 'ancall'); S.skills[0].a = sg; ancTick();
+    const sg = gem('slash', 'ancall'); EQ(0, sg); ancTick();
     const a4 = act(sg); empUse(a4);
     const m1 = mk(40), m2 = mk(80), m3 = mk(120), m4 = mk(500); G.mobs = [m1, m2, m3, m4];
     hitMob(m1, a4.c, 0, 0, { a: a4, quiet: 1 });
     const hp2 = m2.hp; hitMob(m2, a4.c, 0, 0, { a: a4, quiet: 1 });
     out.call = [m2.hp < 1e9, m3.hp < 1e9, m4.hp === 1e9, m2.hp === hp2];
-    S.skills.forEach((x, i) => (x.a = keep.sk[i]));
+    keep.sk.forEach((g, i) => EQ(i, g));
     Object.assign(P, { stk: keep.stk, ancT: keep.ancT }); Object.assign(G, { mobs: keep.mobs, t: keep.t });
     return out;
   })()`);
@@ -7864,13 +7998,13 @@ const ASC_COMBOS = `const combos = k => {
   /* 0.2.73 玩家沉重暈眩（條與暈住 0.2.42 就有，這版補整條流程的實測與巍然不動）：只有王的紅光大招（noEv）累積，
      累滿暈 3 秒（不能移動、翻滾、格擋、出招，翻滾取消），暈眩恢復縮短、暈眩門檻提高累積變慢、巍然不動（unmov）格擋值還在時免疫 */
   const hv = R(`(() => {
-    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })) };
+    S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()) };
     const D = Object.values(MOBS)[0], boss = { D, boss: 1 }, mob = { D }, st0 = stats(S), out = {}, rnd0 = Math.random, r2 = v => Math.round(v * 100) / 100,
       reset = (o = {}) => {
         G.t = 300; G.mm = null; G.mobs = []; G.state = 'play'; G.scene = 'map'; WARN = ''; Math.random = rnd0;
         ST = { ...st0, hp: 1000, es: 0, armor: 0, block: 0, defl: 0, ev: 0, noStag: 1, stunRec: 0, stunThrP: 0, unmov: 0, rollTank: 0, wt: 'sword', str: 999, dex: 999, int: 999, ...o };
         Object.assign(P, { x: 0, y: 0, vx: 0, vy: 0, hp: 1e9, mp: 1e4, es: 0, bv: 0, bvRe: null, ail: {}, buf: {}, stag: 0, act: null, roll: null, iuntil: 0, cds: {}, mdx: 1, mdy: 0, face: 0 });
-        S.skills[0].a = mkGem('slash', 5);
+        EQ(0, mkGem('slash', 5));
       },
       hit = (d, src, el = 'phys', noEv = true) => hurtPlayer(d, src, el, noEv),
       hs = () => r2((P.ail && P.ail.hs) || 0),
@@ -8003,7 +8137,7 @@ const ASC_COMBOS = `const combos = k => {
     var BOOT = ''; introGate = () => (BOOT = 'gate'); proStart = () => (BOOT = 'map'); proStep = i => (BOOT = 'step' + i);`);
   ok(
     '新存檔：沒有武器、有 fresh 旗標',
-    R2(`S = newGame(); !S.eq.weapon && S.fresh === 1 && S.skills[0].a.gem === 'slash' && !!S.eq.chest`)
+    R2(`S = newGame(); !S.eq.weapon && S.fresh === 1 && S.skills[0].k === 'slash' && !!S.eq.chest`)
   );
   ok(
     '序章跳過（新玩家）：給一把劍、拿掉 fresh、會有設施提示',
@@ -8042,16 +8176,23 @@ const ASC_COMBOS = `const combos = k => {
     c2,
     { filename: 'main.js' }
   );
+  /* 存檔 29 以前的格式（寶石是道具、技能格 { a: 寶石 }、光環欄放寶石）：舊存檔測試把 newGame() 轉成這樣再 migrate */
+  R2(`var gemObj = (k, lv, e = {}) => ({ id: ++IID, gem: k, lv, xp: 0, r: 3, a: [], L: lv, ...(SKILLS[k] || AURAS[k] ? { so: 2, sup: [null, null] } : {}), ...e }),
+    OLD29 = o => {
+      o.skills = o.skills.map(s => ({ a: s.k ? gemObj(s.k, libLv(s.k, o.lib)) : null }));
+      o.auras = o.auras.map(r => r && gemObj(r.k, libLv(r.k, o.lib)));
+      o.gems = []; delete o.lib; o.v = 29; return o;
+    };`);
   ok(
     '舊存檔（23）：保留等級、裝備、寶石、昇華點，地圖進度重置到劇情區第一個節點',
     R2(`(() => {
-      const old = newGame();
+      const old = OLD29(newGame());
       delete old.fresh;
       Object.assign(old, { v: 23, lv: 57, frag: 40, maxT: 13, t16: 0, cards: [rollCard(), rollCard()], card: rollCard(), tier: 9 });
       delete old.world; delete old.hunt;
       old.eq.weapon = mkItem('w_bow_0', 12, 2);
       const id = old.eq.weapon.id, n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 29 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].a.gem === 'slash' && n.maxT === 13 &&
+      return n.v === 30 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].k === 'slash' && n.maxT === 13 &&
         n.world.stage === 0 && !n.world.done.length && n.world.at === '0,0' && Number.isInteger(n.world.seed) &&
         n.hunt.v === 0 && !Array.isArray(n.cards) && !Object.keys(n.cards).length && !n.card;
     })()`)
@@ -8059,22 +8200,22 @@ const ASC_COMBOS = `const combos = k => {
   ok(
     '舊存檔（26）：天賦點全部退回起點、能力值選擇清空，其他不動',
     R2(`(() => {
-      const old = newGame();
+      const old = OLD29(newGame());
       Object.assign(old, { v: 26, lv: 40, pt: [...PT_START, PTREE.N[40].id], ptA: { zz: 'd' } });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 29 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length;
+      return n.v === 30 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length;
     })()`)
   );
   ok(
     '舊存檔（27）：0.2.68 重烘後天賦點全部退回起點、能力值選擇清空，其他不動；28 不再退',
     R2(`(() => {
-      const old = newGame();
+      const old = OLD29(newGame());
       Object.assign(old, { v: 27, lv: 40, pt: [...PT_START, PTREE.N[40].id], ptA: { zz: 'd' } });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      const keep = newGame();
+      const keep = OLD29(newGame());
       Object.assign(keep, { v: 28, lv: 40, pt: [...PT_START, PTREE.N[40].id] });
       const k = migrate(JSON.parse(JSON.stringify(keep)));
-      return n.v === 29 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length && k.pt.length === 7;
+      return n.v === 30 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length && k.pt.length === 7;
     })()`)
   );
   /* 過濾器（8-3，企劃書 5.1）：新條件 ★、追憶（只用未鑑定也看得到的資訊）；範本一「★ 或追憶 → 自動撿、黃裝 → 顯示」、範本二「只撿 ★、追憶、T 高的黃裝」 */
@@ -8116,7 +8257,7 @@ const ASC_COMBOS = `const combos = k => {
         aff = (act, c = {}) => ({ on: 1, c: { ...c, aff: { ks: ['x'], n: 1 } }, act, col: 0 }),
         rule = (c, act) => ({ on: 1, c, act, col: 0 }),
         yel = rule({ rar: [1, 2] }, 'show');
-      const old = newGame();
+      const old = OLD29(newGame());
       delete old.fresh;
       old.v = 28;
       old.filter = { cur: 0, sets: [
@@ -8156,7 +8297,7 @@ const ASC_COMBOS = `const combos = k => {
   /* 存檔 29（0.2.72 裝備重做）：用一份 28 版的樣本存檔——裝備數值不變（潛能拿掉、a.lock 拿掉）、材料換算、過濾器的潛能條件拿掉 */
   {
     const r = R2(`(() => {
-      const old = newGame();
+      const old = OLD29(newGame());
       delete old.fresh;
       Object.assign(old, { v: 28, lv: 45, gold: 321 });
       old.mat = { dust: 53, fine: 7, rare: 2, soul: 4567, seal: 3 };
@@ -8185,12 +8326,12 @@ const ASC_COMBOS = `const combos = k => {
         mat: [n.mat.tran, n.mat.aug, n.mat.rich, n.mat.exalt, n.mat.conv, n.mat.soul],
         keys: ['dust', 'fine', 'rare', 'seal'].filter(k => k in n.mat), ess: JSON.stringify(n.mat.ess),
         flt: 'pot' in n.filter.sets[0].rules[0].c, fltQ: n.filter.sets[0].rules[0].c.q,
-        again: JSON.stringify(n2.mat) === JSON.stringify(n.mat), fresh: newGame().v === 29 && !('pot' in mkItem('c_leather', 5, 2)), prd: JSON.stringify(n.prd)
+        again: JSON.stringify(n2.mat) === JSON.stringify(n.mat), fresh: newGame().v === 30 && !('pot' in mkItem('c_leather', 5, 2)), prd: JSON.stringify(n.prd)
       };
     })()`);
     ok(
       '舊存檔（28→29）：裝備全部已鑑定且數值不變、潛能與鎖拿掉；粗粉 53 → 蛻變 3＋增幅 2、精粉 → 富豪、稀粉 → 崇高、封印石 → 轉化石（1：1）；靈魂不動、沒有粉；再讀一次不變',
-      r.v === 29 &&
+      r.v === 30 &&
         r.stat &&
         r.same &&
         !r.pot &&
@@ -8204,6 +8345,61 @@ const ASC_COMBOS = `const combos = k => {
         r.fresh &&
         JSON.parse(r.prd).fracB === 0 &&
         JSON.parse(r.prd).frac === 0,
+      JSON.stringify(r)
+    );
+  }
+  /* 存檔 30（0.2.75 技能系統重做）：舊存檔 29 的寶石（格子上、孔裡、光環欄、背包、倉庫、臨時頁、寶石頁）→ 目錄 S.lib 同鍵取最高；
+   格子上那顆的孔數與插著的輔助照搬；品質花掉的靈魂退還（每 1% 30）；散裝寶石與同一招第二格那顆消失、它們開過的孔照 DRILL 退靈魂；已經不存在的寶石（死亡紅花）退升級的靈魂；裝備與天賦數值不變 */
+  {
+    const r = R2(
+      `(() => {
+    const bad = lv => ({ gem: 'redbloom', lv, sup: [{ gem: 'multi', lv: 1 }, null] }),
+      g = (k, lv, e = {}) => ({ id: ++IID, gem: k, lv, xp: 0, r: 3, a: [], L: lv, ...(SKILLS[k] || AURAS[k] ? { so: 2, sup: [null, null] } : {}), ...e });
+    const o = newGame();
+    o.v = 29; o.lv = 60;
+    o.mat = { ...o.mat, soul: 5 };
+    o.skills = [
+      { a: g('cleave', 7, { so: 3, sup: [g('multi', 2, { q: 4 }), g('haste', 1), null], q: 10 }) },
+      { a: g('slash', 3) },
+      { a: bad(3) },
+      { a: null },
+      { a: g('cleave', 2, { so: 5, sup: [null, null, null, null, null] }) }
+    ];
+    o.auras = [g('golem', 5, { sup: [g('pack', 3), null] }), g('golem', 9, { so: 3, sup: [null, null, null] }), null];
+    o.gems = [g('cleave', 12, { so: 3, sup: [null, null, null] }), g('multi', 9, { q: 6 }), bad(2)];
+    o.inv.items.push(g('fireball', 6, { so: 4, sup: [null, null, null, null] }), mkItem('c_leather', 1, 0));
+    o.stash.items.push(g('fireball', 8));
+    o.temp.items.push(g('slash', 4));
+    const eq0 = JSON.stringify(stats({ ...o, auras: [], skills: [] }));
+    const n = migrate(JSON.parse(JSON.stringify(o))), n2 = migrate(JSON.parse(JSON.stringify(n)));
+    const L = n.lib;
+    return {
+      v: n.v, lib: [L.sk.cleave, L.sk.slash, L.sk.fireball, L.sup.multi, L.sup.haste, L.sup.pack, L.aura.golem, L.sk.redbloom || 0],
+      slots: n.skills.map(s => s.k || '').join(), s0: JSON.stringify(n.skills[0]), s1: JSON.stringify(n.skills[1]),
+      auras: JSON.stringify(n.auras), soul: n.mat.soul, need: 5 + 10 * 30 + 4 * 30 + 6 * 30 + 2 * soulCost(1) + soulCost(2) + 4 * drillCost(0) + 2 * drillCost(1) + drillCost(2),
+      gems: 'gems' in n, inv: n.inv.items.map(i => i.b || i.gem).join(), stash: n.stash.items.length, temp: n.temp.items.length,
+      same: JSON.stringify(stats({ ...n, auras: [], skills: [] })) === eq0, again: JSON.stringify(n2) === JSON.stringify(n),
+      fresh: JSON.stringify(migrate(newGame()).skills.map(s => s.k)), live: !SKILLS.redbloom
+    };
+  })()`
+    );
+    ok(
+      '舊存檔（29→30）：寶石等級進目錄（同鍵最高）、格子的孔數與輔助照搬、光環欄照搬、品質退靈魂（每 1% 30）、散裝與第二格那顆開過的孔照開孔費用退靈魂、死亡紅花退升級靈魂、散裝寶石消失、數值不變、再讀一次不變',
+      r.v === 30 &&
+        r.lib.join() === '12,4,8,9,1,3,9,0' &&
+        r.slots === 'cleave,slash,,,' &&
+        r.s0 === '{"k":"cleave","so":["multi","haste",null],"n":3}' &&
+        r.s1 === '{"k":"slash","so":[null,null],"n":2}' &&
+        r.auras === '[{"k":"golem","so":["pack",null],"n":2},null]' &&
+        r.soul === r.need &&
+        !r.gems &&
+        r.inv === 'c_leather' &&
+        !r.stash &&
+        !r.temp &&
+        r.same &&
+        r.again &&
+        r.fresh === '["slash","mirage",null,null,null]' &&
+        r.live,
       JSON.stringify(r)
     );
   }
@@ -8404,23 +8600,6 @@ const ASC_COMBOS = `const combos = k => {
     )
   );
 }
-/* 存檔 23：舊存檔裡的死亡紅花要拿掉、退靈魂、輔助放回寶石頁，別的寶石不動 */
-{
-  const r = vm.runInContext(
-    `(() => {
-    const bad = lv => ({ gem: 'redbloom', lv, sup: [{ gem: 'multi', lv: 1 }, null] }), keep = { gem: 'slash', lv: 2, sup: [null, null] };
-    const o = { mat: { soul: 5 }, gems: [bad(1), keep], skills: [{ a: bad(3) }, { a: keep }, { a: null }], inv: { items: [bad(1), { b: 'x', a: [] }] }, stash: { items: [] }, temp: { items: [] } };
-    gemPurge(o, 'redbloom');
-    return { soul: o.mat.soul, need: 5 + soulCost(1) + soulCost(2), slots: o.skills.map(s => (s.a ? s.a.gem : '')).join(), gems: o.gems.map(g => g.gem).sort().join(), inv: o.inv.items.length, live: !SKILLS.redbloom && !GROUND_OK };
-  })()`.replace('GROUND_OK', 'false'),
-    ctx
-  );
-  ok(
-    '舊存檔的死亡紅花：拿掉、退靈魂、輔助放回寶石頁',
-    r.soul === r.need && r.slots === ',slash,' && r.gems === 'multi,multi,multi,slash' && r.inv === 1 && r.live,
-    JSON.stringify(r)
-  );
-}
 /* 0.2.72 裝備重做（企劃書第 5 節）：通貨做裝、T0、聖化、腐化、掉落。全部固定亂數（mulberry32），連跑幾次結果一樣 */
 {
   const mul = seed => () => {
@@ -8439,7 +8618,7 @@ const ASC_COMBOS = `const combos = k => {
     }
   };
   const E = vm.runInContext(
-    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropGear, dropCur, killMat, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
+    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropGear, dropCur, killMat, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
     ctx
   );
   const setS = () => vm.runInContext('S = { gold: 1e12, lv: 60, mat: null, maxT: 16 }; S.mat = newMat();', ctx);
@@ -8478,8 +8657,8 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：10 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 10 &&
+    '通貨：11 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石）＋靈魂＋精髓表，沒有粉',
+    Object.keys(E.CUR).length === 11 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
       JSON.stringify(nm.ess) === '{}' &&
@@ -8914,24 +9093,24 @@ const ASC_COMBOS = `const combos = k => {
       };
     setS();
     E.MAT().soul = sum(1, 15);
-    const g = E.mkGem('fireball', 1);
+    const g = E.newSlot();
     let n = 0;
     while (!E.drillDo(g)) n++;
     ok(
       `開孔花靈魂：第 1／2／3 孔＝Lv1→5、5→10、10→15 的升級靈魂總量（${c.join('／')}），金幣不扣`,
       c.join() === [sum(1, 5), sum(5, 10), sum(10, 15)].join() &&
-        g.so === 5 &&
+        g.n === 5 &&
         E.MAT().soul === 0 &&
         n === 3 &&
         E.drillCheck(g).why === '已經 5 孔' &&
         vm.runInContext('S.gold', ctx) === 1e12,
       c.join()
     );
-    const g2 = E.mkGem('fireball', 1);
+    const g2 = E.newSlot();
     E.MAT().soul = c[0] - 1;
     ok(
       '開孔：靈魂不夠擋下、不扣',
-      E.drillDo(g2) === `靈魂不夠（要 ${c[0]}）` && g2.so === 2 && E.MAT().soul === c[0] - 1
+      E.drillDo(g2) === `靈魂不夠（要 ${c[0]}）` && g2.n === 2 && E.MAT().soul === c[0] - 1
     );
   }
   /* 14. 掉落：小怪不掉裝備、菁英 ≥ 1 件黃、王 3 件第一件黃＋崇高 1；星級表 */

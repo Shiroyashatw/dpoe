@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 29,
+    v: 30,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -31,8 +31,6 @@ function newGame() {
     stash: { w: 12, h: 12, items: [] },
     /* 臨時倉庫頁（0.2.24）：背包滿了撿到的放這裡，只能拿出來 */
     temp: { w: 12, h: 12, items: [] },
-    /* 寶石頁（0.2.35）：倉庫的清單式分頁，不限數量 */
-    gems: [],
     /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
     idols: [],
     story: {},
@@ -42,10 +40,11 @@ function newGame() {
     /* 新存檔：序章結束才拿到劍（prologue.js）；migrate 對舊存檔拿掉這個旗標 */
     fresh: 1
   };
-  /* 技能欄：單手劍的兩招，左鍵斬擊、右鍵幻影斬；其他到生成寶石拿 */
-  s.skills = Array.from({ length: NSLOT }, () => ({ a: null }));
-  s.skills[0].a = mkGem('slash');
-  s.skills[1].a = mkGem('mirage');
+  /* 技能欄：單手劍的兩招，左鍵斬擊、右鍵幻影斬；其他到技能面板挑（目錄 S.lib 只記等級，企劃書 6.1） */
+  s.skills = Array.from({ length: NSLOT }, newSlot);
+  s.skills[0].k = 'slash';
+  s.skills[1].k = 'mirage';
+  s.lib = { sk: {}, sup: {}, aura: {}, aw: {} };
   s.pt = [...PT_START];
   /* 過路點自選的能力值（0.2.42）：點 id → 's'／'d'／'i' */
   s.ptA = {};
@@ -510,9 +509,7 @@ function sparks(x, y, ang, n, col) {
 /* ---------- 玩家（技能在 skills.js） ---------- */
 function updPlayer(dt) {
   for (const k in P.cds) P.cds[k] = Math.max(0, P.cds[k] - dt);
-  /* 冥思的品質：貧魔時回復更多 */
-  const lowM = lowMp() ? 1 + 0.4 * (ST.aq.clarity || 0) : 1;
-  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1 + 0.2 * (1 + ST.arcaneEff / 100) : 1) * lowM * dt);
+  P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1 + 0.2 * (1 + ST.arcaneEff / 100) : 1) * dt);
   if (fightOn()) baseTick(dt);
   if (ST.regen && !ST.vaal) P.hp = Math.min(ST.hp, P.hp + ST.regen * Math.max(0, 1 + MM('pregen') / 100) * dt);
   if (P.heal > 0) {
@@ -636,13 +633,6 @@ function doRoll() {
   P.rolledT = G.t + ROLL.t + 2;
   /* 戰術翻滾（0.2.70 千機）：所有彈藥技能裝滿，裝填中的直接完成 */
   if (ST.tacRoll) ammoFull();
-  /* 戰狼精魂的品質：翻滾時狼撲向滑鼠附近的怪 */
-  if (qRoll(20 * (ST.aq.wolfsp || 0))) {
-    const w = G.allies.find(x => x.src === 'aura'),
-      mw = mouseWorld(),
-      t = mobNear(mw.x, mw.y, 200);
-    if (w && t) (w.x = t.x), (w.y = t.y + t.r), (w.cd = 0);
-  }
   /* 閃避翻滾無法躲避傷害：沒有無敵與完美閃避（hurtPlayer），傷害在 hurtCalc 打折 */
   if (!ST.rollTank) P.iuntil = G.t + ROLL.iframe;
   sfx('roll');
@@ -724,9 +714,6 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   if (noEv && boss && boss.boss) playerHeavy(d, el);
   /* 流順之風：被擊中清空 */
   P.tail = 0;
-  /* 召喚魔像的品質：站在它旁邊，有機率由魔像替你擋下這一下（0.2.52 拿掉 20% 減傷，改成真的嘲諷：skills.js 的 updAllies） */
-  if (ST.aq.golem && G.allies.some(w => w.src === 'golem' && !w.dead && dist(w, P) < 200) && qRoll(20 * ST.aq.golem))
-    return num(P.x, P.y - 60, 0, 'block', '魔像');
   /* 熊掌的品質：熊形態被擊中得盛怒 */
   if (P.form === 'bear' && qRoll(20 * (P.bearQ || 0)))
     (P.rage = Math.min(rageCap(), (P.rage || 0) + 1)), (P.rageT = G.t);
@@ -958,7 +945,6 @@ function ruleHit(r, it) {
 }
 /* 這件東西怎麼處理：{ act, col } */
 function fltAct(it) {
-  if (it.gem) return { act: 'show', col: 0 };
   const s = fltSet();
   return s.rules.find(r => r.on && ruleHit(r, it)) || s.def;
 }
@@ -1485,8 +1471,6 @@ function updShots(dt) {
               (s.ret = 1), (s.life = 1);
               break;
             }
-            /* 穿透輔助的品質：最後一次穿透分裂 */
-            if (!s.noFork && qRoll(s.c.pSplit || 0)) shotFork(s, s.ang - 0.35), shotFork(s, s.ang + 0.35);
             /* 連鎖（0.2.25）：穿透用完後彈向 260 內最近、還沒打過、看得到的敵人 */
             const n =
               s.chain > 0 &&

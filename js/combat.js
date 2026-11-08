@@ -716,9 +716,7 @@ function hitCalc(c, m, o = {}) {
   }
   /* 2. 多造成 x% 的附加傷害（憤怒、附加火焰；不潔之力是混沌） */
   const sum = DT.reduce((s, k) => s + pre[k], 0);
-  /* 憤怒的品質：對點燃中的怪，光環效果最多 ×1.5 */
-  const angerX = m && ST.aq.anger && hasState(m, 'ign') ? ST.angerV * 0.5 * ST.aq.anger : 0;
-  pre.fire += (sum * ((c.fireAdd || 0) * 100 + ST.fireAdd + angerX)) / 100;
+  pre.fire += (sum * ((c.fireAdd || 0) * 100 + ST.fireAdd)) / 100;
   /* 0.2.50 附加冰冷／閃電／混沌輔助：跟附加火焰同一步、同一個基準（sum），彼此相加 */
   pre.cold += sum * (c.coldAdd || 0);
   pre.light += sum * (c.lightAdd || 0);
@@ -856,8 +854,6 @@ function hitCalc(c, m, o = {}) {
   /* 0.2.25 昇華：獵鷹印記（被印記的更多 10%）、狙射／近射（看投射物飛了多遠 o.fly） */
   if (m && m.ail && m.ail.mark && m.ail.mark.k === 'falcon') more *= 1 + 0.1 * (1 + ST.markEff / 100);
   if (tg.includes('proj')) more *= projDistMore(o.fly || 0);
-  /* 範圍擴大的品質：目標周圍沒有其他怪 */
-  if (c.solo && m && !nearMob(m, 200)) more *= 1 + c.solo;
   const sac = ST.sacrifice && P.sacT > G.t;
   /* 0.2.26 昇華：沸騰之軀（地獄火過半，法術更多）、殘影步（完美閃避後 2 秒更多）、影咒（觸發施放的法術更多） */
   if (spell && ST.boil && P.hf > ST.hfMax / 2) more *= 1 + ST.boil / 100;
@@ -887,8 +883,6 @@ function hitCalc(c, m, o = {}) {
   /* 暴擊：基礎（攻擊看武器、法術看寶石）×（1＋提高）；易碎直接加；暴擊傷害加成基礎 +100% */
   const base = spell ? D.crit || 7 : D.shield ? 5 : ST.wcrit,
     brit = m && m.ail && m.ail.brittle && m.ail.brittle.t > G.t ? m.ail.brittle.v : 0,
-    /* 精準的品質：沒暴擊的累積（o.avg 面板不算） */
-    pity = o.avg ? 0 : (P.noCritN || 0) * (ST.aq.precise || 0),
     chance = ST.noCrit
       ? 0
       : Math.min(
@@ -904,8 +898,7 @@ function hitCalc(c, m, o = {}) {
                 (m && m.ail && m.ail.blind > G.t ? ST.blindCrit : 0)) /
                 100) +
             brit +
-            cwN(m) * 0.5 +
-            pity
+            cwN(m) * 0.5
         );
   if (o.avg) {
     const cm =
@@ -974,7 +967,6 @@ function hitCalc(c, m, o = {}) {
   }
   if (!o.keep) P.critNext = 0;
   if (rcF) P.rollCritT = 0;
-  if (ST.aq.precise) P.noCritN = crit ? 0 : (P.noCritN || 0) + 1;
   /* 目標的減傷：物理看護甲（上限 90%）、其他看抗性；再乘「受到的傷害提高」；post 是扣完的（穩固值累積用） */
   let d = 0,
     big = 'phys',
@@ -1213,8 +1205,7 @@ function applyAil(m, r, c, use) {
   const hsQ =
     (a.curse && a.curse.k === 'vuln' && a.curse.t > G.t ? 0.4 * (a.curse.q || 0) : 0) +
     (m.jagT > G.t ? 0.4 * m.jagQ : 0) +
-    (c.k === 'cleave' && hasState(m, 'bleed') ? 0.4 * cq : 0) +
-    (c.brkQ && a.broken > G.t ? 0.2 * c.brkQ : 0);
+    (c.k === 'cleave' && hasState(m, 'bleed') ? 0.4 * cq : 0);
   const hsInc = (1 + (ST.hsP + (p.phys > 0 ? (ST.hsArm * ST.armor) / 1000 : 0)) / 100) * (1 + hsQ);
   poiseAdd(
     m,
@@ -1250,9 +1241,6 @@ function applyAil(m, r, c, use) {
     /* 腐血（血魔）：造成流血時也給腐化之血；每層的傷害不吃流血的加成（流血強度、血價的更多、加劇） */
     if (ST.rotBlood) cbAdd(a, ailBase(p, 'bleed') * DEBUFF.rotDps, ST.rotBlood);
   }
-  /* 附加火焰的品質：附加的火焰有機率直接點燃 */
-  if (c.addIgn && p.fire > 0 && !noAil(a, 'ign') && qRoll(c.addIgn))
-    a.ign = igniteOn(m, ignBurst(m, p.fire * 0.2 * ignM, 4 * (1 + ST.ignDur / 100)), 4 * (1 + ST.ignDur / 100), c, use);
   /* 以毒攻毒（0.2.74 追獵者 flaskPoi）：藥劑技能生效期間，你的擊中必定中毒、中毒傷害更多 */
   const fpo = ST.flaskPoi && hasBuff('flaskAct');
   if (ailBase(p, 'poi') > 0 && roll((ST.poisonCh + (c.poisonCh || 0) + (fpo ? 100 : 0)) * (1 + ST.ailCh / 100))) {
@@ -1269,11 +1257,6 @@ function applyAil(m, r, c, use) {
     });
     a.poi.sort((x, y) => y.dps - x.dps);
     a.poi.length = Math.min(a.poi.length, n);
-    /* 劇毒的品質：疊滿時結算一部分剩餘毒傷 */
-    if (c.poiBurst && n > 1 && a.poi.length >= n) {
-      const v = a.poi.reduce((s, x) => s + x.dps * (x.t - G.t), 0) * c.poiBurst;
-      (m.hp -= v), num(m.x, m.y - m.sz, v, 'chaos');
-    }
   }
   /* 破甲：物理擊中扣護甲（普通 ×3、菁英 ×2），扣到 0＝完全破甲 12 秒 */
   /* 鐵砧之重（0.2.25）：任何擊中都依你護甲的 x% 破甲 */
@@ -1296,18 +1279,14 @@ function applyAil(m, r, c, use) {
     (a.imp = a.imp || []).length < 60 && a.imp.push(p.phys * 0.3);
   /* 特殊元素異常（PoE1）：k ×（傷害÷門檻）^0.4，4 秒 */
   const alt = (k, dmg, cap, th) => Math.min(cap, k * Math.pow(dmg / th, 0.4) * 100 * mag);
-  if (c.alt === 'scorch' && p.fire > 0) a.scorch = { v: alt(0.5, p.fire, 30, thrF), t: G.t + 4, q: c.altQ };
-  if (c.alt === 'brittle' && p.cold > 0) a.brittle = { v: alt(10, p.cold, 600, thrC) / 100, t: G.t + 4, q: c.altQ };
-  if (c.alt === 'sap' && p.light > 0) a.sap = { v: alt(1 / 3, p.light, 20, thrL), t: G.t + 4, q: c.altQ };
+  if (c.alt === 'scorch' && p.fire > 0) a.scorch = { v: alt(0.5, p.fire, 30, thrF), t: G.t + 4 };
+  if (c.alt === 'brittle' && p.cold > 0) a.brittle = { v: alt(10, p.cold, 600, thrC) / 100, t: G.t + 4 };
+  if (c.alt === 'sap' && p.light > 0) a.sap = { v: alt(1 / 3, p.light, 20, thrL), t: G.t + 4 };
   /* 減益 */
-  /* 曝曬的品質：曝曬中被任何擊中都可能刷新 */
-  if (a.exp > G.t && qRoll(20 * (a.expQ || 0))) a.exp = G.t + 4;
-  if (c.expose) (a.exp = G.t + 4), (a.expQ = c.expQ);
-  if (c.blind) (a.blind = G.t + 4), (a.blindQ = c.blindQ);
+  if (c.expose) a.exp = G.t + 4;
+  if (c.blind) a.blind = G.t + 4;
   /* 巳蛇（0.2.74 神裔 witherAll）：你的混沌擊中造成凋零，不用插輔助，最多 15 層（輔助給更多就照輔助） */
   if ((c.wither || ST.witherAll) && p.chaos > 0) witherAdd(a, Math.max(c.witherMax || 10, ST.witherAll ? 15 : 0));
-  /* 異常強化的品質：記在怪身上，到期時看 ailTick */
-  if (c.ailExt) a.extP = c.ailExt;
   if (c.hinder) a.hinder = G.t + 4;
   if (c.maim && attack) a.maim = G.t + 4;
   if (c.intim) a.intim = G.t + 4;
@@ -1363,13 +1342,6 @@ function debuffsOn(m, p, c) {
 function ailTick(m, dt) {
   const a = m.ail || {};
   let d = 0;
-  /* 異常強化的品質：到期時有機率延長 1 秒，每筆只判定一次 */
-  if (a.extP)
-    for (const x of [a.ign, a.bleed, a.chill, ...(a.poi || [])])
-      if (x && x.t <= G.t && !x.ext) {
-        x.ext = 1;
-        if (qRoll(a.extP)) x.t = G.t + 1;
-      }
   ailReflow(a);
   if (a.ign && a.ign.t > G.t) d += ailEff(a.ign) * (1 - resOf(m, 'fire') / 100);
   /* 加劇的流血一律當目標在移動（×2），移動時不再加倍 */
@@ -1609,7 +1581,7 @@ const BUFF = {
   dyn: {
     n: '奇術活力',
     ic: 'sup_sp_charge',
-    d: '每 5 秒得到一顆能量球，種類看技能寶石的能力值需求',
+    d: '每 5 秒得到一顆能量球，種類看技能的能力值需求',
     max: 1,
     every: 5,
     on: dynChg
@@ -1771,8 +1743,8 @@ function stkTick(dt) {
 /* 奇術活力：球的種類照技能欄寶石的能力值需求加權（力量→耐力、敏捷→狂怒、智慧→暴擊）；都是 0 時平均 */
 function dynChg() {
   const w = { str: 0, dex: 0, int: 0 };
-  for (const s of S.skills) {
-    const r = gemAttrReq(s && s.a);
+  for (let i = 0; i < NSLOT; i++) {
+    const r = gemAttrReq(skGem(i));
     for (const k in w) w[k] += r[k];
   }
   const tot = w.str + w.dex + w.int;
@@ -1836,9 +1808,6 @@ function onHitBase(m, r, c) {
   if (M && M.hitExp) for (const k in M.hitExp) (a.expE = a.expE || {})[k] = { v: M.hitExp[k], t: G.t + 4 };
   if (M && M.hitCurse && !m.hexproof && !(a.curse && a.curse.t > G.t + 1)) curseMob(m, M.hitCurse.k, M.hitCurse.lv);
   if (r.crit && ST.powOnCrit && roll(ST.powOnCrit)) gainChg('p');
-  if (r.crit && qRoll(c.critChg)) gainChg('p');
-  /* 觸電的品質：不能行動的怪被閃電擊中，跳一道電弧 */
-  if (c.elcQ && a.elcT > G.t && r.pre.light > 0) zapNear(m, r.pre.light * 0.5 * c.elcQ, 1);
   if (r.spell && (c.arcane || roll(ST.arcaneHit))) gainBuff('arcane', 10);
   if (ST.tailwind && r.crit) P.tail = Math.min(10, (P.tail || 0) + 1);
   /* 致命陰影：暴擊時熵值累積，滿 100 給暴擊球；弱點獵殺：攻擊擊中給 1 層暴擊弱點 */
@@ -1960,14 +1929,7 @@ function qualKill(m) {
     if (o) o.ail.wither = [...(o.ail.wither || []), ...a.wither.filter(t => t > G.t)].slice(-18);
   }
   if (a.intim > G.t && qRoll(20 * (a.intimQ || 0))) (P.rage = Math.min(rageCap(), (P.rage || 0) + 1)), (P.rageT = G.t);
-  if (a.scorch && a.scorch.t > G.t && qRoll(20 * (a.scorch.q || 0))) dropRemnant('fire', m.x, m.y);
-  if (a.brittle && a.brittle.t > G.t && a.brittle.q) chillNear(m, 120 * a.brittle.q, 2);
   for (const p of G.pools) if (p.c.q && Math.hypot(m.x - p.x, m.y - p.y) < p.r + m.r) p.dur += 0.25 * p.c.q;
-  for (let i = 0; i < NSLOT; i++) {
-    const g = S.skills[i] && S.skills[i].a,
-      sp = g && g.sup.find(x => x && x.gem === 'cdr' && x.q && supOK(SKILLS[g.gem], x, g));
-    if (sp) P.cds['s' + i] = Math.max(0, (P.cds['s' + i] || 0) - (0.2 * sp.q) / GEM_Q_MAX);
-  }
 }
 /* 減益消逝速度（debuffExp）：玩家身上的減益（持續到某個時間點的那幾種）時間流逝得更快，最快 2 倍 */
 const DEBUF_T = ['shock', 'frozen', 'wet', 'oiled', 'exp', 'blind', 'daze'],
@@ -1984,8 +1946,8 @@ function fireTrailTick(dt) {
   if (P.trailT > 0 || !moving()) return;
   P.trailT = 0.3;
   if (G.ground.filter(g => g.trail).length >= 12) return;
-  const g0 = S.skills && S.skills[0] && S.skills[0].a,
-    c = gemCfg({ gem: 'slash', lv: g0 ? g0.lv : 1, sup: [], q: 0 }, -1);
+  const g0 = skGem(0),
+    c = gemCfg({ gem: 'slash', lv: g0 ? g0.lv : 1, sup: [] }, -1);
   addGround({ k: 'fire', x: P.x, y: P.y, r: 45, dur: 1.5, c: { ...c, D: { ...c.D, el: 'fire' } }, dps: 0.2, trail: 1 });
 }
 function baseTick(dt) {
@@ -2089,8 +2051,6 @@ function hurtCalc(d, src, el, noEv) {
     if (P.evE == null) P.evE = Math.random() * 100;
     P.evE += hitCh * 100;
     if (P.evE < 100) {
-      /* 致盲的品質：致盲中的怪打不中你，回魔 */
-      if (m && m.ail.blind > G.t && m.ail.blindQ) addMp(ST.mp * 0.01 * m.ail.blindQ);
       return { ev: 1 };
     }
     P.evE -= 100;
@@ -2118,8 +2078,7 @@ function hurtCalc(d, src, el, noEv) {
       (ST.surrArm && surrounded() ? (100 + ST.armInc + ST.surrArm) / (100 + ST.armInc) : 1) *
       (cu && cu.k === 'vuln' && !unaff('curse') ? 1 - cuV(P.ail) / 100 : 1) *
       ((formOf() && formOf().armorM) || 1) *
-      (P.form ? 1 + ST.formArm / 100 : 1) *
-      (still() ? 1 + 0.08 * (ST.aq.iron || 0) : 1);
+      (P.form ? 1 + ST.formArm / 100 : 1);
   /* 承受轉換（0.2.26，熔岩之膚）：承受的物理有 x% 當作火焰承受（在減傷之前分出來，吃火焰抗性） */
   let asFire = 0;
   /* 適應（第 8 批）：每層該元素承受 −10%（less，在減傷這步）；ep 記每種元素這一下的量，供取最高的那種 */
@@ -2151,11 +2110,9 @@ function hurtCalc(d, src, el, noEv) {
   d *= 1 + takenP(el) / 100;
   if (el !== 'phys' && el !== 'chaos' && formOf() && formOf().eleTaken) d *= formOf().eleTaken;
   if (m) mobAilPlayer(m, pre, el);
-  /* 品質：殘喘的怪打中你回魔；被衰弱的怪打中得到守護（上限最大生命 50%） */
+  /* 覺醒 A「反噬之盾」（衰弱）：被衰弱的怪打中得到守護（上限最大生命 50%） */
   if (m) {
-    const sp = m.ail.sap,
-      en = m.ail.curse;
-    if (sp && sp.q && sp.t > G.t) addMp(ST.mp * 0.01 * sp.q);
+    const en = m.ail.curse;
     if (en && en.k === 'enfeeble' && en.q && en.t > G.t)
       P.guardV = Math.min(ST.hp * 0.5, (P.guardV || 0) + d * 0.2 * en.q);
   }
@@ -2181,8 +2138,6 @@ function mobAilPlayer(m, d, el, dm = 1) {
     thr = (ST.hp / 2 + (ST.es * ST.esAsThr) / 100) * (1 + ST.ailThrP / 100),
     ail = m.D.ail || '',
     imm = k => a.imm && a.imm[k] > G.t;
-  /* 純淨的品質：元素異常有機率免疫 */
-  if (el !== 'phys' && el !== 'chaos' && qRoll(20 * (ST.aq.purity || 0))) return;
   /* 被油纏身：被施加的易燃 200% 更多（玩家被打沒有累積條，直接乘在機率上） */
   if (
     el === 'fire' &&

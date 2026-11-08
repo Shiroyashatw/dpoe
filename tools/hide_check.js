@@ -218,13 +218,13 @@ const ok = (n, c, info = '') => {
     mouseWorld = () => w;
     const wolf = await gain(() => callWolf('gem', slotCfg(0)));
     G.allies.length = 0;
-    S.skills[2].a = mkGem(Object.keys(SKILLS).find(k => SKILLS[k].unit === 'totem'));
+    S.skills[2].k = Object.keys(SKILLS).find(k => SKILLS[k].unit === 'totem');
     P.act = null;
     const totem = await gain(() => useSlot(2));
     G.units.length = 0;
     const ground = await gain(() => addGround({ k: 'fire', x: m.x, y: m.y, r: 80, dur: 2, dps: 1, c: slotCfg(0) }));
     G.ground.length = 0;
-    S.skills[2].a = null;
+    S.skills[2].k = null;
     return { wolf, totem, ground };
   });
   ok(
@@ -237,7 +237,7 @@ const ok = (n, c, info = '') => {
     const m = G.mobs.find(x => x.dummy && !x.boss && !x.elite),
       w = { x: m.x, y: m.y },
       D = SKILLS.blindpounce,
-      keep = [S.eq.weapon, S.skills[2].a],
+      keep = [S.eq.weapon, S.skills[2].k],
       draw = drawMech;
     let drawn = 0;
     drawMech = () => {
@@ -249,7 +249,7 @@ const ok = (n, c, info = '') => {
       ST = stats();
       if (wtOK(D)) break;
     }
-    S.skills[2].a = mkGem('blindpounce');
+    S.skills[2].k = 'blindpounce';
     Object.assign(P, { x: m.x + 40, y: m.y + 40, act: null });
     mouseWorld = () => w;
     const fired = useSlot(2);
@@ -265,7 +265,7 @@ const ok = (n, c, info = '') => {
     drawMech = draw;
     G.ground.length = 0;
     S.eq.weapon = keep[0];
-    S.skills[2].a = keep[1];
+    S.skills[2].k = keep[1];
     ST = stats();
     return out;
   });

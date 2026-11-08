@@ -290,7 +290,7 @@ function igniteAt(x, y, c) {
 /* ---------- 4. 殘留物與灌注 ---------- */
 /* 技能欄裝著會吃灌注的技能（目前只有灌注新星 nova）才會產生殘留物 */
 const REMN = { fire: '火焰殘留', cold: '冰霜殘留', light: '閃電殘留' };
-const hasInfSkill = () => S.skills.some(s => s && s.a && SKILLS[s.a.gem] && SKILLS[s.a.gem].inf);
+const hasInfSkill = () => S.skills.some(s => s && s.k && SKILLS[s.k].inf);
 function dropRemnant(el, x, y) {
   if (G.remnants.length < 20 && hasInfSkill())
     G.remnants.push({ el, x: x + rnd(-20, 20), y: y + rnd(-20, 20), t: G.t + 15 });
@@ -377,7 +377,7 @@ function nextStage(k, max = STAGE_MAX) {
    只有你自己使用（useSlot）才打破，那次使用每個封印範圍提高 aoe %；自動化、觸發、場上單位不會打破 ---------- */
 function sealTick(dt) {
   S.skills.forEach((s, i) => {
-    const g = s && s.a,
+    const g = skGem(i),
       /* 技能本身的封印，或插了擴張輔助（0.2.50，gemCfg 的 c.seal；不相容時沒有 c.seal） */
       c = g && (SKILLS[g.gem].seal || (g.sup || []).some(x => x && x.gem === 'expand')) ? slotCfg(i) : null,
       E = c && (SKILLS[g.gem].seal || c.seal),
@@ -425,36 +425,32 @@ function tryParry(m) {
 
 /* ---------- 8. 能量與觸發（Meta 寶石） ---------- */
 const ENERGY = { crit: 10, perfect: 40, block: 25, kill: 5, hurt: 15 };
-/* 事件：插了觸發輔助（暴擊施放）的法術照輔助的條件累積能量（存在輔助寶石上），滿 100 對最近的敵人施放那招 */
+/* 事件：插了觸發輔助（暴擊施放）的法術照輔助的條件累積能量（存在 P.metaEn[格]），滿 100 對最近的敵人施放那招 */
 function metaEvent(kind, near) {
-  const full = [];
+  const full = [],
+    en = (P.metaEn = P.metaEn || {});
   for (let i = 0; i < NSLOT; i++) {
-    const g = S.skills[i] && S.skills[i].a,
+    const g = skGem(i),
       sp = metaOf(g);
     if (!sp || SUPPORTS[sp.gem].meta !== kind) continue;
     /* 影咒（0.2.26）：暴擊的能量 +10 → +20 */
-    sp.en = Math.min(
+    en[i] = Math.min(
       200,
-      (sp.en || 0) + ENERGY[kind] * (kind === 'crit' && ST.hexCoc ? 2 : 1) * (1 + ST.energyP / 100)
+      (en[i] || 0) + ENERGY[kind] * (kind === 'crit' && ST.hexCoc ? 2 : 1) * (1 + ST.energyP / 100)
     );
-    if (sp.en >= 100) full.push([g, sp]);
+    if (en[i] >= 100) full.push([g, i]);
   }
   if (!full.length) return;
   const t = near || G.mobs.filter(m => m.hp > 0).sort((a, b) => dist(a, P) - dist(b, P))[0];
   if (!t) return;
-  for (const [, sp] of full) sp.en -= 100;
+  for (const [, i] of full) en[i] -= 100;
   /* 咒爆（0.2.26）：有一顆滿了，所有插了觸發輔助的法術一起放（沒滿的不扣能量） */
   if (ST.hexBurst) hexBurst(t);
-  else
-    for (const [g, sp] of full) {
-      castGem(g, t);
-      /* 暴擊施放的品質：再放一次 */
-      if (qRoll(sp.q || 0)) castGem(g, t);
-    }
+  else for (const [g] of full) castGem(g, t);
 }
 function hexBurst(t) {
   for (let i = 0; i < NSLOT; i++) {
-    const g = S.skills[i] && S.skills[i].a;
+    const g = skGem(i);
     const sp = metaOf(g);
     if (sp && SUPPORTS[sp.gem].meta === 'crit') castGem(g, t);
   }
@@ -568,10 +564,10 @@ function ammoFull() {
 /* 爆炸補給（blastSupply，0.2.70 千機）：裝著的每個彈藥技能多 1 發，可以超過彈夾、最多到 2 倍；裝填中的，裝填完多 1 發 */
 function ammoSupply() {
   for (const s of S.skills) {
-    const D = s.a && SKILLS[s.a.gem];
+    const D = s.k && SKILLS[s.k];
     if (!D || !D.ammo) continue;
     const clip = clipOf(D),
-      A = ((P.ammo = P.ammo || {})[s.a.gem] = P.ammo[s.a.gem] || { n: clip, until: 0 });
+      A = ((P.ammo = P.ammo || {})[s.k] = P.ammo[s.k] || { n: clip, until: 0 });
     ammoSettle(A, clip);
     if (A.until > G.t) A.extra = Math.min(clip, (A.extra || 0) + 1);
     else A.n = Math.min(clip * 2, A.n + 1);
@@ -610,7 +606,7 @@ function plantSwords(x, y, c) {
   if (!n) return 0;
   P.swords = [];
   /* after：8 秒沒引爆就自己爆（威力是引爆的一半） */
-  addGround({ k: 'blades', x, y, r: 70 + n * 6, dur: 8, c, n, after: 0.3 * n });
+  addGround({ k: 'blades', x, y, r: (70 + n * 6) * (c.aoe || 1), dur: 8, c, n, after: 0.3 * n });
   return n;
 }
 
@@ -635,7 +631,7 @@ const MIRAGE_NO = new Set([
 ]);
 function mirageGem() {
   const gs = S.skills
-    .map(k => k.a)
+    .map((_, i) => skGem(i))
     .filter(g => {
       const D = g && SKILLS[g.gem];
       return (

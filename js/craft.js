@@ -117,7 +117,7 @@ function gambleDo(id) {
    arg：精髓是 '類:T'，轉化石是要換的那條詞在 it.a 的位置 ---------- */
 /* 這件現在不能動的原因（kind：'fill' 填、'temper' 淬鍊、'qual' 品質、'holy' 聖化、'corr' 腐化） */
 function lockWhy(it, kind) {
-  if (it.gem || it.charm) return '這個不能做裝';
+  if (it.charm) return '這個不能做裝';
   if (it.uid) return '還沒鑑定：先找撿骨師';
   if (it.cor) return '已腐化，全部鎖定';
   if (it.holy && kind === 'fill') return '已聖化，不能再填';
@@ -432,7 +432,7 @@ function prdC(p) {
 /* 連續幾次沒中，下一次必中 */
 const prdMax = p => Math.ceil(1 / prdC(p));
 /* frac＝黃裝的 ★、fracB＝藍裝的 ★（各自一個計數器：共用的話黃裝常中就歸零，藍裝拿不到機率）、mem＝追憶、holy／corr＝聖化石、腐化石 */
-const PRD0 = () => ({ frac: 0, fracB: 0, mem: 0, holy: 0, corr: 0 });
+const PRD0 = () => ({ frac: 0, fracB: 0, mem: 0, holy: 0, corr: 0, awk: 0 });
 function prdRoll(key, p) {
   const prd = (S.prd = S.prd || PRD0()),
     n = (prd[key] || 0) + 1,
@@ -484,6 +484,7 @@ const ELITE_RICH = 0.35,
   HUNT_ELITE = 0.3,
   HOLY_P = 0.02,
   CORR_P = 0.05,
+  AWK_P = 0.03,
   HIGH_T = 10;
 /* 這張圖的菁英數 */
 const eliteCount = star => irnd(...STAR_DROP[star].el);
@@ -520,8 +521,10 @@ function dropCur(kind, o) {
     add('exalt');
     if (Math.random() < Math.min(1, D.essB * mat)) ess.push(rollEss(o.ilvl));
     if (o.hunt) add('conv'), add('fore');
-    if (o.zod) add('corr'), add('holy');
+    if (o.zod) add('corr'), add('holy'), add('awk');
     else if ((o.tier || 0) >= HIGH_T && prdRoll('corr', CORR_P)) add('corr');
+    /* 覺醒石（0.2.75，企劃書 5.7）：裂口生肖王保底 1，階級 10 以上的王 3%（偽隨機，跟腐化石各自一個計數器）。⚠️ 暫定 */
+    if (!o.zod && (o.tier || 0) >= HIGH_T && prdRoll('awk', AWK_P)) add('awk');
   }
   return { cur, ess };
 }
@@ -571,99 +574,47 @@ function identifyAll(s = S) {
   return L;
 }
 
-/* ---------- 寶石：靈魂升級、開孔 ---------- */
-const gemSoCap = g => (SKILLS[g.gem] ? GEM_SO_MAX : 0);
-function gemUpCheck(g) {
-  const cap = gemCap(S.lv),
-    c = soulCost(g.lv);
-  if (g.lv >= cap) return { c, why: g.lv >= GEM_MAX ? '已經滿級' : `Lv ${g.lv + 1} 要角色 Lv ${gemReq(g.lv + 1)}` };
+/* ---------- 目錄：靈魂升級、開孔（0.2.75，企劃書 6.2）：等級記在 S.lib，換招不用重練；輔助升一次，插了它的招一起受惠 ---------- */
+function libUpCheck(k) {
+  const lv = libLv(k),
+    c = soulCost(lv);
+  if (lv >= gemCap(S.lv)) return { c, why: lv >= GEM_MAX ? '已經滿級' : `Lv ${lv + 1} 要角色 Lv ${gemReq(lv + 1)}` };
   if (MAT().soul < c) return { c, why: `靈魂不夠（要 ${c}）` };
   return { c, why: null };
 }
-function gemUp(g) {
-  const { c, why } = gemUpCheck(g);
+function libUp(k) {
+  const { c, why } = libUpCheck(k);
   if (why) return why;
   MAT().soul -= c;
-  g.lv++;
+  (S.lib[libKind(k)] = S.lib[libKind(k)] || {})[k] = libLv(k) + 1;
   return null;
 }
-/* 升滿（0.2.24）：一直升到角色能用的最高級（或滿級），靈魂不夠就停在買得起的最高級；
-   寶石等級會拉高能力值需求，停在升完還能用的最高級（硬要升走 gemUp，面板上有警告） */
-function gemMaxCheck(g) {
-  const cap = gemCap(S.lv);
-  let lv = g.lv,
-    c = 0,
-    stop = null;
-  while (lv < cap && c + soulCost(lv) <= MAT().soul) {
-    const l = gemLack({ ...g, lv: lv + 1 });
-    if (l.length) {
-      stop = `Lv ${lv + 1} 要${lackTxt(l)}`;
-      break;
-    }
-    c += soulCost(lv++);
-  }
-  return { lv, c, why: lv > g.lv ? null : stop || gemUpCheck(g).why };
-}
-function gemUpMax(g) {
-  const { lv, c, why } = gemMaxCheck(g);
-  if (why) return why;
-  MAT().soul -= c;
-  g.lv = lv;
-  return null;
-}
-/* 全部升滿：一次升一級、最低等的先升，靈魂不夠時大家平均；跟 gemMaxCheck 一樣不會升到失效。回傳總花費與每顆的目標等級 */
-function gemAllPlan(gems) {
-  const cap = gemCap(S.lv),
-    L = gems.map(g => ({ g, lv: g.lv }));
-  let c = 0;
-  for (;;) {
-    let b = null;
-    for (const x of L) {
-      if (x.lv >= cap || c + soulCost(x.lv) > MAT().soul || gemLack({ ...x.g, lv: x.lv + 1 }).length) continue;
-      if (!b || x.lv < b.lv) b = x;
-    }
-    if (!b) break;
-    c += soulCost(b.lv++);
-  }
-  return { c, L: L.filter(x => x.lv > x.g.lv) };
-}
-function gemUpAll(gems) {
-  const { c, L } = gemAllPlan(gems);
-  MAT().soul -= c;
-  for (const x of L) x.g.lv = x.lv;
-  return L.length;
-}
-/* 品質（0.2.29）：0.2.72 起花靈魂（每 +1% 花 GEM_Q_SOUL），只能升不能降；c＝一次的花費 */
-function gemQCheck(g) {
-  const q = g.q || 0,
-    n = Math.ceil((GEM_Q_MAX - q) / gemQStep(g)),
-    c = GEM_Q_SOUL * gemQStep(g);
-  if (!n) return { why: '品質已滿', n: 0, c };
-  return { n, c, why: MAT().soul >= c ? null : `靈魂不夠（要 ${c}）` };
-}
-/* all：能升多少升多少 */
-function gemQUp(g, all) {
-  const { n, c, why } = gemQCheck(g);
-  if (why) return why;
-  const k = all ? Math.min(n, Math.floor(MAT().soul / c)) : 1;
-  MAT().soul -= k * c;
-  g.q = Math.min(GEM_Q_MAX, (g.q || 0) + k * gemQStep(g));
-  return null;
-}
-/* 開孔（0.2.72）：花靈魂，費用看 data.js 的 DRILL／drillCost */
-function drillCheck(g) {
-  const so = g.so || 0;
-  if (!SKILLS[g.gem] && !AURAS[g.gem]) return { why: '只有技能與光環寶石能開孔' };
-  if (so >= GEM_SO_MAX) return { why: '已經 5 孔' };
-  const k = Math.max(0, so - 2),
+/* 開孔（0.2.72）：花靈魂，費用看 data.js 的 DRILL／drillCost；r 是技能格或光環欄的項目 { k, so, n } */
+function drillCheck(r) {
+  if (r.n >= GEM_SO_MAX) return { why: '已經 5 孔' };
+  const k = r.n - 2,
     c = drillCost(k);
   return { k, c, why: MAT().soul >= c ? null : `靈魂不夠（要 ${c}）` };
 }
-function drillDo(g) {
-  const { c, why } = drillCheck(g);
+function drillDo(r) {
+  const { c, why } = drillCheck(r);
   if (why) return why;
   MAT().soul -= c;
-  g.so = (g.so || 2) + 1;
-  g.sup = [...(g.sup || []), null];
+  r.n++;
+  r.so.push(null);
+  return null;
+}
+/* ---------- 覺醒（0.2.75，企劃書 6.3）：花 1 顆覺醒石選 A（原版增強）或 B（變化），記在目錄 S.lib.aw[技能鍵]；之後免費切換、不能拆掉 ---------- */
+function awakeCheck(k, which) {
+  if (!AWK[k] || !AWK[k][which]) return which === 'B' ? '變化版製作中' : '這招不能覺醒';
+  if (awOf(k) === which) return '已經是這個覺醒';
+  if (!awOf(k) && MAT().awk < 1) return '要 1 顆覺醒石';
+  return '';
+}
+function awakeDo(k, which) {
+  const why = awakeCheck(k, which);
+  if (why) return why;
+  if (!awOf(k)) MAT().awk--;
+  (S.lib.aw = S.lib.aw || {})[k] = which;
   return null;
 }

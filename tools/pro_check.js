@@ -13,8 +13,8 @@ const ok = (n, c, info = '') => {
   if (!c) bad++;
 };
 /* 玩家的東西：序章前後要一模一樣（故事旗標、存檔時間除外） */
-const CORE = `JSON.stringify(['lv','xp','gold','frag','maxT','tier','eq','inv','stash','temp','gems','skills','pt','ptA','asc','at','mat','charms','auras'].map(k => (PRO.real || S)[k]))`;
-const DISK = `(() => { const s = JSON.parse(localStorage.getItem(KEY + SLOT)); return JSON.stringify(['lv','xp','gold','frag','maxT','tier','eq','inv','stash','temp','gems','skills','pt','ptA','asc','at','mat','charms','auras'].map(k => s[k])); })()`;
+const CORE = `JSON.stringify(['lv','xp','gold','frag','maxT','tier','eq','inv','stash','temp','lib','skills','pt','ptA','asc','at','mat','charms','auras'].map(k => (PRO.real || S)[k]))`;
+const DISK = `(() => { const s = JSON.parse(localStorage.getItem(KEY + SLOT)); return JSON.stringify(['lv','xp','gold','frag','maxT','tier','eq','inv','stash','temp','lib','skills','pt','ptA','asc','at','mat','charms','auras'].map(k => s[k])); })()`;
 let b, LAST;
 async function page(w, h, touch, opt) {
   const ctx = await b.newContext({

@@ -400,6 +400,27 @@ Object.assign(BUILDS, {
     sk: 'slash',
     asc: ['godson', 's_dragon', 'dragon', 's_pig', 'pig', 's_ox', 'ox', 's_tiger', 'tiger'],
     god: 1
+  },
+  /* 0.2.75 覺醒（企劃書 6.3）：火法的路線與裝備打隕石，原本／覺醒 A（傷害更多 15%）／覺醒 B（三連隕石：3 顆各 ×0.45、範圍 −40%）。追加在最後面，前面每一格的亂數種子不變 */
+  隕石: {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_staff: 2, castP: 3, pen: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'staff',
+    sk: 'meteor'
+  },
+  '隕石 覺醒 A': {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_staff: 2, castP: 3, pen: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'staff',
+    sk: 'meteor',
+    aw: 'A'
+  },
+  '隕石 覺醒 B': {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_staff: 2, castP: 3, pen: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'staff',
+    sk: 'meteor',
+    aw: 'B'
   }
 });
 /* 0.2.73 昇華前後比：每個昇華一個「同裝備、同路線、沒有昇華」的對照（名字加「－」；千機／統治君王／詭雷師／破陣者的對照是上面的「＊」）。
@@ -532,7 +553,8 @@ for (SD = 0; SD < SEEDS; SD++)
       if (B.golems) {
         ctx.__g = B.golems;
         ctx.__lv = R('gemCap')(L);
-        S.auras = R('__g.map(k => mkGem(k, __lv))');
+        S.auras = R('__g.map(k => ({ k, so: [null, null], n: 2 }))');
+        S.lib = R('({ sk: {}, sup: {}, aura: Object.fromEntries(__g.map(k => [k, __lv])), aw: {} })');
         /* ring2 原本的詞綴留著（能力值需求靠它），只多加一條精魂 */
         S.eq.ring2 = S.eq.ring2 || R("mkItem('r_iron', 1, 0)");
         S.eq.ring2.a = [...S.eq.ring2.a, { k: 'spirit', v: B.spirit, T: 1 }];
@@ -580,6 +602,13 @@ for (SD = 0; SD < SEEDS; SD++)
         R('P.rage = 15');
         boss.ail.intim = 1e9;
         R('P.surrStr = ' + (ST.surrMore ? 20 : 0)); /* 王 20 點強度 */
+      }
+      /* 覺醒（0.2.75）：A＝更多 15%（原本品質效果的機制不算傷害）、B＝補丁（跟 skills.js 的 applyFx 一樣；三連隕石 volley 3 顆當作全部打中王） */
+      if (B.aw === 'A' && D.m) c.more *= R('AW_MORE');
+      if (B.aw === 'B') {
+        const f = R('AWK')[B.sk].B.fx;
+        for (const k in f)
+          c[k] = ['more', 'aoe', 'speed', 'kb', 'mp', 'cd'].includes(k) ? (c[k] ?? 1) * f[k] : (c[k] || 0) + f[k];
       }
       if (B.broken) (boss.arm = 0), (boss.ail.broken = 1e9);
       if (B.trap) {
@@ -670,7 +699,7 @@ for (SD = 0; SD < SEEDS; SD++)
           (1 + ST.minAs / 100);
       }
       const trapTrig = B.trap ? Math.min((1 + ST.castP / 100) / D.t, 1 / 0.4) * (ST.rearm ? 2 : 1) : 0,
-        hit = sum / N,
+        hit = (sum / N) * (c.volley || 1),
         spell = R('isSpell')(D),
         rate = B.trap ? trapTrig : spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
         /* 0.2.22：攻擊要乘命中率（法術一律命中） */
@@ -812,6 +841,7 @@ for (SD = 0; SD < SEEDS; SD++)
           B.golems
             ? `⚠️ 估算：魔像 ${nGol} 隻（上限 ${ST.golemMax}）、約 ${Math.round(golemDps)}/秒（占 ${Math.round((golemDps / dps) * 100)}%）、增益效果 +${ST.golemEff}%${ST.colossus ? '、巨像' : ''}`
             : '',
+          B.aw === 'B' && c.volley ? `⚠️ 假設：${c.volley} 顆隕石全部打中王（範圍 ×${c.aoe}，實際看站位）` : '',
           B.cry
             ? `⚠️ 假設：強化常駐（更多 ${30 + lv - 1}%、強化攻擊傷害提高 ${ST.empP}%）、15 盛怒、威嚇常掛、打王強度 20（萬夫莫敵更多 ${(ST.surrMore * 20) / 2}%、受傷提高 ${(ST.surrTaken * 20) / 2}%）`
             : '',

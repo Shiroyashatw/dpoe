@@ -149,19 +149,17 @@ function stickHide() {
 
 /* ---------- 面板：點一下道具＝說明＋動作 ---------- */
 function moveLabel(src, it) {
-  if (PANEL.craft && !it.gem) return '放上鍛造台';
+  if (PANEL.craft) return '放上鍛造台';
   if (isSlot(src)) return '卸下';
-  if (it.gem && src === 'inv' && !PANEL.stash) return '鑲上';
   if (src === 'stash' || src === 'temp') return '放進背包';
   if (PANEL.stash) return '放進倉庫';
   return '裝備';
 }
 function tapItem(d) {
-  if (d.src === 'sock') return gemSel(d.eqk);
   const r = d.el.getBoundingClientRect();
   TOUCH.sel = { src: d.src, id: d.it.id, eqk: d.eqk };
   const sellB =
-    (G.scene === 'hide' && !d.it.gem
+    (G.scene === 'hide'
       ? `<button class="btn" data-tq="sell">賣 ${d.it.uid ? '？' : sellPrice(d.it)} 金</button>`
       : '') + `<button class="btn" data-tq="drop">丟掉</button>`;
   const build = () =>

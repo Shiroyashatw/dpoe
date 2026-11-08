@@ -17,6 +17,9 @@
   --cold: #8fd6ff;
   --light: #ffe066;
   --chaos: #c38bff;
+  --affix: #9aa6ff;
+  --awk: #b592ff;
+  --awk-bg: #1b1526;
   --fs-s: 12px;
   --fs: 14px;
   --fs-l: 18px;
@@ -187,22 +190,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .orb .ward { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--w, 0) * 100%); background: rgba(190, 225, 255, 0.35); border-top: 2px solid rgba(220, 240, 255, 0.8); transition: height 120ms ease-out; }
 .orb[style*='--w: 0;'] .ward, .orb:not([style*='--w']) .ward { border-top: none; }
 #pskill { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
-.sock { position: relative; }
-.sock.bad-link { border-color: var(--bad); box-shadow: inset 0 0 10px rgba(229, 72, 77, 0.35); }
-/* 數字一眼看到：傷害用元素色、魔力藍、冷卻金；物理是亮米白 */
 .skv { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tx); }
 .skv.el-fire { color: var(--fire); } .skv.el-cold { color: var(--cold); } .skv.el-light { color: var(--light); } .skv.el-chaos { color: var(--chaos); }
 .skv.skmp { color: var(--blue); } .skv.skcd { color: var(--title); }
 .skeff { color: var(--tx); }
-/* 鎖住的孔：鎖鏈＋解鎖，下一個可以點 */
-.sock.lock { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 0; color: var(--lock); }
-.sock.lock .ico { width: 14px; height: 14px; }
-.sock.lock small { font-size: 11px; line-height: 1.1; color: inherit; }
-.sock.lock.next { color: var(--fr-hi); border-color: var(--fr); cursor: pointer; }
-.sock.lock.next:active { transform: scale(0.95); }
 /* 標籤：看得見的膠囊，元素標籤用元素色 */
 .gtags { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; padding: 8px 14px 0; }
-.gtag { padding: 1px 7px; font: 700 var(--fs-s)/18px var(--font); color: var(--title); background: rgba(200, 205, 215, 0.1); border: 1px solid var(--fr-o); border-radius: 2px; }
+.nw { white-space: nowrap; }
+.gtag { white-space: nowrap; padding: 1px 7px; font: 700 var(--fs-s)/18px var(--font); color: var(--title); background: rgba(200, 205, 215, 0.1); border: 1px solid var(--fr-o); border-radius: 2px; }
 .gtag.t-fire { color: var(--fire); } .gtag.t-cold { color: var(--cold); } .gtag.t-light { color: var(--light); } .gtag.t-chaos { color: var(--chaos); }
 button.gtag { cursor: pointer; }
 button.gtag:active { transform: scale(0.95); }
@@ -214,11 +209,6 @@ button.gtag:active { transform: scale(0.95); }
 #ttip b { display: block; font: 700 var(--fs)/1.3 var(--serif); color: var(--title); letter-spacing: 0.04em; }
 #ttip p { margin: 4px 0 0; font-size: var(--fs-s); line-height: 1.5; }
 /* 第二層：傷害拆解 */
-#tip .sknums { line-height: 1.7; }
-.gq { line-height: 1.5; }
-#tip .gq b { display: inline; margin-right: 8px; color: var(--gold); font-size: var(--fs-s); }
-.gq.off { color: var(--dim); }
-.skd li .btn { margin-top: 4px; }
 .skd { padding: 8px 14px 0; text-align: left; font-size: var(--fs-s); }
 .skd dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; }
 .skd dt { color: var(--dim); }
@@ -441,29 +431,9 @@ body.touch #pcraft { left: calc(6px + env(safe-area-inset-left)); width: calc(50
 }
 
 /* 0.2.7 生成寶石（照 PoE2 選技能）：上面三種、左邊頁籤、右邊照使用等級分組 */
-#pgem { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(680px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); z-index: 12; }
 .gkind { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
 .gkind .btn { padding: 8px 6px; }
 .gkind .btn.on { border-color: #4fd1c5; background: rgba(79, 209, 197, 0.16); }
-.gwrap { display: grid; grid-template-columns: 112px 1fr; gap: 10px; }
-.gtabs { display: flex; flex-direction: column; gap: 4px; }
-.gtab { display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 10px; font: 700 var(--fs) var(--font); color: var(--tx); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); border-radius: var(--rad); cursor: pointer; text-align: left; }
-.gtab small { color: var(--dim); font-weight: 500; }
-.gtab.on { border-color: #4fd1c5; background: rgba(79, 209, 197, 0.16); }
-.gtab:active { transform: scale(0.97); }
-.glist { display: grid; gap: 10px; align-content: start; }
-.glv h4 { margin: 0 0 4px; font-size: var(--fs-s); color: var(--gold); }
-.gcard { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; margin-bottom: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line); border-radius: var(--rad); }
-.gcard .ic { width: 32px; height: 32px; }
-.gcard b { display: block; }
-.gcard small { display: block; color: var(--dim); font-size: var(--fs-s); line-height: 1.35; }
-.gcard.lock { opacity: 0.5; }
-.gcard .btn.mini { min-height: 36px; padding: 4px 10px; white-space: nowrap; }
-@media (max-width: 600px), (max-height: 420px) {
-  .gwrap { grid-template-columns: 1fr; }
-  .gtabs { flex-direction: row; overflow-x: auto; }
-  .gtab { flex: none; gap: 6px; }
-}
 
 /* 0.2.7 地圖卡：星級顏色（藍黃紫橘紅）；選中的卡加框 */
 .mcards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
@@ -531,13 +501,13 @@ body.touch .panel { --pp: 10px; }
 .btn:not(:disabled):hover { border-color: var(--fr); color: var(--title); }
 .btn.pri { background: linear-gradient(180deg, #6b2414, #3a110a); border-color: var(--fr); color: #f6e6c4; font-family: var(--serif); letter-spacing: 0.08em; }
 .btn.pri:not(:disabled):hover { border-color: var(--fr-hi); }
-.btn:focus-visible, .tier:focus-visible, .mcard:focus-visible, .gtab:focus-visible, .chip:focus-visible, .ph .x:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
+.btn:focus-visible, .tier:focus-visible, .mcard:focus-visible, .chip:focus-visible, .ph .x:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
 .tbar .tabs button.on, .ftabs button.on, .chip.on { border-color: var(--fr-hi); color: var(--title); background: rgba(200, 205, 215, 0.1); }
 .tier { border-radius: 2px; background: var(--s0); border-color: var(--fr-o); }
 .tier.on { border-color: var(--fr-hi); background: rgba(200, 205, 215, 0.14); color: var(--title); }
 /* 鎖住：虛線框＋暗字，不只靠半透明 */
-.tier.lock, .mcard.lock, .gcard.lock { opacity: 1; color: var(--lock); border-style: dashed; }
-.mcard, .gtab, .gcard, .chip, .ftabs button, .tbar .tabs button { border-radius: 2px; }
+.tier.lock, .mcard.lock { opacity: 1; color: var(--lock); border-style: dashed; }
+.mcard, .chip, .ftabs button, .tbar .tabs button { border-radius: 2px; }
 .tinfo, .fsel { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--line); border-radius: 2px; }
 .sell { border-radius: 2px; }
 /* 裝備欄、格子：凹進去的深色槽 */
@@ -710,12 +680,12 @@ body.touch.port #ptabs:not([hidden]) { display: flex; position: fixed; z-index: 
 body.touch.port .panel { left: 0 !important; right: 0 !important; width: auto !important; top: calc(48px + env(safe-area-inset-top)); bottom: 0; max-height: none; transform: none; border-radius: 0; outline: none; }
 body.touch.port.pair #pstash, body.touch.port.pair #pskill, body.touch.port.pair #pcraft { bottom: auto; height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
 body.touch.port.pair #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
-body.touch.port #pgem, body.touch.port #pset, body.touch.port #pflt, body.touch.port #pasc, body.touch.port #pshop, body.touch.port #preveal { top: env(safe-area-inset-top); transform: none; max-height: none; }
+body.touch.port #pset, body.touch.port #pflt, body.touch.port #pasc, body.touch.port #pshop, body.touch.port #preveal { top: env(safe-area-inset-top); transform: none; max-height: none; }
 body.touch.port .ph .sw { display: none; }
 .tinfo span { white-space: nowrap; }
 .tinfo div > :last-child { text-align: right; }
 body.touch.port .panel > .ph:first-child .x { display: none; }
-body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-child .x, body.touch.port #pflt > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x, body.touch.port #pshop > .ph:first-child .x, body.touch.port #preveal > .ph:first-child .x { display: grid; }
+body.touch.port #pset > .ph:first-child .x, body.touch.port #pflt > .ph:first-child .x, body.touch.port #pasc > .ph:first-child .x, body.touch.port #pshop > .ph:first-child .x, body.touch.port #preveal > .ph:first-child .x { display: grid; }
 
 /* ---------- 地圖卡：星級、危險、費用；選中的卡展開地圖詞 ---------- */
 .mcards2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; margin: 4px 0 6px; }
@@ -739,11 +709,6 @@ body.touch.port #pgem > .ph:first-child .x, body.touch.port #pset > .ph:first-ch
 
 /* ---------- 0.2.14 技能寶石：上方分頁；一行一招，點那一行看說明＋升級、開孔 ---------- */
 /* 0.2.24：寶石那一行直接放升級、升滿、開孔；空的格子點一下生成（虛線框＋加號） */
-.sock.emp { cursor: pointer; border-style: dashed; border-color: var(--fr-o); }
-.sock.emp:hover { border-color: var(--fr-hi); }
-.sock.emp:active { transform: scale(0.95); }
-.sock.emp small { display: grid; place-items: center; gap: 1px; }
-.sock.emp .ico { width: 12px; height: 12px; }
 /* 桌機翻滾冷卻：游標旁的小圓環，走完就消失 */
 #rcd { position: fixed; left: 0; top: 0; z-index: 6; width: 22px; height: 22px; border-radius: 50%; pointer-events: none; background: conic-gradient(var(--tx) calc(var(--v, 0) * 360deg), rgba(0, 0, 0, 0.45) 0); -webkit-mask: radial-gradient(circle, transparent 6px, #000 7px); mask: radial-gradient(circle, transparent 6px, #000 7px); }
 /* 直立沒有翻滾鍵（一撥就翻），留一個不能按的小圖示顯示冷卻 */
@@ -761,7 +726,7 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 .btn.pri:not(:disabled):hover { background: var(--act-hi); border-color: #fff; color: #fff; }
 .btn.pri:disabled { background: var(--s3); border-color: var(--fr); color: var(--dim); }
 .btn.arm { border-color: var(--bad); color: var(--bad); }
-.btn:focus-visible, .tier:focus-visible, .mcard:focus-visible, .gtab:focus-visible, .chip:focus-visible, .ph .x:focus-visible, .it:focus-visible, .stc:focus-visible, .tlink:focus-visible { outline: 2px solid var(--fr-hi); outline-offset: 1px; }
+.btn:focus-visible, .tier:focus-visible, .mcard:focus-visible, .chip:focus-visible, .ph .x:focus-visible, .it:focus-visible, .stc:focus-visible, .tlink:focus-visible { outline: 2px solid var(--fr-hi); outline-offset: 1px; }
 .orb { border: 1px solid var(--fr); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7), inset 0 0 22px #000; }
 .orb.mp.hot { border-color: var(--fire); box-shadow: 0 0 14px rgba(255, 138, 76, 0.75), inset 0 0 18px #000; }
 .hb { box-shadow: none; border-color: var(--fr-o); }
@@ -839,7 +804,7 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
 .ph .x, .tbar .x { color: #fff; background: rgba(0, 0, 0, 0.28); border-color: rgba(255, 255, 255, 0.28); }
 .ph .x:hover, .tbar .x:hover { color: #fff; background: rgba(0, 0, 0, 0.45); border-color: #fff; }
 .ph2 { font: 900 16px var(--serif); letter-spacing: 0.06em; color: var(--title); border-bottom: 1px solid var(--fr); }
-.btn, .sk, .shopb, .mc2, .gtab, .ftabs button, .fseg button { border-radius: 0; }
+.btn, .sk, .shopb, .mc2, .ftabs button, .fseg button { border-radius: 0; }
 .btn { background: linear-gradient(180deg, var(--s3), var(--s2)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1); }
 .btn.pri { font-weight: 700; font-size: 15px; }
 .tbar .tabs button.on, .ftabs button.on, .gkind .btn.on, .chip.on, .fseg button.on { background: var(--sel); border-color: var(--sel); color: var(--sel-ink); }
@@ -854,7 +819,6 @@ body.touch.port.pair:has(#pskill:not([hidden])) #pinv { top: calc(48px + env(saf
 #tip > b:first-child { font-size: 20px; font-weight: 700; }
 /* 數字是主角：技能傷害、角色數值放大 */
 .skv { font-size: 15px; font-weight: 700; }
-#tip .sknums { font-size: 15px; }
 .st b { font-size: 15px; }
 /* HUD：球和托盤是戰鬥畫面的招牌 */
 .orb { width: 104px; height: 104px; border: 2px solid var(--fr-hi); box-shadow: 0 0 0 2px #0c0d0f, 0 0 0 5px var(--fr), 0 0 0 6px #0c0d0f, 0 8px 22px rgba(0, 0, 0, 0.7), inset 0 0 22px #000; }
@@ -998,24 +962,8 @@ body.touch #tip .tqa { padding: 0 8px; }
 .fsw.on { border-color: #fff; box-shadow: 0 0 0 2px #000 inset; }
 .fdel { justify-self: start; color: var(--bad); }
 .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0; }
-.gpbar { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; margin: 6px 0 0; }
-.gpbar .gkind { display: flex; margin: 0; gap: 4px; }
-.gpbar .gkind .btn { min-height: 36px; padding: 4px 8px; }
-.gpbar .inp { min-height: 36px; padding: 4px 10px; }
-.gplist { max-height: 52vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 2px; background: rgba(0, 0, 0, 0.25); }
-.gplist.good { outline: 2px solid var(--good); }
-.gplist.bad { outline: 2px solid var(--bad); }
-.gph { margin: 0; padding: 4px 10px; font: 700 var(--fs-s) var(--font); color: var(--dim); background: rgba(255, 255, 255, 0.04); }
-.gph i { font-style: normal; }
-.gpr { display: grid; grid-template-columns: 32px 1fr auto auto; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 4px 10px; font: inherit; font-size: var(--fs-s); color: var(--tx); text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); cursor: pointer; }
-.gpr:hover { background: rgba(255, 255, 255, 0.06); }
-.gpr .ic { width: 28px; height: 28px; }
-.gpr span { white-space: nowrap; color: var(--dim); }
-.gpr span.c-good { color: var(--good); }
-#tip.gu { pointer-events: auto; }
-#tip.act, #tip.gu { overflow-y: auto; overscroll-behavior: contain; }
-body.touch .gplist { max-height: 40vh; }
-@media (max-height: 480px) { .gplist { max-height: 32vh; } .fcaff { max-height: 96px; } }
+#tip.act { overflow-y: auto; overscroll-behavior: contain; }
+@media (max-height: 480px) { .fcaff { max-height: 96px; } }
 
 /* 藏身處（0.2.44）：練習區面板、NPC 對話 */
 #prac { position: absolute; top: 40px; left: 12px; width: 244px; padding: 6px; display: grid; grid-template-columns: 1fr 76px; gap: 6px; background: linear-gradient(160deg, var(--s2), var(--s1) 42%); border: 8px solid transparent; border-image: url(../img/ui/frame.png) 16 / 32px stretch; image-rendering: pixelated; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6); pointer-events: auto; font: 500 var(--fs-s) var(--font); color: var(--tx); }
@@ -1048,90 +996,11 @@ body.touch.port #prac { top: calc(60px + env(safe-area-inset-top)); }
 .tkf small { font-size: var(--fs-s); }
 body.touch #talk { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
 body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
-/* ---------- 技能寶石：一列一招、升滿在列上，下方檢視區放動作（gx-） ---------- */
-.ph .gx-res, .ax-sum { white-space: nowrap; }
-.ph .gx-res b { font-variant-numeric: tabular-nums; }
-#pskill .ph > b, #pasc .ph > b, #pgem .ph > b { flex: none; white-space: nowrap; }
+/* ---------- 昇華石碑 ---------- */
+.ax-sum { white-space: nowrap; }
+#pskill .ph > b, #pasc .ph > b { flex: none; white-space: nowrap; }
 #pskill { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
 #pskill > .ph { flex: none; margin-bottom: 0; }
-.gx-bar { flex: none; display: flex; gap: 8px; padding: 6px 0; }
-.gx-bar .btn.pri { flex: 1; min-height: 36px; padding: 4px 10px; font-size: var(--fs); }
-.gx-bar .gx-gen { flex: none; min-height: 36px; padding: 4px 12px; }
-.gx-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0 calc(-1 * var(--pp)); padding: 0 var(--pp); scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
-.gx-row { display: grid; grid-template-columns: 50px minmax(0, 1fr) 84px; gap: 8px; align-items: center; padding: 3px 6px 3px 4px; margin: 0 -6px; border: 1px solid transparent; border-radius: 2px; cursor: pointer; }
-.gx-row + .gx-row { margin-top: 2px; }
-.gx-row:hover { background: var(--hl); }
-.gx-row.on { background: var(--hl-on); border-color: var(--fr-o); }
-.gx-row.emp { grid-template-columns: 50px minmax(0, 1fr); cursor: default; }
-.gx-k { position: relative; display: grid; justify-items: center; }
-/* 鍵名疊在寶石上，跟 HUD 技能格同一個語彙 */
-.gx-k kbd { position: absolute; z-index: 2; left: 2px; top: -1px; padding: 0 2px; font: 700 11px/13px var(--font); color: var(--title); background: var(--s0); pointer-events: none; }
-.sock.act { width: 50px; height: 50px; }
-.gx-main { min-width: 0; display: grid; gap: 4px; }
-.gx-l1 { display: flex; align-items: baseline; gap: 6px; min-width: 0; line-height: 18px; white-space: nowrap; }
-.gx-l1 > b { font-size: var(--fs); overflow: hidden; text-overflow: ellipsis; }
-.gx-l1 em { font: 700 11px var(--font); }
-.gx-lv { font-size: var(--fs-s); color: var(--dim); font-variant-numeric: tabular-nums; }
-.gx-lv i { font-style: normal; color: var(--good); }
-.gx-lv.flash { animation: gxf 420ms cubic-bezier(0.23, 1, 0.32, 1); }
-@keyframes gxf { 0% { color: var(--title); text-shadow: 0 0 8px var(--r3); } 100% { color: var(--dim); } }
-.gx-dps { margin-left: auto; font-size: var(--fs-s); color: var(--dim); }
-.gx-dps .skv { font-size: var(--fs); }
-.gx-dps .skv:not([class*='el-fire'], [class*='el-cold'], [class*='el-light'], [class*='el-chaos']) { color: var(--title); }
-/* 輔助孔連在主寶石的鏈條上 */
-.links { position: relative; display: flex; gap: 3px; }
-.links::before { content: ''; position: absolute; left: -10px; right: 0; top: 50%; height: 2px; background: var(--fr-o); }
-.sock.sup { width: 32px; height: 32px; }
-.sock.sup.lock { background: var(--s1); }
-.sock.sup.lock small { font-size: 11px; line-height: 1; }
-.sock .it { position: relative; z-index: 1; }
-.sock.sel { border-color: var(--title) !important; box-shadow: 0 0 0 1px var(--title), inset 0 0 8px #000; }
-.gx-r { display: grid; justify-items: stretch; }
-.gx-up { display: grid; gap: 0; padding: 3px 4px; min-height: 40px; line-height: 1.15; }
-.gx-up span { font-size: var(--fs-s); }
-.gx-up small, .gx-b small { font: 500 11px var(--font); color: var(--dim); font-variant-numeric: tabular-nums; }
-.gx-up.arm { border-color: var(--warn); color: var(--warn); }
-.gx-why { font: 500 11px/1.25 var(--font); color: var(--dim); text-align: center; }
-.gx-aura { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 8px; align-items: start; margin-top: 4px; padding: 6px 0; border-top: 1px solid var(--line); }
-.gx-ah { display: grid; justify-items: center; line-height: 1.25; }
-.gx-ah b { font: 700 var(--fs-s) var(--font); color: var(--tx); }
-.gx-ah span { font-size: 11px; color: var(--dim); white-space: nowrap; }
-.gx-as { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
-.gx-ac { display: flex; align-items: center; gap: 6px; min-width: 0; padding: 2px; border: 1px solid transparent; border-radius: 2px; cursor: pointer; }
-.gx-ac.on { background: var(--hl-on); border-color: var(--fr-o); }
-.gx-ac .sock.act { width: 36px; height: 36px; flex: none; }
-.gx-ac b { display: block; font-size: var(--fs-s); line-height: 1.2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.gx-ac small { font-size: 11px; color: var(--dim); }
-.gx-ac span { min-width: 0; }
-.gx-ins { position: relative; flex: none; max-height: 52vh; overflow-y: auto; margin: 0 calc(-1 * var(--pp)); padding: 6px var(--pp) 8px; background: var(--s2); border-top: 1px solid var(--fr); scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
-.gx-c { position: absolute; right: 6px; top: 6px; width: 32px; height: 32px; display: none; place-items: center; background: none; border: 0; color: var(--dim); }
-.gx-ih { display: flex; align-items: center; gap: 10px; }
-.gx-ih .ic { width: 40px; height: 40px; flex: none; }
-.gx-ih > div:not(.gx-d) { min-width: 0; }
-.gx-ih b { display: block; font: 700 var(--fs) var(--font); }
-.gx-d { margin-left: auto; text-align: right; }
-.gx-d small { display: block; font-size: 11px; color: var(--dim); }
-.gx-d b { color: var(--title); font-variant-numeric: tabular-nums; }
-.gx-d i { font-style: normal; }
-.gx-txt { margin: 6px 0 0; font-size: var(--fs-s); line-height: 1.45; color: var(--dim); }
-.gx-txt.c-bad { color: var(--bad); } .gx-txt.c-warn { color: var(--warn); }
-/* 0.2.57：光環寶石的孔（光環卡放不下，畫在檢視區） */
-.gx-al { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin-top: 8px; }
-.gx-al > small { font-size: 11px; color: var(--dim); white-space: nowrap; }
-.gx-acts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
-.gx-b { display: grid; gap: 0; padding: 4px; min-height: 44px; font-size: var(--fs-s); line-height: 1.25; }
-.gx-sub { display: flex; gap: 6px; margin-top: 6px; }
-.gx-sub .btn { flex: 1; }
-.gx-ins .skd { padding: 8px 0 0; }
-.gx-ins .skd p { margin: 6px 0 0; }
-.gx-ins .skd small { font-size: 11px; color: var(--dim); }
-.gx-gain { margin-left: 6px; font: 700 11px var(--font); font-style: normal; color: var(--good); }
-.gx-carry { margin: 8px 0 0; font-size: var(--fs-s); color: var(--dim); }
-.gx-own { display: grid; gap: 2px; margin: 4px 0 8px; }
-.gx-o { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; }
-.gx-o .ic { width: 28px; height: 28px; }
-#pgem .ph2 { margin-top: 8px; }
-#pgem .gcard b { display: inline; }
 
 /* ---------- 昇華石碑：頁籤、盤面（位置跟天賦樹中間一樣）、說明列與大點清單（ax-） ---------- */
 #pasc { display: grid; grid-template-columns: minmax(0, 1fr) 380px; grid-template-rows: auto auto minmax(0, 1fr); column-gap: 14px; overflow: hidden; padding-bottom: 12px; }
@@ -1183,14 +1052,9 @@ body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
 .ax-r span { color: var(--dim); }
 .ax-note { padding: 6px 8px 2px; font-size: 11px; color: var(--dim); }
 .ax-pick { flex: none; width: 100%; }
-.gx-row:focus-visible, .gx-ac:focus-visible, .ax-tab:focus-visible, .ax-n:focus-visible, .ax-r:focus-visible, .sock.emp:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
 
-/* ---------- 技能寶石、昇華石碑的手機版 ---------- */
-body.touch .sock.sup { width: 40px; height: 40px; }
+/* ---------- 昇華石碑的手機版 ---------- */
 /* 孔 40 加間距才夠 44 的點擊區 */
-body.touch .sock.sup::after { content: ''; position: absolute; inset: -2px; }
-body.touch .gx-k .sock.act { width: 44px; height: 44px; }
-body.touch .gx-row { grid-template-columns: 48px minmax(0, 1fr) 66px; padding: 4px 4px 4px 2px; }
 /* 盤面：手機圖示縮小、點擊區不縮，名字看下面的清單 */
 body.touch .ax-n.b0 { width: 22px; height: 22px; }
 body.touch .ax-n.b1 { width: 36px; height: 36px; }
@@ -1204,12 +1068,8 @@ body.touch:not(.port) .ph .sw { display: block; width: auto; padding: 0 12px; ma
 body.touch:not(.port) .ph .sw + .x { margin-left: 0; }
 
 /* 手機直立：動作在拇指區；寶石的檢視區選中時佔掉背包那半邊 */
-body.touch.port .gx-c { display: grid; }
-body.touch.port .gx-d { padding-right: 28px; }
 body.touch.port.pair.gxs #pskill { bottom: 0; height: auto; }
 body.touch.port #pskill { --pp: 10px; padding-left: 10px; padding-right: 10px; }
-body.touch.port .gx-ins { max-height: 46vh; }
-body.touch.port .gx-bar { padding: 8px 0; }
 body.touch.port #pasc { height: auto; bottom: 0; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 0; }
 body.touch.port #pasc > * { flex: none; }
 body.touch.port .ax-side { display: contents; }
@@ -1224,11 +1084,7 @@ body.touch.port .ax-chart { height: auto; width: 100%; max-width: 420px; align-s
 
 /* 手機橫向（畫面矮）：左右兩欄，一屏看完 */
 @media (max-height: 480px) {
-  body.touch:not(.port) #pskill { width: calc(100vw - 12px); display: grid; grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); column-gap: 10px; }
-  body.touch:not(.port) #pskill > .ph { grid-column: 1 / -1; padding-top: 4px; padding-bottom: 4px; }
-  body.touch:not(.port) .gx-bar { grid-column: 2; grid-row: 2; }
-  body.touch:not(.port) .gx-list { grid-column: 1; grid-row: 2 / 4; margin: 0; padding: 4px 4px 0 6px; }
-  body.touch:not(.port) .gx-ins { grid-column: 2; grid-row: 3; max-height: none; margin: 0 0 8px; padding: 6px 8px; border: 1px solid var(--fr-o); }
+  body.touch:not(.port) #pskill > .ph { padding-top: 4px; padding-bottom: 4px; }
   body.touch:not(.port) #pasc { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: none; grid-template-columns: auto minmax(0, 1fr); padding-top: 8px; padding-bottom: 8px; }
   body.touch:not(.port) #pasc > .ph { grid-column: 2; grid-row: 1; margin: -8px calc(-1 * var(--pp)) 6px 0; padding-top: 4px; padding-bottom: 4px; }
   /* 標題列只有 278 寬（667×375）：標題與點數疊成兩行、重置與 × 留在右邊，不會把 × 擠出畫面 */
@@ -1425,3 +1281,211 @@ body.touch:not(.port) #pdev { grid-template-columns: minmax(0, 1fr) min(320px, 4
 @media (prefers-reduced-motion: reduce) { .rvr.new { animation: none; } }
 /* 手機點出來的說明框變高了（6 固定格）：放不下時裡面捲，動作鈕黏在底部，永遠按得到 */
 #tip.act .tqa { position: sticky; bottom: 0; z-index: 1; margin: 8px -12px -10px; padding: 8px 12px 10px; background: rgba(14, 11, 10, 0.97); border-top: 1px solid var(--line); }
+
+/* ---------- 技能面板（0.2.75，js/skpanel.js；長相照 .impeccable/mocks/skill-panel/proto.html v4）----------
+   上排技能卡 → 齒輪圓環（圓心這招、5 孔＋覺醒槽繞一圈，孔的外圈進度環＝輔助等級）→ 環底下「每秒」→ 這招／詳情卡／覺醒；
+   挑一招、挑輔助是圖示格子選單。文字重點：數字 .n 白粗體、會改玩法的名詞 .kw 詞綴藍、代價 .why 橘、覺醒紫 --awk。 */
+:where(#pskill) :is(.slot, .ach, .node, .ctr, .g) { font: inherit; color: inherit; text-align: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+#pskill .n { color: var(--title); font-weight: 700; font-variant-numeric: tabular-nums; }
+#pskill .kw { color: var(--affix); font-weight: 500; }
+#pskill .term.kw { border-bottom: 1px dotted rgba(154, 166, 255, 0.5); }
+#pskill .term.kw:hover, #pskill .term.kw:focus-visible { color: #c6ccff; border-bottom-style: solid; }
+#pskill .cost { color: var(--warn); font-weight: 500; }
+#pskill .why { margin: 4px 0 0; font-size: var(--fs-s); line-height: 1.45; color: var(--warn); }
+#pskill .empty-note { margin: 0; color: var(--dim); font-size: var(--fs); }
+.soul { display: inline-flex; align-items: center; gap: 5px; color: var(--title); font-weight: 700; font-variant-numeric: tabular-nums; }
+.soul i { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--title), var(--cold) 45%, var(--s0)); border: 1px solid var(--fr-o); }
+.soul.sm { font-size: var(--fs-s); }
+.soul.sm i { width: 8px; height: 8px; }
+#pskill .ph .soul { margin-left: auto; color: var(--title); font-size: var(--fs); }
+#pskill .ph .soul ~ .x, #pskill .ph .soul ~ .sw { margin-left: 4px; }
+.sk-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin: 0 calc(-1 * var(--pp)); padding: 12px var(--pp) 14px; scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
+.sk-top { display: flex; flex-direction: column; gap: 8px; }
+.sk-ring:empty { display: none; }
+.sk-info { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.sk-body.picking .sk-ring { display: none; }
+/* 上排：技能格 */
+.slots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.slot { position: relative; height: 80px; padding: 6px 2px 5px; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; box-shadow: inset 0 0 10px #000; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; }
+.slot:hover { border-color: var(--fr); }
+.slot:active, .g:active, .ach:active, .node:active .o { transform: scale(0.96); }
+.slot.on { border-color: var(--fr-hi); background: var(--s2); box-shadow: inset 0 0 0 1px var(--fr-hi), inset 0 0 10px #000; }
+.slot .k { position: absolute; top: 3px; left: 5px; font: 700 11px/1 var(--font); font-style: normal; color: var(--title); text-shadow: 0 1px 0 #000; }
+.slot.on .k { color: var(--s0); background: var(--fr-hi); padding: 1px 4px; border-radius: 2px; top: 2px; left: 2px; text-shadow: none; }
+.slot .ic { width: 34px; height: 34px; }
+.slot .nm { max-width: 100%; font-size: 11px; line-height: 1.1; color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot.on .nm { color: var(--title); font-weight: 700; }
+.slot .lv { font: 700 11px/1 var(--font); color: var(--dim); white-space: nowrap; }
+.slot.on .lv { color: var(--title); }
+.slot .awm, .g .awm { position: absolute; top: 4px; right: 5px; width: 9px; height: 9px; transform: rotate(45deg); background: var(--awk); border: 1px solid var(--s0); }
+.slot.empty { justify-content: center; color: var(--lock); border-style: dashed; }
+.slot.empty .ico { width: 18px; height: 18px; }
+.slot.empty .nm { color: inherit; }
+.slot.pick { border-color: var(--fr-hi); border-style: dashed; color: var(--title); }
+/* 光環欄：每個光環一個小標籤 */
+.abar { display: flex; flex-wrap: wrap; gap: 6px; }
+.ach { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 3px 10px 3px 4px; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; text-align: left; }
+.ach.on { border-color: var(--fr-hi); background: var(--s2); }
+.ach .ic { width: 32px; height: 32px; }
+.ach span { display: grid; font-size: var(--fs-s); line-height: 1.25; color: var(--title); }
+.ach small { font-size: 11px; color: var(--dim); }
+.ach.off small { color: var(--warn); }
+.ach.add { color: var(--lock); border-style: dashed; padding-left: 10px; }
+.ach.add .ico { width: 16px; height: 16px; }
+/* 齒輪圓環：這招在圓心，5 個孔＋覺醒槽繞一圈，孔之間用鏈子串成環 */
+.ring { --R: 118px; --nd: 50px; position: relative; height: calc(var(--R) * 2 + 108px); margin: 0 auto; width: 100%; max-width: 440px; }
+.ring .gear { position: absolute; left: 50%; top: 50%; width: calc(var(--R) * 2.5424); height: calc(var(--R) * 2.5424); transform: translate(-50%, -50%); overflow: visible; pointer-events: none; }
+.ring .ctr { position: absolute; left: 50%; top: 50%; width: 96px; height: 96px; margin: -48px 0 0 -48px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 40% 35%, var(--s2), var(--s0) 70%); border: 2px solid var(--fr-hi); box-shadow: inset 0 0 14px #000, 0 0 0 1px #000, 0 0 0 5px var(--s1), 0 0 0 6px var(--fr-o); }
+.ring .ctr .ic { width: 56px; height: 56px; }
+.ring .ctr .lvb { position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); font: 700 11px/18px var(--font); color: var(--s0); background: var(--fr-hi); padding: 0 7px; border-radius: 2px; white-space: nowrap; }
+.node { position: absolute; left: calc(50% + var(--R) * var(--cx) - var(--nd) / 2); top: calc(50% + var(--R) * var(--cy) - var(--nd) / 2); width: var(--nd); height: var(--nd); }
+.node .o { position: relative; width: var(--nd); height: var(--nd); border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 40% 35%, var(--s2), var(--s0) 70%); border: 2px solid var(--fr-o); box-shadow: inset 0 0 10px #000, 0 0 0 1px #000, 0 0 0 4px var(--s1); transition: transform 120ms; }
+.node .o::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; background: conic-gradient(var(--fr-hi) calc(var(--p, 0) * 1%), var(--fr-o) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px)); }
+.node .o .ic { width: calc(var(--nd) * 0.64); height: calc(var(--nd) * 0.64); }
+.node:hover .o { border-color: var(--fr-hi); }
+.node.sel .o { border-color: var(--fr-hi); box-shadow: inset 0 0 0 1px var(--fr-hi), inset 0 0 10px #000, 0 0 0 1px #000, 0 0 0 4px var(--s1); }
+.node .nm { position: absolute; left: 50%; transform: translateX(-50%); width: 92px; text-align: center; font-size: 11px; line-height: 1.15; color: var(--tx); white-space: nowrap; pointer-events: none; }
+.node .nm small { display: block; font: 700 11px/1.2 var(--font); color: var(--dim); font-variant-numeric: tabular-nums; }
+.node.dn .nm { top: calc(var(--nd) + 6px); }
+.node.up .nm { bottom: calc(var(--nd) + 6px); }
+.node.open .o { border-style: dashed; color: var(--lock); }
+.node.open .o::before, .node.shut .o::before, .node.aw .o::before { display: none; }
+.node.open .o .ico { width: 16px; height: 16px; }
+.node.open .nm { color: var(--lock); }
+.node.bad .o { border-color: var(--bad); opacity: 0.6; }
+.node.bad .nm small { color: var(--bad); }
+.node.shut .o { background: radial-gradient(circle at 50% 50%, #0d0e10, var(--s0) 70%); }
+.node.shut .o .bind { position: absolute; left: -7px; top: -7px; width: calc(100% + 14px); height: calc(100% + 14px); color: var(--fr-hi); pointer-events: none; }
+.node.shut .o .ico { width: 16px; height: 16px; color: var(--fr-hi); }
+.node.shut .nm { color: var(--lock); }
+.node.shut .nm .soul { color: var(--tx); }
+.node.shut.far .o .bind, .node.shut.far .o .ico { color: var(--fr); }
+.node.shut.next[disabled] { cursor: not-allowed; }
+.node.aw .o { border-radius: 2px; transform: rotate(45deg); width: calc(var(--nd) * 0.8); height: calc(var(--nd) * 0.8); margin: calc(var(--nd) * 0.1); }
+.node.aw .o > * { transform: rotate(-45deg); }
+.node.aw:active .o { transform: rotate(45deg) scale(0.96); }
+.node.aw.empty .o { border-style: dashed; border-color: var(--fr-o); background: var(--s0); }
+.node.aw.empty .o .ico { width: 16px; height: 16px; color: var(--lock); }
+.node.aw.empty .nm { color: var(--lock); }
+.node.aw.set .o { border-color: var(--awk); background: var(--awk-bg); box-shadow: inset 0 0 0 1px var(--awk), inset 0 0 10px #000, 0 0 0 1px #000, 0 0 0 4px var(--s1); }
+.node.aw.set .o .ico { width: 20px; height: 20px; color: var(--awk); }
+.node.aw.set .nm { color: var(--awk); font-weight: 700; }
+/* 環底下：每秒傷害一個大數字，其餘小字 */
+.nums { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: end; padding: 8px 12px; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; }
+.nums .dps b { display: block; font: 700 28px/1 var(--font); font-variant-numeric: tabular-nums; color: var(--title); }
+.nums .dps small { display: block; font-size: 11px; color: var(--dim); margin-bottom: 2px; }
+.nums .dps.eff { grid-column: 1 / -1; font-size: var(--fs); color: var(--tx); }
+.nums .rest { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: flex-end; font-size: var(--fs-s); color: var(--dim); }
+.nums .rest b { color: var(--tx); font-variant-numeric: tabular-nums; }
+.nums .rest b.mp { color: var(--blue); }
+/* 這招：名字、標籤、等級、一句話、動作 */
+.head { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.head h2 { margin: 0; font: 700 20px/1.2 var(--font); letter-spacing: 0.04em; color: var(--title); }
+.head .sub { margin-top: 3px; font-size: var(--fs-s); color: var(--dim); }
+.head .sub .el { font-weight: 700; }
+.head .lvbox { text-align: right; }
+.head .lvbox b { display: block; font: 700 24px/1 var(--font); color: var(--title); font-variant-numeric: tabular-nums; }
+.head .lvbox b .up { font: 700 var(--fs-s) var(--font); font-style: normal; color: var(--good); }
+.lvbar { height: 5px; width: 84px; margin: 6px 0 0 auto; background: var(--s0); border: 1px solid var(--fr-o); }
+.lvbar i, .lvb2 i { display: block; height: 100%; background: linear-gradient(90deg, var(--fr), var(--fr-hi)); }
+.desc { margin: 0; font-size: var(--fs); line-height: 1.55; color: var(--tx); }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.acts .btn { flex: 1 1 0; min-width: 0; min-height: 44px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+.acts .btn.pri, .cacts .btn.pri { flex: 1.7 1 0; white-space: nowrap; }
+.acts .btn small.why, .cacts .btn small.why { display: block; margin: 0; font-size: 11px; color: var(--dim); }
+.acts .btn.pri .soul, .cacts .btn.pri .soul { color: #f6e6c4; }
+.acts .btn.pri .soul i { background: radial-gradient(circle at 35% 35%, #fff, var(--cold) 45%, #1a2a3a); }
+/* 詳情卡：技能、輔助、光環、覺醒都用同一款 */
+.card { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 12px; background: var(--s2); border: 1px solid var(--fr); border-radius: 2px; box-shadow: var(--frame); }
+.card .ic2 { width: 64px; height: 64px; display: grid; place-items: center; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; box-shadow: inset 0 0 10px #000; }
+.card .ic2 .ic { width: 48px; height: 48px; }
+.card .cl { display: flex; align-items: baseline; gap: 8px; }
+.card .cl b { font: 700 18px/1.2 var(--font); color: var(--title); }
+.card .cl em { font-style: normal; font: 700 var(--fs-s) var(--font); color: var(--dim); }
+.card .chips { display: flex; gap: 4px; flex-wrap: wrap; margin: 6px 0; }
+.card .lvb2 { height: 5px; width: 100%; background: var(--s0); border: 1px solid var(--fr-o); margin: 4px 0 8px; }
+.card .kv { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--fs-s); color: var(--dim); margin-bottom: 6px; }
+.card .kv b { color: var(--tx); font-variant-numeric: tabular-nums; }
+.card .kv b.mp { color: var(--blue); }
+.card p { margin: 0; font-size: var(--fs); line-height: 1.5; color: var(--tx); }
+.card p.why { font-size: var(--fs-s); }
+.card .cacts { grid-column: 1 / -1; display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+.card .cacts .btn { flex: 1 1 0; min-width: 0; min-height: 44px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+.flash { animation: skf 420ms cubic-bezier(0.23, 1, 0.32, 1); }
+@keyframes skf { 0% { color: var(--good); text-shadow: 0 0 8px var(--good); } 100% { text-shadow: none; } }
+/* 覺醒區塊（9-3） */
+.awsec .ph2 { color: var(--awk); border-bottom-color: rgba(181, 146, 255, 0.35); }
+.awsec .ph2 span { margin-left: auto; }
+.aw-t { color: var(--awk); font-weight: 700; }
+.awnote { margin: 6px 0 0; font-size: var(--fs-s); line-height: 1.45; color: var(--dim); }
+.awc .ico.tick { left: auto; top: 8px; right: 8px; width: 16px; height: 16px; }
+.aw2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.awc { position: relative; display: block; width: 100%; font: inherit; color: inherit; cursor: pointer; padding: 10px 10px 10px 38px; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; text-align: left; }
+.awc > .ico { position: absolute; left: 10px; top: 12px; width: 18px; height: 18px; color: var(--fr-hi); }
+.awc b.t { display: block; font-size: var(--fs); color: var(--tx); margin-bottom: 2px; }
+.awc .p { display: block; margin: 0; font-size: var(--fs-s); line-height: 1.45; color: var(--dim); }
+.awc.on { border-color: var(--awk); background: var(--awk-bg); box-shadow: inset 0 0 0 1px var(--awk); }
+.awc.on > .ico, .awc.on b.t { color: var(--awk); }
+.awc.on .p { color: var(--tx); }
+.awc .tick { position: absolute; right: 8px; top: 8px; width: 16px; height: 16px; color: var(--awk); }
+.awc:disabled { opacity: 0.6; }
+/* 選單：圖示格子＋標籤篩選＋底下詳情卡 */
+.cat { display: flex; flex-direction: column; gap: 8px; }
+.cat .bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cat .bar .btn.mini { padding: 4px 10px; }
+.cat .bar b { font: 700 var(--fs) var(--serif); color: var(--title); letter-spacing: 0.04em; }
+.cat .bar span { margin-left: auto; font-size: 11px; color: var(--dim); }
+.cat .ftabs { flex-wrap: wrap; }
+.cat > .card { position: sticky; bottom: 0; z-index: 2; }
+.grid2 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.g { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 6px; min-height: 76px; background: var(--s0); border: 1px solid var(--fr-o); border-radius: 2px; }
+.g:hover { border-color: var(--fr); }
+.g.sel { border-color: var(--fr-hi); background: var(--s2); box-shadow: inset 0 0 0 1px var(--fr-hi); }
+.g .ic { width: 40px; height: 40px; }
+.g .nm { max-width: 100%; font-size: 11px; line-height: 1.1; color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+.g .lv { position: absolute; top: 3px; right: 3px; font: 700 10px/14px var(--font); color: var(--title); background: rgba(0, 0, 0, 0.6); padding: 0 4px; border-radius: 2px; font-variant-numeric: tabular-nums; }
+.g .lv.z { color: var(--dim); }
+.g .key { position: absolute; top: 3px; left: 3px; font: 700 10px/14px var(--font); color: var(--s0); background: var(--fr-hi); padding: 0 4px; border-radius: 2px; }
+.g .awm { top: auto; bottom: 24px; right: 6px; width: 7px; height: 7px; }
+.g.dim { opacity: 0.45; }
+.g.dim .nm { color: var(--lock); }
+#pskill button:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
+/* 桌機矮螢幕：圓環縮一點 */
+@media (max-height: 800px) { .ring { --R: 104px; } }
+/* 手機：孔 44px、圓環縮小；直立單欄可捲 */
+body.touch .ring { --nd: 44px; }
+body.touch.port .ring { --R: 104px; }
+body.touch.port .nums .dps b { font-size: 24px; }
+body.touch.port .acts .btn.pri { flex: 1 1 100%; }
+body.touch .card { grid-template-columns: 56px 1fr; }
+body.touch .card .ic2 { width: 56px; height: 56px; }
+body.touch .card .ic2 .ic { width: 42px; height: 42px; }
+body.touch .g .ic { width: 36px; height: 36px; }
+body.touch .g .nm { font-size: 10px; }
+@media (max-width: 600px) { .slot { height: 76px; } .slot .ic { width: 30px; height: 30px; } .aw2 { grid-template-columns: 1fr; } }
+/* 手機橫向（畫面矮）：左邊圓環、右邊上排技能卡與資訊，一屏看完 */
+@media (max-height: 480px) {
+  body.touch:not(.port) #pskill { width: calc(100vw - 12px); }
+  body.touch:not(.port) .sk-body { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); grid-template-rows: auto minmax(0, 1fr); gap: 6px 12px; overflow: hidden; padding-top: 6px; padding-bottom: 6px; }
+  body.touch:not(.port) .sk-top { grid-column: 2; grid-row: 1; }
+  body.touch:not(.port) .sk-ring { grid-column: 1; grid-row: 1 / 3; align-self: center; }
+  body.touch:not(.port) .sk-body.picking .sk-ring, body.touch:not(.port) .sk-body.picking .sk-top { display: none; }
+  body.touch:not(.port) .sk-body.picking .sk-info { grid-column: 1 / -1; grid-row: 1 / 3; }
+  body.touch:not(.port) .sk-body.picking .cat { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 6px 12px; align-items: start; }
+  body.touch:not(.port) .cat > .bar, body.touch:not(.port) .cat > .ftabs, body.touch:not(.port) .cat > .why { grid-column: 1 / -1; }
+  body.touch:not(.port) .cat > .grid2 { grid-column: 2; grid-row: 4; }
+  body.touch:not(.port) .cat > .card { grid-column: 1; grid-row: 4; position: sticky; top: 0; bottom: auto; }
+  body.touch:not(.port) .sk-info { grid-column: 2; grid-row: 2; overflow-y: auto; padding-bottom: 6px; gap: 8px; scrollbar-width: thin; }
+  body.touch:not(.port) .ring { --R: 78px; --nd: 40px; height: calc(var(--R) * 2 + 96px); }
+  body.touch:not(.port) .ring .ctr { width: 76px; height: 76px; margin: -38px 0 0 -38px; }
+  body.touch:not(.port) .ring .ctr .ic { width: 44px; height: 44px; }
+  body.touch:not(.port) .slot { height: 62px; padding-top: 4px; }
+  body.touch:not(.port) .slot .ic { width: 26px; height: 26px; }
+  body.touch:not(.port) .nums .dps b { font-size: 22px; }
+  body.touch:not(.port) .head h2 { font-size: 18px; }
+}
+body.touch:not(.port) .node::after { content: ''; position: absolute; inset: -2px; }
+body.touch #pskill .cat .btn.mini { min-height: 44px; }
+body.touch.port #pskill .ftabs button { min-height: 44px; }
+body.touch:not(.port) #pskill .ftabs button { min-height: 40px; }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; } .node .o { transition: none; } }

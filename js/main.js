@@ -74,7 +74,6 @@ function migrate(s) {
     o.mat.fine = o.mat.fine || 0;
     o.mat.rare = o.mat.rare || 0;
   }
-  delete o.lib; /* 0.2.35：寶石書庫早就不用了 */
   /* 0.2.57：光環寶石也有孔 */
   for (const it of [
     ...o.inv.items,
@@ -179,7 +178,6 @@ function migrate(s) {
   }
   /* 存檔 23（0.2.44）：死亡紅花刪除 */
   if (o.v < 23) {
-    gemPurge(o, 'redbloom');
     o.v = 23;
   }
   /* 存檔 24：階級 1～16 換成世界地圖，地圖進度重置到劇情區第一個節點；等級、裝備、寶石不動，S.maxT 留作內部欄位 */
@@ -273,7 +271,6 @@ function migrate(s) {
   const AT = o.asc && ascNodes(o.asc);
   if (!AT) (o.asc = null), (o.at = []);
   else if (!o.at.length || o.at.some(id => !AT.I[id]) || !ascFeasible(AT, o.at)) o.at = ['a_st'];
-  ascSync(o);
   /* 0.2.9：武器照 PoE2 的 18 種類別重做；舊基底換成同一族的新類別、最接近的階級（等級、稀有度、詞綴都保留） */
   const OLDW = {
     sword1: ['w_katana', 'w_moon', 'w_demon'],
@@ -316,6 +313,54 @@ function migrate(s) {
       for (const x of it.sup) if (x && !gridAuto(o.inv, x)) gridAuto(o.stash, x);
       delete it.so, delete it.sup, delete it.en;
     }
+  /* 存檔 30（0.2.75，技能系統重做，企劃書 6.1）：技能、輔助、光環不再是道具。每顆寶石（格子上、孔裡、光環欄、背包、倉庫、臨時頁、寶石頁）的等級進目錄 S.lib（同鍵取最高）；
+     格子上那顆的孔數與插著的輔助照搬；品質花掉的靈魂退還（每 1% 30）；散裝寶石與同一招第二格那顆消失（等級已吸收），它們開過的孔（超過 2 孔的）照 DRILL 的費用退靈魂；已經不存在的寶石退升級的靈魂；過濾器裡沒有寶石條件，不用轉 */
+  if (o.v < 30) {
+    const lib = { sk: {}, sup: {}, aura: {}, aw: {} },
+      eat = g => {
+        if (!g || !g.gem) return;
+        const kind = SKILLS[g.gem] ? 'sk' : SUPPORTS[g.gem] ? 'sup' : AURAS[g.gem] ? 'aura' : '';
+        o.mat.soul = (o.mat.soul || 0) + (g.q || 0) * 30;
+        if (!kind) for (let l = 1; l < (g.lv || 1); l++) o.mat.soul += soulCost(l);
+        else lib[kind][g.gem] = Math.max(lib[kind][g.gem] || 1, Math.min(GEM_MAX, g.lv || 1));
+        (g.sup || []).forEach(eat);
+      },
+      adopted = new Set(),
+      rec = (g, tab) => {
+        const n = Math.min(GEM_SO_MAX, Math.max(2, g.so || 2));
+        tab[g.gem] = 1;
+        adopted.add(g);
+        return {
+          k: g.gem,
+          so: Array.from({ length: n }, (_, j) => {
+            const x = g.sup && g.sup[j];
+            return x && SUPPORTS[x.gem] ? x.gem : null;
+          }),
+          n
+        };
+      };
+    const all = [
+      ...o.skills.map(s => s.a),
+      ...o.auras,
+      ...(o.gems || []),
+      ...[o.inv, o.stash, o.temp].flatMap(b => (b ? b.items.filter(it => it.gem) : []))
+    ];
+    all.forEach(eat);
+    const used = {};
+    o.skills = o.skills.map(s => (s.a && SKILLS[s.a.gem] && !used[s.a.gem] ? rec(s.a, used) : newSlot()));
+    while (o.skills.length < NSLOT) o.skills.push(newSlot());
+    const ua = {};
+    o.auras = [...o.auras.filter(g => g && AURAS[g.gem] && !ua[g.gem] && (ua[g.gem] = 1)).map(g => rec(g, {})), null];
+    /* 沒有變成格子的那些（散裝、同一招的第二格）開過的孔退靈魂 */
+    for (const g of all)
+      if (g && g.gem && !adopted.has(g))
+        for (let k = 0; k < Math.min(GEM_SO_MAX, g.so || 2) - 2; k++) o.mat.soul += drillCost(k);
+    for (const b of [o.inv, o.stash, o.temp]) if (b) b.items = b.items.filter(it => !it.gem);
+    delete o.gems;
+    o.lib = lib;
+    o.v = 30;
+  }
+  ascSync(o);
   /* 副手不合規的（例：雙手劍配盾）收回背包 */
   if (o.eq.off && !offOK(o.eq.weapon, o.eq.off) && gridAuto(o.inv, o.eq.off)) o.eq.off = null;
   return o;

@@ -474,15 +474,16 @@ let fail = 0;
           closePanels();
           S.lv = 72;
           S.frag = 99;
-          S.skills[0].a = mkGem('slash', 10);
+          S.lib.sk.slash = 10;
           changed();
           openPanel('skill');
-          SKUI.sel = '0:a';
+          skSel(0);
           hudPanels();
         },
         '#pskill',
-        '.gx-row',
-        '.gx-acts'
+        '.slots',
+        '.ring .ctr',
+        '.sk-info .nums'
       ),
       await inView(
         () => {
@@ -558,7 +559,7 @@ let fail = 0;
         '[data-wm=wash]'
       )
     ];
-    ok('技能寶石、昇華石碑、世界地圖：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
+    ok('技能、昇華石碑、世界地圖：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
     ok(
       '世界地圖：按鈕至少 44px、沒有橫向溢出',
       await p.evaluate(() => {

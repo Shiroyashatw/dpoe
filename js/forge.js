@@ -1,6 +1,6 @@
 /* dungeonPOE · 鍛造台面板（0.2.72 重做，企劃書 5.3）：藏身處的鍛造台打開（左邊），背包在右邊。
    點一下背包或身上的裝備＝放上鍛造台；分頁：填（通貨，只能加）、淬鍊（金幣）、聖化、腐化。
-   每個按鈕都寫要花什麼、預覽會發生什麼；不能按的寫原因；推薦的標「推薦」。技能寶石面板的開孔按鈕也在這裡處理；材料頁在倉庫的「材料」分頁 */
+   每個按鈕都寫要花什麼、預覽會發生什麼；不能按的寫原因；推薦的標「推薦」。材料頁在倉庫的「材料」分頁 */
 'use strict';
 const CRAFT = { tab: 'forge', op: null, ess: null, conv: null, sel: null, log: '' };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);
@@ -11,7 +11,7 @@ function matPageHTML() {
     row = (ic, n, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
     ess = essList();
-  return `<ul class="mpg">${row('cur_soul', '靈魂', '寶石升級、開孔、提升品質；自動吸收', M.soul)}${Object.entries(CUR)
+  return `<ul class="mpg">${row('cur_soul', '靈魂', '技能與輔助升級、開孔；自動吸收', M.soul)}${Object.entries(CUR)
     .map(([k, c]) => row(c.ic, c.n, c.d, M[k] || 0))
     .join('')}</ul>
   <div class="ph2">精髓<span>9 類 × 階級，同類同階疊一格</span></div>
@@ -275,10 +275,6 @@ document.addEventListener('click', e => {
         CRAFT.sel = null;
       }
     }
-  } else if (k === 'dri') {
-    const a = v === 'A' ? S.auras[+x] : S.skills[+v].a;
-    if (a) err = drillDo(a);
-    if (!err) sfx('equip');
   }
   if (err) hudWarn(err);
   changed();

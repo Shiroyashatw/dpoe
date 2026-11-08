@@ -77,7 +77,7 @@ function rollSock(k) {
 const qBand = q => (q >= 0.25 ? 2 : q >= 0.2 ? 1 : 0);
 /* 掉落標籤上要不要特別標出來（金字以上） */
 function dropTag(it) {
-  if (it.gem || it.q == null) return '';
+  if (it.q == null) return '';
   return qBand(it.q) >= 2 ? `（品質 ${Math.round(it.q * 100)}%）` : '';
 }
 function mkItem(baseId, ilvl, rar) {
@@ -109,29 +109,43 @@ function mkItem(baseId, ilvl, rar) {
 function dropItem(ilvl, bonus) {
   return mkItem(pickBase(ilvl).id, ilvl, rollRarity(bonus));
 }
-/* 技能／輔助寶石：1×1，r=3（寶石色），lv 等級、xp 經驗 */
-/* 技能寶石自己有孔（0.2.6，照 PoE2）：一開始 2 孔、最多 5 孔，輔助插在 sup 裡 */
+/* 技能、輔助、光環不是道具（0.2.75，企劃書 6.1）：目錄本身是 SKILLS／SUPPORTS／AURAS，玩家資料只記等級 S.lib＝{ sk, sup, aura }（鍵 → 等級，沒記的 Lv 1 可用）；
+   技能格 S.skills[i]＝{ k, so: [輔助鍵…], n: 孔數 2～5 }（覺醒記在目錄 S.lib.aw[技能鍵]）、光環欄 S.auras 的項目＝{ k, so, n }。等級一律查目錄，所以換下來再換回去不用重練。
+   gemCfg／stats 讀的「技能設定」gem＝{ gem, lv, so, sup: [{ gem, lv }…] }，由 recGem 從格子加目錄現做，mkGem 直接做一份（測試用） */
+const libKind = k => (SKILLS[k] ? 'sk' : SUPPORTS[k] ? 'sup' : 'aura');
+const libLv = (k, lib = S.lib) => (lib && lib[libKind(k)] && lib[libKind(k)][k]) || 1;
+const newSlot = () => ({ k: null, so: [null, null], n: 2 });
 function mkGem(g, lv = 1) {
-  const it = { id: ++IID, gem: g, lv, xp: 0, r: 3, a: [], L: lv };
+  const it = { gem: g, lv };
   if (SKILLS[g] || AURAS[g]) (it.so = 2), (it.sup = [null, null]);
   return it;
 }
-/* 舊存檔裡被刪除的技能寶石：拿掉、退回升級的靈魂、孔裡的輔助放回寶石頁（存檔 23，死亡紅花） */
-function gemPurge(o, k) {
-  const back = [],
-    gone = g => {
-      if (!g || g.gem !== k) return false;
-      for (let l = 1; l < g.lv; l++) o.mat.soul = (o.mat.soul || 0) + soulCost(l);
-      back.push(...(g.sup || []).filter(Boolean));
-      return true;
-    };
-  for (const s of o.skills) if (gone(s.a)) s.a = null;
-  o.gems = o.gems.filter(g => !gone(g));
-  for (const b of [o.inv, o.stash, o.temp]) if (b) b.items = b.items.filter(g => !gone(g));
-  o.gems.push(...back);
+function recGem(r, lib) {
+  if (!r || !r.k) return null;
+  return {
+    gem: r.k,
+    lv: libLv(r.k, lib),
+    so: r.n,
+    sup: Array.from({ length: r.n }, (_, j) => (r.so[j] ? { gem: r.so[j], lv: libLv(r.so[j], lib) } : null)),
+    aw: (lib && lib.aw && lib.aw[r.k]) || ''
+  };
 }
-/* 昇華給的技能（0.2.69，SKILLS 的 asc＝昇華大點的能力鍵，例：血魔的赤鐮）：點亮那個點就在寶石頁送一顆（沒有才送），
-   退點或換昇華就收回（gemPurge 會退升級用的靈魂）。tree.js 的 treeChanged、main.js 的 migrate 呼叫 */
+/* 覺醒（9-3）：目錄 S.lib.aw[技能鍵]＝'A'（原版增強）或 'B'（變化），沒有＝還沒覺醒 */
+const awOf = (k, lib = S.lib) => (lib && lib.aw && lib.aw[k]) || '';
+/* 覺醒 B 改了標籤的技能定義（快取，輔助相容性看它）；沒改標籤就是 SKILLS 本身 */
+const AWD = {};
+function awD(k, aw) {
+  const t = aw === 'B' && AWK[k] && AWK[k].B && AWK[k].B.tags;
+  if (!t) return SKILLS[k];
+  return (AWD[k] = AWD[k] || {
+    ...SKILLS[k],
+    tags: [...SKILLS[k].tags.filter(x => !(t.del || []).includes(x)), ...(t.add || [])]
+  });
+}
+const skGem = (i, s = S) => recGem(s.skills[i], s.lib);
+const auraGems = (s = S) => (s.auras || []).map(r => recGem(r, s.lib));
+/* 昇華給的技能（SKILLS 的 asc＝昇華大點的能力鍵，例：血魔的赤鐮）：點亮那個點才選得到（skills.js 的 wtOK）；
+   退點或換昇華就從格子拿掉（等級還在目錄）。tree.js 的 treeChanged、main.js 的 migrate 呼叫 */
 const ascHas = (o, key) => {
   const N = o.asc && ASC[o.asc] && ASC[o.asc].N;
   return !!N && (o.at || []).some(id => N[id.slice(2)] && N[id.slice(2)][3] && key in N[id.slice(2)][3]);
@@ -172,25 +186,15 @@ function eqUnload(o) {
 }
 function ascSync(o = S) {
   eqUnload(o);
-  for (const k in SKILLS) {
-    const key = SKILLS[k].asc;
-    if (!key) continue;
-    const own = [
-      ...o.skills.map(s => s.a),
-      ...o.gems,
-      ...[o.inv, o.stash, o.temp].flatMap(b => (b ? b.items : []))
-    ].some(g => g && g.gem === k);
-    if (!ascHas(o, key)) gemPurge(o, k);
-    else if (!own) o.gems.push(mkGem(k));
-  }
+  for (const r of o.skills) if (r.k && SKILLS[r.k].asc && !ascHas(o, SKILLS[r.k].asc)) r.k = null;
 }
 const gemOf = it => SKILLS[it.gem] || SUPPORTS[it.gem] || AURAS[it.gem];
 const isAura = it => !!AURAS[it.gem];
 const isSup = it => !!SUPPORTS[it.gem];
 const baseOf = it => BASEI[it.b];
-const kindOf = it => (it.gem ? 'gem' : it.charm ? 'charm' : baseOf(it).k);
-const itemSize = it => (it.gem || it.charm ? [1, 1] : KINDS[baseOf(it).k].sz);
-const itemIc = it => (it.gem ? gemOf(it).ic : it.charm ? CHARMS[it.charm].ic : baseOf(it).ic);
+const kindOf = it => (it.charm ? 'charm' : baseOf(it).k);
+const itemSize = it => (it.charm ? [1, 1] : KINDS[baseOf(it).k].sz);
+const itemIc = it => (it.charm ? CHARMS[it.charm].ic : baseOf(it).ic);
 /* 黃裝的名字（鑑定後）：最高階前綴的詞名＋基底＋「・」最高階後綴的詞名（T 數字最小的；T0 最高）；沒有前綴或後綴就少那一邊 */
 function rareName(it) {
   const top = pre => {
@@ -205,27 +209,23 @@ function rareName(it) {
 const itemName = it =>
   it.charm
     ? CHARMS[it.charm].n
-    : it.gem
-      ? gemOf(it).n
-      : it.uid
-        ? baseOf(it).n
-        : it.r === 2
-          ? rareName(it)
-          : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
+    : it.uid
+      ? baseOf(it).n
+      : it.r === 2
+        ? rareName(it)
+        : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
 /* 物品等級決定的 T（這件能出的最高階），標籤與說明框的「T2」 */
 const itemT = it => bestTier(it.L);
 /* 地上標籤的小字：T、孔、★、追憶（未鑑定也看得到的資訊） */
 const labelTag = it =>
-  it.charm || it.gem
-    ? ''
-    : ` T${itemT(it)}${it.so ? ' ' + '○'.repeat(it.so) : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}`;
+  it.charm ? '' : ` T${itemT(it)}${it.so ? ' ' + '○'.repeat(it.so) : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}`;
 const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + '～' + a.v[1] : a.v);
 /* 腐化詞（0.2.72）：it.cw 的一條 */
 const cwText = c => CORR[c.k].n.replace('{}', c.v);
 /* 這條是不是破裂詞（T0；一件最多 1 條，it.frac＝那條的詞綴 k） */
 const isFrac = (it, a) => !!it.frac && it.frac === a.k;
 /* 追憶詞（8-2）：這件裝備出得了哪些、說明文字、掉落時抽參數 */
-const memPool = it => (it.gem || it.charm ? [] : Object.keys(MEM).filter(k => MEM[k].on(baseOf(it))));
+const memPool = it => (it.charm ? [] : Object.keys(MEM).filter(k => MEM[k].on(baseOf(it))));
 const memText = m =>
   ({
     m_proj: () => MEM.m_proj.n,
@@ -282,7 +282,7 @@ function baseText(it) {
 /* 品質、插槽數、聖化／腐化狀態（說明框用；舊存檔的裝備沒有就不顯示） */
 const Q_N = ['', '稀有', '非常稀有'];
 function baseLayers(it) {
-  if (it.gem || it.q == null) return '';
+  if (it.q == null) return '';
   const qb = qBand(it.q);
   return `品質 <span class="qb${qb}">${Math.round(it.q * 100)}%${qb ? '（' + Q_N[qb] + '）' : ''}</span> · 孔 ${'○'.repeat(it.so || 0) || '無'}${it.holy ? ' · <span class="c-gold">已聖化</span>' : ''}${it.cor ? ' · <span class="c-bad">已腐化</span>' : ''}`;
 }
@@ -290,11 +290,9 @@ function baseLayers(it) {
 const sellPrice = it =>
   it.charm
     ? 3
-    : it.gem
-      ? 0
-      : Math.round(
-          (1 + it.a.length * 2 + (it.r === 2 ? 4 : 0)) * (1 + it.L * 0.4) * (1 + Math.max(0, (it.q || 0) - 0.2) * 5)
-        );
+    : Math.round(
+        (1 + it.a.length * 2 + (it.r === 2 ? 4 : 0)) * (1 + it.L * 0.4) * (1 + Math.max(0, (it.q || 0) - 0.2) * 5)
+      );
 /* 副手合不合規（0.2.9，docs/開發參考.md 0.1）：雙手武器不能拿副手（弓可以配箭袋）；
    盾配任何單手武器；法器配法杖、權杖；權杖可以放副手（主手不能也是權杖）；爪、匕首、單手劍、單手斧可以雙持同類 */
 function offOK(w, off) {
@@ -466,7 +464,6 @@ function stats(s = S) {
     critX: 0,
     armor: 0,
     block: 0,
-    aq: {},
     res: { fire: 0, cold: 0, light: 0, chaos: 0 },
     maxRes: { fire: 0, cold: 0, light: 0, chaos: 0 },
     ms: 0,
@@ -991,7 +988,8 @@ function stats(s = S) {
   o.auraOn = [];
   /* 魔像上限最少 1（巨像的 −1 不會讓魔像全部消失） */
   o.golemMax = Math.max(1, o.golemMax);
-  for (const g of s.auras || []) {
+  const AG = auraGems(s);
+  for (const g of AG) {
     if (!g) continue;
     const A = AURAS[g.gem];
     /* 捷光環要拿非法系武器（照 PoE2），不然不預留、不生效 */
@@ -1000,17 +998,16 @@ function stats(s = S) {
     /* 夥伴（0.2.60 J3，照 PoE2）：同時只能有 1 隻，光環欄排後面的不生效 */
     if (A.tags.includes('companion') && o.auraOn.some(k => AURAS[k].tags.includes('companion'))) continue;
     /* 同名的光環只算一顆（hud 的 slotFits 也擋）；魔像（0.2.63）同時最多 golemMax 種，超過的不召、不預留精魂 */
-    if (s.auras.findIndex(x => x && x.gem === g.gem) !== s.auras.indexOf(g)) continue;
+    if (AG.findIndex(x => x && x.gem === g.gem) !== AG.indexOf(g)) continue;
     if (isGolem(g.gem) && o.auraOn.filter(isGolem).length >= o.golemMax) continue;
-    /* 光環寶石孔裡的輔助（0.2.57 F3）：sq 品質 0～1 */
+    /* 光環孔裡的輔助（0.2.57 F3） */
     const sup = {};
     for (const x of g.sup || [])
-      if (x && supOK(A, x, g))
-        sup[SUPPORTS[x.gem].base || x.gem] = { lv: x.lv, sq: (x.q || 0) / GEM_Q_MAX, t2: SUPPORTS[x.gem].tier === 2 };
+      if (x && supOK(A, x, g)) sup[SUPPORTS[x.gem].base || x.gem] = { lv: x.lv, t2: SUPPORTS[x.gem].tier === 2 };
     /* 精魂效用：夥伴（戰狼精魂）再加 compSpirit、捷光環再加 herSpirit（0.2.67） */
     const sp =
       (A.sp *
-        (sup.spiriteff ? 1 - (20 + 5 * sup.spiriteff.sq) / 100 : 1) *
+        (sup.spiriteff ? 0.8 : 1) *
         /* 魔像契約（0.2.70 統治君王）：魔像預留的精魂更少 */
         (isGolem(g.gem) ? 1 - o.golemSpirit / 100 : 1)) /
       (1 + (o.spiritEff + (A.tags.includes('companion') ? o.compSpirit : 0) + (A.her ? o.herSpirit : 0)) / 100);
@@ -1023,29 +1020,26 @@ function stats(s = S) {
         (1 + 0.03 * (g.lv - 1)) *
         (1 + (isGolem(g.gem) ? o.buffEff : o.auraEff + o.buffEff) / 100) *
         (1 + o.buffMag / 100) *
-        (ae ? 1 + (25 + (ae.lv - 1) + 5 * ae.sq) / 100 : 1);
-    /* 光環的品質（0.2.29）：0～1 */
-    o.aq[g.gem] = (g.q || 0) / GEM_Q_MAX;
+        (ae ? 1 + (25 + (ae.lv - 1)) / 100 : 1);
     if (A.her) {
       (o.her = o.her || {})[A.her] = g.lv;
       /* 範圍擴大、集中效應：範圍倍率 herA、傷害更多 herM（skills.js 的 herR／herMul） */
       const ar = sup.area,
         fo = sup.focus;
-      (o.herA = o.herA || {})[A.her] = (ar ? (ar.t2 ? 1.55 : 1.4) : 1) * (fo ? 0.7 + 0.1 * fo.sq : 1);
+      (o.herA = o.herA || {})[A.her] = (ar ? (ar.t2 ? 1.55 : 1.4) : 1) * (fo ? 0.7 : 1);
       (o.herM = o.herM || {})[A.her] = fo ? 1.3 : 1;
     }
     /* 群狼：戰狼精魂多 1 隻、光環的狼與魔像傷害更多 30% */
     if (sup.pack) o['packM_' + g.gem] = 1.3;
     /* 召喚物傷害、生命（0.2.66）：skills.js 的 allyMult0、lifeM 讀 */
-    if (sup.mindmg) o['minM_' + g.gem] = 1.25 + 0.05 * sup.mindmg.sq;
-    if (sup.minlife) o['minL_' + g.gem] = 1.3 + 0.05 * sup.minlife.sq;
-    if (g.gem === 'anger') o.angerV = A.fx.fireAdd * m;
-    /* 獻祭（0.2.63）：復甦時間 +40%（每級 +1%），品質每 1% 復甦加快 0.25% */
-    if (g.gem === 'offer') o.reviveT = (1 + (39 + g.lv) / 100) / (1 + 0.05 * o.aq.offer);
-    /* 魔像（0.2.63）：增益吃魔像增益效果與品質（Lv20 +10%，巨石的品質是替你擋下一下，不加增益）；那隻魔像死了、等復活的那段沒有增益（skills.js 的 updSkills 看到死活變了會重算） */
+    if (sup.mindmg) o['minM_' + g.gem] = 1.25;
+    if (sup.minlife) o['minL_' + g.gem] = 1.3;
+    /* 獻祭（0.2.63）：復甦時間 +40%（每級 +1%） */
+    if (g.gem === 'offer') o.reviveT = 1 + (39 + g.lv) / 100;
+    /* 魔像（0.2.63）：增益吃魔像增益效果；那隻魔像死了、等復活的那段沒有增益（skills.js 的 updSkills 看到死活變了會重算） */
     const down =
         isGolem(g.gem) && typeof G === 'object' && G.allies && G.allies.some(x => x.src === g.gem && x.dead > G.t),
-      gm = isGolem(g.gem) ? (1 + o.golemEff / 100) * (g.gem === 'golem' ? 1 : 1 + 0.1 * o.aq[g.gem]) : 1;
+      gm = isGolem(g.gem) ? 1 + o.golemEff / 100 : 1;
     for (const k in down ? {} : A.fx) {
       const v = A.fx[k] * m * gm;
       if (k === 'wolf') o.auraWolf = sup.pack ? 2 : 1;
