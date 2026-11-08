@@ -213,12 +213,16 @@ function detonate(x, y, r, c) {
 }
 /* 一次範圍爆炸：用技能 c 的數值、倍率 mul，el 指定的話整下轉成那個屬性 */
 function boomAt(x, y, r, c, mul = 1, el) {
-  if (!c) return;
+  if (!c) return 0;
   const cc = el ? { ...c, D: { ...c.D, el, tags: [...(c.D.tags || []), 'aoe'] } } : c;
   fx({ k: 'ring', x, y, r, dur: 0.3, col: el ? ELC[el] : '#fff3d6' });
+  let n = 0; /* 回傳打到幾隻（爆炸補給用） */
   for (const m of G.mobs)
-    if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r)
+    if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r) {
+      n++;
       hitMob(m, cc, Math.atan2(m.y - y, m.x - x), 120, { quiet: 1, mult: (cc.mult || 1) * mul, from: { x, y } });
+    }
+  return n;
 }
 function groundTick(dt) {
   for (const g of G.ground) {
@@ -457,11 +461,12 @@ function throwGrenade(c, tx, ty, o = {}) {
     vy: Math.sin(ang) * sp,
     c,
     /* 引爆時間（grenFuse，負的＝更快；最少 20%） */
-    fuse: (o.fuse || 1.5) * Math.max(0.2, 1 + ST.grenFuse / 100),
+    fuse: o.fixFuse ? o.fuse : (o.fuse || 1.5) * Math.max(0.2, 1 + ST.grenFuse / 100),
     r: o.r || 100,
     mul: o.mul || 1,
     el: o.el,
     onBoom: o.onBoom,
+    small: o.small /* 小榴彈（品質、子母彈分出來的）不會再分 */,
     t: 0
   });
 }
@@ -485,12 +490,26 @@ function grenadeTick(dt) {
     (n.x = nx), (n.y = ny), (n.vx *= f), (n.vy *= f);
     if (n.fuse <= 0) {
       n.done = 1;
-      boomAt(n.x, n.y, n.r, n.c, n.mul, n.el);
+      const hit = boomAt(n.x, n.y, n.r, n.c, n.mul, n.el);
       /* 連環引爆（grenTwice）：有機率再爆一次 */
       if (roll(ST.grenTwice)) boomAt(n.x, n.y, n.r, n.c, n.mul, n.el);
       fxs('boom', n.x, n.y, n.r);
       sfx('slam');
       if (n.onBoom) n.onBoom(n.x, n.y);
+      /* 子母彈（cluster，0.2.70 千機）：爆炸後彈出 3 顆小榴彈（×0.3、範圍 ×0.6、0.5 秒後爆，小的不再分） */
+      if (ST.cluster && !n.small)
+        for (let i = 0; i < 3; i++)
+          throwGrenade(n.c, n.x + rnd(-90, 90), n.y + rnd(-90, 90), {
+            from: { x: n.x, y: n.y },
+            fuse: 0.5,
+            fixFuse: 1 /* 小榴彈的引信固定 0.5 秒，不吃引信縮短 */,
+            mul: 0.3,
+            r: n.r * 0.6,
+            el: n.el,
+            small: 1
+          });
+      /* 爆炸補給（blastSupply，0.2.70 千機）：爆炸打中敵人時，彈藥技能多 1 發 */
+      if (ST.blastSupply && hit) ammoSupply();
     }
   }
   G.grenades = G.grenades.filter(n => !n.done);
@@ -501,12 +520,42 @@ function grenadeTick(dt) {
 function ammoUse(k, clip, reload) {
   const A = ((P.ammo = P.ammo || {})[k] = P.ammo[k] || { n: clip, until: 0 });
   if (A.until > G.t) return false;
-  if (A.until && A.until <= G.t) (A.n = clip), (A.until = 0);
+  ammoSettle(A, clip);
   A.n--;
   if (A.n <= 0) A.until = G.t + reload / (1 + ST.reloadP / 100);
   return true;
 }
 const ammoLeft = k => (P.ammo && P.ammo[k] ? (P.ammo[k].until > G.t ? 0 : P.ammo[k].n) : null);
+/* 彈夾發數（重裝彈頭 heavyAmmo：減半，進位） */
+const clipOf = D => Math.max(1, Math.ceil((D.ammo[0] + ST.ammoN) / (ST.heavyAmmo ? 2 : 1)));
+/* 裝填完成的那一刻才補滿：彈夾加上裝填中拿到的補給（A.extra，爆炸補給），最多 2 倍彈夾 */
+function ammoSettle(A, clip) {
+  if (A.until && A.until <= G.t) (A.n = Math.min(clip * 2, clip + (A.extra || 0))), (A.until = 0), (A.extra = 0);
+}
+/* 戰術翻滾（tacRoll，0.2.70 千機）：翻滾時所有彈藥技能裝滿（不低於原本的發數），裝填中的直接完成（game.js 的 doRoll 呼叫） */
+function ammoFull() {
+  for (const k in P.ammo || {}) {
+    const D = SKILLS[k],
+      A = P.ammo[k];
+    if (!D || !D.ammo) continue;
+    const clip = clipOf(D);
+    ammoSettle(A, clip); /* 裝填已經完成的先結算（彈夾＋補給，最多 2 倍） */
+    /* 裝填中：直接完成（彈夾＋裝填中拿到的補給）；沒在裝填：現有發數和一個彈夾取大的，爆炸補給多出來的不會被打回彈夾 */
+    P.ammo[k] = { n: A.until > G.t ? Math.min(clip * 2, clip + (A.extra || 0)) : Math.max(A.n, clip), until: 0 };
+  }
+}
+/* 爆炸補給（blastSupply，0.2.70 千機）：裝著的每個彈藥技能多 1 發，可以超過彈夾、最多到 2 倍；裝填中的，裝填完多 1 發 */
+function ammoSupply() {
+  for (const s of S.skills) {
+    const D = s.a && SKILLS[s.a.gem];
+    if (!D || !D.ammo) continue;
+    const clip = clipOf(D),
+      A = ((P.ammo = P.ammo || {})[s.a.gem] = P.ammo[s.a.gem] || { n: clip, until: 0 });
+    ammoSettle(A, clip);
+    if (A.until > G.t) A.extra = Math.min(clip, (A.extra || 0) + 1);
+    else A.n = Math.min(clip * 2, A.n + 1);
+  }
+}
 
 /* ---------- 11. 飛劍 ---------- */
 const SWORD_MAX = 10;

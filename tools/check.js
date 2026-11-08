@@ -744,6 +744,14 @@ vm.runInContext(
       seen.size === T.N.length && !noIc.length && T.N.filter(n => n.big === 1).every(n => n.d),
       noIc.join(',')
     );
+    /* 小點的每個能力都要有 STATN 的名字（石碑說明 tree.js 的 statLines 用；缺了點到那個點整個盤面會壞） */
+    const noName = T.N.filter(n => !n.big).flatMap(n =>
+      Object.keys(n.s || {}).filter(x => x !== 'only' && !R('STATN')[x])
+    );
+    ok(`昇華「${ASC[k].n}」小點的每個能力都有 STATN 名字`, !noName.length, noName.join(','));
+    /* 小點也要有圖示（沒有就是石碑上的空心圓；沒有自己的就借 PT_STAT_IC，不然在 ASC 小點第 6 格指定） */
+    const noIcSm = T.N.filter(n => !n.big && (!n.ic || !has(n.ic))).map(n => n.id + ':' + Object.keys(n.s || {}));
+    ok(`昇華「${ASC[k].n}」小點都有圖示`, !noIcSm.length, noIcSm.join(','));
     /* 一小一大（照 PoE）：從起點往外，起點的下一個是小點、小點後面只接大點、大點後面只接小點 */
     const dep = { a_st: 0 },
       bq = ['a_st'];
@@ -1132,6 +1140,533 @@ vm.runInContext(
         new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcB)
       ),
     b.statn.join(' ')
+  );
+}
+/* 0.2.70 第 5 層 5-2～5-5（角鬥士、千機、統治君王、詭雷師）機制實測的共用環境：做法跟血魔那段一樣
+   （skills.js 在 vm 裡跑，機率一律用 100%／0% 的來源）；RA(程式) 在這個環境跑，reset() 重設戰場、mk() 做一隻怪、A() 做一次出手 */
+const RA = (() => {
+  const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  vm.createContext(c8);
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
+  const R = s => vm.runInContext(s, c8);
+  R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x), angDiff = (a, b) => Math.abs(((a - b + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+     var WARN = '', DEAD = 0; const TAU = Math.PI * 2;
+     const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, sparks = () => {}, hudWarn = t => (WARN = t), los = () => true, open = () => true, floorNear = () => null, isWall = () => false,
+       die = () => DEAD++, killMob = m => (m.hp = 0), aggroPack = () => {}, thornHit = () => {}, mobNear = () => null, mouseWorld = () => ({ x: 0, y: 0 }), shake = () => {};`);
+  vm.runInContext(
+    fs
+      .readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8')
+      .replace(/\r/g, '')
+      .replace('function mobNear(', 'function mobNear_(')
+      .replace('function thornHit(', 'function thornHit_('),
+    c8,
+    { filename: 'skills.js' }
+  );
+  /* 翻滾與投射物飛行也真的跑（game.js 的 doRoll、updShots） */
+  const gs8 = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, '');
+  vm.runInContext(gs8.slice(gs8.indexOf('function doRoll'), gs8.indexOf('/* mana：喝魔力藥劑')), c8);
+  vm.runInContext(gs8.slice(gs8.indexOf('function updShots'), gs8.indexOf('/* ---------- 主迴圈')), c8);
+  R(
+    `S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => ({ a: null })), gems: [], inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat() }; ST = stats(S); mechEnter();`
+  );
+  R(`var P0 = { phys: 100, fire: 0, cold: 0, light: 0, chaos: 0 }, MKD = Object.values(MOBS)[0], base = { ...ST }, r2 = v => Math.round(v * 100) / 100,
+     mk = (x = 40, y = 0, e = {}) => ({ D: MKD, x, y, r: 12, sz: 20, hp: 1e6, mhp: 1e6, arm: 0, arm0: 0, ev: 0, vx: 0, vy: 0, dmg: 100, res: { fire: 0, cold: 0, light: 0, chaos: 0 }, ail: {}, ...e }),
+     reset = () => {
+       G.t = 100; G.mm = null; G.mobs = []; G.shots = []; G.allies = []; G.grenades = []; G.units = []; G.state = 'play'; G.scene = 'map'; DEAD = 0; WARN = '';
+       ST = { ...base, dmg: [100, 100], wadd: { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] }, add: { flat: [0, 0], fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] }, armor: 0, block: 0, defl: 0, ev: 0, hp: 1000, mp: 1000, es: 0, noCrit: 1, noMiss: 1 };
+       Object.assign(P, { x: 0, y: 0, vx: 0, vy: 0, face: 0, hp: 1000, mp: 1000, es: 0, ail: {}, buf: {}, stk: null, chg: {}, rage: 0, leech: null, lifeLost: -9, cds: {}, evE: null, lastHit: null, ammo: {}, gren: {}, rageCd: 0, rageDec: 0, mdx: 1, mdy: 0, roll: null, iuntil: 0, form: null, hurtT: 0 });
+       S.skills = [0, 1, 2, 3, 4].map(() => ({ a: null }));
+     },
+     A = (k, g) => ({ k, c: gemCfg(g || mkGem(k, 5), 0), ang: 0, tx: 60, ty: 0, hits: [0], n: 0 });`);
+  return R;
+})();
+/* 0.2.70 第 5 層 5-2 角鬥士（企劃書 7.4）：戰狂（盛怒加倍）、怒火不熄（不消退、受傷提高）、怒火傾瀉（花盛怒更多）、處刑者（撲殺＋屠戮打擊）、
+   梟首（撲殺回滿盛怒）、嗜血狂怒（滿血時生命偷取變盛怒偷取）、大開大合（雙手的範圍）、雙刃（雙持的攻擊速度） */
+{
+  const g = RA(`(() => {
+    const o = {},
+      st = (at, eq = {}) => stats({ lv: 90, eq, pt: [], asc: 'gladiator', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
+      cl = () => gemCfg(mkGem('cleave', 5), 0);
+
+    /* 點亮的數值：戰狂（擊中得盛怒 +1、上限 +10）、怒火不熄（再 +20、停手不消退、每點受傷提高 0.5%） */
+    let s = st(['s1', 'war']);
+    o.war = [s.rageHit, s.rageDbl, s.rageMax, s.rageHold, s.rageTaken];
+    s = st(['s1', 'war', 's2', 'hold']);
+    o.hold = [s.rageMax, s.rageHold, s.rageTaken, s.hp > st(['s1', 'war']).hp];
+
+    /* 戰狂：近戰擊中得到的盛怒加倍（每 0.5 秒一次、不超過上限）；沒有近戰的不算 */
+    reset(); ST.rageHit = 1; ST.rageMax = 10;
+    const hit1 = (dbl, tags = ['attack', 'melee']) => { P.rage = 0; P.rageCd = 0; ST.rageDbl = dbl; onHitBase(mk(), { pre: P0, crit: false, spell: false }, { D: { tags } }); return P.rage; };
+    o.dbl = [hit1(0), hit1(1), hit1(1, ['attack', 'proj'])];
+    P.rage = 39; P.rageCd = 0; ST.rageDbl = 1; onHitBase(mk(), { pre: P0 }, { D: { tags: ['attack', 'melee'] } }); o.dblCap = [P.rage, rageCap()];
+
+    /* 怒火不熄：停手 4 秒後本來每秒掉 5 點，有了就不掉；每點盛怒受到的傷害提高 0.5%（吃進受傷的算式） */
+    reset(); P.rage = 20; P.rageT = G.t - 10; baseTick(1); const dec = P.rage;
+    P.rage = 20; P.rageDec = 0; ST.rageHold = 1; baseTick(1); o.holdTick = [dec, P.rage];
+    ST.rageTaken = 0.5; P.rage = 40; P.ail = {}; P.evE = 0;
+    o.taken = [takenP('phys'), r2(hurtCalc(100, null, 'phys', 1).d)];
+    P.rage = 0; o.taken0 = [takenP('phys'), r2(hurtCalc(100, null, 'phys', 1).d)];
+
+    /* 怒火傾瀉：狂怒重砸有 10 點盛怒就花掉，整招更多 10%（兩道震波都吃到）；盛怒不夠不花也沒有；激怒戰吼花 10 點跳過冷卻也一樣 */
+    const slam = (rage, vent) => {
+      reset(); ST.vent = vent; P.rage = rage;
+      const z = mk(40, 0), a = A('furyslam'); G.mobs = [z]; actHit(a, 0);
+      return [r2(a.c.more), P.rage, 1e6 - z.hp];
+    };
+    const v0 = slam(20, 0), v1 = slam(20, 1), v2 = slam(5, 1);
+    o.vent = [v1[0], v1[1], r2(v1[2] / v0[2]), v2[0], v2[1], v2[2] < v1[2]];
+    reset(); ST.vent = 1; P.rage = 20;
+    const wg = mkGem('warcry', 5); wg.sup[0] = mkGem('ragecry', 1);
+    const wc = gemCfg(wg, 0); cdSkip(wc)(); o.cry = [P.rage, r2(wc.more)];
+    reset(); P.rage = 20; const wc2 = gemCfg(wg, 0); cdSkip(wc2)(); o.cry0 = [P.rage, wc2.more];
+
+    /* 處刑者：屠戮打擊 20%（普通 20%、菁英 15%、王 5%，只對滿血）＋撲殺（普通 35%、菁英 10%、王 5%） */
+    reset(); ST.cull = 1; ST.fullStrike = 20;
+    const nm = mk(), el = mk(40, 0, { elite: 1 }), bo = mk(40, 0, { boss: 1 });
+    o.cut = [fullCut(nm), fullCut(el), fullCut(bo)];
+    G.mobs = [nm]; hitMob(nm, cl(), 0, 0, { a: {} }); const afterFirst = nm.hp;
+    hitMob(nm, cl(), 0, 0, { a: {} }); o.second = afterFirst - nm.hp;
+    const lowN = mk(40, 0, { hp: 3e5 }), highN = mk(40, 0, { hp: 4e5 }), lowB = mk(40, 0, { hp: 4e4, boss: 1 }), highB = mk(40, 0, { hp: 6e4, boss: 1 });
+    G.mobs = [lowN, highN, lowB, highB];
+    for (const m of G.mobs) hitMob(m, cl(), 0, 0, { a: {} });
+    o.cull = [lowN.hp, highN.hp > 0, lowB.hp, highB.hp > 0];
+    ST.cull = 0; const noC = mk(40, 0, { hp: 3e5 }); hitMob(noC, cl(), 0, 0, { a: {} }); o.noCull = noC.hp > 0;
+
+    /* 梟首：撲殺時盛怒回滿；沒撲殺（普通擊殺、沒有撲殺）不回；召喚物的撲殺不算 */
+    reset(); ST.cull = 1; ST.behead = 1; ST.rageMax = 10;
+    const bh = (hp, ex = {}, flag = 1) => { reset(); ST.cull = 1; ST.behead = flag; ST.rageMax = 10; P.rage = 3; const m = mk(40, 0, { hp }); hitMob(m, cl(), 0, 0, { a: {}, ...ex }); return P.rage; };
+    o.behead = [bh(3e5), bh(50), bh(3e5, {}, 0), bh(3e5, { minion: 1 })];
+
+    /* 嗜血狂怒：生命全滿時，生命偷取改成盛怒偷取：每偷取最大生命的 1% 得到 2 點盛怒（最大生命 1000、偷 50 → 5% × 2 ＝ 10 點）；沒滿血、沒點時照舊 */
+    const lk = (hp, flag, leech = 5) => { reset(); ST.leech = leech; ST.leechRage = flag; P.hp = hp; hitMob(mk(), cl(), 0, 0, { a: {} }); return P.leech || {}; };
+    const lFull = lk(1000, 2), lHurt = lk(500, 2), lOff = lk(1000, 0), l50 = lk(1000, 2, (5 * 50) / lHurt.hp.rate);
+    o.leech = [!!lFull.rage, !lFull.hp, !!lHurt.hp, !lHurt.rage, !!lOff.hp, !lOff.rage, !!lFull.rage && r2(lFull.rage.rate) === r2(lHurt.hp.rate * 0.2), l50.rage ? r2(l50.rage.rate) : -1];
+
+    /* 大開大合：持雙手武器時每點盛怒範圍提高 1%（跟範圍提高同一池）；單手、徒手沒作用 */
+    const wideAt = ['s7', 'wide'];
+    o.wide = [st(wideAt, { weapon: mkItem('w_axe2_0', 1, 0) }).rageAoe, st(wideAt, { weapon: mkItem('w_axe1_0', 1, 0) }).rageAoe, st(wideAt).rageAoe];
+    reset(); ST.rageAoe = 1; P.rage = 20; const ar0 = cl().aoe; ST.aoe = 20; const ar1 = cl().aoe; P.rage = 0; o.wideAoe = [r2(ar0), r2(ar1), cl().aoe];
+
+    /* 雙刃：雙持時每點盛怒攻擊速度提高 0.5%（跟攻擊速度同一池）；單手、雙手沒作用 */
+    const twinAt = ['s7', 'twin'], ax = id => mkItem(id, 1, 0);
+    o.twin = [st(twinAt, { weapon: ax('w_axe1_0'), off: ax('w_axe1_0') }).rageAs, st(twinAt, { weapon: ax('w_axe1_0') }).rageAs, st(twinAt, { weapon: ax('w_axe2_0') }).rageAs];
+    reset(); ST.rageAs = 0.5;
+    const acl = gemCfg(mkGem('cleave', 5), 0), afb = gemCfg(mkGem('fireball', 5), 0), dur = () => [actDur(acl), actDur(afb)];
+    P.rage = 0; const du0 = dur(); P.rage = 20; const du1 = dur(); ST.as = 100; P.rage = 0; const du2 = dur(); P.rage = 20; const du3 = dur();
+    o.twinSpd = [r2(du0[0] / du1[0]), r2(du0[1] / du1[1]), r2(du2[0] / du3[0])];
+
+    /* 握法二選一 */
+    o.grip = ascFeasible(ascNodes('gladiator'), ['a_st', 'a_s7', 'a_wide', 'a_twin']);
+    o.statn = ['rageDbl', 'rageHold', 'rageTaken', 'vent', 'behead', 'leechRage', 'rageAoe', 'rageAs'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const j = x => JSON.stringify(x);
+  ok(
+    '戰狂：近戰擊中得到的盛怒加倍（1 → 2，不超過上限 40，投射物不算）；點亮戰狂＝擊中得盛怒 +1、上限 +10',
+    j(g.war) === '[1,1,10,0,0]' && j(g.dbl) === '[1,2,0]' && j(g.dblCap) === '[40,40]',
+    j([g.war, g.dbl, g.dblCap])
+  );
+  ok(
+    '怒火不熄：盛怒上限再 +20（共 +30）、停手不消退（本來 1 秒掉 5 點）、每點盛怒受到的傷害提高 0.5%（40 點＝提高 20%，吃進受傷的算式）',
+    j(g.hold) === '[30,1,0.5,true]' &&
+      j(g.holdTick) === '[15,20]' &&
+      j(g.taken) === '[20,120]' &&
+      j(g.taken0) === '[0,100]',
+    j([g.hold, g.holdTick, g.taken, g.taken0])
+  );
+  ok(
+    '怒火傾瀉：狂怒重砸花 10 點盛怒，整招更多 10%（兩道震波一起，傷害 ×1.1）；盛怒不夠不花也沒有；激怒戰吼花 10 點跳過冷卻同樣更多 10%',
+    j(g.vent.slice(0, 3)) === '[1.1,10,1.1]' &&
+      j(g.vent.slice(3)) === '[1,5,true]' &&
+      j(g.cry) === '[10,1.1]' &&
+      j(g.cry0) === '[10,1]',
+    j([g.vent, g.cry, g.cry0])
+  );
+  ok(
+    '處刑者：屠戮打擊 20%（只對滿血：普通 20%、菁英 15%、王 5%；第二下不再移除）、撲殺（普通 35%、菁英 10%、王 5%）',
+    j(g.cut) === '[200000,150000,50000]' &&
+      g.second > 0 &&
+      g.second < 1000 &&
+      j(g.cull) === '[0,true,0,true]' &&
+      g.noCull,
+    j([g.cut, g.second, g.cull, g.noCull])
+  );
+  ok(
+    '梟首：撲殺時盛怒回滿（上限 40）；普通擊殺、沒點梟首、召喚物的擊中不回',
+    j(g.behead) === '[40,3,3,3]',
+    j(g.behead)
+  );
+  ok(
+    '嗜血狂怒：生命全滿時生命偷取改成盛怒偷取，每偷取最大生命的 1% 得到 2 點盛怒（偷取量的 20%；最大生命 1000、偷 50 ＝ 10 點）；沒滿血、沒點時照舊回生命',
+    j(g.leech) === '[true,true,true,true,true,true,true,10]',
+    j(g.leech)
+  );
+  ok(
+    '大開大合：持雙手武器時每點盛怒範圍提高 1%（20 點＝1.2，跟範圍 +20% 同池相加 ＝ 1.17）；單手、徒手沒作用',
+    j(g.wide) === '[1,0,0]' && j(g.wideAoe) === '[1.2,1.17,1]',
+    j([g.wide, g.wideAoe])
+  );
+  ok(
+    '雙刃：雙持時每點盛怒攻擊速度提高 0.5%（20 點 ＝ 攻擊出手快 1.1 倍、法術不變；攻擊速度已有 +100% 時跟它同池相加 ＝ 1.05 倍）；單手、雙手沒作用；大開大合與雙刃同一組只能拿一個',
+    j(g.twin) === '[0.5,0,0]' && j(g.twinSpd) === '[1.1,1,1.05]' && g.grip === false,
+    j([g.twin, g.twinSpd, g.grip])
+  );
+  const srcG = ['skills.js', 'combat.js', 'mech.js', 'items.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '角鬥士的 8 個新能力：STATN 有名字、stats 預設是 0、機制至少一處讀取',
+    !g.statn.length &&
+      ['rageDbl', 'rageHold', 'rageTaken', 'vent', 'behead', 'leechRage', 'rageAoe', 'rageAs'].every(k =>
+        new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcG)
+      ),
+    g.statn.join(' ')
+  );
+}
+/* 0.2.70 第 5 層 5-3 千機（企劃書 7.4）：戰術翻滾、斷後、穿甲專家、重裝彈頭、軍火庫、子母彈、爆炸補給 */
+{
+  const g = RA(`(() => {
+    const o = {},
+      st = (at, eq = {}) => stats({ lv: 90, eq, pt: [], asc: 'engineer', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
+      apG = () => mkGem('apshot', 5),
+      grG = () => mkGem('grenade', 5),
+      eq2 = (...gs) => { S.skills = [0, 1, 2, 3, 4].map(() => ({ a: null })); gs.forEach((x, i) => (S.skills[i].a = x)); },
+      /* 打一發穿甲彈：付費（彈藥、魔力）→ 出手 → 子彈飛到怪身上 */
+      fire = (g, m) => { const c = gemCfg(g, 0); skillPay(c, 0); actHit({ k: 'apshot', c, ang: 0, tx: 60, ty: 0, hits: [0], n: 0 }, 0); for (let i = 0; i < 12 && G.shots.length; i++) updShots(1 / 60); return m ? 1e6 - m.hp : 0; },
+      boomG = (x, y) => { const c = gemCfg(grG(), -1); throwGrenade(c, x, y, { from: { x, y }, r: 100, fuse: 0.001 }); grenadeTick(0.01); };
+
+    /* 點亮的數值 */
+    let s = st(['s5', 'arsenal']);
+    o.pts = [s.grenUse, r2(s.grenFuse), st(['s3', 'pierce']).apBreak, st(['s3', 'pierce']).brokenMore, st(['s4', 'heavy']).heavyAmmo, st(['s1', 'tac']).tacRoll, st(['s1', 'tac']).rollCd];
+
+    /* 戰術翻滾：真的跑 doRoll，所有彈藥技能裝滿、裝填中的直接完成；沒點不動 */
+    const roll = flag => { reset(); ST.tacRoll = flag; P.ammo = { apshot: { n: 0, until: G.t + 5 }, nothing: { n: 1, until: 0 } }; doRoll(); return P.ammo.apshot; };
+    o.tac = [roll(1), roll(0)];
+    reset(); ST.tacRoll = 1; ST.heavyAmmo = 60; P.ammo = { apshot: { n: 0, until: G.t + 5 } }; doRoll(); o.tacHeavy = P.ammo.apshot.n;
+    /* 爆炸補給多出來的子彈，翻滾不會打回一個彈夾：6 發的彈夾補到 9 → 翻滾後還是 9；裝填中（補給 2 發）→ 6 + 2；裝填剛完成還沒用 → 同樣 6 + 2 */
+    const rollWith = a => { reset(); ST.tacRoll = 1; P.ammo = { apshot: a }; doRoll(); return P.ammo.apshot; };
+    o.tacMore = [rollWith({ n: 9, until: 0 }).n, rollWith({ n: 0, until: G.t + 5, extra: 2 }).n, rollWith({ n: 0, until: G.t - 1, extra: 2 }).n, rollWith({ n: 3, until: 0 }).n];
+
+    /* 重裝彈頭：彈夾減半（進位）、每發更多 60%、穿透 +1，只給彈藥技能 */
+    reset(); ST.heavyAmmo = 60; ST.ammoN = 1;
+    const hv = gemCfg(apG(), 0), hv0 = gemCfg(mkGem('cleave', 5), 0);
+    o.heavy = [clipOf(SKILLS.apshot), r2(hv.more), hv.pierce, hv0.more, hv0.pierce];
+    reset(); const hv1 = gemCfg(apG(), 0); o.heavy0 = [clipOf(SKILLS.apshot), hv1.more, hv1.pierce];
+    reset(); ST.heavyAmmo = 60; ST.ammoN = 0; const gA = apG(); const shots = []; for (let i = 0; i < 3; i++) { skillPay(gemCfg(gA, 0), 0); shots.push(ammoLeft('apshot')); } o.heavyClip = shots;
+
+    /* 斷後：彈夾打空的那一發，在命中處留一顆你裝著的榴彈（每次出手一顆、不花榴彈次數）；前面的發數不留；沒點、沒裝榴彈不留 */
+    const rear = (flag, withGr = true, q = 0, proj = 0) => {
+      reset(); ST.rearGuard = flag; ST.proj = proj;
+      const a = apG(); a.q = q; eq2(a, withGr ? grG() : null);
+      const m = mk(40, 0); G.mobs = [m];
+      const out = [];
+      for (let i = 0; i < 6; i++) { fire(a, m); out.push(G.grenades.length); m.hp = 1e6; }
+      return [out, G.grenades[0] && [Math.round(G.grenades[0].x), G.grenades[0].c.k], (P.gren && P.gren.grenade || []).length];
+    };
+    o.rear = [rear(1), rear(0), rear(1, false), rear(1, true, 0, 1)];
+    /* 跟穿甲彈品質的「最後一發爆炸」疊：同樣最後一發，有品質的比較痛，榴彈照樣留 */
+    const lastDmg = q => { reset(); ST.rearGuard = 1; const a = apG(); a.q = q; eq2(a, grG()); const m = mk(40, 0); G.mobs = [m]; let d = 0; for (let i = 0; i < 6; i++) { d = fire(a, m); m.hp = 1e6; } return [d, G.grenades.length]; };
+    const qa = lastDmg(0), qb = lastDmg(20); o.rearQ = [qb[0] > qa[0], qa[1], qb[1]];
+    /* 斷後留的榴彈：油榴彈也行 */
+    reset(); ST.rearGuard = 1; const ag = apG(); eq2(ag, mkGem('oilgrenade', 5)); const mo = mk(40, 0); G.mobs = [mo]; for (let i = 0; i < 6; i++) { fire(ag, mo); mo.hp = 1e6; } o.rearOil = G.grenades.length && G.grenades[0].c.k;
+
+    /* 穿甲專家：彈藥技能的破甲加倍（普通怪 ×3：100 → 300／600）；其他技能不變；擊中完全破甲的敵人時物理更多 20% */
+    const brk = (flag, ammo) => {
+      reset(); ST.apBreak = flag; const m = mk(40, 0, { arm: 2000, arm0: 2000 });
+      applyAil(m, { pre: P0, post: P0 }, { D: { tags: ['attack', 'proj'], ammo: ammo ? [6, 1.5] : null }, q: 0, ailMag: 0, armBreak: 1 }, {});
+      return 2000 - m.arm;
+    };
+    o.brk = [brk(0, 1), brk(1, 1), brk(1, 0)];
+    const bm = more => { reset(); ST.brokenMore = more; const m = mk(40, 0, { arm: 0, ail: { broken: G.t + 5 } }); return hitCalc(gemCfg(apG(), 0), m, {}).pre; };
+    o.broken = [r2(bm(20).phys / bm(0).phys)];
+    reset(); ST.brokenMore = 20; const mn = mk(40, 0, { arm: 0 }); const n0 = hitCalc(gemCfg(apG(), 0), mn, {}).pre.phys; ST.brokenMore = 0; o.brokenNo = r2(n0 / hitCalc(gemCfg(apG(), 0), mn, {}).pre.phys);
+
+    /* 軍火庫：榴彈次數 +1（3 顆連丟）、引信 1.5 → 1 秒 */
+    reset(); ST.grenUse = 1; ST.grenFuse = -100 / 3;
+    const ok3 = [0, 1, 2, 3].map(() => grenadeReady('grenade', SKILLS.grenade.gren[0] + ST.grenUse, SKILLS.grenade.gren[1]));
+    throwGrenade(gemCfg(grG(), 0), 100, 0, {}); o.arsenal = [ok3.join(), r2(G.grenades[0].fuse)];
+
+    /* 子母彈：榴彈爆炸後彈出 3 顆小榴彈（×0.3、範圍 ×0.6、0.5 秒後爆），小的不再分；沒點不彈 */
+    const clus = flag => { reset(); ST.cluster = flag; G.mobs = [mk(0, 0)]; boomG(0, 0); const a = G.grenades.map(n => [!!n.small, n.mul, r2(n.r), r2(n.fuse)]); grenadeTick(0.6); return [a, G.grenades.length]; };
+    o.cluster = [clus(1), clus(0)];
+    reset(); ST.cluster = 1; ST.grenFuse = -100 / 3; G.mobs = [mk(0, 0)]; boomG(0, 0); o.clusterFuse = G.grenades.map(n => r2(n.fuse));
+
+    /* 爆炸補給：榴彈爆炸打中敵人時，彈藥技能多 1 發（可超過彈夾、最多 2 倍）；沒打中不給；裝填中的，裝填完多 1 發 */
+    const sup = (n, hit, flag = 1) => { reset(); ST.blastSupply = flag; eq2(apG()); P.ammo = { apshot: { n, until: 0 } }; G.mobs = hit ? [mk(0, 0)] : []; boomG(0, 0); return P.ammo.apshot.n; };
+    o.supply = [sup(4, 1), sup(6, 1), sup(12, 1), sup(4, 0), sup(4, 1, 0)];
+    reset(); ST.blastSupply = 1; eq2(apG()); P.ammo = { apshot: { n: 0, until: G.t + 2 } }; G.mobs = [mk(0, 0)]; boomG(0, 0);
+    const during = P.ammo.apshot.n; G.t += 3; skillPay(gemCfg(apG(), 0), 0); o.supplyReload = [during, P.ammo.apshot.n];
+
+    o.statn = ['tacRoll', 'rearGuard', 'apBreak', 'brokenMore', 'heavyAmmo', 'cluster', 'blastSupply'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const j = x => JSON.stringify(x);
+  ok(
+    '戰術翻滾：翻滾時所有彈藥技能裝滿彈夾、裝填中的直接完成（真的跑 doRoll）；沒點不動；跟重裝彈頭一起＝裝滿減半的彈夾；爆炸補給超過彈夾的不會變少（9 發 → 9、裝填中補 2 發 → 8、裝填剛完成補 2 發 → 8、不足彈夾 3 → 6）',
+    j(g.tac) === '[{"n":6,"until":0},{"n":0,"until":105}]' && g.tacHeavy === 3 && j(g.tacMore) === '[9,8,8,6]',
+    j([g.tac, g.tacHeavy, g.tacMore])
+  );
+  ok(
+    '重裝彈頭：彈夾發數減半（6 + 1 → 4，沒點 6）、每發更多 60%、穿透 +1，只給彈藥技能；3 發的彈夾打 3 發就裝填',
+    j(g.heavy.slice(0, 3)) === '[4,1.6,1]' &&
+      j(g.heavy.slice(3)) === '[1,0]' &&
+      j(g.heavy0) === '[6,1,0]' &&
+      j(g.heavyClip) === '[2,1,0]',
+    j([g.heavy, g.heavy0, g.heavyClip])
+  );
+  ok(
+    '斷後：彈夾打空的那一發在命中處留一顆你裝著的榴彈（前 5 發沒有、不花榴彈次數、多重投射也只留一顆）；沒點、沒裝榴彈不留；跟穿甲彈品質的最後一發爆炸疊；油榴彈也行',
+    j(g.rear[0]) === '[[0,0,0,0,0,1],[40,"grenade"],0]' &&
+      j(g.rear[1][0]) === '[0,0,0,0,0,0]' &&
+      j(g.rear[2][0]) === '[0,0,0,0,0,0]' &&
+      j(g.rear[3][0]) === '[0,0,0,0,0,1]' &&
+      j(g.rearQ) === '[true,1,1]' &&
+      g.rearOil === 'oilgrenade',
+    j([g.rear, g.rearQ, g.rearOil])
+  );
+  ok(
+    '穿甲專家：彈藥技能的破甲加倍（普通怪 300 → 600）、其他技能不變（300）；擊中完全破甲的敵人時物理傷害更多 20%（沒破甲的不加）',
+    j(g.brk) === '[300,600,300]' && j(g.broken) === '[1.2]' && g.brokenNo === 1,
+    j([g.brk, g.broken, g.brokenNo])
+  );
+  ok(
+    '軍火庫：榴彈次數 +1（連丟 3 顆）、引信 1.5 → 1 秒；點亮＝次數 +1、引信 −33%',
+    j(g.arsenal) === '["true,true,true,false",1]' && j(g.pts.slice(0, 2)) === '[1,-33.33]',
+    j([g.arsenal, g.pts])
+  );
+  ok(
+    '子母彈：榴彈爆炸後彈出 3 顆小榴彈（×0.3、範圍 ×0.6 ＝ 60、0.5 秒後爆），小的不再分（0.5 秒後全爆完剩 0）；沒點不彈；有軍火庫的引信縮短時，小榴彈仍是 0.5 秒（不是 0.33）',
+    j(g.cluster[0]) === '[[[true,0.3,60,0.49],[true,0.3,60,0.49],[true,0.3,60,0.49]],0]' &&
+      j(g.cluster[1]) === '[[],0]' &&
+      j(g.clusterFuse) === '[0.49,0.49,0.49]',
+    j([g.cluster, g.clusterFuse])
+  );
+  ok(
+    '爆炸補給：榴彈爆炸打中敵人時，彈藥技能多 1 發（4 → 5，可超過彈夾 6 → 7，最多 2 倍＝12）；沒打中、沒點不給；裝填中的，裝填完多 1 發（6 + 1 − 1 ＝ 6）',
+    j(g.supply) === '[5,7,12,4,4]' && j(g.supplyReload) === '[0,6]',
+    j([g.supply, g.supplyReload])
+  );
+  const srcE = ['skills.js', 'combat.js', 'mech.js', 'items.js', 'game.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '千機的 7 個新能力：STATN 有名字、stats 預設是 0、機制至少一處讀取；點亮的數值對（軍火庫、穿甲專家、重裝彈頭、戰術翻滾）',
+    !g.statn.length &&
+      ['tacRoll', 'rearGuard', 'apBreak', 'brokenMore', 'heavyAmmo', 'cluster', 'blastSupply'].every(k =>
+        new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcE)
+      ) &&
+      j(g.pts.slice(2)) === '[1,20,60,1,10]',
+    g.statn.join(' ') + j(g.pts)
+  );
+}
+/* 0.2.70 第 5 層 5-4 統治君王（企劃書 7.4）：原始羈絆／元素領主（魔像上限）、君王之令（增益效果）、萬象共鳴、魔像契約、巨像 */
+{
+  const g = RA(`(() => {
+    const o = {},
+      ring = () => Object.assign(mkItem('r_iron', 1, 0), { a: [{ k: 'spirit', v: 300, T: 1 }] }),
+      aur = (...k) => k.map(x => mkGem(x, 5)),
+      st = (at, auras = []) => stats({ lv: 90, eq: { ring1: ring() }, pt: [], asc: 'ruler', at: ['a_st', ...at.map(x => 'a_' + x)], auras, charms: [] }),
+      four = () => aur('golem', 'g_fire', 'g_ice', 'g_thunder'),
+      B1 = ['s1', 'bond'], B2 = ['s3', 'lord'], CO = ['s5', 'pact', 's6', 'colossus'];
+
+    /* 魔像上限：預設 1，原始羈絆 +1、元素領主 +1、巨像 −1；超過的魔像不召（auraOn 沒有） */
+    o.max = [st([]).golemMax, st(B1).golemMax, st(B2).golemMax, st([...B1, ...B2]).golemMax, st(CO).golemMax, st([...B1, ...CO]).golemMax];
+    o.on = [st([], four()).auraOn.length, st(B1, four()).auraOn.length, st([...B1, ...B2], four()).auraOn.length, st(CO, four()).auraOn.length, st([...B1, ...CO], four()).auraOn.length];
+
+    /* 魔像契約：預留的精魂更少 30%（40 → 28，再除小點的精魂效用 +5% ＝ 26.7）；只對魔像，戰狼精魂不變 */
+    o.spirit = [st([], aur('golem')).spiritUsed, st(['s5', 'pact'], aur('golem')).spiritUsed, st(['s5', 'pact'], aur('wolfsp')).spiritUsed, st(['s5'], aur('golem')).spiritUsed];
+
+    /* 君王之令：魔像增益的效果提高 50%（火焰魔像「傷害提高 20%」：22.4 → 22.4 × 1.5 × 小點的增益效果 1.08）；巨像再 +25%；魔像之外的光環不吃 */
+    const d0 = st([]).dmgA,
+      eff = (at, a) => (st(at, aur(a)).dmgA - d0);
+    o.eff = [r2(eff(['s2', 'order'], 'g_fire') / eff([], 'g_fire')), r2(eff([...B1, ...CO], 'g_fire') / eff([], 'g_fire')), r2(st(['s2', 'order'], aur('iron')).regen / st([], aur('iron')).regen)];
+
+    /* 萬象共鳴：場上活著的魔像每多一種（第 2 種起算），魔像傷害更多 10%；同種、死了等復活的不算；非魔像不吃 */
+    reset(); ST.golemSyn = 10;
+    const w = (k, e = {}) => ({ src: k, x: 0, y: 0, c: null, dead: 0, hp: 1, mhp: 1, ...e }),
+      mult = ws => { G.allies = ws; return r2(allyMult(ws[0], BASEC()) / 0.8); };
+    o.syn = [mult([w('golem')]), mult([w('golem'), w('g_fire')]), mult([w('golem'), w('g_fire'), w('g_ice')]), mult([w('golem'), w('golem')]), mult([w('golem'), w('g_fire', { dead: G.t + 5 })])];
+    G.allies = [w('golem'), w('g_fire'), w('aura')]; o.synWolf = r2(allyMult(G.allies[2], BASEC()));
+    ST.golemSyn = 0; o.synOff = mult([w('golem'), w('g_fire')]);
+
+    /* 巨像：魔像都是極大召喚物（生命、傷害各更多 20%、體型 ×1.2）；戰狼不變；真的跑 updAllies 看魔像打的傷害 */
+    const spawn = flag => { reset(); ST.colossus = flag; callWolf('golem'); return G.allies[0]; };
+    const s0 = spawn(0), s1 = spawn(1);
+    o.giant = [r2(s1.mhp / s0.mhp), r2(s1.r / s0.r), giantM({ src: 'aura' }), giantM({ src: 'g_ice' })];
+    const hit = flag => { reset(); ST.colossus = flag; ST.minionP = 0; const a = { src: 'golem', x: 0, y: 0, vx: 0, vy: 0, cd: 0, ph: 0, c: null, hp: 1000, mhp: 1000, r: 14, t: 0 }; G.allies = [a]; const m = mk(20, 0); G.mobs = [m]; updAllies(0.01); return 1e6 - m.hp; };
+    const h0 = hit(0), h1 = hit(1); o.giantHit = [h0 > 0, r2(h1 / h0)];
+
+    o.statn = ['golemSyn', 'golemSpirit', 'colossus', 'golemMax', 'golemEff'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const j = x => JSON.stringify(x);
+  ok(
+    '原始羈絆／元素領主：魔像上限各 +1（1 → 2 → 3）、巨像 −1 但最少 1（只拿巨像也是 1 隻，配一個 +1 ＝ 1）；超過上限的魔像不生效（4 顆魔像寶石只有前 N 顆在 auraOn）',
+    j(g.max) === '[1,2,2,3,1,1]' && j(g.on) === '[1,2,3,1,1]',
+    j([g.max, g.on])
+  );
+  ok(
+    '魔像契約：魔像預留的精魂更少 30%（40 → 28，配小點的精魂效用 +5% ＝ 26.7）；戰狼精魂只吃小點的精魂效用（38.1，跟只點小點的魔像一樣）',
+    j(g.spirit) === '[40,26.7,38.1,38.1]',
+    j(g.spirit)
+  );
+  ok(
+    '君王之令：魔像增益的效果提高 50%（火焰魔像的傷害提高 ×1.5，配小點的增益效果 +8% ＝ 1.62）；巨像再 +25%；一般光環不吃',
+    j(g.eff) === '[1.62,1.25,1.08]',
+    j(g.eff)
+  );
+  ok(
+    '萬象共鳴：場上活著的魔像每多一種（第 2 種起算），魔像傷害更多 10%（1／2／3 種＝1／1.1／1.2；同種、復活中的不算；戰狼不吃；沒點不加）',
+    j(g.syn) === '[1,1.1,1.2,1,1]' && g.synWolf === 0.4 && g.synOff === 1,
+    j([g.syn, g.synWolf, g.synOff])
+  );
+  ok(
+    '巨像：魔像都是極大召喚物（生命 ×1.2、體型 ×1.2、打出的傷害 ×1.2，真的跑 updAllies）；戰狼不變',
+    j(g.giant) === '[1.2,1.2,1,1.2]' && j(g.giantHit) === '[true,1.2]',
+    j([g.giant, g.giantHit])
+  );
+  const srcR = ['skills.js', 'combat.js', 'mech.js', 'items.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '統治君王的新能力 golemSyn、golemSpirit、colossus（加上 0.2.63 的 golemMax、golemEff）：STATN 有名字、stats 預設是 0／1、機制至少一處讀取',
+    !g.statn.length &&
+      ['golemSyn', 'golemSpirit', 'colossus', 'golemMax', 'golemEff'].every(k =>
+        new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcR)
+      ),
+    g.statn.join(' ')
+  );
+}
+/* 0.2.70 第 5 層 5-5 詭雷師（企劃書 7.4）：雷區、誘爆、地毯轟炸、機巧、生於暗影、雙重機關、重磅炸藥 */
+{
+  const g = RA(`(() => {
+    const o = {},
+      st = at => stats({ lv: 90, eq: {}, pt: [], asc: 'trapper', at: ['a_st', ...at.map(x => 'a_' + x)], auras: [], charms: [] }),
+      ft = () => gemCfg(mkGem('frosttrap', 5), 0),
+      bm = () => gemCfg(mkGem('blastmine', 5), 0),
+      tr = (x, y = 0, c = ft()) => ({ type: 'trap', x, y, c, t: 1, dur: 30, cd: 0.3, rate: 1 }),
+      mn = (x, y = 0, c = bm()) => ({ type: 'mine', x, y, c, t: 1, dur: 30, cd: 0.3, rate: 1 }),
+      dmg = m => 1e6 - m.hp > 0,
+      /* 數 unitFire 被呼叫幾次、傳了什麼倍率（updUnits 呼叫的是全域的 unitFire，替換掉就攔得到） */
+      spy = f => { const rec = [], orig = unitFire; unitFire = (u, t, m) => (rec.push(m), orig(u, t, m)); try { f(); } finally { unitFire = orig; } return rec; };
+
+    /* 點亮的數值 */
+    const z = st(['s1', 'zone']), hv = st(['s7', 'heavy']);
+    o.pts = [z.trapMax, z.mineMax, hv.trapMax, hv.mineMax, hv.unitMore, st(['s4', 'gadget']).trapAoe, st(['s4', 'gadget']).mineStackP, st(['s4', 'gadget', 's5', 'shadow']).blindCrit];
+
+    /* 雷區：陷阱上限 4 → 6、地雷 6 → 9；重磅炸藥 −2（陷阱 2、地雷 4）；兩個一起＝原本的上限；上限不會低於 1 */
+    const cap = (f, c) => { reset(); Object.assign(ST, f); G.units = []; for (let i = 0; i < 30; i++) placeUnit(c(), { x: 0, y: 0 }); return G.units.length; };
+    o.capTrap = [cap({}, ft), cap({ trapMax: 2 }, ft), cap({ trapMax: -2 }, ft), cap({ trapMax: 0 }, ft), cap({ trapMax: -9 }, ft)];
+    o.capMine = [cap({}, bm), cap({ mineMax: 3 }, bm), cap({ mineMax: -2 }, bm)];
+
+    /* 誘爆：陷阱觸發時 200 內其他陷阱一起觸發，再連鎖（0、150、330 連成一串，600 太遠）；沒點只有自己觸發 */
+    const chain = flag => {
+      reset(); ST.chainBlast = flag; G.t = 100;
+      const ts = [tr(0), tr(150), tr(330), tr(600)];
+      const ms = [mk(0, 0), mk(150, 100), mk(330, 100), mk(600, 100)];
+      G.units = ts; G.mobs = ms; updUnits(0.1);
+      return [G.units.length, ms.map(dmg).join()];
+    };
+    o.chain = [chain(1), chain(0)];
+    /* 地雷爆炸也誘爆附近的陷阱 */
+    const mineChain = flag => { reset(); ST.chainBlast = flag; const t = tr(100), m = mk(100, 100); G.units = [mn(0), t]; G.mobs = [m]; G.mineT = G.t - 1; updUnits(0.1); return [dmg(m), G.units.length]; };
+    o.mineChain = [mineChain(1), mineChain(0)];
+    /* 每個陷阱只爆一次：連鎖不會回頭再炸 */
+    reset(); ST.chainBlast = 1; const cnt = spy(() => { G.units = [tr(0), tr(100), tr(200)]; G.mobs = [mk(0, 0)]; updUnits(0.1); }); o.chainOnce = cnt.length;
+
+    /* 地毯轟炸：放陷阱、地雷時一次多放 1 個，落在旁邊（只花一次魔力：placeUnit 只呼叫一次）；進上限 */
+    const carpet = (flag, c) => { reset(); ST.carpet = flag; G.units = []; placeUnit(c(), { x: 200, y: 0 }); return [G.units.length, G.units.length > 1 ? r2(Math.hypot(G.units[0].x - G.units[1].x, G.units[0].y - G.units[1].y)) : 0]; };
+    o.carpet = [carpet(1, ft), carpet(0, ft), carpet(1, bm)];
+    reset(); ST.carpet = 1; G.units = []; for (let i = 0; i < 10; i++) placeUnit(ft(), { x: 200, y: 0 }); o.carpetCap = G.units.length;
+
+    /* 機巧：陷阱、地雷的範圍提高 20%（跟範圍提高同一池：+30% 時 150/130）、其他技能不變；地雷每多一顆 +10% → +20% */
+    reset(); ST.trapAoe = 20;
+    const a0 = r2(ft().aoe), am = r2(bm().aoe), ao = gemCfg(mkGem('cleave', 5), 0).aoe; ST.aoe = 30; const a1 = r2(ft().aoe); o.aoe = [a0, am, ao, a1];
+    const stack = p => { reset(); ST.mineStackP = p; G.units = [mn(0), mn(10), mn(20)]; G.mineT = G.t - 1; return spy(() => updUnits(0.1)).map(r2); };
+    o.stack = [stack(10), stack(0)];
+
+    /* 生於暗影：陷阱與地雷的擊中致盲 4 秒；對致盲的敵人暴擊率提高 50%（5% → 7.5%）；沒點不致盲 */
+    const blind = (flag, u) => { reset(); ST.unitBlind = flag; const m = mk(0, 0); G.units = [u()]; G.mobs = [m]; G.mineT = G.t - 1; updUnits(0.1); return m.ail.blind > G.t ? r2(m.ail.blind - G.t) : 0; };
+    o.blind = [blind(1, () => tr(0)), blind(1, () => mn(0)), blind(0, () => tr(0))];
+    const crit = bc => { reset(); ST.noCrit = 0; ST.critInc = 0; ST.blindCrit = bc; const c = gemCfg(mkGem('cleave', 5), 0); return [hitCalc(c, mk(0, 0, { ail: { blind: G.t + 3 } }), { avg: 1 }).ch, hitCalc(c, mk(0, 0), { avg: 1 }).ch]; };
+    o.crit = [crit(50).map(r2), crit(0).map(r2)];
+
+    /* 雙重機關：陷阱觸發後 1 秒重新上膛，可以再觸發一次（只一次）；上膛期間不會被觸發；沒點爆一次就沒了 */
+    const rearm = flag => {
+      reset(); ST.rearm = flag; const t = tr(0), m = mk(0, 0); G.units = [t]; G.mobs = [m];
+      const seq = [], n = () => spy(() => updUnits(0.1)).length;
+      seq.push([n(), G.units.length]);
+      G.t += 0.5; seq.push([n(), G.units.length]);
+      G.t += 0.6; seq.push([n(), G.units.length]);
+      G.t += 2; seq.push([n(), G.units.length]);
+      return seq;
+    };
+    o.rearm = [rearm(1), rearm(0)];
+
+    /* 重磅炸藥：陷阱與地雷的傷害更多 40%（1.4）、其他技能不變 */
+    reset(); ST.unitMore = 40; o.more = [r2(ft().more), r2(bm().more), gemCfg(mkGem('cleave', 5), 0).more];
+
+    o.statn = ['trapMax', 'mineMax', 'chainBlast', 'carpet', 'trapAoe', 'mineStackP', 'unitBlind', 'blindCrit', 'rearm', 'unitMore'].filter(k => !STATN[k] || !STATN[k][0] || !(k in base));
+    return JSON.parse(JSON.stringify(o));
+  })()`);
+  const j = x => JSON.stringify(x);
+  ok(
+    '雷區：陷阱上限 +2（4 → 6）、地雷 +3（6 → 9）；重磅炸藥各 −2（2、4）；兩個一起＝原本；上限不會低於 1；點亮的數值對',
+    j(g.capTrap) === '[4,6,2,4,1]' && j(g.capMine) === '[6,9,4]' && j(g.pts.slice(0, 5)) === '[2,3,-2,-2,40]',
+    j([g.capTrap, g.capMine, g.pts])
+  );
+  ok(
+    '誘爆：陷阱觸發時 200 內的其他陷阱一起觸發並連鎖（0、150、330 連成一串，600 太遠沒爆）；地雷爆炸也誘爆附近的陷阱；沒點只有自己；每個陷阱只爆一次',
+    j(g.chain[0]) === '[1,"true,true,true,false"]' &&
+      j(g.chain[1]) === '[3,"true,false,false,false"]' &&
+      j(g.mineChain) === '[[true,0],[false,1]]' &&
+      g.chainOnce === 3,
+    j([g.chain, g.mineChain, g.chainOnce])
+  );
+  ok(
+    '地毯轟炸：放陷阱、地雷時一次多放 1 個，落在旁邊 50；只呼叫一次放置（只花一次魔力）；兩個都算進上限（放 10 次還是 6）；沒點只放一個',
+    j(g.carpet) === '[[2,50],[1,0],[2,50]]' && g.carpetCap === 4,
+    j([g.carpet, g.carpetCap])
+  );
+  ok(
+    '機巧：陷阱、地雷的範圍提高 20%（1.2，跟範圍 +30% 同池 ＝ 1.15）、其他技能不變；地雷每多一顆全部 +10% → +20%（3 顆：1.4 對 1.2）',
+    j(g.aoe) === '[1.2,1.2,1,1.15]' &&
+      j(g.stack) === '[[1.4,1.4,1.4],[1.2,1.2,1.2]]' &&
+      j(g.pts.slice(5, 7)) === '[20,10]',
+    j([g.aoe, g.stack, g.pts])
+  );
+  ok(
+    '生於暗影：陷阱與地雷的擊中致盲 4 秒（沒點不致盲）；對致盲的敵人暴擊率提高 50%（5 → 7.5；沒致盲的不加）',
+    j(g.blind) === '[4,4,0]' && j(g.crit) === '[[7.5,5],[5,5]]' && g.pts[7] === 50,
+    j([g.blind, g.crit, g.pts[7]])
+  );
+  ok(
+    '雙重機關：陷阱觸發後 1 秒重新上膛，可以再觸發一次（只一次）：[觸發次數, 場上剩下] ＝ 第一次 [1,1]、上膛中 [0,1]、第二次 [1,0]；沒點爆一次就沒了',
+    j(g.rearm[0]) === '[[1,1],[0,1],[1,0],[0,0]]' && j(g.rearm[1]) === '[[1,0],[0,0],[0,0],[0,0]]',
+    j(g.rearm)
+  );
+  ok('重磅炸藥：陷阱與地雷的傷害更多 40%（1.4）、其他技能不變', j(g.more) === '[1.4,1.4,1]', j(g.more));
+  const srcT = ['skills.js', 'combat.js', 'mech.js', 'items.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok(
+    '詭雷師的 10 個新能力：STATN 有名字、stats 預設是 0、機制至少一處讀取',
+    !g.statn.length &&
+      [
+        'trapMax',
+        'mineMax',
+        'chainBlast',
+        'carpet',
+        'trapAoe',
+        'mineStackP',
+        'unitBlind',
+        'blindCrit',
+        'rearm',
+        'unitMore'
+      ].every(k => new RegExp('\\b(ST|o)\\.' + k + '\\b').test(srcT)),
+    g.statn.join(' ')
   );
 }
 /* 0.2.27 物理傷害不能走抗性（NaN＝無敵）；T1～T5 放寬；魔力回復與消耗 */

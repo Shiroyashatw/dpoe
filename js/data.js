@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.69';
+const VER = '0.2.70';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -5353,6 +5353,247 @@ const ASC = {
       ]
     },
     E: 'st-s1 s1-price price-s2 s2-rich st-s3 s3-rot rot-s4 s4-wither st-s5 s5-sickle sickle-s6 s6-feast'
+  },
+  /* 0.2.70 第三批：角鬥士（A 殺得越多越狂暴；D 靠擊中、撲殺、偷取補盛怒，花盛怒打大招；握法二選一）。不綁武器，只有握法二選一綁裝備。
+     三條分支各是「小 → 大 → 小 → 大」，戰狂與處刑者後面各分兩條；數字都是 ⚠️ 暫定 */
+  gladiator: {
+    n: '角鬥士',
+    ic: 'asc_bloodclaw_c',
+    d: '殺得越多越狂暴：靠擊中、撲殺、偷取補盛怒，盛怒越多越強，握法決定你怎麼爆發。',
+    N: {
+      st: [0, 0],
+      s1: [-85, 0, { rageHit: 1 }, null, null, 'sk_anger'],
+      war: [-170, 0, '戰狂', { rageDbl: 1, rageMax: 10 }, '近戰擊中得到的盛怒加倍；盛怒上限 +10', 'asc_bloodclaw_b0'],
+      s2: [-240, -65, { hpP: 5 }],
+      hold: [
+        -325,
+        -95,
+        '怒火不熄',
+        { rageHold: 1, rageMax: 20, rageTaken: 0.5 },
+        '盛怒停手不會消退、上限再 +20；每點盛怒讓你受到的傷害提高 0.5%',
+        'asc_bloodclaw_b1'
+      ],
+      s3: [-240, 65, { rageEff: 10 }],
+      vent: [
+        -325,
+        95,
+        '怒火傾瀉',
+        { vent: 1 },
+        '花盛怒的技能（狂怒重砸、用激怒戰吼跳過冷卻）每花 1 點盛怒，那一招傷害更多 1%',
+        'asc_bloodclaw_b2'
+      ],
+      s4: [45, -75, { atkP: 10 }],
+      exec: [
+        90,
+        -155,
+        '處刑者',
+        { cull: 1, fullStrike: 20 },
+        '你的擊中有撲殺（召喚物與場上單位的擊中也算）：擊中後生命低於門檻的敵人直接死亡（普通 35%、菁英 10%、王 5%）；屠戮打擊 20%（擊中滿血的敵人前先移除 20% 生命，上限：普通 30%、菁英 15%、王 5%）',
+        'asc_bloodclaw_b3'
+      ],
+      s5: [180, -185, { meleeP: 10 }],
+      behead: [270, -215, '梟首', { behead: 1 }, '撲殺敵人時，盛怒回滿', 'asc_bloodclaw_b4'],
+      s6: [130, -250, { leech: 0.5 }],
+      thirst: [
+        150,
+        -320,
+        '嗜血狂怒',
+        { leechRage: 2 },
+        '生命全滿時，生命偷取改成盛怒偷取：每偷取最大生命的 1%，得到 2 點盛怒（不回生命）',
+        'asc_bloodclaw_b5'
+      ],
+      s7: [45, 75, { rageMax: 5 }],
+      wide: [
+        -10,
+        160,
+        '大開大合',
+        { rageAoe: 1 },
+        '持雙手武器時，每點盛怒範圍提高 1%（沒拿雙手武器沒有作用）',
+        'asc_bloodclaw_c0',
+        'grip'
+      ],
+      twin: [
+        100,
+        150,
+        '雙刃',
+        { rageAs: 0.5 },
+        '雙持時，每點盛怒攻擊速度提高 0.5%（只加攻擊速度，法術不吃；沒有雙持沒有作用）',
+        'asc_bloodclaw_c1',
+        'grip'
+      ]
+    },
+    E: 'st-s1 s1-war war-s2 s2-hold war-s3 s3-vent st-s4 s4-exec exec-s5 s5-behead exec-s6 s6-thirst st-s7 s7-wide s7-twin'
+  },
+  /* 0.2.70 第三批：千機（突襲兵：十字弓的彈藥＋榴彈；A 邊翻滾邊開火、到處丟炸彈；D 射空彈夾留下榴彈、榴彈爆炸補彈，翻滾當裝填）。
+     彈藥與榴彈只有十字弓有，所以實際上綁十字弓（開發參考 §3 的例外），大點寫「彈藥技能」「榴彈技能」不寫持十字弓時。數字都是 ⚠️ 暫定 */
+  engineer: {
+    n: '千機',
+    ic: 'asc_engineer_c',
+    d: '彈藥與榴彈：邊翻滾邊裝填、彈夾打空留下榴彈、榴彈爆炸再補子彈。',
+    N: {
+      st: [0, 0],
+      s1: [-85, 0, { rollCd: 10 }],
+      tac: [-170, 0, '戰術翻滾', { tacRoll: 1 }, '翻滾時，所有彈藥技能裝滿彈夾，裝填中的直接完成', 'asc_engineer_b0'],
+      s2: [-255, 0, { reloadP: 10 }, null, null, 'sup_sp_cd'],
+      rear: [
+        -340,
+        0,
+        '斷後',
+        { rearGuard: 1 },
+        '彈夾打空的那一發，在命中處留一顆你裝著的榴彈（不花榴彈次數；可以跟穿甲彈品質的「最後一發爆炸」疊）',
+        'asc_engineer_b1'
+      ],
+      s3: [45, -75, { armBreakP: 15 }],
+      pierce: [
+        90,
+        -155,
+        '穿甲專家',
+        { apBreak: 1, brokenMore: 20 },
+        '彈藥技能的破甲加倍；擊中完全破甲的敵人時，物理傷害更多 20%',
+        'asc_engineer_b2'
+      ],
+      s4: [135, -235, { projAtkP: 10 }],
+      heavy: [
+        180,
+        -315,
+        '重裝彈頭',
+        { heavyAmmo: 60 },
+        '彈藥技能：彈夾發數減半（進位），每發傷害更多 60%、穿透 +1',
+        'asc_engineer_b3'
+      ],
+      s5: [45, 75, { grenP: 10 }],
+      arsenal: [
+        90,
+        150,
+        '軍火庫',
+        { grenUse: 1, grenFuse: -100 / 3 },
+        '榴彈技能的次數 +1，引信從 1.5 秒縮短到 1 秒',
+        'asc_engineer_b4'
+      ],
+      s6: [175, 170, { aoe: 10 }],
+      cluster: [
+        260,
+        195,
+        '子母彈',
+        { cluster: 1 },
+        '榴彈爆炸後彈出 3 顆小榴彈（傷害 ×0.3、範圍 ×0.6，0.5 秒後爆炸；小榴彈不會再分）',
+        'asc_engineer_b5'
+      ],
+      s7: [120, 225, { grenCd: 10 }, null, null, 'sk_detonate'],
+      supply: [
+        150,
+        300,
+        '爆炸補給',
+        { blastSupply: 1 },
+        '榴彈爆炸打中敵人時，彈藥技能多 1 發（可以超過彈夾，最多到 2 倍；裝填中的，裝填完多 1 發）',
+        'asc_engineer_c0'
+      ]
+    },
+    E: 'st-s1 s1-tac tac-s2 s2-rear st-s3 s3-pierce pierce-s4 s4-heavy st-s5 s5-arsenal arsenal-s6 s6-cluster arsenal-s7 s7-supply'
+  },
+  /* 0.2.70 第三批：統治君王（召喚：PoE1 元素使的魔像指揮官；A 一群魔像各給一種增益；D 疊不同種的魔像，在「多種多隻」與「少隻但巨大」之間選）。
+     不綁武器；三條分支各是「小 → 大 → 小 → 大」，魔像上限 +2 拆在兩條分支（要拿滿就少了別的點），巨像讓上限 −1。數字都是 ⚠️ 暫定 */
+  ruler: {
+    n: '統治君王',
+    ic: 'asc_bonelord_c',
+    d: '魔像指揮官：帶一群不同種的魔像各給一種增益，或只帶幾隻巨大的。',
+    N: {
+      st: [0, 0],
+      s1: [-85, 0, { spirit: 10 }],
+      bond: [-170, 0, '原始羈絆', { golemMax: 1 }, '魔像同時存在的上限 +1', 'asc_bonelord_b0'],
+      s2: [-255, 0, { buffMag: 8 }],
+      order: [-340, 0, '君王之令', { golemEff: 50 }, '魔像增益的效果提高 50%', 'asc_bonelord_b1'],
+      s3: [45, -75, { reviveSpd: 15 }],
+      lord: [90, -155, '元素領主', { golemMax: 1 }, '魔像同時存在的上限 +1', 'asc_bonelord_b2'],
+      s4: [135, -235, { minionP: 10 }],
+      reson: [
+        180,
+        -315,
+        '萬象共鳴',
+        { golemSyn: 10 },
+        '場上每多一種魔像（第 2 種起算），魔像的傷害更多 10%（只有一隻魔像時沒有作用）',
+        'asc_bonelord_b3'
+      ],
+      s5: [45, 75, { spiritEff: 5 }],
+      pact: [90, 155, '魔像契約', { golemSpirit: 30 }, '魔像預留的精魂更少 30%', 'asc_bonelord_b4'],
+      s6: [135, 235, { minLife: 10 }],
+      colossus: [
+        180,
+        315,
+        '巨像',
+        { colossus: 1, golemEff: 25, golemMax: -1 },
+        '魔像都是極大召喚物（生命、傷害各更多 20%，體型變大）；魔像增益的效果再提高 25%；魔像同時存在的上限 −1（最少 1）',
+        'asc_bonelord_b5'
+      ]
+    },
+    E: 'st-s1 s1-bond bond-s2 s2-order st-s3 s3-lord lord-s4 s4-reson st-s5 s5-pact pact-s6 s6-colossus'
+  },
+  /* 0.2.70 第三批：詭雷師（陷阱：PoE1 破壞者；A 戰場佈滿陷阱、一路連環爆；D 先佈雷再把怪引進來，在「佈滿」與「少但重」之間選）。
+     陷阱與地雷只有陷阱器有，所以實際上綁陷阱器（開發參考 §3 的例外），大點寫「陷阱」「地雷」。雷區後分兩條、機巧後分兩條、重磅炸藥單獨一條。數字都是 ⚠️ 暫定 */
+  trapper: {
+    n: '詭雷師',
+    ic: 'asc_alchemist_c',
+    d: '陷阱與地雷：佈滿戰場、一個爆就全爆，或只留幾個重磅炸藥。',
+    N: {
+      st: [0, 0],
+      s1: [-85, 0, { unitP: 10 }],
+      zone: [-170, 0, '雷區', { trapMax: 2, mineMax: 3 }, '場上陷阱的上限 +2、地雷的上限 +3', 'asc_alchemist_b0'],
+      s2: [-240, -65, { aoeP: 10 }, null, null, 'sup_sp_aoe'],
+      chain: [
+        -325,
+        -95,
+        '誘爆',
+        { chainBlast: 1 },
+        '陷阱觸發或地雷爆炸時，200 內你的其他陷阱一起觸發（它們再連鎖下去，每個只爆一次）',
+        'asc_alchemist_b1'
+      ],
+      s3: [-240, 65, { castP: 4 }],
+      carpet: [
+        -325,
+        95,
+        '地毯轟炸',
+        { carpet: 1 },
+        '放陷阱、地雷時一次多放 1 個，落在旁邊（只花一次魔力，兩個都算進上限）',
+        'asc_alchemist_b2'
+      ],
+      s4: [45, -75, { aoe: 10 }],
+      gadget: [
+        90,
+        -155,
+        '機巧',
+        { trapAoe: 20, mineStackP: 10 },
+        '陷阱、地雷的範圍提高 20%；地雷「每多一顆，全部 +10% 傷害」變成 +20%',
+        'asc_alchemist_b3'
+      ],
+      s5: [180, -185, { critInc: 15 }],
+      shadow: [
+        270,
+        -215,
+        '生於暗影',
+        { unitBlind: 1, blindCrit: 50 },
+        '陷阱與地雷的擊中致盲（4 秒）；對致盲的敵人，暴擊率提高 50%',
+        'asc_alchemist_b4'
+      ],
+      s6: [130, -250, { unitP: 10 }],
+      rearm: [
+        150,
+        -320,
+        '雙重機關',
+        { rearm: 1 },
+        '陷阱觸發後 1 秒重新上膛，可以再觸發一次（只一次）',
+        'asc_alchemist_b5'
+      ],
+      s7: [45, 75, { spellP: 10 }],
+      heavy: [
+        90,
+        155,
+        '重磅炸藥',
+        { unitMore: 40, trapMax: -2, mineMax: -2 },
+        '陷阱與地雷的傷害更多 40%；陷阱、地雷的上限各 −2',
+        'asc_alchemist_c0'
+      ]
+    },
+    E: 'st-s1 s1-zone zone-s2 s2-chain zone-s3 s3-carpet st-s4 s4-gadget gadget-s5 s5-shadow gadget-s6 s6-rearm st-s7 s7-heavy'
   }
 };
 /* 0.2.69 血魔的新能力（STATN 的名字；stats() 預設 0、combat.js／skills.js／mech.js 讀） */
@@ -5363,6 +5604,46 @@ Object.assign(STATN, {
   anemiaHit: ['擊中施加缺血（腐化之血的層數上限 +）', ''],
   sickle: ['有赤鐮技能', '', 1],
   sickleHeal: ['赤鐮結算的傷害變成生命回復', '%']
+});
+/* 0.2.70 角鬥士的新能力（stats() 預設 0、combat.js／skills.js 讀） */
+Object.assign(STATN, {
+  rageDbl: ['戰狂：近戰擊中得到的盛怒加倍', '', 1],
+  rageHold: ['怒火不熄：盛怒停手不消退', '', 1],
+  rageTaken: ['每點盛怒讓你受到的傷害提高', '%'],
+  vent: ['怒火傾瀉：花盛怒的技能每花 1 點，那一招更多', '%'],
+  behead: ['梟首：撲殺敵人時盛怒回滿', '', 1],
+  leechRage: ['嗜血狂怒：生命全滿時，每偷取最大生命的 1% 得到的盛怒', '點'],
+  rageAoe: ['大開大合：持雙手武器時每點盛怒範圍提高', '%'],
+  rageAs: ['雙刃：雙持時每點盛怒攻擊速度提高', '%']
+});
+/* 0.2.70 千機的新能力（stats() 預設 0、mech.js／skills.js／combat.js／game.js 讀） */
+Object.assign(STATN, {
+  tacRoll: ['戰術翻滾：翻滾時所有彈藥技能裝滿', '', 1],
+  rearGuard: ['斷後：彈夾打空的那一發留下一顆榴彈', '', 1],
+  apBreak: ['穿甲專家：彈藥技能的破甲加倍', '', 1],
+  brokenMore: ['穿甲專家：擊中完全破甲的敵人時物理傷害更多', '%'],
+  heavyAmmo: ['重裝彈頭：彈藥技能彈夾減半、每發傷害更多', '%'],
+  cluster: ['子母彈：榴彈爆炸後彈出 3 顆小榴彈', '', 1],
+  blastSupply: ['爆炸補給：榴彈爆炸打中敵人時彈藥技能多 1 發', '', 1]
+});
+/* 0.2.70 統治君王的新能力（stats() 預設 0、items.js 的光環預留與 skills.js 的 allyMult0／giantM 讀；魔像上限 golemMax、增益效果 golemEff 是 0.2.63 的） */
+Object.assign(STATN, {
+  golemSyn: ['萬象共鳴：場上每多一種魔像，魔像傷害更多', '%'],
+  golemSpirit: ['魔像契約：魔像預留的精魂更少', '%'],
+  colossus: ['巨像：魔像都是極大召喚物', '', 1]
+});
+/* 0.2.70 詭雷師的新能力（stats() 預設 0、skills.js 的 gemCfg／putUnit／unitFire／updUnits 與 combat.js 的 hitCalc 讀） */
+Object.assign(STATN, {
+  trapMax: ['陷阱上限', ''],
+  mineMax: ['地雷上限', ''],
+  chainBlast: ['誘爆：陷阱觸發或地雷爆炸時，200 內的其他陷阱一起觸發', '', 1],
+  carpet: ['地毯轟炸：放陷阱、地雷時多放 1 個', '', 1],
+  trapAoe: ['陷阱與地雷的範圍', '%'],
+  mineStackP: ['地雷每多一顆，全部再多的傷害', '%'],
+  unitBlind: ['陷阱與地雷的擊中致盲', '', 1],
+  blindCrit: ['對致盲的敵人暴擊率', '%'],
+  rearm: ['雙重機關：陷阱觸發後重新上膛再觸發一次', '', 1],
+  unitMore: ['陷阱與地雷的傷害更多', '%']
 });
 /* 一個昇華的點與線（id 加 a_ 前綴，跟天賦樹分開） */
 function ascNodes(k) {

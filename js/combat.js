@@ -444,6 +444,8 @@ function takenInc(m, k) {
   const mine = m !== P;
   if (a.shock > G.t) v += 20 * (mine ? 1 + ST.shockMag / 100 : 1);
   if (a.intim > G.t) v += 10;
+  /* 怒火不熄（0.2.70 角鬥士）：玩家每點盛怒，受到的傷害提高（跟感電同一池相加） */
+  if (!mine && ST.rageTaken) v += ST.rageTaken * (P.rage || 0);
   if (k === 'chaos') v += 5 * witherN(a) * (mine ? 1 + ST.witherEff / 100 : 1);
   if (k === 'phys' && a.broken > G.t)
     v += (20 + (a.shatter > G.t ? DEBUFF.shatterMore : 0)) * (1 + ST.fullBreakEff / 100);
@@ -785,6 +787,8 @@ function hitCalc(c, m, o = {}) {
     if (ELEK.includes(p.k) && ub) mk *= 1.4;
     if (ST.avatar && (p.k === 'cold' || p.k === 'light')) mk *= 0.7;
     if (sac && p.k === 'phys') mk *= 1.15;
+    /* 穿甲專家（0.2.70 千機）：擊中完全破甲的敵人時，物理傷害更多 */
+    if (ST.brokenMore && p.k === 'phys' && m && m.ail && m.ail.broken > G.t) mk *= 1 + ST.brokenMore / 100;
     if (reb && p.k === 'fire') mk *= 1 + ST.reborn / 100;
     pre[p.k] += p.v * (1 + (common + incOf(p.ch)) / 100) * mk;
   }
@@ -803,7 +807,9 @@ function hitCalc(c, m, o = {}) {
                 (c.critInc || 0) +
                 (o.final && hasBuff('finality') ? 100 : 0) +
                 (ST.volCrit ? ST.volCrit * stkN('volPow') : 0) +
-                (ST.archCrit && archOn() ? ST.archCrit : 0)) /
+                (ST.archCrit && archOn() ? ST.archCrit : 0) +
+                /* 生於暗影（0.2.70 詭雷師）：對致盲的敵人暴擊率提高 */
+                (m && m.ail && m.ail.blind > G.t ? ST.blindCrit : 0)) /
                 100) +
             brit +
             cwN(m) * 0.5 +
@@ -1123,7 +1129,9 @@ function applyAil(m, r, c, use) {
     ((p.phys > 0 && (ST.armBreak || c.armBreak || (c.k === 'ballista' && qRoll(20 * cq))) ? p.phys : 0) +
       (ST.armBreakArm * ST.armor) / 100 +
       (ST.critBreak && sp && r.crit ? p.phys : 0)) *
-    (1 + ST.armBreakP / 100);
+    (1 + ST.armBreakP / 100) *
+    /* 穿甲專家（0.2.70 千機）：彈藥技能的破甲加倍 */
+    (ST.apBreak && c.D.ammo ? 2 : 1);
   if (brk > 0 && !(a.broken > G.t) && !noBreak(a)) {
     const bt = 12 * (1 + ST.armBreakDur / 100);
     m.arm -= brk * (m.boss ? 1 : m.elite ? 2 : 3);
@@ -1605,6 +1613,8 @@ const buffMove = () =>
   (1 + (bufV('moveP') + (ST.charmOnMs && charmsOn().some(it => it.on > G.t) ? ST.charmOnMs : 0)) / (100 + ST.ms));
 /* 攻擊速度的暫時加成：狂風（每顆狂怒球 +4%） */
 const atkBuf = () => 1 + ((ST.frenzyMs || 0) * chgN('f')) / 100;
+/* 雙刃（rageAs，0.2.70 角鬥士）：雙持時每點盛怒攻擊速度提高（stats() 沒雙持就歸零），只給攻擊（法術不吃），跟攻擊速度同一個「提高」池：(100 + as + x) ÷ (100 + as) */
+const rageAsM = () => 1 + (ST.rageAs * (P.rage || 0)) / (100 + ST.as);
 /* 施放時移動（0.2.25 底層）：出手中照移動方向走，基礎移動速度的 35%（不吃移動速度加成）。
    位移技能（D.dist）自己控制位置，不走這裡 */
 const CAST_MOVE = 0.35;
@@ -1619,7 +1629,9 @@ function onHitBase(m, r, c) {
     melee = (c.D.tags || []).includes('melee');
   /* 盛怒：近戰擊中 +1（每 0.5 秒最多一次），最多 30；停止 4 秒後每 0.2 秒掉 1 */
   if (melee && ST.rageHit && !(P.rageCd > G.t))
-    (P.rage = Math.min(rageCap(), (P.rage || 0) + ST.rageHit)), (P.rageCd = G.t + 0.5), (P.rageT = G.t);
+    (P.rage = Math.min(rageCap(), (P.rage || 0) + ST.rageHit * (ST.rageDbl ? 2 : 1))),
+      (P.rageCd = G.t + 0.5),
+      (P.rageT = G.t);
   /* 德魯伊之賦：法術擊中給盛怒（每 0.5 秒最多一次，跟近戰同一個限制） */
   const rs = r.spell ? bufV('rageSpell') : 0;
   if (rs && !(P.rageCd > G.t))
@@ -1734,7 +1746,8 @@ function debuffExpTick(a, dt) {
 /* 玩家這一格：盛怒消退、能量球與 buff 到期、玩家身上的異常、護符 */
 function baseTick(dt) {
   if (ST.dynOn && !stkN('dyn')) gainStk('dyn');
-  if (P.rage && G.t - (P.rageT || 0) > 4 + ST.rageDelay) {
+  /* 怒火不熄（0.2.70 角鬥士）：盛怒停手不消退 */
+  if (P.rage && !ST.rageHold && G.t - (P.rageT || 0) > 4 + ST.rageDelay) {
     P.rageDec = (P.rageDec || 0) + dt;
     while (P.rageDec >= 0.2 && P.rage > 0) (P.rageDec -= 0.2), (P.rage = Math.max(0, P.rage - 1));
   }

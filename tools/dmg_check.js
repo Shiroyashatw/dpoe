@@ -253,6 +253,80 @@ Object.assign(BUILDS, {
     sk: 'cleave',
     asc: ['blood', 's1', 'price', 's3', 'rot', 's4', 'wither', 's5', 'sickle'],
     blood: 1
+  },
+  /* 0.2.70：角鬥士（魔符＋狂怒重砸：狂怒重砸只有魔符能用，魔符是雙手所以大開大合成立）。⚠️ 盛怒當作一直滿（上限＝基礎 30＋昇華），
+     每下只算一道震波（不算花盛怒的第二道震波與碎裂地面）、怒火傾瀉照每下花 10 點更多 10%；實戰盛怒要靠擊中補，比這裡低 */
+  角鬥士: {
+    tree: WT('talisman', { meleeP: 2, rageEff: 3, rageHit: 2 }),
+    gear: WG,
+    wt: 'talisman',
+    sk: 'furyslam',
+    asc: ['gladiator', 's7', 'wide', 's1', 'war', 's3', 'vent', 's4', 'exec'],
+    rage: 1
+  },
+  /* 0.2.70：千機（十字弓＋穿甲彈＋爆裂榴彈）。⚠️ 估算：跟前面只算單發的十字弓不同，這兩行把裝填算進去（彈夾 ÷（彈夾 + 裝填），沒算戰術翻滾的立刻裝填
+     與爆炸補給）、王當作一直完全破甲（穿甲彈本身就破甲）、再加爆裂榴彈的持續傷害（可存幾顆 ÷ 冷卻，子母彈再 +90%）。
+     「十字弓＊」是同一套模型但沒有昇華，千機要跟它比，不要跟上面沒算裝填的十字弓比 */
+  '十字弓＊': {
+    tree: WT('xbow', { projP: 2, grenP: 2, reloadP: 2 }),
+    gear: WG,
+    wt: 'xbow',
+    sk: 'apshot',
+    ammo: 1,
+    gren: 'grenade',
+    broken: 1
+  },
+  千機: {
+    tree: WT('xbow', { projP: 2, grenP: 2, reloadP: 2 }),
+    gear: WG,
+    wt: 'xbow',
+    sk: 'apshot',
+    asc: ['engineer', 's3', 'pierce', 's4', 'heavy', 's5', 'arsenal', 's6', 'cluster'],
+    gearOf: '十字弓＊',
+    ammo: 1,
+    gren: 'grenade',
+    broken: 1
+  },
+  /* 0.2.70：統治君王（劍近戰＋3 種魔像）。⚠️ 估算：dmg_check 本來算不了召喚物，這裡每隻魔像一下＝主力招 ×0.8（寶石等級的左鍵）、
+     每 0.8 秒一下（吃召喚物攻速）、乘極大與萬象共鳴，隻數＝auraOn 裡的魔像（精魂給一枚 +160 的戒指，沒算魔像被打死的復甦時間與命中）；
+     魔像的增益（火焰魔像傷害提高…）是真的進 stats()。「魔像＊」同一套模型沒有昇華（上限 1 隻），要跟它比 */
+  '魔像＊': {
+    tree: WT('sword', { meleeP: 2, minionP: 2, spiritP: 2 }),
+    gear: WG,
+    wt: 'sword',
+    sk: 'slash',
+    golems: ['golem', 'g_fire', 'g_thunder'],
+    spirit: 160
+  },
+  統治君王: {
+    tree: WT('sword', { meleeP: 2, minionP: 2, spiritP: 2 }),
+    gear: WG,
+    wt: 'sword',
+    sk: 'slash',
+    asc: ['ruler', 's1', 'bond', 's3', 'lord', 's4', 'reson', 's2', 'order'],
+    gearOf: '魔像＊',
+    golems: ['golem', 'g_fire', 'g_thunder'],
+    spirit: 160
+  },
+  /* 0.2.70：詭雷師（陷阱器＋冰霜陷阱）。⚠️ 估算：dmg_check 算不了場上單位，這裡一個陷阱爆一下＝主力招一下，把陷阱直接放在王腳下
+     （0.4 秒上膛後觸發）：觸發頻率＝min(放置速度, 每 0.4 秒一個)，雙重機關 ×2；沒算魔力；王當作一直致盲（生於暗影的暴擊率才算得到）。
+     陷阱上限（雷區、重磅炸藥的 −2）、誘爆、地毯轟炸、機巧的範圍、地雷在打單一王的模型裡看不到價值（要預先佈雷、打群怪才有）。
+     「詭雷＊」同一套模型沒有昇華，要跟它比 */
+  '詭雷＊': {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_traptool: 2, unitP: 2, castP: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'traptool',
+    sk: 'frosttrap',
+    trap: 1
+  },
+  詭雷師: {
+    tree: { spellP: 2, eleP: 2, elemP: 2, w_traptool: 2, unitP: 2, castP: 2, life: 0.3 },
+    gear: { spellP: 1, life: 0.5, es: 0.5, resA: 1, resF: 0.5, resC: 0.5, resL: 0.5 },
+    wt: 'traptool',
+    sk: 'frosttrap',
+    asc: ['trapper', 's7', 'heavy', 's4', 'gadget', 's5', 'shadow', 's1', 'zone'],
+    gearOf: '詭雷＊',
+    trap: 1
   }
 });
 /* 0.2.36 穩固值：同樣扣完減傷的總傷害，全部換成一種累積，30 秒打死王時定得住幾次（用真的 poiseAdd，打不打得中、抗性不算） */
@@ -314,9 +388,11 @@ for (SD = 0; SD < SEEDS; SD++)
   for (const L of [30, 60, 90]) {
     const t = Math.min(16, Math.max(1, Math.round(((L - 5) * 15) / 78) + 1));
     let bi = 0;
+    const bidx = {};
     for (const [bn, B] of Object.entries(BUILDS)) {
-      /* 每一格自己的亂數種子：新增配裝不會讓別格的數字跟著變（0.2.46） */
-      seed = 12345 + L * 1000 + bi++ + SD * 100000;
+      /* 每一格自己的亂數種子：新增配裝不會讓別格的數字跟著變（0.2.46）；gearOf＝跟那一套抽同一組裝備與路線（比昇華前後用） */
+      bidx[bn] = bi++;
+      seed = 12345 + L * 1000 + bidx[B.gearOf || bn] + SD * 100000;
       const ap = R('ascPoints')({ maxT: t, t16: L >= 90 ? 1 : 0 }),
         S = {
           lv: L,
@@ -364,6 +440,15 @@ for (SD = 0; SD < SEEDS; SD++)
         S.aw = aw;
         if (!R('eqCheck(S).bad.size')) break;
       }
+      /* 魔像：光環欄放魔像、ring2 多一條精魂（⚠️ 假設的精魂來源） */
+      if (B.golems) {
+        ctx.__g = B.golems;
+        ctx.__lv = R('gemCap')(L);
+        S.auras = R('__g.map(k => mkGem(k, __lv))');
+        /* ring2 原本的詞綴留著（能力值需求靠它），只多加一條精魂 */
+        S.eq.ring2 = S.eq.ring2 || R("mkItem('r_iron', 1, 0)");
+        S.eq.ring2.a = [...S.eq.ring2.a, { k: 'spirit', v: B.spirit, T: 1 }];
+      }
       ctx.S = S;
       R('S = this.S; ST = stats(S); G.mapT = ' + t + '; G.t = 0; P = { x: 0, y: 0, hp: ST.hp, es: ST.es, mp: ST.mp };');
       const ST = R('ST'),
@@ -391,6 +476,17 @@ for (SD = 0; SD < SEEDS; SD++)
       R('mobDef(boss, ' + t + ')');
       let sum = 0;
       ctx.c = c;
+      if (B.rage) {
+        ctx.__rage = R('rageCap()');
+        R('P.rage = __rage');
+        if (ST.vent && D.rageCost) c.more *= 1 + (ST.vent * D.rageCost) / 100;
+      }
+      if (B.broken) (boss.arm = 0), (boss.ail.broken = 1e9);
+      if (B.trap) {
+        if (ST.unitMore) c.more *= 1 + ST.unitMore / 100; /* gemCfg 才有的重磅炸藥，這裡手動補 */
+        if (ST.unitBlind) boss.ail.blind = 1e9;
+      }
+      if (ST.heavyAmmo && D.ammo) c.more *= 1 + ST.heavyAmmo / 100; /* gemCfg 才有的重裝彈頭，這裡手動補 */
       if (B.falcon) boss.ail.mark = { k: 'falcon' };
       /* 點燃一直掛著（焦土的火焰曝曬才算得到）；暴擊球滿 3 顆、暴擊弱點堆到上限 */
       if (B.ign) boss.ail.ign = { dps: 1, t: 1e9 };
@@ -400,7 +496,9 @@ for (SD = 0; SD < SEEDS; SD++)
         physSum = 0,
         crits = 0;
       for (let i = 0; i < N; i++) {
-        const r = R(`hitCalc(c, boss, { fly: ${B.fly || 0} })`);
+        const r = R(
+          `hitCalc(c, boss, { fly: ${B.fly || 0}, unit: ${B.trap ? 1 : 0} })`
+        ); /* 陷阱是場上單位：吃場上單位傷害，不吃「你自己的擊中」*/
         sum += r.d;
         fireSum += r.pre.fire;
         physSum += r.pre.phys;
@@ -431,13 +529,53 @@ for (SD = 0; SD < SEEDS; SD++)
         const atkRate = (ST.asM / D.t) * R('hitChance')(ST.acc, boss.ev);
         cocDps = (ss / N) * ((atkRate * crits) / N) * ((10 * (ST.hexCoc ? 2 : 1)) / 100) * ((sd.chain || 0) + 1);
       }
-      const hit = sum / N,
+      /* 千機：彈夾 ÷（彈夾 + 裝填）；榴彈的持續傷害 */
+      let ammoF = 1,
+        grenDps = 0;
+      if (B.ammo) {
+        const clip = R('clipOf')(D),
+          tShot = D.t / ST.asM,
+          rl = D.ammo[1] / (1 + ST.reloadP / 100);
+        ammoF = (clip * tShot) / (clip * tShot + rl);
+        const gd = R('SKILLS')[B.gren];
+        ctx.gc = {
+          D: gd,
+          lv,
+          mult: R('gemMult')(gd, lv),
+          more: 1,
+          critInc: 0,
+          critX: 0,
+          fireAdd: 0,
+          pen: 0,
+          ailMag: 0
+        };
+        let gs = 0;
+        for (let i = 0; i < N; i++) gs += R('hitCalc(gc, boss, {}).d');
+        grenDps =
+          (gs / N) * ((gd.gren[0] + ST.grenUse) / (gd.gren[1] / (1 + ST.grenCd / 100))) * (1 + (ST.cluster ? 0.9 : 0));
+      }
+      /* 統治君王：魔像的傷害估算（見上面配裝的說明） */
+      let golemDps = 0,
+        nGol = 0;
+      if (B.golems) {
+        nGol = ST.auraOn.filter(R('isGolem')).length;
+        ctx.gc2 = { ...c, mult: c.mult * 0.8 };
+        let gs = 0;
+        for (let i = 0; i < N; i++) gs += R('hitCalc(gc2, boss, { minion: 1 }).d');
+        golemDps =
+          ((nGol * (gs / N) * (1 + (ST.golemSyn * Math.max(0, nGol - 1)) / 100) * (ST.colossus ? 1.2 : 1)) / 0.8) *
+          (1 + ST.minAs / 100);
+      }
+      const trapTrig = B.trap ? Math.min((1 + ST.castP / 100) / D.t, 1 / 0.4) * (ST.rearm ? 2 : 1) : 0,
+        hit = sum / N,
         spell = R('isSpell')(D),
-        rate = spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
+        rate = B.trap ? trapTrig : spell ? (1 + ST.castP / 100) / D.t : ST.asM / D.t,
         /* 0.2.22：攻擊要乘命中率（法術一律命中） */
         hc = spell || ST.noMiss ? 1 : R('hitChance')(ST.acc, boss.ev),
         dps =
-          hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc +
+          hit * rate * ((D.cnt || 1) + (D.tags.includes('proj') ? ST.proj : 0)) * hc * ammoF +
+          grenDps +
+          golemDps +
           ignDps +
           cocDps +
           bleedDps +
@@ -473,6 +611,18 @@ for (SD = 0; SD < SEEDS; SD++)
             ? `赤鐮一下約結算 ${Math.round(bleedDps * 5 + cbDps * 2.5)}（王生命 ${(((bleedDps * 5 + cbDps * 2.5) / boss.mhp) * 100).toFixed(1)}%）`
             : '',
           B.blood && ST.bloodPrice ? `血價每秒 −${(rate * R('DEBUFF.bloodSac')).toFixed(0)}% 最大生命` : '',
+          B.ammo
+            ? `⚠️ 估算：裝填係數 ${ammoF.toFixed(2)}、彈夾 ${R('clipOf')(D)}、榴彈 ${Math.round(grenDps)}/秒（占 ${Math.round((grenDps / dps) * 100)}%）、王一直完全破甲`
+            : '',
+          B.trap
+            ? `⚠️ 估算：每秒觸發 ${trapTrig.toFixed(2)} 次（陷阱上限 ${Math.max(1, 4 + ST.units + ST.trapMax)} 沒算）、傷害更多 +${ST.unitMore}%`
+            : '',
+          B.golems
+            ? `⚠️ 估算：魔像 ${nGol} 隻（上限 ${ST.golemMax}）、約 ${Math.round(golemDps)}/秒（占 ${Math.round((golemDps / dps) * 100)}%）、增益效果 +${ST.golemEff}%${ST.colossus ? '、巨像' : ''}`
+            : '',
+          B.rage
+            ? `⚠️ 盛怒當作一直滿（${R('P.rage')} 點，每點更多 ${(1 + ST.rageEff / 100).toFixed(2)}%）、每下一道震波`
+            : '',
           ST.eqBad.length ? `❌穿不起 ${ST.eqBad.join('/')}` : '',
           `過路${JSON.stringify(Object.values(S.ptA).reduce((m, c) => ((m[c] = (m[c] || 0) + 1), m), {}))}${S.pt.filter(id => R('PTREE').I[id].s && R('PTREE').I[id].s.attr).length}點 失效${R('eqCheck(S).bad.size')} 能力值${ST.str}/${ST.dex}/${ST.int} 最高需求${S.need.str}/${S.need.dex}/${S.need.int} 等級${S.need.lv}`
         ].join(' ')

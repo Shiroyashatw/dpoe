@@ -93,6 +93,10 @@ function gemCfg(g, i) {
   if (D.cvL) (c.cvL = D.cvL + (g.q || 0)), (c.shockMore = D.shockMore + (g.q || 0)), (c.boltChain = 1);
   /* 赤鐮的品質：範圍 +10% */
   if (g.gem === 'sickle') c.aoe *= 1 + 0.1 * c.q;
+  /* 大開大合（0.2.70 角鬥士）：雙手時每點盛怒範圍提高（跟範圍的提高同一池，所以除掉原本的提高再乘；stats() 沒拿雙手就歸零） */
+  if (ST.rageAoe && P && P.rage) c.aoe *= (100 + ST.aoe + ST.rageAoe * P.rage) / (100 + ST.aoe);
+  /* 重裝彈頭（0.2.70 千機）：彈藥技能每發更多、穿透 +1（彈夾減半在 mech.js 的 clipOf） */
+  if (ST.heavyAmmo && D.ammo) (c.more *= 1 + ST.heavyAmmo / 100), c.pierce++;
   /* 重擊的品質：粉碎重擊後的下一下 */
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
   for (const sp of g.sup || []) {
@@ -167,6 +171,11 @@ function gemCfg(g, i) {
   /* 效用：魔力消耗 ÷ (1 + 效用%) */
   c.mp = D.mp ? Math.max(1, Math.round(c.mp / (1 + ST.mpEff / 100))) : 0;
   c.unit = D.unit || c.conv;
+  /* 詭雷師（0.2.70）：陷阱與地雷的範圍提高（跟範圍提高同一池，所以除掉原本的提高再乘）、傷害更多 */
+  if (c.unit === 'trap' || c.unit === 'mine') {
+    if (ST.trapAoe) c.aoe *= (100 + ST.aoe + ST.trapAoe) / (100 + ST.aoe);
+    if (ST.unitMore) c.more *= 1 + ST.unitMore / 100;
+  }
   /* 滿溢機率（0.2.66）：攻擊讀 projCh、法術讀 spellProjCh，出手時多射 surpass 支；projEv 是期望值，面板顯示用（每次叫 gemCfg 都重擲，不能直接顯示 proj） */
   if (D.tags.includes('proj')) {
     const p = isSpell(D) ? ST.spellProjCh : ST.projCh;
@@ -181,7 +190,7 @@ const actDur = c =>
     (c.D.shield ? ST.sasM : ST.asM) /
     c.speed /
     speedMul(c.D.tags.includes('warcry') ? ST.crySpd : 0) /
-    (isSpell(c.D) ? 1 : atkBuf()) /
+    (isSpell(c.D) ? 1 : atkBuf() * rageAsM()) /
     (c.D.cmd ? 1 + bufV('cmdSpd') / 100 : 1) +
   (c.D.tAdd || 0);
 /* 出手時能走多快（CAST_MOVE）；命令技能吃傀儡大師的移動懲罰減少 */
@@ -267,7 +276,7 @@ function skillWhy(c, at) {
 function skillPay(c, i) {
   bloodPay(c);
   if (pracFree()) return;
-  if (c.D.ammo) ammoUse(c.k, c.D.ammo[0] + ST.ammoN, c.D.ammo[1]);
+  if (c.D.ammo) ammoUse(c.k, clipOf(c.D), c.D.ammo[1]);
   if (ST.blood) sacrifice('hp', c.mp);
   else if (ST.hellfire) hfGain(c.mp);
   else payMp(c.mp);
@@ -282,6 +291,20 @@ function cryEmpower(R, k) {
   const n = Math.min(BUFF[k].max, Math.floor(s / 10));
   if (n) gainStk(k, n);
   return n;
+}
+/* 斷後（rearGuard，0.2.70 千機）：在 (x, y) 落一顆你裝著的第一種榴彈（爆裂榴彈或油榴彈），不花榴彈次數、不吃多重投射 */
+function dropGrenade(x, y) {
+  const g = S.skills.map(s => s.a).find(a => a && SKILLS[a.gem].gren);
+  if (!g) return;
+  const c = gemCfg(g, -1),
+    r = c.D.r * ST.aoeM * c.aoe;
+  throwGrenade(c, x, y, {
+    from: { x, y },
+    r,
+    ...(c.k === 'oilgrenade'
+      ? { onBoom: (bx, by) => addGround({ k: 'oil', x: bx, y: by, r, dur: durOf(c) + 2 * c.q, c }) }
+      : { el: 'fire' })
+  });
 }
 /* 爆破專家（grenFireX，0.2.67）：近期（8 秒）每用過一種不同的榴彈，這一顆多 x% 的額外火焰傷害 */
 function grenCast(c) {
@@ -347,7 +370,12 @@ function aftershock(a) {
 function cdSkip(c) {
   if (!c.D.tags.includes('warcry')) return null;
   const rs = (c.g.sup || []).find(sp => sp && sp.gem === 'ragecry' && supOK(c.D, sp, c.g));
-  if (rs && (P.rage || 0) >= 10) return () => qRoll(20 * ((rs.q || 0) / GEM_Q_MAX)) || (P.rage -= 10);
+  if (rs && (P.rage || 0) >= 10)
+    return () => {
+      if (qRoll(20 * ((rs.q || 0) / GEM_Q_MAX))) return;
+      P.rage -= 10;
+      c.more *= 1 + (ST.vent * 10) / 100; /* 怒火傾瀉（0.2.70 角鬥士）：花 1 點盛怒，那一招更多 1% */
+    };
   if (chgN('e')) return () => --P.chg.e.n || (P.chg.e = null);
   return null;
 }
@@ -766,31 +794,40 @@ function actHit2(a, idx, R, hitArc) {
     fxs('blinkin', p.x, p.y, 40);
   } else if (a.k === 'axethrow' || a.k === 'apshot' || a.k === 'chaosbolt') {
     const n = c.proj,
-      o = {
-        /* 擲斧：飛的是手上那把斧頭的圖（轉著飛） */
-        axethrow: { spin: S.eq.weapon ? baseOf(S.eq.weapon).ic : 'sk_axespin', life: 0.8 },
-        /* 穿甲彈的品質：彈夾最後一發爆炸（ammoUse 已經扣過，剩 0 就是最後一發） */
-        apshot: {
-          sh: 'tracer',
-          life: 0.6,
-          onHit: c.q && ammoLeft(a.k) === 0 ? (s, m) => boomAt(m.x, m.y, 80 * ST.aoeM, c, c.q) : null
-        },
-        /* 混沌箭的品質：10 層凋零的怪把層數傳出去 */
-        chaosbolt: {
-          sh: 'void',
-          shs: 0.22,
-          wave: 'chaos',
-          life: 0.8,
-          hitfx: 'dark',
-          hfr: 28,
-          onHit: (s, m) => {
-            if (!c.q || (m.ail.wither || []).filter(t => t > G.t).length < 10) return;
-            for (const o of G.mobs)
-              if (o !== m && o.hp > 0 && dist(o, m) < 120)
-                o.ail.wither = [...(o.ail.wither || []), ...Array(Math.round(5 * c.q)).fill(G.t + 4)].slice(-18);
-          }
+      /* 穿甲彈的品質、斷後：彈夾最後一發（ammoUse 已經扣過，剩 0 就是最後一發） */
+      last = a.k === 'apshot' && ammoLeft(a.k) === 0;
+    let dropped = 0;
+    const o = {
+      /* 擲斧：飛的是手上那把斧頭的圖（轉著飛） */
+      axethrow: { spin: S.eq.weapon ? baseOf(S.eq.weapon).ic : 'sk_axespin', life: 0.8 },
+      /* 穿甲彈的品質：最後一發爆炸；斷後（0.2.70 千機）：最後一發在命中處留一顆你裝著的榴彈（每次出手一顆），兩個可以疊 */
+      apshot: {
+        sh: 'tracer',
+        life: 0.6,
+        onHit:
+          last && (c.q || ST.rearGuard)
+            ? (s, m) => {
+                if (c.q) boomAt(m.x, m.y, 80 * ST.aoeM, c, c.q);
+                if (ST.rearGuard && !dropped++) dropGrenade(m.x, m.y);
+              }
+            : null
+      },
+      /* 混沌箭的品質：10 層凋零的怪把層數傳出去 */
+      chaosbolt: {
+        sh: 'void',
+        shs: 0.22,
+        wave: 'chaos',
+        life: 0.8,
+        hitfx: 'dark',
+        hfr: 28,
+        onHit: (s, m) => {
+          if (!c.q || (m.ail.wither || []).filter(t => t > G.t).length < 10) return;
+          for (const o of G.mobs)
+            if (o !== m && o.hp > 0 && dist(o, m) < 120)
+              o.ail.wither = [...(o.ail.wither || []), ...Array(Math.round(5 * c.q)).fill(G.t + 4)].slice(-18);
         }
-      }[a.k];
+      }
+    }[a.k];
     if (a.k === 'axethrow') fxs('sslash', P.x, P.y - 20, 50, { rot: a.ang });
     for (let i = 0; i < n; i++)
       shoot(a.ang + (i - (n - 1) / 2) * 0.16 * c.fan, D.spd, c, a, {
@@ -1053,7 +1090,8 @@ function actHit2(a, idx, R, hitArc) {
             fuse: 0.6,
             mul: 0.3,
             r: r * 0.6,
-            el: 'fire'
+            el: 'fire',
+            small: 1
           })
       });
     }
@@ -1108,8 +1146,11 @@ function actHit2(a, idx, R, hitArc) {
     fxs('slam', P.x, P.y, R);
     shake(0.1);
     sfx('slam');
+    /* 怒火傾瀉（0.2.70 角鬥士）：這一下要花盛怒，那一招每花 1 點更多 1%（先看夠不夠，整招都吃到） */
+    const spend = (P.rage || 0) >= D.rageCost;
+    if (spend) c.more *= 1 + (ST.vent * D.rageCost) / 100;
     around(P.x, P.y, R, 200);
-    if ((P.rage || 0) >= D.rageCost) {
+    if (spend) {
       P.rage += 4 * c.q - D.rageCost;
       P.rageT = G.t;
       fxs('rage', P.x, P.y - 30, 40);
@@ -1383,8 +1424,11 @@ function hitMob(m, c, ang, kb, o = {}) {
   if (cut) (m.hp -= cut), num(m.x, m.y - m.sz * 1.3, 0, 'ev', '屠戮');
   const hp0 = m.hp;
   m.hp -= r.d;
-  if (culled(m, c))
+  if (culled(m, c)) {
     (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺'), qRoll(20 * (c.cullQ || 0)) && gainChg('f');
+    /* 梟首（0.2.70 角鬥士）：撲殺敵人時盛怒回滿（你自己的擊中，召喚物不算） */
+    if (ST.behead && !o.minion && !a.unit) (P.rage = rageCap()), (P.rageT = G.t);
+  }
   heraldHit(m, c, o, a);
   if (hp0 > 0 && m.hp <= 0) heraldKill(m, c, o, a);
   if (a) a.any = 1;
@@ -1421,7 +1465,10 @@ function hitMob(m, c, ang, kb, o = {}) {
   /* 生命偷取的品質：生命全滿時轉成魔力 */
   if (c.leechMp && P.hp >= ST.hp) addMp(lr * c.leechMp);
   /* 瓦爾契約（基石）：生命偷取立即回復 */
-  if (c.leech && ST.vaal) P.hp = Math.min(ST.hp, P.hp + lr);
+  /* 嗜血狂怒（0.2.70 角鬥士）：生命全滿時，生命偷取改成盛怒偷取：每偷取最大生命的 1% 得到 leechRage 點盛怒（召喚物的擊中不算） */
+  if (c.leech && ST.leechRage && P.hp >= ST.hp && !o.minion && !a.unit)
+    leechAdd('rage', (lr / ST.hp) * 100 * ST.leechRage);
+  else if (c.leech && ST.vaal) P.hp = Math.min(ST.hp, P.hp + lr);
   else if (c.leech) leechAdd('hp', lr);
   /* 渴血盟友（compLeech，0.2.67）：你偷取生命時，每隻活著的夥伴也偷取同樣的量 */
   if (ST.compLeech && c.leech && !o.minion)
@@ -1608,7 +1655,14 @@ function allyLife(src, c) {
     (ALLY_HPM[isGolem(src) ? 'golem' : src] || 0.7)
   );
 }
-const giantM = w => (w.c && w.c.giant ? 1 + MINION.giant : 1);
+/* 巨像（colossus，0.2.70 統治君王）：魔像都是極大召喚物 */
+const giantM = w => ((w.c && w.c.giant) || (ST.colossus && isGolem(w.src)) ? 1 + MINION.giant : 1);
+/* 萬象共鳴（golemSyn，0.2.70 統治君王）：場上活著的魔像，每多一種（第 2 種起算），魔像傷害更多 x% */
+const golemSynM = () =>
+  1 +
+  (ST.golemSyn *
+    Math.max(0, new Set(G.allies.filter(w => isGolem(w.src) && !(w.dead > G.t)).map(w => w.src)).size - 1)) /
+    100;
 /* 召喚物生命輔助（0.2.66）：寶石叫的看 c.minL，光環（魔像、戰狼精魂）看 stats() 算好的 minL_光環鍵 */
 /* 0.2.67：天賦 minLife（全部召喚物）、compLife（夥伴＝戰狼精魂的狼） */
 const lifeM = (src, c) =>
@@ -1649,7 +1703,7 @@ const allyMult0 = (w, c) =>
     : w.src === 'doll'
       ? c.mult
       : isGolem(w.src)
-        ? c.mult * 0.8 * (ST['packM_' + w.src] || 1) * (ST['minM_' + w.src] || 1)
+        ? c.mult * 0.8 * (ST['packM_' + w.src] || 1) * (ST['minM_' + w.src] || 1) * golemSynM()
         : 0.4 * (ST.packM_wolfsp || 1) * (ST.minM_wolfsp || 1);
 function updAllies(dt) {
   for (const w of G.allies) {
@@ -1871,12 +1925,28 @@ function placeUnit(c, w) {
     if (!open(nx, ny, 12)) break;
     (x = nx), (y = ny);
   }
-  const type = c.unit,
-    cap = type === 'totem' || type === 'turret' ? ['totem', 'turret'] : [type],
-    mine = G.units.filter(u => cap.includes(u.type));
+  const type = c.unit;
+  putUnit(c, type, x, y);
+  /* 地毯轟炸（carpet，0.2.70 詭雷師）：放陷阱、地雷時一次多放 1 個，落在旁邊（左、右、身後各 50 找空地，都不行就疊在同一點） */
+  if (ST.carpet && (type === 'trap' || type === 'mine')) {
+    const side = [a + Math.PI / 2, a - Math.PI / 2, a + Math.PI]
+      .map(g => ({ x: x + Math.cos(g) * 50, y: y + Math.sin(g) * 50 }))
+      .find(p => open(p.x, p.y, 12));
+    putUnit(c, type, side ? side.x : x, side ? side.y : y);
+  }
+}
+/* 放一個場上單位：上限（陷阱、地雷再加詭雷師的 trapMax／mineMax，至少 1 個）滿了就收掉最舊的 */
+function putUnit(c, type, x, y) {
+  const cap = type === 'totem' || type === 'turret' ? ['totem', 'turret'] : [type],
+    mine = G.units.filter(u => cap.includes(u.type)),
+    max = Math.max(
+      1,
+      (cap.length > 1 ? UNIT_MAX.totem : UNIT_MAX[type]) +
+        (ST.units || 0) +
+        (type === 'trap' ? ST.trapMax : type === 'mine' ? ST.mineMax : 0)
+    );
   /* 滿了就收掉最舊的（0.2.42：砲塔圖騰與圖騰合計一個上限） */
-  if (mine.length >= (cap.length > 1 ? UNIT_MAX.totem : UNIT_MAX[type]) + (ST.units || 0))
-    G.units.splice(G.units.indexOf(mine[0]), 1);
+  while (mine.length >= max) G.units.splice(G.units.indexOf(mine.shift()), 1);
   const D = c.D,
     dur = type === 'trap' || type === 'mine' ? 30 : durOf(c) || 8,
     rate = D.rate || Math.max(0.5, D.t * 1.8);
@@ -1910,7 +1980,13 @@ function unitFire(u, tgt, mul = 1) {
       fx({ k: 'ring', x: p.x, y: p.y, r, dur: 0.35, col });
       for (const m of G.mobs)
         if (m.hp > 0 && Math.hypot(m.x - p.x, m.y - p.y) < r + m.r) {
-          hitMob(m, c, Math.atan2(m.y - p.y, m.x - p.x), 140, { a, stun: D.stun, from: p, ...o });
+          hitMob(m, c, Math.atan2(m.y - p.y, m.x - p.x), 140, {
+            a,
+            stun: D.stun,
+            from: p,
+            blind: ST.unitBlind /* 生於暗影（0.2.70 詭雷師）：陷阱與地雷的擊中致盲 */,
+            ...o
+          });
           /* 捕獸夾：直接釘身（王除外，只吃 c.pin 的累積；還在剛釘完的穩固值退回期內的也只累積，不直接釘）；閃電陷阱：感電 */
           if (D.pinSec && !m.boss && m.hp > 0 && !(m.ail.psT && m.ail.psT.pin > G.t))
             poisePin(m, 'pin', D.pinSec + (c.q || 0));
@@ -1925,6 +2001,15 @@ function unitFire(u, tgt, mul = 1) {
     }
     /* 火焰陷阱：留下燃燒地面（跟灌注新星、油地面同一種，吃點燃） */
     if (D.gndDur) addGround({ k: 'fire', x: u.x, y: u.y, r, dur: D.gndDur + 2 * (c.q || 0), c, dps: 0.3 });
+    /* 誘爆（chainBlast，0.2.70 詭雷師）：陷阱觸發或地雷爆炸時，200 內你的其他陷阱（沒爆過、不在重新上膛）一起觸發，它們再連鎖下去 */
+    if (ST.chainBlast)
+      for (const x of G.units.filter(
+        x => x !== u && x.type === 'trap' && !x.spent && !(x.arm > G.t) && Math.hypot(x.x - u.x, x.y - u.y) < 200
+      ))
+        unitFire(x, null);
+    /* 雙重機關（rearm，0.2.70 詭雷師）：陷阱觸發後 1 秒重新上膛，可以再觸發一次（只一次） */
+    if (D.unit === 'trap' && ST.rearm && !u.rearmed) (u.rearmed = 1), (u.rearm = 1), (u.arm = G.t + 1), (u.spent = 0);
+    else u.rearm = 0;
     return;
   }
   /* 其他：暫時把施放點換成單位的位置，照原本的技能出手（出手完放回來） */
@@ -1959,18 +2044,21 @@ function updUnits(dt) {
   for (const u of G.units) {
     /* 被打死的圖騰直接收掉（不算時間到，不自爆） */
     if (u.hp <= 0) continue;
+    /* 被誘爆搶先爆掉的陷阱不再算 */
+    if (u.type === 'trap' && u.spent) continue;
     u.t += dt;
     if (u.type === 'trap') {
-      const m = u.t > 0.4 && near(u, 70);
+      const m = u.t > 0.4 && !(u.arm > G.t) && near(u, 70);
       if (m) {
         unitFire(u, m);
-        /* 冰霜陷阱的品質：有機率留在原地 */
+        /* 冰霜陷阱的品質：有機率留在原地；雙重機關：重新上膛的留著 */
         if (u.c.k === 'frosttrap' && qRoll(20 * (u.c.q || 0))) (u.t = 0), (u.spent = 0), keep.push(u);
+        else if (u.rearm) keep.push(u);
         continue;
       }
     } else if (u.type === 'mine') {
       if (boomMines) {
-        unitFire(u, near(u, 400), u.mini ? 0.5 : 1 + 0.1 * (mines - 1));
+        unitFire(u, near(u, 400), u.mini ? 0.5 : 1 + (0.1 + ST.mineStackP / 100) * (mines - 1));
         /* 爆裂地雷的品質：彈出小地雷 */
         if (!u.mini && u.c.k === 'blastmine' && qRoll(20 * (u.c.q || 0))) {
           const x = u.x + rnd(-60, 60),

@@ -599,6 +599,38 @@ function stats(s = S) {
         'anemiaHit',
         'sickle',
         'sickleHeal',
+        /* 0.2.70 角鬥士（data.js 的 ASC.gladiator；combat.js 的 onHitBase／baseTick／takenInc／buffSpeed、skills.js 的 gemCfg／actHit／hitMob／cdSkip 讀） */
+        'rageDbl',
+        'rageHold',
+        'rageTaken',
+        'vent',
+        'behead',
+        'leechRage',
+        'rageAoe',
+        'rageAs',
+        /* 0.2.70 千機（data.js 的 ASC.engineer；mech.js 的 grenadeTick／ammoFull／ammoSupply／clipOf、skills.js 的 gemCfg／actHit、combat.js 的 applyAil／hitCalc、game.js 的 doRoll 讀） */
+        'tacRoll',
+        'rearGuard',
+        'apBreak',
+        'brokenMore',
+        'heavyAmmo',
+        'cluster',
+        'blastSupply',
+        /* 0.2.70 統治君王（data.js 的 ASC.ruler；items.js 的光環預留、skills.js 的 allyMult0／giantM 讀；魔像上限、增益效果用既有的 golemMax／golemEff） */
+        'golemSyn',
+        'golemSpirit',
+        'colossus',
+        /* 0.2.70 詭雷師（data.js 的 ASC.trapper；skills.js 的 gemCfg／putUnit／unitFire／updUnits、combat.js 的 hitCalc 讀） */
+        'trapMax',
+        'mineMax',
+        'chainBlast',
+        'carpet',
+        'trapAoe',
+        'mineStackP',
+        'unitBlind',
+        'blindCrit',
+        'rearm',
+        'unitMore',
         /* 0.2.42 第 6 批：撲殺、屠戮打擊（%）、幸運、荊棘、偏斜（combat.js） */
         'cull',
         'fullStrike',
@@ -774,6 +806,8 @@ function stats(s = S) {
   o.spirit = calc(o.spirit, o.spiritP, 1, o.spiritTot);
   o.spiritUsed = 0;
   o.auraOn = [];
+  /* 魔像上限最少 1（巨像的 −1 不會讓魔像全部消失） */
+  o.golemMax = Math.max(1, o.golemMax);
   for (const g of s.auras || []) {
     if (!g) continue;
     const A = AURAS[g.gem];
@@ -792,7 +826,10 @@ function stats(s = S) {
         sup[SUPPORTS[x.gem].base || x.gem] = { lv: x.lv, sq: (x.q || 0) / GEM_Q_MAX, t2: SUPPORTS[x.gem].tier === 2 };
     /* 精魂效用：夥伴（戰狼精魂）再加 compSpirit、捷光環再加 herSpirit（0.2.67） */
     const sp =
-      (A.sp * (sup.spiriteff ? 1 - (20 + 5 * sup.spiriteff.sq) / 100 : 1)) /
+      (A.sp *
+        (sup.spiriteff ? 1 - (20 + 5 * sup.spiriteff.sq) / 100 : 1) *
+        /* 魔像契約（0.2.70 統治君王）：魔像預留的精魂更少 */
+        (isGolem(g.gem) ? 1 - o.golemSpirit / 100 : 1)) /
       (1 + (o.spiritEff + (A.tags.includes('companion') ? o.compSpirit : 0) + (A.her ? o.herSpirit : 0)) / 100);
     if (o.spiritUsed + sp > o.spirit) continue;
     o.spiritUsed += sp;
@@ -892,6 +929,9 @@ function stats(s = S) {
   if (w && baseOf(w).two) o.dmgA += o.twoP;
   else if (w) o.dmgA += o.oneP;
   if (dual) o.dmgA += o.dualP;
+  /* 角鬥士的握法二選一（0.2.70）：大開大合要雙手武器、雙刃要雙持，不然沒作用 */
+  if (!(w && baseOf(w).two)) o.rageAoe = 0;
+  if (!dual) o.rageAs = 0;
   if (sh) {
     const b = baseOf(sh).b,
       def =

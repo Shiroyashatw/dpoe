@@ -610,6 +610,8 @@ function doRoll() {
   P.roll = { t: 0, dx, dy };
   P.cds.roll = ROLL.cd * (1 - Math.min(60, ST.rollCd) / 100) + ROLL.t;
   P.rolledT = G.t + ROLL.t + 2;
+  /* 戰術翻滾（0.2.70 千機）：所有彈藥技能裝滿，裝填中的直接完成 */
+  if (ST.tacRoll) ammoFull();
   /* 戰狼精魂的品質：翻滾時狼撲向滑鼠附近的怪 */
   if (qRoll(20 * (ST.aq.wolfsp || 0))) {
     const w = G.allies.find(x => x.src === 'aura'),
