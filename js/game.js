@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 28,
+    v: 29,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -37,7 +37,7 @@ function newGame() {
     idols: [],
     story: {},
     /* 過濾器（0.2.35）：3 組、每組一串規則（由上往下第一條符合的決定處理方式）＋「其他」預設；見 fltAct */
-    filter: { cur: 0, sets: [fltTemplate(), fltEmpty(), fltEmpty()] },
+    filter: { cur: 0, sets: [fltTemplate(), fltTemplate2(), fltEmpty()] },
     sfx: 1,
     /* 新存檔：序章結束才拿到劍（prologue.js）；migrate 對舊存檔拿掉這個旗標 */
     fresh: 1
@@ -56,6 +56,8 @@ function newGame() {
   s.charms = [null, null, null];
   s.eq.chest = mkItem('c_leather', 1, 0);
   s.mat = newMat();
+  /* 偽隨機保底（craft.js 的 prdRoll）：★、追憶、聖化石、腐化石各自連續沒中的次數 */
+  s.prd = PRD0();
   return s;
 }
 
@@ -157,6 +159,8 @@ function enterHideout() {
   dpsReset();
   ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
+  /* 有未鑑定的裝備：提醒找撿骨師（企劃書 5.4.1） */
+  if (unidN(S)) hudWarn(`有 ${unidN(S)} 件裝備還沒鑑定：找撿骨師（免費、一次全部）`);
   /* 打倒裂谷斷崖的王之後第一次回來：直接打開地圖播世界展開 */
   if (wOpen(S) && !S.world.open) openPanel('device');
 }
@@ -207,11 +211,13 @@ function enterMap(t) {
   /* 節點：血霧扣 25%、這一批卡用掉了（失敗回來也是新的一批）；裂口的王帶 1 條墮落詞 */
   G.node = S.node || null;
   G.zod = null;
+  G.hunt = false;
   G.nodeN = '';
   if (G.node) {
     const [q, r] = wXY(G.node);
     if (wType(S, q, r) === 'rift') G.zod = wZod(S, q, r);
     G.nodeN = wName(S, q, r);
+    G.hunt = !!S.hunt.full; /* 血霧期：進這張圖時血霧是滿的（最後一張扣光也算） */
     huntEnter(S);
     delete S.cards[G.node];
   }
@@ -285,20 +291,30 @@ function enterMap(t) {
   if (G.mm.pcurse) P.ail = { curse: { k: G.mm.pcurse, v: G.mm.pcv, t: 1e9 } };
   /* 地圖詞「濕透」：整張圖都是濕透（drench 的長秒數；combat.js 的 mobAilPlayer 讀 a.wet） */
   if (G.mm.pwet) (P.ail = P.ail || {}), drench(P, 1e9);
-  /* 怪物：起點以外的房間各 2～3 群，每 4 群一隻菁英 */
+  /* 怪物：起點以外的房間各 2～3 群；菁英數照星級（企劃書 5.4.5，地圖詞「菁英怪多一倍」×2），隨機挑幾群當菁英 */
+  const counts = rooms.slice(1).map(() => irnd(2, 3) + (roll(MM('pack') * 2) ? 1 : 0)),
+    total = counts.reduce((a, b) => a + b, 0),
+    nEl = Math.min(total, eliteCount(G.star) * (MM('elite') ? 2 : 1)),
+    els = new Set();
+  while (els.size < nEl) els.add(irnd(1, total));
   let pk = 0,
-    pts = 0;
-  for (const r of rooms.slice(1))
-    for (let k = irnd(2, 3) + (roll(MM('pack') * 2) ? 1 : 0); k > 0; k--) {
+    pts = 0,
+    small = 0;
+  rooms.slice(1).forEach((r, ri) => {
+    for (let k = counts[ri]; k > 0; k--) {
       const c = floorIn(r);
       if (!c) continue;
-      const elite = ++pk % 4 === 0 || Math.random() * 400 < MM('elite');
+      const elite = els.has(++pk);
       pick(PACKS).forEach((m, j) => {
         const p = floorNear(c.x, c.y, 0, 70, 20) || c;
         spawnMob(MOBS[m], p.x, p.y, pk, elite && j === 0);
         pts += elite && j === 0 ? 6 : 1;
+        if (!(elite && j === 0)) small++;
       });
     }
+  });
+  /* 一般通貨（蛻變、增幅、磨刀石／護甲片）：每張圖的量照星級表，換成每隻小怪的掉落機率 */
+  G.curP = mapCurP(G.star, small, els.size);
   skillsEnter();
   G.need = Math.ceil(pts / rnd(1.5, 1.6));
   G.prog = 0;
@@ -752,26 +768,22 @@ function killMob(m) {
   P.flask = Math.min(FLASK.n, P.flask + fk);
   P.mflask = Math.min(FLASK.n, P.mflask + fk);
   gainXp(Math.max(1, Math.round(m.D.xp * tierMul(t).hp * (m.elite ? 4 : 1) * xpMul(S.lv, mobLv(t)))));
-  /* 材料：粉、靈魂自動吸收；碎片直接進材料頁，跳字提醒 */
-  killMat(m, t).forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
-  /* 地圖卡的材料加成：多拿一次 */
-  if (roll(MM('mat'))) killMat(m, t);
-  /* 掉落：裝備、金幣、地圖碎片（越高階越多） */
-  /* 地圖卡：物品數量、稀有度 */
-  const q = 1 + MM('qty') / 100,
-    nItems = m.boss ? Math.round(4 * q) : m.elite ? Math.round(irnd(1, 2) * q) : Math.random() < 0.13 * q ? 1 : 0;
-  for (let i = 0; i < nItems; i++) {
-    const it = dropItem(tierIlvl(t), (m.boss ? 0.8 : m.elite ? 0.4 : 0) + MM('rar') / 100);
-    if (m.boss && i === 0 && it.r < 2) Object.assign(it, mkItem(it.b, it.L, 2), { id: it.id });
-    dropAt(m.x, m.y, { it });
-  }
-  /* 生肖王：額外 1 件保底高品質的稀有裝 */
-  if (m.boss && G.zod) {
-    const it = dropItem(tierIlvl(t), 0.8);
-    Object.assign(it, mkItem(it.b, it.L, 2), { id: it.id });
-    it.q = Math.max(it.q, 0.3);
-    dropAt(m.x, m.y, { it });
-  }
+  /* 材料：靈魂與通貨自動進材料頁，跳字提醒（0.2.72：小怪只掉通貨，裝備是菁英與王才有，企劃書 5.4.5；
+     地圖詞：數量＝裝備與通貨的件數、稀有度＝黃裝比例＋★ 與追憶的機率、材料＝崇高與精髓的機率） */
+  const od = {
+    star: G.star,
+    p: G.curP,
+    ilvl: tierIlvl(t),
+    tier: t,
+    qty: MM('qty'),
+    rar: MM('rar'),
+    mat: MM('mat'),
+    hunt: G.hunt,
+    zod: !!G.zod
+  };
+  killMat(m, t, od).forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
+  /* 掉落：菁英 1 件黃、王 3 件（第一件保底黃）；裂口生肖王多 1 件保底追憶裝 */
+  for (const it of dropGear(m.boss ? 2 : m.elite ? 1 : 0, od)) dropAt(m.x, m.y, { it });
   if (Math.random() < (m.boss || m.elite ? 1 : 0.4))
     dropAt(m.x, m.y, { gold: Math.round(rnd(2, 6) * (1 + t * 0.5) * (m.boss ? 12 : m.elite ? 3 : 1)) });
   const fr = m.boss
@@ -818,7 +830,8 @@ function dropAt(x, y, o) {
   Object.assign(o, { x: x + Math.cos(a) * s, y: y + Math.sin(a) * s, sx: x, sy: y, t: 0 });
   if (!open(o.x, o.y, 10)) (o.x = x), (o.y = y);
   G.drops.push(o);
-  if (o.it && o.it.r === 2) sfx('rare');
+  /* ★ 與追憶有專屬落地音（audio.js），黃裝的「rare」照舊 */
+  if (o.it) sfx(o.it.frac ? 'star' : o.it.mem ? 'mem' : o.it.r === 2 ? 'rare' : 'drop0');
 }
 function gainXp(v) {
   if (S.lv >= LVMAX) return;
@@ -861,8 +874,24 @@ const KIND_GRP = {
   amulet: 'acc'
 };
 const fltEmpty = () => ({ rules: [], def: { act: 'show', col: 0 } });
-/* 新手範本：稀有自動撿，其他顯示 */
-const fltTemplate = () => ({ rules: [{ on: 1, c: { rar: [2] }, act: 'pick', col: 0 }], def: { act: 'show', col: 0 } });
+/* 內建範本一（企劃書 5.1）：★ 或追憶 → 自動撿；黃裝 → 顯示；其他 → 顯示（玩家從寬的往下改，隱藏比找回容易） */
+const fltTemplate = () => ({
+  rules: [
+    { on: 1, c: { frac: 1 }, act: 'pick', col: 0 },
+    { on: 1, c: { mem: 1 }, act: 'pick', col: 0 },
+    { on: 1, c: { rar: [2] }, act: 'show', col: 0 }
+  ],
+  def: { act: 'show', col: 0 }
+});
+/* 範本二：只撿 ★、追憶、T 高（物品等級 10 以上）的黃裝，其他全部隱藏 */
+const fltTemplate2 = () => ({
+  rules: [
+    { on: 1, c: { frac: 1 }, act: 'pick', col: 0 },
+    { on: 1, c: { mem: 1 }, act: 'pick', col: 0 },
+    { on: 1, c: { rar: [2], L: 10 }, act: 'pick', col: 0 }
+  ],
+  def: { act: 'hide', col: 0 }
+});
 /* 詞綴勾選清單：同名的詞（例如兩種「物理傷害提高」）合成一項；id 是第一個 key */
 const FLT_AFF = (() => {
   const L = [],
@@ -883,13 +912,17 @@ function ruleHit(r, it) {
   const c = r.c;
   if (c.kind && !c.kind.includes(it.charm ? 'charm' : KIND_GRP[baseOf(it).k])) return false;
   if (c.rar && !c.rar.includes(it.r || 0)) return false;
+  /* ★（破裂）、追憶：未鑑定也看得到 */
+  if (c.frac && !it.frac) return false;
+  if (c.mem && !it.mem) return false;
+  /* 詞綴條件要鑑定後才看得到：地上未鑑定的永遠不符合，只對鑑定後的（背包、倉庫整理）有效 */
+  if (c.aff && it.uid) return false;
   if (c.aff) {
     const ks = new Set(FLT_AFF.filter(g => c.aff.ks.includes(g.id)).flatMap(g => g.keys));
     if ((it.a || []).filter(a => ks.has(a.k)).length < c.aff.n) return false;
   }
   if (c.so != null && (it.so || 0) < c.so) return false;
   if (c.q != null && (it.q || 0) * 100 < c.q) return false;
-  if (c.pot != null && (it.pot || 0) < c.pot) return false;
   if (c.L != null && (it.L || 0) < c.L) return false;
   return true;
 }

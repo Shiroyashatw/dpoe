@@ -344,6 +344,19 @@ function draw() {
           CX.fillRect(x - 1.5, y - bh * 0.8, 3, bh * 0.8);
         }
       }
+      /* ★（破裂）：白金又高又寬的光柱；追憶：青色光柱（企劃書 5.4）；未鑑定也看得到 */
+      const sp = d.it.frac ? '255,250,225' : d.it.mem ? '110,225,255' : null;
+      if (sp) {
+        const bh = d.it.frac ? 280 : 220,
+          a = 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
+          g = CX.createLinearGradient(x, y - bh, x, y);
+        g.addColorStop(0, `rgba(${sp},0)`);
+        g.addColorStop(1, `rgba(${sp},${a})`);
+        CX.fillStyle = g;
+        CX.fillRect(x - 10, y - bh, 20, bh);
+        CX.fillStyle = `rgba(255,255,255,${a})`;
+        CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
+      }
       spr(itemIc(d.it), x, y + 10, 26);
       CX.fillStyle = col;
       CX.globalAlpha = d.it.r === 2 ? 0.5 : 0.25;
@@ -508,7 +521,7 @@ function draw() {
     const fa = dropFlt(d);
     if (fa.act === 'hide') continue;
     /* 品質、潛能金字以上直接寫在標籤上（D2：好基底一眼看得出來） */
-    const txt = itemName(d.it) + dropTag(d.it),
+    const txt = itemName(d.it) + labelTag(d.it) + dropTag(d.it),
       w = CX.measureText(txt).width + 14;
     let x = d.x,
       y = d.y - 22;
@@ -523,8 +536,8 @@ function draw() {
     /* 底色帶一點稀有度的色調（跟說明框的標題列一致），稀有以上框粗一點；過濾器「醒目」＝框改成選的顏色、更粗 */
     CX.fillStyle = near ? RBG[d.it.r] : 'rgba(38,40,45,0.88)';
     CX.fillRect(x - w / 2, y - 11, w, 20);
-    CX.strokeStyle = fa.act === 'hl' ? FLT_COL[fa.col] : RCOL[d.it.r];
-    CX.lineWidth = fa.act === 'hl' ? 3 : near || d.it.r >= 2 ? 2 : 1;
+    CX.strokeStyle = fa.act === 'hl' ? FLT_COL[fa.col] : d.it.frac ? '#fff7d6' : d.it.mem ? '#6fe3ff' : RCOL[d.it.r];
+    CX.lineWidth = fa.act === 'hl' || d.it.frac || d.it.mem ? 3 : near || d.it.r >= 2 ? 2 : 1;
     CX.strokeRect(x - w / 2 + 0.5, y - 10.5, w - 1, 19);
     CX.fillStyle = RCOL[d.it.r];
     CX.fillText(txt, x, y + 4);
@@ -981,11 +994,11 @@ function drawMinimap(W) {
   CX.lineWidth = 1.5;
   for (const d of G.drops) {
     const fa = d.it && dropFlt(d);
-    if (d.it && fa.act !== 'hide' && (d.it.r >= 2 || fa.act === 'hl')) {
-      CX.fillStyle = fa.act === 'hl' ? FLT_COL[fa.col] : RCOL[2];
+    if (d.it && fa.act !== 'hide' && (d.it.r >= 2 || d.it.frac || d.it.mem || fa.act === 'hl')) {
+      CX.fillStyle = fa.act === 'hl' ? FLT_COL[fa.col] : d.it.frac ? '#fff7d6' : d.it.mem ? '#6fe3ff' : RCOL[2];
       const dx = x0 + d.x * s,
         dy = y0 + d.y * s,
-        z = 5;
+        z = d.it.frac || d.it.mem ? 7 : 5;
       CX.beginPath();
       CX.moveTo(dx, dy - z);
       CX.lineTo(dx + z, dy);

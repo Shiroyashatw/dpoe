@@ -1228,7 +1228,7 @@ function wmCardHTML(k, why, lv) {
         <span class="mcost ${S.frag < cc ? 'c-bad' : ''}">${cc ? `${cc} 碎片` : '免費'}</span></button>`;
     })
     .join('')}</div>
-    <div class="msel"><b>這張的地圖詞</b><span class="c-gold">物品數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
+    <div class="msel"><b>這張的地圖詞</b><span class="c-gold" title="數量：裝備與通貨的件數；稀有度：黃裝比例與 ★、追憶的機率；材料：崇高石與精髓的機率">數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
     <ul class="mmods wm-mods">${card.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
     <div class="wm-acts"><button class="btn" data-wm="wash" ${S.frag < wc ? 'disabled' : ''} title="換一批新的卡">洗卡 · ${wc} 碎片</button>
     <button class="btn pri" data-a="open" ${why || S.frag < c ? 'disabled' : ''} ${why ? `title="${esc(why)}"` : ''}>${why || (S.frag < c ? `碎片不夠（要 ${c}，有 ${S.frag}）` : `${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}${c ? ` · ${c} 碎片` : ''}`)}</button></div>`;

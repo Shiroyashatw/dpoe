@@ -40,8 +40,8 @@ const slotCfg = i => gemCfg(S.skills[i] && S.skills[i].a, i);
 function gemCfg(g, i) {
   if (!g) return null;
   const D = SKILLS[g.gem],
-    /* 長杖：法術技能等級 +1 */
-    lv = g.lv + (D.tags.includes('spell') ? ST.spellLv : 0),
+    /* 長杖：法術技能等級 +1；追憶詞「裝備的技能寶石等級 +1」（8-2）所有技能都加 */
+    lv = g.lv + (D.tags.includes('spell') ? ST.spellLv : 0) + ((ST.mem && ST.mem.gemLv) || 0),
     c = {
       i,
       k: g.gem,

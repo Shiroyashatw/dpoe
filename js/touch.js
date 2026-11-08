@@ -161,8 +161,9 @@ function tapItem(d) {
   const r = d.el.getBoundingClientRect();
   TOUCH.sel = { src: d.src, id: d.it.id, eqk: d.eqk };
   const sellB =
-    (G.scene === 'hide' && !d.it.gem ? `<button class="btn" data-tq="sell">賣 ${sellPrice(d.it)} 金</button>` : '') +
-    `<button class="btn" data-tq="drop">丟掉</button>`;
+    (G.scene === 'hide' && !d.it.gem
+      ? `<button class="btn" data-tq="sell">賣 ${d.it.uid ? '？' : sellPrice(d.it)} 金</button>`
+      : '') + `<button class="btn" data-tq="drop">丟掉</button>`;
   const build = () =>
     itemTip(d.it, !isSlot(d.src)) +
     `<div class="tqa"><button class="btn pri" data-tq="move">${moveLabel(d.src, d.it)}</button>${sellB}</div>`;

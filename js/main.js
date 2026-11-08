@@ -67,11 +67,13 @@ function migrate(s) {
   ])
     if (it && it.id > IID) IID = it.id;
   /* 0.2.6：輔助改插在技能寶石自己的孔裡（舊的技能欄輔助搬過去；沒有技能寶石的輔助收進背包）、材料頁、書庫 */
-  o.mat = o.mat || newMat();
-  /* 0.2.24：8 類碎片換成精粉（1 換 1），補上精粉、稀粉 */
-  if (o.mat.sh) (o.mat.fine = Object.values(o.mat.sh).reduce((x, y) => x + y, 0)), delete o.mat.sh;
-  o.mat.fine = o.mat.fine || 0;
-  o.mat.rare = o.mat.rare || 0;
+  o.mat = o.mat || {};
+  /* 0.2.24：8 類碎片換成精粉（1 換 1）；存檔 29 以前材料還是三種粉（fine、rare 在存檔 29 換成通貨） */
+  if (o.v < 29) {
+    if (o.mat.sh) (o.mat.fine = Object.values(o.mat.sh).reduce((x, y) => x + y, 0)), delete o.mat.sh;
+    o.mat.fine = o.mat.fine || 0;
+    o.mat.rare = o.mat.rare || 0;
+  }
   delete o.lib; /* 0.2.35：寶石書庫早就不用了 */
   /* 0.2.57：光環寶石也有孔 */
   for (const it of [
@@ -93,9 +95,9 @@ function migrate(s) {
       delete k.s;
     }
   }
-  /* 0.2.6：舊裝備補上品質 0、孔 0、潛能 3（不重骰，免得讀檔洗出好基底） */
+  /* 0.2.6：舊裝備補上品質 0、孔 0（不重骰，免得讀檔洗出好基底；潛能 0.2.72 拿掉了） */
   for (const it of [...Object.values(o.eq), ...o.inv.items, ...o.stash.items])
-    if (it && !it.gem && it.q == null) Object.assign(it, { q: 0, so: 0, pot: 3 });
+    if (it && !it.gem && it.q == null) Object.assign(it, { q: 0, so: 0 });
   /* 0.2.7（存檔 14）：暴擊詞分成武器的「暴擊率 +」（本地）和其他部位的「暴擊率提高」；項鍊的物理傷害改成「物理傷害提高」；
      數值照同一個階級換到新的範圍（不重骰） */
   if (o.v < 14) {
@@ -213,6 +215,50 @@ function migrate(s) {
     o.ptA = {};
     o.v = 28;
   }
+  /* 存檔 29（0.2.72，裝備重做，企劃書第 5 節）：裝備全部視為已鑑定（uid 不存）、潛能 pot 拿掉、已鎖的詞 a.lock 拿掉鎖（數值不動）；
+     材料：粗粉每 10 顆 1 顆通貨（蛻變與增幅各一半，單數的給蛻變）、精粉 → 富豪（1：1）、稀粉 → 崇高（1：1）、封印石 → 轉化石（1：1）；
+     過濾器的「潛能」條件拿掉 */
+  if (o.v < 29) {
+    const gear = [...Object.values(o.eq), ...o.inv.items, ...o.stash.items, ...((o.temp && o.temp.items) || [])];
+    for (const it of gear)
+      if (it && !it.gem && !it.charm) {
+        delete it.pot;
+        for (const a of it.a || []) delete a.lock;
+      }
+    const M = o.mat,
+      n = Math.floor((M.dust || 0) / 10);
+    o.mat = {
+      ...newMat(),
+      soul: M.soul || 0,
+      tran: Math.ceil(n / 2),
+      aug: Math.floor(n / 2),
+      rich: M.fine || 0,
+      exalt: M.rare || 0,
+      conv: (M.seal || 0) + (M.lock || 0)
+    };
+    for (const set of (o.filter && o.filter.sets) || []) for (const r of set.rules || []) if (r.c) delete r.c.pot;
+    /* 0.2.72 起地上的裝備全是未鑑定，詞綴條件對未鑑定永遠不符合，過濾器又是「第一條符合的規則勝出」：
+       每條開著、有詞綴條件、動作不是隱藏的規則，複製一條「同樣條件、拿掉詞綴條件、動作改顯示」（沒寫稀有度就是黃裝），
+       插在它後面第一條「隱藏」規則之前，後面沒有隱藏規則就放在最後（預設之前）；這樣前面的規則照舊先贏、後面的隱藏不會把黃裝藏掉。
+       已經有同一條的不重複。決定要不要撿，鑑定後再用詞綴整理背包 */
+    for (const set of (o.filter && o.filter.sets) || []) {
+      const R = set.rules || [];
+      for (let i = 0; i < R.length; i++) {
+        if (!(R[i].on && R[i].c && R[i].c.aff && R[i].act !== 'hide')) continue;
+        const { aff, ...c } = R[i].c,
+          key = JSON.stringify(c.rar ? c : { ...c, rar: [2] });
+        if (R.some(x => x.act === 'show' && JSON.stringify(x.c) === key)) continue;
+        let j = R.findIndex((x, k) => k > i && x.act === 'hide');
+        if (j < 0) j = R.length;
+        R.splice(j, 0, { on: 1, c: JSON.parse(key), act: 'show', col: 0 });
+      }
+    }
+    o.v = 29;
+  }
+  /* 之後新增的通貨鍵補 0、精髓表一定有 */
+  o.mat = { ...newMat(), ...o.mat };
+  o.mat.ess = o.mat.ess || {};
+  o.prd = { ...PRD0(), ...o.prd };
   o.ptA = o.ptA || {};
   /* 存檔裡有樹上已經沒有的點（重烘過）也全部退回，不然算數值會壞 */
   if (o.pt.some(id => !PTREE.I[id])) (o.pt = [...PT_START]), (o.ptA = {});

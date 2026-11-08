@@ -7,7 +7,16 @@ const NPCS = {
     n: '撿骨師',
     sp: 'ghost_priest',
     when: () => true,
-    talk: s => (s.story.boneMet ? 'bone_' + ((s.story.boneN = (s.story.boneN || 0) + 1) % 4) : 'bone_first')
+    /* 有未鑑定的裝備（已經認識之後）：不閒聊，直接開獎；其他時候照舊說一句 */
+    talk: s =>
+      s.story.boneMet && unidN(s)
+        ? ''
+        : s.story.boneMet
+          ? 'bone_' + ((s.story.boneN = (s.story.boneN || 0) + 1) % 4)
+          : 'bone_first',
+    done() {
+      if (unidN(S)) revealOpen();
+    }
   },
   /* 赤鴉：狩獵之血解鎖（S.story.crow）才出現 */
   crow: {
@@ -66,7 +75,9 @@ const TALKS = {
   },
   hint_forge: {
     set: 'h_forge',
-    lines: [['bone', '鍛造台還能用。怪物留下的粉拿來打磨裝備，不滿意的詞綴可以換掉。']]
+    lines: [
+      ['bone', '鍛造台還能用。怪物留下的石頭拿來給裝備加詞，數值不滿意就淬鍊。地圖裡撿的裝備先拿給我看，我替你鑑定。']
+    ]
   },
   hint_tree: {
     set: 'h_tree',

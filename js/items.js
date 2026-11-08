@@ -12,17 +12,20 @@ function rollRarity(bonus) {
   const r = Math.random() * (1 + bonus);
   return r > 0.93 ? 2 : r > 0.64 ? 1 : 0;
 }
-function rollAff(k, ilvl) {
-  const best = bestTier(ilvl),
-    /* 一次骰在最高階往下 3 階內 */
-    T = Math.min(AFF_T, best + irnd(0, 2)),
-    [lo, hi] = tierRange(k, T);
+/* 在指定的階級 T 骰一條詞（T0＝破裂詞，tierRange 會給 T1 再往上一段） */
+function rollAffT(k, T) {
+  const [lo, hi] = tierRange(k, T);
   if (AFF[k].add) {
     /* 附加傷害：a～b，b 大約是 a 的 2 倍 */
     const v = irnd(lo, hi);
     return { k, T, v: [Math.max(1, Math.round(v * 0.5)), v] };
   }
   return { k, T, v: irnd(lo, hi) };
+}
+function rollAff(k, ilvl) {
+  const best = bestTier(ilvl);
+  /* 一次骰在最高階往下 3 階內 */
+  return rollAffT(k, Math.min(AFF_T, best + irnd(0, 2)));
 }
 /* 隨機挑一種當下能掉的基底 */
 function pickBase(ilvl, kind, wt) {
@@ -40,7 +43,9 @@ function pickBase(ilvl, kind, wt) {
   for (let i = 0; i < pool.length; i++) if ((r -= w[i]) <= 0) return pool[i];
   return pool[pool.length - 1];
 }
-/* 基底三層（0.2.6，企劃書 5.2）：品質 q（0～0.4，只靠掉落）、插槽數 so（各部位有上限）、潛能 pot（還能鍛造幾次） */
+/* 基底三層（企劃書 5.2）：品質 q（0～0.3，0.2.72 起上限 30%）、插槽數 so（各部位有上限，腐化可 +1）。
+   0.2.72 資料欄位（企劃書 5.2；掉落端 8-2、8-3 才接）：uid 未鑑定（現在一律沒有＝已鑑定）、frac 破裂詞是哪一條（詞綴的 k，那條是 T0）、
+   mem 追憶詞（0～1 條）、holy 已聖化、cor 已腐化、cw 腐化詞 [{ k, v }]；潛能 pot 已拿掉 */
 const SOCK_MAX = {
   weapon: 3,
   shield: 2,
@@ -55,54 +60,30 @@ const SOCK_MAX = {
   amulet: 1
 };
 function rollQ(t) {
-  /* 地圖階級越高，高區間越常見；35～40% 只在階級 10 以上 */
-  const k = 1 + t / 16,
-    r = Math.random(),
-    p35 = t >= 10 ? 0.001 * (1 + (t - 10) * 0.3) : 0,
-    p30 = 0.009 * k,
-    p20 = 0.06 * k;
-  const band = r < p35 ? [35, 40] : r < p35 + p30 ? [30, 35] : r < p35 + p30 + p20 ? [20, 30] : [0, 20];
-  /* 每段上限不含（30～35 不會變成 35），最高那段含 40 */
-  return (band[1] === 40 ? Math.round(rnd(35, 40)) : Math.floor(rnd(band[0], band[1]))) / 100;
-}
-function rollPot() {
-  const w = [
-      [3, 30],
-      [4, 30],
-      [5, 25],
-      [6, 9],
-      [7, 4],
-      [8, 1.5],
-      [9, 0.4],
-      [10, 0.1]
-    ],
-    tot = w.reduce((a, b) => a + b[1], 0);
-  let r = Math.random() * tot;
-  for (const [v, p] of w) if ((r -= p) <= 0) return v;
-  return 3;
+  /* 企劃書 5.4.4：0～20% 約 94%、20～25% 約 5%（藍字）、25～30% 約 1%（金字，階級 10 以上才出）；20% 以上只有掉落（磨刀石、護甲片補到 20% 為止） */
+  const r = Math.random(),
+    p25 = t >= 10 ? 0.01 : 0,
+    p20 = 0.05,
+    band = r < p25 ? [25, 30] : r < p25 + p20 ? [20, 25] : [0, 20];
+  /* 每段上限不含（20～25 不會變成 25），最高那段含 30 */
+  return (band[1] === 30 ? Math.round(rnd(25, 30)) : Math.floor(rnd(band[0], band[1]))) / 100;
 }
 function rollSock(k) {
   let n = 0;
   while (n < (SOCK_MAX[k] || 1) && Math.random() < 0.45) n++;
   return n;
 }
-/* 品質的區間與顏色 */
-const qBand = q => (q >= 0.35 ? 3 : q >= 0.3 ? 2 : q >= 0.2 ? 1 : 0);
-/* 潛能也分級（顏色跟品質一樣）：6 少見、7～8 很少見、9～10 極稀有 */
-const potBand = p => (p >= 9 ? 3 : p >= 7 ? 2 : p >= 6 ? 1 : 0);
-const P_N = ['', '少見', '很少見', '極稀有'];
+/* 品質的區間與顏色：20% 以上（藍字）、25% 以上（金字） */
+const qBand = q => (q >= 0.25 ? 2 : q >= 0.2 ? 1 : 0);
 /* 掉落標籤上要不要特別標出來（金字以上） */
 function dropTag(it) {
   if (it.gem || it.q == null) return '';
-  const t = [];
-  if (qBand(it.q) >= 2) t.push(`品質 ${Math.round(it.q * 100)}%`);
-  if (potBand(it.pot) >= 2) t.push(`潛能 ${it.pot}`);
-  return t.length ? `（${t.join('・')}）` : '';
+  return qBand(it.q) >= 2 ? `（品質 ${Math.round(it.q * 100)}%）` : '';
 }
 function mkItem(baseId, ilvl, rar) {
   const B = BASEI[baseId],
     K = KINDS[B.k],
-    it = { id: ++IID, b: baseId, L: ilvl, r: rar, a: [], q: rollQ(ilvl), so: rollSock(B.k), pot: rollPot() };
+    it = { id: ++IID, b: baseId, L: ilvl, r: rar, a: [], q: rollQ(ilvl), so: rollSock(B.k) };
   /* 腰帶的護符槽（照 PoE2，看物品等級） */
   if (B.k === 'belt') it.cs = rollCharmSlots(ilvl);
   if (rar === 0) return it;
@@ -123,7 +104,6 @@ function mkItem(baseId, ilvl, rar) {
   }
   /* 前綴在前 */
   it.a.sort((x, y) => AFF[y.k].p - AFF[x.k].p);
-  if (rar === 2) it.nm = pick(NAME_A) + pick(NAME_B);
   return it;
 }
 function dropItem(ilvl, bonus) {
@@ -176,15 +156,59 @@ const baseOf = it => BASEI[it.b];
 const kindOf = it => (it.gem ? 'gem' : it.charm ? 'charm' : baseOf(it).k);
 const itemSize = it => (it.gem || it.charm ? [1, 1] : KINDS[baseOf(it).k].sz);
 const itemIc = it => (it.gem ? gemOf(it).ic : it.charm ? CHARMS[it.charm].ic : baseOf(it).ic);
+/* 黃裝的名字（鑑定後）：最高階前綴的詞名＋基底＋「・」最高階後綴的詞名（T 數字最小的；T0 最高）；沒有前綴或後綴就少那一邊 */
+function rareName(it) {
+  const top = pre => {
+    const L = it.a.filter(a => !!AFF[a.k].p === pre && (pre ? PRE_N[a.k] : SUF_N[a.k]));
+    return L.length ? (pre ? PRE_N : SUF_N)[L.reduce((x, y) => (y.T < x.T ? y : x)).k] : '';
+  };
+  const p = top(true),
+    s = top(false);
+  return p + baseOf(it).n + (s ? '・' + s : '');
+}
+/* 未鑑定的只顯示基底名（稀有度看顏色）；魔法裝 ＝「魔法」＋基底；黃裝鑑定後用詞名 */
 const itemName = it =>
   it.charm
     ? CHARMS[it.charm].n
     : it.gem
       ? gemOf(it).n
-      : it.nm
-        ? it.nm + ' ' + baseOf(it).n
-        : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
+      : it.uid
+        ? baseOf(it).n
+        : it.r === 2
+          ? rareName(it)
+          : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
+/* 物品等級決定的 T（這件能出的最高階），標籤與說明框的「T2」 */
+const itemT = it => bestTier(it.L);
+/* 地上標籤的小字：T、孔、★、追憶（未鑑定也看得到的資訊） */
+const labelTag = it =>
+  it.charm || it.gem
+    ? ''
+    : ` T${itemT(it)}${it.so ? ' ' + '○'.repeat(it.so) : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}`;
 const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + '～' + a.v[1] : a.v);
+/* 腐化詞（0.2.72）：it.cw 的一條 */
+const cwText = c => CORR[c.k].n.replace('{}', c.v);
+/* 這條是不是破裂詞（T0；一件最多 1 條，it.frac＝那條的詞綴 k） */
+const isFrac = (it, a) => !!it.frac && it.frac === a.k;
+/* 追憶詞（8-2）：這件裝備出得了哪些、說明文字、掉落時抽參數 */
+const memPool = it => (it.gem || it.charm ? [] : Object.keys(MEM).filter(k => MEM[k].on(baseOf(it))));
+const memText = m =>
+  ({
+    m_proj: () => MEM.m_proj.n,
+    m_chain: () => MEM.m_chain.n,
+    m_lv: () => MEM.m_lv.n,
+    m_exp: () => MEM.m_exp.n.replace(/\{el\}/g, ELN[m.el]).replace('{v}', m.v),
+    m_curse: () => MEM.m_curse.n.replace('{lv}', m.lv).replace('{c}', CURSES[m.c].n),
+    m_spirit: () => MEM.m_spirit.n.replace('{v}', m.v)
+  })[m.k]();
+function rollMem(k) {
+  const D = MEM[k];
+  return {
+    k,
+    ...(D.el ? { el: pick(D.el) } : {}),
+    ...(D.v ? { v: irnd(...D.v) } : {}),
+    ...(D.lv ? { lv: irnd(...D.lv), c: pick(Object.keys(CURSES)) } : {})
+  };
+}
 /* 基底的數值（品質放大）＋固定詞 */
 const impText = (k, v) => {
   if (AFF[k]) return affText({ k, v });
@@ -220,12 +244,12 @@ function baseText(it) {
     if (!['dmg', 'as', 'block', 'crit', ...DEFK].includes(k) || (k === 'crit' && !b.dmg)) o.push(impText(k, b[k]));
   return o.filter(Boolean);
 }
-/* 品質、插槽數、潛能（說明框用；舊存檔的裝備沒有就不顯示） */
-const Q_N = ['', '稀有', '非常稀有', '超級稀有'];
+/* 品質、插槽數、聖化／腐化狀態（說明框用；舊存檔的裝備沒有就不顯示） */
+const Q_N = ['', '稀有', '非常稀有'];
 function baseLayers(it) {
   if (it.gem || it.q == null) return '';
   const qb = qBand(it.q);
-  return `品質 <span class="qb${qb}">${Math.round(it.q * 100)}%${qb ? '（' + Q_N[qb] + '）' : ''}</span> · 孔 ${'○'.repeat(it.so || 0) || '無'} · 潛能 <span class="qb${potBand(it.pot)}">${it.pot}${potBand(it.pot) ? '（' + P_N[potBand(it.pot)] + '）' : ''}</span>`;
+  return `品質 <span class="qb${qb}">${Math.round(it.q * 100)}%${qb ? '（' + Q_N[qb] + '）' : ''}</span> · 孔 ${'○'.repeat(it.so || 0) || '無'}${it.holy ? ' · <span class="c-gold">已聖化</span>' : ''}${it.cor ? ' · <span class="c-bad">已腐化</span>' : ''}`;
 }
 /* 賣價：越高階、詞綴越多越貴 */
 const sellPrice = it =>
@@ -692,7 +716,9 @@ function stats(s = S) {
     ),
     /* 不受影響：{ 減益種類: 1 }（ign、bleed、poison、chill、frozen、shock、curse、over、vine） */
     unaff: {},
-    thornAdd: [0, 0]
+    thornAdd: [0, 0],
+    /* 追憶詞（8-2）：技能等級 gemLv、擊中施加的曝露 hitExp＝{ 屬性: %}、詛咒 hitCurse＝{ k, lv }（combat.js 的 onHitBase 讀） */
+    mem: {}
   };
   /* 失效的裝備（等級或能力值不夠）不算數值、不算武器 */
   const chk = eqCheck(s),
@@ -759,6 +785,16 @@ function stats(s = S) {
       if (!(baseOf(it).k === 'weapon' && (k === 'dmg' || k === 'as' || k === 'crit')))
         put(k, DEFK.includes(k) ? Math.round(b[k] * qMul(it)) : b[k]);
     for (const a of it.a) if (!isLocal(it, a.k)) put(a.k, a.v);
+    /* 追憶詞：投射物、連鎖、精魂保留直接加進既有的能力，其餘放在 o.mem */
+    const m = it.mem;
+    if (m && MEM[m.k])
+      if (m.k === 'm_proj') o.proj += 1;
+      else if (m.k === 'm_chain') o.chain += 1;
+      else if (m.k === 'm_spirit') o.spiritEff += Math.round((100 * m.v) / (100 - m.v));
+      else if (m.k === 'm_lv') o.mem.gemLv = (o.mem.gemLv || 0) + 1;
+      else if (m.k === 'm_exp')
+        (o.mem.hitExp = o.mem.hitExp || {})[m.el] = Math.max((o.mem.hitExp || {})[m.el] || 0, m.v);
+      else if (m.k === 'm_curse') o.mem.hitCurse = { k: m.c, lv: m.lv };
   }
   o.add.phys = o.flat;
   /* 能力值（eqCheck 已算好：起始＋過路點＋有效裝備） */
@@ -789,6 +825,15 @@ function stats(s = S) {
       if (k in pt) pt[k] += n.s[k];
       else if (k === 'resA') for (const r of ['fire', 'cold', 'light']) o.res[r] += n.s[k];
       else put(k, n.s[k]);
+    }
+  }
+  /* 腐化詞（0.2.72，不占前後綴）：跟天賦一樣進同一池（hpP 等在 pt，其他走 put）；失效的裝備不算 */
+  for (const e of EQS) {
+    const it = s.eq[e.k];
+    if (!it || chk.bad.has(e.k) || (e.k === 'off' && !offOK(w, it))) continue;
+    for (const c of it.cw || []) {
+      const f = CORR[c.k].fx(c.v);
+      for (const k in f) k in pt ? (pt[k] += f[k]) : put(k, f[k]);
     }
   }
   /* 昇華（0.2.25）：小點的數值跟天賦一樣加；大點是開關或數值（only＝拿那種武器才生效） */

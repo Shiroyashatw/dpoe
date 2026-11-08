@@ -69,6 +69,19 @@ function sfx(k) {
       pick: () => tone(700, 1100, 0.1, 0.1, 'triangle'),
       rare: () => [660, 880, 1320].forEach((f, i) => tone(f, f, 0.25, 0.08, 'triangle', i * 0.07)),
       equip: () => nz(0.1, 3000, 1200, 0.1, 'highpass'),
+      /* 掉落的四樣（8-3，企劃書 5.4）：★（破裂）＝高亮的五連音加閃光、追憶＝低沉的雙音加共鳴；開獎＝翻牌、翻到好的另有一聲 */
+      star: () => (
+        [880, 1109, 1319, 1760, 2217].forEach((f, i) => tone(f, f, 0.45, 0.1, 'triangle', i * 0.06)),
+        tone(3520, 3520, 0.6, 0.04, 'sine', 0.3)
+      ),
+      mem: () => (
+        tone(220, 220, 0.7, 0.1, 'sine'),
+        tone(330, 330, 0.7, 0.09, 'sine', 0.12),
+        tone(660, 990, 0.6, 0.05, 'triangle', 0.25)
+      ),
+      drop0: () => 0,
+      flip: () => (nz(0.05, 2500, 900, 0.08, 'highpass'), tone(520, 620, 0.06, 0.06, 'triangle')),
+      flipRare: () => [784, 988, 1175].forEach((f, i) => tone(f, f, 0.2, 0.08, 'triangle', i * 0.05)),
       lvup: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, f, 0.3, 0.09, 'triangle', i * 0.08)),
       slam: () => (tone(90, 40, 0.3, 0.35, 'sine'), nz(0.25, 400, 80, 0.3, 'lowpass')),
       die: () => tone(300, 60, 0.8, 0.25, 'sawtooth'),

@@ -1,5 +1,5 @@
 /* dungeonPOE 0.2.7 · 傷害與防禦的驗收（企劃書 7.2）：Lv30／60／90 各三套典型配裝（天賦路線＋同階級稀有裝），
-   算打王幾秒、王一招打掉多少生命、各屬性減傷。用法：node tools/dmg_check.js [每格模擬次數，預設 400] [--seeds 種子數，預設 5] [--why] */
+   算打王幾秒、王一招打掉多少生命、各屬性減傷。用法：node tools/dmg_check.js [每格模擬次數，預設 400] [--seeds 種子數，預設 20] [--why] */
 'use strict';
 const fs = require('fs'),
   vm = require('vm'),
@@ -393,8 +393,8 @@ for (const t of [1, 4, 8, 12, 13, 16]) {
 }
 console.log('等級 階級 配裝     每秒傷害  王生命   打王秒數  王一招(火/物)  生命  物理減傷 火抗 命中');
 /* 0.2.47：裝備是隨機擲的，同一套配裝換種子打王秒數可以差三倍，所以每格跑 SEEDS 個種子；
-   明細只印第一個種子，最後印平均（--seeds n，預設 5） */
-const SEEDS = +(process.argv[process.argv.indexOf('--seeds') + 1] || 5) || 5,
+   明細只印第一個種子，最後印平均（--seeds n，預設 20，Opus 用 30 個種子比對過：5 個種子太少，一把運氣好壞的裝備就讓平均跳一倍） */
+const SEEDS = +(process.argv[process.argv.indexOf('--seeds') + 1] || 20) || 20,
   AVG = {};
 let SD = 0;
 const out = (...a) => SD || console.log(...a);

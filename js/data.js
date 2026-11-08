@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.71';
+const VER = '0.2.72';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -6507,36 +6507,96 @@ const BASES = [
   { id: 'a_sun', k: 'amulet', n: '日輪墜', lv: 15, ic: 'gear_amulet_9', b: { spirit: 12 } }
 ];
 /* ---------- 做裝的材料（0.2.6，企劃書 5.3、6.3、6.4）：放材料頁（S.mat），不佔背包，打怪自動吸收 ---------- */
-/* 8 類詞綴類別：鍛造時選一類（免費）決定對哪一類詞下手 */
+/* 9 類詞綴類別（0.2.72：精髓分 9 類，轉化石只能換成同類；每個詞綴都要屬於一類） */
 const ACLS = [
   { k: 'life', n: '生命', ic: 'asc_s_heart', aff: ['life', 'regen', 'loh', 'flask'] },
-  { k: 'def', n: '防禦', ic: 'asc_s_shield', aff: ['armor', 'ev', 'es', 'block', 'thorn', 'parryMag', 'parryDur'] },
+  {
+    k: 'def',
+    n: '防禦',
+    ic: 'asc_s_shield',
+    aff: ['armor', 'ev', 'es', 'defP', 'block', 'thorn', 'parryMag', 'parryDur']
+  },
   { k: 'ele', n: '元素', ic: 'asc_s_flame', aff: ['fire', 'cold', 'light', 'chaos'] },
-  { k: 'phys', n: '物理', ic: 'asc_s_sword', aff: ['dmgP', 'flat'] },
-  { k: 'crit', n: '暴擊', ic: 'asc_s_eye', aff: ['crit', 'critX', 'acc'] },
-  { k: 'speed', n: '速度', ic: 'asc_s_wind', aff: ['as', 'ms'] },
+  { k: 'phys', n: '物理', ic: 'asc_s_sword', aff: ['dmgP', 'physP', 'flat'] },
+  { k: 'crit', n: '暴擊', ic: 'asc_s_eye', aff: ['crit', 'critInc', 'critX', 'acc'] },
+  { k: 'speed', n: '速度', ic: 'asc_s_wind', aff: ['as', 'ss', 'ms'] },
   { k: 'spell', n: '法術', ic: 'sup_sp_fastcast', aff: ['spellP', 'mp', 'aoe', 'spirit'] },
   { k: 'res', n: '抗性', ic: 'sup_ln_iron', aff: ['resF', 'resC', 'resL', 'resX', 'resA'] },
   { k: 'attr', n: '能力值', ic: 'asc_s_stars', aff: ['str', 'dex', 'int', 'attrA'] }
 ];
 const ACLSI = Object.fromEntries(ACLS.map(x => [x.k, x]));
 const affCls = k => (ACLS.find(x => x.aff.includes(k)) || {}).k;
-/* 開孔（0.2.35）花粉：2→3 孔 粗粉 ×30、3→4 孔 精粉 ×15、4→5 孔 稀粉 ×5（鑿孔石刪掉了） */
-const DRILL = [
-  ['dust', 30],
-  ['fine', 15],
-  ['rare', 5]
-];
 const GEM_SO_MAX = 5;
 /* 靈魂升級寶石：L 級升 L+1 要 10 × 1.35^L（主動、輔助、光環同價） */
 const soulCost = L => Math.round(10 * Math.pow(1.35, L));
-/* 三種粉（0.2.24 取代 8 類碎片）：粗粉＝強化、精粉＝添加與同類置換、稀粉＝跨類置換與定向重鑄 */
-const DUSTS = { dust: '粗粉', fine: '精粉', rare: '稀粉' };
-/* 鍛造要的粉：物品等級越高越多 */
-const dustCost = (it, k = 'dust') =>
-  k === 'dust' ? Math.round(8 * (1 + it.L / 3)) : 1 + Math.floor(it.L / (k === 'fine' ? 20 : 30));
+/* 開孔（0.2.72，企劃書 6.4）：第 1／2／3 孔（2→3、3→4、4→5 孔）各等於那顆寶石從 Lv1→5、Lv5→10、Lv10→15 升級的靈魂總量。⚠️ 暫定 */
+const DRILL = [
+  [1, 5],
+  [5, 10],
+  [10, 15]
+];
+const drillCost = k => {
+  let c = 0;
+  for (let l = DRILL[k][0]; l < DRILL[k][1]; l++) c += soulCost(l);
+  return c;
+};
+/* 寶石品質每 +1% 花的靈魂（技能、光環一次 +1%，輔助一次 +2%）。⚠️ 暫定：舊的 1 精粉 ≈ 30 靈魂（第 3 孔 15 精粉 ≈ Lv5→10 的 447 靈魂） */
+const GEM_Q_SOUL = 30;
+
+/* ---------- 通貨（0.2.72，企劃書 5.7）：S.mat 的鍵（精髓另外放 S.mat.ess＝{ '類:T': 數量 }）。圖示先借現有的 ---------- */
+const CUR = {
+  tran: { n: '蛻變石', ic: 'cur_trans', d: '白裝 → 藍裝，加 1 條詞' },
+  aug: { n: '增幅石', ic: 'cur_aug', d: '藍裝加 1 條詞（藍裝最多 2 條）' },
+  rich: { n: '富豪石', ic: 'cur_regal', d: '藍裝 → 黃裝，加 1 條詞' },
+  exalt: { n: '崇高石', ic: 'cur_exalt', d: '黃裝加 1 條詞（最多 6 條，前後綴各 3）' },
+  conv: { n: '轉化石', ic: 'cur_chaos', d: '1 條指定的詞換成同類的另一條，階不變、數值重骰' },
+  fore: { n: '預知石', ic: 'cur_wish', d: '先看下一顆通貨的結果，再決定用不用' },
+  whet: { n: '磨刀石', ic: 'cur_whet', d: '武器品質 +5%，最高 20%' },
+  plate: { n: '護甲片', ic: 'cur_scrap', d: '防具品質 +5%，最高 20%' },
+  holy: { n: '聖化石', ic: 'cur_prism', d: '每條詞各骰 ×0.8～1.2，之後不能再填、淬鍊' },
+  corr: { n: '腐化石', ic: 'cur_vaal', d: '一次、純隨機，之後全部鎖定' }
+};
+/* 品質 +5%、最高 20%（磨刀石、護甲片） */
+const QUAL_STEP = 0.05,
+  QUAL_CAP = 0.2;
 /* 淬鍊的金幣：每按一次 +10%，最多 2 倍 */
 const temperCost = (it, single) => Math.round(3 * (1 + it.L) * Math.min(2, 1 + 0.1 * (it.tmp || 0)) * (single ? 3 : 1));
+/* 腐化詞（0.2.72，企劃書 5.3.4；不占前後綴，it.cw＝[{ k, v }]，v 是正面那條的數字）。這版先放 6 條通用的「強力＋代價」，
+   分部位的池留給待做清單「腐化詞池」。⚠️ 數字全部暫定。規則（PoE特殊詞參考 第 4 節）：代價不能直接抵銷自己的正面、
+   代價要有可能不影響你的 build。fx(v) 回傳 { 能力: 加多少 }，stats() 跟天賦一樣進同一池（hpP 等在 pt，其他走 put） */
+const CORR = {
+  c_glass: { n: '暴擊傷害加成 +{}%、最大生命 −10%', r: [25, 35], fx: v => ({ critX: v, hpP: -10 }) },
+  c_frenzy: { n: '攻擊速度 +{}%、全域防禦提高 −15%', r: [8, 10], fx: v => ({ as: v, defP: -15 }) },
+  c_heavy: { n: '所有元素最大抗性 +{}%、移動速度 −10%', r: [1, 2], fx: v => ({ maxRes: v, ms: -10 }) },
+  c_over: { n: '精魂 +{}、最大魔力 −20%', r: [12, 18], fx: v => ({ spirit: v, mpP: -20 }) },
+  c_pierce: { n: '元素穿透 +{}%、火焰冰冷閃電抗性 −10%', r: [8, 12], fx: v => ({ pen: v, resA: -10 }) },
+  c_bulwark: { n: '格擋機率 +{}%、技能速度 −10%', r: [8, 12], fx: v => ({ block: v, ss: -10 }) }
+};
+/* 追憶詞（0.2.72 8-2，企劃書 5.4.3）：it.mem＝{ k, … }，0～1 條、純正面、改規則、只靠掉落、任何通貨碰不到。on(it) 是這件裝備出不出得了。
+   第一批只接底層已經有的 6 條（stats() 的 mem 區塊；曝露、詛咒、技能等級讀 ST.mem）；表上其他 7 條要先有底層，留在待做清單「追憶詞的底層」。⚠️ 數字全部暫定 */
+const MEM = {
+  m_proj: { n: '技能額外發射 1 個投射物', on: b => b.k === 'quiver' || b.wt === 'bow' || b.wt === 'xbow' },
+  m_chain: { n: '投射物額外連鎖 1 次', on: b => b.wt === 'bow' || b.wt === 'xbow' },
+  m_lv: { n: '裝備的技能寶石等級 +1', on: b => b.k === 'weapon' },
+  m_exp: {
+    n: '擊中施加{el}曝露（{el}抗性 −{v}%，4 秒）',
+    on: b => b.k === 'gloves',
+    el: ['fire', 'cold', 'light'],
+    v: [15, 20]
+  },
+  m_curse: { n: '擊中施加 Lv {lv} 的{c}', on: b => b.k === 'gloves' || b.k === 'ring', lv: [5, 10] },
+  m_spirit: { n: '光環的精魂保留 −{v}%', on: b => b.k === 'helm', v: [10, 15] }
+};
+/* 星級放大 ★ 與追憶的機率（企劃書 5.4.5）：1～5★（⚠️ 暫定：壓平成 1／1.1／1.2／1.35／1.5，星級越高越好、不爆量） */
+const STAR_MUL = [1, 1, 1.1, 1.2, 1.35, 1.5];
+/* 腐化的結果表（企劃書 5.3.4）：機率合計 100 */
+const CORR_ROLL = [
+  ['cw1', 30],
+  ['cw2', 10],
+  ['sock', 15],
+  ['none', 30],
+  ['burst', 15]
+];
 /* 0.2.64：輕盾（6 面）多出「受招架幅度、受招架持續時間」兩條詞（PoE2 的招架盾；長矛在 WEAPON_BASES）；其他盾沒有招架，不出 */
 for (const b of BASES)
   if (['s_hand', 's_buckler', 's_arm', 's_rattan', 's_tiger', 's_crane'].includes(b.id))
@@ -6590,6 +6650,7 @@ const AFF = {
 };
 /* 詞綴階級數（0.2.41 從 12 階改回 6 階）：T6（最低）～T1（最高）各一段；物品等級越高，能出現的最高階越高 */
 const AFF_T = 6;
+/* T0（0.2.72，企劃書 5.4.2）＝破裂詞：T1 的範圍再往上一段，寬度同一階；只給 it.frac 那條用（現在的公式剛好把 T=0 算成這一段） */
 function tierRange(k, T) {
   const [lo, hi] = AFF[k].r,
     step = (hi - lo) / AFF_T,
@@ -6599,8 +6660,50 @@ function tierRange(k, T) {
 }
 const bestTier = ilvl => Math.max(1, AFF_T - Math.floor(((ilvl - 1) * (AFF_T - 1)) / (TMAX - 1)));
 const RARN = ['普通', '魔法', '稀有'];
-const NAME_A = ['血', '鴉', '霜', '雷', '屍', '魂', '龍', '狼', '影', '骨', '焰', '夜', '鬼', '蛇', '鐵', '星'];
-const NAME_B = ['之牙', '之爪', '之握', '之心', '之怒', '之歌', '之嚎', '之印', '之刃', '之殼', '之眼', '之息'];
+/* 黃裝的名字（企劃書 5.9，Grim Dawn 的做法）＝最高階前綴的詞名＋基底＋「・」最高階後綴的詞名，鑑定後才顯示；每個詞綴一個名字 */
+const PRE_N = {
+  dmgP: '凶暴',
+  physP: '蠻橫',
+  flat: '鋒利',
+  thorn: '尖刺',
+  fire: '烈焰',
+  cold: '寒霜',
+  light: '雷霆',
+  chaos: '腐蝕',
+  life: '強韌',
+  armor: '鋼鐵',
+  ev: '輕靈',
+  mp: '澄澈',
+  block: '堅盾',
+  es: '靈護',
+  defP: '不屈',
+  spellP: '奧術'
+};
+const SUF_N = {
+  acc: '精準',
+  as: '迅捷',
+  crit: '致命',
+  critInc: '銳利',
+  critX: '殘酷',
+  regen: '回春',
+  loh: '汲取',
+  ms: '疾行',
+  aoe: '遼闊',
+  flask: '妙藥',
+  resF: '防炎',
+  resC: '禦寒',
+  resL: '避雷',
+  resX: '抗腐',
+  resA: '百抗',
+  ss: '機敏',
+  spirit: '魂力',
+  str: '蠻力',
+  dex: '靈巧',
+  int: '智慧',
+  attrA: '均衡',
+  parryMag: '招架',
+  parryDur: '持盾'
+};
 
 /* ---------- 怪物：hp／dmg 是階級 1 的值，r 碰撞半徑、sz 畫的高度、ai 行為、el 屬性（抗自己的屬性 40%）、
    ail 擊中會上的異常（bleed／poison，企劃書 7.2）、arm 護甲係數（預設 0.3，重甲 1） ---------- */

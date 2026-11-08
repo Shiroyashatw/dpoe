@@ -274,11 +274,11 @@ async function flow(b) {
   drops.push(
     await p.evaluate(() => {
       killMob(G.mobs.find(x => x.boss));
-      return G.drops.filter(d => d.it && d.it.q >= 0.3 && d.it.r === 2).length;
+      return G.drops.filter(d => d.it && d.it.mem && d.it.r === 2).length;
     })
   );
   ok('裂口王：用生肖的名字與圖', drops[0] === n0 && /^z_/.test(drops[1]), drops.join());
-  ok('裂口王：掉落有保底高品質裝', drops[2] >= 1, drops.join());
+  ok('裂口王：掉落有保底追憶裝（取代原本的品質 30% 稀有裝）', drops[2] >= 1, drops.join());
   ok(
     '打完裂口：點亮神像、走過、這次血霧不開第二道',
     await p.evaluate(k => {

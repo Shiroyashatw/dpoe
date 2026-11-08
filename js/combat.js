@@ -398,7 +398,9 @@ const isSpell = D => (D.tags || []).includes('spell') && !(D.tags || []).include
 const expOf = (a, k) =>
   Math.max(
     a.exp > G.t && k !== 'chaos' ? 20 * (a === P.ail ? 1 : 1 + ST.expEff / 100) : 0,
-    k === 'fire' && a.oiled > G.t ? DEBUFF.oilExp : 0
+    k === 'fire' && a.oiled > G.t ? DEBUFF.oilExp : 0,
+    /* 追憶詞「擊中施加〈屬性〉曝露」（8-2）：只降那一種元素的抗性 */
+    a.expE && a.expE[k] && a.expE[k].t > G.t ? a.expE[k].v * (a === P.ail ? 1 : 1 + ST.expEff / 100) : 0
   );
 /* 詛咒實際的效果：站在奉獻地面上少 50%（玩家、怪物同一組欄位）
    shortcut: 怪物的脆弱在施放時就改 m.arm，奉獻地面減不到，等脆弱改成即時算再接 */
@@ -1659,6 +1661,10 @@ function onHitBase(m, r, c) {
   const rs = r.spell ? bufV('rageSpell') : 0;
   if (rs && !(P.rageCd > G.t))
     (P.rage = Math.min(rageCap(), (P.rage || 0) + rs)), (P.rageCd = G.t + 0.5), (P.rageT = G.t);
+  /* 追憶詞（8-2）：擊中施加曝露（只降那一種元素的抗性，4 秒）、擊中施加詛咒（身上已經有詛咒、無咒的怪不蓋）*/
+  const M = ST.mem;
+  if (M && M.hitExp) for (const k in M.hitExp) (a.expE = a.expE || {})[k] = { v: M.hitExp[k], t: G.t + 4 };
+  if (M && M.hitCurse && !m.hexproof && !(a.curse && a.curse.t > G.t + 1)) curseMob(m, M.hitCurse.k, M.hitCurse.lv);
   if (r.crit && ST.powOnCrit && roll(ST.powOnCrit)) gainChg('p');
   if (r.crit && qRoll(c.critChg)) gainChg('p');
   /* 觸電的品質：不能行動的怪被閃電擊中，跳一道電弧 */
@@ -2327,6 +2333,8 @@ function mobStates(m) {
   if (a.brittle && a.brittle.t > G.t) add('brittle', a.brittle.t);
   if (a.sap && a.sap.t > G.t) add('sap', a.sap.t);
   if (a.exp > G.t) add('exp', a.exp);
+  else if (a.expE && Object.values(a.expE).some(x => x.t > G.t))
+    add('exp', Math.max(...Object.values(a.expE).map(x => x.t)));
   /* 第 10 批 */
   if (hasState(m, 'elcprime')) add('elcprime');
   else if (hasState(m, 'frzprime')) add('frzprime');
