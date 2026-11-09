@@ -2,7 +2,7 @@
    點一下背包或身上的裝備＝放上鍛造台；分頁：填（通貨，只能加）、淬鍊（金幣）、聖化、腐化。
    每個按鈕都寫要花什麼、預覽會發生什麼；不能按的寫原因；推薦的標「推薦」。材料頁在倉庫的「材料」分頁 */
 'use strict';
-const CRAFT = { tab: 'forge', op: null, ess: null, conv: null, sel: null, log: '' };
+const CRAFT = { tab: 'forge', op: null, ess: null, conv: null, sel: null, log: '', perf: 0, pen: 0 };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);
 
 /* ---------- 材料頁（倉庫的「材料」分頁）：靈魂、10 種通貨（0 也列出來）、精髓 ---------- */
@@ -25,6 +25,20 @@ function matPageHTML() {
           .join('')}</div>`
       : `<p class="fhint">還沒有精髓：3★ 以上的地圖，菁英和王會掉</p>`
   }`;
+}
+
+/* ---------- 碎片頁（倉庫的「碎片」分頁，0.2.78，照 PoE 的碎片倉庫）：地圖碎片、勾魂令四種、生死簿，每種寫湊幾張能開什麼 ---------- */
+function fragPageHTML() {
+  const F = S.frags,
+    n = fdHun(S),
+    row = (ic, nm, d, v) =>
+      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(nm)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
+    uw = fdHallWhy(S, 'uber');
+  return `<ul class="mpg">${row('cur_scrap', '地圖碎片', '開地圖卡、洗卡用；自動吸收', S.frag)}</ul>
+  <div class="ph2">酆都<span>鬼門從第 ${FENG.ring} 圈出現</span></div>
+  <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
+  <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：可以進了（點鬼門）' : `：再 ${FENG.hun - n} 張`}</span></p>
+  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '可以進了（點鬼門）')}</span></p></div>`;
 }
 
 /* ---------- 一件裝備的詞：前綴 3 格、後綴 3 格（空格畫出來；說明框完整版在 8-3） ---------- */
@@ -57,6 +71,9 @@ function slotsHTML(it, mode) {
     `<div class="fsides">${side(true, '前綴')}${side(false, '後綴')}</div>` +
     (it.cw && it.cw.length
       ? `<h5 class="fsh">腐化詞</h5><ul class="fslot">${it.cw.map(c => `<li class="cw"><span>${esc(cwText(c))}</span></li>`).join('')}</ul>`
+      : '') +
+    (it.cal
+      ? `<h5 class="fsh">災魘詞</h5><ul class="fslot"><li class="calg"><span>${esc(calText(it.cal.g))}</span></li>${it.cal.b ? `<li class="calb"><span>${esc(calText(it.cal.b, 1))}</span></li>` : ''}</ul>`
       : '')
   );
 }
@@ -157,7 +174,6 @@ function corrHTML(it) {
     tot = CORR_ROLL.reduce((a, b) => a + b[1], 0),
     N = {
       cw1: '腐化詞 1 條（強力＋代價，不占前後綴）',
-      cw2: '腐化詞 2 條',
       sock: '孔 +1（可以超過部位上限 1 格）',
       none: '沒有變化，只是鎖定',
       burst: '爆開：變成腐化殘渣'
@@ -170,6 +186,42 @@ function corrHTML(it) {
     act: `<button class="btn pri fgo" data-fg="cor" ${why ? 'disabled' : ''}>${CUR.corr.n} · 有 ${MAT().corr}</button>`
   };
 }
+/* 災魘（0.2.78）：選石頭（一般／完美）＋勾不勾判官筆 → 一半三選一、一半毀掉；有選項時先選一個 */
+function calamHTML(it) {
+  if (!it) return NOP;
+  const M = MAT(),
+    perf = CRAFT.perf && M.pcalam > 0 ? 1 : 0,
+    pen = CRAFT.pen && M.pen > 0 ? 1 : 0;
+  if (it.calOpt)
+    return {
+      top: `<p class="fdo">成功了：選一組，選了就固定</p>`,
+      mid: `<div class="fcal">${it.calOpt
+        .map(
+          (o, i) =>
+            `<button class="fco" data-fg="cp:${i}"><span class="c-good">${esc(calText(o.g))}</span>${o.b ? `<span class="c-bad">${esc(calText(o.b, 1))}</span>` : '<span class="c-dim">沒有負面</span>'}</button>`
+        )
+        .join('')}</div>`,
+      act: ''
+    };
+  const why = calamCheck(it, perf),
+    seg = `<div class="fseg s2" role="tablist" aria-label="災魘石">${[
+      [0, 'calam'],
+      [1, 'pcalam']
+    ]
+      .map(
+        ([p, k]) =>
+          `<button role="tab" aria-selected="${perf === p}" class="${perf === p ? 'on' : ''} ${M[k] ? '' : 'z'}" data-fg="cs:${p}" ${p && !M[k] ? 'disabled' : ''}>${CUR[k].n}<small>×${M[k]}</small></button>`
+      )
+      .join('')}</div>`,
+    penB = `<button class="btn fpen ${pen ? 'on' : ''}" data-fg="pn" aria-pressed="${!!pen}" ${M.pen ? '' : 'disabled'}>${pen ? '✓ ' : ''}用判官筆<small>有 ${M.pen}：這次失敗不毀裝，勾了就用掉</small></button>`;
+  return {
+    top: seg,
+    mid: `<p class="fdo c-warn">只能用在已腐化的裝備，一件只能一組。</p>
+    <ul class="fcorr"><li><b>${Math.round(CALAM_OK * 100)}%</b>成功：三選一一組災魘詞（${perf ? '只有有利' : '有利＋有害'}）</li><li class="${pen ? '' : 'c-bad'}"><b>${Math.round((1 - CALAM_OK) * 100)}%</b>${pen ? '失敗：判官筆擋下，沒有變化' : '失敗：裝備毀掉，什麼都不留'}</li></ul>
+    ${penB}${why ? `<p class="fhint ${it.cal ? '' : 'c-bad'}">${esc(why)}</p>` : ''}`,
+    act: `<button class="btn pri fgo" data-fg="cal" ${why ? 'disabled' : ''}>${CUR[perf ? 'pcalam' : 'calam'].n} · 有 ${M[perf ? 'pcalam' : 'calam']}</button>`
+  };
+}
 function forgeHTML() {
   const it = craftItem(),
     tab = CRAFT.tab,
@@ -177,11 +229,12 @@ function forgeHTML() {
       ['forge', '填'],
       ['temper', '淬鍊'],
       ['holy', '聖化'],
-      ['corr', '腐化']
+      ['corr', '腐化'],
+      ['calam', '災魘']
     ];
   if (!it) (CRAFT.conv = null), (CRAFT.op = CRAFT.op || null);
   else if (CRAFT.conv != null && !it.a[CRAFT.conv]) CRAFT.conv = null;
-  const P = { forge: fillHTML, temper: temperHTML, holy: holyHTML, corr: corrHTML }[tab](it),
+  const P = { forge: fillHTML, temper: temperHTML, holy: holyHTML, corr: corrHTML, calam: calamHTML }[tab](it),
     mode = tab === 'temper' ? 'temper' : tab === 'forge' && CRAFT.op === 'conv' ? 'conv' : 'view';
   /* 上到下：裝備卡 → 選通貨（top）→ 詞 → 預覽與說明（mid）→ 按鈕（act，黏在面板底部）；手機橫向左右並排（左：卡與詞，右：選、預覽、按鈕） */
   return `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金幣 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span><span class="ftabs">${tabs
@@ -213,7 +266,7 @@ function craftPick(src, it, eqk) {
 }
 /* 腐化的結果寫成一句話 */
 function corrLog(it, r) {
-  return r.res === 'cw1' || r.res === 'cw2'
+  return r.res === 'cw1'
     ? '腐化詞：' + r.cw.map(cwText).join('；')
     : r.res === 'sock'
       ? `孔 +1（現在 ${it.so} 孔）`
@@ -271,6 +324,27 @@ document.addEventListener('click', e => {
       CRAFT.log = corrLog(it, r);
       sfx(r.res === 'burst' ? 'die' : 'lvup');
       if (r.res === 'burst') {
+        takeOut(CRAFT.sel.src, it, CRAFT.sel.eqk);
+        CRAFT.sel = null;
+      }
+    }
+  } else if (k === 'cs') CRAFT.perf = +v;
+  else if (k === 'pn') CRAFT.pen = CRAFT.pen ? 0 : 1;
+  else if (k === 'cp' && it) {
+    err = calamPick(it, +v);
+    if (!err) (CRAFT.log = '災魘詞：' + calText(it.cal.g) + (it.cal.b ? '；' + calText(it.cal.b, 1) : '')), sfx('lvup');
+  } else if (k === 'cal' && it) {
+    const perf = CRAFT.perf && MAT().pcalam > 0,
+      pen = CRAFT.pen && MAT().pen > 0;
+    if (!pen && !confirm2(b, `<span>再按一次</span><small>失敗會毀掉這件</small>`)) return;
+    const r = calamDo(it, perf, pen);
+    if (r.why) err = r.why;
+    else {
+      CRAFT.pen = 0;
+      CRAFT.log =
+        r.res === 'ok' ? '成功：選一組災魘詞' : r.res === 'saved' ? '失敗了，判官筆擋下：沒有變化' : '失敗：裝備毀掉了';
+      sfx(r.res === 'fail' ? 'die' : 'lvup');
+      if (r.res === 'fail') {
         takeOut(CRAFT.sel.src, it, CRAFT.sel.eqk);
         CRAFT.sel = null;
       }

@@ -222,6 +222,8 @@ const labelTag = it =>
 const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + '～' + a.v[1] : a.v);
 /* 腐化詞（0.2.72）：it.cw 的一條 */
 const cwText = c => CORR[c.k].n.replace('{}', c.v);
+/* 災魘詞（0.2.78）：有利 g、有害 b 各一條 */
+const calText = (c, bad) => (bad ? CALAM_B : CALAM_G)[c.k].n.replace('{}', c.v);
 /* 這條是不是破裂詞（T0；一件最多 1 條，it.frac＝那條的詞綴 k） */
 const isFrac = (it, a) => !!it.frac && it.frac === a.k;
 /* 追憶詞（8-2）：這件裝備出得了哪些、說明文字、掉落時抽參數 */
@@ -943,6 +945,16 @@ function stats(s = S) {
       const f = CORR[c.k].fx(c.v);
       for (const k in f) k in pt ? (pt[k] += f[k]) : put(k, f[k]);
     }
+    /* 災魘詞（0.2.78）：有利＋有害一組，跟腐化詞同一個池 */
+    if (it.cal)
+      for (const [T, c] of [
+        [CALAM_G, it.cal.g],
+        [CALAM_B, it.cal.b]
+      ])
+        if (c) {
+          const f = T[c.k].fx(c.v);
+          for (const k in f) k in pt ? (pt[k] += f[k]) : put(k, f[k]);
+        }
   }
   /* 昇華（0.2.25）：小點的數值跟天賦一樣加；大點是開關或數值（only＝拿那種武器才生效） */
   const treeHpP = pt.hpP,

@@ -1489,3 +1489,29 @@ body.touch #pskill .cat .btn.mini { min-height: 44px; }
 body.touch.port #pskill .ftabs button { min-height: 44px; }
 body.touch:not(.port) #pskill .ftabs button { min-height: 40px; }
 @media (prefers-reduced-motion: reduce) { .flash { animation: none; } .node .o { transition: none; } }
+
+/* 0.2.78 酆都：鍛造台的災魘、碎片分頁、鬼門的殿 */
+.fseg.s2 { grid-template-columns: repeat(2, 1fr); }
+.fslot li.calg { color: var(--good); }
+.fslot li.calb { color: var(--bad); }
+.fpen { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; min-height: 44px; margin: 6px 0; text-align: left; }
+.fpen small { font-size: var(--fs-s); color: var(--dim); font-weight: 400; }
+.fpen.on { border-color: var(--sel); }
+.fcal { display: grid; gap: 6px; margin: 6px 0; }
+.fco { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 44px; padding: 8px 10px; text-align: left; font: var(--fs) var(--font); color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); cursor: pointer; }
+.fco:hover, .fco:focus-visible { border-color: var(--sel); }
+.fco:active { transform: scale(0.98); }
+.fgoal { display: grid; gap: 4px; margin: 8px 0; }
+.fgoal p { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; margin: 0; padding: 8px 10px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line); }
+.fgoal span { color: var(--dim); font-size: var(--fs-s); }
+.fgoal span.c-good { color: var(--good); }
+.wm-fd { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--fr-o); }
+.wm-halls { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px; }
+.wm-hall { display: flex; flex-direction: column; gap: 2px; min-height: 44px; }
+.wm-hall small { font-size: var(--fs-s); font-weight: 400; color: var(--dim); white-space: normal; }
+/* 鍛造台 5 個分頁（0.2.78 多了災魘）：直立手機的標題列放不下，分頁換到第二行、平均分寬 */
+@media (max-width: 480px) {
+  #pcraft > .ph { flex-wrap: wrap; row-gap: 6px; }
+  #pcraft > .ph .ftabs { order: 9; flex: 1 0 100%; }
+  #pcraft > .ph .ftabs button { flex: 1; }
+}

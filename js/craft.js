@@ -368,7 +368,7 @@ function corruptCheck(it) {
   if (w) return w;
   return MAT().corr >= 1 ? null : '腐化石不夠';
 }
-/* force：測試用，指定結果（'cw1'／'cw2'／'sock'／'none'／'burst'）。
+/* force：測試用，指定結果（'cw1'／'sock'／'none'／'burst'；0.2.77 起最多 1 條腐化詞，舊存檔的 2 條照舊保留）。
    回傳 { why }，或 { res, cw?, give? }；爆開時 it.burst＝1，換到的通貨已經進材料頁（畫面端把這件拿掉） */
 function corruptDo(it, force) {
   const why = corruptCheck(it);
@@ -378,18 +378,14 @@ function corruptDo(it, force) {
   let res = force;
   if (!res) {
     let r = Math.random() * CORR_ROLL.reduce((a, b) => a + b[1], 0);
-    res = (CORR_ROLL.find(x => (r -= x[1]) <= 0) || CORR_ROLL[3])[0];
+    res = (CORR_ROLL.find(x => (r -= x[1]) <= 0) || ['none'])[0];
   }
   it.cor = 1;
   const out = { res };
-  if (res === 'cw1' || res === 'cw2') {
-    const ks = Object.keys(CORR);
-    it.cw = [];
-    for (let i = 0; i < (res === 'cw1' ? 1 : 2); i++) {
-      const k = ks.splice(Math.floor(Math.random() * ks.length), 1)[0],
-        [lo, hi] = CORR[k].r;
-      it.cw.push({ k, v: irnd(lo, hi) });
-    }
+  if (res === 'cw1') {
+    const k = pick(Object.keys(CORR)),
+      [lo, hi] = CORR[k].r;
+    it.cw = [{ k, v: irnd(lo, hi) }];
     out.cw = it.cw;
   } else if (res === 'sock') it.so = (it.so || 0) + 1;
   else if (res === 'burst') {
@@ -398,6 +394,61 @@ function corruptDo(it, force) {
     for (const k in out.give) MAT()[k] += out.give[k];
   }
   return out;
+}
+
+/* ---------- 災魘（0.2.78 酆都，企劃書 4.2）：只用在已腐化、還沒有災魘詞的裝備。
+   成功（CALAM_OK）→ 三選一（每個選項一組有利＋有害，同一組 g 的不配在一起；完美災魘石沒有有害），選項先存在 it.calOpt，
+   選了才寫進 it.cal（關掉面板再打開還在）；失敗 → 裝備毀掉（it.burst），勾判官筆的話改成沒有變化。判官筆勾了就用掉 ---------- */
+function calamCheck(it, perf) {
+  if (it.charm) return '這個不能做裝';
+  if (it.uid) return '還沒鑑定：先找撿骨師';
+  if (!it.cor) return '要先腐化';
+  if (it.cal) return '已經有災魘詞了';
+  if (it.calOpt) return '先從三個選項選一個';
+  return MAT()[perf ? 'pcalam' : 'calam'] >= 1 ? null : (perf ? '完美災魘石' : '災魘石') + '不夠';
+}
+/* 一個選項：有利一條，有害一條（跟有利不同組）；perf 沒有有害 */
+function calamRoll(perf, no = []) {
+  const gk = pick(Object.keys(CALAM_G).filter(k => !no.includes(k))),
+    G = CALAM_G[gk],
+    roll = r => irnd(r[0], r[1]),
+    o = { g: { k: gk, v: roll(G.r) }, b: null };
+  if (!perf) {
+    const bk = pick(Object.keys(CALAM_B).filter(k => CALAM_B[k].g !== G.g));
+    o.b = { k: bk, v: roll(CALAM_B[bk].r) };
+  }
+  return o;
+}
+/* force：測試用（'ok'／'fail'）。回傳 { why } 或 { res: 'ok', opts }／{ res: 'fail' }／{ res: 'saved' } */
+function calamDo(it, perf, usePen, force) {
+  const why = calamCheck(it, perf) || (usePen && !(MAT().pen >= 1) ? '判官筆不夠' : null);
+  if (why) return { why };
+  FORE = null;
+  MAT()[perf ? 'pcalam' : 'calam']--;
+  if (usePen) MAT().pen--;
+  const ok = force ? force === 'ok' : Math.random() < CALAM_OK;
+  if (!ok) {
+    if (usePen) return { res: 'saved' };
+    it.burst = 1;
+    return { res: 'fail' };
+  }
+  const opts = [];
+  for (let i = 0; i < CALAM_OPT; i++)
+    opts.push(
+      calamRoll(
+        perf,
+        opts.map(o => o.g.k)
+      )
+    );
+  it.calOpt = opts;
+  return { res: 'ok', opts };
+}
+function calamPick(it, i) {
+  const o = it.calOpt && it.calOpt[i];
+  if (!o) return '沒有這個選項';
+  it.cal = o;
+  delete it.calOpt;
+  return null;
 }
 
 /* 精髓：類別隨機，階照物品等級（跟裝備一樣） */
@@ -432,7 +483,7 @@ function prdC(p) {
 /* 連續幾次沒中，下一次必中 */
 const prdMax = p => Math.ceil(1 / prdC(p));
 /* frac＝黃裝的 ★、fracB＝藍裝的 ★（各自一個計數器：共用的話黃裝常中就歸零，藍裝拿不到機率）、mem＝追憶、holy／corr＝聖化石、腐化石 */
-const PRD0 = () => ({ frac: 0, fracB: 0, mem: 0, holy: 0, corr: 0, awk: 0 });
+const PRD0 = () => ({ frac: 0, fracB: 0, mem: 0, holy: 0, corr: 0, awk: 0, fore: 0, pen: 0, book: 0, perf: 0 });
 function prdRoll(key, p) {
   const prd = (S.prd = S.prd || PRD0()),
     n = (prd[key] || 0) + 1,
@@ -477,7 +528,7 @@ const STAR_DROP = [
   { el: [4, 5], cur: [4, 6], ess: 0.3, essB: 0.5 },
   { el: [5, 6], cur: [6, 8], ess: 0.3, essB: 1 }
 ];
-/* ⚠️ 暫定：菁英掉富豪石的機率（偶爾）、掉崇高石的機率（小機率）；血霧期每隻菁英掉轉化石、預知石的機率（王各保底 1）；
+/* ⚠️ 暫定：菁英掉富豪石的機率（偶爾）、掉崇高石的機率（小機率）；血霧期每隻菁英掉轉化石的機率（王保底 1）；
    階級 10 以上：菁英掉聖化石 2%、每張圖掉腐化石 5%（偽隨機保底） */
 const ELITE_RICH = 0.35,
   ELITE_EXALT = 0.08,
@@ -485,6 +536,9 @@ const ELITE_RICH = 0.35,
   HOLY_P = 0.02,
   CORR_P = 0.05,
   AWK_P = 0.03,
+  /* 0.2.77：預知石改成全域低機率（菁英 0.1%、王 0.5%，偽隨機，地圖詞「材料」放大）：約每 30 張圖 90 隻菁英 → 每小時 0.24 顆＝每 4 小時 1 顆。⚠️ 暫定 */
+  FORE_E = 0.001,
+  FORE_B = 0.005,
   HIGH_T = 10;
 /* 這張圖的菁英數 */
 const eliteCount = star => irnd(...STAR_DROP[star].el);
@@ -498,7 +552,7 @@ function mapCurP(star, small, el = 0) {
 }
 /* 一隻怪死掉掉的通貨（不含靈魂）：kind 0 小怪、1 菁英、2 王；
    o：{ ilvl, star, p＝mapCurP 的結果, qty＝地圖詞數量 %（通貨件數）, mat＝地圖詞材料 %（崇高與精髓的機率）, tier＝地圖階級,
-        hunt＝血霧期（轉化石、預知石只在這裡掉）, zod＝裂口生肖王（腐化石、聖化石各保底 1） }。回傳 { cur: { 鍵: 數量 }, ess: [[類, 階]] } */
+        hunt＝血霧期（轉化石只在這裡掉；預知石 0.2.77 起全域低機率）, zod＝裂口生肖王（腐化石、聖化石各保底 1） }。回傳 { cur: { 鍵: 數量 }, ess: [[類, 階]] } */
 function dropCur(kind, o) {
   const cur = {},
     ess = [],
@@ -515,12 +569,14 @@ function dropCur(kind, o) {
     if (Math.random() < ELITE_RICH) add('rich');
     if (Math.random() < ELITE_EXALT * mat) add('exalt');
     if (Math.random() < D.ess * mat) ess.push(rollEss(o.ilvl));
-    if (o.hunt) for (const k of ['conv', 'fore']) if (Math.random() < HUNT_ELITE) add(k);
+    if (o.hunt && Math.random() < HUNT_ELITE) add('conv');
+    if (prdRoll('fore', FORE_E * mat)) add('fore');
     if ((o.tier || 0) >= HIGH_T && prdRoll('holy', HOLY_P)) add('holy');
   } else {
     add('exalt');
     if (Math.random() < Math.min(1, D.essB * mat)) ess.push(rollEss(o.ilvl));
-    if (o.hunt) add('conv'), add('fore');
+    if (o.hunt) add('conv');
+    if (prdRoll('fore', FORE_B * mat)) add('fore');
     if (o.zod) add('corr'), add('holy'), add('awk');
     else if ((o.tier || 0) >= HIGH_T && prdRoll('corr', CORR_P)) add('corr');
     /* 覺醒石（0.2.75，企劃書 5.7）：裂口生肖王保底 1，階級 10 以上的王 3%（偽隨機，跟腐化石各自一個計數器）。⚠️ 暫定 */
@@ -550,6 +606,25 @@ function dropGear(kind, o) {
   /* 地圖裡掉的裝備一律未鑑定（企劃書 5.4.1）：前後綴看不到，不能裝備、不能做裝，回藏身處找撿骨師 */
   for (const it of L) it.uid = 1;
   return L;
+}
+/* 酆都的王額外掉的（0.2.78，企劃書 4.2）：k＝王的 fd（ox／horse／black／white／yama／uber）。直接進材料頁與碎片分頁，回傳要跳字的清單 */
+function fdDrop(k, s = S) {
+  const M = MAT(),
+    F = (s.frags = { ...newFrags(), ...s.frags }),
+    got = [],
+    cur = (c, n = 1) => ((M[c] += n), got.push(`${n} ${CUR[c].n}`)),
+    frag = c => (F[c]++, got.push(FRAGS[c].n));
+  if (FENG.elites.includes(k)) frag(k), cur('corr');
+  else if (k === 'yama') {
+    cur('calam');
+    if (prdRoll('pen', FENG.pen)) cur('pen');
+    if (prdRoll('book', FENG.book)) frag('book');
+  } else if (k === 'uber') {
+    cur('calam', 2);
+    cur('pen');
+    if (prdRoll('perf', FENG.perf)) cur('pcalam');
+  }
+  return got;
 }
 /* 打怪拿材料：靈魂與通貨自動進材料頁；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {

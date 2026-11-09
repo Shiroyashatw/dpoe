@@ -75,7 +75,9 @@ const WTYPE = {
   crow: { n: '鴉衛情報', c: '#d6dae2', d: '鴉衛留下的記號' },
   star: { n: '天星分會', c: '#c9a0ff', d: '天星商會的貨棧' },
   blood: { n: '血霧之地', c: '#ff5a5f', d: '打完累積血霧' },
-  rift: { n: '裂口', c: '#ff8a4c', d: '血霧滿了才進得去，裡面是墮落的生肖神' }
+  rift: { n: '裂口', c: '#ff8a4c', d: '血霧滿了才進得去，裡面是墮落的生肖神' },
+  /* 0.2.78 酆都（企劃書 4.2） */
+  ghost: { n: '鬼門', c: '#7fd1c7', d: '酆都的門：裡面是牛頭、馬面、黑無常、白無常其中一個，打倒掉勾魂令' }
 };
 /* 區域名：看圈數 */
 const WREGION = [
@@ -175,6 +177,7 @@ function wType(s, q, r) {
   if (STORY_I[k] != null) return 'story';
   if (wRifts(seed)[k] != null) return 'rift';
   if (s.idols.length >= ZODIAC.length && wRing(q, r) > W_ROAD && wHash(seed, q, r, 5) < W_RIFT_AGAIN) return 'rift';
+  if (wRing(q, r) >= FENG.ring && wHash(seed, q, r, 7) < FENG.p) return 'ghost';
   const h = wHash(seed, q, r, 1);
   return h < 0.07 ? 'dawn' : h < 0.12 ? 'crow' : h < 0.17 ? 'star' : h < 0.3 ? 'blood' : 'plain';
 }
@@ -192,6 +195,36 @@ function wName(s, q, r) {
   if (i != null) return STORY[i].n;
   if (t === 'rift') return wZod(s, q, r).n + '的裂口';
   return t === 'plain' ? wRegion(wRing(q, r)) : WTYPE[t].n;
+}
+
+/* ---------- 酆都的殿（0.2.78）：鬼門節點可以改進閻羅殿（勾魂令 5 張，哪隻的都算）或十殿閻羅（四種各 1 張＋生死簿、角色 Lv70） ---------- */
+const fdHun = s => FENG.elites.reduce((a, k) => a + ((s.frags || {})[k] || 0), 0);
+function fdHallWhy(s, kind) {
+  const F = s.frags || {};
+  if (kind === 'yama') return fdHun(s) >= FENG.hun ? null : `勾魂令不夠（${fdHun(s)}／${FENG.hun}）`;
+  if (kind === 'uber') {
+    const miss = FENG.elites.filter(k => !(F[k] >= 1)).map(k => FRAGS[k].n.split('・')[1]);
+    if (miss.length) return '缺勾魂令：' + miss.join('、');
+    if (!(F.book >= 1)) return '缺生死簿（閻羅掉的）';
+    if (s.lv < FENG.uberLv) return `角色要 Lv${FENG.uberLv}`;
+    return null;
+  }
+  return '沒有這個殿';
+}
+/* 付門票：閻羅殿從張數最多的勾魂令開始扣 */
+function fdHallPay(s, kind) {
+  const why = fdHallWhy(s, kind);
+  if (why) return why;
+  const F = s.frags;
+  if (kind === 'uber') {
+    for (const k of FENG.elites) F[k]--;
+    F.book--;
+  } else
+    for (let n = FENG.hun; n > 0; n--) {
+      const k = FENG.elites.reduce((a, b) => (F[b] > F[a] ? b : a));
+      F[k]--;
+    }
+  return null;
 }
 
 /* ---------- 存檔 ---------- */

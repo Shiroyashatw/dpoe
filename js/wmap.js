@@ -487,6 +487,20 @@ const WM_ICO = {
     '...#.......',
     '..#........'
   ],
+  /* 鬼門（0.2.78 酆都）：牌坊＋黑門洞 */
+  ghost: [
+    '###########',
+    '.#########.',
+    '.##.....##.',
+    '.##.....##.',
+    '.##.+++.##.',
+    '.##.+++.##.',
+    '.##.+++.##.',
+    '.##.+++.##.',
+    '.##.+++.##.',
+    '###.....###',
+    '...........'
+  ],
   plain: [
     '...........',
     '...........',
@@ -1093,7 +1107,8 @@ function wmInit() {
     else if (a === 'goal') {
       WM.view = 'node';
       if (WM.goal) wmSel(WM.goal), wmCenter(WM.goal);
-    } else if (a === 'wash') {
+    } else if (a === 'hall:yama' || a === 'hall:uber') wmGo(a.slice(5));
+    else if (a === 'wash') {
       if (!wWash(S, WM.sel)) return hudWarn('碎片不夠');
       PANEL.card = 0;
       sfx('click');
@@ -1195,7 +1210,7 @@ function wmStamp() {
     h = S.hunt,
     on = S.story.crow;
   $('wmr').innerHTML =
-    `<b>天空的裂縫</b>鎖定 · 主線 ${zn >= ZODIAC.length ? 1 : 0}／4${on ? ` · 生肖 ${zn}／${ZODIAC.length}` : ''}${
+    `<b>天空的裂縫</b>鎖定 · 主線 ${zn >= ZODIAC.length ? 1 : 0}／5${on ? ` · 生肖 ${zn}／${ZODIAC.length}` : ''}${
       on
         ? `<span class="wm-hunt ${h.full ? 'full' : ''}" role="progressbar" aria-label="血霧" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${h.v}"><i style="width:${h.v}%"></i></span>`
         : ''
@@ -1272,16 +1287,26 @@ function wmNodeHTML() {
   /* 走不到的地方不抽卡：抽了也打不了 */
   if (!wCan(S, q, r)) return head + cor + `<p class="wm-note">${esc(why)}</p>`;
   const blood = S.hunt.full ? `<p class="c-warn">血霧 ${S.hunt.v}%：每進一張扣 ${HUNT.cost}%，5★ 地圖變多</p>` : '';
-  return head + cor + blood + wmCardHTML(k, why, lv);
+  return head + cor + blood + wmCardHTML(k, why, lv) + (t === 'ghost' ? wmHallHTML(why) : '');
+}
+/* 鬼門（0.2.78 酆都）：用同一張地圖卡改進閻羅殿、十殿閻羅；門票不夠的寫原因 */
+function wmHallHTML(why) {
+  const b = (kind, cost) => {
+    const w = why || fdHallWhy(S, kind);
+    return `<button class="btn wm-hall" data-wm="hall:${kind}" ${w ? `disabled title="${esc(w)}"` : ''}><b>${FD_HALL[kind]}</b><small>${esc(w || cost)}</small></button>`;
+  };
+  return `<div class="wm-fd"><p class="wm-note">勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}（倉庫的「碎片」分頁）</p>
+    <div class="wm-halls">${b('yama', `花 ${FENG.hun} 張勾魂令`)}${b('uber', '四種勾魂令各 1＋生死簿')}</div></div>`;
 }
 function wmQuestHTML() {
   const n = S.idols.length,
     lit = new Set(S.idols);
-  return `<h2>天空的裂縫</h2><p class="wm-kind">鎖定 · 主線 ${n >= ZODIAC.length ? 1 : 0}／4</p>
+  return `<h2>天空的裂縫</h2><p class="wm-kind">鎖定 · 主線 ${n >= ZODIAC.length ? 1 : 0}／5</p>
     <p>十二道裂口之外，還有天上那一道。它還沒有打開。</p>
     <ul class="wm-q">
       <li><b>狩獵之血</b><span>${S.story.crow ? `生肖 ${n}／${ZODIAC.length}` : '還沒開始'}</span>
         ${S.story.crow ? `<div class="wm-zod">${ZODIAC.map(z => `<span class="${lit.has(z.z) ? 'on' : ''}" title="${esc(z.n)}">${icHTML(z.sp)}</span>`).join('')}</div>` : ''}</li>
+      <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門在第 ${FENG.ring} 圈以外`}</span></li>
       <li class="lock"><b>？？？</b><span>鎖定</span></li>
       <li class="lock"><b>？？？</b><span>鎖定</span></li>
       <li class="lock"><b>？？？</b><span>鎖定</span></li>
@@ -1295,10 +1320,10 @@ function wmPanel() {
     <div class="wm-body">${WM.view === 'quest' ? wmQuestHTML() : wmNodeHTML()}</div>`;
 }
 /* 面板上的主要按鈕 */
-function wmGo() {
+function wmGo(hall) {
   const k = WM.sel;
   if (!k) return;
-  if (G.scene === 'map') mapAgain(k, PANEL.card || 0);
-  else openMap(k, PANEL.card || 0);
+  if (G.scene === 'map') mapAgain(k, PANEL.card || 0, hall);
+  else openMap(k, PANEL.card || 0, hall);
   closePanels();
 }

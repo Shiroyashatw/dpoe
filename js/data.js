@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.76';
+const VER = '0.2.78';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -6994,7 +6994,15 @@ const CUR = {
   plate: { n: '護甲片', ic: 'cur_scrap', d: '防具品質 +5%，最高 20%' },
   holy: { n: '聖化石', ic: 'cur_prism', d: '每條詞各骰 ×0.8～1.2，之後不能再填、淬鍊' },
   corr: { n: '腐化石', ic: 'cur_vaal', d: '一次、純隨機，之後全部鎖定' },
-  awk: { n: '覺醒石', ic: 'cur_eng', d: '技能面板的覺醒槽花 1 顆，讓一招覺醒（二選一，之後免費切換）' }
+  awk: { n: '覺醒石', ic: 'cur_eng', d: '技能面板的覺醒槽花 1 顆，讓一招覺醒（二選一，之後免費切換）' },
+  /* 0.2.78 酆都（企劃書 4.2）：災魘石、判官筆閻羅掉，完美災魘石只有十殿閻羅掉 */
+  calam: {
+    n: '災魘石',
+    ic: 'cur_vaal',
+    d: '只用在已腐化的裝備：一半機率三選一一組災魘詞（有利＋有害），一半機率裝備毀掉'
+  },
+  pcalam: { n: '完美災魘石', ic: 'cur_exalt', d: '同災魘石，但三個選項都只有有利詞；只有十殿閻羅會掉' },
+  pen: { n: '判官筆', ic: 'cur_prism', d: '災魘時勾選：這一次失敗不毀裝，改成沒有變化（勾了就用掉）' }
 };
 /* 品質 +5%、最高 20%（磨刀石、護甲片） */
 const QUAL_STEP = 0.05,
@@ -7012,6 +7020,53 @@ const CORR = {
   c_pierce: { n: '元素穿透 +{}%、火焰冰冷閃電抗性 −10%', r: [8, 12], fx: v => ({ pen: v, resA: -10 }) },
   c_bulwark: { n: '格擋機率 +{}%、技能速度 −10%', r: [8, 12], fx: v => ({ block: v, ss: -10 }) }
 };
+/* 災魘詞（0.2.78 酆都，企劃書 4.2；照 PoE 災魘聯盟的血之坩堝：1 條有利＋1 條有害一組，it.cal＝{ g: { k, v }, b: { k, v } | null }）。
+   不占前後綴、跟腐化詞分開（一件最多 1 條腐化詞＋1 組災魘詞）。g 是分組：同一組的有利、有害不會配在一起（3.16.0d 的教訓：
+   有害不可以直接抵銷有利），有害要「可能不影響你的 build」才有人賭。數字比腐化詞強一點。fx(v) 回傳 { 能力: 加多少 }，跟腐化詞一樣進 stats()。⚠️ 數字全部暫定 */
+const CALAM_G = {
+  g_hp: { n: '最大生命 +{}%', r: [8, 12], g: 'hp', fx: v => ({ hpP: v }) },
+  g_es: { n: '能量護盾 +{}%', r: [12, 16], g: 'def', fx: v => ({ esP: v }) },
+  g_critX: { n: '暴擊傷害加成 +{}%', r: [30, 40], g: 'crit', fx: v => ({ critX: v }) },
+  g_crit: { n: '暴擊率提高 {}%', r: [30, 40], g: 'crit', fx: v => ({ critInc: v }) },
+  g_as: { n: '攻擊速度 +{}%', r: [10, 12], g: 'spd', fx: v => ({ as: v }) },
+  g_cast: { n: '施法速度 +{}%', r: [10, 12], g: 'spd', fx: v => ({ castP: v }) },
+  g_ms: { n: '移動速度 +{}%', r: [12, 15], g: 'ms', fx: v => ({ ms: v }) },
+  g_pen: { n: '抗性穿透 {}%', r: [10, 14], g: 'res', fx: v => ({ pen: v }) },
+  g_maxres: { n: '所有元素最大抗性 +{}%', r: [1, 2], g: 'res', fx: v => ({ maxResF: v, maxResC: v, maxResL: v }) },
+  g_resA: { n: '全部抗性 +{}%', r: [12, 16], g: 'res', fx: v => ({ resA: v }) },
+  g_eleP: { n: '元素傷害提高 {}%', r: [30, 40], g: 'dmg', fx: v => ({ eleP: v }) },
+  g_physP: { n: '物理傷害提高 {}%', r: [30, 40], g: 'dmg', fx: v => ({ physP: v }) },
+  g_spellP: { n: '法術傷害提高 {}%', r: [30, 40], g: 'dmg', fx: v => ({ spellP: v }) },
+  g_minion: { n: '召喚物傷害提高 {}%', r: [30, 40], g: 'dmg', fx: v => ({ minionP: v }) },
+  g_aoe: { n: '範圍 +{}%', r: [12, 16], g: 'aoe', fx: v => ({ aoe: v }) },
+  g_cdr: { n: '冷卻時間恢復率 +{}%', r: [10, 14], g: 'cdr', fx: v => ({ cdr: v }) },
+  g_spirit: { n: '精魂 +{}', r: [15, 20], g: 'spirit', fx: v => ({ spirit: v }) },
+  g_recoup: { n: '生命補償：受到擊中傷害的 {}%', r: [8, 12], g: 'hp', fx: v => ({ recoupHp: v }) },
+  g_block: { n: '格擋機率 +{}%', r: [6, 9], g: 'def', fx: v => ({ block: v }) },
+  g_chain: { n: '投射物多連鎖一次的機率 {}%', r: [20, 30], g: 'proj', fx: v => ({ chainCh: v }) },
+  g_pierce: { n: '投射物穿透 +{}', r: [1, 1], g: 'proj', fx: v => ({ pierce: v }) }
+};
+const CALAM_B = {
+  b_resF: { n: '火焰抗性 −{}%', r: [20, 26], g: 'res', fx: v => ({ resF: -v }) },
+  b_resC: { n: '冰冷抗性 −{}%', r: [20, 26], g: 'res', fx: v => ({ resC: -v }) },
+  b_resL: { n: '閃電抗性 −{}%', r: [20, 26], g: 'res', fx: v => ({ resL: -v }) },
+  b_resX: { n: '混沌抗性 −{}%', r: [15, 20], g: 'res', fx: v => ({ resX: -v }) },
+  b_hp: { n: '最大生命 −{}%', r: [8, 12], g: 'hp', fx: v => ({ hpP: -v }) },
+  b_mp: { n: '最大魔力 −{}%', r: [15, 20], g: 'mana', fx: v => ({ mpP: -v }) },
+  b_def: { n: '全域防禦提高 −{}%', r: [15, 20], g: 'def', fx: v => ({ defP: -v }) },
+  b_taken: { n: '受到的傷害提高 {}%', r: [5, 8], g: 'taken', fx: v => ({ takenUp: v }) },
+  b_noCrit: { n: '不會暴擊', r: [1, 1], g: 'crit', fx: () => ({ noCrit: 1 }) },
+  b_flask: { n: '藥劑充能獲得 −{}%', r: [30, 40], g: 'flask', fx: v => ({ flaskChg: -v }) },
+  b_cdr: { n: '冷卻時間恢復率 −{}%', r: [12, 16], g: 'cdr', fx: v => ({ cdr: -v }) },
+  b_ms: { n: '移動速度 −{}%', r: [8, 10], g: 'ms', fx: v => ({ ms: -v }) },
+  b_regen: { n: '生命回復 −{}%', r: [25, 35], g: 'hp', fx: v => ({ regenInc: -v }) },
+  b_spirit: { n: '精魂 −{}', r: [10, 15], g: 'spirit', fx: v => ({ spirit: -v }) },
+  b_ss: { n: '技能速度 −{}%', r: [6, 8], g: 'spd', fx: v => ({ ss: -v }) }
+};
+/* 災魘成功的機率（失敗＝裝備毀掉，判官筆讓這一次失敗變成沒有變化）、三選一 */
+const CALAM_OK = 0.5,
+  CALAM_OPT = 3;
+
 /* 追憶詞（0.2.72 8-2，企劃書 5.4.3）：it.mem＝{ k, … }，0～1 條、純正面、改規則、只靠掉落、任何通貨碰不到。on(it) 是這件裝備出不出得了。
    第一批只接底層已經有的 6 條（stats() 的 mem 區塊；曝露、詛咒、技能等級讀 ST.mem）；表上其他 7 條要先有底層，留在待做清單「追憶詞的底層」。⚠️ 數字全部暫定 */
 const MEM = {
@@ -7029,10 +7084,9 @@ const MEM = {
 };
 /* 星級放大 ★ 與追憶的機率（企劃書 5.4.5）：1～5★（⚠️ 暫定：壓平成 1／1.1／1.2／1.35／1.5，星級越高越好、不爆量） */
 const STAR_MUL = [1, 1, 1.1, 1.2, 1.35, 1.5];
-/* 腐化的結果表（企劃書 5.3.4）：機率合計 100 */
+/* 腐化的結果表（企劃書 5.3.4）：機率合計 100；0.2.77 起最多 1 條腐化詞（原本 2 條的 10% 併進 1 條） */
 const CORR_ROLL = [
-  ['cw1', 30],
-  ['cw2', 10],
+  ['cw1', 40],
   ['sock', 15],
   ['none', 30],
   ['burst', 15]
@@ -7696,6 +7750,7 @@ const BOSSES = [
   },
   {
     n: '牛頭',
+    fd: 'ox',
     sp: 'oxhead',
     hp: 500,
     dmg: 23,
@@ -7708,6 +7763,7 @@ const BOSSES = [
   },
   {
     n: '馬面',
+    fd: 'horse',
     sp: 'horseface',
     hp: 460,
     dmg: 22,
@@ -7718,8 +7774,37 @@ const BOSSES = [
     call: 'bailiff',
     pat: ['charge', 'line', 'swipe']
   },
+  /* 0.2.78 酆都的新王：圖先借現有的（黑無常借 reaper、白無常借 mist_shade），招式從現有 7 招組 */
+  {
+    n: '黑無常',
+    fd: 'black',
+    sp: 'reaper',
+    hp: 470,
+    dmg: 23,
+    spd: 150,
+    r: 38,
+    sz: 118,
+    xp: 200,
+    call: 'bailiff',
+    el: 'cold',
+    pat: ['blink', 'line', 'swipe']
+  },
+  {
+    n: '白無常',
+    fd: 'white',
+    sp: 'mist_shade',
+    hp: 460,
+    dmg: 22,
+    spd: 145,
+    r: 38,
+    sz: 118,
+    xp: 200,
+    call: 'paper',
+    pat: ['nova', 'blink', 'summon']
+  },
   {
     n: '閻羅',
+    fd: 'yama',
     sp: 'yanluo',
     hp: 480,
     dmg: 21,
@@ -7837,7 +7922,45 @@ const ZODIAC = [
   pat,
   cor
 }));
+/* 酆都（0.2.78，企劃書 4.2）：鬼門抽 4 隻菁英王之一，打倒掉那隻的勾魂令＋腐化石；
+   勾魂令 5 張（哪隻的都算）開閻羅殿；四種各 1 張＋生死簿、角色 Lv70 開十殿閻羅（Uber：閻羅生命 ×3、傷害 ×1.5，7 招全會＋3 招新招）。
+   S.frags＝{ ox, horse, black, white, book }（碎片分頁）。⚠️ 數字都暫定 */
+const FENG = {
+  elites: ['ox', 'horse', 'black', 'white'],
+  hun: 5,
+  uberLv: 70,
+  ring: 10 /* 鬼門從第 10 圈出現 */,
+  p: 0.04 /* 第 10 圈以外的節點有 4% 是鬼門 */,
+  pen: 0.15 /* 閻羅掉判官筆 */,
+  book: 0.1 /* 閻羅掉生死簿 */,
+  perf: 0.1 /* 十殿閻羅掉完美災魘石 */
+};
+const FD_HALL = { yama: '閻羅殿', uber: '十殿閻羅' };
+/* 碎片（碎片分頁）：勾魂令四種、生死簿 */
+const FRAGS = {
+  ox: { n: '勾魂令・牛頭', ic: 'oxhead', d: '鬼門的牛頭掉的' },
+  horse: { n: '勾魂令・馬面', ic: 'horseface', d: '鬼門的馬面掉的' },
+  black: { n: '勾魂令・黑無常', ic: 'reaper', d: '鬼門的黑無常掉的' },
+  white: { n: '勾魂令・白無常', ic: 'mist_shade', d: '鬼門的白無常掉的' },
+  book: { n: '生死簿', ic: 'yanluo', d: '閻羅掉的：四種勾魂令各 1 張＋生死簿，開十殿閻羅' }
+};
+const newFrags = () => ({ ox: 0, horse: 0, black: 0, white: 0, book: 0 });
+const fdBoss = k => BOSSES.find(b => b.fd === k);
+/* 十殿閻羅：閻羅的強化版 */
+const fdUber = () => {
+  const y = fdBoss('yama');
+  return {
+    ...y,
+    n: '十殿閻羅',
+    fd: 'uber',
+    hp: y.hp * 3,
+    dmg: y.dmg * 1.5,
+    sz: y.sz * 1.15,
+    pat: ['swipe', 'charge', 'slam', 'summon', 'nova', 'line', 'blink', 'verdict', 'wheel', 'hook']
+  };
+};
 const bossPick = no => {
-  const l = BOSSES.filter(b => b !== no);
+  /* 0.2.78：酆都的王（牛頭、馬面、黑白無常、閻羅；fd）只在鬼門、閻羅殿出現，不進一般地圖的王池 */
+  const l = BOSSES.filter(b => b !== no && !b.fd);
   return l[Math.floor(Math.random() * l.length)];
 };

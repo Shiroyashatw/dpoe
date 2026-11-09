@@ -8657,8 +8657,8 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：11 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 11 &&
+    '通貨：14 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆）＋靈魂＋精髓表，沒有粉',
+    Object.keys(E.CUR).length === 14 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
       JSON.stringify(nm.ess) === '{}' &&
@@ -8937,9 +8937,9 @@ const ASC_COMBOS = `const combos = k => {
       e1
     );
   });
-  /* 9. 腐化：機率表、腐化詞 ≤ 2 且不占前後綴、孔 +1 可超過上限 1 格、爆開的殘渣換算、之後全部鎖定 */
+  /* 9. 腐化：機率表、腐化詞最多 1 條（0.2.77）且不占前後綴、孔 +1 可超過上限 1 格、爆開的殘渣換算、之後全部鎖定 */
   seeded(7700, () => {
-    const tally = { cw1: 0, cw2: 0, sock: 0, none: 0, burst: 0 },
+    const tally = { cw1: 0, sock: 0, none: 0, burst: 0 },
       bad = [],
       N = 6000;
     for (let i = 0; i < N; i++) {
@@ -8958,9 +8958,9 @@ const ASC_COMBOS = `const combos = k => {
       }
       tally[r.res]++;
       if (!it.cor) bad.push('沒有標已腐化');
-      if ((it.cw || []).length > 2) bad.push('腐化詞超過 2');
+      if ((it.cw || []).length > 1) bad.push('腐化詞超過 1');
       if (it.a.length !== n0 || cnt(it)[0] > 3 || cnt(it)[1] > 3) bad.push('動到前後綴');
-      if ((it.cw || []).length !== ({ cw1: 1, cw2: 2 }[r.res] || 0)) bad.push('腐化詞數不對');
+      if ((it.cw || []).length !== (r.res === 'cw1' ? 1 : 0)) bad.push('腐化詞數不對');
       if (new Set((it.cw || []).map(c => c.k)).size !== (it.cw || []).length) bad.push('腐化詞重複');
       if (r.res === 'sock' && it.so !== so0 + 1) bad.push('孔沒有 +1');
       if (r.res !== 'sock' && it.so !== so0) bad.push('不該動孔');
@@ -8983,11 +8983,11 @@ const ASC_COMBOS = `const combos = k => {
       }
     }
     const pct = k => (tally[k] / N) * 100,
-      want = { cw1: 30, cw2: 10, sock: 15, none: 30, burst: 15 };
+      want = { cw1: 40, sock: 15, none: 30, burst: 15 };
     ok(
-      `腐化：機率 30／10／15／30／15（實測 ${Object.keys(want)
+      `腐化：機率 40／15／30／15（實測 ${Object.keys(want)
         .map(k => pct(k).toFixed(1))
-        .join('／')}）、腐化詞 ≤ 2 不占前後綴、孔 +1 最多超過上限 1 格、爆開換算、之後全部鎖定`,
+        .join('／')}）、腐化詞最多 1 條不占前後綴、孔 +1 最多超過上限 1 格、爆開換算、之後全部鎖定`,
       Object.keys(want).every(k => Math.abs(pct(k) - want[k]) < 2) && !bad.length,
       [...new Set(bad)].slice(0, 3).join('、')
     );
@@ -9144,9 +9144,9 @@ const ASC_COMBOS = `const combos = k => {
           if (!E.ACLSI[c] || T < E.bestTier(o.ilvl) || T > 6) bad.push('精髓階／類');
         if (bg.some(it => it.q > 0.3 || it.a.some(a => (a.T === 0) !== E.isFrac(it, a)))) bad.push('裝備品質或 T0');
       }
-    for (const k of ['conv', 'fore', 'holy', 'corr']) if (all[k]) bad.push('掉了 ' + k);
+    for (const k of ['conv', 'holy', 'corr']) if (all[k]) bad.push('掉了 ' + k);
     ok(
-      '掉落：小怪 0 件裝備且只掉通貨、菁英 ≥ 1 件黃、王 3 件（第一件黃）＋崇高石 1、5★ 王保底精髓、1～2★ 不掉精髓、轉化／預知／聖化／腐化這版不掉',
+      '掉落：小怪 0 件裝備且只掉通貨、菁英 ≥ 1 件黃、王 3 件（第一件黃）＋崇高石 1、5★ 王保底精髓、1～2★ 不掉精髓、轉化／聖化／腐化這版不掉（預知石全域低機率，另外驗）',
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -9474,7 +9474,7 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify([a, b])
     );
   });
-  /* 6. 機制綁定：轉化石、預知石只在血霧期；腐化石、聖化石：生肖王保底 1、階級 10 以上的菁英／地圖；裂口生肖王保底追憶裝 */
+  /* 6. 機制綁定：轉化石只在血霧期；預知石全域低機率（0.2.77）；腐化石、聖化石：生肖王保底 1、階級 10 以上的菁英／地圖；裂口生肖王保底追憶裝 */
   seeded(9400, () => {
     const bad = [];
     const cnt = (kind, o, N, key) => {
@@ -9485,16 +9485,23 @@ const ASC_COMBOS = `const combos = k => {
     };
     /* 沒有血霧、生肖、高階：這四種永遠不掉 */
     for (const kind of [0, 1, 2])
-      for (const k of ['conv', 'fore', 'holy', 'corr']) if (cnt(kind, { tier: 9 }, 3000, k)) bad.push(`平常掉了 ${k}`);
+      for (const k of ['conv', 'holy', 'corr']) if (cnt(kind, { tier: 9 }, 3000, k)) bad.push(`平常掉了 ${k}`);
+    /* 預知石：小怪不掉，菁英 0.1%、王 0.5%（偽隨機），血霧期不另外加 */
+    const f1 = cnt(1, { tier: 9 }, 60000, 'fore'),
+      f2 = cnt(2, { tier: 9 }, 30000, 'fore'),
+      f3 = cnt(1, { hunt: true, tier: 9 }, 60000, 'fore');
+    if (
+      cnt(0, { tier: 9 }, 3000, 'fore') ||
+      Math.abs(f1 - 0.001) > 0.0005 ||
+      Math.abs(f2 - 0.005) > 0.0015 ||
+      Math.abs(f3 - 0.001) > 0.0005
+    )
+      bad.push(`預知石 ${f1} ${f2} ${f3}`);
     /* 血霧期 */
     const h1 = cnt(1, { hunt: true, tier: 9 }, 6000, 'conv'),
-      h2 = cnt(1, { hunt: true, tier: 9 }, 6000, 'fore'),
-      h3 = cnt(2, { hunt: true, tier: 9 }, 300, 'conv'),
-      h4 = cnt(2, { hunt: true, tier: 9 }, 300, 'fore');
-    if (Math.abs(h1 - 0.3) > 0.03 || Math.abs(h2 - 0.3) > 0.03 || h3 !== 1 || h4 !== 1)
-      bad.push(`血霧 ${h1} ${h2} ${h3} ${h4}`);
-    if (cnt(0, { hunt: true, tier: 9 }, 3000, 'conv') || cnt(0, { hunt: true, tier: 9 }, 3000, 'fore'))
-      bad.push('血霧期小怪掉了轉化石或預知石');
+      h3 = cnt(2, { hunt: true, tier: 9 }, 300, 'conv');
+    if (Math.abs(h1 - 0.3) > 0.03 || h3 !== 1) bad.push(`血霧 ${h1} ${h3}`);
+    if (cnt(0, { hunt: true, tier: 9 }, 3000, 'conv')) bad.push('血霧期小怪掉了轉化石');
     /* 階級 10 以上 */
     const t1 = cnt(1, { tier: 10 }, 20000, 'holy'),
       t2 = cnt(2, { tier: 10 }, 10000, 'corr'),
@@ -9516,7 +9523,7 @@ const ASC_COMBOS = `const combos = k => {
     }
     if (zg !== 300) bad.push('生肖王沒有保底追憶裝 ' + zg);
     ok(
-      `機制綁定：轉化石、預知石只在血霧期（菁英各 ${(h1 * 100).toFixed(0)}%／${(h2 * 100).toFixed(0)}%、王各保底 1、小怪不掉）；腐化石與聖化石：生肖王各保底 1、階級 10 以上菁英掉聖化石 2%（${(t1 * 100).toFixed(1)}%）、地圖掉腐化石 5%（${(t2 * 100).toFixed(1)}%）；生肖王多 1 件保底追憶黃裝；其他情況全部不掉`,
+      `機制綁定：轉化石只在血霧期（菁英 ${(h1 * 100).toFixed(0)}%、王保底 1、小怪不掉）；預知石全域（菁英 ${(f1 * 100).toFixed(2)}%、王 ${(f2 * 100).toFixed(2)}%）；腐化石與聖化石：生肖王各保底 1、階級 10 以上菁英掉聖化石 2%（${(t1 * 100).toFixed(1)}%）、地圖掉腐化石 5%（${(t2 * 100).toFixed(1)}%）；生肖王多 1 件保底追憶黃裝；其他情況全部不掉`,
       !bad.length,
       bad.slice(0, 4).join('、')
     );
@@ -9715,6 +9722,191 @@ const ASC_COMBOS = `const combos = k => {
       '地上標籤：T（物品等級決定）、孔數、★、追憶標記；沒有的不寫',
       tag === ' T6 ○○ ★ ◈' && tag0 === ' T1',
       tag + '|' + tag0
+    );
+  }
+}
+/* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
+{
+  const F = vm.runInContext(
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText })',
+    ctx
+  );
+  const mul = seed => () => {
+    let t = (seed += 0x6d2b79f5) | 0;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const seeded = (seed, fn) => {
+    const r0 = Math.random;
+    Math.random = mul(seed);
+    try {
+      return fn();
+    } finally {
+      Math.random = r0;
+    }
+  };
+  const setS = () => vm.runInContext('S = { gold: 0, lv: 60, mat: newMat(), frags: newFrags(), prd: {} };', ctx);
+  /* 1. 每條災魘詞都真的進 stats（不會被 put 默默丟掉），有利是正、有害是負，說明有數字或是開關 */
+  {
+    const bad = [],
+      base = () => {
+        const s = { lv: 60, eq: Object.fromEntries(F.EQS.map(x => [x.k, null])), pt: [], at: [], auras: [] };
+        s.eq.ring1 = F.mkItem('r_lazuli', 10, 0);
+        s.eq.chest = F.mkItem('c_silk', 10, 0);
+        return s;
+      };
+    for (const [T, side] of [
+      [F.CALAM_G, 'g'],
+      [F.CALAM_B, 'b']
+    ])
+      for (const k in T) {
+        const v = T[k].r[1],
+          s = base();
+        s.eq.ring1.cor = 1;
+        s.eq.ring1.cal = side === 'g' ? { g: { k, v }, b: null } : { g: { k: 'g_aoe', v: 0 }, b: { k, v } };
+        if (side === 'b') s.eq.ring1.cal.g = null;
+        const a = JSON.stringify(F.stats(base())),
+          b = F.stats(s);
+        if (JSON.stringify(b) === a) bad.push(k + ' 沒有進數值');
+        if (Object.values(b).some(x => typeof x === 'number' && !Number.isFinite(x))) bad.push(k + ' NaN');
+        const fx = Object.values(T[k].fx(v));
+        if (side === 'g' ? fx.some(x => x <= 0) : !fx.every(x => x < 0) && k !== 'b_taken' && k !== 'b_noCrit')
+          bad.push(k + ' 正負號不對');
+        if (!T[k].n.includes('{}') && T[k].r[0] !== T[k].r[1]) bad.push(k + ' 說明沒有數字');
+      }
+    ok(
+      `災魘詞池：有利 ${Object.keys(F.CALAM_G).length} 條、有害 ${Object.keys(F.CALAM_B).length} 條，每條都真的進 stats、沒有 NaN、正負號對`,
+      !bad.length,
+      bad.slice(0, 4).join('、')
+    );
+  }
+  /* 2. 災魘石：要先腐化；成功三選一（有利不重複、有害跟有利不同組）、完美沒有有害；失敗毀掉；判官筆擋下（勾了就用掉）；選了就固定、不能再用 */
+  seeded(7801, () => {
+    const bad = [],
+      tally = { ok: 0, fail: 0 },
+      N = 4000;
+    for (let i = 0; i < N; i++) {
+      setS();
+      const M = F.MAT();
+      M.calam = 2;
+      M.pcalam = 1;
+      M.pen = 1;
+      const it = F.mkItem('r_lazuli', 10, 2),
+        perf = i % 4 === 0,
+        pen = i % 5 === 0;
+      if (F.calamDo(it, perf, pen).why !== '要先腐化') bad.push('沒腐化也能用');
+      it.cor = 1;
+      const r = F.calamDo(it, perf, pen);
+      if (r.why) {
+        bad.push(r.why);
+        continue;
+      }
+      if (M[perf ? 'pcalam' : 'calam'] !== (perf ? 0 : 1) || M.pen !== (pen ? 0 : 1)) bad.push('消耗不對');
+      if (r.res === 'ok') {
+        tally.ok++;
+        if (r.opts.length !== 3 || new Set(r.opts.map(o => o.g.k)).size !== 3) bad.push('三選一不是 3 個不同的有利');
+        for (const o of r.opts) {
+          if (perf ? o.b : !o.b || F.CALAM_B[o.b.k].g === F.CALAM_G[o.g.k].g) bad.push('有害配錯');
+          const [lo, hi] = F.CALAM_G[o.g.k].r;
+          if (o.g.v < lo || o.g.v > hi) bad.push('數字超出範圍');
+        }
+        if (F.calamCheck(it, 0) !== '先從三個選項選一個') bad.push('選之前又能用');
+        F.calamPick(it, i % 3);
+        if (!it.cal || it.calOpt || it.cal !== r.opts[i % 3]) bad.push('選了沒固定');
+        if (F.calamCheck(it, 0) !== '已經有災魘詞了') bad.push('有災魘詞還能再用');
+      } else if (r.res === 'fail') {
+        tally.fail++;
+        if (pen || !it.burst) bad.push('失敗沒毀或判官筆沒擋');
+      } else if (r.res === 'saved') {
+        tally.fail++;
+        if (!pen || it.burst || it.cal || it.calOpt) bad.push('判官筆擋下後還有變化');
+      }
+    }
+    const pk = tally.ok / N;
+    ok(
+      `災魘石：要先腐化；成功 ${(pk * 100).toFixed(1)}%（目標 ${F.CALAM_OK * 100}%）三選一、有害跟有利不同組、完美沒有有害；失敗毀掉、判官筆擋下（勾了就用掉）；選了就固定`,
+      Math.abs(pk - F.CALAM_OK) < 0.03 && !bad.length,
+      [...new Set(bad)].slice(0, 4).join('、')
+    );
+  });
+  /* 3. 酆都的掉落：菁英王各自的勾魂令＋腐化石；閻羅災魘石保底、判官筆 15%、生死簿 10%；十殿閻羅判官筆保底＋災魘石 2、完美 10% */
+  seeded(7802, () => {
+    const bad = [];
+    for (const k of F.FENG.elites) {
+      setS();
+      F.fdDrop(k);
+      const S = vm.runInContext('S', ctx);
+      if (S.frags[k] !== 1 || F.MAT().corr !== 1 || F.fdHun(S) !== 1) bad.push(k + ' 掉落不對');
+    }
+    setS();
+    const N = 20000;
+    for (let i = 0; i < N; i++) F.fdDrop('yama');
+    const S = vm.runInContext('S', ctx),
+      M = F.MAT(),
+      pp = M.pen / N,
+      bp = S.frags.book / N;
+    if (M.calam !== N) bad.push('閻羅沒有保底災魘石');
+    if (Math.abs(pp - F.FENG.pen) > 0.01 || Math.abs(bp - F.FENG.book) > 0.01)
+      bad.push(`閻羅 判官筆 ${pp} 生死簿 ${bp}`);
+    setS();
+    for (let i = 0; i < N; i++) F.fdDrop('uber');
+    const M2 = F.MAT(),
+      fp = M2.pcalam / N;
+    if (M2.pen !== N || M2.calam !== 2 * N || Math.abs(fp - F.FENG.perf) > 0.01)
+      bad.push(`十殿 ${M2.pen} ${M2.calam} ${fp}`);
+    ok(
+      `酆都掉落：牛頭、馬面、黑白無常各掉自己的勾魂令＋腐化石；閻羅災魘石保底、判官筆 ${(pp * 100).toFixed(1)}%、生死簿 ${(bp * 100).toFixed(1)}%；十殿閻羅判官筆保底＋災魘石 2、完美災魘石 ${(fp * 100).toFixed(1)}%`,
+      !bad.length,
+      bad.join('、')
+    );
+  });
+  /* 4. 殿的門票：閻羅殿 5 張（哪隻都算、從最多的扣）、十殿閻羅四種各 1＋生死簿＋Lv70；不夠不扣 */
+  {
+    const bad = [],
+      s = { lv: 60, frags: { ox: 4, horse: 1, black: 0, white: 0, book: 0 } };
+    if (F.fdHallWhy(s, 'yama')) bad.push('5 張不能進閻羅殿');
+    F.fdHallPay(s, 'yama');
+    if (F.fdHun(s) !== 0) bad.push('沒扣 5 張');
+    if (!F.fdHallPay(s, 'yama') || F.fdHun(s) !== 0) bad.push('不夠還扣');
+    const u = { lv: 69, frags: { ox: 1, horse: 1, black: 1, white: 1, book: 1 } };
+    if (!F.fdHallWhy(u, 'uber')) bad.push('Lv69 能進十殿');
+    u.lv = 70;
+    if (F.fdHallPay(u, 'uber') || Object.values(u.frags).some(n => n !== 0)) bad.push('十殿沒扣對');
+    const u2 = { lv: 80, frags: { ox: 2, horse: 1, black: 1, white: 0, book: 1 } };
+    if (!/白無常/.test(F.fdHallWhy(u2, 'uber') || '')) bad.push('沒寫缺哪種');
+    ok(
+      '殿的門票：閻羅殿 5 張勾魂令（哪隻都算），十殿閻羅四種各 1＋生死簿＋Lv70；不夠不扣、寫缺什麼',
+      !bad.length,
+      bad.join('、')
+    );
+  }
+  /* 5. 鬼門節點與王池：第 10 圈以內沒有、以外約 4%；一般地圖抽不到酆都的王；十殿閻羅是閻羅的強化版 */
+  {
+    const bad = [],
+      s = { world: { ...F.newWorld(), seed: 12345 }, idols: [], hunt: {} };
+    let n = 0,
+      g = 0,
+      inner = 0;
+    for (let q = -30; q <= 30; q++)
+      for (let r = -30; r <= 30; r++) {
+        const R = F.wRing(q, r);
+        if (R > 30 || R < 5) continue;
+        const t = F.wType(s, q, r);
+        if (R < F.FENG.ring && t === 'ghost') inner++;
+        if (R >= F.FENG.ring && R <= 30) n++, (g += t === 'ghost' ? 1 : 0);
+      }
+    if (inner || Math.abs(g / n - F.FENG.p) > 0.015) bad.push(`鬼門 ${g}/${n} 內圈 ${inner}`);
+    for (let i = 0; i < 3000; i++) if (F.bossPick(null).fd) bad.push('一般地圖抽到酆都的王');
+    const y = F.fdBoss('yama'),
+      u = F.fdUber();
+    if (u.hp !== y.hp * 3 || u.dmg !== y.dmg * 1.5 || !['verdict', 'wheel', 'hook'].every(k => u.pat.includes(k)))
+      bad.push('十殿閻羅');
+    if (F.FENG.elites.some(k => !F.fdBoss(k))) bad.push('少了菁英王');
+    ok(
+      `鬼門：第 ${F.FENG.ring} 圈以內沒有，以外 ${((g / n) * 100).toFixed(1)}%；一般地圖抽不到酆都的王；十殿閻羅＝閻羅生命 ×3、傷害 ×1.5、多 3 招`,
+      !bad.length,
+      [...new Set(bad)].slice(0, 3).join('、')
     );
   }
 }

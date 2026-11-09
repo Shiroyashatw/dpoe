@@ -647,14 +647,14 @@ function hudPanels() {
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
   if (PANEL.inv) $('pinv').innerHTML = invHTML();
   if (PANEL.stash) {
-    const st = ['temp', 'mat'].includes(PANEL.stab) ? PANEL.stab : 'stash',
+    const st = ['temp', 'mat', 'frags'].includes(PANEL.stab) ? PANEL.stab : 'stash',
       n = S.temp.items.length;
     $('pstash').innerHTML =
-      `<div class="ph"><b>倉庫</b><span class="ftabs"><button class="${st === 'stash' ? 'on' : ''}" data-a="stab:stash">倉庫</button><button class="${st === 'mat' ? 'on' : ''}" data-a="stab:mat">材料</button><button class="${st === 'temp' ? 'on' : ''}" data-a="stab:temp">臨時${n ? ` <i class="c-gold">${n}</i>` : ''}</button></span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${
+      `<div class="ph"><b>倉庫</b><span class="ftabs"><button class="${st === 'stash' ? 'on' : ''}" data-a="stab:stash">倉庫</button><button class="${st === 'mat' ? 'on' : ''}" data-a="stab:mat">材料</button><button class="${st === 'frags' ? 'on' : ''}" data-a="stab:frags">碎片</button><button class="${st === 'temp' ? 'on' : ''}" data-a="stab:temp">臨時${n ? ` <i class="c-gold">${n}</i>` : ''}</button></span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${
         st === 'temp'
           ? `<p class="fhint">背包滿了撿到的東西放這裡，只能拿出來${TOUCH.on ? '' : '（點一下＝放進背包）'}</p>`
           : ''
-      }${st === 'mat' ? matPageHTML() : gridHTML(S[st], st)}`;
+      }${st === 'mat' ? matPageHTML() : st === 'frags' ? fragPageHTML() : gridHTML(S[st], st)}`;
   }
   if (PANEL.device) wmPanel();
   if (PANEL.asc) panelHTML($('pasc'), ascHTML(), ['', '.ax-list']);
@@ -1384,6 +1384,8 @@ function itemTip(it, cmp) {
     ? `<p class="hint c-warn">前後綴看不到：回藏身處找撿骨師鑑定（免費、一次全部）。未鑑定的不能裝備、不能做裝</p>`
     : tipSlots(it);
   if (!un && it.cw && it.cw.length) html += `<p class="aff cor">${it.cw.map(c => esc(cwText(c))).join('<br>')}</p>`;
+  if (!un && it.cal)
+    html += `<p class="aff"><span class="c-good">${esc(calText(it.cal.g))}</span>${it.cal.b ? `<br><span class="c-bad">${esc(calText(it.cal.b, 1))}</span>` : ''}</p>`;
   if (it.so) html += `<p class="rune">符文 ${'○'.repeat(it.so)}<small>（還沒有符文）</small></p>`;
   if (cmp && !un) {
     /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄 */

@@ -257,6 +257,7 @@ function migrate(s) {
   o.mat = { ...newMat(), ...o.mat };
   o.mat.ess = o.mat.ess || {};
   o.prd = { ...PRD0(), ...o.prd };
+  o.frags = { ...newFrags(), ...o.frags };
   o.ptA = o.ptA || {};
   /* 存檔裡有樹上已經沒有的點（重烘過）也全部退回，不然算數值會壞 */
   if (o.pt.some(id => !PTREE.I[id])) (o.pt = [...PT_START]), (o.ptA = {});
