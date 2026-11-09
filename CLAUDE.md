@@ -4,7 +4,7 @@
 
 **每次新對話開始**：先用 Skill 啟動 `ponytail`（最小完整改動）和 `grilling`（先把計畫問清楚再動手）。
 
-**只要動到 UI／UX：一定先啟動 skill `ui-design`**（長相以 skill `impeccable` 與 `DESIGN.md` 為主；動到互動、動畫、手勢才加 `apple-design`／`animate`；技術限制與測試尺寸照 `docs/介面規範.md`）。**介面流程以本檔為準，覆蓋上一層《塞令老師》CLAUDE.md 的「apple-design 為主」。**0.2.0 起是**桌機為主、手機為輔**的即時 ARPG（0.2.4 起有手機版）：兩邊的操作規則與對照表在 `docs/企劃書.md` 第 9 節「操作模式」，**改介面兩邊都要做、都要測**——桌機截 1440×900 與 1280×720（面板不能超出畫面），手機橫向 844×390 與 667×375、手機直立 390×844 與 375×667（`node tools/touch_check.js 寬 高`，要先開本機伺服器；0.2.14 起手機有直立／橫向兩種操作，設定裡選，`S.orient`、`PORT()`）。遊戲邏輯只透過 `mouseWorld()` 與移動方向拿輸入，不要在技能、戰鬥程式裡判斷是不是手機。
+**只要動到 UI／UX：一定先啟動 skill `ui-design`**（長相以 skill `impeccable` 與 `DESIGN.md` 為主；動到互動、動畫、手勢才加 `apple-design`／`animate`；技術限制與測試尺寸照 `docs/介面規範.md`）。0.2.0 起是**桌機為主、手機為輔**的即時 ARPG（0.2.4 起有手機版）：兩邊的操作規則與對照表在 `docs/企劃書.md` 第 9 節「操作模式」，**改介面兩邊都要做、都要測**——桌機截 1440×900 與 1280×720（面板不能超出畫面），手機橫向 844×390 與 667×375、手機直立 390×844 與 375×667（`node tools/touch_check.js 寬 高`，要先開本機伺服器；0.2.14 起手機有直立／橫向兩種操作，設定裡選，`S.orient`、`PORT()`）。遊戲邏輯只透過 `mouseWorld()` 與移動方向拿輸入，不要在技能、戰鬥程式裡判斷是不是手機。
 
 **動天賦樹（新的天賦效果、主題、解鎖預留叢集、形狀、配色、重烘）用 skill `talent-tree`**，規則在 `docs/天賦樹設計.md`。
 
@@ -14,7 +14,7 @@
 - **一律用繁體中文回覆**（包含 commit 訊息）。
 - 版本號：0.2.x。改版本時改 `js/data.js` 的 `VER`、`index.html` 所有 `?v=` 和 `version.json`（手機拿到快取的舊頁面時，`main.js` 的 `verCheck` 看它不同就換網址重新載入），再更新 `CHANGELOG.md`。
 - 流程：先改、先測，確認 OK 後再 commit + push（push 前先問使用者）。
-- 這個資料夾自己就能跑（不引用上一層的檔案），以後可以整個搬到別的 repo。
+- 獨立 repo（https://github.com/Shiroyashatw/dpoe ）；0.2.75 以前在《塞令老師》repo（`Shiroyashatw/wayfarer`）的 `dpoe/` 子資料夾，歷史已一起搬過來。不要再去讀 wayfarer 的檔案。
 
 ## 檢查（改了遊戲邏輯一定要跑）
 - `node tools/check.js`：圖名、3000 件裝備的稀有度與詞綴範圍、全身裝備數值沒有 NaN、格子背包不重疊、天賦樹 3917 點都連得到、沒有跑版（含弧線）、594 個形狀不重複、`js/ptdata.js` 跟烘焙工具一致、鎖住的預留叢集不擋路（0.2.67 起是 0）、主題 71 個、每個能力都有來源（0.2.67／0.2.68 的 121 個新能力 `PT_NEW` 另外檢查預設 0、樹上有、至少一處讀取，機制各有實測；23 個只剩輔助／裝備／昇華來源的能力不在樹上）、全域防禦 4 個叢集與 `defP` 只在那裡、武器專精的路、能量護盾暗影 ≥ 3、每個昇華照規則亂點都停在 4 大 4 小、選擇組只拿一個、全點滿沒有 NaN、昇華點名不跟技能／基石／天賦大點／主題／別的昇華同名（0.2.73）、第四批五個昇華（潮汐、賭徒、異變者、追獵者、神裔）各自的機制實測（0.2.74，傳染與連鎖只觸發一次、機率用固定種子）、玩家沉重暈眩（王的紅光大招累積、暈住不能動出招翻滾格擋、巍然不動免疫）、格擋值與暴擊弱點、物理傷害有限、地圖放寬、魔力、商人、自動化、每招投射物吃多重投射。有 ❌ 不交差。
@@ -80,4 +80,4 @@ python3 -m http.server 8000   # 在 dpoe/ 底下，開 http://localhost:8000
 同一個專案（ref `eugkdfhkoaxvqhztvptc`），表 `public.dungeon_saves`（跟《塞令老師》的 `saves` 分開，RLS 只允許本人）。前端只放 anon key，**絕對不要使用或要求 service_role key**。表不存在時只存本機。
 
 ## 部署
-GitHub Pages：`main` 分支，網址 https://shiroyashatw.github.io/wayfarer/dpoe/ 。
+GitHub Pages：`main` 分支，網址 https://shiroyashatw.github.io/dpoe/ 。

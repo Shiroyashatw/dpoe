@@ -4,3 +4,9 @@
 
 # VFX 工具重產時留下的舊版
 art/fx/*/old/
+
+# 從 wayfarer 根目錄帶過來
+dist/
+__pycache__/
+.DS_Store
+art/new/

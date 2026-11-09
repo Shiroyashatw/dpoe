@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "dungeonpoe", "runtimeExecutable": "py", "runtimeArgs": ["-m", "http.server", "8003"], "port": 8003 }
+  ]
+}
