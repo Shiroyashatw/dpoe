@@ -37,6 +37,15 @@ const WM = {
   pinch: null,
   tick: 0
 };
+/* 平頂六角格的 6 個鄰居（跟 world.js 的 wRing 同一套 axial） */
+const WM_DIR = [
+  [1, 0],
+  [1, -1],
+  [0, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, 1]
+];
 const wmStill = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wmLat = (q, r) => [W_SZ * 1.5 * q, W_SZ * Math.sqrt(3) * (r + q / 2)];
 /* 世界區的節點位置微微抖動，看起來不像格子 */
@@ -388,6 +397,26 @@ function wmNodes() {
       [x, y] = wmPos(q, r);
     return { k, q, r, x, y, t: wType(s, q, r), done: D.has(k), can: wCan(s, q, r) };
   });
+  /* 機制區塊（0.2.79）：看得到的區塊節點歸到所屬的大格，畫外框、名字、特效用 */
+  const RG = new Map();
+  for (const n of WM.nodes) {
+    if (!REGION.types.includes(n.t)) continue;
+    const [cq, cr] = wRegionC(n.q, n.r),
+      key = cq + ',' + cr;
+    if (!RG.has(key)) {
+      const cells = [[cq, cr], ...WM_DIR.map(([a, b]) => [cq + a, cr + b])];
+      RG.set(key, {
+        t: n.t,
+        q: cq,
+        r: cr,
+        cells,
+        set: new Set(cells.map(([a, b]) => wKey(a, b))),
+        c: wmLat(cq, cr),
+        h: wHash(seed, cq, cr, 11)
+      });
+    }
+  }
+  WM.regions = [...RG.values()];
   WM.edges = [];
   for (const n of WM.nodes)
     for (const [a, b] of wNear(seed, n.q, n.r)) {
@@ -676,16 +705,46 @@ function wmBase() {
   dots([...L, ...D], 5, 2, 'rgba(8,8,10,.85)');
   dots(L, 3, 1, '#b9b09a');
   dots(D, 3, 1, '#ffe9b0');
-  /* 機制區塊（0.2.79）：區塊裡的節點底下畫一圈淡淡的機制顏色，連起來就看得出一整塊 */
-  for (const n of WM.nodes) {
-    if (!REGION.types.includes(n.t)) continue;
-    const [x, y] = wmS(n.x, n.y);
-    if (x < -80 || y < -80 || x > W + 80 || y > H + 80) continue;
-    c.globalAlpha = 0.16;
-    c.fillStyle = WTYPE[n.t].c;
+  /* 機制區塊（0.2.79）：7 格的範圍塗一層淡淡的機制顏色、外圈描邊（只畫隔壁不是同一塊的邊），上方寫名字；拉遠也認得出來 */
+  for (const g of WM.regions || []) {
+    const [gx, gy] = wmS(...g.c);
+    if (gx < -300 || gy < -300 || gx > W + 300 || gy > H + 300) continue;
+    const col = WTYPE[g.t].c,
+      hex = (q, r) => {
+        const [x, y] = wmS(...wmLat(q, r));
+        return [0, 1, 2, 3, 4, 5].map(i => [
+          x + Math.cos((i * Math.PI) / 3) * W_SZ * z,
+          y + Math.sin((i * Math.PI) / 3) * W_SZ * z
+        ]);
+      };
+    /* 拉越遠越濃，才認得出一整塊 */
+    const far = Math.min(1, Math.max(0, (0.8 - z) / 0.5));
+    c.globalAlpha = 0.13 + 0.17 * far;
+    c.fillStyle = col;
+    for (const [q, r] of g.cells) {
+      const P = hex(q, r);
+      c.beginPath();
+      P.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)));
+      c.closePath();
+      c.fill();
+    }
+    /* 外框：鄰居方向 d 的那條邊＝角 (6−d)%6 到 (7−d)%6（平頂六角，角 0 在右邊、畫面上順時針） */
+    c.globalAlpha = 0.85;
+    c.strokeStyle = col;
+    c.lineWidth = Math.max(2, 2.5 * z);
+    c.setLineDash([6 * Math.max(0.6, z), 4 * Math.max(0.6, z)]);
     c.beginPath();
-    c.arc(x, y, 34 * Math.max(0.6, z), 0, TAU);
-    c.fill();
+    for (const [q, r] of g.cells) {
+      const P = hex(q, r);
+      WM_DIR.forEach(([a, b], d) => {
+        if (g.set.has(wKey(q + a, r + b))) return;
+        const [p1, p2] = [P[(6 - d) % 6], P[(7 - d) % 6]];
+        c.moveTo(...p1);
+        c.lineTo(...p2);
+      });
+    }
+    c.stroke();
+    c.setLineDash([]);
     c.globalAlpha = 1;
   }
   /* 節點 */
@@ -807,6 +866,59 @@ function wmFx(now) {
     c.stroke();
     c.globalAlpha = 1;
   }
+  /* 機制區塊的環境特效（0.2.79）：鬼門關飄青色鬼火往上，心魔幻境粉色迷霧繞著轉＋光點；減少動態時停在原地 */
+  c.globalCompositeOperation = 'lighter';
+  for (const g of WM.regions || []) {
+    const [gx, gy] = wmS(...g.c);
+    if (cull(gx, gy) && cull(gx, gy - 200)) continue;
+    const R = W_SZ * 2.4 * z,
+      col = WTYPE[g.t].c,
+      t = still ? 0 : now / 1000;
+    if (g.t === 'dream') {
+      for (let i = 0; i < 3; i++) {
+        const a = t * (0.25 + i * 0.08) + g.h * TAU + (i * TAU) / 3,
+          x = gx + Math.cos(a) * R * 0.45,
+          y = gy + Math.sin(a) * R * 0.3,
+          gr = c.createRadialGradient(x, y, 0, x, y, R * 0.9);
+        gr.addColorStop(0, col);
+        gr.addColorStop(1, 'rgba(0,0,0,0)');
+        c.globalAlpha = 0.1;
+        c.fillStyle = gr;
+        c.fillRect(x - R, y - R, R * 2, R * 2);
+      }
+    }
+    for (let i = 0; i < 9; i++) {
+      const s = wHash(g.q, g.r, i, 21),
+        u = (t * (0.12 + s * 0.1) + s) % 1,
+        a = s * TAU + i,
+        x = gx + Math.cos(a) * R * (0.25 + 0.7 * wHash(g.q, g.r, i, 22)),
+        y = gy + Math.sin(a) * R * 0.75 - (g.t === 'ghost' ? u * 46 * z : Math.sin(t * 2 + i) * 6 * z),
+        sz = Math.max(1.5, (g.t === 'ghost' ? 3 : 2) * z);
+      c.globalAlpha = g.t === 'ghost' ? 0.75 * Math.sin(u * Math.PI) : 0.45 + 0.35 * Math.sin(t * 3 + i);
+      c.fillStyle = col;
+      c.fillRect(Math.round(x - sz), Math.round(y - sz), sz * 2, sz * 2);
+    }
+  }
+  c.globalCompositeOperation = 'source-over';
+  /* 區塊名字畫在節點上面（拉遠時節點很密，畫在底圖會被蓋掉） */
+  for (const g of WM.regions || []) {
+    const [gx, gy] = wmS(...g.c);
+    if (cull(gx, gy)) continue;
+    const col = WTYPE[g.t].c;
+    /* 名字：區塊中心上方，字不小於 12px */
+    const fs = Math.round(Math.max(12, Math.min(20, 16 * z + 4))),
+      ty = gy - W_SZ * Math.sqrt(3) * 1.6 * z;
+    c.font = `900 ${fs}px "Noto Serif TC", serif`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.globalAlpha = 0.95;
+    c.lineWidth = 4;
+    c.strokeStyle = 'rgba(8,8,10,.85)';
+    c.strokeText(WTYPE[g.t].n, gx, ty);
+    c.fillStyle = col;
+    c.fillText(WTYPE[g.t].n, gx, ty);
+  }
+  c.globalAlpha = 1;
   wmGoalMark(now, still);
   if (!on) return;
   /* 世界展開：紅色的環往外推 */
