@@ -38,6 +38,8 @@ const WM = {
   tick: 0
 };
 /* 平頂六角格的 6 個鄰居（跟 world.js 的 wRing 同一套 axial） */
+/* 拉遠時縮成小點的一般節點 */
+const WM_PLAIN = ['plain', 'dawn', 'crow', 'star'];
 const WM_DIR = [
   [1, 0],
   [1, -1],
@@ -752,8 +754,22 @@ function wmBase() {
   for (const n of WM.nodes) {
     const [x, y] = wmS(n.x, n.y);
     if (x < -40 || y < -40 || x > W + 40 || y > H + 40) continue;
-    const sel = WM.sel === n.k,
-      s = n.t === 'rift' || n.t === 'story' ? Math.max(2, big) : big,
+    const sel = WM.sel === n.k;
+    /* 不要整片都是菱形（0.2.79）：打過的（主線、裂口是地標，照畫）縮成路上的小點；拉遠時一般節點也縮成小點，
+       走得到的、選中的、目標、特殊的（裂口、血霧、機制區塊）照畫完整圖示 */
+    if (
+      !sel &&
+      n.k !== WM.goal &&
+      (n.done ? n.t !== 'story' && n.t !== 'rift' : !n.can && z < 0.62 && WM_PLAIN.includes(n.t))
+    ) {
+      const d = Math.max(2, Math.round(3 * Math.min(1, z + 0.3)));
+      c.fillStyle = n.done ? 'rgba(255,233,176,.7)' : WTYPE[n.t].c;
+      c.globalAlpha = n.done ? 1 : 0.55;
+      c.fillRect(Math.round(x - d / 2), Math.round(y - d / 2), d, d);
+      c.globalAlpha = 1;
+      continue;
+    }
+    const s = n.t === 'rift' || n.t === 'story' ? Math.max(2, big) : big,
       sz = 11 * s,
       b = sz / 2 + 5;
     c.beginPath();
