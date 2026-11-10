@@ -25,6 +25,8 @@ function newGame() {
     army: {},
     gods: [],
     godOn: null,
+    jewels: [],
+    jsock: [null, null, null, null, null, null],
     /* 世界地圖（world.js）：種子、走過的節點、每節點的地圖卡、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
     world: newWorld(),
     cards: {},

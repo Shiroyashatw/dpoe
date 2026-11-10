@@ -1540,3 +1540,26 @@ body.touch #pbox { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch.port #pbox { top: env(safe-area-inset-top); transform: none; max-height: none; }
 body.touch.port #pbox > .ph:first-child .x { display: grid; }
 .gtag.aw { color: var(--awk); border-color: var(--awk); }
+/* 0.2.84 天賦樹六區與珠寶孔 */
+#tg .secl { stroke: rgba(var(--pt-line), 0.35); stroke-width: 10; stroke-dasharray: 60 40; }
+#tg .tsock { cursor: pointer; }
+#tg .tsock circle { fill: var(--pt-node); stroke: var(--fr); stroke-width: 14; }
+#tg .tsock text { fill: var(--dim); text-anchor: middle; font-family: var(--font); }
+#tg .tsock .n { font-size: 84px; font-weight: 700; fill: var(--tx); }
+#tg .tsock .l { font-size: 50px; }
+#tg .tsock.open circle { stroke: var(--gold); }
+#tg .tsock.on circle { stroke: var(--awk); fill: var(--awk-bg); }
+#tg .tsock.on .n { fill: var(--awk); }
+#tg .tsock.lock circle { stroke: var(--bad); }
+#tg .tsock.lock .n { fill: var(--bad); }
+#tg .tsock:hover circle { stroke-width: 24; }
+.tsockp { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 4; width: min(460px, calc(100% - 24px)); max-height: calc(100% - 96px); overflow: auto; padding: 0 12px 12px; background: var(--s1, rgba(20, 17, 15, 0.97)); border: 1px solid var(--fr-hi, var(--gold)); border-radius: var(--rad); }
+.tsockp .ph { display: flex; align-items: center; gap: 8px; margin: 0 -12px 8px; padding: 8px 12px; }
+.tsockp .ph span { flex: 1; font-size: var(--fs-s); color: var(--dim); }
+.tsockp .jw { display: flex; gap: 8px; align-items: center; padding: 8px; margin: 4px 0; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line); border-radius: 2px; }
+.tsockp .jw.on { border-color: var(--awk); }
+.tsockp .jw > div { flex: 1; min-width: 0; }
+.tsockp .jw ul { list-style: none; margin: 4px 0 0; padding: 0; }
+.tsockp .jw li small { display: block; font-size: var(--fs-s); color: var(--dim); }
+.tsockp .jw-b { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.tsockp .jw-b .btn { min-height: 44px; min-width: 64px; }

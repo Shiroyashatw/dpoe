@@ -9729,7 +9729,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, wArmyC, wArmyCells, wArmy, wArmyGen, armyRes, armyDrop, armyGear, memGear2, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, wArmyC, wArmyCells, wArmy, wArmyGen, armyRes, armyDrop, armyGear, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
     ctx
   );
   const mul = seed => () => {
@@ -10037,7 +10037,7 @@ const ASC_COMBOS = `const combos = k => {
     );
   });
   /* 6c. 陰兵借道（0.2.81）：19 格大六角鋪滿、第 12 圈以外約 4%、一塊 15～19 個節點、三位將領各一格不相鄰；
-     打完一張怨恨值 +1（最多 16）；將印、兵符（第三位、怨恨值 ≥ 12、一塊一次）；追憶裝保底、雙追憶兩條不同而且都生效；門票 */
+     打完一張怨恨值 +1（最多 16）；將印、兵符（第三位、怨恨值 ≥ 12、一塊一次）；追憶裝保底、舊的雙追憶裝兩條都生效；門票 */
   seeded(7806, () => {
     const bad = [],
       S = () => vm.runInContext('S', ctx),
@@ -10130,20 +10130,20 @@ const ASC_COMBOS = `const combos = k => {
     F.armyDrop('yu', 'b', 12);
     F.armyDrop('yu', 'b', 16);
     if (T.frags.fu !== 1) bad.push('兵符 ' + T.frags.fu);
-    if (F.armyDrop('chiyou', 'b', 16).length) bad.push('蚩尤掉將印');
+    /* 0.2.84：蚩尤、涿鹿兵主改掉亡靈珠寶（測試在「天賦樹六區」那一項） */
+    if (T.frags.xing !== 2 || F.armyDrop('chiyou', 'b', 16)[0].indexOf('亡靈珠寶') !== 0)
+      bad.push('蚩尤掉將印或沒掉珠寶');
     /* 追憶裝 */
     const o = { ilvl: 70 };
     for (let i = 0; i < 40; i++) {
       const g = F.armyGear('xing', 0, o);
       if (g.length !== 1 || !g[0].mem || !g[0].uid) bad.push('將領的追憶裝');
-      for (const it of [...F.armyGear('chiyou', 0, o), ...F.armyGear('zhuolu', 0, o)])
-        if (!it.mem || !it.mem2 || it.mem.k === it.mem2.k || !F.memPool(it).includes(it.mem2.k)) bad.push('雙追憶');
+      if (F.armyGear('chiyou', 0, o).length || F.armyGear('zhuolu', 0, o).length) bad.push('蚩尤還掉追憶裝');
     }
     let ex = 0;
     for (let i = 0; i < 4000; i++) ex += F.armyGear('feng', 10, o).length - 1;
     if (Math.abs(ex / 4000 - 0.5) > 0.04) bad.push('怨恨值 10 多掉 ' + ex / 4000);
-    if (F.armyGear('zhuolu', 0, o).length !== 2) bad.push('涿鹿兵主不是 2 件');
-    /* 雙追憶兩條都生效：弓的投射物 +1、連鎖 +1 */
+    /* 雙追憶（0.2.81 掉過的舊裝備）兩條都生效：弓的投射物 +1、連鎖 +1 */
     const mk = (m1, m2) => {
       const st = {
           lv: 100,
@@ -10176,7 +10176,7 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 3000; i++) if (F.bossPick(null).army) bad.push('一般地圖抽到陰兵的王');
     vm.runInContext('ST = null', ctx);
     ok(
-      `陰兵借道：19 格大六角鋪滿、不相鄰、7 格區塊碰到就整塊取消、第 ${F.ARMY.ring} 圈以外 ${((a / n) * 100).toFixed(1)}%（${regs.length} 塊，每塊 15 個節點以上、三位將領不相鄰）；怨恨值；將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、雙追憶兩條都生效；門票；涿鹿兵主`,
+      `陰兵借道：19 格大六角鋪滿、不相鄰、7 格區塊碰到就整塊取消、第 ${F.ARMY.ring} 圈以外 ${((a / n) * 100).toFixed(1)}%（${regs.length} 塊，每塊 15 個節點以上、三位將領不相鄰）；怨恨值；將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、舊的雙追憶裝兩條都生效；蚩尤掉珠寶；門票；涿鹿兵主`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -10257,6 +10257,81 @@ const ASC_COMBOS = `const combos = k => {
     vm.runInContext('ST = null', ctx);
     ok(
       '弒神補完：生肖王掉神血；太歲（十二神像全亮＋4）、太歲星君（12＋Lv70）；神格 60～120%（星君 80～150%）、12 位神都抽得到、數值 × 強度、開關與層數不放大、點了神裔同一個點只補差額、真的進 stats；收藏上限 30、裝著的不能拆',
+      !bad.length,
+      [...new Set(bad)].slice(0, 4).join('、')
+    );
+  });
+  /* 6e. 天賦樹六區與珠寶孔（0.2.84）：每個點都分到一區、六區大小差不多、起點在自己那一區；一區 40 點開孔（起點不算）；
+     珠寶的大點進 stats、已經點了的與兩顆重複的只算一次、孔沒開不生效；鑲上換位、拆掉、收藏上限 */
+  seeded(7808, () => {
+    const bad = [],
+      S = () => vm.runInContext('S', ctx),
+      P = F.PTREE;
+    const sz = [0, 0, 0, 0, 0, 0];
+    for (const n of P.N) {
+      if (!(n.sec >= 0 && n.sec < 6)) bad.push('沒有分區 ' + n.id);
+      sz[n.sec]++;
+    }
+    if (Math.min(...sz) < 550 || Math.max(...sz) > 750) bad.push('六區大小 ' + sz);
+    F.PT_START.forEach((k, i) => P.I[k].sec !== i && bad.push('起點不在自己那一區 ' + k));
+    if (F.PT_NOTABLES.some(id => P.I[id].big !== 1 || P.I[id].gate || P.I[id].lock)) bad.push('珠寶抽得到不是大點的');
+    const sec0 = P.N.filter(n => n.sec === 0 && !n.gate && n.big === 0).map(n => n.id),
+      base = n => ({
+        lv: 100,
+        eq: Object.fromEntries(F.EQS.map(e => [e.k, null])),
+        pt: [...F.PT_START, ...sec0.slice(0, n)],
+        at: [],
+        auras: [],
+        charms: [],
+        jewels: [],
+        jsock: [null, null, null, null, null, null]
+      });
+    if (F.secCount(base(40))[0] !== 40 || !F.sockOpen(base(40), 0) || F.sockOpen(base(39), 0)) bad.push('40 點開孔');
+    /* 找一個加 hpP 的大點來驗 stats */
+    const nt = F.PT_NOTABLES.find(id => P.I[id].s.hpP > 0 && !P.I[id].s.only);
+    const j = { id: 'j1', nt: [nt] },
+      j2 = { id: 'j2', nt: [nt] },
+      on = base(40);
+    on.jewels = [j, j2];
+    on.jsock = ['j1', 'j2', null, null, null, null];
+    const off = base(39);
+    off.jewels = [j];
+    off.jsock = ['j1', null, null, null, null, null];
+    const h0 = F.stats(base(40)).hp,
+      h1 = F.stats(on).hp,
+      hOff = F.stats(off).hp,
+      h39 = F.stats(base(39)).hp;
+    if (!(h1 > h0) || hOff !== h39) bad.push(`珠寶進 stats ${h0} ${h1} ${hOff} ${h39}`);
+    /* 第二顆同一個大點放在 1 區（孔沒開），只算一次 */
+    if (F.jewelNodes(on).length !== 1) bad.push('重複的大點算了兩次');
+    const own = base(40);
+    own.pt.push(nt);
+    own.jewels = [j];
+    own.jsock = ['j1', null, null, null, null, null];
+    if (F.jewelNodes(own).length) bad.push('已經點了的大點又算一次');
+    /* 收藏、鑲上、拆掉 */
+    setS();
+    vm.runInContext('S.jewels = []; S.jsock = [null, null, null, null, null, null]', ctx);
+    const t1 = F.jwGain('chiyou'),
+      t2 = F.jwGain('zhuolu');
+    if (
+      S().jewels[0].nt.length !== 1 ||
+      S().jewels[1].nt.length !== 2 ||
+      new Set(S().jewels[1].nt).size !== 2 ||
+      !/亡靈珠寶/.test(t1[0] + t2[0])
+    )
+      bad.push('蚩尤 1、涿鹿兵主 2 個大點');
+    const id = S().jewels[0].id;
+    F.jwPut(2, id);
+    F.jwPut(4, id);
+    if (S().jsock[2] || S().jsock[4] !== id) bad.push('換孔');
+    const so = F.MAT().soul;
+    if (!F.jwSalvage(id) || F.jwSalvage(S().jewels[1].id) || F.MAT().soul !== so + 200) bad.push('拆掉');
+    for (let i = 0; i < F.JEWEL.keep + 3; i++) F.jwGain('chiyou');
+    if (S().jewels.length !== F.JEWEL.keep) bad.push('收藏上限');
+    vm.runInContext('ST = null', ctx);
+    ok(
+      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能拆、收藏上限`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );

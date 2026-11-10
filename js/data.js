@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.83';
+const VER = '0.2.84';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -4948,6 +4948,25 @@ const PTREE = (() => {
   return { N, E, I, ADJ, ARC };
 })();
 const PT_START = ['g0', 'g1', 'g2', 'g3', 'g4', 'g5'];
+/* 天賦樹六區與珠寶孔（0.2.84）：照六個起點的方向各切 ±30°（n.sec），一區點滿 JEWEL.need 點（起點不算、能力值點算）開那一區的珠寶孔；
+   孔不是樹上的點，畫在那一區的外緣（tree.js）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點；退到門檻以下珠寶鎖住不生效 */
+const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
+{
+  const A = PT_START.map(k => Math.atan2(PTREE.I[k].y, PTREE.I[k].x));
+  for (const n of PTREE.N) {
+    const a = Math.atan2(n.y, n.x);
+    let bi = 0,
+      bd = 9;
+    A.forEach((b, i) => {
+      const d = Math.abs(((a - b + Math.PI * 3) % (Math.PI * 2)) - Math.PI);
+      if (d < bd) (bd = d), (bi = i);
+    });
+    n.sec = bi;
+  }
+  PTREE.SECA = A;
+}
+/* 珠寶抽得到的大點：一般大點（不是起點、基石、預留） */
+const PT_NOTABLES = PTREE.N.filter(n => n.big === 1 && !n.gate && !n.lock).map(n => n.id);
 /* 天賦點：每級 1 點、每到 10 的倍數再 +3（到 100 級共 129）；100 級後每 10 級 1 點 */
 const ptPoints = lv =>
   Math.min(lv, 100) - 1 + 3 * Math.floor(Math.min(lv, 100) / 10) + Math.max(0, Math.floor((lv - 100) / 10));

@@ -248,6 +248,29 @@ function rollMem(k) {
     ...(D.lv ? { lv: irnd(...D.lv), c: pick(Object.keys(CURSES)) } : {})
   };
 }
+/* 天賦樹六區（0.2.84）：每區點了幾點（起點不算）、開了幾個孔、孔裡的珠寶給哪些大點 */
+function secCount(s) {
+  const c = [0, 0, 0, 0, 0, 0];
+  for (const id of s.pt || []) {
+    const n = PTREE.I[id];
+    if (n && !n.gate) c[n.sec]++;
+  }
+  return c;
+}
+const sockOpen = (s, i, c = secCount(s)) => c[i] >= JEWEL.need;
+const jwOf = (s, id) => (s.jewels || []).find(j => j.id === id);
+/* 生效的珠寶大點：孔要開著；已經點了的大點、別顆已經給的不重複 */
+function jewelNodes(s) {
+  const c = secCount(s),
+    have = new Set(s.pt || []),
+    out = [];
+  (s.jsock || []).forEach((id, i) => {
+    const j = id && sockOpen(s, i, c) && jwOf(s, id);
+    if (j) for (const k of j.nt) if (!have.has(k) && PTREE.I[k]) have.add(k), out.push(PTREE.I[k]);
+  });
+  return out;
+}
+const jwName = j => (j.nt.length > 1 ? '亡靈珠寶・雙魂' : '亡靈珠寶');
 /* 神格（0.2.82）的能力：神裔那位神的大點＋小點；數值 × 強度（開關、層數不放大），已經點了同一個點的只補差額（不疊） */
 function ghFx(gh, s) {
   const row = GODSON.find(x => x[0] === gh.g),
@@ -450,6 +473,8 @@ function eqCheck(s) {
     /* 大點的固定能力值也算進需求（stats 的 put 會再加進 o，這裡只管需求與顯示的總量） */
     if (n) for (const a of ATTR) if (n.s[a]) pts[a] += n.s[a];
   }
+  /* 亡靈珠寶的大點（0.2.84）一樣 */
+  for (const n of jewelNodes(s)) for (const a of ATTR) if (n.s[a]) pts[a] += n.s[a];
   /* 昇華（0.2.74 異變者）：小點的力量、巨臂的力量 +100、智慧視為 0（需求與總量都是 0，裝備給的智慧也不算）；關著的欄位裡的裝備不算 */
   pts.str += ascSum(s, 'str') + ascSum(s, 'strFlat');
   const iz = ascSum(s, 'intZero') > 0,
@@ -959,7 +984,7 @@ function stats(s = S) {
     esF: 0,
     blockInc: 0
   };
-  const nodes = (s.pt || []).map(id => PTREE.I[id]),
+  const nodes = [...(s.pt || []).map(id => PTREE.I[id]), ...jewelNodes(s)],
     wt0 = (w && baseOf(w).wt) || 'unarmed';
   for (const n of nodes) {
     /* 武器招牌點（0.2.23，only）：拿那種武器才生效 */

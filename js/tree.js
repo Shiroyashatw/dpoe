@@ -54,6 +54,7 @@ function treeClose() {
   TREE.open = false;
   TREE.sel = null;
   treeAttrClose();
+  treeSockOpen(null);
   $('ptree').hidden = true;
   hideTip();
 }
@@ -113,6 +114,13 @@ function treeRender() {
     .map(([k, L]) => `<g class="tc" data-c="${k}" style="display:none">${L.join('')}</g>`)
     .join('');
   html += `<circle class="hollow" r="${PT_R0 - 40}"/>`;
+  /* 六區（0.2.84）：分區線（兩區中間，從挖空的地方畫到最外圈）、每區外緣的珠寶孔（treeSocks 在 treeRefresh 更新） */
+  const R1 = treeR();
+  html += PTREE.SECA.map(a => {
+    const b = a + Math.PI / 6;
+    return `<line class="secl" x1="${(Math.cos(b) * PT_R0).toFixed(0)}" y1="${(Math.sin(b) * PT_R0).toFixed(0)}" x2="${(Math.cos(b) * R1).toFixed(0)}" y2="${(Math.sin(b) * R1).toFixed(0)}"/>`;
+  }).join('');
+  html += '<g id="tsocks"></g>';
   /* 中間：昇華（點跟線也進 TEL，點亮只改 class）；最上面的大點名字寫在上面，不壓到下面的線 */
   const T = ascT();
   if (T) {
@@ -207,11 +215,56 @@ function treeRefresh() {
     const cls = have.has(a) && have.has(b) ? 'on' : have.has(a) || have.has(b) ? 'near' : '';
     if (el.getAttribute('class') !== cls) el.setAttribute('class', cls);
   }
+  treeSocks();
   $('tpts').textContent = ptLeft();
   $('tpts').className = ptLeft() > 0 ? 'c-gold' : '';
   $('treset').disabled = S.pt.length <= PT_START.length;
 }
-/* 整棵樹的範圍（畫一次）；拖曳、縮放只改 SVG 的 CSS transform（交給 GPU，不重排 SVG） */
+/* 最外圈的半徑（分區線畫到這裡，珠寶孔畫在外面一點） */
+let TR1 = 0;
+const treeR = () => TR1 || (TR1 = Math.max(...PTREE.N.map(n => Math.hypot(n.x, n.y))) + 60);
+const secName = i => PTREE.I[PT_START[i]].n;
+/* 六個珠寶孔（0.2.84）：進度 x／40；開了是亮的；有珠寶但點數不夠＝鎖住（紅字） */
+function treeSocks() {
+  const g = $('tsocks');
+  if (!g) return;
+  const c = secCount(S),
+    R = treeR() + 230;
+  g.innerHTML = PTREE.SECA.map((a, i) => {
+    const op = c[i] >= JEWEL.need,
+      j = (S.jsock || [])[i] && jwOf(S, S.jsock[i]),
+      st = j && !op ? 'lock' : op ? (j ? 'on' : 'open') : '',
+      txt = j && !op ? '鎖住' : op ? (j ? '已鑲' : '可鑲') : `${c[i]}／${JEWEL.need}`;
+    return `<g class="tsock ${st}" data-ta="sock:${i}" transform="translate(${(Math.cos(a) * R).toFixed(0)} ${(Math.sin(a) * R).toFixed(0)})"><circle r="170"/><text class="n" y="30">${txt}</text><text class="l" y="-70">${esc(secName(i))}</text><text class="l" y="115">珠寶孔</text></g>`;
+  }).join('');
+}
+/* 珠寶孔的選單：這一孔的狀態、裡面的珠寶（拔下）、收藏裡的珠寶（鑲上、拆） */
+function treeSockOpen(i) {
+  treeAttrClose();
+  $('tsockp') && $('tsockp').remove();
+  if (i == null) return;
+  const c = secCount(S)[i],
+    op = c >= JEWEL.need,
+    cur = (S.jsock || [])[i],
+    nt = id => {
+      const n = PTREE.I[id];
+      return `<li><b>${esc(n.n)}</b>${S.pt.includes(id) ? ' <span class="c-dim">（已經點了，不重複）</span>' : ''}<small>${statLines(n.s).map(esc).join('、')}</small></li>`;
+    },
+    row = j => {
+      const at = (S.jsock || []).indexOf(j.id);
+      return `<div class="jw ${j.id === cur ? 'on' : ''}"><div><b>${esc(jwName(j))}</b>${at >= 0 && at !== i ? `<span class="c-dim">（在${esc(secName(at))}）</span>` : ''}<ul>${j.nt.map(nt).join('')}</ul></div><span class="jw-b">${j.id === cur ? `<button class="btn" data-ta="jout:${i}">拔下</button>` : `<button class="btn pri" data-ta="jput:${i}:${j.id}">鑲上</button>`}${at < 0 ? `<button class="btn" data-ta="jx:${j.id}">拆</button>` : ''}</span></div>`;
+    },
+    L = S.jewels || [],
+    d = document.createElement('div');
+  d.id = 'tsockp';
+  d.dataset.i = i;
+  d.className = 'tsockp';
+  d.innerHTML = `<div class="ph"><b>${esc(secName(i))}的珠寶孔</b><span class="${op ? 'c-good' : ''}">這一區 ${c}／${JEWEL.need} 點</span><button class="x" aria-label="關閉" data-ta="sockx">${ICO.x}</button></div>
+    ${cur && !op ? `<p class="c-bad">點數不到 ${JEWEL.need}：珠寶鎖住、不生效（再點 ${JEWEL.need - c} 點就恢復）</p>` : op ? '' : `<p class="fhint">這一區再點 ${JEWEL.need - c} 點才開孔；可以先鑲，開了才生效</p>`}
+    ${L.length ? L.map(row).join('') : '<p class="fhint">還沒有亡靈珠寶：陰兵借道的蚩尤、涿鹿兵主掉（山海寶盒）</p>'}
+    <p class="fhint">珠寶的大點跟天賦一樣加；已經點了的大點、兩顆重複的只算一次。拆掉換 200 靈魂。</p>`;
+  $('ptree').appendChild(d);
+}
 let TBOX = null;
 function treeBox() {
   if (TBOX) return TBOX;
@@ -221,6 +274,9 @@ function treeBox() {
     y1 = 0;
   for (const n of PTREE.N)
     (x0 = Math.min(x0, n.x)), (y0 = Math.min(y0, n.y)), (x1 = Math.max(x1, n.x)), (y1 = Math.max(y1, n.y));
+  /* 外緣留給珠寶孔（0.2.84） */
+  const R = treeR() + 420;
+  (x0 = Math.min(x0, -R)), (y0 = Math.min(y0, -R)), (x1 = Math.max(x1, R)), (y1 = Math.max(y1, R));
   return (TBOX = {
     x: Math.floor(x0 - 60),
     y: Math.floor(y0 - 60),
@@ -417,7 +473,8 @@ function treeTip(id) {
                 : `能力值 +${n.s.attr}（點的時候選力量、敏捷或智慧）`
             ]
           : statLines(n.s);
-  return `<b class="${n.big === 2 || n.asc ? 'c-gold' : ''}">${esc(n.n)}</b><small>${kind}</small>${lines.length ? `<p class="aff">${lines.join('<br>')}</p>` : ''}`;
+  const sec = n.asc || n.gate ? '' : ` · 算在${secName(n.sec)}`;
+  return `<b class="${n.big === 2 || n.asc ? 'c-gold' : ''}">${esc(n.n)}</b><small>${kind}${sec}</small>${lines.length ? `<p class="aff">${lines.join('<br>')}</p>` : ''}`;
 }
 /* 以畫面上一點為中心縮放 */
 function treeZoomAt(cx, cy, z) {
@@ -524,6 +581,21 @@ function treeInit() {
     if (a.dataset.ta === 'reset' && confirm2(a, '再按一次：退回全部天賦點'))
       (S.pt = [...PT_START]), (S.ptA = {}), treeChanged();
     if (a.dataset.ta === 'areset' && confirm2(a, '再按一次：退回昇華點')) (S.at = ['a_st']), treeChanged();
+    /* 珠寶孔（0.2.84） */
+    const [k, x, y] = a.dataset.ta.split(':');
+    if (k === 'sock') treeSockOpen(+x);
+    if (k === 'sockx') treeSockOpen(null);
+    if (k === 'jput' || k === 'jout') {
+      jwPut(+x, k === 'jput' ? y : null);
+      treeChanged();
+      treeSockOpen(+x);
+    }
+    if (k === 'jx' && confirm2(a, '再按一次：拆成 200 靈魂')) {
+      const w = jwSalvage(x);
+      if (w) return hudWarn(w);
+      save();
+      treeSockOpen(+$('tsockp').dataset.i);
+    }
   });
   el.addEventListener('input', e => e.target.id === 'tfind' && treeFind(e.target.value));
   el.addEventListener('keydown', e => {
