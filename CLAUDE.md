@@ -66,6 +66,7 @@
 | `tools/hide_check.js` | 藏身處實測（Playwright）：走到每個設施、打三隻稻草人、實戰模式、DPS、召喚物圖騰地面、盲擊撲的煙霧、每把武器配輕盾的 DPS 對帳、清場、傳送門、存檔還原；`node tools/hide_check.js [網址]`（`PW_CHROME` 指定瀏覽器） |
 | `tools/pro_check.js` | 開場與序章實測（Playwright）：新存檔走完全程、老存檔還原、跳過、死亡重來、版本號重跑、重新整理接回、手機四個尺寸的提示與觸控；`node tools/pro_check.js [網址] [fresh／vet／skip／phone]` |
 | `tools/world_check.js` | 世界地圖實測（Playwright）：序章第 8 步 → 劇情區 → 世界展開 → 世界區 → 洗卡 → 死亡重打 → 血霧 → 裂口王 → 存檔還原、手勢、減少動態、手機降速 4 倍的效能；`node tools/world_check.js [網址] [flow／gesture／still／perf]` |
+| `tools/wiki.js`、`tools/wiki_tpl.html` | 圖鑑產生器：在本機開遊戲頁，從遊戲資料抽技能、輔助、光環、昇華（大點＋小點）、名詞、每一級的數值與圖示，套模板寫成一個獨立 HTML（有篩選器、詳情頁、名詞自動連結，可以發布成 Artifact）；先開本機伺服器，`node tools/wiki.js [輸出檔，預設 tools/wiki.html（不進 git）] [網址]` |
 | `tools/ui_frame.py` | 鑄鐵銀框的九宮格素材 `img/ui/frame.png`（CSS 的 `border-image`） |
 | `supabase/migrations/` | `dungeon_saves` 表、`dungeon_market` 市集表與函式 |
 
