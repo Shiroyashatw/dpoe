@@ -40,9 +40,8 @@ const WM = {
 /* 平頂六角格的 6 個鄰居（跟 world.js 的 wRing 同一套 axial） */
 /* 拉遠時不畫的一般節點 */
 const WM_PLAIN = ['plain', 'dawn', 'crow', 'star'];
-/* 這個節點要不要畫：選中的、目標一定畫；打過的不畫；拉遠時只畫走得到的與特殊的（裂口、血霧、機制區塊、主線） */
-const wmShow = (n, z) =>
-  WM.sel === n.k || n.k === WM.goal || (!n.done && (z >= 0.62 || n.can || !WM_PLAIN.includes(n.t)));
+/* 這個節點要不要畫：選中的、目標、打過的（畫成小的灰色，見 wmBase）一定畫；拉遠時沒打過的只畫走得到的與特殊的（裂口、血霧、機制區塊、主線） */
+const wmShow = (n, z) => WM.sel === n.k || n.k === WM.goal || n.done || z >= 0.62 || n.can || !WM_PLAIN.includes(n.t);
 const WM_DIR = [
   [1, 0],
   [1, -1],
@@ -51,6 +50,23 @@ const WM_DIR = [
   [-1, 1],
   [0, 1]
 ];
+/* 世界座標落在哪一格（平頂六角、axial，cube 取整）；拼圖迷霧用來判斷燈火、區域名是不是在拼出來的格子裡 */
+function wmHexAt(x, y) {
+  const fq = ((2 / 3) * x) / W_SZ,
+    fr = ((-1 / 3) * x + (Math.sqrt(3) / 3) * y) / W_SZ,
+    fs = -fq - fr;
+  let q = Math.round(fq),
+    r = Math.round(fr);
+  const s = Math.round(fs),
+    dq = Math.abs(q - fq),
+    dr = Math.abs(r - fr),
+    ds = Math.abs(s - fs);
+  if (dq > dr && dq > ds) q = -r - s;
+  else if (dr > ds) r = -q - s;
+  return wKey(q, r);
+}
+/* 這個世界座標在拼出來的格子裡嗎（世界展開前不限制） */
+const wmLit = (x, y) => !(WM.wipe >= 1) || (WM.lit && WM.lit.has(wmHexAt(x, y)));
 const wmStill = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wmLat = (q, r) => [W_SZ * 1.5 * q, W_SZ * Math.sqrt(3) * (r + q / 2)];
 /* 世界區的節點位置微微抖動，看起來不像格子 */
@@ -397,6 +413,12 @@ function wmNodes() {
     seen = new Set(keys),
     D = wDone(s),
     seed = s.world.seed;
+  /* 拼圖迷霧（0.2.79）：記下每格第一次看到的時間，新拼上去的那格淡入；這次開頁面第一次算的全部直接出現 */
+  const now = performance.now(),
+    SA = (WM.seenAt = WM.seenAt || new Map()),
+    first = !SA.size;
+  for (const k of keys) if (!SA.has(k)) SA.set(k, first ? 0 : now);
+  WM.lit = seen;
   WM.nodes = keys.map(k => {
     const [q, r] = wXY(k),
       [x, y] = wmPos(q, r);
@@ -607,10 +629,7 @@ function wmFog() {
   f.globalCompositeOperation = 'destination-out';
   /* 世界展開：紅色的環從中心往外推，推過的地方看得到但比較暗 */
   if (WM.wipe > 0) {
-    if (WM.wipe >= 1) {
-      f.fillStyle = 'rgba(0,0,0,0.62)';
-      f.fillRect(0, 0, W, H);
-    } else {
+    if (WM.wipe < 1) {
       const [cx, cy] = S2(0, 0),
         r = ((80 + WM.wipe * 2400) * WM.z) / 8,
         g = f.createRadialGradient(cx, cy, r * 0.7, cx, cy, r);
@@ -620,13 +639,32 @@ function wmFog() {
       f.fillRect(0, 0, W, H);
     }
   }
-  for (const n of WM.nodes) {
-    if (!n.done && STORY_I[n.k] == null) continue;
-    const [x, y] = S2(n.x, n.y),
-      R = ((STORY_I[n.k] != null ? 170 : 150) * WM.z) / 8;
-    if (x < -R || y < -R || x > W + R || y > H + R) continue;
-    f.drawImage(WM.hole, x - R, y - R, R * 2, R * 2);
-  }
+  if (WM.wipe >= 1) {
+    /* 拼圖（0.2.79）：沒探索的全黑；看得到的節點把自己那格六角形拼出來（打過的全亮、前線半亮），新的那格淡入 */
+    const now = performance.now(),
+      R = (W_SZ * 1.1 * WM.z) / 8;
+    let fading = 0;
+    for (const n of WM.nodes) {
+      const [x, y] = S2(...wmLat(n.q, n.r));
+      if (x < -R * 2 || y < -R * 2 || x > W + R * 2 || y > H + R * 2) continue;
+      const t0 = WM.seenAt.get(n.k) || 0,
+        k = wmStill() ? 1 : Math.min(1, (now - t0) / 450);
+      if (k < 1) fading = 1;
+      f.fillStyle = `rgba(0,0,0,${(n.done || STORY_I[n.k] != null ? 1 : 0.6) * k})`;
+      f.beginPath();
+      for (let i = 0; i < 6; i++) f.lineTo(x + Math.cos((i * Math.PI) / 3) * R, y + Math.sin((i * Math.PI) / 3) * R);
+      f.closePath();
+      f.fill();
+    }
+    WM.fading = fading;
+  } else
+    for (const n of WM.nodes) {
+      if (!n.done && STORY_I[n.k] == null) continue;
+      const [x, y] = S2(n.x, n.y),
+        R = ((STORY_I[n.k] != null ? 170 : 150) * WM.z) / 8;
+      if (x < -R || y < -R || x > W + R || y > H + R) continue;
+      f.drawImage(WM.hole, x - R, y - R, R * 2, R * 2);
+    }
   f.globalCompositeOperation = 'source-over';
 }
 const wmS = (x, y) => [(x - WM.x) * WM.z + WM.W / 2, (y - WM.y) * WM.z + WM.H / 2];
@@ -685,6 +723,7 @@ function wmBase() {
         R = (r + 3) * W_SZ * 1.62,
         [x, y] = wmS(Math.cos(a) * R, Math.sin(a) * R),
         t = [...n].join(' ');
+      if (!wmLit(Math.cos(a) * R, Math.sin(a) * R)) return;
       c.strokeStyle = 'rgba(13,14,17,.85)';
       c.fillStyle = 'rgba(233,226,206,.72)';
       c.strokeText(t, x, y);
@@ -694,7 +733,7 @@ function wmBase() {
   /* 路 */
   const L = [],
     D = [];
-  /* 要畫的節點（0.2.79）：打過的不畫（打過的地方玩家不會回頭看），拉遠時只畫走得到的與特殊的；路只畫兩端都看得到的 */
+  /* 要畫的節點（0.2.79）：拉遠時沒打過的只畫走得到的與特殊的；路只畫兩端都看得到的（沒探索的地方被拼圖迷霧蓋住） */
   const vis = new Set(WM.nodes.filter(n => wmShow(n, z)).map(n => n.k));
   for (const e of WM.edges) {
     if (!vis.has(e.k1) || !vis.has(e.k2)) continue;
@@ -717,7 +756,7 @@ function wmBase() {
   };
   dots([...L, ...D], 5, 2, 'rgba(8,8,10,.85)');
   dots(L, 3, 1, '#b9b09a');
-  dots(D, 3, 1, '#ffe9b0');
+  dots(D, 3, 1, 'rgba(185,176,154,.5)'); /* 打過的路比較暗（0.2.79） */
   /* 機制區塊（0.2.79）：7 格的範圍塗一層淡淡的機制顏色、外圈描邊（只畫隔壁不是同一塊的邊），上方寫名字；拉遠也認得出來 */
   for (const g of WM.regions || []) {
     const [gx, gy] = wmS(...g.c);
@@ -767,9 +806,11 @@ function wmBase() {
     if (x < -40 || y < -40 || x > W + 40 || y > H + 40) continue;
     const sel = WM.sel === n.k;
     if (!vis.has(n.k)) continue;
-    const s = n.t === 'rift' || n.t === 'story' ? Math.max(2, big) : big,
-      sz = 11 * s,
-      b = sz / 2 + 5;
+    /* 打過的（主線、裂口以外）：小一點的灰色菱形，沒有等級字（照 PoE2 的已完成地圖） */
+    const dim = n.done && !sel && n.t !== 'story' && n.t !== 'rift',
+      s = n.t === 'rift' || n.t === 'story' ? Math.max(2, big) : big,
+      sz = dim ? 7 : 11 * s,
+      b = sz / 2 + (dim ? 3 : 5);
     c.beginPath();
     c.moveTo(x, y - b);
     c.lineTo(x + b, y);
@@ -781,7 +822,7 @@ function wmBase() {
     c.lineWidth = sel ? 3 : 1.5;
     c.strokeStyle = sel ? '#fff' : n.done ? '#6d7280' : WTYPE[n.t].c;
     c.stroke();
-    c.globalAlpha = n.done ? 0.45 : 1;
+    c.globalAlpha = dim ? 0.3 : n.done ? 0.45 : 1;
     c.drawImage(WM_IC[n.t], Math.round(x - sz / 2), Math.round(y - sz / 2), sz, sz);
     c.globalAlpha = 1;
     if (sel || (n.can && z >= 0.62)) {
@@ -966,7 +1007,7 @@ function wmFx(now) {
     if (!ch || !ch.ready) continue;
     for (const s of ch.sites) {
       const [x, y] = wmS(s.x, s.y);
-      if (cull(x, y)) continue;
+      if (cull(x, y) || !wmLit(s.x, s.y)) continue;
       const t = still ? 0 : now / 1000 + s.p;
       if (s.t === 'fire' || s.t === 'town') {
         const f = Math.floor(t * 9) % 3,
@@ -1143,6 +1184,7 @@ function wmFrame(now, dt) {
   /* 手機閒著時 30 fps */
   WM.tick++;
   if (TOUCH.on && !WM.dirty && WM.tick & 1) return;
+  if (WM.fading) WM.dirty = true; /* 拼圖淡入中：底圖每格重畫 */
   if (WM.dirty) {
     WM.dirty = false;
     wmBase();
