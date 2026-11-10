@@ -22,6 +22,7 @@ function newGame() {
     frag: 0,
     /* 碎片分頁（0.2.78 酆都）：勾魂令四種、生死簿 */
     frags: newFrags(),
+    army: {},
     /* 世界地圖（world.js）：種子、走過的節點、每節點的地圖卡、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
     world: newWorld(),
     cards: {},
@@ -90,6 +91,8 @@ function resetWorld(W, H) {
     nums: [],
     drops: [],
     tele: [],
+    night: 0,
+    fog: 0,
 
     props: [],
     solid: [],
@@ -199,7 +202,9 @@ const ARENA = {
   sanshi: '心魔・三尸',
   sanpeng: '三彭',
   zhulong: '燭龍',
-  zhu9: '燭九陰'
+  zhu9: '燭九陰',
+  chiyou: '蚩尤',
+  zhuolu: '涿鹿兵主'
 };
 const arenaLv = s => Math.min(W_CAP, Math.max(wLv(STORY[0].q, STORY[0].r), ...s.world.done.map(k => wLv(...wXY(k)))));
 function arenaWhy(s, kind, sel) {
@@ -207,7 +212,9 @@ function arenaWhy(s, kind, sel) {
     ? fdHallWhy(s, kind)
     : kind === 'sanshi' || kind === 'sanpeng'
       ? sinHallWhy(s, kind, sel)
-      : xiHallWhy(s, kind);
+      : kind === 'chiyou' || kind === 'zhuolu'
+        ? armyHallWhy(s, kind)
+        : xiHallWhy(s, kind);
 }
 function openArena(kind, sel) {
   if (G.scene !== 'hide') return hudWarn('回藏身處才能開');
@@ -216,7 +223,9 @@ function openArena(kind, sel) {
       ? fdHallPay(S, kind)
       : kind === 'sanshi' || kind === 'sanpeng'
         ? sinHallPay(S, kind, sel)
-        : xiHallPay(S, kind);
+        : kind === 'chiyou' || kind === 'zhuolu'
+          ? armyHallPay(S, kind)
+          : xiHallPay(S, kind);
   if (w) return hudWarn(w);
   S.arena = kind;
   G.portal = { ...HIDE_ART.portal, to: lvT(arenaLv(S)), n: ARENA[kind] };
@@ -237,7 +246,11 @@ const arenaBoss = k =>
           ? sinBoss(pick(['up', 'mid', 'low']))
           : k === 'zhu9'
             ? xiUber()
-            : xiBoss('zhulong');
+            : k === 'chiyou'
+              ? armyBoss('chiyou')
+              : k === 'zhuolu'
+                ? armyUber()
+                : xiBoss('zhulong');
 /* 地圖（參考 Chronicon）：一塊一塊 14×14 格的房間拼起來，有岔路也沒關係；
    殺怪累積首領進度，滿了王就出現在附近（怪物總量約是需要的 150～160%） */
 const TS = 48,
@@ -264,6 +277,8 @@ function enterMap(t) {
   G.dream = 0;
   G.sinDeb = null;
   G.fiend = null;
+  G.army = null;
+  G.fog = 0;
   G.night = 0; /* 燭龍的天黑（G.t 每張圖從 0 開始，不清會跟到下一張） */
   /* 山海寶盒的王場（0.2.80） */
   G.arena = S.arena || null;
@@ -288,6 +303,13 @@ function enterMap(t) {
       G.fiend = f.k;
       if (f.c) G.fdB = xiBoss(f.k);
     }
+    /* 陰兵借道（0.2.81）：怨恨值照進圖時算；三位將領的節點，王就是那位將領 */
+    if (wType(S, q, r) === 'army') {
+      const ck = wArmy(S.world.seed, q, r),
+        g = wArmyGen(S.world.seed, ck)[G.node];
+      G.army = { c: ck, res: armyRes(S, ck) };
+      if (g) G.fdB = armyBoss(g);
+    }
     G.hunt = !!S.hunt.full; /* 血霧期：進這張圖時血霧是滿的（最後一張扣光也算） */
     huntEnter(S);
     delete S.cards[G.node];
@@ -300,6 +322,7 @@ function enterMap(t) {
   if (G.fiend)
     for (const [f, v] of Object.entries({ ...XIONG_MOD[G.fiend].fx, ...XIONG_MOD[G.fiend].rew }))
       G.mm[f] = typeof v === 'string' ? v : (G.mm[f] || 0) + v;
+  if (G.army) for (const [f, v] of Object.entries(ARMY.per)) G.mm[f] = (G.mm[f] || 0) + v * G.army.res;
   G.star = (S.card && S.card.star) || 1;
   S.node = S.card = S.arena = S.sinDeb = null;
   const tiles = (G.tiles = new Uint8Array(cols * rows).fill(1));
@@ -383,7 +406,7 @@ function enterMap(t) {
       const c = floorIn(r);
       if (!c) continue;
       const elite = els.has(++pk);
-      pick(PACKS).forEach((m, j) => {
+      pick(G.army && Math.random() < 0.5 ? ARMY.packs : PACKS).forEach((m, j) => {
         const p = floorNear(c.x, c.y, 0, 70, 20) || c;
         spawnMob(MOBS[m], p.x, p.y, pk, elite && j === 0);
         pts += elite && j === 0 ? 6 : 1;
@@ -895,10 +918,12 @@ function killMob(m) {
     ...killMat(m, t, od),
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),
     ...(m.boss && m.D.sin ? sinDrop(m.D.sin) : []),
-    ...(m.boss && m.D.xi ? xiDrop(m.D.xi) : [])
+    ...(m.boss && m.D.xi ? xiDrop(m.D.xi) : []),
+    ...(m.boss && m.D.army ? armyDrop(m.D.army, G.army && G.army.c, G.army ? G.army.res : 0) : [])
   ].forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
   /* 掉落：菁英 1 件黃、王 3 件（第一件保底黃）；裂口生肖王多 1 件保底追憶裝 */
   for (const it of dropGear(m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0, od)) dropAt(m.x, m.y, { it });
+  if (m.boss && m.D.army) for (const it of armyGear(m.D.army, G.army ? G.army.res : 0, od)) dropAt(m.x, m.y, { it });
   if (Math.random() < (m.boss || m.elite ? 1 : 0.4))
     dropAt(m.x, m.y, { gold: Math.round(rnd(2, 6) * (1 + t * 0.5) * (m.boss ? 12 : m.elite ? 3 : 1)) });
   const fr = m.boss
@@ -1390,7 +1415,11 @@ const BOSS_NEAR = {
     dread: 1,
     tether: 1,
     repel: 1,
-    greed: 1
+    greed: 1,
+    qiwu: 1,
+    whirl: 1,
+    rain: 1,
+    fog: 1
   },
   BOSS_FAR = {
     charge: 1,
@@ -1405,7 +1434,11 @@ const BOSS_NEAR = {
     laugh: 1,
     wrath: 1,
     tears: 1,
-    tether: 1
+    tether: 1,
+    qiwu: 1,
+    whirl: 1,
+    rain: 1,
+    fog: 1
   },
   BOSS_WIND = {
     swipe: 0.5,
@@ -1429,7 +1462,11 @@ const BOSS_NEAR = {
     gale: 0.6,
     unstop: 0.5,
     chaosjump: 0.5,
-    daynight: 0.7
+    daynight: 0.7,
+    qiwu: 0.6,
+    whirl: 0.6,
+    rain: 0.5,
+    fog: 0.7
   },
   NOVA_N = 16,
   NOVA_GAP = 3;
@@ -1468,6 +1505,41 @@ function bossAI(m, dt) {
     const a = angTo(m, P);
     moveBody(P, Math.cos(a) * 320 * dt, Math.sin(a) * 320 * dt);
     if (!(m.dreadH > G.t)) (m.dreadH = G.t + 0.5), mobHit(m, P, m.dmg * 0.4);
+  }
+  /* 陰兵借道（0.2.81）：刑天的干戚舞（轉 3 秒、邊轉邊朝你走，每 0.3 秒打一下身邊） */
+  if (m.spinT > G.t) {
+    const a = angTo(m, T);
+    moveBody(m, Math.cos(a) * m.D.spd * 0.7 * dt, Math.sin(a) * m.D.spd * 0.7 * dt);
+    if (!(m.spinH > G.t)) {
+      m.spinH = G.t + 0.3;
+      fx({ k: 'claw', x: m.x, y: m.y, ang: rnd(0, TAU), r: m.r + 110, dur: 0.15, big: 1 });
+      for (const o of [P, ...liveAllies()]) if (dist(m, o) < m.r + 110 + o.r) mobHit(m, o, m.dmg * 0.45);
+    }
+  }
+  /* 風伯的風捲：兩道龍捲風慢慢追你，捲到會被拖著走、每 0.5 秒受一次傷 */
+  if (m.whirls) {
+    for (const w of m.whirls) {
+      const a = Math.atan2(P.y - w.y, P.x - w.x);
+      w.x += Math.cos(a) * 120 * dt;
+      w.y += Math.sin(a) * 120 * dt;
+      if (Math.random() < 0.5)
+        fx({ k: 'ring', x: w.x + rnd(-10, 10), y: w.y + rnd(-10, 10), r: rnd(20, 45), dur: 0.35, col: '#cfe8ff' });
+      if (Math.hypot(P.x - w.x, P.y - w.y) < 55 + P.r) {
+        moveBody(P, Math.cos(a) * 160 * dt, Math.sin(a) * 160 * dt);
+        if (!(w.h > G.t)) (w.h = G.t + 0.5), mobHit(m, P, m.dmg * 0.4);
+      }
+    }
+    if (G.t > m.whirlEnd) m.whirls = null;
+  }
+  /* 雨師的驟雨：雨區裡濕透、每 0.6 秒受一次冰冷傷害 */
+  if (m.rain && G.t < m.rain.t) {
+    const R = m.rain;
+    if (Math.random() < 0.7)
+      fx({ k: 'ring', x: R.x + rnd(-0.8, 0.8) * R.r, y: R.y + rnd(-0.6, 0.6) * R.r, r: 8, dur: 0.3, col: '#6fb7ff' });
+    if (Math.hypot(P.x - R.x, (P.y - R.y) / 0.75) < R.r) {
+      drench(P, 1);
+      if (!(R.h > G.t)) (R.h = G.t + 0.6), mobHit(m, P, m.dmg * 0.3, true, 'cold');
+    }
   }
   if (rage < 1 && !m.raged) {
     m.raged = 1;
@@ -1692,6 +1764,35 @@ function bossAI(m, dt) {
         }
         m.hk = null;
         bossRec(m, 0.9, rage);
+      } else if (m.pat === 'qiwu') {
+        m.spinT = G.t + 3;
+        hudWarn(`${m.D.n}舞起干戚`);
+        bossRec(m, 3, rage);
+      } else if (m.pat === 'whirl') {
+        m.whirls = [-1, 1].map(d => ({
+          x: m.x + Math.cos(m.ang + d * 1.2) * 80,
+          y: m.y + Math.sin(m.ang + d * 1.2) * 80
+        }));
+        m.whirlEnd = G.t + 4;
+        hudWarn(`${m.D.n}捲起了風`);
+        bossRec(m, 0.6, rage);
+      } else if (m.pat === 'rain') {
+        m.rain = { x: T.x, y: T.y, r: 200, t: G.t + 4 };
+        fx({ k: 'ring', x: T.x, y: T.y, r: 200, dur: 4, col: '#6fb7ff' });
+        hudWarn(`${m.D.n}降下驟雨：站在雨裡會濕透`);
+        bossRec(m, 0.6, rage);
+      } else if (m.pat === 'fog') {
+        G.fog = G.t + 5;
+        for (let i = 0; i < 4; i++) {
+          const a = (i * TAU) / 4 + rnd(0, 1),
+            x = P.x + Math.cos(a) * 220,
+            y = P.y + Math.sin(a) * 220;
+          if (isWall(x, y)) continue;
+          const o = spawnMob(MOBS[m.D.call], x, y, 99, false);
+          o.summoned = o.aggro = 1;
+        }
+        hudWarn(`${m.D.n}作大霧：霧裡衝出陰兵`);
+        bossRec(m, 0.6, rage);
       } else bossRec(m, 0.9, rage);
     }
   } else if (m.st === 'dash') {

@@ -218,7 +218,9 @@ const itemName = it =>
 const itemT = it => bestTier(it.L);
 /* 地上標籤的小字：T、孔、★、追憶（未鑑定也看得到的資訊） */
 const labelTag = it =>
-  it.charm ? '' : ` T${itemT(it)}${it.so ? ' ' + '○'.repeat(it.so) : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}`;
+  it.charm
+    ? ''
+    : ` T${itemT(it)}${it.so ? ' ' + '○'.repeat(it.so) : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}${it.mem2 ? '◈' : ''}`;
 const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + '～' + a.v[1] : a.v);
 /* 腐化詞（0.2.72）：it.cw 的一條 */
 const cwText = c => CORR[c.k].n.replace('{}', c.v);
@@ -896,15 +898,15 @@ function stats(s = S) {
         put(k, DEFK.includes(k) ? Math.round(b[k] * qMul(it)) : b[k]);
     for (const a of it.a) if (!isLocal(it, a.k)) put(a.k, a.v);
     /* 追憶詞：投射物、連鎖、精魂保留直接加進既有的能力，其餘放在 o.mem */
-    const m = it.mem;
-    if (m && MEM[m.k])
-      if (m.k === 'm_proj') o.proj += 1;
-      else if (m.k === 'm_chain') o.chain += 1;
-      else if (m.k === 'm_spirit') o.spiritEff += Math.round((100 * m.v) / (100 - m.v));
-      else if (m.k === 'm_lv') o.mem.gemLv = (o.mem.gemLv || 0) + 1;
-      else if (m.k === 'm_exp')
-        (o.mem.hitExp = o.mem.hitExp || {})[m.el] = Math.max((o.mem.hitExp || {})[m.el] || 0, m.v);
-      else if (m.k === 'm_curse') o.mem.hitCurse = { k: m.c, lv: m.lv };
+    for (const m of [it.mem, it.mem2])
+      if (m && MEM[m.k])
+        if (m.k === 'm_proj') o.proj += 1;
+        else if (m.k === 'm_chain') o.chain += 1;
+        else if (m.k === 'm_spirit') o.spiritEff += Math.round((100 * m.v) / (100 - m.v));
+        else if (m.k === 'm_lv') o.mem.gemLv = (o.mem.gemLv || 0) + 1;
+        else if (m.k === 'm_exp')
+          (o.mem.hitExp = o.mem.hitExp || {})[m.el] = Math.max((o.mem.hitExp || {})[m.el] || 0, m.v);
+        else if (m.k === 'm_curse') o.mem.hitCurse = { k: m.c, lv: m.lv };
   }
   o.add.phys = o.flat;
   /* 能力值（eqCheck 已算好：起始＋過路點＋有效裝備） */

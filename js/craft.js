@@ -640,6 +640,23 @@ function memGear(o) {
   return addMem(mkItem(pickBase(o.ilvl, 'weapon', 'bow').id, o.ilvl, 2));
 }
 
+/* 雙追憶（0.2.81，只有蚩尤、涿鹿兵主掉）：2 條不同的追憶詞（it.mem、it.mem2）；部位要有 2 種以上的追憶詞（弓、弩、手套） */
+function memGear2(o) {
+  for (let i = 0; i < 400; i++) {
+    const it = mkItem(pickBase(o.ilvl).id, o.ilvl, 2),
+      L = memPool(it);
+    if (L.length < 2) continue;
+    const a = pick(L);
+    it.mem = rollMem(a);
+    it.mem2 = rollMem(pick(L.filter(k => k !== a)));
+    return it;
+  }
+  const it = mkItem(pickBase(o.ilvl, 'weapon', 'bow').id, o.ilvl, 2);
+  it.mem = rollMem('m_proj');
+  it.mem2 = rollMem('m_chain');
+  return it;
+}
+
 /* ---------- 掉落（0.2.72，企劃書 5.4.5、5.8）：純邏輯，game.js 的 killMob 套用 ---------- */
 /* 星級表：el 菁英數、cur 一般通貨（蛻變、增幅、磨刀石／護甲片各自）每張圖的量、ess 精髓機率（每隻菁英）、essB 精髓機率（王；5★ 保底 1）。
    ⚠️ 暫定：裝備件數欄（企劃書 5.4.5）跟「王必掉 3 件、菁英各 1 件」對不上，照明文規則做；精髓機率文件只寫「機率／提高／保底」 */
@@ -811,6 +828,30 @@ function xiDrop(k, s = S) {
   }
   return got;
 }
+/* 陰兵借道的將領（0.2.81）：掉自己的將印；同一塊區塊打倒第三位將領時怨恨值 ≥ ARMY.fu 掉兵符（一塊只掉一次）。追憶裝在 killMob（armyGear） */
+function armyDrop(k, ck, res, s = S) {
+  if (!ARMY.gen.includes(k)) return [];
+  const F = (s.frags = { ...newFrags(), ...s.frags }),
+    got = [];
+  F[k]++, got.push(FRAGS[k].n);
+  if (ck) {
+    const A = armyOf(s, ck);
+    if (!A.g.includes(k)) A.g.push(k);
+    if (A.g.length >= ARMY.gen.length && res >= ARMY.fu && !A.fu) (A.fu = 1), F.fu++, got.push(FRAGS.fu.n);
+  }
+  return got;
+}
+/* 陰兵借道的追憶裝：將領保底 1 件＋每點怨恨值 ARMY.mem 機率再 1 件；蚩尤 1 件、涿鹿兵主 2 件雙追憶 */
+function armyGear(k, res, o) {
+  const L =
+    k === 'chiyou'
+      ? [memGear2(o)]
+      : k === 'zhuolu'
+        ? [memGear2(o), memGear2(o)]
+        : [memGear(o), ...(Math.random() < res * ARMY.mem ? [memGear(o)] : [])];
+  for (const it of L) it.uid = 1;
+  return L;
+}
 /* 打怪拿材料：靈魂與通貨自動進材料頁；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),
@@ -827,7 +868,7 @@ function killMat(m, t, o = {}) {
 const unidList = s => [s.inv, s.stash, s.temp].flatMap(g => (g ? g.items : [])).filter(it => it.uid);
 const unidN = s => unidList(s).length;
 /* 開獎的順序：越好的越晚翻（白、藍、黃，有追憶、有 ★ 的壓軸） */
-const unidScore = it => it.r + (it.mem ? 4 : 0) + (it.frac ? 8 : 0);
+const unidScore = it => it.r + (it.mem ? 4 : 0) + (it.mem2 ? 2 : 0) + (it.frac ? 8 : 0);
 function identifyAll(s = S) {
   const L = unidList(s).sort((a, b) => unidScore(a) - unidScore(b));
   for (const it of L) delete it.uid;

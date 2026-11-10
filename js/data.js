@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.80';
+const VER = '0.2.81';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -8038,7 +8038,11 @@ const newFrags = () => ({
   book: 0,
   ...Object.fromEntries(SIN.emo.map(k => [k, 0])),
   ...Object.fromEntries(XIONG.map(k => [k, 0])),
-  eye: 0
+  eye: 0,
+  xing: 0,
+  feng: 0,
+  yu: 0,
+  fu: 0
 });
 const fdBoss = k => BOSSES.find(b => b.fd === k);
 /* 十殿閻羅：閻羅的強化版 */
@@ -8156,9 +8160,124 @@ const xiUber = () => {
     pat: ['swipe', 'charge', 'slam', 'nova', 'line', 'blink', 'devour', 'gale', 'unstop', 'chaosjump', 'daynight']
   };
 };
+/* 陰兵借道（0.2.81，企劃書 4.2）：第 ARMY.ring 圈以外 19 格的大區塊（world.js 的 wArmyC），不會動；
+   區塊裡每打完一張圖「怨恨值」+1（最多 max，存在 S.army），區塊裡每張圖的怪物照怨恨值變強、獎勵變好、多陰兵小怪。
+   三位將領（刑天、風伯、雨師）各佔區塊裡一個節點、就是那格的地圖王：保底 1 件追憶裝、每點怨恨值多 mem 機率再 1 件、掉自己的將印；
+   將印三種各 1 個開蚩尤（山海寶盒）；同一塊區塊打倒第三位將領時怨恨值 ≥ fu 掉兵符，兵符＋Lv70 開涿鹿兵主。⚠️ 數字都暫定 */
+const ARMY = {
+  ring: 12,
+  w: 0.04,
+  max: 16,
+  /* 每點怨恨值：怪物生命、傷害、數量、稀有度、怪物群（%） */
+  per: { mhp: 6, mdmg: 6, qty: 8, rar: 8, pack: 5 },
+  mem: 0.05,
+  fu: 12,
+  uberLv: 70,
+  gen: ['xing', 'feng', 'yu'],
+  /* 區塊裡的怪物群：一半換成陰兵（現成的殭屍、骷髏、骨騎士） */
+  packs: [
+    ['jiangshi', 'jiangshi', 'skel', 'skel'],
+    ['bknight', 'skel', 'skel', 'skel'],
+    ['jiangshi', 'jiangshi', 'jiangshi', 'priest'],
+    ['bknight', 'jiangshi', 'lantern', 'lantern']
+  ]
+};
+const ARMY_HALL = { chiyou: '蚩尤', zhuolu: '涿鹿兵主' };
+/* 將領與蚩尤（圖先借現成的；招牌招在 game.js 的 bossAI：干戚舞 qiwu、風捲 whirl、驟雨 rain、大霧 fog） */
+BOSSES.push(
+  {
+    n: '刑天',
+    army: 'xing',
+    sp: 'wraith_general',
+    hp: 500,
+    dmg: 23,
+    spd: 135,
+    r: 42,
+    sz: 124,
+    xp: 200,
+    call: 'skel',
+    pat: ['swipe', 'charge', 'slam', 'qiwu']
+  },
+  {
+    n: '風伯',
+    army: 'feng',
+    sp: 'mist_gudiao',
+    hp: 460,
+    dmg: 22,
+    spd: 160,
+    r: 40,
+    sz: 120,
+    xp: 200,
+    call: 'bat',
+    el: 'light',
+    pat: ['blink', 'nova', 'line', 'whirl']
+  },
+  {
+    n: '雨師',
+    army: 'yu',
+    sp: 'leviathan',
+    hp: 480,
+    dmg: 22,
+    spd: 135,
+    r: 42,
+    sz: 122,
+    xp: 200,
+    call: 'islime',
+    el: 'cold',
+    pat: ['nova', 'line', 'slam', 'rain']
+  },
+  {
+    n: '蚩尤',
+    army: 'chiyou',
+    sp: 'satan',
+    hp: 520,
+    dmg: 24,
+    spd: 140,
+    r: 44,
+    sz: 128,
+    xp: 200,
+    call: 'jiangshi',
+    pat: ['charge', 'swipe', 'slam', 'summon', 'fog']
+  }
+);
+Object.assign(FRAGS, {
+  ...Object.fromEntries(
+    ARMY.gen.map(k => {
+      const n = BOSSES.find(b => b.army === k).n;
+      return [
+        k,
+        {
+          n: '將印・' + n,
+          ic: BOSSES.find(b => b.army === k).sp,
+          d: '陰兵借道的' + n + '掉的：三種各 1 個在山海寶盒開蚩尤'
+        }
+      ];
+    })
+  ),
+  fu: {
+    n: '兵符',
+    ic: 'satan',
+    d: `同一塊陰兵借道裡打倒第三位將領、怨恨值 ≥ ${ARMY.fu} 時掉：兵符＋Lv${ARMY.uberLv} 開涿鹿兵主`
+  }
+});
+const armyBoss = k => BOSSES.find(b => b.army === k);
+/* 涿鹿兵主：蚩尤的極限版，三位將領的招牌招全會 */
+const armyUber = () => {
+  const c = armyBoss('chiyou');
+  return {
+    ...c,
+    n: '涿鹿兵主',
+    army: 'zhuolu',
+    hp: c.hp * 3,
+    dmg: c.dmg * 1.5,
+    sz: c.sz * 1.15,
+    pat: ['swipe', 'charge', 'slam', 'summon', 'nova', 'line', 'blink', 'qiwu', 'whirl', 'rain', 'fog']
+  };
+};
 const bossPick = no => {
   /* 0.2.78：酆都的王（牛頭、馬面、黑白無常、閻羅；fd）只在鬼門、閻羅殿出現，不進一般地圖的王池 */
   /* 0.2.80：四凶與燭龍（xi）也不進一般王池 */
-  const l = BOSSES.filter(b => b !== no && !b.fd && !b.sin && !b.xi);
+  /* 0.2.81：陰兵借道的將領與蚩尤（army）也不進 */
+  const l = BOSSES.filter(b => b !== no && !b.fd && !b.sin && !b.xi && !b.army);
   return l[Math.floor(Math.random() * l.length)];
 };

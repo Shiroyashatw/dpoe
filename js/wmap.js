@@ -427,12 +427,16 @@ function wmNodes() {
   /* 機制區塊（0.2.79）：看得到的區塊節點歸到所屬的大格，畫外框、名字、特效用 */
   const RG = new Map();
   for (const n of WM.nodes) {
-    if (!REGION.types.includes(n.t)) continue;
-    const [cq, cr] = wRegionC(n.q, n.r),
-      key = cq + ',' + cr;
+    const big = n.t === 'army';
+    if (!big && !REGION.types.includes(n.t)) continue;
+    /* 陰兵借道（0.2.81）是 19 格的大六角，用自己的格線 */
+    const [cq, cr] = (big ? wArmyC : wRegionC)(n.q, n.r),
+      key = (big ? 'a' : '') + cq + ',' + cr;
     if (!RG.has(key)) {
-      const cells = [[cq, cr], ...WM_DIR.map(([a, b]) => [cq + a, cr + b])];
+      const cells = big ? wArmyCells(cq, cr) : [[cq, cr], ...WM_DIR.map(([a, b]) => [cq + a, cr + b])];
       RG.set(key, {
+        big,
+        res: big ? armyRes(s, wKey(cq, cr)) : 0,
         t: n.t,
         q: cq,
         r: cr,
@@ -561,6 +565,34 @@ const WM_ICO = {
     '..#######..',
     '...#####...',
     '...........'
+  ],
+  /* 凶地（0.2.80）：長角的獸頭 */
+  fiend: [
+    '#.........#',
+    '##.......##',
+    '.##.....##.',
+    '..#######..',
+    '.#########.',
+    '.##+###+##.',
+    '.#########.',
+    '..##+++##..',
+    '..#.#.#.#..',
+    '...#####...',
+    '...........'
+  ],
+  /* 陰兵借道（0.2.81）：旗桿＋三角戰旗 */
+  army: [
+    '.#.........',
+    '.########..',
+    '.#+++++###.',
+    '.#++++####.',
+    '.#+++####..',
+    '.#######...',
+    '.#.........',
+    '.#.........',
+    '.#.........',
+    '.#.........',
+    '###........'
   ],
   /* 鬼門（0.2.78 酆都）：牌坊＋黑門洞 */
   ghost: [
@@ -823,7 +855,7 @@ function wmBase() {
     c.strokeStyle = sel ? '#fff' : n.done ? '#6d7280' : WTYPE[n.t].c;
     c.stroke();
     c.globalAlpha = dim ? 0.3 : n.done ? 0.45 : 1;
-    c.drawImage(WM_IC[n.t], Math.round(x - sz / 2), Math.round(y - sz / 2), sz, sz);
+    c.drawImage(WM_IC[n.t] || WM_IC.plain, Math.round(x - sz / 2), Math.round(y - sz / 2), sz, sz);
     c.globalAlpha = 1;
     if (sel || (n.can && z >= 0.62)) {
       const lab = sel ? wName(S, n.q, n.r) : 'Lv ' + wLv(n.q, n.r);
@@ -926,7 +958,7 @@ function wmFx(now) {
   for (const g of WM.regions || []) {
     const [gx, gy] = wmS(...g.c);
     if (cull(gx, gy) && cull(gx, gy - 200)) continue;
-    const R = W_SZ * 2.4 * z,
+    const R = W_SZ * (g.big ? 4 : 2.4) * z,
       col = WTYPE[g.t].c,
       t = still ? 0 : now / 1000;
     if (g.t === 'dream') {
@@ -942,14 +974,15 @@ function wmFx(now) {
         c.fillRect(x - R, y - R, R * 2, R * 2);
       }
     }
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < (g.big ? 16 : 9); i++) {
       const s = wHash(g.q, g.r, i, 21),
         u = (t * (0.12 + s * 0.1) + s) % 1,
         a = s * TAU + i,
-        x = gx + Math.cos(a) * R * (0.25 + 0.7 * wHash(g.q, g.r, i, 22)),
+        /* 陰兵借道：鬼火往同一個方向飄，像一隊在走 */
+        x = gx + Math.cos(a) * R * (0.25 + 0.7 * wHash(g.q, g.r, i, 22)) + (g.big ? (u - 0.5) * 70 * z : 0),
         y = gy + Math.sin(a) * R * 0.75 - (g.t === 'ghost' ? u * 46 * z : Math.sin(t * 2 + i) * 6 * z),
-        sz = Math.max(1.5, (g.t === 'ghost' ? 3 : 2) * z);
-      c.globalAlpha = g.t === 'ghost' ? 0.75 * Math.sin(u * Math.PI) : 0.45 + 0.35 * Math.sin(t * 3 + i);
+        sz = Math.max(1.5, (g.t === 'ghost' || g.big ? 3 : 2) * z);
+      c.globalAlpha = g.t === 'ghost' || g.big ? 0.75 * Math.sin(u * Math.PI) : 0.45 + 0.35 * Math.sin(t * 3 + i);
       c.fillStyle = col;
       c.fillRect(Math.round(x - sz), Math.round(y - sz), sz * 2, sz * 2);
     }
@@ -962,16 +995,17 @@ function wmFx(now) {
     const col = WTYPE[g.t].c;
     /* 名字：區塊中心上方，字不小於 12px */
     const fs = Math.round(Math.max(12, Math.min(20, 16 * z + 4))),
-      ty = gy - W_SZ * Math.sqrt(3) * 1.6 * z;
+      ty = gy - W_SZ * Math.sqrt(3) * (g.big ? 2.6 : 1.6) * z,
+      nm = WTYPE[g.t].n + (g.big ? ` · 怨恨 ${g.res}` : '');
     c.font = `900 ${fs}px "Noto Serif TC", serif`;
     c.textAlign = 'center';
     c.textBaseline = 'middle';
     c.globalAlpha = 0.95;
     c.lineWidth = 4;
     c.strokeStyle = 'rgba(8,8,10,.85)';
-    c.strokeText(WTYPE[g.t].n, gx, ty);
+    c.strokeText(nm, gx, ty);
     c.fillStyle = col;
-    c.fillText(WTYPE[g.t].n, gx, ty);
+    c.fillText(nm, gx, ty);
   }
   c.globalAlpha = 1;
   wmGoalMark(now, still);
@@ -1483,7 +1517,16 @@ function wmNodeHTML() {
   /* 凶地（0.2.80）：寫出這塊的專屬地圖詞 */
   const fi = t === 'fiend' ? XIONG_MOD[wFiend(S.world.seed, q, r).k] : null,
     fiend = fi ? `<p class="wm-note">${esc(fi.n)}的地盤：<span class="c-warn">${esc(fi.t)}</span></p>` : '';
-  return head + cor + fiend + blood + wmCardHTML(k, why, lv);
+  /* 陰兵借道（0.2.81）：怨恨值與現在的加成、這格有沒有將領 */
+  let army = '';
+  if (t === 'army') {
+    const ck = wArmy(S.world.seed, q, r),
+      n = armyRes(S, ck),
+      g = wArmyGen(S.world.seed, ck)[k],
+      P = ARMY.per;
+    army = `<p class="wm-note">怨恨值 <b>${n}</b>／${ARMY.max}：怪物生命與傷害 <span class="c-warn">+${P.mhp * n}%</span>、數量與稀有度 <span class="c-good">+${P.qty * n}%</span>（每打完這塊一張圖 +1）</p>${g ? `<p class="wm-note">守在這裡的是<b>${esc(armyBoss(g).n)}</b>：保底 1 件追憶裝、掉${esc(FRAGS[g].n)}</p>` : ''}`;
+  }
+  return head + cor + fiend + army + blood + wmCardHTML(k, why, lv);
 }
 function wmQuestHTML() {
   const n = S.idols.length,
@@ -1496,7 +1539,7 @@ function wmQuestHTML() {
       <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門關區塊在第 ${REGION.ring} 圈以外`}</span></li>
       <li><b>心魔劫</b><span>${SIN.emo.some(k => S.frags[k]) ? `碎片 ${SIN.emo.filter(k => S.frags[k]).length}／7 種` : `心魔幻境區塊在第 ${REGION.ring} 圈以外`}</span></li>
       <li><b>四凶</b><span>${XIONG.some(k => S.frags[k]) ? `四凶之鱗 ${XIONG.filter(k => S.frags[k]).length}／4 種` : `凶地區塊在第 ${REGION.ring} 圈以外`}</span></li>
-      <li class="lock"><b>？？？</b><span>鎖定</span></li>
+      <li><b>陰兵借道</b><span>${ARMY.gen.some(k => S.frags[k]) || S.frags.fu ? `將印 ${ARMY.gen.filter(k => S.frags[k]).length}／3 種${S.frags.fu ? ` · 兵符 ${S.frags.fu}` : ''}` : `陰兵借道區塊在第 ${ARMY.ring} 圈以外`}</span></li>
     </ul>
     ${WM.goal ? `<button class="btn" data-wm="goal">看下一個目標</button>` : ''}`;
 }

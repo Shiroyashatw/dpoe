@@ -44,7 +44,11 @@ function fragPageHTML() {
   <div class="fgoal"><p><b>三尸</b><span class="${SIN.emo.filter(k => F[k]).length >= SIN.need ? 'c-good' : ''}">${SIN.emo.filter(k => F[k]).length}／${SIN.need} 種${SIN.emo.filter(k => F[k]).length >= SIN.need ? '：可以開了（山海寶盒）' : ''}</span></p>
   <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '可以開了（山海寶盒）')}</span></p></div>
   <div class="ph2">四凶<span>凶地中心的四凶掉的</span></div>
-  <ul class="mpg">${[...XIONG, 'eye'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>`;
+  <ul class="mpg">${[...XIONG, 'eye'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
+  <div class="ph2">陰兵借道<span>陰兵借道的三位將領掉的</span></div>
+  <ul class="mpg">${[...ARMY.gen, 'fu'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
+  <div class="fgoal"><p><b>蚩尤</b><span class="${armyHallWhy(S, 'chiyou') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'chiyou') || '可以開了（山海寶盒）')}</span></p>
+  <p><b>涿鹿兵主</b><span class="${armyHallWhy(S, 'zhuolu') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'zhuolu') || '可以開了（山海寶盒）')}</span></p></div>`;
 }
 
 /* ---------- 一件裝備的詞：前綴 3 格、後綴 3 格（空格畫出來；說明框完整版在 8-3） ---------- */

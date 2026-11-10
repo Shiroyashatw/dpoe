@@ -81,7 +81,8 @@ const WTYPE = {
   /* 0.2.79 心魔劫（企劃書 4.2） */
   dream: { n: '心魔幻境', c: '#e08ad0', d: '每張圖都有一隻七情王：打倒掉預兆與碎片' },
   /* 0.2.80 四凶 */
-  fiend: { n: '凶地', c: '#e3a14a', d: '一隻凶的地盤：每張圖帶牠的專屬地圖詞，中心那格的王就是牠' }
+  fiend: { n: '凶地', c: '#e3a14a', d: '一隻凶的地盤：每張圖帶牠的專屬地圖詞，中心那格的王就是牠' },
+  army: { n: '陰兵借道', c: '#8fb3a0', d: '陰兵的大區塊：每打完一張圖怨恨值 +1，怪物更強、獎勵更好；三位將領各守一格' }
 };
 /* 機制區塊（0.2.79，照 PoE2 的區域）：地圖切成 7 格的大格（中心＋旁邊 6 格；中心＝a·(2,1)＋b·(−1,3)，剛好不重疊鋪滿），
    中心在第 REGION.ring 圈以外的大格照各機制自己的機率 REGION.w 整塊變成那個機制（0.2.80；照種子，同一個存檔每次都一樣）；裂口、主線節點優先 */
@@ -114,6 +115,48 @@ function wFiend(seed, q, r) {
   const [x, y] = wRegionC(q, r);
   return { k: XIONG[Math.floor(wHash(seed, x, y, 9) * XIONG.length)], c: x === q && y === r };
 }
+/* 陰兵借道（0.2.81）：19 格的大六角（中心＋兩圈；中心＝a·(3,2)＋b·(−2,5)，剛好鋪滿），用自己的格線，跟 7 格的區塊重疊時陰兵借道優先 */
+function wArmyC(q, r) {
+  const a = Math.floor((5 * q + 2 * r) / 19),
+    b = Math.floor((-2 * q + 3 * r) / 19);
+  for (let i = a - 1; i <= a + 2; i++)
+    for (let j = b - 1; j <= b + 2; j++) {
+      const x = 3 * i - 2 * j,
+        y = 2 * i + 5 * j;
+      if (wRing(q - x, r - y) <= 2) return [x, y];
+    }
+  return [q, r];
+}
+const wArmyCells = (x, y) => {
+  const L = [];
+  for (let a = -2; a <= 2; a++) for (let b = -2; b <= 2; b++) if (wRing(a, b) <= 2) L.push([x + a, y + b]);
+  return L;
+};
+/* 這一格在不在陰兵借道裡：回傳區塊中心的鍵 */
+function wArmy(seed, q, r) {
+  const [x, y] = wArmyC(q, r);
+  return wRing(x, y) >= ARMY.ring && wHash(seed, x, y, 12) < ARMY.w ? wKey(x, y) : null;
+}
+/* 三位將領站哪三個節點（節點鍵 → 將領）：區塊裡的節點照雜湊排，彼此不相鄰、不是裂口 */
+const ARMY_MEMO = new Map();
+function wArmyGen(seed, ck) {
+  const id = seed + '|' + ck;
+  if (ARMY_MEMO.has(id)) return ARMY_MEMO.get(id);
+  const [x, y] = wXY(ck),
+    R = wRifts(seed),
+    L = wArmyCells(x, y)
+      .filter(([a, b]) => wNode(seed, a, b) && R[wKey(a, b)] == null)
+      .sort((p, o) => wHash(seed, p[0], p[1], 13) - wHash(seed, o[0], o[1], 13)),
+    got = [];
+  for (const c of L) if (got.length < 3 && got.every(g => wRing(g[0] - c[0], g[1] - c[1]) >= 2)) got.push(c);
+  const sh = Math.floor(wHash(seed, x, y, 14) * 3),
+    o = Object.fromEntries(got.map((c, i) => [wKey(...c), ARMY.gen[(i + sh) % 3]]));
+  ARMY_MEMO.set(id, o);
+  return o;
+}
+/* 怨恨值（存檔 S.army＝{ 區塊中心: { n 怨恨值, g 打倒的將領 } }） */
+const armyOf = (s, ck) => ((s.army = s.army || {})[ck] = s.army[ck] || { n: 0, g: [] });
+const armyRes = (s, ck) => ((s.army || {})[ck] || { n: 0 }).n;
 /* 區域名：看圈數 */
 const WREGION = [
   ['枯河原野', 4],
@@ -212,6 +255,7 @@ function wType(s, q, r) {
   if (STORY_I[k] != null) return 'story';
   if (wRifts(seed)[k] != null) return 'rift';
   if (s.idols.length >= ZODIAC.length && wRing(q, r) > W_ROAD && wHash(seed, q, r, 5) < W_RIFT_AGAIN) return 'rift';
+  if (wArmy(seed, q, r)) return 'army';
   const rg = wRegion2(seed, q, r);
   if (rg) return rg;
   const h = wHash(seed, q, r, 1);
@@ -234,9 +278,30 @@ function wName(s, q, r) {
     const f = wFiend(s.world.seed, q, r);
     return `凶地・${XIONG_MOD[f.k].n}${f.c ? '（巢穴）' : ''}`;
   }
+  if (t === 'army') {
+    const g = wArmyGen(s.world.seed, wArmy(s.world.seed, q, r))[wKey(q, r)];
+    return '陰兵借道' + (g ? '・' + armyBoss(g).n : '');
+  }
   return t === 'plain' ? wRegion(wRing(q, r)) : WTYPE[t].n;
 }
 
+/* ---------- 陰兵借道的王（0.2.81，山海寶盒）：蚩尤＝三種將印各 1；涿鹿兵主＝兵符＋Lv70 ---------- */
+function armyHallWhy(s, kind) {
+  const F = s.frags || {};
+  if (kind === 'chiyou') {
+    const miss = ARMY.gen.filter(k => !(F[k] >= 1)).map(k => FRAGS[k].n);
+    return miss.length ? '還缺：' + miss.join('、') : '';
+  }
+  if (!(F.fu >= 1)) return '要 1 個兵符';
+  return s.lv < ARMY.uberLv ? `角色要 Lv${ARMY.uberLv}` : '';
+}
+function armyHallPay(s, kind) {
+  const w = armyHallWhy(s, kind);
+  if (w) return w;
+  if (kind === 'chiyou') for (const k of ARMY.gen) s.frags[k]--;
+  else s.frags.fu--;
+  return '';
+}
 /* ---------- 酆都的殿（0.2.78）：鬼門節點可以改進閻羅殿（勾魂令 5 張，哪隻的都算）或十殿閻羅（四種各 1 張＋生死簿、角色 Lv70） ---------- */
 const fdHun = s => FENG.elites.reduce((a, k) => a + ((s.frags || {})[k] || 0), 0);
 function fdHallWhy(s, kind) {
@@ -413,6 +478,10 @@ function wClear(s, k) {
   if (d >= TMAX) s.t16 = 1;
   if (i === 7) s.story.crow = 1;
   if (t === 'blood' || i === 7) huntGain(s);
+  if (t === 'army') {
+    const A = armyOf(s, wArmy(s.world.seed, q, r));
+    A.n = Math.min(ARMY.max, A.n + 1);
+  }
   if (t === 'rift') {
     s.hunt.used = 1;
     const z = wZod(s, q, r).z;

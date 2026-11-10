@@ -1026,7 +1026,7 @@ function revealHTML() {
   <div class="rvl">${REV.list
     .map((it, k) =>
       k < REV.i
-        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.so ? ' · 孔 ' + '○'.repeat(it.so) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
+        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.so ? ' · 孔 ' + '○'.repeat(it.so) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
         : `<div class="rvr un r${it.r} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">？？？</b><small>${esc(baseOf(it).n)} · T${itemT(it)}${it.frac ? ' · ★' : ''}${it.mem ? ' · ◈' : ''}</small></div></div>`
     )
     .join('')}</div>
@@ -1039,7 +1039,8 @@ function boxHTML() {
     tabs = [
       ['fd', '酆都'],
       ['sin', '心魔劫'],
-      ['xi', '四凶']
+      ['xi', '四凶'],
+      ['army', '陰兵']
     ],
     row = (k, n) =>
       `<li class="${n ? '' : 'z'}">${icHTML(FRAGS[k].ic)}<div><b>${esc(FRAGS[k].n)}</b></div><em>${n}</em></li>`,
@@ -1062,7 +1063,10 @@ function boxHTML() {
         })
         .join('')}</div>
       <div class="wm-halls">${btn('sanshi', `帶 ${BOXUI.sel.length} 種碎片`)}${btn('sanpeng', `7 種各 1 片＋Lv${SIN.uberLv}`)}</div>`;
-  } else
+  } else if (BOXUI.tab === 'army')
+    body = `<ul class="mpg">${[...ARMY.gen, 'fu'].map(k => row(k, F[k])).join('')}</ul>
+      <div class="wm-halls">${btn('chiyou', '三種將印各 1 個')}${btn('zhuolu', `兵符＋Lv${ARMY.uberLv}`)}</div>`;
+  else
     body = `<ul class="mpg">${[...XIONG, 'eye'].map(k => row(k, F[k])).join('')}</ul>
       <div class="wm-halls">${btn('zhulong', '四凶之鱗各 1 片')}${btn('zhu9', `再加燭龍之目＋Lv${XI.uberLv}`)}</div>`;
   return `<div class="ph"><b>山海寶盒</b><span>王場 Lv ${arenaLv(S)}（你打過最高的地方）</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
@@ -1429,6 +1433,7 @@ function itemTip(it, cmp) {
   html += `<p class="lay"><span class="tt">T${itemT(it)}</span> · ${baseLayers(it)}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}</p>`;
   html += `<p class="base">${baseText(it).join('<br>')}</p>`;
   if (it.mem) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem))}</p>`;
+  if (it.mem2) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem2))}</p>`;
   const wk = EQS.find(e => S.eq[e.k] === it) || EQS.find(e => eqTakes(e, B.k));
   html += reqHTML(itemReq(it), wk ? eqLack(S, it, wk.k) : [], wk && S.eq[wk.k] === it);
   html += un

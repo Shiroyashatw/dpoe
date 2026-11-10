@@ -9728,7 +9728,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, wArmyC, wArmyCells, wArmy, wArmyGen, armyRes, armyDrop, armyGear, memGear2, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT })',
     ctx
   );
   const mul = seed => () => {
@@ -10031,6 +10031,123 @@ const ASC_COMBOS = `const combos = k => {
     vm.runInContext('ST = null', ctx);
     ok(
       `四凶：各掉覺醒輔助＋自己的鱗；覺醒輔助 8 顆（解鎖、升級、Lv5 換靈魂、不能花靈魂、燭龍之心 Lv6）；燭龍覺醒石保底、燭龍之心 ${(hp * 100).toFixed(1)}%、燭龍之目 ${(ep * 100).toFixed(1)}%；燭九陰；門票；四凶地圖詞`,
+      !bad.length,
+      [...new Set(bad)].slice(0, 4).join('、')
+    );
+  });
+  /* 6c. 陰兵借道（0.2.81）：19 格大六角鋪滿、第 12 圈以外約 4%、一塊 15～19 個節點、三位將領各一格不相鄰；
+     打完一張怨恨值 +1（最多 16）；將印、兵符（第三位、怨恨值 ≥ 12、一塊一次）；追憶裝保底、雙追憶兩條不同而且都生效；門票 */
+  seeded(7806, () => {
+    const bad = [],
+      S = () => vm.runInContext('S', ctx),
+      s = { world: { ...F.newWorld(), seed: 777 }, idols: [], hunt: {}, army: {}, lv: 60, maxT: 1 };
+    const C = new Map();
+    for (let q = -34; q <= 34; q++)
+      for (let r = -34; r <= 34; r++) {
+        const [x, y] = F.wArmyC(q, r);
+        if (F.wRing(q - x, r - y) > 2) bad.push('大六角沒鋪滿');
+        const R = F.wRing(x, y);
+        if (R > 30 || !C.has(x + ',' + y)) C.set(x + ',' + y, { R, on: F.wArmy(s.world.seed, q, r) });
+      }
+    if (F.wArmyCells(0, 0).length !== 19) bad.push('不是 19 格');
+    let n = 0,
+      a = 0;
+    const regs = [];
+    for (const [k, v] of C) {
+      if (v.R < F.ARMY.ring) {
+        if (v.on) bad.push('第 12 圈以內有陰兵');
+        continue;
+      }
+      if (v.R > 30) continue;
+      n++;
+      if (v.on) a++, regs.push(k);
+    }
+    if (Math.abs(a / n - F.ARMY.w) > 0.02) bad.push(`區塊比例 ${a}/${n}`);
+    for (const ck of regs) {
+      const [x, y] = ck.split(',').map(Number),
+        cells = F.wArmyCells(x, y),
+        nodes = cells.filter(([q, r]) => F.wNode(s.world.seed, q, r)),
+        G3 = F.wArmyGen(s.world.seed, ck),
+        ks = Object.keys(G3);
+      if (nodes.length < 15) bad.push('節點太少 ' + nodes.length);
+      if (ks.length !== 3 || new Set(Object.values(G3)).size !== 3) bad.push('將領不是三位');
+      for (const i of ks)
+        for (const j of ks) {
+          const [p, q] = i.split(',').map(Number),
+            [u, v] = j.split(',').map(Number);
+          if (i !== j && F.wRing(p - u, q - v) < 2) bad.push('將領相鄰');
+        }
+      for (const [q, r] of cells)
+        if (F.wNode(s.world.seed, q, r) && !['army', 'rift'].includes(F.wType(s, q, r))) bad.push('區塊裡有別的類型');
+      if (!F.wName(s, ...ks[0].split(',').map(Number)).includes(F.armyBoss(G3[ks[0]]).n)) bad.push('節點名沒有將領');
+    }
+    /* 怨恨值 */
+    const ck = regs[0],
+      [cx, cy] = ck.split(',').map(Number),
+      L = F.wArmyCells(cx, cy).filter(([q, r]) => F.wNode(s.world.seed, q, r));
+    for (const [q, r] of L) F.wClear(s, F.wKey(q, r));
+    if (F.armyRes(s, ck) !== Math.min(F.ARMY.max, L.length)) bad.push('怨恨值 ' + F.armyRes(s, ck));
+    /* 將印與兵符 */
+    setS();
+    const T = S();
+    T.army = {};
+    F.armyDrop('xing', 'a', 12);
+    F.armyDrop('feng', 'a', 12);
+    F.armyDrop('yu', 'a', 11);
+    if (T.frags.xing !== 1 || T.frags.feng !== 1 || T.frags.yu !== 1) bad.push('將印');
+    if (T.frags.fu) bad.push('怨恨值不夠也掉兵符');
+    F.armyDrop('xing', 'b', 20);
+    F.armyDrop('feng', 'b', 20);
+    F.armyDrop('yu', 'b', 12);
+    F.armyDrop('yu', 'b', 16);
+    if (T.frags.fu !== 1) bad.push('兵符 ' + T.frags.fu);
+    if (F.armyDrop('chiyou', 'b', 16).length) bad.push('蚩尤掉將印');
+    /* 追憶裝 */
+    const o = { ilvl: 70 };
+    for (let i = 0; i < 40; i++) {
+      const g = F.armyGear('xing', 0, o);
+      if (g.length !== 1 || !g[0].mem || !g[0].uid) bad.push('將領的追憶裝');
+      for (const it of [...F.armyGear('chiyou', 0, o), ...F.armyGear('zhuolu', 0, o)])
+        if (!it.mem || !it.mem2 || it.mem.k === it.mem2.k || !F.memPool(it).includes(it.mem2.k)) bad.push('雙追憶');
+    }
+    let ex = 0;
+    for (let i = 0; i < 4000; i++) ex += F.armyGear('feng', 10, o).length - 1;
+    if (Math.abs(ex / 4000 - 0.5) > 0.04) bad.push('怨恨值 10 多掉 ' + ex / 4000);
+    if (F.armyGear('zhuolu', 0, o).length !== 2) bad.push('涿鹿兵主不是 2 件');
+    /* 雙追憶兩條都生效：弓的投射物 +1、連鎖 +1 */
+    const mk = (m1, m2) => {
+      const st = {
+          lv: 100,
+          eq: Object.fromEntries(F.EQS.map(e => [e.k, null])),
+          pt: [...F.PT_START],
+          at: [],
+          auras: [],
+          charms: []
+        },
+        it = F.mkItem('w_bow_0', 1, 0);
+      it.mem = m1;
+      it.mem2 = m2;
+      st.eq.weapon = it;
+      return F.stats(st);
+    };
+    const z = mk(null, null),
+      d = mk({ k: 'm_proj' }, { k: 'm_chain' });
+    if (d.proj - z.proj !== 1 || d.chain - z.chain !== 1) bad.push('雙追憶沒都生效');
+    /* 門票 */
+    const t = { lv: 60, frags: { xing: 1, feng: 1, yu: 0, fu: 1 } };
+    if (!F.armyHallWhy(t, 'chiyou')) bad.push('缺將印能開蚩尤');
+    t.frags.yu = 1;
+    if (F.armyHallWhy(t, 'chiyou') || !F.armyHallWhy(t, 'zhuolu')) bad.push('門票');
+    if (F.armyHallPay(t, 'chiyou') || t.frags.xing || t.frags.yu) bad.push('蚩尤沒扣對');
+    t.lv = 70;
+    if (F.armyHallPay(t, 'zhuolu') || t.frags.fu) bad.push('涿鹿兵主沒扣對');
+    const u = F.armyUber();
+    if (u.hp !== F.armyBoss('chiyou').hp * 3 || !['qiwu', 'whirl', 'rain', 'fog'].every(x => u.pat.includes(x)))
+      bad.push('涿鹿兵主');
+    for (let i = 0; i < 3000; i++) if (F.bossPick(null).army) bad.push('一般地圖抽到陰兵的王');
+    vm.runInContext('ST = null', ctx);
+    ok(
+      `陰兵借道：19 格大六角鋪滿、第 ${F.ARMY.ring} 圈以外 ${((a / n) * 100).toFixed(1)}%（${regs.length} 塊，每塊 15 個節點以上、三位將領不相鄰）；怨恨值；將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、雙追憶兩條都生效；門票；涿鹿兵主`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );

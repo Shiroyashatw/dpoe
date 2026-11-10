@@ -308,7 +308,7 @@ async function flow(b) {
   await p.waitForTimeout(100);
   await p.click('#wmr');
   ok(
-    '主線面板：0／5、生肖 1／12、酆都、心魔劫、四凶三列、一條鎖定',
+    '主線面板：0／5、生肖 1／12、酆都、心魔劫、四凶、陰兵借道四列、沒有鎖定',
     await p.evaluate(
       () =>
         /0／5/.test($('wms').textContent) &&
@@ -316,7 +316,8 @@ async function flow(b) {
         /酆都/.test($('wms').textContent) &&
         /心魔劫/.test($('wms').textContent) &&
         /四凶/.test($('wms').textContent) &&
-        document.querySelectorAll('.wm-q .lock').length === 1
+        document.querySelectorAll('.wm-q .lock').length === 0 &&
+        /陰兵借道/.test($('wms').textContent)
     )
   );
   await p.waitForTimeout(100);
