@@ -717,10 +717,10 @@ function dropCur(kind, o) {
     if (Math.random() < Math.min(1, D.essB * mat)) ess.push(rollEss(o.ilvl));
     if (o.hunt) add('conv');
     if (prdRoll('fore', FORE_B * mat)) add('fore');
-    if (o.zod) add('corr'), add('holy'), add('awk');
-    else if ((o.tier || 0) >= HIGH_T && prdRoll('corr', CORR_P)) add('corr');
-    /* 覺醒石（0.2.75，企劃書 5.7）：裂口生肖王保底 1，階級 10 以上的王 3%（偽隨機，跟腐化石各自一個計數器）。⚠️ 暫定 */
-    if (!o.zod && (o.tier || 0) >= HIGH_T && prdRoll('awk', AWK_P)) add('awk');
+    /* 0.2.82：裂口生肖王不再保底腐化石、聖化石、覺醒石（各自搬到酆都、心魔劫、燭龍），改掉神血（tsDrop）；階級 10 以上的王照舊 */
+    if ((o.tier || 0) >= HIGH_T && prdRoll('corr', CORR_P)) add('corr');
+    /* 覺醒石（0.2.75，企劃書 5.7）：階級 10 以上的王 3%（偽隨機，跟腐化石各自一個計數器）。⚠️ 暫定 */
+    if ((o.tier || 0) >= HIGH_T && prdRoll('awk', AWK_P)) add('awk');
   }
   return { cur, ess };
 }
@@ -742,7 +742,6 @@ function dropGear(kind, o) {
   for (const it of L) if (FRAC_P[it.r] && prdRoll(it.r === 2 ? 'frac' : 'fracB', FRAC_P[it.r] * sm)) makeFrac(it);
   const can = L.filter(it => memPool(it).length);
   if (can.length && prdRoll('mem', MEM_P[kind] * sm)) addMem(pick(can));
-  if (kind === 2 && o.zod) L.push(memGear(o));
   /* 地圖裡掉的裝備一律未鑑定（企劃書 5.4.1）：前後綴看不到，不能裝備、不能做裝，回藏身處找撿骨師 */
   for (const it of L) it.uid = 1;
   return L;
@@ -852,6 +851,39 @@ function armyGear(k, res, o) {
   for (const it of L) it.uid = 1;
   return L;
 }
+/* 弒神（0.2.82）：裂口生肖王掉 1 份神血；太歲、太歲星君掉 1 個神格（直接進收藏 S.gods，最多 TAISUI.keep 個，滿了換靈魂） */
+function ghRoll(uber, ilvl = 80) {
+  const [a, b] = uber ? TAISUI.pU : TAISUI.p,
+    k = pick(GH_AFF);
+  return {
+    g: pick(GODSON)[0],
+    p: irnd(a, b),
+    a: [{ ...rollAff(k, ilvl), k }],
+    id: Math.random().toString(36).slice(2, 9)
+  };
+}
+function tsDrop(k, s = S, ilvl) {
+  const F = (s.frags = { ...newFrags(), ...s.frags }),
+    got = [];
+  if (k === 'zod') return F.blood++, [FRAGS.blood.n];
+  if (k !== 'taisui' && k !== 'xingjun') return got;
+  const g = ghRoll(k === 'xingjun', ilvl),
+    L = (s.gods = s.gods || []);
+  if (L.length >= TAISUI.keep) (MAT().soul += 500), got.push('神格收藏滿了：換 500 靈魂');
+  else L.push(g), got.push(ghName(g));
+  return got;
+}
+const ghName = g => `神格・${GODSON.find(x => x[0] === g.g)[1]} ${g.p}%`;
+/* 拆掉不要的神格：換靈魂（裝著的不能拆） */
+function ghSalvage(i, s = S) {
+  if (i === s.godOn) return '裝著的不能拆';
+  if (!(s.gods || [])[i]) return '沒有這個神格';
+  s.gods.splice(i, 1);
+  if (s.godOn != null && s.godOn > i) s.godOn--;
+  MAT().soul += 200;
+  return null;
+}
+
 /* 打怪拿材料：靈魂與通貨自動進材料頁；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),

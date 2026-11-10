@@ -23,6 +23,8 @@ function newGame() {
     /* 碎片分頁（0.2.78 酆都）：勾魂令四種、生死簿 */
     frags: newFrags(),
     army: {},
+    gods: [],
+    godOn: null,
     /* 世界地圖（world.js）：種子、走過的節點、每節點的地圖卡、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
     world: newWorld(),
     cards: {},
@@ -204,7 +206,9 @@ const ARENA = {
   zhulong: '燭龍',
   zhu9: '燭九陰',
   chiyou: '蚩尤',
-  zhuolu: '涿鹿兵主'
+  zhuolu: '涿鹿兵主',
+  taisui: '太歲',
+  xingjun: '太歲星君'
 };
 const arenaLv = s => Math.min(W_CAP, Math.max(wLv(STORY[0].q, STORY[0].r), ...s.world.done.map(k => wLv(...wXY(k)))));
 function arenaWhy(s, kind, sel) {
@@ -214,7 +218,9 @@ function arenaWhy(s, kind, sel) {
       ? sinHallWhy(s, kind, sel)
       : kind === 'chiyou' || kind === 'zhuolu'
         ? armyHallWhy(s, kind)
-        : xiHallWhy(s, kind);
+        : kind === 'taisui' || kind === 'xingjun'
+          ? tsHallWhy(s, kind)
+          : xiHallWhy(s, kind);
 }
 function openArena(kind, sel) {
   if (G.scene !== 'hide') return hudWarn('回藏身處才能開');
@@ -225,7 +231,9 @@ function openArena(kind, sel) {
         ? sinHallPay(S, kind, sel)
         : kind === 'chiyou' || kind === 'zhuolu'
           ? armyHallPay(S, kind)
-          : xiHallPay(S, kind);
+          : kind === 'taisui' || kind === 'xingjun'
+            ? tsHallPay(S, kind)
+            : xiHallPay(S, kind);
   if (w) return hudWarn(w);
   S.arena = kind;
   G.portal = { ...HIDE_ART.portal, to: lvT(arenaLv(S)), n: ARENA[kind] };
@@ -250,7 +258,11 @@ const arenaBoss = k =>
               ? armyBoss('chiyou')
               : k === 'zhuolu'
                 ? armyUber()
-                : xiBoss('zhulong');
+                : k === 'taisui'
+                  ? tsBoss()
+                  : k === 'xingjun'
+                    ? tsUber()
+                    : xiBoss('zhulong');
 /* 地圖（參考 Chronicon）：一塊一塊 14×14 格的房間拼起來，有岔路也沒關係；
    殺怪累積首領進度，滿了王就出現在附近（怪物總量約是需要的 150～160%） */
 const TS = 48,
@@ -919,7 +931,8 @@ function killMob(m) {
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),
     ...(m.boss && m.D.sin ? sinDrop(m.D.sin) : []),
     ...(m.boss && m.D.xi ? xiDrop(m.D.xi) : []),
-    ...(m.boss && m.D.army ? armyDrop(m.D.army, G.army && G.army.c, G.army ? G.army.res : 0) : [])
+    ...(m.boss && m.D.army ? armyDrop(m.D.army, G.army && G.army.c, G.army ? G.army.res : 0) : []),
+    ...(m.boss && !m.mini && (m.D.ts || od.zod) ? tsDrop(m.D.ts || 'zod', S, od.ilvl) : [])
   ].forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
   /* 掉落：菁英 1 件黃、王 3 件（第一件保底黃）；裂口生肖王多 1 件保底追憶裝 */
   for (const it of dropGear(m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0, od)) dropAt(m.x, m.y, { it });
@@ -1419,7 +1432,8 @@ const BOSS_NEAR = {
     qiwu: 1,
     whirl: 1,
     rain: 1,
-    fog: 1
+    fog: 1,
+    duty: 1
   },
   BOSS_FAR = {
     charge: 1,
@@ -1438,7 +1452,8 @@ const BOSS_NEAR = {
     qiwu: 1,
     whirl: 1,
     rain: 1,
-    fog: 1
+    fog: 1,
+    duty: 1
   },
   BOSS_WIND = {
     swipe: 0.5,
@@ -1466,7 +1481,8 @@ const BOSS_NEAR = {
     qiwu: 0.6,
     whirl: 0.6,
     rain: 0.5,
-    fog: 0.7
+    fog: 0.7,
+    duty: 1.3
   },
   NOVA_N = 16,
   NOVA_GAP = 3;
@@ -1555,9 +1571,11 @@ function bossAI(m, dt) {
     }
     m.mv = dT > 90;
     if (m.cd <= 0 && see) {
+      /* 太歲（0.2.82）：當值的神的招也會用（m.duty） */
       const ok = dT < 140 ? BOSS_NEAR : BOSS_FAR,
-        l = m.D.pat.filter(k => ok[k]);
-      m.pat = m.unstopT > G.t ? 'charge' : pick(l.length ? l : m.D.pat);
+        all = [...m.D.pat, ...(m.duty || [])],
+        l = all.filter(k => ok[k]);
+      m.pat = m.unstopT > G.t ? 'charge' : pick(l.length ? l : all);
       m.st = 'wind';
       m.ang = angTo(m, T);
       m.t = BOSS_WIND[m.pat] * rage;
@@ -1617,6 +1635,25 @@ function bossAI(m, dt) {
       }
       if (m.pat === 'devour')
         G.tele.push({ x: m.x, y: m.y, r: 230, t: 0, dur: m.t, dmg: 0, src: m, el: m.el, hook: 1 });
+      /* 太歲的輪值：王周圍 12 格扇形（從正上方順時針，子鼠起），換神當值，只有當值的那格（星君 2 格）安全 */
+      if (m.pat === 'duty') {
+        const safe = new Set();
+        while (safe.size < (m.D.duty2 ? 2 : 1)) safe.add(irnd(0, 11));
+        m.dutyZ = [...safe].map(i => ZODIAC[i]);
+        m.duty = m.dutyZ.flatMap(z => z.pat.slice(0, 2));
+        hudWarn(`${m.dutyZ.map(z => GODSON.find(g => g[0] === z.z)[1]).join('、')}當值：站到牠那一格`);
+        for (let i = 0; i < 12; i++) {
+          const a = -Math.PI / 2 + ((i + 0.5) * TAU) / 12;
+          /* 每格 5 個圈、半徑＝距離 × 0.24：相鄰兩格的圈不重疊（間距 2d·sin15°≈0.52d），同一格前後幾乎接起來，安全那格看得出來 */
+          for (const d of [80, 140, 210, 290, 380]) {
+            const r = d * 0.24;
+            const x = m.x + Math.cos(a) * d,
+              y = m.y + Math.sin(a) * d;
+            if (safe.has(i)) fx({ k: 'ring', x, y, r, dur: m.t, col: '#7dff9a' });
+            else G.tele.push({ x, y, r, t: 0, dur: m.t, dmg: m.dmg * 1.2, src: m, el: ZODIAC[i].el });
+          }
+        }
+      }
       if (m.pat === 'tears')
         for (let i = 0; i < 3; i++)
           G.tele.push({

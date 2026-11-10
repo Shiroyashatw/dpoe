@@ -248,6 +248,38 @@ function rollMem(k) {
     ...(D.lv ? { lv: irnd(...D.lv), c: pick(Object.keys(CURSES)) } : {})
   };
 }
+/* 神格（0.2.82）的能力：神裔那位神的大點＋小點；數值 × 強度（開關、層數不放大），已經點了同一個點的只補差額（不疊） */
+function ghFx(gh, s) {
+  const row = GODSON.find(x => x[0] === gh.g),
+    f = gh.p / 100,
+    out = {},
+    has = id => s.asc === 'godson' && (s.at || []).includes(id),
+    add = (fx, own) => {
+      for (const [k, v] of Object.entries(fx)) {
+        const sw = (STATN[k] && STATN[k][2] === 1) || GH_FIX.includes(k),
+          val = sw ? v : Math.round(v * f),
+          nv = own ? (sw ? 0 : Math.max(0, val - v)) : val;
+        if (nv) out[k] = (out[k] || 0) + nv;
+      }
+    };
+  add(row[3], has(gh.g));
+  add(row[2], has('s_' + gh.g));
+  return out;
+}
+/* 神格的說明：每條能力一行 */
+const ghText = gh =>
+  Object.entries(ghFx(gh, {}))
+    .map(([k, v]) => {
+      const N = STATN[k];
+      return N
+        ? N[2] === 1
+          ? N[0]
+          : GH_FIX.includes(k)
+            ? `${N[0]}：${v}${N[1] || ''}`
+            : `${N[0]} +${v}${N[1] || ''}`
+        : k;
+    })
+    .concat((gh.a || []).map(a => affText(a)));
 /* 基底的數值（品質放大）＋固定詞 */
 const impText = (k, v) => {
   if (AFF[k]) return affText({ k, v });
@@ -967,6 +999,12 @@ function stats(s = S) {
     if (!v || (v.only && v.only !== wt0)) continue;
     /* 力量、敏捷、智慧已經在 eqCheck 的總量裡（Object.assign(o, chk.tot)），這裡不再加一次 */
     for (const k in v) if (k !== 'only' && !ATTR.includes(k)) k in pt ? (pt[k] += v[k]) : put(k, v[k]);
+  }
+  /* 神格（0.2.82）：裝著的那一個（S.gods[S.godOn]），那位神在神裔的大點＋小點 × 強度、1 條小詞 */
+  const gh = s.godOn != null && (s.gods || [])[s.godOn];
+  if (gh) {
+    for (const [k, v] of Object.entries(ghFx(gh, s))) k in pt ? (pt[k] += v) : put(k, v);
+    for (const a of gh.a || []) put(a.k, a.v);
   }
   /* 變異核心（0.2.74 異變者）：裝備的腐化裝備每件傷害提高、最大生命 +%（最多 6 件；失效、關著欄位裡的不算） */
   if (o.corGearP || o.corGearHp) {

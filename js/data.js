@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.81';
+const VER = '0.2.82';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -8042,7 +8042,8 @@ const newFrags = () => ({
   xing: 0,
   feng: 0,
   yu: 0,
-  fu: 0
+  fu: 0,
+  blood: 0
 });
 const fdBoss = k => BOSSES.find(b => b.fd === k);
 /* 十殿閻羅：閻羅的強化版 */
@@ -8274,10 +8275,38 @@ const armyUber = () => {
     pat: ['swipe', 'charge', 'slam', 'summon', 'nova', 'line', 'blink', 'qiwu', 'whirl', 'rain', 'fog']
   };
 };
+/* 弒神補完（0.2.82，企劃書 4.2）：裂口生肖王各掉 1 份神血；十二神像全亮＋4 份神血在山海寶盒開太歲，12 份＋Lv70 開太歲星君。
+   太歲的招牌招「輪值」（game.js 的 duty）：王周圍分 12 格扇形，只有當值那位神那一格安全；當值的神換人，太歲就借牠的 2 招（星君一次 2 位）。
+   太歲掉神格（items.js 的 ghFx、craft.js 的 ghRoll）：神隨機，那位神在神裔的大點＋小點 × 強度，＋ 1 條項鍊的小詞；身上只能裝 1 個。⚠️ 數字都暫定 */
+const TAISUI = { blood: 4, uber: 12, uberLv: 70, p: [60, 120], pU: [80, 150], keep: 30 };
+FRAGS.blood = { n: '神血', ic: 'mat_blood', d: '裂口生肖王掉的：十二神像全亮＋4 份開太歲，12 份＋Lv70 開太歲星君' };
+const TS_HALL = { taisui: '太歲', xingjun: '太歲星君' };
+BOSSES.push({
+  n: '太歲',
+  ts: 'taisui',
+  sp: 'lucifer',
+  hp: 520,
+  dmg: 24,
+  spd: 140,
+  r: 44,
+  sz: 128,
+  xp: 200,
+  call: 'imp',
+  el: 'fire',
+  pat: ['nova', 'line', 'blink', 'swipe', 'duty']
+});
+const tsBoss = () => BOSSES.find(b => b.ts === 'taisui');
+const tsUber = () => {
+  const t = tsBoss();
+  return { ...t, n: '太歲星君', ts: 'xingjun', hp: t.hp * 3, dmg: t.dmg * 1.5, sz: t.sz * 1.15, duty2: 1 };
+};
+/* 神格：開關與層數不放大（GH_FIX）；已經點了神裔同一個點的只補差額 */
+const GH_FIX = ['bleedStack', 'meteorN'];
+const GH_AFF = KINDS.amulet.aff.filter(k => AFF[k] && !ATTR.includes(k));
 const bossPick = no => {
   /* 0.2.78：酆都的王（牛頭、馬面、黑白無常、閻羅；fd）只在鬼門、閻羅殿出現，不進一般地圖的王池 */
   /* 0.2.80：四凶與燭龍（xi）也不進一般王池 */
   /* 0.2.81：陰兵借道的將領與蚩尤（army）也不進 */
-  const l = BOSSES.filter(b => b !== no && !b.fd && !b.sin && !b.xi && !b.army);
+  const l = BOSSES.filter(b => b !== no && !b.fd && !b.sin && !b.xi && !b.army && !b.ts);
   return l[Math.floor(Math.random() * l.length)];
 };

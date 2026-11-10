@@ -1534,7 +1534,7 @@ function wmQuestHTML() {
   return `<h2>天空的裂縫</h2><p class="wm-kind">鎖定 · 主線 ${n >= ZODIAC.length ? 1 : 0}／5</p>
     <p>十二道裂口之外，還有天上那一道。它還沒有打開。</p>
     <ul class="wm-q">
-      <li><b>狩獵之血</b><span>${S.story.crow ? `生肖 ${n}／${ZODIAC.length}` : '還沒開始'}</span>
+      <li><b>狩獵之血</b><span>${S.story.crow ? `生肖 ${n}／${ZODIAC.length}${S.frags.blood ? ` · 神血 ${S.frags.blood}` : ''}` : '還沒開始'}</span>
         ${S.story.crow ? `<div class="wm-zod">${ZODIAC.map(z => `<span class="${lit.has(z.z) ? 'on' : ''}" title="${esc(z.n)}">${icHTML(z.sp)}</span>`).join('')}</div>` : ''}</li>
       <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門關區塊在第 ${REGION.ring} 圈以外`}</span></li>
       <li><b>心魔劫</b><span>${SIN.emo.some(k => S.frags[k]) ? `碎片 ${SIN.emo.filter(k => S.frags[k]).length}／7 種` : `心魔幻境區塊在第 ${REGION.ring} 圈以外`}</span></li>

@@ -273,12 +273,13 @@ async function flow(b) {
   await p.screenshot({ path: shot('riftboss') });
   drops.push(
     await p.evaluate(() => {
+      const b0 = S.frags.blood || 0;
       killMob(G.mobs.find(x => x.boss));
-      return G.drops.filter(d => d.it && d.it.mem && d.it.r === 2).length;
+      return S.frags.blood - b0;
     })
   );
   ok('裂口王：用生肖的名字與圖', drops[0] === n0 && /^z_/.test(drops[1]), drops.join());
-  ok('裂口王：掉落有保底追憶裝（取代原本的品質 30% 稀有裝）', drops[2] >= 1, drops.join());
+  ok('裂口王：掉 1 份神血（0.2.82 起不再保底追憶裝）', drops[2] === 1, drops.join());
   ok(
     '打完裂口：點亮神像、走過、這次血霧不開第二道',
     await p.evaluate(k => {

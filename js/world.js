@@ -285,6 +285,23 @@ function wName(s, q, r) {
   return t === 'plain' ? wRegion(wRing(q, r)) : WTYPE[t].n;
 }
 
+/* ---------- 弒神的王（0.2.82，山海寶盒）：太歲＝十二神像全亮＋4 份神血；太歲星君＝12 份神血＋Lv70 ---------- */
+function tsHallWhy(s, kind) {
+  const b = (s.frags || {}).blood || 0;
+  if (kind === 'taisui') {
+    if ((s.idols || []).length < ZODIAC.length)
+      return `十二神像要全部點亮（${(s.idols || []).length}／${ZODIAC.length}）`;
+    return b < TAISUI.blood ? `神血 ${b}／${TAISUI.blood}` : '';
+  }
+  if (b < TAISUI.uber) return `神血 ${b}／${TAISUI.uber}`;
+  return s.lv < TAISUI.uberLv ? `角色要 Lv${TAISUI.uberLv}` : '';
+}
+function tsHallPay(s, kind) {
+  const w = tsHallWhy(s, kind);
+  if (w) return w;
+  s.frags.blood -= kind === 'taisui' ? TAISUI.blood : TAISUI.uber;
+  return '';
+}
 /* ---------- 陰兵借道的王（0.2.81，山海寶盒）：蚩尤＝三種將印各 1；涿鹿兵主＝兵符＋Lv70 ---------- */
 function armyHallWhy(s, kind) {
   const F = s.frags || {};

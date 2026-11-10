@@ -1531,6 +1531,11 @@ body.touch:not(.port) #pskill .ftabs button { min-height: 40px; }
 /* 0.2.80 山海寶盒 */
 #pbox { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(520px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow: auto; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pbox .bx-tabs { margin: 0 0 8px; }
+#pbox .gh-list li.on { border-color: var(--good, #7dd87d); }
+#pbox .gh-b { display: flex; gap: 6px; flex: none; }
+#pbox .gh-b .btn { min-height: 44px; min-width: 56px; padding: 0 10px; }
+.eqs.gh { display: grid; place-items: center; overflow: hidden; }
+.eqs.gh .ic { width: 80%; height: 80%; object-fit: contain; }
 body.touch #pbox { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch.port #pbox { top: env(safe-area-inset-top); transform: none; max-height: none; }
 body.touch.port #pbox > .ph:first-child .x { display: grid; }

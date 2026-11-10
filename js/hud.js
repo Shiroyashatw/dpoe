@@ -711,6 +711,12 @@ function invHTML() {
           lock = !eqOpen(S, e.k);
         return `<div class="eqs ${it ? 'r' + it.r : ''} ${s.eqBad.includes(e.k) && !lock ? 'noreq' : ''} ${lock ? 'lock' : ''}" data-eq="${e.k}" ${it ? '' : `data-tip="${e.n}${lock ? '：被昇華鎖住，退點才能用' : ''}"`} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', e.k) : lock ? `<small>${ICO.lock}</small>` : `<span class="eqg">${icHTML(slotIc(e))}</span>`}</div>`;
       }).join('') +
+      /* 神格（0.2.82）：第一枚戒指下面，只顯示；換裝在山海寶盒的「弒神」分頁 */
+      (() => {
+        const [x, y, w, h] = [80, 156, 36, 36].map(v => Math.round(v * z)),
+          g = S.godOn != null && (S.gods || [])[S.godOn];
+        return `<div class="eqs gh ${g ? 'r2' : ''}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${g ? icHTML('z_' + g.g) : '<small>神格</small>'}</div>`;
+      })() +
       /* 護符槽：腰帶給幾格就開幾格（照 PoE2） */
       [0, 1, 2]
         .map(i => {
@@ -1040,7 +1046,8 @@ function boxHTML() {
       ['fd', '酆都'],
       ['sin', '心魔劫'],
       ['xi', '四凶'],
-      ['army', '陰兵']
+      ['army', '陰兵'],
+      ['god', '弒神']
     ],
     row = (k, n) =>
       `<li class="${n ? '' : 'z'}">${icHTML(FRAGS[k].ic)}<div><b>${esc(FRAGS[k].n)}</b></div><em>${n}</em></li>`,
@@ -1066,7 +1073,20 @@ function boxHTML() {
   } else if (BOXUI.tab === 'army')
     body = `<ul class="mpg">${[...ARMY.gen, 'fu'].map(k => row(k, F[k])).join('')}</ul>
       <div class="wm-halls">${btn('chiyou', '三種將印各 1 個')}${btn('zhuolu', `兵符＋Lv${ARMY.uberLv}`)}</div>`;
-  else
+  else if (BOXUI.tab === 'god') {
+    const L = S.gods || [];
+    body = `<ul class="mpg">${row('blood', F.blood)}</ul>
+      <div class="wm-halls">${btn('taisui', `十二神像全亮＋${TAISUI.blood} 份神血`)}${btn('xingjun', `${TAISUI.uber} 份神血＋Lv${TAISUI.uberLv}`)}</div>
+      <div class="ph2">神格<span>${L.length}／${TAISUI.keep} · 身上只能裝 1 個</span></div>
+      ${
+        L.length
+          ? `<ul class="mpg gh-list">${L.map((g, i) => {
+              const on = S.godOn === i;
+              return `<li class="${on ? 'on' : ''}">${icHTML('z_' + g.g)}<div><b>${esc(ghName(g))}${on ? ' <span class="c-good">裝著</span>' : ''}</b><small>${ghText(g).map(esc).join('<br>')}</small></div><span class="gh-b"><button class="btn ${on ? '' : 'pri'}" data-bx="gh:${i}">${on ? '卸下' : '裝上'}</button>${on ? '' : `<button class="btn" data-bx="ghx:${i}">拆</button>`}</span></li>`;
+            }).join('')}</ul>`
+          : '<p class="fhint">太歲、太歲星君掉的神格放在這裡</p>'
+      }`;
+  } else
     body = `<ul class="mpg">${[...XIONG, 'eye'].map(k => row(k, F[k])).join('')}</ul>
       <div class="wm-halls">${btn('zhulong', '四凶之鱗各 1 片')}${btn('zhu9', `再加燭龍之目＋Lv${XI.uberLv}`)}</div>`;
   return `<div class="ph"><b>山海寶盒</b><span>王場 Lv ${arenaLv(S)}（你打過最高的地方）</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
@@ -1080,6 +1100,13 @@ document.addEventListener('click', e => {
   if (k === 'tab') BOXUI.tab = v;
   else if (k === 'sf') BOXUI.sel = BOXUI.sel.includes(v) ? BOXUI.sel.filter(x => x !== v) : [...BOXUI.sel, v];
   else if (k === 'go') return openArena(v, BOXUI.sel);
+  else if (k === 'gh') (S.godOn = S.godOn === +v ? null : +v), (ST = stats()), save();
+  else if (k === 'ghx') {
+    if (!confirm2(b, '再按一次：拆成 200 靈魂')) return;
+    const w = ghSalvage(+v);
+    if (w) return hudWarn(w);
+    save();
+  }
   sfx('click');
   hudPanels();
 });

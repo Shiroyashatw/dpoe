@@ -1293,8 +1293,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '覺醒石掉落：生肖王一定 1 顆（階級不到也有）；階級 10 以上的王 3%（兩萬次誤差 < 0.4%）、連續沒中不超過保底上限；階級 9 的王、菁英、小怪都沒有；通貨與保底計數器有這一格',
-    j(awd.zod) === '[1,1]' &&
+    '覺醒石掉落：生肖王不再保底（0.2.82，搬到燭龍）；階級 10 以上的王 3%（兩萬次誤差 < 0.4%）、連續沒中不超過保底上限；階級 9 的王、菁英、小怪都沒有；通貨與保底計數器有這一格',
+    j(awd.zod) === '[null,null]' &&
       awd.low === 0 &&
       awd.elite === 0 &&
       awd.mob === 0 &&
@@ -9513,17 +9513,18 @@ const ASC_COMBOS = `const combos = k => {
     const z = cnt(2, { zod: true, tier: 5 }, 300, 'corr'),
       z2 = cnt(2, { zod: true, tier: 5 }, 300, 'holy'),
       z3 = cnt(1, { zod: true, tier: 5 }, 300, 'corr');
-    if (z !== 1 || z2 !== 1 || z3) bad.push(`生肖 ${z} ${z2} ${z3}`);
+    /* 0.2.82：生肖王不再保底腐化石、聖化石與追憶裝（改掉神血） */
+    if (z || z2 || z3) bad.push(`生肖 ${z} ${z2} ${z3}`);
     setS();
     let zg = 0;
     for (let i = 0; i < 300; i++) {
       const L = E.dropGear(2, { ilvl: E.tierIlvl(8), star: 3, zod: true, qty: 0, rar: 0 });
       const m = L[L.length - 1];
-      if (L.length === 4 && m.r === 2 && m.mem && E2.memPool(m).includes(m.mem.k) && !m.frac) zg++;
+      if (L.length === 4) zg++;
     }
-    if (zg !== 300) bad.push('生肖王沒有保底追憶裝 ' + zg);
+    if (zg) bad.push('生肖王還有保底追憶裝 ' + zg);
     ok(
-      `機制綁定：轉化石只在血霧期（菁英 ${(h1 * 100).toFixed(0)}%、王保底 1、小怪不掉）；預知石全域（菁英 ${(f1 * 100).toFixed(2)}%、王 ${(f2 * 100).toFixed(2)}%）；腐化石與聖化石：生肖王各保底 1、階級 10 以上菁英掉聖化石 2%（${(t1 * 100).toFixed(1)}%）、地圖掉腐化石 5%（${(t2 * 100).toFixed(1)}%）；生肖王多 1 件保底追憶黃裝；其他情況全部不掉`,
+      `機制綁定：轉化石只在血霧期（菁英 ${(h1 * 100).toFixed(0)}%、王保底 1、小怪不掉）；預知石全域（菁英 ${(f1 * 100).toFixed(2)}%、王 ${(f2 * 100).toFixed(2)}%）；腐化石與聖化石：階級 10 以上菁英掉聖化石 2%（${(t1 * 100).toFixed(1)}%）、地圖掉腐化石 5%（${(t2 * 100).toFixed(1)}%）；生肖王不再保底腐化、聖化、追憶裝（0.2.82）；其他情況全部不掉`,
       !bad.length,
       bad.slice(0, 4).join('、')
     );
@@ -9728,7 +9729,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, wArmyC, wArmyCells, wArmy, wArmyGen, armyRes, armyDrop, armyGear, memGear2, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, wArmyC, wArmyCells, wArmy, wArmyGen, armyRes, armyDrop, armyGear, memGear2, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC })',
     ctx
   );
   const mul = seed => () => {
@@ -10148,6 +10149,86 @@ const ASC_COMBOS = `const combos = k => {
     vm.runInContext('ST = null', ctx);
     ok(
       `陰兵借道：19 格大六角鋪滿、第 ${F.ARMY.ring} 圈以外 ${((a / n) * 100).toFixed(1)}%（${regs.length} 塊，每塊 15 個節點以上、三位將領不相鄰）；怨恨值；將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、雙追憶兩條都生效；門票；涿鹿兵主`,
+      !bad.length,
+      [...new Set(bad)].slice(0, 4).join('、')
+    );
+  });
+  /* 6d. 弒神補完（0.2.82）：生肖王掉神血；太歲／太歲星君的門票；神格的強度範圍、數值放大、開關不放大、點了同一個點只補差額、真的進 stats；收藏上限與拆掉 */
+  seeded(7807, () => {
+    const bad = [],
+      S = () => vm.runInContext('S', ctx);
+    setS();
+    F.tsDrop('zod');
+    F.tsDrop('zod');
+    if (S().frags.blood !== 2) bad.push('神血');
+    const t = { lv: 60, idols: F.ZODIAC.slice(0, 11).map(z => z.z), frags: { blood: 12 } };
+    if (!F.tsHallWhy(t, 'taisui')) bad.push('神像沒全亮能開太歲');
+    t.idols.push(F.ZODIAC[11].z);
+    if (F.tsHallWhy(t, 'taisui') || !F.tsHallWhy(t, 'xingjun')) bad.push('門票');
+    if (F.tsHallPay(t, 'taisui') || t.frags.blood !== 8) bad.push('太歲沒扣 4');
+    t.lv = 70;
+    t.frags.blood = 12;
+    if (F.tsHallPay(t, 'xingjun') || t.frags.blood) bad.push('星君沒扣 12');
+    /* 強度範圍 */
+    let lo = 999,
+      hi = 0,
+      ulo = 999;
+    const gs = new Set();
+    for (let i = 0; i < 3000; i++) {
+      const g = F.ghRoll(false),
+        u = F.ghRoll(true);
+      lo = Math.min(lo, g.p);
+      hi = Math.max(hi, g.p);
+      ulo = Math.min(ulo, u.p);
+      gs.add(g.g);
+      if (g.a.length !== 1 || !F.AFF[g.a[0].k]) bad.push('小詞');
+    }
+    if (lo !== 60 || hi !== 120 || ulo !== 80 || gs.size !== 12)
+      bad.push(`強度 ${lo}～${hi} 星君 ${ulo} 神 ${gs.size}`);
+    /* 數值 × 強度、開關不放大、點了同一個點只補差額 */
+    const R = { g: 'rooster', p: 120, a: [] },
+      f = F.ghFx(R, {}),
+      own = F.ghFx(R, { asc: 'godson', at: ['rooster', 's_rooster'] }),
+      rat = F.ghFx({ g: 'rat', p: 150, a: [] }, {}),
+      ratOwn = F.ghFx({ g: 'rat', p: 150, a: [] }, { asc: 'godson', at: ['rat'] }),
+      tg = F.ghFx({ g: 'tiger', p: 150, a: [] }, {});
+    if (f.ignBurst !== 60 || f.ignMag !== 18) bad.push('放大 ' + JSON.stringify(f));
+    if (own.ignBurst !== 10 || own.ignMag !== 3) bad.push('同一個點沒只補差額 ' + JSON.stringify(own));
+    if (rat.poiSpread !== 1 || ratOwn.poiSpread || ratOwn.poiDur !== 23)
+      bad.push('開關 ' + JSON.stringify([rat, ratOwn]));
+    if (tg.bleedStack !== 2) bad.push('層數不該放大');
+    if (F.ghText(R).some(x => /undefined|NaN/.test(x))) bad.push('說明');
+    /* 真的進 stats */
+    const mk = gods => {
+      const st = {
+        lv: 100,
+        eq: Object.fromEntries(F.EQS.map(e => [e.k, null])),
+        pt: [...F.PT_START],
+        at: [],
+        auras: [],
+        charms: [],
+        gods,
+        godOn: gods.length ? 0 : null
+      };
+      return F.stats(st);
+    };
+    const z0 = mk([]),
+      z1 = mk([{ g: 'rooster', p: 100, a: [{ k: 'life', T: 1, v: 50 }] }]);
+    if (z1.ignBurst - z0.ignBurst !== 50 || z1.hp - z0.hp < 50) bad.push('stats ' + [z1.ignBurst, z1.hp - z0.hp]);
+    /* 收藏：上限、拆掉 */
+    setS();
+    vm.runInContext('S.gods = []; S.godOn = null', ctx);
+    for (let i = 0; i < F.TAISUI.keep + 2; i++) F.tsDrop('taisui');
+    if (S().gods.length !== F.TAISUI.keep) bad.push('收藏上限');
+    vm.runInContext('S.godOn = 3', ctx);
+    const so = F.MAT().soul;
+    if (!F.ghSalvage(3) || F.ghSalvage(1) || S().godOn !== 2 || F.MAT().soul !== so + 200) bad.push('拆掉');
+    const u = F.tsUber();
+    if (u.hp !== F.tsBoss().hp * 3 || !u.duty2 || !u.pat.includes('duty')) bad.push('太歲星君');
+    for (let i = 0; i < 3000; i++) if (F.bossPick(null).ts) bad.push('一般地圖抽到太歲');
+    vm.runInContext('ST = null', ctx);
+    ok(
+      '弒神補完：生肖王掉神血；太歲（十二神像全亮＋4）、太歲星君（12＋Lv70）；神格 60～120%（星君 80～150%）、12 位神都抽得到、數值 × 強度、開關與層數不放大、點了神裔同一個點只補差額、真的進 stats；收藏上限 30、裝著的不能拆',
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
