@@ -10063,7 +10063,35 @@ const ASC_COMBOS = `const combos = k => {
       n++;
       if (v.on) a++, regs.push(k);
     }
-    if (Math.abs(a / n - F.ARMY.w) > 0.02) bad.push(`區塊比例 ${a}/${n}`);
+    if (Math.abs(a / n - F.ARMY.w) > 0.025) bad.push(`區塊比例 ${a}/${n}`);
+    /* 0.2.83：相鄰的兩塊不會都是陰兵借道；7 格的機制區塊碰到陰兵借道就整塊取消 */
+    for (const k of regs) {
+      const [x, y] = k.split(',').map(Number);
+      for (const [p, q] of [
+        [3, 2],
+        [-2, 5],
+        [-5, 3],
+        [-3, -2],
+        [2, -5],
+        [5, -3]
+      ])
+        if (F.wArmy(s.world.seed, x + p, y + q)) bad.push('兩塊陰兵借道相鄰');
+    }
+    for (let q = -34; q <= 34; q++)
+      for (let r = -34; r <= 34; r++) {
+        if (!F.REGION.types.includes(F.wType(s, q, r))) continue;
+        const [x, y] = F.wRegionC(q, r);
+        for (const [p, w] of [
+          [0, 0],
+          [1, 0],
+          [0, 1],
+          [-1, 1],
+          [-1, 0],
+          [0, -1],
+          [1, -1]
+        ])
+          if (F.wArmy(s.world.seed, x + p, y + w)) bad.push('7 格區塊被陰兵借道切掉');
+      }
     for (const ck of regs) {
       const [x, y] = ck.split(',').map(Number),
         cells = F.wArmyCells(x, y),
@@ -10148,7 +10176,7 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 3000; i++) if (F.bossPick(null).army) bad.push('一般地圖抽到陰兵的王');
     vm.runInContext('ST = null', ctx);
     ok(
-      `陰兵借道：19 格大六角鋪滿、第 ${F.ARMY.ring} 圈以外 ${((a / n) * 100).toFixed(1)}%（${regs.length} 塊，每塊 15 個節點以上、三位將領不相鄰）；怨恨值；將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、雙追憶兩條都生效；門票；涿鹿兵主`,
+      `陰兵借道：19 格大六角鋪滿、不相鄰、7 格區塊碰到就整塊取消、第 ${F.ARMY.ring} 圈以外 ${((a / n) * 100).toFixed(1)}%（${regs.length} 塊，每塊 15 個節點以上、三位將領不相鄰）；怨恨值；將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、雙追憶兩條都生效；門票；涿鹿兵主`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );

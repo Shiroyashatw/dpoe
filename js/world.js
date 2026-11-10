@@ -106,6 +106,8 @@ function wRegionC(q, r) {
 function wRegion2(seed, q, r) {
   const [x, y] = wRegionC(q, r);
   if (wRing(x, y) < REGION.ring) return null;
+  /* 0.2.83：7 格裡只要有一格在陰兵借道裡，整塊取消（不留半塊，凶地不會少了巢穴） */
+  if (wArmy(seed, x, y) || HDIR.some(([a, b]) => wArmy(seed, x + a, y + b))) return null;
   let h = wHash(seed, x, y, 8);
   for (const t of REGION.types) if ((h -= REGION.w[t]) < 0) return t;
   return null;
@@ -133,9 +135,21 @@ const wArmyCells = (x, y) => {
   return L;
 };
 /* 這一格在不在陰兵借道裡：回傳區塊中心的鍵 */
+/* 相鄰的兩塊不會同時是陰兵借道（0.2.83）：兩塊都抽中時，雜湊小的那塊留下 */
+const ARMY_NB = [
+  [3, 2],
+  [-2, 5],
+  [-5, 3],
+  [-3, -2],
+  [2, -5],
+  [5, -3]
+];
+const armyRaw = (seed, x, y) => wRing(x, y) >= ARMY.ring && wHash(seed, x, y, 12) < ARMY.w;
 function wArmy(seed, q, r) {
   const [x, y] = wArmyC(q, r);
-  return wRing(x, y) >= ARMY.ring && wHash(seed, x, y, 12) < ARMY.w ? wKey(x, y) : null;
+  if (!armyRaw(seed, x, y)) return null;
+  const h = wHash(seed, x, y, 12);
+  return ARMY_NB.some(([a, b]) => armyRaw(seed, x + a, y + b) && wHash(seed, x + a, y + b, 12) < h) ? null : wKey(x, y);
 }
 /* 三位將領站哪三個節點（節點鍵 → 將領）：區塊裡的節點照雜湊排，彼此不相鄰、不是裂口 */
 const ARMY_MEMO = new Map();
