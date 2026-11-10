@@ -6,6 +6,12 @@
 const NSLOT = 5;
 const SLOTKEY = ['左鍵', '右鍵', 'Q', 'E', 'R'];
 /* 同一顆技能上已經有同分類的輔助（排在前面的那顆才算） */
+/* 覺醒輔助 Lv5 起：插的技能等級 +1、Lv6 +2（0.2.80） */
+const awLvAdd = g =>
+  (g.sup || []).reduce(
+    (a, x) => a + (x && SUPPORTS[x.gem] && SUPPORTS[x.gem].aw ? (x.lv >= 6 ? 2 : x.lv >= 5 ? 1 : 0) : 0),
+    0
+  );
 const supDup = (g, sp) =>
   !!g && g.sup.some(x => x && x !== sp && supCat(x.gem) === supCat(sp.gem) && g.sup.indexOf(x) < g.sup.indexOf(sp));
 /* 插在光環上有效果的輔助（items.js 的 stats、捷光環、戰狼與魔像讀它們） */
@@ -18,7 +24,7 @@ const supOK = (D, sp, g) => {
   if (!U) return false;
   if (g && supDup(g, sp)) return false;
   /* 連鎖輔助：不能連鎖的投射物（閃電箭、一路穿透的冰霜彈）標成不相容 */
-  if (sp.gem === 'chain' && D.noChain) return false;
+  if ((U.base || sp.gem) === 'chain' && D.noChain) return false;
   /* 蓄力技能（0.2.54）要有人按住：自動化、觸發、轉圖騰都不相容 */
   if (D.charge && (U.meta || U.conv)) return false;
   if (sp.gem === 'arbiter' && D.el !== 'fire') return false;
@@ -50,7 +56,7 @@ function gemCfg(g, i) {
   if (!g) return null;
   const D = awD(g.gem, g.aw),
     /* 長杖：法術技能等級 +1；追憶詞「裝備的技能寶石等級 +1」（8-2）所有技能都加 */
-    lv = g.lv + (D.tags.includes('spell') ? ST.spellLv : 0) + ((ST.mem && ST.mem.gemLv) || 0),
+    lv = g.lv + (D.tags.includes('spell') ? ST.spellLv : 0) + ((ST.mem && ST.mem.gemLv) || 0) + awLvAdd(g),
     c = {
       i,
       k: g.gem,
@@ -112,6 +118,20 @@ function gemCfg(g, i) {
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
   for (const sp of g.sup || []) {
     if (!sp || !supOK(D, sp, g)) continue;
+    /* 覺醒輔助（0.2.80，data.js 的 AW_SUP）：數字照覺醒輔助自己的等級，不吃一般輔助的「每級更多 1%」 */
+    if (SUPPORTS[sp.gem].aw) {
+      const b = SUPPORTS[sp.gem].base,
+        v = AW_SUP[b].v(sp.lv);
+      if (b === 'multi') (c.proj += v.proj), (c.more *= 0.95);
+      else if (b === 'area') (c.aoe *= 1 + v.aoe / 100), (c.more *= 1 + v.more / 100);
+      else if (b === 'fury') (c.more *= 1 + v.more / 100), (c.mp *= 1.5);
+      else if (b === 'haste') c.speed *= 1 + v.spd / 100;
+      else if (b === 'crit') (c.critInc += v.ci), (c.critX += v.cx);
+      else if (b === 'chain') (c.chain += 3), (c.more *= 1 - v.less / 100);
+      else if (b === 'elepen') c.pen += v.pen;
+      else if (b === 'ailmag') c.ailMag += v.ail;
+      continue;
+    }
     c.more *= 1 + 0.01 * (sp.lv - 1);
     /* 分級（0.2.51，data.js 的 SUP_II）：II 用 I 的鍵走同一段，t2 換數字。
        0.2.49 C1：分裂、連鎖、迴旋、集中效應、抗性穿透、極大、撲殺、夜刃；0.2.50 C2：附加冰冷／閃電／混沌、魔力偷取、擴張、貫穿拳 */

@@ -340,6 +340,7 @@ function closePanels() {
     PANEL.sellM =
     PANEL.asc =
     PANEL.shop =
+    PANEL.box =
     PANEL.ident =
       false;
   clearTimeout(REV.tm);
@@ -357,6 +358,7 @@ const anyPanel = () =>
   PANEL.flt ||
   PANEL.asc ||
   PANEL.shop ||
+  PANEL.box ||
   PANEL.ident;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
 const KEYS_PC = [
@@ -634,6 +636,7 @@ function hudPanels() {
   $('pdev').hidden = !PANEL.device;
   $('pasc').hidden = !PANEL.asc;
   $('pshop').hidden = !PANEL.shop;
+  $('pbox').hidden = !PANEL.box;
   $('preveal').hidden = !PANEL.ident;
   $('pskill').hidden = !PANEL.skill;
   $('pcraft').hidden = !PANEL.craft;
@@ -659,6 +662,7 @@ function hudPanels() {
   if (PANEL.device) wmPanel();
   if (PANEL.asc) panelHTML($('pasc'), ascHTML(), ['', '.ax-list']);
   if (PANEL.shop) $('pshop').innerHTML = shopHTML();
+  if (PANEL.box) $('pbox').innerHTML = boxHTML();
   if (PANEL.ident) {
     panelHTML($('preveal'), revealHTML(), ['.rvl']);
     const n = $('preveal').querySelector('.new');
@@ -1028,6 +1032,53 @@ function revealHTML() {
     .join('')}</div>
   <div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`;
 }
+/* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */
+const BOXUI = { tab: 'fd', sel: null };
+function boxHTML() {
+  const F = S.frags,
+    tabs = [
+      ['fd', '酆都'],
+      ['sin', '心魔劫'],
+      ['xi', '四凶']
+    ],
+    row = (k, n) =>
+      `<li class="${n ? '' : 'z'}">${icHTML(FRAGS[k].ic)}<div><b>${esc(FRAGS[k].n)}</b></div><em>${n}</em></li>`,
+    btn = (kind, cost) => {
+      const w = arenaWhy(S, kind, BOXUI.sel);
+      return `<button class="btn wm-hall ${w ? '' : 'pri'}" data-bx="go:${kind}" ${w ? 'disabled' : ''}><b>${ARENA[kind]}</b><small>${esc(w || cost)}</small></button>`;
+    };
+  let body = '';
+  if (BOXUI.tab === 'fd')
+    body = `<ul class="mpg">${[...FENG.elites, 'book'].map(k => row(k, F[k])).join('')}</ul>
+      <div class="wm-halls">${btn('yama', `花 ${FENG.hun} 張勾魂令`)}${btn('uber', '四種勾魂令各 1＋生死簿')}</div>`;
+  else if (BOXUI.tab === 'sin') {
+    BOXUI.sel = (BOXUI.sel || []).filter(k => F[k] > 0);
+    if (!BOXUI.sel.length) BOXUI.sel = SIN.emo.filter(k => F[k] > 0).slice(0, SIN.need);
+    body = `<p class="fhint">選要帶進去的碎片：每片在王場加一個減益</p>
+      <div class="wm-sin">${SIN.emo
+        .map(k => {
+          const on = BOXUI.sel.includes(k);
+          return `<button class="chip ${on ? 'on' : ''}" data-bx="sf:${k}" aria-pressed="${on}" ${F[k] ? '' : 'disabled'}>${esc(SIN_FRAG[k].n.slice(0, 1))} <small>×${F[k] || 0}</small><i>${esc(SIN_FRAG[k].deb)}</i></button>`;
+        })
+        .join('')}</div>
+      <div class="wm-halls">${btn('sanshi', `帶 ${BOXUI.sel.length} 種碎片`)}${btn('sanpeng', `7 種各 1 片＋Lv${SIN.uberLv}`)}</div>`;
+  } else
+    body = `<ul class="mpg">${[...XIONG, 'eye'].map(k => row(k, F[k])).join('')}</ul>
+      <div class="wm-halls">${btn('zhulong', '四凶之鱗各 1 片')}${btn('zhu9', `再加燭龍之目＋Lv${XI.uberLv}`)}</div>`;
+  return `<div class="ph"><b>山海寶盒</b><span>王場 Lv ${arenaLv(S)}（你打過最高的地方）</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+    <div class="ftabs bx-tabs">${tabs.map(([k, n]) => `<button class="${BOXUI.tab === k ? 'on' : ''}" data-bx="tab:${k}">${n}</button>`).join('')}</div>
+    ${body}<p class="fhint">只花碎片，不用地圖卡；王場只有一個房間，沒有小怪。死了碎片不退。</p>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-bx]');
+  if (!b || b.disabled) return;
+  const [k, v] = b.dataset.bx.split(':');
+  if (k === 'tab') BOXUI.tab = v;
+  else if (k === 'sf') BOXUI.sel = BOXUI.sel.includes(v) ? BOXUI.sel.filter(x => x !== v) : [...BOXUI.sel, v];
+  else if (k === 'go') return openArena(v, BOXUI.sel);
+  sfx('click');
+  hudPanels();
+});
 function shopHTML() {
   const L = SHOPUI.last,
     left = gamLeft(S);

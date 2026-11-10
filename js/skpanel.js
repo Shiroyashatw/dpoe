@@ -181,10 +181,14 @@ function skList(c) {
     return L.sort((a, b) => (b.key >= 0) - (a.key >= 0) || !!a.why - !!b.why);
   }
   if (SKUI.view === 'sups')
-    return Object.keys(SUPPORTS)
-      .map(k => ({ k, D: SUPPORTS[k], lv: S.lib.sup[k], why: supWhy(c, k, SKUI.hole), tabs: [supTab(k)] }))
-      .filter(x => x.why !== null)
-      .sort((a, b) => !!a.why - !!b.why);
+    return (
+      Object.keys(SUPPORTS)
+        /* 覺醒輔助（0.2.80）：解鎖了才列出來 */
+        .filter(k => !SUPPORTS[k].aw || awHave(k))
+        .map(k => ({ k, D: SUPPORTS[k], lv: S.lib.sup[k], why: supWhy(c, k, SKUI.hole), tabs: [supTab(k)] }))
+        .filter(x => x.why !== null)
+        .sort((a, b) => !!a.why - !!b.why)
+    );
   return Object.keys(AURAS).map(k => ({
     k,
     D: AURAS[k],
@@ -337,8 +341,25 @@ function skCard(k, acts, note) {
         .join('');
     kv = `${cf.mp ? `<span>魔力 <b class="mp">${cf.mp}</b></span>` : ''}<span>施放 <b>${actDur(cf).toFixed(2)} 秒</b></span>`;
   } else if (kind === 'sup') {
-    chips = `<span class="gtag">輔助</span>${D.need.map(t => (TAGN[t] ? `<span class="gtag">${TAGN[t]}</span>` : '')).join('')}`;
-    kv = `<span>${D.need.length ? '需要技能有 <b>' + D.need.map(t => TAGN[t] || t).join('、') + '</b>' : '任何技能都能插'}</span><span>等級加成 <b>傷害更多 +${lv - 1}%</b></span>`;
+    chips = `<span class="gtag ${D.aw ? 'aw' : ''}">${D.aw ? '覺醒輔助' : '輔助'}</span>${D.need.map(t => (TAGN[t] ? `<span class="gtag">${TAGN[t]}</span>` : '')).join('')}`;
+    kv = `<span>${D.need.length ? '需要技能有 <b>' + D.need.map(t => TAGN[t] || t).join('、') + '</b>' : '任何技能都能插'}</span>${
+      D.aw
+        ? `<span>Lv <b>${lv}／${lv > AW_MAX ? AW_MAX + 1 : AW_MAX}</b>：${esc(awSupText(k, lv))}</span>`
+        : `<span>等級加成 <b>傷害更多 +${lv - 1}%</b></span>`
+    }`;
+    /* 覺醒輔助（0.2.80）：靠四凶掉的同一顆升級；Lv5 可以用燭龍之心突破到 Lv6 */
+    if (D.aw)
+      note =
+        note ||
+        (lv === AW_MAX
+          ? MAT().heart
+            ? ''
+            : '用燭龍之心可以突破到 Lv6'
+          : lv < AW_MAX
+            ? '再撿到同一顆會升一級（四凶掉的）'
+            : '');
+    if (D.aw && lv === AW_MAX && MAT().heart)
+      acts += `<button class="btn pri" data-sk="heart:${k}">用燭龍之心突破到 Lv6</button>`;
   } else {
     chips = `<span class="gtag">光環</span>`;
     kv = `<span>預留精魂 <b>${D.sp}</b></span><span>效果 <b>×${(1 + 0.03 * (lv - 1)).toFixed(2)}</b></span>`;
@@ -506,6 +527,11 @@ function skAct(b, e) {
     const err = drillDo(c.rec);
     if (err) return hudWarn(err);
     sfx('equip');
+    return changed();
+  } else if (k === 'heart') {
+    const err = heartUse(v);
+    if (err) return hudWarn(err);
+    sfx('lvup');
     return changed();
   } else if (k === 'up') {
     const err = libUp(v);

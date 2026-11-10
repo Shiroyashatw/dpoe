@@ -519,10 +519,12 @@ function draw() {
   dg.setTransform(1 / DS, 0, 0, 1 / DS, 0, 0);
   dg.globalCompositeOperation = 'source-over';
   dg.clearRect(0, 0, CV.width, CV.height);
-  dg.fillStyle = `rgba(${BIO().dark},${G.scene === 'hide' ? 0.45 : 0.74})`;
+  /* 燭龍閉眼（0.2.80）：天黑，只剩你身邊看得到 */
+  const night = G.night > G.t;
+  dg.fillStyle = `rgba(${BIO().dark},${night ? 0.96 : G.scene === 'hide' ? 0.45 : 0.74})`;
   dg.fillRect(0, 0, CV.width, CV.height);
   dg.globalCompositeOperation = 'destination-out';
-  const R = 560 * DPR * ZOOM,
+  const R = (night ? 260 : 560) * DPR * ZOOM,
     g = dg.createRadialGradient(px, py, 40 * DPR, px, py, R);
   g.addColorStop(0, 'rgba(0,0,0,1)');
   g.addColorStop(0.6, 'rgba(0,0,0,0.85)');

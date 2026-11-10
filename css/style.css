@@ -1527,3 +1527,11 @@ body.touch:not(.port) #pskill .ftabs button { min-height: 40px; }
 .fom .fsh small { margin-left: 6px; font-weight: 400; color: var(--dim); font-size: var(--fs-s); }
 .fom .chip { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; }
 .fom .chip .ic { width: 22px; height: 22px; }
+
+/* 0.2.80 山海寶盒 */
+#pbox { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(520px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow: auto; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pbox .bx-tabs { margin: 0 0 8px; }
+body.touch #pbox { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
+body.touch.port #pbox { top: env(safe-area-inset-top); transform: none; max-height: none; }
+body.touch.port #pbox > .ph:first-child .x { display: grid; }
+.gtag.aw { color: var(--awk); border-color: var(--awk); }

@@ -12,8 +12,11 @@ function himg(k) {
   if (!HIMG[k]) (HIMG[k] = new Image()).src = HIDE_ART.img[k];
   return HIMG[k];
 }
+/* 山海寶盒（0.2.80）：地圖台右邊，不在烘好的場景裡（圖先借現成的 it_mtrapbox） */
+const BOX = { k: 'box', n: '山海寶盒', x: 760, y: 500, r: 22, ny: 72, sp: 'it_mtrapbox' };
 const hideProps = () => [
   ...HIDE_ART.props,
+  BOX,
   ...npcList().map(n => ({ k: 'npc', id: n.id, n: n.n, x: n.x, y: n.y, r: 22, ny: 86 }))
 ];
 

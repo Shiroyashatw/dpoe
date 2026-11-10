@@ -150,7 +150,7 @@ function enterHideout() {
   G.solid = A.solids;
   G.deco = A.lights.map(l => ({ k: 'light', ...l }));
   G.props = hideProps();
-  G.npcs = npcList();
+  G.npcs = [...npcList(), { ...BOX, npc: 1 }];
   newPlayer(A.spawn.x, A.spawn.y);
   P.hp = ST.hp;
   P.mp = ST.mp;
@@ -168,43 +168,83 @@ function enterHideout() {
 }
 /* 開地圖：花碎片、地圖台前面出現傳送門 */
 /* 選了節點 k 的地圖卡 i：付碎片（只看星級），記住節點與這張卡（進地圖時套用）；回傳內部難度 */
-function payMap(k, i, hall, sel) {
-  const sin = hall === 'sanshi' || hall === 'sanpeng',
-    [q, r] = wXY(k),
-    why =
-      wWhy(S, q, r) ||
-      (hall && wType(S, q, r) !== (sin ? 'dream' : 'ghost') ? (sin ? '只有心魔幻境進得去' : '只有鬼門進得去') : null),
+function payMap(k, i) {
+  const [q, r] = wXY(k),
+    why = wWhy(S, q, r),
     st = STORY_I[k],
     card = st != null ? STORY[st].card : wCards(S, k).c[i];
   if (why) return hudWarn(why), 0;
   if (!card) return hudWarn('先選一張地圖卡'), 0;
   const c = st != null ? 0 : mapCost(card.star);
   if (S.frag < c) return hudWarn(`碎片不夠：要 ${c} 個`), 0;
-  /* 酆都的殿（0.2.78）：先付勾魂令／生死簿，不夠就不開 */
-  const hw = hall && (sin ? sinHallPay(S, hall, sel) : fdHallPay(S, hall));
-  if (hw) return hudWarn(hw), 0;
   S.frag -= c;
-  S.hall = hall || null;
   S.node = k;
   S.card = card;
   return lvT(wLv(q, r));
 }
-function openMap(k, i, hall, sel) {
-  const t = payMap(k, i, hall, sel);
+function openMap(k, i) {
+  const t = payMap(k, i);
   if (!t) return;
-  const n = hall ? FD_HALL[hall] || SIN_HALL[hall] : wName(S, ...wXY(k));
+  const n = wName(S, ...wXY(k));
   G.portal = { ...HIDE_ART.portal, to: t, n };
   save();
   sfx('portal');
   hudWarn(`${n}的傳送門開了`);
 }
+/* 山海寶盒（0.2.80）：花碎片開王場（酆都、心魔、四凶的殿），地圖台前面開傳送門；王場只有一個房間、2 秒後出王。
+   等級＝打過的節點裡最高的（最高 Lv83）；死了照一般死亡，碎片不退 */
+const ARENA = {
+  yama: '閻羅殿',
+  uber: '十殿閻羅',
+  sanshi: '心魔・三尸',
+  sanpeng: '三彭',
+  zhulong: '燭龍',
+  zhu9: '燭九陰'
+};
+const arenaLv = s => Math.min(W_CAP, Math.max(wLv(STORY[0].q, STORY[0].r), ...s.world.done.map(k => wLv(...wXY(k)))));
+function arenaWhy(s, kind, sel) {
+  return kind === 'yama' || kind === 'uber'
+    ? fdHallWhy(s, kind)
+    : kind === 'sanshi' || kind === 'sanpeng'
+      ? sinHallWhy(s, kind, sel)
+      : xiHallWhy(s, kind);
+}
+function openArena(kind, sel) {
+  if (G.scene !== 'hide') return hudWarn('回藏身處才能開');
+  const w =
+    kind === 'yama' || kind === 'uber'
+      ? fdHallPay(S, kind)
+      : kind === 'sanshi' || kind === 'sanpeng'
+        ? sinHallPay(S, kind, sel)
+        : xiHallPay(S, kind);
+  if (w) return hudWarn(w);
+  S.arena = kind;
+  G.portal = { ...HIDE_ART.portal, to: lvT(arenaLv(S)), n: ARENA[kind] };
+  save();
+  sfx('portal');
+  hudWarn(`${ARENA[kind]}的傳送門開了`);
+  closePanels();
+}
+/* 王場的王 */
+const arenaBoss = k =>
+  k === 'uber'
+    ? fdUber()
+    : k === 'yama'
+      ? fdBoss('yama')
+      : k === 'sanpeng'
+        ? sinUber()
+        : k === 'sanshi'
+          ? sinBoss(pick(['up', 'mid', 'low']))
+          : k === 'zhu9'
+            ? xiUber()
+            : xiBoss('zhulong');
 /* 地圖（參考 Chronicon）：一塊一塊 14×14 格的房間拼起來，有岔路也沒關係；
    殺怪累積首領進度，滿了王就出現在附近（怪物總量約是需要的 150～160%） */
 const TS = 48,
   CHUNK = 14;
 /* 從地圖裡的傳送門直接開下一張（花碎片） */
-function mapAgain(k, i, hall, sel) {
-  const t = payMap(k, i, hall, sel);
+function mapAgain(k, i) {
+  const t = payMap(k, i);
   if (!t) return;
   save();
   enterMap(t);
@@ -223,25 +263,30 @@ function enterMap(t) {
   G.fdB = null;
   G.dream = 0;
   G.sinDeb = null;
+  G.fiend = null;
+  G.night = 0; /* 燭龍的天黑（G.t 每張圖從 0 開始，不清會跟到下一張） */
+  /* 山海寶盒的王場（0.2.80） */
+  G.arena = S.arena || null;
+  if (G.arena) {
+    G.fdB = arenaBoss(G.arena);
+    G.nodeN = ARENA[G.arena];
+    if (G.arena === 'sanshi' || G.arena === 'sanpeng') G.sinDeb = S.sinDeb || [];
+  }
   G.hunt = false;
-  G.nodeN = '';
+  if (!G.arena) G.nodeN = '';
   if (G.node) {
     const [q, r] = wXY(G.node);
     if (wType(S, q, r) === 'rift') G.zod = wZod(S, q, r);
     G.nodeN = wName(S, q, r);
     /* 酆都（0.2.78）：鬼門的王是四隻菁英王隨機一隻；閻羅殿、十殿閻羅換成閻羅、十殿閻羅 */
-    if (wType(S, q, r) === 'ghost') {
-      G.fdB = S.hall === 'uber' ? fdUber() : fdBoss(S.hall === 'yama' ? 'yama' : pick(FENG.elites));
-      if (S.hall) G.nodeN = FD_HALL[S.hall];
-    }
-    /* 心魔幻境（0.2.79）：一般進去有一隻七情王在中段等你；花碎片進去的話，王換成三尸（隨機一隻）或三彭，帶的碎片各加一個減益 */
-    if (wType(S, q, r) === 'dream') {
-      G.dream = 1;
-      if (S.hall) {
-        G.fdB = S.hall === 'sanpeng' ? sinUber() : sinBoss(pick(['up', 'mid', 'low']));
-        G.nodeN = SIN_HALL[S.hall];
-        G.sinDeb = S.sinDeb || [];
-      }
+    if (wType(S, q, r) === 'ghost') G.fdB = fdBoss(pick(FENG.elites));
+    /* 心魔幻境（0.2.79）：有一隻七情王在中段等你 */
+    if (wType(S, q, r) === 'dream') G.dream = 1;
+    /* 凶地（0.2.80）：整塊帶那隻凶的專屬地圖詞，中心那格的王就是牠 */
+    if (wType(S, q, r) === 'fiend') {
+      const f = wFiend(S.world.seed, q, r);
+      G.fiend = f.k;
+      if (f.c) G.fdB = xiBoss(f.k);
     }
     G.hunt = !!S.hunt.full; /* 血霧期：進這張圖時血霧是滿的（最後一張扣光也算） */
     huntEnter(S);
@@ -252,8 +297,11 @@ function enterMap(t) {
   G.mm = mapMods(S.card, G.zod && G.zod.cor, G.rou);
   for (const k of G.sinDeb || [])
     for (const [f, v] of Object.entries(SIN_FRAG[k].mm || {})) G.mm[f] = (G.mm[f] || 0) + v;
+  if (G.fiend)
+    for (const [f, v] of Object.entries({ ...XIONG_MOD[G.fiend].fx, ...XIONG_MOD[G.fiend].rew }))
+      G.mm[f] = typeof v === 'string' ? v : (G.mm[f] || 0) + v;
   G.star = (S.card && S.card.star) || 1;
-  S.node = S.card = S.hall = S.sinDeb = null;
+  S.node = S.card = S.arena = S.sinDeb = null;
   const tiles = (G.tiles = new Uint8Array(cols * rows).fill(1));
   G.cols = cols;
   G.rows = rows;
@@ -262,7 +310,7 @@ function enterMap(t) {
       for (let x = Math.max(1, x0); x <= Math.min(cols - 2, x1); x++) tiles[y * cols + x] = 0;
   };
   /* 房間的排法：從左邊一塊開始往外長，偶爾從舊房間分岔 */
-  const n = Math.min(CW * CHn - 6, 9 + Math.floor(t / 3)),
+  const n = G.arena ? 1 : Math.min(CW * CHn - 6, 9 + Math.floor(t / 3)),
     rooms = [{ cx: 0, cy: irnd(1, CHn - 2) }],
     has = new Set([rooms[0].cx + ',' + rooms[0].cy]),
     links = [];
@@ -358,6 +406,8 @@ function enterMap(t) {
   }
   skillsEnter();
   G.need = Math.ceil(pts / rnd(1.5, 1.6));
+  /* 王場（0.2.80）：沒有小怪，2 秒後出王 */
+  G.arenaT = G.arena ? G.t + 2 : 0;
   G.prog = 0;
   G.rooms = rooms;
   sfx('portal');
@@ -434,6 +484,9 @@ function addProg(m) {
   if (m.pack === 99 || m.boss || G.bossOut) return;
   G.prog += m.elite ? 6 : 1;
   if (G.prog < G.need) return;
+  spawnBoss();
+}
+function spawnBoss() {
   G.bossOut = 1;
   const p = floorNear(P.x, P.y, 260, 420, 60) || floorNear(P.x, P.y, 120, 260, 50) || { x: P.x + 1, y: P.y };
   const b = spawnMob(G.zod || G.fdB || (G.lastBoss = bossPick(G.lastBoss)), p.x, p.y, 99, false);
@@ -841,7 +894,8 @@ function killMob(m) {
   [
     ...killMat(m, t, od),
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),
-    ...(m.boss && m.D.sin ? sinDrop(m.D.sin) : [])
+    ...(m.boss && m.D.sin ? sinDrop(m.D.sin) : []),
+    ...(m.boss && m.D.xi ? xiDrop(m.D.xi) : [])
   ].forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
   /* 掉落：菁英 1 件黃、王 3 件（第一件保底黃）；裂口生肖王多 1 件保底追憶裝 */
   for (const it of dropGear(m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0, od)) dropAt(m.x, m.y, { it });
@@ -1049,6 +1103,7 @@ function useProp(p) {
   else if (p.k === 'stash') openPanel('stash');
   else if (p.k === 'forge') openPanel('craft');
   else if (p.k === 'asc') openPanel('asc');
+  else if (p.k === 'box') openPanel('box');
   else if (p.k === 'npc') talkOpen(p.id);
   else if (p.k === 'prac') hudWarn('走進石圈就能出招');
   else hudWarn('市集之後開放');
@@ -1178,6 +1233,8 @@ function updMobs(dt) {
       m.hp = G.t < m.until ? m.mhp : 0;
       continue;
     }
+    /* 檮杌「不動」（0.2.80）：期間清掉定身、擊退 */
+    if (m.unstopT > G.t) (m.ail.hstun = m.ail.frozen = m.ail.elcT = m.ail.pinT = m.ail.petr = 0), (m.vx = m.vy = 0);
     if (mobTick(m, dt)) continue;
     if (m.vx || m.vy) {
       moveBody(m, m.vx * dt, m.vy * dt);
@@ -1315,6 +1372,9 @@ const FAR_AI = { ranged: 1, fan: 1, cast: 1, summon: 1 };
 /* 王的招：近身能用的、遠的能用的（每隻王只會 D.pat 裡的）；彈幕環 NOVA_N 發、留 NOVA_GAP 發的缺口 */
 /* 0.2.78 十殿閻羅的 3 招新招（只有它會）：生死簿・判決 verdict（頭上的圈跟著你 1.5 秒，最後 0.6 秒定住再落下，要走開或翻滾）、
    十殿輪轉 wheel（王周圍 10 條放射線挑 6 條依序噴火，站在沒亮的那幾條）、勾魂鎖鏈 hook（鎖鏈落在你腳下，還站在圈裡就被拉到王身邊、接一下砸地） */
+/* 0.2.80 四凶與燭龍的招牌招：饕餮 devour（把你吸過去咬一口、牠回 5% 生命）、窮奇 gale（扇形狂風把你吹退，吹散你的投射物）、
+   檮杌 unstop（5 秒不吃擊退與定身，一直衝撞）、混沌 chaosjump（在你周圍瞬移 3 次，每次落地一個爆炸圈）、
+   燭龍 daynight（閉眼：5 秒天黑、只有你身邊看得到；睜眼：三道火光朝你掃過來） */
 /* 0.2.79 七情王的招牌招（每隻一招）：喜 laugh（狂笑 4 秒：打牠會反彈 15% 傷害給你）、怒 wrath（暴怒 5 秒：出招更快）、
    哀 tears（3 個淚池落下，被打到 4 秒不能回血）、懼 dread（3.5 秒的恐懼圈：靠近會一直被推開、受傷）、
    愛 tether（叫 2 隻小怪用紅線連著牠，小怪活著時牠受到的傷害 −70%）、惡 repel（周圍爆開把你彈飛）、欲 greed（揮一下，打中搶走你全部能量球、每顆回牠 4% 生命） */
@@ -1364,7 +1424,12 @@ const BOSS_NEAR = {
     dread: 0.6,
     tether: 0.6,
     repel: 0.8,
-    greed: 0.55
+    greed: 0.55,
+    devour: 0.8,
+    gale: 0.6,
+    unstop: 0.5,
+    chaosjump: 0.5,
+    daynight: 0.7
   },
   NOVA_N = 16,
   NOVA_GAP = 3;
@@ -1380,6 +1445,24 @@ function bossAI(m, dt) {
           : P,
     dT = dist(m, T);
   const rage = (m.hp < m.mhp / 2 ? 0.72 : 1) * (m.wrathT > G.t ? 0.65 : 1);
+  /* 燭龍睜眼：天黑結束時三道火光朝你掃過來 */
+  if (m.night && G.t >= m.night) {
+    m.night = 0;
+    const a0 = angTo(m, T);
+    for (const d of [-0.35, 0, 0.35])
+      for (let i = 0; i < 6; i++)
+        G.tele.push({
+          x: m.x + Math.cos(a0 + d) * 85 * (i + 1),
+          y: m.y + Math.sin(a0 + d) * 85 * (i + 1),
+          r: 58,
+          t: 0,
+          dur: 0.7 + i * 0.1,
+          dmg: m.dmg,
+          src: m,
+          el: 'fire'
+        });
+    hudWarn(`${m.D.n}睜開了眼`);
+  }
   /* 懼的恐懼圈：圈裡的人一直被推開、每 0.5 秒受一次傷 */
   if (m.dreadT > G.t && dist(m, P) < 170 + P.r) {
     const a = angTo(m, P);
@@ -1402,7 +1485,7 @@ function bossAI(m, dt) {
     if (m.cd <= 0 && see) {
       const ok = dT < 140 ? BOSS_NEAR : BOSS_FAR,
         l = m.D.pat.filter(k => ok[k]);
-      m.pat = pick(l.length ? l : m.D.pat);
+      m.pat = m.unstopT > G.t ? 'charge' : pick(l.length ? l : m.D.pat);
       m.st = 'wind';
       m.ang = angTo(m, T);
       m.t = BOSS_WIND[m.pat] * rage;
@@ -1460,6 +1543,8 @@ function bossAI(m, dt) {
           j++;
         }
       }
+      if (m.pat === 'devour')
+        G.tele.push({ x: m.x, y: m.y, r: 230, t: 0, dur: m.t, dmg: 0, src: m, el: m.el, hook: 1 });
       if (m.pat === 'tears')
         for (let i = 0; i < 3; i++)
           G.tele.push({
@@ -1525,6 +1610,42 @@ function bossAI(m, dt) {
         m.pat = 'swipe';
         m.ang = angTo(m, T);
         m.t = 0.4 * rage;
+      } else if (m.pat === 'devour') {
+        if (dist(m, P) < 230 + P.r) {
+          const a = angTo(m, P);
+          for (let i = 0; i < 10 && dist(m, P) > m.r + P.r + 20; i++) moveBody(P, -Math.cos(a) * 18, -Math.sin(a) * 18);
+          mobHit(m, P, m.dmg * 1.3);
+          m.hp = Math.min(m.mhp, m.hp + m.mhp * 0.05);
+          hudWarn(`${m.D.n}把你吞了一口`);
+        }
+        bossRec(m, 0.7, rage);
+      } else if (m.pat === 'gale') {
+        fx({ k: 'claw', x: m.x, y: m.y, ang: m.ang, r: 320, dur: 0.3, big: 1 });
+        for (const s of G.shots) if (!s.foe && Math.hypot(s.x - m.x, s.y - m.y) < 380) s.life = 0;
+        if (dist(m, P) < 320 + P.r && angDiff(angTo(m, P), m.ang) < 0.8) {
+          mobHit(m, P, m.dmg * 0.8);
+          for (let i = 0; i < 12; i++) moveBody(P, Math.cos(m.ang) * 18, Math.sin(m.ang) * 18);
+        }
+        bossRec(m, 0.5, rage);
+      } else if (m.pat === 'unstop') {
+        m.unstopT = G.t + 5;
+        fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: '#e3a14a' });
+        hudWarn(`${m.D.n}橫衝直撞：5 秒不吃擊退與定身`);
+        bossRec(m, 0.2, rage);
+      } else if (m.pat === 'chaosjump') {
+        const a = rnd(0, TAU),
+          nx = T.x + Math.cos(a) * 150,
+          ny = T.y + Math.sin(a) * 150;
+        if (!isWall(nx, ny) && !(m.ail.pinT > G.t)) (m.x = nx), (m.y = ny);
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: '#b28dff' });
+        G.tele.push({ x: m.x, y: m.y, r: 95, t: 0, dur: 0.5 * rage, dmg: m.dmg, src: m, el: 'chaos' });
+        m.cj = (m.cj || 3) - 1;
+        if (m.cj > 0) (m.st = 'wind'), (m.t = 0.45 * rage);
+        else (m.cj = 0), bossRec(m, 0.7, rage);
+      } else if (m.pat === 'daynight') {
+        m.night = G.night = G.t + 5;
+        hudWarn(`${m.D.n}閉上了眼：天黑了`);
+        bossRec(m, 0.5, rage);
       } else if (m.pat === 'laugh') {
         m.laughT = G.t + 4;
         fx({ k: 'ring', x: m.x, y: m.y, r: 140, dur: 0.5, col: '#ffe066' });
@@ -1747,6 +1868,7 @@ function frame(now) {
     updShots(dt);
     updSkills(dt);
     if (PRO.on) proTick();
+    if (G.arenaT && G.t >= G.arenaT) (G.arenaT = 0), spawnBoss();
     /* 傳送門：地圖裡打倒王後的門＝回家 */
     if (G.portal && G.portal.home) {
       const on = dist(P, G.portal) < 40;

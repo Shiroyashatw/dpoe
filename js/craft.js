@@ -603,7 +603,9 @@ const PRD0 = () => ({
   book: 0,
   perf: 0,
   holy7: 0,
-  v3: 0
+  v3: 0,
+  heart: 0,
+  eye: 0
 });
 function prdRoll(key, p) {
   const prd = (S.prd = S.prd || PRD0()),
@@ -763,6 +765,52 @@ function sinDrop(k, s = S) {
   } else cur('v2');
   return got;
 }
+/* 覺醒輔助（0.2.80）：拿到一顆＝沒有就解鎖（S.lib.sup 記 1）、有了 +1 級；已經 Lv5 以上換成靈魂（那顆 Lv5 升級的量） */
+const awHave = (k, s = S) => !!(s.lib && s.lib.sup && s.lib.sup[k]);
+function awGain(k, s = S) {
+  const L = (s.lib.sup = s.lib.sup || {}),
+    lv = L[k] || 0;
+  if (lv >= AW_MAX) {
+    const n = soulCost(lv);
+    MAT().soul += n;
+    return `${SUPPORTS[k].n}已滿級：換 ${n} 靈魂`;
+  }
+  L[k] = lv + 1;
+  return lv ? `${SUPPORTS[k].n} 升到 Lv ${lv + 1}` : `解鎖 ${SUPPORTS[k].n}`;
+}
+const AW_KEYS = () => Object.keys(SUPPORTS).filter(k => SUPPORTS[k].aw);
+/* 燭龍之心：Lv5 的覺醒輔助突破到 Lv6 */
+function heartWhy(k, s = S) {
+  if (!SUPPORTS[k] || !SUPPORTS[k].aw) return '只能用在覺醒輔助';
+  if ((s.lib.sup || {})[k] !== AW_MAX) return `要先升到 Lv${AW_MAX}`;
+  return MAT().heart >= 1 ? null : '燭龍之心不夠';
+}
+function heartUse(k, s = S) {
+  const why = heartWhy(k, s);
+  if (why) return why;
+  MAT().heart--;
+  s.lib.sup[k] = AW_MAX + 1;
+  return null;
+}
+/* 四凶與燭龍的王額外掉的（0.2.80）：k＝王的 xi（四凶、zhulong 燭龍、zhu9 燭九陰） */
+function xiDrop(k, s = S) {
+  const M = MAT(),
+    F = (s.frags = { ...newFrags(), ...s.frags }),
+    got = [],
+    aw = () => got.push(awGain(pick(AW_KEYS()), s));
+  if (XIONG.includes(k)) {
+    aw();
+    F[k]++, got.push(FRAGS[k].n);
+  } else if (k === 'zhulong') {
+    (M.awk += 1), got.push('1 ' + CUR.awk.n);
+    if (prdRoll('heart', XI.heart)) (M.heart += 1), got.push('1 ' + CUR.heart.n);
+    if (prdRoll('eye', XI.eye)) F.eye++, got.push(FRAGS.eye.n);
+  } else if (k === 'zhu9') {
+    (M.heart += 1), got.push('1 ' + CUR.heart.n);
+    aw(), aw();
+  }
+  return got;
+}
 /* 打怪拿材料：靈魂與通貨自動進材料頁；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),
@@ -788,6 +836,7 @@ function identifyAll(s = S) {
 
 /* ---------- 目錄：靈魂升級、開孔（0.2.75，企劃書 6.2）：等級記在 S.lib，換招不用重練；輔助升一次，插了它的招一起受惠 ---------- */
 function libUpCheck(k) {
+  if (SUPPORTS[k] && SUPPORTS[k].aw) return { c: 0, why: '覺醒輔助要再撿到同一顆才會升級' };
   const lv = libLv(k),
     c = soulCost(lv);
   if (lv >= gemCap(S.lv)) return { c, why: lv >= GEM_MAX ? '已經滿級' : `Lv ${lv + 1} 要角色 Lv ${gemReq(lv + 1)}` };

@@ -79,11 +79,14 @@ const WTYPE = {
   /* 0.2.78 酆都（企劃書 4.2） */
   ghost: { n: '鬼門關', c: '#7fd1c7', d: '酆都的門：裡面是牛頭、馬面、黑無常、白無常其中一個，打倒掉勾魂令' },
   /* 0.2.79 心魔劫（企劃書 4.2） */
-  dream: { n: '心魔幻境', c: '#e08ad0', d: '每張圖都有一隻七情王：打倒掉預兆與碎片' }
+  dream: { n: '心魔幻境', c: '#e08ad0', d: '每張圖都有一隻七情王：打倒掉預兆與碎片' },
+  /* 0.2.80 四凶 */
+  fiend: { n: '凶地', c: '#e3a14a', d: '一隻凶的地盤：每張圖帶牠的專屬地圖詞，中心那格的王就是牠' }
 };
 /* 機制區塊（0.2.79，照 PoE2 的區域）：地圖切成 7 格的大格（中心＋旁邊 6 格；中心＝a·(2,1)＋b·(−1,3)，剛好不重疊鋪滿），
-   中心在第 REGION.ring 圈以外的大格有 REGION.p 的機率整塊變成某個機制（照種子，同一個存檔每次都一樣）；裂口、主線節點優先 */
-const REGION = { ring: 10, p: 0.15, types: ['ghost', 'dream'] };
+   中心在第 REGION.ring 圈以外的大格照各機制自己的機率 REGION.w 整塊變成那個機制（0.2.80；照種子，同一個存檔每次都一樣）；裂口、主線節點優先 */
+const REGION = { ring: 10, w: { ghost: 0.07, dream: 0.08, fiend: 0.05 } };
+REGION.types = Object.keys(REGION.w);
 function wRegionC(q, r) {
   const a = Math.floor((3 * q + r) / 7),
     b = Math.floor((-q + 2 * r) / 7);
@@ -101,8 +104,15 @@ function wRegionC(q, r) {
 }
 function wRegion2(seed, q, r) {
   const [x, y] = wRegionC(q, r);
-  if (wRing(x, y) < REGION.ring || wHash(seed, x, y, 8) >= REGION.p) return null;
-  return REGION.types[Math.floor(wHash(seed, x, y, 9) * REGION.types.length)];
+  if (wRing(x, y) < REGION.ring) return null;
+  let h = wHash(seed, x, y, 8);
+  for (const t of REGION.types) if ((h -= REGION.w[t]) < 0) return t;
+  return null;
+}
+/* 凶地（0.2.80）：這一格屬於哪隻凶、是不是中心 */
+function wFiend(seed, q, r) {
+  const [x, y] = wRegionC(q, r);
+  return { k: XIONG[Math.floor(wHash(seed, x, y, 9) * XIONG.length)], c: x === q && y === r };
 }
 /* 區域名：看圈數 */
 const WREGION = [
@@ -220,6 +230,10 @@ function wName(s, q, r) {
     t = wType(s, q, r);
   if (i != null) return STORY[i].n;
   if (t === 'rift') return wZod(s, q, r).n + '的裂口';
+  if (t === 'fiend') {
+    const f = wFiend(s.world.seed, q, r);
+    return `凶地・${XIONG_MOD[f.k].n}${f.c ? '（巢穴）' : ''}`;
+  }
   return t === 'plain' ? wRegion(wRing(q, r)) : WTYPE[t].n;
 }
 
@@ -268,6 +282,25 @@ function sinHallPay(s, kind, sel) {
   const L = kind === 'sanpeng' ? SIN.emo : [...new Set(sel)];
   for (const k of L) s.frags[k]--;
   s.sinDeb = L;
+  return null;
+}
+
+/* ---------- 四凶（0.2.80）：山海寶盒開燭龍（四凶之鱗各 1 片）、燭九陰（再加燭龍之目、Lv70） ---------- */
+function xiHallWhy(s, kind) {
+  const F = s.frags || {},
+    miss = XIONG.filter(k => !(F[k] >= 1)).map(k => FRAGS[k].n);
+  if (miss.length) return '缺：' + miss.join('、');
+  if (kind === 'zhu9') {
+    if (!(F.eye >= 1)) return '缺燭龍之目（燭龍掉的）';
+    if (s.lv < XI.uberLv) return `角色要 Lv${XI.uberLv}`;
+  }
+  return null;
+}
+function xiHallPay(s, kind) {
+  const why = xiHallWhy(s, kind);
+  if (why) return why;
+  for (const k of XIONG) s.frags[k]--;
+  if (kind === 'zhu9') s.frags.eye--;
   return null;
 }
 

@@ -8657,8 +8657,8 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：23 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 23 &&
+    '通貨：24 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎；0.2.80 燭龍之心）＋靈魂＋精髓表，沒有粉',
+    Object.keys(E.CUR).length === 24 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
       JSON.stringify(nm.ess) === '{}' &&
@@ -9728,7 +9728,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck })',
     ctx
   );
   const mul = seed => () => {
@@ -9888,7 +9888,9 @@ const ASC_COMBOS = `const combos = k => {
     let n = 0,
       g = 0,
       d = 0,
+      fi = 0,
       inner = 0;
+    const fc = {};
     for (let q = -30; q <= 30; q++)
       for (let r = -30; r <= 30; r++) {
         const [x, y] = F.wRegionC(q, r);
@@ -9897,18 +9899,34 @@ const ASC_COMBOS = `const combos = k => {
         if (R > 30 || R < 5) continue;
         const t = F.wType(s, q, r);
         if (F.wRing(x, y) < F.REGION.ring && F.REGION.types.includes(t)) inner++;
-        if (R >= F.REGION.ring + 2 && R <= 30) n++, (g += t === 'ghost' ? 1 : 0), (d += t === 'dream' ? 1 : 0);
+        if (R >= F.REGION.ring + 2 && R <= 30)
+          n++, (g += t === 'ghost' ? 1 : 0), (d += t === 'dream' ? 1 : 0), (fi += t === 'fiend' ? 1 : 0);
+        if (t === 'fiend') {
+          const w = F.wFiend(s.world.seed, q, r);
+          if (w.c && !F.xiBoss(w.k)) bad.push('凶地中心沒有王');
+          (fc[x + ',' + y] = fc[x + ',' + y] || new Set()).add(w.k);
+        }
       }
-    if (inner || Math.abs((g + d) / n - F.REGION.p) > 0.04 || !g || !d) bad.push(`區塊 ${g}+${d}/${n} 內圈 ${inner}`);
-    for (let i = 0; i < 3000; i++)
-      if (F.bossPick(null).fd || F.bossPick(null).sin) bad.push('一般地圖抽到酆都或心魔的王');
+    const W = F.REGION.w;
+    if (
+      inner ||
+      Math.abs(g / n - W.ghost) > 0.025 ||
+      Math.abs(d / n - W.dream) > 0.025 ||
+      Math.abs(fi / n - W.fiend) > 0.025
+    )
+      bad.push(`區塊 ${g}/${d}/${fi}/${n} 內圈 ${inner}`);
+    if (Object.values(fc).some(v => v.size !== 1)) bad.push('一塊凶地不只一隻凶');
+    for (let i = 0; i < 3000; i++) {
+      const b = F.bossPick(null);
+      if (b.fd || b.sin || b.xi) bad.push('一般地圖抽到酆都、心魔或四凶的王');
+    }
     const y = F.fdBoss('yama'),
       u = F.fdUber();
     if (u.hp !== y.hp * 3 || u.dmg !== y.dmg * 1.5 || !['verdict', 'wheel', 'hook'].every(k => u.pat.includes(k)))
       bad.push('十殿閻羅');
     if (F.FENG.elites.some(k => !F.fdBoss(k))) bad.push('少了菁英王');
     ok(
-      `機制區塊：7 格大格鋪滿、中心在第 ${F.REGION.ring} 圈以內沒有，以外鬼門關 ${((g / n) * 100).toFixed(1)}%＋心魔幻境 ${((d / n) * 100).toFixed(1)}%；一般地圖抽不到酆都、心魔的王；十殿閻羅＝閻羅生命 ×3、傷害 ×1.5、多 3 招`,
+      `機制區塊：7 格大格鋪滿、中心在第 ${F.REGION.ring} 圈以內沒有，以外鬼門關 ${((g / n) * 100).toFixed(1)}%、心魔幻境 ${((d / n) * 100).toFixed(1)}%、凶地 ${((fi / n) * 100).toFixed(1)}%（一塊一隻凶、中心有王）；一般地圖抽不到這些王；十殿閻羅＝閻羅生命 ×3、傷害 ×1.5、多 3 招`,
       !bad.length,
       [...new Set(bad)].slice(0, 3).join('、')
     );
@@ -9960,6 +9978,61 @@ const ASC_COMBOS = `const combos = k => {
       `心魔劫：七情王各掉自己的預兆＋碎片、聖化石 ${(hp * 100).toFixed(1)}%；三尸鼎、三彭鼎 ${(vp * 100).toFixed(1)}%；三尸 3 種、三彭 7 種＋Lv70（扣對）；碎片減益進 stats`,
       !bad.length,
       bad.slice(0, 4).join('、')
+    );
+  });
+  /* 6b. 四凶（0.2.80）：四凶掉覺醒輔助（解鎖→升級→Lv5 換靈魂）＋鱗；燭龍掉覺醒石、燭龍之心 10%、燭龍之目 10%；燭九陰；門票；
+     覺醒輔助：沒解鎖不算有、不能花靈魂升、Lv5 技能等級 +1、燭龍之心 Lv6 +2、比原版 II 強、不能跟原版同插 */
+  seeded(7805, () => {
+    const bad = [],
+      S = () => vm.runInContext('S', ctx);
+    setS();
+    vm.runInContext('S.lib = { sk: {}, sup: {}, aura: {}, aw: {} }', ctx);
+    for (const k of F.XIONG) {
+      F.xiDrop(k);
+      if (S().frags[k] !== 1) bad.push(k + ' 沒掉鱗');
+      if (!F.xiBoss(k) || !F.xiBoss(k).pat.length) bad.push(k + ' 沒有王');
+    }
+    const AK = Object.keys(F.SUPPORTS).filter(k => F.SUPPORTS[k].aw);
+    if (AK.length !== 8) bad.push('覺醒輔助不是 8 顆');
+    if (Object.values(S().lib.sup).reduce((a, b) => a + b, 0) !== 4) bad.push('四凶沒各給 1 顆覺醒輔助');
+    const k0 = AK[0];
+    S().lib.sup = {};
+    if (F.awHave(k0)) bad.push('沒解鎖卻算有');
+    F.awGain(k0);
+    if (S().lib.sup[k0] !== 1 || !F.awHave(k0)) bad.push('沒解鎖');
+    for (let i = 0; i < 4; i++) F.awGain(k0);
+    const so = F.MAT().soul;
+    F.awGain(k0);
+    if (S().lib.sup[k0] !== F.AW_MAX || F.MAT().soul !== so + F.soulCost(F.AW_MAX)) bad.push('Lv5 沒換靈魂');
+    if (!F.libUpCheck(k0).why) bad.push('覺醒輔助能花靈魂升');
+    if (F.heartUse(k0) !== '燭龍之心不夠') bad.push('沒燭龍之心也能突破');
+    F.MAT().heart = 1;
+    if (F.heartUse(k0) || S().lib.sup[k0] !== 6) bad.push('燭龍之心沒突破到 Lv6');
+    setS();
+    vm.runInContext('S.lib = { sk: {}, sup: {}, aura: {}, aw: {} }', ctx);
+    const N = 20000;
+    for (let i = 0; i < N; i++) F.xiDrop('zhulong');
+    const hp = F.MAT().heart / N,
+      ep = S().frags.eye / N;
+    if (F.MAT().awk !== N || Math.abs(hp - 0.1) > 0.01 || Math.abs(ep - 0.1) > 0.01) bad.push(`燭龍 ${hp} ${ep}`);
+    const u = F.xiUber();
+    if (
+      u.hp !== F.xiBoss('zhulong').hp * 3 ||
+      !['devour', 'gale', 'unstop', 'chaosjump', 'daynight'].every(x => u.pat.includes(x))
+    )
+      bad.push('燭九陰');
+    const t = { lv: 60, frags: { taotie: 1, qiongqi: 1, taowu: 1, hundun: 0, eye: 1 } };
+    if (!F.xiHallWhy(t, 'zhulong')) bad.push('缺鱗能開燭龍');
+    t.frags.hundun = 1;
+    if (F.xiHallWhy(t, 'zhulong') || !F.xiHallWhy(t, 'zhu9')) bad.push('燭龍／燭九陰門票');
+    t.lv = 70;
+    if (F.xiHallPay(t, 'zhu9') || Object.values(t.frags).some(v => v)) bad.push('燭九陰沒扣對');
+    for (const k of F.XIONG) if (!F.XIONG_MOD[k].fx || !F.XIONG_MOD[k].t) bad.push(k + ' 沒有地圖詞');
+    vm.runInContext('ST = null', ctx);
+    ok(
+      `四凶：各掉覺醒輔助＋自己的鱗；覺醒輔助 8 顆（解鎖、升級、Lv5 換靈魂、不能花靈魂、燭龍之心 Lv6）；燭龍覺醒石保底、燭龍之心 ${(hp * 100).toFixed(1)}%、燭龍之目 ${(ep * 100).toFixed(1)}%；燭九陰；門票；四凶地圖詞`,
+      !bad.length,
+      [...new Set(bad)].slice(0, 4).join('、')
     );
   });
   /* 7. 預兆：怒焰只前綴、哀音只後綴、相思同類、厭棄不同類、貪欲取高、雙喜二選一、畏縮移除再加（破裂不動、滿的也能用）；2 顆要鼎、衝突擋下、加不上就不扣 */
@@ -10054,5 +10127,49 @@ const ASC_COMBOS = `const combos = k => {
       [...new Set(bad)].slice(0, 4).join('、')
     );
   });
+}
+/* 0.2.80 覺醒輔助在 gemCfg 裡的數值：Lv5 技能等級 +1、Lv6 +2、比 II 強、不能跟原版同插（要載入 skills.js，照血魔那段的環境） */
+{
+  const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
+  vm.createContext(c8);
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
+  vm.runInContext(
+    `var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], shots: [], tele: [], allies: [] }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = () => 0, angDiff = () => 0, TAU = Math.PI * 2, num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, hudWarn = () => {}, los = () => true, open = () => true, isWall = () => false, mouseWorld = () => ({ x: 0, y: 0 });`,
+    c8
+  );
+  vm.runInContext(
+    fs
+      .readFileSync(path.join(__dirname, '..', 'js', 'skills.js'), 'utf8')
+      .replace(/\r/g, '')
+      .replace('function mobNear(', 'function mobNear_(')
+      .replace('function thornHit(', 'function thornHit_('),
+    c8,
+    { filename: 'skills.js' }
+  );
+  const r = vm.runInContext(
+    `(() => {
+      S = { lv: 60, eq: {}, pt: [...PT_START], asc: null, at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()), inv: { items: [] }, stash: { items: [] }, temp: { items: [] }, mat: newMat(), lib: { sk: {}, sup: {}, aura: {}, aw: {} } };
+      ST = stats(S);
+      const cfg = sups => gemCfg({ ...mkGem('fireball', 5), sup: sups }, -1);
+      const b = cfg([]), l1 = cfg([{ gem: 'aw_multi', lv: 1 }]), l5 = cfg([{ gem: 'aw_multi', lv: 5 }]), l6 = cfg([{ gem: 'aw_multi', lv: 6 }]);
+      return { lv: [b.lv, l1.lv, l5.lv, l6.lv], proj: [b.proj, l1.proj, l5.proj], f2: cfg([{ gem: 'fury2', lv: 1 }]).more, fa: cfg([{ gem: 'aw_fury', lv: 1 }]).more,
+        dup: cfg([{ gem: 'aw_multi', lv: 1 }, { gem: 'multi', lv: 1 }]).proj, nan: Object.values(l6).some(v => typeof v === 'number' && !Number.isFinite(v)) };
+    })()`,
+    c8
+  );
+  const L = r.lv,
+    bad = [];
+  if (L[1] !== L[0] || L[2] !== L[0] + 1 || L[3] !== L[0] + 2) bad.push('技能等級 ' + L.join('/'));
+  if (r.proj[1] !== r.proj[0] + 2 || r.proj[2] !== r.proj[0] + 3) bad.push('投射物 ' + r.proj.join('/'));
+  if (!(r.fa > r.f2)) bad.push('覺醒・狂暴沒比 II 強');
+  if (r.dup !== r.proj[0] + 2) bad.push('覺醒跟原版能同插');
+  if (r.nan) bad.push('NaN');
+  ok(
+    '覺醒輔助的數值（gemCfg）：Lv5 插的技能等級 +1、燭龍之心 Lv6 +2；覺醒・多重投射 +2／+3；覺醒・狂暴比 II 強；不能跟原版同插',
+    !bad.length,
+    bad.join('、')
+  );
 }
 process.exit(bad ? 1 : 0);

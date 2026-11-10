@@ -37,12 +37,14 @@ function fragPageHTML() {
   return `<ul class="mpg">${row('cur_scrap', '地圖碎片', '開地圖卡、洗卡用；自動吸收', S.frag)}</ul>
   <div class="ph2">酆都<span>鬼門關區塊從第 ${REGION.ring} 圈出現</span></div>
   <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
-  <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：可以進了（點鬼門）' : `：再 ${FENG.hun - n} 張`}</span></p>
-  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '可以進了（點鬼門）')}</span></p></div>
+  <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：可以開了（山海寶盒）' : `：再 ${FENG.hun - n} 張`}</span></p>
+  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '可以開了（山海寶盒）')}</span></p></div>
   <div class="ph2">心魔劫<span>七情王掉的；帶進心魔時每片加一個減益</span></div>
   <ul class="mpg">${SIN.emo.map(k => row(SIN_FRAG[k].ic, SIN_FRAG[k].n, '帶進去：' + SIN_FRAG[k].deb, F[k])).join('')}</ul>
-  <div class="fgoal"><p><b>三尸</b><span class="${SIN.emo.filter(k => F[k]).length >= SIN.need ? 'c-good' : ''}">${SIN.emo.filter(k => F[k]).length}／${SIN.need} 種${SIN.emo.filter(k => F[k]).length >= SIN.need ? '：可以進了（點心魔幻境）' : ''}</span></p>
-  <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '可以進了（點心魔幻境）')}</span></p></div>`;
+  <div class="fgoal"><p><b>三尸</b><span class="${SIN.emo.filter(k => F[k]).length >= SIN.need ? 'c-good' : ''}">${SIN.emo.filter(k => F[k]).length}／${SIN.need} 種${SIN.emo.filter(k => F[k]).length >= SIN.need ? '：可以開了（山海寶盒）' : ''}</span></p>
+  <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '可以開了（山海寶盒）')}</span></p></div>
+  <div class="ph2">四凶<span>凶地中心的四凶掉的</span></div>
+  <ul class="mpg">${[...XIONG, 'eye'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>`;
 }
 
 /* ---------- 一件裝備的詞：前綴 3 格、後綴 3 格（空格畫出來；說明框完整版在 8-3） ---------- */

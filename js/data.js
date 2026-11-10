@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.79';
+const VER = '0.2.80';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -1838,6 +1838,39 @@ const SUP_II = {
 for (const k in SUP_II) {
   SUPPORTS[k + '2'] = { ...SUPPORTS[k], n: SUPPORTS[k].n + ' II', d: SUP_II[k], base: k, tier: 2 };
   SUP_CAT[k + '2'] = supCat(k);
+}
+/* 覺醒輔助（0.2.80，企劃書 4.2「四凶」，照 PoE1）：先做 8 顆，鍵＝'aw_'＋原版的鍵，跟原版、II 同分類（不能同插）。
+   只從四凶掉：沒有就解鎖（S.lib.sup 有記錄才算有）、再撿到 +1 級（不能花靈魂升），上限 Lv5，燭龍之心突破到 Lv6。
+   v(lv) 回傳這一級的數字（skills.js 的 gemCfg 讀），Lv5 起插的技能等級 +1、Lv6 +2；d(v) 是說明 */
+const AW_LV = lv => Math.min(1, (lv - 1) / 4) + (lv > 5 ? 0.5 : 0); /* Lv1 → 0、Lv5 → 1、Lv6 → 1.5 */
+const AW_SUP = {
+  multi: { d: v => `投射物 +${v.proj}，傷害更少 5%`, v: lv => ({ proj: lv >= 5 ? 3 : 2 }) },
+  area: {
+    d: v => `範圍 +${v.aoe}%${v.more ? `、範圍傷害更多 ${v.more}%` : ''}`,
+    v: lv => ({ aoe: Math.round(60 + 10 * AW_LV(lv)), more: lv >= 5 ? 10 : 0 })
+  },
+  fury: { d: v => `傷害更多 ${v.more}%，魔力消耗 ×1.5`, v: lv => ({ more: Math.round(50 + 10 * AW_LV(lv)) }) },
+  haste: { d: v => `出手速度更快 ${v.spd}%`, v: lv => ({ spd: Math.round(35 + 5 * AW_LV(lv)) }) },
+  crit: {
+    d: v => `暴擊率提高 ${v.ci}%、暴擊傷害加成 +${v.cx}%`,
+    v: lv => ({ ci: Math.round(80 + 10 * AW_LV(lv)), cx: Math.round(55 + 10 * AW_LV(lv)) })
+  },
+  chain: {
+    d: v => `投射物多彈 3 隻${v.less > 0 ? `；傷害更少 ${v.less}%` : '，不減傷'}`,
+    v: lv => ({ less: Math.max(0, Math.round(10 * (1 - AW_LV(lv)))) })
+  },
+  elepen: { d: v => `這招的擊中穿透敵人 ${v.pen}% 抗性`, v: lv => ({ pen: Math.round(30 + 5 * AW_LV(lv)) }) },
+  ailmag: { d: v => `異常強度提高 ${v.ail}%`, v: lv => ({ ail: Math.round(40 + 10 * AW_LV(lv)) }) }
+};
+const AW_MAX = 5;
+const awSupText = (k, lv) => {
+  const b = SUPPORTS[k].base;
+  return AW_SUP[b].d(AW_SUP[b].v(lv)) + (lv >= 6 ? '；插的技能等級 +2' : lv >= 5 ? '；插的技能等級 +1' : '');
+};
+for (const k in AW_SUP) {
+  SUPPORTS['aw_' + k] = { ...SUPPORTS[k], n: '覺醒・' + SUPPORTS[k].n, base: k, aw: 1, d: '' };
+  SUPPORTS['aw_' + k].d = awSupText('aw_' + k, 1) + '（Lv5：' + awSupText('aw_' + k, 5) + '）';
+  SUP_CAT['aw_' + k] = supCat(k);
 }
 /* 寶石等級：上限 20；每一級要的角色等級照 PoE2（0.2.40；Lv5 要 14、Lv20 要 90），超過 20 級（裝備加等級、腐化）不再要求 */
 const GEM_MAX = 20;
@@ -7012,7 +7045,9 @@ const CUR = {
   om_hate: { n: '預兆・厭棄', ic: 'sin_pride_mirror', d: '下一顆崇高石加的詞，類別跟裝備上已有的都不一樣' },
   om_greed: { n: '預兆・貪欲', ic: 'sin_greed_usurer', d: '下一顆填詞的通貨骰 2 次，取階數高的' },
   v2: { n: '三尸鼎', ic: 'sin_glut_glutton', d: '放 2 顆預兆，下一顆通貨同時生效（鼎跟預兆一起用掉）；三尸掉的' },
-  v3: { n: '三彭鼎', ic: 'necro', d: '放 3 顆預兆；三彭才有機會掉' }
+  v3: { n: '三彭鼎', ic: 'necro', d: '放 3 顆預兆；三彭才有機會掉' },
+  /* 0.2.80 四凶 */
+  heart: { n: '燭龍之心', ic: 'zhulong', d: '技能面板：讓一顆 Lv5 的覺醒輔助突破到 Lv6（數值再往上、插的技能等級 +2）' }
 };
 /* 品質 +5%、最高 20%（磨刀石、護甲片） */
 const QUAL_STEP = 0.05,
@@ -7879,6 +7914,7 @@ const BOSSES = [
   },
   {
     n: '饕餮',
+    xi: 'taotie',
     sp: 'taotie',
     hp: 500,
     dmg: 22,
@@ -7887,10 +7923,11 @@ const BOSSES = [
     sz: 120,
     xp: 200,
     call: 'tslime',
-    pat: ['charge', 'swipe', 'slam', 'summon']
+    pat: ['charge', 'swipe', 'slam', 'devour']
   },
   {
     n: '燭龍',
+    xi: 'zhulong',
     sp: 'zhulong',
     hp: 470,
     dmg: 22,
@@ -7900,7 +7937,48 @@ const BOSSES = [
     xp: 200,
     call: 'imp',
     el: 'fire',
-    pat: ['line', 'nova', 'charge', 'slam']
+    pat: ['line', 'nova', 'charge', 'daynight']
+  },
+  /* 0.2.80 四凶的另外三隻（圖庫裡現成的 qiongqi／taowu／hundun） */
+  {
+    n: '窮奇',
+    xi: 'qiongqi',
+    sp: 'qiongqi',
+    hp: 470,
+    dmg: 23,
+    spd: 160,
+    r: 40,
+    sz: 120,
+    xp: 200,
+    call: 'bat',
+    pat: ['charge', 'blink', 'swipe', 'gale']
+  },
+  {
+    n: '檮杌',
+    xi: 'taowu',
+    sp: 'taowu',
+    hp: 520,
+    dmg: 22,
+    spd: 125,
+    r: 44,
+    sz: 126,
+    xp: 200,
+    call: 'skel',
+    pat: ['charge', 'slam', 'swipe', 'unstop']
+  },
+  {
+    n: '混沌',
+    xi: 'hundun',
+    sp: 'hundun',
+    hp: 480,
+    dmg: 22,
+    spd: 130,
+    r: 42,
+    sz: 122,
+    xp: 200,
+    call: 'tslime',
+    el: 'chaos',
+    pat: ['nova', 'line', 'slam', 'chaosjump']
   }
 ];
 /* 墮落十二生肖（世界觀第 5 節）：z 神像的鍵（hide_bake 的 statues）、圖 z_*、招式是王的 7 招重組、cor 是 1 條墮落詞（MAPMOD 的鍵，進裂口就套用） */
@@ -7958,7 +8036,9 @@ const newFrags = () => ({
   black: 0,
   white: 0,
   book: 0,
-  ...Object.fromEntries(SIN.emo.map(k => [k, 0]))
+  ...Object.fromEntries(SIN.emo.map(k => [k, 0])),
+  ...Object.fromEntries(XIONG.map(k => [k, 0])),
+  eye: 0
 });
 const fdBoss = k => BOSSES.find(b => b.fd === k);
 /* 十殿閻羅：閻羅的強化版 */
@@ -8032,8 +8112,53 @@ const sinUber = () => ({
   r: 48,
   pat: ['swipe', 'charge', 'slam', 'summon', 'nova', 'line', 'blink', 'verdict', 'hook', 'tears']
 });
+/* 四凶（0.2.80，企劃書 4.2）：凶地區塊整塊屬於一隻凶（照種子），中心那格的王是那隻凶，全塊每張圖帶那隻凶的專屬地圖詞（fx 用現有地圖詞的效果鍵、rew 額外獎勵）。
+   四凶打倒掉 1 顆隨機覺醒輔助（AW_SUP 那 8 顆；沒有就解鎖、有了 +1 級、Lv5 換靈魂）＋自己的碎片；四種碎片各 1 片在山海寶盒開燭龍，再加燭龍之目＋Lv70 開燭九陰。⚠️ 數字都暫定 */
+const XIONG = ['taotie', 'qiongqi', 'taowu', 'hundun'];
+const XIONG_MOD = {
+  taotie: { n: '饕餮', t: '貪食：怪物生命 +30%、傷害 +15%', fx: { mhp: 30, mdmg: 15 }, rew: { qty: 30 } },
+  qiongqi: {
+    n: '窮奇',
+    t: '狂風：怪物移動速度 +20%、你被風沙致盲（命中 −20%）',
+    fx: { mspd: 20, pacc: -20 },
+    rew: { rar: 30 }
+  },
+  taowu: { n: '檮杌', t: '頑固：怪物堅韌 +30%、護甲 +50%', fx: { mtough: 30, marm: 50 }, rew: { mat: 30 } },
+  hundun: {
+    n: '混沌',
+    t: '混沌：怪物擊中 25% 讓你中毒、死亡留下腐化地面',
+    fx: { mpoi: 25, gnd: 'corrupt' },
+    rew: { qty: 15, rar: 15 }
+  }
+};
+const XI_HALL = { zhulong: '燭龍', zhu9: '燭九陰' };
+const XI = { heart: 0.1, eye: 0.1, uberLv: 70 };
+Object.assign(FRAGS, {
+  ...Object.fromEntries(
+    XIONG.map(k => [
+      k,
+      { n: XIONG_MOD[k].n + '之鱗', ic: k, d: '凶地中心的' + XIONG_MOD[k].n + '掉的：四種各 1 片在山海寶盒開燭龍' }
+    ])
+  ),
+  eye: { n: '燭龍之目', ic: 'zhulong', d: '燭龍掉的：四凶之鱗各 1 片＋燭龍之目，開燭九陰' }
+});
+const xiBoss = k => BOSSES.find(b => b.xi === k);
+/* 燭九陰：燭龍的古名，四凶的招牌招全會 */
+const xiUber = () => {
+  const z = xiBoss('zhulong');
+  return {
+    ...z,
+    n: '燭九陰',
+    xi: 'zhu9',
+    hp: z.hp * 3,
+    dmg: z.dmg * 1.5,
+    sz: z.sz * 1.2,
+    pat: ['swipe', 'charge', 'slam', 'nova', 'line', 'blink', 'devour', 'gale', 'unstop', 'chaosjump', 'daynight']
+  };
+};
 const bossPick = no => {
   /* 0.2.78：酆都的王（牛頭、馬面、黑白無常、閻羅；fd）只在鬼門、閻羅殿出現，不進一般地圖的王池 */
-  const l = BOSSES.filter(b => b !== no && !b.fd && !b.sin);
+  /* 0.2.80：四凶與燭龍（xi）也不進一般王池 */
+  const l = BOSSES.filter(b => b !== no && !b.fd && !b.sin && !b.xi);
   return l[Math.floor(Math.random() * l.length)];
 };

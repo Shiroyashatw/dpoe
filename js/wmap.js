@@ -1301,13 +1301,6 @@ function wmInit() {
     else if (a === 'goal') {
       WM.view = 'node';
       if (WM.goal) wmSel(WM.goal), wmCenter(WM.goal);
-    } else if (a.startsWith('hall:')) wmGo(a.slice(5));
-    else if (a.startsWith('sf:')) {
-      const k = a.slice(3),
-        L = WM.sinSel || [];
-      WM.sinSel = L.includes(k) ? L.filter(x => x !== k) : [...L, k];
-      sfx('click');
-      wmPanel();
     } else if (a === 'wash') {
       if (!wWash(S, WM.sel)) return hudWarn('碎片不夠');
       PANEL.card = 0;
@@ -1487,40 +1480,10 @@ function wmNodeHTML() {
   /* 走不到的地方不抽卡：抽了也打不了 */
   if (!wCan(S, q, r)) return head + cor + `<p class="wm-note">${esc(why)}</p>`;
   const blood = S.hunt.full ? `<p class="c-warn">血霧 ${S.hunt.v}%：每進一張扣 ${HUNT.cost}%，5★ 地圖變多</p>` : '';
-  return (
-    head +
-    cor +
-    blood +
-    wmCardHTML(k, why, lv) +
-    (t === 'ghost' ? wmHallHTML(why) : t === 'dream' ? wmSinHTML(why) : '')
-  );
-}
-/* 心魔幻境（0.2.79）：選要帶哪幾種碎片（每片帶一個減益），用同一張卡改進三尸或三彭 */
-function wmSinHTML(why) {
-  const F = S.frags;
-  WM.sinSel = (WM.sinSel || []).filter(k => F[k] > 0);
-  if (!WM.sinSel.length) WM.sinSel = SIN.emo.filter(k => F[k] > 0).slice(0, SIN.need);
-  const b = (kind, cost) => {
-    const w = why || sinHallWhy(S, kind, WM.sinSel);
-    return `<button class="btn wm-hall" data-wm="hall:${kind}" ${w ? `disabled title="${esc(w)}"` : ''}><b>${SIN_HALL[kind]}</b><small>${esc(w || cost)}</small></button>`;
-  };
-  return `<div class="wm-fd"><p class="wm-note">帶進心魔的碎片（每片在那張圖加一個減益）：</p>
-    <div class="wm-sin">${SIN.emo
-      .map(k => {
-        const on = WM.sinSel.includes(k);
-        return `<button class="chip ${on ? 'on' : ''}" data-wm="sf:${k}" aria-pressed="${on}" ${F[k] ? '' : 'disabled'}>${esc(SIN_FRAG[k].n.slice(0, 1))} <small>×${F[k] || 0}</small><i>${esc(SIN_FRAG[k].deb)}</i></button>`;
-      })
-      .join('')}</div>
-    <div class="wm-halls">${b('sanshi', `帶 ${WM.sinSel.length} 種碎片`)}${b('sanpeng', `7 種各 1 片＋Lv${SIN.uberLv}`)}</div></div>`;
-}
-/* 鬼門（0.2.78 酆都）：用同一張地圖卡改進閻羅殿、十殿閻羅；門票不夠的寫原因 */
-function wmHallHTML(why) {
-  const b = (kind, cost) => {
-    const w = why || fdHallWhy(S, kind);
-    return `<button class="btn wm-hall" data-wm="hall:${kind}" ${w ? `disabled title="${esc(w)}"` : ''}><b>${FD_HALL[kind]}</b><small>${esc(w || cost)}</small></button>`;
-  };
-  return `<div class="wm-fd"><p class="wm-note">勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}（倉庫的「碎片」分頁）</p>
-    <div class="wm-halls">${b('yama', `花 ${FENG.hun} 張勾魂令`)}${b('uber', '四種勾魂令各 1＋生死簿')}</div></div>`;
+  /* 凶地（0.2.80）：寫出這塊的專屬地圖詞 */
+  const fi = t === 'fiend' ? XIONG_MOD[wFiend(S.world.seed, q, r).k] : null,
+    fiend = fi ? `<p class="wm-note">${esc(fi.n)}的地盤：<span class="c-warn">${esc(fi.t)}</span></p>` : '';
+  return head + cor + fiend + blood + wmCardHTML(k, why, lv);
 }
 function wmQuestHTML() {
   const n = S.idols.length,
@@ -1532,7 +1495,7 @@ function wmQuestHTML() {
         ${S.story.crow ? `<div class="wm-zod">${ZODIAC.map(z => `<span class="${lit.has(z.z) ? 'on' : ''}" title="${esc(z.n)}">${icHTML(z.sp)}</span>`).join('')}</div>` : ''}</li>
       <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門關區塊在第 ${REGION.ring} 圈以外`}</span></li>
       <li><b>心魔劫</b><span>${SIN.emo.some(k => S.frags[k]) ? `碎片 ${SIN.emo.filter(k => S.frags[k]).length}／7 種` : `心魔幻境區塊在第 ${REGION.ring} 圈以外`}</span></li>
-      <li class="lock"><b>？？？</b><span>鎖定</span></li>
+      <li><b>四凶</b><span>${XIONG.some(k => S.frags[k]) ? `四凶之鱗 ${XIONG.filter(k => S.frags[k]).length}／4 種` : `凶地區塊在第 ${REGION.ring} 圈以外`}</span></li>
       <li class="lock"><b>？？？</b><span>鎖定</span></li>
     </ul>
     ${WM.goal ? `<button class="btn" data-wm="goal">看下一個目標</button>` : ''}`;
@@ -1544,11 +1507,10 @@ function wmPanel() {
     <div class="wm-body">${WM.view === 'quest' ? wmQuestHTML() : wmNodeHTML()}</div>`;
 }
 /* 面板上的主要按鈕 */
-function wmGo(hall) {
-  const k = WM.sel,
-    sel = hall === 'sanshi' ? WM.sinSel : null;
+function wmGo() {
+  const k = WM.sel;
   if (!k) return;
-  if (G.scene === 'map') mapAgain(k, PANEL.card || 0, hall, sel);
-  else openMap(k, PANEL.card || 0, hall, sel);
+  if (G.scene === 'map') mapAgain(k, PANEL.card || 0);
+  else openMap(k, PANEL.card || 0);
   closePanels();
 }
