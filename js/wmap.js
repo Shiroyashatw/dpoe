@@ -38,8 +38,11 @@ const WM = {
   tick: 0
 };
 /* 平頂六角格的 6 個鄰居（跟 world.js 的 wRing 同一套 axial） */
-/* 拉遠時縮成小點的一般節點 */
+/* 拉遠時不畫的一般節點 */
 const WM_PLAIN = ['plain', 'dawn', 'crow', 'star'];
+/* 這個節點要不要畫：選中的、目標一定畫；打過的不畫；拉遠時只畫走得到的與特殊的（裂口、血霧、機制區塊、主線） */
+const wmShow = (n, z) =>
+  WM.sel === n.k || n.k === WM.goal || (!n.done && (z >= 0.62 || n.can || !WM_PLAIN.includes(n.t)));
 const WM_DIR = [
   [1, 0],
   [1, -1],
@@ -414,11 +417,14 @@ function wmNodes() {
         cells,
         set: new Set(cells.map(([a, b]) => wKey(a, b))),
         c: wmLat(cq, cr),
-        h: wHash(seed, cq, cr, 11)
+        h: wHash(seed, cq, cr, 11),
+        open: 0
       });
     }
+    if (!n.done) RG.get(key).open = 1;
   }
-  WM.regions = [...RG.values()];
+  /* 整塊都打完的區塊不畫 */
+  WM.regions = [...RG.values()].filter(g => g.open);
   WM.edges = [];
   for (const n of WM.nodes)
     for (const [a, b] of wNear(seed, n.q, n.r)) {
@@ -426,6 +432,8 @@ function wmNodes() {
       if (!seen.has(o) || o < n.k) continue;
       const [x, y] = wmPos(a, b);
       WM.edges.push({
+        k1: n.k,
+        k2: o,
         x1: n.x,
         y1: n.y,
         x2: x,
@@ -686,7 +694,10 @@ function wmBase() {
   /* 路 */
   const L = [],
     D = [];
+  /* 要畫的節點（0.2.79）：打過的不畫（打過的地方玩家不會回頭看），拉遠時只畫走得到的與特殊的；路只畫兩端都看得到的 */
+  const vis = new Set(WM.nodes.filter(n => wmShow(n, z)).map(n => n.k));
   for (const e of WM.edges) {
+    if (!vis.has(e.k1) || !vis.has(e.k2)) continue;
     const a = wmS(e.x1, e.y1),
       b = wmS(e.x2, e.y2);
     if (
@@ -755,20 +766,7 @@ function wmBase() {
     const [x, y] = wmS(n.x, n.y);
     if (x < -40 || y < -40 || x > W + 40 || y > H + 40) continue;
     const sel = WM.sel === n.k;
-    /* 不要整片都是菱形（0.2.79）：打過的（主線、裂口是地標，照畫）縮成路上的小點；拉遠時一般節點也縮成小點，
-       走得到的、選中的、目標、特殊的（裂口、血霧、機制區塊）照畫完整圖示 */
-    if (
-      !sel &&
-      n.k !== WM.goal &&
-      (n.done ? n.t !== 'story' && n.t !== 'rift' : !n.can && z < 0.62 && WM_PLAIN.includes(n.t))
-    ) {
-      const d = Math.max(2, Math.round(3 * Math.min(1, z + 0.3)));
-      c.fillStyle = n.done ? 'rgba(255,233,176,.7)' : WTYPE[n.t].c;
-      c.globalAlpha = n.done ? 1 : 0.55;
-      c.fillRect(Math.round(x - d / 2), Math.round(y - d / 2), d, d);
-      c.globalAlpha = 1;
-      continue;
-    }
+    if (!vis.has(n.k)) continue;
     const s = n.t === 'rift' || n.t === 'story' ? Math.max(2, big) : big,
       sz = 11 * s,
       b = sz / 2 + 5;
