@@ -234,7 +234,7 @@ function hudTick() {
   /* 暗色扇形順時針掃過：剩餘越少蓋越多 */
   const sb = $('mech').children;
   sts.forEach((s, i) => sb[i] && sb[i].style.setProperty('--f', s.f.toFixed(2)));
-  const b = G.mobs.find(m => m.boss && !m.dummy),
+  const b = G.mobs.find(m => m.boss && !m.mini && !m.dummy) || G.mobs.find(m => m.boss && !m.dummy),
     show = !!(b && b.aggro);
   if (HV.boss !== show) {
     $('bossbar').hidden = !(HV.boss = show);

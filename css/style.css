@@ -1515,3 +1515,15 @@ body.touch:not(.port) #pskill .ftabs button { min-height: 40px; }
   #pcraft > .ph .ftabs { order: 9; flex: 1 0 100%; }
   #pcraft > .ph .ftabs button { flex: 1; }
 }
+
+/* 0.2.79 心魔幻境：選帶進去的碎片（每片帶一個減益） */
+.wm-sin { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; margin: 6px 0; }
+.wm-sin .chip { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 6px; height: auto; min-height: 44px; padding: 4px 8px; text-align: left; line-height: 1.35; }
+.wm-sin .chip i { grid-column: 1 / -1; }
+.wm-sin .chip:disabled { opacity: 0.45; }
+.wm-sin .chip i { font-style: normal; font-size: var(--fs-s); color: var(--dim); }
+.wm-sin .chip.on i { color: inherit; }
+.fom { margin: 6px 0; }
+.fom .fsh small { margin-left: 6px; font-weight: 400; color: var(--dim); font-size: var(--fs-s); }
+.fom .chip { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; }
+.fom .chip .ic { width: 22px; height: 22px; }

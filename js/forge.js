@@ -2,7 +2,7 @@
    點一下背包或身上的裝備＝放上鍛造台；分頁：填（通貨，只能加）、淬鍊（金幣）、聖化、腐化。
    每個按鈕都寫要花什麼、預覽會發生什麼；不能按的寫原因；推薦的標「推薦」。材料頁在倉庫的「材料」分頁 */
 'use strict';
-const CRAFT = { tab: 'forge', op: null, ess: null, conv: null, sel: null, log: '', perf: 0, pen: 0 };
+const CRAFT = { tab: 'forge', op: null, ess: null, conv: null, sel: null, log: '', perf: 0, pen: 0, om: [] };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);
 
 /* ---------- 材料頁（倉庫的「材料」分頁）：靈魂、10 種通貨（0 也列出來）、精髓 ---------- */
@@ -35,10 +35,14 @@ function fragPageHTML() {
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(nm)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
     uw = fdHallWhy(S, 'uber');
   return `<ul class="mpg">${row('cur_scrap', '地圖碎片', '開地圖卡、洗卡用；自動吸收', S.frag)}</ul>
-  <div class="ph2">酆都<span>鬼門從第 ${FENG.ring} 圈出現</span></div>
+  <div class="ph2">酆都<span>鬼門關區塊從第 ${REGION.ring} 圈出現</span></div>
   <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
   <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：可以進了（點鬼門）' : `：再 ${FENG.hun - n} 張`}</span></p>
-  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '可以進了（點鬼門）')}</span></p></div>`;
+  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '可以進了（點鬼門）')}</span></p></div>
+  <div class="ph2">心魔劫<span>七情王掉的；帶進心魔時每片加一個減益</span></div>
+  <ul class="mpg">${SIN.emo.map(k => row(SIN_FRAG[k].ic, SIN_FRAG[k].n, '帶進去：' + SIN_FRAG[k].deb, F[k])).join('')}</ul>
+  <div class="fgoal"><p><b>三尸</b><span class="${SIN.emo.filter(k => F[k]).length >= SIN.need ? 'c-good' : ''}">${SIN.emo.filter(k => F[k]).length}／${SIN.need} 種${SIN.emo.filter(k => F[k]).length >= SIN.need ? '：可以進了（點心魔幻境）' : ''}</span></p>
+  <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '可以進了（點心魔幻境）')}</span></p></div>`;
 }
 
 /* ---------- 一件裝備的詞：前綴 3 格、後綴 3 格（空格畫出來；說明框完整版在 8-3） ---------- */
@@ -105,15 +109,40 @@ function fpvHTML(it, op, arg) {
 /* 現在選的通貨：自己選的、沒選就用推薦的、滿了沒推薦就照稀有度（白→蛻變、藍→增幅、黃→崇高） */
 const curOp = it => CRAFT.op || forgeHint(it) || ['tran', 'aug', 'exalt'][it.r];
 const NOP = { top: '', mid: '', act: '' };
+/* 預兆（0.2.79）：有預兆才出現這一列；選了的預兆作用在下一顆通貨，2 顆以上要有鼎 */
+function omenHTML(op) {
+  const M = MAT(),
+    have = Object.keys(OMEN_OPS).filter(k => M[k] > 0 || CRAFT.om.includes(k));
+  if (!have.length) return '';
+  const w = omenWhy(op, CRAFT.om);
+  return `<div class="fom"><h5 class="fsh">預兆<small>${M.v2 || M.v3 ? `三尸鼎 ${M.v2}・三彭鼎 ${M.v3}` : '一次 1 顆；要同時用 2 顆以上得有鼎（三尸掉）'}</small></h5>
+    <div class="mats">${have
+      .map(k => {
+        const on = CRAFT.om.includes(k),
+          fit = OMEN_OPS[k].includes(op);
+        return `<button class="chip ${on ? 'on' : ''}" data-fg="om:${k}" aria-pressed="${on}" title="${esc(CUR[k].d)}" ${fit || on ? '' : 'disabled'}>${icHTML(CUR[k].ic)}${esc(CUR[k].n.split('・')[1])}<small>×${M[k]}</small></button>`;
+      })
+      .join(
+        ''
+      )}</div>${CRAFT.om.length ? `<p class="fhint ${w ? 'c-bad' : ''}">${esc(w || CRAFT.om.map(k => CUR[k].d).join('；'))}</p>` : ''}</div>`;
+}
 function fillHTML(it) {
   if (!it) return NOP;
+  /* 雙喜：兩條給你挑 */
+  if (it.exOpt)
+    return {
+      top: `<p class="fdo">雙喜：兩條選一條，選了就加上去</p>`,
+      mid: `<div class="fcal">${it.exOpt.map((a, i) => `<button class="fco" data-fg="xp:${i}"><span>${esc(affText(a))} <i>T${a.T}</i></span></button>`).join('')}</div>`,
+      act: ''
+    };
+  CRAFT.om = CRAFT.om.filter(k => MAT()[k] > 0);
   const hint = forgeHint(it),
     op = curOp(it),
     F = FORGE[op],
     arg = op === 'ess' ? CRAFT.ess : op === 'conv' ? CRAFT.conv : null,
     M = MAT(),
     f = foreOf(it),
-    { why, lack } = forgeCheck(it, op, arg),
+    { why, lack } = forgeCheck(it, op, arg, CRAFT.om),
     cnt = k => (k === 'ess' ? essList().reduce((s, [, n]) => s + n, 0) : M[k] || 0),
     seg = `<div class="fseg s6" role="tablist" aria-label="通貨">${FILL_OPS.map(
       k =>
@@ -144,9 +173,9 @@ function fillHTML(it) {
   } else {
     mid = `<div class="fres">${fpvHTML(it, op, arg)}${why ? `<small class="c-bad">${esc(why)}</small>` : lack ? `<small class="c-bad">${esc(lack)}</small>` : ''}</div>`;
     act = `<div class="fpair"><button class="btn pri fgo" data-fg="op" ${why || lack ? 'disabled' : ''}>${esc(op === 'ess' && arg ? essName(arg) : F.n)} · 有 ${curHave(op, arg)}</button>
-      <button class="btn fgo" data-fg="fp" ${why || lack || M.fore < 1 ? 'disabled' : ''} title="預知石：先看這一顆通貨的結果，再決定用不用；不用就只消耗預知石">${M.fore < 1 ? '預知石不夠' : `先預知 ×${M.fore}`}</button></div>${qual}`;
+      <button class="btn fgo" data-fg="fp" ${why || lack || M.fore < 1 || CRAFT.om.length ? 'disabled' : ''} title="預知石：先看這一顆通貨的結果，再決定用不用；不用就只消耗預知石">${M.fore < 1 ? '預知石不夠' : `先預知 ×${M.fore}`}</button></div>${qual}`;
   }
-  return { top: `${seg}<p class="fdo">${esc(F.d)}</p>${ess}`, mid, act };
+  return { top: `${seg}<p class="fdo">${esc(F.d)}</p>${ess}${omenHTML(op)}`, mid, act };
 }
 function temperHTML(it) {
   if (!it) return NOP;
@@ -290,10 +319,26 @@ document.addEventListener('click', e => {
   else if (k === 'sel') (CRAFT.op = v), foreSkip();
   else if (k === 'es') (CRAFT.ess = v + ':' + x), foreSkip();
   else if (k === 'cv') (CRAFT.conv = CRAFT.conv === +v ? null : +v), foreSkip();
-  else if (k === 'op' && it) {
-    const before = it.a.slice();
-    err = forgeDo(it, op, arg);
-    if (!err) (CRAFT.log = FORGE[op].n + '：' + (craftLog(before, it) || '完成')), sfx('equip');
+  else if (k === 'om') {
+    CRAFT.om = CRAFT.om.includes(v) ? CRAFT.om.filter(x => x !== v) : [...CRAFT.om, v];
+    foreSkip();
+  } else if (k === 'xp' && it) {
+    const pk = it.exOpt && it.exOpt[+v];
+    err = omenPick(it, +v);
+    if (!err) (CRAFT.log = '雙喜：加入 ' + affText(pk)), sfx('equip');
+  } else if (k === 'op' && it) {
+    const before = it.a.slice(),
+      om = CRAFT.om.slice();
+    err = forgeDo(it, op, arg, om);
+    if (!err) {
+      CRAFT.log =
+        FORGE[op].n +
+        (om.length ? '（' + om.map(x => CUR[x].n.split('・')[1]).join('＋') + '）' : '') +
+        '：' +
+        (it.exOpt ? '選一條' : craftLog(before, it) || '完成');
+      CRAFT.om = [];
+      sfx('equip');
+    }
     if (!err && op === 'conv') CRAFT.conv = null;
   } else if (k === 'fp' && it) {
     err = forePeek(it, op, arg);

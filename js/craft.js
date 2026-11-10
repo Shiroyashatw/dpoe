@@ -42,9 +42,64 @@ function affPool(it, cls, skip) {
 /* 新加的詞（企劃書 5.3.1）：照物品等級骰階（最高 T1）；精髓給 minT＝保證至少那一階（T 的數字要 ≤ minT），
    但不會比物品等級允許的最高階更高（bestTier） */
 function fillAff(it, cls, minT) {
-  const a = rollAff(pick(affPool(it, cls)), it.L);
+  const P = omenPool(it, cls),
+    r1 = () => rollAff(pick(P), it.L);
+  let a = r1();
+  /* 預兆・貪欲：骰 2 次取階數高的（T 數字小的） */
+  if (OMEN_ON && OMEN_ON.has('om_greed')) {
+    const b = r1();
+    if (b.T < a.T) a = b;
+  }
   if (minT == null || a.T <= minT) return a;
   return rollAffT(a.k, Math.max(bestTier(it.L), minT));
+}
+/* ---------- 預兆（0.2.79 心魔劫，企劃書 4.2）：作用在下一顆通貨，用了就沒了；多顆要放在鼎裡（三尸鼎 2 顆、三彭鼎 3 顆）一起用 ---------- */
+let OMEN_ON = null; /* 這一次通貨生效的預兆（Set），forgeDo 裡才有值 */
+const OMEN_ADD = ['tran', 'aug', 'rich', 'exalt', 'ess'],
+  OMEN_OPS = {
+    om_joy: ['exalt'],
+    om_fear: ['exalt'],
+    om_love: ['exalt'],
+    om_hate: ['exalt'],
+    om_rage: OMEN_ADD,
+    om_grief: OMEN_ADD,
+    om_greed: OMEN_ADD
+  };
+/* 預兆限制後能加的詞：只前綴／只後綴、同類／不同類 */
+function omenPool(it, cls) {
+  let p = affPool(it, cls);
+  const o = OMEN_ON;
+  if (!o) return p;
+  if (o.has('om_rage')) p = p.filter(k => AFF[k].p);
+  if (o.has('om_grief')) p = p.filter(k => !AFF[k].p);
+  const have = new Set(it.a.map(a => affCls(a.k)).filter(Boolean));
+  if (o.has('om_love')) p = p.filter(k => have.has(affCls(k)));
+  if (o.has('om_hate')) p = p.filter(k => !have.has(affCls(k)));
+  return p;
+}
+/* 這組預兆能不能跟這顆通貨一起用（不含「詞加不加得上」，那個在 forgeDo 先在複本上試） */
+function omenWhy(op, om) {
+  if (!om || !om.length) return null;
+  const M = MAT();
+  if (new Set(om).size !== om.length) return '同一種預兆不能放兩顆';
+  if (om.length > 3) return '最多同時用 3 顆預兆';
+  if (om.length === 3 && !(M.v3 >= 1)) return '要三彭鼎才能同時用 3 顆預兆';
+  if (om.length === 2 && !(M.v2 >= 1) && !(M.v3 >= 1)) return '要三尸鼎才能同時用 2 顆預兆';
+  for (const k of om) {
+    if (!(M[k] >= 1)) return CUR[k].n + '不夠';
+    if (!OMEN_OPS[k].includes(op)) return `${CUR[k].n}只能用在${OMEN_OPS[k].length === 1 ? '崇高石' : '填詞的通貨'}`;
+  }
+  for (const [a, b] of SIN.clash) if (om.includes(a) && om.includes(b)) return `${CUR[a].n}跟${CUR[b].n}不能一起用`;
+  return null;
+}
+/* 預兆・雙喜：兩條給你挑，選了才加上去 */
+function omenPick(it, i) {
+  const a = it.exOpt && it.exOpt[i];
+  if (!a) return '沒有這個選項';
+  it.a.push(a);
+  delete it.exOpt;
+  sortAff(it);
+  return null;
 }
 const sortAff = it => it.a.sort((x, y) => AFF[y.k].p - AFF[x.k].p);
 /* 商人賭裝用：詞綴最高 T2（好基底與 T1 只靠掉落） */
@@ -119,6 +174,7 @@ function gambleDo(id) {
 function lockWhy(it, kind) {
   if (it.charm) return '這個不能做裝';
   if (it.uid) return '還沒鑑定：先找撿骨師';
+  if (it.exOpt) return '先從雙喜的兩條詞選一條';
   if (it.cor) return '已腐化，全部鎖定';
   if (it.holy && kind === 'fill') return '已聖化，不能再填';
   if (it.holy && kind === 'temper') return '已聖化，不能再淬鍊';
@@ -217,9 +273,11 @@ const FILL_OPS = Object.keys(FORGE);
 const curHave = (op, arg) => (op === 'ess' ? (MAT().ess || {})[arg] || 0 : MAT()[op] || 0);
 const curName = (op, arg) => (op === 'ess' ? (arg ? essName(arg) : '精髓') : CUR[op].n);
 /* 這一步能不能做：why＝這件裝備不能這樣做的原因，lack＝通貨不夠（預覽照樣可以看） */
-function forgeCheck(it, op, arg) {
+function forgeCheck(it, op, arg, om) {
+  /* 預兆・畏縮：先移除 1 條再加，所以 6 條滿的黃裝也能用崇高石 */
+  const full = om && om.includes('om_fear') && op === 'exalt' && it.r === 2 && it.a.length >= 6;
   return {
-    why: lockWhy(it, 'fill') || FORGE[op].ok(it, arg),
+    why: lockWhy(it, 'fill') || (full ? null : FORGE[op].ok(it, arg)) || omenWhy(op, om),
     lack: curHave(op, arg) < 1 ? `${curName(op, arg)}不夠` : null
   };
 }
@@ -243,9 +301,59 @@ function payCur(op, arg) {
   if (op === 'ess') MAT().ess[arg]--;
   else MAT()[op]--;
 }
-function forgeDo(it, op, arg) {
-  const { why, lack } = forgeCheck(it, op, arg);
+function forgeDo(it, op, arg, om) {
+  const { why, lack } = forgeCheck(it, op, arg, om);
   if (why || lack) return why || lack;
+  if (om && om.length) {
+    /* 先在複本上做：預兆的條件下沒有詞可以加，就什麼都不扣 */
+    const c = JSON.parse(JSON.stringify(it));
+    OMEN_ON = new Set(om);
+    try {
+      if (OMEN_ON.has('om_fear')) {
+        const L = c.a.filter(a => !isFrac(c, a));
+        if (!L.length) return '沒有詞可以移除（破裂詞不會被移除）';
+        c.a.splice(c.a.indexOf(pick(L)), 1);
+      }
+      if (
+        !omenPool(
+          { ...c, r: op === 'tran' ? 1 : op === 'rich' ? 2 : c.r },
+          op === 'ess' ? String(arg).split(':')[0] : undefined
+        ).length
+      )
+        return '預兆的條件下沒有詞可以加';
+      FORGE[op].run(c, arg);
+      if (OMEN_ON.has('om_joy')) {
+        const a1 = c.a.pop(),
+          P = omenPool(c).filter(k => k !== a1.k);
+        if (P.length) {
+          let a2 = rollAff(pick(P), c.L);
+          if (OMEN_ON.has('om_greed')) {
+            const b = rollAff(pick(P), c.L);
+            if (b.T < a2.T) a2 = b;
+          }
+          c.exOpt = [a1, a2];
+        } else c.a.push(a1);
+      }
+    } finally {
+      OMEN_ON = null;
+    }
+    FORE = null;
+    payCur(op, arg);
+    const M = MAT();
+    for (const k of om) M[k]--;
+    if (om.length === 2) M[M.v2 >= 1 ? 'v2' : 'v3']--;
+    if (om.length === 3) M.v3--;
+    /* 沒動到的詞放回原本那個物件（鍛造台的紀錄靠物件比對「加了哪條」） */
+    const old = it.a.slice();
+    c.a = c.a.map(x => {
+      const i = old.findIndex(o => o.k === x.k && JSON.stringify(o) === JSON.stringify(x));
+      return i < 0 ? x : old.splice(i, 1)[0];
+    });
+    Object.assign(it, c);
+    if (!c.exOpt) delete it.exOpt;
+    sortAff(it);
+    return null;
+  }
   FORE = null;
   payCur(op, arg);
   FORGE[op].run(it, arg);
@@ -483,7 +591,20 @@ function prdC(p) {
 /* 連續幾次沒中，下一次必中 */
 const prdMax = p => Math.ceil(1 / prdC(p));
 /* frac＝黃裝的 ★、fracB＝藍裝的 ★（各自一個計數器：共用的話黃裝常中就歸零，藍裝拿不到機率）、mem＝追憶、holy／corr＝聖化石、腐化石 */
-const PRD0 = () => ({ frac: 0, fracB: 0, mem: 0, holy: 0, corr: 0, awk: 0, fore: 0, pen: 0, book: 0, perf: 0 });
+const PRD0 = () => ({
+  frac: 0,
+  fracB: 0,
+  mem: 0,
+  holy: 0,
+  corr: 0,
+  awk: 0,
+  fore: 0,
+  pen: 0,
+  book: 0,
+  perf: 0,
+  holy7: 0,
+  v3: 0
+});
 function prdRoll(key, p) {
   const prd = (S.prd = S.prd || PRD0()),
     n = (prd[key] || 0) + 1,
@@ -626,10 +747,26 @@ function fdDrop(k, s = S) {
   }
   return got;
 }
+/* 心魔劫的王額外掉的（0.2.79）：k＝王的 sin（七情、up／mid／low 三尸、peng 三彭） */
+function sinDrop(k, s = S) {
+  const M = MAT(),
+    F = (s.frags = { ...newFrags(), ...s.frags }),
+    got = [],
+    cur = (c, n = 1) => ((M[c] += n), got.push(`${n} ${CUR[c].n}`));
+  if (SIN.emo.includes(k)) {
+    cur('om_' + k);
+    F[k]++, got.push(SIN_FRAG[k].n);
+    if (prdRoll('holy7', SIN.holy)) cur('holy');
+  } else if (k === 'peng') {
+    cur('v2');
+    if (prdRoll('v3', SIN.v3)) cur('v3');
+  } else cur('v2');
+  return got;
+}
 /* 打怪拿材料：靈魂與通貨自動進材料頁；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),
-    k = m.boss ? 2 : m.elite ? 1 : 0,
+    k = m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0,
     got = [],
     D = dropCur(k, { star: 1, ilvl: tierIlvl(t), tier: t, ...o });
   M.soul += Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));

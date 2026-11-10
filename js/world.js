@@ -77,8 +77,33 @@ const WTYPE = {
   blood: { n: '血霧之地', c: '#ff5a5f', d: '打完累積血霧' },
   rift: { n: '裂口', c: '#ff8a4c', d: '血霧滿了才進得去，裡面是墮落的生肖神' },
   /* 0.2.78 酆都（企劃書 4.2） */
-  ghost: { n: '鬼門', c: '#7fd1c7', d: '酆都的門：裡面是牛頭、馬面、黑無常、白無常其中一個，打倒掉勾魂令' }
+  ghost: { n: '鬼門關', c: '#7fd1c7', d: '酆都的門：裡面是牛頭、馬面、黑無常、白無常其中一個，打倒掉勾魂令' },
+  /* 0.2.79 心魔劫（企劃書 4.2） */
+  dream: { n: '心魔幻境', c: '#e08ad0', d: '每張圖都有一隻七情王：打倒掉預兆與碎片' }
 };
+/* 機制區塊（0.2.79，照 PoE2 的區域）：地圖切成 7 格的大格（中心＋旁邊 6 格；中心＝a·(2,1)＋b·(−1,3)，剛好不重疊鋪滿），
+   中心在第 REGION.ring 圈以外的大格有 REGION.p 的機率整塊變成某個機制（照種子，同一個存檔每次都一樣）；裂口、主線節點優先 */
+const REGION = { ring: 10, p: 0.15, types: ['ghost', 'dream'] };
+function wRegionC(q, r) {
+  const a = Math.floor((3 * q + r) / 7),
+    b = Math.floor((-q + 2 * r) / 7);
+  for (const [i, j] of [
+    [a, b],
+    [a + 1, b],
+    [a, b + 1],
+    [a + 1, b + 1]
+  ]) {
+    const x = 2 * i - j,
+      y = i + 3 * j;
+    if (wRing(q - x, r - y) <= 1) return [x, y];
+  }
+  return [q, r];
+}
+function wRegion2(seed, q, r) {
+  const [x, y] = wRegionC(q, r);
+  if (wRing(x, y) < REGION.ring || wHash(seed, x, y, 8) >= REGION.p) return null;
+  return REGION.types[Math.floor(wHash(seed, x, y, 9) * REGION.types.length)];
+}
 /* 區域名：看圈數 */
 const WREGION = [
   ['枯河原野', 4],
@@ -177,7 +202,8 @@ function wType(s, q, r) {
   if (STORY_I[k] != null) return 'story';
   if (wRifts(seed)[k] != null) return 'rift';
   if (s.idols.length >= ZODIAC.length && wRing(q, r) > W_ROAD && wHash(seed, q, r, 5) < W_RIFT_AGAIN) return 'rift';
-  if (wRing(q, r) >= FENG.ring && wHash(seed, q, r, 7) < FENG.p) return 'ghost';
+  const rg = wRegion2(seed, q, r);
+  if (rg) return rg;
   const h = wHash(seed, q, r, 1);
   return h < 0.07 ? 'dawn' : h < 0.12 ? 'crow' : h < 0.17 ? 'star' : h < 0.3 ? 'blood' : 'plain';
 }
@@ -224,6 +250,24 @@ function fdHallPay(s, kind) {
       const k = FENG.elites.reduce((a, b) => (F[b] > F[a] ? b : a));
       F[k]--;
     }
+  return null;
+}
+
+/* ---------- 心魔（0.2.79）：心魔幻境的節點可以花碎片進三尸（任 3 種各 1 片）或三彭（7 種各 1 片＋Lv70）；sel＝帶哪幾種（每片帶一個減益） ---------- */
+function sinHallWhy(s, kind, sel) {
+  const F = s.frags || {},
+    L = kind === 'sanpeng' ? SIN.emo : sel || [];
+  if (kind === 'sanpeng' && s.lv < SIN.uberLv) return `角色要 Lv${SIN.uberLv}`;
+  if (kind === 'sanshi' && new Set(L).size < SIN.need) return `選 ${SIN.need} 種以上的碎片`;
+  const miss = L.filter(k => !(F[k] >= 1));
+  return miss.length ? '缺碎片：' + miss.map(k => SIN_FRAG[k].n).join('、') : null;
+}
+function sinHallPay(s, kind, sel) {
+  const why = sinHallWhy(s, kind, sel);
+  if (why) return why;
+  const L = kind === 'sanpeng' ? SIN.emo : [...new Set(sel)];
+  for (const k of L) s.frags[k]--;
+  s.sinDeb = L;
   return null;
 }
 

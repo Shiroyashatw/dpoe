@@ -487,6 +487,20 @@ const WM_ICO = {
     '...#.......',
     '..#........'
   ],
+  /* 心魔幻境（0.2.79）：戲曲面具 */
+  dream: [
+    '..#######..',
+    '.#########.',
+    '##+#####+##',
+    '#+++###+++#',
+    '###########',
+    '###########',
+    '.##+###+##.',
+    '.###+++###.',
+    '..#######..',
+    '...#####...',
+    '...........'
+  ],
   /* 鬼門（0.2.78 酆都）：牌坊＋黑門洞 */
   ghost: [
     '###########',
@@ -662,6 +676,18 @@ function wmBase() {
   dots([...L, ...D], 5, 2, 'rgba(8,8,10,.85)');
   dots(L, 3, 1, '#b9b09a');
   dots(D, 3, 1, '#ffe9b0');
+  /* 機制區塊（0.2.79）：區塊裡的節點底下畫一圈淡淡的機制顏色，連起來就看得出一整塊 */
+  for (const n of WM.nodes) {
+    if (!REGION.types.includes(n.t)) continue;
+    const [x, y] = wmS(n.x, n.y);
+    if (x < -80 || y < -80 || x > W + 80 || y > H + 80) continue;
+    c.globalAlpha = 0.16;
+    c.fillStyle = WTYPE[n.t].c;
+    c.beginPath();
+    c.arc(x, y, 34 * Math.max(0.6, z), 0, TAU);
+    c.fill();
+    c.globalAlpha = 1;
+  }
   /* 節點 */
   const big = z >= 0.62 ? 2 : 1;
   for (const n of WM.nodes) {
@@ -1107,8 +1133,14 @@ function wmInit() {
     else if (a === 'goal') {
       WM.view = 'node';
       if (WM.goal) wmSel(WM.goal), wmCenter(WM.goal);
-    } else if (a === 'hall:yama' || a === 'hall:uber') wmGo(a.slice(5));
-    else if (a === 'wash') {
+    } else if (a.startsWith('hall:')) wmGo(a.slice(5));
+    else if (a.startsWith('sf:')) {
+      const k = a.slice(3),
+        L = WM.sinSel || [];
+      WM.sinSel = L.includes(k) ? L.filter(x => x !== k) : [...L, k];
+      sfx('click');
+      wmPanel();
+    } else if (a === 'wash') {
       if (!wWash(S, WM.sel)) return hudWarn('碎片不夠');
       PANEL.card = 0;
       sfx('click');
@@ -1287,7 +1319,31 @@ function wmNodeHTML() {
   /* 走不到的地方不抽卡：抽了也打不了 */
   if (!wCan(S, q, r)) return head + cor + `<p class="wm-note">${esc(why)}</p>`;
   const blood = S.hunt.full ? `<p class="c-warn">血霧 ${S.hunt.v}%：每進一張扣 ${HUNT.cost}%，5★ 地圖變多</p>` : '';
-  return head + cor + blood + wmCardHTML(k, why, lv) + (t === 'ghost' ? wmHallHTML(why) : '');
+  return (
+    head +
+    cor +
+    blood +
+    wmCardHTML(k, why, lv) +
+    (t === 'ghost' ? wmHallHTML(why) : t === 'dream' ? wmSinHTML(why) : '')
+  );
+}
+/* 心魔幻境（0.2.79）：選要帶哪幾種碎片（每片帶一個減益），用同一張卡改進三尸或三彭 */
+function wmSinHTML(why) {
+  const F = S.frags;
+  WM.sinSel = (WM.sinSel || []).filter(k => F[k] > 0);
+  if (!WM.sinSel.length) WM.sinSel = SIN.emo.filter(k => F[k] > 0).slice(0, SIN.need);
+  const b = (kind, cost) => {
+    const w = why || sinHallWhy(S, kind, WM.sinSel);
+    return `<button class="btn wm-hall" data-wm="hall:${kind}" ${w ? `disabled title="${esc(w)}"` : ''}><b>${SIN_HALL[kind]}</b><small>${esc(w || cost)}</small></button>`;
+  };
+  return `<div class="wm-fd"><p class="wm-note">帶進心魔的碎片（每片在那張圖加一個減益）：</p>
+    <div class="wm-sin">${SIN.emo
+      .map(k => {
+        const on = WM.sinSel.includes(k);
+        return `<button class="chip ${on ? 'on' : ''}" data-wm="sf:${k}" aria-pressed="${on}" ${F[k] ? '' : 'disabled'}>${esc(SIN_FRAG[k].n.slice(0, 1))} <small>×${F[k] || 0}</small><i>${esc(SIN_FRAG[k].deb)}</i></button>`;
+      })
+      .join('')}</div>
+    <div class="wm-halls">${b('sanshi', `帶 ${WM.sinSel.length} 種碎片`)}${b('sanpeng', `7 種各 1 片＋Lv${SIN.uberLv}`)}</div></div>`;
 }
 /* 鬼門（0.2.78 酆都）：用同一張地圖卡改進閻羅殿、十殿閻羅；門票不夠的寫原因 */
 function wmHallHTML(why) {
@@ -1306,8 +1362,8 @@ function wmQuestHTML() {
     <ul class="wm-q">
       <li><b>狩獵之血</b><span>${S.story.crow ? `生肖 ${n}／${ZODIAC.length}` : '還沒開始'}</span>
         ${S.story.crow ? `<div class="wm-zod">${ZODIAC.map(z => `<span class="${lit.has(z.z) ? 'on' : ''}" title="${esc(z.n)}">${icHTML(z.sp)}</span>`).join('')}</div>` : ''}</li>
-      <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門在第 ${FENG.ring} 圈以外`}</span></li>
-      <li class="lock"><b>？？？</b><span>鎖定</span></li>
+      <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門關區塊在第 ${REGION.ring} 圈以外`}</span></li>
+      <li><b>心魔劫</b><span>${SIN.emo.some(k => S.frags[k]) ? `碎片 ${SIN.emo.filter(k => S.frags[k]).length}／7 種` : `心魔幻境區塊在第 ${REGION.ring} 圈以外`}</span></li>
       <li class="lock"><b>？？？</b><span>鎖定</span></li>
       <li class="lock"><b>？？？</b><span>鎖定</span></li>
     </ul>
@@ -1321,9 +1377,10 @@ function wmPanel() {
 }
 /* 面板上的主要按鈕 */
 function wmGo(hall) {
-  const k = WM.sel;
+  const k = WM.sel,
+    sel = hall === 'sanshi' ? WM.sinSel : null;
   if (!k) return;
-  if (G.scene === 'map') mapAgain(k, PANEL.card || 0, hall);
-  else openMap(k, PANEL.card || 0, hall);
+  if (G.scene === 'map') mapAgain(k, PANEL.card || 0, hall, sel);
+  else openMap(k, PANEL.card || 0, hall, sel);
   closePanels();
 }

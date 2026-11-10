@@ -976,6 +976,10 @@ function stats(s = S) {
   if (o.roulette && typeof G === 'object' && G && G.rou)
     for (const id of G.rou)
       for (const [k, v] of Object.entries(ROUL.find(x => x.id === id).fx || {})) k in pt ? (pt[k] += v) : put(k, v);
+  /* 心魔（0.2.79）：花碎片進三尸、三彭時，每片碎片帶的減益（能力類的在這裡，地圖詞類的在 enterMap 併進 G.mm） */
+  if (typeof G === 'object' && G && G.sinDeb)
+    for (const e of G.sinDeb)
+      for (const [k, v] of Object.entries(SIN_FRAG[e].fx || {})) k in pt ? (pt[k] += v) : put(k, v);
   if (o.unChill) o.unaff.chill = 1;
   if (o.unFreeze) o.unaff.frozen = 1;
   if (o.unPoi) o.unaff.poison = 1;

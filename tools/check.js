@@ -8657,8 +8657,8 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：14 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 14 &&
+    '通貨：23 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎）＋靈魂＋精髓表，沒有粉',
+    Object.keys(E.CUR).length === 23 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
       JSON.stringify(nm.ess) === '{}' &&
@@ -9728,7 +9728,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac })',
     ctx
   );
   const mul = seed => () => {
@@ -9881,33 +9881,178 @@ const ASC_COMBOS = `const combos = k => {
       bad.join('、')
     );
   }
-  /* 5. 鬼門節點與王池：第 10 圈以內沒有、以外約 4%；一般地圖抽不到酆都的王；十殿閻羅是閻羅的強化版 */
+  /* 5. 機制區塊（0.2.79）：7 格大格不重疊鋪滿；中心在第 10 圈以內的沒有，以外約 15%（鬼門關、心魔幻境各半）；一般地圖抽不到酆都、心魔的王；十殿閻羅是閻羅的強化版 */
   {
     const bad = [],
       s = { world: { ...F.newWorld(), seed: 12345 }, idols: [], hunt: {} };
     let n = 0,
       g = 0,
+      d = 0,
       inner = 0;
     for (let q = -30; q <= 30; q++)
       for (let r = -30; r <= 30; r++) {
+        const [x, y] = F.wRegionC(q, r);
+        if (F.wRing(q - x, r - y) > 1) bad.push('大格沒鋪滿');
         const R = F.wRing(q, r);
         if (R > 30 || R < 5) continue;
         const t = F.wType(s, q, r);
-        if (R < F.FENG.ring && t === 'ghost') inner++;
-        if (R >= F.FENG.ring && R <= 30) n++, (g += t === 'ghost' ? 1 : 0);
+        if (F.wRing(x, y) < F.REGION.ring && F.REGION.types.includes(t)) inner++;
+        if (R >= F.REGION.ring + 2 && R <= 30) n++, (g += t === 'ghost' ? 1 : 0), (d += t === 'dream' ? 1 : 0);
       }
-    if (inner || Math.abs(g / n - F.FENG.p) > 0.015) bad.push(`鬼門 ${g}/${n} 內圈 ${inner}`);
-    for (let i = 0; i < 3000; i++) if (F.bossPick(null).fd) bad.push('一般地圖抽到酆都的王');
+    if (inner || Math.abs((g + d) / n - F.REGION.p) > 0.04 || !g || !d) bad.push(`區塊 ${g}+${d}/${n} 內圈 ${inner}`);
+    for (let i = 0; i < 3000; i++)
+      if (F.bossPick(null).fd || F.bossPick(null).sin) bad.push('一般地圖抽到酆都或心魔的王');
     const y = F.fdBoss('yama'),
       u = F.fdUber();
     if (u.hp !== y.hp * 3 || u.dmg !== y.dmg * 1.5 || !['verdict', 'wheel', 'hook'].every(k => u.pat.includes(k)))
       bad.push('十殿閻羅');
     if (F.FENG.elites.some(k => !F.fdBoss(k))) bad.push('少了菁英王');
     ok(
-      `鬼門：第 ${F.FENG.ring} 圈以內沒有，以外 ${((g / n) * 100).toFixed(1)}%；一般地圖抽不到酆都的王；十殿閻羅＝閻羅生命 ×3、傷害 ×1.5、多 3 招`,
+      `機制區塊：7 格大格鋪滿、中心在第 ${F.REGION.ring} 圈以內沒有，以外鬼門關 ${((g / n) * 100).toFixed(1)}%＋心魔幻境 ${((d / n) * 100).toFixed(1)}%；一般地圖抽不到酆都、心魔的王；十殿閻羅＝閻羅生命 ×3、傷害 ×1.5、多 3 招`,
       !bad.length,
       [...new Set(bad)].slice(0, 3).join('、')
     );
   }
+  /* 6. 心魔劫（0.2.79）：七情王掉預兆＋碎片＋聖化石 8%、三尸鼎、三彭鼎 10%；進三尸要 3 種、三彭要 7 種＋Lv70；碎片減益真的進 stats */
+  seeded(7803, () => {
+    const bad = [];
+    for (const k of F.SIN.emo) {
+      setS();
+      F.sinDrop(k);
+      const S = vm.runInContext('S', ctx);
+      if (F.MAT()['om_' + k] !== 1 || S.frags[k] !== 1) bad.push(k + ' 沒掉預兆或碎片');
+      if (!F.sinBoss(k) || !F.sinBoss(k).pat.length) bad.push(k + ' 沒有王');
+    }
+    setS();
+    const N = 20000;
+    for (let i = 0; i < N; i++) F.sinDrop('joy');
+    const hp = F.MAT().holy / N;
+    if (Math.abs(hp - F.SIN.holy) > 0.01) bad.push('聖化石 ' + hp);
+    setS();
+    for (let i = 0; i < N; i++) F.sinDrop('peng');
+    const vp = F.MAT().v3 / N;
+    if (F.MAT().v2 !== N || Math.abs(vp - F.SIN.v3) > 0.01) bad.push('三彭鼎 ' + vp);
+    const s = { lv: 60, frags: { ...F.newFrags(), joy: 1, rage: 1, grief: 2, fear: 1 } };
+    if (!F.sinHallWhy(s, 'sanshi', ['joy', 'rage'])) bad.push('2 種能進三尸');
+    if (
+      F.sinHallPay(s, 'sanshi', ['joy', 'rage', 'grief']) ||
+      s.frags.joy ||
+      s.frags.grief !== 1 ||
+      s.sinDeb.length !== 3
+    )
+      bad.push('三尸沒扣對');
+    const u = { lv: 69, frags: Object.fromEntries(F.SIN.emo.map(k => [k, 1])) };
+    if (!F.sinHallWhy(u, 'sanpeng')) bad.push('Lv69 能進三彭');
+    u.lv = 70;
+    if (F.sinHallPay(u, 'sanpeng') || F.SIN.emo.some(k => u.frags[k])) bad.push('三彭沒扣對');
+    if (F.sinUber().hp !== F.sinBoss('mid').hp * 3) bad.push('三彭生命');
+    /* 碎片減益：能力類的進 stats */
+    const base = () => ({ lv: 60, eq: Object.fromEntries(F.EQS.map(x => [x.k, null])), pt: [], at: [], auras: [] });
+    for (const k of F.SIN.emo) {
+      if (!F.SIN_FRAG[k].fx) continue;
+      vm.runInContext('G = { sinDeb: null }', ctx);
+      const a = JSON.stringify(F.stats(base()));
+      vm.runInContext(`G = { sinDeb: ['${k}'] }`, ctx);
+      if (JSON.stringify(F.stats(base())) === a) bad.push(k + ' 減益沒進數值');
+    }
+    vm.runInContext('G = {}', ctx);
+    ok(
+      `心魔劫：七情王各掉自己的預兆＋碎片、聖化石 ${(hp * 100).toFixed(1)}%；三尸鼎、三彭鼎 ${(vp * 100).toFixed(1)}%；三尸 3 種、三彭 7 種＋Lv70（扣對）；碎片減益進 stats`,
+      !bad.length,
+      bad.slice(0, 4).join('、')
+    );
+  });
+  /* 7. 預兆：怒焰只前綴、哀音只後綴、相思同類、厭棄不同類、貪欲取高、雙喜二選一、畏縮移除再加（破裂不動、滿的也能用）；2 顆要鼎、衝突擋下、加不上就不扣 */
+  seeded(7804, () => {
+    const bad = [],
+      setM = () => {
+        setS();
+        const M = F.MAT();
+        for (const k in F.CUR) M[k] = 1e6;
+        M.v2 = M.v3 = 0;
+        return M;
+      },
+      y = n => {
+        const it = F.mkItem('r_lazuli', 60, 2);
+        it.a = it.a.slice(0, n);
+        return it;
+      };
+    for (let i = 0; i < 300; i++) {
+      let M = setM(),
+        it = y(2);
+      const before = it.a.slice();
+      if (F.forgeDo(it, 'exalt', null, ['om_rage']) || F.AFF[it.a.find(a => !before.includes(a)).k].p !== 1)
+        bad.push('怒焰');
+      it = y(2);
+      const b2 = it.a.slice();
+      F.forgeDo(it, 'exalt', null, ['om_grief']);
+      const ng = it.a.find(a => !b2.includes(a));
+      if (ng && F.AFF[ng.k].p) bad.push('哀音');
+      it = y(2);
+      const cl = new Set(it.a.map(a => F.affCls(a.k)).filter(Boolean)),
+        b3 = it.a.slice(),
+        rl = F.forgeDo(it, 'exalt', null, ['om_love']);
+      if (!rl && !cl.has(F.affCls(it.a.find(a => !b3.includes(a)).k))) bad.push('相思');
+      it = y(2);
+      const b4 = it.a.slice(),
+        rh = F.forgeDo(it, 'exalt', null, ['om_hate']);
+      if (!rh && cl.size && new Set(b4.map(a => F.affCls(a.k))).has(F.affCls(it.a.find(a => !b4.includes(a)).k)))
+        bad.push('厭棄');
+      it = y(2);
+      if (
+        F.forgeDo(it, 'exalt', null, ['om_joy']) ||
+        it.exOpt.length !== 2 ||
+        it.a.length !== 2 ||
+        F.forgeDo(it, 'exalt') !== '先從雙喜的兩條詞選一條'
+      )
+        bad.push('雙喜');
+      F.omenPick(it, 0);
+      if (it.a.length !== 3 || it.exOpt) bad.push('雙喜沒加上');
+      it = F.mkItem('r_lazuli', 60, 2);
+      while (it.a.length < 6) F.forgeDo(it, 'exalt');
+      it.frac = it.a[0].k;
+      const fr = it.a[0];
+      if (F.forgeDo(it, 'exalt', null, ['om_fear']) || it.a.length !== 6 || !it.a.some(a => a.k === fr.k))
+        bad.push('畏縮');
+      M = setM();
+      if (F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) !== '要三尸鼎才能同時用 2 顆預兆')
+        bad.push('沒鼎也能用 2 顆');
+      M.v2 = 1;
+      const om0 = M.om_rage;
+      if (F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) || M.v2 !== 0 || M.om_rage !== om0 - 1)
+        bad.push('鼎沒扣');
+      if (!F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_grief'])) bad.push('衝突沒擋');
+      if (!F.forgeDo(y(2), 'tran', null, ['om_joy'])) bad.push('雙喜用在蛻變');
+      /* 只有前綴可加、又只要後綴：加不上就不扣 */
+      const full = F.mkItem('r_lazuli', 60, 2);
+      full.a = full.a.filter(a => !F.AFF[a.k].p);
+      while (full.a.filter(a => !F.AFF[a.k].p).length < 3 && !F.forgeDo(full, 'exalt', null, ['om_grief']));
+      const ex0 = M.exalt,
+        g0 = M.om_grief,
+        rr = F.forgeDo(full, 'exalt', null, ['om_grief']);
+      if (rr !== '預兆的條件下沒有詞可以加' || M.exalt !== ex0 || M.om_grief !== g0) bad.push('加不上卻扣了 ' + rr);
+    }
+    /* 貪欲：骰 2 次取高，新詞的階平均比較好（T 數字小） */
+    let t0 = 0,
+      t1 = 0;
+    for (let i = 0; i < 2000; i++) {
+      setM();
+      for (const [om, add] of [
+        [null, v => (t0 += v)],
+        [['om_greed'], v => (t1 += v)]
+      ]) {
+        const it = y(1),
+          k0 = it.a[0].k;
+        F.forgeDo(it, 'exalt', null, om);
+        add(it.a.find(a => a.k !== k0).T);
+      }
+    }
+    if (!(t1 < t0 * 0.95)) bad.push(`貪欲沒有比較好 ${t0} ${t1}`);
+    ok(
+      '預兆：怒焰只前綴、哀音只後綴、相思同類、厭棄不同類、貪欲取高、雙喜二選一、畏縮先移除（破裂不動、6 條也能用）；2 顆要鼎、衝突擋下、雙喜不能用在蛻變、加不上就不扣',
+      !bad.length,
+      [...new Set(bad)].slice(0, 4).join('、')
+    );
+  });
 }
 process.exit(bad ? 1 : 0);

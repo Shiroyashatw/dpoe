@@ -208,6 +208,16 @@ function draw() {
     }
   }
   for (const t of G.tele) teleCircle(t.x, t.y, t.r, t.t / t.dur);
+  /* 愛的紅線（0.2.79）：牽著的小怪還活著就畫一條線連到七情王 */
+  for (const m of G.mobs)
+    if (m.tether && m.hp > 0 && m.tether.hp > 0) {
+      CX.strokeStyle = 'rgba(229,72,77,0.75)';
+      CX.lineWidth = 2;
+      CX.beginPath();
+      CX.moveTo(m.x, m.y - m.sz * 0.4);
+      CX.lineTo(m.tether.x, m.tether.y - m.tether.sz * 0.4);
+      CX.stroke();
+    }
   /* 毒刃雨：紫色範圍＋落下的刀光；雷暴（p.wet）同一種畫法，換成藍色 */
   for (const p of G.pools || []) {
     const a = Math.min(1, (p.dur - p.t) * 2);

@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.2.78';
+const VER = '0.2.79';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -7002,7 +7002,17 @@ const CUR = {
     d: '只用在已腐化的裝備：一半機率三選一一組災魘詞（有利＋有害），一半機率裝備毀掉'
   },
   pcalam: { n: '完美災魘石', ic: 'cur_exalt', d: '同災魘石，但三個選項都只有有利詞；只有十殿閻羅會掉' },
-  pen: { n: '判官筆', ic: 'cur_prism', d: '災魘時勾選：這一次失敗不毀裝，改成沒有變化（勾了就用掉）' }
+  pen: { n: '判官筆', ic: 'cur_prism', d: '災魘時勾選：這一次失敗不毀裝，改成沒有變化（勾了就用掉）' },
+  /* 0.2.79 心魔劫（企劃書 4.2）：七情王掉預兆（作用在下一顆通貨，用了就沒了）；三尸、三彭掉放預兆的鼎（同時用 2／3 顆） */
+  om_joy: { n: '預兆・雙喜', ic: 'sin_lust_dancer', d: '下一顆崇高石骰兩條詞，二選一' },
+  om_rage: { n: '預兆・怒焰', ic: 'sin_wrath_berserker', d: '下一顆填詞的通貨只加前綴' },
+  om_grief: { n: '預兆・哀音', ic: 'shuigui', d: '下一顆填詞的通貨只加後綴' },
+  om_fear: { n: '預兆・畏縮', ic: 'wraith', d: '下一顆崇高石先隨機移除 1 條詞（破裂詞不會）再加 1 條' },
+  om_love: { n: '預兆・相思', ic: 'guixinniang', d: '下一顆崇高石加的詞，跟裝備上已有的某條同一類' },
+  om_hate: { n: '預兆・厭棄', ic: 'sin_pride_mirror', d: '下一顆崇高石加的詞，類別跟裝備上已有的都不一樣' },
+  om_greed: { n: '預兆・貪欲', ic: 'sin_greed_usurer', d: '下一顆填詞的通貨骰 2 次，取階數高的' },
+  v2: { n: '三尸鼎', ic: 'sin_glut_glutton', d: '放 2 顆預兆，下一顆通貨同時生效（鼎跟預兆一起用掉）；三尸掉的' },
+  v3: { n: '三彭鼎', ic: 'necro', d: '放 3 顆預兆；三彭才有機會掉' }
 };
 /* 品質 +5%、最高 20%（磨刀石、護甲片） */
 const QUAL_STEP = 0.05,
@@ -7774,11 +7784,11 @@ const BOSSES = [
     call: 'bailiff',
     pat: ['charge', 'line', 'swipe']
   },
-  /* 0.2.78 酆都的新王：圖先借現有的（黑無常借 reaper、白無常借 mist_shade），招式從現有 7 招組 */
+  /* 0.2.78 酆都的新王（0.2.79 換成圖庫裡現成的黑白無常 wuchang_*），招式從現有 7 招組 */
   {
     n: '黑無常',
     fd: 'black',
-    sp: 'reaper',
+    sp: 'wuchang_black',
     hp: 470,
     dmg: 23,
     spd: 150,
@@ -7792,7 +7802,7 @@ const BOSSES = [
   {
     n: '白無常',
     fd: 'white',
-    sp: 'mist_shade',
+    sp: 'wuchang_white',
     hp: 460,
     dmg: 22,
     spd: 145,
@@ -7929,8 +7939,6 @@ const FENG = {
   elites: ['ox', 'horse', 'black', 'white'],
   hun: 5,
   uberLv: 70,
-  ring: 10 /* 鬼門從第 10 圈出現 */,
-  p: 0.04 /* 第 10 圈以外的節點有 4% 是鬼門 */,
   pen: 0.15 /* 閻羅掉判官筆 */,
   book: 0.1 /* 閻羅掉生死簿 */,
   perf: 0.1 /* 十殿閻羅掉完美災魘石 */
@@ -7940,11 +7948,18 @@ const FD_HALL = { yama: '閻羅殿', uber: '十殿閻羅' };
 const FRAGS = {
   ox: { n: '勾魂令・牛頭', ic: 'oxhead', d: '鬼門的牛頭掉的' },
   horse: { n: '勾魂令・馬面', ic: 'horseface', d: '鬼門的馬面掉的' },
-  black: { n: '勾魂令・黑無常', ic: 'reaper', d: '鬼門的黑無常掉的' },
-  white: { n: '勾魂令・白無常', ic: 'mist_shade', d: '鬼門的白無常掉的' },
+  black: { n: '勾魂令・黑無常', ic: 'wuchang_black', d: '鬼門的黑無常掉的' },
+  white: { n: '勾魂令・白無常', ic: 'wuchang_white', d: '鬼門的白無常掉的' },
   book: { n: '生死簿', ic: 'yanluo', d: '閻羅掉的：四種勾魂令各 1 張＋生死簿，開十殿閻羅' }
 };
-const newFrags = () => ({ ox: 0, horse: 0, black: 0, white: 0, book: 0 });
+const newFrags = () => ({
+  ox: 0,
+  horse: 0,
+  black: 0,
+  white: 0,
+  book: 0,
+  ...Object.fromEntries(SIN.emo.map(k => [k, 0]))
+});
 const fdBoss = k => BOSSES.find(b => b.fd === k);
 /* 十殿閻羅：閻羅的強化版 */
 const fdUber = () => {
@@ -7959,8 +7974,66 @@ const fdUber = () => {
     pat: ['swipe', 'charge', 'slam', 'summon', 'nova', 'line', 'blink', 'verdict', 'wheel', 'hook']
   };
 };
+/* 心魔劫（0.2.79，企劃書 4.2）：心魔幻境區塊的每張圖都有 1 隻七情王（不是地圖王，在中段的房間等你）；
+   打倒必掉那種情緒的預兆 1 顆＋碎片 1 片，SIN.holy 機率聖化石。碎片：任 3 種各 1 片進三尸（三隻隨機一隻），7 種各 1 片＋Lv70 進三彭（合體，Uber）；
+   帶進去的每一片碎片在那張圖上加一個減益（fx＝能力，mm＝地圖詞）。⚠️ 數字都暫定 */
+const SIN = {
+  emo: ['joy', 'rage', 'grief', 'fear', 'love', 'hate', 'greed'],
+  holy: 0.08,
+  need: 3,
+  uberLv: 70,
+  v3: 0.1 /* 三彭掉三彭鼎 */,
+  /* 預兆衝突：只前綴＋只後綴、同類＋不同類 */
+  clash: [
+    ['om_rage', 'om_grief'],
+    ['om_love', 'om_hate']
+  ]
+};
+const SIN_FRAG = {
+  joy: { n: '喜之碎片', ic: 'sin_lust_dancer', deb: '技能魔力消耗 +10%', fx: { mpCostUp: 10 } },
+  rage: { n: '怒之碎片', ic: 'sin_wrath_berserker', deb: '受到的傷害 +5%', fx: { takenUp: 5 } },
+  grief: { n: '哀之碎片', ic: 'shuigui', deb: '生命回復 −20%', mm: { pregen: -20 } },
+  fear: { n: '懼之碎片', ic: 'wraith', deb: '移動速度 −5%', fx: { ms: -5 } },
+  love: { n: '愛之碎片', ic: 'guixinniang', deb: '召喚物傷害 −10%', fx: { minionP: -10 } },
+  hate: { n: '惡之碎片', ic: 'sin_pride_mirror', deb: '藥劑回復 −15%', mm: { pflask: -15 } },
+  greed: { n: '欲之碎片', ic: 'sin_greed_usurer', deb: '生命偷取 −50%', mm: { pleech: -50 } }
+};
+Object.assign(
+  FRAGS,
+  Object.fromEntries(
+    Object.entries(SIN_FRAG).map(([k, f]) => [k, { n: f.n, ic: f.ic, d: '進心魔時帶的減益：' + f.deb }])
+  )
+);
+const SIN_HALL = { sanshi: '心魔・三尸', sanpeng: '三彭' };
+/* 七情王：sig＝招牌招（game.js 的 bossAI），圖先借圖庫裡現成的 sin_*；三尸三隻各 1 招（借十殿閻羅的判決、勾魂鎖鏈，下尸是淚池），三彭＝合體 */
+const SIN_BOSS = {
+  joy: { n: '喜', sp: 'sin_lust_dancer', pat: ['swipe', 'blink', 'laugh'], el: 'light' },
+  rage: { n: '怒', sp: 'sin_wrath_berserker', pat: ['charge', 'slam', 'wrath'], el: 'fire' },
+  grief: { n: '哀', sp: 'shuigui', pat: ['nova', 'line', 'tears'], el: 'cold' },
+  fear: { n: '懼', sp: 'wraith', pat: ['blink', 'nova', 'dread'], el: 'chaos' },
+  love: { n: '愛', sp: 'guixinniang', pat: ['swipe', 'summon', 'tether'], call: 'paper' },
+  hate: { n: '惡', sp: 'sin_pride_mirror', pat: ['line', 'slam', 'repel'] },
+  greed: { n: '欲', sp: 'sin_greed_usurer', pat: ['charge', 'swipe', 'greed'] },
+  up: { n: '上尸', sp: 'necro', pat: ['nova', 'line', 'blink', 'swipe', 'verdict'], el: 'chaos' },
+  mid: { n: '中尸', sp: 'sin_glut_glutton', pat: ['charge', 'slam', 'summon', 'swipe', 'hook'] },
+  low: { n: '下尸', sp: 'sin_sloth_giant', pat: ['slam', 'line', 'charge', 'swipe', 'tears'], el: 'cold' }
+};
+for (const [k, o] of Object.entries(SIN_BOSS))
+  BOSSES.push({ hp: 480, dmg: 22, spd: 140, r: 40, sz: 120, xp: 200, call: 'bat', ...o, sin: k });
+const sinBoss = k => BOSSES.find(b => b.sin === k);
+/* 三彭：三尸合體（生命 ×3、傷害 ×1.5，7 招＋三尸的招牌招） */
+const sinUber = () => ({
+  ...sinBoss('mid'),
+  n: '三彭',
+  sin: 'peng',
+  hp: 480 * 3,
+  dmg: 22 * 1.5,
+  sz: 150,
+  r: 48,
+  pat: ['swipe', 'charge', 'slam', 'summon', 'nova', 'line', 'blink', 'verdict', 'hook', 'tears']
+});
 const bossPick = no => {
   /* 0.2.78：酆都的王（牛頭、馬面、黑白無常、閻羅；fd）只在鬼門、閻羅殿出現，不進一般地圖的王池 */
-  const l = BOSSES.filter(b => b !== no && !b.fd);
+  const l = BOSSES.filter(b => b !== no && !b.fd && !b.sin);
   return l[Math.floor(Math.random() * l.length)];
 };

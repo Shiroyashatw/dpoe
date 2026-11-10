@@ -1547,6 +1547,9 @@ function hitMob(m, c, ang, kb, o = {}) {
   const cut = fullCut(m);
   if (cut) (m.hp -= cut), num(m.x, m.y - m.sz * 1.3, 0, 'ev', '屠戮');
   const hp0 = m.hp;
+  /* 七情王（0.2.79）：愛的紅線還連著小怪時受到的傷害 −70%；喜狂笑時打牠反彈 15% */
+  if (m.tethers && m.tethers.some(x => x.hp > 0)) r.d *= 0.3;
+  if (m.laughT > G.t && !o.minion && !a.unit) hurtPlayer(r.d * 0.15, m, 'phys', 1);
   m.hp -= r.d;
   if (culled(m, c)) {
     (m.hp = 0), num(m.x, m.y - m.sz * 1.3, 0, 'crit', '撲殺');
