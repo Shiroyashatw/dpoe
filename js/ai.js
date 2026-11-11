@@ -63,6 +63,9 @@ function aiTarget() {
    walk＝還有一點時間（紅光圈 0.9 秒、怪與王的前搖 0.6 秒內），翻滾冷卻中也能先走出去。
    王的衝撞（charge）往側邊閃（沿著衝撞的線往後跑躲不掉），其他往反方向 */
 const AI_ROLL = 0.22;
+/* 走著躲：一次固定方向走 0.3 秒，之後 0.9 秒不再躲投射物（專心出招） */
+const AI_DODGE_HOLD = 0.3,
+  AI_DODGE_CD = 0.9;
 function aiThreat() {
   const R = [0, 0],
     W = [0, 0];
@@ -158,7 +161,9 @@ function aiTick(dt) {
   }
   if (!S.auto || G.scene !== 'map' || PRO.on || TALK.on) return;
   AI.on = 1;
-  const A = G.ai || (G.ai = { deadT: 0, skip: new Map(), tryT: new Map(), flaskT: 0, rollT: 0, idle: 0 });
+  const A =
+    G.ai ||
+    (G.ai = { deadT: 0, skip: new Map(), tryT: new Map(), flaskT: 0, rollT: 0, idle: 0, dodgeHold: 0, dodgeCd: 0 });
   if (G.state === 'dead') {
     A.deadT += dt;
     if (A.deadT > 1.5) aiHome(true);
@@ -224,15 +229,18 @@ function aiTick(dt) {
     }
     if (loot.it && d < 100) interact();
   } else if (boss && (!T || dist(P, T) > 260)) aiGo(G.portal.x, G.portal.y, 6);
-  /* 躲：投射物側走（不翻滾）、紅光圈與前搖的走位、怪物方的地面往外走；後面的蓋過前面的；躲的那格不出新招 */
-  let dodge = false;
-  const sh = aiShots();
-  if (sh) (AI.mv = sh), (dodge = true);
-  /* 翻滾還能用就繼續打、剩 0.22 秒再滾；翻滾在冷卻才先走出去 */
-  if (th.walk && P.cds.roll > 0) (AI.mv = th.walk), (dodge = true);
-  /* 躲了超過 0.5 秒還沒出過招就讓這格出招（怪一多就一直有東西飛過來，不能永遠不還手） */
-  A.dodgeT = dodge ? A.dodgeT + dt : 0;
-  if (A.dodgeT > 0.5) (dodge = false), (A.dodgeT = 0);
+  /* 躲（走的那種；翻滾在上面）：王的前搖與紅光圈在翻滾冷卻時走出去、投射物側走。
+     決定要躲就固定方向走 AI_DODGE_HOLD 秒（不每格重算，否則方向一直換邊會抽搐），躲完 AI_DODGE_CD 秒內不再躲投射物、專心出招；躲的時候不出新招 */
+  A.dodgeHold -= dt;
+  A.dodgeCd -= dt;
+  const w = th.walk && P.cds.roll > 0 ? th.walk : null;
+  if (w) (A.dodgeDir = w), (A.dodgeHold = AI_DODGE_HOLD), (A.dodgeCd = AI_DODGE_CD);
+  else if (A.dodgeHold <= 0 && A.dodgeCd <= 0) {
+    const sh = aiShots();
+    if (sh) (A.dodgeDir = sh), (A.dodgeHold = AI_DODGE_HOLD), (A.dodgeCd = AI_DODGE_CD);
+  }
+  const dodge = A.dodgeHold > 0;
+  if (dodge) AI.mv = A.dodgeDir;
   /* 踩在怪物方的地面上：往外走，蓋過追怪與撿東西的方向 */
   if (hz) {
     const d = Math.hypot(P.x - hz.x, P.y - hz.y);
