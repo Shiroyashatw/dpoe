@@ -221,7 +221,7 @@ const labelTag = it =>
   it.charm
     ? ''
     : ` T${itemT(it)}${it.so ? ' ' + '○'.repeat(it.so) : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}${it.mem2 ? '◈' : ''}`;
-const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + '～' + a.v[1] : a.v);
+const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + ' 至 ' + a.v[1] : a.v);
 /* 腐化詞（0.2.72）：it.cw 的一條 */
 const cwText = c => CORR[c.k].n.replace('{}', c.v);
 /* 災魘詞（0.2.78）：有利 g、有害 b 各一條 */
@@ -289,26 +289,30 @@ function ghFx(gh, s) {
   add(row[2], has('s_' + gh.g));
   return out;
 }
+/* 能力的一行字（2026-11-11 照台服，docs/文字規範.md）：STATN 第四格是句型模板（{}＝數字，區間寫「a 至 b」）；
+   數字是負的時候把「增加／更多／+」換成「減少／更少／-」；開關（第三格 1）只寫句子；沒有模板的照舊「名稱 +數字單位」 */
+function statText(k, v) {
+  const N = STATN[k];
+  if (!N) return k;
+  if (N[2] === 1) return N[3] || N[0];
+  const t = N[3];
+  if (Array.isArray(v)) return t ? t.replace('{}', `${v[0]} 至 ${v[1]}`) : `${N[0]} ${v[0]} 至 ${v[1]}`;
+  if (!t) return `${N[0]} ${v > 0 ? '+' : ''}${v}${N[1]}`;
+  const s = t.replace('{}', Math.abs(v));
+  return v < 0 ? s.replace('增加', '減少').replace('更多', '更少').replace('+', '-') : s;
+}
 /* 神格的說明：每條能力一行 */
 const ghText = gh =>
   Object.entries(ghFx(gh, {}))
     .map(([k, v]) => {
-      const N = STATN[k];
-      return N
-        ? N[2] === 1
-          ? N[0]
-          : GH_FIX.includes(k)
-            ? `${N[0]}：${v}${N[1] || ''}`
-            : `${N[0]} +${v}${N[1] || ''}`
-        : k;
+      return statText(k, v);
     })
     .concat((gh.a || []).map(a => affText(a)));
 /* 基底的數值（品質放大）＋固定詞 */
 const impText = (k, v) => {
   if (AFF[k]) return affText({ k, v });
   if (IMPN[k]) return IMPN[k].replace('{}', v);
-  const [n, u, sw] = STATN[k];
-  return sw ? n : `${n} +${v}${u}`;
+  return statText(k, v);
 };
 const qMul = it => 1 + (it.q || 0);
 const DEFK = ['armor', 'ev', 'es'];
