@@ -1452,7 +1452,7 @@ function wmCardHTML(k, why, lv) {
       sr = ascHas(S, 'roulette') ? rouletteOf(c, k).map(id => ROUL.find(x => x.id === id)) : [];
     return `${sr.length ? `<ul class="wm-rou" aria-label="命運輪盤">${sr.map(r => `<li style="--rc:${r.c}"><b>${r.n}籌碼</b> ${esc(r.t)}</li>`).join('')}</ul>` : ''}
       <ul class="mmods wm-mods">${c.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
-      <p class="wm-note">主線是固定內容，不用選地圖卡</p>
+      <p class="wm-note">主線固定，不用選地圖卡</p>
       <button class="btn pri" data-a="open">${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}</button>`;
   }
   const o = wCards(S, k),
@@ -1482,7 +1482,7 @@ function wmCardHTML(k, why, lv) {
         }</button>`;
     })
     .join('')}</div>
-    <div class="msel"><b>這張的地圖詞</b><span class="c-gold" title="數量：裝備與通貨的件數；稀有度：黃裝比例與 ★、追憶的機率；材料：崇高石與精髓的機率">數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
+    <div class="msel"><b>這張的地圖詞</b><span class="c-gold" title="數量：裝備與通貨的件數；稀有度：稀有物品比例與 ★、追憶的機率；材料：崇高石與精髓的機率">數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
     ${
       rou(card).length
         ? `<ul class="wm-rou" aria-label="命運輪盤">${rou(card)
@@ -1498,7 +1498,7 @@ function wmNodeHTML() {
   const k = WM.sel;
   if (!k) {
     const [q, r] = wXY(S.world.at);
-    return `<h2>${wOpen(S) ? wRegion(Math.max(W_ROAD, wRing(q, r))) : STORY[0].n}</h2><p>${wOpen(S) ? '點一個發亮的地點。往外走會變難，橫著走難度不變。' : '點發亮的主線地點繼續前進。'}</p>`;
+    return `<h2>${wOpen(S) ? wRegion(Math.max(W_ROAD, wRing(q, r))) : STORY[0].n}</h2><p>${wOpen(S) ? '點一個發亮的地點；往外走變難，橫著走難度不變。' : '點發亮的主線地點繼續前進。'}</p>`;
   }
   const [q, r] = wXY(k),
     t = wType(S, q, r),
@@ -1510,7 +1510,7 @@ function wmNodeHTML() {
     zod = t === 'rift' ? wZod(S, q, r) : null,
     head = `<h2>${esc(wName(S, q, r))}</h2><p class="wm-kind">${i != null ? '主線' : WTYPE[t].n} · 怪物 Lv ${lv}${pen ? ` · <span class="c-warn">元素抗性 −${pen}%</span>` : ''}</p><p>${esc(i != null ? STORY[i].d : WTYPE[t].d)}</p>`,
     cor = zod ? `<p class="wm-note">墮落詞：<span class="c-warn">${termify(MAPMOD[zod.cor].t)}</span></p>` : '';
-  if (done) return head + '<p class="wm-note">已經走過，留在地圖上當路。</p>';
+  if (done) return head + '<p class="wm-note">已走過，可以從這裡經過。</p>';
   /* 走不到的地方不抽卡：抽了也打不了 */
   if (!wCan(S, q, r)) return head + cor + `<p class="wm-note">${esc(why)}</p>`;
   const blood = S.hunt.full ? `<p class="c-warn">血霧 ${S.hunt.v}%：每進一張扣 ${HUNT.cost}%，5★ 地圖變多</p>` : '';
@@ -1524,7 +1524,7 @@ function wmNodeHTML() {
       n = armyRes(S, ck),
       g = wArmyGen(S.world.seed, ck)[k],
       P = ARMY.per;
-    army = `<p class="wm-note">怨恨值 <b>${n}</b>／${ARMY.max}：怪物生命與傷害 <span class="c-warn">+${P.mhp * n}%</span>、數量與稀有度 <span class="c-good">+${P.qty * n}%</span>（每打完這塊一張圖 +1）</p>${g ? `<p class="wm-note">守在這裡的是<b>${esc(armyBoss(g).n)}</b>：保底 1 件追憶裝、掉${esc(FRAGS[g].n)}</p>` : ''}`;
+    army = `<p class="wm-note">怨恨值 <b>${n}</b>／${ARMY.max}：怪物生命與傷害 <span class="c-warn">+${P.mhp * n}%</span>、數量與稀有度 <span class="c-good">+${P.qty * n}%</span>；這塊每打完一張圖 +1</p>${g ? `<p class="wm-note">守在這裡的是<b>${esc(armyBoss(g).n)}</b>：保底 1 件追憶裝、掉${esc(FRAGS[g].n)}</p>` : ''}`;
   }
   return head + cor + fiend + army + blood + wmCardHTML(k, why, lv);
 }

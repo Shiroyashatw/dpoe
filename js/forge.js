@@ -23,7 +23,7 @@ function matPageHTML() {
             return `<span class="chip">${icHTML(ACLSI[c].ic)}${esc(essName(k))}<small>×${n}</small></span>`;
           })
           .join('')}</div>`
-      : `<p class="fhint">還沒有精髓：3★ 以上的地圖，菁英和王會掉</p>`
+      : `<p class="fhint">精髓由 3★ 以上地圖的菁英與王掉落</p>`
   }`;
 }
 
@@ -37,18 +37,18 @@ function fragPageHTML() {
   return `<ul class="mpg">${row('cur_scrap', '地圖碎片', '開地圖卡、洗卡用；自動吸收', S.frag)}</ul>
   <div class="ph2">酆都<span>鬼門關區塊從第 ${REGION.ring} 圈出現</span></div>
   <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
-  <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：可以開了（山海寶盒）' : `：再 ${FENG.hun - n} 張`}</span></p>
-  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '可以開了（山海寶盒）')}</span></p></div>
-  <div class="ph2">心魔劫<span>七情王掉的；帶進心魔時每片加一個減益</span></div>
+  <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：在山海寶盒開啟' : `：再 ${FENG.hun - n} 張`}</span></p>
+  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '在山海寶盒開啟')}</span></p></div>
+  <div class="ph2">心魔劫<span>七情王掉落；帶進王場每片加一個減益</span></div>
   <ul class="mpg">${SIN.emo.map(k => row(SIN_FRAG[k].ic, SIN_FRAG[k].n, '帶進去：' + SIN_FRAG[k].deb, F[k])).join('')}</ul>
-  <div class="fgoal"><p><b>三尸</b><span class="${SIN.emo.filter(k => F[k]).length >= SIN.need ? 'c-good' : ''}">${SIN.emo.filter(k => F[k]).length}／${SIN.need} 種${SIN.emo.filter(k => F[k]).length >= SIN.need ? '：可以開了（山海寶盒）' : ''}</span></p>
-  <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '可以開了（山海寶盒）')}</span></p></div>
-  <div class="ph2">四凶<span>凶地中心的四凶掉的</span></div>
+  <div class="fgoal"><p><b>三尸</b><span class="${SIN.emo.filter(k => F[k]).length >= SIN.need ? 'c-good' : ''}">${SIN.emo.filter(k => F[k]).length}／${SIN.need} 種${SIN.emo.filter(k => F[k]).length >= SIN.need ? '：在山海寶盒開啟' : ''}</span></p>
+  <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '在山海寶盒開啟')}</span></p></div>
+  <div class="ph2">四凶<span>凶地中心的四凶掉落</span></div>
   <ul class="mpg">${[...XIONG, 'eye'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
-  <div class="ph2">陰兵借道<span>陰兵借道的三位將領掉的</span></div>
+  <div class="ph2">陰兵借道<span>陰兵借道的三位將領掉落</span></div>
   <ul class="mpg">${[...ARMY.gen, 'fu'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
-  <div class="fgoal"><p><b>蚩尤</b><span class="${armyHallWhy(S, 'chiyou') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'chiyou') || '可以開了（山海寶盒）')}</span></p>
-  <p><b>涿鹿兵主</b><span class="${armyHallWhy(S, 'zhuolu') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'zhuolu') || '可以開了（山海寶盒）')}</span></p></div>`;
+  <div class="fgoal"><p><b>蚩尤</b><span class="${armyHallWhy(S, 'chiyou') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'chiyou') || '在山海寶盒開啟')}</span></p>
+  <p><b>涿鹿兵主</b><span class="${armyHallWhy(S, 'zhuolu') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'zhuolu') || '在山海寶盒開啟')}</span></p></div>`;
 }
 
 /* ---------- 一件裝備的詞：前綴 3 格、後綴 3 格（空格畫出來；說明框完整版在 8-3） ---------- */
@@ -74,7 +74,7 @@ function slotsHTML(it, mode) {
       return `<div class="fside"><h5 class="fsh">${name}</h5><ul class="fslot">${Array.from({ length: 3 }, (_, j) =>
         L[j]
           ? one(...L[j])
-          : `<li class="emp ${j >= cap ? 'lk' : ''}"><span>${j >= cap ? '黃裝才有' : '（空）'}</span></li>`
+          : `<li class="emp ${j >= cap ? 'lk' : ''}"><span>${j >= cap ? '稀有物品才有' : '（空）'}</span></li>`
       ).join('')}</ul></div>`;
     };
   return (
@@ -121,7 +121,7 @@ function omenHTML(op) {
     have = Object.keys(OMEN_OPS).filter(k => M[k] > 0 || CRAFT.om.includes(k));
   if (!have.length) return '';
   const w = omenWhy(op, CRAFT.om);
-  return `<div class="fom"><h5 class="fsh">預兆<small>${M.v2 || M.v3 ? `三尸鼎 ${M.v2}・三彭鼎 ${M.v3}` : '一次 1 顆；要同時用 2 顆以上得有鼎（三尸掉）'}</small></h5>
+  return `<div class="fom"><h5 class="fsh">預兆<small>${M.v2 || M.v3 ? `三尸鼎 ${M.v2}・三彭鼎 ${M.v3}` : '一次 1 顆；同時用 2 顆以上要有鼎，三尸會掉'}</small></h5>
     <div class="mats">${have
       .map(k => {
         const on = CRAFT.om.includes(k),
@@ -163,9 +163,9 @@ function fillHTML(it) {
                   `<button class="chip ${CRAFT.ess === k ? 'on' : ''}" data-fg="es:${k}" aria-pressed="${CRAFT.ess === k}">${icHTML(ACLSI[k.split(':')[0]].ic)}${esc(essName(k))}<small>×${n}</small></button>`
               )
               .join('')}</div>`
-          : `<p class="fhint">沒有精髓：3★ 以上的地圖，菁英和王會掉</p>`
+          : `<p class="fhint">精髓由 3★ 以上地圖的菁英與王掉落</p>`
         : op === 'conv'
-          ? `<p class="fhint">${CRAFT.conv == null ? '點上面的一條詞，選要換掉的' : '已選好，按下面的按鈕'}</p>`
+          ? `<p class="fhint">${CRAFT.conv == null ? '點上面一條要換掉的詞' : '已選好，按下面的按鈕'}</p>`
           : '',
     qc = qualCheck(it),
     qual = qc.k
@@ -179,7 +179,7 @@ function fillHTML(it) {
   } else {
     mid = `<div class="fres">${fpvHTML(it, op, arg)}${why ? `<small class="c-bad">${esc(why)}</small>` : lack ? `<small class="c-bad">${esc(lack)}</small>` : ''}</div>`;
     act = `<div class="fpair"><button class="btn pri fgo" data-fg="op" ${why || lack ? 'disabled' : ''}>${esc(op === 'ess' && arg ? essName(arg) : F.n)} · 有 ${curHave(op, arg)}</button>
-      <button class="btn fgo" data-fg="fp" ${why || lack || M.fore < 1 || CRAFT.om.length ? 'disabled' : ''} title="預知石：先看這一顆通貨的結果，再決定用不用；不用就只消耗預知石">${M.fore < 1 ? '預知石不夠' : `先預知 ×${M.fore}`}</button></div>${qual}`;
+      <button class="btn fgo" data-fg="fp" ${why || lack || M.fore < 1 || CRAFT.om.length ? 'disabled' : ''} title="先看這顆通貨的結果再決定；不用的話只消耗預知石">${M.fore < 1 ? '預知石不夠' : `先預知 ×${M.fore}`}</button></div>${qual}`;
   }
   return { top: `${seg}<p class="fdo">${esc(F.d)}</p>${ess}${omenHTML(op)}`, mid, act };
 }
@@ -189,17 +189,17 @@ function temperHTML(it) {
   return it.a.length
     ? {
         top: '',
-        mid: `${w ? `<p class="fhint c-bad">${esc(w)}</p>` : ''}<p class="fhint">階級和條數不變，只重骰數字，可能變高也可能變低；破裂詞（★）在 T0 的範圍裡骰。每按一次貴 10%，最多 2 倍。</p>`,
+        mid: `${w ? `<p class="fhint c-bad">${esc(w)}</p>` : ''}<p class="fhint">重骰詞綴數值，階級與條數不變；破裂詞照 T0 範圍骰。每淬鍊一次費用增加 10%，最多 2 倍。</p>`,
         act: `<button class="btn pri fgo" data-fg="tmp:all" ${S.gold < temperCost(it) || w ? 'disabled' : ''}>全體淬鍊 ${temperCost(it)} 金</button>`
       }
-    : { ...NOP, mid: `<p class="fhint">白裝沒有詞綴可以淬鍊</p>` };
+    : { ...NOP, mid: `<p class="fhint">普通物品沒有詞綴可以淬鍊</p>` };
 }
 function holyHTML(it) {
   if (!it) return NOP;
   const why = holyCheck(it);
   return {
     top: '',
-    mid: `<p class="fdo">每條詞各骰 ×0.8～1.2，中間多兩邊少，數值可以超出階級。之後不能再填、淬鍊，還能腐化。<br>預估平均不變，最差 −20%，最好 +20%。</p>${why ? `<p class="fhint ${it.holy ? '' : 'c-bad'}">${esc(why)}</p>` : ''}`,
+    mid: `<p class="fdo">每條詞的數值乘上 0.8～1.2 倍，越接近 1 越常見，可以超出階級。之後不能再填詞或淬鍊，仍可腐化。</p>${why ? `<p class="fhint ${it.holy ? '' : 'c-bad'}">${esc(why)}</p>` : ''}`,
     act: `<button class="btn pri fgo" data-fg="hol" ${why ? 'disabled' : ''}>${CUR.holy.n} · 有 ${MAT().holy}</button>`
   };
 }
@@ -208,16 +208,16 @@ function corrHTML(it) {
   const why = corruptCheck(it),
     tot = CORR_ROLL.reduce((a, b) => a + b[1], 0),
     N = {
-      cw1: '腐化詞 1 條（強力＋代價，不占前後綴）',
-      sock: '孔 +1（可以超過部位上限 1 格）',
+      cw1: '1 條腐化詞，不占前後綴',
+      sock: '孔 +1，可比部位上限多 1 孔',
       none: '沒有變化，只是鎖定',
       burst: '爆開：變成腐化殘渣'
     };
   return {
     top: '',
-    mid: `<p class="fdo c-warn">一次、純隨機，之後全部鎖定（不能填、淬鍊、聖化、提升品質）。</p>
+    mid: `<p class="fdo c-warn">只能腐化一次，之後不能再填詞、淬鍊、聖化或提升品質。</p>
     <ul class="fcorr">${CORR_ROLL.map(([k, p]) => `<li class="${k === 'burst' ? 'c-bad' : ''}"><b>${Math.round((p * 100) / tot)}%</b>${N[k]}</li>`).join('')}</ul>
-    <p class="fhint">爆開時：黃裝換「詞綴數一半」的崇高石，藍裝換 1 顆富豪石，白裝什麼都沒有。</p>${why ? `<p class="fhint ${it.cor ? '' : 'c-bad'}">${esc(why)}</p>` : ''}`,
+    <p class="fhint">爆開時：稀有物品換回詞綴數一半的崇高石，魔法物品換回 1 顆富豪石，普通物品不留東西。</p>${why ? `<p class="fhint ${it.cor ? '' : 'c-bad'}">${esc(why)}</p>` : ''}`,
     act: `<button class="btn pri fgo" data-fg="cor" ${why ? 'disabled' : ''}>${CUR.corr.n} · 有 ${MAT().corr}</button>`
   };
 }
@@ -248,7 +248,7 @@ function calamHTML(it) {
           `<button role="tab" aria-selected="${perf === p}" class="${perf === p ? 'on' : ''} ${M[k] ? '' : 'z'}" data-fg="cs:${p}" ${p && !M[k] ? 'disabled' : ''}>${CUR[k].n}<small>×${M[k]}</small></button>`
       )
       .join('')}</div>`,
-    penB = `<button class="btn fpen ${pen ? 'on' : ''}" data-fg="pn" aria-pressed="${!!pen}" ${M.pen ? '' : 'disabled'}>${pen ? '✓ ' : ''}用判官筆<small>有 ${M.pen}：這次失敗不毀裝，勾了就用掉</small></button>`;
+    penB = `<button class="btn fpen ${pen ? 'on' : ''}" data-fg="pn" aria-pressed="${!!pen}" ${M.pen ? '' : 'disabled'}>${pen ? '✓ ' : ''}用判官筆<small>有 ${M.pen}：失敗時不毀裝，勾選就消耗</small></button>`;
   return {
     top: seg,
     mid: `<p class="fdo c-warn">只能用在已腐化的裝備，一件只能一組。</p>
@@ -275,7 +275,7 @@ function forgeHTML() {
   return `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金幣 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span><span class="ftabs">${tabs
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
     .join('')}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">還沒鑑定：前後綴看不到。回藏身處找撿骨師（免費、一次全部）</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
+  <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">未鑑定：回藏身處找撿骨師免費鑑定</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
   <div class="fr"><div class="ftop">${P.top}</div><div class="fmid">${P.mid}</div><div class="fact">${P.act}</div></div></div>`;
 }
 /* 做完一次：寫下拿掉什麼、加了什麼 */

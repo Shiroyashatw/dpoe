@@ -74,15 +74,15 @@ const WTYPE = {
   dawn: { n: '破曉據點', c: '#9cc4e4', d: '破曉軍團守著的地方' },
   crow: { n: '鴉衛情報', c: '#d6dae2', d: '鴉衛留下的記號' },
   star: { n: '天星分會', c: '#c9a0ff', d: '天星商會的貨棧' },
-  blood: { n: '血霧之地', c: '#ff5a5f', d: '打完累積血霧' },
-  rift: { n: '裂口', c: '#ff8a4c', d: '血霧滿了才進得去，裡面是墮落的生肖神' },
+  blood: { n: '血霧之地', c: '#ff5a5f', d: '打倒這裡的王後累積血霧' },
+  rift: { n: '裂口', c: '#ff8a4c', d: '血霧滿了才能進入，王是墮落的生肖神' },
   /* 0.2.78 酆都（企劃書 4.2） */
-  ghost: { n: '鬼門關', c: '#7fd1c7', d: '酆都的門：裡面是牛頭、馬面、黑無常、白無常其中一個，打倒掉勾魂令' },
+  ghost: { n: '鬼門關', c: '#7fd1c7', d: '王是牛頭、馬面、黑無常、白無常其中之一，打倒後掉落勾魂令與腐化石' },
   /* 0.2.79 心魔劫（企劃書 4.2） */
-  dream: { n: '心魔幻境', c: '#e08ad0', d: '每張圖都有一隻七情王：打倒掉預兆與碎片' },
+  dream: { n: '心魔幻境', c: '#e08ad0', d: '每張圖都有一隻七情王，打倒後掉落預兆與碎片' },
   /* 0.2.80 四凶 */
-  fiend: { n: '凶地', c: '#e3a14a', d: '一隻凶的地盤：每張圖帶牠的專屬地圖詞，中心那格的王就是牠' },
-  army: { n: '陰兵借道', c: '#8fb3a0', d: '陰兵的大區塊：每打完一張圖怨恨值 +1，怪物更強、獎勵更好；三位將領各守一格' }
+  fiend: { n: '凶地', c: '#e3a14a', d: '每張圖都帶這隻凶的專屬地圖詞，巢穴的王就是牠' },
+  army: { n: '陰兵借道', c: '#8fb3a0', d: '每打完一張圖怨恨值 +1，怪物更強、獎勵更好；三位將領各守一格' }
 };
 /* 機制區塊（0.2.79，照 PoE2 的區域）：地圖切成 7 格的大格（中心＋旁邊 6 格；中心＝a·(2,1)＋b·(−1,3)，剛好不重疊鋪滿），
    中心在第 REGION.ring 圈以外的大格照各機制自己的機率 REGION.w 整塊變成那個機制（0.2.80；照種子，同一個存檔每次都一樣）；裂口、主線節點優先 */
@@ -303,12 +303,11 @@ function wName(s, q, r) {
 function tsHallWhy(s, kind) {
   const b = (s.frags || {}).blood || 0;
   if (kind === 'taisui') {
-    if ((s.idols || []).length < ZODIAC.length)
-      return `十二神像要全部點亮（${(s.idols || []).length}／${ZODIAC.length}）`;
+    if ((s.idols || []).length < ZODIAC.length) return `先點亮十二神像（${(s.idols || []).length}／${ZODIAC.length}）`;
     return b < TAISUI.blood ? `神血 ${b}／${TAISUI.blood}` : '';
   }
   if (b < TAISUI.uber) return `神血 ${b}／${TAISUI.uber}`;
-  return s.lv < TAISUI.uberLv ? `角色要 Lv${TAISUI.uberLv}` : '';
+  return s.lv < TAISUI.uberLv ? `角色等級需達 ${TAISUI.uberLv}` : '';
 }
 function tsHallPay(s, kind) {
   const w = tsHallWhy(s, kind);
@@ -321,10 +320,10 @@ function armyHallWhy(s, kind) {
   const F = s.frags || {};
   if (kind === 'chiyou') {
     const miss = ARMY.gen.filter(k => !(F[k] >= 1)).map(k => FRAGS[k].n);
-    return miss.length ? '還缺：' + miss.join('、') : '';
+    return miss.length ? '還缺' + miss.join('、') : '';
   }
-  if (!(F.fu >= 1)) return '要 1 個兵符';
-  return s.lv < ARMY.uberLv ? `角色要 Lv${ARMY.uberLv}` : '';
+  if (!(F.fu >= 1)) return '還缺兵符';
+  return s.lv < ARMY.uberLv ? `角色等級需達 ${ARMY.uberLv}` : '';
 }
 function armyHallPay(s, kind) {
   const w = armyHallWhy(s, kind);
@@ -337,12 +336,12 @@ function armyHallPay(s, kind) {
 const fdHun = s => FENG.elites.reduce((a, k) => a + ((s.frags || {})[k] || 0), 0);
 function fdHallWhy(s, kind) {
   const F = s.frags || {};
-  if (kind === 'yama') return fdHun(s) >= FENG.hun ? null : `勾魂令不夠（${fdHun(s)}／${FENG.hun}）`;
+  if (kind === 'yama') return fdHun(s) >= FENG.hun ? null : `勾魂令 ${fdHun(s)}／${FENG.hun}`;
   if (kind === 'uber') {
     const miss = FENG.elites.filter(k => !(F[k] >= 1)).map(k => FRAGS[k].n.split('・')[1]);
-    if (miss.length) return '缺勾魂令：' + miss.join('、');
-    if (!(F.book >= 1)) return '缺生死簿（閻羅掉的）';
-    if (s.lv < FENG.uberLv) return `角色要 Lv${FENG.uberLv}`;
+    if (miss.length) return '還缺勾魂令：' + miss.join('、');
+    if (!(F.book >= 1)) return '還缺生死簿：打倒閻羅取得';
+    if (s.lv < FENG.uberLv) return `角色等級需達 ${FENG.uberLv}`;
     return null;
   }
   return '沒有這個殿';
@@ -367,10 +366,10 @@ function fdHallPay(s, kind) {
 function sinHallWhy(s, kind, sel) {
   const F = s.frags || {},
     L = kind === 'sanpeng' ? SIN.emo : sel || [];
-  if (kind === 'sanpeng' && s.lv < SIN.uberLv) return `角色要 Lv${SIN.uberLv}`;
-  if (kind === 'sanshi' && new Set(L).size < SIN.need) return `選 ${SIN.need} 種以上的碎片`;
+  if (kind === 'sanpeng' && s.lv < SIN.uberLv) return `角色等級需達 ${SIN.uberLv}`;
+  if (kind === 'sanshi' && new Set(L).size < SIN.need) return `至少選 ${SIN.need} 種碎片`;
   const miss = L.filter(k => !(F[k] >= 1));
-  return miss.length ? '缺碎片：' + miss.map(k => SIN_FRAG[k].n).join('、') : null;
+  return miss.length ? '還缺碎片：' + miss.map(k => SIN_FRAG[k].n).join('、') : null;
 }
 function sinHallPay(s, kind, sel) {
   const why = sinHallWhy(s, kind, sel);
@@ -385,10 +384,10 @@ function sinHallPay(s, kind, sel) {
 function xiHallWhy(s, kind) {
   const F = s.frags || {},
     miss = XIONG.filter(k => !(F[k] >= 1)).map(k => FRAGS[k].n);
-  if (miss.length) return '缺：' + miss.join('、');
+  if (miss.length) return '還缺' + miss.join('、');
   if (kind === 'zhu9') {
-    if (!(F.eye >= 1)) return '缺燭龍之目（燭龍掉的）';
-    if (s.lv < XI.uberLv) return `角色要 Lv${XI.uberLv}`;
+    if (!(F.eye >= 1)) return '還缺燭龍之目：打倒燭龍取得';
+    if (s.lv < XI.uberLv) return `角色等級需達 ${XI.uberLv}`;
   }
   return null;
 }
@@ -424,7 +423,7 @@ function wCan(s, q, r) {
 /* 不能進的原因，能進回傳空字串 */
 function wWhy(s, q, r) {
   if (wDone(s).has(wKey(q, r))) return '已經走過';
-  if (!wCan(s, q, r)) return '還走不到：先打完相鄰的地點';
+  if (!wCan(s, q, r)) return '先打完相鄰的地點';
   if (wType(s, q, r) === 'rift') {
     if (!s.hunt.full) return '血霧滿了才進得去';
     if (s.hunt.used) return '這次血霧已經開過一道裂口';

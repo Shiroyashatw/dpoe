@@ -2242,13 +2242,13 @@ const RA = (() => {
       };
     walk(['a_st']);
     ok(
-      '破陣者：7 大 7 小、沒有選擇組、合法的 8 點組合剛好 11 種；一夫當關有說明提到「沒拿長矛沒有作用」、銅皮鐵骨提到「只會被消耗」',
+      '破陣者：7 大 7 小、沒有選擇組、合法的 8 點組合剛好 11 種；一夫當關的說明寫「持長矛時」、銅皮鐵骨寫「不會隨時間消失」（2026-11-11 文字照 PoE2 重寫）',
       T.N.filter(n => n.big === 1).length === 7 &&
         T.N.filter(n => !n.big && n.id !== 'a_st').length === 7 &&
         !T.N.some(n => n.g) &&
         all.length === 11 &&
-        /沒拿長矛沒有作用/.test(T.I.a_hold.d) &&
-        /只會被消耗/.test(T.I.a_brass.d) &&
+        /^持長矛時/.test(T.I.a_hold.d) &&
+        /不會隨時間消失/.test(T.I.a_brass.d) &&
         T.I.a_van.fx.vanguard === 1,
       j([T.N.filter(n => n.big === 1).length, all.length])
     );
@@ -3380,11 +3380,11 @@ const ASC_COMBOS = `const combos = k => {
       /* 結算：生命 ≤ 0 的怪死一次（onKillBase 一次），死掉之後的連鎖再死的也處理；超過 100 輪就是卡死 */
       settle = (all) => { let n = 0, again = true; while (again && n++ < 100) { again = false; for (const m of all) if (m.hp <= 0 && !m.dead) { m.dead = 1; kills.push(m); onKillBase(m); again = true; } } return n; };
 
-    /* 結構：25 個點（起點＋12 小＋12 大）、12 條輻條各 小 → 大、495 種合法組合、沒有選擇組；環形座標（大點半徑 215、小點半徑 110、從正上方順時針、子鼠起）；名字＝地支＋生肖、說明第一句寫神的身分、圖示是生肖圖 */
+    /* 結構：25 個點（起點＋12 小＋12 大）、12 條輻條各 小 → 大、495 種合法組合、沒有選擇組；環形座標（大點半徑 215、小點半徑 110、從正上方順時針、子鼠起）；名字＝地支＋生肖、說明只寫規則（2026-11-11 拿掉神的稱號）、圖示是生肖圖 */
     const polar = id => { const n = T.I[id], a = Math.atan2(n.y, n.x); return [Math.round(Math.hypot(n.x, n.y)), Math.round(((a * 180) / Math.PI + 90 + 360) % 360)]; };
     o.tree = [T.N.length, T.N.filter(n => n.big === 1).length, T.N.filter(n => !n.big && n.id !== 'a_st').length, T.N.filter(n => n.g).length, combos('godson'), ASC.godson.E.split(' ').length];
     o.ring = [GOD.map(k => polar('a_' + k)[1]).join(), GOD.every(k => polar('a_' + k)[0] === 215), GOD.every(k => polar('a_s_' + k)[0] === 110)];
-    o.names = [GOD.map(k => T.I['a_' + k].n).join(''), GOD.every(k => /之神：/.test(T.I['a_' + k].d)), GOD.every(k => T.I['a_' + k].ic === 'z_' + k)];
+    o.names = [GOD.map(k => T.I['a_' + k].n).join(''), GOD.every(k => T.I['a_' + k].d && !/之神：/.test(T.I['a_' + k].d)), GOD.every(k => T.I['a_' + k].ic === 'z_' + k)];
     o.spoke = GOD.every(k => T.ADJ['a_' + k].length === 1 && T.ADJ['a_' + k][0] === 'a_s_' + k && T.ADJ['a_s_' + k].length === 2);
     o.three = ascFeasible(T, ['a_st', 'a_s_rat', 'a_rat', 'a_s_goat', 'a_goat', 'a_s_monkey', 'a_monkey']);
 
@@ -5708,7 +5708,7 @@ const ASC_COMBOS = `const combos = k => {
     G.mm = null; G.ground = []; mobGround(mk()); o.noMod = G.ground.length;
     /* 卡片 */
     const gk = Object.keys(MAPMOD).filter(k => MAPMOD[k].g === 'ground');
-    o.mods = [gk.length, gk.every(k => /^怪物死亡有 25% 機率留下/.test(MAPMOD[k].t)), gk.every(k => MAPMOD[k].d <= 2), gk.every(k => k === 'gEle' || GROUND[MAPMOD[k].fx.gnd]), Object.keys(MAPMOD).length];
+    o.mods = [gk.length, gk.every(k => /^怪物死亡時有 25% 機率留下/.test(MAPMOD[k].t)), gk.every(k => MAPMOD[k].d <= 2), gk.every(k => k === 'gEle' || GROUND[MAPMOD[k].fx.gnd]), Object.keys(MAPMOD).length];
     o.one = Array.from({ length: 3000 }, rollCard).every(c => c.mods.filter(k => MAPMOD[k].g === 'ground').length <= 1);
     o.terms = ['奉獻地面', '腐化地面', '煙霧', '感電地面', '點燃地面', '元素地面', '被油纏身', '油滑地面', '凋零地面', '荊棘地面', '怒號地面'].filter(k => !TERMS[k]);
     o.gname = o.kinds.filter(k => !GROUND[k].n || !GROUND[k].col || !GROUND[k].dur);
@@ -8864,7 +8864,7 @@ const ASC_COMBOS = `const combos = k => {
     r.push(E.forePeek(it, 'exalt') === '預知石不夠', M.exalt === 4);
     M.fore = 1;
     r.push(
-      E.forePeek(it, 'aug') === '只有藍裝能用增幅石',
+      E.forePeek(it, 'aug') === '只有魔法物品能用增幅石',
       M.fore === 1,
       E.forePeek(it, 'holy') === '預知石只能看填詞的結果',
       M.fore === 1

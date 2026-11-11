@@ -248,7 +248,7 @@ function treeSockOpen(i) {
     cur = (S.jsock || [])[i],
     nt = id => {
       const n = PTREE.I[id];
-      return `<li><b>${esc(n.n)}</b>${S.pt.includes(id) ? ' <span class="c-dim">（已經點了，不重複）</span>' : ''}<small>${statLines(n.s).map(esc).join('、')}</small></li>`;
+      return `<li><b>${esc(n.n)}</b>${S.pt.includes(id) ? ' <span class="c-dim">已點過，不重複計算</span>' : ''}<small>${statLines(n.s).map(esc).join('、')}</small></li>`;
     },
     row = j => {
       const at = (S.jsock || []).indexOf(j.id);
@@ -260,9 +260,9 @@ function treeSockOpen(i) {
   d.dataset.i = i;
   d.className = 'tsockp';
   d.innerHTML = `<div class="ph"><b>${esc(secName(i))}的珠寶孔</b><span class="${op ? 'c-good' : ''}">這一區 ${c}／${JEWEL.need} 點</span><button class="x" aria-label="關閉" data-ta="sockx">${ICO.x}</button></div>
-    ${cur && !op ? `<p class="c-bad">點數不到 ${JEWEL.need}：珠寶鎖住、不生效（再點 ${JEWEL.need - c} 點就恢復）</p>` : op ? '' : `<p class="fhint">這一區再點 ${JEWEL.need - c} 點才開孔；可以先鑲，開了才生效</p>`}
-    ${L.length ? L.map(row).join('') : '<p class="fhint">還沒有亡靈珠寶：陰兵借道的蚩尤、涿鹿兵主掉（山海寶盒）</p>'}
-    <p class="fhint">珠寶的大點跟天賦一樣加；已經點了的大點、兩顆重複的只算一次。拆掉換 200 靈魂。</p>`;
+    ${cur && !op ? `<p class="c-bad">珠寶未生效：這一區再點 ${JEWEL.need - c} 點恢復</p>` : op ? '' : `<p class="fhint">這一區再點 ${JEWEL.need - c} 點才開孔；可以先鑲上，開孔後生效</p>`}
+    ${L.length ? L.map(row).join('') : '<p class="fhint">亡靈珠寶由山海寶盒的蚩尤、涿鹿兵主掉落</p>'}
+    <p class="fhint">珠寶的大點等同點亮天賦；已點過或重複的大點只算一次。拆掉換 200 靈魂。</p>`;
   $('ptree').appendChild(d);
 }
 let TBOX = null;
@@ -345,7 +345,7 @@ function treeToggle(id) {
   } else if (asc && ascLeft() <= 0) return hudWarn('沒有昇華點了：Lv 31、63、83 地圖的王第一次打倒各 +2');
   else if (asc && ascT().I[id].g && S.at.some(o => ascT().I[o].g === ascT().I[id].g))
     return hudWarn('同一組只能選一個：先退掉另一個');
-  else if (asc) return hudWarn('要跟點過的點連在一起，而且最後要剛好 4 小 4 大');
+  else if (asc) return hudWarn('要連著已點亮的點，最後剛好 4 小 4 大');
   else
     return hudWarn(
       PTREE.I[id].lock ? PTREE.I[id].d : ptLeft() <= 0 ? '沒有天賦點了：升級會再給' : '要跟點過的點連在一起'
@@ -459,7 +459,7 @@ function treeTip(id) {
     n.big === 3
       ? [esc(ASC[S.asc].d)]
       : n.d
-        ? [esc(n.d)]
+        ? esc(n.d).split('\n')
         : n.s.attr
           ? [
               S.ptA[id]

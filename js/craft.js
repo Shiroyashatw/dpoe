@@ -183,19 +183,15 @@ function lockWhy(it, kind) {
 }
 /* 加 1 條詞的共同檢查：atR 是加完之後的稀有度（算前後綴上限）、cls 限定類別 */
 const addWhy = (it, atR, cls) =>
-  affPool({ ...it, r: atR }, cls).length
-    ? null
-    : cls
-      ? '這一類沒有詞可以加（或前後綴滿了）'
-      : '沒有詞可以加（前後綴滿了）';
+  affPool({ ...it, r: atR }, cls).length ? null : cls ? '這一類沒有詞可加，或前後綴已滿' : '前後綴已滿，沒有詞可加';
 const toYellow = it => {
   it.r = 2;
 };
 const FORGE = {
   tran: {
     n: '蛻變石',
-    d: '白裝 → 藍裝（魔法），加 1 條詞',
-    ok: it => (it.r ? '只有白裝能用蛻變石' : addWhy(it, 1)),
+    d: '將普通物品升級為魔法物品，並新增 1 條隨機詞綴',
+    ok: it => (it.r ? '只有普通物品能用蛻變石' : addWhy(it, 1)),
     add: it => affPool({ ...it, r: 1 }),
     run(it) {
       it.r = 1;
@@ -204,8 +200,8 @@ const FORGE = {
   },
   aug: {
     n: '增幅石',
-    d: '藍裝（魔法）加 1 條詞，藍裝最多 2 條',
-    ok: it => (it.r !== 1 ? '只有藍裝能用增幅石' : it.a.length >= 2 ? '藍裝最多 2 條詞' : addWhy(it, 1)),
+    d: '為魔法物品新增 1 條隨機詞綴（魔法物品最多 2 條）',
+    ok: it => (it.r !== 1 ? '只有魔法物品能用增幅石' : it.a.length >= 2 ? '魔法物品最多 2 條詞綴' : addWhy(it, 1)),
     add: it => affPool(it),
     run(it) {
       it.a.push(fillAff(it));
@@ -213,8 +209,8 @@ const FORGE = {
   },
   rich: {
     n: '富豪石',
-    d: '藍裝 → 黃裝（稀有），加 1 條詞',
-    ok: it => (it.r !== 1 ? '只有藍裝能用富豪石' : addWhy(it, 2)),
+    d: '將魔法物品升級為稀有物品，並新增 1 條隨機詞綴',
+    ok: it => (it.r !== 1 ? '只有魔法物品能用富豪石' : addWhy(it, 2)),
     add: it => affPool({ ...it, r: 2 }),
     run(it) {
       toYellow(it);
@@ -223,8 +219,8 @@ const FORGE = {
   },
   exalt: {
     n: '崇高石',
-    d: '黃裝（稀有）加 1 條詞，最多 6 條，前後綴各 3',
-    ok: it => (it.r !== 2 ? '只有黃裝能用崇高石' : it.a.length >= 6 ? '詞已經滿了（6 條）' : addWhy(it, 2)),
+    d: '為稀有物品新增 1 條隨機詞綴（前綴、後綴各最多 3 條）',
+    ok: it => (it.r !== 2 ? '只有稀有物品能用崇高石' : it.a.length >= 6 ? '詞綴已滿（6 條）' : addWhy(it, 2)),
     add: it => affPool(it),
     run(it) {
       it.a.push(fillAff(it));
@@ -233,13 +229,13 @@ const FORGE = {
   /* 精髓：藍裝用＝增幅、黃裝用＝崇高，但保證那一類、而且至少那一階 */
   ess: {
     n: '精髓',
-    d: '藍裝用＝增幅、黃裝用＝崇高；保證加的詞是那一類，而且至少是那一階',
+    d: '為魔法或稀有物品新增 1 條該精髓類別的詞綴，至少是精髓的階級',
     ok(it, arg) {
       const [cls] = String(arg || '').split(':');
       if (!ACLSI[cls]) return '先選一種精髓';
-      if (!it.r) return '白裝先用蛻變石';
-      if (it.r === 1 && it.a.length >= 2) return '藍裝最多 2 條詞';
-      if (it.a.length >= 6) return '詞已經滿了（6 條）';
+      if (!it.r) return '普通物品要先用蛻變石';
+      if (it.r === 1 && it.a.length >= 2) return '魔法物品最多 2 條詞綴';
+      if (it.a.length >= 6) return '詞綴已滿（6 條）';
       return addWhy(it, it.r, cls);
     },
     add: (it, arg) => affPool(it, String(arg).split(':')[0]),
@@ -251,13 +247,13 @@ const FORGE = {
   /* 轉化石：1 條指定的詞換成同類的另一條，階不變、數值重骰；不能選破裂詞 */
   conv: {
     n: '轉化石',
-    d: '1 條指定的詞換成同類的另一條，階不變、數值重骰；破裂詞不能選',
+    d: '將指定的 1 條詞綴換成同類的另一條隨機詞綴，階級不變；破裂詞綴不能選',
     ok(it, arg) {
       const a = it.a[+arg];
       if (!a) return '先選一條要換的詞';
       if (isFrac(it, a)) return '破裂詞不能轉化';
       if (!affCls(a.k)) return '這條沒有類別';
-      return convPool(it, a).length ? null : '這一類沒有別的詞可以換（或前後綴滿了）';
+      return convPool(it, a).length ? null : '這一類沒有別的詞可換，或前後綴已滿';
     },
     add: (it, arg) => (it.a[+arg] ? convPool(it, it.a[+arg]) : []),
     run(it, arg) {
@@ -311,7 +307,7 @@ function forgeDo(it, op, arg, om) {
     try {
       if (OMEN_ON.has('om_fear')) {
         const L = c.a.filter(a => !isFrac(c, a));
-        if (!L.length) return '沒有詞可以移除（破裂詞不會被移除）';
+        if (!L.length) return '沒有可移除的詞：破裂詞不會被移除';
         c.a.splice(c.a.indexOf(pick(L)), 1);
       }
       if (
@@ -432,7 +428,7 @@ function qualCheck(it) {
   const w = lockWhy(it, 'qual');
   if (w) return { why: w };
   const k = qualCur(it);
-  if ((it.q || 0) >= QUAL_CAP - 1e-9) return { k, why: '品質已經 20% 以上（再高只有掉落）' };
+  if ((it.q || 0) >= QUAL_CAP - 1e-9) return { k, why: '品質已達 20%，更高只能靠掉落' };
   return { k, why: MAT()[k] >= 1 ? null : `${CUR[k].n}不夠` };
 }
 function qualDo(it) {

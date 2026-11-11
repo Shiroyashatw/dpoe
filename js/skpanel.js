@@ -60,16 +60,16 @@ const BIND = `<svg class="bind" viewBox="0 0 62 62" aria-hidden="true"><g fill="
 function auraWhy(k, short) {
   const wt = ST.wt,
     ks = S.auras.map(x => x && x.k);
-  if (AURAS[k].her && (wt === 'unarmed' || SPELLW.has(wt))) return short ? '要武器' : '要拿非法系武器，沒有生效';
+  if (AURAS[k].her && (wt === 'unarmed' || SPELLW.has(wt))) return short ? '要武器' : '未生效：需要非法系武器';
   if (AURAS[k].tags.includes('companion') && ST.auraOn.some(o => o !== k && AURAS[o].tags.includes('companion')))
-    return short ? '有夥伴' : '同時只能有 1 隻夥伴，沒有生效';
+    return short ? '有夥伴' : '未生效：同時只能有 1 隻夥伴';
   /* 順序跟 stats() 一樣：先看魔像上限（排在前面、生效的魔像夠多才算滿），沒滿才是精魂不夠 */
   if (
     isGolem(k) &&
     ks.slice(0, ks.indexOf(k)).filter(o => o && isGolem(o) && ST.auraOn.includes(o)).length >= ST.golemMax
   )
-    return short ? '魔像已滿' : `魔像已滿（同時最多 ${ST.golemMax} 種），沒有生效`;
-  return short ? '缺精魂' : '精魂不夠，沒有生效';
+    return short ? '魔像已滿' : `未生效：魔像最多 ${ST.golemMax} 種`;
+  return short ? '缺精魂' : '未生效：精魂不夠';
 }
 /* 詳細（照 PoE2 的詳細資料，docs/文字規範.md 第 3 節）：程式算得出來的自動產生，特殊規則接在技能資料的 x */
 const fmtS = v => +v.toFixed(2);
@@ -114,7 +114,7 @@ function skDetail(g) {
     rows.push(row('增加', `+${fmtN(N.inc)}%`), row('更多', '×' + N.more.toFixed(2)));
     rows.push(row('暴擊', `${N.ch.toFixed(1)}% · 傷害 ×${N.cm.toFixed(2)}`));
     rows.push(row('基礎攻擊時間', `${baseT(c).toFixed(2)} 秒`), row('出手', `${actDur(c).toFixed(2)} 秒`));
-    if (D.tAdd) rows.push(row('增加使用時間', `+${D.tAdd} 秒（不吃速度）`));
+    if (D.tAdd) rows.push(row('增加使用時間', `+${D.tAdd} 秒，不受速度影響`));
   }
   /* 滿溢機率讓每次出手的發數會跳，面板顯示期望值（skills.js 的 projEv） */
   if (D.tags.includes('proj')) rows.push(row('投射物', +c.projEv.toFixed(2)));
@@ -135,7 +135,7 @@ function skDetail(g) {
     nx
       ? `<p class="base">下一級：${skMain(N) != null ? `${N.dps != null ? 'DPS' : '傷害'} ${fmtN(skMain(N))} → <i class="skv">${fmtN(skMain(nN))}</i>` : '效果不變'}${nx.mp !== c.mp ? ` · 魔力 ${c.mp} → ${nx.mp}` : ''}</p>`
       : '<p class="base">已經滿級</p>'
-  }<p class="hint">不算怪物的抗性、護甲和閃避，實際打怪會比較低</p></div>`;
+  }<p class="hint">未計入怪物的抗性、護甲與閃避</p></div>`;
 }
 
 /* ---------- 目前選的那一格 ---------- */
@@ -377,7 +377,7 @@ function skCard(k, acts, note) {
     kv = `<span>${D.need.length ? '需要技能有 <b>' + D.need.map(t => TAGN[t] || t).join('、') + '</b>' : '任何技能都能插'}</span>${
       D.aw
         ? `<span>Lv <b>${lv}／${lv > AW_MAX ? AW_MAX + 1 : AW_MAX}</b>：${esc(awSupText(k, lv))}</span>`
-        : `<span>等級加成 <b>傷害更多 +${lv - 1}%</b></span>`
+        : `<span>等級加成 <b>${lv - 1}%更多傷害</b></span>`
     }`;
     /* 覺醒輔助（0.2.80）：靠四凶掉的同一顆升級；Lv5 可以用燭龍之心突破到 Lv6 */
     if (D.aw)
@@ -388,7 +388,7 @@ function skCard(k, acts, note) {
             ? ''
             : '用燭龍之心可以突破到 Lv6'
           : lv < AW_MAX
-            ? '再撿到同一顆會升一級（四凶掉的）'
+            ? '再撿到同一顆升一級，四凶掉落'
             : '');
     if (D.aw && lv === AW_MAX && MAT().heart)
       acts += `<button class="btn pri" data-sk="heart:${k}">用燭龍之心突破到 Lv6</button>`;
@@ -405,7 +405,7 @@ function skCard(k, acts, note) {
 /* 覺醒的說明（資料組出來的）：A＝傷害更多 15%（有傷害的招）＋原本品質 20% 的效果；B＝補丁的中文＋改了什麼標籤 */
 function awText(k, which) {
   const A = AWK[k];
-  if (which === 'A') return `${SKILLS[k].m ? `傷害更多 ${Math.round((AW_MORE - 1) * 100)}%；` : ''}${A.A.d}`;
+  if (which === 'A') return `${SKILLS[k].m ? `${Math.round((AW_MORE - 1) * 100)}%更多傷害；` : ''}${A.A.d}`;
   const t = A.B.tags;
   return `${fxText(A.B.fx)}${t && t.add ? `；拿到${t.add.map(x => TAGN[x]).join('、')}標籤` : ''}`;
 }
@@ -484,7 +484,7 @@ function skillHTML() {
     picking = SKUI.view !== 'main';
   let info;
   if (picking) info = skPick(c);
-  else if (!c.rec) info = `<p class="empty-note">${c.aura ? '光環欄是空的：加一個光環，它會長期預留精魂' : ''}</p>`;
+  else if (!c.rec) info = `<p class="empty-note">${c.aura ? '加一個光環；光環會持續預留精魂' : ''}</p>`;
   else {
     let body;
     const hole = SKUI.hole;

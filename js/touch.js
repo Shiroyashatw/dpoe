@@ -19,7 +19,7 @@ function applyOrient() {
   /* 0.2.14 以前加到主畫面的捷徑被 manifest 鎖成橫向（Android 要過一陣子才會更新），轉不過來時教玩家重新加入 */
   $('rott').innerHTML =
     (p ? '直立操作：把手機轉直' : '橫向操作：把手機橫過來') +
-    (inApp() ? '<small>轉不過來的話：刪掉主畫面的捷徑、重新「加到主畫面」，或按下面改用另一種</small>' : '');
+    (inApp() ? '<small>轉不過來：刪掉主畫面捷徑再重新「加入主畫面」，或改用下面另一種</small>' : '');
   $('rotb').textContent = p ? '改用橫向操作' : '改用直立操作';
   if (fsOn() && screen.orientation && screen.orientation.lock)
     screen.orientation.lock(p ? 'portrait' : 'landscape').catch(() => {});
@@ -100,7 +100,7 @@ function fsEnter() {
 function fsClick() {
   if (fsOK()) return fsEnter();
   showTip(
-    `<b>全螢幕</b><p>iPhone 的 Safari 不能讓網頁全螢幕。<br>按下方的<span class="c-gold">分享</span>按鈕 →「加入主畫面」，之後從主畫面的圖示打開，就沒有網址列了。</p>`,
+    `<b>全螢幕</b><p>iPhone 的 Safari 不支援網頁全螢幕。<br>按下方<span class="c-gold">分享</span> →「加入主畫面」，從主畫面圖示打開就沒有網址列。</p>`,
     new DOMRect(innerWidth / 2, 0, 0, 0)
   );
   $('tip').classList.add('act');
@@ -122,7 +122,7 @@ function homeAsk() {
   if (G.scene !== 'map' || G.state !== 'play') return;
   if (performance.now() - tHome < 2000) return goHome();
   tHome = performance.now();
-  hudWarn(TOUCH.on ? '再按一次回藏身處（這張地圖會結束）' : '再按一次 T 回藏身處（這張地圖會結束）');
+  hudWarn(TOUCH.on ? '再按一次回藏身處，這張地圖會結束' : '再按一次 T 回藏身處，這張地圖會結束');
 }
 
 /* ---------- 搖桿 ---------- */
@@ -190,7 +190,7 @@ function touchInit() {
     if (e.pointerType !== 'touch') return;
     TOUCH.prop = null;
     const l = LABELS.find(l => inL(l, e));
-    if (l) return dist(P, l.d) < 160 ? pickup(l.d) : hudWarn('走近一點再撿（或按互動）');
+    if (l) return dist(P, l.d) < 160 ? pickup(l.d) : hudWarn('走近一點再撿，或按互動');
     if (G.scene === 'hide') {
       const p = propAt(e);
       if (p === 'portal') return dist(P, G.portal) < 120 ? enterMap(G.portal.to) : hudWarn('走近一點');

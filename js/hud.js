@@ -281,7 +281,7 @@ function deathCause() {
 function hudState() {
   const o = $('over');
   if (G.state === 'dead') {
-    o.innerHTML = `<div class="card"><h2 class="c-bad">你倒下了</h2>${deathCause()}<p>這張地圖失敗，碎片不退；失去 ${G.lostXp} 經驗（不會降級）。裝備都還在。</p><button class="btn pri" data-a="home">回到藏身處</button></div>`;
+    o.innerHTML = `<div class="card"><h2 class="c-bad">你倒下了</h2>${deathCause()}<p>地圖失敗，碎片不退；失去 ${G.lostXp} 經驗，不會降級。裝備都還在。</p><button class="btn pri" data-a="home">回到藏身處</button></div>`;
     o.hidden = false;
   } else if (G.state === 'portal') {
     /* 站在傳送門上：打開地圖台選下一張（新的一批卡），或回藏身處 */
@@ -395,7 +395,7 @@ function setHTML() {
   return `<div class="ph"><b>設定</b><span>dungeonPOE v${VER}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   ${
     TOUCH.on
-      ? `<div class="ph2">操作方向</div><div class="gkind seg2"><button class="btn ${p ? 'on' : ''}" data-tm="port">直立</button><button class="btn ${p ? '' : 'on'}" data-tm="land">橫向</button></div><p class="sethint">直立單手就能玩；橫向要兩手，看得比較寬</p>`
+      ? `<div class="ph2">操作方向</div><div class="gkind seg2"><button class="btn ${p ? 'on' : ''}" data-tm="port">直立</button><button class="btn ${p ? '' : 'on'}" data-tm="land">橫向</button></div><p class="sethint">直立單手操作；橫向雙手操作，視野較寬</p>`
       : ''
   }
   ${filterHTML()}
@@ -489,8 +489,8 @@ function fltHTML() {
   <div class="gkind seg3">${[0, 1, 2].map(i => `<button class="btn ${F.cur === i ? 'on' : ''}" data-fl="slot:${i}" aria-pressed="${F.cur === i}">第 ${i + 1} 組</button>`).join('')}</div>
   <div class="flist" id="flist">${set.rules.map(fltRuleHTML).join('')}
   <div class="frule def"><div class="fhd2"><b>其他（預設）</b><small>沒有符合上面任何規則的</small></div>${fltActHTML(set.def, 'd')}</div></div>
-  <div class="frow"><button class="btn" data-fl="add" ${set.rules.length >= 20 ? 'disabled' : ''}>＋ 新增規則</button><button class="btn" data-fl="tpl">套用新手範本</button><button class="btn" data-fl="tpl2" title="只撿 ★、追憶、T 高（物品等級 10 以上）的黃裝，其他全部隱藏">套用「只撿好貨」</button></div>
-  <p class="sethint">金幣與碎片一律自動吸收。「隱藏」的地上不畫、不撿。地上的裝備未鑑定，只看得到 T、孔、品質、★、追憶；詞綴條件只對鑑定後的有效（地上永遠不符合）。</p>`;
+  <div class="frow"><button class="btn" data-fl="add" ${set.rules.length >= 20 ? 'disabled' : ''}>＋ 新增規則</button><button class="btn" data-fl="tpl">套用新手範本</button><button class="btn" data-fl="tpl2" title="只撿 ★、追憶與物品等級 10 以上的稀有物品，其他全部隱藏">套用「只撿好貨」</button></div>
+  <p class="sethint">金幣與碎片一律自動撿起；「隱藏」的不顯示也不撿。地上的裝備都未鑑定，只能比對 T、孔、品質、★、追憶，詞綴條件不會符合。</p>`;
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-fl]');
@@ -572,7 +572,7 @@ function acctHTML() {
   const body = AUTH.recovery
     ? `<div class="acct">${pw('新密碼（至少 6 個字）', 'new-password')}<button class="btn pri" data-ac="newpw"${dis}>設定新密碼</button></div>`
     : CLOUD.anon
-      ? `<p class="sethint">訪客的存檔只在這台裝置；用信箱註冊後，換手機或清除網站資料都能登回來</p>
+      ? `<p class="sethint">訪客存檔只在這台裝置；用信箱註冊後，換裝置或清除網站資料都能登入取回</p>
     <div class="acct"><input class="inp" id="aem" type="email" placeholder="信箱" autocomplete="email" value="${esc(AUTH.em)}" aria-label="信箱">${pw('密碼（至少 6 個字）', 'current-password')}
     <div class="seg2 g2"><button class="btn pri" data-ac="register"${dis}>註冊</button><button class="btn" data-ac="login"${dis}>登入</button></div>
     <button class="btn mini lnk" data-ac="reset"${dis}>忘記密碼</button></div>`
@@ -655,7 +655,7 @@ function hudPanels() {
     $('pstash').innerHTML =
       `<div class="ph"><b>倉庫</b><span class="ftabs"><button class="${st === 'stash' ? 'on' : ''}" data-a="stab:stash">倉庫</button><button class="${st === 'mat' ? 'on' : ''}" data-a="stab:mat">材料</button><button class="${st === 'frags' ? 'on' : ''}" data-a="stab:frags">碎片</button><button class="${st === 'temp' ? 'on' : ''}" data-a="stab:temp">臨時${n ? ` <i class="c-gold">${n}</i>` : ''}</button></span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${
         st === 'temp'
-          ? `<p class="fhint">背包滿了撿到的東西放這裡，只能拿出來${TOUCH.on ? '' : '（點一下＝放進背包）'}</p>`
+          ? `<p class="fhint">背包滿時撿到的東西放這裡，只能取出${TOUCH.on ? '' : '；點一下放進背包'}</p>`
           : ''
       }${st === 'mat' ? matPageHTML() : st === 'frags' ? fragPageHTML() : gridHTML(S[st], st)}`;
   }
@@ -752,7 +752,7 @@ function invHTML() {
       ? ''
       : `<div class="eqrow col"><div class="doll" style="width:${Math.round(320 * z)}px;height:${Math.round(232 * z)}px">${eqs}</div>
   <div class="st">
-    <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻擊速度 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b>${s.lukCrit ? `（有效 ${effCh(s.crit, 1).toFixed(1)}%）` : ''}</span><span title="打同等級普通怪的命中率（法術一律命中）">命中 <b>${s.acc}</b>（${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%）</span>
+    <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻擊速度 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b>${s.lukCrit ? `（有效 ${effCh(s.crit, 1).toFixed(1)}%）` : ''}</span><span title="對同等級普通怪的命中率；法術必定命中">命中 <b>${s.acc}</b>（${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%）</span>
     ${ATTR.map(k => `<span title="${ATTN[k]}：${{ str: '1 點 +2 生命', dex: '1 點 +8 命中值', int: '1 點 +2 魔力' }[k]}">${ATTN[k]} <b>${s[k]}</b></span>`).join('')}
     <span>生命 <b>${s.hp}</b></span>${s.es ? `<span>能量護盾 <b>${s.es}</b></span>` : ''}<span>護甲 <b>${s.armor}</b></span>${s.ev ? `<span>閃避 <b>${s.ev}</b></span>` : ''}<span>格擋 <b>${s.block}%</b>${s.blockOver ? `（超限 +${s.blockOver}%）` : ''}</span>${s.defl ? `<span title="被擊中且沒閃避、格擋時，傷害 −40%">偏斜值 <b>${Math.round(s.defl)}</b>（${Math.round(capLuck(deflCh(15 + 6 * S.lv, s.defl), 95, s.lukDefl))}%）</span>` : ''}${s.thornAdd[1] ? `<span>荊棘 <b>${s.thornAdd[0]}–${s.thornAdd[1]}</b></span>` : ''}<span>精魂 <b>${s.spiritUsed}/${s.spirit}</b></span>
     ${res}
@@ -835,9 +835,10 @@ const TERM_RE = new RegExp(
 );
 const termify = t => {
   const seen = new Set();
-  return esc(t).replace(TERM_RE, w =>
-    seen.has(w) ? w : (seen.add(w), `<button class="term" data-term="${w}">${w}</button>`)
-  );
+  /* 換行（昇華大點一行一條，2026-11-11）照樣換行 */
+  return esc(t)
+    .replace(TERM_RE, w => (seen.has(w) ? w : (seen.add(w), `<button class="term" data-term="${w}">${w}</button>`)))
+    .replace(/\n/g, '<br>');
 };
 /* 花得多的動作按兩次（跟回家一樣）：第一次把按鈕換成確認文字，2.5 秒沒按就恢復；回傳 true＝確認了 */
 function confirm2(b, lab) {
@@ -988,7 +989,7 @@ const gamBases = o => {
 };
 function shopSel() {
   const o = GAMBLE.flatMap(g => g[1]).find(x => x.id === SHOPUI.sel);
-  if (!o) return '<p class="fhint">先選一種，會列出可能出現的基底</p>';
+  if (!o) return '<p class="fhint">選一種，列出可能出現的基底</p>';
   const L = gamBases(o),
     sum = L.reduce((s, b) => s + 1 + b.lv / 4, 0);
   return `<div class="shopsel"><div class="ph2">${esc(o.n)} <span>可能的基底 ${L.length} 種</span></div><ul>${L.slice(
@@ -1091,7 +1092,7 @@ function boxHTML() {
       <div class="wm-halls">${btn('zhulong', '四凶之鱗各 1 片')}${btn('zhu9', `再加燭龍之目＋Lv${XI.uberLv}`)}</div>`;
   return `<div class="ph"><b>山海寶盒</b><span>王場 Lv ${arenaLv(S)}（你打過最高的地方）</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
     <div class="ftabs bx-tabs">${tabs.map(([k, n]) => `<button class="${BOXUI.tab === k ? 'on' : ''}" data-bx="tab:${k}">${n}</button>`).join('')}</div>
-    ${body}<p class="fhint">只花碎片，不用地圖卡；王場只有一個房間，沒有小怪。死了碎片不退。</p>`;
+    ${body}<p class="fhint">只花碎片，不用地圖卡；王場只有王，沒有小怪。死亡不退碎片。</p>`;
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-bx]');
@@ -1115,7 +1116,7 @@ function shopHTML() {
     left = gamLeft(S);
   return `<div class="ph"><b>天星商會</b><span>金幣 <b class="c-gold">${S.gold}</b> · 每件 <b class="c-gold">${gamPrice(S)}</b> 金 · 物品等級 ${gamIlvl(S)}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <p class="tsay">「${TRADER_SAY[(S.story.shopN || 0) % TRADER_SAY.length]}」</p>
-  <p class="sethint">選一種，買一件隨機的裝備：已鑑定、品質 0%、沒有孔、沒有 ★ 與追憶，詞綴最高 T2。${left > 0 ? `再 ${left} 件沒出稀有，下一件必出` : '<span class="c-gold">這一件必出稀有</span>'}</p>
+  <p class="sethint">選一種，買一件隨機裝備：已鑑定，沒有品質、孔、★ 與追憶，詞綴最高 T2。${left > 0 ? `再 ${left} 件沒出稀有，下一件必出` : '<span class="c-gold">這一件必出稀有</span>'}</p>
   ${L ? `<div class="shopres">${icHTML(itemIc(L))}<span><b class="rc${L.r}">${esc(itemName(L))}</b><small>放進背包了</small></span></div>` : ''}
   ${shopSel()}
   ${GAMBLE.map(([n, xs]) => `<div class="ph2">${n}</div><div class="shopg">${xs.map(x => `<button class="shopb ${SHOPUI.sel === x.id ? 'on' : ''}" data-a="gsel:${x.id}">${icHTML(gamBases(x)[0].ic)}<span>${x.n}</span></button>`).join('')}</div>`).join('')}`;
@@ -1177,7 +1178,7 @@ function changed() {
     const off = S.eq.off;
     const why = offWhy(S.eq.weapon, off);
     if (gridAuto(S.inv, off)) (S.eq.off = null), hudWarn(why + '：副手收進背包');
-    else hudWarn('背包滿了：副手沒有作用（' + why + '）');
+    else hudWarn('背包滿了，副手無效：' + why);
   }
   /* 光環欄沒有格數：拿掉的空格收起來，尾巴永遠留一個空格給下一顆；技能面板選的光環跟著走（編號會變） */
   const selA = S.auras[SKUI.ai];
@@ -1219,7 +1220,7 @@ function quickMove(src, it, eqk) {
         k === 'weapon'
           ? EQS.find(q => q.k === (S.eq.weapon && !S.eq.off && offOK(S.eq.weapon, it) ? 'off' : 'weapon'))
           : slots.find(e => !S.eq[e.k]) || slots[0];
-    if (!e) return EQS.some(q => eqTakes(q, k)) && hudWarn('這個部位的欄位被昇華鎖住：退點才能用');
+    if (!e) return EQS.some(q => eqTakes(q, k)) && hudWarn('這一欄被昇華鎖住，退掉昇華點才能用');
     if (e.k === 'off' && !offOK(S.eq.weapon, it)) return hudWarn(offWhy(S.eq.weapon, it));
     const lack = eqLack(S, it, e.k);
     if (lack.length) return hudWarn('不符合需求：' + lackTxt(lack));
@@ -1250,7 +1251,7 @@ let DROP_ARM = 0;
 function dropFloor(src, it, eqk) {
   if (G.scene === 'hide' && it.r >= 2 && DROP_ARM !== it.id) {
     DROP_ARM = it.id;
-    hudWarn('再丟一次就會消失');
+    hudWarn('再丟一次會消失');
     return hudPanels();
   }
   DROP_ARM = 0;
@@ -1450,7 +1451,7 @@ let TIPRE = null,
 function itemTip(it, cmp) {
   if (it.charm) {
     const C = CHARMS[it.charm];
-    return `<b class="rc1">${esc(C.n)}</b><small>護符 · 放在腰帶的護符槽</small><p class="aff">${esc(C.d)}</p><p class="base">充能 ${Math.floor(it.ch || 0)}／${C.max} · 每次用 ${C.use} · 殺怪充能</p><p class="hint">條件達成就自動觸發，不用按鍵${G.scene === 'hide' ? ' · 賣價 3 金' : ''}</p>`;
+    return `<b class="rc1">${esc(C.n)}</b><small>護符 · 放在腰帶的護符槽</small><p class="aff">${esc(C.d)}</p><p class="base">充能 ${Math.floor(it.ch || 0)}／${C.max} · 每次用 ${C.use} · 殺怪充能</p><p class="hint">條件達成時自動觸發${G.scene === 'hide' ? ' · 賣價 3 金' : ''}</p>`;
   }
   const B = baseOf(it),
     un = !!it.uid;
@@ -1463,9 +1464,7 @@ function itemTip(it, cmp) {
   if (it.mem2) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem2))}</p>`;
   const wk = EQS.find(e => S.eq[e.k] === it) || EQS.find(e => eqTakes(e, B.k));
   html += reqHTML(itemReq(it), wk ? eqLack(S, it, wk.k) : [], wk && S.eq[wk.k] === it);
-  html += un
-    ? `<p class="hint c-warn">前後綴看不到：回藏身處找撿骨師鑑定（免費、一次全部）。未鑑定的不能裝備、不能做裝</p>`
-    : tipSlots(it);
+  html += un ? `<p class="hint c-warn">回藏身處找撿骨師免費鑑定，鑑定後才能裝備與做裝</p>` : tipSlots(it);
   if (!un && it.cw && it.cw.length) html += `<p class="aff cor">${it.cw.map(c => esc(cwText(c))).join('<br>')}</p>`;
   if (!un && it.cal)
     html += `<p class="aff"><span class="c-good">${esc(calText(it.cal.g))}</span>${it.cal.b ? `<br><span class="c-bad">${esc(calText(it.cal.b, 1))}</span>` : ''}</p>`;
@@ -1600,7 +1599,7 @@ function inputInit() {
     const l = e.button === 0 && LABELS.find(l => inL(l, e));
     if (l) {
       if (dist(P, l.d) < 160) pickup(l.d);
-      else hudWarn('走近一點再撿（或按 F）');
+      else hudWarn('走近一點再撿，或按 F');
       return;
     }
     if (G.scene === 'hide' && e.button === 0) {

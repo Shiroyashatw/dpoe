@@ -169,7 +169,7 @@ function enterHideout() {
   ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
   /* 有未鑑定的裝備：提醒找撿骨師（企劃書 5.4.1） */
-  if (unidN(S)) hudWarn(`有 ${unidN(S)} 件裝備還沒鑑定：找撿骨師（免費、一次全部）`);
+  if (unidN(S)) hudWarn(`有 ${unidN(S)} 件裝備未鑑定：找撿骨師免費鑑定`);
   /* 打倒裂谷斷崖的王之後第一次回來：直接打開地圖播世界展開 */
   if (wOpen(S) && !S.world.open) openPanel('device');
 }
@@ -1108,7 +1108,7 @@ function pickup(d) {
   } else {
     if (!gridAuto(S.inv, d.it)) {
       if (!gridAuto(S.temp, d.it)) return (d.full = 1), hudWarn('背包和臨時倉庫都滿了：回藏身處整理');
-      hudWarn('背包滿了：放進臨時倉庫（回藏身處在倉庫拿）');
+      hudWarn('背包滿了：放進臨時倉庫，回藏身處到倉庫取出');
     }
     sfx('pick');
     hudInv();
@@ -1741,7 +1741,7 @@ function bossAI(m, dt) {
       } else if (m.pat === 'unstop') {
         m.unstopT = G.t + 5;
         fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: '#e3a14a' });
-        hudWarn(`${m.D.n}橫衝直撞：5 秒不吃擊退與定身`);
+        hudWarn(`${m.D.n}橫衝直撞：5 秒內免疫擊退與定身`);
         bossRec(m, 0.2, rage);
       } else if (m.pat === 'chaosjump') {
         const a = rnd(0, TAU),
@@ -1760,7 +1760,7 @@ function bossAI(m, dt) {
       } else if (m.pat === 'laugh') {
         m.laughT = G.t + 4;
         fx({ k: 'ring', x: m.x, y: m.y, r: 140, dur: 0.5, col: '#ffe066' });
-        hudWarn(`${m.D.n}在狂笑：這 4 秒打牠會反彈傷害`);
+        hudWarn(`${m.D.n}在狂笑：4 秒內擊中牠會反彈傷害`);
         bossRec(m, 0.5, rage);
       } else if (m.pat === 'wrath') {
         m.wrathT = G.t + 5;

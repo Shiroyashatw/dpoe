@@ -12,6 +12,7 @@
 
 ## 溝通規則
 - **一律用繁體中文回覆**（包含 commit 訊息）。
+- **遊戲內文字**（技能、輔助、名詞、能力、昇華、通貨、面板提示）照 `docs/文字規範.md`（PoE2 台服寫法，照程式寫、不寫預設規則與贅字）；能力的一行字由 `items.js` 的 `statText` 照 STATN 第四格的模板組。
 - 版本號：0.2.x。改版本時改 `js/data.js` 的 `VER`、`index.html` 所有 `?v=` 和 `version.json`（手機拿到快取的舊頁面時，`main.js` 的 `verCheck` 看它不同就換網址重新載入），再更新 `CHANGELOG.md`。
 - 流程：先改、先測，確認 OK 後再 commit + push（push 前先問使用者）。
 - 獨立 repo（https://github.com/Shiroyashatw/dpoe ）；0.2.75 以前在《塞令老師》repo（`Shiroyashatw/wayfarer`）的 `dpoe/` 子資料夾，歷史已一起搬過來。不要再去讀 wayfarer 的檔案。

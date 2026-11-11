@@ -453,7 +453,7 @@ function useSlot(i) {
   const c = slotCfg(i);
   if (!c) return false;
   const mt = metaOf(c.g);
-  if (mt) return hudWarn(`${c.D.n}插了${SUPPORTS[mt.gem].n}：會自動施放，不能手動`), false;
+  if (mt) return hudWarn(`${c.D.n}由${SUPPORTS[mt.gem].n}自動施放，不能手動使用`), false;
   if (!wtOK(c.D)) return hudWarn(c.D.n + '：' + wtNeed(c.D)), false;
   const skip = (P.cds['s' + i] || 0) > 0 && cdSkip(c);
   if ((P.cds['s' + i] || 0) > 0 && !skip) return false;
