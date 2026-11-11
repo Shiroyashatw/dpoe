@@ -7546,7 +7546,7 @@ const ASC_COMBOS = `const combos = k => {
       const spl = [0, 1, 2, 3, 4, 5].map(i => BASEI['w_mace2_' + i].b.splash || 0).join('');
       PTREE.I.zz = { s: { str: 200, dex: 200 } }; /* 夠力量敏捷，裝備才不會失效 */
       const wp = id => ({ ...mkItem(id, 1, 0), q: 0 }), eq = (e, o = {}) => stats({ ...S, pt: ['zz'], eq: e, ...o });
-      out.splash = [spl, impText('splash', 1), baseText(wp('w_mace2_3')).includes('打擊造成擴散傷害'), eq({ weapon: wp('w_mace2_1') }).splash, eq({ weapon: wp('w_mace2_0') }).splash || 0];
+      out.splash = [spl, impText('splash', 1), baseText(wp('w_mace2_3')).includes('打擊技能造成擴散傷害'), eq({ weapon: wp('w_mace2_1') }).splash, eq({ weapon: wp('w_mace2_0') }).splash || 0];
       /* 受招架詞綴：裝上去進 ST、幅度的算式吃得到 */
       const sh = it => eq({ off: { ...mkItem('s_buckler', 1, 2), a: [it] } }), spear = eq({ weapon: { ...mkItem('w_spear_2', 1, 2), a: [{ k: 'parryDur', T: 1, v: 25 }] } });
       const sp = sh({ k: 'parryMag', T: 1, v: 20 }), sd = sh({ k: 'parryDur', T: 1, v: 30 });
@@ -7628,7 +7628,7 @@ const ASC_COMBOS = `const combos = k => {
   );
   ok(
     '3B 雙手錘 3 種基底（巨鎚、破城鎚、天罰鎚）有擴散固定詞，說明看得到、裝上去 ST.splash 是 1、其他基底沒有',
-    JSON.stringify(b64.splash) === '["010101","打擊造成擴散傷害",true,1,0]',
+    JSON.stringify(b64.splash) === '["010101","打擊技能造成擴散傷害",true,1,0]',
     JSON.stringify(b64.splash)
   );
   ok(
@@ -7681,7 +7681,7 @@ const ASC_COMBOS = `const combos = k => {
     out.bow = [0, 1, 2, 3, 4, 5].map(i => st({ weapon: mkItem('w_bow_' + i, 16, 0) }).projCh);
     out.quiver = ['q_bamboo', 'q_feather', 'q_oni', 'q_fire', 'q_saw', 'q_pierce'].map(k => st({ weapon: mkItem('w_bow_5', 16, 0), off: mkItem(k, 16, 0) }).projCh);
     out.quiverNoBow = st({ weapon: mkItem('w_sword1_0', 16, 0), off: mkItem('q_oni', 16, 0) }).projCh;
-    out.txt = [baseText(mkItem('w_bow_4', 16, 0)).includes('攻擊投射物的滿溢機率 +15%'), baseText(mkItem('q_oni', 16, 0)).includes('攻擊投射物的滿溢機率 +10%')];
+    out.txt = [baseText(mkItem('w_bow_4', 16, 0)).includes('攻擊有 15% 滿溢機率額外發射 1 個投射物'), baseText(mkItem('q_oni', 16, 0)).includes('攻擊有 10% 滿溢機率額外發射 1 個投射物')];
     /* 出手數：攻擊讀 projCh（215：多 2 支、15% 再多 1 支），法術讀 spellProjCh（115）；沒有投射物標籤的招不動；projEv 是期望值、每次叫都一樣 */
     ST = st({}, ['zv']);
     out.st = [ST.projCh, ST.spellProjCh];
@@ -7724,7 +7724,7 @@ const ASC_COMBOS = `const combos = k => {
   })()`);
   ok(
     '3C 滿溢機率：預設 0、攻擊與法術各一個能力（有 STATN 名字與固定詞說明）、天賦或詞綴給得進 stats()',
-    JSON.stringify([c66.def, c66.st]) === '[[0,0,true,true,"攻擊投射物的滿溢機率 +15%"],[215,115]]',
+    JSON.stringify([c66.def, c66.st]) === '[[0,0,true,true,"攻擊有 15% 滿溢機率額外發射 1 個投射物"],[215,115]]',
     JSON.stringify([c66.def, c66.st])
   );
   ok(

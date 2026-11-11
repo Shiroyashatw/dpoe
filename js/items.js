@@ -294,7 +294,8 @@ function ghFx(gh, s) {
 function statText(k, v) {
   const N = STATN[k];
   if (!N) return k;
-  if (N[2] === 1) return N[3] || N[0];
+  /* 開關：句子不含數字；evAsArmor 這種標成開關、其實讀數值的，模板有 {} 就照數值 */
+  if (N[2] === 1 && !(N[3] || '').includes('{}')) return N[3] || N[0];
   const t = N[3];
   if (Array.isArray(v)) return t ? t.replace('{}', `${v[0]} 至 ${v[1]}`) : `${N[0]} ${v[0]} 至 ${v[1]}`;
   if (!t) return `${N[0]} ${v > 0 ? '+' : ''}${v}${N[1]}`;
@@ -325,7 +326,7 @@ function baseText(it) {
     o.push(
       SPELLW.has(wt)
         ? `${WTN[wt]}${two ? '（雙手）' : '（單手）'} · 法系武器`
-        : `${two ? '雙手' : '單手'}${WTN[wt]}${DUAL.has(wt) && !two ? '・可雙持' : ''} · 物理傷害 ${Math.round(b.dmg[0] * m)}～${Math.round(b.dmg[1] * m)}`,
+        : `${two ? '雙手' : '單手'}${WTN[wt]}${DUAL.has(wt) && !two ? '・可雙持' : ''} · 物理傷害 ${Math.round(b.dmg[0] * m)} 至 ${Math.round(b.dmg[1] * m)}`,
       SPELLW.has(wt) ? '' : `每秒攻擊 ${b.as} · 暴擊率 ${5 + (b.crit || 0)}%`
     );
     if (wt === 'spear') o.push('近戰距離 +25%');

@@ -111,7 +111,7 @@ function skDetail(g) {
       rows.push(row('基礎', `${D.shield ? '盾' : '武器'} ${fmtN(W[0])}～${fmtN(W[1])}`));
       rows.push(row('技能倍率', '×' + c.mult.toFixed(2)));
     }
-    rows.push(row('提高', `+${fmtN(N.inc)}%`), row('更多', '×' + N.more.toFixed(2)));
+    rows.push(row('增加', `+${fmtN(N.inc)}%`), row('更多', '×' + N.more.toFixed(2)));
     rows.push(row('暴擊', `${N.ch.toFixed(1)}% · 傷害 ×${N.cm.toFixed(2)}`));
     rows.push(row('基礎攻擊時間', `${baseT(c).toFixed(2)} 秒`), row('出手', `${actDur(c).toFixed(2)} 秒`));
     if (D.tAdd) rows.push(row('增加使用時間', `+${D.tAdd} 秒（不吃速度）`));
