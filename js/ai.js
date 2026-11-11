@@ -158,6 +158,12 @@ function aiTick(dt) {
       } else if (d > AI_KEEP * 1.15) aiGo(T.x, T.y);
     } else aiGo(T.x, T.y, T.r + P.r + reach);
   }
+  /* 怪物方的地面（地圖詞留下的煙霧、凋零、油、感電、點燃……）：踩在上面就往外走（企劃書 2.1 第 11 項） */
+  const hz = G.ground.find(g => g.side === 'm' && !g.done && onGround(g));
+  if (hz) {
+    const d = Math.hypot(P.x - hz.x, P.y - hz.y) || 1;
+    AI.mv = [(P.x - hz.x) / d, (P.y - hz.y) / d];
+  }
   /* 撿東西：場上沒有近身的怪，或王已經倒下 */
   const loot = !T || dist(P, T) > 260 ? aiLoot(A) : null;
   if (loot) {

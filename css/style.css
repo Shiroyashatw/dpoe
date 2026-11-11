@@ -1138,7 +1138,7 @@ body.cine #hud { visibility: hidden; }
 .it.pro-hl { z-index: 2; outline-offset: 1px; }
 body.touch .ponly { display: none; }
 body.touch #pro { transform: none; max-width: none; left: calc(8px + env(safe-area-inset-left)); right: calc(76px + env(safe-area-inset-right)); top: calc(116px + env(safe-area-inset-top)); }
-body.touch:not(.port) #pro { left: calc(60px + env(safe-area-inset-left)); right: calc(150px + env(safe-area-inset-right)); top: calc(10px + env(safe-area-inset-top)); }
+body.touch:not(.port) #pro { left: calc(60px + env(safe-area-inset-left)); right: calc(215px + env(safe-area-inset-right)); top: calc(10px + env(safe-area-inset-top)); }
 /* 橫向高度不夠：地名讓位，王出現時目標列移到血條下面，還是不蓋主角 */
 body.touch:not(.port) #hud:has(#pro:not([hidden])) #area { display: none; }
 body.touch:not(.port) #hud:has(#bossbar:not([hidden])) #pro { top: calc(72px + env(safe-area-inset-top)); }

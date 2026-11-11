@@ -568,6 +568,16 @@ async function auto(b) {
     r && r.done >= 1 && r.stage >= 1 && r.scene === 'map',
     JSON.stringify(r)
   );
+  /* 踩到怪物方的地面：AI 往外走 */
+  const gz = await p.evaluate(async () => {
+    S.auto = 1;
+    await new Promise(r => setTimeout(r, 300));
+    addGround({ k: 'smoke', side: 'm', x: P.x, y: P.y, r: 2 * METER, dur: 6 });
+    await new Promise(r => setTimeout(r, 1200));
+    const g = G.ground.find(x => x.side === 'm');
+    return !g || !onGround(g);
+  });
+  ok('AI：踩到怪物方的地面就往外走', gz);
   const st = await p.evaluate(() => ({
     tmp: S.temp.items.length + S.temp2.items.length,
     stash: S.stash.items.length,

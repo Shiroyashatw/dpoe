@@ -8186,46 +8186,17 @@ const ASC_COMBOS = `const combos = k => {
     c2,
     { filename: 'main.js' }
   );
-  /* 存檔 29 以前的格式（寶石是道具、技能格 { a: 寶石 }、光環欄放寶石）：舊存檔測試把 newGame() 轉成這樣再 migrate */
-  R2(`var gemObj = (k, lv, e = {}) => ({ id: ++IID, gem: k, lv, xp: 0, r: 3, a: [], L: lv, ...(SKILLS[k] || AURAS[k] ? { so: 2, sup: [null, null] } : {}), ...e }),
-    OLD29 = o => {
-      o.skills = o.skills.map(s => ({ a: s.k ? gemObj(s.k, libLv(s.k, o.lib)) : null }));
-      o.auras = o.auras.map(r => r && gemObj(r.k, libLv(r.k, o.lib)));
-      o.gems = []; delete o.lib; o.v = 29; return o;
-    };`);
+  /* 0.3.0：存檔版本 31，舊存檔（< 31）直接開新角色、不轉換（企劃書 2.1 第 14 項） */
   ok(
-    '舊存檔（23）：保留等級、裝備、寶石、昇華點，地圖進度重置到劇情區第一個節點',
+    '存檔 31：舊存檔（< 31、沒有版本、壞掉的）開新角色；31 的存檔原樣還原',
     R2(`(() => {
-      const old = OLD29(newGame());
-      delete old.fresh;
-      Object.assign(old, { v: 23, lv: 57, frag: 40, maxT: 13, t16: 0, cards: [rollCard(), rollCard()], card: rollCard(), tier: 9 });
-      delete old.world; delete old.hunt;
-      old.eq.weapon = mkItem('w_bow_0', 12, 2);
-      const id = old.eq.weapon.id, n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 30 && n.lv === 57 && n.frag === 40 && n.eq.weapon.id === id && n.skills[0].k === 'slash' && n.maxT === 13 &&
-        n.world.stage === 0 && !n.world.done.length && n.world.at === '0,0' && Number.isInteger(n.world.seed) &&
-        n.hunt.v === 0 && !Array.isArray(n.cards) && !Object.keys(n.cards).length && !n.card;
-    })()`)
-  );
-  ok(
-    '舊存檔（26）：天賦點全部退回起點、能力值選擇清空，其他不動',
-    R2(`(() => {
-      const old = OLD29(newGame());
-      Object.assign(old, { v: 26, lv: 40, pt: [...PT_START, PTREE.N[40].id], ptA: { zz: 'd' } });
+      const old = newGame(); Object.assign(old, { v: 30, lv: 57, frag: 40 });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      return n.v === 30 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length;
-    })()`)
-  );
-  ok(
-    '舊存檔（27）：0.2.68 重烘後天賦點全部退回起點、能力值選擇清空，其他不動；28 不再退',
-    R2(`(() => {
-      const old = OLD29(newGame());
-      Object.assign(old, { v: 27, lv: 40, pt: [...PT_START, PTREE.N[40].id], ptA: { zz: 'd' } });
-      const n = migrate(JSON.parse(JSON.stringify(old)));
-      const keep = OLD29(newGame());
-      Object.assign(keep, { v: 28, lv: 40, pt: [...PT_START, PTREE.N[40].id] });
-      const k = migrate(JSON.parse(JSON.stringify(keep)));
-      return n.v === 30 && n.lv === 40 && n.pt.join() === PT_START.join() && !Object.keys(n.ptA).length && k.pt.length === 7;
+      if (n.v !== 31 || n.lv !== 1 || n.frag === 40) return 'v30 ' + n.v + ' ' + n.lv;
+      for (const bad of [null, {}, { v: 'x' }, { v: 10 }, { v: 29, lv: 50 }]) if (migrate(bad).lv !== 1) return 'bad';
+      const cur = newGame(); Object.assign(cur, { lv: 57, frag: 40, auto: 0 }); cur.world.done.push('0,0');
+      const m = migrate(JSON.parse(JSON.stringify(cur))), again = migrate(JSON.parse(JSON.stringify(m)));
+      return m.v === 31 && m.lv === 57 && m.frag === 40 && m.auto === 0 && m.world.done.length === 1 && again.lv === 57 && !!m.temp2 && !!m.patrol;
     })()`)
   );
   /* 過濾器（8-3，企劃書 5.1）：新條件 ★、追憶（只用未鑑定也看得到的資訊）；範本一「★ 或追憶 → 自動撿、黃裝 → 顯示」、範本二「只撿 ★、追憶、T 高的黃裝」 */
@@ -8256,160 +8227,6 @@ const ASC_COMBOS = `const combos = k => {
         r.id === 'hl' &&
         r.sets.join() === '3,3,1' &&
         r.n2 === 'hide',
-      JSON.stringify(r)
-    );
-  }
-  /* 存檔 29 的過濾器（第一條符合的規則勝出，詞綴條件對未鑑定永遠不符合）：每條有詞綴條件、動作不是隱藏的規則，複製一條「同條件、拿掉詞綴、動作改顯示」
-     （沒寫稀有度＝藍＋黃 rar [1, 2]；高亮色沿用原規則 col），插在它後面第一條「隱藏」規則之前，沒有就放最後（預設之前）；已經有的不重複；再讀一次不重複補 */
-  {
-    const r = R2(`(() => {
-      const mk = (def, rules) => ({ rules, def: { act: def, col: 0 } }),
-        aff = (act, c = {}) => ({ on: 1, c: { ...c, aff: { ks: ['x'], n: 1 } }, act, col: 0 }),
-        rule = (c, act) => ({ on: 1, c, act, col: 0 }),
-        yel = rule({ rar: [1, 2] }, 'show');
-      const old = OLD29(newGame());
-      delete old.fresh;
-      old.v = 28;
-      old.filter = { cur: 0, sets: [
-        mk('hide', [aff('pick')]),                                         // 0 只有詞綴規則、預設隱藏
-        mk('hide', [yel, aff('pick')]),                                    // 1 已經有同一條
-        mk('show', [aff('pick')]),                                         // 2 預設顯示也補
-        mk('hide', [rule({ rar: [1] }, 'pick')]),                          // 3 沒有詞綴條件：不動
-        mk('hide', [{ ...aff('hl'), col: 3 }, rule({ kind: ['weapon'] }, 'pick')]), // 4 後面有別的規則、原規則有高亮色 3
-        mk('show', [aff('pick', { rar: [2] }), rule({ rar: [2] }, 'hide')]), // 5 有詞綴的黃裝 → 撿、黃裝 → 隱藏、預設顯示
-        mk('hide', [aff('pick'), rule({ rar: [2], q: 20 }, 'pick')])       // 6 預設隱藏、後面還有「黃裝品質 ≥ 20 → 撿」
-      ] };
-      const n = migrate(JSON.parse(JSON.stringify(old))), again = migrate(JSON.parse(JSON.stringify(n)));
-      const ring = (r, q) => ({ ...mkItem('r_lazuli', 12, r), q, uid: 1 }),
-        y22 = ring(2, 0.22), y5 = ring(2, 0.05), b = ring(1, 0.1);
-      S = n;
-      const A = (i, it) => ((S.filter.cur = i), fltAct(it).act),
-        row = i => [A(i, y22), A(i, y5), A(i, b)].join('/');
-      return {
-        len: n.filter.sets.map(s => s.rules.length).join(),
-        again: again.filter.sets.map(s => s.rules.length).join(),
-        acts: n.filter.sets.map((s, i) => s.rules.map(x => x.act).join('>')).join(' | '),
-        col4: n.filter.sets[4].rules.map(x => x.col).join(),
-        res: [0, 1, 2, 3, 4, 5, 6].map(row).join(' | ')
-      };
-    })()`);
-    ok(
-      '舊存檔（28→29）的過濾器：有詞綴條件、動作不是隱藏的規則，在它後面第一條「隱藏」規則之前補一條「同條件、拿掉詞綴、改顯示」（沒有隱藏規則就放最後；沒寫稀有度補藍＋黃、高亮色沿用原規則）；已經有的不重複、沒有詞綴條件的不動、再讀一次不重複補；有詞綴的黃裝撿＋黃裝隱藏的組（5）未鑑定黃裝改成顯示、預設隱藏還有「品質 ≥ 20 → 撿」的組（6）22% 那件照樣自動撿、5% 那件顯示',
-      r.len === '2,2,2,1,3,3,3' &&
-        r.again === r.len &&
-        r.acts === 'pick>show | show>pick | pick>show | pick | hl>pick>show | pick>show>hide | pick>pick>show' &&
-        r.col4 === '3,0,3' &&
-        r.res ===
-          'show/show/show | show/show/show | show/show/show | hide/hide/pick | show/show/show | show/show/show | pick/show/show',
-      JSON.stringify(r)
-    );
-  }
-  /* 存檔 29（0.2.72 裝備重做）：用一份 28 版的樣本存檔——裝備數值不變（潛能拿掉、a.lock 拿掉）、材料換算、過濾器的潛能條件拿掉 */
-  {
-    const r = R2(`(() => {
-      const old = OLD29(newGame());
-      delete old.fresh;
-      Object.assign(old, { v: 28, lv: 45, gold: 321 });
-      old.mat = { dust: 53, fine: 7, rare: 2, soul: 4567, seal: 3 };
-      const mk = (id, L, r) => {
-        const it = mkItem(id, L, r);
-        it.pot = 7;
-        if (it.a[0]) it.a[0].lock = 1;
-        return it;
-      };
-      old.eq.weapon = mk('w_sword1_0', 12, 2);
-      old.eq.chest = mk('c_leather', 8, 2);
-      old.eq.ring1 = mk('r_lazuli', 10, 1);
-      old.inv.items.push(mk('c_leather', 6, 2));
-      old.stash.items.push(mk('w_bow_0', 14, 2));
-      old.filter = { cur: 0, sets: [{ rules: [{ on: 1, c: { rar: [2], pot: 7, q: 10 }, act: 'pick', col: 0 }], def: { act: 'show', col: 0 } }, fltEmpty(), fltEmpty()] };
-      const s0 = JSON.stringify(stats(old)), src = JSON.parse(JSON.stringify(old));
-      const n = migrate(JSON.parse(JSON.stringify(old))), s1 = JSON.stringify(stats(n)), n2 = migrate(JSON.parse(JSON.stringify(n)));
-      const gear = [n.eq.weapon, n.eq.chest, n.eq.ring1, n.inv.items[n.inv.items.length - 1], n.stash.items[n.stash.items.length - 1]];
-      const same = gear.every((it, i) => {
-        const o = [src.eq.weapon, src.eq.chest, src.eq.ring1, src.inv.items[src.inv.items.length - 1], src.stash.items[src.stash.items.length - 1]][i];
-        return JSON.stringify({ ...o, pot: undefined, a: o.a.map(a => ({ ...a, lock: undefined })) }) === JSON.stringify({ ...it, pot: undefined, a: it.a.map(a => ({ ...a, lock: undefined })) });
-      });
-      return {
-        v: n.v, stat: s0 === s1, same,
-        pot: gear.some(it => 'pot' in it), lock: gear.some(it => it.a.some(a => 'lock' in a)),
-        mat: [n.mat.tran, n.mat.aug, n.mat.rich, n.mat.exalt, n.mat.conv, n.mat.soul],
-        keys: ['dust', 'fine', 'rare', 'seal'].filter(k => k in n.mat), ess: JSON.stringify(n.mat.ess),
-        flt: 'pot' in n.filter.sets[0].rules[0].c, fltQ: n.filter.sets[0].rules[0].c.q,
-        again: JSON.stringify(n2.mat) === JSON.stringify(n.mat), fresh: newGame().v === 30 && !('pot' in mkItem('c_leather', 5, 2)), prd: JSON.stringify(n.prd)
-      };
-    })()`);
-    ok(
-      '舊存檔（28→29）：裝備全部已鑑定且數值不變、潛能與鎖拿掉；粗粉 53 → 蛻變 3＋增幅 2、精粉 → 富豪、稀粉 → 崇高、封印石 → 轉化石（1：1）；靈魂不動、沒有粉；再讀一次不變',
-      r.v === 30 &&
-        r.stat &&
-        r.same &&
-        !r.pot &&
-        !r.lock &&
-        r.mat.join() === '3,2,7,2,3,4567' &&
-        !r.keys.length &&
-        r.ess === '{}' &&
-        !r.flt &&
-        r.fltQ === 10 &&
-        r.again &&
-        r.fresh &&
-        JSON.parse(r.prd).fracB === 0 &&
-        JSON.parse(r.prd).frac === 0,
-      JSON.stringify(r)
-    );
-  }
-  /* 存檔 30（0.2.75 技能系統重做）：舊存檔 29 的寶石（格子上、孔裡、光環欄、背包、倉庫、臨時頁、寶石頁）→ 目錄 S.lib 同鍵取最高；
-   格子上那顆的孔數與插著的輔助照搬；品質花掉的靈魂退還（每 1% 30）；散裝寶石與同一招第二格那顆消失、它們開過的孔照 DRILL 退靈魂；已經不存在的寶石（死亡紅花）退升級的靈魂；裝備與天賦數值不變 */
-  {
-    const r = R2(
-      `(() => {
-    const bad = lv => ({ gem: 'redbloom', lv, sup: [{ gem: 'multi', lv: 1 }, null] }),
-      g = (k, lv, e = {}) => ({ id: ++IID, gem: k, lv, xp: 0, r: 3, a: [], L: lv, ...(SKILLS[k] || AURAS[k] ? { so: 2, sup: [null, null] } : {}), ...e });
-    const o = newGame();
-    o.v = 29; o.lv = 60;
-    o.mat = { ...o.mat, soul: 5 };
-    o.skills = [
-      { a: g('cleave', 7, { so: 3, sup: [g('multi', 2, { q: 4 }), g('haste', 1), null], q: 10 }) },
-      { a: g('slash', 3) },
-      { a: bad(3) },
-      { a: null },
-      { a: g('cleave', 2, { so: 5, sup: [null, null, null, null, null] }) }
-    ];
-    o.auras = [g('golem', 5, { sup: [g('pack', 3), null] }), g('golem', 9, { so: 3, sup: [null, null, null] }), null];
-    o.gems = [g('cleave', 12, { so: 3, sup: [null, null, null] }), g('multi', 9, { q: 6 }), bad(2)];
-    o.inv.items.push(g('fireball', 6, { so: 4, sup: [null, null, null, null] }), mkItem('c_leather', 1, 0));
-    o.stash.items.push(g('fireball', 8));
-    o.temp.items.push(g('slash', 4));
-    const eq0 = JSON.stringify(stats({ ...o, auras: [], skills: [] }));
-    const n = migrate(JSON.parse(JSON.stringify(o))), n2 = migrate(JSON.parse(JSON.stringify(n)));
-    const L = n.lib;
-    return {
-      v: n.v, lib: [L.sk.cleave, L.sk.slash, L.sk.fireball, L.sup.multi, L.sup.haste, L.sup.pack, L.aura.golem, L.sk.redbloom || 0],
-      slots: n.skills.map(s => s.k || '').join(), s0: JSON.stringify(n.skills[0]), s1: JSON.stringify(n.skills[1]),
-      auras: JSON.stringify(n.auras), soul: n.mat.soul, need: 5 + 10 * 30 + 4 * 30 + 6 * 30 + 2 * soulCost(1) + soulCost(2) + 4 * drillCost(0) + 2 * drillCost(1) + drillCost(2),
-      gems: 'gems' in n, inv: n.inv.items.map(i => i.b || i.gem).join(), stash: n.stash.items.length, temp: n.temp.items.length,
-      same: JSON.stringify(stats({ ...n, auras: [], skills: [] })) === eq0, again: JSON.stringify(n2) === JSON.stringify(n),
-      fresh: JSON.stringify(migrate(newGame()).skills.map(s => s.k)), live: !SKILLS.redbloom
-    };
-  })()`
-    );
-    ok(
-      '舊存檔（29→30）：寶石等級進目錄（同鍵最高）、格子的孔數與輔助照搬、光環欄照搬、品質退靈魂（每 1% 30）、散裝與第二格那顆開過的孔照開孔費用退靈魂、死亡紅花退升級靈魂、散裝寶石消失、數值不變、再讀一次不變',
-      r.v === 30 &&
-        r.lib.join() === '12,4,8,9,1,3,9,0' &&
-        r.slots === 'cleave,slash,,,' &&
-        r.s0 === '{"k":"cleave","so":["multi","haste",null],"n":3}' &&
-        r.s1 === '{"k":"slash","so":[null,null],"n":2}' &&
-        r.auras === '[{"k":"golem","so":["pack",null],"n":2},null]' &&
-        r.soul === r.need &&
-        !r.gems &&
-        r.inv === 'c_leather' &&
-        !r.stash &&
-        !r.temp &&
-        r.same &&
-        r.again &&
-        r.fresh === '["slash","mirage",null,null,null]' &&
-        r.live,
       JSON.stringify(r)
     );
   }

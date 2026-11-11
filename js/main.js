@@ -23,7 +23,7 @@ function save() {
 }
 /* 存檔版本 S.v：10 是 0.2.0 重製（0.1 的存檔是 1～3，規則完全不同，直接開新角色） */
 function migrate(s) {
-  if (!s || !s.v || s.v < 10) return newGame();
+  if (!s || !(s.v >= 31)) return newGame(); /* 0.3.0：舊存檔直接開新角色，不轉換（下面 31 以前的轉換不會再跑） */
   const o = { ...newGame(), ...s };
   if (!s.fresh) delete o.fresh;
   /* 存檔 11（0.2.2）：技能寶石、天賦樹、核心樹；0.2.1 以前固定的 5 招換成寶石 */
