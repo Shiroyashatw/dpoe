@@ -820,7 +820,7 @@ function gridHTML(g, src) {
 function itemHTML(it, src, eqk) {
   const [w, h] = itemSize(it),
     pos = isSlot(src) ? '' : `left:${it.x * C}px;top:${it.y * C}px;width:${w * C}px;height:${h * C}px`;
-  return `<div class="it r${it.r} ${isSlot(src) ? 'full' : ''} ${PANEL.sellM && src === 'inv' && SELLS.has(it.id) ? 'mk' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''} style="${pos}">${icHTML(itemIc(it))}</div>`;
+  return `<div class="it r${it.r} ${it.uid ? 'uid' : ''} ${isSlot(src) ? 'full' : ''} ${PANEL.sellM && src === 'inv' && SELLS.has(it.id) ? 'mk' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''} style="${pos}">${icHTML(itemIc(it))}</div>`;
 }
 /* 技能寶石面板：5 個技能欄，每欄 1 顆技能＋2 顆輔助 */
 const TAGN = {
@@ -1632,7 +1632,9 @@ function showTip(html, a, t = $('tip')) {
   else if (a.left - G - w >= M) (x = a.left - G - w), (y = cy);
   else if (h <= dn) (x = cx), (y = a.bottom + G);
   else if (h <= up) (x = cx), (y = a.top - G - h);
-  else if (t.classList.contains('act')) (x = cx), (y = cy); /* 點出來的說明框：放不下就蓋住被點的東西（點別處關掉） */
+  else if (t.classList.contains('act') && Math.max(up, dn) < 240)
+    (x = cx),
+      (y = cy); /* 點出來的說明框：上下都太窄（手機橫向）才蓋住被點的東西（點別處關掉）；不然照下面縮短、裡面捲 */
   else {
     t.style.maxHeight = Math.max(up, dn) + 'px';
     x = cx;
