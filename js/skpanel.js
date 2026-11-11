@@ -230,8 +230,9 @@ function skSlots() {
     const on = SKUI.i === i;
     if (!r.k)
       return `<button class="slot empty ${on ? 'pick' : ''}" data-sk="slot:${i}"><i class="k">${SLOTKEY[i]}</i>${ICO.plus}<span class="nm">挑一招</span></button>`;
-    const D = SKILLS[r.k];
-    return `<button class="slot ${on ? 'on' : ''}" data-sk="slot:${i}"><i class="k">${SLOTKEY[i]}</i>${icHTML(D.ic)}<span class="nm">${esc(D.n)}</span><span class="lv">Lv ${libLv(r.k)}</span>${S.lib.aw && S.lib.aw[r.k] ? '<i class="awm" title="已覺醒"></i>' : ''}</button>`;
+    const D = SKILLS[r.k],
+      bad = slotBad(i);
+    return `<button class="slot ${on ? 'on' : ''} ${bad ? 'bad' : ''}" data-sk="slot:${i}" ${bad ? `title="失效：${esc(bad)}"` : ''}>${bad ? '<i class="badm">失效</i>' : ''}<i class="k">${SLOTKEY[i]}</i>${icHTML(D.ic)}<span class="nm">${esc(D.n)}</span><span class="lv">Lv ${libLv(r.k)}</span>${S.lib.aw && S.lib.aw[r.k] ? '<i class="awm" title="已覺醒"></i>' : ''}</button>`;
   });
   const au = S.auras.filter(Boolean);
   cards.push(
@@ -348,7 +349,7 @@ function skSelf(c) {
   return `<div class="head"><div><h2>${esc(D.n)}</h2><div class="sub">${sub}</div></div><div class="lvbox"><b>Lv ${lv}${extra}</b><div class="lvbar"><i style="width:${(lv / GEM_MAX) * 100}%"></i></div></div></div>
     <p class="desc">${rich(D.d)}${!c.aura && awOf(k) ? ` <span class="aw-t">${esc(AWK[k][awOf(k)].n)}</span>：${rich(awText(k, awOf(k)))}` : ''}</p>
     ${warn.map(w => `<p class="why">${esc(w)}</p>`).join('')}
-    <div class="acts">${upBtn(k, 1)}<button class="btn" data-sk="swap">${c.aura ? '換一個' : '換一招'}</button>${c.aura ? `<button class="btn" data-sk="out">卸下</button>` : ''}<button class="btn" data-sk="calc" aria-expanded="${!!SKUI.calc}">${SKUI.calc ? '收起詳細' : '詳細'}</button></div>
+    <div class="acts">${upBtn(k, 1)}<button class="btn" data-sk="swap">${c.aura ? '換一個' : '換一招'}</button><button class="btn" data-sk="out">卸下</button><button class="btn" data-sk="calc" aria-expanded="${!!SKUI.calc}">${SKUI.calc ? '收起詳細' : '詳細'}</button></div>
     ${
       SKUI.calc
         ? `<ul class="skx">${skLines(c.aura ? c : slotCfg(SKUI.i))
@@ -371,7 +372,7 @@ function skCard(k, acts, note) {
         .filter(t => TAGN[t] && !['elem', 'occ', 'pri'].includes(t))
         .map(t => `<span class="gtag">${TAGN[t]}</span>`)
         .join('');
-    kv = `${cf.mp ? `<span>魔力 <b class="mp">${cf.mp}</b></span>` : ''}<span>施放 <b>${actDur(cf).toFixed(2)} 秒</b></span>`;
+    kv = `${cf.mp ? `<span>魔力 <b class="mp">${cf.mp}</b></span>` : ''}<span>施放 <b>${actDur(cf).toFixed(2)} 秒</b></span>${cf.cd ? `<span>冷卻 <b>${cf.cd.toFixed(1)} 秒</b></span>` : ''}`;
   } else if (kind === 'sup') {
     chips = `<span class="gtag ${D.aw ? 'aw' : ''}">${D.aw ? '覺醒輔助' : '輔助'}</span>${D.need.map(t => (TAGN[t] ? `<span class="gtag">${TAGN[t]}</span>` : '')).join('')}`;
     kv = `<span>${D.need.length ? '需要技能有 <b>' + D.need.map(t => TAGN[t] || t).join('、') + '</b>' : '任何技能都能插'}</span>${
@@ -585,7 +586,15 @@ function skAct(b, e) {
     sfx('click');
     return changed();
   } else if (k === 'out') {
-    /* 開過的孔與插著的輔助會一起拿掉：花了靈魂的東西要確認 */
+    /* 技能格：只拿掉技能，格子的孔與輔助留著（換上別招照樣用）；等級在目錄裡不會掉 */
+    if (!c.aura) {
+      S.skills[SKUI.i].k = null;
+      SKUI.hole = null;
+      SKUI.aw = 0;
+      sfx('click');
+      return changed();
+    }
+    /* 光環：開過的孔與插著的輔助會一起拿掉，花了靈魂的東西要確認 */
     if ((c.rec.n > 2 || c.rec.so.some(Boolean)) && !confirm2(b, `<span>再按一次</span><small>孔與輔助一起拿掉</small>`))
       return;
     S.auras[SKUI.ai] = null;

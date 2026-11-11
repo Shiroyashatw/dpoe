@@ -70,7 +70,7 @@ const DMENU = [
   ['inv', 'bag', '背包', 'I'],
   ['skill', 'gem', '技能', 'G'],
   ['tree', 'tree', '天賦樹', 'P'],
-  ['home', 'home', '回藏身處（按兩次）', 'T'],
+  ['home', 'home', '回藏身處', 'T'],
   ['set', 'gear', '設定與快捷鍵', 'Esc']
 ];
 function hudInit() {
@@ -118,7 +118,7 @@ function hudBar() {
               : icHTML(b.ic);
     return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
   }).join('');
-  for (const k in HV) if (/^[tn]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$/.test(k)) delete HV[k];
+  for (const k in HV) if (/^[tnb]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$/.test(k)) delete HV[k];
 }
 function tipOf(b) {
   if (b.slot == null) return `${b.n}\n${b.d}`;
@@ -189,6 +189,13 @@ function hudTick() {
       !fightOn() ||
       (ST.noFlask && (k === 'flask' || k === 'mflask'));
     if (HV['n' + k] !== no) el.classList.toggle('no', (HV['n' + k] = no));
+    /* 技能失效（武器不對、能力值不夠）：右上角紅「!」，說明框寫原因 */
+    const bad = k[0] === 's' && c ? slotBad(+k[1], c) : '';
+    if (HV['b' + k] !== bad) {
+      el.classList.toggle('bad', !!(HV['b' + k] = bad));
+      if (bad) el.title = '失效：' + bad;
+      else el.removeAttribute('title');
+    }
   }
   /* 翻滾冷卻：桌機畫在游標旁（直立是技能鍵旁的小圖示，照上面的 .sk 一起更新） */
   const rc = TOUCH.on ? 0 : (P.cds.roll || 0) / (ROLL.cd + ROLL.t),
@@ -254,8 +261,8 @@ function hudTick() {
     PRO.on && G.scene === 'map'
       ? '地層'
       : G.scene === 'hide'
-        ? `藏身處 · Lv ${S.lv} · ${S.gold} 金 · 地圖碎片 ${S.frag}${S.story.crow ? ` · 血霧 ${S.hunt.v}%` : ''}`
-        : `${G.nodeN || '地圖'} · 怪物 Lv ${mobLv(G.mapT)} · ${'★'.repeat(G.star || 1)} · Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻 · 碎片 ${S.frag}`;
+        ? `藏身處 · 角色 Lv ${S.lv} · ${S.gold} 金 · 地圖碎片 ${S.frag}${S.story.crow ? ` · 血霧 ${S.hunt.v}%` : ''}`
+        : `${G.nodeN || '地圖'} · 怪物 Lv ${mobLv(G.mapT)} · ${'★'.repeat(G.star || 1)} · 角色 Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻 · 碎片 ${S.frag}`;
   setT($('area'), 'at', at);
   const au = S.auto ? 1 : 0;
   if (HV.au !== au) {
@@ -305,6 +312,10 @@ function hudState() {
     o.innerHTML = `<div class="card portal"><h2>傳送門</h2><p>${G.first ? `<span class="c-gold">${G.first}</span>` : '地上的東西撿完了嗎？'}</p>
       <div class="pbtns"><button class="btn pri" data-a="pickmap">選下一張地圖<small>新的一批地圖卡</small></button><button class="btn" data-a="home">回藏身處<small>整理背包、點天賦</small></button></div>
       <p class="c-dim">走開就關掉</p></div>`;
+    o.hidden = false;
+  } else if (G.ask === 'home' && G.scene === 'map' && G.state === 'play') {
+    o.innerHTML = `<div class="card ask"><h2>回藏身處？</h2><p>這張地圖會結束，地上沒撿的東西會不見。${S.auto ? '<br>自動刷圖會暫停。' : ''}</p>
+      <div class="pbtns"><button class="btn pri" data-a="home">回藏身處</button><button class="btn" data-a="askno">繼續刷圖</button></div></div>`;
     o.hidden = false;
   } else o.hidden = true;
 }
@@ -390,7 +401,7 @@ const KEYS_PC = [
   ['I', '背包'],
   ['G', '技能'],
   ['P', '天賦樹'],
-  ['T', '回藏身處（地圖裡要按兩次）'],
+  ['T', '回藏身處（地圖裡會先確認）'],
   ['Esc', '關閉面板；沒有面板時打開設定']
 ];
 const KEYS_PORT = [
@@ -1148,7 +1159,8 @@ const STOPN = {
   full: '倉庫滿了',
   none: '沒有路',
   pick: '還沒選區塊',
-  end: '區塊打完'
+  end: '區塊打完',
+  home: '自己回藏身處'
 };
 function patrolHTML() {
   const P = S.patrol,
@@ -1785,7 +1797,14 @@ function act(a) {
   if (a === 'close') closePanels();
   else if (a === 'open') wmGo();
   else if (a === 'home') {
+    /* 玩家自己回藏身處（確認卡、死亡卡、傳送門卡）：自動刷圖暫停，不會一回家又開下一張（AI 自己回家走 ai.js 的 aiHome） */
+    const stop = S.auto && G.scene === 'map';
+    G.ask = 0;
     enterHideout();
+    if (stop) aiStop('home', '回到藏身處：自動刷圖暫停，在巡邏卡按「繼續巡邏」再開始');
+  } else if (a === 'askno') {
+    G.ask = 0;
+    hudState();
   } else if (a === 'again') {
     /* 死亡卡的再試一次：跟傳送門開下一張一樣直接進圖，不回藏身處 */
     if (G.state === 'dead' && G.node && G.card) {

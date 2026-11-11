@@ -50,6 +50,16 @@ function treeOpen() {
     treeView();
   } else treeRender();
 }
+/* 0.3.3：遊戲載入後趁閒置先把整棵樹建好（藏著，不排版），第一次打開跟重開一樣快（手機原本要等 3、4 秒） */
+function treePrebuild() {
+  if (TEL || TREE.open) return;
+  TREE.open = true; /* treeRender／treeRefresh 只在開著時跑：建的這一下假裝開著，#ptree 還是 hidden */
+  try {
+    treeRender();
+  } finally {
+    TREE.open = false;
+  }
+}
 function treeClose() {
   TREE.open = false;
   TREE.sel = null;
@@ -88,20 +98,15 @@ function treeRender() {
   let html = Object.entries(eC)
     .map(([k, L]) => `<g class="tc e" data-c="${k}" style="display:none">${L.map(x => x[0]).join('')}</g>`)
     .join('');
-  /* 圖示：每張只定義一次（<defs>），點用 <use> 引用，一千多個點也不會太重 */
-  const used = new Set(PTREE.N.map(n => n.ic).filter(Boolean)),
-    defs = [...used]
-      .filter(ic => typeof ART !== 'undefined' && ART[ic])
-      .map(ic => `<image id="ti_${ic}" data-ic="${ic}" width="1" height="1"/>`)
-      .join('');
-  html = `<defs>${defs}</defs>` + html;
+  /* 圖示：每個點直接一個 <image>（0.3.3：原本用 <use> 引用 <defs>，每個 <use> 都要複製一份，手機打開排版慢一倍）；
+     網址 treeIcons 補（artIconURL 快取，同一張圖共用一個字串） */
   for (const n of PTREE.N) {
     const r = n.big === 2 ? 30 : n.gate ? 20 : n.big ? 19 : 10,
       st = have.has(n.id) ? 'on' : treeCan(n.id) ? 'can' : 'off',
       s = r * (n.big ? 1.4 : 1.3),
       img =
         n.ic && typeof ART !== 'undefined' && ART[n.ic]
-          ? `<use href="#ti_${n.ic}" transform="translate(${-s / 2} ${-s / 2}) scale(${s})"/>`
+          ? `<image class="ti" data-ic="${n.ic}" width="1" height="1" transform="translate(${-s / 2} ${-s / 2}) scale(${s})"/>`
           : '';
     cell(
       nC,
@@ -165,7 +170,6 @@ function treeRender() {
 }
 /* 圖示另外補：大圖載好幾張就補幾張，不重建整棵樹 */
 function treeIcons() {
-  if (!TREE.open) return;
   for (const el of document.querySelectorAll('#tg image[data-ic]')) {
     const u = artIconURL(el.dataset.ic);
     if (u) el.setAttribute('href', u), el.removeAttribute('data-ic');

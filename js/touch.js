@@ -115,14 +115,12 @@ function moreMenu(on) {
   el.hidden = !on;
   document.querySelector('[data-tm=more]').setAttribute('aria-expanded', on);
 }
-/* 在地圖裡按兩次才回家（這張地圖會結束） */
-let tHome = 0;
+/* 刷圖中回藏身處：跳確認卡（hud.js 的 hudState，G.ask），按「回藏身處」才走 */
 function homeAsk() {
   if (PRO.on) return hudWarn('先走出地層');
   if (G.scene !== 'map' || G.state !== 'play') return;
-  if (performance.now() - tHome < 2000) return goHome();
-  tHome = performance.now();
-  hudWarn(TOUCH.on ? '再按一次回藏身處，這張地圖會結束' : '再按一次 T 回藏身處，這張地圖會結束');
+  G.ask = G.ask === 'home' ? 0 : 'home';
+  hudState();
 }
 
 /* ---------- 搖桿 ---------- */

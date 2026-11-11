@@ -410,6 +410,7 @@ function start() {
   });
   setInterval(save, 10000);
   requestAnimationFrame(frame);
+  (window.requestIdleCallback || (f => setTimeout(f, 1500)))(treePrebuild, { timeout: 4000 });
   verCheck();
   document.addEventListener('visibilitychange', () => !document.hidden && G.scene === 'hide' && verCheck());
 }

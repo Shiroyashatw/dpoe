@@ -1551,7 +1551,7 @@ function wmQuestHTML() {
 function wmPanel() {
   if (!WM.cv || !PANEL.device) return;
   $('wms').innerHTML =
-    `<div class="ph"><b>世界地圖</b><span>Lv ${S.lv} · 碎片 <b class="c-gold">${S.frag}</b></span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+    `<div class="ph"><b>世界地圖</b><span>角色 Lv ${S.lv} · 碎片 <b class="c-gold">${S.frag}</b></span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
     <div class="wm-body">${WM.view === 'quest' ? wmQuestHTML() : wmNodeHTML()}</div>`;
 }
 /* 面板上的主要按鈕 */

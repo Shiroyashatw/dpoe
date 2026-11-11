@@ -236,7 +236,7 @@ button.gtag:active { transform: scale(0.95); }
 #tview { flex: 1; position: relative; overflow: hidden; cursor: grab; touch-action: none; }
 #tsvg { position: absolute; left: 0; top: 0; transform-origin: 0 0; overflow: visible; }
 #tsvg.moving { will-change: transform; }
-#tsvg.far .nd.b0 use { display: none; }
+#tsvg.far .nd.b0 .ti { display: none; }
 #tsvg.far line, #tsvg.far path { stroke: rgba(205, 210, 220, 0.2); stroke-width: 12; }
 #tsvg.far line.on, #tsvg.far path.on { stroke: var(--sel); stroke-width: 26; }
 #tsvg.far .nd circle { stroke-width: 7; }
@@ -248,16 +248,16 @@ button.gtag:active { transform: scale(0.95); }
 .nd { cursor: pointer; }
 .nd circle { fill: #15110f; stroke: rgba(205, 210, 220, 0.22); stroke-width: 3; }
 .nd.b0 circle { fill: #1c1714; }
-.nd image, .nd use { image-rendering: pixelated; opacity: 0.35; pointer-events: none; }
+.nd image, .nd .ti { image-rendering: pixelated; opacity: 0.35; pointer-events: none; }
 .nd.can circle { stroke: #8ab4ff; stroke-width: 4; }
-.nd.can image, .nd.can use { opacity: 0.85; }
+.nd.can image, .nd.can .ti { opacity: 0.85; }
 /* 點下去：小點填上那個方向的顏色，大點金框；小點的圖示淡一點 */
-.nd.b0 use { opacity: 0.25; }
-.nd.b0.can use { opacity: 0.6; }
-.nd.b0.on use { opacity: 0.95; }
+.nd.b0 .ti { opacity: 0.25; }
+.nd.b0.can .ti { opacity: 0.6; }
+.nd.b0.on .ti { opacity: 0.95; }
 .nd.on circle { fill: var(--c, #3a3d44); stroke: var(--sel); stroke-width: 4; }
 .nd.on.b1 circle, .nd.on.b2 circle { fill: #3a2b12; }
-.nd.on image, .nd.on use { opacity: 1; }
+.nd.on image, .nd.on .ti { opacity: 1; }
 .nd.b2 circle { stroke-width: 5; stroke: rgba(255, 209, 102, 0.35); }
 .nd:hover circle { filter: brightness(1.6); }
 .hollow { fill: var(--s0); stroke: var(--fr); stroke-width: 3; }
@@ -1222,13 +1222,13 @@ body.touch:not(.port) #pdev { grid-template-columns: minmax(0, 1fr) min(320px, 4
 .nd.can:not(.asc) circle { fill: color-mix(in srgb, var(--c, #a2946e) 30%, var(--pt-node)); stroke-opacity: 1; stroke-width: 4; }
 .nd.on:not(.asc) circle { fill: var(--c, #a2946e); stroke: var(--sel); stroke-opacity: 1; stroke-width: 4; }
 .nd.b2:not(.asc):not(.on) circle { stroke: var(--gold); stroke-opacity: 0.75; stroke-width: 5; }
-.nd:not(.asc) image, .nd:not(.asc) use { opacity: 0.6; }
-.nd.b0:not(.asc) use { opacity: 0.5; }
-.nd.can:not(.asc) image, .nd.can:not(.asc) use { opacity: 0.95; }
-.nd.on:not(.asc) image, .nd.on:not(.asc) use { opacity: 1; }
+.nd:not(.asc) image, .nd:not(.asc) .ti { opacity: 0.6; }
+.nd.b0:not(.asc) .ti { opacity: 0.5; }
+.nd.can:not(.asc) image, .nd.can:not(.asc) .ti { opacity: 0.95; }
+.nd.on:not(.asc) image, .nd.on:not(.asc) .ti { opacity: 1; }
 .nd.lk { cursor: not-allowed; }
 .nd.lk:not(.asc) circle { fill: #0c0e14; stroke: #5a5d66; stroke-opacity: 0.9; stroke-dasharray: 5 4; }
-.nd.lk:not(.asc) use, .nd.lk:not(.asc) image { opacity: 0.25; }
+.nd.lk:not(.asc) .ti, .nd.lk:not(.asc) image { opacity: 0.25; }
 .nd.sel:not(.asc) circle { stroke: #fff; stroke-opacity: 1; stroke-width: 6; }
 .nd.hit:not(.asc) circle { stroke: var(--gold); stroke-opacity: 1; stroke-width: 6; }
 /* 縮到看不清楚時：每個點就是一顆系色的點，一眼看出哪個方向是什麼系 */
@@ -1596,3 +1596,10 @@ body.touch #ppat { width: calc(100vw - 12px); right: 6px; }
 body.touch.port #ppat { left: 0 !important; right: 0 !important; top: auto !important; bottom: 0; width: auto !important; max-height: 55dvh; transform: none; border-radius: 0; }
 body.touch.port #ppat > .ph:first-child .x { display: grid; }
 #ppat .ph .x { min-width: 44px; min-height: 44px; }
+
+/* ---------- 0.3.3 技能失效：技能列紅「!」、技能面板上排紅框＋「失效」 ---------- */
+.sk.bad { border-color: var(--bad, #e8574f); }
+.sk.bad::after { content: '!'; position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; display: grid; place-items: center; font: 900 12px/1 var(--font); color: #fff; background: var(--bad, #e8574f); border: 1px solid #000; border-radius: 50%; pointer-events: none; }
+.slot.bad { border-color: var(--bad, #e8574f); box-shadow: inset 0 0 0 1px var(--bad, #e8574f), inset 0 0 10px #000; }
+.slot.bad .ic { filter: grayscale(0.8) brightness(0.6); }
+.slot .badm { position: absolute; top: 3px; right: 3px; padding: 1px 4px; font: 700 10px/1.2 var(--font); font-style: normal; color: #fff; background: var(--bad, #e8574f); border-radius: 2px; }

@@ -97,6 +97,7 @@ function resetWorld(W, H) {
   Object.assign(G, {
     W,
     H,
+    ask: 0 /* 回藏身處的確認卡（touch.js 的 homeAsk） */,
     mobs: [],
     shots: [],
     fx: [],
@@ -411,6 +412,7 @@ function enterMap(t) {
   G.prog = 0;
   sfx('portal');
   hudState();
+  slotBadWarn();
 }
 /* 放下一波：每群從四邊隨機一邊的牆邊走進來、出生就追玩家；心魔幻境的七情王跟第 2 波一起出現（不是地圖王） */
 function spawnWave() {
@@ -2000,11 +2002,14 @@ function frame(now) {
     }
     for (const d of G.drops.slice()) {
       d.t += dt;
-      /* 過濾器：「自動撿」的裝備跟金幣一樣吸過來（自己丟的、放不下的不吸） */
+      /* 0.3.3：地圖裡的掉落不看距離全部吸過來（過濾器隱藏的、自己丟的、放不下的不吸）；
+         藏身處照舊：金幣碎片與過濾器「自動撿」的裝備在 150 以內才吸 */
+      const map = G.scene === 'map' && !PRO.on,
+        act = d.it && dropFlt(d).act;
       if (
-        (d.gold || d.frag || (d.it && !d.nopick && !d.full && dropFlt(d).act === 'pick')) &&
+        (d.gold || d.frag || (d.it && !d.nopick && !d.full && (map ? act !== 'hide' : act === 'pick'))) &&
         d.t > 0.4 &&
-        dist(P, d) < 150
+        (map || dist(P, d) < 150)
       ) {
         const f = Math.min(1, dt * 10);
         d.x = d.sx = d.x + (P.x - d.x) * f;

@@ -280,6 +280,22 @@ const wtOK = D =>
 const wtNeed = D =>
   D.wt ? '要拿' + D.wt.map(w => WTN[w]).join('或') : D.off ? '副手要拿盾' : D.asc ? `要點亮昇華點「${D.n}」` : '';
 const needTxt = D => '需要：' + (D.wt ? D.wt.map(w => WTN[w]).join('、') : D.asc ? `昇華點「${D.n}」` : '副手的盾');
+/* 這一格的技能失效了嗎（0.3.3）：武器不對、或能力值不夠（放不出來）；回傳原因，沒失效回空字串。技能列的紅「!」、技能面板的紅框、進圖提示共用 */
+function slotBad(i, c = slotCfg(i)) {
+  if (!S.skills[i] || !S.skills[i].k || !c) return '';
+  if (!wtOK(c.D)) return needTxt(c.D);
+  const lk = c.g && gemLack(c.g);
+  return lk && lk.length ? '能力值不足：' + lackTxt(lk) : '';
+}
+/* 進地圖時的提示：第一個失效的技能（有好幾個就寫還有幾招） */
+function slotBadWarn() {
+  const L = S.skills.map((_, i) => i).filter(i => slotBad(i));
+  if (!L.length) return;
+  const i = L[0];
+  hudWarn(
+    `${SLOTKEY[i]}「${SKILLS[S.skills[i].k].n}」失效了（${slotBad(i)}）${L.length > 1 ? `，還有 ${L.length - 1} 招也失效` : ''}`
+  );
+}
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */
 const metaOf = g =>
   g && (g.sup || []).find(x => x && SUPPORTS[x.gem] && SUPPORTS[x.gem].meta && supOK(awD(g.gem, g.aw), x, g));
