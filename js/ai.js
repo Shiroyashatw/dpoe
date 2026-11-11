@@ -131,9 +131,11 @@ function aiTick(dt) {
     }
   }
   if (P.roll) return;
-  /* 蓄力技能：按住到蓄滿、目標死了或打不到就放開 */
+  /* 怪物方的地面（地圖詞留下的煙霧、凋零、油、感電、點燃……）：踩在上面就往外走（企劃書 2.1 第 11 項） */
+  const hz = G.ground.find(g => g.side === 'm' && !g.done && onGround(g));
+  /* 蓄力技能：按住到蓄滿、目標死了或打不到就放開；踩到怪物方的地面也放開 */
   const act = P.act;
-  if (act && act.charge) {
+  if (act && act.charge && !hz) {
     const E = act.c.D.charge;
     if (T && act.ch < E.max * E.step - 1e-6 && aiReach(act.c, T)) AI.hold = act.slot;
   }
@@ -158,12 +160,6 @@ function aiTick(dt) {
       } else if (d > AI_KEEP * 1.15) aiGo(T.x, T.y);
     } else aiGo(T.x, T.y, T.r + P.r + reach);
   }
-  /* 怪物方的地面（地圖詞留下的煙霧、凋零、油、感電、點燃……）：踩在上面就往外走（企劃書 2.1 第 11 項） */
-  const hz = G.ground.find(g => g.side === 'm' && !g.done && onGround(g));
-  if (hz) {
-    const d = Math.hypot(P.x - hz.x, P.y - hz.y) || 1;
-    AI.mv = [(P.x - hz.x) / d, (P.y - hz.y) / d];
-  }
   /* 撿東西：場上沒有近身的怪，或王已經倒下 */
   const loot = !T || dist(P, T) > 260 ? aiLoot(A) : null;
   if (loot) {
@@ -176,8 +172,13 @@ function aiTick(dt) {
     }
     if (loot.it && d < 100) interact();
   } else if (boss && (!T || dist(P, T) > 260)) aiGo(G.portal.x, G.portal.y, 6);
-  /* 出招：照順序，冷卻好、放得出來、打得到就放；魔力不夠的招等著，喝魔力藥劑 */
-  if (!T || P.act || G.state !== 'play') return;
+  /* 踩在怪物方的地面上：往外走，蓋過追怪與撿東西的方向 */
+  if (hz) {
+    const d = Math.hypot(P.x - hz.x, P.y - hz.y) || 1;
+    AI.mv = [(P.x - hz.x) / d, (P.y - hz.y) / d];
+  }
+  /* 出招：照順序，冷卻好、放得出來、打得到就放；魔力不夠的招等著，喝魔力藥劑。站在怪物方的地面上先走出去再出招（出招中走不動） */
+  if (!T || P.act || G.state !== 'play' || hz) return;
   const at = AI.aim;
   let lackMp = false;
   for (const i of order) {
