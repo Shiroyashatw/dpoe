@@ -89,7 +89,9 @@ function skLines(c) {
   else if (N.hit != null) L.push(`造成 ${fmtN(N.hit)} ${el}傷害（平均）`);
   if (D.tags.includes('proj') && c.projEv) L.push(`發射 ${fmtS(c.projEv)} 個投射物`);
   if (D.r) L.push(`範圍為 ${fmtM(D.r * ST.aoeM * c.aoe)} 公尺`);
-  if (D.dur) L.push(`持續時間為 ${fmtS(durOf(c))} 秒`);
+  /* 詛咒的持續時間跟著等級（combat.js 的 curseMob：6 ＋ 0.07 × 等級） */
+  if (D.curse) L.push(`詛咒持續時間為 ${fmtS(6 + 0.07 * c.lv)} 秒`);
+  else if (D.dur) L.push(`持續時間為 ${fmtS(durOf(c))} 秒`);
   L.push(`${isSpell(D) ? '施放' : '攻擊'}時間為 ${fmtS(actDur(c))} 秒`);
   if (c.mp) L.push(`消耗 ${Math.round(c.mp)} 魔力`);
   if (c.cd) L.push(`冷卻時間為 ${fmtS(c.cd)} 秒`);
