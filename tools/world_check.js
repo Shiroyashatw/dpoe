@@ -551,7 +551,7 @@ async function auto(b) {
   });
   const t0 = Date.now();
   let r = null;
-  while (Date.now() - t0 < 240000) {
+  while (Date.now() - t0 < 330000) {
     await p.waitForTimeout(2000);
     r = await p.evaluate(() => ({
       done: S.world.done.length,

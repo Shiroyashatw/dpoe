@@ -58,23 +58,76 @@ function aiTarget() {
   }
   return best;
 }
-/* 要躲的東西：紅光預警圈（快爆了而且腳下有）、馬上要出手而且面向自己的近戰怪。回傳要逃的方向（單位向量）或 null */
+/* 要躲的東西。回傳 { roll, walk }：各是要逃的方向（單位向量）或 null。
+   roll＝爆炸／揮擊剩不到 AI_ROLL 秒、而且腳下有（翻滾的無敵 0.26 秒要蓋住那一下，太早滾會在命中前結束）；
+   walk＝還有一點時間（紅光圈 0.9 秒、怪與王的前搖 0.6 秒內），翻滾冷卻中也能先走出去。
+   王的衝撞（charge）往側邊閃（沿著衝撞的線往後跑躲不掉），其他往反方向 */
+const AI_ROLL = 0.22;
 function aiThreat() {
-  let ax = 0,
-    ay = 0;
-  const push = (x, y) => {
-    const d = Math.hypot(P.x - x, P.y - y) || 1;
-    (ax += (P.x - x) / d), (ay += (P.y - y) / d);
+  const R = [0, 0],
+    W = [0, 0];
+  let r = 0,
+    w = 0;
+  /* x、y 是威脅的位置（往反方向逃）；a 有值＝衝撞方向，往垂直的側邊逃 */
+  const add = (left, lim, x, y, a, noRoll) => {
+    if (left >= lim) return;
+    let vx, vy;
+    if (a != null) {
+      const px = Math.cos(a + Math.PI / 2),
+        py = Math.sin(a + Math.PI / 2),
+        sg = px * (P.x - x) + py * (P.y - y) >= 0 ? 1 : -1;
+      (vx = px * sg), (vy = py * sg);
+    } else {
+      const d = Math.hypot(P.x - x, P.y - y) || 1;
+      (vx = (P.x - x) / d), (vy = (P.y - y) / d);
+    }
+    (W[0] += vx), (W[1] += vy), (w = 1);
+    if (left < AI_ROLL && !noRoll) (R[0] += vx), (R[1] += vy), (r = 1);
   };
   for (const t of G.tele)
-    if (!t.done && t.dmg > 0 && t.dur - t.t < ROLL.t + 0.5 && dist(P, t) < t.r + P.r + 10) push(t.x, t.y);
+    if (!t.done && t.dmg > 0 && dist(P, t) < t.r + P.r + 10)
+      add(Math.max(0, t.dur - t.t), 0.9, t.x, t.y, null, !(t.src && t.src.boss));
   for (const m of G.mobs) {
-    /* 王的招式沒有統一的射程：前搖快結束、離得近、面向自己就算 */
-    if (m.hp <= 0 || m.st !== 'wind' || m.t > 0.4 || !(m.boss || ['melee', 'lunge', 'slam'].includes(m.D.ai))) continue;
-    if (dist(m, P) < (m.D.reach || m.r + 170) + P.r + 20 && angDiff(angTo(m, P), m.ang || 0) < 1.3) push(m.x, m.y);
+    /* 只躲王：小怪的前搖打得不重，每隻都躲的話場上怪一多就一直在跑、不出招 */
+    const dash = m.st === 'dash' && m.boss;
+    if (m.hp <= 0 || !m.boss || !(m.st === 'wind' || dash)) continue;
+    /* 沒有預警圈的王招只有揮爪（swipe，扇形 150）與衝撞（charge／dash，420）；其他招有紅光圈（上面）或打不到近身的人 */
+    const charge = m.pat === 'charge' || dash;
+    if (!charge && m.pat !== 'swipe') continue;
+    if (dist(m, P) > (charge ? 420 : 150 + 40) + P.r || angDiff(angTo(m, P), m.ang || 0) > (charge ? 0.7 : 1.4))
+      continue;
+    add(dash ? 0 : m.t, 0.45, m.x, m.y, charge ? m.ang || 0 : null);
+  }
+  const u = V => {
+    const l = Math.hypot(V[0], V[1]);
+    return l ? [V[0] / l, V[1] / l] : null;
+  };
+  return { roll: r ? u(R) : null, walk: w ? u(W) : null };
+}
+/* 朝自己飛來、0.5 秒內會擦過自己的怪物投射物：回傳側走的方向（垂直於飛行方向、離彈道遠的一側）或 null */
+function aiShots() {
+  let ax = 0,
+    ay = 0,
+    n = 0;
+  for (const s of G.shots) {
+    if (!s.foe || s.life <= 0) continue;
+    const rx = s.x - P.x,
+      ry = s.y - (P.y - 20) /* 碰撞用的是 P.y − 20（updShots） */,
+      vv = s.vx * s.vx + s.vy * s.vy;
+    if (!vv) continue;
+    const t = Math.max(0, Math.min(0.5, -(rx * s.vx + ry * s.vy) / vv)),
+      cx = rx + s.vx * t,
+      cy = ry + s.vy * t;
+    if (Math.hypot(cx, cy) > P.r + (s.r || 9) + 12) continue;
+    /* 垂直於飛行方向，朝離彈道遠的一側（正好在線上就隨便選一側） */
+    const l = Math.sqrt(vv),
+      px = -s.vy / l,
+      py = s.vx / l,
+      sg = cx * px + cy * py > 0 ? -1 : 1;
+    (ax += px * sg), (ay += py * sg), n++;
   }
   const l = Math.hypot(ax, ay);
-  return l ? [ax / l, ay / l] : null;
+  return n && l ? [ax / l, ay / l] : null;
 }
 /* 場上不藏的掉落裡最近的（沒放棄的） */
 function aiLoot(A) {
@@ -122,13 +175,12 @@ function aiTick(dt) {
     A.flaskT = 1;
     drinkFlask();
   }
-  /* 翻滾：紅光圈在腳下、近戰怪馬上要打到自己，往反方向滾 */
-  if (!P.roll && !(P.cds.roll > 0)) {
-    const e = aiThreat();
-    if (e) {
-      (P.mdx = e[0]), (P.mdy = e[1]);
-      doRoll();
-    }
+  /* 翻滾：爆炸、揮擊剩不到 0.22 秒而且腳下有，往反方向滾（翻滾在冷卻就靠下面的走位先走出去） */
+  A.dodgeT = A.dodgeT || 0;
+  const th = aiThreat();
+  if (th.roll && !P.roll && !(P.cds.roll > 0)) {
+    (P.mdx = th.roll[0]), (P.mdy = th.roll[1]);
+    doRoll();
   }
   if (P.roll) return;
   /* 怪物方的地面（地圖詞留下的煙霧、凋零、油、感電、點燃……）：踩在上面就往外走（企劃書 2.1 第 11 項） */
@@ -172,13 +224,22 @@ function aiTick(dt) {
     }
     if (loot.it && d < 100) interact();
   } else if (boss && (!T || dist(P, T) > 260)) aiGo(G.portal.x, G.portal.y, 6);
+  /* 躲：投射物側走（不翻滾）、紅光圈與前搖的走位、怪物方的地面往外走；後面的蓋過前面的；躲的那格不出新招 */
+  let dodge = false;
+  const sh = aiShots();
+  if (sh) (AI.mv = sh), (dodge = true);
+  /* 翻滾還能用就繼續打、剩 0.22 秒再滾；翻滾在冷卻才先走出去 */
+  if (th.walk && P.cds.roll > 0) (AI.mv = th.walk), (dodge = true);
+  /* 躲了超過 0.5 秒還沒出過招就讓這格出招（怪一多就一直有東西飛過來，不能永遠不還手） */
+  A.dodgeT = dodge ? A.dodgeT + dt : 0;
+  if (A.dodgeT > 0.5) (dodge = false), (A.dodgeT = 0);
   /* 踩在怪物方的地面上：往外走，蓋過追怪與撿東西的方向 */
   if (hz) {
     const d = Math.hypot(P.x - hz.x, P.y - hz.y) || 1;
     AI.mv = [(P.x - hz.x) / d, (P.y - hz.y) / d];
   }
   /* 出招：照順序，冷卻好、放得出來、打得到就放；魔力不夠的招等著，喝魔力藥劑。站在怪物方的地面上先走出去再出招（出招中走不動） */
-  if (!T || P.act || G.state !== 'play' || hz) return;
+  if (!T || P.act || G.state !== 'play' || hz || dodge) return;
   const at = AI.aim;
   let lackMp = false;
   for (const i of order) {
