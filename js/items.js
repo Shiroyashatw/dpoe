@@ -304,9 +304,7 @@ function statText(k, v) {
 /* 神格的說明：每條能力一行 */
 const ghText = gh =>
   Object.entries(ghFx(gh, {}))
-    .map(([k, v]) => {
-      return statText(k, v);
-    })
+    .flatMap(([k, v]) => statText(k, v).split('\n'))
     .concat((gh.a || []).map(a => affText(a)));
 /* 基底的數值（品質放大）＋固定詞 */
 const impText = (k, v) => {

@@ -434,7 +434,7 @@ const statLines = s => [
   ...(s.only ? [`持${WTN[s.only]}時：`] : []),
   ...Object.entries(s)
     .filter(([k]) => k !== 'only')
-    .map(([k, v]) => statText(k, v))
+    .flatMap(([k, v]) => statText(k, v).split('\n'))
 ];
 function treeTip(id) {
   const n = id.startsWith('a_') ? ascT().I[id] : PTREE.I[id];
