@@ -1472,7 +1472,7 @@ const BOSS_NEAR = {
   NOVA_N = 16,
   NOVA_GAP = 3;
 const novaAng = (m, i) => m.gap + ((i + NOVA_GAP) * TAU) / NOVA_N;
-/* 王：追一下，然後照自己會的招出手（揮爪、衝撞、砸地、叫小怪、彈幕環、連爆線、瞬移斬）；半血以下更快 */
+/* 王：追一下，然後照自己會的招出手（揮爪、衝撞、砸地、叫小怪、彈幕環、連爆線、瞬移斬）；0.3.0 起半血不再變快 */
 /* 0.2.52：王平常只打玩家，被魔像嘲諷時改打魔像；已經在出的那一招不換目標（只有在走位、挑招的時候重選） */
 function bossAI(m, dt) {
   const T =
@@ -1482,7 +1482,8 @@ function bossAI(m, dt) {
           ? m.tg
           : P,
     dT = dist(m, T);
-  const rage = (m.hp < m.mhp / 2 ? 0.72 : 1) * (m.wrathT > G.t ? 0.65 : 1);
+  /* 0.3.0：王半血狂暴（出招變快、移動 ×1.25）拿掉；只剩七情王「怒」的 wrath */
+  const rage = m.wrathT > G.t ? 0.65 : 1;
   /* 燭龍睜眼：天黑結束時三道火光朝你掃過來 */
   if (m.night && G.t >= m.night) {
     m.night = 0;
