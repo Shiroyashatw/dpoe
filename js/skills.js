@@ -296,7 +296,7 @@ function skillWhy(c, at) {
   if (isFlaskSk(c.D)) {
     if (ST.noFlask) return '蟾蜍之血：不能使用藥劑';
     if (P.flaskT > G.t) return '藥劑技能共用 0.5 秒間隔';
-    if (!pracFree() && P.flask < flaskCost() - 1e-9) return '生命藥劑用完了：殺怪會補';
+    if (!pracFree() && P.flask < flaskCost() - 1e-9) return '藥劑充能不夠：殺怪會補';
   }
   const hell = ST.hellfire && !ST.blood;
   if (!pracFree() && (ST.blood ? P.hp <= c.mp + 1 : !hell && mpAvail() < c.mp))

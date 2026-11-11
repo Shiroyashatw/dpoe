@@ -3003,9 +3003,15 @@ const ASC_COMBOS = `const combos = k => {
 
     /* 蟾蜍之血：不能使用藥劑（生命、魔力藥劑都鎖住、充能不扣）；沒點時照常。drinkFlask 是 game.js 的真函式 */
     rs(); P.flask = 3; P.mflask = 3; ST.noFlask = 0; drinkFlask(); drinkFlask(1);
-    o.flaskOk = [r2(P.flask), r2(P.mflask)];
-    P.flask = 3; P.mflask = 3; P.heal = 0; ST.noFlask = 1; WARN = ''; drinkFlask(); drinkFlask(1);
+    o.flaskOk = [P.cds.flask > 0, P.cds.mflask > 0];
+    P.flask = 3; P.mflask = 3; P.heal = 0; P.cds = {}; ST.noFlask = 1; WARN = ''; drinkFlask(); drinkFlask(1);
     o.flaskNo = [P.flask, P.mflask, P.heal, WARN];
+    /* 0.3.1：紅藍水不限次數、不花充能、各自 3 秒冷卻；冷卻中喝不到 */
+    rs(); ST.hp = ST.mp = 100; P.flask = 0; P.mflask = 0; P.heal = P.mheal = 0; P.cds = {}; ST.noFlask = 0; drinkFlask();
+    const fh1 = P.heal; drinkFlask(); const fh2 = P.heal; drinkFlask(1);
+    o.flaskCd = [fh1 > 0, fh2 === fh1, P.flask, r2(P.cds.flask), r2(P.cds.mflask), P.mheal > 0];
+    P.cds.flask = 0; drinkFlask(); o.flaskCd2 = P.heal > fh1;
+    o.mobCd = MOB_CD;
 
     /* 腹蛇之眼：不受詛咒（元素要害不減抗性）、不受致盲（閃避與命中不打折）；對被詛咒的敵人傷害更多 15%（詛咒過期就沒有） */
     rs(); P.ail = { curse: { k: 'eleweak', t: G.t + 99, v: 20 } }; ST.res = { fire: 50, cold: 50, light: 50, chaos: 0 }; ST.maxRes = { fire: 75, cold: 75, light: 75, chaos: 75 };
@@ -3093,8 +3099,13 @@ const ASC_COMBOS = `const combos = k => {
     j([g.noEvade, g.evZero])
   );
   ok(
-    '蟾蜍之血：不能使用藥劑（drinkFlask 真的擋下：生命與魔力藥劑的充能不扣、不回血、跳「蟾蜍之血：不能使用藥劑」）；沒點照常喝；每秒回復 1.5% 最大生命、小點生命回復 +20% 是乘上去的（不是加上去）',
-    j(g.flaskOk) === '[2,2]' &&
+    '紅水藍水（0.3.1）：不限次數、不花充能（0 瓶也能喝）、各自 3 秒冷卻（冷卻中再按不回血，紅藍分開算）、冷卻到了再喝；怪物出招冷卻 ×1.3',
+    j(g.flaskCd) === '[true,true,0,3,3,true]' && g.flaskCd2 === true && g.mobCd === 1.3,
+    j([g.flaskCd, g.flaskCd2, g.mobCd])
+  );
+  ok(
+    '蟾蜍之血：不能使用藥劑（drinkFlask 真的擋下：生命與魔力藥劑都不回血、不進冷卻、跳「蟾蜍之血：不能使用藥劑」）；沒點照常喝；每秒回復 1.5% 最大生命、小點生命回復 +20% 是乘上去的（不是加上去）',
+    j(g.flaskOk) === '[true,true]' &&
       j(g.flaskNo) === '[3,3,0,"蟾蜍之血：不能使用藥劑"]' &&
       g.regenInc[0] === g.regenInc[1] &&
       g.regenInc[2] === 20,
@@ -3225,7 +3236,7 @@ const ASC_COMBOS = `const combos = k => {
     o.burst1 = [r2(1e6 - b1.hp), r2(1e6 - b2.hp), b3.hp, b4.hp, b5.hp, b6.hp, b7.hp, r2(b1.ail.poi[0].t - G.t), r2(b1.ail.poi[1].t - G.t), P.ev.flask === G.t];
     flaskDrunk(); o.burst2 = r2(1e6 - b1.hp);
     ST.flaskBurst = 0; const b8 = pz(100); G.mobs = [b8]; flaskDrunk(); o.burstOff = b8.hp;
-    ST.flaskBurst = 50; const b9 = pz(100); G.mobs = [b9]; P.flask = 3; P.heal = 0; G.scene = 'map'; G.state = 'play'; drinkFlask(); o.burstRed = [b9.hp < 1e6, P.heal > 0, r2(P.flask)];
+    ST.flaskBurst = 50; const b9 = pz(100); G.mobs = [b9]; P.flask = 3; P.heal = 0; G.scene = 'map'; G.state = 'play'; drinkFlask(); o.burstRed = [b9.hp < 1e6, P.heal > 0, r2(P.flask), r2(P.cds.flask)];
     const b10 = pz(100); G.mobs = [b10]; P.mflask = 3; P.mheal = 0; drinkFlask(1); o.burstBlue = [b10.hp < 1e6, P.mheal > 0];
     const b11 = pz(100); G.mobs = [b11]; ST.gasflask = 1; actHit({ k: 'gasflask', c: cfgOf('gasflask'), ang: 0, tx: 0, ty: 0, hits: [0], n: 0 }, 0); o.burstSkill = b11.hp < 1e6;
 
@@ -3288,8 +3299,8 @@ const ASC_COMBOS = `const combos = k => {
     j(g.pay) === '[["",1],["",0.5],["",0.5],["",0.25]]' &&
       j(g.gap) === '["藥劑技能共用 0.5 秒間隔",0.5]' &&
       g.gap2 === '' &&
-      g.empty === '生命藥劑用完了：殺怪會補' &&
-      g.emptyHalf === '生命藥劑用完了：殺怪會補' &&
+      g.empty === '藥劑充能不夠：殺怪會補' &&
+      g.emptyHalf === '藥劑充能不夠：殺怪會補' &&
       g.halfOK === '' &&
       g.noFlask === '蟾蜍之血：不能使用藥劑' &&
       j(g.prac) === '[true,true]',
@@ -3328,7 +3339,7 @@ const ASC_COMBOS = `const combos = k => {
     j(g.burst1) === '[45,22.5,1000000,1000000,0,1000000,0,2.5,5,true]' &&
       g.burst2 === 67.5 &&
       g.burstOff === 1000000 &&
-      j(g.burstRed) === '[true,true,2]' &&
+      j(g.burstRed) === '[true,true,3,3]' &&
       j(g.burstBlue) === '[true,true]' &&
       g.burstSkill === true,
     j([g.burst1, g.burst2, g.burstOff, g.burstRed, g.burstBlue, g.burstSkill])
@@ -6271,7 +6282,7 @@ const ASC_COMBOS = `const combos = k => {
     reset(); P.flask = 0; P.mflask = 1; gainStk('chalice', 1, 10); run(1); o.fl = [r2(P.flask), r2(P.mflask)]; run(10); o.fl2 = r2(P.flask);
     reset(); P.flask = P.mflask = 2.99; gainStk('chalice', 1, 5); run(2); o.fl3 = [P.flask, P.mflask];
     reset(); G.scene = 'map'; ST.flask = 20; P.flask = P.mflask = 3; drinkFlask(); drinkFlask(1); const h0 = P.heal, mh0 = P.mheal;
-    gainStk('chalice', 1, 5); P.heal = P.mheal = 0; drinkFlask(); drinkFlask(1); o.fl4 = [r2(P.heal / h0), r2(P.mheal / mh0)];
+    gainStk('chalice', 1, 5); P.heal = P.mheal = 0; P.cds = {}; drinkFlask(); drinkFlask(1); o.fl4 = [r2(P.heal / h0), r2(P.mheal / mh0)];
     /* 沒有層數時一切照舊 */
     reset(); o.none = keys.map(bufV).every(v => v === 0);
     o.terms = ['靈巧', '黑暗低語', '風暴湧流', '德魯伊之賦', '翠玉', '無縛潛能', '完美增益', '奇術活力', '滿溢聖杯'].filter(k => !TERMS[k]);

@@ -747,11 +747,10 @@ function drinkFlask(mana) {
   if (!fightOn() || G.state !== 'play') return;
   /* 蟾蜍之血（0.2.74 異變者 noFlask）：不能使用藥劑（生命與魔力藥劑都鎖住） */
   if (ST.noFlask) return hudWarn('蟾蜍之血：不能使用藥劑');
-  /* 謹慎調配（flaskUse）：一次少用 x% 充能，剩的夠就能喝；魔力泉（mpFlask）：魔力藥劑回復更多 */
-  const k = mana ? 'mflask' : 'flask',
-    use = flaskNeed();
-  if (P[k] < use) return hudWarn((mana ? '魔力' : '生命') + '藥劑用完了：殺怪會補');
-  P[k] -= use;
+  /* 0.3.1：不限次數、不花充能，各自冷卻 FLASK.cd 秒；魔力泉（mpFlask）：魔力藥劑回復更多 */
+  const k = mana ? 'mflask' : 'flask';
+  if (P.cds[k] > 0) return;
+  P.cds[k] = FLASK.cd;
   flaskDrunk();
   const v = flaskEff() + (mana ? ST.mpFlask : 0) / 100;
   if (mana) P.mheal += ST.mp * FLASK.mp * v;
@@ -1329,7 +1328,7 @@ function updMobs(dt) {
 function recover(m, t) {
   m.st = 'rec';
   m.t = t;
-  m.cd = m.D.cd * rnd(0.85, 1.15);
+  m.cd = m.D.cd * rnd(0.85, 1.15) * MOB_CD;
 }
 function mobStrike(m) {
   const D = m.D,
@@ -1839,7 +1838,7 @@ function bossAI(m, dt) {
 function bossRec(m, t, rage) {
   m.st = 'rec';
   m.t = t * rage;
-  m.cd = rnd(0.5, 1.1) * rage;
+  m.cd = rnd(0.5, 1.1) * rage * MOB_CD;
 }
 
 /* ---------- 投射物、預警圈 ---------- */

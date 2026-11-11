@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.3.1';
+const VER = '0.3.2';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -6839,7 +6839,8 @@ function ascFeasible(T, set) {
 const ROLL = { t: 0.32, dist: 175, iframe: 0.26, cd: 0.55, perfect: 0.16, slow: 0.55, slowScale: 0.3, tank: 30 };
 /* 藥劑：生命藥劑（1）回生命、魔力藥劑（2，0.2.13）回魔力，瓶數分開算 */
 /* chg：一瓶等於幾點 PoE2 的充能（每次使用 10 充能，滿溢聖杯換算用） */
-const FLASK = { n: 3, heal: 0.5, mp: 0.5, t: 1.4, perKill: 0.12, chg: 10 };
+/* 0.3.1：紅水藍水不限次數、各自 3 秒冷卻（cd，P.cds.flask／mflask）；充能 n 只剩藥劑技能（追獵者）在用 */
+const FLASK = { n: 3, heal: 0.5, mp: 0.5, t: 1.4, perKill: 0.12, chg: 10, cd: 3 };
 
 /* ---------- 地圖：階級 1～16，打倒王開放下一階；費用與地圖卡在 maps.js ---------- */
 const TMAX = 16;

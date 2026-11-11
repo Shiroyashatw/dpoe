@@ -176,7 +176,7 @@ function aiTick(dt) {
     boss = G.portal && G.portal.home;
   AI.aim = T ? { x: T.x, y: T.y } : { x: P.x + Math.cos(P.face) * 200, y: P.y + Math.sin(P.face) * 200 };
   /* 藥劑：生命低於一半喝生命藥劑（正在回復中不重複喝） */
-  if (P.hp < ST.hp * AI_HP && P.heal <= 0 && A.flaskT <= 0 && P.flask >= flaskNeed()) {
+  if (P.hp < ST.hp * AI_HP && P.heal <= 0 && A.flaskT <= 0 && !(P.cds.flask > 0)) {
     A.flaskT = 1;
     drinkFlask();
   }
@@ -258,7 +258,7 @@ function aiTick(dt) {
     if (skillWhy(c, at) === '魔力不足') lackMp = true;
     if (aiCan(c, i, at) && useSlot(i)) return;
   }
-  if (lackMp && A.flaskT <= 0 && P.mp < ST.mp * 0.3 && P.mflask >= flaskNeed()) (A.flaskT = 1), drinkFlask(1);
+  if (lackMp && A.flaskT <= 0 && P.mp < ST.mp * 0.3 && !(P.cds.mflask > 0)) (A.flaskT = 1), drinkFlask(1);
 }
 /* 自動／手動切換鈕：切成手動 AI 停下（地圖不中斷）；切回自動 AI 接手，在藏身處就接著開圖 */
 function autoToggle() {

@@ -152,7 +152,7 @@ const PRO_STEPS = [
     },
     t: () => proKey('地面炸開了！按 1 喝生命藥水', '地面炸開了！按亮著的藥水鍵', '地面炸開了！按亮著的藥水鍵'),
     hl: () => '.sk[data-k=flask]',
-    done: () => P.flask < FLASK.n
+    done: () => P.cds.flask > 0
   },
   {
     at: [14, 22],

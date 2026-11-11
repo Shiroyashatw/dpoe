@@ -169,8 +169,9 @@ function hudTick() {
     let cd = 0,
       txt = '';
     if (k === 'flask' || k === 'mflask') {
-      cd = P[k] >= flaskNeed() ? 0 : 1 - P[k] / flaskNeed();
-      txt = Math.floor(P[k] / flaskNeed() + 1e-9) + ''; /* 還能喝幾次（跟 drinkFlask 同一個算法） */
+      /* 0.3.1：不限次數，只畫冷卻 */
+      cd = (P.cds[k] || 0) / FLASK.cd;
+      if (P.cds[k] > 0) txt = Math.ceil(P.cds[k]) + '';
     } else if (k === 'roll') cd = (P.cds.roll || 0) / (ROLL.cd + ROLL.t);
     else if (c && isFlaskSk(c.D)) {
       /* 藥劑技能（0.2.74 追獵者）：還能放幾次（跟紅水同一池）；共用 0.5 秒間隔畫成冷卻圈 */
