@@ -1,6 +1,6 @@
 /* dungeonPOE · 序章（企劃書 3.1）：手工小地圖，一步一步做到才前進。
-   更新後所有玩家都跑一次（S.story.prologue ≠ PRO_VER）：S 換成臨時角色，真的存檔留在 PRO.real，save()／雲端一律寫真的；
-   走出地層才換回來，第 7、8 步在藏身處用自己的角色走。新玩家（S.fresh）留下序章拿到的劍。 */
+   **0.3.0 起不跑**（proBoot 不呼叫 proStart；開場看完直接在藏身處，新玩家由 proGive 拿到劍）：手工地圖、八步、proStart 都留著等工項 11 決定怎麼教掛機。
+   跑的時候：S 換成臨時角色，真的存檔留在 PRO.real，save()／雲端一律寫真的；走出地層才換回來，第 7、8 步在藏身處用自己的角色走。新玩家（S.fresh）留下序章拿到的劍。 */
 'use strict';
 const PRO_VER = 1;
 const PRO_SWORD = 'w_sword1_0';
@@ -374,13 +374,17 @@ function proAbort() {
   PRO.real = null;
   proOff();
 }
-/* 啟動：要不要跑開場與序章 */
+/* 啟動：要不要跑開場。0.3.0 起序章不跑：開場看完直接在藏身處（proGive 給新手的劍）；序章的程式留著等工項 11 決定怎麼教掛機 */
 function proBoot() {
   const st = S.story;
   if (st.prologue === PRO_VER) return;
-  if (st.proS) (PRO.on = true), proStep(st.proS);
-  else if (st.intro === PRO_VER) proStart();
+  if (st.intro === PRO_VER) proGive();
   else introGate();
+}
+/* 不跑序章：新玩家拿到劍、開設施提示（proBack），記版本號（proDone） */
+function proGive() {
+  proBack();
+  proDone();
 }
 /* 第 8 步：開啟地圖。之後改接世界地圖時只動這個函式（藏身處的地圖台也走這裡） */
 function openWorld() {

@@ -880,12 +880,11 @@ function introStop() {
   $('intro').hidden = true;
   Object.keys(IV_BEDS).forEach(ivSnd.bedOff);
 }
-/* 播完或跳過：進序章，睜開眼 */
+/* 播完或跳過：睜開眼，人就在藏身處（0.3.0 起不進序章，proGive 給新手的劍） */
 function introEnd() {
   introStop();
   S.story.intro = PRO_VER;
-  save();
-  proStart();
+  proGive();
   introLid();
 }
 function introKey(k) {

@@ -8167,11 +8167,16 @@ const ASC_COMBOS = `const combos = k => {
   );
   ok('序章結束（老存檔）：沒有設施提示', R2(`!proHint('asc')`));
   const boot = st => R2(`BOOT = ''; S = newGame(); S.story = ${JSON.stringify(st)}; proBoot(); BOOT`);
+  /* 0.3.0 起序章不跑：看過開場＝直接給劍、記版本號（proGive），序章中斷的舊存檔也一樣 */
   ok(
-    '版本號：沒跑過＝開場、看過開場＝序章、第 7 步接回、跑過＝不跑、版本變了＝重跑',
+    '版本號：沒跑過＝開場、看過開場＝不進序章直接給劍記版本號、跑過＝不跑、版本變了＝重跑',
     boot({}) === 'gate' &&
-      boot({ intro: R2('PRO_VER') }) === 'map' &&
-      boot({ intro: R2('PRO_VER'), proS: 7 }) === 'step7' &&
+      boot({ intro: R2('PRO_VER') }) === '' &&
+      R2(
+        `!PRO.on && S.story.prologue === PRO_VER && !S.fresh && S.eq.weapon && S.eq.weapon.b === PRO_SWORD && S.story.tips === 1`
+      ) &&
+      boot({ intro: R2('PRO_VER'), proS: 7 }) === '' &&
+      R2(`S.story.prologue === PRO_VER && !S.story.proS`) &&
       boot({ prologue: R2('PRO_VER') }) === '' &&
       boot({ prologue: R2('PRO_VER') - 1, intro: R2('PRO_VER') - 1 }) === 'gate'
   );
