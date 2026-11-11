@@ -799,7 +799,7 @@ const ivSnd = {
     f.frequency.value = k === 'rain' ? 1400 : 320;
     g.gain.setValueAtTime(0.0001, a.currentTime);
     g.gain.exponentialRampToValueAtTime(vol, a.currentTime + 1.2);
-    s.connect(f).connect(g).connect(a.destination);
+    s.connect(f).connect(g).connect(OUT);
     s.start();
     IV_BEDS[k] = { s, g };
   }),

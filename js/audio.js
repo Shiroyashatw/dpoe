@@ -1,8 +1,15 @@
 /* dungeonPOE · 合成音效（Web Audio，沒有音檔） */
 'use strict';
-let AC;
+let AC, OUT;
+/* 關音效（設定，S.mute）：所有聲音都接總音量 OUT（開場動畫也是），關了就是 0 */
+const muted = () => typeof S !== 'undefined' && S && !!S.mute;
 function ac() {
-  if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+  if (!AC) {
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    OUT = AC.createGain();
+    OUT.connect(AC.destination);
+  }
+  OUT.gain.value = muted() ? 0 : 1;
   if (AC.state === 'suspended') AC.resume();
   return AC;
 }
@@ -28,7 +35,7 @@ function nz(dur, f0, f1, vol, type = 'bandpass') {
   f.frequency.exponentialRampToValueAtTime(f1, t + dur);
   g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  s.connect(f).connect(g).connect(a.destination);
+  s.connect(f).connect(g).connect(OUT);
   s.start(t);
   s.stop(t + dur);
 }
@@ -42,12 +49,13 @@ function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
   o.frequency.exponentialRampToValueAtTime(f1, t + dur);
   g.gain.setValueAtTime(vol, t);
   g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  o.connect(g).connect(a.destination);
+  o.connect(g).connect(OUT);
   o.start(t);
   o.stop(t + dur);
 }
 let lastHit = 0;
 function sfx(k) {
+  if (muted()) return;
   try {
     const now = ac().currentTime;
     if ((k === 'hit' || k === 'crit') && now - lastHit < 0.03) return;

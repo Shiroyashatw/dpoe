@@ -14,6 +14,7 @@ function newGame() {
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
+    mute: 0 /* 關音效（設定，audio.js 的 muted） */,
     lv: 1,
     xp: 0,
     gold: 0,

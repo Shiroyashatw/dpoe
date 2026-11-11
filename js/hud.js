@@ -428,6 +428,7 @@ function setHTML() {
       ? `<div class="ph2">操作方向</div><div class="gkind seg2"><button class="btn ${p ? 'on' : ''}" data-tm="port">直立</button><button class="btn ${p ? '' : 'on'}" data-tm="land">橫向</button></div><p class="sethint">直立單手操作；橫向雙手操作，視野較寬</p>`
       : ''
   }
+  <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
   <div class="ph2">掛機：區塊打完之後</div><div class="gkind seg3">${[
     ['next', '往下一區塊'],
     ['reset', '重置再刷'],
@@ -1802,6 +1803,12 @@ function act(a) {
     G.ask = 0;
     enterHideout();
     if (stop) aiStop('home', '回到藏身處：自動刷圖暫停，在巡邏卡按「繼續巡邏」再開始');
+  } else if (a.startsWith('mute:')) {
+    S.mute = +a.slice(5);
+    if (AC) ac(); /* 正在響的（開場的風聲雨聲）也跟著關 */
+    save();
+    sfx('click');
+    hudPanels();
   } else if (a === 'askno') {
     G.ask = 0;
     hudState();
