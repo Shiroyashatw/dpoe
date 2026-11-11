@@ -1074,7 +1074,7 @@ body.touch.port #pskill { --pp: 10px; padding-left: 10px; padding-right: 10px; }
 body.touch.port #pasc { height: auto; bottom: 0; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 0; }
 body.touch.port #pasc > * { flex: none; }
 body.touch.port .ax-side { display: contents; }
-body.touch.port .ax-list { order: 3; overflow: visible; padding: 0 0 8px; }
+body.touch.port .ax-list { order: 3; flex: none; overflow: visible; padding: 0 0 8px; }
 body.touch.port .ax-pick, body.touch.port .ax-cap { order: 4; flex: none; position: sticky; bottom: 0; z-index: 2; }
 body.touch.port .ax-cap { margin: 0 calc(-1 * var(--pp)); padding: 8px var(--pp); border-width: 1px 0 0; border-color: var(--fr); }
 body.touch.port .ax-pick { margin-bottom: 8px; }
