@@ -585,7 +585,41 @@ async function auto(b) {
     inv: S.inv.items.length,
     stop: S.stopWhy
   }));
-  ok('回家後臨時頁倒進倉庫、主背包沒有被撿到的東西', st.tmp <= 3 && st.stash >= 1 && st.inv === 0, JSON.stringify(st));
+  ok('AI 撿到的有地方放（先主背包）、回家後臨時頁倒進倉庫', st.tmp <= 3 && st.inv + st.stash >= 1, JSON.stringify(st));
+  /* 0.3.5：撿到的先放主背包，滿了放臨時頁；回家只把臨時頁倒進倉庫，主背包不動 */
+  const pk = await p.evaluate(() => {
+    const keep = { inv: S.inv.items, temp: S.temp.items, temp2: S.temp2.items, stash: S.stash.items };
+    S.inv.items = [];
+    S.temp.items = [];
+    S.temp2.items = [];
+    S.stash.items = [];
+    G.scene = 'map';
+    const drop = () => {
+      const d = { x: P.x, y: P.y, it: dropItem(5) };
+      G.drops.push(d);
+      pickup(d);
+      return d.it;
+    };
+    const a = drop(),
+      inInv = S.inv.items.includes(a);
+    /* 主背包塞滿：再撿的進臨時頁 */
+    while (gridAuto(S.inv, mkItem('r_iron', 1, 0)));
+    const nInv = S.inv.items.length,
+      b = drop(),
+      inTemp = S.temp.items.includes(b);
+    enterHideout();
+    const r = [inInv, inTemp, S.inv.items.length === nInv, S.stash.items.includes(b), S.temp.items.length];
+    Object.assign(S.inv, { items: keep.inv });
+    Object.assign(S.temp, { items: keep.temp });
+    Object.assign(S.temp2, { items: keep.temp2 });
+    Object.assign(S.stash, { items: keep.stash });
+    return r;
+  });
+  ok(
+    '撿到的先放主背包、滿了放臨時頁；回家只倒臨時頁、主背包不動',
+    JSON.stringify(pk) === '[true,true,true,true,0]',
+    JSON.stringify(pk)
+  );
   /* 連死 3 次：同一節點死 3 次就停機 */
   await p.evaluate(() => {
     S.auto = 1;

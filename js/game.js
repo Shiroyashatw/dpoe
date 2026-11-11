@@ -98,6 +98,7 @@ function resetWorld(W, H) {
     W,
     H,
     ask: 0 /* 回藏身處的確認卡（touch.js 的 homeAsk） */,
+    tempW: 0 /* 這張圖提醒過背包滿了 */,
     mobs: [],
     shots: [],
     fx: [],
@@ -1083,18 +1084,16 @@ function pickup(d) {
     num(d.x, d.y - 20, d.frag, 'frag');
     sfx('pick');
   } else {
-    /* 0.3.0：地圖裡撿到的直接進臨時頁（兩頁），回家自動倒進倉庫；主背包只放自己放的（序章與自己丟的先進背包） */
-    const toTemp = G.scene === 'map' && !PRO.on && !d.nopick;
-    if (toTemp) {
-      if (!gridAuto(S.temp, d.it) && !gridAuto(S.temp2, d.it))
-        return (d.full = 1), hudWarn('臨時倉庫都滿了：回藏身處整理');
-    } else if (!gridAuto(S.inv, d.it)) {
+    /* 0.3.5：先放主背包，滿了放臨時頁（兩頁）；回家只把臨時頁倒進倉庫，主背包不動 */
+    const inMap = G.scene === 'map' && !PRO.on && !d.nopick;
+    if (!gridAuto(S.inv, d.it)) {
       if (!gridAuto(S.temp, d.it) && !gridAuto(S.temp2, d.it))
         return (d.full = 1), hudWarn('背包和臨時倉庫都滿了：回藏身處整理');
-      hudWarn('背包滿了：放進臨時倉庫，回藏身處到倉庫取出');
+      /* 每張圖提醒一次就好（掛機撿很多件） */
+      if (!G.tempW) (G.tempW = 1), hudWarn('背包滿了：放進臨時倉庫，回藏身處會放進倉庫');
     }
     sfx('pick');
-    if (toTemp) S.patrol.got++;
+    if (inMap) S.patrol.got++;
     hudInv();
   }
   G.drops.splice(G.drops.indexOf(d), 1);

@@ -1632,10 +1632,8 @@ function showTip(html, a, t = $('tip')) {
   else if (a.left - G - w >= M) (x = a.left - G - w), (y = cy);
   else if (h <= dn) (x = cx), (y = a.bottom + G);
   else if (h <= up) (x = cx), (y = a.top - G - h);
-  else if (t.classList.contains('act') && Math.max(up, dn) < 240)
-    (x = cx),
-      (y = cy); /* 點出來的說明框：上下都太窄（手機橫向）才蓋住被點的東西（點別處關掉）；不然照下面縮短、裡面捲 */
-  else {
+  else if (t.classList.contains('act') && Math.max(up, dn) < 240) (x = cx), (y = cy);
+  /* 點出來的說明框：上下都太窄（手機橫向）才蓋住被點的東西（點別處關掉）；不然照下面縮短、裡面捲 */ else {
     t.style.maxHeight = Math.max(up, dn) + 'px';
     x = cx;
     y = dn >= up ? a.bottom + G : M;
