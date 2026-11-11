@@ -6849,7 +6849,7 @@ const ASC_COMBOS = `const combos = k => {
     /* 每顆 II：名字加 II、跟 I 同分類、同圖示 */
     out.meta = II.every(k => {
       const U = SUPPORTS[k], B = SUPPORTS[U.base];
-      return U.n === B.n + ' II' && supCat(k) === supCat(U.base) && U.ic === B.ic && U.d !== B.d;
+      return U.n === B.n + ' II' && supCat(k) === supCat(U.base) && U.ic === B.ic && U.d + U.x !== B.d + B.x;
     });
     /* I 跟 II 不能插在同一招：後插的那顆不生效 */
     const both = cf('axethrow', ['multi', 'multi2']), one = cf('axethrow', ['multi']), two = cf('axethrow', ['multi2']);
