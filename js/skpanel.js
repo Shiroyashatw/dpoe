@@ -71,6 +71,30 @@ function auraWhy(k, short) {
     return short ? '魔像已滿' : `魔像已滿（同時最多 ${ST.golemMax} 種），沒有生效`;
   return short ? '缺精魂' : '精魂不夠，沒有生效';
 }
+/* 詳細（照 PoE2 的詳細資料，docs/文字規範.md 第 3 節）：程式算得出來的自動產生，特殊規則接在技能資料的 x */
+const fmtS = v => +v.toFixed(2);
+const fmtM = px => +(px / METER).toFixed(1);
+function skLines(c) {
+  const D = c.D,
+    L = [];
+  if (c.aura) {
+    L.push(`保留 ${D.sp} 精魂`);
+    return [...L, ...(D.x || [])];
+  }
+  const N = skillNums(c),
+    el = ELN[N.el] || '';
+  if (N.eff) L.push(N.eff);
+  if (N.unit != null && N.hit != null) L.push(`每下造成 ${fmtN(N.hit)} ${el}傷害（平均）`);
+  else if (N.dot != null) L.push(`每秒造成 ${fmtN(N.dot)} ${el}傷害（平均）`);
+  else if (N.hit != null) L.push(`造成 ${fmtN(N.hit)} ${el}傷害（平均）`);
+  if (D.tags.includes('proj') && c.projEv) L.push(`發射 ${fmtS(c.projEv)} 個投射物`);
+  if (D.r) L.push(`範圍為 ${fmtM(D.r * ST.aoeM * c.aoe)} 公尺`);
+  if (D.dur) L.push(`持續時間為 ${fmtS(durOf(c))} 秒`);
+  L.push(`${isSpell(D) ? '施放' : '攻擊'}時間為 ${fmtS(actDur(c))} 秒`);
+  if (c.mp) L.push(`消耗 ${Math.round(c.mp)} 魔力`);
+  if (c.cd) L.push(`冷卻時間為 ${fmtS(c.cd)} 秒`);
+  return [...L, ...(D.x || [])];
+}
 /* 傷害算式：傷害怎麼算出來、每顆輔助的貢獻、下一級差多少 */
 function skDetail(g) {
   const c = gemCfg(g, -1),
@@ -322,8 +346,14 @@ function skSelf(c) {
   return `<div class="head"><div><h2>${esc(D.n)}</h2><div class="sub">${sub}</div></div><div class="lvbox"><b>Lv ${lv}${extra}</b><div class="lvbar"><i style="width:${(lv / GEM_MAX) * 100}%"></i></div></div></div>
     <p class="desc">${rich(D.d)}${!c.aura && awOf(k) ? ` <span class="aw-t">${esc(AWK[k][awOf(k)].n)}</span>：${rich(awText(k, awOf(k)))}` : ''}</p>
     ${warn.map(w => `<p class="why">${esc(w)}</p>`).join('')}
-    <div class="acts">${upBtn(k, 1)}<button class="btn" data-sk="swap">${c.aura ? '換一個' : '換一招'}</button>${c.aura ? `<button class="btn" data-sk="out">卸下</button>` : `<button class="btn" data-sk="calc">${SKUI.calc ? '收起算式' : '算式'}</button>`}</div>
-    ${!c.aura && SKUI.calc ? skDetail(c.g) : ''}`;
+    <div class="acts">${upBtn(k, 1)}<button class="btn" data-sk="swap">${c.aura ? '換一個' : '換一招'}</button>${c.aura ? `<button class="btn" data-sk="out">卸下</button>` : ''}<button class="btn" data-sk="calc" aria-expanded="${!!SKUI.calc}">${SKUI.calc ? '收起詳細' : '詳細'}</button></div>
+    ${
+      SKUI.calc
+        ? `<ul class="skx">${skLines(c.aura ? c : slotCfg(SKUI.i))
+            .map(l => `<li>${rich(l)}</li>`)
+            .join('')}</ul>${c.aura ? '' : skDetail(c.g)}`
+        : ''
+    }`;
 }
 /* 同一款詳情卡：圖示、名字＋Lv、標籤、等級條、一行數字、一句效果、動作鍵 */
 function skCard(k, acts, note) {
@@ -366,7 +396,7 @@ function skCard(k, acts, note) {
   }
   return `<div class="card">
     <div class="ic2">${icHTML(D.ic)}</div>
-    <div><div class="cl"><b>${esc(D.n)}</b><em>Lv ${lv}</em></div><div class="chips">${chips}</div><div class="lvb2"><i style="width:${(lv / GEM_MAX) * 100}%"></i></div><div class="kv">${kv}</div><p>${rich(D.d)}</p>${note ? `<p class="why">${esc(note)}</p>` : ''}</div>
+    <div><div class="cl"><b>${esc(D.n)}</b><em>Lv ${lv}</em></div><div class="chips">${chips}</div><div class="lvb2"><i style="width:${(lv / GEM_MAX) * 100}%"></i></div><div class="kv">${kv}</div><p>${rich(D.d)}</p>${kind === 'sup' && D.x && D.x.length ? `<ul class="skx">${D.x.map(l => `<li>${rich(l)}</li>`).join('')}</ul>` : ''}${note ? `<p class="why">${esc(note)}</p>` : ''}</div>
     <div class="cacts">${acts}</div>
   </div>`;
 }

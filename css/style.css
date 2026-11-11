@@ -1563,3 +1563,6 @@ body.touch.port #pbox > .ph:first-child .x { display: grid; }
 .tsockp .jw li small { display: block; font-size: var(--fs-s); color: var(--dim); }
 .tsockp .jw-b { display: flex; flex-direction: column; gap: 6px; flex: none; }
 .tsockp .jw-b .btn { min-height: 44px; min-width: 64px; }
+/* 文字重寫（2026-11-11）：技能卡的「詳細」、輔助卡的效果行 */
+.skx { list-style: none; margin: 6px 0; padding: 8px 10px; background: rgba(0, 0, 0, 0.25); border-left: 2px solid var(--fr, var(--line)); display: flex; flex-direction: column; gap: 3px; font-size: var(--fs-s); }
+.skx li { color: var(--tx); }
