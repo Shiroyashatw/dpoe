@@ -342,6 +342,7 @@ function touchInit() {
       const k = m.dataset.tm;
       if (k === 'fs') return fsClick();
       if (k === 'auto') return autoToggle();
+      if (k === 'pat') return PANEL.pat ? closePanels() : (closePanels(), (PANEL.pat = true), hudPanels());
       if (k === 'more') return moreMenu($('tmore').hidden);
       if (k === 'inv') PANEL.inv && !PANEL.stash && !PANEL.skill ? closePanels() : openPanel('inv');
       else if (k === 'skill') PANEL.skill ? closePanels() : openPanel('skill');

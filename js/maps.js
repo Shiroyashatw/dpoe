@@ -122,7 +122,8 @@ function rouletteOf(card, node) {
 const rouletteTxt = ids => ids.map(id => ROUL.find(x => x.id === id)).map(r => `${r.n}籌碼：${r.t}`);
 
 /* 費用只看星級：1★ 免費，每多一星 +2 碎片 */
-const mapCost = star => 2 * (star - 1);
+/* 0.3.0：開圖免費（企劃書 2.1 第 3 項）；碎片只剩洗卡、重置區塊、門票 */
+const mapCost = star => 0;
 /* w5：5★ 的權重倍率（血霧期 ×3） */
 function rollStar(w5 = 1) {
   const W = i => STARS[i].w * (i === 5 ? w5 : 1);

@@ -96,7 +96,7 @@ async function flow(b) {
   await talkAll(p);
   ok('對話放完，第一次不再播', await p.evaluate(() => !TALK.on && S.story.st_0 === 1));
   /* 第一個節點：開傳送門、走進去 */
-  await p.click('#pdev .btn.pri');
+  await p.click('#pdev [data-a=open]');
   ok('開傳送門：地圖關掉、傳送門在地圖台前面', await p.evaluate(() => !PANEL.device && !!G.portal && S.node === '0,0'));
   await p.evaluate(() => {
     P.x = G.portal.x;
@@ -127,7 +127,7 @@ async function flow(b) {
       `地圖自動選到下一個節點（${i + 2}）`,
       await p.evaluate(i => WM.sel === wKey(STORY[i + 1].q, STORY[i + 1].r) && WM.goal === WM.sel, i)
     );
-    await p.click('#pdev .btn.pri');
+    await p.click('#pdev [data-a=open]');
     await p.waitForFunction(() => G.scene === 'map' && !PANEL.device && G.state === 'play');
   }
   console.log('   打完每張圖的等級', lvs.join(' '));
@@ -162,19 +162,20 @@ async function flow(b) {
     wmPanel();
   });
   const w = await p.evaluate(k => {
-    const a = JSON.stringify(wCards(S, k).c),
+    const rg = wRegionOf(S.world.seed, ...wXY(k)),
+      a = JSON.stringify(wCards(S, rg).c),
       f0 = S.frag;
     document.querySelector('[data-wm=wash]').click();
     const f1 = S.frag;
     document.querySelector('[data-wm=wash]').click();
-    return [a !== JSON.stringify(wCards(S, k).c), f0 - f1, f1 - S.frag, wCards(S, k).w];
+    return [a !== JSON.stringify(wCards(S, rg).c), f0 - f1, f1 - S.frag, wCards(S, rg).w];
   }, k1);
   ok('洗卡：換新批、費用 1 → 2、記次數', w[0] && w[1] === 1 && w[2] === 2 && w[3] === 2, w.join());
   /* 第二張卡 */
   await p.click('#pdev .mc2:nth-child(2)');
   ok('選第二張卡', await p.evaluate(() => PANEL.card === 1 && !!document.querySelector('.mc2.on:nth-child(2)')));
-  await p.evaluate(() => (wCards(S, WM.sel).c[1] = rollCard(1)));
-  await p.click('#pdev .btn.pri');
+  await p.evaluate(() => (wCards(S, wRegionOf(S.world.seed, ...wXY(WM.sel))).c[1] = rollCard(1)));
+  await p.click('#pdev [data-a=open]');
   await p.evaluate(() => {
     P.x = G.portal.x;
     P.y = G.portal.y;
@@ -186,9 +187,9 @@ async function flow(b) {
   const fail = await p.evaluate(k => {
     hurtPlayer(1e9, null, 'phys');
     if (G.state !== 'dead') die();
-    return [G.state, S.world.done.includes(k), !!S.cards[k]];
+    return [G.state, S.world.done.includes(k), !!S.cards[wRegionOf(S.world.seed, ...wXY(k))]];
   }, k1);
-  ok('死亡：不算走過、這批卡用掉了', fail[0] === 'dead' && !fail[1] && !fail[2], fail.join());
+  ok('死亡：不算走過、區塊卡還在（整個區塊共用，打完才清）', fail[0] === 'dead' && !fail[1] && fail[2], fail.join());
   await p.click('[data-a=home]');
   await p.evaluate(() => openPanel('device'));
   await p.waitForTimeout(100);
@@ -217,7 +218,7 @@ async function flow(b) {
     S.frag = 99;
     wmPanel();
   });
-  await p.click('#pdev .btn.pri');
+  await p.click('#pdev [data-a=open]');
   await p.evaluate(() => {
     P.x = G.portal.x;
     P.y = G.portal.y;
@@ -249,8 +250,8 @@ async function flow(b) {
   await p.waitForTimeout(100);
   await p.screenshot({ path: shot('rift') });
   ok('裂口：面板寫墮落詞', await p.evaluate(() => /墮落詞/.test($('wms').textContent)));
-  await p.evaluate(() => (wCards(S, WM.sel).c[0] = rollCard(1)));
-  await p.click('#pdev .btn.pri');
+  await p.evaluate(() => (wCards(S, wRegionOf(S.world.seed, ...wXY(WM.sel))).c[0] = rollCard(1)));
+  await p.click('#pdev [data-a=open]');
   await p.waitForFunction(() => G.scene === 'map' && G.state === 'play');
   ok(
     '裂口：血霧扣 25%，王是生肖、帶墮落詞',
@@ -612,10 +613,93 @@ async function auto(b) {
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
+/* 巡邏（0.3.0）：新存檔從劇情區自動打到世界展開（AI 停在「選區塊」）、開始巡邏自動打完第一個區塊、往下一個區塊；
+   戰鬥用 killMob 加速（每 1.5 秒清場），其餘（撿、回家、倒倉庫、再開、挑節點）都是真的 */
+async function patrol(b) {
+  const p = await open(b);
+  await p.evaluate(() => {
+    introStop();
+    proSkip();
+    S.story.tips = 0;
+    S.lv = 30;
+    ST = stats();
+    S.auto = 1;
+    S.frag = 50;
+    S.filter.cur = 1; /* 範本二：只撿 ★、追憶、高階黃裝，AI 不用為了一地雜物跑來跑去 */
+    window.__fast = setInterval(() => {
+      if (G.scene !== 'map' || G.state !== 'play' || G.portal) return;
+      for (let k = 0; k < 2000; k++) {
+        const bo = G.mobs.find(x => x.boss && x.hp > 0),
+          m = G.mobs.find(x => x.hp > 0 && !x.boss);
+        if (bo) return killMob(bo);
+        if (!m) return;
+        killMob(m);
+        G.mobs = G.mobs.filter(x => x !== m);
+      }
+    }, 1500);
+    /* 前 7 個劇情節點直接當打過（AI 的劇情區循環在 auto 測過），從第 8 個（血霧山道）開始 */
+    S.world.stage = 7;
+    S.world.done = STORY.slice(0, 7).map(n => wKey(n.q, n.r));
+    openMap(wKey(STORY[7].q, STORY[7].r), 0);
+    enterMap(G.portal.to);
+  });
+  const w = async (f, ms = 200000) => {
+    const t0 = Date.now();
+    while (Date.now() - t0 < ms) {
+      if (await p.evaluate(f)) return true;
+      await p.waitForTimeout(1000);
+    }
+    return false;
+  };
+  ok(
+    '劇情區：AI 自動打到世界展開（打開地圖面板播演出）',
+    await w(() => S.world.stage > STORY_END && PANEL.device && G.scene === 'hide')
+  );
+  await p.evaluate(() => {
+    WM.anim = null;
+    closePanels();
+  });
+  ok(
+    '世界展開後沒選區塊：AI 停在「選區塊」，不自己亂開',
+    await w(() => S.stopWhy && S.stopWhy.why === 'pick' && G.scene === 'hide', 20000)
+  );
+  const rg0 = await p.evaluate(() => {
+    const L = wList(S)
+      .map(wXY)
+      .filter(([q, r]) => wRegionOf(S.world.seed, q, r) && !wWhy(S, q, r) && wType(S, q, r) !== 'rift');
+    const rg = wRegionOf(S.world.seed, ...L[0]);
+    patrolStart(rg, 0);
+    return rg;
+  });
+  ok('開始巡邏：開了圖（免費）', await w(() => G.scene === 'map' && !!G.node && S.patrol.rg), 30000);
+  ok(
+    '自動打完第一個區塊，往下一個區塊（新的區塊、新的卡、上一個的卡清掉）',
+    await w(() => S.patrol.rg && S.patrol.rg !== S.patrol.prev && S.patrol.prev && G.scene === 'map', 600000),
+    JSON.stringify(await p.evaluate(() => [S.patrol, S.world.done.length, S.stopWhy]))
+  );
+  const r = await p.evaluate(
+    rg0 => ({
+      prev: S.patrol.prev === rg0,
+      cleared: !S.cards[rg0],
+      left: wRgNodes(S, rg0).filter(([q, r]) => !wWhy(S, q, r)).length,
+      prog: wRgProg(S, rg0),
+      frag: S.frag,
+      stash: S.stash.items.length,
+      stop: S.stopWhy
+    }),
+    rg0
+  );
+  ok('上一個區塊：走得到的節點都打完、卡清掉', r.prev && r.cleared && r.left === 0, JSON.stringify(r));
+  ok('開圖沒花碎片（掉的東西進倉庫在 auto 測）', r.frag >= 50, JSON.stringify(r));
+  await p.evaluate(() => clearInterval(window.__fast));
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
+  await p.context().close();
+}
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   if (!ONLY || ONLY === 'flow') await flow(b);
   if (!ONLY || ONLY === 'auto') await auto(b);
+  if (!ONLY || ONLY === 'patrol') await patrol(b);
   if (!ONLY || ONLY === 'gesture') await gesture(b);
   if (!ONLY || ONLY === 'still') await still(b);
   if (!ONLY || ONLY === 'perf') await perf(b);

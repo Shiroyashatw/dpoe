@@ -81,7 +81,7 @@ function hudInit() {
       <div class="bar" id="bar"></div>
     </div>
     <div class="orb mp" id="omp"><i></i><svg class="spir" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 95 A45 45 0 0 1 50 5"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 1 50 5"/></svg><span></span></div>
-    <div class="dmenu"><button class="autob" data-tm="auto" data-tip="自動：AI 操作角色；手動：自己操作（C）" aria-pressed="true">自動</button>${DMENU.map(([k, ic, n, key]) => `<button data-tm="${k}" data-tip="${n}（${key}）" aria-label="${n}">${ICO[ic]}<kbd>${key}</kbd></button>`).join('')}</div>
+    <div class="dmenu"><button class="autob" data-tm="auto" data-tip="自動：AI 操作角色；手動：自己操作（C）" aria-pressed="true">自動</button><button class="autob2" data-tm="pat" data-tip="巡邏卡（V）">巡邏</button>${DMENU.map(([k, ic, n, key]) => `<button data-tm="${k}" data-tip="${n}（${key}）" aria-label="${n}">${ICO[ic]}<kbd>${key}</kbd></button>`).join('')}</div>
   </div>
   <div id="prac" hidden></div>
   <div id="talk" hidden></div>
@@ -89,7 +89,7 @@ function hudInit() {
   <div id="pro" hidden><small id="pron"></small><b id="prot" role="status"></b><button class="btn mini" data-pro="skip">跳過<span class="ponly">序章</span></button></div>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button class="autob" data-tm="auto" aria-pressed="true">自動</button><button data-tm="inv">${ICO.bag}背包</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
-  <div class="tonly tmore" id="tmore" hidden><button data-tm="skill">${ICO.gem}技能</button><button data-tm="tree">${ICO.tree}天賦樹</button><button data-tm="home">${ICO.home}回藏身處</button><button data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button data-tm="set">${ICO.gear}設定</button></div>
+  <div class="tonly tmore" id="tmore" hidden><button data-tm="pat">${ICO.map || ICO.menu}巡邏卡</button><button data-tm="skill">${ICO.gem}技能</button><button data-tm="tree">${ICO.tree}天賦樹</button><button data-tm="home">${ICO.home}回藏身處</button><button data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
   pracInit();
   talkInit();
@@ -350,6 +350,7 @@ function closePanels() {
     PANEL.asc =
     PANEL.shop =
     PANEL.box =
+    PANEL.pat =
     PANEL.ident =
       false;
   clearTimeout(REV.tm);
@@ -368,6 +369,7 @@ const anyPanel = () =>
   PANEL.asc ||
   PANEL.shop ||
   PANEL.box ||
+  PANEL.pat ||
   PANEL.ident;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
 const KEYS_PC = [
@@ -407,6 +409,13 @@ function setHTML() {
       ? `<div class="ph2">操作方向</div><div class="gkind seg2"><button class="btn ${p ? 'on' : ''}" data-tm="port">直立</button><button class="btn ${p ? '' : 'on'}" data-tm="land">橫向</button></div><p class="sethint">直立單手操作；橫向雙手操作，視野較寬</p>`
       : ''
   }
+  <div class="ph2">掛機：區塊打完之後</div><div class="gkind seg3">${[
+    ['next', '往下一區塊'],
+    ['reset', '重置再刷'],
+    ['stop', '停下來']
+  ]
+    .map(([k, n]) => `<button class="btn ${S.patrol.mode === k ? 'on' : ''}" data-pt="mode:${k}">${n}</button>`)
+    .join('')}</div>
   ${filterHTML()}
   ${acctHTML()}
   <div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
@@ -646,6 +655,7 @@ function hudPanels() {
   $('pasc').hidden = !PANEL.asc;
   $('pshop').hidden = !PANEL.shop;
   $('pbox').hidden = !PANEL.box;
+  $('ppat').hidden = !PANEL.pat;
   $('preveal').hidden = !PANEL.ident;
   $('pskill').hidden = !PANEL.skill;
   $('pcraft').hidden = !PANEL.craft;
@@ -674,6 +684,7 @@ function hudPanels() {
   if (PANEL.asc) panelHTML($('pasc'), ascHTML(), ['', '.ax-list']);
   if (PANEL.shop) $('pshop').innerHTML = shopHTML();
   if (PANEL.box) $('pbox').innerHTML = boxHTML();
+  if (PANEL.pat) $('ppat').innerHTML = patrolHTML();
   if (PANEL.ident) {
     panelHTML($('preveal'), revealHTML(), ['.rvl']);
     const n = $('preveal').querySelector('.new');
@@ -1122,6 +1133,76 @@ document.addEventListener('click', e => {
   sfx('click');
   hudPanels();
 });
+/* 巡邏卡（0.3.0，企劃書 2.1 第 12 項）：目前區塊與節點、卡、開通、撿到、連死、停機原因；桌機是右邊的面板、手機直立是下半的抽屜（同一份 HTML） */
+const STOPN = {
+  dead3: '連死 3 次',
+  frag: '碎片不夠',
+  full: '倉庫滿了',
+  none: '沒有路',
+  pick: '還沒選區塊',
+  end: '區塊打完'
+};
+function patrolHTML() {
+  const P = S.patrol,
+    st = S.stopWhy,
+    rg = P.rg || (st && st.rg) || null,
+    node = G.scene === 'map' ? G.node : S.run && S.run.k,
+    o = rg && S.cards[rg],
+    card = (G.scene === 'map' && G.card) || (o && o.c[o.sel || 0]) || (S.run && S.run.card),
+    prog = rg ? wRgProg(S, rg) : null,
+    state = !S.auto ? '手動' : st ? '停機' : P.rg ? '巡邏中' : '自動';
+  return `<div class="ph"><b>巡邏</b><span class="pat-st ${st ? 'c-bad' : ''}">${state}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="pat">
+    <p class="pat-n"><b>${rg ? esc(wRgName(S, rg)) + '區塊' : '還沒選區塊'}</b>${node ? ` · ${esc(wName(S, ...wXY(node)))}` : ''}</p>
+    ${card ? `<p class="pat-card" style="--sc:${STARS[card.star].c}"><span class="mstar">${'★'.repeat(card.star)}</span></p><ul class="mmods wm-mods">${card.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>` : '<p class="c-dim">到世界地圖選一個區塊的卡，按「開始巡邏」</p>'}
+    <dl class="pat-s"><dt>開通</dt><dd>${prog ? `${prog.n}／${prog.total}` : '—'}</dd><dt>這趟撿到</dt><dd>${P.got || 0} 件</dd><dt>連死</dt><dd>${AI.dn || 0}／3</dd><dt>碎片</dt><dd>${S.frag}</dd></dl>
+    ${st ? `<p class="pat-stop c-bad"><b>${STOPN[st.why] || '停機'}</b>${st.n ? `：死在${esc(st.n)}` : ''}${st.hit ? `，最後被${esc(st.hit)}打死${st.el ? `（${ELN[st.el] || '物理'}）` : ''}` : ''}${st.mods && st.mods.length ? `<br>地圖詞：${st.mods.map(m => esc(MAPMOD[m].t)).join('、')}` : ''}</p>` : ''}
+    <div class="pat-b">
+      <button class="btn" data-pt="card">換卡</button>
+      <button class="btn" data-pt="reset" ${rg ? '' : 'disabled'}>重置區塊 · ${rg ? resetCost(rg) : 0} 碎片</button>
+      <button class="btn" data-pt="back" ${P.prev ? '' : 'disabled'}>退回上一區塊</button>
+      ${st || !P.rg ? `<button class="btn pri" data-pt="go" ${rg ? '' : 'disabled'}>繼續巡邏</button>` : ''}
+    </div>
+    <div class="ph2">打完之後</div>
+    <div class="gkind seg3">${[
+      ['next', '往下'],
+      ['reset', '重置'],
+      ['stop', '停']
+    ]
+      .map(([k, n]) => `<button class="btn ${P.mode === k ? 'on' : ''}" data-pt="mode:${k}">${n}</button>`)
+      .join('')}</div>
+  </div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-pt]');
+  if (!b || b.disabled) return;
+  const [k, v] = b.dataset.pt.split(':'),
+    P = S.patrol,
+    st = S.stopWhy,
+    rg = P.rg || (st && st.rg);
+  if (k === 'mode') P.mode = v;
+  else if (k === 'card') {
+    /* 打開那個區塊的卡（世界地圖選一個節點） */
+    const n = rg && wRgNodes(S, rg)[0];
+    closePanels();
+    openPanel('device');
+    if (n) wmSel(wKey(...n));
+    return;
+  } else if (k === 'reset') {
+    if (!confirm2(b, '再按一次：重置')) return;
+    if (!wReset(S, rg)) return hudWarn('碎片不夠');
+    patrolStart(rg, 0);
+  } else if (k === 'back') {
+    if (!confirm2(b, '再按一次：退回重刷')) return;
+    const prev = P.prev;
+    if (!wReset(S, prev)) return hudWarn('碎片不夠');
+    patrolStart(prev, 0);
+  } else if (k === 'go') patrolStart(rg, (S.cards[rg] || {}).sel || 0);
+  sfx('click');
+  save();
+  hudPanels();
+});
+setInterval(() => PANEL.pat && hudPanels(), 1000);
 function shopHTML() {
   const L = SHOPUI.last,
     left = gamLeft(S);
@@ -1592,6 +1673,7 @@ function inputInit() {
     else if (k === 'escape') TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
     else if (k === 't') homeAsk();
     else if (k === 'c') autoToggle();
+    else if (k === 'v') PANEL.pat ? closePanels() : (closePanels(), (PANEL.pat = true), hudPanels());
     pressFx(k);
   });
   addEventListener('keyup', e => (K[e.key.toLowerCase()] = 0));
@@ -1710,7 +1792,11 @@ function act(a) {
     hudPanels();
   } else if (a === 'sellgo') sellAll();
   else if (a === 'openflt') closePanels(), openPanel('flt');
-  else if (a === 'pickmap') {
+  else if (a === 'patrol') {
+    const b = document.querySelector('[data-a=patrol]');
+    closePanels();
+    patrolStart(b.dataset.rg, +b.dataset.n);
+  } else if (a === 'pickmap') {
     $('over').hidden = true;
     openPanel('device');
   } else if (a.startsWith('gsel:')) {

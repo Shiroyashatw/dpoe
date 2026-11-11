@@ -190,6 +190,19 @@ function autoToggle() {
   save();
   hudWarn(S.auto ? '自動：AI 接手' : '手動：自己操作');
 }
+/* 開始巡邏（世界地圖與巡邏卡的按鈕）：選好的卡整個區塊共用；在藏身處就直接開第一個節點 */
+function patrolStart(rg, sel) {
+  const P = S.patrol;
+  wCards(S, rg).sel = sel || 0;
+  Object.assign(P, { rg, prev: P.rg && P.rg !== rg ? P.rg : P.prev, got: 0 });
+  S.run = null;
+  S.stopWhy = null;
+  S.auto = 1;
+  AI.dn = 0;
+  save();
+  if (G.scene === 'hide') aiReopen();
+  else hudWarn('開始巡邏：這張圖打完就接著走');
+}
 /* 倉庫與兩頁臨時倉庫都滿了（放不下最大的 2×4 裝備） */
 function aiTempFull() {
   const room = g => {
@@ -200,7 +213,7 @@ function aiTempFull() {
 }
 /* 停機：記下原因（巡邏卡看），玩家按地圖台的開始才繼續 */
 function aiStop(why, txt, extra) {
-  S.stopWhy = { k: G.node || (S.run && S.run.k) || null, why, ...extra };
+  S.stopWhy = { k: G.node || (S.run && S.run.k) || null, rg: S.patrol.rg || S.patrol.prev, why, ...extra };
   save();
   hudWarn(txt);
 }
@@ -226,36 +239,67 @@ function aiHome(died) {
   AI.pending = 1;
   aiReopen();
 }
-/* 下一個節點：死了就同一節點同一張卡；走過了就離上一個最近、走得到的節點（卡的星級盡量跟上一張一樣） */
+/* 這個區塊裡走得到的節點（裂口不算），離 at 最近的排前面 */
+function aiRgReach(rg, at) {
+  return wRgNodes(S, rg)
+    .filter(([q, r]) => !wWhy(S, q, r))
+    .sort((a, b) => wRing(a[0] - at[0], a[1] - at[1]) - wRing(b[0] - at[0], b[1] - at[1]));
+}
+/* 區塊卡裡星級最接近 star 的那張（往下一個區塊「新抽同星級的卡」） */
+function aiCardNear(rg, star) {
+  const o = wCards(S, rg);
+  let b = 0;
+  o.c.forEach((c, i) => Math.abs(c.star - star) < Math.abs(o.c[b].star - star) && (b = i));
+  return (o.sel = b), o.c[b];
+}
+/* 下一個節點（企劃書 2.1 第 4 項）：
+   1. 死了就同一節點同一張卡；2. 劇情區照順序；3. 巡邏中的區塊裡離目前位置最近、走得到的節點，卡是整個區塊共用的；
+   4. 區塊打完（或剩下的走不到）照 S.patrol.mode：next 往外最近的區塊（新抽同星級的卡）、reset 花碎片重置再刷、stop 停下來。
+   回傳 { k, card } 或 { stop: 原因, txt } */
 function aiPick() {
-  const run = S.run;
+  const run = S.run,
+    P = S.patrol;
   if (run && !wDone(S).has(run.k) && !wWhy(S, ...wXY(run.k))) return run;
-  const at = wXY((run && run.k) || S.world.at),
-    L = wList(S)
-      .map(wXY)
-      .filter(([q, r]) => !wWhy(S, q, r))
-      .sort((a, b) => wRing(a[0] - at[0], a[1] - at[1]) - wRing(b[0] - at[0], b[1] - at[1]));
-  if (!L.length) return null;
-  const k = wKey(...L[0]);
-  if (STORY_I[k] != null) return { k };
-  const star = (run && run.card && run.card.star) || 1,
-    cs = wCards(S, k).c.filter(c => mapCost(c.star) <= S.frag);
-  return { k, card: cs.sort((a, b) => Math.abs(a.star - star) - Math.abs(b.star - star))[0] };
+  if (!wOpen(S)) return { k: wKey(STORY[S.world.stage].q, STORY[S.world.stage].r) };
+  if (!P.rg) return { stop: 'pick', txt: '選一張區塊卡，按「開始巡邏」' };
+  const at = wXY(S.world.at);
+  let L = aiRgReach(P.rg, at);
+  if (!L.length) {
+    const star = (S.run && S.run.card && S.run.card.star) || (wCards(S, P.rg).c[wCards(S, P.rg).sel] || {}).star || 1;
+    if (P.mode === 'stop')
+      return (P.prev = P.rg), delete S.cards[P.rg], (P.rg = null), { stop: 'end', txt: '這個區塊巡邏完了，停下來了' };
+    if (P.mode === 'reset') {
+      if (!wReset(S, P.rg)) return { stop: 'frag', txt: `碎片不夠：重置區塊要 ${resetCost(P.rg)} 個，停下來了` };
+      L = aiRgReach(P.rg, at);
+      if (!L.length) return { stop: 'none', txt: '重置了但沒有走得到的節點，停下來了' };
+    } else {
+      /* 往外最近：所有走得到的節點（不是裂口、不在這個區塊）裡離目前位置最近的那個，它的區塊就是下一個 */
+      const c = wList(S)
+        .map(wXY)
+        .filter(([q, r]) => wRegionOf(S.world.seed, q, r) && wRegionOf(S.world.seed, q, r) !== P.rg)
+        .filter(([q, r]) => wType(S, q, r) !== 'rift' && !wWhy(S, q, r))
+        .sort((a, b) => wRing(a[0] - at[0], a[1] - at[1]) - wRing(b[0] - at[0], b[1] - at[1]))[0];
+      if (!c) return { stop: 'none', txt: '沒有可以走的節點，停下來了' };
+      P.prev = P.rg;
+      delete S.cards[P.prev]; /* 打完（剩下的走不到）的區塊：卡清掉 */
+      P.rg = wRegionOf(S.world.seed, c[0], c[1]);
+      aiCardNear(P.rg, star);
+      L = aiRgReach(P.rg, at);
+    }
+  }
+  const o = wCards(S, P.rg);
+  return { k: wKey(...L[0]), card: o.c[o.sel] };
 }
 function aiReopen() {
   if (!S.auto || S.stopWhy || G.scene !== 'hide') return false;
   if (PANEL.device) return false; /* 世界展開的演出：看完再走（AI.pending 還在） */
   if (aiTempFull()) return aiStop('full', '倉庫和臨時倉庫都滿了，停下來了'), false;
   const nx = aiPick();
-  if (!nx) return aiStop('none', '沒有可以走的節點，停下來了'), false;
+  if (nx.stop) return aiStop(nx.stop, nx.txt), false;
   AI.re = 1;
   const t = payMap(nx.k, 0, nx.card);
   AI.re = 0;
-  if (!t)
-    return (
-      aiStop('frag', `碎片不夠：進${wName(S, ...wXY(nx.k))}要 ${mapCost((nx.card || {}).star || 1)} 個，停下來了`),
-      false
-    );
+  if (!t) return aiStop('none', `進不去${wName(S, ...wXY(nx.k))}，停下來了`), false;
   save();
   enterMap(t);
   return true;

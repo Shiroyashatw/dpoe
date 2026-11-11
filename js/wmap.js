@@ -1336,8 +1336,8 @@ function wmInit() {
       WM.view = 'node';
       if (WM.goal) wmSel(WM.goal), wmCenter(WM.goal);
     } else if (a === 'wash') {
-      if (!wWash(S, WM.sel)) return hudWarn('碎片不夠');
-      PANEL.card = 0;
+      if (!wWash(S, wRegionOf(S.world.seed, ...wXY(WM.sel)))) return hudWarn('碎片不夠');
+      PANEL.card = null;
       sfx('click');
       save();
       wmPanel();
@@ -1360,7 +1360,7 @@ function wmTap(e) {
 function wmSel(k) {
   WM.sel = k;
   WM.view = 'node';
-  PANEL.card = 0;
+  PANEL.card = null;
   WM.dirty = true;
   sfx('click');
   wmPanel();
@@ -1385,7 +1385,7 @@ function wmOpen() {
   WM.vx = WM.vy = 0;
   wmNodes();
   WM.sel = WM.goal || null;
-  PANEL.card = 0;
+  PANEL.card = null;
   WM.z = 1;
   if (WM.sel) wmCenter(WM.sel);
   else wmCenter(S.world.at);
@@ -1455,12 +1455,15 @@ function wmCardHTML(k, why, lv) {
       <p class="wm-note">主線固定，不用選地圖卡</p>
       <button class="btn pri" data-a="open">${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}</button>`;
   }
-  const o = wCards(S, k),
-    n = Math.min(PANEL.card || 0, W_CARDS - 1),
+  const rg = wRegionOf(S.world.seed, ...wXY(k)),
+    o = wCards(S, rg),
+    n = Math.min(PANEL.card == null ? o.sel || 0 : PANEL.card, W_CARDS - 1),
     card = o.c[n],
     c = mapCost(card.star),
     rw = cardRew(card),
-    wc = washCost(lv, o.w),
+    wc = washCost(wRgLv(rg), o.w),
+    prog = wRgProg(S, rg),
+    walk = !!aiRgReach(rg, wXY(S.world.at)).length,
     danger = cd => Math.max(1, ...cd.mods.map(x => MAPMOD[x].d)),
     /* 命運輪盤（賭徒的大點）：這張卡進圖會抽到的兩種籌碼，開卡片時就看得到（不想要就換一張）；沒點輪盤的人不顯示 */
     rou = cd => (ascHas(S, 'roulette') ? rouletteOf(cd, k).map(id => ROUL.find(x => x.id === id)) : []);
@@ -1491,8 +1494,10 @@ function wmCardHTML(k, why, lv) {
         : ''
     }
     <ul class="mmods wm-mods">${card.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
+    <p class="wm-note">${esc(wRgName(S, rg))}區塊 · 開通 ${prog.n}／${prog.total} · 這個區塊的節點共用這張卡</p>
     <div class="wm-acts"><button class="btn" data-wm="wash" ${S.frag < wc ? 'disabled' : ''} title="換一批新的卡">洗卡 · ${wc} 碎片</button>
-    <button class="btn pri" data-a="open" ${why || S.frag < c ? 'disabled' : ''} ${why ? `title="${esc(why)}"` : ''}>${why || (S.frag < c ? `碎片不夠（要 ${c}，有 ${S.frag}）` : `${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}${c ? ` · ${c} 碎片` : ''}`)}</button></div>`;
+    <button class="btn pri" data-a="patrol" data-rg="${rg}" data-n="${n}" ${walk ? '' : 'disabled'} title="${walk ? 'AI 打完這個區塊，再照設定接著走' : '這個區塊現在還走不到'}">開始巡邏</button>
+    <button class="btn" data-a="open" ${why ? 'disabled' : ''} ${why ? `title="${esc(why)}"` : ''}>${why || `${G.scene === 'map' ? '只進這個節點' : '只開這個節點'}`}</button></div>`;
 }
 function wmNodeHTML() {
   const k = WM.sel;
@@ -1553,7 +1558,9 @@ function wmPanel() {
 function wmGo() {
   const k = WM.sel;
   if (!k) return;
-  if (G.scene === 'map') mapAgain(k, PANEL.card || 0);
-  else openMap(k, PANEL.card || 0);
+  const rg = STORY_I[k] != null ? null : wRegionOf(S.world.seed, ...wXY(k)),
+    i = PANEL.card == null ? (rg ? wCards(S, rg).sel || 0 : 0) : PANEL.card;
+  if (G.scene === 'map') mapAgain(k, i);
+  else openMap(k, i);
   closePanels();
 }

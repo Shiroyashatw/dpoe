@@ -442,24 +442,65 @@ function wList(s) {
   return [...seen];
 }
 
-/* ---------- 地圖卡：每節點 3 張，第一次打開才抽，換節點再回來不會變；進圖就刪，下次是新的一批 ---------- */
+/* ---------- 區塊（0.3.0，企劃書 2.1 第 2 項）：巡邏與地圖卡的單位 ----------
+   一般區塊＝wRegionC 的 7 格（鍵＝中心座標）；陰兵借道 19 格算一個（鍵＝'a:'＋中心）；劇情區的節點不分區塊（回傳 null） */
+const wRegionOf = (seed, q, r) => {
+  if (STORY_I[wKey(q, r)] != null) return null;
+  const a = wArmy(seed, q, r);
+  return a ? 'a:' + a : wKey(...wRegionC(q, r));
+};
+const wRgXY = rg => wXY(rg.replace('a:', ''));
+/* 區塊裡真的有節點的格子（空格、劇情區不算） */
+function wRgCells(seed, rg) {
+  const [x, y] = wRgXY(rg),
+    L = rg[0] === 'a' ? wArmyCells(x, y) : [[x, y], ...HDIR.map(([a, b]) => [x + a, y + b])];
+  return L.filter(([q, r]) => wNode(seed, q, r) && wRegionOf(seed, q, r) === rg);
+}
+/* 巡邏要打的節點：裂口（血霧滿了才進得去的）不算，留給玩家決定 */
+const wRgNodes = (s, rg) => wRgCells(s.world.seed, rg).filter(([q, r]) => wType(s, q, r) !== 'rift');
+function wRgProg(s, rg) {
+  const L = wRgNodes(s, rg),
+    D = wDone(s);
+  return { n: L.filter(([q, r]) => D.has(wKey(q, r))).length, total: L.length };
+}
+const wRgDone = (s, rg) => {
+  const p = wRgProg(s, rg);
+  return p.total > 0 && p.n >= p.total;
+};
+const wRgLv = rg => wLv(...wRgXY(rg));
+function wRgName(s, rg) {
+  const [x, y] = wRgXY(rg),
+    t = rg[0] === 'a' ? 'army' : wRegion2(s.world.seed, x, y);
+  return t ? WTYPE[t].n : wRegion(Math.max(W_ROAD, wRing(x, y)));
+}
+
+/* ---------- 區塊卡：一個區塊 3 張，走進去第一次才抽，詞與獎勵整個區塊共用；區塊打完就清掉；sel＝選的那張 ---------- */
 const W_CARDS = 3;
 const huntStar = s => rollCard(rollStar(s.hunt.full ? HUNT.w5 : 1));
 function wCards(s, k) {
-  const o = (s.cards[k] = s.cards[k] || { c: Array.from({ length: W_CARDS }, () => huntStar(s)), w: 0 });
-  /* 三張都買不起：第一張換成免費的 1★，不會卡住 */
-  if (!o.c.some(x => mapCost(x.star) <= s.frag)) o.c[0] = rollCard(1);
-  return o;
+  return (s.cards[k] = s.cards[k] || { c: Array.from({ length: W_CARDS }, () => huntStar(s)), w: 0, sel: 0 });
 }
-/* 洗卡：費用看地圖等級區間，同一節點每洗一次加倍 */
+/* 洗卡：費用看地圖等級區間，同一區塊每洗一次加倍 */
 const washCost = (lv, n) => (lv <= 30 ? 1 : lv <= 60 ? 2 : 4) * 2 ** n;
 function wWash(s, k) {
   const o = wCards(s, k),
-    c = washCost(wLv(...wXY(k)), o.w);
+    c = washCost(wRgLv(k), o.w);
   if (s.frag < c) return false;
   s.frag -= c;
   o.w++;
+  o.sel = 0;
   o.c = Array.from({ length: W_CARDS }, () => huntStar(s));
+  return true;
+}
+/* 重置打完的區塊（想留在同一區塊刷材料）：⚠️ 暫定＝洗卡費用 × 2（第一次洗的價錢）；把區塊的節點從走過拿掉、卡重抽 */
+const resetCost = rg => washCost(wRgLv(rg), 0) * 2;
+function wReset(s, rg) {
+  const c = resetCost(rg);
+  if (s.frag < c) return false;
+  s.frag -= c;
+  const ks = new Set(wRgNodes(s, rg).map(([q, r]) => wKey(q, r)));
+  s.world.done = s.world.done.filter(k => !ks.has(k));
+  delete s.cards[rg];
   return true;
 }
 
@@ -502,6 +543,9 @@ function wClear(s, k) {
     d = lvT(wLv(q, r));
   if (!wDone(s).has(k)) s.world.done.push(k);
   s.world.at = k;
+  /* 區塊打完：卡清掉（下次走進來是新的一批） */
+  const rg = wRegionOf(s.world.seed, q, r);
+  if (rg && s.cards && wRgDone(s, rg)) delete s.cards[rg];
   if (i != null) s.world.stage = Math.max(s.world.stage, i + 1);
   /* S.maxT、S.t16 留作內部欄位：昇華點、練習區、賭裝的物品等級都讀它們 */
   s.maxT = Math.max(s.maxT, Math.min(TMAX, Math.floor(d) + 1));

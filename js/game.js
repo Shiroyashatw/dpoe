@@ -44,6 +44,8 @@ function newGame() {
     auto: 1,
     run: null /* 上一個節點與卡（AI 死了再開同一張用，ai.js） */,
     stopWhy: null /* 停機原因（ai.js 的 aiStop） */,
+    /* 巡邏（0.3.0）：rg 巡邏的區塊鍵、mode 打完之後 next 往下／reset 重置／stop 停、prev 上一個區塊、got 這趟撿到幾件 */
+    patrol: { rg: null, mode: 'next', prev: null, got: 0 },
     /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
     idols: [],
     story: {},
@@ -192,18 +194,21 @@ function tempDump() {
   return n;
 }
 /* 開地圖：花碎片、地圖台前面出現傳送門 */
-/* 選了節點 k 的地圖卡 i：付碎片（只看星級），記住節點與這張卡（進地圖時套用）；回傳內部難度。
+/* 選了節點 k 所在區塊的地圖卡 i，記住節點與這張卡（進地圖時套用）；回傳內部難度（0＝進不去）。
    card：直接給卡（AI 自動再開同一節點同一張卡用） */
 function payMap(k, i, card0) {
   const [q, r] = wXY(k),
     why = wWhy(S, q, r),
-    st = STORY_I[k],
-    card = card0 || (st != null ? STORY[st].card : wCards(S, k).c[i]);
+    st = STORY_I[k];
+  let card = card0;
+  if (!card && st != null) card = STORY[st].card;
+  if (!card && !why) {
+    /* 區塊卡：這個區塊選的那張（開圖免費，0.3.0） */
+    const o = wCards(S, wRegionOf(S.world.seed, q, r));
+    card = o.c[(o.sel = i)];
+  }
   if (why) return hudWarn(why), 0;
   if (!card) return hudWarn('先選一張地圖卡'), 0;
-  const c = st != null ? 0 : mapCost(card.star);
-  if (S.frag < c) return hudWarn(`碎片不夠：要 ${c} 個`), 0;
-  S.frag -= c;
   S.stopWhy = null; /* 玩家（或 AI）開了圖：停機解除；玩家自己開的連死歸零 */
   if (!AI.re) AI.dn = 0;
   S.node = k;
@@ -346,7 +351,6 @@ function enterMap(t) {
     }
     G.hunt = !!S.hunt.full; /* 血霧期：進這張圖時血霧是滿的（最後一張扣光也算） */
     huntEnter(S);
-    delete S.cards[G.node];
   }
   /* 命運輪盤（0.2.74 賭徒）：點了輪盤才抽（照這張卡的種子，地圖卡上已經看過）；籌碼在 stats()（G.rou）與地圖詞（G.mm）裡生效 */
   G.rou = ascHas(S, 'roulette') ? rouletteOf(S.card, G.node) : null;
@@ -845,7 +849,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   }
   if (P.hp <= 0) die();
 }
-/* 死亡：地圖失敗、回藏身處；0.3.0 起不扣經驗（企劃書 2.1 第 7 項），裝備不會掉 */
+/* 死亡（PoE 式）：地圖失敗、回藏身處；0.3.0 起不扣經驗（企劃書 2.1 第 7 項），裝備不會掉 */
 function die() {
   /* 已經倒下：持續傷害還在跑時不要再扣一次經驗、蓋掉死因 */
   if (G.state === 'dead') return;
@@ -1089,6 +1093,7 @@ function pickup(d) {
       hudWarn('背包滿了：放進臨時倉庫，回藏身處到倉庫取出');
     }
     sfx('pick');
+    if (toTemp) S.patrol.got++;
     hudInv();
   }
   G.drops.splice(G.drops.indexOf(d), 1);

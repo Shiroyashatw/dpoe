@@ -5,7 +5,17 @@ const fs = require('fs'),
   path = require('path');
 const ctx = { console, Math, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js', 'mech.js'])
+for (const f of [
+  'ptdata.js',
+  'data.js',
+  'items.js',
+  'craft.js',
+  'combat.js',
+  'maps.js',
+  'world.js',
+  'mech.js',
+  'ai.js'
+])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const G = vm.runInContext(
   '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, libUp, libUpCheck, libLv, drillDo, newSlot, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
@@ -614,7 +624,7 @@ ok(
     );
   }) &&
     B('mapCost(1)') === 0 &&
-    B('mapCost(5)') === 8
+    B('mapCost(5)') === 0
 );
 /* 0.2.10 技能用的底層新機制（企劃書 7.3、mech.js） */
 vm.runInContext(
@@ -8505,6 +8515,127 @@ const ASC_COMBOS = `const combos = k => {
       if (!wWash(s, k) || s.frag !== 99 || !wWash(s, k) || s.frag !== 97 || !wWash(s, k) || s.frag !== 93) return false;
       s.frag = 7;
       return !wWash(s, k) && s.frag === 7 && wCards(s, k).w === 3;
+    })()`)
+  );
+  const okR = (n, v) => ok(n, v === true, String(v));
+  /* 0.3.0 區塊（企劃書 2.1 第 2～6 項） */
+  R(`var RGS = seed => { const m = {}; for (let q = -30; q <= 30; q++) for (let r = -30; r <= 30; r++) { if (wRing(q, r) > 30 || !wNode(seed, q, r)) continue; const g = wRegionOf(seed, q, r); if (g) (m[g] = m[g] || []).push(wKey(q, r)); } return m; };
+    var RGD = (seed) => { const s = WS(seed, { frag: 500 }); s.world.stage = STORY_END + 1; s.world.done = STORY.map(n => wKey(n.q, n.r)); return s; };`);
+  okR(
+    '區塊：每個節點都有區塊（劇情區除外）、一般區塊最多 7 格、陰兵借道最多 19 格、wRgCells 跟節點對得上',
+    R(`(() => {
+      for (const seed of [12345, 7, 99]) {
+        const m = RGS(seed), s = WS(seed);
+        for (const g in m) {
+          if (m[g].length > (g[0] === 'a' ? 19 : 7)) return g + ' 太大';
+          const c = wRgCells(seed, g).map(([q, r]) => wKey(q, r));
+          if (!m[g].every(k => c.includes(k)) ) return g + ' 對不上';
+        }
+        for (const n of STORY) if (wRegionOf(seed, n.q, n.r) !== null) return '劇情區有區塊';
+      }
+      return true;
+    })()`)
+  );
+  okR(
+    '區塊：每個區塊從劇情區走得到（沿著節點的路，不管裂口與血霧）',
+    R(`(() => {
+      for (const seed of [12345, 7]) {
+        const s = RGD(seed), seen = new Set(s.world.done), q = [...s.world.done].filter(k => wRing(...wXY(k)) >= W_R);
+        for (let i = 0; i < q.length; i++) for (const [x, y] of wNear(seed, ...wXY(q[i]))) { const k = wKey(x, y); if (!seen.has(k) && wRing(x, y) <= 30) seen.add(k), q.push(k); }
+        const m = RGS(seed);
+        for (const g in m) if (!m[g].some(k => seen.has(k))) return seed + ' ' + g + ' 走不到';
+      }
+      return true;
+    })()`)
+  );
+  okR(
+    '區塊卡：整個區塊共用一組 3 張、換區塊再回來不會變；開圖免費；洗卡同一區塊每洗一次加倍；重置區塊＝洗卡費用 ×2、節點拿掉走過、卡重抽',
+    R(`(() => {
+      const s = RGD(5), seed = 5, m = RGS(seed), rg = Object.keys(m).find(g => g[0] !== 'a' && m[g].length >= 5);
+      const o = wCards(s, rg);
+      if (o.c.length !== 3 || wCards(s, 'x,y') === o || wCards(s, rg) !== o) return 'cards';
+      if (mapCost(5) !== 0) return 'cost';
+      const lv = wRgLv(rg), w0 = washCost(lv, 0);
+      if (resetCost(rg) !== w0 * 2) return 'reset cost';
+      /* 把區塊的節點全部標走過，再重置 */
+      for (const [q, r] of wRgNodes(s, rg)) s.world.done.push(wKey(q, r));
+      if (!wRgDone(s, rg)) return 'done';
+      s.frag = resetCost(rg) - 1;
+      if (wReset(s, rg)) return 'reset 不該成功';
+      s.frag = resetCost(rg) + 3;
+      if (!wReset(s, rg) || s.frag !== 3 || wRgProg(s, rg).n !== 0 || s.cards[rg]) return 'reset 結果';
+      if (wRgNodes(s, rg).length !== wRgProg(s, rg).total) return 'total';
+      return true;
+    })()`)
+  );
+  okR(
+    '區塊打完：最後一個節點打倒王，這個區塊的卡清掉',
+    R(`(() => {
+      const s = RGD(5), m = RGS(5), rg = Object.keys(m).find(g => g[0] !== 'a' && m[g].length >= 3);
+      wCards(s, rg);
+      const L = wRgNodes(s, rg);
+      L.slice(0, -1).forEach(([q, r]) => s.world.done.push(wKey(q, r)));
+      wClear(s, wKey(...L[0]));
+      if (!s.cards[rg]) return '還沒打完卡就沒了';
+      const last = L[L.length - 1]; wClear(s, wKey(...last));
+      return !s.cards[rg];
+    })()`)
+  );
+  /* AI 巡邏的挑節點（aiPick）：劇情區照順序、沒選區塊就停、區塊裡最近的、打完照 mode、要門票的殿不是節點所以不會被選到、裂口跳過 */
+  R(`var AP = (o = {}) => { const s = RGD(5); S = Object.assign(s, { auto: 1, run: null, stopWhy: null, patrol: { rg: null, mode: 'next', prev: null, got: 0 } }, o); return s; };
+    var RG1 = () => { const m = RGS(5); return Object.keys(m).find(g => g[0] !== 'a' && wRgNodes(WS(5), g).length >= 4 && wRgNodes(AP(), g).some(([q, r]) => !wWhy(AP(), q, r))); };`);
+  okR(
+    'AI 巡邏：劇情區照順序（不選卡）、世界展開後沒選區塊就停',
+    R(`(() => {
+      const s = AP({}); s.world.stage = 3; s.world.done = STORY.slice(0, 3).map(n => wKey(n.q, n.r));
+      const a = aiPick();
+      if (a.k !== wKey(STORY[3].q, STORY[3].r) || a.card) return 'story ' + JSON.stringify(a);
+      AP({});
+      return aiPick().stop === 'pick';
+    })()`)
+  );
+  okR(
+    'AI 巡邏：區塊裡離目前位置最近、走得到的節點先打；用的是區塊共用的那張卡；不選裂口',
+    R(`(() => {
+      const rg = RG1(), s = AP({ patrol: { rg, mode: 'next', prev: null, got: 0 } });
+      wCards(s, rg).sel = 1;
+      const a = aiPick(), at = wXY(s.world.at), L = wRgNodes(s, rg).filter(([q, r]) => !wWhy(s, q, r));
+      const best = Math.min(...L.map(([q, r]) => wRing(q - at[0], r - at[1])));
+      const [q, r] = wXY(a.k);
+      return wRing(q - at[0], r - at[1]) === best && a.card === wCards(s, rg).c[1] && wType(s, q, r) !== 'rift' && wRegionOf(5, q, r) === rg;
+    })()`)
+  );
+  okR(
+    'AI 巡邏：區塊打完後 mode＝stop 停下來、reset 花碎片重置再刷（碎片不夠就停）、next 往外最近的區塊、新卡星級盡量一樣',
+    R(`(() => {
+      const rg = RG1();
+      const full = o => { const s = AP({ patrol: { rg, mode: o, prev: null, got: 0 } }); for (const [q, r] of wRgNodes(s, rg)) s.world.done.push(wKey(q, r)); return s; };
+      let s = full('stop'), a = aiPick();
+      if (a.stop !== 'end' || s.patrol.rg !== null) return 'stop ' + JSON.stringify(a);
+      s = full('reset'); const f0 = s.frag; a = aiPick();
+      if (a.stop || s.frag !== f0 - resetCost(rg) || !a.k) return 'reset ' + JSON.stringify(a);
+      s = full('reset'); s.frag = 0; a = aiPick();
+      if (a.stop !== 'frag') return 'reset frag ' + JSON.stringify(a);
+      s = full('next'); const star = wCards(s, rg).c[wCards(s, rg).sel].star; s.run = { k: wKey(...wRgNodes(s, rg)[0]), card: { star: 3, mods: [] } };
+      a = aiPick();
+      if (a.stop) return 'next ' + JSON.stringify(a);
+      return s.patrol.rg !== rg && s.patrol.prev === rg && wRegionOf(5, ...wXY(a.k)) === s.patrol.rg;
+    })()`)
+  );
+  okR(
+    'AI 停機：倉庫與兩頁臨時都滿（放不下 2×4）才算滿；死了同一節點同一張卡再開',
+    R(`(() => {
+      const s = AP({ temp: { w: 12, h: 12, items: [] }, temp2: { w: 12, h: 12, items: [] } });
+      if (aiTempFull()) return 'empty full';
+      const it = id => ({ id, b: BASES.find(b => b.k === 'chest').id, x: 0, y: 0, r: 0 });
+      const fill = g => { g.items = []; for (let y = 0; y < g.h; y += 2) for (let x = 0; x < g.w; x += 2) g.items.push({ ...mkItem('c_leather', 1, 0), x, y }); };
+      fill(S.temp); if (aiTempFull()) return 'temp1 full only';
+      fill(S.temp2); if (!aiTempFull()) return 'both full';
+      AP();
+      const k = wKey(...aiRgReach(RG1(), wXY(S.world.at))[0]), card = { star: 2, mods: ['hp1'] };
+      AP({ run: { k, card } });
+      const a = aiPick();
+      return a.k === k && a.card === card;
     })()`)
   );
   ok(
