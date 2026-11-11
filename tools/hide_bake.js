@@ -129,10 +129,10 @@ const L = {
     { x: 660, y: 318, z: 170, r: 640, i: 1.7, c: 1 },
     { x: 505, y: 505, z: 70, r: 320, i: 1.25 },
     { x: 815, y: 505, z: 70, r: 320, i: 1.25 },
-    { x: 150, y: 620, z: 50, r: 300, i: 1.7 },
-    { x: 240, y: 650, z: 70, r: 240, i: 0.9 },
-    { x: 965, y: 560, z: 80, r: 300, i: 1.4 },
-    { x: 1255, y: 560, z: 80, r: 300, i: 1.4 },
+    { x: 300, y: 480, z: 50, r: 300, i: 1.7 },
+    { x: 380, y: 500, z: 70, r: 240, i: 0.9 },
+    { x: 870, y: 470, z: 80, r: 300, i: 1.4 },
+    { x: 1170, y: 480, z: 80, r: 300, i: 1.4 },
     { x: 450, y: 780, z: 70, r: 220, i: 0.9 }
   ]
 };
@@ -866,162 +866,6 @@ function stele(x, y) {
     0.72
   );
 }
-/* 十二神像：身體一樣、頭上的東西照生肖換；都還沒點亮 */
-const ZOD = ['rat', 'ox', 'tiger', 'rabbit', 'dragon', 'snake', 'horse', 'goat', 'monkey', 'rooster', 'dog', 'pig'];
-const HEAD = {
-  rat: [6, 3, 9],
-  ox: [8, 7, 7],
-  tiger: [8, 6, 7],
-  rabbit: [6, 4, 7],
-  dragon: [7, 5, 11],
-  snake: [4, 3, 8],
-  horse: [5, 4, 13],
-  goat: [6, 3, 11],
-  monkey: [7, 6, 6],
-  rooster: [5, 2, 8],
-  dog: [6, 4, 10],
-  pig: [8, 7, 6]
-};
-function statue(i, x, y, s, m = M.stone) {
-  const z = ZOD[i],
-    Q = (pts, n, o = {}) =>
-      poly(
-        pts.map(([a, b]) => [x + a * s, y + b * s]),
-        m,
-        n,
-        { gy: y, ...o }
-      ),
-    fold = (a, b) => 0.76 + 0.36 * (0.5 + 0.5 * sin(((a - x) * 1.25) / s + (b - y) * 0.03)),
-    hy = -62,
-    [hw, jw, ch] = HEAD[z],
-    R2 = (a, b, c, d, w, o) => rod(x + a * s, y + b * s, x + c * s, y + d * s, w * s, m, y, o);
-  group(
-    () => {
-      box(x - 20 * s, y - 7 * s, 40 * s, 11 * s, 7 * s, m, { tex: grain(0.2, 0.5) });
-      box(x - 16 * s, y - 14 * s, 32 * s, 9 * s, 7 * s, m, { tex: grain(0.2, 0.5) });
-      if (z === 'snake')
-        Q(
-          [
-            [-12, hy + 10],
-            [-9, hy - 10],
-            [0, hy - 14],
-            [9, hy - 10],
-            [12, hy + 10]
-          ],
-          [0, 0.8, 0.5],
-          { k: 0.72 }
-        );
-      Q(
-        [
-          [-15, -14],
-          [-13, -45],
-          [-5, -49],
-          [-5, -14]
-        ],
-        [-0.6, 0.8, 0.4],
-        { tex: fold }
-      );
-      Q(
-        [
-          [15, -14],
-          [13, -45],
-          [5, -49],
-          [5, -14]
-        ],
-        [0.6, 0.8, 0.4],
-        { tex: fold }
-      );
-      Q(
-        [
-          [-5, -14],
-          [-5, -49],
-          [5, -49],
-          [5, -14]
-        ],
-        [0, 1, 0.35],
-        { tex: fold }
-      );
-      Q(
-        [
-          [-17, -41],
-          [-13, -51],
-          [-5, -54],
-          [5, -54],
-          [13, -51],
-          [17, -41],
-          [11, -38],
-          [-11, -38]
-        ],
-        [0, 0.35, 1]
-      );
-      R2(-15, -42, -7, -30, 2.3);
-      R2(15, -42, 7, -30, 2.3);
-      Q(
-        [
-          [-8, -33],
-          [8, -33],
-          [6, -25],
-          [-6, -25]
-        ],
-        [0, 0.9, 0.5]
-      );
-      /* 頭：左右兩面，下巴長度決定臉型 */
-      Q(
-        [
-          [0, hy - 8],
-          [-hw + 1, hy - 8],
-          [-hw, hy - 1],
-          [-jw, hy + ch - 4],
-          [0, hy + ch]
-        ],
-        [-0.55, 0.7, 0.6]
-      );
-      Q(
-        [
-          [0, hy - 8],
-          [hw - 1, hy - 8],
-          [hw, hy - 1],
-          [jw, hy + ch - 4],
-          [0, hy + ch]
-        ],
-        [0.55, 0.7, 0.6]
-      );
-      if (z === 'rabbit')
-        R2(-4, hy - 7, -6, hy - 25, 2.2, { taper: 0.5 }), R2(4, hy - 7, 6, hy - 25, 2.2, { taper: 0.5 });
-      if (z === 'rat' || z === 'monkey' || z === 'pig')
-        for (const d of [-1, 1])
-          dome(x + d * (hw + 1) * s, y + (hy - (z === 'monkey' ? 1 : 6)) * s, 3.6 * s, 3.6 * s, m, { gy: y, f: 2 });
-      if (z === 'tiger')
-        for (const d of [-1, 1]) dome(x + d * 6.4 * s, y + (hy - 8) * s, 2.8 * s, 2.8 * s, m, { gy: y, f: 2 });
-      if (z === 'horse' || z === 'dog')
-        for (const d of [-1, 1])
-          Q(
-            [
-              [d * 2, hy - 7],
-              [d * 6, hy - 7],
-              [d * 5, hy - (z === 'dog' ? 14 : 16)]
-            ],
-            [d * 0.5, 0.7, 0.6]
-          );
-      if (z === 'horse') for (let k = 0; k < 5; k++) R2(0, hy - 8, (k - 2) * 1.4, hy - 13 + abs(k - 2), 1.2);
-      if (z === 'ox' || z === 'goat' || z === 'dragon')
-        for (const d of [-1, 1]) {
-          R2(d * 6, hy - 6, d * 14, hy - 10, 2, { taper: 0.3 });
-          R2(d * 14, hy - 10, d * (z === 'goat' ? 15 : 12), hy - (z === 'goat' ? 1 : 20), 1.6, { taper: 0.7 });
-          if (z === 'dragon') R2(d * 10, hy - 9, d * 6, hy - 18, 1.2, { taper: 0.7 });
-        }
-      if (z === 'rooster')
-        for (let k = 0; k < 3; k++)
-          dome(x + (k - 1) * 3 * s, y + (hy - 10 - (k === 1 ? 1 : 0)) * s, 2 * s, 3.2 * s, m, { gy: y, f: 2 });
-      if (z === 'goat') R2(0, hy + ch, 0, hy + ch + 6, 1.4, { taper: 0.6 });
-      if (z === 'pig') dome(x, y + (hy + 4) * s, 4.4 * s, 3 * s, m, { gy: y, f: 2 });
-      const ey = y + (hy - 1) * s;
-      put(x - 3 * s, ey, M.top, 0, 1, 0, y, 0.05);
-      put(x + 3 * s, ey, M.top, 0, 1, 0, y, 0.05);
-    },
-    { x, y, r: 15 * s, h: 44 * s }
-  );
-}
 function dummy(tier, x, y) {
   const s = tier === 2 ? 1.34 : 1;
   group(
@@ -1268,42 +1112,21 @@ function rubble(x, y, w) {
     }
   });
 }
-function nicheStatue(i, x, y) {
-  x = t(x);
-  y = t(y);
-  group(() => {
-    poly(
-      [
-        [x - 25, y + 4],
-        [x - 25, y - 50],
-        [x - 17, y - 64],
-        [x, y - 70],
-        [x + 17, y - 64],
-        [x + 25, y - 50],
-        [x + 25, y + 4]
-      ],
-      M.rock,
-      [0, 0.9, 0.1],
-      { gy: y, k: 0.24 }
-    );
-  });
-  statue(i, x, y, 1.02);
-}
 /* 擺設（世界像素）：ny＝名牌離腳底多高 */
 const PROPS = [
   { k: 'device', n: '地圖台', x: 660, y: 470, r: 54, ny: 104 },
   { k: 'asc', n: '昇華石碑', x: 660, y: 388, r: 26, ny: 100 },
-  { k: 'stash', n: '倉庫', x: 318, y: 640, r: 46, ny: 76 },
-  { k: 'forge', n: '鍛造台', x: 150, y: 610, r: 50, ny: 124 },
-  { k: 'market', n: '市集（之後開放）', x: 250, y: 748, r: 36, ny: 88 },
-  { k: 'prac', n: '練習區', x: 952, y: 712, r: 14, ny: 62 }
+  { k: 'stash', n: '倉庫', x: 455, y: 430, r: 46, ny: 76 },
+  { k: 'forge', n: '鍛造台', x: 300, y: 470, r: 50, ny: 124 },
+  { k: 'market', n: '市集（之後開放）', x: 165, y: 545, r: 36, ny: 88 },
+  { k: 'prac', n: '練習區', x: 880, y: 600, r: 14, ny: 62 }
 ];
 /* 練習區：石圈裡才能出招；稻草人固定三隻（t：0 普通、1 菁英、2 王） */
-const ZONE = { x: 1110, y: 628, rx: 150, ry: 104 },
+const ZONE = { x: 1030, y: 520, rx: 140, ry: 96 },
   DUMMIES = [
-    { t: 0, x: 1022, y: 640 },
-    { t: 1, x: 1110, y: 572 },
-    { t: 2, x: 1200, y: 640 }
+    { t: 0, x: 950, y: 535 },
+    { t: 1, x: 1030, y: 472 },
+    { t: 2, x: 1110, y: 535 }
   ],
   NPC = { bone: { x: 585, y: 778 }, crow: { x: 790, y: 408 }, trader: { x: 352, y: 800 } },
   SPAWN = { x: 660, y: 560 },
@@ -1319,48 +1142,30 @@ function dress() {
   PATHS.push(
     ...[
       [660, 560, 660, 760],
-      [660, 560, 318, 690],
-      [660, 560, 1030, 640],
+      [660, 560, 420, 480],
+      [660, 560, 960, 560],
       [660, 560, 450, 800]
     ].map(s => s.map(t))
   );
-  ASH.push([t(660), t(770), 66, 36, 0.8], [t(120), t(632), 54, 24, 0.8]);
+  ASH.push([t(660), t(770), 66, 36, 0.8], [t(275), t(492), 54, 24, 0.8]);
 }
-const STAT = [];
+/* 0.3.2：十二神像拿掉（點亮的進度 S.idols 照舊，只是不畫）；鍛造台、倉庫、市集、練習區搬到後牆，前面留空地 */
 function layout() {
   const L2 = (n, a) => a.forEach(([x, y, q]) => n(t(x), t(y), q));
-  /* 十二尊沿著洞壁圍住洞口：從大廳中心往外走到牆，退一步 */
-  const C = [660, 540],
-    spots = [];
-  for (let i = 0; i < 6; i++)
-    for (const side of [-1, 1]) {
-      const a = PI + 0.08 + i * 0.205,
-        dx = cos(a) * side,
-        dy = sin(a);
-      let r = 200;
-      while (FL[floor(t(C[1] + dy * r)) * BW + floor(t(C[0] + dx * r))]) r += 6;
-      spots.push({ i: i + (side > 0 ? 6 : 0), x: C[0] + dx * (r - 6), y: C[1] + dy * (r - 6) + 34 });
-    }
-  spots.sort((p, q) => p.y - q.y);
   teeth();
   rubble(t(660), t(wallY(660) + 6), 440);
-  for (const p of spots) {
-    statue(p.i, t(p.x), t(p.y), 1.26);
-    STAT.push(p);
-    solid(p.x, p.y - 4, 30);
-  }
   stele(t(660), t(388));
   device(t(660), t(470));
   brazier(t(505), t(520));
   brazier(t(815), t(520));
   ring(t(ZONE.x), t(ZONE.y), t(ZONE.rx), t(ZONE.ry));
-  lantern(t(965), t(575));
-  lantern(t(1255), t(575));
-  sign(t(952), t(712));
-  forge(t(150), t(610));
-  stash(t(318), t(640));
-  lantern(t(232), t(694));
-  board(t(250), t(748));
+  lantern(t(870), t(485));
+  lantern(t(1170), t(495));
+  sign(t(880), t(600));
+  forge(t(300), t(470));
+  stash(t(455), t(430));
+  lantern(t(380), t(510));
+  board(t(165), t(545));
   rack(t(1125), t(762));
   tent(t(795), t(748), 0.76);
   banner(t(726), t(690), M.cloth);
@@ -1377,7 +1182,7 @@ function layout() {
   bones(t(830), t(890), 7);
   L2(rock, [
     [1262, 690, 16],
-    [320, 560, 10],
+    [230, 700, 10],
     [530, 900, 14]
   ]);
   L2(stalag, [
@@ -1586,13 +1391,11 @@ for (let ty = 1; ty < rows - 1; ty++)
     if (b > 690) process.exitCode = 1;
   }
 }
-/* 另一張圖：稻草人、點亮的神像，用固定的光 */
+/* 另一張圖：稻草人，用固定的光 */
 PX.fill(0);
 ID.fill(0);
 cur = 1;
 const SPR = {};
-let FOOT = 0;
-const LIT = mat('#2a1a10 #5a3518 #8c5a24 #bd8a3a #e6b85a #ffdf8c #fff3c8', 0, 0.3, 0.7);
 let ax = 50,
   ay = 190;
 const atlas = (name, fn, w) => {
@@ -1600,12 +1403,10 @@ const atlas = (name, fn, w) => {
   fn(ax, ay);
   const rx = max(ax - bx0, bx1 - ax) + 2;
   SPR[name] = [ax - rx, by0 - 2, rx * 2 + 1, by1 - by0 + 5];
-  FOOT = (by0 - 2 + (by1 - by0 + 5) - ay) * TX;
   ax += w;
   if (ax > BW - 60) (ax = 50), (ay += 230);
 };
 [0, 1, 2].forEach(i => atlas('dummy' + i, (x, y) => dummy(i, x, y), 90));
-ZOD.forEach(z => atlas('idol_' + z, (x, y) => statue(ZOD.indexOf(z), x, y, 1.26, LIT), 80));
 const SPRH = ay + 60,
   SPRF = out('spr', PX.subarray(0, BW * SPRH), BW, SPRH);
 const data = {
@@ -1626,8 +1427,6 @@ const data = {
   dummies: DUMMIES,
   npc: NPC,
   solids: SOLID,
-  statues: STAT.map(p => ({ z: ZOD[p.i], x: Math.round(p.x), y: Math.round(p.y) })),
-  idolDy: Math.round(FOOT),
   fg: [...FGS.values()].map(o => ({ x: o.x, y: o.y, w: o.w, h: o.h, by: Math.round(o.by * TX) })),
   fires: [
     { x: 660, y: 770, s: 1 },

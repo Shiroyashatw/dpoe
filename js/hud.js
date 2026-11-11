@@ -295,7 +295,10 @@ function deathCause() {
 function hudState() {
   const o = $('over');
   if (G.state === 'dead') {
-    o.innerHTML = `<div class="card"><h2 class="c-bad">你倒下了</h2>${deathCause()}<p>地圖失敗，碎片不退；不扣經驗，裝備都還在。</p><button class="btn pri" data-a="home">回到藏身處</button></div>`;
+    /* 再試一次：同一個節點、同一張卡直接重開（王場、殿沒有節點，只能回家） */
+    const again = G.node && G.card;
+    o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}<p>地圖失敗，碎片不退；不扣經驗，裝備都還在。</p>
+      <div class="pbtns">${again ? `<button class="btn pri" data-a="again">再試一次<small>同一張地圖重新開始</small></button>` : ''}<button class="btn ${again ? '' : 'pri'}" data-a="home">回藏身處<small>整理背包、點天賦</small></button></div></div>`;
     o.hidden = false;
   } else if (G.state === 'portal') {
     /* 站在傳送門上：打開地圖台選下一張（新的一批卡），或回藏身處 */
@@ -1783,6 +1786,12 @@ function act(a) {
   else if (a === 'open') wmGo();
   else if (a === 'home') {
     enterHideout();
+  } else if (a === 'again') {
+    /* 死亡卡的再試一次：跟傳送門開下一張一樣直接進圖，不回藏身處 */
+    if (G.state === 'dead' && G.node && G.card) {
+      const t = payMap(G.node, 0, G.card);
+      if (t) save(), enterMap(t);
+    }
   } else if (a.startsWith('stab:')) {
     PANEL.stab = a.slice(5);
     hudPanels();

@@ -1,4 +1,4 @@
-/* dungeonPOE · 藏身處：場景圖（hideart.js，tools/hide_bake.js 烘的）、練習區、稻草人、DPS 統計、十二神像 */
+/* dungeonPOE · 藏身處：場景圖（hideart.js，tools/hide_bake.js 烘的）、練習區、稻草人、DPS 統計（0.3.2 起不畫十二神像，點亮的進度 S.idols 照舊） */
 'use strict';
 /* 場景的暗層與光暈色（biome.js 的 BIO） */
 const HIDE_BIO = { dark: '5,3,3', light: '255,150,70' };
@@ -254,12 +254,6 @@ function drawHideout(W, H) {
       h = Math.min(sc.naturalHeight - y0, Math.ceil(H / tx) + 4);
     if (w > 0 && h > 0) CX.drawImage(sc, x0, y0, w, h, x0 * tx, y0 * tx, w * tx, h * tx);
   }
-  /* 點亮的神像：烘好的金色版疊上去 */
-  for (const s of A.statues)
-    if ((S.idols || []).includes(s.z)) {
-      const a = ART['idol_' + s.z];
-      spr('idol_' + s.z, s.x, s.y + A.idolDy, a[4] * tx, { a: 0.8 + 0.2 * Math.sin(G.t * 1.6 + s.x) });
-    }
   if (!FIRE) fireInit();
   if (G.t - fireT > 1 / 30) (fireT = G.t), fireStep();
   for (const f of A.fires)

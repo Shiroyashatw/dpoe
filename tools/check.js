@@ -6114,8 +6114,8 @@ const ASC_COMBOS = `const combos = k => {
   ok('藏身處：每個設施從出生點 3 秒內走得到', !far.length, JSON.stringify(far));
   ok('藏身處：出生點、傳送門不在牆裡', !tiles[at(A.spawn.x, A.spawn.y)] && !tiles[at(A.portal.x, A.portal.y)]);
   ok(
-    '藏身處：十二尊神像各一尊、三隻稻草人都在石圈裡',
-    new Set(A.statues.map(s => s.z)).size === 12 &&
+    '藏身處：沒有神像（0.3.2 拿掉，S.idols 照舊）、三隻稻草人都在石圈裡',
+    !A.statues &&
       A.dummies.length === 3 &&
       A.dummies.every(d => ((d.x - A.zone.x) / A.zone.rx) ** 2 + ((d.y - A.zone.y) / A.zone.ry) ** 2 < 1)
   );

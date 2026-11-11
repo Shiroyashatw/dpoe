@@ -168,7 +168,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 /* ---------- 死掉、通關 ---------- */
 #over { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); }
 #over[hidden] { display: none; }
-#over .card { min-width: 340px; max-width: 440px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; animation: pop 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+#over .card { display: block; min-width: 340px; max-width: 440px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; animation: pop 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 #over h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
 #over p { color: var(--dim); margin: 0 0 18px; }
 .btn { font: 700 var(--fs) var(--font); color: var(--tx); background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); border-radius: var(--rad); padding: 10px 18px; min-height: 44px; cursor: pointer; }
