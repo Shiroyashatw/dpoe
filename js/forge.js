@@ -5,27 +5,112 @@
 const CRAFT = { tab: 'forge', op: null, ess: null, conv: null, sel: null, log: '', perf: 0, pen: 0, om: [] };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);
 
-/* ---------- 材料頁（倉庫的「材料」分頁）：靈魂、10 種通貨（0 也列出來）、精髓 ---------- */
-function matPageHTML() {
+/* ---------- 通貨頁（倉庫第一頁，0.3.6，照 PoE 的通貨倉庫）：通貨圍著中間一格，裝備放進中間（S.curIt）、點通貨直接用。
+   轉化石：點了中間裝備的詞變成按鈕，點一條才用；預知石：點了再點一顆填詞的通貨（或精髓、轉化的詞）＝先看結果；
+   預兆、鼎、覺醒石、判官筆等只列數量（預兆在鍛造台搭配填詞用） ---------- */
+const CUI = { conv: 0, fore: 0, log: '' };
+/* 圍在中間格子四周的通貨（格子區域照 CSS 的 grid-template-areas） */
+const CUR_RING = ['tran', 'aug', 'rich', 'exalt', 'conv', 'fore', 'whet', 'holy', 'plate', 'corr'];
+function curPageHTML() {
   const M = MAT(),
+    it = S.curIt,
+    f = it && foreOf(it),
+    btn = k =>
+      `<button class="cub ${M[k] ? '' : 'z'} ${(k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore) ? 'on' : ''}" style="grid-area:${k}" data-cu="u:${k}" title="${esc(CUR[k].n + '：' + CUR[k].d)}" aria-label="${esc(CUR[k].n)}">${icHTML(CUR[k].ic)}<em>${fmtN(M[k] || 0)}</em></button>`,
+    center = `<div class="cuc" style="grid-area:mid" data-cur="1">${it ? itemHTML(it, 'cur', 'cur') : `<span>${TOUCH.on ? '點背包的裝備<br>按「放進中間」' : '把裝備拖進來<br>或點背包的裝備'}</span>`}</div>`,
+    hint = !it
+      ? ''
+      : CUI.fore
+        ? '預知石：再點一顆填詞的通貨、精髓，或轉化石選的詞，先看結果'
+        : CUI.conv
+          ? '轉化石：點下面一條要換掉的詞'
+          : '',
+    ess = essList(),
+    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k)),
     row = (ic, n, d, v) =>
-      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
-    ess = essList();
-  return `<ul class="mpg">${row('cur_soul', '靈魂', '技能與輔助升級、開孔；自動吸收', M.soul)}${Object.entries(CUR)
-    .map(([k, c]) => row(c.ic, c.n, c.d, M[k] || 0))
-    .join('')}</ul>
-  <div class="ph2">精髓<span>9 類 × 階級，同類同階疊一格</span></div>
+      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`;
+  return `<div class="cupg">${CUR_RING.map(btn).join('')}${center}</div>
+  ${
+    it
+      ? `${cardHTML(it)}${
+          f
+            ? `<div class="fres fore"><b>預知結果（${esc(FORGE[f.op].n)}）</b>${
+                foreNew(f)
+                  .map(a => `<span class="fnew">${esc(affText(a))} <i>T${a.T}</i></span>`)
+                  .join('') || '<span>沒有新的詞</span>'
+              }</div><div class="fpair"><button class="btn pri" data-cu="fu">用掉${esc(curName(f.op, f.arg))}</button><button class="btn" data-cu="fs">不用（留著）</button></div>`
+            : ''
+        }${hint ? `<p class="fhint">${hint}</p>` : ''}${slotsHTML(it, CUI.conv ? 'conv' : 'view', 'cu')}`
+      : ''
+  }
+  ${CUI.log ? `<p class="culog">${esc(CUI.log)}</p>` : ''}
+  <div class="ph2">精髓<span>${it ? '點一顆直接用' : '9 類 × 階級，同類同階疊一格'}</span></div>
   ${
     ess.length
-      ? `<div class="mats">${ess
-          .map(([k, n]) => {
-            const [c] = k.split(':');
-            return `<span class="chip">${icHTML(ACLSI[c].ic)}${esc(essName(k))}<small>×${n}</small></span>`;
-          })
-          .join('')}</div>`
+      ? `<div class="mats">${ess.map(([k, n]) => `<button class="chip" data-cu="es:${k}">${icHTML(ACLSI[k.split(':')[0]].ic)}${esc(essName(k))}<small>×${n}</small></button>`).join('')}</div>`
       : `<p class="fhint">精髓由 3★ 以上地圖的菁英與王掉落</p>`
-  }`;
+  }
+  <div class="ph2">其他<span>預兆在鍛造台搭配填詞用</span></div>
+  <ul class="mpg">${row('cur_soul', '靈魂', '技能與輔助升級、開孔；自動吸收', M.soul)}${rest.map(k => row(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
 }
+/* 點通貨頁：u＝通貨、cv＝轉化石選的詞、es＝精髓、fu／fs＝預知的用／不用 */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-cu]');
+  if (!b || b.disabled) return;
+  const [k, v, x] = b.dataset.cu.split(':'),
+    it = S.curIt,
+    M = MAT();
+  let err = null;
+  /* 填詞：預知石開著就先看結果，不然直接用 */
+  const fill = (op, arg) => {
+    const before = it.a.slice();
+    if (CUI.fore) {
+      err = forePeek(it, op, arg);
+      if (!err) (CUI.fore = 0), (CUI.log = ''), sfx('equip');
+      return;
+    }
+    err = forgeDo(it, op, arg);
+    if (!err) (CUI.log = curName(op, arg) + '：' + (craftLog(before, it) || '完成')), sfx('equip');
+  };
+  if (k === 'u') {
+    if (!it) err = CUR[v].n + '：' + CUR[v].d + '。先把裝備放進中間';
+    else if (v === 'fore') CUI.fore = CUI.fore ? 0 : M.fore >= 1 ? 1 : ((err = '預知石不夠'), 0);
+    else if (v === 'conv') CUI.conv = CUI.conv ? 0 : M.conv >= 1 ? 1 : ((err = '轉化石不夠'), 0);
+    else if (FILL_OPS.includes(v)) fill(v);
+    else if (v === 'whet' || v === 'plate') {
+      if (qualCur(it) !== v) err = `${CUR[v].n}只能用在${v === 'whet' ? '武器' : '防具'}`;
+      else {
+        err = qualDo(it);
+        if (!err) (CUI.log = `品質 ${Math.round(it.q * 100)}%`), sfx('equip');
+      }
+    } else if (v === 'holy') {
+      err = holyDo(it);
+      if (!err) (CUI.log = '聖化完成：' + it.a.map(a => '×' + a.m.toFixed(2)).join(' ')), sfx('lvup');
+    } else if (v === 'corr') {
+      if (!corruptCheck(it) && !confirm2(b, `<i>再按一次</i>`)) return;
+      const r = corruptDo(it);
+      if (r.why) err = r.why;
+      else {
+        CUI.log = '腐化：' + corrLog(it, r);
+        sfx(r.res === 'burst' ? 'die' : 'lvup');
+        if (r.res === 'burst') S.curIt = null;
+      }
+    }
+  } else if (k === 'cv' && it) {
+    CUI.conv = 0;
+    fill('conv', +v);
+  } else if (k === 'es') {
+    if (!it) err = '先把裝備放進中間';
+    else fill('ess', v + ':' + x);
+  } else if (k === 'fu' && it) {
+    const before = it.a.slice(),
+      o = foreOf(it) && foreOf(it).op;
+    err = foreUse(it);
+    if (!err) (CUI.log = FORGE[o].n + '：' + (craftLog(before, it) || '完成')), sfx('equip');
+  } else if (k === 'fs') foreSkip(), (CUI.log = '沒有用，通貨留著');
+  if (err) hudWarn(err);
+  changed();
+});
 
 /* ---------- 碎片頁（倉庫的「碎片」分頁，0.2.78，照 PoE 的碎片倉庫）：地圖碎片、勾魂令四種、生死簿，每種寫湊幾張能開什麼 ---------- */
 function fragPageHTML() {
@@ -53,7 +138,7 @@ function fragPageHTML() {
 
 /* ---------- 一件裝備的詞：前綴 3 格、後綴 3 格（空格畫出來；說明框完整版在 8-3） ---------- */
 /* mode：'view' 只看、'temper' 每條有百分位與單條淬鍊、'conv' 點一條選要換的 */
-function slotsHTML(it, mode) {
+function slotsHTML(it, mode, at = 'fg') {
   const cap = sideCap(it),
     one = (a, i) => {
       const tag = `T${a.T}${isFrac(it, a) ? ' ★' : ''}${a.m ? ` ×${a.m.toFixed(2)}` : ''}`,
@@ -61,7 +146,7 @@ function slotsHTML(it, mode) {
         cls = `${isFrac(it, a) ? 'frac' : ''}`;
       if (mode === 'conv') {
         const why = isFrac(it, a) ? '破裂詞不能轉化' : !affCls(a.k) ? '這條沒有類別' : '';
-        return `<li><button class="fcv ${cls} ${CRAFT.conv === i ? 'on' : ''}" data-fg="cv:${i}" ${why ? 'disabled' : ''} aria-pressed="${CRAFT.conv === i}">${txt}${why ? `<small>${why}</small>` : ''}</button></li>`;
+        return `<li><button class="fcv ${cls} ${at === 'fg' && CRAFT.conv === i ? 'on' : ''}" data-${at}="cv:${i}" ${why ? 'disabled' : ''} aria-pressed="${at === 'fg' && CRAFT.conv === i}">${txt}${why ? `<small>${why}</small>` : ''}</button></li>`;
       }
       if (mode === 'temper') {
         const pc = affPct(a);

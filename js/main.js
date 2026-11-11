@@ -58,6 +58,7 @@ function migrate(s) {
   /* 道具編號接著存檔裡最大的往下編 */
   for (const it of [
     ...Object.values(o.eq),
+    o.curIt,
     ...o.inv.items,
     ...o.stash.items,
     ...o.temp.items,

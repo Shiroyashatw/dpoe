@@ -329,7 +329,7 @@ const PANEL = {
   skill: false,
   craft: false,
   pick: 1,
-  stab: 'stash',
+  stab: 'cur',
   sellM: false
 };
 const SELLS = new Set();
@@ -689,16 +689,16 @@ function hudPanels() {
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
   if (PANEL.inv) $('pinv').innerHTML = invHTML();
   if (PANEL.stash) {
-    const st = ['temp', 'temp2', 'mat', 'frags'].includes(PANEL.stab) ? PANEL.stab : 'stash',
+    const st = ['stash', 'temp', 'temp2', 'frags'].includes(PANEL.stab) ? PANEL.stab : 'cur',
       n = S.temp.items.length,
       n2 = S.temp2.items.length,
       tn = x => (x ? ` <i class="c-gold">${x}</i>` : '');
     $('pstash').innerHTML =
-      `<div class="ph"><b>倉庫</b><span class="ftabs"><button class="${st === 'stash' ? 'on' : ''}" data-a="stab:stash">倉庫</button><button class="${st === 'mat' ? 'on' : ''}" data-a="stab:mat">材料</button><button class="${st === 'frags' ? 'on' : ''}" data-a="stab:frags">碎片</button><button class="${st === 'temp' ? 'on' : ''}" data-a="stab:temp">臨時 1${tn(n)}</button><button class="${st === 'temp2' ? 'on' : ''}" data-a="stab:temp2">臨時 2${tn(n2)}</button></span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${
+      `<div class="ph"><b>倉庫</b><span class="ftabs"><button class="${st === 'cur' ? 'on' : ''}" data-a="stab:cur">通貨</button><button class="${st === 'stash' ? 'on' : ''}" data-a="stab:stash">倉庫</button><button class="${st === 'frags' ? 'on' : ''}" data-a="stab:frags">碎片</button><button class="${st === 'temp' ? 'on' : ''}" data-a="stab:temp">臨時 1${tn(n)}</button><button class="${st === 'temp2' ? 'on' : ''}" data-a="stab:temp2">臨時 2${tn(n2)}</button></span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${
         st === 'temp' || st === 'temp2'
           ? `<p class="fhint">地圖裡撿到的東西先放這裡，回藏身處自動放進倉庫；只能取出${TOUCH.on ? '' : '；點一下放進背包'}</p>`
           : ''
-      }${st === 'mat' ? matPageHTML() : st === 'frags' ? fragPageHTML() : gridHTML(S[st], st)}`;
+      }${st === 'cur' ? curPageHTML() : st === 'frags' ? fragPageHTML() : gridHTML(S[st], st)}`;
   }
   if (PANEL.device) wmPanel();
   if (PANEL.asc) panelHTML($('pasc'), ascHTML(), ['', '.ax-list']);
@@ -1236,32 +1236,40 @@ function shopHTML() {
   ${GAMBLE.map(([n, xs]) => `<div class="ph2">${n}</div><div class="shopg">${xs.map(x => `<button class="shopb ${SHOPUI.sel === x.id ? 'on' : ''}" data-a="gsel:${x.id}">${icHTML(gamBases(x)[0].ic)}<span>${x.n}</span></button>`).join('')}</div>`).join('')}`;
 }
 /* ---------- 找道具、移動道具 ---------- */
+/* 倉庫開在通貨頁（點背包的裝備＝放進中間） */
+const curTab = () => PANEL.stash && !['stash', 'temp', 'temp2', 'frags'].includes(PANEL.stab);
 const GRIDS = () => ({ inv: S.inv, stash: S.stash, temp: S.temp, temp2: S.temp2 });
 /* 欄位：裝備欄 eq（key＝欄位名；護符欄是 ch0～） */
-const isSlot = src => src === 'eq';
+/* 欄位：身上的裝備與護符（eq）、倉庫通貨頁中間那格（cur，0.3.6，S.curIt） */
+const isSlot = src => src === 'eq' || src === 'cur';
 function slotGet(src, key) {
+  if (src === 'cur') return S.curIt;
   /* 護符欄是 ch0～（胸甲 chest 也是 ch 開頭，不能只看前兩個字） */
   return /^ch\d$/.test(key) ? S.charms[+key[2]] : S.eq[key];
 }
 function slotSet(src, key, it) {
+  if (src === 'cur') return (S.curIt = it);
   return /^ch\d$/.test(key) ? (S.charms[+key[2]] = it) : (S.eq[key] = it);
 }
 /* 放進這個欄位缺什麼能力值（0.2.42）：裝備看等級與能力值（eqLack） */
 function slotLack(src, key, it) {
+  if (src === 'cur') return [];
   return /^ch\d$/.test(key) ? [] : eqLack(S, it, key);
 }
 const slotFits = (src, key, it) =>
-  it.uid
-    ? false
-    : /^ch\d$/.test(key)
-      ? !!it.charm && +key[2] < charmSlots(S)
-      : eqOpen(S, key) &&
-        eqTakes(
-          EQS.find(q => q.k === key),
-          kindOf(it)
-        ) &&
-        (key !== 'off' || offOK(S.eq.weapon, it)) &&
-        !slotLack(src, key, it).length;
+  src === 'cur'
+    ? !it.charm && !it.uid
+    : it.uid
+      ? false
+      : /^ch\d$/.test(key)
+        ? !!it.charm && +key[2] < charmSlots(S)
+        : eqOpen(S, key) &&
+          eqTakes(
+            EQS.find(q => q.k === key),
+            kindOf(it)
+          ) &&
+          (key !== 'off' || offOK(S.eq.weapon, it)) &&
+          !slotLack(src, key, it).length;
 function findItem(src, id, eqk) {
   if (isSlot(src)) return slotGet(src, eqk);
   return GRIDS()[src].items.find(o => o.id === +id);
@@ -1313,6 +1321,14 @@ function quickMove(src, it, eqk) {
   if (isSlot(src)) {
     if (!gridAuto(S.inv, it)) return hudWarn('背包滿了');
     slotSet(src, eqk, null);
+  } else if (curTab() && src === 'inv') {
+    /* 倉庫的通貨頁開著：點背包的裝備＝放進中間（原本在中間的放回背包） */
+    if (!slotFits('cur', 'cur', it)) return hudWarn(it.uid ? '找撿骨師鑑定：未鑑定的不能做裝' : '護符不能做裝');
+    const old = S.curIt;
+    takeOut('inv', it);
+    S.curIt = it;
+    if (old && !gridAuto(S.inv, old)) return (S.curIt = old), gridAuto(S.inv, it), hudWarn('背包滿了');
+    TOUCH.front = 'other'; /* 手機窄螢幕：放好就切回通貨頁 */
   } else if (src === 'stash' || src === 'temp' || src === 'temp2') {
     takeOut(src, it);
     if (!gridAuto(S.inv, it)) return gridAuto(S[src], it), hudWarn('背包滿了');
@@ -1438,6 +1454,7 @@ function dropTarget(e) {
   for (const el of under) {
     if (el.dataset.sell) return { k: 'sell', el };
     if (el.dataset.eq) return { k: 'eq', src: 'eq', eqk: el.dataset.eq, el, ok: slotFits('eq', el.dataset.eq, DR.it) };
+    if (el.dataset.cur) return { k: 'eq', src: 'cur', eqk: 'cur', el, ok: slotFits('cur', 'cur', DR.it) };
     if (el.dataset.grid) {
       const g = GRIDS()[el.dataset.grid],
         r = el.getBoundingClientRect(),
@@ -1494,7 +1511,8 @@ function dragEnd(e) {
   if (t && t.k === 'floor') return dropFloor(d.src, d.it, d.eqk);
   if (t && t.k === 'eq' && !t.ok) {
     const lk = d.it.uid ? [] : slotLack(t.src, t.eqk, d.it);
-    if (d.it.uid) hudWarn('找撿骨師鑑定：未鑑定的不能裝備');
+    if (d.it.uid) hudWarn(t.src === 'cur' ? '找撿骨師鑑定：未鑑定的不能做裝' : '找撿骨師鑑定：未鑑定的不能裝備');
+    else if (t.src === 'cur' && d.it.charm) hudWarn('護符不能做裝');
     else if (lk.length) hudWarn('不符合需求：' + lackTxt(lk));
   }
   if (!t || (t.k !== 'sell' && !t.ok)) return hudPanels();

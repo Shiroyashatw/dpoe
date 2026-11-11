@@ -225,6 +225,7 @@ let fail = 0;
       gridAuto(S.inv, it);
     }
     for (let i = 0; i < 4; i++) gridAuto(S.stash, dropItem(5));
+    PANEL.stab = 'stash'; /* 0.3.6 起倉庫第一頁是通貨頁：這裡測格子 */
     openPanel('stash');
   });
   await p.waitForTimeout(400);

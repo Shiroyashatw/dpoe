@@ -148,7 +148,9 @@ function stickHide() {
 /* ---------- 面板：點一下道具＝說明＋動作 ---------- */
 function moveLabel(src, it) {
   if (PANEL.craft) return '放上鍛造台';
+  if (src === 'cur') return '放回背包';
   if (isSlot(src)) return '卸下';
+  if (curTab() && src === 'inv') return '放進中間';
   if (src === 'stash' || src === 'temp' || src === 'temp2') return '放進背包';
   if (PANEL.stash) return '放進倉庫';
   return '裝備';
