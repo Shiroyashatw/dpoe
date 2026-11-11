@@ -235,8 +235,10 @@ function aiTick(dt) {
   if (A.dodgeT > 0.5) (dodge = false), (A.dodgeT = 0);
   /* 踩在怪物方的地面上：往外走，蓋過追怪與撿東西的方向 */
   if (hz) {
-    const d = Math.hypot(P.x - hz.x, P.y - hz.y) || 1;
-    AI.mv = [(P.x - hz.x) / d, (P.y - hz.y) / d];
+    const d = Math.hypot(P.x - hz.x, P.y - hz.y);
+    /* 正好站在圓心（地面就在腳下生成）：往反方向是零向量會卡住不動，改往場地中央走 */
+    const cd = Math.hypot(G.W / 2 - P.x, G.H / 2 - P.y) || 1;
+    AI.mv = d > 8 ? [(P.x - hz.x) / d, (P.y - hz.y) / d] : [(G.W / 2 - P.x) / cd, (G.H / 2 - P.y) / cd];
   }
   /* 出招：照順序，冷卻好、放得出來、打得到就放；魔力不夠的招等著，喝魔力藥劑。站在怪物方的地面上先走出去再出招（出招中走不動） */
   if (!T || P.act || G.state !== 'play' || hz || dodge) return;

@@ -543,7 +543,7 @@ async function auto(b) {
     introStop();
     proSkip();
     S.story.tips = 0;
-    S.lv = 30;
+    S.lv = 50; /* 測的是循環不是平衡：Lv30 新手裝對第一個劇情王接近平手，三次有一兩次死 */
     ST = stats();
     S.auto = 1;
     openMap(wKey(STORY[0].q, STORY[0].r), 0);
@@ -573,7 +573,8 @@ async function auto(b) {
     S.auto = 1;
     await new Promise(r => setTimeout(r, 300));
     addGround({ k: 'smoke', side: 'm', x: P.x, y: P.y, r: 2 * METER, dur: 6 });
-    await new Promise(r => setTimeout(r, 1200));
+    /* 出招中只能走 35%（CAST_MOVE），一招 0.4～1 秒，所以給 2 秒 */
+    await new Promise(r => setTimeout(r, 2000));
     const g = G.ground.find(x => x.side === 'm');
     return !g || !onGround(g);
   });
