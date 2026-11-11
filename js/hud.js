@@ -31,6 +31,10 @@ const ICO = (() => {
   const s = d => `<svg class="ico" viewBox="0 0 16 16" aria-hidden="true">${d}</svg>`;
   return {
     x: s('<path d="M4 4l8 8M12 4l-8 8"/>'),
+    /* 巡邏卡：路線上的三個點 */
+    pat: s(
+      '<path d="M3 12c3 0 3-8 7-8M10 4h3M3 12h1"/><circle cx="3" cy="12" r="1.6"/><circle cx="13" cy="4" r="1.6"/>'
+    ),
     chain: s(
       '<rect x="1.5" y="5.2" width="7" height="5.6" rx="2.8" transform="rotate(-45 5 8)"/><rect x="7.5" y="5.2" width="7" height="5.6" rx="2.8" transform="rotate(-45 11 8)"/>'
     ),
@@ -89,7 +93,7 @@ function hudInit() {
   <div id="pro" hidden><small id="pron"></small><b id="prot" role="status"></b><button class="btn mini" data-pro="skip">跳過<span class="ponly">序章</span></button></div>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button class="autob" data-tm="auto" aria-pressed="true">自動</button><button data-tm="inv">${ICO.bag}背包</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
-  <div class="tonly tmore" id="tmore" hidden><button data-tm="pat">${ICO.map || ICO.menu}巡邏卡</button><button data-tm="skill">${ICO.gem}技能</button><button data-tm="tree">${ICO.tree}天賦樹</button><button data-tm="home">${ICO.home}回藏身處</button><button data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button data-tm="set">${ICO.gear}設定</button></div>
+  <div class="tonly tmore" id="tmore" hidden><button data-tm="pat">${ICO.pat}巡邏卡</button><button data-tm="skill">${ICO.gem}技能</button><button data-tm="tree">${ICO.tree}天賦樹</button><button data-tm="home">${ICO.home}回藏身處</button><button data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
   pracInit();
   talkInit();
@@ -1156,7 +1160,7 @@ function patrolHTML() {
     <p class="pat-n"><b>${rg ? esc(wRgName(S, rg)) + '區塊' : '還沒選區塊'}</b>${node ? ` · ${esc(wName(S, ...wXY(node)))}` : ''}</p>
     ${card ? `<p class="pat-card" style="--sc:${STARS[card.star].c}"><span class="mstar">${'★'.repeat(card.star)}</span></p><ul class="mmods wm-mods">${card.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>` : '<p class="c-dim">到世界地圖選一個區塊的卡，按「開始巡邏」</p>'}
     <dl class="pat-s"><dt>開通</dt><dd>${prog ? `${prog.n}／${prog.total}` : '—'}</dd><dt>這趟撿到</dt><dd>${P.got || 0} 件</dd><dt>連死</dt><dd>${AI.dn || 0}／3</dd><dt>碎片</dt><dd>${S.frag}</dd></dl>
-    ${st ? `<p class="pat-stop c-bad"><b>${STOPN[st.why] || '停機'}</b>${st.n ? `：死在${esc(st.n)}` : ''}${st.hit ? `，最後被${esc(st.hit)}打死${st.el ? `（${ELN[st.el] || '物理'}）` : ''}` : ''}${st.mods && st.mods.length ? `<br>地圖詞：${st.mods.map(m => esc(MAPMOD[m].t)).join('、')}` : ''}</p>` : ''}
+    ${st ? `<p class="pat-stop c-bad"><b>${STOPN[st.why] || '停機'}</b>${st.n ? `：死在${esc(st.n)}` : ''}${st.hit ? `，最後被${esc(st.hit)}打死${st.el ? `（${ELN[st.el] || '物理'}）` : ''}` : ''}${!card && st.mods && st.mods.length ? `<br>地圖詞：${st.mods.map(m => esc(MAPMOD[m].t)).join('、')}` : ''}</p>` : ''}
     <div class="pat-b">
       <button class="btn" data-pt="card">換卡</button>
       <button class="btn" data-pt="reset" ${rg ? '' : 'disabled'}>重置區塊 · ${rg ? resetCost(rg) : 0} 碎片</button>
@@ -1202,7 +1206,8 @@ document.addEventListener('click', e => {
   save();
   hudPanels();
 });
-setInterval(() => PANEL.pat && hudPanels(), 1000);
+/* 每秒更新數字；按兩次確認（confirm2）武裝中不重畫，否則第二下按不到 */
+setInterval(() => PANEL.pat && !$('ppat').querySelector('[data-armed]') && hudPanels(), 1000);
 function shopHTML() {
   const L = SHOPUI.last,
     left = gamLeft(S);
