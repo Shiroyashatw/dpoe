@@ -61,6 +61,7 @@ function migrate(s) {
     ...o.inv.items,
     ...o.stash.items,
     ...o.temp.items,
+    ...((o.temp2 && o.temp2.items) || []),
     ...o.skills.flatMap(k => [k.a, ...(k.s || []), ...((k.a && k.a.sup) || [])]),
     ...o.auras,
     ...o.auras.flatMap(g => (g && g.sup) || [])

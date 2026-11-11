@@ -23,6 +23,8 @@ async function open(b, opt = {}) {
   await p.goto(URL + '?p=6&' + Date.now());
   await p.waitForFunction(() => typeof G === 'object' && !!G.scene && typeof treeInit === 'function');
   await p.waitForTimeout(500);
+  /* 手動的流程在 S.auto = 0 下跑；自動的流程（auto）自己再打開 */
+  await p.evaluate(() => (S.auto = 0));
   return p;
 }
 /* 對話一路按到底 */
@@ -533,9 +535,87 @@ async function perf(b) {
     await p.context().close();
   }
 }
+/* 掛機（0.3.0）：不碰鍵盤，AI 打倒王、撿完、回家（臨時頁倒進倉庫）、自動再開下一個節點；同一節點連死 3 次停機 */
+async function auto(b) {
+  const p = await open(b);
+  await p.evaluate(() => {
+    introStop();
+    proSkip();
+    S.story.tips = 0;
+    S.lv = 30;
+    ST = stats();
+    S.auto = 1;
+    openMap(wKey(STORY[0].q, STORY[0].r), 0);
+    enterMap(G.portal.to);
+  });
+  const t0 = Date.now();
+  let r = null;
+  while (Date.now() - t0 < 240000) {
+    await p.waitForTimeout(2000);
+    r = await p.evaluate(() => ({
+      done: S.world.done.length,
+      node: G.node,
+      scene: G.scene,
+      stage: S.world.stage,
+      t: Math.round(G.t)
+    }));
+    if (r.done >= 1 && r.scene === 'map' && r.node && r.node !== '0,0') break;
+  }
+  console.log('   ', JSON.stringify(r));
+  ok(
+    'AI：不碰鍵盤打倒王、撿完、回家、自動再開下一個節點',
+    r && r.done >= 1 && r.stage >= 1 && r.scene === 'map',
+    JSON.stringify(r)
+  );
+  const st = await p.evaluate(() => ({
+    tmp: S.temp.items.length + S.temp2.items.length,
+    stash: S.stash.items.length,
+    inv: S.inv.items.length,
+    stop: S.stopWhy
+  }));
+  ok('回家後臨時頁倒進倉庫、主背包沒有被撿到的東西', st.tmp <= 3 && st.stash >= 1 && st.inv === 0, JSON.stringify(st));
+  /* 連死 3 次：同一節點死 3 次就停機 */
+  await p.evaluate(() => {
+    S.auto = 1;
+    AI.dn = 0;
+    AI.dk = null;
+  });
+  const deadRun = async n => {
+    await p.waitForFunction(() => G.scene === 'map' && G.state === 'play', null, { timeout: 20000 });
+    await p.evaluate(() => {
+      P.hp = 1;
+      hurtPlayer(99999, G.mobs[0] || null, 'phys', true);
+      if (G.state !== 'dead') die();
+    });
+    await p.waitForTimeout(2600);
+  };
+  const k0 = await p.evaluate(() => G.node);
+  await deadRun(1);
+  await deadRun(2);
+  const mid = await p.evaluate(() => ({ scene: G.scene, stop: S.stopWhy, dn: AI.dn }));
+  ok('連死 2 次還會再開', mid.scene === 'map' && !mid.stop, JSON.stringify(mid));
+  await deadRun(3);
+  const end = await p.evaluate(() => ({ scene: G.scene, stop: S.stopWhy, auto: S.auto, k: G.node }));
+  ok(
+    '同一節點連死 3 次：停在藏身處、S.auto 不動、記下原因',
+    end.scene === 'hide' && end.stop && end.stop.why === 'dead3' && end.auto === 1,
+    JSON.stringify(end)
+  );
+  ok('死亡不扣經驗', await p.evaluate(() => G.lostXp === undefined));
+  await p.waitForTimeout(1500);
+  ok('停機後不會再自動開圖', await p.evaluate(() => G.scene === 'hide'));
+  /* 手動：玩家自己開了圖，停機解除 */
+  await p.evaluate(() => {
+    openMap(S.run.k, 0);
+  });
+  ok('玩家按開始：停機解除', await p.evaluate(() => !S.stopWhy));
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
+  await p.context().close();
+}
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   if (!ONLY || ONLY === 'flow') await flow(b);
+  if (!ONLY || ONLY === 'auto') await auto(b);
   if (!ONLY || ONLY === 'gesture') await gesture(b);
   if (!ONLY || ONLY === 'still') await still(b);
   if (!ONLY || ONLY === 'perf') await perf(b);

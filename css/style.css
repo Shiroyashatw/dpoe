@@ -1566,3 +1566,12 @@ body.touch.port #pbox > .ph:first-child .x { display: grid; }
 /* 文字重寫（2026-11-11）：技能卡的「詳細」、輔助卡的效果行 */
 .skx { list-style: none; margin: 6px 0; padding: 8px 10px; background: rgba(0, 0, 0, 0.25); border-left: 2px solid var(--fr, var(--line)); display: flex; flex-direction: column; gap: 3px; font-size: var(--fs-s); }
 .skx li { color: var(--tx); }
+
+/* 自動／手動切換鈕（0.3.0）：桌機在功能列最左、手機在背包左邊；自動時金邊 */
+.autob { min-width: 54px; min-height: 44px; font: 700 var(--fs-s) var(--font); letter-spacing: 0.06em; color: var(--dim); background: var(--s3); border: 1px solid var(--fr-o); border-radius: 2px; cursor: pointer; }
+.dmenu .autob { width: auto; height: 38px; min-height: 38px; padding: 0 10px; }
+.autob.on { color: var(--gold); border-color: var(--gold); }
+.autob:active { transform: scale(0.94); }
+body.touch:not(.port) .top { right: calc(190px + env(safe-area-inset-right)); }
+body.touch.port #area { max-width: calc(100% - 190px); }
+body.touch.port #bossbar, body.touch.port #prog { width: calc(100% - 190px); }

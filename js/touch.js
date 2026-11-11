@@ -151,7 +151,7 @@ function stickHide() {
 function moveLabel(src, it) {
   if (PANEL.craft) return '放上鍛造台';
   if (isSlot(src)) return '卸下';
-  if (src === 'stash' || src === 'temp') return '放進背包';
+  if (src === 'stash' || src === 'temp' || src === 'temp2') return '放進背包';
   if (PANEL.stash) return '放進倉庫';
   return '裝備';
 }
@@ -341,6 +341,7 @@ function touchInit() {
     if (m) {
       const k = m.dataset.tm;
       if (k === 'fs') return fsClick();
+      if (k === 'auto') return autoToggle();
       if (k === 'more') return moreMenu($('tmore').hidden);
       if (k === 'inv') PANEL.inv && !PANEL.stash && !PANEL.skill ? closePanels() : openPanel('inv');
       else if (k === 'skill') PANEL.skill ? closePanels() : openPanel('skill');

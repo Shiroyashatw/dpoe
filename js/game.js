@@ -38,6 +38,12 @@ function newGame() {
     stash: { w: 12, h: 12, items: [] },
     /* 臨時倉庫頁（0.2.24）：背包滿了撿到的放這裡，只能拿出來 */
     temp: { w: 12, h: 12, items: [] },
+    /* 0.3.0：臨時頁兩頁（刷圖撿到的直接進這裡，回家自動倒進倉庫） */
+    temp2: { w: 12, h: 12, items: [] },
+    /* 0.3.0 掛機：1 自動（AI 操作）、0 手動 */
+    auto: 1,
+    run: null /* 上一個節點與卡（AI 死了再開同一張用，ai.js） */,
+    stopWhy: null /* 停機原因（ai.js 的 aiStop） */,
     /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
     idols: [],
     story: {},
@@ -169,23 +175,37 @@ function enterHideout() {
   dpsReset();
   ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
+  tempDump();
   /* 有未鑑定的裝備：提醒找撿骨師（企劃書 5.4.1） */
   if (unidN(S)) hudWarn(`有 ${unidN(S)} 件裝備未鑑定：找撿骨師免費鑑定`);
   /* 打倒裂谷斷崖的王之後第一次回來：直接打開地圖播世界展開 */
   if (wOpen(S) && !S.world.open) openPanel('device');
 }
+/* 回藏身處：兩頁臨時倉庫的東西照順序倒進倉庫（0.3.0，企劃書 2.1 第 10 項），倉庫滿了的留在臨時頁 */
+function tempDump() {
+  let n = 0;
+  for (const g of [S.temp, S.temp2])
+    for (const it of [...g.items]) if (gridAuto(S.stash, it)) (g.items = g.items.filter(o => o !== it)), n++;
+  const left = S.temp.items.length + S.temp2.items.length;
+  if (n) hudWarn(`臨時倉庫的 ${n} 件裝備放進倉庫了${left ? `；倉庫滿了，${left} 件留在臨時頁` : ''}`);
+  else if (left) hudWarn(`倉庫滿了：${left} 件留在臨時頁`);
+  return n;
+}
 /* 開地圖：花碎片、地圖台前面出現傳送門 */
-/* 選了節點 k 的地圖卡 i：付碎片（只看星級），記住節點與這張卡（進地圖時套用）；回傳內部難度 */
-function payMap(k, i) {
+/* 選了節點 k 的地圖卡 i：付碎片（只看星級），記住節點與這張卡（進地圖時套用）；回傳內部難度。
+   card：直接給卡（AI 自動再開同一節點同一張卡用） */
+function payMap(k, i, card0) {
   const [q, r] = wXY(k),
     why = wWhy(S, q, r),
     st = STORY_I[k],
-    card = st != null ? STORY[st].card : wCards(S, k).c[i];
+    card = card0 || (st != null ? STORY[st].card : wCards(S, k).c[i]);
   if (why) return hudWarn(why), 0;
   if (!card) return hudWarn('先選一張地圖卡'), 0;
   const c = st != null ? 0 : mapCost(card.star);
   if (S.frag < c) return hudWarn(`碎片不夠：要 ${c} 個`), 0;
   S.frag -= c;
+  S.stopWhy = null; /* 玩家（或 AI）開了圖：停機解除；玩家自己開的連死歸零 */
+  if (!AI.re) AI.dn = 0;
   S.node = k;
   S.card = card;
   return lvT(wLv(q, r));
@@ -338,6 +358,8 @@ function enterMap(t) {
       G.mm[f] = typeof v === 'string' ? v : (G.mm[f] || 0) + v;
   if (G.army) for (const [f, v] of Object.entries(ARMY.per)) G.mm[f] = (G.mm[f] || 0) + v * G.army.res;
   G.star = (S.card && S.card.star) || 1;
+  G.ai = null;
+  G.card = S.card; /* 死了自動再開同一節點同一張卡用（ai.js） */
   S.node = S.card = S.arena = S.sinDeb = null;
   const tiles = (G.tiles = new Uint8Array(cols * rows).fill(1));
   G.cols = cols;
@@ -519,8 +541,15 @@ let CV, CX;
    技能程式只問這個，不自己判斷是不是手機 */
 const SLOT_HOLD = [null, null, 'q', 'e', 'r'];
 const slotHeld = i =>
-  !!((i === 0 && M.L) || (i === 1 && M.R) || (SLOT_HOLD[i] && K[SLOT_HOLD[i]]) || (TOUCH.sk && TOUCH.sk.i === i));
+  !!(
+    (AI.on && AI.hold === i) ||
+    (i === 0 && M.L) ||
+    (i === 1 && M.R) ||
+    (SLOT_HOLD[i] && K[SLOT_HOLD[i]]) ||
+    (TOUCH.sk && TOUCH.sk.i === i)
+  );
 function mouseWorld() {
+  if (AI.on) return AI.aim;
   if (TOUCH.on) return touchAim();
   return { x: (M.x - CV.clientWidth / 2) / ZOOM + G.cam.x, y: (M.y - CV.clientHeight / 2) / ZOOM + G.cam.y };
 }
@@ -573,6 +602,7 @@ function sparks(x, y, ang, n, col) {
 
 /* ---------- 玩家（技能在 skills.js） ---------- */
 function updPlayer(dt) {
+  aiTick(dt);
   for (const k in P.cds) P.cds[k] = Math.max(0, P.cds[k] - dt);
   P.mp = Math.min(ST.mp, P.mp + ST.mpReg * (hasBuff('arcane') ? 1 + 0.2 * (1 + ST.arcaneEff / 100) : 1) * dt);
   if (fightOn()) baseTick(dt);
@@ -608,6 +638,8 @@ function updPlayer(dt) {
   let mx = (K.d || K.arrowright ? 1 : 0) - (K.a || K.arrowleft ? 1 : 0),
     my = (K.s || K.arrowdown ? 1 : 0) - (K.w || K.arrowup ? 1 : 0);
   if (TOUCH.mv[0] || TOUCH.mv[1]) [mx, my] = TOUCH.mv;
+  /* 掛機（0.3.0）：AI 在操作時，移動方向是 AI 給的 */
+  if (AI.on) [mx, my] = AI.mv;
   /* 對話中站著不動 */
   if (G.state === 'talk') mx = my = 0;
   const ml = Math.hypot(mx, my);
@@ -634,7 +666,10 @@ function updPlayer(dt) {
     else if (M.R) useSlot(1);
     const w = mouseWorld();
     if (fightOn() || P.mv)
-      P.face = P.mv && (!fightOn() || (TOUCH.on && !TOUCH.sk)) ? Math.atan2(my, mx) : Math.atan2(w.y - P.y, w.x - P.x);
+      P.face =
+        P.mv && !AI.on && (!fightOn() || (TOUCH.on && !TOUCH.sk))
+          ? Math.atan2(my, mx)
+          : Math.atan2(w.y - P.y, w.x - P.x);
   }
 }
 /* 移動＋碰撞：牆一格一格推出去，藏身處再推開擺設；分段走，快速衝刺也不會穿牆 */
@@ -810,7 +845,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   }
   if (P.hp <= 0) die();
 }
-/* 死亡（PoE 式）：地圖失敗、扣這一級 10% 經驗（不降級），裝備不會掉 */
+/* 死亡：地圖失敗、回藏身處；0.3.0 起不扣經驗（企劃書 2.1 第 7 項），裝備不會掉 */
 function die() {
   /* 已經倒下：持續傷害還在跑時不要再扣一次經驗、蓋掉死因 */
   if (G.state === 'dead') return;
@@ -818,8 +853,6 @@ function die() {
   P.hp = 0;
   G.state = 'dead';
   P.act = P.roll = null;
-  G.lostXp = Math.round(Math.min(S.xp, xpNeed(S.lv) * 0.1));
-  S.xp -= G.lostXp;
   save();
   sfx('die');
   hudState();
@@ -1045,8 +1078,14 @@ function pickup(d) {
     num(d.x, d.y - 20, d.frag, 'frag');
     sfx('pick');
   } else {
-    if (!gridAuto(S.inv, d.it)) {
-      if (!gridAuto(S.temp, d.it)) return (d.full = 1), hudWarn('背包和臨時倉庫都滿了：回藏身處整理');
+    /* 0.3.0：地圖裡撿到的直接進臨時頁（兩頁），回家自動倒進倉庫；主背包只放自己放的（序章與自己丟的先進背包） */
+    const toTemp = G.scene === 'map' && !PRO.on && !d.nopick;
+    if (toTemp) {
+      if (!gridAuto(S.temp, d.it) && !gridAuto(S.temp2, d.it))
+        return (d.full = 1), hudWarn('臨時倉庫都滿了：回藏身處整理');
+    } else if (!gridAuto(S.inv, d.it)) {
+      if (!gridAuto(S.temp, d.it) && !gridAuto(S.temp2, d.it))
+        return (d.full = 1), hudWarn('背包和臨時倉庫都滿了：回藏身處整理');
       hudWarn('背包滿了：放進臨時倉庫，回藏身處到倉庫取出');
     }
     sfx('pick');

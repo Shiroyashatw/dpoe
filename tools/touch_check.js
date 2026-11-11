@@ -29,6 +29,7 @@ let fail = 0;
   await p.evaluate(() => {
     proSkip();
     S.story.tips = 0;
+    S.auto = 0; /* 手動的流程在 S.auto = 0 下跑；自動鈕另外測 */
   });
   const cdp = await ctx.newCDPSession(p);
   const touch = async (type, pts) =>
@@ -194,6 +195,27 @@ let fail = 0;
     return bad;
   });
   ok('按鈕在畫面內、≥44px、不重疊', !lay.length, lay.join(' '));
+  /* 自動／手動鈕：按得到（真的觸控）、切換、顯示文字跟著 */
+  const ab = await p.evaluate(() => {
+    const r = document.querySelector('.tmenu .autob').getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2, r.width, r.height];
+  });
+  await touch('touchStart', [[ab[0], ab[1]]]);
+  await touch('touchEnd', []);
+  await p.waitForTimeout(150);
+  const ab1 = await p.evaluate(() => [S.auto, document.querySelector('.tmenu .autob').textContent]);
+  ok(
+    '自動鈕：點一下切成自動（≥44px）',
+    ab1[0] === 1 && ab1[1] === '自動' && ab[2] >= 44 && ab[3] >= 44,
+    JSON.stringify([ab1, ab])
+  );
+  await touch('touchStart', [[ab[0], ab[1]]]);
+  await touch('touchEnd', []);
+  await p.waitForTimeout(150);
+  ok(
+    '自動鈕：再點一下切回手動',
+    await p.evaluate(() => S.auto === 0 && document.querySelector('.tmenu .autob').textContent === '手動')
+  );
   await p.screenshot({ path: shot('map') });
   /* 回藏身處，開背包＋倉庫 */
   await p.evaluate(() => {

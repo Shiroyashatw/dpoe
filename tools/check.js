@@ -10473,4 +10473,26 @@ const ASC_COMBOS = `const combos = k => {
     bad.join('、')
   );
 }
+
+/* 0.3.0 掛機 AI（js/ai.js）：出招順序（cond／payoff／final 排其他招後面、普攻最後）、AI 只輸出方向與瞄準點 */
+{
+  const c = { ...ctx };
+  vm.createContext(c);
+  for (const f of ['ptdata.js', 'data.js', 'ai.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c, { filename: f });
+  const R = s => vm.runInContext(s, c);
+  const tg = { 0: ['attack'], 1: ['spell', 'payoff'], 2: ['spell'], 3: null, 4: ['attack', 'final'] };
+  const o1 = R(`aiOrder(i => (${JSON.stringify(tg)})[i])`);
+  ok('AI 出招順序：一般招照欄位、payoff／final 排後面、普攻最後', o1.join() === '2,1,4,0', o1.join());
+  const o2 = R(
+    `aiOrder(i => (${JSON.stringify({ 0: null, 1: ['cond'], 2: ['attack'], 3: ['final'], 4: ['payoff'] })})[i])`
+  );
+  ok('AI 出招順序：沒有普攻就不排 0、cond 也排後面', o2.join() === '2,1,3,4', o2.join());
+  ok(
+    'AI 的狀態只有移動方向與瞄準點（mv、aim）',
+    R('Object.keys(AI).filter(k => ["mv","aim"].includes(k)).length') === 2
+  );
+  const late = Object.entries(R('SKILLS')).filter(([, d]) => d.tags.some(t => ['cond', 'payoff', 'final'].includes(t)));
+  ok('技能目錄裡有 payoff／final 的招（出招順序才有東西排）', late.length > 0, String(late.length));
+}
 process.exit(bad ? 1 : 0);

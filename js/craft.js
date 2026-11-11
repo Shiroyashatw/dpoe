@@ -904,7 +904,7 @@ function killMat(m, t, o = {}) {
 }
 
 /* ---------- 鑑定（企劃書 5.4.1）：撿骨師免費「全部鑑定」，背包、倉庫、臨時倉庫裡所有未鑑定的一次開完 ---------- */
-const unidList = s => [s.inv, s.stash, s.temp].flatMap(g => (g ? g.items : [])).filter(it => it.uid);
+const unidList = s => [s.inv, s.stash, s.temp, s.temp2].flatMap(g => (g ? g.items : [])).filter(it => it.uid);
 const unidN = s => unidList(s).length;
 /* 開獎的順序：越好的越晚翻（白、藍、黃，有追憶、有 ★ 的壓軸） */
 const unidScore = it => it.r + (it.mem ? 4 : 0) + (it.mem2 ? 2 : 0) + (it.frac ? 8 : 0);
