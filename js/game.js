@@ -106,6 +106,7 @@ function resetWorld(W, H) {
     bossOut: 0,
     prog: 0,
     need: 1,
+    waves: [],
     state: 'play',
     portal: null,
     rou: null,
@@ -265,10 +266,12 @@ const arenaBoss = k =>
                   : k === 'xingjun'
                     ? tsUber()
                     : xiBoss('zhulong');
-/* 地圖（參考 Chronicon）：一塊一塊 14×14 格的房間拼起來，有岔路也沒關係；
-   殺怪累積首領進度，滿了王就出現在附近（怪物總量約是需要的 150～160%） */
+/* 地圖（0.3.0，企劃書 2.1 第 8 項）：一張圖就是一個矩形場地，沒有房間、走廊與柱子（AI 在房間裡找路是卡牆的來源）；
+   怪物分 4 波從四邊的牆邊走進來（上一波剩不到 3 隻就放下一波），殺怪累積首領進度，滿了王從中央出現、不再放新的波
+   （怪物總量約是需要的 150～160%）。找路的 flowFill 留著給序章的手工地圖 */
 const TS = 48,
-  CHUNK = 14;
+  FIELD = [30, 18],
+  WAVES = 4;
 /* 從地圖裡的傳送門直接開下一張（花碎片） */
 function mapAgain(k, i) {
   const t = payMap(k, i);
@@ -277,10 +280,7 @@ function mapAgain(k, i) {
   enterMap(t);
 }
 function enterMap(t) {
-  const CW = 6,
-    CHn = 5,
-    cols = CW * CHUNK,
-    rows = CHn * CHUNK;
+  const [cols, rows] = FIELD;
   resetWorld(cols * TS, rows * TS);
   G.scene = 'map';
   G.mapT = t;
@@ -342,147 +342,83 @@ function enterMap(t) {
   const tiles = (G.tiles = new Uint8Array(cols * rows).fill(1));
   G.cols = cols;
   G.rows = rows;
-  const carve = (x0, y0, x1, y1) => {
-    for (let y = Math.max(1, y0); y <= Math.min(rows - 2, y1); y++)
-      for (let x = Math.max(1, x0); x <= Math.min(cols - 2, x1); x++) tiles[y * cols + x] = 0;
-  };
-  /* 房間的排法：從左邊一塊開始往外長，偶爾從舊房間分岔 */
-  const n = G.arena ? 1 : Math.min(CW * CHn - 6, 9 + Math.floor(t / 3)),
-    rooms = [{ cx: 0, cy: irnd(1, CHn - 2) }],
-    has = new Set([rooms[0].cx + ',' + rooms[0].cy]),
-    links = [];
-  for (let k = 0; rooms.length < n && k < 500; k++) {
-    const from = Math.random() < 0.6 ? rooms[rooms.length - 1] : pick(rooms),
-      [dx, dy] = pick([
-        [1, 0],
-        [1, 0],
-        [0, 1],
-        [0, -1],
-        [-1, 0]
-      ]),
-      c = { cx: from.cx + dx, cy: from.cy + dy };
-    if (c.cx < 0 || c.cy < 0 || c.cx >= CW || c.cy >= CHn || has.has(c.cx + ',' + c.cy)) continue;
-    has.add(c.cx + ',' + c.cy);
-    rooms.push(c);
-    links.push([from, c]);
-  }
-  /* 挖房間（大小隨機）＋幾根柱子 */
-  for (const r of rooms) {
-    r.x0 = r.cx * CHUNK + irnd(1, 3);
-    r.y0 = r.cy * CHUNK + irnd(1, 3);
-    r.x1 = (r.cx + 1) * CHUNK - 1 - irnd(1, 3);
-    r.y1 = (r.cy + 1) * CHUNK - 1 - irnd(1, 3);
-    carve(r.x0, r.y0, r.x1, r.y1);
-    roomShape(tiles, cols, r);
-    for (let k = irnd(0, 3); k > 0; k--) {
-      const px = irnd(r.x0 + 2, r.x1 - 3),
-        py = irnd(r.y0 + 2, r.y1 - 3);
-      if (Math.abs(px + 1 - (r.cx * CHUNK + 7)) < 3 || Math.abs(py + 1 - (r.cy * CHUNK + 7)) < 3) continue;
-      for (const [ax, ay] of [
-        [0, 0],
-        [1, 0],
-        [0, 1],
-        [1, 1]
-      ])
-        tiles[(py + ay) * cols + px + ax] = 1;
-    }
-  }
-  /* 走廊：相連的房間中心對中心，3 格寬；偶爾多開一條成環 */
-  const mid = r => [r.cx * CHUNK + 7, r.cy * CHUNK + 7];
-  const corridor = (a, b) => {
-    const [ax, ay] = mid(a),
-      [bx, by] = mid(b);
-    carve(Math.min(ax, bx) - 1, Math.min(ay, by) - 1, Math.max(ax, bx) + 1, Math.max(ay, by) + 1);
-  };
-  for (const [a, b] of links) corridor(a, b);
-  for (const a of rooms)
-    for (const b of rooms)
-      if (a !== b && Math.abs(a.cx - b.cx) + Math.abs(a.cy - b.cy) === 1 && Math.random() < 0.08) corridor(a, b);
-  const st = rooms[0];
-  /* 場景只是外觀（biome.js）：每張圖隨機一種 */
+  for (let y = 1; y < rows - 1; y++) for (let x = 1; x < cols - 1; x++) tiles[y * cols + x] = 0;
+  /* 場景只是外觀（biome.js）：每張圖隨機一種；擺設照 3×2 塊各擺幾個、不擋路 */
   G.biome = pick(Object.keys(BIOMES));
-  G.deco = decorate(rooms);
-  newPlayer((st.cx * CHUNK + 7) * TS, (st.cy * CHUNK + 7) * TS);
+  const cx = i => 1 + Math.floor((i * (cols - 2)) / 3),
+    cy = j => 1 + Math.floor((j * (rows - 2)) / 2),
+    cells = [];
+  for (let j = 0; j < 2; j++)
+    for (let i = 0; i < 3; i++) cells.push({ x0: cx(i), y0: cy(j), x1: cx(i + 1) - 1, y1: cy(j + 1) - 1 });
+  G.deco = decorate(cells);
+  newPlayer((cols / 2) * TS, (rows / 2) * TS);
   if (G.mm.pcurse) P.ail = { curse: { k: G.mm.pcurse, v: G.mm.pcv, t: 1e9 } };
   /* 地圖詞「濕透」：整張圖都是濕透（drench 的長秒數；combat.js 的 mobAilPlayer 讀 a.wet） */
   if (G.mm.pwet) (P.ail = P.ail || {}), drench(P, 1e9);
-  /* 怪物：起點以外的房間各 2～3 群；菁英數照星級（企劃書 5.4.5，地圖詞「菁英怪多一倍」×2），隨機挑幾群當菁英 */
-  const counts = rooms.slice(1).map(() => irnd(2, 3) + (roll(MM('pack') * 2) ? 1 : 0)),
+  /* 怪物：群數照 0.2 的房間數換算（每間 2～3 群，地圖等級越高越多），先排好再分 4 波輪流放；
+     菁英數照星級（企劃書 5.4.5，地圖詞「菁英怪多一倍」×2），隨機挑幾群當菁英；王場沒有小怪 */
+  const nR = G.arena ? 0 : Math.min(23, 8 + Math.floor(t / 3)),
+    counts = Array.from({ length: nR }, () => irnd(2, 3) + (roll(MM('pack') * 2) ? 1 : 0)),
     total = counts.reduce((a, b) => a + b, 0),
     nEl = Math.min(total, eliteCount(G.star) * (MM('elite') ? 2 : 1)),
-    els = new Set();
+    els = new Set(),
+    packs = [];
   while (els.size < nEl) els.add(irnd(1, total));
-  let pk = 0,
-    pts = 0,
+  let pts = 0,
     small = 0;
-  rooms.slice(1).forEach((r, ri) => {
-    for (let k = counts[ri]; k > 0; k--) {
-      const c = floorIn(r);
-      if (!c) continue;
-      const elite = els.has(++pk);
-      pick(G.army && Math.random() < 0.5 ? ARMY.packs : PACKS).forEach((m, j) => {
-        const p = floorNear(c.x, c.y, 0, 70, 20) || c;
-        spawnMob(MOBS[m], p.x, p.y, pk, elite && j === 0);
-        pts += elite && j === 0 ? 6 : 1;
-        if (!(elite && j === 0)) small++;
-      });
-    }
-  });
+  for (let pk = 1; pk <= total; pk++) {
+    const ms = pick(G.army && Math.random() < 0.5 ? ARMY.packs : PACKS),
+      elite = els.has(pk);
+    packs.push({ ms, elite, pk });
+    pts += ms.length + (elite ? 5 : 0);
+    small += ms.length - (elite ? 1 : 0);
+  }
+  G.waves = Array.from({ length: WAVES }, (_, w) => packs.filter((_, i) => i % WAVES === w));
+  G.waveN = 0;
   /* 一般通貨（蛻變、增幅、磨刀石／護甲片）：每張圖的量照星級表，換成每隻小怪的掉落機率 */
   G.curP = mapCurP(G.star, small, els.size);
-  /* 心魔幻境的七情王（0.2.79）：在中段的房間等你，不是地圖王（打倒不算過關、掉落照菁英＋預兆與碎片） */
-  if (G.dream && !G.fdB && rooms.length > 1) {
-    const c = floorIn(rooms[Math.max(1, Math.floor(rooms.length / 2))]);
-    if (c) {
-      const b = spawnMob(sinBoss(pick(SIN.emo)), c.x, c.y, 99, false);
-      b.boss = b.mini = 1;
-      b.hp = b.mhp = b.hp * bossHpMul(t) * 0.6;
-      b.dmg *= BOSS_DMG;
-      mobDef(b, t);
-    }
-  }
+  if (!G.arena) spawnWave();
   skillsEnter();
   G.need = Math.ceil(pts / rnd(1.5, 1.6));
   /* 王場（0.2.80）：沒有小怪，2 秒後出王 */
   G.arenaT = G.arena ? G.t + 2 : 0;
   G.prog = 0;
-  G.rooms = rooms;
   sfx('portal');
   hudState();
 }
-/* 房間形狀：圓形庭院、切角、一角崩塌（都在房間的長方形裡加牆；
-   走廊之後才挖、而且接到房間中心，所以不會堵死） */
-function roomShape(tiles, cols, r) {
-  const w = r.x1 - r.x0,
-    hgt = r.y1 - r.y0,
-    k = Math.random(),
-    wall = (x, y) => (tiles[y * cols + x] = 1);
-  if (k < 0.25 && w >= 9 && hgt >= 9) {
-    const cx = (r.x0 + r.x1) / 2,
-      cy = (r.y0 + r.y1) / 2,
-      rx = w / 2 + 0.6,
-      ry = hgt / 2 + 0.6;
-    for (let y = r.y0; y <= r.y1; y++)
-      for (let x = r.x0; x <= r.x1; x++) if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 > 1) wall(x, y);
-  } else if (k < 0.55) {
-    const c = irnd(2, 3);
-    for (let i = 0; i < c; i++)
-      for (let j = 0; j < c - i; j++) {
-        wall(r.x0 + i, r.y0 + j);
-        wall(r.x1 - i, r.y0 + j);
-        wall(r.x0 + i, r.y1 - j);
-        wall(r.x1 - i, r.y1 - j);
-      }
-  } else if (k < 0.8) {
-    const [ax, ay] = pick([
-      [r.x0, r.y0],
-      [r.x1, r.y0],
-      [r.x0, r.y1],
-      [r.x1, r.y1]
-    ]);
-    for (let y = r.y0; y <= r.y1; y++)
-      for (let x = r.x0; x <= r.x1; x++) if (Math.hypot(x - ax, y - ay) < 2.2 + Math.random() * 1.6) wall(x, y);
+/* 放下一波：每群從四邊隨機一邊的牆邊走進來、出生就追玩家；心魔幻境的七情王跟第 2 波一起出現（不是地圖王） */
+function spawnWave() {
+  const w = G.waves && G.waves.shift();
+  if (!w) return;
+  G.waveN++;
+  const edge = () => {
+    const k = irnd(0, 3),
+      m = TS * 1.5;
+    return k === 0
+      ? { x: rnd(m, G.W - m), y: m }
+      : k === 1
+        ? { x: rnd(m, G.W - m), y: G.H - m }
+        : k === 2
+          ? { x: m, y: rnd(m, G.H - m) }
+          : { x: G.W - m, y: rnd(m, G.H - m) };
+  };
+  for (const { ms, elite, pk } of w) {
+    const c = edge();
+    ms.forEach((n, j) => {
+      const p = floorNear(c.x, c.y, 0, 70, 20) || c;
+      spawnMob(MOBS[n], p.x, p.y, pk, elite && j === 0).aggro = 1;
+    });
+    fx({ k: 'ring', x: c.x, y: c.y, r: 60, dur: 0.4, col: '#c9b8a8' });
   }
+  if (G.dream && !G.fdB && G.waveN === 2) {
+    const c = edge(),
+      b = spawnMob(sinBoss(pick(SIN.emo)), c.x, c.y, 99, false);
+    b.boss = b.mini = b.aggro = 1;
+    b.hp = b.mhp = b.hp * bossHpMul(G.mapT) * 0.6;
+    b.dmg *= BOSS_DMG;
+    mobDef(b, G.mapT);
+  }
+  if (G.waveN > 1) hudWarn(`第 ${G.waveN} 波`);
 }
 const isWall = (x, y) => {
   if (!G.tiles) return false;
@@ -516,7 +452,7 @@ function floorNear(x, y, r0, r1, c) {
   }
   return null;
 }
-/* 首領進度滿了：王出現在玩家附近 */
+/* 首領進度滿了：王從場地中央出現（0.3.0） */
 function addProg(m) {
   if (m.pack === 99 || m.boss || G.bossOut) return;
   G.prog += m.elite ? 6 : 1;
@@ -525,7 +461,7 @@ function addProg(m) {
 }
 function spawnBoss() {
   G.bossOut = 1;
-  const p = floorNear(P.x, P.y, 260, 420, 60) || floorNear(P.x, P.y, 120, 260, 50) || { x: P.x + 1, y: P.y };
+  const p = floorNear(G.W / 2, G.H / 2, 0, 120, 60) || { x: G.W / 2, y: G.H / 2 };
   const b = spawnMob(G.zod || G.fdB || (G.lastBoss = bossPick(G.lastBoss)), p.x, p.y, 99, false);
   b.boss = 1;
   b.hp = b.mhp = b.hp * bossHpMul(G.mapT || 1) * (1 + MM('bhp') / 100);
@@ -956,6 +892,9 @@ function killMob(m) {
   onKillBase(m);
   onKill();
   addProg(m);
+  /* 上一波剩不到 3 隻就放下一波（同步放，測試工具連殺也接得上）；王出來後不再放 */
+  if (!G.bossOut && G.mobs && G.mobs.filter(o => o.hp > 0 && !o.boss && !o.dummy && !o.summoned && !o.arrow).length < 3)
+    spawnWave();
   if (m.boss && !m.mini) bossDown(m);
   else if (m.mini) hudWarn(`打倒${m.D.n}：拿到預兆與${SIN_FRAG[m.D.sin].n}`);
   /* 分裂：分成 2 隻小的（不再分、不算首領進度） */
