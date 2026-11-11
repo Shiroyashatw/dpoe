@@ -82,7 +82,7 @@ function drawAim() {
   CX.arc(w.x, w.y, 22, 0, Math.PI * 2);
   CX.fill();
 }
-/* ---------- 全螢幕：Android 用網頁全螢幕（第一次碰螢幕自動進、鎖橫向）；
+/* ---------- 全螢幕：Android 用網頁全螢幕（按全螢幕鈕才進、鎖方向；0.3.2 起不自動進）；
    iPhone 的 Safari 不支援，教玩家「加入主畫面」（從主畫面打開沒有網址列，manifest.webmanifest） ---------- */
 const fsOK = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled),
   fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement),
@@ -371,13 +371,8 @@ function touchInit() {
   document.addEventListener('pointerdown', e => {
     if (TOUCH.on && !$('tip').hidden && !e.target.closest('#tip,#ttip') && !e.target.closest('.it[data-id]')) hideTip();
   });
-  /* 第一次用觸控點螢幕：自動進全螢幕（要在手指放開時才算玩家的操作，瀏覽器才允許） */
-  let fsAuto = false;
-  addEventListener('pointerup', e => {
-    if (fsAuto || e.pointerType !== 'touch' || !fsOK() || inApp() || fsOn()) return;
-    fsAuto = true;
-    fsEnter();
-  });
+  /* 0.3.2：不再自動進全螢幕（要的話按全螢幕鈕）；也不讓 Chrome 跳出「安裝應用程式」的提示（manifest 留著給自己加入主畫面的人） */
+  addEventListener('beforeinstallprompt', e => e.preventDefault());
   document.addEventListener('fullscreenchange', fsBtn);
   document.addEventListener('webkitfullscreenchange', fsBtn);
   setTouch(matchMedia('(pointer: coarse)').matches);
