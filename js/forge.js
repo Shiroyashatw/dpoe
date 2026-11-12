@@ -17,7 +17,7 @@ function curPageHTML() {
     f = it && foreOf(it),
     btn = k =>
       `<button class="cub ${M[k] ? '' : 'z'} ${(k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore) ? 'on' : ''}" style="grid-area:${k}" data-cu="u:${k}" title="${esc(CUR[k].n + '：' + CUR[k].d)}" aria-label="${esc(CUR[k].n)}">${icHTML(CUR[k].ic)}<em>${fmtN(M[k] || 0)}</em></button>`,
-    center = `<div class="cuc" style="grid-area:mid" data-cur="1">${it ? itemHTML(it, 'cur', 'cur') : `<span>${TOUCH.on ? '點背包的裝備<br>按「放進中間」' : '把裝備拖進來<br>或點背包的裝備'}</span>`}</div>`,
+    center = `<div class="cuc" style="grid-area:mid" data-cur="1">${it ? itemHTML(it, 'cur', 'cur') : `<span>${TOUCH.on ? '點倉庫的裝備<br>按「放進中間」' : '把裝備拖進來<br>或點倉庫的裝備'}</span>`}</div>`,
     hint = !it
       ? ''
       : CUI.fore
@@ -112,15 +112,14 @@ document.addEventListener('click', e => {
   changed();
 });
 
-/* ---------- 碎片頁（倉庫的「碎片」分頁，0.2.78，照 PoE 的碎片倉庫）：地圖碎片、勾魂令四種、生死簿，每種寫湊幾張能開什麼 ---------- */
+/* ---------- 碎片頁（通貨面板的「碎片」分頁，0.2.78，照 PoE 的碎片倉庫）：勾魂令四種、生死簿，每種寫湊幾張能開什麼 ---------- */
 function fragPageHTML() {
   const F = S.frags,
     n = fdHun(S),
     row = (ic, nm, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(nm)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
     uw = fdHallWhy(S, 'uber');
-  return `<ul class="mpg">${row('cur_scrap', '地圖碎片', '開地圖卡、洗卡用；自動吸收', S.frag)}</ul>
-  <div class="ph2">酆都<span>鬼門關區塊從第 ${REGION.ring} 圈出現</span></div>
+  return `<div class="ph2">酆都<span>鬼門關：角色 Lv ${spNeed('ghost')} 開</span></div>
   <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
   <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：在山海寶盒開啟' : `：再 ${FENG.hun - n} 張`}</span></p>
   <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '在山海寶盒開啟')}</span></p></div>
@@ -175,8 +174,8 @@ function slotsHTML(it, mode, at = 'fg') {
 /* 上方的裝備卡（沒放東西時是一句提示） */
 function cardHTML(it) {
   if (!it)
-    return `<p class="fhint">${TOUCH.on ? '點背包或身上的裝備，再按「放上鍛造台」' : '點一下背包或身上的裝備，放上鍛造台'}</p>${
-      TOUCH.on && NARROW ? '<button class="btn" data-tm="swap">去背包選裝備</button>' : ''
+    return `<p class="fhint">${TOUCH.on ? '點倉庫或身上的裝備，再按「放上鍛造台」' : '點一下倉庫或身上的裝備，放上鍛造台'}</p>${
+      TOUCH.on && NARROW ? '<button class="btn" data-tm="swap">去倉庫選裝備</button>' : ''
     }`;
   const per = perfection(it);
   return `<div class="fsel">
@@ -359,7 +358,7 @@ function forgeHTML() {
   /* 上到下：裝備卡 → 選通貨（top）→ 詞 → 預覽與說明（mid）→ 按鈕（act，黏在面板底部）；手機橫向左右並排（左：卡與詞，右：選、預覽、按鈕） */
   return `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金幣 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span><span class="ftabs">${tabs
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
-    .join('')}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+    .join('')}</span>${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">未鑑定：回藏身處找撿骨師免費鑑定</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
   <div class="fr"><div class="ftop">${P.top}</div><div class="fmid">${P.mid}</div><div class="fact">${P.act}</div></div></div>`;
 }

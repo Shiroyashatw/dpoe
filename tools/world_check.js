@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
-/* 世界地圖實測（Playwright）：序章第 8 步 → 劇情區 9 個節點 → 世界展開 → 世界區 → 洗卡 → 死亡重打 → 血霧 → 裂口王 → 存檔還原；
+/* 世界地圖實測（Playwright，0.4.0 固定節點＋連續刷）：選節點 → 打倒王 → 同一個場地下一輪、往下推 → 世界展開 → 選星級 → 死亡重來、連死退回 → 再推一次 → 倉庫滿 → 特殊節點 → 存檔還原；
    手勢（拖曳、滾輪、單指、雙指）、減少動態、手機降速 4 倍的效能。序章前 7 步在 pro_check.js 走。
-   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|gesture|still|perf]（預設全跑）。
+   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|auto|patrol|gesture|still|perf]（預設全跑）。
    環境變數 PW_CHROME 指定瀏覽器；截圖存在系統暫存資料夾（world_*.png）；有 ❌ 時結束碼 1 */
 const os = require('os'),
   path = require('path');
@@ -45,307 +45,153 @@ const CLEAR = () => {
     G.mobs = G.mobs.filter(x => x !== m);
   }
 };
-async function clearMap(p) {
-  await p.evaluate(CLEAR);
-  await p.evaluate(() => {
-    G.drops = [];
-    P.x = G.portal.x;
-    P.y = G.portal.y;
-  });
-  await p.waitForFunction(() => G.state === 'portal');
-}
-/* 點地圖上的節點（真的點 canvas） */
-async function tapNode(p, k) {
-  await p.evaluate(k => {
-    wmCenter(k);
-  }, k);
-  await p.waitForTimeout(80);
-  const pos = await p.evaluate(k => {
-    const n = WM.nodes.find(x => x.k === k),
-      [x, y] = wmS(n.x, n.y),
-      r = WM.cv.getBoundingClientRect();
-    return [x + r.left, y + r.top];
-  }, k);
-  await p.mouse.click(pos[0], pos[1]);
-  await p.waitForTimeout(60);
-}
+/* 等一個條件成立（每 200 毫秒看一次） */
+const until = async (p, f, ms = 15000, arg) => {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) {
+    if (await p.evaluate(f, arg)) return true;
+    await p.waitForTimeout(200);
+  }
+  return false;
+};
+/* 0.4.0 手動流程：世界地圖選節點 → 打倒王 → 2 秒後同一個場地下一輪（自動往下推）→ 劇情區打完世界展開 → 選星級 →
+   死了原地重來、連死 3 次退回 → 再推一次 → 倉庫滿了換金幣 → 特殊節點等級門檻 → 存檔還原 */
 async function flow(b) {
   const p = await open(b);
-  /* 序章第 8 步：走到地圖台按 F */
   await p.evaluate(() => {
-    introStop();
-    S.story.intro = PRO_VER;
-    proStart();
-    proHome();
-    S.story.proS = 7;
-    PRO.st = {};
-    proStep(8);
-    const d = HIDE_ART.props.find(x => x.k === 'device');
-    P.x = d.x;
-    P.y = d.y + 60;
+    proSkip();
+    S.story.tips = 0;
+    openPanel('device');
   });
-  await p.waitForTimeout(300);
-  await p.keyboard.press('f');
-  await p.waitForFunction(() => PANEL.device);
-  ok(
-    '序章第 8 步：打開世界地圖，序章結束',
-    await p.evaluate(() => !PRO.on && !$('pdev').hidden && WM.sel === '0,0' && TALK.on)
-  );
-  await p.waitForTimeout(600);
-  await p.screenshot({ path: shot('story') });
   await talkAll(p);
-  ok('對話放完，第一次不再播', await p.evaluate(() => !TALK.on && S.story.st_0 === 1));
-  /* 第一個節點：開傳送門、走進去 */
+  ok('世界地圖：一開始選中第一個節點', await p.evaluate(() => WM.sel === TRUNK_K[0] && wList(S).length === 1));
   await p.click('#pdev [data-a=open]');
-  ok('開傳送門：地圖關掉、傳送門在地圖台前面', await p.evaluate(() => !PANEL.device && !!G.portal && S.node === '0,0'));
-  await p.evaluate(() => {
-    P.x = G.portal.x;
-    P.y = G.portal.y;
-  });
-  await p.waitForTimeout(200);
-  await p.keyboard.press('f');
-  await p.waitForFunction(() => G.scene === 'map');
   ok(
-    '走進傳送門：節點等級換成內部難度',
-    await p.evaluate(() => G.node === '0,0' && mobLv(G.mapT) === 5 && G.nodeN === '地層出口' && !S.card)
+    '在這裡刷：直接進場地（不用傳送門）、第 1 輪',
+    await until(p, () => G.scene === 'map' && G.node === TRUNK_K[0] && G.round === 1 && !PANEL.device)
   );
-  /* 劇情區走完 */
-  const lvs = [];
-  for (let i = 0; i < 9; i++) {
-    await clearMap(p);
-    lvs.push(await p.evaluate(() => S.lv));
-    ok(
-      `劇情第 ${i + 1} 個節點：打倒王才算走過`,
-      await p.evaluate(i => S.world.stage === i + 1 && S.world.done.includes(wKey(STORY[i].q, STORY[i].r)), i)
-    );
-    if (i === 8) break;
-    await p.click('[data-a=pickmap]');
-    await p.waitForFunction(() => PANEL.device);
-    await p.waitForTimeout(60);
-    await talkAll(p);
-    ok(
-      `地圖自動選到下一個節點（${i + 2}）`,
-      await p.evaluate(i => WM.sel === wKey(STORY[i + 1].q, STORY[i + 1].r) && WM.goal === WM.sel, i)
-    );
-    await p.click('#pdev [data-a=open]');
-    await p.waitForFunction(() => G.scene === 'map' && !PANEL.device && G.state === 'play');
+  await p.evaluate(CLEAR);
+  const r1 = await p.evaluate(() => ({ next: G.nextT > 0, portal: !!G.portal, done: S.world.done.slice() }));
+  ok('打倒王：記走過、沒有傳送門、排好下一輪', r1.next && !r1.portal && r1.done[0] === '0,0', JSON.stringify(r1));
+  ok(
+    '2 秒後自動往下推到下一個節點（新的一輪）',
+    await until(p, () => G.node === TRUNK_K[1] && G.round === 1 && G.scene === 'map', 6000),
+    JSON.stringify(await p.evaluate(() => [G.node, G.round]))
+  );
+  /* 留在這個點：同一個場地下一輪，輪數 +1、場景外觀不變 */
+  const bio = await p.evaluate(() => {
+    S.push = 'stay';
+    return G.biome;
+  });
+  await p.evaluate(CLEAR);
+  ok(
+    '推進設定「留在這個點」：同一個節點、同一個場地，第 2 輪',
+    (await until(p, () => G.node === TRUNK_K[1] && G.round === 2, 6000)) && (await p.evaluate(b => G.biome === b, bio))
+  );
+  /* 劇情區剩下的打完：世界展開（打開地圖播演出） */
+  await p.evaluate(() => (S.push = 'auto'));
+  for (let i = 0; i < 8 && !(await p.evaluate(() => wOpen(S))); i++) {
+    await p.evaluate(CLEAR);
+    await until(p, () => !G.nextT || PANEL.device, 6000);
   }
-  console.log('   打完每張圖的等級', lvs.join(' '));
-  ok('打完劇情區：最少路線也有 Lv19 以上', lvs[8] >= 19 && lvs[8] <= 22, lvs.join());
-  ok('血霧山道解鎖赤鴉與血霧', await p.evaluate(() => S.story.crow === 1 && S.hunt.v === HUNT.gain));
-  /* 世界展開 */
-  await p.click('[data-a=home]');
-  await p.waitForFunction(() => PANEL.device);
-  ok(
-    '回藏身處自動播世界展開',
-    await p.evaluate(() => !!WM.anim && !$('wmcap').hidden && S.world.open === 1 && WM.wipe < 1)
-  );
-  await p.waitForTimeout(1200);
-  await p.screenshot({ path: shot('reveal') });
-  await p.waitForFunction(() => !WM.anim, { timeout: 8000 });
-  ok('演出結束：迷霧散開、看得到走得到的節點', await p.evaluate(() => WM.wipe === 1 && WM.nodes.some(n => n.can)));
-  await p.waitForTimeout(1600);
-  await p.screenshot({ path: shot('world') });
-  /* 世界區：點一個走得到的節點 */
-  const k1 = await p.evaluate(() => {
-    const L = WM.nodes.filter(n => n.can && n.t !== 'rift');
-    return (L.find(n => n.t === 'plain') || L[0]).k;
-  });
-  await tapNode(p, k1);
-  ok(
-    '點節點：面板出現 3 張卡',
-    await p.evaluate(k => WM.sel === k && document.querySelectorAll('#pdev .mc2').length === 3, k1)
-  );
-  /* 洗卡：只洗這個節點，每洗一次加倍 */
+  ok('劇情區打完：世界展開（打開地圖播演出）', await until(p, () => wOpen(S) && PANEL.device && S.world.open, 8000));
   await p.evaluate(() => {
-    S.frag = 40;
-    wmPanel();
+    WM.anim = null;
+    closePanels();
   });
-  const w = await p.evaluate(k => {
-    const rg = wRegionOf(S.world.seed, ...wXY(k)),
-      a = JSON.stringify(wCards(S, rg).c),
-      f0 = S.frag;
-    document.querySelector('[data-wm=wash]').click();
-    const f1 = S.frag;
-    document.querySelector('[data-wm=wash]').click();
-    return [a !== JSON.stringify(wCards(S, rg).c), f0 - f1, f1 - S.frag, wCards(S, rg).w];
-  }, k1);
-  ok('洗卡：換新批、費用 1 → 2、記次數', w[0] && w[1] === 1 && w[2] === 2 && w[3] === 2, w.join());
-  /* 第二張卡 */
-  await p.click('#pdev .mc2:nth-child(2)');
-  ok('選第二張卡', await p.evaluate(() => PANEL.card === 1 && !!document.querySelector('.mc2.on:nth-child(2)')));
-  await p.evaluate(() => (wCards(S, wRegionOf(S.world.seed, ...wXY(WM.sel))).c[1] = rollCard(1)));
+  ok('世界展開後往下推到主幹 Lv23', await until(p, () => G.node === TRUNK_K[9], 8000));
+  /* 選星級：打過的節點可以一直刷 */
+  await p.evaluate(() => {
+    openPanel('device');
+    wmSel(TRUNK_K[9]);
+  });
+  await p.click('#pdev [data-wm="star:4"]');
   await p.click('#pdev [data-a=open]');
-  await p.evaluate(() => {
-    P.x = G.portal.x;
-    P.y = G.portal.y;
-  });
-  await p.waitForTimeout(150);
-  await p.keyboard.press('f');
-  await p.waitForFunction(() => G.scene === 'map');
-  /* 死亡：不算走過，卡換新批 */
-  const fail = await p.evaluate(k => {
-    hurtPlayer(1e9, null, 'phys');
-    if (G.state !== 'dead') die();
-    return [G.state, S.world.done.includes(k), !!S.cards[wRegionOf(S.world.seed, ...wXY(k))]];
-  }, k1);
-  ok('死亡：不算走過、區塊卡還在（整個區塊共用，打完才清）', fail[0] === 'dead' && !fail[1] && fail[2], fail.join());
-  await p.click('[data-a=home]');
-  await p.evaluate(() => openPanel('device'));
-  await p.waitForTimeout(100);
-  await tapNode(p, k1);
-  ok('失敗的節點可以重打', await p.evaluate(k => wCan(S, ...wXY(k)) && wWhy(S, ...wXY(k)) === '', k1));
-  /* 血霧滿了 */
-  const bl = await p.evaluate(() => {
-    S.hunt.v = 80;
-    const n = WM.nodes.find(x => x.can && x.t === 'blood');
-    if (n) return n.k;
-    /* 這個種子第 4 圈沒有血霧：往外走到有為止 */
-    for (let i = 0; i < 40; i++) {
-      const c = wList(S)
-        .map(wXY)
-        .find(([q, r]) => wCan(S, q, r) && wType(S, q, r) === 'blood');
-      if (c) return wKey(...c);
-      const o = wList(S)
-        .map(wXY)
-        .find(([q, r]) => wCan(S, q, r) && wType(S, q, r) !== 'rift');
-      wClear(S, wKey(...o));
-    }
-  });
-  await p.evaluate(() => wmNodes());
-  await tapNode(p, bl);
-  await p.evaluate(() => {
-    S.frag = 99;
-    wmPanel();
-  });
-  await p.click('#pdev [data-a=open]');
-  await p.evaluate(() => {
-    P.x = G.portal.x;
-    P.y = G.portal.y;
-    interact();
-  });
-  await p.waitForFunction(() => G.scene === 'map');
-  await clearMap(p);
-  ok('血霧節點：累積到 100%、進入血霧期', await p.evaluate(() => S.hunt.v === 100 && S.hunt.full === 1));
-  /* 裂口王：路接到裂口旁邊 */
-  const rk = await p.evaluate(() => {
-    const k = Object.keys(wRifts(S.world.seed)).sort((a, b) => wRing(...wXY(a)) - wRing(...wXY(b)))[0];
-    let [q, r] = wNear(S.world.seed, ...wXY(k)).find(([x, y]) => wRing(x, y) < wRing(...wXY(k)));
-    while (wRing(q, r) > W_ROAD) {
-      if (!wDone(S).has(wKey(q, r))) S.world.done.push(wKey(q, r));
-      [q, r] = wInner(S.world.seed, q, r);
-    }
-    if (!wDone(S).has(wKey(q, r))) S.world.done.push(wKey(q, r));
-    S.world.done.push(
-      ...wNear(S.world.seed, ...wXY(k))
-        .filter(([x, y]) => wRing(x, y) < wRing(...wXY(k)))
-        .map(a => wKey(...a))
-    );
-    return k;
-  });
-  await p.click('[data-a=pickmap]');
-  await p.waitForFunction(() => PANEL.device);
-  await p.evaluate(() => wmNodes());
-  await tapNode(p, rk);
-  await p.waitForTimeout(100);
-  await p.screenshot({ path: shot('rift') });
-  ok('裂口：面板寫墮落詞', await p.evaluate(() => /墮落詞/.test($('wms').textContent)));
-  await p.evaluate(() => (wCards(S, wRegionOf(S.world.seed, ...wXY(WM.sel))).c[0] = rollCard(1)));
-  await p.click('#pdev [data-a=open]');
-  await p.waitForFunction(() => G.scene === 'map' && G.state === 'play');
+  const st = await p.evaluate(() => ({ star: G.star, n: G.card.mods.length, hold: S.world.hold, node: G.node }));
   ok(
-    '裂口：血霧扣 25%，王是生肖、帶墮落詞',
-    await p.evaluate(
-      () => S.hunt.v === 75 && !!G.zod && !!G.mm && Object.keys(MAPMOD[G.zod.cor].fx).every(f => G.mm[f])
-    )
+    '選 4★：這一輪 10～12 條地圖詞；選的是最前面的節點不會被留住',
+    st.star === 4 && st.n >= 10 && st.n <= 12 && st.hold === 0,
+    JSON.stringify(st)
   );
-  const n0 = await p.evaluate(() => G.zod.n);
-  const drops = await p.evaluate(() => {
-    for (let k = 0; k < 2000 && !G.bossOut; k++) {
-      const m = G.mobs.find(x => x.hp > 0);
-      killMob(m);
-      G.mobs = G.mobs.filter(x => x !== m);
-    }
-    const b = G.mobs.find(x => x.boss);
-    b.cd = 9;
-    P.x = b.x - 150;
-    P.y = b.y;
-    return [b.D.n, b.D.sp];
-  });
-  await p.waitForTimeout(200);
-  await p.screenshot({ path: shot('riftboss') });
-  drops.push(
-    await p.evaluate(() => {
-      const b0 = S.frags.blood || 0;
-      killMob(G.mobs.find(x => x.boss));
-      return S.frags.blood - b0;
-    })
-  );
-  ok('裂口王：用生肖的名字與圖', drops[0] === n0 && /^z_/.test(drops[1]), drops.join());
-  ok('裂口王：掉 1 份神血（0.2.82 起不再保底追憶裝）', drops[2] === 1, drops.join());
+  /* 死亡：原地重來；連死 3 次退回上一個節點、留著（hold）、有通知、HUD 有「再推一次」 */
+  const dead = async () => {
+    await p.evaluate(() => die());
+    await until(p, () => !$('over').hidden && G.state === 'dead');
+    const t = await p.evaluate(() => $('over').textContent);
+    await p.click('#over [data-a=again]');
+    return t;
+  };
+  const t1 = await dead();
   ok(
-    '打完裂口：點亮神像、走過、這次血霧不開第二道',
-    await p.evaluate(k => {
-      const o = Object.keys(wRifts(S.world.seed)).find(x => x !== k);
-      return (
-        S.idols.length === 1 &&
-        S.world.done.includes(k) &&
-        S.hunt.used === 1 &&
-        wWhy(S, ...wXY(k)) === '已經走過' &&
-        !!o
-      );
-    }, rk)
+    '死亡卡寫出這一輪的地圖詞；再試一次＝同一個節點重來',
+    /這一輪的地圖詞/.test(t1) && (await until(p, () => G.state === 'play' && G.node === TRUNK_K[9]))
   );
-  await p.screenshot({ path: shot('riftwin') });
-  /* 回家：赤鴉出現、神像亮 */
-  await p.evaluate(() => {
-    G.drops = [];
-    P.x = G.portal.x;
-    P.y = G.portal.y;
-  });
-  await p.waitForFunction(() => G.state === 'portal');
-  await p.click('[data-a=home]');
-  await p.waitForFunction(() => G.scene === 'hide');
-  ok('藏身處：赤鴉在、神像亮', await p.evaluate(() => G.npcs.some(n => n.id === 'crow') && S.idols.length === 1));
-  /* 主線面板 */
-  await p.evaluate(() => openPanel('device'));
-  await p.waitForTimeout(100);
-  await p.click('#wmr');
+  await dead();
+  await dead();
+  const K = await p.evaluate(() => TRUNK_K);
+  const rb = await p.evaluate(() => ({
+    node: G.node,
+    hold: S.world.hold,
+    note: S.world.note,
+    run: $('run').textContent
+  }));
   ok(
-    '主線面板：0／5、生肖 1／12、酆都、心魔劫、四凶、陰兵借道四列、沒有鎖定',
-    await p.evaluate(
-      () =>
-        /0／5/.test($('wms').textContent) &&
-        /生肖 1／12/.test($('wms').textContent) &&
-        /酆都/.test($('wms').textContent) &&
-        /心魔劫/.test($('wms').textContent) &&
-        /四凶/.test($('wms').textContent) &&
-        document.querySelectorAll('.wm-q .lock').length === 0 &&
-        /陰兵借道/.test($('wms').textContent)
-    )
+    '連死 3 次：退回上一個節點、留在那裡、HUD 有通知與「再推一次」',
+    rb.node === K[8] && rb.hold === 1 && /連死 3 次/.test(rb.note) && /再推一次/.test(rb.run),
+    JSON.stringify(rb)
   );
-  await p.waitForTimeout(100);
-  await p.screenshot({ path: shot('quest') });
+  await p.evaluate(CLEAR);
+  ok('留住的時候打倒王不往下推', await until(p, () => G.node === TRUNK_K[8] && G.round === 2, 6000));
+  await p.click('#run [data-a=push]');
+  ok('再推一次：回到下一個節點', await until(p, () => G.node === TRUNK_K[9] && !S.world.hold));
+  /* 倉庫滿了：普通裝換金幣、★ 照樣收 */
+  const full = await p.evaluate(() => {
+    S.inv.items = Array.from({ length: INV_CAP }, () => mkItem('c_leather', 10, 0));
+    const g0 = S.gold,
+      a = { x: P.x, y: P.y, it: mkItem('c_leather', 10, 2) },
+      s = { x: P.x, y: P.y, it: Object.assign(mkItem('c_leather', 10, 2), { frac: 'life' }) };
+    G.drops.push(a, s);
+    pickup(a);
+    pickup(s);
+    const r = [S.gold > g0, S.inv.items.length, S.inv.items.includes(s.it)];
+    S.inv.items = [];
+    return r;
+  });
+  ok('倉庫滿了：普通裝換成金幣、★ 照樣收（多留的格子）', full[0] && full[1] === 3001 && full[2], JSON.stringify(full));
+  /* 特殊節點：要角色等級 */
+  const sp = await p.evaluate(() => {
+    S.world.done = TRUNK_K.slice(0, 12);
+    const g = SPECIAL[0];
+    S.lv = 34;
+    const a = wWhy(S, g.q, g.r);
+    S.lv = 35;
+    runNode(wKey(g.q, g.r));
+    return [a, G.node === wKey(g.q, g.r), !!(G.fdB && FENG.elites.includes(G.fdB.fd))];
+  });
+  ok('鬼門關：角色 Lv35 才開、王是四隻菁英王之一', sp[0] === '角色等級需達 35' && sp[1] && sp[2], JSON.stringify(sp));
+  /* 回藏身處：刷圖暫停，HUD 有「繼續刷」 */
+  await p.evaluate(() => act('home'));
+  ok(
+    '回藏身處：HUD 有「繼續刷」，按了回到原本的節點',
+    await until(p, () => G.scene === 'hide' && /繼續刷/.test($('run').textContent))
+  );
+  await p.click('#run [data-a=resume]');
+  ok('繼續刷', await until(p, () => G.scene === 'map' && G.node === S.world.cur));
   /* 存檔還原 */
-  const fp = await p.evaluate(() => {
-    save();
-    return JSON.stringify([S.world, S.hunt, S.idols, S.cards]);
-  });
+  const before = await p.evaluate(() => (save(), JSON.stringify([S.world.done, S.world.cur, S.push, S.v])));
   await p.reload();
-  await p.waitForFunction(() => typeof G === 'object' && !!G.scene && typeof treeInit === 'function');
-  await p.waitForTimeout(500);
+  await p.waitForFunction(() => typeof G === 'object' && !!G.scene);
   ok(
-    '重新整理：世界、血霧、神像都還在',
-    fp === (await p.evaluate(() => JSON.stringify([S.world, S.hunt, S.idols, S.cards])))
+    '存檔還原：走過的、在刷的、推進設定',
+    (await p.evaluate(() => JSON.stringify([S.world.done, S.world.cur, S.push, S.v]))) === before
   );
-  ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
 async function gesture(b) {
   const p = await open(b);
   await p.evaluate(() => {
     proSkip();
-    S.world.seed = 4242;
     S.world.done = STORY.map(n => wKey(n.q, n.r));
     S.world.stage = STORY.length;
     S.world.open = 1;
@@ -471,7 +317,6 @@ async function perf(b) {
     const c = await p.context().newCDPSession(p);
     await p.evaluate(() => {
       proSkip();
-      S.world.seed = 4242;
       S.world.done = STORY.map(n => wKey(n.q, n.r));
       S.world.stage = STORY.length;
       S.world.open = 1;
@@ -536,130 +381,58 @@ async function perf(b) {
     await p.context().close();
   }
 }
-/* 掛機（0.3.0）：不碰鍵盤，AI 打倒王、撿完、回家（臨時頁倒進倉庫）、自動再開下一個節點；同一節點連死 3 次停機 */
+/* 掛機（0.4.0）：不碰鍵盤，AI 打倒王 → 同一個場地下一輪（自動往下推）、撿到的進倉庫；踩到怪物方的地面往外走；
+   倒下 1.5 秒後原地重來，同一個節點連死 3 次退回上一個 */
 async function auto(b) {
   const p = await open(b);
   await p.evaluate(() => {
     introStop();
     proSkip();
     S.story.tips = 0;
-    S.lv = 50; /* 測的是循環不是平衡：Lv30 新手裝對第一個劇情王接近平手，三次有一兩次死 */
+    S.lv = 50; /* 測的是循環不是平衡 */
     ST = stats();
     S.auto = 1;
-    openMap(wKey(STORY[0].q, STORY[0].r), 0);
-    enterMap(G.portal.to);
+    runNode(TRUNK_K[0]);
   });
-  const t0 = Date.now();
+  const K = await p.evaluate(() => TRUNK_K),
+    t0 = Date.now();
   let r = null;
   while (Date.now() - t0 < 330000) {
     await p.waitForTimeout(2000);
-    r = await p.evaluate(() => ({
-      done: S.world.done.length,
-      node: G.node,
-      scene: G.scene,
-      stage: S.world.stage,
-      t: Math.round(G.t)
-    }));
+    r = await p.evaluate(() => ({ done: S.world.done.length, node: G.node, scene: G.scene, inv: S.inv.items.length }));
     if (r.done >= 1 && r.scene === 'map' && r.node && r.node !== '0,0') break;
   }
   console.log('   ', JSON.stringify(r));
   ok(
-    'AI：不碰鍵盤打倒王、撿完、回家、自動再開下一個節點',
-    r && r.done >= 1 && r.stage >= 1 && r.scene === 'map',
+    'AI：不碰鍵盤打倒王、2 秒後往下推到下一個節點（不回家）',
+    r && r.done >= 1 && r.scene === 'map' && r.node === K[1],
     JSON.stringify(r)
   );
-  /* 踩到怪物方的地面：AI 往外走 */
+  ok('AI 打到的裝備直接進倉庫', r && r.inv >= 1, JSON.stringify(r));
   const gz = await p.evaluate(async () => {
-    S.auto = 1;
     await new Promise(r => setTimeout(r, 300));
     addGround({ k: 'smoke', side: 'm', x: P.x, y: P.y, r: 2 * METER, dur: 6 });
-    /* 出招中只能走 35%（CAST_MOVE），一招 0.4～1 秒，所以給 2 秒 */
     await new Promise(r => setTimeout(r, 2000));
     const g = G.ground.find(x => x.side === 'm');
     return !g || !onGround(g);
   });
   ok('AI：踩到怪物方的地面就往外走', gz);
-  const st = await p.evaluate(() => ({
-    tmp: S.temp.items.length + S.temp2.items.length,
-    stash: S.stash.items.length,
-    inv: S.inv.items.length,
-    stop: S.stopWhy
-  }));
-  ok('AI 撿到的有地方放（先主背包）、回家後臨時頁倒進倉庫', st.tmp <= 3 && st.inv + st.stash >= 1, JSON.stringify(st));
-  /* 0.3.5：撿到的先放主背包，滿了放臨時頁；回家只把臨時頁倒進倉庫，主背包不動 */
-  const pk = await p.evaluate(() => {
-    const keep = { inv: S.inv.items, temp: S.temp.items, temp2: S.temp2.items, stash: S.stash.items };
-    S.inv.items = [];
-    S.temp.items = [];
-    S.temp2.items = [];
-    S.stash.items = [];
-    G.scene = 'map';
-    const drop = () => {
-      const d = { x: P.x, y: P.y, it: dropItem(5) };
-      G.drops.push(d);
-      pickup(d);
-      return d.it;
-    };
-    const a = drop(),
-      inInv = S.inv.items.includes(a);
-    /* 主背包塞滿：再撿的進臨時頁 */
-    while (gridAuto(S.inv, mkItem('r_iron', 1, 0)));
-    const nInv = S.inv.items.length,
-      b = drop(),
-      inTemp = S.temp.items.includes(b);
-    enterHideout();
-    const r = [inInv, inTemp, S.inv.items.length === nInv, S.stash.items.includes(b), S.temp.items.length];
-    Object.assign(S.inv, { items: keep.inv });
-    Object.assign(S.temp, { items: keep.temp });
-    Object.assign(S.temp2, { items: keep.temp2 });
-    Object.assign(S.stash, { items: keep.stash });
-    return r;
-  });
-  ok(
-    '撿到的先放主背包、滿了放臨時頁；回家只倒臨時頁、主背包不動',
-    JSON.stringify(pk) === '[true,true,true,true,0]',
-    JSON.stringify(pk)
-  );
-  /* 連死 3 次：同一節點死 3 次就停機 */
-  await p.evaluate(() => {
-    S.auto = 1;
-    AI.dn = 0;
-    AI.dk = null;
-  });
-  const deadRun = async n => {
-    await p.waitForFunction(() => G.scene === 'map' && G.state === 'play', null, { timeout: 20000 });
-    await p.evaluate(() => {
-      P.hp = 1;
-      hurtPlayer(99999, G.mobs[0] || null, 'phys', true);
-      if (G.state !== 'dead') die();
-    });
-    await p.waitForTimeout(2600);
-  };
+  /* 連死：AI 自己按重來，第 3 次退回 */
   const k0 = await p.evaluate(() => G.node);
-  await deadRun(1);
-  await deadRun(2);
-  const mid = await p.evaluate(() => ({ scene: G.scene, stop: S.stopWhy, dn: AI.dn }));
-  ok('連死 2 次還會再開', mid.scene === 'map' && !mid.stop, JSON.stringify(mid));
-  await deadRun(3);
-  const end = await p.evaluate(() => ({ scene: G.scene, stop: S.stopWhy, auto: S.auto, k: G.node }));
+  for (let i = 0; i < 3; i++) {
+    await p.evaluate(() => die());
+    await until(p, () => G.state === 'play' && G.t < 1, 6000);
+  }
+  const rb = await p.evaluate(() => ({ node: G.node, hold: S.world.hold, scene: G.scene }));
   ok(
-    '同一節點連死 3 次：停在藏身處、S.auto 不動、記下原因',
-    end.scene === 'hide' && end.stop && end.stop.why === 'dead3' && end.auto === 1,
-    JSON.stringify(end)
+    'AI：倒下自己重來，連死 3 次退回上一個節點繼續刷',
+    rb.node === K[0] && rb.hold === 1 && rb.scene === 'map' && k0 === K[1],
+    JSON.stringify(rb)
   );
-  ok('死亡不扣經驗', await p.evaluate(() => G.lostXp === undefined));
-  await p.waitForTimeout(1500);
-  ok('停機後不會再自動開圖', await p.evaluate(() => G.scene === 'hide'));
-  /* 手動：玩家自己開了圖，停機解除 */
-  await p.evaluate(() => {
-    openMap(S.run.k, 0);
-  });
-  ok('玩家按開始：停機解除', await p.evaluate(() => !S.stopWhy));
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
-/* 巡邏（0.3.0）：新存檔從劇情區自動打到世界展開（AI 停在「選區塊」）、開始巡邏自動打完第一個區塊、往下一個區塊；
-   戰鬥用 killMob 加速（每 1.5 秒清場），其餘（撿、回家、倒倉庫、再開、挑節點）都是真的 */
+/* 連續推進（0.4.0，取代 0.3.0 的巡邏）：AI 加速打（每 1.5 秒清場），從劇情區一路推到世界展開、再往下推主幹 */
 async function patrol(b) {
   const p = await open(b);
   await p.evaluate(() => {
@@ -669,10 +442,9 @@ async function patrol(b) {
     S.lv = 30;
     ST = stats();
     S.auto = 1;
-    S.frag = 50;
-    S.filter.cur = 1; /* 範本二：只撿 ★、追憶、高階黃裝，AI 不用為了一地雜物跑來跑去 */
+    S.filter.cur = 1;
     window.__fast = setInterval(() => {
-      if (G.scene !== 'map' || G.state !== 'play' || G.portal) return;
+      if (G.scene !== 'map' || G.state !== 'play' || G.nextT) return;
       for (let k = 0; k < 2000; k++) {
         const bo = G.mobs.find(x => x.boss && x.hp > 0),
           m = G.mobs.find(x => x.hp > 0 && !x.boss);
@@ -682,60 +454,20 @@ async function patrol(b) {
         G.mobs = G.mobs.filter(x => x !== m);
       }
     }, 1500);
-    /* 前 7 個劇情節點直接當打過（AI 的劇情區循環在 auto 測過），從第 8 個（血霧山道）開始 */
     S.world.stage = 7;
-    S.world.done = STORY.slice(0, 7).map(n => wKey(n.q, n.r));
-    openMap(wKey(STORY[7].q, STORY[7].r), 0);
-    enterMap(G.portal.to);
+    S.world.done = TRUNK_K.slice(0, 7);
+    runNode(TRUNK_K[7]);
   });
-  const w = async (f, ms = 200000) => {
-    const t0 = Date.now();
-    while (Date.now() - t0 < ms) {
-      if (await p.evaluate(f)) return true;
-      await p.waitForTimeout(1000);
-    }
-    return false;
-  };
-  ok(
-    '劇情區：AI 自動打到世界展開（打開地圖面板播演出）',
-    await w(() => S.world.stage > STORY_END && PANEL.device && G.scene === 'hide')
-  );
+  ok('劇情區：AI 一路推到世界展開（打開地圖面板播演出）', await until(p, () => wOpen(S) && PANEL.device, 60000));
   await p.evaluate(() => {
     WM.anim = null;
     closePanels();
   });
   ok(
-    '世界展開後沒選區塊：AI 停在「選區塊」，不自己亂開',
-    await w(() => S.stopWhy && S.stopWhy.why === 'pick' && G.scene === 'hide', 20000)
+    '世界展開後接著往下推主幹（不停）',
+    await until(p, () => wFront(S) >= 11 && G.scene === 'map', 90000),
+    JSON.stringify(await p.evaluate(() => [wFront(S), G.node, G.scene]))
   );
-  const rg0 = await p.evaluate(() => {
-    const L = wList(S)
-      .map(wXY)
-      .filter(([q, r]) => wRegionOf(S.world.seed, q, r) && !wWhy(S, q, r) && wType(S, q, r) !== 'rift');
-    const rg = wRegionOf(S.world.seed, ...L[0]);
-    patrolStart(rg, 0);
-    return rg;
-  });
-  ok('開始巡邏：開了圖（免費）', await w(() => G.scene === 'map' && !!G.node && S.patrol.rg), 30000);
-  ok(
-    '自動打完第一個區塊，往下一個區塊（新的區塊、新的卡、上一個的卡清掉）',
-    await w(() => S.patrol.rg && S.patrol.rg !== S.patrol.prev && S.patrol.prev && G.scene === 'map', 600000),
-    JSON.stringify(await p.evaluate(() => [S.patrol, S.world.done.length, S.stopWhy]))
-  );
-  const r = await p.evaluate(
-    rg0 => ({
-      prev: S.patrol.prev === rg0,
-      cleared: !S.cards[rg0],
-      left: wRgNodes(S, rg0).filter(([q, r]) => !wWhy(S, q, r)).length,
-      prog: wRgProg(S, rg0),
-      frag: S.frag,
-      stash: S.stash.items.length,
-      stop: S.stopWhy
-    }),
-    rg0
-  );
-  ok('上一個區塊：走得到的節點都打完、卡清掉', r.prev && r.cleared && r.left === 0, JSON.stringify(r));
-  ok('開圖沒花碎片（掉的東西進倉庫在 auto 測）', r.frag >= 50, JSON.stringify(r));
   await p.evaluate(() => clearInterval(window.__fast));
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();

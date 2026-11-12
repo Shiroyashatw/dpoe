@@ -162,7 +162,7 @@ function gambleDo(id) {
     it = mkItem(pickBase(L, o.k, o.wt).id, L, rar);
   Object.assign(it, { q: 0, so: 0 });
   it.a = it.a.map(a => (a.T < 2 ? gambAff(a.k, L) : a));
-  if (!gridAuto(S.inv, it)) return { why: '背包滿了' };
+  if (!invPut(S.inv, it)) return { why: '倉庫滿了' };
   S.gold -= c;
   S.gamN = rar === 2 ? 0 : (S.gamN || 0) + 1;
   return { it };
@@ -721,8 +721,6 @@ function dropGear(kind, o) {
   for (const it of L) if (FRAC_P[it.r] && prdRoll(it.r === 2 ? 'frac' : 'fracB', FRAC_P[it.r] * sm)) makeFrac(it);
   const can = L.filter(it => memPool(it).length);
   if (can.length && prdRoll('mem', MEM_P[kind] * sm)) addMem(pick(can));
-  /* 地圖裡掉的裝備一律未鑑定（企劃書 5.4.1）：前後綴看不到，不能裝備、不能做裝，回藏身處找撿骨師 */
-  for (const it of L) it.uid = 1;
   return L;
 }
 /* 酆都的王額外掉的（0.2.78，企劃書 4.2）：k＝王的 fd（ox／horse／black／white／yama／uber）。直接進材料頁與碎片分頁，回傳要跳字的清單 */
@@ -854,9 +852,7 @@ function armyDrop(k, ck, res, s = S) {
 /* 陰兵借道的追憶裝：將領保底 1 件＋每點怨恨值 ARMY.mem 機率再 1 件；蚩尤、涿鹿兵主 0.2.84 起改掉亡靈珠寶（armyDrop） */
 function armyGear(k, res, o) {
   if (!ARMY.gen.includes(k)) return [];
-  const L = [memGear(o), ...(Math.random() < res * ARMY.mem ? [memGear(o)] : [])];
-  for (const it of L) it.uid = 1;
-  return L;
+  return [memGear(o), ...(Math.random() < res * ARMY.mem ? [memGear(o)] : [])];
 }
 /* 弒神（0.2.82）：裂口生肖王掉 1 份神血；太歲、太歲星君掉 1 個神格（直接進收藏 S.gods，最多 TAISUI.keep 個，滿了換靈魂） */
 function ghRoll(uber, ilvl = 80) {
@@ -903,8 +899,8 @@ function killMat(m, t, o = {}) {
   return got;
 }
 
-/* ---------- 鑑定（企劃書 5.4.1）：撿骨師免費「全部鑑定」，背包、倉庫、臨時倉庫裡所有未鑑定的一次開完 ---------- */
-const unidList = s => [s.inv, s.stash, s.temp, s.temp2].flatMap(g => (g ? g.items : [])).filter(it => it.uid);
+/* ---------- 鑑定：0.4.0 起掉下來就是鑑定好的（企劃書 5.4.1）；只剩舊存檔轉換用，翻牌演出 0.4.1 搬到回來時的摘要 ---------- */
+const unidList = s => s.inv.items.filter(it => it.uid);
 const unidN = s => unidList(s).length;
 /* 開獎的順序：越好的越晚翻（白、藍、黃，有追憶、有 ★ 的壓軸） */
 const unidScore = it => it.r + (it.mem ? 4 : 0) + (it.mem2 ? 2 : 0) + (it.frac ? 8 : 0);

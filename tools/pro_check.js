@@ -14,7 +14,7 @@ const ok = (n, c, info = '') => {
   if (!c) bad++;
 };
 /* 玩家的東西：開場前後要一模一樣（故事旗標、存檔時間除外） */
-const KEYS = `['lv','xp','gold','frag','maxT','tier','eq','inv','stash','temp','lib','skills','pt','ptA','asc','at','mat','charms','auras']`;
+const KEYS = `['lv','xp','gold','maxT','tier','eq','inv','lib','skills','pt','ptA','asc','at','mat','charms','auras']`;
 const CORE = `JSON.stringify(${KEYS}.map(k => S[k]))`;
 const DISK = `(() => { const s = JSON.parse(localStorage.getItem(KEY + SLOT)); return JSON.stringify(${KEYS}.map(k => s[k])); })()`;
 let b, LAST;

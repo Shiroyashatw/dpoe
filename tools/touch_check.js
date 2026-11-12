@@ -217,16 +217,13 @@ let fail = 0;
     await p.evaluate(() => S.auto === 0 && document.querySelector('.tmenu .autob').textContent === '手動')
   );
   await p.screenshot({ path: shot('map') });
-  /* 回藏身處，開背包＋倉庫 */
+  /* 回藏身處，開裝備與清單倉庫（0.4.0） */
   await p.evaluate(() => {
     enterHideout();
-    for (let i = 0; i < 6; i++) {
-      const it = dropItem(3);
-      gridAuto(S.inv, it);
-    }
-    for (let i = 0; i < 4; i++) gridAuto(S.stash, dropItem(5));
-    PANEL.stab = 'stash'; /* 0.3.6 起倉庫第一頁是通貨頁：這裡測格子 */
-    openPanel('stash');
+    for (let i = 0; i < 10; i++) invPut(S.inv, dropItem(i < 6 ? 3 : 5));
+    /* 最新的一件（清單排第一）是沒有需求的戒指：點了「裝備」一定裝得上 */
+    invPut(S.inv, mkItem('r_iron', 1, 1));
+    openPanel('inv');
   });
   await p.waitForTimeout(400);
   await p.screenshot({ path: shot('stash') });
@@ -245,7 +242,7 @@ let fail = 0;
   );
   /* 點道具：說明＋動作 */
   const it = await p.evaluate(() => {
-    const e = document.querySelector('#pinv .grid .it, #pstash .grid .it');
+    const e = document.querySelector('#pinv .bag .it');
     const r = e.getBoundingClientRect();
     return [r.left + r.width / 2, r.top + r.height / 2];
   });
@@ -313,7 +310,7 @@ let fail = 0;
     ok('道具說明框不蓋住道具、不出畫面', v, d);
   }
   await p.screenshot({ path: shot('tip') });
-  const n0 = await p.evaluate(() => [S.inv.items.length, S.stash.items.length].join());
+  const n0 = await p.evaluate(() => String(S.inv.items.length));
   const bt = await p.evaluate(() => {
     const r = document.querySelector('#tip [data-tq=move]').getBoundingClientRect();
     return [r.left + r.width / 2, r.top + r.height / 2];
@@ -321,51 +318,29 @@ let fail = 0;
   await touch('touchStart', [bt]);
   await touch('touchEnd', []);
   await p.waitForTimeout(200);
-  const n1 = await p.evaluate(() => [S.inv.items.length, S.stash.items.length].join());
+  const n1 = await p.evaluate(() => String(S.inv.items.length));
   ok('按動作按鈕搬過去', n0 !== n1, n0 + ' → ' + n1);
   {
     const bad = await tipAll('.it[data-id]');
     ok('每件道具的說明框都不蓋住、不出畫面', !bad.length, bad.join(','));
   }
-  /* 拖曳：在同一個格子裡拖到右下角的空格，放開後沒有殘影 */
+  /* 拖曳（0.4.0 清單倉庫）：把倉庫裡的一件拖到「拖到這裡賣掉」，賣掉、放開後沒有殘影 */
   await p.evaluate(() => hideTip());
   const dg = await p.evaluate(() => {
     const vis = e => {
         const r = e.getBoundingClientRect();
         return r.width && e.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
       },
-      e = [...document.querySelectorAll('.grid .it[data-id]')].find(vis),
-      gr = e.closest('[data-grid]'),
-      g = GRIDS()[gr.dataset.grid],
-      it = findItem(e.dataset.src, e.dataset.id),
-      [w, h] = itemSize(it);
-    let tx = -1,
-      ty = -1;
-    for (let y = g.h - h; y >= 0 && tx < 0; y--)
-      for (let x = g.w - w; x >= 0; x--)
-        if (
-          !gridHits(g, x, y, w, h, it).length &&
-          (x !== it.x || y !== it.y) &&
-          gr.contains(
-            document.elementFromPoint(
-              gr.getBoundingClientRect().left + (x + w / 2) * C,
-              gr.getBoundingClientRect().top + (y + h / 2) * C
-            )
-          ) /* 要拖得到（畫面看得到、沒被捲動區切掉） */
-        ) {
-          [tx, ty] = [x, y];
-          break;
-        }
+      e = [...document.querySelectorAll('.bag .it[data-id]')].find(vis),
+      z = document.querySelector('#pinv .sell');
+    z.scrollIntoView({ block: 'nearest' });
     const r = e.getBoundingClientRect(),
-      R = gr.getBoundingClientRect();
+      R = z.getBoundingClientRect();
     return {
-      id: it.id,
+      id: +e.dataset.id,
       from: [r.left + 8, r.top + 8],
-      to: [R.left + tx * C + 8, R.top + ty * C + 8],
-      x: it.x,
-      y: it.y,
-      tx,
-      ty
+      to: [R.left + R.width / 2, R.top + R.height / 2],
+      g: S.gold
     };
   });
   await touch('touchStart', [dg.from]);
@@ -376,15 +351,16 @@ let fail = 0;
   ok('拖曳中有跟手的圖示', await p.evaluate(() => !!document.querySelector('.ghost')));
   await touch('touchEnd', []);
   await p.waitForTimeout(200);
-  const dr = await p.evaluate(id => {
-    const it = [...S.inv.items, ...S.stash.items].find(i => i.id === id);
-    return [it && it.x, it && it.y, document.querySelectorAll('.ghost, .hl, .it.lift').length, !!DR];
-  }, dg.id);
-  ok(
-    '拖到空格放得下',
-    dr[0] === dg.tx && dr[1] === dg.ty,
-    `(${dg.x},${dg.y}) → (${dr[0]},${dr[1]})，目標 (${dg.tx},${dg.ty})`
+  const dr = await p.evaluate(
+    d => [
+      !S.inv.items.some(i => i.id === d.id),
+      S.gold > d.g,
+      document.querySelectorAll('.ghost, .it.lift').length,
+      !!DR
+    ],
+    dg
   );
+  ok('拖到賣出區：賣掉、拿到金幣', dr[0] && dr[1], JSON.stringify(dr));
   ok('放開後沒有殘影', !dr[2] && !dr[3], `殘留 ${dr[2]} 個、DR ${dr[3]}`);
   /* 天賦樹 */
   await p.evaluate(() => {
@@ -461,9 +437,8 @@ let fail = 0;
       treeClose();
       closePanels();
       openPanel('inv');
-      const g = document.querySelector('#pinv .grid').getBoundingClientRect();
+      const g = document.querySelector('#pinv .bag').getBoundingClientRect();
       closePanels();
-      S.frag = 99;
       openPanel('device');
       const m = document.querySelector('#pdev .mmods').getBoundingClientRect(),
         k = document.querySelector('#pdev .btn.pri').getBoundingClientRect();
@@ -496,7 +471,6 @@ let fail = 0;
           treeClose();
           closePanels();
           S.lv = 72;
-          S.frag = 99;
           S.lib.sk.slash = 10;
           changed();
           openPanel('skill');
@@ -561,32 +535,30 @@ let fail = 0;
           );
         })
       ],
-      /* 世界地圖：世界區的節點（3 張卡＋洗卡＋開門）最擠 */
+      /* 世界地圖：世界區的節點（五顆星級＋在這裡刷）最擠 */
       await inView(
         () => {
           closePanels();
-          S.frag = 99;
           S.world.stage = STORY.length;
           S.world.open = 1;
-          S.world.done = STORY.map(n => wKey(n.q, n.r));
-          S.world.at = '3,-1';
+          S.world.done = TRUNK_K.slice(0, 10);
+          S.world.at = TRUNK_K[9];
           openPanel('device');
-          S.cards['4,-1'] = { c: [rollCard(5), rollCard(3), rollCard(1)], w: 0 };
-          wmSel('4,-1');
+          WM.anim = null;
+          wmSel(TRUNK_K[9]);
         },
         '#wms',
         '.wm-rift',
         '.wm-tools',
-        '.mc2',
-        '#pdev .btn.pri',
-        '[data-wm=wash]'
+        '.wm-stars',
+        '#pdev .btn.pri'
       )
     ];
     ok('技能、昇華石碑、世界地圖：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
     ok(
       '世界地圖：按鈕至少 44px、沒有橫向溢出',
       await p.evaluate(() => {
-        const h = [...document.querySelectorAll('#pdev .wm-tools .btn, #pdev .wm-acts .btn')].map(
+        const h = [...document.querySelectorAll('#pdev .wm-tools .btn, #pdev .wm-acts .btn, #pdev .wm-stars .mc2')].map(
           b => b.getBoundingClientRect().height
         );
         return (

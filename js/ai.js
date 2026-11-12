@@ -1,17 +1,13 @@
 /* dungeonPOE · 掛機 AI（0.3.0，企劃書 2.1 第 9 項）
    AI 只輸出兩樣東西：移動方向 AI.mv（updPlayer 讀）與瞄準點 AI.aim（mouseWorld 回傳）；
-   然後呼叫現有的 useSlot、doRoll、drinkFlask、interact（撿）、aiHome（走進傳送門）。不複製技能邏輯。
-   一張圖的自動循環：打 → 王倒下 → 撿完 → 走進傳送門 → 回家（臨時頁倒進倉庫）→ 自動再開（aiReopen）。 */
+   然後呼叫現有的 useSlot、doRoll、drinkFlask、interact（撿）。不複製技能邏輯。
+   0.4.0 連續刷：打 → 王倒下 → 2 秒後同一個場地下一輪（game.js 的 roundEnd）；倒下 1.5 秒後原地重來（deadAgain，連死 3 次退回上一個節點）。 */
 'use strict';
 const AI = {
   on: 0 /* 這一格是 AI 在操作 */,
   mv: [0, 0],
   aim: { x: 0, y: 0 },
-  hold: -1 /* 蓄力技能按住的那一格 */,
-  dn: 0 /* 同一節點連死幾次 */,
-  dk: null /* 連死的節點 */,
-  pending: 0 /* 回家後等著再開（世界展開的演出看完再走） */,
-  re: 0 /* 正在由 AI 開圖（payMap 不清連死） */
+  hold: -1 /* 蓄力技能按住的那一格 */
 };
 /* 排在其他招後面的分類標籤（製造在收割前） */
 const AI_LATE = ['cond', 'payoff', 'final'];
@@ -153,12 +149,6 @@ function aiTick(dt) {
   AI.on = 0;
   AI.mv = [0, 0];
   AI.hold = -1;
-  /* 回到藏身處後等著再開：世界展開的演出、面板、對話都結束了才走 */
-  if (AI.pending && G.scene === 'hide') {
-    if (!S.auto) AI.pending = 0;
-    else if (!anyPanel() && !TALK.on && G.state === 'play') (AI.pending = 0), aiReopen();
-    return;
-  }
   if (!S.auto || G.scene !== 'map' || PRO.on || TALK.on) return;
   AI.on = 1;
   const A =
@@ -166,14 +156,12 @@ function aiTick(dt) {
     (G.ai = { deadT: 0, skip: new Map(), tryT: new Map(), flaskT: 0, rollT: 0, idle: 0, dodgeHold: 0, dodgeCd: 0 });
   if (G.state === 'dead') {
     A.deadT += dt;
-    if (A.deadT > 1.5) aiHome(true);
+    if (A.deadT > 1.5) deadAgain();
     return;
   }
-  if (G.state === 'portal') return aiHome(false);
   if (G.state !== 'play') return;
   A.flaskT -= dt;
-  const T = aiTarget(),
-    boss = G.portal && G.portal.home;
+  const T = aiTarget();
   AI.aim = T ? { x: T.x, y: T.y } : { x: P.x + Math.cos(P.face) * 200, y: P.y + Math.sin(P.face) * 200 };
   /* 藥劑：生命低於一半喝生命藥劑（正在回復中不重複喝） */
   if (P.hp < ST.hp * AI_HP && P.heal <= 0 && A.flaskT <= 0 && !(P.cds.flask > 0)) {
@@ -228,7 +216,7 @@ function aiTick(dt) {
       if (t > 3) A.skip.set(loot, 1);
     }
     if (loot.it && d < 100) interact();
-  } else if (boss && (!T || dist(P, T) > 260)) aiGo(G.portal.x, G.portal.y, 6);
+  }
   /* 躲（走的那種；翻滾在上面）：王的前搖與紅光圈在翻滾冷卻時走出去、投射物側走。
      決定要躲就固定方向走 AI_DODGE_HOLD 秒（不每格重算，否則方向一直換邊會抽搐），躲完 AI_DODGE_CD 秒內不再躲投射物、專心出招；躲的時候不出新招 */
   A.dodgeHold -= dt;
@@ -260,125 +248,10 @@ function aiTick(dt) {
   }
   if (lackMp && A.flaskT <= 0 && P.mp < ST.mp * 0.3 && !(P.cds.mflask > 0)) (A.flaskT = 1), drinkFlask(1);
 }
-/* 自動／手動切換鈕：切成手動 AI 停下（地圖不中斷）；切回自動 AI 接手，在藏身處就接著開圖 */
+/* 自動／手動切換鈕：切成手動 AI 停下（地圖不中斷）；切回自動 AI 接手 */
 function autoToggle() {
   S.auto = S.auto ? 0 : 1;
   AI.hold = -1;
-  if (S.auto) S.stopWhy = null;
   save();
   hudWarn(S.auto ? '自動：AI 接手' : '手動：自己操作');
-}
-/* 開始巡邏（世界地圖與巡邏卡的按鈕）：選好的卡整個區塊共用；在藏身處就直接開第一個節點 */
-function patrolStart(rg, sel) {
-  const P = S.patrol;
-  wCards(S, rg).sel = sel || 0;
-  Object.assign(P, { rg, prev: P.rg && P.rg !== rg ? P.rg : P.prev, got: 0 });
-  S.run = null;
-  S.stopWhy = null;
-  S.auto = 1;
-  AI.dn = 0;
-  save();
-  if (G.scene === 'hide') aiReopen();
-  else hudWarn('開始巡邏：這張圖打完就接著走');
-}
-/* 倉庫與兩頁臨時倉庫都滿了（放不下最大的 2×4 裝備） */
-function aiTempFull() {
-  const room = g => {
-    for (let x = 0; x <= g.w - 2; x++) for (let y = 0; y <= g.h - 4; y++) if (gridFree(g, x, y, 2, 4)) return true;
-    return false;
-  };
-  return !room(S.temp) && !room(S.temp2);
-}
-/* 停機：記下原因（巡邏卡看），玩家按地圖台的開始才繼續 */
-function aiStop(why, txt, extra) {
-  S.stopWhy = { k: G.node || (S.run && S.run.k) || null, rg: S.patrol.rg || S.patrol.prev, why, ...extra };
-  save();
-  hudWarn(txt);
-}
-/* 這張圖結束：走進傳送門（won）或倒下（died）→ 回藏身處（臨時頁倒進倉庫）→ 自動再開 */
-function aiHome(died) {
-  const k = G.node,
-    card = G.card,
-    n = k ? wName(S, ...wXY(k)) : '',
-    hit = P.lastHit;
-  if (k) S.run = { k, card };
-  AI.dn = died ? (AI.dk === k ? AI.dn : 0) + 1 : 0;
-  AI.dk = k;
-  save();
-  enterHideout();
-  if (!S.auto || !k) return;
-  if (died && AI.dn >= 3)
-    return aiStop('dead3', `死在${n}，連死 3 次，停下來了`, {
-      n,
-      hit: hit && hit.n,
-      el: hit && hit.el,
-      mods: card && card.mods
-    });
-  AI.pending = 1;
-  aiReopen();
-}
-/* 這個區塊裡走得到的節點（裂口不算），離 at 最近的排前面 */
-function aiRgReach(rg, at) {
-  return wRgNodes(S, rg)
-    .filter(([q, r]) => !wWhy(S, q, r))
-    .sort((a, b) => wRing(a[0] - at[0], a[1] - at[1]) - wRing(b[0] - at[0], b[1] - at[1]));
-}
-/* 區塊卡裡星級最接近 star 的那張（往下一個區塊「新抽同星級的卡」） */
-function aiCardNear(rg, star) {
-  const o = wCards(S, rg);
-  let b = 0;
-  o.c.forEach((c, i) => Math.abs(c.star - star) < Math.abs(o.c[b].star - star) && (b = i));
-  return (o.sel = b), o.c[b];
-}
-/* 下一個節點（企劃書 2.1 第 4 項）：
-   1. 死了就同一節點同一張卡；2. 劇情區照順序；3. 巡邏中的區塊裡離目前位置最近、走得到的節點，卡是整個區塊共用的；
-   4. 區塊打完（或剩下的走不到）照 S.patrol.mode：next 往外最近的區塊（新抽同星級的卡）、reset 花碎片重置再刷、stop 停下來。
-   回傳 { k, card } 或 { stop: 原因, txt } */
-function aiPick() {
-  const run = S.run,
-    P = S.patrol;
-  if (run && !wDone(S).has(run.k) && !wWhy(S, ...wXY(run.k))) return run;
-  if (!wOpen(S)) return { k: wKey(STORY[S.world.stage].q, STORY[S.world.stage].r) };
-  if (!P.rg) return { stop: 'pick', txt: '選一張區塊卡，按「開始巡邏」' };
-  const at = wXY(S.world.at);
-  let L = aiRgReach(P.rg, at);
-  if (!L.length) {
-    const star = (S.run && S.run.card && S.run.card.star) || (wCards(S, P.rg).c[wCards(S, P.rg).sel] || {}).star || 1;
-    if (P.mode === 'stop')
-      return (P.prev = P.rg), delete S.cards[P.rg], (P.rg = null), { stop: 'end', txt: '這個區塊巡邏完了，停下來了' };
-    if (P.mode === 'reset') {
-      if (!wReset(S, P.rg)) return { stop: 'frag', txt: `碎片不夠：重置區塊要 ${resetCost(P.rg)} 個，停下來了` };
-      L = aiRgReach(P.rg, at);
-      if (!L.length) return { stop: 'none', txt: '重置了但沒有走得到的節點，停下來了' };
-    } else {
-      /* 往外最近：所有走得到的節點（不是裂口、不在這個區塊）裡離目前位置最近的那個，它的區塊就是下一個 */
-      const c = wList(S)
-        .map(wXY)
-        .filter(([q, r]) => wRegionOf(S.world.seed, q, r) && wRegionOf(S.world.seed, q, r) !== P.rg)
-        .filter(([q, r]) => wType(S, q, r) !== 'rift' && !wWhy(S, q, r))
-        .sort((a, b) => wRing(a[0] - at[0], a[1] - at[1]) - wRing(b[0] - at[0], b[1] - at[1]))[0];
-      if (!c) return { stop: 'none', txt: '沒有可以走的節點，停下來了' };
-      P.prev = P.rg;
-      delete S.cards[P.prev]; /* 打完（剩下的走不到）的區塊：卡清掉 */
-      P.rg = wRegionOf(S.world.seed, c[0], c[1]);
-      aiCardNear(P.rg, star);
-      L = aiRgReach(P.rg, at);
-    }
-  }
-  const o = wCards(S, P.rg);
-  return { k: wKey(...L[0]), card: o.c[o.sel] };
-}
-function aiReopen() {
-  if (!S.auto || S.stopWhy || G.scene !== 'hide') return false;
-  if (PANEL.device) return false; /* 世界展開的演出：看完再走（AI.pending 還在） */
-  if (aiTempFull()) return aiStop('full', '倉庫和臨時倉庫都滿了，停下來了'), false;
-  const nx = aiPick();
-  if (nx.stop) return aiStop(nx.stop, nx.txt), false;
-  AI.re = 1;
-  const t = payMap(nx.k, 0, nx.card);
-  AI.re = 0;
-  if (!t) return aiStop('none', `進不去${wName(S, ...wXY(nx.k))}，停下來了`), false;
-  save();
-  enterMap(t);
-  return true;
 }

@@ -277,7 +277,6 @@ function draw() {
       x = d.sx + (d.x - d.sx) * f,
       y = d.sy + (d.y - d.sy) * f - Math.sin(f * Math.PI) * 40;
     if (d.gold) spr('mat_gold', x, y + 8, 22);
-    else if (d.frag) spr('mat_frag', x, y + 8, 24);
     else {
       const fa = dropFlt(d);
       if (fa.act === 'hide') continue;
@@ -428,7 +427,6 @@ function draw() {
       cold: [ELC.cold, 15],
       light: [ELC.light, 15],
       chaos: [ELC.chaos, 15],
-      frag: ['#c9b8ff', 14],
       block: ['#cfd8e3', 16],
       hit: ['#fff3e0', 15],
       crit: ['#ffd166', 24],
@@ -451,17 +449,15 @@ function draw() {
         ? '+' + n.v + ' 金'
         : n.c === 'jackpot'
           ? '大獎 ' + n.v
-          : n.c === 'frag'
-            ? '+' + n.v + ' 碎片'
-            : n.c === 'block'
-              ? '格擋'
-              : n.c === 'lv'
-                ? '升級！Lv ' + n.v
-                : n.c === 'perfect'
-                  ? '完美閃避'
-                  : n.c === 'ev'
-                    ? '閃避'
-                    : n.txt || n.v;
+          : n.c === 'block'
+            ? '格擋'
+            : n.c === 'lv'
+              ? '升級！Lv ' + n.v
+              : n.c === 'perfect'
+                ? '完美閃避'
+                : n.c === 'ev'
+                  ? '閃避'
+                  : n.txt || n.v;
     CX.lineWidth = 4;
     CX.strokeStyle = 'rgba(0,0,0,0.8)';
     CX.strokeText(txt, n.x, y);

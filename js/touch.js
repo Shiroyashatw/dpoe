@@ -113,7 +113,7 @@ function moreMenu(on) {
   const el = $('tmore');
   if (!el || el.hidden === !on) return;
   el.hidden = !on;
-  document.querySelector('[data-tm=more]').setAttribute('aria-expanded', on);
+  for (const b of document.querySelectorAll('[data-tm=more]')) b.setAttribute('aria-expanded', on);
 }
 /* 刷圖中回藏身處：跳確認卡（hud.js 的 hudState，G.ask），按「回藏身處」才走 */
 function homeAsk() {
@@ -148,20 +148,17 @@ function stickHide() {
 /* ---------- 面板：點一下道具＝說明＋動作 ---------- */
 function moveLabel(src, it) {
   if (PANEL.craft) return '放上鍛造台';
-  if (src === 'cur') return '放回背包';
+  if (src === 'cur') return '放回倉庫';
   if (isSlot(src)) return '卸下';
   if (curTab() && src === 'inv') return '放進中間';
-  if (src === 'stash' || src === 'temp' || src === 'temp2') return '放進背包';
-  if (PANEL.stash) return '放進倉庫';
   return '裝備';
 }
 function tapItem(d) {
   const r = d.el.getBoundingClientRect();
   TOUCH.sel = { src: d.src, id: d.it.id, eqk: d.eqk };
   const sellB =
-    (G.scene === 'hide'
-      ? `<button class="btn" data-tq="sell">賣 ${d.it.uid ? '？' : sellPrice(d.it)} 金</button>`
-      : '') + `<button class="btn" data-tq="drop">丟掉</button>`;
+    `<button class="btn" data-tq="sell">賣 ${sellPrice(d.it)} 金</button>` +
+    (d.src === 'inv' ? `<button class="btn" data-tq="lock">${d.it.lock ? '解鎖' : '鎖定'}</button>` : '');
   const build = () =>
     itemTip(d.it, !isSlot(d.src)) +
     `<div class="tqa"><button class="btn pri" data-tq="move">${moveLabel(d.src, d.it)}</button>${sellB}</div>`;
@@ -342,7 +339,7 @@ function touchInit() {
       const k = m.dataset.tm;
       if (k === 'fs') return fsClick();
       if (k === 'auto') return autoToggle();
-      if (k === 'pat') return PANEL.pat ? closePanels() : (closePanels(), (PANEL.pat = true), hudPanels());
+      if (k.startsWith('f:')) return fmenuOpen(k.slice(2));
       if (k === 'more') return moreMenu($('tmore').hidden);
       if (k === 'inv') PANEL.inv && !PANEL.stash && !PANEL.skill ? closePanels() : openPanel('inv');
       else if (k === 'skill') PANEL.skill ? closePanels() : openPanel('skill');
@@ -363,6 +360,7 @@ function touchInit() {
       hideTip();
       if (!it) return;
       if (q.dataset.tq === 'sell') sell(src, it, eqk);
+      else if (q.dataset.tq === 'lock') lockToggle(it);
       else if (q.dataset.tq === 'drop') dropFloor(src, it, eqk);
       else quickMove(src, it, eqk);
     }

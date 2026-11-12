@@ -165,23 +165,18 @@ function ascSum(o, key) {
 const EQ_LOCK = { noBelt: 'belt', noHelm: 'helm' };
 const eqOpen = (o, k) =>
   k === 'ring3' ? ascHas(o, 'ring3') : !Object.keys(EQ_LOCK).some(f => EQ_LOCK[f] === k && ascHas(o, f));
-/* 點亮或退回之後，被關掉的欄位裡的裝備要脫到背包（滿了放臨時頁）；放不下就擋下來（藏身處丟地上＝丟掉，會弄丟裝備）。at 是之後的昇華點；回傳空字串＝放得下 */
+/* 點亮或退回之後，被關掉的欄位裡的裝備要脫到倉庫；放不下就擋下來。at 是之後的昇華點；回傳空字串＝放得下 */
 function eqUnloadWhy(o, at, asc = o.asc) {
   const o2 = { ...o, at, asc },
     need = EQS.filter(e => o.eq[e.k] && !eqOpen(o2, e.k)).map(e => o.eq[e.k]);
   if (!need.length) return '';
-  const cl = g => ({ ...g, items: [...g.items] }),
-    inv = cl(o.inv),
-    tmp = o.temp && cl(o.temp);
-  for (const it of need)
-    if (!gridAuto(inv, it) && !(tmp && gridAuto(tmp, it))) return '背包和臨時倉庫都放不下要脫下的裝備：先騰出空間';
-  return '';
+  return o.inv.items.length + need.length > INV_CAP + INV_SPARE ? '倉庫放不下要脫下的裝備：先騰出空間' : '';
 }
 function eqUnload(o) {
   for (const e of EQS) {
     const it = o.eq[e.k];
     if (!it || eqOpen(o, e.k)) continue;
-    if (gridAuto(o.inv, it) || (o.temp && gridAuto(o.temp, it))) o.eq[e.k] = null;
+    if (invPut(o.inv, it)) o.eq[e.k] = null;
   }
 }
 function ascSync(o = S) {
@@ -381,36 +376,16 @@ function offWhy(w, off) {
   return '只有爪、匕首、單手的劍與斧能雙持（要同一類）';
 }
 
-/* ---------- 格子背包：g = { w, h, items: [道具（含 x, y）] } ---------- */
-function gridFree(g, x, y, w, h, skip) {
-  if (x < 0 || y < 0 || x + w > g.w || y + h > g.h) return false;
-  for (const o of g.items) {
-    if (o === skip) continue;
-    const [ow, oh] = itemSize(o);
-    if (x < o.x + ow && o.x < x + w && y < o.y + oh && o.y < y + h) return false;
-  }
+/* ---------- 清單倉庫（0.4.0，企劃書 5.9）：g = { items: [道具] }，一件一格、沒有大小；
+   容量 INV_CAP 件，★ 與追憶另外多留 INV_SPARE 格（滿了普通裝換金幣，它們照樣收）。回傳 false＝放不下 ---------- */
+const INV_CAP = 3000,
+  INV_SPARE = 50;
+const invRoom = (g, it) => g.items.length < INV_CAP + (it && (it.frac || it.mem) ? INV_SPARE : 0);
+function invPut(g, it) {
+  if (!invRoom(g, it)) return false;
+  delete it.x, delete it.y;
+  g.items.push(it);
   return true;
-}
-/* 範圍裡擋到的道具 */
-function gridHits(g, x, y, w, h, skip) {
-  return g.items.filter(o => {
-    if (o === skip) return false;
-    const [ow, oh] = itemSize(o);
-    return x < o.x + ow && o.x < x + w && y < o.y + oh && o.y < y + h;
-  });
-}
-/* 從左上往下、往右找第一個放得下的位置（PoE 的順序：一欄一欄） */
-function gridAuto(g, it) {
-  const [w, h] = itemSize(it);
-  for (let x = 0; x <= g.w - w; x++)
-    for (let y = 0; y <= g.h - h; y++)
-      if (gridFree(g, x, y, w, h)) {
-        it.x = x;
-        it.y = y;
-        g.items.push(it);
-        return true;
-      }
-  return false;
 }
 
 /* ---------- 角色數值：等級＋穿在身上的裝備 ---------- */
@@ -1219,6 +1194,30 @@ function stats(s = S) {
   return o;
 }
 /* 平均每秒傷害（給比較用；攻擊、不算提高與目標防禦） */
+/* ▲ 可能升級（0.4.0，企劃書 5.9）：換進能放的欄位（戒指每一格都試），DPS 或「生命＋能量護盾」比現在高就算；武器只看 DPS；
+   不符合需求、欄位被昇華鎖住的不算。只提示，不自動換。結果照「身上這一套」快取（換裝、升級、點天賦就重算） */
+const UPC = new Map();
+const upSig = s => [s.lv, s.pt.length, s.at.length, s.godOn, ...EQS.map(e => (s.eq[e.k] ? s.eq[e.k].id : 0))].join(',');
+function itemUp(it, s = S) {
+  if (!it || it.charm || it.gem) return false;
+  const sig = upSig(s),
+    c = UPC.get(it.id);
+  if (c && c[0] === sig) return c[1];
+  if (!UPC.has('base') || UPC.get('base')[0] !== sig) UPC.set('base', [sig, stats(s)]);
+  const B = UPC.get('base')[1],
+    k = kindOf(it),
+    wpn = k === 'weapon',
+    v0 = [dps(B), B.hp + B.es];
+  let up = false;
+  for (const e of EQS) {
+    if (up || !eqTakes(e, k) || !eqOpen(s, e.k) || eqLack(s, it, e.k).length) continue;
+    if (e.k === 'off' && !offOK(s.eq.weapon, it)) continue;
+    const o = stats({ ...s, eq: { ...s.eq, [e.k]: it } });
+    up = dps(o) > v0[0] * 1.005 || (!wpn && o.hp + o.es > v0[1]);
+  }
+  UPC.set(it.id, [sig, up]);
+  return up;
+}
 function dps(o) {
   let d = (o.dmg[0] + o.dmg[1]) / 2;
   for (const k in o.add) d += (o.add[k][0] + o.add[k][1]) / 2;

@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 31,
+    v: 32,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -21,7 +21,6 @@ function newGame() {
     gold: 0,
     /* 商人賭裝連續幾件沒出稀有（0.2.28） */
     gamN: 0,
-    frag: 0,
     /* 碎片分頁（0.2.78 酆都）：勾魂令四種、生死簿 */
     frags: newFrags(),
     army: {},
@@ -29,25 +28,19 @@ function newGame() {
     godOn: null,
     jewels: [],
     jsock: [null, null, null, null, null, null],
-    /* 世界地圖（world.js）：種子、走過的節點、每節點的地圖卡、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
+    /* 世界地圖（world.js）：走過的節點、每節點的星級、在刷的節點、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
     world: newWorld(),
-    cards: {},
     hunt: newHunt(),
     maxT: 1,
     tier: 1,
     eq: Object.fromEntries(EQS.map(e => [e.k, null])),
-    inv: { w: 12, h: 5, items: [] },
-    stash: { w: 12, h: 12, items: [] },
-    /* 臨時倉庫頁（0.2.24）：背包滿了撿到的放這裡，只能拿出來 */
-    temp: { w: 12, h: 12, items: [] },
-    /* 0.3.0：臨時頁兩頁（刷圖撿到的直接進這裡，回家自動倒進倉庫） */
-    temp2: { w: 12, h: 12, items: [] },
+    /* 清單倉庫（0.4.0）：所有裝備一件一格，容量 INV_CAP（items.js 的 invPut） */
+    inv: { items: [] },
     /* 0.3.0 掛機：1 自動（AI 操作）、0 手動 */
     auto: 1,
-    run: null /* 上一個節點與卡（AI 死了再開同一張用，ai.js） */,
-    stopWhy: null /* 停機原因（ai.js 的 aiStop） */,
-    /* 巡邏（0.3.0）：rg 巡邏的區塊鍵、mode 打完之後 next 往下／reset 重置／stop 停、prev 上一個區塊、got 這趟撿到幾件 */
-    patrol: { rg: null, mode: 'next', prev: null, got: 0 },
+    /* 0.4.0：打倒王之後 auto 自動往下推、stay 留在這個點 */
+    push: 'auto',
+    stopWhy: null /* 'home'＝玩家自己回藏身處，刷圖暫停 */,
     /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
     idols: [],
     story: {},
@@ -100,7 +93,7 @@ function resetWorld(W, H) {
     W,
     H,
     ask: 0 /* 回藏身處的確認卡（touch.js 的 homeAsk） */,
-    tempW: 0 /* 這張圖提醒過背包滿了 */,
+    fullW: 0 /* 這張圖提醒過倉庫滿了 */,
     mobs: [],
     shots: [],
     fx: [],
@@ -181,52 +174,48 @@ function enterHideout() {
   dpsReset();
   ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
-  tempDump();
-  /* 有未鑑定的裝備：提醒找撿骨師（企劃書 5.4.1） */
-  if (unidN(S)) hudWarn(`有 ${unidN(S)} 件裝備未鑑定：找撿骨師免費鑑定`);
   /* 打倒裂谷斷崖的王之後第一次回來：直接打開地圖播世界展開 */
   if (wOpen(S) && !S.world.open) openPanel('device');
 }
-/* 回藏身處：兩頁臨時倉庫的東西照順序倒進倉庫（0.3.0，企劃書 2.1 第 10 項），倉庫滿了的留在臨時頁 */
-function tempDump() {
-  let n = 0;
-  for (const g of [S.temp, S.temp2])
-    for (const it of [...g.items]) if (gridAuto(S.stash, it)) (g.items = g.items.filter(o => o !== it)), n++;
-  const left = S.temp.items.length + S.temp2.items.length;
-  if (n) hudWarn(`臨時倉庫的 ${n} 件裝備放進倉庫了${left ? `；倉庫滿了，${left} 件留在臨時頁` : ''}`);
-  else if (left) hudWarn(`倉庫滿了：${left} 件留在臨時頁`);
-  return n;
-}
-/* 開地圖：花碎片、地圖台前面出現傳送門 */
-/* 選了節點 k 所在區塊的地圖卡 i，記住節點與這張卡（進地圖時套用）；回傳內部難度（0＝進不去）。
-   card：直接給卡（AI 自動再開同一節點同一張卡用） */
-function payMap(k, i, card0) {
+/* 開始刷一個節點（0.4.0，企劃書 2.1）：在哪裡都能開（藏身處、地圖裡、世界地圖），直接進場地；每一輪照選的星級重抽地圖詞。
+   keep：連續刷的下一輪（同一個場地：外觀、站的位置、輪數接著算） */
+function runNode(k, keep) {
   const [q, r] = wXY(k),
-    why = wWhy(S, q, r),
-    st = STORY_I[k];
-  let card = card0;
-  if (!card && st != null) card = STORY[st].card;
-  if (!card && !why) {
-    /* 區塊卡：這個區塊選的那張（開圖免費，0.3.0） */
-    const o = wCards(S, wRegionOf(S.world.seed, q, r));
-    card = o.c[(o.sel = i)];
-  }
-  if (why) return hudWarn(why), 0;
-  if (!card) return hudWarn('先選一張地圖卡'), 0;
-  S.stopWhy = null; /* 玩家（或 AI）開了圖：停機解除；玩家自己開的連死歸零 */
-  if (!AI.re) AI.dn = 0;
+    why = wWhy(S, q, r);
+  if (why) return hudWarn(why), false;
+  if (S.world.cur !== k) S.world.dn = 0;
+  S.stopWhy = null;
+  S.world.cur = k;
   S.node = k;
-  S.card = card;
-  return lvT(wLv(q, r));
-}
-function openMap(k, i) {
-  const t = payMap(k, i);
-  if (!t) return;
-  const n = wName(S, ...wXY(k));
-  G.portal = { ...HIDE_ART.portal, to: t, n };
+  S.card = wCard(S, k);
   save();
-  sfx('portal');
-  hudWarn(`${n}的傳送門開了`);
+  enterMap(lvT(wLv(q, r)), keep && G.scene === 'map' && G.node === k);
+  return true;
+}
+/* 這一輪結束（王倒下 2 秒後，或死了重來）：場上沒撿的照樣收進倉庫，再決定下一輪去哪：
+   推進設定 S.push 是 auto、沒有被退回（S.world.hold）、下一個節點開了 → 往下推；不然留在這裡 */
+function roundEnd() {
+  for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full && dropFlt(d).act !== 'hide')) pickup(d);
+  if (G.arena) return S.world.cur ? runNode(S.world.cur) : enterHideout();
+  const k = G.node,
+    nx = wNext(k),
+    go = S.push !== 'stay' && !S.world.hold && nx && !wWhy(S, ...wXY(nx));
+  if (go) hudWarn(`往下推：${wName(S, ...wXY(nx))}`);
+  runNode(go ? nx : k, !go);
+}
+/* 死了（0.4.0）：原地復活、這一輪重來；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（等玩家按「再推一次」） */
+const DEAD_MAX = 3;
+function deadAgain() {
+  const k = G.node;
+  if (!k) return enterHideout();
+  S.world.dn = (S.world.dn || 0) + 1;
+  if (S.world.dn < DEAD_MAX || !wPrev(k)) return runNode(k, true);
+  const pv = wPrev(k);
+  S.world.hold = 1;
+  S.world.dn = 0;
+  S.world.note = `在${wName(S, ...wXY(k))}連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}`;
+  hudWarn(S.world.note);
+  runNode(pv);
 }
 /* 山海寶盒（0.2.80）：花碎片開王場（酆都、心魔、四凶的殿），地圖台前面開傳送門；王場只有一個房間、2 秒後出王。
    等級＝打過的節點裡最高的（最高 Lv83）；死了照一般死亡，碎片不退 */
@@ -255,7 +244,6 @@ function arenaWhy(s, kind, sel) {
           : xiHallWhy(s, kind);
 }
 function openArena(kind, sel) {
-  if (G.scene !== 'hide') return hudWarn('回藏身處才能開');
   const w =
     kind === 'yama' || kind === 'uber'
       ? fdHallPay(S, kind)
@@ -267,12 +255,12 @@ function openArena(kind, sel) {
             ? tsHallPay(S, kind)
             : xiHallPay(S, kind);
   if (w) return hudWarn(w);
+  /* 0.4.0：直接進王場；打完回去接著刷原本的節點（roundEnd） */
   S.arena = kind;
-  G.portal = { ...HIDE_ART.portal, to: lvT(arenaLv(S)), n: ARENA[kind] };
+  S.node = S.card = null;
   save();
-  sfx('portal');
-  hudWarn(`${ARENA[kind]}的傳送門開了`);
   closePanels();
+  enterMap(lvT(arenaLv(S)));
 }
 /* 王場的王 */
 const arenaBoss = k =>
@@ -301,16 +289,12 @@ const arenaBoss = k =>
 const TS = 48,
   FIELD = [21, 13] /* 0.3.0 原本 30×18，2026-11-11 縮 30% */,
   WAVES = 4;
-/* 從地圖裡的傳送門直接開下一張（花碎片） */
-function mapAgain(k, i) {
-  const t = payMap(k, i);
-  if (!t) return;
-  save();
-  enterMap(t);
-}
-function enterMap(t) {
-  const [cols, rows] = FIELD;
+function enterMap(t, keep) {
+  const [cols, rows] = FIELD,
+    was = keep ? { biome: G.biome, deco: G.deco, x: P.x, y: P.y, round: G.round } : null;
   resetWorld(cols * TS, rows * TS);
+  G.round = was ? was.round + 1 : 1;
+  G.nextT = 0;
   G.scene = 'map';
   G.mapT = t;
   /* 節點：血霧扣 25%、這一批卡用掉了（失敗回來也是新的一批）；裂口的王帶 1 條墮落詞 */
@@ -334,25 +318,15 @@ function enterMap(t) {
   if (!G.arena) G.nodeN = '';
   if (G.node) {
     const [q, r] = wXY(G.node);
-    if (wType(S, q, r) === 'rift') G.zod = wZod(S, q, r);
+    if (wType(S, q, r) === 'rift') G.zod = wZod(S);
     G.nodeN = wName(S, q, r);
     /* 酆都（0.2.78）：鬼門的王是四隻菁英王隨機一隻；閻羅殿、十殿閻羅換成閻羅、十殿閻羅 */
     if (wType(S, q, r) === 'ghost') G.fdB = fdBoss(pick(FENG.elites));
     /* 心魔幻境（0.2.79）：有一隻七情王在中段等你 */
     if (wType(S, q, r) === 'dream') G.dream = 1;
-    /* 凶地（0.2.80）：整塊帶那隻凶的專屬地圖詞，中心那格的王就是牠 */
-    if (wType(S, q, r) === 'fiend') {
-      const f = wFiend(S.world.seed, q, r);
-      G.fiend = f.k;
-      if (f.c) G.fdB = xiBoss(f.k);
-    }
-    /* 陰兵借道（0.2.81）：怨恨值照進圖時算；三位將領的節點，王就是那位將領 */
-    if (wType(S, q, r) === 'army') {
-      const ck = wArmy(S.world.seed, q, r),
-        g = wArmyGen(S.world.seed, ck)[G.node];
-      G.army = { c: ck, res: armyRes(S, ck) };
-      if (g) G.fdB = armyBoss(g);
-    }
+    /* 凶地（0.2.80；0.4.0 起每一輪隨機一隻凶）：整張圖帶那隻凶的專屬地圖詞，王就是牠 */
+    if (wType(S, q, r) === 'fiend') G.fdB = xiBoss((G.fiend = pick(XIONG)));
+    /* 陰兵借道：0.4.2 改成連刷層數，先鎖著（world.js 的 SPECIAL） */
     G.hunt = !!S.hunt.full; /* 血霧期：進這張圖時血霧是滿的（最後一張扣光也算） */
     huntEnter(S);
   }
@@ -367,21 +341,21 @@ function enterMap(t) {
   if (G.army) for (const [f, v] of Object.entries(ARMY.per)) G.mm[f] = (G.mm[f] || 0) + v * G.army.res;
   G.star = (S.card && S.card.star) || 1;
   G.ai = null;
-  G.card = S.card; /* 死了自動再開同一節點同一張卡用（ai.js） */
+  G.card = S.card; /* 這一輪的地圖詞（死亡卡寫出來） */
   S.node = S.card = S.arena = S.sinDeb = null;
   const tiles = (G.tiles = new Uint8Array(cols * rows).fill(1));
   G.cols = cols;
   G.rows = rows;
   for (let y = 1; y < rows - 1; y++) for (let x = 1; x < cols - 1; x++) tiles[y * cols + x] = 0;
   /* 場景只是外觀（biome.js）：每張圖隨機一種；擺設照 3×2 塊各擺幾個、不擋路 */
-  G.biome = pick(Object.keys(BIOMES));
+  G.biome = was ? was.biome : pick(Object.keys(BIOMES));
   const cx = i => 1 + Math.floor((i * (cols - 2)) / 3),
     cy = j => 1 + Math.floor((j * (rows - 2)) / 2),
     cells = [];
   for (let j = 0; j < 2; j++)
     for (let i = 0; i < 3; i++) cells.push({ x0: cx(i), y0: cy(j), x1: cx(i + 1) - 1, y1: cy(j + 1) - 1 });
-  G.deco = decorate(cells);
-  newPlayer((cols / 2) * TS, (rows / 2) * TS);
+  G.deco = was ? was.deco : decorate(cells);
+  newPlayer(was ? was.x : (cols / 2) * TS, was ? was.y : (rows / 2) * TS);
   if (G.mm.pcurse) P.ail = { curse: { k: G.mm.pcurse, v: G.mm.pcv, t: 1e9 } };
   /* 地圖詞「濕透」：整張圖都是濕透（drench 的長秒數；combat.js 的 mobAilPlayer 讀 a.wet） */
   if (G.mm.pwet) (P.ail = P.ail || {}), drench(P, 1e9);
@@ -918,16 +892,6 @@ function killMob(m) {
   if (m.boss && m.D.army) for (const it of armyGear(m.D.army, G.army ? G.army.res : 0, od)) dropAt(m.x, m.y, { it });
   if (Math.random() < (m.boss || m.elite ? 1 : 0.4))
     dropAt(m.x, m.y, { gold: Math.round(rnd(2, 6) * (1 + t * 0.5) * (m.boss ? 12 : m.elite ? 3 : 1)) });
-  const fr = m.boss
-    ? 2 + Math.floor(t / 2)
-    : m.elite
-      ? Math.random() < 0.6
-        ? 1
-        : 0
-      : Math.random() < 0.03 + t * 0.003
-        ? 1
-        : 0;
-  if (fr) dropAt(m.x, m.y, { frag: fr });
   /* 護符：小怪 1%、菁英 15%、王 50% */
   if (Math.random() < (m.boss ? 0.5 : m.elite ? 0.15 : 0.01)) dropAt(m.x, m.y, { it: dropCharm() });
   onKillBase(m);
@@ -950,18 +914,22 @@ function killMob(m) {
     }
 }
 function bossDown(m) {
-  /* 打倒王才算走過：路開通；失敗或回家都不算 */
+  /* 打倒王才算走過：路開通；連死歸零；約 2 秒後在同一個場地放下一輪（0.4.0 連續刷，roundEnd） */
   const ty = G.node ? wClear(S, G.node) : '';
-  G.first = ty === 'rift' ? '十二尊神像，又亮了一尊' : ty ? '地圖上開了新的路' : '';
+  S.world.dn = 0;
+  if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
   if (m.D.fd && FENG.elites.includes(m.D.fd) && fdHun(S) >= FENG.hun)
-    G.first = `勾魂令 ${fdHun(S)} 張：鬼門可以進閻羅殿了`;
-  G.portal = { ...(floorNear(m.x, m.y, 150, 230, 40) || { x: m.x, y: m.y }), home: 1 };
+    hudWarn(`勾魂令 ${fdHun(S)} 張：山海寶盒可以開閻羅殿了`);
+  G.nextT = G.t + ROUND_GAP;
+  /* 打倒裂谷斷崖的王：直接打開地圖播世界展開（看完才放下一輪：地圖開著戰鬥不跑） */
+  if (wOpen(S) && !S.world.open) openPanel('device');
   hitstop(0.25);
   G.slow = 0.9;
   sfx('boss');
-  hudWarn(`打倒${m.D.n}！撿完走進藍色傳送門`);
+  hudWarn(`打倒${m.D.n}！`);
   save();
 }
+const ROUND_GAP = 2;
 function dropAt(x, y, o) {
   const a = rnd(0, TAU),
     s = rnd(30, 90);
@@ -1075,27 +1043,21 @@ function dropFlt(d) {
   if (d.fv !== FLTV) (d.fv = FLTV), (d.fa = fltAct(d.it));
   return d.fa;
 }
-/* 撿起來：金幣、碎片直接加；裝備放進格子背包，背包滿了放臨時倉庫頁 */
+/* 撿起來：金幣直接加；裝備進清單倉庫（0.4.0）。倉庫滿了：普通裝直接換成金幣（每張圖提醒一次），★ 與追憶照樣收（多留的格子） */
 function pickup(d) {
   if (d.gold) {
     S.gold += d.gold;
     num(d.x, d.y - 20, d.gold, 'gold');
     sfx('coin');
-  } else if (d.frag) {
-    S.frag += d.frag;
-    num(d.x, d.y - 20, d.frag, 'frag');
-    sfx('pick');
+  } else if (!invPut(S.inv, d.it)) {
+    if (d.it.frac || d.it.mem) return (d.full = 1), hudWarn('倉庫滿了：★ 與追憶也放不下，先整理倉庫');
+    const p = sellPrice(d.it);
+    S.gold += p;
+    num(d.x, d.y - 20, p, 'gold');
+    sfx('coin');
+    if (!G.fullW) (G.fullW = 1), hudWarn(`倉庫滿了（${INV_CAP} 件）：新掉的普通裝直接換成金幣`);
   } else {
-    /* 0.3.5：先放主背包，滿了放臨時頁（兩頁）；回家只把臨時頁倒進倉庫，主背包不動 */
-    const inMap = G.scene === 'map' && !PRO.on && !d.nopick;
-    if (!gridAuto(S.inv, d.it)) {
-      if (!gridAuto(S.temp, d.it) && !gridAuto(S.temp2, d.it))
-        return (d.full = 1), hudWarn('背包和臨時倉庫都滿了：回藏身處整理');
-      /* 每張圖提醒一次就好（掛機撿很多件） */
-      if (!G.tempW) (G.tempW = 1), hudWarn('背包滿了：放進臨時倉庫，回藏身處會放進倉庫');
-    }
     sfx('pick');
-    if (inMap) S.patrol.got++;
     hudInv();
   }
   G.drops.splice(G.drops.indexOf(d), 1);
@@ -1995,20 +1957,16 @@ function frame(now) {
     updSkills(dt);
     if (PRO.on) proTick();
     if (G.arenaT && G.t >= G.arenaT) (G.arenaT = 0), spawnBoss();
-    /* 傳送門：地圖裡打倒王後的門＝回家 */
-    if (G.portal && G.portal.home) {
-      const on = dist(P, G.portal) < 40;
-      if (on && G.state === 'play') (G.state = 'portal'), hudState();
-      else if (!on && G.state === 'portal') (G.state = 'play'), hudState();
-    }
+    /* 連續刷：王倒下 ROUND_GAP 秒後放下一輪 */
+    if (G.nextT && G.t >= G.nextT && G.state === 'play') (G.nextT = 0), roundEnd();
     for (const d of G.drops.slice()) {
       d.t += dt;
       /* 0.3.3：地圖裡的掉落不看距離全部吸過來（過濾器隱藏的、自己丟的、放不下的不吸）；
-         藏身處照舊：金幣碎片與過濾器「自動撿」的裝備在 150 以內才吸 */
+         藏身處照舊：金幣與過濾器「自動撿」的裝備在 150 以內才吸 */
       const map = G.scene === 'map' && !PRO.on,
         act = d.it && dropFlt(d).act;
       if (
-        (d.gold || d.frag || (d.it && !d.nopick && !d.full && (map ? act !== 'hide' : act === 'pick'))) &&
+        (d.gold || (d.it && !d.nopick && !d.full && (map ? act !== 'hide' : act === 'pick'))) &&
         d.t > 0.4 &&
         (map || dist(P, d) < 150)
       ) {

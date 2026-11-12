@@ -39,7 +39,7 @@ const WM = {
 };
 /* 平頂六角格的 6 個鄰居（跟 world.js 的 wRing 同一套 axial） */
 /* 拉遠時不畫的一般節點 */
-const WM_PLAIN = ['plain', 'dawn', 'crow', 'star'];
+const WM_PLAIN = ['plain'];
 /* 這個節點要不要畫：選中的、目標、打過的（畫成小的灰色，見 wmBase）一定畫；拉遠時沒打過的只畫走得到的與特殊的（裂口、血霧、機制區塊、主線） */
 const wmShow = (n, z) => WM.sel === n.k || n.k === WM.goal || n.done || z >= 0.62 || n.can || !WM_PLAIN.includes(n.t);
 const WM_DIR = [
@@ -50,23 +50,10 @@ const WM_DIR = [
   [-1, 1],
   [0, 1]
 ];
-/* 世界座標落在哪一格（平頂六角、axial，cube 取整）；拼圖迷霧用來判斷燈火、區域名是不是在拼出來的格子裡 */
-function wmHexAt(x, y) {
-  const fq = ((2 / 3) * x) / W_SZ,
-    fr = ((-1 / 3) * x + (Math.sqrt(3) / 3) * y) / W_SZ,
-    fs = -fq - fr;
-  let q = Math.round(fq),
-    r = Math.round(fr);
-  const s = Math.round(fs),
-    dq = Math.abs(q - fq),
-    dr = Math.abs(r - fr),
-    ds = Math.abs(s - fs);
-  if (dq > dr && dq > ds) q = -r - s;
-  else if (dr > ds) r = -q - s;
-  return wKey(q, r);
-}
-/* 這個世界座標在拼出來的格子裡嗎（世界展開前不限制） */
-const wmLit = (x, y) => !(WM.wipe >= 1) || (WM.lit && WM.lit.has(wmHexAt(x, y)));
+/* 迷霧（0.4.0）：看得到的節點與路一路推開（WM.lit＝[x, y, 亮度]：節點、路上每 WM_LIT_STEP 一個點） */
+const WM_LIT_R = 260,
+  WM_LIT_STEP = 110;
+const wmLit = (x, y) => !(WM.wipe >= 1) || (WM.lit || []).some(p => Math.hypot(p[0] - x, p[1] - y) < WM_LIT_R);
 const wmStill = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wmLat = (q, r) => [W_SZ * 1.5 * q, W_SZ * Math.sqrt(3) * (r + q / 2)];
 /* 世界區的節點位置微微抖動，看起來不像格子 */
@@ -418,39 +405,29 @@ function wmNodes() {
     SA = (WM.seenAt = WM.seenAt || new Map()),
     first = !SA.size;
   for (const k of keys) if (!SA.has(k)) SA.set(k, first ? 0 : now);
-  WM.lit = seen;
   WM.nodes = keys.map(k => {
     const [q, r] = wXY(k),
       [x, y] = wmPos(q, r);
     return { k, q, r, x, y, t: wType(s, q, r), done: D.has(k), can: wCan(s, q, r) };
   });
-  /* 機制區塊（0.2.79）：看得到的區塊節點歸到所屬的大格，畫外框、名字、特效用 */
-  const RG = new Map();
-  for (const n of WM.nodes) {
-    const big = n.t === 'army';
-    if (!big && !REGION.types.includes(n.t)) continue;
-    /* 陰兵借道（0.2.81）是 19 格的大六角，用自己的格線 */
-    const [cq, cr] = (big ? wArmyC : wRegionC)(n.q, n.r),
-      key = (big ? 'a' : '') + cq + ',' + cr;
-    if (!RG.has(key)) {
-      const cells = big ? wArmyCells(cq, cr) : [[cq, cr], ...WM_DIR.map(([a, b]) => [cq + a, cr + b])];
-      RG.set(key, {
-        big,
-        res: big ? armyRes(s, wKey(cq, cr)) : 0,
+  /* 機制節點（0.2.79 的區塊畫法沿用）：鬼門關、心魔幻境、凶地、陰兵借道的節點連同周圍 6 格塗上機制顏色、寫名字、飄特效 */
+  WM.regions = WM.nodes
+    .filter(n => ['ghost', 'dream', 'fiend', 'army'].includes(n.t))
+    .map(n => {
+      const cells = [[n.q, n.r], ...WM_DIR.map(([a, b]) => [n.q + a, n.r + b])];
+      return {
+        big: false,
+        res: 0,
         t: n.t,
-        q: cq,
-        r: cr,
+        q: n.q,
+        r: n.r,
         cells,
         set: new Set(cells.map(([a, b]) => wKey(a, b))),
-        c: wmLat(cq, cr),
-        h: wHash(seed, cq, cr, 11),
-        open: 0
-      });
-    }
-    if (!n.done) RG.get(key).open = 1;
-  }
-  /* 整塊都打完的區塊不畫 */
-  WM.regions = [...RG.values()].filter(g => g.open);
+        c: wmLat(n.q, n.r),
+        h: wHash(seed, n.q, n.r, 11),
+        open: 1
+      };
+    });
   WM.edges = [];
   for (const n of WM.nodes)
     for (const [a, b] of wNear(seed, n.q, n.r)) {
@@ -469,6 +446,15 @@ function wmNodes() {
         h2: wHash(seed, n.q + a, n.r + b, 45)
       });
     }
+  /* 迷霧推開的點：打過的（或劇情區）全亮、前線半亮；路照兩端較暗的那端 */
+  const lt = n => (n.done || STORY_I[n.k] != null ? 1 : 0.6),
+    NB = Object.fromEntries(WM.nodes.map(n => [n.k, n]));
+  WM.lit = WM.nodes.map(n => [n.x, n.y, lt(n), n.k]);
+  for (const e of WM.edges) {
+    const m = Math.ceil(Math.hypot(e.x2 - e.x1, e.y2 - e.y1) / WM_LIT_STEP),
+      v = Math.min(lt(NB[e.k1]), lt(NB[e.k2]));
+    for (let i = 1; i < m; i++) WM.lit.push([e.x1 + ((e.x2 - e.x1) * i) / m, e.y1 + ((e.y2 - e.y1) * i) / m, v, e.k1]);
+  }
   WM.goal = wGoal(s);
   WM.dirty = true;
 }
@@ -486,45 +472,6 @@ const WM_ICO = {
     '...#.......',
     '..###......',
     '.#####.....'
-  ],
-  dawn: [
-    '.....#.....',
-    '....###....',
-    '...#####...',
-    '..##+#+##..',
-    '.##+++++##.',
-    '##+++.+++##',
-    '#+++...+++#',
-    '#+++...+++#',
-    '###########',
-    '...........',
-    '...........'
-  ],
-  crow: [
-    '...........',
-    '..####.....',
-    '.#+#####...',
-    '###########',
-    '..#######..',
-    '...#####...',
-    '...#####...',
-    '....###....',
-    '....#.#....',
-    '...##.##...',
-    '...........'
-  ],
-  star: [
-    '.....#.....',
-    '.....#.....',
-    '....###....',
-    '..#######..',
-    '#####+#####',
-    '..#######..',
-    '....###....',
-    '.....#.....',
-    '.....#.....',
-    '...........',
-    '...........'
   ],
   blood: [
     '.....#.....',
@@ -672,22 +619,20 @@ function wmFog() {
     }
   }
   if (WM.wipe >= 1) {
-    /* 拼圖（0.2.79）：沒探索的全黑；看得到的節點把自己那格六角形拼出來（打過的全亮、前線半亮），新的那格淡入 */
+    /* 0.4.0：節點與路把迷霧推開（軟邊的圓）；新看到的那段淡入 */
     const now = performance.now(),
-      R = (W_SZ * 1.1 * WM.z) / 8;
+      R = (WM_LIT_R * WM.z) / 8;
     let fading = 0;
-    for (const n of WM.nodes) {
-      const [x, y] = S2(...wmLat(n.q, n.r));
-      if (x < -R * 2 || y < -R * 2 || x > W + R * 2 || y > H + R * 2) continue;
-      const t0 = WM.seenAt.get(n.k) || 0,
+    for (const [px, py, v, k0] of WM.lit) {
+      const [x, y] = S2(px, py);
+      if (x < -R || y < -R || x > W + R || y > H + R) continue;
+      const t0 = WM.seenAt.get(k0) || 0,
         k = wmStill() ? 1 : Math.min(1, (now - t0) / 450);
       if (k < 1) fading = 1;
-      f.fillStyle = `rgba(0,0,0,${(n.done || STORY_I[n.k] != null ? 1 : 0.6) * k})`;
-      f.beginPath();
-      for (let i = 0; i < 6; i++) f.lineTo(x + Math.cos((i * Math.PI) / 3) * R, y + Math.sin((i * Math.PI) / 3) * R);
-      f.closePath();
-      f.fill();
+      f.globalAlpha = v * k;
+      f.drawImage(WM.hole, x - R, y - R, R * 2, R * 2);
     }
+    f.globalAlpha = 1;
     WM.fading = fading;
   } else
     for (const n of WM.nodes) {
@@ -750,12 +695,13 @@ function wmBase() {
     c.textAlign = 'center';
     c.font = `700 ${Math.max(14, 26 * z + 6)}px "Noto Serif TC", serif`;
     c.lineWidth = 4;
-    WREGION.forEach(([n, r], i) => {
-      const a = -1.15 + i * 1.72,
-        R = (r + 3) * W_SZ * 1.62,
-        [x, y] = wmS(Math.cos(a) * R, Math.sin(a) * R),
-        t = [...n].join(' ');
-      if (!wmLit(Math.cos(a) * R, Math.sin(a) * R)) return;
+    /* 0.4.0：每個區域名寫在那一段主幹第一個節點的上方 */
+    TRUNK.forEach((nd, i) => {
+      if (i && TRUNK[i - 1].g === nd.g) return;
+      const [wx, wy] = wmLat(nd.q, nd.r),
+        [x, y] = wmS(wx, wy - 120),
+        t = [...nd.g].join(' ');
+      if (!wmLit(wx, wy)) return;
       c.strokeStyle = 'rgba(13,14,17,.85)';
       c.fillStyle = 'rgba(233,226,206,.72)';
       c.strokeText(t, x, y);
@@ -1157,9 +1103,9 @@ const WM_ZMIN = 0.3,
   WM_ZMAX = 1.8;
 /* 鏡頭最遠到走過最遠的圈再往外 12 圈，不會一路拖到遠方狂烘 */
 function wmBound() {
-  let m = 16; /* 裂口最遠在第 25 圈，看得到才知道往哪走 */
-  for (const k of S.world.done) m = Math.max(m, wRing(...wXY(k)));
-  return (m + 12) * W_SZ * 1.8;
+  let m = 0; /* 0.4.0：看得到的節點最遠的距離再往外一點 */
+  for (const k of wList(S)) m = Math.max(m, Math.hypot(...wmLat(...wXY(k))));
+  return m + 900;
 }
 function wmZoomAt(mx, my, z) {
   const r = WM.cv.getBoundingClientRect(),
@@ -1335,9 +1281,9 @@ function wmInit() {
     else if (a === 'goal') {
       WM.view = 'node';
       if (WM.goal) wmSel(WM.goal), wmCenter(WM.goal);
-    } else if (a === 'wash') {
-      if (!wWash(S, wRegionOf(S.world.seed, ...wXY(WM.sel)))) return hudWarn('碎片不夠');
-      PANEL.card = null;
+    } else if (a.startsWith('star:')) {
+      /* 0.4.0：每個節點選 1～5★，每一輪照星級重抽地圖詞 */
+      S.world.star[WM.sel] = +a.slice(5);
       sfx('click');
       save();
       wmPanel();
@@ -1360,11 +1306,9 @@ function wmTap(e) {
 function wmSel(k) {
   WM.sel = k;
   WM.view = 'node';
-  PANEL.card = null;
   WM.dirty = true;
   sfx('click');
   wmPanel();
-  save(); /* 卡是選到節點才抽的：馬上存，重新整理不能白洗 */
 }
 /* 打開世界地圖：seed 換了（換存檔）就清快取，鏡頭回到目前位置 */
 function wmOpen() {
@@ -1372,7 +1316,7 @@ function wmOpen() {
   const seed = S.world.seed;
   if (seed !== WM.seed) {
     WM.seed = seed;
-    WM.ox = wHash(seed, 1, 2, 91) * 40000;
+    WM.ox = wHash(seed, 1, 2, 91) * 40000; /* 0.4.0 起種子固定（world.js 的 W_SEED），所有人同一張地圖 */
     WM.oy = wHash(seed, 3, 4, 92) * 40000;
     WM.ch.clear();
     WM.job = null;
@@ -1385,7 +1329,6 @@ function wmOpen() {
   WM.vx = WM.vy = 0;
   wmNodes();
   WM.sel = WM.goal || null;
-  PANEL.card = null;
   WM.z = 1;
   if (WM.sel) wmCenter(WM.sel);
   else wmCenter(S.world.at);
@@ -1444,66 +1387,32 @@ function wmStamp() {
     }`;
   wmPanel();
 }
-const WM_DN = ['', '低', '中', '高'];
-function wmCardHTML(k, why, lv) {
-  const i = STORY_I[k];
+/* 選星級（0.4.0，企劃書 4.1）：1～5★，每一輪照星級隨機抽詞（看不到詞，星級就是風險等級）；劇情區固定 */
+function wmCardHTML(k, why) {
+  const i = STORY_I[k],
+    star = wStar(S, k),
+    here = G.scene === 'map' && G.node === k,
+    go = `<button class="btn pri" data-a="open" ${why ? `disabled title="${esc(why)}"` : ''}>${why || (here ? '重新開始這一輪' : '在這裡刷')}</button>`;
   if (i != null) {
-    const c = STORY[i].card,
-      sr = ascHas(S, 'roulette') ? rouletteOf(c, k).map(id => ROUL.find(x => x.id === id)) : [];
-    return `${sr.length ? `<ul class="wm-rou" aria-label="命運輪盤">${sr.map(r => `<li style="--rc:${r.c}"><b>${r.n}籌碼</b> ${esc(r.t)}</li>`).join('')}</ul>` : ''}
-      <ul class="mmods wm-mods">${c.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
-      <p class="wm-note">主線固定，不用選地圖卡</p>
-      <button class="btn pri" data-a="open">${G.scene === 'map' ? '進入下一張' : '開啟傳送門'}</button>`;
+    const c = STORY[i].card;
+    return `<ul class="mmods wm-mods">${c.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
+      <p class="wm-note">主線固定，不用選星級</p>${go}`;
   }
-  const rg = wRegionOf(S.world.seed, ...wXY(k)),
-    o = wCards(S, rg),
-    n = Math.min(PANEL.card == null ? o.sel || 0 : PANEL.card, W_CARDS - 1),
-    card = o.c[n],
-    c = mapCost(card.star),
-    rw = cardRew(card),
-    wc = washCost(wRgLv(rg), o.w),
-    prog = wRgProg(S, rg),
-    walk = !!aiRgReach(rg, wXY(S.world.at)).length,
-    danger = cd => Math.max(1, ...cd.mods.map(x => MAPMOD[x].d)),
-    /* 命運輪盤（賭徒的大點）：這張卡進圖會抽到的兩種籌碼，開卡片時就看得到（不想要就換一張）；沒點輪盤的人不顯示 */
-    rou = cd => (ascHas(S, 'roulette') ? rouletteOf(cd, k).map(id => ROUL.find(x => x.id === id)) : []);
-  return `<div class="mcards2 wm-cards">${o.c
-    .map((cd, j) => {
-      const d = danger(cd),
-        cc = mapCost(cd.star);
-      return `<button class="mc2 ${j === n ? 'on' : ''}" data-card="${j}" style="--sc:${STARS[cd.star].c}">
-        <span class="mstar">${'★'.repeat(cd.star)}</span>
-        <span class="mdang d${d}">危險 ${WM_DN[d]}</span>
-        <span class="mcost ${S.frag < cc ? 'c-bad' : ''}">${cc ? `${cc} 碎片` : '免費'}</span>${
-          rou(cd).length
-            ? `<span class="mrou" title="命運輪盤：${rou(cd)
-                .map(r => r.n)
-                .join('、')}">${rou(cd)
-                .map(r => `<i style="background:${r.c}"></i>`)
-                .join('')}</span>`
-            : ''
-        }</button>`;
-    })
+  const S_ = STARS[star],
+    [lo, hi] = S_.n || [0, 0];
+  return `<div class="wm-stars" role="radiogroup" aria-label="星級">${[1, 2, 3, 4, 5]
+    .map(
+      n =>
+        `<button class="mc2 ${n === star ? 'on' : ''}" role="radio" aria-checked="${n === star}" data-wm="star:${n}" style="--sc:${STARS[n].c}"><span class="mstar">${n}★</span></button>`
+    )
     .join('')}</div>
-    <div class="msel"><b>這張的地圖詞</b><span class="c-gold" title="數量：裝備與通貨的件數；稀有度：稀有物品比例與 ★、追憶的機率；材料：崇高石與精髓的機率">數量 +${rw.qty}% · 稀有度 +${rw.rar}% · 材料 +${rw.mat}%</span></div>
-    ${
-      rou(card).length
-        ? `<ul class="wm-rou" aria-label="命運輪盤">${rou(card)
-            .map(r => `<li style="--rc:${r.c}"><b>${r.n}籌碼</b> ${esc(r.t)}</li>`)
-            .join('')}</ul>`
-        : ''
-    }
-    <ul class="mmods wm-mods">${card.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
-    <p class="wm-note">${esc(wRgName(S, rg))}區塊 · 開通 ${prog.n}／${prog.total} · 這個區塊的節點共用這張卡</p>
-    <div class="wm-acts"><button class="btn" data-wm="wash" ${S.frag < wc ? 'disabled' : ''} title="換一批新的卡">洗卡 · ${wc} 碎片</button>
-    <button class="btn pri" data-a="patrol" data-rg="${rg}" data-n="${n}" ${walk ? '' : 'disabled'} title="${walk ? 'AI 打完這個區塊，再照設定接著走' : '這個區塊現在還走不到'}">開始巡邏</button>
-    <button class="btn" data-a="open" ${why ? 'disabled' : ''} ${why ? `title="${esc(why)}"` : ''}>${why || `${G.scene === 'map' ? '只進這個節點' : '只開這個節點'}`}</button></div>`;
+    <p class="wm-note">${star}★：每一輪隨機 ${lo === hi ? lo : `${lo}～${hi}`} 條地圖詞，星越多越危險、掉得越好；死了下一輪重抽</p>
+    <div class="wm-acts">${go}</div>`;
 }
 function wmNodeHTML() {
   const k = WM.sel;
   if (!k) {
-    const [q, r] = wXY(S.world.at);
-    return `<h2>${wOpen(S) ? wRegion(Math.max(W_ROAD, wRing(q, r))) : STORY[0].n}</h2><p>${wOpen(S) ? '點一個發亮的地點；往外走變難，橫著走難度不變。' : '點發亮的主線地點繼續前進。'}</p>`;
+    return `<h2>${wOpen(S) ? wRegion(S.world.at) : STORY[0].n}</h2><p>點一個地點：打過的可以一直重複刷，往外走變難。</p>`;
   }
   const [q, r] = wXY(k),
     t = wType(S, q, r),
@@ -1515,23 +1424,10 @@ function wmNodeHTML() {
     zod = t === 'rift' ? wZod(S, q, r) : null,
     head = `<h2>${esc(wName(S, q, r))}</h2><p class="wm-kind">${i != null ? '主線' : WTYPE[t].n} · 怪物 Lv ${lv}${pen ? ` · <span class="c-warn">元素抗性 −${pen}%</span>` : ''}</p><p>${esc(i != null ? STORY[i].d : WTYPE[t].d)}</p>`,
     cor = zod ? `<p class="wm-note">墮落詞：<span class="c-warn">${termify(MAPMOD[zod.cor].t)}</span></p>` : '';
-  if (done) return head + '<p class="wm-note">已走過，可以從這裡經過。</p>';
-  /* 走不到的地方不抽卡：抽了也打不了 */
-  if (!wCan(S, q, r)) return head + cor + `<p class="wm-note">${esc(why)}</p>`;
-  const blood = S.hunt.full ? `<p class="c-warn">血霧 ${S.hunt.v}%：每進一張扣 ${HUNT.cost}%，5★ 地圖變多</p>` : '';
-  /* 凶地（0.2.80）：寫出這塊的專屬地圖詞 */
-  const fi = t === 'fiend' ? XIONG_MOD[wFiend(S.world.seed, q, r).k] : null,
-    fiend = fi ? `<p class="wm-note">${esc(fi.n)}的地盤：<span class="c-warn">${esc(fi.t)}</span></p>` : '';
-  /* 陰兵借道（0.2.81）：怨恨值與現在的加成、這格有沒有將領 */
-  let army = '';
-  if (t === 'army') {
-    const ck = wArmy(S.world.seed, q, r),
-      n = armyRes(S, ck),
-      g = wArmyGen(S.world.seed, ck)[k],
-      P = ARMY.per;
-    army = `<p class="wm-note">怨恨值 <b>${n}</b>／${ARMY.max}：怪物生命與傷害 <span class="c-warn">+${P.mhp * n}%</span>、數量與稀有度 <span class="c-good">+${P.qty * n}%</span>；這塊每打完一張圖 +1</p>${g ? `<p class="wm-note">守在這裡的是<b>${esc(armyBoss(g).n)}</b>：保底 1 件追憶裝、掉${esc(FRAGS[g].n)}</p>` : ''}`;
-  }
-  return head + cor + fiend + army + blood + wmCardHTML(k, why, lv);
+  const fi = t === 'fiend' ? '<p class="wm-note">每一輪隨機一隻凶，整張圖帶牠的專屬地圖詞</p>' : '',
+    cur = S.world.cur === k ? '<p class="wm-note c-gold">正在這裡刷</p>' : '',
+    dn = done ? '<p class="wm-note">打倒過這裡的王：可以一直重複刷</p>' : '';
+  return head + cor + fi + cur + dn + wmCardHTML(k, why);
 }
 function wmQuestHTML() {
   const n = S.idols.length,
@@ -1541,26 +1437,26 @@ function wmQuestHTML() {
     <ul class="wm-q">
       <li><b>狩獵之血</b><span>${S.story.crow ? `生肖 ${n}／${ZODIAC.length}${S.frags.blood ? ` · 神血 ${S.frags.blood}` : ''}` : '還沒開始'}</span>
         ${S.story.crow ? `<div class="wm-zod">${ZODIAC.map(z => `<span class="${lit.has(z.z) ? 'on' : ''}" title="${esc(z.n)}">${icHTML(z.sp)}</span>`).join('')}</div>` : ''}</li>
-      <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門關區塊在第 ${REGION.ring} 圈以外`}</span></li>
-      <li><b>心魔劫</b><span>${SIN.emo.some(k => S.frags[k]) ? `碎片 ${SIN.emo.filter(k => S.frags[k]).length}／7 種` : `心魔幻境區塊在第 ${REGION.ring} 圈以外`}</span></li>
-      <li><b>四凶</b><span>${XIONG.some(k => S.frags[k]) ? `四凶之鱗 ${XIONG.filter(k => S.frags[k]).length}／4 種` : `凶地區塊在第 ${REGION.ring} 圈以外`}</span></li>
-      <li><b>陰兵借道</b><span>${ARMY.gen.some(k => S.frags[k]) || S.frags.fu ? `將印 ${ARMY.gen.filter(k => S.frags[k]).length}／3 種${S.frags.fu ? ` · 兵符 ${S.frags.fu}` : ''}` : `陰兵借道區塊在第 ${ARMY.ring} 圈以外`}</span></li>
+      <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門關：角色 Lv ${spNeed('ghost')} 開`}</span></li>
+      <li><b>心魔劫</b><span>${SIN.emo.some(k => S.frags[k]) ? `碎片 ${SIN.emo.filter(k => S.frags[k]).length}／7 種` : `心魔幻境：角色 Lv ${spNeed('dream')} 開`}</span></li>
+      <li><b>四凶</b><span>${XIONG.some(k => S.frags[k]) ? `四凶之鱗 ${XIONG.filter(k => S.frags[k]).length}／4 種` : `凶地：角色 Lv ${spNeed('fiend')} 開`}</span></li>
+      <li><b>陰兵借道</b><span>${ARMY.gen.some(k => S.frags[k]) || S.frags.fu ? `將印 ${ARMY.gen.filter(k => S.frags[k]).length}／3 種${S.frags.fu ? ` · 兵符 ${S.frags.fu}` : ''}` : '陰兵借道：0.4.2 開放'}</span></li>
     </ul>
     ${WM.goal ? `<button class="btn" data-wm="goal">看下一個目標</button>` : ''}`;
 }
 function wmPanel() {
   if (!WM.cv || !PANEL.device) return;
   $('wms').innerHTML =
-    `<div class="ph"><b>世界地圖</b><span>角色 Lv ${S.lv} · 碎片 <b class="c-gold">${S.frag}</b></span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+    `<div class="ph"><b>世界地圖</b><span>角色 Lv ${S.lv}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
     <div class="wm-body">${WM.view === 'quest' ? wmQuestHTML() : wmNodeHTML()}</div>`;
 }
-/* 面板上的主要按鈕 */
+/* 面板上的主要按鈕：在這個節點刷（0.4.0：藏身處、地圖裡都直接進場地；玩家自己選的不是最前面的節點就留在這裡刷） */
+const spNeed = t => SPECIAL.find(s => s.t === t).need;
 function wmGo() {
   const k = WM.sel;
   if (!k) return;
-  const rg = STORY_I[k] != null ? null : wRegionOf(S.world.seed, ...wXY(k)),
-    i = PANEL.card == null ? (rg ? wCards(S, rg).sel || 0 : 0) : PANEL.card;
-  if (G.scene === 'map') mapAgain(k, i);
-  else openMap(k, i);
+  S.world.hold = k !== wGoal(S) ? 1 : 0;
+  S.world.note = '';
   closePanels();
+  runNode(k);
 }

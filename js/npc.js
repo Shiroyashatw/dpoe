@@ -7,16 +7,8 @@ const NPCS = {
     n: '撿骨師',
     sp: 'ghost_priest',
     when: () => true,
-    /* 有未鑑定的裝備（已經認識之後）：不閒聊，直接開獎；其他時候照舊說一句 */
-    talk: s =>
-      s.story.boneMet && unidN(s)
-        ? ''
-        : s.story.boneMet
-          ? 'bone_' + ((s.story.boneN = (s.story.boneN || 0) + 1) % 4)
-          : 'bone_first',
-    done() {
-      if (unidN(S)) revealOpen();
-    }
+    /* 0.4.0 起沒有鑑定，撿骨師只說話 */
+    talk: s => (s.story.boneMet ? 'bone_' + ((s.story.boneN = (s.story.boneN || 0) + 1) % 4) : 'bone_first')
   },
   /* 赤鴉：狩獵之血解鎖（S.story.crow）才出現 */
   crow: {
@@ -75,9 +67,7 @@ const TALKS = {
   },
   hint_forge: {
     set: 'h_forge',
-    lines: [
-      ['bone', '鍛造台還能用。怪物留下的石頭拿來給裝備加詞，數值不滿意就淬鍊。地圖裡撿的裝備先拿給我看，我替你鑑定。']
-    ]
+    lines: [['bone', '鍛造台還能用。怪物留下的石頭拿來給裝備加詞，數值不滿意就淬鍊。']]
   },
   hint_tree: {
     set: 'h_tree',
@@ -96,8 +86,8 @@ const TALKS = {
     set: 'st_1',
     lines: [
       ['bone', '河乾了，渡口還在。'],
-      ['bone', '每張地圖都有一張卡。星越多，裡面越兇，掉的東西也越好。'],
-      ['bone', '這一張是固定的。走遠了，你要自己挑。']
+      ['bone', '每個地方都有星級。星越多，裡面越兇，掉的東西也越好。'],
+      ['bone', '這裡是固定的。走遠了，你要自己挑幾顆星。']
     ]
   },
   st_2: {
@@ -112,8 +102,8 @@ const TALKS = {
     set: 'st_3',
     lines: [
       ['bone', '礦道裡的東西比外面兇。'],
-      ['bone', '卡上寫的每一條都是真的。怪物多幾成生命、多幾成傷害，進去之前先看清楚。'],
-      ['bone', '風險挑得越大，帶回來的越多。打不動就退回來，地圖卡換一批再去。']
+      ['bone', '地圖詞寫的每一條都是真的。怪物多幾成生命、多幾成傷害，死了就看看是哪一條。'],
+      ['bone', '星挑得越高，帶回來的越多。打不動就退回上一個地方，或少挑一顆星。']
     ]
   },
   st_4: {

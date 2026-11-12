@@ -330,21 +330,17 @@ const ok = (n, c, info = '') => {
     await p.evaluate(() => !PRAC.in && !G.allies.length && !G.ground.length && $('prac').hidden),
     await p.evaluate(() => [PRAC.in, G.allies.length, G.ground.length].join())
   );
-  /* 8. 開傳送門、進地圖、回家、存檔 */
+  /* 8. 地圖台 → 世界地圖選節點 → 直接進場地（0.4.0 沒有傳送門）、回家、存檔 */
   await p.evaluate(() => {
-    S.frag = 50;
     openPanel('device');
-    PANEL.pick = 1;
-    PANEL.card = 0;
-    openMap('0,0', 0);
-    closePanels();
+    WM.sel = '0,0';
+    wmGo();
   });
-  ok('傳送門開在地圖台前面', await p.evaluate(() => !!G.portal && Math.abs(G.portal.x - HIDE_ART.portal.x) < 1));
-  const pt = await p.evaluate(() => ({ x: G.portal.x, y: G.portal.y }));
-  await walk(pt.x, pt.y, 50);
-  await p.evaluate(() => interact());
   await p.waitForTimeout(300);
-  ok('走進傳送門到地圖', await p.evaluate(() => G.scene === 'map' && !G.mobs.some(m => m.dummy) && !G.solid.length));
+  ok(
+    '世界地圖按「在這裡刷」直接進場地',
+    await p.evaluate(() => G.scene === 'map' && G.node === '0,0' && !G.mobs.some(m => m.dummy) && !G.solid.length)
+  );
   await p.evaluate(() => goHome());
   await p.waitForTimeout(300);
   ok('回藏身處', await p.evaluate(() => G.scene === 'hide' && G.mobs.filter(m => m.dummy).length === 3));

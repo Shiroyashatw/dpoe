@@ -18,7 +18,7 @@ for (const f of [
 ])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const G = vm.runInContext(
-  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, libUp, libUpCheck, libLv, drillDo, newSlot, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, itemSize, stats, dps, gridAuto, sellPrice, bestTier, tierRange, affText, itemName })',
+  '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, libUp, libUpCheck, libLv, drillDo, newSlot, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, stats, dps, invPut, INV_CAP, INV_SPARE, sellPrice, bestTier, tierRange, affText, itemName })',
   ctx
 );
 let bad = 0;
@@ -147,22 +147,18 @@ for (let i = 0; i < 300; i++) {
   if (vals.some(v => !Number.isFinite(v))) nan++;
 }
 ok('300 套全身裝備的數值沒有 NaN', !nan, nan + ' 套');
-/* 4. 格子背包：自動擺放不重疊、不出界 */
-let over = 0;
-for (let k = 0; k < 50; k++) {
-  const g = { w: 12, h: 5, items: [] };
-  for (let i = 0; i < 40; i++) G.gridAuto(g, G.dropItem(8, 0.5));
-  for (const a of g.items) {
-    const [w, h] = G.itemSize(a);
-    if (a.x < 0 || a.y < 0 || a.x + w > g.w || a.y + h > g.h) over++;
-    for (const b of g.items) {
-      if (a === b) continue;
-      const [bw, bh] = G.itemSize(b);
-      if (a.x < b.x + bw && b.x < a.x + w && a.y < b.y + bh && b.y < a.y + h) over++;
-    }
-  }
+/* 4. 清單倉庫（0.4.0）：容量 INV_CAP，★ 與追憶多留 INV_SPARE 格 */
+{
+  const g = { items: [] };
+  for (let i = 0; i < G.INV_CAP; i++) G.invPut(g, { id: i });
+  const full = !G.invPut(g, { id: -1 }),
+    star = G.invPut(g, { id: -2, frac: 'life' }) && G.invPut(g, { id: -3, mem: { k: 'm_lv' } });
+  for (let i = 2; i < G.INV_SPARE; i++) G.invPut(g, { id: -9 - i, frac: 'life' });
+  ok(
+    '清單倉庫：滿了普通裝放不進去、★ 與追憶多留 50 格、多留的也滿了就放不進去',
+    full && star && g.items.length === G.INV_CAP + G.INV_SPARE && !G.invPut(g, { id: -99, frac: 'life' })
+  );
 }
-ok('格子背包自動擺放不重疊、不出界', !over, over + ' 處');
 /* 5. 技能寶石、天賦樹、核心樹 */
 const miss2 = [...Object.values(G.SKILLS), ...Object.values(G.SUPPORTS), ...G.PTREE.N]
   .map(x => x.ic)
@@ -2942,7 +2938,7 @@ const ASC_COMBOS = `const combos = k => {
 
     /* 第三隻手：ring3 欄位平常關著（裡面的戒指不算數值、算失效）、點亮才開（戒指的數值才進來）；退點時那枚戒指脫回背包 */
     const lifeRing = () => ring([{ k: 'life', v: 100, T: 1 }]);
-    S.inv = { w: 12, h: 8, items: [] }; S.temp = { w: 12, h: 12, items: [] };
+    S.inv = { items: [] };
     const E3 = { ring1: ring(), ring2: ring(), ring3: lifeRing() };
     const closed = st(['s1', 'core'], E3), opened = st(['s1', 'core', 's2', 'hand'], E3), none = st(['s1', 'core'], { ring1: ring(), ring2: ring() });
     o.ring3 = [closed.hp === none.hp, closed.eqBad.join(), opened.hp - none.hp - (opened.hp - none.hp) + (opened.hp > closed.hp ? 1 : 0), opened.eqBad.length, EQS.some(e => e.k === 'ring3' && e.t === 'ring')];
@@ -2952,19 +2948,19 @@ const ASC_COMBOS = `const combos = k => {
     ascSync(S); o.keep3 = [S.eq.ring3 === it3, S.inv.items.length];
     o.why0 = eqUnloadWhy(S, ['a_st', 'a_s1', 'a_core']);
     S.at = ['a_st', 'a_s1', 'a_core']; ascSync(S);
-    o.back3 = [S.eq.ring3, S.inv.items.length, S.inv.items[0] === it3, Number.isInteger(S.inv.items[0].x), eqOpen(S, 'ring3')];
-    /* 背包滿了放臨時頁；兩邊都滿了擋下來（eqUnloadWhy 回傳原因、eqUnload 留著不動，不弄丟裝備，欄位裡的戒指算失效） */
-    const fillG = (w, h) => ({ w, h, items: [Object.assign(mkItem('r_iron', 1, 0), { x: 0, y: 0 })] }),
+    o.back3 = [S.eq.ring3, S.inv.items.length, S.inv.items[0] === it3, !('x' in S.inv.items[0]), eqOpen(S, 'ring3')];
+    /* 倉庫有位置就脫進去；倉庫滿了擋下來（eqUnloadWhy 回傳原因、eqUnload 留著不動，不弄丟裝備，欄位裡的戒指算失效） */
+    const fillL = n => ({ items: Array.from({ length: n }, (_, i) => ({ id: -1 - i })) }),
       handAt = ['a_st', 'a_s1', 'a_core', 'a_s2', 'a_hand'], coreAt = ['a_st', 'a_s1', 'a_core'];
-    S.at = handAt; S.eq = { ring3: lifeRing() }; S.inv = fillG(1, 1); S.temp = { w: 12, h: 12, items: [] };
+    S.at = handAt; S.eq = { ring3: lifeRing() }; S.inv = fillL(1);
     const ringT = S.eq.ring3; o.whyTemp = eqUnloadWhy(S, coreAt);
     S.at = coreAt; ascSync(S);
-    o.toTemp = [S.eq.ring3, S.temp.items[0] === ringT, S.inv.items.length];
-    S.at = handAt; S.eq = { ring3: lifeRing() }; S.inv = fillG(1, 1); S.temp = fillG(1, 1);
+    o.toTemp = [S.eq.ring3, S.inv.items[1] === ringT, S.inv.items.length];
+    S.at = handAt; S.eq = { ring3: lifeRing() }; S.inv = fillL(INV_CAP + INV_SPARE);
     const keep2 = S.eq.ring3; o.whyBoth = eqUnloadWhy(S, coreAt);
     S.at = coreAt; ascSync(S);
-    o.stuck = [S.eq.ring3 === keep2, S.inv.items.length, S.temp.items.length, stats(S).eqBad.includes('ring3')];
-    S.inv = { w: 12, h: 8, items: [] }; S.temp = { w: 12, h: 12, items: [] };
+    o.stuck = [S.eq.ring3 === keep2, S.inv.items.length === INV_CAP + INV_SPARE, stats(S).eqBad.includes('ring3')];
+    S.inv = { items: [] };
 
     /* 鎖欄位：甲蟲之殼鎖腰帶（腰帶脫到背包、護符槽消失、欄位關著）、腹蛇之眼鎖頭部（頭盔脫到背包）；退點解鎖；沒鎖的欄位不動 */
     S.asc = 'mutant'; S.at = ['a_st']; S.eq = { belt: mkItem('bt_rope', 1, 0), helm: mkItem('h_kasa', 1, 0), ring1: ring() };
@@ -2973,7 +2969,7 @@ const ASC_COMBOS = `const combos = k => {
     S.at = ['a_st', 'a_s6', 'a_shell']; ascSync(S);
     o.lockBelt = [S.eq.belt, S.eq.helm === helm, S.inv.items.includes(belt), charmSlots(S), eqOpen(S, 'belt'), eqOpen(S, 'helm')];
     S.at = ['a_st', 'a_s6', 'a_shell', 'a_s7', 'a_viper']; ascSync(S);
-    o.lockHelm = [S.eq.helm, S.inv.items.includes(helm), eqOpen(S, 'belt'), eqOpen(S, 'helm'), !!S.eq.ring1, S.inv.items.length, S.temp.items.length];
+    o.lockHelm = [S.eq.helm, S.inv.items.includes(helm), eqOpen(S, 'belt'), eqOpen(S, 'helm'), !!S.eq.ring1, S.inv.items.length];
     /* 關著的欄位裡硬塞的裝備不算（失效）：腰帶給的護符槽不算、頭盔的閃避不算 */
     S.eq.helm = mkItem('h_hood', 1, 0); const lk = stats(S); o.lockStuck = [lk.eqBad.includes('helm'), lk.ev === st(['s6', 'shell', 's7', 'viper'], {}).ev];
     S.eq.belt = mkItem('bt_rope', 1, 0); o.lockCharm = charmSlots(S);
@@ -3068,18 +3064,18 @@ const ASC_COMBOS = `const combos = k => {
     j([g.ring3, g.open, g.keep3, g.why0, g.back3])
   );
   ok(
-    '脫下裝備放不下時：背包滿了放臨時頁（eqUnloadWhy 說放得下）；背包與臨時頁都滿了就擋下來（說明原因、eqUnload 不動、裝備留在欄位裡算失效，不弄丟）',
+    '脫下裝備：倉庫有位置就脫進去（eqUnloadWhy 說放得下）；倉庫滿了就擋下來（說明原因、eqUnload 不動、裝備留在欄位裡算失效，不弄丟）',
     g.whyTemp === '' &&
-      j(g.toTemp) === '[null,true,1]' &&
-      g.whyBoth === '背包和臨時倉庫都放不下要脫下的裝備：先騰出空間' &&
-      j(g.stuck) === '[true,1,1,true]',
+      j(g.toTemp) === '[null,true,2]' &&
+      g.whyBoth === '倉庫放不下要脫下的裝備：先騰出空間' &&
+      j(g.stuck) === '[true,true,true]',
     j([g.whyTemp, g.toTemp, g.whyBoth, g.stuck])
   );
   ok(
     '鎖欄位：甲蟲之殼鎖腰帶（腰帶脫到背包、護符槽消失、欄位關著、頭部不動）、腹蛇之眼鎖頭部（頭盔脫到背包、戒指不動）；關著的欄位裡硬塞的裝備算失效（頭盔的閃避不算、腰帶沒有護符槽）；退點（昇華點退光）全部解鎖',
     j(g.slots0) === '[1,true,true]' &&
       j(g.lockBelt) === '[null,true,true,0,false,true]' &&
-      j(g.lockHelm) === '[null,true,false,false,true,2,0]' &&
+      j(g.lockHelm) === '[null,true,false,false,true,2]' &&
       j(g.lockStuck) === '[true,true]' &&
       g.lockCharm === 0 &&
       j(g.unlock) === '[true,true,true]',
@@ -3913,11 +3909,11 @@ const ASC_COMBOS = `const combos = k => {
   ok('商人：連續 8 件沒出稀有，下一件必出', maxMiss <= 8 && maxMiss >= 5, maxMiss);
   console.log(`   稀有率 ${((rares / n) * 100).toFixed(1)}%（平均每 ${(n / rares).toFixed(1)} 件一件）`);
   R(
-    `S.inv = { w: 1, h: 1, items: [] }; S.gamN = 3; var g9 = S.gold; var r9 = gambleDo('ring'); r9 = gambleDo('ring');`
+    `S.inv = { items: Array.from({ length: INV_CAP - 1 }, (_, i) => ({ id: -1 - i })) }; S.gamN = 3; var g9 = S.gold; var r9 = gambleDo('ring'); r9 = gambleDo('ring');`
   );
   ok(
-    '商人：背包滿不扣錢、不算保底',
-    R('r9.why') === '背包滿了' && R('g9 - S.gold') === R('gamPrice(S)') && R('S.gamN') <= 4,
+    '商人：倉庫滿不扣錢、不算保底',
+    R('r9.why') === '倉庫滿了' && R('g9 - S.gold') === R('gamPrice(S)') && R('S.gamN') <= 4,
     R('[r9.why, g9 - S.gold, S.gamN]')
   );
 }
@@ -8202,24 +8198,36 @@ const ASC_COMBOS = `const combos = k => {
     c2,
     { filename: 'main.js' }
   );
-  /* 0.3.0：存檔版本 31，舊存檔（< 31）直接開新角色、不轉換（企劃書 2.1 第 14 項） */
+  /* 0.3.0：舊存檔（< 31）直接開新角色；0.4.0：存檔 31 → 32（固定節點、清單倉庫、沒有鑑定、地圖碎片換金幣） */
   ok(
-    '存檔 31：舊存檔（< 31、沒有版本、壞掉的）開新角色；31 的存檔原樣還原',
+    '存檔 32：舊存檔（< 31、沒有版本、壞掉的）開新角色；31 轉成 32：背包、臨時頁、倉庫合成一個清單、未鑑定的鑑定、碎片換金幣、主幹開到同樣等級、卡與巡邏清掉；32 的存檔原樣還原',
     R2(`(() => {
-      const old = newGame(); Object.assign(old, { v: 30, lv: 57, frag: 40 });
+      const old = newGame(); Object.assign(old, { v: 30, lv: 57 });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      if (n.v !== 31 || n.lv !== 1 || n.frag === 40) return 'v30 ' + n.v + ' ' + n.lv;
+      if (n.v !== 32 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
       for (const bad of [null, {}, { v: 'x' }, { v: 10 }, { v: 29, lv: 50 }]) if (migrate(bad).lv !== 1) return 'bad';
-      const cur = newGame(); Object.assign(cur, { lv: 57, frag: 40, auto: 0 }); cur.world.done.push('0,0');
-      const m = migrate(JSON.parse(JSON.stringify(cur))), again = migrate(JSON.parse(JSON.stringify(m)));
-      return m.v === 31 && m.lv === 57 && m.frag === 40 && m.auto === 0 && m.world.done.length === 1 && again.lv === 57 && !!m.temp2 && !!m.patrol;
-    })()`)
+      const it = (r, o) => ({ ...mkItem('c_leather', 12, r), ...o });
+      const v31 = { ...newGame(), v: 31, lv: 57, gold: 5, frag: 40, auto: 0, cards: { x: 1 }, patrol: { rg: 'a' }, run: { k: '0,0' },
+        inv: { w: 12, h: 5, items: [it(2, { uid: 1 }), it(1)] }, stash: { w: 12, h: 12, items: [it(0)] },
+        temp: { w: 12, h: 12, items: [it(2, { uid: 1, frac: 'life' })] }, temp2: { w: 12, h: 12, items: [] },
+        world: { seed: 5, stage: 9, open: 1, at: '9,9', done: ['0,0', '3,-1', '9,9'] } };
+      delete v31.push;
+      /* 舊地圖走過最遠的是 9,9（第 18 圈＝舊的 Lv63）：主幹開到 Lv63（劇情 9 個＋Lv23～63 的 9 個） */
+      const m = migrate(JSON.parse(JSON.stringify(v31)));
+      if (m.v !== 32 || m.lv !== 57 || m.auto !== 0 || m.push !== 'auto') return 'base';
+      if (m.inv.items.length !== 4 || m.inv.items.some(x => x.uid || 'x' in x) || m.inv.w) return 'inv ' + m.inv.items.length;
+      if (['stash', 'temp', 'temp2', 'frag', 'cards', 'patrol', 'run'].some(k => k in m)) return 'gone';
+      if (m.gold !== 5 + 400) return 'gold ' + m.gold;
+      if (m.world.seed !== W_SEED || m.world.stage !== 9 || m.world.done.length !== 18 || wFront(m) !== 18) return 'world ' + m.world.done.length + ' ' + wFront(m);
+      const again = migrate(JSON.parse(JSON.stringify(m)));
+      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 32 ? '' : 'again';
+    })()`) === ''
   );
-  /* 過濾器（8-3，企劃書 5.1）：新條件 ★、追憶（只用未鑑定也看得到的資訊）；範本一「★ 或追憶 → 自動撿、黃裝 → 顯示」、範本二「只撿 ★、追憶、T 高的黃裝」 */
+  /* 過濾器（8-3，企劃書 5.1）：★、追憶；範本一「★ 或追憶 → 自動撿、黃裝 → 顯示」、範本二「只撿 ★、追憶、T 高的黃裝」；0.4.0 沒有鑑定，詞綴條件直接看得到 */
   {
     const r = R2(`(() => {
       S = newGame();
-      const mkI = (r, o = {}) => ({ ...mkItem('c_leather', 12, r), uid: 1, ...o });
+      const mkI = (r, o = {}) => ({ ...mkItem('c_leather', 12, r), ...o });
       const y = mkI(2), b = mkI(1), w = mkI(0), fy = mkI(2, { frac: 'life' }), my = mkI(1, { mem: { k: 'm_lv' } }), yl = mkI(2, { L: 5 }), yh = mkI(2, { L: 12 });
       const A = it => fltAct(it).act;
       S.filter.cur = 0;
@@ -8230,262 +8238,95 @@ const ASC_COMBOS = `const combos = k => {
       it.a = [{ k: g.keys[0], T: 3, v: 1 }];
       S.filter.sets[2] = { rules: [{ on: 1, c: { aff: { ks: [g.id], n: 1 } }, act: 'hl', col: 1 }], def: { act: 'hide', col: 0 } };
       S.filter.cur = 2;
-      const un = A(it);
-      delete it.uid;
       const id = A(it);
-      return { t1, t2, un, id, sets: S.filter.sets.map(s => s.rules.length), n2: fltTemplate2().def.act };
+      it.a = [];
+      return { t1, t2, id, no: A(it), sets: S.filter.sets.map(s => s.rules.length), n2: fltTemplate2().def.act };
     })()`);
     ok(
-      '過濾器：★、追憶條件；範本一（★／追憶 → 自動撿、黃裝 → 顯示、其他 → 顯示）；範本二（★、追憶、物品等級 10 以上的黃裝 → 自動撿，其他 → 隱藏）；新存檔第 1、2 組就是這兩個範本；詞綴條件未鑑定永遠不符合、鑑定後才有效',
+      '過濾器：★、追憶條件；範本一（★／追憶 → 自動撿、黃裝 → 顯示、其他 → 顯示）；範本二（★、追憶、物品等級 10 以上的黃裝 → 自動撿，其他 → 隱藏）；新存檔第 1、2 組就是這兩個範本；詞綴條件掉落當下就看得到（0.4.0 沒有鑑定）',
       r.t1.join() === 'pick,pick,show,show,show' &&
         r.t2.join() === 'pick,pick,pick,hide,hide,hide' &&
-        r.un === 'hide' &&
         r.id === 'hl' &&
+        r.no === 'hide' &&
         r.sets.join() === '3,3,1' &&
         r.n2 === 'hide',
       JSON.stringify(r)
     );
   }
   ok(
-    '存檔 24：還原後走過的節點、種子不變',
-    R2(`(() => {
-      const a = newGame();
-      a.world.done.push('0,0'); a.world.stage = 1; a.hunt.v = 40;
-      const n = migrate(JSON.parse(JSON.stringify(a)));
-      return n.world.seed === a.world.seed && n.world.done.length === 1 && n.hunt.v === 40;
-    })()`)
-  );
-  ok(
-    '節點的地圖卡：沒有碎片也一定有一張免費卡（不會卡住）',
-    R2(`(() => {
-      for (let i = 0; i < 400; i++) {
-        const s = newGame();
-        if (!wCards(s, '5,0').c.some(c => mapCost(c.star) === 0)) return false;
-      }
-      return true;
-    })()`)
+    '掉落：地圖裡掉的裝備都是鑑定好的（0.4.0 沒有 uid）',
+    R2(
+      `(() => { S = newGame(); for (let i = 0; i < 300; i++) for (const it of dropGear(2, { ilvl: 40, star: 5, rar: 100 })) if ('uid' in it) return false; return true; })()`
+    )
   );
 }
-/* 世界地圖（world.js）：節點與路是種子的純函式、路走得回去、難度、洗卡、血霧、裂口 */
+/* 世界地圖（world.js，0.4.0 固定節點）：主幹照等級排、特殊節點掛旁邊到等級才開、可以重複刷、往下推與退回、星級每輪重抽、血霧、裂口 */
 {
   const R = s => vm.runInContext(s, ctx);
-  R(`var WS = (seed, o) => { const w = newWorld(); w.seed = seed; return { world: w, hunt: newHunt(), cards: {}, idols: [], story: {}, frag: 0, maxT: 1, ...o }; };
-    var WFP = seed => { const s = WS(seed), L = [];
-      for (let q = -30; q <= 30; q++) for (let r = -30; r <= 30; r++) {
-        if (wRing(q, r) > 30 || !wNode(seed, q, r)) continue;
-        L.push([q, r, wType(s, q, r), wNear(seed, q, r).join('|')].join(':'));
-      }
-      return L.join(';'); };`);
-  const a = R('WFP(12345)');
-  R('RIFT_MEMO.clear()');
-  ok('世界：同種子同地圖（清掉快取重算也一樣）、不同種子不一樣', a === R('WFP(12345)') && a !== R('WFP(54321)'));
+  R(`var WS = o => ({ world: newWorld(), hunt: newHunt(), idols: [], story: {}, lv: 1, maxT: 1, ...o });`);
   ok(
-    '世界：連線是對稱的（a 接 b 就是 b 接 a）',
-    R(`(() => { const s = 777;
-      for (let q = -25; q <= 25; q++) for (let r = -25; r <= 25; r++)
-        for (const [x, y] of wNode(s, q, r) ? wNear(s, q, r) : []) if (!wLinked(s, x, y, q, r)) return false;
-      return true; })()`)
-  );
-  const back = R(`(() => {
-    for (const seed of [1, 7, 12345, 99999, 2147483646]) {
-      for (let q = -45; q <= 45; q++) for (let r = -45; r <= 45; r++) {
-        if (!wNode(seed, q, r) || wRing(q, r) <= W_R) continue;
-        let x = q, y = r, n = 0;
-        while (wRing(x, y) > W_ROAD) {
-          const p = wInner(seed, x, y);
-          if (!p || !wLinked(seed, x, y, p[0], p[1])) return 'seed ' + seed + ' 斷在 ' + x + ',' + y;
-          [x, y] = p;
-          if (++n > 100) return '繞圈';
-        }
-      }
-      /* 第 4 圈整圈是環、接得到劇情終點 */
-      for (let i = 0; i < 24; i++) {
-        const [a, b] = ringHex(W_ROAD, i / 24), [c, d] = ringHex(W_ROAD, ((i + 1) % 24) / 24);
-        if (!wNode(seed, a, b) || !wLinked(seed, a, b, c, d)) return '環斷了';
-      }
-      const E = STORY[STORY_END];
-      if (!wNear(seed, E.q, E.r).some(([x, y]) => wRing(x, y) === W_ROAD)) return '劇情終點沒接到環';
-      if (wNear(seed, 0, 1).some(([x, y]) => STORY_I[wKey(x, y)] == null)) return '劇情區漏路';
-    }
-    return '';
-  })()`);
-  ok('世界：每個節點照內圈路都走得回劇情區（5 個種子、45 圈內）', !back, back);
-  ok(
-    '世界：空格約 11%、節點連線不是六邊都通',
-    R(`(() => { const s = 42; let n = 0, all = 0, deg = 0;
-      for (let q = -30; q <= 30; q++) for (let r = -30; r <= 30; r++) {
-        if (wRing(q, r) <= W_ROAD || wRing(q, r) > 30) continue;
-        all++; if (wNode(s, q, r)) { n++; deg += wNear(s, q, r).length; }
-      }
-      return 1 - n / all > 0.08 && 1 - n / all < 0.14 && deg / n > 2 && deg / n < 4; })()`)
+    '節點表：主幹 22 個（劇情 9 個 Lv5～18＋13 個 Lv23～83，每個 +5）、5 個特殊節點、座標不重複、劇情區座標照舊',
+    R(`(() => {
+      if (TRUNK.length !== 22 || SPECIAL.length !== 5) return 'n';
+      if (TRUNK.slice(9).some((n, i) => n.lv !== 23 + i * 5) || TRUNK[21].lv !== 83) return 'lv';
+      if (TRUNK.some((n, i) => i && n.lv <= TRUNK[i - 1].lv)) return 'order';
+      if (new Set([...TRUNK, ...SPECIAL].map(n => wKey(n.q, n.r))).size !== 27) return 'dup';
+      if (STORY.some((s, i) => TRUNK_K[i] !== wKey(s.q, s.r))) return 'story';
+      return SPECIAL.map(s => s.t + s.need + (s.lock ? 'L' : '')).join() === 'ghost35,dream45,fiend55,army65L,rift75L' ? '' : 'sp';
+    })()`) === ''
   );
   ok(
-    '難度：節點等級 ↔ 內部難度對得起來、每圈 +3、83 封頂',
+    '路：主幹前後相連、特殊節點只接它掛的那個、雙向一致',
     R(`(() => {
-      for (let L = 5; L <= 83; L++) if (mobLv(lvT(L)) !== L) return false;
-      return lvT(83) === 16 && wLv(4, 0) === 21 && wLv(10, 0) === 39 && wLv(25, 0) === 83 && wLv(26, 0) === 83 && wLv(5000, -2000) === 83 && wLv(3, -1) === 18 && wLv(0, 0) === 5;
-    })()`)
+      for (const k in WNODE) for (const [q, r] of wNear(0, ...wXY(k))) if (!wNear(0, q, r).some(p => wKey(...p) === k)) return 'sym ' + k;
+      if (TRUNK.some((n, i) => i && !wNear(0, n.q, n.r).some(p => wKey(...p) === TRUNK_K[i - 1]))) return 'trunk';
+      return SPECIAL.every(s => wNear(0, s.q, s.r).length === 1) ? '' : 'sp';
+    })()`) === ''
   );
   ok(
-    '難度：小數的內部難度數值都正常，整數的結果不變',
+    '能不能進：一開始只有第一個；打倒王開下一個；打過的可以一直重複刷；特殊節點要掛的節點打過＋角色等級；陰兵借道、裂口還鎖著',
     R(`(() => {
-      for (let t = 1; t <= 16; t += 0.05) {
-        const m = tierMob(t), p = poiseT(t), i = tierIlvl(t);
-        if (!(m.hp > 0 && m.dmg > 0 && p > 0 && Number.isInteger(i) && i >= 1 && i <= 16)) return false;
-      }
-      for (let t = 1; t <= 16; t++) if (poiseT(t) !== POISE_T[t - 1] || tierIlvl(t) !== t) return false;
-      return tierMob(1).hp === 0.8 && tierMob(3.5).hp > tierMob(3).hp && tierMob(3.5).hp < tierMob(4).hp;
-    })()`)
+      const s = WS();
+      if (wWhy(s, 0, 0) || !wWhy(s, 0, 1)) return 'start';
+      wClear(s, TRUNK_K[0]);
+      if (wWhy(s, 0, 0) || wWhy(s, 0, 1) || !wWhy(s, -1, 2) || wFront(s) !== 1) return 'next';
+      for (let i = 1; i < 13; i++) wClear(s, TRUNK_K[i]);
+      const g = SPECIAL[0];
+      if (wWhy(s, g.q, g.r) !== '角色等級需達 35') return 'lv ' + wWhy(s, g.q, g.r);
+      s.lv = 35;
+      if (wWhy(s, g.q, g.r)) return 'ghost';
+      s.lv = 99; for (let i = 13; i < 22; i++) wClear(s, TRUNK_K[i]);
+      const a = SPECIAL[3], r = SPECIAL[4];
+      if (wWhy(s, a.q, a.r) !== '還沒開放' || wWhy(s, r.q, r.r) !== '還沒開放') return 'lock';
+      return wList(s).length === 27 && wGoal(s) === TRUNK_K[21] ? '' : 'list';
+    })()`) === ''
   );
   ok(
-    '地圖卡：每節點 3 張、換節點再回來不會變；洗卡費用看等級區間、每洗一次加倍',
-    R(`(() => {
-      const s = WS(5, { frag: 100 }), k = '5,0', c = wCards(s, k).c;
-      wCards(s, '6,0');
-      if (c.length !== 3 || wCards(s, k).c !== c) return false;
-      if (washCost(1, 0) !== 1 || washCost(30, 0) !== 1 || washCost(31, 0) !== 2 || washCost(60, 0) !== 2 || washCost(61, 0) !== 4 || washCost(61, 3) !== 32) return false;
-      /* 5,0 是 Lv24：1、2、4 */
-      if (!wWash(s, k) || s.frag !== 99 || !wWash(s, k) || s.frag !== 97 || !wWash(s, k) || s.frag !== 93) return false;
-      s.frag = 7;
-      return !wWash(s, k) && s.frag === 7 && wCards(s, k).w === 3;
-    })()`)
-  );
-  const okR = (n, v) => ok(n, v === true, String(v));
-  /* 0.3.0 區塊（企劃書 2.1 第 2～6 項） */
-  R(`var RGS = seed => { const m = {}; for (let q = -30; q <= 30; q++) for (let r = -30; r <= 30; r++) { if (wRing(q, r) > 30 || !wNode(seed, q, r)) continue; const g = wRegionOf(seed, q, r); if (g) (m[g] = m[g] || []).push(wKey(q, r)); } return m; };
-    var RGD = (seed) => { const s = WS(seed, { frag: 500 }); s.world.stage = STORY_END + 1; s.world.done = STORY.map(n => wKey(n.q, n.r)); return s; };`);
-  okR(
-    '區塊：每個節點都有區塊（劇情區除外）、一般區塊最多 7 格、陰兵借道最多 19 格、wRgCells 跟節點對得上',
-    R(`(() => {
-      for (const seed of [12345, 7, 99]) {
-        const m = RGS(seed), s = WS(seed);
-        for (const g in m) {
-          if (m[g].length > (g[0] === 'a' ? 19 : 7)) return g + ' 太大';
-          const c = wRgCells(seed, g).map(([q, r]) => wKey(q, r));
-          if (!m[g].every(k => c.includes(k)) ) return g + ' 對不上';
-        }
-        for (const n of STORY) if (wRegionOf(seed, n.q, n.r) !== null) return '劇情區有區塊';
-      }
-      return true;
-    })()`)
-  );
-  okR(
-    '區塊：每個區塊從劇情區走得到（沿著節點的路，不管裂口與血霧）',
-    R(`(() => {
-      for (const seed of [12345, 7]) {
-        const s = RGD(seed), seen = new Set(s.world.done), q = [...s.world.done].filter(k => wRing(...wXY(k)) >= W_R);
-        for (let i = 0; i < q.length; i++) for (const [x, y] of wNear(seed, ...wXY(q[i]))) { const k = wKey(x, y); if (!seen.has(k) && wRing(x, y) <= 30) seen.add(k), q.push(k); }
-        const m = RGS(seed);
-        for (const g in m) if (!m[g].some(k => seen.has(k))) return seed + ' ' + g + ' 走不到';
-      }
-      return true;
-    })()`)
-  );
-  okR(
-    '區塊卡：整個區塊共用一組 3 張、換區塊再回來不會變；開圖免費；洗卡同一區塊每洗一次加倍；重置區塊＝洗卡費用 ×2、節點拿掉走過、卡重抽',
-    R(`(() => {
-      const s = RGD(5), seed = 5, m = RGS(seed), rg = Object.keys(m).find(g => g[0] !== 'a' && m[g].length >= 5);
-      const o = wCards(s, rg);
-      if (o.c.length !== 3 || wCards(s, 'x,y') === o || wCards(s, rg) !== o) return 'cards';
-      if (mapCost(5) !== 0) return 'cost';
-      const lv = wRgLv(rg), w0 = washCost(lv, 0);
-      if (resetCost(rg) !== w0 * 2) return 'reset cost';
-      /* 把區塊的節點全部標走過，再重置 */
-      for (const [q, r] of wRgNodes(s, rg)) s.world.done.push(wKey(q, r));
-      if (!wRgDone(s, rg)) return 'done';
-      s.frag = resetCost(rg) - 1;
-      if (wReset(s, rg)) return 'reset 不該成功';
-      s.frag = resetCost(rg) + 3;
-      if (!wReset(s, rg) || s.frag !== 3 || wRgProg(s, rg).n !== 0 || s.cards[rg]) return 'reset 結果';
-      if (wRgNodes(s, rg).length !== wRgProg(s, rg).total) return 'total';
-      return true;
-    })()`)
-  );
-  okR(
-    '區塊打完：最後一個節點打倒王，這個區塊的卡清掉',
-    R(`(() => {
-      const s = RGD(5), m = RGS(5), rg = Object.keys(m).find(g => g[0] !== 'a' && m[g].length >= 3);
-      wCards(s, rg);
-      const L = wRgNodes(s, rg);
-      L.slice(0, -1).forEach(([q, r]) => s.world.done.push(wKey(q, r)));
-      wClear(s, wKey(...L[0]));
-      if (!s.cards[rg]) return '還沒打完卡就沒了';
-      const last = L[L.length - 1]; wClear(s, wKey(...last));
-      return !s.cards[rg];
-    })()`)
-  );
-  /* AI 巡邏的挑節點（aiPick）：劇情區照順序、沒選區塊就停、區塊裡最近的、打完照 mode、要門票的殿不是節點所以不會被選到、裂口跳過 */
-  R(`var AP = (o = {}) => { const s = RGD(5); S = Object.assign(s, { auto: 1, run: null, stopWhy: null, patrol: { rg: null, mode: 'next', prev: null, got: 0 } }, o); return s; };
-    var RG1 = () => { const m = RGS(5); return Object.keys(m).find(g => g[0] !== 'a' && wRgNodes(WS(5), g).length >= 4 && wRgNodes(AP(), g).some(([q, r]) => !wWhy(AP(), q, r))); };`);
-  okR(
-    'AI 巡邏：劇情區照順序（不選卡）、世界展開後沒選區塊就停',
-    R(`(() => {
-      const s = AP({}); s.world.stage = 3; s.world.done = STORY.slice(0, 3).map(n => wKey(n.q, n.r));
-      const a = aiPick();
-      if (a.k !== wKey(STORY[3].q, STORY[3].r) || a.card) return 'story ' + JSON.stringify(a);
-      AP({});
-      return aiPick().stop === 'pick';
-    })()`)
-  );
-  okR(
-    'AI 巡邏：區塊裡離目前位置最近、走得到的節點先打；用的是區塊共用的那張卡；不選裂口',
-    R(`(() => {
-      const rg = RG1(), s = AP({ patrol: { rg, mode: 'next', prev: null, got: 0 } });
-      wCards(s, rg).sel = 1;
-      const a = aiPick(), at = wXY(s.world.at), L = wRgNodes(s, rg).filter(([q, r]) => !wWhy(s, q, r));
-      const best = Math.min(...L.map(([q, r]) => wRing(q - at[0], r - at[1])));
-      const [q, r] = wXY(a.k);
-      return wRing(q - at[0], r - at[1]) === best && a.card === wCards(s, rg).c[1] && wType(s, q, r) !== 'rift' && wRegionOf(5, q, r) === rg;
-    })()`)
-  );
-  okR(
-    'AI 巡邏：區塊打完後 mode＝stop 停下來、reset 花碎片重置再刷（碎片不夠就停）、next 往外最近的區塊、新卡星級盡量一樣',
-    R(`(() => {
-      const rg = RG1();
-      const full = o => { const s = AP({ patrol: { rg, mode: o, prev: null, got: 0 } }); for (const [q, r] of wRgNodes(s, rg)) s.world.done.push(wKey(q, r)); return s; };
-      let s = full('stop'), a = aiPick();
-      if (a.stop !== 'end' || s.patrol.rg !== null) return 'stop ' + JSON.stringify(a);
-      s = full('reset'); const f0 = s.frag; a = aiPick();
-      if (a.stop || s.frag !== f0 - resetCost(rg) || !a.k) return 'reset ' + JSON.stringify(a);
-      s = full('reset'); s.frag = 0; a = aiPick();
-      if (a.stop !== 'frag') return 'reset frag ' + JSON.stringify(a);
-      s = full('next'); const star = wCards(s, rg).c[wCards(s, rg).sel].star; s.run = { k: wKey(...wRgNodes(s, rg)[0]), card: { star: 3, mods: [] } };
-      a = aiPick();
-      if (a.stop) return 'next ' + JSON.stringify(a);
-      return s.patrol.rg !== rg && s.patrol.prev === rg && wRegionOf(5, ...wXY(a.k)) === s.patrol.rg;
-    })()`)
-  );
-  okR(
-    'AI 停機：倉庫與兩頁臨時都滿（放不下 2×4）才算滿；死了同一節點同一張卡再開',
-    R(`(() => {
-      const s = AP({ temp: { w: 12, h: 12, items: [] }, temp2: { w: 12, h: 12, items: [] } });
-      if (aiTempFull()) return 'empty full';
-      const it = id => ({ id, b: BASES.find(b => b.k === 'chest').id, x: 0, y: 0, r: 0 });
-      const fill = g => { g.items = []; for (let y = 0; y < g.h; y += 2) for (let x = 0; x < g.w; x += 2) g.items.push({ ...mkItem('c_leather', 1, 0), x, y }); };
-      fill(S.temp); if (aiTempFull()) return 'temp1 full only';
-      fill(S.temp2); if (!aiTempFull()) return 'both full';
-      AP();
-      const k = wKey(...aiRgReach(RG1(), wXY(S.world.at))[0]), card = { star: 2, mods: ['hp1'] };
-      AP({ run: { k, card } });
-      const a = aiPick();
-      return a.k === k && a.card === card;
-    })()`)
+    '往下推、退回：wNext 只走主幹、最後一個沒有下一個；wPrev 主幹往前一個、特殊節點退回它掛的那個',
+    R(`wNext(TRUNK_K[0]) === TRUNK_K[1] && wNext(TRUNK_K[21]) === null && wNext(wKey(SPECIAL[0].q, SPECIAL[0].r)) === null &&
+      wPrev(TRUNK_K[5]) === TRUNK_K[4] && wPrev(TRUNK_K[0]) === null && wPrev(wKey(SPECIAL[1].q, SPECIAL[1].r)) === TRUNK_K[SPECIAL[1].at]`)
   );
   ok(
-    '血霧：只有血霧節點累積；滿了每進一張扣 25%、期間不累積，扣完回到累積',
+    '星級：劇情區固定卡；其他照選的星級每輪重抽，詞數在那個星級的範圍裡；沒選是 1★',
     R(`(() => {
-      const s = WS(5), blood = [];
-      for (let q = -20; q <= 20; q++) for (let r = -20; r <= 20; r++) if (wNode(5, q, r) && wType(s, q, r) === 'blood') blood.push(wKey(q, r));
-      const plain = (() => { for (let q = 5; q < 40; q++) if (wNode(5, q, 0) && wType(s, q, 0) === 'plain') return wKey(q, 0); })();
-      wClear(s, plain);
+      const s = WS(), k = TRUNK_K[12];
+      if (wCard(s, TRUNK_K[3]) !== STORY[3].card || wStar(s, k) !== 1) return 'story';
+      for (let st = 1; st <= 5; st++) {
+        s.world.star[k] = st;
+        for (let i = 0; i < 200; i++) { const c = wCard(s, k), [lo, hi] = STARS[st].n; if (c.star !== st || c.mods.length < lo || c.mods.length > hi) return 'star ' + st; }
+      }
+      return '';
+    })()`) === ''
+  );
+  ok(
+    '血霧：血霧山道累積 20%；滿了每進一張扣 25%、期間不累積，扣完回到累積',
+    R(`(() => {
+      const s = WS();
+      wClear(s, TRUNK_K[3]);
       if (s.hunt.v !== 0) return 'plain';
-      blood.slice(0, 4).forEach(k => wClear(s, k));
-      if (s.hunt.v !== 80 || s.hunt.full) return 'gain';
-      s.cards = { x: 1 };
-      wClear(s, blood[4]);
-      if (s.hunt.v !== 100 || !s.hunt.full || s.cards.x) return 'full';
-      wClear(s, blood[5]);
-      if (s.hunt.v !== 100) return 'no gain';
+      for (let i = 0; i < 5; i++) wClear(s, TRUNK_K[7]);
+      if (s.hunt.v !== 100 || !s.hunt.full) return 'full';
+      wClear(s, TRUNK_K[7]);
       huntEnter(s); huntEnter(s); huntEnter(s);
       if (s.hunt.v !== 25 || !s.hunt.full) return 'enter';
       huntEnter(s);
@@ -8493,58 +8334,13 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '血霧：5★ 權重 ×3',
-    R(`(() => { const N = 60000, n = w => { let c = 0; for (let i = 0; i < N; i++) if (rollStar(w) === 5) c++; return c / N; };
-      const a = n(1), b = n(3); return Math.abs(a - 0.05) < 0.006 && Math.abs(b - 15 / 110) < 0.01; })()`)
-  );
-  ok(
-    '裂口：血霧滿才能進、一次血霧只開一道、打完點亮神像',
+    '裂口：生肖王照順序（打過的跳過），打完點亮神像、這次血霧用掉',
     R(`(() => {
-      const seed = 9, s = WS(seed);
-      s.world.stage = STORY.length;
-      s.world.done = STORY.map(n => wKey(n.q, n.r));
-      const ks = Object.keys(wRifts(seed));
-      if (ks.length !== 12) return 'count';
-      const [a, b] = ks.map(wXY);
-      /* 把路走到裂口旁邊 */
-      for (const [q, r] of [a, b]) { const p = wNear(seed, q, r)[0]; s.world.done.push(wKey(...p)); }
-      if (wWhy(s, ...a) !== '血霧滿了才進得去') return 'lock';
+      const s = WS(), r = SPECIAL[4], k = wKey(r.q, r.r);
+      if (wZod(s) !== ZODIAC[0]) return 'first';
       s.hunt = { v: 100, full: 1, used: 0 };
-      if (wWhy(s, ...a) !== '') return 'open';
-      wClear(s, wKey(...a));
-      if (s.idols.length !== 1 || s.idols[0] !== wZod(s, ...a).z) return 'idol';
-      if (wWhy(s, ...b) !== '這次血霧已經開過一道裂口') return 'once';
-      s.hunt.v = 25; huntEnter(s);
-      s.hunt = { v: 100, full: 1, used: s.hunt.used };
-      return wWhy(s, ...b) === '' ? '' : 'next';
-    })()`) === ''
-  );
-  ok(
-    '裂口：十二隻打完前地圖上只有 12 道，打完後隨機出現約 3%',
-    R(`(() => {
-      const seed = 31, s = WS(seed);
-      let a = 0, b = 0, n = 0;
-      const scan = f => { for (let q = -40; q <= 40; q++) for (let r = -40; r <= 40; r++) if (wRing(q, r) > W_ROAD && wRing(q, r) <= 40 && wNode(seed, q, r) && wType(s, q, r) === 'rift') f(q, r); };
-      scan(() => a++);
-      s.idols = ZODIAC.map(z => z.z);
-      for (let q = -40; q <= 40; q++) for (let r = -40; r <= 40; r++) if (wRing(q, r) > W_ROAD && wRing(q, r) <= 40 && wNode(seed, q, r)) n++;
-      let okz = true;
-      scan((q, r) => { b++; if (!ZODIAC.includes(wZod(s, q, r))) okz = false; });
-      return a === 12 && (b - 12) / n > 0.02 && (b - 12) / n < 0.04 && okz;
-    })()`)
-  );
-  ok(
-    '世界：劇情區照順序、走完才開世界區；走過的不能再打；只有接到路的才進得去',
-    R(`(() => {
-      const seed = 3, s = WS(seed);
-      if (!wCan(s, 0, 0) || wCan(s, 0, 1) || wCan(s, 4, 0)) return 'start';
-      for (let i = 0; i < 8; i++) wClear(s, wKey(STORY[i].q, STORY[i].r));
-      if (wOpen(s) || wCan(s, 4, -1)) return 'lock';
-      wClear(s, '3,-1');
-      if (!wOpen(s) || !wCan(s, 4, -1) || wCan(s, 3, -1) || wCan(s, 20, 0)) return 'open';
-      const L = wList(s);
-      if (!L.includes('4,-1') || !L.includes('0,0') || !Object.keys(wRifts(seed)).every(k => L.includes(k))) return 'list';
-      return wWhy(s, 3, -1) === '已經走過' && s.world.at === '3,-1' ? '' : 'done';
+      wClear(s, k);
+      return s.idols[0] === ZODIAC[0].z && wZod(s) === ZODIAC[1] && s.hunt.used === 1 ? '' : 'idol';
     })()`) === ''
   );
   ok(
@@ -9588,25 +9384,20 @@ const ASC_COMBOS = `const combos = k => {
         qty: 0,
         zod: i % 7 === 0
       })) {
-        if (!it.uid) bad.push('地圖掉的裝備沒有 uid');
-        const m0 = JSON.stringify(E.MAT()),
-          a0 = JSON.stringify(it.a),
-          q0 = it.q,
-          errs = [
-            E.forgeDo(it, 'tran'),
-            E.forgeDo(it, 'exalt'),
-            E.temperDo(it),
-            E.holyDo(it),
-            E.corruptDo(it).why,
-            E.qualDo(it)
-          ];
-        if (!errs.every(e => /還沒鑑定/.test(e))) bad.push('未鑑定還能做裝 ' + errs.join('|'));
-        if (JSON.stringify(E.MAT()) !== m0 || JSON.stringify(it.a) !== a0 || it.q !== q0 || it.cor || it.holy)
-          bad.push('未鑑定的被動到了');
+        if ('uid' in it) bad.push('地圖掉的裝備有 uid');
+        const errs = [
+          E.forgeDo(it, 'tran'),
+          E.forgeDo(it, 'exalt'),
+          E.temperDo(it),
+          E.holyDo(it),
+          E.corruptDo(it).why,
+          E.qualDo(it)
+        ];
+        if (errs.some(e => /還沒鑑定/.test(e || ''))) bad.push('還在擋未鑑定 ' + errs.join('|'));
       }
     }
     ok(
-      '未鑑定（地圖掉的一律 uid，含生肖王保底追憶裝）：填、淬鍊、聖化、腐化、品質都擋下、不扣通貨、裝備不動',
+      '0.4.0 沒有鑑定：地圖掉的裝備（含生肖王保底追憶裝）沒有 uid，填、淬鍊、聖化、腐化、品質都不會說「還沒鑑定」',
       !bad.length,
       [...new Set(bad)].slice(0, 3).join('、')
     );
@@ -9623,20 +9414,14 @@ const ASC_COMBOS = `const combos = k => {
       f = mk(2, { frac: 'y', mem: { k: 'm_lv' } }),
       eq = mk(2),
       gem = E.mkGem('fireball', 1);
-    vm.runInContext(
-      `S.inv = { w: 12, h: 5, items: [] }; S.stash = { w: 12, h: 12, items: [] }; S.temp = { w: 12, h: 12, items: [] }; S.eq = {};`,
-      ctx
-    );
-    const put = (g, ...L) => vm.runInContext(`S.${g}.items`, ctx).push(...L);
-    put('inv', f, a, gem);
-    put('stash', c, e);
-    put('temp', d, b);
+    vm.runInContext(`S.inv = { items: [] }; S.eq = {};`, ctx);
+    vm.runInContext(`S.inv.items`, ctx).push(f, a, gem, c, e, d, b);
     vm.runInContext('S.eq.chest = null', ctx);
     const n0 = E3.unidN(vm.runInContext('S', ctx)),
       L = E3.identifyAll(vm.runInContext('S', ctx));
     const sc = L.map(E3.unidScore);
     ok(
-      '撿骨師全部鑑定：背包、倉庫、臨時倉庫 6 件一次開完（寶石不算）、白 → 藍 → 黃 → 追憶 → ★ 越好越晚翻、鑑定完沒有 uid、再按什麼都沒有',
+      '全部鑑定（只剩舊存檔與翻牌演出用）：倉庫 6 件一次開完（寶石不算）、白 → 藍 → 黃 → 追憶 → ★ 越好越晚翻、鑑定完沒有 uid、再按什麼都沒有',
       n0 === 6 &&
         L.length === 6 &&
         sc.every((v, i) => !i || sc[i - 1] <= v) &&
@@ -9693,7 +9478,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, REGION, wRegionC, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, wFiend, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, wArmyC, wArmyCells, wArmy, wArmyGen, armyRes, armyDrop, armyGear, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyGear, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
     ctx
   );
   const mul = seed => () => {
@@ -9846,41 +9631,16 @@ const ASC_COMBOS = `const combos = k => {
       bad.join('、')
     );
   }
-  /* 5. 機制區塊（0.2.79）：7 格大格不重疊鋪滿；中心在第 10 圈以內的沒有，以外約 15%（鬼門關、心魔幻境各半）；一般地圖抽不到酆都、心魔的王；十殿閻羅是閻羅的強化版 */
+  /* 5. 機制節點（0.4.0 固定節點）：鬼門關、心魔幻境、凶地各一個；一般地圖抽不到酆都、心魔的王；十殿閻羅是閻羅的強化版 */
   {
     const bad = [],
-      s = { world: { ...F.newWorld(), seed: 12345 }, idols: [], hunt: {} };
-    let n = 0,
-      g = 0,
-      d = 0,
-      fi = 0,
-      inner = 0;
-    const fc = {};
-    for (let q = -30; q <= 30; q++)
-      for (let r = -30; r <= 30; r++) {
-        const [x, y] = F.wRegionC(q, r);
-        if (F.wRing(q - x, r - y) > 1) bad.push('大格沒鋪滿');
-        const R = F.wRing(q, r);
-        if (R > 30 || R < 5) continue;
-        const t = F.wType(s, q, r);
-        if (F.wRing(x, y) < F.REGION.ring && F.REGION.types.includes(t)) inner++;
-        if (R >= F.REGION.ring + 2 && R <= 30)
-          n++, (g += t === 'ghost' ? 1 : 0), (d += t === 'dream' ? 1 : 0), (fi += t === 'fiend' ? 1 : 0);
-        if (t === 'fiend') {
-          const w = F.wFiend(s.world.seed, q, r);
-          if (w.c && !F.xiBoss(w.k)) bad.push('凶地中心沒有王');
-          (fc[x + ',' + y] = fc[x + ',' + y] || new Set()).add(w.k);
-        }
-      }
-    const W = F.REGION.w;
-    if (
-      inner ||
-      Math.abs(g / n - W.ghost) > 0.025 ||
-      Math.abs(d / n - W.dream) > 0.025 ||
-      Math.abs(fi / n - W.fiend) > 0.025
-    )
-      bad.push(`區塊 ${g}/${d}/${fi}/${n} 內圈 ${inner}`);
-    if (Object.values(fc).some(v => v.size !== 1)) bad.push('一塊凶地不只一隻凶');
+      s = { world: F.newWorld(), idols: [], hunt: {} },
+      ts = ['ghost', 'dream', 'fiend'];
+    for (const t of ts)
+      if (vm.runInContext(`SPECIAL.filter(n => n.t === '${t}' && wType({}, n.q, n.r) === '${t}').length`, ctx) !== 1)
+        bad.push('少了 ' + t);
+    if (ts.some(t => !F.wName(s, ...vm.runInContext(`(n => [n.q, n.r])(SPECIAL.find(n => n.t === '${t}'))`, ctx))))
+      bad.push('沒有名字');
     for (let i = 0; i < 3000; i++) {
       const b = F.bossPick(null);
       if (b.fd || b.sin || b.xi) bad.push('一般地圖抽到酆都、心魔或四凶的王');
@@ -9891,7 +9651,7 @@ const ASC_COMBOS = `const combos = k => {
       bad.push('十殿閻羅');
     if (F.FENG.elites.some(k => !F.fdBoss(k))) bad.push('少了菁英王');
     ok(
-      `機制區塊：7 格大格鋪滿、中心在第 ${F.REGION.ring} 圈以內沒有，以外鬼門關 ${((g / n) * 100).toFixed(1)}%、心魔幻境 ${((d / n) * 100).toFixed(1)}%、凶地 ${((fi / n) * 100).toFixed(1)}%（一塊一隻凶、中心有王）；一般地圖抽不到這些王；十殿閻羅＝閻羅生命 ×3、傷害 ×1.5、多 3 招`,
+      '機制節點：鬼門關、心魔幻境、凶地各一個；一般地圖抽不到這些王；十殿閻羅＝閻羅生命 ×3、傷害 ×1.5、多 3 招',
       !bad.length,
       [...new Set(bad)].slice(0, 3).join('、')
     );
@@ -10000,86 +9760,11 @@ const ASC_COMBOS = `const combos = k => {
       [...new Set(bad)].slice(0, 4).join('、')
     );
   });
-  /* 6c. 陰兵借道（0.2.81）：19 格大六角鋪滿、第 12 圈以外約 4%、一塊 15～19 個節點、三位將領各一格不相鄰；
-     打完一張怨恨值 +1（最多 16）；將印、兵符（第三位、怨恨值 ≥ 12、一塊一次）；追憶裝保底、舊的雙追憶裝兩條都生效；門票 */
+  /* 6c. 陰兵借道（0.2.81；地圖上的節點 0.4.2 才開）：將印、兵符（第三位、怨恨值 ≥ 12、一塊一次）；追憶裝保底、舊的雙追憶裝兩條都生效；門票 */
   seeded(7806, () => {
     const bad = [],
       S = () => vm.runInContext('S', ctx),
       s = { world: { ...F.newWorld(), seed: 777 }, idols: [], hunt: {}, army: {}, lv: 60, maxT: 1 };
-    const C = new Map();
-    for (let q = -34; q <= 34; q++)
-      for (let r = -34; r <= 34; r++) {
-        const [x, y] = F.wArmyC(q, r);
-        if (F.wRing(q - x, r - y) > 2) bad.push('大六角沒鋪滿');
-        const R = F.wRing(x, y);
-        if (R > 30 || !C.has(x + ',' + y)) C.set(x + ',' + y, { R, on: F.wArmy(s.world.seed, q, r) });
-      }
-    if (F.wArmyCells(0, 0).length !== 19) bad.push('不是 19 格');
-    let n = 0,
-      a = 0;
-    const regs = [];
-    for (const [k, v] of C) {
-      if (v.R < F.ARMY.ring) {
-        if (v.on) bad.push('第 12 圈以內有陰兵');
-        continue;
-      }
-      if (v.R > 30) continue;
-      n++;
-      if (v.on) a++, regs.push(k);
-    }
-    if (Math.abs(a / n - F.ARMY.w) > 0.025) bad.push(`區塊比例 ${a}/${n}`);
-    /* 0.2.83：相鄰的兩塊不會都是陰兵借道；7 格的機制區塊碰到陰兵借道就整塊取消 */
-    for (const k of regs) {
-      const [x, y] = k.split(',').map(Number);
-      for (const [p, q] of [
-        [3, 2],
-        [-2, 5],
-        [-5, 3],
-        [-3, -2],
-        [2, -5],
-        [5, -3]
-      ])
-        if (F.wArmy(s.world.seed, x + p, y + q)) bad.push('兩塊陰兵借道相鄰');
-    }
-    for (let q = -34; q <= 34; q++)
-      for (let r = -34; r <= 34; r++) {
-        if (!F.REGION.types.includes(F.wType(s, q, r))) continue;
-        const [x, y] = F.wRegionC(q, r);
-        for (const [p, w] of [
-          [0, 0],
-          [1, 0],
-          [0, 1],
-          [-1, 1],
-          [-1, 0],
-          [0, -1],
-          [1, -1]
-        ])
-          if (F.wArmy(s.world.seed, x + p, y + w)) bad.push('7 格區塊被陰兵借道切掉');
-      }
-    for (const ck of regs) {
-      const [x, y] = ck.split(',').map(Number),
-        cells = F.wArmyCells(x, y),
-        nodes = cells.filter(([q, r]) => F.wNode(s.world.seed, q, r)),
-        G3 = F.wArmyGen(s.world.seed, ck),
-        ks = Object.keys(G3);
-      if (nodes.length < 15) bad.push('節點太少 ' + nodes.length);
-      if (ks.length !== 3 || new Set(Object.values(G3)).size !== 3) bad.push('將領不是三位');
-      for (const i of ks)
-        for (const j of ks) {
-          const [p, q] = i.split(',').map(Number),
-            [u, v] = j.split(',').map(Number);
-          if (i !== j && F.wRing(p - u, q - v) < 2) bad.push('將領相鄰');
-        }
-      for (const [q, r] of cells)
-        if (F.wNode(s.world.seed, q, r) && !['army', 'rift'].includes(F.wType(s, q, r))) bad.push('區塊裡有別的類型');
-      if (!F.wName(s, ...ks[0].split(',').map(Number)).includes(F.armyBoss(G3[ks[0]]).n)) bad.push('節點名沒有將領');
-    }
-    /* 怨恨值 */
-    const ck = regs[0],
-      [cx, cy] = ck.split(',').map(Number),
-      L = F.wArmyCells(cx, cy).filter(([q, r]) => F.wNode(s.world.seed, q, r));
-    for (const [q, r] of L) F.wClear(s, F.wKey(q, r));
-    if (F.armyRes(s, ck) !== Math.min(F.ARMY.max, L.length)) bad.push('怨恨值 ' + F.armyRes(s, ck));
     /* 將印與兵符 */
     setS();
     const T = S();
@@ -10101,7 +9786,7 @@ const ASC_COMBOS = `const combos = k => {
     const o = { ilvl: 70 };
     for (let i = 0; i < 40; i++) {
       const g = F.armyGear('xing', 0, o);
-      if (g.length !== 1 || !g[0].mem || !g[0].uid) bad.push('將領的追憶裝');
+      if (g.length !== 1 || !g[0].mem || 'uid' in g[0]) bad.push('將領的追憶裝');
       if (F.armyGear('chiyou', 0, o).length || F.armyGear('zhuolu', 0, o).length) bad.push('蚩尤還掉追憶裝');
     }
     let ex = 0;
@@ -10140,7 +9825,7 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 3000; i++) if (F.bossPick(null).army) bad.push('一般地圖抽到陰兵的王');
     vm.runInContext('ST = null', ctx);
     ok(
-      `陰兵借道：19 格大六角鋪滿、不相鄰、7 格區塊碰到就整塊取消、第 ${F.ARMY.ring} 圈以外 ${((a / n) * 100).toFixed(1)}%（${regs.length} 塊，每塊 15 個節點以上、三位將領不相鄰）；怨恨值；將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、舊的雙追憶裝兩條都生效；蚩尤掉珠寶；門票；涿鹿兵主`,
+      `陰兵借道：將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、舊的雙追憶裝兩條都生效；蚩尤掉珠寶；門票；涿鹿兵主`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
