@@ -132,6 +132,7 @@ async function flow(b) {
   await dead();
   await dead();
   const K = await p.evaluate(() => TRUNK_K);
+  await until(p, () => /再推一次/.test($('run').textContent), 3000);
   const rb = await p.evaluate(() => ({
     node: G.node,
     hold: S.world.hold,
@@ -172,6 +173,57 @@ async function flow(b) {
     return [a, G.node === wKey(g.q, g.r), !!(G.fdB && FENG.elites.includes(G.fdB.fd))];
   });
   ok('鬼門關：角色 Lv35 才開、王是四隻菁英王之一', sp[0] === '角色等級需達 35' && sp[1] && sp[2], JSON.stringify(sp));
+  /* 0.4.2 血霧與裂口：每打完一輪 +5%＋星級%；有血霧之印才進得去裂口，打倒生肖王扣 1 張、點亮神像、回到原本的節點 */
+  const hv = await p.evaluate(() => {
+    S.story.crow = 1;
+    S.hunt.v = 0;
+    S.world.done = TRUNK_K.slice(0, 18);
+    S.lv = 70;
+    S.world.star[TRUNK_K[12]] = 3;
+    runNode(TRUNK_K[12]);
+    return 0;
+  });
+  await p.evaluate(CLEAR);
+  ok('血霧：打完一輪 3★ +8%', await until(p, () => S.hunt.v === 8, 6000), String(await p.evaluate(() => S.hunt.v)));
+  const rift = await p.evaluate(() => {
+    const r = SPECIAL.find(n => n.t === 'rift'),
+      k = wKey(r.q, r.r),
+      no = wWhy(S, r.q, r.r);
+    S.frags.mist = 1;
+    runNode(k);
+    return { k, no, zod: G.zod && G.zod.z, lv: mobLv(G.mapT) };
+  });
+  ok(
+    '裂口：沒有血霧之印進不去、有就進去打生肖王',
+    /血霧之印/.test(rift.no) && rift.zod === 'rat',
+    JSON.stringify(rift)
+  );
+  await p.evaluate(CLEAR);
+  await p.evaluate(() => (G.mobs = []));
+  ok(
+    '裂口：打倒生肖王扣 1 張、點亮神像、回到原本的節點',
+    await until(p, () => G.node === TRUNK_K[12] && S.frags.mist === 0 && S.idols.includes('rat'), 6000),
+    JSON.stringify(await p.evaluate(() => [G.node, S.frags.mist, S.idols]))
+  );
+  /* 0.4.2 陰兵借道：每打完一輪怨恨值 +1、王照刑天 → 風伯 → 雨師輪流；死了歸零 */
+  const ar = await p.evaluate(() => {
+    const a = SPECIAL.find(n => n.t === 'army'),
+      k = wKey(a.q, a.r);
+    runNode(k);
+    return { k, b: G.fdB && G.fdB.army, res: G.army && G.army.res };
+  });
+  /* Lv65 的怪：清完把剩下的（王叫出來的）也拿掉，免得站著不動的角色在下一輪之前被打死 */
+  await p.evaluate(CLEAR);
+  await p.evaluate(() => (G.mobs = []));
+  ok(
+    '陰兵借道：第 1 輪刑天，打完怨恨值 1、第 2 輪換風伯',
+    ar.b === 'xing' &&
+      ar.res === 0 &&
+      (await until(p, () => G.round === 2 && G.army.res === 1 && G.fdB.army === 'feng', 6000)),
+    JSON.stringify([ar, await p.evaluate(() => [G.round, G.army && G.army.res, G.fdB && G.fdB.army])])
+  );
+  await p.evaluate(() => (die(), deadAgain()));
+  ok('陰兵借道：死了怨恨值歸零', await p.evaluate(() => G.army.res === 0 && armyRes(S, G.node) === 0));
   /* 回藏身處：刷圖暫停，HUD 有「繼續刷」 */
   await p.evaluate(() => act('home'));
   ok(

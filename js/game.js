@@ -183,7 +183,13 @@ function runNode(k, keep) {
   const [q, r] = wXY(k),
     why = wWhy(S, q, r);
   if (why) return hudWarn(why), false;
-  if (S.world.cur !== k) S.world.dn = 0;
+  if (S.world.cur !== k) {
+    S.world.dn = 0;
+    /* 陰兵借道的怨恨值：換節點就歸零（0.4.2）；進裂口記住原本在刷的節點，打完回去 */
+    S.army = {};
+    if (wType(S, q, r) === 'rift' && S.world.cur && wType(S, ...wXY(S.world.cur)) !== 'rift')
+      S.world.back = S.world.cur;
+  }
   S.stopWhy = null;
   S.world.cur = k;
   S.node = k;
@@ -197,8 +203,10 @@ function runNode(k, keep) {
 function roundEnd() {
   for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full && dropFlt(d).act !== 'hide')) pickup(d);
   if (G.arena) return S.world.cur ? runNode(S.world.cur) : enterHideout();
-  const k = G.node,
-    nx = wNext(k),
+  const k = G.node;
+  /* 裂口打完（0.4.2）：回到進裂口之前在刷的節點 */
+  if (G.zod) return runNode(wBack(k));
+  const nx = wNext(k),
     go = S.push !== 'stay' && !S.world.hold && nx && !wWhy(S, ...wXY(nx));
   if (go) hudWarn(`往下推：${wName(S, ...wXY(nx))}`);
   runNode(go ? nx : k, !go);
@@ -281,6 +289,9 @@ function offShow(o) {
     more: o.items.length > best.length ? `其餘 ${o.items.length - best.length} 件已經放進倉庫` : ''
   });
 }
+/* 退回去哪：裂口回到進來之前在刷的節點，其他照 wPrev */
+const wBack = k =>
+  wType(S, ...wXY(k)) === 'rift' && S.world.back && !wWhy(S, ...wXY(S.world.back)) ? S.world.back : wPrev(k);
 /* 死了（0.4.0）：原地復活、這一輪重來；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（等玩家按「再推一次」） */
 const DEAD_MAX = 3;
 function deadAgain() {
@@ -288,8 +299,10 @@ function deadAgain() {
   if (!k) return enterHideout();
   S.world.dn = (S.world.dn || 0) + 1;
   roundRec({ d: G.t, die: 1 });
-  if (S.world.dn < DEAD_MAX || !wPrev(k)) return runNode(k, true);
-  const pv = wPrev(k);
+  /* 陰兵借道（0.4.2）：死了怨恨值歸零 */
+  if (S.army) delete S.army[k];
+  if (S.world.dn < DEAD_MAX || !wBack(k)) return runNode(k, true);
+  const pv = wBack(k);
   S.world.hold = 1;
   S.world.dn = 0;
   S.world.note = `在${wName(S, ...wXY(k))}連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}`;
@@ -395,7 +408,6 @@ function enterMap(t, keep) {
     G.nodeN = ARENA[G.arena];
     if (G.arena === 'sanshi' || G.arena === 'sanpeng') G.sinDeb = S.sinDeb || [];
   }
-  G.hunt = false;
   if (!G.arena) G.nodeN = '';
   if (G.node) {
     const [q, r] = wXY(G.node);
@@ -407,10 +419,15 @@ function enterMap(t, keep) {
     if (wType(S, q, r) === 'dream') G.dream = 1;
     /* 凶地（0.2.80；0.4.0 起每一輪隨機一隻凶）：整張圖帶那隻凶的專屬地圖詞，王就是牠 */
     if (wType(S, q, r) === 'fiend') G.fdB = xiBoss((G.fiend = pick(XIONG)));
-    /* 陰兵借道：0.4.2 改成連刷層數，先鎖著（world.js 的 SPECIAL） */
-    G.hunt = !!S.hunt.full; /* 血霧期：進這張圖時血霧是滿的（最後一張扣光也算） */
-    huntEnter(S);
+    /* 陰兵借道（0.4.2）：怨恨值＝在這裡連續打完幾輪（最多 ARMY.max），王照刑天 → 風伯 → 雨師輪流 */
+    if (wType(S, q, r) === 'army') {
+      const A = armyOf(S, G.node);
+      G.army = { c: G.node, res: A.n };
+      G.fdB = armyBoss(ARMY.gen[(A.c || 0) % ARMY.gen.length]);
+    }
   }
+  /* 轉化石只在裂口掉（0.4.2：拿掉血霧期） */
+  G.hunt = !!G.zod;
   /* 命運輪盤（0.2.74 賭徒）：點了輪盤才抽（照這張卡的種子，地圖卡上已經看過）；籌碼在 stats()（G.rou）與地圖詞（G.mm）裡生效 */
   G.rou = ascHas(S, 'roulette') ? rouletteOf(S.card, G.node) : null;
   G.mm = mapMods(S.card, G.zod && G.zod.cor, G.rou);
@@ -1001,6 +1018,13 @@ function bossDown(m) {
   /* 打倒王才算走過：路開通；連死歸零；約 2 秒後在同一個場地放下一輪（0.4.0 連續刷，roundEnd） */
   const ty = G.node ? wClear(S, G.node) : '';
   S.world.dn = 0;
+  /* 血霧（0.4.2）：裂口以外每打完一輪 +5%＋星級%，滿了換血霧之印 */
+  if (G.node && ty !== 'rift' && huntGain(S, G.star)) rareShow('血霧滿了：拿到血霧之印', 'cur', 'orb');
+  if (G.army) {
+    const A = armyOf(S, G.army.c);
+    A.n = Math.min(ARMY.max, A.n + 1);
+    A.c = (A.c || 0) + 1;
+  }
   if (G.node) roundRec({ d: G.t, ...G.rs });
   if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
   if (m.D.fd && FENG.elites.includes(m.D.fd) && fdHun(S) >= FENG.hun)

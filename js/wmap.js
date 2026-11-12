@@ -404,7 +404,7 @@ function wmNodes() {
       const cells = [[n.q, n.r], ...WM_DIR.map(([a, b]) => [n.q + a, n.r + b])];
       return {
         big: false,
-        res: 0,
+        res: n.t === 'army' ? armyRes(s, n.k) : 0,
         t: n.t,
         q: n.q,
         r: n.r,
@@ -858,7 +858,7 @@ function wmFx(now) {
     /* 名字：區塊中心上方，字不小於 12px */
     const fs = Math.round(Math.max(12, Math.min(20, 16 * z + 4))),
       ty = gy - W_SZ * Math.sqrt(3) * (g.big ? 2.6 : 1.6) * z,
-      nm = WTYPE[g.t].n + (g.big ? ` · 怨恨 ${g.res}` : '');
+      nm = WTYPE[g.t].n + (g.res ? ` · 怨恨 ${g.res}` : '');
     c.font = `900 ${fs}px "Noto Serif TC", serif`;
     c.textAlign = 'center';
     c.textBaseline = 'middle';
@@ -1292,7 +1292,7 @@ function wmStamp() {
   $('wmr').innerHTML =
     `<b>天空的裂縫</b>鎖定 · 主線 ${zn >= ZODIAC.length ? 1 : 0}／5${on ? ` · 生肖 ${zn}／${ZODIAC.length}` : ''}${
       on
-        ? `<span class="wm-hunt ${h.full ? 'full' : ''}" role="progressbar" aria-label="血霧" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${h.v}"><i style="width:${h.v}%"></i></span>`
+        ? `<span class="wm-hunt ${S.frags.mist ? 'full' : ''}" role="progressbar" aria-label="血霧" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${h.v}"><i style="width:${h.v}%"></i></span>${S.frags.mist ? ` 血霧之印 ${S.frags.mist}` : ''}`
         : ''
     }`;
   wmPanel();
@@ -1334,7 +1334,16 @@ function wmNodeHTML() {
     zod = t === 'rift' ? wZod(S, q, r) : null,
     head = `<h2>${esc(wName(S, q, r))}</h2><p class="wm-kind">${i != null ? '主線' : WTYPE[t].n} · 怪物 Lv ${lv}${pen ? ` · <span class="c-warn">元素抗性 −${pen}%</span>` : ''}</p><p>${esc(i != null ? STORY[i].d : WTYPE[t].d)}</p>`,
     cor = zod ? `<p class="wm-note">墮落詞：<span class="c-warn">${termify(MAPMOD[zod.cor].t)}</span></p>` : '';
-  const fi = t === 'fiend' ? '<p class="wm-note">每一輪隨機一隻凶，整張圖帶牠的專屬地圖詞</p>' : '',
+  const P = ARMY.per,
+    an = armyRes(S, k),
+    fi =
+      t === 'fiend'
+        ? '<p class="wm-note">每一輪隨機一隻凶，整張圖帶牠的專屬地圖詞</p>'
+        : t === 'army'
+          ? `<p class="wm-note">怨恨值 <b>${an}</b>／${ARMY.max}：怪物生命與傷害 <span class="c-warn">+${P.mhp * an}%</span>、數量與稀有度 <span class="c-good">+${P.qty * an}%</span>；在這裡每打完一輪 +1，死了或換節點歸零</p><p class="wm-note">下一位將領：<b>${esc(armyBoss(ARMY.gen[((S.army || {})[k] || {}).c % ARMY.gen.length || 0]).n)}</b>（掉自己的將印；同一段連刷三位都打過、打第三位時怨恨值 ≥ ${ARMY.fu} 掉兵符）</p>`
+          : t === 'rift'
+            ? `<p class="wm-note">血霧之印 <b>${S.frags.mist || 0}</b> 張（血霧 ${S.hunt.v}%）· 這次的王：<b>${esc(wZod(S).n)}</b>；打倒才扣 1 張</p>`
+            : '',
     cur = S.world.cur === k ? '<p class="wm-note c-gold">正在這裡刷</p>' : '',
     dn = done ? '<p class="wm-note">打倒過這裡的王：可以一直重複刷</p>' : '';
   return head + cor + fi + cur + dn + wmCardHTML(k, why);
@@ -1350,7 +1359,7 @@ function wmQuestHTML() {
       <li><b>酆都</b><span>${fdHun(S) || S.frags.book ? `勾魂令 ${fdHun(S)}／${FENG.hun}${S.frags.book ? ` · 生死簿 ${S.frags.book}` : ''}` : `鬼門關：角色 Lv ${spNeed('ghost')} 開`}</span></li>
       <li><b>心魔劫</b><span>${SIN.emo.some(k => S.frags[k]) ? `碎片 ${SIN.emo.filter(k => S.frags[k]).length}／7 種` : `心魔幻境：角色 Lv ${spNeed('dream')} 開`}</span></li>
       <li><b>四凶</b><span>${XIONG.some(k => S.frags[k]) ? `四凶之鱗 ${XIONG.filter(k => S.frags[k]).length}／4 種` : `凶地：角色 Lv ${spNeed('fiend')} 開`}</span></li>
-      <li><b>陰兵借道</b><span>${ARMY.gen.some(k => S.frags[k]) || S.frags.fu ? `將印 ${ARMY.gen.filter(k => S.frags[k]).length}／3 種${S.frags.fu ? ` · 兵符 ${S.frags.fu}` : ''}` : '陰兵借道：0.4.2 開放'}</span></li>
+      <li><b>陰兵借道</b><span>${ARMY.gen.some(k => S.frags[k]) || S.frags.fu ? `將印 ${ARMY.gen.filter(k => S.frags[k]).length}／3 種${S.frags.fu ? ` · 兵符 ${S.frags.fu}` : ''}` : `陰兵借道：角色 Lv ${spNeed('army')} 開`}</span></li>
     </ul>
     ${WM.goal ? `<button class="btn" data-wm="goal">看下一個目標</button>` : ''}`;
 }

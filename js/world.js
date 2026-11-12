@@ -96,13 +96,14 @@ const TRUNK = [
     return { q, r, x, y, n, lv: 23 + i * 5, t: 'plain', g };
   })
 ];
-/* 主線特殊節點：掛在主幹第 at 個旁邊（dx、dy 像素），角色到 need 級才開；lock＝0.4.2 才開放 */
+/* 主線特殊節點：掛在主幹第 at 個旁邊（dx、dy 像素），角色到 need 級才開；lock＝還沒開放（0.4.2 起沒有） */
 const SPECIAL = [
   { t: 'ghost', at: 11, dx: 60, dy: 300, need: 35 },
   { t: 'dream', at: 13, dx: 330, dy: -100, need: 45 },
   { t: 'fiend', at: 15, dx: -40, dy: -330, need: 55 },
-  { t: 'army', at: 17, dx: -330, dy: 120, need: 65, lock: 1 },
-  { t: 'rift', at: 19, dx: 300, dy: 120, need: 75, lock: 1 }
+  { t: 'army', at: 17, dx: -330, dy: 120, need: 65 },
+  /* 0.4.2：裂口 Lv35 開，怪物等級跟著主幹推到的最前面（wLv） */
+  { t: 'rift', at: 11, dx: 300, dy: -260, need: 35 }
 ].map(o => {
   const T = TRUNK[o.at],
     [q, r] = hexOf(T.x + o.dx, T.y + o.dy);
@@ -133,7 +134,7 @@ const WTYPE = {
   story: { n: '主線', c: '#ffd166', d: '' },
   plain: { n: '荒野', c: '#a7a294', d: '一般地圖' },
   blood: { n: '血霧之地', c: '#ff5a5f', d: '打倒這裡的王後累積血霧' },
-  rift: { n: '裂口', c: '#ff8a4c', d: '血霧滿了才能進入，王是墮落的生肖神' },
+  rift: { n: '裂口', c: '#ff8a4c', d: '要血霧之印才能進入，王是墮落的生肖神' },
   /* 0.2.78 酆都（企劃書 4.2） */
   ghost: { n: '鬼門關', c: '#7fd1c7', d: '每一輪的王是牛頭、馬面、黑無常、白無常其中之一，打倒後掉落勾魂令與腐化石' },
   /* 0.2.79 心魔劫（企劃書 4.2） */
@@ -159,9 +160,15 @@ const armyRes = (s, ck) => ((s.army || {})[ck] || { n: 0 }).n;
 /* 裂口（wmap.js 畫深谷用）：節點鍵 → 生肖 */
 const wRifts = () => Object.fromEntries(SPECIAL.filter(s => s.t === 'rift').map(s => [wKey(s.q, s.r), 0]));
 const wType = (s, q, r) => (WNODE[wKey(q, r)] || {}).t || 'plain';
-/* 裂口的王：十二生肖照順序，打過的跳過 */
-const wZod = s => ZODIAC.find(z => !s.idols.includes(z.z)) || ZODIAC[0];
-const wLv = (q, r) => (WNODE[wKey(q, r)] || { lv: W_CAP }).lv;
+/* 裂口的王：十二生肖照順序，打過的跳過；十二隻都打完之後隨機（s.zr，每打完一隻重抽） */
+const wZod = s => ZODIAC.find(z => !s.idols.includes(z.z)) || ZODIAC[(s.zr || 0) % ZODIAC.length];
+/* 裂口（0.4.2）：等級跟著主幹推到的最前面那個節點（最低 Lv33） */
+const wLv = (q, r) => {
+  const n = WNODE[wKey(q, r)] || { lv: W_CAP };
+  return n.t === 'rift' && typeof S === 'object' && S && S.world
+    ? Math.min(W_CAP, Math.max(33, TRUNK[wFront(S)].lv))
+    : n.lv;
+};
 const wRegion = k => (WNODE[k] || TRUNK[0]).g;
 function wName(s, q, r) {
   const n = WNODE[wKey(q, r)];
@@ -274,7 +281,7 @@ function xiHallPay(s, kind) {
    stage：劇情走到第幾個；open：看過世界展開；at：現在（最後打的）節點；done：打倒過王的節點；
    star：每個節點選的星級；hold：退回之後留在這裡（等玩家按「再推一次」） */
 const newWorld = () => ({ seed: W_SEED, stage: 0, open: 0, at: '0,0', done: [], star: {}, hold: 0 });
-const newHunt = () => ({ v: 0, full: 0, used: 0 });
+const newHunt = () => ({ v: 0 });
 /* done 在存檔裡是陣列；查詢用的 Set 只放記憶體 */
 const WDONE = new WeakMap();
 function wDone(s) {
@@ -298,10 +305,7 @@ function wWhy(s, q, r) {
   if (!wDone(s).has(TRUNK_K[n.at])) return `先打倒${TRUNK[n.at].n}的王`;
   if (s.lv < n.need) return `角色等級需達 ${n.need}`;
   if (n.lock) return '還沒開放';
-  if (n.t === 'rift') {
-    if (!s.hunt.full) return '血霧滿了才進得去';
-    if (s.hunt.used) return '這次血霧已經開過一道裂口';
-  }
+  if (n.t === 'rift' && !((s.frags || {}).mist >= 1)) return '需要血霧之印：血霧滿了換 1 張';
   return '';
 }
 const wCan = (s, q, r) => !wWhy(s, q, r);
@@ -323,18 +327,16 @@ const wPrev = k => {
 const wStar = (s, k) => (STORY_I[k] != null ? STORY[STORY_I[k]].card.star : (s.world.star || {})[k] || 1);
 const wCard = (s, k) => (STORY_I[k] != null ? STORY[STORY_I[k]].card : rollCard(wStar(s, k)));
 
-/* ---------- 血霧：只有血霧節點累積；滿了每進一張圖扣 25%，期間不累積 ---------- */
-const HUNT = { gain: 20, cost: 25, w5: 3 };
-function huntGain(s) {
-  if (s.hunt.full) return;
-  s.hunt.v = Math.min(100, s.hunt.v + HUNT.gain);
-  if (s.hunt.v >= 100) s.hunt.full = 1;
-}
-function huntEnter(s) {
-  if (!s.hunt.full) return;
-  s.hunt.v -= HUNT.cost;
-  if (s.hunt.v > 0) return;
-  s.hunt.v = s.hunt.full = s.hunt.used = 0;
+/* ---------- 血霧（0.4.2）：走過血霧山道之後，任何節點每打完一輪 +5%＋星級%（5★ 多 5%）；滿了換 1 張血霧之印、歸零重新累積 ---------- */
+const HUNT = { gain: 5 };
+function huntGain(s, star) {
+  if (!s.story.crow) return 0;
+  s.hunt.v += HUNT.gain + (star || 1);
+  if (s.hunt.v < 100) return 0;
+  s.hunt.v -= 100;
+  s.frags = { ...newFrags(), ...s.frags };
+  s.frags.mist++;
+  return 1;
 }
 
 /* 打倒節點的王：回傳節點類型 */
@@ -350,11 +352,12 @@ function wClear(s, k) {
   s.maxT = Math.max(s.maxT, Math.min(TMAX, Math.floor(d) + 1));
   if (d >= TMAX) s.t16 = 1;
   if (i === 7) s.story.crow = 1;
-  if (t === 'blood' || i === 7) huntGain(s);
+  /* 裂口：扣 1 張血霧之印、點亮這隻的神像；十二隻都亮了之後隨機抽下一隻 */
   if (t === 'rift') {
-    s.hunt.used = 1;
     const z = wZod(s).z;
+    s.frags.mist = Math.max(0, (s.frags.mist || 0) - 1);
     if (!s.idols.includes(z)) s.idols.push(z);
+    if (s.idols.length >= ZODIAC.length) s.zr = Math.floor(Math.random() * ZODIAC.length);
   }
   return t;
 }

@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.4.1';
+const VER = '0.4.2';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -8656,7 +8656,8 @@ const newFrags = () => ({
   feng: 0,
   yu: 0,
   fu: 0,
-  blood: 0
+  blood: 0,
+  mist: 0
 });
 const fdBoss = k => BOSSES.find(b => b.fd === k);
 /* 十殿閻羅：閻羅的強化版 */
@@ -8779,8 +8780,6 @@ const xiUber = () => {
    三位將領（刑天、風伯、雨師）各佔區塊裡一個節點、就是那格的地圖王：保底 1 件追憶裝、每點怨恨值多 mem 機率再 1 件、掉自己的將印；
    將印三種各 1 個開蚩尤（山海寶盒）；同一塊區塊打倒第三位將領時怨恨值 ≥ fu 掉兵符，兵符＋Lv70 開涿鹿兵主。⚠️ 數字都暫定 */
 const ARMY = {
-  ring: 12,
-  w: 0.04,
   max: 16,
   /* 每點怨恨值：怪物生命、傷害、數量、稀有度、怪物群（%） */
   per: { mhp: 6, mdmg: 6, qty: 8, rar: 8, pack: 5 },
@@ -8896,6 +8895,12 @@ FRAGS.blood = {
   n: '神血',
   ic: 'mat_blood',
   d: '在山海寶盒使用：十二神像全亮時 4 份開啟太歲；12 份＋角色等級 70 開啟太歲星君'
+};
+/* 0.4.2 狩獵之血：血霧滿了換 1 張，進裂口要有、打倒生肖王才扣（world.js 的 huntGain） */
+FRAGS.mist = {
+  n: '血霧之印',
+  ic: 'mat_blood',
+  d: '血霧滿了換 1 張；身上有才進得去裂口，打倒裂口的生肖王扣 1 張'
 };
 const TS_HALL = { taisui: '太歲', xingjun: '太歲星君' };
 BOSSES.push({

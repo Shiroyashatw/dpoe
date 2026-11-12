@@ -132,7 +132,9 @@ function fragPageHTML() {
   <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '在山海寶盒開啟')}</span></p></div>
   <div class="ph2">四凶<span>凶地中心的四凶掉落</span></div>
   <ul class="mpg">${[...XIONG, 'eye'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
-  <div class="ph2">陰兵借道<span>陰兵借道的三位將領掉落</span></div>
+  <div class="ph2">狩獵之血<span>血霧滿了換血霧之印，進裂口用；生肖王掉神血</span></div>
+  <ul class="mpg">${['mist', 'blood'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k] || 0)).join('')}</ul>
+  <div class="ph2">陰兵借道<span>陰兵借道的三位將領輪流當王，連刷累積怨恨值</span></div>
   <ul class="mpg">${[...ARMY.gen, 'fu'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
   <div class="fgoal"><p><b>蚩尤</b><span class="${armyHallWhy(S, 'chiyou') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'chiyou') || '在山海寶盒開啟')}</span></p>
   <p><b>涿鹿兵主</b><span class="${armyHallWhy(S, 'zhuolu') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'zhuolu') || '在山海寶盒開啟')}</span></p></div>`;

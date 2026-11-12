@@ -65,6 +65,8 @@ function migrate(s) {
   o.mat.ess = o.mat.ess || {};
   o.prd = { ...PRD0(), ...o.prd };
   o.frags = { ...newFrags(), ...o.frags };
+  /* 0.4.2：血霧滿了的舊存檔換 1 張血霧之印 */
+  if (o.hunt && o.hunt.full) (o.frags.mist += 1), (o.hunt = newHunt());
   o.world = { ...newWorld(), ...o.world, seed: W_SEED };
   o.ptA = o.ptA || {};
   /* 存檔裡有樹上已經沒有的點（重烘過）也全部退回，不然算數值會壞 */

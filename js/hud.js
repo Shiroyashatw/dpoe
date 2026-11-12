@@ -281,7 +281,7 @@ function hudTick() {
     PRO.on && G.scene === 'map'
       ? '地層'
       : G.scene === 'hide'
-        ? `藏身處 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%` : ''}`
+        ? `藏身處 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
         : `${G.nodeN || '地圖'} · ${'★'.repeat(G.star || 1)} · 第 ${G.round || 1} 輪 · 怪物 Lv ${mobLv(G.mapT)} · 角色 Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻`;
   setT($('area'), 'at', at);
   runBar();

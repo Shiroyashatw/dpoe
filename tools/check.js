@@ -8312,7 +8312,7 @@ const ASC_COMBOS = `const combos = k => {
       if (TRUNK.some((n, i) => i && n.lv <= TRUNK[i - 1].lv)) return 'order';
       if (new Set([...TRUNK, ...SPECIAL].map(n => wKey(n.q, n.r))).size !== 27) return 'dup';
       if (STORY.some((s, i) => TRUNK_K[i] !== wKey(s.q, s.r))) return 'story';
-      return SPECIAL.map(s => s.t + s.need + (s.lock ? 'L' : '')).join() === 'ghost35,dream45,fiend55,army65L,rift75L' ? '' : 'sp';
+      return SPECIAL.map(s => s.t + s.need + (s.lock ? 'L' : '')).join() === 'ghost35,dream45,fiend55,army65,rift35' ? '' : 'sp';
     })()`) === ''
   );
   ok(
@@ -8324,7 +8324,7 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '能不能進：一開始只有第一個；打倒王開下一個；打過的可以一直重複刷；特殊節點要掛的節點打過＋角色等級；陰兵借道、裂口還鎖著',
+    '能不能進：一開始只有第一個；打倒王開下一個；打過的可以一直重複刷；特殊節點要掛的節點打過＋角色等級；裂口要血霧之印',
     R(`(() => {
       const s = WS();
       if (wWhy(s, 0, 0) || !wWhy(s, 0, 1)) return 'start';
@@ -8337,7 +8337,10 @@ const ASC_COMBOS = `const combos = k => {
       if (wWhy(s, g.q, g.r)) return 'ghost';
       s.lv = 99; for (let i = 13; i < 22; i++) wClear(s, TRUNK_K[i]);
       const a = SPECIAL[3], r = SPECIAL[4];
-      if (wWhy(s, a.q, a.r) !== '還沒開放' || wWhy(s, r.q, r.r) !== '還沒開放') return 'lock';
+      s.frags = newFrags();
+      if (wWhy(s, a.q, a.r) || !/血霧之印/.test(wWhy(s, r.q, r.r))) return 'army/rift ' + wWhy(s, r.q, r.r);
+      s.frags.mist = 1;
+      if (wWhy(s, r.q, r.r)) return 'rift';
       return wList(s).length === 27 && wGoal(s) === TRUNK_K[21] ? '' : 'list';
     })()`) === ''
   );
@@ -8359,28 +8362,30 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '血霧：血霧山道累積 20%；滿了每進一張扣 25%、期間不累積，扣完回到累積',
+    '血霧（0.4.2）：走過血霧山道才累積；每打完一輪 +5%＋星級%；滿了換 1 張血霧之印、多的留到下一次',
     R(`(() => {
-      const s = WS();
-      wClear(s, TRUNK_K[3]);
-      if (s.hunt.v !== 0) return 'plain';
-      for (let i = 0; i < 5; i++) wClear(s, TRUNK_K[7]);
-      if (s.hunt.v !== 100 || !s.hunt.full) return 'full';
-      wClear(s, TRUNK_K[7]);
-      huntEnter(s); huntEnter(s); huntEnter(s);
-      if (s.hunt.v !== 25 || !s.hunt.full) return 'enter';
-      huntEnter(s);
-      return s.hunt.v === 0 && !s.hunt.full ? '' : 'end';
+      const s = WS({ frags: newFrags() });
+      if (huntGain(s, 5) || s.hunt.v !== 0) return 'locked';
+      s.story.crow = 1;
+      for (let i = 0; i < 9; i++) huntGain(s, 5);
+      if (s.hunt.v !== 90 || s.frags.mist) return 'gain ' + s.hunt.v;
+      if (!huntGain(s, 5) || s.frags.mist !== 1 || s.hunt.v !== 0) return 'full';
+      for (let i = 0; i < 17; i++) huntGain(s, 1);
+      return s.hunt.v === 2 && s.frags.mist === 2 ? '' : 'carry ' + s.hunt.v;
     })()`) === ''
   );
   ok(
-    '裂口：生肖王照順序（打過的跳過），打完點亮神像、這次血霧用掉',
+    '裂口（0.4.2）：生肖王照順序；打倒扣 1 張血霧之印、點亮神像；十二隻都亮了之後隨機；等級跟著主幹最前面（最低 Lv33）',
     R(`(() => {
-      const s = WS(), r = SPECIAL[4], k = wKey(r.q, r.r);
+      const s = WS({ frags: { ...newFrags(), mist: 13 } }), r = SPECIAL[4], k = wKey(r.q, r.r);
       if (wZod(s) !== ZODIAC[0]) return 'first';
-      s.hunt = { v: 100, full: 1, used: 0 };
       wClear(s, k);
-      return s.idols[0] === ZODIAC[0].z && wZod(s) === ZODIAC[1] && s.hunt.used === 1 ? '' : 'idol';
+      if (s.idols[0] !== ZODIAC[0].z || wZod(s) !== ZODIAC[1] || s.frags.mist !== 12) return 'idol';
+      for (let i = 1; i < 12; i++) wClear(s, k);
+      if (s.idols.length !== 12 || s.frags.mist !== 1 || !ZODIAC.includes(wZod(s))) return 'all';
+      S = s; s.world.done = TRUNK_K.slice(0, 3);
+      const lo = wLv(r.q, r.r); s.world.done = TRUNK_K.slice(0, 18);
+      return lo === 33 && wLv(r.q, r.r) === TRUNK[18].lv ? '' : 'lv ' + lo;
     })()`) === ''
   );
   ok(
