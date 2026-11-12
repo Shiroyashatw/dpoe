@@ -31,17 +31,13 @@ const WM = {
   oy: 0,
   ch: new Map(),
   job: null,
-  wipe: 1,
   anim: null,
   drag: null,
   pinch: null,
   tick: 0
 };
-/* 平頂六角格的 6 個鄰居（跟 world.js 的 wRing 同一套 axial） */
-/* 拉遠時不畫的一般節點 */
-const WM_PLAIN = ['plain'];
-/* 這個節點要不要畫：選中的、目標、打過的（畫成小的灰色，見 wmBase）一定畫；拉遠時沒打過的只畫走得到的與特殊的（裂口、血霧、機制區塊、主線） */
-const wmShow = (n, z) => WM.sel === n.k || n.k === WM.goal || n.done || z >= 0.62 || n.can || !WM_PLAIN.includes(n.t);
+/* 0.4.1 起沒有迷霧：27 個節點全部畫（還不能進的畫暗） */
+const wmShow = () => true;
 const WM_DIR = [
   [1, 0],
   [1, -1],
@@ -50,17 +46,13 @@ const WM_DIR = [
   [-1, 1],
   [0, 1]
 ];
-/* 迷霧（0.4.0）：看得到的節點與路一路推開（WM.lit＝[x, y, 亮度]：節點、路上每 WM_LIT_STEP 一個點） */
-const WM_LIT_R = 260,
-  WM_LIT_STEP = 110;
-const wmLit = (x, y) => !(WM.wipe >= 1) || (WM.lit || []).some(p => Math.hypot(p[0] - x, p[1] - y) < WM_LIT_R);
 const wmStill = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const wmLat = (q, r) => [W_SZ * 1.5 * q, W_SZ * Math.sqrt(3) * (r + q / 2)];
 /* 世界區的節點位置微微抖動，看起來不像格子 */
+/* 節點在世界地圖上的位置：0.4.0 起節點表寫死像素位置（world.js），其他格子照六角格算 */
 function wmPos(q, r) {
-  const [x, y] = wmLat(q, r);
-  if (STORY_I[wKey(q, r)] != null) return [x, y];
-  return [x + (wHash(WM.seed, q, r, 7) - 0.5) * 26, y + (wHash(WM.seed, q, r, 8) - 0.5) * 26];
+  const n = WNODE[wKey(q, r)];
+  return n ? [n.x, n.y] : wmLat(q, r);
 }
 
 /* ---------- 噪聲與色帶 ---------- */
@@ -400,11 +392,6 @@ function wmNodes() {
     seen = new Set(keys),
     D = wDone(s),
     seed = s.world.seed;
-  /* 拼圖迷霧（0.2.79）：記下每格第一次看到的時間，新拼上去的那格淡入；這次開頁面第一次算的全部直接出現 */
-  const now = performance.now(),
-    SA = (WM.seenAt = WM.seenAt || new Map()),
-    first = !SA.size;
-  for (const k of keys) if (!SA.has(k)) SA.set(k, first ? 0 : now);
   WM.nodes = keys.map(k => {
     const [q, r] = wXY(k),
       [x, y] = wmPos(q, r);
@@ -423,7 +410,7 @@ function wmNodes() {
         r: n.r,
         cells,
         set: new Set(cells.map(([a, b]) => wKey(a, b))),
-        c: wmLat(n.q, n.r),
+        c: [n.x, n.y],
         h: wHash(seed, n.q, n.r, 11),
         open: 1
       };
@@ -446,15 +433,6 @@ function wmNodes() {
         h2: wHash(seed, n.q + a, n.r + b, 45)
       });
     }
-  /* 迷霧推開的點：打過的（或劇情區）全亮、前線半亮；路照兩端較暗的那端 */
-  const lt = n => (n.done || STORY_I[n.k] != null ? 1 : 0.6),
-    NB = Object.fromEntries(WM.nodes.map(n => [n.k, n]));
-  WM.lit = WM.nodes.map(n => [n.x, n.y, lt(n), n.k]);
-  for (const e of WM.edges) {
-    const m = Math.ceil(Math.hypot(e.x2 - e.x1, e.y2 - e.y1) / WM_LIT_STEP),
-      v = Math.min(lt(NB[e.k1]), lt(NB[e.k2]));
-    for (let i = 1; i < m; i++) WM.lit.push([e.x1 + ((e.x2 - e.x1) * i) / m, e.y1 + ((e.y2 - e.y1) * i) / m, v, e.k1]);
-  }
   WM.goal = wGoal(s);
   WM.dirty = true;
 }
@@ -587,63 +565,6 @@ function wmIcons() {
   }
 }
 /* 迷霧的洞：預先畫好一張，蓋章 */
-function wmHole() {
-  const c = document.createElement('canvas');
-  c.width = c.height = 64;
-  const g = c.getContext('2d'),
-    r = g.createRadialGradient(32, 32, 11, 32, 32, 32);
-  r.addColorStop(0, 'rgba(0,0,0,1)');
-  r.addColorStop(1, 'rgba(0,0,0,0)');
-  g.fillStyle = r;
-  g.fillRect(0, 0, 64, 64);
-  return c;
-}
-function wmFog() {
-  const f = WM.fc,
-    W = (f.canvas.width = Math.ceil(WM.W / 8)),
-    H = (f.canvas.height = Math.ceil(WM.H / 8)),
-    S2 = (x, y) => [((x - WM.x) * WM.z + WM.W / 2) / 8, ((y - WM.y) * WM.z + WM.H / 2) / 8];
-  f.fillStyle = '#0d0e11';
-  f.fillRect(0, 0, W, H);
-  f.globalCompositeOperation = 'destination-out';
-  /* 世界展開：紅色的環從中心往外推，推過的地方看得到但比較暗 */
-  if (WM.wipe > 0) {
-    if (WM.wipe < 1) {
-      const [cx, cy] = S2(0, 0),
-        r = ((80 + WM.wipe * 2400) * WM.z) / 8,
-        g = f.createRadialGradient(cx, cy, r * 0.7, cx, cy, r);
-      g.addColorStop(0, 'rgba(0,0,0,0.62)');
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      f.fillStyle = g;
-      f.fillRect(0, 0, W, H);
-    }
-  }
-  if (WM.wipe >= 1) {
-    /* 0.4.0：節點與路把迷霧推開（軟邊的圓）；新看到的那段淡入 */
-    const now = performance.now(),
-      R = (WM_LIT_R * WM.z) / 8;
-    let fading = 0;
-    for (const [px, py, v, k0] of WM.lit) {
-      const [x, y] = S2(px, py);
-      if (x < -R || y < -R || x > W + R || y > H + R) continue;
-      const t0 = WM.seenAt.get(k0) || 0,
-        k = wmStill() ? 1 : Math.min(1, (now - t0) / 450);
-      if (k < 1) fading = 1;
-      f.globalAlpha = v * k;
-      f.drawImage(WM.hole, x - R, y - R, R * 2, R * 2);
-    }
-    f.globalAlpha = 1;
-    WM.fading = fading;
-  } else
-    for (const n of WM.nodes) {
-      if (!n.done && STORY_I[n.k] == null) continue;
-      const [x, y] = S2(n.x, n.y),
-        R = ((STORY_I[n.k] != null ? 170 : 150) * WM.z) / 8;
-      if (x < -R || y < -R || x > W + R || y > H + R) continue;
-      f.drawImage(WM.hole, x - R, y - R, R * 2, R * 2);
-    }
-  f.globalCompositeOperation = 'source-over';
-}
 const wmS = (x, y) => [(x - WM.x) * WM.z + WM.W / 2, (y - WM.y) * WM.z + WM.H / 2];
 function wmDots(g, e) {
   const [x1, y1] = wmS(e.x1, e.y1),
@@ -686,10 +607,6 @@ function wmBase() {
       c.fillRect(X, Y, w, h);
     }
   }
-  wmFog();
-  c.imageSmoothingEnabled = true;
-  c.drawImage(WM.fc.canvas, 0, 0, W, H);
-  c.imageSmoothingEnabled = false;
   /* 區域名：地圖上直接寫，取代等級線 */
   if (wOpen(S) && z < 1) {
     c.textAlign = 'center';
@@ -698,10 +615,8 @@ function wmBase() {
     /* 0.4.0：每個區域名寫在那一段主幹第一個節點的上方 */
     TRUNK.forEach((nd, i) => {
       if (i && TRUNK[i - 1].g === nd.g) return;
-      const [wx, wy] = wmLat(nd.q, nd.r),
-        [x, y] = wmS(wx, wy - 120),
+      const [x, y] = wmS(nd.x, nd.y - 120),
         t = [...nd.g].join(' ');
-      if (!wmLit(wx, wy)) return;
       c.strokeStyle = 'rgba(13,14,17,.85)';
       c.fillStyle = 'rgba(233,226,206,.72)';
       c.strokeText(t, x, y);
@@ -711,7 +626,6 @@ function wmBase() {
   /* 路 */
   const L = [],
     D = [];
-  /* 要畫的節點（0.2.79）：拉遠時沒打過的只畫走得到的與特殊的；路只畫兩端都看得到的（沒探索的地方被拼圖迷霧蓋住） */
   const vis = new Set(WM.nodes.filter(n => wmShow(n, z)).map(n => n.k));
   for (const e of WM.edges) {
     if (!vis.has(e.k1) || !vis.has(e.k2)) continue;
@@ -798,9 +712,11 @@ function wmBase() {
     c.fillStyle = 'rgba(13,14,17,.92)';
     c.fill();
     c.lineWidth = sel ? 3 : 1.5;
-    c.strokeStyle = sel ? '#fff' : n.done ? '#6d7280' : WTYPE[n.t].c;
+    /* 還不能進的（0.4.1，沒有迷霧之後全部畫出來）：灰框、圖示半透明 */
+    const lock = !n.done && !n.can && !sel;
+    c.strokeStyle = sel ? '#fff' : n.done || lock ? '#6d7280' : WTYPE[n.t].c;
     c.stroke();
-    c.globalAlpha = dim ? 0.3 : n.done ? 0.45 : 1;
+    c.globalAlpha = dim ? 0.3 : n.done ? 0.45 : lock ? 0.35 : 1;
     c.drawImage(WM_IC[n.t] || WM_IC.plain, Math.round(x - sz / 2), Math.round(y - sz / 2), sz, sz);
     c.globalAlpha = 1;
     if (sel || (n.can && z >= 0.62)) {
@@ -876,7 +792,7 @@ function wmGoalMark(now, still) {
 function wmFx(now) {
   const c = WM.cx,
     { W, H, z } = WM,
-    on = WM.wipe,
+    on = 1,
     still = wmStill(),
     cull = (x, y) => x < -60 || y < -120 || x > W + 60 || y > H + 60,
     px = Math.max(2, Math.round(z * 3));
@@ -987,7 +903,7 @@ function wmFx(now) {
     if (!ch || !ch.ready) continue;
     for (const s of ch.sites) {
       const [x, y] = wmS(s.x, s.y);
-      if (cull(x, y) || !wmLit(s.x, s.y)) continue;
+      if (cull(x, y)) continue;
       const t = still ? 0 : now / 1000 + s.p;
       if (s.t === 'fire' || s.t === 'town') {
         const f = Math.floor(t * 9) % 3,
@@ -1104,7 +1020,7 @@ const WM_ZMIN = 0.3,
 /* 鏡頭最遠到走過最遠的圈再往外 12 圈，不會一路拖到遠方狂烘 */
 function wmBound() {
   let m = 0; /* 0.4.0：看得到的節點最遠的距離再往外一點 */
-  for (const k of wList(S)) m = Math.max(m, Math.hypot(...wmLat(...wXY(k))));
+  for (const k of wList(S)) m = Math.max(m, Math.hypot(...wmPos(...wXY(k))));
   return m + 900;
 }
 function wmZoomAt(mx, my, z) {
@@ -1164,7 +1080,6 @@ function wmFrame(now, dt) {
   /* 手機閒著時 30 fps */
   WM.tick++;
   if (TOUCH.on && !WM.dirty && WM.tick & 1) return;
-  if (WM.fading) WM.dirty = true; /* 拼圖淡入中：底圖每格重畫 */
   if (WM.dirty) {
     WM.dirty = false;
     wmBase();
@@ -1194,8 +1109,6 @@ function wmInit() {
   WM.cv = $('wmc');
   WM.cx = WM.cv.getContext('2d', { alpha: false });
   WM.bc = document.createElement('canvas').getContext('2d', { alpha: false });
-  WM.fc = document.createElement('canvas').getContext('2d');
-  WM.hole = wmHole();
   const el = WM.cv,
     TP = new Map(),
     pinchD = () => {
@@ -1322,7 +1235,6 @@ function wmOpen() {
     WM.job = null;
   }
   WM.on = true;
-  WM.wipe = S.world.open ? 1 : 0;
   WM.anim = null;
   $('wmcap').hidden = true; /* 演出到一半按 Esc 關掉的話字幕還留著 */
   WM.view = 'node';
@@ -1362,14 +1274,12 @@ function wmReveal() {
     WM.z = z0 + (0.46 - z0) * e;
     WM.x = x0 * (1 - e);
     WM.y = y0 * (1 - e);
-    WM.wipe = e;
     WM.dirty = true;
     if (f >= 1) wmRevealEnd();
   };
 }
 function wmRevealEnd() {
   WM.anim = null;
-  WM.wipe = 1;
   WM.dirty = true;
   setTimeout(() => ($('wmcap').hidden = true), 1400);
   if (WM.goal) wmSel(WM.goal);

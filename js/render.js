@@ -277,7 +277,19 @@ function draw() {
       x = d.sx + (d.x - d.sx) * f,
       y = d.sy + (d.y - d.sy) * f - Math.sin(f * Math.PI) * 40;
     if (d.gold) spr('mat_gold', x, y + 8, 22);
-    else {
+    else if (d.show) {
+      /* 稀有通貨（0.4.1）：金色光柱（完美更高）＋圖示 */
+      const bh = /3$/.test(d.show) ? 300 : 230,
+        a = 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
+        g = CX.createLinearGradient(x, y - bh, x, y);
+      g.addColorStop(0, 'rgba(255,209,102,0)');
+      g.addColorStop(1, `rgba(255,209,102,${a})`);
+      CX.fillStyle = g;
+      CX.fillRect(x - 10, y - bh, 20, bh);
+      CX.fillStyle = `rgba(255,244,214,${a})`;
+      CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
+      spr(CUR[d.show].ic, x, y + 8, 26);
+    } else {
       const fa = dropFlt(d);
       if (fa.act === 'hide') continue;
       const col = RCOL[d.it.r],

@@ -88,6 +88,11 @@ function sfx(k) {
         tone(660, 990, 0.6, 0.05, 'triangle', 0.25)
       ),
       drop0: () => 0,
+      /* 稀有通貨（0.4.1）：明亮的上行三音加一聲長鈴 */
+      orb: () => (
+        [1047, 1319, 1568].forEach((f, i) => tone(f, f, 0.3, 0.09, 'triangle', i * 0.05)),
+        tone(2093, 2093, 0.7, 0.05, 'sine', 0.18)
+      ),
       flip: () => (nz(0.05, 2500, 900, 0.08, 'highpass'), tone(520, 620, 0.06, 0.06, 'triangle')),
       flipRare: () => [784, 988, 1175].forEach((f, i) => tone(f, f, 0.2, 0.08, 'triangle', i * 0.05)),
       lvup: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, f, 0.3, 0.09, 'triangle', i * 0.08)),

@@ -80,7 +80,8 @@ const FMENU = [
   ['craft', '鍛造台', 'K'],
   ['shop', '天星商會', 'N'],
   ['asc', '昇華石碑', 'U'],
-  ['box', '山海寶盒', 'J']
+  ['box', '山海寶盒', 'J'],
+  ['log', '掉落紀錄', 'L']
 ];
 function fmenuOpen(k) {
   const on = k === 'device' ? PANEL.device : PANEL[k];
@@ -93,7 +94,7 @@ const fmenuHTML = () =>
   FMENU.map(([k, n, key]) => `<button data-tm="f:${k}">${esc(n)}<kbd class="donly">${key}</kbd></button>`).join('');
 function hudInit() {
   $('hud').innerHTML = `
-  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="bossbar" hidden><b id="bossn"></b><div class="bb"><i></i></div></div><div id="prog" hidden><b>首領進度</b><div class="pb"><i></i></div></div></div>
+  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="dlog"></div><div id="bossbar" hidden><b id="bossn"></b><div class="bb"><i></i></div></div><div id="prog" hidden><b>首領進度</b><div class="pb"><i></i></div></div></div>
   <div class="bottom">
     <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
     <div class="mid">
@@ -108,6 +109,7 @@ function hudInit() {
   <div id="prac" hidden></div>
   <div id="talk" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
+  <div id="banner" role="status" aria-live="polite" hidden></div>
   <div id="pro" hidden><small id="pron"></small><b id="prot" role="status"></b><button class="btn mini" data-pro="skip">跳過<span class="ponly">序章</span></button></div>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button class="autob" data-tm="auto" aria-pressed="true">自動</button><button data-tm="inv">${ICO.bag}倉庫</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
@@ -283,6 +285,7 @@ function hudTick() {
         : `${G.nodeN || '地圖'} · ${'★'.repeat(G.star || 1)} · 第 ${G.round || 1} 輪 · 怪物 Lv ${mobLv(G.mapT)} · 角色 Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻`;
   setT($('area'), 'at', at);
   runBar();
+  logBar();
   const au = S.auto ? 1 : 0;
   if (HV.au !== au) {
     HV.au = au;
@@ -384,6 +387,7 @@ function closePanels() {
     PANEL.shop =
     PANEL.box =
     PANEL.ident =
+    PANEL.log =
       false;
   clearTimeout(REV.tm);
   hideTip();
@@ -400,7 +404,8 @@ const anyPanel = () =>
   PANEL.asc ||
   PANEL.shop ||
   PANEL.box ||
-  PANEL.ident;
+  PANEL.ident ||
+  PANEL.log;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
 const KEYS_PC = [
   ['WASD', '移動'],
@@ -682,6 +687,8 @@ function hudPanels() {
   $('pshop').hidden = !PANEL.shop;
   $('pbox').hidden = !PANEL.box;
   $('preveal').hidden = !PANEL.ident;
+  $('plog').hidden = !PANEL.log;
+  if (PANEL.log) panelHTML($('plog'), logHTML(), ['.lgl']);
   $('pskill').hidden = !PANEL.skill;
   $('pcraft').hidden = !PANEL.craft;
   if (swapOn()) {
@@ -1082,11 +1089,18 @@ function shopSel() {
 }
 /* ---------- 撿骨師的鑑定（8-3，企劃書 5.4.1）：免費、一鍵、一件一件翻開，越好的越晚翻；不做鑑定卷軸 ---------- */
 const REV = { list: [], i: 0, tm: 0, done: false };
-function revealOpen() {
-  const L = identifyAll(S);
-  if (!L.length) return hudWarn('沒有需要鑑定的東西');
-  /* 資料一次鑑定完（關掉視窗也不會丟），翻牌只是演出 */
-  Object.assign(REV, { list: L, i: 0, done: false });
+/* 翻牌（0.2.72 鑑定開獎；0.4.1 起是回來時的摘要 offShow）：o＝{ title, head 上面的摘要, more 底下的一行 } */
+function revealOpen(L = identifyAll(S), o = {}) {
+  if (!L.length && !o.head) return hudWarn('沒有需要鑑定的東西');
+  /* 資料早就進倉庫了（關掉視窗也不會丟），翻牌只是演出 */
+  Object.assign(REV, {
+    list: L,
+    i: 0,
+    done: false,
+    title: o.title || '撿骨師的鑑定',
+    head: o.head || '',
+    more: o.more || ''
+  });
   PANEL.ident = true;
   save();
   hudPanels();
@@ -1107,14 +1121,14 @@ function revealStep() {
 }
 function revealHTML() {
   const n = REV.list.length;
-  return `<div class="ph"><b>撿骨師的鑑定</b><span>${Math.min(REV.i, n)}／${n} 件</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="rvl">${REV.list
+  return `<div class="ph"><b>${esc(REV.title)}</b><span>${Math.min(REV.i, n)}／${n} 件</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  ${REV.head}<div class="rvl">${REV.list
     .map((it, k) =>
       k < REV.i
         ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.so ? ' · 孔 ' + '○'.repeat(it.so) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
         : `<div class="rvr un r${it.r} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">？？？</b><small>${esc(baseOf(it).n)} · T${itemT(it)}${it.frac ? ' · ★' : ''}${it.mem ? ' · ◈' : ''}</small></div></div>`
     )
-    .join('')}</div>
+    .join('')}</div>${REV.more ? `<p class="summ">${esc(REV.more)}</p>` : ''}
   <div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`;
 }
 /* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */
@@ -1190,6 +1204,42 @@ document.addEventListener('click', e => {
   hudPanels();
 });
 /* 巡邏卡（0.3.0，企劃書 2.1 第 12 項）：目前區塊與節點、卡、開通、撿到、連死、停機原因；桌機是右邊的面板、手機直立是下半的抽屜（同一份 HTML） */
+/* 稀有掉落的橫幅（0.4.1）：畫面上方、2.6 秒；c＝frac／mem／cur／perf（顏色） */
+let BANT;
+function banner(t, c) {
+  const el = $('banner');
+  if (!el) return;
+  el.textContent = t;
+  el.className = 'bn-' + c;
+  el.hidden = false;
+  clearTimeout(BANT);
+  BANT = setTimeout(() => (el.hidden = true), 2600);
+}
+/* HUD 的掉落紀錄（0.4.1）：最新 3 筆，30 秒後淡掉；完整的在「掉落紀錄」面板 */
+const LOG_SHOW = 30000;
+function logBar() {
+  const now = Date.now(),
+    L = (S.log || []).filter(x => now - x.t < LOG_SHOW).slice(0, 3),
+    k = LOGV + ':' + L.length;
+  if (HV.log === k) return;
+  HV.log = k;
+  $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
+}
+const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚' };
+/* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
+function logHTML() {
+  const P = S.prd || {},
+    bar = (n, v, max) =>
+      `<div class="lgbar"><span>${n}</span><div class="pb" role="progressbar" aria-label="${n}保底" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${v}"><i style="width:${Math.min(100, (v / max) * 100)}%"></i></div><small>${v}／${max}</small></div>`,
+    ago = t => {
+      const m = Math.floor((Date.now() - t) / 60000);
+      return m < 1 ? '剛剛' : m < 60 ? `${m} 分鐘前` : `${Math.floor(m / 60)} 小時前`;
+    };
+  return `<div class="ph"><b>掉落紀錄</b><span>最近 50 筆重點掉落</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="ph2">保底進度<span>滿了下一次必出</span></div>
+  ${bar('★ 破裂（黃裝）', P.frac || 0, prdMax(FRAC_P[2]))}${bar('◈ 追憶（王）', P.mem || 0, prdMax(MEM_P[2]))}${bar('完美通貨', P.perfC || 0, TIER_P.pity)}
+  <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c}"><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim">還沒有重點掉落</li>'}</ul>`;
+}
 /* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、藏身處的「繼續刷」 */
 function runBar() {
   const W = S.world,

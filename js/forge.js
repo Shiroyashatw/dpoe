@@ -11,12 +11,14 @@ const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT
 const CUI = { conv: 0, fore: 0, log: '' };
 /* 圍在中間格子四周的通貨（格子區域照 CSS 的 grid-template-areas） */
 const CUR_RING = ['tran', 'aug', 'rich', 'exalt', 'conv', 'fore', 'whet', 'holy', 'plate', 'corr'];
+/* 高階、完美（0.4.1）：外圈下面一列 8 格 */
+const CUR_TIERS = ['tran2', 'aug2', 'rich2', 'exalt2', 'tran3', 'aug3', 'rich3', 'exalt3'];
 function curPageHTML() {
   const M = MAT(),
     it = S.curIt,
     f = it && foreOf(it),
     btn = k =>
-      `<button class="cub ${M[k] ? '' : 'z'} ${(k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore) ? 'on' : ''}" style="grid-area:${k}" data-cu="u:${k}" title="${esc(CUR[k].n + '：' + CUR[k].d)}" aria-label="${esc(CUR[k].n)}">${icHTML(CUR[k].ic)}<em>${fmtN(M[k] || 0)}</em></button>`,
+      `<button class="cub ${M[k] ? '' : 'z'} ${(k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore) ? 'on' : ''} ${/[23]$/.test(k) ? 'g' + k.slice(-1) : ''}" ${CUR_RING.includes(k) ? `style="grid-area:${k}"` : ''} data-cu="u:${k}" title="${esc(CUR[k].n + '：' + CUR[k].d)}" aria-label="${esc(CUR[k].n)}">${icHTML(CUR[k].ic)}<em>${fmtN(M[k] || 0)}</em></button>`,
     center = `<div class="cuc" style="grid-area:mid" data-cur="1">${it ? itemHTML(it, 'cur', 'cur') : `<span>${TOUCH.on ? '點倉庫的裝備<br>按「放進中間」' : '把裝備拖進來<br>或點倉庫的裝備'}</span>`}</div>`,
     hint = !it
       ? ''
@@ -26,10 +28,11 @@ function curPageHTML() {
           ? '轉化石：點下面一條要換掉的詞'
           : '',
     ess = essList(),
-    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k)),
+    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k)),
     row = (ic, n, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`;
   return `<div class="cupg">${CUR_RING.map(btn).join('')}${center}</div>
+  <div class="cutier" aria-label="高階與完美通貨">${CUR_TIERS.map(btn).join('')}</div>
   ${
     it
       ? `${cardHTML(it)}${
@@ -234,10 +237,15 @@ function fillHTML(it) {
     f = foreOf(it),
     { why, lack } = forgeCheck(it, op, arg, CRAFT.om),
     cnt = k => (k === 'ess' ? essList().reduce((s, [, n]) => s + n, 0) : M[k] || 0),
-    seg = `<div class="fseg s6" role="tablist" aria-label="通貨">${FILL_OPS.map(
-      k =>
-        `<button role="tab" aria-selected="${k === op}" class="${k === op ? 'on' : ''} ${cnt(k) ? '' : 'z'}" data-fg="sel:${k}">${hint === k ? '<i>推薦</i>' : ''}${FORGE[k].n}<small>×${cnt(k)}</small></button>`
-    ).join('')}</div>`,
+    /* 高階、完美（0.4.1）有的時候才列出來 */
+    seg = `<div class="fseg s6" role="tablist" aria-label="通貨">${FILL_OPS.filter(
+      k => !/[23]$/.test(k) || cnt(k) || k === op
+    )
+      .map(
+        k =>
+          `<button role="tab" aria-selected="${k === op}" class="${k === op ? 'on' : ''} ${cnt(k) ? '' : 'z'}" data-fg="sel:${k}">${hint === k ? '<i>推薦</i>' : ''}${FORGE[k].n}<small>×${cnt(k)}</small></button>`
+      )
+      .join('')}</div>`,
     ess =
       op === 'ess'
         ? essList().length

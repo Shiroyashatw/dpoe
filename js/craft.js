@@ -41,7 +41,9 @@ function affPool(it, cls, skip) {
 }
 /* 新加的詞（企劃書 5.3.1）：照物品等級骰階（最高 T1）；精髓給 minT＝保證至少那一階（T 的數字要 ≤ minT），
    但不會比物品等級允許的最高階更高（bestTier） */
-function fillAff(it, cls, minT) {
+/* 高階／完美通貨（0.4.1）這一次的最低階數（T 數字），forgeDo 裡才有值 */
+let TIER_MIN = null;
+function fillAff(it, cls, minT = TIER_MIN != null ? TIER_MIN : undefined) {
   const P = omenPool(it, cls),
     r1 = () => rollAff(pick(P), it.L);
   let a = r1();
@@ -55,12 +57,27 @@ function fillAff(it, cls, minT) {
 }
 /* ---------- 預兆（0.2.79 心魔劫，企劃書 4.2）：作用在下一顆通貨，用了就沒了；多顆要放在鼎裡（三尸鼎 2 顆、三彭鼎 3 顆）一起用 ---------- */
 let OMEN_ON = null; /* 這一次通貨生效的預兆（Set），forgeDo 裡才有值 */
-const OMEN_ADD = ['tran', 'aug', 'rich', 'exalt', 'ess'],
+const EXALTS = ['exalt', 'exalt2', 'exalt3'],
+  OMEN_ADD = [
+    'tran',
+    'aug',
+    'rich',
+    'exalt',
+    'tran2',
+    'aug2',
+    'rich2',
+    'exalt2',
+    'tran3',
+    'aug3',
+    'rich3',
+    'exalt3',
+    'ess'
+  ],
   OMEN_OPS = {
-    om_joy: ['exalt'],
-    om_fear: ['exalt'],
-    om_love: ['exalt'],
-    om_hate: ['exalt'],
+    om_joy: EXALTS,
+    om_fear: EXALTS,
+    om_love: EXALTS,
+    om_hate: EXALTS,
     om_rage: OMEN_ADD,
     om_grief: OMEN_ADD,
     om_greed: OMEN_ADD
@@ -264,14 +281,49 @@ const FORGE = {
 };
 /* 轉化石能換成什麼：同類、不是自己、這件裝備出得了、前後綴放得下（被換掉的那條不算） */
 const convPool = (it, a) => affPool(it, affCls(a.k), a).filter(k => k !== a.k);
-const FILL_OPS = Object.keys(FORGE);
 /* 這顆通貨在材料頁的數量（精髓看選的那一種） */
 const curHave = (op, arg) => (op === 'ess' ? (MAT().ess || {})[arg] || 0 : MAT()[op] || 0);
 const curName = (op, arg) => (op === 'ess' ? (arg ? essName(arg) : '精髓') : CUR[op].n);
 /* 這一步能不能做：why＝這件裝備不能這樣做的原因，lack＝通貨不夠（預覽照樣可以看） */
+/* 通貨分三階（0.4.1，企劃書 5.3、5.8）：高階、完美照原本那顆的規則，只是新詞有最低階數：
+   高階＝這件能出的最高階（bestTier）或下一階各一半，完美＝保證最高階；T0 仍然只有破裂 ★ */
+const CUR_TIER = { 2: '高階', 3: '完美' };
+for (const k of ['tran', 'aug', 'rich', 'exalt'])
+  for (const g of [2, 3]) {
+    const B = FORGE[k];
+    FORGE[k + g] = {
+      ...B,
+      n: CUR[k + g].n,
+      d: CUR[k + g].d,
+      run(it, arg) {
+        TIER_MIN = bestTier(it.L) + (g === 3 ? 0 : irnd(0, 1));
+        try {
+          B.run(it, arg);
+        } finally {
+          TIER_MIN = null;
+        }
+      }
+    };
+  }
+const FILL_OPS = Object.keys(FORGE);
+const rareCur = k => EXALTS.includes(k) || /^(tran|aug|rich)[23]$/.test(k);
+/* 掉落（0.4.1，⚠️ 暫定）：每掉 1 顆蛻變、增幅、富豪、崇高，Lv45 以上的節點另外 10% 掉同種的高階；
+   Lv70 以上 1% 掉完美（保底：連續 TIER_P.pity 次沒掉，下一次必掉，S.prd.perfC） */
+const TIER_P = { g: 0.1, gLv: 45, p: 0.01, pLv: 70, pity: 300 };
+function tierDrop(cur, lv) {
+  for (const k of ['tran', 'aug', 'rich', 'exalt'])
+    for (let i = 0; i < (cur[k] || 0); i++) {
+      if (lv >= TIER_P.gLv && Math.random() < TIER_P.g) cur[k + '2'] = (cur[k + '2'] || 0) + 1;
+      if (lv < TIER_P.pLv) continue;
+      const P = (S.prd = S.prd || PRD0()),
+        n = (P.perfC || 0) + 1;
+      if (n >= TIER_P.pity || Math.random() < TIER_P.p) (cur[k + '3'] = (cur[k + '3'] || 0) + 1), (P.perfC = 0);
+      else P.perfC = n;
+    }
+}
 function forgeCheck(it, op, arg, om) {
   /* 預兆・畏縮：先移除 1 條再加，所以 6 條滿的黃裝也能用崇高石 */
-  const full = om && om.includes('om_fear') && op === 'exalt' && it.r === 2 && it.a.length >= 6;
+  const full = om && om.includes('om_fear') && EXALTS.includes(op) && it.r === 2 && it.a.length >= 6;
   return {
     why: lockWhy(it, 'fill') || (full ? null : FORGE[op].ok(it, arg)) || omenWhy(op, om),
     lack: curHave(op, arg) < 1 ? `${curName(op, arg)}不夠` : null
@@ -290,7 +342,11 @@ function forgeWhat(it, op, arg) {
           : ''
         : op === 'ess'
           ? `至少 T${String(arg).split(':')[1]}`
-          : tierSpan(it)
+          : /3$/.test(op)
+            ? `T${bestTier(it.L)}`
+            : /2$/.test(op)
+              ? `T${bestTier(it.L)}～T${bestTier(it.L) + 1}`
+              : tierSpan(it)
   };
 }
 function payCur(op, arg) {
@@ -312,7 +368,7 @@ function forgeDo(it, op, arg, om) {
       }
       if (
         !omenPool(
-          { ...c, r: op === 'tran' ? 1 : op === 'rich' ? 2 : c.r },
+          { ...c, r: /^tran/.test(op) ? 1 : /^rich/.test(op) ? 2 : c.r },
           op === 'ess' ? String(arg).split(':')[0] : undefined
         ).length
       )
@@ -598,6 +654,7 @@ const PRD0 = () => ({
   pen: 0,
   book: 0,
   perf: 0,
+  perfC: 0,
   holy7: 0,
   v3: 0,
   heart: 0,
@@ -701,6 +758,7 @@ function dropCur(kind, o) {
     /* 覺醒石（0.2.75，企劃書 5.7）：階級 10 以上的王 3%（偽隨機，跟腐化石各自一個計數器）。⚠️ 暫定 */
     if ((o.tier || 0) >= HIGH_T && prdRoll('awk', AWK_P)) add('awk');
   }
+  if (o.tier) tierDrop(cur, mobLv(o.tier));
   return { cur, ess };
 }
 /* 一隻菁英或王死掉掉的裝備（小怪不掉裝備）：菁英 1 件黃（地圖詞「數量」有機會多 1 件）、王 3 件，第一件保底黃；
@@ -896,9 +954,22 @@ function killMat(m, t, o = {}) {
   M.soul += Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
+  /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
+  got.rare = Object.keys(D.cur).filter(rareCur);
   return got;
 }
 
+/* 一輪的掉落（0.4.1，離線結算與 tools/loot_check.js 共用）：nS 隻小怪、nE 隻菁英、1 隻王，走真的掉落函式（通貨、精髓、靈魂直接進材料頁）；
+   回傳裝備清單。o＝地圖詞的 qty／rar／mat（沒有就是 0） */
+function roundLoot(t, star, nS, nE, o = {}) {
+  const od = { star, p: mapCurP(star, nS, nE), ilvl: tierIlvl(t), tier: t, ...o },
+    items = [];
+  for (let i = 0; i < nS; i++) killMat({}, t, od);
+  for (let i = 0; i < nE; i++) killMat({ elite: 1 }, t, od), items.push(...dropGear(1, od));
+  killMat({ boss: 1 }, t, od);
+  items.push(...dropGear(2, od));
+  return items;
+}
 /* ---------- 鑑定：0.4.0 起掉下來就是鑑定好的（企劃書 5.4.1）；只剩舊存檔轉換用，翻牌演出 0.4.1 搬到回來時的摘要 ---------- */
 const unidList = s => s.inv.items.filter(it => it.uid);
 const unidN = s => unidList(s).length;

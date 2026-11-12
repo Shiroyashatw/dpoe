@@ -54,6 +54,19 @@ const STORY = [
   }
 ];
 const STORY_END = STORY.length - 1;
+/* 劇情區在世界地圖上的位置（0.4.1：拉開成跟主幹一樣的間距；鍵還是原本的六角格座標，舊存檔不用轉換） */
+const STORY_XY = [
+  [-340, 380],
+  [-120, 440],
+  [100, 360],
+  [-60, 160],
+  [-320, 120],
+  [-300, -150],
+  [-80, -300],
+  [160, -220],
+  [300, 0]
+];
+STORY.forEach((s, i) => ([s.x, s.y] = STORY_XY[i]));
 /* 主幹的後段（0.4.0）：Lv23 起每個 +5 到 Lv83；x、y 是世界地圖上的位置（像素，wmap.js 的 wmLat），換成最近的六角格。
    繞一圈經過五種地貌：中原 → 東邊熔岩 → 北邊冰原 → 西邊血原 → 南邊沼澤；g＝區域名 */
 const hexOf = (x, y) => {
@@ -77,10 +90,10 @@ const TRUNK2 = [
 ];
 /* 主幹：劇情 9 個＋後段 13 個，照順序；i 是第幾個 */
 const TRUNK = [
-  ...STORY.map(s => ({ q: s.q, r: s.r, n: s.n, lv: s.lv, t: 'story', g: '枯河原野' })),
+  ...STORY.map(s => ({ q: s.q, r: s.r, x: s.x, y: s.y, n: s.n, lv: s.lv, t: 'story', g: '枯河原野' })),
   ...TRUNK2.map(([n, x, y, g], i) => {
     const [q, r] = hexOf(x, y);
-    return { q, r, n, lv: 23 + i * 5, t: 'plain', g };
+    return { q, r, x, y, n, lv: 23 + i * 5, t: 'plain', g };
   })
 ];
 /* 主線特殊節點：掛在主幹第 at 個旁邊（dx、dy 像素），角色到 need 級才開；lock＝0.4.2 才開放 */
@@ -92,8 +105,8 @@ const SPECIAL = [
   { t: 'rift', at: 19, dx: 300, dy: 120, need: 75, lock: 1 }
 ].map(o => {
   const T = TRUNK[o.at],
-    [q, r] = hexOf(54 * T.q + o.dx, 36 * Math.sqrt(3) * (T.r + T.q / 2) + o.dy);
-  return { ...o, q, r, lv: Math.min(W_CAP, Math.max(T.lv, o.need)), g: T.g };
+    [q, r] = hexOf(T.x + o.dx, T.y + o.dy);
+  return { ...o, q, r, x: T.x + o.dx, y: T.y + o.dy, lv: Math.min(W_CAP, Math.max(T.lv, o.need)), g: T.g };
 });
 const WNODE = Object.fromEntries([
   ...TRUNK.map((n, i) => [wKey(n.q, n.r), { ...n, i }]),
@@ -292,12 +305,9 @@ function wWhy(s, q, r) {
   return '';
 }
 const wCan = (s, q, r) => !wWhy(s, q, r);
-/* 地圖上看得到的節點：主幹開到的地方、世界展開後的特殊節點（還沒開也看得到，寫幾級開） */
-function wList(s) {
-  const L = TRUNK_K.slice(0, Math.min(wFront(s), wOpen(s) ? TRUNK.length : STORY_END) + 1);
-  if (wOpen(s)) for (const n of SPECIAL) L.push(wKey(n.q, n.r));
-  return L;
-}
+/* 地圖上看得到的節點：0.4.1 起沒有迷霧，全部畫出來（還不能進的畫暗、點了寫原因） */
+const W_ALL = Object.keys(WNODE);
+const wList = () => W_ALL;
 /* 下一個目標：主幹最前面那個 */
 const wGoal = s => TRUNK_K[wFront(s)];
 /* 主幹的下一個／上一個（連續刷往下推、連死退回） */

@@ -64,7 +64,10 @@ async function flow(b) {
     openPanel('device');
   });
   await talkAll(p);
-  ok('世界地圖：一開始選中第一個節點', await p.evaluate(() => WM.sel === TRUNK_K[0] && wList(S).length === 1));
+  ok(
+    '世界地圖：一開始選中第一個節點、27 個節點全部畫出來（0.4.1 沒有迷霧）',
+    await p.evaluate(() => WM.sel === TRUNK_K[0] && wList(S).length === 27 && WM.nodes.length === 27)
+  );
   await p.click('#pdev [data-a=open]');
   ok(
     '在這裡刷：直接進場地（不用傳送門）、第 1 輪',
@@ -301,7 +304,7 @@ async function still(b) {
     return !$('wmcap').hidden;
   });
   await p.waitForTimeout(300);
-  ok('減少動態：演出直接到終點、字幕還在', r && (await p.evaluate(() => WM.wipe === 1 && !WM.anim && WM.vx === 0)));
+  ok('減少動態：演出直接到終點、字幕還在', r && (await p.evaluate(() => !WM.anim && WM.vx === 0)));
   ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
   await p.context().close();
 }

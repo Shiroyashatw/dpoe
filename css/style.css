@@ -362,7 +362,7 @@ body.touch .tmenu { display: flex; gap: 6px; position: fixed; top: calc(8px + en
 body.touch .panel { top: calc(6px + env(safe-area-inset-top)); max-height: calc(100dvh - 12px); padding: 10px; overscroll-behavior: contain; }
 body.touch #pinv { right: calc(6px + env(safe-area-inset-right)); width: calc(50vw - 9px); }
 body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); width: calc(50vw - 9px); }
-body.touch #pshop, body.touch #pflt, body.touch #preveal { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
+body.touch #pshop, body.touch #pflt, body.touch #preveal, body.touch #plog { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch .eqrow { flex-wrap: wrap; gap: 8px; }
 body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-space: normal; }
 body.touch .ph .x { width: 40px; height: 40px; }
@@ -693,7 +693,7 @@ body.touch.port #ptabs:not([hidden]) { display: flex; position: fixed; z-index: 
 body.touch.port .panel { left: 0 !important; right: 0 !important; width: auto !important; top: calc(48px + env(safe-area-inset-top)); bottom: 0; max-height: none; transform: none; border-radius: 0; outline: none; }
 body.touch.port.pair #pstash, body.touch.port.pair #pskill, body.touch.port.pair #pcraft { bottom: auto; height: calc((100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
 body.touch.port.pair #pinv { top: calc(48px + env(safe-area-inset-top) + (100dvh - 48px - env(safe-area-inset-top)) * 0.45); }
-body.touch.port #pset, body.touch.port #pflt, body.touch.port #pasc, body.touch.port #pshop, body.touch.port #preveal { top: env(safe-area-inset-top); transform: none; max-height: none; }
+body.touch.port #pset, body.touch.port #pflt, body.touch.port #pasc, body.touch.port #pshop, body.touch.port #preveal, body.touch.port #plog { top: env(safe-area-inset-top); transform: none; max-height: none; }
 body.touch.port .ph .sw { display: none; }
 .tinfo span { white-space: nowrap; }
 .tinfo div > :last-child { text-align: right; }
@@ -969,7 +969,7 @@ body.touch #tip .tqa { padding: 0 8px; }
 .fcaff .chip { height: 32px; cursor: pointer; }
 .fact2 { display: grid; gap: 4px; }
 .fact2 b { font-size: var(--fs-s); }
-.fact { grid-template-columns: repeat(4, 1fr); margin: 4px 0; }
+.fact { grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 4px 0; }
 .fcol { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 2px; }
 .fsw { width: 36px; height: 36px; border: 2px solid var(--line); border-radius: 50%; padding: 0; cursor: pointer; }
 .fsw.on { border-color: #fff; box-shadow: 0 0 0 2px #000 inset; }
@@ -1617,8 +1617,42 @@ body.touch.port #bossbar, body.touch.port #prog { width: calc(100% - 190px); }
 .cub.z .ic { filter: grayscale(1) brightness(0.5); }
 .cub.z em { color: var(--dim); }
 .cub.on { border-color: var(--sel); box-shadow: inset 0 0 0 1px var(--sel), inset 0 0 10px #000; }
+/* 0.4.1 高階（藍邊）、完美（金邊）通貨：外圈下面一列 */
+.cutier { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); grid-auto-rows: 52px; gap: 6px; margin: 0 0 8px; }
+.cutier .cub .ic { width: 30px; height: 30px; }
+.cub.g2 { border-color: var(--r1); }
+.cub.g3 { border-color: var(--r2); box-shadow: inset 0 0 12px rgba(255, 209, 102, 0.25); }
 .cuc { position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; padding: 6px; background: var(--s0); border: 1px dashed var(--fr); border-radius: 2px; box-shadow: inset 0 0 14px #000; text-align: center; }
 .cuc > span { font-size: var(--fs-s); line-height: 1.5; color: var(--dim); }
 .cuc .it.full { width: auto; height: 100%; aspect-ratio: 1; }
 .culog { margin: 6px 0; padding: 6px 8px; font-size: var(--fs-s); color: var(--tx); background: rgba(0, 0, 0, 0.35); border-left: 2px solid var(--sel); }
 body:not(.touch) .tmore .tonly { display: none; }
+
+/* ---------- 0.4.1 掉寶演出：上方橫幅、HUD 的掉落紀錄、掉落紀錄面板 ---------- */
+#banner { position: fixed; left: 50%; top: calc(22vh + env(safe-area-inset-top)); transform: translateX(-50%); z-index: 9; max-width: calc(100vw - 24px); padding: 8px 20px; font: 900 20px var(--serif); letter-spacing: 0.04em; color: var(--title); text-align: center; text-shadow: 0 2px 4px #000; background: rgba(13, 14, 17, 0.88); border: 1px solid var(--fr); box-shadow: var(--frame), 0 10px 28px rgba(0, 0, 0, 0.7); pointer-events: none; animation: pop 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+#banner[hidden] { display: none; }
+#banner.bn-frac { color: #fff7d6; border-color: #fff7d6; }
+#banner.bn-mem { color: #6fe3ff; border-color: #6fe3ff; }
+#banner.bn-cur, #banner.bn-perf { color: var(--gold); border-color: var(--gold); }
+@media (prefers-reduced-motion: reduce) { #banner { animation: none; } }
+#dlog { margin-top: 4px; pointer-events: none; }
+#dlog p { margin: 2px 0 0; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 2px #000; animation: lgfade 30s linear forwards; }
+@keyframes lgfade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { #dlog p { animation: none; } }
+.lg-frac { color: #fff7d6 !important; } .lg-mem { color: #6fe3ff !important; } .lg-cur, .lg-perf { color: var(--gold) !important; }
+#plog { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; z-index: 12; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#plog > * { flex: none; }
+.lgbar { display: grid; grid-template-columns: 8.5em 1fr auto; align-items: center; gap: 8px; margin: 4px 12px; font-size: var(--fs-s); }
+.lgbar .pb { height: 8px; background: var(--s0); border: 1px solid var(--fr-o); }
+.lgbar .pb i { display: block; height: 100%; background: linear-gradient(90deg, #7a4a14, #e1a54c); }
+.lgbar small { color: var(--dim); font-variant-numeric: tabular-nums; }
+.lgl { list-style: none; margin: 8px 0 0; padding: 0 12px 12px; overflow: auto; flex: 1 1 auto !important; min-height: 0; }
+.lgl li { display: grid; grid-template-columns: 3em 1fr auto; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-s); }
+.lgl li i { font-style: normal; color: var(--dim); }
+.lgl li small { color: var(--dim); }
+/* 0.4.1 回來時的摘要（沿用翻牌 #preveal） */
+.sumh { padding: 6px 12px 2px; font-size: var(--fs-s); }
+.sumh p { margin: 2px 0; }
+.sumh .frac { color: #fff7d6; } .sumh .mem { color: #6fe3ff; }
+.sumc { color: var(--dim); }
+.summ { margin: 6px 12px 0; font-size: var(--fs-s); color: var(--dim); text-align: center; }

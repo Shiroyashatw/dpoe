@@ -8258,6 +8258,46 @@ const ASC_COMBOS = `const combos = k => {
     R2(
       `(() => { S = newGame(); for (let i = 0; i < 300; i++) for (const it of dropGear(2, { ilvl: 40, star: 5, rar: 100 })) if ('uid' in it) return false; return true; })()`
     )
+  ); /* 0.4.1：通貨分三階、中間階梯、過濾器「賣掉」、一輪的掉落、離線結算 */
+  ok(
+    '通貨三階：完美的新詞一定是最高階、高階在最高 2 階內；高階 Lv45、完美 Lv70 才掉，完美 300 次保底',
+    R2(`(() => {
+      S = newGame(); S.mat.exalt3 = 999; S.mat.exalt2 = 999; S.mat.exalt = 999;
+      const T = op => { const it = mkItem('c_leather', 80, 2); it.a = it.a.slice(0, 3); const b = it.a.slice(), e = forgeDo(it, op); if (e) return 'err ' + e; return it.a.find(x => !b.includes(x)).T - bestTier(80); };
+      for (let i = 0; i < 200; i++) { const p = T('exalt3'); if (p !== 0) return 'perfect ' + p; const g = T('exalt2'); if (!(g >= 0 && g <= 1)) return 'greater ' + g; }
+      if (forgeWhat(mkItem('c_leather', 80, 2), 'exalt3').tier !== 'T' + bestTier(80)) return 'what';
+      const c = l => { const cur = { tran: 1000 }; tierDrop(cur, l); return cur; };
+      if (c(44).tran2 || c(44).tran3) return 'lv44';
+      const g = c(50).tran2 || 0; if (g < 60 || g > 140 || c(50).tran3) return 'lv50 ' + g;
+      S.prd.perfC = 0; const p = c(75).tran3 || 0; if (p < 3 || p > 25) return 'lv75 ' + p;
+      S.prd.perfC = TIER_P.pity - 1; const one = { tran: 1 }; tierDrop(one, 75); if (one.tran3 !== 1 || S.prd.perfC !== 0) return 'pity';
+      return FILL_OPS.includes('exalt3') && rareCur('exalt') && rareCur('aug2') && !rareCur('aug') ? '' : 'keys';
+    })()`) === ''
+  );
+  ok(
+    '中間階梯：兩條以上 T1（T0 算）→「T1×n」、品質 20% 以上 →「品質 n%」；過濾器有「賣掉」',
+    R2(`(() => {
+      const it = mkItem('c_leather', 80, 2);
+      it.a = it.a.slice(0, 3).map((a, i) => ({ ...a, T: i < 2 ? 1 : 4 })); it.q = 0;
+      const a = midMark(it); it.a[1].T = 3; it.q = 0.2; const b = midMark(it); it.q = 0.1; const c = midMark(it);
+      S = newGame(); S.filter.sets[2] = { rules: [], def: { act: 'sell', col: 0 } }; S.filter.cur = 2;
+      return a === 'T1×2' && b === '品質 20%' && c === '' && fltAct(it).act === 'sell' && FLT_ACT.sell === '賣掉';
+    })()`)
+  );
+  ok(
+    '一輪的掉落（roundLoot）：王保底黃裝、通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限 8 小時、停在原本的節點、過濾器照樣作用、不到 5 分鐘不算',
+    R2(`(() => {
+      S = newGame(); S.lv = 60; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
+      const m0 = S.mat.exalt, L = roundLoot(lvT(50), 3, 40, 4);
+      if (L.length < 7 || !L.some(it => it.r === 2) || S.mat.exalt <= m0) return 'round ' + L.length;
+      S.rounds = Array.from({ length: 10 }, (_, i) => (i < 2 ? { d: 60, die: 1 } : { d: 60, xp: 100, gold: 50, nS: 40, nE: 3 }));
+      if (offSettle(4 * 60e3)) return 'short';
+      const g0 = S.gold, o = offSettle(3600e3);
+      if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !o.items.length || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won]);
+      if (offSettle(99 * 3600e3).n !== 480) return 'cap';
+      S.inv.items = []; S.filter.sets[2] = { rules: [], def: { act: 'hide', col: 0 } }; S.filter.cur = 2;
+      return offSettle(3600e3).items.length === 0 && S.inv.items.length === 0 ? '' : 'filter';
+    })()`) === ''
   );
 }
 /* 世界地圖（world.js，0.4.0 固定節點）：主幹照等級排、特殊節點掛旁邊到等級才開、可以重複刷、往下推與退回、星級每輪重抽、血霧、裂口 */
@@ -8417,8 +8457,8 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：24 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎；0.2.80 燭龍之心）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 24 &&
+    '通貨：32 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎；0.2.80 燭龍之心；0.4.1 高階與完美的蛻變、增幅、富豪、崇高）＋靈魂＋精髓表，沒有粉',
+    Object.keys(E.CUR).length === 32 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
       JSON.stringify(nm.ess) === '{}' &&

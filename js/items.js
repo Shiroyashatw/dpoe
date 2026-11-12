@@ -76,10 +76,11 @@ function rollSock(k) {
 /* 品質的區間與顏色：20% 以上（藍字）、25% 以上（金字） */
 const qBand = q => (q >= 0.25 ? 2 : q >= 0.2 ? 1 : 0);
 /* 掉落標籤上要不要特別標出來（金字以上） */
-function dropTag(it) {
-  if (it.q == null) return '';
-  return qBand(it.q) >= 2 ? `（品質 ${Math.round(it.q * 100)}%）` : '';
-}
+/* 中間階梯（0.4.1，企劃書 5.9）：★ 與追憶之間的兩階標記：兩條以上 T1（T0 也算）、品質 20% 以上；只標記，沒有停頓與橫幅 */
+const t1N = it => (it.a || []).filter(a => a.T <= 1).length;
+const midMark = it =>
+  it.charm ? '' : t1N(it) >= 2 ? `T1×${t1N(it)}` : (it.q || 0) >= 0.2 ? `品質 ${Math.round(it.q * 100)}%` : '';
+const dropTag = it => (midMark(it) ? `（${midMark(it)}）` : '');
 function mkItem(baseId, ilvl, rar) {
   const B = BASEI[baseId],
     K = KINDS[B.k],

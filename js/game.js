@@ -203,12 +203,91 @@ function roundEnd() {
   if (go) hudWarn(`往下推：${wName(S, ...wXY(nx))}`);
   runNode(go ? nx : k, !go);
 }
+/* ---------- 離線結算（0.4.1，企劃書 2.2）：分頁切走、手機鎖螢幕、關掉時主迴圈不跑；回來時照最近 10 輪真實的秒數與死亡率估算打了幾輪 ----------
+   S.rounds＝最近 10 輪 { d 秒數, die, xp, gold, nS, nE }；離開超過 OFF_MIN 才算，上限 OFF_MAX；停在目前的節點（不往下推、不退回）；
+   每一輪走真的掉落函式（roundLoot），過濾器照樣作用（隱藏的不撿、賣掉的換金幣），倉庫滿了照樣換金幣。
+   shortcut: 地圖詞的數量／稀有度不算（每輪的詞是隨機的），要更準就記最近 10 輪的 qty／rar 平均 */
+const OFF_MIN = 5 * 60e3,
+  OFF_MAX = 8 * 3600e3;
+function roundRec(r) {
+  (S.rounds = S.rounds || []).push(r);
+  if (S.rounds.length > 10) S.rounds.shift();
+}
+function offSettle(away) {
+  const k = S.world.cur,
+    R = S.rounds || [],
+    ok = R.filter(r => !r.die);
+  if (!k || !S.auto || S.stopWhy || !ok.length || away < OFF_MIN || wWhy(S, ...wXY(k))) return null;
+  const avg = R.reduce((a, r) => a + r.d, 0) / R.length,
+    die = 1 - ok.length / R.length,
+    mean = f => ok.reduce((a, r) => a + (r[f] || 0), 0) / ok.length,
+    n = Math.floor(Math.min(away, OFF_MAX) / 1000 / Math.max(5, avg)),
+    t = lvT(wLv(...wXY(k))),
+    star = wStar(S, k),
+    M0 = { ...MAT() },
+    g0 = S.gold,
+    lv0 = S.lv,
+    items = [];
+  let won = 0;
+  for (let i = 0; i < n; i++) {
+    if (Math.random() < die) continue;
+    won++;
+    for (const it of roundLoot(t, star, Math.round(mean('nS')), Math.round(mean('nE')))) {
+      const act = fltAct(it).act;
+      if (act === 'hide') continue;
+      if (act === 'sell' || !invPut(S.inv, it)) {
+        S.gold += sellPrice(it);
+        continue;
+      }
+      items.push(it);
+      if (it.frac || it.mem) dropLog(`${it.frac ? '★ 破裂' : '◈ 追憶'}・${itemName(it)}`, it.frac ? 'frac' : 'mem');
+    }
+    S.gold += Math.round(mean('gold'));
+    /* 經驗：安靜地加（不跳升級特效） */
+    S.xp += mean('xp');
+    while (S.xp >= xpNeed(S.lv) && S.lv < LVMAX) (S.xp -= xpNeed(S.lv)), S.lv++;
+  }
+  for (const c of Object.keys(CUR))
+    if (MAT()[c] > (M0[c] || 0) && rareCur(c)) dropLog(CUR[c].n, /3$/.test(c) ? 'perf' : 'cur');
+  ST = stats();
+  save();
+  return {
+    away: Math.min(away, OFF_MAX),
+    n,
+    won,
+    items,
+    cur: Object.keys(CUR)
+      .filter(c => MAT()[c] > (M0[c] || 0))
+      .map(c => [c, MAT()[c] - (M0[c] || 0)]),
+    gold: S.gold - g0,
+    lv: S.lv - lv0
+  };
+}
+/* 回來時的摘要：最好的 SUM_FLIP 件一件一件翻（★ > 追憶 > 兩條 T1 > 黃裝），其餘合成一行 */
+const SUM_FLIP = 8;
+const sumScore = it => (it.frac ? 40 : 0) + (it.mem ? 20 : 0) + (t1N(it) >= 2 ? 10 : 0) + it.r;
+function offShow(o) {
+  if (!o) return;
+  const best = [...o.items].sort((a, b) => sumScore(b) - sumScore(a)).slice(0, SUM_FLIP),
+    h = Math.floor(o.away / 3600e3),
+    m = Math.floor((o.away % 3600e3) / 60e3),
+    nf = o.items.filter(it => it.frac).length,
+    nm = o.items.filter(it => it.mem).length;
+  revealOpen(best.reverse(), {
+    title: '離開的時候',
+    head: `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `（倒下 ${o.n - o.won} 輪）` : ''}</p>
+      <p>裝備 <b>${o.items.length}</b> 件${nf ? ` · <span class="frac">★ ${nf}</span>` : ''}${nm ? ` · <span class="mem">◈ ${nm}</span>` : ''} · 金幣 <b class="c-gold">+${o.gold}</b>${o.lv ? ` · 升了 <b>${o.lv}</b> 級` : ''}</p>
+      ${o.cur.length ? `<p class="sumc">${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}</div>`,
+    more: o.items.length > best.length ? `其餘 ${o.items.length - best.length} 件已經放進倉庫` : ''
+  });
+}
 /* 死了（0.4.0）：原地復活、這一輪重來；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（等玩家按「再推一次」） */
 const DEAD_MAX = 3;
 function deadAgain() {
   const k = G.node;
   if (!k) return enterHideout();
   S.world.dn = (S.world.dn || 0) + 1;
+  roundRec({ d: G.t, die: 1 });
   if (S.world.dn < DEAD_MAX || !wPrev(k)) return runNode(k, true);
   const pv = wPrev(k);
   S.world.hold = 1;
@@ -295,6 +374,8 @@ function enterMap(t, keep) {
   resetWorld(cols * TS, rows * TS);
   G.round = was ? was.round + 1 : 1;
   G.nextT = 0;
+  /* 這一輪的統計（0.4.1 離線結算用）：經驗、金幣、小怪與菁英數 */
+  G.rs = { xp: 0, gold: 0, nS: 0, nE: 0 };
   G.scene = 'map';
   G.mapT = t;
   /* 節點：血霧扣 25%、這一批卡用掉了（失敗回來也是新的一批）；裂口的王帶 1 條墮落詞 */
@@ -857,6 +938,7 @@ function killMob(m) {
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
   if (m.summoned || PRO.on) return;
   G.kills++;
+  if (G.rs) m.elite ? G.rs.nE++ : !m.boss && G.rs.nS++;
   const fk = FLASK.perKill * (m.elite ? 3 : m.boss ? 10 : 1) * (1 + ST.flaskChg / 100);
   P.flask = Math.min(FLASK.n, P.flask + fk);
   P.mflask = Math.min(FLASK.n, P.mflask + fk);
@@ -879,8 +961,10 @@ function killMob(m) {
     hunt: G.hunt,
     zod: !!G.zod
   };
+  const mat = killMat(m, t, od);
+  for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   [
-    ...killMat(m, t, od),
+    ...mat,
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),
     ...(m.boss && m.D.sin ? sinDrop(m.D.sin) : []),
     ...(m.boss && m.D.xi ? xiDrop(m.D.xi) : []),
@@ -917,6 +1001,7 @@ function bossDown(m) {
   /* 打倒王才算走過：路開通；連死歸零；約 2 秒後在同一個場地放下一輪（0.4.0 連續刷，roundEnd） */
   const ty = G.node ? wClear(S, G.node) : '';
   S.world.dn = 0;
+  if (G.node) roundRec({ d: G.t, ...G.rs });
   if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
   if (m.D.fd && FENG.elites.includes(m.D.fd) && fdHun(S) >= FENG.hun)
     hudWarn(`勾魂令 ${fdHun(S)} 張：山海寶盒可以開閻羅殿了`);
@@ -930,18 +1015,54 @@ function bossDown(m) {
   save();
 }
 const ROUND_GAP = 2;
+/* 稀有掉落（0.4.1，企劃書 5.9）：★、追憶、崇高石各階、高階與完美通貨：停 RARE_HOLD 秒再吸、光柱、專屬音、上方橫幅、記進掉落紀錄 */
+const RARE_HOLD = 1.5;
+let LOGV = 0; /* 掉落紀錄改了就加一（HUD 重畫） */
+function dropLog(n, c) {
+  const L = (S.log = S.log || []);
+  L.unshift({ t: Date.now(), n, c });
+  if (L.length > 50) L.length = 50;
+  LOGV++;
+}
+/* 通貨很多時（一波殺完同時掉好幾顆）：橫幅與音效 1.2 秒最多一次，紀錄照記；★ 與追憶一定演 */
+let RARE_T = 0;
+function rareShow(txt, c, snd) {
+  dropLog(txt, c);
+  const now = performance.now();
+  if ((c === 'cur' || c === 'perf') && now - RARE_T < 1200) return;
+  RARE_T = now;
+  banner(txt, c);
+  sfx(snd);
+}
 function dropAt(x, y, o) {
+  /* 過濾器「賣掉」（0.4.1）：不撿、不畫，直接換成金幣，不記紀錄 */
+  if (o.it && !o.nopick && fltAct(o.it).act === 'sell') {
+    const p = sellPrice(o.it);
+    S.gold += p;
+    return num(x, y - 20, p, 'gold');
+  }
   const a = rnd(0, TAU),
     s = rnd(30, 90);
   Object.assign(o, { x: x + Math.cos(a) * s, y: y + Math.sin(a) * s, sx: x, sy: y, t: 0 });
   if (!open(o.x, o.y, 10)) (o.x = x), (o.y = y);
   G.drops.push(o);
-  /* ★ 與追憶有專屬落地音（audio.js），黃裝的「rare」照舊 */
-  if (o.it) sfx(o.it.frac ? 'star' : o.it.mem ? 'mem' : o.it.r === 2 ? 'rare' : 'drop0');
+  if (o.show) return (o.hold = RARE_HOLD), rareShow(CUR[o.show].n, /3$/.test(o.show) ? 'perf' : 'cur', 'orb');
+  if (!o.it || o.nopick) return;
+  const it = o.it,
+    mm = midMark(it);
+  /* ★ 與追憶：停一下、橫幅、專屬音；中間階梯只記紀錄；黃裝的「rare」照舊 */
+  if (it.frac || it.mem)
+    return (
+      (o.hold = RARE_HOLD),
+      rareShow(`${it.frac ? '★ 破裂' : '◈ 追憶'}・${itemName(it)}`, it.frac ? 'frac' : 'mem', it.frac ? 'star' : 'mem')
+    );
+  if (mm) dropLog(`${itemName(it)}（${mm}）`, 'mid');
+  sfx(it.r === 2 ? 'rare' : 'drop0');
 }
 function gainXp(v) {
   if (S.lv >= LVMAX) return;
   S.xp += v;
+  if (G.rs) G.rs.xp += v;
   while (S.xp >= xpNeed(S.lv) && S.lv < LVMAX) {
     S.xp -= xpNeed(S.lv);
     S.lv++;
@@ -959,7 +1080,7 @@ function gainXp(v) {
    一組＝{ rules: [規則…], def: { act, col } }；規則＝{ on, c: 條件（有這個欄位才算用）, act, col }
    act：pick 自動撿、show 顯示、hl 醒目（col 是 FLT_COL 的顏色）、hide 隱藏；寶石與通貨不進過濾器（寶石一律顯示、金幣碎片自動吸收） */
 const FLT_COL = ['#ff5d5d', '#ffa24a', '#ffe066', '#6ee06e', '#5ad1ff', '#d07aff'];
-const FLT_ACT = { pick: '自動撿', show: '顯示', hl: '醒目', hide: '隱藏' };
+const FLT_ACT = { pick: '自動撿', show: '顯示', hl: '醒目', hide: '隱藏', sell: '賣掉' };
 const FLT_KIND = [
   ['weapon', '武器'],
   ['armor', '防具'],
@@ -1045,8 +1166,11 @@ function dropFlt(d) {
 }
 /* 撿起來：金幣直接加；裝備進清單倉庫（0.4.0）。倉庫滿了：普通裝直接換成金幣（每張圖提醒一次），★ 與追憶照樣收（多留的格子） */
 function pickup(d) {
-  if (d.gold) {
+  if (d.show) {
+    /* 稀有通貨的演出：數量早就進材料頁了 */
+  } else if (d.gold) {
     S.gold += d.gold;
+    if (G.rs) G.rs.gold += d.gold;
     num(d.x, d.y - 20, d.gold, 'gold');
     sfx('coin');
   } else if (!invPut(S.inv, d.it)) {
@@ -1966,8 +2090,8 @@ function frame(now) {
       const map = G.scene === 'map' && !PRO.on,
         act = d.it && dropFlt(d).act;
       if (
-        (d.gold || (d.it && !d.nopick && !d.full && (map ? act !== 'hide' : act === 'pick'))) &&
-        d.t > 0.4 &&
+        (d.gold || d.show || (d.it && !d.nopick && !d.full && (map ? act !== 'hide' : act === 'pick'))) &&
+        d.t > (d.hold || 0.4) &&
         (map || dist(P, d) < 150)
       ) {
         const f = Math.min(1, dt * 10);

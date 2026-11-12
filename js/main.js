@@ -14,6 +14,10 @@ function save() {
   /* 序章裡 S 是臨時角色，寫進存檔的永遠是真的那份 */
   const s = PRO.real || S;
   s.savedAt = Date.now();
+  /* 離線結算（0.4.1）：存的時候在刷圖，下次打開就從存檔時間算起 */
+  s.farm = G.scene === 'map' && !G.arena && !PRO.on ? 1 : 0;
+  /* 分頁在背景時計時器還會存檔：離開的時間從切走那一刻算 */
+  s.offAt = HIDE_AT || s.savedAt;
   try {
     localStorage.setItem(KEY + SLOT, JSON.stringify(s));
   } catch (e) {
@@ -78,7 +82,8 @@ function migrate(s) {
   if (o.eq.off && !offOK(o.eq.weapon, o.eq.off) && invPut(o.inv, o.eq.off)) o.eq.off = null;
   return o;
 }
-let NARROW = false;
+let NARROW = false,
+  HIDE_AT = 0;
 function resize() {
   DPR = Math.min(2, devicePixelRatio || 1);
   /* 手機：畫面高度看得到差不多的範圍；背包格子照寬度（夠寬就兩個面板並排） */
@@ -106,6 +111,9 @@ function start() {
   resize();
   addEventListener('resize', resize);
   S = migrate(load());
+  /* 離線結算要用的（enterHideout 之後存檔會蓋掉） */
+  const farm = S.farm,
+    offAt = S.offAt || S.savedAt || Date.now();
   ST = stats();
   hudInit();
   enterHideout();
@@ -120,6 +128,18 @@ function start() {
     } else cloudPush();
   });
   setInterval(save, 10000);
+  /* 離線結算（0.4.1）：上次關掉時在刷圖 → 照存檔時間算，接著刷同一個節點 */
+  if (farm && S.auto && S.world.cur && !wWhy(S, ...wXY(S.world.cur))) {
+    const o = offSettle(Date.now() - offAt);
+    runNode(S.world.cur);
+    offShow(o);
+  }
+  /* 分頁切走、手機鎖螢幕：記時間，回來時結算 */
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return (HIDE_AT = Date.now()), save();
+    if (G.scene === 'map' && HIDE_AT) offShow(offSettle(Date.now() - HIDE_AT));
+    HIDE_AT = 0;
+  });
   requestAnimationFrame(frame);
   (window.requestIdleCallback || (f => setTimeout(f, 1500)))(treePrebuild, { timeout: 4000 });
   verCheck();
