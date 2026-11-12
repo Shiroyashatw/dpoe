@@ -136,7 +136,7 @@ function treeRender() {
       return `<g class="nd asc b${n.big}${n.g ? ' grp' : ''}" data-n="${n.id}" transform="translate(${n.x} ${n.y})"><circle r="${r}"/>${u ? `<image data-ic="${n.ic}" x="${-r * 0.7}" y="${-r * 0.7}" width="${r * 1.4}" height="${r * 1.4}"/>` : ''}${n.big === 1 ? `<text y="${n.y < -330 ? -r - 8 : r + 17}">${esc(n.n)}</text>` : ''}</g>`;
     }).join('');
   } else
-    html += `<text class="hint" y="-10">還沒有昇華</text><text class="hint sm" y="22">到藏身處的昇華石碑選一個</text>`;
+    html += `<text class="hint" y="-10">還沒有昇華</text><text class="hint sm" y="22">到選單的昇華石碑選一個</text>`;
   const B = treeBox();
   $('ptree').innerHTML = `<div class="tbar">
     <b>天賦樹</b>

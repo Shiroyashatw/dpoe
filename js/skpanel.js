@@ -144,7 +144,7 @@ function skCur() {
     slot = aura ? S.auras[SKUI.ai] : S.skills[SKUI.i],
     rec = slot && slot.k ? slot : null,
     D = rec && (aura ? AURAS[rec.k] : awD(rec.k, awOf(rec.k)));
-  return { aura, slot, rec, D, k: rec && rec.k, g: rec && recGem(rec, S.lib), name: aura ? '光環' : SLOTKEY[SKUI.i] };
+  return { aura, slot, rec, D, k: rec && rec.k, g: rec && recGem(rec, S.lib), name: aura ? '光環' : slotKey(SKUI.i) };
 }
 /* 拿著現在的武器看不看得到這招（綁武器的別把拿不到的列出來）；看得到但現在用不了（要盾、沒點亮昇華）的灰掉 */
 const skShown = D => !D.wt || D.wt.includes(ST.wt) || (ST.wt === 'unarmed' && D === SKILLS.slash);
@@ -229,10 +229,10 @@ function skSlots() {
   const cards = S.skills.map((r, i) => {
     const on = SKUI.i === i;
     if (!r.k)
-      return `<button class="slot empty ${on ? 'pick' : ''}" data-sk="slot:${i}"><i class="k">${SLOTKEY[i]}</i>${ICO.plus}<span class="nm">挑一招</span></button>`;
+      return `<button class="slot empty ${on ? 'pick' : ''}" data-sk="slot:${i}"><i class="k">${slotKey(i, 1)}</i>${ICO.plus}<span class="nm">挑一招</span></button>`;
     const D = SKILLS[r.k],
       bad = slotBad(i);
-    return `<button class="slot ${on ? 'on' : ''} ${bad ? 'bad' : ''}" data-sk="slot:${i}" ${bad ? `title="失效：${esc(bad)}"` : ''}>${bad ? '<i class="badm">失效</i>' : ''}<i class="k">${SLOTKEY[i]}</i>${icHTML(D.ic)}<span class="nm">${esc(D.n)}</span><span class="lv">Lv ${libLv(r.k)}</span>${S.lib.aw && S.lib.aw[r.k] ? '<i class="awm" title="已覺醒"></i>' : ''}</button>`;
+    return `<button class="slot ${on ? 'on' : ''} ${bad ? 'bad' : ''}" data-sk="slot:${i}" ${bad ? `title="失效：${esc(bad)}"` : ''}>${bad ? '<i class="badm">失效</i>' : ''}<i class="k">${slotKey(i, 1)}</i>${icHTML(D.ic)}<span class="nm">${esc(D.n)}</span><span class="lv">Lv ${libLv(r.k)}</span>${S.lib.aw && S.lib.aw[r.k] ? '<i class="awm" title="已覺醒"></i>' : ''}</button>`;
   });
   const au = S.auras.filter(Boolean);
   cards.push(
@@ -446,7 +446,7 @@ function skPick(c) {
       const j = S.skills.findIndex(s => s.k === sel.k),
         put = sel.why
           ? `<button class="btn pri" disabled>放到 ${c.name}</button>`
-          : `<button class="btn pri" data-sk="put:${sel.k}">${j >= 0 && j !== SKUI.i ? `與 ${SLOTKEY[j]} 互換` : `放到 ${c.name}`}</button>`;
+          : `<button class="btn pri" data-sk="put:${sel.k}">${j >= 0 && j !== SKUI.i ? `與 ${slotKey(j)} 互換` : `放到 ${c.name}`}</button>`;
       card = skCard(sel.k, put + lvBtn, sel.why);
     } else if (SKUI.view === 'sups')
       card = skCard(
@@ -473,7 +473,7 @@ function skPick(c) {
     <div class="grid2">${show
       .map(
         x =>
-          `<button class="g ${SKUI.pick === x.k ? 'sel' : ''} ${x.why ? 'dim' : ''}" data-sk="pick:${x.k}">${x.key >= 0 ? `<span class="key">${SLOTKEY[x.key]}</span>` : ''}<span class="lv ${x.lv > 1 ? '' : 'z'}">${x.lv > 1 ? x.lv : '—'}</span>${icHTML(x.D.ic)}${x.aw ? '<i class="awm"></i>' : ''}<span class="nm">${esc(x.D.n)}</span></button>`
+          `<button class="g ${SKUI.pick === x.k ? 'sel' : ''} ${x.why ? 'dim' : ''}" data-sk="pick:${x.k}">${x.key >= 0 ? `<span class="key">${slotKey(x.key, 1)}</span>` : ''}<span class="lv ${x.lv > 1 ? '' : 'z'}">${x.lv > 1 ? x.lv : '—'}</span>${icHTML(x.D.ic)}${x.aw ? '<i class="awm"></i>' : ''}<span class="nm">${esc(x.D.n)}</span></button>`
       )
       .join('')}</div>
     ${card}

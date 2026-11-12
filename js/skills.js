@@ -5,6 +5,9 @@
 /* ---------- 技能欄 ---------- */
 const NSLOT = 5;
 const SLOTKEY = ['左鍵', '右鍵', 'Q', 'E', 'R'];
+/* 這一格怎麼叫：手機沒有鍵盤，寫第幾格（short＝卡片角落的小字） */
+const slotKey = (i, short) =>
+  typeof TOUCH !== 'undefined' && TOUCH.on ? (short ? '' + (i + 1) : `第 ${i + 1} 格`) : SLOTKEY[i];
 /* 同一顆技能上已經有同分類的輔助（排在前面的那顆才算） */
 /* 覺醒輔助 Lv5 起：插的技能等級 +1、Lv6 +2（0.2.80） */
 const awLvAdd = g =>
@@ -293,7 +296,7 @@ function slotBadWarn() {
   if (!L.length) return;
   const i = L[0];
   hudWarn(
-    `${SLOTKEY[i]}「${SKILLS[S.skills[i].k].n}」失效了（${slotBad(i)}）${L.length > 1 ? `，還有 ${L.length - 1} 招也失效` : ''}`
+    `${slotKey(i)}「${SKILLS[S.skills[i].k].n}」失效了（${slotBad(i)}）${L.length > 1 ? `，還有 ${L.length - 1} 招也失效` : ''}`
   );
 }
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */

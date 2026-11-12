@@ -282,7 +282,10 @@ function hudTick() {
       ? '地層'
       : G.scene === 'hide'
         ? `藏身處 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
-        : `${G.nodeN || '地圖'} · ${'★'.repeat(G.star || 1)} · 第 ${G.round || 1} 輪 · 怪物 Lv ${mobLv(G.mapT)} · 角色 Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻`;
+        : PORT()
+          ? /* 直立：右邊是三顆鈕，一行放不下，分兩行（角色等級在面板裡看） */
+            `${G.nodeN || '地圖'} · ${G.star || 1}★ · 第 ${G.round || 1} 輪\n怪物 Lv ${mobLv(G.mapT)} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻`
+          : `${G.nodeN || '地圖'} · ${'★'.repeat(G.star || 1)} · 第 ${G.round || 1} 輪 · 怪物 Lv ${mobLv(G.mapT)} · 角色 Lv ${S.lv} · 剩 ${G.mobs.filter(m => !m.arrow).length} 隻`;
   setT($('area'), 'at', at);
   runBar();
   logBar();
@@ -543,7 +546,7 @@ function fltHTML() {
   <div class="flist" id="flist">${set.rules.map(fltRuleHTML).join('')}
   <div class="frule def"><div class="fhd2"><b>其他（預設）</b><small>沒有符合上面任何規則的</small></div>${fltActHTML(set.def, 'd')}</div></div>
   <div class="frow"><button class="btn" data-fl="add" ${set.rules.length >= 20 ? 'disabled' : ''}>＋ 新增規則</button><button class="btn" data-fl="tpl">套用新手範本</button><button class="btn" data-fl="tpl2" title="只撿 ★、追憶與物品等級 10 以上的稀有物品，其他全部隱藏">套用「只撿好貨」</button></div>
-  <p class="sethint">金幣與碎片一律自動撿起；「隱藏」的不顯示也不撿。地上的裝備都未鑑定，只能比對 T、孔、品質、★、追憶，詞綴條件不會符合。</p>`;
+  <p class="sethint">金幣與碎片一律自動撿起；「隱藏」的不顯示也不撿，「賣掉」的直接換成金幣。</p>`;
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-fl]');
@@ -1238,7 +1241,7 @@ function logHTML() {
   return `<div class="ph"><b>掉落紀錄</b><span>最近 50 筆重點掉落</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="ph2">保底進度<span>滿了下一次必出</span></div>
   ${bar('★ 破裂（黃裝）', P.frac || 0, prdMax(FRAC_P[2]))}${bar('◈ 追憶（王）', P.mem || 0, prdMax(MEM_P[2]))}${bar('完美通貨', P.perfC || 0, TIER_P.pity)}
-  <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c}"><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim">還沒有重點掉落</li>'}</ul>`;
+  <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c}"><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">還沒有重點掉落</li>'}</ul>`;
 }
 /* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、藏身處的「繼續刷」 */
 function runBar() {
