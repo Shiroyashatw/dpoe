@@ -66,6 +66,7 @@
 | `tools/loot_check.js` | 掉落量的「有感事件」模擬（0.4.1）：照連續刷一輪（`roundLoot`）數每 5 分鐘幾次 ★、追憶、崇高各階、高階與完美通貨，目標至少 1 次；`node tools/loot_check.js [小時] [一輪幾秒]`，只量不改 |
 | `tools/touch_check.js` | 手機操作測試（Playwright 模擬觸控，送真的觸控事件）：搖桿、普攻連打、技能點／拖／取消、翻滾、按鈕不重疊、面板不出畫面、點道具的動作、天賦樹點兩次與兩指縮放；直立另外測 0.4.4 的版面（分頁列、半版面板在戰鬥下面、格子與按鈕 ≥44px、手指在格子上滑＝捲清單、說明框的「做裝」、挑裝備、把手、更多與地點清單、自動收起技能列、面板開著時死亡卡不蓋上來）；`node tools/touch_check.js 寬 高 [網址]` |
 | `tools/ui_perf.js` | 介面順不順（0.4.7，skill `ui-design`）：手機直立、CPU 降速 4 倍，量每個常用操作「按下到畫面更新」幾毫秒（標準 ≤100）、刷圖中捲戰利品每一格、天賦樹的打開／拖曳／縮放與一開始每個點幾 px；只量不改，改介面前後各跑一次比數字；`node tools/ui_perf.js [網址] [寬] [高]` |
+| `tools/ui_look.js` | 介面亂不亂（0.4.8，`DESIGN.md` 第 7 節的預算）：量每個畫面看得到的範圍裡幾種字的樣式、字色、框，幾個有框的元素，12px 以下的字佔幾成，對比不足的字；另存瞇眼圖（模糊＋灰階）看最亮的是不是主數字與主要按鈕；只量不改，要量的畫面在檔案裡的 `SCREENS`；`node tools/ui_look.js [寬] [高] [網址] [圖存哪]`，別的腳本可以 `require` 它的 `audit`／`squint` |
 | `tools/hide_bake.js` | 藏身處烘圖（0.2.44）：地形、擺設、光都在這支（`L`、`PROPS`、`ZONE`、`layout`），`node tools/hide_bake.js` 寫 `img/hide-*.png` 與 `js/hideart.js`，並檢查每個設施從出生點走得到 |
 | `tools/hide_check.js` | 藏身處實測（Playwright）：走到每個設施、打三隻稻草人、實戰模式、DPS、召喚物圖騰地面、盲擊撲的煙霧、每把武器配輕盾的 DPS 對帳、清場、傳送門、存檔還原；`node tools/hide_check.js [網址]`（`PW_CHROME` 指定瀏覽器） |
 | `tools/pro_check.js` | 開場實測（Playwright，0.3.0 起沒有序章）：新存檔看完開場落在藏身處並拿到劍、撿骨師與掌櫃第一次對話、設施提示、老存檔角色不動、跳過、重新整理、版本號重跑、減少動態、手機四個尺寸的字幕與落地；`node tools/pro_check.js [網址] [fresh／vet／skip／phone]` |

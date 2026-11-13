@@ -735,7 +735,7 @@ function drawCharges() {
   });
 }
 /* 蓄力條（0.2.54）：蓄力技能按住時畫在腳下，一段一格；正在蓄的那格跟著時間長，滿一格變亮，全滿整條最亮。
-   顏色用介面的鐵灰階（DESIGN.md 的 locked-ink／bronze-bright／title-gold），不用黃色（黃色只給稀有度） */
+   顏色用介面的鐵灰階（DESIGN.md 的 locked／frame-bright／title），不用黃色（黃色只給稀有度） */
 function chargeBar() {
   const a = P.act;
   if (!a || !a.charge) return;
