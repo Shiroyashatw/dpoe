@@ -1,5 +1,8 @@
 /* dungeonPOE · HUD（生命／魔力球、技能列、經驗條、王的血條）、面板（裝備與背包、倉庫、地圖台）、拖曳、說明框、死亡與通關、輸入 */
 'use strict';
+/* 視窗大小（main.js 的 resize 更新）：直接讀 innerWidth／innerHeight 會在畫面有變動時強制排版一次，面板重畫時一格會排好幾次（0.4.7） */
+let IW = innerWidth,
+  IH = innerHeight;
 let C = 36; /* 背包一格的大小（px）；手機照螢幕寬度調（main.js 的 resize） */
 const icHTML = (n, cls = '') => {
   const u = artIconURL(n);
@@ -87,8 +90,10 @@ const FMENU = [
 ];
 function fmenuOpen(k) {
   const on = k === 'device' ? PANEL.device : PANEL[k];
+  HP_HOLD++;
   closePanels();
-  if (on) return;
+  HP_HOLD--;
+  if (on) return hudPanels();
   if (k === 'device') openWorld();
   else (NAV.full = PORT() ? 1 : 0), openPanel(k);
 }
@@ -363,8 +368,10 @@ const PANEL = {
 };
 /* 清單倉庫的篩選與排序（0.4.0）：f 篩選、o 排序、n 畫幾件（每次多 BAG_STEP） */
 /* f 大類、k 部位（武器是武器類別，空字串＝這一大類全部）、fl 疊加的條件（up 可能升級／frac ★／mem 追憶） */
-const BAG = { f: 'all', k: '', fl: {}, o: 'new', n: 120 };
-const BAG_STEP = 120;
+const BAG = { f: 'all', k: '', fl: {}, o: 'new', n: 0 };
+/* 一開始畫幾件（n＝0 時）：直立 8 列，其他 120；捲到快到底自動再補 BAG_STEP 件（bagGrow），不用整片重畫 */
+const BAG_STEP = 56,
+  bagShown = () => BAG.n || (PORT() ? 56 : 120);
 /* 手機直立（0.4.4，企劃書第 9 節）：上半看戰鬥、下半是面板，底部固定一排分頁，一次只看一個面板。
    view＝裝備面板畫哪一半（bag 戰利品／char 角色）、pick＝做裝正在挑裝備、full＝面板放大到蓋滿 */
 /* slot＝角色頁選中的那一格（裝備欄鍵或 ch0～ch2），底下列出倉庫裡可以換上去的 */
@@ -383,13 +390,17 @@ const navOn = () =>
 /* 點分頁：開那一頁；點亮著的那一頁＝收起來（「更多」底下的面板開著時點「更多」＝回到更多） */
 function navGo(t) {
   const on = navOn() === t && (t !== 'more' || PANEL.more);
+  HP_HOLD++;
   closePanels();
-  if (on) return;
+  HP_HOLD--;
+  NOSNAP = 1;
+  if (on) return hudPanels(), (NOSNAP = 0);
   /* 做裝要同時看得到裝備的詞與通貨、技能面板很長（圓環＋說明＋升級鈕）：打開就蓋滿，把手可以縮回半版 */
   if (t === 'craft' || t === 'skill') NAV.full = 1;
   if (t === 'bag' || t === 'char') (NAV.view = t), openPanel('inv');
   else if (t === 'craft') openPanel(PANEL.ctab === 'forge' ? 'craft' : 'stash');
   else openPanel(t);
+  NOSNAP = 0;
 }
 const navHTML = () => {
   const on = navOn();
@@ -401,7 +412,7 @@ const navHTML = () => {
 /* 半版面板開著（世界地圖是全螢幕，不算） */
 const sheetOn = () => !!(PORT() && anyPanel() && !PANEL.device);
 /* 遊戲畫布的高度：半版面板開著時縮到上半，戰鬥照樣看得到 */
-const cvH = () => (sheetOn() && !NAV.full ? Math.round(innerHeight * SHEET_TOP) : innerHeight);
+const cvH = () => (sheetOn() && !NAV.full ? Math.round(IH * SHEET_TOP) : IH);
 function sheetSync() {
   const on = sheetOn(),
     b = document.body,
@@ -418,8 +429,9 @@ function sheetSync() {
   const h = cvH();
   if (CV && HV.cvh !== h) {
     HV.cvh = h;
-    CV.style.height = h === innerHeight ? '' : h + 'px';
+    CV.style.height = h === IH ? '' : h + 'px';
     CV.height = Math.round(h * DPR);
+    CV_NEW = 1;
   }
 }
 /* 這一格放得下的倉庫裝備：可能升級的排前面，再照 T、新舊 */
@@ -791,29 +803,63 @@ function acctHTML() {
       : `<div class="acct row"><span class="acem">${esc(CLOUD.email || '')}</span><button class="btn" data-ac="logout"${dis}>登出</button></div>`;
   return `<div class="ph2">帳號<span>${CLOUD.anon ? '訪客' : '已登入'} · ${esc(CLOUD.status)}</span></div>${body}${msg}`;
 }
-/* 重畫時保留捲動位置（選了一列，清單不彈回最上面）；qs 是要保留的子元素，'' 是面板本身 */
-function panelHTML(el, html, qs) {
-  const at = q => (q ? el.querySelector(q) : el),
-    keep = qs.map(q => {
-      const n = at(q);
-      return n ? [n.scrollLeft, n.scrollTop] : [0, 0];
+/* 重畫時保留捲動位置（選了一列，清單不彈回最上面）；KEEP 是每個面板要保留的子元素，'' 是面板本身。
+   0.4.7：捲動位置在 hudPanels 一開始、還沒動到畫面時一次讀完（panelSnap），寫完再放回去——
+   邊寫邊讀會每個面板強制排版一次；本來就關著的面板不讀；位置是 0 的不寫 */
+const KEEP = {
+  pinv: ['', '.bagf.sub'],
+  pskill: ['.sk-body'],
+  pnode: [''],
+  pasc: ['', '.ax-list'],
+  plog: ['.lgl'],
+  preveal: ['.rvl'],
+  pflt: ['']
+};
+let SNAP = {},
+  NOSNAP = 0; /* 換分頁：不留捲動位置，回到最上面 */
+function panelSnap() {
+  SNAP = {};
+  for (const id in KEEP) {
+    const el = $(id);
+    if (el.hidden) continue;
+    SNAP[id] = KEEP[id].map(q => {
+      const n = q ? el.querySelector(q) : el;
+      return n ? [n.scrollLeft, n.scrollTop] : null;
     });
-  el.innerHTML = html;
-  qs.forEach((q, i) => {
-    const n = at(q);
-    if (n) [n.scrollLeft, n.scrollTop] = keep[i];
-  });
+  }
 }
+function panelHTML(el, html) {
+  const keep = SNAP[el.id];
+  el.innerHTML = html;
+  if (keep)
+    KEEP[el.id].forEach((q, i) => {
+      const n = q ? el.querySelector(q) : el,
+        k = keep[i];
+      if (!n || !k) return;
+      if (NOSNAP) {
+        /* 面板本身沒有換（只換了內容），原本捲下去的要回到最上面 */
+        if (!q && k[1]) n.scrollTop = 0;
+        return;
+      }
+      if (k[0]) n.scrollLeft = k[0];
+      if (k[1]) n.scrollTop = k[1];
+    });
+}
+/* 先關再開（換分頁、功能選單）：中間那一次不重畫，等最後一次一起畫 */
+let HP_HOLD = 0,
+  UI_AT = -1e9 /* 上一次手指或滑鼠放開、面板被捲動的時間 */,
+  UI_SKIP = 0,
+  CV_NEW = 0; /* 畫布剛換了高度（被清空）：這一格一定要畫 */
 function hudPanels() {
-  if (!S) return;
+  if (!S || HP_HOLD) return;
+  panelSnap();
+  /* 玩家剛按下去的那一格：先把面板畫出來，戰鬥畫面晚一格再畫（game.js 的 frame） */
+  if (performance.now() - UI_AT < 80) UI_SKIP = 1;
+  /* 版面的 class 與畫布高度先定下來，再寫內容：反過來的話內容會排版兩次 */
+  sheetSync();
   $('pset').hidden = !PANEL.set;
   $('pflt').hidden = !PANEL.flt;
-  if (PANEL.flt) {
-    /* 重畫時保留捲動位置（點一個選項不彈回最上面） */
-    const y = $('pflt').scrollTop;
-    $('pflt').innerHTML = fltHTML();
-    $('pflt').scrollTop = y;
-  }
+  if (PANEL.flt) panelHTML($('pflt'), fltHTML());
   /* 正在輸入帳密時不重畫（撿東西等事件會重畫面板，焦點和輸入法會被打斷） */
   if (
     PANEL.set &&
@@ -834,7 +880,7 @@ function hudPanels() {
   $('pbox').hidden = !PANEL.box;
   $('preveal').hidden = !PANEL.ident;
   $('plog').hidden = !PANEL.log;
-  if (PANEL.log) panelHTML($('plog'), logHTML(), ['.lgl']);
+  if (PANEL.log) panelHTML($('plog'), logHTML());
   $('pskill').hidden = !PANEL.skill;
   $('pcraft').hidden = !PANEL.craft;
   if (swapOn()) {
@@ -851,7 +897,7 @@ function hudPanels() {
   if (PANEL.more) $('pmore').innerHTML = moreHTML();
   $('pnode').hidden = !PANEL.node;
   if (PANEL.node) {
-    panelHTML($('pnode'), nodeHTML(), ['']);
+    panelHTML($('pnode'), nodeHTML());
     /* 剛打開或換了選的那一列：捲到看得見 */
     if (HV.nsel !== WM.sel) {
       HV.nsel = WM.sel;
@@ -859,24 +905,23 @@ function hudPanels() {
       if (on) on.scrollIntoView({ block: 'nearest' });
     }
   } else HV.nsel = null;
-  if (PANEL.skill) panelHTML($('pskill'), skillHTML(), ['.sk-body']);
+  if (PANEL.skill) panelHTML($('pskill'), skillHTML());
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
-  if (PANEL.inv) panelHTML($('pinv'), invHTML(), ['', '.bagf.sub']);
+  if (PANEL.inv) panelHTML($('pinv'), invHTML());
   if (PANEL.stash) {
     const st = PANEL.stab === 'frags' ? 'frags' : 'cur';
     $('pstash').innerHTML =
       `<div class="ph"><b>${PORT() ? '做裝' : '通貨'}</b>${PORT() ? craftSeg(st) : `<span class="ftabs"><button class="${st === 'cur' ? 'on' : ''}" data-a="stab:cur">通貨</button><button class="${st === 'frags' ? 'on' : ''}" data-a="stab:frags">碎片</button></span>`}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${st === 'cur' ? curPageHTML() : fragPageHTML()}`;
   }
   if (PANEL.device) wmPanel();
-  if (PANEL.asc) panelHTML($('pasc'), ascHTML(), ['', '.ax-list']);
+  if (PANEL.asc) panelHTML($('pasc'), ascHTML());
   if (PANEL.shop) $('pshop').innerHTML = shopHTML();
   if (PANEL.box) $('pbox').innerHTML = boxHTML();
   if (PANEL.ident) {
-    panelHTML($('preveal'), revealHTML(), ['.rvl']);
+    panelHTML($('preveal'), revealHTML());
     const n = $('preveal').querySelector('.new');
     if (n) n.scrollIntoView({ block: 'nearest' });
   }
-  sheetSync();
 }
 const hudInv = () => PANEL.inv && hudPanels();
 /* 手機窄螢幕：兩個面板一次只顯示一個，標題列的按鈕切換 */
@@ -905,12 +950,13 @@ const EQPOS = {
 };
 /* 空的裝備欄：那個部位的淡圖示（取第一個同部位的基底圖） */
 const slotIc = e => (BASES.find(b => b.k === e.t) || {}).ic;
-const LAND = () => TOUCH.on && !PORT() && innerHeight < 480;
+const LAND = () => TOUCH.on && !PORT() && IH < 480;
 function invHTML() {
   /* 人形裝備欄照面板寬度放大置中（最多 1.3 倍），數值放在下面一排 */
   const s = ST,
     pp = TOUCH.on ? 20 : 28,
-    z = Math.min(TOUCH.on ? 1.3 : 1.15, (($('pinv').clientWidth || 476) - pp) / 320),
+    /* 直立的面板跟畫面一樣寬：不量 DOM（剛打開時量會強制排版） */
+    z = Math.min(TOUCH.on ? 1.3 : 1.15, ((PORT() ? IW : $('pinv').clientWidth || 476) - pp) / 320),
     eqs =
       EQS.map(e => {
         /* 鎖欄位（0.2.74 異變者）：第三枚戒指沒點亮就不畫；腰帶、頭部被昇華鎖住畫成鎖（裝備已經脫到背包） */
@@ -1071,6 +1117,63 @@ function bagList() {
       k === 'T' ? bagT(a) - bagT(b) || b.id - a.id : k === 'q' ? (b.q || 0) - (a.q || 0) || b.id - a.id : b.id - a.id
     );
 }
+/* 捲到快到底（或按「再顯示」）：把下一批接在後面，不重畫整個面板（重畫會打斷正在捲的清單） */
+function bagGrow() {
+  const more = $('pinv').querySelector('[data-a=bagmore]'),
+    bag = more && more.previousElementSibling;
+  if (!bag || !bag.classList.contains('bag')) return;
+  const L = bagList(),
+    n0 = bagShown();
+  BAG.n = n0 + BAG_STEP;
+  bag.insertAdjacentHTML(
+    'beforeend',
+    L.slice(n0, BAG.n)
+      .map(it => itemHTML(it, 'inv'))
+      .join('')
+  );
+  if (L.length > BAG.n) more.textContent = `再顯示 ${Math.min(BAG_STEP, L.length - BAG.n)} 件（共 ${L.length}）`;
+  else more.remove();
+}
+/* 閒的時候先把倉庫每一件要用的算好（可能升級要整套重算一次、穿不穿得上、圖示要轉成網址）：目前這一頁先算，
+   再算其他的（換篩選、往下捲才不用等）。0.4.7：沒先算的話第一次打開要算 56 件，降速 4 倍時 100 毫秒以上。
+   換裝、升級、撿到東西後從頭再掃一次（算過的很快） */
+let WARM_T = 0,
+  WARM_I = 0,
+  WARM0 = 0;
+const idleRun = window.requestIdleCallback
+  ? f => requestIdleCallback(f, { timeout: 200 })
+  : f => setTimeout(() => f({ timeRemaining: () => 0 }), 200);
+function bagWarm() {
+  WARM_I = 0;
+  if (!WARM_T && S) WARM_T = idleRun(warmGo);
+}
+function warmGo(dl) {
+  WARM_T = 0;
+  if (!S || IV.on) return;
+  const L = bagList().slice(0, bagShown()).concat(S.inv.items.slice().reverse());
+  /* 一次最多做 10 毫秒（瀏覽器說還有空就做到它說沒空）；主執行緒一直很忙時每 0.2 秒也會輪到一次 */
+  const t0 = performance.now();
+  for (; WARM_I < L.length; WARM_I++) {
+    const it = L[WARM_I];
+    itemUp(it);
+    cantWear(it);
+    artIconURL(itemIc(it));
+    if (performance.now() - t0 > 10 && dl.timeRemaining() < 3) return void (WARM_I++, (WARM_T = idleRun(warmGo)));
+  }
+  /* 角色數值與技能面板第一次組字串也慢（還沒被引擎最佳化）：先空跑一次 */
+  if (!WARM0) (WARM0 = 1), statsHTML(ST, 0), skillHTML();
+}
+/* 刷圖中撿到東西：戰利品開著時最多 0.6 秒補畫一次；手指還在面板上（正在捲、正在點）就再等，不打斷操作 */
+let BAG_T = 0;
+function bagDirty() {
+  bagWarm();
+  if (!PANEL.inv || BAG_T) return;
+  BAG_T = setTimeout(function go() {
+    if (performance.now() - UI_AT < 500 || DR) return (BAG_T = setTimeout(go, 300));
+    BAG_T = 0;
+    hudInv();
+  }, 600);
+}
 /* 批量賣出：這個篩選裡沒鎖定的 */
 const bagSells = () => bagList().filter(it => !it.lock);
 function bagHTML() {
@@ -1080,19 +1183,19 @@ function bagHTML() {
     n = S.inv.items.length;
   if (PORT())
     return `${n >= INV_CAP ? '<p class="bagh c-warn">滿了：新掉的普通裝換成金幣</p>' : ''}
-  <div class="bag" data-grid="inv">${L.slice(0, BAG.n)
+  <div class="bag" data-grid="inv">${L.slice(0, bagShown())
     .map(it => itemHTML(it, 'inv'))
     .join('')}</div>${L.length ? '' : '<p class="c-dim bagno">沒有符合的裝備</p>'}
-  ${L.length > BAG.n ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - BAG.n)} 件（共 ${L.length}）</button>` : ''}
+  ${L.length > bagShown() ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - bagShown())} 件（共 ${L.length}）</button>` : ''}
   ${NAV.pick ? '' : `<div class="foot"><button class="btn" data-a="bagsell" ${sl.length ? '' : 'disabled'}>賣出篩選到的 ${sl.length} 件 · ${sum} 金</button></div>`}`;
   return `<div class="ph2">倉庫 <span>${n}／${INV_CAP}${n >= INV_CAP ? ' · <b class="c-warn">滿了：新掉的普通裝換成金幣</b>' : ''}</span></div>
   ${bagFilterHTML()}
   <div class="bagf" role="group" aria-label="排序"><span class="c-dim">排序</span>${BAG_O.map(([k, t]) => `<button class="chip ${BAG.o === k ? 'on' : ''}" data-a="bago:${k}">${t}</button>`).join('')}</div>
   <p class="bagh">${TOUCH.on ? '點一下＝說明與動作' : PANEL.craft ? '點一下＝放上鍛造台 · Shift＋點＝鎖定' : `點一下＝${curTab() ? '放進中間' : '裝備'} · Shift＋點＝鎖定 · 可以拖到裝備欄`}</p>
-  <div class="bag" data-grid="inv">${L.slice(0, BAG.n)
+  <div class="bag" data-grid="inv">${L.slice(0, bagShown())
     .map(it => itemHTML(it, 'inv'))
     .join('')}</div>${L.length ? '' : '<p class="c-dim bagno">沒有符合的裝備</p>'}
-  ${L.length > BAG.n ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - BAG.n)} 件（共 ${L.length}）</button>` : ''}
+  ${L.length > bagShown() ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - bagShown())} 件（共 ${L.length}）</button>` : ''}
   <div class="foot"><div class="sell" data-sell="1">拖到這裡賣掉</div><button class="btn" data-a="bagsell" ${sl.length ? '' : 'disabled'} title="賣掉這個篩選裡沒鎖定的裝備">賣出篩選到的 ${sl.length} 件 · ${sum} 金</button></div>`;
 }
 /* 需求不夠、穿不上（倉庫格子變暗） */
@@ -1581,6 +1684,7 @@ function changed() {
   ST = stats();
   P.hp = Math.min(ST.hp, Math.max(1, hpF * ST.hp));
   P.mp = Math.min(ST.mp, P.mp);
+  bagWarm();
   save();
   hudPanels();
   hudBar();
@@ -1667,7 +1771,7 @@ function sellAll() {
   let sum = 0;
   for (const it of L) takeOut('inv', it), (sum += sellPrice(it));
   S.gold += sum;
-  BAG.n = BAG_STEP;
+  BAG.n = 0;
   hudWarn(`賣了 ${L.length} 件，${sum} 金`);
   sfx('coin');
   changed();
@@ -1868,8 +1972,8 @@ function showTip(html, a, t = $('tip')) {
   t.style.left = t.style.top = '0';
   t.hidden = false;
   let { width: w, height: h } = t.getBoundingClientRect();
-  const W = innerWidth,
-    H = innerHeight;
+  const W = IW,
+    H = IH;
   /* 比畫面還高（手機橫向的寶石說明＋按鈕）：縮短、裡面可以捲 */
   if (h > H - 2 * M) (h = H - 2 * M), (t.style.maxHeight = h + 'px');
   const cx = clamp((a.left + a.right) / 2 - w / 2, M, W - w - M),
@@ -1899,6 +2003,24 @@ function hideTip() {
 
 /* ---------- 輸入 ---------- */
 function inputInit() {
+  /* 0.4.7：記下玩家上一次碰面板的時間（hudPanels 的跳過一格、bagDirty 的延後重畫用）；戰利品捲到快到底自動補下一批 */
+  const ui = e => {
+    if (e.target === document || (e.target.closest && e.target.closest('.panel, #tip, #pnav, #ptree')))
+      UI_AT = performance.now();
+  };
+  for (const ev of ['pointerdown', 'pointerup', 'touchmove'])
+    addEventListener(ev, ui, { capture: true, passive: true });
+  addEventListener(
+    'scroll',
+    e => {
+      const el = e.target;
+      if (!el || !el.closest || !el.closest('.panel')) return;
+      UI_AT = performance.now();
+      /* 門檻要比一批的高度（8 列）小，不然每捲一下就補一批、停不下來 */
+      if (el.id === 'pinv' && el.scrollHeight - el.scrollTop - el.clientHeight < 250) bagGrow();
+    },
+    { capture: true, passive: true }
+  );
   /* 鍵盤操作道具：Tab 到道具看說明，Enter 或空白鍵等於點一下 */
   addEventListener('focusin', e => {
     const el = e.target.closest && e.target.closest('.it');
@@ -2022,8 +2144,8 @@ function inputInit() {
 /* 滑鼠底下的藏身處物件 */
 function propAt(e) {
   const w = {
-    x: (e.clientX - CV.clientWidth / 2) / ZOOM + G.cam.x,
-    y: (e.clientY - CV.clientHeight / 2) / ZOOM + G.cam.y
+    x: (e.clientX - IW / 2) / ZOOM + G.cam.x,
+    y: (e.clientY - cvH() / 2) / ZOOM + G.cam.y
   };
   if (G.portal && Math.hypot(w.x - G.portal.x, w.y - G.portal.y) < 50) return 'portal';
   return (G.props || []).find(p => Math.hypot(w.x - p.x, w.y + 25 - p.y) < p.r + 20);
@@ -2096,7 +2218,7 @@ function act(a, el) {
     hudPanels();
   } else if (a === 'bagoc') {
     BAG.o = BAG_O[(BAG_O.findIndex(o => o[0] === BAG.o) + 1) % BAG_O.length][0];
-    BAG.n = BAG_STEP;
+    BAG.n = 0;
     sfx('click');
     hudPanels();
   } else if (a.startsWith('nsel:')) {
@@ -2110,13 +2232,13 @@ function act(a, el) {
     /* 部位再點一次＝取消；換大類：部位回到全部 */
     BAG[a[3]] = a[3] === 'k' && BAG.k === a.slice(5) ? '' : a.slice(5);
     if (a[3] === 'f') BAG.k = '';
-    BAG.n = BAG_STEP;
+    BAG.n = 0;
     sfx('click');
     hudPanels();
   } else if (a.startsWith('bagfl:')) {
     const k = a.slice(6);
     BAG.fl[k] = BAG.fl[k] ? 0 : 1;
-    BAG.n = BAG_STEP;
+    BAG.n = 0;
     sfx('click');
     hudPanels();
   } else if (a === 'slotx') {
@@ -2128,9 +2250,9 @@ function act(a, el) {
     if (NAV.slot && /^ch\d$/.test(NAV.slot)) Object.assign(BAG, { f: 'charm', k: '' });
     else if (e) Object.assign(BAG, { f: KIND_GRP[e.t] || 'all', k: e.k === 'weapon' ? '' : e.t });
     BAG.fl = {};
-    BAG.n = BAG_STEP;
+    BAG.n = 0;
     navGo('bag');
-  } else if (a === 'bagmore') (BAG.n += BAG_STEP), hudPanels();
+  } else if (a === 'bagmore') bagGrow();
   else if (a === 'bagsell') {
     if (el && confirm2(el, `確定賣掉 ${bagSells().length} 件？`)) sellAll();
   } else if (a === 'openflt') closePanels(), (NAV.full = PORT() ? 1 : 0), openPanel('flt');

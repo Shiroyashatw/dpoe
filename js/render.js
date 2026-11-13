@@ -113,8 +113,8 @@ const dirCol = a => (2 - (((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8) + 8) % 
 let DARK;
 let ZOOM = 1.35; /* 手機照螢幕高度調（main.js 的 resize） */
 function draw() {
-  const SW = CV.clientWidth,
-    SH = CV.clientHeight,
+  const SW = IW,
+    SH = cvH(),
     W = SW / ZOOM,
     H = SH / ZOOM;
   CX.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, 0, 0);

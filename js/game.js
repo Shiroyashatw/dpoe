@@ -632,7 +632,7 @@ const slotHeld = i =>
 function mouseWorld() {
   if (AI.on) return AI.aim;
   if (TOUCH.on) return touchAim();
-  return { x: (M.x - CV.clientWidth / 2) / ZOOM + G.cam.x, y: (M.y - CV.clientHeight / 2) / ZOOM + G.cam.y };
+  return { x: (M.x - IW / 2) / ZOOM + G.cam.x, y: (M.y - cvH() / 2) / ZOOM + G.cam.y };
 }
 
 /* ---------- 打擊感 ---------- */
@@ -1206,7 +1206,7 @@ function pickup(d) {
     if (!G.fullW) (G.fullW = 1), hudWarn(`倉庫滿了（${INV_CAP} 件）：新掉的普通裝直接換成金幣`);
   } else {
     sfx('pick');
-    hudInv();
+    bagDirty();
   }
   G.drops.splice(G.drops.indexOf(d), 1);
 }
@@ -2137,6 +2137,8 @@ function frame(now) {
   for (const n of G.nums) n.t += rdt;
   G.nums = G.nums.filter(n => n.t < 0.9);
   /* 天賦樹、直立蓋滿畫面的面板（世界地圖、放大的面板）開著時不畫遊戲（手機省一半的效能）；半版面板照畫（0.4.4） */
-  if (!TREE.open && !(PORT() && (PANEL.device || (anyPanel() && NAV.full)))) draw();
+  /* 0.4.7：玩家剛按了面板的那一格先讓面板畫出來，戰鬥畫面跳過一格（畫布剛換高度被清空時照畫） */
+  if (UI_SKIP && !CV_NEW) UI_SKIP = 0;
+  else if (!TREE.open && !(PORT() && (PANEL.device || (anyPanel() && NAV.full)))) (UI_SKIP = CV_NEW = 0), draw();
   hudTick();
 }

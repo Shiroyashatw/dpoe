@@ -1,6 +1,9 @@
 const { chromium } = require('playwright');
 /* 介面順不順（0.4.7，skill ui-design 的「順」那一段）：手機直立、CPU 降速 4 倍，量
-   1. 每個常用操作「按下到畫面更新」幾毫秒（瀏覽器的 Event Timing；標準 ≤100，>200 明顯卡）
+   1. 每個常用操作「按下到畫面更新」幾毫秒（瀏覽器的 Event Timing），拆成三段：
+      等＝按下去到我們的程式開始跑（主執行緒被戰鬥畫面佔住；無頭瀏覽器用軟體畫全螢幕畫布，這段比真機大很多，
+          最後的「對照」是只換一顆按鈕顏色要等多久）、跑＝我們的處理程式、畫＝排版與畫出來。
+      **判定看「跑＋畫」≤100**（這兩段是我們的程式決定的）；全部一起列出來參考
    2. 戰鬥在跑時手指捲戰利品清單，每一格幾毫秒（標準 p95 ≤33）
    3. 天賦樹：打開、拖曳、兩指縮放的每一格，以及一開始每個點在畫面上幾 px
    只量不改；無頭瀏覽器沒有顯示卡，數字偏慢，看的是相對大小與有沒有變好。
@@ -43,11 +46,20 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     changed();
     window._ev = [];
     new PerformanceObserver(l => {
-      for (const e of l.getEntries()) if (e.name === 'click') _ev.push(Math.round(e.duration));
+      for (const e of l.getEntries())
+        if (e.name === 'click')
+          _ev.push([
+            Math.round(e.processingStart - e.startTime),
+            Math.round(e.processingEnd - e.processingStart),
+            Math.round(e.startTime + e.duration - e.processingEnd),
+            Math.round(e.duration)
+          ]);
     }).observe({ type: 'event', durationThreshold: 16, buffered: true });
   });
   const cdp = await ctx.newCDPSession(p);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  /* 玩家不會一載入就開面板：等閒置時的預先計算（hud.js 的 bagWarm）跑完 */
+  await p.waitForTimeout(3000);
   const touch = (type, pts) =>
     cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x, y, id: i })) });
   const tap = async q => {
@@ -58,13 +70,13 @@ const URL = process.argv[2] || 'http://localhost:8000/',
       const r = e.getBoundingClientRect();
       return [r.left + r.width / 2, r.top + r.height / 2];
     }, q);
-    if (!c) return -1;
+    if (!c) return null;
     const k = await p.evaluate(() => _ev.length);
     await touch('touchStart', [c]);
     await p.waitForTimeout(50);
     await touch('touchEnd', []);
     await p.waitForTimeout(800);
-    return p.evaluate(k => (_ev.length > k ? _ev[_ev.length - 1] : 0), k);
+    return p.evaluate(k => (_ev.length > k ? _ev[_ev.length - 1] : [0, 0, 0, 0]), k);
   };
   /* 量一段時間裡每一格的間隔 */
   const frames = async fn => {
@@ -92,7 +104,12 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     });
   };
   let bad = 0;
-  const mark = (v, ok) => (v < 0 ? '找不到' : (v <= ok ? '✅ ' : (bad++, '❌ ')) + v);
+  const mark = (v, ok) => (v <= ok ? '✅ ' : (bad++, '❌ ')) + v;
+  /* 一次點擊：判定看跑＋畫 */
+  const markTap = r =>
+    !r
+      ? '找不到'
+      : `${r[1] + r[2] <= TAP_OK ? '✅' : (bad++, '❌')} ${String(r[1] + r[2]).padStart(3)}（等 ${r[0]}・跑 ${r[1]}・畫 ${r[2]}・全部 ${r[3]}）`;
   const SEQ = [
     ['分頁：戰利品', '#pnav [data-tm="nav:bag"]'],
     ['篩選：防具', '#pinv [data-a="bagf:armor"]'],
@@ -106,8 +123,19 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     ['分頁：技能', '#pnav [data-tm="nav:skill"]']
   ];
   const run = async label => {
-    console.log(`\n${label}：按下到畫面更新（毫秒，標準 ≤${TAP_OK}）`);
-    for (const [n, q] of SEQ) console.log(`  ${mark(await tap(q), TAP_OK)}  ${n}`);
+    console.log(`\n${label}：按下到畫面更新（毫秒；跑＋畫的標準 ≤${TAP_OK}）`);
+    for (const [n, q] of SEQ) console.log(`  ${markTap(await tap(q))}  ${n}`);
+    /* 對照：一顆什麼都不做、只換顏色的按鈕，量出來的就是環境本身的延遲 */
+    await p.evaluate(() => {
+      const z = document.createElement('button');
+      z.id = 'zz';
+      z.style.cssText = 'position:fixed;left:150px;top:300px;width:60px;height:60px;z-index:99;background:#333';
+      z.onclick = () => (z.style.background = z.style.background === 'red' ? '#333' : 'red');
+      document.body.appendChild(z);
+    });
+    const z = await tap('#zz');
+    await p.evaluate(() => document.getElementById('zz').remove());
+    console.log(`  對照：只換一顆按鈕的顏色 → 等 ${z[0]}・跑 ${z[1]}・畫 ${z[2]}・全部 ${z[3]}`);
     await p.evaluate(() => {
       hideTip();
       closePanels();

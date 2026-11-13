@@ -88,19 +88,21 @@ let NARROW = false,
   HIDE_AT = 0;
 function resize() {
   DPR = Math.min(2, devicePixelRatio || 1);
+  IW = innerWidth;
+  IH = innerHeight;
   /* 手機：畫面高度看得到差不多的範圍；背包格子照寬度（夠寬就兩個面板並排） */
-  NARROW = innerWidth < 800;
+  NARROW = IW < 800;
   /* 直立：左右看得到約 10 格（480 px）；橫向手機：照高度 */
-  ZOOM = PORT() ? clamp(innerWidth / 480, 0.6, 1.35) : TOUCH.on ? clamp(innerHeight / 470, 0.72, 1.35) : 1.35;
+  ZOOM = PORT() ? clamp(IW / 480, 0.6, 1.35) : TOUCH.on ? clamp(IH / 470, 0.72, 1.35) : 1.35;
   /* 直立（0.4.4）：倉庫清單一列 7 格，每格至少 44px */
   C = PORT()
-    ? clamp(Math.floor((innerWidth - 36) / 7), 44, 56)
+    ? clamp(Math.floor((IW - 36) / 7), 44, 56)
     : TOUCH.on
-      ? clamp(Math.floor(((NARROW ? innerWidth : innerWidth / 2) - 50) / 12), 26, 36)
+      ? clamp(Math.floor(((NARROW ? IW : IW / 2) - 50) / 12), 26, 36)
       : 36;
   document.documentElement.style.setProperty('--cell', C + 'px');
   if (S) hudPanels();
-  CV.width = Math.round(innerWidth * DPR);
+  CV.width = Math.round(IW * DPR);
   /* 高度：直立的半版面板開著時只佔上半（hud.js 的 cvH／sheetSync） */
   HV.cvh = null;
   CV.height = Math.round(cvH() * DPR);
