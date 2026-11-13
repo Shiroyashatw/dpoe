@@ -596,9 +596,9 @@ function oneHTML(c) {
   const k = c.k,
     D = c.D,
     lv = libLv(k),
-    hole = SKUI.hole,
     warn = [];
-  let extra = '';
+  let extra = '',
+    hole = SKUI.hole;
   if (c.aura) {
     if (!ST.auraOn.includes(k)) warn.push(auraWhy(k));
   } else {
@@ -624,6 +624,8 @@ function oneHTML(c) {
       ? `出招第 ${skOrder().indexOf(SKUI.i) + 1} 個`
       : `按鍵 ${slotKey(SKUI.i, 1)}`;
   let lower, bar;
+  /* 選的孔被拿空了（卸下、換技能）：當成沒選 */
+  if (hole != null && hole < c.rec.n && !c.rec.so[hole]) hole = SKUI.hole = null;
   if (hole != null) {
     lower = holeHTML(c, hole);
     if (hole >= c.rec.n) {
@@ -926,7 +928,12 @@ function skAct(b) {
     const err = drillDo(c.rec);
     if (err) return hudWarn(err);
     sfx('equip');
-    return changed();
+    /* 剛打開的孔是空的：直接去挑輔助 */
+    SKUI.hole = c.rec.n - 1;
+    skOpen('sups');
+    SKUI.anim = 'fwd';
+    changed();
+    return skTop();
   } else if (k === 'ii') {
     if (SUP2_COST >= MAT().soul * 0.5 && !confirm2(b, `再按一次・${soulB(SUP2_COST)}`)) return;
     const err = sup2Unlock(v);
@@ -1041,6 +1048,7 @@ function skPut(k) {
     const w = supWhy(c, k, SKUI.hole);
     if (w) return hudWarn(w);
     c.rec.so[SKUI.hole] = k;
+    SKUI.hole = null;
   } else {
     if (S.auras.some((x, j) => x && x.k === k && j !== SKUI.ai)) return hudWarn('已經在光環欄裡');
     if (S.auras[SKUI.ai]) S.auras[SKUI.ai].k = k;
