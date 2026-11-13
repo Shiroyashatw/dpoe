@@ -1870,3 +1870,29 @@ body.touch.port #pnav:not([hidden]) { grid-template-columns: repeat(6, minmax(0,
 #pnav button { position: relative; }
 #pnav .dot { position: absolute; top: 7px; left: calc(50% + 9px); width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px var(--s1, #1c2129); }
 @media (prefers-reduced-motion: reduce) { .tcard { animation: none; } }
+
+/* ---- 昇華石碑（0.4.7）：直立時選好的昇華收成一列、說明貼在盤面下面（不再疊在清單上）、點放大、沒點亮的看得出圖示 ---- */
+.ax-cur { display: flex; align-items: center; gap: 10px; padding: 0 0 10px; }
+.ax-cur .ic { width: 40px; height: 40px; flex: none; }
+.ax-cur b { flex: 1; font: 700 var(--fs-l) var(--font); color: var(--title); }
+.ax-cur .btn { min-height: 44px; padding: 0 16px; font: 700 var(--fs) var(--font); }
+.ax-cap i { margin-left: 8px; }
+.ax-cap .btn { min-height: 48px; font: 700 var(--fs) var(--font); display: flex; align-items: center; justify-content: center; gap: 10px; }
+.ax-cap .btn small { font-weight: 500; opacity: 0.75; }
+.ax-n.off { background: #23272f; border-color: #5b6270; }
+.ax-n.off .ic { filter: grayscale(1) brightness(1.15); opacity: 0.8; }
+body.touch .ax-n.b0 { width: 26px; height: 26px; }
+body.touch .ax-n.b1 { width: 40px; height: 40px; }
+body.touch .ax-n.b3 { width: 46px; height: 46px; }
+body.touch .ax-n::after { display: none; }
+body.touch .ax-n.sel { outline: 3px solid #fff; outline-offset: 2px; }
+body.touch.port .ax-tabs { padding-bottom: 8px; }
+body.touch.port .ax-chart { margin-bottom: 0; }
+body.touch.port .ax-cap { order: 2; position: static; margin: 0 calc(-1 * var(--pp)); padding: 10px var(--pp) 12px; min-height: 92px; align-content: start; border-width: 1px 0; border-color: var(--fr-o); }
+body.touch.port .ax-cap b { font-size: var(--fs-l); }
+body.touch.port .ax-cap p { font-size: var(--fs); }
+body.touch.port .ax-list { order: 3; padding: 8px 0; }
+body.touch.port .ax-r { min-height: 44px; align-content: center; }
+.ax-tab.cur:not(.on) { border-color: var(--gold); }
+/* 矮的手機（375×667）：盤面縮到說明與按鈕不用捲就看得到（標題 80＋現在是誰 54＋說明 140＋分頁列 56） */
+body.touch.port .ax-chart { width: min(100%, calc(100dvh - 336px)); max-width: 420px; }

@@ -926,6 +926,47 @@ let fail = 0;
     await p.waitForTimeout(300);
   }
   if (PORTM) {
+    /* 昇華石碑（0.4.7）：選好之後切換鈕收起來、說明貼在盤面下面、手指點在點的旁邊也選得到、按說明列的按鈕點亮 */
+    const asc = await p.evaluate(() => {
+      treeClose();
+      S.asc = 'wind';
+      S.at = ['a_st'];
+      S.maxT = 7;
+      changed();
+      fmenuOpen('asc');
+      const pa = $('pasc'),
+        e = pa.querySelector('.ax-n.can'),
+        r = e.getBoundingClientRect();
+      return {
+        fold: !pa.querySelector('.ax-tabs') && !!pa.querySelector('.ax-cur [data-ax=pick]'),
+        id: e.dataset.ax.slice(2),
+        at: [r.left + r.width / 2 + 9, r.top + r.height / 2 + 8]
+      };
+    });
+    await tapXY(asc.at[0], asc.at[1]);
+    ok(
+      '昇華石碑：選好的昇華只佔一列（切換鈕收著）；點在點的旁邊也選得到，只選取不花點數',
+      asc.fold && (await p.evaluate(id => ASCUI.n === id && S.at.length === 1, asc.id))
+    );
+    ok(
+      '昇華的說明在盤面正下方、看得到、不蓋住盤面，按鈕 ≥44px',
+      await p.evaluate(() => {
+        const pa = $('pasc'),
+          c = pa.querySelector('.ax-cap').getBoundingClientRect(),
+          ch = pa.querySelector('.ax-chart').getBoundingClientRect(),
+          b = pa.querySelector('.ax-cap .btn').getBoundingClientRect(),
+          nav = document.querySelector('#pnav').getBoundingClientRect();
+        return c.top >= ch.bottom - 1 && b.bottom <= nav.top && b.height >= 44;
+      })
+    );
+    await tapSel('#pasc .ax-cap .btn');
+    ok('按說明列的按鈕點亮昇華點', await p.evaluate(id => S.at.includes(id), asc.id));
+    await p.screenshot({ path: shot('asc') });
+    await p.evaluate(() => {
+      closePanels();
+      navGo('tree');
+    });
+    await p.waitForTimeout(300);
     ok(
       '天賦樹開著時底部分頁列還在、「天賦」亮著、有點數沒用時有亮點',
       await p.evaluate(() => {

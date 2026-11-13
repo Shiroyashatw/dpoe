@@ -389,7 +389,7 @@ const NAV_T = [
 const SHEET_TOP = 0.38; /* 半版面板的上緣在畫面高度的幾成（上面是戰鬥） */
 /* 現在亮哪一頁：照開著的面板推（別的入口開的面板也對得上） */
 const navOn = () =>
-  TREE.open
+  TREE.open || PANEL.asc
     ? 'tree'
     : PANEL.skill
       ? 'skill'
@@ -554,7 +554,7 @@ function openPanel(k) {
             S.skills.findIndex(x => x.k)
           )
     );
-  if (k === 'asc') (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]), (ASCUI.n = null);
+  if (k === 'asc') (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]), (ASCUI.n = null), (ASCUI.pick = 0);
   hideTip();
   hudPanels();
 }
@@ -1328,7 +1328,8 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#tip,#ttip') && $('tip').classList.contains('act') && !TOUCH.on) hideTip();
 });
 /* 昇華石碑：上面選昇華，盤面的位置跟天賦樹中間一樣，直接在這裡點；換昇華免費、點數全部退回 */
-const ASCUI = { v: null, n: null };
+/* v 看哪個昇華、n 選中的點、pick 直立時「換昇華」的清單打開了沒（0.4.7：選好之後平常收著） */
+const ASCUI = { v: null, n: null, pick: 0 };
 /* 這個點為什麼不能點；空字串＝可以點或退回 */
 function ascWhy(id, T) {
   if (S.at.includes(id)) return treeCanRefund(id) ? '' : '先退後面的點';
@@ -1346,9 +1347,9 @@ function ascCap(k, T, sel) {
     on = cur && S.at.includes(sel.id),
     gn = sel.g && T.N.filter(n => n.g === sel.g).length,
     txt = sel.big === 1 ? termify(sel.d) : start ? '昇華的起點' : esc(statLines(sel.s).join(' · '));
-  return `<div class="ax-cap" data-n="${sel.id}"><div><b>${esc(sel.n)}</b>${gn ? `<i>${['', '', '二選一', '三選一'][gn]}</i>` : ''}<p>${txt}</p></div>${
+  return `<div class="ax-cap" data-n="${sel.id}"><div><b>${esc(sel.n)}</b><i>${sel.big === 1 ? '昇華大點' : ''}${gn ? ` · ${['', '', '二選一', '三選一'][gn]}` : ''}</i><p>${txt}</p></div>${
     cur && !start
-      ? `<button class="btn ${on ? '' : 'pri'}" data-ax="t:${sel.id}" ${w ? `disabled title="${esc(w)}"` : ''}>${w || (on ? '退回' : `點亮 · 剩 ${ascLeft()} 點`)}</button>`
+      ? `<button class="btn ${on ? '' : 'pri'}" data-ax="t:${sel.id}" ${w ? `disabled title="${esc(w)}"` : ''}>${w || (on ? '退回這一點' : `點亮<small>剩 ${ascLeft()} 點</small>`)}</button>`
       : ''
   }</div>`;
 }
@@ -1390,26 +1391,58 @@ function ascHTML() {
           .join('')}</li>`
     ).join(''),
     [sm, bg] = S.asc ? ascCount() : [0, 0];
+  /* 直立（0.4.7）：選好昇華之後 15 顆切換鈕收起來（佔四分之一畫面），只留一列「現在是誰＋換昇華」 */
+  const fold = PORT() && S.asc,
+    tabs =
+      fold && !ASCUI.pick
+        ? ''
+        : `<div class="ax-tabs" role="tablist">${Object.entries(ASC)
+            .map(
+              ([id, B]) =>
+                `<button class="ax-tab ${id === k ? 'on' : ''} ${S.asc === id ? 'cur' : ''}" role="tab" aria-selected="${id === k}" data-ax="v:${id}">${icHTML(B.ic)}<span>${B.n}${S.asc === id && !fold ? '<i>目前</i>' : ''}</span></button>`
+            )
+            .join('')}</div>`;
   return `<div class="ph"><b>昇華石碑</b><span class="ax-sum">剩 <b class="c-gold">${S.asc ? ascLeft() : ascPoints(S)}</b> 點${S.asc ? ` · 小 ${sm}/4 · 大 ${bg}/4` : ''}</span>${S.at.length > 1 ? `<button class="btn mini ax-reset" data-ax="reset">重置</button>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="ax-tabs" role="tablist">${Object.entries(ASC)
-    .map(
-      ([id, B]) =>
-        `<button class="ax-tab ${id === k ? 'on' : ''}" role="tab" aria-selected="${id === k}" data-ax="v:${id}">${icHTML(B.ic)}<span>${B.n}${S.asc === id ? '<i>目前</i>' : ''}</span></button>`
-    )
-    .join('')}</div>
+  ${fold ? `<div class="ax-cur">${icHTML(ASC[S.asc].ic)}<b>${ASC[S.asc].n}</b><button class="btn" data-ax="pick" aria-expanded="${!!ASCUI.pick}">${ASCUI.pick ? '收起' : '換昇華'}</button></div>` : ''}
+  ${tabs}
   <div class="ax-chart"><div class="ax-disc"></div><svg viewBox="${-R} ${-R} ${2 * R} ${2 * R}" aria-hidden="true">${lines}</svg>${nodes}</div>
   <div class="ax-side">${ascCap(k, T, sel)}<ul class="ax-list">${list}${nx ? `<li class="ax-note">第一次打倒 Lv ${nx} 地圖的王：昇華點 +2。換昇華免費，點數全部退回</li>` : ''}</ul>${cur ? '' : `<button class="btn pri ax-pick" data-a="asc:${k}">${S.asc ? `改成${A.n}（點數退回）` : `成為${A.n}`}</button>`}</div>`;
 }
+/* 手機點盤面（0.4.7）：點與點最近只隔 27px，做不到每個 44px；改成找手指附近最近的點（34px 以內），
+   第一下只選取（說明在盤面正下方），所以點歪了也不會花掉點數 */
+function ascNear(ch, e) {
+  const T = ascNodes(ASCUI.v),
+    R = Math.max(...T.N.map(n => Math.hypot(n.x, n.y))) + 36,
+    r = ch.getBoundingClientRect(),
+    k = (2 * R) / r.width,
+    x = (e.clientX - r.left - r.width / 2) * k,
+    y = (e.clientY - r.top - r.height / 2) * k;
+  let best = null,
+    bd = 34 * k;
+  for (const n of T.N) {
+    const d = Math.hypot(n.x - x, n.y - y);
+    if (d < bd) (bd = d), (best = n);
+  }
+  return best && best.id;
+}
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-ax]');
-  if (!b || e.target.closest('.term')) return;
-  const [k, id] = b.dataset.ax.split(':'),
-    cur = S.asc === ASCUI.v;
+  const ch = TOUCH.on && e.target.closest('#pasc .ax-chart'),
+    b = e.target.closest('[data-ax]');
+  if ((!b && !ch) || e.target.closest('.term')) return;
+  let [k, id] = b ? b.dataset.ax.split(':') : [];
+  const cur = S.asc === ASCUI.v;
+  if (ch) {
+    id = ascNear(ch, e);
+    if (!id) return;
+    k = 'n';
+  }
   if (k === 'v') (ASCUI.v = id), (ASCUI.n = null), sfx('click');
+  else if (k === 'pick') (ASCUI.pick = ASCUI.pick ? 0 : 1), ASCUI.pick || (ASCUI.v = S.asc), sfx('click');
   else if (k === 'n') {
-    /* 盤面：桌機點一下就點亮、手機第一下選取第二下點亮（跟天賦樹一樣）；清單只選取 */
-    const again = !TOUCH.on || ASCUI.n === id,
-      can = cur && id !== 'a_st' && b.classList.contains('ax-n') && again;
+    /* 盤面：桌機點一下就點亮或退回；手機第一下選取，再點同一個＝點亮（退回要按說明列的按鈕，跟天賦樹一樣）；清單只選取 */
+    const lit = cur && S.at.includes(id),
+      again = !TOUCH.on || (ASCUI.n === id && !lit),
+      can = cur && id !== 'a_st' && (ch || b.classList.contains('ax-n')) && again;
     ASCUI.n = id;
     if (can) {
       const w = ascWhy(id, ascT());
@@ -2291,6 +2324,7 @@ function act(a, el) {
     S.asc = a.slice(4);
     S.at = ['a_st'];
     ASCUI.n = null;
+    ASCUI.pick = 0;
     treeChanged();
     hudPanels();
     hudWarn(`成為${ASC[S.asc].n}！直接點盤面上的點`);
