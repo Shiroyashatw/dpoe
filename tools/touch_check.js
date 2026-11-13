@@ -576,6 +576,132 @@ let fail = 0;
         () => !anyPanel() && CV.clientHeight === innerHeight && !document.body.classList.contains('sheet')
       )
     );
+    /* ---------- 0.4.6：角色數值分組、角色頁點一格列出可以換的、說明框先寫換上去的差別、篩選可以選部位 ---------- */
+    const tapIn = async q => {
+      await p.evaluate(q => {
+        const e = document.querySelector(q);
+        if (e) e.scrollIntoView({ block: 'nearest', inline: 'center' });
+      }, q);
+      await p.waitForTimeout(80);
+      return tap(q);
+    };
+    await p.evaluate(() => {
+      closePanels();
+      const B = BASES.filter(b => b.k === 'boots').sort((a, b) => a.lv - b.lv)[0];
+      for (let i = 0; i < 12; i++) invPut(S.inv, mkItem(B.id, 1, 2));
+      if (S.eq.boots) invPut(S.inv, S.eq.boots), (S.eq.boots = null);
+      changed();
+      navGo('char');
+      NAV.full = 1;
+      hudPanels();
+    });
+    await p.waitForTimeout(200);
+    const stt = await p.evaluate(() => {
+      const secs = [...document.querySelectorAll('#pinv .st2 section')];
+      return [
+        secs.map(x => x.querySelector('h4').firstChild.textContent).join(),
+        [...document.querySelectorAll('#pinv .stg > div')].every(
+          d => d.querySelector('span').textContent && d.querySelector('b').textContent
+        ),
+        !document.querySelector('#pinv .st')
+      ];
+    });
+    ok(
+      '角色數值分四組、每一項有名稱與數字',
+      stt[0] === '攻擊,防禦,抗性,能力值' && stt[1] && stt[2],
+      JSON.stringify(stt)
+    );
+    await tapIn('#pinv .doll [data-eq="boots"]');
+    const sp = await p.evaluate(() => {
+      const el = document.querySelector('#pinv .slotp'),
+        its = el ? [...el.querySelectorAll('.bag .it')] : [];
+      return [
+        !!el && el.querySelector('.ph2').textContent,
+        its.length,
+        its.every(e => baseOf(findItem('inv', e.dataset.id)).k === 'boots'),
+        document.querySelector('#pinv .doll [data-eq="boots"]').classList.contains('sel'),
+        its.length ? Math.round(its[0].getBoundingClientRect().width) : 0
+      ];
+    });
+    ok(
+      '角色頁點空的鞋子欄：底下列出倉庫裡的鞋子（只有鞋子、格子 ≥44px）',
+      /^鞋子/.test(sp[0]) && sp[1] >= 12 && sp[2] && sp[3] && sp[4] >= 44,
+      JSON.stringify(sp)
+    );
+    const cid = await p.evaluate(() => +document.querySelector('#pinv .slotp .bag .it:not(.nq)').dataset.id);
+    await tapIn('#pinv .slotp .bag .it:not(.nq)');
+    const tp = await p.evaluate(() => {
+      const t = $('tip'),
+        c = t.querySelector('.cmp2'),
+        sl = t.querySelector('.tslots');
+      return [
+        !t.hidden,
+        !!c && !!sl && !!(c.compareDocumentPosition(sl) & Node.DOCUMENT_POSITION_FOLLOWING),
+        c ? c.querySelector('span').textContent : '',
+        /物品等級|還沒有符文|賣價/.test(t.textContent),
+        t.getBoundingClientRect().right <= innerWidth && t.getBoundingClientRect().left >= 0
+      ];
+    });
+    ok(
+      '說明框：換上去的差別在最上面（詞的前面）、沒有物品等級與賣價那幾行、不出畫面',
+      tp[0] && tp[1] && /鞋子現在空著/.test(tp[2]) && !tp[3] && tp[4],
+      JSON.stringify(tp)
+    );
+    await tap('#tip [data-tq=move]');
+    ok('按裝備：換進選的那一格', await p.evaluate(id => !!S.eq.boots && S.eq.boots.id === id, cid));
+    await tapIn('#pinv .slotp .bag .it:not(.nq)');
+    const tp2 = await p.evaluate(() => {
+      const c = $('tip').querySelector('.cmp2');
+      return c ? c.querySelector('span').textContent : '';
+    });
+    ok('那一格有東西：寫「換掉」哪一件', /^換掉 /.test(tp2), tp2);
+    await p.evaluate(() => hideTip());
+    await tapIn('#pinv .doll [data-eq="chest"]');
+    await p.evaluate(() => hideTip());
+    ok(
+      '點胸甲欄：列的是胸甲（不是護符）',
+      await p.evaluate(() => /^胸甲/.test(document.querySelector('#pinv .slotp .ph2').textContent)),
+      await p.evaluate(() => document.querySelector('#pinv .slotp .ph2').textContent)
+    );
+    await p.evaluate(() => navGo('bag'));
+    await p.waitForTimeout(200);
+    await tapIn('#pinv [data-a="bagf:armor"]');
+    const parts = await p.evaluate(() =>
+      [...document.querySelectorAll('#pinv .bagf.sub [data-a^="bagk:"]')].map(e => e.textContent)
+    );
+    ok('戰利品選防具：第二列出現部位（寫幾件）', parts.length >= 2 && parts.every(t => /\d/.test(t)), parts.join());
+    await tapIn('#pinv [data-a="bagk:boots"]');
+    ok(
+      '選鞋子：清單只剩鞋子、選到的那顆看得到',
+      await p.evaluate(() => {
+        const its = [...document.querySelectorAll('#pinv .bag .it')],
+          c = document.querySelector('#pinv [data-a="bagk:boots"]').getBoundingClientRect();
+        return (
+          BAG.k === 'boots' &&
+          its.length > 0 &&
+          its.every(e => baseOf(findItem('inv', e.dataset.id)).k === 'boots') &&
+          c.left >= 0 &&
+          c.right <= innerWidth
+        );
+      })
+    );
+    await tapIn('#pinv [data-a="bagfl:up"]');
+    ok(
+      '再加「可能升級」：條件疊加（鞋子而且可能升級）',
+      await p.evaluate(
+        () =>
+          BAG.k === 'boots' &&
+          BAG.fl.up === 1 &&
+          [...document.querySelectorAll('#pinv .bag .it')].every(e => {
+            const it = findItem('inv', e.dataset.id);
+            return baseOf(it).k === 'boots' && itemUp(it);
+          })
+      )
+    );
+    await p.evaluate(() => {
+      Object.assign(BAG, { f: 'all', k: '', fl: {} });
+      closePanels();
+    });
     /* 更多、地點 */
     await tap('#pnav [data-tm="nav:more"]');
     const mr = await p.evaluate(() =>

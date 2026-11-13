@@ -362,11 +362,13 @@ const PANEL = {
   stab: 'cur'
 };
 /* 清單倉庫的篩選與排序（0.4.0）：f 篩選、o 排序、n 畫幾件（每次多 BAG_STEP） */
-const BAG = { f: 'all', o: 'new', n: 120 };
+/* f 大類、k 部位（武器是武器類別，空字串＝這一大類全部）、fl 疊加的條件（up 可能升級／frac ★／mem 追憶） */
+const BAG = { f: 'all', k: '', fl: {}, o: 'new', n: 120 };
 const BAG_STEP = 120;
 /* 手機直立（0.4.4，企劃書第 9 節）：上半看戰鬥、下半是面板，底部固定一排分頁，一次只看一個面板。
    view＝裝備面板畫哪一半（bag 戰利品／char 角色）、pick＝做裝正在挑裝備、full＝面板放大到蓋滿 */
-const NAV = { view: 'bag', pick: 0, full: 0 };
+/* slot＝角色頁選中的那一格（裝備欄鍵或 ch0～ch2），底下列出倉庫裡可以換上去的 */
+const NAV = { view: 'bag', pick: 0, full: 0, slot: null };
 const NAV_T = [
   ['bag', 'bag', '戰利品'],
   ['char', 'hero', '角色'],
@@ -420,6 +422,36 @@ function sheetSync() {
     CV.height = Math.round(h * DPR);
   }
 }
+/* 這一格放得下的倉庫裝備：可能升級的排前面，再照 T、新舊 */
+function slotCands(k) {
+  const e = EQS.find(q => q.k === k),
+    L = /^ch\d$/.test(k)
+      ? S.inv.items.filter(it => it.charm)
+      : e
+        ? S.inv.items.filter(it => !it.charm && eqTakes(e, kindOf(it)) && (k !== 'off' || offOK(S.eq.weapon, it)))
+        : [];
+  return L.sort((a, b) => cantWear(a) - cantWear(b) || itemUp(b) - itemUp(a) || bagT(a) - bagT(b) || b.id - a.id);
+}
+const SLOT_SHOW = 21; /* 角色頁先列三列，其他按「看全部」到戰利品 */
+function slotPickHTML() {
+  const k = NAV.slot,
+    ch = /^ch\d$/.test(k),
+    cur = ch ? S.charms[+k[2]] : S.eq[k],
+    L = slotCands(k),
+    up = L.filter(it => itemUp(it)).length;
+  return `<div class="slotp"><div class="ph2">${ch ? '護符' : EQS.find(q => q.k === k).n}<span>${cur ? `現在：${esc(itemName(cur))}` : '空的'} · 可以換的 ${L.length} 件${up ? `，<b class="c-good">▲ ${up}</b>` : ''}</span><button class="x" aria-label="收起" data-a="slotx">${ICO.x}</button></div>
+  ${
+    L.length
+      ? `<div class="bag" data-grid="inv">${L.slice(0, SLOT_SHOW)
+          .map(it => itemHTML(it, 'inv'))
+          .join(
+            ''
+          )}</div>${L.length > SLOT_SHOW ? `<button class="btn bagmore" data-a="slotall">看全部 ${L.length} 件</button>` : ''}`
+      : '<p class="c-dim bagno">倉庫裡沒有這一格能用的裝備</p>'
+  }</div>`;
+}
+/* 直立的角色頁選了一格：這件放得下那一格就優先換那一格（兩枚戒指、主手與副手） */
+const slotPref = slots => (PORT() && NAV.view === 'char' && NAV.slot && slots.find(e => e.k === NAV.slot)) || null;
 /* 「更多」：其他功能一格一個，底下一行寫現在的狀況 */
 function moreHTML() {
   const pts = ptLeft(),
@@ -513,6 +545,7 @@ function closePanels() {
     PANEL.node =
       false;
   NAV.pick = NAV.full = 0;
+  NAV.slot = null;
   clearTimeout(REV.tm);
   hideTip();
   hudPanels();
@@ -828,7 +861,7 @@ function hudPanels() {
   } else HV.nsel = null;
   if (PANEL.skill) panelHTML($('pskill'), skillHTML(), ['.sk-body']);
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
-  if (PANEL.inv) $('pinv').innerHTML = invHTML();
+  if (PANEL.inv) panelHTML($('pinv'), invHTML(), ['', '.bagf.sub']);
   if (PANEL.stash) {
     const st = PANEL.stab === 'frags' ? 'frags' : 'cur';
     $('pstash').innerHTML =
@@ -885,7 +918,7 @@ function invHTML() {
         const [x, y, w, h] = EQPOS[e.k].map(v => Math.round(v * z)),
           it = S.eq[e.k],
           lock = !eqOpen(S, e.k);
-        return `<div class="eqs ${it ? 'r' + it.r : ''} ${s.eqBad.includes(e.k) && !lock ? 'noreq' : ''} ${lock ? 'lock' : ''}" data-eq="${e.k}" ${it ? '' : `data-tip="${e.n}${lock ? '：被昇華鎖住，退點才能用' : ''}"`} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', e.k) : lock ? `<small>${ICO.lock}</small>` : `<span class="eqg">${icHTML(slotIc(e))}</span>`}</div>`;
+        return `<div class="eqs ${it ? 'r' + it.r : ''} ${s.eqBad.includes(e.k) && !lock ? 'noreq' : ''} ${lock ? 'lock' : ''} ${NAV.slot === e.k ? 'sel' : ''}" data-eq="${e.k}" ${it ? '' : `data-tip="${e.n}${lock ? '：被昇華鎖住，退點才能用' : ''}"`} style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', e.k) : lock ? `<small>${ICO.lock}</small>` : `<span class="eqg">${icHTML(slotIc(e))}</span>`}</div>`;
       }).join('') +
       /* 神格（0.2.82）：第一枚戒指下面，只顯示；換裝在山海寶盒的「弒神」分頁 */
       (() => {
@@ -899,16 +932,11 @@ function invHTML() {
           const [x, y, w, h] = [204 + i * 40, 196, 36, 36].map(v => Math.round(v * z)),
             it = S.charms[i],
             lock = i >= charmSlots(S);
-          return `<div class="eqs ${it ? 'r' + it.r : ''} ${lock ? 'lock' : ''}" data-eq="ch${i}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', 'ch' + i) : `<small>${lock ? ICO.lock : '護符'}</small>`}</div>`;
+          return `<div class="eqs ${it ? 'r' + it.r : ''} ${lock ? 'lock' : ''} ${NAV.slot === 'ch' + i ? 'sel' : ''}" data-eq="ch${i}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px">${it ? itemHTML(it, 'eq', 'ch' + i) : `<small>${lock ? ICO.lock : '護符'}</small>`}</div>`;
         })
         .join('');
   /* 抗性：顯示扣完這一階懲罰的（照 PoE2，上限是最大抗性） */
-  const pen = G.scene === 'map' ? resPen(mobLv(G.mapT || 1)) : 0,
-    res =
-      RESK.map(
-        r =>
-          `<span class="res-${r}">${ELN[r]}抗 <b>${effRes(r)}%</b>${s.maxRes[r] > RES_CAP ? `<small>／${s.maxRes[r]}</small>` : ''}${s.resRaw[r] - (r === 'chaos' ? 0 : pen) > effRes(r) ? `<small>（${s.resRaw[r] - (r === 'chaos' ? 0 : pen)}%）</small>` : ''}</span>`
-      ).join('') + (pen ? `<span class="c-dim">這一階元素抗性 −${pen}%</span>` : '');
+  const pen = G.scene === 'map' ? resPen(mobLv(G.mapT || 1)) : 0;
   /* 手機橫向一屏放不下裝備欄和背包：分頁，預設背包 */
   const land = LAND(),
     /* 直立（0.4.4）：裝備欄與倉庫拆成「角色」「戰利品」兩頁；做裝在挑裝備時只看倉庫清單 */
@@ -933,23 +961,63 @@ function invHTML() {
           ? `<b>角色</b><span>Lv ${S.lv} · ${S.gold} 金</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`
           : `<b>戰利品</b><span>${n}／${INV_CAP} · ${S.gold} 金</span><button class="btn mini" data-a="bagoc" aria-label="換排序">${BAG_O.find(o => o[0] === BAG.o)[1]} ↓</button><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`;
   /* 直立的戰利品：篩選晶片放進標題列，跟標題一起黏在上面 */
-  const chips =
-    port && tb === 'bag'
-      ? `<div class="bagf" role="group" aria-label="篩選">${BAG_F.map(([k, t]) => `<button class="chip ${BAG.f === k ? 'on' : ''}" data-a="bagf:${k}">${t}</button>`).join('')}</div>`
-      : '';
+  const chips = port && tb === 'bag' ? bagFilterHTML() : '';
   return `<div class="ph ${chips ? 'wrap' : ''}">${head}${chips}</div>
   ${
     split && tb === 'bag'
       ? ''
       : `<div class="eqrow col"><div class="doll" style="width:${Math.round(320 * z)}px;height:${Math.round(232 * z)}px">${eqs}</div>
-  <div class="st">
-    <span>傷害 <b>${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}</b></span><span>攻擊速度 <b>${s.aps.toFixed(2)}</b></span><span>暴擊 <b>${s.crit.toFixed(1)}%</b>${s.lukCrit ? `（有效 ${effCh(s.crit, 1).toFixed(1)}%）` : ''}</span><span title="對同等級普通怪的命中率；法術必定命中">命中 <b>${s.acc}</b>（${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%）</span>
-    ${ATTR.map(k => `<span title="${ATTN[k]}：${{ str: '1 點 +2 生命', dex: '1 點 +8 命中值', int: '1 點 +2 魔力' }[k]}">${ATTN[k]} <b>${s[k]}</b></span>`).join('')}
-    <span>生命 <b>${s.hp}</b></span>${s.es ? `<span>能量護盾 <b>${s.es}</b></span>` : ''}<span>護甲 <b>${s.armor}</b></span>${s.ev ? `<span>閃避 <b>${s.ev}</b></span>` : ''}<span>格擋 <b>${s.block}%</b>${s.blockOver ? `（超限 +${s.blockOver}%）` : ''}</span>${s.defl ? `<span title="被擊中且沒閃避、格擋時，傷害 −40%">偏斜值 <b>${Math.round(s.defl)}</b>（${Math.round(capLuck(deflCh(15 + 6 * S.lv, s.defl), 95, s.lukDefl))}%）</span>` : ''}${s.thornAdd[1] ? `<span>荊棘 <b>${s.thornAdd[0]}–${s.thornAdd[1]}</b></span>` : ''}<span>精魂 <b>${s.spiritUsed}/${s.spirit}</b></span>
-    ${res}
-  </div></div>`
+  ${port && NAV.slot ? slotPickHTML() : ''}
+  ${statsHTML(s, pen)}</div>`
   }
   ${split && tb === 'eq' ? '' : bagHTML()}`;
+}
+/* 角色數值（0.4.6）：分攻擊、防禦、抗性、能力值四組，一格一項——名稱在左、數字在右對齊；沒有的項目不列。
+   抗性顯示扣完這一階懲罰的（照 PoE2，上限是最大抗性） */
+function statsHTML(s, pen) {
+  const cell = (n, v, tip, cls) =>
+      `<div ${tip ? `title="${esc(tip)}"` : ''}><span class="${cls || ''}">${n}</span><b>${v}</b></div>`,
+    grp = (n, cells, note) =>
+      `<section><h4>${n}${note ? `<small>${note}</small>` : ''}</h4><div class="stg">${cells.filter(Boolean).join('')}</div></section>`,
+    hit = Math.round(100 * hitChance(s.acc, mobEv(S.lv)));
+  return `<div class="st2">${grp('攻擊', [
+    cell('每秒傷害', fmtN(Math.round(dps(s)))),
+    cell('傷害', `${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}`),
+    cell('攻擊速度', s.aps.toFixed(2)),
+    cell('暴擊率', `${s.crit.toFixed(1)}%${s.lukCrit ? `<small>有效 ${effCh(s.crit, 1).toFixed(1)}%</small>` : ''}`),
+    cell('命中率', `${hit}%`, `命中值 ${s.acc}：對同等級普通怪的命中率；法術必定命中`)
+  ])}${grp('防禦', [
+    cell('生命', fmtN(s.hp)),
+    s.es ? cell('能量護盾', fmtN(s.es)) : '',
+    cell('護甲', fmtN(s.armor)),
+    s.ev ? cell('閃避', fmtN(s.ev)) : '',
+    cell('格擋', `${s.block}%${s.blockOver ? `<small>超限 +${s.blockOver}%</small>` : ''}`),
+    s.defl
+      ? cell(
+          '偏斜',
+          `${Math.round(capLuck(deflCh(15 + 6 * S.lv, s.defl), 95, s.lukDefl))}%`,
+          `偏斜值 ${Math.round(s.defl)}：被擊中且沒閃避、格擋時，傷害 −40%`
+        )
+      : '',
+    s.thornAdd[1] ? cell('荊棘', `${s.thornAdd[0]}–${s.thornAdd[1]}`) : ''
+  ])}${grp(
+    '抗性',
+    RESK.map(r => {
+      const raw = s.resRaw[r] - (r === 'chaos' ? 0 : pen);
+      return cell(
+        ELN[r],
+        `${effRes(r)}%${s.maxRes[r] > RES_CAP ? `<small>／${s.maxRes[r]}</small>` : ''}${raw > effRes(r) ? `<small>溢出 ${raw - effRes(r)}</small>` : ''}`,
+        '',
+        'res-' + r
+      );
+    }),
+    pen ? `這一階元素抗性 −${pen}%` : ''
+  )}${grp('能力值', [
+    ...ATTR.map(k =>
+      cell(ATTN[k], s[k], `${ATTN[k]}：${{ str: '1 點 +2 生命', dex: '1 點 +8 命中值', int: '1 點 +2 魔力' }[k]}`)
+    ),
+    cell('精魂', `${s.spiritUsed}／${s.spirit}`)
+  ])}</div>`;
 }
 /* ---------- 清單倉庫（0.4.0，企劃書 5.9）：一件一格，篩選、排序、批量賣出篩選到的、鎖定 ---------- */
 const BAG_F = [
@@ -957,30 +1025,48 @@ const BAG_F = [
   ['weapon', '武器'],
   ['armor', '防具'],
   ['acc', '飾品'],
-  ['charm', '護符'],
+  ['charm', '護符']
+];
+const BAG_FL = [
+  ['up', '▲ 可能升級'],
   ['frac', '★'],
-  ['mem', '追憶'],
-  ['up', '▲ 可能升級']
+  ['mem', '追憶']
 ];
 const BAG_O = [
   ['new', '最新'],
   ['T', 'T'],
   ['q', '品質']
 ];
-const bagHit = (it, f) =>
-  f === 'all' ||
-  (f === 'frac'
-    ? !!it.frac
-    : f === 'mem'
-      ? !!it.mem
-      : f === 'up'
-        ? itemUp(it)
-        : (it.charm ? 'charm' : KIND_GRP[baseOf(it).k]) === f);
+/* 一件裝備的大類與部位（武器的部位＝武器類別） */
+const bagGrp = it => (it.charm ? 'charm' : KIND_GRP[baseOf(it).k]);
+const bagSub = it => (it.charm ? '' : baseOf(it).k === 'weapon' ? baseOf(it).wt : baseOf(it).k);
+const bagSubN = k => WTN[k] || KINDS[k].n;
+const bagHit = it =>
+  (BAG.f === 'all' || bagGrp(it) === BAG.f) &&
+  (!BAG.k || bagSub(it) === BAG.k) &&
+  (!BAG.fl.frac || !!it.frac) &&
+  (!BAG.fl.mem || !!it.mem) &&
+  (!BAG.fl.up || itemUp(it));
+/* 篩選列（桌機、手機共用）：第一列大類＋可以疊加的條件，選了大類第二列是它的部位（只列倉庫裡有的，寫幾件） */
+function bagFilterHTML() {
+  const chip = (a, on, t) =>
+      `<button class="chip ${on ? 'on' : ''}" data-a="${a}" aria-pressed="${!!on}">${t}</button>`,
+    cnt = {};
+  if (BAG.f !== 'all' && BAG.f !== 'charm')
+    for (const it of S.inv.items) if (bagGrp(it) === BAG.f) cnt[bagSub(it)] = (cnt[bagSub(it)] || 0) + 1;
+  const subs = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]);
+  return `<div class="bagfs"><div class="bagf grp" role="group" aria-label="大類">${BAG_F.map(([k, t]) => chip('bagf:' + k, BAG.f === k, t)).join('')}</div>
+  <div class="bagf sub" role="group" aria-label="條件與部位">${BAG_FL.map(([k, t]) => chip('bagfl:' + k, BAG.fl[k], t)).join('')}${
+    subs.length
+      ? `<i class="sep"></i>${subs.map(k => chip('bagk:' + k, BAG.k === k, `${bagSubN(k)}<small>${cnt[k]}</small>`)).join('')}`
+      : ''
+  }</div></div>`;
+}
 const bagT = it => (it.charm ? 9 : itemT(it));
 function bagList() {
   const k = BAG.o;
   return S.inv.items
-    .filter(it => bagHit(it, BAG.f))
+    .filter(bagHit)
     .sort((a, b) =>
       k === 'T' ? bagT(a) - bagT(b) || b.id - a.id : k === 'q' ? (b.q || 0) - (a.q || 0) || b.id - a.id : b.id - a.id
     );
@@ -1000,7 +1086,7 @@ function bagHTML() {
   ${L.length > BAG.n ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - BAG.n)} 件（共 ${L.length}）</button>` : ''}
   ${NAV.pick ? '' : `<div class="foot"><button class="btn" data-a="bagsell" ${sl.length ? '' : 'disabled'}>賣出篩選到的 ${sl.length} 件 · ${sum} 金</button></div>`}`;
   return `<div class="ph2">倉庫 <span>${n}／${INV_CAP}${n >= INV_CAP ? ' · <b class="c-warn">滿了：新掉的普通裝換成金幣</b>' : ''}</span></div>
-  <div class="bagf" role="group" aria-label="篩選">${BAG_F.map(([k, t]) => `<button class="chip ${BAG.f === k ? 'on' : ''}" data-a="bagf:${k}">${t}</button>`).join('')}</div>
+  ${bagFilterHTML()}
   <div class="bagf" role="group" aria-label="排序"><span class="c-dim">排序</span>${BAG_O.map(([k, t]) => `<button class="chip ${BAG.o === k ? 'on' : ''}" data-a="bago:${k}">${t}</button>`).join('')}</div>
   <p class="bagh">${TOUCH.on ? '點一下＝說明與動作' : PANEL.craft ? '點一下＝放上鍛造台 · Shift＋點＝鎖定' : `點一下＝${curTab() ? '放進中間' : '裝備'} · Shift＋點＝鎖定 · 可以拖到裝備欄`}</p>
   <div class="bag" data-grid="inv">${L.slice(0, BAG.n)
@@ -1008,6 +1094,18 @@ function bagHTML() {
     .join('')}</div>${L.length ? '' : '<p class="c-dim bagno">沒有符合的裝備</p>'}
   ${L.length > BAG.n ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - BAG.n)} 件（共 ${L.length}）</button>` : ''}
   <div class="foot"><div class="sell" data-sell="1">拖到這裡賣掉</div><button class="btn" data-a="bagsell" ${sl.length ? '' : 'disabled'} title="賣掉這個篩選裡沒鎖定的裝備">賣出篩選到的 ${sl.length} 件 · ${sum} 金</button></div>`;
+}
+/* 需求不夠、穿不上（倉庫格子變暗） */
+const NQC = new Map(); /* 物品 id → [身上這一套的簽名, 結果]：倉庫一次畫上百格，換裝或升級才重算 */
+function cantWear(it) {
+  if (it.charm) return false;
+  const sig = upSig(S),
+    c = NQC.get(it.id);
+  if (c && c[0] === sig) return c[1];
+  const e = EQS.find(q => eqTakes(q, baseOf(it).k)),
+    v = !!e && eqLack(S, it, e.k).length > 0;
+  NQC.set(it.id, [sig, v]);
+  return v;
 }
 function itemHTML(it, src, eqk) {
   const mark =
@@ -1017,7 +1115,7 @@ function itemHTML(it, src, eqk) {
         (itemUp(it) ? '<i class="bu" aria-label="可能升級">▲</i>' : '') +
         (it.frac ? '<i class="bs">★</i>' : it.mem ? '<i class="bs">◈</i>' : '') +
         (!it.charm && t1N(it) >= 2 ? `<i class="bt">T1×${t1N(it)}</i>` : '');
-  return `<div class="it r${it.r} ${isSlot(src) ? 'full' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''}>${icHTML(itemIc(it))}${mark}</div>`;
+  return `<div class="it r${it.r} ${isSlot(src) ? 'full' : ''} ${src === 'inv' && cantWear(it) ? 'nq' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''}>${icHTML(itemIc(it))}${mark}</div>`;
 }
 /* 技能寶石面板：5 個技能欄，每欄 1 顆技能＋2 顆輔助 */
 const TAGN = {
@@ -1521,9 +1619,10 @@ function quickMove(src, it, eqk, shift) {
       slots = EQS.filter(e => eqTakes(e, k) && eqOpen(S, e.k)),
       /* 武器：主手空著放主手；主手有武器、而且副手能拿這把（權杖、雙持）才放副手，不然換掉主手 */
       e =
-        k === 'weapon'
+        slotPref(slots) ||
+        (k === 'weapon'
           ? EQS.find(q => q.k === (S.eq.weapon && !S.eq.off && offOK(S.eq.weapon, it) ? 'off' : 'weapon'))
-          : slots.find(e => !S.eq[e.k]) || slots[0];
+          : slots.find(e => !S.eq[e.k]) || slots[0]);
     if (!e) return EQS.some(q => eqTakes(q, k)) && hudWarn('這一欄被昇華鎖住，退掉昇華點才能用');
     if (e.k === 'off' && !offOK(S.eq.weapon, it)) return hudWarn(offWhy(S.eq.weapon, it));
     const lack = eqLack(S, it, e.k);
@@ -1684,13 +1783,6 @@ function dragEnd(e) {
 
 /* ---------- 說明框 ---------- */
 /* 需求列（0.2.42）：夠的是一般字、缺的是紅字；有缺再加一行紅字「缺什麼」；req 全空就不顯示；lack 是 [[名稱, 現有, 需求]] */
-function reqHTML(req, lack, worn) {
-  const bad = new Set(lack.map(l => l[0])),
-    part = (n, v) => (v ? `<span class="${bad.has(n) ? 'c-bad' : ''}">${n} ${v}</span>` : ''),
-    ps = [part('等級', req.lv), ...ATTR.map(k => part(ATTN[k], req[k]))].filter(Boolean);
-  if (!ps.length) return '';
-  return `<p class="base">需求：${ps.join(' · ')}</p>${lack.length ? `<p class="c-bad">${worn ? '已失效，數值不算' : '不能裝上'}：${lackTxt(lack)}</p>` : ''}`;
-}
 /* 說明框的前綴 3 格、後綴 3 格（空格畫出來；白、藍裝多出來的格寫「—」）：每條後面寫 T，破裂詞加 ★ 並用特別顏色 */
 function tipSlots(it) {
   const cap = sideCap(it),
@@ -1716,42 +1808,53 @@ function itemTip(it, cmp) {
     un = !!it.uid;
   /* 企劃書 5.9：基底層一行（T、品質、孔）、固定詞、追憶、前綴 3 格、後綴 3 格（空格畫出來）、腐化詞、符文；
      未鑑定只看得到基底層、固定詞、追憶（前後綴要找撿骨師） */
-  let html = `<b class="rc${it.r}">${esc(itemName(it))}</b><small>${RARN[it.r]} ${KINDS[B.k].n} · 物品等級 ${it.L}${un ? ' · <span class="c-warn">未鑑定</span>' : ''}</small>`;
-  html += `<p class="lay"><span class="tt">T${itemT(it)}</span> · ${baseLayers(it)}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}</p>`;
-  html += `<p class="base">${baseText(it).join('<br>')}</p>`;
+  /* 0.4.6 精簡（使用者：文字太雜、看不出跟身上的差別）：
+     標題下一行（稀有度 種類 · T · 品質 · 孔）→ 不能裝的原因 → **換上去的差別**（一格一項，放最上面）→ 追憶 → 前後綴 → 腐化／災魘 → 基底與需求（小字）。
+     拿掉：物品等級（T 就是它換算的）、還沒有內容的符文那一行、手機上的賣價（賣出鈕上有） */
+  const wk = EQS.find(e => S.eq[e.k] === it) || EQS.find(e => eqTakes(e, B.k)),
+    worn = !!(wk && S.eq[wk.k] === it),
+    lack = wk ? eqLack(S, it, wk.k) : [],
+    req = itemReq(it),
+    reqP = [req.lv ? `等級 ${req.lv}` : '', ...ATTR.map(k => (req[k] ? `${ATTN[k]} ${req[k]}` : ''))].filter(Boolean);
+  let html = `<b class="rc${it.r}">${esc(itemName(it))}</b><small>${RARN[it.r]} ${B.k === 'weapon' ? WTN[B.wt] || KINDS[B.k].n : KINDS[B.k].n} · <span class="tt">T${itemT(it)}</span>${baseLayers(it) ? ' · ' + baseLayers(it) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${un ? ' · <span class="c-warn">未鑑定</span>' : ''}</small>`;
+  if (lack.length) html += `<p class="c-bad">${worn ? '已失效，數值不算' : '不能裝上'}：${lackTxt(lack)}</p>`;
+  if (cmp && !un && !lack.length) {
+    /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄；直立的角色頁選了一格就比那一格 */
+    const slots = EQS.filter(
+        e => eqTakes(e, B.k) && eqOpen(S, e.k) && (e.k !== 'off' || B.k !== 'weapon' || offOK(S.eq.weapon, it))
+      ),
+      e = slotPref(slots) || (B.k === 'weapon' ? slots[0] : slots.find(e => !S.eq[e.k]) || slots[0]);
+    if (e) {
+      const cur = S.eq[e.k],
+        a = ST;
+      S.eq[e.k] = it;
+      const b = stats();
+      S.eq[e.k] = cur;
+      const rows = [
+        ['每秒傷害', dps(b) - dps(a)],
+        ['生命', b.hp - a.hp],
+        ['能量護盾', b.es - a.es],
+        ['護甲', b.armor - a.armor],
+        ['閃避', b.ev - a.ev],
+        ['暴擊率', b.crit - a.crit],
+        ...RESK.map(r => [ELN[r] + '抗', b.res[r] - a.res[r]]),
+        ['移動速度', b.spd - a.spd]
+      ].filter(r => Math.abs(r[1]) >= 0.5);
+      html += `<div class="cmp2"><span>${cur ? `換掉 <i class="rc${cur.r}">${esc(itemName(cur))}</i>` : `${e.n}現在空著，裝上去`}</span>${
+        rows.length
+          ? `<div class="cg">${rows.map(([n, v]) => `<div><span>${n}</span><b class="${v > 0 ? 'c-good' : 'c-bad'}">${v > 0 ? '▲' : '▼'} ${fmtN(Math.abs(v))}</b></div>`).join('')}</div>`
+          : '<em>數值一樣</em>'
+      }</div>`;
+    }
+  }
   if (it.mem) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem))}</p>`;
   if (it.mem2) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem2))}</p>`;
-  const wk = EQS.find(e => S.eq[e.k] === it) || EQS.find(e => eqTakes(e, B.k));
-  html += reqHTML(itemReq(it), wk ? eqLack(S, it, wk.k) : [], wk && S.eq[wk.k] === it);
   html += un ? `<p class="hint c-warn">回藏身處找撿骨師免費鑑定，鑑定後才能裝備與做裝</p>` : tipSlots(it);
   if (!un && it.cw && it.cw.length) html += `<p class="aff cor">${it.cw.map(c => esc(cwText(c))).join('<br>')}</p>`;
   if (!un && it.cal)
     html += `<p class="aff"><span class="c-good">${esc(calText(it.cal.g))}</span>${it.cal.b ? `<br><span class="c-bad">${esc(calText(it.cal.b, 1))}</span>` : ''}</p>`;
-  if (it.so) html += `<p class="rune">符文 ${'○'.repeat(it.so)}<small>（還沒有符文）</small></p>`;
-  if (cmp && !un) {
-    /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄 */
-    const slots = EQS.filter(
-        e => eqTakes(e, B.k) && eqOpen(S, e.k) && (e.k !== 'off' || B.k !== 'weapon' || offOK(S.eq.weapon, it))
-      ),
-      e = B.k === 'weapon' ? slots[0] : slots.find(e => !S.eq[e.k]) || slots[0],
-      cur = S.eq[e.k],
-      a = ST;
-    S.eq[e.k] = it;
-    const b = stats();
-    S.eq[e.k] = cur;
-    const rows = [
-      ['每秒傷害', dps(b) - dps(a)],
-      ['生命', b.hp - a.hp],
-      ['能量護盾', b.es - a.es],
-      ['護甲', b.armor - a.armor],
-      ['閃避', b.ev - a.ev],
-      ['暴擊率', b.crit - a.crit],
-      ...RESK.map(r => [ELN[r] + '抗', b.res[r] - a.res[r]]),
-      ['移動速度', b.spd - a.spd]
-    ].filter(r => Math.abs(r[1]) >= 0.5);
-    html += `<p class="cmp">${cur ? '換上去' : '這格空著'}：${rows.length ? rows.map(([n, v]) => `<span class="${v > 0 ? 'c-good' : 'c-bad'}">${n} ${v > 0 ? '▲' : '▼'}${Math.abs(Math.round(v))}</span>`).join(' ') : '沒有變化'}</p>`;
-  }
-  html += `<p class="hint">${G.scene === 'hide' && !un ? '賣價 ' + sellPrice(it) + ' 金' : ''}</p>`;
+  html += `<p class="base">${baseText(it).filter(Boolean).join(' · ')}${reqP.length && !lack.length ? `<br>需求：${reqP.join(' · ')}` : ''}</p>`;
+  if (!TOUCH.on) html += `<p class="hint">${G.scene === 'hide' && !un ? '賣價 ' + sellPrice(it) + ' 金' : ''}</p>`;
   return html;
 }
 /* 說明框貼在 a（被點或滑過的東西的方框）旁邊：右 → 左 → 下 → 上，第一個放得下的；
@@ -2003,11 +2106,30 @@ function act(a, el) {
   } else if (a === 'rvskip') {
     REV.i = REV.list.length;
     revealStep();
-  } else if (a.startsWith('bagf:') || a.startsWith('bago:')) {
-    BAG[a[3]] = a.slice(5);
+  } else if (a.startsWith('bagf:') || a.startsWith('bago:') || a.startsWith('bagk:')) {
+    /* 部位再點一次＝取消；換大類：部位回到全部 */
+    BAG[a[3]] = a[3] === 'k' && BAG.k === a.slice(5) ? '' : a.slice(5);
+    if (a[3] === 'f') BAG.k = '';
     BAG.n = BAG_STEP;
     sfx('click');
     hudPanels();
+  } else if (a.startsWith('bagfl:')) {
+    const k = a.slice(6);
+    BAG.fl[k] = BAG.fl[k] ? 0 : 1;
+    BAG.n = BAG_STEP;
+    sfx('click');
+    hudPanels();
+  } else if (a === 'slotx') {
+    NAV.slot = null;
+    hudPanels();
+  } else if (a === 'slotall') {
+    /* 角色頁「看全部」：到戰利品，篩選成這一格放得下的部位 */
+    const e = EQS.find(q => q.k === NAV.slot);
+    if (NAV.slot && /^ch\d$/.test(NAV.slot)) Object.assign(BAG, { f: 'charm', k: '' });
+    else if (e) Object.assign(BAG, { f: KIND_GRP[e.t] || 'all', k: e.k === 'weapon' ? '' : e.t });
+    BAG.fl = {};
+    BAG.n = BAG_STEP;
+    navGo('bag');
   } else if (a === 'bagmore') (BAG.n += BAG_STEP), hudPanels();
   else if (a === 'bagsell') {
     if (el && confirm2(el, `確定賣掉 ${bagSells().length} 件？`)) sellAll();

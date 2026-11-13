@@ -1756,4 +1756,59 @@ body.touch.port .fcols .ftop { order: 3; }
 /* 直立的鍛造台「填」：一列三顆（名字不折成三行）；不能用在這件上的變暗 */
 body.touch.port .fseg.s6 { grid-template-columns: repeat(3, 1fr); }
 .fseg button.no:not(.on) { opacity: 0.4; }
+/* ---------- 0.4.6：角色數值分組、說明框的比較、倉庫篩選的部位列、角色頁的可換清單 ---------- */
+/* 角色數值：四組，一格一項（名稱在左、數字在右） */
+.st2 { width: 100%; display: grid; gap: 10px; }
+.st2 section { min-width: 0; }
+.st2 h4 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 2px; padding-bottom: 3px; font: 700 var(--fs-s) var(--font); letter-spacing: 0.08em; color: var(--dim); border-bottom: 1px solid var(--line); }
+.st2 h4 small { font: 400 11px var(--font); letter-spacing: 0; color: var(--warn); }
+.stg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
+.stg > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-height: 26px; font-size: var(--fs-s); color: var(--dim); }
+.stg > div b { font: 700 var(--fs) var(--font); color: var(--tx); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stg > div b small { margin-left: 5px; font: 400 11px var(--font); color: var(--dim); }
+/* 桌機、手機橫向：面板矮，每組一行（組名在左、項目接著排），不把倉庫擠到畫面外 */
+body:not(.touch.port) .st2 { gap: 1px; }
+body:not(.touch.port) .st2 section { display: flex; align-items: baseline; gap: 10px; }
+body:not(.touch.port) .st2 h4 { flex: none; width: 4.2em; margin: 0; padding: 0; border: 0; white-space: nowrap; }
+body:not(.touch.port) .st2 h4 small { display: none; }
+body:not(.touch.port) .stg { display: flex; flex-wrap: wrap; gap: 0 14px; }
+body:not(.touch.port) .stg > div { min-height: 22px; gap: 5px; justify-content: flex-start; }
+/* 說明框：換上去的差別放最上面，一格一項 */
+#tip .cmp2 { padding: 8px 14px; text-align: left; border-bottom: 1px solid rgba(200, 205, 215, 0.25); background: rgba(0, 0, 0, 0.25); }
+#tip .cmp2 > span { display: block; margin-bottom: 4px; font-size: var(--fs-s); color: var(--dim); }
+#tip .cmp2 > span i { font-style: normal; }
+#tip .cmp2 > em { font-style: normal; font-size: var(--fs-s); color: var(--dim); }
+#tip .cmp2 .cg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px 16px; }
+#tip .cmp2 .cg > div { display: flex; justify-content: space-between; gap: 6px; font-size: var(--fs-s); color: var(--tx); }
+#tip .cmp2 .cg b { display: inline; font: 700 var(--fs) var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; }
+#tip > p.c-bad { font-size: var(--fs-s); }
+#tip .base { font-size: var(--fs-s); line-height: 1.5; }
+/* 手機點出來的說明框：寬一點，前綴後綴左右並排（少四行） */
+body.touch #tip.act { max-width: min(380px, calc(100vw - 16px)); }
+body.touch #tip.act .tslots { flex-direction: row; gap: 10px; padding: 0 12px; text-align: left; }
+body.touch #tip.act .tcol { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+body.touch #tip.act .tl { padding-left: 6px; font-size: var(--fs-s); line-height: 1.45; }
+/* 倉庫篩選：大類與條件之間的分隔、部位列（小字寫幾件） */
+.bagf .sep { flex: none; width: 1px; align-self: stretch; margin: 4px 2px; background: var(--line); }
+.bagf .chip small { margin-left: 4px; }
+.bagf .chip.on small { color: inherit; opacity: 0.7; }
+/* 角色頁：選中的那一格、底下可以換的清單 */
+.eqs.sel { outline: 2px solid var(--sel); outline-offset: 1px; }
+.slotp { width: 100%; }
+.slotp .ph2 { margin-top: 0; flex-wrap: wrap; }
+.slotp .ph2 > span { flex: 1; min-width: 0; font-family: var(--font); font-weight: 400; letter-spacing: 0; }
+.slotp .ph2 .x { flex: none; width: 44px; height: 44px; display: grid; place-items: center; color: var(--dim); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 2px; }
+body.touch.port .eqrow.col { align-items: stretch; }
+body.touch.port .eqrow.col .doll { align-self: center; }
+.bagf.grp { flex-wrap: nowrap; }
+.bagf.grp .chip { flex: 1 1 0; justify-content: center; min-width: 0; }
+body.touch.port .ph .bagf.grp { overflow: visible; }
+body.touch.port .ph .bagf.grp .chip { flex: 1 1 0; padding: 0 4px; }
+.bag > .it.nq { opacity: 0.4; }
+/* 篩選的兩列：直立各佔一列（在黏著的標題列裡）；桌機與橫向接成一段，大類＋條件一行、選了大類部位換下一行 */
+body.touch.port .ph .bagfs { display: contents; }
+body:not(.touch.port) .bagfs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
+body:not(.touch.port) .bagfs .bagf { display: contents; }
+body:not(.touch.port) .bagfs .bagf.grp .chip { flex: none; }
+body:not(.touch.port) .bagfs .sep { flex: 0 0 100%; height: 0; margin: 0; background: none; }
 
