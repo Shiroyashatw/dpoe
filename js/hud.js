@@ -383,10 +383,10 @@ function navGo(t) {
   const on = navOn() === t && (t !== 'more' || PANEL.more);
   closePanels();
   if (on) return;
+  /* 做裝要同時看得到裝備的詞與通貨、技能面板很長（圓環＋說明＋升級鈕）：打開就蓋滿，把手可以縮回半版 */
+  if (t === 'craft' || t === 'skill') NAV.full = 1;
   if (t === 'bag' || t === 'char') (NAV.view = t), openPanel('inv');
   else if (t === 'craft') openPanel(PANEL.ctab === 'forge' ? 'craft' : 'stash');
-  /* 技能面板很長（圓環＋說明＋升級鈕）：打開就蓋滿，把手可以縮回半版 */ else if (t === 'skill')
-    (NAV.full = 1), openPanel(t);
   else openPanel(t);
 }
 const navHTML = () => {

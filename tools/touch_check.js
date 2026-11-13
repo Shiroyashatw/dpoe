@@ -483,13 +483,91 @@ let fail = 0;
       '點一件直接放上去、回到做裝（不用先開說明框）',
       await p.evaluate(c => !!S.curIt && S.curIt.id !== c && !$('pstash').hidden && $('tip').hidden && !NAV.pick, cur0)
     );
-    /* 把手：半版 ↔ 蓋滿 */
-    await tap('#phand');
-    const full = await box('#pstash');
-    ok('點把手：面板放大到蓋滿', !!full && full[1] < 60, JSON.stringify(full));
+    /* 通貨頁（0.4.5）：每顆通貨有名字與說明、不能用的寫原因、裝備的詞黏在上面、剛加的那條亮起來 */
+    const full0 = await box('#pstash');
+    ok('做裝打開就蓋滿（看得到詞與通貨）', !!full0 && full0[1] < 60, JSON.stringify(full0));
+    await p.evaluate(() => {
+      for (const k of [
+        'tran',
+        'tran2',
+        'tran3',
+        'aug',
+        'rich',
+        'exalt',
+        'conv',
+        'fore',
+        'holy',
+        'corr',
+        'plate',
+        'whet'
+      ])
+        S.mat[k] = 5;
+      invPut(S.inv, S.curIt);
+      S.curIt = mkItem(pickBase(40, 'chest').id, 40, 0);
+      changed();
+    });
+    await p.waitForTimeout(150);
+    const cu = await p.evaluate(() => {
+      const rows = [...document.querySelectorAll('#pstash .culist .curow')],
+        t3 = [...document.querySelectorAll('#pstash .cut3 button')];
+      return {
+        named: rows.every(
+          r => r.querySelector('.ct b').textContent.length >= 3 && r.querySelector('.ct small').textContent
+        ),
+        h: Math.min(
+          ...rows.map(r => r.getBoundingClientRect().height),
+          ...t3.map(b => b.getBoundingClientRect().height)
+        ),
+        n: rows.length,
+        tier: t3.map(b => b.textContent),
+        no: [...document.querySelectorAll('#pstash .curow.no')].map(r => r.querySelector('.ct').textContent),
+        ring: !!document.querySelector('#pstash .cupg')
+      };
+    });
+    ok(
+      '通貨一列一顆：有名字與說明、每列與三階按鈕 ≥44px、沒有只剩圖示的那一圈',
+      cu.named && cu.h >= 44 && cu.n >= 9 && !cu.ring,
+      JSON.stringify([cu.named, cu.h, cu.n, cu.ring])
+    );
+    ok(
+      '白裝：蛻變石展開三階（寫會出哪幾階）、增幅富豪崇高寫不能用的原因',
+      cu.tier.length === 3 && cu.tier.every(t => /T\d/.test(t)) && cu.no.filter(t => /只有/.test(t)).length === 3,
+      JSON.stringify([cu.tier, cu.no])
+    );
+    await tap('#pstash [data-cu="u:tran"]');
+    ok(
+      '點蛻變石：直接用掉，剛加的那條詞亮起來',
+      await p.evaluate(
+        () =>
+          S.curIt.r === 1 &&
+          S.curIt.a.length === 1 &&
+          S.mat.tran === 4 &&
+          document.querySelectorAll('#pstash .cutop .fslot li.new').length === 1
+      )
+    );
+    await p.evaluate(() => ($('pstash').scrollTop = 600));
+    await p.waitForTimeout(150);
+    const st = await p.evaluate(() => {
+      const t = document.querySelector('#pstash .cutop .fslot').getBoundingClientRect(),
+        pn = $('pstash').getBoundingClientRect();
+      return [
+        Math.round(t.top),
+        Math.round(t.bottom),
+        Math.round(pn.top),
+        Math.round(pn.bottom),
+        $('pstash').scrollTop
+      ];
+    });
+    ok('清單往下捲，裝備的詞還黏在上面', st[4] > 100 && st[0] >= st[2] && st[1] < st[3] - 100, st.join());
+    await p.evaluate(() => ($('pstash').scrollTop = 0));
+    /* 把手：蓋滿 ↔ 半版 */
     await tap('#phand');
     const half = await box('#pstash');
-    ok('再點把手：回到半版', !!half && half[1] > H * 0.3, JSON.stringify(half));
+    ok('點把手：縮回半版', !!half && half[1] > H * 0.3, JSON.stringify(half));
+    await tap('#phand');
+    const full = await box('#pstash');
+    ok('再點把手：面板放大到蓋滿', !!full && full[1] < 60, JSON.stringify(full));
+    await tap('#phand');
     /* 點亮著的分頁＝收起來 */
     await tap('#pnav [data-tm="nav:craft"]');
     ok(

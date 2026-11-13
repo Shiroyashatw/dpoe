@@ -13,7 +13,92 @@ const CUI = { conv: 0, fore: 0, log: '' };
 const CUR_RING = ['tran', 'aug', 'rich', 'exalt', 'conv', 'fore', 'whet', 'holy', 'plate', 'corr'];
 /* 高階、完美（0.4.1）：外圈下面一列 8 格 */
 const CUR_TIERS = ['tran2', 'aug2', 'rich2', 'exalt2', 'tran3', 'aug3', 'rich3', 'exalt3'];
+/* 直立的通貨頁（0.4.5）：手機沒有滑過的說明，圖示圍一圈認不出哪顆是哪顆、點了就用掉，詞又在下面看不到。
+   改成：上面是這件裝備與它的詞（蓋滿時黏著，剛加的那條亮起來），下面每顆通貨一列——名字、對這件會做什麼（不能用就寫原因）、有幾顆；
+   會加詞的四種一列三顆按鈕（普通／高階／完美，寫會出哪幾階）。點了照舊直接用（同一個 data-cu 處理） */
+function curPortHTML() {
+  const M = MAT(),
+    it = S.curIt,
+    f = it && foreOf(it),
+    b = it ? bestTier(it.L) : 0,
+    rec = it && forgeHint(it),
+    /* 這一階的通貨會出哪幾階（1 普通、2 高階、3 完美） */
+    span = g => (g === 3 ? `T${b}` : g === 2 ? (b < AFF_T ? `T${b}～T${b + 1}` : `T${b}`) : tierSpan(it)),
+    /* 為什麼不能用在這件上（數量不夠不算，數量另外寫） */
+    why = k => {
+      if (!it) return '';
+      if (k === 'conv') return lockWhy(it, 'fill') || (it.a.length ? '' : '沒有詞可以換');
+      if (k === 'fore') return lockWhy(it, 'fill') || '';
+      if (FORGE[k]) return forgeCheck(it, k).why || '';
+      if (k === 'whet' || k === 'plate') {
+        if (qualCur(it) !== k) return `只能用在${k === 'whet' ? '武器' : '防具'}`;
+        const w = qualCheck(it).why;
+        return w && !/不夠$/.test(w) ? w : '';
+      }
+      const w = k === 'holy' ? holyCheck(it) : k === 'corr' ? corruptCheck(it) : '';
+      return w && !/不夠$/.test(w) ? w : '';
+    },
+    desc = k =>
+      it && (k === 'whet' || k === 'plate')
+        ? `品質 ${Math.round((it.q || 0) * 100)}% → ${Math.round(Math.min(QUAL_CAP, (it.q || 0) + QUAL_STEP) * 100)}%`
+        : k === 'conv' && CUI.conv
+          ? '點上面一條要換掉的詞'
+          : k === 'fore' && CUI.fore
+            ? '再點一顆加詞的通貨或精髓，先看結果'
+            : CUR[k].d,
+    row = k => {
+      const w = why(k),
+        n = M[k] || 0,
+        on = (k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore);
+      return `<button class="curow ${w ? 'no' : ''} ${n ? '' : 'z'} ${on ? 'on' : ''}" data-cu="u:${k}" ${on ? 'aria-pressed="true"' : ''}>${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w ? 'c-warn' : ''}">${esc(w || desc(k))}</small></span><em>×${fmtN(n)}</em></button>`;
+    },
+    grp = k => {
+      const w = why(k),
+        ns = [M[k] || 0, M[k + '2'] || 0, M[k + '3'] || 0];
+      /* 沒選裝備或不能用在這件上：收成一列，只寫三階各有幾顆 */
+      if (!it || w)
+        return `<button class="curow ${w ? 'no' : ''} ${ns.some(Boolean) ? '' : 'z'}" data-cu="u:${k}">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w ? 'c-warn' : ''}">${esc(w || CUR[k].d)}</small></span><em class="t3"><i>普</i>${fmtN(ns[0])}<i>高</i>${fmtN(ns[1])}<i>完</i>${fmtN(ns[2])}</em></button>`;
+      return `<div class="cugrp ${rec === k ? 'rec' : ''}"><div class="curow">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}${rec === k ? '<i>下一步</i>' : ''}</b><small>${esc(CUR[k].d)}</small></span></div>
+        <div class="cut3">${[1, 2, 3]
+          .map(
+            g =>
+              `<button class="g${g} ${ns[g - 1] ? '' : 'z'}" data-cu="u:${k}${g > 1 ? g : ''}" aria-label="${esc(CUR[k + (g > 1 ? g : '')].n)}"><b>${['普通', '高階', '完美'][g - 1]}</b><small>${span(g)}</small><em>×${fmtN(ns[g - 1])}</em></button>`
+          )
+          .join('')}</div></div>`;
+    },
+    ess = essList(),
+    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k)),
+    li = (ic, n, d, v) =>
+      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
+    top = !it
+      ? '<button class="btn pickb" data-a="pick">選一件裝備</button>'
+      : `${cardHTML(it)}${
+          f
+            ? `<div class="fres fore"><b>預知結果（${esc(FORGE[f.op].n)}）</b>${
+                foreNew(f)
+                  .map(a => `<span class="fnew">${esc(affText(a))} <i>T${a.T}</i></span>`)
+                  .join('') || '<span>沒有新的詞</span>'
+              }</div><div class="fpair"><button class="btn pri" data-cu="fu">用掉${esc(curName(f.op, f.arg))}</button><button class="btn" data-cu="fs">不用（留著）</button></div>`
+            : ''
+        }${slotsHTML(it, CUI.conv ? 'conv' : 'view', 'cu')}${CUI.log ? `<p class="culog">${esc(CUI.log)}</p>` : ''}`;
+  /* 品質的通貨：選了裝備只列用得上的那一種 */
+  const qual = it ? [qualCur(it)] : ['whet', 'plate'];
+  return `<div class="cutop">${top}</div>
+  <div class="ph2">加詞<span>只能加、不能減</span></div>
+  <div class="culist">${['tran', 'aug', 'rich', 'exalt'].map(grp).join('')}</div>
+  <div class="ph2">精髓<span>保證那一類、至少那一階</span></div>
+  ${
+    ess.length
+      ? `<div class="mats">${ess.map(([k, n]) => `<button class="chip" data-cu="es:${k}">${icHTML(ACLSI[k.split(':')[0]].ic)}${esc(essName(k))}<small>×${n}</small></button>`).join('')}</div>`
+      : `<p class="fhint">精髓由 3★ 以上地圖的菁英與王掉落</p>`
+  }
+  <div class="ph2">其他</div>
+  <div class="culist">${['conv', 'fore', ...qual, 'holy', 'corr'].map(row).join('')}</div>
+  <div class="ph2">材料<span>預兆在鍛造台搭配填詞用</span></div>
+  <ul class="mpg">${li('cur_soul', '靈魂', '技能與輔助升級、開孔；自動吸收', M.soul)}${rest.map(k => li(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
+}
 function curPageHTML() {
+  if (PORT()) return curPortHTML();
   const M = MAT(),
     it = S.curIt,
     f = it && foreOf(it),
@@ -64,6 +149,7 @@ document.addEventListener('click', e => {
     it = S.curIt,
     M = MAT();
   let err = null;
+  CUI.fresh = null;
   /* 填詞：預知石開著就先看結果，不然直接用 */
   const fill = (op, arg) => {
     const before = it.a.slice();
@@ -73,10 +159,13 @@ document.addEventListener('click', e => {
       return;
     }
     err = forgeDo(it, op, arg);
-    if (!err) (CUI.log = curName(op, arg) + '：' + (craftLog(before, it) || '完成')), sfx('equip');
+    if (!err)
+      (CUI.log = curName(op, arg) + '：' + (craftLog(before, it) || '完成')),
+        (CUI.fresh = it.a.filter(a => !before.includes(a))),
+        sfx('equip');
   };
   if (k === 'u') {
-    if (!it) err = CUR[v].n + '：' + CUR[v].d + '。先把裝備放進中間';
+    if (!it) err = PORT() ? '先選一件裝備' : CUR[v].n + '：' + CUR[v].d + '。先把裝備放進中間';
     else if (v === 'fore') CUI.fore = CUI.fore ? 0 : M.fore >= 1 ? 1 : ((err = '預知石不夠'), 0);
     else if (v === 'conv') CUI.conv = CUI.conv ? 0 : M.conv >= 1 ? 1 : ((err = '轉化石不夠'), 0);
     else if (FILL_OPS.includes(v)) fill(v);
@@ -103,13 +192,16 @@ document.addEventListener('click', e => {
     CUI.conv = 0;
     fill('conv', +v);
   } else if (k === 'es') {
-    if (!it) err = '先把裝備放進中間';
+    if (!it) err = PORT() ? '先選一件裝備' : '先把裝備放進中間';
     else fill('ess', v + ':' + x);
   } else if (k === 'fu' && it) {
     const before = it.a.slice(),
       o = foreOf(it) && foreOf(it).op;
     err = foreUse(it);
-    if (!err) (CUI.log = FORGE[o].n + '：' + (craftLog(before, it) || '完成')), sfx('equip');
+    if (!err)
+      (CUI.log = FORGE[o].n + '：' + (craftLog(before, it) || '完成')),
+        (CUI.fresh = it.a.filter(a => !before.includes(a))),
+        sfx('equip');
   } else if (k === 'fs') foreSkip(), (CUI.log = '沒有用，通貨留著');
   if (err) hudWarn(err);
   changed();
@@ -147,7 +239,7 @@ function slotsHTML(it, mode, at = 'fg') {
     one = (a, i) => {
       const tag = `T${a.T}${isFrac(it, a) ? ' ★' : ''}${a.m ? ` ×${a.m.toFixed(2)}` : ''}`,
         txt = `<span>${esc(affText(a))}</span><i>${tag}</i>`,
-        cls = `${isFrac(it, a) ? 'frac' : ''}`;
+        cls = `${isFrac(it, a) ? 'frac' : ''} ${at === 'cu' && CUI.fresh && CUI.fresh.includes(a) ? 'new' : ''}`;
       if (mode === 'conv') {
         const why = isFrac(it, a) ? '破裂詞不能轉化' : !affCls(a.k) ? '這條沒有類別' : '';
         return `<li><button class="fcv ${cls} ${at === 'fg' && CRAFT.conv === i ? 'on' : ''}" data-${at}="cv:${i}" ${why ? 'disabled' : ''} aria-pressed="${at === 'fg' && CRAFT.conv === i}">${txt}${why ? `<small>${why}</small>` : ''}</button></li>`;
@@ -246,7 +338,7 @@ function fillHTML(it) {
     )
       .map(
         k =>
-          `<button role="tab" aria-selected="${k === op}" class="${k === op ? 'on' : ''} ${cnt(k) ? '' : 'z'}" data-fg="sel:${k}">${hint === k ? '<i>推薦</i>' : ''}${FORGE[k].n}<small>×${cnt(k)}</small></button>`
+          `<button role="tab" aria-selected="${k === op}" class="${k === op ? 'on' : ''} ${cnt(k) ? '' : 'z'} ${k !== 'ess' && k !== 'conv' && FORGE[k].ok(it) ? 'no' : ''}" data-fg="sel:${k}">${hint === k ? '<i>推薦</i>' : ''}${FORGE[k].n}<small>×${cnt(k)}</small></button>`
       )
       .join('')}</div>`,
     ess =

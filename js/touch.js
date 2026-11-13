@@ -372,6 +372,7 @@ function touchInit() {
       else if (q.dataset.tq === 'craft') {
         /* 直立的「做裝」：倉庫的放進通貨頁中間；身上的不脫下來，直接上鍛造台 */
         closePanels();
+        NAV.full = 1;
         if (src === 'inv') (PANEL.ctab = 'cur'), (PANEL.stab = 'cur'), openPanel('stash'), quickMove(src, it, eqk);
         else (PANEL.ctab = 'forge'), openPanel('craft'), craftPick(src, it, eqk);
       } else quickMove(src, it, eqk);
