@@ -1940,3 +1940,74 @@ button.axs-s { cursor: pointer; }
 
 /* 0.4.7（X2）：按鈕一律黑體。以前主要按鈕用明體，同一排「裝備」是明體、「做裝／賣／鎖定」是黑體；明體只留給標題 */
 .btn.pri { font-family: var(--font); letter-spacing: 0.02em; }
+
+/* ---- 技能面板（0.4.7 直立重做，skpanel.js 的 skPortHTML）：一招一列、升級鈕在列上、輔助孔一排方格；不畫圓環 ---- */
+.sk-body.skp { gap: 8px; }
+.skr { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; min-height: 70px; padding: 8px 10px; color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 4px; cursor: pointer; }
+.skr:active { background: #2b3340; }
+.skr.on { border-color: var(--fr-hi); background: #2b3340; border-radius: 4px 4px 0 0; }
+.skr.bad { border-color: var(--bad); }
+.skr.empty { grid-template-columns: 52px minmax(0, 1fr); border-style: dashed; }
+.skr.sub { margin-top: -8px; min-height: 60px; border-top: 0; border-radius: 0; cursor: default; }
+.skr-ic { position: relative; width: 52px; height: 52px; display: grid; place-items: center; color: var(--dim); background: #14171c; border: 1px solid var(--fr-o); border-radius: 8px; }
+.skr-ic .ic { width: 40px; height: 40px; }
+.skr-ic .ico { width: 22px; height: 22px; }
+.skr-ic .k { position: absolute; left: -5px; top: -5px; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; font: 700 11px var(--font); font-style: normal; color: var(--title); background: var(--s0); border: 1px solid var(--fr); border-radius: 10px; }
+.skr-ic .awm { position: absolute; right: -4px; bottom: -4px; width: 12px; height: 12px; rotate: 45deg; background: var(--awk); border: 1px solid #000; }
+.skr-t { min-width: 0; }
+.skr-t b { display: block; font: 700 var(--fs-l) var(--font); color: var(--title); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skr-t > span { display: flex; align-items: center; gap: 3px; margin-top: 3px; min-height: 20px; font-size: var(--fs-s); color: var(--dim); overflow: hidden; white-space: nowrap; }
+.skr-s .ic { width: 20px; height: 20px; flex: none; }
+.skr-s em, .skr-t em { font-style: normal; }
+.skr-n { text-align: right; }
+.skr-n b { display: block; font: 700 18px/1.1 var(--font); font-variant-numeric: tabular-nums; color: var(--title); }
+.skr-n small { font-size: 11px; color: var(--dim); }
+.skr-up { min-width: 84px; min-height: 50px; padding: 4px 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: 700 var(--fs-s) var(--font); white-space: nowrap; }
+.skr-up small { font-weight: 500; font-size: 11px; }
+.skr-up.max { color: var(--dim); }
+.skr-up .soul { color: inherit; }
+.skp-o { margin-top: -8px; padding: 10px; display: flex; flex-direction: column; gap: 10px; background: #232a34; border: 1px solid var(--fr-hi); border-top: 0; border-radius: 0 0 4px 4px; }
+.skp-o .desc { margin: 0; font-size: var(--fs); line-height: 1.55; }
+.skp-n { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--fs-s); color: var(--dim); }
+.skp-n b { color: var(--tx); font-variant-numeric: tabular-nums; }
+.skp-n b.mp { color: var(--blue); }
+.skhs h5 { margin: 0 0 6px; font: 700 var(--fs-s) var(--font); color: var(--dim); }
+.skhs h5 small { margin-left: 8px; font-weight: 500; }
+.skh-r { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.skh { min-height: 66px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: 700 11px/1.2 var(--font); text-align: center; color: var(--tx); background: var(--s0); border: 1px solid var(--fr-o); border-radius: 6px; overflow: hidden; cursor: pointer; }
+.skh .ic { width: 30px; height: 30px; }
+.skh .ico { width: 18px; height: 18px; }
+.skh span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skh small { font-weight: 500; font-size: 10px; color: var(--dim); }
+.skh.open { border-style: dashed; color: var(--dim); }
+.skh.next { border-color: var(--gold); color: var(--gold); }
+.skh.next:disabled { border-color: var(--fr-o); color: var(--dim); }
+.skh.far { opacity: 0.35; cursor: default; }
+.skh.bad { border-color: var(--bad); }
+.skh.aw { border-color: var(--awk); color: var(--awk); }
+.skh.aw.set { background: var(--awk-bg); }
+.skh.sel { outline: 2px solid #fff; outline-offset: 1px; }
+.skp-a { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.skp-a.two { grid-template-columns: 1.3fr 1fr; }
+.skp-a .btn { min-height: 46px; font: 700 var(--fs-s) var(--font); display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.skp .abar { margin: 0; }
+.skl-h { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 10px; align-items: center; }
+.skl-h .btn { grid-row: 1 / 3; min-height: 44px; padding: 0 12px; font: 700 var(--fs-s) var(--font); }
+.skl-h b { font: 700 var(--fs-l) var(--font); color: var(--title); }
+.skl-h span { font-size: var(--fs-s); color: var(--dim); }
+.skl-f { display: flex; flex-wrap: nowrap; gap: 6px; overflow-x: auto; margin: 0 calc(-1 * var(--pp)); padding: 0 var(--pp) 2px; scrollbar-width: none; }
+.skl-f button { flex: none; min-height: 44px; padding: 0 14px; }
+.skl-l { display: flex; flex-direction: column; gap: 6px; }
+.skl { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 66px; padding: 6px 10px; background: var(--s2); border: 1px solid var(--fr-o); border-radius: 4px; cursor: pointer; }
+.skl.on { border-color: var(--fr-hi); background: #2b3340; border-radius: 4px 4px 0 0; }
+.skl.dim .skr-ic .ic { filter: grayscale(1); opacity: 0.5; }
+.skl-r { display: flex; align-items: center; gap: 6px; font-size: var(--fs-s); color: var(--dim); }
+.skl-r .in { padding: 1px 7px; font: 700 11px var(--font); font-style: normal; color: var(--sel-ink); background: var(--sel); border-radius: 3px; }
+.skl-r b { font-variant-numeric: tabular-nums; }
+.skl-o { margin-top: -6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #232a34; border: 1px solid var(--fr-hi); border-top: 0; border-radius: 0 0 4px 4px; }
+.skl-o .desc { margin: 0; font-size: var(--fs); line-height: 1.55; }
+.skp .card { grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding: 10px; }
+.skp .card .ic2 { width: 52px; height: 52px; }
+.skp .card .ic2 .ic { width: 40px; height: 40px; }
+.skp .card .cacts .btn { min-height: 46px; font: 700 var(--fs-s) var(--font); white-space: nowrap; }
+.skp .card .cacts .btn.pri { flex: 1 1 100%; }

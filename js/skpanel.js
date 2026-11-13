@@ -479,7 +479,162 @@ function skPick(c) {
     ${card}
   </section>`;
 }
+/* ---------- 直立的技能面板（0.4.7 重做）----------
+   玩家來這裡：看五招各自多強、花靈魂升級（最常做）、插輔助、開孔、換招。以前上面一排六個小格、中間一個佔半個畫面的圓環
+   （只放 5 個孔與覺醒槽）、底下的按鈕被分頁列切掉；要升別招得先點小格、再往下捲。
+   現在一招一列：圖示、名字、插了哪些輔助、每秒多少，**升級鈕就在列上**。點一列展開：輔助孔排成一排方格
+   （插著的、空的、下一個要多少靈魂打開、鎖著的），底下是說明與換招；點方格看那顆輔助。光環欄是最後一列 */
+/* 輔助孔的一排方格＋覺醒 */
+function skHoles(c) {
+  const r = c.rec,
+    cells = Array.from({ length: GEM_SO_MAX }, (_, j) => {
+      const sel = SKUI.hole === j ? 'sel' : '';
+      if (j < r.n) {
+        const k = r.so[j];
+        if (!k)
+          return `<button class="skh open ${sel}" data-sk="hole:${j}" aria-label="第 ${j + 1} 孔：挑輔助">${ICO.plus}<span>空孔</span></button>`;
+        const bad = !supOK(c.D, c.g.sup[j], c.g);
+        return `<button class="skh set ${bad ? 'bad' : ''} ${sel}" data-sk="hole:${j}">${icHTML(SUPPORTS[k].ic)}<span>${esc(SUPPORTS[k].n)}</span><small>${bad ? '沒效果' : 'Lv ' + libLv(k)}</small></button>`;
+      }
+      if (j === r.n) {
+        const d = drillCheck(r);
+        return `<button class="skh next" data-sk="drill" ${d.why ? `disabled` : ''} aria-label="打開第 ${j + 1} 孔，要 ${fmtN(d.c)} 靈魂${d.why ? '（' + d.why + '）' : ''}">${ICO.lock}<span>打開</span><small>${soulB(d.c, 1)}</small></button>`;
+      }
+      return `<span class="skh far" aria-label="第 ${j + 1} 孔：鎖著">${ICO.lock}</span>`;
+    }).join('');
+  let aw = '';
+  if (!c.aura && AWK[c.k]) {
+    const a = awOf(c.k);
+    aw = `<button class="skh aw ${a ? 'set' : ''} ${SKUI.aw ? 'sel' : ''}" data-sk="aw">${ICO[a === 'B' ? 'fork' : a ? 'flame' : 'gem']}<span>${a ? esc(AWK[c.k][a].n) : '覺醒'}</span><small>${a ? '已覺醒' : '還沒'}</small></button>`;
+  }
+  return `<div class="skhs"><h5>輔助<small>${r.so.filter(Boolean).length}／${r.n} 孔</small></h5><div class="skh-r">${cells}${aw}</div></div>`;
+}
+/* 展開的那一列底下：數字、輔助孔、（點了孔）那顆輔助的卡／這招的說明與動作、覺醒 */
+function skOpenBody(c) {
+  const D = c.D,
+    k = c.k,
+    lv = libLv(k),
+    warn = [];
+  let rest = '';
+  if (c.aura) {
+    const on = ST.auraOn.includes(k);
+    rest = `<span>預留精魂 <b>${D.sp}</b></span><span class="${on ? 'c-good' : 'c-bad'}">${on ? '生效中' : auraWhy(k)}</span>`;
+  } else {
+    const cf = slotCfg(SKUI.i),
+      N = skillNums(cf);
+    rest = [
+      N.hit != null && N.dps != null ? `<span>擊中 <b>${fmtN(N.hit)}</b></span>` : '',
+      cf.mp ? `<span>魔力 <b class="mp">${cf.mp}</b></span>` : '',
+      cf.cd ? `<span>冷卻 <b>${cf.cd.toFixed(1)} 秒</b></span>` : '',
+      `<span>${skSub(D, 0)}</span>`
+    ].join('');
+    if (!wtOK(D)) warn.push(`${needTxt(D)}，沒有效果`);
+    const lk = gemLack(c.g);
+    if (lk.length) warn.push(`已失效，數值不算：${lackTxt(lk)}`);
+    else if (lv < GEM_MAX) {
+      const nl = gemLack({ ...c.g, lv: lv + 1 });
+      if (nl.length) warn.push(`升到 Lv ${lv + 1} 需要${lackTxt(nl)}，升了會失效`);
+    }
+  }
+  const hole = SKUI.hole;
+  let body;
+  if (hole != null && c.rec.so[hole]) {
+    const hk = c.rec.so[hole],
+      sp = c.g.sup[hole],
+      bad = !supOK(c.D, sp, c.g);
+    body = skCard(
+      hk,
+      `${upBtn(hk, 1)}<button class="btn" data-sk="swap">更換</button><button class="btn" data-sk="unplug">卸下</button>`,
+      bad
+        ? supDup(c.g, sp)
+          ? `這${c.aura ? '個光環' : '招'}已經有同分類的輔助，沒有效果`
+          : `跟這${c.aura ? '個光環' : '招'}不相容，沒有效果`
+        : ''
+    );
+  } else
+    body = `<p class="desc">${rich(D.d)}${!c.aura && awOf(k) ? ` <span class="aw-t">${esc(AWK[k][awOf(k)].n)}</span>：${rich(awText(k, awOf(k)))}` : ''}</p>
+    <div class="skp-a"><button class="btn" data-sk="swap">${c.aura ? '換一個' : '換一招'}</button><button class="btn" data-sk="out">卸下</button><button class="btn" data-sk="calc" aria-expanded="${!!SKUI.calc}">${SKUI.calc ? '收起算式' : '看算式'}</button></div>
+    ${
+      SKUI.calc
+        ? `<ul class="skx">${skLines(c.aura ? c : slotCfg(SKUI.i))
+            .map(l => `<li>${rich(l)}</li>`)
+            .join('')}</ul>${c.aura ? '' : skDetail(c.g)}`
+        : ''
+    }`;
+  return `<div class="skp-o"><div class="skp-n">${rest}</div>${warn.map(w => `<p class="why">${esc(w)}</p>`).join('')}${skHoles(c)}${body}${c.aura ? '' : skAwake(c)}</div>`;
+}
+/* 一列上的升級鈕：寫升到幾級與要多少靈魂；不能升寫原因 */
+function skUpB(k) {
+  const lv = libLv(k),
+    u = libUpCheck(k);
+  if (lv >= GEM_MAX) return `<span class="skr-up max">Lv ${lv}<small>滿級</small></span>`;
+  return `<button class="btn ${u.why ? '' : 'pri'} skr-up" data-sk="up:${k}" ${u.why ? 'disabled' : ''} aria-label="升到 Lv ${lv + 1}">Lv ${lv} ▸ ${lv + 1}<small>${u.why ? esc(gemShort(u.why)) : soulB(u.c, 1)}</small></button>`;
+}
+function skPortHTML() {
+  const M = MAT(),
+    c = skCur(),
+    head = `<div class="ph"><b>技能</b><span class="soul" title="靈魂：升級、開孔都花它"><i></i>${fmtN(M.soul)}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
+  if (SKUI.view !== 'main') return `${head}<div class="sk-body skp picking">${skPickPort(c)}</div>`;
+  const rows = S.skills.map((r, i) => {
+    const on = SKUI.i === i;
+    if (!r.k)
+      return `<div class="skr empty" data-sk="slot:${i}" role="button" tabindex="0"><span class="skr-ic">${ICO.plus}<i class="k">${slotKey(i, 1)}</i></span><div class="skr-t"><b>${slotKey(i)}是空的</b><span>挑一招放進來</span></div></div>`;
+    const D = SKILLS[r.k],
+      cf = slotCfg(i),
+      bad = slotBad(i, cf),
+      N = skillNums(cf),
+      v = skMain(N),
+      lab = N.dps != null || N.dot != null ? '每秒' : N.unit != null ? '單體每秒' : '每下',
+      sups = r.so.slice(0, r.n).filter(Boolean),
+      mini = sups.length
+        ? sups.map(k => icHTML(SUPPORTS[k].ic)).join('') +
+          (r.n > sups.length ? `<em>＋${r.n - sups.length} 空孔</em>` : '')
+        : `<em>${r.n} 個空孔</em>`;
+    return `<div class="skr ${on ? 'on' : ''} ${bad ? 'bad' : ''}" data-sk="slot:${i}" role="button" tabindex="0" aria-expanded="${on}"><span class="skr-ic">${icHTML(D.ic)}<i class="k">${slotKey(i, 1)}</i>${S.lib.aw && S.lib.aw[r.k] ? '<i class="awm"></i>' : ''}</span><div class="skr-t"><b>${esc(D.n)}</b><span class="skr-s">${bad ? `<em class="c-bad">失效：${esc(bad)}</em>` : mini}</span></div>${v != null ? `<div class="skr-n"><b class="res-${N.el || 'phys'}">${fmtN(v)}</b><small>${lab}</small></div>` : ''}${skUpB(r.k)}</div>${on ? skOpenBody(c) : ''}`;
+  });
+  /* 光環欄：一列；展開是每個光環一顆標籤（點了看它的孔） */
+  const au = S.auras.filter(Boolean),
+    aon = SKUI.i === 5;
+  rows.push(
+    `<div class="skr aura ${aon ? 'on' : ''}" data-sk="slot:5" role="button" tabindex="0" aria-expanded="${aon}"><span class="skr-ic">${au.length ? icHTML(AURAS[au[0].k].ic) : ICO.plus}<i class="k">光環</i></span><div class="skr-t"><b>光環 ${au.length} 個</b><span class="skr-s">${au.length ? au.map(a => icHTML(AURAS[a.k].ic)).join('') : '<em>加一個光環：持續預留精魂</em>'}</span></div><div class="skr-n"><b>${ST.spiritUsed}／${ST.spirit}</b><small>精魂</small></div></div>${aon ? `<div class="skp-o">${skAuraBar()}</div>${c.rec ? `<div class="skr sub on"><span class="skr-ic">${icHTML(c.D.ic)}</span><div class="skr-t"><b>${esc(c.D.n)}</b></div>${skUpB(c.k)}</div>${skOpenBody(c)}` : ''}` : ''}`
+  );
+  return `${head}<div class="sk-body skp">${rows.join('')}</div>`;
+}
+/* 直立的挑選清單：一列一個（圖示、名字、標籤、等級），點一列在原地展開說明與「放到這一格」 */
+function skPickPort(c) {
+  const L = skList(c),
+    kindN = { skills: '挑一招', sups: `第 ${SKUI.hole + 1} 孔・挑輔助`, auras: '挑光環' }[SKUI.view],
+    order = [...new Set(['武器', '元素', '秘術', '原始', '詛咒', '光環', '召喚', ...Object.keys(SUPTAB)])],
+    have = new Set(L.flatMap(x => x.tabs)),
+    tabs = ['全部', ...order.filter(t => have.has(t)), ...(L.some(x => x.lv > 1 || x.key >= 0) ? ['升過的'] : [])],
+    f = tabs.includes(SKUI.f) ? SKUI.f : '全部',
+    show = L.filter(x => f === '全部' || (f === '升過的' ? x.lv > 1 || x.key >= 0 : x.tabs.includes(f))),
+    putN =
+      SKUI.view === 'skills' ? `放到${c.name}` : SKUI.view === 'sups' ? `插到第 ${SKUI.hole + 1} 孔` : '放進光環欄',
+    note = c.D && c.D.tags && c.D.tags.includes('flask') && SKUI.view === 'sups' ? '藥劑技能不能插輔助' : '';
+  const row = x => {
+    const on = SKUI.pick === x.k,
+      j = SKUI.view === 'skills' ? S.skills.findIndex(q => q.k === x.k) : -1,
+      sub =
+        SKUI.view === 'skills'
+          ? skSub(x.D, 0)
+          : SKUI.view === 'sups'
+            ? x.D.need.length
+              ? '要有 ' + x.D.need.map(t => TAGN[t] || t).join('、')
+              : '任何技能'
+            : `預留精魂 ${x.D.sp}`,
+      put = x.why
+        ? `<button class="btn pri" disabled>${putN}</button>`
+        : `<button class="btn pri" data-sk="put:${x.k}">${j >= 0 && j !== SKUI.i ? `與${slotKey(j)}互換` : putN}</button>`;
+    return `<div class="skl ${on ? 'on' : ''} ${x.why ? 'dim' : ''}" data-sk="pick:${x.k}" role="button" tabindex="0" aria-expanded="${on}"><span class="skr-ic">${icHTML(x.D.ic)}${x.aw ? '<i class="awm"></i>' : ''}</span><div class="skr-t"><b>${esc(x.D.n)}</b><span>${x.why ? `<em class="c-bad">${esc(x.why)}</em>` : sub}</span></div><div class="skl-r">${x.key >= 0 ? `<i class="in">${slotKey(x.key, 1)}</i>` : ''}${x.lv > 1 ? `<b>Lv ${x.lv}</b>` : ''}</div></div>${on ? `<div class="skl-o"><p class="desc">${rich(x.D.d)}</p>${SKUI.view === 'sups' && x.D.x && x.D.x.length ? `<ul class="skx">${x.D.x.map(l => `<li>${rich(l)}</li>`).join('')}</ul>` : ''}<div class="skp-a two">${put}${upBtn(x.k, 0)}</div></div>` : ''}`;
+  };
+  return `<div class="skl-h"><button class="btn" data-sk="back">‹ ${c.rec ? esc(c.D.n) : '技能'}</button><b>${c.name}・${kindN}</b><span>${listN(L, show)}</span></div>
+    <div class="ftabs skl-f">${tabs.map(t => `<button class="${t === f ? 'on' : ''}" data-sk="f:${t}">${t}</button>`).join('')}</div>
+    ${note ? `<p class="why">${note}</p>` : ''}
+    <div class="skl-l">${show.map(row).join('')}</div>`;
+}
 function skillHTML() {
+  if (PORT()) return skPortHTML();
   const M = MAT(),
     c = skCur(),
     picking = SKUI.view !== 'main';
@@ -572,11 +727,12 @@ function skAct(b, e) {
     sfx('lvup');
     changed();
     document
-      .querySelectorAll('#pskill .lvbox b, #pskill .card em, #pskill .lvb')
+      .querySelectorAll('#pskill .lvbox b, #pskill .card em, #pskill .lvb, #pskill .skr-up')
       .forEach(n => n.classList.add('flash'));
     return;
   } else if (k === 'swap') skOpen(SKUI.hole != null ? 'sups' : c.aura ? 'auras' : 'skills');
   else if (k === 'back') (SKUI.view = 'main'), (SKUI.pick = null);
+  else if (k === 'pick' && PORT() && SKUI.pick === v) SKUI.pick = null; /* 直立：再點同一列收起來 */
   else if (k === 'f') SKUI.f = v;
   else if (k === 'pick') SKUI.pick = v;
   else if (k === 'calc') SKUI.calc = !SKUI.calc;

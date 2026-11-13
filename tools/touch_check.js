@@ -926,6 +926,72 @@ let fail = 0;
     await p.waitForTimeout(300);
   }
   if (PORTM) {
+    /* 技能面板（0.4.7 直立重做）：一招一列、升級鈕在列上、輔助孔一排方格、挑招是清單 */
+    {
+      const sk = await p.evaluate(() => {
+        treeClose();
+        closePanels();
+        S.mat.soul = 9000;
+        S.skills[1].k = S.skills[1].k || 'fireball';
+        S.skills[0].n = 3;
+        S.skills[0].so = ['fury', null, null];
+        changed();
+        navGo('skill');
+        skSel(0);
+        hudPanels();
+        const pa = $('pskill');
+        return {
+          rows: pa.querySelectorAll('.skp > .skr').length,
+          ring: !!pa.querySelector('.ring'),
+          holes: pa.querySelectorAll('.skh-r > .skh').length,
+          /* 說明文字裡的名詞連結（.term）是行內的字，不算按鈕 */
+          small: [...pa.querySelectorAll('button:not(.term), [role=button]:not(.term)')].filter(e => {
+            const r = e.getBoundingClientRect();
+            return r.width && Math.min(r.width, r.height) < 43.5;
+          }).length,
+          k1: S.skills[1].k,
+          lv1: libLv(S.skills[1].k)
+        };
+      });
+      ok(
+        '技能面板（直立）：五招＋光環各一列、沒有圓環、輔助孔一排（5 孔＋覺醒）、每顆 ≥44px',
+        sk.rows === 6 && !sk.ring && sk.holes >= 5 && !sk.small,
+        JSON.stringify(sk)
+      );
+      await tapSel('#pskill [data-sk="slot:1"] .skr-up');
+      ok(
+        '別招的升級鈕就在列上：按一下直接升級，不用先點進去',
+        await p.evaluate(([k, lv]) => libLv(k) === lv + 1 && SKUI.i === 0, [sk.k1, sk.lv1])
+      );
+      await tapSel('#pskill .skh.set');
+      ok(
+        '點插著的輔助：底下出現那顆輔助的卡（升級、更換、卸下）',
+        await p.evaluate(
+          () =>
+            !!document.querySelector('#pskill .skp-o .card [data-sk="unplug"]') &&
+            [...document.querySelectorAll('#pskill .skp-o .card .btn')].every(b => {
+              const r = b.getBoundingClientRect();
+              return r.height >= 44 && r.right <= innerWidth && b.scrollWidth <= b.clientWidth + 1;
+            })
+        )
+      );
+      await tapSel('#pskill .skh.open');
+      const pick = await p.evaluate(() => {
+        const L = [...document.querySelectorAll('#pskill .skl')];
+        return [SKUI.view, L.length, L.every(e => e.getBoundingClientRect().height >= 44)];
+      });
+      await tapSel('#pskill .skl:not(.dim)');
+      await tapSel('#pskill .skl-o [data-sk^="put:"]');
+      ok(
+        '點空孔：輔助一列一顆，點一列展開說明，按「插到第 2 孔」就插上',
+        pick[0] === 'sups' &&
+          pick[1] > 3 &&
+          pick[2] &&
+          (await p.evaluate(() => SKUI.view === 'main' && !!S.skills[0].so[1])),
+        JSON.stringify(pick)
+      );
+      await p.screenshot({ path: shot('skill') });
+    }
     /* 昇華石碑（0.4.7 直立重做）：不畫盤面，一張卡一個大點；按「選這個」連同前面的小點一起點亮 */
     const asc = await p.evaluate(() => {
       treeClose();
@@ -1070,9 +1136,9 @@ let fail = 0;
           hudPanels();
         },
         '#pskill',
-        '.slots',
-        '.ring .ctr',
-        '.sk-info .nums'
+        PORTM ? '.skr.on' : '.slots',
+        PORTM ? '.skh-r' : '.ring .ctr',
+        PORTM ? '.skp-n' : '.sk-info .nums'
       ),
       await inView(
         () => {
