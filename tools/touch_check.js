@@ -324,44 +324,237 @@ let fail = 0;
     const bad = await tipAll('.it[data-id]');
     ok('每件道具的說明框都不蓋住、不出畫面', !bad.length, bad.join(','));
   }
-  /* 拖曳（0.4.0 清單倉庫）：把倉庫裡的一件拖到「拖到這裡賣掉」，賣掉、放開後沒有殘影 */
   await p.evaluate(() => hideTip());
-  const dg = await p.evaluate(() => {
-    const vis = e => {
+  if (!PORTM) {
+    /* 拖曳（0.4.0 清單倉庫）：把倉庫裡的一件拖到「拖到這裡賣掉」，賣掉、放開後沒有殘影 */
+    const dg = await p.evaluate(() => {
+      const vis = e => {
+          const r = e.getBoundingClientRect();
+          return r.width && e.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+        },
+        e = [...document.querySelectorAll('.bag .it[data-id]')].find(vis),
+        z = document.querySelector('#pinv .sell');
+      z.scrollIntoView({ block: 'nearest' });
+      const r = e.getBoundingClientRect(),
+        R = z.getBoundingClientRect();
+      return {
+        id: +e.dataset.id,
+        from: [r.left + 8, r.top + 8],
+        to: [R.left + R.width / 2, R.top + R.height / 2],
+        g: S.gold
+      };
+    });
+    await touch('touchStart', [dg.from]);
+    for (let i = 1; i <= 8; i++)
+      await touch('touchMove', [
+        [dg.from[0] + ((dg.to[0] - dg.from[0]) * i) / 8, dg.from[1] + ((dg.to[1] - dg.from[1]) * i) / 8]
+      ]);
+    ok('拖曳中有跟手的圖示', await p.evaluate(() => !!document.querySelector('.ghost')));
+    await touch('touchEnd', []);
+    await p.waitForTimeout(200);
+    const dr = await p.evaluate(
+      d => [
+        !S.inv.items.some(i => i.id === d.id),
+        S.gold > d.g,
+        document.querySelectorAll('.ghost, .it.lift').length,
+        !!DR
+      ],
+      dg
+    );
+    ok('拖到賣出區：賣掉、拿到金幣', dr[0] && dr[1], JSON.stringify(dr));
+    ok('放開後沒有殘影', !dr[2] && !dr[3], `殘留 ${dr[2]} 個、DR ${dr[3]}`);
+  } else {
+    /* ---------- 直立重排（0.4.4）：上半戰鬥、下半面板、底部分頁 ---------- */
+    const tap = async q => {
+      const c = await p.evaluate(q => {
+        const e = typeof q === 'string' ? document.querySelector(q) : null;
+        if (!e) return null;
         const r = e.getBoundingClientRect();
-        return r.width && e.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
-      },
-      e = [...document.querySelectorAll('.bag .it[data-id]')].find(vis),
-      z = document.querySelector('#pinv .sell');
-    z.scrollIntoView({ block: 'nearest' });
-    const r = e.getBoundingClientRect(),
-      R = z.getBoundingClientRect();
-    return {
-      id: +e.dataset.id,
-      from: [r.left + 8, r.top + 8],
-      to: [R.left + R.width / 2, R.top + R.height / 2],
-      g: S.gold
+        return [r.left + r.width / 2, r.top + r.height / 2];
+      }, q);
+      if (!c) return false;
+      await touch('touchStart', [c]);
+      await touch('touchEnd', []);
+      await p.waitForTimeout(250);
+      return true;
     };
-  });
-  await touch('touchStart', [dg.from]);
-  for (let i = 1; i <= 8; i++)
-    await touch('touchMove', [
-      [dg.from[0] + ((dg.to[0] - dg.from[0]) * i) / 8, dg.from[1] + ((dg.to[1] - dg.from[1]) * i) / 8]
-    ]);
-  ok('拖曳中有跟手的圖示', await p.evaluate(() => !!document.querySelector('.ghost')));
-  await touch('touchEnd', []);
-  await p.waitForTimeout(200);
-  const dr = await p.evaluate(
-    d => [
-      !S.inv.items.some(i => i.id === d.id),
-      S.gold > d.g,
-      document.querySelectorAll('.ghost, .it.lift').length,
-      !!DR
-    ],
-    dg
-  );
-  ok('拖到賣出區：賣掉、拿到金幣', dr[0] && dr[1], JSON.stringify(dr));
-  ok('放開後沒有殘影', !dr[2] && !dr[3], `殘留 ${dr[2]} 個、DR ${dr[3]}`);
+    const box = q =>
+      p.evaluate(q => {
+        const e = document.querySelector(q);
+        if (!e || e.hidden || !e.getClientRects().length) return null;
+        const r = e.getBoundingClientRect();
+        return [r.left, r.top, r.right, r.bottom].map(Math.round);
+      }, q);
+    await p.evaluate(() => {
+      closePanels();
+      for (let i = 0; i < 70; i++) invPut(S.inv, dropItem(5));
+    });
+    await p.waitForTimeout(150);
+    const nav = await p.evaluate(() =>
+      [...document.querySelectorAll('#pnav button')].map(e => {
+        const r = e.getBoundingClientRect();
+        return [e.textContent, Math.round(r.width), Math.round(r.height), Math.round(r.bottom)];
+      })
+    );
+    ok(
+      '底部分頁列：五格、每格 ≥44px、在畫面內',
+      nav.length === 5 && nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
+      JSON.stringify(nav)
+    );
+    ok(
+      '右上只剩自動鈕（倉庫、選單搬到分頁列）',
+      await p.evaluate(
+        () => [...document.querySelectorAll('.tmenu button')].filter(e => e.getClientRects().length).length === 1
+      )
+    );
+    await tap('#pnav [data-tm="nav:bag"]');
+    const cvb = await box('#cv'),
+      pb = await box('#pinv'),
+      nb = await box('#pnav');
+    ok(
+      '點「戰利品」：半版面板在戰鬥畫面下面、分頁列上面',
+      !!pb && cvb[3] < H * 0.5 && pb[1] >= cvb[3] && pb[3] <= nb[1] + 1,
+      JSON.stringify([cvb, pb, nb])
+    );
+    ok(
+      '面板開著時戰鬥畫面還在畫（畫布縮到上半）',
+      await p.evaluate(() => CV.clientHeight < innerHeight * 0.5 && CV.height === Math.round(CV.clientHeight * DPR))
+    );
+    const cell = await p.evaluate(() => {
+      const c = document.querySelector('#pinv .bag .it').getBoundingClientRect(),
+        chip = document.querySelector('#pinv .bagf .chip').getBoundingClientRect(),
+        sell = document.querySelector('#pinv .foot .btn').getBoundingClientRect(),
+        pn = $('pinv').getBoundingClientRect();
+      return [c.width, c.height, chip.height, sell.height, sell.bottom <= pn.bottom + 1 && sell.top >= pn.top].map(v =>
+        typeof v === 'number' ? Math.round(v) : v
+      );
+    });
+    ok(
+      '戰利品：格子、篩選鈕、賣出鈕都 ≥44px，賣出鈕黏在面板底部',
+      cell[0] >= 44 && cell[1] >= 44 && cell[2] >= 44 && cell[3] >= 44 && cell[4],
+      JSON.stringify(cell)
+    );
+    /* 手指在格子上往上滑＝清單捲動（0.4.3 以前格子擋住捲動） */
+    const sw = await p.evaluate(() => {
+      const r = document.querySelectorAll('#pinv .bag .it')[10].getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    });
+    await touch('touchStart', [sw]);
+    for (let i = 1; i <= 8; i++) {
+      await touch('touchMove', [[sw[0], sw[1] - i * 14]]);
+      await p.waitForTimeout(16);
+    }
+    await touch('touchEnd', []);
+    await p.waitForTimeout(300);
+    ok(
+      '手指在格子上滑＝清單捲動、不會拖起道具',
+      await p.evaluate(() => $('pinv').scrollTop > 20 && !document.querySelector('.ghost') && !DR),
+      String(await p.evaluate(() => $('pinv').scrollTop))
+    );
+    await p.evaluate(() => ($('pinv').scrollTop = 0));
+    /* 點道具 →「做裝」→ 放進通貨頁中間 */
+    await tap('#pinv .bag .it:not(:has(.bk))');
+    const tqs = await p.evaluate(() =>
+      [...document.querySelectorAll('#tip .tqa button')].map(e => {
+        const r = e.getBoundingClientRect();
+        return [e.dataset.tq, Math.round(r.height), r.left >= 0 && r.right <= innerWidth];
+      })
+    );
+    ok(
+      '說明框有「做裝」、每顆動作鈕 ≥44px 不出畫面',
+      tqs.some(t => t[0] === 'craft') && tqs.every(t => t[1] >= 44 && t[2]),
+      JSON.stringify(tqs)
+    );
+    await tap('#tip [data-tq=craft]');
+    ok(
+      '按「做裝」：開做裝頁、裝備放在中間',
+      await p.evaluate(() => !!S.curIt && !$('pstash').hidden && $('pinv').hidden && navOn() === 'craft')
+    );
+    /* 換一件：挑裝備只看倉庫清單，點一下直接放上去 */
+    const cur0 = await p.evaluate(() => S.curIt.id);
+    await p.evaluate(() => act('pick'));
+    await p.waitForTimeout(150);
+    ok(
+      '挑裝備：只看倉庫清單',
+      await p.evaluate(() => !$('pinv').hidden && $('pstash').hidden && /選一件裝備/.test($('pinv').textContent))
+    );
+    await tap('#pinv .bag .it');
+    ok(
+      '點一件直接放上去、回到做裝（不用先開說明框）',
+      await p.evaluate(c => !!S.curIt && S.curIt.id !== c && !$('pstash').hidden && $('tip').hidden && !NAV.pick, cur0)
+    );
+    /* 把手：半版 ↔ 蓋滿 */
+    await tap('#phand');
+    const full = await box('#pstash');
+    ok('點把手：面板放大到蓋滿', !!full && full[1] < 60, JSON.stringify(full));
+    await tap('#phand');
+    const half = await box('#pstash');
+    ok('再點把手：回到半版', !!half && half[1] > H * 0.3, JSON.stringify(half));
+    /* 點亮著的分頁＝收起來 */
+    await tap('#pnav [data-tm="nav:craft"]');
+    ok(
+      '點亮著的分頁＝收起來、畫布回到整個畫面',
+      await p.evaluate(
+        () => !anyPanel() && CV.clientHeight === innerHeight && !document.body.classList.contains('sheet')
+      )
+    );
+    /* 更多、地點 */
+    await tap('#pnav [data-tm="nav:more"]');
+    const mr = await p.evaluate(() =>
+      [...document.querySelectorAll('#pmore .mrow')].map(e => Math.round(e.getBoundingClientRect().height))
+    );
+    ok('更多：每一格 ≥44px', mr.length >= 8 && mr.every(h => h >= 44), mr.join());
+    await tap('#pmore [data-tm="nav:node"]');
+    ok(
+      '地點：節點清單、選到的那一列展開「在這裡刷」',
+      await p.evaluate(
+        () =>
+          !$('pnode').hidden &&
+          document.querySelectorAll('#pnode .ndr').length === wList(S).length &&
+          !!document.querySelector('#pnode li.on .wm-body [data-a=open]')
+      )
+    );
+    const nr = await p.evaluate(() =>
+      [...document.querySelectorAll('#pnode .ndr')].slice(0, 6).map(e => Math.round(e.getBoundingClientRect().height))
+    );
+    ok(
+      '地點：每一列 ≥44px',
+      nr.every(h => h >= 44),
+      nr.join()
+    );
+    /* 自動模式：收起藥水、技能鍵、翻滾鍵；面板開著時死亡卡不蓋上來 */
+    await p.evaluate(() => {
+      closePanels();
+      S.auto = 1;
+      enterMap(1);
+    });
+    await p.waitForTimeout(500);
+    ok(
+      '自動模式：技能列收起來、血條還在',
+      await p.evaluate(
+        () =>
+          document.body.classList.contains('ai') &&
+          getComputedStyle($('bar')).display === 'none' &&
+          $('bhp').getClientRects().length > 0
+      )
+    );
+    await tap('#area');
+    ok('點左上的地點列＝開地點清單', await p.evaluate(() => !$('pnode').hidden));
+    await p.evaluate(() => {
+      G.node = G.node || '0,0';
+      P.hp = 0;
+      die();
+    });
+    await p.waitForTimeout(200);
+    ok('自動、面板開著時倒下：死亡卡不蓋上來', await p.evaluate(() => G.state === 'dead' && $('over').hidden));
+    await p.evaluate(() => {
+      S.auto = 0;
+      closePanels();
+      enterHideout();
+      openPanel('inv');
+    });
+    await p.waitForTimeout(300);
+  }
   /* 天賦樹 */
   await p.evaluate(() => {
     closePanels();
@@ -473,7 +666,8 @@ let fail = 0;
           S.lv = 72;
           S.lib.sk.slash = 10;
           changed();
-          openPanel('skill');
+          /* 直立（0.4.4）：照玩家的走法從分頁列開，技能面板打開就蓋滿 */
+          PORT() ? navGo('skill') : openPanel('skill');
           skSel(0);
           hudPanels();
         },

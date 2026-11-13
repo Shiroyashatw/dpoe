@@ -2136,7 +2136,7 @@ function frame(now) {
   G.fx = G.fx.filter(o => o.t < o.dur);
   for (const n of G.nums) n.t += rdt;
   G.nums = G.nums.filter(n => n.t < 0.9);
-  /* 天賦樹、直立的全螢幕面板蓋住整個畫面時不畫遊戲（手機省一半的效能） */
-  if (!TREE.open && !(PORT() && anyPanel())) draw();
+  /* 天賦樹、直立蓋滿畫面的面板（世界地圖、放大的面板）開著時不畫遊戲（手機省一半的效能）；半版面板照畫（0.4.4） */
+  if (!TREE.open && !(PORT() && (PANEL.device || (anyPanel() && NAV.full)))) draw();
   hudTick();
 }

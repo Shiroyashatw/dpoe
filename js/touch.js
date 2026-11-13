@@ -159,9 +159,14 @@ function tapItem(d) {
   const sellB =
     `<button class="btn" data-tq="sell">賣 ${sellPrice(d.it)} 金</button>` +
     (d.src === 'inv' ? `<button class="btn" data-tq="lock">${d.it.lock ? '解鎖' : '鎖定'}</button>` : '');
+  /* 直立：多一顆「做裝」（通貨頁中間那一件已經在做裝了，不用） */
+  const craftB =
+    PORT() && !d.it.charm && d.src !== 'cur' && !PANEL.stash && !PANEL.craft
+      ? '<button class="btn" data-tq="craft">做裝</button>'
+      : '';
   const build = () =>
     itemTip(d.it, !isSlot(d.src)) +
-    `<div class="tqa"><button class="btn pri" data-tq="move">${moveLabel(d.src, d.it)}</button>${sellB}</div>`;
+    `<div class="tqa"><button class="btn pri" data-tq="move">${moveLabel(d.src, d.it)}</button>${craftB}${sellB}</div>`;
   $('tip').classList.add('act');
   showTip(build(), r);
   TIPRE = { b: build, a: r };
@@ -332,6 +337,7 @@ function touchInit() {
   });
   /* 右上選單、說明框的動作 */
   document.addEventListener('click', e => {
+    if (PORT() && e.target.closest('#area') && G.scene === 'map') return navGo('node');
     const m = e.target.closest('[data-tm]');
     /* ☰ 選單：點選單裡的項目或選單以外的地方就收起來 */
     if (!m || m.dataset.tm !== 'more') moreMenu(false);
@@ -340,16 +346,17 @@ function touchInit() {
       if (k === 'fs') return fsClick();
       if (k === 'auto') return autoToggle();
       if (k.startsWith('f:')) return fmenuOpen(k.slice(2));
+      if (k.startsWith('nav:')) return navGo(k.slice(4));
+      /* 面板上緣的把手：半版 ↔ 蓋滿 */
+      if (k === 'full') return (NAV.full = NAV.full ? 0 : 1), hudPanels();
       if (k === 'more') return moreMenu($('tmore').hidden);
       if (k === 'inv') PANEL.inv && !PANEL.stash && !PANEL.skill ? closePanels() : openPanel('inv');
       else if (k === 'skill') PANEL.skill ? closePanels() : openPanel('skill');
       else if (k === 'tree') treeOpen('pt');
       else if (k === 'home') homeAsk();
-      else if (k === 'set') PANEL.set ? closePanels() : (closePanels(), openPanel('set'));
+      else if (k === 'set') PANEL.set ? closePanels() : (closePanels(), (NAV.full = PORT() ? 1 : 0), openPanel('set'));
       else if (k === 'port' || k === 'land') setOrient(k[0]);
       else if (k === 'flip') setOrient(PORT() ? 'l' : 'p');
-      else if (k === 'tabinv') (PANEL.stash = PANEL.skill = PANEL.craft = false), hudPanels();
-      else if (k.startsWith('tab')) openPanel(k.slice(3));
       else if (k === 'swap') (TOUCH.front = TOUCH.front === 'inv' ? 'other' : 'inv'), hudPanels();
       return;
     }
@@ -362,7 +369,12 @@ function touchInit() {
       if (q.dataset.tq === 'sell') sell(src, it, eqk);
       else if (q.dataset.tq === 'lock') lockToggle(it);
       else if (q.dataset.tq === 'drop') dropFloor(src, it, eqk);
-      else quickMove(src, it, eqk);
+      else if (q.dataset.tq === 'craft') {
+        /* 直立的「做裝」：倉庫的放進通貨頁中間；身上的不脫下來，直接上鍛造台 */
+        closePanels();
+        if (src === 'inv') (PANEL.ctab = 'cur'), (PANEL.stab = 'cur'), openPanel('stash'), quickMove(src, it, eqk);
+        else (PANEL.ctab = 'forge'), openPanel('craft'), craftPick(src, it, eqk);
+      } else quickMove(src, it, eqk);
     }
   });
   /* 點說明框以外的地方：收起說明框 */

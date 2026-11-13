@@ -1344,8 +1344,9 @@ function wmNodeHTML() {
           : t === 'rift'
             ? `<p class="wm-note">血霧之印 <b>${S.frags.mist || 0}</b> 張（血霧 ${S.hunt.v}%）· 這次的王：<b>${esc(wZod(S).n)}</b>；打倒才扣 1 張</p>`
             : '',
-    cur = S.world.cur === k ? '<p class="wm-note c-gold">正在這裡刷</p>' : '',
-    dn = done ? '<p class="wm-note">打倒過這裡的王：可以一直重複刷</p>' : '';
+    /* wm-st：地點清單（hud.js 的 nodeHTML）那一列已經寫了，清單裡不重複 */
+    cur = S.world.cur === k ? '<p class="wm-note wm-st c-gold">正在這裡刷</p>' : '',
+    dn = done ? '<p class="wm-note wm-st">打倒過這裡的王：可以一直重複刷</p>' : '';
   return head + cor + fi + cur + dn + wmCardHTML(k, why);
 }
 function wmQuestHTML() {

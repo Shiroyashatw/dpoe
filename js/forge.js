@@ -19,7 +19,7 @@ function curPageHTML() {
     f = it && foreOf(it),
     btn = k =>
       `<button class="cub ${M[k] ? '' : 'z'} ${(k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore) ? 'on' : ''} ${/[23]$/.test(k) ? 'g' + k.slice(-1) : ''}" ${CUR_RING.includes(k) ? `style="grid-area:${k}"` : ''} data-cu="u:${k}" title="${esc(CUR[k].n + '：' + CUR[k].d)}" aria-label="${esc(CUR[k].n)}">${icHTML(CUR[k].ic)}<em>${fmtN(M[k] || 0)}</em></button>`,
-    center = `<div class="cuc" style="grid-area:mid" data-cur="1">${it ? itemHTML(it, 'cur', 'cur') : `<span>${TOUCH.on ? '點倉庫的裝備<br>按「放進中間」' : '把裝備拖進來<br>或點倉庫的裝備'}</span>`}</div>`,
+    center = `<div class="cuc" style="grid-area:mid" data-cur="1">${it ? itemHTML(it, 'cur', 'cur') : PORT() ? '<button class="btn pickb" data-a="pick">選一件裝備</button>' : `<span>${TOUCH.on ? '點倉庫的裝備<br>按「放進中間」' : '把裝備拖進來<br>或點倉庫的裝備'}</span>`}</div>`,
     hint = !it
       ? ''
       : CUI.fore
@@ -178,6 +178,7 @@ function slotsHTML(it, mode, at = 'fg') {
 }
 /* 上方的裝備卡（沒放東西時是一句提示） */
 function cardHTML(it) {
+  if (!it && PORT()) return '<button class="btn pickb" data-a="pick">選一件裝備</button>';
   if (!it)
     return `<p class="fhint">${TOUCH.on ? '點倉庫或身上的裝備，再按「放上鍛造台」' : '點一下倉庫或身上的裝備，放上鍛造台'}</p>${
       TOUCH.on && NARROW ? '<button class="btn" data-tm="swap">去倉庫選裝備</button>' : ''
@@ -187,7 +188,7 @@ function cardHTML(it) {
     <div class="it r${it.r} fic">${icHTML(itemIc(it))}</div>
     <div><b class="rc${it.r}">${esc(itemName(it))}</b><small>${baseLayers(it)}</small>${
       it.a.length ? `<small>完美度 <b class="${per >= 0.85 ? 'c-gold' : ''}">${Math.round(per * 100)}%</b></small>` : ''
-    }</div></div>`;
+    }</div>${PORT() ? '<button class="btn mini" data-a="pick">換一件</button>' : ''}</div>`;
 }
 
 /* 預覽：可能加入哪些、數字範圍（這件物品等級能出的階級） */
@@ -366,9 +367,15 @@ function forgeHTML() {
   const P = { forge: fillHTML, temper: temperHTML, holy: holyHTML, corr: corrHTML, calam: calamHTML }[tab](it),
     mode = tab === 'temper' ? 'temper' : tab === 'forge' && CRAFT.op === 'conv' ? 'conv' : 'view';
   /* 上到下：裝備卡 → 選通貨（top）→ 詞 → 預覽與說明（mid）→ 按鈕（act，黏在面板底部）；手機橫向左右並排（左：卡與詞，右：選、預覽、按鈕） */
-  return `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金幣 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span><span class="ftabs">${tabs
+  const tabsH = `<span class="ftabs">${tabs
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
-    .join('')}</span>${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+    .join('')}</span>`;
+  /* 直立：標題列是「做裝」的三個分頁，鍛造台自己的五個分頁放第二列 */
+  return `${
+    PORT()
+      ? `<div class="ph"><b>做裝</b>${craftSeg('forge')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div><div class="fsub">${tabsH}</div>`
+      : `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金幣 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span>${tabsH}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
+  }
   <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">未鑑定：回藏身處找撿骨師免費鑑定</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
   <div class="fr"><div class="ftop">${P.top}</div><div class="fmid">${P.mid}</div><div class="fact">${P.act}</div></div></div>`;
 }
