@@ -981,9 +981,9 @@ function identifyAll(s = S) {
   return L;
 }
 
-/* ---------- 目錄：靈魂升級、開孔（0.2.75，企劃書 6.2）：等級記在 S.lib，換招不用重練；輔助升一次，插了它的招一起受惠 ---------- */
+/* ---------- 目錄：靈魂升級、開孔（0.2.75，企劃書 6.2）：技能與光環的等級記在 S.lib，換招不用重練；一般輔助 0.4.8 起沒有等級 ---------- */
 function libUpCheck(k) {
-  if (SUPPORTS[k] && SUPPORTS[k].aw) return { c: 0, why: '覺醒輔助要再撿到同一顆才會升級' };
+  if (SUPPORTS[k]) return { c: 0, why: SUPPORTS[k].aw ? '覺醒輔助要再撿到同一顆才會升級' : '輔助沒有等級' };
   const lv = libLv(k),
     c = soulCost(lv);
   if (lv >= gemCap(S.lv)) return { c, why: lv >= GEM_MAX ? '已經滿級' : `Lv ${lv + 1} 要角色 Lv ${gemReq(lv + 1)}` };
@@ -995,6 +995,20 @@ function libUp(k) {
   if (why) return why;
   MAT().soul -= c;
   (S.lib[libKind(k)] = S.lib[libKind(k)] || {})[k] = libLv(k) + 1;
+  return null;
+}
+/* 輔助 II（0.4.8，企劃書 6.5）：花 SUP2_COST 靈魂解鎖一次，之後每個孔自由選 I 或 II；k 是 II 的鍵 */
+function sup2Check(k) {
+  const U = SUPPORTS[k];
+  if (!U || U.tier !== 2) return { c: 0, why: '只有 II 要解鎖' };
+  if (!sup2Lock(k)) return { c: 0, why: '已經解鎖' };
+  return { c: SUP2_COST, why: MAT().soul >= SUP2_COST ? null : `靈魂不夠（要 ${SUP2_COST}）` };
+}
+function sup2Unlock(k) {
+  const { c, why } = sup2Check(k);
+  if (why) return why;
+  MAT().soul -= c;
+  (S.lib.sup2 = S.lib.sup2 || {})[SUPPORTS[k].base] = 1;
   return null;
 }
 /* 開孔（0.2.72）：花靈魂，費用看 data.js 的 DRILL／drillCost；r 是技能格或光環欄的項目 { k, so, n } */

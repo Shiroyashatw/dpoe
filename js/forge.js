@@ -95,7 +95,7 @@ function curPortHTML() {
   <div class="ph2">其他</div>
   <div class="culist">${['conv', 'fore', ...qual, 'holy', 'corr'].map(row).join('')}</div>
   <div class="ph2">材料<span>預兆在鍛造台搭配填詞用</span></div>
-  <ul class="mpg">${li('cur_soul', '靈魂', '技能與輔助升級、開孔；自動吸收', M.soul)}${rest.map(k => li(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
+  <ul class="mpg">${li('cur_soul', '靈魂', '技能與光環升級、開孔、解鎖輔助 II；自動吸收', M.soul)}${rest.map(k => li(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
 }
 function curPageHTML() {
   if (PORT()) return curPortHTML();
@@ -139,7 +139,7 @@ function curPageHTML() {
       : `<p class="fhint">精髓由 3★ 以上地圖的菁英與王掉落</p>`
   }
   <div class="ph2">其他<span>預兆在鍛造台搭配填詞用</span></div>
-  <ul class="mpg">${row('cur_soul', '靈魂', '技能與輔助升級、開孔；自動吸收', M.soul)}${rest.map(k => row(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
+  <ul class="mpg">${row('cur_soul', '靈魂', '技能與光環升級、開孔、解鎖輔助 II；自動吸收', M.soul)}${rest.map(k => row(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
 }
 /* 點通貨頁：u＝通貨、cv＝轉化石選的詞、es＝精髓、fu／fs＝預知的用／不用 */
 document.addEventListener('click', e => {

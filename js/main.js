@@ -58,6 +58,22 @@ function migrate(s) {
     o.stopWhy = null;
     o.v = 32;
   }
+  /* 存檔 33（0.4.8，企劃書 6.5）：一般輔助沒有等級，升過的退靈魂；用過的 II（插著或目錄有紀錄）直接算解鎖 */
+  if (o.v < 33) {
+    const L = (o.lib = { sk: {}, sup: {}, aura: {}, aw: {}, ...o.lib }),
+      U = L.sup,
+      II = (L.sup2 = L.sup2 || {});
+    for (const k of Object.keys(U)) {
+      const D = SUPPORTS[k];
+      if (D && D.aw) continue;
+      if (D && D.tier === 2) II[D.base] = 1;
+      for (let l = 1; l < U[k]; l++) o.mat.soul = (o.mat.soul || 0) + soulCost(l);
+      delete U[k];
+    }
+    for (const r of [...o.skills, ...o.auras])
+      for (const k of (r && r.so) || []) if (k && SUPPORTS[k] && SUPPORTS[k].tier === 2) II[SUPPORTS[k].base] = 1;
+    o.v = 33;
+  }
   /* 道具編號接著存檔裡最大的往下編 */
   for (const it of [...Object.values(o.eq), o.curIt, ...o.inv.items, ...o.charms]) if (it && it.id > IID) IID = it.id;
   /* 之後新增的通貨鍵補 0、精髓表一定有 */

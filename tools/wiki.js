@@ -98,12 +98,9 @@ const OUT = process.argv[2] || path.join(__dirname, 'wiki.html'),
       d: D.d,
       need: (D.need || []).map(tagN),
       same: SUP_CAT[k] ? grp[SUP_CAT[k]].filter(n => n !== D.n) : [],
-      lv: Array.from({ length: GEM_MAX }, (_, i) => ({
-        L: i + 1,
-        req: GEM_REQ[i],
-        soul: i + 1 < GEM_MAX ? soulCost(i + 1) : null,
-        more: i
-      }))
+      /* 一般輔助沒有等級（0.4.8）；II 要解鎖一次 */
+      ii: D.tier === 2 ? SUP2_COST : 0,
+      aw: !!D.aw
     }));
     const aura = Object.entries(AURAS).map(([k, D]) => ({
       k,

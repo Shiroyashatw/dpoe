@@ -245,8 +245,7 @@ function supView(x) {
     <div class="box"><h3>效果</h3><p class="desc">${rich(x.d)}</p>${kv([
       ['能插在', esc(x.need.length ? x.need.join('、') + '技能' : '任何技能')],
       ['同組不能同插', esc(x.same.join('、'))]
-    ])}<p class="note">輔助每升一級，插了它的技能傷害更多 +1%；所有插了它的招一起受惠。</p></div>
-    ${lvBox(x.lv, [['等級', l => 'Lv ' + l.L], ['角色等級需求', l => l.req], ['傷害更多', l => '+' + l.more + '%'], ['升到下一級（靈魂）', l => fmt(l.soul)]])}
+    ])}<p class="note">${x.aw ? '覺醒輔助：四凶掉落，再撿到同一顆升一級，上限 Lv5，燭龍之心突破到 Lv6。' : x.ii ? `輔助沒有等級。II 要花 ${fmt(x.ii)} 靈魂解鎖一次，之後每個孔可以自由選 I 或 II。` : '輔助沒有等級。'}</p></div>
   </div>`;
 }
 function auraView(x) {

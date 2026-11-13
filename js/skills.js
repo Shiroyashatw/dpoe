@@ -16,7 +16,10 @@ const awLvAdd = g =>
     0
   );
 const supDup = (g, sp) =>
-  !!g && g.sup.some(x => x && x !== sp && supCat(x.gem) === supCat(sp.gem) && g.sup.indexOf(x) < g.sup.indexOf(sp));
+  !!g &&
+  g.sup.some(
+    x => x && x !== sp && !sup2Lock(x.gem) && supCat(x.gem) === supCat(sp.gem) && g.sup.indexOf(x) < g.sup.indexOf(sp)
+  );
 /* 插在光環上有效果的輔助（items.js 的 stats、捷光環、戰狼與魔像讀它們） */
 const AURA_SUP = new Set(['auraeff', 'spiriteff', 'area', 'focus', 'pack', 'mindmg', 'minlife']);
 const supOK = (D, sp, g) => {
@@ -25,6 +28,7 @@ const supOK = (D, sp, g) => {
   const U = SUPPORTS[sp.gem];
   /* Meta 寶石的孔插的是法術，不是輔助 */
   if (!U) return false;
+  if (sup2Lock(sp.gem)) return false;
   if (g && supDup(g, sp)) return false;
   /* 連鎖輔助：不能連鎖的投射物（閃電箭、一路穿透的冰霜彈）標成不相容 */
   if ((U.base || sp.gem) === 'chain' && D.noChain) return false;
@@ -121,7 +125,7 @@ function gemCfg(g, i) {
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
   for (const sp of g.sup || []) {
     if (!sp || !supOK(D, sp, g)) continue;
-    /* 覺醒輔助（0.2.80，data.js 的 AW_SUP）：數字照覺醒輔助自己的等級，不吃一般輔助的「每級更多 1%」 */
+    /* 覺醒輔助（0.2.80，data.js 的 AW_SUP）：數字照覺醒輔助自己的等級；一般輔助 0.4.8 起沒有等級 */
     if (SUPPORTS[sp.gem].aw) {
       const b = SUPPORTS[sp.gem].base,
         v = AW_SUP[b].v(sp.lv);
@@ -135,7 +139,6 @@ function gemCfg(g, i) {
       else if (b === 'ailmag') c.ailMag += v.ail;
       continue;
     }
-    c.more *= 1 + 0.01 * (sp.lv - 1);
     /* 分級（0.2.51，data.js 的 SUP_II）：II 用 I 的鍵走同一段，t2 換數字。
        0.2.49 C1：分裂、連鎖、迴旋、集中效應、抗性穿透、極大、撲殺、夜刃；0.2.50 C2：附加冰冷／閃電／混沌、魔力偷取、擴張、貫穿拳 */
     const U = SUPPORTS[sp.gem],

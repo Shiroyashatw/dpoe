@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 32,
+    v: 33,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -54,7 +54,7 @@ function newGame() {
   s.skills = Array.from({ length: NSLOT }, newSlot);
   s.skills[0].k = 'slash';
   s.skills[1].k = 'mirage';
-  s.lib = { sk: {}, sup: {}, aura: {}, aw: {} };
+  s.lib = { sk: {}, sup: {}, aura: {}, aw: {}, sup2: {} };
   s.pt = [...PT_START];
   /* 過路點自選的能力值（0.2.42）：點 id → 's'／'d'／'i' */
   s.ptA = {};

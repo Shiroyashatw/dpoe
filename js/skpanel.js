@@ -180,9 +180,18 @@ const supTab = k => {
 };
 /* 挑輔助：這一格（光環或技能）的輔助孔 hole 放 k 的原因；'' ＝可以、null＝不相容（不列出來） */
 function supWhy(c, k, hole) {
-  if (!supOK(c.D, { gem: k }, null)) return null;
+  /* 沒解鎖的 II（0.4.8）：相容照 I 判斷，列出來但灰掉 */
+  const lock = sup2Lock(k);
+  if (!supOK(c.D, { gem: lock ? SUPPORTS[k].base : k }, null)) return null;
+  if (lock) return `II 還沒解鎖（${fmtN(SUP2_COST)} 靈魂）`;
   const dup = c.rec.so.findIndex((x, j) => x && j !== hole && supCat(x) === supCat(k));
   return dup >= 0 ? `同分類的「${SUPPORTS[c.rec.so[dup]].n}」已插` : '';
+}
+/* 解鎖 II 的按鈕（0.4.8）：k 不是沒解鎖的 II 就不畫 */
+function iiBtn(k) {
+  if (!sup2Lock(k)) return '';
+  const u = sup2Check(k);
+  return `<button class="btn pri" data-sk="ii:${k}" ${u.why ? `disabled title="${esc(u.why)}"` : ''}>解鎖 II ${soulB(u.c)}</button>`;
 }
 /* 選單裡的清單：{ k, D, lv, why, key, aw } */
 function skList(c) {
@@ -211,7 +220,14 @@ function skList(c) {
       Object.keys(SUPPORTS)
         /* 覺醒輔助（0.2.80）：解鎖了才列出來 */
         .filter(k => !SUPPORTS[k].aw || awHave(k))
-        .map(k => ({ k, D: SUPPORTS[k], lv: S.lib.sup[k], why: supWhy(c, k, SKUI.hole), tabs: [supTab(k)] }))
+        /* 一般輔助沒有等級（0.4.8）：lv 只給覺醒輔助 */
+        .map(k => ({
+          k,
+          D: SUPPORTS[k],
+          lv: SUPPORTS[k].aw ? S.lib.sup[k] : null,
+          why: supWhy(c, k, SKUI.hole),
+          tabs: [supTab(k)]
+        }))
         .filter(x => x.why !== null)
         .sort((a, b) => !!a.why - !!b.why)
     );
@@ -259,7 +275,7 @@ function holeNode(c, j) {
     if (!k)
       return `<button class="node ${dir} open ${SKUI.hole === j ? 'sel' : ''}" ${pos} data-sk="hole:${j}" aria-label="第 ${j + 1} 孔：挑輔助"><div class="o">${ICO.plus}</div><span class="nm">空孔</span></button>`;
     const bad = !supOK(c.D, c.g.sup[j], c.g);
-    return `<button class="node ${dir} ${bad ? 'bad' : ''} ${SKUI.hole === j ? 'sel' : ''}" ${pos} data-sk="hole:${j}"><div class="o" style="--p:${(libLv(k) / GEM_MAX) * 100}">${icHTML(SUPPORTS[k].ic)}</div><span class="nm">${esc(SUPPORTS[k].n)}<small>${bad ? '沒效果' : 'Lv ' + libLv(k)}</small></span></button>`;
+    return `<button class="node ${dir} ${bad ? 'bad' : ''} ${SKUI.hole === j ? 'sel' : ''}" ${pos} data-sk="hole:${j}"><div class="o">${icHTML(SUPPORTS[k].ic)}</div><span class="nm">${esc(SUPPORTS[k].n)}${bad ? '<small>沒效果</small>' : SUPPORTS[k].aw ? `<small>Lv ${libLv(k)}</small>` : ''}</span></button>`;
   }
   if (j === r.n) {
     const d = drillCheck(r);
@@ -318,6 +334,8 @@ function skSub(D, cd) {
 }
 /* 升一級的按鈕（技能、輔助、光環共用）：主鍵 */
 function upBtn(k, pri) {
+  /* 一般輔助沒有等級（0.4.8） */
+  if (SUPPORTS[k] && !SUPPORTS[k].aw) return '';
   const lv = libLv(k),
     u = libUpCheck(k);
   if (lv >= GEM_MAX) return `<button class="btn" disabled>已滿級</button>`;
@@ -376,9 +394,7 @@ function skCard(k, acts, note) {
   } else if (kind === 'sup') {
     chips = `<span class="gtag ${D.aw ? 'aw' : ''}">${D.aw ? '覺醒輔助' : '輔助'}</span>${D.need.map(t => (TAGN[t] ? `<span class="gtag">${TAGN[t]}</span>` : '')).join('')}`;
     kv = `<span>${D.need.length ? '需要技能有 <b>' + D.need.map(t => TAGN[t] || t).join('、') + '</b>' : '任何技能都能插'}</span>${
-      D.aw
-        ? `<span>Lv <b>${lv}／${lv > AW_MAX ? AW_MAX + 1 : AW_MAX}</b>：${esc(awSupText(k, lv))}</span>`
-        : `<span>等級加成 <b>${lv - 1}%更多傷害</b></span>`
+      D.aw ? `<span>Lv <b>${lv}／${lv > AW_MAX ? AW_MAX + 1 : AW_MAX}</b>：${esc(awSupText(k, lv))}</span>` : ''
     }`;
     /* 覺醒輔助（0.2.80）：靠四凶掉的同一顆升級；Lv5 可以用燭龍之心突破到 Lv6 */
     if (D.aw)
@@ -399,7 +415,7 @@ function skCard(k, acts, note) {
   }
   return `<div class="card">
     <div class="ic2">${icHTML(D.ic)}</div>
-    <div><div class="cl"><b>${esc(D.n)}</b><em>Lv ${lv}</em></div><div class="chips">${chips}</div><div class="lvb2"><i style="width:${(lv / GEM_MAX) * 100}%"></i></div><div class="kv">${kv}</div><p>${rich(D.d)}</p>${kind === 'sup' && D.x && D.x.length ? `<ul class="skx">${D.x.map(l => `<li>${rich(l)}</li>`).join('')}</ul>` : ''}${note ? `<p class="why">${esc(note)}</p>` : ''}</div>
+    <div><div class="cl"><b>${esc(D.n)}</b>${kind === 'sup' && !D.aw ? '' : `<em>Lv ${lv}</em>`}</div><div class="chips">${chips}</div>${kind === 'sup' && !D.aw ? '' : `<div class="lvb2"><i style="width:${(lv / GEM_MAX) * 100}%"></i></div>`}<div class="kv">${kv}</div><p>${rich(D.d)}</p>${kind === 'sup' && D.x && D.x.length ? `<ul class="skx">${D.x.map(l => `<li>${rich(l)}</li>`).join('')}</ul>` : ''}${note ? `<p class="why">${esc(note)}</p>` : ''}</div>
     <div class="cacts">${acts}</div>
   </div>`;
 }
@@ -451,9 +467,11 @@ function skPick(c) {
     } else if (SKUI.view === 'sups')
       card = skCard(
         sel.k,
-        sel.why
-          ? `<button class="btn pri" disabled>插到第 ${SKUI.hole + 1} 孔</button>${lvBtn}`
-          : `<button class="btn pri" data-sk="put:${sel.k}">插到第 ${SKUI.hole + 1} 孔</button>${lvBtn}`,
+        sup2Lock(sel.k)
+          ? iiBtn(sel.k)
+          : sel.why
+            ? `<button class="btn pri" disabled>插到第 ${SKUI.hole + 1} 孔</button>${lvBtn}`
+            : `<button class="btn pri" data-sk="put:${sel.k}">插到第 ${SKUI.hole + 1} 孔</button>${lvBtn}`,
         sel.why
       );
     else
@@ -473,7 +491,7 @@ function skPick(c) {
     <div class="grid2">${show
       .map(
         x =>
-          `<button class="g ${SKUI.pick === x.k ? 'sel' : ''} ${x.why ? 'dim' : ''}" data-sk="pick:${x.k}">${x.key >= 0 ? `<span class="key">${slotKey(x.key, 1)}</span>` : ''}<span class="lv ${x.lv > 1 ? '' : 'z'}">${x.lv > 1 ? x.lv : '—'}</span>${icHTML(x.D.ic)}${x.aw ? '<i class="awm"></i>' : ''}<span class="nm">${esc(x.D.n)}</span></button>`
+          `<button class="g ${SKUI.pick === x.k ? 'sel' : ''} ${x.why ? 'dim' : ''}" data-sk="pick:${x.k}">${x.key >= 0 ? `<span class="key">${slotKey(x.key, 1)}</span>` : ''}${SKUI.view === 'sups' && x.lv == null ? '' : `<span class="lv ${x.lv > 1 ? '' : 'z'}">${x.lv > 1 ? x.lv : '—'}</span>`}${icHTML(x.D.ic)}${x.aw ? '<i class="awm"></i>' : ''}<span class="nm">${esc(x.D.n)}</span></button>`
       )
       .join('')}</div>
     ${card}
@@ -494,20 +512,22 @@ function skillHTML() {
         sp = c.g.sup[hole],
         bad = !supOK(c.D, sp, c.g),
         note = bad
-          ? supDup(c.g, sp)
-            ? `這${c.aura ? '個光環' : '招'}已經有同分類的輔助，沒有效果`
-            : `跟這${c.aura ? '個光環' : '招'}不相容，沒有效果`
+          ? sup2Lock(k)
+            ? 'II 還沒解鎖，沒有效果'
+            : supDup(c.g, sp)
+              ? `這${c.aura ? '個光環' : '招'}已經有同分類的輔助，沒有效果`
+              : `跟這${c.aura ? '個光環' : '招'}不相容，沒有效果`
           : '';
       body = skCard(
         k,
-        `${upBtn(k, 1)}<button class="btn" data-sk="unplug">卸下</button><button class="btn" data-sk="swap">更換</button>`,
+        `${iiBtn(k)}${upBtn(k, 1)}<button class="btn" data-sk="unplug">卸下</button><button class="btn" data-sk="swap">更換</button>`,
         note
       );
     } else body = skSelf(c);
     info = `${skNums(c)}${body}${c.aura ? '' : skAwake(c)}`;
   }
   const ring = c.rec ? skRing(c) : '';
-  return `<div class="ph"><b>技能</b><span class="soul" title="靈魂：升級、開孔都花它"><i></i>${fmtN(M.soul)}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><b>技能</b><span class="soul" title="靈魂：升級、開孔、解鎖輔助 II 都花它"><i></i>${fmtN(M.soul)}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="sk-body ${picking ? 'picking' : ''}"><div class="sk-top">${skSlots()}${SKUI.i === 5 && !picking ? skAuraBar() : ''}</div><div class="sk-ring">${ring}</div><div class="sk-info">${info}</div></div>`;
 }
 
@@ -560,6 +580,13 @@ function skAct(b, e) {
     const err = drillDo(c.rec);
     if (err) return hudWarn(err);
     sfx('equip');
+    return changed();
+  } else if (k === 'ii') {
+    if (SUP2_COST >= MAT().soul * 0.5 && !confirm2(b, `<span>再按一次</span><small>${fmtN(SUP2_COST)} 靈魂</small>`))
+      return;
+    const err = sup2Unlock(v);
+    if (err) return hudWarn(err);
+    sfx('lvup');
     return changed();
   } else if (k === 'heart') {
     const err = heartUse(v);

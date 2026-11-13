@@ -115,6 +115,9 @@ function dropItem(ilvl, bonus) {
    gemCfg／stats 讀的「技能設定」gem＝{ gem, lv, so, sup: [{ gem, lv }…] }，由 recGem 從格子加目錄現做，mkGem 直接做一份（測試用） */
 const libKind = k => (SKILLS[k] ? 'sk' : SUPPORTS[k] ? 'sup' : 'aura');
 const libLv = (k, lib = S.lib) => (lib && lib[libKind(k)] && lib[libKind(k)][k]) || 1;
+/* 輔助 II（0.4.8）：整個目錄解鎖一次（S.lib.sup2[I 的鍵]＝1）；沒解鎖的 II 插著也沒效果（skills.js 的 supOK） */
+const sup2Lock = (k, lib = S.lib) =>
+  !!SUPPORTS[k] && SUPPORTS[k].tier === 2 && !(lib && lib.sup2 && lib.sup2[SUPPORTS[k].base]);
 const newSlot = () => ({ k: null, so: [null, null], n: 2 });
 function mkGem(g, lv = 1) {
   const it = { gem: g, lv };
@@ -1063,7 +1066,7 @@ function stats(s = S) {
     /* 光環孔裡的輔助（0.2.57 F3） */
     const sup = {};
     for (const x of g.sup || [])
-      if (x && supOK(A, x, g)) sup[SUPPORTS[x.gem].base || x.gem] = { lv: x.lv, t2: SUPPORTS[x.gem].tier === 2 };
+      if (x && supOK(A, x, g)) sup[SUPPORTS[x.gem].base || x.gem] = { t2: SUPPORTS[x.gem].tier === 2 };
     /* 精魂效用：夥伴（戰狼精魂）再加 compSpirit、捷光環再加 herSpirit（0.2.67） */
     const sp =
       (A.sp *
@@ -1080,7 +1083,7 @@ function stats(s = S) {
         (1 + 0.03 * (g.lv - 1)) *
         (1 + (isGolem(g.gem) ? o.buffEff : o.auraEff + o.buffEff) / 100) *
         (1 + o.buffMag / 100) *
-        (ae ? 1 + (25 + (ae.lv - 1)) / 100 : 1);
+        (ae ? 1.25 : 1);
     if (A.her) {
       (o.her = o.her || {})[A.her] = g.lv;
       /* 範圍擴大、集中效應：範圍倍率 herA、傷害更多 herM（skills.js 的 herR／herMul） */

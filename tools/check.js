@@ -87,7 +87,10 @@ ok(
   }
   ok('每種武器的數值都不是 NaN', !nan.length, nan.join('；'));
   /* 0.2.72 鍛造：新的通貨做裝（單元測試在檔案最後的「裝備重做」一段）；這裡只先給材料，寶石測試要靈魂 */
-  vm.runInContext('var S = { gold: 1e12, lv: 60, mat: null, lib: { sk: {}, sup: {}, aura: {}, aw: {} } }', ctx);
+  vm.runInContext(
+    'var S = { gold: 1e12, lv: 60, mat: null, lib: { sk: {}, sup: {}, aura: {}, aw: {}, sup2: Object.fromEntries(Object.keys(SUP_II).map(k => [k, 1])) } }',
+    ctx
+  );
   vm.runInContext('S.mat = newMat(); S.mat.soul = 1e12;', ctx);
   const sl = G.newSlot();
   let up = 0;
@@ -1122,7 +1125,7 @@ vm.runInContext(
   /* 0.2.75 目錄（企劃書 6.1）：等級查 S.lib 對每格生效；輔助升一次，插了它的招一起受惠；換招再換回來等級還在；同類輔助照舊互斥；skGem 做出來的設定跟 mkGem 手做的同一組數字 */
   const cat = R(`(() => {
     const keep = [S.skills, S.lib, S.mat.soul, S.lv], o = {}, strip = c => JSON.stringify({ ...c, g: 0, D: 0 });
-    S.lv = 90; S.mat.soul = 1e9; S.lib = { sk: {}, sup: {}, aura: {}, aw: {} };
+    S.lv = 90; S.mat.soul = 1e9; S.lib = { sk: {}, sup: {}, aura: {}, aw: {}, sup2: { fury: 1 } };
     S.skills = [0, 1, 2, 3, 4].map(() => newSlot());
     S.skills[0] = { k: 'fireball', so: ['fury', null], n: 2 };
     S.skills[1] = { k: 'cleave', so: [null, 'fury'], n: 2 };
@@ -1131,7 +1134,7 @@ vm.runInContext(
     for (let i = 0; i < 4; i++) libUp('fireball');
     o.lv2 = [skGem(0).lv, skGem(1).lv, libLv('fireball')];
     const m0 = [gemCfg(skGem(0), 0).more, gemCfg(skGem(1), 1).more];
-    libUp('fury'); libUp('fury');
+    o.supUp = libUp('fury');
     o.share = [skGem(0).sup[0].lv, skGem(1).sup[1].lv, skGem(2).sup[0].lv, +(gemCfg(skGem(1), 1).more / m0[1]).toFixed(4)];
     S.skills[0].k = 'slash'; const away = skGem(0).lv; S.skills[0].k = 'fireball';
     o.back = [away, skGem(0).lv];
@@ -1139,20 +1142,55 @@ vm.runInContext(
     o.cat = [supOK(SKILLS.frostbolt, v.sup[0], v), supOK(SKILLS.frostbolt, v.sup[1], v)];
     const a = mkGem('fireball', libLv('fireball')); a.sup[0] = mkGem('fury', libLv('fury'));
     o.same = strip(gemCfg(skGem(0), 0)) === strip(gemCfg(a, 0));
-    o.price = [libUpCheck('fury').c === soulCost(libLv('fury')), libUpCheck('fireball').c === soulCost(libLv('fireball'))];
+    o.price = [libUpCheck('fury').why === '輔助沒有等級', libUpCheck('fireball').c === soulCost(libLv('fireball'))];
     [S.skills, S.lib, S.mat.soul, S.lv] = keep;
     return o;
   })()`);
   ok(
-    '目錄（0.2.75）：等級查 S.lib 對每格生效（沒記的 Lv 1）；輔助升一次，兩格的招一起受惠（Lv 1 → 3）、更多 ×1.02；換招回來等級還在；同類輔助互斥（狂暴＋狂暴 II 只算第一顆）；skGem 做的設定跟 mkGem 手做的一樣；升級價錢＝soulCost(目前等級)',
+    '目錄（0.2.75）：等級查 S.lib 對每格生效（沒記的 Lv 1）；一般輔助不能升（0.4.8）、插的招數字不變；換招回來等級還在；同類輔助互斥（狂暴＋狂暴 II 只算第一顆）；skGem 做的設定跟 mkGem 手做的一樣；升級價錢＝soulCost(目前等級)',
     j(cat.lv1) === '[1,1,null]' &&
       j(cat.lv2) === '[5,1,5]' &&
-      j(cat.share) === '[3,3,3,1.02]' &&
+      cat.supUp === '輔助沒有等級' &&
+      j(cat.share) === '[1,1,1,1]' &&
       j(cat.back) === '[1,5]' &&
       j(cat.cat) === '[true,false]' &&
       cat.same &&
       j(cat.price) === '[true,true]',
     j(cat)
+  );
+  /* 0.4.8 輔助不分等級、II 要解鎖（企劃書 6.5）：解鎖前插著沒效果、解鎖扣 SUP2_COST、解鎖後 I 與 II 各插一格、一般輔助的等級不影響傷害、覺醒輔助照舊吃等級 */
+  const s48 = R(`(() => {
+    const keep = [S.skills, S.lib, S.mat.soul, S.lv], o = {};
+    S.lv = 90; S.mat.soul = 5000; S.lib = { sk: {}, sup: {}, aura: {}, aw: {}, sup2: {} };
+    S.skills = [0, 1, 2, 3, 4].map(() => newSlot());
+    S.skills[0] = { k: 'cleave', so: [null, null], n: 2 };
+    S.skills[1] = { k: 'slash', so: [null, null], n: 2 };
+    const m = i => gemCfg(skGem(i), i).more, b0 = m(0), b1 = m(1);
+    S.skills[0].so[0] = 'fury2';
+    S.skills[1].so[0] = 'fury';
+    o.locked = [sup2Lock('fury2'), sup2Lock('fury'), supOK(SKILLS.cleave, skGem(0).sup[0], skGem(0)), +(m(0) / b0).toFixed(2), sup2Check('fury2').c, sup2Check('fury').why];
+    S.mat.soul = 100;
+    o.poor = sup2Unlock('fury2');
+    S.mat.soul = 5000;
+    o.unlock = [sup2Unlock('fury2'), S.mat.soul, S.lib.sup2.fury, sup2Lock('fury2'), sup2Unlock('fury2'), S.mat.soul];
+    o.both = [+(m(0) / b0).toFixed(2), +(m(1) / b1).toFixed(2)];
+    S.lib.sup.fury = 20; S.lib.sup.fury2 = 20;
+    o.lvNo = [+(m(0) / b0).toFixed(2), +(m(1) / b1).toFixed(2)];
+    S.lib.sup = { aw_fury: 1 }; S.skills[1].so[0] = 'aw_fury';
+    const a1 = m(1); S.lib.sup.aw_fury = 5;
+    o.aw = +(m(1) / a1).toFixed(3) > 1;
+    [S.skills, S.lib, S.mat.soul, S.lv] = keep;
+    return o;
+  })()`);
+  ok(
+    '0.4.8 輔助 II 解鎖：沒解鎖的 II 插著沒效果、扣 3000 靈魂解鎖（靈魂不夠不扣、不能重複解鎖）、解鎖後 I 與 II 各插一格各自生效、一般輔助記了等級也不影響傷害、覺醒輔助照舊吃等級',
+    j(s48.locked) === '[true,false,false,1,3000,"只有 II 要解鎖"]' &&
+      s48.poor === '靈魂不夠（要 3000）' &&
+      j(s48.unlock) === '[null,2000,1,false,"已經解鎖",2000]' &&
+      j(s48.both) === '[1.45,1.35]' &&
+      j(s48.lvNo) === '[1.45,1.35]' &&
+      s48.aw,
+    j(s48)
   );
   /* 0.2.75 覺醒（企劃書 6.3）：資料 → A → B → 標籤 → 覺醒石花費與切換 → 掉落 */
   const aw = R(`(() => {
@@ -6853,6 +6891,7 @@ const ASC_COMBOS = `const combos = k => {
   );
   /* 0.2.51 C3：輔助 II 分級（13 顆）、新寶石的使用等級、重擊輔助真的加沉重暈眩累積 */
   const c51 = R(`(() => {
+    S.lib.sup2 = Object.fromEntries(Object.keys(SUP_II).map(k => [k, 1]));
     const cf = (k, sups) => {
         const g = mkGem(k, 5);
         g.sup = sups.map(x => mkGem(x, 1));
@@ -7119,6 +7158,7 @@ const ASC_COMBOS = `const combos = k => {
   );
   /* 0.2.57 F3：光環寶石的孔與輔助（相容只看接上效果的、效果、精魂、捷光環範圍、群狼） */
   const f57 = R(`(() => {
+    S.lib.sup2 = Object.fromEntries(Object.keys(SUP_II).map(k => [k, 1]));
     const keep = { eq: { ...S.eq }, au: S.auras, st: ST },
       sp = k => mkGem(k, 1),
       ok = (a, k) => supOK(AURAS[a], sp(k), mkGem(a, 1)),
@@ -7141,9 +7181,9 @@ const ASC_COMBOS = `const combos = k => {
     return out;
   })()`);
   ok(
-    'F3 光環的孔：光環寶石 2 孔、可以開孔；只有接上效果的輔助相容（光環效果只給有數值的光環、範圍與集中給捷光環、群狼給戰狼精魂與魔像、不給獻祭，狂暴與極大不相容）；效果 +30%（6 級）、精魂 30→24、捷光環範圍 ×1.4／集中 ×0.7 更多 30%、群狼讓魔像更多 30%',
+    'F3 光環的孔：光環寶石 2 孔、可以開孔；只有接上效果的輔助相容（光環效果只給有數值的光環、範圍與集中給捷光環、群狼給戰狼精魂與魔像、不給獻祭，狂暴與極大不相容）；效果 +25%（0.4.8 起輔助沒有等級，記了 Lv6 也一樣）、精魂 30→24、捷光環範圍 ×1.4／集中 ×0.7 更多 30%、群狼讓魔像更多 30%',
     JSON.stringify(f57) ===
-      '{"so":[2,2,true],"ok":[true,false,true,false,true,true,true,false,true,true,false,true,false,false,true],"eff":[130,30,24],"her":[1.4,1,0.7,1.3],"wolf":[true,1.3,false]}',
+      '{"so":[2,2,true],"ok":[true,false,true,false,true,true,true,false,true,true,false,true,false,false,true],"eff":[125,30,24],"her":[1.4,1,0.7,1.3],"wolf":[true,1.3,false]}',
     JSON.stringify(f57)
   );
   /* 0.2.58 J1：命令技能（要有召喚物、狼撲咬流血、魔像暈眩嘲諷）、傀儡大師（命令技能速度、移動懲罰） */
@@ -8204,7 +8244,7 @@ const ASC_COMBOS = `const combos = k => {
     R2(`(() => {
       const old = newGame(); Object.assign(old, { v: 30, lv: 57 });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      if (n.v !== 32 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
+      if (n.v !== 33 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
       for (const bad of [null, {}, { v: 'x' }, { v: 10 }, { v: 29, lv: 50 }]) if (migrate(bad).lv !== 1) return 'bad';
       const it = (r, o) => ({ ...mkItem('c_leather', 12, r), ...o });
       const v31 = { ...newGame(), v: 31, lv: 57, gold: 5, frag: 40, auto: 0, cards: { x: 1 }, patrol: { rg: 'a' }, run: { k: '0,0' },
@@ -8214,15 +8254,42 @@ const ASC_COMBOS = `const combos = k => {
       delete v31.push;
       /* 舊地圖走過最遠的是 9,9（第 18 圈＝舊的 Lv63）：主幹開到 Lv63（劇情 9 個＋Lv23～63 的 9 個） */
       const m = migrate(JSON.parse(JSON.stringify(v31)));
-      if (m.v !== 32 || m.lv !== 57 || m.auto !== 0 || m.push !== 'auto') return 'base';
+      if (m.v !== 33 || m.lv !== 57 || m.auto !== 0 || m.push !== 'auto') return 'base';
       if (m.inv.items.length !== 4 || m.inv.items.some(x => x.uid || 'x' in x) || m.inv.w) return 'inv ' + m.inv.items.length;
       if (['stash', 'temp', 'temp2', 'frag', 'cards', 'patrol', 'run'].some(k => k in m)) return 'gone';
       if (m.gold !== 5 + 400) return 'gold ' + m.gold;
       if (m.world.seed !== W_SEED || m.world.stage !== 9 || m.world.done.length !== 18 || wFront(m) !== 18) return 'world ' + m.world.done.length + ' ' + wFront(m);
       const again = migrate(JSON.parse(JSON.stringify(m)));
-      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 32 ? '' : 'again';
+      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 33 ? '' : 'again';
     })()`) === ''
   );
+  /* 0.4.8：存檔 32 → 33：一般輔助升過的等級退靈魂（每一級照 libUp 扣的 soulCost(那一級)）、刪紀錄；用過的 II 算解鎖；覺醒輔助、技能、光環等級不動 */
+  {
+    const r = R2(`(() => {
+      const s = { ...newGame(), v: 32, lv: 70 };
+      s.mat.soul = 7;
+      s.lib = { sk: { fireball: 9 }, sup: { fury: 6, crit: 1, area2: 3, aw_fury: 5 }, aura: { anger: 4 }, aw: {} };
+      s.skills[0] = { k: 'fireball', so: ['multi2', 'fury'], n: 2 };
+      s.auras = [{ k: 'anger', so: ['area', 'leech2'], n: 2 }, null];
+      const m = migrate(JSON.parse(JSON.stringify(s)));
+      let want = 7;
+      for (const lv of [6, 3]) for (let l = 1; l < lv; l++) want += soulCost(l);
+      const again = migrate(JSON.parse(JSON.stringify(m)));
+      return { v: m.v, soul: m.mat.soul === want, want, sup: m.lib.sup, sup2: Object.keys(m.lib.sup2).sort(), keep: [m.lib.sk.fireball, m.lib.aura.anger, m.skills[0].so.join()],
+        again: again.mat.soul === m.mat.soul, fresh: newGame().v === 33 && !!newGame().lib.sup2 };
+    })()`);
+    ok(
+      '存檔 33（0.4.8）：一般輔助升過的等級退靈魂（Σ soulCost(1…lv−1)）、紀錄刪掉；插著的 II（技能格、光環欄）與目錄有紀錄的 II 算解鎖；覺醒輔助、技能、光環的等級與孔不動；轉過的再載入不重複退；新存檔是 33',
+      r.v === 33 &&
+        r.soul &&
+        JSON.stringify(r.sup) === '{"aw_fury":5}' &&
+        JSON.stringify(r.sup2) === '["area","leech","multi"]' &&
+        JSON.stringify(r.keep) === '[9,4,"multi2,fury"]' &&
+        r.again &&
+        r.fresh,
+      JSON.stringify(r)
+    );
+  }
   /* 過濾器（8-3，企劃書 5.1）：★、追憶；範本一「★ 或追憶 → 自動撿、黃裝 → 顯示」、範本二「只撿 ★、追憶、T 高的黃裝」；0.4.0 沒有鑑定，詞綴條件直接看得到 */
   {
     const r = R2(`(() => {

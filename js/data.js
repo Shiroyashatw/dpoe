@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.4.7';
+const VER = '0.4.8';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -7569,8 +7569,10 @@ const ACLS = [
 const ACLSI = Object.fromEntries(ACLS.map(x => [x.k, x]));
 const affCls = k => (ACLS.find(x => x.aff.includes(k)) || {}).k;
 const GEM_SO_MAX = 5;
-/* 靈魂升級寶石：L 級升 L+1 要 10 × 1.35^L（主動、輔助、光環同價） */
+/* 靈魂升級寶石：L 級升 L+1 要 10 × 1.35^L（主動、光環同價；一般輔助 0.4.8 起沒有等級） */
 const soulCost = L => Math.round(10 * Math.pow(1.35, L));
+/* 輔助 II 解鎖一次的靈魂（0.4.8，企劃書 6.5）。⚠️ 暫定 */
+const SUP2_COST = 3000;
 /* 開孔（0.2.72，企劃書 6.4）：第 1／2／3 孔（2→3、3→4、4→5 孔）各等於那顆寶石從 Lv1→5、Lv5→10、Lv10→15 升級的靈魂總量。⚠️ 暫定 */
 const DRILL = [
   [1, 5],
