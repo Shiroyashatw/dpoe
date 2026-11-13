@@ -400,14 +400,17 @@ const navOn = () =>
           : anyPanel()
             ? 'more'
             : '';
-/* 分頁上的小亮點（0.4.7）：有天賦點或昇華點還沒用 */
-const navDot = k => k === 'tree' && (ptLeft() > 0 || (S.asc ? ascLeft() > 0 : ascPoints(S) > 0));
+/* 分頁上的小亮點（0.4.7）：有天賦點或昇華點還沒用；技能（0.4.8）＝技能面板「現在可以變強」有東西 */
+const navDot = k =>
+  k === 'tree' ? ptLeft() > 0 || (S.asc ? ascLeft() > 0 : ascPoints(S) > 0) : k === 'skill' && skTodo().length > 0;
 /* 點分頁：開那一頁；點亮著的那一頁＝收起來（「更多」底下的面板開著時點「更多」＝回到更多） */
 function navGo(t) {
   /* 天賦樹（0.4.7 起有自己的分頁）：蓋滿畫面、分頁列留著；再點一次收起來 */
   if (t === 'tree') return treeOpen();
   if (TREE.open) treeClose();
   const on = navOn() === t && (t !== 'more' || PANEL.more);
+  /* 技能面板在第二、三層：再點一次分頁＝回總覽（0.4.8） */
+  if (on && t === 'skill' && SKUI.view !== 'home') return skHome(), (SKUI.anim = 'back'), hudPanels();
   HP_HOLD++;
   closePanels();
   HP_HOLD--;
@@ -424,7 +427,7 @@ const navHTML = () => {
   const on = navOn();
   return NAV_T.map(
     ([k, ic, t]) =>
-      `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${navDot(k) ? '<i class="dot" aria-label="有點數沒用"></i>' : ''}</button>`
+      `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${navDot(k) ? `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : '有點數沒用'}"></i>` : ''}</button>`
   ).join('');
 };
 /* 半版面板開著（世界地圖是全螢幕，不算） */
@@ -544,16 +547,8 @@ function openPanel(k) {
     PANEL.device = true;
     wmOpen();
   } else PANEL[k] = true;
-  /* 手機直立：選中才佔掉背包那半邊；桌機與橫向在 hudPanels 預選第一招 */
-  if (k === 'skill')
-    skSel(
-      SKUI.i === 5 || S.skills[SKUI.i].k
-        ? SKUI.i
-        : Math.max(
-            0,
-            S.skills.findIndex(x => x.k)
-          )
-    );
+  /* 技能面板（0.4.8）：打開一律先到總覽 */
+  if (k === 'skill') skHome();
   if (k === 'asc')
     (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]), (ASCUI.n = null), (ASCUI.pick = S.asc || !PORT() ? 0 : 1);
   hideTip();
@@ -827,7 +822,7 @@ function acctHTML() {
    邊寫邊讀會每個面板強制排版一次；本來就關著的面板不讀；位置是 0 的不寫 */
 const KEEP = {
   pinv: ['', '.bagf.sub'],
-  pskill: ['.sk-body'],
+  pskill: ['.sk-scroll', '.sk-chips'],
   pnode: [''],
   pasc: ['', '.ax-list'],
   plog: ['.lgl'],

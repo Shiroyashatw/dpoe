@@ -5,6 +5,7 @@ const { chromium } = require('playwright');
           最後的「對照」是只換一顆按鈕顏色要等多久）、跑＝我們的處理程式、畫＝排版與畫出來。
       **判定看「跑＋畫」≤100**（這兩段是我們的程式決定的）；全部一起列出來參考
    2. 戰鬥在跑時手指捲戰利品清單，每一格幾毫秒（標準 p95 ≤33）
+   技能面板（0.4.8）：總覽 → 這一招 → 挑選每一步；打開清單（含算差多少）標準 ≤200，其他 ≤100。升級是按下就升（pointerdown），所以每一下取 click 與 pointerdown 裡最慢的那個
    3. 天賦樹：打開、拖曳、兩指縮放的每一格，以及一開始每個點在畫面上幾 px
    只量不改；無頭瀏覽器沒有顯示卡，數字偏慢，看的是相對大小與有沒有變好。
    用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/ui_perf.js [網址] [寬 390] [高 844] */
@@ -43,11 +44,20 @@ const URL = process.argv[2] || 'http://localhost:8000/',
       );
       if (it && !S.eq[e.k]) takeOut('inv', it), (S.eq[e.k] = it);
     }
+    /* 技能面板：三招、第 1 格開 3 孔插一顆、靈魂夠升級 */
+    const ok = Object.keys(SKILLS).filter(
+      k => SKILLS[k].m && !skWhy(SKILLS[k]) && !gemLack(mkGem(k, 1)).length && !['slash', 'mirage'].includes(k)
+    );
+    S.skills[1].k = ok[0];
+    S.skills[2].k = ok[1];
+    S.skills[0].n = 3;
+    S.skills[0].so = ['fury', null, null];
+    MAT().soul = 5000;
     changed();
     window._ev = [];
     new PerformanceObserver(l => {
       for (const e of l.getEntries())
-        if (e.name === 'click')
+        if (e.name === 'click' || e.name === 'pointerdown')
           _ev.push([
             Math.round(e.processingStart - e.startTime),
             Math.round(e.processingEnd - e.processingStart),
@@ -76,7 +86,10 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     await p.waitForTimeout(50);
     await touch('touchEnd', []);
     await p.waitForTimeout(800);
-    return p.evaluate(k => (_ev.length > k ? _ev[_ev.length - 1] : [0, 0, 0, 0]), k);
+    return p.evaluate(
+      k => (_ev.length > k ? _ev.slice(k).sort((a, b) => b[1] + b[2] - a[1] - a[2])[0] : [0, 0, 0, 0]),
+      k
+    );
   };
   /* 量一段時間裡每一格的間隔 */
   const frames = async fn => {
@@ -106,10 +119,10 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   let bad = 0;
   const mark = (v, ok) => (v <= ok ? '✅ ' : (bad++, '❌ ')) + v;
   /* 一次點擊：判定看跑＋畫 */
-  const markTap = r =>
+  const markTap = (r, ok = TAP_OK) =>
     !r
-      ? '找不到'
-      : `${r[1] + r[2] <= TAP_OK ? '✅' : (bad++, '❌')} ${String(r[1] + r[2]).padStart(3)}（等 ${r[0]}・跑 ${r[1]}・畫 ${r[2]}・全部 ${r[3]}）`;
+      ? (bad++, '❌ 找不到')
+      : `${r[1] + r[2] <= ok ? '✅' : (bad++, '❌')} ${String(r[1] + r[2]).padStart(3)}（等 ${r[0]}・跑 ${r[1]}・畫 ${r[2]}・全部 ${r[3]}）${ok !== TAP_OK ? `（標準 ≤${ok}）` : ''}`;
   const SEQ = [
     ['分頁：戰利品', '#pnav [data-tm="nav:bag"]'],
     ['篩選：防具', '#pinv [data-a="bagf:armor"]'],
@@ -120,11 +133,23 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     ['分頁：做裝', '#pnav [data-tm="nav:craft"]'],
     ['分頁：更多', '#pnav [data-tm="nav:more"]'],
     ['更多：地點', '#pmore [data-tm="nav:node"]'],
-    ['分頁：技能', '#pnav [data-tm="nav:skill"]']
+    ['分頁：技能（總覽）', '#pnav [data-tm="nav:skill"]'],
+    ['技能：點第 1 招（這一招）', '#pskill [data-sk="go:one:0"]'],
+    ['技能：升一級（按下就升）', '#pskill [data-sk^="up:"]'],
+    ['技能：選一個孔', '#pskill .sk-nd[data-sk="hole:0"]'],
+    ['技能：上一層', '#pskill [data-sk="back"]'],
+    ['技能：展開算式', '#pskill [data-sk="calc"]'],
+    ['技能：點空孔（打開清單＋算差多少）', '#pskill .sk-nd.emp', 200],
+    ['技能：選另一列', '#pskill .sk-list .sk-row:not(.on):not(.dim)'],
+    ['技能：篩選「全部」', '#pskill [data-sk="f:全部"]'],
+    ['技能：插上', '#pskill .sk-bar .pri'],
+    ['技能：換一招（打開清單＋算差多少）', '#pskill [data-sk="swap"]', 200],
+    ['技能：再點分頁回總覽', '#pnav [data-tm="nav:skill"]'],
+    ['技能：加光環（打開清單＋算差多少）', '#pskill [data-sk="go:auras"]', 200]
   ];
   const run = async label => {
     console.log(`\n${label}：按下到畫面更新（毫秒；跑＋畫的標準 ≤${TAP_OK}）`);
-    for (const [n, q] of SEQ) console.log(`  ${markTap(await tap(q))}  ${n}`);
+    for (const [n, q, ok] of SEQ) console.log(`  ${markTap(await tap(q), ok)}  ${n}`);
     /* 對照：一顆什麼都不做、只換顏色的按鈕，量出來的就是環境本身的延遲 */
     await p.evaluate(() => {
       const z = document.createElement('button');

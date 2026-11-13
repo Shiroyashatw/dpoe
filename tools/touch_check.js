@@ -1042,6 +1042,129 @@ let fail = 0;
       fold.join()
     );
   }
+  /* 技能面板（0.4.8）：總覽 → 這一招 → 選了一個孔 → 挑輔助，每個畫面都不出畫面、按得到的東西 ≥44px；手指在清單上滑＝捲清單、不會選到 */
+  {
+    const tap = async q => {
+      const c = await p.evaluate(q => {
+        const e = document.querySelector(q);
+        if (!e) return null;
+        e.scrollIntoView({ block: 'nearest' });
+        const r = e.getBoundingClientRect();
+        return [r.left + r.width / 2, r.top + r.height / 2];
+      }, q);
+      if (!c) return false;
+      await touch('touchStart', [c]);
+      await touch('touchEnd', []);
+      await p.waitForTimeout(250);
+      return true;
+    };
+    const look = () =>
+      p.evaluate(() => {
+        const pn = $('pskill').getBoundingClientRect(),
+          small = [],
+          out = [];
+        if (pn.left < -0.5 || pn.top < -0.5 || pn.right > innerWidth + 0.5 || pn.bottom > innerHeight + 0.5)
+          out.push('面板');
+        for (const e of document.querySelectorAll('#pskill button')) {
+          const r = e.getBoundingClientRect();
+          /* 捲到面板外的不算；文字裡的名詞（.term）是行內字 */
+          if (!r.width || e.classList.contains('term') || r.bottom <= pn.top || r.top >= pn.bottom) continue;
+          const n = e.dataset.sk || e.dataset.a || e.className;
+          /* 篩選晶片那一列可以橫向捲：看那一列本身 */
+          const q = e.closest('.sk-chips') ? e.closest('.sk-chips').getBoundingClientRect() : r;
+          if (q.left < -0.5 || q.right > innerWidth + 0.5) out.push(n);
+          if (Math.min(r.width, r.height) < 43.5) small.push(`${n} ${Math.round(r.width)}×${Math.round(r.height)}`);
+        }
+        const pri = document.querySelector('#pskill .sk-bar .pri');
+        return { v: SKUI.view, small, out, pri: !pri || pri.getBoundingClientRect().bottom <= pn.bottom + 0.5 };
+      });
+    await p.evaluate(port => {
+      treeClose();
+      closePanels();
+      const ok = Object.keys(SKILLS).filter(
+        k => SKILLS[k].m && !skWhy(SKILLS[k]) && !gemLack(mkGem(k, 1)).length && !['slash', 'mirage'].includes(k)
+      );
+      S.skills[0].k = 'slash';
+      S.skills[1].k = ok[0];
+      S.skills[2].k = ok[1];
+      S.skills[0].n = 3;
+      S.skills[0].so = ['fury', null, null];
+      changed();
+      port ? navGo('skill') : openPanel('skill');
+    }, PORTM);
+    await p.waitForTimeout(300);
+    const R = [['總覽', await look()]];
+    await tap('#pskill [data-sk="go:one:0"]');
+    await p.waitForTimeout(260);
+    R.push(['這一招', await look()]);
+    await tap('#pskill .sk-nd[data-sk="hole:0"]');
+    await p.waitForTimeout(260);
+    R.push(['選了一個孔', await look()]);
+    await tap('#pskill [data-sk="back"]');
+    await tap('#pskill .sk-nd.emp');
+    await p.waitForTimeout(260);
+    R.push(['挑輔助', await look()]);
+    const bad = R.filter(([, r]) => r.small.length || r.out.length || !r.pri);
+    ok(
+      '技能面板：四個畫面都不出畫面、按得到的東西 ≥44px、主要按鈕在面板底部',
+      !bad.length,
+      JSON.stringify(bad.length ? bad : R.map(x => x[0] + ':' + x[1].v))
+    );
+    const sw = await p.evaluate(() => {
+      /* 清單裡看得到的最後一列（橫向手機只看得到兩三列） */
+      const L = document.querySelector('#pskill .sk-list'),
+        b = L.getBoundingClientRect(),
+        e = [...L.querySelectorAll('.sk-row')].filter(x => x.getBoundingClientRect().bottom <= b.bottom).pop(),
+        r = e.getBoundingClientRect();
+      return [
+        r.left + r.width / 2,
+        Math.min(r.top + r.height / 2, b.bottom - 10),
+        SKUI.pick,
+        L.children.length,
+        SKUI.view
+      ];
+    });
+    await touch('touchStart', [sw.slice(0, 2)]);
+    for (let i = 1; i <= 8; i++) {
+      await touch('touchMove', [[sw[0], sw[1] - i * 14]]);
+      await p.waitForTimeout(16);
+    }
+    await touch('touchEnd', []);
+    await p.waitForTimeout(300);
+    const after = await p.evaluate(() => [document.querySelector('#pskill .sk-list').scrollTop, SKUI.pick]);
+    ok('技能面板：手指在清單上滑＝捲清單、不會選到那一列', after[0] > 20 && after[1] === sw[2], JSON.stringify(after));
+    /* 最常做的事（0.4.8 驗收）：從戰鬥畫面開始，「找出讓第 1 格每秒最高的輔助並插上」幾下（打開技能分頁那一下另外算） */
+    const best = await p.evaluate(() => {
+      closePanels();
+      S.skills[0].so = ['fury', null, null];
+      changed();
+      /* 暴力算：每一顆能插的輔助放進第 2 孔，取每秒最高的 */
+      const c = { D: awD(S.skills[0].k, awOf(S.skills[0].k)), rec: S.skills[0] };
+      let b = null;
+      for (const k of Object.keys(SUPPORTS)) {
+        if ((SUPPORTS[k].aw && !awHave(k)) || supWhy(c, k, 1) !== '') continue;
+        S.skills[0].so[1] = k;
+        const v = skMain(skillNums(slotCfg(0)));
+        if (!b || v > b.v) b = { k, v };
+      }
+      S.skills[0].so[1] = null;
+      return b;
+    });
+    await p.evaluate(port => (port ? navGo('skill') : openPanel('skill')), PORTM);
+    await p.waitForTimeout(260);
+    let taps = 0;
+    for (const q of ['#pskill [data-sk="go:one:0"]', '#pskill .sk-nd.emp', '#pskill .sk-bar .pri']) {
+      taps += (await tap(q)) ? 1 : 0;
+      await p.waitForTimeout(200);
+    }
+    const got = await p.evaluate(() => S.skills[0].so[1]);
+    ok(
+      `技能面板：找出讓第 1 格每秒最高的輔助並插上 ${taps} 下（不含打開技能分頁那一下）`,
+      taps <= 3 && got === best.k,
+      `插上 ${got}，暴力算的最好是 ${best.k}`
+    );
+    await p.evaluate(() => closePanels());
+  }
   /* 技能寶石、昇華石碑：面板不出畫面、主要動作看得到（等面板滑入的動畫跑完才量） */
   {
     const inView = async (open, ...sel) => {
@@ -1070,9 +1193,10 @@ let fail = 0;
           hudPanels();
         },
         '#pskill',
-        '.slots',
-        '.ring .ctr',
-        '.sk-info .nums'
+        '.sk-top',
+        '.sk-ring .sk-ctr',
+        '.sk-hero',
+        '.sk-bar .pri'
       ),
       await inView(
         () => {

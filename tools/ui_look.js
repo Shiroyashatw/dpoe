@@ -126,21 +126,23 @@ if (require.main === module)
     await p.evaluate(() => localStorage.clear());
     await p.reload();
     await p.waitForTimeout(1200);
-    /* 中期角色：5 招、每招開 3 孔、靈魂夠用、有昇華點 */
+    /* 中期角色：5 招有傷害的招（0.4.8 起；之前前 5 招都是詛咒，看不到每秒）、每招開 3 孔（第 1 招插一顆）、靈魂夠用、有昇華點 */
     await p.evaluate(mobile => {
       proSkip();
       S.story.tips = 0;
       S.lv = 60;
       S.maxT = 13;
-      if (mobile) (S.orient = 'p'), applyOrient();
+      if (mobile) (S.orient = innerHeight > innerWidth ? 'p' : 'l'), applyOrient();
       MAT().soul = 500000;
       Object.keys(SKILLS)
-        .filter(k => !skWhy(SKILLS[k]) && !gemLack(mkGem(k, 1)).length)
+        .filter(k => SKILLS[k].m && !skWhy(SKILLS[k]) && !gemLack(mkGem(k, 1)).length)
         .slice(0, 5)
         .forEach((k, i) => ((S.skills[i].k = k), (S.skills[i].n = 3)));
+      S.skills[0].so[0] = 'fury';
       changed();
     }, mobile);
     await p.waitForTimeout(600);
+    const port = await p.evaluate(() => PORT());
     const click = async q => {
       await p.evaluate(q => {
         const e = document.querySelector(q);
@@ -150,14 +152,26 @@ if (require.main === module)
     };
     /* 要量的畫面：[名字, 根節點, 有框元素的上限, 怎麼走到]。面板改版時改這裡 */
     const SCREENS = [
-      ['技能：這一招', '#pskill', 12, async () => p.evaluate(m => (m ? navGo('skill') : openPanel('skill')), mobile)],
+      /* 技能面板（0.4.8）：總覽 → 這一招 → 選了一個孔 → 挑輔助 → 挑技能 */
+      ['技能：總覽', '#pskill', 12, async () => p.evaluate(m => (m ? navGo('skill') : openPanel('skill')), port)],
+      ['技能：這一招', '#pskill', 12, () => click('#pskill [data-sk="go:one:0"]')],
+      ['技能：選了一個孔', '#pskill', 12, () => click('#pskill .sk-nd[data-sk="hole:0"]')],
       [
         '技能：挑輔助',
         '#pskill',
         30,
         async () => {
-          await click('#pskill [data-sk="hole:0"]');
-          await click('#pskill .grid2 .g:not(.dim)');
+          await click('#pskill [data-sk="back"]');
+          await click('#pskill .sk-nd.emp');
+        }
+      ],
+      [
+        '技能：挑技能',
+        '#pskill',
+        30,
+        async () => {
+          await click('#pskill [data-sk="back"]');
+          await click('#pskill [data-sk="swap"]');
         }
       ],
       ['昇華：還沒選', '#pasc', 30, async () => p.evaluate(() => (closePanels(), openPanel('asc')))],
@@ -184,6 +198,7 @@ if (require.main === module)
       if (s.startsWith('❌')) fail++;
       console.log(s);
       console.log(`   字的樣式：${a.明細.字的樣式}`);
+      if (a.字色 > BUDGET.字色) console.log(`   字色：${a.明細.字色}`);
       if (a.對比不足) console.log(`   對比不足：${a.明細.對比不足.join('、')}`);
     }
     console.log(`\n${W}×${H}：${SCREENS.length - fail}／${SCREENS.length} 個畫面過預算。截圖與瞇眼圖在 ${OUT}`);
