@@ -1871,11 +1871,9 @@ body.touch.port #pnav:not([hidden]) { grid-template-columns: repeat(6, minmax(0,
 #pnav .dot { position: absolute; top: 7px; left: calc(50% + 9px); width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px var(--s1, #1c2129); }
 @media (prefers-reduced-motion: reduce) { .tcard { animation: none; } }
 
-/* ---- 昇華石碑（0.4.7）：直立時選好的昇華收成一列、說明貼在盤面下面（不再疊在清單上）、點放大、沒點亮的看得出圖示 ---- */
-.ax-cur { display: flex; align-items: center; gap: 10px; padding: 0 0 10px; }
-.ax-cur .ic { width: 40px; height: 40px; flex: none; }
-.ax-cur b { flex: 1; font: 700 var(--fs-l) var(--font); color: var(--title); }
-.ax-cur .btn { min-height: 44px; padding: 0 16px; font: 700 var(--fs) var(--font); }
+/* ---- 昇華石碑（0.4.7）----
+   桌機與手機橫向：盤面的點放大、沒點亮的看得出圖示、說明列的按鈕。
+   手機直立整個重做（hud.js 的 ascPortHTML）：不畫盤面，「選 4 個大點」——上面是這個昇華與 4 個位子，下面一張卡一個大點 */
 .ax-cap i { margin-left: 8px; }
 .ax-cap .btn { min-height: 48px; font: 700 var(--fs) var(--font); display: flex; align-items: center; justify-content: center; gap: 10px; }
 .ax-cap .btn small { font-weight: 500; opacity: 0.75; }
@@ -1886,13 +1884,59 @@ body.touch .ax-n.b1 { width: 40px; height: 40px; }
 body.touch .ax-n.b3 { width: 46px; height: 46px; }
 body.touch .ax-n::after { display: none; }
 body.touch .ax-n.sel { outline: 3px solid #fff; outline-offset: 2px; }
-body.touch.port .ax-tabs { padding-bottom: 8px; }
-body.touch.port .ax-chart { margin-bottom: 0; }
-body.touch.port .ax-cap { order: 2; position: static; margin: 0 calc(-1 * var(--pp)); padding: 10px var(--pp) 12px; min-height: 92px; align-content: start; border-width: 1px 0; border-color: var(--fr-o); }
-body.touch.port .ax-cap b { font-size: var(--fs-l); }
-body.touch.port .ax-cap p { font-size: var(--fs); }
-body.touch.port .ax-list { order: 3; padding: 8px 0; }
-body.touch.port .ax-r { min-height: 44px; align-content: center; }
 .ax-tab.cur:not(.on) { border-color: var(--gold); }
-/* 矮的手機（375×667）：盤面縮到說明與按鈕不用捲就看得到（標題 80＋現在是誰 54＋說明 140＋分頁列 56） */
-body.touch.port .ax-chart { width: min(100%, calc(100dvh - 336px)); max-width: 420px; }
+.axp { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
+.axh { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 14px; align-items: center; margin: 0 calc(-1 * var(--pp)); padding: 16px var(--pp) 14px; background: radial-gradient(120% 140% at 0% 0%, #4a2a16 0%, #2a1a13 45%, var(--s1, #1c2129) 100%); border-bottom: 1px solid var(--asc-dim); }
+.axh-ic { width: 76px; height: 76px; display: grid; place-items: center; border-radius: 50%; background: #120c0a; box-shadow: inset 0 0 0 2px var(--asc), 0 0 22px rgba(255, 159, 67, 0.28); }
+.axh-ic .ic { width: 54px; height: 54px; }
+.axh b { display: block; font: 900 26px/1.2 var(--serif); letter-spacing: 0.06em; color: #ffd9b8; }
+.axh p { margin: 5px 0 0; font-size: var(--fs-s); line-height: 1.5; color: var(--tx); }
+.axs-r { display: flex; align-items: center; gap: 10px; }
+.axs-r .axs-t { flex: 1; }
+.axs-r .btn { flex: none; min-height: 44px; padding: 0 14px; font: 700 var(--fs-s) var(--font); color: var(--dim); background: none; border-color: var(--fr-o); }
+.axs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.axs-s { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 68px; padding: 4px 2px; font: 700 11px/1.2 var(--font); color: var(--dim); text-align: center; background: var(--s0); border: 1px dashed var(--fr-o); border-radius: 6px; }
+.axs-s i { font: 700 18px var(--font); font-style: normal; opacity: 0.45; }
+.axs-s.next { border-color: var(--gold); }
+.axs-s.next i { color: var(--gold); opacity: 1; }
+button.axs-s { cursor: pointer; }
+.axs-s.on { color: #ffcfa6; background: var(--asc-on); border: 1px solid var(--asc); }
+.axs-s.on .ic { width: 34px; height: 34px; }
+.axs-s.on span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.axs-t { margin: 0; font-size: var(--fs-s); color: var(--dim); }
+.axb { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--fr-o); }
+.axc { position: relative; display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 12px; padding: 12px; background: var(--s2); border: 1px solid var(--fr-o); border-radius: 4px; }
+.axc-ic { width: 52px; height: 52px; display: grid; place-items: center; background: #14171c; border: 1px solid var(--fr-o); border-radius: 8px; }
+.axc-ic .ic { width: 40px; height: 40px; }
+.axc-t b { font: 700 var(--fs-l) var(--font); color: var(--title); }
+.axc-t p { margin: 3px 0 0; font-size: var(--fs); line-height: 1.5; color: var(--tx); }
+.axc-t small { display: block; margin-top: 5px; font-size: var(--fs-s); color: var(--dim); }
+.axc-a { grid-column: 1 / -1; margin-top: 8px; }
+.axc-a .btn { width: 100%; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 8px; font: 700 var(--fs) var(--font); }
+.axc-a .btn small { font-weight: 500; opacity: 0.75; }
+.axc-a .ico { width: 16px; height: 16px; }
+.axc-w { display: flex; align-items: center; gap: 6px; margin: 0; min-height: 28px; font-size: var(--fs-s); color: var(--dim); }
+.axc.on { border-color: var(--asc); background: linear-gradient(180deg, rgba(255, 159, 67, 0.14), rgba(255, 159, 67, 0.03)); }
+.axc.on .axc-ic { border-color: var(--asc); background: var(--asc-on); }
+.axc.on .axc-t b { color: #ffb38a; }
+.axc.on .axc-a .btn { color: #ffcfa6; border-color: var(--asc-dim); background: none; }
+.axc.on .axc-w { color: #ffb38a; }
+.axc.no .axc-ic .ic { filter: grayscale(1); opacity: 0.55; }
+.axc.no .axc-t b { color: var(--tx); }
+.axc.d2, .axg.d2 { margin-left: 20px; }
+.axc.d2::before, .axg.d2::before { content: ''; position: absolute; left: -13px; top: -9px; width: 12px; height: 38px; border-left: 2px solid var(--fr); border-bottom: 2px solid var(--fr); border-bottom-left-radius: 6px; }
+.axg { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px dashed var(--fr); border-radius: 6px; }
+.axg h5 { margin: 0 0 0 2px; font: 700 var(--fs-s) var(--font); color: var(--gold); }
+.axl { display: flex; flex-direction: column; gap: 6px; padding: 10px 0 14px; }
+.axl-h { margin: 0 0 4px; font-size: var(--fs-s); color: var(--dim); }
+.axl-back { align-self: flex-start; min-height: 44px; padding: 0 14px; font: 700 var(--fs) var(--font); }
+.axl-r { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; align-items: center; min-height: 68px; padding: 8px 12px; text-align: left; color: var(--tx); background: var(--s2); border: 1px solid var(--fr-o); border-radius: 4px; cursor: pointer; }
+.axl-r:active { transform: scale(0.99); }
+.axl-r .ic { width: 44px; height: 44px; }
+.axl-r b { display: block; font: 700 var(--fs-l) var(--font); color: var(--title); }
+.axl-r b i { margin-left: 8px; padding: 1px 6px; font: 700 11px var(--font); font-style: normal; color: #1a1210; background: var(--asc); border-radius: 3px; }
+.axl-r small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; font: 500 var(--fs-s)/1.45 var(--font); color: var(--dim); }
+.axl-r.cur { border-color: var(--asc); }
+
+/* 0.4.7（X2）：按鈕一律黑體。以前主要按鈕用明體，同一排「裝備」是明體、「做裝／賣／鎖定」是黑體；明體只留給標題 */
+.btn.pri { font-family: var(--font); letter-spacing: 0.02em; }

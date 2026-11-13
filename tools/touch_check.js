@@ -926,7 +926,7 @@ let fail = 0;
     await p.waitForTimeout(300);
   }
   if (PORTM) {
-    /* 昇華石碑（0.4.7）：選好之後切換鈕收起來、說明貼在盤面下面、手指點在點的旁邊也選得到、按說明列的按鈕點亮 */
+    /* 昇華石碑（0.4.7 直立重做）：不畫盤面，一張卡一個大點；按「選這個」連同前面的小點一起點亮 */
     const asc = await p.evaluate(() => {
       treeClose();
       S.asc = 'wind';
@@ -935,33 +935,74 @@ let fail = 0;
       changed();
       fmenuOpen('asc');
       const pa = $('pasc'),
-        e = pa.querySelector('.ax-n.can'),
-        r = e.getBoundingClientRect();
+        T = ascNodes('wind');
       return {
-        fold: !pa.querySelector('.ax-tabs') && !!pa.querySelector('.ax-cur [data-ax=pick]'),
-        id: e.dataset.ax.slice(2),
-        at: [r.left + r.width / 2 + 9, r.top + r.height / 2 + 8]
+        bigs: T.N.filter(n => n.big === 1).length,
+        cards: pa.querySelectorAll('.axc').length,
+        chart: !!pa.querySelector('.ax-chart'),
+        slots: pa.querySelectorAll('.axs-s').length,
+        take: pa.querySelectorAll('[data-ax^="take:"]').length,
+        need: pa.querySelector('#axc-a_walk .axc-w').textContent
       };
     });
-    await tapXY(asc.at[0], asc.at[1]);
     ok(
-      '昇華石碑：選好的昇華只佔一列（切換鈕收著）；點在點的旁邊也選得到，只選取不花點數',
-      asc.fold && (await p.evaluate(id => ASCUI.n === id && S.at.length === 1, asc.id))
+      '昇華石碑（直立）：沒有盤面，每個大點一張卡、上面 4 個位子；要先選別人的寫原因、沒有按鈕',
+      !asc.chart && asc.cards === asc.bigs && asc.slots === 4 && asc.take > 0 && asc.need.includes('聚風'),
+      JSON.stringify(asc)
     );
     ok(
-      '昇華的說明在盤面正下方、看得到、不蓋住盤面，按鈕 ≥44px',
+      '昇華卡片上的按鈕 ≥44px、卡片不出畫面左右',
+      await p.evaluate(() =>
+        [...$('pasc').querySelectorAll('.axc, .axc .btn, .axs-r .btn')].every(e => {
+          const r = e.getBoundingClientRect();
+          return r.left >= 0 && r.right <= innerWidth && (e.tagName !== 'BUTTON' || r.height >= 44);
+        })
+      )
+    );
+    await p.evaluate(() => document.querySelector('#pasc [data-ax="take:a_gale"]').scrollIntoView({ block: 'center' }));
+    await tapSel('#pasc [data-ax="take:a_gale"]');
+    ok(
+      '按「選這個」：大點連同前面的小點一起點亮（2 點），第一個位子填上',
+      await p.evaluate(
+        () =>
+          S.at.join() === 'a_st,a_s1,a_gale' &&
+          ascLeft() === 2 &&
+          document.querySelectorAll('#pasc .axs-s.on').length === 1 &&
+          !!document.querySelector('#pasc [data-ax="take:a_walk"]')
+      )
+    );
+    await p.screenshot({ path: shot('asc') });
+    await p.evaluate(() => document.querySelector('#pasc [data-ax="drop:a_gale"]').scrollIntoView({ block: 'center' }));
+    await tapSel('#pasc [data-ax="drop:a_gale"]');
+    ok('按「已選 · 退回」：大點與它的小點一起退', await p.evaluate(() => S.at.join() === 'a_st' && ascLeft() === 4));
+    await p.evaluate(() => ($('pasc').scrollTop = 0));
+    await tapSel('#pasc [data-ax="pick"]');
+    ok(
+      '「換昇華」：15 個昇華一列一個、寫著在做什麼、每列 ≥44px',
       await p.evaluate(() => {
-        const pa = $('pasc'),
-          c = pa.querySelector('.ax-cap').getBoundingClientRect(),
-          ch = pa.querySelector('.ax-chart').getBoundingClientRect(),
-          b = pa.querySelector('.ax-cap .btn').getBoundingClientRect(),
-          nav = document.querySelector('#pnav').getBoundingClientRect();
-        return c.top >= ch.bottom - 1 && b.bottom <= nav.top && b.height >= 44;
+        const L = [...document.querySelectorAll('#pasc .axl-r')];
+        return (
+          L.length === Object.keys(ASC).length &&
+          L.every(e => e.getBoundingClientRect().height >= 44 && e.querySelector('small').textContent.length > 4)
+        );
       })
     );
-    await tapSel('#pasc .ax-cap .btn');
-    ok('按說明列的按鈕點亮昇華點', await p.evaluate(id => S.at.includes(id), asc.id));
-    await p.screenshot({ path: shot('asc') });
+    await tapSel('#pasc [data-ax="v:iron"]');
+    ok(
+      '點另一個昇華先看內容：卡片沒有選的按鈕，底下一顆「改成」看得到',
+      await p.evaluate(() => {
+        const b = document.querySelector('#pasc .ax-pick'),
+          r = b && b.getBoundingClientRect(),
+          nav = document.querySelector('#pnav').getBoundingClientRect();
+        return (
+          S.asc === 'wind' &&
+          !document.querySelector('#pasc [data-ax^="take:"]') &&
+          !!r &&
+          r.bottom <= nav.top + 1 &&
+          r.height >= 44
+        );
+      })
+    );
     await p.evaluate(() => {
       closePanels();
       navGo('tree');
@@ -1042,8 +1083,8 @@ let fail = 0;
           openPanel('asc');
         },
         '#pasc',
-        '.ax-tab',
-        '.ax-pick'
+        PORTM ? '.axl-r' : '.ax-tab',
+        PORTM ? '.axl-h' : '.ax-pick'
       ),
       /* 0.2.73：點過點、出現「重置」後，標題列的 × 也要在畫面內（667×375 曾被擠出去） */
       await inView(

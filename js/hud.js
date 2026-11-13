@@ -554,7 +554,8 @@ function openPanel(k) {
             S.skills.findIndex(x => x.k)
           )
     );
-  if (k === 'asc') (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]), (ASCUI.n = null), (ASCUI.pick = 0);
+  if (k === 'asc')
+    (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]), (ASCUI.n = null), (ASCUI.pick = S.asc || !PORT() ? 0 : 1);
   hideTip();
   hudPanels();
 }
@@ -1353,7 +1354,180 @@ function ascCap(k, T, sel) {
       : ''
   }</div>`;
 }
+/* ---------- 直立的昇華（0.4.7 重做）----------
+   昇華的規則其實是「選 4 個大點，每個大點前面固定一個小點，所以一個 2 點」。以前照天賦樹畫成一張 13～25 個圓點的盤面，
+   玩家要在 22px 的點上戳 8 次、對照下面的清單才知道每個點是什麼。手機上不畫盤面：
+   上面是這個昇華與 4 個位子，下面一張卡一個大點（圖示、名字、效果、附帶的小點），按卡片上的按鈕就連同小點一起點亮。
+   還沒選昇華／按「換昇華」＝15 個昇華一列一個，寫著它在做什麼；點一個先看內容，底下一顆「成為 X」 */
+/* 從起點走出去：每個點離起點幾步、上一個點是誰；每個大點的前一個大點、附帶的小點、第一步走哪一條 */
+function ascMap(T) {
+  const dist = { a_st: 0 },
+    par = {},
+    q = ['a_st'];
+  for (let i = 0; i < q.length; i++)
+    for (const o of T.ADJ[q[i]] || []) if (!(o in dist)) (dist[o] = dist[q[i]] + 1), (par[o] = q[i]), q.push(o);
+  const big = {};
+  for (const n of T.N) {
+    if (n.big !== 1) continue;
+    let pre = null,
+      root = n.id,
+      sm = [];
+    for (let x = par[n.id]; x && x !== 'a_st'; x = par[x]) {
+      root = x;
+      if (T.I[x].big === 1) pre = pre || x;
+      else if (!pre) sm.push(x);
+    }
+    big[n.id] = { pre, root, sm };
+  }
+  return { dist, par, big };
+}
+/* 要點亮這個大點得先點哪些（最短的路，含它自己）；已經點亮＝空 */
+function ascPath(T, id) {
+  const have = new Set(S.at);
+  if (have.has(id)) return [];
+  const prev = new Map([[id, null]]),
+    q = [id];
+  for (let i = 0; i < q.length; i++)
+    for (const o of T.ADJ[q[i]] || []) {
+      if (have.has(o)) {
+        const out = [];
+        for (let x = q[i]; x; x = prev.get(x)) out.push(x);
+        return out;
+      }
+      if (!prev.has(o)) prev.set(o, q[i]), q.push(o);
+    }
+  return [];
+}
+/* 這個大點現在的狀態：on 已選（why＝不能退的原因）、can 可以選（cost 幾點）、no 不能選（why） */
+function ascBig(T, M, id) {
+  const n = T.I[id];
+  if (S.at.includes(id)) return { st: 'on', why: treeCanRefund(id) ? '' : '後面還有選的：先退後面的' };
+  const path = ascPath(T, id),
+    cost = path.length,
+    other = path.find(p => p !== id && T.I[p].big === 1),
+    same = n.g && S.at.find(o => T.I[o].g === n.g),
+    bg = S.at.filter(o => T.I[o] && T.I[o].big === 1).length;
+  let why = '';
+  if (same) why = `同一組已經選了「${T.I[same].n}」`;
+  else if (bg >= 4) why = '已經選滿 4 個';
+  else if (other) why = `要先選「${T.I[other].n}」${T.I[other].g ? '或同一組的另一個' : ''}`;
+  else if (ascLeft() < cost) why = ascLeft() <= 0 ? '昇華點用完了' : `要 ${cost} 點，還差 ${cost - ascLeft()} 點`;
+  else if (!ascFeasible(T, [...S.at, ...path])) why = '這樣選最後湊不滿 4 個';
+  return { st: why ? 'no' : 'can', why, cost, path };
+}
+/* 選一個大點：連同路上的小點一起點亮 */
+function ascTake(id) {
+  const T = ascT(),
+    b = ascBig(T, null, id);
+  if (b.st !== 'can') return hudWarn(b.why || '已經選了');
+  const why = eqUnloadWhy(S, [...S.at, ...b.path]);
+  if (why) return hudWarn(why);
+  S.at.push(...b.path);
+  sfx('equip');
+  treeChanged();
+}
+/* 退回一個大點：它的小點沒有別的大點在用就一起退 */
+function ascDrop(id) {
+  const T = ascT(),
+    M = ascMap(T);
+  if (!treeCanRefund(id)) return hudWarn('後面還有選的：先退後面的');
+  let at = S.at.filter(x => x !== id);
+  for (let again = true; again; ) {
+    again = false;
+    for (const s of at) {
+      if (s === 'a_st' || T.I[s].big) continue;
+      /* 小點後面（離起點更遠）沒有亮著的點＝沒用了 */
+      if (!(T.ADJ[s] || []).some(o => at.includes(o) && M.dist[o] > M.dist[s]))
+        (at = at.filter(x => x !== s)), (again = true);
+    }
+  }
+  const why = eqUnloadWhy(S, at);
+  if (why) return hudWarn(why);
+  S.at = at;
+  sfx('equip');
+  treeChanged();
+}
+function ascPortHTML() {
+  const [sm, bg] = S.asc ? ascCount() : [0, 0],
+    head = `<div class="ph"><b>昇華石碑</b><span class="ax-sum">${S.asc ? `已選 <b class="c-gold">${bg}</b>／4 · 剩 <b class="${ascLeft() > 0 ? 'c-gold' : ''}">${ascLeft()}</b> 點` : `有 <b class="c-gold">${ascPoints(S)}</b> 點`}</span>${S.at.length > 1 ? `<button class="btn mini ax-reset" data-ax="reset">重置</button>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
+  /* 15 個昇華的清單 */
+  if (ASCUI.pick || !ASC[ASCUI.v])
+    return `${head}<div class="axl">${S.asc ? `<button class="btn axl-back" data-ax="v:${S.asc}">‹ 回到${ASC[S.asc].n}</button>` : '<p class="axl-h">選一個昇華。之後可以免費換，點數全部退回。</p>'}${Object.entries(
+      ASC
+    )
+      .map(
+        ([id, B]) =>
+          `<button class="axl-r ${S.asc === id ? 'cur' : ''}" data-ax="v:${id}">${icHTML(B.ic)}<span><b>${B.n}${S.asc === id ? '<i>目前</i>' : ''}</b><small>${esc(B.d)}</small></span></button>`
+      )
+      .join('')}</div>`;
+  const k = ASCUI.v,
+    A = ASC[k],
+    T = ascNodes(k),
+    M = ascMap(T),
+    cur = S.asc === k,
+    nx = S.maxT <= 6 ? 31 : S.maxT <= 12 ? 63 : !S.t16 ? 83 : 0,
+    picked = cur ? S.at.filter(id => T.I[id] && T.I[id].big === 1) : [],
+    canMore = cur && bg < 4 && ascLeft() >= 2;
+  /* 4 個位子：選了的是圖示與名字（點一下捲到那張卡），空的寫還要幾點 */
+  const slots = [0, 1, 2, 3]
+    .map(i => {
+      const n = T.I[picked[i]];
+      return n
+        ? `<button class="axs-s on" data-ax="see:${n.id}">${icHTML(n.ic)}<span>${esc(n.n)}</span></button>`
+        : `<span class="axs-s ${cur && i === picked.length && canMore ? 'next' : ''}"><i>${i + 1}</i></span>`;
+    })
+    .join('');
+  const hint = !cur
+    ? ''
+    : bg >= 4
+      ? '四個都選好了'
+      : canMore
+        ? `還能選 ${Math.min(4 - bg, Math.floor(ascLeft() / 2))} 個（一個 2 點）`
+        : nx
+          ? `下一次：第一次打倒 Lv ${nx} 地圖的王，昇華點 +2`
+          : '昇華點用完了';
+  /* 卡片：照從起點出去的每一條路分段；要先選別人的往右縮；同一組的包在一起 */
+  const card = n => {
+    const b = cur ? ascBig(T, M, n.id) : { st: 'see' },
+      m = M.big[n.id],
+      extra = m.sm.flatMap(s => statLines(T.I[s].s)),
+      act = !cur
+        ? ''
+        : b.st === 'on'
+          ? b.why
+            ? `<p class="axc-w">${ICO.tick}已選 · ${esc(b.why)}</p>`
+            : `<button class="btn" data-ax="drop:${n.id}">${ICO.tick}已選 · 退回</button>`
+          : b.st === 'can'
+            ? `<button class="btn pri" data-ax="take:${n.id}">選這個<small>${b.cost} 點</small></button>`
+            : `<p class="axc-w">${esc(b.why)}</p>`;
+    return `<div class="axc ${b.st} ${m.pre ? 'd2' : ''}" id="axc-${n.id}"><span class="axc-ic">${icHTML(n.ic)}</span><div class="axc-t"><b>${esc(n.n)}</b><p>${termify(n.d)}</p>${extra.length ? `<small>附帶　${extra.map(esc).join('、')}</small>` : ''}</div>${act ? `<div class="axc-a">${act}</div>` : ''}</div>`;
+  };
+  const bigs = T.N.filter(n => n.big === 1),
+    roots = [...new Set(bigs.map(n => M.big[n.id].root))],
+    body = roots
+      .map(r => {
+        const L = bigs.filter(n => M.big[n.id].root === r).sort((a, b) => M.dist[a.id] - M.dist[b.id]);
+        let out = '';
+        for (let i = 0; i < L.length; ) {
+          const g = L[i].g;
+          let j = i + 1;
+          if (g) while (j < L.length && L[j].g === g) j++;
+          const cs = L.slice(i, j).map(card).join('');
+          out += g
+            ? `<div class="axg ${M.big[L[i].id].pre ? 'd2' : ''}"><h5>${['', '', '二選一', '三選一'][j - i] || '選一個'}</h5>${cs}</div>`
+            : cs;
+          i = j;
+        }
+        return `<section class="axb">${out}</section>`;
+      })
+      .join('');
+  return `${head}<div class="axp"><header class="axh"><span class="axh-ic">${icHTML(A.ic)}</span><div><b>${A.n}</b><p>${esc(A.d)}</p></div></header>
+  ${cur ? `<div class="axs">${slots}</div>` : ''}
+  <div class="axs-r"><p class="axs-t">${cur ? hint : '選 4 個大點，一個 2 點。先看看它有什麼'}</p><button class="btn" data-ax="pick">${cur ? '換昇華' : '‹ 全部昇華'}</button></div>
+  ${body}</div>${cur ? '' : `<button class="btn pri ax-pick" data-a="asc:${k}">${S.asc ? `改成${A.n}（點數退回）` : `成為${A.n}`}</button>`}`;
+}
 function ascHTML() {
+  if (PORT()) return ascPortHTML();
   const k = ASCUI.v,
     A = ASC[k],
     T = ascNodes(k),
@@ -1391,8 +1565,7 @@ function ascHTML() {
           .join('')}</li>`
     ).join(''),
     [sm, bg] = S.asc ? ascCount() : [0, 0];
-  /* 直立（0.4.7）：選好昇華之後 15 顆切換鈕收起來（佔四分之一畫面），只留一列「現在是誰＋換昇華」 */
-  const fold = PORT() && S.asc,
+  const fold = false,
     tabs =
       fold && !ASCUI.pick
         ? ''
@@ -1436,9 +1609,15 @@ document.addEventListener('click', e => {
     if (!id) return;
     k = 'n';
   }
-  if (k === 'v') (ASCUI.v = id), (ASCUI.n = null), sfx('click');
-  else if (k === 'pick') (ASCUI.pick = ASCUI.pick ? 0 : 1), ASCUI.pick || (ASCUI.v = S.asc), sfx('click');
-  else if (k === 'n') {
+  if (k === 'v') (ASCUI.v = id), (ASCUI.n = null), (ASCUI.pick = 0), (ASCUI.top = 1), sfx('click');
+  else if (k === 'pick') (ASCUI.pick = 1), (ASCUI.top = 1), sfx('click');
+  else if (k === 'take') ascTake(id);
+  else if (k === 'drop') ascDrop(id);
+  else if (k === 'see') {
+    const c = $('axc-' + id);
+    if (c) c.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    return;
+  } else if (k === 'n') {
     /* 盤面：桌機點一下就點亮或退回；手機第一下選取，再點同一個＝點亮（退回要按說明列的按鈕，跟天賦樹一樣）；清單只選取 */
     const lit = cur && S.at.includes(id),
       again = !TOUCH.on || (ASCUI.n === id && !lit),
@@ -1458,6 +1637,8 @@ document.addEventListener('click', e => {
     treeChanged();
   }
   hudPanels();
+  /* 換了一頁（清單 ↔ 某個昇華）：回到最上面 */
+  if (ASCUI.top) (ASCUI.top = 0), ($('pasc').scrollTop = 0);
 });
 /* 滑鼠滑過點或清單列就更新說明列，不用點 */
 document.addEventListener('pointerover', e => {
