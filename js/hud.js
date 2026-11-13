@@ -34,6 +34,8 @@ const ICO = (() => {
   const s = d => `<svg class="ico" viewBox="0 0 16 16" aria-hidden="true">${d}</svg>`;
   return {
     x: s('<path d="M4 4l8 8M12 4l-8 8"/>'),
+    /* 回到目前位置：準星 */
+    aim: s('<circle cx="8" cy="8" r="4.2"/><path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3"/>'),
     /* 巡邏卡：路線上的三個點 */
     pat: s(
       '<path d="M3 12c3 0 3-8 7-8M10 4h3M3 12h1"/><circle cx="3" cy="12" r="1.6"/><circle cx="13" cy="4" r="1.6"/>'
@@ -380,15 +382,31 @@ const NAV_T = [
   ['bag', 'bag', '戰利品'],
   ['char', 'hero', '角色'],
   ['skill', 'gem', '技能'],
+  ['tree', 'tree', '天賦'],
   ['craft', 'hammer', '做裝'],
   ['more', 'menu', '更多']
 ];
 const SHEET_TOP = 0.38; /* 半版面板的上緣在畫面高度的幾成（上面是戰鬥） */
 /* 現在亮哪一頁：照開著的面板推（別的入口開的面板也對得上） */
 const navOn = () =>
-  PANEL.skill ? 'skill' : PANEL.stash || PANEL.craft ? 'craft' : PANEL.inv ? NAV.view : anyPanel() ? 'more' : '';
+  TREE.open
+    ? 'tree'
+    : PANEL.skill
+      ? 'skill'
+      : PANEL.stash || PANEL.craft
+        ? 'craft'
+        : PANEL.inv
+          ? NAV.view
+          : anyPanel()
+            ? 'more'
+            : '';
+/* 分頁上的小亮點（0.4.7）：有天賦點或昇華點還沒用 */
+const navDot = k => k === 'tree' && (ptLeft() > 0 || (S.asc ? ascLeft() > 0 : ascPoints(S) > 0));
 /* 點分頁：開那一頁；點亮著的那一頁＝收起來（「更多」底下的面板開著時點「更多」＝回到更多） */
 function navGo(t) {
+  /* 天賦樹（0.4.7 起有自己的分頁）：蓋滿畫面、分頁列留著；再點一次收起來 */
+  if (t === 'tree') return treeOpen();
+  if (TREE.open) treeClose();
   const on = navOn() === t && (t !== 'more' || PANEL.more);
   HP_HOLD++;
   closePanels();
@@ -406,7 +424,7 @@ const navHTML = () => {
   const on = navOn();
   return NAV_T.map(
     ([k, ic, t]) =>
-      `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span></button>`
+      `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${navDot(k) ? '<i class="dot" aria-label="有點數沒用"></i>' : ''}</button>`
   ).join('');
 };
 /* 半版面板開著（世界地圖是全螢幕，不算） */

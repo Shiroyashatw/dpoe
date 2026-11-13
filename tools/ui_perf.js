@@ -168,8 +168,13 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   const open = await p.evaluate(async () => {
     closePanels();
     treeClose();
+    /* 點過幾點的存檔：一打開停在「我點到哪」（還沒點過的是全圖，另外的測試在 touch_check） */
+    const n = PTREE.N.find(n => !n.lock && !S.pt.includes(n.id) && (PTREE.ADJ[n.id] || []).some(o => S.pt.includes(o)));
+    S.pt.push(n.id);
+    if (n.s.attr) S.ptA[n.id] = Object.keys(ATT_PT)[0];
+    TREE.seen = 0;
     const t0 = performance.now();
-    treeOpen('pt');
+    treeOpen();
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     return Math.round(performance.now() - t0);
   });
@@ -182,7 +187,7 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     return [
       Math.round(a[Math.floor(a.length / 2)]),
       Math.round(a[a.length - 1]),
-      document.querySelectorAll('#ptree svg *').length
+      [...document.querySelectorAll('#ptree svg *')].filter(e => e.getBoundingClientRect().width).length
     ];
   });
   const pan = await frames(async () => {
@@ -196,13 +201,13 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   });
   const zoom = await frames(async () => {
     await touch('touchStart', [
-      [W / 2 - 45, H * 0.55],
-      [W / 2 + 45, H * 0.55]
+      [W / 2 - 150, H * 0.55],
+      [W / 2 + 150, H * 0.55]
     ]);
     for (let i = 1; i <= 30; i++) {
       await touch('touchMove', [
-        [W / 2 - 45 - i * 3, H * 0.55],
-        [W / 2 + 45 + i * 3, H * 0.55]
+        [W / 2 - 150 + i * 4, H * 0.55],
+        [W / 2 + 150 - i * 4, H * 0.55]
       ]);
       await p.waitForTimeout(16);
     }
@@ -212,9 +217,9 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   console.log('\n天賦樹');
   console.log(`  ${mark(open, 200)}  打開（毫秒，標準 ≤200）`);
   console.log(`  ${mark(pan.p95, FRAME_OK)}  拖曳每一格 p95（最慢 ${pan.max}）`);
-  console.log(`  ${mark(zoom.p95, FRAME_OK)}  兩指縮放每一格 p95（最慢 ${zoom.max}）`);
+  console.log(`  ${mark(zoom.p95, FRAME_OK)}  兩指從看得清楚縮到全圖，每一格 p95（最慢 ${zoom.max}）`);
   console.log(
-    `  ${px[0] >= 24 ? '✅' : (bad++, '❌')} 一開始每個點在畫面上 ${px[0]}px（最大 ${px[1]}px；要看得到圖示至少 24px）；繪圖元素 ${px[2]} 個`
+    `  ${px[0] >= 24 ? '✅' : (bad++, '❌')} 一開始每個點在畫面上 ${px[0]}px（最大 ${px[1]}px；要看得到圖示至少 24px）；畫面上的繪圖元素 ${px[2]} 個`
   );
   console.log(`\n${bad ? `❌ ${bad} 項超過標準` : '✅ 都在標準內'}`);
   await b.close();

@@ -397,8 +397,8 @@ let fail = 0;
       })
     );
     ok(
-      '底部分頁列：五格、每格 ≥44px、在畫面內',
-      nav.length === 5 && nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
+      '底部分頁列：六格（0.4.7 加天賦）、每格 ≥44px、在畫面內',
+      nav.length === 6 && nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
       JSON.stringify(nav)
     );
     ok(
@@ -759,75 +759,187 @@ let fail = 0;
     });
     await p.waitForTimeout(300);
   }
-  /* 天賦樹 */
+  /* 天賦樹（0.4.7 重做手機的操作：看全圖點一下只放大、說明卡在底部、沿路點亮、小總覽、中間是昇華入口） */
   await p.evaluate(() => {
     closePanels();
     S.lv = 20;
-    treeOpen('pt');
+    PORT() ? navGo('tree') : treeOpen();
   });
-  await p.waitForTimeout(400);
-  const nd = await p.evaluate(() => {
-    /* 挑畫面上點得到的（沒被上方列擋住、沒在畫面外） */
-    const id = [...document.querySelectorAll('#tg .nd.can')]
-      .filter(e => {
+  await p.waitForTimeout(500);
+  /* 畫面上點得到的點（沒被上方列、卡片、小總覽擋住） */
+  const ndAt = sel =>
+    p.evaluate(sel => {
+      const e = [...document.querySelectorAll(sel)].find(e => {
         const r = e.getBoundingClientRect(),
           top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
         return top && top.closest('.nd') === e;
-      })
-      .map(e => e.dataset.n)
-      .find(i => !i.startsWith('a_'));
-    const r = document.querySelector(`#tg [data-n="${id}"]`).getBoundingClientRect();
-    return [id, r.left + r.width / 2, r.top + r.height / 2];
-  });
-  await touch('touchStart', [[nd[1], nd[2]]]);
-  await touch('touchEnd', []);
-  await p.waitForTimeout(200);
+      });
+      if (!e) return null;
+      const r = e.getBoundingClientRect();
+      return [e.dataset.n, r.left + r.width / 2, r.top + r.height / 2];
+    }, sel);
+  const tapXY = async (x, y, w = 450) => {
+    await touch('touchStart', [[x, y]]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(w);
+  };
+  const tapSel = async q => {
+    const c = await p.evaluate(q => {
+      const r = document.querySelector(q).getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    }, q);
+    await tapXY(c[0], c[1]);
+  };
   ok(
-    '天賦點一下＝選取看說明（還沒點亮）',
-    await p.evaluate(id => TREE.sel === id && !S.pt.includes(id) && !$('tip').hidden, nd[0])
+    '還沒點過天賦：一打開是全圖，寫著六區的名字',
+    await p.evaluate(
+      () =>
+        TREE.z < 0.7 &&
+        [...document.querySelectorAll('#tg .secn')].filter(e => getComputedStyle(e).display !== 'none').length === 6
+    )
+  );
+  ok(
+    '頂部只有一排、按鈕 ≥44px、重置不在關閉旁邊',
+    await p.evaluate(() => {
+      const bar = document.querySelector('#ptree .tbar').getBoundingClientRect(),
+        xs = [...document.querySelectorAll('#ptree .tbar .x')].map(e => e.getBoundingClientRect());
+      return (
+        bar.height <= 64 && xs.every(r => r.width >= 44 && r.height >= 44) && !document.querySelector('.tbar #treset')
+      );
+    })
   );
   {
-    const [v, d] = await tipOK([nd[1], nd[2]]);
-    ok('天賦說明框不蓋住天賦點、不出畫面', v, d);
+    const far = await ndAt('#tg .nd.can');
+    await tapXY(far[1], far[2], 700);
+    ok(
+      '看全圖時點一下只放大過去，不選點、不花點數',
+      await p.evaluate(() => TREE.z >= 1.2 && !TREE.sel && S.pt.length === PT_START.length),
+      await p.evaluate(() => TREE.z.toFixed(2))
+    );
   }
+  ok(
+    '放大後每個小點 ≥24px',
+    await p.evaluate(() =>
+      [...document.querySelectorAll('#tg .nd.b0 circle')]
+        .map(e => e.getBoundingClientRect().width)
+        .filter(Boolean)
+        .every(w => w >= 24)
+    )
+  );
+  const nd = await ndAt('#tg .nd.can');
+  await tapXY(nd[1], nd[2]);
+  ok(
+    '天賦點一下＝選取，底部出現說明卡（還沒點亮）',
+    await p.evaluate(id => TREE.sel === id && !S.pt.includes(id) && !$('tcard').hidden && $('tip').hidden, nd[0])
+  );
+  ok(
+    '說明卡不出畫面、不蓋住選的點、按鈕 ≥44px',
+    await p.evaluate(id => {
+      const c = $('tcard').getBoundingClientRect(),
+        n = document.querySelector(`#tg [data-n="${id}"]`).getBoundingClientRect(),
+        nav = document.querySelector('#pnav'),
+        bottom = nav && !nav.hidden ? nav.getBoundingClientRect().top : innerHeight;
+      return (
+        c.left >= 0 &&
+        c.right <= innerWidth &&
+        c.bottom <= bottom + 1 &&
+        n.bottom <= c.top &&
+        [...$('tcard').querySelectorAll('button')].every(b => b.getBoundingClientRect().height >= 44)
+      );
+    }, nd[0])
+  );
   await p.screenshot({ path: shot('tree') });
+  /* 過路點要選能力值：卡片上三顆；其他一顆「點亮」 */
+  await tapSel('#tcard [data-ta^="go"]');
+  ok('按卡片的按鈕點亮', await p.evaluate(id => S.pt.includes(id), nd[0]));
   {
-    const bad = await tipAll('#tg .nd[data-n]');
-    ok('每個天賦點的說明框都不蓋住、不出畫面', !bad.length, bad.length + ' 個');
+    /* 沒有連著的點：卡片算出最短的路，一顆按鈕沿路點亮 */
+    const far = await p.evaluate(() => {
+      const have = new Set(S.pt),
+        e = [...document.querySelectorAll('#tg .nd.off')].find(e => {
+          const r = e.getBoundingClientRect(),
+            top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2),
+            n = PTREE.I[e.dataset.n];
+          return top && top.closest('.nd') === e && !n.lock && !(PTREE.ADJ[n.id] || []).some(o => have.has(o));
+        });
+      if (!e) return null;
+      const r = e.getBoundingClientRect();
+      return [e.dataset.n, r.left + r.width / 2, r.top + r.height / 2];
+    });
+    await tapXY(far[1], far[2]);
+    const n0 = await p.evaluate(() => [S.pt.length, TREE.path.length, document.querySelectorAll('#tg .nd.pth').length]);
+    await tapSel('#tcard [data-ta^="go"]');
+    ok(
+      '選沒連著的點：標出路、按一下沿路全部點亮',
+      n0[1] >= 2 &&
+        n0[2] === n0[1] &&
+        (await p.evaluate(([id, n]) => S.pt.includes(id) && S.pt.length === n, [far[0], n0[0] + n0[1]])),
+      `路上 ${n0[1]} 點`
+    );
+    await tapSel('#tcard [data-ta="back"]');
+    ok('卡片的「退回這一點」', await p.evaluate(id => !S.pt.includes(id), far[0]));
   }
-  const nd2 = await p.evaluate(id => {
-    const r = document.querySelector(`#tg [data-n="${id}"]`).getBoundingClientRect();
-    return [r.left + r.width / 2, r.top + r.height / 2];
-  }, nd[0]);
-  await touch('touchStart', [nd2]);
-  await touch('touchEnd', []);
-  await p.waitForTimeout(200);
-  /* 0.2.42 起過路點要先選能力值（#tattr），選了才算點亮 */
-  const attr = await p.evaluate(() => {
-    const b = document.querySelector('#tattr [data-ta^="attr:"]');
-    if (!b) return null;
-    const r = b.getBoundingClientRect();
-    return [r.left + r.width / 2, r.top + r.height / 2];
-  });
-  if (attr) {
-    await touch('touchStart', [attr]);
-    await touch('touchEnd', []);
-    await p.waitForTimeout(200);
-  }
-  ok('再點一次點亮', await p.evaluate(id => S.pt.includes(id), nd[0]), attr ? '過路點，選了能力值' : '');
+  ok(
+    '放大後有小總覽，點一下移過去',
+    await (async () => {
+      const [x0, r] = await p.evaluate(() => {
+        const m = $('tmini').getBoundingClientRect();
+        return [TREE.x, m.hidden ? null : [m.left + 8, m.top + m.height / 2]];
+      });
+      await tapXY(r[0], r[1]);
+      return p.evaluate(x0 => !$('tmini').hidden && Math.abs(TREE.x - x0) > 100, x0);
+    })()
+  );
   const z0 = await p.evaluate(() => TREE.z);
   await touch('touchStart', [
-    [W / 2 - 40, H / 2],
-    [W / 2 + 40, H / 2]
+    [W / 2 - 115, H / 2],
+    [W / 2 + 115, H / 2]
   ]);
-  for (let i = 1; i <= 5; i++)
+  for (let i = 1; i <= 5; i++) {
     await touch('touchMove', [
-      [W / 2 - 40 - i * 15, H / 2],
-      [W / 2 + 40 + i * 15, H / 2]
+      [W / 2 - 115 + i * 15, H / 2],
+      [W / 2 + 115 - i * 15, H / 2]
     ]);
+    await p.waitForTimeout(30);
+  }
   await touch('touchEnd', []);
+  await p.waitForTimeout(100);
   const z1 = await p.evaluate(() => TREE.z);
-  ok('兩指放大', z1 > z0 * 1.3, z0.toFixed(2) + ' → ' + z1.toFixed(2));
+  ok('兩指縮小', z1 < z0 * 0.7, z0.toFixed(2) + ' → ' + z1.toFixed(2));
+  {
+    /* 中間是昇華的入口：點一下開昇華石碑 */
+    await p.evaluate(() => {
+      treeSelect(null);
+      TREE.x = TREE.y = 0;
+      TREE.z = treeZ0();
+      treeView();
+    });
+    await tapSel('#tascgo');
+    ok(
+      '樹中間是昇華的入口（不再塞整張昇華圖），點一下開昇華石碑',
+      await p.evaluate(() => !TREE.open && PANEL.asc && !document.querySelector('#tg .nd.asc'))
+    );
+    await p.evaluate(() => {
+      closePanels();
+      PORT() ? navGo('tree') : treeOpen();
+    });
+    await p.waitForTimeout(300);
+  }
+  if (PORTM) {
+    ok(
+      '天賦樹開著時底部分頁列還在、「天賦」亮著、有點數沒用時有亮點',
+      await p.evaluate(() => {
+        const b = document.querySelector('#pnav [data-tm="nav:tree"]'),
+          r = b.getBoundingClientRect(),
+          top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return b.classList.contains('on') && !!b.querySelector('.dot') && !!top.closest('#pnav');
+      })
+    );
+    await tapSel('#pnav [data-tm="nav:bag"]');
+    ok('天賦樹開著時按別的分頁直接切過去', await p.evaluate(() => !TREE.open && PANEL.inv && $('ptree').hidden));
+    await p.evaluate(() => navGo('tree'));
+    await p.waitForTimeout(300);
+  }
   /* 手機橫向：要決定的東西要在第一屏（背包格、地圖詞、開門鈕）；0.2.30 audit 的發現 */
   if (W > H) {
     const fold = await p.evaluate(() => {

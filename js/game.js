@@ -1097,6 +1097,7 @@ function gainXp(v) {
     fx({ k: 'ring', x: P.x, y: P.y, r: 120, col: '#ffd166', dur: 0.6 });
     num(P.x, P.y - 90, S.lv, 'lv');
     hudWarn(`升級！Lv ${S.lv}・天賦點 +1`);
+    if (PORT()) sheetSync(); /* 分頁列「天賦」亮一個點 */
     sfx('lvup');
   }
 }

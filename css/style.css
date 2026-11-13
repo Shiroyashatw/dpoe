@@ -1819,3 +1819,54 @@ body:not(.touch.port) .bagfs .sep { flex: 0 0 100%; height: 0; margin: 0; backgr
 @keyframes sheetin { from { opacity: 0.3; translate: 0 12px; } }
 body.touch.port .panel { animation: sheetin 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 @media (prefers-reduced-motion: reduce) { body.touch.port .panel { animation: pop 120ms ease-out; } }
+
+/* ---- 天賦樹（0.4.7）：頂部一排、底部說明卡、小總覽、中間的昇華入口、六區的名字 ---- */
+#ptree { animation: none; }
+#ptree .tbar, body.touch #ptree .tbar { flex-wrap: nowrap; gap: 8px; padding: calc(6px + env(safe-area-inset-top)) 10px 6px; min-height: 56px; box-sizing: border-box; }
+body:not(.touch) .tbar > b { position: static; transform: none; }
+.tbar > b { white-space: nowrap; }
+.tbar .tleft { white-space: nowrap; font-size: var(--fs); color: var(--tx); }
+.tbar .tleft b { font-size: var(--fs-l); font-variant-numeric: tabular-nums; }
+#tfind { flex: 1 1 60px; min-width: 0; width: auto; max-width: 260px; height: 44px; margin-left: auto; }
+#tfound { min-width: 0; white-space: nowrap; }
+#tfound:empty { display: none; }
+.tbar .x { flex: none; width: 44px; height: 44px; }
+.tbar .x .ico { width: 20px; height: 20px; }
+/* 重置：左下角，離右上的關閉最遠；說明卡開著時被卡片蓋住 */
+#treset { position: absolute; left: 10px; bottom: 10px; z-index: 2; min-height: 44px; padding: 0 14px; font: 700 var(--fs-s) var(--font); background: rgba(9, 11, 19, 0.85); }
+body:not(.touch) #treset { bottom: 52px; }
+#treset[hidden] { display: none; }
+#tmini { position: absolute; right: 10px; top: calc(66px + env(safe-area-inset-top)); z-index: 2; width: 84px; height: 84px; background: rgba(9, 11, 19, 0.88); border: 1px solid var(--fr); border-radius: 3px; touch-action: none; cursor: pointer; }
+#tmini[hidden] { display: none; }
+#tsvg.far1 .nd.b0 .ti { display: none; }
+#tg .secn { display: none; fill: #fff; font: 900 62px var(--serif); text-anchor: middle; dominant-baseline: middle; paint-order: stroke; stroke: #05060a; stroke-width: 16px; pointer-events: none; }
+#tsvg.far1 .secn { display: block; }
+#tsvg.far .secn { font-size: 150px; stroke-width: 36px; }
+#tg .ascgo { cursor: pointer; }
+#tg .ascgo circle { fill: #1a1210; stroke: rgba(255, 159, 67, 0.45); stroke-width: 8; }
+#tg .ascgo.todo circle { stroke: #ff9f43; stroke-width: 12; }
+#tg .ascgo image { image-rendering: pixelated; pointer-events: none; }
+#tg .ascgo text { text-anchor: middle; pointer-events: none; fill: #ffcfa6; font: 900 64px var(--serif); }
+#tg .ascgo text.s { fill: var(--dim); font: 700 40px var(--font); }
+#tg .ascgo.todo text.s { fill: var(--gold); }
+.nd.pth:not(.asc) circle { stroke: #fff; stroke-opacity: 1; stroke-width: 5; stroke-dasharray: 5 4; }
+/* 說明卡：跟面板同一套（深底、上緣一條線、標題靠左），固定在底部 */
+.tcard { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); background: var(--s2); border-top: 1px solid var(--fr-hi); box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5); animation: sheetin 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+.tcard[hidden] { display: none; }
+.tcard .tc-h { position: relative; padding-right: 52px; min-height: 44px; }
+.tcard .tc-h > b { display: inline; font: 700 var(--fs-l) var(--font); color: var(--title); margin-right: 8px; }
+.tcard .tc-h > small { color: var(--dim); font-size: var(--fs-s); }
+.tcard .tc-h .aff { margin: 6px 0 0; font-size: var(--fs); line-height: 1.5; color: #b9c4ff; }
+.tcard .tc-h .x { position: absolute; right: 0; top: 0; width: 44px; height: 44px; display: grid; place-items: center; color: var(--dim); background: none; border: 1px solid var(--fr-o); border-radius: 3px; }
+.tcard .tc-a { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.tcard .tc-a .btn { min-height: 48px; width: 100%; font: 700 var(--fs) var(--font); display: flex; align-items: center; justify-content: center; gap: 10px; }
+.tcard .tc-a .btn small { font-weight: 500; opacity: 0.75; }
+.tcard .tc-b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tcard .tc-b .btn { flex-direction: column; gap: 0; border-color: var(--c); box-shadow: inset 0 -3px 0 var(--c); }
+.tcard .why { margin: 0; color: var(--dim); font-size: var(--fs-s); }
+/* 直立：天賦樹蓋到分頁列上面為止，分頁列照樣可以按（別的畫面都能直接切走） */
+body.touch.port #ptree { bottom: var(--nav-h); }
+body.touch.port #pnav:not([hidden]) { grid-template-columns: repeat(6, minmax(0, 1fr)); z-index: 11; }
+#pnav button { position: relative; }
+#pnav .dot { position: absolute; top: 7px; left: calc(50% + 9px); width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px var(--s1, #1c2129); }
+@media (prefers-reduced-motion: reduce) { .tcard { animation: none; } }
