@@ -1,5 +1,14 @@
 # dungeonPOE 更新紀錄
 
+## 開發流程（2026-11-13）拔掉 impeccable
+
+遊戲沒有變化、版本號不動。使用者：對這個專案沒有幫助。
+
+- 刪掉 `.impeccable/`（設定、審查紀錄、`design.json`、畫面合約、三組舊原型）與 `PRODUCT.md`（impeccable 的產品定位輸入檔，內容停在「桌機為主」，定位以企劃書開頭為準）。都還在 git 紀錄裡。
+- `DESIGN.md` 留著，它是我們自己的視覺規範。
+- skill `ui-design` 改成：長相照 `DESIGN.md`、數值與技術限制照 `docs/介面規範.md`；依改動大小要做的事改成截圖對照與 `touch_check.js`，不再跑 impeccable 的 `context`／`critique`／`audit`／`shape`。`CLAUDE.md`、`docs/介面規範.md`、skill `mobile-native` 的說法跟著改。
+- 企劃書、工項、CSS 註解裡指到 `.impeccable/mocks/…` 的路徑改掉（那些原型本來就不在 repo 或這次刪了）。
+
 ## 0.4.6（2026-11-13）換裝看得出差別：角色頁的可換清單、篩選選部位、說明框精簡、數值分組
 
 存檔版本不變（32）。前兩項只在手機直立；說明框、篩選、數值分組桌機與橫向也跟著改。

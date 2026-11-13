@@ -4,7 +4,7 @@ description: Make a web app feel native on a phone — the small CSS and meta-ta
 ---
 
 > 來源：[emilkowalski/skills](https://github.com/emilkowalski/skills/tree/2d228630ba1446365f614a108cb8252f1feda202/skills/mobile-native)（MIT，見 `LICENSE`），內容照原文。
-> **在 dungeonPOE 裡**：屬於 UI／UX 的工作，走 skill `ui-design` 的流程（Impeccable 為主、`docs/介面規範.md` 的數值與技術限制為輔）。**例外：Hard Rule 4（不要禁止縮放）不套用**：`index.html` 的 `user-scalable=no` 是故意的，背包拖曳和雙指縮放會打架；字級最小 11px 由規範第 1 節保證。純靜態網頁、沒有 Next.js：meta 標籤直接改 `index.html`、樣式在 `css/style.css`。沒有實機時用瀏覽器手機尺寸測，並說清楚哪些（hover 卡住、點擊延遲、瀏海安全區、鍵盤）要實機才確認得了。
+> **在 dungeonPOE 裡**：屬於 UI／UX 的工作，走 skill `ui-design` 的流程（長相照 `DESIGN.md`、數值與技術限制照 `docs/介面規範.md`）。**例外：Hard Rule 4（不要禁止縮放）不套用**：`index.html` 的 `user-scalable=no` 是故意的，背包拖曳和雙指縮放會打架；字級最小 11px 由規範第 1 節保證。純靜態網頁、沒有 Next.js：meta 標籤直接改 `index.html`、樣式在 `css/style.css`。沒有實機時用瀏覽器手機尺寸測，並說清楚哪些（hover 卡住、點擊延遲、瀏海安全區、鍵盤）要實機才確認得了。
 
 # Feeling Native On Mobile
 

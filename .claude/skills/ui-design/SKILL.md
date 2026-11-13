@@ -1,28 +1,26 @@
 ---
 name: ui-design
-description: dungeonPOE 任何動到介面（UI／UX）的工作都用這個，不分大小：HUD（生命球、魔力球、技能列、王血條、小地圖）、面板（背包、倉庫、裝備、技能寶石、天賦樹、地圖台、鍛造、設定）、說明框、canvas 上的 UI、版面、互動（點擊、拖曳、手勢、搖桿）、動畫、提示、說明文字的排版、CSS；使用者說「跑版」「字太小」「字太多」「資訊太多」「介面很亂」「面板超出畫面」「手機按不到」「直立／橫向」「桌機空間浪費」時也用。長相以 skill impeccable 為主（DESIGN.md），互動手感照 apple-design 清單，數值、元件、技術限制與測試尺寸照 docs/介面規範.md；改完在桌機與手機尺寸截圖，手機跑 tools/touch_check.js。
+description: dungeonPOE 任何動到介面（UI／UX）的工作都用這個，不分大小：HUD（生命球、魔力球、技能列、王血條、小地圖）、面板（背包、倉庫、裝備、技能寶石、天賦樹、地圖台、鍛造、設定）、說明框、canvas 上的 UI、版面、互動（點擊、拖曳、手勢、搖桿）、動畫、提示、說明文字的排版、CSS；使用者說「跑版」「字太小」「字太多」「資訊太多」「介面很亂」「面板超出畫面」「手機按不到」「直立／橫向」「桌機空間浪費」時也用。長相照 DESIGN.md，互動手感照 apple-design 清單，數值、元件、技術限制與測試尺寸照 docs/介面規範.md；改完在桌機與手機尺寸截圖，手機跑 tools/touch_check.js。
 ---
 
 # dungeonPOE 介面設計流程
 
-**Impeccable 為主。** 任何動到 UI／UX 的工作（再小的調整也一樣）都走這份。上層《塞令老師》的 CLAUDE.md 寫的「apple-design 為主」在這裡不適用。
+任何動到 UI／UX 的工作（再小的調整也一樣）都走這份。上層《塞令老師》的 CLAUDE.md 寫的「apple-design 為主」在這裡不適用。（2026-11-13 拔掉 impeccable：對這個專案沒幫助，長相直接照 `DESIGN.md`。）
 
 ## 誰說了算
 
 | 管什麼 | 照誰 |
 | --- | --- |
-| 長相：顏色、字體、框、層級、版面、文案 | skill `impeccable:impeccable` 與 `DESIGN.md`、`PRODUCT.md`、`.impeccable/surfaces/index-html.md`（Mode: Operate）。`docs/介面規範.md` 的數值跟 `DESIGN.md` 不一致時，改規範 |
+| 長相：顏色、字體、框、層級、版面、文案 | `DESIGN.md`。`docs/介面規範.md` 的數值跟 `DESIGN.md` 不一致時，改規範 |
 | 互動手感：回饋、可打斷、跟手、進出、減少動態 | 下面的 apple-design 清單 |
-| 技術限制、測試尺寸、元件 | `docs/介面規範.md`（兩個 skill 都不能推翻）；操作規則在 `docs/企劃書.md` 第 9 節 |
+| 技術限制、測試尺寸、元件 | `docs/介面規範.md`（別的 skill 不能推翻）；操作規則在 `docs/企劃書.md` 第 9 節 |
 
 ## 依改動大小做到哪
 
-1. **小調整**（改字、移一個按鈕、調間距）：啟動 `impeccable:impeccable`，照它的 Setup 跑 `context`（Windows 用 `impeccable.cmd`）、改之前讀 `reference/craft-floor.md`，改完截圖對照。
-2. **改一個面板**：再加改前、改後各一次 Impeccable `critique` 或 `audit`，把分數或問題數附在回覆裡。
-3. **新畫面或改版**：走 Impeccable `shape`／new-work，最後 `polish`，做完更新 `DESIGN.md`。
+1. **小調整**（改字、移一個按鈕、調間距）：改之前、改之後各截一張圖對照。
+2. **改一個面板**：再加手機四個尺寸的 `tools/touch_check.js` 與桌機兩個尺寸的截圖，把看到的問題附在回覆裡。
+3. **新畫面或改版**：先在手機上把現在的流程實際走一遍、截圖、量點擊區，列出問題再動手；做完更新 `DESIGN.md` 與 `docs/介面規範.md`。
 4. **動到互動、動畫、拖曳、手勢**（不分大小）：另外啟動 `apple-design`，有動畫再加 `animate`；手機才有的問題參考 `mobile-native`。
-
-設計偵測 hook 開著：改 UI 檔後它會自動跑，誤報（例如不上線的草圖）用 `/impeccable hooks ignore-value` 排除並寫原因。
 
 ## apple-design 清單（實際操作，不要只看程式碼）
 
