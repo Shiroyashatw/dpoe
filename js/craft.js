@@ -951,7 +951,9 @@ function killMat(m, t, o = {}) {
     k = m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0,
     got = [],
     D = dropCur(k, { star: 1, ilvl: tierIlvl(t), tier: t, ...o });
-  M.soul += Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
+  const soul = Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
+  M.soul += soul;
+  if (typeof SES !== 'undefined' && SES) SES.soul += soul;
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
   /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */

@@ -1171,7 +1171,7 @@ vm.runInContext(
     o.locked = [sup2Lock('fury2'), sup2Lock('fury'), supOK(SKILLS.cleave, skGem(0).sup[0], skGem(0)), +(m(0) / b0).toFixed(2), sup2Check('fury2').c, sup2Check('fury').why];
     S.mat.soul = 100;
     o.poor = sup2Unlock('fury2');
-    S.mat.soul = 5000;
+    S.mat.soul = 17000;
     o.unlock = [sup2Unlock('fury2'), S.mat.soul, S.lib.sup2.fury, sup2Lock('fury2'), sup2Unlock('fury2'), S.mat.soul];
     o.both = [+(m(0) / b0).toFixed(2), +(m(1) / b1).toFixed(2)];
     S.lib.sup.fury = 20; S.lib.sup.fury2 = 20;

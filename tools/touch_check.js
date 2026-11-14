@@ -195,27 +195,39 @@ let fail = 0;
     return bad;
   });
   ok('按鈕在畫面內、≥44px、不重疊', !lay.length, lay.join(' '));
-  /* 自動／手動鈕：按得到（真的觸控）、切換、顯示文字跟著 */
+  /* 自動／手動（0.4.9 搬進設定）：按得到（真的觸控）、切換、亮著的跟著 */
+  await p.evaluate(() => (closePanels(), openPanel('set')));
+  await p.waitForTimeout(200);
   const ab = await p.evaluate(() => {
-    const r = document.querySelector('.tmenu .autob').getBoundingClientRect();
+    const r = document.querySelector('#pset [data-a="auto:1"]').getBoundingClientRect();
     return [r.left + r.width / 2, r.top + r.height / 2, r.width, r.height];
   });
   await touch('touchStart', [[ab[0], ab[1]]]);
   await touch('touchEnd', []);
   await p.waitForTimeout(150);
-  const ab1 = await p.evaluate(() => [S.auto, document.querySelector('.tmenu .autob').textContent]);
+  const ab1 = await p.evaluate(() => [
+    S.auto,
+    document.querySelector('#pset [data-a="auto:1"]').classList.contains('on')
+  ]);
   ok(
-    '自動鈕：點一下切成自動（≥44px）',
-    ab1[0] === 1 && ab1[1] === '自動' && ab[2] >= 44 && ab[3] >= 44,
+    '設定的自動鈕：點一下切成自動（≥44px）',
+    ab1[0] === 1 && ab1[1] && ab[2] >= 44 && ab[3] >= 44,
     JSON.stringify([ab1, ab])
   );
-  await touch('touchStart', [[ab[0], ab[1]]]);
-  await touch('touchEnd', []);
-  await p.waitForTimeout(150);
+  {
+    const r = await p.evaluate(() => {
+      const r = document.querySelector('#pset [data-a="auto:0"]').getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    });
+    await touch('touchStart', [r]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(150);
+  }
   ok(
-    '自動鈕：再點一下切回手動',
-    await p.evaluate(() => S.auto === 0 && document.querySelector('.tmenu .autob').textContent === '手動')
+    '再點手動：切回手動',
+    await p.evaluate(() => S.auto === 0 && document.querySelector('#pset [data-a="auto:0"]').classList.contains('on'))
   );
+  await p.evaluate(() => closePanels());
   await p.screenshot({ path: shot('map') });
   /* 回藏身處，開裝備與清單倉庫（0.4.0） */
   await p.evaluate(() => {
@@ -240,7 +252,7 @@ let fail = 0;
     pan.every(([id, l, r, bt, ox]) => l >= 0 && r <= W && bt <= H && !ox),
     JSON.stringify(pan)
   );
-  /* 點道具：說明＋動作 */
+  /* 點道具（0.4.9）：選它，底下出換裝卡與動作列；「詳細」才是說明框 */
   const it = await p.evaluate(() => {
     const e = document.querySelector('#pinv .bag .it');
     const r = e.getBoundingClientRect();
@@ -248,9 +260,25 @@ let fail = 0;
   });
   await touch('touchStart', [it]);
   await touch('touchEnd', []);
-  await p.waitForTimeout(200);
+  await p.waitForTimeout(300);
   ok(
-    '點道具出現說明與動作按鈕',
+    '點道具：選中、出換裝卡與動作列（換上 ≥44px）',
+    await p.evaluate(() => {
+      const b = document.querySelector('#pinv [data-a=selmove]');
+      return (
+        BAG.sel != null && !!document.querySelector('#pinv .cmpc') && !!b && b.getBoundingClientRect().height >= 44
+      );
+    })
+  );
+  const seltipPt = await p.evaluate(() => {
+    const r = document.querySelector('#pinv [data-a=seltip]').getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  });
+  await touch('touchStart', [seltipPt]);
+  await touch('touchEnd', []);
+  await p.waitForTimeout(250);
+  ok(
+    '按「詳細」出說明與動作按鈕',
     await p.evaluate(() => !$('tip').hidden && !!document.querySelector('#tip [data-tq=move]'))
   );
   /* 說明框貼在旁邊：不蓋住被點的東西、不出畫面 */
@@ -295,7 +323,7 @@ let fail = 0;
       const t = $('tip').getBoundingClientRect(),
         e = document
           .elementsFromPoint(x, y)
-          .map(n => n.closest('.it[data-id], .nd'))
+          .map(n => n.closest('.it[data-id], .nd, [data-a=seltip]'))
           .find(Boolean);
       const r = e.getBoundingClientRect(),
         cover = t.left < r.right - 1 && t.right > r.left + 1 && t.top < r.bottom - 1 && t.bottom > r.top + 1,
@@ -306,8 +334,8 @@ let fail = 0;
       ];
     }, pt);
   {
-    const [v, d] = await tipOK(it);
-    ok('道具說明框不蓋住道具、不出畫面', v, d);
+    const [v, d] = await tipOK(seltipPt);
+    ok('「詳細」的說明框不蓋住那顆鈕、不出畫面', v, d);
   }
   await p.screenshot({ path: shot('tip') });
   const n0 = await p.evaluate(() => String(S.inv.items.length));
@@ -402,9 +430,9 @@ let fail = 0;
       JSON.stringify(nav)
     );
     ok(
-      '右上只剩自動鈕（倉庫、選單搬到分頁列）',
+      '右上沒有按鈕（0.4.9：自動進設定；倉庫、選單在分頁列）',
       await p.evaluate(
-        () => [...document.querySelectorAll('.tmenu button')].filter(e => e.getClientRects().length).length === 1
+        () => [...document.querySelectorAll('.tmenu button')].filter(e => e.getClientRects().length).length === 0
       )
     );
     await tap('#pnav [data-tm="nav:bag"]');
@@ -452,8 +480,9 @@ let fail = 0;
       String(await p.evaluate(() => $('pinv').scrollTop))
     );
     await p.evaluate(() => ($('pinv').scrollTop = 0));
-    /* 點道具 →「做裝」→ 放進通貨頁中間 */
+    /* 點道具 → 詳細 →「做裝」→ 放進通貨頁中間 */
     await tap('#pinv .bag .it:not(:has(.bk))');
+    await tap('#pinv [data-a=seltip]');
     const tqs = await p.evaluate(() =>
       [...document.querySelectorAll('#tip .tqa button')].map(e => {
         const r = e.getBoundingClientRect();
@@ -580,7 +609,7 @@ let fail = 0;
     const tapIn = async q => {
       await p.evaluate(q => {
         const e = document.querySelector(q);
-        if (e) e.scrollIntoView({ block: 'nearest', inline: 'center' });
+        if (e) e.scrollIntoView({ block: 'center', inline: 'center' });
       }, q);
       await p.waitForTimeout(80);
       return tap(q);
@@ -607,11 +636,11 @@ let fail = 0;
       ];
     });
     ok(
-      '角色數值分四組、每一項有名稱與數字',
-      stt[0] === '攻擊,防禦,抗性,能力值' && stt[1] && stt[2],
+      '角色數值分三組（抗性在穿著旁邊）、每一項有名稱與數字',
+      stt[0] === '攻擊,防禦,能力值' && stt[1] && stt[2],
       JSON.stringify(stt)
     );
-    await tapIn('#pinv .doll [data-eq="boots"]');
+    await tapIn('#pinv .doll2 [data-eq="boots"]');
     const sp = await p.evaluate(() => {
       const el = document.querySelector('#pinv .slotp'),
         its = el ? [...el.querySelectorAll('.bag .it')] : [];
@@ -619,7 +648,7 @@ let fail = 0;
         !!el && el.querySelector('.ph2').textContent,
         its.length,
         its.every(e => baseOf(findItem('inv', e.dataset.id)).k === 'boots'),
-        document.querySelector('#pinv .doll [data-eq="boots"]').classList.contains('sel'),
+        document.querySelector('#pinv .doll2 [data-eq="boots"]').classList.contains('sel'),
         its.length ? Math.round(its[0].getBoundingClientRect().width) : 0
       ];
     });
@@ -656,7 +685,7 @@ let fail = 0;
     });
     ok('那一格有東西：寫「換掉」哪一件', /^換掉 /.test(tp2), tp2);
     await p.evaluate(() => hideTip());
-    await tapIn('#pinv .doll [data-eq="chest"]');
+    await tapIn('#pinv .doll2 [data-eq="chest"]');
     await p.evaluate(() => hideTip());
     ok(
       '點胸甲欄：列的是胸甲（不是護符）',
@@ -685,16 +714,16 @@ let fail = 0;
         );
       })
     );
-    await tapIn('#pinv [data-a="bagfl:up"]');
+    await tapIn('#pinv [data-a="bagfl:r2"]');
     ok(
-      '再加「可能升級」：條件疊加（鞋子而且可能升級）',
+      '再加「稀有」：條件疊加（鞋子而且稀有）',
       await p.evaluate(
         () =>
           BAG.k === 'boots' &&
-          BAG.fl.up === 1 &&
+          BAG.fl.r2 === 1 &&
           [...document.querySelectorAll('#pinv .bag .it')].every(e => {
             const it = findItem('inv', e.dataset.id);
-            return baseOf(it).k === 'boots' && itemUp(it);
+            return baseOf(it).k === 'boots' && it.r === 2;
           })
       )
     );

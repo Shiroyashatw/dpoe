@@ -289,10 +289,11 @@ async function phone(w, h) {
   await toHome(p);
   await p.waitForTimeout(600);
   ok(
-    '看完在藏身處、拿到劍、自動鈕在畫面內',
+    '看完在藏身處、拿到劍、分頁列在畫面內',
     await p.evaluate(() => {
-      const r = document.querySelector('.tmenu .autob').getBoundingClientRect();
-      return !!S.eq.weapon && r.width >= 44 && r.right <= innerWidth && r.bottom <= innerHeight;
+      const n = PORT() ? $('pnav') : TOUCH.on ? document.querySelector('.tmenu [data-tm=inv]') : $('dnav'),
+        r = n.getBoundingClientRect();
+      return !!S.eq.weapon && !n.hidden && r.width >= 44 && r.right <= innerWidth && r.bottom <= innerHeight;
     })
   );
   await p.screenshot({ path: shot(`home_${tag}`) });

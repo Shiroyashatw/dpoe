@@ -338,7 +338,7 @@ function touchInit() {
   /* 右上選單、說明框的動作 */
   document.addEventListener('click', e => {
     /* 直立的角色頁：點一格（有沒有東西都算）＝選這一格，底下列出倉庫裡可以換的 */
-    const sq = PORT() && e.target.closest('#pinv .doll [data-eq]');
+    const sq = PORT() && e.target.closest('#pinv .doll2 [data-eq]');
     if (sq && !sq.classList.contains('lock') && NAV.slot !== sq.dataset.eq) (NAV.slot = sq.dataset.eq), hudPanels();
     if (PORT() && e.target.closest('#area') && G.scene === 'map') return navGo('node');
     const m = e.target.closest('[data-tm]');

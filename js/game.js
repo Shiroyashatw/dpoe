@@ -156,6 +156,8 @@ function enterHideout() {
   if (TALK.on) talkEnd();
   resetWorld(A.W, A.H);
   G.scene = 'hide';
+  G.loot = null;
+  SES = null;
   G.mm = null;
   G.tiles = hideTiles();
   G.cols = A.cols;
@@ -191,6 +193,7 @@ function runNode(k, keep) {
       S.world.back = S.world.cur;
   }
   S.stopWhy = null;
+  if (!SES || G.scene !== 'map') sesReset();
   S.world.cur = k;
   S.node = k;
   S.card = wCard(S, k);
@@ -198,6 +201,15 @@ function runNode(k, keep) {
   enterMap(lvT(wLv(q, r)), keep && G.scene === 'map' && G.node === k);
   return true;
 }
+/* 本次掛機（0.4.9，掛機卡）：從藏身處進場地開始累計，回藏身處歸零；xp／靈魂算每小時的進度 */
+let SES = null;
+const sesReset = () =>
+  (SES = { t0: Date.now(), rounds: 0, rare: 0, frac: 0, mem: 0, cur: 0, best: '', gold: 0, deaths: 0, xp: 0, soul: 0 });
+/* 王倒下之後會不會往下推（0.4.9 王倒下的卡、HUD 都照這個寫）：推進設定 auto、沒有被退回、下一個節點開了 */
+const pushNext = k => {
+  const nx = k && wNext(k);
+  return S.push !== 'stay' && !S.world.hold && nx && !wWhy(S, ...wXY(nx)) ? nx : null;
+};
 /* 這一輪結束（王倒下 2 秒後，或死了重來）：場上沒撿的照樣收進倉庫，再決定下一輪去哪：
    推進設定 S.push 是 auto、沒有被退回（S.world.hold）、下一個節點開了 → 往下推；不然留在這裡 */
 function roundEnd() {
@@ -206,10 +218,9 @@ function roundEnd() {
   const k = G.node;
   /* 裂口打完（0.4.2）：回到進裂口之前在刷的節點 */
   if (G.zod) return runNode(wBack(k));
-  const nx = wNext(k),
-    go = S.push !== 'stay' && !S.world.hold && nx && !wWhy(S, ...wXY(nx));
-  if (go) hudWarn(`往下推：${wName(S, ...wXY(nx))}`);
-  runNode(go ? nx : k, !go);
+  const nx = pushNext(k);
+  if (nx) hudWarn(`往下推：${wName(S, ...wXY(nx))}`);
+  runNode(nx || k, !nx);
 }
 /* ---------- 離線結算（0.4.1，企劃書 2.2）：分頁切走、手機鎖螢幕、關掉時主迴圈不跑；回來時照最近 10 輪真實的秒數與死亡率估算打了幾輪 ----------
    S.rounds＝最近 10 輪 { d 秒數, die, xp, gold, nS, nE }；離開超過 OFF_MIN 才算，上限 OFF_MAX；停在目前的節點（不往下推、不退回）；
@@ -298,6 +309,7 @@ function deadAgain() {
   const k = G.node;
   if (!k) return enterHideout();
   S.world.dn = (S.world.dn || 0) + 1;
+  if (SES) SES.deaths++;
   roundRec({ d: G.t, die: 1 });
   /* 陰兵借道（0.4.2）：死了怨恨值歸零 */
   if (S.army) delete S.army[k];
@@ -388,7 +400,7 @@ function enterMap(t, keep) {
   G.round = was ? was.round + 1 : 1;
   G.nextT = 0;
   /* 這一輪的統計（0.4.1 離線結算用）：經驗、金幣、小怪與菁英數 */
-  G.rs = { xp: 0, gold: 0, nS: 0, nE: 0 };
+  G.rs = { xp: 0, gold: 0, nS: 0, nE: 0, items: [], sold: 0, log: [] };
   G.scene = 'map';
   G.mapT = t;
   /* 節點：血霧扣 25%、這一批卡用掉了（失敗回來也是新的一批）；裂口的王帶 1 條墮落詞 */
@@ -1026,6 +1038,16 @@ function bossDown(m) {
     A.c = (A.c || 0) + 1;
   }
   if (G.node) roundRec({ d: G.t, ...G.rs });
+  if (SES) SES.rounds++;
+  /* 0.4.9 王倒下的卡：這一輪撿到的，留 30 秒（hud.js 的 idleHTML） */
+  G.loot = {
+    t: performance.now(),
+    items: G.rs.items.slice(),
+    gold: G.rs.gold,
+    sold: G.rs.sold,
+    log: G.rs.log.slice(),
+    node: G.node
+  };
   if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
   if (m.D.fd && FENG.elites.includes(m.D.fd) && fdHun(S) >= FENG.hun)
     hudWarn(`勾魂令 ${fdHun(S)} 張：山海寶盒可以開閻羅殿了`);
@@ -1047,6 +1069,8 @@ function dropLog(n, c) {
   L.unshift({ t: Date.now(), n, c });
   if (L.length > 50) L.length = 50;
   LOGV++;
+  if (G.rs) G.rs.log.push({ n, c });
+  if (SES && (c === 'cur' || c === 'perf')) SES.cur++, (SES.best = c === 'perf' || !SES.best ? n : SES.best);
 }
 /* 通貨很多時（一波殺完同時掉好幾顆）：橫幅與音效 1.2 秒最多一次，紀錄照記；★ 與追憶一定演 */
 let RARE_T = 0;
@@ -1063,6 +1087,8 @@ function dropAt(x, y, o) {
   if (o.it && !o.nopick && fltAct(o.it).act === 'sell') {
     const p = sellPrice(o.it);
     S.gold += p;
+    if (G.rs) G.rs.sold += p;
+    if (SES) SES.gold += p;
     return num(x, y - 20, p, 'gold');
   }
   const a = rnd(0, TAU),
@@ -1087,6 +1113,7 @@ function gainXp(v) {
   if (S.lv >= LVMAX) return;
   S.xp += v;
   if (G.rs) G.rs.xp += v;
+  if (SES) SES.xp += v;
   while (S.xp >= xpNeed(S.lv) && S.lv < LVMAX) {
     S.xp -= xpNeed(S.lv);
     S.lv++;
@@ -1208,7 +1235,14 @@ function pickup(d) {
   } else {
     sfx('pick');
     bagDirty();
+    if (G.rs) G.rs.items.push(d.it);
+    if (SES) {
+      if (d.it.r === 2) SES.rare++;
+      if (d.it.frac) SES.frac++;
+      if (d.it.mem) SES.mem++;
+    }
   }
+  if (d.gold && SES) SES.gold += d.gold;
   G.drops.splice(G.drops.indexOf(d), 1);
 }
 function pickNearest() {

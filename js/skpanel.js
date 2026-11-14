@@ -368,60 +368,67 @@ function mvTo(i, dir) {
 const pips = r =>
   `<span class="sk-pips" aria-label="${r.so.slice(0, r.n).filter(Boolean).length}／${r.n} 孔">${Array.from({ length: r.n }, (_, j) => `<i class="${r.so[j] ? '' : 'e'}"></i>`).join('')}</span>`;
 const GRIP = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5.5h10M3 10.5h10"/></svg>';
+/* 總覽（0.4.9，示意頁第 9 版）：主數字「預設 DPS」（出招順序裡最強的那一招）＋魔力；一列＝把手、圖、名字＋Lv＋冷卻、孔、DPS、升級鈕（寫升完多少）；
+   用不了的招變暗、右邊寫原因；光環是一條精魂條＋每個光環一列 */
+const upCell = (k, i, aura) => {
+  const lv = libLv(k),
+    u = libUpCheck(k);
+  if (lv >= GEM_MAX) return '<span class="skr-up done">滿級</span>';
+  let to = '';
+  if (!aura && i != null) {
+    const a = dpsOf(i),
+      { v } = probe(i, () => ((S.lib.sk[k] = lv + 1), () => (S.lib.sk[k] = lv)));
+    if (a != null && v - a > 0.5) to = ` → ${fmtN(v)}`;
+  }
+  return `<button class="skr-up" data-sk="up:${k}" ${u.why ? `disabled title="${esc(u.why)}"` : ''}>升級${to}<small>${fmtN(u.c)} 靈魂</small></button>`;
+};
+const holesHTML = r =>
+  `<span class="holes">${Array.from({ length: r.n }, (_, j) => (r.so[j] ? `<span class="h" title="${esc(SUPPORTS[r.so[j]].n)}">${icHTML(SUPPORTS[r.so[j]].ic)}</span>` : '<span class="h emp">空</span>')).join('')}</span>`;
 function homeHTML() {
-  const todo = skTodo(),
-    auto = S.auto !== 0,
+  const auto = S.auto !== 0,
     ord = skOrder(),
     late = aiOrder(aiTags).filter(i => i && isLate(i));
   const rows = ord
     .map((i, p) => {
       const r = S.skills[i],
-        key = auto ? p + 1 : slotKey(i, 1);
-      if (!r.k)
-        return `<button class="sk-row emp" data-sk="go:skills:${i}"><span class="sk-ord">${auto ? '' : key}</span>${ICO.plus}<span class="sk-t"><b>挑一招</b></span></button>`;
+        key = auto ? '' : slotKey(i, 1);
+      if (!r.k) return `<button class="skr emp" data-sk="go:skills:${i}">${ICO.plus} 挑一招</button>`;
       const D = SKILLS[r.k],
+        c = slotCfg(i),
         v = dpsOf(i),
         bad = slotBad(i),
-        note = bad
-          ? `<em class="c-bad">失效：${esc(bad)}</em>`
-          : i === 0
-            ? '普攻，最後才放'
-            : late.includes(i)
-              ? '條件技，排在後面'
-              : '',
         mv = SKUI.mv === i;
-      return `<div class="sk-orow ${mv ? 'on' : ''}" data-i="${i}"><button class="sk-row" data-sk="go:one:${i}"><span class="sk-ord">${key}</span>${icHTML(D.ic)}<span class="sk-t"><b>${esc(D.n)}</b><small>Lv ${libLv(r.k)}${pips(r)}${note ? `　${note}` : ''}</small></span><span class="sk-v"><b>${v != null ? fmtN(v) : '—'}</b></span></button>${
+      return `<div class="skr ${mv ? 'on' : ''} ${bad ? 'off' : ''}" data-i="${i}">${
         i
           ? `<button class="sk-grip" data-sk="mv:${i}" aria-label="調整${esc(D.n)}的順序">${GRIP}</button>`
           : '<span class="sk-grip0"></span>'
+      }<button class="skr-main" data-sk="go:one:${i}">${icHTML(D.ic)}<span class="t"><span class="n">${esc(D.n)}<small>${key ? key + '・' : ''}Lv ${libLv(r.k)}</small>${c && c.cd ? `<small class="cd">冷卻 ${+c.cd.toFixed(1)} 秒</small>` : ''}${i === 0 ? '<small>普攻</small>' : late.includes(i) ? '<small>條件技</small>' : ''}</span>${holesHTML(r)}</span></button>${
+        bad
+          ? `<span class="why">${esc(bad)}</span>`
+          : `<span class="dps">DPS<b>${v != null ? fmtN(v) : '—'}</b></span>${upCell(r.k, i)}`
       }</div>`;
     })
     .join('');
   const au = S.auras.filter(Boolean),
-    left = ST.spirit - ST.spiritUsed;
+    left = ST.spirit - ST.spiritUsed,
+    can = Object.keys(AURAS).filter(k => AURAS[k].sp <= left && !au.some(x => x.k === k)).length;
   const auras = au
     .map((a, j) => {
       const on = ST.auraOn.includes(a.k);
-      return `<button class="sk-row" data-sk="go:aura:${j}">${icHTML(AURAS[a.k].ic)}<span class="sk-t"><b>${esc(AURAS[a.k].n)}</b><small>Lv ${libLv(a.k)}${pips(a)}${on ? '' : `　<em class="c-bad">${auraWhy(a.k, 1)}</em>`}</small></span><span class="sk-v"><b>${AURAS[a.k].sp}</b></span></button>`;
+      return `<div class="skr ${on ? '' : 'off'}"><span class="sk-grip0"></span><button class="skr-main" data-sk="go:aura:${j}">${icHTML(AURAS[a.k].ic)}<span class="t"><span class="n">${esc(AURAS[a.k].n)}<small>Lv ${libLv(a.k)}</small></span>${holesHTML(a)}</span></button>${
+        on
+          ? `<span class="dps">保留精魂<b>${AURAS[a.k].sp}</b></span>${upCell(a.k, null, 1)}`
+          : `<span class="why">${esc(auraWhy(a.k, 1))}</span>`
+      }</div>`;
     })
     .join('');
+  const main = mainDps();
   return `<div class="sk-scroll">
-    ${
-      todo.length
-        ? `<section class="sk-sec"><h3 class="sk-lab">現在可以變強</h3>${todo
-            .map(
-              t =>
-                `<button class="sk-row" data-sk="go:${t.go}"><i class="sk-dot"></i>${t.ic ? icHTML(t.ic) : ''}<span class="sk-t"><b>${esc(t.t)}</b><small>${esc(t.s)}</small></span>${t.up ? `<span class="sk-up">${t.up}</span>` : ''}</button>`
-            )
-            .join('')}</section>`
-        : ''
-    }
-    <section class="sk-sec sk-ordl"><h3 class="sk-lab">${auto ? '出招順序・由上往下放' : '技能・照按鍵'}<span>每秒</span></h3>${rows}</section>
-    <section class="sk-sec"><h3 class="sk-lab">光環<span>精魂 ${ST.spiritUsed}／${ST.spirit}${au.length ? '・預留' : ''}</span></h3>${auras}${
-      left > 0 || !au.length
-        ? `<button class="sk-row emp" data-sk="go:auras">${ICO.plus}<span class="sk-t"><b>加光環</b><small>剩 ${left} 精魂</small></span></button>`
-        : ''
-    }</section>
+    <div class="paper strip"><div><div class="k">預設 DPS・最強的那一招</div><div class="big">${fmtN(main)}</div></div><div class="sub">魔力 ${ST.mp}<br>回復 ${+ST.mpReg.toFixed(1)}／秒</div></div>
+    <p class="sk-lab">${auto ? '出招順序・由上往下放，拖把手換' : '技能・照按鍵'}</p>
+    <section class="sk-sec rows">${rows}</section>
+    <div class="row2 sub sp"><span>光環</span><div class="spbar" style="--v:${ST.spirit ? Math.round((100 * ST.spiritUsed) / ST.spirit) : 0}%"></div><span><b>精魂 ${ST.spiritUsed}／${ST.spirit}</b>${can ? `・還能開 ${can} 個` : ''}</span></div>
+    <section class="sk-sec rows">${auras}${left > 0 || !au.length ? `<button class="skr emp" data-sk="go:auras">${ICO.plus} 加光環</button>` : ''}</section>
   </div>${
     SKUI.mv != null && S.skills[SKUI.mv] && S.skills[SKUI.mv].k
       ? `<div class="sk-bar"><button class="sk-btn" data-sk="mvd:-1" ${mvTo(SKUI.mv, -1) < 0 ? 'disabled' : ''}>上移</button><button class="sk-btn" data-sk="mvd:1" ${mvTo(SKUI.mv, 1) < 0 ? 'disabled' : ''}>下移</button><button class="sk-btn pri" data-sk="mvok">完成</button></div>`

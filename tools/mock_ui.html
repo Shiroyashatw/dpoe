@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>dungeonPOE 介面示意頁（第 5 版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
+<script src="js/core.js"></script>
+<script src="js/art.js"></script>
+<script src="js/sprites.js"></script>
+<style>
+/* 示意頁第 9 版（2026-11-14）：第二輪盲測後——同一份假資料跨畫面一致（Lv 23 打怪物 Lv 22、1 小時 02 分＝第 37 輪、DPS 8＋38＝46、獵弓到處都是 T4）；
+   王倒下不按＝留在這裡（推進改次要）；換裝卡前後綴分區 3＋3、孔用 ●○；掛機卡加倉庫幾成滿／抗性不足／每小時靈魂／離升級多久；自動鈕拔掉進設定；
+   技能頁用不了的招變暗寫原因、每招有升級鈕、分頁列亮點；角色頁兩直欄（左防具、右武器飾品）中間主角，生命併進數值。
+   示意頁第 5 版（2026-11-14）：照 docs/介面體驗模擬.md 第九節定案的規則重畫（不自動換裝、沒有 ▲、換裝只並排、掛機卡只寫寶、
+   推進是固定主按鈕、戰利品四層找法、格子角標、技能列有把手／Lv／節奏），加掉落階級（討論清單第 9 項：數字大＝好，只寫數字不帶字）。
+   色調照第五節（底 L 0.13、卡 L 0.17、紙只當重音、磚紅唯一飽和色）。像素圖是真的（js/art.js）。?s=idle|loot|bag|skill&v=p|w 只畫一個。 */
+:root {
+  --wood: #26201b; --wood3: #3a3027; --card: #332a23; --slot: #1f1915; --line: #4a3e2c;
+  --paper: #e6d9bd; --ink: #2a1a12; --milk: #d9cdb4; --milk2: #a08f78;
+  --seal: #8f3a2b; --good: #7fc95a; --bad: #e0553f;
+  --r1: #7ea7ff; --r2: #ffcf5c; --r3: #52d6c3; --fr: #f1ebdc; --mm: #c79bff; --co: #e0614a;
+  --font: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif; --serif: 'Noto Serif TC', 'PMingLiU', serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #0b0806; color: var(--milk); font: 500 14px/1.5 var(--font); font-variant-numeric: tabular-nums; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+img.px { image-rendering: pixelated; display: block; }
+#bar { position: sticky; top: 0; z-index: 9; display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 16px; background: #000; border-bottom: 1px solid #332; font-size: 12px; color: var(--milk2); }
+#bar b { color: var(--milk); }
+#wrap { display: flex; flex-wrap: wrap; gap: 24px; padding: 24px; align-items: flex-start; }
+.dev { position: relative; flex: none; overflow: hidden; background: var(--wood); color: var(--milk); }
+.dev.p { width: 390px; height: 844px; }
+.dev.w { width: 1280px; height: 720px; }
+.cap { width: 100%; font-size: 12px; color: var(--milk2); margin: -12px 0 0; }
+.cap b { color: var(--milk); }
+body.solo #bar, body.solo .cap { display: none; }
+body.solo #wrap { padding: 0; gap: 0; }
+.wood::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"); }
+.sub { font-size: 12px; color: var(--milk2); }
+.sub b { color: var(--milk); font-weight: 700; }
+.row2 { display: flex; justify-content: space-between; align-items: baseline; }
+.row2.sp { align-items: center; gap: 10px; }
+.spbar { flex: 1; height: 10px; background: var(--slot); border-radius: 5px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line); }
+.spbar::after { content: ''; display: block; height: 100%; width: var(--v); background: var(--milk2); border-radius: 5px; }
+
+/* 卡：淺木；紙只給主數字 */
+.paper { position: relative; background: var(--card); border-radius: 3px; box-shadow: 0 1px 0 rgba(255, 235, 200, 0.06), 0 6px 16px rgba(0, 0, 0, 0.35); }
+.paper .k { font-size: 12px; color: var(--milk2); }
+.big { display: inline-block; font: 900 36px/1.1 var(--serif); color: var(--ink); background: var(--paper); padding: 0 10px; border-radius: 2px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.45), inset 0 0 0 1px #8a7a5e; }
+.name { font: 900 20px/1.2 var(--serif); color: var(--c, var(--milk)); }
+.seal { height: 52px; padding: 0 20px; background: var(--seal); color: #f3e4d2; border-radius: 3px; font: 700 17px var(--font); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+.seal small { font-size: 12px; font-weight: 500; opacity: 0.9; }
+.seal.off { background: #5a4a3a; box-shadow: none; color: #cbb89a; }
+.ghost { height: 48px; padding: 0 14px; border: 1px solid #5e4e3a; border-radius: 3px; color: var(--milk); font-weight: 700; line-height: 1.15; }
+.ghost small { display: block; font-size: 11px; font-weight: 500; color: var(--milk2); }
+.ghost.wide { flex: 1; }
+
+/* 戰場（示意） */
+.field { position: absolute; left: 0; right: 0; top: 0; overflow: hidden; background: repeating-linear-gradient(0deg, #2b2320 0 14px, #241d19 14px 16px); }
+.field::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 60%, rgba(255, 190, 110, 0.14), transparent 60%); }
+.p .field { height: 440px; }
+.p[data-s='loot'] .field, .p[data-s='idle'] .field { height: 380px; }
+.p[data-s='loot'] .sheet, .p[data-s='idle'] .sheet { top: 380px; }
+.w .field { bottom: 0; }
+.mob { position: absolute; width: 22px; height: 26px; background: #6b4a3a; border: 2px solid #000; border-radius: 2px; }
+.mob.hero { background: #d8d2c8; width: 20px; height: 28px; }
+.mob i { position: absolute; left: -2px; right: -2px; top: -8px; height: 3px; background: var(--bad); }
+.dark::before { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 1; }
+.floor { position: absolute; left: 0; right: 0; top: var(--h); bottom: 0; z-index: 1; background: rgba(255, 220, 170, 0.05); border-top: 1px solid rgba(217, 205, 180, 0.22); }
+/* 掉落：光柱從地上往上、底部光暈；標籤黑底帶稀有度框，前面一格數字＝掉落階級（四以上實心底） */
+.drop { position: absolute; left: var(--x); top: var(--y); z-index: 2; width: 0; height: 0; }
+.drop::before { content: ''; position: absolute; left: -8px; bottom: 0; width: 16px; height: 220px; background: linear-gradient(0deg, var(--c), transparent); clip-path: polygon(0 100%, 100% 100%, 68% 0, 32% 0); opacity: 0.8; }
+.drop::after { content: ''; position: absolute; left: -20px; top: -5px; width: 40px; height: 10px; border-radius: 50%; background: var(--c); opacity: 0.55; filter: blur(3px); }
+.drop b { position: absolute; left: 50%; top: -36px; z-index: 3; transform: translateX(-50%); display: flex; align-items: stretch; height: 22px; font: 700 12px/22px var(--font); white-space: nowrap; border: 1px solid var(--c); color: var(--c); background: rgba(0, 0, 0, 0.88); border-radius: 2px; }
+.drop b span { padding: 0 8px; }
+.drop b i { font-style: normal; padding: 0 6px; background: var(--c); color: #1a120c; font-weight: 900; }
+.drop.big b { background: var(--c); color: #1a120c; }
+.drop.big b i { background: #1a120c; color: var(--c); }
+.hud { position: absolute; z-index: 4; }
+.hud .loc { padding: 4px 8px; background: rgba(0, 0, 0, 0.5); border-radius: 2px; font-size: 12px; color: var(--milk); }
+.bars { position: absolute; left: 8px; right: 8px; bottom: 6px; z-index: 4; display: grid; gap: 3px; }
+.bars div { height: 12px; background: rgba(0, 0, 0, 0.7); border-radius: 2px; position: relative; overflow: hidden; }
+.bars div::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--v); background: var(--c); }
+.bars span { position: absolute; z-index: 1; left: 0; right: 0; top: -1px; text-align: center; font: 700 10px/12px var(--font); color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000; }
+
+/* 版面 */
+.sheet { position: absolute; left: 0; right: 0; top: 440px; bottom: 64px; display: flex; flex-direction: column; }
+.sheet.full { top: 0; }
+.win { position: absolute; top: 12px; right: 12px; bottom: 12px; width: 460px; display: flex; flex-direction: column; border-radius: 3px; box-shadow: 0 0 0 1px #000, 0 16px 40px rgba(0, 0, 0, 0.6); background: var(--wood); }
+.ph { flex: none; display: flex; align-items: baseline; gap: 10px; padding: 14px 16px 8px; }
+.ph .t { font: 900 22px/1.2 var(--serif); color: var(--milk); }
+.ph .x { margin-left: auto; align-self: center; width: 44px; height: 44px; color: var(--milk2); position: relative; }
+.ph .x::after { content: '×'; position: absolute; inset: 0; display: grid; place-items: center; font: 700 22px var(--font); }
+.body { flex: 1; overflow: hidden; padding: 0 16px 12px; display: flex; flex-direction: column; gap: 10px; }
+.acts { flex: none; display: flex; gap: 10px; padding: 10px 16px 14px; }
+.acts .seal { flex: 1; }
+
+/* 戰利品：四層 */
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; flex: none; align-items: center; }
+.chips button { flex: none; height: 36px; padding: 0 10px; border-radius: 18px; border: 1px solid var(--line); color: var(--milk); font-weight: 700; font-size: 12px; }
+.chips button.on { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+.chips.sub2 button { height: 32px; font-size: 12px; color: var(--milk2); border-color: transparent; background: var(--card); }
+.chips.sub2 button.on { background: var(--wood3); color: var(--milk); box-shadow: inset 0 0 0 1px var(--milk2); }
+.tabs { display: flex; flex: none; border-bottom: 1px solid var(--line); }
+.tabs button { flex: 1; height: 40px; color: var(--milk2); font-weight: 700; font-size: 13px; }
+.tabs button.on { color: var(--milk); box-shadow: inset 0 -2px 0 var(--paper); }
+.tools { display: flex; gap: 8px; flex: none; }
+.tools .search { flex: 1; height: 36px; padding: 0 12px; background: var(--slot); border-radius: 3px; color: var(--milk2); display: flex; align-items: center; gap: 8px; font-size: 13px; box-shadow: inset 0 0 0 1px var(--line); }
+.tools .sort { height: 36px; padding: 0 12px; background: var(--card); border-radius: 3px; color: var(--milk); font-weight: 700; font-size: 13px; }
+
+/* 格子：真的圖；角標：右上 T1 詞數、左上鎖；底條：左邊孔、右邊掉落階級；品質線；追憶雙線框、腐化暗紅底、破裂白金框 */
+.grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; flex: 1; align-content: start; overflow: hidden; }
+.w .grid { flex: none; }
+.w .cmp2 { flex: 1; min-height: 0; overflow: auto; }
+.w .grid { grid-template-columns: repeat(8, 1fr); }
+.w .cmp2 ul { line-height: 1.35; }
+.cell { aspect-ratio: 1; background: var(--slot); border-radius: 3px; position: relative; display: grid; place-items: center; box-shadow: inset 0 0 0 1px var(--c, #3f342b), inset 0 2px 6px rgba(0, 0, 0, 0.5); }
+.cell img { width: 56%; height: 56%; margin: 10px 0 12px; }
+.row .cell img, .pile .cell img { width: 50%; height: 50%; margin: 6px 0 10px; }
+.row .cell .tr, .pile .cell .tr { font-size: 9px; }
+.cell.on { background: var(--wood3); box-shadow: inset 0 0 0 1px var(--c, #3f342b), 0 0 0 2px var(--paper); }
+.cell.mem { box-shadow: inset 0 0 0 1px var(--c, #3f342b), inset 0 0 0 3px var(--slot), inset 0 0 0 4px var(--c, #3f342b); }
+.cell.cor { background: #3a1812; }
+.tl.fr, .fr { color: var(--fr); }
+.tl.mm, .mm { color: var(--mm); }
+.tl.co, .co { color: var(--co); }
+.cell .tr { position: absolute; right: 4px; top: 2px; font-size: 11px; font-weight: 700; color: var(--milk); }
+.cell .tl { position: absolute; left: 4px; top: 2px; font-size: 12px; font-weight: 900; }
+.cell .bar .tn.top { background: var(--paper); color: var(--ink); padding: 0 3px; margin-right: -3px; border-radius: 2px; }
+.cell .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: rgba(0, 0, 0, 0.55); border-radius: 0 0 3px 3px; display: flex; align-items: center; justify-content: space-between; padding: 0 4px; font-size: 10px; font-weight: 700; color: var(--milk); }
+.so { display: inline-flex; gap: 3px; align-items: center; vertical-align: middle; }
+.so i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--milk2); }
+.so i.f { background: var(--milk); border-color: var(--milk); }
+.cell .bar .so { display: flex; gap: 2px; }
+.cell .bar .so i { width: 5px; height: 5px; border-radius: 50%; border: 1px solid var(--milk2); }
+.cell .bar .so i.f { background: var(--milk); border-color: var(--milk); }
+.cell .q { position: absolute; left: 0; bottom: 14px; height: 2px; width: var(--q); background: var(--milk2); }
+.cell .q.gold { background: var(--r2); }
+.pile .cell { width: 48px; }
+
+/* 換裝卡：兩欄並排，不下判定 */
+.cmp2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.cmp2 > div { background: var(--card); padding: 8px 12px; }
+.cmp2 .h { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.cmp2 .h img { width: 28px; height: 28px; }
+.cmp2 .kv { display: flex; justify-content: space-between; font-size: 13px; color: var(--milk2); }
+.cmp2 .kv b { color: var(--milk); }
+.cmp2 .kv .el { color: #ffe066; }
+.cmp2 .kv .dmg { display: flex; flex-wrap: wrap; justify-content: flex-end; max-width: 70%; line-height: 1.3; }
+.cmp2 .kv .dmg i { font-style: normal; color: #6a5a48; padding: 0 3px; }
+.fire { color: #ff8a4c; } .cold { color: #8fd6ff; } .light { color: #ffe066; } .chaos { color: #c38bff; }
+.cmp2 .kv { align-items: flex-start; }
+.cmp2 .kv.sm { font-size: 11px; color: var(--milk2); }
+.cmp2 .kv.sm b { color: var(--milk2); }
+.cmp2 .h .qq { font-size: 12px; color: var(--milk2); white-space: nowrap; }
+.cmp2 .h .name { white-space: nowrap; }
+.cmp2 .h .so { margin-left: auto; }
+.cmp2 ul { list-style: none; margin: 6px 0 0; padding: 6px 0 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--milk2); display: flex; flex-direction: column; gap: 1px; }
+.cmp2 li.hd { font-size: 11px; color: var(--milk2); letter-spacing: 1px; margin-top: 4px; }
+.cmp2 li.hd:first-child { margin-top: 0; }
+.cmp2 li b { color: var(--milk); }
+.cmp2 li.none { color: #6a5a48; }
+
+/* 列 */
+.rows { display: flex; flex-direction: column; gap: 6px; }
+.doll { display: grid; grid-template-columns: 56px 1fr 56px; grid-template-rows: repeat(5, 56px); gap: 8px; }
+.doll .cell { width: 56px; }
+.doll .cell img { width: 60%; height: 60%; margin: 6px 0 10px; }
+.doll .cell.emp { background: none; box-shadow: none; border: 1px dashed #5a4a38; font-size: 11px; color: #6a5a48; }
+.doll .cell .nm { display: none; }
+.doll .cell.emp .nm { display: block; position: absolute; left: 0; right: 0; top: 8px; text-align: center; font-size: 11px; color: var(--milk2); }
+.doll .mid { grid-column: 2; grid-row: 1 / 6; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4px 8px; }
+.doll .hero { width: 160px; height: 160px; background: url(img/hero.png) 0 0 / 1440px 1440px no-repeat; image-rendering: pixelated; margin-top: -10px; }
+.doll .mid .res { flex: none; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.picked { display: flex; align-items: center; gap: 6px; white-space: nowrap; padding: 8px 12px; background: var(--card); border-radius: 3px; font-size: 13px; color: var(--milk2); }
+.picked b { color: var(--milk); }
+.picked .go { margin-left: auto; color: var(--milk); font-weight: 700; }
+.res span { flex: 1; text-align: center; padding: 6px 0; background: var(--slot); border-radius: 3px; font-size: 12px; color: var(--milk2); line-height: 1.2; }
+.res span b { display: block; font: 900 16px var(--font); }
+.res span.low b { color: var(--co); }
+.stg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 20px; }
+.w .stg { grid-template-columns: 1fr 1fr 1fr; }
+.stg h4 { grid-column: 1 / -1; margin: 10px 0 2px; font-size: 12px; font-weight: 700; color: var(--milk2); letter-spacing: 1px; }
+.stg h4:first-child { margin-top: 0; }
+.stg div { display: flex; justify-content: space-between; font-size: 13px; color: var(--milk2); padding: 2px 0; border-bottom: 1px solid var(--line); }
+.stg div b { color: var(--milk); }
+.row { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 4px 8px; border-radius: 3px; background: var(--card); }
+.row .cell { width: 44px; flex: none; }
+.row .t { flex: 1; display: flex; flex-direction: column; line-height: 1.25; }
+.row .t small { font-size: 12px; color: var(--milk2); }
+.row .v { font-weight: 700; color: var(--milk); white-space: nowrap; }
+/* 技能列：把手、圖、名字＋Lv、孔、每秒＋節奏 */
+.sk { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 6px 10px; border-radius: 3px; background: var(--card); }
+.sk .grip { width: 16px; color: #6a5a48; font-size: 18px; text-align: center; flex: none; }
+.sk .cell { width: 48px; flex: none; }
+.sk .t { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.sk .n { font: 700 16px var(--font); color: var(--milk); }
+.sk .n small { font-size: 12px; color: var(--milk2); font-weight: 500; margin-left: 6px; }
+.sk .n .cd { color: var(--r3); }
+.sk .dps { font: 700 13px var(--font); color: var(--milk); }
+.sk .dps b { font: 900 18px/1 var(--serif); margin-left: 4px; }
+.sk .holes { display: flex; gap: 6px; align-items: center; }
+.sk .holes .h { width: 26px; height: 26px; border-radius: 50%; background: var(--slot); box-shadow: inset 0 0 0 1px #4a3a28; display: grid; place-items: center; }
+.sk .holes .h img { width: 18px; height: 18px; }
+.sk .holes .h.emp { box-shadow: none; border: 1px dashed #5a4a38; background: none; font-size: 10px; color: #6a5a48; }
+.sk .v { text-align: right; flex: none; }
+.sk .v b { display: block; font: 900 24px/1 var(--serif); color: var(--milk); }
+.sk .v small { font-size: 11px; color: var(--milk2); }
+.sk.emp { justify-content: center; border: 1px dashed #4a3a28; background: none; color: var(--milk2); }
+.sk.off .cell, .sk.off .n, .sk.off .holes { opacity: 0.4; }
+.sk .why { font-size: 12px; color: var(--co); font-weight: 700; text-align: right; flex: none; }
+.sk .up { flex: none; height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 3px; font-size: 12px; font-weight: 700; color: var(--milk); line-height: 1.15; text-align: center; }
+.sk .up small { display: block; font-size: 11px; font-weight: 500; color: var(--milk2); }
+
+/* 掛機中：首領 ＋ 本次掛機（只寫寶） */
+.strip { display: flex; align-items: center; gap: 14px; padding: 10px 14px; }
+.strip .pbar { flex: 1; height: 10px; background: var(--slot); border-radius: 5px; overflow: hidden; }
+.strip .pbar::after { content: ''; display: block; height: 100%; width: var(--v); background: var(--paper); border-radius: 5px; }
+.sum { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px 10px; padding: 6px 14px 10px; }
+.sum div { display: flex; flex-direction: column; line-height: 1.2; }
+.sum small { font-size: 11px; color: var(--milk2); }
+.sum b { font-size: 15px; color: var(--milk); }
+.note { display: flex; flex-direction: column; gap: 2px; padding: 0 14px 10px; font-size: 12px; color: var(--milk2); border-top: 1px solid var(--line); padding-top: 6px; margin: 0 0 0; }
+.note b { color: var(--milk); font-weight: 700; }
+.note .w { color: var(--co); font-weight: 700; }
+.pile { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.log { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--milk2); }
+.log b { color: var(--milk); font-weight: 700; }
+
+/* 分頁列與寬版入口 */
+.nav { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; display: grid; grid-template-columns: repeat(6, 1fr); background: var(--slot); }
+.nav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 700; color: var(--milk2); position: relative; }
+.nav button.on { background: var(--paper); color: var(--ink); }
+.nav svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.nav .dot, .topnav .dot { position: absolute; top: 8px; right: 16px; width: 8px; height: 8px; border-radius: 50%; background: var(--seal); box-shadow: 0 0 0 2px var(--slot); }
+.topnav .dot { right: 10px; top: 6px; }
+.topnav { position: absolute; right: 12px; top: 12px; z-index: 4; display: flex; gap: 4px; }
+.topnav button { width: 66px; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 12px; font-weight: 700; color: var(--milk2); background: rgba(31, 25, 21, 0.92); border-radius: 3px; position: relative; }
+.topnav button.on { background: var(--paper); color: var(--ink); }
+.topnav svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+.round { position: absolute; left: 12px; bottom: 12px; z-index: 4; width: 400px; display: flex; flex-direction: column; gap: 10px; }
+.round.wide { width: 470px; }
+.wbars { position: absolute; left: 50%; bottom: 12px; z-index: 4; transform: translateX(-50%); width: 360px; display: grid; gap: 4px; }
+.wbars .bars { position: static; }
+.p .wbars, .w[data-s='loot'] .wbars { display: none; }
+</style>
+</head>
+<body>
+<div id="bar">
+  <b>介面示意頁・第 9 版</b>
+  <span>第二輪盲測後：同一份假資料跨畫面一致；王倒下不按＝留在這裡；換裝卡前後綴 3＋3、孔 ●○；掛機卡加倉庫幾成滿／抗性／每小時靈魂／離升級；自動鈕進設定；技能頁用不了的招變暗、升級鈕、分頁亮點；角色頁兩直欄。</span>
+  <span>網址加 <code>?s=idle|loot|bag|skill|char&amp;v=p|w</code> 只畫一個。</span>
+</div>
+<div id="wrap">
+
+<p class="cap" data-s="idle"><b>1. 掛機中</b>　上層常駐：再幾隻王就出來、剩幾隻。下層「本次掛機」：掛了多久、幾輪、稀有、★、追憶、通貨（最好的那顆寫名字）、金、死亡；底下三行只寫要注意的：倉庫幾成滿（滿了普通裝換金幣）、抗性不夠的（紅字）＋怪物等級對你的等級、每小時靈魂與離升級多久。HUD 沒有「自動」鈕（進設定）。地上累積的寶排真的圖，格子的底條右邊是這件最好的詞 T 幾，跟這個等級的上限一樣就亮底。最新一件寫一行，沒有 ▲。</p>
+<section class="dev p wood" data-s="idle" data-v="p">
+  <div class="field">
+    <span class="mob" style="left:120px;top:200px"><i></i></span><span class="mob" style="left:260px;top:170px"><i></i></span><span class="mob" style="left:300px;top:260px"><i></i></span><span class="mob hero" style="left:190px;top:220px"></span>
+    <div class="hud" style="left:8px;top:8px"><span class="loc">地層出口・1★・怪物 Lv 22・第 37 輪</span></div>
+        <div class="bars"><div style="--v:68%;--c:#8a2a2a"><span>95／140</span></div><div style="--v:100%;--c:#2b4a8a"><span>80／80</span></div></div>
+  </div>
+  <div class="sheet">
+    <div class="body" style="padding-top:12px">
+      <div class="paper">
+        <div class="strip"><div><div class="k">再 7 隻，王就出來</div><div class="big">65<span style="font-size:18px">%</span></div></div><div style="flex:1"><div class="pbar" style="--v:65%"></div></div></div>
+        <div class="k" style="padding:0 14px">本次掛機・1 小時 02 分・37 輪</div>
+        <div class="sum"><div><small>稀有</small><b>3</b></div><div><small>★ 破裂</small><b>1</b></div><div><small>追憶</small><b>0</b></div><div><small>死亡</small><b>0</b></div><div><small>通貨</small><b>4 顆</b></div><div style="grid-column:span 2"><small>最好的一顆</small><b>崇高石</b></div><div><small>金</small><b>+420</b></div></div>
+        <div class="note"><span><span class="w">倉庫 96% 滿</span>・滿了普通裝自動換金幣</span><span><span class="w">冰冷抗性 40%・混沌 −20%</span>・怪物 Lv 22，你 Lv 23</span><span>靈魂 <b>+3,200／小時</b>・升 Lv 24 還要 <b>1 小時 10 分</b></span></div>
+      </div>
+      <div class="row2 sub"><span>掉在地上・王倒下一起收</span><b>9 件</b></div>
+      <div class="pile">
+        <div class="cell" style="--c:var(--r2)"><img class="px" data-ic="it_c1lightsword"><div class="bar"><span class="so"><i class="f"></i><i></i></span><span class="tn top">T3</span></div></div>
+        <div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_gloves_0"><span class="tl fr">★</span><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+        <div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_offhand_8"><div class="bar"><span class="so"><i></i></span><span class="tn">T4</span></div></div>
+        <div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_ring_5"><div class="bar"><span class="so"></span><span class="tn">T5</span></div></div>
+        <div class="cell"><img class="px" data-ic="gear_boots_4"><div class="bar"><span class="so"></span><span></span></div></div>
+        <div class="cell" style="--c:var(--r3)"><img class="px" data-ic="cur_trans"></div>
+        <span class="sub">＋3</span>
+      </div>
+      <div class="log"><span><b>剛剛</b>　<span style="color:var(--r2)">碎鋼短劍</span>・稀有・T3</span><span><b>12 秒前</b>　蛻變石 ×1</span></div>
+    </div>
+  </div>
+  <nav class="nav" data-on=""></nav>
+</section>
+
+<section class="dev w wood" data-s="idle" data-v="w">
+  <div class="field">
+    <span class="mob" style="left:520px;top:300px"><i></i></span><span class="mob" style="left:700px;top:260px"><i></i></span><span class="mob hero" style="left:620px;top:330px"></span>
+    <div class="hud" style="left:12px;top:12px"><span class="loc">地層出口・1★・怪物 Lv 22・第 37 輪</span></div>
+    <div class="topnav" data-on=""></div>
+    <div class="round">
+      <div class="paper">
+        <div class="strip"><div><div class="k">再 7 隻，王就出來</div><div class="big">65<span style="font-size:18px">%</span></div></div><div style="flex:1"><div class="pbar" style="--v:65%"></div></div></div>
+        <div class="k" style="padding:0 14px">本次掛機・1 小時 02 分・37 輪</div>
+        <div class="sum"><div><small>稀有</small><b>3</b></div><div><small>★ 破裂</small><b>1</b></div><div><small>追憶</small><b>0</b></div><div><small>死亡</small><b>0</b></div><div><small>通貨</small><b>4 顆</b></div><div style="grid-column:span 2"><small>最好的一顆</small><b>崇高石</b></div><div><small>金</small><b>+420</b></div></div>
+        <div class="note"><span><span class="w">倉庫 96% 滿</span>・滿了普通裝自動換金幣</span><span><span class="w">冰冷抗性 40%・混沌 −20%</span>・怪物 Lv 22，你 Lv 23</span><span>靈魂 <b>+3,200／小時</b>・升 Lv 24 還要 <b>1 小時 10 分</b></span></div>
+      </div>
+      <div class="row2 sub"><span>掉在地上・王倒下一起收</span><b>9 件</b></div>
+      <div class="pile">
+        <div class="cell" style="--c:var(--r2)"><img class="px" data-ic="it_c1lightsword"><div class="bar"><span class="so"><i class="f"></i><i></i></span><span class="tn top">T3</span></div></div>
+        <div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_gloves_0"><span class="tl fr">★</span><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+        <div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_offhand_8"><div class="bar"><span class="so"><i></i></span><span class="tn">T4</span></div></div>
+        <div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_ring_5"><div class="bar"><span class="so"></span><span class="tn">T5</span></div></div>
+        <div class="cell"><img class="px" data-ic="gear_boots_4"><div class="bar"><span class="so"></span><span></span></div></div>
+        <div class="cell" style="--c:var(--r3)"><img class="px" data-ic="cur_trans"></div>
+        <span class="sub">＋3</span>
+      </div>
+    </div>
+    <div class="wbars"><div class="bars"><div style="--v:68%;--c:#8a2a2a"><span>95／140</span></div><div style="--v:100%;--c:#2b4a8a"><span>80／80</span></div></div></div>
+  </div>
+</section>
+
+<p class="cap" data-s="loot"><b>2. 王倒下</b>　地上的標籤：黑底、稀有度框，前面一格是這件最好的詞 T 幾。卡＝這一輪的寶物清單，照值不值得看排：破裂、追憶、腐化、稀有、T1 詞多的在前，普通的合成一列。點一件開倉庫的卡。不按＝2 秒後在這裡再刷一輪（HUD 寫明）；「推進到下一個點」是次要鈕、寫怪物等級與「不按就留在這裡」，沒有主按鈕，玩家不用搶。孔用 ●○，不寫「孔 1／2」。卡在下一輪開始後留 30 秒。</p>
+<section class="dev p wood" data-s="loot" data-v="p">
+  <div class="field dark">
+    <div class="floor" style="--h:240px"></div>
+    <span class="mob hero" style="left:190px;top:250px;z-index:2"></span>
+    <i class="drop big" style="--x:120px;--y:300px;--c:var(--r2)"><b><i>T3</i><span>碎鋼短劍</span></b></i>
+    <i class="drop" style="--x:70px;--y:340px;--c:var(--r1)"><b><i>T4</i><span>★ 鐵護腕</span></b></i>
+    <i class="drop" style="--x:230px;--y:320px;--c:var(--r1)"><b><i>T4</i><span>圓盾</span></b></i>
+    <i class="drop" style="--x:300px;--y:280px;--c:var(--r1)"><b><i>T5</i><span>銀戒</span></b></i>
+    <i class="drop" style="--x:330px;--y:350px;--c:var(--r3)"><b><span>蛻變石</span></b></i>
+    <div class="hud" style="left:8px;top:8px"><span class="loc">王倒下・2 秒後在這裡再刷一輪，不用按</span></div>
+      </div>
+  <div class="sheet">
+    <div class="body" style="padding-top:12px">
+      <div class="row2 sub"><span>這一輪掉的</span><b>9 件・+56 金</b></div>
+      <div class="rows">
+        <div class="row"><div class="cell" style="--c:var(--r2)"><img class="px" data-ic="it_c1lightsword"><div class="bar"><span class="so"><i class="f"></i><i></i></span><span class="tn top">T3</span></div></div><div class="t"><span class="name" style="--c:var(--r2);font-size:16px">碎鋼短劍 <span class="qq" style="font:500 12px var(--font);color:var(--milk2)">+8%</span></span><small>稀有・短劍・<span class="so"><i class="f"></i><i></i></span></small></div></div>
+        <div class="row"><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_gloves_0"><span class="tl fr">★</span><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div><div class="t"><span class="name" style="--c:var(--r1);font-size:16px">鐵護腕</span><small><span class="fr">★ 破裂：護甲那條鎖住</span>・魔法</small></div></div>
+        <div class="row"><div class="cell" style="--c:var(--r3)"><img class="px" data-ic="cur_trans"></div><div class="t"><span>蛻變石 ×1</span><small>通貨</small></div></div>
+        <div class="row"><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_offhand_8"><div class="bar"><span class="so"><i></i></span><span class="tn">T4</span></div></div><div class="t"><span>圓盾、銀戒</span><small>魔法・T4、T5</small></div></div>
+        <div class="row"><div class="cell"><img class="px" data-ic="gear_boots_4"></div><div class="t"><span>普通 ×4</span><small>過濾器：賣掉</small></div><span class="v">+56 金</span></div>
+      </div>
+    </div>
+    <div class="acts"><button class="ghost">看戰利品</button><button class="ghost wide">推進到下一個點<small>1★・怪物 Lv 24・<span class="co">冰抗不夠</span>・不按就留著</small></button></div>
+  </div>
+  <nav class="nav" data-on=""></nav>
+</section>
+
+<section class="dev w wood" data-s="loot" data-v="w">
+  <div class="field dark">
+    <div class="floor" style="--h:380px"></div>
+    <span class="mob hero" style="left:620px;top:400px;z-index:2"></span>
+    <i class="drop big" style="--x:712px;--y:400px;--c:var(--r2)"><b><i>T3</i><span>碎鋼短劍</span></b></i>
+    <i class="drop" style="--x:632px;--y:440px;--c:var(--r1)"><b><i>T4</i><span>★ 鐵護腕</span></b></i>
+    <i class="drop" style="--x:888px;--y:420px;--c:var(--r1)"><b><i>T4</i><span>圓盾</span></b></i>
+    <i class="drop" style="--x:1000px;--y:380px;--c:var(--r1)"><b><i>T5</i><span>銀戒</span></b></i>
+    <i class="drop" style="--x:1048px;--y:450px;--c:var(--r3)"><b><span>蛻變石</span></b></i>
+    <div class="hud" style="left:12px;top:12px"><span class="loc">王倒下・2 秒後在這裡再刷一輪，不用按</span></div>
+    <div class="topnav" data-on=""></div>
+    <div class="round wide">
+      <div class="row2 sub"><span>這一輪掉的</span><b>9 件・+56 金</b></div>
+      <div class="rows">
+        <div class="row"><div class="cell" style="--c:var(--r2)"><img class="px" data-ic="it_c1lightsword"><div class="bar"><span class="so"><i class="f"></i><i></i></span><span class="tn top">T3</span></div></div><div class="t"><span class="name" style="--c:var(--r2);font-size:16px">碎鋼短劍 <span class="qq" style="font:500 12px var(--font);color:var(--milk2)">+8%</span></span><small>稀有・短劍・<span class="so"><i class="f"></i><i></i></span></small></div></div>
+        <div class="row"><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_gloves_0"><span class="tl fr">★</span><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div><div class="t"><span class="name" style="--c:var(--r1);font-size:16px">鐵護腕</span><small><span class="fr">★ 破裂：護甲那條鎖住</span>・魔法</small></div></div>
+        <div class="row"><div class="cell" style="--c:var(--r3)"><img class="px" data-ic="cur_trans"></div><div class="t"><span>蛻變石 ×1</span><small>通貨</small></div></div>
+        <div class="row"><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="gear_offhand_8"><div class="bar"><span class="so"><i></i></span><span class="tn">T4</span></div></div><div class="t"><span>圓盾、銀戒</span><small>魔法・T4、T5</small></div></div>
+        <div class="row"><div class="cell"><img class="px" data-ic="gear_boots_4"></div><div class="t"><span>普通 ×4</span><small>過濾器：賣掉</small></div><span class="v">+56 金</span></div>
+      </div>
+      <div class="acts" style="padding:0"><button class="ghost">看戰利品</button><button class="ghost wide">推進到下一個點<small>1★・怪物 Lv 24・<span class="co">冰抗不夠</span>・不按就留著</small></button></div>
+    </div>
+  </div>
+</section>
+
+<p class="cap" data-s="bag"><b>3. 戰利品</b>　四層：快速檢視膠囊（★ 破裂、追憶、T1 詞 ≥ 2、稀有以上、通貨）→ 部位分頁 → 子類型晶片（只列倉庫裡有的）→ 排序與搜尋。格子：左上特殊底材（★ 破裂白金、◆ 追憶紫、腐 紅）、右上鎖、底條左邊孔右邊最好的詞 T 幾（跟等級上限一樣就亮底）、品質線、追憶雙框、腐化暗紅底。「T1 ×N」只在膠囊「T1 詞 ≥2」亮著時出現在格子上。卡＝「這件｜身上」並排，不下判定：品質在名字後、傷害合一欄（物理白、元素各自的顏色）、攻速、暴擊率、需求（等級＋能力值）；名字右邊是孔 ●○；詞綴分前綴 3／後綴 3，空的寫「—」。每秒傷害、傷害分佈放在「詳細」鈕（手機、桌機同一顆）。膠囊跟過濾器的規則組共用。</p>
+<section class="dev p wood" data-s="bag" data-v="p">
+  <div class="sheet full">
+    <div class="ph"><span class="t">戰利品</span><span class="sub">2,874／3,000・1,284 金</span><button class="x" aria-label="關閉"></button></div>
+    <div class="body">
+      <div class="chips"><button>★ 破裂 3</button><button>追憶 1</button><button>T1 詞 ≥2・41</button><button>稀有 27</button><button>通貨 9</button></div>
+      <div class="tabs"><button>全部</button><button class="on">武器 12</button><button>防具 18</button><button>飾品 9</button><button>護符 2</button></div>
+      <div class="chips sub2"><button class="on">弓 4</button><button>短劍 3</button><button>劍 2</button><button>斧 2</button><button>法杖 1</button></div>
+      <div class="tools"><div class="search">🔍 搜名字或詞（火抗、攻速）</div><button class="sort">排序：階級 ▾</button></div>
+      <div class="grid">
+        <div class="cell on" style="--c:var(--r2)"><img class="px" data-ic="it_c2lightbow"><div class="q gold" style="--q:60%"></div><div class="bar"><span class="so"><i class="f"></i><i class="f"></i><i></i></span><span class="tn top">T1</span></div></div>
+        <div class="cell mem" style="--c:var(--r2)"><img class="px" data-ic="it_c4holybow"><span class="tl mm">◆</span><div class="bar"><span class="so"><i class="f"></i></span><span class="tn top">T1</span></div></div>
+        <div class="cell cor" style="--c:var(--r1)"><img class="px" data-ic="it_c3poisonbow"><span class="tl co">腐</span><div class="q" style="--q:30%"></div><div class="bar"><span class="so"><i></i><i></i></span><span class="tn">T2</span></div></div>
+        <div class="cell" style="--c:var(--r2)"><img class="px" data-ic="it_c1coldbow"><span class="tr">🔒</span><div class="bar"><span class="so"><i class="f"></i></span><span class="tn">T3</span></div></div>
+      </div>
+      <div class="cmp2">
+        <div><div class="h"><img class="px" data-ic="it_c2lightbow"><span class="name" style="--c:var(--r2);font-size:16px">雷紋長弓</span><span class="qq">+12%</span><span class="so"><i class="f"></i><i class="f"></i><i></i></span></div>
+          <div class="kv"><span>傷害</span><b class="dmg"><span>18–41</span><span class="fire"><i>／</i>5–12</span><span class="cold"><i>／</i>4–9</span><span class="light"><i>／</i>3–27</span></b></div><div class="kv"><span>攻速</span><b>1.20</b></div><div class="kv"><span>暴擊率</span><b>6.5%</b></div><div class="kv"><span>需求</span><b>Lv 20・敏 42</b></div>
+          <ul><li class="hd">前綴</li><li><b class="fire">5–12</b> 火焰傷害 <small>T3</small></li><li><b class="cold">4–9</b> 冰冷傷害 <small>T3</small></li><li><b class="light">3–27</b> 閃電傷害 <small>T1</small></li><li class="hd">後綴</li><li><b>+14</b> 敏捷 <small>T3</small></li><li><b>+8%</b> 攻擊速度 <small>T4</small></li><li class="none">—</li></ul></div>
+        <div><div class="h"><img class="px" data-ic="it_c5darkbow"><span class="sub">身上・獵弓</span><span class="so"><i class="f"></i></span></div>
+          <div class="kv"><span>傷害</span><b class="dmg">14–30</b></div><div class="kv"><span>攻速</span><b>1.25</b></div><div class="kv"><span>暴擊率</span><b>5.0%</b></div><div class="kv"><span>需求</span><b>Lv 12・敏 30</b></div>
+          <ul><li class="hd">前綴</li><li><b>+12%</b> 物理傷害 <small>T4</small></li><li class="none">—</li><li class="none">—</li><li class="hd">後綴</li><li><b>+15%</b> 火焰抗性 <small>T4</small></li><li class="none">—</li><li class="none">—</li></ul></div>
+      </div>
+    </div>
+    <div class="acts"><button class="seal">換上<small>獵弓進倉庫</small></button><button class="ghost">詳細</button><button class="ghost">賣 48 金</button><button class="ghost">鎖定</button></div>
+  </div>
+  <nav class="nav" data-on="bag"></nav>
+</section>
+
+<section class="dev w wood" data-s="bag" data-v="w">
+  <div class="field">
+    <span class="mob" style="left:320px;top:300px"><i></i></span><span class="mob hero" style="left:420px;top:330px"></span>
+    <div class="hud" style="left:12px;top:12px"><span class="loc">地層出口・1★・怪物 Lv 22・第 37 輪</span></div>
+    <div class="topnav" data-on="bag" style="right:484px"></div>
+    <div class="round" style="width:360px"><div class="paper strip"><div><div class="k">再 7 隻，王就出來</div><div class="big">65<span style="font-size:18px">%</span></div></div><div style="flex:1"><div class="pbar" style="--v:65%"></div></div></div></div>
+    <div class="wbars" style="left:410px"><div class="bars"><div style="--v:68%;--c:#8a2a2a"><span>95／140</span></div><div style="--v:100%;--c:#2b4a8a"><span>80／80</span></div></div></div>
+  </div>
+  <div class="win wood">
+    <div class="ph"><span class="t">戰利品</span><span class="sub">2,874／3,000・1,284 金</span><button class="x" aria-label="關閉"></button></div>
+    <div class="body">
+      <div class="chips"><button>★ 破裂 3</button><button>追憶 1</button><button>T1 詞 ≥2・41</button><button>稀有 27</button><button>通貨 9</button></div>
+      <div class="tabs"><button>全部</button><button class="on">武器 12</button><button>防具 18</button><button>飾品 9</button><button>護符 2</button></div>
+      <div class="chips sub2"><button class="on">弓 4</button><button>短劍 3</button><button>劍 2</button><button>斧 2</button><button>法杖 1</button></div>
+      <div class="tools"><div class="search">🔍 搜名字或詞（火抗、攻速）</div><button class="sort">排序：階級 ▾</button></div>
+      <div class="grid">
+        <div class="cell on" style="--c:var(--r2)"><img class="px" data-ic="it_c2lightbow"><div class="q gold" style="--q:60%"></div><div class="bar"><span class="so"><i class="f"></i><i class="f"></i><i></i></span><span class="tn top">T1</span></div></div>
+        <div class="cell mem" style="--c:var(--r2)"><img class="px" data-ic="it_c4holybow"><span class="tl mm">◆</span><div class="bar"><span class="so"><i class="f"></i></span><span class="tn top">T1</span></div></div>
+        <div class="cell cor" style="--c:var(--r1)"><img class="px" data-ic="it_c3poisonbow"><span class="tl co">腐</span><div class="q" style="--q:30%"></div><div class="bar"><span class="so"><i></i><i></i></span><span class="tn">T2</span></div></div>
+        <div class="cell" style="--c:var(--r2)"><img class="px" data-ic="it_c1coldbow"><span class="tr">🔒</span><div class="bar"><span class="so"><i class="f"></i></span><span class="tn">T3</span></div></div>
+      </div>
+      <div class="cmp2">
+        <div><div class="h"><img class="px" data-ic="it_c2lightbow"><span class="name" style="--c:var(--r2);font-size:16px">雷紋長弓</span><span class="qq">+12%</span><span class="so"><i class="f"></i><i class="f"></i><i></i></span></div>
+          <div class="kv"><span>傷害</span><b class="dmg"><span>18–41</span><span class="fire"><i>／</i>5–12</span><span class="cold"><i>／</i>4–9</span><span class="light"><i>／</i>3–27</span></b></div><div class="kv"><span>攻速</span><b>1.20</b></div><div class="kv"><span>暴擊率</span><b>6.5%</b></div><div class="kv"><span>需求</span><b>Lv 20・敏 42</b></div>
+          <ul><li class="hd">前綴</li><li><b class="fire">5–12</b> 火焰傷害 <small>T3</small></li><li><b class="cold">4–9</b> 冰冷傷害 <small>T3</small></li><li><b class="light">3–27</b> 閃電傷害 <small>T1</small></li><li class="hd">後綴</li><li><b>+14</b> 敏捷 <small>T3</small></li><li><b>+8%</b> 攻擊速度 <small>T4</small></li><li class="none">—</li></ul></div>
+        <div><div class="h"><img class="px" data-ic="it_c5darkbow"><span class="sub">身上・獵弓</span><span class="so"><i class="f"></i></span></div>
+          <div class="kv"><span>傷害</span><b class="dmg">14–30</b></div><div class="kv"><span>攻速</span><b>1.25</b></div><div class="kv"><span>暴擊率</span><b>5.0%</b></div><div class="kv"><span>需求</span><b>Lv 12・敏 30</b></div>
+          <ul><li class="hd">前綴</li><li><b>+12%</b> 物理傷害 <small>T4</small></li><li class="none">—</li><li class="none">—</li><li class="hd">後綴</li><li><b>+15%</b> 火焰抗性 <small>T4</small></li><li class="none">—</li><li class="none">—</li></ul></div>
+      </div>
+    </div>
+    <div class="acts"><button class="seal">換上<small>獵弓進倉庫</small></button><button class="ghost">詳細</button><button class="ghost">賣 48 金</button><button class="ghost">鎖定</button></div>
+  </div>
+</section>
+
+<p class="cap" data-s="char"><b>5. 角色</b>　上半是穿著：兩直欄，左邊防具（頭、胸、手、鞋、腰）、右邊武器與飾品（武器、副手、項鍊、兩枚戒指），中間主角與四個抗性（不夠的紅字）。格子跟戰利品同一套角標，空的寫「箭袋 空」；點一格就亮起來，底下一列寫可換幾件、按「挑一把」進戰利品只列穿得上的。生命不另外放大（看血條就有），併進下半的防禦。下半數值分攻擊、防禦、能力值兩欄；未用天賦點寫在標題列並讓分頁「天賦」亮點。</p>
+<section class="dev p wood" data-s="char" data-v="p">
+  <div class="sheet full">
+    <div class="ph"><span class="t">角色</span><span class="sub">Lv 23・經驗 58%・天賦 2 點未用</span><button class="x" aria-label="關閉"></button></div>
+    <div class="body">
+        <div class="doll">
+          <div class="cell " style="grid-area:1/1;--c:var(--r1)"><span class="nm">頭部</span><img class="px" data-ic="gear_helm_5"><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+          <div class="cell " style="grid-area:2/1;--c:var(--r2)"><span class="nm">胸甲</span><img class="px" data-ic="gear_chest_0"><div class="bar"><span class="so"><i class="f"></i><i></i><i></i></span><span class="tn top">T1</span></div></div>
+          <div class="cell" style="grid-area:3/1;--c:var(--r1)"><span class="nm">手套</span><img class="px" data-ic="gear_gloves_0"><span class="tl fr">★</span><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+          <div class="cell " style="grid-area:4/1;--c:var(--r1)"><span class="nm">鞋子</span><img class="px" data-ic="gear_boots_4"><div class="bar"><span class="so"><i></i></span><span class="tn">T3</span></div></div>
+          <div class="cell " style="grid-area:5/1;--c:var(--r1)"><span class="nm">腰帶</span><img class="px" data-ic="gear_belt_0"><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+          <div class="cell on" style="grid-area:1/3;--c:var(--r2)"><span class="nm">武器</span><img class="px" data-ic="it_c5darkbow"><div class="q gold" style="--q:60%"></div><div class="bar"><span class="so"><i class="f"></i></span><span class="tn">T4</span></div></div>
+          <div class="cell emp" style="grid-area:2/3"><span class="nm">副手</span>箭袋 空</div>
+          <div class="cell " style="grid-area:3/3;--c:var(--r2)"><span class="nm">項鍊</span><img class="px" data-ic="gear_amulet_1"><div class="bar"><span class="so"></span><span class="tn">T3</span></div></div>
+          <div class="cell " style="grid-area:4/3;--c:var(--r1)"><span class="nm">戒指</span><img class="px" data-ic="gear_ring_5"><div class="bar"><span class="so"></span><span class="tn">T5</span></div></div>
+          <div class="cell " style="grid-area:5/3;--c:var(--r1)"><span class="nm">戒指</span><img class="px" data-ic="gear_ring_5"><div class="bar"><span class="so"></span><span class="tn">T5</span></div></div>
+          <div class="mid"><div class="hero"></div><div class="res"><span>火焰<b>75%</b></span><span class="low">冰冷<b>40%</b></span><span>閃電<b>75%</b></span><span class="low">混沌<b>−20%</b></span></div></div>
+        </div>
+        <div class="picked"><b>獵弓</b>・倉庫 <b>3 把</b>穿得上、1 把穿不上<span class="go">挑一把 ›</span></div>
+        <div class="stg">
+          <h4>攻擊</h4><div><span>DPS</span><b>46</b></div><div><span>傷害</span><b>14–30</b></div><div><span>攻速</span><b>1.25</b></div><div><span>暴擊率</span><b>5.0%</b></div><div><span>命中率</span><b>88%</b></div><div><span>精魂</span><b>18／30</b></div>
+          <h4>防禦</h4><div><span>生命</span><b>140</b></div><div><span>魔力</span><b>80</b></div><div><span>護甲</span><b>312</b></div><div><span>閃避</span><b>540</b></div><div><span>格擋</span><b>0%</b></div><div><span>能量護盾</span><b>0</b></div>
+          <h4>能力值</h4><div><span>力量</span><b>24</b></div><div><span>敏捷</span><b>42</b></div><div><span>智慧</span><b>18</b></div><div><span>天賦點</span><b>2 點未用</b></div>
+        </div>
+    </div>
+  </div>
+  <nav class="nav" data-on="char"></nav>
+</section>
+
+<section class="dev w wood" data-s="char" data-v="w">
+  <div class="field">
+    <span class="mob" style="left:320px;top:300px"><i></i></span><span class="mob hero" style="left:420px;top:330px"></span>
+    <div class="hud" style="left:12px;top:12px"><span class="loc">地層出口・1★・怪物 Lv 22・第 37 輪</span></div>
+    <div class="topnav" data-on="char" style="right:484px"></div>
+    <div class="round" style="width:360px"><div class="paper strip"><div><div class="k">再 7 隻，王就出來</div><div class="big">65<span style="font-size:18px">%</span></div></div><div style="flex:1"><div class="pbar" style="--v:65%"></div></div></div></div>
+    <div class="wbars" style="left:410px"><div class="bars"><div style="--v:68%;--c:#8a2a2a"><span>95／140</span></div><div style="--v:100%;--c:#2b4a8a"><span>80／80</span></div></div></div>
+  </div>
+  <div class="win wood">
+    <div class="ph"><span class="t">角色</span><span class="sub">Lv 23・經驗 58%・天賦 2 點未用</span><button class="x" aria-label="關閉"></button></div>
+    <div class="body">
+        <div class="doll">
+          <div class="cell " style="grid-area:1/1;--c:var(--r1)"><span class="nm">頭部</span><img class="px" data-ic="gear_helm_5"><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+          <div class="cell " style="grid-area:2/1;--c:var(--r2)"><span class="nm">胸甲</span><img class="px" data-ic="gear_chest_0"><div class="bar"><span class="so"><i class="f"></i><i></i><i></i></span><span class="tn top">T1</span></div></div>
+          <div class="cell" style="grid-area:3/1;--c:var(--r1)"><span class="nm">手套</span><img class="px" data-ic="gear_gloves_0"><span class="tl fr">★</span><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+          <div class="cell " style="grid-area:4/1;--c:var(--r1)"><span class="nm">鞋子</span><img class="px" data-ic="gear_boots_4"><div class="bar"><span class="so"><i></i></span><span class="tn">T3</span></div></div>
+          <div class="cell " style="grid-area:5/1;--c:var(--r1)"><span class="nm">腰帶</span><img class="px" data-ic="gear_belt_0"><div class="bar"><span class="so"></span><span class="tn">T4</span></div></div>
+          <div class="cell on" style="grid-area:1/3;--c:var(--r2)"><span class="nm">武器</span><img class="px" data-ic="it_c5darkbow"><div class="q gold" style="--q:60%"></div><div class="bar"><span class="so"><i class="f"></i></span><span class="tn">T4</span></div></div>
+          <div class="cell emp" style="grid-area:2/3"><span class="nm">副手</span>箭袋 空</div>
+          <div class="cell " style="grid-area:3/3;--c:var(--r2)"><span class="nm">項鍊</span><img class="px" data-ic="gear_amulet_1"><div class="bar"><span class="so"></span><span class="tn">T3</span></div></div>
+          <div class="cell " style="grid-area:4/3;--c:var(--r1)"><span class="nm">戒指</span><img class="px" data-ic="gear_ring_5"><div class="bar"><span class="so"></span><span class="tn">T5</span></div></div>
+          <div class="cell " style="grid-area:5/3;--c:var(--r1)"><span class="nm">戒指</span><img class="px" data-ic="gear_ring_5"><div class="bar"><span class="so"></span><span class="tn">T5</span></div></div>
+          <div class="mid"><div class="hero"></div><div class="res"><span>火焰<b>75%</b></span><span class="low">冰冷<b>40%</b></span><span>閃電<b>75%</b></span><span class="low">混沌<b>−20%</b></span></div></div>
+        </div>
+        <div class="picked"><b>獵弓</b>・倉庫 <b>3 把</b>穿得上、1 把穿不上<span class="go">挑一把 ›</span></div>
+        <div class="stg">
+          <h4>攻擊</h4><div><span>DPS</span><b>46</b></div><div><span>傷害</span><b>14–30</b></div><div><span>攻速</span><b>1.25</b></div><div><span>暴擊率</span><b>5.0%</b></div><div><span>命中率</span><b>88%</b></div><div><span>精魂</span><b>18／30</b></div>
+          <h4>防禦</h4><div><span>生命</span><b>140</b></div><div><span>魔力</span><b>80</b></div><div><span>護甲</span><b>312</b></div><div><span>閃避</span><b>540</b></div><div><span>格擋</span><b>0%</b></div><div><span>能量護盾</span><b>0</b></div>
+          <h4>能力值</h4><div><span>力量</span><b>24</b></div><div><span>敏捷</span><b>42</b></div><div><span>智慧</span><b>18</b></div><div><span>天賦點</span><b>2 點未用</b></div>
+        </div>
+    </div>
+  </div>
+</section>
+
+<p class="cap" data-s="skill"><b>4. 技能</b>　一列＝拖曳把手、技能圖、名字＋Lv＋冷卻（有顏色）、孔（空孔寫「空」）、DPS、升級鈕（寫幾靈魂）。用不了的招變暗、右邊寫原因（需要劍・現在拿弓）。頂部主數字是「預設 DPS」＝各招 DPS 的和，旁邊只留魔力的消耗與回復。靈魂旁寫能做什麼，分頁列「技能」「天賦」有亮點。精魂是一條：用掉的填滿、數字留著，加「還能開 1 個」。</p>
+<section class="dev p wood" data-s="skill" data-v="p">
+  <div class="sheet full">
+    <div class="ph"><span class="t">技能</span><span class="sub">靈魂 18,400・可解鎖 1 顆輔助 II（15,000）</span><button class="x" aria-label="關閉"></button></div>
+    <div class="body">
+      <div class="paper strip"><div><div class="k">預設 DPS・照出招順序</div><div class="big">46</div></div><div style="flex:1" class="sub">魔力 消耗 12／秒<br>回復 20／秒</div></div>
+      <div class="row2 sub"><span>出招順序・由上往下放，拖把手換</span></div>
+      <div class="rows">
+        <div class="sk"><span class="grip">☰</span><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="sk_rainarrow"></div><div class="t"><span class="n">箭雨<small>Lv 1</small><small class="cd">冷卻 4 秒</small></span><div class="holes"><span class="h"><img class="px" data-ic="sup_sp_totem"></span><span class="h emp">空</span><span class="h emp">空</span></div></div><div class="dps">DPS<b>8</b></div><button class="up">升級 → 11<small>1,200 靈魂</small></button></div>
+        <div class="sk"><span class="grip">☰</span><div class="cell"><img class="px" data-ic="sk_lightarrow"></div><div class="t"><span class="n">閃電箭<small>Lv 1</small></span><div class="holes"><span class="h"><img class="px" data-ic="sup_sp_dmg"></span><span class="h emp">空</span></div></div><div class="dps">DPS<b>38</b></div><button class="up">升級 → 44<small>1,200 靈魂</small></button></div>
+        <div class="sk off"><span class="grip">☰</span><div class="cell"><img class="px" data-ic="sk_slash2"></div><div class="t"><span class="n">斬擊<small>Lv 1</small></span><div class="holes"><span class="h emp">空</span><span class="h emp">空</span></div></div><div class="why">需要劍<br><span style="color:var(--milk2);font-weight:500">現在拿弓</span></div></div>
+        <div class="sk emp">＋ 挑一招</div>
+      </div>
+      <div class="row2 sub sp"><span>光環</span><div class="spbar" style="--v:60%"></div><span><b>精魂 18／30</b>・還能開 1 個</span></div>
+      <div class="rows"><div class="sk"><span class="grip" style="visibility:hidden">☰</span><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="sk_wrathaura"></div><div class="t"><span class="n">憤怒<small>Lv 1</small></span><div class="holes"><span class="h emp">空</span></div></div><div class="dps">保留精魂<b>18</b></div><button class="up">升級 → +3%<small>1,200 靈魂</small></button></div><div class="sk emp">＋ 加光環</div></div>
+    </div>
+  </div>
+  <nav class="nav" data-on="skill"></nav>
+</section>
+
+<section class="dev w wood" data-s="skill" data-v="w">
+  <div class="field">
+    <span class="mob" style="left:320px;top:300px"><i></i></span><span class="mob hero" style="left:420px;top:330px"></span>
+    <div class="hud" style="left:12px;top:12px"><span class="loc">地層出口・1★・怪物 Lv 22・第 37 輪</span></div>
+    <div class="topnav" data-on="skill" style="right:484px"></div>
+    <div class="round" style="width:360px"><div class="paper strip"><div><div class="k">再 7 隻，王就出來</div><div class="big">65<span style="font-size:18px">%</span></div></div><div style="flex:1"><div class="pbar" style="--v:65%"></div></div></div></div>
+    <div class="wbars" style="left:410px"><div class="bars"><div style="--v:68%;--c:#8a2a2a"><span>95／140</span></div><div style="--v:100%;--c:#2b4a8a"><span>80／80</span></div></div></div>
+  </div>
+  <div class="win wood">
+    <div class="ph"><span class="t">技能</span><span class="sub">靈魂 18,400・可解鎖 1 顆輔助 II（15,000）</span><button class="x" aria-label="關閉"></button></div>
+    <div class="body">
+      <div class="paper strip"><div><div class="k">預設 DPS・照出招順序</div><div class="big">46</div></div><div style="flex:1" class="sub">魔力 消耗 12／秒<br>回復 20／秒</div></div>
+      <div class="row2 sub"><span>出招順序・由上往下放，拖把手換</span></div>
+      <div class="rows">
+        <div class="sk"><span class="grip">☰</span><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="sk_rainarrow"></div><div class="t"><span class="n">箭雨<small>Lv 1</small><small class="cd">冷卻 4 秒</small></span><div class="holes"><span class="h"><img class="px" data-ic="sup_sp_totem"></span><span class="h emp">空</span><span class="h emp">空</span></div></div><div class="dps">DPS<b>8</b></div><button class="up">升級 → 11<small>1,200 靈魂</small></button></div>
+        <div class="sk"><span class="grip">☰</span><div class="cell"><img class="px" data-ic="sk_lightarrow"></div><div class="t"><span class="n">閃電箭<small>Lv 1</small></span><div class="holes"><span class="h"><img class="px" data-ic="sup_sp_dmg"></span><span class="h emp">空</span></div></div><div class="dps">DPS<b>38</b></div><button class="up">升級 → 44<small>1,200 靈魂</small></button></div>
+        <div class="sk off"><span class="grip">☰</span><div class="cell"><img class="px" data-ic="sk_slash2"></div><div class="t"><span class="n">斬擊<small>Lv 1</small></span><div class="holes"><span class="h emp">空</span><span class="h emp">空</span></div></div><div class="why">需要劍<br><span style="color:var(--milk2);font-weight:500">現在拿弓</span></div></div>
+        <div class="sk emp">＋ 挑一招</div>
+      </div>
+      <div class="row2 sub sp"><span>光環</span><div class="spbar" style="--v:60%"></div><span><b>精魂 18／30</b>・還能開 1 個</span></div>
+      <div class="rows"><div class="sk"><span class="grip" style="visibility:hidden">☰</span><div class="cell" style="--c:var(--r1)"><img class="px" data-ic="sk_wrathaura"></div><div class="t"><span class="n">憤怒<small>Lv 1</small></span><div class="holes"><span class="h emp">空</span></div></div><div class="dps">保留精魂<b>18</b></div><button class="up">升級 → +3%<small>1,200 靈魂</small></button></div><div class="sk emp">＋ 加光環</div></div>
+    </div>
+  </div>
+</section>
+
+</div>
+<script>
+const ICOS = {
+  bag: '<path d="M6 8h12l-1 12H7zM9 8V6a3 3 0 0 1 6 0v2"/>', hero: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  gem: '<path d="M12 3l8 6-8 12-8-12z"/>', tree: '<circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M7 7l4 10M17 7l-4 10"/>',
+  hammer: '<path d="M14 4l6 6-9 9H5v-6z"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>'
+};
+const TABS = [['bag', 'bag', '戰利品'], ['char', 'hero', '角色'], ['skill', 'gem', '技能'], ['tree', 'tree', '天賦'], ['craft', 'hammer', '做裝'], ['more', 'menu', '更多']];
+const DOTS = { skill: 1, tree: 1 }; // 可解鎖輔助 II、未用天賦點
+const navHTML = on => TABS.map(([k, ic, t]) => `<button class="${on === k ? 'on' : ''}"><svg viewBox="0 0 24 24">${ICOS[ic]}</svg>${t}${DOTS[k] ? '<i class="dot"></i>' : ''}</button>`).join('');
+for (const n of document.querySelectorAll('.nav, .topnav')) n.innerHTML = navHTML(n.dataset.on);
+for (const img of document.querySelectorAll('img[data-ic]')) {
+  const k = img.dataset.ic, a = ART[k];
+  if (!a) { img.alt = k; continue; }
+  const sheet = artSheet(a[0]);
+  const put = () => (img.src = artIconURL(k));
+  sheet.complete && sheet.naturalWidth ? put() : sheet.addEventListener('load', put);
+}
+const q = new URLSearchParams(location.search), s = q.get('s'), v = q.get('v');
+if (s) {
+  document.body.classList.add('solo');
+  for (const e of document.querySelectorAll('[data-s]')) if (e.dataset.s !== s || (v && e.dataset.v && e.dataset.v !== v)) e.remove();
+}
+</script>
+</body>
+</html>
