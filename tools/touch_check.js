@@ -463,8 +463,15 @@ let fail = 0;
       JSON.stringify(cell)
     );
     /* 手指在格子上往上滑＝清單捲動（0.4.3 以前格子擋住捲動） */
+    /* 0.4.10：選了一件時換裝卡黏在底部（小手機會蓋住整個清單）：先用卡右上的 × 收起，再挑一格沒被蓋住的 */
+    await p.evaluate(() => BAG.sel != null && act('selno'));
+    await p.waitForTimeout(300);
     const sw = await p.evaluate(() => {
-      const r = document.querySelectorAll('#pinv .bag .it')[10].getBoundingClientRect();
+      const e = [...document.querySelectorAll('#pinv .bag .it')].find(e => {
+          const r = e.getBoundingClientRect();
+          return document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) === e;
+        }),
+        r = e.getBoundingClientRect();
       return [r.left + r.width / 2, r.top + r.height / 2];
     });
     await touch('touchStart', [sw]);
@@ -788,7 +795,7 @@ let fail = 0;
     });
     await p.waitForTimeout(300);
   }
-  /* 天賦樹（0.4.7 重做手機的操作：看全圖點一下只放大、說明卡在底部、沿路點亮、小總覽、中間是昇華入口） */
+  /* 天賦樹（0.4.7 重做手機的操作：說明卡在底部、沿路點亮、小總覽、中間是昇華入口；0.4.10 點一個點只選取、不飛） */
   await p.evaluate(() => {
     closePanels();
     S.lv = 20;
@@ -838,13 +845,23 @@ let fail = 0;
     })
   );
   {
-    const far = await ndAt('#tg .nd.can');
+    /* 0.4.10：看全圖點一個點＝選它，畫面不縮放、不飛（0.4.7 會飛過去放大，每點一下就跳） */
+    const far = await ndAt('#tg .nd.can'),
+      z0 = await p.evaluate(() => [TREE.z, TREE.x]);
     await tapXY(far[1], far[2], 700);
     ok(
-      '看全圖時點一下只放大過去，不選點、不花點數',
-      await p.evaluate(() => TREE.z >= 1.2 && !TREE.sel && S.pt.length === PT_START.length),
-      await p.evaluate(() => TREE.z.toFixed(2))
+      '看全圖時點一個點＝選它，不縮放、不花點數',
+      await p.evaluate(
+        ([id, z0]) => TREE.z === z0[0] && TREE.x === z0[1] && TREE.sel === id && S.pt.length === PT_START.length,
+        [far[0], z0]
+      ),
+      await p.evaluate(() => [TREE.z.toFixed(2), TREE.sel].join())
     );
+    await p.evaluate(id => {
+      treeSelect(null);
+      treeFly(PTREE.I[id].x, PTREE.I[id].y, 1.25);
+    }, far[0]);
+    await p.waitForTimeout(500);
   }
   ok(
     '放大後每個小點 ≥24px',
@@ -882,7 +899,8 @@ let fail = 0;
   await tapSel('#tcard [data-ta^="go"]');
   ok('按卡片的按鈕點亮', await p.evaluate(id => S.pt.includes(id), nd[0]));
   {
-    /* 沒有連著的點：卡片算出最短的路，一顆按鈕沿路點亮 */
+    /* 沒有連著的點：卡片算出最短的路，一顆按鈕沿路點亮（先收起上一張卡，橫向的卡會蓋住大半棵樹） */
+    await tapSel('#tcard [data-ta="desel"]');
     const far = await p.evaluate(() => {
       const have = new Set(S.pt),
         e = [...document.querySelectorAll('#tg .nd.off')].find(e => {
@@ -1007,11 +1025,11 @@ let fail = 0;
     await p.evaluate(() => ($('pasc').scrollTop = 0));
     await tapSel('#pasc [data-ax="pick"]');
     ok(
-      '「換昇華」：15 個昇華一列一個、寫著在做什麼、每列 ≥44px',
+      '「換昇華」：只列開放的昇華（0.4.10 先開 2 個）、寫著在做什麼、每列 ≥44px',
       await p.evaluate(() => {
         const L = [...document.querySelectorAll('#pasc .axl-r')];
         return (
-          L.length === Object.keys(ASC).length &&
+          L.length === ascList().length &&
           L.every(e => e.getBoundingClientRect().height >= 44 && e.querySelector('small').textContent.length > 4)
         );
       })
@@ -1126,11 +1144,11 @@ let fail = 0;
     await tap('#pskill [data-sk="go:one:0"]');
     await p.waitForTimeout(260);
     R.push(['這一招', await look()]);
-    await tap('#pskill .sk-nd[data-sk="hole:0"]');
+    await tap('#pskill .sk-row[data-sk="hole:0"]');
     await p.waitForTimeout(260);
     R.push(['選了一個孔', await look()]);
     await tap('#pskill [data-sk="back"]');
-    await tap('#pskill .sk-nd.emp');
+    await tap('#pskill .sk-row.emp[data-sk^="hole"]');
     await p.waitForTimeout(260);
     R.push(['挑輔助', await look()]);
     const bad = R.filter(([, r]) => r.small.length || r.out.length || !r.pri);
@@ -1182,7 +1200,7 @@ let fail = 0;
     await p.evaluate(port => (port ? navGo('skill') : openPanel('skill')), PORTM);
     await p.waitForTimeout(260);
     let taps = 0;
-    for (const q of ['#pskill [data-sk="go:one:0"]', '#pskill .sk-nd.emp', '#pskill .sk-bar .pri']) {
+    for (const q of ['#pskill [data-sk="go:one:0"]', '#pskill .sk-row.emp[data-sk^="hole"]', '#pskill .sk-bar .pri']) {
       taps += (await tap(q)) ? 1 : 0;
       await p.waitForTimeout(200);
     }
@@ -1223,7 +1241,6 @@ let fail = 0;
         },
         '#pskill',
         '.sk-top',
-        '.sk-ring .sk-ctr',
         '.sk-hero',
         '.sk-bar .pri'
       ),

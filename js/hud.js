@@ -316,12 +316,12 @@ function hudTick() {
     for (const e of document.querySelectorAll('[data-tm=home]')) e.hidden = hm;
   }
   /* 手機：血、魔力長條；「互動」只在附近有東西時出現 */
+  setV($('bhp'), 'hp2', HV.hp);
+  setV($('bmp'), 'mp2', HV.mp);
+  setT($('bhp').lastChild, 'ht2', Math.ceil(P.hp) + ' / ' + ST.hp + (ST.es ? ` · 盾 ${Math.floor(P.es || 0)}` : ''));
+  setT($('bmp').lastChild, 'mt2', mpt.replace('\n', ' '));
+  if (HV.w2 !== wv) $('bhp').style.setProperty('--w', (HV.w2 = wv));
   if (TOUCH.on) {
-    setV($('bhp'), 'hp2', HV.hp);
-    setV($('bmp'), 'mp2', HV.mp);
-    setT($('bhp').lastChild, 'ht2', Math.ceil(P.hp) + ' / ' + ST.hp + (ST.es ? ` · 盾 ${Math.floor(P.es || 0)}` : ''));
-    setT($('bmp').lastChild, 'mt2', mpt.replace('\n', ' '));
-    if (HV.w2 !== wv) $('bhp').style.setProperty('--w', (HV.w2 = wv));
     const near =
       (G.scene === 'hide' && (!!nearProp() || (G.portal && dist(P, G.portal) < 90))) ||
       (G.portal && G.scene === 'map' && dist(P, G.portal) < 90) ||
@@ -1007,7 +1007,20 @@ function dollHTML() {
       })
       .join('');
   return `<div class="doll2"><div class="col">${DOLL_L.map(dollCell).join('')}</div>
-  <div class="mid"><div class="hero" aria-hidden="true"></div><div class="res">${RESK.map(r => `<span class="${effRes(r) < RES_CAP ? 'low' : ''}" title="${ELN[r]}抗性${pen ? `（這一階 −${pen}%）` : ''}">${ELN[r]}<b>${effRes(r)}%</b></span>`).join('')}</div></div>
+  <div class="mid">${[
+    ['DPS', fmtN(Math.round(dps(ST)))],
+    ['生命', fmtN(ST.hp)],
+    ST.es ? ['能量護盾', fmtN(ST.es)] : null,
+    ['護甲', fmtN(ST.armor)],
+    ST.ev ? ['閃避', fmtN(ST.ev)] : null
+  ]
+    .filter(Boolean)
+    .map(([n, v]) => `<div class="mi"><small>${n}</small><b>${v}</b></div>`)
+    .join(
+      ''
+    )}<div class="res">${RESK.map(r => `<span class="res-${r} ${effRes(r) < 0 ? 'neg' : ''}" title="${ELN[r]}抗性${pen ? `（這一階 −${pen}%）` : ''}">${ELN[r][0]}<b>${effRes(r)}%</b></span>`).join('')}</div>${
+    ptLeft() > 0 ? `<button class="btn mi-b" data-tm="nav:tree">天賦 ${ptLeft()} 點未用</button>` : ''
+  }</div>
   <div class="col">${DOLL_R.map(dollCell).join('')}</div></div>
   <div class="doll2x">${charms}<div class="eqs gh ${g ? 'r2' : 'emp'}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}">${g ? icHTML('z_' + g.g) : '<span class="nm">神格</span><small>空</small>'}</div></div>`;
 }
@@ -1210,8 +1223,7 @@ function bagHTML() {
     .map(it => itemHTML(it, 'inv'))
     .join('')}</div>${L.length ? '' : '<p class="c-dim bagno">沒有符合的裝備</p>'}
   ${L.length > bagShown() ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - bagShown())} 件（共 ${L.length}）</button>` : ''}
-  ${sel ? cmpHTML(sel) : ''}
-  ${NAV.pick ? '' : `<div class="foot">${sel ? cmpActs(sel) : `${PORT() ? '' : '<div class="sell" data-sell="1">拖到這裡賣掉</div>'}<button class="btn" data-a="bagsell" ${sl.length ? '' : 'disabled'} title="賣掉這個篩選裡沒鎖定的裝備">賣出篩選到的 ${sl.length} 件 · ${sum} 金</button>`}</div>`}`;
+  ${NAV.pick ? '' : `<div class="foot ${sel ? 'sel' : ''}">${sel ? cmpHTML(sel) + cmpActs(sel) : `${PORT() ? '' : '<div class="sell" data-sell="1">拖到這裡賣掉</div>'}<button class="btn" data-a="bagsell" ${sl.length ? '' : 'disabled'} title="賣掉這個篩選裡沒鎖定的裝備">賣出篩選到的 ${sl.length} 件 · ${sum} 金</button>`}</div>`}`;
 }
 /* 需求不夠、穿不上（倉庫格子變暗） */
 const NQC = new Map(); /* 物品 id → [身上這一套的簽名, 結果]：倉庫一次畫上百格，換裝或升級才重算 */
@@ -1225,6 +1237,9 @@ function cantWear(it) {
   NQC.set(it.id, [sig, v]);
   return v;
 }
+/* 0.4.10：昇華先只開前兩個（做減法）；已經選了別的照樣看得到 */
+const ASC_SHOW = ['wind', 'iron'],
+  ascList = () => Object.entries(ASC).filter(([id]) => ASC_SHOW.includes(id) || id === S.asc);
 /* 這件最好的詞是 T 幾（沒有詞＝0）；跟這件物品等級能出的上限一樣就亮底 */
 const bestA = it => (it.a && it.a.length ? Math.min(...it.a.map(a => a.T)) : 0);
 const soHTML = (n, f) =>
@@ -1241,9 +1256,8 @@ function itemHTML(it, src, eqk) {
             : it.cor
               ? '<i class="bs co" aria-label="腐化">腐</i>'
               : '') +
-        (it.q ? `<i class="bq ${qBand(it.q) ? 'gold' : ''}" style="--q:${Math.round(it.q * 100 * 3.3)}%"></i>` : '') +
         (BAG.fl.t1 && t1N(it) >= 2 ? `<i class="bt">T1×${t1N(it)}</i>` : '') +
-        `<i class="bb">${it.so ? soHTML(it.so, 0) : '<span></span>'}${b ? `<b class="${b <= itemT(it) ? 'top' : ''}">T${b}</b>` : ''}</i>`;
+        (b ? `<i class="btr ${b <= itemT(it) ? 'top' : ''}">T${b}</i>` : '');
   return `<div class="it r${it.r} ${isSlot(src) ? 'full' : ''} ${src === 'inv' && cantWear(it) ? 'nq' : ''} ${src === 'inv' && BAG.sel === it.id ? 'on' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''}>${icHTML(itemIc(it))}${mark}</div>`;
 }
 /* ---------- 換裝卡（0.4.9，示意頁第 9 版）：「這件｜身上」並排，不下判定；傷害合一欄（物理白、元素各自的顏色）、攻速、暴擊率、需求；前綴 3／後綴 3 ---------- */
@@ -1278,15 +1292,15 @@ function cmpCol(it, head) {
   const cap = sideCap(it),
     side = (pre, nm) => {
       const L = (it.a || []).filter(a => !!AFF[a.k].p === pre);
-      return `<li class="hd">${nm}</li>${Array.from({ length: 3 }, (_, j) =>
-        L[j]
-          ? `<li class="${isFrac(it, L[j]) ? 'fr' : ''}"><b class="${ELCLS[L[j].k] || ''}">${esc(
-              affText(L[j])
-                .replace(/^附加 /, '')
-                .replace(' 至 ', '–')
-            )}</b><small>T${L[j].T}${isFrac(it, L[j]) ? ' ★' : ''}</small></li>`
-          : `<li class="none">${j >= cap ? '—' : '（空）'}</li>`
-      ).join('')}`;
+      /* 0.4.10：只列有的詞，空格寫一行「空 n／3」，卡才不會把清單整個蓋掉 */
+      return `<li class="hd">${nm}<small>${L.length}／${Math.min(3, cap)}</small></li>${L.map(
+        a =>
+          `<li class="${isFrac(it, a) ? 'fr' : ''}"><b class="${ELCLS[a.k] || ''}">${esc(
+            affText(a)
+              .replace(/^附加 /, '')
+              .replace(' 至 ', '–')
+          )}</b><small>T${a.T}${isFrac(it, a) ? ' ★' : ''}</small></li>`
+      ).join('')}${L.length ? '' : '<li class="none">（空）</li>'}`;
     };
   return `<div><div class="h">${icHTML(itemIc(it))}${head}${it.q ? `<span class="qq">+${Math.round(it.q * 100)}%</span>` : ''}${it.so ? soHTML(it.so, 0) : ''}</div>
   ${kv.map(([k, v]) => `<div class="kv"><span>${k}</span>${v}</div>`).join('')}
@@ -1308,7 +1322,7 @@ function cmpHTML(it) {
   const e = cmpSlot(it),
     cur = e && S.eq[e.k],
     lack = e ? eqLack(S, it, e.k) : [];
-  return `<div class="cmpc">${cmpCol(it, `<span class="name rc${it.r}">${esc(itemName(it))}</span>`)}${
+  return `<button class="x cmpx" aria-label="收起" data-a="selno">${ICO.x}</button><div class="cmpc">${cmpCol(it, `<span class="name rc${it.r}">${esc(itemName(it))}</span>`)}${
     cur
       ? cmpCol(cur, `<span class="sub">身上・${esc(itemName(cur))}</span>`)
       : `<div class="emp">${e ? `${e.n}現在空著` : '沒有能放的欄位'}</div>`
@@ -1534,9 +1548,7 @@ function ascPortHTML() {
     head = `<div class="ph"><b>昇華石碑</b><span class="ax-sum">${S.asc ? `已選 <b class="c-gold">${bg}</b>／4 · 剩 <b class="${ascLeft() > 0 ? 'c-gold' : ''}">${ascLeft()}</b> 點` : `有 <b class="c-gold">${ascPoints(S)}</b> 點`}</span>${S.at.length > 1 ? `<button class="btn mini ax-reset" data-ax="reset">重置</button>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
   /* 15 個昇華的清單 */
   if (ASCUI.pick || !ASC[ASCUI.v])
-    return `${head}<div class="axl">${S.asc ? `<button class="btn axl-back" data-ax="v:${S.asc}">‹ 回到${ASC[S.asc].n}</button>` : '<p class="axl-h">選一個昇華。之後可以免費換，點數全部退回。</p>'}${Object.entries(
-      ASC
-    )
+    return `${head}<div class="axl">${S.asc ? `<button class="btn axl-back" data-ax="v:${S.asc}">‹ 回到${ASC[S.asc].n}</button>` : '<p class="axl-h">選一個昇華。之後可以免費換，點數全部退回。</p>'}${ascList()
       .map(
         ([id, B]) =>
           `<button class="axl-r ${S.asc === id ? 'cur' : ''}" data-ax="v:${id}">${icHTML(B.ic)}<span><b>${B.n}${S.asc === id ? '<i>目前</i>' : ''}</b><small>${esc(B.d)}</small></span></button>`
@@ -1651,7 +1663,7 @@ function ascHTML() {
     tabs =
       fold && !ASCUI.pick
         ? ''
-        : `<div class="ax-tabs" role="tablist">${Object.entries(ASC)
+        : `<div class="ax-tabs" role="tablist">${ascList()
             .map(
               ([id, B]) =>
                 `<button class="ax-tab ${id === k ? 'on' : ''} ${S.asc === id ? 'cur' : ''}" role="tab" aria-selected="${id === k}" data-ax="v:${id}">${icHTML(B.ic)}<span>${B.n}${S.asc === id && !fold ? '<i>目前</i>' : ''}</span></button>`
@@ -1947,11 +1959,7 @@ const agoTxt = t => {
 const bossMob = () => G.mobs.find(m => m.boss && !m.mini && !m.dummy);
 function idleHTML() {
   if (G.loot && performance.now() - G.loot.t < 30000) return lootHTML(G.loot);
-  const b = G.bossOut && bossMob(),
-    left = Math.max(0, Math.ceil(G.need - G.prog)),
-    v = b ? b.hp / b.mhp : Math.min(1, G.prog / Math.max(1, G.need)),
-    k = b ? `${esc(b.D.n)}出來了` : `再 ${left} 隻，王就出來`,
-    ses = SES || {
+  const ses = SES || {
       t0: Date.now(),
       rounds: 0,
       rare: 0,
@@ -1964,31 +1972,19 @@ function idleHTML() {
       xp: 0,
       soul: 0
     },
-    hrs = Math.max(1 / 60, (Date.now() - ses.t0) / 3600e3),
-    n = S.inv.items.length,
-    pct = Math.round((n / INV_CAP) * 100),
-    low = RESK.filter(r => effRes(r) < RES_CAP)
-      .sort((a, b) => effRes(a) - effRes(b))
-      .slice(0, 2),
-    mlv = mobLv(G.mapT),
-    soulH = Math.round(ses.soul / hrs),
-    xpH = ses.xp / hrs,
-    eta = xpH > 0 ? fmtDur(((xpNeed(S.lv) - S.xp) / xpH) * 3600e3) : '—',
+    pct = Math.round((S.inv.items.length / INV_CAP) * 100),
     pile = (G.rs ? G.rs.items : [])
       .filter(it => it.r || it.frac || it.mem)
       .slice(-6)
       .reverse(),
-    nP = (G.rs ? G.rs.items : []).length,
-    log = (S.log || []).slice(0, 2);
+    nP = (G.rs ? G.rs.items : []).length;
   return `<div class="paper">
-    <div class="strip"><div><div class="k">${k}</div><div class="big">${Math.round(v * 100)}<span>%</span></div></div><div class="pbar" style="--v:${Math.round(v * 100)}%"></div></div>
     <div class="k row2">本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪<span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
-    <div class="sum"><div><small>稀有</small><b>${ses.rare}</b></div><div><small>★ 破裂</small><b>${ses.frac}</b></div><div><small>追憶</small><b>${ses.mem}</b></div><div><small>死亡</small><b>${ses.deaths}</b></div><div><small>通貨</small><b>${ses.cur} 顆</b></div><div class="w2"><small>最好的一顆</small><b>${esc(ses.best || '—')}</b></div><div><small>金</small><b>+${fmtN(ses.gold)}</b></div></div>
-    <div class="note"><span><span class="${pct >= 90 ? 'w' : ''}">倉庫 ${pct}% 滿</span>・滿了普通裝自動換金幣</span><span>${low.length ? `<span class="w">${low.map(r => `${ELN[r]}抗性 ${effRes(r)}%`).join('・')}</span>・` : ''}怪物 Lv ${mlv}，你 Lv ${S.lv}</span><span>靈魂 <b>+${fmtN(soulH)}／小時</b>・升 Lv ${S.lv + 1} 還要 <b>${eta}</b></span></div>
+    <div class="sum"><div><small>稀有</small><b>${ses.rare}</b></div><div><small>★ 破裂</small><b>${ses.frac}</b></div><div><small>追憶</small><b>${ses.mem}</b></div><div><small>通貨</small><b>${ses.cur} 顆</b></div><div><small>金</small><b>+${fmtN(ses.gold)}</b></div><div><small>死亡</small><b>${ses.deaths}</b></div></div>
+    ${pct >= 80 ? `<div class="note"><span class="w">倉庫 ${pct}% 滿</span>・滿了普通裝自動換金幣</div>` : ''}
   </div>
   <div class="row2 sub"><span>這一輪撿到的</span><b>${nP} 件</b></div>
-  <div class="pile">${pile.map(it => `<button class="pb" data-a="lootsel:${it.id}" aria-label="${esc(itemName(it))}">${itemHTML(it, 'loot')}</button>`).join('')}${nP > pile.length ? `<span class="sub">＋${nP - pile.length}</span>` : ''}${nP ? '' : '<span class="sub">還沒有</span>'}</div>
-  ${log.length ? `<div class="log">${log.map(x => `<span><b>${agoTxt(x.t)}</b>　<span class="lg-${x.c}">${esc(x.n)}</span></span>`).join('')}</div>` : ''}`;
+  <div class="pile">${pile.map(it => `<button class="pb" data-a="lootsel:${it.id}" aria-label="${esc(itemName(it))}">${itemHTML(it, 'loot')}</button>`).join('')}${nP > pile.length ? `<span class="sub">＋${nP - pile.length}</span>` : ''}${nP ? '' : '<span class="sub">還沒有</span>'}</div>`;
 }
 function lootHTML(L) {
   const items = [...L.items].sort((a, b) => lootScore(b) - lootScore(a)),
@@ -2325,8 +2321,6 @@ function dragEnd(e) {
       BAG.sel = BAG.sel === d.it.id ? null : d.it.id;
       hideTip();
       hudInv();
-      const c = $('pinv').querySelector('.cmpc');
-      if (c) c.scrollIntoView({ block: 'nearest' });
       return;
     }
     return TOUCH.on ? tapItem(d) : quickMove(d.src, d.it, d.eqk, d.shift);
@@ -2745,6 +2739,7 @@ function act(a, el) {
     /* 換裝卡的按鈕（0.4.9） */
     const it = S.inv.items.find(x => x.id === BAG.sel);
     if (!it) return;
+    if (a === 'selno') return (BAG.sel = null), hudInv();
     if (a === 'selmove') (BAG.sel = null), quickMove('inv', it);
     else if (a === 'selsell') {
       if (el && confirm2(el, `確定賣 ${sellPrice(it)} 金？`)) (BAG.sel = null), sell('inv', it);
@@ -2766,8 +2761,6 @@ function act(a, el) {
     NAV.view = 'bag';
     if (PORT()) navGo('bag');
     else openPanel('inv');
-    const c = $('pinv').querySelector('.cmpc');
-    if (c) c.scrollIntoView({ block: 'nearest' });
   } else if (a === 'lootbag') {
     G.loot = null;
     NAV.view = 'bag';

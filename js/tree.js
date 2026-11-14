@@ -521,6 +521,8 @@ function treeCard() {
   else
     act = `<button class="btn pri" data-ta="go">${cost > 1 ? `沿路點亮到這裡 · 花 ${cost} 點` : '點亮'}<small>剩 ${left} 點</small></button>`;
   c.innerHTML = `<div class="tc-h">${treeTip(id)}<button class="x" aria-label="收起" data-ta="desel">${ICO.x}</button></div><div class="tc-a">${act}</div>`;
+  /* 0.4.10：卡片剛為了這個點彈出來時記時間——橫向手機的卡會蓋到手指下面，放開那一下的 click 會按到「點亮」 */
+  if (c.hidden || TREE.cardFor !== id) (TREE.cardT = performance.now()), (TREE.cardFor = id);
   c.hidden = false;
   /* 選的點不要被卡片蓋住：太低就把樹往上推 */
   const sy = (TREE.vh || 0) / 2 + TREE.y + n.y * TREE.z,
@@ -786,11 +788,7 @@ function treeInit() {
     if (!g || g.moved || e.type !== 'pointerup') return;
     /* 中間的昇華入口：打開昇華石碑 */
     if (g.go) return treeClose(), fmenuOpen('asc');
-    /* 看全圖時（點太小、認不出圖示）：點一下只放大到那裡，不選點（0.4.7；以前 6px 也點得下去，很容易點錯） */
-    if (TOUCH.on && TREE.z < Z_TAP) {
-      const [x, y] = g.n ? [PTREE.I[g.n.dataset.n].x, PTREE.I[g.n.dataset.n].y] : treeAt(e);
-      return treeFly(x, y, Z_NEAR);
-    }
+    /* 0.4.10：點一個點永遠只是選它（0.4.7 看全圖時會飛過去放大，每點一下畫面就跳，使用者受不了）；treeHit 找最近的點，小也點得準 */
     if (!g.n) {
       treeAttrClose();
       if (TOUCH.on && TREE.sel) treeSelect(null);
@@ -832,6 +830,7 @@ function treeInit() {
     }
     /* 說明卡 */
     if (ta === 'desel') treeSelect(null);
+    if (performance.now() - (TREE.cardT || 0) < 350 && (ta.startsWith('go') || ta === 'back')) return;
     if (ta === 'go' || ta.startsWith('go:')) treeGo(ta.slice(3));
     if (ta === 'back') treeToggle(TREE.sel), treeSelect(TREE.sel);
     /* 重置按兩次：一鍵清空幾十點太容易誤觸 */

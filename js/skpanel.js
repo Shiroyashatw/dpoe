@@ -437,24 +437,6 @@ function homeHTML() {
 }
 
 /* ---------- 這一招 ---------- */
-/* 小圓環：圓心這招、周圍只畫開了的孔與下一個能開的（寫代價）；點孔＝選它 */
-function ringHTML(c) {
-  const r = c.rec,
-    n = r.n + (r.n < GEM_SO_MAX ? 1 : 0);
-  const nodes = Array.from({ length: n }, (_, j) => {
-    const a = ((-50 + (280 / Math.max(1, n - 1)) * j) * Math.PI) / 180,
-      pos = `style="--x:${Math.cos(a).toFixed(3)};--y:${Math.sin(a).toFixed(3)}"`,
-      sel = SKUI.hole === j ? 'on' : '';
-    if (j >= r.n)
-      return `<button class="sk-nd lock ${sel}" ${pos} data-sk="hole:${j}" aria-label="第 ${j + 1} 孔還沒開">${ICO.lock}</button><span class="sk-nl ${Math.sin(a) < -0.3 ? 'up' : ''}" ${pos}>打開・${fmtN(drillCheck(r).c)}</span>`;
-    const k = r.so[j];
-    if (!k)
-      return `<button class="sk-nd emp ${sel}" ${pos} data-sk="hole:${j}" aria-label="第 ${j + 1} 孔：空">${ICO.plus}</button>`;
-    const bad = !supOK(c.D, c.g.sup[j], c.g);
-    return `<button class="sk-nd ${bad ? 'bad' : ''} ${sel}" ${pos} data-sk="hole:${j}" aria-label="第 ${j + 1} 孔：${esc(SUPPORTS[k].n)}">${icHTML(SUPPORTS[k].ic)}</button>`;
-  }).join('');
-  return `<div class="sk-ring"><button class="sk-ctr" data-sk="ctr" aria-label="${esc(c.D.n)}">${icHTML(c.D.ic)}</button>${nodes}</div>`;
-}
 /* 主數字＋最多三個次要數字 */
 function heroHTML(c) {
   if (c.aura) {
@@ -668,7 +650,7 @@ function oneHTML(c) {
   }
   return `<div class="sk-top"><button class="sk-back" data-sk="back">‹ ${hole != null ? esc(D.n) : '總覽'}</button><span>${where}</span></div>
   <div class="sk-scroll"><div class="sk-one">
-    <h2 class="sk-h">${esc(D.n)}<small>Lv ${lv}${extra}・${tags.join('・')}</small></h2>${heroHTML(c)}${ringHTML(c)}
+    <h2 class="sk-h">${icHTML(D.ic)}<span>${esc(D.n)}<small>Lv ${lv}${extra}・${tags.join('・')}</small></span></h2>${heroHTML(c)}
     <div class="sk-info">${warn.map(w => `<p class="sk-p c-bad">${esc(w)}</p>`).join('')}
       <p class="sk-p">${rich(D.d)}${!c.aura && awOf(k) ? ` <span class="sk-awt">${esc(AWK[k][awOf(k)].n)}</span>：${rich(awText(k, awOf(k)))}` : ''}</p>
       ${lower}</div>
@@ -1095,7 +1077,7 @@ document.addEventListener('pointerdown', e => {
   const g = e.target.closest('#pskill .sk-grip');
   if (!g || e.button > 0) return;
   const i = +g.dataset.sk.slice(3),
-    rows = [...document.querySelectorAll('#pskill .sk-orow')],
+    rows = [...document.querySelectorAll('#pskill .skr[data-i]')],
     me = rows.find(r => +r.dataset.i === i);
   if (!me) return;
   /* 同一組才能換（普攻固定最後、條件技在後面那一組） */

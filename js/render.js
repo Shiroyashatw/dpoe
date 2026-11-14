@@ -929,7 +929,7 @@ function drawFx() {
 }
 function drawMinimap(W) {
   /* 手機：小一點，放在右上選單下面 */
-  const mw = TOUCH.on ? Math.min(104, (68 * G.W) / G.H) / ZOOM : 190,
+  const mw = TOUCH.on ? Math.min(PORT() ? 62 : 104, (68 * G.W) / G.H) / ZOOM : 190,
     mh = (mw * G.H) / G.W,
     x0 = W - mw - (TOUCH.on ? 10 / ZOOM : 16),
     y0 = TOUCH.on ? 60 / ZOOM : 16,

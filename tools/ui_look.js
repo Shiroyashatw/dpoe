@@ -155,14 +155,14 @@ if (require.main === module)
       /* 技能面板（0.4.8）：總覽 → 這一招 → 選了一個孔 → 挑輔助 → 挑技能 */
       ['技能：總覽', '#pskill', 12, async () => p.evaluate(m => (m ? navGo('skill') : openPanel('skill')), port)],
       ['技能：這一招', '#pskill', 12, () => click('#pskill [data-sk="go:one:0"]')],
-      ['技能：選了一個孔', '#pskill', 12, () => click('#pskill .sk-nd[data-sk="hole:0"]')],
+      ['技能：選了一個孔', '#pskill', 12, () => click('#pskill .sk-row[data-sk="hole:0"]')],
       [
         '技能：挑輔助',
         '#pskill',
         30,
         async () => {
           await click('#pskill [data-sk="back"]');
-          await click('#pskill .sk-nd.emp');
+          await click('#pskill .sk-row.emp[data-sk^="hole"]');
         }
       ],
       [

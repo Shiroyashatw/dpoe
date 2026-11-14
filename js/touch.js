@@ -350,8 +350,8 @@ function touchInit() {
       if (k === 'auto') return autoToggle();
       if (k.startsWith('f:')) return fmenuOpen(k.slice(2));
       if (k.startsWith('nav:')) return navGo(k.slice(4));
-      /* 面板上緣的把手：半版 ↔ 蓋滿 */
-      if (k === 'full') return (NAV.full = NAV.full ? 0 : 1), hudPanels();
+      /* 面板上緣的把手：半版 ↔ 蓋滿（剛拖過的不算點） */
+      if (k === 'full') return TOUCH.handDrag ? undefined : ((NAV.full = NAV.full ? 0 : 1), hudPanels());
       if (k === 'more') return moreMenu($('tmore').hidden);
       if (k === 'inv') PANEL.inv && !PANEL.stash && !PANEL.skill ? closePanels() : openPanel('inv');
       else if (k === 'skill') PANEL.skill ? closePanels() : openPanel('skill');
@@ -392,8 +392,49 @@ function touchInit() {
   });
   /* 0.3.2：不再自動進全螢幕（要的話按全螢幕鈕）；也不讓 Chrome 跳出「安裝應用程式」的提示（manifest 留著給自己加入主畫面的人） */
   addEventListener('beforeinstallprompt', e => e.preventDefault());
+  handInit();
   document.addEventListener('fullscreenchange', fsBtn);
   document.addEventListener('webkitfullscreenchange', fsBtn);
   setTouch(matchMedia('(pointer: coarse)').matches);
   fsBtn();
+}
+
+/* 0.4.10：把手可以拖——面板跟著手指 1:1；放開看方向：往上＝蓋滿、從蓋滿往下＝半版、從半版再往下（或一路拖過半版）＝收起 */
+function handInit() {
+  const h = $('phand');
+  let d = null;
+  const topNow = () => parseFloat(getComputedStyle(document.body).getPropertyValue('--sheet-top')) || 0;
+  h.addEventListener('pointerdown', e => {
+    d = { y0: e.clientY, top0: topNow(), moved: 0 };
+    h.setPointerCapture(e.pointerId);
+  });
+  h.addEventListener('pointermove', e => {
+    if (!d) return;
+    const dy = e.clientY - d.y0;
+    if (Math.abs(dy) > 8) d.moved = 1;
+    if (!d.moved) return;
+    const half = Math.round(IH * SHEET_TOP);
+    let top = d.top0 + dy;
+    /* 半版再往下＝要收起來：超過的部分打折（橡皮筋） */
+    if (top > half) top = half + (top - half) * 0.5;
+    document.body.classList.add('sheetdrag');
+    document.body.style.setProperty('--sheet-top', Math.max(0, top) + 'px');
+  });
+  const up = () => {
+    if (!d) return;
+    const dd = d;
+    d = null;
+    document.body.classList.remove('sheetdrag');
+    if (!dd.moved) return;
+    TOUCH.handDrag = 1;
+    setTimeout(() => (TOUCH.handDrag = 0), 0);
+    const half = Math.round(IH * SHEET_TOP),
+      cur = topNow();
+    if (cur <= dd.top0) NAV.full = 1;
+    else if (dd.top0 < half / 2 && cur < half + 40) NAV.full = 0;
+    else return closePanels(), hudPanels();
+    hudPanels();
+  };
+  h.addEventListener('pointerup', up);
+  h.addEventListener('pointercancel', up);
 }
