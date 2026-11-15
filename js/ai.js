@@ -133,7 +133,7 @@ function aiLoot(A) {
   let best = null,
     bd = 1e9;
   for (const d of G.drops) {
-    if (d.full || A.skip.has(d) || (d.it && dropFlt(d).act === 'hide')) continue;
+    if (d.full || A.skip.has(d)) continue;
     const e = dist(P, d);
     if (e < bd) (bd = e), (best = d);
   }
@@ -149,7 +149,7 @@ function aiTick(dt) {
   AI.on = 0;
   AI.mv = [0, 0];
   AI.hold = -1;
-  if (!S.auto || G.scene !== 'map' || PRO.on || TALK.on) return;
+  if (!S.auto || G.scene !== 'map') return;
   AI.on = 1;
   const A =
     G.ai ||

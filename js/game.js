@@ -44,8 +44,6 @@ function newGame() {
     /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
     idols: [],
     story: {},
-    /* 過濾器（0.2.35）：3 組、每組一串規則（由上往下第一條符合的決定處理方式）＋「其他」預設；見 fltAct */
-    filter: { cur: 0, sets: [fltTemplate(), fltTemplate2(), fltEmpty()] },
     sfx: 1,
     /* 新存檔：序章結束才拿到劍（prologue.js）；migrate 對舊存檔拿掉這個旗標 */
     fresh: 1
@@ -154,7 +152,6 @@ function newPlayer(x, y) {
 /* 藏身處：地層出口的山腹營地。場景圖與座標在 hideart.js（tools/hide_bake.js 產生），碰撞用地圖的格子牆 */
 function enterHideout() {
   const A = HIDE_ART;
-  if (TALK.on) talkEnd();
   resetWorld(A.W, A.H);
   G.scene = 'hide';
   G.loot = null;
@@ -166,7 +163,7 @@ function enterHideout() {
   G.solid = A.solids;
   G.deco = A.lights.map(l => ({ k: 'light', ...l }));
   G.props = hideProps();
-  G.npcs = [...npcList(), { ...BOX, npc: 1 }];
+  G.npcs = [{ ...BOX, npc: 1 }];
   newPlayer(A.spawn.x, A.spawn.y);
   P.hp = ST.hp;
   P.mp = ST.mp;
@@ -177,8 +174,6 @@ function enterHideout() {
   dpsReset();
   ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
-  /* 打倒裂谷斷崖的王之後第一次回來：直接打開地圖播世界展開 */
-  if (wOpen(S) && !S.world.open) openPanel('device');
 }
 /* 開始刷一個節點（0.4.0，企劃書 2.1）：在哪裡都能開（藏身處、地圖裡、世界地圖），直接進場地；每一輪照選的星級重抽地圖詞。
    keep：連續刷的下一輪（同一個場地：外觀、站的位置、輪數接著算） */
@@ -231,7 +226,7 @@ function sesSample() {
 }
 /* 這一輪結束（王倒下 2 秒後，或死了重來）：場上沒撿的照樣收進倉庫，同一個地點再刷一輪（0.5.1 起推進＝升瞭望台，打倒王不推進） */
 function roundEnd() {
-  for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full && dropFlt(d).act !== 'hide')) pickup(d);
+  for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full)) pickup(d);
   if (G.arena) return S.world.cur ? runNode(S.world.cur) : enterHideout();
   const k = G.node;
   /* 裂口打完（0.4.2）：回到進裂口之前在刷的節點 */
@@ -951,7 +946,6 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
 function die() {
   /* 已經倒下：持續傷害還在跑時不要再扣一次經驗、蓋掉死因 */
   if (G.state === 'dead') return;
-  if (PRO.on) return proDied();
   P.hp = 0;
   G.state = 'dead';
   P.act = P.roll = null;
@@ -975,7 +969,7 @@ function killMob(m) {
   sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? '#ff6b3d' : '#c9b8a8');
   mobGround(m);
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
-  if (m.summoned || PRO.on) return;
+  if (m.summoned) return;
   G.kills++;
   if (G.rs) m.elite ? G.rs.nE++ : !m.boss && G.rs.nS++;
   const fk = FLASK.perKill * (m.elite ? 3 : m.boss ? 10 : 1) * (1 + ST.flaskChg / 100);
@@ -1060,8 +1054,6 @@ function bossDown(m) {
   if (m.D.fd && FENG.elites.includes(m.D.fd) && fdHun(S) >= FENG.hun)
     hudWarn(`勾魂令 ${fdHun(S)} 張：山海寶盒可以開閻羅殿了`);
   G.nextT = G.t + ROUND_GAP;
-  /* 打倒裂谷斷崖的王：直接打開地圖播世界展開（看完才放下一輪：地圖開著戰鬥不跑） */
-  if (wOpen(S) && !S.world.open) openPanel('device');
   hitstop(0.25);
   G.slow = 0.9;
   sfx('boss');
@@ -1091,14 +1083,6 @@ function rareShow(txt, c, snd) {
   sfx(snd);
 }
 function dropAt(x, y, o) {
-  /* 過濾器「賣掉」（0.4.1）：不撿、不畫，直接換成金幣，不記紀錄 */
-  if (o.it && !o.nopick && fltAct(o.it).act === 'sell') {
-    const p = sellPrice(o.it);
-    S.gold += p;
-    if (G.rs) G.rs.sold += p;
-    if (SES) SES.gold += p;
-    return num(x, y - 20, p, 'gold');
-  }
   const a = rnd(0, TAU),
     s = rnd(30, 90);
   Object.assign(o, { x: x + Math.cos(a) * s, y: y + Math.sin(a) * s, sx: x, sy: y, t: 0 });
@@ -1126,94 +1110,6 @@ function gainXp(v) {
     if (PORT()) sheetSync(); /* 分頁列「天賦」亮一個點 */
     sfx('lvup');
   }
-}
-/* ---------- 物品過濾器（0.2.35） ----------
-   一組＝{ rules: [規則…], def: { act, col } }；規則＝{ on, c: 條件（有這個欄位才算用）, act, col }
-   act：pick 自動撿、show 顯示、hl 醒目（col 是 FLT_COL 的顏色）、hide 隱藏；寶石與通貨不進過濾器（寶石一律顯示、金幣碎片自動吸收） */
-const FLT_COL = ['#ff5d5d', '#ffa24a', '#ffe066', '#6ee06e', '#5ad1ff', '#d07aff'];
-const FLT_ACT = { pick: '自動撿', show: '顯示', hl: '醒目', hide: '隱藏', sell: '賣掉' };
-const FLT_KIND = [
-  ['weapon', '武器'],
-  ['armor', '防具'],
-  ['acc', '飾品'],
-  ['charm', '護符']
-];
-const KIND_GRP = {
-  weapon: 'weapon',
-  focus: 'armor',
-  shield: 'armor',
-  helm: 'armor',
-  chest: 'armor',
-  gloves: 'armor',
-  boots: 'armor',
-  quiver: 'armor',
-  belt: 'acc',
-  ring: 'acc',
-  amulet: 'acc'
-};
-const fltEmpty = () => ({ rules: [], def: { act: 'show', col: 0 } });
-/* 內建範本一（企劃書 5.1）：★ 或追憶 → 自動撿；黃裝 → 顯示；其他 → 顯示（玩家從寬的往下改，隱藏比找回容易） */
-const fltTemplate = () => ({
-  rules: [
-    { on: 1, c: { frac: 1 }, act: 'pick', col: 0 },
-    { on: 1, c: { mem: 1 }, act: 'pick', col: 0 },
-    { on: 1, c: { rar: [2] }, act: 'show', col: 0 }
-  ],
-  def: { act: 'show', col: 0 }
-});
-/* 範本二：只撿 ★、追憶、T 高（物品等級 10 以上）的黃裝，其他全部隱藏 */
-const fltTemplate2 = () => ({
-  rules: [
-    { on: 1, c: { frac: 1 }, act: 'pick', col: 0 },
-    { on: 1, c: { mem: 1 }, act: 'pick', col: 0 },
-    { on: 1, c: { rar: [2], L: 10 }, act: 'pick', col: 0 }
-  ],
-  def: { act: 'hide', col: 0 }
-});
-/* 詞綴勾選清單：同名的詞（例如兩種「物理傷害提高」）合成一項；id 是第一個 key */
-const FLT_AFF = (() => {
-  const L = [],
-    by = {};
-  for (const k in AFF) {
-    const n = AFF[k].n
-      .replace(/\s*\{\}%?/g, '')
-      .replace(/\s*\+$/, '')
-      .replace(/^附加\s*/, '附加');
-    (by[n] || (by[n] = { id: k, n, keys: [] })).keys.push(k);
-    if (by[n].keys.length === 1) L.push(by[n]);
-  }
-  return L;
-})();
-const fltSet = () => S.filter.sets[S.filter.cur];
-let FLTV = 0; /* 規則改了就加一，掉落物的結果要重算 */
-function ruleHit(r, it) {
-  const c = r.c;
-  if (c.kind && !c.kind.includes(it.charm ? 'charm' : KIND_GRP[baseOf(it).k])) return false;
-  if (c.rar && !c.rar.includes(it.r || 0)) return false;
-  /* ★（破裂）、追憶：未鑑定也看得到 */
-  if (c.frac && !it.frac) return false;
-  if (c.mem && !it.mem) return false;
-  /* 詞綴條件要鑑定後才看得到：地上未鑑定的永遠不符合，只對鑑定後的（背包、倉庫整理）有效 */
-  if (c.aff && it.uid) return false;
-  if (c.aff) {
-    const ks = new Set(FLT_AFF.filter(g => c.aff.ks.includes(g.id)).flatMap(g => g.keys));
-    if ((it.a || []).filter(a => ks.has(a.k)).length < c.aff.n) return false;
-  }
-  if (c.so != null && (it.so || 0) < c.so) return false;
-  if (c.q != null && (it.q || 0) * 100 < c.q) return false;
-  if (c.L != null && (it.L || 0) < c.L) return false;
-  return true;
-}
-/* 這件東西怎麼處理：{ act, col } */
-function fltAct(it) {
-  const s = fltSet();
-  return s.rules.find(r => r.on && ruleHit(r, it)) || s.def;
-}
-/* 地上的掉落物：自己丟的一律顯示；結果記在 d 上，規則改了才重算 */
-function dropFlt(d) {
-  if (d.nopick) return { act: 'show', col: 0 };
-  if (d.fv !== FLTV) (d.fv = FLTV), (d.fa = fltAct(d.it));
-  return d.fa;
 }
 /* 撿起來：金幣直接加；裝備進清單倉庫（0.4.0）。倉庫滿了：普通裝直接換成金幣（每張圖提醒一次），★ 與追憶照樣收（多留的格子） */
 function pickup(d) {
@@ -1248,7 +1144,7 @@ function pickNearest() {
   let best = null,
     bd = 110;
   for (const d of G.drops)
-    if (d.it && dropFlt(d).act !== 'hide' && dist(P, d) < bd) {
+    if (d.it && dist(P, d) < bd) {
       bd = dist(P, d);
       best = d;
     }
@@ -1268,12 +1164,11 @@ function nearProp() {
 function useProp(p) {
   if (!p) return false;
   if (dist(P, p) > p.r + 90) return hudWarn('走近一點'), true;
-  if (p.k === 'device') openWorld();
+  if (p.k === 'device') openPanel('node');
   else if (p.k === 'stash') openPanel('stash');
   else if (p.k === 'forge') openPanel('craft');
   else if (p.k === 'asc') openPanel('asc');
   else if (p.k === 'box') openPanel('box');
-  else if (p.k === 'npc') talkOpen(p.id);
   else if (p.k === 'prac') hudWarn('走進石圈就能出招');
   else hudWarn('市集之後開放');
   return true;
@@ -2123,7 +2018,6 @@ function frame(now) {
   /* 營地的產生器（0.5.1）：照真實時間產，世界地圖、開場、面板開著都算 */
   if (S) genTick(rdt), sesSample();
   if (IV.on) return introFrame(rdt);
-  if (PANEL.device) return wmFrame(now, rdt);
   if (G.hs > 0) {
     G.hs -= rdt;
     rdt = 0;
@@ -2139,18 +2033,15 @@ function frame(now) {
     updMobs(dt);
     updShots(dt);
     updSkills(dt);
-    if (PRO.on) proTick();
     if (G.arenaT && G.t >= G.arenaT) (G.arenaT = 0), spawnBoss();
     /* 連續刷：王倒下 ROUND_GAP 秒後放下一輪 */
     if (G.nextT && G.t >= G.nextT && G.state === 'play') (G.nextT = 0), roundEnd();
     for (const d of G.drops.slice()) {
       d.t += dt;
-      /* 0.3.3：地圖裡的掉落不看距離全部吸過來（過濾器隱藏的、自己丟的、放不下的不吸）；
-         藏身處照舊：金幣與過濾器「自動撿」的裝備在 150 以內才吸 */
-      const map = G.scene === 'map' && !PRO.on,
-        act = d.it && dropFlt(d).act;
+      /* 0.3.3：地圖裡的掉落不看距離全部吸過來（自己丟的、放不下的不吸）；藏身處只吸 150 以內的金幣（0.5.2 過濾器刪了） */
+      const map = G.scene === 'map';
       if (
-        (d.gold || d.show || (d.it && !d.nopick && !d.full && (map ? act !== 'hide' : act === 'pick'))) &&
+        (d.gold || d.show || (map && d.it && !d.nopick && !d.full)) &&
         d.t > (d.hold || 0.4) &&
         (map || dist(P, d) < 150)
       ) {
@@ -2175,6 +2066,6 @@ function frame(now) {
   /* 天賦樹、直立蓋滿畫面的面板（世界地圖、放大的面板）開著時不畫遊戲（手機省一半的效能）；半版面板照畫（0.4.4） */
   /* 0.4.7：玩家剛按了面板的那一格先讓面板畫出來，戰鬥畫面跳過一格（畫布剛換高度被清空時照畫） */
   if (UI_SKIP && !CV_NEW) UI_SKIP = 0;
-  else if (!TREE.open && !(PORT() && (PANEL.device || (anyPanel() && NAV.full)))) (UI_SKIP = CV_NEW = 0), draw();
+  else if (!TREE.open && !(PORT() && anyPanel() && NAV.full)) (UI_SKIP = CV_NEW = 0), draw();
   hudTick();
 }

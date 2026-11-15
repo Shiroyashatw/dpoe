@@ -117,7 +117,6 @@ function moreMenu(on) {
 }
 /* 刷圖中回藏身處：跳確認卡（hud.js 的 hudState，G.ask），按「回藏身處」才走 */
 function homeAsk() {
-  if (PRO.on) return hudWarn('先走出地層');
   if (G.scene !== 'map' || G.state !== 'play') return;
   G.ask = G.ask === 'home' ? 0 : 'home';
   hudState();
@@ -191,8 +190,6 @@ function touchInit() {
   CV.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
     TOUCH.prop = null;
-    const l = LABELS.find(l => inL(l, e));
-    if (l) return dist(P, l.d) < 160 ? pickup(l.d) : hudWarn('走近一點再撿，或按互動');
     if (G.scene === 'hide') {
       const p = propAt(e);
       if (p === 'portal') return dist(P, G.portal) < 120 ? enterMap(G.portal.to) : hudWarn('走近一點');

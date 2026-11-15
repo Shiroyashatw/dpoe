@@ -105,17 +105,16 @@ async function fresh() {
   await p.waitForFunction(() => !IV.on && G.scene === 'hide');
   ok(
     '播完直接在藏身處，沒有序章',
-    await p.evaluate(() => !PRO.on && G.state === 'play' && !document.body.classList.contains('cine'))
+    await p.evaluate(() => G.state === 'play' && !document.body.classList.contains('cine'))
   );
   ok(
-    '新玩家拿到劍、設施提示開著、記版本號',
+    '新玩家拿到劍、記版本號',
     await p.evaluate(() => {
       const s = JSON.parse(localStorage.getItem(KEY + SLOT));
       return (
         S.eq.weapon &&
-        S.eq.weapon.b === PRO_SWORD &&
+        S.eq.weapon.b === 'w_sword1_0' &&
         !S.fresh &&
-        S.story.tips === 1 &&
         s.story.intro === PRO_VER &&
         s.story.prologue === PRO_VER &&
         !!s.eq.weapon
@@ -124,51 +123,18 @@ async function fresh() {
   );
   await p.waitForTimeout(1200);
   await p.screenshot({ path: shot('home') });
-  /* 撿骨師第一次對話（NPC 資料驅動，不靠序章） */
-  await walk(p, 820, 650, 40);
-  await walk(p, 640, 700, 40);
-  await walk(p, 620, 770, 40);
-  await p.keyboard.press('f');
-  await p.waitForFunction(() => TALK.on, null, { timeout: 5000 });
-  ok('按互動鍵：撿骨師播 bone_first', await p.evaluate(() => TALK.id === 'bone_first'));
-  for (let k = 0; k < 12 && (await p.evaluate(() => TALK.on)); k++) await p.keyboard.press('f');
-  ok('講完記 boneMet', await p.evaluate(() => !TALK.on && S.story.boneMet === 1));
-  /* 地圖台 */
+  /* 0.5.2：地圖台打開地點清單；沒有 NPC、沒有設施提示 */
+  ok(
+    '藏身處沒有 NPC（只剩山海寶盒）',
+    await p.evaluate(() => G.npcs.length === 1 && !G.props.some(q => q.k === 'npc'))
+  );
   await walk(p, 660, 530, 60);
   await p.keyboard.press('f');
-  await p.waitForFunction(() => PANEL.device);
-  ok('地圖台打開世界地圖', await p.evaluate(() => PANEL.device));
+  await p.waitForFunction(() => PANEL.node);
+  ok('地圖台打開地點清單', await p.evaluate(() => PANEL.node && !!document.querySelector('#pnode .ndr')));
   await p.keyboard.press('Escape');
   await open(p, 41);
-  ok('重新整理不再播開場', await p.evaluate(() => !IV.on && !PRO.on && G.scene === 'hide'));
-  /* 設施的提示只有一次 */
-  await p.evaluate(() => {
-    Object.assign(P, { x: 600, y: 400 });
-  });
-  await p.waitForTimeout(200);
-  ok('第一次走到昇華石碑：撿骨師提一句', await p.evaluate(() => TALK.on && TALK.id === 'hint_asc'));
-  await p.keyboard.press('Escape');
-  await p.waitForTimeout(100);
-  ok('提示只有一次', await p.evaluate(() => !TALK.on && S.story.h_asc === 1));
-  await p.waitForTimeout(100);
-  ok('第二次不再提', await p.evaluate(() => !TALK.on));
-  /* 商人 */
-  await p.evaluate(() => {
-    Object.assign(P, { x: 372, y: 860 });
-    interact();
-  });
-  ok('掌櫃第一次先打招呼', await p.evaluate(() => TALK.on && TALK.id === 'trader_first'));
-  await p.keyboard.press('Escape');
-  await p.waitForTimeout(100);
-  /* 0.5.0：商會併進鍛造台的打造 */
-  ok(
-    '招呼打完開打造（功能不變）',
-    await p.evaluate(() => !!PANEL.craft && CRAFT.tab === 'make' && S.story.shopMet === 1)
-  );
-  await p.screenshot({ path: shot('shop') });
-  await p.keyboard.press('Escape');
-  await p.evaluate(() => interact());
-  ok('之後直接開打造', await p.evaluate(() => !TALK.on && !!PANEL.craft));
+  ok('重新整理不再播開場', await p.evaluate(() => !IV.on && G.scene === 'hide'));
   ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
   await p.ctxx.close();
 }
@@ -178,7 +144,7 @@ async function veteran() {
   const p = await page(1280, 720);
   await clean(p, 42);
   await p.evaluate(() => {
-    proAbort();
+    introStop();
     S = newGame();
     delete S.fresh;
     Object.assign(S, { lv: 42, xp: 1234, gold: 5678, frag: 90, maxT: 7, tier: 5, orient: 'l' });
@@ -194,13 +160,12 @@ async function veteran() {
   await toHome(p);
   ok('看完在藏身處、角色一模一樣', (await p.evaluate(CORE)) === before);
   ok('存檔也一模一樣', (await p.evaluate(DISK)) === before);
-  ok('記版本號', await p.evaluate(() => !PRO.on && S.story.prologue === PRO_VER && S.story.intro === PRO_VER));
+  ok('記版本號', await p.evaluate(() => S.story.prologue === PRO_VER && S.story.intro === PRO_VER));
   ok('老玩家沒有多一把劍', await p.evaluate(() => S.eq.weapon.b === 'w_bow_0' && !S.inv.items.length));
   ok('手機方向設定留著', await p.evaluate(() => S.orient === 'l'));
-  ok('老玩家不跳設施提示', await p.evaluate(() => !proHint('asc')));
   /* 版本號 */
   await open(p, 42);
-  ok('版本號一樣：不跑', await p.evaluate(() => !IV.on && !PRO.on));
+  ok('版本號一樣：不跑', await p.evaluate(() => !IV.on));
   await p.evaluate(() => {
     S.story.prologue = PRO_VER - 1;
     S.story.intro = PRO_VER - 1;
@@ -222,10 +187,10 @@ async function skips() {
   await p.waitForFunction(() => !IV.on && G.scene === 'hide');
   ok(
     '開場跳過：在藏身處、拿到劍、記過開場',
-    await p.evaluate(() => !PRO.on && !!S.eq.weapon && S.story.intro === PRO_VER && S.story.prologue === PRO_VER)
+    await p.evaluate(() => !!S.eq.weapon && S.story.intro === PRO_VER && S.story.prologue === PRO_VER)
   );
   await open(p, 43);
-  ok('重新整理：不再播開場', await p.evaluate(() => !IV.on && !PRO.on && G.scene === 'hide' && !!S.eq.weapon));
+  ok('重新整理：不再播開場', await p.evaluate(() => !IV.on && G.scene === 'hide' && !!S.eq.weapon));
   /* 開場中重新整理：開場重來（版本號還沒記）。換一個存檔位，免得離開頁面時又把看完的存檔寫回去 */
   await clean(p, 44);
   await p.click('#ivgo');
@@ -323,9 +288,7 @@ async function phone(w, h) {
   } catch (e) {
     ok('跑到一半掛了', false, e.message);
     console.log(
-      await LAST.evaluate(() =>
-        JSON.stringify({ on: PRO.on, scene: G.scene, state: G.state, x: P.x | 0, y: P.y | 0, talk: TALK.on, iv: IV.on })
-      )
+      await LAST.evaluate(() => JSON.stringify({ scene: G.scene, state: G.state, x: P.x | 0, y: P.y | 0, iv: IV.on }))
     );
     console.log(LAST.errs);
   }

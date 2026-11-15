@@ -3940,13 +3940,14 @@ const ASC_COMBOS = `const combos = k => {
         const n = [0, 0, 0]; let bad = 0, inv = 0; S.auto2.r = 0;
         for (let i = 0; i < 1000; i++) { S.inv.items = []; const r = craftDo('helm', { sys: 'armor', T: 3, n: 1 }); if (r.why) return r.why; const it = r.items[0]; n[it.r]++; inv += S.inv.items.length; if (it.L !== matIlvl(3) || baseOf(it).k !== 'helm' || it.salv) bad++; }
         out[lv] = { n: n.map(x => x / 10), bad, iron: 1e6 - matN('iron', 3), inv };
-        if (n.some((x, i) => Math.abs(x / 10 - want[i]) > 3)) return 'rar ' + lv + ' ' + n.join();
+        /* 1000 件的標準差約 1.5%，±3% 是 2σ、每跑 20 次錯一次；0.5.2 放寬到 ±5%（3.4σ） */
+        if (n.some((x, i) => Math.abs(x / 10 - want[i]) > 5)) return 'rar ' + lv + ' ' + n.join();
         if (bad || 1e6 - matN('iron', 3) !== 5000 || inv !== 1000) return 'cost ' + lv + ' ' + JSON.stringify(out[lv]);
       }
       return out;
     })()`);
     ok(
-      '打造 1000 件：稀有度落在表的 ±3%（Lv0 70／30／0、Lv4 60／30／10、Lv10 30／50／20、Lv16 10／50／40）、物品等級＝材料的階、頭部一件扣 5 個鐵、全部進倉庫',
+      '打造 1000 件：稀有度落在表的 ±5%（Lv0 70／30／0、Lv4 60／30／10、Lv10 30／50／20、Lv16 10／50／40）、物品等級＝材料的階、頭部一件扣 5 個鐵、全部進倉庫',
       typeof r === 'object',
       JSON.stringify(r).slice(0, 200)
     );
@@ -6279,7 +6280,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Uint8Array, Float64Array };
   vm.createContext(c4);
-  for (const f of ['hideart.js', 'npc.js', 'hideout.js'])
+  for (const f of ['hideart.js', 'hideout.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = x => vm.runInContext(x, c4);
   R(`var G = { t: 0, mobs: [] }, P = {}, S = { story: {}, maxT: 3 }, PRAC = { t: 2, dot: 0 }, MOBS = { a: { hp: 50 } }, BOSSES = [{ hp: 300 }];
@@ -6346,19 +6347,6 @@ const ASC_COMBOS = `const combos = k => {
   R('dpsReset(); G.t = 300; dpsAdd(50, 0); G.t = 302');
   ok('DPS：剛開打用實際秒數平均', R('dpsView().avg') === 25);
   /* 對話資料 */
-  const bad2 = R(`Object.entries(TALKS).flatMap(([k, T]) => [
-      ...T.lines.filter(l => l[0] !== null && !NPCS[l[0]]).map(() => k + ' 的 NPC 不存在'),
-      ...(typeof T.next === 'string' && !TALKS[T.next] ? [k + ' 的 next 不存在'] : [])
-    ])`);
-  ok('NPC：對話的角色與接續都存在', !bad2.length, bad2.join());
-  ok(
-    'NPC：每個人都接得到對話、位置都有',
-    /* 破曉哨兵只在世界地圖的對話裡說話，不在藏身處 */
-    R(`Object.keys(NPCS).every(id => id === 'dawn' || (TALKS[NPCS[id].talk(S)] && HIDE_ART.npc[id]))`)
-  );
-  ok('NPC：撿骨師、掌櫃在，赤鴉預設隱藏', R(`npcList().map(n => n.id).join() === 'bone,trader'`));
-  R('S.story.crow = 1');
-  ok('NPC：解鎖後赤鴉出現', R(`npcList().some(n => n.id === 'crow')`));
 }
 /* 第 12 批：增益與資源（combat.js 的 BUFF）：疊層、上限、到期、數值生效、不是 NaN；奇術活力、滿溢聖杯 */
 {
@@ -8297,8 +8285,7 @@ const ASC_COMBOS = `const combos = k => {
     'mech.js',
     'game.js',
     'skills.js',
-    'intro.js',
-    'prologue.js'
+    'intro.js'
   ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
   const R2 = s => vm.runInContext(s, c2);
@@ -8318,84 +8305,31 @@ const ASC_COMBOS = `const combos = k => {
   );
   const len = R2('IV_LEN');
   ok('開場：約 85 秒', len > 83 && len < 88, len);
-  /* 地圖：開到第幾道石牆，走得到哪裡 */
-  const M = R2('PRO_MAP'),
-    STEPS = R2('PRO_STEPS.map(s => ({ at: s.at, gate: s.gate }))'),
-    tiles = R2('proTiles()');
-  const reach = n => {
-    const t = Array.from(tiles);
-    M.gates.slice(0, n).forEach(([x0, y, x1]) => {
-      for (let x = x0; x <= x1; x++) t[y * M.cols + x] = 0;
-    });
-    const [sx, sy] = STEPS[0].at.map(Math.floor),
-      seen = new Set([sy * M.cols + sx]),
-      q = [...seen];
-    while (q.length) {
-      const i = q.pop();
-      for (const d of [1, -1, M.cols, -M.cols]) if (!t[i + d] && !seen.has(i + d)) seen.add(i + d), q.push(i + d);
-    }
-    return seen;
-  };
-  const exit = 1 * M.cols + 12;
-  ok(
-    '序章：每開一道石牆才走得更遠，全開才到得了出口',
-    M.gates.every((_, i) => reach(i + 1).size > reach(i).size) &&
-      reach(M.gates.length).has(exit) &&
-      !reach(M.gates.length - 1).has(exit)
-  );
-  const all = reach(M.gates.length);
-  ok(
-    '序章：每一步重來的起點都在地板上',
-    STEPS.filter(s => s.at).every(s => all.has(Math.floor(s.at[1]) * M.cols + Math.floor(s.at[0])))
-  );
-  /* 存檔：proBack 換回來 */
   R2(`hudBar = () => {}; save = () => {}; closePanels = () => {}; enterHideout = () => {}; introStop = () => {};
-    var BOOT = ''; introGate = () => (BOOT = 'gate'); proStart = () => (BOOT = 'map'); proStep = i => (BOOT = 'step' + i);`);
+    var BOOT = ''; introGate = () => (BOOT = 'gate');`);
   ok(
     '新存檔：沒有武器、有 fresh 旗標',
     R2(`S = newGame(); !S.eq.weapon && S.fresh === 1 && S.skills[0].k === 'slash' && !!S.eq.chest`)
-  );
-  ok(
-    '序章跳過（新玩家）：給一把劍、拿掉 fresh、會有設施提示',
-    R2(`S = newGame(); PRO.real = null; proBack(); S.eq.weapon.b === PRO_SWORD && !S.fresh && S.story.tips === 1`)
-  );
-  ok(
-    '序章結束（新玩家）：留下序章那把劍，不是新的',
-    R2(`var real = newGame(), tmp = newGame(); tmp.eq.weapon = mkItem(PRO_SWORD, 1, 0); var sid = tmp.eq.weapon.id;
-      tmp.story = real.story; PRO.real = real; S = tmp; proBack(); S === real && S.eq.weapon.id === sid && !PRO.real`)
-  );
-  ok(
-    '序章結束（老存檔）：裝備、等級、技能、天賦都不動，臨時角色的東西不留',
-    R2(`var old = newGame(); delete old.fresh; old.lv = 42; old.gold = 777; old.eq.weapon = mkItem('w_bow_0', 20, 2); old.pt = old.pt.slice(0, 1);
-      var snap = JSON.stringify(old); tmp = newGame(); tmp.gold = 1; tmp.lv = 9; tmp.eq.weapon = mkItem(PRO_SWORD, 1, 0);
-      tmp.story = old.story; tmp.orient = old.orient; tmp.sfx = old.sfx; PRO.real = old; S = tmp; proBack();
-      S === old && JSON.stringify(S) === snap && !S.story.tips`)
-  );
-  ok('序章結束（老存檔）：沒有設施提示', R2(`!proHint('asc')`));
-  const boot = st => R2(`BOOT = ''; S = newGame(); S.story = ${JSON.stringify(st)}; proBoot(); BOOT`);
-  /* 0.3.0 起序章不跑：看過開場＝直接給劍、記版本號（proGive），序章中斷的舊存檔也一樣 */
-  ok(
-    '版本號：沒跑過＝開場、看過開場＝不進序章直接給劍記版本號、跑過＝不跑、版本變了＝重跑',
-    boot({}) === 'gate' &&
-      boot({ intro: R2('PRO_VER') }) === '' &&
-      R2(
-        `!PRO.on && S.story.prologue === PRO_VER && !S.fresh && S.eq.weapon && S.eq.weapon.b === PRO_SWORD && S.story.tips === 1`
-      ) &&
-      boot({ intro: R2('PRO_VER'), proS: 7 }) === '' &&
-      R2(`S.story.prologue === PRO_VER && !S.story.proS`) &&
-      boot({ prologue: R2('PRO_VER') }) === '' &&
-      boot({ prologue: R2('PRO_VER') - 1, intro: R2('PRO_VER') - 1 }) === 'gate'
-  );
-  ok(
-    '第 8 步收斂在 openWorld：序章結束、記版本號',
-    R2(`openPanel = () => {}; S = newGame(); PRO.on = true; PRO.i = 8; S.story.proS = 7; openWorld();
-      !PRO.on && S.story.prologue === PRO_VER && S.story.intro === PRO_VER && !S.story.proS`)
   );
   /* 存檔 24：main.js 最後的 start() 不跑 */
   vm.runInContext(
     fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8').replace(/\nstart\(\);\s*$/, '\n'),
     c2,
     { filename: 'main.js' }
+  );
+  /* 0.5.2：序章刪了，main.js 的 proBoot／proGive：沒看過開場＝放開場、看過＝新存檔給劍、記版本號；老存檔不動 */
+  R2('save = () => {}');
+  const boot = st => R2(`BOOT = ''; S = newGame(); S.story = ${JSON.stringify(st)}; proBoot(); BOOT`);
+  ok(
+    '開場（0.5.2）：沒看過＝放開場；看過＝給劍、記版本號；跑過＝不再放；版本變了＝重放；老存檔裝備不動',
+    boot({}) === 'gate' &&
+      boot({ intro: R2('PRO_VER') }) === '' &&
+      R2(`S.story.prologue === PRO_VER && !S.fresh && S.eq.weapon && S.eq.weapon.b === 'w_sword1_0'`) &&
+      boot({ prologue: R2('PRO_VER') }) === '' &&
+      boot({ prologue: R2('PRO_VER') - 1, intro: R2('PRO_VER') - 1 }) === 'gate' &&
+      R2(
+        `S = newGame(); delete S.fresh; S.eq.weapon = mkItem('w_bow_0', 20, 2); S.story = { intro: PRO_VER }; proBoot(); S.eq.weapon.b === 'w_bow_0'`
+      )
   );
   /* 0.3.0：舊存檔（< 31）直接開新角色；0.4.0：存檔 31 → 32（固定節點、清單倉庫、沒有鑑定、地圖碎片換金幣） */
   ok(
@@ -8484,36 +8418,6 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify(r)
     );
   }
-  /* 過濾器（8-3，企劃書 5.1）：★、追憶；範本一「★ 或追憶 → 自動撿、黃裝 → 顯示」、範本二「只撿 ★、追憶、T 高的黃裝」；0.4.0 沒有鑑定，詞綴條件直接看得到 */
-  {
-    const r = R2(`(() => {
-      S = newGame();
-      const mkI = (r, o = {}) => ({ ...mkItem('c_leather', 12, r), ...o });
-      const y = mkI(2), b = mkI(1), w = mkI(0), fy = mkI(2, { frac: 'life' }), my = mkI(1, { mem: { k: 'm_lv' } }), yl = mkI(2, { L: 5 }), yh = mkI(2, { L: 12 });
-      const A = it => fltAct(it).act;
-      S.filter.cur = 0;
-      const t1 = [A(fy), A(my), A(y), A(b), A(w)];
-      S.filter.cur = 1;
-      const t2 = [A(fy), A(my), A(yh), A(yl), A(b), A(w)];
-      const g = FLT_AFF[0], it = mkI(2);
-      it.a = [{ k: g.keys[0], T: 3, v: 1 }];
-      S.filter.sets[2] = { rules: [{ on: 1, c: { aff: { ks: [g.id], n: 1 } }, act: 'hl', col: 1 }], def: { act: 'hide', col: 0 } };
-      S.filter.cur = 2;
-      const id = A(it);
-      it.a = [];
-      return { t1, t2, id, no: A(it), sets: S.filter.sets.map(s => s.rules.length), n2: fltTemplate2().def.act };
-    })()`);
-    ok(
-      '過濾器：★、追憶條件；範本一（★／追憶 → 自動撿、黃裝 → 顯示、其他 → 顯示）；範本二（★、追憶、物品等級 10 以上的黃裝 → 自動撿，其他 → 隱藏）；新存檔第 1、2 組就是這兩個範本；詞綴條件掉落當下就看得到（0.4.0 沒有鑑定）',
-      r.t1.join() === 'pick,pick,show,show,show' &&
-        r.t2.join() === 'pick,pick,pick,hide,hide,hide' &&
-        r.id === 'hl' &&
-        r.no === 'hide' &&
-        r.sets.join() === '3,3,1' &&
-        r.n2 === 'hide',
-      JSON.stringify(r)
-    );
-  }
   ok(
     '通貨三階：完美的新詞一定是最高階、高階在最高 2 階內；高階 Lv45、完美 Lv70 才掉，完美 300 次保底',
     R2(`(() => {
@@ -8530,13 +8434,12 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '中間階梯：兩條以上 T1（T0 算）→「T1×n」、品質 20% 以上 →「品質 n%」；過濾器有「賣掉」',
+    '中間階梯：兩條以上 T1（T0 算）→「T1×n」、品質 20% 以上 →「品質 n%」',
     R2(`(() => {
       const it = mkItem('c_leather', 80, 2);
       it.a = it.a.slice(0, 3).map((a, i) => ({ ...a, T: i < 2 ? 1 : 4 })); it.q = 0;
       const a = midMark(it); it.a[1].T = 3; it.q = 0.2; const b = midMark(it); it.q = 0.1; const c = midMark(it);
-      S = newGame(); S.filter.sets[2] = { rules: [], def: { act: 'sell', col: 0 } }; S.filter.cur = 2;
-      return a === 'T1×2' && b === '品質 20%' && c === '' && fltAct(it).act === 'sell' && FLT_ACT.sell === '賣掉';
+      return a === 'T1×2' && b === '品質 20%' && c === '';
     })()`)
   );
   ok(

@@ -45,7 +45,6 @@ const treeZ0 = () => clamp((IW / 2 - 30) / 560, 0.12, 0.55);
 const treeMine = () => (S.pt.length > PT_START.length ? PTREE.I[S.pt[S.pt.length - 1]] : null);
 function treeOpen() {
   if (TREE.open) return treeClose();
-  if (proHint('tree', treeOpen)) return;
   closePanels();
   TREE.open = true;
   TREE.sel = null;

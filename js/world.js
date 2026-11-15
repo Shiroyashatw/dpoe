@@ -9,30 +9,28 @@ const wRing = (q, r) => (Math.abs(q) + Math.abs(r) + Math.abs(q + r)) / 2;
 const W_CAP = 83;
 const W_SEED = 20261112; /* 0.4.0：所有人同一個種子（地形細節） */
 
-/* 劇情區：固定節點，照順序打，不選星級（card 是固定的卡）。talk：第一次選到時播的對話 */
+/* 劇情區：固定節點（0.5.2 起對話刪了；card 是 0.4 的固定卡，0.5.1 起不用） */
 const STORY = [
-  { q: 0, r: 0, n: '地層出口', lv: 5, d: '離開地層後的第一站', card: { star: 1, mods: [] }, talk: 'st_0' },
-  { q: 0, r: 1, n: '枯河渡口', lv: 6, d: '地圖詞與星級', card: { star: 1, mods: ['dmg1'] }, talk: 'st_1' },
-  { q: -1, r: 2, n: '破曉哨站', lv: 8, d: '破曉軍團的據點', card: { star: 1, mods: ['pack'] }, talk: 'st_2' },
+  { q: 0, r: 0, n: '地層出口', lv: 5, d: '離開地層後的第一站', card: { star: 1, mods: [] } },
+  { q: 0, r: 1, n: '枯河渡口', lv: 6, d: '地圖詞與星級', card: { star: 1, mods: ['dmg1'] } },
+  { q: -1, r: 2, n: '破曉哨站', lv: 8, d: '破曉軍團的據點', card: { star: 1, mods: ['pack'] } },
   {
     q: 0,
     r: 2,
     n: '廢棄礦道',
     lv: 9,
     d: '地圖詞與風險',
-    card: { star: 2, mods: ['hp1', 'dmg1', 'pack', 'arm'] },
-    talk: 'st_3'
+    card: { star: 2, mods: ['hp1', 'dmg1', 'pack', 'arm'] }
   },
-  { q: 1, r: 1, n: '鴉衛的記號', lv: 11, d: '主線的方向', card: { star: 1, mods: ['spd1'] }, talk: 'st_4' },
-  { q: 1, r: 2, n: '天星商隊', lv: 13, d: '商人與賣裝', card: { star: 1, mods: ['elite'] }, talk: 'st_5' },
+  { q: 1, r: 1, n: '鴉衛的記號', lv: 11, d: '主線的方向', card: { star: 1, mods: ['spd1'] } },
+  { q: 1, r: 2, n: '天星商隊', lv: 13, d: '商人與賣裝', card: { star: 1, mods: ['elite'] } },
   {
     q: 2,
     r: 1,
     n: '燒毀的村莊',
     lv: 14,
     d: '昇華',
-    card: { star: 2, mods: ['fire', 'hp1', 'res1', 'acc'] },
-    talk: 'st_6'
+    card: { star: 2, mods: ['fire', 'hp1', 'res1', 'acc'] }
   },
   {
     q: 3,
@@ -40,8 +38,7 @@ const STORY = [
     n: '血霧山道',
     lv: 16,
     d: '狩獵之血',
-    card: { star: 2, mods: ['bleed', 'hp1', 'dmg1', 'spd1'] },
-    talk: 'st_7'
+    card: { star: 2, mods: ['bleed', 'hp1', 'dmg1', 'spd1'] }
   },
   {
     q: 3,
@@ -49,8 +46,7 @@ const STORY = [
     n: '裂谷斷崖',
     lv: 18,
     d: '打倒這裡的王，世界就會展開',
-    card: { star: 2, mods: ['boss', 'hp1', 'dmg1', 'pack'] },
-    talk: 'st_8'
+    card: { star: 2, mods: ['boss', 'hp1', 'dmg1', 'pack'] }
   }
 ];
 const STORY_END = STORY.length - 1;

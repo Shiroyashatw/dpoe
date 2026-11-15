@@ -11,11 +11,10 @@ function load() {
 }
 function save() {
   if (!S) return;
-  /* 序章裡 S 是臨時角色，寫進存檔的永遠是真的那份 */
-  const s = PRO.real || S;
+  const s = S;
   s.savedAt = Date.now();
   /* 離線結算（0.4.1）：存的時候在刷圖，下次打開就從存檔時間算起 */
-  s.farm = G.scene === 'map' && !G.arena && !PRO.on ? 1 : 0;
+  s.farm = G.scene === 'map' && !G.arena ? 1 : 0;
   /* 分頁在背景時計時器還會存檔：離開的時間從切走那一刻算 */
   s.offAt = HIDE_AT || s.savedAt;
   try {
@@ -148,8 +147,8 @@ function migrate(s) {
   o.ptA = o.ptA || {};
   /* 存檔裡有樹上已經沒有的點（重烘過）也全部退回，不然算數值會壞 */
   if (o.pt.some(id => !PTREE.I[id])) (o.pt = [...PT_START]), (o.ptA = {});
-  if (!o.filter || !Array.isArray(o.filter.sets))
-    o.filter = { cur: 0, sets: [fltTemplate(), fltTemplate2(), fltEmpty()] };
+  /* 0.5.2：過濾器刪了 */
+  delete o.filter;
   /* 0.2.63：光環欄沒有格數，寶石排前面、尾巴留一個空格 */
   o.auras = [...(o.auras || []).filter(Boolean), null];
   /* 昇華不存在或點對不上（改過昇華的形狀）就退回 */
@@ -185,9 +184,28 @@ function resize() {
   CV.height = Math.round(cvH() * DPR);
   if (S) sheetSync();
 }
+/* ---------- 開場之後（0.5.2：序章、NPC 對話、設施提示都刪了；intro.js 播完或跳過叫 proGive） ----------
+   新存檔（S.fresh）拿到劍、記版本號；看過開場的直接給；沒看過的放開場（introGate） */
+const PRO_VER = 1;
+function proGive() {
+  if (S.fresh) (S.eq.weapon = mkItem('w_sword1_0', 1, 0)), delete S.fresh;
+  S.story.intro = S.story.prologue = PRO_VER;
+  ST = stats();
+  hudBar();
+  save();
+}
+function proBoot() {
+  if (S.story.intro === PRO_VER || S.story.prologue === PRO_VER) proGive();
+  else introGate();
+}
+/* 跳過開場（測試工具也用） */
+function proSkip() {
+  introStop();
+  proGive();
+}
 /* 換成另一份存檔（雲端較新、登入帳號）：回藏身處重來 */
 function useSave(r) {
-  proAbort();
+  introStop();
   S = migrate(r);
   enterHideout();
   applyOrient();
@@ -211,7 +229,7 @@ function start() {
   touchInit();
   proBoot();
   cloudInit().then(remote => {
-    if (remote && remote.v >= 10 && (remote.savedAt || 0) > ((PRO.real || S).savedAt || 0)) {
+    if (remote && remote.v >= 10 && (remote.savedAt || 0) > (S.savedAt || 0)) {
       useSave(remote);
       hudWarn('已從雲端載入存檔');
     } else cloudPush();

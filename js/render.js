@@ -140,7 +140,6 @@ function draw() {
   bDeco(W, H);
   /* 地面效果、屍體、殘留物、榴彈、幻影、旗幟、飛劍（mech.js） */
   if (G.ground) drawMech();
-  if (PRO.on) proDraw();
   /* 預警：怪物出手前地上的紅色範圍 */
   CX.lineWidth = 2;
   for (const m of G.mobs) {
@@ -290,39 +289,7 @@ function draw() {
       CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
       spr(CUR[d.show].ic, x, y + 8, 26);
     } else {
-      const fa = dropFlt(d);
-      if (fa.act === 'hide') continue;
-      const col = RCOL[d.it.r],
-        hl = fa.act === 'hl' ? hexRgb(FLT_COL[fa.col]) : null;
-      /* 掉落光柱：稀有金色、又粗又亮會呼吸；魔法淡藍細柱；醒目＝過濾器選的顏色（又粗又亮） */
-      if (hl || d.it.r >= 1) {
-        const rare = hl || d.it.r === 2,
-          bh = rare ? 190 : 110,
-          a = (rare ? 0.6 : 0.28) * (0.8 + 0.2 * Math.sin(G.t * 3 + d.sx)),
-          rgb = hl || (rare ? '255,209,102' : '138,180,255'),
-          g = CX.createLinearGradient(x, y - bh, x, y);
-        g.addColorStop(0, `rgba(${rgb},0)`);
-        g.addColorStop(1, `rgba(${rgb},${a})`);
-        CX.fillStyle = g;
-        CX.fillRect(x - (rare ? 7 : 3), y - bh, rare ? 14 : 6, bh);
-        if (rare) {
-          CX.fillStyle = `rgba(255,236,190,${a})`;
-          CX.fillRect(x - 1.5, y - bh * 0.8, 3, bh * 0.8);
-        }
-      }
-      /* ★（破裂）：白金又高又寬的光柱；追憶：青色光柱（企劃書 5.4）；未鑑定也看得到 */
-      const sp = d.it.frac ? '255,250,225' : d.it.mem ? '110,225,255' : null;
-      if (sp) {
-        const bh = d.it.frac ? 280 : 220,
-          a = 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
-          g = CX.createLinearGradient(x, y - bh, x, y);
-        g.addColorStop(0, `rgba(${sp},0)`);
-        g.addColorStop(1, `rgba(${sp},${a})`);
-        CX.fillStyle = g;
-        CX.fillRect(x - 10, y - bh, 20, bh);
-        CX.fillStyle = `rgba(255,255,255,${a})`;
-        CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
-      }
+      const col = RCOL[d.it.r];
       spr(itemIc(d.it), x, y + 10, 26);
       CX.fillStyle = col;
       CX.globalAlpha = d.it.r === 2 ? 0.5 : 0.25;
@@ -479,38 +446,6 @@ function draw() {
   CX.globalAlpha = 1;
   drawAim();
   drawPrompts();
-  /* 掉落標籤（PoE 式：名字框，可以點） */
-  LABELS.length = 0;
-  CX.font = '600 13px "Noto Sans TC", sans-serif';
-  const btns = touchRects();
-  for (const d of G.drops) {
-    if (!d.it || d.t < 0.3) continue;
-    const fa = dropFlt(d);
-    if (fa.act === 'hide') continue;
-    /* 品質、潛能金字以上直接寫在標籤上（D2：好基底一眼看得出來） */
-    const txt = itemName(d.it) + labelTag(d.it) + dropTag(d.it),
-      w = CX.measureText(txt).width + 14;
-    let x = d.x,
-      y = d.y - 22;
-    /* 手機：標籤被右邊的技能鍵蓋住就往左推（推到按鈕左邊） */
-    for (const r of btns) {
-      const L = (x - w / 2 + ox) * ZOOM,
-        T = (y - 11 + oy) * ZOOM;
-      if (L < r.right && L + w * ZOOM > r.left && T < r.bottom && T + 20 * ZOOM > r.top)
-        x = (r.left - 6) / ZOOM - ox - w / 2;
-    }
-    const near = dist(P, d) < 110;
-    /* 底色帶一點稀有度的色調（跟說明框的標題列一致），稀有以上框粗一點；過濾器「醒目」＝框改成選的顏色、更粗 */
-    CX.fillStyle = near ? RBG[d.it.r] : 'rgba(38,40,45,0.88)';
-    CX.fillRect(x - w / 2, y - 11, w, 20);
-    CX.strokeStyle = fa.act === 'hl' ? FLT_COL[fa.col] : d.it.frac ? '#fff7d6' : d.it.mem ? '#6fe3ff' : RCOL[d.it.r];
-    CX.lineWidth = fa.act === 'hl' || d.it.frac || d.it.mem ? 3 : near || d.it.r >= 2 ? 2 : 1;
-    CX.strokeRect(x - w / 2 + 0.5, y - 10.5, w - 1, 19);
-    CX.fillStyle = RCOL[d.it.r];
-    CX.fillText(txt, x, y + 4);
-    CX.globalAlpha = 1;
-    LABELS.push({ d, x: (x - w / 2 + ox) * ZOOM, y: (y - 11 + oy) * ZOOM, w: w * ZOOM, h: 20 * ZOOM });
-  }
   CX.restore();
   /* 光照：玩家周圍亮、遠處暗 */
   /* 暗層只有柔和的漸層：用 1/4 解析度畫再放大（全解析度每格三次全螢幕填色太貴），座標照畫布像素 */
@@ -563,19 +498,6 @@ function draw() {
   }
 }
 const RCOL = ['#e8e2d6', '#8ab4ff', '#ffd166'];
-/* 手機的技能鍵在螢幕上的位置（每 0.5 秒量一次，避免每格都排版） */
-let TRECT = [],
-  TRECT_T = -1;
-function touchRects() {
-  if (!TOUCH.on) return [];
-  if (Math.abs(G.t - TRECT_T) > 0.5) {
-    TRECT_T = G.t;
-    TRECT = [...document.querySelectorAll('#bar .sk')]
-      .map(e => e.getBoundingClientRect())
-      .sort((a, b) => b.left - a.left);
-  }
-  return TRECT;
-}
 const RBG = ['rgba(21,17,13,0.95)', 'rgba(18,24,51,0.95)', 'rgba(42,33,13,0.95)'];
 /* canvas 上的鑄鐵銀框（小地圖、互動提示），跟面板同色：外黑、內銀 */
 function frameRect(x, y, w, h) {
@@ -585,7 +507,6 @@ function frameRect(x, y, w, h) {
   CX.strokeStyle = '#a7acb6';
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
-const LABELS = [];
 function teleCircle(x, y, r, f) {
   CX.fillStyle = `rgba(229,72,77,${0.08 + 0.12 * f})`;
   CX.beginPath();
@@ -954,26 +875,6 @@ function drawMinimap(W) {
     CX.fillStyle = m.boss ? '#ff6b3d' : m.elite ? '#8ab4ff' : '#c95050';
     const z = m.boss ? 5 : 2;
     CX.fillRect(x0 + m.x * s - z / 2, y0 + m.y * s - z / 2, z, z);
-  }
-  /* 地上的稀有裝：黑邊金菱形（比玩家的點大，一眼分得出來）；過濾器「醒目」的用選的顏色、隱藏的不畫 */
-  CX.strokeStyle = '#000';
-  CX.lineWidth = 1.5;
-  for (const d of G.drops) {
-    const fa = d.it && dropFlt(d);
-    if (d.it && fa.act !== 'hide' && (d.it.r >= 2 || d.it.frac || d.it.mem || fa.act === 'hl')) {
-      CX.fillStyle = fa.act === 'hl' ? FLT_COL[fa.col] : d.it.frac ? '#fff7d6' : d.it.mem ? '#6fe3ff' : RCOL[2];
-      const dx = x0 + d.x * s,
-        dy = y0 + d.y * s,
-        z = d.it.frac || d.it.mem ? 7 : 5;
-      CX.beginPath();
-      CX.moveTo(dx, dy - z);
-      CX.lineTo(dx + z, dy);
-      CX.lineTo(dx, dy + z);
-      CX.lineTo(dx - z, dy);
-      CX.closePath();
-      CX.stroke();
-      CX.fill();
-    }
   }
   CX.fillStyle = '#9df29d';
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);

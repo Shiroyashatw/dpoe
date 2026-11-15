@@ -14,11 +14,7 @@ function himg(k) {
 }
 /* 山海寶盒（0.2.80）：地圖台右邊，不在烘好的場景裡（圖先借現成的 it_mtrapbox） */
 const BOX = { k: 'box', n: '山海寶盒', x: 760, y: 500, r: 22, ny: 72, sp: 'it_mtrapbox' };
-const hideProps = () => [
-  ...HIDE_ART.props,
-  BOX,
-  ...npcList().map(n => ({ k: 'npc', id: n.id, n: n.n, x: n.x, y: n.y, r: 22, ny: 86 }))
-];
+const hideProps = () => [...HIDE_ART.props, BOX];
 
 /* ---------- 稻草人：不會死、不反擊、不掉寶、不給經驗、不算首領進度 ---------- */
 const DUMMY_N = ['稻草人', '菁英稻草人', '王稻草人'];
@@ -107,7 +103,6 @@ function pracLeave() {
 }
 function hideTick() {
   const near = nearProp();
-  if (near && (near.k === 'asc' || near.k === 'forge')) proHint(near.k);
   const z = HIDE_ART.zone,
     on = ((P.x - z.x) / z.rx) ** 2 + ((P.y - z.y) / z.ry) ** 2 < 1;
   if (on === PRAC.in) return;

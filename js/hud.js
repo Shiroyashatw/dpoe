@@ -82,7 +82,7 @@ const DMENU = [
 ];
 /* 功能選單（0.4.0）：刷圖時也能開（面板開著戰鬥照跑）；桌機「功能」鈕、手機 ☰ 都列這些 */
 const FMENU = [
-  ['device', '世界地圖', 'M'],
+  ['node', '地點', 'M'],
   ['stash', '通貨與碎片', 'O'],
   ['craft', '營地', 'K'],
   ['asc', '昇華石碑', 'U'],
@@ -90,13 +90,12 @@ const FMENU = [
   ['log', '掉落紀錄', 'L']
 ];
 function fmenuOpen(k) {
-  const on = k === 'device' ? PANEL.device : PANEL[k];
+  const on = PANEL[k];
   HP_HOLD++;
   closePanels();
   HP_HOLD--;
   if (on) return hudPanels();
-  if (k === 'device') openWorld();
-  else (NAV.full = PORT() ? 1 : 0), openPanel(k);
+  (NAV.full = PORT() ? 1 : 0), openPanel(k);
 }
 const fmenuHTML = () =>
   FMENU.filter(([k]) => k !== 'asc' || campCan('asc'))
@@ -127,8 +126,6 @@ function hudInit() {
   <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="home">${ICO.home}回藏身處</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
   pracInit();
-  talkInit();
-  proInit();
   introInit();
   hudBar();
   hudState();
@@ -289,14 +286,12 @@ function hudTick() {
   if (pr) setV($('prog'), 'prog', Math.min(1, G.prog / G.need).toFixed(3));
   pracHud();
   const at =
-    PRO.on && G.scene === 'map'
-      ? '地層'
-      : G.scene === 'hide'
-        ? `藏身處 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
-        : G.nextT
-          ? /* 王倒下（0.4.9）：寫清楚不按會怎樣 */
-            `王倒下 · ${Math.max(1, Math.ceil(G.nextT - G.t))} 秒後在這裡再刷一輪，不用按`
-          : `${G.nodeN || '地圖'} · ${G.star || 1}★ · 怪物 Lv ${mobLv(G.mapT)} · 第 ${G.round || 1} 輪`;
+    G.scene === 'hide'
+      ? `藏身處 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
+      : G.nextT
+        ? /* 王倒下（0.4.9）：寫清楚不按會怎樣 */
+          `王倒下 · ${Math.max(1, Math.ceil(G.nextT - G.t))} 秒後在這裡再刷一輪，不用按`
+        : `${G.nodeN || '地圖'} · ${G.star || 1}★ · 怪物 Lv ${mobLv(G.mapT)} · 第 ${G.round || 1} 輪`;
   setT($('area'), 'at', at);
   idleBar();
   runBar();
@@ -448,14 +443,13 @@ const navHTML = () => {
 const idleOn = () =>
   !!S &&
   G.scene === 'map' &&
-  !PRO.on &&
   !anyPanel() &&
   !TREE.open &&
   G.state !== 'dead' &&
   !G.ask &&
   (!TOUCH.on || (PORT() && !!S.auto));
 /* 半版面板開著（世界地圖是全螢幕，不算）；直立的掛機卡也算半版 */
-const sheetOn = () => !!(PORT() && (anyPanel() || idleOn()) && !PANEL.device);
+const sheetOn = () => !!(PORT() && (anyPanel() || idleOn()));
 /* 遊戲畫布的高度：半版面板開著時縮到上半，戰鬥照樣看得到；掛機卡永遠半版 */
 const cvH = () => (sheetOn() && !(NAV.full && anyPanel()) ? Math.round(IH * SHEET_TOP) : IH);
 function sheetSync() {
@@ -524,33 +518,41 @@ function moreHTML() {
     ${campCan('asc') ? row('f:asc', '昇華石碑', S.asc ? esc(ASC[S.asc].n) : '<span class="c-good">還沒選</span>') : ''}
     ${row('f:box', '山海寶盒', '殿與王場的門票')}
     ${row('f:log', '掉落紀錄', `${(S.log || []).length} 筆 · 保底進度`)}
-    ${row('f:device', '世界地圖', '看整片大陸')}
     ${row('set', '設定', '操作、音效、帳號')}
     ${G.scene === 'map' ? row('home', '回藏身處', '這一輪結束、刷圖暫停') : ''}
     ${!inApp() && !fsOn() ? row('fs', '全螢幕', '藏起網址列') : ''}
   </div>`;
 }
-/* 「地點」：節點排成清單（主幹照等級、特殊節點在後面），點一列展開星級與「在這裡刷」（內容跟世界地圖的節點面板同一份） */
+/* 「地點」（0.5.2，工坊與解鎖表第 7 節）：取代世界地圖的唯一入口。上面是星級（全域，上限照斥候營），
+   底下一列一個節點、照區域分組：名字、怪物 Lv、材料的階、狀態（在刷、打過、鎖著寫「瞭望台 Lv n」）；賽制節點開了才列。點一列＝去那裡刷 */
 function nodeHTML() {
-  if (!WM.sel || !WNODE[WM.sel]) WM.sel = S.world.cur || wGoal(S) || TRUNK_K[0];
   const D = wDone(S),
-    rows = wList(S)
-      .map(k => {
-        const [q, r] = wXY(k),
-          why = wWhy(S, q, r),
-          on = WM.sel === k,
-          st =
-            S.world.cur === k
-              ? '<em class="c-gold">正在刷</em>'
-              : why
-                ? `<em class="c-dim">${esc(why)}</em>`
-                : D.has(k)
-                  ? '<em class="c-dim">打過</em>'
-                  : '<em class="c-good">還沒打</em>';
-        return `<li class="${on ? 'on' : ''} ${why ? 'lock' : ''}"><button class="ndr" data-a="nsel:${k}" aria-expanded="${on}"><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)} · 材料 T${matTier(wLv(q, r))}</small>${st}</button>${on ? `<div class="wm-body">${wmNodeHTML()}</div>` : ''}</li>`;
-      })
-      .join('');
-  return `<div class="ph"><b>地點</b><span>瞭望台開到 ${Math.min(wFront(S) + 1, TRUNK.length)}／${TRUNK.length}・${wStar(S)}★</span><button class="btn mini" data-tm="f:device">看地圖</button><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+    st0 = wStar(S),
+    open = k => {
+      const n = WNODE[k];
+      return n.i != null || campCan(W_LINE[n.t] || '');
+    };
+  let g = '';
+  const rows = wList(S)
+    .filter(open)
+    .map(k => {
+      const [q, r] = wXY(k),
+        why = wWhy(S, q, r),
+        n = WNODE[k],
+        head = n.g !== g ? `<li class="ndg">${esc((g = n.g))}</li>` : '',
+        st =
+          S.world.cur === k
+            ? '<em class="c-gold">正在刷</em>'
+            : why
+              ? `<em class="c-dim">${esc(why)}</em>`
+              : D.has(k)
+                ? '<em class="c-dim">打過</em>'
+                : '<em class="c-good">還沒打</em>';
+      return `${head}<li class="${why ? 'lock' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" data-a="ngo:${k}" ${why ? 'aria-disabled="true"' : ''}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)} · 材料 T${matTier(wLv(q, r))}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}</small>${st}</button></li>`;
+    })
+    .join('');
+  return `<div class="ph"><b>地點</b><span>瞭望台開到 ${Math.min(wFront(S) + 1, TRUNK.length)}／${TRUNK.length}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="bagf ndst" role="radiogroup" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => `<button class="chip ${st0 === i + 1 ? 'on' : ''}" role="radio" aria-checked="${st0 === i + 1}" data-a="nstar:${i + 1}">${i + 1}★</button>`).join('')}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條地圖詞・星越多越危險、掉得越好</span></div>
   <ul class="ndl">${rows}</ul>`;
 }
 /* 直立的「做裝」那一頁的分頁（0.5.0）：打造（材料 → 裝備、鍛造台的表）永遠在；通貨（點了就用）、鍛造台（填、淬鍊、災魘）要鍛造台 Lv1；碎片照瞭望台（campCan） */
@@ -574,9 +576,6 @@ function openPanel(k) {
     /* 0.4.9：技能面板自己一個（桌機也是）；做裝、通貨頁旁邊要有倉庫 */
     PANEL.inv = k !== 'skill';
     PANEL[k] = true;
-  } else if (k === 'device') {
-    PANEL.device = true;
-    wmOpen();
   } else PANEL[k] = true;
   /* 技能面板（0.4.8）：打開一律先到總覽 */
   if (k === 'skill') skHome();
@@ -588,11 +587,9 @@ function openPanel(k) {
 function closePanels() {
   PANEL.inv =
     PANEL.stash =
-    PANEL.device =
     PANEL.skill =
     PANEL.craft =
     PANEL.set =
-    PANEL.flt =
     PANEL.asc =
     PANEL.box =
     PANEL.ident =
@@ -609,11 +606,9 @@ function closePanels() {
 const anyPanel = () =>
   PANEL.inv ||
   PANEL.stash ||
-  PANEL.device ||
   PANEL.skill ||
   PANEL.craft ||
   PANEL.set ||
-  PANEL.flt ||
   PANEL.asc ||
   PANEL.box ||
   PANEL.ident ||
@@ -660,170 +655,10 @@ function setHTML() {
   }
   <div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
   <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
-  ${filterHTML()}
   ${acctHTML()}
   <div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
   <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>`;
 }
-/* 設定裡的入口：目前是第幾組、幾條規則，按下去開獨立的過濾器面板 */
-function filterHTML() {
-  const F = S.filter,
-    n = fltSet().rules.length;
-  return `<div class="ph2">物品過濾器<span>第 ${F.cur + 1} 組 · ${n} 條規則</span></div>
-  <button class="btn" data-a="openflt">設定過濾器</button><p class="sethint">決定地上的裝備要自動撿、顯示、醒目或隱藏</p>`;
-}
-/* ---------- 過濾器面板（0.2.35）：3 組、每組一串由上往下比對的規則＋最底的「其他」 ---------- */
-const FUI = { open: -1 };
-/* 條件：預設值、數字的 [名字, 最小, 最大, 單位] */
-const FLT_DEF = { kind: ['weapon'], rar: [2], aff: { ks: [], n: 1 }, so: 1, q: 10, L: 10, frac: 1, mem: 1 };
-const FLT_NUM = {
-  so: ['插槽數', 1, 6, ''],
-  q: ['品質', 0, 30, '%'],
-  L: ['T（物品等級）', 1, 100, '']
-};
-const FNUM_STEP = { so: 1, q: 5, L: 1 };
-const RARN3 = ['普通', '魔法', '稀有'];
-function ruleSum(r) {
-  const c = r.c,
-    t = [];
-  if (c.kind) t.push(c.kind.map(k => FLT_KIND.find(x => x[0] === k)[1]).join('／'));
-  if (c.rar) t.push(c.rar.map(i => RARN3[i]).join('／'));
-  if (c.frac) t.push('★');
-  if (c.mem) t.push('追憶');
-  if (c.aff) t.push(`詞綴${c.aff.n > 1 ? '至少 ' + c.aff.n : '任一'}（${c.aff.ks.length} 種）`);
-  for (const k in FLT_NUM) if (c[k] != null) t.push(`${FLT_NUM[k][0]} ≥ ${c[k]}${FLT_NUM[k][3]}`);
-  return t.join(' · ') || '全部';
-}
-const fltActHTML = (r, ri) =>
-  `<div class="gkind fact">${Object.entries(FLT_ACT)
-    .map(
-      ([k, n]) =>
-        `<button class="btn ${r.act === k ? 'on' : ''}" data-fl="act:${ri}:${k}" aria-pressed="${r.act === k}">${n}</button>`
-    )
-    .join('')}</div>${
-    r.act === 'hl'
-      ? `<div class="fcol" role="group" aria-label="醒目顏色">${FLT_COL.map((c, i) => `<button class="fsw ${r.col === i ? 'on' : ''}" style="--c:${c}" data-fl="col:${ri}:${i}" aria-label="顏色 ${i + 1}" aria-pressed="${r.col === i}"></button>`).join('')}</div>`
-      : ''
-  }`;
-function fltRuleHTML(r, i) {
-  const c = r.c,
-    open = FUI.open === i,
-    chk = (k, lab, body) =>
-      `<div class="fcond ${c[k] != null ? 'on' : ''}"><button class="fchk" data-fl="cond:${i}:${k}" role="checkbox" aria-checked="${c[k] != null}" aria-label="${lab}">${c[k] != null ? '✓' : ''}</button><b>${lab}</b>${c[k] != null ? body : ''}</div>`,
-    tog = (list, names, key) =>
-      `<span class="ftog">${names.map(([v, n]) => `<button class="btn mini ${list.includes(v) ? 'on' : ''}" data-fl="${key}:${i}:${v}" aria-pressed="${list.includes(v)}">${n}</button>`).join('')}</span>`,
-    num = k =>
-      chk(
-        k,
-        FLT_NUM[k][0] + ' ≥',
-        `<span class="fnum"><button class="btn mini" data-fl="num:${i}:${k}:-1" aria-label="減少">−</button><i>${c[k]}${FLT_NUM[k][3]}</i><button class="btn mini" data-fl="num:${i}:${k}:1" aria-label="增加">＋</button></span>`
-      );
-  return `<div class="frule ${r.on ? '' : 'off'} ${open ? 'open' : ''}" data-ri="${i}">
-  <div class="fhd"><button class="fdrag" data-drag="${i}" aria-label="拖曳排序">≡</button>
-    <button class="fsw2 ${r.on ? 'on' : ''}" data-fl="tog:${i}" role="switch" aria-checked="${!!r.on}" aria-label="啟用這條規則">${r.on ? '開' : '關'}</button>
-    <button class="fsum" data-fl="open:${i}" aria-expanded="${open}"><b>${i + 1}. ${esc(ruleSum(r))}</b><small>→ ${FLT_ACT[r.act]}${r.act === 'hl' ? ` <i class="fdot" style="--c:${FLT_COL[r.col]}"></i>` : ''}</small></button>
-    <button class="btn mini" data-fl="up:${i}" aria-label="上移" ${i ? '' : 'disabled'}>▲</button><button class="btn mini" data-fl="dn:${i}" aria-label="下移" ${i < fltSet().rules.length - 1 ? '' : 'disabled'}>▼</button></div>
-  ${
-    open
-      ? `<div class="fbody">
-    ${chk('kind', '類型', tog(c.kind || [], FLT_KIND, 'kind'))}
-    ${chk(
-      'rar',
-      '稀有度',
-      tog(
-        c.rar || [],
-        RARN3.map((n, v) => [v, n]),
-        'rar'
-      )
-    )}
-    ${chk('aff', '詞綴', c.aff ? `<span class="ftog">${[1, 2, 3, 4].map(n => `<button class="btn mini ${c.aff.n === n ? 'on' : ''}" data-fl="affn:${i}:${n}" aria-pressed="${c.aff.n === n}">${n === 1 ? '任一個' : '至少 ' + n}</button>`).join('')}</span>` : '')}
-    ${c.aff ? `<div class="fcaff">${FLT_AFF.map(g => `<button class="chip ${c.aff.ks.includes(g.id) ? 'on' : ''}" data-fl="aff:${i}:${g.id}" aria-pressed="${c.aff.ks.includes(g.id)}">${esc(g.n)}</button>`).join('')}</div>` : ''}
-    ${chk('frac', '★（破裂）', '')}${chk('mem', '追憶', '')}${num('so')}${num('q')}${num('L')}
-    <div class="fact2"><b>處理方式</b>${fltActHTML(r, i)}</div>
-    <button class="btn mini fdel" data-fl="del:${i}">刪除這條規則</button></div>`
-      : ''
-  }</div>`;
-}
-function fltHTML() {
-  const F = S.filter,
-    set = fltSet();
-  return `<div class="ph"><b>物品過濾器</b><span>由上往下，第一條符合的決定</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="gkind seg3">${[0, 1, 2].map(i => `<button class="btn ${F.cur === i ? 'on' : ''}" data-fl="slot:${i}" aria-pressed="${F.cur === i}">第 ${i + 1} 組</button>`).join('')}</div>
-  <div class="flist" id="flist">${set.rules.map(fltRuleHTML).join('')}
-  <div class="frule def"><div class="fhd2"><b>其他（預設）</b><small>沒有符合上面任何規則的</small></div>${fltActHTML(set.def, 'd')}</div></div>
-  <div class="frow"><button class="btn" data-fl="add" ${set.rules.length >= 20 ? 'disabled' : ''}>＋ 新增規則</button><button class="btn" data-fl="tpl">套用新手範本</button><button class="btn" data-fl="tpl2" title="只撿 ★、追憶與物品等級 10 以上的稀有物品，其他全部隱藏">套用「只撿好貨」</button></div>
-  <p class="sethint">金幣與碎片一律自動撿起；「隱藏」的不顯示也不撿，「賣掉」的直接換成金幣。</p>`;
-}
-document.addEventListener('click', e => {
-  const b = e.target.closest('[data-fl]');
-  if (!b || b.disabled) return;
-  const F = S.filter,
-    set = fltSet(),
-    [k, i, v, x] = b.dataset.fl.split(':'),
-    r = i === 'd' ? set.def : set.rules[+i],
-    togl = (list, val) => (list.includes(val) ? list.filter(y => y !== val) : [...list, val]);
-  if (k === 'slot') (F.cur = +i), (FUI.open = -1);
-  else if (k === 'tpl') {
-    if (!confirm2(b, '再按一次：這組會被取代')) return;
-    F.sets[F.cur] = fltTemplate();
-    FUI.open = -1;
-  } else if (k === 'tpl2') {
-    if (!confirm2(b, '再按一次：這組會被取代')) return;
-    F.sets[F.cur] = fltTemplate2();
-    FUI.open = -1;
-  } else if (k === 'add') {
-    set.rules.push({ on: 1, c: {}, act: 'show', col: 0 });
-    FUI.open = set.rules.length - 1;
-  } else if (k === 'open') FUI.open = FUI.open === +i ? -1 : +i;
-  else if (k === 'del') {
-    set.rules.splice(+i, 1);
-    FUI.open = -1;
-  } else if (k === 'up' || k === 'dn') {
-    const j = +i + (k === 'up' ? -1 : 1);
-    [set.rules[+i], set.rules[j]] = [set.rules[j], set.rules[+i]];
-    if (FUI.open === +i) FUI.open = j;
-  } else if (k === 'tog') r.on = r.on ? 0 : 1;
-  else if (k === 'act') r.act = v;
-  else if (k === 'col') r.col = +v;
-  else if (k === 'cond') {
-    if (r.c[v] != null) delete r.c[v];
-    else r.c[v] = JSON.parse(JSON.stringify(FLT_DEF[v]));
-  } else if (k === 'kind' || k === 'rar') {
-    const list = togl(r.c[k], k === 'rar' ? +v : v);
-    if (list.length) r.c[k] = list;
-    else delete r.c[k];
-  } else if (k === 'aff') r.c.aff.ks = togl(r.c.aff.ks, v);
-  else if (k === 'affn') r.c.aff.n = +v;
-  else if (k === 'num') {
-    const [, lo, hi] = FLT_NUM[v];
-    r.c[v] = clamp(r.c[v] + +x * FNUM_STEP[v], lo, hi);
-  }
-  FLTV++;
-  save();
-  hudPanels();
-});
-/* 拖曳排序：按住 ≡ 拖，經過哪條規則就跟它換位置（手機也能拖；也可以用 ▲▼） */
-let FD = null;
-document.addEventListener('pointerdown', e => {
-  const h = e.target.closest('[data-drag]');
-  if (!h) return;
-  e.preventDefault();
-  FD = +h.dataset.drag;
-});
-addEventListener('pointermove', e => {
-  if (FD == null) return;
-  const el = document.elementsFromPoint(e.clientX, e.clientY).find(n => n.dataset && n.dataset.ri != null),
-    j = el ? +el.dataset.ri : FD;
-  if (j === FD) return;
-  const L = fltSet().rules;
-  L.splice(j, 0, L.splice(FD, 1)[0]);
-  if (FUI.open === FD) FUI.open = j;
-  FD = j;
-  FLTV++;
-  hudPanels();
-});
-addEventListener('pointerup', () => FD != null && ((FD = null), save()));
-addEventListener('pointercancel', () => FD != null && ((FD = null), save()));
 /* 帳號：訪客 → 信箱＋密碼、註冊／登入；登入後顯示信箱、登出；點重設密碼信回來 → 設定新密碼 */
 function acctHTML() {
   if (typeof CLOUD === 'undefined') return '';
@@ -850,8 +685,7 @@ const KEEP = {
   pnode: [''],
   pasc: ['', '.ax-list'],
   plog: ['.lgl'],
-  preveal: ['.rvl'],
-  pflt: ['']
+  preveal: ['.rvl']
 };
 let SNAP = {},
   NOSNAP = 0; /* 換分頁：不留捲動位置，回到最上面 */
@@ -896,8 +730,6 @@ function hudPanels() {
   /* 版面的 class 與畫布高度先定下來，再寫內容：反過來的話內容會排版兩次 */
   sheetSync();
   $('pset').hidden = !PANEL.set;
-  $('pflt').hidden = !PANEL.flt;
-  if (PANEL.flt) panelHTML($('pflt'), fltHTML());
   /* 正在輸入帳密時不重畫（撿東西等事件會重畫面板，焦點和輸入法會被打斷） */
   if (
     PANEL.set &&
@@ -912,7 +744,6 @@ function hudPanels() {
   document.body.classList.toggle('gxs', !!PANEL.skill);
   $('pinv').hidden = !PANEL.inv;
   $('pstash').hidden = !PANEL.stash;
-  $('pdev').hidden = !PANEL.device;
   $('pasc').hidden = !PANEL.asc;
   $('pbox').hidden = !PANEL.box;
   $('preveal').hidden = !PANEL.ident;
@@ -936,9 +767,9 @@ function hudPanels() {
   $('pnode').hidden = !PANEL.node;
   if (PANEL.node) {
     panelHTML($('pnode'), nodeHTML());
-    /* 剛打開或換了選的那一列：捲到看得見 */
-    if (HV.nsel !== WM.sel) {
-      HV.nsel = WM.sel;
+    /* 剛打開：捲到正在刷的那一列 */
+    if (!HV.nsel) {
+      HV.nsel = 1;
       const on = $('pnode').querySelector('li.on');
       if (on) on.scrollIntoView({ block: 'nearest' });
     }
@@ -951,7 +782,6 @@ function hudPanels() {
     $('pstash').innerHTML =
       `<div class="ph"><b>${PORT() ? '營地' : '通貨'}</b>${PORT() ? craftSeg(st) : `<span class="ftabs"><button class="${st === 'cur' ? 'on' : ''}" data-a="stab:cur">通貨</button><button class="${st === 'frags' ? 'on' : ''}" data-a="stab:frags">碎片</button></span>`}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${st === 'cur' ? curPageHTML() : fragPageHTML()}`;
   }
-  if (PANEL.device) wmPanel();
   if (PANEL.asc) panelHTML($('pasc'), ascHTML());
   if (PANEL.box) $('pbox').innerHTML = boxHTML();
   if (PANEL.ident) {
@@ -1033,7 +863,7 @@ function invHTML() {
     land = LAND(),
     port = PORT(),
     /* 0.4.9：桌機也拆成「角色」「戰利品」兩頁（分頁列同一份）；序章第 2 步要點背包裡的劍：固定在背包分頁 */
-    tb = proInv() ? 'bag' : land ? PANEL.invT || 'bag' : !NAV.pick && NAV.view === 'char' ? 'eq' : 'bag',
+    tb = land ? PANEL.invT || 'bag' : !NAV.pick && NAV.view === 'char' ? 'eq' : 'bag',
     invTabs = land
       ? `<span class="ftabs">${[
           ['bag', '倉庫'],
@@ -1101,6 +931,20 @@ const BAG_O = [
   ['q', '品質']
 ];
 /* 一件裝備的大類與部位（武器的部位＝武器類別） */
+/* 部位 → 倉庫的大類（0.5.2 從過濾器搬過來） */
+const KIND_GRP = {
+  weapon: 'weapon',
+  focus: 'armor',
+  shield: 'armor',
+  helm: 'armor',
+  chest: 'armor',
+  gloves: 'armor',
+  boots: 'armor',
+  quiver: 'armor',
+  belt: 'acc',
+  ring: 'acc',
+  amulet: 'acc'
+};
 const bagGrp = it => (it.charm ? 'charm' : KIND_GRP[baseOf(it).k]);
 const bagSub = it => (it.charm ? '' : baseOf(it).k === 'weapon' ? baseOf(it).wt : baseOf(it).k);
 const bagSubN = k => WTN[k] || KINDS[k].n;
@@ -2404,7 +2248,6 @@ function inputInit() {
     }
     const k = e.key.toLowerCase();
     if (IV.on) return e.preventDefault(), e.repeat || introKey(k);
-    if (TALK.on) return e.repeat || (e.preventDefault(), talkKey(k));
     if (e.repeat && !'wasd'.includes(k) && !k.startsWith('arrow')) return;
     K[k] = 1;
     if (k === ' ') {
@@ -2433,18 +2276,12 @@ function inputInit() {
   CV.addEventListener('pointermove', e => {
     M.x = e.clientX;
     M.y = e.clientY;
-    CV.style.cursor = LABELS.some(l => inL(l, e)) || (G.scene === 'hide' && propAt(e)) ? 'pointer' : 'crosshair';
+    CV.style.cursor = G.scene === 'hide' && propAt(e) ? 'pointer' : 'crosshair';
   });
   CV.addEventListener('pointerdown', e => {
     if (e.pointerType === 'touch') return; /* 觸控在 touch.js */
     M.x = e.clientX;
     M.y = e.clientY;
-    const l = e.button === 0 && LABELS.find(l => inL(l, e));
-    if (l) {
-      if (dist(P, l.d) < 160) pickup(l.d);
-      else hudWarn('走近一點再撿，或按 F');
-      return;
-    }
     if (G.scene === 'hide' && e.button === 0) {
       const p = propAt(e);
       if (p === 'portal') return dist(P, G.portal) < 120 ? enterMap(G.portal.to) : hudWarn('走近一點');
@@ -2518,13 +2355,11 @@ function pressFx(key) {
 }
 function act(a, el) {
   if (a === 'close') closePanels();
-  else if (a === 'open') wmGo();
   else if (a === 'home') {
     /* 玩家自己回藏身處（確認卡、死亡卡）：地上的照樣收、刷圖暫停（HUD 上排「繼續刷」再開始） */
     G.ask = 0;
     if (G.scene === 'map' && G.state === 'play')
-      for (const d of G.drops.slice())
-        if (d.gold || (d.it && !d.nopick && !d.full && dropFlt(d).act !== 'hide')) pickup(d);
+      for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full)) pickup(d);
     S.stopWhy = 'home';
     enterHideout();
   } else if (a.startsWith('mute:')) {
@@ -2576,9 +2411,13 @@ function act(a, el) {
     BAG.n = 0;
     sfx('click');
     hudPanels();
-  } else if (a.startsWith('nsel:')) {
-    WM.sel = a.slice(5);
+  } else if (a.startsWith('ngo:')) {
+    /* 地點清單點一列＝去那裡刷（鎖著的寫原因） */
+    if (runNode(a.slice(4))) sfx('click'), closePanels();
+  } else if (a.startsWith('nstar:')) {
+    S.star = +a.slice(6);
     sfx('click');
+    save();
     hudPanels();
   } else if (a === 'rvskip') {
     REV.i = REV.list.length;
@@ -2657,8 +2496,7 @@ function act(a, el) {
     else openPanel('inv');
   } else if (a === 'bagsell') {
     if (el && confirm2(el, `確定分解 ${bagSells().length} 件？`)) sellAll();
-  } else if (a === 'openflt') closePanels(), (NAV.full = PORT() ? 1 : 0), openPanel('flt');
-  else if (a.startsWith('asc:')) {
+  } else if (a.startsWith('asc:')) {
     /* 選昇華／換昇華：點數全部退回（被關掉的欄位裡的裝備脫到背包，放不下就擋下來） */
     const why = eqUnloadWhy(S, ['a_st'], a.slice(4));
     if (why) return hudWarn(why);

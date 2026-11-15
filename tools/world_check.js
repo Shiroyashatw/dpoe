@@ -27,10 +27,6 @@ async function open(b, opt = {}) {
   await p.evaluate(() => (S.auto = 0));
   return p;
 }
-/* 對話一路按到底 */
-async function talkAll(p) {
-  for (let k = 0; k < 20 && (await p.evaluate(() => TALK.on)); k++) await p.keyboard.press('f');
-}
 /* 殺到王出現再殺王：走真的 killMob，掉落與過關都照常 */
 const CLEAR = () => {
   for (let k = 0; k < 2000; k++) {
@@ -60,15 +56,16 @@ async function flow(b) {
   const p = await open(b);
   await p.evaluate(() => {
     proSkip();
-    S.story.tips = 0;
-    openPanel('device');
+    openPanel('node');
   });
-  await talkAll(p);
   ok(
-    '世界地圖：一開始選中第一個節點、27 個節點全部畫出來（0.4.1 沒有迷霧）',
-    await p.evaluate(() => WM.sel === TRUNK_K[0] && wList(S).length === 27 && WM.nodes.length === 27)
+    '地點清單（0.5.2）：一開始只開第 1 個、第 2 個寫「瞭望台 Lv 1 才開」、賽制節點還沒列',
+    await p.evaluate(() => {
+      const L = [...document.querySelectorAll('#pnode .ndr')];
+      return L.length === 22 && !L[0].hasAttribute('aria-disabled') && /瞭望台 Lv 1/.test(L[1].textContent);
+    })
   );
-  await p.click('#pdev [data-a=open]');
+  await p.click(`#pnode [data-a="ngo:${await p.evaluate(() => TRUNK_K[0])}"]`);
   ok(
     '在這裡刷：直接進場地（不用傳送門）、第 1 輪',
     await until(p, () => G.scene === 'map' && G.node === TRUNK_K[0] && G.round === 1 && !PANEL.device)
@@ -104,19 +101,15 @@ async function flow(b) {
     await p.evaluate(CLEAR);
     await until(p, () => !G.nextT || PANEL.device, 6000);
   }
-  ok('劇情區打完：世界展開（打開地圖播演出）', await until(p, () => wOpen(S) && PANEL.device && S.world.open, 8000));
-  await p.evaluate(() => {
-    WM.anim = null;
-    closePanels();
-  });
-  /* 選星級（0.5.1 全域一個，上限照斥候營） */
+  ok('劇情區打完（0.5.2 沒有世界展開的演出）', await until(p, () => wOpen(S) && !PANEL.device, 8000));
+  /* 選星級（0.5.1 全域一個，上限照斥候營）：地點清單上面那一排，再點一列 */
   await p.evaluate(() => {
     S.camp.scout = 4;
-    openPanel('device');
-    wmSel(TRUNK_K[9]);
+    closePanels();
+    openPanel('node');
   });
-  await p.click('#pdev [data-wm="star:4"]');
-  await p.click('#pdev [data-a=open]');
+  await p.click('#pnode [data-a="nstar:4"]');
+  await p.click(`#pnode [data-a="ngo:${await p.evaluate(() => TRUNK_K[9])}"]`);
   const st = await p.evaluate(() => ({ star: G.star, n: G.card.mods.length, g: S.star, node: G.node }));
   ok(
     '選 4★：這一輪 10～12 條地圖詞、寫進全域的 S.star',
@@ -269,201 +262,6 @@ async function flow(b) {
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
-async function gesture(b) {
-  const p = await open(b);
-  await p.evaluate(() => {
-    proSkip();
-    S.world.done = STORY.map(n => wKey(n.q, n.r));
-    S.world.stage = STORY.length;
-    S.world.open = 1;
-    S.world.at = '3,-1';
-    S.story.st_0 = 1;
-    openPanel('device');
-  });
-  await p.waitForTimeout(200);
-  const v = () => p.evaluate(() => [WM.x, WM.y, WM.z]);
-  const r = await p.evaluate(() => {
-    const b = WM.cv.getBoundingClientRect();
-    return [b.left + b.width / 2, b.top + b.height / 2];
-  });
-  const a0 = await v();
-  await p.mouse.move(r[0], r[1]);
-  await p.mouse.down();
-  await p.mouse.move(r[0] - 100, r[1] - 50, { steps: 8 });
-  const a1 = await v();
-  ok('拖曳跟手', Math.abs(a1[0] - a0[0] - 100 / a0[2]) < 2 && Math.abs(a1[1] - a0[1] - 50 / a0[2]) < 2, a1.join());
-  await p.waitForTimeout(250);
-  await p.mouse.up();
-  await p.waitForTimeout(50);
-  const a2 = await v();
-  ok('放開時沒有在動就不滑', Math.abs(a2[0] - a1[0]) < 3, a2.join());
-  await p.mouse.wheel(0, -200);
-  await p.waitForTimeout(80);
-  ok('滾輪放大', (await v())[2] > a2[2]);
-  /* 甩一下：有慣性、再按一下就停 */
-  await p.mouse.move(r[0], r[1]);
-  await p.mouse.down();
-  await p.mouse.move(r[0] + 160, r[1], { steps: 4 });
-  await p.mouse.up();
-  await p.waitForTimeout(40);
-  const a3 = await p.evaluate(() => WM.vx);
-  await p.mouse.move(r[0], r[1]);
-  await p.mouse.down();
-  ok('甩動有慣性、按住就停', a3 !== 0 && (await p.evaluate(() => WM.vx === 0)), String(a3));
-  await p.mouse.up();
-  /* 拖到邊界外會彈回來 */
-  await p.evaluate(() => {
-    WM.x = 9000;
-    WM.y = 0;
-  });
-  await p.waitForTimeout(1200);
-  ok('拖出邊界會彈回來', await p.evaluate(() => Math.hypot(WM.x, WM.y) <= wmBound() + 1));
-  ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
-  await p.context().close();
-  /* 手機：單指拖、雙指縮放（CDP 送真的觸控事件） */
-  const q = await open(b, { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
-  await q.evaluate(() => {
-    proSkip();
-    S.story.st_0 = 1;
-    S.orient = 'p';
-    applyOrient();
-    openPanel('device');
-  });
-  await q.waitForTimeout(200);
-  const c = await q.context().newCDPSession(q),
-    t = (type, pts) =>
-      c.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], id) => ({ x, y, id })) });
-  const s0 = await q.evaluate(() => [WM.x, WM.y, WM.z]);
-  await t('touchStart', [[200, 200]]);
-  for (let i = 1; i <= 6; i++) await t('touchMove', [[200 - i * 10, 200 - i * 5]]);
-  await q.waitForTimeout(260);
-  await t('touchMove', [[140, 170]]);
-  await t('touchEnd', []);
-  await q.waitForTimeout(60);
-  const s1 = await q.evaluate(() => [WM.x, WM.y, WM.z]);
-  ok('手機：單指拖', s1[0] > s0[0] + 20 && s1[2] === s0[2], s1.join());
-  await t('touchStart', [
-    [150, 220],
-    [240, 220]
-  ]);
-  for (let i = 1; i <= 8; i++)
-    await t('touchMove', [
-      [150 - i * 8, 220],
-      [240 + i * 8, 220]
-    ]);
-  await t('touchEnd', []);
-  await q.waitForTimeout(60);
-  ok('手機：雙指放大', (await q.evaluate(() => WM.z)) > s1[2] * 1.3, String(await q.evaluate(() => WM.z)));
-  /* 點一下選節點 */
-  const pos = await q.evaluate(() => {
-    wmCenter('0,0');
-    return null;
-  });
-  await q.waitForTimeout(80);
-  const nn = await q.evaluate(() => {
-    const [x, y] = wmS(WM.nodes[0].x, WM.nodes[0].y);
-    return [x, y];
-  });
-  await q.touchscreen.tap(nn[0], nn[1]);
-  await q.waitForTimeout(60);
-  ok('手機：點一下選節點', await q.evaluate(() => WM.sel === WM.nodes[0].k), String(pos));
-  ok('手機沒有頁面錯誤', !q.errs.length, q.errs[0]);
-  await q.context().close();
-}
-/* 減少動態：世界展開直接切、字幕還在 */
-async function still(b) {
-  const p = await open(b, { reducedMotion: 'reduce' });
-  const r = await p.evaluate(() => {
-    proSkip();
-    S.world.done = STORY.map(n => wKey(n.q, n.r));
-    S.world.stage = STORY.length;
-    S.world.open = 0;
-    openPanel('device');
-    return !$('wmcap').hidden;
-  });
-  await p.waitForTimeout(300);
-  ok('減少動態：演出直接到終點、字幕還在', r && (await p.evaluate(() => !WM.anim && WM.vx === 0)));
-  ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
-  await p.context().close();
-}
-/* 效能：手機尺寸、CPU 降速 4 倍，量拖曳時的幀時間與區塊烘圖 */
-async function perf(b) {
-  for (const [w, h, name] of [
-    [390, 844, '手機直立'],
-    [844, 390, '手機橫向'],
-    [1440, 900, '桌機']
-  ]) {
-    const touch = w < 900;
-    const p = await open(b, { viewport: { width: w, height: h }, hasTouch: touch, isMobile: touch });
-    const c = await p.context().newCDPSession(p);
-    await p.evaluate(() => {
-      proSkip();
-      S.world.done = STORY.map(n => wKey(n.q, n.r));
-      S.world.stage = STORY.length;
-      S.world.open = 1;
-      S.world.at = '3,-1';
-      S.story.st_0 = 1;
-      openPanel('device');
-    });
-    if (touch) await c.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-    const r = await p.evaluate(
-      () =>
-        new Promise(done => {
-          /* 8 秒：前 6 秒往外平移再拉遠（一直烘新區塊），後 2 秒閒置 */
-          const T = [],
-            B = [],
-            bake0 = wmBake;
-          wmBake = (c, u) => {
-            const t = performance.now(),
-              r = bake0(c, u);
-            B.push(performance.now() - t);
-            return r;
-          };
-          const fr0 = wmFrame;
-          let last = performance.now(),
-            t0 = last,
-            idle = [];
-          wmFrame = (now, dt) => {
-            const a = performance.now();
-            fr0(now, dt);
-            const e = performance.now() - a,
-              t = (a - t0) / 1000;
-            if (t < 6) {
-              WM.x += 7;
-              WM.y -= 3;
-              WM.z = t > 3 ? 0.46 : 1;
-              WM.dirty = true;
-              T.push(e);
-            } else idle.push(e);
-            if (t > 8) {
-              const S2 = L => [...L].sort((x, y) => x - y),
-                q = (L, f) => S2(L)[Math.floor(L.length * f)] || 0;
-              done({
-                frames: T.length,
-                fps: +(T.length / 6).toFixed(1),
-                p50: +q(T, 0.5).toFixed(1),
-                p95: +q(T, 0.95).toFixed(1),
-                max: +Math.max(...T).toFixed(1),
-                idle50: +q(idle, 0.5).toFixed(1),
-                idleFps: +(idle.length / (t - 6)).toFixed(1),
-                bakeMax: +Math.max(...B).toFixed(1),
-                chunks: WM.ch.size,
-                cap: wmCap()
-              });
-            }
-          };
-        })
-    );
-    console.log(`   ${name}${touch ? '（CPU 降速 4 倍）' : ''}`, JSON.stringify(r));
-    ok(`${name}：快取不超過上限`, r.chunks <= r.cap, String(r.chunks));
-    ok(`${name}：拖曳的幀時間 p95 < 33 毫秒`, r.p95 < 33, String(r.p95));
-    ok(`${name}：單次烘圖不卡（< 16 毫秒）`, r.bakeMax < 16 * (touch ? 2 : 1), String(r.bakeMax));
-    if (touch) await c.send('Emulation.setCPUThrottlingRate', { rate: 1 });
-    await p.context().close();
-  }
-}
-/* 掛機（0.4.0）：不碰鍵盤，AI 打倒王 → 同一個場地下一輪（自動往下推）、撿到的進倉庫；踩到怪物方的地面往外走；
-   倒下 1.5 秒後原地重來，同一個節點連死 3 次退回上一個 */
 async function auto(b) {
   const p = await open(b);
   await p.evaluate(() => {
@@ -533,9 +331,7 @@ async function patrol(b) {
     S.lv = 30;
     ST = stats();
     S.auto = 1;
-    S.filter.cur = 1;
     window.__fast = setInterval(() => {
-      if (PANEL.device) (WM.anim = null), closePanels();
       if (G.scene !== 'map' || G.state !== 'play') return;
       if (G.nextT) {
         S.mat.soul += 1e5;
@@ -570,9 +366,6 @@ async function patrol(b) {
   if (!ONLY || ONLY === 'flow') await flow(b);
   if (!ONLY || ONLY === 'auto') await auto(b);
   if (!ONLY || ONLY === 'patrol') await patrol(b);
-  if (!ONLY || ONLY === 'gesture') await gesture(b);
-  if (!ONLY || ONLY === 'still') await still(b);
-  if (!ONLY || ONLY === 'perf') await perf(b);
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '世界地圖實測全部通過');
   process.exit(bad ? 1 : 0);

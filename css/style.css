@@ -2201,3 +2201,9 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 @keyframes ccms { 0%, 60% { box-shadow: 0 0 0 2px #e6c36a; } }
 @media (prefers-reduced-motion: reduce) { .ccfl, .cc.up, .cc.ms { animation: none; } }
 #pnav .dot.n, #dnav .dot.n { width: auto; min-width: 16px; height: 16px; padding: 0 4px; font: 700 10px/16px var(--font); font-style: normal; color: #111; text-align: center; border-radius: 8px; }
+/* 地點清單（0.5.2，唯一入口）：區域名分組、上面一排星級 */
+.ndl .ndg { padding: 10px 4px 2px; font: 700 var(--fs-s) var(--font); color: var(--dim); letter-spacing: 0.06em; }
+.ndst { margin: 0 0 8px; gap: 6px; align-items: center; }
+.ndst .chip { min-height: 44px; min-width: 52px; }
+.ndst .c-dim { font-size: var(--fs-s); }
+.ndl li.on .ndr { border-color: var(--fr-hi); }

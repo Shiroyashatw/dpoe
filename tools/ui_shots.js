@@ -81,9 +81,9 @@ fs.mkdirSync(OUT, { recursive: true });
   if (port) await open('more'), await shot('9更多');
   await p.evaluate(() => {
     closePanels();
-    openPanel('device');
+    openPanel('node');
   });
-  await shot('10世界地圖');
+  await shot('10地點清單');
   await p.evaluate(() => closePanels());
   /* 11 掉寶瞬間：加速打幾秒 */
   await p.waitForTimeout(4000);

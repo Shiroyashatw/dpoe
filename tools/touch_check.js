@@ -970,15 +970,16 @@ let fail = 0;
     const mr = await p.evaluate(() =>
       [...document.querySelectorAll('#pmore .mrow')].map(e => Math.round(e.getBoundingClientRect().height))
     );
-    ok('更多：每一格 ≥44px', mr.length >= 8 && mr.every(h => h >= 44), mr.join());
+    ok('更多：每一格 ≥44px', mr.length >= 7 && mr.every(h => h >= 44), mr.join());
     await tap('#pmore [data-tm="nav:node"]');
     ok(
-      '地點：節點清單、選到的那一列展開「在這裡刷」',
+      '地點（0.5.2 唯一入口）：開了的節點一列一個、照區域分組、上面一排星級（≥44px）',
       await p.evaluate(
         () =>
           !$('pnode').hidden &&
-          document.querySelectorAll('#pnode .ndr').length === wList(S).length &&
-          !!document.querySelector('#pnode li.on .wm-body [data-a=open]')
+          document.querySelectorAll('#pnode .ndr').length >= TRUNK.length &&
+          document.querySelectorAll('#pnode .ndg').length >= 2 &&
+          [...document.querySelectorAll('#pnode .ndst .chip')].every(b => b.getBoundingClientRect().height >= 44)
       )
     );
     const nr = await p.evaluate(() =>
@@ -1304,14 +1305,14 @@ let fail = 0;
       openPanel('inv');
       const g = document.querySelector('#pinv .bag').getBoundingClientRect();
       closePanels();
-      openPanel('device');
-      const m = document.querySelector('#pdev .mmods').getBoundingClientRect(),
-        k = document.querySelector('#pdev .btn.pri').getBoundingClientRect();
+      openPanel('node');
+      const m = document.querySelector('#pnode .ndst').getBoundingClientRect(),
+        k = document.querySelector('#pnode .ndr').getBoundingClientRect();
       closePanels();
       return [g.top, m.top, k.bottom, innerHeight].map(Math.round);
     });
     ok(
-      '橫向：背包格、地圖詞、開門鈕都在第一屏',
+      '橫向：背包格、地點清單的星級與第一列都在第一屏',
       fold[0] < fold[3] - 100 && fold[1] < fold[3] - 60 && fold[2] <= fold[3],
       fold.join()
     );
@@ -1523,39 +1524,9 @@ let fail = 0;
             apart(t, btn) && apart(sum, btn) && apart(btn, x) && apart(sum, x) && out.scrollWidth <= out.clientWidth + 1
           );
         })
-      ],
-      /* 世界地圖：世界區的節點（五顆星級＋在這裡刷）最擠 */
-      await inView(
-        () => {
-          closePanels();
-          S.world.stage = STORY.length;
-          S.world.open = 1;
-          S.world.done = TRUNK_K.slice(0, 10);
-          S.world.at = TRUNK_K[9];
-          openPanel('device');
-          WM.anim = null;
-          wmSel(TRUNK_K[9]);
-        },
-        '#wms',
-        '.wm-rift',
-        '.wm-tools',
-        '.wm-stars',
-        '#pdev .btn.pri'
-      )
+      ]
     ];
-    ok('技能、昇華石碑、世界地圖：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
-    ok(
-      '世界地圖：按鈕至少 44px、沒有橫向溢出',
-      await p.evaluate(() => {
-        const h = [...document.querySelectorAll('#pdev .wm-tools .btn, #pdev .wm-acts .btn, #pdev .wm-stars .mc2')].map(
-          b => b.getBoundingClientRect().height
-        );
-        return (
-          h.every(x => x >= 44) &&
-          document.getElementById('wms').scrollWidth <= document.getElementById('wms').clientWidth + 1
-        );
-      })
-    );
+    ok('技能、昇華石碑：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
     await p.evaluate(() => closePanels());
   }
   if (errs.length) fail++;
