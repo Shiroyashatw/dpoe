@@ -83,7 +83,11 @@ function makeHTML() {
       ''
     )}${ns.length > 1 ? `<span class="sep"></span>${ns.map(n => chipB(`mk:n:${n}`, MK.n === n, `${n} 件`)).join('')}` : ''}</div>
   <div class="mkpv"><div class="it r0 fic">${icHTML(b.ic)}</div><div><b>${esc(b.n)}</b><small>物品等級 ${matIlvl(MK.T)}${MK.sys ? `・${SYSN[MK.sys]}` : ''}・普通 ${w}%・魔法 ${bl}%${y ? `・<span class="rc2">稀有 ${y}%</span>` : ''}</small>${y ? `<small>再 ${Math.max(0, prdMax(y / 100) - (S.prd.craftR || 0))} 件沒出稀有，下一件必出</small>` : ''}</div></div>
-  ${auto2HTML()}
+  ${
+    campCan('cur:ink') && MAT().ink >= 1 && Object.keys(MEM).some(k => MEM[k].on(b))
+      ? `<div class="bagf" role="group" aria-label="追憶之墨">${chipB(`mk:ink:${MK.ink ? 0 : 1}`, MK.ink, `加一瓶追憶之墨（有 ${MAT().ink}）`)}<span class="c-dim">這一批第一件保證一條追憶</span></div>`
+      : ''
+  }${auto2HTML()}
   <div class="mkgo"><button class="btn pri fgo" data-fg="go" ${lack ? 'disabled' : ''}>${lack ? esc(lack) : `打造 ${MK.n} 件・${esc(costTxt)}`}</button></div>`;
 }
 /* 自動分解規則（鍛造台 Lv8 照稀有度、Lv14 加詞階／追憶／▲）：打造出來不留的直接分解 */
@@ -898,7 +902,7 @@ document.addEventListener('click', e => {
     arg = op === 'ess' ? CRAFT.ess : op === 'conv' ? CRAFT.conv : null;
   let err = null;
   if (k === 'tab') (CRAFT.tab = v), (CAMPUI.ord = null);
-  else if (k === 'mk') (MK[v] = v === 'T' || v === 'n' ? +x : x), sfx('click');
+  else if (k === 'mk') (MK[v] = v === 'T' || v === 'n' || v === 'ink' ? +x : x), sfx('click');
   else if (k === 'go') return craftGo();
   else if (k === 'camp') {
     err = campUp(v);

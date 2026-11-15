@@ -227,8 +227,11 @@ function craftDo(kind, o) {
   S.gold -= c.gold * n;
   const items = [],
     salv = salvZero();
+  const ink = !!o.ink && campCan('cur:ink') && MAT().ink >= 1;
   for (let i = 0; i < n; i++) {
     const it = mkItem(b.id, matIlvl(o.T), craftRar(S.camp ? S.camp.forge : 0));
+    /* 0.5.3 追憶之墨：一瓶管這一批的第一件（這個部位沒有追憶池就不扣） */
+    if (ink && !i && memPool(it).length) addMem(it), MAT().ink--;
     if (!autoKeep(it) || !invPut(S.inv, it)) (it.salv = 1), salvAdd(salv, salvageDo(it));
     items.push(it);
   }
@@ -636,6 +639,43 @@ const FORGE = {
       it.a.push(fillAff(it, cls, +T));
     }
   },
+  /* 0.5.3 破裂石（工坊與解鎖表第 6 節）：黃裝、四條以上、還沒有破裂詞：隨機一條升到 T0、變成破裂 ★（it.frac；轉化、淬鍊、聖化都不碰它） */
+  frac: {
+    n: '破裂石',
+    d: CUR.frac.d,
+    ok: it =>
+      it.r !== 2 ? '只有稀有物品能用破裂石' : it.a.length < 4 ? '要四條以上詞綴' : it.frac ? '已經有破裂詞了' : null,
+    add: () => [],
+    run(it) {
+      const i = irnd(0, it.a.length - 1);
+      it.a[i] = rollAffT(it.a[i].k, 0);
+      it.frac = it.a[i].k;
+    }
+  },
+  /* 0.5.3 完美石：黃裝、六條全滿：隨機一條沒破裂的升到 T0（a.perf，不鎖、不算破裂）；一件一次（it.perfed） */
+  perf: {
+    n: '完美石',
+    d: CUR.perf.d,
+    ok: it =>
+      it.r !== 2
+        ? '只有稀有物品能用完美石'
+        : it.a.length < 6
+          ? '要六條詞綴全滿'
+          : it.perfed
+            ? '這件已經用過完美石了'
+            : it.a.some(a => !isFrac(it, a) && a.T > 0)
+              ? null
+              : '沒有可以升的詞',
+    add: () => [],
+    run(it) {
+      const L = it.a.filter(a => !isFrac(it, a) && a.T > 0),
+        a = pick(L),
+        b = rollAffT(a.k, 0);
+      b.perf = 1;
+      it.a.splice(it.a.indexOf(a), 1, b);
+      it.perfed = 1;
+    }
+  },
   /* 轉化石：1 條指定的詞換成同類的另一條，階不變、數值重骰；不能選破裂詞 */
   conv: {
     n: '轉化石',
@@ -681,7 +721,7 @@ for (const k of ['tran', 'aug', 'rich', 'exalt'])
     };
   }
 const FILL_OPS = Object.keys(FORGE);
-const rareCur = k => EXALTS.includes(k) || /^(tran|aug|rich)[23]$/.test(k);
+const rareCur = k => EXALTS.includes(k) || /^(tran|aug|rich)[23]$/.test(k) || ['frac', 'perf', 'ink'].includes(k);
 /* 掉落（0.4.1，⚠️ 暫定）：每掉 1 顆蛻變、增幅、富豪、崇高，Lv45 以上的節點另外 10% 掉同種的高階；
    Lv70 以上 1% 掉完美（保底：連續 TIER_P.pity 次沒掉，下一次必掉，S.prd.perfC） */
 const TIER_P = { g: 0.1, gLv: 45, p: 0.01, pLv: 70, pity: 300 };
@@ -715,13 +755,15 @@ function forgeWhat(it, op, arg) {
         ? out[0]
           ? `T${out[0].T}（階不變）`
           : ''
-        : op === 'ess'
-          ? `至少 T${String(arg).split(':')[1]}`
-          : /3$/.test(op)
-            ? `T${bestTier(it.L)}`
-            : /2$/.test(op)
-              ? `T${bestTier(it.L)}～T${bestTier(it.L) + 1}`
-              : tierSpan(it)
+        : op === 'frac' || op === 'perf'
+          ? 'T0'
+          : op === 'ess'
+            ? `至少 T${String(arg).split(':')[1]}`
+            : /3$/.test(op)
+              ? `T${bestTier(it.L)}`
+              : /2$/.test(op)
+                ? `T${bestTier(it.L)}～T${bestTier(it.L) + 1}`
+                : tierSpan(it)
   };
 }
 function payCur(op, arg) {
@@ -848,8 +890,9 @@ function temperDo(it, idx) {
   FORE = null;
   S.gold -= c;
   it.tmp = (it.tmp || 0) + 1;
+  if (single && isFrac(it, it.a[idx])) return '破裂詞鎖住了，不能淬鍊';
   if (single) rerollV(it.a[idx]);
-  else for (const a of it.a) rerollV(a);
+  else for (const a of it.a) if (!isFrac(it, a)) rerollV(a);
   return null;
 }
 
@@ -888,6 +931,7 @@ function holyDo(it) {
   FORE = null;
   MAT().holy--;
   for (const a of it.a) {
+    if (isFrac(it, a)) continue;
     a.m = Math.round(holyRoll() * 1000) / 1000;
     a.v = scaleV(a.v, a.m);
   }
@@ -1022,6 +1066,14 @@ const PRD0 = () => ({
   frac: 0,
   fracB: 0,
   craftR: 0 /* 0.5.0 打造的黃裝保底 */,
+  fracO1: 0,
+  fracO2: 0,
+  perfO1: 0,
+  perfO2: 0,
+  ink2: 0,
+  jw0: 0,
+  jw1: 0,
+  jw2: 0 /* 0.5.3 破裂石、完美石、追憶之墨、珠寶的保底（後面的數字：0 小怪、1 菁英、2 王） */,
   mem: 0,
   holy: 0,
   corr: 0,
@@ -1064,6 +1116,9 @@ const STAR_DROP = [
 ];
 /* ⚠️ 暫定：菁英掉富豪石的機率（偶爾）、掉崇高石的機率（小機率）；裂口的每隻菁英掉轉化石的機率（生肖王保底 1，0.4.2 起只有裂口掉）；
    階級 10 以上：菁英掉聖化石 2%、每張圖掉腐化石 5%（偽隨機保底） */
+/* 0.5.3（第 4、6 節，⚠️ 暫定）：破裂石 菁英 0.5%、王 2%；完美石一半；追憶之墨 王 3%（陰兵借道的將領保底）；珠寶 小怪 0.05%、菁英 0.5%、王 2%。
+   一小時約 25 輪（一輪 2.5 分鐘、菁英 1～2）→ 破裂石約每 1.5 小時一顆、完美石約每 3 小時、墨約每 1.3 小時、珠寶約每小時一顆；都用偽隨機（S.prd 的 fracO／perfO／ink／jw＋0 小怪／1 菁英／2 王） */
+const NEW_P = { frac: [0, 0.005, 0.02], perf: [0, 0.0025, 0.01], ink: [0, 0, 0.03], jw: [0.0005, 0.005, 0.02] };
 const ELITE_RICH = 0.35,
   ELITE_EXALT = 0.03 /* 0.5.0：8% → 3%，鍛造台 Lv7 才開始掉 */,
   HUNT_ELITE = 0.3,
@@ -1117,9 +1172,16 @@ function dropCur(kind, o) {
     if ((o.tier || 0) >= HIGH_T && prdRoll('awk', AWK_P)) add('awk');
   }
   if (o.tier) tierDrop(cur, mobLv(o.tier));
+  /* 0.5.3：破裂石、完美石、追憶之墨（下面照鍛造台等級濾掉沒開的） */
+  /* 機率 0 的不擲；小怪、菁英、王各一個計數器（共用的話小怪會把王的機率墊高） */
+  if (NEW_P.frac[kind] && prdRoll('fracO' + kind, NEW_P.frac[kind] * mat)) add('frac');
+  if (NEW_P.perf[kind] && prdRoll('perfO' + kind, NEW_P.perf[kind] * mat)) add('perf');
+  if (NEW_P.ink[kind] && prdRoll('ink' + kind, NEW_P.ink[kind])) add('ink');
   /* 0.5.0：通貨照鍛造台等級開關（工坊與解鎖表第 4 節）；沒開的不掉 */
   for (const k in cur) if (!campCan(curKey(k))) delete cur[k];
-  return { cur, ess: campCan('cur:ess') ? ess : [] };
+  /* 0.5.3 珠寶全域（鍛造台 Lv17）：任何節點低機率，一個大點 */
+  const jw = campCan('jewel') && prdRoll('jw' + kind, NEW_P.jw[kind]);
+  return { cur, ess: campCan('cur:ess') ? ess : [], jw };
 }
 /* 酆都的王額外掉的（0.2.78，企劃書 4.2）：k＝王的 fd（ox／horse／black／white／yama／uber）。直接進材料頁與碎片分頁，回傳要跳字的清單 */
 function fdDrop(k, s = S) {
@@ -1210,10 +1272,12 @@ function jwRoll(n) {
   while (nt.length < n) nt.push(...L.splice(irnd(0, L.length - 1), 1));
   return { id: Math.random().toString(36).slice(2, 9), nt };
 }
-function jwGain(k, s = S) {
+const jwGain = (k, s = S) => jwAdd(JEWEL.nt[k], s);
+/* 收一顆 n 個大點的珠寶（0.5.3 全域掉落是 1 個） */
+function jwAdd(n, s = S) {
   const L = (s.jewels = s.jewels || []);
   if (L.length >= JEWEL.keep) return (MAT().soul += 500), ['珠寶收藏滿了：換 500 靈魂'];
-  const j = jwRoll(JEWEL.nt[k]);
+  const j = jwRoll(n);
   L.push(j);
   return [jwName(j)];
 }
@@ -1240,6 +1304,8 @@ function armyDrop(k, ck, res, s = S) {
   const F = (s.frags = { ...newFrags(), ...s.frags }),
     got = [];
   F[k]++, got.push(FRAGS[k].n);
+  /* 0.5.3：將領保底一瓶追憶之墨（鍛造台 Lv17 才開） */
+  if (campCan('cur:ink')) (MAT().ink = (MAT().ink || 0) + 1), got.push('1 ' + CUR.ink.n);
   if (ck) {
     const A = armyOf(s, ck);
     if (!A.g.includes(k)) A.g.push(k);
@@ -1292,6 +1358,7 @@ function killMat(m, t, o = {}) {
   if (typeof SES !== 'undefined' && SES) SES.soul += soul;
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
+  if (D.jw) got.push(...jwAdd(1));
   /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
   got.rare = Object.keys(D.cur).filter(rareCur);
   return got;

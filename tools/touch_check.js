@@ -798,6 +798,49 @@ let fail = 0;
       (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '總覽,打造,通貨,鍛造台',
       seg1.join()
     );
+    /* ---------- 0.5.3 破裂石、完美石：鍛造台「填」選石頭 → 按鈕在畫面內、≥44px → 用下去 ---------- */
+    await p.evaluate(() => {
+      closePanels();
+      S.camp = JSON.parse(JSON.stringify(_CAMP));
+      const it = mkItem('c_leather', 16, 2);
+      while (it.a.length < 6) it.a.push(fillAff(it));
+      invPut(S.inv, it);
+      S.mat.frac = 1;
+      S.mat.perf = 1;
+      CRAFT.tab = 'forge';
+      CRAFT.sel = { src: 'inv', id: it.id };
+      CRAFT.op = 'frac';
+      PANEL.ctab = 'forge';
+      window._st = it;
+    });
+    await tap('#pnav [data-tm="nav:craft"]');
+    const stB = async () =>
+      p.evaluate(() => {
+        const b = document.querySelector('#pcraft [data-fg="op"]'),
+          r = b && b.getBoundingClientRect();
+        return b ? [b.textContent.slice(0, 3), !b.disabled, Math.round(r.height), r.bottom <= innerHeight + 0.5] : null;
+      });
+    const s1 = await stB();
+    await tap('#pcraft [data-fg="op"]');
+    await p.evaluate(() => ((CRAFT.op = 'perf'), changed()));
+    await p.waitForTimeout(150);
+    const s2 = await stB();
+    await tap('#pcraft [data-fg="op"]');
+    const s3 = await p.evaluate(() => [!!_st.frac, !!_st.perfed, _st.a.filter(a => a.T === 0).length]);
+    ok(
+      '破裂石、完美石（0.5.3）：「填」裡選得到、按鈕 ≥44px 在畫面內，用下去一件有一個 ★ 一個完美 T0',
+      s1 &&
+        s1[0] === '破裂石' &&
+        s1[1] &&
+        s1[2] >= 44 &&
+        s1[3] &&
+        s2 &&
+        s2[0] === '完美石' &&
+        s2[1] &&
+        s3.join() === 'true,true,2',
+      JSON.stringify([s1, s2, s3])
+    );
+    await p.evaluate(() => closePanels());
     /* ---------- 0.5.1 營地總覽：卡片、升級鈕、×1／×10／最大、下一件事、民房的「優先」 ---------- */
     await p.evaluate(() => {
       closePanels();

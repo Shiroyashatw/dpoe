@@ -78,6 +78,13 @@ console.log(
   `\n${MIN} 分鐘：新東西 ${r.news.length} 個（里程碑 ${r.msN}）、產生器升了 ${r.genAll} 級；鍛造台 ${c.forge}、瞭望台 ${c.watch}、斥候營 ${c.scout}、民房 ${c.house}、祭壇 ${c.altar}、倉房 ${c.store}；林場 ${c.gen.wood.lv}、礦場 ${c.gen.iron.lv}、獵場 ${c.gen.hide.lv}、絲地 ${c.gen.silk.lv}`
 );
 console.log('每分鐘產量：' + JSON.stringify(r.rates));
+/* 0.5.3：鍛造台 Lv20、第 13 個地點（Lv38）、1★ 刷一小時（25 輪）掉幾顆破裂石、完美石、追憶之墨、珠寶 */
+const d = R(`(() => { S.camp = { ...newCamp(), forge: 20 }; S.mat = newMat(); S.prd = PRD0(); S.jewels = [];
+  let t = 0; for (let h = 0; h < 10; h++) for (let i = 0; i < 25; i++) roundLoot(lvT(38), 1, ${NS}, eliteCount(1));
+  return [S.mat.frac / 10, S.mat.perf / 10, S.mat.ink / 10, S.jewels.length / 10]; })()`);
+console.log(
+  `鍛造台 Lv20、Lv38、1★、每小時 25 輪（10 小時平均）：破裂石 ${d[0]}、完美石 ${d[1]}、追憶之墨 ${d[2]}、珠寶 ${d[3]}／小時`
+);
 console.log(
   '對文件第 2 節（目標：新東西每 3 分鐘一個、第一小時 ≥18；產生器 80～100 級）。只量不改：調了寫回 docs/工坊與解鎖表.md'
 );

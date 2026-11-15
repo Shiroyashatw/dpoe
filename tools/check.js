@@ -4010,6 +4010,62 @@ const ASC_COMBOS = `const combos = k => {
       return r.items.every(it => it.salv) && r.salv.n === 5 && S.inv.items.length === 0 && matN('iron', 2) === 100 - 25 + 5 * 2 ? '' : 'salv ' + JSON.stringify([r.salv, matN('iron', 2)]);
     })()`) === ''
   );
+  /* 0.5.3 破裂石、完美石、追憶之墨、珠寶全域（工坊與解鎖表第 4、6 節） */
+  ok(
+    '破裂石：黃裝四條以上、一件一條、升到 T0 鎖住（淬鍊、聖化、轉化石不碰）；完美石：六條全滿、升一條不是破裂的到 T0（a.perf）、一件一次；一件最多兩個 T0',
+    R(`(() => {
+      S.camp = newCamp(); S.camp.forge = 20; S.mat = newMat(); S.gold = 1e9;
+      const it = mkItem('c_leather', 16, 2);
+      while (it.a.length < 6) it.a.push(fillAff(it));
+      const it3 = mkItem('c_leather', 16, 2); it3.a = it3.a.slice(0, 3);
+      S.mat.frac = 2; S.mat.perf = 2; S.mat.holy = 1;
+      if (!forgeCheck(it3, 'frac').why || !forgeCheck(it3, 'perf').why) return 'gate';
+      const e = forgeDo(it, 'frac');
+      if (e) return 'frac ' + e;
+      const f = it.a.find(a => a.k === it.frac);
+      if (!f || f.T !== 0 || !/已經有破裂/.test(forgeCheck(it, 'frac').why || '')) return 'frac1';
+      const fv = JSON.stringify(f);
+      if (forgeDo(it, 'perf')) return 'perf';
+      const pa = it.a.filter(a => a.perf);
+      if (pa.length !== 1 || pa[0].T !== 0 || isFrac(it, pa[0]) || !it.perfed || !/用過/.test(forgeCheck(it, 'perf').why || '')) return 'perf1';
+      if (it.a.filter(a => a.T === 0).length !== 2) return 'two';
+      temperDo(it);
+      if (JSON.stringify(it.a.find(a => a.k === it.frac)) !== fv) return 'temper';
+      if (!/破裂/.test(forgeCheck(it, 'conv', it.a.indexOf(it.a.find(a => a.k === it.frac))).why || '')) return 'conv';
+      holyDo(it);
+      if (JSON.stringify(it.a.find(a => a.k === it.frac)) !== fv || !it.a.some(a => a.m)) return 'holy';
+      return S.mat.frac === 1 && S.mat.perf === 1 ? '' : 'pay';
+    })()`) === ''
+  );
+  ok(
+    '掉落（固定種子、偽隨機）：鍛造台 Lv13／19／17 才開破裂石／完美石／追憶之墨與珠寶；開了以後王的平均掉率＝表（破裂石 2%、完美石 1%、墨 3%、珠寶 2%，±25%）；小怪不擲破裂石',
+    R(`(() => {
+      S.camp = newCamp(); S.camp.forge = 12; S.prd = PRD0(); S.jewels = [];
+      let n0 = 0;
+      for (let i = 0; i < 3000; i++) { const d = dropCur(2, { star: 1, ilvl: 8, tier: 8 }); n0 += (d.cur.frac || 0) + (d.cur.perf || 0) + (d.cur.ink || 0) + (d.jw ? 1 : 0); }
+      if (n0) return 'locked ' + n0;
+      S.camp.forge = 20; S.prd = PRD0();
+      const c = { frac: 0, perf: 0, ink: 0, jw: 0 }, N = 20000;
+      for (let i = 0; i < N; i++) { const d = dropCur(2, { star: 1, ilvl: 8, tier: 8 }); for (const k of ['frac', 'perf', 'ink']) c[k] += d.cur[k] || 0; c.jw += d.jw ? 1 : 0; }
+      const want = { frac: 0.02, perf: 0.01, ink: 0.03, jw: 0.02 };
+      for (const k in want) if (Math.abs(c[k] / N - want[k]) / want[k] > 0.25) return k + ' ' + c[k];
+      for (let i = 0; i < 500; i++) dropCur(0, { star: 1, ilvl: 8, tier: 8 });
+      return !S.prd.fracO0 ? '' : 'small';
+    })()`) === ''
+  );
+  ok(
+    '追憶之墨：打造勾「加一瓶」扣 1 瓶、這一批第一件保證一條追憶；沒勾不扣、這個部位沒有追憶池（胸甲）也不扣',
+    R(`(() => {
+      S.camp = newCamp(); S.camp.forge = 20; S.mat = newMat(); S.inv = { items: [] }; S.auto2 = { r: 0, t: 0, mem: 0, up: 0 };
+      matAdd('iron', 3, 100); S.mat.ink = 1;
+      const a = craftDo('weapon', { T: 3, n: 1 });
+      if (S.mat.ink !== 1) return 'nopay';
+      const c = craftDo('chest', { sys: 'armor', T: 3, n: 1, ink: 1 });
+      if (S.mat.ink !== 1 || c.items[0].mem) return 'nopool';
+      const b = craftDo('weapon', { T: 3, n: 1, ink: 1 });
+      return S.mat.ink === 0 && b.items[0].mem ? '' : 'ink ' + JSON.stringify([S.mat.ink, !!b.items[0].mem]);
+    })()`) === ''
+  );
   /* 7. 營地：campCan 全 0 時藏的清單、全滿時全開；升級扣對、節點門檻、另外三座不能超過鍛造台 */
   ok(
     'campCan（0.5.1）：六座全 0 時只有鐵、劍、一件一次、1★、1 格技能、0 孔、人口 2、沒有通貨與分頁與天賦樹；鍛造台 Lv20 全開；鍵不在表上不受管',
@@ -8625,8 +8681,8 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：32 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎；0.2.80 燭龍之心；0.4.1 高階與完美的蛻變、增幅、富豪、崇高）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 32 &&
+    '通貨：35 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎；0.2.80 燭龍之心；0.4.1 高階與完美的蛻變、增幅、富豪、崇高；0.5.3 破裂石、完美石、追憶之墨）＋靈魂＋精髓表，沒有粉',
+    Object.keys(E.CUR).length === 35 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
       JSON.stringify(nm.ess) === '{}' &&
@@ -8850,13 +8906,21 @@ const ASC_COMBOS = `const combos = k => {
       setS();
       give();
       const it = yellow(5)(1 + (i % E.TMAX));
-      it.a[0] = E.rollAffT(it.a[0].k, 0);
-      it.frac = it.a[0].k;
-      const tiers = it.a.map(a => a.T).join();
+      /* 0.5.3：完美石的 T0（a.perf，不鎖）照舊在 T0 範圍重骰；破裂詞鎖住，淬鍊不碰 */
+      it.a[0] = { ...E.rollAffT(it.a[0].k, 0), perf: 1 };
+      it.a[1] = E.rollAffT(it.a[1].k, 0);
+      it.frac = it.a[1].k;
+      const tiers = it.a.map(a => a.T).join(),
+        fv = JSON.stringify(it.a[1]);
       if (E.temperDo(it, i % 2 ? null : 0)) bad.push('淬鍊失敗');
       if (it.a.map(a => a.T).join() !== tiers || !inRange(it.a[0]) || !finite(it)) bad.push('階變了或超出範圍');
+      if (JSON.stringify(it.a[1]) !== fv || !E.temperDo(it, 1)) bad.push('破裂詞被淬鍊了');
     }
-    ok('淬鍊：破裂詞（T0）也能淬鍊、在 T0 的範圍裡、階不變', !bad.length, [...new Set(bad)].slice(0, 3).join('、'));
+    ok(
+      '淬鍊：完美石的 T0 在 T0 的範圍裡重骰、階不變；破裂詞鎖住（全部重骰跳過、單條擋下，0.5.3）',
+      !bad.length,
+      [...new Set(bad)].slice(0, 3).join('、')
+    );
   });
   /* 8. 聖化：m ∈ [0.8, 1.2]、中間多兩邊少、之後不能填與淬鍊、還能腐化 */
   seeded(7600, () => {

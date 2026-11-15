@@ -1724,7 +1724,7 @@ function logHTML() {
     };
   return `<div class="ph"><b>掉落紀錄</b><span>最近 50 筆重點掉落</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="ph2">保底進度<span>滿了下一次必出</span></div>
-  ${bar('完美通貨', P.perfC || 0, TIER_P.pity)}
+  ${campCan('cur:frac') ? bar('破裂石（王）', P.fracO2 || 0, prdMax(NEW_P.frac[2])) : ''}${campCan('cur:perf') ? bar('完美石（王）', P.perfO2 || 0, prdMax(NEW_P.perf[2])) : ''}${campCan('cur:ink') ? bar('追憶之墨（王）', P.ink2 || 0, prdMax(NEW_P.ink[2])) : ''}${bar('完美通貨', P.perfC || 0, TIER_P.pity)}
   <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c}"><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">還沒有重點掉落</li>'}</ul>`;
 }
 /* ---------- 掛機卡（0.4.9，示意頁第 9 版）：刷圖中、沒開面板時直立佔下半、桌機在左下。
