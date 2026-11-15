@@ -35,8 +35,8 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     S.orient = 'p';
     applyOrient();
     let i = 0;
-    while (S.inv.items.length < 600)
-      for (const it of dropGear(i++ % 4 ? 1 : 2, { ilvl: 60, star: 3 })) invPut(S.inv, it);
+    /* 0.5.0：裝備不掉了，直接做 300 件（倉庫容量） */
+    while (S.inv.items.length < INV_CAP) invPut(S.inv, dropItem(60, i++ % 4 ? 0.4 : 0.8));
     for (const e of EQS) {
       if (e.k === 'ring3') continue;
       const it = S.inv.items.find(

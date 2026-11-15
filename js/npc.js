@@ -27,7 +27,8 @@ const NPCS = {
     talk: s => (s.story.shopMet ? '' : 'trader_first'),
     done() {
       S.story.shopN = (S.story.shopN || 0) + 1;
-      openPanel('shop');
+      CRAFT.tab = 'make';
+      openPanel('craft'); /* 0.5.0：商會併進鍛造台的打造 */
     }
   }
 };

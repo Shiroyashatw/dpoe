@@ -3759,7 +3759,6 @@ const ASC_COMBOS = `const combos = k => {
         'tierIlvl',
         'killMat',
         'num',
-        'dropGear',
         'dropAt',
         'dropCharm',
         'gainXp',
@@ -3789,7 +3788,6 @@ const ASC_COMBOS = `const combos = k => {
         () => 5,
         () => [],
         nop,
-        () => (calls.drops++, []),
         nop,
         nop,
         () => calls.xp++,
@@ -3810,10 +3808,10 @@ const ASC_COMBOS = `const combos = k => {
     'killMob 同一隻怪只死一次：連叫兩次（辰龍的隕石先打死目標、這一下結算又打死）擊殺數、經驗、掉落判定、onKillBase、onKill、首領進度、bossDown 都只算一份；兩隻不同的怪各算一份；召喚出來的小怪也只標記一次；killMob 開頭有 dead 保險（game.js 原文直接跑）',
     killSrc.length > 200 &&
       /^function killMob\(m\) \{\s*\/\*[^*]*\*\/\s*if \(m\.dead\) return;\s*m\.dead = 1;/.test(killSrc) &&
-      JSON.stringify(killRun([mob()], 1)) === '[1,1,1,1,1,0,1]' &&
-      JSON.stringify(killRun([mob({ boss: 1 })], 1)) === '[1,1,1,1,1,1,1]' &&
-      JSON.stringify(killRun([mob({ elite: 1 })], 1)) === '[1,1,1,1,1,0,1]' &&
-      JSON.stringify(killRun([mob(), mob()], 1)) === '[2,2,2,2,2,0,2]' &&
+      JSON.stringify(killRun([mob()], 1)) === '[1,1,1,1,1,0,0]' &&
+      JSON.stringify(killRun([mob({ boss: 1 })], 1)) === '[1,1,1,1,1,1,0]' &&
+      JSON.stringify(killRun([mob({ elite: 1 })], 1)) === '[1,1,1,1,1,0,0]' &&
+      JSON.stringify(killRun([mob(), mob()], 1)) === '[2,2,2,2,2,0,0]' &&
       JSON.stringify(killRun([mob({ summoned: 1 })], 1)) === '[0,0,0,0,0,0,0]' &&
       killRun([mob()], 0).join() === killRun([mob()], 1).join(),
     JSON.stringify([killRun([mob()], 1), killRun([mob({ boss: 1 })], 1), killRun([mob(), mob()], 1)])
@@ -3908,51 +3906,142 @@ const ASC_COMBOS = `const combos = k => {
     R('ST.mpReg / ST.mp')
   );
 }
-/* 0.2.28 商人：買了馬上賣不會賺、T1 不出現、品質與孔、保底、背包滿不扣錢 */
+/* 0.5.0 打造（工坊與解鎖表第 3、5 節）：每個基底有材料、基底固定、物品等級＝材料的階、稀有度照鍛造台等級、材料扣對、分解回收不超過投入、自動分解、營地升級與 campCan */
 {
   const R = s => vm.runInContext(s, ctx);
-  R(`var S = { maxT: 1, gold: 1e9, gamN: 0, inv: { w: 12, h: 6, items: [] } };`);
-  const ids = R('GAMBLE.flatMap(g => g[1]).map(x => x.id)');
-  ok('商人：15 種武器＋3 種副手＋7 種防具飾品', ids.length === 25, ids.length);
-  let lose = 0,
-    wrong = 0,
-    t1 = 0,
-    streak = 0,
-    maxMiss = 0,
-    rares = 0,
-    n = 0;
-  for (const t of [1, 4, 8, 16])
-    for (const id of ids)
-      for (let i = 0; i < 40; i++) {
-        R(`S.maxT = ${t}; S.inv.items = []`);
-        const g0 = R('S.gold'),
-          ok1 = R(
-            `(() => { const r = gambleDo('${id}'); return r.it ? [r.it.r, sellPrice(r.it), r.it.q, r.it.so, r.it.frac || r.it.mem || r.it.uid ? 9 : 0, r.it.L, Math.min(9, ...r.it.a.map(a => a.T)), baseOf(r.it).k, baseOf(r.it).wt || ''] : null; })()`
-          ),
-          price = g0 - R('S.gold');
-        n++;
-        if (!ok1) {
-          wrong++;
-          continue;
-        }
-        const [r, sell, q, so, pot, L, T, k, wt] = ok1;
-        if (sell >= price) lose++;
-        if (q || so || pot || L !== t || (k !== id && wt !== id)) wrong++;
-        if (T < 2) t1++;
-        if (r === 2) rares++, (maxMiss = Math.max(maxMiss, streak)), (streak = 0);
-        else streak++;
-      }
-  ok('商人：買了馬上賣都賠錢、基底對、品質 0 孔 0、物品等級＝最高階', !lose && !wrong, lose + ' ' + wrong);
-  ok('商人：詞綴最高 T2', !t1, t1);
-  ok('商人：連續 8 件沒出稀有，下一件必出', maxMiss <= 8 && maxMiss >= 5, maxMiss);
-  console.log(`   稀有率 ${((rares / n) * 100).toFixed(1)}%（平均每 ${(n / rares).toFixed(1)} 件一件）`);
   R(
-    `S.inv = { items: Array.from({ length: INV_CAP - 1 }, (_, i) => ({ id: -1 - i })) }; S.gamN = 3; var g9 = S.gold; var r9 = gambleDo('ring'); r9 = gambleDo('ring');`
+    `var S = { lv: 1, gold: 1e9, mat: newMat(), prd: PRD0(), inv: { items: [] }, camp: newCamp(), auto2: AUTO2(), eq: {}, pt: [], at: [], auras: [], charms: [], skills: [0, 1, 2, 3, 4].map(() => newSlot()), world: newWorld(), lib: { sk: {}, sup: {}, aura: {}, aw: {}, sup2: {} } };`
+  );
+  /* 1. 309 個基底都有材料、費用 > 0；系對得上材料 */
+  const noMat = R(
+    `BASES.filter(b => { const m = baseMat(b), c = craftCost(b, 1); return !m.length || m.some(k => !MATS[k]) || !Object.values(c.mats).every(n => n > 0); }).map(b => b.id)`
+  );
+  ok('打造：每個基底都有材料與費用', !noMat.length, noMat.slice(0, 5).join());
+  ok(
+    '打造：鐵＝武器、護甲系、飾品；皮＝閃避系、箭袋；靈絲＝能量護盾系、法器；混合系兩種各半',
+    R(`baseMat(BASEI.w_sword1_0).join() === 'iron' && baseMat(BASEI.c_leather).join() === 'iron' && baseMat(BASEI.r_iron).join() === 'iron' && baseMat(BASEI.f_orb).join() === 'silk' && baseMat(BASEI.q_bamboo).join() === 'hide' &&
+      BASES.filter(b => baseSys(b) === 'ev' && !ACC_K.includes(b.k)).every(b => baseMat(b).join() === 'hide') && BASES.filter(b => baseSys(b) === 'es' && !ACC_K.includes(b.k)).every(b => baseMat(b).join() === 'silk') &&
+      BASES.filter(b => baseSys(b) === 'armor+ev').every(b => baseMat(b).join() === 'iron,hide' && craftCost(b, 1).mats.iron === craftCost(b, 1).mats.hide)`)
+  );
+  /* 2. 基底固定：同一階、同部位、同系永遠同一個；階越高基底越高；物品等級＝3T−2 */
+  ok(
+    '打造：基底固定（不隨機）、階越高基底等級越高、matTier 與 matIlvl 對得上（Lv5 → T1、Lv83 → T6）',
+    R(`(() => {
+      for (let T = 1; T <= 6; T++) { const a = craftBase('chest', { sys: 'armor', T }), b = craftBase('chest', { sys: 'armor', T }); if (a !== b || a.lv > matIlvl(T)) return 'fix ' + T; if (T > 1 && a.lv < craftBase('chest', { sys: 'armor', T: T - 1 }).lv) return 'order ' + T; }
+      return matTier(5) === 1 && matTier(83) === 6 && matIlvl(1) === 1 && matIlvl(6) === 16 && [5, 18, 33, 53, 73, 83].every(lv => matTier(lv) >= 1 && matTier(lv) <= 6) ? '' : 'tier';
+    })()`) === ''
+  );
+  /* 3. 1000 件的稀有度落在表的 ±3%；扣對材料；物品等級對 */
+  {
+    const r = R(`(() => {
+      const out = {};
+      for (const [lv, want] of [[0, [70, 30, 0]], [4, [60, 30, 10]], [10, [30, 50, 20]], [16, [10, 50, 40]]]) {
+        S.camp.forge = lv; S.prd = PRD0(); S.inv.items = []; S.mat.mats = {}; matAdd('iron', 3, 1e6);
+        const n = [0, 0, 0]; let bad = 0, inv = 0; S.auto2.r = 0;
+        for (let i = 0; i < 1000; i++) { S.inv.items = []; const r = craftDo('helm', { sys: 'armor', T: 3, n: 1 }); if (r.why) return r.why; const it = r.items[0]; n[it.r]++; inv += S.inv.items.length; if (it.L !== matIlvl(3) || baseOf(it).k !== 'helm' || it.salv) bad++; }
+        out[lv] = { n: n.map(x => x / 10), bad, iron: 1e6 - matN('iron', 3), inv };
+        if (n.some((x, i) => Math.abs(x / 10 - want[i]) > 3)) return 'rar ' + lv + ' ' + n.join();
+        if (bad || 1e6 - matN('iron', 3) !== 5000 || inv !== 1000) return 'cost ' + lv + ' ' + JSON.stringify(out[lv]);
+      }
+      return out;
+    })()`);
+    ok(
+      '打造 1000 件：稀有度落在表的 ±3%（Lv0 70／30／0、Lv4 60／30／10、Lv10 30／50／20、Lv16 10／50／40）、物品等級＝材料的階、頭部一件扣 5 個鐵、全部進倉庫',
+      typeof r === 'object',
+      JSON.stringify(r).slice(0, 200)
+    );
+  }
+  /* 4. 批量照鍛造台等級；材料不夠不扣、金不夠不扣；黃裝保底 */
+  ok(
+    '打造：批量 1／3／5／10／20 照 Lv0／2／5／9／16；材料不夠回「還差」不扣；飾品另外要金；連續沒出稀有照 prdMax 保底',
+    R(`(() => {
+      const b = lv => { S.camp.forge = lv; return campN('batch'); };
+      if ([b(0), b(2), b(5), b(9), b(16)].join() !== '1,3,5,10,20') return 'batch';
+      S.auto2.r = 0; S.camp.forge = 16; S.inv.items = []; S.mat.mats = {}; matAdd('iron', 2, 10);
+      const r = craftDo('chest', { sys: 'armor', T: 2, n: 3 });
+      if (!/還差 14/.test(r.why || '') || matN('iron', 2) !== 10) return 'lack ' + r.why;
+      S.gold = 5; matAdd('iron', 2, 100);
+      const r2 = craftDo('ring', { T: 2, n: 1 });
+      if (!/金幣還差 15/.test(r2.why || '')) return 'gold ' + r2.why;
+      S.gold = 1e9; S.prd = PRD0();
+      const r3 = craftDo('chest', { sys: 'armor', T: 2, n: 3 });
+      if (r3.why || r3.items.length !== 3 || matN('iron', 2) !== 110 - 24) return 'batch3';
+      const r0 = Math.random; Math.random = () => 0.9999999; let k = 0; S.prd = PRD0();
+      while (craftRar(16) !== 2 && k < 1e5) k++; Math.random = r0;
+      return k + 1 === prdMax(0.4) ? '' : 'pity ' + k;
+    })()`) === ''
+  );
+  /* 5. 分解：回收不超過投入（50%、倉房 Lv2 65%、Lv5 80%）、靈魂＝物品等級 × 2、黃裝另回 1 顆蛻變或增幅、金照賣價 */
+  ok(
+    '分解：材料回收 50%（倉房 Lv2 65%、Lv5 80%）不超過投入、靈魂＝物品等級 × 2、黃裝另回 1 顆蛻變或增幅、金照賣價',
+    R(`(() => {
+      S.camp.forge = 16; S.auto2.r = 0;
+      for (const [st, rate] of [[0, 0.5], [2, 0.65], [5, 0.8]]) {
+        S.camp.store = st;
+        for (let i = 0; i < 200; i++) {
+          S.inv.items = []; S.mat.mats = {}; matAdd('iron', 4, 100);
+          const it = craftDo('chest', { sys: 'armor', T: 4, n: 1 }).items[0], spent = 100 - matN('iron', 4),
+            M0 = { ...S.mat }, g0 = S.gold, v = salvageDo(it);
+          if (v.mats['iron:4'] > spent || v.mats['iron:4'] !== Math.floor(spent * rate)) return 'mat ' + st + ' ' + v.mats['iron:4'];
+          if (v.soul !== it.L * 2 || S.mat.soul - M0.soul !== it.L * 2) return 'soul';
+          if (S.gold - g0 !== sellPrice(it)) return 'gold';
+          const cur = (S.mat.tran - M0.tran) + (S.mat.aug - M0.aug);
+          if (cur !== (it.r === 2 ? 1 : 0)) return 'cur ' + it.r + ' ' + cur;
+        }
+      }
+      return '';
+    })()`) === ''
+  );
+  /* 6. 自動分解：Lv8 以前全留；Lv8 照稀有度；Lv14 加詞階、追憶、▲ */
+  ok(
+    '自動分解：鍛造台 Lv8 以前全留；Lv8 起留稀有度 ≥ r；Lv14 起另外留 T ≤ t、追憶、▲；打造時不留的當場分解、回收算進 salv',
+    R(`(() => {
+      const w = mkItem('c_leather', 10, 0), b = mkItem('c_leather', 10, 1), y = mkItem('c_leather', 10, 2);
+      S.auto2 = { r: 1, t: 0, mem: 0, up: 0 }; S.camp.store = 0;
+      S.camp.forge = 7; if (!autoKeep(w)) return 'lv7';
+      S.camp.forge = 8; if (autoKeep(w) || !autoKeep(b) || !autoKeep(y)) return 'r1';
+      S.auto2.r = 2; if (autoKeep(b) || !autoKeep(y)) return 'r2';
+      S.auto2.r = 3; S.auto2.mem = 1; if (autoKeep(y) || autoKeep({ ...b, mem: { k: 'm_lv' } })) return 'lv8 no t';
+      S.camp.forge = 14; if (!autoKeep({ ...b, mem: { k: 'm_lv' } }) || autoKeep(y)) return 'mem';
+      S.auto2.t = 2; if (!autoKeep({ ...y, a: [{ k: 'life', T: 2, v: 10 }] }) || autoKeep({ ...y, a: [{ k: 'life', T: 3, v: 10 }] })) return 't';
+      S.auto2 = { r: 3, t: 0, mem: 0, up: 0 }; S.inv.items = []; S.mat.mats = {}; matAdd('iron', 2, 100);
+      const r = craftDo('helm', { sys: 'armor', T: 2, n: 5 });
+      return r.items.every(it => it.salv) && r.salv.n === 5 && S.inv.items.length === 0 && matN('iron', 2) === 100 - 25 + 5 * 2 ? '' : 'salv ' + JSON.stringify([r.salv, matN('iron', 2)]);
+    })()`) === ''
+  );
+  /* 7. 營地：campCan 全 0 時藏的清單、全滿時全開；升級扣對、節點門檻、另外三座不能超過鍛造台 */
+  ok(
+    'campCan：四座全 0 時只有鐵、劍、一件一次、沒有通貨與分頁；鍛造台 Lv20 全開；鍵不在表上不受管',
+    R(`(() => {
+      S.camp = newCamp();
+      const off = ['tab:fill', 'cur:tran', 'cur:aug', 'cur:rich', 'cur:exalt', 'cur:ess', 'mat:hide', 'mat:silk', 'tab:temper', 'tab:holy', 'tab:corr', 'auto2', 'auto2t', 'tier2', 'tier3', 'cur:awk', 'sup2'];
+      if (off.some(campCan) || campN('batch') !== 1 || campN('wts') !== 1 || !campWt('sword') || campWt('bow')) return 'zero';
+      if (!campCan('不在表上') || !campCan('tree') || campN('star') !== 5) return 'free';
+      if (Object.keys(dropCur(2, { star: 5, ilvl: 16, tier: 16 }).cur).length || dropCur(2, { star: 5, ilvl: 16, tier: 16 }).ess.length) return 'drop0';
+      S.camp.forge = 20;
+      if (!off.every(campCan) || campN('batch') !== 20 || campN('wts') !== 6) return 'full';
+      S.camp.forge = 7; let n = 0; for (let i = 0; i < 50; i++) n += dropCur(2, { star: 1, ilvl: 8, tier: 8 }).cur.exalt || 0;
+      return n === 50 ? '' : 'exalt7 ' + n;
+    })()`) === ''
   );
   ok(
-    '商人：倉庫滿不扣錢、不算保底',
-    R('r9.why') === '倉庫滿了' && R('g9 - S.gold') === R('gamPrice(S)') && R('S.gamN') <= 4,
-    R('[r9.why, g9 - S.gold, S.gamN]')
+    '營地升級：靈魂、金、材料、通貨都扣對；差的寫在 lack；節點門檻（第 N 個點的王）；瞭望台不能超過鍛造台；滿級',
+    R(`(() => {
+      S.camp = newCamp(); S.mat = newMat(); S.gold = 0; S.world = newWorld();
+      let c = campUpCheck('forge'); if (c.why || c.lack.length !== 1 || c.lack[0][2] !== 150 || campUp('forge') !== '靈魂還差 150') return 'lack0';
+      S.mat.soul = 150; if (campUp('forge') !== null || S.camp.forge !== 1 || S.mat.soul !== 0) return 'up1';
+      S.mat.soul = 1e6; S.gold = 1e6; campUp('forge');
+      c = campUpCheck('forge'); if (!/第 2 個地點/.test(c.why || '')) return 'node ' + c.why;
+      S.world.done = TRUNK_K.slice(0, 2); if (campUp('forge') !== null) return 'up3';
+      for (let i = 0; i < 4; i++) { S.world.done = TRUNK_K.slice(0, 9); campUp('forge'); }
+      if (S.camp.forge !== 7) return 'lv7 ' + S.camp.forge;
+      c = campUpCheck('forge'); if (c.lack.map(x => x[0]).join() !== '鐵 T2,蛻變石') return 'lack8 ' + JSON.stringify(c.lack);
+      matAdd('iron', 2, 50); S.mat.tran = 20; const s0 = S.mat.soul, g0 = S.gold;
+      if (campUp('forge') !== null || matN('iron', 2) !== 0 || S.mat.tran !== 0 || s0 - S.mat.soul !== 1000 || S.camp.forge !== 8) return 'up8';
+      S.camp.watch = 8; if (!/鍛造台/.test(campUpCheck('watch').why || '')) return 'watch';
+      S.camp.forge = 20; if (campUpCheck('forge').why !== '已經滿級') return 'max';
+      return '';
+    })()`) === ''
   );
 }
 /* 投射物：每一招都吃多重投射（0.2.27）；自動化的規則（0.2.28）。載入 skills.js，用替身跑出手 */
@@ -6088,10 +6177,10 @@ const ASC_COMBOS = `const combos = k => {
     noSell = Object.keys(SELL).filter(
       k =>
         !R(
-          `(() => { for (let i = 0; i < 600; i++) { S.inv.items = []; if (gambleDo('${k}').it.b === '${SELL[k]}') return true; } })()`
+          `(() => { const kind = BASEI['${SELL[k]}'].k, wt = BASEI['${SELL[k]}'].wt; for (let T = 1; T <= 6; T++) for (const sys of ['', 'armor', 'ev', 'es', 'armor+ev', 'armor+es', 'ev+es']) { const b = craftBase(kind, { sys, wt, T }); if (b && b.id === '${SELL[k]}') return true; } })()`
         )
     );
-  ok('基底：商人賣得到新基底', !noSell.length, noSell.join());
+  ok('基底：新基底都打造得到（某一階、某一系）', !noSell.length, noSell.join());
   /* 十字弓的固定詞：多裝填 1 發、多丟 1 顆榴彈 */
   R(
     `${HELP}
@@ -8244,7 +8333,7 @@ const ASC_COMBOS = `const combos = k => {
     R2(`(() => {
       const old = newGame(); Object.assign(old, { v: 30, lv: 57 });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      if (n.v !== 33 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
+      if (n.v !== 34 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
       for (const bad of [null, {}, { v: 'x' }, { v: 10 }, { v: 29, lv: 50 }]) if (migrate(bad).lv !== 1) return 'bad';
       const it = (r, o) => ({ ...mkItem('c_leather', 12, r), ...o });
       const v31 = { ...newGame(), v: 31, lv: 57, gold: 5, frag: 40, auto: 0, cards: { x: 1 }, patrol: { rg: 'a' }, run: { k: '0,0' },
@@ -8254,13 +8343,13 @@ const ASC_COMBOS = `const combos = k => {
       delete v31.push;
       /* 舊地圖走過最遠的是 9,9（第 18 圈＝舊的 Lv63）：主幹開到 Lv63（劇情 9 個＋Lv23～63 的 9 個） */
       const m = migrate(JSON.parse(JSON.stringify(v31)));
-      if (m.v !== 33 || m.lv !== 57 || m.auto !== 0 || m.push !== 'auto') return 'base';
+      if (m.v !== 34 || m.lv !== 57 || m.auto !== 0 || m.push !== 'auto') return 'base';
       if (m.inv.items.length !== 4 || m.inv.items.some(x => x.uid || 'x' in x) || m.inv.w) return 'inv ' + m.inv.items.length;
       if (['stash', 'temp', 'temp2', 'frag', 'cards', 'patrol', 'run'].some(k => k in m)) return 'gone';
       if (m.gold !== 5 + 400) return 'gold ' + m.gold;
       if (m.world.seed !== W_SEED || m.world.stage !== 9 || m.world.done.length !== 18 || wFront(m) !== 18) return 'world ' + m.world.done.length + ' ' + wFront(m);
       const again = migrate(JSON.parse(JSON.stringify(m)));
-      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 33 ? '' : 'again';
+      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 34 ? '' : 'again';
     })()`) === ''
   );
   /* 0.4.8：存檔 32 → 33：一般輔助升過的等級退靈魂（每一級照 libUp 扣的 soulCost(那一級)）、刪紀錄；用過的 II 算解鎖；覺醒輔助、技能、光環等級不動 */
@@ -8276,17 +8365,48 @@ const ASC_COMBOS = `const combos = k => {
       for (const lv of [6, 3]) for (let l = 1; l < lv; l++) want += soulCost(l);
       const again = migrate(JSON.parse(JSON.stringify(m)));
       return { v: m.v, soul: m.mat.soul === want, want, sup: m.lib.sup, sup2: Object.keys(m.lib.sup2).sort(), keep: [m.lib.sk.fireball, m.lib.aura.anger, m.skills[0].so.join()],
-        again: again.mat.soul === m.mat.soul, fresh: newGame().v === 33 && !!newGame().lib.sup2 };
+        again: again.mat.soul === m.mat.soul, fresh: newGame().v === 34 && !!newGame().lib.sup2 };
     })()`);
     ok(
-      '存檔 33（0.4.8）：一般輔助升過的等級退靈魂（Σ soulCost(1…lv−1)）、紀錄刪掉；插著的 II（技能格、光環欄）與目錄有紀錄的 II 算解鎖；覺醒輔助、技能、光環的等級與孔不動；轉過的再載入不重複退；新存檔是 33',
-      r.v === 33 &&
+      '存檔 33（0.4.8）：一般輔助升過的等級退靈魂（Σ soulCost(1…lv−1)）、紀錄刪掉；插著的 II（技能格、光環欄）與目錄有紀錄的 II 算解鎖；覺醒輔助、技能、光環的等級與孔不動；轉過的再載入不重複退；新存檔是 34',
+      r.v === 34 &&
         r.soul &&
         JSON.stringify(r.sup) === '{"aw_fury":5}' &&
         JSON.stringify(r.sup2) === '["area","leech","multi"]' &&
         JSON.stringify(r.keep) === '[9,4,"multi2,fury"]' &&
         r.again &&
         r.fresh,
+      JSON.stringify(r)
+    );
+  }
+  /* 0.5.0：存檔 33 → 34：營地照角色等級、主幹、用過的技能格與孔、星級換算；材料從 0 開始；新存檔是 34 */
+  {
+    const r = R2(`(() => {
+      const s = { ...newGame(), v: 33, lv: 45, gamN: 3 };
+      s.world.done = TRUNK_K.slice(0, 12); s.world.star = { a: 3 };
+      s.skills[1] = { k: 'fireball', so: ['multi', null, null], n: 3 }; s.skills[2] = { k: 'cleave', so: [null, null], n: 2 };
+      s.inv.items.push(mkItem('w_bow_0', 10, 1));
+      const m = migrate(JSON.parse(JSON.stringify(s)));
+      const n = migrate(JSON.parse(JSON.stringify({ ...newGame(), v: 33, lv: 1 })));
+      return { v: m.v, camp: m.camp, mats: m.mat.mats, gam: 'gamN' in m, auto2: m.auto2, fresh: newGame().v, lo: n.camp, again: migrate(JSON.parse(JSON.stringify(m))).camp.forge };
+    })()`);
+    ok(
+      '存檔 34（0.5.0）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、瞭望台 2、倉房 1；Lv1 新手全 0（倉房 Lv10 起才算 1）；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 34',
+      r.v === 34 &&
+        r.fresh === 34 &&
+        r.camp.forge === 14 &&
+        r.camp.altar === 3 &&
+        r.camp.watch === 2 &&
+        r.camp.store === 1 &&
+        r.camp.wts.join() === 'sword,bow' &&
+        JSON.stringify(r.mats) === '{}' &&
+        !r.gam &&
+        r.auto2.r === 1 &&
+        r.lo.forge === 0 &&
+        r.lo.altar === 0 &&
+        r.lo.watch === 0 &&
+        r.lo.store === 0 &&
+        r.again === 14,
       JSON.stringify(r)
     );
   }
@@ -8321,12 +8441,6 @@ const ASC_COMBOS = `const combos = k => {
     );
   }
   ok(
-    '掉落：地圖裡掉的裝備都是鑑定好的（0.4.0 沒有 uid）',
-    R2(
-      `(() => { S = newGame(); for (let i = 0; i < 300; i++) for (const it of dropGear(2, { ilvl: 40, star: 5, rar: 100 })) if ('uid' in it) return false; return true; })()`
-    )
-  ); /* 0.4.1：通貨分三階、中間階梯、過濾器「賣掉」、一輪的掉落、離線結算 */
-  ok(
     '通貨三階：完美的新詞一定是最高階、高階在最高 2 階內；高階 Lv45、完美 Lv70 才掉，完美 300 次保底',
     R2(`(() => {
       S = newGame(); S.mat.exalt3 = 999; S.mat.exalt2 = 999; S.mat.exalt = 999;
@@ -8352,18 +8466,17 @@ const ASC_COMBOS = `const combos = k => {
     })()`)
   );
   ok(
-    '一輪的掉落（roundLoot）：王保底黃裝、通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限 8 小時、停在原本的節點、過濾器照樣作用、不到 5 分鐘不算',
+    '一輪的掉落（roundLoot，0.5.0）：不掉裝備、材料與通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限 8 小時、停在原本的節點、摘要列材料、不到 5 分鐘不算',
     R2(`(() => {
-      S = newGame(); S.lv = 60; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
+      S = newGame(); S.lv = 60; S.camp.forge = 20; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
       const m0 = S.mat.exalt, L = roundLoot(lvT(50), 3, 40, 4);
-      if (L.length < 7 || !L.some(it => it.r === 2) || S.mat.exalt <= m0) return 'round ' + L.length;
+      if (!Object.keys(L).length || Object.values(L).reduce((a, b) => a + b, 0) < 10 || S.mat.exalt <= m0 || S.inv.items.length) return 'round ' + JSON.stringify(L);
       S.rounds = Array.from({ length: 10 }, (_, i) => (i < 2 ? { d: 60, die: 1 } : { d: 60, xp: 100, gold: 50, nS: 40, nE: 3 }));
       if (offSettle(4 * 60e3)) return 'short';
       const g0 = S.gold, o = offSettle(3600e3);
-      if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !o.items.length || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won]);
+      if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !o.mats.length || !(o.soul > 0) || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won, o.mats]);
       if (offSettle(99 * 3600e3).n !== 480) return 'cap';
-      S.inv.items = []; S.filter.sets[2] = { rules: [], def: { act: 'hide', col: 0 } }; S.filter.cur = 2;
-      return offSettle(3600e3).items.length === 0 && S.inv.items.length === 0 ? '' : 'filter';
+      return S.inv.items.length === 0 ? '' : 'inv';
     })()`) === ''
   );
 }
@@ -8490,7 +8603,7 @@ const ASC_COMBOS = `const combos = k => {
     }
   };
   const E = vm.runInContext(
-    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropGear, dropCur, killMat, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
+    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropCur, killMat, matDrop, matTier, STAR_MUL, MATS, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
     ctx
   );
   const setS = () => vm.runInContext('S = { gold: 1e12, lv: 60, mat: null, maxT: 16 }; S.mat = newMat();', ctx);
@@ -8998,27 +9111,31 @@ const ASC_COMBOS = `const combos = k => {
           qty: i % 3 ? 0 : 40,
           rar: 20
         };
-        if (E.dropGear(0, o).length) bad.push('小怪掉裝備');
         const sm = E.dropCur(0, o);
         for (const k in sm.cur) all[k] = (all[k] || 0) + 1;
         if (sm.ess.length || sm.cur.rich || sm.cur.exalt) bad.push('小怪掉了富豪／崇高／精髓');
-        const el = E.dropGear(1, o),
-          ec = E.dropCur(1, o);
-        if (!el.length || el[0].r !== 2 || el.length > 2) bad.push('菁英裝備 ' + el.length);
+        const ec = E.dropCur(1, o);
         for (const k in ec.cur) all[k] = (all[k] || 0) + 1;
-        const bg = E.dropGear(2, { ...o, qty: 0 }),
-          bc = E.dropCur(2, o);
-        if (bg.length !== 3 || bg[0].r !== 2) bad.push('王裝備 ' + bg.length);
+        const bc = E.dropCur(2, o);
         if (bc.cur.exalt !== 1) bad.push('王沒有崇高 1');
+        /* 0.5.0 材料：小怪 30% 掉 1、菁英 3、王 8，×星級；階照節點等級 */
+        const md = [0, 1, 2].map(k => E.matDrop(k, 5 + i, star));
+        if (md.some(([k, T, n]) => !E.MATS[k] || T !== E.matTier(5 + i) || n < 0))
+          bad.push('材料 ' + JSON.stringify(md));
+        if (
+          md[0][2] > Math.round(E.STAR_MUL[star]) ||
+          md[1][2] !== Math.round(3 * E.STAR_MUL[star]) ||
+          md[2][2] !== Math.round(8 * E.STAR_MUL[star])
+        )
+          bad.push('材料量 ' + JSON.stringify(md));
         if (star === 5 && bc.ess.length !== 1) bad.push('5★ 王沒有保底精髓');
         if (star <= 2 && (bc.ess.length || ec.ess.length)) bad.push('1～2★ 掉精髓');
         for (const [c, T] of [...ec.ess, ...bc.ess])
           if (!E.ACLSI[c] || T < E.bestTier(o.ilvl) || T > 6) bad.push('精髓階／類');
-        if (bg.some(it => it.q > 0.3 || it.a.some(a => (a.T === 0) !== E.isFrac(it, a)))) bad.push('裝備品質或 T0');
       }
     for (const k of ['conv', 'holy', 'corr']) if (all[k]) bad.push('掉了 ' + k);
     ok(
-      '掉落：小怪 0 件裝備且只掉通貨、菁英 ≥ 1 件黃、王 3 件（第一件黃）＋崇高石 1、5★ 王保底精髓、1～2★ 不掉精髓、轉化／聖化／腐化這版不掉（預知石全域低機率，另外驗）',
+      '掉落（0.5.0 不掉裝備）：小怪只掉通貨與材料、王崇高石 1、材料 30%×1／3／8 ×星級且階照節點（這裡沒有 S.camp＝三種都開）、5★ 王保底精髓、1～2★ 不掉精髓、轉化／聖化／腐化這版不掉（預知石全域低機率，另外驗）',
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -9041,8 +9158,9 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 300; i++) E.killMat({}, 3, { star: 5, p: E.mapCurP(5, 60), ilvl: E.tierIlvl(3) });
     const M = E.MAT();
     ok(
-      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片',
+      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片、T1 材料',
       M.soul > 0 &&
+        Object.keys(M.mats).every(k => /^(iron|hide|silk):1$/.test(k)) &&
         M.tran > 0 &&
         M.aug > 0 &&
         M.whet + M.plate > 0 &&
@@ -9058,7 +9176,7 @@ const ASC_COMBOS = `const combos = k => {
   });
   /* ================= 8-2：掉落的四樣與機制綁定（企劃書 5.4.2～5.4.5、5.8） ================= */
   const E2 = vm.runInContext(
-    '({ makeFrac, addMem, memGear, memPool, memText, rollMem, prdC, prdMax, prdRoll, PRD0, MEM, STAR_MUL, FRAC_P, MEM_P, HIGH_T, HUNT_ELITE, ELITE_EXALT, ELITE_RICH, HOLY_P, CORR_P, CURSES, curseV, rollRarity, rollQ })',
+    '({ addMem, memPool, memText, rollMem, prdC, prdMax, prdRoll, PRD0, MEM, STAR_MUL, HIGH_T, HUNT_ELITE, ELITE_EXALT, ELITE_RICH, HOLY_P, CORR_P, CURSES, curseV, rollRarity, rollQ })',
     ctx
   );
   /* 1. 偽隨機：長期機率剛好是 p；連續 prdMax(p) 次沒中，下一次必中 */
@@ -9091,117 +9209,22 @@ const ASC_COMBOS = `const combos = k => {
       bad.slice(0, 3).join('、')
     );
   });
-  /* 2. 破裂 T0：機率、一件最多 1 條、T0 只在 frac 那條、轉化石不能選、淬鍊照常 */
-  seeded(9100, () => {
-    const rate = (star, rar, N = 30000) => {
-      setS();
-      let hit = 0;
-      for (let i = 0; i < N; i++) {
-        const it = E.dropGear(1, { ilvl: E.tierIlvl(8), star, rar, qty: 0 })[0];
-        if (it.frac) hit++;
-      }
-      return hit / N;
-    };
-    const r1 = rate(1, 0),
-      r5 = rate(5, 0),
-      r1r = rate(1, 30);
-    const bad = [];
-    for (let i = 0; i < 4000; i++) {
-      setS();
-      for (const it of E.dropGear(2, { ilvl: E.tierIlvl(1 + (i % 16)), star: 1 + (i % 5), rar: 30, qty: 0 })) {
-        const t0 = it.a.filter(a => a.T === 0);
-        if (t0.length > 1 || (it.frac ? t0.length !== 1 || t0[0].k !== it.frac : t0.length))
-          bad.push('T0 不是只在 frac 那條');
-        if (it.frac && it.r === 0) bad.push('白裝有 ★');
-        if (it.frac && !inRange(t0[0])) bad.push('T0 數值超出範圍');
-        if (it.frac && (delete it.uid, E.forgeDo(it, 'conv', String(it.a.indexOf(t0[0])))) !== '破裂詞不能轉化')
-          bad.push('轉化石選得到破裂詞');
-      }
-    }
-    ok(
-      `破裂 T0：每件黃裝 1.5%（實測 ${(r1 * 100).toFixed(2)}%）、5★ ×1.5（${(r5 * 100).toFixed(2)}%）、地圖詞稀有度 +30% ×1.3（${(r1r * 100).toFixed(2)}%）；一件最多 1 條、T0 只在 frac 那條、白裝沒有、轉化石不能選`,
-      Math.abs(r1 - 0.015) < 0.0025 && Math.abs(r5 - 0.0225) < 0.0035 && Math.abs(r1r - 0.0195) < 0.003 && !bad.length,
-      [...new Set(bad)].slice(0, 3).join('、') || [r1, r5, r1r].join()
-    );
-  });
-  /* 2b. ★ 的偽隨機：黃裝與藍裝各自一個計數器（S.prd.frac／fracB），藍裝長期也準；加權後每小時件數落在目標 */
-  seeded(9150, () => {
-    setS();
-    let blue = 0,
-      bh = 0,
-      yel = 0,
-      yh = 0;
-    for (let i = 0; i < 70000; i++)
-      for (const it of E.dropGear(2, { ilvl: E.tierIlvl(8), star: 1, rar: 0, qty: 0 })) {
-        if (it.r === 1) blue++, it.frac && bh++;
-        else if (it.r === 2) yel++, it.frac && yh++;
-      }
-    const prd = vm.runInContext('S.prd', ctx);
-    ok(
-      `★ 藍裝：黃、藍各自一個偽隨機計數器（S.prd 有 frac 與 fracB），藍裝長期 0.5%（實測 ${((bh / blue) * 100).toFixed(2)}%，${blue} 件）、黃裝 1.5%（${((yh / yel) * 100).toFixed(2)}%）`,
-      Math.abs(bh / blue - 0.005) < 0.005 * 0.25 &&
-        Math.abs(yh / yel - 0.015) < 0.015 * 0.15 &&
-        'fracB' in prd &&
-        'fracB' in E2.PRD0(),
-      [bh / blue, yh / yel, blue, JSON.stringify(prd)].join()
-    );
-  });
-  seeded(9160, () => {
-    const W = vm.runInContext('STARS.slice(1).map(s => s.w)', ctx),
-      N = 4000,
-      tot = W.reduce((a, b) => a + b, 0);
-    let fr = 0,
-      me = 0;
-    for (let star = 1; star <= 5; star++) {
-      setS();
-      let f = 0,
-        m = 0;
-      for (let i = 0; i < N; i++) {
-        const el = E.eliteCount(star);
-        for (let e = 0; e <= el; e++)
-          for (const it of E.dropGear(e < el ? 1 : 2, { ilvl: E.tierIlvl(8), star, rar: 0, qty: 0 })) {
-            if (it.frac) f++;
-            if (it.mem) m++;
-          }
-      }
-      fr += ((f / N) * 30 * W[star - 1]) / tot;
-      me += ((m / N) * 30 * W[star - 1]) / tot;
-    }
-    ok(
-      `掉落的件數（每小時 30 張圖、照地圖卡星級 34／30／20／11／5% 加權、不含地圖詞）：★ 約 ${fr.toFixed(2)} 件（目標 2～3）、追憶約 ${me.toFixed(2)} 件（目標 0.8～1.3）`,
-      fr >= 2 && fr <= 3 && me >= 0.8 && me <= 1.3,
-      [fr, me].join()
-    );
-  });
   /* 3. 追憶詞：只出現在對的部位、一件最多 1 條、機率（菁英 2%、王 8%、×星級）、每條說明沒有殘留 {} */
   seeded(9200, () => {
     const bad = [];
-    const rate = (kind, star, N) => {
-      setS();
-      let el = 0,
-        hit = 0;
-      for (let i = 0; i < N; i++) {
-        const L = E.dropGear(kind, { ilvl: E.tierIlvl(8), star, rar: 0, qty: 0 }),
-          can = L.some(it => E2.memPool(it).length),
-          m = L.filter(it => it.mem);
-        if (can) el++;
-        if (m.length > 1) bad.push('一次掉了 2 條追憶');
-        for (const it of m) {
-          if (!E2.memPool(it).includes(it.mem.k)) bad.push(it.mem.k + ' 出在不對的部位 ' + E.baseOf(it).k);
-          if (/[{}]/.test(E2.memText(it.mem)) || !E2.memText(it.mem)) bad.push('說明有殘留');
-          if (Array.isArray(it.mem)) bad.push('追憶是陣列');
-        }
-        if (m.length) hit++;
-      }
-      return hit / el;
-    };
-    const e1 = rate(1, 1, 60000),
-      b1 = rate(2, 1, 20000),
-      e5 = rate(1, 5, 60000);
+    /* 0.5.0：追憶不再掉落（12-4 由追憶之墨在打造時加），這裡只看 addMem 的池與說明 */
+    for (let i = 0; i < 3000; i++) {
+      const it = E.mkItem(E.BASES[i % E.BASES.length].id, E.tierIlvl(1 + (i % 16)), 2);
+      if (!E2.memPool(it).length) continue;
+      E2.addMem(it);
+      if (!E2.memPool(it).includes(it.mem.k)) bad.push(it.mem.k + ' 出在不對的部位 ' + E.baseOf(it).k);
+      if (/[{}]/.test(E2.memText(it.mem)) || !E2.memText(it.mem)) bad.push('說明有殘留');
+      if (Array.isArray(it.mem)) bad.push('追憶是陣列');
+    }
     ok(
-      `追憶詞：菁英 0.5%（實測 ${(e1 * 100).toFixed(2)}%，只算掉的那件有池的部位）、王 2%（${(b1 * 100).toFixed(2)}%）、5★ 菁英 ×1.5（${(e5 * 100).toFixed(2)}%）；只在池裡有的部位、一件最多 1 條、說明沒有殘留`,
-      Math.abs(e1 - 0.005) < 0.0015 && Math.abs(b1 - 0.02) < 0.004 && Math.abs(e5 - 0.0075) < 0.002 && !bad.length,
-      [...new Set(bad)].slice(0, 3).join('、') || [e1, b1, e5].join()
+      '追憶詞（addMem）：只在池裡有的部位、一件 1 條、說明沒有殘留 {}',
+      !bad.length,
+      [...new Set(bad)].slice(0, 3).join('、')
     );
     const pools = {};
     for (const b of E.BASES) pools[b.k + (b.k === 'weapon' ? ':' + b.wt : '')] = E2.memPool({ b: b.id, a: [] }).join();
@@ -9387,14 +9410,6 @@ const ASC_COMBOS = `const combos = k => {
       z3 = cnt(1, { zod: true, tier: 5 }, 300, 'corr');
     /* 0.2.82：生肖王不再保底腐化石、聖化石與追憶裝（改掉神血） */
     if (z || z2 || z3) bad.push(`生肖 ${z} ${z2} ${z3}`);
-    setS();
-    let zg = 0;
-    for (let i = 0; i < 300; i++) {
-      const L = E.dropGear(2, { ilvl: E.tierIlvl(8), star: 3, zod: true, qty: 0, rar: 0 });
-      const m = L[L.length - 1];
-      if (L.length === 4) zg++;
-    }
-    if (zg) bad.push('生肖王還有保底追憶裝 ' + zg);
     ok(
       `機制綁定：轉化石只在血霧期（菁英 ${(h1 * 100).toFixed(0)}%、王保底 1、小怪不掉）；預知石全域（菁英 ${(f1 * 100).toFixed(2)}%、王 ${(f2 * 100).toFixed(2)}%）；腐化石與聖化石：階級 10 以上菁英掉聖化石 2%（${(t1 * 100).toFixed(1)}%）、地圖掉腐化石 5%（${(t2 * 100).toFixed(1)}%）；生肖王不再保底腐化、聖化、追憶裝（0.2.82）；其他情況全部不掉`,
       !bad.length,
@@ -9404,30 +9419,16 @@ const ASC_COMBOS = `const combos = k => {
   /* 7. 地圖詞三欄：數量＝裝備與通貨的件數、稀有度＝黃裝比例＋★ 與追憶的機率、材料＝崇高與精髓的機率；星級放大 */
   seeded(9500, () => {
     const bad = [];
-    /* 數量：王件數、菁英多 1 件的機率、小怪通貨機率 */
+    /* 數量：小怪通貨機率（0.5.0 起沒有裝備件數） */
     setS();
-    const boss = E.dropGear(2, { ilvl: 40, qty: 50, rar: 0, star: 1 }).length,
-      boss0 = E.dropGear(2, { ilvl: 40, qty: 0, rar: 0, star: 1 }).length;
-    let two = 0;
-    for (let i = 0; i < 4000; i++) if (E.dropGear(1, { ilvl: 40, qty: 50, rar: 0, star: 1 }).length === 2) two++;
     const p = { tran: 0.1, aug: 0.1, qual: 0.1 };
     let c0 = 0,
       c1 = 0;
     for (let i = 0; i < 20000; i++)
       (c0 += E.dropCur(0, { star: 1, ilvl: 40, p }).cur.tran ? 1 : 0),
         (c1 += E.dropCur(0, { star: 1, ilvl: 40, p, qty: 50 }).cur.tran ? 1 : 0);
-    if (boss !== 5 || boss0 !== 3 || Math.abs(two / 4000 - 0.5) > 0.04 || Math.abs(c1 / c0 - 1.5) > 0.12)
-      bad.push(`數量 ${boss} ${boss0} ${two} ${c1 / c0}`);
-    /* 稀有度：★ 機率 ×(1+%)、黃裝比例變高 */
-    const fr = rar => {
-      setS();
-      let n = 0;
-      for (let i = 0; i < 40000; i++) if (E.dropGear(1, { ilvl: E.tierIlvl(8), star: 1, rar, qty: 0 })[0].frac) n++;
-      return n / 40000;
-    };
-    const f0 = fr(0),
-      f1 = fr(100);
-    if (Math.abs(f1 / f0 - 2) > 0.35) bad.push(`稀有度 ★ ${f0} ${f1}`);
+    if (Math.abs(c1 / c0 - 1.5) > 0.12) bad.push(`數量 ${c1 / c0}`);
+    /* 稀有度：黃裝比例變高（rollRarity 還給護符以外的工具用） */
     let y0 = 0,
       y1 = 0;
     for (let i = 0; i < 6000; i++)
@@ -9455,7 +9456,7 @@ const ASC_COMBOS = `const combos = k => {
     );
     if (mm[0] !== 4 || mm[1] !== '4,3,4' || mm[3] !== 4 + 8 + 13) bad.push('MOD_REW ' + mm);
     ok(
-      `地圖詞三欄：數量 +50%（王 3 → 5 件、菁英 50% 多 1 件、小怪通貨 ×${(c1 / c0).toFixed(2)}）、稀有度 +100%（★ ×${(f1 / f0).toFixed(2)}、黃裝更多）、材料 +100%（崇高 ×${(m1[0] / m0[0]).toFixed(2)}、精髓 ×${(m1[1] / m0[1]).toFixed(2)}）；MOD_REW 結構不變`,
+      `地圖詞三欄：數量 +50%（小怪通貨 ×${(c1 / c0).toFixed(2)}）、稀有度 +100%（黃裝更多）、材料 +100%（崇高 ×${(m1[0] / m0[0]).toFixed(2)}、精髓 ×${(m1[1] / m0[1]).toFixed(2)}）；MOD_REW 結構不變`,
       !bad.length,
       bad.slice(0, 4).join('、')
     );
@@ -9465,18 +9466,6 @@ const ASC_COMBOS = `const combos = k => {
       E2.STAR_MUL.slice(1).join() === '1,1.1,1.2,1.35,1.5',
       E2.STAR_MUL.join()
     );
-  });
-  /* 8. 商人賭裝（5.6）：已鑑定、沒有 ★ 與追憶（gambleDo 的結果檢查在「商人」那一段，這裡看欄位） */
-  seeded(9600, () => {
-    vm.runInContext(`S = { maxT: 16, gold: 1e12, gamN: 0, mat: newMat(), inv: { w: 12, h: 12, items: [] } };`, ctx);
-    const bad = [];
-    for (let i = 0; i < 600; i++) {
-      vm.runInContext('S.inv.items = []', ctx);
-      const it = vm.runInContext(`gambleDo(GAMBLE.flatMap(g => g[1])[${i % 25}].id).it`, ctx);
-      if (it.frac || it.mem || it.uid || it.holy || it.cor || it.q !== 0 || it.so !== 0 || it.a.some(a => a.T < 2))
-        bad.push('賭裝有不該有的東西');
-    }
-    ok('商人賭裝：已鑑定（沒有 uid）、品質 0、孔 0、沒有 ★ 與追憶、詞綴最高 T2', !bad.length, bad[0]);
   });
   /* ================= 8-3：未鑑定、撿骨師、黃裝的名字（企劃書 5.4.1、5.9） ================= */
   const E3 = vm.runInContext(
@@ -9489,14 +9478,8 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 600; i++) {
       setS();
       give();
-      for (const it of E.dropGear(1 + (i % 2), {
-        ilvl: E.tierIlvl(1 + (i % 16)),
-        star: 1 + (i % 5),
-        rar: 0,
-        qty: 0,
-        zod: i % 7 === 0
-      })) {
-        if ('uid' in it) bad.push('地圖掉的裝備有 uid');
+      for (const it of [E.mkItem(E.BASES[i % E.BASES.length].id, E.tierIlvl(1 + (i % 16)), i % 3)]) {
+        if ('uid' in it) bad.push('做出來的裝備有 uid');
         const errs = [
           E.forgeDo(it, 'tran'),
           E.forgeDo(it, 'exalt'),
@@ -9509,7 +9492,7 @@ const ASC_COMBOS = `const combos = k => {
       }
     }
     ok(
-      '0.4.0 沒有鑑定：地圖掉的裝備（含生肖王保底追憶裝）沒有 uid，填、淬鍊、聖化、腐化、品質都不會說「還沒鑑定」',
+      '0.4.0 沒有鑑定：做出來的裝備沒有 uid，填、淬鍊、聖化、腐化、品質都不會說「還沒鑑定」',
       !bad.length,
       [...new Set(bad)].slice(0, 3).join('、')
     );
@@ -9590,7 +9573,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyGear, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
     ctx
   );
   const mul = seed => () => {
@@ -9894,16 +9877,6 @@ const ASC_COMBOS = `const combos = k => {
     /* 0.2.84：蚩尤、涿鹿兵主改掉亡靈珠寶（測試在「天賦樹六區」那一項） */
     if (T.frags.xing !== 2 || F.armyDrop('chiyou', 'b', 16)[0].indexOf('亡靈珠寶') !== 0)
       bad.push('蚩尤掉將印或沒掉珠寶');
-    /* 追憶裝 */
-    const o = { ilvl: 70 };
-    for (let i = 0; i < 40; i++) {
-      const g = F.armyGear('xing', 0, o);
-      if (g.length !== 1 || !g[0].mem || 'uid' in g[0]) bad.push('將領的追憶裝');
-      if (F.armyGear('chiyou', 0, o).length || F.armyGear('zhuolu', 0, o).length) bad.push('蚩尤還掉追憶裝');
-    }
-    let ex = 0;
-    for (let i = 0; i < 4000; i++) ex += F.armyGear('feng', 10, o).length - 1;
-    if (Math.abs(ex / 4000 - 0.5) > 0.04) bad.push('怨恨值 10 多掉 ' + ex / 4000);
     /* 雙追憶（0.2.81 掉過的舊裝備）兩條都生效：弓的投射物 +1、連鎖 +1 */
     const mk = (m1, m2) => {
       const st = {
@@ -9937,7 +9910,7 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 3000; i++) if (F.bossPick(null).army) bad.push('一般地圖抽到陰兵的王');
     vm.runInContext('ST = null', ctx);
     ok(
-      `陰兵借道：將印、兵符；追憶裝保底、怨恨值 10 多掉 ${((ex / 4000) * 100).toFixed(0)}%、舊的雙追憶裝兩條都生效；蚩尤掉珠寶；門票；涿鹿兵主`,
+      `陰兵借道：將印、兵符；舊的雙追憶裝兩條都生效；蚩尤掉珠寶；門票；涿鹿兵主`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );

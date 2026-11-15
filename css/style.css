@@ -2135,3 +2135,37 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 #tip > b.rc1:first-child, #tip > b.rc1:first-child + small { background: #1f2740; }
 #tip > b.rc2:first-child, #tip > b.rc2:first-child + small { background: #3a2e12; }
 .tqa .btn { min-height: 44px; }
+
+/* ---------- 0.5.0 鍛造台：打造頁、設施的表 ---------- */
+.fmake { display: flex; flex-direction: column; gap: 8px; }
+.fmake .ph2 { display: flex; justify-content: space-between; align-items: baseline; }
+.fmake .ph2 span { font: 400 var(--fs-s) var(--font); color: var(--dim); letter-spacing: 0; }
+.fmake .bagf { gap: 6px; }
+.fmake .bagf .chip { min-height: 44px; padding: 0 10px; }
+.fmake .bagf .chip small { margin-left: 6px; }
+.fmake .bagf > .c-dim { align-self: center; }
+.shopg.mk { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+.shopg.mk .shopb { min-height: 60px; }
+.mkpv { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: var(--s2); border-radius: 3px; }
+.mkpv .fic { position: static; flex: none; width: 48px; height: 48px; }
+.mkpv b { display: block; font: 700 var(--fs) var(--font); color: var(--title); }
+.mkpv small { display: block; font-size: var(--fs-s); color: var(--dim); }
+.mkgo { position: sticky; bottom: 0; z-index: 2; padding: 6px 0 2px; background: var(--panel); border-top: 1px solid var(--line); }
+.mkgo .btn { width: 100%; min-height: 48px; }
+.paper.camp { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.camp-nx { display: flex; gap: 10px; align-items: baseline; }
+.camp-nx b { font: 900 22px/1.1 var(--serif); color: var(--milk); }
+.camp-nx span { font-size: var(--fs-s); color: var(--milk2); }
+.camp-cost { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; font-size: var(--fs-s); color: var(--milk2); }
+.camp-cost li { display: flex; justify-content: space-between; gap: 6px; }
+.camp-cost li b { font-variant-numeric: tabular-nums; color: var(--warn); }
+.camp-cost li.ok b { color: var(--good); }
+.camp-cost li.node { grid-column: 1 / -1; }
+.paper.camp .btn.wide { width: 100%; min-height: 44px; white-space: normal; }
+.rvl.sm { max-height: min(30vh, 260px); }
+.rvr[role=button] { cursor: pointer; }
+.rvr.on { border-color: var(--sel); box-shadow: inset 0 0 0 1px var(--sel); }
+.rvr.gone { opacity: 0.45; }
+.rvsel { position: sticky; bottom: 0; flex-direction: column; align-items: stretch; gap: 8px; background: var(--panel); padding-top: 6px; }
+.rvsel .cmpc { max-height: 30vh; overflow: auto; }
+.acts .btn small { display: block; font-size: 11px; font-weight: 400; color: var(--milk2); }

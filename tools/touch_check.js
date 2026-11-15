@@ -30,6 +30,9 @@ let fail = 0;
     proSkip();
     S.story.tips = 0;
     S.auto = 0; /* 手動的流程在 S.auto = 0 下跑；自動鈕另外測 */
+    S.camp.forge = 20; /* 0.5.0：舊流程（通貨頁、鍛造台）要鍛造台開了才看得到；Lv0 的藏法另外測 */
+    S.skills[1].k = 'mirage'; /* 0.5.0 開局只有斬擊；技能鍵的測試要第 2 格有招 */
+    hudBar();
   });
   const cdp = await ctx.newCDPSession(p);
   const touch = async (type, pts) =>
@@ -389,8 +392,69 @@ let fail = 0;
       ],
       dg
     );
-    ok('拖到賣出區：賣掉、拿到金幣', dr[0] && dr[1], JSON.stringify(dr));
+    ok('拖到分解區：分解、拿到金幣', dr[0] && dr[1], JSON.stringify(dr));
     ok('放開後沒有殘影', !dr[2] && !dr[3], `殘留 ${dr[2]} 個、DR ${dr[3]}`);
+    /* 0.5.0 打造（橫向）：鍛造台的第一頁、按鈕在畫面內、翻牌的三顆鈕在畫面內 */
+    const tapL = async q => {
+      const c = await p.evaluate(q => {
+        const e = document.querySelector(q);
+        if (!e) return null;
+        e.scrollIntoView({ block: 'nearest' });
+        const r = e.getBoundingClientRect();
+        return [r.left + r.width / 2, r.top + r.height / 2];
+      }, q);
+      if (!c) return false;
+      await touch('touchStart', [c]);
+      await touch('touchEnd', []);
+      await p.waitForTimeout(250);
+      return true;
+    };
+    await p.evaluate(() => {
+      closePanels();
+      S.camp.forge = 0;
+      S.mat.mats = {};
+      matAdd('iron', 1, 16);
+      CRAFT.tab = 'make';
+      fmenuOpen('craft');
+    });
+    await p.waitForTimeout(200);
+    const mkL = await p.evaluate(() => {
+      const b = document.querySelector('#pcraft [data-fg=go]'),
+        tabs = [...document.querySelectorAll('#pcraft .ftabs button')].map(x => x.textContent),
+        pn = $('pcraft').getBoundingClientRect(),
+        r = b.getBoundingClientRect();
+      return [
+        tabs.join(),
+        b.disabled,
+        Math.round(r.height),
+        r.bottom <= innerHeight + 0.5,
+        pn.right <= innerWidth + 0.5,
+        $('pcraft').scrollWidth <= $('pcraft').clientWidth + 1
+      ];
+    });
+    ok(
+      '橫向：鍛造台 Lv0 第一頁是「打造」、沒有填／淬鍊、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
+      mkL[0].startsWith('打造') && !/填|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
+      JSON.stringify(mkL)
+    );
+    await tapL('#pcraft [data-fg=go]');
+    await p.waitForTimeout(500);
+    const rvL = await p.evaluate(() => {
+      const b = [...document.querySelectorAll('#preveal .acts .btn')];
+      return [
+        PANEL.ident,
+        b.length,
+        b.every(x => x.getBoundingClientRect().bottom <= innerHeight + 0.5 && x.getBoundingClientRect().height >= 44),
+        S.inv.items.length
+      ];
+    });
+    ok('橫向：翻牌開著、三顆鈕 ≥44px 在畫面內', rvL[0] && rvL[1] === 3 && rvL[2] && rvL[3] >= 1, JSON.stringify(rvL));
+    await tapL('#preveal [data-a=rvsalv]');
+    ok('橫向：分解掉那一件', await p.evaluate(() => /已分解/.test($('preveal').innerText)));
+    await p.evaluate(() => {
+      S.camp.forge = 20;
+      closePanels();
+    });
   } else {
     /* ---------- 直立重排（0.4.4）：上半戰鬥、下半面板、底部分頁 ---------- */
     const tap = async q => {
@@ -612,6 +676,119 @@ let fail = 0;
         () => !anyPanel() && CV.clientHeight === innerHeight && !document.body.classList.contains('sheet')
       )
     );
+    /* ---------- 0.5.0 打造：鍛造台 Lv0 的做裝只有「打造」「碎片」、材料夠按一下打一件、翻牌出換裝卡與三顆鈕、換上／分解、升級鈕 ---------- */
+    await p.evaluate(() => {
+      closePanels();
+      S.camp.forge = 0;
+      S.mat.soul = 0;
+      S.mat.mats = {};
+      matAdd('iron', 1, 16);
+      CRAFT.tab = 'make';
+      PANEL.ctab = 'make';
+      window._n0 = S.inv.items.length;
+    });
+    await tap('#pnav [data-tm="nav:craft"]');
+    const seg0 = await p.evaluate(() =>
+      [...document.querySelectorAll('#pcraft .ftabs button')].map(b => b.textContent)
+    );
+    ok(
+      '鍛造台 Lv0：做裝只有「打造」「碎片」（通貨、鍛造台藏起來）',
+      seg0.join() === '打造,碎片' && (await p.evaluate(() => CRAFT.tab === 'make' && !$('pcraft').hidden)),
+      seg0.join()
+    );
+    const mk = await p.evaluate(() => {
+      const b = document.querySelector('#pcraft [data-fg=go]'),
+        r = b.getBoundingClientRect(),
+        k = document.querySelector('#pcraft .shopb');
+      return [
+        b.textContent,
+        b.disabled,
+        Math.round(r.height),
+        r.bottom <= innerHeight,
+        Math.round(k.getBoundingClientRect().height)
+      ];
+    });
+    ok(
+      '打造鈕寫「打造 1 件・鐵 T1 ×8」、≥44px、在畫面內、部位鈕 ≥44px',
+      /打造 1 件/.test(mk[0]) && !mk[1] && mk[2] >= 44 && mk[3] && mk[4] >= 44,
+      JSON.stringify(mk)
+    );
+    await tap('#pcraft [data-fg=go]');
+    await p.waitForTimeout(500);
+    const rv = await p.evaluate(() => {
+      const b = [...document.querySelectorAll('#preveal .acts .btn')];
+      return [
+        PANEL.ident,
+        REV.craft,
+        REV.sel != null,
+        !!document.querySelector('#preveal .cmpc'),
+        b.map(x => x.textContent.slice(0, 2)).join(),
+        b.every(x => x.getBoundingClientRect().height >= 44 && x.getBoundingClientRect().bottom <= innerHeight),
+        matN('iron', 1),
+        S.inv.items.length - _n0
+      ];
+    });
+    ok(
+      '按打造：扣 8 個鐵、翻牌、選中那一件、換裝卡與換上／留著／分解 ≥44px 在畫面內',
+      rv[0] && rv[1] && rv[2] && rv[3] && rv[4] === '換上,留著,分解' && rv[5] && rv[6] === 8 && rv[7] === 1,
+      JSON.stringify(rv)
+    );
+    const eq0 = await p.evaluate(() => itemName(S.eq.weapon));
+    await tap('#preveal [data-a=rvwear]');
+    await p.waitForTimeout(200);
+    ok(
+      '換上：新的進武器欄、舊的進倉庫',
+      await p.evaluate(
+        e0 => !!S.eq.weapon && S.inv.items.length === _n0 + 1 && itemName(S.inv.items[S.inv.items.length - 1]) === e0,
+        eq0
+      )
+    );
+    await p.evaluate(() => closePanels());
+    await tap('#pnav [data-tm="nav:craft"]');
+    await tap('#pcraft [data-fg=go]');
+    await p.waitForTimeout(500);
+    const s0 = await p.evaluate(() => S.mat.soul);
+    await tap('#preveal [data-a=rvsalv]');
+    await p.waitForTimeout(200);
+    ok(
+      '分解：回鐵與靈魂、那一件消失、翻牌寫「已分解」',
+      await p.evaluate(
+        s0 =>
+          S.inv.items.length === _n0 + 1 &&
+          matN('iron', 1) > 0 &&
+          S.mat.soul > s0 &&
+          /已分解/.test($('preveal').innerText),
+        s0
+      )
+    );
+    await p.evaluate(() => {
+      closePanels();
+      S.mat.soul = 150;
+    });
+    await tap('#pnav [data-tm="nav:craft"]');
+    const up = await p.evaluate(() => {
+      const b = document.querySelector('#pcraft [data-fg="camp:forge"]');
+      return [b.textContent, b.disabled, b.classList.contains('pri'), Math.round(b.getBoundingClientRect().height)];
+    });
+    ok(
+      '靈魂夠：升級鈕亮起、寫升級到 Lv 1、≥44px',
+      /升級到 Lv 1/.test(up[0]) && !up[1] && up[2] && up[3] >= 44,
+      JSON.stringify(up)
+    );
+    await tap('#pcraft [data-fg="camp:forge"]');
+    await p.waitForTimeout(200);
+    const seg1 = await p.evaluate(() =>
+      [...document.querySelectorAll('#pcraft .ftabs button')].map(b => b.textContent)
+    );
+    ok(
+      '升到 Lv1：靈魂扣 150、通貨與鍛造台分頁出現',
+      (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '打造,通貨,鍛造台,碎片',
+      seg1.join()
+    );
+    await p.evaluate(() => {
+      S.camp.forge = 20;
+      closePanels();
+    });
     /* ---------- 0.4.6：角色數值分組、角色頁點一格列出可以換的、說明框先寫換上去的差別、篩選可以選部位 ---------- */
     const tapIn = async q => {
       await p.evaluate(q => {
@@ -721,21 +898,8 @@ let fail = 0;
         );
       })
     );
-    await tapIn('#pinv [data-a="bagfl:r2"]');
-    ok(
-      '再加「稀有」：條件疊加（鞋子而且稀有）',
-      await p.evaluate(
-        () =>
-          BAG.k === 'boots' &&
-          BAG.fl.r2 === 1 &&
-          [...document.querySelectorAll('#pinv .bag .it')].every(e => {
-            const it = findItem('inv', e.dataset.id);
-            return baseOf(it).k === 'boots' && it.r === 2;
-          })
-      )
-    );
     await p.evaluate(() => {
-      Object.assign(BAG, { f: 'all', k: '', fl: {} });
+      Object.assign(BAG, { f: 'all', k: '' });
       closePanels();
     });
     /* 更多、地點 */

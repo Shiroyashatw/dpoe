@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.4.10';
+const VER = '0.5.0';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -7726,6 +7726,83 @@ const MEM = {
   m_curse: { n: '擊中時施加等級 {lv} 的{c}', on: b => b.k === 'gloves' || b.k === 'ring', lv: [5, 10] },
   m_spirit: { n: '減少 {v}% 精魂保留', on: b => b.k === 'helm', v: [10, 15] }
 };
+/* ---------- 材料（0.5.0，docs/工坊與解鎖表.md 第 4 節）：戰鬥不掉裝備，掉這三種，有階 T1～T6 跟著節點等級（craft.js 的 matTier）；
+   鐵＝護甲系防具與所有武器、皮＝閃避系、靈絲＝能量護盾系與法器（craft.js 的 baseMat）。圖示先借現有的 ⚠️ ---------- */
+const MATS = {
+  iron: { n: '鐵', ic: 'mat_frag', d: '武器、護甲系防具、飾品的材料' },
+  hide: { n: '皮', ic: 'mat_insc', d: '閃避系防具、箭袋的材料' },
+  silk: { n: '靈絲', ic: 'mat_crystal', d: '能量護盾系防具、法器的材料' }
+};
+const MAT_K = Object.keys(MATS);
+/* ---------- 營地（0.5.0，工坊與解鎖表第 3 節）：四座設施各一張表，一列一級 { soul, gold?, mat?: [材料, 階, 數], cur?: { 通貨: n }, node?: 要先打倒第幾個地點的王, un: [解鎖鍵…], d: 一句說明 }。
+   解鎖鍵由 craft.js 的 campCan 查（'cur:rich' 通貨開始掉、'mat:hide' 材料種類、'tab:temper' 鍛造台分頁、'auto2' 自動分解、'tree'…）；
+   數值型（批量、技能格數、孔數、星級上限、武器類別數）由 campN 算。鍛造台是主設施，另外三座的等級不能超過它。⚠️ 數字全部暫定，要用新存檔逐分鐘對 */
+const CAMP = {
+  /* 靈魂：0.5.0 實測新存檔在第一個地點每分鐘約 100 靈魂（6,000／時，文件原本假設 15,000／時），Lv1～8 照第 2 節的分鐘表縮成 150～1,000；Lv9 起平滑接到 Lv20 10 萬 */
+  forge: [
+    { soul: 150, un: ['tab:fill', 'cur:tran', 'cur:aug', 'cur:whet', 'cur:plate'], d: '「填」：蛻變石、增幅石開始掉' },
+    { soul: 300, d: '一次打 3 件' },
+    { soul: 450, node: 2, un: ['mat:hide'], d: '皮開始掉：閃避系防具、箭袋' },
+    { soul: 600, un: ['cur:rich', 'rar2'], d: '富豪石開始掉；打造有機率出稀有' },
+    { soul: 700, node: 3, un: ['cur:ess'], d: '一次打 5 件；精髓開始掉' },
+    { soul: 800, gold: 1000, un: ['tab:temper'], d: '淬鍊' },
+    { soul: 900, node: 4, un: ['cur:exalt'], d: '崇高石開始掉' },
+    {
+      soul: 1000,
+      mat: ['iron', 2, 50],
+      cur: { tran: 20 },
+      un: ['mat:silk', 'auto2'],
+      d: '靈絲開始掉：能量護盾系防具、法器；自動分解'
+    },
+    { soul: 2000, cur: { aug: 20 }, node: 5, d: '一次打 10 件' },
+    { soul: 3000, gold: 5000, node: 6, un: ['cur:conv', 'cur:fore'], d: '轉化石、預知石開始掉' },
+    { soul: 4500, cur: { rich: 5 }, d: '第二種武器類別（15 選 1，之後每 2 級再開 1 種）' },
+    { soul: 6500, gold: 10000, node: 7, un: ['cur:holy', 'tab:holy'], d: '聖化石開始掉、聖化' },
+    { soul: 9000, cur: { exalt: 5 }, un: ['cur:frac'], d: '破裂石開始掉、破裂台' },
+    { soul: 13000, mat: ['hide', 3, 50], node: 8, un: ['auto2t'], d: '自動分解照詞階、追憶、▲' },
+    { soul: 18000, gold: 20000, node: 9, un: ['cur:corr', 'tab:corr'], d: '腐化石開始掉、腐化' },
+    { soul: 25000, cur: { rich: 20 }, d: '一次打 20 件' },
+    { soul: 35000, cur: { exalt: 20 }, node: 10, un: ['cur:ink', 'jewel'], d: '追憶之墨、珠寶開始掉' },
+    { soul: 50000, node: 11, un: ['tier2'], d: '高階通貨開始掉' },
+    { soul: 70000, gold: 50000, un: ['cur:perf'], d: '完美石開始掉、完美台' },
+    { soul: 100000, un: ['sup2', 'awk', 'cur:awk', 'tier3'], d: '輔助 II、覺醒、完美通貨' }
+  ],
+  /* 12-2 才接：星級上限、五條賽制一條一條開（那條線的節點出現在清單、它的通貨開始掉） */
+  watch: [
+    { soul: 1000, gold: 1000, node: 3, d: '2★' },
+    { soul: 8000, mat: ['iron', 2, 30], node: 6, d: '3★' },
+    { soul: 40000, mat: ['hide', 3, 30], node: 9, d: '4★' },
+    { soul: 120000, mat: ['silk', 4, 30], node: 11, d: '5★' },
+    { soul: 180000, node: 12, un: ['line:ghost', 'cur:calam', 'cur:pcalam', 'cur:pen', 'frags'], d: '酆都：鬼門關' },
+    { soul: 270000, node: 13, un: ['line:dream', 'cur:om', 'cur:v2', 'cur:v3'], d: '心魔劫：心魔幻境' },
+    { soul: 405000, node: 14, un: ['line:fiend', 'cur:heart'], d: '四凶：凶地' },
+    { soul: 608000, node: 15, un: ['line:army'], d: '陰兵借道' },
+    { soul: 911000, node: 16, un: ['line:rift'], d: '弒神：裂口' }
+  ],
+  /* 12-2 才接：技能格數、輔助孔、光環欄、天賦樹、昇華、珠寶孔 */
+  altar: [
+    { soul: 300, d: '第 2 格技能' },
+    { soul: 900, d: '第 1 個輔助孔（每一招）' },
+    { soul: 3000, d: '第 3 格技能' },
+    { soul: 6000, un: ['tree'], d: '天賦樹（點數照等級一次補發）' },
+    { soul: 12000, un: ['aura'], d: '第 2 個輔助孔、光環欄' },
+    { soul: 25000, d: '第 4 格技能' },
+    { soul: 50000, un: ['asc'], d: '昇華石碑（兩個昇華）' },
+    { soul: 90000, d: '第 3 個輔助孔' },
+    { soul: 150000, d: '第 5 格技能' },
+    { soul: 250000, un: ['jsock'], d: '天賦樹珠寶孔' },
+    { soul: 350000, un: ['asc3'], d: '第三個昇華以後' }
+  ],
+  /* 12-2 才接：離線上限、分解回收率、商會 */
+  store: [
+    { soul: 2000, gold: 2000, un: ['off4'], d: '離線結算 4 小時' },
+    { soul: 10000, un: ['salv65'], d: '分解回收 65%；離線時照自動分解規則處理' },
+    { soul: 30000, gold: 20000, un: ['off8'], d: '離線 8 小時' },
+    { soul: 80000, un: ['trade'], d: '商會：材料換通貨、通貨換材料' },
+    { soul: 200000, un: ['off12', 'salv80'], d: '離線 12 小時；分解回收 80%' }
+  ]
+};
+const CAMPN = { forge: '鍛造台', watch: '瞭望台', altar: '祭壇', store: '倉房' };
 /* 星級放大 ★ 與追憶的機率（企劃書 5.4.5）：1～5★（⚠️ 暫定：壓平成 1／1.1／1.2／1.35／1.5，星級越高越好、不爆量） */
 const STAR_MUL = [1, 1, 1.1, 1.2, 1.35, 1.5];
 /* 腐化的結果表（企劃書 5.3.4）：機率合計 100；0.2.77 起最多 1 條腐化詞（原本 2 條的 10% 併進 1 條） */

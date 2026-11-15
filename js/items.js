@@ -382,7 +382,7 @@ function offWhy(w, off) {
 
 /* ---------- 清單倉庫（0.4.0，企劃書 5.9）：g = { items: [道具] }，一件一格、沒有大小；
    容量 INV_CAP 件，★ 與追憶另外多留 INV_SPARE 格（滿了普通裝換金幣，它們照樣收）。回傳 false＝放不下 ---------- */
-const INV_CAP = 3000,
+const INV_CAP = 300 /* 0.5.0：3000 → 300，只放打造後留下來的 */,
   INV_SPARE = 50;
 const invRoom = (g, it) => g.items.length < INV_CAP + (it && (it.frac || it.mem) ? INV_SPARE : 0);
 function invPut(g, it) {

@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 33,
+    v: 34,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -19,8 +19,9 @@ function newGame() {
     lv: 1,
     xp: 0,
     gold: 0,
-    /* 商人賭裝連續幾件沒出稀有（0.2.28） */
-    gamN: 0,
+    /* 營地（0.5.0，craft.js 的 campCan）：四座設施的等級、開了的武器類別；自動分解規則 */
+    camp: newCamp(),
+    auto2: AUTO2(),
     /* 碎片分頁（0.2.78 酆都）：勾魂令四種、生死簿 */
     frags: newFrags(),
     army: {},
@@ -50,10 +51,9 @@ function newGame() {
     /* 新存檔：序章結束才拿到劍（prologue.js）；migrate 對舊存檔拿掉這個旗標 */
     fresh: 1
   };
-  /* 技能欄：單手劍的兩招，左鍵斬擊、右鍵幻影斬；其他到技能面板挑（目錄 S.lib 只記等級，企劃書 6.1） */
+  /* 技能欄：0.5.0 起開局只有斬擊一招（工坊與解鎖表第 2 節），其他到技能面板挑（目錄 S.lib 只記等級，企劃書 6.1） */
   s.skills = Array.from({ length: NSLOT }, newSlot);
   s.skills[0].k = 'slash';
-  s.skills[1].k = 'mirage';
   s.lib = { sk: {}, sup: {}, aura: {}, aw: {}, sup2: {} };
   s.pt = [...PT_START];
   /* 過路點自選的能力值（0.2.42）：點 id → 's'／'d'／'i' */
@@ -201,10 +201,22 @@ function runNode(k, keep) {
   enterMap(lvT(wLv(q, r)), keep && G.scene === 'map' && G.node === k);
   return true;
 }
-/* 本次掛機（0.4.9，掛機卡）：從藏身處進場地開始累計，回藏身處歸零；xp／靈魂算每小時的進度 */
+/* 本次掛機（0.4.9，掛機卡）：從藏身處進場地開始累計，回藏身處歸零；xp／靈魂算每小時的進度；0.5.0：craft 打造幾件、rare 打出幾件稀有、mat 材料幾個 */
 let SES = null;
-const sesReset = () =>
-  (SES = { t0: Date.now(), rounds: 0, rare: 0, frac: 0, mem: 0, cur: 0, best: '', gold: 0, deaths: 0, xp: 0, soul: 0 });
+const SES0 = () => ({
+  t0: Date.now(),
+  rounds: 0,
+  rare: 0,
+  craft: 0,
+  mat: 0,
+  cur: 0,
+  best: '',
+  gold: 0,
+  deaths: 0,
+  xp: 0,
+  soul: 0
+});
+const sesReset = () => (SES = SES0());
 /* 王倒下之後會不會往下推（0.4.9 王倒下的卡、HUD 都照這個寫）：推進設定 auto、沒有被退回、下一個節點開了 */
 const pushNext = k => {
   const nx = k && wNext(k);
@@ -244,23 +256,14 @@ function offSettle(away) {
     t = lvT(wLv(...wXY(k))),
     star = wStar(S, k),
     M0 = { ...MAT() },
+    mats0 = { ...MATSOF() },
     g0 = S.gold,
-    lv0 = S.lv,
-    items = [];
+    lv0 = S.lv;
   let won = 0;
   for (let i = 0; i < n; i++) {
     if (Math.random() < die) continue;
     won++;
-    for (const it of roundLoot(t, star, Math.round(mean('nS')), Math.round(mean('nE')))) {
-      const act = fltAct(it).act;
-      if (act === 'hide') continue;
-      if (act === 'sell' || !invPut(S.inv, it)) {
-        S.gold += sellPrice(it);
-        continue;
-      }
-      items.push(it);
-      if (it.frac || it.mem) dropLog(`${it.frac ? '★ 破裂' : '◈ 追憶'}・${itemName(it)}`, it.frac ? 'frac' : 'mem');
-    }
+    roundLoot(t, star, Math.round(mean('nS')), Math.round(mean('nE')));
     S.gold += Math.round(mean('gold'));
     /* 經驗：安靜地加（不跳升級特效） */
     S.xp += mean('xp');
@@ -274,7 +277,10 @@ function offSettle(away) {
     away: Math.min(away, OFF_MAX),
     n,
     won,
-    items,
+    mats: Object.keys(MATSOF())
+      .filter(k => MATSOF()[k] > (mats0[k] || 0))
+      .map(k => [k, MATSOF()[k] - (mats0[k] || 0)]),
+    soul: MAT().soul - M0.soul,
     cur: Object.keys(CUR)
       .filter(c => MAT()[c] > (M0[c] || 0))
       .map(c => [c, MAT()[c] - (M0[c] || 0)]),
@@ -282,22 +288,16 @@ function offSettle(away) {
     lv: S.lv - lv0
   };
 }
-/* 回來時的摘要：最好的 SUM_FLIP 件一件一件翻（★ > 追憶 > 兩條 T1 > 黃裝），其餘合成一行 */
-const SUM_FLIP = 8;
-const sumScore = it => (it.frac ? 40 : 0) + (it.mem ? 20 : 0) + (t1N(it) >= 2 ? 10 : 0) + it.r;
+/* 回來時的摘要（0.5.0 起沒有裝備，只列材料、靈魂、金、通貨） */
 function offShow(o) {
   if (!o) return;
-  const best = [...o.items].sort((a, b) => sumScore(b) - sumScore(a)).slice(0, SUM_FLIP),
-    h = Math.floor(o.away / 3600e3),
-    m = Math.floor((o.away % 3600e3) / 60e3),
-    nf = o.items.filter(it => it.frac).length,
-    nm = o.items.filter(it => it.mem).length;
-  revealOpen(best.reverse(), {
+  const h = Math.floor(o.away / 3600e3),
+    m = Math.floor((o.away % 3600e3) / 60e3);
+  revealOpen([], {
     title: '離開的時候',
     head: `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `（倒下 ${o.n - o.won} 輪）` : ''}</p>
-      <p>裝備 <b>${o.items.length}</b> 件${nf ? ` · <span class="frac">★ ${nf}</span>` : ''}${nm ? ` · <span class="mem">◈ ${nm}</span>` : ''} · 金幣 <b class="c-gold">+${o.gold}</b>${o.lv ? ` · 升了 <b>${o.lv}</b> 級` : ''}</p>
-      ${o.cur.length ? `<p class="sumc">${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}</div>`,
-    more: o.items.length > best.length ? `其餘 ${o.items.length - best.length} 件已經放進倉庫` : ''
+      <p>${o.mats.map(([k, v]) => `${esc(matName(...matOf(k)))} <b>+${v}</b>`).join(' · ') || '沒有材料'} · 靈魂 <b>+${fmtN(o.soul)}</b> · 金幣 <b class="c-gold">+${fmtN(o.gold)}</b>${o.lv ? ` · 升了 <b>${o.lv}</b> 級` : ''}</p>
+      ${o.cur.length ? `<p class="sumc">${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}</div>`
   });
 }
 /* 退回去哪：裂口回到進來之前在刷的節點，其他照 wPrev */
@@ -400,7 +400,7 @@ function enterMap(t, keep) {
   G.round = was ? was.round + 1 : 1;
   G.nextT = 0;
   /* 這一輪的統計（0.4.1 離線結算用）：經驗、金幣、小怪與菁英數 */
-  G.rs = { xp: 0, gold: 0, nS: 0, nE: 0, items: [], sold: 0, log: [] };
+  G.rs = { xp: 0, gold: 0, nS: 0, nE: 0, items: [], sold: 0, log: [], mat: {} };
   G.scene = 'map';
   G.mapT = t;
   /* 節點：血霧扣 25%、這一批卡用掉了（失敗回來也是新的一批）；裂口的王帶 1 條墮落詞 */
@@ -991,6 +991,10 @@ function killMob(m) {
     zod: !!G.zod
   };
   const mat = killMat(m, t, od);
+  if (G.rs && mat.mat) {
+    const mk = matKey(mat.mat[0], mat.mat[1]);
+    G.rs.mat[mk] = (G.rs.mat[mk] || 0) + mat.mat[2];
+  }
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   [
     ...mat,
@@ -1000,9 +1004,7 @@ function killMob(m) {
     ...(m.boss && m.D.army ? armyDrop(m.D.army, G.army && G.army.c, G.army ? G.army.res : 0) : []),
     ...(m.boss && !m.mini && (m.D.ts || od.zod) ? tsDrop(m.D.ts || 'zod', S, od.ilvl) : [])
   ].forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
-  /* 掉落：菁英 1 件黃、王 3 件（第一件保底黃）；裂口生肖王多 1 件保底追憶裝 */
-  for (const it of dropGear(m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0, od)) dropAt(m.x, m.y, { it });
-  if (m.boss && m.D.army) for (const it of armyGear(m.D.army, G.army ? G.army.res : 0, od)) dropAt(m.x, m.y, { it });
+  /* 0.5.0：戰鬥不掉裝備（材料在 killMat）；護符照舊小機率掉 */
   if (Math.random() < (m.boss || m.elite ? 1 : 0.4))
     dropAt(m.x, m.y, { gold: Math.round(rnd(2, 6) * (1 + t * 0.5) * (m.boss ? 12 : m.elite ? 3 : 1)) });
   /* 護符：小怪 1%、菁英 15%、王 50% */
@@ -1046,6 +1048,7 @@ function bossDown(m) {
     gold: G.rs.gold,
     sold: G.rs.sold,
     log: G.rs.log.slice(),
+    mat: { ...G.rs.mat },
     node: G.node
   };
   if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
@@ -1097,17 +1100,8 @@ function dropAt(x, y, o) {
   if (!open(o.x, o.y, 10)) (o.x = x), (o.y = y);
   G.drops.push(o);
   if (o.show) return (o.hold = RARE_HOLD), rareShow(CUR[o.show].n, /3$/.test(o.show) ? 'perf' : 'cur', 'orb');
-  if (!o.it || o.nopick) return;
-  const it = o.it,
-    mm = midMark(it);
-  /* ★ 與追憶：停一下、橫幅、專屬音；中間階梯只記紀錄；黃裝的「rare」照舊 */
-  if (it.frac || it.mem)
-    return (
-      (o.hold = RARE_HOLD),
-      rareShow(`${it.frac ? '★ 破裂' : '◈ 追憶'}・${itemName(it)}`, it.frac ? 'frac' : 'mem', it.frac ? 'star' : 'mem')
-    );
-  if (mm) dropLog(`${itemName(it)}（${mm}）`, 'mid');
-  sfx(it.r === 2 ? 'rare' : 'drop0');
+  /* 0.5.0 起地上只有護符與自己丟的（裝備不掉） */
+  if (o.it && !o.nopick) sfx('drop0');
 }
 function gainXp(v) {
   if (S.lv >= LVMAX) return;

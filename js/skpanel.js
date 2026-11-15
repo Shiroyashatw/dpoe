@@ -129,7 +129,9 @@ function skCur() {
   return { aura, slot, rec, D, k: rec && rec.k, g: rec && recGem(rec, S.lib), name: aura ? '光環' : slotKey(SKUI.i) };
 }
 /* 拿著現在的武器看不看得到這招（綁武器的別把拿不到的列出來）；看得到但現在用不了（要盾、沒點亮昇華）的灰掉 */
-const skShown = D => !D.wt || D.wt.includes(ST.wt) || (ST.wt === 'unarmed' && D === SKILLS.slash);
+/* 0.5.0：武器類別沒開的技能不列（campWt） */
+const skShown = D =>
+  !D.wt || (D.wt.includes(ST.wt) && D.wt.some(campWt)) || (ST.wt === 'unarmed' && D === SKILLS.slash);
 const skWhy = D => (wtOK(D) ? '' : `${wtNeed(D)}才能用`);
 const SUPTAB = {
   通用: [
@@ -389,6 +391,7 @@ function homeHTML() {
     ord = skOrder(),
     late = aiOrder(aiTags).filter(i => i && isLate(i));
   const rows = ord
+    .filter(i => i < campN('slots'))
     .map((i, p) => {
       const r = S.skills[i],
         key = auto ? '' : slotKey(i, 1);
@@ -483,7 +486,7 @@ function supRows(c) {
     }
     return `<button class="sk-row" data-sk="hole:${j}">${icHTML(SUPPORTS[k].ic)}<span class="sk-t"><b>${esc(SUPPORTS[k].n)}</b><small>${plainTxt((SUPPORTS[k].x && SUPPORTS[k].x[0]) || SUPPORTS[k].d)}</small></span>${right}</button>`;
   });
-  if (r.n < GEM_SO_MAX)
+  if (r.n < Math.min(GEM_SO_MAX, campN('holes')))
     rows.push(
       `<button class="sk-row emp" data-sk="hole:${r.n}">${ICO.lock}<span class="sk-t"><b>第 ${r.n + 1} 孔</b><small>還沒打開</small></span></button>`
     );

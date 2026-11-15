@@ -1311,6 +1311,7 @@ function wmCardHTML(k, why) {
   const S_ = STARS[star],
     [lo, hi] = S_.n || [0, 0];
   return `<div class="wm-stars" role="radiogroup" aria-label="星級">${[1, 2, 3, 4, 5]
+    .filter(n => n <= campN('star'))
     .map(
       n =>
         `<button class="mc2 ${n === star ? 'on' : ''}" role="radio" aria-checked="${n === star}" data-wm="star:${n}" style="--sc:${STARS[n].c}"><span class="mstar">${n}★</span></button>`

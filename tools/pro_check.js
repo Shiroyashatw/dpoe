@@ -160,11 +160,15 @@ async function fresh() {
   ok('掌櫃第一次先打招呼', await p.evaluate(() => TALK.on && TALK.id === 'trader_first'));
   await p.keyboard.press('Escape');
   await p.waitForTimeout(100);
-  ok('招呼打完開店（功能不變）', await p.evaluate(() => !!PANEL.shop && S.story.shopMet === 1));
+  /* 0.5.0：商會併進鍛造台的打造 */
+  ok(
+    '招呼打完開打造（功能不變）',
+    await p.evaluate(() => !!PANEL.craft && CRAFT.tab === 'make' && S.story.shopMet === 1)
+  );
   await p.screenshot({ path: shot('shop') });
   await p.keyboard.press('Escape');
   await p.evaluate(() => interact());
-  ok('之後直接開店', await p.evaluate(() => !TALK.on && !!PANEL.shop));
+  ok('之後直接開打造', await p.evaluate(() => !TALK.on && !!PANEL.craft));
   ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
   await p.ctxx.close();
 }

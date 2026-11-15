@@ -157,7 +157,7 @@ function tapItem(d) {
   const r = d.el.getBoundingClientRect();
   TOUCH.sel = { src: d.src, id: d.it.id, eqk: d.eqk };
   const sellB =
-    `<button class="btn" data-tq="sell">賣 ${sellPrice(d.it)} 金</button>` +
+    `<button class="btn" data-tq="sell">分解</button>` +
     (d.src === 'inv' ? `<button class="btn" data-tq="lock">${d.it.lock ? '解鎖' : '鎖定'}</button>` : '');
   /* 直立：多一顆「做裝」（通貨頁中間那一件已經在做裝了，不用） */
   const craftB =

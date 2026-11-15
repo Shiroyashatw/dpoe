@@ -1,14 +1,15 @@
-/* dungeonPOE 0.4.1 · 掉落量的「有感事件」模擬（企劃書 5.4.5、2.2）：在 Node 載入純邏輯，照連續刷一輪（小怪＋菁英＋王）走真的掉落函式，
-   數每 5 分鐘有幾次有感事件（★、追憶、崇高石各階、高階與完美通貨），目標每 5 分鐘至少 1 次；
-   0.4.8 加每小時進帳多少靈魂、解鎖一顆輔助 II（SUP2_COST）要刷幾分鐘。
-   用法：node tools/loot_check.js [小時，預設 4] [一輪幾秒，預設 60]；固定亂數，同參數結果一樣。只量不改數字 */
+/* dungeonPOE 0.5.0 · 新手第一小時的節奏模擬（docs/工坊與解鎖表.md 第 2 節）：在 Node 載入純邏輯，照連續刷一輪（小怪＋菁英＋王）走真的掉落函式，
+   從新存檔開始、停在第一個地點（或照 push 每打倒一次王就往下推），每一分鐘數：靈魂、鐵、打得起幾件（鐵 ÷ 8）、鍛造台升到幾級（靈魂夠就升）、
+   第一小時幾個「新東西」（鍛造台每升一級算一個）；對第 2 節的表看哪一列對不上。
+   用法：node tools/loot_check.js [一輪幾秒，預設 60] [小怪數，預設 40] [push＝1 每輪往下推一個點]；固定亂數，同參數結果一樣。只量不改數字 */
 'use strict';
 const fs = require('fs'),
   vm = require('vm'),
   path = require('path');
-const HOURS = +process.argv[2] || 4,
-  SEC = +process.argv[3] || 60;
-let seed = 20261112;
+const SEC = +process.argv[2] || 60,
+  NS = +process.argv[3] || 40,
+  PUSH = process.argv[4] === '1';
+let seed = 20261115;
 const rand = () => {
   let t = (seed += 0x6d2b79f5) | 0;
   t = Math.imul(t ^ (t >>> 15), t | 1);
@@ -23,36 +24,34 @@ for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'm
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const R = s => vm.runInContext(s, ctx);
 console.log(
-  `連續刷 ${HOURS} 小時、一輪 ${SEC} 秒（${Math.floor((HOURS * 3600) / SEC)} 輪）；小怪 40、菁英照星級（eliteCount）`
+  `新存檔、一輪 ${SEC} 秒（小怪 ${NS}、菁英照 1★）${PUSH ? '、每輪往下推一個點' : '、停在第一個地點'}；每分鐘一列`
 );
-console.log(
-  `節點 Lv | 星 | ★ | 追憶 | 崇高 | 高階 | 完美 | 有感事件／5 分鐘 | 靈魂／時 | 輔助 II（${R('SUP2_COST')}）幾分鐘`
-);
-let bad = 0;
-for (const lv of [18, 33, 53, 73, 83])
-  for (const star of [1, 3, 5]) {
-    const r = R(`(() => {
-      S = { lv: 90, mat: newMat(), prd: PRD0(), inv: { items: [] } };
-      const t = lvT(${lv}), n = Math.floor(${HOURS * 3600} / ${SEC}), o = { f: 0, m: 0, ex: 0, g: 0, p: 0, s: 0 };
-      for (let i = 0; i < n; i++) {
-        const m0 = { ...S.mat };
-        for (const it of roundLoot(t, ${star}, 40, eliteCount(${star}))) (o.f += it.frac ? 1 : 0), (o.m += it.mem ? 1 : 0);
-        const d = k => S.mat[k] - m0[k];
-        o.ex += d('exalt');
-        o.s += d('soul');
-        o.g += ['tran2', 'aug2', 'rich2', 'exalt2'].reduce((a, k) => a + d(k), 0);
-        o.p += ['tran3', 'aug3', 'rich3', 'exalt3'].reduce((a, k) => a + d(k), 0);
-      }
-      return o;
-    })()`);
-    const ev = r.f + r.m + r.ex + r.g + r.p,
-      per5 = ev / ((HOURS * 60) / 5),
-      soulH = r.s / HOURS;
-    if (per5 < 1) bad++;
-    console.log(
-      `Lv${String(lv).padStart(2)} | ${star}★ | ${r.f} | ${r.m} | ${r.ex} | ${r.g} | ${r.p} | ${per5.toFixed(2)}${per5 < 1 ? ' ⚠️ 不到 1' : ''} | ${Math.round(soulH)} | ${((R('SUP2_COST') / soulH) * 60).toFixed(1)}`
-    );
+console.log('分 | 地點 Lv | 靈魂（累計） | 鐵（累計） | 這一分鐘打得起（件） | 鍛造台 Lv | 這一分鐘解鎖');
+const r = R(`(() => {
+  S = { lv: 1, mat: newMat(), prd: PRD0(), inv: { items: [] }, camp: newCamp(), auto2: AUTO2(), world: newWorld(), gold: 0 };
+  const rows = [], news = [];
+  let t = 0, soulSum = 0, ironSum = 0, nodeI = 0, mats0 = 0;
+  const ironAll = () => Object.entries(S.mat.mats).filter(([k]) => k.startsWith('iron:')).reduce((a, [, n]) => a + n, 0);
+  for (let min = 1; min <= 60; min++) {
+    const un = [];
+    while (t < min * 60) {
+      const lv = TRUNK[Math.min(nodeI, TRUNK.length - 1)].lv, T = lvT(lv);
+      roundLoot(T, 1, ${NS}, eliteCount(1));
+      /* 打倒王：主幹算走過、往下推 */
+      S.world.done.push(TRUNK_K[nodeI]);
+      if (${PUSH ? 'true' : 'false'}) nodeI = Math.min(TRUNK.length - 1, nodeI + 1);
+      t += ${SEC};
+      /* 靈魂夠就升鍛造台 */
+      while (!campUp('forge')) un.push('鍛造台 Lv' + S.camp.forge + '：' + CAMP.forge[S.camp.forge - 1].d);
+    }
+    const iron = ironAll(), got = iron - mats0; mats0 = iron;
+    rows.push([min, TRUNK[Math.min(nodeI, TRUNK.length - 1)].lv, S.mat.soul, iron, Math.floor(got / 8), S.camp.forge, un.join('；')]);
+    news.push(...un);
   }
+  return { rows, news: news.length, lv: S.camp.forge, iron: ironAll(), soul: S.mat.soul };
+})()`);
+for (const row of r.rows) console.log(row.map(v => String(v).padStart(6)).join(' | '));
 console.log(
-  bad ? `⚠️ ${bad} 組不到每 5 分鐘 1 次（只量不改，數字等實際玩過再調）` : '每一組都至少每 5 分鐘 1 次有感事件'
+  `第一小時：鍛造台 Lv${r.lv}（文件第 2 節目標 Lv8）、新東西 ${r.news} 個（鍛造台的等級；目標含另外三座 14 個）、靈魂共 ${r.soul}、鐵共 ${r.iron}`
 );
+console.log('只量不改：對不上先調掉量再調費用，調了寫回 docs/工坊與解鎖表.md');

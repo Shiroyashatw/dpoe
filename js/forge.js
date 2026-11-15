@@ -2,8 +2,152 @@
    點一下背包或身上的裝備＝放上鍛造台；分頁：填（通貨，只能加）、淬鍊（金幣）、聖化、腐化。
    每個按鈕都寫要花什麼、預覽會發生什麼；不能按的寫原因；推薦的標「推薦」。材料頁在倉庫的「材料」分頁 */
 'use strict';
-const CRAFT = { tab: 'forge', op: null, ess: null, conv: null, sel: null, log: '', perf: 0, pen: 0, om: [] };
+const CRAFT = { tab: 'make', op: null, ess: null, conv: null, sel: null, log: '', perf: 0, pen: 0, om: [] };
 const craftItem = () => (CRAFT.sel ? findItem(CRAFT.sel.src, CRAFT.sel.id, CRAFT.sel.eqk) : null);
+
+/* ---------- 打造（0.5.0，工坊與解鎖表第 5 節；鍛造台的第一頁）：鍛造台的表 → 選部位 → 系／武器類別 → 材料的階 → 數量 → 一顆主要按鈕；
+   按下去扣材料、一件一件翻（hud.js 的 revealOpen 打造模式），每一件立刻跟身上比、換上／留／分解 ---------- */
+const MK = { kind: 'weapon', sys: '', wt: 'sword', T: 0, n: 1 };
+const MK_KINDS = [
+  ['weapon', '武器'],
+  ['shield', '盾'],
+  ['focus', '法器'],
+  ['quiver', '箭袋'],
+  ['helm', '頭部'],
+  ['chest', '胸甲'],
+  ['gloves', '手套'],
+  ['boots', '鞋子'],
+  ['belt', '腰帶'],
+  ['amulet', '項鍊'],
+  ['ring', '戒指']
+];
+/* 這個部位開了沒：法器要靈絲、箭袋要皮 */
+const mkKindOK = k => (k === 'focus' ? campCan('mat:silk') : k === 'quiver' ? campCan('mat:hide') : true);
+/* 這個部位有哪些系（開了材料的才列）；武器、法器、箭袋、飾品沒有系 */
+function mkSyses(kind) {
+  if (['weapon', 'focus', 'quiver', ...ACC_K].includes(kind)) return [];
+  const all = [...new Set(BASES.filter(b => b.k === kind).map(baseSys))].filter(Boolean),
+    ord = Object.keys(SYSN);
+  return all
+    .filter(s => s.split('+').every(x => x === 'armor' || campCan('mat:' + SYS_MAT[x])))
+    .sort((a, b) => ord.indexOf(a) - ord.indexOf(b));
+}
+/* 把選項修到合法：部位、系、武器類別、階（預設手上有材料的最高階）、數量 */
+function mkOpts() {
+  if (!mkKindOK(MK.kind)) MK.kind = 'weapon';
+  const sys = mkSyses(MK.kind);
+  MK.sys = sys.length ? (sys.includes(MK.sys) ? MK.sys : sys[0]) : '';
+  if (!campWt(MK.wt)) MK.wt = 'sword';
+  const b0 = craftBase(MK.kind, { sys: MK.sys, wt: MK.wt, T: 1 }),
+    ms = b0 ? baseMat(b0) : ['iron'],
+    tiers = [1, 2, 3, 4, 5, 6].filter(T => ms.some(m => matN(m, T) > 0)),
+    ns = [1, 3, 5, 10, 20].filter(x => x <= campN('batch'));
+  if (!tiers.includes(MK.T)) MK.T = tiers.length ? tiers[tiers.length - 1] : 1;
+  if (!ns.includes(MK.n)) MK.n = 1;
+  return { sys, tiers, ns };
+}
+const chipB = (fg, on, t) =>
+  `<button class="chip ${on ? 'on' : ''}" data-fg="${fg}" aria-pressed="${!!on}">${t}</button>`;
+function makeHTML() {
+  const { sys, tiers, ns } = mkOpts(),
+    b = craftBase(MK.kind, MK),
+    c = craftCost(b, MK.T),
+    lack = craftLack(c, MK.n),
+    [w, bl, y] = craftRarP(S.camp.forge),
+    costTxt =
+      Object.entries(c.mats)
+        .map(([m, n]) => `${matName(m, MK.T)} ×${n * MK.n}`)
+        .join('、') + (c.gold ? `、${c.gold * MK.n} 金` : ''),
+    kinds = MK_KINDS.filter(([k]) => mkKindOK(k))
+      .map(([k, n]) => {
+        const bb = craftBase(k, { sys: k === MK.kind ? MK.sys : '', wt: MK.wt, T: MK.T });
+        return `<button class="shopb ${MK.kind === k ? 'on' : ''}" data-fg="mk:kind:${k}" aria-pressed="${MK.kind === k}">${icHTML(bb ? bb.ic : '')}<span>${n}</span></button>`;
+      })
+      .join('');
+  return `${campHTML('forge')}
+  <div class="ph2">打造<span>材料 → 一件裝備，翻出來立刻跟身上比</span></div>
+  <div class="shopg mk">${kinds}</div>
+  ${MK.kind === 'weapon' && S.camp.wts.length > 1 ? `<div class="bagf" role="group" aria-label="武器類別">${S.camp.wts.map(wt => chipB(`mk:wt:${wt}`, MK.wt === wt, WTN[wt])).join('')}</div>` : ''}
+  ${sys.length > 1 ? `<div class="bagf" role="group" aria-label="系">${sys.map(s => chipB(`mk:sys:${s}`, MK.sys === s, SYSN[s])).join('')}</div>` : ''}
+  <div class="bagf" role="group" aria-label="材料的階與數量">${(tiers.length ? tiers : [1])
+    .map(T =>
+      chipB(
+        `mk:T:${T}`,
+        MK.T === T,
+        `T${T}<small>${Object.keys(c.mats)
+          .map(m => `${MATS[m].n} ${fmtN(matN(m, T))}`)
+          .join('／')}</small>`
+      )
+    )
+    .join(
+      ''
+    )}${ns.length > 1 ? `<span class="sep"></span>${ns.map(n => chipB(`mk:n:${n}`, MK.n === n, `${n} 件`)).join('')}` : ''}</div>
+  <div class="mkpv"><div class="it r0 fic">${icHTML(b.ic)}</div><div><b>${esc(b.n)}</b><small>物品等級 ${matIlvl(MK.T)}${MK.sys ? `・${SYSN[MK.sys]}` : ''}・普通 ${w}%・魔法 ${bl}%${y ? `・<span class="rc2">稀有 ${y}%</span>` : ''}</small>${y ? `<small>再 ${Math.max(0, prdMax(y / 100) - (S.prd.craftR || 0))} 件沒出稀有，下一件必出</small>` : ''}</div></div>
+  ${auto2HTML()}
+  <div class="mkgo"><button class="btn pri fgo" data-fg="go" ${lack ? 'disabled' : ''}>${lack ? esc(lack) : `打造 ${MK.n} 件・${esc(costTxt)}`}</button></div>`;
+}
+/* 自動分解規則（鍛造台 Lv8 照稀有度、Lv14 加詞階／追憶／▲）：打造出來不留的直接分解 */
+function auto2HTML() {
+  if (!campCan('auto2')) return '';
+  const A = S.auto2;
+  return `<div class="ph2">自動分解<span>打造出來不留的直接分解</span></div>
+  <div class="bagf" role="group" aria-label="照稀有度">${[
+    [0, '全部留'],
+    [1, '分解普通'],
+    [2, '只留稀有'],
+    [3, '不照稀有度']
+  ]
+    .filter(([v]) => v < 3 || campCan('auto2t'))
+    .map(([v, t]) => chipB(`a2:r:${v}`, A.r === v, t))
+    .join('')}</div>
+  ${
+    campCan('auto2t')
+      ? `<div class="bagf" role="group" aria-label="另外留"><span class="c-dim">另外留</span>${[1, 2, 3].map(t => chipB(`a2:t:${A.t === t ? 0 : t}`, A.t === t, `有 T${t} 詞`)).join('')}${chipB(`a2:mem:${A.mem ? 0 : 1}`, A.mem, '追憶')}${chipB(`a2:up:${A.up ? 0 : 1}`, A.up, '▲ 比身上好')}</div>`
+      : ''
+  }`;
+}
+/* 一座設施的表（工坊與解鎖表第 3 節）：目前等級、下一級解鎖什麼、要什麼（夠的亮）、升級鈕（不夠寫還差多少、照現在的速度幾分鐘）；只顯示下一級 */
+function campHTML(b) {
+  const lv = S.camp[b],
+    { n, why, lack } = campUpCheck(b),
+    eta = campEta(b, SES),
+    cost = n
+      ? [
+          ['靈魂', MAT().soul, n.soul],
+          n.gold ? ['金', S.gold, n.gold] : null,
+          n.mat ? [matName(n.mat[0], n.mat[1]), matN(n.mat[0], n.mat[1]), n.mat[2]] : null,
+          ...Object.entries(n.cur || {}).map(([k, v]) => [CUR[k].n, MAT()[k] || 0, v])
+        ].filter(Boolean)
+      : [];
+  return `<div class="paper camp"><div class="k row2">${CAMPN[b]}<span>Lv ${lv}${n ? `・還有 ${campMax(b) - lv} 級` : '・滿級'}</span></div>
+  ${
+    n
+      ? `<div class="camp-nx"><b>Lv ${n.lv}</b><span>${esc(n.d)}</span></div>
+  <ul class="camp-cost">${cost.map(([nm, h, w]) => `<li class="${h >= w ? 'ok' : ''}">${esc(nm)}<b>${fmtN(h)}／${fmtN(w)}</b></li>`).join('')}${n.node ? `<li class="node ${wDone(S).has(TRUNK_K[n.node - 1]) ? 'ok' : ''}">打倒第 ${n.node} 個地點的王<b>${esc(TRUNK[n.node - 1].n)}</b></li>` : ''}</ul>
+  <button class="btn ${why || lack.length ? '' : 'pri'} wide" data-fg="camp:${b}" ${why || lack.length ? 'disabled' : ''}>${
+    why
+      ? esc(why)
+      : lack.length
+        ? `還差 ${lack.map(([nm, h, w]) => `${esc(nm)} ${fmtN(w - h)}`).join('、')}${eta != null ? `・約 ${eta} 分鐘` : ''}`
+        : `升級到 Lv ${n.lv}・${esc(n.d)}`
+  }</button>`
+      : ''
+  }</div>`;
+}
+/* 按「打造」：扣材料、進倉庫、開翻牌 */
+function craftGo() {
+  const r = craftDo(MK.kind, MK);
+  if (r.why) return hudWarn(r.why);
+  const kept = r.items.filter(it => !it.salv).length;
+  sfx(r.items.some(it => it.r === 2) ? 'flipRare' : 'equip');
+  revealOpen(r.items, {
+    title: '打造',
+    craft: 1,
+    head: r.salv.n
+      ? `<p class="summ">${r.items.length} 件：留 ${kept} 件、分解 ${r.salv.n} 件 → ${esc(salvText(r.salv))}</p>`
+      : ''
+  });
+}
 
 /* ---------- 通貨頁（倉庫第一頁，0.3.6，照 PoE 的通貨倉庫）：通貨圍著中間一格，裝備放進中間（S.curIt）、點通貨直接用。
    轉化石：點了中間裝備的詞變成按鈕，點一條才用；預知石：點了再點一顆填詞的通貨（或精髓、轉化的詞）＝先看結果；
@@ -60,6 +204,7 @@ function curPortHTML() {
         return `<button class="curow ${w ? 'no' : ''} ${ns.some(Boolean) ? '' : 'z'}" data-cu="u:${k}">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w ? 'c-warn' : ''}">${esc(w || CUR[k].d)}</small></span><em class="t3"><i>普</i>${fmtN(ns[0])}<i>高</i>${fmtN(ns[1])}<i>完</i>${fmtN(ns[2])}</em></button>`;
       return `<div class="cugrp ${rec === k ? 'rec' : ''}"><div class="curow">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}${rec === k ? '<i>下一步</i>' : ''}</b><small>${esc(CUR[k].d)}</small></span></div>
         <div class="cut3">${[1, 2, 3]
+          .filter(g => g === 1 || campCan('tier' + g))
           .map(
             g =>
               `<button class="g${g} ${ns[g - 1] ? '' : 'z'}" data-cu="u:${k}${g > 1 ? g : ''}" aria-label="${esc(CUR[k + (g > 1 ? g : '')].n)}"><b>${['普通', '高階', '完美'][g - 1]}</b><small>${span(g)}</small><em>×${fmtN(ns[g - 1])}</em></button>`
@@ -67,7 +212,7 @@ function curPortHTML() {
           .join('')}</div></div>`;
     },
     ess = essList(),
-    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k)),
+    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k) && campCan(curKey(k))),
     li = (ic, n, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
     top = !it
@@ -82,18 +227,25 @@ function curPortHTML() {
             : ''
         }${slotsHTML(it, CUI.conv ? 'conv' : 'view', 'cu')}${CUI.log ? `<p class="culog">${esc(CUI.log)}</p>` : ''}`;
   /* 品質的通貨：選了裝備只列用得上的那一種 */
-  const qual = it ? [qualCur(it)] : ['whet', 'plate'];
+  const qual = it ? [qualCur(it)] : ['whet', 'plate'],
+    open = ks => ks.filter(k => campCan(curKey(k)));
   return `<div class="cutop">${top}</div>
   <div class="ph2">加詞<span>只能加、不能減</span></div>
-  <div class="culist">${['tran', 'aug', 'rich', 'exalt'].map(grp).join('')}</div>
-  <div class="ph2">精髓<span>保證那一類、至少那一階</span></div>
+  <div class="culist">${open(['tran', 'aug', 'rich', 'exalt']).map(grp).join('')}</div>
+  ${
+    campCan('cur:ess')
+      ? `<div class="ph2">精髓<span>保證那一類、至少那一階</span></div>
   ${
     ess.length
       ? `<div class="mats">${ess.map(([k, n]) => `<button class="chip" data-cu="es:${k}">${icHTML(ACLSI[k.split(':')[0]].ic)}${esc(essName(k))}<small>×${n}</small></button>`).join('')}</div>`
       : `<p class="fhint">精髓由 3★ 以上地圖的菁英與王掉落</p>`
+  }`
+      : ''
   }
   <div class="ph2">其他</div>
-  <div class="culist">${['conv', 'fore', ...qual, 'holy', 'corr'].map(row).join('')}</div>
+  <div class="culist">${open(['conv', 'fore', ...qual, 'holy', 'corr'])
+    .map(row)
+    .join('')}</div>
   <div class="ph2">材料<span>預兆在鍛造台搭配填詞用</span></div>
   <ul class="mpg">${li('cur_soul', '靈魂', '技能與光環升級、開孔、解鎖輔助 II；自動吸收', M.soul)}${rest.map(k => li(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
 }
@@ -113,11 +265,15 @@ function curPageHTML() {
           ? '轉化石：點下面一條要換掉的詞'
           : '',
     ess = essList(),
-    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k)),
+    rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k) && campCan(curKey(k))),
     row = (ic, n, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`;
-  return `<div class="cupg">${CUR_RING.map(btn).join('')}${center}</div>
-  <div class="cutier" aria-label="高階與完美通貨">${CUR_TIERS.map(btn).join('')}</div>
+  return `<div class="cupg">${CUR_RING.filter(k => campCan(curKey(k)))
+    .map(btn)
+    .join('')}${center}</div>
+  <div class="cutier" aria-label="高階與完美通貨">${CUR_TIERS.filter(k => campCan(curKey(k)))
+    .map(btn)
+    .join('')}</div>
   ${
     it
       ? `${cardHTML(it)}${
@@ -132,11 +288,15 @@ function curPageHTML() {
       : ''
   }
   ${CUI.log ? `<p class="culog">${esc(CUI.log)}</p>` : ''}
-  <div class="ph2">精髓<span>${it ? '點一顆直接用' : '9 類 × 階級，同類同階疊一格'}</span></div>
+  ${
+    campCan('cur:ess')
+      ? `<div class="ph2">精髓<span>${it ? '點一顆直接用' : '9 類 × 階級，同類同階疊一格'}</span></div>
   ${
     ess.length
       ? `<div class="mats">${ess.map(([k, n]) => `<button class="chip" data-cu="es:${k}">${icHTML(ACLSI[k.split(':')[0]].ic)}${esc(essName(k))}<small>×${n}</small></button>`).join('')}</div>`
       : `<p class="fhint">精髓由 3★ 以上地圖的菁英與王掉落</p>`
+  }`
+      : ''
   }
   <div class="ph2">其他<span>預兆在鍛造台搭配填詞用</span></div>
   <ul class="mpg">${row('cur_soul', '靈魂', '技能與光環升級、開孔、解鎖輔助 II；自動吸收', M.soul)}${rest.map(k => row(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
@@ -334,7 +494,7 @@ function fillHTML(it) {
     cnt = k => (k === 'ess' ? essList().reduce((s, [, n]) => s + n, 0) : M[k] || 0),
     /* 高階、完美（0.4.1）有的時候才列出來 */
     seg = `<div class="fseg s6" role="tablist" aria-label="通貨">${FILL_OPS.filter(
-      k => !/[23]$/.test(k) || cnt(k) || k === op
+      k => campCan(curKey(k)) && (!/[23]$/.test(k) || cnt(k) || k === op)
     )
       .map(
         k =>
@@ -448,18 +608,30 @@ function forgeHTML() {
   const it = craftItem(),
     tab = CRAFT.tab,
     tabs = [
-      ['forge', '填'],
-      ['temper', '淬鍊'],
-      ['holy', '聖化'],
-      ['corr', '腐化'],
-      ['calam', '災魘']
-    ];
+      ['make', '打造'],
+      ['forge', '填', 'tab:fill'],
+      ['temper', '淬鍊', 'tab:temper'],
+      ['holy', '聖化', 'tab:holy'],
+      ['corr', '腐化', 'tab:corr'],
+      ['calam', '災魘', 'tab:calam']
+    ].filter(t => !t[2] || campCan(t[2]));
+  /* 0.5.0：沒開的分頁不畫；打造（第一頁）永遠在 */
+  if (!tabs.some(t => t[0] === tab)) CRAFT.tab = 'make';
+  if (CRAFT.tab === 'make')
+    return `${
+      PORT()
+        ? `<div class="ph"><b>做裝</b>${craftSeg('make')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
+        : `<div class="ph"><b>鍛造台</b><span class="fmat">靈魂 <b>${fmtN(MAT().soul)}</b></span><span class="ftabs">${tabs
+            .map(([k, n]) => `<button class="${k === 'make' ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
+            .join('')}</span>${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
+    }<div class="fmake">${makeHTML()}</div>`;
   if (!it) (CRAFT.conv = null), (CRAFT.op = CRAFT.op || null);
   else if (CRAFT.conv != null && !it.a[CRAFT.conv]) CRAFT.conv = null;
   const P = { forge: fillHTML, temper: temperHTML, holy: holyHTML, corr: corrHTML, calam: calamHTML }[tab](it),
     mode = tab === 'temper' ? 'temper' : tab === 'forge' && CRAFT.op === 'conv' ? 'conv' : 'view';
   /* 上到下：裝備卡 → 選通貨（top）→ 詞 → 預覽與說明（mid）→ 按鈕（act，黏在面板底部）；手機橫向左右並排（左：卡與詞，右：選、預覽、按鈕） */
   const tabsH = `<span class="ftabs">${tabs
+    .filter(([k]) => !PORT() || k !== 'make')
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
     .join('')}</span>`;
   /* 直立：標題列是「做裝」的三個分頁，鍛造台自己的五個分頁放第二列 */
@@ -515,6 +687,16 @@ document.addEventListener('click', e => {
     arg = op === 'ess' ? CRAFT.ess : op === 'conv' ? CRAFT.conv : null;
   let err = null;
   if (k === 'tab') CRAFT.tab = v;
+  else if (k === 'mk') (MK[v] = v === 'T' || v === 'n' ? +x : x), sfx('click');
+  else if (k === 'go') return craftGo();
+  else if (k === 'camp') {
+    err = campUp(v);
+    if (!err) {
+      const r = CAMP[v][S.camp[v] - 1];
+      hudWarn(`${CAMPN[v]} Lv ${S.camp[v]}：${r.d}`);
+      sfx('lvup');
+    }
+  } else if (k === 'a2') (S.auto2[v] = +x), sfx('click');
   else if (k === 'sel') (CRAFT.op = v), foreSkip();
   else if (k === 'es') (CRAFT.ess = v + ':' + x), foreSkip();
   else if (k === 'cv') (CRAFT.conv = CRAFT.conv === +v ? null : +v), foreSkip();

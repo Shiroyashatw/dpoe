@@ -4,7 +4,7 @@
 'use strict';
 
 /* ---------- 材料（S.mat）：靈魂＋10 種通貨（data.js 的 CUR），精髓另放 S.mat.ess＝{ '類:T': 數量 } ---------- */
-const newMat = () => ({ soul: 0, ...Object.fromEntries(Object.keys(CUR).map(k => [k, 0])), ess: {} });
+const newMat = () => ({ soul: 0, ...Object.fromEntries(Object.keys(CUR).map(k => [k, 0])), ess: {}, mats: {} });
 const MAT = () => (S.mat = S.mat || newMat());
 const essKey = (cls, T) => cls + ':' + T;
 const essName = key => {
@@ -119,11 +119,6 @@ function omenPick(it, i) {
   return null;
 }
 const sortAff = it => it.a.sort((x, y) => AFF[y.k].p - AFF[x.k].p);
-/* 商人賭裝用：詞綴最高 T2（好基底與 T1 只靠掉落） */
-function gambAff(k, ilvl) {
-  const a = rollAff(k, ilvl);
-  return a.T >= 2 ? a : rollAffT(k, 2);
-}
 /* 可能拿到的階級（預覽用）：這件物品等級能出的最高階往下 3 階 */
 const tierSpan = it => {
   const b = bestTier(it.L),
@@ -139,50 +134,234 @@ function affRangeTxt(k, it) {
 }
 const affName = k => AFF[k].n.replace(/ ?\+?\{\}%?/g, '').replace('附加 ', '');
 
-/* ---------- 商人賭裝（0.2.28，企劃書 5.6）：選種類、花金幣買一件。物品等級＝開放的最高階；品質 0、孔 0、
-   詞綴最高 T2（好基底與 T1 只靠掉落）；連續 8 件沒出稀有，下一件必出（S.gamN）。價格永遠高於稀有裝的賣價 ---------- */
-const GAMBLE = [
-  ['武器', Object.keys(WTN).map(w => ({ id: w, k: 'weapon', wt: w, n: WTN[w] }))],
-  [
-    '副手',
-    [
-      ['shield', '盾'],
-      ['focus', '法器'],
-      ['quiver', '箭袋']
-    ].map(([k, n]) => ({ id: k, k, n }))
-  ],
-  [
-    '防具與飾品',
-    [
-      ['helm', '頭部'],
-      ['chest', '胸甲'],
-      ['gloves', '手套'],
-      ['boots', '鞋子'],
-      ['belt', '腰帶'],
-      ['amulet', '項鍊'],
-      ['ring', '戒指']
-    ].map(([k, n]) => ({ id: k, k, n }))
-  ]
+/* ---------- 材料（0.5.0，docs/工坊與解鎖表.md 第 4 節）：鐵、皮、靈絲，有階 T1～T6；S.mat.mats＝{ 'iron:2': n }（照精髓的寫法） ---------- */
+const matKey = (k, T) => k + ':' + T;
+const matName = (k, T) => `${MATS[k].n} T${T}`;
+const matOf = key => [key.split(':')[0], +key.split(':')[1]];
+const MATSOF = () => (MAT().mats = MAT().mats || {});
+function matAdd(k, T, n = 1) {
+  const m = MATSOF(),
+    key = matKey(k, T);
+  m[key] = (m[key] || 0) + n;
+}
+const matN = (k, T) => MATSOF()[matKey(k, T)] || 0;
+/* 手上的材料 [[種類, 階, 數量]…]：鐵、皮、靈絲，階高的在前 */
+const matList = () =>
+  Object.entries(MATSOF())
+    .filter(([, n]) => n > 0)
+    .map(([key, n]) => [...matOf(key), n])
+    .sort((a, b) => MAT_K.indexOf(a[0]) - MAT_K.indexOf(b[0]) || b[1] - a[1]);
+/* 階 ↔ 物品等級：節點 Lv5 掉 T1、Lv83 掉 T6（tierIlvl 那條線三個一階）；T 階材料打出物品等級 3T−2（T1＝1、T6＝16） */
+const matTier = lv => Math.max(1, Math.min(6, Math.ceil(tierIlvl(lvT(lv)) / 3)));
+const matIlvl = T => Math.min(TMAX, 3 * T - 2);
+const itemTier = it => Math.max(1, Math.min(6, Math.ceil(it.L / 3)));
+/* 基底的系（防具）：護甲、閃避、能量護盾，混合系兩種（'armor+ev'）；武器、飾品是空字串 */
+const baseSys = b => DEFK.filter(k => b.b && b.b[k]).join('+');
+const SYSN = {
+  armor: '護甲',
+  ev: '閃避',
+  es: '能量護盾',
+  'armor+ev': '護甲閃避',
+  'armor+es': '護甲護盾',
+  'ev+es': '閃避護盾'
+};
+const SYS_MAT = { armor: 'iron', ev: 'hide', es: 'silk' };
+const ACC_K = ['belt', 'ring', 'amulet'];
+/* 基底吃哪種材料：鐵＝護甲系與所有武器、皮＝閃避系（箭袋也是 ⚠️）、靈絲＝能量護盾系與法器、混合系兩種各半；飾品鐵加金 */
+function baseMat(b) {
+  if (b.k === 'weapon' || ACC_K.includes(b.k)) return ['iron'];
+  if (b.k === 'focus') return ['silk'];
+  if (b.k === 'quiver') return ['hide'];
+  const s = DEFK.filter(k => b.b[k]).map(k => SYS_MAT[k]);
+  return s.length ? s : ['iron'];
+}
+/* 一件要幾個材料（第 5 節 ⚠️）：武器、胸甲 8，頭、手、鞋、腰、副手 5，戒指、項鍊 3；飾品另外要金 10 × 階 */
+const CRAFT_N = { weapon: 8, chest: 8, ring: 3, amulet: 3 };
+function craftCost(b, T) {
+  const ms = baseMat(b),
+    n = CRAFT_N[b.k] || 5,
+    mats = {};
+  for (const m of ms) mats[m] = Math.ceil(n / ms.length);
+  return { mats, T, gold: ACC_K.includes(b.k) ? 10 * T : 0 };
+}
+/* 這一階、這個部位與系的基底固定一個：等級最高的那個（不隨機；推進才有高階裝）。o：{ sys 系, wt 武器類別, T 階 } */
+function craftBase(kind, o) {
+  const fit = b => b.k === kind && (kind === 'weapon' ? b.wt === (o.wt || 'sword') : !o.sys || baseSys(b) === o.sys),
+    L = BASES.filter(b => fit(b) && b.lv <= matIlvl(o.T || 1));
+  if (L.length) return L.reduce((a, b) => (b.lv > a.lv ? b : a));
+  const all = BASES.filter(fit);
+  return all.length ? all.reduce((a, b) => (b.lv < a.lv ? b : a)) : null;
+}
+/* 稀有度照鍛造台等級（第 5 節 ⚠️）：[等級門檻, [白, 藍, 黃] %]；黃用偽隨機保底（S.prd.craftR），長期剛好是表上的 % */
+const CRAFT_RAR = [
+  [16, [10, 50, 40]],
+  [10, [30, 50, 20]],
+  [4, [60, 30, 10]],
+  [0, [70, 30, 0]]
 ];
-const GAM_PITY = 8;
-const gamIlvl = s => tierIlvl(s.maxT);
-const gamPrice = s => Math.round(17 * (1 + 0.4 * gamIlvl(s)) * 1.5);
-const gamLeft = s => GAM_PITY - (s.gamN || 0);
-/* 回傳 { it } 或 { why }；背包放不下不扣錢、不算保底 */
-function gambleDo(id) {
-  const o = GAMBLE.flatMap(g => g[1]).find(x => x.id === id),
-    c = gamPrice(S);
-  if (!o) return { why: '沒有這種東西' };
-  if (S.gold < c) return { why: `金幣不夠（要 ${c}）` };
-  const L = gamIlvl(S),
-    rar = gamLeft(S) <= 0 ? 2 : rollRarity(0),
-    it = mkItem(pickBase(L, o.k, o.wt).id, L, rar);
-  Object.assign(it, { q: 0, so: 0 });
-  it.a = it.a.map(a => (a.T < 2 ? gambAff(a.k, L) : a));
-  if (!invPut(S.inv, it)) return { why: '倉庫滿了' };
-  S.gold -= c;
-  S.gamN = rar === 2 ? 0 : (S.gamN || 0) + 1;
-  return { it };
+const craftRarP = lv => CRAFT_RAR.find(([l]) => lv >= l)[1];
+function craftRar(lv) {
+  const [w, b, y] = craftRarP(lv);
+  if (y && prdRoll('craftR', y / 100)) return 2;
+  return Math.random() * (w + b) < w ? 0 : 1;
+}
+/* 材料夠不夠打 n 件：回不夠的那一句，夠就 null */
+function craftLack(c, n) {
+  for (const m in c.mats)
+    if (matN(m, c.T) < c.mats[m] * n) return `${matName(m, c.T)}還差 ${c.mats[m] * n - matN(m, c.T)}`;
+  if (S.gold < c.gold * n) return `金幣還差 ${c.gold * n - S.gold}`;
+  return null;
+}
+/* 打造（第 5 節，取代商人賭裝）：扣材料，打 n 件，每件進倉庫；回 { why } 或 { items, salv }。
+   基底固定（craftBase）、物品等級＝材料的階、稀有度照鍛造台等級、詞綴與品質與孔照 mkItem（跟掉落一樣）；
+   自動分解規則說不留的、或倉庫滿了，當場分解（it.salv＝1，回收累計在 salv） */
+function craftDo(kind, o) {
+  const b = craftBase(kind, o);
+  if (!b) return { why: '沒有這種基底' };
+  const n = Math.max(1, Math.min(campN('batch'), o.n || 1)),
+    c = craftCost(b, o.T),
+    lack = craftLack(c, n);
+  if (lack) return { why: lack };
+  for (const m in c.mats) matAdd(m, o.T, -c.mats[m] * n);
+  S.gold -= c.gold * n;
+  const items = [],
+    salv = salvZero();
+  for (let i = 0; i < n; i++) {
+    const it = mkItem(b.id, matIlvl(o.T), craftRar(S.camp ? S.camp.forge : 0));
+    if (!autoKeep(it) || !invPut(S.inv, it)) (it.salv = 1), salvAdd(salv, salvageDo(it));
+    items.push(it);
+  }
+  if (typeof SES !== 'undefined' && SES) (SES.craft += n), (SES.rare += items.filter(it => it.r === 2).length);
+  return { items, salv };
+}
+/* ---------- 分解（第 5 節）：回材料（打造費用 × 回收率，倉房升級再提高）＋靈魂（物品等級 × 2 ⚠️）＋金（舊賣價）；黃裝另回 1 顆蛻變或增幅。
+   只算與加進材料頁，不碰倉庫（叫的人自己 takeOut） ---------- */
+const salvRate = () => ((S.camp || {}).store >= 5 ? 0.8 : (S.camp || {}).store >= 2 ? 0.65 : 0.5);
+const salvZero = () => ({ mats: {}, soul: 0, gold: 0, cur: {}, n: 0 });
+function salvAdd(a, v) {
+  for (const k in v.mats) a.mats[k] = (a.mats[k] || 0) + v.mats[k];
+  for (const k in v.cur) a.cur[k] = (a.cur[k] || 0) + v.cur[k];
+  a.soul += v.soul;
+  a.gold += v.gold;
+  a.n += v.n;
+  return a;
+}
+function salvValue(it) {
+  const v = salvZero();
+  v.n = 1;
+  v.gold = sellPrice(it);
+  if (it.charm) return v;
+  const T = itemTier(it),
+    c = craftCost(baseOf(it), T);
+  for (const m in c.mats) v.mats[matKey(m, T)] = Math.max(1, Math.floor(c.mats[m] * salvRate()));
+  v.soul = it.L * 2;
+  if (it.r === 2) v.cur[Math.random() < 0.5 ? 'tran' : 'aug'] = 1;
+  return v;
+}
+function salvageDo(it) {
+  const v = salvValue(it),
+    M = MAT();
+  for (const key in v.mats) matAdd(...matOf(key), v.mats[key]);
+  M.soul += v.soul;
+  S.gold += v.gold;
+  for (const k in v.cur) M[k] = (M[k] || 0) + v.cur[k];
+  return v;
+}
+/* 回收寫成一句：「鐵 T2 +4、靈魂 +8、12 金」 */
+const salvText = v =>
+  [
+    ...Object.entries(v.mats).map(([key, n]) => `${matName(...matOf(key))} +${n}`),
+    v.soul ? `靈魂 +${v.soul}` : '',
+    v.gold ? `${v.gold} 金` : '',
+    ...Object.entries(v.cur).map(([k, n]) => `${CUR[k].n} +${n}`)
+  ]
+    .filter(Boolean)
+    .join('、');
+/* 自動分解規則（鍛造台 Lv8 照稀有度、Lv14 加詞階／追憶／▲）：S.auto2＝{ r 留稀有度 ≥ r（3＝不照稀有度留）, t 留最好的詞 T ≤ t（0＝不看）, mem 留追憶, up 留 ▲ }；回 true＝留 */
+const AUTO2 = () => ({ r: 1, t: 1, mem: 1, up: 1 });
+const bestT = it => (it.a && it.a.length ? Math.min(...it.a.map(a => a.T)) : 9);
+function autoKeep(it) {
+  if (!campCan('auto2')) return true;
+  const A = S.auto2 || AUTO2();
+  if (it.r >= A.r) return true;
+  if (!campCan('auto2t')) return false;
+  return (A.t > 0 && bestT(it) <= A.t) || (!!A.mem && !!it.mem) || (!!A.up && itemUp(it));
+}
+
+/* ---------- 營地（0.5.0，工坊與解鎖表第 3 節）：S.camp＝{ forge, watch, altar, store, wts 開了的武器類別 }；表在 data.js 的 CAMP ---------- */
+const newCamp = () => ({ forge: 0, watch: 0, altar: 0, store: 0, wts: ['sword'] });
+const CAMP_KEY = {};
+for (const b in CAMP) CAMP[b].forEach((r, i) => (r.un || []).forEach(k => (CAMP_KEY[k] = [b, i + 1])));
+/* 這樣東西開了沒：鍵不在表上＝不受管。12-1 只有鍛造台真的照等級；瞭望台、祭壇、倉房先當滿級（12-2 接） */
+function campCan(k) {
+  const e = CAMP_KEY[k];
+  /* 沒有 S.camp（tools 裡臨時湊的 S）＝全開 */
+  if (!e || e[0] !== 'forge' || !S.camp) return true;
+  return S.camp.forge >= e[1];
+}
+/* 通貨對應的解鎖鍵：預兆一組、高階與完美照階 */
+const curKey = k =>
+  k.startsWith('om_') ? 'cur:om' : /^(tran|aug|rich|exalt)[23]$/.test(k) ? 'tier' + k.slice(-1) : 'cur:' + k;
+const campWt = wt => ((S.camp || newCamp()).wts || ['sword']).includes(wt);
+/* 數值型：batch 一次打幾件、wts 幾種武器類別、slots 技能格數、holes 每招幾個孔、star 星級上限（後三個 12-2 才接祭壇與瞭望台） */
+function campN(k) {
+  const f = S.camp ? S.camp.forge : 99;
+  if (k === 'batch') return f >= 16 ? 20 : f >= 9 ? 10 : f >= 5 ? 5 : f >= 2 ? 3 : 1;
+  if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length, 2 + Math.floor((f - 11) / 2));
+  if (k === 'slots') return S.skills.length;
+  if (k === 'holes') return GEM_SO_MAX;
+  if (k === 'star') return 5;
+  return 0;
+}
+const campMax = b => CAMP[b].length;
+/* 下一級：{ lv, soul, gold, mat, cur, node, un, d }；滿級回 null */
+function campNext(b) {
+  const lv = (S.camp || newCamp())[b] || 0,
+    r = CAMP[b][lv];
+  return r ? { lv: lv + 1, ...r } : null;
+}
+/* 能不能升：why＝不能升的原因（滿級、節點門檻、超過鍛造台）；lack＝[[名字, 有, 要]…] 資源還差的 */
+function campUpCheck(b) {
+  const n = campNext(b),
+    C = S.camp || newCamp();
+  if (!n) return { why: '已經滿級', lack: [] };
+  if (b !== 'forge' && C[b] >= C.forge) return { n, why: `先把鍛造台升到 Lv ${C[b] + 1}`, lack: [] };
+  if (n.node && !wDone(S).has(TRUNK_K[n.node - 1]))
+    return { n, why: `要先打倒第 ${n.node} 個地點的王（${TRUNK[n.node - 1].n}）`, lack: [] };
+  const M = MAT(),
+    lack = [],
+    need = (nm, have, want) => have < want && lack.push([nm, have, want]);
+  need('靈魂', M.soul, n.soul);
+  if (n.gold) need('金', S.gold, n.gold);
+  if (n.mat) need(matName(n.mat[0], n.mat[1]), matN(n.mat[0], n.mat[1]), n.mat[2]);
+  for (const k in n.cur || {}) need(CUR[k].n, M[k] || 0, n.cur[k]);
+  return { n, why: null, lack };
+}
+function campUp(b) {
+  const { n, why, lack } = campUpCheck(b);
+  if (why) return why;
+  if (lack.length) return lack.map(([nm, h, w]) => `${nm}還差 ${w - h}`).join('、');
+  const M = MAT(),
+    C = (S.camp = S.camp || newCamp());
+  M.soul -= n.soul;
+  S.gold -= n.gold || 0;
+  if (n.mat) matAdd(n.mat[0], n.mat[1], -n.mat[2]);
+  for (const k in n.cur || {}) M[k] -= n.cur[k];
+  C[b] = n.lv;
+  return null;
+}
+/* 照本次掛機的速度（靈魂／秒、金／秒），差的資源還要幾分鐘；算不出來（沒在掛、速度 0、差的是材料或通貨）回 null */
+function campEta(b, ses) {
+  const { lack } = campUpCheck(b);
+  if (!ses || !lack.length) return null;
+  const sec = Math.max(1, (Date.now() - ses.t0) / 1000);
+  let m = 0;
+  for (const [nm, h, w] of lack) {
+    const rate = nm === '靈魂' ? ses.soul / sec : nm === '金' ? ses.gold / sec : 0;
+    if (!rate) return null;
+    m = Math.max(m, (w - h) / rate / 60);
+  }
+  return Math.ceil(m);
 }
 
 /* ---------- 填（企劃書 5.3.1）：通貨按鈕。ok(it, arg) 回傳 null＝可以、字串＝不行的原因；run(it, arg) 真的做。
@@ -646,6 +825,7 @@ const prdMax = p => Math.ceil(1 / prdC(p));
 const PRD0 = () => ({
   frac: 0,
   fracB: 0,
+  craftR: 0 /* 0.5.0 打造的黃裝保底 */,
   mem: 0,
   holy: 0,
   corr: 0,
@@ -668,29 +848,11 @@ function prdRoll(key, p) {
   return hit;
 }
 
-/* ---------- 掉落的四樣（企劃書 5.4.2～5.4.4）：只有掉落才有，任何通貨碰不到 ---------- */
-/* 破裂詞：挑 1 條換成 T0（一件最多 1 條，it.frac＝那條的詞綴 k）；每件黃裝 1.5%、藍裝 0.5%（⚠️ 暫定），星級與地圖詞的稀有度放大，偽隨機（黃、藍各自一個計數器） */
-const FRAC_P = [0, 0.005, 0.015];
-function makeFrac(it) {
-  const i = irnd(0, it.a.length - 1);
-  it.a[i] = rollAffT(it.a[i].k, 0);
-  it.frac = it.a[i].k;
-  return it;
-}
-/* 追憶詞：0～1 條，照部位分池（MEM 的 on）；force＝指定哪一條（測試用） */
+/* ---------- 追憶詞（企劃書 5.4.3）：0～1 條，照部位分池（MEM 的 on）；force＝指定哪一條（測試用）。
+   0.5.0 起裝備不再掉落，★ 的自然掉落（makeFrac）與追憶裝的保底（memGear）拿掉；追憶由 12-4 的追憶之墨在打造時加 ---------- */
 function addMem(it, force) {
   it.mem = rollMem(force || pick(memPool(it)));
   return it;
-}
-/* 菁英 0.5%、王 2%（⚠️ 暫定；每次擊殺一次，王的 3 件裡挑 1 件有這個部位的池的），偽隨機 */
-const MEM_P = [0, 0.005, 0.02];
-/* 裂口生肖王保底 1 件追憶裝（取代原本「保底品質 30% 稀有裝」）：黃裝、一定有追憶 */
-function memGear(o) {
-  for (let i = 0; i < 200; i++) {
-    const it = mkItem(pickBase(o.ilvl).id, o.ilvl, 2);
-    if (memPool(it).length) return addMem(it);
-  }
-  return addMem(mkItem(pickBase(o.ilvl, 'weapon', 'bow').id, o.ilvl, 2));
 }
 
 /* ---------- 掉落（0.2.72，企劃書 5.4.5、5.8）：純邏輯，game.js 的 killMob 套用 ---------- */
@@ -707,7 +869,7 @@ const STAR_DROP = [
 /* ⚠️ 暫定：菁英掉富豪石的機率（偶爾）、掉崇高石的機率（小機率）；裂口的每隻菁英掉轉化石的機率（生肖王保底 1，0.4.2 起只有裂口掉）；
    階級 10 以上：菁英掉聖化石 2%、每張圖掉腐化石 5%（偽隨機保底） */
 const ELITE_RICH = 0.35,
-  ELITE_EXALT = 0.08,
+  ELITE_EXALT = 0.03 /* 0.5.0：8% → 3%，鍛造台 Lv7 才開始掉 */,
   HUNT_ELITE = 0.3,
   HOLY_P = 0.02,
   CORR_P = 0.05,
@@ -759,27 +921,21 @@ function dropCur(kind, o) {
     if ((o.tier || 0) >= HIGH_T && prdRoll('awk', AWK_P)) add('awk');
   }
   if (o.tier) tierDrop(cur, mobLv(o.tier));
-  return { cur, ess };
+  /* 0.5.0：通貨照鍛造台等級開關（工坊與解鎖表第 4 節）；沒開的不掉 */
+  for (const k in cur) if (!campCan(curKey(k))) delete cur[k];
+  return { cur, ess: campCan('cur:ess') ? ess : [] };
 }
-/* 一隻菁英或王死掉掉的裝備（小怪不掉裝備）：菁英 1 件黃（地圖詞「數量」有機會多 1 件）、王 3 件，第一件保底黃；
-   o：{ ilvl, star, qty＝MM('qty')、rar＝MM('rar')（黃裝比例，★ 與追憶的機率）、zod＝裂口生肖王（多 1 件保底追憶裝） }。
-   ★ 與追憶：每件黃裝 1.5%、藍裝 0.5%、菁英 0.5%、王 2%（⚠️ 暫定，加權後每小時約 ★ 2.5 件、追憶 1 件），×星級（STAR_MUL）×(1＋稀有度%)，偽隨機（S.prd；黃、藍各自一個計數器） */
-function dropGear(kind, o) {
-  if (kind === 0) return [];
-  const q = o.qty || 0,
-    r = (o.rar || 0) / 100,
-    sm = STAR_MUL[o.star || 1] * (1 + r),
-    n = kind === 2 ? Math.round(3 * (1 + q / 100)) : 1 + (roll(q) ? 1 : 0),
-    L = [];
-  for (let i = 0; i < n; i++) {
-    const it = dropItem(o.ilvl, (kind === 2 ? 0.8 : 0.4) + r);
-    if (i === 0 && it.r < 2) Object.assign(it, mkItem(it.b, it.L, 2), { id: it.id });
-    L.push(it);
-  }
-  for (const it of L) if (FRAC_P[it.r] && prdRoll(it.r === 2 ? 'frac' : 'fracB', FRAC_P[it.r] * sm)) makeFrac(it);
-  const can = L.filter(it => memPool(it).length);
-  if (can.length && prdRoll('mem', MEM_P[kind] * sm)) addMem(pick(can));
-  return L;
+/* 材料（0.5.0，第 4 節）：[機率, 數量]＝小怪 30% 掉 1、菁英 3、王 8（文件原本 1～2／5／15：實測第一分鐘就 126 個鐵、每分鐘打得起 11 件，太多；改完約每分鐘 2 件），
+   數量 ×星級（STAR_MUL）；種類從開了的裡面隨機一種，階照節點等級。回 [種類, 階, 數量]（數量 0＝這一隻沒掉） */
+const MAT_DROP = [
+  [0.3, 1],
+  [1, 3],
+  [1, 8]
+];
+function matDrop(kind, lv, star) {
+  const ks = MAT_K.filter(k => k === 'iron' || campCan('mat:' + k)),
+    [p, c] = MAT_DROP[kind];
+  return [pick(ks), matTier(lv), Math.random() < p ? Math.max(1, Math.round(c * STAR_MUL[star || 1])) : 0];
 }
 /* 酆都的王額外掉的（0.2.78，企劃書 4.2）：k＝王的 fd（ox／horse／black／white／yama／uber）。直接進材料頁與碎片分頁，回傳要跳字的清單 */
 function fdDrop(k, s = S) {
@@ -907,11 +1063,7 @@ function armyDrop(k, ck, res, s = S) {
   }
   return got;
 }
-/* 陰兵借道的追憶裝：將領保底 1 件＋每點怨恨值 ARMY.mem 機率再 1 件；蚩尤、涿鹿兵主 0.2.84 起改掉亡靈珠寶（armyDrop） */
-function armyGear(k, res, o) {
-  if (!ARMY.gen.includes(k)) return [];
-  return [memGear(o), ...(Math.random() < res * ARMY.mem ? [memGear(o)] : [])];
-}
+
 /* 弒神（0.2.82）：裂口生肖王掉 1 份神血；太歲、太歲星君掉 1 個神格（直接進收藏 S.gods，最多 TAISUI.keep 個，滿了換靈魂） */
 function ghRoll(uber, ilvl = 80) {
   const [a, b] = uber ? TAISUI.pU : TAISUI.p,
@@ -945,7 +1097,7 @@ function ghSalvage(i, s = S) {
   return null;
 }
 
-/* 打怪拿材料：靈魂與通貨自動進材料頁；回傳要跳字的清單 */
+/* 打怪拿材料：靈魂、通貨、材料（0.5.0）自動進材料頁；回傳要跳字的清單（got.mat＝[種類, 階, 數量]） */
 function killMat(m, t, o = {}) {
   const M = MAT(),
     k = m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0,
@@ -954,6 +1106,13 @@ function killMat(m, t, o = {}) {
   const soul = Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
   M.soul += soul;
   if (typeof SES !== 'undefined' && SES) SES.soul += soul;
+  const md = matDrop(k, mobLv(t), o.star);
+  if (md[2]) {
+    matAdd(...md);
+    got.push(`${md[2]} ${matName(md[0], md[1])}`);
+    got.mat = md;
+    if (typeof SES !== 'undefined' && SES) SES.mat += md[2];
+  }
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
   /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
@@ -961,16 +1120,16 @@ function killMat(m, t, o = {}) {
   return got;
 }
 
-/* 一輪的掉落（0.4.1，離線結算與 tools/loot_check.js 共用）：nS 隻小怪、nE 隻菁英、1 隻王，走真的掉落函式（通貨、精髓、靈魂直接進材料頁）；
-   回傳裝備清單。o＝地圖詞的 qty／rar／mat（沒有就是 0） */
+/* 一輪的掉落（0.4.1，離線結算與 tools/loot_check.js 共用）：nS 隻小怪、nE 隻菁英、1 隻王，走真的掉落函式（通貨、精髓、靈魂、材料直接進材料頁）。
+   0.5.0 起不掉裝備，回傳這一輪的材料 { 'iron:2': n }。o＝地圖詞的 qty／rar／mat（沒有就是 0） */
 function roundLoot(t, star, nS, nE, o = {}) {
   const od = { star, p: mapCurP(star, nS, nE), ilvl: tierIlvl(t), tier: t, ...o },
-    items = [];
-  for (let i = 0; i < nS; i++) killMat({}, t, od);
-  for (let i = 0; i < nE; i++) killMat({ elite: 1 }, t, od), items.push(...dropGear(1, od));
-  killMat({ boss: 1 }, t, od);
-  items.push(...dropGear(2, od));
-  return items;
+    mats = {},
+    add = g => g.mat && (mats[matKey(g.mat[0], g.mat[1])] = (mats[matKey(g.mat[0], g.mat[1])] || 0) + g.mat[2]);
+  for (let i = 0; i < nS; i++) add(killMat({}, t, od));
+  for (let i = 0; i < nE; i++) add(killMat({ elite: 1 }, t, od));
+  add(killMat({ boss: 1 }, t, od));
+  return mats;
 }
 /* ---------- 鑑定：0.4.0 起掉下來就是鑑定好的（企劃書 5.4.1）；只剩舊存檔轉換用，翻牌演出 0.4.1 搬到回來時的摘要 ---------- */
 const unidList = s => s.inv.items.filter(it => it.uid);

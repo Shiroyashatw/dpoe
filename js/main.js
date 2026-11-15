@@ -74,11 +74,50 @@ function migrate(s) {
       for (const k of (r && r.so) || []) if (k && SUPPORTS[k] && SUPPORTS[k].tier === 2) II[SUPPORTS[k].base] = 1;
     o.v = 33;
   }
+  /* 存檔 34（0.5.0，工坊與解鎖表第 3 節）：營地四座設施照角色等級、主幹開到第幾個點、用過的技能格與孔、星級換算（⚠️ 一條簡單的表）；
+     已經有的技能、輔助、昇華、天賦、倉庫裡的裝備、通貨都留著，材料從 0 開始；商人賭裝的保底刪掉 */
+  if (o.v < 34) {
+    const front = wFront(o),
+      lv = o.lv || 1,
+      C = newCamp(),
+      /* 表上第一個「要先打倒第 N 個點」還沒打過的那一級之前 */
+      byNode = (b, want) => {
+        let n = 0;
+        while (n < want && n < CAMP[b].length && !(CAMP[b][n].node > front)) n++;
+        return n;
+      };
+    C.forge = byNode('forge', lv >= 60 ? 20 : lv >= 40 ? 14 : lv >= 20 ? 8 : Math.min(7, Math.floor(lv / 3)));
+    const used = o.skills.filter(r => r && r.k).length,
+      holes = Math.max(2, ...o.skills.map(r => (r && r.n) || 2)) - 2,
+      au = (o.auras || []).filter(Boolean).length;
+    C.altar = Math.max(
+      [0, 0, 1, 3, 6, 9][Math.min(5, used)] || 0,
+      [0, 2, 5, 8][Math.min(3, holes)] || 0,
+      o.pt.length > PT_START.length ? 4 : 0,
+      au ? 5 : 0,
+      o.asc ? 7 : 0,
+      (o.jsock || []).some(Boolean) ? 10 : 0
+    );
+    C.watch = byNode('watch', Math.max(0, ...Object.values(o.world.star || {})) - 1);
+    C.store = lv >= 10 ? 1 : 0;
+    /* 用過的武器類別算開了 */
+    for (const it of [...Object.values(o.eq), ...o.inv.items])
+      if (it && !it.charm && BASEI[it.b] && BASEI[it.b].wt && !C.wts.includes(BASEI[it.b].wt))
+        C.wts.push(BASEI[it.b].wt);
+    C.forge = Math.max(C.forge, C.altar, C.watch, C.store, C.wts.length > 1 ? 11 + 2 * (C.wts.length - 2) : 0);
+    o.camp = C;
+    o.auto2 = AUTO2();
+    delete o.gamN;
+    o.v = 34;
+  }
+  o.camp = { ...newCamp(), ...o.camp };
+  o.auto2 = { ...AUTO2(), ...o.auto2 };
   /* 道具編號接著存檔裡最大的往下編 */
   for (const it of [...Object.values(o.eq), o.curIt, ...o.inv.items, ...o.charms]) if (it && it.id > IID) IID = it.id;
   /* 之後新增的通貨鍵補 0、精髓表一定有 */
   o.mat = { ...newMat(), ...o.mat };
   o.mat.ess = o.mat.ess || {};
+  o.mat.mats = o.mat.mats || {};
   o.prd = { ...PRD0(), ...o.prd };
   o.frags = { ...newFrags(), ...o.frags };
   /* 0.4.2：血霧滿了的舊存檔換 1 張血霧之印 */
