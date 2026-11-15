@@ -135,9 +135,10 @@ function affRangeTxt(k, it) {
 const affName = k => AFF[k].n.replace(/ ?\+?\{\}%?/g, '').replace('附加 ', '');
 
 /* ---------- 材料（0.5.0，docs/工坊與解鎖表.md 第 4 節）：鐵、皮、靈絲，有階 T1～T6；S.mat.mats＝{ 'iron:2': n }（照精髓的寫法） ---------- */
-const matKey = (k, T) => k + ':' + T;
-const matName = (k, T) => `${MATS[k].n} T${T}`;
-const matOf = key => [key.split(':')[0], +key.split(':')[1]];
+/* 木沒有階：鍵就是 'wood'（T＝0） */
+const matKey = (k, T) => (T ? k + ':' + T : k);
+const matName = (k, T) => (T ? `${MATS[k].n} T${T}` : MATS[k].n);
+const matOf = key => [key.split(':')[0], +key.split(':')[1] || 0];
 const MATSOF = () => (MAT().mats = MAT().mats || {});
 function matAdd(k, T, n = 1) {
   const m = MATSOF(),
@@ -236,7 +237,7 @@ function craftDo(kind, o) {
 }
 /* ---------- 分解（第 5 節）：回材料（打造費用 × 回收率，倉房升級再提高）＋靈魂（物品等級 × 2 ⚠️）＋金（舊賣價）；黃裝另回 1 顆蛻變或增幅。
    只算與加進材料頁，不碰倉庫（叫的人自己 takeOut） ---------- */
-const salvRate = () => ((S.camp || {}).store >= 5 ? 0.8 : (S.camp || {}).store >= 2 ? 0.65 : 0.5);
+const salvRate = () => (!S.camp ? 0.5 : campCan('salv80') ? 0.8 : campCan('salv65') ? 0.65 : 0.5);
 const salvZero = () => ({ mats: {}, soul: 0, gold: 0, cur: {}, n: 0 });
 function salvAdd(a, v) {
   for (const k in v.mats) a.mats[k] = (a.mats[k] || 0) + v.mats[k];
@@ -288,80 +289,275 @@ function autoKeep(it) {
   return (A.t > 0 && bestT(it) <= A.t) || (!!A.mem && !!it.mem) || (!!A.up && itemUp(it));
 }
 
-/* ---------- 營地（0.5.0，工坊與解鎖表第 3 節）：S.camp＝{ forge, watch, altar, store, wts 開了的武器類別 }；表在 data.js 的 CAMP ---------- */
-const newCamp = () => ({ forge: 0, watch: 0, altar: 0, store: 0, wts: ['sword'] });
-const CAMP_KEY = {};
-for (const b in CAMP) CAMP[b].forEach((r, i) => (r.un || []).forEach(k => (CAMP_KEY[k] = [b, i + 1])));
-/* 這樣東西開了沒：鍵不在表上＝不受管。12-1 只有鍛造台真的照等級；瞭望台、祭壇、倉房先當滿級（12-2 接） */
+/* ---------- 營地（0.5.1，工坊與解鎖表第 3 節：兩層十座）：S.camp＝{ forge, watch, scout, house, altar, store 解鎖表六座的等級,
+   wts 開了的武器類別, gen: { wood: { lv, tier 往下調幾階, pri 優先補位, acc 還沒滿 1 的產量 }, iron, hide, silk } }；表在 data.js 的 CAMP、GEN ---------- */
+const newCamp = () => ({
+  forge: 0,
+  watch: 0,
+  scout: 0,
+  house: 0,
+  altar: 0,
+  store: 0,
+  wts: ['sword'],
+  gen: { wood: { lv: 1 }, iron: { lv: 1 }, hide: { lv: 0 }, silk: { lv: 0 } }
+});
+/* 解鎖鍵 → [設施, 第幾級]；瞭望台的表由 world.js 補完，所以第一次用到才建 */
+let CAMP_KEY = null;
+const campKey = k => {
+  if (!CAMP_KEY) {
+    CAMP_KEY = {};
+    for (const b in CAMP) CAMP[b].forEach((r, i) => (r.un || []).forEach(x => (CAMP_KEY[x] = [b, i + 1])));
+  }
+  return CAMP_KEY[k];
+};
+/* 這樣東西開了沒：鍵不在表上＝不受管；'node:鍵'＝主幹第 i 個地點要瞭望台 Lv i。沒有 S.camp（tools 裡臨時湊的 S）＝全開 */
 function campCan(k) {
-  const e = CAMP_KEY[k];
-  /* 沒有 S.camp（tools 裡臨時湊的 S）＝全開 */
-  if (!e || e[0] !== 'forge' || !S.camp) return true;
-  return S.camp.forge >= e[1];
+  if (typeof S === 'undefined' || !S || !S.camp) return true;
+  if (k.startsWith('node:')) {
+    const n = typeof WNODE !== 'undefined' && WNODE[k.slice(5)];
+    return !n || n.i == null || S.camp.watch >= n.i;
+  }
+  const e = campKey(k);
+  return !e || (S.camp[e[0]] || 0) >= e[1];
 }
 /* 通貨對應的解鎖鍵：預兆一組、高階與完美照階 */
 const curKey = k =>
   k.startsWith('om_') ? 'cur:om' : /^(tran|aug|rich|exalt)[23]$/.test(k) ? 'tier' + k.slice(-1) : 'cur:' + k;
 const campWt = wt => ((S.camp || newCamp()).wts || ['sword']).includes(wt);
-/* 數值型：batch 一次打幾件、wts 幾種武器類別、slots 技能格數、holes 每招幾個孔、star 星級上限（後三個 12-2 才接祭壇與瞭望台） */
+/* 數值型：batch 一次打幾件、wts 幾種武器類別、slots 技能格數、holes 每招最多幾個輔助孔、star 星級上限、pop 人口、off 離線上限（小時） */
 function campN(k) {
-  const f = S.camp ? S.camp.forge : 99;
+  const C = S && S.camp;
+  if (!C)
+    return (
+      { batch: 20, wts: 99, slots: S && S.skills ? S.skills.length : 5, holes: GEM_SO_MAX, star: 5, pop: 99, off: 12 }[
+        k
+      ] || 0
+    );
+  const f = C.forge,
+    a = C.altar;
   if (k === 'batch') return f >= 16 ? 20 : f >= 9 ? 10 : f >= 5 ? 5 : f >= 2 ? 3 : 1;
   if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length, 2 + Math.floor((f - 11) / 2));
-  if (k === 'slots') return S.skills.length;
-  if (k === 'holes') return GEM_SO_MAX;
-  if (k === 'star') return 5;
+  if (k === 'slots') return Math.min(S.skills.length, a >= 9 ? 5 : a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1);
+  if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
+  if (k === 'star') return Math.min(5, (C.scout || 0) + 1);
+  if (k === 'pop') return CAMP_POP[Math.min(C.house || 0, CAMP_POP.length - 1)];
+  if (k === 'off') return [1, 4, 4, 8, 8, 12][Math.min(5, C.store || 0)];
   return 0;
 }
+/* 這一格實際能插幾顆輔助（孔數照祭壇蓋上限；開孔照舊花靈魂） */
+const soN = r => Math.min(r.n, campN('holes'));
 const campMax = b => CAMP[b].length;
-/* 下一級：{ lv, soul, gold, mat, cur, node, un, d }；滿級回 null */
+/* 下一級：{ lv, soul, wood, mats, gold, cur, un, d }；滿級回 null */
 function campNext(b) {
   const lv = (S.camp || newCamp())[b] || 0,
     r = CAMP[b][lv];
   return r ? { lv: lv + 1, ...r } : null;
 }
-/* 能不能升：why＝不能升的原因（滿級、節點門檻、超過鍛造台）；lack＝[[名字, 有, 要]…] 資源還差的 */
-function campUpCheck(b) {
-  const n = campNext(b),
-    C = S.camp || newCamp();
-  if (!n) return { why: '已經滿級', lack: [] };
-  if (b !== 'forge' && C[b] >= C.forge) return { n, why: `先把鍛造台升到 Lv ${C[b] + 1}`, lack: [] };
-  if (n.node && !wDone(S).has(TRUNK_K[n.node - 1]))
-    return { n, why: `要先打倒第 ${n.node} 個地點的王（${TRUNK[n.node - 1].n}）`, lack: [] };
+/* 一筆費用（解鎖表的一級、產生器的 n 級）的每一項：[名字, 有, 要, 鍵（soul／wood／材料鍵／gold／cur:通貨）] */
+function costRows(c) {
   const M = MAT(),
-    lack = [],
-    need = (nm, have, want) => have < want && lack.push([nm, have, want]);
-  need('靈魂', M.soul, n.soul);
-  if (n.gold) need('金', S.gold, n.gold);
-  if (n.mat) need(matName(n.mat[0], n.mat[1]), matN(n.mat[0], n.mat[1]), n.mat[2]);
-  for (const k in n.cur || {}) need(CUR[k].n, M[k] || 0, n.cur[k]);
-  return { n, why: null, lack };
+    L = [];
+  if (c.soul) L.push(['靈魂', M.soul, c.soul, 'soul']);
+  if (c.wood) L.push(['木', matN('wood'), c.wood, 'wood']);
+  for (const key in c.mats || {}) L.push([matName(...matOf(key)), matN(...matOf(key)), c.mats[key], key]);
+  if (c.gold) L.push(['金', S.gold, c.gold, 'gold']);
+  for (const k in c.cur || {}) L.push([CUR[k].n, M[k] || 0, c.cur[k], 'cur:' + k]);
+  return L;
+}
+function costPay(c) {
+  const M = MAT();
+  M.soul -= c.soul || 0;
+  if (c.wood) matAdd('wood', 0, -c.wood);
+  for (const key in c.mats || {}) matAdd(...matOf(key), -c.mats[key]);
+  S.gold -= c.gold || 0;
+  for (const k in c.cur || {}) M[k] -= c.cur[k];
+}
+/* 能不能升：why＝不能升的原因（滿級）；lack＝[[名字, 有, 要, 鍵]…] 還差的 */
+function campUpCheck(b) {
+  const n = campNext(b);
+  if (!n) return { why: '已經滿級', lack: [] };
+  return { n, why: null, lack: costRows(n).filter(([, h, w]) => h < w) };
 }
 function campUp(b) {
   const { n, why, lack } = campUpCheck(b);
   if (why) return why;
   if (lack.length) return lack.map(([nm, h, w]) => `${nm}還差 ${w - h}`).join('、');
-  const M = MAT(),
-    C = (S.camp = S.camp || newCamp());
-  M.soul -= n.soul;
-  S.gold -= n.gold || 0;
-  if (n.mat) matAdd(n.mat[0], n.mat[1], -n.mat[2]);
-  for (const k in n.cur || {}) M[k] -= n.cur[k];
-  C[b] = n.lv;
+  costPay(n);
+  S.camp[b] = n.lv;
+  /* 斥候營：星級預設跟著上限 */
+  if (b === 'scout') S.star = campN('star');
   return null;
 }
-/* 照本次掛機的速度（靈魂／秒、金／秒），差的資源還要幾分鐘；算不出來（沒在掛、速度 0、差的是材料或通貨）回 null */
-function campEta(b, ses) {
-  const { lack } = campUpCheck(b);
-  if (!ses || !lack.length) return null;
-  const sec = Math.max(1, (Date.now() - ses.t0) / 1000);
-  let m = 0;
-  for (const [nm, h, w] of lack) {
-    const rate = nm === '靈魂' ? ses.soul / sec : nm === '金' ? ses.gold / sec : 0;
-    if (!rate) return null;
-    m = Math.max(m, (w - h) / rate / 60);
+
+/* ---------- 產生器（3.7）：林場、礦場、獵場、絲地 ---------- */
+const genOf = k => {
+  const G_ = (S.camp.gen = S.camp.gen || newCamp().gen);
+  return (G_[k] = G_[k] || { lv: 0 });
+};
+/* 出現了沒（獵場鍛造台 Lv3、絲地 Lv8；出現時 Lv1） */
+const genOn = k => !GEN[k].show || campCan(GEN[k].show);
+/* 第 L 級的里程碑：m 產量倍率、slots 工位、tu 階 +1 幾次（5 ×2、10 +1 工位、25 ×2 階+1、50 ×2 +1 工位、75 階+1、100 ×3 +1 工位，之後每 50 ×2 階+1、每 100 +1 工位） */
+function genMs(L) {
+  let m = (L >= 5 ? 2 : 1) * (L >= 25 ? 2 : 1) * (L >= 50 ? 2 : 1) * (L >= 100 ? 3 : 1);
+  if (L >= 150) m *= 2 ** Math.floor((L - 100) / 50);
+  const slots = (L >= 1 ? 1 : 0) + (L >= 10) + (L >= 50) + (L >= 100) + (L >= 200 ? Math.floor((L - 100) / 100) : 0),
+    tu = (L >= 25) + (L >= 75) + (L >= 150 ? Math.floor((L - 100) / 50) : 0);
+  return { m, slots, tu };
+}
+/* 下一個里程碑：{ at 第幾級, t 獎勵 }（「產量 ×2」「+1 工位」「階 +1」） */
+function genNextMs(k) {
+  const L = genOf(k).lv,
+    a = genMs(L);
+  for (let x = L + 1; x < L + 200; x++) {
+    const b = genMs(x),
+      t = [
+        b.m > a.m ? `產量 ×${b.m / a.m}` : '',
+        b.slots > a.slots ? '+1 工位' : '',
+        b.tu > a.tu && k !== 'wood' ? '階 +1' : ''
+      ].filter(Boolean);
+    if (t.length) return { at: x, t: t.join('、') };
   }
-  return Math.ceil(m);
+  return null;
+}
+/* 材料階的上限＝瞭望台開到最深的主幹地點（3.2） */
+const tierCap = () => matTier(TRUNK[Math.min(S.camp.watch || 0, TRUNK.length - 1)].lv);
+/* 這座現在產幾階：min(1＋階里程碑, 上限) − 往下調；林場沒有階（0） */
+const genTierTop = k => (k === 'wood' ? 0 : Math.min(1 + genMs(genOf(k).lv).tu, tierCap()));
+const genTier = k => (k === 'wood' ? 0 : Math.max(1, genTierTop(k) - (genOf(k).tier || 0)));
+const genSlots = k => (genOn(k) ? genMs(Math.max(1, genOf(k).lv)).slots : 0);
+/* 民房的人口自動補到空工位（3.4）：已經在做的留著（S.camp.gen[k].w），多出來的人補到空工位——有「優先」的先、再照離滿員最近的、再照設施順序；
+   人口比在職的少（舊存檔、工具）就從後面的設施先撤。回 { 鍵: 在職人數 } */
+function popAssign() {
+  const w = {};
+  let used = 0;
+  for (const k of GEN_K) used += w[k] = Math.min(genOf(k).w || 0, genSlots(k));
+  let free = campN('pop') - used;
+  for (let i = GEN_K.length - 1; free < 0 && i >= 0; i--) {
+    const d = Math.min(w[GEN_K[i]], -free);
+    w[GEN_K[i]] -= d;
+    free += d;
+  }
+  while (free > 0) {
+    const open = GEN_K.filter(k => w[k] < genSlots(k));
+    if (!open.length) break;
+    open.sort((a, b) => !!genOf(b).pri - !!genOf(a).pri || genSlots(a) - w[a] - (genSlots(b) - w[b]));
+    w[open[0]]++;
+    free--;
+  }
+  for (const k of GEN_K) genOf(k).w = w[k];
+  return w;
+}
+/* 每分鐘產多少：r × L × 里程碑倍率 × 在職／工位（0 人不產） */
+function genRate(k, W = popAssign()) {
+  const g = genOf(k),
+    s = genSlots(k);
+  return s ? GEN[k].r * g.lv * genMs(g.lv).m * (W[k] / s) : 0;
+}
+/* 升 n 級的費用 { wood, mats }：c × 1.12^L × (1.12^n − 1) / 0.12，每一項四捨五入（林場 Lv1→2＝木 11） */
+function genCost(k, n = 1) {
+  const L = genOf(k).lv,
+    f = (GEN_MUL ** L * (GEN_MUL ** n - 1)) / (GEN_MUL - 1),
+    c = { mats: {} };
+  for (const m in GEN[k].c) {
+    const v = Math.round(GEN[k].c[m] * f);
+    if (m === 'wood') c.wood = v;
+    else c.mats[matKey(m, genTier(k))] = v;
+  }
+  return c;
+}
+/* 買得起幾級（等比級數反算，每一項取最少） */
+function genAfford(k) {
+  const L = genOf(k).lv;
+  let n = Infinity;
+  for (const m in GEN[k].c) {
+    const have = m === 'wood' ? matN('wood') : matN(m, genTier(k)),
+      a = (have * (GEN_MUL - 1)) / (GEN[k].c[m] * GEN_MUL ** L);
+    n = Math.min(n, Math.floor(Math.log(1 + a) / Math.log(GEN_MUL) + 1e-9));
+  }
+  /* 進位誤差：反算出來的 n 級真的付不起就少一級 */
+  while (n > 0 && costRows(genCost(k, n)).some(([, h, w]) => h < w)) n--;
+  return Math.max(0, n);
+}
+function genUp(k, n = 1) {
+  if (!genOn(k)) return '還沒出現';
+  const c = genCost(k, n),
+    lack = costRows(c).filter(([, h, w]) => h < w);
+  if (lack.length) return lack.map(([nm, h, w]) => `${nm}還差 ${w - h}`).join('、');
+  costPay(c);
+  genOf(k).lv += n;
+  return null;
+}
+/* 每一格累加產量（主迴圈叫，藏身處、場地、面板開著都算；離線用同一條公式乘時間）；回這一次加了多少 { 材料鍵: n } */
+function genTick(dt) {
+  if (typeof S === 'undefined' || !S || !S.camp) return {};
+  const W = popAssign(),
+    got = {};
+  for (const k of GEN_K) {
+    if (!genOn(k)) continue;
+    const g = genOf(k);
+    if (!g.lv) g.lv = 1;
+    g.acc = (g.acc || 0) + (genRate(k, W) * dt) / 60;
+    const n = Math.floor(g.acc);
+    if (n > 0) {
+      g.acc -= n;
+      const key = matKey(k, genTier(k));
+      matAdd(...matOf(key), n);
+      got[key] = (got[key] || 0) + n;
+    }
+  }
+  return got;
+}
+/* 每分鐘的材料進帳 { 材料鍵: n }（「還要幾分鐘」用） */
+function genRates() {
+  const W = popAssign(),
+    o = {};
+  for (const k of GEN_K)
+    if (genOn(k)) {
+      const key = matKey(k, genTier(k));
+      o[key] = (o[key] || 0) + genRate(k, W);
+    }
+  return o;
+}
+/* 靈魂每分鐘：本次掛機最近 5 分鐘的平均（SES.sm 每 10 秒記一筆 [時間, 累計靈魂]，數字不每秒亂跳）；沒在掛回 0 */
+function soulRate() {
+  const L = typeof SES !== 'undefined' && SES && SES.sm;
+  if (!L || L.length < 2) return 0;
+  const a = L[0],
+    b = L[L.length - 1];
+  return b[0] > a[0] ? ((b[1] - a[1]) / (b[0] - a[0])) * 60000 : 0;
+}
+/* 一筆費用還要幾分鐘：只算最慢的那一項；回 { m 分鐘（算不出來 Infinity，夠了 0）, nm 最慢那一項, d 缺多少 } */
+function costEta(c) {
+  const R = genRates(),
+    sr = soulRate();
+  let out = { m: 0, nm: '', d: 0 };
+  for (const [nm, h, w, key] of costRows(c)) {
+    if (h >= w) continue;
+    const rate = key === 'soul' ? sr : R[key] || 0,
+      m = rate > 0 ? (w - h) / rate : Infinity;
+    if (m >= out.m) out = { m, nm, d: Math.ceil(w - h) };
+  }
+  return out;
+}
+const campEta = b => {
+  const n = campNext(b);
+  return n ? costEta(n) : null;
+};
+/* 營地裡現在買得起幾件（分頁列的小點、掛機卡那一行） */
+const campReady = () =>
+  Object.keys(CAMP).filter(b => {
+    const c = campUpCheck(b);
+    return !c.why && !c.lack.length;
+  }).length + GEN_K.filter(k => genOn(k) && genAfford(k) > 0).length;
+/* 全部升級（離線回來的卡）：只買產生器，最便宜的先，一次一級；回買了幾級 */
+function genAll() {
+  let n = 0;
+  for (;;) {
+    const L = GEN_K.filter(k => genOn(k) && genAfford(k) > 0);
+    if (!L.length || n > 2000) return n;
+    genUp(L.reduce((a, b) => (genCost(a).wood <= genCost(b).wood ? a : b)));
+    n++;
+  }
 }
 
 /* ---------- 填（企劃書 5.3.1）：通貨按鈕。ok(it, arg) 回傳 null＝可以、字串＝不行的原因；run(it, arg) 真的做。
@@ -925,18 +1121,6 @@ function dropCur(kind, o) {
   for (const k in cur) if (!campCan(curKey(k))) delete cur[k];
   return { cur, ess: campCan('cur:ess') ? ess : [] };
 }
-/* 材料（0.5.0，第 4 節）：[機率, 數量]＝小怪 30% 掉 1、菁英 3、王 8（文件原本 1～2／5／15：實測第一分鐘就 126 個鐵、每分鐘打得起 11 件，太多；改完約每分鐘 2 件），
-   數量 ×星級（STAR_MUL）；種類從開了的裡面隨機一種，階照節點等級。回 [種類, 階, 數量]（數量 0＝這一隻沒掉） */
-const MAT_DROP = [
-  [0.3, 1],
-  [1, 3],
-  [1, 8]
-];
-function matDrop(kind, lv, star) {
-  const ks = MAT_K.filter(k => k === 'iron' || campCan('mat:' + k)),
-    [p, c] = MAT_DROP[kind];
-  return [pick(ks), matTier(lv), Math.random() < p ? Math.max(1, Math.round(c * STAR_MUL[star || 1])) : 0];
-}
 /* 酆都的王額外掉的（0.2.78，企劃書 4.2）：k＝王的 fd（ox／horse／black／white／yama／uber）。直接進材料頁與碎片分頁，回傳要跳字的清單 */
 function fdDrop(k, s = S) {
   const M = MAT(),
@@ -1097,7 +1281,7 @@ function ghSalvage(i, s = S) {
   return null;
 }
 
-/* 打怪拿材料：靈魂、通貨、材料（0.5.0）自動進材料頁；回傳要跳字的清單（got.mat＝[種類, 階, 數量]） */
+/* 打怪拿材料：靈魂、通貨、精髓自動進材料頁（0.5.1 起不掉材料，材料由產生器產）；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),
     k = m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0,
@@ -1106,13 +1290,6 @@ function killMat(m, t, o = {}) {
   const soul = Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
   M.soul += soul;
   if (typeof SES !== 'undefined' && SES) SES.soul += soul;
-  const md = matDrop(k, mobLv(t), o.star);
-  if (md[2]) {
-    matAdd(...md);
-    got.push(`${md[2]} ${matName(md[0], md[1])}`);
-    got.mat = md;
-    if (typeof SES !== 'undefined' && SES) SES.mat += md[2];
-  }
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
   /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
@@ -1120,16 +1297,15 @@ function killMat(m, t, o = {}) {
   return got;
 }
 
-/* 一輪的掉落（0.4.1，離線結算與 tools/loot_check.js 共用）：nS 隻小怪、nE 隻菁英、1 隻王，走真的掉落函式（通貨、精髓、靈魂、材料直接進材料頁）。
-   0.5.0 起不掉裝備，回傳這一輪的材料 { 'iron:2': n }。o＝地圖詞的 qty／rar／mat（沒有就是 0） */
+/* 一輪的掉落（0.4.1，離線結算與 tools/loot_check.js 共用）：nS 隻小怪、nE 隻菁英、1 隻王，走真的掉落函式（通貨、精髓、靈魂直接進材料頁）；
+   回這一輪的靈魂。o＝地圖詞的 qty／rar／mat（沒有就是 0） */
 function roundLoot(t, star, nS, nE, o = {}) {
   const od = { star, p: mapCurP(star, nS, nE), ilvl: tierIlvl(t), tier: t, ...o },
-    mats = {},
-    add = g => g.mat && (mats[matKey(g.mat[0], g.mat[1])] = (mats[matKey(g.mat[0], g.mat[1])] || 0) + g.mat[2]);
-  for (let i = 0; i < nS; i++) add(killMat({}, t, od));
-  for (let i = 0; i < nE; i++) add(killMat({ elite: 1 }, t, od));
-  add(killMat({ boss: 1 }, t, od));
-  return mats;
+    s0 = MAT().soul;
+  for (let i = 0; i < nS; i++) killMat({}, t, od);
+  for (let i = 0; i < nE; i++) killMat({ elite: 1 }, t, od);
+  killMat({ boss: 1 }, t, od);
+  return MAT().soul - s0;
 }
 /* ---------- 鑑定：0.4.0 起掉下來就是鑑定好的（企劃書 5.4.1）；只剩舊存檔轉換用，翻牌演出 0.4.1 搬到回來時的摘要 ---------- */
 const unidList = s => s.inv.items.filter(it => it.uid);
@@ -1163,6 +1339,7 @@ function sup2Check(k) {
   const U = SUPPORTS[k];
   if (!U || U.tier !== 2) return { c: 0, why: '只有 II 要解鎖' };
   if (!sup2Lock(k)) return { c: 0, why: '已經解鎖' };
+  if (!campCan('sup2')) return { c: 0, why: '鍛造台 Lv20 才開' };
   return { c: SUP2_COST, why: MAT().soul >= SUP2_COST ? null : `靈魂不夠（要 ${SUP2_COST}）` };
 }
 function sup2Unlock(k) {

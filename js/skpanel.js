@@ -306,11 +306,11 @@ function skTodo() {
   if (TODO && TODO.st === ST && TODO.soul === soul) return TODO.L;
   const L = [];
   S.skills.forEach((r, i) => {
-    if (!r.k) return;
-    const j = r.so.findIndex((x, n) => n < r.n && !x);
+    if (!r.k || i >= campN('slots')) return;
+    const j = r.so.findIndex((x, n) => n < soN(r) && !x);
     if (j < 0) return;
     const b = bestSup(i, j),
-      emp = r.so.slice(0, r.n).filter(x => !x).length;
+      emp = r.so.slice(0, soN(r)).filter(x => !x).length;
     /* 量不出會變強（沒有傷害的招）就不算「現在可以變強」 */
     if (!b) return;
     L.push({
@@ -368,7 +368,7 @@ function mvTo(i, dir) {
   return i && p >= 0 && j != null && isLate(i) === isLate(j) ? j : -1;
 }
 const pips = r =>
-  `<span class="sk-pips" aria-label="${r.so.slice(0, r.n).filter(Boolean).length}／${r.n} 孔">${Array.from({ length: r.n }, (_, j) => `<i class="${r.so[j] ? '' : 'e'}"></i>`).join('')}</span>`;
+  `<span class="sk-pips" aria-label="${r.so.slice(0, soN(r)).filter(Boolean).length}／${soN(r)} 孔">${Array.from({ length: soN(r) }, (_, j) => `<i class="${r.so[j] ? '' : 'e'}"></i>`).join('')}</span>`;
 const GRIP = '<svg class="ico" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 5.5h10M3 10.5h10"/></svg>';
 /* 總覽（0.4.9，示意頁第 9 版）：主數字「預設 DPS」（出招順序裡最強的那一招）＋魔力；一列＝把手、圖、名字＋Lv＋冷卻、孔、DPS、升級鈕（寫升完多少）；
    用不了的招變暗、右邊寫原因；光環是一條精魂條＋每個光環一列 */
@@ -385,7 +385,7 @@ const upCell = (k, i, aura) => {
   return `<button class="skr-up" data-sk="up:${k}" ${u.why ? `disabled title="${esc(u.why)}"` : ''}>升級${to}<small>${fmtN(u.c)} 靈魂</small></button>`;
 };
 const holesHTML = r =>
-  `<span class="holes">${Array.from({ length: r.n }, (_, j) => (r.so[j] ? `<span class="h" title="${esc(SUPPORTS[r.so[j]].n)}">${icHTML(SUPPORTS[r.so[j]].ic)}</span>` : '<span class="h emp">空</span>')).join('')}</span>`;
+  `<span class="holes">${Array.from({ length: soN(r) }, (_, j) => (r.so[j] ? `<span class="h" title="${esc(SUPPORTS[r.so[j]].n)}">${icHTML(SUPPORTS[r.so[j]].ic)}</span>` : '<span class="h emp">空</span>')).join('')}</span>`;
 function homeHTML() {
   const auto = S.auto !== 0,
     ord = skOrder(),
@@ -430,8 +430,12 @@ function homeHTML() {
     <div class="paper strip"><div><div class="k">預設 DPS・最強的那一招</div><div class="big">${fmtN(main)}</div></div><div class="sub">魔力 ${ST.mp}<br>回復 ${+ST.mpReg.toFixed(1)}／秒</div></div>
     <p class="sk-lab">${auto ? '出招順序・由上往下放，拖把手換' : '技能・照按鍵'}</p>
     <section class="sk-sec rows">${rows}</section>
-    <div class="row2 sub sp"><span>光環</span><div class="spbar" style="--v:${ST.spirit ? Math.round((100 * ST.spiritUsed) / ST.spirit) : 0}%"></div><span><b>精魂 ${ST.spiritUsed}／${ST.spirit}</b>${can ? `・還能開 ${can} 個` : ''}</span></div>
-    <section class="sk-sec rows">${auras}${left > 0 || !au.length ? `<button class="skr emp" data-sk="go:auras">${ICO.plus} 加光環</button>` : ''}</section>
+    ${
+      campCan('aura')
+        ? `<div class="row2 sub sp"><span>光環</span><div class="spbar" style="--v:${ST.spirit ? Math.round((100 * ST.spiritUsed) / ST.spirit) : 0}%"></div><span><b>精魂 ${ST.spiritUsed}／${ST.spirit}</b>${can ? `・還能開 ${can} 個` : ''}</span></div>
+    <section class="sk-sec rows">${auras}${left > 0 || !au.length ? `<button class="skr emp" data-sk="go:auras">${ICO.plus} 加光環</button>` : ''}</section>`
+        : ''
+    }
   </div>${
     SKUI.mv != null && S.skills[SKUI.mv] && S.skills[SKUI.mv].k
       ? `<div class="sk-bar"><button class="sk-btn" data-sk="mvd:-1" ${mvTo(SKUI.mv, -1) < 0 ? 'disabled' : ''}>上移</button><button class="sk-btn" data-sk="mvd:1" ${mvTo(SKUI.mv, 1) < 0 ? 'disabled' : ''}>下移</button><button class="sk-btn pri" data-sk="mvok">完成</button></div>`
@@ -466,7 +470,9 @@ function supRows(c) {
     i = SKUI.i,
     base = i === 5 ? null : dpsOf(i),
     u = i === 5 ? '' : unitOf(slotCfg(i));
-  const rows = Array.from({ length: r.n }, (_, j) => {
+  /* 0.5.1：祭壇 Lv2 才有輔助孔，之前整段不畫 */
+  if (!campN('holes')) return '';
+  const rows = Array.from({ length: soN(r) }, (_, j) => {
     const k = r.so[j];
     if (!k) {
       const b = i === 5 ? null : bestSup(i, j);
@@ -486,11 +492,11 @@ function supRows(c) {
     }
     return `<button class="sk-row" data-sk="hole:${j}">${icHTML(SUPPORTS[k].ic)}<span class="sk-t"><b>${esc(SUPPORTS[k].n)}</b><small>${plainTxt((SUPPORTS[k].x && SUPPORTS[k].x[0]) || SUPPORTS[k].d)}</small></span>${right}</button>`;
   });
-  if (r.n < Math.min(GEM_SO_MAX, campN('holes')))
+  if (r.n < campN('holes'))
     rows.push(
       `<button class="sk-row emp" data-sk="hole:${r.n}">${ICO.lock}<span class="sk-t"><b>第 ${r.n + 1} 孔</b><small>還沒打開</small></span></button>`
     );
-  return `<section class="sk-sec"><h3 class="sk-lab">輔助<span>${r.so.slice(0, r.n).filter(Boolean).length}／${r.n} 孔</span></h3>${rows.join('')}</section>`;
+  return `<section class="sk-sec"><h3 class="sk-lab">輔助<span>${r.so.slice(0, soN(r)).filter(Boolean).length}／${soN(r)} 孔</span></h3>${rows.join('')}</section>`;
 }
 /* 選了一個孔：那顆輔助的說明、I｜II 切換；鎖著的孔寫怎麼開 */
 function holeHTML(c, j) {

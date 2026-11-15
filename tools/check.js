@@ -4011,37 +4011,107 @@ const ASC_COMBOS = `const combos = k => {
   );
   /* 7. 營地：campCan 全 0 時藏的清單、全滿時全開；升級扣對、節點門檻、另外三座不能超過鍛造台 */
   ok(
-    'campCan：四座全 0 時只有鐵、劍、一件一次、沒有通貨與分頁；鍛造台 Lv20 全開；鍵不在表上不受管',
+    'campCan（0.5.1）：六座全 0 時只有鐵、劍、一件一次、1★、1 格技能、0 孔、人口 2、沒有通貨與分頁與天賦樹；鍛造台 Lv20 全開；鍵不在表上不受管',
     R(`(() => {
       S.camp = newCamp();
       const off = ['tab:fill', 'cur:tran', 'cur:aug', 'cur:rich', 'cur:exalt', 'cur:ess', 'mat:hide', 'mat:silk', 'tab:temper', 'tab:holy', 'tab:corr', 'auto2', 'auto2t', 'tier2', 'tier3', 'cur:awk', 'sup2'];
       if (off.some(campCan) || campN('batch') !== 1 || campN('wts') !== 1 || !campWt('sword') || campWt('bow')) return 'zero';
-      if (!campCan('不在表上') || !campCan('tree') || campN('star') !== 5) return 'free';
+      if (!campCan('不在表上') || campCan('tree') || campCan('aura') || campN('star') !== 1 || campN('slots') !== 1 || campN('holes') !== 0 || campN('pop') !== 2 || campN('off') !== 1) return 'zero2';
       if (Object.keys(dropCur(2, { star: 5, ilvl: 16, tier: 16 }).cur).length || dropCur(2, { star: 5, ilvl: 16, tier: 16 }).ess.length) return 'drop0';
       S.camp.forge = 20;
       if (!off.every(campCan) || campN('batch') !== 20 || campN('wts') !== 6) return 'full';
+      Object.assign(S.camp, { altar: 11, scout: 4, house: 10, store: 5 });
+      if (!campCan('tree') || !campCan('asc') || campN('slots') !== Math.min(5, S.skills.length) || campN('holes') !== 5 || campN('star') !== 5 || campN('pop') !== 25 || campN('off') !== 12) return 'full2';
       S.camp.forge = 7; let n = 0; for (let i = 0; i < 50; i++) n += dropCur(2, { star: 1, ilvl: 8, tier: 8 }).cur.exalt || 0;
       return n === 50 ? '' : 'exalt7 ' + n;
     })()`) === ''
   );
   ok(
-    '營地升級：靈魂、金、材料、通貨都扣對；差的寫在 lack；節點門檻（第 N 個點的王）；瞭望台不能超過鍛造台；滿級',
+    '營地升級（0.5.1）：靈魂、木、材料（有階）、金、通貨都扣對；差的寫在 lack；沒有節點門檻；斥候營升了星級跟著上限；滿級',
     R(`(() => {
-      S.camp = newCamp(); S.mat = newMat(); S.gold = 0; S.world = newWorld();
-      let c = campUpCheck('forge'); if (c.why || c.lack.length !== 1 || c.lack[0][2] !== 150 || campUp('forge') !== '靈魂還差 150') return 'lack0';
-      S.mat.soul = 150; if (campUp('forge') !== null || S.camp.forge !== 1 || S.mat.soul !== 0) return 'up1';
-      S.mat.soul = 1e6; S.gold = 1e6; campUp('forge');
-      c = campUpCheck('forge'); if (!/第 2 個地點/.test(c.why || '')) return 'node ' + c.why;
-      S.world.done = TRUNK_K.slice(0, 2); if (campUp('forge') !== null) return 'up3';
-      for (let i = 0; i < 4; i++) { S.world.done = TRUNK_K.slice(0, 9); campUp('forge'); }
-      if (S.camp.forge !== 7) return 'lv7 ' + S.camp.forge;
-      c = campUpCheck('forge'); if (c.lack.map(x => x[0]).join() !== '鐵 T2,蛻變石') return 'lack8 ' + JSON.stringify(c.lack);
-      matAdd('iron', 2, 50); S.mat.tran = 20; const s0 = S.mat.soul, g0 = S.gold;
-      if (campUp('forge') !== null || matN('iron', 2) !== 0 || S.mat.tran !== 0 || s0 - S.mat.soul !== 1000 || S.camp.forge !== 8) return 'up8';
-      S.camp.watch = 8; if (!/鍛造台/.test(campUpCheck('watch').why || '')) return 'watch';
+      S.camp = newCamp(); S.mat = newMat(); S.gold = 0; S.world = newWorld(); S.star = 1;
+      let c = campUpCheck('forge'); if (c.why || c.lack.map(x => x[0]).join() !== '靈魂,木' || campUp('forge') !== '靈魂還差 150、木還差 40') return 'lack0 ' + JSON.stringify(c.lack);
+      S.mat.soul = 150; matAdd('wood', 0, 40); if (campUp('forge') !== null || S.camp.forge !== 1 || S.mat.soul !== 0 || matN('wood') !== 0) return 'up1';
+      S.mat.soul = 1e6; S.gold = 1e6; matAdd('wood', 0, 1e6); campUp('forge');
+      c = campUpCheck('forge'); if (c.lack.map(x => x[0]).join() !== '鐵 T1') return 'iron ' + JSON.stringify(c.lack);
+      matAdd('iron', 1, 30); if (campUp('forge') !== null || matN('iron', 1) !== 0) return 'up3';
+      matAdd('hide', 1, 10); if (campUp('scout') !== null || S.star !== 2 || campN('star') !== 2) return 'scout';
       S.camp.forge = 20; if (campUpCheck('forge').why !== '已經滿級') return 'max';
       return '';
     })()`) === ''
+  );
+  /* 0.5.1 產生器（3.7）：費用 ×1.12、產量線性、里程碑、工位與人口、階的上限照瞭望台、買得起幾級、genTick 60 秒＝genRate */
+  ok(
+    '產生器：林場 Lv1→2 要木 11、×1.12／級；里程碑 5 ×2、10 +1 工位、25 ×2 階+1、50 ×2 +1 工位、75 階+1、100 ×3；買得起幾級＝反算；人口補到空工位（優先的先）、0 人不產；階照瞭望台上限；genTick 60 秒＝genRate',
+    R(`(() => {
+      S.camp = newCamp(); S.mat = newMat(); S.world = newWorld();
+      if (genCost('wood').wood !== 11 || genCost('wood', 2).wood !== Math.round(10 * (1.12 + 1.12 ** 2))) return 'cost ' + genCost('wood').wood;
+      const ms = [1, 5, 10, 25, 50, 75, 100].map(L => { const m = genMs(L); return m.m + '/' + m.slots + '/' + m.tu; }).join();
+      if (ms !== '1/1/0,2/1/0,2/2/0,4/2/1,8/3/1,8/3/2,24/4/2') return 'ms ' + ms;
+      if (genRate('wood') !== GEN.wood.r || genRate('iron') !== GEN.iron.r || genOn('hide') || genSlots('hide')) return 'rate0';
+      matAdd('wood', 0, 100); const n = genAfford('wood');
+      if (!(n >= 1) || genUp('wood', n) !== null || genAfford('wood') !== 0 || matN('wood') < 0) return 'afford ' + n;
+      S.camp.gen.wood.lv = 10; let W = popAssign(); if (W.wood !== 1 || W.iron !== 1 || genRate('wood') !== (GEN.wood.r * 10 * 2) / 2) return 'half ' + JSON.stringify(W);
+      S.camp.house = 1; W = popAssign(); if (W.wood !== 2 || genRate('wood') !== GEN.wood.r * 20) return 'fill';
+      S.camp.gen.iron.lv = 10; W = popAssign(); if (W.iron !== 1 || W.wood !== 2) return 'stay ' + JSON.stringify(W);
+      S.camp.gen.wood.lv = 50; S.camp.gen.iron.pri = 1; S.camp.house = 2; W = popAssign(); if (W.iron !== 2 || W.wood !== 2) return 'pri ' + JSON.stringify(W);
+      S.camp = newCamp(); S.camp.forge = 3; W = popAssign(); if (!genOn('hide') || genSlots('hide') !== 1 || W.hide !== 0 || W.wood !== 1 || W.iron !== 1 || genRate('hide') !== 0) return 'hide0 ' + JSON.stringify(W);
+      S.camp.house = 1; if (popAssign().hide !== 1) return 'hide1';
+      S.camp.gen.iron.lv = 75; if (genTier('iron') !== 1) return 'cap1 ' + genTier('iron');
+      S.camp.watch = 9; if (genTier('iron') !== 2 || tierCap() !== 2) return 'cap2';
+      S.camp.watch = 21; if (genTier('iron') !== 3) return 'cap3';
+      S.camp.gen.iron.tier = 1; if (genTier('iron') !== 2) return 'down';
+      S.camp.gen.iron.tier = 0;
+      const r = genRate('iron'), i0 = matN('iron', 3), w0 = matN('wood');
+      for (let i = 0; i < 600; i++) genTick(0.1);
+      return Math.abs(matN('iron', 3) - i0 - r) <= 1 && Math.abs(matN('wood') - w0 - genRate('wood')) <= 1 ? '' : 'tick';
+    })()`) === ''
+  );
+  ok(
+    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 10（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
+    R(`(() => {
+      S.camp = newCamp(); S.world = newWorld(); S.lv = 99; S.frags = newFrags();
+      if (wWhy(S, ...wXY(TRUNK_K[0])) || !wWhy(S, ...wXY(TRUNK_K[1])) || !campCan('node:' + TRUNK_K[0]) || campCan('node:' + TRUNK_K[1])) return 'lv0';
+      S.camp.watch = 1; if (wWhy(S, ...wXY(TRUNK_K[1])) || !wWhy(S, ...wXY(TRUNK_K[2]))) return 'lv1';
+      S.camp.watch = 21; if (TRUNK_K.some(k => wWhy(S, ...wXY(k))) || !wWhy(S, SPECIAL[0].q, SPECIAL[0].r)) return 'lv21';
+      S.camp.watch = 26; if (SPECIAL.slice(0, 4).some(n => wWhy(S, n.q, n.r))) return 'lines';
+      if (CAMP.watch.length !== 26) return 'len';
+      const m0 = S.mat;
+      for (let n = 1; n <= 21; n++) {
+        const r = CAMP.watch[n - 1], T = TRUNK[n - 1];
+        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== 10 * n) return 'row ' + n;
+        S.mat = newMat(); const a = roundLoot(lvT(TRUNK[0].lv), 1, 40, 0); S.mat = newMat(); const b = roundLoot(lvT(T.lv), 1, 40, 0);
+        const want = ((W_SPM * b) / a) * W_MIN;
+        if (Math.abs(r.soul - want) / want > 0.1) return 'soul ' + n + ' ' + r.soul + ' ' + want;
+      }
+      S.mat = m0;
+      return '';
+    })()`) === ''
+  );
+  ok(
+    '十座的解鎖鍵都有人讀：CAMP 的每個 un 鍵在 js/ 裡至少一處讀到',
+    (() => {
+      const src = fs
+        .readdirSync(path.join(__dirname, '..', 'js'))
+        .filter(f => f.endsWith('.js'))
+        .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+        .join('\n')
+        .replace(/const CAMP = \{[\s\S]*?\n\};/, '');
+      const keys = R(`[...new Set(Object.values(CAMP).flatMap(L => L.flatMap(r => r.un || [])))]`);
+      const miss = keys.filter(k => {
+        const [a, b] = k.split(':');
+        return !(
+          src.includes(`'${k}'`) ||
+          (b && src.includes(`'${a}:'`)) ||
+          (/^tier\d$/.test(k) && src.includes("'tier'")) ||
+          (a === 'line' && src.includes("'line:" + b + "'"))
+        );
+      });
+      /* jewel（珠寶全域掉落）0.5.3 接、asc3（第三個昇華以後）還沒設計 */
+      miss.splice(0, miss.length, ...miss.filter(k => !['jewel', 'asc3'].includes(k)));
+      if (miss.length) console.log('   沒人讀：' + miss.join('、'));
+      return !miss.length;
+    })()
   );
 }
 /* 投射物：每一招都吃多重投射（0.2.27）；自動化的規則（0.2.28）。載入 skills.js，用替身跑出手 */
@@ -8333,7 +8403,7 @@ const ASC_COMBOS = `const combos = k => {
     R2(`(() => {
       const old = newGame(); Object.assign(old, { v: 30, lv: 57 });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      if (n.v !== 34 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
+      if (n.v !== 35 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
       for (const bad of [null, {}, { v: 'x' }, { v: 10 }, { v: 29, lv: 50 }]) if (migrate(bad).lv !== 1) return 'bad';
       const it = (r, o) => ({ ...mkItem('c_leather', 12, r), ...o });
       const v31 = { ...newGame(), v: 31, lv: 57, gold: 5, frag: 40, auto: 0, cards: { x: 1 }, patrol: { rg: 'a' }, run: { k: '0,0' },
@@ -8343,13 +8413,13 @@ const ASC_COMBOS = `const combos = k => {
       delete v31.push;
       /* 舊地圖走過最遠的是 9,9（第 18 圈＝舊的 Lv63）：主幹開到 Lv63（劇情 9 個＋Lv23～63 的 9 個） */
       const m = migrate(JSON.parse(JSON.stringify(v31)));
-      if (m.v !== 34 || m.lv !== 57 || m.auto !== 0 || m.push !== 'auto') return 'base';
+      if (m.v !== 35 || m.lv !== 57 || m.auto !== 0 || 'push' in m) return 'base';
       if (m.inv.items.length !== 4 || m.inv.items.some(x => x.uid || 'x' in x) || m.inv.w) return 'inv ' + m.inv.items.length;
       if (['stash', 'temp', 'temp2', 'frag', 'cards', 'patrol', 'run'].some(k => k in m)) return 'gone';
       if (m.gold !== 5 + 400) return 'gold ' + m.gold;
-      if (m.world.seed !== W_SEED || m.world.stage !== 9 || m.world.done.length !== 18 || wFront(m) !== 18) return 'world ' + m.world.done.length + ' ' + wFront(m);
+      if (m.world.seed !== W_SEED || m.world.stage !== 9 || m.world.done.length !== 18 || wFront(m) !== 18 || m.camp.watch !== 18) return 'world ' + m.world.done.length + ' ' + wFront(m);
       const again = migrate(JSON.parse(JSON.stringify(m)));
-      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 34 ? '' : 'again';
+      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 35 ? '' : 'again';
     })()`) === ''
   );
   /* 0.4.8：存檔 32 → 33：一般輔助升過的等級退靈魂（每一級照 libUp 扣的 soulCost(那一級)）、刪紀錄；用過的 II 算解鎖；覺醒輔助、技能、光環等級不動 */
@@ -8365,11 +8435,11 @@ const ASC_COMBOS = `const combos = k => {
       for (const lv of [6, 3]) for (let l = 1; l < lv; l++) want += soulCost(l);
       const again = migrate(JSON.parse(JSON.stringify(m)));
       return { v: m.v, soul: m.mat.soul === want, want, sup: m.lib.sup, sup2: Object.keys(m.lib.sup2).sort(), keep: [m.lib.sk.fireball, m.lib.aura.anger, m.skills[0].so.join()],
-        again: again.mat.soul === m.mat.soul, fresh: newGame().v === 34 && !!newGame().lib.sup2 };
+        again: again.mat.soul === m.mat.soul, fresh: newGame().v === 35 && !!newGame().lib.sup2 };
     })()`);
     ok(
-      '存檔 33（0.4.8）：一般輔助升過的等級退靈魂（Σ soulCost(1…lv−1)）、紀錄刪掉；插著的 II（技能格、光環欄）與目錄有紀錄的 II 算解鎖；覺醒輔助、技能、光環的等級與孔不動；轉過的再載入不重複退；新存檔是 34',
-      r.v === 34 &&
+      '存檔 33（0.4.8）：一般輔助升過的等級退靈魂（Σ soulCost(1…lv−1)）、紀錄刪掉；插著的 II（技能格、光環欄）與目錄有紀錄的 II 算解鎖；覺醒輔助、技能、光環的等級與孔不動；轉過的再載入不重複退；新存檔是 35',
+      r.v === 35 &&
         r.soul &&
         JSON.stringify(r.sup) === '{"aw_fury":5}' &&
         JSON.stringify(r.sup2) === '["area","leech","multi"]' &&
@@ -8388,18 +8458,22 @@ const ASC_COMBOS = `const combos = k => {
       s.inv.items.push(mkItem('w_bow_0', 10, 1));
       const m = migrate(JSON.parse(JSON.stringify(s)));
       const n = migrate(JSON.parse(JSON.stringify({ ...newGame(), v: 33, lv: 1 })));
-      return { v: m.v, camp: m.camp, mats: m.mat.mats, gam: 'gamN' in m, auto2: m.auto2, fresh: newGame().v, lo: n.camp, again: migrate(JSON.parse(JSON.stringify(m))).camp.forge };
+      return { v: m.v, camp: m.camp, star: m.star, mats: m.mat.mats, gam: 'gamN' in m, auto2: m.auto2, fresh: newGame().v, lo: n.camp, again: migrate(JSON.parse(JSON.stringify(m))).camp.forge };
     })()`);
     ok(
-      '存檔 34（0.5.0）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、瞭望台 2、倉房 1；Lv1 新手全 0（倉房 Lv10 起才算 1）；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 34',
-      r.v === 34 &&
-        r.fresh === 34 &&
+      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、民房 9、林場與礦場 Lv90、倉房 1、星級 3；Lv1 新手全 0；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 35',
+      r.v === 35 &&
+        r.fresh === 35 &&
         r.camp.forge === 14 &&
         r.camp.altar === 3 &&
-        r.camp.watch === 2 &&
+        r.camp.scout === 2 &&
+        r.camp.watch === 12 &&
+        r.camp.house === 9 &&
+        r.camp.gen.iron.lv === 90 &&
+        r.star === 3 &&
         r.camp.store === 1 &&
         r.camp.wts.join() === 'sword,bow' &&
-        JSON.stringify(r.mats) === '{}' &&
+        !Object.keys(r.mats).some(k => k !== 'wood') &&
         !r.gam &&
         r.auto2.r === 1 &&
         r.lo.forge === 0 &&
@@ -8466,16 +8540,20 @@ const ASC_COMBOS = `const combos = k => {
     })()`)
   );
   ok(
-    '一輪的掉落（roundLoot，0.5.0）：不掉裝備、材料與通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限 8 小時、停在原本的節點、摘要列材料、不到 5 分鐘不算',
+    '一輪的掉落（roundLoot，0.5.1）：不掉裝備、不掉材料、通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限照倉房（Lv3＝8 小時、Lv0＝1 小時）、停在原本的節點、不到 5 分鐘不算；產生器離線照產＝在線 × 時間',
     R2(`(() => {
-      S = newGame(); S.lv = 60; S.camp.forge = 20; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
+      S = newGame(); S.lv = 60; S.camp.forge = 20; S.camp.watch = 14; S.camp.store = 3; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
       const m0 = S.mat.exalt, L = roundLoot(lvT(50), 3, 40, 4);
-      if (!Object.keys(L).length || Object.values(L).reduce((a, b) => a + b, 0) < 10 || S.mat.exalt <= m0 || S.inv.items.length) return 'round ' + JSON.stringify(L);
+      if (!(L > 100) || Object.keys(S.mat.mats).some(k => k !== 'wood') || S.mat.exalt <= m0 || S.inv.items.length) return 'round ' + JSON.stringify(L);
       S.rounds = Array.from({ length: 10 }, (_, i) => (i < 2 ? { d: 60, die: 1 } : { d: 60, xp: 100, gold: 50, nS: 40, nE: 3 }));
       if (offSettle(4 * 60e3)) return 'short';
       const g0 = S.gold, o = offSettle(3600e3);
-      if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !o.mats.length || !(o.soul > 0) || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won, o.mats]);
+      if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !(o.soul > 0) || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won]);
       if (offSettle(99 * 3600e3).n !== 480) return 'cap';
+      /* 產生器離線照產：上限照倉房（Lv3＝8 小時），產量＝在線 × 時間 */
+      const w0 = matN('wood'), r = genRate('wood'), g = offGen(99 * 3600e3);
+      if (Math.abs(matN('wood') - w0 - r * 480) > 1 || g.wood !== matN('wood') - w0) return 'gen ' + (matN('wood') - w0);
+      S.camp.store = 0; const w1 = matN('wood'); offGen(99 * 3600e3); if (Math.abs(matN('wood') - w1 - r * 60) > 1) return 'gencap';
       return S.inv.items.length === 0 ? '' : 'inv';
     })()`) === ''
   );
@@ -8530,15 +8608,17 @@ const ASC_COMBOS = `const combos = k => {
       wPrev(TRUNK_K[5]) === TRUNK_K[4] && wPrev(TRUNK_K[0]) === null && wPrev(wKey(SPECIAL[1].q, SPECIAL[1].r)) === TRUNK_K[SPECIAL[1].at]`)
   );
   ok(
-    '星級：劇情區固定卡；其他照選的星級每輪重抽，詞數在那個星級的範圍裡；沒選是 1★',
+    '星級（0.5.1）：全域一個 S.star，每輪重抽，詞數在那個星級的範圍裡；沒選是 1★；超過斥候營的上限被壓回',
     R(`(() => {
-      const s = WS(), k = TRUNK_K[12];
-      if (wCard(s, TRUNK_K[3]) !== STORY[3].card || wStar(s, k) !== 1) return 'story';
+      const s = WS();
+      if (wStar(s) !== 1) return 'def';
       for (let st = 1; st <= 5; st++) {
-        s.world.star[k] = st;
-        for (let i = 0; i < 200; i++) { const c = wCard(s, k), [lo, hi] = STARS[st].n; if (c.star !== st || c.mods.length < lo || c.mods.length > hi) return 'star ' + st; }
+        s.star = st;
+        for (let i = 0; i < 200; i++) { const c = wCard(s), [lo, hi] = STARS[st].n; if (c.star !== st || c.mods.length < lo || c.mods.length > hi) return 'star ' + st; }
       }
-      return '';
+      const S0 = typeof S === 'undefined' ? undefined : S;
+      S = { ...WS(), camp: newCamp(), star: 4 }; const cap = wStar(S); S.camp.scout = 4; const up = wStar(S); S = S0;
+      return cap === 1 && up === 4 ? '' : 'cap ' + cap + up;
     })()`) === ''
   );
   ok(
@@ -8603,7 +8683,7 @@ const ASC_COMBOS = `const combos = k => {
     }
   };
   const E = vm.runInContext(
-    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropCur, killMat, matDrop, matTier, STAR_MUL, MATS, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
+    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropCur, killMat, matTier, STAR_MUL, MATS, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
     ctx
   );
   const setS = () => vm.runInContext('S = { gold: 1e12, lv: 60, mat: null, maxT: 16 }; S.mat = newMat();', ctx);
@@ -9118,16 +9198,6 @@ const ASC_COMBOS = `const combos = k => {
         for (const k in ec.cur) all[k] = (all[k] || 0) + 1;
         const bc = E.dropCur(2, o);
         if (bc.cur.exalt !== 1) bad.push('王沒有崇高 1');
-        /* 0.5.0 材料：小怪 30% 掉 1、菁英 3、王 8，×星級；階照節點等級 */
-        const md = [0, 1, 2].map(k => E.matDrop(k, 5 + i, star));
-        if (md.some(([k, T, n]) => !E.MATS[k] || T !== E.matTier(5 + i) || n < 0))
-          bad.push('材料 ' + JSON.stringify(md));
-        if (
-          md[0][2] > Math.round(E.STAR_MUL[star]) ||
-          md[1][2] !== Math.round(3 * E.STAR_MUL[star]) ||
-          md[2][2] !== Math.round(8 * E.STAR_MUL[star])
-        )
-          bad.push('材料量 ' + JSON.stringify(md));
         if (star === 5 && bc.ess.length !== 1) bad.push('5★ 王沒有保底精髓');
         if (star <= 2 && (bc.ess.length || ec.ess.length)) bad.push('1～2★ 掉精髓');
         for (const [c, T] of [...ec.ess, ...bc.ess])
@@ -9135,7 +9205,7 @@ const ASC_COMBOS = `const combos = k => {
       }
     for (const k of ['conv', 'holy', 'corr']) if (all[k]) bad.push('掉了 ' + k);
     ok(
-      '掉落（0.5.0 不掉裝備）：小怪只掉通貨與材料、王崇高石 1、材料 30%×1／3／8 ×星級且階照節點（這裡沒有 S.camp＝三種都開）、5★ 王保底精髓、1～2★ 不掉精髓、轉化／聖化／腐化這版不掉（預知石全域低機率，另外驗）',
+      '掉落（0.5.1 不掉裝備、不掉材料）：小怪只掉通貨、王崇高石 1、5★ 王保底精髓、1～2★ 不掉精髓、轉化／聖化／腐化這版不掉（預知石全域低機率，另外驗）',
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -9158,9 +9228,9 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 300; i++) E.killMat({}, 3, { star: 5, p: E.mapCurP(5, 60), ilvl: E.tierIlvl(3) });
     const M = E.MAT();
     ok(
-      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片、T1 材料',
+      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片，不掉材料（0.5.1）',
       M.soul > 0 &&
-        Object.keys(M.mats).every(k => /^(iron|hide|silk):1$/.test(k)) &&
+        !Object.keys(M.mats || {}).length &&
         M.tran > 0 &&
         M.aug > 0 &&
         M.whet + M.plate > 0 &&

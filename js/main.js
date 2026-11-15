@@ -77,7 +77,7 @@ function migrate(s) {
   /* 存檔 34（0.5.0，工坊與解鎖表第 3 節）：營地四座設施照角色等級、主幹開到第幾個點、用過的技能格與孔、星級換算（⚠️ 一條簡單的表）；
      已經有的技能、輔助、昇華、天賦、倉庫裡的裝備、通貨都留著，材料從 0 開始；商人賭裝的保底刪掉 */
   if (o.v < 34) {
-    const front = wFront(o),
+    const front = wFrontDone(o),
       lv = o.lv || 1,
       C = newCamp(),
       /* 表上第一個「要先打倒第 N 個點」還沒打過的那一級之前 */
@@ -110,7 +110,29 @@ function migrate(s) {
     delete o.gamN;
     o.v = 34;
   }
+  /* 存檔 35（0.5.1，工坊與解鎖表 3.7 下面那段，⚠️ 一條簡單的表）：0.5.0 的瞭望台（星級）改叫斥候營；瞭望台＝主幹開到第 n 個點 → Lv n−1；
+     民房＝角色等級 ÷ 5；林場、礦場＝角色等級 × 2（最多 100），獵場、絲地照鍛造台開了沒；星級全域一個；推進設定刪掉 */
+  if (o.v < 35) {
+    const C = (o.camp = { ...newCamp(), ...o.camp }),
+      lv = o.lv || 1,
+      st = Math.max(1, ...Object.values((o.world && o.world.star) || {}));
+    C.scout = Math.min(CAMP.scout.length, C.watch || 0);
+    C.watch = wFrontDone(o);
+    C.house = Math.min(CAMP.house.length, Math.floor(lv / 5));
+    const g = Math.min(100, Math.max(1, lv * 2));
+    C.gen = {
+      wood: { lv: g },
+      iron: { lv: g },
+      hide: { lv: C.forge >= 3 ? 1 : 0 },
+      silk: { lv: C.forge >= 8 ? 1 : 0 }
+    };
+    o.star = Math.min(st, C.scout + 1);
+    delete o.push;
+    if (o.world) delete o.world.star;
+    o.v = 35;
+  }
   o.camp = { ...newCamp(), ...o.camp };
+  o.camp.gen = { ...newCamp().gen, ...o.camp.gen };
   o.auto2 = { ...AUTO2(), ...o.auto2 };
   /* 道具編號接著存檔裡最大的往下編 */
   for (const it of [...Object.values(o.eq), o.curIt, ...o.inv.items, ...o.charms]) if (it && it.id > IID) IID = it.id;
@@ -195,16 +217,22 @@ function start() {
     } else cloudPush();
   });
   setInterval(save, 10000);
-  /* 離線結算（0.4.1）：上次關掉時在刷圖 → 照存檔時間算，接著刷同一個節點 */
-  if (farm && S.auto && S.world.cur && !wWhy(S, ...wXY(S.world.cur))) {
-    const o = offSettle(Date.now() - offAt);
-    runNode(S.world.cur);
-    offShow(o);
-  }
-  /* 分頁切走、手機鎖螢幕：記時間，回來時結算 */
+  /* 離線結算（0.4.1）：上次關掉時在刷圖（或沒有自己按回藏身處，試玩報告 B2）→ 照存檔時間算，接著刷同一個節點；產生器不管在不在刷都照產（0.5.1） */
+  const away = Date.now() - offAt,
+    resume = (farm || !S.stopWhy) && S.auto && S.world.cur && !wWhy(S, ...wXY(S.world.cur)),
+    o = resume ? offSettle(away) : null,
+    g = offGen(away);
+  if (resume) runNode(S.world.cur);
+  if (o || away >= OFF_MIN) offShow(o, g, away);
+  /* 分頁切走、手機鎖螢幕：記時間，回來時結算（主迴圈停著，產生器也要補） */
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return (HIDE_AT = Date.now()), save();
-    if (G.scene === 'map' && HIDE_AT) offShow(offSettle(Date.now() - HIDE_AT));
+    if (HIDE_AT) {
+      const t = Date.now() - HIDE_AT,
+        o2 = G.scene === 'map' ? offSettle(t) : null,
+        g2 = offGen(t);
+      if (o2 || t >= OFF_MIN) offShow(o2, g2, t);
+    }
     HIDE_AT = 0;
   });
   requestAnimationFrame(frame);

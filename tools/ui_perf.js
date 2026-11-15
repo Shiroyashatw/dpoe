@@ -34,6 +34,9 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     S.lv = 60;
     S.orient = 'p';
     applyOrient();
+    /* 0.5.1：營地與技能面板照祭壇、鍛造台藏東西；量的是全開的畫面，營地升級要有木 */
+    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    matAdd('wood', 0, 1e6);
     let i = 0;
     /* 0.5.0：裝備不掉了，直接做 300 件（倉庫容量） */
     while (S.inv.items.length < INV_CAP) invPut(S.inv, dropItem(60, i++ % 4 ? 0.4 : 0.8));
@@ -130,7 +133,8 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     ['換裝卡：鎖定', '#pinv [data-a=sellock]'],
     ['分頁：角色', '#pnav [data-tm="nav:char"]'],
     ['角色：點手套欄', '#pinv .doll2 [data-eq="gloves"]'],
-    ['分頁：做裝', '#pnav [data-tm="nav:craft"]'],
+    ['分頁：營地（總覽）', '#pnav [data-tm="nav:craft"]'],
+    ['營地：升一級林場', '#pcraft [data-fg^="gen:wood:"]'],
     ['分頁：更多', '#pnav [data-tm="nav:more"]'],
     ['更多：地點', '#pmore [data-tm="nav:node"]'],
     ['分頁：技能（總覽）', '#pnav [data-tm="nav:skill"]'],

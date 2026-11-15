@@ -30,7 +30,9 @@ let fail = 0;
     proSkip();
     S.story.tips = 0;
     S.auto = 0; /* 手動的流程在 S.auto = 0 下跑；自動鈕另外測 */
-    S.camp.forge = 20; /* 0.5.0：舊流程（通貨頁、鍛造台）要鍛造台開了才看得到；Lv0 的藏法另外測 */
+    /* 0.5.0／0.5.1：舊流程（通貨頁、鍛造台、天賦、技能格）要營地開了才看得到；全 0 的藏法另外測 */
+    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    window._CAMP = JSON.parse(JSON.stringify(S.camp));
     S.skills[1].k = 'mirage'; /* 0.5.0 開局只有斬擊；技能鍵的測試要第 2 格有招 */
     hudBar();
   });
@@ -411,7 +413,7 @@ let fail = 0;
     };
     await p.evaluate(() => {
       closePanels();
-      S.camp.forge = 0;
+      S.camp = newCamp();
       S.mat.mats = {};
       matAdd('iron', 1, 16);
       CRAFT.tab = 'make';
@@ -433,8 +435,8 @@ let fail = 0;
       ];
     });
     ok(
-      '橫向：鍛造台 Lv0 第一頁是「打造」、沒有填／淬鍊、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
-      mkL[0].startsWith('打造') && !/填|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
+      '橫向：營地全 0 分頁只有「營地」「打造」、沒有填／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
+      mkL[0] === '營地,打造' && !/填|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
       JSON.stringify(mkL)
     );
     await tapL('#pcraft [data-fg=go]');
@@ -452,7 +454,7 @@ let fail = 0;
     await tapL('#preveal [data-a=rvsalv]');
     ok('橫向：分解掉那一件', await p.evaluate(() => /已分解/.test($('preveal').innerText)));
     await p.evaluate(() => {
-      S.camp.forge = 20;
+      S.camp = JSON.parse(JSON.stringify(_CAMP));
       closePanels();
     });
   } else {
@@ -679,7 +681,7 @@ let fail = 0;
     /* ---------- 0.5.0 打造：鍛造台 Lv0 的做裝只有「打造」「碎片」、材料夠按一下打一件、翻牌出換裝卡與三顆鈕、換上／分解、升級鈕 ---------- */
     await p.evaluate(() => {
       closePanels();
-      S.camp.forge = 0;
+      S.camp = newCamp();
       S.mat.soul = 0;
       S.mat.mats = {};
       matAdd('iron', 1, 16);
@@ -692,8 +694,8 @@ let fail = 0;
       [...document.querySelectorAll('#pcraft .ftabs button')].map(b => b.textContent)
     );
     ok(
-      '鍛造台 Lv0：做裝只有「打造」「碎片」（通貨、鍛造台藏起來）',
-      seg0.join() === '打造,碎片' && (await p.evaluate(() => CRAFT.tab === 'make' && !$('pcraft').hidden)),
+      '營地全 0：營地只有「總覽」「打造」（通貨、鍛造台、碎片藏起來）',
+      seg0.join() === '總覽,打造' && (await p.evaluate(() => CRAFT.tab === 'make' && !$('pcraft').hidden)),
       seg0.join()
     );
     const mk = await p.evaluate(() => {
@@ -730,7 +732,15 @@ let fail = 0;
     });
     ok(
       '按打造：扣 8 個鐵、翻牌、選中那一件、換裝卡與換上／留著／分解 ≥44px 在畫面內',
-      rv[0] && rv[1] && rv[2] && rv[3] && rv[4] === '換上,留著,分解' && rv[5] && rv[6] === 8 && rv[7] === 1,
+      rv[0] &&
+        rv[1] &&
+        rv[2] &&
+        rv[3] &&
+        rv[4] === '換上,留著,分解' &&
+        rv[5] &&
+        rv[6] >= 8 &&
+        rv[6] <= 10 &&
+        rv[7] === 1,
       JSON.stringify(rv)
     );
     const eq0 = await p.evaluate(() => itemName(S.eq.weapon));
@@ -764,6 +774,9 @@ let fail = 0;
     await p.evaluate(() => {
       closePanels();
       S.mat.soul = 150;
+      matAdd('wood', 0, 40 - matN('wood'));
+      CRAFT.tab = 'camp';
+      PANEL.ctab = 'camp';
     });
     await tap('#pnav [data-tm="nav:craft"]');
     const up = await p.evaluate(() => {
@@ -782,11 +795,61 @@ let fail = 0;
     );
     ok(
       '升到 Lv1：靈魂扣 150、通貨與鍛造台分頁出現',
-      (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '打造,通貨,鍛造台,碎片',
+      (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '總覽,打造,通貨,鍛造台',
       seg1.join()
     );
+    /* ---------- 0.5.1 營地總覽：卡片、升級鈕、×1／×10／最大、下一件事、民房的「優先」 ---------- */
     await p.evaluate(() => {
-      S.camp.forge = 20;
+      closePanels();
+      S.camp = newCamp();
+      S.mat.mats = { wood: 400, 'iron:1': 400 };
+      S.mat.soul = 0;
+      CRAFT.tab = 'camp';
+      PANEL.ctab = 'camp';
+      CAMPUI.mul = 1;
+    });
+    await tap('#pnav [data-tm="nav:craft"]');
+    const cm = await p.evaluate(() => {
+      const cs = [...document.querySelectorAll('#pcraft .cc')],
+        bs = [...document.querySelectorAll('#pcraft .cc .btn, #pcraft .cmmul .chip, #pcraft .cmnext .btn')];
+      return [
+        cs.length,
+        cs.every(c => c.getBoundingClientRect().left >= 0 && c.getBoundingClientRect().right <= innerWidth),
+        bs.every(b => b.getBoundingClientRect().height >= 44),
+        !!document.querySelector('#pcraft #cmtop') && !!document.querySelector('#pcraft #cmnext'),
+        document.querySelector('#pnav [data-tm="nav:craft"] .dot')
+          ? document.querySelector('#pnav [data-tm="nav:craft"] .dot').textContent
+          : ''
+      ];
+    });
+    ok(
+      '營地總覽（0.5.1）：開局 8 張卡（解鎖表六座＋林場、礦場）都在畫面寬度內、升級鈕與 ×1／×10／最大 ≥44px、上面兩行（庫存＋速率、下一件事）、分頁列寫買得起幾件',
+      cm[0] === 8 && cm[1] && cm[2] && cm[3] && +cm[4] >= 2,
+      JSON.stringify(cm)
+    );
+    await p.evaluate(() =>
+      document.querySelector('#pcraft [data-fg="gen:wood:1"]').scrollIntoView({ block: 'center' })
+    );
+    await tap('#pcraft [data-fg="gen:wood:1"]');
+    await tap('#pcraft [data-fg="mul:max"]');
+    await p.evaluate(() =>
+      document.querySelector('#pcraft [data-fg^="gen:iron:"]').scrollIntoView({ block: 'center' })
+    );
+    await tap('#pcraft [data-fg^="gen:iron:"]');
+    const g2 = await p.evaluate(() => [S.camp.gen.wood.lv, S.camp.gen.iron.lv, matN('wood') < 400]);
+    ok('產生器：×1 升 1 級、最大一次升好幾級、扣木', g2[0] === 2 && g2[1] > 2 && g2[2], JSON.stringify(g2));
+    await p.evaluate(() => {
+      S.camp.house = 1;
+      document.querySelector('#pcraft [data-fg="cc:house"]').scrollIntoView({ block: 'center' });
+    });
+    await tap('#pcraft [data-fg="cc:house"]');
+    const ho = await p.evaluate(() => {
+      const c = [...document.querySelectorAll('#cc-house .ccopen .chip')];
+      return [c.length, c.every(b => b.getBoundingClientRect().height >= 44)];
+    });
+    ok('民房展開：每座產生器一列、「優先」≥44px', ho[0] === 2 && ho[1], JSON.stringify(ho));
+    await p.evaluate(() => {
+      S.camp = JSON.parse(JSON.stringify(_CAMP));
       closePanels();
     });
     /* ---------- 0.4.6：角色數值分組、角色頁點一格列出可以換的、說明框先寫換上去的差別、篩選可以選部位 ---------- */

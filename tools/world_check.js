@@ -76,24 +76,31 @@ async function flow(b) {
   await p.evaluate(CLEAR);
   const r1 = await p.evaluate(() => ({ next: G.nextT > 0, portal: !!G.portal, done: S.world.done.slice() }));
   ok('打倒王：記走過、沒有傳送門、排好下一輪', r1.next && !r1.portal && r1.done[0] === '0,0', JSON.stringify(r1));
+  /* 0.5.1：打倒王不推進，同一個節點、同一個場地下一輪；推進＝升瞭望台 */
+  const bio = await p.evaluate(() => G.biome);
   ok(
-    '2 秒後自動往下推到下一個節點（新的一輪）',
-    await until(p, () => G.node === TRUNK_K[1] && G.round === 1 && G.scene === 'map', 6000),
+    '2 秒後同一個節點、同一個場地第 2 輪（0.5.1 打倒王不推進）',
+    (await until(p, () => G.node === TRUNK_K[0] && G.round === 2 && G.scene === 'map', 6000)) &&
+      (await p.evaluate(b => G.biome === b, bio)),
     JSON.stringify(await p.evaluate(() => [G.node, G.round]))
   );
-  /* 留在這個點：同一個場地下一輪，輪數 +1、場景外觀不變 */
-  const bio = await p.evaluate(() => {
-    S.push = 'stay';
-    return G.biome;
+  const wt = await p.evaluate(() => {
+    const no = wWhy(S, ...wXY(TRUNK_K[1]));
+    S.mat.soul = 1e6;
+    matAdd('wood', 0, 1e6);
+    matAdd('iron', 1, 1e6);
+    const up = campUp('watch');
+    return [no, up, runNode(TRUNK_K[1]), G.node === TRUNK_K[1]];
   });
-  await p.evaluate(CLEAR);
   ok(
-    '推進設定「留在這個點」：同一個節點、同一個場地，第 2 輪',
-    (await until(p, () => G.node === TRUNK_K[1] && G.round === 2, 6000)) && (await p.evaluate(b => G.biome === b, bio))
+    '瞭望台 Lv0 第 2 個地點鎖著；升到 Lv1 就去得了',
+    /瞭望台 Lv 1/.test(wt[0]) && wt[1] === null && wt[2] && wt[3],
+    JSON.stringify(wt)
   );
   /* 劇情區剩下的打完：世界展開（打開地圖播演出） */
-  await p.evaluate(() => (S.push = 'auto'));
-  for (let i = 0; i < 8 && !(await p.evaluate(() => wOpen(S))); i++) {
+  await p.evaluate(() => (S.camp.watch = 21));
+  for (let i = 2; i < 9 && !(await p.evaluate(() => wOpen(S))); i++) {
+    await p.evaluate(i => runNode(TRUNK_K[i]), i);
     await p.evaluate(CLEAR);
     await until(p, () => !G.nextT || PANEL.device, 6000);
   }
@@ -102,18 +109,18 @@ async function flow(b) {
     WM.anim = null;
     closePanels();
   });
-  ok('世界展開後往下推到主幹 Lv23', await until(p, () => G.node === TRUNK_K[9], 8000));
-  /* 選星級：打過的節點可以一直刷 */
+  /* 選星級（0.5.1 全域一個，上限照斥候營） */
   await p.evaluate(() => {
+    S.camp.scout = 4;
     openPanel('device');
     wmSel(TRUNK_K[9]);
   });
   await p.click('#pdev [data-wm="star:4"]');
   await p.click('#pdev [data-a=open]');
-  const st = await p.evaluate(() => ({ star: G.star, n: G.card.mods.length, hold: S.world.hold, node: G.node }));
+  const st = await p.evaluate(() => ({ star: G.star, n: G.card.mods.length, g: S.star, node: G.node }));
   ok(
-    '選 4★：這一輪 10～12 條地圖詞；選的是最前面的節點不會被留住',
-    st.star === 4 && st.n >= 10 && st.n <= 12 && st.hold === 0,
+    '選 4★：這一輪 10～12 條地圖詞、寫進全域的 S.star',
+    st.star === 4 && st.n >= 10 && st.n <= 12 && st.g === 4,
     JSON.stringify(st)
   );
   /* 死亡：原地重來；連死 3 次退回上一個節點、留著（hold）、有通知、HUD 有「再推一次」 */
@@ -132,22 +139,15 @@ async function flow(b) {
   await dead();
   await dead();
   const K = await p.evaluate(() => TRUNK_K);
-  await until(p, () => /再推一次/.test($('run').textContent), 3000);
-  const rb = await p.evaluate(() => ({
-    node: G.node,
-    hold: S.world.hold,
-    note: S.world.note,
-    run: $('run').textContent
-  }));
+  await until(p, () => /連死 3 次/.test($('run').textContent), 3000);
+  const rb = await p.evaluate(() => ({ node: G.node, note: S.world.note, run: $('run').textContent }));
   ok(
-    '連死 3 次：退回上一個節點、留在那裡、HUD 有通知與「再推一次」',
-    rb.node === K[8] && rb.hold === 1 && /連死 3 次/.test(rb.note) && /再推一次/.test(rb.run),
+    '連死 3 次：退回上一個節點、HUD 有通知（寫換裝、降星級或升營地）',
+    rb.node === K[8] && /連死 3 次/.test(rb.note) && /升營地/.test(rb.run),
     JSON.stringify(rb)
   );
   await p.evaluate(CLEAR);
-  ok('留住的時候打倒王不往下推', await until(p, () => G.node === TRUNK_K[8] && G.round === 2, 6000));
-  await p.click('#run [data-a=push]');
-  ok('再推一次：回到下一個節點', await until(p, () => G.node === TRUNK_K[9] && !S.world.hold));
+  ok('退回之後打倒王照樣留在這裡', await until(p, () => G.node === TRUNK_K[8] && G.round === 2, 6000));
   /* 倉庫滿了：普通裝換金幣、★ 照樣收 */
   const full = await p.evaluate(() => {
     S.inv.items = Array.from({ length: INV_CAP }, () => mkItem('c_leather', 10, 0));
@@ -161,10 +161,15 @@ async function flow(b) {
     S.inv.items = [];
     return r;
   });
-  ok('倉庫滿了：普通裝換成金幣、★ 照樣收（多留的格子）', full[0] && full[1] === 3001 && full[2], JSON.stringify(full));
+  ok(
+    '倉庫滿了：普通裝換成金幣、★ 照樣收（多留的格子）',
+    full[0] && full[1] === (await p.evaluate(() => INV_CAP)) + 1 && full[2],
+    JSON.stringify(full)
+  );
   /* 特殊節點：要角色等級 */
   const sp = await p.evaluate(() => {
     S.world.done = TRUNK_K.slice(0, 12);
+    S.camp.watch = 26;
     const g = SPECIAL[0];
     S.lv = 34;
     const a = wWhy(S, g.q, g.r);
@@ -179,7 +184,7 @@ async function flow(b) {
     S.hunt.v = 0;
     S.world.done = TRUNK_K.slice(0, 18);
     S.lv = 70;
-    S.world.star[TRUNK_K[12]] = 3;
+    S.star = 3;
     runNode(TRUNK_K[12]);
     return 0;
   });
@@ -233,12 +238,33 @@ async function flow(b) {
   await p.click('#run [data-a=resume]');
   ok('繼續刷', await until(p, () => G.scene === 'map' && G.node === S.world.cur));
   /* 存檔還原 */
-  const before = await p.evaluate(() => (save(), JSON.stringify([S.world.done, S.world.cur, S.push, S.v])));
+  const before = await p.evaluate(
+    () => (
+      save(),
+      JSON.stringify([
+        S.world.done,
+        S.world.cur,
+        S.star,
+        CAMP_B.map(b => S.camp[b]),
+        GEN_K.map(k => S.camp.gen[k].lv),
+        S.v
+      ])
+    )
+  );
   await p.reload();
   await p.waitForFunction(() => typeof G === 'object' && !!G.scene);
   ok(
-    '存檔還原：走過的、在刷的、推進設定',
-    (await p.evaluate(() => JSON.stringify([S.world.done, S.world.cur, S.push, S.v]))) === before
+    '存檔還原：走過的、在刷的、星級、營地',
+    (await p.evaluate(() =>
+      JSON.stringify([
+        S.world.done,
+        S.world.cur,
+        S.star,
+        CAMP_B.map(b => S.camp[b]),
+        GEN_K.map(k => S.camp.gen[k].lv),
+        S.v
+      ])
+    )) === before
   );
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
@@ -454,16 +480,26 @@ async function auto(b) {
   let r = null;
   while (Date.now() - t0 < 330000) {
     await p.waitForTimeout(2000);
-    r = await p.evaluate(() => ({ done: S.world.done.length, node: G.node, scene: G.scene, inv: S.inv.items.length }));
-    if (r.done >= 1 && r.scene === 'map' && r.node && r.node !== '0,0') break;
+    r = await p.evaluate(() => ({ done: S.world.done.length, node: G.node, scene: G.scene, round: G.round }));
+    if (r.done >= 1 && r.scene === 'map' && r.round >= 2) break;
   }
   console.log('   ', JSON.stringify(r));
   ok(
-    'AI：不碰鍵盤打倒王、2 秒後往下推到下一個節點（不回家）',
-    r && r.done >= 1 && r.scene === 'map' && r.node === K[1],
+    'AI：不碰鍵盤打倒王、2 秒後在同一個節點再刷一輪（0.5.1 打倒王不推進、不回家）',
+    r && r.done >= 1 && r.scene === 'map' && r.node === K[0] && r.round >= 2,
     JSON.stringify(r)
   );
-  ok('AI 打到的裝備直接進倉庫', r && r.inv >= 1, JSON.stringify(r));
+  /* 升瞭望台才去得了第 2 個地點（AI 不會自己去，玩家從地點清單點） */
+  const w = await p.evaluate(() => {
+    const no = !!wWhy(S, ...wXY(TRUNK_K[1]));
+    S.mat.soul = 1e6;
+    matAdd('wood', 0, 1e6);
+    matAdd('iron', 1, 1e6);
+    campUp('watch');
+    runNode(TRUNK_K[1]);
+    return [no, G.node];
+  });
+  ok('升瞭望台 → 地點清單去第 2 個地點', w[0] && w[1] === K[1], JSON.stringify(w));
   const gz = await p.evaluate(async () => {
     await new Promise(r => setTimeout(r, 300));
     addGround({ k: 'smoke', side: 'm', x: P.x, y: P.y, r: 2 * METER, dur: 6 });
@@ -478,16 +514,16 @@ async function auto(b) {
     await p.evaluate(() => die());
     await until(p, () => G.state === 'play' && G.t < 1, 6000);
   }
-  const rb = await p.evaluate(() => ({ node: G.node, hold: S.world.hold, scene: G.scene }));
+  const rb = await p.evaluate(() => ({ node: G.node, scene: G.scene }));
   ok(
     'AI：倒下自己重來，連死 3 次退回上一個節點繼續刷',
-    rb.node === K[0] && rb.hold === 1 && rb.scene === 'map' && k0 === K[1],
+    rb.node === K[0] && rb.scene === 'map' && k0 === K[1],
     JSON.stringify(rb)
   );
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
-/* 連續推進（0.4.0，取代 0.3.0 的巡邏）：AI 加速打（每 1.5 秒清場），從劇情區一路推到世界展開、再往下推主幹 */
+/* 連續推進（0.5.1）：AI 加速打（每 1.5 秒清場），每打倒一次王就給夠資源「升瞭望台 → 去下一個地點」，一路推到世界展開、再往下推主幹 */
 async function patrol(b) {
   const p = await open(b);
   await p.evaluate(() => {
@@ -499,7 +535,15 @@ async function patrol(b) {
     S.auto = 1;
     S.filter.cur = 1;
     window.__fast = setInterval(() => {
-      if (G.scene !== 'map' || G.state !== 'play' || G.nextT) return;
+      if (PANEL.device) (WM.anim = null), closePanels();
+      if (G.scene !== 'map' || G.state !== 'play') return;
+      if (G.nextT) {
+        S.mat.soul += 1e5;
+        matAdd('wood', 0, 1e5);
+        matAdd('iron', tierCap(), 1e5);
+        if (!campUp('watch')) runNode(TRUNK_K[wFront(S)]);
+        return;
+      }
       for (let k = 0; k < 2000; k++) {
         const bo = G.mobs.find(x => x.boss && x.hp > 0),
           m = G.mobs.find(x => x.hp > 0 && !x.boss);
@@ -509,18 +553,12 @@ async function patrol(b) {
         G.mobs = G.mobs.filter(x => x !== m);
       }
     }, 1500);
-    S.world.stage = 7;
-    S.world.done = TRUNK_K.slice(0, 7);
-    runNode(TRUNK_K[7]);
+    runNode(TRUNK_K[0]);
   });
-  ok('劇情區：AI 一路推到世界展開（打開地圖面板播演出）', await until(p, () => wOpen(S) && PANEL.device, 60000));
-  await p.evaluate(() => {
-    WM.anim = null;
-    closePanels();
-  });
+  ok('劇情區：升瞭望台一路推到世界展開', await until(p, () => wOpen(S), 90000));
   ok(
-    '世界展開後接著往下推主幹（不停）',
-    await until(p, () => wFront(S) >= 11 && G.scene === 'map', 90000),
+    '世界展開後接著升瞭望台往下推主幹',
+    await until(p, () => wFront(S) >= 11 && G.node === TRUNK_K[11] && G.scene === 'map', 90000),
     JSON.stringify(await p.evaluate(() => [wFront(S), G.node, G.scene]))
   );
   await p.evaluate(() => clearInterval(window.__fast));

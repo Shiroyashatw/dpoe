@@ -1196,7 +1196,7 @@ function wmInit() {
       if (WM.goal) wmSel(WM.goal), wmCenter(WM.goal);
     } else if (a.startsWith('star:')) {
       /* 0.4.0：每個節點選 1～5★，每一輪照星級重抽地圖詞 */
-      S.world.star[WM.sel] = +a.slice(5);
+      S.star = +a.slice(5);
       sfx('click');
       save();
       wmPanel();
@@ -1300,14 +1300,9 @@ function wmStamp() {
 /* 選星級（0.4.0，企劃書 4.1）：1～5★，每一輪照星級隨機抽詞（看不到詞，星級就是風險等級）；劇情區固定 */
 function wmCardHTML(k, why) {
   const i = STORY_I[k],
-    star = wStar(S, k),
+    star = wStar(S),
     here = G.scene === 'map' && G.node === k,
     go = `<button class="btn pri" data-a="open" ${why ? `disabled title="${esc(why)}"` : ''}>${why || (here ? '重新開始這一輪' : '在這裡刷')}</button>`;
-  if (i != null) {
-    const c = STORY[i].card;
-    return `<ul class="mmods wm-mods">${c.mods.map(m => `<li class="d${MAPMOD[m].d}">${termify(MAPMOD[m].t)}</li>`).join('') || '<li>沒有地圖詞</li>'}</ul>
-      <p class="wm-note">主線固定，不用選星級</p>${go}`;
-  }
   const S_ = STARS[star],
     [lo, hi] = S_.n || [0, 0];
   return `<div class="wm-stars" role="radiogroup" aria-label="星級">${[1, 2, 3, 4, 5]

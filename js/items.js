@@ -130,7 +130,10 @@ function recGem(r, lib) {
     gem: r.k,
     lv: libLv(r.k, lib),
     so: r.n,
-    sup: Array.from({ length: r.n }, (_, j) => (r.so[j] ? { gem: r.so[j], lv: libLv(r.so[j], lib) } : null)),
+    /* 0.5.1：孔數照祭壇蓋上限（craft.js 的 soN），蓋住的孔插著也沒效果 */
+    sup: Array.from({ length: typeof soN === 'function' && lib === S.lib ? soN(r) : r.n }, (_, j) =>
+      r.so[j] ? { gem: r.so[j], lv: libLv(r.so[j], lib) } : null
+    ),
     aw: (lib && lib.aw && lib.aw[r.k]) || ''
   };
 }

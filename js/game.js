@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 34,
+    v: 35,
     name: '女忍者',
     /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
     orient: 'p',
@@ -19,9 +19,10 @@ function newGame() {
     lv: 1,
     xp: 0,
     gold: 0,
-    /* 營地（0.5.0，craft.js 的 campCan）：四座設施的等級、開了的武器類別；自動分解規則 */
+    /* 營地（0.5.1，craft.js 的 campCan）：解鎖表六座的等級、產生器四座、開了的武器類別；自動分解規則；星級全域一個（斥候營開上限） */
     camp: newCamp(),
     auto2: AUTO2(),
+    star: 1,
     /* 碎片分頁（0.2.78 酆都）：勾魂令四種、生死簿 */
     frags: newFrags(),
     army: {},
@@ -39,8 +40,6 @@ function newGame() {
     inv: { items: [] },
     /* 0.3.0 掛機：1 自動（AI 操作）、0 手動 */
     auto: 1,
-    /* 0.4.0：打倒王之後 auto 自動往下推、stay 留在這個點 */
-    push: 'auto',
     stopWhy: null /* 'home'＝玩家自己回藏身處，刷圖暫停 */,
     /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
     idols: [],
@@ -65,6 +64,8 @@ function newGame() {
   s.charms = [null, null, null];
   s.eq.chest = mkItem('c_leather', 1, 0);
   s.mat = newMat();
+  /* 營地的廢墟剩一點木：第一次升林場馬上按得下去（0.5.1 ⚠️） */
+  s.mat.mats = { wood: 20 };
   /* 偽隨機保底（craft.js 的 prdRoll）：★、追憶、聖化石、腐化石各自連續沒中的次數 */
   s.prd = PRD0();
   return s;
@@ -196,7 +197,7 @@ function runNode(k, keep) {
   if (!SES || G.scene !== 'map') sesReset();
   S.world.cur = k;
   S.node = k;
-  S.card = wCard(S, k);
+  S.card = wCard(S);
   save();
   enterMap(lvT(wLv(q, r)), keep && G.scene === 'map' && G.node === k);
   return true;
@@ -214,32 +215,36 @@ const SES0 = () => ({
   gold: 0,
   deaths: 0,
   xp: 0,
-  soul: 0
+  soul: 0,
+  /* 每 10 秒一筆 [時間, 累計靈魂]，留 5 分鐘（craft.js 的 soulRate） */
+  sm: []
 });
 const sesReset = () => (SES = SES0());
-/* 王倒下之後會不會往下推（0.4.9 王倒下的卡、HUD 都照這個寫）：推進設定 auto、沒有被退回、下一個節點開了 */
-const pushNext = k => {
-  const nx = k && wNext(k);
-  return S.push !== 'stay' && !S.world.hold && nx && !wWhy(S, ...wXY(nx)) ? nx : null;
-};
-/* 這一輪結束（王倒下 2 秒後，或死了重來）：場上沒撿的照樣收進倉庫，再決定下一輪去哪：
-   推進設定 S.push 是 auto、沒有被退回（S.world.hold）、下一個節點開了 → 往下推；不然留在這裡 */
+/* 靈魂速率的取樣（craft.js 的 soulRate）：每 10 秒一筆、留最近 5 分鐘 */
+function sesSample() {
+  if (!SES) return;
+  const t = Date.now(),
+    L = SES.sm;
+  if (L.length && t - L[L.length - 1][0] < 10e3) return;
+  L.push([t, SES.soul]);
+  while (L.length > 2 && t - L[0][0] > 300e3) L.shift();
+}
+/* 這一輪結束（王倒下 2 秒後，或死了重來）：場上沒撿的照樣收進倉庫，同一個地點再刷一輪（0.5.1 起推進＝升瞭望台，打倒王不推進） */
 function roundEnd() {
   for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full && dropFlt(d).act !== 'hide')) pickup(d);
   if (G.arena) return S.world.cur ? runNode(S.world.cur) : enterHideout();
   const k = G.node;
   /* 裂口打完（0.4.2）：回到進裂口之前在刷的節點 */
   if (G.zod) return runNode(wBack(k));
-  const nx = pushNext(k);
-  if (nx) hudWarn(`往下推：${wName(S, ...wXY(nx))}`);
-  runNode(nx || k, !nx);
+  runNode(k, true);
 }
 /* ---------- 離線結算（0.4.1，企劃書 2.2）：分頁切走、手機鎖螢幕、關掉時主迴圈不跑；回來時照最近 10 輪真實的秒數與死亡率估算打了幾輪 ----------
    S.rounds＝最近 10 輪 { d 秒數, die, xp, gold, nS, nE }；離開超過 OFF_MIN 才算，上限 OFF_MAX；停在目前的節點（不往下推、不退回）；
    每一輪走真的掉落函式（roundLoot），過濾器照樣作用（隱藏的不撿、賣掉的換金幣），倉庫滿了照樣換金幣。
    shortcut: 地圖詞的數量／稀有度不算（每輪的詞是隨機的），要更準就記最近 10 輪的 qty／rar 平均 */
-const OFF_MIN = 5 * 60e3,
-  OFF_MAX = 8 * 3600e3;
+const OFF_MIN = 5 * 60e3;
+/* 離線上限照倉房（campN('off')：1／4／8／12 小時） */
+const offMax = () => campN('off') * 3600e3;
 function roundRec(r) {
   (S.rounds = S.rounds || []).push(r);
   if (S.rounds.length > 10) S.rounds.shift();
@@ -252,11 +257,10 @@ function offSettle(away) {
   const avg = R.reduce((a, r) => a + r.d, 0) / R.length,
     die = 1 - ok.length / R.length,
     mean = f => ok.reduce((a, r) => a + (r[f] || 0), 0) / ok.length,
-    n = Math.floor(Math.min(away, OFF_MAX) / 1000 / Math.max(5, avg)),
+    n = Math.floor(Math.min(away, offMax()) / 1000 / Math.max(5, avg)),
     t = lvT(wLv(...wXY(k))),
-    star = wStar(S, k),
+    star = wStar(S),
     M0 = { ...MAT() },
-    mats0 = { ...MATSOF() },
     g0 = S.gold,
     lv0 = S.lv;
   let won = 0;
@@ -274,12 +278,9 @@ function offSettle(away) {
   ST = stats();
   save();
   return {
-    away: Math.min(away, OFF_MAX),
+    away: Math.min(away, offMax()),
     n,
     won,
-    mats: Object.keys(MATSOF())
-      .filter(k => MATSOF()[k] > (mats0[k] || 0))
-      .map(k => [k, MATSOF()[k] - (mats0[k] || 0)]),
     soul: MAT().soul - M0.soul,
     cur: Object.keys(CUR)
       .filter(c => MAT()[c] > (M0[c] || 0))
@@ -288,22 +289,32 @@ function offSettle(away) {
     lv: S.lv - lv0
   };
 }
-/* 回來時的摘要（0.5.0 起沒有裝備，只列材料、靈魂、金、通貨） */
-function offShow(o) {
-  if (!o) return;
-  const h = Math.floor(o.away / 3600e3),
-    m = Math.floor((o.away % 3600e3) / 60e3);
+/* 離開的時候產生器照產（0.5.1，3.7）：上限照倉房；回產了多少 { 材料鍵: n } */
+const offGen = away => genTick(Math.min(away, offMax()) / 1000);
+/* 回來時的摘要（0.5.1，工坊與解鎖表第 3 節）：一張卡三行——戰鬥（o，沒在刷是 null）、產生器（g）、現在可以升級＋「全部升級」（只買產生器） */
+function offShow(o, g, away) {
+  const gs = Object.entries(g || {});
+  if (!o && !gs.length) return;
+  const t = o ? o.away : Math.min(away || 0, offMax()),
+    h = Math.floor(t / 3600e3),
+    m = Math.floor((t % 3600e3) / 60e3),
+    up = GEN_K.filter(k => genOn(k) && genAfford(k) > 0).map(k => `${GEN[k].n} ×${genAfford(k)} 級`),
+    ub = Object.keys(CAMP).filter(b => {
+      const c = campUpCheck(b);
+      return !c.why && !c.lack.length;
+    });
   revealOpen([], {
     title: '離開的時候',
-    head: `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `（倒下 ${o.n - o.won} 輪）` : ''}</p>
-      <p>${o.mats.map(([k, v]) => `${esc(matName(...matOf(k)))} <b>+${v}</b>`).join(' · ') || '沒有材料'} · 靈魂 <b>+${fmtN(o.soul)}</b> · 金幣 <b class="c-gold">+${fmtN(o.gold)}</b>${o.lv ? ` · 升了 <b>${o.lv}</b> 級` : ''}</p>
-      ${o.cur.length ? `<p class="sumc">${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}</div>`
+    head: `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>${o ? `，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `（倒下 ${o.n - o.won} 輪）` : ''}` : ''}</p>
+      ${o ? `<p>戰鬥：靈魂 <b>+${fmtN(o.soul)}</b> · 金幣 <b class="c-gold">+${fmtN(o.gold)}</b>${o.lv ? ` · 升了 <b>${o.lv}</b> 級` : ''}${o.cur.length ? ` · ${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}` : ''}</p>` : ''}
+      ${gs.length ? `<p>營地：${gs.map(([k, v]) => `${esc(matName(...matOf(k)))} <b>+${fmtN(v)}</b>`).join(' · ')}</p>` : ''}
+      ${up.length || ub.length ? `<p class="sumc">現在可以升級：${esc([...up, ...ub.map(b => `${CAMPN[b]} Lv ${S.camp[b] + 1}`)].join('、'))}</p>${up.length ? '<button class="btn pri" data-a="genall">全部升級（只買產生器）</button>' : ''}` : ''}</div>`
   });
 }
 /* 退回去哪：裂口回到進來之前在刷的節點，其他照 wPrev */
 const wBack = k =>
   wType(S, ...wXY(k)) === 'rift' && S.world.back && !wWhy(S, ...wXY(S.world.back)) ? S.world.back : wPrev(k);
-/* 死了（0.4.0）：原地復活、這一輪重來；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（等玩家按「再推一次」） */
+/* 死了（0.4.0）：原地復活、這一輪重來；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（玩家自己從地點清單再去） */
 const DEAD_MAX = 3;
 function deadAgain() {
   const k = G.node;
@@ -315,9 +326,8 @@ function deadAgain() {
   if (S.army) delete S.army[k];
   if (S.world.dn < DEAD_MAX || !wBack(k)) return runNode(k, true);
   const pv = wBack(k);
-  S.world.hold = 1;
   S.world.dn = 0;
-  S.world.note = `在${wName(S, ...wXY(k))}連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}`;
+  S.world.note = `在${wName(S, ...wXY(k))}連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}：換裝、降星級或升營地再回去`;
   hudWarn(S.world.note);
   runNode(pv);
 }
@@ -400,7 +410,7 @@ function enterMap(t, keep) {
   G.round = was ? was.round + 1 : 1;
   G.nextT = 0;
   /* 這一輪的統計（0.4.1 離線結算用）：經驗、金幣、小怪與菁英數 */
-  G.rs = { xp: 0, gold: 0, nS: 0, nE: 0, items: [], sold: 0, log: [], mat: {} };
+  G.rs = { xp: 0, gold: 0, nS: 0, nE: 0, items: [], sold: 0, log: [] };
   G.scene = 'map';
   G.mapT = t;
   /* 節點：血霧扣 25%、這一批卡用掉了（失敗回來也是新的一批）；裂口的王帶 1 條墮落詞 */
@@ -991,10 +1001,6 @@ function killMob(m) {
     zod: !!G.zod
   };
   const mat = killMat(m, t, od);
-  if (G.rs && mat.mat) {
-    const mk = matKey(mat.mat[0], mat.mat[1]);
-    G.rs.mat[mk] = (G.rs.mat[mk] || 0) + mat.mat[2];
-  }
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   [
     ...mat,
@@ -1048,7 +1054,6 @@ function bossDown(m) {
     gold: G.rs.gold,
     sold: G.rs.sold,
     log: G.rs.log.slice(),
-    mat: { ...G.rs.mat },
     node: G.node
   };
   if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
@@ -2115,6 +2120,8 @@ function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
   last = now;
+  /* 營地的產生器（0.5.1）：照真實時間產，世界地圖、開場、面板開著都算 */
+  if (S) genTick(rdt), sesSample();
   if (IV.on) return introFrame(rdt);
   if (PANEL.device) return wmFrame(now, rdt);
   if (G.hs > 0) {

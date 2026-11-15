@@ -290,19 +290,24 @@ function wDone(s) {
   return D;
 }
 const wOpen = s => s.world.stage > STORY_END;
-/* 主幹開到第幾個：打倒過王的最後一個＋1 */
-function wFront(s) {
+/* 主幹開到第幾個（0.4.0～0.5.0 的算法）：打倒過王的最後一個＋1；0.5.1 只剩舊存檔換算與沒有營地的工具用 */
+function wFrontDone(s) {
   const D = wDone(s);
   let i = 0;
   while (i < TRUNK.length - 1 && D.has(TRUNK_K[i])) i++;
   return i;
 }
-/* 不能進的原因，能進回傳空字串（0.4.0：打過的可以一直重複刷） */
+/* 主幹開到第幾個（0.5.1，工坊與解鎖表 3.2）：瞭望台 Lv n 開到第 n＋1 個 */
+const wFront = s => (s.camp ? Math.min(s.camp.watch || 0, TRUNK.length - 1) : wFrontDone(s));
+/* 賽制節點要瞭望台開到哪一級（CAMP.watch 第 22～26 級的 line:*） */
+const W_LINE = { ghost: 'line:ghost', dream: 'line:dream', fiend: 'line:fiend', army: 'line:army', rift: 'line:rift' };
+const lineLv = t => TRUNK.length + Object.keys(W_LINE).indexOf(t);
+/* 不能進的原因，能進回傳空字串（0.5.1：推進＝升瞭望台，打倒王不推進） */
 function wWhy(s, q, r) {
   const n = WNODE[wKey(q, r)];
   if (!n) return '沒有這個地點';
-  if (n.i != null) return n.i <= wFront(s) ? '' : '先打倒前一個地點的王';
-  if (!wDone(s).has(TRUNK_K[n.at])) return `先打倒${TRUNK[n.at].n}的王`;
+  if (n.i != null) return n.i <= wFront(s) ? '' : `瞭望台 Lv ${n.i} 才開`;
+  if (s.camp ? (s.camp.watch || 0) < lineLv(n.t) : !wDone(s).has(TRUNK_K[n.at])) return `瞭望台 Lv ${lineLv(n.t)} 才開`;
   if (s.lv < n.need) return `角色等級需達 ${n.need}`;
   if (n.lock) return '還沒開放';
   if (n.t === 'rift' && !((s.frags || {}).mist >= 1)) return '需要血霧之印：血霧滿了換 1 張';
@@ -323,10 +328,34 @@ const wPrev = k => {
   const n = WNODE[k];
   return !n ? null : n.i == null ? TRUNK_K[n.at] : n.i > 0 ? TRUNK_K[n.i - 1] : null;
 };
-/* 這一輪的地圖詞：劇情區固定，其他照選的星級每輪重抽（0.4.0，企劃書 4.1） */
-const wStar = (s, k) => (STORY_I[k] != null ? STORY[STORY_I[k]].card.star : (s.world.star || {})[k] || 1);
-const wCard = (s, k) => (STORY_I[k] != null ? STORY[STORY_I[k]].card : rollCard(wStar(s, k)));
+/* 這一輪的地圖詞（0.5.1）：星級是全域一個 S.star（斥候營開上限），每輪照星級重抽；劇情區不再固定 */
+const wStar = s => Math.max(1, Math.min(s.star || 1, typeof campN === 'function' && s === S ? campN('star') : 5));
+const wCard = s => rollCard(wStar(s));
 
+/* ---------- 瞭望台的表（3.2）：第 n 級（開第 n＋1 個主幹地點）＝靈魂：現在最深那個地點每分鐘的靈魂 × 10、木 50n、鐵 10n（階＝那時候的上限）；
+   每分鐘的靈魂＝W_SPM（0.5.1 實測約 110）× 怪物等級對靈魂的倍率（craft.js 的 killMat：1＋0.2(lvT−1)）。
+   第 22～26 級是五條賽制，靈魂照第 21 級 ×1.5 一級 ⚠️ ---------- */
+const W_SPM = 110 /* 0.5.1 新存檔實掛 30 分鐘：第 2～5 個地點每分鐘約 110（含分解的靈魂；0.5.0 量的是 70） */,
+  W_MIN = 5; /* ⚠️ 自己定的：文件寫刷 10 分鐘，實測第一小時的靈魂只夠一半，改成 5 分鐘 */
+const wSoulMin = lv => W_SPM * (1 + 0.2 * (lvT(lv) - 1));
+{
+  const rows = TRUNK.slice(0, -1).map((T, i) => ({
+    soul: Math.round((wSoulMin(T.lv) * W_MIN) / 10) * 10,
+    wood: 50 * (i + 1),
+    mats: { [`iron:${matTier(T.lv)}`]: 10 * (i + 1) },
+    d: `第 ${i + 2} 個地點：${TRUNK[i + 1].n}（怪物 Lv ${TRUNK[i + 1].lv}）`
+  }));
+  const top = rows[rows.length - 1];
+  CAMP.watch = [
+    ...rows,
+    ...CAMP.watch.map((r, k) => ({
+      soul: Math.round((top.soul * 1.5 ** (k + 1)) / 100) * 100,
+      wood: 50 * (rows.length + k + 1),
+      mats: { 'iron:6': 10 * (rows.length + k + 1) },
+      ...r
+    }))
+  ];
+}
 /* ---------- 血霧（0.4.2）：走過血霧山道之後，任何節點每打完一輪 +5%＋星級%（5★ 多 5%）；滿了換 1 張血霧之印、歸零重新累積 ---------- */
 const HUNT = { gain: 5 };
 function huntGain(s, star) {
