@@ -341,10 +341,12 @@ function skTodo() {
       go: `one:${best.i}`
     });
   L.sort((a, b) => b.d - a.d);
-  const free = S.skills.findIndex(r => !r.k);
+  /* 祭壇開了的格才算（0.5.4：新存檔只開 1 格，沒開的格不算「可以變強」，考核 F3） */
+  const open = r => S.skills.indexOf(r) < campN('slots'),
+    free = S.skills.findIndex(r => !r.k && open(r));
   if (free >= 0)
     L.push({
-      t: `還有 ${S.skills.filter(r => !r.k).length} 格沒放技能`,
+      t: `還有 ${S.skills.filter(r => !r.k && open(r)).length} 格沒放技能`,
       s: '挑一招',
       up: '',
       ic: null,
@@ -352,7 +354,7 @@ function skTodo() {
       go: `skills:${free}`
     });
   const left = ST.spirit - ST.spiritUsed;
-  if (Object.keys(AURAS).some(k => AURAS[k].sp <= left && !S.auras.some(x => x && x.k === k)))
+  if (campCan('aura') && Object.keys(AURAS).some(k => AURAS[k].sp <= left && !S.auras.some(x => x && x.k === k)))
     L.push({ t: '精魂還夠放光環', s: `剩 ${left} 精魂`, up: '', ic: null, d: 0, go: 'auras' });
   TODO = { st: ST, soul, L: L.slice(0, 3) };
   return TODO.L;

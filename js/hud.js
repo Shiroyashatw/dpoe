@@ -5,7 +5,7 @@ let IW = innerWidth,
   IH = innerHeight;
 let C = 36; /* 背包一格的大小（px）；手機照螢幕寬度調（main.js 的 resize） */
 const icHTML = (n, cls = '') => {
-  const u = artIconURL(n);
+  const u = ICONS[n] ? iconURL(n) : artIconURL(n);
   return u ? `<img class="ic ${cls}" src="${u}" alt="">` : `<span class="ic ${cls}"></span>`;
 };
 /* 圖還沒載好時，載好後補畫面板 */
@@ -407,7 +407,8 @@ const navDot = k =>
     ? ptLeft() > 0 || (S.asc ? ascLeft() > 0 : ascPoints(S) > 0)
     : k === 'craft'
       ? campReady() > 0
-      : k === 'skill' && skTodo().length > 0;
+      : /* 技能（0.5.4，考核 F3）：只在有東西可以插（空孔有會變強的輔助、開了的空技能格、放得下的光環）時亮；升級不算 */
+        k === 'skill' && skTodo().some(t => !t.go.startsWith('one:'));
 /* 點分頁：開那一頁；點亮著的那一頁＝收起來（「更多」底下的面板開著時點「更多」＝回到更多） */
 function navGo(t) {
   /* 天賦樹（0.4.7 起有自己的分頁）：蓋滿畫面、分頁列留著；再點一次收起來 */
@@ -524,36 +525,33 @@ function moreHTML() {
   </div>`;
 }
 /* 「地點」（0.5.2，工坊與解鎖表第 7 節）：取代世界地圖的唯一入口。上面是星級（全域，上限照斥候營），
-   底下一列一個節點、照區域分組：名字、怪物 Lv、材料的階、狀態（在刷、打過、鎖著寫「瞭望台 Lv n」）；賽制節點開了才列。點一列＝去那裡刷 */
+   底下一列一個節點、照區域分組；0.5.4（考核 B1～B4）只列開了的＋下一個（「升瞭望台 Lv n 就開」），其餘折成一行「還有 N 個地點」；
+   每列寫怪物 Lv 與這個地點刷過的靈魂／分（S.spm，刷過才有）、正在刷的那一列。點一列＝去那裡刷 */
 function nodeHTML() {
-  const D = wDone(S),
-    st0 = wStar(S),
+  const st0 = wStar(S),
+    spm = S.spm || {},
     open = k => {
       const n = WNODE[k];
       return n.i != null || campCan(W_LINE[n.t] || '');
-    };
+    },
+    all = wList(S).filter(open),
+    nx = TRUNK_K[wFront(S) + 1],
+    show = all.filter(k => k === nx || !wWhy(S, ...wXY(k)));
   let g = '';
-  const rows = wList(S)
-    .filter(open)
+  const rows = show
     .map(k => {
       const [q, r] = wXY(k),
-        why = wWhy(S, q, r),
+        lock = k === nx,
         n = WNODE[k],
         head = n.g !== g ? `<li class="ndg">${esc((g = n.g))}</li>` : '',
-        st =
-          S.world.cur === k
-            ? '<em class="c-gold">正在刷</em>'
-            : why
-              ? `<em class="c-dim">${esc(why)}</em>`
-              : D.has(k)
-                ? '<em class="c-dim">打過</em>'
-                : '<em class="c-good">還沒打</em>';
-      return `${head}<li class="${why ? 'lock' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" data-a="ngo:${k}" ${why ? 'aria-disabled="true"' : ''}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)} · 材料 T${matTier(wLv(q, r))}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}</small>${st}</button></li>`;
+        st = S.world.cur === k ? '<em class="c-gold">正在刷</em>' : lock ? `<em>升瞭望台 Lv ${n.i} 就開</em>` : '';
+      return `${head}<li class="${lock ? 'lock nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${lock ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${fmtN(spm[k])} 靈魂` : ''}</small>${st}</button></li>`;
     })
     .join('');
-  return `<div class="ph"><b>地點</b><span>瞭望台開到 ${Math.min(wFront(S) + 1, TRUNK.length)}／${TRUNK.length}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  const more = wList(S).length - show.length;
+  return `<div class="ph"><b>地點</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="bagf ndst" role="radiogroup" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => `<button class="chip ${st0 === i + 1 ? 'on' : ''}" role="radio" aria-checked="${st0 === i + 1}" data-a="nstar:${i + 1}">${i + 1}★</button>`).join('')}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條地圖詞・星越多越危險、掉得越好</span></div>
-  <ul class="ndl">${rows}</ul>`;
+  <ul class="ndl">${rows}</ul>${more > 0 ? `<p class="ndmore">還有 ${more} 個地點</p>` : ''}`;
 }
 /* 直立的「做裝」那一頁的分頁（0.5.0）：打造（材料 → 裝備、鍛造台的表）永遠在；通貨（點了就用）、鍛造台（填、淬鍊、災魘）要鍛造台 Lv1；碎片照瞭望台（campCan） */
 const CSEG = () =>
@@ -742,7 +740,11 @@ function hudPanels() {
     $('pset').innerHTML = setHTML();
   document.body.classList.toggle('pair', !!(PANEL.inv && (PANEL.stash || PANEL.skill || PANEL.craft)));
   document.body.classList.toggle('gxs', !!PANEL.skill);
-  $('pinv').hidden = !PANEL.inv;
+  /* 桌機的營地總覽（0.5.4，考核 A8）：面板放寬兩欄、右邊不開戰利品 */
+  const cw = !TOUCH.on && PANEL.craft && CRAFT.tab === 'camp';
+  $('pcraft').classList.toggle('cwide', cw);
+  if (cw) document.body.classList.remove('pair');
+  $('pinv').hidden = !PANEL.inv || cw;
   $('pstash').hidden = !PANEL.stash;
   $('pasc').hidden = !PANEL.asc;
   $('pbox').hidden = !PANEL.box;
@@ -776,7 +778,7 @@ function hudPanels() {
   } else HV.nsel = null;
   if (PANEL.skill) panelHTML($('pskill'), skillHTML());
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
-  if (PANEL.inv) panelHTML($('pinv'), invHTML());
+  if (PANEL.inv && !cw) panelHTML($('pinv'), invHTML());
   if (PANEL.stash) {
     const st = PANEL.stab === 'frags' ? 'frags' : 'cur';
     $('pstash').innerHTML =
@@ -1574,6 +1576,7 @@ function revealOpen(L = identifyAll(S), o = {}) {
     sel: null,
     title: o.title || '撿骨師的鑑定',
     head: o.head || '',
+    sum: o.sum ? 1 : 0,
     more: o.more || ''
   });
   PANEL.ident = true;
@@ -1610,12 +1613,13 @@ function revealHTML() {
       k < REV.i
         ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''} ${REV.craft && sel === it ? 'on' : ''} ${it.salv || (REV.craft && !S.inv.items.includes(it)) ? 'gone' : ''}" ${REV.craft && !it.salv && S.inv.items.includes(it) ? `role="button" tabindex="0" data-a="rvsel:${it.id}"` : ''}>${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.so ? ' · 孔 ' + '○'.repeat(it.so) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${it.salv ? ' · 已分解' : REV.craft && !S.inv.items.includes(it) ? ' · 換上了' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
         : `<div class="rvr un r${it.r} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">？？？</b><small>${esc(baseOf(it).n)} · T${itemT(it)}${it.frac ? ' · ★' : ''}${it.mem ? ' · ◈' : ''}</small></div></div>`;
-  return `<div class="ph"><b>${esc(REV.title)}</b><span>${Math.min(REV.i, n)}／${n} 件</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  ${REV.head}<div class="rvl ${sel ? 'sm' : ''}">${REV.list.map(row).join('')}</div>${REV.more ? `<p class="summ">${esc(REV.more)}</p>` : ''}
+  /* 沒有要翻的（離線卡，0.5.4 考核 E2）：不寫「0／0 件」；head 可以是函式（按了升級要重畫） */
+  return `<div class="ph"><b>${esc(REV.title)}</b>${n ? `<span>${Math.min(REV.i, n)}／${n} 件</span>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  ${typeof REV.head === 'function' ? REV.head() : REV.head}${n ? `<div class="rvl ${sel ? 'sm' : ''}">${REV.list.map(row).join('')}</div>` : ''}${REV.more ? `<p class="summ">${esc(REV.more)}</p>` : ''}
   ${
     sel
       ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button><button class="btn" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div></div>`
-      : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
+      : `<div class="rvf">${REV.done ? `<button class="btn ${REV.sum && campReady() ? '' : 'pri'}" data-a="close">收下</button>` : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
 /* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */
@@ -1769,16 +1773,28 @@ function idleHTML() {
   if (G.loot && performance.now() - G.loot.t < 30000) return lootHTML(G.loot);
   const ses = SES || SES0(),
     pct = Math.round((S.inv.items.length / INV_CAP) * 100),
-    nx = campNextThing(),
-    rd = campReady();
-  /* 0.5.1：材料改由營地產；一行寫營地現在買得起幾件、不然寫下一件事還要多久 */
-  return `<div class="paper">
-    <div class="k row2">本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪<span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
-    <div class="sum"><div><small>靈魂</small><b>${fmtN(ses.soul)}</b></div><div><small>打造</small><b>${ses.craft}</b></div><div><small>稀有</small><b>${ses.rare}</b></div><div><small>通貨</small><b>${ses.cur} 顆</b></div><div><small>金</small><b>+${fmtN(ses.gold)}</b></div><div><small>死亡</small><b>${ses.deaths}</b></div></div>
-    <div class="note"><span>${rd ? `<b class="c-good">營地：${rd} 件可以升級</b>` : nx ? `營地：${esc(nx.n)}・${etaTxt(nx.e)}` : '營地：都升滿了'}</span>${pct >= 80 ? `<span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span>` : ''}</div>
+    keys = ['wood', ...GEN_K.filter(k => k !== 'wood' && genOn(k)).map(k => matKey(k, genTier(k))), 'soul'];
+  /* 0.5.4（考核 C1、C2）：上面一行本次掛機；中間營地的資源條（跟營地頁同一個元件、一直在跑）；下面「下一件事」＋升級鈕，在戰鬥畫面下面就能按 */
+  return `<div class="paper idl">
+    <div class="k row2"><span>本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪${ses.cur ? `・通貨 ${ses.cur} 顆` : ''}${ses.deaths ? `・倒下 ${ses.deaths}` : ''}</span><span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
+    <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>
+    ${campNextHTML('inext')}
+    ${pct >= 80 ? `<p class="note"><span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span></p>` : ''}
   </div>`;
 }
-/* 王倒下的卡（0.4.9；0.5.1 起只有通貨與金：材料由營地的產生器產；推進＝升瞭望台，這裡只寫「再刷一輪」） */
+/* 營地現在買得起的（王倒下的卡、離線卡；考核 D2、E3）：一件一列（圖示、名字、給什麼、升級鈕），最多 n 件；pri＝第一件用主要鈕 */
+function campUpsHTML(n = 3, pri = true) {
+  const L = campThings().filter(t => t.e.m === 0);
+  return L.length
+    ? `<div class="cups">${L.slice(0, n)
+        .map(
+          (t, i) =>
+            `<div class="cup">${icHTML(CAMP_IC[t.k])}<span><b>${esc(t.n)}</b><small>${esc(t.d)}</small></span><button class="btn ${pri && !i ? 'pri' : ''}" data-fg="${GEN[t.k] ? `gen:${t.k}:1` : `camp:${t.k}`}">升級<small>${esc(costTxt(t.c))}</small></button></div>`
+        )
+        .join('')}${L.length > n ? `<p class="sub">還有 ${L.length - n} 件買得起：到營地看</p>` : ''}</div>`
+    : '';
+}
+/* 王倒下的卡（0.4.9；0.5.1 起只有通貨與金：材料由營地的產生器產；0.5.4：教學句只講第一次（S.hint.boss），下半列營地買得起的＋鈕；都買不起就寫下一件事） */
 function lootHTML(L) {
   const cur = {},
     curIc = n => CUR[Object.keys(CUR).find(k => CUR[k].n === n)] || {};
@@ -1790,9 +1806,9 @@ function lootHTML(L) {
     )
     .join('');
   return `<div class="row2 sub lh"><span>這一輪掉的</span><b>+${fmtN(L.gold)} 金</b></div>
-  <div class="rows">${rows || '<p class="sub bagno">沒有通貨</p>'}</div>
-  <p class="sub">這裡再刷一輪（不用按）；要去更難的地方先升瞭望台</p>
-  <div class="acts"><button class="btn" data-a="gomake">去營地</button></div>`;
+  ${rows ? `<div class="rows">${rows}</div>` : ''}
+  ${L.hint ? '<p class="sub">王倒下會在這裡再刷一輪，不用按；升瞭望台就開新的地點</p>' : ''}
+  ${campUpsHTML(3) || campNextHTML('lnext')}`;
 }
 /* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、藏身處的「繼續刷」 */
 function runBar() {
@@ -2393,7 +2409,7 @@ function act(a, el) {
     const k = a.slice(5);
     PANEL.ctab = k;
     sfx('click');
-    if (k === 'make' || k === 'camp') (CRAFT.tab = k), (CAMPUI.ord = null), openPanel('craft');
+    if (k === 'make' || k === 'camp') (CRAFT.tab = k), openPanel('craft');
     else if (k === 'forge') {
       if (CRAFT.tab === 'make') CRAFT.tab = 'forge';
       if (!craftItem() && S.curIt) CRAFT.sel = { src: 'cur', id: S.curIt.id, eqk: 'cur' };

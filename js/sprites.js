@@ -1,10 +1,153 @@
 /* dungeonPOE · 圖片：PNG 大圖（頭像、怪物、道具圖示）、8×8 備用星星、程式像素圖（藥劑） */
 'use strict';
 /* 8×8 備用圖示：PNG 圖示還沒載好或沒有時顯示 */
+/* 0.5.4：營地的手畫 16×16（木、靈絲、林場、礦場、絲地、民房、倉房）與工位的人影 8×8；ART 裡挑不到的才畫這裡（icHTML 先找這裡） */
 const ICONS = {
-  star: ['...yy...', '...yy...', 'yyyyyyyy', '.yyyyyy.', '..yyyy..', '.yy..yy.', 'yy....yy', '........']
+  star: ['...yy...', '...yy...', 'yyyyyyyy', '.yyyyyy.', '..yyyy..', '.yy..yy.', 'yy....yy', '........'],
+  i_log: [
+    '................',
+    '................',
+    '................',
+    '....kkkkkkkk....',
+    '...kbbbbbbbbkkk.',
+    '..kbdbbbbbbklllk',
+    '..kbbbbddbbkldlk',
+    '..kbbbbbbbbkldlk',
+    '..kbbdbbbbbkldlk',
+    '..kbbbbbbdbklllk',
+    '...kbbbbbbbbkkk.',
+    '....kkkkkkkk....',
+    '................',
+    '................',
+    '................',
+    '................'
+  ],
+  i_spool: [
+    '................',
+    '................',
+    '...kkkkkkkkkk...',
+    '...kllllllllk...',
+    '...kkkkkkkkkk...',
+    '.....kcpcpck....',
+    '.....kpcpcpkc...',
+    '.....kcpcpck.c..',
+    '.....kpcpcpk.c..',
+    '.....kcpcpck..c.',
+    '.....kpcpcpk..c.',
+    '...kkkkkkkkkk...',
+    '...kllllllllk...',
+    '...kkkkkkkkkk...',
+    '................',
+    '................'
+  ],
+  i_tree: [
+    '.......kk.......',
+    '......kGGk......',
+    '.....kGgGGk.....',
+    '....kGGgGGGk....',
+    '.....kGGGgk.....',
+    '....kGgGGGGk....',
+    '...kGGGGgGGGk...',
+    '....kGGgGGGk....',
+    '...kGgGGGGgGk...',
+    '..kGGGGGgGGGGk..',
+    '..kkkkkkkkkkkk..',
+    '.......kbk......',
+    '.......kbk......',
+    '.....kkkbkkk....',
+    '................',
+    '................'
+  ],
+  i_ore: [
+    '................',
+    '................',
+    '................',
+    '......kkkk......',
+    '....kkSSSSkk....',
+    '...kSSsSSSSSk...',
+    '..kSSswsSSoSSk..',
+    '..kSSSsSSooSSk..',
+    '.kSSoSSSSSSsSSk.',
+    '.kSooSSSsSSswSk.',
+    '.kSSSSSSSSSSSSk.',
+    '..kkkkkkkkkkkk..',
+    '................',
+    '................',
+    '................',
+    '................'
+  ],
+  i_cocoon: [
+    '................',
+    '................',
+    '...g.......gg...',
+    '..ggg.....gg....',
+    '..dbbbbbbbbbbbbd',
+    '....c....c....c.',
+    '....p....p....p.',
+    '...ppp..ppp..ppp',
+    '...pcp..pcp..pcp',
+    '...ppp..ppp..ppp',
+    '...ppp..ppp...p.',
+    '....p...ppp.....',
+    '.........p......',
+    '................',
+    '................',
+    '................'
+  ],
+  i_house: [
+    '................',
+    '.......kk.......',
+    '......krrk......',
+    '.....krrrrk.....',
+    '....krrrrrrk....',
+    '...krrrrrrrrk...',
+    '..krrrrrrrrrrk..',
+    '.kkkkkkkkkkkkkk.',
+    '..kllllllllllk..',
+    '..klkkklllyylk..',
+    '..klkdklllyylk..',
+    '..klkdkllllllk..',
+    '..klkdkllllllk..',
+    '..kkkkkkkkkkkk..',
+    '................',
+    '................'
+  ],
+  i_crate: [
+    '................',
+    '................',
+    '..kkkkkkkkkkkk..',
+    '..kbbbbbbbbbbk..',
+    '..kbdlllllllbk..',
+    '..kbldllllllbk..',
+    '..kblldlllllbk..',
+    '..kbbbbbbbbbbk..',
+    '..kblllldlllbk..',
+    '..kbllllldllbk..',
+    '..kblllllldlbk..',
+    '..kbbbbbbbbbbk..',
+    '..kkkkkkkkkkkk..',
+    '................',
+    '................',
+    '................'
+  ],
+  i_man: ['...ww...', '...ww...', '..wwww..', '.w.ww.w.', '...ww...', '..w..w..', '..w..w..', '........']
 };
-const ICOPAL = { w: '#e8e6e0', k: '#3a3340', b: '#9a6a3a', y: '#ffd166', r: '#e5484d', c: '#8fe0ff', g: '#7bd36b' };
+const ICOPAL = {
+  w: '#e8e6e0',
+  k: '#2a1d16',
+  b: '#9a6a3a',
+  d: '#5e3c24',
+  l: '#c99a62',
+  y: '#ffd166',
+  r: '#a5452f',
+  c: '#8fe0ff',
+  g: '#7bd36b',
+  G: '#3f7a3a',
+  S: '#5e5850',
+  s: '#958c80',
+  o: '#c8743a',
+  p: '#ece6f6'
+};
 const SPC = new Map();
 /* ---------- PNG 像素圖（art/ → js/art.js，圖名 a_檔名） ---------- */
 /* 圖拼在幾張大圖裡（ART_SHEET，ART 是每張圖在大圖裡的位置），用到才載入那張大圖 */
@@ -74,8 +217,7 @@ const ICC = new Map();
 function iconURL(n) {
   if (ICC.has(n)) return ICC.get(n);
   const c = document.createElement('canvas');
-  c.width = 8;
-  c.height = 8;
+  c.width = c.height = (ICONS[n] || ICONS.star).length;
   paintIcon(c, n);
   const u = c.toDataURL();
   ICC.set(n, u);
@@ -84,10 +226,11 @@ function iconURL(n) {
 function paintIcon(c, n) {
   /* 0.3.29：圖示名稱打錯或還沒定義時改畫星星，不要讓整個面板當掉 */
   const x = c.getContext('2d'),
-    r = ICONS[n] || ICONS.star;
-  x.clearRect(0, 0, 8, 8);
-  for (let j = 0; j < 8; j++)
-    for (let i = 0; i < 8; i++) {
+    r = ICONS[n] || ICONS.star,
+    N = r.length;
+  x.clearRect(0, 0, N, N);
+  for (let j = 0; j < N; j++)
+    for (let i = 0; i < N; i++) {
       const ch = r[j][i];
       if (ch === '.') continue;
       x.fillStyle = ICOPAL[ch];

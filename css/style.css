@@ -1865,10 +1865,10 @@ body.touch .sk-chips button { min-height: 44px; }
 :root {
   --bg: #0b0806; --s0: #1f1915; --s1: #26201b; --s2: #332a23; --s3: #3a3027; --stone: var(--s1); --panel: var(--s1);
   --fr-o: #4a3e2c; --fr: #5e4e3a; --fr-hi: #a08f78; --line: #4a3e2c;
-  --title: #d9cdb4; --tx: #d9cdb4; --dim: #a08f78; --lock: #8a7a62; --gold: #f1ebdc;
+  --title: #d9cdb4; --tx: #d9cdb4; --dim: #a6957e; --lock: #8a7a62; --gold: #f1ebdc;
   --act: #8f3a2b; --act-hi: #a5452f; --sel: #e6d9bd; --sel-ink: #2a1a12;
   --r0: #d9cdb4; --r1: #7ea7ff; --r2: #ffcf5c; --r3: #52d6c3; --good: #7fc95a; --bad: #e0553f; --warn: #e0614a;
-  --fr-c: #f1ebdc; --mm: #c79bff; --co: #e0614a; --paper: #e6d9bd; --ink: #2a1a12; --milk: #d9cdb4; --milk2: #a08f78;
+  --fr-c: #f1ebdc; --mm: #c79bff; --co: #e0614a; --paper: #e6d9bd; --ink: #2a1a12; --milk: #d9cdb4; --milk2: #a6957e;
 }
 body { background: var(--bg); }
 .fr { color: var(--fr-c); } .mm { color: var(--mm); } .co { color: var(--co); }
@@ -2169,37 +2169,100 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 .rvsel { position: sticky; bottom: 0; flex-direction: column; align-items: stretch; gap: 8px; background: var(--panel); padding-top: 6px; }
 .rvsel .cmpc { max-height: 30vh; overflow: auto; }
 .acts .btn small { display: block; font-size: 11px; font-weight: 400; color: var(--milk2); }
-/* 營地總覽（0.5.1，工坊與解鎖表第 3 節）：庫存＋速率一行、下一件事一行、設施卡片 */
-.cmtop { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--fs-s); color: var(--milk2); }
-.cmtop b { font-variant-numeric: tabular-nums; color: var(--milk); margin-left: 4px; }
-.cmtop small { margin-left: 4px; color: var(--good); }
-.cmnext { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--s2); border-radius: 3px; }
-.cmnext > span { flex: 1; font-size: var(--fs); color: var(--milk2); }
-.cmnext small { display: block; font-size: var(--fs-s); color: var(--dim); }
-.cmnext .btn { min-height: 44px; min-width: 64px; }
-.cmmul .chip { min-height: 44px; min-width: 56px; }
+/* 營地總覽（0.5.1，工坊與解鎖表第 3 節；0.5.4 考核 12-C：資源條、人影、兩種條、固定順序、上面兩行黏住，docs/介面規範.md 第 3 節） */
+.fcamp { gap: 10px; }
+.fcamp .btn.pri, #pidle .cmnext .btn.pri, .cups .btn.pri, .sumh .btn.pri { font-size: var(--fs); }
+.fcamp .btn small, .cmnext .btn small, .cup .btn small { font-size: var(--fs-s); color: inherit; }
+.cmhead { position: sticky; top: calc(-1 * var(--pp)); z-index: 3; display: flex; flex-direction: column; gap: 8px; margin: 0 calc(-1 * var(--pp)); padding: 4px var(--pp) 10px; background: var(--s1); box-shadow: 0 8px 8px -8px rgba(0, 0, 0, 0.7); }
+/* 資源條 genBarHTML：圖示、名字、庫存、速率一行，下面一條「這一單位的進度」 */
+.cmtop { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
+.rbar { display: grid; grid-template-columns: 20px auto 1fr auto; align-items: center; column-gap: 6px; row-gap: 3px; min-width: 0; }
+.rbar .ic { width: 20px; height: 20px; }
+.rbar .rn { font-size: var(--fs-s); color: var(--milk2); white-space: nowrap; }
+.rbar b { justify-self: start; display: inline-block; transform-origin: left center; font: 700 var(--fs)/1.2 var(--font); color: var(--milk); font-variant-numeric: tabular-nums; }
+.rbar small { font-size: var(--fs-s); color: var(--good); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rbar .rt { grid-column: 1 / -1; }
+.rbar.st { grid-template-columns: 20px auto 1fr; }
+.rt { position: relative; display: block; height: 4px; background: var(--s0); border-radius: 2px; overflow: hidden; }
+.rt > i { position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0); background: var(--milk2); border-radius: 2px; will-change: transform; }
+/* 速率 ≥240／分：條不再一格一格跑，改成流動的常亮條（AdCap 的做法） */
+.rt.flow > i, .rbar.flow .rt > i { transform: none !important; background: var(--milk2); overflow: hidden; }
+.rt.flow > i::after, .rbar.flow .rt > i::after { content: ''; position: absolute; inset: 0 0 0 -24px; background: repeating-linear-gradient(90deg, transparent 0 14px, rgba(241, 235, 220, 0.55) 14px 24px); animation: rbflow 0.45s linear infinite; }
+@keyframes rbflow { to { transform: translateX(24px); } }
+/* 下一件事：買得起左邊金邊＋主要鈕（寫費用）；還買不起寫還要多久 */
+.cmnext { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--s2); border-left: 3px solid transparent; border-radius: 3px; }
+.cmnext.can { border-left-color: #e6c36a; }
+.cmnext > .ic { flex: none; width: 24px; height: 24px; }
+.cmnext > span { flex: 1; min-width: 0; font-size: var(--fs); color: var(--milk2); }
+.cmnext > span b { display: block; color: var(--milk); }
+.cmnext small { display: block; font-size: var(--fs-s); color: var(--milk2); }
+.cmnext small.d { color: var(--milk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmnext .btn { flex: none; max-width: 46%; min-height: 48px; min-width: 88px; padding: 4px 10px; }
+/* 一組的標題列：產生器那一組右邊是 ×1／×10／最大 */
+.cmgrp { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; font: 700 var(--fs-s) var(--font); letter-spacing: 1px; color: var(--milk2); }
+.cmgrp .cmmul { flex-wrap: nowrap; gap: 6px; }
+.cmmul .chip { min-height: 44px; min-width: 52px; font-size: var(--fs); }
 .cmcards { display: flex; flex-direction: column; gap: 8px; }
-.cc .cch { display: flex; align-items: baseline; gap: 8px; width: 100%; min-height: 32px; padding: 0; background: none; border: 0; color: var(--milk2); font: inherit; text-align: left; cursor: pointer; }
-.cc .cch b { font: 700 var(--fs) var(--font); color: var(--title); }
-.cc .cch .cct { margin-left: auto; font-size: var(--fs-s); }
-.ccbig { position: relative; font: 900 22px/1.15 var(--serif); color: var(--milk); font-variant-numeric: tabular-nums; }
-.ccbig small { margin-left: 6px; font: 400 var(--fs-s) var(--font); color: var(--dim); }
-.ccbig.sm { font-size: 17px; }
-.ccbar { position: relative; height: 18px; background: var(--s2); border-radius: 3px; overflow: hidden; }
-.ccbar i { position: absolute; inset: 0 auto 0 0; background: rgba(123, 211, 107, 0.28); }
-.ccbar span { position: relative; display: block; padding: 0 8px; font: 400 11px/18px var(--font); color: var(--milk2); }
-.cchint { margin: 0; font-size: var(--fs-s); color: var(--warn); }
-.ccms { margin-left: 8px; padding: 1px 6px; border: 1px solid var(--gold); border-radius: 3px; font: 700 11px var(--font); font-style: normal; color: var(--gold); }
+.cc { border-left: 3px solid transparent; }
+.cc.can { border-left-color: #e6c36a; }
+.cc .cch { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 0; background: none; border: 0; color: var(--milk2); font: inherit; text-align: left; cursor: pointer; }
+.cc .cch .ic { flex: none; width: 24px; height: 24px; }
+.cc .cch b { font: 700 var(--fs) var(--font); color: var(--milk); }
+.cc .cch span { font-size: var(--fs-s); }
+/* 工位人影：在職亮、空的暗；剛補上的那一個跳一下 */
+.wk { display: flex; gap: 3px; margin-left: auto; }
+.wk img { width: 16px; height: 16px; image-rendering: pixelated; opacity: 0.22; }
+.wk img.on { opacity: 1; }
+.wk img.new { animation: wknew 1.2s cubic-bezier(0.23, 1, 0.32, 1); }
+@keyframes wknew { 0% { transform: translateY(-6px) scale(1.5); filter: drop-shadow(0 0 4px #e6c36a); } 60% { filter: drop-shadow(0 0 4px #e6c36a); } }
+/* 里程碑：卡頭下面一條金色細條＋一行小字（到哪一級、給什麼；右邊總共產了多少） */
+.ccm { height: 3px; background: var(--s0); border-radius: 2px; overflow: hidden; }
+.ccm i { display: block; height: 100%; width: var(--m); background: #e6c36a; }
+.ccml { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-s); color: var(--milk2); }
+.ccbig { position: relative; display: flex; align-items: baseline; gap: 6px; font: 900 22px/1.15 var(--serif); color: var(--milk); font-variant-numeric: tabular-nums; }
+.ccbig small { font: 500 var(--fs-s) var(--font); color: var(--milk2); }
+.ccbig.sm { font: 700 var(--fs-l)/1.3 var(--font); }
+.cc .rtg { height: 6px; }
+.cchint { margin: 0; font-size: var(--fs-s); color: var(--milk2); }
+/* 材料湊齊幾成：還買不起的鈕，底色從左邊填（rbTick 寫 --f） */
+.cfill:disabled { opacity: 1; color: var(--milk); background: linear-gradient(90deg, rgba(160, 143, 120, 0.3) var(--f, 0%), transparent var(--f, 0%)); }
+.ccms { margin-left: 8px; padding: 1px 6px; border: 1px solid #e6c36a; border-radius: 3px; font: 700 var(--fs-s) var(--font); font-style: normal; color: inherit; }
 .ccopen { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
 .ccopen .row2 { display: flex; justify-content: space-between; align-items: center; }
 .ccopen .chip, .ccopen .btn { min-height: 44px; }
-.ccfl { display: inline-block; margin-left: 8px; font: 700 var(--fs) var(--font); font-style: normal; color: var(--good); white-space: nowrap; animation: ccfl 1.1s ease-out forwards; }
+.ccfl { display: inline-block; margin-left: 4px; font: 700 var(--fs) var(--font); font-style: normal; color: var(--good); white-space: nowrap; animation: ccfl 1.1s ease-out forwards; }
 .cc.up { animation: ccup 0.4s ease-out; }
 .cc.ms { animation: ccms 1.1s ease-out; }
 @keyframes ccfl { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-14px); } }
 @keyframes ccup { from { background: rgba(123, 211, 107, 0.18); } }
 @keyframes ccms { 0%, 60% { box-shadow: 0 0 0 2px #e6c36a; } }
-@media (prefers-reduced-motion: reduce) { .ccfl, .cc.up, .cc.ms { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .ccfl, .cc.up, .cc.ms, .wk img.new, .rt.flow > i::after, .rbar.flow .rt > i::after { animation: none; } }
+/* 桌機（考核 A8）：營地總覽放寬到 60%、≥1280 兩欄卡片，庫存列一排 */
+body:not(.touch) #pcraft.cwide { width: min(60vw, 1080px); }
+@media (min-width: 1280px) {
+  body:not(.touch) #pcraft.cwide .cmcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  body:not(.touch) #pcraft.cwide .cmtop { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+/* 營地買得起的一件一列（王倒下的卡、離線卡） */
+.cups { display: flex; flex-direction: column; gap: 6px; }
+.cup { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--s2); border-radius: 3px; }
+.cup > .ic { flex: none; width: 24px; height: 24px; }
+.cup > span { flex: 1; min-width: 0; }
+.cup b { display: block; font: 700 var(--fs) var(--font); color: var(--milk); }
+.cup small { display: block; font-size: var(--fs-s); color: var(--milk2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cup .btn { flex: none; max-width: 46%; min-height: 44px; min-width: 88px; padding: 4px 10px; }
+.cups > .sub { margin: 0; font-size: var(--fs-s); color: var(--milk2); }
+/* 掛機卡（0.5.4，考核 C1、C2）：一行本次掛機、資源條、下一件事 */
+.paper.idl { display: flex; flex-direction: column; gap: 10px; padding: 10px 14px 12px; }
+#pidle .idl .k.row2 { padding: 0; }
+.idl .cmnext { background: var(--s1); }
+/* 離線卡：賺到的每一項是資源條（不跑），買得起的一件一列，一顆「全部升級」 */
+.sumh { display: flex; flex-direction: column; gap: 10px; }
+.cmtop.off { padding: 4px 0; }
+.sumh .btn.wide { width: 100%; min-height: 48px; }
+/* 地點清單（0.5.4，考核 B1）：下一個（升瞭望台就開）、最後一行還有幾個地點 */
+.ndl li.nx .ndr em { color: var(--milk2); }
+.ndmore { margin: 10px 0 0; text-align: center; font-size: var(--fs-s); color: var(--milk2); }
 #pnav .dot.n, #dnav .dot.n { width: auto; min-width: 16px; height: 16px; padding: 0 4px; font: 700 10px/16px var(--font); font-style: normal; color: #111; text-align: center; border-radius: 8px; }
 /* 地點清單（0.5.2，唯一入口）：區域名分組、上面一排星級 */
 .ndl .ndg { padding: 10px 4px 2px; font: 700 var(--fs-s) var(--font); color: var(--dim); letter-spacing: 0.06em; }

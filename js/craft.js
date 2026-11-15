@@ -503,6 +503,8 @@ function genTick(dt) {
     const n = Math.floor(g.acc);
     if (n > 0) {
       g.acc -= n;
+      /* 這一座總共產了多少（0.5.4，卡片上的「總共產了 N」） */
+      g.tot = (g.tot || 0) + n;
       const key = matKey(k, genTier(k));
       matAdd(...matOf(key), n);
       got[key] = (got[key] || 0) + n;
@@ -521,13 +523,19 @@ function genRates() {
     }
   return o;
 }
-/* 靈魂每分鐘：本次掛機最近 5 分鐘的平均（SES.sm 每 10 秒記一筆 [時間, 累計靈魂]，數字不每秒亂跳）；沒在掛回 0 */
+/* 靈魂每分鐘：本次掛機最近 5 分鐘的平均（SES.sm 每 10 秒記一筆 [時間, 累計靈魂]，數字不每秒亂跳）；
+   取樣不到 1 分鐘時（0.5.4，考核 F1）先用本次掛機拿到的 ÷ 經過的時間估（掛了 10 秒以上才算）；沒在掛回 0 */
 function soulRate() {
-  const L = typeof SES !== 'undefined' && SES && SES.sm;
-  if (!L || L.length < 2) return 0;
-  const a = L[0],
-    b = L[L.length - 1];
-  return b[0] > a[0] ? ((b[1] - a[1]) / (b[0] - a[0])) * 60000 : 0;
+  const ses = typeof SES !== 'undefined' && SES,
+    L = ses && ses.sm;
+  if (!ses) return 0;
+  if (L && L.length >= 2 && L[L.length - 1][0] - L[0][0] >= 60e3) {
+    const a = L[0],
+      b = L[L.length - 1];
+    return ((b[1] - a[1]) / (b[0] - a[0])) * 60000;
+  }
+  const m = (Date.now() - ses.t0) / 60000;
+  return m >= 1 / 6 ? ses.soul / m : 0;
 }
 /* 一筆費用還要幾分鐘：只算最慢的那一項；回 { m 分鐘（算不出來 Infinity，夠了 0）, nm 最慢那一項, d 缺多少 } */
 function costEta(c) {

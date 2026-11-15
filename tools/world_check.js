@@ -59,10 +59,18 @@ async function flow(b) {
     openPanel('node');
   });
   ok(
-    '地點清單（0.5.2）：一開始只開第 1 個、第 2 個寫「瞭望台 Lv 1 才開」、賽制節點還沒列',
+    '地點清單（0.5.4）：一開始只列開了的第 1 個＋下一個（「升瞭望台 Lv 1 就開」、點了去營地）、其餘一行「還有 N 個地點」，沒有「打過」「還沒打」「材料 T」',
     await p.evaluate(() => {
-      const L = [...document.querySelectorAll('#pnode .ndr')];
-      return L.length === 22 && !L[0].hasAttribute('aria-disabled') && /瞭望台 Lv 1/.test(L[1].textContent);
+      const L = [...document.querySelectorAll('#pnode .ndr')],
+        t = $('pnode').textContent;
+      return (
+        L.length === 2 &&
+        L[0].dataset.a === 'ngo:' + TRUNK_K[0] &&
+        /升瞭望台 Lv 1 就開/.test(L[1].textContent) &&
+        L[1].dataset.tm === 'nav:craft' &&
+        /還有 \d+ 個地點/.test(t) &&
+        !/打過|還沒打|材料 T/.test(t)
+      );
     })
   );
   await p.click(`#pnode [data-a="ngo:${await p.evaluate(() => TRUNK_K[0])}"]`);

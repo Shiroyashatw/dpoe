@@ -780,7 +780,7 @@ let fail = 0;
     });
     await tap('#pnav [data-tm="nav:craft"]');
     const up = await p.evaluate(() => {
-      const b = document.querySelector('#pcraft [data-fg="camp:forge"]');
+      const b = document.querySelector('#cc-forge [data-fg="camp:forge"]');
       return [b.textContent, b.disabled, b.classList.contains('pri'), Math.round(b.getBoundingClientRect().height)];
     });
     ok(
@@ -870,6 +870,27 @@ let fail = 0;
       cm[0] === 8 && cm[1] && cm[2] && cm[3] && +cm[4] >= 2,
       JSON.stringify(cm)
     );
+    /* 0.5.4（工項 12-C）：資源條在跑（同一條隔 1.5 秒寬度變了、數字有字）、卡片固定順序（產生器在前、解鎖表照 CAMP_B，升級後不重排）、上面兩行黏住 */
+    const ord0 = await p.evaluate(() => [...document.querySelectorAll('#pcraft .cc')].map(c => c.id).join());
+    const rb0 = await p.evaluate(
+      () => getComputedStyle(document.querySelector('#cmtop [data-rb="wood"] .rt i')).transform
+    );
+    await p.waitForTimeout(1500);
+    const rb1 = await p.evaluate(() => [
+      getComputedStyle(document.querySelector('#cmtop [data-rb="wood"] .rt i')).transform,
+      document.querySelector('#cmtop [data-rb="wood"] b').textContent,
+      getComputedStyle(document.querySelector('#pcraft .cmhead')).position,
+      [...document.querySelectorAll('#pcraft .rtg')].length
+    ]);
+    ok(
+      '營地總覽（0.5.4）：資源條在跑（木的條 1.5 秒內變了）、庫存有數字、產生器卡各有一條、上面兩行黏住、卡片固定順序（林場、礦場、鍛造台…倉房）',
+      rb0 !== rb1[0] &&
+        /\d/.test(rb1[1]) &&
+        rb1[2] === 'sticky' &&
+        rb1[3] === 2 &&
+        ord0 === 'cc-wood,cc-iron,cc-forge,cc-watch,cc-scout,cc-house,cc-altar,cc-store',
+      JSON.stringify([rb0, ...rb1, ord0])
+    );
     await p.evaluate(() =>
       document.querySelector('#pcraft [data-fg="gen:wood:1"]').scrollIntoView({ block: 'center' })
     );
@@ -879,8 +900,17 @@ let fail = 0;
       document.querySelector('#pcraft [data-fg^="gen:iron:"]').scrollIntoView({ block: 'center' })
     );
     await tap('#pcraft [data-fg^="gen:iron:"]');
-    const g2 = await p.evaluate(() => [S.camp.gen.wood.lv, S.camp.gen.iron.lv, matN('wood') < 400]);
-    ok('產生器：×1 升 1 級、最大一次升好幾級、扣木', g2[0] === 2 && g2[1] > 2 && g2[2], JSON.stringify(g2));
+    const g2 = await p.evaluate(() => [
+      S.camp.gen.wood.lv,
+      S.camp.gen.iron.lv,
+      matN('wood') < 400,
+      [...document.querySelectorAll('#pcraft .cc')].map(c => c.id).join()
+    ]);
+    ok(
+      '產生器：×1 升 1 級、最大一次升好幾級、扣木；升完卡片順序不變',
+      g2[0] === 2 && g2[1] > 2 && g2[2] && g2[3] === ord0,
+      JSON.stringify(g2)
+    );
     await p.evaluate(() => {
       S.camp.house = 1;
       document.querySelector('#pcraft [data-fg="cc:house"]').scrollIntoView({ block: 'center' });
@@ -891,6 +921,35 @@ let fail = 0;
       return [c.length, c.every(b => b.getBoundingClientRect().height >= 44)];
     });
     ok('民房展開：每座產生器一列、「優先」≥44px', ho[0] === 2 && ho[1], JSON.stringify(ho));
+    /* 掛機卡（0.5.4，考核 C2）：刷圖中下半有資源條與「下一件事」的升級鈕（≥44px、在畫面內），按了就升 */
+    if (PORTM) {
+      const ic = await p.evaluate(async () => {
+        closePanels();
+        S.auto = 1;
+        if (G.scene !== 'map') runNode(TRUNK_K[0]);
+        G.loot = null;
+        matAdd('wood', 0, 500);
+        await new Promise(r => setTimeout(r, 900));
+        idleBar(1);
+        const b = document.querySelector('#pidle .cmnext .btn.pri'),
+          r = b && b.getBoundingClientRect();
+        return [
+          idleOn(),
+          document.querySelectorAll('#pidle .rbar').length,
+          !!r && r.height >= 44 && r.bottom <= innerHeight && r.top >= 0,
+          b ? b.dataset.fg : ''
+        ];
+      });
+      ok(
+        '掛機卡：下半有資源條（木、鐵、靈魂）與「下一件事」主要鈕 ≥44px 在畫面內',
+        ic[0] && ic[1] >= 3 && ic[2],
+        JSON.stringify(ic)
+      );
+      const lv0 = await p.evaluate(() => JSON.stringify([S.camp, MAT().soul]));
+      await tap('#pidle .cmnext .btn.pri');
+      const lv1 = await p.evaluate(() => JSON.stringify([S.camp, MAT().soul]));
+      ok('掛機卡：按升級鈕就升（營地或靈魂變了）', lv0 !== lv1);
+    }
     await p.evaluate(() => {
       S.camp = JSON.parse(JSON.stringify(_CAMP));
       closePanels();

@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.5.3';
+const VER = '0.5.4';
 const KEY = 'dungeonpoe_v1';
 const SLOT = new URLSearchParams(location.search).get('p') || '';
 
@@ -7737,10 +7737,10 @@ const MEM = {
 /* ---------- 材料（0.5.0，docs/工坊與解鎖表.md 第 4 節）：戰鬥不掉裝備，掉這三種，有階 T1～T6 跟著節點等級（craft.js 的 matTier）；
    鐵＝護甲系防具與所有武器、皮＝閃避系、靈絲＝能量護盾系與法器（craft.js 的 baseMat）。圖示先借現有的 ⚠️ ---------- */
 const MATS = {
-  wood: { n: '木', ic: 'mat_frag', d: '每一座設施升級都要（林場產）' },
-  iron: { n: '鐵', ic: 'mat_frag', d: '武器、護甲系防具、飾品的材料' },
-  hide: { n: '皮', ic: 'mat_insc', d: '閃避系防具、箭袋的材料' },
-  silk: { n: '靈絲', ic: 'mat_crystal', d: '能量護盾系防具、法器的材料' }
+  wood: { n: '木', ic: 'i_log', d: '每一座設施升級都要（林場產）' },
+  iron: { n: '鐵', ic: 'it_whetstone', d: '武器、護甲系防具、飾品的材料' },
+  hide: { n: '皮', ic: 'it_thickhide', d: '閃避系防具、箭袋的材料' },
+  silk: { n: '靈絲', ic: 'i_spool', d: '能量護盾系防具、法器的材料' }
 };
 const MAT_K = Object.keys(MATS);
 /* ---------- 營地（0.5.1，工坊與解鎖表第 3 節：兩層十座）：解鎖表六座各一張短表，一列一級
@@ -7838,10 +7838,24 @@ const CAMP = {
 };
 /* 民房每一級的人口（3.4 ⚠️）；民房那一列的說明照它寫 */
 const CAMP_POP = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25];
-CAMP.house.forEach((r, i) => (r.d = `人口 ${CAMP_POP[i + 1]}：多的居民自動補到空的工位`));
+CAMP.house.forEach((r, i) => (r.d = `人口 ${CAMP_POP[i + 1]}`));
 const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '祭壇', store: '倉房' };
+/* 十座設施與靈魂的圖示（0.5.4）：ART 有的借 ART，沒有的是 sprites.js 手畫的 i_*（icHTML 都認得） */
+const CAMP_IC = {
+  forge: 'it_anvil',
+  watch: 'it_hawkeye',
+  scout: 'it_warbanner',
+  house: 'i_house',
+  altar: 'unit_guardtotem',
+  store: 'i_crate',
+  wood: 'i_tree',
+  iron: 'i_ore',
+  hide: 'it_huntbow',
+  silk: 'i_cocoon',
+  soul: 'cur_soul'
+};
 /* 產生器（0.5.1，3.7）：可以一直升（每級每分鐘 ⚠️ 自己定的：文件 1.5／1／0.5／0.25，新存檔模擬前 12 分鐘一次都按不到，改成 6／4／2／1，對回 3.4 原本「每人每分鐘 6 木、4 礦」）；第 L 級升到 L＋1 的費用＝c × 1.12^L（吃木與自己產的材料，同階）；每分鐘＝r × L × 里程碑倍率 × 在職／工位。
-   show＝出現的解鎖鍵（獵場鍛造台 Lv3、絲地 Lv8，出現時 Lv1、0 人）；ic 是卡片的圖示（先借材料的） */
+   show＝出現的解鎖鍵（獵場鍛造台 Lv3、絲地 Lv8，出現時 Lv1、0 人）；卡片的圖示在 CAMP_IC */
 const GEN = {
   wood: { n: '林場', r: 6, c: { wood: 10 } },
   iron: { n: '礦場', r: 4, c: { wood: 15, iron: 5 } },

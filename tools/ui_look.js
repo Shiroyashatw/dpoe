@@ -152,6 +152,22 @@ if (require.main === module)
     };
     /* 要量的畫面：[名字, 根節點, 有框元素的上限, 怎麼走到]。面板改版時改這裡 */
     const SCREENS = [
+      /* 營地總覽（0.5.4）：中期的營地（產生器四座、解鎖表幾級、材料一些） */
+      [
+        '營地：總覽',
+        '#pcraft',
+        20,
+        async () =>
+          p.evaluate(m => {
+            Object.assign(S.camp, { forge: 8, watch: 5, scout: 1, house: 3, altar: 4, store: 1 });
+            Object.assign(S.camp.gen, { wood: { lv: 30 }, iron: { lv: 18 }, hide: { lv: 9 }, silk: { lv: 4 } });
+            matAdd('wood', 0, 900);
+            matAdd('iron', 1, 300);
+            MAT().soul = 2400;
+            CRAFT.tab = 'camp';
+            m ? navGo('craft') : openPanel('craft');
+          }, port)
+      ],
       /* 技能面板（0.4.8）：總覽 → 這一招 → 選了一個孔 → 挑輔助 → 挑技能 */
       ['技能：總覽', '#pskill', 12, async () => p.evaluate(m => (m ? navGo('skill') : openPanel('skill')), port)],
       ['技能：這一招', '#pskill', 12, () => click('#pskill [data-sk="go:one:0"]')],

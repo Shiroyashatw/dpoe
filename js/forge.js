@@ -110,21 +110,22 @@ function auto2HTML() {
       : ''
   }`;
 }
-/* ---------- 營地總覽（0.5.1，工坊與解鎖表第 3 節、增量遊戲精髓 5.3）：第一行庫存＋速率、第二行「下一件事」、底下設施卡片（照最快買得起排）。
-   卡片兩種同一個框：產生器卡 genCardHTML（主數字＝每分鐘產量、到下一個里程碑的條、升級鈕 ×1／×10／最大）、解鎖表卡 campCardHTML（主數字＝下一級解鎖什麼、條＝材料湊齊幾成）。
-   點卡的標題＝展開那一座（民房的工位、倉房的商會、斥候營的星級、祭壇開了什麼…）。每秒只補畫數字變了的卡（campRefresh） ---------- */
-const CAMPUI = { mul: 1, open: null, fx: {}, ord: null };
+/* ---------- 營地總覽（0.5.1，工坊與解鎖表第 3 節、增量遊戲精髓 5.3；0.5.4 照 docs/介面考核_0.5.3.md 重做）：
+   固定順序——庫存列（資源條）與「下一件事」黏在上面、產生器四張（標題列有 ×1／×10／最大）、解鎖表六張；不照買得起重排，買得起的卡左邊一條金邊、鈕亮。
+   卡片兩種同一個框：產生器卡 genCardHTML（主數字＝每分鐘產量、資源在跑的條、金色細條＝到下一個里程碑、工位人影、升級鈕 ×1／×10／最大）、
+   解鎖表卡 campCardHTML（主數字＝下一級解鎖什麼、鈕的底色＝材料湊齊幾成）。點卡的標題＝展開那一座（民房的工位、倉房的商會、斥候營的星級、祭壇開了什麼…）。
+   會跑的東西（資源條、數字、鈕的底色、滾數字）每格由 rbTick 只改 transform 與文字，不重畫卡；卡片每秒只補畫字變了的（campRefresh） ---------- */
+const CAMPUI = { mul: 1, open: null, fx: {}, wt: {}, w: {} };
 const CAMP_B = ['forge', 'watch', 'scout', 'house', 'altar', 'store'];
 const fmtR = v => (v >= 10 ? fmtN(Math.round(v)) : +v.toFixed(1));
-/* 「還要多久」寫成一句：夠了寫費用、算得出來寫「還要 N 分・缺 X 12」、算不出來只寫缺什麼（只寫最慢那一項） */
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* 「還要多久」寫成一句：算得出來寫「還要 N 分・缺 X 12」、算不出來（沒在刷、沒有人做）只寫缺什麼（只寫最慢那一項） */
 const etaTxt = e =>
-  !e
+  !e || e.m === 0
     ? ''
-    : e.m === 0
-      ? '可以升級'
-      : e.m === Infinity
-        ? `缺${e.nm} ${fmtN(e.d)}`
-        : `還要 ${Math.max(1, Math.ceil(e.m))} 分・缺${e.nm} ${fmtN(e.d)}`;
+    : e.m === Infinity
+      ? `缺${e.nm} ${fmtN(e.d)}`
+      : `還要 ${Math.max(1, Math.ceil(e.m))} 分・缺${e.nm} ${fmtN(e.d)}`;
 const costTxt = c =>
   costRows(c)
     .map(([nm, , w]) => `${nm} ${fmtN(w)}`)
@@ -165,34 +166,135 @@ function campNextThing() {
   const L = campThings();
   return L.length ? L.reduce((a, b) => (b.e.m < a.e.m ? b : a)) : null;
 }
-function campTopHTML() {
-  const R = genRates(),
-    sr = soulRate(),
-    keys = ['wood', ...GEN_K.filter(k => k !== 'wood' && genOn(k)).map(k => matKey(k, genTier(k)))];
-  return `<div class="cmtop" id="cmtop">${keys
-    .map(
-      key =>
-        `<span>${esc(matName(...matOf(key)))} <b>${fmtN(matN(...matOf(key)))}</b><small>+${fmtR(R[key] || 0)}/分</small></span>`
-    )
-    .join('')}<span>靈魂 <b>${fmtN(MAT().soul)}</b><small>${sr ? `+${fmtR(sr)}/分` : '刷圖時算'}</small></span></div>`;
+/* ---------- 資源條（0.5.4，考核 A1、F2）：圖示＋名字＋庫存＋「這一單位的進度」條＋「+N／分」。
+   key＝材料鍵（'wood'、'iron:2'…）或 'soul'。HTML 只有骨架（卡片的字不會因為數字一直變），數字、條、速率由 rbTick 每格填；
+   速率 ≥240／分（每秒 4 格以上）條改成流動的常亮條（.flow）。add：離線卡用，不跑、只寫 +N ---------- */
+const RB_FLOW = 240;
+const rbIc = key => (key === 'soul' ? CAMP_IC.soul : MATS[matOf(key)[0]].ic);
+const rbName = key => (key === 'soul' ? '靈魂' : matName(...matOf(key)));
+function genBarHTML(key, add) {
+  return add != null
+    ? `<div class="rbar st">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
+    : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
 }
-function campNextHTML() {
+/* 這個材料鍵是哪一座產生器正在產的（條的進度＝那一座的 acc）；靈魂、沒在產的階回 null */
+const rbGen = key => {
+  if (key === 'soul') return null;
+  const [m, T] = matOf(key);
+  return GEN[m] && genOn(m) && genTier(m) === T ? m : null;
+};
+/* 靈魂的條：每滿「一分鐘的量」跑一圈（本次掛機拿到的 ÷ 速率的餘數）；沒在刷是空的 */
+const soulAcc = r => (r > 0 && typeof SES !== 'undefined' && SES ? (SES.soul % r) / r : 0);
+const RB = { t: 0, R: null, sr: 0, rm: false };
+const RB_EL = document.getElementsByClassName('rbar'),
+  RG_EL = document.getElementsByClassName('rtg'),
+  RF_EL = document.getElementsByClassName('cfill'),
+  RO_EL = document.getElementsByClassName('nroll');
+/* 數字 +1 跳一下：一分鐘會跳幾十次，所以小（1.12）而快（200 毫秒、強 ease-out）；流動條與減少動態時不跳 */
+const POP = [{ transform: 'scale(1.12)', color: '#7fc95a' }, { transform: 'scale(1)' }],
+  POP_T = { duration: 200, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' };
+const fill = (f, p) => {
+  const s = `scaleX(${Math.max(0, Math.min(1, p)).toFixed(3)})`;
+  if (f._s !== s) f.style.transform = f._s = s;
+};
+/* 每格（game.js 的 frame）：只改 transform 與文字；速率、鈕的底色每 0.5 秒算一次 */
+function rbTick() {
+  if (!RB_EL.length && !RG_EL.length && !RF_EL.length && !RO_EL.length) return;
+  const now = performance.now(),
+    slow = !RB.R || now - RB.t > 500;
+  if (slow) (RB.t = now), (RB.R = genRates()), (RB.sr = soulRate()), (RB.rm = reduced());
+  for (const el of RB_EL) {
+    const key = el.dataset.rb;
+    if (!key) continue;
+    if (!el._b)
+      (el._b = el.querySelector('b')), (el._sm = el.querySelector('small')), (el._f = el.querySelector('.rt i'));
+    const soul = key === 'soul',
+      v = Math.floor(soul ? MAT().soul : matN(...matOf(key))),
+      gk = rbGen(key);
+    if (el._v !== v) {
+      const up = el._v != null && v > el._v;
+      el._b.textContent = fmtN((el._v = v));
+      if (up && !el._flow && !RB.rm) el._b.animate(POP, POP_T);
+    }
+    if (slow || el._r == null) {
+      const r = soul ? RB.sr : RB.R[key] || 0,
+        t = r > 0 ? `+${fmtR(r)}／分` : '';
+      el._r = r;
+      if (el._rt !== t) el._sm.textContent = el._rt = t;
+      const fl = r >= RB_FLOW;
+      if (el._flow !== fl) el.classList.toggle('flow', (el._flow = fl));
+    }
+    if (!el._flow) fill(el._f, soul ? soulAcc(el._r) : gk ? genOf(gk).acc || 0 : 0);
+  }
+  /* 產生器卡裡的條（只有條） */
+  for (const el of RG_EL) {
+    const k = el.dataset.rg;
+    if (!el._f) el._f = el.firstElementChild;
+    if (slow || el._flow == null) {
+      const fl = (RB.R[matKey(k, genTier(k))] || 0) >= RB_FLOW;
+      if (el._flow !== fl) el.classList.toggle('flow', (el._flow = fl));
+    }
+    if (!el._flow) fill(el._f, genOf(k).acc || 0);
+  }
+  /* 升級鈕的底色＝材料湊齊幾成（最慢那一項）：data-fg 是 gen:鍵:幾級 或 camp:設施 */
+  for (const el of RF_EL)
+    if (slow || el._p == null) {
+      const [t, k, n] = el.dataset.fg.split(':'),
+        c = t === 'gen' ? genCost(k, +n || 1) : campNext(k);
+      if (!c) continue;
+      const p = Math.min(1, ...costRows(c).map(([, h, w]) => (w > 0 ? h / w : 1))),
+        s = Math.round(p * 100) + '%';
+      if (el._p !== s) el.style.setProperty('--f', (el._p = s));
+    }
+  /* 升級那一下主數字從舊值滾到新值（data-r＝舊:新:開始:毫秒，預設 300，ease-out；離線卡從 0 滾上去） */
+  for (let i = RO_EL.length - 1; i >= 0; i--) {
+    const el = RO_EL[i],
+      [a, b, t0, d = 300] = el.dataset.r.split(':').map(Number),
+      p = Math.min(1, (now - t0) / d),
+      x = a + (b - a) * (1 - (1 - p) ** 3);
+    el.textContent = '+' + (Number.isInteger(a) && Number.isInteger(b) ? fmtN(Math.round(x)) : fmtR(x));
+    if (p >= 1) el.classList.remove('nroll');
+  }
+}
+/* 庫存列：木、這一階的鐵（皮、靈絲出現了才有）、靈魂；靈魂只在這裡（考核 A10） */
+function campTopHTML() {
+  const keys = ['wood', ...GEN_K.filter(k => k !== 'wood' && genOn(k)).map(k => matKey(k, genTier(k)))];
+  return `<div class="cmtop" id="cmtop">${[...keys, 'soul'].map(k => genBarHTML(k)).join('')}</div>`;
+}
+/* 下一件事（考核 A9）：買得起＝名字、給什麼、一顆「升級・費用」主要鈕（掛機卡裡在戰鬥下面就能按）；還買不起＝還要多久（只寫最慢那一項） */
+function campNextHTML(id = 'cmnext') {
   const L = campThings(),
     ready = L.filter(t => t.e.m === 0),
     t = L.length ? L.reduce((a, b) => (b.e.m < a.e.m ? b : a)) : null;
-  return `<div class="cmnext" id="cmnext">${
-    !t
-      ? '<span>營地都升滿了</span>'
-      : ready.length > 1
-        ? `<span>下一件事：<b class="c-good">${ready.length} 件可以升級</b></span><button class="btn pri" data-fg="jump:${ready[0].k}">第一件</button>`
-        : `<span>下一件事：<b>${esc(t.n)}</b>${t.d ? ` → ${esc(t.d)}` : ''}<small>${esc(etaTxt(t.e))}</small></span>${t.e.m === 0 ? `<button class="btn pri" data-fg="${GEN[t.k] ? `gen:${t.k}:1` : `camp:${t.k}`}">升級</button>` : `<button class="btn" data-fg="jump:${t.k}">看</button>`}`
-  }</div>`;
+  if (!t) return `<div class="cmnext" id="${id}"><span>營地都蓋好了</span></div>`;
+  const ok = t.e.m === 0,
+    more = ready.length - 1;
+  return `<div class="cmnext ${ok ? 'can' : ''}" id="${id}">${icHTML(CAMP_IC[t.k])}<span><b>${esc(t.n)}</b>${t.d ? `<small class="d">${esc(t.d)}</small>` : ''}<small>${ok ? (more > 0 ? `另外 ${more} 件也買得起` : '下一件事') : esc(etaTxt(t.e))}</small></span>${ok ? `<button class="btn pri" data-fg="${GEN[t.k] ? `gen:${t.k}:1` : `camp:${t.k}`}">升級<small>${esc(costTxt(t.c))}</small></button>` : `<button class="btn" data-fg="jump:${t.k}">看</button>`}</div>`;
 }
-/* 演出（3 節開頭）：升級那一下卡片亮一下、旁邊浮「+N／分」；里程碑金邊。1 秒內畫，減少動態時 CSS 只淡入 */
+/* 演出（3 節開頭）：升級那一下卡片亮一下、主數字滾、旁邊浮「+N／分」；里程碑金邊。1.2 秒內畫，減少動態時 CSS 不動、數字直接換 */
 const ccFx = k => {
   const f = CAMPUI.fx[k];
   return f && performance.now() - f.t < 1200 ? f : null;
 };
+/* 工位畫成人影（考核 A3）：一個工位一個小人，在職亮、空的暗；民房升級補上人那一下，新亮的那個跳一下（1.5 秒） */
+function wkHTML(k, W, s) {
+  const o = CAMPUI.w[k],
+    now = performance.now();
+  if (o != null && W > o) CAMPUI.wt[k] = { t: now, from: o };
+  CAMPUI.w[k] = W;
+  const nw = CAMPUI.wt[k] && now - CAMPUI.wt[k].t < 1500 ? CAMPUI.wt[k].from : W,
+    man = iconURL('i_man');
+  return `<span class="wk" role="img" aria-label="${W}／${s} 人">${Array.from(
+    { length: s },
+    (_, i) => `<img class="${i < W ? 'on' : ''} ${i >= nw && i < W ? 'new' : ''}" src="${man}" alt="">`
+  ).join('')}</span>`;
+}
+/* 上一個里程碑在第幾級（金色細條從那裡開始算） */
+function genMs0(L) {
+  const a = JSON.stringify(genMs(L));
+  for (let x = L; x > 0; x--) if (JSON.stringify(genMs(x - 1)) !== a) return x;
+  return 0;
+}
 function genCardHTML(k) {
   const g = genOf(k),
     W = popAssign(),
@@ -206,40 +308,44 @@ function genCardHTML(k) {
     msAt = ms && ms.at <= g.lv + n,
     f = ccFx(k),
     top = genTierTop(k),
-    out = MATS[k].n;
-  return `<div class="paper camp cc gen ${f ? 'up' : ''} ${f && f.ms ? 'ms' : ''}" id="cc-${k}">
-  <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}"><b>${GEN[k].n}</b><span>Lv ${g.lv}</span><span class="cct">${T ? `${out} T${T}` : out}・${W[k]}／${s} 人</span></button>
-  <div class="ccbig">每分鐘 +${fmtR(genRate(k, W))}<small>${out}</small>${f && f.add ? `<em class="ccfl">${esc(f.add)}</em>` : ''}</div>
-  ${ms ? `<div class="ccbar" role="progressbar" aria-valuemin="0" aria-valuemax="${ms.at}" aria-valuenow="${g.lv}"><i style="width:${Math.round((100 * g.lv) / ms.at)}%"></i><span>${g.lv}／${ms.at} → ${esc(ms.t)}</span></div>` : ''}
-  ${W[k] < s ? `<p class="cchint">空著 ${s - W[k]} 個工位：升民房補人</p>` : !W[k] ? '<p class="cchint">沒有人：升民房</p>' : ''}
-  <button class="btn ${ok ? 'pri' : ''} wide" data-fg="gen:${k}:${n}" ${ok ? '' : 'disabled'}>${ok ? `升 ${n} 級・${esc(costTxt(c))}` : esc(etaTxt(e))}${msAt ? `<em class="ccms">${esc(ms.t)}</em>` : ''}</button>
+    out = MATS[k].n,
+    r = genRate(k, W),
+    roll = f && f.to != null && !reduced() && performance.now() - f.t < 300,
+    m0 = genMs0(g.lv),
+    mp = ms ? Math.round((100 * (g.lv - m0)) / (ms.at - m0)) : 100;
+  return `<div class="paper camp cc gen ${ok ? 'can' : ''} ${f ? 'up' : ''} ${f && f.ms ? 'ms' : ''}" id="cc-${k}">
+  <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}">${icHTML(CAMP_IC[k])}<b>${GEN[k].n}</b><span>Lv ${g.lv}</span>${wkHTML(k, W[k], s)}</button>
+  ${ms ? `<div class="ccm" role="progressbar" aria-label="到下一個里程碑" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${mp}"><i style="--m:${mp}%"></i></div><div class="ccml"><span>Lv ${ms.at}：${esc(ms.t)}</span><span>總共產了 ${fmtN(g.tot || 0)}</span></div>` : ''}
+  <div class="ccbig"><small>每分鐘</small><b class="${roll ? 'nroll' : ''}" ${roll ? `data-r="${f.from}:${f.to}:${f.t}"` : ''}>+${fmtR(roll ? f.from : r)}</b><small>${T ? `${out} T${T}` : out}</small>${f && f.add ? `<em class="ccfl">${esc(f.add)}</em>` : ''}</div>
+  <i class="rt rtg" data-rg="${k}"><i></i></i>
+  ${!W[k] ? '<p class="cchint">升民房就有人來做</p>' : W[k] < s ? `<p class="cchint">升民房再來 ${s - W[k]} 個人</p>` : ''}
+  <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="gen:${k}:${n}" ${ok ? '' : 'disabled'}>${ok ? `升 ${n} 級・${esc(costTxt(c))}` : esc(etaTxt(e))}${msAt ? `<em class="ccms">${esc(ms.t)}</em>` : ''}</button>
   ${
     CAMPUI.open === k && top > 1
-      ? `<div class="bagf" role="group" aria-label="產幾階">${Array.from({ length: top }, (_, i) => top - i)
+      ? `<div class="ccopen"><div class="bagf" role="group" aria-label="產幾階">${Array.from(
+          { length: top },
+          (_, i) => top - i
+        )
           .map(t => chipB(`gt:${k}:${top - t}`, T === t, `T${t}`))
-          .join('')}<span class="c-dim">要低階材料時往下調</span></div>`
+          .join('')}</div><p class="sub">要低階材料時往下調</p></div>`
       : ''
   }</div>`;
 }
-/* 解鎖表卡：主數字＝下一級解鎖什麼；條＝材料湊齊幾成（寫最慢那一項） */
+/* 解鎖表卡：主數字＝下一級解鎖什麼；鈕的底色＝材料湊齊幾成（rbTick 填） */
 function campCardHTML(b) {
   const lv = S.camp[b],
     n = campNext(b),
-    f = ccFx(b);
-  let body = `<p class="ccbig sm">已經滿級</p>`;
-  if (n) {
-    const rows = costRows(n),
-      e = costEta(n),
-      ok = e.m === 0,
-      low = rows.reduce((a, r) => (r[1] / r[2] < a[1] / a[2] ? r : a), rows[0]),
-      pct = Math.min(100, Math.round((100 * Math.min(1, low[1] / low[2])) / 1));
-    body = `<div class="ccbig sm">下一級：${esc(n.d)}</div>
-  <div class="ccbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i><span>${ok ? '材料湊齊了' : `最慢：${esc(low[0])} ${fmtN(low[1])}／${fmtN(low[2])}`}</span></div>
-  <button class="btn ${ok ? 'pri' : ''} wide" data-fg="camp:${b}" ${ok ? '' : 'disabled'}>${ok ? `升級到 Lv ${n.lv}・${esc(costTxt(n))}` : esc(etaTxt(e))}</button>`;
-  }
-  return `<div class="paper camp cc ${f ? 'up' : ''}" id="cc-${b}">
-  <button class="cch" data-fg="cc:${b}" aria-expanded="${CAMPUI.open === b}"><b>${CAMPN[b]}</b><span>Lv ${lv}</span><span class="cct">${n ? `還有 ${campMax(b) - lv} 級` : '滿級'}</span></button>
-  ${body}${CAMPUI.open === b ? campOpenHTML(b) : ''}</div>`;
+    f = ccFx(b),
+    e = n && costEta(n),
+    ok = !!e && e.m === 0;
+  return `<div class="paper camp cc ${ok ? 'can' : ''} ${f ? 'up' : ''}" id="cc-${b}">
+  <button class="cch" data-fg="cc:${b}" aria-expanded="${CAMPUI.open === b}">${icHTML(CAMP_IC[b])}<b>${CAMPN[b]}</b><span>Lv ${lv}／${campMax(b)}</span></button>
+  ${
+    n
+      ? `<div class="ccbig sm">下一級：${esc(n.d)}</div>
+  <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="camp:${b}" ${ok ? '' : 'disabled'}>${ok ? `升級到 Lv ${n.lv}・${esc(costTxt(n))}` : esc(etaTxt(e))}</button>`
+      : '<div class="ccbig sm">都蓋好了</div>'
+  }${CAMPUI.open === b ? campOpenHTML(b) : ''}</div>`;
 }
 /* 展開的那一座 */
 function campOpenHTML(b) {
@@ -311,29 +417,22 @@ function wtPickHTML() {
     .map(wt => chipB(`wt:${wt}`, 0, WTN[wt]))
     .join('')}</div>`;
 }
-/* 卡片的順序：打開營地分頁或按完一下才重排（每秒補畫不重排，免得手指按到別張） */
-function campOrder() {
-  const L = campThings(),
-    m = Object.fromEntries(L.map(t => [t.k, t.e.m])),
-    all = [...CAMP_B, ...GEN_K.filter(genOn)];
-  return all.sort((a, b) => (m[a] ?? 1e9) - (m[b] ?? 1e9) || all.indexOf(a) - all.indexOf(b));
-}
 const ccHTML = k => (GEN[k] ? genCardHTML(k) : campCardHTML(k));
+/* 固定順序（考核 A6）：上面兩行黏住、產生器一組（×1／×10／最大在這一組的標題列，A7）、設施一組 */
 function campHTML() {
-  CAMPUI.ord = CAMPUI.ord || campOrder();
-  const ord = CAMPUI.ord.filter(k => !GEN[k] || genOn(k));
-  for (const k of [...GEN_K.filter(genOn)]) if (!ord.includes(k)) ord.push(k);
-  return `${campTopHTML()}${campNextHTML()}
-  <div class="bagf cmmul" role="group" aria-label="產生器一次升幾級">${[
+  return `<div class="cmhead">${campTopHTML()}${campNextHTML()}</div>
+  <div class="cmgrp"><span>產生器</span><div class="bagf cmmul" role="group" aria-label="產生器一次升幾級">${[
     [1, '×1'],
     [10, '×10'],
     ['max', '最大']
   ]
     .map(([v, t]) => chipB(`mul:${v}`, CAMPUI.mul === v, t))
-    .join('')}</div>
-  <div class="cmcards">${ord.map(ccHTML).join('')}</div>`;
+    .join('')}</div></div>
+  <div class="cmcards">${GEN_K.filter(genOn).map(genCardHTML).join('')}</div>
+  <div class="cmgrp"><span>設施</span></div>
+  <div class="cmcards">${CAMP_B.map(campCardHTML).join('')}</div>`;
 }
-/* 每秒補畫：只換數字變了的卡與上面兩行（不整片重畫、不重排） */
+/* 每秒補畫：只換字變了的卡與上面兩行（不整片重畫、不重排；會跑的東西在 rbTick） */
 function campRefresh() {
   if (!PANEL.craft || CRAFT.tab !== 'camp') return;
   const L = (CAMPUI.last = CAMPUI.last || {}),
@@ -343,7 +442,7 @@ function campRefresh() {
     };
   sw('cmtop', campTopHTML());
   sw('cmnext', campNextHTML());
-  for (const k of CAMPUI.ord || []) if (!GEN[k] || genOn(k)) sw('cc-' + k, ccHTML(k));
+  for (const k of [...GEN_K.filter(genOn), ...CAMP_B]) sw('cc-' + k, ccHTML(k));
 }
 /* 按「打造」：扣材料、進倉庫、開翻牌 */
 function craftGo() {
@@ -835,7 +934,7 @@ function forgeHTML() {
     return `${
       PORT()
         ? `<div class="ph"><b>營地</b>${craftSeg(on)}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
-        : `<div class="ph"><b>營地</b><span class="fmat">靈魂 <b>${fmtN(MAT().soul)}</b></span><span class="ftabs">${tabs
+        : `<div class="ph"><b>營地</b>${on === 'camp' ? '' : `<span class="fmat">靈魂 <b>${fmtN(MAT().soul)}</b></span>`}<span class="ftabs">${tabs
             .map(([k, n]) => `<button class="${k === on ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
             .join('')}</span>${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
     }${body}`;
@@ -901,7 +1000,7 @@ document.addEventListener('click', e => {
     op = it ? curOp(it) : 'tran',
     arg = op === 'ess' ? CRAFT.ess : op === 'conv' ? CRAFT.conv : null;
   let err = null;
-  if (k === 'tab') (CRAFT.tab = v), (CAMPUI.ord = null);
+  if (k === 'tab') CRAFT.tab = v;
   else if (k === 'mk') (MK[v] = v === 'T' || v === 'n' || v === 'ink' ? +x : x), sfx('click');
   else if (k === 'go') return craftGo();
   else if (k === 'camp') {
@@ -910,7 +1009,6 @@ document.addEventListener('click', e => {
       const r = CAMP[v][S.camp[v] - 1];
       hudWarn(`${CAMPN[v]} Lv ${S.camp[v]}：${r.d}`);
       CAMPUI.fx[v] = { t: performance.now() };
-      CAMPUI.ord = null;
       sfx('lvup');
       /* 解鎖了東西：分頁列、技能、光環跟著變 */
       ST = stats();
@@ -923,16 +1021,19 @@ document.addEventListener('click', e => {
     if (!err) {
       const ms1 = genMs(genOf(v).lv),
         ms = ms1.m > ms0.m || ms1.slots > ms0.slots || ms1.tu > ms0.tu;
-      CAMPUI.fx[v] = { t: performance.now(), add: `+${fmtR(genRate(v) - r0)}／分`, ms };
-      CAMPUI.ord = null;
+      const r1 = genRate(v);
+      CAMPUI.fx[v] = { t: performance.now(), add: `+${fmtR(r1 - r0)}／分`, ms, from: r0, to: r1 };
       sfx(ms ? 'lvup' : 'coin');
       save();
     }
   } else if (k === 'cc') CAMPUI.open = CAMPUI.open === v ? null : v;
   else if (k === 'mul') CAMPUI.mul = v === 'max' ? 'max' : +v;
   else if (k === 'jump') {
+    /* 從掛機卡、王倒下的卡按「看」：先打開營地 */
     CAMPUI.open = null;
-    changed();
+    CRAFT.tab = 'camp';
+    if (!PANEL.craft) PORT() ? navGo('craft') : openPanel('craft');
+    else changed();
     const el = $('cc-' + v);
     if (el)
       el.scrollIntoView({

@@ -193,6 +193,13 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   });
   console.log(`\n刷圖中捲戰利品：每一格（毫秒，標準 p95 ≤${FRAME_OK}）`);
   console.log(`  ${mark(sc.p95, FRAME_OK)}  p95（中位數 ${sc.p50}、最慢 ${sc.max}）`);
+  /* 0.5.4：刷圖中開著營地總覽 3 秒（資源條每格在跑），每一格幾毫秒 */
+  await p.evaluate(() => navGo('craft'));
+  await p.waitForTimeout(500);
+  const cp = await frames(() => p.waitForTimeout(3000));
+  console.log(`
+刷圖中開著營地（資源條在跑）：每一格（毫秒，標準 p95 ≤${FRAME_OK}）`);
+  console.log(`  ${mark(cp.p95, FRAME_OK)}  p95（中位數 ${cp.p50}、最慢 ${cp.max}）`);
   /* 天賦樹 */
   const open = await p.evaluate(async () => {
     closePanels();
