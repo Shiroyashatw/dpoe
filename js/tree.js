@@ -40,11 +40,25 @@ function treeCanRefund(id) {
 const Z_NEAR = 1.25,
   Z_TAP = 0.7;
 /* 整棵樹的總覽：起點的 6 個門大約在半徑 560 的圈上，窄螢幕縮到看得到全部的門（視窗還沒有寬度時不能算出負的） */
-const treeZ0 = () => clamp((IW / 2 - 30) / 560, 0.12, 0.55);
+/* 總覽的縮放：寬照舊；M1-03 直立與桌機的高也要放得下六條路的名字（起點往外 SECN_OUT＋半個字高），頂部列與底部圖例約 160px */
+const treeZ0 = () =>
+  clamp(
+    Math.min(
+      (IW / 2 - 30) / 560,
+      /* 橫向手機太矮（390 高會縮到點小於 24px），照舊只看寬 */
+      TOUCH.on && !PORT()
+        ? Infinity
+        : (IH - 160) / 2 / (Math.max(...PT_START.map(id => Math.abs(PTREE.I[id].y))) + SECN_OUT + 40)
+    ),
+    0.12,
+    0.55
+  );
 /* 我點到哪：最後點亮的那個點（只有起點＝還沒開始） */
 const treeMine = () => (S.pt.length > PT_START.length ? PTREE.I[S.pt[S.pt.length - 1]] : null);
 function treeOpen() {
   if (TREE.open) return treeClose();
+  /* M1-06：祭壇還沒到就只講一句（P 鍵、分頁、更多選單都走這裡） */
+  if (lockTxt('tree')) return hudWarn(lockTxt('tree'));
   closePanels();
   TREE.open = true;
   TREE.sel = null;
@@ -168,9 +182,12 @@ function treeRender() {
   html += '<g id="tsocks"></g>';
   /* 六區的名字：縮小看全圖時才顯示（#tsvg.far1），點一下放大到那一區 */
   html += PT_START.map((id, i) => {
-    /* 寫在起點的門上面；左右兩邊往中間收，直立看全圖時才不會被切掉 */
-    const g = PTREE.I[id];
-    return `<text class="secn" x="${clamp(g.x, -470, 470).toFixed(0)}" y="${(g.y - 78).toFixed(0)}">${esc(secName(i))}</text>`;
+    /* M1-03：寫在起點往外的那一側（以前一律寫在上面，下半圈三條路的名字掉進中間的昇華圓）；左右兩邊往中間收，直立看全圖時才不會被切掉 */
+    const g = PTREE.I[id],
+      d = Math.hypot(g.x, g.y) || 1,
+      x = g.x + (g.x / d) * SECN_OUT,
+      y = g.y + (g.y / d) * SECN_OUT;
+    return `<text class="secn" x="${clamp(x, -470, 470).toFixed(0)}" y="${y.toFixed(0)}">${esc(secName(i))}</text>`;
   }).join('');
   /* 中間：昇華的入口（0.4.7；以前整張昇華圖塞在這裡，字只有 3px，跟昇華石碑是同一件事的兩種長相）。
      點一下打開昇華石碑；字在 treeRefresh 更新 */
@@ -282,6 +299,8 @@ function treeRefresh() {
 let TR1 = 0;
 const treeR = () => TR1 || (TR1 = Math.max(...PTREE.N.map(n => Math.hypot(n.x, n.y))) + 60);
 const secName = i => PTREE.I[PT_START[i]].n;
+/* 六條路的名字離起點多遠（往外；看全圖時字放大到 150，要讓開起點） */
+const SECN_OUT = 130;
 /* 六個珠寶孔（0.2.84）：進度 x／40；開了是亮的；有珠寶但點數不夠＝鎖住（紅字） */
 function treeSocks() {
   const g = $('tsocks');

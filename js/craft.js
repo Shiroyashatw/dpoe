@@ -323,6 +323,11 @@ function campCan(k) {
   const e = campKey(k);
   return !e || (S.camp[e[0]] || 0) >= e[1];
 }
+/* 還沒開的一句話（M1-06）：「升祭壇到 Lv 4 才開」；開了或不受管回空字串 */
+const lockTxt = k => {
+  const e = !campCan(k) && campKey(k);
+  return e ? `升${CAMPN[e[0]]}到 Lv ${e[1]} 才開` : '';
+};
 /* 通貨對應的解鎖鍵：預兆一組、高階與完美照階 */
 const curKey = k =>
   k.startsWith('om_') ? 'cur:om' : /^(tran|aug|rich|exalt)[23]$/.test(k) ? 'tier' + k.slice(-1) : 'cur:' + k;
@@ -346,6 +351,36 @@ function campN(k) {
   if (k === 'pop') return CAMP_POP[Math.min(C.house || 0, CAMP_POP.length - 1)];
   if (k === 'off') return [1, 4, 4, 8, 8, 12][Math.min(5, C.store || 0)];
   return 0;
+}
+/* 下一個要解鎖的（M1-07，Q10 C）：每一類只回最近的那一個 { b 設施, lv, n 開什麼, t 一句話 }；這一類全開了回 null。
+   數值型（技能格、輔助孔、武器類別）照 campN 變多的第一級；開關型照 campKey 要的等級 */
+const NEXT_U = {
+  slot: { n: 'slots', b: 'altar', t: '技能格' },
+  hole: { n: 'holes', b: 'altar', t: '輔助孔' },
+  wt: { n: 'wts', b: 'forge', t: '武器類別' },
+  tree: { k: { tree: '天賦樹', jsock: '天賦樹珠寶孔' } },
+  asc: { k: { asc: '昇華石碑', asc3: '第三個昇華' } },
+  aura: { k: { aura: '光環欄' } },
+  menu: { k: { tree: '天賦樹', asc: '昇華石碑' } }
+};
+function nextUnlock(kind) {
+  const u = NEXT_U[kind],
+    C = S.camp || newCamp();
+  let r = null;
+  if (u.n) {
+    const now = campN(u.n),
+      lv0 = C[u.b] || 0;
+    for (let lv = lv0 + 1; lv <= campMax(u.b) && !r; lv++) {
+      C[u.b] = lv;
+      if (campN(u.n) > now) r = { b: u.b, lv, n: `第 ${campN(u.n)} 個${u.t}` };
+    }
+    C[u.b] = lv0;
+  } else
+    for (const k in u.k) {
+      const e = campKey(k);
+      if (e && (C[e[0]] || 0) < e[1] && (!r || e[1] < r.lv)) r = { b: e[0], lv: e[1], n: u.k[k] };
+    }
+  return r && { ...r, t: `升${CAMPN[r.b]}到 Lv ${r.lv} 開${r.n}` };
 }
 /* 這一格實際能插幾顆輔助（孔數照祭壇蓋上限；開孔照舊花靈魂） */
 const soN = r => Math.min(r.n, campN('holes'));

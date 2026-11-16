@@ -231,6 +231,14 @@ const actDur = c =>
     (isSpell(c.D) ? 1 : atkBuf() * rageAsM()) /
     (c.D.cmd ? 1 + bufV('cmdSpd') / 100 : 1) +
   (c.D.tAdd || 0);
+/* 施放頻率（M1-16，Q3）：有冷卻的照冷卻、沒有的照出手時間（吃攻速／施法速度）；
+   { per 幾秒一次, aps 每秒幾下, cd 冷卻（沒有＝0）, t 出手時間 }。面板怎麼寫等 M1-16b */
+function castRate(c) {
+  const t = actDur(c),
+    cd = c.cd > 0 ? c.cd : 0,
+    per = cd || t;
+  return { per, aps: per > 0 ? 1 / per : 0, cd, t };
+}
 /* 出手時能走多快（CAST_MOVE）；命令技能吃傀儡大師的移動懲罰減少 */
 const castMove = c =>
   1 -
@@ -301,6 +309,48 @@ function slotBadWarn() {
   hudWarn(
     `${slotKey(i)}「${SKILLS[S.skills[i].k].n}」失效了（${slotBad(i)}）${L.length > 1 ? `，還有 ${L.length - 1} 招也失效` : ''}`
   );
+}
+/* 做了這件事之後哪些技能會失效（M1-15）：mut 改 S、回傳還原的函式；回 [{ i, n 招名, why 原因 }]，只列原本好好的。
+   換裝、插輔助、升級都用這個（武器類別不符、能力值不足都在 slotBad 裡） */
+function skBreaks(mut) {
+  const was = S.skills.map((_, i) => slotBad(i)),
+    st = ST,
+    undo = mut();
+  ST = stats();
+  const L = [];
+  S.skills.forEach((r, i) => {
+    const why = r.k && !was[i] && i < campN('slots') ? slotBad(i) : '';
+    if (why) L.push({ i, n: SKILLS[r.k].n, why });
+  });
+  undo();
+  ST = st;
+  return L;
+}
+/* 換上這件（欄位 k）之後：副手不合規的照 changed() 收起來 */
+const eqBreaks = (it, k) =>
+  skBreaks(() => {
+    const o = { ...S.eq };
+    S.eq[k] = it;
+    if (k === 'weapon' && S.eq.off && !offOK(it, S.eq.off)) S.eq.off = null;
+    return () => Object.assign(S.eq, o);
+  });
+/* 這件換上去跟身上同部位比（M1-20，Q5 A；算法同 items.js 的 itemUp）：
+   { k 欄位, dps: [差, 百分比], hp, es, breaks }；不能裝回 { why }。戒指照 cmpSlot 的那一格（空的先、再左邊） */
+function itemDelta(it, k) {
+  k = k || (typeof cmpSlot === 'function' ? cmpSlot(it) : EQS.find(q => eqTakes(q, kindOf(it))) || {}).k;
+  const e = EQS.find(q => q.k === k);
+  if (!e || !eqTakes(e, kindOf(it))) return { why: '這一格放不下' };
+  if (!eqOpen(S, k)) return { why: '這一格被昇華鎖住' };
+  const lack = eqLack(S, it, k);
+  if (lack.length) return { why: '不符合需求：' + lackTxt(lack) };
+  if (k === 'off' && !offOK(S.eq.weapon, it)) return { why: offWhy(S.eq.weapon, it) };
+  const a = stats(),
+    eq = { ...S.eq, [k]: it };
+  if (k === 'weapon' && eq.off && !offOK(it, eq.off)) eq.off = null;
+  const b = stats({ ...S, eq }),
+    d0 = dps(a),
+    d = dps(b) - d0;
+  return { k, dps: [d, d0 ? (d / d0) * 100 : 0], hp: b.hp - a.hp, es: b.es - a.es, breaks: eqBreaks(it, k) };
 }
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */
 const metaOf = g =>

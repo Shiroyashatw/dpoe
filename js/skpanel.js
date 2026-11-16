@@ -223,9 +223,10 @@ function skList(c) {
 }
 
 /* ---------- 量差多少：暫時換上去 → skillNums → 還原 ---------- */
+/* M1-15：失效的招（武器不對、能力值不夠）DPS 算 0，總覽的主數字跟著變 */
 const dpsOf = i => {
   const c = slotCfg(i);
-  return c ? skMain(skillNums(c)) : null;
+  return c ? (slotBad(i, c) ? 0 : skMain(skillNums(c))) : null;
 };
 /* 主力：每秒最高的那一格（光環、光環的輔助拿它比） */
 const mainDps = () => S.skills.reduce((m, r, i) => (r.k ? Math.max(m, dpsOf(i) || 0) : m), 0);

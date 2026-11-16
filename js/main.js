@@ -215,12 +215,62 @@ function useSave(r) {
   save();
   proBoot();
 }
+/* ---------- 測試入口（M1-24）：?test=dualweap／nearDeath／midgame。每次載入照情境重建，存在 test_名字 存檔位、不連雲端 ----------
+   build 在 hudInit 之前做存檔；go 在開場之後（已經看過開場）做要進場地、扣血的事 */
+const TESTS = {
+  /* 拿劍、斬擊＋幻影斬，倉庫有一把穿得上的短矛（M1-15） */
+  dualweap: {
+    build: s => {
+      s.camp.altar = 1;
+      s.skills[1] = { k: 'mirage', so: [null, null], n: 2 };
+      s.lib.sk.mirage = 1;
+      invPut(s.inv, mkItem('w_spear_0', 1, 0));
+    },
+    go: () => runNode(TRUNK_K[0])
+  },
+  /* 手動模式、在怪物 Lv 高很多的地點、生命 5%：一下就倒；營地的材料夠升好幾項（M1-17 死亡卡的升級鈕） */
+  nearDeath: {
+    build: s => {
+      s.auto = 0;
+      s.camp.watch = 6;
+      s.mat.soul = 5000;
+      s.mat.mats.wood = 2000;
+      s.mat.mats['iron:1'] = 500;
+    },
+    go: () => {
+      runNode(TRUNK_K[6]);
+      P.hp = Math.max(1, Math.round(ST.hp * 0.05));
+      for (const m of G.mobs) m.aggro = 1;
+    }
+  },
+  /* 祭壇 6、鍛造台 10、瞭望台 8、斥候營 2、民房 5、倉房 2，產生器 20 級、角色 Lv 25（M1-07、M1-14 抽查後段的解鎖） */
+  midgame: {
+    build: s => {
+      Object.assign(s.camp, { altar: 6, forge: 10, watch: 8, scout: 2, house: 5, store: 2 });
+      for (const k of GEN_K) s.camp.gen[k] = { lv: 20, w: 0 };
+      s.lv = 25;
+      s.mat.soul = 3000;
+    },
+    go: () => runNode(TRUNK_K[8])
+  }
+};
+function testSave(name) {
+  const s = newGame(),
+    T = TESTS[name];
+  delete s.fresh;
+  s.eq.weapon = mkItem('w_sword1_0', 1, 0);
+  s.story.intro = s.story.prologue = PRO_VER;
+  s.auto = 1;
+  s.camp.gen = s.camp.gen || newCamp().gen;
+  if (T) T.build(s);
+  return s;
+}
 function start() {
   CV = $('cv');
   CX = CV.getContext('2d');
   resize();
   addEventListener('resize', resize);
-  S = migrate(load());
+  S = TEST ? testSave(TEST) : migrate(load());
   /* 離線結算要用的（enterHideout 之後存檔會蓋掉） */
   const farm = S.farm,
     offAt = S.offAt || S.savedAt || Date.now();
@@ -243,8 +293,15 @@ function start() {
     resume = (farm || !S.stopWhy) && S.auto && S.world.cur && !wWhy(S, ...wXY(S.world.cur)),
     o = resume ? offSettle(away) : null,
     g = offGen(away);
-  if (resume) runNode(S.world.cur);
-  if (o || away >= OFF_MIN) offShow(o, g, away);
+  if (TEST) {
+    ST = stats();
+    popAssign();
+    TESTS[TEST] ? TESTS[TEST].go() : hudWarn(`沒有「${TEST}」這個測試情境：dualweap、nearDeath、midgame`);
+    hudWarn(`測試入口：${TEST}（不存進正式存檔、不連雲端）`);
+  } else {
+    if (resume) runNode(S.world.cur);
+    if (o || away >= OFF_MIN) offShow(o, g, away);
+  }
   /* 分頁切走、手機鎖螢幕：記時間，回來時結算（主迴圈停著，產生器也要補） */
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return (HIDE_AT = Date.now()), save();

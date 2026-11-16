@@ -2016,11 +2016,6 @@ body.touch.port .bag { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8p
 .it > .bt { right: auto; left: 4px; top: 16px; bottom: auto; font-size: 10px; color: var(--milk); }
 .it > .btr { right: 3px; bottom: 2px; font-size: 10px; font-weight: 700; color: var(--milk2); }
 .it > .btr.top { background: var(--paper); color: var(--ink); padding: 1px 3px; border-radius: 2px; }
-.so { display: inline-flex; gap: 2px; align-items: center; vertical-align: middle; }
-.so i { width: 6px; height: 6px; border-radius: 50%; border: 1px solid var(--milk2); }
-.so i.f { background: var(--milk); border-color: var(--milk); }
-.it .so i { width: 5px; height: 5px; }
-.cmpc .so i, .lrow .so i { width: 7px; height: 7px; }
 .bag > .it.nq { opacity: 0.4; }
 .bag > .it.nq.on { opacity: 0.7; }
 /* 換裝卡：「這件｜身上」並排，不下判定 */
@@ -2041,7 +2036,6 @@ body.touch.port #pinv .foot.sel .cmpc { max-height: calc((100vh - var(--sheet-to
 .cmpc .h .name { font: 900 15px/1.2 var(--serif); min-width: 0; }
 .cmpc .h .sub { font-size: 12px; color: var(--milk2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cmpc .h .qq { font-size: 12px; color: var(--milk2); white-space: nowrap; }
-.cmpc .h .so { margin-left: auto; flex: none; }
 .cmpc .kv { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; font-size: 13px; color: var(--milk2); }
 .cmpc .kv b { color: var(--milk); font-variant-numeric: tabular-nums; }
 .cmpc .kv .dmg { display: flex; flex-wrap: wrap; justify-content: flex-end; max-width: 70%; line-height: 1.3; }

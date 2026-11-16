@@ -528,7 +528,9 @@ function slotPickHTML() {
 const slotPref = slots => (PORT() && NAV.view === 'char' && NAV.slot && slots.find(e => e.k === NAV.slot)) || null;
 /* 「更多」：其他功能一格一個，底下一行寫現在的狀況 */
 function moreHTML() {
-  const pts = ptLeft(),
+  /* M1-07：還沒開的選單功能只列下一個（點了到營地那一座） */
+  const nxu = nextUnlock('menu'),
+    pts = ptLeft(),
     row = (tm, n, d, a) =>
       `<button class="mrow" ${a ? `data-a="${tm}"` : `data-tm="${tm}"`}><b>${n}</b><small>${d}</small></button>`;
   return `<div class="ph"><b>更多</b><span>角色 Lv ${S.lv} · ${S.gold} 金</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
@@ -537,6 +539,7 @@ function moreHTML() {
     ${campCan('tree') ? row('tree', '天賦樹', pts > 0 ? `<span class="c-good">剩 ${pts} 點</span>` : '點數用完了') : ''}
     ${campCan('asc') ? row('f:asc', '昇華石碑', S.asc ? esc(ASC[S.asc].n) : '<span class="c-good">還沒選</span>') : ''}
     ${row('f:box', '山海寶盒', '殿與王場的門票')}
+    ${nxu ? `<button class="mrow" data-fg="jump:${nxu.b}"><b>下一個</b><small>${esc(nxu.t)}</small></button>` : ''}
     ${row('f:log', '掉落紀錄', `${(S.log || []).length} 筆 · 保底進度`)}
     ${row('set', '設定', '操作、音效、帳號')}
     ${G.scene === 'map' ? row('home', '回藏身處', '這一輪結束、刷圖暫停') : ''}
@@ -585,7 +588,11 @@ const craftSeg = on =>
   `<span class="ftabs">${CSEG()
     .map(([k, n]) => `<button class="${on === k ? 'on' : ''}" data-a="ctab:${k}">${n}</button>`)
     .join('')}</span>`;
+/* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點藏身處的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
+const PANEL_LOCK = { asc: 'asc', box: 'box' };
 function openPanel(k) {
+  const lk = PANEL_LOCK[k] && lockTxt(PANEL_LOCK[k]);
+  if (lk) return hudWarn(lk);
   TOUCH.front = k === 'stash' || k === 'skill' || k === 'craft' ? 'other' : 'inv';
   /* 左邊一次只開一個（倉庫／技能寶石／鍛造台），右邊是背包 */
   if (k === 'stash' || k === 'skill' || k === 'craft') {
@@ -1087,8 +1094,6 @@ const ASC_SHOW = ['wind', 'iron'],
   ascList = () => Object.entries(ASC).filter(([id]) => ASC_SHOW.includes(id) || id === S.asc);
 /* 這件最好的詞是 T 幾（沒有詞＝0）；跟這件物品等級能出的上限一樣就亮底 */
 const bestA = it => (it.a && it.a.length ? Math.min(...it.a.map(a => a.T)) : 0);
-const soHTML = (n, f) =>
-  `<span class="so" aria-label="${f}／${n} 孔">${Array.from({ length: n }, (_, j) => `<i class="${j < f ? 'f' : ''}"></i>`).join('')}</span>`;
 function itemHTML(it, src, eqk) {
   const b = bestA(it),
     mark = it.charm
@@ -1146,7 +1151,7 @@ function cmpCol(it, head) {
           )}</b><small>T${a.T}${isFrac(it, a) ? ' ★' : ''}</small></li>`
       ).join('')}${L.length ? '' : '<li class="none">（空）</li>'}`;
     };
-  return `<div><div class="h">${icHTML(itemIc(it))}${head}${it.q ? `<span class="qq">+${Math.round(it.q * 100)}%</span>` : ''}${it.so ? soHTML(it.so, 0) : ''}</div>
+  return `<div><div class="h">${icHTML(itemIc(it))}${head}${it.q ? `<span class="qq">+${Math.round(it.q * 100)}%</span>` : ''}</div>
   ${kv.map(([k, v]) => `<div class="kv"><span>${k}</span>${v}</div>`).join('')}
   <ul>${side(true, '前綴')}${side(false, '後綴')}</ul>${it.mem ? `<p class="mem">◆ 追憶：${esc(memText(it.mem))}</p>` : ''}</div>`;
 }
@@ -1165,12 +1170,14 @@ function cmpHTML(it, noX) {
   }
   const e = cmpSlot(it),
     cur = e && S.eq[e.k],
-    lack = e ? eqLack(S, it, e.k) : [];
+    lack = e ? eqLack(S, it, e.k) : [],
+    /* M1-15：換上去會讓哪些技能失效，先講 */
+    brk = e && !lack.length ? eqBreaks(it, e.k) : [];
   return `${noX ? '' : `<button class="x cmpx" aria-label="收起" data-a="selno">${ICO.x}</button>`}<div class="cmpc">${cmpCol(it, `<span class="name rc${it.r}">${esc(itemName(it))}</span>`)}${
     cur
       ? cmpCol(cur, `<span class="sub">身上・${esc(itemName(cur))}</span>`)
       : `<div class="emp">${e ? `${e.n}現在空著` : '沒有能放的欄位'}</div>`
-  }</div>${lack.length ? `<p class="c-bad cmpno">不能裝上：${esc(lackTxt(lack))}</p>` : ''}`;
+  }</div>${lack.length ? `<p class="c-bad cmpno">不能裝上：${esc(lackTxt(lack))}</p>` : brk.length ? `<p class="c-bad cmpno">換上後：${esc(brk.map(x => x.n).join('、'))}不能用（${esc(brk[0].why)}）</p>` : ''}`;
 }
 /* 換裝卡的動作列（黏在底部，取代「賣出篩選到的」） */
 function cmpActs(it) {
@@ -1637,7 +1644,7 @@ function revealHTML() {
     sel = rvSel(),
     row = (it, k) =>
       k < REV.i
-        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''} ${REV.craft && sel === it ? 'on' : ''} ${it.salv || (REV.craft && !S.inv.items.includes(it)) ? 'gone' : ''}" ${REV.craft && !it.salv && S.inv.items.includes(it) ? `role="button" tabindex="0" data-a="rvsel:${it.id}"` : ''}>${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.so ? ' · 孔 ' + '○'.repeat(it.so) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${it.salv ? ' · 已分解' : REV.craft && !S.inv.items.includes(it) ? ' · 換上了' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
+        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''} ${REV.craft && sel === it ? 'on' : ''} ${it.salv || (REV.craft && !S.inv.items.includes(it)) ? 'gone' : ''}" ${REV.craft && !it.salv && S.inv.items.includes(it) ? `role="button" tabindex="0" data-a="rvsel:${it.id}"` : ''}>${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${it.salv ? ' · 已分解' : REV.craft && !S.inv.items.includes(it) ? ' · 換上了' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
         : `<div class="rvr un r${it.r} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">？？？</b><small>${esc(baseOf(it).n)} · T${itemT(it)}${it.frac ? ' · ★' : ''}${it.mem ? ' · ◈' : ''}</small></div></div>`;
   /* 沒有要翻的（離線卡，0.5.4 考核 E2）：不寫「0／0 件」；head 可以是函式（按了升級要重畫） */
   return `<div class="ph"><b>${esc(REV.title)}</b>${n ? `<span>${Math.min(REV.i, n)}／${n} 件</span>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
@@ -1907,8 +1914,12 @@ function changed() {
   const selA = S.auras[SKUI.ai];
   S.auras.splice(0, S.auras.length, ...S.auras.filter(Boolean), null);
   SKUI.ai = selA ? S.auras.indexOf(selA) : Math.min(SKUI.ai, S.auras.length - 1);
-  const hpF = P.hp / ST.hp;
+  const hpF = P.hp / ST.hp,
+    /* M1-15：這一下讓技能失效了（換裝、退天賦…）：HUD 立刻講，不用等進圖 */
+    badOf = () => S.skills.map((_, i) => !!slotBad(i)),
+    bad0 = badOf();
   ST = stats();
+  if (badOf().some((b, i) => b && !bad0[i])) slotBadWarn();
   P.hp = Math.min(ST.hp, Math.max(1, hpF * ST.hp));
   P.mp = Math.min(ST.mp, P.mp);
   bagWarm();

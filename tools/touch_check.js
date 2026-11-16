@@ -1909,6 +1909,182 @@ let fail = 0;
       await p.screenshot({ path: shot('m1_fresh') });
     }
   }
+  /* ---------- M1-B：天賦樹路線名稱、解鎖判斷、下一個解鎖、裝備不寫孔、技能失效、測試入口 ---------- */
+  if (PORTM) {
+    const tapAt = async r => {
+      await touch('touchStart', [r]);
+      await p.waitForTimeout(40);
+      await touch('touchEnd', []);
+      await p.waitForTimeout(300);
+    };
+    const at = q =>
+      p.evaluate(q => {
+        const e = document.querySelector(q);
+        if (!e) return null;
+        const b = e.getBoundingClientRect();
+        return [b.left + b.width / 2, b.top + b.height / 2];
+      }, q);
+    /* 新存檔（另一個存檔位 ?p=12）：跳過開場 */
+    await p.goto(URL + '?p=12&' + Date.now());
+    await p.waitForTimeout(1500);
+    await p.evaluate(() => {
+      introStop();
+      proSkip();
+      S.auto = 1;
+    });
+    await p.waitForTimeout(300);
+    /* M1-06：祭壇 Lv0，從更多選單、直接叫都打不開天賦樹與昇華石碑，跳「升祭壇到 Lv n 才開」 */
+    const lk = await p.evaluate(() => {
+      treeOpen();
+      const t = [TREE.open, $('warn').textContent];
+      openPanel('asc');
+      return [...t, !!PANEL.asc, $('warn').textContent];
+    });
+    ok(
+      'M1-06：祭壇不夠時天賦樹、昇華石碑打不開，跳「升祭壇到 Lv n 才開」',
+      !lk[0] && lk[1] === '升祭壇到 Lv 4 才開' && !lk[2] && lk[3] === '升祭壇到 Lv 7 才開',
+      JSON.stringify(lk)
+    );
+    /* M1-07：更多選單只多一列「下一個」；升到之後換下一項；永遠不超過一列 */
+    const nx = async () => {
+      await p.evaluate(() => {
+        closePanels();
+        navGo('more');
+      });
+      await p.waitForTimeout(250);
+      return p.evaluate(() =>
+        [...document.querySelectorAll('#pmore .mrow')]
+          .filter(b => b.querySelector('b').textContent === '下一個')
+          .map(b => b.querySelector('small').textContent)
+      );
+    };
+    const n0 = await nx();
+    await p.screenshot({ path: shot('m1_more') });
+    await p.evaluate(() => (S.camp.altar = 4));
+    const n1 = await nx();
+    await p.evaluate(() => (S.camp.altar = 11));
+    const n2 = await nx();
+    ok(
+      'M1-07：更多選單只多一列「下一個」、升級後換成下一項、全開了就沒有',
+      n0.join() === '升祭壇到 Lv 4 開天賦樹' && n1.join() === '升祭壇到 Lv 7 開昇華石碑' && n2.length === 0,
+      JSON.stringify([n0, n1, n2])
+    );
+    /* M1-03：天賦樹一打開，六條路的全名都在畫面裡、不在中央的昇華圓裡、沒被頂部列與分頁列蓋住 */
+    await p.evaluate(() => {
+      closePanels();
+      S.camp.altar = 4;
+      TREE.seen = 0;
+      treeOpen();
+    });
+    await p.waitForTimeout(600);
+    const tn = await p.evaluate(() => {
+      const a = document.querySelector('#tascgo circle').getBoundingClientRect(),
+        v = $('tview').getBoundingClientRect(),
+        ax = a.left + a.width / 2,
+        ay = a.top + a.height / 2;
+      return [...document.querySelectorAll('#tg .secn')].map(t => {
+        const q = t.getBoundingClientRect(),
+          corners = [
+            [q.left, q.top],
+            [q.right, q.top],
+            [q.left, q.bottom],
+            [q.right, q.bottom]
+          ];
+        return [
+          t.textContent,
+          getComputedStyle(t).display !== 'none' && q.width > 20,
+          corners.every(([x, y]) => Math.hypot(x - ax, y - ay) > a.width / 2),
+          q.left >= v.left && q.right <= v.right && q.top >= v.top && q.bottom <= v.bottom
+        ];
+      });
+    });
+    await p.screenshot({ path: shot('m1_tree') });
+    ok(
+      'M1-03：天賦樹一打開六條路的全名都看得到、不碰中央圓、在樹的畫面裡',
+      tn.length === 6 && tn.every(x => x[1] && x[2] && x[3]),
+      JSON.stringify(tn.filter(x => !(x[1] && x[2] && x[3])))
+    );
+    await p.evaluate(() => treeClose());
+    /* M1-09 ＋ M1-15：拿劍、斬擊＋幻影斬，倉庫一把短矛：說明框沒有「孔」；換裝卡事先寫會失效的招；換上後 HUD 立刻講、DPS 算 0 */
+    await p.evaluate(() => {
+      S.camp.altar = 1;
+      S.skills[1] = { k: 'mirage', so: [null, null], n: 2 };
+      S.lib.sk.mirage = 1;
+      const sp = mkItem('w_spear_0', 1, 0);
+      sp.so = 2;
+      invPut(S.inv, sp);
+      ST = stats();
+      closePanels();
+      navGo('bag');
+      BAG.sel = sp.id;
+      hudPanels();
+    });
+    await p.waitForTimeout(400);
+    const cm = await p.evaluate(() => {
+      const c = document.querySelector('#pinv .cmpno, .cmpno');
+      return c ? c.textContent : '';
+    });
+    await p.screenshot({ path: shot('m1_cmp') });
+    ok('M1-15：換裝卡先寫「換上後：斬擊、幻影斬不能用」', /換上後：斬擊、幻影斬不能用/.test(cm), cm);
+    const so = await p.evaluate(() => {
+      const it = S.inv.items.find(i => i.b === 'w_spear_0');
+      return [baseLayers(it), document.querySelector('.cmpc') ? document.querySelector('.cmpc').innerText : ''];
+    });
+    ok('M1-09：說明框與換裝卡不寫裝備的孔', !so.join().includes('孔') && !so.join().includes('○'), JSON.stringify(so));
+    const mv = await at('[data-a=selmove]');
+    if (mv) await tapAt(mv);
+    const af = await p.evaluate(() => [S.eq.weapon.b, $('warn').textContent, dpsOf(0), dpsOf(1), mainDps()]);
+    ok(
+      'M1-15：換上短矛 HUD 立刻講失效、失效的招 DPS 算 0、總覽主數字 0',
+      af[0] === 'w_spear_0' && /失效/.test(af[1]) && af[2] === 0 && af[3] === 0 && af[4] === 0,
+      JSON.stringify(af)
+    );
+    /* M1-24：三個測試入口 */
+    const tst = {};
+    for (const n of ['dualweap', 'nearDeath', 'midgame']) {
+      await p.goto(URL + '?test=' + n + '&' + Date.now());
+      await p.waitForTimeout(2500);
+      if (n === 'nearDeath')
+        await p.waitForFunction(() => G.state === 'dead', null, { timeout: 20000 }).catch(() => {});
+      tst[n] = await p.evaluate(() => ({
+        slot: SLOT,
+        scene: G.scene,
+        node: G.node,
+        auto: S.auto,
+        wpn: S.eq.weapon && S.eq.weapon.b,
+        spear: S.inv.items.some(i => i.b === 'w_spear_0'),
+        sk1: S.skills[1].k,
+        altar: S.camp.altar,
+        forge: S.camp.forge,
+        lv: S.lv,
+        dead: G.state === 'dead',
+        up: !!document.querySelector('#over .dup')
+      }));
+    }
+    await p.screenshot({ path: shot('m1_test_mid') });
+    ok(
+      'M1-24 ?test=dualweap：拿劍、第 2 格幻影斬、倉庫有短矛、在刷',
+      tst.dualweap.slot === 'test_dualweap' &&
+        tst.dualweap.wpn === 'w_sword1_0' &&
+        tst.dualweap.spear &&
+        tst.dualweap.sk1 === 'mirage' &&
+        tst.dualweap.scene === 'map',
+      JSON.stringify(tst.dualweap)
+    );
+    ok(
+      'M1-24 ?test=nearDeath：手動模式、很快倒下、死亡卡有升級鈕',
+      tst.nearDeath.auto === 0 && tst.nearDeath.dead && tst.nearDeath.up,
+      JSON.stringify(tst.nearDeath)
+    );
+    ok(
+      'M1-24 ?test=midgame：祭壇 6、鍛造台 10、Lv 25、在刷',
+      tst.midgame.altar === 6 && tst.midgame.forge === 10 && tst.midgame.lv === 25 && tst.midgame.scene === 'map',
+      JSON.stringify(tst.midgame)
+    );
+    await p.goto(URL + '?p=7&' + Date.now());
+    await p.waitForTimeout(1500);
+    ok('M1-24：不帶 ?test 時是自己的存檔位', await p.evaluate(() => SLOT === '7' && TEST === ''));
+  }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');
   await b.close();
