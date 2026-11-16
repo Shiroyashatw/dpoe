@@ -10266,4 +10266,18 @@ const ASC_COMBOS = `const combos = k => {
   const late = Object.entries(R('SKILLS')).filter(([, d]) => d.tags.some(t => ['cond', 'payoff', 'final'].includes(t)));
   ok('技能目錄裡有 payoff／final 的招（出招順序才有東西排）', late.length > 0, String(late.length));
 }
+/* M0-05：README 的版本跟 version.json 一樣、快捷鍵表跟設定裡的 KEYS_PC（hud.js）一列一列對得上 */
+{
+  const rd = p => fs.readFileSync(path.join(__dirname, '..', p), 'utf8'),
+    md = rd('README.md'),
+    v = JSON.parse(rd('version.json')).v,
+    keys = [
+      ...rd('js/hud.js')
+        .match(/const KEYS_PC = \[([\s\S]*?)\n\];/)[1]
+        .matchAll(/\['([^']+)', '([^']+)'\]/g)
+    ],
+    miss = keys.filter(([, k, d]) => !md.includes(`| ${k} | ${d} |`)).map(m => m[1]);
+  ok('README 的版本跟 version.json 一樣', md.includes(`v${v}`), v);
+  ok('README 的桌機快捷鍵跟設定裡的操作表一致', keys.length > 10 && !miss.length, miss.join('、'));
+}
 process.exit(bad ? 1 : 0);

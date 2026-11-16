@@ -174,7 +174,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 #tip .sktip { margin: 0; }
 
 /* ---------- 死掉、通關 ---------- */
-#over { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); }
+#over { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); }
 #over[hidden] { display: none; }
 #over .card { display: block; min-width: 340px; max-width: 440px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; animation: pop 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 #over h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
@@ -304,7 +304,7 @@ body.touch .orb { width: 56px; height: 56px; }
 body.touch .orb span { font-size: 10px; }
 body.touch .mid { width: 110px; margin: 0; padding-top: 6px; }
 body.touch .top { left: calc(10px + env(safe-area-inset-left)); right: calc(10px + env(safe-area-inset-right)); top: calc(72px + env(safe-area-inset-top)); }
-body.touch #area { font-size: var(--fs-s); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.touch #area { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.touch #warn { bottom: auto; top: 30%; }
 /* 右下技能鍵：大的是普攻，4 個技能排成弧形，外圈翻滾、藥水、互動 */
 body.touch #bar { position: fixed; right: calc(70px + env(safe-area-inset-right)); bottom: calc(64px + env(safe-area-inset-bottom)); width: 0; height: 0; display: block; }
@@ -1907,7 +1907,7 @@ body:not(.touch) .mid { padding: 0; background: none; box-shadow: none; margin: 
 .hb { height: 12px; background: rgba(0, 0, 0, 0.7); border: 0; box-shadow: none; border-radius: 2px; }
 .hb i { background: #8a2a2a; }
 .hb.mp i { background: #2b4a8a; }
-#area, .hud .loc { padding: 4px 8px; background: rgba(0, 0, 0, 0.5); border-radius: 2px; font: 500 12px var(--font); color: var(--milk); text-shadow: none; }
+#area, .hud .loc { padding: 4px 8px; background: rgba(0, 0, 0, 0.5); border-radius: 2px; font: 500 14px var(--font); color: var(--milk); text-shadow: none; }
 body.touch.port #area::after { content: ''; }
 body.touch.port .tmenu { display: none; }
 body.touch.port.sheet #prog { display: none; }

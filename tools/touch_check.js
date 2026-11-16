@@ -43,6 +43,8 @@ let fail = 0;
     if (!v) fail++;
     console.log((v ? '✅ ' : '❌ ') + n + (d ? ' ' + d : ''));
   };
+  /* M0-06：還沒有手勢就不建立 AudioContext（不跳主控台警告）；第一次點了才建立（檔案最後再驗） */
+  ok('還沒點過：音效還沒建立', await p.evaluate(() => !AC));
   ok('進來就是觸控模式', await p.evaluate(() => document.body.classList.contains('touch')));
   /* 直的尺寸測直立操作（龍絆式手勢），橫的尺寸測橫向操作 */
   const PORTM = H > W;
@@ -1630,6 +1632,133 @@ let fail = 0;
     ];
     ok('技能、昇華石碑：不出畫面、主要動作看得到', L.flat().every(Boolean), JSON.stringify(L));
     await p.evaluate(() => closePanels());
+  }
+  /* ---------- M0：死亡卡與確認卡在最上層、世界暫停、繼續刷是主按鈕、更多的地點副標 ---------- */
+  {
+    const tapEl = async q => {
+      const r = await p.evaluate(q => {
+        const b = document.querySelector(q).getBoundingClientRect();
+        return [b.left + b.width / 2, b.top + b.height / 2];
+      }, q);
+      await touch('touchStart', [r]);
+      await p.waitForTimeout(40);
+      await touch('touchEnd', []);
+      await p.waitForTimeout(250);
+    };
+    /* 卡片上每顆鈕的正中央點下去，最上面的是那顆鈕本身（沒被面板、掛機卡蓋住） */
+    const onTop = () =>
+      p.evaluate(() => {
+        const bs = [...document.querySelectorAll('#over:not([hidden]) .btn')];
+        return (
+          bs.length > 0 &&
+          bs.every(b => {
+            const r = b.getBoundingClientRect(),
+              el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            return el && b.contains(el);
+          })
+        );
+      });
+    await p.evaluate(() => {
+      closePanels();
+      if (TREE.open) treeClose();
+      S.auto = 0;
+      runNode(TRUNK_K[0]);
+    });
+    await p.waitForTimeout(600);
+    /* 開著戰利品和營地時倒下（手動模式；自動＋直立照 0.4.4 只跳通知，上面另外測） */
+    await p.evaluate(() => {
+      openPanel('inv');
+      PANEL.craft = true;
+      hudPanels();
+      P.hp = 0;
+      die();
+    });
+    await p.waitForTimeout(300);
+    ok(
+      '開著戰利品與營地時倒下：死亡卡在最上層、面板收起來、兩顆鈕點得到',
+      (await p.evaluate(
+        () =>
+          !$('over').hidden &&
+          !anyPanel() &&
+          $('pidle').hidden &&
+          +getComputedStyle($('over')).zIndex >= 40 &&
+          document.querySelectorAll('#over .btn').length === 2
+      )) && (await onTop())
+    );
+    await p.screenshot({ path: shot('m0_dead') });
+    const t0 = await p.evaluate(() => G.t);
+    await p.waitForTimeout(1000);
+    ok('倒下時世界停住', await p.evaluate(t0 => G.t === t0, t0));
+    await tapEl('#over [data-a=again]');
+    ok('死亡卡的「再試一次」點得到', await p.evaluate(() => G.state === 'play' && $('over').hidden));
+    /* 確認卡：開 10 秒，怪物貼在身邊也不會受傷、不會跳新的傷害數字；關掉後戰鬥接著跑 */
+    await p.waitForTimeout(800);
+    await p.evaluate(() => {
+      openPanel('more');
+      for (const m of G.mobs) (m.aggro = 1), (m.x = P.x + 20), (m.y = P.y);
+      homeAsk();
+      window._m0 = { hp: P.hp, t: G.t, n: G.nums.length };
+    });
+    await p.waitForTimeout(300);
+    ok(
+      '確認卡在最上層、底下的選單收起來、兩顆鈕點得到',
+      (await p.evaluate(() => !$('over').hidden && !anyPanel())) && (await onTop())
+    );
+    await p.screenshot({ path: shot('m0_ask') });
+    await p.waitForTimeout(10000);
+    ok(
+      '確認卡開著 10 秒：生命不變、世界時間不動、沒有新的傷害數字',
+      await p.evaluate(() => P.hp === _m0.hp && G.t === _m0.t && G.nums.length <= _m0.n),
+      await p.evaluate(() => `${Math.round(_m0.hp)}→${Math.round(P.hp)}`)
+    );
+    await tapEl('#over [data-a=askno]');
+    await p.waitForTimeout(500);
+    ok('按「繼續刷圖」：卡片關掉、戰鬥接著跑', await p.evaluate(() => $('over').hidden && G.t > _m0.t));
+    /* 更多選單的「地點」：正在刷時寫目前的地點名 */
+    await p.evaluate(() => openPanel('more'));
+    await p.waitForTimeout(200);
+    ok(
+      '更多的「地點」副標寫正在刷的地點',
+      await p.evaluate(() => {
+        const s = document.querySelector('[data-tm="nav:node"] small, [data-a="nav:node"] small');
+        return !!s && s.textContent.includes('正在刷：' + G.nodeN);
+      })
+    );
+    /* 回藏身處：「繼續刷」是標準主按鈕（≥44px、字 14～17px）；地點名 14px */
+    /* 鍵盤（M0-04）：T 開確認卡、Esc＝取消、連按兩下 T＝回藏身處 */
+    await p.evaluate(() => closePanels());
+    await p.keyboard.press('t');
+    await p.waitForTimeout(200);
+    const askT = await p.evaluate(() => !$('over').hidden && G.ask === 'home');
+    await p.keyboard.press('Escape');
+    await p.waitForTimeout(200);
+    ok(
+      'T 開確認卡、Esc＝取消（還在地圖、沒開設定）',
+      askT && (await p.evaluate(() => $('over').hidden && G.scene === 'map' && !PANEL.set))
+    );
+    await p.keyboard.press('t');
+    await p.waitForTimeout(150);
+    await p.keyboard.press('t');
+    await p.waitForTimeout(500);
+    ok('連按兩下 T：回到藏身處', await p.evaluate(() => G.scene === 'hide' && $('over').hidden));
+    const rb = await p.evaluate(() => {
+      const b = document.querySelector('#run [data-a=resume]'),
+        a = $('area');
+      return (
+        b && {
+          h: Math.round(b.getBoundingClientRect().height),
+          f: parseFloat(getComputedStyle(b).fontSize),
+          a: parseFloat(getComputedStyle(a).fontSize)
+        }
+      );
+    });
+    ok(
+      '「繼續刷」≥44px、字 14～17px；地點名 14px',
+      !!rb && rb.h >= 44 && rb.f >= 14 && rb.f <= 17 && rb.a === 14,
+      JSON.stringify(rb)
+    );
+    await p.screenshot({ path: shot('m0_resume') });
+    ok('點過之後音效建立了', await p.evaluate(() => !!AC && AC.state !== 'closed'));
   }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');

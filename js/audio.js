@@ -10,9 +10,14 @@ function ac() {
     OUT.connect(AC.destination);
   }
   OUT.gain.value = muted() ? 0 : 1;
-  if (AC.state === 'suspended') AC.resume();
   return AC;
 }
+/* 第一次點或按鍵才建立（瀏覽器規定有手勢才能出聲，太早建立會跳警告）；之後每次手勢只在被暫停時恢復（M0-06） */
+function audioWake() {
+  ac();
+  if (AC.state === 'suspended') AC.resume();
+}
+for (const ev of ['pointerdown', 'keydown']) addEventListener(ev, audioWake, { capture: true, passive: true });
 let NOISE;
 function noise() {
   const a = ac();
@@ -55,7 +60,7 @@ function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
 }
 let lastHit = 0;
 function sfx(k) {
-  if (muted()) return;
+  if (muted() || !AC) return; /* 還沒有手勢：略過 */
   try {
     const now = ac().currentTime;
     if ((k === 'hit' || k === 'crit') && now - lastHit < 0.03) return;
