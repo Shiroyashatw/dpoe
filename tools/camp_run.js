@@ -149,7 +149,7 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     M = await p.evaluate(() => ({ r1: __r1, up: __up, say: __say }));
   /* 前 15 分鐘的小變強：秒數去重，算最大間隔（含 0 秒到第一次）與每分鐘幾次 */
   const T = [...new Set(M.up.map(u => u[0]).filter(t => t <= 900))].sort((a, b) => a - b),
-    gaps = T.map((t, i) => t - (i ? T[i - 1] : 0)),
+    gaps = [...T, Math.min(900, MIN * 60)].map((t, i, L) => t - (i ? L[i - 1] : 0)),
     per = Array.from({ length: Math.min(15, MIN) }, (_, i) => T.filter(t => t >= i * 60 && t < (i + 1) * 60).length);
   console.log(
     `\n${MIN} 分鐘（${VW}×${VH}）：新東西 ${news} 個、換上 ${ups} 次、產生器升了 ${rows[rows.length - 1].gens} 級、頁面錯誤 ${errs.length}`
