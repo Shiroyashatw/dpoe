@@ -2026,6 +2026,8 @@ function updShots(dt) {
 
 /* ---------- 主迴圈 ---------- */
 let last = 0;
+/* 世界停住嗎（Q9 的共用開關；M1-10 再加手動模式開面板、技能挑選、天賦樹）：確認卡、倒下 */
+const worldPaused = () => !!G.ask || G.state === 'dead';
 function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
@@ -2043,7 +2045,10 @@ function frame(now) {
     G.slow -= rdt;
     dt *= ROLL.slowScale;
   }
-  if (dt > 0) {
+  /* 世界暫停（M0-02）：敵人、投射物、傷害、出怪都停，產生器照產（上面的 genTick）；倒下時只跑 AI 的重來計時 */
+  if (dt > 0 && worldPaused()) {
+    if (G.state === 'dead') aiTick(dt);
+  } else if (dt > 0) {
     G.t += dt;
     updPlayer(dt);
     updMobs(dt);

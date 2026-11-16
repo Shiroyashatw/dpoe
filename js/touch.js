@@ -115,10 +115,11 @@ function moreMenu(on) {
   el.hidden = !on;
   for (const b of document.querySelectorAll('[data-tm=more]')) b.setAttribute('aria-expanded', on);
 }
-/* 刷圖中回藏身處：跳確認卡（hud.js 的 hudState，G.ask），按「回藏身處」才走 */
+/* 刷圖中回藏身處：跳確認卡（hud.js 的 hudState，G.ask），按「回藏身處」或再按一次 T 才走（M0-04） */
 function homeAsk() {
   if (G.scene !== 'map' || G.state !== 'play') return;
-  G.ask = G.ask === 'home' ? 0 : 'home';
+  if (G.ask === 'home') return act('home');
+  G.ask = 'home';
   hudState();
 }
 

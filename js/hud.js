@@ -113,7 +113,7 @@ function hudInit() {
       <div class="bar" id="bar"></div>
     </div>
     <div class="orb mp" id="omp"><i></i><svg class="spir" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 95 A45 45 0 0 1 50 5"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 1 50 5"/></svg><span></span></div>
-    <div class="dmenu"><button class="autob2" data-tm="more" data-tip="世界地圖、通貨、鍛造、商人、昇華、山海寶盒" aria-expanded="false">功能</button>${DMENU.map(([k, ic, n, key]) => `<button data-tm="${k}" data-tip="${n}（${key}）" aria-label="${n}">${ICO[ic]}<kbd>${key}</kbd></button>`).join('')}</div>
+    <div class="dmenu"><button class="autob2" data-tm="more" data-tip="地點、通貨與碎片、營地、昇華石碑、山海寶盒、掉落紀錄" aria-expanded="false">功能</button>${DMENU.map(([k, ic, n, key]) => `<button data-tm="${k}" data-tip="${n}（${key}）" aria-label="${n}">${ICO[ic]}<kbd>${key}</kbd></button>`).join('')}</div>
   </div>
   <nav id="dnav" class="donly" aria-label="功能"></nav>
   <div id="prac" hidden></div>
@@ -334,6 +334,15 @@ function deathCause() {
   if (!h) return '';
   return `<p class="ddeath">死因：<b>${esc(h.n)}</b>${h.d ? ` · ${ELN[h.el] || '物理'} ${h.d} 傷害` : ''}</p>`;
 }
+/* 死亡卡、確認卡出現時（M0-01）：底下的面板、天賦樹、掛機卡先收起來，卡片在最上層（#over z-index 40），兩顆鈕點得到 */
+function overOn(o) {
+  if (o.hidden) {
+    if (anyPanel()) closePanels();
+    if (TREE.open) treeClose();
+    $('pidle').hidden = true;
+  }
+  o.hidden = false;
+}
 /* 死掉、通關：中間的卡片 */
 function hudState() {
   const o = $('over');
@@ -348,11 +357,13 @@ function hudState() {
       mods = (G.card && G.card.mods) || [];
     o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}${mods.length ? `<p class="dmods">這一輪的地圖詞：${mods.map(m => esc(MAPMOD[m].t)).join('、')}</p>` : ''}<p>不扣經驗，裝備都還在。${S.auto && again ? `自動模式會原地重來；同一個地點連死 ${DEAD_MAX} 次退回上一個地點。` : ''}</p>
       <div class="pbtns">${again ? `<button class="btn pri" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : ''}<button class="btn ${again ? '' : 'pri'}" data-a="home">回藏身處<small>自動刷圖暫停</small></button></div></div>`;
-    o.hidden = false;
+    overOn(o);
   } else if (G.ask === 'home' && G.scene === 'map' && G.state === 'play') {
+    /* 桌機：T 再按一次＝回去、Esc＝繼續刷圖（M0-04） */
+    const k = t => (TOUCH.on ? '' : `<small>${t}</small>`);
     o.innerHTML = `<div class="card ask"><h2>回藏身處？</h2><p>這一輪會結束，地上的東西照樣收進倉庫。${S.auto ? '<br>自動刷圖會暫停。' : ''}</p>
-      <div class="pbtns"><button class="btn pri" data-a="home">回藏身處</button><button class="btn" data-a="askno">繼續刷圖</button></div></div>`;
-    o.hidden = false;
+      <div class="pbtns"><button class="btn pri" data-a="home">回藏身處${k('T')}</button><button class="btn" data-a="askno">繼續刷圖${k('Esc')}</button></div></div>`;
+    overOn(o);
   } else o.hidden = true;
 }
 
@@ -514,7 +525,7 @@ function moreHTML() {
       `<button class="mrow" ${a ? `data-a="${tm}"` : `data-tm="${tm}"`}><b>${n}</b><small>${d}</small></button>`;
   return `<div class="ph"><b>更多</b><span>角色 Lv ${S.lv} · ${S.gold} 金</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="mgrid">
-    ${row('nav:node', '地點', esc(G.scene === 'map' && G.nodeN ? `${G.nodeN} · ${G.star || 1}★` : '選一個地點開始刷'))}
+    ${row('nav:node', '地點', esc(G.scene === 'map' && G.nodeN ? `正在刷：${G.nodeN} · ${G.star || 1}★` : '選一個地點開始刷'))}
     ${campCan('tree') ? row('tree', '天賦樹', pts > 0 ? `<span class="c-good">剩 ${pts} 點</span>` : '點數用完了') : ''}
     ${campCan('asc') ? row('f:asc', '昇華石碑', S.asc ? esc(ASC[S.asc].n) : '<span class="c-good">還沒選</span>') : ''}
     ${row('f:box', '山海寶盒', '殿與王場的門票')}
@@ -615,17 +626,24 @@ const anyPanel = () =>
   PANEL.node;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
 const KEYS_PC = [
-  ['WASD', '移動'],
-  ['滑鼠', '瞄準'],
-  ['左鍵 右鍵 Q E R', '技能'],
+  ['C', '自動／手動'],
+  ['WASD', '移動（手動）'],
+  ['滑鼠', '瞄準（手動）'],
+  ['左鍵 右鍵 Q E R', '技能（手動）'],
   ['空白', '翻滾（怪物出手的瞬間翻滾＝完美閃避）'],
   ['1 ／ 2', '生命藥劑 ／ 魔力藥劑'],
-  ['F', '互動、撿東西（也可以直接點地上的名字）'],
-  ['I', '裝備與倉庫'],
+  ['F', '互動、撿東西'],
+  ['I ／ B', '裝備與倉庫'],
   ['G', '技能'],
   ['P', '天賦樹'],
-  ['T', '回藏身處（地圖裡會先確認）'],
-  ['Esc', '關閉面板；沒有面板時打開設定']
+  ['M', '地點'],
+  ['O', '通貨與碎片'],
+  ['K', '營地'],
+  ['U', '昇華石碑'],
+  ['J', '山海寶盒'],
+  ['L', '掉落紀錄'],
+  ['T', '回藏身處（地圖裡先確認，再按一次 T＝回去）'],
+  ['Esc', '取消確認、關閉面板；都沒有時打開設定']
 ];
 const KEYS_PORT = [
   ['按住拖', '移動（手指按哪裡，搖桿就在哪裡）'],
@@ -633,14 +651,14 @@ const KEYS_PORT = [
   ['按住不動', '連續普攻'],
   ['快速一撥', '往那個方向翻滾'],
   ['技能鍵', '點＝自動瞄準 · 拖出去＝手動瞄準 · 拖回按鈕＝取消'],
-  ['道具', '點一下看說明與動作 · 地上的名字點一下撿起來']
+  ['道具', '點一下看說明與動作']
 ];
 const KEYS_LAND = [
   ['左半邊拖', '移動'],
   ['大按鈕', '普攻（按住連打）'],
   ['技能鍵', '點＝自動瞄準 · 拖出去＝手動瞄準 · 拖回按鈕＝取消'],
   ['翻滾鍵', '翻滾（怪物出手的瞬間＝完美閃避）'],
-  ['道具', '點一下看說明與動作 · 地上的名字點一下撿起來']
+  ['道具', '點一下看說明與動作']
 ];
 function setHTML() {
   const rows = TOUCH.on ? (PORT() ? KEYS_PORT : KEYS_LAND) : KEYS_PC,
@@ -1819,7 +1837,7 @@ function runBar() {
   HV.run = k;
   const el = $('run');
   el.hidden = !k;
-  el.innerHTML = `${W.note ? `<span class="c-warn">${esc(W.note)}</span><button class="x" data-a="runok" aria-label="知道了">${ICO.x}</button>` : ''}${G.scene === 'hide' && cur ? `<button class="btn mini pri" data-a="resume">繼續刷 ${esc(wName(S, ...wXY(cur)))}</button>` : ''}`;
+  el.innerHTML = `${W.note ? `<span class="c-warn">${esc(W.note)}</span><button class="x" data-a="runok" aria-label="知道了">${ICO.x}</button>` : ''}${G.scene === 'hide' && cur ? `<button class="btn pri" data-a="resume">繼續刷 ${esc(wName(S, ...wXY(cur)))}</button>` : ''}`;
 }
 /* ---------- 找道具、移動道具 ---------- */
 /* 通貨面板開在通貨頁（點倉庫的裝備＝放進中間） */
@@ -2279,7 +2297,8 @@ function inputInit() {
     else if (k === 'f') interact();
     else if (k === 'i' || k === 'b') PANEL.inv ? closePanels() : openPanel('inv');
     else if (FMENU.some(f => f[2].toLowerCase() === k)) fmenuOpen(FMENU.find(f => f[2].toLowerCase() === k)[0]);
-    else if (k === 'escape') TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
+    else if (k === 'escape')
+      G.ask ? act('askno') : TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
     else if (k === 't') homeAsk();
     else if (k === 'c') autoToggle();
     pressFx(k);
