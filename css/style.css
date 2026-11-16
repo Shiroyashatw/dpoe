@@ -333,9 +333,10 @@ body.touch .tmenu { display: flex; gap: 6px; position: fixed; top: calc(8px + en
 .tmenu button:active { scale: 0.94; border-color: var(--gold); }
 .tmenu button[hidden] { display: none; }
 /* 直拿手機：請橫過來 */
-#rot { position: fixed; inset: 0; z-index: 60; place-items: center; background: var(--bg); color: var(--tx); font-size: var(--fs-l); font-weight: 700; pointer-events: auto; }
-@media (orientation: portrait) { body.touch:not(.port) #rot { display: grid; } }
-@media (orientation: landscape) { body.touch.port #rot { display: grid; } }
+/* M1-05：方向不對時只在最上面一條（不蓋住戰鬥畫面），切換鈕一定在畫面裡；太矮時這一條自己捲 */
+#rot { position: fixed; top: 0; left: 0; right: 0; z-index: 60; align-items: center; gap: 12px; max-height: 100%; overflow-y: auto; padding: calc(8px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 8px calc(16px + env(safe-area-inset-left)); background: var(--stone); border-bottom: 1px solid var(--fr); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); color: var(--tx); font-size: var(--fs); font-weight: 700; pointer-events: auto; }
+@media (orientation: portrait) { body.touch:not(.port) #rot { display: flex; } }
+@media (orientation: landscape) { body.touch.port #rot { display: flex; } }
 /* 面板：貼著螢幕上下、可以捲；夠寬就左右並排（各半），窄就一次一個（標題列切換） */
 .ph .sw { display: none; }
 body.touch .panel { top: calc(6px + env(safe-area-inset-top)); max-height: calc(100dvh - 12px); padding: 10px; overscroll-behavior: contain; }
@@ -545,6 +546,8 @@ body.touch .panel { --pp: 10px; }
 #warn { font-family: var(--serif); color: var(--title); letter-spacing: 0.06em; }
 #over .card h2 { font-family: var(--serif); color: var(--title); }
 #over .card h2.c-bad { color: #e8574f; }
+/* M1-17：死亡卡的「現在可以升」：一整列、在兩顆主鈕上面 */
+#over .card .btn.dup { display: block; width: 100%; min-height: 48px; margin: 12px 0 4px; white-space: normal; }
 #over .card.portal h2 { color: #a9cfff; }
 /* 天賦樹：石材工具列、金色連線 */
 #ptree { background: radial-gradient(ellipse at 50% 45%, var(--s2), var(--s0) 75%); }
@@ -637,10 +640,9 @@ body.touch .tmore:not([hidden]) { display: flex; flex-direction: column; gap: 4p
 .tmore button:active { scale: 0.97; border-color: var(--fr-hi); }
 .tmore button[hidden] { display: none; }
 .tmore .ico { color: var(--title); }
-#rot { flex-direction: column; gap: 14px; text-align: center; }
-#rot p { margin: 0; padding: 0 24px; }
-#rot p small { display: block; margin-top: 8px; font-size: var(--fs-s); font-weight: 500; color: var(--dim); }
-#rot .btn { min-width: 180px; }
+#rot p { flex: 1; min-width: 0; margin: 0; }
+#rot p small { display: block; margin-top: 2px; font-size: var(--fs-s); font-weight: 500; color: var(--dim); }
+#rot .btn { flex: none; min-height: 44px; }
 
 /* 手機橫向（MOBA 式）：血藍經驗長條在底部中間（搖桿和技能鍵之間），左上只剩地圖名稱 */
 body.touch:not(.port) .bottom { left: calc(186px + env(safe-area-inset-left)); right: calc(322px + env(safe-area-inset-right)); top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); transform: none; display: block; }

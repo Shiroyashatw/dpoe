@@ -354,9 +354,15 @@ function hudState() {
   } else if (G.state === 'dead') {
     /* 0.4.0：原地重來（同一個地點、這一輪重抽詞）；寫出這一輪的地圖詞，看得出死在哪一組詞 */
     const again = !!G.node,
-      mods = (G.card && G.card.mods) || [];
+      mods = (G.card && G.card.mods) || [],
+      /* M1-17：營地的「下一件事」現在買得起就給一顆鈕，按了就升（forge.js 的 data-fg） */
+      up = campNextThing(),
+      upB =
+        up && up.e.m === 0
+          ? `<button class="btn wide dup" data-fg="${GEN[up.k] ? `gen:${up.k}:1` : `camp:${up.k}`}">現在可以升：${esc(up.n)}<small>${esc(up.d)}・${esc(costTxt(up.c))}</small></button>`
+          : '';
     o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}${mods.length ? `<p class="dmods">這一輪的地圖詞：${mods.map(m => esc(MAPMOD[m].t)).join('、')}</p>` : ''}<p>不扣經驗，裝備都還在。${S.auto && again ? `自動模式會原地重來；同一個地點連死 ${DEAD_MAX} 次退回上一個地點。` : ''}</p>
-      <div class="pbtns">${again ? `<button class="btn pri" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : ''}<button class="btn ${again ? '' : 'pri'}" data-a="home">回藏身處<small>自動刷圖暫停</small></button></div></div>`;
+      ${upB}<div class="pbtns">${again ? `<button class="btn pri" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : ''}<button class="btn ${again ? '' : 'pri'}" data-a="home">回藏身處<small>自動刷圖暫停</small></button></div></div>`;
     overOn(o);
   } else if (G.ask === 'home' && G.scene === 'map' && G.state === 'play') {
     /* 桌機：T 再按一次＝回去、Esc＝繼續刷圖（M0-04） */
@@ -422,6 +428,8 @@ const navDot = k =>
         k === 'skill' && skTodo().some(t => !t.go.startsWith('one:'));
 /* 點分頁：開那一頁；點亮著的那一頁＝收起來（「更多」底下的面板開著時點「更多」＝回到更多） */
 function navGo(t) {
+  /* M1-19：說明框開著時，點分頁＝收起說明框並切過去（一下就好） */
+  hideTip();
   /* 天賦樹（0.4.7 起有自己的分頁）：蓋滿畫面、分頁列留著；再點一次收起來 */
   if (t === 'tree') return treeOpen();
   if (TREE.open) treeClose();

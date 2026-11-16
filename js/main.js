@@ -188,11 +188,14 @@ function resize() {
    新存檔（S.fresh）拿到劍、記版本號；看過開場的直接給；沒看過的放開場（introGate） */
 const PRO_VER = 1;
 function proGive() {
-  if (S.fresh) (S.eq.weapon = mkItem('w_sword1_0', 1, 0)), delete S.fresh;
+  const fresh = !!S.fresh;
+  if (fresh) (S.eq.weapon = mkItem('w_sword1_0', 1, 0)), delete S.fresh;
   S.story.intro = S.story.prologue = PRO_VER;
   ST = stats();
   hudBar();
   save();
+  /* M1-01：新存檔拿到劍就用自動模式開刷第一個地點，不用點任何東西；舊存檔照舊（start() 的離線結算接著刷上次的地點） */
+  if (fresh) (S.auto = 1), runNode(TRUNK_K[0]);
 }
 function proBoot() {
   if (S.story.intro === PRO_VER || S.story.prologue === PRO_VER) proGive();

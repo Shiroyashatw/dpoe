@@ -1131,4 +1131,6 @@ document.addEventListener('click', e => {
   }
   if (err) hudWarn(err);
   changed();
+  /* 死亡卡上的升級鈕（M1-17）：升完重畫卡片（下一件買得起的接著出來） */
+  if (G.state === 'dead' && !$('over').hidden) hudState();
 });

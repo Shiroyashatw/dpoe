@@ -8362,7 +8362,7 @@ const ASC_COMBOS = `const combos = k => {
   const len = R2('IV_LEN');
   ok('開場：約 85 秒', len > 83 && len < 88, len);
   R2(`hudBar = () => {}; save = () => {}; closePanels = () => {}; enterHideout = () => {}; introStop = () => {};
-    var BOOT = ''; introGate = () => (BOOT = 'gate');`);
+    var BOOT = ''; introGate = () => (BOOT = 'gate'); var RUN = null; runNode = k => (RUN = k);`);
   ok(
     '新存檔：沒有武器、有 fresh 旗標',
     R2(`S = newGame(); !S.eq.weapon && S.fresh === 1 && S.skills[0].k === 'slash' && !!S.eq.chest`)
@@ -8385,6 +8385,16 @@ const ASC_COMBOS = `const combos = k => {
       boot({ prologue: R2('PRO_VER') - 1, intro: R2('PRO_VER') - 1 }) === 'gate' &&
       R2(
         `S = newGame(); delete S.fresh; S.eq.weapon = mkItem('w_bow_0', 20, 2); S.story = { intro: PRO_VER }; proBoot(); S.eq.weapon.b === 'w_bow_0'`
+      )
+  );
+  /* M1-01：新存檔拿到劍就用自動模式開刷第一個地點；老存檔不自己開刷（start() 的離線結算接著刷上次的） */
+  ok(
+    'M1-01：新存檔跳過開場＝自動模式開刷第一個地點；老存檔不動',
+    R2(
+      `RUN = null; S = newGame(); S.auto = 0; S.story = { intro: PRO_VER }; proBoot(); RUN === TRUNK_K[0] && S.auto === 1`
+    ) &&
+      R2(
+        `RUN = null; S = newGame(); delete S.fresh; S.auto = 0; S.story = { intro: PRO_VER }; proBoot(); RUN === null && S.auto === 0`
       )
   );
   /* 0.3.0：舊存檔（< 31）直接開新角色；0.4.0：存檔 31 → 32（固定節點、清單倉庫、沒有鑑定、地圖碎片換金幣） */
@@ -10279,5 +10289,78 @@ const ASC_COMBOS = `const combos = k => {
     miss = keys.filter(([, k, d]) => !md.includes(`| ${k} | ${d} |`)).map(m => m[1]);
   ok('README 的版本跟 version.json 一樣', md.includes(`v${v}`), v);
   ok('README 的桌機快捷鍵跟設定裡的操作表一致', keys.length > 10 && !miss.length, miss.join('、'));
+}
+/* M1-10：暫停規則（Q9 B）與 M1-17 新手的前幾輪。暫停時 frame 不跑敵人、投射物、技能（計數）、產生器照產 */
+{
+  const c3 = {
+    ...ctx,
+    Set,
+    document: { getElementById: () => ({}), querySelectorAll: () => [], getElementsByClassName: () => [] }
+  };
+  vm.createContext(c3);
+  for (const f of [
+    'core.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'world.js',
+    'mech.js',
+    'ai.js',
+    'game.js',
+    'skills.js'
+  ])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c3, { filename: f });
+  const R = s => vm.runInContext(s, c3);
+  R(`var PANEL = { skill: false }, SKUI = { view: 'home' }, TREE = { open: false }, NAV = {}, UI_SKIP = 0, CV_NEW = 0, PICKV = ['skills', 'sups', 'auras'], OPEN = 0,
+    anyPanel = () => OPEN || PANEL.skill, PORT = () => true, IV = { on: false }, N = { m: 0, p: 0 };
+    requestAnimationFrame = () => {}; rbTick = sesSample = draw = hudTick = () => {}; mouseWorld = () => ({ x: 0, y: 0 });
+    updMobs = () => N.m++; updShots = updSkills = () => {}; updPlayer = () => N.p++;
+    S = newGame(); S.camp.house = 1; genOf('wood').lv = 5; P = { x: 0, y: 0 }; G.state = 'play'; G.ask = 0; G.t = 0;
+    var tick = () => { last = 0; for (let i = 1; i <= 20; i++) frame(i * 50); };`);
+  const run = setup =>
+    R(
+      `(() => { ${setup}; N.m = N.p = 0; const w0 = matN('wood'), t0 = G.t; tick(); return [N.m > 0, G.t > t0, matN('wood') > w0]; })()`
+    );
+  const tab = {
+    自動開一般面板: run(`S.auto = 1; OPEN = 1; PANEL.skill = false; TREE.open = false; G.ask = 0`),
+    自動開技能挑選: run(`S.auto = 1; OPEN = 0; PANEL.skill = true; SKUI.view = 'sups'`),
+    自動開技能總覽: run(`S.auto = 1; PANEL.skill = true; SKUI.view = 'home'`),
+    自動開天賦樹: run(`S.auto = 1; PANEL.skill = false; TREE.open = true`),
+    手動開面板: run(`S.auto = 0; TREE.open = false; OPEN = 1`),
+    手動沒面板: run(`S.auto = 0; OPEN = 0`),
+    確認卡: run(`S.auto = 1; G.ask = 'home'`)
+  };
+  const want = {
+    自動開一般面板: 1,
+    自動開技能挑選: 0,
+    自動開技能總覽: 1,
+    自動開天賦樹: 0,
+    手動開面板: 0,
+    手動沒面板: 1,
+    確認卡: 0
+  };
+  const badP = Object.keys(want).filter(k => tab[k][0] !== !!want[k] || tab[k][1] !== !!want[k] || !tab[k][2]);
+  ok(
+    'M1-10 暫停：手動開面板、技能挑選、天賦樹、確認卡停住敵人與時間；自動開一般面板照打；停住時產生器照產',
+    !badP.length,
+    JSON.stringify(tab)
+  );
+  /* M1-17：第一個地點 1★ 前 3 輪受到的傷害打五折；第 4 輪、其他地點、2★ 照舊；打倒王才算一輪 */
+  const ez =
+    R(`(() => { S = newGame(); S.camp.scout = 4; const a = easyMul(TRUNK_K[0]); S.world.r0 = 2; const b = easyMul(TRUNK_K[0]); S.world.r0 = 3; const c = easyMul(TRUNK_K[0]);
+    S.world.r0 = 0; const d = easyMul(TRUNK_K[1]); S.star = 2; const e = easyMul(TRUNK_K[0]); return [a, b, c, d, e]; })()`);
+  ok(
+    'M1-17：第一個地點 1★ 前 3 輪受到的傷害 ×0.5；第 4 輪、別的地點、2★ 照舊',
+    JSON.stringify(ez) === '[0.5,0.5,0,0,0]',
+    JSON.stringify(ez)
+  );
+  ok(
+    'M1-17：hurtCalc 乘上 G.easy、bossDown 算輪數',
+    /if \(G\.easy\) d \*= G\.easy/.test(fs.readFileSync(path.join(__dirname, '..', 'js', 'combat.js'), 'utf8')) &&
+      /if \(G\.easy\) S\.world\.r0/.test(fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8'))
+  );
 }
 process.exit(bad ? 1 : 0);

@@ -197,8 +197,13 @@ function runNode(k, keep) {
   S.card = wCard(S);
   save();
   enterMap(lvT(wLv(q, r)), keep && G.scene === 'map' && G.node === k);
+  G.easy = easyMul(k);
   return true;
 }
+/* 新手的前幾輪（M1-17）：第一個地點 1★ 的前 EASY_N 輪（打倒王才算一輪，S.world.r0）受到的傷害打 EASY_MUL 折；其他地點、星級照舊 */
+const EASY_N = 3,
+  EASY_MUL = 0.5;
+const easyMul = k => (k === TRUNK_K[0] && wStar(S) === 1 && (S.world.r0 || 0) < EASY_N ? EASY_MUL : 0);
 /* 本次掛機（0.4.9，掛機卡）：從藏身處進場地開始累計，回藏身處歸零；xp／靈魂算每小時的進度；0.5.0：craft 打造幾件、rare 打出幾件稀有、mat 材料幾個 */
 let SES = null;
 const SES0 = () => ({
@@ -411,6 +416,7 @@ function enterMap(t, keep) {
   const [cols, rows] = FIELD,
     was = keep ? { biome: G.biome, deco: G.deco, x: P.x, y: P.y, round: G.round } : null;
   resetWorld(cols * TS, rows * TS);
+  G.easy = 0;
   G.round = was ? was.round + 1 : 1;
   G.nextT = 0;
   /* 這一輪的統計（0.4.1 離線結算用）：經驗、金幣、小怪與菁英數 */
@@ -1041,6 +1047,7 @@ function bossDown(m) {
   /* 打倒王才算走過：路開通；連死歸零；約 2 秒後在同一個場地放下一輪（0.4.0 連續刷，roundEnd） */
   const ty = G.node ? wClear(S, G.node) : '';
   S.world.dn = 0;
+  if (G.easy) S.world.r0 = (S.world.r0 || 0) + 1;
   /* 血霧（0.4.2）：裂口以外每打完一輪 +5%＋星級%，滿了換血霧之印 */
   if (G.node && ty !== 'rift' && huntGain(S, G.star)) rareShow('血霧滿了：拿到血霧之印', 'cur', 'orb');
   if (G.army) {
@@ -2026,8 +2033,10 @@ function updShots(dt) {
 
 /* ---------- 主迴圈 ---------- */
 let last = 0;
-/* 世界停住嗎（Q9 的共用開關；M1-10 再加手動模式開面板、技能挑選、天賦樹）：確認卡、倒下 */
-const worldPaused = () => !!G.ask || G.state === 'dead';
+/* 世界停住嗎（Q9 的共用開關，企劃書第 9 節）：確認卡、倒下、技能挑選、天賦樹一律停；手動模式開任何面板也停（M1-10）；
+   自動模式開一般面板照打。停住時產生器與離線計時照跑（frame 開頭的 genTick） */
+const skPicking = () => PANEL.skill && PICKV.includes(SKUI.view);
+const worldPaused = () => !!G.ask || G.state === 'dead' || TREE.open || skPicking() || (!S.auto && anyPanel());
 function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);

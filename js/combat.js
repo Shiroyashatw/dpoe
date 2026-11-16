@@ -2054,6 +2054,8 @@ const effRes = k => {
 function hurtCalc(d, src, el, noEv) {
   const m = src && src.ail ? src : src && src.src && src.src.ail ? src.src : null;
   if (m) d *= mobDmgMul(m);
+  /* 新手的前幾輪（M1-17，game.js 的 easyMul） */
+  if (G.easy) d *= G.easy;
   /* 反擊狀態（mech.js，盾衝）：被打到，攻擊者受招架；傷害照算，王的紅光大招也算 */
   counterHit(m);
   /* 招架（mech.js）：窗口裡被打到＝擋下，攻擊者受招架 */

@@ -1134,7 +1134,7 @@ document.addEventListener('click', e => {
 });
 /* 桌機滑過清單列就預覽說明（手機點一下在原地展開） */
 document.addEventListener('mouseover', e => {
-  if (TOUCH.on) return;
+  if (typeof TOUCH === 'undefined' || TOUCH.on) return;
   const b = e.target.closest('#pskill .sk-list [data-tipk]');
   if (!b || b.classList.contains('on')) return;
   const k = b.dataset.tipk,

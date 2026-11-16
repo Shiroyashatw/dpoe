@@ -161,8 +161,16 @@ let fail = 0;
     await p.waitForTimeout(400);
     await touch('touchStart', [[W / 2, H * 0.3]]);
     await touch('touchEnd', []);
-    await p.waitForTimeout(500);
-    ok('點一下＝普攻', await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m) || !!P.act));
+    /* 每格看：出手（P.act）只有一下子、打不中（命中率）時血不會少，只在 500 毫秒後看一次會漏掉 */
+    ok(
+      '點一下＝普攻',
+      await p
+        .waitForFunction(() => _m.hp < _hp || !G.mobs.includes(_m) || !!P.act, null, { timeout: 1000 })
+        .then(
+          () => true,
+          () => false
+        )
+    );
   } else {
     const rr = await p.evaluate(() => {
       P.cds.roll = 0;
@@ -463,6 +471,9 @@ let fail = 0;
     /* ---------- 直立重排（0.4.4）：上半戰鬥、下半面板、底部分頁 ---------- */
     const tap = async q => {
       const c = await p.evaluate(q => {
+        /* 先把分頁列畫成現在的樣子：測試直接改 S.camp 會讓「天賦」分頁出現／消失，
+           不先同步的話量到的是舊位置，計時器重畫後點到隔壁的分頁（營地 → 更多） */
+        sheetSync();
         const e = typeof q === 'string' ? document.querySelector(q) : null;
         if (!e) return null;
         const r = e.getBoundingClientRect();
@@ -1682,7 +1693,7 @@ let fail = 0;
           !anyPanel() &&
           $('pidle').hidden &&
           +getComputedStyle($('over')).zIndex >= 40 &&
-          document.querySelectorAll('#over .btn').length === 2
+          document.querySelectorAll('#over .pbtns .btn').length === 2
       )) && (await onTop())
     );
     await p.screenshot({ path: shot('m0_dead') });
@@ -1759,6 +1770,155 @@ let fail = 0;
     );
     await p.screenshot({ path: shot('m0_resume') });
     ok('點過之後音效建立了', await p.evaluate(() => !!AC && AC.state !== 'closed'));
+  }
+  /* ---------- M1-A：新存檔自動開刷、橫向的方向提示、暫停規則、死亡卡的升級鈕、分頁一下就切 ---------- */
+  {
+    const tapAt = async r => {
+      await touch('touchStart', [r]);
+      await p.waitForTimeout(40);
+      await touch('touchEnd', []);
+      await p.waitForTimeout(300);
+    };
+    const mid = q =>
+      p.evaluate(q => {
+        const e = document.querySelector(q);
+        if (!e) return null;
+        const b = e.getBoundingClientRect();
+        return [
+          b.left + b.width / 2,
+          b.top + b.height / 2,
+          b.width,
+          b.height,
+          b.top >= 0 && b.bottom <= innerHeight && b.left >= 0 && b.right <= innerWidth
+        ];
+      }, q);
+    if (W > H) {
+      /* M1-05：橫向的手機選了直立操作：提示只佔最上面一條、切換鈕在畫面內 ≥44px，按了戰鬥畫面恢復，重新整理後也一樣 */
+      await p.evaluate(() => {
+        S.orient = 'p';
+        applyOrient();
+      });
+      await p.waitForTimeout(200);
+      const rb = await mid('#rotb'),
+        rh = await p.evaluate(() => [getComputedStyle($('rot')).display, $('rot').getBoundingClientRect().height]);
+      ok(
+        'M1-05 橫向：方向提示只佔最上面一條、「改用橫向操作」在畫面內 ≥44px',
+        rh[0] !== 'none' && rh[1] < H * 0.4 && !!rb && rb[4] && rb[3] >= 44 && rb[2] >= 44,
+        JSON.stringify([rh, rb])
+      );
+      await p.screenshot({ path: shot('m1_rot') });
+      await tapAt(rb);
+      ok(
+        'M1-05：按了切成橫向操作、提示不見',
+        await p.evaluate(() => S.orient === 'l' && getComputedStyle($('rot')).display === 'none')
+      );
+      await p.evaluate(() => save());
+      await p.reload();
+      await p.waitForTimeout(1500);
+      ok(
+        'M1-05：重新整理後還是橫向操作、提示不見',
+        await p.evaluate(() => S.orient === 'l' && getComputedStyle($('rot')).display === 'none')
+      );
+    }
+    if (PORTM) {
+      /* M1-10：自動模式開戰利品、營地照打；技能挑選、天賦樹停住（怪貼身 3 秒生命不變）；手動開任何面板都停；停住時產生器照產 */
+      await p.evaluate(() => {
+        closePanels();
+        if (TREE.open) treeClose();
+        S.auto = 1;
+        S.camp = { ...S.camp, ..._CAMP };
+        genOf('wood').lv = Math.max(10, genOf('wood').lv);
+        runNode(TRUNK_K[0]);
+      });
+      await p.waitForTimeout(500);
+      const runs = async (open, close) => {
+        await p.evaluate(open);
+        await p.waitForTimeout(100);
+        const a = await p.evaluate(() => {
+          for (const m of G.mobs) (m.aggro = 1), (m.x = P.x + 20), (m.y = P.y);
+          return { t: G.t, hp: P.hp, w: S.mat.mats.wood || 0 };
+        });
+        await p.waitForTimeout(3000);
+        const b2 = await p.evaluate(() => ({ t: G.t, hp: P.hp, w: S.mat.mats.wood || 0, paused: worldPaused() }));
+        await p.evaluate(close);
+        return { run: b2.t > a.t, same: b2.hp === a.hp, gen: b2.w > a.w, paused: b2.paused };
+      };
+      const cl = () => {
+        closePanels();
+        if (TREE.open) treeClose();
+        P.hp = ST.hp;
+      };
+      const r1 = await runs(() => navGo('bag'), cl),
+        r2 = await runs(() => navGo('craft'), cl),
+        r3 = await runs(() => {
+          navGo('skill');
+          SKUI.view = 'skills';
+          hudPanels();
+        }, cl),
+        r4 = await runs(() => treeOpen(), cl);
+      ok('M1-10 自動：開戰利品照打', r1.run && !r1.paused, JSON.stringify(r1));
+      ok('M1-10 自動：開營地照打', r2.run && !r2.paused, JSON.stringify(r2));
+      ok('M1-10 自動：技能挑選停住、生命不變、產生器照產', !r3.run && r3.same && r3.gen, JSON.stringify(r3));
+      ok('M1-10 自動：天賦樹停住、生命不變、產生器照產', !r4.run && r4.same && r4.gen, JSON.stringify(r4));
+      await p.evaluate(() => (S.auto = 0));
+      const r5 = await runs(() => navGo('bag'), cl),
+        r6 = await runs(() => navGo('more'), cl);
+      ok('M1-10 手動：開戰利品停住、產生器照產', !r5.run && r5.same && r5.gen, JSON.stringify(r5));
+      ok('M1-10 手動：開更多也停住', !r6.run && r6.same, JSON.stringify(r6));
+      const t1 = await p.evaluate(() => G.t);
+      await p.waitForTimeout(500);
+      ok('M1-10 手動：關掉面板接著跑', await p.evaluate(t1 => G.t > t1 && !worldPaused(), t1));
+      /* M1-17：死亡卡有「現在可以升」的鈕（營地的下一件事買得起時），按了就升、卡片換成下一件 */
+      await p.evaluate(() => {
+        S.camp = newCamp();
+        S.mat.soul = 1e5;
+        matAdd('wood', 0, 1e4);
+        P.hp = 0;
+        die();
+      });
+      await p.waitForTimeout(300);
+      const du = await mid('#over .dup'),
+        c0 = await p.evaluate(() => JSON.stringify(S.camp));
+      ok('M1-17：死亡卡有「現在可以升」的鈕，在畫面內 ≥44px', !!du && du[4] && du[3] >= 44, JSON.stringify(du));
+      await p.screenshot({ path: shot('m1_dead') });
+      if (du) await tapAt(du);
+      ok(
+        'M1-17：按了就升、卡片還在',
+        await p.evaluate(c0 => JSON.stringify(S.camp) !== c0 && !$('over').hidden && G.state === 'dead', c0)
+      );
+      await p.evaluate(() => act('again'));
+      await p.waitForTimeout(300);
+      /* M1-19：角色頁的說明框開著時點「營地」：一下就切過去、說明框收起來 */
+      await p.evaluate(() => {
+        Object.assign(S.camp, _CAMP);
+        closePanels();
+        navGo('char');
+      });
+      await p.waitForTimeout(400);
+      const sl = await mid('#pinv .doll2 [data-eq=weapon]');
+      if (sl) await tapAt(sl);
+      const tipOn = await p.evaluate(() => !$('tip').hidden);
+      const nb = await mid('#pnav [data-tm="nav:craft"]');
+      await tapAt(nb);
+      ok(
+        'M1-19：說明框開著時點「營地」一下就切過去',
+        tipOn && (await p.evaluate(() => navOn() === 'craft' && $('tip').hidden)),
+        String(tipOn)
+      );
+      /* M1-01：新存檔看完（跳過）開場，5 秒內就在刷第一個地點、自動模式，不用點任何東西 */
+      /* 另一份存檔（?p=8）：重新整理前存檔會寫回去，清 localStorage 不算新存檔 */
+      await p.goto(URL + '?p=8&' + Date.now());
+      await p.waitForTimeout(1500);
+      const sk = await mid('#intro [data-iv=skip]');
+      if (sk) await tapAt(sk);
+      await p.waitForTimeout(4500);
+      ok(
+        'M1-01：新存檔跳過開場 5 秒內自動開刷第一個地點',
+        !!sk && (await p.evaluate(() => G.scene === 'map' && G.node === TRUNK_K[0] && S.auto === 1 && G.t > 0)),
+        await p.evaluate(() => `${G.scene} ${G.node} auto=${S.auto}`)
+      );
+      await p.screenshot({ path: shot('m1_fresh') });
+    }
   }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');

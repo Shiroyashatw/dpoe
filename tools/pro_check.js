@@ -68,10 +68,10 @@ const walk = (p, x, y, d = 50) =>
       }),
     [x, y, d]
   );
-/* 開場快轉到底，人回到藏身處 */
+/* 開場快轉到底：老存檔回到藏身處，新存檔直接開刷第一個地點（M1-01） */
 const toHome = async p => {
   await p.evaluate(() => (IV.speed = 200));
-  await p.waitForFunction(() => !IV.on && G.scene === 'hide');
+  await p.waitForFunction(() => !IV.on && (G.scene === 'hide' || G.scene === 'map'));
 };
 
 async function fresh() {
@@ -102,10 +102,12 @@ async function fresh() {
     want.length === 20 && want.every(l => seen.includes(l)) && seen.every((l, i) => want.indexOf(l) >= i - 0),
     seen.length
   );
-  await p.waitForFunction(() => !IV.on && G.scene === 'hide');
+  await p.waitForFunction(() => !IV.on && G.scene === 'map');
   ok(
-    '播完直接在藏身處，沒有序章',
-    await p.evaluate(() => G.state === 'play' && !document.body.classList.contains('cine'))
+    '播完直接用自動模式開刷第一個地點（M1-01），沒有序章',
+    await p.evaluate(
+      () => G.state === 'play' && G.node === TRUNK_K[0] && S.auto === 1 && !document.body.classList.contains('cine')
+    )
   );
   ok(
     '新玩家拿到劍、記版本號',
@@ -123,6 +125,8 @@ async function fresh() {
   );
   await p.waitForTimeout(1200);
   await p.screenshot({ path: shot('home') });
+  /* 下面驗藏身處：自己回去 */
+  await p.evaluate(() => enterHideout());
   /* 0.5.2：地圖台打開地點清單；沒有 NPC、沒有設施提示 */
   ok(
     '藏身處沒有 NPC（只剩山海寶盒）',
@@ -134,7 +138,7 @@ async function fresh() {
   ok('地圖台打開地點清單', await p.evaluate(() => PANEL.node && !!document.querySelector('#pnode .ndr')));
   await p.keyboard.press('Escape');
   await open(p, 41);
-  ok('重新整理不再播開場', await p.evaluate(() => !IV.on && G.scene === 'hide'));
+  ok('重新整理不再播開場、接著刷上次的地點', await p.evaluate(() => !IV.on && G.scene === 'map'));
   ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
   await p.ctxx.close();
 }
@@ -184,13 +188,13 @@ async function skips() {
   await p.waitForTimeout(300);
   ok('Enter 也能開始', await p.evaluate(() => IV.on && !IV.gate));
   await p.click('.ivskip');
-  await p.waitForFunction(() => !IV.on && G.scene === 'hide');
+  await p.waitForFunction(() => !IV.on && G.scene === 'map');
   ok(
-    '開場跳過：在藏身處、拿到劍、記過開場',
+    '開場跳過：開刷第一個地點、拿到劍、記過開場',
     await p.evaluate(() => !!S.eq.weapon && S.story.intro === PRO_VER && S.story.prologue === PRO_VER)
   );
   await open(p, 43);
-  ok('重新整理：不再播開場', await p.evaluate(() => !IV.on && G.scene === 'hide' && !!S.eq.weapon));
+  ok('重新整理：不再播開場、接著刷', await p.evaluate(() => !IV.on && G.scene === 'map' && !!S.eq.weapon));
   /* 開場中重新整理：開場重來（版本號還沒記）。換一個存檔位，免得離開頁面時又把看完的存檔寫回去 */
   await clean(p, 44);
   await p.click('#ivgo');
@@ -258,7 +262,7 @@ async function phone(w, h) {
   await toHome(p);
   await p.waitForTimeout(600);
   ok(
-    '看完在藏身處、拿到劍、分頁列在畫面內',
+    '看完開刷、拿到劍、分頁列在畫面內',
     await p.evaluate(() => {
       const n = PORT() ? $('pnav') : TOUCH.on ? document.querySelector('.tmenu [data-tm=inv]') : $('dnav'),
         r = n.getBoundingClientRect();

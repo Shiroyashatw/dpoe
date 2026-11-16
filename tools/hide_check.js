@@ -38,6 +38,8 @@ const ok = (n, c, info = '') => {
   await p.evaluate(() => {
     proSkip();
     S.story.tips = 0;
+    /* M1-01：新存檔跳過開場會直接開刷；這裡測藏身處 */
+    enterHideout();
   });
   /* 真的按鍵走路：往目標走到距離 d 以內，回傳花了幾秒 */
   const walk = (x, y, d = 60) =>
