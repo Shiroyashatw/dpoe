@@ -386,7 +386,14 @@ function touchInit() {
   });
   /* 點說明框以外的地方：收起說明框 */
   document.addEventListener('pointerdown', e => {
-    if (TOUCH.on && !$('tip').hidden && !e.target.closest('#tip,#ttip') && !e.target.closest('.it[data-id]')) hideTip();
+    /* M1-19：分頁列不在 pointerdown 收（iOS 按下去的那一下畫面變了會吞掉 click），navGo 自己收、同時切分頁 */
+    if (
+      TOUCH.on &&
+      !$('tip').hidden &&
+      !e.target.closest('#tip,#ttip,#pnav,#dnav') &&
+      !e.target.closest('.it[data-id]')
+    )
+      hideTip();
   });
   /* 0.3.2：不再自動進全螢幕（要的話按全螢幕鈕）；也不讓 Chrome 跳出「安裝應用程式」的提示（manifest 留著給自己加入主畫面的人） */
   addEventListener('beforeinstallprompt', e => e.preventDefault());
