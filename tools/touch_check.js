@@ -1945,6 +1945,68 @@ let fail = 0;
       !lk[0] && lk[1] === '升祭壇到 Lv 4 才開' && !lk[2] && lk[3] === '升祭壇到 Lv 7 才開',
       JSON.stringify(lk)
     );
+    /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點藏身處的昇華石碑；山海寶盒例外照開 */
+    const lk2 = await p.evaluate(() => {
+      enterHideout();
+      closePanels();
+      navGo('more');
+      const rows = [...document.querySelectorAll('#pmore .mrow b')].map(b => b.textContent),
+        nav = !!document.querySelector('#pnav [data-tm="nav:tree"]');
+      closePanels();
+      useProp({ k: 'asc' });
+      const asc = !!PANEL.asc,
+        w = $('warn').textContent;
+      useProp({ k: 'box' });
+      const box = !!PANEL.box;
+      closePanels();
+      return { rows, nav, asc, w, box };
+    });
+    ok(
+      'M1-06：分頁列沒有天賦、更多沒有天賦樹與昇華石碑、點昇華石碑打不開並跳那一句；山海寶盒照開（例外）',
+      !lk2.nav &&
+        !lk2.rows.includes('天賦樹') &&
+        !lk2.rows.includes('昇華石碑') &&
+        !lk2.asc &&
+        lk2.w === '升祭壇到 Lv 7 才開' &&
+        lk2.box,
+      JSON.stringify(lk2)
+    );
+    /* M1-14：掉落紀錄空的時候寫定稿文案；營地升級出那一句（只出一次） */
+    const lg = await p.evaluate(() => {
+      S.log = [];
+      openPanel('log');
+      const t = document.querySelector('#plog .lgl') ? document.querySelector('#plog .lgl').textContent : '';
+      closePanels();
+      return t;
+    });
+    ok(
+      'M1-14：掉落紀錄空的時候寫「這裡只記稀有掉落與通貨。…」',
+      lg === '這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。',
+      lg
+    );
+    const sy = await p.evaluate(async () => {
+      S.mat.soul = 1e6;
+      S.mat.mats.wood = 1e6;
+      navGo('craft');
+      CRAFT.tab = 'camp';
+      hudPanels();
+      const b = document.querySelector('[data-fg="camp:forge"]');
+      if (b) b.click();
+      await new Promise(r => setTimeout(r, 200));
+      const a = $('warn').textContent;
+      S.camp.forge = 0;
+      $('warn').textContent = '';
+      campUp('forge');
+      await new Promise(r => setTimeout(r, 200));
+      closePanels();
+      return [!!b, a, $('warn').textContent];
+    });
+    ok(
+      'M1-14：營地升鍛造台 Lv1 跳「鍛造台 Lv1：開了「填」。…」；同一級第二次不再出現',
+      sy[0] && sy[1] === '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。' && sy[2] === '',
+      JSON.stringify(sy)
+    );
+    await p.evaluate(() => (S.camp.forge = 0));
     /* M1-07：更多選單只多一列「下一個」；升到之後換下一項；永遠不超過一列 */
     const nx = async () => {
       await p.evaluate(() => {
@@ -2031,6 +2093,28 @@ let fail = 0;
       return [baseLayers(it), document.querySelector('.cmpc') ? document.querySelector('.cmpc').innerText : ''];
     });
     ok('M1-09：說明框與換裝卡不寫裝備的孔', !so.join().includes('孔') && !so.join().includes('○'), JSON.stringify(so));
+    /* M1-09（製作人決定 5）：角色頁截圖，每一格點了都有反應（裝備欄、護符、神格），沒有寶石格 */
+    await p.evaluate(() => {
+      closePanels();
+      navGo('char');
+    });
+    await p.waitForTimeout(400);
+    await p.screenshot({ path: shot('m1_doll') });
+    const dc = await p.evaluate(() =>
+      [...document.querySelectorAll('#pinv .doll2 .eqs, #pinv .doll2x .eqs')].map(e => e.innerText.replace(/\s+/g, ''))
+    );
+    ok(
+      'M1-09：角色頁沒有寶石格（只有裝備欄、護符、神格）',
+      dc.length >= 13 && !dc.some(t => /寶石/.test(t)),
+      JSON.stringify(dc)
+    );
+    await p.evaluate(() => {
+      closePanels();
+      navGo('bag');
+      BAG.sel = S.inv.items.find(i => i.b === 'w_spear_0').id;
+      hudPanels();
+    });
+    await p.waitForTimeout(300);
     const mv = await at('[data-a=selmove]');
     if (mv) await tapAt(mv);
     const af = await p.evaluate(() => [S.eq.weapon.b, $('warn').textContent, dpsOf(0), dpsOf(1), mainDps()]);

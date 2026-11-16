@@ -424,7 +424,93 @@ function campUp(b) {
   S.camp[b] = n.lv;
   /* 斥候營：星級預設跟著上限 */
   if (b === 'scout') S.star = campN('star');
+  sayOnce('camp:' + b + ':' + n.lv, campSay(b, n.lv));
   return null;
+}
+/* ---------- 解鎖一句話（M1-14，docs/production/milestones.md「M1-13 定稿」，原文照用）：每一句只在第一次達成時出現一次（S.hint.u）；
+   一次升好幾件（全部升級）時排隊，一句一句出（hud.js 的 hudWarn） ---------- */
+const FORGE_SAY = [
+  '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
+  '鍛造台 Lv2：打造一次 3 件。',
+  '鍛造台 Lv3：獵場出現，開始產皮；可以打造閃避系防具與箭袋。',
+  '鍛造台 Lv4：富豪石開始掉，打造有機率出稀有裝。',
+  '鍛造台 Lv5：打造一次 5 件；精髓開始掉。',
+  '鍛造台 Lv6：開了「淬鍊」，可以重骰詞的數值。',
+  '鍛造台 Lv7：崇高石開始掉。',
+  '鍛造台 Lv8：絲地出現，開始產靈絲；能打能量護盾系防具與法器；自動分解開了。',
+  '鍛造台 Lv9：打造一次 10 件。',
+  '鍛造台 Lv10：轉化石、預知石開始掉。',
+  '鍛造台 Lv11：可以選第二種武器類別。',
+  '鍛造台 Lv12：聖化石開始掉，開了「聖化」。',
+  '鍛造台 Lv13：破裂石開始掉。四條詞以上的稀有裝，隨機一條升到 T0 並鎖住。',
+  '鍛造台 Lv14：自動分解可以照詞階、追憶與 ▲ 決定留不留。',
+  '鍛造台 Lv15：腐化石開始掉，開了「腐化」。',
+  '鍛造台 Lv16：打造一次 20 件。',
+  '鍛造台 Lv17：追憶之墨與珠寶開始掉。打造時加一瓶墨，保證一條追憶詞。',
+  '鍛造台 Lv18：高階通貨開始掉。',
+  '鍛造台 Lv19：完美石開始掉。六條詞全滿的稀有裝，隨機一條升到 T0。',
+  '鍛造台 Lv20：開了輔助 II 與覺醒，完美通貨開始掉。'
+];
+const ALTAR_SAY = {
+  4: '祭壇 Lv4：天賦樹開了，照等級補發的點數已經放進去。',
+  7: '祭壇 Lv7：昇華石碑開了，先開放兩個昇華可以選。',
+  10: '祭壇 Lv10：天賦樹的珠寶孔開了，撿到的珠寶可以鑲進去。',
+  11: '祭壇 Lv11：第三個昇華以後的內容開了，輔助孔可以開到 5 個。'
+};
+/* 設施升到 lv 那一句（S.camp 已經是新的等級） */
+function campSay(b, lv) {
+  if (b === 'forge') return FORGE_SAY[lv - 1];
+  if (b === 'watch') {
+    if (lv <= TRUNK.length - 1) {
+      const [q, r] = wXY(TRUNK_K[lv]);
+      return `瞭望台 Lv${lv}：新地點「${wName(S, q, r)}」開了（怪物 Lv ${wLv(q, r)}）。到地點清單點它就去刷。`;
+    }
+    const t = Object.keys(W_LINE)[lv - TRUNK.length],
+      n = SPECIAL.find(x => x.t === t),
+      line = CAMP.watch[lv - 1].d.split('：')[0];
+    return `瞭望台 Lv${lv}：${line}開了，「${n ? wName(S, n.q, n.r) : WTYPE[t].n}」出現在地點清單，它的通貨開始掉。`;
+  }
+  if (b === 'scout') return `斥候營 Lv${lv}：可以選到 ${lv + 1}★。星級越高，怪越強、掉得越多。`;
+  if (b === 'house') return `民房 Lv${lv}：人口 ${campN('pop')}，新居民會自己補到空的工位。`;
+  if (b === 'altar') {
+    if (ALTAR_SAY[lv]) return ALTAR_SAY[lv];
+    if ([1, 3, 6, 9].includes(lv)) return `祭壇 Lv${lv}：開了第 ${campN('slots')} 格技能，到技能分頁挑一招。`;
+    return `祭壇 Lv${lv}：每一招多 1 個輔助孔，到技能分頁插一顆輔助。${lv === 5 ? '光環欄也開了。' : ''}`;
+  }
+  if (b === 'store') {
+    if (lv === 2) return '倉房 Lv2：分解回收的材料從 50% 提高到 65%。';
+    if (lv === 4) return '倉房 Lv4：商會開了，材料和通貨可以照固定匯率互換。';
+    return `倉房 Lv${lv}：離線收益最多算 ${campN('off')} 小時。${lv === 5 ? '分解回收提高到 80%。' : ''}`;
+  }
+  return '';
+}
+/* 產生器從 a 級升到 b 級跨過的里程碑：每一個里程碑一或兩句（產量／階、工位） */
+function genSay(k, a, b) {
+  const L = [],
+    nm = GEN[k].n;
+  for (let x = a + 1; x <= b; x++) {
+    const p = genMs(x - 1),
+      q = genMs(x),
+      tier = q.tu > p.tu && k !== 'wood' ? `可以產 T${1 + q.tu} ${MATS[k].n}，上限看瞭望台。` : '';
+    if (q.m > p.m || tier)
+      L.push([`gen:${k}:${x}:m`, `${nm} Lv${x}：${q.m > p.m ? `產量 ×${q.m / p.m}。` : ''}${tier}`]);
+    if (q.slots > p.slots && x > 1) L.push([`gen:${k}:${x}:s`, `${nm} Lv${x}：多一個工位，民房有空的人會自己補上。`]);
+  }
+  return L;
+}
+const SAY = [];
+function sayOnce(key, t) {
+  if (!t || typeof S === 'undefined' || !S) return;
+  const u = ((S.hint = S.hint || {}).u = S.hint.u || {});
+  if (u[key]) return;
+  u[key] = 1;
+  SAY.push(t);
+  if (SAY.length === 1) sayNext();
+}
+function sayNext() {
+  if (!SAY.length || typeof hudWarn !== 'function') return void (SAY.length = 0);
+  hudWarn(SAY[0]);
+  setTimeout(() => (SAY.shift(), sayNext()), 2400);
 }
 
 /* ---------- 產生器（3.7）：林場、礦場、獵場、絲地 ---------- */
@@ -523,6 +609,7 @@ function genUp(k, n = 1) {
   if (lack.length) return lack.map(([nm, h, w]) => `${nm}還差 ${w - h}`).join('、');
   costPay(c);
   genOf(k).lv += n;
+  for (const [key, t] of genSay(k, genOf(k).lv - n, genOf(k).lv)) sayOnce(key, t);
   return null;
 }
 /* 每一格累加產量（主迴圈叫，藏身處、場地、面板開著都算；離線用同一條公式乘時間）；回這一次加了多少 { 材料鍵: n } */

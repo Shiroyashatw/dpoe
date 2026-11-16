@@ -10485,6 +10485,60 @@ const ASC_COMBOS = `const combos = k => {
       dl.max <= 1,
     JSON.stringify(dl)
   );
+  /* M1-20（製作人決定 3）：帶力量詞的武器照實寫生命變化，跟實際換上後一樣 */
+  const st = R(`(() => {
+    S = newGame(); delete S.fresh; S.eq.weapon = mkItem('w_sword1_0', 1, 0); S.lv = 20; ST = stats();
+    for (let i = 0; i < 400; i++) {
+      const w = mkItem('w_sword1_0', 12, 2);
+      if (!w.a.some(x => x.k === 'str')) continue;
+      const d = itemDelta(w, 'weapon'), a = stats(), keep = S.eq.weapon;
+      S.eq.weapon = w; const b = stats(); S.eq.weapon = keep;
+      return [d.hp, b.hp - a.hp];
+    }
+    return null;
+  })()`);
+  ok(
+    'M1-20：帶力量詞的武器照實回報生命 +n（跟實際換上後一樣）',
+    !!st && st[0] > 0 && st[0] === st[1],
+    JSON.stringify(st)
+  );
+  /* M1-14：解鎖一句話照「M1-13 定稿」、只在第一次出現一次；產生器里程碑 */
+  const sy = R(`(() => {
+    var said = []; hudWarn = t => said.push(t); setTimeout = () => {};
+    S = newGame(); S.mat.soul = 1e7; S.mat.mats.wood = 1e7; for (const T of [1, 2, 3]) S.mat.mats['iron:' + T] = 1e5;
+    campUp('forge'); SAY.length = 0;
+    S.camp.forge = 0; campUp('forge'); SAY.length = 0;
+    S.camp.altar = 4; campUp('altar'); SAY.length = 0;
+    S.camp.altar = 1; campUp('altar'); SAY.length = 0;
+    S.camp.store = 4; campUp('store'); SAY.length = 0;
+    genOf('iron').lv = 24; genUp('iron'); SAY.length = 0;
+    return said;
+  })()`);
+  ok(
+    'M1-14：解鎖一句話照定稿表原文、同一個解鎖第二次不出現、產生器里程碑（產量、階）',
+    JSON.stringify(sy) ===
+      JSON.stringify([
+        '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
+        '祭壇 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
+        '祭壇 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
+        '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。',
+        '礦場 Lv25：產量 ×2。可以產 T2 鐵，上限看瞭望台。'
+      ]),
+    JSON.stringify(sy)
+  );
+  const all = R(`(() => {
+    S = newGame(); const bad = [];
+    for (const b of ['forge', 'watch', 'scout', 'house', 'altar', 'store'])
+      for (let lv = 1; lv <= CAMP[b].length; lv++) { S.camp[b] = lv; const t = campSay(b, lv); if (!t || !t.startsWith(CAMPN[b] + ' Lv' + lv + '：') || /undefined|NaN/.test(t)) bad.push(b + lv + ' ' + t); }
+    return bad;
+  })()`);
+  ok(
+    'M1-14：瞭望台 Lv1 寫新地點與怪物等級、Lv22 寫賽制與節點名（定稿原文）',
+    R(`(S = newGame(), (S.camp.watch = 1), campSay('watch', 1))`) ===
+      '瞭望台 Lv1：新地點「枯河渡口」開了（怪物 Lv 6）。到地點清單點它就去刷。' &&
+      R(`campSay('watch', 22)`) === '瞭望台 Lv22：酆都開了，「鬼門關」出現在地點清單，它的通貨開始掉。'
+  );
+  ok('M1-14：六座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
   /* M1-24：三個測試情境照描述；用自己的存檔位、沒帶參數時是空字串 */
   const ts = R(`(() => {
     const d = testSave('dualweap'), n = testSave('nearDeath'), m = testSave('midgame');
