@@ -50,6 +50,10 @@ dpoe 是 dungeonPOE，起點是類 Path of Exile 的動作 ARPG（0.2），現�
 | 商業模式 | Steam 買斷為主，網頁／PWA 免費導流（Q12 C） | mumi 決定 |
 | 技術棧 | 原生 JavaScript、HTML5 Canvas，沒有建置與框架；28 支 `js/*.js` 全域腳本（約 3.2 萬行）；Supabase 匿名登入＋雲端存檔（有 RLS）；Node 檢查工具在 `tools/` | 程式碼證實 |
 | 題材 | 山海經＋台灣民間信仰（酆都、十殿閻羅、陰兵借道、太歲、十二生肖） | 文件記載 |
+| Steam 主打（Q15 E） | 「PoE 的做裝深度，掛機也不會乾旱」：商店頁、膠囊圖、預告片前段都先講這句 | mumi 決定 |
+| 題材包裝（Q15 F） | 台灣民俗暗黑題材（酆都、陰兵借道、四凶）當商店頁與美術的包裝；G 桌面常駐小視窗不當主打，M4S 可選評估 | mumi 決定 |
+| 裝備取得（Q14 D） | 打造維持骨幹；加一層只能靠掉落的追逐物品，保底進度寫在掛機卡上（M2） | mumi 決定 |
+| 語言（Q16 I） | Steam 上架前加簡體中文；英文不在範圍 | mumi 決定 |
 | 目標玩家 | Melvor Idle 那群掛機／增量玩家；PoE 老手當第二層 | 文件記載 |
 | 目標玩家（製作人的看法） | 實際最有感的會是「懂 PoE 但沒空手刷」的手機玩家 | 推測 |
 
@@ -59,6 +63,7 @@ dpoe 是 dungeonPOE，起點是類 Path of Exile 的動作 ARPG（0.2），現�
 - Steam 商店頁在 M3 真人試玩通過後才開（M3-08～10）；Steam Direct 註冊與上架費需 mumi 本人的帳號與付款。
 - 免費版與付費版的內容差異尚未決定（Q13，見[待決事項](#待決事項)）。
 - 評估依據與來源見 [`platform-strategy.md`](platform-strategy.md)。
+- Steam 主打與包裝（Q15）、簡體中文（Q16）的評估見 [`loot-and-steam-eval.md`](loot-and-steam-eval.md)。
 
 ## 核心玩法循環
 
@@ -133,6 +138,9 @@ flowchart LR
 | 2026-11-16 | M1-12 完成標準：390×844 護符列不必捲動；375×667 允許捲動，但要有捲動提示 | 製作人決定（介面） | — |
 | 2026-11-16 | PR 的合併和部署下放給開發工程師自行處理，不用問 mumi；測試員的驗收與試玩只在 mumi 明確說要測時才進行 | mumi 決定 | — |
 | 2026-11-16 | 製作文件同步到 repo 的 `docs/production/`：雲端程式 agent 只讀 GitHub，所以 Page 更新後要同步到 repo，交辦時指向 repo 路徑 | mumi 規則 | — |
+| 2026-11-16 | Q14：D，打造維持骨幹，加一層只能靠掉落的追逐物品，保底進度顯示在掛機卡上；排 M2（M2-17～20）。評估 Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/167c56bb-e9cf-4954-b91f-3d39084385bd（repo：[`loot-and-steam-eval.md`](loot-and-steam-eval.md)） | mumi 決定，同製作人建議（D） | 追逐物品清單與保底數字（M2-17，草案見 [`milestones.md`](milestones.md#m2-17-草案追逐掉落規格)） |
+| 2026-11-16 | Q15：E＋F，Steam 主打 E「PoE 的做裝深度，掛機也不會乾旱」；F 台灣民俗暗黑題材（酆都、陰兵借道、四凶）當包裝；G 桌面常駐小視窗不當主打，M4S 可選評估（M4S-06） | mumi 決定，同製作人建議（E 當主打、F 當包裝） | — |
+| 2026-11-16 | Q16：I，Steam 上架前加簡體中文（M3-11～13）；英文不在範圍 | mumi 決定，同製作人建議（至少 I） | — |
 
 現行平台規則以[平台優先順序（分階段）](#平台優先順序分階段)為準。
 
@@ -146,7 +154,7 @@ Q1 不凍結：方向可能繼續變動，規則、數值與文件要一再重�
 | --- | --- | --- | --- |
 | Q13 | 免費版（網頁／PWA）和 Steam 付費版的內容差異 | A 全內容一樣，付費版多 Steam 功能（雲端存檔、成就、桌機殼）　B 免費版有內容上限（例如到某個地點或設施等級），付費解鎖全部，類似 Melvor　C 免費版全內容，付費版另有獨占內容或之後的 DLC | 待 mumi 決定，M3 前決定即可（製作人先不提建議） |
 
-Q1–Q12 已決定（見決策紀錄）。
+Q1–Q12、Q14–Q16 已決定（見決策紀錄）。
 
 ## 缺口與風險
 
@@ -171,3 +179,4 @@ Q1–Q12 已決定（見決策紀錄）。
 - UI/UX 審查：<https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/336b8159-f1b5-4c87-a395-5569d4890abf>（repo：[`ui-review.md`](ui-review.md)）
 - 交辦單：製作人工作區的 `engineer.md`、`art.md`、`tester.md`（不在 repo）
 - Repo 同步版：`docs/production/`（[`README.md`](README.md) 為索引）
+- 掉落與 Steam 定位評估：<https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/167c56bb-e9cf-4954-b91f-3d39084385bd>（repo：[`loot-and-steam-eval.md`](loot-and-steam-eval.md)）

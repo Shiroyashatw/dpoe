@@ -9,11 +9,12 @@
 | 檔案 | 用途 | 什麼時候讀 | 來源 Page | 同步日期 |
 | --- | --- | --- | --- | --- |
 | [`gdd.md`](gdd.md) | 方向與定位、商業模式、平台優先順序（分階段）規則、核心玩法、完整決策紀錄、待決事項、缺口與風險 | 開工前先讀；遇到「要不要這樣做」的問題時 | [dpoe 遊戲企劃書（GDD）](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/a647bf26-aa82-4684-8c89-311e76640026) | 2026-11-16 |
-| [`milestones.md`](milestones.md) | M0–M4（含 M4P、M4S）與全部任務：負責人、優先、狀態、完成標準、依賴；驗收判準；M1-08、M1-13 定稿文案原文；README 0.5.4 要點 | 接到任務時；寫教學、解鎖、空狀態文案時；驗收前 | [dpoe 遊戲企劃書（GDD）](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/a647bf26-aa82-4684-8c89-311e76640026) | 2026-11-16 |
+| [`milestones.md`](milestones.md) | M0–M4（含 M4P、M4S）與全部任務：負責人、優先、狀態、完成標準、依賴；驗收判準；M2-17 追逐掉落草案（製作人草案，待交辦前確認）；M1-08、M1-13 定稿文案原文；README 0.5.4 要點 | 接到任務時；寫教學、解鎖、空狀態文案時；驗收前 | [dpoe 遊戲企劃書（GDD）](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/a647bf26-aa82-4684-8c89-311e76640026) | 2026-11-16 |
 | [`ui-spec-m1.md`](ui-spec-m1.md) | M1 直立視覺規格完整轉換（BASE-01～05、M1-SK／PK／CP、M1-02、04、07b、09b、10、11、12、14、14b、15b、16b、17、18、20b、375×667 與桌機延伸、「已決定」日誌）。**M1 介面的實作依據** | 實作或驗收任何 M1 介面任務時 | [dpoe M1 直立視覺規格](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/91bce2cc-463c-400c-adf4-8ed14ac0ba8c)（Game Art Director；之後加桌機章節，對應 M2-16） | 2026-11-16 |
 | [`ui-review.md`](ui-review.md) | Game Art Director 的 0.5.4 UI/UX 審查：P0／P1／P2 問題與修法，含桌機與 390×844 直立重審、逐頁 A–H、未拍到的畫面 | 想知道某條規格「為什麼」時；排 M2–M3 介面任務時 | [dungeonPOE 0.5.4 UI/UX 審查](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/336b8159-f1b5-4c87-a395-5569d4890abf) | 2026-11-16 |
 | [`playtest-0.5.4.md`](playtest-0.5.4.md) | 遊戲測試員 v0.5.4 測試報告重點：必須修 3 項（含重現步驟）、建議改善、嚴重度、對應任務、未測項目 | 修 bug 或重現問題時；驗收 M0-07、M1-22 時 | [dpoe 測試報告 v0.5.4](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/6c7a71e8-8701-48bb-9b53-536999d79ef9) | 2026-11-16 |
 | [`platform-strategy.md`](platform-strategy.md) | 平台評估（Steam vs 手機）：結論、四個選項、Q12 C 決定、對里程碑的影響、證據與來源連結 | 動到 Steam、PWA、桌機版型、收費相關任務時 | [dpoe 平台策略評估：Steam vs 手機](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/60da64d9-8faa-4f56-8a3b-1126a93c934b) | 2026-11-16 |
+| [`loot-and-steam-eval.md`](loot-and-steam-eval.md) | 裝備取得方式（打造 vs 掉落）與 Steam 亮點評估：dpoe 現況、掉裝無感的證據、A–D 做法、桌面破壞神（Deskrawl）分析、同類比較表、主打 E／F／G 與語言 H／I／J 選項、來源。mumi 已決定 Q14 D、Q15 E＋F、Q16 I（見 `gdd.md`） | 動到追逐掉落（M2-17～20）、Steam 商店頁與主打（M3-09～11）、簡體中文（M3-12～13）時 | [dpoe 裝備取得方式與 Steam 亮點評估](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/167c56bb-e9cf-4954-b91f-3d39084385bd) | 2026-11-16 |
 
 ## 以哪份為準（優先順序）
 
@@ -22,7 +23,7 @@
 1. **決策紀錄**（`gdd.md` 的「決策紀錄」與「平台優先順序（分階段）」）
 2. **里程碑任務**（`milestones.md` 的任務表、完成標準、驗收判準、定稿文案）
 3. **UI 規格**（`ui-spec-m1.md`，以及之後的桌機章節與其他規格）
-4. **審查和報告**（`ui-review.md`、`playtest-0.5.4.md`、`platform-strategy.md` 的評估內容）
+4. **審查和報告**（`ui-review.md`、`playtest-0.5.4.md`、`platform-strategy.md`、`loot-and-steam-eval.md` 的評估內容）
 
 審查與報告描述的是「當時看到的問題與建議」，可能已被後來的決定改掉（例如審查建議開技能詳情就暫停，後來 Q11 A 決定自動模式不暫停）。照著做之前，先確認上面三層沒有不同的決定。發現衝突或看不懂時，回報製作人，不要自己挑一個。
 
