@@ -14,7 +14,7 @@
 | [`ui-review.md`](ui-review.md) | Game Art Director 的 0.5.4 UI/UX 審查：P0／P1／P2 問題與修法，含桌機與 390×844 直立重審、逐頁 A–H、未拍到的畫面 | 想知道某條規格「為什麼」時；排 M2–M3 介面任務時 | [dungeonPOE 0.5.4 UI/UX 審查](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/336b8159-f1b5-4c87-a395-5569d4890abf) | 2026-11-16 |
 | [`playtest-0.5.4.md`](playtest-0.5.4.md) | 遊戲測試員 v0.5.4 測試報告重點：必須修 3 項（含重現步驟）、建議改善、嚴重度、對應任務、未測項目 | 修 bug 或重現問題時；驗收 M0-07、M1-22 時 | [dpoe 測試報告 v0.5.4](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/6c7a71e8-8701-48bb-9b53-536999d79ef9) | 2026-11-16 |
 | [`platform-strategy.md`](platform-strategy.md) | 平台評估（Steam vs 手機）：結論、四個選項、Q12 C 決定、對里程碑的影響、證據與來源連結 | 動到 Steam、PWA、桌機版型、收費相關任務時 | [dpoe 平台策略評估：Steam vs 手機](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/60da64d9-8faa-4f56-8a3b-1126a93c934b) | 2026-11-16 |
-| [`loot-and-steam-eval.md`](loot-and-steam-eval.md) | 裝備取得方式（打造 vs 掉落）與 Steam 亮點評估：dpoe 現況、掉裝無感的證據、A–D 做法、桌面破壞神（Deskrawl）分析、同類比較表、主打 E／F／G 與語言 H／I／J 選項、來源。mumi 已決定 Q14 D、Q15 E＋F、Q16 I（見 `gdd.md`） | 動到追逐掉落（M2-17～20）、Steam 商店頁與主打（M3-09～11）、簡體中文（M3-12～13）時 | [dpoe 裝備取得方式與 Steam 亮點評估](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/167c56bb-e9cf-4954-b91f-3d39084385bd) | 2026-11-16 |
+| [`loot-and-steam-eval.md`](loot-and-steam-eval.md) | 裝備取得方式（打造 vs 掉落）與 Steam 亮點評估：dpoe 現況、掉裝無感的證據、A–D 做法、桌面破壞神（Deskrawl）分析、同類比較表、主打 E／F／G 與語言 H／I／J 選項、來源。mumi 已決定 Q14 D、Q15 E＋F、Q16 I（見 `gdd.md`） | 動到追逐掉落（M2-17～20）、Steam 商店頁與主打（M3-09～11）、簡體中文（M3-12～13，Q17 B 已延到 Steam 階段）時 | [dpoe 裝備取得方式與 Steam 亮點評估](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/167c56bb-e9cf-4954-b91f-3d39084385bd) | 2026-11-16 |
 
 ## 以哪份為準（優先順序）
 
