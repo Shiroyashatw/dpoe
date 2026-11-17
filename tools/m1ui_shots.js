@@ -146,8 +146,8 @@ fs.mkdirSync(OUT, { recursive: true });
       return [
         t === '這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。' &&
           __in(__r('#plog')) &&
-          !!pr &&
-          (pill.contains(top) || top === pill.parentNode),
+          /* 手機橫向的分頁列藏著（角標沒畫出來）；其他模式找不到角標算失敗 */
+          (TOUCH.on && !PORT() ? !pr : !!pr && (pill.contains(top) || top === pill.parentNode)),
         { 空狀態: t, 角標: pr }
       ];
     }
