@@ -532,14 +532,15 @@ body.touch .panel { --pp: 10px; }
 .sk { background: var(--s1); border: 1px solid var(--fr-o); border-radius: 2px; box-shadow: inset 0 0 8px #000; }
 .sk:hover { border-color: var(--fr); }
 .sk s { border-radius: 1px; background: rgba(0, 0, 0, 0.7); }
-.sk kbd { color: var(--title); font-size: 11px; }
+.sk kbd { z-index: 2; left: 2px; top: 2px; padding: 0 3px; line-height: 13px; background: var(--s0); border-radius: 2px; color: var(--title); font-size: 11px; }
+body:not(.touch) #bar .sk .ic { width: 36px; height: 36px; transform: translateY(6px); }
 .sk .empty { color: var(--lock); }
 .sk.no .ic { filter: grayscale(1) brightness(0.45); }
 @keyframes press { 0% { transform: scale(0.92); border-color: var(--fr-hi); } 100% { transform: scale(1); } }
 #bossbar b { font: 700 var(--fs-l) var(--serif); color: var(--title); letter-spacing: 0.14em; text-shadow: 0 1px 3px #000, 0 0 12px rgba(0, 0, 0, 0.9); }
 #bossbar .bb { height: 14px; margin-top: 6px; background: #080505; border: 1px solid var(--fr-o); box-shadow: 0 0 0 1px var(--fr), 0 0 0 3px #0a0806, 0 4px 14px rgba(0, 0, 0, 0.8); }
 #bossbar .bb i { background: linear-gradient(180deg, #d9443a, #7e1610 60%, #5a0e0a); }
-#prog b { font: 700 var(--fs-s) var(--serif); color: var(--dim); letter-spacing: 0.1em; }
+#prog b { display: inline-block; padding: 1px 6px; background: var(--plate-world); border-radius: 2px; font: 700 var(--fs-s) var(--serif); color: var(--tx); text-shadow: 0 1px 2px #000; letter-spacing: 0.1em; }
 #prog .pb { height: 7px; background: var(--s0); border: 1px solid var(--fr-o); }
 #prog .pb i { background: linear-gradient(90deg, #7a4a14, #e1a54c); }
 #warn { font-family: var(--serif); color: var(--title); letter-spacing: 0.06em; }
@@ -725,13 +726,13 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 .stc.bad { border-color: var(--bad); }
 .stc .ic { width: 26px; height: 26px; }
 .stc i { position: absolute; inset: 0; border-radius: 2px; pointer-events: none; background: conic-gradient(rgba(0, 0, 0, 0.62) calc((1 - var(--f, 1)) * 360deg), transparent 0); }
-.stc b { position: absolute; right: 1px; bottom: 0; font: 700 11px/1.1 var(--font); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+.stc b { position: absolute; right: 2px; bottom: 2px; padding: 0 2px; background: var(--s0); border-radius: 2px; font: 700 11px/12px var(--font); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 3px #000; }
 
 /* 說明框：動作分組、看詳細是文字連結 */
 
 /* 死亡卡 */
 .ddeath { color: var(--tx); }
-.ddeath b { color: var(--bad); }
+.ddeath b { color: var(--bad-hi); }
 
 /* 第一次玩的提示 */
 
@@ -1390,7 +1391,7 @@ body:not(.touch) .tmore .tonly { display: none; }
 .mpg li[data-chs] { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { #banner { animation: none; } }
 #dlog { margin-top: 4px; pointer-events: none; }
-#dlog p { margin: 2px 0 0; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 2px #000; animation: lgfade 30s linear forwards; }
+#dlog p { width: fit-content; margin: 2px 0 0; padding: 1px 6px; background: var(--plate-world); border-radius: 2px; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 2px #000; animation: lgfade 30s linear forwards; }
 @keyframes lgfade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #dlog p { animation: none; } }
 .lg-chase { color: #ffb35c !important; } .lg-frac { color: #fff7d6 !important; } .lg-mem { color: #6fe3ff !important; } .lg-cur, .lg-perf { color: var(--gold) !important; }
@@ -1875,6 +1876,8 @@ body.touch .sk-chips button { min-height: 44px; }
   --fr-c: #f1ebdc; --mm: #c79bff; --co: #e0614a; --paper: #e6d9bd; --ink: #2a1a12; --milk: #d9cdb4; --milk2: #a6957e;
   /* BASE-02（2026-11-16 准用）：14／13 px 的負向正文、失效與警告；--bad 只留給大字或圖示 */
   --bad-hi: #f06a50;
+  /* M2-31 對比小修 */
+  --tx-dim: var(--dim); --tx-off: #aa9a84; --on-act: #f3e4d2; --plate-world: rgba(11, 8, 6, 0.8);
 }
 /* BASE-02：小字警告一律 --bad-hi（大字標題 #over h2.c-bad 照舊） */
 .c-bad, .c-warn, .note .w, .curow .ct small.c-warn, .sethint.c-bad { color: var(--bad-hi); }
@@ -1916,7 +1919,7 @@ body:not(.touch) .mid { padding: 0; background: none; box-shadow: none; margin: 
 .hb { height: 12px; background: rgba(0, 0, 0, 0.7); border: 0; box-shadow: none; border-radius: 2px; }
 .hb i { background: #8a2a2a; }
 .hb.mp i { background: #2b4a8a; }
-#area, .hud .loc { padding: 4px 8px; background: rgba(0, 0, 0, 0.5); border-radius: 2px; font: 500 14px var(--font); color: var(--milk); text-shadow: none; }
+#area, .hud .loc { padding: 4px 8px; background: var(--plate-world); border-radius: 2px; font: 500 14px var(--font); color: var(--milk); text-shadow: 0 1px 2px #000; }
 body.touch.port #area::after { content: ''; }
 body.touch.port .tmenu { display: none; }
 body.touch.port.sheet #prog { display: none; }
@@ -1927,7 +1930,7 @@ body.touch.port.sheet #prog { display: none; }
 .btn.pri:not(:disabled):hover { background: var(--act-hi); color: #fff; }
 .btn.pri:disabled { background: #5a4a3a; color: #cbb89a; box-shadow: none; }
 .btn small, .btn.pri small { display: block; font-size: 11px; font-weight: 500; color: var(--milk2); line-height: 1.2; }
-.btn.pri small { color: rgba(243, 228, 210, 0.85); }
+.btn.pri small, .acts .btn.pri small { color: var(--on-act); }
 .gkind .btn.on, .tbar .tabs button.on, .ftabs button.on, .chip.on, .fseg button.on { background: var(--paper); border-color: var(--paper); color: var(--ink); }
 .gkind .btn.on small { color: var(--ink); opacity: 0.7; }
 .chip { height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid var(--line); background: none; color: var(--milk); font: 700 12px var(--font); }
@@ -2054,7 +2057,7 @@ body.touch.port #pinv .foot.sel .cmpc { max-height: calc((100vh - var(--sheet-to
 .cmpc li b { color: var(--milk); }
 .cmpc li small { margin-left: 4px; font-size: 12px; }
 .cmpc li.fr b { color: var(--fr-c); }
-.cmpc li.none { color: #6a5a48; }
+.cmpc li.none { color: var(--tx-dim); }
 .cmpc .mem { margin: 6px 0 0; font-size: 12px; color: var(--mm); }
 .cmpno { margin: 6px 0 0; font-size: 12px; }
 #pinv .foot { position: sticky; bottom: calc(-1 * var(--pp)); z-index: 2; margin: 8px calc(-1 * var(--pp)) calc(-1 * var(--pp)); padding: 8px var(--pp); background: var(--s1); border-top: 0; }
@@ -2073,7 +2076,7 @@ body.touch.port .cmpc > div { padding: 8px; }
 .doll2 .res { display: flex; justify-content: space-between; gap: 2px; padding: 4px 0; font-size: 11px; }
 .doll2 .res span { white-space: nowrap; }
 .doll2 .res span b { font: 700 13px var(--font); margin-left: 2px; font-variant-numeric: tabular-nums; }
-.doll2 .res span.neg b { color: var(--bad); }
+.doll2 .res span.neg b { color: var(--bad-hi); }
 .doll2 .mi-b { margin-top: auto; min-height: 40px; font-size: 12px; }
 .doll2x { display: flex; gap: 8px; justify-content: center; width: 100%; }
 .eqs { position: relative; width: 56px; height: 56px; left: auto !important; top: auto !important; display: grid; place-items: center; background: var(--s0); border: 0; border-radius: 3px; box-shadow: inset 0 0 0 1px #3f342b, inset 0 2px 6px rgba(0, 0, 0, 0.5); }
@@ -2276,10 +2279,10 @@ body:not(.touch) #pcraft.cwide { width: min(60vw, 1080px); }
 
 /* ===== M1 第二批介面：共用基礎（docs 規格「dpoe M1 直立視覺規格」BASE-02～05、M1-02.1）===== */
 /* BASE-04／M1-02.1 主按鈕：高 48、字 700 16–17、左右 ≥16、圓角 3、act-hi→act 漸層、字 #f3e4d2；pressed act-hi */
-.btn.pri { min-height: 48px; padding-left: 16px; padding-right: 16px; border: 0; border-radius: 3px; background: linear-gradient(180deg, var(--act-hi), var(--act)); color: #f3e4d2; font: 700 16px/1.2 var(--font); letter-spacing: 0.02em; }
+.btn.pri { min-height: 48px; padding-left: 16px; padding-right: 16px; border: 0; border-radius: 3px; background: linear-gradient(180deg, var(--act-hi), var(--act)); color: var(--on-act); font: 700 16px/1.2 var(--font); letter-spacing: 0.02em; }
 .btn.pri:not(:disabled):active { background: var(--act-hi); }
 /* BASE-05：disabled／買不起＝s3 底＋milk2（原因另寫 14 px） */
-.btn:disabled, .btn.pri:disabled { opacity: 1; background: var(--s3); color: var(--milk2); box-shadow: none; }
+.btn:disabled, .btn.pri:disabled { opacity: 1; background: var(--s3); color: var(--tx-off); box-shadow: none; }
 /* BASE-02／05：次要鈕框 --fr-hi、s2 底、milk 14／700；pressed s3 */
 .btn:not(.pri) { border-color: var(--fr-hi); }
 .btn:not(.pri):not(:disabled):active { background: var(--s3); }
@@ -2345,7 +2348,7 @@ body.touch.port #pinv .eqrow.col { margin-top: 0; }
 .skr .dps { font: 700 14px var(--font); }
 .skr .why { font: 700 14px/1.4 var(--font); color: var(--bad-hi); max-width: none; text-align: left; }
 .skr-up { min-width: 96px; min-height: 44px; font: 700 14px var(--font); border-color: var(--fr-hi); }
-.skr-up:disabled { opacity: 1; background: var(--s3); color: var(--milk2); }
+.skr-up:disabled { opacity: 1; background: var(--s3); color: var(--tx-off); }
 .skr.emp { display: flex; min-height: 72px; padding: 8px 12px; border: 1px dashed var(--fr-hi); font: 500 14px/1.4 var(--font); color: var(--milk2); text-align: left; }
 .skr.nxu { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; background: none; border: 1px dashed var(--fr-hi); font: 500 14px/1.4 var(--font); color: var(--milk2); }
 .skr.nxu .ico { width: 16px; height: 16px; flex: none; }
