@@ -7,17 +7,18 @@ const fs = require('fs');
 const ev = j => { const o = {}; j.rows.forEach(r => r.ev.forEach(e => { const m = e.match(/^([\d.]+) (.+?)(：|$)/); if (m && !/換上/.test(e) && !(m[2] in o)) o[m[2]] = +m[1] / 60; })); return o; };
 const K = ['瞭望台 Lv1', '祭壇 Lv1', '民房 Lv2', '鍛造台 Lv2', '鍛造台 Lv3', '鍛造台 Lv4'];
 const tg = (d, k) => ({ '瞭望台 Lv1': [8, 12, 6, 14], '祭壇 Lv1': [0, 10.8, 0, 13.8], '鍛造台 Lv2': [0, d ? 14.6 : 13.4, 0, d ? 17.6 : 16.4], '民房 Lv2': [0, d ? 17.4 : 15.6, 0, d ? 20.4 : 18.6], '鍛造台 Lv3': [0, d ? 22.2 : 19.9, 0, d ? 25.2 : 22.9], '鍛造台 Lv4': [24, 36, 0, 39] }[k]);
-const files = fs.readdirSync('camp').filter(f => /^S\d_.*\.json$/.test(f)).sort();
-const runs = ['方案,場次,有效,卡住起(分),前30分靈魂/分,' + K.join(',') + ',生鐵30分,生鐵60分,30分≤6000,60分≤15000'];
+const files = fs.readdirSync('camp').filter(f => /^S\d_.*\.json$/.test(f)).sort((a, b) => +a.match(/_r(\d+)/)[1] - +b.match(/_r(\d+)/)[1] || a.localeCompare(b));
+const runs = ['方案,場次,採用,卡住起(分),第60分遊戲秒,前30分靈魂/分,' + K.join(',') + ',生鐵30分,生鐵60分,30分≤6000,60分≤15000'];
 const acc = ['方案,場次,' + K.join(',')];
-const agg = {}, iron = {};
+const agg = {}, iron = {}, take = {};
 for (const f of files) {
   const j = JSON.parse(fs.readFileSync('camp/' + f)), e = ev(j), d = /1280/.test(f), pl = f.split('_')[0], id = f.replace('.json', '');
-  const ok = !j.stuckFrom && j.rows.length >= 60;
+  const slow = !(j.rows[59] && j.rows[59].gt >= 3500); /* 第 60 分遊戲時間 <3,500 秒（慢 >2.8%）＝負載過高 */
+  const key = pl + (d ? 'd' : 'p'), valid = !j.stuckFrom && !slow, ok = valid && (take[key] = (take[key] || 0) + 1) <= 3; /* 每方案每尺寸照場次編號取前 3 場有效的 */
   const i30 = j.rows[29]?.mats['iron:1'] ?? '', i60 = j.rows[59]?.mats['iron:1'] ?? '';
   const cs = fs.readFileSync('camp/' + id + '.csv', 'utf8').trim().split('\n').slice(1).map(l => l.split(',')), spm = cs.length >= 30 ? Math.round(cs.slice(0, 30).reduce((a, r) => a + +r[5], 0) / 30) : '';
   const cells = K.map(k => { const x = e[k]; if (x == null) return 'X(未解)'; const [a, b, c, dd] = tg(d, k); return `${x.toFixed(1)}${x >= a && x <= b ? 'o' : x >= c && x <= dd ? '~' : 'X'}`; });
-  runs.push([pl, id, ok ? 1 : 0, j.stuckFrom || '', spm, ...K.map(k => (e[k] == null ? '' : e[k].toFixed(2))), i30, i60, i30 !== '' ? +(i30 <= 6000) : '', i60 !== '' ? +(i60 <= 15000) : ''].join(','));
+  runs.push([pl, id, ok ? 1 : 0, j.stuckFrom || '', j.rows[59]?.gt ?? '', spm, ...K.map(k => (e[k] == null ? '' : e[k].toFixed(2))), i30, i60, i30 !== '' ? +(i30 <= 6000) : '', i60 !== '' ? +(i60 <= 15000) : ''].join(','));
   if (!ok) continue;
   acc.push([pl, id, ...cells].join(','));
   const A = (agg[pl] = agg[pl] || { n: 0, nd: 0, np: 0 }); A.n++; d ? A.nd++ : A.np++;
