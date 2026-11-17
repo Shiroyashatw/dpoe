@@ -10886,4 +10886,85 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(m19.line)
   );
 }
+/* M2-38（M2-37 v1.3 §12 第 16 步）：分頁格數與順序、鍵位、沒開的技能格不畫、改過的地方沒有色碼字面值與虛線空狀態、新字串在字串表 */
+{
+  const rd = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8'),
+    hud = rd('js/hud.js'),
+    css = rd('css/style.css'),
+    fnOf = (src, n) => {
+      const i = src.search(new RegExp('(function ' + n + '\\(|const ' + n + ' = )'));
+      if (i < 0) return '';
+      const eol = src.indexOf('\n', i),
+        blk = src[eol - 1] === '{' || src[eol - 1] === '(';
+      return src.slice(i, blk ? src.indexOf('\n}', i) + 3 : src.indexOf(';\n', i) + 2);
+    },
+    navK = [...hud.match(/const NAV_T = \[([\s\S]*?)\n\];/)[1].matchAll(/\['(\w+)'/g)].map(m => m[1]),
+    fm = Object.fromEntries(
+      [...hud.match(/const FMENU = \[([\s\S]*?)\n\];/)[1].matchAll(/\['(\w+)', [^,]+, '(\w+)'\]/g)].map(m => [
+        m[2],
+        m[1]
+      ])
+    ),
+    navF = fnOf(hud, 'navHTML');
+  ok(
+    'M2-38 分頁：戰利品・角色・鍛造・技能・天賦・營地・（桌機追逐物品）・更多；天賦照祭壇、追逐物品只在桌機且開放後（直立 6／7 格、桌機 6～8 格）',
+    navK.join() === 'bag,char,forge,skill,tree,craft,chase,more' &&
+      navF.includes("k !== 'tree' || campCan('tree')") &&
+      navF.includes("k !== 'chase' || (!TOUCH.on && chaseOn())"),
+    navK.join()
+  );
+  ok(
+    'M2-38 鍵位：K 鍛造、O 鍛造 › 通貨、H 營地、Y 追逐物品（M 地點、U 昇華、J 寶盒、L 掉落紀錄不變）',
+    fm.K === 'forge' && fm.O === 'stash' && fm.H === 'craft' && fm.Y === 'chase' && fm.M === 'node' && fm.L === 'log',
+    JSON.stringify(fm)
+  );
+  const bar = fnOf(hud, 'hudBar');
+  ok(
+    'M2-38 快捷列（桌機）：祭壇沒開的技能格不畫（slot < campN(slots)）、開了但空著只畫外框＋鍵帽（不用 ICO.plus）、自動時藏起來（body.mauto）',
+    bar.includes("b.slot < campN('slots')") &&
+      /if \(!TOUCH\.on && b\.slot != null && !S\.skills\[b\.slot\]\.k\)\s*return `<button class="sk emp"[^`]*<kbd>\$\{b\.key\}<\/kbd><\/button>`/.test(
+        bar
+      ) &&
+      /body:not\(\.touch\)\.mauto #bar \{[^}]*visibility: hidden/.test(css),
+    ''
+  );
+  const blk = css.slice(css.indexOf('/* ================= M2-38')),
+    fns = ['chasePanelHTML', 'empHTML', 'forgeHead', 'craftSeg', 'chaseSeen', 'chaseDot', 'goCampT'].map(n =>
+      fnOf(hud, n)
+    ),
+    lit = /#[0-9a-fA-F]{3,8}\b|rgba?\(/;
+  ok(
+    'M2-38 顏色：M2-38 的 CSS 段與新函式沒有色碼字面值（hex、rgb()）、沒有新 token 定義',
+    blk.length > 100 &&
+      fns.every(f => f.length > 20) &&
+      !lit.test(blk) &&
+      !fns.some(f => lit.test(f)) &&
+      !/\n\s*--[\w-]+\s*:/.test(blk),
+    fns.map(f => f.length).join(',')
+  );
+  ok(
+    'M2-38 角色頁空格：.eqs.emp 是實心框（沒有 dashed）、不寫「空」',
+    !/\.eqs\.emp[^{]*\{[^}]*dashed/.test(css) &&
+      !/<small>\$\{lock \? ICO\.lock : '空'\}/.test(hud) &&
+      !/<small>空<\/small>/.test(hud),
+    ''
+  );
+  const D = rd('js/data.js');
+  ok(
+    'M2-38 新字串都在字串表 STR_T（鍛造、去鍛造打一件、追逐物品開放了、擁有／身上、不累積保底、去營地・n 可升級）',
+    [
+      'forge: ',
+      'mkSlot: ',
+      'chaseOpen: ',
+      'wyHave: ',
+      'pityNo: ',
+      'goCampN: ',
+      'noCand: ',
+      'beltCharm: ',
+      'slotAria: ',
+      'chaseSub: '
+    ].every(k => D.includes('  ' + k)),
+    ''
+  );
+}
 process.exit(bad ? 1 : 0);
