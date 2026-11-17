@@ -1257,6 +1257,74 @@ const STAR_DROP = [
 /* 0.5.3（第 4、6 節，⚠️ 暫定）：破裂石 菁英 0.5%、王 2%；完美石一半；追憶之墨 王 3%（陰兵借道的將領保底）；珠寶 小怪 0.05%、菁英 0.5%、王 2%。
    一小時約 25 輪（一輪 2.5 分鐘、菁英 1～2）→ 破裂石約每 1.5 小時一顆、完美石約每 3 小時、墨約每 1.3 小時、珠寶約每小時一顆；都用偽隨機（S.prd 的 fracO／perfO／ink／jw＋0 小怪／1 菁英／2 王） */
 const NEW_P = { frac: [0, 0.005, 0.02], perf: [0, 0.0025, 0.01], ink: [0, 0, 0.03], jw: [0.0005, 0.005, 0.02] };
+/* M2-18 追逐掉落（M2-17 數值設計師 v1.0，交辦 docs/交辦/M2-18-追逐掉落.md）：平機率；輪末王 +5 點判 b、菁英判 e 沒中 +1 點（每輪前 ec 隻）；
+   點數到 cap 的輪末王必掉（菁英不觸發必掉）；掉到任何一件點數歸零；地點怪物等級 lv 以上才判定也才累計；沒拿過的優先。存檔 S.chase＝{ pts, got: { 鍵: 件數 } } */
+const CHASE = { b: 0.014, e: 0.0014, cap: 500, ptB: 5, ptE: 1, lv: 45, ec: 4 };
+/* 有感保底：連續 K＝max(3, floor(FEEL_TG ÷ 最近 10 輪平均秒數)) 隻輪末王沒有有感掉落（破裂石、完美石、追憶之墨、珠寶、追逐物品）→ 輪流給 1 件 */
+const FEEL_TG = 1500;
+/* ⚠️ 名稱與效果待數值設計師確認：王印的固定詞、異寶基底都還沒做，先只記件數（S.chase.got） */
+const CHASE_POOL = { trunk: ['seal1', 'seal2', 'seal3', 'seal4'] };
+for (const l of ['ghost', 'dream', 'fiend', 'army', 'rift']) CHASE_POOL[l] = [l + '1', l + '2'];
+const chaseName = k =>
+  /^seal/.test(k) ? `王印・${'一二三四'[k[4] - 1]}` : `${WTYPE[k.slice(0, -1)].n}異寶基底・${'一二'[k.slice(-1) - 1]}`;
+const chaseOf = (s = S) => (s.chase = s.chase || { pts: 0, got: {} });
+const chaseN = (s = S) => Object.values(chaseOf(s).got).reduce((a, n) => a + n, 0);
+/* kind 1 菁英（o.ei＝這一輪第幾隻）、2 輪末王；回掉到的鍵或 null */
+function chaseRoll(kind, t, o = {}) {
+  if (mobLv(t) < CHASE.lv) return null;
+  const C = chaseOf();
+  if (kind === 1) {
+    if ((o.ei || 0) > CHASE.ec) return null;
+    if (Math.random() < CHASE.e) return chaseGive();
+    C.pts += CHASE.ptE;
+    return null;
+  }
+  C.pts += CHASE.ptB;
+  return C.pts >= CHASE.cap || Math.random() < CHASE.b ? chaseGive() : null;
+}
+function chaseGive() {
+  const C = chaseOf(),
+    cur = typeof WNODE !== 'undefined' && S.world && WNODE[S.world.cur],
+    pool = CHASE_POOL[(cur && CHASE_POOL[cur.t] && cur.t) || 'trunk'],
+    fresh = pool.filter(k => !C.got[k]),
+    k = pick(fresh.length ? fresh : pool);
+  C.got[k] = (C.got[k] || 0) + 1;
+  C.pts = 0;
+  return k;
+}
+/* 最近 10 輪的平均秒數（沒有紀錄當 150 秒） */
+const roundSec = () => {
+  const R = (typeof S !== 'undefined' && S.rounds) || [];
+  return R.length ? R.reduce((a, r) => a + r.d, 0) / R.length : 150;
+};
+const feelK = () => Math.max(3, Math.floor(FEEL_TG / roundSec()));
+/* 輪流給（珠寶→破裂石→追憶之墨，跳過沒開的）；鍛造台 13–16（破裂石開了、墨與珠寶還沒）不給破裂石，改給材料包。回跳字清單（got.rare＝要演光柱的通貨） */
+function feelGive(t) {
+  const P = (S.prd = S.prd || PRD0()),
+    L = ['jewel', 'frac', 'ink'],
+    got = [];
+  got.rare = [];
+  for (let i = 0; i < 3; i++) {
+    const j = ((P.feelI || 0) + i) % 3,
+      k = L[j];
+    if (!campCan(k === 'jewel' ? k : 'cur:' + k)) continue;
+    P.feelI = j + 1;
+    P.feel = 0;
+    if (k === 'jewel') got.push(...jwAdd(1));
+    else if (k === 'frac' && !campCan('cur:ink')) {
+      /* ⚠️ 待確認：戰鬥只掉靈魂與通貨（材料由產生器產），材料包先給這個地點 5 分鐘的靈魂（最近 10 輪平均的小怪、菁英數） */
+      const R = ((typeof S !== 'undefined' && S.rounds) || []).filter(r => !r.die),
+        mean = f => (R.length ? R.reduce((a, r) => a + (r[f] || 0), 0) / R.length : f === 'nS' ? 40 : 1.5),
+        n = Math.round(((mean('nS') + 10 * mean('nE') + 100) * (1 + 0.2 * (t - 1)) * 300) / roundSec());
+      MAT().soul += n;
+      if (typeof SES !== 'undefined' && SES) SES.soul += n;
+      got.push(`材料包 ${n} 靈魂`);
+      got.pack = n;
+    } else MAT()[k]++, got.push(`1 ${CUR[k].n}`), got.rare.push(k);
+    return got;
+  }
+  return got;
+}
 const ELITE_RICH = 0.35,
   ELITE_EXALT = 0.03 /* 0.5.0：8% → 3%，鍛造台 Lv7 才開始掉 */,
   HUNT_ELITE = 0.3,
@@ -1499,6 +1567,17 @@ function killMat(m, t, o = {}) {
   if (D.jw) got.push(...jwAdd(1));
   /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
   got.rare = Object.keys(D.cur).filter(rareCur);
+  /* M2-18 追逐掉落與有感保底 */
+  const ch = k && chaseRoll(k, t, o),
+    P = (S.prd = S.prd || PRD0());
+  if (ch) got.push(chaseName(ch)), (got.chase = ch);
+  if (ch || D.jw || D.cur.frac || D.cur.perf || D.cur.ink) P.feel = 0;
+  else if (k === 2 && (P.feel = (P.feel || 0) + 1) >= feelK()) {
+    const f = feelGive(t);
+    got.push(...f);
+    got.rare.push(...f.rare);
+    got.feel = f.length ? f : null;
+  }
   return got;
 }
 
@@ -1508,7 +1587,7 @@ function roundLoot(t, star, nS, nE, o = {}) {
   const od = { star, p: mapCurP(star, nS, nE), ilvl: tierIlvl(t), tier: t, ...o },
     s0 = MAT().soul;
   for (let i = 0; i < nS; i++) killMat({}, t, od);
-  for (let i = 0; i < nE; i++) killMat({ elite: 1 }, t, od);
+  for (let i = 0; i < nE; i++) killMat({ elite: 1 }, t, { ...od, ei: i + 1 });
   killMat({ boss: 1 }, t, od);
   return MAT().soul - s0;
 }

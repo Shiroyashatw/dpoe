@@ -1876,10 +1876,18 @@ function idleHTML() {
   /* 0.5.4（考核 C1、C2）：上面一行本次掛機；中間營地的資源條（跟營地頁同一個元件、一直在跑）；M1-CP.4 下面只放「去營地」（升級只在營地） */
   return `<div class="paper idl">
     <div class="k row2"><span>本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪${ses.cur ? `・通貨 ${ses.cur} 顆` : ''}${ses.deaths ? `・倒下 ${ses.deaths}` : ''}</span><span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
-    <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>
+    <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>${chaseHTML()}
     <button class="btn pri wide igo" data-a="gocamp">去營地</button>
     ${pct >= 80 ? `<p class="note"><span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span></p>` : ''}
   </div>`;
+}
+/* 掛機卡的追逐保底（M2-18）：一行「下一件保底 n%」＋細條；這個地點開放了（怪物 Lv45）或已經有點數才出現 */
+function chaseHTML() {
+  const p = chaseOf().pts,
+    n = Math.floor((p / CHASE.cap) * 100);
+  return p || (G.mapT && mobLv(G.mapT) >= CHASE.lv)
+    ? `<div class="chs"><span>下一件保底 ${n}%</span><div class="pb" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="width:${n}%"></i></div></div>`
+    : '';
 }
 /* 營地現在買得起的（王倒下的卡、離線卡；考核 D2、E3）：一件一列（圖示、名字、給什麼、升級鈕），最多 n 件；pri＝第一件用主要鈕 */
 function campUpsHTML(n = 3, pri = true) {

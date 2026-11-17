@@ -10570,5 +10570,49 @@ const ASC_COMBOS = `const combos = k => {
     ts.dual && ts.near && ts.mid && ts.slot === '' && ts.test === '',
     JSON.stringify(ts)
   );
+  /* M2-18 追逐掉落：開放門檻、必掉、歸零、菁英不觸發必掉、重複保護、賽制線的池、每輪前 4 隻菁英、有感保底（鍛造台 14 給材料包）、舊存檔補欄位 */
+  const ch = R(`(() => {
+    const rnd = Math.random, r = {};
+    try {
+      S = newGame(); S.camp.forge = 20; S.world.cur = TRUNK_K[14];
+      const lo = lvT(TRUNK[13].lv), hi = lvT(TRUNK[14].lv), boss = (t, o) => killMat({ boss: 1 }, t, o), el = (t, o) => killMat({ elite: 1 }, t, o);
+      Math.random = () => 0;
+      r.lo = [!boss(lo).chase, !el(lo, { ei: 1 }).chase, S.chase.pts];
+      Math.random = () => 0.99;
+      boss(hi); el(hi, { ei: 1 }); r.acc = S.chase.pts;
+      S.chase.pts = 600; r.el = [!el(hi, { ei: 1 }).chase, S.chase.pts];
+      el(hi, { ei: 5 }); r.ec = S.chase.pts;
+      S.chase.pts = 495; S.chase.got = { seal1: 1, seal2: 1, seal3: 1 };
+      r.pity = [boss(hi).chase, S.chase.pts];
+      r.again = [boss(hi).chase, S.chase.pts];
+      S.chase.pts = 0; roundLoot(hi, 5, 0, 6); r.round = S.chase.pts;
+      S.world.cur = Object.keys(WNODE).find(k => WNODE[k].t === 'army'); S.chase.pts = 499;
+      r.line = boss(hi).chase;
+      S.world.cur = TRUNK_K[14]; S.camp.forge = 14; S.chase.pts = 0; S.prd = PRD0(); S.rounds = [];
+      Math.random = () => 0.999999;
+      const f0 = S.mat.frac;
+      for (let i = 0; i < feelK(); i++) r.feel = boss(hi);
+      r.feel = [feelK(), !!(r.feel.feel && r.feel.feel.pack > 0), S.mat.frac - f0, S.prd.feel];
+      const old = { ...newGame() }; delete old.chase;
+      r.mig = JSON.stringify(migrate(JSON.parse(JSON.stringify(old))).chase);
+    } finally {
+      Math.random = rnd;
+    }
+    return r;
+  })()`);
+  ok(
+    'M2-18 追逐掉落：Lv43 不判定不累計、Lv48 王 +5 菁英 +1、菁英不觸發必掉、第 5 隻菁英不判定、點數 500 必掉並歸零、沒拿過的優先、每輪前 4 隻菁英、賽制線池、有感保底鍛造台 14 給材料包不給破裂石、舊存檔補 S.chase',
+    JSON.stringify(ch.lo) === '[true,true,0]' &&
+      ch.acc === 6 &&
+      JSON.stringify(ch.el) === '[true,601]' &&
+      ch.ec === 601 &&
+      JSON.stringify(ch.pity) === '["seal4",0]' &&
+      JSON.stringify(ch.again) === '[null,5]' &&
+      ch.round === 9 &&
+      /^army[12]$/.test(ch.line) &&
+      JSON.stringify(ch.feel) === '[10,true,0,0]' &&
+      ch.mig === '{"pts":0,"got":{}}',
+    JSON.stringify(ch)
+  );
 }
 process.exit(bad ? 1 : 0);

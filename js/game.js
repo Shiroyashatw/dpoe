@@ -23,6 +23,8 @@ function newGame() {
     camp: newCamp(),
     auto2: AUTO2(),
     star: 1,
+    /* 追逐掉落（M2-18，craft.js 的 CHASE）：保底點數、拿過的件數；舊存檔由 migrate 的 { ...newGame(), ...s } 補上 */
+    chase: { pts: 0, got: {} },
     /* 碎片分頁（0.2.78 酆都）：勾魂令四種、生死簿 */
     frags: newFrags(),
     army: {},
@@ -263,6 +265,7 @@ function offSettle(away) {
     t = lvT(wLv(...wXY(k))),
     star = wStar(S),
     M0 = { ...MAT() },
+    c0 = chaseN(),
     g0 = S.gold,
     lv0 = S.lv;
   let won = 0;
@@ -288,7 +291,8 @@ function offSettle(away) {
       .filter(c => MAT()[c] > (M0[c] || 0))
       .map(c => [c, MAT()[c] - (M0[c] || 0)]),
     gold: S.gold - g0,
-    lv: S.lv - lv0
+    lv: S.lv - lv0,
+    chase: chaseN() - c0
   };
 }
 /* 離開的時候產生器照產（0.5.1，3.7）：上限照倉房；回產了多少 { 材料鍵: n } */
@@ -315,6 +319,7 @@ function offShow(o, g, away) {
       const gen = GEN_K.some(k => genOn(k) && genAfford(k) > 0);
       return `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>${o ? `，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `・倒下 ${o.n - o.won} 輪` : ''}` : ''}${o && o.lv ? `・升了 <b>${o.lv}</b> 級` : ''}</p>
       <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold')}<span class="rn">金幣</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
+      ${o && (o.chase || chaseOf().pts) ? `<p class="sub">追逐物品 ×${o.chase}、目前保底 ${Math.floor(chaseOf().pts / 5)}%</p>` : ''}
       ${o && o.cur.length ? `<p class="sub">通貨：${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}
       ${gen ? '<button class="btn pri wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}${campUpsHTML(4, false)}</div>`;
     }
@@ -1007,10 +1012,12 @@ function killMob(m) {
     rar: MM('rar') + ST.rarP,
     mat: MM('mat'),
     hunt: G.hunt,
-    zod: !!G.zod
+    zod: !!G.zod,
+    ei: G.rs ? G.rs.nE : 0
   };
   const mat = killMat(m, t, od);
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
+  if (mat.chase) rareShow(chaseName(mat.chase), 'chase', 'star');
   [
     ...mat,
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),

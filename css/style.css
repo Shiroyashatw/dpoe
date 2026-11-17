@@ -1385,6 +1385,11 @@ body:not(.touch) .tmore .tonly { display: none; }
 #banner.bn-frac { color: #fff7d6; border-color: #fff7d6; }
 #banner.bn-mem { color: #6fe3ff; border-color: #6fe3ff; }
 #banner.bn-cur, #banner.bn-perf { color: var(--gold); border-color: var(--gold); }
+/* M2-18 追逐物品：全寬橫幅＋稀有度外框（正式演出 M2-19） */
+#banner.bn-chase { left: 0; right: 0; transform: none; max-width: none; color: #ffb35c; border: 2px solid #ffb35c; border-left: 0; border-right: 0; }
+#pidle .chs { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: var(--fs-s); color: var(--dim); }
+#pidle .chs .pb { flex: 1; height: 4px; min-width: 40px; background: var(--s0); }
+#pidle .chs .pb i { display: block; height: 100%; background: #ffb35c; }
 @media (prefers-reduced-motion: reduce) { #banner { animation: none; } }
 #dlog { margin-top: 4px; pointer-events: none; }
 #dlog p { margin: 2px 0 0; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 2px #000; animation: lgfade 30s linear forwards; }
