@@ -158,18 +158,26 @@ const settle = async (p, fn, arg) => {
   ok('點一下技能＝施放', await p.evaluate(() => P.mp < _mp || P.cds.s1 > 0 || !!P.act));
   /* 翻滾：橫向按翻滾鍵；直立快速一撥 */
   if (PORTM) {
-    await p.evaluate(() => {
-      P.cds.roll = 0;
-      P.act = null;
-      P.roll = null;
-    });
-    await touch('touchStart', [[W / 2, H * 0.45]]);
-    await touch('touchMove', [[W / 2 + 30, H * 0.45]]);
-    await touch('touchMove', [[W / 2 + 80, H * 0.45]]);
-    await touch('touchEnd', []);
-    /* 撥的判定在下一格才跑：等到翻滾開始（最多 1 秒）再判定 */
+    /* 快速一撥＝按下到放開不到 260 毫秒（touch.js）。機器忙時送四個觸控事件就超過 260 毫秒，送出去的不是快速一撥：
+       在頁面記下這次手勢實際花多久，太慢就重送（最多 3 次）；撥的判定在下一格才跑，等到翻滾開始（最多 1 秒）再判定 */
     const rolled = () => (!!P.roll && P.roll.dx > 0.7) || P.cds.roll > 0;
-    await p.waitForFunction(rolled, null, { timeout: 1000, polling: 16 }).catch(() => {});
+    for (let k = 0; k < 3; k++) {
+      await p.evaluate(() => {
+        P.cds.roll = 0;
+        P.act = null;
+        P.roll = null;
+        window._sw = [];
+        const f = e => _sw.push(performance.now());
+        addEventListener('pointerdown', f, { once: true });
+        addEventListener('pointerup', f, { once: true });
+      });
+      await touch('touchStart', [[W / 2, H * 0.45]]);
+      await touch('touchMove', [[W / 2 + 30, H * 0.45]]);
+      await touch('touchMove', [[W / 2 + 80, H * 0.45]]);
+      await touch('touchEnd', []);
+      await p.waitForFunction(rolled, null, { timeout: 1000, polling: 16 }).catch(() => {});
+      if (await p.evaluate(() => _sw.length < 2 || _sw[1] - _sw[0] < 240)) break;
+    }
     ok('快速一撥＝翻滾（往撥的方向）', await p.evaluate(rolled));
     /* 點一下＝普攻一次 */
     await p.evaluate(() => {
