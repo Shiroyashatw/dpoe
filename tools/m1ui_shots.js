@@ -103,6 +103,8 @@ fs.mkdirSync(OUT, { recursive: true });
           /* 一行（放不下就橫捲，不換行把清單往下推） */
           tabs.every(t => t && t.h >= 44 && t.y === tabs[0].y) &&
           __r('#pskill .sk-chips').x + __r('#pskill .sk-chips').w <= P.x + P.w &&
+          /* 375 寬七顆也放得下：一行不用橫捲 */
+          (c => c.scrollWidth <= c.clientWidth + 1)(document.querySelector('#pskill .sk-chips')) &&
           __r(b).h >= 48 &&
           b.disabled &&
           !!pz &&
@@ -144,7 +146,8 @@ fs.mkdirSync(OUT, { recursive: true });
       return [
         t === '這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。' &&
           __in(__r('#plog')) &&
-          (!pr || pill.contains(top) || top === pill.parentNode),
+          !!pr &&
+          (pill.contains(top) || top === pill.parentNode),
         { 空狀態: t, 角標: pr }
       ];
     }
