@@ -784,8 +784,6 @@ function updPlayer(dt) {
   if (TOUCH.mv[0] || TOUCH.mv[1]) [mx, my] = TOUCH.mv;
   /* 掛機（0.3.0）：AI 在操作時，移動方向是 AI 給的 */
   if (AI.on) [mx, my] = AI.mv;
-  /* 對話中站著不動 */
-  if (G.state === 'talk') mx = my = 0;
   const ml = Math.hypot(mx, my);
   if (ml) (mx /= ml), (my /= ml);
   P.mv = ml ? 1 : 0;
