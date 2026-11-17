@@ -138,6 +138,11 @@ async function run(b, W, H) {
     `${tag} 換印確認句、按鈕 ≥ 44×44`,
     sw
   );
+  /* 鍵帽 Esc／Enter 只在桌機：觸控看不到、桌機看得到 */
+  const kb = await p.evaluate(() =>
+    [...document.querySelectorAll('#pchase .wysw kbd')].map(k => !!k.getClientRects().length)
+  );
+  ok(kb.length === 2 && kb.every(v => v === !mob), `${tag} 換印確認鍵帽${mob ? '不可見' : '可見'}`, kb);
   await p.screenshot({ path: `${OUT}/${W}x${H}-4-swap.png` });
   if (mob) await tap(p, '#pchase .wysw .btn.pri');
   else await p.keyboard.press('Escape');

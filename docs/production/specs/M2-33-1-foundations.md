@@ -47,6 +47,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 | 把手 `#phand` | 高 24；橫條 44×4 `--border-hi`；熱區往上 20 | 不畫 | 按住 `--border-cap` |
 | 凹槽（格、輸入框、條空段） | — | — | `--panel-inset`＋1 px `--border`；內上緣 1 px `rgb(var(--scrim-rgb) / 0.5)` |
 | 卡片（凸起） | — | — | `--panel-raised`＋1 px `--border-ctl`；內上緣 1 px `rgb(var(--hl-rgb) / 0.08)`；外下緣 2 px `rgb(var(--scrim-rgb) / 0.5)` |
+| 黏底動作列（`position: sticky; bottom: 0` 的主動作，例：鍛造「打造 1 件」） | 滿版面寬；底內距 8＋`env(safe-area-inset-bottom)`，底色一路鋪到螢幕底 | 滿欄寬（左欄 16–492 內） | 底 `--sheet-bg`（直立）／`--panel`（桌機），不透明，跟所在面板同色；上緣 1 px `--border-mid`＋上緣外 `0 -3px 0 rgb(var(--scrim-rgb) / 0.6)`；高＝按鈕 48＋上下各 8；捲動內容底部留同高的內距，最後一列不被蓋住；捲到底下面的格子、字都不准從按鈕旁或下方透出來 |
 | 場景字底板 | — | — | `--plate-world`，圓角 2，內距 2 6；字 `--tx-scene`；不加框 |
 | 追逐外框 `.chf` | — | — | 唯一彩色框，完整構造（雙框＋印角、不加光暈）見 `M2-33-2a-items-crafting.md` §1.1；其他元件不准用 `--rar-*` 畫框（物品格的稀有度框除外，同檔 §1） |
 - 不准：漸層底（`linear-gradient` 全拿掉，L183、L489、L706）、`img/ui/frame.png` 九宮格（L776、L945、L968）、圓角 > 2（膠囊、徽章、提示點除外）、外發光。
