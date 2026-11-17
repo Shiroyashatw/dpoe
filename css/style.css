@@ -92,7 +92,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .ph, .ph2 { display: flex; align-items: center; gap: var(--sp); }
 .ph b { font-size: var(--fs-l); }
 .ph span, .ph2 span { color: var(--dim); font-size: var(--fs-s); }
-.ph .x { margin-left: auto; width: 32px; height: 32px; background: none; border: 1px solid var(--line); color: var(--tx); border-radius: var(--rad); cursor: pointer; font: inherit; }
+.ph .x { margin-left: auto; width: 44px; height: 44px; flex: none; background: none; border: 1px solid var(--line); color: var(--tx); border-radius: var(--rad); cursor: pointer; font: inherit; }
 .ph .x:active { transform: scale(0.94); }
 .ph2 { margin: 8px 0 6px; font-weight: 700; }
 /* 裝備人形欄 */
