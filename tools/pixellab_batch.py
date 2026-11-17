@@ -28,6 +28,9 @@ BATCH = 5
 
 TOK = ROOT / 'docs/production/specs/M2-36-palette-tokens.md'
 MOTIF = {'zhenyue': '--tx-strong', 'chixiao': '--el-fire', 'jiting': '--el-light', 'guixu': '--rar-magic'}
+CARVE = {'zhenyue': 'a stylised mountain peak with three summits', 'chixiao': 'an upright sword wrapped in a rising flame',
+         'jiting': 'a single zigzag lightning bolt', 'guixu': 'a spiral whirlpool sinking into the centre'}  # 規格 §3「刻紋」
+INIT16 = {'zhenyue': 's2104', 'chixiao': 's2141', 'jiting': 's2124', 'guixu': 's2133'}  # 規格 §3「16 的 init_from」
 SEAL = ['--scene-void', '--panel-inset', '--border', '--border-mid', '--border-cap', '--rar-chase-bg', '--rar-chase', '--rar-chase-hi']
 
 
@@ -76,9 +79,21 @@ def job_of(jid):
 def jobs():
     """§3 JSON（跳過還沒定的 <名>）；body 是字串時照說明從別的 job 補"""
     text = DOC.read_text(encoding='utf-8')
-    js = [j for j in json.loads(re.search(r'## 3\..*?```json\n(.*?)\n```', text, re.S).group(1)) if '<' not in j['id']]
-    by = {j['id']: j for j in js}
+    js = []
+    for j in json.loads(re.search(r'## 3\..*?```json\n(.*?)\n```', text, re.S).group(1)):
+        if '<名>' not in j['id']:
+            js.append(j)
+            continue
+        for n, s in re.findall(r'(\w+) (\d+)', j['seed0']):  # 四枚 16：seed0「zhenyue 2151、…」，init 用推薦的 32
+            b = dict(j['body'], description=j['body']['description'].replace('<刻紋>', CARVE[n]))
+            js.append(dict(j, id=j['id'].replace('<名>', n), seed0=int(s), body=b, palette=SEAL + [MOTIF[n]],
+                           init_from=f'wangyin_{n}_32-{INIT16[n]}', out=j['out'].replace('<名>', n)))
+    by = {}
     for j in js:
+        by.setdefault(j['id'], j)
+    for j in js:
+        if isinstance(j['palette'], str):  # 「同疾霆 32」：用同 id 第一筆的色
+            j['palette'] = by[j['id']]['palette']
         b = j['body']
         if isinstance(b, str):
             if m := re.match(r'同 (art/_raw/\S+\.json) 的 body', b):
@@ -95,8 +110,11 @@ def jobs():
 
 def all_jobs():
     """工作表＋art/_raw 裡第一輪的 job"""
-    js = jobs()
-    ids = {j['id'] for j in js}
+    js, ids = [], set()
+    for j in jobs():  # 同一個 id 分兩波（疾霆 32 A、B）只留第一筆：同一個資料夾只檢查一次
+        if j['id'] not in ids:
+            ids.add(j['id'])
+            js.append(j)
     return js + [job_of(d.name) for d in sorted(RAW.iterdir()) if d.is_dir() and d.name not in ids and any(d.glob('*.json'))]
 
 
@@ -349,7 +367,7 @@ def main():
     p.add_argument('--job', default='', help='逗號分隔的 id')
     p.add_argument('--all', action='store_true')
     p.add_argument('--wave', help='只跑這一波（A、B）')
-    p.add_argument('--n', type=int, default=0, help='每個工作最多幾張（0 = 照工作表）')
+    p.add_argument('--n', type=int, default=0, help='每個工作跑到第幾張（0 = 照工作表；備用可超過，已有的 seed 跳過）')
     p.add_argument('--repost', help='逗號分隔的 id 或 all：從 art/_raw 原圖重做後處理與檢查，不花生成')
     p.add_argument('--from', dest='src', help='recolor 的來源，例如 tile_tomb_walltop-s1312')
     p.add_argument('--no-init', action='store_true', help='不送 init_image（端點拒收時）')
@@ -372,7 +390,7 @@ def main():
     bad = [x for x in want if x not in {j['id'] for j in js}]
     if bad or not (want or a.all or a.wave):
         sys.exit('沒有這些 id：' + '、'.join(bad) if bad else '請用 --job 指定 id，或加 --all／--wave')
-    todo = [(j, k) for j in js if (a.all or j['id'] in want or j['wave'] == a.wave) for k in range(min(j['n'], a.n or j['n']))
+    todo = [(j, k) for j in js if (a.all or j['id'] in want or j['wave'] == a.wave) for k in range(a.n or j['n'])
             if not (RAW / j['id'] / f"{j['id']}-s{j['seed0'] + k}.png").exists()]
     print(f'這次 {len(todo)} 張，預估 {len(todo)} 次生成；一批最多 {BATCH} 張')
     for b in range(0, len(todo), BATCH):
