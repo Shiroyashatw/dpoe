@@ -966,6 +966,29 @@ let fail = 0;
       );
       await tap('#pidle .igo');
       ok('掛機卡：按「去營地」打開營地總覽', await p.evaluate(() => !!PANEL.craft && CRAFT.tab === 'camp'));
+      /* M2-08：面板開著（半版）首領進度照樣看得到、在面板上緣之上 */
+      const pg = await p.evaluate(() => {
+        const r = $('prog').getBoundingClientRect(),
+          top = $('pcraft').getBoundingClientRect().top;
+        return [G.scene, getComputedStyle($('prog')).display, Math.round(r.top), Math.round(r.bottom), Math.round(top)];
+      });
+      ok(
+        'M2-08：直立開半版面板時首領進度不藏、在面板上面',
+        pg[0] === 'map' && pg[1] !== 'none' && pg[3] > pg[2] && pg[3] <= pg[4],
+        JSON.stringify(pg)
+      );
+      /* M2-08：掛機卡剛出現 400 毫秒內的點擊不算（關面板那一下、清單換版不會誤按），過了就照常 */
+      await p.evaluate(() => {
+        closePanels();
+        G.loot = null;
+        idleBar(1);
+      });
+      await tap('#pidle .igo');
+      const g0 = await p.evaluate(() => !!PANEL.craft);
+      await p.waitForTimeout(300);
+      await tap('#pidle .igo');
+      const g1 = await p.evaluate(() => !!PANEL.craft);
+      ok('M2-08：掛機卡剛出現時點「去營地」不算，等一下再點才開營地', !g0 && g1, JSON.stringify([g0, g1]));
     }
     await p.evaluate(() => {
       S.camp = JSON.parse(JSON.stringify(_CAMP));
@@ -2399,6 +2422,50 @@ let fail = 0;
     await p.screenshot({ path: shot('m1ui_camp') });
     await p.evaluate(() => closePanels());
   }
+  /* ---------- M2-08：設定的暗幕、掛機卡在死亡卡底下、天賦樹搜尋 N／總數 ---------- */
+  const m8 = await p.evaluate(async () => {
+    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    if (TREE.open) treeClose();
+    closePanels();
+    if (G.scene !== 'map') runNode(TRUNK_K[0]);
+    openPanel('set');
+    const sc = getComputedStyle($('scrim')),
+      a = [PORT() ? sc.display === 'none' : sc.display !== 'none' && +sc.zIndex < +getComputedStyle($('pset')).zIndex];
+    $('scrim').click();
+    a.push(!PANEL.set && $('scrim').hidden);
+    S.auto = 1;
+    idleBar(1);
+    const z = getComputedStyle($('pidle')).zIndex;
+    a.push(z === 'auto' || +z < +getComputedStyle($('over')).zIndex);
+    G.ask = 'home';
+    hudState();
+    idleBar(1);
+    a.push($('pidle').hidden && !$('over').hidden);
+    G.ask = null;
+    hudState();
+    treeOpen();
+    const f = $('tfind');
+    f.value = '力量';
+    f.dispatchEvent(new Event('input', { bubbles: true }));
+    const t1 = $('tfound').textContent,
+      n = TREE.hits.length;
+    a.push(t1 === `1／${n}` && n > 1 && document.querySelectorAll('#tsvg .nd.cur').length === 1);
+    $('tfound').click();
+    a.push(
+      $('tfound').textContent === `2／${n}` &&
+        (document.querySelector('#tsvg .nd.cur') || {}).dataset?.n === String(TREE.hits[1])
+    );
+    f.value = '沒有這種天賦';
+    f.dispatchEvent(new Event('input', { bubbles: true }));
+    a.push($('tfound').textContent === '0／0' && !document.querySelector('#tsvg .nd.cur'));
+    treeClose();
+    return a;
+  });
+  ok(
+    'M2-08：設定有暗幕（直立半版不加）、點暗幕關設定；掛機卡層級低於 #over、確認卡出現時收起；天賦搜尋寫 1／N、點一下到 2／N、找不到 0／0',
+    m8.every(Boolean),
+    JSON.stringify(m8)
+  );
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');
   await b.close();

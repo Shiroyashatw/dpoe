@@ -764,9 +764,9 @@ function setHTML() {
   }
   <div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
   <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
-  ${acctHTML()}
   <div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
-  <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>`;
+  <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>
+  ${acctHTML()}`;
 }
 /* 帳號：訪客 → 信箱＋密碼、註冊／登入；登入後顯示信箱、登出；點重設密碼信回來 → 設定新密碼 */
 function acctHTML() {
@@ -840,6 +840,7 @@ function hudPanels() {
   /* 版面的 class 與畫布高度先定下來，再寫內容：反過來的話內容會排版兩次 */
   sheetSync();
   $('pset').hidden = !PANEL.set;
+  $('scrim').hidden = !PANEL.set;
   /* 正在輸入帳密時不重畫（撿東西等事件會重畫面板，焦點和輸入法會被打斷） */
   if (
     PANEL.set &&
@@ -1988,11 +1989,14 @@ function logHTML() {
    王倒下後 30 秒換成「這一輪掉的」清單＋看戰利品／推進（不按＝照設定） ---------- */
 let IDLE_T = 0;
 let CAMP_T = 0;
+/* 防誤觸（M2-08，UI 審查 C10）：卡剛出現、或內容換了讓按鈕移位（王倒下的清單），這之後 400 毫秒內點卡上的鈕不算 */
+let IDLE_MV = 0;
 function idleBar(force) {
   const el = $('pidle'),
     on = idleOn();
   if (el.hidden !== !on) {
     el.hidden = !on;
+    IDLE_MV = performance.now();
     /* 直立：掛機卡出現或收起＝半版切換（畫布高度、分頁列） */
     sheetSync();
   }
@@ -2001,7 +2005,11 @@ function idleBar(force) {
   if (!force && now - IDLE_T < 500) return;
   IDLE_T = now;
   const h = idleHTML();
-  if (HV.idle !== h) el.innerHTML = HV.idle = h;
+  if (HV.idle === h) return;
+  /* 只有字變＝版面沒動；標籤變了（換成王倒下的清單、多一行保底）當作按鈕可能移位 */
+  const sk = x => x.replace(/>[^<]*</g, '><').replace(/\d/g, '');
+  if (HV.idle && sk(HV.idle) !== sk(h)) IDLE_MV = now;
+  el.innerHTML = HV.idle = h;
 }
 const fmtDur = ms => {
   const m = Math.floor(ms / 60000);
@@ -2778,6 +2786,7 @@ function inputInit() {
   });
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-a]');
+    if (a && e.isTrusted && a.closest('#pidle') && performance.now() - IDLE_MV < 400) return;
     if (a) act(a.dataset.a, a);
   });
   document.addEventListener('pointerover', e => {
