@@ -83,22 +83,27 @@ const ACT_ROW = {
   wolf: 5
 };
 const HERO_IMG = new Image();
-let HERO_W;
-HERO_IMG.onload = () => {
-  /* 受傷閃白用的白色版 */
-  const c = (HERO_W = document.createElement('canvas'));
+let HERO_W, HERO_P;
+/* 單色剪影：受傷閃白用的白色版、被特效蓋到時外框用的 --paper 版（M2-05.4a） */
+function heroTint(col) {
+  const c = document.createElement('canvas');
   c.width = HERO_IMG.width;
   c.height = HERO_IMG.height;
   const g = c.getContext('2d');
   g.drawImage(HERO_IMG, 0, 0);
   g.globalCompositeOperation = 'source-in';
-  g.fillStyle = '#fff';
+  g.fillStyle = col;
   g.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+HERO_IMG.onload = () => {
+  HERO_W = heroTint('#fff');
+  HERO_P = heroTint(cssv('--paper'));
 };
 HERO_IMG.src = 'img/hero.png?v=' + VER;
 const HSC = 1.35;
 function heroCell(row, col, x, y, flip, al, o = {}) {
-  const im = o.white ? HERO_W : HERO_IMG;
+  const im = o.im || (o.white ? HERO_W : HERO_IMG);
   if (!im || !HERO_IMG.complete || !HERO_IMG.naturalWidth) return;
   CX.save();
   CX.translate(Math.round(x), Math.round(y));
@@ -405,6 +410,7 @@ function draw() {
     }
   }
   drawFx();
+  if (G.scene === 'map') drawFront();
   /* 跳數字、怪物生命條：白天畫在暗層之後看得清楚；燭龍閉眼（天黑）與蚩尤大霧期間照舊被壓暗（玩法；製作人 2026-11-17 19:46） */
   const night = G.night > G.t,
     fog = !night && G.fog > G.t; /* 蚩尤的大霧（0.2.81）：比天黑淺、看得比較遠 */
@@ -615,15 +621,14 @@ function drawBars() {
     CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
   }
 }
-/* 跳數字 */
+/* 跳數字；減少動態時不彈、不飄（M2-05.2i） */
 function drawNums() {
   CX.textAlign = 'center';
+  const rm = reduced();
   for (const n of G.nums) {
-    /* 手機：升級的大字會撞到上面的王名，底部的提示字已經寫了，不畫 */
-    if (TOUCH.on && n.c === 'lv') continue;
     const f = n.t / 0.9,
-      pop = n.t < 0.08 ? 1 + (0.08 - n.t) * 8 : 1,
-      y = n.y - 30 * Math.sqrt(f) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
+      pop = !rm && n.t < 0.08 ? 1 + (0.08 - n.t) * 8 : 1,
+      y = n.y - (rm ? 0 : 30 * Math.sqrt(f)) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
     const st = {
       phys: ['#fff3e0', 15],
       fire: [ELC.fire, 15],
@@ -637,7 +642,6 @@ function drawNums() {
       jackpot: ['#ffc21a', 30],
       hurt: ['#ff5a5a', 17],
       gold: ['#ffd166', 14],
-      lv: ['#ffd166', 26],
       perfect: ['#8fe0ff', 26],
       ev: ['#b8f0c8', 18],
       miss: ['#9aa3ad', 14],
@@ -654,13 +658,11 @@ function drawNums() {
           ? '大獎 ' + n.v
           : n.c === 'block'
             ? '格擋'
-            : n.c === 'lv'
-              ? '升級！Lv ' + n.v
-              : n.c === 'perfect'
-                ? '完美閃避'
-                : n.c === 'ev'
-                  ? '閃避'
-                  : n.txt || n.v;
+            : n.c === 'perfect'
+              ? '完美閃避'
+              : n.c === 'ev'
+                ? '閃避'
+                : n.txt || n.v;
     /* 描邊比字慢淡出（M2-31 C1） */
     CX.globalAlpha = Math.min(1, fa + 0.3);
     CX.lineWidth = 4;
@@ -746,6 +748,29 @@ function drawBeams() {
     }
   }
 }
+/* 火焰放滿時看得到自己與怪（M2-05.4）：特效畫完後，目前敵人（aiTarget：王優先、其他取最近）腳下 --bad-hi 圈＋重畫一次、
+   玩家重畫在最上面（怪物生命條由 draw 的 drawBars 畫在特效之上：天黑大霧在暗層前、白天在暗層後）；玩家腳下 60 內有 ≥2 個自己的特效或地面時加 --paper 外框與腳下圈 */
+const CSSV = {};
+const cssv = n => CSSV[n] || (CSSV[n] = getComputedStyle(document.documentElement).getPropertyValue(n).trim());
+function drawFront() {
+  const T = G.mobs.length ? aiTarget() : null;
+  for (const m of G.mobs)
+    if (m.hp > 0 && (m === T || m.boss)) footRing(m.x, m.y, m.r * 1.4, cssv('--bad-hi')), drawMob(m);
+  const n =
+    G.fx.filter(o => o.k === 'sh' && Math.hypot(o.x - P.x, o.y - P.y) < 60).length +
+    G.ground.filter(g => g.side !== 'm' && Math.hypot(g.x - P.x, g.y - P.y) < g.r + 60).length;
+  if (n >= 2) footRing(P.x, P.y, 22, cssv('--paper'));
+  drawHero(1, n >= 2);
+}
+function footRing(x, y, r, col) {
+  CX.globalAlpha = 0.6;
+  CX.strokeStyle = col;
+  CX.lineWidth = 2;
+  CX.beginPath();
+  CX.ellipse(x, y, r, r * 0.4, 0, 0, TAU);
+  CX.stroke();
+  CX.globalAlpha = 1;
+}
 /* 能量球：玩家身邊繞圈的小圓點（耐力紅、盛怒綠、暴擊藍） */
 const CHGC = { e: '#ff6b5b', f: '#7be08a', p: '#6cb8ff' };
 function drawCharges() {
@@ -781,41 +806,47 @@ function chargeBar() {
     CX.fillRect(x0 + i * (w + gap), y, w * f, 4);
   }
 }
-function drawHero() {
-  chargeBar();
-  shadow(P.x, P.y, 18);
+/* top：drawFront 在特效上面再畫一次（不畫影子、蓄力條、能量球）；ol：加 --paper 外框 */
+function drawHero(top, ol) {
+  if (!top) chargeBar(), shadow(P.x, P.y, 18);
   const a = G.t < P.iuntil ? 0.8 : 1,
     flipF = Math.cos(P.face) < -0.05;
+  let c;
   if (P.roll) {
     /* 翻滾：滑步動畫，往左就鏡像 */
-    const f = Math.min(5, Math.floor((P.roll.t / ROLL.t) * 6));
-    heroCell(2, f, P.x, P.y, P.roll.dx > 0, 0.9);
-    if (Math.random() < 0.6) fx({ k: 'dust', x: P.x + rnd(-10, 10), y: P.y, dur: 0.35 });
-    return;
-  }
-  const dash = P.act && (P.act.k === 'iai' || P.act.k === 'vanguard'),
-    hit = P.act && !dash,
-    row = hit ? (P.act.place ? 5 : ACT_ROW[P.act.k] || 3) : 0,
-    run = !hit && (P.mv || dash),
-    dx = P.act ? Math.cos(P.act.ang) : P.mdx,
-    dy = P.act ? Math.sin(P.act.ang) : P.mdy,
-    col = dirCol(P.face),
-    /* 這一格看得到臉嗎：出手與跑步側面看得到，跑步往上（背面）與站著朝北（第 3～5 格）看不到 */
-    face = hit || (run ? !(dy < -0.6 && Math.abs(dx) < 0.8) : col < 3 || col > 5);
-  if (hit) {
-    /* 出手：照技能播 9 格動畫，往左就鏡像 */
-    const f = Math.min(8, Math.floor((P.act.t / P.act.dur) * 9));
-    heroCell(row, f, P.x, P.y, Math.cos(P.act.ang) < -0.05, a);
-  } else if (run) {
-    const fr = Math.floor(G.t * 12) % 8;
-    /* 往上跑用背面，其他用側面（往左鏡像） */
-    if (!face) heroCell(7, fr, P.x, P.y, false, a);
-    else heroCell(6, fr, P.x, P.y, dx < -0.05 || (Math.abs(dx) <= 0.05 && flipF), a);
+    c = [2, Math.min(5, Math.floor((P.roll.t / ROLL.t) * 6)), P.roll.dx > 0, 0.9];
+    if (!top && Math.random() < 0.6) fx({ k: 'dust', x: P.x + rnd(-10, 10), y: P.y, dur: 0.35 });
   } else {
-    if (col === 0) heroCell(1, Math.floor(G.t * 8) % 8, P.x, P.y, false, a);
-    else heroCell(0, col, P.x, P.y, false, a);
+    const dash = P.act && (P.act.k === 'iai' || P.act.k === 'vanguard'),
+      hit = P.act && !dash,
+      row = hit ? (P.act.place ? 5 : ACT_ROW[P.act.k] || 3) : 0,
+      run = !hit && (P.mv || dash),
+      dx = P.act ? Math.cos(P.act.ang) : P.mdx,
+      dy = P.act ? Math.sin(P.act.ang) : P.mdy,
+      col = dirCol(P.face),
+      /* 這一格看得到臉嗎：出手與跑步側面看得到，跑步往上（背面）與站著朝北（第 3～5 格）看不到 */
+      face = hit || (run ? !(dy < -0.6 && Math.abs(dx) < 0.8) : col < 3 || col > 5);
+    /* 出手：照技能播 9 格動畫，往左就鏡像；往上跑用背面，其他用側面（往左鏡像） */
+    if (hit) c = [row, Math.min(8, Math.floor((P.act.t / P.act.dur) * 9)), Math.cos(P.act.ang) < -0.05, a];
+    else if (run)
+      c = face
+        ? [6, Math.floor(G.t * 12) % 8, dx < -0.05 || (Math.abs(dx) <= 0.05 && flipF), a]
+        : [7, Math.floor(G.t * 12) % 8, false, a];
+    else c = col === 0 ? [1, Math.floor(G.t * 8) % 8, false, a] : [0, col, false, a];
   }
+  /* 外框：--paper 色的剪影往四個方向各推一個像素格（TX） */
+  if (ol && HERO_P)
+    for (const [ox, oy] of [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1]
+    ])
+      heroCell(c[0], c[1], P.x + ox * HSC, P.y + oy * HSC, c[2], 1, { im: HERO_P });
+  heroCell(c[0], c[1], P.x, P.y, c[2], c[3]);
+  if (P.roll) return;
   if (P.hurtT > 0.25) heroCell(0, dirCol(P.face), P.x, P.y, false, 0.6, { white: 1 });
+  if (top) return;
   drawCharges();
   /* 完美閃避後的下一擊：刀光 */
   if (P.critNext) {
@@ -925,9 +956,9 @@ function drawFx() {
     } else if (o.k === 'die') {
       /* 死掉：閃白、往上散、淡出 */
       spr(o.sp, o.x, o.y, o.sz, { flip: o.flip, white: f < 0.25, a: 1 - f, sx: 1 + f * 0.4, sy: 1 - f * 0.6 });
-    } else if (o.k === 'heal' || o.k === 'lvup') {
+    } else if (o.k === 'heal') {
       CX.globalAlpha = 1 - f;
-      CX.strokeStyle = o.k === 'heal' ? '#ff6b6b' : '#9df29d';
+      CX.strokeStyle = '#ff6b6b';
       CX.lineWidth = 3;
       CX.beginPath();
       CX.ellipse(o.x, o.y - f * 40, 26 + f * 20, 10 + f * 6, 0, 0, TAU);
