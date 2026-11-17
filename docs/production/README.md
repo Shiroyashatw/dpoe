@@ -69,5 +69,6 @@ dungeonPOE（dpoe）是 PoE 式增量／掛機遊戲：玩家配一套 build 讓
 ## 文件地圖
 
 - `tasks/<ID>.md`：每個沒做完的任務一檔。`specs/`：設計與數值規格。`CHANGELOG.md`：所有決定，新的在上。`archive/`：做完的里程碑（M0、M1）與舊評估報告。
-- 名詞表由數值設計師維護。待辦池：舊 `docs/待做清單.md` 還沒分流的項目，分流規則見 `DOCS-STRUCTURE.md`。
+- 名詞表由數值設計師維護。
+- 舊待辦池在 archive，開新任務時再撿：[`docs/archive/待做清單-0.3-0.5.md`](../archive/待做清單-0.3-0.5.md)。
 - 分工：開發工程師實作；Game Art Director 視覺與介面規格；數值設計師數值與用語；製作人方向、任務拆解與驗收；mumi 最後決定。

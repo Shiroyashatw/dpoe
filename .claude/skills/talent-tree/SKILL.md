@@ -34,7 +34,7 @@ description: dungeonPOE 天賦樹的任何改動都用這個：新增或修改�
    npx prettier@3.3.3 --write js/*.js tools/*.js
    ```
 6. **用眼睛看**：開 `http://localhost:8003/tools/tree_preview.html`（整棵樹、六個起點、外圍），再開遊戲裡的天賦樹（桌機 1440×900、手機直立 390×844）：點一個小點、點一個能力值點（選擇框要貼在點旁邊）、滑到鎖住的點。改形狀時跟 PoE2（`https://poe2.infinitybuilds.gg/zh-TW/tree`）並排比。
-7. **文件**：`docs/天賦樹設計.md`（規則或驗收數字變了）、`docs/企劃書.md` 第 7 節（效果與數值）、7.2（新的底層）、`docs/待做清單.md`、`CHANGELOG.md`。
+7. **文件**：`docs/天賦樹設計.md`（規則或驗收數字變了）、`docs/企劃書.md` 第 7 節（效果與數值）、7.2（新的底層）、`docs/production/README.md`（任務檔在 `docs/production/tasks/`）、`CHANGELOG.md`。
 
 ## 不要做
 
