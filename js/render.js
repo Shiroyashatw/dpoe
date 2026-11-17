@@ -853,7 +853,7 @@ function drawMinimap(W) {
   const mw = TOUCH.on ? Math.min(PORT() ? 62 : 104, (68 * G.W) / G.H) / ZOOM : 190,
     mh = (mw * G.H) / G.W,
     x0 = W - mw - (TOUCH.on ? 10 / ZOOM : 16),
-    y0 = TOUCH.on ? 60 / ZOOM : 16,
+    y0 = TOUCH.on ? 60 / ZOOM : 76 /* 桌機在右上分頁 #dnav 下面 */,
     s = mw / G.W;
   CX.fillStyle = 'rgba(8,6,5,0.78)';
   CX.fillRect(x0, y0, mw, mh);
