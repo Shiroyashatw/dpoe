@@ -165,7 +165,7 @@ function artSheet(s) {
 }
 /* 回傳 { im: 大圖, r: [x, y, 寬, 高] } */
 function artImg(k) {
-  const a = typeof ART !== 'undefined' && ART[k];
+  const a = typeof ART !== 'undefined' && ART[(typeof ART_ALIAS !== 'undefined' && ART_ALIAS[k]) || k];
   if (!a) return null;
   const im = artSheet(a[0]);
   if (!im.complete) im.want = 1;
@@ -179,6 +179,7 @@ setTimeout(() => {
 const SKURL = new Map();
 /* PNG 圖示（art/icons 的檔名）轉成圖片網址；沒有或還沒載好回傳 null */
 function artIconURL(n) {
+  n = (typeof ART_ALIAS !== 'undefined' && ART_ALIAS[n]) || n;
   if (typeof ART === 'undefined' || !ART[n]) return null;
   if (SKURL.has(n)) return SKURL.get(n);
   const c = artSprite('a_' + n);

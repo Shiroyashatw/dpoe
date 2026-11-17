@@ -4125,7 +4125,7 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 10（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
+    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 5（第 1 級固定 W_LV1 的靈魂與鐵，M1-21）（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
     R(`(() => {
       S.camp = newCamp(); S.world = newWorld(); S.lv = 99; S.frags = newFrags();
       if (wWhy(S, ...wXY(TRUNK_K[0])) || !wWhy(S, ...wXY(TRUNK_K[1])) || !campCan('node:' + TRUNK_K[0]) || campCan('node:' + TRUNK_K[1])) return 'lv0';
@@ -4136,11 +4136,12 @@ const ASC_COMBOS = `const combos = k => {
       const m0 = S.mat;
       for (let n = 1; n <= 21; n++) {
         const r = CAMP.watch[n - 1], T = TRUNK[n - 1];
-        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== 10 * n) return 'row ' + n;
+        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== (n > 1 ? 10 * n : 130)) return 'row ' + n;
         S.mat = newMat(); const a = roundLoot(lvT(TRUNK[0].lv), 1, 40, 0); S.mat = newMat(); const b = roundLoot(lvT(T.lv), 1, 40, 0);
         const want = ((W_SPM * b) / a) * W_MIN;
-        if (Math.abs(r.soul - want) / want > 0.1) return 'soul ' + n + ' ' + r.soul + ' ' + want;
+        if (n > 1 ? Math.abs(r.soul - want) / want > 0.1 : r.soul !== 200) return 'soul ' + n + ' ' + r.soul + ' ' + want;
       }
+      if (CAMP.watch[1].soul !== 570 || CAMP.watch[7].soul !== 780 || CAMP.watch[20].soul !== 2090) return 'lv2/8/21';
       S.mat = m0;
       return '';
     })()`) === ''
@@ -10589,6 +10590,319 @@ const ASC_COMBOS = `const combos = k => {
     'M1-24 測試情境：dualweap、nearDeath、midgame 照描述；沒帶 ?test 時存檔位不變',
     ts.dual && ts.near && ts.mid && ts.slot === '' && ts.test === '',
     JSON.stringify(ts)
+  );
+  /* M2-18 追逐掉落：開放門檻、必掉、歸零、菁英不觸發必掉、重複保護、每輪前 4 隻菁英、賽制線關閉（13:20 第 16 點）、有感保底（鍛造台 14 給靈魂包，第 15 點）、
+     計數上限 K（第 17 點）、珠寶滿 30（第 18 點）、七情王（第 19 點）、舊存檔補欄位 */
+  const ch = R(`(() => {
+    const rnd = Math.random, r = {};
+    try {
+      S = newGame(); S.camp.forge = 20; S.world.cur = TRUNK_K[14];
+      const lo = lvT(TRUNK[13].lv), hi = lvT(TRUNK[14].lv), boss = (t, o) => killMat({ boss: 1 }, t, o), el = (t, o) => killMat({ elite: 1 }, t, o);
+      Math.random = () => 0;
+      r.lo = [!boss(lo).chase, !el(lo, { ei: 1 }).chase, S.chase.pts];
+      Math.random = () => 0.99;
+      boss(hi); el(hi, { ei: 1 }); r.acc = S.chase.pts;
+      S.chase.pts = 600; r.el = [!el(hi, { ei: 1 }).chase, S.chase.pts];
+      el(hi, { ei: 5 }); r.ec = S.chase.pts;
+      S.chase.pts = 495; S.chase.got = { wangyin_zhenyue: 1, wangyin_chixiao: 1, wangyin_jiting: 1 };
+      r.pity = [boss(hi).chase, S.chase.pts];
+      r.again = [boss(hi).chase, S.chase.pts];
+      S.chase.pts = 0; roundLoot(hi, 5, 0, 6); r.round = S.chase.pts;
+      /* 16：賽制線關（CHASE.line 0）：五種賽制線地點，機率 0、點數 499，輪末王、菁英、七情王、一整輪都不掉不擲、點數不動、沒有基底進倉庫、掛機卡不出那一行 */
+      Math.random = () => 0;
+      r.line = [CHASE.line, ...['ghost', 'dream', 'fiend', 'army', 'rift'].map(tp => {
+        S.world.cur = Object.keys(WNODE).find(k => WNODE[k].t === tp); S.chase.pts = 499;
+        const n0 = chaseN(), i0 = S.inv.items.length, g = [boss(hi), el(hi, { ei: 1 }), killMat({ boss: 1, mini: 1 }, hi, {})].some(x => x.chase);
+        roundLoot(hi, 5, 0, 6);
+        return [tp, g, S.chase.pts, chaseN() - n0, S.inv.items.length - i0, chaseLine(hi)].join('/');
+      })];
+      /* 15：鍛造台 14 有感保底給靈魂包＝(小怪 + 10×菁英 + 100) × (1 + 0.2(t−1)) × 300 ÷ 平均秒數，殺的時候不加（撿起來才加），不給破裂石 */
+      S.world.cur = TRUNK_K[14]; S.camp.forge = 14; S.chase.pts = 0; S.prd = PRD0();
+      S.rounds = Array.from({ length: 10 }, () => ({ d: 150, nS: 40, nE: 2 }));
+      Math.random = () => 0.999999;
+      const f0 = S.mat.frac, bs = Math.round(100 * (1 + 0.2 * (hi - 1))), want = Math.round(((40 + 20 + 100) * (1 + 0.2 * (hi - 1)) * 300) / 150);
+      let s0 = 0;
+      for (let i = 0; i < feelK(); i++) (s0 = S.mat.soul), (r.feel = boss(hi));
+      r.feel = [feelK(), r.feel.pack === want && want > 0, !!r.feel.feel, S.mat.frac - f0, S.prd.feel, S.mat.soul - s0 === bs];
+      /* 17：鍛造台 12（什麼都沒開）計數停在 K；升到 13 下一隻輪末王就給靈魂包 */
+      S.camp.forge = 12; S.prd = PRD0();
+      for (let i = 0; i < feelK() + 5; i++) boss(hi);
+      r.cap = [S.prd.feel, feelK()];
+      S.camp.forge = 13;
+      r.cap.push(boss(hi).pack === want, S.prd.feel);
+      /* 18：珠寶收藏滿 30 顆、輪到珠寶：給 500 靈魂、計數歸零、算有感掉落 */
+      S.camp.forge = 20; S.prd = PRD0(); S.prd.feel = feelK() - 1; S.jewels = Array.from({ length: JEWEL.keep }, (_, i) => ({ id: 'j' + i }));
+      s0 = S.mat.soul;
+      const gj = boss(hi);
+      r.jw = [S.mat.soul - s0 - bs, S.prd.feel, !!gj.feel, S.jewels.length, gj.includes('珠寶收藏滿了：換 500 靈魂')];
+      /* 19：七情王當菁英：+1 點、不佔前 4 隻名額（ei 9 照判）、點數 600 也不必掉、不碰有感保底計數；判中 0.14% 就掉 */
+      S.prd = PRD0(); S.prd.feel = 2; S.chase.pts = 600; S.chase.got = {};
+      Math.random = () => 0.99;
+      const m1 = killMat({ boss: 1, mini: 1 }, hi, { ei: 9 });
+      r.mini = [!m1.chase, S.chase.pts, S.prd.feel, !m1.feel];
+      Math.random = () => 0.001;
+      r.mini.push(isWy(killMat({ boss: 1, mini: 1 }, hi, { ei: 9 }).chase), S.chase.pts);
+      /* P.feel 定義（數值設計師 11/17 19:12）：一般怪、菁英、輪末王掉出有感掉落都歸零；沒掉時輪末王 +1、一般怪與菁英不變（Lv43 不判追逐；dropCur 換成固定結果） */
+      const dc = dropCur, fx = (m, cur) => ((dropCur = () => ({ cur, ess: [], jw: false })), (S.prd.feel = 1), killMat(m, lo), S.prd.feel);
+      try {
+        r.pf = [{}, { elite: 1 }, { boss: 1 }].flatMap(m => [fx(m, { frac: 1 }), fx(m, {})]);
+        /* 七情王（製作人 11/17 19:14 選 A）：掉出有感掉落也歸零；沒掉不 +1（Lv43 不判追逐） */
+        r.pfMini = [fx({ boss: 1, mini: 1 }, { frac: 1 }), fx({ boss: 1, mini: 1 }, {})];
+      } finally {
+        dropCur = dc;
+      }
+      const old = { ...newGame() }; delete old.chase;
+      r.mig = JSON.stringify(migrate(JSON.parse(JSON.stringify(old))).chase);
+    } finally {
+      Math.random = rnd;
+    }
+    return r;
+  })()`);
+  ok(
+    'M2-18 追逐掉落：Lv43 不判定不累計、Lv48 王 +5 菁英 +1、菁英不觸發必掉、第 5 隻菁英不判定、點數 500 必掉並歸零、沒拿過的優先、每輪前 4 隻菁英、舊存檔補 S.chase；' +
+      '賽制線關閉（五種賽制線地點機率 0、點數 499：不掉、不擲、點數不動、沒有基底、掛機卡沒有那一行）；有感保底鍛造台 14 給靈魂包（照靈魂公式、殺的時候不加、不給破裂石）；' +
+      '計數上限 K（鍛造台 12 停在 10，升 13 下一隻就給）；珠寶滿 30 給 500 靈魂並歸零、算有感；七情王 +1 點、不佔名額、不必掉、不碰有感計數、判中就掉',
+    JSON.stringify(ch.lo) === '[true,true,0]' &&
+      ch.acc === 6 &&
+      JSON.stringify(ch.el) === '[true,601]' &&
+      ch.ec === 601 &&
+      JSON.stringify(ch.pity) === '["wangyin_guixu",0]' &&
+      JSON.stringify(ch.again) === '[null,5]' &&
+      ch.round === 9 &&
+      JSON.stringify(ch.line) ===
+        '[0,"ghost/false/499/0/0/","dream/false/499/0/0/","fiend/false/499/0/0/","army/false/499/0/0/","rift/false/499/0/0/"]' &&
+      JSON.stringify(ch.feel) === '[10,true,true,0,0,true]' &&
+      JSON.stringify(ch.cap) === '[10,10,true,0]' &&
+      JSON.stringify(ch.jw) === '[500,0,true,30,true]' &&
+      JSON.stringify(ch.mini) === '[true,601,2,true,true,0]' &&
+      ch.mig === '{"pts":0,"got":{}}',
+    JSON.stringify(ch)
+  );
+  ok(
+    'M2-17／M2-18 有感保底 P.feel：一般怪、菁英、輪末王掉出有感掉落都歸零；沒掉時輪末王 +1、一般怪與菁英不變',
+    JSON.stringify(ch.pf) === '[0,1,0,1,0,2]',
+    JSON.stringify(ch.pf)
+  );
+  ok(
+    'M2-17／M2-18 有感保底 P.feel：七情王（m.mini）掉出有感掉落也歸零；沒掉時不變',
+    JSON.stringify(ch.pfMini) === '[0,1]',
+    JSON.stringify(ch.pfMini)
+  );
+  /* M2-18 addendum（製作人、數值設計師、Game Art Director 11/17）：圖檔 id、字串表、保底 %、Lv<45 不出那一行、pack 不算通貨、離線那一列、橫幅進度、
+     王印進碎片頁、追逐標記在打造與套印後保留、開發觸發；13:27 靈魂包（soulpack、dropAt soul、撿起來加 MAT().soul 不加 SES.soul、飄字 packGain、紀錄、pack 不算通貨） */
+  const hudSrc = fs.readFileSync(path.join(__dirname, '..', 'js', 'hud.js'), 'utf8'),
+    fnSrc = (src, n) => {
+      const i = src.indexOf('function ' + n + '(');
+      let j = src.indexOf('{', i),
+        d = 0;
+      for (let k = j; k < src.length; k++) {
+        if (src[k] === '{') d++;
+        else if (src[k] === '}' && !--d) return src.slice(i, k + 1);
+      }
+    };
+  const ad = R(`(() => {
+    const rnd = Math.random, r = {};
+    try {
+      S = newGame();
+      const lo = lvT(TRUNK[13].lv), hi = lvT(TRUNK[14].lv);
+      /* 10、11、12、13：wangyin_* 圖檔 id、名字從字串表 wangyin／base 讀、沒有 seal 開頭的鍵 */
+      r.ids = CHASE_POOL.trunk.join(',');
+      r.alias = CHASE_POOL.trunk.every(k => ART_ALIAS[k] === 'cur_regal') && JSON.stringify(Object.values(WANGYIN_X)) === '[132,165,198,231]';
+      r.soulpack = ART_ALIAS.soulpack;
+      r.noSeal = !JSON.stringify([CHASE_POOL, STR_T]).includes('seal') && 'wangyin' in STR_T && 'base' in STR_T;
+      r.names = CHASE_POOL.trunk.map(chaseName).join(',');
+      const o = STR_T.wangyin.wangyin_jiting, b = STR_T.base.fiend1;
+      STR_T.wangyin.wangyin_jiting = '甲'; STR_T.base.fiend1 = '乙';
+      r.fromTable = chaseName('wangyin_jiting') === '甲' && chaseName('fiend1') === '乙';
+      STR_T.wangyin.wangyin_jiting = o; STR_T.base.fiend1 = b;
+      r.allNamed = Object.values(CHASE_POOL).flat().every(k => chaseName(k));
+      /* 5：保底 % = min(100, floor(點數 ÷ 5))，滿了 100% */
+      r.pct = [0, 4, 5, 249, 499, 500, 600].map(p => ((S.chase.pts = p), chasePct()));
+      /* 2：Lv<45 地點整行不出（空字串）；Lv≥45 一行 */
+      S.chase.pts = 600;
+      r.line = [chaseLine(lo), chaseLine(hi), chaseLine(0)];
+      r.html = ((G) => { ${fnSrc(hudSrc, 'chaseHTML')}; return [chaseHTML(), (G.mapT = hi), chaseHTML()]; })({ mapT: lo });
+      /* 8：離線那一列 n 與 p 是兩個值 */
+      S.chase.pts = 125;
+      r.off = chaseOffRow(3);
+      /* 15、22–25：靈魂包走真的 dropAt／pickup：橫幅只寫「靈魂包」、紀錄「靈魂包 +123 靈魂」類別 pack、不算通貨數；撿起來 MAT().soul +123、SES.soul 不動、飄字 packGain */
+      SES = { cur: 0, best: null, soul: 0 };
+      G.drops = []; G.nums = []; G.tiles = null; sfx = () => {}; performance = { now: () => 1e9 };
+      banner = (t, c) => (r.bn = [t, c]);
+      const p0 = S.mat.soul;
+      dropAt(0, 0, { show: 'pack', soul: 123 });
+      const pd = G.drops[0];
+      r.pack = [SES.cur, S.log[0].c, S.log[0].n, r.bn.join('/'), S.mat.soul - p0, pd.hold];
+      pickup(pd);
+      r.pack.push(S.mat.soul - p0, SES.soul, G.nums[G.nums.length - 1].txt, G.drops.length, packGain(7));
+      dropLog('崇高石', 'cur');
+      r.pack.push(SES.cur);
+      /* 1、3：王印進碎片頁（S.frags）、橫幅「王印 n／4」；基底進倉庫、帶追逐標記與鎖、橫幅「凶地基底 n／2」 */
+      S = newGame(); S.world.cur = TRUNK_K[14];
+      Math.random = () => 0;
+      const k1 = chaseGive(hi), k2 = chaseGive(hi);
+      r.wy = [k1, k2, S.frags[k1], S.frags[k2], chaseBanner(k2), S.inv.items.length];
+      /* 開發觸發 devChase（game.js 的真函式）：賽制線關著，在凶地也只給王印、不出基底 */
+      document.getElementById = () => ({ dataset: {} });
+      banner = () => {}; hudPanels = () => {};
+      G.mapT = hi; S.world.cur = Object.keys(WNODE).find(k => WNODE[k].t === 'fiend');
+      const kd = devChase();
+      r.dev = [isWy(kd), S.inv.items.length, S.frags[kd], chaseBanner(kd), S.log[0].c, S.log[0].n];
+      /* 4：基底的程式留著（M2 不掉），直接收一件來測標記保留 */
+      const it = chasePut('fiend1', hi);
+      /* 4：追逐標記在打造（填：蛻變）之後保留；套上王印之後一般裝備也帶上追逐標記、基底原本的標記不動 */
+      S.mat.tran = 5;
+      const why = forgeDo(it, 'tran');
+      const plain = mkItem(it.b, it.L, 0);
+      const w1 = wangyinSet(plain, k1), w2 = wangyinSet(it, k2);
+      r.keep = [why || '', it.r, it.chase, plain.chase, plain.wy, w1, w2, it.chase, it.wy, S.inv.items.includes(it), S.frags[k1], S.frags[k2], wangyinSet(plain, k1)];
+      S.mat.aug = 5; forgeDo(it, 'aug'); r.keep.push(it.chase);
+      /* 倉庫滿了追逐基底照樣收（多留的格子） */
+      r.room = invRoom({ items: Array(INV_CAP) }, it) && !invRoom({ items: Array(INV_CAP) }, mkItem(it.b, it.L, 0));
+    } finally {
+      Math.random = rnd;
+    }
+    return r;
+  })()`);
+  ok(
+    'M2-18 圖檔 id：王印是 wangyin_zhenyue／chixiao／jiting／guixu（沒有 seal 開頭），先借 cur_regal、正式位置第二條 x=132／165／198／231',
+    ad.ids === 'wangyin_zhenyue,wangyin_chixiao,wangyin_jiting,wangyin_guixu' &&
+      ad.alias &&
+      ad.noSeal &&
+      has('cur_regal') &&
+      /'ic_cur-2'/.test(art),
+    JSON.stringify([ad.ids, ad.alias, ad.noSeal])
+  );
+  ok(
+    'M2-18 名字從字串表 STR_T 的 wangyin／base 讀（改字串表名字就跟著變）：鎮嶽印、赤霄印、疾霆印、歸墟印；10 個基底都有名字',
+    ad.names === '鎮嶽印,赤霄印,疾霆印,歸墟印' && ad.fromTable && ad.allNamed,
+    JSON.stringify([ad.names, ad.fromTable, ad.allNamed])
+  );
+  ok(
+    'M2-18 保底 % = min(100, floor(點數 ÷ 5))：0、4、5、249、499、500、600 點 → 0、0、1、49、99、100、100',
+    JSON.stringify(ad.pct) === '[0,0,1,49,99,100,100]',
+    JSON.stringify(ad.pct)
+  );
+  ok(
+    'M2-18 掛機卡：Lv<45 地點不出保底行（空字串、不留空位），Lv≥45 一行「下一件保底 100%」（點數 600）',
+    ad.line[0] === '' &&
+      ad.line[1] === '下一件保底 100%' &&
+      ad.line[2] === '' &&
+      ad.html[0] === '' &&
+      /^<div class="chs"><span>下一件保底 100%<\/span>/.test(ad.html[2]),
+    JSON.stringify([ad.line, ad.html])
+  );
+  ok(
+    'M2-18 離線摘要：「追逐物品 ×3、目前保底 25%」（件數 3、點數 125）',
+    ad.off === '追逐物品 ×3、目前保底 25%',
+    ad.off
+  );
+  ok(
+    "M2-18 靈魂包（13:27）：dropAt({ show: 'pack', soul: 123 })：橫幅只寫「靈魂包」、掉落紀錄「靈魂包 +123 靈魂」類別 pack、不算進掛機卡的通貨數（通貨照算）、地上停 1.5 秒；" +
+      '撿起來 MAT().soul +123、SES.soul 不動、飄字「+123 靈魂」（packGain）',
+    JSON.stringify(ad.pack) === '[0,"pack","靈魂包 +123 靈魂","靈魂包/pack",0,1.5,123,0,"+123 靈魂",0,"+7 靈魂",1]',
+    JSON.stringify(ad.pack)
+  );
+  {
+    const sheet = (art.match(/^\s*ic_cur: '([^']+)'/m) || [])[1],
+      png = fs.readFileSync(path.join(__dirname, '..', sheet));
+    ok(
+      'M2-18 靈魂包圖檔 soulpack：art.js 是 [ic_cur, 396, 0, 32, 32]、ic_cur 加寬到 428 px（檔名 hash 照內容）、圖未到先借 cur_soul；js/ 裡沒有舊名字（mat_pack 與改名前的中文）',
+      ad.soulpack === 'cur_soul' &&
+        /^\s*soulpack: \['ic_cur', 396, 0, 32, 32\],$/m.test(art) &&
+        png.readUInt32BE(16) === 428 &&
+        sheet.includes(require('crypto').createHash('sha1').update(png).digest('hex').slice(0, 8)) &&
+        !fs
+          .readdirSync(path.join(__dirname, '..', 'js'))
+          .some(f => /\u6750\u6599\u5305|mat_pack/.test(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))),
+      JSON.stringify([ad.soulpack, sheet])
+    );
+  }
+  ok(
+    'M2-18 王印進碎片頁（S.frags）、不進倉庫；橫幅「赤霄印・王印 2／4」',
+    JSON.stringify(ad.wy) === '["wangyin_zhenyue","wangyin_chixiao",1,1,"赤霄印・王印 2／4",0]',
+    JSON.stringify(ad.wy)
+  );
+  ok(
+    'M2-18 開發觸發 devChase（賽制線關）：在凶地也給王印、不出異寶基底、倉庫沒東西；王印進碎片頁、橫幅「王印 3／4」、掉落紀錄類別 chase',
+    ad.dev[0] === true &&
+      ad.dev[1] === 0 &&
+      ad.dev[2] === 1 &&
+      /^(鎮嶽|赤霄|疾霆|歸墟)印・王印 3／4$/.test(ad.dev[3]) &&
+      ad.dev[4] === 'chase' &&
+      ad.dev[5] === ad.dev[3],
+    JSON.stringify(ad.dev)
+  );
+  ok(
+    'M2-18 追逐標記保留：基底填蛻變石、增幅石之後還在；一般裝備套上王印帶上標記、基底套印後原本的標記不動；王印扣 1、沒有了套不上；倉庫滿了照收',
+    ad.keep[0] === '' &&
+      ad.keep[1] === 1 &&
+      /^fiend/.test(ad.keep[2]) &&
+      ad.keep[3] === 'wangyin_zhenyue' &&
+      ad.keep[4] === 'wangyin_zhenyue' &&
+      ad.keep[5] === '' &&
+      ad.keep[6] === '' &&
+      ad.keep[7] === ad.keep[2] &&
+      ad.keep[8] === 'wangyin_chixiao' &&
+      ad.keep[9] &&
+      ad.keep[10] === 0 &&
+      ad.keep[11] === 0 &&
+      ad.keep[12] === '沒有這個王印' &&
+      ad.keep[13] === ad.keep[2] &&
+      ad.room,
+    JSON.stringify([ad.keep, ad.room])
+  );
+  /* M2-19 追逐演出（docs/交辦/M2-19-追逐演出.md）：字從字串表 strT 取；追逐物品落地停 2.4 秒、記紀錄（帶鍵）、橫幅走 #chase；
+     追逐橫幅顯示中（加 300 ms）不出 #banner、600 ms 內不播 orb（紀錄照記）；撿起來不再加東西；賽制線關著時演出只會出現王印 */
+  const m19 = R(`(() => {
+    const rnd = Math.random, r = {}, snd = [], bn = [];
+    try {
+      S = newGame(); S.world.cur = TRUNK_K[14]; SES = { cur: 0, best: null, soul: 0 };
+      G.drops = []; G.nums = []; G.tiles = null; let now = 5e9;
+      performance = { now: () => now }; sfx = k => snd.push(k); banner = (t, c, k) => bn.push([t, c, k].filter(Boolean).join('/'));
+      const hi = lvT(TRUNK[14].lv);
+      S.chase.pts = 185;
+      r.str = [chaseLine(hi), chaseOffRow(2), strT('merge', { a: '甲', n: 3 }), strT('chaseN', { n: 2 })];
+      STR_T.pity = '保底{n}'; r.str.push(chaseLine(hi)); STR_T.pity = '下一件保底 {n}%';
+      Math.random = () => 0;
+      const k = chaseGive(hi), n0 = S.inv.items.length, f0 = S.frags[k];
+      dropAt(0, 0, { chase: k });
+      const d = G.drops[0];
+      r.drop = [d.chase === k, d.hold, S.log[0].c, S.log[0].k === k, S.log[0].n === chaseBanner(k), bn[0] === chaseBanner(k) + '/chase/' + k, SES.cur];
+      pickup(d);
+      r.drop.push(G.drops.length, S.inv.items.length - n0, S.frags[k] - f0);
+      CHASE_UNTIL = now + 1000; CHASE_T = now - 100; bn.length = 0; snd.length = 0;
+      dropAt(0, 0, { show: 'exalt' });
+      r.quiet = [bn.length, snd.includes('orb'), S.log[0].n, SES.cur];
+      now += 2000; RARE_T = 0;
+      dropAt(0, 0, { show: 'exalt' });
+      r.quiet.push(bn.length, snd.includes('orb'));
+      S.world.cur = Object.keys(WNODE).find(x => WNODE[x].t === 'ghost');
+      r.line = [CHASE.line, chaseLine(hi), Array.from({ length: 20 }, () => isWy(chaseGive(hi))).every(Boolean)];
+    } finally {
+      Math.random = rnd;
+    }
+    return r;
+  })()`);
+  ok(
+    'M2-19 字串表：保底一行、離線那一列、合併字從 STR_T 取（改字串表就跟著變）',
+    JSON.stringify(m19.str) === '["下一件保底 37%","追逐物品 ×2、目前保底 37%","甲 等 3 件","追逐物品 ×2","保底37"]',
+    JSON.stringify(m19.str)
+  );
+  ok(
+    'M2-19 追逐物品落地：停 2.4 秒、掉落紀錄類別 chase 帶鍵、不算通貨數、橫幅轉 #chase；撿起來只收演出（王印不再加、倉庫不動）',
+    JSON.stringify(m19.drop) === '[true,2.4,"chase",true,true,true,0,0,0,0]',
+    JSON.stringify(m19.drop)
+  );
+  ok(
+    'M2-19 讓路：追逐橫幅顯示中通貨不出 #banner、600 ms 內不播 orb，紀錄與通貨數照記；過了之後照常',
+    JSON.stringify(m19.quiet) === '[0,false,"崇高石",1,1,true]',
+    JSON.stringify(m19.quiet)
+  );
+  ok(
+    'M2-19 賽制線池關著（CHASE.line 0）：賽制線地點沒有保底行，開發觸發也只給王印（異寶基底不會出現在演出）',
+    JSON.stringify(m19.line) === '[0,"",true]',
+    JSON.stringify(m19.line)
   );
 }
 process.exit(bad ? 1 : 0);

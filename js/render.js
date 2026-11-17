@@ -276,7 +276,43 @@ function draw() {
       x = d.sx + (d.x - d.sx) * f,
       y = d.sy + (d.y - d.sy) * f - Math.sin(f * Math.PI) * 40;
     if (d.gold) spr('mat_gold', x, y + 8, 22);
-    else if (d.show) {
+    else if (d.chase) {
+      /* 追逐物品（M2-19.2b）：橘色雙線光柱 360（0.24 秒長出來）＋地上慢轉的虛線印環、落地擴散一圈；地上不寫字；減少動態不轉不呼吸 */
+      const rm = reduced(),
+        bh = 360 * Math.min(1, d.t / 0.24),
+        a = rm ? 0.8 : 0.8 * (0.8 + 0.2 * Math.sin(G.t * 3 + d.sx)),
+        k = (d.t - 0.35) / 0.5;
+      CX.save();
+      CX.translate(x, y + 8);
+      CX.fillStyle = 'rgba(255,154,74,0.18)';
+      CX.beginPath();
+      CX.ellipse(0, 0, 30, 12, 0, 0, TAU);
+      CX.fill();
+      CX.strokeStyle = 'rgba(255,154,74,0.9)';
+      CX.lineWidth = 2;
+      CX.setLineDash([6, 4]);
+      if (!rm) CX.lineDashOffset = -G.t * 30;
+      CX.stroke();
+      CX.setLineDash([]);
+      if (!rm && k > 0 && k < 1) {
+        CX.strokeStyle = `rgba(255,154,74,${0.8 * (1 - k)})`;
+        CX.beginPath();
+        CX.ellipse(0, 0, 30 + 34 * k, 12 + 14 * k, 0, 0, TAU);
+        CX.stroke();
+      }
+      CX.restore();
+      const g = CX.createLinearGradient(x, y - bh, x, y);
+      g.addColorStop(0, 'rgba(255,154,74,0)');
+      g.addColorStop(1, `rgba(255,154,74,${a})`);
+      CX.fillStyle = g;
+      CX.fillRect(x - 14, y - bh, 28, bh);
+      CX.fillStyle = `rgba(255,236,214,${a})`;
+      CX.fillRect(x - 3, y - bh * 0.9, 6, bh * 0.9);
+      CX.fillStyle = `rgba(255,154,74,${a * 0.6})`;
+      CX.fillRect(x - 19, y - bh * 0.7, 1.5, bh * 0.7);
+      CX.fillRect(x + 17.5, y - bh * 0.7, 1.5, bh * 0.7);
+      spr(d.chase, x, y + 8, 32);
+    } else if (d.show) {
       /* 稀有通貨（0.4.1）：金色光柱（完美更高）＋圖示 */
       const bh = /3$/.test(d.show) ? 300 : 230,
         a = 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
@@ -287,7 +323,7 @@ function draw() {
       CX.fillRect(x - 10, y - bh, 20, bh);
       CX.fillStyle = `rgba(255,244,214,${a})`;
       CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
-      spr(CUR[d.show].ic, x, y + 8, 26);
+      spr(d.show === 'pack' ? 'soulpack' : CUR[d.show].ic, x, y + 8, 26);
     } else {
       const col = RCOL[d.it.r];
       spr(itemIc(d.it), x, y + 10, 26);
@@ -421,7 +457,7 @@ function draw() {
       /* 持續傷害：小、淡，跟擊中分開 */
       dot: ['#c9a3a3', 12]
     }[n.c];
-    CX.globalAlpha = 1 - Math.max(0, f - 0.6) / 0.4;
+    const fa = 1 - Math.max(0, f - 0.6) / 0.4;
     CX.font = `700 ${Math.round(st[1] * pop)}px "Noto Sans TC", sans-serif`;
     const txt =
       n.c === 'gold'
@@ -437,9 +473,12 @@ function draw() {
                 : n.c === 'ev'
                   ? '閃避'
                   : n.txt || n.v;
+    /* 描邊比字慢淡出（M2-31 C1） */
+    CX.globalAlpha = Math.min(1, fa + 0.3);
     CX.lineWidth = 4;
-    CX.strokeStyle = 'rgba(0,0,0,0.8)';
+    CX.strokeStyle = 'rgba(0,0,0,0.95)';
     CX.strokeText(txt, n.x, y);
+    CX.globalAlpha = fa;
     CX.fillStyle = st[0];
     CX.fillText(txt, n.x, y);
   }

@@ -1,18 +1,21 @@
 const { chromium } = require('playwright');
 const fs = require('fs'),
   path = require('path');
-/* dungeonPOE · 新存檔實掛＋上癮度指標表（M1-21、M2-01；門檻照 docs/production/milestones.md 的 A1–A10）。
+/* dungeonPOE · 新存檔實掛＋上癮度指標表（M1-21、M2-01；門檻照 docs/production/specs/M2-03-addictiveness-criteria.md 的 A1–A10）。
    M2-01 起用 Playwright 的假時鐘跑「遊戲內時間」（約 5 倍速、不受機器忙不忙影響）；開兩個新存檔：
    「玩家」：AI 自動打，一個會按的玩家每 5 秒看一次營地：解鎖表夠了就升（鍛造台、民房、瞭望台、祭壇、斥候營、倉房）、產生器用剩下的木買
    （一次一級、最便宜的先，留下一件解鎖表要的木與材料）、瞭望台開了新地點就去那裡刷、一分鐘打造一件（部位輪流）並在 ▲ 時換上、其他分解；
    「無人」：只有 AI 自動打，量 A5 掛機停住。每分鐘印一列；最後照每個量測窗（30 分鐘、跑滿的分鐘數）各寫一張 A1–A10 表（Markdown＋JSON）。
    用法：先開本機伺服器，node tools/camp_run.js [網址] [分鐘，預設 120] [寬 390] [高 844] [輸出資料夾，預設 evidence/m2-01]；只量不改。
+   M1-21 瞭望台：再給一個 .csv 路徑就逐分鐘寫一列（「玩家」那份：靈魂收入、靈魂花在哪座設施、鐵 T1 產量與用量）。
    node tools/camp_run.js --self 只跑指標算法的自我檢查。環境變數 PW_CHROME 指定瀏覽器 */
 const URL = process.argv[2] || 'http://localhost:8000/',
   MIN = +process.argv[3] || 120,
   VW = +process.argv[4] || 390,
   VH = +process.argv[5] || 844,
-  OUT = process.argv[6] || path.join(__dirname, '..', 'evidence', 'm2-01'),
+  /* 第 6 個之後的參數：.csv 結尾的是 M1-21 的 CSV 路徑，其他是輸出資料夾 */
+  CSV = process.argv.slice(6).find(a => /\.csv$/i.test(a)),
+  OUT = process.argv.slice(6).find(a => !/\.csv$/i.test(a)) || path.join(__dirname, '..', 'evidence', 'm2-01'),
   MOB = VW < 900,
   STALL = 30; /* 這麼多秒畫面上什麼都沒變（場景、輪數、首領進度、活著的怪、靈魂，怪的總生命也沒往下掉）＝AI 卡住，整段算掛機停住 */
 
@@ -385,6 +388,84 @@ function PLAY() {
   ST = stats();
 }
 
+/* M1-21 CSV（只在給了 .csv 時裝）：靈魂花在哪（campUp 前後的差）、鐵 T1 產量（genTick 回的）與用量（營地／產生器／打造前後的差，打造含同一批分解退回的） */
+function ACC() {
+  window.__acc = { sp: {}, ip: 0, iu: { camp: 0, gen: 0, craft: 0 } };
+  const i1 = () => matN('iron', 1),
+    wrap = (f, on) =>
+      function (...a) {
+        const s0 = S.mat.soul,
+          n0 = i1(),
+          r = f.apply(this, a);
+        on(a, s0 - S.mat.soul, n0 - i1(), r);
+        return r;
+      };
+  campUp = wrap(campUp, ([b], ds, di) => {
+    if (ds) __acc.sp[b] = (__acc.sp[b] || 0) + ds;
+    __acc.iu.camp += di;
+  });
+  genUp = wrap(genUp, (a, ds, di) => (__acc.iu.gen += di));
+  craftDo = wrap(craftDo, (a, ds, di) => (__acc.iu.craft += di));
+  const gt = genTick;
+  genTick = dt => {
+    const got = gt(dt);
+    __acc.ip += (got && got['iron:1']) || 0;
+    return got;
+  };
+}
+/* 取這一分鐘的 CSV 資料並歸零 */
+function ACCROW() {
+  const a = __acc;
+  window.__acc = { sp: {}, ip: 0, iu: { camp: 0, gen: 0, craft: 0 } };
+  return { acc: a, iron1: matN('iron', 1) };
+}
+function csvOut(rows, accs, evs) {
+  const B = ['forge', 'watch', 'scout', 'house', 'altar', 'store'],
+    N = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '祭壇', store: '倉房' },
+    L = [
+      [
+        '分',
+        '地點',
+        '角色Lv',
+        '靈魂庫存',
+        '靈魂收入',
+        ...B.map(b => '靈魂花在' + N[b]),
+        '鍛瞭斥民祭倉',
+        '鐵T1庫存',
+        '鐵T1產量',
+        '鐵T1用量_營地',
+        '鐵T1用量_產生器',
+        '鐵T1用量_打造',
+        '事件'
+      ].join(',')
+    ];
+  let s0 = 0;
+  rows.forEach((r, i) => {
+    const { acc, iron1 } = accs[i],
+      sp = B.map(b => Math.round(acc.sp[b] || 0)),
+      inc = r.soul - s0 + sp.reduce((a, b) => a + b, 0);
+    s0 = r.soul;
+    L.push(
+      [
+        i + 1,
+        r.node,
+        r.lv,
+        r.soul,
+        inc,
+        ...sp,
+        r.camp,
+        iron1,
+        acc.ip,
+        acc.iu.camp,
+        acc.iu.gen,
+        acc.iu.craft,
+        '"' + evs[i].join('；') + '"'
+      ].join(',')
+    );
+  });
+  fs.writeFileSync(CSV, L.join('\n') + '\n');
+}
+
 /* ---------- 跑 ---------- */
 async function boot(b, p) {
   const ctx = await b.newContext({ viewport: { width: VW, height: VH }, hasTouch: MOB, isMobile: MOB });
@@ -408,6 +489,7 @@ async function boot(b, p) {
   }
   await pg.evaluate(() => (S.story.tips = 0));
   await pg.evaluate(MON, [p === 77 ? '玩家' : '無人', STALL]);
+  if (CSV && p === 77) await pg.evaluate(ACC);
   return { ctx, pg, errs, a1 };
 }
 /* A10：存檔、關掉，2 小時後（假時鐘往後撥）重開，量到回到原地點、世界沒暫停的秒數（從開始載入頁面算，含載入的真實時間） */
@@ -445,7 +527,9 @@ else
     const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
     const [P, N] = await Promise.all([boot(b, 77), boot(b, 78)]);
     const rows = [],
-      nrows = [];
+      nrows = [],
+      accs = [],
+      evs = [];
     /* 頁面卡住（例如程式無窮迴圈）：一分鐘的遊戲時間 10 分鐘真實時間還跑不完就停，不當成正常結果 */
     const dog = (pr, min) =>
       Promise.race([
@@ -462,6 +546,7 @@ else
       const [r, n] = await Promise.all([P.pg.evaluate(ROW, min), N.pg.evaluate(ROW, min)]),
         ev = await P.pg.evaluate(m => __M.ev.filter(e => e[0] > (m - 1) * 60 && e[2]).map(e => e[1]), min);
       rows.push(r), nrows.push(n);
+      if (CSV) accs.push(await P.pg.evaluate(ACCROW)), evs.push(ev);
       console.log(
         `${String(min).padStart(3)} 分 | ${r.node} Lv${r.lv} | 靈魂 ${r.soul}（${r.spm}/分）| 木 ${r.wood} | ${r.iron} | ${r.gen} | 鍛瞭斥民祭倉 ${r.camp} | 輪 ${r.rounds} 死 ${r.deaths} | ${r.dbg} ‖ 無人：${n.dbg} 輪 ${n.rounds}${ev.length ? '\n      ' + ev.join('\n      ') : ''}`
       );
@@ -523,6 +608,7 @@ else
         1
       )
     );
+    if (CSV) csvOut(rows, accs, evs);
     console.log('\n' + md);
     console.log(
       `首輪完成：${R.r1 ? mmss(R.r1) : '沒有打完'}；頁面錯誤 ${P.errs.length + N.errs.length}；寫到 ${base}.md／.json`

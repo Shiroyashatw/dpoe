@@ -23,6 +23,8 @@ function newGame() {
     camp: newCamp(),
     auto2: AUTO2(),
     star: 1,
+    /* 追逐掉落（M2-18，craft.js 的 CHASE）：保底點數、拿過的件數；舊存檔由 migrate 的 { ...newGame(), ...s } 補上 */
+    chase: { pts: 0, got: {} },
     /* 碎片分頁（0.2.78 酆都）：勾魂令四種、生死簿 */
     frags: newFrags(),
     army: {},
@@ -263,6 +265,8 @@ function offSettle(away) {
     t = lvT(wLv(...wXY(k))),
     star = wStar(S),
     M0 = { ...MAT() },
+    c0 = chaseN(),
+    got0 = { ...chaseOf().got },
     g0 = S.gold,
     lv0 = S.lv;
   let won = 0;
@@ -288,7 +292,15 @@ function offSettle(away) {
       .filter(c => MAT()[c] > (M0[c] || 0))
       .map(c => [c, MAT()[c] - (M0[c] || 0)]),
     gold: S.gold - g0,
-    lv: S.lv - lv0
+    lv: S.lv - lv0,
+    chase: chaseN() - c0,
+    /* M2-19.5h：這次離開拿到的追逐物品 [鍵, 件數, 第一次拿到]（新的在前、再照件數）、結算後的點數、地點會不會累積（不會就不畫那一列） */
+    chaseL: Object.entries(chaseOf().got)
+      .filter(([c, v]) => v > (got0[c] || 0))
+      .map(([c, v]) => [c, v - (got0[c] || 0), !got0[c]])
+      .sort((a, b) => b[2] - a[2] || b[1] - a[1]),
+    pts: chaseOf().pts,
+    here: !!chaseLine(t)
   };
 }
 /* 離開的時候產生器照產（0.5.1，3.7）：上限照倉房；回產了多少 { 材料鍵: n } */
@@ -308,6 +320,7 @@ function offShow(o, g, away) {
         /<b>[^<]*<\/b>/,
         reduced() ? `<b>+${fmtN(v)}</b>` : `<b class="nroll" data-r="0:${v}:${t0}:900">+0</b>`
       );
+  if (o && o.here && o.chase) sfx('chaseBell');
   revealOpen([], {
     title: '離開的時候',
     sum: 1,
@@ -316,9 +329,27 @@ function offShow(o, g, away) {
       return `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>${o ? `，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `・倒下 ${o.n - o.won} 輪` : ''}` : ''}${o && o.lv ? `・升了 <b>${o.lv}</b> 級` : ''}</p>
       <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold')}<span class="rn">金</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
       ${o && o.cur.length ? `<p class="sub">通貨：${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}
+      ${o && o.here ? offChaseHTML(o) : ''}
       ${gen ? '<button class="btn pri wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}${campUpsHTML(4, false)}</div>`;
     }
   });
+}
+/* 離線摘要的追逐物品一列（M2-19.5）：「追逐物品 ×n、目前保底 p%」，有拿到的可以點開（REV.chx）一種一列；0 件不能點 */
+function offChaseHTML(o) {
+  const row = esc(chaseOffRow(o.chase)).replace(/×\d+/, '<b class="rc4">$&</b>'),
+    ic = `<span class="chf sm">${icHTML(CHASE_POOL.trunk[0])}</span>`;
+  if (!o.chase) return `<div class="offch z">${ic}<span>${row}</span></div>`;
+  const on = REV.chx;
+  return `<button class="offch ${on ? 'on' : ''}" data-a="offch" aria-expanded="${on ? 'true' : 'false'}">${ic}<span>${row}</span><i aria-hidden="true">›</i></button>${
+    on
+      ? `<ul class="offchl">${o.chaseL
+          .map(
+            ([k, n, f]) =>
+              `<li><span class="chf sm">${icHTML(k)}</span><b>${esc(chaseName(k))}</b>${f ? `<em class="cnew">${esc(STR_T.new)}</em>` : ''}<small>×${n}</small></li>`
+          )
+          .join('')}</ul>`
+      : ''
+  }`;
 }
 /* 退回去哪：裂口回到進來之前在刷的節點，其他照 wPrev */
 const wBack = k =>
@@ -1007,10 +1038,15 @@ function killMob(m) {
     rar: MM('rar') + ST.rarP,
     mat: MM('mat'),
     hunt: G.hunt,
-    zod: !!G.zod
+    zod: !!G.zod,
+    ei: G.rs ? G.rs.nE : 0
   };
   const mat = killMat(m, t, od);
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
+  /* M2-19.2：追逐物品落在地上（橘色雙光柱＋印環，停 CHASE_HOLD 秒再吸）；王印早就進碎片頁了，地上的只是演出 */
+  if (mat.chase) dropAt(m.x, m.y, { chase: mat.chase });
+  /* 靈魂包（13:27 第 23 點）：地上一個，撿起來才加靈魂 */
+  if (mat.pack) dropAt(m.x, m.y, { show: 'pack', soul: mat.pack });
   [
     ...mat,
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),
@@ -1085,10 +1121,14 @@ function bossDown(m) {
 const ROUND_GAP = 2;
 /* 稀有掉落（0.4.1，企劃書 5.9）：★、追憶、崇高石各階、高階與完美通貨：停 RARE_HOLD 秒再吸、光柱、專屬音、上方橫幅、記進掉落紀錄 */
 const RARE_HOLD = 1.5;
+/* M2-19：追逐物品地上停 2.4 秒；CHASE_T＝最近一次追逐演出（600 ms 內不播 orb）；CHASE_UNTIL＝追逐橫幅退場＋300 ms 前不出 #banner（hud.js 的 chaseBn 設） */
+const CHASE_HOLD = 2.4;
+let CHASE_T = -1e9,
+  CHASE_UNTIL = 0;
 let LOGV = 0; /* 掉落紀錄改了就加一（HUD 重畫） */
-function dropLog(n, c) {
+function dropLog(n, c, k) {
   const L = (S.log = S.log || []);
-  L.unshift({ t: Date.now(), n, c });
+  L.unshift(k ? { t: Date.now(), n, c, k } : { t: Date.now(), n, c });
   if (L.length > 50) L.length = 50;
   LOGV++;
   if (G.rs) G.rs.log.push({ n, c });
@@ -1096,13 +1136,26 @@ function dropLog(n, c) {
 }
 /* 通貨很多時（一波殺完同時掉好幾顆）：橫幅與音效 1.2 秒最多一次，紀錄照記；★ 與追憶一定演 */
 let RARE_T = 0;
-function rareShow(txt, c, snd) {
-  dropLog(txt, c);
+function rareShow(txt, c, snd, log) {
+  dropLog(log || txt, c);
   const now = performance.now();
   if ((c === 'cur' || c === 'perf') && now - RARE_T < 1200) return;
   RARE_T = now;
-  banner(txt, c);
-  sfx(snd);
+  if (now > CHASE_UNTIL) banner(txt, c);
+  if (snd !== 'orb' || now - CHASE_T > 600) sfx(snd);
+}
+/* 追逐物品的演出（M2-19.2）：記進掉落紀錄（類別 chase，不算通貨數）、#chase 橫幅（hud.js 的 banner 轉給 chaseBn，音效也在那裡：第一件 chase、合併進來的 chaseBell） */
+function chaseShow(k) {
+  dropLog(chaseBanner(k), 'chase', k);
+  banner(chaseBanner(k), 'chase', k);
+  CHASE_T = performance.now();
+}
+/* 開發觸發：在現在的地點直接掉一件追逐物品（M2 只有王印），走跟輪末王一樣的收起來與演出；?test=chase 與測試工具用 */
+function devChase() {
+  const k = chaseGive(G.mapT || 1);
+  dropAt(P ? P.x + 60 : 0, P ? P.y : 0, { chase: k });
+  hudPanels();
+  return k;
 }
 function dropAt(x, y, o) {
   const a = rnd(0, TAU),
@@ -1110,6 +1163,10 @@ function dropAt(x, y, o) {
   Object.assign(o, { x: x + Math.cos(a) * s, y: y + Math.sin(a) * s, sx: x, sy: y, t: 0 });
   if (!open(o.x, o.y, 10)) (o.x = x), (o.y = y);
   G.drops.push(o);
+  if (o.chase) return (o.hold = CHASE_HOLD), chaseShow(o.chase);
+  /* 靈魂包（第 24 點）：橫幅只寫「靈魂包」、掉落紀錄「靈魂包 +n 靈魂」，類別 pack（不算進掛機卡的通貨數） */
+  if (o.show === 'pack')
+    return (o.hold = RARE_HOLD), rareShow(STR_T.pack, 'pack', 'orb', `${STR_T.pack} ${packGain(o.soul)}`);
   if (o.show) return (o.hold = RARE_HOLD), rareShow(CUR[o.show].n, /3$/.test(o.show) ? 'perf' : 'cur', 'orb');
   /* 0.5.0 起地上只有護符與自己丟的（裝備不掉） */
   if (o.it && !o.nopick) sfx('drop0');
@@ -1135,8 +1192,11 @@ function gainXp(v) {
 }
 /* 撿起來：金幣直接加；裝備進清單倉庫（0.4.0）。倉庫滿了：普通裝直接換成金（每張圖提醒一次），★ 與追憶照樣收（多留的格子） */
 function pickup(d) {
-  if (d.show) {
-    /* 稀有通貨的演出：數量早就進材料頁了 */
+  if (d.chase) {
+    /* 追逐物品（M2-19）：掉的當下已經收起來了，吸過來只是演出結束 */
+  } else if (d.show) {
+    /* 稀有通貨的演出：數量早就進材料頁了；靈魂包撿起來才加（第 25 點：不算進 SES.soul，營地速率與地點每分鐘靈魂只算戰鬥） */
+    if (d.soul) (MAT().soul += d.soul), num(d.x, d.y - 20, 0, 'mat', packGain(d.soul));
   } else if (d.gold) {
     S.gold += d.gold;
     if (G.rs) G.rs.gold += d.gold;
@@ -2071,7 +2131,7 @@ function frame(now) {
       /* 0.3.3：地圖裡的掉落不看距離全部吸過來（自己丟的、放不下的不吸）；藏身處只吸 150 以內的金幣（0.5.2 過濾器刪了） */
       const map = G.scene === 'map';
       if (
-        (d.gold || d.show || (map && d.it && !d.nopick && !d.full)) &&
+        (d.gold || d.show || d.chase || (map && d.it && !d.nopick && !d.full)) &&
         d.t > (d.hold || 0.4) &&
         (map || dist(P, d) < 150)
       ) {

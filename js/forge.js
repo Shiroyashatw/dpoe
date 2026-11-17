@@ -708,7 +708,14 @@ function fragPageHTML() {
     row = (ic, nm, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(nm)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
     uw = fdHallWhy(S, 'uber');
-  return `<div class="ph2">酆都<span>鬼門關：角色 Lv ${spNeed('ghost')} 開</span></div>
+  return `<div class="ph2">追逐物品<span>主幹 Lv${CHASE.lv} 以上的輪末王掉落</span></div>
+  <ul class="mpg">${CHASE_POOL.trunk
+    .map(
+      k =>
+        `<li class="${F[k] ? '' : 'z'}" data-chs="${k}" role="button" tabindex="0"><span class="chf">${icHTML(k)}</span><div><b>${esc(chaseName(k))}</b><small>${esc(chaseProg(k))}</small></div><em>${fmtN(F[k] || 0)}</em></li>`
+    )
+    .join('')}</ul>
+  <div class="ph2">酆都<span>鬼門關：角色 Lv ${SPECIAL.find(s => s.t === 'ghost').need} 開</span></div>
   <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
   <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：在山海寶盒開啟' : `：再 ${FENG.hun - n} 張`}</span></p>
   <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '在山海寶盒開啟')}</span></p></div>
