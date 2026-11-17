@@ -769,7 +769,11 @@ function pickRows(c) {
     }
   }
   const score = x => (x.why ? -1e12 : (x.d || 0) + (x.fx ? 0.001 : 0));
-  L.sort((a, b) => score(b) - score(a));
+  /* 技能（M2-15b）：先看有沒有直傷（val）、再看是不是拿著的武器的招；同一組有現在的招比差多少、空格比每秒 */
+  const grp = x => (x.why ? 4 : (x.val != null ? 0 : 2) + (x.D.wt && x.D.wt.includes(ST.wt) ? 0 : 1));
+  if (v === 'skills')
+    L.sort((a, b) => grp(a) - grp(b) || (base != null ? (b.d || 0) - (a.d || 0) : (b.val || 0) - (a.val || 0)));
+  else L.sort((a, b) => score(b) - score(a));
   PICKC = { key, st: ST, soul: MAT().soul, L, base, u };
   return PICKC;
 }

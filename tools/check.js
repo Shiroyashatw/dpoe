@@ -11017,4 +11017,71 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(w)
   );
 }
+/* M2-15 技能挑選的推薦排序：拿著的武器的招在最前、詛咒（沒直傷）在有直傷的後面；空格、有招的格都一樣 */
+{
+  const c15 = {
+    ...{ console, Math, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams },
+    addEventListener() {},
+    document: { addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] }
+  };
+  vm.createContext(c15);
+  for (const f of [
+    'core.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'world.js',
+    'mech.js',
+    'ai.js',
+    'game.js',
+    'skills.js',
+    'skpanel.js'
+  ])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c15, { filename: f });
+  const R = s => vm.runInContext(s, c15);
+  R(`var PANEL = { skill: false }, TREE = { open: false }, NAV = {}, UI_SKIP = 0, OPEN = 0, PORT = () => true, IV = { on: false };
+    S = newGame(); P = { x: 0, y: 0 }; G.t = 0;`);
+  /* 拿 wt、格 i 先放 put（null＝空格），回推薦清單：每列 [拿著的武器的招, 詛咒, 有直傷] */
+  const rows = (wt, put) =>
+    JSON.parse(
+      R(`(() => {
+      S.camp.wts = [...new Set([...(S.camp.wts || []), '${wt}'])];
+      S.eq.weapon = mkItem(BASES.find(b => b.wt === '${wt}').id, 1, 0);
+      S.skills.forEach((s, j) => (S.skills[j] = newSlot()));
+      ${put ? `S.lib.sk['${put}'] = 1; S.skills[0].k = '${put}';` : ''}
+      ST = stats(); SKUI.view = 'skills'; SKUI.i = 0; SKUI.hole = 0; PICKC = null;
+      return JSON.stringify(pickRows(skCur()).L.filter(recOK).map(x => [!!x.D.wt && x.D.wt.includes(ST.wt), x.D.tags.includes('curse'), x.val != null, x.k]));
+    })()`)
+    );
+  /* 排得對（M2-15b）：組別＝有直傷的武器招 0、有直傷的非武器招 1、沒直傷的武器招 2、其他 3，整串不能倒退；詛咒仍在最後一個有直傷的後面 */
+  const g = r => (r[2] ? 0 : 2) + (r[0] ? 0 : 1);
+  const sorted = L => {
+    const lastDmg = L.map(r => r[2]).lastIndexOf(true),
+      firstCurse = L.findIndex(r => r[1]);
+    return L.every((r, j) => !j || g(L[j - 1]) <= g(r)) && (firstCurse < 0 || firstCurse > lastDmg);
+  };
+  for (const wt of R('Object.keys(WTN)'))
+    for (const put of [null, 'fireball', 'cu_enfeeble']) {
+      const L = rows(wt, put),
+        at = `拿 ${wt}、${put ? `格裡是 ${put}` : '空格'}`;
+      ok(
+        `M2-15b 推薦排序（${at}）：先看直傷、再看武器招，詛咒排在有直傷的後面`,
+        sorted(L),
+        JSON.stringify(L.slice(0, 8))
+      );
+      ok(`M2-15b 推薦第一名有直接傷害（${at}）`, L.length > 0 && L[0][2], JSON.stringify(L.slice(0, 3)));
+      if (wt === 'spear') {
+        const v = L.findIndex(r => r[3] === 'mk_volt');
+        ok(
+          `M2-15b 電壓印記（${at}）：排在所有有直傷的後面、沒直傷的非武器招前面`,
+          v > L.map(r => r[2]).lastIndexOf(true) &&
+            L.every((r, j) => r[2] || r[0] || j > v) &&
+            L.slice(v + 1).some(r => !r[2] && !r[0]),
+          JSON.stringify(L)
+        );
+      }
+    }}
 process.exit(bad ? 1 : 0);
