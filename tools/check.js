@@ -11007,29 +11007,37 @@ const ASC_COMBOS = `const combos = k => {
       S.skills.forEach((s, j) => (S.skills[j] = newSlot()));
       ${put ? `S.lib.sk['${put}'] = 1; S.skills[0].k = '${put}';` : ''}
       ST = stats(); SKUI.view = 'skills'; SKUI.i = 0; SKUI.hole = 0; PICKC = null;
-      return JSON.stringify(pickRows(skCur()).L.filter(recOK).map(x => [!!x.D.wt && x.D.wt.includes(ST.wt), x.D.tags.includes('curse'), x.val != null]));
+      return JSON.stringify(pickRows(skCur()).L.filter(recOK).map(x => [!!x.D.wt && x.D.wt.includes(ST.wt), x.D.tags.includes('curse'), x.val != null, x.k]));
     })()`)
     );
-  /* 排得對：前面一段全是武器招、詛咒都在最後一個有直傷的後面 */
+  /* 排得對（M2-15b）：組別＝有直傷的武器招 0、有直傷的非武器招 1、沒直傷的武器招 2、其他 3，整串不能倒退；詛咒仍在最後一個有直傷的後面 */
+  const g = r => (r[2] ? 0 : 2) + (r[0] ? 0 : 1);
   const sorted = L => {
-    const w = L.findIndex(r => !r[0]),
-      lastDmg = L.map(r => r[2]).lastIndexOf(true),
+    const lastDmg = L.map(r => r[2]).lastIndexOf(true),
       firstCurse = L.findIndex(r => r[1]);
-    return L[0][0] && L.slice(w).every(r => !r[0]) && firstCurse > lastDmg;
+    return L.every((r, j) => !j || g(L[j - 1]) <= g(r)) && (firstCurse < 0 || firstCurse > lastDmg);
   };
-  for (const [wt, put] of [
-    ['spear', null],
-    ['sword', null],
-    ['spear', 'slash'],
-    ['sword', 'fireball']
-  ]) {
-    const L = rows(wt, put);
-    ok(
-      `M2-15 推薦排序（拿 ${wt}、${put ? `格裡是 ${put}` : '空格'}）：武器招在最前、詛咒排在有直傷的後面`,
-      sorted(L),
-      JSON.stringify(L.slice(0, 8))
-    );
-  }
+  for (const wt of R('Object.keys(WTN)'))
+    for (const put of [null, 'fireball', 'cu_enfeeble']) {
+      const L = rows(wt, put),
+        at = `拿 ${wt}、${put ? `格裡是 ${put}` : '空格'}`;
+      ok(
+        `M2-15b 推薦排序（${at}）：先看直傷、再看武器招，詛咒排在有直傷的後面`,
+        sorted(L),
+        JSON.stringify(L.slice(0, 8))
+      );
+      ok(`M2-15b 推薦第一名有直接傷害（${at}）`, L.length > 0 && L[0][2], JSON.stringify(L.slice(0, 3)));
+      if (wt === 'spear') {
+        const v = L.findIndex(r => r[3] === 'mk_volt');
+        ok(
+          `M2-15b 電壓印記（${at}）：排在所有有直傷的後面、沒直傷的非武器招前面`,
+          v > L.map(r => r[2]).lastIndexOf(true) &&
+            L.every((r, j) => r[2] || r[0] || j > v) &&
+            L.slice(v + 1).some(r => !r[2] && !r[0]),
+          JSON.stringify(L)
+        );
+      }
+    }
 }
 /* M2-06 戰鬥可讀性（規格 specs/M2-05-combat-readability.md）：傷害數字三段設定與依裝置預設（製作人 11-17 10:42）、合併與上限、升級只剩一種提示 */
 {
