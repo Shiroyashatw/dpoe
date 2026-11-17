@@ -1,0 +1,36 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "wangyin_zhenyue_16",
+  "seed": 2105,
+  "post": "alpha_binary",
+  "init_from": "wangyin_zhenyue_32-s2101.png",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "tiny 16 pixel game icon of a square bronze seal, a stylised mountain peak with three summits, glowing orange face, bold, 1 pixel black outline",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "init_image": "(base64 略)",
+    "init_image_strength": 300,
+    "seed": 2105,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

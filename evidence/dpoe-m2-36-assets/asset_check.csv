@@ -1,0 +1,6 @@
+file,job,kind,size,de_gt3_pct,de_max,post_palette_pct,grid_2x2_pct,alpha_ok,isolated_pct,floor_lum_ratio,mid_pct,light_pct,seam_ratio,sat_pct,fx_opaque_pct,fx_sat_pct,fx_sat8_s,fx_dark_pct,result,reason
+art/tiles/temple/floor/tile_temple_floor-s1101.png,tile_temple_floor,floor,32x32,0.0,0.0,100.0,46.9,True,0.0,0.951,1.95,0.0,1.016,,,,,,過,
+art/_rejected/tile_temple_wallface/tile_temple_wallface-s1121-a.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,42.4,True,1.04,,61.11,18.23,0.349,,,,,,不過,牆太亮（-mid＋-light 79.3%、-light 18.23%）
+art/_rejected/tile_temple_wallface/tile_temple_wallface-s1121-b.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,50.7,True,1.39,,9.38,15.28,12.17,,,,,,不過,牆太亮（-mid＋-light 24.7%、-light 15.28%）；接縫 12.17 > 1.2
+art/_rejected/wangyin_zhenyue_32/wangyin_zhenyue_32-s2101.png,wangyin_zhenyue_32,icon,32x32,0.0,0.0,100.0,0.0,True,25.31,,,,,18.41,,,,,不過,孤立像素 25.31% > 4%
+art/_rejected/wangyin_zhenyue_16/wangyin_zhenyue_16-s2105.png,wangyin_zhenyue_16,icon,16x16,0.0,0.0,100.0,4.3,True,44.07,,,,,10.17,,,,,不過,孤立像素 44.07% > 4%
