@@ -82,25 +82,32 @@ const DMENU = [
   ['set', 'gear', '設定與快捷鍵', 'Esc']
 ];
 /* 功能選單（0.4.0）：刷圖時也能開（面板開著戰鬥照跑）；桌機「功能」鈕、手機 ☰ 都列這些 */
+/* M2-38（M2-37.7）：K 鍛造、O 鍛造 › 通貨、H 營地、Y 追逐物品（開放後才有） */
 const FMENU = [
   ['node', '地點', 'M'],
-  ['stash', '通貨與碎片', 'O'],
-  ['craft', '營地', 'K'],
+  ['stash', STR_T.forgeCur, 'O'],
+  ['forge', STR_T.forge, 'K'],
+  ['craft', '營地', 'H'],
+  ['chase', STR_T.chase, 'Y'],
   ['asc', '昇華石碑', 'U'],
   ['box', '山海寶盒', 'J'],
   ['log', '掉落紀錄', 'L']
 ];
 function fmenuOpen(k) {
-  const on = PANEL[k];
+  if (k === 'chase' && !chaseOn()) return;
+  const on = k === 'forge' || k === 'craft' ? navOn() === k : PANEL[k];
   HP_HOLD++;
   closePanels();
   HP_HOLD--;
   if (on) return hudPanels();
-  /* BASE-01：跑圖中營地、掉落紀錄半版；其他（地點、通貨、昇華、寶盒）照舊蓋滿 */
-  (NAV.full = PORT() && !(G.scene === 'map' && (k === 'craft' || k === 'log')) ? 1 : 0), openPanel(k);
+  /* BASE-01：跑圖中鍛造、營地、掉落紀錄、追逐物品半版；其他（地點、昇華、寶盒）照舊蓋滿 */
+  NAV.full = PORT() && !(G.scene === 'map' && ['forge', 'stash', 'craft', 'log', 'chase'].includes(k)) ? 1 : 0;
+  if (k === 'forge' || k === 'stash') act('ctab:' + (k === 'stash' ? 'cur' : FSEG));
+  else if (k === 'craft') (CRAFT.tab = 'camp'), openPanel('craft');
+  else openPanel(k);
 }
 const fmenuHTML = () =>
-  FMENU.filter(([k]) => k !== 'asc' || campCan('asc'))
+  FMENU.filter(([k]) => (k !== 'asc' || campCan('asc')) && (k !== 'chase' || chaseOn()))
     .map(([k, n, key]) => `<button data-tm="f:${k}">${esc(n)}<kbd class="donly">${key}</kbd></button>`)
     .join('');
 function hudInit() {
@@ -117,13 +124,12 @@ function hudInit() {
     <div class="orb mp" id="omp"><i></i><svg class="spir" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 95 A45 45 0 0 1 50 5"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 1 50 5"/></svg><span></span></div>
     <div class="dmenu"><button class="autob2" data-tm="more" data-tip="地點、通貨與碎片、營地、昇華石碑、山海寶盒、掉落紀錄" aria-expanded="false">功能</button>${DMENU.map(([k, ic, n, key]) => `<button data-tm="${k}" data-tip="${n}（${key}）" aria-label="${n}">${ICO[ic]}<kbd>${key}</kbd></button>`).join('')}</div>
   </div>
+  <div class="modesw donly" role="group" aria-label="自動／手動"><button data-a="auto:1" aria-pressed="false">${STR_T.modeAuto}</button><button data-a="auto:0" aria-pressed="false">${STR_T.modeMan}</button><kbd>C</kbd></div>
   <nav id="dnav" class="donly" aria-label="功能"></nav>
   <div id="prac" hidden></div>
-  <div id="talk" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
   <div id="paused" hidden>已暫停</div>
   <div id="banner" role="status" aria-live="polite" hidden></div>
-  <div id="pro" hidden><small id="pron"></small><b id="prot" role="status"></b><button class="btn mini" data-pro="skip">跳過<span class="ponly">序章</span></button></div>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}倉庫</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
   <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="home">${ICO.home}回藏身處</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
@@ -135,24 +141,30 @@ function hudInit() {
   hudBar();
   hudState();
 }
-/* 技能列的圖示跟著技能欄換（換寶石後重畫） */
+/* 技能列的圖示跟著技能欄換（換寶石後重畫）。桌機（M2-38，M2-37.4）：祭壇沒開的技能格不畫；開了但空著的只畫外框＋鍵帽，點了開技能面板 */
 function hudBar() {
-  $('bar').innerHTML = BAR.map(b => {
-    const g = b.slot != null && S.skills[b.slot].k,
-      ic =
-        b.k === 'roll'
-          ? `<em class="roll">${ICO.roll}</em>`
-          : b.k === 'use'
-            ? '<em class="use">互動</em>'
-            : b.slot != null
-              ? g
-                ? icHTML(SKILLS[g].ic)
-                : `<em class="empty">${ICO.plus}</em>`
-              : icHTML(b.ic);
-    return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
-  }).join('');
+  HV.bar = barKey();
+  $('bar').innerHTML = BAR.filter(b => b.slot == null || TOUCH.on || b.slot < campN('slots'))
+    .map(b => {
+      if (!TOUCH.on && b.slot != null && !S.skills[b.slot].k)
+        return `<button class="sk emp" data-k="${b.k}" data-tm="skill" data-tip="${esc(tipOf(b))}" aria-label="${b.key}：空的"><kbd>${b.key}</kbd></button>`;
+      const g = b.slot != null && S.skills[b.slot].k,
+        ic =
+          b.k === 'roll'
+            ? `<em class="roll">${ICO.roll}</em>`
+            : b.k === 'use'
+              ? '<em class="use">互動</em>'
+              : b.slot != null
+                ? g
+                  ? icHTML(SKILLS[g].ic)
+                  : `<em class="empty">${ICO.plus}</em>`
+                : icHTML(b.ic);
+      return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
+    })
+    .join('');
   for (const k in HV) if (/^[tnb]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$/.test(k)) delete HV[k];
 }
+const barKey = () => (TOUCH.on ? 't' : campN('slots'));
 function tipOf(b) {
   if (b.slot == null) return `${b.n}\n${b.d}`;
   const c = slotCfg(b.slot);
@@ -186,7 +198,7 @@ function pausedTick() {
   if (el.hidden === !on && !on) return;
   el.hidden = !on;
   if (!on) return;
-  const b = [$('area'), $('bossbar')]
+  const b = [$('area'), $('bossbar'), $('prog')]
     .filter(e => e && !e.hidden && e.offsetParent)
     .map(e => e.getBoundingClientRect().bottom);
   el.style.top = Math.round(Math.max(0, ...b) + (IH < 700 ? 6 : 8)) + 'px';
@@ -220,7 +232,7 @@ function hudTick() {
   setT($('ohp').lastChild, 'ht', Math.ceil(P.hp) + ' / ' + ST.hp + (ST.es ? `\n盾 ${Math.floor(P.es || 0)}` : ''));
   setT($('omp').lastChild, 'mt', mpt);
   setV($('xp'), 'xp', (S.xp / xpNeed(S.lv)).toFixed(3));
-  for (const el of document.querySelectorAll('.sk')) {
+  for (const el of document.querySelectorAll('.sk:not(.emp)')) {
     const k = el.dataset.k,
       c = k[0] === 's' ? slotCfg(+k[1]) : null;
     let cd = 0,
@@ -322,6 +334,7 @@ function hudTick() {
           `王倒下 · ${Math.max(1, Math.ceil(G.nextT - G.t))} 秒後在這裡再刷一輪，不用按`
         : `${G.nodeN || '地圖'} · ${G.star || 1}★ · 怪物 Lv ${mobLv(G.mapT)} · 第 ${G.round || 1} 輪`;
   setT($('area'), 'at', at);
+  chaseUnlock();
   idleBar();
   runBar();
   /* 營地分頁開著：每秒補畫數字變了的卡（0.5.1）；分頁列的小點跟著買得起幾件 */
@@ -330,8 +343,17 @@ function hudTick() {
   logBar();
   if (HV.ai !== AI.on) document.body.classList.toggle('ai', !!(HV.ai = AI.on));
   const au = S.auto ? 1 : 0;
+  if (HV.bar !== barKey()) hudBar();
+  const bu = !$('bossbar').hidden;
+  if (HV.bu !== bu) document.body.classList.toggle('bossup', (HV.bu = bu));
   if (HV.au !== au) {
     HV.au = au;
+    document.body.classList.toggle('mauto', !!au);
+    for (const e of document.querySelectorAll('.modesw button')) {
+      const on = e.dataset.a === 'auto:' + au;
+      e.classList.toggle('on', on);
+      e.setAttribute('aria-pressed', on);
+    }
     for (const e of document.querySelectorAll('.autob')) {
       e.textContent = au ? '自動' : '手動';
       e.classList.toggle('on', !!au);
@@ -403,17 +425,17 @@ function hudState() {
 }
 
 /* ---------- 面板 ---------- */
-/* stab：通貨面板的分頁（cur 通貨／frags 碎片） */
+/* stash＝鍛造 › 通貨（M2-38 起只剩通貨，碎片頁拆掉）；chase＝追逐物品 */
 const PANEL = {
   inv: false,
   stash: false,
   device: false,
   skill: false,
   craft: false,
+  chase: false,
   more: false,
   node: false,
-  pick: 1,
-  stab: 'cur'
+  pick: 1
 };
 /* 清單倉庫的篩選與排序（0.4.0）：f 篩選、o 排序、n 畫幾件（每次多 BAG_STEP） */
 /* f 大類、k 部位（武器是武器類別，空字串＝這一大類全部）；0.5.0 起沒有膠囊與搜尋 */
@@ -425,14 +447,21 @@ const BAG_STEP = 56,
    view＝裝備面板畫哪一半（bag 戰利品／char 角色）、pick＝做裝正在挑裝備、full＝面板放大到蓋滿 */
 /* slot＝角色頁選中的那一格（裝備欄鍵或 ch0～ch2），底下列出倉庫裡可以換上去的 */
 const NAV = { view: 'bag', pick: 0, full: 0, slot: null };
+/* M2-38：鍛造升為第 3 格、營地只剩總覽（新圖示在 M2-33，先借 home）；追逐物品只在桌機、開放後才畫 */
 const NAV_T = [
   ['bag', 'bag', '戰利品'],
   ['char', 'hero', '角色'],
+  ['forge', 'hammer', STR_T.forge],
   ['skill', 'gem', '技能'],
   ['tree', 'tree', '天賦'],
-  ['craft', 'hammer', '營地'],
+  ['craft', 'home', '營地'],
+  ['chase', 'gem', STR_T.chase],
   ['more', 'menu', '更多']
 ];
+/* 鍛造的三段：上次離開的段（這次遊戲）；第一次與從掛機卡、空格進來一律打造 */
+let FSEG = 'make';
+const FTABS = ['forge', 'temper', 'holy', 'corr', 'calam'];
+const fseg = () => (PANEL.stash ? 'cur' : CRAFT.tab === 'make' ? 'make' : 'forge');
 const SHEET_TOP = 0.38; /* 半版面板的上緣在畫面高度的幾成（上面是戰鬥） */
 /* 現在亮哪一頁：照開著的面板推（別的入口開的面板也對得上） */
 const navOn = () =>
@@ -440,21 +469,27 @@ const navOn = () =>
     ? 'tree'
     : PANEL.skill
       ? 'skill'
-      : PANEL.stash || PANEL.craft
-        ? 'craft'
-        : PANEL.inv
-          ? NAV.view
-          : anyPanel()
-            ? 'more'
-            : '';
+      : PANEL.stash || (PANEL.craft && CRAFT.tab !== 'camp')
+        ? 'forge'
+        : PANEL.craft
+          ? 'craft'
+          : PANEL.chase && !TOUCH.on
+            ? 'chase'
+            : PANEL.inv
+              ? NAV.view
+              : anyPanel()
+                ? 'more'
+                : '';
 /* 分頁上的小亮點（0.4.7）：有天賦點或昇華點還沒用；技能（0.4.8）＝技能面板「現在可以變強」有東西 */
 const navDot = k =>
   k === 'tree'
     ? ptLeft() > 0 || (S.asc ? ascLeft() > 0 : ascPoints(S) > 0)
     : k === 'craft'
       ? campReady() > 0
-      : /* 技能（0.5.4，考核 F3）：只在有東西可以插（空孔有會變強的輔助、開了的空技能格、放得下的光環）時亮；升級不算 */
-        k === 'skill' && skTodo().some(t => !t.go.startsWith('one:'));
+      : k === 'more' || k === 'chase'
+        ? chaseDot()
+        : /* 技能（0.5.4，考核 F3）：只在有東西可以插（空孔有會變強的輔助、開了的空技能格、放得下的光環）時亮；升級不算 */
+          k === 'skill' && skTodo().some(t => !t.go.startsWith('one:'));
 /* 點分頁：開那一頁；點亮著的那一頁＝收起來（「更多」底下的面板開著時點「更多」＝回到更多） */
 function navGo(t) {
   /* M1-19：說明框開著時，點分頁＝收起說明框並切過去（一下就好） */
@@ -472,19 +507,20 @@ function navGo(t) {
   if (on) return hudPanels(), (NOSNAP = 0);
   /* 做裝要同時看得到裝備的詞與通貨、技能面板很長（圓環＋說明＋升級鈕）：打開就蓋滿，把手可以縮回半版 */
   /* BASE-01：跑圖中一律半版（自動模式要看得到戰鬥），把手上拉才全版；藏身處（M2 併進營地前）營地／技能照舊蓋滿 */
-  NAV.full = G.scene !== 'map' && (t === 'craft' || t === 'skill') ? 1 : 0;
+  NAV.full = G.scene !== 'map' && (t === 'forge' || t === 'craft' || t === 'skill') ? 1 : 0;
   if (t === 'bag' || t === 'char') (NAV.view = t), openPanel('inv');
-  else if (t === 'craft') openPanel(PANEL.ctab === 'cur' || PANEL.ctab === 'frags' ? 'stash' : 'craft');
+  else if (t === 'forge') act('ctab:' + FSEG);
+  else if (t === 'craft') (CRAFT.tab = 'camp'), openPanel('craft');
   else openPanel(t);
   NOSNAP = 0;
 }
 const navHTML = () => {
   const on = navOn();
   /* 天賦樹分頁要祭壇 Lv4（0.5.1）；營地的小點寫買得起幾件 */
-  return NAV_T.filter(([k]) => k !== 'tree' || campCan('tree'))
+  return NAV_T.filter(([k]) => (k !== 'tree' || campCan('tree')) && (k !== 'chase' || (!TOUCH.on && chaseOn())))
     .map(
       ([k, ic, t]) =>
-        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()} 可升級</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : '有點數沒用'}"></i>`) : ''}</button>`
+        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : k === 'more' || k === 'chase' ? STR_T.chaseNew : '有點數沒用'}"></i>`) : ''}</button>`
     )
     .join('');
 };
@@ -551,7 +587,7 @@ function slotPickHTML() {
           .join(
             ''
           )}</div>${L.length > SLOT_SHOW ? `<button class="btn bagmore" data-a="slotall">看全部 ${L.length} 件</button>` : ''}`
-      : '<p class="c-dim bagno">倉庫裡沒有這一格能用的裝備</p>'
+      : `<div class="bagno"><p>${strT('noCand', { s: ch ? '護符' : EQS.find(q => q.k === k).n })}</p>${ch ? '' : `<button class="btn pri wide" data-a="mkslot:${k}">${STR_T.mkSlot}</button>`}</div>`
   }</div>`;
 }
 /* 直立的角色頁選了一格：這件放得下那一格就優先換那一格（兩枚戒指、主手與副手） */
@@ -568,6 +604,7 @@ function moreHTML() {
     ${row('nav:node', '地點', esc(G.scene === 'map' && G.nodeN ? `正在刷：${G.nodeN} · ${G.star || 1}★` : '選一個地點開始刷'))}
     ${campCan('tree') ? row('tree', '天賦樹', pts > 0 ? `<span class="c-good">剩 ${pts} 點</span>` : '點數用完了') : ''}
     ${campCan('asc') ? row('f:asc', '昇華石碑', S.asc ? esc(ASC[S.asc].n) : '<span class="c-good">還沒選</span>') : ''}
+    ${chaseOn() ? `<button class="mrow" data-tm="f:chase"><b>${STR_T.chase}${chaseDot() ? `<em class="cnew">${STR_T.new}</em>` : ''}</b><small>${esc(chaseSub())}</small></button>` : ''}
     ${row('f:box', '山海寶盒', '殿與王場的門票')}
     ${nxu ? `<button class="mrow" data-fg="jump:${nxu.b}"><b>下一個</b><small>${esc(nxu.t)}</small></button>` : ''}
     ${row('f:log', '掉落紀錄', `${(S.log || []).length} 筆 · 保底進度`)}
@@ -605,19 +642,22 @@ function nodeHTML() {
   <div class="bagf ndst" role="radiogroup" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => `<button class="chip ${st0 === i + 1 ? 'on' : ''}" role="radio" aria-checked="${st0 === i + 1}" data-a="nstar:${i + 1}">${i + 1}★</button>`).join('')}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條地圖詞・星越多越危險、掉得越好</span></div>
   <ul class="ndl">${rows}</ul>${more > 0 ? `<p class="ndmore">還有 ${more} 個地點</p>` : ''}`;
 }
-/* 直立的「做裝」那一頁的分頁（0.5.0）：打造（材料 → 裝備、鍛造台的表）永遠在；通貨（點了就用）、鍛造台（填、淬鍊、災魘）要鍛造台 Lv1；碎片照瞭望台（campCan） */
+/* 鍛造分頁的三段（M2-38，M2-37.1）：打造永遠在；通貨（點了就用）、鍛造台（填、淬鍊、災魘）要鍛造台 Lv1 */
 const CSEG = () =>
   [
-    ['camp', '總覽', true],
     ['make', '打造', true],
     ['cur', '通貨', campCan('tab:fill')],
-    ['forge', '鍛造台', campCan('tab:fill')],
-    ['frags', '碎片', campCan('frags')]
+    ['forge', '鍛造台', campCan('tab:fill')]
   ].filter(x => x[2]);
 const craftSeg = on =>
   `<span class="ftabs">${CSEG()
-    .map(([k, n]) => `<button class="${on === k ? 'on' : ''}" data-a="ctab:${k}">${n}</button>`)
+    .map(
+      ([k, n]) => `<button class="${on === k ? 'on' : ''}" data-a="ctab:${k}" aria-pressed="${on === k}">${n}</button>`
+    )
     .join('')}</span>`;
+/* 鍛造的標題列：「鍛造」＋三段＋關閉（直立、桌機同一份） */
+const forgeHead = on =>
+  `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
 /* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點藏身處的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
 const PANEL_LOCK = { asc: 'asc', box: 'box' };
 function openPanel(k) {
@@ -627,10 +667,11 @@ function openPanel(k) {
   /* 左邊一次只開一個（倉庫／技能寶石／鍛造台），右邊是背包 */
   if (k === 'stash' || k === 'skill' || k === 'craft') {
     PANEL.stash = PANEL.skill = PANEL.craft = false;
-    /* 0.4.9：技能面板自己一個（桌機也是）；做裝、通貨頁旁邊要有倉庫 */
-    PANEL.inv = k !== 'skill';
+    /* 0.4.9：技能面板自己一個（桌機也是）；鍛造旁邊要有倉庫；營地總覽（M2-38）自己一個、桌機在右欄 */
+    PANEL.inv = k !== 'skill' && !(k === 'craft' && CRAFT.tab === 'camp');
     PANEL[k] = true;
   } else PANEL[k] = true;
+  if (k === 'chase') chaseSeeNow();
   /* 技能面板（0.4.8）：打開一律先到總覽 */
   if (k === 'skill') skHome();
   if (k === 'asc')
@@ -648,6 +689,7 @@ function closePanels() {
     PANEL.box =
     PANEL.ident =
     PANEL.log =
+    PANEL.chase =
     PANEL.more =
     PANEL.node =
       false;
@@ -667,6 +709,7 @@ const anyPanel = () =>
   PANEL.box ||
   PANEL.ident ||
   PANEL.log ||
+  PANEL.chase ||
   PANEL.more ||
   PANEL.node;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
@@ -682,8 +725,10 @@ const KEYS_PC = [
   ['G', '技能'],
   ['P', '天賦樹'],
   ['M', '地點'],
-  ['O', '通貨與碎片'],
-  ['K', '營地'],
+  ['K', '鍛造'],
+  ['O', '鍛造 › 通貨'],
+  ['H', '營地'],
+  ['Y', '追逐物品（開放後）'],
   ['U', '昇華石碑'],
   ['J', '山海寶盒'],
   ['L', '掉落紀錄'],
@@ -744,6 +789,7 @@ const KEEP = {
   pinv: ['', '.bagf.sub'],
   pskill: ['.sk-scroll', '.sk-chips'],
   pnode: [''],
+  pchase: [''],
   pasc: ['', '.ax-list'],
   plog: ['.lgl'],
   preveal: ['.rvl']
@@ -842,11 +888,10 @@ function hudPanels() {
   if (PANEL.skill) panelHTML($('pskill'), skillHTML());
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
   if (PANEL.inv && !cw) panelHTML($('pinv'), invHTML());
-  if (PANEL.stash) {
-    const st = PANEL.stab === 'frags' ? 'frags' : 'cur';
-    $('pstash').innerHTML =
-      `<div class="ph"><b>${PORT() ? '營地' : '通貨'}</b>${PORT() ? craftSeg(st) : `<span class="ftabs"><button class="${st === 'cur' ? 'on' : ''}" data-a="stab:cur">通貨</button><button class="${st === 'frags' ? 'on' : ''}" data-a="stab:frags">碎片</button></span>`}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>${st === 'cur' ? curPageHTML() : fragPageHTML()}`;
-  }
+  if (PANEL.stash) $('pstash').innerHTML = forgeHead('cur') + curPageHTML();
+  if (navOn() === 'forge') FSEG = fseg();
+  $('pchase').hidden = !PANEL.chase;
+  if (PANEL.chase) panelHTML($('pchase'), chasePanelHTML());
   if (PANEL.asc) panelHTML($('pasc'), ascHTML());
   if (PANEL.box) $('pbox').innerHTML = boxHTML();
   if (PANEL.ident) {
@@ -892,18 +937,26 @@ function dollCell(k) {
   if (k === 'ring3' && !eqOpen(S, 'ring3')) return '';
   const it = S.eq[k],
     lock = !eqOpen(S, k);
-  return `<div class="eqs ${it ? 'r' + it.r : 'emp'} ${ST.eqBad.includes(k) && !lock ? 'noreq' : ''} ${lock ? 'lock' : ''} ${NAV.slot === k ? 'sel' : ''}" data-eq="${k}" ${it ? '' : `data-tip="${e.n}${lock ? '：被昇華鎖住，退點才能用' : ''}"`}>${it ? itemHTML(it, 'eq', k) : `<span class="nm">${e.n}</span><small>${lock ? ICO.lock : '空'}</small>`}</div>`;
+  return `<div class="eqs ${it ? 'r' + it.r : 'emp'} ${ST.eqBad.includes(k) && !lock ? 'noreq' : ''} ${lock ? 'lock' : ''} ${NAV.slot === k ? 'sel' : ''}" data-eq="${k}" ${it ? '' : `data-tip="${e.n}${lock ? '：被昇華鎖住，退點才能用' : ''}"`}>${it ? itemHTML(it, 'eq', k) : lock ? `<span class="nm">${e.n}</span><small>${ICO.lock}</small>` : empHTML(e.n, slotCands(k), icHTML(slotIc(e)))}</div>`;
+}
+/* 空格（M2-38，M2-37.6）：部位的單色剪影（M2-33 換正式圖）、下緣部位名、右上候選數（有比身上強的用 --good）；不寫「空」、不用虛線 */
+function empHTML(n, L, ic = '') {
+  const up = L.some(it => itemUp(it));
+  return `${ic ? `<span class="sil" aria-hidden="true">${ic}</span>` : ''}<span class="nm">${n}</span>${L.length ? `<em class="cn ${up ? 'c-good' : ''}">${L.length}</em>` : ''}<span class="sr">${L.length ? strT('slotAria', { s: n, n: L.length }) : ''}</span>`;
 }
 function dollHTML() {
   const pen = G.scene === 'map' ? resPen(mobLv(G.mapT || 1)) : 0,
     g = S.godOn != null && (S.gods || [])[S.godOn],
-    charms = [0, 1, 2]
-      .map(i => {
-        const it = S.charms[i],
-          lock = i >= charmSlots(S);
-        return `<div class="eqs ${it ? 'r' + it.r : 'emp'} ${lock ? 'lock' : ''} ${NAV.slot === 'ch' + i ? 'sel' : ''}" data-eq="ch${i}" ${lock && !it ? `data-lk="${lockSlotTxt('ch' + i)}"` : ''}>${it ? itemHTML(it, 'eq', 'ch' + i) : `<span class="nm">護符</span><small>${lock ? ICO.lock : '空'}</small>`}</div>`;
-      })
-      .join('');
+    /* 護符（M2-37.6）：只畫開了的格；一格都沒有（沒腰帶）整列換成一行「裝上腰帶就有護符槽 ›」，點了選腰帶格 */
+    charms = charmSlots(S)
+      ? [0, 1, 2]
+          .filter(i => i < charmSlots(S) || S.charms[i])
+          .map(i => {
+            const it = S.charms[i];
+            return `<div class="eqs ${it ? 'r' + it.r : 'emp'} ${NAV.slot === 'ch' + i ? 'sel' : ''}" data-eq="ch${i}">${it ? itemHTML(it, 'eq', 'ch' + i) : empHTML('護符', slotCands('ch' + i))}</div>`;
+          })
+          .join('')
+      : `<button class="chbelt" data-a="selbelt">${STR_T.beltCharm} ›</button>`;
   return `<div class="doll2"><div class="col">${DOLL_L.map(dollCell).join('')}</div>
   <div class="mid">${[
     ['DPS', fmtN(Math.round(dps(ST)))],
@@ -921,9 +974,12 @@ function dollHTML() {
   }</div>
   <div class="col">${DOLL_R.map(dollCell).join('')}</div></div>
   <div class="doll2x">${charms}${
-    S.lv < GH_LV || (!g && lockTxt('line:rift'))
-      ? `<div class="eqs gh emp lock" data-lk="${lockSlotTxt('gh')}"><span class="nm">神格</span><small>${ICO.lock}</small></div>`
-      : `<div class="eqs gh ${g ? 'r2' : 'emp'}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}">${g ? icHTML('z_' + g.g) : '<span class="nm">神格</span><small>空</small>'}</div>`
+    /* M2-38：弒神沒開不畫；M2-30：開了但角色不到 Lv GH_LV 畫鎖住的格子，點了講 M1-26 那一句 */
+    !g && lockTxt('line:rift')
+      ? ''
+      : S.lv < GH_LV
+        ? `<div class="eqs gh emp lock" data-lk="${lockSlotTxt('gh')}"><span class="nm">神格</span><small>${ICO.lock}</small></div>`
+        : `<div class="eqs gh ${g ? 'r2' : 'emp'}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}">${g ? icHTML('z_' + g.g) : '<span class="nm">神格</span>'}</div>`
   }</div>`;
 }
 let CHSW = null;
@@ -1344,6 +1400,12 @@ document.addEventListener('click', e => {
   /* 靈魂包沒有物品詳情：點橫幅開掉落紀錄（第 20 點） */
   if (e.target.closest('#banner.bn-pack')) return ($('banner').hidden = true), PANEL.log || fmenuOpen('log');
   const chs = e.target.closest('[data-chs]');
+  if (chs && chs.closest('#pchase')) {
+    CHSEL = chs.dataset.chs;
+    hudPanels();
+    const el = document.querySelector(`#pchase [data-chs="${CHSEL}"]`);
+    return el && chaseTip(el);
+  }
   if (chs) return chaseTip(chs);
   if (!e.target.closest('#ttip')) $('ttip').hidden = true;
   /* 點說明框以外：收起說明框 */
@@ -1843,12 +1905,6 @@ function chaseBn(k) {
   $('banner').hidden = true;
   el.innerHTML = chaseBnHTML();
   el.setAttribute('aria-label', `${STR_T.chase}：${CB.items.map(chaseName).join('、')}`);
-  /* 桌機：右欄開著時只蓋左邊看得到的畫布 */
-  const rp = TOUCH.on
-    ? null
-    : [...document.querySelectorAll('.panel')].find(p => !p.hidden && p.offsetLeft > innerWidth / 2);
-  /* 右欄寬記成 --cr：right 與左右留白都照它算（padding 的 % 是照視窗寬，不能用） */
-  el.style.setProperty('--cr', rp ? innerWidth - rp.offsetLeft + 'px' : '0px');
   el.hidden = false;
   chaseBnTimer();
 }
@@ -1979,12 +2035,14 @@ function idleHTML() {
   return `<div class="paper idl">
     <div class="k row2"><span>本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪${ses.cur ? `・通貨 ${ses.cur} 顆` : ''}${ses.deaths ? `・倒下 ${ses.deaths}` : ''}</span><span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
     <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>${chaseHTML()}
-    <button class="btn pri wide igo" data-a="gocamp">去營地</button>
+    <button class="btn pri wide igo" data-a="gocamp">${goCampT()}</button>
     ${pct >= 80 ? `<p class="note"><span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span></p>` : ''}
   </div>`;
 }
 /* 掛機卡的追逐保底（M2-18；M2-19.4）：一行「下一件保底 n%」＋6 px 細條；只在會觸發保底的地點（怪物 Lv45 以上）有，其他地點整行不出、不留空位。
    100% 條慢慢呼吸（full）；歸零那一次條先滿格再淡掉（reset，chaseHTML.p 記上一次）；整行是一顆透明鈕（熱區 44）開掉落紀錄 */
+/* 掛機卡主按鈕（D1）：「去營地・{n} 可升級」，沒有可升級只寫「去營地」 */
+const goCampT = () => (campReady() ? strT('goCampN', { n: campReady() }) : STR_T.goCamp);
 function chaseHTML() {
   const t = chaseLine(G.mapT),
     n = chasePct();
@@ -2015,14 +2073,63 @@ function chaseTip(el) {
 /* 點追逐橫幅（製作人第 1 點）：王印＝打開碎片頁、那一列的詳情；異寶基底＝到戰利品、選那一件（換裝卡就是詳情） */
 function chaseOpen(k) {
   $('banner').hidden = true;
-  if (isWy(k)) {
-    act('ctab:frags');
-    const el = document.querySelector(`#pstash [data-chs="${k}"]`);
-    if (el) el.scrollIntoView({ block: 'nearest' }), chaseTip(el);
-    return;
-  }
+  if (isWy(k)) return chaseGo(k);
   const it = [...S.inv.items].reverse().find(x => x.chase === k);
   if (it) act('lootsel:' + it.id);
+}
+/* ---------- 追逐物品面板（M2-38，M2-37.3）：王印 2×2 收集格＋保底；效果行、套到裝備、四印齊鳴等 M2-29 ----------
+   開放（D8）：第一次進怪物 Lv45 以上地點或第一次拿到追逐物品。S.chase.seen＝{ on 開放了, v 開放後打開過, k 看過的王印 }，存檔版本不變；
+   舊存檔沒有 seen：拿過的當作開放且看過 */
+let CHSEL = null;
+function chaseSeen() {
+  const C = chaseOf();
+  if (!C.seen) C.seen = chaseN() ? { on: 1, v: 1, k: Object.keys(C.got) } : { on: 0, v: 0, k: [] };
+  return C.seen;
+}
+const chaseOn = () => !!S && !!chaseSeen().on;
+/* 提示點：剛開放、或拿到沒看過的王印；打開面板就清（保底 100%、手上有印沒套都不另亮） */
+const chaseDot = () => {
+  const s = chaseSeen();
+  return !!s.on && (!s.v || CHASE_POOL.trunk.some(k => chaseOf().got[k] && !s.k.includes(k)));
+};
+function chaseSeeNow() {
+  const s = chaseSeen();
+  s.v = 1;
+  s.k = Object.keys(chaseOf().got);
+}
+/* 每格看一次：到了就開放、吐司一次 */
+function chaseUnlock() {
+  const s = chaseSeen();
+  if (s.on || !((G.scene === 'map' && chaseLine(G.mapT)) || chaseN())) return;
+  s.on = 1;
+  s.v = 0;
+  hudWarn(STR_T.chaseOpen);
+  sheetSync();
+}
+/* 拿過的種類數（用語 #8 的 k；四印齊鳴的 k 是身上套著的種類數，另外算） */
+const wyGot = () => CHASE_POOL.trunk.filter(k => chaseOf().got[k]).length;
+const chaseSub = () => strT('chaseSub', { k: wyGot(), n: chasePct() });
+/* 開追逐物品（k＝選中那一枚：橫幅點進來） */
+function chaseGo(k) {
+  chaseUnlock();
+  if (k) CHSEL = k;
+  if (!PANEL.chase) fmenuOpen('chase');
+  else hudPanels();
+}
+function chasePanelHTML() {
+  const C = chaseOf(),
+    F = S.frags || {},
+    n = chasePct(),
+    here = G.scene === 'map' && chaseLine(G.mapT),
+    worn = k => EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length,
+    cell = k =>
+      C.got[k]
+        ? `<button class="chc ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chf">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${strT('wyHave', { n: F[k] || 0, m: worn(k) })}</small></button>`
+        : `<button class="chc no ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chsil">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${STR_T.wyNone}</small></button>`;
+  return `<div class="ph"><b>${STR_T.chase}</b><span>${strT('pool', { p: STR_T.poolWy, k: wyGot(), N: CHASE_POOL.trunk.length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="chg">${CHASE_POOL.trunk.map(cell).join('')}</div>
+  <div class="chs chp"><span>${strT('pity', { n })}</span><div class="pb ${n >= 100 ? 'full' : ''}" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="transform:scaleX(${n / 100})"></i></div></div>
+  <p class="chnote">${STR_T.pityTip}</p>${here ? '' : `<p class="chnote">${STR_T.pityNo}</p>`}`;
 }
 /* 營地現在買得起的（王倒下的卡、離線卡；考核 D2、E3）：一件一列（圖示、名字、給什麼、升級鈕），最多 n 件；pri＝第一件用主要鈕 */
 function campUpsHTML(n = 3, pri = true) {
@@ -2050,7 +2157,7 @@ function lootHTML(L) {
   return `<div class="row2 sub lh"><span>這一輪掉的</span><b>+${fmtN(L.gold)} 金</b></div>${chaseHTML()}
   ${rows ? `<div class="rows">${rows}</div>` : ''}
   ${L.hint ? '<p class="sub">王倒下會在這裡再刷一輪，不用按；升瞭望台就開新的地點</p>' : ''}
-  <button class="btn pri wide igo" data-a="gocamp">去營地</button>`;
+  <button class="btn pri wide igo" data-a="gocamp">${goCampT()}</button>`;
 }
 /* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、藏身處的「繼續刷」 */
 function runBar() {
@@ -2065,7 +2172,7 @@ function runBar() {
 }
 /* ---------- 找道具、移動道具 ---------- */
 /* 通貨面板開在通貨頁（點倉庫的裝備＝放進中間） */
-const curTab = () => PANEL.stash && PANEL.stab !== 'frags';
+const curTab = () => PANEL.stash;
 const GRIDS = () => ({ inv: S.inv });
 /* 欄位：裝備欄 eq（key＝欄位名；護符欄是 ch0～） */
 /* 欄位：身上的裝備與護符（eq）、倉庫通貨頁中間那格（cur，0.3.6，S.curIt） */
@@ -2318,8 +2425,8 @@ function dragEnd(e) {
     if (cancel || d.swiped) return null;
     /* 直立的做裝在挑裝備：點一件直接放上去，回到做裝 */
     if (NAV.pick && d.src === 'inv') return (NAV.pick = 0), quickMove(d.src, d.it, d.eqk), hudPanels();
-    /* 0.4.9：倉庫裡點一件＝選它，底下出換裝卡（Shift＋點照舊鎖定；做裝、通貨頁照舊放上去） */
-    if (d.src === 'inv' && !d.shift && !curTab() && !PANEL.craft && !(PORT() && NAV.view === 'char')) {
+    /* 0.4.9：觸控在倉庫裡點一件＝選它，底下出換裝卡（做裝、通貨頁照舊放上去）；桌機（M2-38，M2-37.2）點一下＝換上，比較看懸停的說明框，Shift＋點照舊鎖定 */
+    if (TOUCH.on && d.src === 'inv' && !curTab() && !PANEL.craft && !(PORT() && NAV.view === 'char')) {
       BAG.sel = BAG.sel === d.it.id ? null : d.it.id;
       hideTip();
       hudInv();
@@ -2621,6 +2728,7 @@ function pressFx(key) {
   const b = BAR.find(b => b.key.toLowerCase() === key || (key === ' ' && b.k === 'roll'));
   if (!b) return;
   const el = document.querySelector(`.sk[data-k="${b.k}"]`);
+  if (!el) return;
   el.classList.remove('hit');
   void el.offsetWidth;
   el.classList.add('hit');
@@ -2651,7 +2759,7 @@ function act(a, el) {
   } else if (a === 'runok') {
     S.world.note = '';
     save();
-  } else if (a === 'chaselog') chaseLog();
+  } else if (a === 'chaselog') chaseGo();
   else if (a === 'offch') (REV.chx = !REV.chx), sfx('click'), hudPanels();
   else if (a === 'genall') {
     const n = genAll();
@@ -2659,20 +2767,25 @@ function act(a, el) {
     sfx(n ? 'lvup' : 'click');
     save();
     hudPanels();
-  } else if (a.startsWith('stab:')) {
-    PANEL.stab = a.slice(5);
-    hudPanels();
   } else if (a.startsWith('ctab:')) {
-    /* 直立的「做裝」：通貨／鍛造台／碎片。鍛造台沒選裝備時，接著用通貨頁中間那一件 */
+    /* 鍛造的三段（M2-38）：打造／通貨／鍛造台。鍛造台沒選裝備時，接著用通貨頁中間那一件 */
     const k = a.slice(5);
-    PANEL.ctab = k;
     sfx('click');
-    if (k === 'make' || k === 'camp') (CRAFT.tab = k), openPanel('craft');
-    else if (k === 'forge') {
-      if (CRAFT.tab === 'make') CRAFT.tab = 'forge';
+    if (k === 'cur') return openPanel('stash');
+    if (k === 'make') CRAFT.tab = 'make';
+    else {
+      if (!FTABS.includes(CRAFT.tab)) CRAFT.tab = 'forge';
       if (!craftItem() && S.curIt) CRAFT.sel = { src: 'cur', id: S.curIt.id, eqk: 'cur' };
-      openPanel('craft');
-    } else (PANEL.stab = k), openPanel('stash');
+    }
+    openPanel('craft');
+  } else if (a.startsWith('mkslot:')) {
+    /* 角色頁空格沒候選（M2-37.6）：「去鍛造打一件」＝鍛造 › 打造、選好部位 */
+    const e = EQS.find(q => q.k === a.slice(7));
+    if (e) MK.kind = e.t;
+    HP_HOLD++;
+    closePanels();
+    HP_HOLD--;
+    act('ctab:make');
   } else if (a === 'pick' || a === 'pickno') {
     /* 做裝挑裝備：換成倉庫清單，點一件直接放上去（dragEnd） */
     NAV.pick = a === 'pick' ? 1 : 0;
@@ -2714,19 +2827,15 @@ function act(a, el) {
     }
     rvNext();
     changed();
-  } else if (a === 'gomake') {
-    /* 王倒下的卡 → 打造 */
-    G.loot = null;
-    CRAFT.tab = 'camp';
-    PANEL.ctab = 'camp';
-    if (PORT()) navGo('craft');
-    else openPanel('craft');
   } else if (a.startsWith('bagf:') || a.startsWith('bago:') || a.startsWith('bagk:')) {
     /* 部位再點一次＝取消；換大類：部位回到全部 */
     BAG[a[3]] = a[3] === 'k' && BAG.k === a.slice(5) ? '' : a.slice(5);
     if (a[3] === 'f') BAG.k = '';
     BAG.n = 0;
     sfx('click');
+    hudPanels();
+  } else if (a === 'selbelt') {
+    NAV.slot = 'belt';
     hudPanels();
   } else if (a === 'slotx') {
     NAV.slot = null;
@@ -2743,7 +2852,6 @@ function act(a, el) {
   else if (a === 'gocamp') {
     /* M1-CP.4：掛機卡不放升級鈕，只帶去營地（升級只在營地） */
     CRAFT.tab = 'camp';
-    PANEL.ctab = 'camp';
     PORT() ? navGo('craft') : (closePanels(), openPanel('craft'));
   } else if (a.startsWith('chsw:')) {
     /* M1-11：點一格＝換上並關閉；換下來的回倉庫 */

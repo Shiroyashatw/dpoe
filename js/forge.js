@@ -351,7 +351,7 @@ function campCardHTML(b) {
 /* 展開的那一座 */
 function campOpenHTML(b) {
   if (b === 'forge')
-    return `<div class="ccopen"><button class="btn" data-a="ctab:make">去打造</button>${wtPickHTML()}</div>`;
+    return `<div class="ccopen"><button class="btn" data-a="ctab:make">${STR_T.goForge}</button>${wtPickHTML()}</div>`;
   if (b === 'watch') {
     const nx = TRUNK[wFront(S) + 1];
     return `<div class="ccopen"><p class="sub">開到第 ${wFront(S) + 1} 個地點・材料階上限 T${tierCap()}（${matName('iron', tierCap())}）${nx ? `；下一個：${esc(nx.n)}（怪物 Lv ${nx.lv}）` : ''}</p><button class="btn" data-tm="nav:node">地點清單</button></div>`;
@@ -701,38 +701,6 @@ document.addEventListener('click', e => {
   changed();
 });
 
-/* ---------- 碎片頁（通貨面板的「碎片」分頁，0.2.78，照 PoE 的碎片倉庫）：勾魂令四種、生死簿，每種寫湊幾張能開什麼 ---------- */
-function fragPageHTML() {
-  const F = S.frags,
-    n = fdHun(S),
-    row = (ic, nm, d, v) =>
-      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(nm)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
-    uw = fdHallWhy(S, 'uber');
-  return `<div class="ph2">追逐物品<span>主幹 Lv${CHASE.lv} 以上的輪末王掉落</span></div>
-  <ul class="mpg">${CHASE_POOL.trunk
-    .map(
-      k =>
-        `<li class="${F[k] ? '' : 'z'}" data-chs="${k}" role="button" tabindex="0"><span class="chf">${icHTML(k)}</span><div><b>${esc(chaseName(k))}</b><small>${esc(chaseProg(k))}</small></div><em>${fmtN(F[k] || 0)}</em></li>`
-    )
-    .join('')}</ul>
-  <div class="ph2">酆都<span>鬼門關：角色 Lv ${SPECIAL.find(s => s.t === 'ghost').need} 開</span></div>
-  <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
-  <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：在山海寶盒開啟' : `：再 ${FENG.hun - n} 張`}</span></p>
-  <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '在山海寶盒開啟')}</span></p></div>
-  <div class="ph2">心魔劫<span>七情王掉落；帶進王場每片加一個減益</span></div>
-  <ul class="mpg">${SIN.emo.map(k => row(SIN_FRAG[k].ic, SIN_FRAG[k].n, '帶進去：' + SIN_FRAG[k].deb, F[k])).join('')}</ul>
-  <div class="fgoal"><p><b>三尸</b><span class="${SIN.emo.filter(k => F[k]).length >= SIN.need ? 'c-good' : ''}">${SIN.emo.filter(k => F[k]).length}／${SIN.need} 種${SIN.emo.filter(k => F[k]).length >= SIN.need ? '：在山海寶盒開啟' : ''}</span></p>
-  <p><b>三彭</b><span class="${sinHallWhy(S, 'sanpeng') ? '' : 'c-good'}">${esc(sinHallWhy(S, 'sanpeng') || '在山海寶盒開啟')}</span></p></div>
-  <div class="ph2">四凶<span>凶地中心的四凶掉落</span></div>
-  <ul class="mpg">${[...XIONG, 'eye'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
-  <div class="ph2">狩獵之血<span>血霧滿了換血霧之印，進裂口用；生肖王掉神血</span></div>
-  <ul class="mpg">${['mist', 'blood'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k] || 0)).join('')}</ul>
-  <div class="ph2">陰兵借道<span>陰兵借道的三位將領輪流當王，連刷累積怨恨值</span></div>
-  <ul class="mpg">${[...ARMY.gen, 'fu'].map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}</ul>
-  <div class="fgoal"><p><b>蚩尤</b><span class="${armyHallWhy(S, 'chiyou') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'chiyou') || '在山海寶盒開啟')}</span></p>
-  <p><b>涿鹿兵主</b><span class="${armyHallWhy(S, 'zhuolu') ? '' : 'c-good'}">${esc(armyHallWhy(S, 'zhuolu') || '在山海寶盒開啟')}</span></p></div>`;
-}
-
 /* ---------- 一件裝備的詞：前綴 3 格、後綴 3 格（空格畫出來；說明框完整版在 8-3） ---------- */
 /* mode：'view' 只看、'temper' 每條有百分位與單條淬鍊、'conv' 點一條選要換的 */
 function slotsHTML(it, mode, at = 'fg') {
@@ -954,7 +922,6 @@ function forgeHTML() {
   const it = craftItem(),
     tab = CRAFT.tab,
     tabs = [
-      ['camp', '總覽'],
       ['make', '打造'],
       ['forge', '鍛造台', 'tab:fill'],
       ['temper', '淬鍊', 'tab:temper'],
@@ -962,34 +929,22 @@ function forgeHTML() {
       ['corr', '腐化', 'tab:corr'],
       ['calam', '災魘', 'tab:calam']
     ].filter(t => !t[2] || campCan(t[2]));
-  /* 0.5.0：沒開的分頁不畫；營地總覽（0.5.1）與打造永遠在 */
-  if (!tabs.some(t => t[0] === tab)) CRAFT.tab = 'camp';
-  if (CRAFT.tab === 'make' || CRAFT.tab === 'camp') {
-    const on = CRAFT.tab,
-      body = on === 'camp' ? `<div class="fmake fcamp">${campHTML()}</div>` : `<div class="fmake">${makeHTML()}</div>`;
-    return `${
-      PORT()
-        ? `<div class="ph"><b>營地</b>${craftSeg(on)}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
-        : `<div class="ph"><b>營地</b>${on === 'camp' ? '' : `<span class="fmat">靈魂 <b>${fmtN(MAT().soul)}</b></span>`}<span class="ftabs">${tabs
-            .map(([k, n]) => `<button class="${k === on ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
-            .join('')}</span>${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
-    }${body}`;
-  }
+  /* M2-38：營地只剩總覽（標題「營地」＋靈魂＋可升級幾件）；鍛造是自己的分頁（打造／通貨／鍛造台），沒開的段不畫 */
+  if (tab === 'camp')
+    return `<div class="ph"><b>營地</b><span>${strT('campSoul', { n: fmtN(MAT().soul) })}${campReady() ? `・${strT('campUp', { n: campReady() })}` : ''}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div><div class="fmake fcamp">${campHTML()}</div>`;
+  if (!tabs.some(t => t[0] === tab)) CRAFT.tab = 'make';
+  if (CRAFT.tab === 'make') return `${forgeHead('make')}<div class="fmake">${makeHTML()}</div>`;
   if (!it) (CRAFT.conv = null), (CRAFT.op = CRAFT.op || null);
   else if (CRAFT.conv != null && !it.a[CRAFT.conv]) CRAFT.conv = null;
   const P = { forge: fillHTML, temper: temperHTML, holy: holyHTML, corr: corrHTML, calam: calamHTML }[tab](it),
     mode = tab === 'temper' ? 'temper' : tab === 'forge' && CRAFT.op === 'conv' ? 'conv' : 'view';
   /* 上到下：裝備卡 → 選通貨（top）→ 詞 → 預覽與說明（mid）→ 按鈕（act，黏在面板底部）；手機橫向左右並排（左：卡與詞，右：選、預覽、按鈕） */
   const tabsH = `<span class="ftabs">${tabs
-    .filter(([k]) => !PORT() || (k !== 'make' && k !== 'camp'))
+    .filter(([k]) => k !== 'make')
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
     .join('')}</span>`;
-  /* 直立：標題列是「做裝」的三個分頁，鍛造台自己的五個分頁放第二列 */
-  return `${
-    PORT()
-      ? `<div class="ph"><b>營地</b>${craftSeg('forge')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div><div class="fsub">${tabsH}</div>`
-      : `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span>${tabsH}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
-  }
+  /* 標題列是鍛造的三段，鍛造台自己的五個分頁放第二列（直立、桌機同一份） */
+  return `${forgeHead('forge')}<div class="fsub">${tabsH}${PORT() ? '' : `<span class="fmat">${tab === 'temper' ? `金 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span>`}</div>
   <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">未鑑定：回藏身處找撿骨師免費鑑定</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
   <div class="fr"><div class="ftop">${P.top}</div><div class="fmid">${P.mid}</div><div class="fact">${P.act}</div></div></div>`;
 }
