@@ -102,7 +102,10 @@ let fail = 0;
         return [r.left + r.width / 2, r.top + r.height / 2];
       });
   await touch('touchStart', [r0]);
-  await p.waitForTimeout(900);
+  /* 要先走到怪旁邊才揮得到：機器忙時遊戲時間比牆鐘慢，固定等 900 毫秒會偶發失敗；改成打中就停、最多 3 秒 */
+  await p
+    .waitForFunction(() => _m.hp < _hp || !G.mobs.includes(_m), null, { timeout: 3000, polling: 50 })
+    .catch(() => {});
   ok(
     PORTM ? '畫面上按住不動＝連續普攻最近的怪' : '普攻按住會自動打最近的怪',
     await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m))
