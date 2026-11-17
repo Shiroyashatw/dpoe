@@ -1,10 +1,10 @@
 {
   "endpoint": "POST /v2/create-image-bitforge",
   "job": "wangyin_guixu_16",
-  "seed": 2160,
+  "seed": 2166,
   "wave": "B",
   "post": "alpha_binary",
-  "init_from": "wangyin_guixu_32-s2133.png",
+  "init_from": "wangyin_guixu_32-s2162.png",
   "max_de_before_snap": 0.0,
   "request": {
     "description": "tiny 16 pixel game icon, flat front view of a square bronze seal plaque with a small ring loop on top, a spiral whirlpool sinking into the centre, glowing orange face, bold, 1 pixel black outline",
@@ -14,7 +14,7 @@
       "height": 16
     },
     "no_background": true,
-    "seed": 2160,
+    "seed": 2166,
     "color_image": "(base64 略)",
     "init_image": "(base64 略)",
     "init_image_strength": 300
