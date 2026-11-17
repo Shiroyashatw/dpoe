@@ -1006,8 +1006,7 @@ document.addEventListener('click', e => {
   else if (k === 'camp') {
     err = campUp(v);
     if (!err) {
-      const r = CAMP[v][S.camp[v] - 1];
-      hudWarn(`${CAMPN[v]} Lv ${S.camp[v]}：${r.d}`);
+      /* 那一句由 craft.js 的 campUp → sayOnce 講（M1-14） */
       CAMPUI.fx[v] = { t: performance.now() };
       sfx('lvup');
       /* 解鎖了東西：分頁列、技能、光環跟著變 */

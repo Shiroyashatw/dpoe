@@ -2,7 +2,9 @@
 'use strict';
 const VER = '0.5.4';
 const KEY = 'dungeonpoe_v1';
-const SLOT = new URLSearchParams(location.search).get('p') || '';
+/* 測試入口（M1-24）：?test=名字 用自己的存檔位（test_名字）、每次載入重建、不連雲端；正式玩家不帶參數不受影響 */
+const TEST = new URLSearchParams(location.search).get('test') || '';
+const SLOT = TEST ? 'test_' + TEST : new URLSearchParams(location.search).get('p') || '';
 
 /* ---------- 主角（0.2.7：等級上限 300；到 100 級前每級生命 +12、魔力 +3，不給傷害；100 級後只給天賦點；mpReg 是每秒回最大魔力的比例） ---------- */
 /* 空手（0.2.43，照 PoE2 的預設空手攻擊）：物理 2～5、攻擊速度 1.65、暴擊 5%；dmg／as 是空手的 */

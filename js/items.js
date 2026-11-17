@@ -220,9 +220,7 @@ const itemName = it =>
 const itemT = it => bestTier(it.L);
 /* 地上標籤的小字：T、孔、★、追憶（未鑑定也看得到的資訊） */
 const labelTag = it =>
-  it.charm
-    ? ''
-    : ` T${itemT(it)}${it.so ? ' ' + '○'.repeat(it.so) : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}${it.mem2 ? '◈' : ''}`;
+  it.charm ? '' : ` T${itemT(it)}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}${it.mem2 ? '◈' : ''}`;
 const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + ' 至 ' + a.v[1] : a.v);
 /* 腐化詞（0.2.72）：it.cw 的一條 */
 const cwText = c => CORR[c.k].n.replace('{}', c.v);
@@ -343,12 +341,13 @@ function baseText(it) {
     if (!['dmg', 'as', 'block', 'crit', ...DEFK].includes(k) || (k === 'crit' && !b.dmg)) o.push(impText(k, b[k]));
   return o.filter(Boolean);
 }
-/* 品質、插槽數、聖化／腐化狀態（說明框用；舊存檔的裝備沒有就不顯示） */
+/* 品質、聖化／腐化狀態（說明框用；舊存檔的裝備沒有就不顯示）。
+   M1-09：裝備上的孔是符文孔，符文還沒做，先不顯示（it.so 照樣留著） */
 const Q_N = ['', '稀有', '非常稀有'];
 function baseLayers(it) {
   if (it.q == null) return '';
   const qb = qBand(it.q);
-  return `品質 <span class="qb${qb}">${Math.round(it.q * 100)}%${qb ? '（' + Q_N[qb] + '）' : ''}</span> · 孔 ${'○'.repeat(it.so || 0) || '無'}${it.holy ? ' · <span class="c-gold">已聖化</span>' : ''}${it.cor ? ' · <span class="c-bad">已腐化</span>' : ''}`;
+  return `品質 <span class="qb${qb}">${Math.round(it.q * 100)}%${qb ? '（' + Q_N[qb] + '）' : ''}</span>${it.holy ? ' · <span class="c-gold">已聖化</span>' : ''}${it.cor ? ' · <span class="c-bad">已腐化</span>' : ''}`;
 }
 /* 賣價：越高階、詞綴越多越貴 */
 const sellPrice = it =>

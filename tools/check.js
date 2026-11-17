@@ -9611,8 +9611,8 @@ const ASC_COMBOS = `const combos = k => {
     const tag = E3.labelTag({ b: 'c_leather', L: 1, so: 2, frac: 'life', mem: { k: 'm_lv' } }),
       tag0 = E3.labelTag({ b: 'c_leather', L: 16, so: 0 });
     ok(
-      '地上標籤：T（物品等級決定）、孔數、★、追憶標記；沒有的不寫',
-      tag === ' T6 ○○ ★ ◈' && tag0 === ' T1',
+      '地上標籤：T（物品等級決定）、★、追憶標記；沒有的不寫；M1-09 起不寫孔數（符文還沒做）',
+      tag === ' T6 ★ ◈' && tag0 === ' T1',
       tag + '|' + tag0
     );
   }
@@ -10361,6 +10361,198 @@ const ASC_COMBOS = `const combos = k => {
     'M1-17：hurtCalc 乘上 G.easy、bossDown 算輪數',
     /if \(G\.easy\) d \*= G\.easy/.test(fs.readFileSync(path.join(__dirname, '..', 'js', 'combat.js'), 'utf8')) &&
       /if \(G\.easy\) S\.world\.r0/.test(fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8'))
+  );
+}
+/* M1-B：解鎖判斷（M1-06、07）、技能失效（M1-15）、施放頻率（M1-16）、換裝差值（M1-20）、測試入口（M1-24） */
+{
+  const c4 = {
+    ...ctx,
+    Set,
+    document: { getElementById: () => ({}), querySelectorAll: () => [], getElementsByClassName: () => [] }
+  };
+  vm.createContext(c4);
+  for (const f of [
+    'core.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'world.js',
+    'mech.js',
+    'ai.js',
+    'game.js',
+    'skills.js'
+  ])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
+  vm.runInContext(
+    fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8').replace(/\nstart\(\);\s*$/, '\n'),
+    c4,
+    { filename: 'main.js' }
+  );
+  const R = s => vm.runInContext(s, c4);
+  R(`hudWarn = () => {}; save = () => {}; hudBar = () => {}; P = { x: 0, y: 0, hp: 1, mp: 1 };`);
+  /* M1-06 */
+  const lk = R(
+    `(() => { S = newGame(); const a = [lockTxt('tree'), lockTxt('asc'), lockTxt('box')]; S.camp.altar = 4; a.push(lockTxt('tree'), lockTxt('asc')); return a; })()`
+  );
+  ok(
+    'M1-06：天賦樹、昇華沒開時寫「升祭壇到 Lv n 才開」；山海寶盒不在解鎖表上＝放行；升到了就空',
+    JSON.stringify(lk) === JSON.stringify(['升祭壇到 Lv 4 才開', '升祭壇到 Lv 7 才開', '', '', '升祭壇到 Lv 7 才開']),
+    JSON.stringify(lk)
+  );
+  /* M1-07：每一類只回最近的一個；升到那一級換下一個；全開回 null */
+  const nu = R(`(() => {
+    const K = ['slot', 'hole', 'wt', 'tree', 'asc', 'aura', 'menu'],
+      one = () => K.map(k => { const r = nextUnlock(k); return r ? r.b + r.lv : '-'; }).join();
+    S = newGame(); const a = one(), t = nextUnlock('menu').t;
+    S.camp.altar = 4; const b = one();
+    S.camp.altar = 11; S.camp.forge = 20; const c = one();
+    return { a, t, b, c };
+  })()`);
+  ok(
+    'M1-07 nextUnlock：新存檔每一類回最近的一個、升到那一級換下一個、全開回 null；「升祭壇到 Lv 4 開天賦樹」',
+    nu.a === 'altar1,altar2,forge11,altar4,altar7,altar5,altar4' &&
+      nu.t === '升祭壇到 Lv 4 開天賦樹' &&
+      nu.b === 'altar6,altar5,forge11,altar10,altar7,altar5,altar7' &&
+      nu.c === '-,-,-,-,-,-,-',
+    JSON.stringify(nu)
+  );
+  /* M1-15：拿劍換短矛：斬擊、幻影斬失效（要拿劍）；DPS 算 0；換回劍沒有失效 */
+  const br = R(`(() => {
+    S = newGame(); delete S.fresh; S.eq.weapon = mkItem('w_sword1_0', 1, 0); S.camp.altar = 1;
+    S.skills[1] = { k: 'mirage', so: [null, null], n: 2 }; S.lib.sk.mirage = 1; ST = stats();
+    const sp = mkItem('w_spear_0', 1, 0), L = eqBreaks(sp, 'weapon'), same = eqBreaks(S.eq.weapon, 'weapon'), st0 = ST.wt;
+    S.eq.weapon = sp; ST = stats(); const bad = [slotBad(0), slotBad(1)];
+    return { L: L.map(x => x.n + ':' + x.why), same: same.length, st0, bad };
+  })()`);
+  ok(
+    'M1-15：拿劍時換短矛＝斬擊、幻影斬失效（要拿劍）；試算完 ST 還原；換上後 slotBad 有原因；同一把不算',
+    br.L.join() === '斬擊:需要：劍,幻影斬:需要：劍' && br.same === 0 && br.st0 === 'sword' && br.bad.every(Boolean),
+    JSON.stringify(br)
+  );
+  /* M1-16：82 招都回合理的數值；有冷卻的＝冷卻，沒冷卻的＝出手時間 */
+  const cr = R(`(() => {
+    S = newGame(); delete S.fresh; S.eq.weapon = mkItem('w_sword1_0', 1, 0); ST = stats();
+    const bad = [], ks = Object.keys(SKILLS);
+    for (const k of ks) {
+      const c = gemCfg(mkGem(k, 1), 1);
+      if (!c) { bad.push(k + ' 沒設定'); continue; }
+      const r = castRate(c);
+      if (!(r.per > 0 && r.per < 120 && isFinite(r.aps) && r.aps > 0)) bad.push(k + ' ' + JSON.stringify(r));
+      else if (c.cd > 0 ? r.per !== c.cd : Math.abs(r.per - actDur(c)) > 1e-9) bad.push(k + ' 對不上');
+    }
+    return { n: ks.length, bad };
+  })()`);
+  ok(
+    'M1-16 castRate：82 招都有合理的數值、有冷卻＝冷卻、沒冷卻＝出手時間',
+    cr.n === 82 && !cr.bad.length,
+    JSON.stringify(cr)
+  );
+  /* M1-20：同一件換上去差 0；武器只影響 DPS（生命差 0）；不能裝回原因；跟實際換上後的 DPS、生命差 ≤1 */
+  const dl = R(`(() => {
+    S = newGame(); delete S.fresh; S.eq.weapon = mkItem('w_sword1_0', 1, 0); S.lv = 20; ST = stats();
+    const self = itemDelta(S.eq.weapon, 'weapon'), out = { self: [self.dps[0], self.hp, self.es] };
+    const w = mkItem('w_sword1_0', 12, 2), dw = itemDelta(w, 'weapon');
+    const wh = itemDelta(mkItem('w_sword1_0', 12, 0), 'weapon');
+    out.wpn = [dw.dps[0] !== 0, wh.hp, wh.es];
+    S.lv = 1; ST = stats(); out.why = itemDelta(mkItem('w_sword1_3', 40, 2), 'weapon').why || ''; S.lv = 20; ST = stats();
+    out.wrong = itemDelta(w, 'chest').why || '';
+    const real = [];
+    for (let i = 0; i < 60; i++) {
+      const it = dropItem(1 + (i % 12), 0.6), e = EQS.find(q => eqTakes(q, kindOf(it)));
+      if (!e) continue;
+      const d = itemDelta(it, e.k);
+      if (d.why) continue;
+      const a = stats(), keep = { ...S.eq };
+      S.eq[e.k] = it; if (e.k === 'weapon' && S.eq.off && !offOK(it, S.eq.off)) S.eq.off = null;
+      const b = stats(); Object.assign(S.eq, keep);
+      real.push(Math.max(Math.abs(dps(b) - dps(a) - d.dps[0]), Math.abs(b.hp - a.hp - d.hp), Math.abs(b.es - a.es - d.es)));
+    }
+    out.n = real.length; out.max = Math.max(...real);
+    return out;
+  })()`);
+  ok(
+    'M1-20 itemDelta：同一件差 0、白武器只動 DPS（有力量詞的武器會加生命，照實寫）、不符合需求與放錯格回原因、隨機 60 件裡穿得上的跟實際換上後的 DPS／生命／護盾差 ≤1',
+    dl.self.every(v => v === 0) &&
+      dl.wpn[0] &&
+      dl.wpn[1] === 0 &&
+      dl.wpn[2] === 0 &&
+      /需求/.test(dl.why) &&
+      !!dl.wrong &&
+      dl.n >= 12 &&
+      dl.max <= 1,
+    JSON.stringify(dl)
+  );
+  /* M1-20（製作人決定 3）：帶力量詞的武器照實寫生命變化，跟實際換上後一樣 */
+  const st = R(`(() => {
+    S = newGame(); delete S.fresh; S.eq.weapon = mkItem('w_sword1_0', 1, 0); S.lv = 20; ST = stats();
+    for (let i = 0; i < 400; i++) {
+      const w = mkItem('w_sword1_0', 12, 2);
+      if (!w.a.some(x => x.k === 'str')) continue;
+      const d = itemDelta(w, 'weapon'), a = stats(), keep = S.eq.weapon;
+      S.eq.weapon = w; const b = stats(); S.eq.weapon = keep;
+      return [d.hp, b.hp - a.hp];
+    }
+    return null;
+  })()`);
+  ok(
+    'M1-20：帶力量詞的武器照實回報生命 +n（跟實際換上後一樣）',
+    !!st && st[0] > 0 && st[0] === st[1],
+    JSON.stringify(st)
+  );
+  /* M1-14：解鎖一句話照「M1-13 定稿」、只在第一次出現一次；產生器里程碑 */
+  const sy = R(`(() => {
+    var said = []; hudWarn = t => said.push(t); setTimeout = () => {};
+    S = newGame(); S.mat.soul = 1e7; S.mat.mats.wood = 1e7; for (const T of [1, 2, 3]) S.mat.mats['iron:' + T] = 1e5;
+    campUp('forge'); SAY.length = 0;
+    S.camp.forge = 0; campUp('forge'); SAY.length = 0;
+    S.camp.altar = 4; campUp('altar'); SAY.length = 0;
+    S.camp.altar = 1; campUp('altar'); SAY.length = 0;
+    S.camp.store = 4; campUp('store'); SAY.length = 0;
+    genOf('iron').lv = 24; genUp('iron'); SAY.length = 0;
+    return said;
+  })()`);
+  ok(
+    'M1-14：解鎖一句話照定稿表原文、同一個解鎖第二次不出現、產生器里程碑（產量、階）',
+    JSON.stringify(sy) ===
+      JSON.stringify([
+        '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
+        '祭壇 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
+        '祭壇 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
+        '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。',
+        '礦場 Lv25：產量 ×2。可以產 T2 鐵，上限看瞭望台。'
+      ]),
+    JSON.stringify(sy)
+  );
+  const all = R(`(() => {
+    S = newGame(); const bad = [];
+    for (const b of ['forge', 'watch', 'scout', 'house', 'altar', 'store'])
+      for (let lv = 1; lv <= CAMP[b].length; lv++) { S.camp[b] = lv; const t = campSay(b, lv); if (!t || !t.startsWith(CAMPN[b] + ' Lv' + lv + '：') || /undefined|NaN/.test(t)) bad.push(b + lv + ' ' + t); }
+    return bad;
+  })()`);
+  ok(
+    'M1-14：瞭望台 Lv1 寫新地點與怪物等級、Lv22 寫賽制與節點名（定稿原文）',
+    R(`(S = newGame(), (S.camp.watch = 1), campSay('watch', 1))`) ===
+      '瞭望台 Lv1：新地點「枯河渡口」開了（怪物 Lv 6）。到地點清單點它就去刷。' &&
+      R(`campSay('watch', 22)`) === '瞭望台 Lv22：酆都開了，「鬼門關」出現在地點清單，它的通貨開始掉。'
+  );
+  ok('M1-14：六座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
+  /* M1-24：三個測試情境照描述；用自己的存檔位、沒帶參數時是空字串 */
+  const ts = R(`(() => {
+    const d = testSave('dualweap'), n = testSave('nearDeath'), m = testSave('midgame');
+    return {
+      dual: d.eq.weapon.b === 'w_sword1_0' && d.skills[1].k === 'mirage' && d.inv.items.some(i => i.b === 'w_spear_0') && !eqLack(d, d.inv.items[0], 'weapon').length,
+      near: n.auto === 0 && n.mat.soul >= 1000 && !wWhy(n, ...wXY(TRUNK_K[6])),
+      mid: m.camp.altar === 6 && m.camp.forge === 10 && m.camp.watch === 8 && m.lv === 25 && !wWhy(m, ...wXY(TRUNK_K[8])),
+      slot: SLOT, test: TEST
+    };
+  })()`);
+  ok(
+    'M1-24 測試情境：dualweap、nearDeath、midgame 照描述；沒帶 ?test 時存檔位不變',
+    ts.dual && ts.near && ts.mid && ts.slot === '' && ts.test === '',
+    JSON.stringify(ts)
   );
 }
 process.exit(bad ? 1 : 0);
