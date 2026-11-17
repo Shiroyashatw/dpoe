@@ -1,0 +1,35 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "tile_tomb_wallface",
+  "seed": 1324,
+  "post": "split_2x32",
+  "request": {
+    "description": "horizontally seamless wall strip, straight-on front view, front face of a tomb wall, stacked stone bricks with a plinth, dark, light from the top-left, darkest at the bottom where it meets the floor, no objects, no text, no border, no dithering",
+    "image_size": {
+      "width": 64,
+      "height": 18
+    },
+    "view": "side",
+    "outline": "lineless",
+    "shading": "basic shading",
+    "detail": "low detail",
+    "no_background": false,
+    "seed": 1324,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

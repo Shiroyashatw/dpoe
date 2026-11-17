@@ -1,0 +1,39 @@
+{
+  "fps": 8,
+  "kind": "new",
+  "loop": true,
+  "name": "dpoe_sig_beam",
+  "files": {
+    "dpoe-sig-beam.gif": "https://api.pixellab.ai/mcp/pixel-tools/5905e8f9-650f-4eaf-9b62-d0413320cd7a/dpoe-sig-beam.gif",
+    "dpoe-sig-beam.png": "https://api.pixellab.ai/mcp/pixel-tools/5905e8f9-650f-4eaf-9b62-d0413320cd7a/dpoe-sig-beam.png",
+    "dpoe-sig-beam.json": "https://api.pixellab.ai/mcp/pixel-tools/5905e8f9-650f-4eaf-9b62-d0413320cd7a/dpoe-sig-beam.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 16,
+    "y": 120,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 128,
+    "w": 32
+  },
+  "frames": 8,
+  "message": "A slim white-and-grey light beam, 32x128, 8 frames, seamless loop, rising from a small hard-edged glow on the floor at the bottom, with tiny motes drifting up. The beam keeps the same width throughout, and its edges soften and flicker between frames. To adjust, try the mote count for more or fewer floating specks, or the beam's soft slider for edge flicker strength.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=d386e11c-a8ab-4e03-b9d1-15d36259b824",
+  "effect_id": "d386e11c-a8ab-4e03-b9d1-15d36259b824",
+  "gif_exact": true,
+  "result_id": "5905e8f9-650f-4eaf-9b62-d0413320cd7a",
+  "conversation": "z7KGxAAezsf_Qf012ztAvg.10ba96e5f415dc1a77911a4f642a0b5a666687a3e500910f440e5eaba8e1fc70",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "73a5564e-36d0-4fa9-9c69-a1669dc8228a",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

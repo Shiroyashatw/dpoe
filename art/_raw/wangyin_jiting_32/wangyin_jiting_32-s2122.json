@@ -1,0 +1,36 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "wangyin_jiting_32",
+  "seed": 2122,
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "game item icon, an ancient square bronze king seal with a small beast-shaped knob on top, a single zigzag lightning bolt carved on the seal face, sharp and fast, the carved face glows orange, centred, fills the canvas, light from the top-left, bold simple shapes readable at small size, no text, no characters, no background, no dithering, no gradient",
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "high top-down",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "medium detail",
+    "no_background": true,
+    "seed": 2122,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

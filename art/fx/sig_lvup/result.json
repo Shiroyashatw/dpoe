@@ -1,0 +1,39 @@
+{
+  "fps": 12,
+  "kind": "new",
+  "loop": false,
+  "name": "dpoe_sig_lvup",
+  "files": {
+    "dpoe-sig-lvup.gif": "https://api.pixellab.ai/mcp/pixel-tools/86a69314-8025-4a37-9636-7f86953ff88c/dpoe-sig-lvup.gif",
+    "dpoe-sig-lvup.png": "https://api.pixellab.ai/mcp/pixel-tools/86a69314-8025-4a37-9636-7f86953ff88c/dpoe-sig-lvup.png",
+    "dpoe-sig-lvup.json": "https://api.pixellab.ai/mcp/pixel-tools/86a69314-8025-4a37-9636-7f86953ff88c/dpoe-sig-lvup.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 64,
+    "y": 96,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 128,
+    "w": 128
+  },
+  "frames": 16,
+  "message": "Level-up effect on a 128x128 transparent canvas, 16 frames, playing once at 12 fps. A flat warm #ffe1aa ring (tilted for the low top-down view) expands from the bottom third, six slim off-white rays rise from it, pale green sparks drift up, and everything fades out by the last frame with no flash. No outline and no character. The ring's colour, the ray heights and the spark count are the first things to tweak if you want changes.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=f5430cdd-f5d3-4ccf-bdc1-168efab5a5f9",
+  "effect_id": "f5430cdd-f5d3-4ccf-bdc1-168efab5a5f9",
+  "gif_exact": true,
+  "result_id": "86a69314-8025-4a37-9636-7f86953ff88c",
+  "conversation": "3Ga51itU-OxnqTzMyYM4Jg.6307b50fd14d7baf3c7b169df44bfe847351d48e07df911dbcd2a296b5e6c6ea",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "d38f9ffa-6f39-4035-b439-238c1fb7f192",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

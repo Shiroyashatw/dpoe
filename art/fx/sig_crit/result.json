@@ -1,0 +1,39 @@
+{
+  "fps": 12,
+  "kind": "new",
+  "loop": false,
+  "name": "dpoe_sig_crit",
+  "files": {
+    "dpoe-sig-crit.gif": "https://api.pixellab.ai/mcp/pixel-tools/c253a985-5e10-420c-91a8-9042e1e15d7c/dpoe-sig-crit.gif",
+    "dpoe-sig-crit.png": "https://api.pixellab.ai/mcp/pixel-tools/c253a985-5e10-420c-91a8-9042e1e15d7c/dpoe-sig-crit.png",
+    "dpoe-sig-crit.json": "https://api.pixellab.ai/mcp/pixel-tools/c253a985-5e10-420c-91a8-9042e1e15d7c/dpoe-sig-crit.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 48,
+    "y": 48,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 96,
+    "w": 96
+  },
+  "frames": 10,
+  "message": "Built a 96x96, 10-frame, one-shot critical hit burst with no outline and no smoke or lingering glow: a white four-point star with a gold rim flashes on frame 2, eight thin white shards shoot outward, and a gold ring expands in frames 3-5 then breaks into pieces by frames 6-7. The effect is fully gone from frame 8 on, so the last three frames are blank on purpose, to match \"gone by the last frame\" (say if you'd rather I squeeze the motion into fewer frames). The shard speed, star size and ring size are the main things to tweak if you want it punchier.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=a83fbe81-3ee4-4713-882d-a6fe4fb614a4",
+  "effect_id": "a83fbe81-3ee4-4713-882d-a6fe4fb614a4",
+  "gif_exact": true,
+  "result_id": "c253a985-5e10-420c-91a8-9042e1e15d7c",
+  "conversation": "H3v33Pk8j20Nc5zVKqYK4w.49dbdea188583f31503af1cbb28b15c50c6dcc4eb5fdc78df12de0dcbc37fae7",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.0
+  },
+  "generation_id": "15a4ef07-5eeb-4fe8-8b0f-095106a33628",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

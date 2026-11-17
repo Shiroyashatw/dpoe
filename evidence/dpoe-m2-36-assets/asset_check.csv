@@ -1,6 +1,105 @@
 file,job,kind,size,de_gt3_pct,de_max,post_palette_pct,grid_2x2_pct,alpha_ok,isolated_pct,floor_lum_ratio,mid_pct,light_pct,seam_ratio,sat_pct,fx_opaque_pct,fx_sat_pct,fx_sat8_s,fx_dark_pct,result,reason
 art/tiles/temple/floor/tile_temple_floor-s1101.png,tile_temple_floor,floor,32x32,0.0,0.0,100.0,46.9,True,0.0,0.951,1.95,0.0,1.016,,,,,,過,
+art/tiles/temple/floor/tile_temple_floor-s1102.png,tile_temple_floor,floor,32x32,0.0,0.0,100.0,34.0,True,0.0,0.942,1.76,0.0,0.816,,,,,,過,
+art/_rejected/tile_temple_floor/tile_temple_floor-s1103.png,tile_temple_floor,floor,32x32,0.0,0.0,100.0,51.6,True,0.0,0.947,1.95,0.0,2.228,,,,,,不過,接縫 2.228 > 1.2
+art/_rejected/tile_temple_floor/tile_temple_floor-s1104.png,tile_temple_floor,floor,32x32,0.0,0.0,100.0,50.4,True,0.0,0.944,1.66,0.0,1.949,,,,,,不過,接縫 1.949 > 1.2
+art/_rejected/tile_temple_floor/tile_temple_floor-s1105.png,tile_temple_floor,floor,32x32,0.0,0.0,100.0,55.1,True,0.0,0.94,1.86,0.0,1.548,,,,,,不過,接縫 1.548 > 1.2
+art/_rejected/tile_temple_floor/tile_temple_floor-s1106.png,tile_temple_floor,floor,32x32,0.0,0.0,100.0,53.1,True,0.0,0.936,1.76,0.0,2.547,,,,,,不過,接縫 2.547 > 1.2
+art/_rejected/tile_temple_walltop/tile_temple_walltop-s1111.png,tile_temple_walltop,walltop,32x32,0.0,0.0,100.0,62.1,True,1.76,,18.46,71.39,0.863,,,,,,不過,2×2 同色塊 62.1%（疑似放大過）；牆太亮（-mid＋-light 89.8%、-light 71.39%）
+art/_rejected/tile_temple_walltop/tile_temple_walltop-s1112.png,tile_temple_walltop,walltop,32x32,0.0,0.0,100.0,62.5,True,1.95,,25.2,61.04,3.754,,,,,,不過,2×2 同色塊 62.5%（疑似放大過）；牆太亮（-mid＋-light 86.2%、-light 61.04%）；接縫 3.754 > 1.2
+art/_rejected/tile_temple_walltop/tile_temple_walltop-s1113.png,tile_temple_walltop,walltop,32x32,0.0,0.0,100.0,37.1,True,2.73,,34.67,51.86,3.843,,,,,,不過,孤立像素 2.73% > 2%；牆太亮（-mid＋-light 86.5%、-light 51.86%）；接縫 3.843 > 1.2
+art/_rejected/tile_temple_walltop/tile_temple_walltop-s1114.png,tile_temple_walltop,walltop,32x32,0.0,0.0,100.0,42.2,True,4.49,,25.88,71.19,0.795,,,,,,不過,孤立像素 4.49% > 2%；牆太亮（-mid＋-light 97.1%、-light 71.19%）
 art/_rejected/tile_temple_wallface/tile_temple_wallface-s1121-a.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,42.4,True,1.04,,61.11,18.23,0.349,,,,,,不過,牆太亮（-mid＋-light 79.3%、-light 18.23%）
 art/_rejected/tile_temple_wallface/tile_temple_wallface-s1121-b.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,50.7,True,1.39,,9.38,15.28,12.17,,,,,,不過,牆太亮（-mid＋-light 24.7%、-light 15.28%）；接縫 12.17 > 1.2
+art/_rejected/tile_temple_wallface/tile_temple_wallface-s1122-a.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,24.3,True,4.86,,31.08,19.1,4.747,,,,,,不過,孤立像素 4.86% > 2%；牆太亮（-mid＋-light 50.2%、-light 19.1%）；接縫 4.747 > 1.2
+art/_rejected/tile_temple_wallface/tile_temple_wallface-s1122-b.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,25.0,True,5.21,,33.68,16.67,5.522,,,,,,不過,孤立像素 5.21% > 2%；牆太亮（-mid＋-light 50.4%、-light 16.67%）；接縫 5.522 > 1.2
+art/_rejected/tile_temple_wallface/tile_temple_wallface-s1123-a.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,24.3,True,0.35,,8.16,0.0,2.522,,,,,,不過,接縫 2.522 > 1.2
+art/tiles/temple/wallface/tile_temple_wallface-s1123-b.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,26.4,True,0.87,,7.64,0.0,1.177,,,,,,過,
+art/_rejected/tile_temple_wallface/tile_temple_wallface-s1124-a.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,25.0,True,1.74,,43.75,15.1,1.28,,,,,,不過,牆太亮（-mid＋-light 58.9%、-light 15.1%）；接縫 1.28 > 1.2
+art/_rejected/tile_temple_wallface/tile_temple_wallface-s1124-b.png,tile_temple_wallface,wallface,32x18,0.0,0.0,100.0,38.9,True,1.74,,32.47,42.53,1.022,,,,,,不過,牆太亮（-mid＋-light 75.0%、-light 42.53%）
+art/_rejected/tile_lava_floor/tile_lava_floor-s1201.png,tile_lava_floor,floor,32x32,0.0,0.0,100.0,40.2,True,0.0,0.944,1.95,0.0,1.322,,,,,,不過,接縫 1.322 > 1.2
+art/_rejected/tile_lava_floor/tile_lava_floor-s1202.png,tile_lava_floor,floor,32x32,0.0,0.0,100.0,61.7,True,0.0,0.946,1.95,0.0,1.972,,,,,,不過,2×2 同色塊 61.7%（疑似放大過）；接縫 1.972 > 1.2
+art/_rejected/tile_lava_floor/tile_lava_floor-s1203.png,tile_lava_floor,floor,32x32,0.0,0.0,100.0,52.0,True,0.0,0.931,1.66,0.0,1.917,,,,,,不過,接縫 1.917 > 1.2
+art/tiles/lava/floor/tile_lava_floor-s1204.png,tile_lava_floor,floor,32x32,0.0,0.0,100.0,48.0,True,0.0,0.942,1.86,0.0,1.19,,,,,,過,
+art/_rejected/tile_lava_floor/tile_lava_floor-s1205.png,tile_lava_floor,floor,32x32,0.0,0.0,100.0,62.9,True,0.0,0.948,1.95,0.0,7.47,,,,,,不過,2×2 同色塊 62.9%（疑似放大過）；接縫 7.47 > 1.2
+art/_rejected/tile_lava_floor/tile_lava_floor-s1206.png,tile_lava_floor,floor,32x32,0.0,0.0,100.0,77.3,True,0.0,0.943,1.95,0.0,1.62,,,,,,不過,2×2 同色塊 77.3%（疑似放大過）；接縫 1.62 > 1.2
+art/_rejected/tile_lava_walltop/tile_lava_walltop-s1211.png,tile_lava_walltop,walltop,32x32,0.0,0.0,100.0,48.4,True,5.37,,19.14,56.45,0.0,,,,,,不過,孤立像素 5.37% > 2%；牆太亮（-mid＋-light 75.6%、-light 56.45%）
+art/_rejected/tile_lava_walltop/tile_lava_walltop-s1212.png,tile_lava_walltop,walltop,32x32,0.0,0.0,100.0,22.3,True,0.49,,59.28,40.04,2.962,,,,,,不過,牆太亮（-mid＋-light 99.3%、-light 40.04%）；接縫 2.962 > 1.2
+art/_rejected/tile_lava_walltop/tile_lava_walltop-s1213.png,tile_lava_walltop,walltop,32x32,0.0,0.0,100.0,28.9,True,3.81,,39.65,39.65,1.391,,,,,,不過,孤立像素 3.81% > 2%；牆太亮（-mid＋-light 79.3%、-light 39.65%）；接縫 1.391 > 1.2
+art/_rejected/tile_lava_walltop/tile_lava_walltop-s1214.png,tile_lava_walltop,walltop,32x32,0.0,0.0,100.0,85.2,True,0.0,,26.27,50.0,14.43,,,,,,不過,2×2 同色塊 85.2%（疑似放大過）；牆太亮（-mid＋-light 76.3%、-light 50.0%）；接縫 14.43 > 1.2
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1221-a.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,40.3,True,4.51,,30.03,11.98,5.231,,,,,,不過,孤立像素 4.51% > 2%；接縫 5.231 > 1.2
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1221-b.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,25.7,True,6.08,,60.59,18.58,2.285,,,,,,不過,孤立像素 6.08% > 2%；牆太亮（-mid＋-light 79.2%、-light 18.58%）；接縫 2.285 > 1.2
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1222-a.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,44.4,True,4.86,,25.0,5.21,3.548,,,,,,不過,孤立像素 4.86% > 2%；接縫 3.548 > 1.2
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1222-b.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,29.2,True,6.42,,54.34,16.49,0.865,,,,,,不過,孤立像素 6.42% > 2%；牆太亮（-mid＋-light 70.8%、-light 16.49%）
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1223-a.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,4.2,True,11.98,,18.4,15.97,3.08,,,,,,不過,孤立像素 11.98% > 2%；牆太亮（-mid＋-light 34.4%、-light 15.97%）；接縫 3.08 > 1.2
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1223-b.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,6.2,True,13.54,,20.49,14.58,2.562,,,,,,不過,孤立像素 13.54% > 2%；接縫 2.562 > 1.2
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1224-a.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,36.1,True,3.3,,30.9,16.32,4.023,,,,,,不過,孤立像素 3.3% > 2%；牆太亮（-mid＋-light 47.2%、-light 16.32%）；接縫 4.023 > 1.2
+art/_rejected/tile_lava_wallface/tile_lava_wallface-s1224-b.png,tile_lava_wallface,wallface,32x18,0.0,0.0,100.0,27.8,True,2.78,,40.45,16.49,3.255,,,,,,不過,孤立像素 2.78% > 2%；牆太亮（-mid＋-light 56.9%、-light 16.49%）；接縫 3.255 > 1.2
+art/_rejected/tile_tomb_floor/tile_tomb_floor-s1301.png,tile_tomb_floor,floor,32x32,0.0,0.0,100.0,73.4,True,0.0,0.944,1.95,0.0,3.396,,,,,,不過,2×2 同色塊 73.4%（疑似放大過）；接縫 3.396 > 1.2
+art/tiles/tomb/floor/tile_tomb_floor-s1302.png,tile_tomb_floor,floor,32x32,0.0,0.0,100.0,27.7,True,0.0,0.934,1.95,0.0,1.167,,,,,,過,
+art/_rejected/tile_tomb_floor/tile_tomb_floor-s1303.png,tile_tomb_floor,floor,32x32,0.0,0.0,100.0,46.1,True,0.0,0.947,1.95,0.0,2.736,,,,,,不過,接縫 2.736 > 1.2
+art/_rejected/tile_tomb_floor/tile_tomb_floor-s1304.png,tile_tomb_floor,floor,32x32,0.0,0.0,100.0,41.8,True,0.0,0.933,1.86,0.0,1.956,,,,,,不過,接縫 1.956 > 1.2
+art/_rejected/tile_tomb_floor/tile_tomb_floor-s1305.png,tile_tomb_floor,floor,32x32,0.0,0.0,100.0,50.8,True,0.0,0.931,1.86,0.0,5.275,,,,,,不過,接縫 5.275 > 1.2
+art/_rejected/tile_tomb_floor/tile_tomb_floor-s1306.png,tile_tomb_floor,floor,32x32,0.0,0.0,100.0,51.6,True,0.0,0.927,1.86,0.0,2.628,,,,,,不過,接縫 2.628 > 1.2
+art/_rejected/tile_tomb_walltop/tile_tomb_walltop-s1311.png,tile_tomb_walltop,walltop,32x32,0.0,0.0,100.0,48.0,True,3.52,,11.04,74.51,0.296,,,,,,不過,孤立像素 3.52% > 2%；牆太亮（-mid＋-light 85.6%、-light 74.51%）
+art/_rejected/tile_tomb_walltop/tile_tomb_walltop-s1312.png,tile_tomb_walltop,walltop,32x32,0.0,0.0,100.0,39.8,True,1.95,,20.9,66.7,0.681,,,,,,不過,牆太亮（-mid＋-light 87.6%、-light 66.7%）
+art/_rejected/tile_tomb_walltop/tile_tomb_walltop-s1313.png,tile_tomb_walltop,walltop,32x32,0.0,0.0,100.0,46.5,True,0.78,,34.47,65.53,1.572,,,,,,不過,牆太亮（-mid＋-light 100.0%、-light 65.53%）；接縫 1.572 > 1.2
+art/_rejected/tile_tomb_walltop/tile_tomb_walltop-s1314.png,tile_tomb_walltop,walltop,32x32,0.0,0.0,100.0,50.4,True,1.17,,22.66,77.25,0.515,,,,,,不過,牆太亮（-mid＋-light 99.9%、-light 77.25%）
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1321-a.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,33.3,True,5.56,,40.62,19.1,4.139,,,,,,不過,孤立像素 5.56% > 2%；牆太亮（-mid＋-light 59.7%、-light 19.1%）；接縫 4.139 > 1.2
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1321-b.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,50.0,True,1.91,,14.58,2.26,6.925,,,,,,不過,接縫 6.925 > 1.2
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1322-a.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,31.2,True,2.78,,22.05,56.42,1.879,,,,,,不過,孤立像素 2.78% > 2%；牆太亮（-mid＋-light 78.5%、-light 56.42%）；接縫 1.879 > 1.2
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1322-b.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,35.4,True,1.22,,57.12,11.98,2.88,,,,,,不過,牆太亮（-mid＋-light 69.1%、-light 11.98%）；接縫 2.88 > 1.2
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1323-a.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,54.2,True,2.26,,61.63,37.5,2.218,,,,,,不過,孤立像素 2.26% > 2%；牆太亮（-mid＋-light 99.1%、-light 37.5%）；接縫 2.218 > 1.2
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1323-b.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,34.7,True,2.6,,58.16,21.53,2.43,,,,,,不過,孤立像素 2.6% > 2%；牆太亮（-mid＋-light 79.7%、-light 21.53%）；接縫 2.43 > 1.2
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1324-a.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,17.4,True,7.29,,46.35,26.91,1.671,,,,,,不過,孤立像素 7.29% > 2%；牆太亮（-mid＋-light 73.3%、-light 26.91%）；接縫 1.671 > 1.2
+art/_rejected/tile_tomb_wallface/tile_tomb_wallface-s1324-b.png,tile_tomb_wallface,wallface,32x18,0.0,0.0,100.0,18.8,True,6.08,,48.26,27.26,1.129,,,,,,不過,孤立像素 6.08% > 2%；牆太亮（-mid＋-light 75.5%、-light 27.26%）
+art/_rejected/tile_ice_floor/tile_ice_floor-s1401.png,tile_ice_floor,floor,32x32,0.0,0.0,100.0,72.3,True,0.0,0.94,1.86,0.0,1.336,,,,,,不過,2×2 同色塊 72.3%（疑似放大過）；接縫 1.336 > 1.2
+art/_rejected/tile_ice_floor/tile_ice_floor-s1402.png,tile_ice_floor,floor,32x32,0.0,0.0,100.0,73.8,True,0.0,0.94,1.86,0.0,1.93,,,,,,不過,2×2 同色塊 73.8%（疑似放大過）；接縫 1.93 > 1.2
+art/_rejected/tile_ice_floor/tile_ice_floor-s1403.png,tile_ice_floor,floor,32x32,0.0,0.0,100.0,73.0,True,0.0,0.941,1.95,0.0,6.033,,,,,,不過,2×2 同色塊 73.0%（疑似放大過）；接縫 6.033 > 1.2
+art/_rejected/tile_ice_floor/tile_ice_floor-s1404.png,tile_ice_floor,floor,32x32,0.0,0.0,100.0,68.4,True,0.0,0.945,1.95,0.0,8.206,,,,,,不過,2×2 同色塊 68.4%（疑似放大過）；接縫 8.206 > 1.2
+art/_rejected/tile_ice_floor/tile_ice_floor-s1405.png,tile_ice_floor,floor,32x32,0.0,0.0,100.0,80.9,True,0.0,0.939,1.86,0.0,5.944,,,,,,不過,2×2 同色塊 80.9%（疑似放大過）；接縫 5.944 > 1.2
+art/_rejected/tile_ice_floor/tile_ice_floor-s1406.png,tile_ice_floor,floor,32x32,0.0,0.0,100.0,99.2,True,0.0,0.939,1.95,0.0,42.771,,,,,,不過,2×2 同色塊 99.2%（疑似放大過）；接縫 42.771 > 1.2
+art/_rejected/tile_ice_walltop/tile_ice_walltop-s1411.png,tile_ice_walltop,walltop,32x32,0.0,0.0,100.0,71.9,True,0.68,,21.0,59.08,6.512,,,,,,不過,2×2 同色塊 71.9%（疑似放大過）；牆太亮（-mid＋-light 80.1%、-light 59.08%）；接縫 6.512 > 1.2
+art/_rejected/tile_ice_walltop/tile_ice_walltop-s1412.png,tile_ice_walltop,walltop,32x32,0.0,0.0,100.0,58.6,True,1.56,,23.83,38.96,4.566,,,,,,不過,牆太亮（-mid＋-light 62.8%、-light 38.96%）；接縫 4.566 > 1.2
+art/_rejected/tile_ice_walltop/tile_ice_walltop-s1413.png,tile_ice_walltop,walltop,32x32,0.0,0.0,100.0,88.3,True,0.0,,51.27,48.73,17.404,,,,,,不過,2×2 同色塊 88.3%（疑似放大過）；牆太亮（-mid＋-light 100.0%、-light 48.73%）；接縫 17.404 > 1.2
+art/_rejected/tile_ice_walltop/tile_ice_walltop-s1414.png,tile_ice_walltop,walltop,32x32,0.0,0.0,100.0,81.2,True,0.88,,46.39,53.52,10.126,,,,,,不過,2×2 同色塊 81.2%（疑似放大過）；牆太亮（-mid＋-light 99.9%、-light 53.52%）；接縫 10.126 > 1.2
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1421-a.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,47.9,True,5.38,,31.77,42.88,4.034,,,,,,不過,孤立像素 5.38% > 2%；牆太亮（-mid＋-light 74.7%、-light 42.88%）；接縫 4.034 > 1.2
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1421-b.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,45.1,True,3.47,,19.97,61.11,1.866,,,,,,不過,孤立像素 3.47% > 2%；牆太亮（-mid＋-light 81.1%、-light 61.11%）；接縫 1.866 > 1.2
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1422-a.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,63.9,True,0.69,,41.49,58.51,2.696,,,,,,不過,2×2 同色塊 63.9%（疑似放大過）；牆太亮（-mid＋-light 100.0%、-light 58.51%）；接縫 2.696 > 1.2
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1422-b.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,68.8,True,0.87,,41.15,58.85,3.72,,,,,,不過,2×2 同色塊 68.8%（疑似放大過）；牆太亮（-mid＋-light 100.0%、-light 58.85%）；接縫 3.72 > 1.2
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1423-a.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,57.6,True,2.95,,50.35,46.01,2.471,,,,,,不過,孤立像素 2.95% > 2%；牆太亮（-mid＋-light 96.4%、-light 46.01%）；接縫 2.471 > 1.2
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1423-b.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,56.9,True,2.95,,44.1,51.04,0.381,,,,,,不過,孤立像素 2.95% > 2%；牆太亮（-mid＋-light 95.1%、-light 51.04%）
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1424-a.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,22.2,True,7.29,,30.73,34.9,1.382,,,,,,不過,孤立像素 7.29% > 2%；牆太亮（-mid＋-light 65.6%、-light 34.9%）；接縫 1.382 > 1.2
+art/_rejected/tile_ice_wallface/tile_ice_wallface-s1424-b.png,tile_ice_wallface,wallface,32x18,0.0,0.0,100.0,28.5,True,4.86,,28.12,40.97,2.57,,,,,,不過,孤立像素 4.86% > 2%；牆太亮（-mid＋-light 69.1%、-light 40.97%）；接縫 2.57 > 1.2
 art/_rejected/wangyin_zhenyue_32/wangyin_zhenyue_32-s2101.png,wangyin_zhenyue_32,icon,32x32,0.0,0.0,100.0,0.0,True,25.31,,,,,18.41,,,,,不過,孤立像素 25.31% > 4%
+art/_rejected/wangyin_zhenyue_32/wangyin_zhenyue_32-s2102.png,wangyin_zhenyue_32,icon,32x32,0.0,0.0,100.0,31.9,True,10.4,,,,,6.27,,,,,不過,孤立像素 10.4% > 4%
+art/_rejected/wangyin_zhenyue_32/wangyin_zhenyue_32-s2103.png,wangyin_zhenyue_32,icon,32x32,0.0,0.0,100.0,3.7,True,11.4,,,,,9.03,,,,,不過,孤立像素 11.4% > 4%
+art/_rejected/wangyin_zhenyue_32/wangyin_zhenyue_32-s2104.png,wangyin_zhenyue_32,icon,32x32,0.0,0.0,100.0,24.7,True,8.92,,,,,8.75,,,,,不過,孤立像素 8.92% > 4%
 art/_rejected/wangyin_zhenyue_16/wangyin_zhenyue_16-s2105.png,wangyin_zhenyue_16,icon,16x16,0.0,0.0,100.0,4.3,True,44.07,,,,,10.17,,,,,不過,孤立像素 44.07% > 4%
+art/_rejected/wangyin_chixiao_32/wangyin_chixiao_32-s2111.png,wangyin_chixiao_32,icon,32x32,0.0,0.0,100.0,12.1,True,18.43,,,,,17.66,,,,,不過,孤立像素 18.43% > 4%
+art/_rejected/wangyin_chixiao_32/wangyin_chixiao_32-s2112.png,wangyin_chixiao_32,icon,32x32,0.0,0.0,100.0,1.2,True,21.81,,,,,9.31,,,,,不過,孤立像素 21.81% > 4%
+art/_rejected/wangyin_chixiao_32/wangyin_chixiao_32-s2113.png,wangyin_chixiao_32,icon,32x32,0.0,0.0,100.0,5.6,True,17.96,,,,,27.96,,,,,不過,孤立像素 17.96% > 4%
+art/_rejected/wangyin_chixiao_32/wangyin_chixiao_32-s2114.png,wangyin_chixiao_32,icon,32x32,0.0,0.0,100.0,12.7,True,13.11,,,,,15.54,,,,,不過,孤立像素 13.11% > 4%
+art/_rejected/wangyin_jiting_32/wangyin_jiting_32-s2121.png,wangyin_jiting_32,icon,32x32,0.0,0.0,100.0,11.8,True,15.44,,,,,12.74,,,,,不過,孤立像素 15.44% > 4%
+art/_rejected/wangyin_jiting_32/wangyin_jiting_32-s2122.png,wangyin_jiting_32,icon,32x32,0.0,0.0,100.0,1.0,True,29.83,,,,,23.61,,,,,不過,孤立像素 29.83% > 4%
+art/_rejected/wangyin_jiting_32/wangyin_jiting_32-s2123.png,wangyin_jiting_32,icon,32x32,0.0,0.0,100.0,11.9,True,28.57,,,,,25.55,,,,,不過,孤立像素 28.57% > 4%
+art/_rejected/wangyin_jiting_32/wangyin_jiting_32-s2124.png,wangyin_jiting_32,icon,32x32,0.0,0.0,100.0,9.3,True,13.58,,,,,14.17,,,,,不過,孤立像素 13.58% > 4%
+art/_rejected/wangyin_guixu_32/wangyin_guixu_32-s2131.png,wangyin_guixu_32,icon,32x32,0.0,0.0,100.0,5.0,True,16.82,,,,,25.34,,,,,不過,孤立像素 16.82% > 4%
+art/_rejected/wangyin_guixu_32/wangyin_guixu_32-s2132.png,wangyin_guixu_32,icon,32x32,0.0,0.0,100.0,9.0,True,24.23,,,,,26.73,,,,,不過,孤立像素 24.23% > 4%
+art/_rejected/wangyin_guixu_32/wangyin_guixu_32-s2133.png,wangyin_guixu_32,icon,32x32,0.0,0.0,100.0,14.9,True,18.74,,,,,24.0,,,,,不過,孤立像素 18.74% > 4%
+art/_rejected/wangyin_guixu_32/wangyin_guixu_32-s2134.png,wangyin_guixu_32,icon,32x32,0.0,0.0,100.0,3.3,True,26.91,,,,,16.18,,,,,不過,孤立像素 26.91% > 4%
+art/fx/sig_beam/dpoe-sig-beam.png,sig_beam,fx,32x128x8,,,,,,,,,,,,0.41,0.0,0.0,0.0,過,
+art/fx/sig_beam/old/20261117-115346/dpoe-sig-beam.png,sig_beam,fx,32x128x8,,,,,,,,,,,,0.35,0.0,0.0,0.0,過,
+art/fx/sig_beam/old/20261117-115701/dpoe-sig-beam.png,sig_beam,fx,32x128x8,,,,,,,,,,,,0.27,0.0,0.0,0.0,過,
+art/fx/sig_chase/dpoe-sig-chase.png,sig_chase,fx,128x128x14,,,,,,,,,,,,1.0,1.0,0.0,0.0,過,
+art/fx/sig_chase/old/20261117-115404/dpoe-sig-chase.png,sig_chase,fx,128x128x14,,,,,,,,,,,,0.68,0.57,0.0,0.0,過,
+art/fx/sig_chase/old/20261117-115729/dpoe-sig-chase.png,sig_chase,fx,128x128x14,,,,,,,,,,,,0.67,0.48,0.0,0.0,過,
+art/fx/sig_crit/dpoe-sig-crit.png,sig_crit,fx,96x96x10,,,,,,,,,,,,0.12,0.09,0.0,0.0,過,
+art/fx/sig_crit/old/20261117-115221/dpoe-sig-crit.png,sig_crit,fx,96x96x10,,,,,,,,,,,,0.28,0.28,0.0,0.0,過,
+art/fx/sig_crit/old/20261117-115545/dpoe-sig-crit.png,sig_crit,fx,96x96x10,,,,,,,,,,,,0.16,0.03,0.0,0.0,過,
+art/fx/sig_lvup/dpoe-sig-lvup.png,sig_lvup,fx,128x128x16,,,,,,,,,,,,0.66,0.04,0.0,0.0,過,
+art/fx/sig_lvup/old/20261117-115303/dpoe-sig-lvup.png,sig_lvup,fx,128x128x16,,,,,,,,,,,,0.62,0.01,0.0,0.0,過,
+art/fx/sig_lvup/old/20261117-115627/dpoe-sig-lvup.png,sig_lvup,fx,128x128x16,,,,,,,,,,,,0.51,0.04,0.0,0.0,過,
+art/fx/sig_wyapply/dpoe-sig-wyapply.png,sig_wyapply,fx,96x96x12,,,,,,,,,,,,0.67,0.67,0.0,0.0,過,
+art/fx/sig_wyapply/old/20261117-115446/dpoe-sig-wyapply.png,sig_wyapply,fx,96x96x12,,,,,,,,,,,,0.7,0.66,0.0,0.0,過,
+art/fx/sig_wyapply/old/20261117-115811/dpoe-sig-wyapply.png,sig_wyapply,fx,96x96x12,,,,,,,,,,,,0.7,0.65,0.0,0.0,過,

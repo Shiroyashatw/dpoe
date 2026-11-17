@@ -182,19 +182,20 @@ def sheet_tiles(jid, items):
 
 def compose(title, cells):
     pad, top = 10, 24
-    W = sum(c[1].width for c in cells) + pad * (len(cells) + 1)
+    cw = [max(im.width, int(FONT.getlength(name))) for name, im, ok in cells]
+    W = sum(cw) + pad * (len(cells) + 1)
     H = max(c[1].height for c in cells) + top + 40
     out = Image.new('RGB', (max(W, 300), H), GROUND_BG)
     dr = ImageDraw.Draw(out)
     dr.text((pad, 4), title, font=FONT, fill=(240, 240, 240))
     x = pad
-    for name, im, ok in cells:
+    for (name, im, ok), w in zip(cells, cw):
         bg = Image.new('RGBA', im.size, GROUND_BG + (255,))
         bg.alpha_composite(im)
         out.paste(bg.convert('RGB'), (x, top))
         dr.rectangle((x - 2, top - 2, x + im.width + 1, top + im.height + 1), outline=(120, 210, 90) if ok else (240, 90, 80))
         label(dr, x, top + im.height + 4, name, ok)
-        x += im.width + pad
+        x += w + pad
     return out
 
 
