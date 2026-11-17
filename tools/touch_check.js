@@ -161,8 +161,16 @@ let fail = 0;
     await p.waitForTimeout(400);
     await touch('touchStart', [[W / 2, H * 0.3]]);
     await touch('touchEnd', []);
-    await p.waitForTimeout(500);
-    ok('點一下＝普攻', await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m) || !!P.act));
+    /* 每格看：出手（P.act）只有一下子、打不中（命中率）時血不會少，只在 500 毫秒後看一次會漏掉 */
+    ok(
+      '點一下＝普攻',
+      await p
+        .waitForFunction(() => _m.hp < _hp || !G.mobs.includes(_m) || !!P.act, null, { timeout: 1000 })
+        .then(
+          () => true,
+          () => false
+        )
+    );
   } else {
     const rr = await p.evaluate(() => {
       P.cds.roll = 0;
@@ -463,6 +471,9 @@ let fail = 0;
     /* ---------- 直立重排（0.4.4）：上半戰鬥、下半面板、底部分頁 ---------- */
     const tap = async q => {
       const c = await p.evaluate(q => {
+        /* 先把分頁列畫成現在的樣子：測試直接改 S.camp 會讓「天賦」分頁出現／消失，
+           不先同步的話量到的是舊位置，計時器重畫後點到隔壁的分頁（營地 → 更多） */
+        sheetSync();
         const e = typeof q === 'string' ? document.querySelector(q) : null;
         if (!e) return null;
         const r = e.getBoundingClientRect();
