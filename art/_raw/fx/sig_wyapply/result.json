@@ -1,0 +1,39 @@
+{
+  "fps": 12,
+  "kind": "new",
+  "loop": false,
+  "name": "dpoe_sig_wyapply",
+  "files": {
+    "dpoe-sig-wyapply.gif": "https://api.pixellab.ai/mcp/pixel-tools/d1049e9d-6a42-4a3c-bff7-759a68899b81/dpoe-sig-wyapply.gif",
+    "dpoe-sig-wyapply.png": "https://api.pixellab.ai/mcp/pixel-tools/d1049e9d-6a42-4a3c-bff7-759a68899b81/dpoe-sig-wyapply.png",
+    "dpoe-sig-wyapply.json": "https://api.pixellab.ai/mcp/pixel-tools/d1049e9d-6a42-4a3c-bff7-759a68899b81/dpoe-sig-wyapply.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 48,
+    "y": 58,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 96,
+    "w": 96
+  },
+  "frames": 12,
+  "message": "Made a 96x96, 12-frame one-shot with no outline and a transparent background: a square bronze stamp drops onto the centre and lifts away, leaving a square orange #f69625 impression that pulses once and fades into blocks, with pale #ffbf73 sparks popping from its four corners. Nothing is on sliders yet, so ask if you want the stamp bigger, the sparks more, or the timing changed.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=fd870644-8c20-4f79-94c3-55418577dd53",
+  "effect_id": "fd870644-8c20-4f79-94c3-55418577dd53",
+  "gif_exact": true,
+  "result_id": "d1049e9d-6a42-4a3c-bff7-759a68899b81",
+  "conversation": "kIYXti4bT3XcCQq6gadT3Q.c3319ead758cbd825149e776590dc4ba55b036255a549992a8af94e346f38635",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.7535140625000003
+  },
+  "generation_id": "51b4d242-286a-42f0-ade8-2a311783d726",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}

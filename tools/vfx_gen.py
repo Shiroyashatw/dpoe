@@ -11,7 +11,7 @@
     python tools/vfx_gen.py run --all --limit 10 --go                    # 依序產，已有結果的跳過
     python tools/vfx_gen.py run --only void --artist pro --go            # pro 一張 6 次以上，預設 lite 1 次
     python tools/vfx_gen.py run --only void --force --go                 # 重產（舊結果留在 old/）
-    python tools/vfx_gen.py test                                         # 不連網的自我檢查
+    python tools/vfx_gen.py test                                         # 不連網的自我檢查（含 tools/vfx_sheet.py 後處理）
     python tools/vfx_gen.py run --doc docs/production/specs/M2-36-pixellab-prompts.md --all --go   # 讀別的提示詞檔（M2-36 §4）
 
 - 沒加 --go 一律只預覽；一次最多 --limit 張（預設 5），避免手滑花掉點數。
@@ -150,7 +150,9 @@ def self_test():
     t = describe(prefix, f)
     assert 'seamless loop' in t and 'canvas 64x64' in t and t.startswith(prefix) and len(t) < 700  # 700 字起 lite 報價變 2 倍
     assert urls({'a': 'https://x/a.png', 'b': ['https://x/b.gif', 'nope'], 'c': {'d': 'https://x/c.json'}}) == ['https://x/a.png', 'https://x/b.gif', 'https://x/c.json']
-    print('自我檢查通過：32 筆提示詞')
+    sys.path.insert(0, str(ROOT / 'tools'))
+    import vfx_sheet
+    print('自我檢查通過：32 筆提示詞；' + vfx_sheet.self_test())
 
 
 def main():
