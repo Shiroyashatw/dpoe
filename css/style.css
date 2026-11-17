@@ -1769,6 +1769,7 @@ body.touch.port #pinv .foot .btn { flex: 1; min-height: 48px; }
 .ndr:active { transform: scale(0.98); }
 .ndl li.on .ndr { border-color: var(--border-hi); }
 .ndl li.lock .ndr b { color: var(--tx-dim); }
+.ndl li.lock .ndr em { color: var(--tx-dim); }
 .ndl .wm-body { overflow: visible; padding: 10px 12px 12px; border: 1px solid var(--border-ctl); border-top: 0; background: var(--panel); }
 .ndl .wm-body h2, .ndl .wm-st { display: none; }
 .ndl .wm-acts { position: static; margin-top: 4px; padding-top: 0; background: none; }
@@ -2541,7 +2542,6 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 .sumh .btn.wide { width: 100%; min-height: 48px; }
 /* 地點清單（0.5.4，考核 B1）：下一個（升瞭望台就開）、最後一行還有幾個地點 */
 .ndl li.nx .ndr em { color: var(--tx-dim); }
-.ndmore { margin: 10px 0 0; text-align: center; font-size: var(--fs-s); color: var(--tx-dim); }
 #pnav .dot.n, #dnav .dot.n { width: auto; min-width: 16px; height: 16px; padding: 0 4px; font: 700 10px/16px var(--font); font-style: normal; color: rgb(var(--scrim-rgb-v10)); text-align: center; border-radius: 8px; }
 /* 地點清單（0.5.2，唯一入口）：區域名分組、上面一排星級 */
 .ndl .ndg { padding: 10px 4px 2px; font: 700 var(--fs-s) var(--font); color: var(--tx-dim); letter-spacing: 0.06em; }
@@ -2769,6 +2769,12 @@ body:not(.touch) #pidle .chs:hover span { color: var(--tx); }
 .offchl li b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .offchl li small { font: 700 14px var(--font); color: var(--tx-dim); }
 @media (prefers-reduced-motion: reduce) { .offch > i { transition: none; } }
+/* M2-05.3 升級膠囊：生命條（.mid）上方 8 px、置中；跟 #warn 分開 */
+.mid { position: relative; }
+#lvup { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); height: 32px; padding: 0 12px; border-radius: 16px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--border-hi); font: 700 14px/30px var(--font); color: var(--tx); white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 300ms; }
+#lvup b { color: var(--tx-strong); font-weight: 700; }
+#lvup.on { opacity: 1; transition-duration: 150ms; }
+body:not(.touch) #lvup { bottom: calc(100% + 12px); height: 36px; border-radius: 18px; font-size: 16px; line-height: 34px; }
 
 /* ================= M2-38 資訊架構重整（M2-37 v1.3）：只用現有變數；角色 token 收斂（M2-34 第 0 批）合併後換成 §2 的角色名 =================
    對照：--panel-inset→--s0、--panel-raised→--s2、--border→--line、--border-mid→--fr、--border-ctl→--fr-hi、--border-hi→--fr-c、--tx-title→--title、--tx-scene→--tx、--rar-chase→--r4 */

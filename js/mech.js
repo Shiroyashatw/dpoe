@@ -289,7 +289,6 @@ function igniteAt(x, y, c) {
 
 /* ---------- 4. 殘留物與灌注 ---------- */
 /* 技能欄裝著會吃灌注的技能（目前只有灌注新星 nova）才會產生殘留物 */
-const REMN = { fire: '火焰殘留', cold: '冰霜殘留', light: '閃電殘留' };
 const hasInfSkill = () => S.skills.some(s => s && s.k && SKILLS[s.k].inf);
 function dropRemnant(el, x, y) {
   if (G.remnants.length < 20 && hasInfSkill())
@@ -749,33 +748,41 @@ function mechTick(dt) {
   if (G.banner && G.banner.q && G.banner.t <= G.t) gainGlory(25 * G.banner.q), (G.banner.q = 0);
   G.corpses = G.corpses.filter(c => c.t > G.t);
 }
+/* 怪物方地面中央的圖示（M2-05.1b）：對應異常的圖示；沒有對應的畫元素色小菱形 */
+const GROUND_IC = { fire: 'ign', chill: 'chill', gas: 'poison', jagged: 'bleed' };
 function drawMech() {
-  for (const g of G.ground) {
-    const C = GROUND[g.k],
-      f = Math.min(1, (g.dur - g.t) / 0.5);
-    /* 怪物方：填色更濃、紅色虛線框、寫名字，一眼跟自己的地面分開 */
-    const foe = g.side === 'm';
-    CX.globalAlpha = (foe ? 0.36 : 0.22) * f;
-    CX.fillStyle = C.col;
-    CX.beginPath();
-    CX.ellipse(g.x, g.y, g.r, g.r * 0.75, 0, 0, TAU);
-    CX.fill();
-    CX.globalAlpha = (foe ? 0.95 : 0.5) * f;
-    CX.strokeStyle = foe ? PAL.badV5 : C.col;
-    CX.lineWidth = foe ? 3 : 2;
-    if (foe) CX.setLineDash([10, 6]);
-    CX.stroke();
-    CX.setLineDash([]);
-    if (foe) {
-      CX.font = '600 11px "Noto Sans TC", sans-serif';
-      CX.textAlign = 'center';
+  /* 地面不寫字（M2-05.1）：自己的只留 14% 填色、不畫框，先畫；怪物方 36% 填色＋紅色虛線框＋中央圖示，畫在上面 */
+  for (const foe of [false, true])
+    for (const g of G.ground) {
+      if ((g.side === 'm') !== foe) continue;
+      const C = GROUND[g.k],
+        f = Math.min(1, (g.dur - g.t) / 0.5);
+      CX.globalAlpha = (foe ? 0.36 : 0.14) * f;
+      CX.fillStyle = C.col;
+      CX.beginPath();
+      CX.ellipse(g.x, g.y, g.r, g.r * 0.75, 0, 0, TAU);
+      CX.fill();
+      if (!foe) continue;
+      CX.globalAlpha = 0.95 * f;
+      CX.strokeStyle = PAL.badV5;
       CX.lineWidth = 3;
-      CX.strokeStyle = `rgba(${PAL.rgb.scrim},0.85)`;
-      CX.strokeText(C.n, g.x, g.y + 4);
-      CX.fillStyle = PAL.glint;
-      CX.fillText(C.n, g.x, g.y + 4);
+      CX.setLineDash([10, 6]);
+      CX.stroke();
+      CX.setLineDash([]);
+      /* 圖示在螢幕上手機 16、桌機 20 px */
+      const z = (TOUCH.on ? 16 : 20) / ZOOM,
+        ic = GROUND_IC[g.k];
+      if (ic) spr(STATE[ic][1], g.x, g.y + z / 2, z);
+      else {
+        CX.fillStyle = C.col;
+        CX.beginPath();
+        CX.moveTo(g.x, g.y - z / 2);
+        CX.lineTo(g.x + z / 3, g.y);
+        CX.lineTo(g.x, g.y + z / 2);
+        CX.lineTo(g.x - z / 3, g.y);
+        CX.fill();
+      }
     }
-  }
   CX.globalAlpha = 1;
   for (const c of G.corpses) {
     CX.globalAlpha = 0.4;
@@ -784,9 +791,7 @@ function drawMech() {
     CX.ellipse(c.x, c.y, c.sz * 0.35, c.sz * 0.15, 0, 0, TAU);
     CX.fill();
   }
-  /* 殘留物：元素結晶（菱形）＋小字標籤 */
-  CX.font = '600 11px "Noto Sans TC", sans-serif';
-  CX.textAlign = 'center';
+  /* 殘留物：元素結晶（菱形，元素色）；地上不寫字（M2-05.1a） */
   for (const r of G.remnants) {
     const bob = Math.sin(G.t * 3 + r.x) * 2,
       y = r.y - 14 + bob;
@@ -802,11 +807,6 @@ function drawMech() {
     CX.closePath();
     CX.fill();
     CX.stroke();
-    CX.lineWidth = 3;
-    CX.strokeStyle = `rgba(${PAL.rgb.scrim},0.85)`;
-    CX.strokeText(REMN[r.el], r.x, y + 24);
-    CX.fillStyle = PAL.glint;
-    CX.fillText(REMN[r.el], r.x, y + 24);
   }
   CX.globalAlpha = 1;
   for (const n of G.grenades) {
