@@ -158,6 +158,8 @@ function artSheet(s) {
     /* 0.1.59 只有畫面真的在等這張（want）才重畫：之前背景預載 146 張大圖每載好一張就整個重畫，
        開場半分鐘內重畫上百次，按鈕按下、放開之間畫面被換掉，點擊被吃掉（看起來像卡住） */
     im.onload = () => im.want && typeof artRepaint === 'function' && artRepaint();
+    /* 載不到（王印拼條還沒放）：artImg 改借別的圖，等著的要重畫 */
+    im.onerror = () => ((im.bad = 1), im.onload());
     im.src = ART_SHEET[s];
     ARTIMG[s] = im;
   }
@@ -168,6 +170,7 @@ function artImg(k) {
   const a = typeof ART !== 'undefined' && ART[(typeof ART_ALIAS !== 'undefined' && ART_ALIAS[k]) || k];
   if (!a) return null;
   const im = artSheet(a[0]);
+  if (im.bad && a[0].startsWith('ic_wy')) return artImg('cur_regal');
   if (!im.complete) im.want = 1;
   return { im, r: a.slice(1) };
 }

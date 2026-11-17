@@ -731,8 +731,11 @@ function fx(o) {
   else if (o.k === 'heal' || o.k === 'lvup') fxs(o.k, o.x, o.y);
   else if (o.k === 'perfect') fxs('blink', o.x, o.y);
 }
+/* 招牌特效（js/fxsig.js、img/fx/sig_*.png，M2-33-3a §4.2）：圖載好才回傳 k，不然回傳舊的 n；減少動態不播 */
+const sigFx = (k, n) => (typeof fxImg === 'function' && FXS[k] && fxImg(k).naturalWidth && !reduced() ? k : n);
 /* 播一張序列圖（js/fxsheets.js）；r 是想要的半徑，照原圖的半徑縮放 */
 function fxs(n, x, y, r, o) {
+  if (n === 'crit') n = sigFx('sig_crit', n); /* 暴擊／大獎（skills.js hitMob）改播招牌特效 */
   const S = typeof FXS !== 'undefined' && FXS[n];
   if (S) G.fx.push({ k: 'sh', n, x, y, s: r ? r / S.rad : 1, t: 0, dur: S.n / S.fps, ...o });
 }
@@ -1180,8 +1183,9 @@ function gainXp(v) {
     ST = stats();
     P.hp = ST.hp;
     P.mp = ST.mp;
-    fx({ k: 'lvup', x: P.x, y: P.y, dur: 1.1 });
-    fx({ k: 'ring', x: P.x, y: P.y, r: 120, col: '#ffd166', dur: 0.6 });
+    if (sigFx('sig_lvup')) fxs('sig_lvup', P.x, P.y, 120);
+    else
+      fx({ k: 'lvup', x: P.x, y: P.y, dur: 1.1 }), fx({ k: 'ring', x: P.x, y: P.y, r: 120, col: '#ffd166', dur: 0.6 });
     num(P.x, P.y - 90, S.lv, 'lv');
     hudWarn(`升級！Lv ${S.lv}・天賦點 +1`);
     if (PORT()) sheetSync(); /* 分頁列「天賦」亮一個點 */
@@ -2126,6 +2130,8 @@ function frame(now) {
     if (G.nextT && G.t >= G.nextT && G.state === 'play') (G.nextT = 0), roundEnd();
     for (const d of G.drops.slice()) {
       d.t += dt;
+      /* 追逐物品落地那一刻（M2-19.2a 0.35 秒）播 sig_chase；印環、擴散圈照程式畫 */
+      if (d.chase && d.t >= 0.35 && d.t - dt < 0.35) fxs(sigFx('sig_chase'), d.x, d.y + 8, 64);
       /* 0.3.3：地圖裡的掉落不看距離全部吸過來（自己丟的、放不下的不吸）；藏身處只吸 150 以內的金幣（0.5.2 過濾器刪了） */
       const map = G.scene === 'map';
       if (

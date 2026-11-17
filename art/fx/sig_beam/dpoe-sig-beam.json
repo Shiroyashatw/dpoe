@@ -1,0 +1,235 @@
+{
+ "frames": [
+  {
+   "filename": "dpoe-sig-beam 0.png",
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  },
+  {
+   "filename": "dpoe-sig-beam 1.png",
+   "frame": {
+    "x": 32,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  },
+  {
+   "filename": "dpoe-sig-beam 2.png",
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  },
+  {
+   "filename": "dpoe-sig-beam 3.png",
+   "frame": {
+    "x": 0,
+    "y": 128,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  },
+  {
+   "filename": "dpoe-sig-beam 4.png",
+   "frame": {
+    "x": 32,
+    "y": 128,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  },
+  {
+   "filename": "dpoe-sig-beam 5.png",
+   "frame": {
+    "x": 64,
+    "y": 128,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  },
+  {
+   "filename": "dpoe-sig-beam 6.png",
+   "frame": {
+    "x": 0,
+    "y": 256,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  },
+  {
+   "filename": "dpoe-sig-beam 7.png",
+   "frame": {
+    "x": 32,
+    "y": 256,
+    "w": 32,
+    "h": 128
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 128
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 128
+   },
+   "pivot": {
+    "x": 0.5,
+    "y": 0.9375
+   },
+   "duration": 125
+  }
+ ],
+ "meta": {
+  "app": "PixelLab VFX Creator",
+  "image": "dpoe-sig-beam.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 96,
+   "h": 384
+  },
+  "scale": "1",
+  "anchor": {
+   "kind": "origin",
+   "x": 16,
+   "y": 120
+  },
+  "frameTags": [
+   {
+    "name": "dpoe-sig-beam",
+    "from": 0,
+    "to": 7,
+    "direction": "forward"
+   }
+  ]
+ }
+}

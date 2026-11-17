@@ -1,0 +1,2 @@
+tile_lava_wallface-s1224-a.png
+tile_lava_wallface-s1224-b.png
