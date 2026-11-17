@@ -58,8 +58,8 @@ const table = (pre, withMain) => {
   if (!P.length) return null;
   const PT = ['| 場次 | 前 30 分靈魂／分 | ' + K.join(' | ') + ' | 新東西 30 分 | 前 15 分小變強／最大間隔 | AI 卡住 |', '|---|---|' + K.map(() => '---|').join('') + '---|---|---|'];
   for (const n of P) {
-    const j = J(n), e = ev(j), vt = j.validTo || 1e9;
-    PT.push(`| ${n.replace(pre + '_', '')} | ${spm(n, 30).toFixed(0)} | ${K.map(k => (e[k] == null ? '—' : e[k] > vt ? `（${f1(e[k])} 不採用）` : f1(e[k]) + (lim(n, k) ? (lim(n, k)(e[k]) ? ' ✅' : ' ✗') : ''))).join(' | ')} | ${j.news30} | ${j.up15}／${j.gapMax15} 秒 | ${j.validTo ? '第 26–33 分停住後恢復' : j.stuckFrom ? '第 ' + j.stuckFrom + ' 分起（無效）' : '沒有'} |`);
+    const j = J(n), e = ev(j), vt = j.validTo || j.stuckFrom || 1e9;
+    PT.push(`| ${n.replace(pre + '_', '')} | ${spm(n, 30).toFixed(0)} | ${K.map(k => (e[k] == null ? '—' : e[k] > vt ? `（${f1(e[k])} 不採用）` : f1(e[k]) + (lim(n, k) ? (lim(n, k)(e[k]) ? ' ✅' : ' ✗') : ''))).join(' | ')} | ${j.news30} | ${j.up15}／${j.gapMax15} 秒 | ${j.validTo ? '第 26–33 分停住後恢復（26 分後不採用）' : j.stuckFrom ? '第 ' + j.stuckFrom + ' 分起卡住（之後不採用）' : '沒有'} |`);
   }
   if (withMain) for (const n of [...A, ...B]) { const e = ev(J(n)); PT.push(`| （對照）${n.replace('main_', 'main ')} | ${spm(n, 30).toFixed(0)} | ${K.map(k => f1(e[k])).join(' | ')} | ${J(n).news30} | ${J(n).up15}／${J(n).gapMax15} 秒 | 沒有 |`); }
   return PT.join('\n') + '\n\n✅／✗＝對驗收窗（瞭望台 8–12；祭壇 ≤10.8；鍛造台 2 ≤14.6 桌機／≤13.4 直立；民房 2 ≤17.4／≤15.6；鍛造台 3 ≤22.2／≤19.9；鍛造台 4 提案 ≤36）。';
