@@ -144,6 +144,15 @@ const MAT_TIER_N = {
   silk: ['繭絲', '熟絲', '彩絲', '巫絲', '祭絲', '神絲']
 };
 const matName = (k, T) => (T ? MAT_TIER_N[k][T - 1] : MATS[k].n);
+/* 名詞表：每個顯示名寫明是材料（百煉鋼／寒鐵／隕鐵跟天賦大點、寒鐵盾、隕鐵鎚同字） */
+const MAT_SAME = { 百煉鋼: '天賦大點「百煉鋼」', 寒鐵: '裝備「寒鐵盾」', 隕鐵: '裝備「隕鐵鎚」' };
+for (const k in MAT_TIER_N)
+  MAT_TIER_N[k].forEach(
+    (n, i) =>
+      (TERMS[n] =
+        `一種材料（${MATS[k].n} T${i + 1}），${GEN[k].n}產出；${MATS[k].d}。` +
+        (MAT_SAME[n] ? `跟${MAT_SAME[n]}不是同一個東西。` : ''))
+  );
 const matOf = key => [key.split(':')[0], +key.split(':')[1] || 0];
 const MATSOF = () => (MAT().mats = MAT().mats || {});
 function matAdd(k, T, n = 1) {

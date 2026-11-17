@@ -4125,7 +4125,7 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 10（跟 roundLoot 量的比例差 ±10%；M1：Lv1 壓成 240，Lv2／8／21＝570／780／2,090）、木 50n、鐵 10n（階＝那時候的上限）',
+    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 10（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
     R(`(() => {
       S.camp = newCamp(); S.world = newWorld(); S.lv = 99; S.frags = newFrags();
       if (wWhy(S, ...wXY(TRUNK_K[0])) || !wWhy(S, ...wXY(TRUNK_K[1])) || !campCan('node:' + TRUNK_K[0]) || campCan('node:' + TRUNK_K[1])) return 'lv0';
@@ -4139,11 +4139,9 @@ const ASC_COMBOS = `const combos = k => {
         if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== 10 * n) return 'row ' + n;
         S.mat = newMat(); const a = roundLoot(lvT(TRUNK[0].lv), 1, 40, 0); S.mat = newMat(); const b = roundLoot(lvT(T.lv), 1, 40, 0);
         const want = ((W_SPM * b) / a) * W_MIN;
-        if (n > 1 && Math.abs(r.soul - want) / want > 0.1) return 'soul ' + n + ' ' + r.soul + ' ' + want;
+        if (Math.abs(r.soul - want) / want > 0.1) return 'soul ' + n + ' ' + r.soul + ' ' + want;
       }
       S.mat = m0;
-      const sp = [1, 2, 8, 21].map(n => CAMP.watch[n - 1].soul).join();
-      if (sp !== '240,570,780,2090') return 'M1 ' + sp;
       return '';
     })()`) === ''
   );
@@ -4152,6 +4150,12 @@ const ASC_COMBOS = `const combos = k => {
     R(
       `[matName('iron', 1), matName('hide', 6), matName('silk', 3), matName('wood', 0), matKey('iron', 1), MATS.iron.n].join()`
     ) === '生鐵,神獸革,彩絲,木,iron:1,鐵'
+  );
+  ok(
+    'M1 名詞表：18 個材料顯示名都在 TERMS、開頭寫「一種材料」；百煉鋼／寒鐵／隕鐵寫明跟天賦大點、寒鐵盾、隕鐵鎚不同',
+    R(
+      `Object.values(MAT_TIER_N).flat().every(n => /^一種材料/.test(TERMS[n])) && /天賦大點/.test(TERMS['百煉鋼']) && /寒鐵盾/.test(TERMS['寒鐵']) && /隕鐵鎚/.test(TERMS['隕鐵'])`
+    ) === true
   );
   ok(
     '十座的解鎖鍵都有人讀：CAMP 的每個 un 鍵在 js/ 裡至少一處讀到',
