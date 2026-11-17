@@ -1,0 +1,12 @@
+390x844 exit=0 ✅141 ❌0
+375x667 exit=0 ✅141 ❌0
+412x915 exit=0 ✅141 ❌0
+844x390 exit=0 ✅60 ❌0
+1280x720 exit=0 ✅60 ❌0
+1440x900 exit=1 ✅59 ❌1
+hide_check exit=0 ✅34 ❌0
+world_check exit=0 ✅30 ❌0
+pro_check exit=0 ✅43 ❌0
+vfx exit=0
+shots exit=0 ✅24 ❌0
+ALLDONE

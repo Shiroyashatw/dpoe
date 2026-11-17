@@ -1,29 +1,29 @@
 ✅ 390x844 缺圖：四種地形都退回程式畫法（區塊 384） [[false,false,false,false],384]
 ✅ 390x844 缺圖：王印 32／16 都借 cur_regal（ic_cur x=297） [["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"],["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"]]
 ✅ 390x844 缺圖：特效全部播舊的（crit、舊升級、程式光柱） {"tiles":[false,false,false,false],"chunk":384,"wy":["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"],"wy16":["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"],"crit":"crit","lv":"old","chase":"old","beam":false,"wyap":"old","critPushed":["crit"]}
-390x844 fallback {"T":{"x":1152.3336807772848,"y":570},"P":[452.3336807772849,560],"visW":480}
-  num: 白天 n=709 最亮=255；夜晚 n=287 最亮=17；夜/日能量比 0.035
-  bar: 白天 n=185 最亮=229；夜晚 n=51 最亮=16；夜/日能量比 0.032
-  beam: 白天 n=5971 最亮=244；夜晚 n=5356 最亮=241；夜/日能量比 1.023
+390x844 fallback {"T":{"x":1144.8853122252908,"y":553.5499269424862},"P":[444.8853122252909,543.5499269424862],"visW":480}
+  num: 白天 n=593 最亮=255；夜晚 n=279 最亮=17；夜/日能量比 0.035
+  bar: 白天 n=185 最亮=229；夜晚 n=49 最亮=12；夜/日能量比 0.028
+  beam: 白天 n=6147 最亮=247；夜晚 n=5536 最亮=245；夜/日能量比 1.013
 ✅ 390x844 fallback 白天跳數字沒被壓暗（最亮 ≥200） 255
 ✅ 390x844 fallback 白天怪物生命條沒被壓暗（最亮 ≥200） 229
 ✅ 390x844 fallback 夜晚跳數字被壓暗 [0.035,17]
-✅ 390x844 fallback 夜晚怪物生命條被壓暗 [0.032,16]
-✅ 390x844 fallback 夜晚光柱不被壓暗（夜/日能量比 ≥0.9；光柱半透明，背後地板夜晚較暗所以最亮值略低） [1.023,244,241]
+✅ 390x844 fallback 夜晚怪物生命條被壓暗 [0.028,12]
+✅ 390x844 fallback 夜晚光柱不被壓暗（夜/日能量比 ≥0.9；光柱半透明，背後地板夜晚較暗所以最亮值略低） [1.013,247,245]
 ✅ 390x844 fallback 沒有頁面錯誤 []
   console error（24）： ["Failed to load resource: net::ERR_FAILED","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)"]
 ✅ 1280x720 缺圖：四種地形都退回程式畫法（區塊 384） [[false,false,false,false],384]
 ✅ 1280x720 缺圖：王印 32／16 都借 cur_regal（ic_cur x=297） [["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"],["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"]]
 ✅ 1280x720 缺圖：特效全部播舊的（crit、舊升級、程式光柱） {"tiles":[false,false,false,false],"chunk":384,"wy":["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"],"wy16":["ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297","ic_cur.fc024028.png@297"],"crit":"crit","lv":"old","chase":"old","beam":false,"wyap":"old","critPushed":["crit"]}
-1280x720 fallback {"T":{"x":1279.306199092569,"y":440.0460434399567},"P":[579.306199092569,430.0460434399567],"visW":948.148148148148}
-  num: 白天 n=1571 最亮=255；夜晚 n=907 最亮=22；夜/日能量比 0.039
-  bar: 白天 n=717 最亮=229；夜晚 n=264 最亮=21；夜/日能量比 0.04
-  beam: 白天 n=19859 最亮=217；夜晚 n=18240 最亮=205；夜/日能量比 0.973
+1280x720 fallback {"T":{"x":1288.3972904977186,"y":355.8852499490959},"P":[588.3972904977186,345.8852499490959],"visW":948.148148148148}
+  num: 白天 n=1552 最亮=255；夜晚 n=819 最亮=17；夜/日能量比 0.038
+  bar: 白天 n=696 最亮=229；夜晚 n=210 最亮=16；夜/日能量比 0.035
+  beam: 白天 n=20190 最亮=239；夜晚 n=18581 最亮=234；夜/日能量比 0.981
 ✅ 1280x720 fallback 白天跳數字沒被壓暗（最亮 ≥200） 255
 ✅ 1280x720 fallback 白天怪物生命條沒被壓暗（最亮 ≥200） 229
-✅ 1280x720 fallback 夜晚跳數字被壓暗 [0.039,22]
-✅ 1280x720 fallback 夜晚怪物生命條被壓暗 [0.04,21]
-✅ 1280x720 fallback 夜晚光柱不被壓暗（夜/日能量比 ≥0.9；光柱半透明，背後地板夜晚較暗所以最亮值略低） [0.973,217,205]
+✅ 1280x720 fallback 夜晚跳數字被壓暗 [0.038,17]
+✅ 1280x720 fallback 夜晚怪物生命條被壓暗 [0.035,16]
+✅ 1280x720 fallback 夜晚光柱不被壓暗（夜/日能量比 ≥0.9；光柱半透明，背後地板夜晚較暗所以最亮值略低） [0.981,239,234]
 ✅ 1280x720 fallback 沒有頁面錯誤 []
   console error（24）： ["Failed to load resource: net::ERR_FAILED","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)","Failed to load resource: the server responded with a status of 404 (File not found)"]
 ✅ 全部通過
