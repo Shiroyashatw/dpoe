@@ -4,12 +4,14 @@ const { chromium } = require('playwright');
    瞭望台開了新地點就去那裡刷、一分鐘打造一件（部位輪流，留下一件升級要的鐵）並在 ▲ 時換上、其他分解。每分鐘印一列，最後寫總結。
    M1-21：另外記首輪完成時間（打倒第一隻王）、每一次「小變強」（產生器 +1 級、營地設施 +1 級、換上 ▲ 的裝備、角色升級）的秒數與前 15 分鐘的最大間隔、
    跳出的解鎖一句話（hudWarn 裡「Lv」開頭的那些，M1-14）。
-   用法：先開本機伺服器，node tools/camp_run.js [網址] [分鐘，預設 30] [寬 390] [高 844]；只量不改。環境變數 PW_CHROME 指定瀏覽器 */
+   M1-21 瞭望台：第 6 個參數給 CSV 路徑就逐分鐘寫一列（靈魂收入、靈魂花在哪座設施、鐵 T1 產量與用量）。
+   用法：先開本機伺服器，node tools/camp_run.js [網址] [分鐘，預設 30] [寬 390] [高 844] [CSV]；只量不改。環境變數 PW_CHROME 指定瀏覽器 */
 const URL = process.argv[2] || 'http://localhost:8000/',
   MIN = +process.argv[3] || 30,
   VW = +process.argv[4] || 390,
   VH = +process.argv[5] || 844,
-  MOB = VW < 900;
+  MOB = VW < 900,
+  CSV = process.argv[6];
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await b.newContext({ viewport: { width: VW, height: VH }, hasTouch: MOB, isMobile: MOB });
@@ -36,6 +38,29 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     window.__gen = 0;
     window.__craft = [0, 0];
     window.__t0 = Date.now();
+    /* M1-21：靈魂花在哪（campUp 前後的差）、鐵 T1 產量（genTick 回的）與用量（營地／產生器／打造前後的差，打造含同一批分解退回的） */
+    window.__acc = { sp: {}, ip: 0, iu: { camp: 0, gen: 0, craft: 0 } };
+    const i1 = () => matN('iron', 1),
+      wrap = (f, on) =>
+        function (...a) {
+          const s0 = S.mat.soul,
+            n0 = i1(),
+            r = f.apply(this, a);
+          on(a, s0 - S.mat.soul, n0 - i1(), r);
+          return r;
+        };
+    campUp = wrap(campUp, ([b], ds, di) => {
+      if (ds) __acc.sp[b] = (__acc.sp[b] || 0) + ds;
+      __acc.iu.camp += di;
+    });
+    genUp = wrap(genUp, (a, ds, di) => (__acc.iu.gen += di));
+    craftDo = wrap(craftDo, (a, ds, di) => (__acc.iu.craft += di));
+    const gt = genTick;
+    genTick = dt => {
+      const got = gt(dt);
+      __acc.ip += (got && got['iron:1']) || 0;
+      return got;
+    };
     /* M1-21：首輪、小變強、解鎖句（每 250 毫秒看一次；hudWarn 包一層記下來） */
     window.__r1 = 0;
     window.__up = [];
@@ -124,6 +149,12 @@ const URL = process.argv[2] || 'http://localhost:8000/',
       node: G.nodeN,
       lv: S.lv,
       soul: Math.round(S.mat.soul),
+      acc: (() => {
+        const a = __acc;
+        window.__acc = { sp: {}, ip: 0, iu: { camp: 0, gen: 0, craft: 0 } };
+        return a;
+      })(),
+      iron1: matN('iron', 1),
       wood: matN('wood'),
       iron: Object.entries(S.mat.mats)
         .filter(([k]) => k.startsWith('iron'))
@@ -143,6 +174,51 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     console.log(
       `${String(min).padStart(2)} 分 | ${r.node} 角色Lv${r.lv} | 靈魂 ${r.soul}（${r.spm}/分）| 木 ${r.wood} | 鐵 ${r.iron} | ${r.gen} | 鍛瞭斥民祭倉 ${r.camp} | 輪 ${r.rounds} 死 ${r.deaths} | 產生器累計 ${r.gens} 級 | 打造/換上 ${r.craft} | ${r.dbg}${r.ev.length ? '\n      ' + r.ev.join('\n      ') : ''}`
     );
+  }
+  if (CSV) {
+    const B = ['forge', 'watch', 'scout', 'house', 'altar', 'store'],
+      N = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '祭壇', store: '倉房' },
+      L = [
+        [
+          '分',
+          '地點',
+          '角色Lv',
+          '靈魂庫存',
+          '靈魂收入',
+          ...B.map(b => '靈魂花在' + N[b]),
+          '鍛瞭斥民祭倉',
+          '鐵T1庫存',
+          '鐵T1產量',
+          '鐵T1用量_營地',
+          '鐵T1用量_產生器',
+          '鐵T1用量_打造',
+          '事件'
+        ].join(',')
+      ];
+    let s0 = 0;
+    rows.forEach((r, i) => {
+      const sp = B.map(b => Math.round(r.acc.sp[b] || 0)),
+        inc = r.soul - s0 + sp.reduce((a, b) => a + b, 0);
+      s0 = r.soul;
+      L.push(
+        [
+          i + 1,
+          r.node,
+          r.lv,
+          r.soul,
+          inc,
+          ...sp,
+          r.camp,
+          r.iron1,
+          r.acc.ip,
+          r.acc.iu.camp,
+          r.acc.iu.gen,
+          r.acc.iu.craft,
+          '"' + r.ev.join('；') + '"'
+        ].join(',')
+      );
+    });
+    require('fs').writeFileSync(CSV, L.join('\n') + '\n');
   }
   const news = rows.reduce((a, r) => a + r.ev.filter(e => !/換上/.test(e)).length, 0),
     ups = rows.reduce((a, r) => a + r.ev.filter(e => /換上/.test(e)).length, 0),
