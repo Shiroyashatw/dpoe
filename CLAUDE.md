@@ -8,7 +8,7 @@
 
 ## Skill
 - 每次新對話開始：`ponytail`（最小完整改動）、`grilling`（先把計畫問清楚）、`ambition`（把目標拉高，更大的版本當選項提給使用者）。
-- 動到 UI／UX 一定先啟動 `ui-design`（長相照 `DESIGN.md`；互動、動畫、手勢加 `apple-design`／`animate`；技術限制與測試尺寸照 `docs/介面規範.md`）。
+- 動到 UI／UX 一定先啟動 `ui-design`（長相照 `DESIGN.md`，色值、畫法與元件尺寸以它連到的 `docs/production/specs/M2-36-*`、`M2-33-*` 為準；只寫角色 token，不寫色碼；互動、動畫、手勢加 `apple-design`／`animate`；技術限制與測試尺寸照 `docs/介面規範.md`）。
 - 動天賦樹（效果、主題、預留叢集、形狀、配色、重烘）用 `talent-tree`，規則在 `docs/天賦樹設計.md`。
 
 ## 平台
