@@ -10642,6 +10642,13 @@ const ASC_COMBOS = `const combos = k => {
       r.mini = [!m1.chase, S.chase.pts, S.prd.feel, !m1.feel];
       Math.random = () => 0.001;
       r.mini.push(isWy(killMat({ boss: 1, mini: 1 }, hi, { ei: 9 }).chase), S.chase.pts);
+      /* P.feel 定義（數值設計師 11/17 19:12）：一般怪、菁英、輪末王掉出有感掉落都歸零；沒掉時輪末王 +1、一般怪與菁英不變（Lv43 不判追逐；dropCur 換成固定結果） */
+      const dc = dropCur, fx = (m, cur) => ((dropCur = () => ({ cur, ess: [], jw: false })), (S.prd.feel = 1), killMat(m, lo), S.prd.feel);
+      try {
+        r.pf = [{}, { elite: 1 }, { boss: 1 }].flatMap(m => [fx(m, { frac: 1 }), fx(m, {})]);
+      } finally {
+        dropCur = dc;
+      }
       const old = { ...newGame() }; delete old.chase;
       r.mig = JSON.stringify(migrate(JSON.parse(JSON.stringify(old))).chase);
     } finally {
@@ -10668,6 +10675,11 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify(ch.mini) === '[true,601,2,true,true,0]' &&
       ch.mig === '{"pts":0,"got":{}}',
     JSON.stringify(ch)
+  );
+  ok(
+    'M2-17／M2-18 有感保底 P.feel：一般怪、菁英、輪末王掉出有感掉落都歸零；沒掉時輪末王 +1、一般怪與菁英不變',
+    JSON.stringify(ch.pf) === '[0,1,0,1,0,2]',
+    JSON.stringify(ch.pf)
   );
   /* M2-18 addendum（製作人、數值設計師、Game Art Director 11/17）：圖檔 id、字串表、保底 %、Lv<45 不出那一行、pack 不算通貨、離線那一列、橫幅進度、
      王印進碎片頁、追逐標記在打造與套印後保留、開發觸發；13:27 靈魂包（soulpack、dropAt soul、撿起來加 MAT().soul 不加 SES.soul、飄字 packGain、紀錄、pack 不算通貨） */
