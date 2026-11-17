@@ -298,9 +298,9 @@ function statText(k, v) {
   if (N[2] === 1 && !(N[3] || '').includes('{}')) return N[3] || N[0];
   const t = N[3];
   if (Array.isArray(v)) return t ? t.replace('{}', `${v[0]} 至 ${v[1]}`) : `${N[0]} ${v[0]} 至 ${v[1]}`;
-  if (!t) return `${N[0]} ${v > 0 ? '+' : ''}${v}${N[1]}`;
+  if (!t) return `${N[0]} ${v > 0 ? '+' + v : v < 0 ? '−' + -v : v}${N[1]}`; /* M1：負數一律用 −（U+2212） */
   const s = t.replace('{}', Math.abs(v));
-  return v < 0 ? s.replace('增加', '減少').replace('更多', '更少').replace('+', '-') : s;
+  return v < 0 ? s.replace('增加', '減少').replace('更多', '更少').replace('+', '−') : s;
 }
 /* 神格的說明：每條能力一行 */
 const ghText = gh =>

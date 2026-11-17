@@ -345,7 +345,7 @@ body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-le
 body.touch #pshop, body.touch #pflt, body.touch #preveal, body.touch #plog { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch .eqrow { flex-wrap: wrap; gap: 8px; }
 body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-space: normal; }
-body.touch .ph .x { width: 44px; height: 44px; }
+body.touch .ph .x { width: 44px; height: 44px; } /* BASE-01：關閉可見底與熱區 44×44 */
 @media (max-width: 799px) {
   body.touch #pinv, body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); right: calc(6px + env(safe-area-inset-right)); width: auto; }
   body.touch .ph .sw { display: block; width: auto; padding: 0 12px; margin-left: auto; }
@@ -547,7 +547,6 @@ body.touch .panel { --pp: 10px; }
 #over .card h2 { font-family: var(--serif); color: var(--title); }
 #over .card h2.c-bad { color: #e8574f; }
 /* M1-17：死亡卡的「現在可以升」：一整列、在兩顆主鈕上面 */
-#over .card .btn.dup { display: block; width: 100%; min-height: 48px; margin: 12px 0 4px; white-space: normal; }
 #over .card.portal h2 { color: #a9cfff; }
 /* 天賦樹：石材工具列、金色連線 */
 #ptree { background: radial-gradient(ellipse at 50% 45%, var(--s2), var(--s0) 75%); }
@@ -1871,7 +1870,11 @@ body.touch .sk-chips button { min-height: 44px; }
   --act: #8f3a2b; --act-hi: #a5452f; --sel: #e6d9bd; --sel-ink: #2a1a12;
   --r0: #d9cdb4; --r1: #7ea7ff; --r2: #ffcf5c; --r3: #52d6c3; --good: #7fc95a; --bad: #e0553f; --warn: #e0614a;
   --fr-c: #f1ebdc; --mm: #c79bff; --co: #e0614a; --paper: #e6d9bd; --ink: #2a1a12; --milk: #d9cdb4; --milk2: #a6957e;
+  /* BASE-02（2026-11-16 准用）：14／13 px 的負向正文、失效與警告；--bad 只留給大字或圖示 */
+  --bad-hi: #f06a50;
 }
+/* BASE-02：小字警告一律 --bad-hi（大字標題 #over h2.c-bad 照舊） */
+.c-bad, .c-warn, .note .w, .curow .ct small.c-warn, .sethint.c-bad { color: var(--bad-hi); }
 body { background: var(--bg); }
 .fr { color: var(--fr-c); } .mm { color: var(--mm); } .co { color: var(--co); }
 .c-gold { color: var(--gold); }
@@ -1889,7 +1892,7 @@ body.touch.port #pnav:not([hidden]) { background: var(--s0); border-top: 0; box-
 #pnav button.on { background: var(--paper); color: var(--ink); border-top: 0; }
 #pnav .dot, #dnav .dot { position: absolute; top: 6px; right: 22%; width: 8px; height: 8px; border-radius: 50%; background: var(--act); box-shadow: 0 0 0 2px var(--s0); }
 body.touch.port #phand:not([hidden]) { background: var(--s1); border-top: 0; box-shadow: none; }
-#phand i { background: var(--fr); }
+#phand i { background: var(--fr-hi); } /* BASE-01：把手橫條 --fr-hi */
 /* 桌機（0.4.9）：右上同一排分頁、功能列收起、球換成長條 */
 #dnav { position: absolute; right: 12px; top: 12px; z-index: 4; display: flex; gap: 4px; pointer-events: auto; }
 #dnav[hidden] { display: none; }
@@ -2266,3 +2269,147 @@ body:not(.touch) #pcraft.cwide { width: min(60vw, 1080px); }
 .ndst .chip { min-height: 44px; min-width: 52px; }
 .ndst .c-dim { font-size: var(--fs-s); }
 .ndl li.on .ndr { border-color: var(--fr-hi); }
+
+/* ===== M1 第二批介面：共用基礎（docs 規格「dpoe M1 直立視覺規格」BASE-02～05、M1-02.1）===== */
+/* BASE-04／M1-02.1 主按鈕：高 48、字 700 16–17、左右 ≥16、圓角 3、act-hi→act 漸層、字 #f3e4d2；pressed act-hi */
+.btn.pri { min-height: 48px; padding-left: 16px; padding-right: 16px; border: 0; border-radius: 3px; background: linear-gradient(180deg, var(--act-hi), var(--act)); color: #f3e4d2; font: 700 16px/1.2 var(--font); letter-spacing: 0.02em; }
+.btn.pri:not(:disabled):active { background: var(--act-hi); }
+/* BASE-05：disabled／買不起＝s3 底＋milk2（原因另寫 14 px） */
+.btn:disabled, .btn.pri:disabled { opacity: 1; background: var(--s3); color: var(--milk2); box-shadow: none; }
+/* BASE-02／05：次要鈕框 --fr-hi、s2 底、milk 14／700；pressed s3 */
+.btn:not(.pri) { border-color: var(--fr-hi); }
+.btn:not(.pri):not(:disabled):active { background: var(--s3); }
+/* M1-10 視覺：「已暫停」膠囊（頂列置中、不擋點擊；#over 開著時也在最上面） */
+#paused { position: fixed; left: 50%; transform: translateX(-50%); z-index: 41; height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(15, 12, 10, 0.75); border: 1px solid var(--fr-hi); color: var(--paper); font: 700 13px/20px var(--font); pointer-events: none; white-space: nowrap; }
+#paused[hidden] { display: none; }
+/* M1-17 視覺：死亡卡。升級鈕＝主鈕在最上面（滿寬 48）；再試一次次要 48；回藏身處文字鏈；直排間距 8、不等寬並排 */
+#over .card.dead { max-width: min(358px, calc(100vw - 32px)); }
+#over .card.dead h2 { font: 900 22px/1.2 var(--serif); }
+#over .card.dead .ddeath, #over .card.dead .dmods, #over .card.dead > p { font-size: 14px; line-height: 1.4; }
+#over .pbtns.dcol { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+#over .pbtns.dcol .btn { width: 100%; min-height: 48px; white-space: normal; }
+#over .pbtns.dcol .btn.dup small { display: block; font-size: 14px; color: #f3e4d2; }
+#over .pbtns.dcol .btn.dlink { min-height: 44px; background: none; border: 0; color: var(--milk2); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 380px) { #over .card.dead { padding-left: 12px; padding-right: 12px; } }
+/* M1-14 視覺：掉落紀錄空的時候，保底條下方 16 px、置左 14／1.4／500 --milk2，不要假列 */
+#plog .lgl li.none { display: block; padding: 16px 0 0; border: 0; background: none; text-align: left; font: 500 14px/1.4 var(--font); color: var(--milk2); }
+/* M1-04.1：挖空圓描邊 --fr-hi、螢幕 ≥2 px（總覽 z≈0.28 → 8 樹單位）；M1-04.3：路線名填 #f1ebdc，總覽螢幕字 62×0.28≈17 px ≥16 */
+#tg .hollow { fill: var(--s0); stroke: var(--fr-hi); stroke-width: 8; }
+#tg .secn { fill: #f1ebdc; }
+/* BASE-01：直立面板的標題列 44 高 */
+body.touch.port .panel > .ph:first-child { min-height: 44px; padding-top: 0; padding-bottom: 0; align-items: center; }
+/* M1-12：裝備格標籤 13／1.3／500 milk2、空格虛線 --fr-hi、空標 13 px milk2；捲動內容底下留 16 px */
+.eqs .nm, .eqs.emp small { font: 500 13px/1.3 var(--font); color: var(--milk2); }
+.eqs.emp { border: 1px dashed var(--fr-hi); }
+.eqs.emp small .ico { width: 13px; height: 13px; }
+body.touch.port #pinv { padding-bottom: 16px; }
+body.touch.port .doll2, body.touch.port .doll2 .col { gap: 6px; }
+body.touch.port #pinv .eqrow.col { margin-top: 0; }
+/* M1-12：護符列還沒完整露出時的捲動提示（漸層 24 px＋置中 16 px 向下箭頭，1.2 s 位移 3 px 的脈衝） */
+#pinv .schint { position: sticky; bottom: -16px; height: 24px; margin: -24px calc(-1 * var(--pp)) -16px; display: grid; place-items: center; background: linear-gradient(to top, var(--s1), transparent); pointer-events: none; }
+#pinv .schint[hidden] { display: none; }
+#pinv .schint .ico { width: 16px; height: 16px; color: var(--milk2); animation: schint 1.2s ease-in-out infinite; }
+@keyframes schint { 50% { transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) { #pinv .schint .ico { animation: none; } }
+/* M1-11：護符滿格「要換掉哪一格」 */
+#pinv .chsw { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
+#pinv .chsr { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 6px 12px; background: var(--s2); border: 1px solid var(--fr-hi); border-radius: 3px; color: var(--milk); font: 700 14px/1.4 var(--font); text-align: left; cursor: pointer; }
+#pinv .chsr:active { background: var(--s3); }
+#pinv .chsr .ic { width: 40px; height: 40px; }
+#pinv .chsr span { display: flex; flex-direction: column; }
+#pinv .chsr small { font: 500 14px/1.4 var(--font); color: var(--milk2); }
+#pinv .chsno { min-height: 44px; width: 100%; }
+/* M1-20b／M1-15b：差值與失效警告，詞綴下、動作鈕上，14／700 */
+.dlt { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0 0; font: 700 14px/1.4 var(--font); }
+.dlt.c-bad { display: block; }
+/* ===== M1-SK.1 技能總覽 ===== */
+#pskill .paper.strip { min-height: 64px; }
+#pskill .paper.strip .big { font: 700 28px/1.1 var(--font); }
+#pskill .paper.strip .k, #pskill .paper.strip > .sub { font-size: 14px; }
+#pskill .sk-sec.rows { display: flex; flex-direction: column; gap: 8px; }
+.skr { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; column-gap: 8px; row-gap: 4px; min-height: 72px; padding: 6px 12px 6px 0; }
+.skr > .sk-grip, .skr > .sk-grip0 { grid-row: 1 / span 2; align-self: center; }
+#pskill .sk-grip { width: 44px; height: 44px; color: var(--milk2); }
+#pskill .sk-grip .ico { width: 20px; height: 20px; }
+.skr-main .n { font: 700 16px/1.3 var(--font); }
+.skr-main .n small { font: 500 14px var(--font); color: var(--milk2); }
+.skr-main .fq { font: 500 14px/1.4 var(--font); color: var(--milk2); }
+.skr-sw { width: 44px; height: 44px; background: var(--s2); border: 1px solid var(--fr-hi); border-radius: 3px; color: var(--milk); font: 700 14px var(--font); cursor: pointer; }
+.skr-sw:active { background: var(--s3); transform: scale(0.96); }
+.skr-2 { grid-column: 2 / span 2; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.skr-2 .holes { margin-right: auto; }
+.skr .dps { font: 700 14px var(--font); }
+.skr .why { font: 700 14px/1.4 var(--font); color: var(--bad-hi); max-width: none; text-align: left; }
+.skr-up { min-width: 96px; min-height: 44px; font: 700 14px var(--font); border-color: var(--fr-hi); }
+.skr-up:disabled { opacity: 1; background: var(--s3); color: var(--milk2); }
+.skr.emp { display: flex; min-height: 72px; padding: 8px 12px; border: 1px dashed var(--fr-hi); font: 500 14px/1.4 var(--font); color: var(--milk2); text-align: left; }
+.skr.nxu { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; background: none; border: 1px dashed var(--fr-hi); font: 500 14px/1.4 var(--font); color: var(--milk2); }
+.skr.nxu .ico { width: 16px; height: 16px; flex: none; }
+/* ===== M1-SK.2 技能詳情 ===== */
+.sk-back { display: flex; align-items: center; gap: 4px; min-width: 44px; min-height: 44px; padding: 0 12px 0 4px; color: var(--milk); }
+.sk-back .ico { width: 20px; height: 20px; }
+.sk-top span { font-size: 14px; }
+.sk-bar { flex-direction: column; gap: 8px; }
+.sk-bar1 { display: flex; gap: 8px; }
+.sk-bar1 .sk-btn.pri { flex: 1; min-height: 48px; }
+.sk-bar1 .sk-sw2 { flex: none; min-width: 96px; min-height: 48px; border: 1px solid var(--fr-hi); }
+.sk-out { align-self: flex-start; min-height: 44px; min-width: 44px; padding: 0 8px; background: none; border: 0; font: 700 14px var(--font); color: var(--milk2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.sk-bar .dlt { margin: 0; }
+.sk-p.sk-hint { font: 500 14px/1.4 var(--font); color: var(--milk2); }
+.sk-list .sk-row, .sk-sec .sk-row { min-height: 44px; }
+.sk-row.emp.lk { opacity: 1; border: 1px dashed var(--fr-hi); color: var(--milk2); cursor: default; }
+.sk-row.emp.lk small { font-size: 14px; color: var(--milk2); }
+/* ===== M1-PK 技能挑選 ===== */
+.sk-chips { flex-wrap: wrap; overflow: visible; gap: 8px 6px; padding: 0 16px 8px; }
+.sk-chips button { min-height: 44px; min-width: 44px; font: 500 14px var(--font) !important; }
+.sk-list { scrollbar-width: auto; }
+.sk-list .sk-row { min-height: 60px; }
+.sk-list .sk-row b, .sk-list .sk-row small { font-size: 14px; }
+.sk-dn { color: var(--bad-hi); }
+.sk-d0 { font: 500 14px/1.4 var(--font); color: var(--milk2); }
+#pskill .sk-bar > .sk-btn.pri { width: 100%; min-height: 48px; }
+/* ===== M1-CP 營地、M1-02.3 掛機卡 ===== */
+.cmnxu { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px dashed var(--fr-hi); border-radius: 3px; font: 500 14px/1.4 var(--font); color: var(--milk2); }
+.cmnxu .ico { width: 16px; height: 16px; flex: none; }
+.cmmore { margin: 0; font: 500 13px/1.4 var(--font); color: var(--milk2); }
+.cch { min-height: 44px; }
+.cch > .ico:last-child { width: 20px; height: 20px; margin-left: auto; flex: none; color: var(--milk2); transition: transform 160ms ease-out; }
+.cch[aria-expanded='true'] > .ico:last-child { transform: rotate(180deg); }
+.ccbig.sm { font: 500 14px/1.4 var(--font); color: var(--milk2); }
+.cmmul button, .bagf.cmmul button { min-height: 44px; }
+#pcraft .ftabs button { min-height: 44px; font-size: 14px; }
+#pcraft [data-fg='go'] { width: 100%; min-height: 48px; }
+/* M1-CP.2 徽章：pill 高 18、12／700、#f3e4d2 on --act，「3 可升級」 */
+#pnav .dot.n.pill, #dnav .dot.n.pill { top: -9px; left: 50%; right: auto; transform: translateX(-50%); width: auto; min-width: 0; height: 18px; padding: 0 8px; border-radius: 9px; background: var(--act); box-shadow: 0 0 0 2px var(--s0); color: #f3e4d2; font: 700 12px/18px var(--font); white-space: nowrap; }
+/* M1-02.3：掛機卡的「去營地」 */
+#pidle .igo { width: 100%; min-height: 48px; margin-top: 8px; }
+/* BASE-03：分頁列文字不小於 13 px */
+#pnav button { font-size: 13px; }
+/* ===== M1-14b 空狀態 ===== */
+.cuslot { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 72px; padding: 8px 12px; background: none; border: 2px dashed var(--fr-hi); border-radius: 3px; color: var(--milk); font: 700 14px/1.4 var(--font); cursor: pointer; }
+div.cuslot { cursor: default; color: var(--milk2); font-weight: 500; }
+.cuslot .ico { width: 18px; height: 18px; }
+.cuhint { margin: 8px 0 0; font: 500 14px/1.4 var(--font); color: var(--milk2); }
+.curow.z .ct small { font-size: 14px; color: var(--milk2); }
+.curow.nxu { border: 1px dashed var(--fr-hi); background: none; color: var(--milk2); cursor: default; }
+.curow.nxu .ico { width: 16px; height: 16px; flex: none; }
+.curow.nxu small { font-size: 14px; color: var(--milk2); }
+p.bagno { font: 500 14px/1.4 var(--font); color: var(--milk2); text-align: left; padding: 16px 0; }
+/* BASE-02／03：空孔「空」13 px --milk2、虛線 --fr-hi；總覽列的 DPS 不用襯線大字；小標 13 px */
+.holes .h.emp { border: 1px dashed var(--fr-hi); font: 500 13px var(--font); color: var(--milk2); }
+.skr .dps b { font: 700 14px var(--font); }
+#pskill .sk-lab { font: 500 13px/1.4 var(--font); color: var(--milk2); }
+/* BASE-03／M1-02.2：資訊 14 px、輔助說明 13 px，不再用 12 px 承擔資訊（技能詳情、營地） */
+.sk-h small, .sk-hero small, .sk-t small, .sk-more { font-size: 14px; }
+.rbar .rn, .cch span, .bagf.cmmul .chip, .cmnext b { font-size: 14px; }
+.cmnext small, .cmnext small.d, .cmgrp > span, .ccml span, .ccbig small, .btn small { font-size: 13px; }
+#pcraft .cch span, #pcraft .bagf .chip { font-size: 14px !important; }
+#pcraft .btn small { font-size: 13px !important; }
+#pcraft .ccml, #pcraft .ccml span { font-size: 13px !important; }
+#pcraft .ftabs button { font-size: 14px !important; min-height: 44px; }
+.rbar small { font-size: 14px; }
+/* M1-17 視覺：升級鈕的費用在鈕內第二行 */
+#over .pbtns.dcol .btn.dup { flex-direction: column; justify-content: center; gap: 2px; }
+/* BASE-04：破壞性動作（分解）＝主行動下一行的文字鏈，熱區 44 */
+.dlink2 { align-self: flex-start; display: inline-flex; align-items: baseline; gap: 8px; min-height: 44px; padding: 0 8px; background: none; border: 0; font: 700 14px var(--font); color: var(--milk2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.dlink2 small { font: 500 13px var(--font); text-decoration: none; }
