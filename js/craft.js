@@ -367,7 +367,8 @@ const NEXT_U = {
   tree: { k: { tree: '天賦樹', jsock: '天賦樹珠寶孔' } },
   asc: { k: { asc: '昇華石碑', asc3: '第三個昇華' } },
   aura: { k: { aura: '光環欄' } },
-  menu: { k: { tree: '天賦樹', asc: '昇華石碑' } }
+  menu: { k: { tree: '天賦樹', asc: '昇華石碑' } },
+  camp: { k: { 'mat:hide': '獵場', 'mat:silk': '絲地' } }
 };
 function nextUnlock(kind) {
   const u = NEXT_U[kind],
@@ -378,7 +379,7 @@ function nextUnlock(kind) {
       lv0 = C[u.b] || 0;
     for (let lv = lv0 + 1; lv <= campMax(u.b) && !r; lv++) {
       C[u.b] = lv;
-      if (campN(u.n) > now) r = { b: u.b, lv, n: `第 ${campN(u.n)} 個${u.t}` };
+      if (campN(u.n) > now) r = { b: u.b, lv, m: campN(u.n), n: `第 ${campN(u.n)} 個${u.t}` };
     }
     C[u.b] = lv0;
   } else

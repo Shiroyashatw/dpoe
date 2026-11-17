@@ -67,7 +67,8 @@ const ICO = (() => {
     hammer: s('<path d="M8.6 2.6l4.8 4.8-1.7 1.7-1.3-1.3-6 6-1.8-1.8 6-6-1.3-1.3z"/>'),
     full: s('<path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/>'),
     prev: s('<path d="M10 3L5 8l5 5"/>'),
-    next: s('<path d="M6 3l5 5-5 5"/>')
+    next: s('<path d="M6 3l5 5-5 5"/>'),
+    down: s('<path d="M3 6l5 5 5-5"/>')
   };
 })();
 /* 直立操作：手機而且設定選直立（桌機一律橫向） */
@@ -95,7 +96,8 @@ function fmenuOpen(k) {
   closePanels();
   HP_HOLD--;
   if (on) return hudPanels();
-  (NAV.full = PORT() ? 1 : 0), openPanel(k);
+  /* BASE-01：跑圖中營地、掉落紀錄半版；其他（地點、通貨、昇華、寶盒）照舊蓋滿 */
+  (NAV.full = PORT() && !(G.scene === 'map' && (k === 'craft' || k === 'log')) ? 1 : 0), openPanel(k);
 }
 const fmenuHTML = () =>
   FMENU.filter(([k]) => k !== 'asc' || campCan('asc'))
@@ -119,6 +121,7 @@ function hudInit() {
   <div id="prac" hidden></div>
   <div id="talk" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
+  <div id="paused" hidden>已暫停</div>
   <div id="banner" role="status" aria-live="polite" hidden></div>
   <div id="pro" hidden><small id="pron"></small><b id="prot" role="status"></b><button class="btn mini" data-pro="skip">跳過<span class="ponly">序章</span></button></div>
   <div class="tonly" id="stick"><i></i></div>
@@ -174,8 +177,32 @@ function setV(el, k, v) {
 function setT(el, k, v) {
   if (HV[k] !== v) el.textContent = HV[k] = v;
 }
+/* M1-10 視覺：世界停住時，戰鬥區頂列置中一顆「已暫停」（#area／王血條下方 8 px；直立半版時落在上半的戰鬥區） */
+function pausedTick() {
+  const el = $('paused'),
+    on = G.scene === 'map' && worldPaused();
+  if (el.hidden === !on && !on) return;
+  el.hidden = !on;
+  if (!on) return;
+  const b = [$('area'), $('bossbar')]
+    .filter(e => e && !e.hidden && e.offsetParent)
+    .map(e => e.getBoundingClientRect().bottom);
+  el.style.top = Math.round(Math.max(0, ...b) + (IH < 700 ? 6 : 8)) + 'px';
+}
+/* M1-12：直立角色頁，護符列還沒完整露出（含 16 px 底距）時，捲動層下緣出一條漸層＋向下箭頭 */
+let SCH_T = 0;
+function charmHint() {
+  const h = PORT() && PANEL.inv && document.querySelector('#pinv .schint');
+  if (!h || performance.now() - SCH_T < 100) return;
+  SCH_T = performance.now();
+  const c = document.querySelector('#pinv .doll2x'),
+    p = $('pinv').getBoundingClientRect();
+  h.hidden = !c || c.getBoundingClientRect().bottom + 16 <= p.bottom + 1;
+}
 function hudTick() {
   if (!P) return;
+  pausedTick();
+  charmHint();
   setV($('ohp'), 'hp', (P.hp / ST.hp).toFixed(3));
   /* 地獄火（0.2.26，炎魔契約）：魔力球改成地獄火（橘紅色、往上漲；八成以上發紅光＝快自爆） */
   const hell = !!ST.hellfire,
@@ -359,10 +386,10 @@ function hudState() {
       up = campNextThing(),
       upB =
         up && up.e.m === 0
-          ? `<button class="btn wide dup" data-fg="${GEN[up.k] ? `gen:${up.k}:1` : `camp:${up.k}`}">現在可以升：${esc(up.n)}<small>${esc(up.d)}・${esc(costTxt(up.c))}</small></button>`
+          ? `<button class="btn pri wide dup" data-fg="${GEN[up.k] ? `gen:${up.k}:1` : `camp:${up.k}`}">現在可以升：${esc(up.n)}<small>${esc(costTxt(up.c))}</small></button>`
           : '';
     o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}${mods.length ? `<p class="dmods">這一輪的地圖詞：${mods.map(m => esc(MAPMOD[m].t)).join('、')}</p>` : ''}<p>不扣經驗，裝備都還在。${S.auto && again ? `自動模式會原地重來；同一個地點連死 ${DEAD_MAX} 次退回上一個地點。` : ''}</p>
-      ${upB}<div class="pbtns">${again ? `<button class="btn pri" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : ''}<button class="btn ${again ? '' : 'pri'}" data-a="home">回藏身處<small>自動刷圖暫停</small></button></div></div>`;
+      <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : ''}<button class="btn ${again || upB ? 'dlink' : 'pri'}" data-a="home">回藏身處<small>自動刷圖暫停</small></button></div></div>`;
     overOn(o);
   } else if (G.ask === 'home' && G.scene === 'map' && G.state === 'play') {
     /* 桌機：T 再按一次＝回去、Esc＝繼續刷圖（M0-04） */
@@ -442,7 +469,8 @@ function navGo(t) {
   NOSNAP = 1;
   if (on) return hudPanels(), (NOSNAP = 0);
   /* 做裝要同時看得到裝備的詞與通貨、技能面板很長（圓環＋說明＋升級鈕）：打開就蓋滿，把手可以縮回半版 */
-  if (t === 'craft' || t === 'skill') NAV.full = 1;
+  /* BASE-01：跑圖中一律半版（自動模式要看得到戰鬥），把手上拉才全版；藏身處（M2 併進營地前）營地／技能照舊蓋滿 */
+  NAV.full = G.scene !== 'map' && (t === 'craft' || t === 'skill') ? 1 : 0;
   if (t === 'bag' || t === 'char') (NAV.view = t), openPanel('inv');
   else if (t === 'craft') openPanel(PANEL.ctab === 'cur' || PANEL.ctab === 'frags' ? 'stash' : 'craft');
   else openPanel(t);
@@ -454,7 +482,7 @@ const navHTML = () => {
   return NAV_T.filter(([k]) => k !== 'tree' || campCan('tree'))
     .map(
       ([k, ic, t]) =>
-        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${navDot(k) ? (k === 'craft' ? `<i class="dot n" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : '有點數沒用'}"></i>`) : ''}</button>`
+        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()} 可升級</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : '有點數沒用'}"></i>`) : ''}</button>`
     )
     .join('');
 };
@@ -886,12 +914,13 @@ function dollHTML() {
     .map(([n, v]) => `<div class="mi"><small>${n}</small><b>${v}</b></div>`)
     .join(
       ''
-    )}<div class="res">${RESK.map(r => `<span class="res-${r} ${effRes(r) < 0 ? 'neg' : ''}" title="${ELN[r]}抗性${pen ? `（這一階 −${pen}%）` : ''}">${ELN[r][0]}<b>${effRes(r)}%</b></span>`).join('')}</div>${
+    )}<div class="res">${RESK.map(r => `<span class="res-${r} ${effRes(r) < 0 ? 'neg' : ''}" title="${ELN[r]}抗性${pen ? `（這一階 −${pen}%）` : ''}">${ELN[r][0]}<b>${String(effRes(r)).replace('-', '−')}%</b></span>`).join('')}</div>${
     ptLeft() > 0 ? `<button class="btn mi-b" data-tm="nav:tree">天賦 ${ptLeft()} 點未用</button>` : ''
   }</div>
   <div class="col">${DOLL_R.map(dollCell).join('')}</div></div>
   <div class="doll2x">${charms}<div class="eqs gh ${g ? 'r2' : 'emp'}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}">${g ? icHTML('z_' + g.g) : '<span class="nm">神格</span><small>空</small>'}</div></div>`;
 }
+let CHSW = null;
 function invHTML() {
   const s = ST,
     pen = G.scene === 'map' ? resPen(mobLv(G.mapT || 1)) : 0,
@@ -907,6 +936,19 @@ function invHTML() {
           .map(([k, n]) => `<button class="${tb === k ? 'on' : ''}" data-invt="${k}">${n}</button>`)
           .join('')}</span>`
       : '';
+  /* M1-11：護符滿格「要換掉哪一格」：生效中的格一格一列（≥56、整列可點），底下「取消」 */
+  const sw = CHSW != null && S.inv.items.find(x => x.id === CHSW);
+  if (sw)
+    return `<div class="ph"><b>要換掉哪一格</b><span>換上 ${esc(CHARMS[sw.charm].n)}</span></div>
+  <div class="chsw">${S.charms
+    .slice(0, charmSlots(S))
+    .map(
+      (c, i) =>
+        `<button class="chsr" data-a="chsw:${i}">${c ? icHTML(itemIc(c)) : ''}<span><b>第 ${i + 1} 格</b><small>${c ? esc(CHARMS[c.charm].n) : '空'}</small></span></button>`
+    )
+    .join('')}</div>
+  <button class="btn chsno" data-a="chswno">取消</button>`;
+  CHSW = null;
   const n = S.inv.items.length,
     head = NAV.pick
       ? `<b>選一件裝備</b><span>點一下就放上去</span><button class="x" aria-label="取消" data-a="pickno">${ICO.x}</button>`
@@ -915,7 +957,7 @@ function invHTML() {
         : `<b>戰利品</b><span>${fmtN(n)}／${fmtN(INV_CAP)}・${fmtN(S.gold)} 金</span>${invTabs}${swapB(PANEL.stash ? '倉庫' : PANEL.craft ? '鍛造' : '技能')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`;
   /* 0.4.9：篩選四列跟著清單捲（黏在上面會吃掉半個畫面） */
   return `<div class="ph">${head}</div>
-  ${tb === 'bag' ? bagHTML() : `<div class="eqrow col">${dollHTML()}${NAV.slot ? slotPickHTML() : ''}${statsHTML(s, pen)}</div>`}`;
+  ${tb === 'bag' ? bagHTML() : `<div class="eqrow col">${dollHTML()}${NAV.slot ? slotPickHTML() : ''}${statsHTML(s, pen)}</div>${port ? '<div class="schint" hidden aria-hidden="true">' + ICO.down + '</div>' : ''}`}`;
 }
 /* 角色數值（0.4.6）：分攻擊、防禦、抗性、能力值四組，一格一項——名稱在左、數字在右對齊；沒有的項目不列。
    抗性顯示扣完這一階懲罰的（照 PoE2，上限是最大抗性） */
@@ -1073,7 +1115,9 @@ function bagHTML() {
   return `${bagFilterHTML()}${n >= INV_CAP ? '<p class="bagh c-warn">滿了：打造出來的直接分解</p>' : ''}
   <div class="bag" data-grid="inv">${L.slice(0, bagShown())
     .map(it => itemHTML(it, 'inv'))
-    .join('')}</div>${L.length ? '' : '<p class="c-dim bagno">沒有符合的裝備</p>'}
+    .join(
+      ''
+    )}</div>${L.length ? '' : `<p class="c-dim bagno">${S.inv.items.length ? '沒有符合的裝備' : '打造出來留下的裝備會放在這裡。到營地的鍛造台按「打造」。'}</p>`}
   ${L.length > bagShown() ? `<button class="btn bagmore" data-a="bagmore">再顯示 ${Math.min(BAG_STEP, L.length - bagShown())} 件（共 ${L.length}）</button>` : ''}
   ${NAV.pick ? '' : `<div class="foot ${sel ? 'sel' : ''}">${sel ? cmpHTML(sel) + cmpActs(sel) : `${PORT() ? '' : '<div class="sell" data-sell="1">拖到這裡分解</div>'}<button class="btn" data-a="bagsell" ${sl.length ? '' : 'disabled'} title="分解這個篩選裡沒鎖定的裝備：回材料、靈魂與金">分解篩選到的 ${sl.length} 件 · ${sum} 金</button>`}</div>`}`;
 }
@@ -1169,22 +1213,40 @@ function cmpHTML(it, noX) {
     return `<div class="cmpc one"><div><div class="h">${icHTML(itemIc(it))}<span class="name rc1">${esc(C.n)}</span></div><p class="aff">${esc(C.d)}</p></div></div>`;
   }
   const e = cmpSlot(it),
-    cur = e && S.eq[e.k],
-    lack = e ? eqLack(S, it, e.k) : [],
-    /* M1-15：換上去會讓哪些技能失效，先講 */
-    brk = e && !lack.length ? eqBreaks(it, e.k) : [];
+    cur = e && S.eq[e.k];
   return `${noX ? '' : `<button class="x cmpx" aria-label="收起" data-a="selno">${ICO.x}</button>`}<div class="cmpc">${cmpCol(it, `<span class="name rc${it.r}">${esc(itemName(it))}</span>`)}${
     cur
       ? cmpCol(cur, `<span class="sub">身上・${esc(itemName(cur))}</span>`)
       : `<div class="emp">${e ? `${e.n}現在空著` : '沒有能放的欄位'}</div>`
-  }</div>${lack.length ? `<p class="c-bad cmpno">不能裝上：${esc(lackTxt(lack))}</p>` : brk.length ? `<p class="c-bad cmpno">換上後：${esc(brk.map(x => x.n).join('、'))}不能用（${esc(brk[0].why)}）</p>` : ''}`;
+  }</div>${eqDeltaHTML(it, e)}`;
+}
+/* M1-20b／M1-15b：換上去跟身上同部位的差（DPS、生命；有能量護盾的另列）＋會讓哪些招失效；不能裝寫原因（itemDelta 的 why）。
+   定稿文案：「DPS +16」「生命 +20」、沒有變化、「DPS −16」（U+2212，--bad-hi）；「會讓這些招失效：｛名稱｝、｛名稱｝。」 */
+const DLT = new Map();
+function eqDeltaHTML(it, e = cmpSlot(it)) {
+  if (!e || it.charm) return '';
+  const sig = upSig(S) + ':' + e.k + ':' + S.skills.map(r => r.k).join() + ':' + campN('slots'),
+    c = DLT.get(it.id);
+  if (c && c[0] === sig) return c[1];
+  const d = itemDelta(it, e.k),
+    f = (n, v) => {
+      const r = Math.round(v);
+      return `<span class="${r > 0 ? 'c-good' : r < 0 ? 'c-bad' : 'c-dim'}">${n} ${r > 0 ? '+' + fmtN(r) : r < 0 ? '−' + fmtN(-r) : '沒有變化'}</span>`;
+    },
+    h = d.why
+      ? `<p class="dlt c-bad">${esc(d.why)}</p>`
+      : `<p class="dlt">${f('DPS', d.dps[0])}${f('生命', d.hp)}${d.es || ST.es ? f('能量護盾', d.es) : ''}</p>${d.breaks.length ? `<p class="dlt c-bad">會讓這些招失效：${d.breaks.map(x => esc(x.n)).join('、')}。</p>` : ''}`;
+  if (DLT.size > 400) DLT.clear();
+  DLT.set(it.id, [sig, h]);
+  return h;
 }
 /* 換裝卡的動作列（黏在底部，取代「賣出篩選到的」） */
 function cmpActs(it) {
   const e = it.charm ? null : cmpSlot(it),
     cur = e && S.eq[e.k],
     no = e ? eqLack(S, it, e.k).length : 0;
-  return `<div class="acts"><button class="btn pri" data-a="selmove" ${no ? 'disabled' : ''}>換上${cur ? `<small>${esc(itemName(cur))}進倉庫</small>` : ''}</button><button class="btn" data-a="seltip">詳細</button><button class="btn" data-a="selsell">分解<small>${esc(salvText(salvValue(it)).split('、').slice(0, 2).join('、'))}</small></button><button class="btn" data-a="sellock">${it.lock ? '解鎖' : '鎖定'}</button></div>`;
+  /* BASE-04：分解（破壞性）不跟主行動並排，放下一行當文字鏈 */
+  return `<div class="acts"><button class="btn pri" data-a="selmove" ${no ? 'disabled' : ''}>換上${cur ? `<small>${esc(itemName(cur))}進倉庫</small>` : ''}</button><button class="btn" data-a="seltip">詳細</button><button class="btn" data-a="sellock">${it.lock ? '解鎖' : '鎖定'}</button></div><button class="dlink2" data-a="selsell">分解<small>${esc(salvText(salvValue(it)).split('、').slice(0, 2).join('、'))}</small></button>`;
 }
 /* 技能寶石面板：5 個技能欄，每欄 1 顆技能＋2 顆輔助 */
 const TAGN = {
@@ -1644,14 +1706,14 @@ function revealHTML() {
     sel = rvSel(),
     row = (it, k) =>
       k < REV.i
-        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''} ${REV.craft && sel === it ? 'on' : ''} ${it.salv || (REV.craft && !S.inv.items.includes(it)) ? 'gone' : ''}" ${REV.craft && !it.salv && S.inv.items.includes(it) ? `role="button" tabindex="0" data-a="rvsel:${it.id}"` : ''}>${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${it.salv ? ' · 已分解' : REV.craft && !S.inv.items.includes(it) ? ' · 換上了' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
+        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''} ${REV.craft && sel === it ? 'on' : ''} ${it.salv || (REV.craft && !S.inv.items.includes(it)) ? 'gone' : ''}" ${REV.craft && !it.salv && S.inv.items.includes(it) ? `role="button" tabindex="0" data-a="rvsel:${it.id}"` : ''}>${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${it.salv ? ' · 已分解' : REV.craft && !S.inv.items.includes(it) ? ' · 換上了' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span>${REV.craft && !it.salv && S.inv.items.includes(it) ? eqDeltaHTML(it) : ''}</div></div>`
         : `<div class="rvr un r${it.r} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">？？？</b><small>${esc(baseOf(it).n)} · T${itemT(it)}${it.frac ? ' · ★' : ''}${it.mem ? ' · ◈' : ''}</small></div></div>`;
   /* 沒有要翻的（離線卡，0.5.4 考核 E2）：不寫「0／0 件」；head 可以是函式（按了升級要重畫） */
   return `<div class="ph"><b>${esc(REV.title)}</b>${n ? `<span>${Math.min(REV.i, n)}／${n} 件</span>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   ${typeof REV.head === 'function' ? REV.head() : REV.head}${n ? `<div class="rvl ${sel ? 'sm' : ''}">${REV.list.map(row).join('')}</div>` : ''}${REV.more ? `<p class="summ">${esc(REV.more)}</p>` : ''}
   ${
     sel
-      ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button><button class="btn" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div></div>`
+      ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button></div><button class="dlink2" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div>`
       : `<div class="rvf">${REV.done ? `<button class="btn ${REV.sum && campReady() ? '' : 'pri'}" data-a="close">收下</button>` : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
@@ -1807,11 +1869,11 @@ function idleHTML() {
   const ses = SES || SES0(),
     pct = Math.round((S.inv.items.length / INV_CAP) * 100),
     keys = ['wood', ...GEN_K.filter(k => k !== 'wood' && genOn(k)).map(k => matKey(k, genTier(k))), 'soul'];
-  /* 0.5.4（考核 C1、C2）：上面一行本次掛機；中間營地的資源條（跟營地頁同一個元件、一直在跑）；下面「下一件事」＋升級鈕，在戰鬥畫面下面就能按 */
+  /* 0.5.4（考核 C1、C2）：上面一行本次掛機；中間營地的資源條（跟營地頁同一個元件、一直在跑）；M1-CP.4 下面只放「去營地」（升級只在營地） */
   return `<div class="paper idl">
     <div class="k row2"><span>本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪${ses.cur ? `・通貨 ${ses.cur} 顆` : ''}${ses.deaths ? `・倒下 ${ses.deaths}` : ''}</span><span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
     <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>
-    ${campNextHTML('inext')}
+    <button class="btn pri wide igo" data-a="gocamp">去營地</button>
     ${pct >= 80 ? `<p class="note"><span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span></p>` : ''}
   </div>`;
 }
@@ -1841,7 +1903,7 @@ function lootHTML(L) {
   return `<div class="row2 sub lh"><span>這一輪掉的</span><b>+${fmtN(L.gold)} 金</b></div>
   ${rows ? `<div class="rows">${rows}</div>` : ''}
   ${L.hint ? '<p class="sub">王倒下會在這裡再刷一輪，不用按；升瞭望台就開新的地點</p>' : ''}
-  ${campUpsHTML(3) || campNextHTML('lnext')}`;
+  <button class="btn pri wide igo" data-a="gocamp">去營地</button>`;
 }
 /* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、藏身處的「繼續刷」 */
 function runBar() {
@@ -1952,7 +2014,12 @@ function quickMove(src, it, eqk, shift) {
   } else if (it.charm) {
     /* 護符：放進第一個空的護符槽 */
     const i = S.charms.findIndex((c, j) => !c && j < charmSlots(S));
-    if (i < 0) return hudWarn(charmSlots(S) ? '護符槽滿了：拖到想換的那一格' : '要先裝腰帶才有護符槽');
+    /* M1-11：有腰帶、護符格全滿＝跳「要換掉哪一格」（倉庫面板裡的半版卡）；沒腰帶照舊一句 */
+    if (i < 0) {
+      if (!charmSlots(S)) return hudWarn('要先裝腰帶才有護符槽');
+      CHSW = it.id;
+      return PANEL.inv ? hudInv() : openPanel('inv');
+    }
     takeOut('inv', it);
     S.charms[i] = it;
   } else {
@@ -2519,7 +2586,26 @@ function act(a, el) {
     BAG.n = 0;
     navGo('bag');
   } else if (a === 'bagmore') bagGrow();
-  else if (a.startsWith('sel')) {
+  else if (a === 'chswno') (CHSW = null), hudInv();
+  else if (a === 'gocamp') {
+    /* M1-CP.4：掛機卡不放升級鈕，只帶去營地（升級只在營地） */
+    CRAFT.tab = 'camp';
+    PANEL.ctab = 'camp';
+    PORT() ? navGo('craft') : (closePanels(), openPanel('craft'));
+  } else if (a.startsWith('chsw:')) {
+    /* M1-11：點一格＝換上並關閉；換下來的回倉庫 */
+    const it = S.inv.items.find(x => x.id === CHSW),
+      i = +a.slice(5);
+    CHSW = null;
+    if (!it || i >= charmSlots(S)) return hudInv();
+    takeOut('inv', it);
+    const old = S.charms[i];
+    S.charms[i] = it;
+    if (old) invPut(S.inv, old);
+    BAG.sel = null;
+    sfx('equip');
+    changed();
+  } else if (a.startsWith('sel')) {
     /* 換裝卡的按鈕（0.4.9） */
     const it = S.inv.items.find(x => x.id === BAG.sel);
     if (!it) return;

@@ -126,6 +126,8 @@ const etaTxt = e =>
     : e.m === Infinity
       ? `缺${e.nm} ${fmtN(e.d)}`
       : `還要 ${Math.max(1, Math.ceil(e.m))} 分・缺${e.nm} ${fmtN(e.d)}`;
+/* M1-18／BASE-05：買不起的鈕寫「缺靈魂 n」（只寫最慢那一項） */
+const lackTxt1 = e => (e && e.nm ? `缺${e.nm} ${fmtN(e.d)}` : '');
 const costTxt = c =>
   costRows(c)
     .map(([nm, , w]) => `${nm} ${fmtN(w)}`)
@@ -313,12 +315,12 @@ function genCardHTML(k) {
     m0 = genMs0(g.lv),
     mp = ms ? Math.round((100 * (g.lv - m0)) / (ms.at - m0)) : 100;
   return `<div class="paper camp cc gen ${ok ? 'can' : ''} ${f ? 'up' : ''} ${f && f.ms ? 'ms' : ''}" id="cc-${k}">
-  <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}">${icHTML(CAMP_IC[k])}<b>${GEN[k].n}</b><span>Lv ${g.lv}</span>${wkHTML(k, W[k], s)}</button>
+  <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}">${icHTML(CAMP_IC[k])}<b>${GEN[k].n}</b><span>Lv ${g.lv}</span>${wkHTML(k, W[k], s)}${ICO.down}</button>
   ${ms ? `<div class="ccm" role="progressbar" aria-label="到下一個里程碑" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${mp}"><i style="--m:${mp}%"></i></div><div class="ccml"><span>Lv ${ms.at}：${esc(ms.t)}</span><span>總共產了 ${fmtN(g.tot || 0)}</span></div>` : ''}
   <div class="ccbig"><small>每分鐘</small><b class="${roll ? 'nroll' : ''}" ${roll ? `data-r="${f.from}:${f.to}:${f.t}"` : ''}>+${fmtR(roll ? f.from : r)}</b><small>${matName(k, T)}</small>${f && f.add ? `<em class="ccfl">${esc(f.add)}</em>` : ''}</div>
   <i class="rt rtg" data-rg="${k}"><i></i></i>
   ${!W[k] ? '<p class="cchint">升民房就有人來做</p>' : W[k] < s ? `<p class="cchint">升民房再來 ${s - W[k]} 個人</p>` : ''}
-  <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="gen:${k}:${n}" ${ok ? '' : 'disabled'}>${ok ? `升 ${n} 級・${esc(costTxt(c))}` : esc(etaTxt(e))}${msAt ? `<em class="ccms">${esc(ms.t)}</em>` : ''}</button>
+  <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="gen:${k}:${n}" ${ok ? '' : 'disabled'}>${ok ? `升 ${n} 級・${esc(costTxt(c))}` : esc(lackTxt1(e))}${msAt ? `<em class="ccms">${esc(ms.t)}</em>` : ''}</button>
   ${
     CAMPUI.open === k && top > 1
       ? `<div class="ccopen"><div class="bagf" role="group" aria-label="產幾階">${Array.from(
@@ -338,11 +340,11 @@ function campCardHTML(b) {
     e = n && costEta(n),
     ok = !!e && e.m === 0;
   return `<div class="paper camp cc ${ok ? 'can' : ''} ${f ? 'up' : ''}" id="cc-${b}">
-  <button class="cch" data-fg="cc:${b}" aria-expanded="${CAMPUI.open === b}">${icHTML(CAMP_IC[b])}<b>${CAMPN[b]}</b><span>Lv ${lv}／${campMax(b)}</span></button>
+  <button class="cch" data-fg="cc:${b}" aria-expanded="${CAMPUI.open === b}">${icHTML(CAMP_IC[b])}<b>${CAMPN[b]}</b><span>Lv ${lv}／${campMax(b)}</span>${ICO.down}</button>
   ${
     n
       ? `<div class="ccbig sm">下一級：${esc(n.d)}</div>
-  <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="camp:${b}" ${ok ? '' : 'disabled'}>${ok ? `升級到 Lv ${n.lv}・${esc(costTxt(n))}` : esc(etaTxt(e))}</button>`
+  <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="camp:${b}" ${ok ? '' : 'disabled'}>${ok ? `升級到 Lv ${n.lv}・${esc(costTxt(n))}` : esc(lackTxt1(e))}</button>`
       : '<div class="ccbig sm">都蓋好了</div>'
   }${CAMPUI.open === b ? campOpenHTML(b) : ''}</div>`;
 }
@@ -418,8 +420,15 @@ function wtPickHTML() {
 }
 const ccHTML = k => (GEN[k] ? genCardHTML(k) : campCardHTML(k));
 /* 固定順序（考核 A6）：上面兩行黏住、產生器一組（×1／×10／最大在這一組的標題列，A7）、設施一組 */
+/* M1-07b：營地的「下一個解鎖」——還沒出現的產生器（獵場、絲地）只列下一個，一列；都出現了不畫 */
+function campNxuHTML() {
+  const n = nextUnlock('camp');
+  return n ? `<div class="cmnxu">${ICO.lock}<span>${esc(n.t)}</span></div>` : '';
+}
 function campHTML() {
-  return `<div class="cmhead">${campTopHTML()}${campNextHTML()}</div>
+  /* M1-CP.1：首屏＝資源、下一件主升級、下一個解鎖、還有幾座（產生器與設施的大卡往下捲或上拉全版） */
+  const n = GEN_K.filter(genOn).length + CAMP_B.length;
+  return `<div class="cmhead">${campTopHTML()}${campNextHTML()}${campNxuHTML()}<p class="cmmore">還有 ${n} 座・往下捲或上拉全版</p></div>
   <div class="cmgrp"><span>產生器</span><div class="bagf cmmul" role="group" aria-label="產生器一次升幾級">${[
     [1, '×1'],
     [10, '×10'],
@@ -469,6 +478,22 @@ const CUR_TIERS = ['tran2', 'aug2', 'rich2', 'exalt2', 'tran3', 'aug3', 'rich3',
 /* 直立的通貨頁（0.4.5）：手機沒有滑過的說明，圖示圍一圈認不出哪顆是哪顆、點了就用掉，詞又在下面看不到。
    改成：上面是這件裝備與它的詞（蓋滿時黏著，剛加的那條亮起來），下面每顆通貨一列——名字、對這件會做什麼（不能用就寫原因）、有幾顆；
    會加詞的四種一列三顆按鈕（普通／高階／完美，寫會出哪幾階）。點了照舊直接用（同一個 data-cu 處理） */
+/* M1-14b：通貨頁三種列——有＝照舊；開了還沒拿到＝「還沒拿到。｛通貨名｝在鍛造台 Lv ｛n｝之後開始掉。」；沒開的只列下一個（虛線＋鎖、名字與「鍛造台 Lv n」） */
+const notYet = k => {
+  const e = campKey(curKey(k));
+  return e ? `還沒拿到。${CUR[k].n}在${CAMPN[e[0]]} Lv ${e[1]}之後開始掉。` : '';
+};
+function curNextHTML() {
+  let best = null;
+  for (const k of Object.keys(CUR)) {
+    if (CUR_TIERS.includes(k) || campCan(curKey(k))) continue;
+    const e = campKey(curKey(k));
+    if (e && (!best || e[1] < best.e[1])) best = { k, e };
+  }
+  return best
+    ? `<div class="curow nxu">${ICO.lock}<span class="ct"><b>${esc(CUR[best.k].n)}</b><small>${CAMPN[best.e[0]]} Lv ${best.e[1]}</small></span></div>`
+    : '';
+}
 function curPortHTML() {
   const M = MAT(),
     it = S.curIt,
@@ -503,14 +528,14 @@ function curPortHTML() {
       const w = why(k),
         n = M[k] || 0,
         on = (k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore);
-      return `<button class="curow ${w ? 'no' : ''} ${n ? '' : 'z'} ${on ? 'on' : ''}" data-cu="u:${k}" ${on ? 'aria-pressed="true"' : ''}>${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w ? 'c-warn' : ''}">${esc(w || desc(k))}</small></span><em>×${fmtN(n)}</em></button>`;
+      return `<button class="curow ${w ? 'no' : ''} ${n ? '' : 'z'} ${on ? 'on' : ''}" data-cu="u:${k}" ${on ? 'aria-pressed="true"' : ''}>${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w && n ? 'c-warn' : ''}">${esc(n ? w || desc(k) : notYet(k) || w || desc(k))}</small></span><em>×${fmtN(n)}</em></button>`;
     },
     grp = k => {
       const w = why(k),
         ns = [M[k] || 0, M[k + '2'] || 0, M[k + '3'] || 0];
       /* 沒選裝備或不能用在這件上：收成一列，只寫三階各有幾顆 */
       if (!it || w)
-        return `<button class="curow ${w ? 'no' : ''} ${ns.some(Boolean) ? '' : 'z'}" data-cu="u:${k}">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w ? 'c-warn' : ''}">${esc(w || CUR[k].d)}</small></span><em class="t3"><i>普</i>${fmtN(ns[0])}<i>高</i>${fmtN(ns[1])}<i>完</i>${fmtN(ns[2])}</em></button>`;
+        return `<button class="curow ${w ? 'no' : ''} ${ns.some(Boolean) ? '' : 'z'}" data-cu="u:${k}">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w && ns.some(Boolean) ? 'c-warn' : ''}">${esc(ns.some(Boolean) ? w || CUR[k].d : notYet(k) || w || CUR[k].d)}</small></span><em class="t3"><i>普</i>${fmtN(ns[0])}<i>高</i>${fmtN(ns[1])}<i>完</i>${fmtN(ns[2])}</em></button>`;
       return `<div class="cugrp ${rec === k ? 'rec' : ''}"><div class="curow">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}${rec === k ? '<i>下一步</i>' : ''}</b><small>${esc(CUR[k].d)}</small></span></div>
         <div class="cut3">${[1, 2, 3]
           .filter(g => g === 1 || campCan('tier' + g))
@@ -525,7 +550,7 @@ function curPortHTML() {
     li = (ic, n, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
     top = !it
-      ? '<button class="btn pickb" data-a="pick">選一件裝備</button>'
+      ? emptySlotHTML(false)
       : `${cardHTML(it)}${
           f
             ? `<div class="fres fore"><b>預知結果（${esc(FORGE[f.op].n)}）</b>${
@@ -554,7 +579,7 @@ function curPortHTML() {
   <div class="ph2">其他</div>
   <div class="culist">${open(['conv', 'fore', ...qual, 'holy', 'corr'])
     .map(row)
-    .join('')}</div>
+    .join('')}${curNextHTML()}</div>
   <div class="ph2">材料<span>預兆在鍛造台搭配填詞用</span></div>
   <ul class="mpg">${li('cur_soul', '靈魂', '技能與光環升級、開孔、解鎖輔助 II；自動吸收', M.soul)}${rest.map(k => li(CUR[k].ic, CUR[k].n, CUR[k].d, M[k] || 0)).join('')}</ul>`;
 }
@@ -737,13 +762,18 @@ function slotsHTML(it, mode, at = 'fg') {
       : '')
   );
 }
-/* 上方的裝備卡（沒放東西時是一句提示） */
+/* M1-14b：沒放裝備時的虛線放置槽（直立點了開選裝格；桌機與橫向照舊點倉庫或身上的裝備）；「填」在槽下方寫 M1-13 定稿原文 */
+const FILL_EMPTY =
+  '把一件裝備放上來：點倉庫或身上的裝備。「填」只能加詞、不能拿掉；蛻變石把普通裝變魔法裝，增幅石替魔法裝補一條詞。';
+const emptySlotHTML = fill =>
+  `${
+    PORT()
+      ? `<button class="cuslot" data-a="pick">${ICO.plus}<span>選一件裝備</span></button>`
+      : `<div class="cuslot"><span>${TOUCH.on ? '點倉庫或身上的裝備，再按「放上鍛造台」' : '點一下倉庫或身上的裝備，放上鍛造台'}</span></div>${TOUCH.on && NARROW ? '<button class="btn" data-tm="swap">去倉庫選裝備</button>' : ''}`
+  }${fill ? `<p class="cuhint">${FILL_EMPTY}</p>` : ''}`;
+/* 上方的裝備卡（沒放東西時是虛線槽） */
 function cardHTML(it) {
-  if (!it && PORT()) return '<button class="btn pickb" data-a="pick">選一件裝備</button>';
-  if (!it)
-    return `<p class="fhint">${TOUCH.on ? '點倉庫或身上的裝備，再按「放上鍛造台」' : '點一下倉庫或身上的裝備，放上鍛造台'}</p>${
-      TOUCH.on && NARROW ? '<button class="btn" data-tm="swap">去倉庫選裝備</button>' : ''
-    }`;
+  if (!it) return emptySlotHTML(CRAFT.tab === 'forge');
   const per = perfection(it);
   return `<div class="fsel">
     <div class="it r${it.r} fic">${icHTML(itemIc(it))}</div>
