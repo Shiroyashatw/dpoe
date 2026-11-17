@@ -100,12 +100,15 @@ fs.mkdirSync(OUT, { recursive: true });
         nav = __r('#dnav') || __r('#pnav');
       return [
         tabs.length >= 7 &&
-          tabs.every(t => t && t.h >= 44 && t.x + t.w <= P.x + P.w) &&
+          /* 一行（放不下就橫捲，不換行把清單往下推） */
+          tabs.every(t => t && t.h >= 44 && t.y === tabs[0].y) &&
+          __r('#pskill .sk-chips').x + __r('#pskill .sk-chips').w <= P.x + P.w &&
           __r(b).h >= 48 &&
           b.disabled &&
           !!pz &&
           (!__hit(pz, P) || (TOUCH.on && !PORT())) /* 手機橫向的面板蓋滿畫面，膠囊在面板底下 */ &&
-          !__hit(pz, nav),
+          !__hit(pz, nav) &&
+          (TOUCH.on || (!__hit(P, __r('.mid .bars')) && !__hit(P, __r('.mid .bar')))),
         { 頁籤: tabs.length, 底鈕: [__r(b), b.disabled, b.textContent], 已暫停: pz }
       ];
     }
@@ -117,8 +120,14 @@ fs.mkdirSync(OUT, { recursive: true });
       __in(P) &&
         !worldPaused() &&
         document.querySelectorAll('#pcraft .cmnxu').length <= 1 &&
-        bd.every(t => /^\d+ 可升級$/.test(t)),
-      { 面板: P, 徽章: bd }
+        bd.every(t => /^\d+ 可升級$/.test(t)) &&
+        /* 桌機：分頁名稱跟直立同一套、不寫手機手勢、面板不蓋生命／魔力條與技能列 */
+        (TOUCH.on ||
+          (/^總覽打造/.test(document.querySelector('#pcraft .ftabs').textContent) &&
+            !/上拉全版/.test(document.querySelector('#pcraft .cmmore').textContent) &&
+            !__hit(P, __r('.mid .bars')) &&
+            !__hit(P, __r('.mid .bar')))),
+      { 面板: P, 徽章: bd, 分頁: document.querySelector('#pcraft .ftabs').textContent }
     ];
   });
   await shot('11_角色', new Function(`closePanels(); NAV.view = 'char'; ${go('char')}; hudPanels();`));
@@ -128,9 +137,15 @@ fs.mkdirSync(OUT, { recursive: true });
     () => (closePanels(), openPanel('log')),
     () => {
       const t = (document.querySelector('#plog .none') || {}).textContent;
+      /* 角標（「1 可升級」）整顆看得到：中心那一點最上面的是它自己 */
+      const pill = document.querySelector('#pnav .dot.pill, #dnav .dot.pill'),
+        pr = __r(pill),
+        top = pr && document.elementFromPoint(pr.x + pr.w / 2, pr.y + 3);
       return [
-        t === '這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。' && __in(__r('#plog')),
-        { 空狀態: t }
+        t === '這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。' &&
+          __in(__r('#plog')) &&
+          (!pr || pill.contains(top) || top === pill.parentNode),
+        { 空狀態: t, 角標: pr }
       ];
     }
   );
