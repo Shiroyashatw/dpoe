@@ -24,8 +24,8 @@ const DBG = (() => {
     const L = Q;
     Q = [];
     const t = (last = vnow());
-    /* 凍結中新開始的動畫也停住（step 再一格一格推） */
-    if (frz != null) anims(a => a.playState === 'running' && a.pause());
+    /* 凍結中新開始的動畫停在第 0 毫秒（結果固定；要看進場後的樣子用 step 推） */
+    if (frz != null) anims(a => a.playState === 'running' && (a.pause(), (a.currentTime = 0)));
     for (const f of L) f(t);
   };
   window.requestAnimationFrame = cb => (Q.push(cb) === 1 && raf(pump), Q.length);

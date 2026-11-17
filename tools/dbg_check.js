@@ -61,6 +61,9 @@ const ev = (p, f, a) => p.evaluate(f, a);
   /* ?freeze=1：一載入就凍結，同種子兩次（等的時間不同）截圖逐像素相同 */
   const px = async w => {
     const q = await open('?test=midgame&seed=7&freeze=1');
+    /* 照 visual-review-protocol §1：等圖與字型載完再做狀態 */
+    await q.waitForLoadState('networkidle');
+    await ev(q, () => document.fonts.ready.then(() => 0));
     await q.waitForTimeout(w);
     await ev(q, () => (closePanels(), DBG.biome('temple'), DBG.clear(), DBG.freeze()));
     await q.mouse.move(-1, -1);
