@@ -1,5 +1,6 @@
 /* dungeonPOE · 樣式（0.2.0 起桌機優先，深色） */
 :root {
+  --scrim: rgba(0, 0, 0, 0.55);
   --bg: #070606;
   --panel: rgba(16, 13, 12, 0.95);
   --line: rgba(205, 210, 220, 0.16);
@@ -174,8 +175,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 #tip .sktip { margin: 0; }
 
 /* ---------- 死掉、通關 ---------- */
-#over { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); }
+#over { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: var(--scrim); }
 #over[hidden] { display: none; }
+/* 設定的暗幕（M2-08，UI 審查 E11）：跟 #over 同一層暗度，蓋在其他面板與 HUD 上、設定（z 12）底下；點了關設定。直立的設定是半版，不加 */
+#scrim { position: fixed; inset: 0; z-index: 11; background: var(--scrim); animation: pop 200ms ease-out; }
+#scrim[hidden], body.touch.port #scrim { display: none; }
 #over .card { display: block; min-width: 340px; max-width: 440px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; animation: pop 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 #over h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
 #over p { color: var(--dim); margin: 0 0 18px; }
@@ -1606,8 +1610,10 @@ body:not(.touch) .tbar > b { position: static; transform: none; }
 .tbar .tleft { white-space: nowrap; font-size: var(--fs); color: var(--tx); }
 .tbar .tleft b { font-size: var(--fs-l); font-variant-numeric: tabular-nums; }
 #tfind { flex: 1 1 60px; min-width: 0; width: auto; max-width: 260px; height: 44px; margin-left: auto; }
-#tfound { min-width: 0; white-space: nowrap; }
-#tfound:empty { display: none; }
+#tfound { min-width: 44px; min-height: 44px; padding: 0 6px; white-space: nowrap; background: none; border: 0; font: 700 var(--fs) var(--font); font-variant-numeric: tabular-nums; color: var(--tx); cursor: pointer; }
+#tfound[hidden] { display: none; }
+/* 目前跳到的那一個：比其他命中更粗、更亮（M2-08） */
+.nd.hit.cur circle, .nd.hit.cur:not(.asc) circle { stroke: var(--act); stroke-opacity: 1; stroke-width: 14; }
 .tbar .x { flex: none; width: 44px; height: 44px; }
 .tbar .x .ico { width: 20px; height: 20px; }
 /* 重置：左下角，離右上的關閉最遠；說明卡開著時被卡片蓋住 */
@@ -1928,7 +1934,6 @@ body:not(.touch) .mid { padding: 0; background: none; box-shadow: none; margin: 
 #area, .hud .loc { padding: 4px 8px; background: var(--plate-world); border-radius: 2px; font: 500 14px var(--font); color: var(--milk); text-shadow: 0 1px 2px #000; }
 body.touch.port #area::after { content: ''; }
 body.touch.port .tmenu { display: none; }
-body.touch.port.sheet #prog { display: none; }
 /* 按鈕：次要是細框、主要是磚紅；分段、晶片 */
 .btn { background: none; border: 1px solid #5e4e3a; border-radius: 3px; color: var(--milk); font-weight: 700; box-shadow: none; }
 .btn:not(:disabled):hover { border-color: var(--fr-hi); color: var(--milk); }
@@ -1945,7 +1950,7 @@ body.touch.port.sheet #prog { display: none; }
 #pidle { display: flex; flex-direction: column; gap: 10px; padding: 12px var(--pp); overflow: auto; }
 #pidle .acts { position: sticky; bottom: 0; margin: auto 0 0; padding: 10px 0 0; background: var(--s1); }
 #pidle .rows { flex: none; }
-body:not(.touch.port) #pidle { left: 12px; top: auto; bottom: 12px; right: auto; width: 380px; max-height: calc(100vh - 100px); background: none; box-shadow: none; padding: 0; animation: pop 200ms ease-out; z-index: 5; }
+body:not(.touch.port) #pidle { left: 16px; top: auto; bottom: 16px; right: auto; width: 380px; max-height: calc(100vh - 100px); background: none; box-shadow: none; padding: 0; animation: pop 200ms ease-out; z-index: 5; }
 body:not(.touch.port) #pidle .pile .it, body:not(.touch.port) #pidle .lrow .it { width: 48px; }
 .paper { position: relative; background: var(--s2); border-radius: 3px; box-shadow: 0 1px 0 rgba(255, 235, 200, 0.06), 0 6px 16px rgba(0, 0, 0, 0.35); }
 .paper .k { font-size: 12px; color: var(--milk2); }
