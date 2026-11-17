@@ -406,7 +406,7 @@ const expOf = (a, k) =>
   Math.max(
     a.exp > G.t && k !== 'chaos' ? 20 * (a === P.ail ? 1 : 1 + ST.expEff / 100) : 0,
     k === 'fire' && a.oiled > G.t ? DEBUFF.oilExp : 0,
-    /* 追憶詞「擊中施加〈屬性〉曝露」（8-2）：只降那一種元素的抗性 */
+    /* 追憶詞「擊中施加〈屬性〉曝曬」（8-2）：只降那一種元素的抗性 */
     a.expE && a.expE[k] && a.expE[k].t > G.t ? a.expE[k].v * (a === P.ail ? 1 : 1 + ST.expEff / 100) : 0
   );
 /* 詛咒實際的效果：站在奉獻地面上少 50%（玩家、怪物同一組欄位）
@@ -1824,7 +1824,7 @@ function onHitBase(m, r, c) {
   const rs = r.spell ? bufV('rageSpell') : 0;
   if (rs && !(P.rageCd > G.t))
     (P.rage = Math.min(rageCap(), (P.rage || 0) + rs)), (P.rageCd = G.t + 0.5), (P.rageT = G.t);
-  /* 追憶詞（8-2）：擊中施加曝露（只降那一種元素的抗性，4 秒）、擊中施加詛咒（身上已經有詛咒、無咒的怪不蓋）*/
+  /* 追憶詞（8-2）：擊中施加曝曬（只降那一種元素的抗性，4 秒）、擊中施加詛咒（身上已經有詛咒、無咒的怪不蓋）*/
   const M = ST.mem;
   if (M && M.hitExp) for (const k in M.hitExp) (a.expE = a.expE || {})[k] = { v: M.hitExp[k], t: G.t + 4 };
   if (M && M.hitCurse && !m.hexproof && !(a.curse && a.curse.t > G.t + 1)) curseMob(m, M.hitCurse.k, M.hitCurse.lv);

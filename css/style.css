@@ -1385,12 +1385,23 @@ body:not(.touch) .tmore .tonly { display: none; }
 #banner.bn-frac { color: #fff7d6; border-color: #fff7d6; }
 #banner.bn-mem { color: #6fe3ff; border-color: #6fe3ff; }
 #banner.bn-cur, #banner.bn-perf { color: var(--gold); border-color: var(--gold); }
+/* M2-18 追逐物品：全寬橫幅＋稀有度外框（正式演出 M2-19） */
+#banner.bn-chase { left: 0; right: 0; transform: none; max-width: none; color: #ffb35c; border: 2px solid #ffb35c; border-left: 0; border-right: 0; }
+/* 點了開詳情（製作人第 1 點）；靈魂包用通貨的金色 */
+#banner.bn-chase { pointer-events: auto; cursor: pointer; }
+#banner.bn-pack { color: var(--gold); border-color: var(--gold); }
+.chs-t { color: #ffb35c; }
+.chf { display: inline-flex; flex: none; padding: 1px; border: 1px solid #ffb35c; border-radius: 2px; }
+.mpg li[data-chs] { cursor: pointer; }
+#pidle .chs { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: var(--fs-s); color: var(--dim); }
+#pidle .chs .pb { flex: 1; height: 4px; min-width: 40px; background: var(--s0); }
+#pidle .chs .pb i { display: block; height: 100%; background: #ffb35c; }
 @media (prefers-reduced-motion: reduce) { #banner { animation: none; } }
 #dlog { margin-top: 4px; pointer-events: none; }
 #dlog p { margin: 2px 0 0; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 2px #000; animation: lgfade 30s linear forwards; }
 @keyframes lgfade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { #dlog p { animation: none; } }
-.lg-frac { color: #fff7d6 !important; } .lg-mem { color: #6fe3ff !important; } .lg-cur, .lg-perf { color: var(--gold) !important; }
+.lg-chase { color: #ffb35c !important; } .lg-frac { color: #fff7d6 !important; } .lg-mem { color: #6fe3ff !important; } .lg-cur, .lg-perf { color: var(--gold) !important; }
 #plog { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; z-index: 12; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #plog > * { flex: none; }
 body.touch.port #plog { z-index: 8; } /* 直立是半版面板：退到分頁列（z 11）底下，「可升級」角標才不被切 */
