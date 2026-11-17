@@ -110,7 +110,10 @@ let fail = 0;
     PORTM ? '畫面上按住不動＝連續普攻最近的怪' : '普攻按住會自動打最近的怪',
     await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m))
   );
-  const face = await p.evaluate(() => Math.cos(P.face - Math.atan2(_m.y - P.y, _m.x - P.x)));
+  /* 出手中朝向鎖住、下一下才轉：等朝向到位（最多 2 秒、每 50 毫秒看）再判定，不在出手的半途量 */
+  const faceOf = () => Math.cos(P.face - Math.atan2(_m.y - P.y, _m.x - P.x));
+  await p.waitForFunction(`(${faceOf})() > 0.7`, null, { timeout: 2000, polling: 50 }).catch(() => {});
+  const face = await p.evaluate(faceOf);
   ok('朝向怪物', face > 0.7, face.toFixed(2));
   await touch('touchEnd', []);
   /* 技能鍵拖曳：畫瞄準線，拖回按鈕取消 */
@@ -154,7 +157,10 @@ let fail = 0;
     await touch('touchMove', [[W / 2 + 30, H * 0.45]]);
     await touch('touchMove', [[W / 2 + 80, H * 0.45]]);
     await touch('touchEnd', []);
-    ok('快速一撥＝翻滾（往撥的方向）', await p.evaluate(() => (!!P.roll && P.roll.dx > 0.7) || P.cds.roll > 0));
+    /* 撥的判定在下一格才跑：等到翻滾開始（最多 1 秒）再判定 */
+    const rolled = () => (!!P.roll && P.roll.dx > 0.7) || P.cds.roll > 0;
+    await p.waitForFunction(rolled, null, { timeout: 1000, polling: 16 }).catch(() => {});
+    ok('快速一撥＝翻滾（往撥的方向）', await p.evaluate(rolled));
     /* 點一下＝普攻一次 */
     await p.evaluate(() => {
       P.act = null;
@@ -2348,16 +2354,25 @@ let fail = 0;
     const cr = await p.evaluate(async () => {
       closePanels();
       navGo('char');
-      await new Promise(r => setTimeout(r, 300));
-      const c = document.querySelector('#pinv .doll2x').getBoundingClientRect(),
-        n = $('pnav').getBoundingClientRect(),
-        h = document.querySelector('#pinv .schint');
-      return [
-        Math.round(c.bottom),
-        Math.round(n.top),
-        !!h && !h.hidden,
-        parseFloat(getComputedStyle(document.querySelector('#pinv .eqs .nm')).fontSize)
-      ];
+      /* 面板滑進來與捲動提示要幾格才定：每 100 毫秒量一次，連兩次一樣（最多 3 秒）才判定 */
+      const at = () => {
+        const c = document.querySelector('#pinv .doll2x').getBoundingClientRect(),
+          n = $('pnav').getBoundingClientRect(),
+          h = document.querySelector('#pinv .schint');
+        return [
+          Math.round(c.bottom),
+          Math.round(n.top),
+          !!h && !h.hidden,
+          parseFloat(getComputedStyle(document.querySelector('#pinv .eqs .nm')).fontSize)
+        ];
+      };
+      let a = null,
+        b = null;
+      for (let i = 0; i < 30 && (!a || JSON.stringify(a) !== JSON.stringify(b)); i++) {
+        await new Promise(r => setTimeout(r, 100));
+        (a = b), (b = at());
+      }
+      return b;
     });
     ok(
       H >= 800

@@ -646,6 +646,11 @@ function goHome() {
   enterHideout();
 }
 function spawnMob(D, x, y, pack, elite) {
+  /* 召喚、分裂是在怪旁邊隨機偏移放的：落在牆裡就改放附近的地板（M2-30：生在外圍牆裡的怪打不到也出不來，AI 一直鎖定牠就卡住） */
+  if (G.tiles && isWall(x, y)) {
+    const p = floorNear(x, y, 0, 160, 20);
+    if (p) (x = p.x), (y = p.y);
+  }
   const m = tierMob(G.mapT || 1),
     e = elite ? ELITE : { hp: 1, dmg: 1, sz: 1 };
   const o = {
@@ -853,16 +858,18 @@ function pushTiles(o) {
         o.x = nx + (ddx / d) * r;
         o.y = ny + (ddy / d) * r;
       } else {
-        /* 中心卡進牆裡：往最近的邊推 */
-        const l = o.x - tx * TS,
-          rr = tx * TS + TS - o.x,
-          u = o.y - ty * TS,
-          b = ty * TS + TS - o.y,
-          mn = Math.min(l, rr, u, b);
-        if (mn === l) o.x = tx * TS - r;
-        else if (mn === rr) o.x = tx * TS + TS + r;
-        else if (mn === u) o.y = ty * TS - r;
-        else o.y = ty * TS + TS + r;
+        /* 中心卡進牆裡：往最近、而且那一邊的鄰格不是牆的邊推（只看最近的邊會把外圍牆裡的東西推到地圖外，永遠出不來） */
+        const e = [
+          [o.x - tx * TS, -1, 0],
+          [tx * TS + TS - o.x, 1, 0],
+          [o.y - ty * TS, 0, -1],
+          [ty * TS + TS - o.y, 0, 1]
+        ]
+          .filter(([, ax, ay]) => !isWall((tx + ax) * TS + 1, (ty + ay) * TS + 1))
+          .sort((a, b) => a[0] - b[0])[0];
+        if (!e) continue;
+        if (e[1]) o.x = e[1] < 0 ? tx * TS - r : tx * TS + TS + r;
+        else o.y = e[2] < 0 ? ty * TS - r : ty * TS + TS + r;
       }
     }
 }

@@ -921,7 +921,7 @@ function dollHTML() {
   }</div>
   <div class="col">${DOLL_R.map(dollCell).join('')}</div></div>
   <div class="doll2x">${charms}${
-    !g && lockTxt('line:rift')
+    S.lv < GH_LV || (!g && lockTxt('line:rift'))
       ? `<div class="eqs gh emp lock" data-lk="${lockSlotTxt('gh')}"><span class="nm">神格</span><small>${ICO.lock}</small></div>`
       : `<div class="eqs gh ${g ? 'r2' : 'emp'}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}">${g ? icHTML('z_' + g.g) : '<span class="nm">神格</span><small>空</small>'}</div>`
   }</div>`;
@@ -1792,6 +1792,7 @@ document.addEventListener('click', e => {
   if (k === 'tab') BOXUI.tab = v;
   else if (k === 'sf') BOXUI.sel = BOXUI.sel.includes(v) ? BOXUI.sel.filter(x => x !== v) : [...BOXUI.sel, v];
   else if (k === 'go') return openArena(v, BOXUI.sel);
+  else if (k === 'gh' && S.lv < GH_LV && S.godOn !== +v) hudWarn(lockSlotTxt('gh'));
   else if (k === 'gh') (S.godOn = S.godOn === +v ? null : +v), (ST = stats()), save();
   else if (k === 'ghx') {
     if (!confirm2(b, '再按一次：拆成 200 靈魂')) return;
