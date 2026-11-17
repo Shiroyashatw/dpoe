@@ -3,9 +3,19 @@
 const fs = require('fs'),
   vm = require('vm'),
   path = require('path');
+/* js/palette.js 在 Node 讀 css/style.css（M2-34-0）：每個 vm 環境都帶 PAL_CSS */
+const PAL_CSS = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8'),
+  vmCtx = vm.createContext;
+vm.createContext = o => vmCtx(Object.assign(o, { PAL_CSS }));
+/* 有些檢查把 game.js 的函式原文抽出來在這裡跑：這裡也要有 PAL */
+global.PAL = vm.runInContext(
+  fs.readFileSync(path.join(__dirname, '..', 'js', 'palette.js'), 'utf8') + ';PAL',
+  vm.createContext({})
+);
 const ctx = { console, Math, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
 for (const f of [
+  'palette.js',
   'ptdata.js',
   'data.js',
   'items.js',
@@ -944,7 +954,7 @@ vm.runInContext(
 {
   const c7 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c7);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c7, { filename: f });
   const R = s => vm.runInContext(s, c7);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -1394,7 +1404,7 @@ vm.runInContext(
 const RA = (() => {
   const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c8);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
   const R = s => vm.runInContext(s, c8);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -4199,7 +4209,7 @@ const ASC_COMBOS = `const combos = k => {
     document: { getElementById: () => ({ classList: { add() {}, remove() {} } }), querySelectorAll: () => [] }
   };
   vm.createContext(c2);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
   const R = s => vm.runInContext(s, c2);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -5063,7 +5073,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c3 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c3);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c3, { filename: f });
   const R = s => vm.runInContext(s, c3);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -5880,7 +5890,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6178,7 +6188,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6349,7 +6359,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Uint8Array, Float64Array };
   vm.createContext(c4);
-  for (const f of ['hideart.js', 'hideout.js'])
+  for (const f of ['palette.js', 'hideart.js', 'hideout.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = x => vm.runInContext(x, c4);
   R(`var G = { t: 0, mobs: [] }, P = {}, S = { story: {}, maxT: 3 }, PRAC = { t: 2, dot: 0 }, MOBS = { a: { hp: 50 } }, BOSSES = [{ hp: 300 }];
@@ -6421,7 +6431,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c5 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c5);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c5, { filename: f });
   const R = s => vm.runInContext(s, c5);
   R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6614,7 +6624,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c6 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c6);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c6, { filename: f });
   const R = s => vm.runInContext(s, c6);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -8344,6 +8354,7 @@ const ASC_COMBOS = `const combos = k => {
   vm.createContext(c2);
   for (const f of [
     'core.js',
+    'palette.js',
     'ptdata.js',
     'data.js',
     'items.js',
@@ -9313,7 +9324,7 @@ const ASC_COMBOS = `const combos = k => {
   {
     const cx = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
     vm.createContext(cx);
-    for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
       vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), cx, { filename: f });
     const RX = s => vm.runInContext(s, cx);
     RX(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -10235,7 +10246,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c8);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
   vm.runInContext(
     `var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], shots: [], tele: [], allies: [] }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -10280,7 +10291,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c = { ...ctx };
   vm.createContext(c);
-  for (const f of ['ptdata.js', 'data.js', 'ai.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'ai.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c, { filename: f });
   const R = s => vm.runInContext(s, c);
   const tg = { 0: ['attack'], 1: ['spell', 'payoff'], 2: ['spell'], 3: null, 4: ['attack', 'final'] };
@@ -10321,6 +10332,7 @@ const ASC_COMBOS = `const combos = k => {
   vm.createContext(c3);
   for (const f of [
     'core.js',
+    'palette.js',
     'ptdata.js',
     'data.js',
     'items.js',
@@ -10394,6 +10406,7 @@ const ASC_COMBOS = `const combos = k => {
   vm.createContext(c4);
   for (const f of [
     'core.js',
+    'palette.js',
     'ptdata.js',
     'data.js',
     'items.js',
@@ -11062,6 +11075,7 @@ const ASC_COMBOS = `const combos = k => {
   vm.createContext(c15);
   for (const f of [
     'core.js',
+    'palette.js',
     'ptdata.js',
     'data.js',
     'items.js',
@@ -11119,5 +11133,35 @@ const ASC_COMBOS = `const combos = k => {
         );
       }
     }
+}
+/* M2-34-0 色票：CSS 只有一個 :root、:root 以外不寫色碼；JS 不寫色碼（開場、像素圖、技能與職業的識別色除外），PAL 用到的 token 都有定義 */
+{
+  const J = f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'),
+    css = PAL_CSS.replace(/\/\*[\s\S]*?\*\//g, ''),
+    roots = css.match(/:root\s*\{/g) || [],
+    out = css.replace(/:root\s*\{[^}]*\}/, ''),
+    cssLit = out.match(/#[0-9a-fA-F]{3,8}\b(?![\w-]*\s*[{,])|rgba?\(\s*\d/g) || [];
+  ok('色票：style.css 只有一個 :root，而且在最前面', roots.length === 1 && /^\s*:root/.test(css), roots.length);
+  ok('色票：style.css 的 :root 以外沒有寫死的色碼', !cssLit.length, cssLit.slice(0, 5).join(' '));
+  const files = fs.readdirSync(path.join(__dirname, '..', 'js')).filter(f => f.endsWith('.js')),
+    SKIP = ['intro.js', 'sprites.js', 'core.js', 'palette.js', 'art.js', 'hideart.js', 'fxsheets.js', 'ptdata.js'],
+    lit = [],
+    miss = [];
+  for (const f of files) {
+    const src = J(f)
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    if (!SKIP.includes(f))
+      (f === 'data.js' ? src.split('\n').filter(l => l.startsWith('const ELC')) : src.split('\n')).forEach(l => {
+        const m = l.match(/'#[0-9a-fA-F]{3,8}'|rgba?\(\d+,\s*\d+,\s*\d+[,)]|'\d{1,3},\d{1,3},\d{1,3}'/);
+        if (m) lit.push(f + '：' + m[0]);
+      });
+    for (const m of src.matchAll(/\bPAL\.(?:scene\.(\w+)\.(\w+)|rgb\.(\w+)|(\w+))/g)) {
+      const v = m[1] ? (PAL.scene[m[1]] || {})[m[2]] : m[3] ? PAL.rgb[m[3]] : PAL[m[4]];
+      if (!v) miss.push(f + '：' + m[0]);
+    }
+  }
+  ok('色票：JS 不寫色碼（canvas 一律用 PAL）', !lit.length, lit.slice(0, 5).join('、'));
+  ok('色票：JS 用到的 PAL 都在 :root 有定義', !miss.length, [...new Set(miss)].slice(0, 5).join('、'));
 }
 process.exit(bad ? 1 : 0);

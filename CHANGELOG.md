@@ -1,5 +1,13 @@
 # dungeonPOE 更新紀錄
 
+## 0.5.4 之後：M2-34 第 0 批 token 收斂（還沒換版本號；規格 M2-36a token 角色清單）
+
+存檔版本還是 35，遊戲邏輯與數值沒動，畫面逐像素不變（`evidence/m2-34-0/`：改動前 main 與分支各截 3 次 51 張，兩兩比對）。
+- **一個 `:root`**：`css/style.css` 原本的五塊 `:root`（0.2.0、0.2.2、0.2.34、0.4.9、M2-19）收成檔案最前面一塊，舊名換成角色 token（`--s0`→`--panel-inset`、`--fr-o`→`--border-ctl`、`--milk`→`--tx`／場景上 `--tx-scene`、`--gold`→`--tx-strong`、`--r1`→`--rar-magic`、`--fire`→`--el-fire`…），值照現在生效的值；被後面蓋掉的舊值丟掉。
+- **寫死的色碼全部換成 token**：值完全相同的直接用角色；值不同的（就算 ΔE ≤ 2）一律留成 `--角色-vN` 保留原值，畫面才會一模一樣；沒有角色的 23 種放 `--legacy-n`。半透明用逗號三元組 `rgba(var(--x-rgb), α)`——Chromium 對新式 `rgb(r g b / α)` 的混色會差 1 階，舊式寫法才逐像素相同。`var(--bad, #e8574f)` 這類備用色刪掉。
+- **JS 不寫色碼**：新增 `js/palette.js`（`PAL`，開機時從 `:root` 讀；`index.html` 接在 `core.js` 後面）。render、biome（`BIOMES` → `--scene-<地形>-ground/mid/light/edge/dark-rgb/glow-rgb`，地形細節 `--scene-detail-n`）、hideout（`HIDE_BIO`）、game、mech、skills、maps、world、combat、tree、forge、touch 與 data.js 的 `ELC` 全改讀 `PAL`；沒有角色的特效色 `--fx-<檔名>-n`。intro.js、sprites.js、技能與職業的識別色照規格不動；biome.js 兩處逐點亂數算出來的顏色（`rgba(255,${…},30,…)`）不是常數，留著。
+- **檢查**：`check.js` 加 4 條（只有一個 `:root`、`:root` 外沒有色碼、JS 沒有色碼、`PAL` 用到的 token 都有定義）；Node 的檢查工具在每個 vm 環境放 `PAL_CSS`（style.css 全文），`palette.js` 在 Node 照讀，數值檢查結果不變。
+
 ## 0.5.4 之後：M2-38 資訊架構重整（照 M2-37 v1.3；還沒換版本號）
 
 存檔版本還是 35（新欄位 `S.chase.seen` 用到才補，舊存檔拿過追逐物品就當作開放且看過）；掉率、保底點數不變（`loot_check.js`、`chase_check.js` 跟 main 輸出一樣）。截圖與量測在 `evidence/m2-38b/`（`tools/m2_38_shots.js`）。

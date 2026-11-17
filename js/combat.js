@@ -553,7 +553,7 @@ function absorb(d) {
       const R = DEBUFF.shatterR * METER * (1 + ST.parryR / 100);
       for (const o of G.mobs || [])
         if (o.hp > 0 && !o.arrow && Math.hypot(o.x - P.x, o.y - P.y) <= R + o.r) applyParry(o);
-      fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#c9d3e0' });
+      fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.hlV8 });
       sfx('block');
     }
     d -= ab;
@@ -600,7 +600,7 @@ function hfGain(v) {
 function hfBoom() {
   P.hf = 0;
   const d = (ST.hp + ST.es) * (1 - effRes('fire') / 100);
-  fx({ k: 'ring', x: P.x, y: P.y, r: 140, dur: 0.45, col: '#ff6b3d' });
+  fx({ k: 'ring', x: P.x, y: P.y, r: 140, dur: 0.45, col: PAL.badHiV2 });
   sfx('slam');
   num(P.x, P.y - 60, d, 'hurt');
   if (ST.reborn) P.rebT = G.t + HF.reborn;
@@ -631,7 +631,7 @@ function reapBoom(m) {
   const c = P.chg && P.chg.p;
   if (!ST.reap || !(c && c.t > G.t && c.n > 0)) return;
   c.n--;
-  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: '#8a6cff' });
+  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: PAL.fxCombat1 });
   const v = (m.mhp * ST.reap) / 100;
   for (const o of G.mobs)
     if (o.hp > 0 && o !== m && dist(o, m) < 120 + o.r) (o.hp -= v), num(o.x, o.y - o.sz, v, 'phys');
@@ -642,7 +642,7 @@ function falconTick() {
   P.falT = G.t + 3;
   let n = 0;
   for (const m of G.mobs) if (m.hp > 0 && m.ail && !m.ail.mark && dist(P, m) < 500) (m.ail.mark = { k: 'falcon' }), n++;
-  if (n) fx({ k: 'ring', x: P.x, y: P.y, r: 500, dur: 0.5, col: '#ffd166' });
+  if (n) fx({ k: 'ring', x: P.x, y: P.y, r: 500, dur: 0.5, col: PAL.dmgCrit });
 }
 
 /* 豪賭（0.2.74 賭徒）：這一下開不開大獎（真隨機）。梭哈期間必開（不累積賭注）；累積賭注（betStep）：沒開出的每下讓下一次機率 +betStep，
@@ -1858,7 +1858,7 @@ function onHitBase(m, r, c) {
 function markBoom(m) {
   const q = (m.ail.mark && m.ail.mark.q) || 0;
   m.ail.mark = null;
-  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: '#ff6b6b' });
+  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: PAL.dmgHurtV1 });
   for (const o of G.mobs)
     if (o.hp > 0 && o !== m && dist(o, m) < 120 + o.r) {
       (o.hp -= m.mhp * 0.1), num(o.x, o.y - o.sz, m.mhp * 0.1, 'phys');
@@ -2401,7 +2401,7 @@ function trigCharms(el, a) {
     it.on = G.t + C.dur * (1 + ST.charmEff / 100);
     (a.imm = a.imm || {})[C.fx] = G.t + C.dur * (1 + ST.charmEff / 100);
     if (['ign', 'bleed', 'poi', 'shock', 'frz'].includes(C.fx)) a[C.fx === 'frz' ? 'frozen' : C.fx] = null;
-    fx({ k: 'ring', x: P.x, y: P.y, r: 46, dur: 0.3, col: '#ffd166' });
+    fx({ k: 'ring', x: P.x, y: P.y, r: 46, dur: 0.3, col: PAL.dmgCrit });
     sfx('drink');
   }
 }

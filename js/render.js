@@ -92,7 +92,7 @@ HERO_IMG.onload = () => {
   const g = c.getContext('2d');
   g.drawImage(HERO_IMG, 0, 0);
   g.globalCompositeOperation = 'source-in';
-  g.fillStyle = '#fff';
+  g.fillStyle = PAL.glint;
   g.fillRect(0, 0, c.width, c.height);
 };
 HERO_IMG.src = 'img/hero.png?v=' + VER;
@@ -119,7 +119,7 @@ function draw() {
     H = SH / ZOOM;
   CX.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, 0, 0);
   CX.imageSmoothingEnabled = false;
-  CX.fillStyle = '#070606';
+  CX.fillStyle = PAL.sceneVoidV15;
   CX.fillRect(0, 0, W + 1, H + 1);
   const tr = G.trauma * G.trauma,
     sx = (Math.random() * 2 - 1) * 14 * tr,
@@ -131,7 +131,7 @@ function draw() {
   /* 地板、地上細節、牆、擺設（場景在 biome.js） */
   if (G.scene === 'hide') drawHideout(W, H);
   else {
-    CX.strokeStyle = '#3a2f28';
+    CX.strokeStyle = PAL.panelRaised2V2;
     CX.lineWidth = 6;
     CX.strokeRect(-3, -3, G.W + 6, G.H + 6);
     bStatic(W, H);
@@ -153,7 +153,7 @@ function draw() {
       continue;
     }
     if (m.boss && m.pat === 'blink') {
-      CX.strokeStyle = `rgba(178,141,255,${0.3 + 0.6 * f})`;
+      CX.strokeStyle = `rgba(${PAL.rgb.elChaos},${0.3 + 0.6 * f})`;
       CX.beginPath();
       CX.arc(m.tx, m.ty, m.r * (1.6 - f * 0.6), 0, TAU);
       CX.stroke();
@@ -161,7 +161,7 @@ function draw() {
     }
     if (m.boss && m.pat === 'nova') {
       /* 彈幕環：畫出每一發的方向，缺口看得到 */
-      CX.strokeStyle = `rgba(229,72,77,${0.25 + 0.5 * f})`;
+      CX.strokeStyle = `rgba(${PAL.rgb.badV1},${0.25 + 0.5 * f})`;
       CX.beginPath();
       for (let i = 0; i < NOVA_N - NOVA_GAP; i++) {
         const a = novaAng(m, i);
@@ -177,9 +177,9 @@ function draw() {
       CX.save();
       CX.translate(m.x, m.y);
       CX.rotate(m.ang);
-      CX.fillStyle = `rgba(229,72,77,${0.12 + 0.18 * f})`;
+      CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.12 + 0.18 * f})`;
       CX.fillRect(0, -wd / 2, len, wd);
-      CX.fillStyle = 'rgba(229,72,77,0.35)';
+      CX.fillStyle = `rgba(${PAL.rgb.badV1},0.35)`;
       CX.fillRect(0, -wd / 2, len * f, wd);
       CX.restore();
     } else if (D.ai === 'slam') {
@@ -188,14 +188,14 @@ function draw() {
       teleCircle(x, y, 95, f);
     } else if (D.ai === 'melee' || (m.boss && m.pat === 'swipe')) {
       const R = m.boss ? 150 : D.reach + 10;
-      CX.fillStyle = `rgba(229,72,77,${0.1 + 0.25 * f})`;
+      CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.1 + 0.25 * f})`;
       CX.beginPath();
       CX.moveTo(m.x, m.y);
       CX.arc(m.x, m.y, R, m.ang - 1.2, m.ang + 1.2);
       CX.closePath();
       CX.fill();
     } else if (D.ai === 'ranged' || D.ai === 'fan') {
-      CX.strokeStyle = `rgba(122,208,255,${0.2 + 0.5 * f})`;
+      CX.strokeStyle = `rgba(${PAL.rgb.elColdV3},${0.2 + 0.5 * f})`;
       CX.setLineDash([6, 6]);
       CX.beginPath();
       for (const da of D.ai === 'fan' ? [-0.3, 0, 0.3] : [0]) {
@@ -210,7 +210,7 @@ function draw() {
   /* 愛的紅線（0.2.79）：牽著的小怪還活著就畫一條線連到七情王 */
   for (const m of G.mobs)
     if (m.tether && m.hp > 0 && m.tether.hp > 0) {
-      CX.strokeStyle = 'rgba(229,72,77,0.75)';
+      CX.strokeStyle = `rgba(${PAL.rgb.badV1},0.75)`;
       CX.lineWidth = 2;
       CX.beginPath();
       CX.moveTo(m.x, m.y - m.sz * 0.4);
@@ -220,11 +220,11 @@ function draw() {
   /* 毒刃雨：紫色範圍＋落下的刀光；雷暴（p.wet）同一種畫法，換成藍色 */
   for (const p of G.pools || []) {
     const a = Math.min(1, (p.dur - p.t) * 2);
-    CX.fillStyle = p.wet ? `rgba(70,130,255,${0.16 * a})` : `rgba(150,80,220,${0.16 * a})`;
+    CX.fillStyle = p.wet ? `rgba(${PAL.rgb.fxRender1},${0.16 * a})` : `rgba(${PAL.rgb.fxRender2},${0.16 * a})`;
     CX.beginPath();
     CX.ellipse(p.x, p.y, p.r, p.r * 0.7, 0, 0, TAU);
     CX.fill();
-    CX.strokeStyle = p.wet ? `rgba(170,210,255,${0.5 * a})` : `rgba(195,139,255,${0.5 * a})`;
+    CX.strokeStyle = p.wet ? `rgba(${PAL.rgb.elColdV4},${0.5 * a})` : `rgba(${PAL.rgb.elChaosV2},${0.5 * a})`;
     CX.lineWidth = 2;
     for (let i = 0; i < 6; i++) {
       const k = (G.t * 3 + i * 0.37) % 1,
@@ -241,16 +241,16 @@ function draw() {
   /* 隕石：落點的橘圈越來越滿，球從上面掉下來 */
   for (const o of G.meteors || []) {
     const f = Math.min(1, o.t / o.dur);
-    CX.strokeStyle = 'rgba(255,138,76,0.7)';
+    CX.strokeStyle = `rgba(${PAL.rgb.elFire},0.7)`;
     CX.lineWidth = 2;
     CX.beginPath();
     CX.ellipse(o.x, o.y, o.r, o.r * 0.7, 0, 0, TAU);
     CX.stroke();
-    CX.fillStyle = `rgba(255,107,61,${0.1 + 0.2 * f})`;
+    CX.fillStyle = `rgba(${PAL.rgb.badHiV1},${0.1 + 0.2 * f})`;
     CX.beginPath();
     CX.ellipse(o.x, o.y, o.r * f, o.r * 0.7 * f, 0, 0, TAU);
     CX.fill();
-    CX.fillStyle = '#ffb36b';
+    CX.fillStyle = PAL.rarChaseHiV1;
     CX.beginPath();
     CX.arc(o.x + (1 - f) * 120, o.y - (1 - f) * 360, 14, 0, TAU);
     CX.fill();
@@ -258,12 +258,14 @@ function draw() {
   /* 傳送門：藏身處的＝進地圖（紫），地圖裡的＝回家（藍） */
   if (G.portal) {
     const p = G.portal;
-    CX.fillStyle = p.home ? 'rgba(90,160,255,0.18)' : 'rgba(178,141,255,0.18)';
+    CX.fillStyle = p.home ? `rgba(${PAL.rgb.rarMagicV2},0.18)` : `rgba(${PAL.rgb.elChaos},0.18)`;
     CX.beginPath();
     CX.ellipse(p.x, p.y, 46, 20, 0, 0, TAU);
     CX.fill();
     for (let i = 0; i < 3; i++) {
-      CX.strokeStyle = p.home ? `rgba(120,190,255,${0.7 - i * 0.2})` : `rgba(178,141,255,${0.7 - i * 0.2})`;
+      CX.strokeStyle = p.home
+        ? `rgba(${PAL.rgb.dodgeVignetteV1},${0.7 - i * 0.2})`
+        : `rgba(${PAL.rgb.elChaos},${0.7 - i * 0.2})`;
       CX.lineWidth = 3;
       CX.beginPath();
       CX.ellipse(p.x, p.y, 34 + i * 8 + Math.sin(G.t * 3 + i) * 3, 14 + i * 3, 0, 0, TAU);
@@ -284,31 +286,31 @@ function draw() {
         k = (d.t - 0.35) / 0.5;
       CX.save();
       CX.translate(x, y + 8);
-      CX.fillStyle = 'rgba(255,154,74,0.18)';
+      CX.fillStyle = `rgba(${PAL.rgb.rarChase},0.18)`;
       CX.beginPath();
       CX.ellipse(0, 0, 30, 12, 0, 0, TAU);
       CX.fill();
-      CX.strokeStyle = 'rgba(255,154,74,0.9)';
+      CX.strokeStyle = `rgba(${PAL.rgb.rarChase},0.9)`;
       CX.lineWidth = 2;
       CX.setLineDash([6, 4]);
       if (!rm) CX.lineDashOffset = -G.t * 30;
       CX.stroke();
       CX.setLineDash([]);
       if (!rm && k > 0 && k < 1) {
-        CX.strokeStyle = `rgba(255,154,74,${0.8 * (1 - k)})`;
+        CX.strokeStyle = `rgba(${PAL.rgb.rarChase},${0.8 * (1 - k)})`;
         CX.beginPath();
         CX.ellipse(0, 0, 30 + 34 * k, 12 + 14 * k, 0, 0, TAU);
         CX.stroke();
       }
       CX.restore();
       const g = CX.createLinearGradient(x, y - bh, x, y);
-      g.addColorStop(0, 'rgba(255,154,74,0)');
-      g.addColorStop(1, `rgba(255,154,74,${a})`);
+      g.addColorStop(0, `rgba(${PAL.rgb.rarChase},0)`);
+      g.addColorStop(1, `rgba(${PAL.rgb.rarChase},${a})`);
       CX.fillStyle = g;
       CX.fillRect(x - 14, y - bh, 28, bh);
-      CX.fillStyle = `rgba(255,236,214,${a})`;
+      CX.fillStyle = `rgba(${PAL.rgb.onActV2},${a})`;
       CX.fillRect(x - 3, y - bh * 0.9, 6, bh * 0.9);
-      CX.fillStyle = `rgba(255,154,74,${a * 0.6})`;
+      CX.fillStyle = `rgba(${PAL.rgb.rarChase},${a * 0.6})`;
       CX.fillRect(x - 19, y - bh * 0.7, 1.5, bh * 0.7);
       CX.fillRect(x + 17.5, y - bh * 0.7, 1.5, bh * 0.7);
       spr(d.chase, x, y + 8, 32);
@@ -317,11 +319,11 @@ function draw() {
       const bh = /3$/.test(d.show) ? 300 : 230,
         a = 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
         g = CX.createLinearGradient(x, y - bh, x, y);
-      g.addColorStop(0, 'rgba(255,209,102,0)');
-      g.addColorStop(1, `rgba(255,209,102,${a})`);
+      g.addColorStop(0, `rgba(${PAL.rgb.rarRare},0)`);
+      g.addColorStop(1, `rgba(${PAL.rgb.rarRare},${a})`);
       CX.fillStyle = g;
       CX.fillRect(x - 10, y - bh, 20, bh);
-      CX.fillStyle = `rgba(255,244,214,${a})`;
+      CX.fillStyle = `rgba(${PAL.rgb.catFracV1},${a})`;
       CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
       spr(d.show === 'pack' ? 'soulpack' : CUR[d.show].ic, x, y + 8, 26);
     } else {
@@ -373,7 +375,7 @@ function draw() {
       CX.save();
       CX.translate(s.x, s.y);
       CX.rotate(s.ang);
-      CX.fillStyle = s.bolt ? '#d9c7a3' : ELC[s.wave];
+      CX.fillStyle = s.bolt ? PAL.rarNormalV1 : ELC[s.wave];
       CX.fillRect(-16, -2, 26, 4);
       CX.globalAlpha = 0.35;
       CX.fillRect(-34, -4, 22, 8);
@@ -382,31 +384,31 @@ function draw() {
       continue;
     }
     if (s.cold) {
-      CX.fillStyle = 'rgba(143,214,255,0.3)';
+      CX.fillStyle = `rgba(${PAL.rgb.elCold},0.3)`;
       CX.beginPath();
       CX.arc(s.x, s.y, 16, 0, TAU);
       CX.fill();
-      CX.fillStyle = '#e6f7ff';
+      CX.fillStyle = PAL.glintV3;
       CX.beginPath();
       CX.arc(s.x, s.y, 7, 0, TAU);
       CX.fill();
       continue;
     }
     if (s.fire) {
-      CX.fillStyle = 'rgba(255,138,76,0.3)';
+      CX.fillStyle = `rgba(${PAL.rgb.elFire},0.3)`;
       CX.beginPath();
       CX.arc(s.x, s.y, 20, 0, TAU);
       CX.fill();
-      CX.fillStyle = '#ffd08a';
+      CX.fillStyle = PAL.warmGlintV1;
       CX.beginPath();
       CX.arc(s.x, s.y, 9, 0, TAU);
       CX.fill();
     } else if (s.foe) {
-      CX.fillStyle = 'rgba(122,208,255,0.25)';
+      CX.fillStyle = `rgba(${PAL.rgb.elColdV3},0.25)`;
       CX.beginPath();
       CX.arc(s.x, s.y, s.r * 2.2, 0, TAU);
       CX.fill();
-      CX.fillStyle = '#d6f3ff';
+      CX.fillStyle = PAL.hlV1;
       CX.beginPath();
       CX.arc(s.x, s.y, s.r, 0, TAU);
       CX.fill();
@@ -414,9 +416,9 @@ function draw() {
       CX.save();
       CX.translate(s.x, s.y);
       CX.rotate(s.ang);
-      CX.fillStyle = 'rgba(200,230,255,0.25)';
+      CX.fillStyle = `rgba(${PAL.rgb.elColdV5},0.25)`;
       CX.fillRect(-40, -3, 40, 6);
-      CX.fillStyle = s.pink ? '#ffc4d6' : '#eef6ff';
+      CX.fillStyle = s.pink ? PAL.fxRender3 : PAL.glintV4;
       CX.beginPath();
       CX.moveTo(14, 0);
       CX.lineTo(-6, -7);
@@ -437,25 +439,25 @@ function draw() {
       pop = n.t < 0.08 ? 1 + (0.08 - n.t) * 8 : 1,
       y = n.y - 30 * Math.sqrt(f) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
     const st = {
-      phys: ['#fff3e0', 15],
+      phys: [PAL.dmgHit, 15],
       fire: [ELC.fire, 15],
       cold: [ELC.cold, 15],
       light: [ELC.light, 15],
       chaos: [ELC.chaos, 15],
-      block: ['#cfd8e3', 16],
-      hit: ['#fff3e0', 15],
-      crit: ['#ffd166', 24],
+      block: [PAL.dmgMinorV2, 16],
+      hit: [PAL.dmgHit, 15],
+      crit: [PAL.dmgCrit, 24],
       /* 豪賭的大獎（0.2.74 賭徒）：金色、更大 */
-      jackpot: ['#ffc21a', 30],
-      hurt: ['#ff5a5a', 17],
-      gold: ['#ffd166', 14],
-      lv: ['#ffd166', 26],
-      perfect: ['#8fe0ff', 26],
-      ev: ['#b8f0c8', 18],
-      miss: ['#9aa3ad', 14],
-      mat: ['#d6b8ff', 15],
+      jackpot: [PAL.dmgCritV1, 30],
+      hurt: [PAL.dmgHurt, 17],
+      gold: [PAL.dmgGain, 14],
+      lv: [PAL.dmgGain, 26],
+      perfect: [PAL.dmgGainV1, 26],
+      ev: [PAL.dmgGainV2, 18],
+      miss: [PAL.dmgMinor, 14],
+      mat: [PAL.dmgGainV3, 15],
       /* 持續傷害：小、淡，跟擊中分開 */
-      dot: ['#c9a3a3', 12]
+      dot: [PAL.dmgMinorV3, 12]
     }[n.c];
     const fa = 1 - Math.max(0, f - 0.6) / 0.4;
     CX.font = `700 ${Math.round(st[1] * pop)}px "Noto Sans TC", sans-serif`;
@@ -476,7 +478,7 @@ function draw() {
     /* 描邊比字慢淡出（M2-31 C1） */
     CX.globalAlpha = Math.min(1, fa + 0.3);
     CX.lineWidth = 4;
-    CX.strokeStyle = 'rgba(0,0,0,0.95)';
+    CX.strokeStyle = `rgba(${PAL.rgb.scrim},0.95)`;
     CX.strokeText(txt, n.x, y);
     CX.globalAlpha = fa;
     CX.fillStyle = st[0];
@@ -509,9 +511,9 @@ function draw() {
   dg.globalCompositeOperation = 'destination-out';
   const R = (night ? 260 : fog ? 340 : 560) * DPR * ZOOM,
     g = dg.createRadialGradient(px, py, 40 * DPR, px, py, R);
-  g.addColorStop(0, 'rgba(0,0,0,1)');
-  g.addColorStop(0.6, 'rgba(0,0,0,0.85)');
-  g.addColorStop(1, 'rgba(0,0,0,0)');
+  g.addColorStop(0, `rgba(${PAL.rgb.scrim},1)`);
+  g.addColorStop(0.6, `rgba(${PAL.rgb.scrim},0.85)`);
+  g.addColorStop(1, `rgba(${PAL.rgb.scrim},0)`);
   dg.fillStyle = g;
   dg.fillRect(0, 0, CV.width, CV.height);
   bLights(dg, ox, oy);
@@ -528,40 +530,44 @@ function draw() {
     if (P.hurtT > 0 || P.hp < ST.hp * 0.3 || G.slow > 0) {
       const a = G.slow > 0 ? 0.35 : Math.max(P.hurtT / 0.35, P.hp < ST.hp * 0.3 ? 0.35 + 0.15 * Math.sin(G.t * 6) : 0),
         vg = CX.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.7);
-      vg.addColorStop(0, 'rgba(0,0,0,0)');
-      vg.addColorStop(1, G.slow > 0 ? `rgba(80,180,255,${a})` : `rgba(200,20,20,${a})`);
+      vg.addColorStop(0, `rgba(${PAL.rgb.scrim},0)`);
+      vg.addColorStop(1, G.slow > 0 ? `rgba(${PAL.rgb.dodgeVignette},${a})` : `rgba(${PAL.rgb.hurtVignette},${a})`);
       CX.fillStyle = vg;
       CX.fillRect(0, 0, W, H);
     }
     if (G.scene === 'map') drawMinimap(W);
   }
 }
-const RCOL = ['#e8e2d6', '#8ab4ff', '#ffd166'];
-const RBG = ['rgba(21,17,13,0.95)', 'rgba(18,24,51,0.95)', 'rgba(42,33,13,0.95)'];
+const RCOL = [PAL.borderCapV1, PAL.rarMagicV2, PAL.dmgCrit];
+const RBG = [
+  `rgba(${PAL.rgb.sceneVoidV1},0.95)`,
+  `rgba(${PAL.rgb.rarMagicBgV1},0.95)`,
+  `rgba(${PAL.rgb.rarRareBgV1},0.95)`
+];
 /* canvas 上的鑄鐵銀框（小地圖、互動提示），跟面板同色：外黑、內銀 */
 function frameRect(x, y, w, h) {
   CX.lineWidth = 1;
-  CX.strokeStyle = '#0c0d0f';
+  CX.strokeStyle = PAL.sceneVoidV6;
   CX.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
-  CX.strokeStyle = '#a7acb6';
+  CX.strokeStyle = PAL.dmgMinorV4;
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 function teleCircle(x, y, r, f) {
-  CX.fillStyle = `rgba(229,72,77,${0.08 + 0.12 * f})`;
+  CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.08 + 0.12 * f})`;
   CX.beginPath();
   CX.arc(x, y, r, 0, TAU);
   CX.fill();
-  CX.fillStyle = 'rgba(229,72,77,0.3)';
+  CX.fillStyle = `rgba(${PAL.rgb.badV1},0.3)`;
   CX.beginPath();
   CX.arc(x, y, r * clamp(f, 0, 1), 0, TAU);
   CX.fill();
-  CX.strokeStyle = 'rgba(255,120,110,0.7)';
+  CX.strokeStyle = `rgba(${PAL.rgb.dmgHurtV1},0.7)`;
   CX.beginPath();
   CX.arc(x, y, r, 0, TAU);
   CX.stroke();
 }
 function shadow(x, y, r) {
-  CX.fillStyle = 'rgba(0,0,0,0.4)';
+  CX.fillStyle = `rgba(${PAL.rgb.scrim},0.4)`;
   CX.beginPath();
   CX.ellipse(x, y, r, r * 0.38, 0, 0, TAU);
   CX.fill();
@@ -575,7 +581,7 @@ function drawMobStates(m, y) {
     gap = 2;
   let x = m.x - ((L.length - 1) * (s + gap)) / 2;
   for (const t of L) {
-    CX.fillStyle = 'rgba(8,9,11,0.82)';
+    CX.fillStyle = `rgba(${PAL.rgb.scrimV6},0.82)`;
     CX.fillRect(x - s / 2 - 1, y - s - 1, s + 2, s + 2);
     spr(t.ic, x, y, s);
     /* 暗色扇形順時針掃過（剩餘越少蓋越多）、層數在右下角 */
@@ -584,7 +590,7 @@ function drawMobStates(m, y) {
       CX.beginPath();
       CX.rect(x - s / 2, y - s, s, s);
       CX.clip();
-      CX.fillStyle = 'rgba(0,0,0,0.62)';
+      CX.fillStyle = `rgba(${PAL.rgb.scrim},0.62)`;
       CX.beginPath();
       CX.moveTo(x, y - s / 2);
       CX.arc(x, y - s / 2, s, -Math.PI / 2, -Math.PI / 2 + (1 - t.f) * TAU);
@@ -595,9 +601,9 @@ function drawMobStates(m, y) {
       CX.font = `700 ${Math.round(s * 0.5)}px sans-serif`;
       CX.textAlign = 'right';
       CX.lineWidth = 3;
-      CX.strokeStyle = '#000';
+      CX.strokeStyle = PAL.scrimV1;
       CX.strokeText(t.c, x + s / 2, y);
-      CX.fillStyle = '#fff';
+      CX.fillStyle = PAL.glint;
       CX.fillText(t.c, x + s / 2, y);
       CX.textAlign = 'center';
     }
@@ -619,7 +625,7 @@ function drawArrow(m) {
     CX.restore();
   }
   const n = ARROW_HITS - m.fired;
-  CX.fillStyle = '#cfd8e3';
+  CX.fillStyle = PAL.hlV2;
   for (let i = 0; i < n; i++) CX.fillRect(Math.round(m.x - n * 4 + 1 + i * 8), Math.round(m.y + 10), 6, 6);
 }
 function drawMob(m) {
@@ -629,7 +635,7 @@ function drawMob(m) {
   shadow(m.x, m.y, m.r * 1.1);
   /* 菁英：腳下光圈；王：大光圈 */
   if (m.elite || m.boss) {
-    CX.strokeStyle = m.boss ? 'rgba(255,100,60,0.6)' : 'rgba(138,180,255,0.7)';
+    CX.strokeStyle = m.boss ? `rgba(${PAL.rgb.badHiV2},0.6)` : `rgba(${PAL.rgb.rarMagic},0.7)`;
     CX.lineWidth = 2;
     CX.beginPath();
     CX.ellipse(m.x, m.y, m.r * 1.4, m.r * 0.55, 0, 0, TAU);
@@ -644,7 +650,7 @@ function drawMob(m) {
   /* 蓄力：紅光 */
   if (m.st === 'wind') {
     CX.globalAlpha = 0.25 + 0.2 * Math.sin(G.t * 30);
-    CX.fillStyle = '#ff3b3b';
+    CX.fillStyle = PAL.badV5;
     CX.beginPath();
     CX.arc(m.x, m.y - fly - m.sz * 0.5, m.sz * 0.35, 0, TAU);
     CX.fill();
@@ -654,7 +660,7 @@ function drawMob(m) {
   const ma = m.ail || {};
   if (ma.mark) {
     const y = m.y - fly - m.sz - 18;
-    CX.fillStyle = ma.mark.k === 'falcon' ? '#ffd166' : '#ff6b6b';
+    CX.fillStyle = ma.mark.k === 'falcon' ? PAL.dmgCrit : PAL.dmgHurtV1;
     CX.beginPath();
     CX.moveTo(m.x, y - 6);
     CX.lineTo(m.x + 5, y);
@@ -663,7 +669,7 @@ function drawMob(m) {
     CX.fill();
   }
   if (ma.ign && ma.ign.t > G.t) {
-    CX.fillStyle = 'rgba(255,120,50,0.3)';
+    CX.fillStyle = `rgba(${PAL.rgb.elFireV2},0.3)`;
     CX.beginPath();
     CX.ellipse(m.x, m.y - fly - m.sz * 0.4, m.r * 0.9, m.sz * 0.45, 0, 0, TAU);
     CX.fill();
@@ -674,15 +680,15 @@ function drawMob(m) {
     const w = m.boss ? 0 : Math.max(36, m.r * 2.4),
       y = m.y - fly - m.sz - 8;
     if (w) {
-      CX.fillStyle = 'rgba(0,0,0,0.7)';
+      CX.fillStyle = `rgba(${PAL.rgb.scrim},0.7)`;
       CX.fillRect(m.x - w / 2 - 1, y - 1, w + 2, 6);
-      CX.fillStyle = m.elite ? '#8ab4ff' : '#e5484d';
+      CX.fillStyle = m.elite ? PAL.rarMagicV2 : PAL.badV1;
       CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
     }
   }
 }
 /* 能量球：玩家身邊繞圈的小圓點（耐力紅、盛怒綠、暴擊藍） */
-const CHGC = { e: '#ff6b5b', f: '#7be08a', p: '#6cb8ff' };
+const CHGC = { e: PAL.badHiV3, f: PAL.goodV1, p: PAL.dodgeVignetteV1 };
 function drawCharges() {
   const ds = [];
   for (const k of ['e', 'f', 'p']) for (let i = chgN(k); i > 0; i--) ds.push(CHGC[k]);
@@ -707,12 +713,12 @@ function chargeBar() {
     y = Math.round(P.y + 12),
     full = a.ch >= E.max * E.step - 1e-6,
     flash = G.t - (a.chT == null ? -9 : a.chT) < 0.18;
-  CX.fillStyle = 'rgba(0,0,0,0.7)';
+  CX.fillStyle = `rgba(${PAL.rgb.scrim},0.7)`;
   CX.fillRect(x0 - 1, y - 1, W + 2, 6);
   for (let i = 0; i < E.max; i++) {
     const f = Math.max(0, Math.min(1, a.ch / E.step - i));
     if (!f) continue;
-    CX.fillStyle = full || (f >= 1 && flash) ? '#f4f5f7' : f >= 1 ? '#c3c7d0' : '#979ba5';
+    CX.fillStyle = full || (f >= 1 && flash) ? PAL.glintV5 : f >= 1 ? PAL.hlV3 : PAL.dmgMinorV5;
     CX.fillRect(x0 + i * (w + gap), y, w * f, 4);
   }
 }
@@ -754,7 +760,7 @@ function drawHero() {
   drawCharges();
   /* 完美閃避後的下一擊：刀光 */
   if (P.critNext) {
-    CX.strokeStyle = `rgba(143,224,255,${0.5 + 0.3 * Math.sin(G.t * 12)})`;
+    CX.strokeStyle = `rgba(${PAL.rgb.catMemV1},${0.5 + 0.3 * Math.sin(G.t * 12)})`;
     CX.lineWidth = 2;
     CX.beginPath();
     CX.ellipse(P.x, P.y, 24, 9, 0, 0, TAU);
@@ -797,9 +803,9 @@ function drawFx() {
       CX.globalAlpha = 1 - f * f;
       const a0 = o.ang - o.arc / 2 + o.arc * Math.min(1, f * 2.4) * 0;
       const g = CX.createRadialGradient(o.x, o.y - 20, o.r * 0.3, o.x, o.y - 20, o.r);
-      g.addColorStop(0, 'rgba(255,255,255,0)');
-      g.addColorStop(0.7, 'rgba(255,240,210,0.35)');
-      g.addColorStop(1, 'rgba(255,255,255,0.95)');
+      g.addColorStop(0, `rgba(${PAL.rgb.glint},0)`);
+      g.addColorStop(0.7, `rgba(${PAL.rgb.catFracV2},0.35)`);
+      g.addColorStop(1, `rgba(${PAL.rgb.glint},0.95)`);
       CX.fillStyle = g;
       CX.beginPath();
       CX.arc(o.x, o.y - 20, o.r, a0, a0 + o.arc * Math.min(1, 0.4 + f * 3));
@@ -808,7 +814,7 @@ function drawFx() {
       CX.fill();
     } else if (o.k === 'quake') {
       CX.globalAlpha = 0.6 * (1 - f);
-      CX.fillStyle = '#c9a27a';
+      CX.fillStyle = PAL.txOffV1;
       CX.beginPath();
       CX.moveTo(o.x, o.y);
       CX.arc(o.x, o.y, o.r * (0.5 + 0.5 * f), o.ang - o.arc / 2, o.ang + o.arc / 2);
@@ -816,7 +822,7 @@ function drawFx() {
       CX.fill();
     } else if (o.k === 'claw') {
       CX.globalAlpha = 1 - f;
-      CX.strokeStyle = o.big ? '#ff8a5b' : '#ffb3a0';
+      CX.strokeStyle = o.big ? PAL.elFireV1 : PAL.ascHiV3;
       CX.lineWidth = o.big ? 6 : 3;
       for (let i = -1; i <= 1; i++) {
         CX.beginPath();
@@ -826,7 +832,7 @@ function drawFx() {
     } else if (o.k === 'zap') {
       /* 電弧：兩點之間鋸齒狀的閃電 */
       CX.globalAlpha = 1 - f;
-      CX.strokeStyle = '#ffe066';
+      CX.strokeStyle = PAL.elLight;
       CX.lineWidth = 3;
       CX.beginPath();
       CX.moveTo(o.x, o.y);
@@ -842,7 +848,7 @@ function drawFx() {
       CX.globalAlpha = 1;
     } else if (o.k === 'ring') {
       CX.globalAlpha = (1 - f) * 0.9;
-      CX.strokeStyle = o.col || '#fff3d6';
+      CX.strokeStyle = o.col || PAL.catFracV4;
       CX.lineWidth = 10 * (1 - f) + 2;
       CX.beginPath();
       CX.ellipse(o.x, o.y - 10, o.r * (0.6 + 0.4 * f), o.r * (0.6 + 0.4 * f) * 0.75, 0, 0, TAU);
@@ -851,7 +857,7 @@ function drawFx() {
       heroCell(6, 2, o.x, o.y, o.flip, 0.35 * (1 - f));
     } else if (o.k === 'dust') {
       CX.globalAlpha = 0.35 * (1 - f);
-      CX.fillStyle = '#8a7a6a';
+      CX.fillStyle = PAL.txLockV3;
       CX.beginPath();
       CX.arc(o.x, o.y - f * 10, 4 + f * 10, 0, TAU);
       CX.fill();
@@ -860,7 +866,7 @@ function drawFx() {
       spr(o.sp, o.x, o.y, o.sz, { flip: o.flip, white: f < 0.25, a: 1 - f, sx: 1 + f * 0.4, sy: 1 - f * 0.6 });
     } else if (o.k === 'heal' || o.k === 'lvup') {
       CX.globalAlpha = 1 - f;
-      CX.strokeStyle = o.k === 'heal' ? '#ff6b6b' : '#9df29d';
+      CX.strokeStyle = o.k === 'heal' ? PAL.dmgHurtV1 : PAL.goodV2;
       CX.lineWidth = 3;
       CX.beginPath();
       CX.ellipse(o.x, o.y - f * 40, 26 + f * 20, 10 + f * 6, 0, 0, TAU);
@@ -878,7 +884,7 @@ function drawFx() {
       );
     } else if (o.k === 'perfect') {
       CX.globalAlpha = 1 - f;
-      CX.strokeStyle = '#8fe0ff';
+      CX.strokeStyle = PAL.catMemV2;
       CX.lineWidth = 3;
       CX.beginPath();
       CX.arc(o.x, o.y - 30, 30 + f * 160, 0, TAU);
@@ -894,7 +900,7 @@ function drawMinimap(W) {
     x0 = W - mw - (TOUCH.on ? 10 / ZOOM : 16),
     y0 = TOUCH.on ? 60 / ZOOM : cvH() - mh - 16 /* 桌機在右下（M2-38，M2-37.5）：右欄最低 562，不重疊 */,
     s = mw / G.W;
-  CX.fillStyle = 'rgba(8,6,5,0.78)';
+  CX.fillStyle = `rgba(${PAL.rgb.sceneVoidV2},0.78)`;
   CX.fillRect(x0, y0, mw, mh);
   frameRect(x0, y0, mw, mh);
   if (!G.mini) {
@@ -903,7 +909,7 @@ function drawMinimap(W) {
     c.width = G.cols;
     c.height = G.rows;
     const g = c.getContext('2d');
-    g.fillStyle = 'rgba(120,105,92,0.9)';
+    g.fillStyle = `rgba(${PAL.rgb.txEmptyV1},0.9)`;
     for (let y = 0; y < G.rows; y++)
       for (let x = 0; x < G.cols; x++) if (!G.tiles[y * G.cols + x]) g.fillRect(x, y, 1, 1);
   }
@@ -911,11 +917,11 @@ function drawMinimap(W) {
   CX.drawImage(G.mini, x0, y0, mw, mh);
   for (const m of G.mobs) {
     if (m.arrow) continue;
-    CX.fillStyle = m.boss ? '#ff6b3d' : m.elite ? '#8ab4ff' : '#c95050';
+    CX.fillStyle = m.boss ? PAL.badHiV2 : m.elite ? PAL.rarMagicV2 : PAL.badV6;
     const z = m.boss ? 5 : 2;
     CX.fillRect(x0 + m.x * s - z / 2, y0 + m.y * s - z / 2, z, z);
   }
-  CX.fillStyle = '#9df29d';
+  CX.fillStyle = PAL.goodV2;
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);
 }
 
@@ -931,20 +937,20 @@ function drawPrompts() {
         : null;
   if (G.scene === 'hide') drawPropNames();
   if (!lab) return;
-  plate(lab[0], lab[1], lab[2], '#eceef2', 1);
+  plate(lab[0], lab[1], lab[2], PAL.glintV6, 1);
 }
 /* 藏身處的擺設常駐弱名牌（走近才變成互動提示） */
 function drawPropNames() {
   const p = nearProp();
-  for (const k of G.props) if (k !== p) plate(k.n, k.x, k.y - k.ny, '#aeb3bc', 0.75);
-  if (PRAC.in) for (const m of G.mobs) if (m.dummy) plate(m.D.n, m.x, m.y + 26, '#aeb3bc', 0.75);
+  for (const k of G.props) if (k !== p) plate(k.n, k.x, k.y - k.ny, PAL.dmgMinorV6, 0.75);
+  if (PRAC.in) for (const m of G.mobs) if (m.dummy) plate(m.D.n, m.x, m.y + 26, PAL.dmgMinorV6, 0.75);
 }
 function plate(txt, x, y, col, a) {
   CX.font = '700 14px "Noto Sans TC", sans-serif';
   CX.textAlign = 'center';
   const w = CX.measureText(txt).width + 18;
   CX.globalAlpha = a;
-  CX.fillStyle = 'rgba(38,40,45,0.94)';
+  CX.fillStyle = `rgba(${PAL.rgb.panelV2},0.94)`;
   CX.fillRect(x - w / 2, y - 15, w, 25);
   frameRect(x - w / 2, y - 15, w, 25);
   CX.fillStyle = col;
@@ -957,7 +963,7 @@ function drawWolf(w) {
   shadow(w.x, w.y, 13);
   /* 魔像（0.2.63）：圖與腳下圈的顏色看 AURAS[src] 的 mon、col */
   const A = AURAS[w.src];
-  CX.strokeStyle = A && A.col ? A.col : 'rgba(157,242,157,0.6)';
+  CX.strokeStyle = A && A.col ? A.col : `rgba(${PAL.rgb.goodV1},0.6)`;
   CX.lineWidth = 1.5;
   CX.beginPath();
   CX.ellipse(w.x, w.y, 16, 6, 0, 0, TAU);
@@ -970,19 +976,19 @@ function drawWolf(w) {
   if (w.hp < w.mhp) {
     const bw = Math.max(36, w.r * 2.4),
       y = w.y - sz * giantM(w) - 8;
-    CX.fillStyle = 'rgba(0,0,0,0.7)';
+    CX.fillStyle = `rgba(${PAL.rgb.scrim},0.7)`;
     CX.fillRect(w.x - bw / 2 - 1, y - 1, bw + 2, 6);
-    CX.fillStyle = '#7bd36b';
+    CX.fillStyle = PAL.goodV3;
     CX.fillRect(w.x - bw / 2, y, (bw * Math.max(0, w.hp)) / w.mhp, 4);
   }
 }
 
 /* 陷阱的屬性色 [圓環, 旋轉小點]：物理灰、閃電黃、火焰橙、冰霜青（0.2.66；圓環中心再畫技能圖示） */
 const TRAP_COL = {
-  phys: ['#b4b9c2', '#e4e7ec'],
-  light: ['#ffe066', '#fff3b0'],
-  fire: ['#ff8a4c', '#ffc9a0'],
-  cold: ['#8fd6ff', '#cfe9ff']
+  phys: [PAL.dmgHitV1, PAL.dmgHitV2],
+  light: [PAL.elLight, PAL.warmGlintV2],
+  fire: [PAL.elFire, PAL.rarChaseHiV2],
+  cold: [PAL.elCold, PAL.hlV4]
 };
 /* 場上單位：陷阱（地上的齒輪）、地雷（閃紅點）、砲塔圖騰（十字弓）、圖騰（柱子）；砲塔圖騰、圖騰下面的小條是剩下的時間 */
 function drawUnit(u) {
@@ -1005,37 +1011,37 @@ function drawUnit(u) {
     }
     spr(D.ic, u.x, u.y + 2, 12);
   } else if (u.type === 'mine') {
-    CX.fillStyle = '#4a3d33';
+    CX.fillStyle = PAL.borderV2;
     CX.beginPath();
     CX.arc(u.x, u.y - 4, 9, 0, TAU);
     CX.fill();
-    CX.fillStyle = Math.sin(G.t * 14) > 0 ? '#ff5a5a' : '#7a1c1c';
+    CX.fillStyle = Math.sin(G.t * 14) > 0 ? PAL.dmgHurt : PAL.hpV4;
     CX.fillRect(u.x - 2, u.y - 7, 4, 4);
   } else if (u.type === 'turret') {
-    CX.fillStyle = '#6b4a2b';
+    CX.fillStyle = PAL.progLoV1;
     CX.fillRect(u.x - 10, u.y - 20, 20, 20);
-    CX.fillStyle = '#c9a46b';
+    CX.fillStyle = PAL.progHiV1;
     CX.fillRect(u.x - 16, u.y - 26, 32, 6);
   } else {
-    CX.fillStyle = '#5a4d43';
+    CX.fillStyle = PAL.borderMidV3;
     CX.fillRect(u.x - 9, u.y - 46, 18, 46);
-    CX.fillStyle = D.el === 'fire' ? '#ff8a4c' : '#c9a46b';
+    CX.fillStyle = D.el === 'fire' ? PAL.elFire : PAL.progHiV1;
     CX.fillRect(u.x - 12, u.y - 52, 24, 10);
     spr(D.ic, u.x, u.y - 22, 18);
   }
   if (u.type === 'turret' || u.type === 'totem') {
-    CX.fillStyle = 'rgba(0,0,0,0.6)';
+    CX.fillStyle = `rgba(${PAL.rgb.scrim},0.6)`;
     CX.fillRect(u.x - 14, u.y + 6, 28, 3);
-    CX.fillStyle = '#cfd8e3';
+    CX.fillStyle = PAL.hlV2;
     CX.fillRect(u.x - 14, u.y + 6, 28 * Math.max(0, 1 - u.t / u.dur), 3);
   }
   /* 生命條（0.2.53，圖騰與砲塔圖騰會被打）：受傷才顯示，畫法跟召喚物、怪物的小血條一樣 */
   if (u.hp < u.mhp) {
     /* 砲塔圖騰比圖騰矮，血條貼著它的頭頂 */
     const y = u.y - (u.type === 'turret' ? 40 : 62);
-    CX.fillStyle = 'rgba(0,0,0,0.7)';
+    CX.fillStyle = `rgba(${PAL.rgb.scrim},0.7)`;
     CX.fillRect(u.x - 19, y - 1, 38, 6);
-    CX.fillStyle = '#7bd36b';
+    CX.fillStyle = PAL.goodV3;
     CX.fillRect(u.x - 18, y, (36 * Math.max(0, u.hp)) / u.mhp, 4);
   }
 }

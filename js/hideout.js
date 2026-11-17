@@ -1,7 +1,7 @@
 /* dungeonPOE · 藏身處：場景圖（hideart.js，tools/hide_bake.js 烘的）、練習區、稻草人、DPS 統計（0.3.2 起不畫十二神像，點亮的進度 S.idols 照舊） */
 'use strict';
 /* 場景的暗層與光暈色（biome.js 的 BIO） */
-const HIDE_BIO = { dark: '5,3,3', light: '255,150,70' };
+const HIDE_BIO = { dark: PAL.scene.hide.dark, light: PAL.scene.hide.glow };
 /* 格子牆：跟地圖同一套碰撞，牆擋人也擋投射物 */
 let HIDE_T;
 function hideTiles() {
@@ -263,7 +263,7 @@ function drawHideout(W, H) {
   const f0 = A.fires[0],
     sp = FIRE.sparks;
   if (Math.random() < 0.3) sp.push({ x: f0.x + rnd(-14, 14), y: f0.y - 30, t: G.t, v: rnd(30, 80), d: rnd(1, 2.2) });
-  CX.fillStyle = '#ffb04a';
+  CX.fillStyle = PAL.progHiV3;
   for (const s of sp) {
     const a = G.t - s.t;
     CX.fillRect(Math.round((s.x + Math.sin(a * 5 + s.x) * 8) / tx) * tx, Math.round((s.y - a * s.v) / tx) * tx, tx, tx);
@@ -271,7 +271,7 @@ function drawHideout(W, H) {
   if (sp.length && G.t - sp[0].t > sp[0].d) sp.shift();
   /* 地圖台的符文（紫，跟傳送門同色） */
   const d = A.props[0];
-  CX.fillStyle = `rgba(178,141,255,${0.5 + 0.28 * Math.sin(G.t * 2)})`;
+  CX.fillStyle = `rgba(${PAL.rgb.elChaos},${0.5 + 0.28 * Math.sin(G.t * 2)})`;
   for (let i = 0; i < 40; i++) {
     const q = (i / 40) * TAU + G.t * 0.25;
     CX.fillRect(

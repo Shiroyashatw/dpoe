@@ -7,6 +7,10 @@
 const fs = require('fs'),
   vm = require('vm'),
   path = require('path');
+/* js/palette.js 在 Node 讀 css/style.css（M2-34-0）：每個 vm 環境都帶 PAL_CSS */
+const PAL_CSS = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8'),
+  vmCtx = vm.createContext;
+vm.createContext = o => vmCtx(Object.assign(o, { PAL_CSS }));
 const SEC = +process.argv[2] || 150,
   NS = +process.argv[3] || 40,
   MIN = +process.argv[4] || 60;
@@ -21,7 +25,7 @@ const M = Object.create(Math);
 M.random = rand;
 const ctx = { console, Math: M, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js'])
+for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const R = s => vm.runInContext(s, ctx);
 console.log(

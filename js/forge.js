@@ -193,7 +193,7 @@ const RB_EL = document.getElementsByClassName('rbar'),
   RF_EL = document.getElementsByClassName('cfill'),
   RO_EL = document.getElementsByClassName('nroll');
 /* 數字 +1 跳一下：一分鐘會跳幾十次，所以小（1.12）而快（200 毫秒、強 ease-out）；流動條與減少動態時不跳 */
-const POP = [{ transform: 'scale(1.12)', color: '#7fc95a' }, { transform: 'scale(1)' }],
+const POP = [{ transform: 'scale(1.12)', color: PAL.good }, { transform: 'scale(1)' }],
   POP_T = { duration: 200, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' };
 const fill = (f, p) => {
   const s = `scaleX(${Math.max(0, Math.min(1, p)).toFixed(3)})`;
