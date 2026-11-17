@@ -98,7 +98,10 @@ const ok = (n, c, info = '') => {
     const opened = await p.evaluate(k => {
       const pk = { device: 'node', stash: 'stash', forge: 'craft', asc: 'asc', box: 'box' }[k];
       interact();
-      const o = pk ? !!PANEL[pk] : k === 'market' || k === 'prac';
+      /* M1-06：祭壇還沒到，石碑只出一句「升祭壇到 Lv n 才開」，那句出來也算有反應 */
+      const o = pk
+        ? !!PANEL[pk] || (!!lockTxt(k) && $('warn').textContent === lockTxt(k))
+        : k === 'market' || k === 'prac';
       closePanels();
       return o || (nearProp() || {}).k + ' @' + Math.round(P.x) + ',' + Math.round(P.y);
     }, s.k);
@@ -171,7 +174,12 @@ const ok = (n, c, info = '') => {
     P.act = null;
     useSlot(1);
     await new Promise(r => setTimeout(r, 100));
-    return { used: P.mp < m0 || !!slotCfg(1), real: PRAC.real, tot: DPS.tot, why: skillWhy(slotCfg(1), P) };
+    return {
+      used: P.mp < m0 || !!slotCfg(1),
+      real: PRAC.real,
+      tot: DPS.tot,
+      why: slotCfg(1) && skillWhy(slotCfg(1), P)
+    }; /* 0.5.0 起新存檔只有斬擊，第 2 格是空的 */
   });
   ok('切到實戰模式：照真實魔力計算，統計歸零', real.real && real.tot === 0 && (await p.evaluate(() => !pracFree())));
   await p.click('[data-pr=real]');
@@ -331,18 +339,18 @@ const ok = (n, c, info = '') => {
     await p.evaluate(() => !PRAC.in && !G.allies.length && !G.ground.length && $('prac').hidden),
     await p.evaluate(() => [PRAC.in, G.allies.length, G.ground.length].join())
   );
-  /* 8. 地圖台 → 世界地圖選節點 → 直接進場地（0.4.0 沒有傳送門）、回家、存檔 */
+  /* 8. 地圖台 → 地點清單點一列（0.5.2 世界地圖刪了，點一列＝runNode）→ 直接進場地、回家、存檔 */
   await p.evaluate(() => {
     openPanel('device');
-    WM.sel = '0,0';
-    wmGo();
+    runNode(TRUNK_K[0]);
   });
   await p.waitForTimeout(300);
   ok(
-    '世界地圖按「在這裡刷」直接進場地',
-    await p.evaluate(() => G.scene === 'map' && G.node === '0,0' && !G.mobs.some(m => m.dummy) && !G.solid.length)
+    '地點清單點一列直接進場地',
+    await p.evaluate(() => G.scene === 'map' && G.node === TRUNK_K[0] && !G.mobs.some(m => m.dummy) && !G.solid.length)
   );
-  await p.evaluate(() => goHome());
+  /* 玩家自己按回家（act('home') 記 S.stopWhy）；直接叫 goHome() 的話，重新整理會照離線結算接著刷 */
+  await p.evaluate(() => act('home'));
   await p.waitForTimeout(300);
   ok('回藏身處', await p.evaluate(() => G.scene === 'hide' && G.mobs.filter(m => m.dummy).length === 3));
   /* 9. 存檔還原：故事旗標、神像 */

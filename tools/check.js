@@ -10539,6 +10539,22 @@ const ASC_COMBOS = `const combos = k => {
       R(`campSay('watch', 22)`) === '瞭望台 Lv22：酆都開了，「鬼門關」出現在地點清單，它的通貨開始掉。'
   );
   ok('M1-14：六座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
+  /* M1-26：角色頁鎖住的護符／神格格的一句話（是什麼＋怎麼開）；條件照 lockTxt 與腰帶的護符槽，不另編數字 */
+  const lk26 = R(`(() => {
+    S = newGame(); const r = [lockSlotTxt('ch0'), lockSlotTxt('gh')];
+    S.eq.belt = mkItem(BASES.find(b => b.k === 'belt').id, 1, 1); S.eq.belt.cs = 1; r.push(lockSlotTxt('ch1'), lockSlotTxt('ch2'));
+    S.camp.watch = CAMP.watch.length; r.push(lockSlotTxt('gh'));
+    return r;
+  })()`);
+  ok(
+    'M1-26：鎖住的護符／神格格的提示（沒腰帶、槽不夠、神格跟弒神；弒神開了就不鎖）',
+    lk26.join('|') ===
+      '護符：裝上腰帶才開|神格：升瞭望台到 Lv ' +
+        R('CAMP.watch.length') +
+        ' 才開|護符：腰帶要有 2 格護符槽才開|護符：腰帶要有 3 格護符槽才開|神格：之後開放' &&
+      R("(S.camp.watch = CAMP.watch.length, lockTxt('line:rift'))") === '',
+    lk26.join('|')
+  );
   /* M1-24：三個測試情境照描述；用自己的存檔位、沒帶參數時是空字串 */
   const ts = R(`(() => {
     const d = testSave('dualweap'), n = testSave('nearDeath'), m = testSave('midgame');
