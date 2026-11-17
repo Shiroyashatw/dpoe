@@ -137,7 +137,13 @@ const affName = k => AFF[k].n.replace(/ ?\+?\{\}%?/g, '').replace('附加 ', '')
 /* ---------- 材料（0.5.0，docs/工坊與解鎖表.md 第 4 節）：鐵、皮、靈絲，有階 T1～T6；S.mat.mats＝{ 'iron:2': n }（照精髓的寫法） ---------- */
 /* 木沒有階：鍵就是 'wood'（T＝0） */
 const matKey = (k, T) => (T ? k + ':' + T : k);
-const matName = (k, T) => (T ? `${MATS[k].n} T${T}` : MATS[k].n);
+/* 顯示名（M1，數值實作規格第 1 節）：只改顯示，鍵與 MATS.n 不動 */
+const MAT_TIER_N = {
+  iron: ['生鐵', '熟鐵', '百煉鋼', '玄鐵', '寒鐵', '隕鐵'],
+  hide: ['生皮', '鞣皮', '厚革', '玄革', '霜革', '神獸革'],
+  silk: ['繭絲', '熟絲', '彩絲', '巫絲', '祭絲', '神絲']
+};
+const matName = (k, T) => (T ? MAT_TIER_N[k][T - 1] : MATS[k].n);
 const matOf = key => [key.split(':')[0], +key.split(':')[1] || 0];
 const MATSOF = () => (MAT().mats = MAT().mats || {});
 function matAdd(k, T, n = 1) {
@@ -210,7 +216,7 @@ function craftRar(lv) {
 function craftLack(c, n) {
   for (const m in c.mats)
     if (matN(m, c.T) < c.mats[m] * n) return `${matName(m, c.T)}還差 ${c.mats[m] * n - matN(m, c.T)}`;
-  if (S.gold < c.gold * n) return `金幣還差 ${c.gold * n - S.gold}`;
+  if (S.gold < c.gold * n) return `金還差 ${c.gold * n - S.gold}`;
   return null;
 }
 /* 打造（第 5 節，取代商人賭裝）：扣材料，打 n 件，每件進倉庫；回 { why } 或 { items, salv }。
@@ -271,7 +277,7 @@ function salvageDo(it) {
   for (const k in v.cur) M[k] = (M[k] || 0) + v.cur[k];
   return v;
 }
-/* 回收寫成一句：「鐵 T2 +4、靈魂 +8、12 金」 */
+/* 回收寫成一句：「熟鐵 +4、靈魂 +8、12 金」 */
 const salvText = v =>
   [
     ...Object.entries(v.mats).map(([key, n]) => `${matName(...matOf(key))} +${n}`),
@@ -491,7 +497,7 @@ function genSay(k, a, b) {
   for (let x = a + 1; x <= b; x++) {
     const p = genMs(x - 1),
       q = genMs(x),
-      tier = q.tu > p.tu && k !== 'wood' ? `可以產 T${1 + q.tu} ${MATS[k].n}，上限看瞭望台。` : '';
+      tier = q.tu > p.tu && k !== 'wood' ? `可以產${matName(k, 1 + q.tu)}，上限看瞭望台。` : '';
     if (q.m > p.m || tier)
       L.push([`gen:${k}:${x}:m`, `${nm} Lv${x}：${q.m > p.m ? `產量 ×${q.m / p.m}。` : ''}${tier}`]);
     if (q.slots > p.slots && x > 1) L.push([`gen:${k}:${x}:s`, `${nm} Lv${x}：多一個工位，民房有空的人會自己補上。`]);
@@ -1016,7 +1022,7 @@ function temperDo(it, idx) {
   if (w) return w;
   if (!it.a.length) return '沒有詞可以淬鍊';
   if (single && !it.a[idx]) return '沒有這條詞';
-  if (S.gold < c) return `金幣不夠（要 ${c}）`;
+  if (S.gold < c) return `金不夠（要 ${c}）`;
   FORE = null;
   S.gold -= c;
   it.tmp = (it.tmp || 0) + 1;

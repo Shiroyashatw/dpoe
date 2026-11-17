@@ -870,7 +870,7 @@ function stats(s = S) {
     /* 不受影響：{ 減益種類: 1 }（ign、bleed、poison、chill、frozen、shock、curse、over、vine） */
     unaff: {},
     thornAdd: [0, 0],
-    /* 追憶詞（8-2）：技能等級 gemLv、擊中施加的曝露 hitExp＝{ 屬性: %}、詛咒 hitCurse＝{ k, lv }（combat.js 的 onHitBase 讀） */
+    /* 追憶詞（8-2）：技能等級 gemLv、擊中施加的曝曬 hitExp＝{ 屬性: %}、詛咒 hitCurse＝{ k, lv }（combat.js 的 onHitBase 讀） */
     mem: {}
   };
   /* 失效的裝備（等級或能力值不夠）不算數值、不算武器 */
