@@ -769,7 +769,11 @@ function pickRows(c) {
     }
   }
   const score = x => (x.why ? -1e12 : (x.d || 0) + (x.fx ? 0.001 : 0));
-  L.sort((a, b) => score(b) - score(a));
+  /* 技能（M2-15）：先排拿著的武器的招、再排有直傷的、詛咒這類沒直傷的最後；同一組有現在的招比差多少、空格比每秒 */
+  const grp = x => (x.why ? 3 : x.D.wt && x.D.wt.includes(ST.wt) ? 0 : x.val != null ? 1 : 2);
+  if (v === 'skills')
+    L.sort((a, b) => grp(a) - grp(b) || (base != null ? (b.d || 0) - (a.d || 0) : (b.val || 0) - (a.val || 0)));
+  else L.sort((a, b) => score(b) - score(a));
   PICKC = { key, st: ST, soul: MAT().soul, L, base, u };
   return PICKC;
 }

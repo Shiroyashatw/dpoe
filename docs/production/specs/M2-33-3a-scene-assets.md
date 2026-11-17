@@ -66,7 +66,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 | --- | --- | --- | --- |
 | 地板 | `img/tiles/<地形>-floor.png`；可另放 `-floor-2.png`、`-floor-3.png` | 32×32，不透明 | `tile_<地形>_floor`（mumi 每種挑 1；之後要加變化再放 -2、-3） |
 | 牆頂 | `img/tiles/<地形>-walltop.png` | 32×32 | `tile_<地形>_walltop` |
-| 牆面 | `img/tiles/<地形>-wallface-a.png`、`-wallface-b.png` | 32×18 | `tile_<地形>_wallface`（`split_2x32` 切出來的兩張） |
+| 牆面 | `img/tiles/<地形>-wallface-a.png`、`-wallface-b.png` | 32×18 | `tile_<地形>_wallface`（`face_shift` 切出來的兩張） |
 `<地形>` ＝ biome.js `BIOMES` 的鍵：temple、lava、tomb、ice。營地不用。
 - 載入：新增 `js/tiles.js`（在 biome.js 前）：`TILES[地形] = { floor: [img…], top: img, face: [img, img] }`，用現有圖檔載入方式；全部載好才換畫法，載好後清 `G.bc`（區塊快取）重烘。缺任一張 → 該地形整套退回現在的 `bFloor`／`bWalls`，不混用。
 - 檔名雜湊與快取照 repo 現行（art.js 其他圖一樣）。
