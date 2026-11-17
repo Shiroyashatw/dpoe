@@ -2354,24 +2354,26 @@ let fail = 0;
     const cr = await p.evaluate(async () => {
       closePanels();
       navGo('char');
-      /* 面板滑進來與捲動提示要幾格才定：每 100 毫秒量一次，連兩次一樣（最多 3 秒）才判定 */
+      /* 面板滑進來與捲動提示要幾格才定（提示在 hudTick 裡每 100 毫秒更新，機器忙時畫格慢）：
+         每次取樣先等 100 毫秒再等兩個畫格，連三次一樣（最多 3 秒）才判定 */
       const at = () => {
         const c = document.querySelector('#pinv .doll2x').getBoundingClientRect(),
           n = $('pnav').getBoundingClientRect(),
           h = document.querySelector('#pinv .schint');
-        return [
+        return JSON.stringify([
           Math.round(c.bottom),
           Math.round(n.top),
           !!h && !h.hidden,
           parseFloat(getComputedStyle(document.querySelector('#pinv .eqs .nm')).fontSize)
-        ];
+        ]);
       };
-      let a = null,
-        b = null;
-      for (let i = 0; i < 30 && (!a || JSON.stringify(a) !== JSON.stringify(b)); i++) {
+      const L = [];
+      for (let i = 0; i < 20 && !(L.length >= 3 && L.slice(-3).every(x => x === L[L.length - 1])); i++) {
         await new Promise(r => setTimeout(r, 100));
-        (a = b), (b = at());
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        L.push(at());
       }
+      const b = JSON.parse(L[L.length - 1]);
       return b;
     });
     ok(

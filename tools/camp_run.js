@@ -326,7 +326,9 @@ function ROW(min) {
   const e = SES ? SES.soul : 0;
   r.gain = Math.round(e >= (__M.e0 || 0) ? e - (__M.e0 || 0) : e);
   __M.e0 = e;
-  r.prog = `${r.rounds} 輪 ${Math.round(G.prog)}／${G.need}${G.bossOut ? ' 王' : ''}`;
+  const B = G.mobs.find(m => m.boss && !m.mini && m.hp > 0);
+  /* 王出來後首領進度看王剩幾 % 血 */
+  r.prog = `${r.rounds} 輪 ${Math.round(G.prog)}／${G.need}${G.bossOut ? ` 王 ${B ? Math.round((B.hp / B.mhp) * 100) : 0}%` : ''}`;
   const t = min * 60;
   /* AI 卡住的另外兩種（第一種是 MON 的畫面不動）：0 靈魂／分（開刷 5 分鐘後）、10 分鐘沒打完一輪 */
   if (min >= 5 && r.spm === 0) __M.flag.push({ t, who: __M.who, why: '0 靈魂／分', dbg: r.dbg });
