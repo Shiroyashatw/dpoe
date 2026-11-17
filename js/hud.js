@@ -899,7 +899,7 @@ function dollHTML() {
       .map(i => {
         const it = S.charms[i],
           lock = i >= charmSlots(S);
-        return `<div class="eqs ${it ? 'r' + it.r : 'emp'} ${lock ? 'lock' : ''} ${NAV.slot === 'ch' + i ? 'sel' : ''}" data-eq="ch${i}">${it ? itemHTML(it, 'eq', 'ch' + i) : `<span class="nm">護符</span><small>${lock ? ICO.lock : '空'}</small>`}</div>`;
+        return `<div class="eqs ${it ? 'r' + it.r : 'emp'} ${lock ? 'lock' : ''} ${NAV.slot === 'ch' + i ? 'sel' : ''}" data-eq="ch${i}" ${lock && !it ? `data-lk="${lockSlotTxt('ch' + i)}"` : ''}>${it ? itemHTML(it, 'eq', 'ch' + i) : `<span class="nm">護符</span><small>${lock ? ICO.lock : '空'}</small>`}</div>`;
       })
       .join('');
   return `<div class="doll2"><div class="col">${DOLL_L.map(dollCell).join('')}</div>
@@ -918,7 +918,11 @@ function dollHTML() {
     ptLeft() > 0 ? `<button class="btn mi-b" data-tm="nav:tree">天賦 ${ptLeft()} 點未用</button>` : ''
   }</div>
   <div class="col">${DOLL_R.map(dollCell).join('')}</div></div>
-  <div class="doll2x">${charms}<div class="eqs gh ${g ? 'r2' : 'emp'}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}">${g ? icHTML('z_' + g.g) : '<span class="nm">神格</span><small>空</small>'}</div></div>`;
+  <div class="doll2x">${charms}${
+    !g && lockTxt('line:rift')
+      ? `<div class="eqs gh emp lock" data-lk="${lockSlotTxt('gh')}"><span class="nm">神格</span><small>${ICO.lock}</small></div>`
+      : `<div class="eqs gh ${g ? 'r2' : 'emp'}" data-tip="${esc(g ? ghName(g) + '：' + ghText(g).join('、') : '神格：太歲掉的，在山海寶盒裝上')}">${g ? icHTML('z_' + g.g) : '<span class="nm">神格</span><small>空</small>'}</div>`
+  }</div>`;
 }
 let CHSW = null;
 function invHTML() {
