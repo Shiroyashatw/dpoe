@@ -1820,7 +1820,7 @@ function logBar() {
   HV.log = k;
   $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
 }
-const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '材料包' };
+const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
 /* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
 function logHTML() {
   const P = S.prd || {},

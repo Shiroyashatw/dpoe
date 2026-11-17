@@ -1,6 +1,6 @@
-/* M2-18 追逐掉落的驗收截圖（交辦 docs/交辦/M2-18-追逐掉落.md 與 addendum 14 點）：先量、再截，不合就 ❌。
-   ?test=midgame（Lv<45 地點）：掛機卡沒有保底行、沒有空行；?test=chase（賽制線凶地 Lv≥45，進場 1.5 秒開發觸發 devChase）：
-   保底行一行不換行、賽制線開發觸發的橫幅、王印橫幅「王印 2／4」不遮擋、點橫幅開到王印詳情（通貨與碎片頁）、點基底橫幅開到倉庫的那一件、材料包橫幅、離線摘要。
+/* M2-18 追逐掉落的驗收截圖（交辦 docs/交辦/M2-18-追逐掉落.md 與 addendum 25 點）：先量、再截，不合就 ❌。
+   ?test=midgame（Lv<45 地點）：掛機卡沒有保底行、沒有空行；?test=chase（第 15 個主幹地點 Lv48，進場 1.5 秒開發觸發 devChase 掉一個王印）：
+   王印橫幅「王印 1／4」、保底行一行不換行、王印橫幅「王印 2／4」不遮擋、點橫幅開到王印詳情（通貨與碎片頁）、王印在通貨與碎片頁、靈魂包橫幅與飄字、離線摘要。
    只截不改；用法：先開本機伺服器，node tools/m2_18_shots.js [寬 390] [高 844] [網址] [存哪，預設 docs/production/evidence/M2-18]；PW_CHROME 指定 Chrome */
 const { chromium } = require('playwright');
 const path = require('path'),
@@ -79,21 +79,21 @@ fs.mkdirSync(OUT, { recursive: true });
     },
     2500
   );
-  /* 2～9：賽制線凶地（Lv≥45） */
+  /* 2～8：第 15 個主幹地點（Lv48） */
   await open('chase');
   await shot(
-    '2_賽制線開發觸發_凶地基底橫幅',
+    '2_王印橫幅_王印1of4',
     null,
     () => {
       const bn = __r('#banner'),
         t = $('banner').textContent;
       return [
-        WNODE[S.world.cur].t === 'fiend' &&
-          /^凶地異寶基底・[一二]・凶地基底 1／2$/.test(t) &&
+        S.world.cur === TRUNK_K[14] &&
+          /^(鎮嶽|赤霄|疾霆|歸墟)印・王印 1／4$/.test(t) &&
           $('banner').className === 'bn-chase' &&
           __in(bn) &&
-          S.inv.items.some(it => it.chase && /^fiend/.test(it.chase)),
-        { 地點: WNODE[S.world.cur].t, 怪物等級: mobLv(G.mapT), 橫幅: t, rect: bn }
+          !S.inv.items.some(it => it.chase),
+        { 怪物等級: mobLv(G.mapT), 橫幅: t, rect: bn }
       ];
     },
     1900
@@ -119,10 +119,7 @@ fs.mkdirSync(OUT, { recursive: true });
   );
   await shot(
     '4_王印橫幅_王印2of4_不遮擋',
-    () => {
-      S.chase.got.wangyin_zhenyue = S.frags.wangyin_zhenyue = 1;
-      devChase('trunk');
-    },
+    () => (window.__k = devChase()),
     () => {
       const t = $('banner').textContent,
         { bn, hit } = noCover();
@@ -137,7 +134,7 @@ fs.mkdirSync(OUT, { recursive: true });
     '5_點王印橫幅_通貨與碎片頁詳情',
     () => $('banner').click(),
     () => {
-      const k = Object.keys(S.chase.got).find(k => k !== 'wangyin_zhenyue' && isWy(k)),
+      const k = __k,
         row = __r(`#pstash [data-chs="${k}"]`),
         tip = __r('#ttip');
       return [
@@ -167,52 +164,35 @@ fs.mkdirSync(OUT, { recursive: true });
     }
   );
   await shot(
-    '7_點基底橫幅_倉庫那一件',
-    () => {
-      closePanels();
-      devChase('fiend');
-      $('banner').click();
-    },
-    () => {
-      const it = S.inv.items.find(x => x.id === BAG.sel),
-        sel = __r('.it.on'),
-        txt = ((document.querySelector('.cmpc') || {}).parentElement || {}).textContent || '';
-      return [
-        !!it && /^fiend/.test(it.chase) && !!sel && txt.includes(itemName(it)) && txt.includes('追逐物品'),
-        { 選的: it && itemName(it), 格子: sel, 有詳情: txt.includes('追逐物品') }
-      ];
-    }
-  );
-  await shot(
-    '8_材料包橫幅',
+    '7_靈魂包橫幅與飄字',
     () => {
       closePanels();
       S.camp.forge = 14;
-      let g;
-      for (let i = 0; i < 50 && !(g && g.feel && g.feel.pack); i++)
-        (S.prd.feel = feelK()), (g = killMat({ boss: 1 }, G.mapT, {}));
-      /* 跟 killMob 同樣的演出：橫幅只寫「材料包」、裡面的材料用拾取文字 */
-      if (g.feel && g.feel.pack) rareShow('材料包', 'pack', 'orb');
-      g.forEach((n, i) => num(P.x, P.y - 40 - i * 18, 0, 'mat', '+' + n));
-      window.__pk = g.slice();
-      window.__dbg = [campCan('cur:frac'), campCan('cur:ink'), campCan('jewel'), feelK(), S.prd.feel, g.feel];
+      S.prd.feel = feelK();
+      /* 跟 killMob 同一條路：有感保底給靈魂包 → 地上一個，撿起來才加靈魂 */
+      const g = killMat({ boss: 1 }, G.mapT, {});
+      window.__pk = [g.pack, MAT().soul, SES.soul];
+      if (g.pack) dropAt(P.x, P.y, { show: 'pack', soul: g.pack });
     },
     () => {
-      const { bn, hit } = noCover();
+      const { bn, hit } = noCover(),
+        n = __pk[0],
+        fl = G.nums.some(x => x.txt === `+${n} 靈魂`);
       return [
-        $('banner').textContent === '材料包' &&
+        n > 0 &&
+          $('banner').textContent === '靈魂包' &&
           $('banner').className === 'bn-pack' &&
-          S.log[0].c === 'pack' &&
-          __pk.some(t => /生鐵|熟鐵|鐵 T\d/.test(t)) &&
-          !__pk.some(t => /靈魂/.test(t)) &&
+          S.log.some(x => x.c === 'pack' && x.n === `靈魂包 +${n} 靈魂`) &&
+          fl &&
+          !G.drops.some(d => d.show === 'pack') &&
           !hit.length,
-        { 橫幅: $('banner').textContent, 拾取: __pk, 蓋到: hit, dbg: __dbg }
+        { 橫幅: $('banner').textContent, 紀錄: S.log.find(x => x.c === 'pack'), 飄字: fl, 蓋到: hit }
       ];
     },
-    400
+    1900
   );
   await shot(
-    '9_離線摘要',
+    '8_離線摘要',
     () => {
       $('banner').hidden = true;
       S.chase.pts = 495;

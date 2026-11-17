@@ -1,7 +1,7 @@
 /* dungeonPOE M2-18 · 追逐掉落驗收（docs/交辦/M2-18-追逐掉落.md）：在 Node 載入純邏輯，走真的 killMat（追逐判定、有感保底、通貨、珠寶），
    每個種子從新的保底點數開始掛 H 小時。一輪的小怪、菁英照時間平均攤開（王在輪末），有感掉落的空窗用這個時間量。
    情境：基準（第 15 個主幹地點 Lv48、1★、每小時 25 輪、鍛造台 20）、離線 12 小時（roundLoot，跟 offSettle 同一條路）、
-   速度下限（5★、每小時 60 輪）、鍛造台 13–16（只開破裂石，每一級都量）。
+   速度下限（5★、每小時 60 輪）、鍛造台 13–16（只開破裂石，每一級都量；有感保底給靈魂包）、珠寶收藏滿 30 顆一直不清（有感保底與自然掉的珠寶都換 500 靈魂）。
    用法：node tools/chase_check.js [種子數，預設 200] [小時，預設 100] [小怪數，預設 40]；固定亂數，同參數結果一樣。只量不改數字 */
 'use strict';
 const fs = require('fs'),
@@ -24,14 +24,15 @@ vm.createContext(ctx);
 for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 ctx.SIM = { NS };
-/* 珠寶收藏（JEWEL.keep）快滿就清掉：模擬玩家會拆，不然珠寶換成靈魂、量不到 */
-/* 一個種子：回每件追逐物品的 { t 秒, p 掉之前累積的點數, pity 是不是必掉 }、有感掉落的時間、必掉漏掉幾次、有感保底給了幾顆破裂石／幾個材料包 */
+/* 珠寶收藏（JEWEL.keep）：基準快滿就清掉（玩家會拆）；o.full＝一開始就滿 30 顆、一直不清（珠寶換 500 靈魂，照樣算有感掉落） */
+/* 一個種子：回每件追逐物品的 { t 秒, p 掉之前累積的點數, pity 是不是必掉 }、有感掉落的時間、必掉漏掉幾次、有感保底給了幾顆破裂石／幾個靈魂包、滿了換靈魂幾次 */
 vm.runInContext(
   `function simRun(o) {
   S = { lv: 90, skills: [{}, {}, {}, {}, {}], mat: { ...newMat(), mats: {} }, prd: PRD0(), inv: { items: [] }, camp: { ...newCamp(), forge: o.forge },
-    auto2: AUTO2(), world: { ...newWorld(), cur: TRUNK_K[14] }, gold: 0, star: o.star, chase: { pts: 0, got: {} }, jewels: [], rounds: [] };
+    auto2: AUTO2(), world: { ...newWorld(), cur: TRUNK_K[14] }, gold: 0, star: o.star, chase: { pts: 0, got: {} }, rounds: [],
+    jewels: o.full ? Array.from({ length: JEWEL.keep }, (_, i) => ({ id: 'j' + i })) : [] };
   const t = lvT(TRUNK[14].lv), sec = 3600 / o.rph, od = { star: o.star, p: mapCurP(o.star, SIM.NS, 1.5), ilvl: tierIlvl(t), tier: t },
-    C = S.chase, out = { ch: [], feel: [], miss: 0, frac: 0, pack: 0, maxP: 0 };
+    C = S.chase, out = { ch: [], feel: [], miss: 0, frac: 0, pack: 0, jwSoul: 0, maxP: 0 };
   const cnt = () => S.mat.frac + S.mat.perf + S.mat.ink + S.jewels.length;
   for (let r = 0; r < o.rph * o.h; r++) {
     const t0 = r * sec, nE = eliteCount(o.star), ev = [];
@@ -46,10 +47,13 @@ vm.runInContext(
       if (g.chase) out.ch.push({ t: tt, p: p0 + (k === 2 ? CHASE.ptB : 0), pity: k === 2 && p0 + CHASE.ptB >= CHASE.cap });
       else if (k === 2 && p0 + CHASE.ptB >= CHASE.cap && mobLv(t) >= CHASE.lv) out.miss++;
       out.maxP = Math.max(out.maxP, C.pts);
-      if (g.feel) out.frac += g.feel.rare.includes('frac') ? 1 : 0, out.pack += g.feel.pack ? 1 : 0;
-      if (g.chase || (g.feel && g.feel.pack) || cnt() > c0) out.feel.push(tt);
+      const jf = g.includes('珠寶收藏滿了：換 500 靈魂');
+      if (g.feel) out.frac += g.feel.rare.includes('frac') ? 1 : 0;
+      out.pack += g.pack ? 1 : 0;
+      out.jwSoul += jf ? 1 : 0;
+      if (g.chase || g.pack || jf || cnt() > c0) out.feel.push(tt);
     }
-    if (S.jewels.length >= JEWEL.keep - 5) S.jewels.length = 0;
+    if (!o.full && S.jewels.length >= JEWEL.keep - 5) S.jewels.length = 0;
     S.rounds.push({ d: sec, nS: SIM.NS, nE });
     if (S.rounds.length > 10) S.rounds.shift();
   }
@@ -118,6 +122,26 @@ const fp95 = q(feelGaps, 0.95),
   fmax = Math.max(...feelMax);
 ok('A8 有感掉落空窗 P95（分）', fp95.toFixed(1), fp95 <= 30, '≤ 30');
 ok('A8 每人最長空窗（分）', fmax.toFixed(1), fmax <= 45, '≤ 45');
+/* 珠寶收藏滿 30 顆、不清（數值設計師 13:20 第 18 點：保底改給 500 靈魂，照樣歸零並計入有感） */
+const fullFeel = r => {
+  const g = [];
+  let l = 0,
+    m = 0;
+  for (const ft of r.feel) g.push((ft - l) / 60), (m = Math.max(m, (ft - l) / 60)), (l = ft);
+  return { g, m };
+};
+const J = scen({ rph: 25, star: 1, forge: 20, full: 1 }, SEEDS),
+  jg = J.flatMap(r => fullFeel(r).g),
+  jp95 = q(jg, 0.95),
+  jmax = Math.max(...J.map(r => fullFeel(r).m)),
+  jSoul = J.reduce((a, r) => a + r.jwSoul, 0);
+ok(
+  '珠寶滿 30 不清：A8 有感掉落空窗 P95（分）',
+  `${jp95.toFixed(1)}（換 500 靈魂 ${jSoul} 次）`,
+  jp95 <= 30 && jSoul > 0,
+  '≤ 30'
+);
+ok('珠寶滿 30 不清：A8 每人最長空窗（分）', jmax.toFixed(1), jmax <= 45, '≤ 45');
 /* 離線 12 小時（300 輪，roundLoot） */
 const off = [];
 for (let i = 0; i < SEEDS; i++) (seed = 5000 + i * 7919), off.push(ctx.simOff(300));
@@ -145,7 +169,7 @@ for (const fg of [13, 14, 15, 16]) {
       })
     );
   ok(`鍛造台 ${fg}：有感保底給的破裂石`, kFrac + ' 件', kFrac === 0, '0 件');
-  ok(`鍛造台 ${fg}：材料包（計入有感掉落）`, `${kPack} 個（每人最長空窗 ${kMax.toFixed(1)} 分）`, kPack > 0, '有出現');
+  ok(`鍛造台 ${fg}：靈魂包（計入有感掉落）`, `${kPack} 個（每人最長空窗 ${kMax.toFixed(1)} 分）`, kPack > 0, '有出現');
 }
 console.log(rows.join('\n'));
 console.log(`\n${((Date.now() - t0) / 1000).toFixed(0)} 秒`);

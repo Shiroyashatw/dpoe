@@ -253,7 +253,7 @@ const TESTS = {
     },
     go: () => runNode(TRUNK_K[8])
   },
-  /* M2-18 追逐掉落：角色 Lv 70、營地滿、在賽制線的凶地（怪物 Lv45 以上）；進場 1.5 秒後用開發觸發 devChase 掉一件那條線的基底 */
+  /* M2-18 追逐掉落：角色 Lv 70、營地滿、在第 15 個主幹地點（怪物 Lv48）；進場 1.5 秒後用開發觸發 devChase 掉一個王印 */
   chase: {
     build: s => {
       Object.assign(s.camp, { altar: 10, forge: 20, watch: CAMP.watch.length, scout: 5, house: 10, store: 5 });
@@ -262,7 +262,7 @@ const TESTS = {
       s.chase.pts = 230;
     },
     go: () => {
-      runNode(Object.keys(WNODE).find(k => WNODE[k].t === 'fiend'));
+      runNode(TRUNK_K[14]);
       setTimeout(() => devChase(), 1500);
     }
   }

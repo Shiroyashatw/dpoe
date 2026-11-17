@@ -1258,9 +1258,11 @@ const STAR_DROP = [
    一小時約 25 輪（一輪 2.5 分鐘、菁英 1～2）→ 破裂石約每 1.5 小時一顆、完美石約每 3 小時、墨約每 1.3 小時、珠寶約每小時一顆；都用偽隨機（S.prd 的 fracO／perfO／ink／jw＋0 小怪／1 菁英／2 王） */
 const NEW_P = { frac: [0, 0.005, 0.02], perf: [0, 0.0025, 0.01], ink: [0, 0, 0.03], jw: [0.0005, 0.005, 0.02] };
 /* M2-18 追逐掉落（M2-17 數值設計師 v1.0，交辦 docs/交辦/M2-18-追逐掉落.md）：平機率；輪末王 +5 點判 b、菁英判 e 沒中 +1 點（每輪前 ec 隻）；
-   點數到 cap 的輪末王必掉（菁英不觸發必掉）；掉到任何一件點數歸零；地點怪物等級 lv 以上才判定也才累計；沒拿過的優先。存檔 S.chase＝{ pts, got: { 鍵: 件數 } } */
-const CHASE = { b: 0.014, e: 0.0014, cap: 500, ptB: 5, ptE: 1, lv: 45, ec: 4 };
-/* 有感保底：連續 K＝max(3, floor(FEEL_TG ÷ 最近 10 輪平均秒數)) 隻輪末王沒有有感掉落（破裂石、完美石、追憶之墨、珠寶、追逐物品）→ 輪流給 1 件 */
+   點數到 cap 的輪末王必掉（菁英不觸發必掉）；掉到任何一件點數歸零；地點怪物等級 lv 以上才判定也才累計；沒拿過的優先。存檔 S.chase＝{ pts, got: { 鍵: 件數 } }
+   line：賽制線池開不開（數值設計師 13:20 第 16 點：M2 關，賽制線地點的菁英與輪末王都不擲、不累計，只有主幹 4 王印會掉；程式與資料留著） */
+const CHASE = { b: 0.014, e: 0.0014, cap: 500, ptB: 5, ptE: 1, lv: 45, ec: 4, line: 0 };
+/* 有感保底：連續 K＝max(3, floor(FEEL_TG ÷ 最近 10 輪平均秒數)) 隻輪末王沒有有感掉落（破裂石、完美石、追憶之墨、珠寶、追逐物品）→ 輪流給 1 件；
+   計數上限 K（第 17 點：沒東西可給時停在 K，開了之後下一隻輪末王就給） */
 const FEEL_TG = 1500;
 /* 池（M2-19.9）：主幹 4 王印、賽制線各 2 個異寶基底；名字只從字串表 STR_T（data.js）讀。⚠️ 用法與固定詞數值待定：現在只收起來、看得到詳情、帶追逐標記 */
 const CHASE_POOL = { trunk: Object.keys(STR_T.wangyin) };
@@ -1268,26 +1270,31 @@ for (const l of ['ghost', 'dream', 'fiend', 'army', 'rift']) CHASE_POOL[l] = [l 
 const isWy = k => !!STR_T.wangyin[k];
 const chaseName = k => STR_T.wangyin[k] || STR_T.base[k];
 const chasePool = k => Object.keys(CHASE_POOL).find(p => CHASE_POOL[p].includes(k));
+/* 這個地點擲哪一個池：主幹 'trunk'；賽制線（鬼門關、心魔幻境、凶地、陰兵借道、裂口）在 CHASE.line 關著時 null＝不擲 */
+function chasePk() {
+  const n = typeof WNODE !== 'undefined' && S.world && WNODE[S.world.cur];
+  return n && CHASE_POOL[n.t] ? (CHASE.line ? n.t : null) : 'trunk';
+}
 const chaseOf = (s = S) => (s.chase = s.chase || { pts: 0, got: {} });
 const chaseN = (s = S) => Object.values(chaseOf(s).got).reduce((a, n) => a + n, 0);
 /* 保底 %（數值設計師第 5 點）：min(100, floor(點數 ÷ 5))，滿了也寫 100% */
 const chasePct = (s = S) => Math.min(100, Math.floor(chaseOf(s).pts / 5));
-/* 掛機卡那一行（製作人第 2 點）：只有會觸發保底的地點（怪物 Lv45 以上）才有，其他地點空字串、不留空位 */
-const chaseLine = t => (t && mobLv(t) >= CHASE.lv ? `下一件保底 ${chasePct()}%` : '');
+/* 掛機卡那一行（製作人第 2 點）：只有會觸發保底的地點（怪物 Lv45 以上、M2 只有主幹）才有，其他地點空字串、不留空位 */
+const chaseLine = t => (t && mobLv(t) >= CHASE.lv && chasePk() ? `下一件保底 ${chasePct()}%` : '');
 /* 收集進度（第 3 點）：「王印 2／4」、「鬼門關基底 1／2」 */
 function chaseProg(k) {
   const p = chasePool(k),
     L = CHASE_POOL[p];
   return `${isWy(k) ? '王印' : WTYPE[p].n + '基底'} ${L.filter(x => chaseOf().got[x]).length}／${L.length}`;
 }
+/* 靈魂包撿起來的飄字（字串鍵 packGain）：「+120 靈魂」 */
+const packGain = n => STR_T.packGain.replace('{n}', n);
 const chaseBanner = k => `${chaseName(k)}・${chaseProg(k)}`;
 /* 離線摘要（第 8 點）：n＝這次離開掉了幾件、後面是現在的保底 % */
 const chaseOffRow = n => `追逐物品 ×${n}、目前保底 ${chasePct()}%`;
-/* 材料的名字（第 9 點）：字串表有階級名就用（生鐵、熟鐵…），沒有照「鐵 T3」 */
-const matTN = key => STR_T.mat[key] || matName(...matOf(key));
-/* kind 1 菁英（o.ei＝這一輪第幾隻）、2 輪末王；回掉到的鍵或 null */
+/* kind 1 菁英（o.ei＝這一輪第幾隻；七情王 ei 0，不佔前 4 隻的名額）、2 輪末王；回掉到的鍵或 null */
 function chaseRoll(kind, t, o = {}) {
-  if (mobLv(t) < CHASE.lv) return null;
+  if (mobLv(t) < CHASE.lv || !chasePk()) return null;
   const C = chaseOf();
   if (kind === 1) {
     if ((o.ei || 0) > CHASE.ec) return null;
@@ -1298,11 +1305,10 @@ function chaseRoll(kind, t, o = {}) {
   C.pts += CHASE.ptB;
   return C.pts >= CHASE.cap || Math.random() < CHASE.b ? chaseGive(t) : null;
 }
-/* pk：哪一個池（開發觸發用）；沒給照現在的地點（主幹王印、賽制線那條線的基底） */
-function chaseGive(t, pk) {
+/* 照現在的地點的池給一件（M2 只有主幹王印；開發觸發在賽制線地點也給王印） */
+function chaseGive(t) {
   const C = chaseOf(),
-    cur = typeof WNODE !== 'undefined' && S.world && WNODE[S.world.cur],
-    pool = CHASE_POOL[pk || (cur && CHASE_POOL[cur.t] && cur.t) || 'trunk'],
+    pool = CHASE_POOL[chasePk() || 'trunk'],
     fresh = pool.filter(k => !C.got[k]),
     k = pick(fresh.length ? fresh : pool);
   C.got[k] = (C.got[k] || 0) + 1;
@@ -1335,7 +1341,14 @@ const roundSec = () => {
   return R.length ? R.reduce((a, r) => a + r.d, 0) / R.length : 150;
 };
 const feelK = () => Math.max(3, Math.floor(FEEL_TG / roundSec()));
-/* 輪流給（珠寶→破裂石→追憶之墨，跳過沒開的）；鍛造台 13–16（破裂石開了、墨與珠寶還沒）不給破裂石，改給材料包。回跳字清單（got.rare＝要演光柱的通貨） */
+/* 靈魂包（數值設計師 13:20 第 15 點，M2-17 規格 v1.2）：(小怪 + 10×菁英 + 100) × (1 + 0.2(t−1)) × 300 ÷ 平均每輪秒數，用最近 10 輪 */
+function packSoul(t) {
+  const R = S.rounds || [],
+    m = f => (R.length ? R.reduce((a, r) => a + (r[f] || 0), 0) / R.length : 0);
+  return Math.round(((m('nS') + 10 * m('nE') + 100) * (1 + 0.2 * (t - 1)) * 300) / roundSec());
+}
+/* 輪流給（珠寶→破裂石→追憶之墨，跳過沒開的；珠寶收藏滿了 jwAdd 換 500 靈魂，第 18 點）；鍛造台 13–16（破裂石開了、墨與珠寶還沒）不給破裂石，改給靈魂包。
+   回跳字清單（got.rare＝要演光柱的通貨；got.pack＝靈魂包的靈魂，撿起來才加，game.js 的 pickup） */
 function feelGive(t) {
   const P = (S.prd = S.prd || PRD0()),
     L = ['jewel', 'frac', 'ink'],
@@ -1348,17 +1361,8 @@ function feelGive(t) {
     P.feelI = j + 1;
     P.feel = 0;
     if (k === 'jewel') got.push(...jwAdd(1));
-    else if (k === 'frac' && !campCan('cur:ink')) {
-      /* 材料包（12:45 (a)；第 6、7、9 點）：戰鬥不掉材料（產生器產），給產生器照現在的階 5 分鐘的產量；got.pack＝{ 材料鍵: 數量 }。⚠️ 量待確認 */
-      const R = genRates(),
-        pk = {};
-      for (const key in R) {
-        const n = Math.round(R[key] * 300);
-        if (n > 0) matAdd(...matOf(key), n), (pk[key] = n);
-      }
-      got.push(...Object.entries(pk).map(([key, n]) => `${n} ${matTN(key)}`));
-      got.pack = pk;
-    } else MAT()[k]++, got.push(`1 ${CUR[k].n}`), got.rare.push(k);
+    else if (k === 'frac' && !campCan('cur:ink')) got.pack = packSoul(t);
+    else MAT()[k]++, got.push(`1 ${CUR[k].n}`), got.rare.push(k);
     return got;
   }
   return got;
@@ -1606,15 +1610,17 @@ function killMat(m, t, o = {}) {
   /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
   got.rare = Object.keys(D.cur).filter(rareCur);
   /* M2-18 追逐掉落與有感保底 */
-  const ch = k && chaseRoll(k, t, o),
+  /* 七情王（m.mini）當菁英（第 19 點）：判 e、+1 點，不佔前 4 隻的名額（ei 0），不算輪末王、不碰有感保底 */
+  const ch = k && chaseRoll(k, t, m.mini ? { ...o, ei: 0 } : o),
     P = (S.prd = S.prd || PRD0());
   if (ch) got.push(chaseName(ch)), (got.chase = ch);
   if (ch || D.jw || D.cur.frac || D.cur.perf || D.cur.ink) P.feel = 0;
-  else if (k === 2 && (P.feel = (P.feel || 0) + 1) >= feelK()) {
+  else if (k === 2 && (P.feel = Math.min(feelK(), (P.feel || 0) + 1)) >= feelK()) {
     const f = feelGive(t);
     got.push(...f);
     got.rare.push(...f.rare);
-    got.feel = f.length ? f : null;
+    got.pack = f.pack || 0;
+    got.feel = f.length || f.pack ? f : null;
   }
   return got;
 }
@@ -1626,7 +1632,9 @@ function roundLoot(t, star, nS, nE, o = {}) {
     s0 = MAT().soul;
   for (let i = 0; i < nS; i++) killMat({}, t, od);
   for (let i = 0; i < nE; i++) killMat({ elite: 1 }, t, { ...od, ei: i + 1 });
-  killMat({ boss: 1 }, t, od);
+  /* 離線沒有撿：靈魂包直接進材料頁 */
+  const b = killMat({ boss: 1 }, t, od);
+  MAT().soul += b.pack || 0;
   return MAT().soul - s0;
 }
 /* ---------- 鑑定：0.4.0 起掉下來就是鑑定好的（企劃書 5.4.1）；只剩舊存檔轉換用，翻牌演出 0.4.1 搬到回來時的摘要 ---------- */

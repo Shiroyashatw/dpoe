@@ -1387,7 +1387,7 @@ body:not(.touch) .tmore .tonly { display: none; }
 #banner.bn-cur, #banner.bn-perf { color: var(--gold); border-color: var(--gold); }
 /* M2-18 追逐物品：全寬橫幅＋稀有度外框（正式演出 M2-19） */
 #banner.bn-chase { left: 0; right: 0; transform: none; max-width: none; color: #ffb35c; border: 2px solid #ffb35c; border-left: 0; border-right: 0; }
-/* 點了開詳情（製作人第 1 點）；材料包用通貨的金色 */
+/* 點了開詳情（製作人第 1 點）；靈魂包用通貨的金色 */
 #banner.bn-chase { pointer-events: auto; cursor: pointer; }
 #banner.bn-pack { color: var(--gold); border-color: var(--gold); }
 .chs-t { color: #ffb35c; }

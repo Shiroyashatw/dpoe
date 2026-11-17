@@ -1018,8 +1018,8 @@ function killMob(m) {
   const mat = killMat(m, t, od);
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   if (mat.chase) chaseShow(mat.chase);
-  /* 材料包（數值設計師第 6、7 點）：橫幅只寫「材料包」、掉落紀錄自成一類 pack；裡面的材料用下面的拾取文字 */
-  if (mat.feel && mat.feel.pack) rareShow('材料包', 'pack', 'orb');
+  /* 靈魂包（13:27 第 23 點）：地上一個，撿起來才加靈魂 */
+  if (mat.pack) dropAt(m.x, m.y, { show: 'pack', soul: mat.pack });
   [
     ...mat,
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),
@@ -1105,8 +1105,8 @@ function dropLog(n, c) {
 }
 /* 通貨很多時（一波殺完同時掉好幾顆）：橫幅與音效 1.2 秒最多一次，紀錄照記；★ 與追憶一定演 */
 let RARE_T = 0;
-function rareShow(txt, c, snd) {
-  dropLog(txt, c);
+function rareShow(txt, c, snd, log) {
+  dropLog(log || txt, c);
   const now = performance.now();
   if ((c === 'cur' || c === 'perf') && now - RARE_T < 1200) return;
   RARE_T = now;
@@ -1119,9 +1119,9 @@ function chaseShow(k) {
   const el = $('banner');
   if (el) el.dataset.chase = k;
 }
-/* 開發觸發（Game Art Director 13:11 第 14 點）：在現在的地點直接掉一件追逐物品，pk 指定池（'trunk'、賽制線 'ghost'…），走跟輪末王一樣的收起來與演出；?test=chase 與測試工具用 */
-function devChase(pk) {
-  const k = chaseGive(G.mapT || 1, pk);
+/* 開發觸發：在現在的地點直接掉一件追逐物品（M2 只有王印），走跟輪末王一樣的收起來與演出；?test=chase 與測試工具用 */
+function devChase() {
+  const k = chaseGive(G.mapT || 1);
   chaseShow(k);
   hudPanels();
   return k;
@@ -1132,6 +1132,9 @@ function dropAt(x, y, o) {
   Object.assign(o, { x: x + Math.cos(a) * s, y: y + Math.sin(a) * s, sx: x, sy: y, t: 0 });
   if (!open(o.x, o.y, 10)) (o.x = x), (o.y = y);
   G.drops.push(o);
+  /* 靈魂包（第 24 點）：橫幅只寫「靈魂包」、掉落紀錄「靈魂包 +n 靈魂」，類別 pack（不算進掛機卡的通貨數） */
+  if (o.show === 'pack')
+    return (o.hold = RARE_HOLD), rareShow(STR_T.pack, 'pack', 'orb', `${STR_T.pack} ${packGain(o.soul)}`);
   if (o.show) return (o.hold = RARE_HOLD), rareShow(CUR[o.show].n, /3$/.test(o.show) ? 'perf' : 'cur', 'orb');
   /* 0.5.0 起地上只有護符與自己丟的（裝備不掉） */
   if (o.it && !o.nopick) sfx('drop0');
@@ -1158,7 +1161,8 @@ function gainXp(v) {
 /* 撿起來：金幣直接加；裝備進清單倉庫（0.4.0）。倉庫滿了：普通裝直接換成金幣（每張圖提醒一次），★ 與追憶照樣收（多留的格子） */
 function pickup(d) {
   if (d.show) {
-    /* 稀有通貨的演出：數量早就進材料頁了 */
+    /* 稀有通貨的演出：數量早就進材料頁了；靈魂包撿起來才加（第 25 點：不算進 SES.soul，營地速率與地點每分鐘靈魂只算戰鬥） */
+    if (d.soul) (MAT().soul += d.soul), num(d.x, d.y - 20, 0, 'mat', packGain(d.soul));
   } else if (d.gold) {
     S.gold += d.gold;
     if (G.rs) G.rs.gold += d.gold;

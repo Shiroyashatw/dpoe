@@ -287,7 +287,7 @@ function draw() {
       CX.fillRect(x - 10, y - bh, 20, bh);
       CX.fillStyle = `rgba(255,244,214,${a})`;
       CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
-      spr(CUR[d.show].ic, x, y + 8, 26);
+      spr(d.show === 'pack' ? 'soulpack' : CUR[d.show].ic, x, y + 8, 26);
     } else {
       const col = RCOL[d.it.r];
       spr(itemIc(d.it), x, y + 10, 26);
