@@ -88,3 +88,19 @@ python3 -m http.server 8000   # 在 dpoe/ 底下，開 http://localhost:8000
 
 ## 部署
 GitHub Pages：`main` 分支，網址 https://shiroyashatw.github.io/dpoe/ 。
+
+## 需要 Grok 幫忙的時後（本機 Claude Code 用）
+
+1. 取一個代號，把要 Grok 做的步驟、停在哪一步，寫進 ~/claude-runs/<代號>.prompt。
+2. 寫 ~/claude-runs/<代號>.json，內容是 {"kind":"request_to_assistant","result":"<同樣的步驟>"}。
+3. 用 Webhook 網址和金鑰 POST {"source":"claude-code","event":"run_done","name":"<代號>"}。
+4. 等 ~/claude-runs/<代號>.reply 出現，讀完再自己打開頁面核對結果。
+
+## 需要 Grok 幫忙的時後（雲端 Claude Code 用）
+
+雲端機器上沒有 ~/claude-runs/，也送不出 Webhook，改用 GitHub 留言：
+
+1. 取一個代號（只用英數、-、_）。
+2. 有對應 PR：用 `gh api repos/Shiroyashatw/dpoe/issues/<PR 編號>/comments -f body=...` 留言，第一行寫「Grok 請求：<代號>」，下面寫要 Grok 做的步驟、停在哪一步。
+3. 沒有對應 PR：開一個 issue，標題「Grok 請求：<代號>」，內文寫步驟和停在哪一步，並指派給 Shiroyashatw（`gh api repos/Shiroyashatw/dpoe/issues -f title=... -f body=... -f "assignees[]=Shiroyashatw"`）。指派才會叫醒 Grok。
+4. 等同一個 PR 或 issue 出現開頭為「Grok 回覆：<代號>」的留言（用 `gh api .../comments` 定時讀），讀完再自己打開頁面核對結果。
