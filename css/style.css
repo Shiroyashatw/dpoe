@@ -2550,5 +2550,5 @@ body.touch .modesw { display: none; }
 .modesw button + button { border-left: 0; }
 .modesw button.on { background: var(--sel); color: var(--sel-ink); }
 .modesw button:focus-visible { outline: 2px solid var(--fr-c); outline-offset: 2px; }
-.modesw kbd { margin-left: 6px; padding: 1px 6px; background: var(--s0); color: var(--title); border-radius: 3px; font: 700 12px var(--font); }
+.modesw kbd { margin-left: 4px; padding: 1px 4px; background: var(--s0); color: var(--title); border-radius: 3px; font: 700 12px var(--font); }
 @media (prefers-reduced-motion: reduce) { body:not(.touch) #bar { transition: none !important; } }

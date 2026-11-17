@@ -345,6 +345,11 @@ const shot = async (p, W, H, n, f, wait = 450) => {
       ok(pl.x === 788 && pl.y === 76 && pl.y + pl.h <= 562, `${sz} 掉落紀錄在右欄`, pl);
       await shot(p, W, H, '22_桌機_自動_沒有快捷列', () => (__reset(), (S.auto = 1)));
       const au = await p.evaluate(() => [getComputedStyle($('bar')).visibility, __r('.mid .bars'), __r('.modesw')]);
+      ok(
+        __ovN(au[2], R.bn.mm) === 0 && au[2].x >= 884,
+        `${sz} 模式切換（含鍵帽 C）vs 小地圖：交集 ${__ovN(au[2], R.bn.mm)}`,
+        au[2]
+      );
       await shot(p, W, H, '23_桌機_手動_快捷列', () => (S.auto = 0), 600);
       const mn = await p.evaluate(() => [
         getComputedStyle($('bar')).visibility,
