@@ -10886,4 +10886,64 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(m19.line)
   );
 }
+/* M2-15 技能挑選的推薦排序：拿著的武器的招在最前、詛咒（沒直傷）在有直傷的後面；空格、有招的格都一樣 */
+{
+  const c15 = {
+    ...{ console, Math, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams },
+    addEventListener() {},
+    document: { addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] }
+  };
+  vm.createContext(c15);
+  for (const f of [
+    'core.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'world.js',
+    'mech.js',
+    'ai.js',
+    'game.js',
+    'skills.js',
+    'skpanel.js'
+  ])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c15, { filename: f });
+  const R = s => vm.runInContext(s, c15);
+  R(`var PANEL = { skill: false }, TREE = { open: false }, NAV = {}, UI_SKIP = 0, OPEN = 0, PORT = () => true, IV = { on: false };
+    S = newGame(); P = { x: 0, y: 0 }; G.t = 0;`);
+  /* 拿 wt、格 i 先放 put（null＝空格），回推薦清單：每列 [拿著的武器的招, 詛咒, 有直傷] */
+  const rows = (wt, put) =>
+    JSON.parse(
+      R(`(() => {
+      S.camp.wts = [...new Set([...(S.camp.wts || []), '${wt}'])];
+      S.eq.weapon = mkItem(BASES.find(b => b.wt === '${wt}').id, 1, 0);
+      S.skills.forEach((s, j) => (S.skills[j] = newSlot()));
+      ${put ? `S.lib.sk['${put}'] = 1; S.skills[0].k = '${put}';` : ''}
+      ST = stats(); SKUI.view = 'skills'; SKUI.i = 0; SKUI.hole = 0; PICKC = null;
+      return JSON.stringify(pickRows(skCur()).L.filter(recOK).map(x => [!!x.D.wt && x.D.wt.includes(ST.wt), x.D.tags.includes('curse'), x.val != null]));
+    })()`)
+    );
+  /* 排得對：前面一段全是武器招、詛咒都在最後一個有直傷的後面 */
+  const sorted = L => {
+    const w = L.findIndex(r => !r[0]),
+      lastDmg = L.map(r => r[2]).lastIndexOf(true),
+      firstCurse = L.findIndex(r => r[1]);
+    return L[0][0] && L.slice(w).every(r => !r[0]) && firstCurse > lastDmg;
+  };
+  for (const [wt, put] of [
+    ['spear', null],
+    ['sword', null],
+    ['spear', 'slash'],
+    ['sword', 'fireball']
+  ]) {
+    const L = rows(wt, put);
+    ok(
+      `M2-15 推薦排序（拿 ${wt}、${put ? `格裡是 ${put}` : '空格'}）：武器招在最前、詛咒排在有直傷的後面`,
+      sorted(L),
+      JSON.stringify(L.slice(0, 8))
+    );
+  }
+}
 process.exit(bad ? 1 : 0);
