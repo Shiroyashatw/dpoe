@@ -4,6 +4,7 @@
 
 - 2026-11-17 18:34｜Game Art Director（製作人交辦）｜M2-37、M2-38｜M2-37 v1.3：顏色全部改寫成角色 token，對齊方向 A＋C 用色規則；M2-38 改在 token 收斂合併後做、只用角色 token；版面、流程、D1–D8 不變
 - 2026-11-17 18:21｜mumi（經幕僚長）｜M2-36｜美術方向 A 廟宇古地圖，加上 C 的規則（顏色只給掉落、特效、跳數字）；主按鈕銅綠 #2c6457；昇華改綠色 #17c68b；素材走程式畫＋ Claude Code 呼叫 PixelLab API，mumi 只挑圖；色票與 token 值見 specs/M2-36-palette-tokens.md
+- 2026-11-17 —｜開發工程師｜DOC-08｜舊檔併進新結構：CLAUDE.md 精簡（專案結構→`docs/專案結構.md`、本機執行與 Grok→`docs/本機執行.md`、沿革→`docs/archive/版本沿革.md`）、根 CHANGELOG 0.4.10 以前→`docs/archive/`、工項.md 與待做清單.md 整份封存到 `docs/archive/`（待做清單不逐條分流，開新任務時再撿；`docs/待做清單.md` 留轉址檔，因 `tools/check.js:8054` 還讀它）
 - 2026-11-17 —｜開發工程師｜M2-31｜M2-31 對比小修已合併（main 0a9d3c3）
 - 2026-11-17 18:16｜mumi（經幕僚長）｜M2-01、M2-38｜開發工程師做完手上這一項就暫停，等重新分派；M2-01、M2-38 在雲端跑，重新規劃前不合併
 - 2026-11-17 18:16｜mumi（經幕僚長）｜—｜文件改成 README＋tasks／specs／CHANGELOG／archive 結構，每個讀者只讀相關的部分（省 token）；規則見 DOCS-STRUCTURE.md
