@@ -1295,18 +1295,22 @@ const chaseN = (s = S) => Object.values(chaseOf(s).got).reduce((a, n) => a + n, 
 /* 保底 %（數值設計師第 5 點）：min(100, floor(點數 ÷ 5))，滿了也寫 100% */
 const chasePct = (s = S) => Math.min(100, Math.floor(chaseOf(s).pts / 5));
 /* 掛機卡那一行（製作人第 2 點）：只有會觸發保底的地點（怪物 Lv45 以上、M2 只有主幹）才有，其他地點空字串、不留空位 */
-const chaseLine = t => (t && mobLv(t) >= CHASE.lv && chasePk() ? `下一件保底 ${chasePct()}%` : '');
+const chaseLine = t => (t && mobLv(t) >= CHASE.lv && chasePk() ? strT('pity', { n: chasePct() }) : '');
 /* 收集進度（第 3 點）：「王印 2／4」、「鬼門關基底 1／2」 */
 function chaseProg(k) {
   const p = chasePool(k),
     L = CHASE_POOL[p];
-  return `${isWy(k) ? '王印' : WTYPE[p].n + '基底'} ${L.filter(x => chaseOf().got[x]).length}／${L.length}`;
+  return strT('pool', {
+    p: isWy(k) ? STR_T.poolWy : strT('poolBase', { l: WTYPE[p].n }),
+    k: L.filter(x => chaseOf().got[x]).length,
+    N: L.length
+  });
 }
 /* 靈魂包撿起來的飄字（字串鍵 packGain）：「+120 靈魂」 */
-const packGain = n => STR_T.packGain.replace('{n}', n);
+const packGain = n => strT('packGain', { n });
 const chaseBanner = k => `${chaseName(k)}・${chaseProg(k)}`;
 /* 離線摘要（第 8 點）：n＝這次離開掉了幾件、後面是現在的保底 % */
-const chaseOffRow = n => `追逐物品 ×${n}、目前保底 ${chasePct()}%`;
+const chaseOffRow = n => strT('offRow', { n, p: chasePct() });
 /* kind 1 菁英（o.ei＝這一輪第幾隻；七情王 ei 0，不佔前 4 隻的名額）、2 輪末王；回掉到的鍵或 null */
 function chaseRoll(kind, t, o = {}) {
   if (mobLv(t) < CHASE.lv || !chasePk()) return null;
