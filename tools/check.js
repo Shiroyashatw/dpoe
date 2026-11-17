@@ -10646,6 +10646,8 @@ const ASC_COMBOS = `const combos = k => {
       const dc = dropCur, fx = (m, cur) => ((dropCur = () => ({ cur, ess: [], jw: false })), (S.prd.feel = 1), killMat(m, lo), S.prd.feel);
       try {
         r.pf = [{}, { elite: 1 }, { boss: 1 }].flatMap(m => [fx(m, { frac: 1 }), fx(m, {})]);
+        /* 七情王（製作人 11/17 19:14 選 A）：掉出有感掉落也歸零；沒掉不 +1（Lv43 不判追逐） */
+        r.pfMini = [fx({ boss: 1, mini: 1 }, { frac: 1 }), fx({ boss: 1, mini: 1 }, {})];
       } finally {
         dropCur = dc;
       }
@@ -10680,6 +10682,11 @@ const ASC_COMBOS = `const combos = k => {
     'M2-17／M2-18 有感保底 P.feel：一般怪、菁英、輪末王掉出有感掉落都歸零；沒掉時輪末王 +1、一般怪與菁英不變',
     JSON.stringify(ch.pf) === '[0,1,0,1,0,2]',
     JSON.stringify(ch.pf)
+  );
+  ok(
+    'M2-17／M2-18 有感保底 P.feel：七情王（m.mini）掉出有感掉落也歸零；沒掉時不變',
+    JSON.stringify(ch.pfMini) === '[0,1]',
+    JSON.stringify(ch.pfMini)
   );
   /* M2-18 addendum（製作人、數值設計師、Game Art Director 11/17）：圖檔 id、字串表、保底 %、Lv<45 不出那一行、pack 不算通貨、離線那一列、橫幅進度、
      王印進碎片頁、追逐標記在打造與套印後保留、開發觸發；13:27 靈魂包（soulpack、dropAt soul、撿起來加 MAT().soul 不加 SES.soul、飄字 packGain、紀錄、pack 不算通貨） */
