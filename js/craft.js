@@ -343,6 +343,13 @@ const lockTxt = k => {
   const e = !campCan(k) && campKey(k);
   return e ? `升${CAMPN[e[0]]}到 Lv ${e[1]} 才開` : '';
 };
+/* M1-26：角色頁鎖住的護符／神格格點了講一句「這格是什麼＋怎麼開」（同 M1-06）。神格出自弒神（裂口），跟著 line:rift 開 */
+function lockSlotTxt(k) {
+  if (k === 'gh') return '神格：' + (lockTxt('line:rift') || '之後開放');
+  const b = S.eq.belt;
+  if (b && !eqOpen(S, 'belt')) return '護符：腰帶被昇華鎖住，退點才能用';
+  return b ? `護符：腰帶要有 ${+k[2] + 1} 格護符槽才開` : '護符：裝上腰帶才開';
+}
 /* 通貨對應的解鎖鍵：預兆一組、高階與完美照階 */
 const curKey = k =>
   k.startsWith('om_') ? 'cur:om' : /^(tran|aug|rich|exalt)[23]$/.test(k) ? 'tier' + k.slice(-1) : 'cur:' + k;
