@@ -626,33 +626,35 @@ function moreHTML() {
   </div>`;
 }
 /* 「地點」（0.5.2，工坊與解鎖表第 7 節）：取代世界地圖的唯一入口。上面是星級（全域，上限照斥候營），
-   底下一列一個節點、照區域分組；0.5.4（考核 B1～B4）只列開了的＋下一個（「升瞭望台 Lv n 就開」），其餘折成一行「還有 N 個地點」；
+   底下一列一個節點、照區域分組；M2-07：全部列出（面板自己捲動），主幹照順序、特殊節點接在它掛的主幹後面；
+   鎖著的寫條件（wWhy），下一個寫「升瞭望台 Lv n 就開」、點了去營地；其他鎖著的點了也寫原因。
    每列寫怪物 Lv 與這個地點刷過的靈魂／分（S.spm，刷過才有）、正在刷的那一列。點一列＝去那裡刷 */
 function nodeHTML() {
   const st0 = wStar(S),
     spm = S.spm || {},
-    open = k => {
-      const n = WNODE[k];
-      return n.i != null || campCan(W_LINE[n.t] || '');
-    },
-    all = wList(S).filter(open),
     nx = TRUNK_K[wFront(S) + 1],
-    show = all.filter(k => k === nx || !wWhy(S, ...wXY(k)));
+    keys = TRUNK_K.flatMap((k, i) => [k, ...SPECIAL.filter(o => o.at === i).map(o => wKey(o.q, o.r))]);
   let g = '';
-  const rows = show
+  const rows = keys
     .map(k => {
       const [q, r] = wXY(k),
-        lock = k === nx,
+        why = wWhy(S, q, r),
         n = WNODE[k],
         head = n.g !== g ? `<li class="ndg">${esc((g = n.g))}</li>` : '',
-        st = S.world.cur === k ? '<em class="c-gold">正在刷</em>' : lock ? `<em>升瞭望台 Lv ${n.i} 就開</em>` : '';
-      return `${head}<li class="${lock ? 'lock nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${lock ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${fmtN(spm[k])} 靈魂` : ''}</small>${st}</button></li>`;
+        st =
+          S.world.cur === k
+            ? '<em class="c-gold">正在刷</em>'
+            : k === nx
+              ? `<em>升瞭望台 Lv ${n.i} 就開</em>`
+              : why
+                ? `<em>${esc(why)}</em>`
+                : '';
+      return `${head}<li class="${why ? 'lock' : ''}${k === nx ? ' nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${k === nx ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${fmtN(spm[k])} 靈魂` : ''}</small>${st}</button></li>`;
     })
     .join('');
-  const more = wList(S).length - show.length;
   return `<div class="ph"><b>地點</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="bagf ndst" role="radiogroup" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => `<button class="chip ${st0 === i + 1 ? 'on' : ''}" role="radio" aria-checked="${st0 === i + 1}" data-a="nstar:${i + 1}">${i + 1}★</button>`).join('')}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條地圖詞・星越多越危險、掉得越好</span></div>
-  <ul class="ndl">${rows}</ul>${more > 0 ? `<p class="ndmore">還有 ${more} 個地點</p>` : ''}`;
+  <ul class="ndl">${rows}</ul>`;
 }
 /* 鍛造分頁的三段（M2-38，M2-37.1）：打造永遠在；通貨（點了就用）、鍛造台（填、淬鍊、災魘）要鍛造台 Lv1 */
 const CSEG = () =>
