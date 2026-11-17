@@ -10753,7 +10753,7 @@ const ASC_COMBOS = `const combos = k => {
       /* 4：追逐標記在打造（填：蛻變）之後保留；套上王印之後一般裝備也帶上追逐標記、基底原本的標記不動 */
       S.mat.tran = 5;
       const why = forgeDo(it, 'tran');
-      const plain = mkItem(it.b, it.L, 0);
+      const plain = mkItem(it.b, it.L, 1); /* M2-29：王印只能套在魔法或稀有裝備 */
       const w1 = wangyinSet(plain, k1), w2 = wangyinSet(it, k2);
       r.keep = [why || '', it.r, it.chase, plain.chase, plain.wy, w1, w2, it.chase, it.wy, S.inv.items.includes(it), S.frags[k1], S.frags[k2], wangyinSet(plain, k1)];
       S.mat.aug = 5; forgeDo(it, 'aug'); r.keep.push(it.chase);
@@ -10851,6 +10851,72 @@ const ASC_COMBOS = `const combos = k => {
       ad.keep[13] === ad.keep[2] &&
       ad.room,
     JSON.stringify([ad.keep, ad.room])
+  );
+  /* M2-29 王印詞綴（specs/M2-29-wangyin-affixes.md v1.0）：單印 24／13／12／1、同名不疊加、4 種不同才齊鳴 ×1.25（leech 取 1 位小數）、
+     失效欄位不算、白裝套不上、再印換掉不退、存檔讀回直接生效（存檔版本不變） */
+  const wy = R(`(() => {
+    const K = ['wangyin_zhenyue', 'wangyin_chixiao', 'wangyin_jiting', 'wangyin_guixu'], r = {};
+    S = { ...newGame(), lv: 60 };
+    const slots = ['ring1', 'ring2', 'amulet', 'boots', 'helm'],
+      bases = { ring1: 'r_iron', ring2: 'r_iron', amulet: 'a_jade', boots: 'b_straw', helm: 'h_kasa' };
+    for (const e of slots) (S.eq[e] = mkItem(bases[e], 1, 2)), (S.eq[e].a = []);
+    const pick = o => [o.defP, o.dmgA, o.ss, o.leech],
+      d = () => pick(stats(S)).map((v, i) => v - b0[i]),
+      clr = () => slots.forEach(e => delete S.eq[e].wy),
+      b0 = pick(stats(S));
+    r.bad0 = stats(S).eqBad.join();
+    r.one = K.map((k, i) => ((S.eq.ring1.wy = k), d()[i]));
+    clr(); r.off = d();
+    S.eq.ring1.wy = S.eq.ring2.wy = K[0]; r.dup = d();
+    clr(); K.slice(0, 3).forEach((k, i) => (S.eq[slots[i]].wy = k)); r.three = d();
+    S.eq.boots.wy = K[2]; r.threeDup = d();
+    S.eq.boots.wy = K[3]; r.four = d();
+    S.eq.helm.wy = K[0]; r.fourDup = d();
+    /* 失效欄位：ring3 沒開（eqOpen）→ 失效；第 4 種放那裡不生效、不算齊鳴 */
+    delete S.eq.helm.wy; S.eq.boots.wy = undefined; S.eq.ring3 = mkItem('r_iron', 1, 2); S.eq.ring3.a = []; S.eq.ring3.wy = K[3];
+    r.bad = [stats(S).eqBad.includes('ring3'), ...d()];
+    delete S.eq.ring3; S.eq.boots.wy = K[3];
+    /* 存檔讀回：JSON 來回＋migrate，版本不變、it.wy 還在、能力一樣 */
+    const st0 = JSON.stringify(pick(stats(S))), v0 = S.v;
+    S = migrate(JSON.parse(JSON.stringify(S)));
+    r.save = [S.v === v0, S.eq.boots.wy, JSON.stringify(pick(stats(S))) === st0];
+    /* 套印：白裝套不上（不扣）；再印換掉舊印、舊印不退、新印扣 1 */
+    S.frags = { [K[0]]: 1, [K[1]]: 1 };
+    const wh = mkItem('r_iron', 1, 0), bl = mkItem('r_iron', 1, 1);
+    r.set = [wangyinSet(wh, K[0]), wh.wy, S.frags[K[0]], wangyinSet(bl, K[0]), wangyinSet(bl, K[1]), bl.wy, S.frags[K[0]], S.frags[K[1]], WY_SET.n, WY_SET.mul];
+    return r;
+  })()`);
+  ok(
+    'M2-29 王印單印：鎮嶽 defP +24、赤霄 dmgA +13、疾霆 ss +12、歸墟 leech +1；拿掉印能力回原值',
+    wy.bad0 === '' && JSON.stringify(wy.one) === '[24,13,12,1]' && JSON.stringify(wy.off) === '[0,0,0,0]',
+    JSON.stringify([wy.bad0, wy.one, wy.off])
+  );
+  ok(
+    'M2-29 同名不疊加：鎮嶽印裝 2 件只算一次（defP +24）；3 種＋1 件重複仍是原值、不齊鳴',
+    JSON.stringify(wy.dup) === '[24,0,0,0]' &&
+      JSON.stringify(wy.three) === '[24,13,12,0]' &&
+      JSON.stringify(wy.threeDup) === '[24,13,12,0]',
+    JSON.stringify([wy.dup, wy.three, wy.threeDup])
+  );
+  ok(
+    'M2-29 四印齊鳴：4 種不同 ×1.25 → defP 30、dmgA 16、ss 15、leech 1.3（取 1 位小數，不是 1）；5 件裡多一件重複也一樣',
+    JSON.stringify(wy.four) === '[30,16,15,1.3]' && JSON.stringify(wy.fourDup) === '[30,16,15,1.3]',
+    JSON.stringify([wy.four, wy.fourDup])
+  );
+  ok(
+    'M2-29 失效欄位（沒開的 ring3）上的王印不生效、不算齊鳴：其他 3 種維持原值',
+    JSON.stringify(wy.bad) === '[true,24,13,12,0]',
+    JSON.stringify(wy.bad)
+  );
+  ok(
+    'M2-29 存檔讀回：版本不變、it.wy 還在、齊鳴後能力一樣',
+    JSON.stringify(wy.save) === '[true,"wangyin_guixu",true]',
+    JSON.stringify(wy.save)
+  );
+  ok(
+    'M2-29 套印：白裝套不上、不扣王印；魔法裝套上扣 1；再印換掉舊印、舊印不退回、新印扣 1；WY_SET 4 枚 ×1.25',
+    JSON.stringify(wy.set) === '["只能套在魔法或稀有裝備",null,1,"","","wangyin_chixiao",0,0,4,1.25]',
+    JSON.stringify(wy.set)
   );
   /* M2-19 追逐演出（docs/交辦/M2-19-追逐演出.md）：字從字串表 strT 取；追逐物品落地停 2.4 秒、記紀錄（帶鍵）、橫幅走 #chase；
      追逐橫幅顯示中（加 300 ms）不出 #banner、600 ms 內不播 orb（紀錄照記）；撿起來不再加東西；賽制線關著時演出只會出現王印 */
