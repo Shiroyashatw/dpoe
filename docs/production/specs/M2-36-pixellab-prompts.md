@@ -3,8 +3,8 @@
 Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac24fae-bc0a-4d94-a78d-b09213a2791c（「PixelLab 提示詞表」一節）
 負責：Game Art Director。怎麼畫見 `specs/M2-36-drawing-rules.md`；色值只寫 token 名，工具送出前從 `specs/M2-36-palette-tokens.md` 的表換成值。金鑰只讀環境變數 `PIXELLAB_API_KEY`，不進 repo。產出只放分支 `art/m2-36-assets`（draft PR #47，不合併）；mumi 只挑圖。
 
-## 1. 產圖結果與判斷（PR #47，0f20108）
-已花 88.75／上限 120（88 次呼叫＋1 次 500 未計費；特效實收約 1.05／張）。104 張檢查、舊規則過 20 張。逐張看圖後的判斷：
+## 1. 產圖結果與判斷（PR #47）
+第 1 輪（0f20108）：88.75／120，104 張、舊規則過 20。第 2 輪（77206be）：新後處理 `--repost` 同一批原圖，加 A 批 14 張，已花 102.75／120；118 張、新規則過 93，再由 Art Director 目視挑成 §6 的候選。B 批（3629d87）：12 張，已花 116.75／120；16 過 5 張、疾霆 32 過 2、歸墟 32 過 1。下表是第 1 輪逐張看圖後的判斷：
 
 | 不過的類別 | 看圖 | 原因 | 修法 |
 | --- | --- | --- | --- |
@@ -21,7 +21,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac2
 1. floor_remap 同明度用鄰居亮度拆：**不採用**，`floor_remap` 整個拿掉，換 `floor_shift`。
 2. 2×2 檢查改看原圖：**採用**（量 API 原圖才對），但指標換成 §6 的放大測試。
 3. 牆面兩半分開判：**採用**亮度、雜點分開判；接縫要四種接法（a｜a、a｜b、b｜a、b｜b）都過，由 `face_shift` 的四欄修正保證；兩半都過，這組才算過。
-4. 16 的 init 用「種子最小的過關 32」（實際用了不過的 smallrun）：**不採用**。init 一律用下表 `init_from` 指定的 32（Art Director 推薦、已過檢查）；mumi 挑了別張，該枚 16 重跑 2 張。
+4. 16 的 init 用「種子最小的過關 32」（實際用了不過的 smallrun）：**不採用**。init 一律用下表 `init_from` 指定的 32（Art Director 推薦、已過檢查）；mumi 挑了別張，該枚 16 重跑 1 張（見 §3）。
 5. vfx_gen 自我檢查 34 → 32：**採用**，`docs/特效提示詞.md` 從 28fdbbd 起就是 32 筆，原本寫 34 是錯的。
 6. 特效比例假設 1 材質像素 = 1.5 世界 px × ZOOM：**採用**，當保守上限（實際 `fxs` 依 r／rad 縮放，多半更小）；只因這條不過的，改用遊戲截圖跑 `comfort.py` 判。
 
@@ -42,26 +42,27 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac2
 {"id":"wangyin_chixiao_32","wave":"A","endpoint":"/create-image-pixflux","n":4,"seed0":2141,"init_from":"wangyin_zhenyue_32-s2104","init_image_strength":150,"body":{"description":"game item icon, flat front view, an ancient square bronze king seal plaque seen straight on, a small round ring loop on the top edge, an upright sword wrapped in a rising flame carved on the plaque face, the carved face glows orange, centred, fills the canvas, light from the top-left, bold simple shapes readable at small size, no perspective, no isometric, no 3D cube, no top face, no side face, no box, no chest, no face, no eyes, no text, no characters, no background, no dithering, no gradient","image_size":{"width":32,"height":32},"view":"side","outline":"single color black outline","shading":"medium shading","detail":"medium detail","no_background":true},"palette":["--scene-void","--panel-inset","--border","--border-mid","--border-cap","--rar-chase-bg","--rar-chase","--rar-chase-hi","--el-fire"],"post":"alpha_binary","out":"art/icons/wangyin/wangyin_chixiao/"},
 {"id":"wangyin_zhenyue_32","wave":"A","endpoint":"/create-image-pixflux","n":2,"seed0":2145,"init_from":"wangyin_zhenyue_32-s2104","init_image_strength":150,"body":"同 chixiao，刻紋換成 a stylised mountain peak with three summits","palette":["--scene-void","--panel-inset","--border","--border-mid","--border-cap","--rar-chase-bg","--rar-chase","--rar-chase-hi","--tx-strong"],"post":"alpha_binary","out":"art/icons/wangyin/wangyin_zhenyue/"},
 {"id":"wangyin_jiting_32","wave":"A","endpoint":"/create-image-pixflux","n":2,"seed0":2147,"init_from":"wangyin_zhenyue_32-s2104","init_image_strength":150,"body":"同 chixiao，刻紋換成 a single zigzag lightning bolt","palette":["--scene-void","--panel-inset","--border","--border-mid","--border-cap","--rar-chase-bg","--rar-chase","--rar-chase-hi","--el-light"],"post":"alpha_binary","out":"art/icons/wangyin/wangyin_jiting/"},
-{"id":"wangyin_<名>_16","wave":"B","endpoint":"/create-image-bitforge","n":2,"seed0":"zhenyue 2151、chixiao 2153、jiting 2155、guixu 2157","init_from":"下表推薦 32","init_image_strength":300,"body":{"description":"tiny 16 pixel game icon, flat front view of a square bronze seal plaque with a small ring loop on top, <刻紋>, glowing orange face, bold, 1 pixel black outline","negative_description":"blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face","image_size":{"width":16,"height":16},"no_background":true},"palette":"同該枚 32","post":"alpha_binary","out":"art/icons/wangyin/wangyin_<名>/"}
+{"id":"wangyin_<名>_16","wave":"B","endpoint":"/create-image-bitforge","n":2,"seed0":"zhenyue 2151、chixiao 2153、jiting 2155、guixu 2157","init_from":"下表推薦 32","init_image_strength":300,"body":{"description":"tiny 16 pixel game icon, flat front view of a square bronze seal plaque with a small ring loop on top, <刻紋>, glowing orange face, bold, 1 pixel black outline","negative_description":"blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face","image_size":{"width":16,"height":16},"no_background":true},"palette":"同該枚 32","post":"alpha_binary","out":"art/icons/wangyin/wangyin_<名>/"},
+{"id":"wangyin_jiting_32","wave":"B","endpoint":"/create-image-pixflux","n":2,"seed0":2149,"init_from":"wangyin_jiting_32-s2124","init_image_strength":150,"body":"同 chixiao，刻紋換成 a single bold zigzag lightning bolt from the top-right corner to the bottom-left corner, sharp angles, no mountains, no peaks, no triangles","palette":"同疾霆 32","post":"alpha_binary","out":"art/icons/wangyin/wangyin_jiting/"},
+{"id":"wangyin_guixu_32","wave":"B","endpoint":"/create-image-pixflux","n":2,"seed0":2161,"init_from":"wangyin_guixu_32-s2133","init_image_strength":150,"body":"同 chixiao，刻紋換成 a spiral whirlpool with three curved arms swirling into the centre, not concentric rings","palette":["--scene-void","--panel-inset","--border","--border-mid","--border-cap","--rar-chase-bg","--rar-chase","--rar-chase-hi","--rar-magic"],"post":"alpha_binary","out":"art/icons/wangyin/wangyin_guixu/"}
 ]
 ```
 
 刻紋：鎮嶽 a stylised mountain peak with three summits（紋樣色 `--tx-strong`）、赤霄 an upright sword wrapped in a rising flame（`--el-fire`）、疾霆 a single zigzag lightning bolt（`--el-light`）、歸墟 a spiral whirlpool sinking into the centre（`--rar-magic`）。昇華綠、`--bad` 紅、`--act` 不准用在王印。id 照 M2-29：`wangyin_zhenyue`（防禦）、`wangyin_chixiao`（傷害）、`wangyin_jiting`（技能速度）、`wangyin_guixu`（續航）。
 
-**16 的 init_from（Art Director 推薦）**：鎮嶽 s2104、歸墟 s2133、疾霆 s2124、赤霄＝第 A 批過關且我推薦的那張（全不過就用 s2112）。第 A 批新出的鎮嶽、疾霆若比現在的好，我會在 B 批前改推薦。
+**王印 16（Art Director 挑，不給 mumi）**：鎮嶽 s2151、疾霆 s2155（配 s2149、s2124 都行）、赤霄 s2154（暫用，偏弱，沒有實心牌面）、歸墟 s2160（暫用，縮小後看不出漩渦；而且是照 s2133 做的，跟推薦的 s2162 不同款）。鎮嶽 s2152 灰、弱，不用。mumi 挑完 32 後，赤霄、歸墟各用「挑到的那張 32」當 init 重跑 1 張 16（bitforge，同上筆 body，seed 2165、2166），共 2 張。疾霆不管挑哪張都用 s2155。鎮嶽若挑 s2145，那枚 16 也要重跑 1 張，會到 119.75，超過工程的 118.75：先問 mumi，不准就從 s2145 手修 16。
 
 **預算**
 | 批 | 內容 | 張數 |
 | --- | --- | --- |
-| 先做（0） | 56 張地磚原圖 `--repost`；冰窟牆頂備案 `recolor` | 0 |
-| A | 冰窟牆頂 4、墓地地板 2、赤霄 32 ×4、鎮嶽 32 ×2、疾霆 32 ×2 | 14 |
-| B | 四枚 16 各 2 | 8 |
-| 備用 | 赤霄 32 第 A 批 0 張過 → 再 4（seed0 2161）；某枚 16 兩張都不過或 mumi 改挑 32 → 該枚再 2（最多兩枚） | ≤ 8 |
+| 第 1 輪＋A 批＋B 批（已做） | 88 次＋A 批 14＋B 批 12 | 已花 116.75 |
+| 保留 | 赤霄 16、歸墟 16 各 1（mumi 挑完 32 才跑） | 2 |
+| 特效 | 不重跑，改零成本後處理（§5 `beam_cap`、`fade_tail`） | 0 |
 
-一定會花 22 → 110.75；備用全用 30 → 118.75，不超過 120。冰窟牆頂第 A 批全不過不再花錢，直接用 `recolor`。
+全部做完 118.75（工程上限），不超過 120；保留的 2 張用完就沒有備用。每批跑前查餘額，「已花＋這批張數 > 120」就停。
 
-## 4. 招牌特效（/vfx，vfx_gen.py 的格式；已產完，15／15 過）
-輸出 `art/fx/<id>/`，每個 id 3 次（最新一張在 `art/fx/<id>/`，另兩張在 `old/<時間>/`），lite。提示詞裡的 `{token}` 由工具換成值（/vfx 不能鎖色，只能靠字）。重跑才需要；這輪不重跑。
+## 4. 招牌特效（/vfx，vfx_gen.py 的格式；已產完，不重跑）
+輸出 `art/fx/<id>/`。`old/<時間>/` 的版本已永久不見，每個 id 只剩最新一張；sig_chase、sig_wyapply 的毛病用 §5 的後處理修，不花生成。提示詞裡的 `{token}` 由工具換成值（/vfx 不能鎖色，只能靠字）。下表留著是給以後重跑用。
 
 每一筆提示詞的開頭都加上這句：
 
@@ -88,6 +89,10 @@ pixel art VFX animation, transparent background, no character, no text, no frame
 - `alpha_binary`：alpha ≥ 128 → 255，其餘 → 0；不透明像素取 palette 最近色（記最大 ΔE）。
 - 拿掉 `floor_remap`、`split_2x32`（併進 `face_shift`）。
 
+特效後處理（`tools/vfx_sheet.py` 讀最新的 png＋json 逐幀改，再寫 sheet、gif 和 `js/fxsig.js`；原檔留在 `art/_raw/fx/`）：
+- `beam_cap`（sig_chase 每一幀）：柱子範圍是畫面中線左右各 12 px。找柱頂第一列；從柱頂往下找第一列「不透明像素平均亮度到柱芯淡橙」（最多找 40 列），柱頂到它之間的列都改成那一列的顏色（拿掉頂端的深棕、深橙橫帶）。再把最上 3 列左右各削 3、2、1 格，alpha 依序 25%、50%、75%。環和火花不動。
+- `fade_tail`（sig_wyapply，從第 8 幀起）：第 8 幀取最多的那一色（`--rar-chase`），把它的外框整塊填滿（補掉洞和暗點），當新的第 8 幀；第 9–11 幀用同一塊，alpha 依序 75%、50%、25%，播完就消失。不准出現棋盤或抖色。
+
 ## 6. 收圖檢查（tools/asset_check.py，每張一列 csv，不過的不給 mumi 看）
 | 檢查 | 怎麼量 | 過關 | 對應 |
 | --- | --- | --- | --- |
@@ -105,18 +110,25 @@ pixel art VFX animation, transparent background, no character, no text, no frame
 
 換進遊戲後照 `specs/M2-36-palette-tokens.md` 的 (a)–(g) 截圖量（`tools/comfort.py`），牆頂的 (d) 以截圖為準。
 
-**現在的候選（照 §5、§6 用現有原圖重算；工程 `--repost` 後以 csv 為準）**
+**現在的候選（第 2 輪 77206be＋B 批 3629d87，過 §6 再經 Art Director 目視；★＝推薦）**
 | 組 | 候選 |
 | --- | --- |
-| 地板 | temple s1103、s1104、s1106；lava s1201、s1202、s1203、s1204、s1205；tomb s1301、s1303（＋A 批 2）；ice s1401、s1402、s1403、s1404 |
-| 牆頂 | temple s1112、s1113、s1114；lava s1212、s1213；tomb s1311、s1312、s1313、s1314；ice 等 A 批（備案 `recolor`） |
-| 牆面 | temple s1121、s1122、s1124；lava s1222、s1223、s1224；tomb s1322、s1323、s1324；ice s1422、s1423 |
-| 王印 32 | 鎮嶽 s2104；歸墟 s2133、s2134、s2132；疾霆 s2124；赤霄 等 A 批（保底 s2112） |
-| 特效 | sig_crit、sig_lvup、sig_beam、sig_chase、sig_wyapply 各 3 張全過 |
+| 地板 | temple ★s1103、s1106；lava ★s1202、s1203、s1205；tomb ★s1308、s1301；ice ★s1404、s1403 |
+| 牆頂 | temple ★s1112、s1113；lava ★s1213、s1212；tomb ★s1312、s1311、s1314；ice ★s1417 |
+| 牆面 | temple ★s1122、s1124；lava ★s1224、s1223；tomb ★s1322、s1323；ice ★s1423、s1422 |
+| 王印 32 | 赤霄 ★s2141、s2144；鎮嶽 ★s2104、s2145；疾霆 ★s2149、s2124、s2150（牌子略帶側面）；歸墟 ★s2162（螺旋）、s2133（同心圓） |
+| 王印 16 | Art Director 已挑：鎮嶽 s2151、疾霆 s2155、赤霄 s2154（暫用）、歸墟 s2160（暫用）；赤霄、歸墟等 mumi 挑完 32 再各重跑 1 |
+| 特效 | 每種只剩最新一張，只要確認：sig_crit、sig_lvup、sig_beam；sig_chase、sig_wyapply 加 §5 後處理 |
 
-目視淘汰：牆頂 s1111（側面橫樑）、s1211（立體方塊）、s1214（條紋）、s1411–s1414（側面山形、冰刺）；牆面 s1123（降階後一片黑）、s1221（三角亮塊）、s1321（b 半張平）、s1421、s1424（像樹根）；王印 s2101–s2103、s2111、s2114、s2121、s2123、s2131（立體或寶箱）、s2113、s2122（像臉）。
+目視淘汰（過了數字但不給 mumi）：
+- 地板：ice s1401（弧形裂紋重複，像一排笑臉）；lava s1201（格線太密像網格）、s1204（跟 s1203 太像、暗塊較多）；temple s1104（碎點多）；tomb s1303（圓紋重複，2×2 看得出格）。
+- 牆頂：s1411–s1414（側面山形、冰刺）、s1211（立體方塊）、s1214（條紋）、s1111（側面橫樑）、s1114（刻痕像文字）、s1313（直條像門板）。
+- 牆面：s1424（像樹根）、s1221（三角亮塊）、s1222（幾乎全黑）、s1121（大片全黑方塊）、s1324（碎，像雜訊）。
+- 王印：s2101–s2103、s2111、s2114、s2121、s2123、s2131（立體方塊、寶箱，看得到頂面）；s2113（臉）；s2142、s2143（刻紋像人形）；s2146（尖峰像火焰，會跟赤霄混）；s2147、s2148（疾霆刻成山）。
+- 特效：sig_lvup 115627、sig_wyapply 115811 等舊版已不存在。sig_chase 最新（光柱頂是平的方塊）、sig_wyapply 最新（結尾散成棋盤雜點）改用 §5 後處理修，不淘汰。
+- 王印 B 批：歸墟 s2161（又是同心圓，不過檢查）；鎮嶽 16 s2152（灰、弱）。
 
 ## 7. 給 mumi 挑圖
 - 過了 §6 的候選由工程拼成對照圖（地磚：每張 2×2 拼＋放一個主角；王印：32 與 2 倍並排、轉灰階一列；特效：gif 放在 `-ground` 底上），推到 `art/m2-36-assets`（draft PR #47，不合併）。
-- Art Director 把對照圖放到 Page，經幕僚長請 mumi 挑：地磚 12 組每組 2–5 張、王印 4 枚每枚 1–4 張、特效 5 個每個 3 張；挑 21 次。
+- 挑圖 Page：「dpoe M2-36 素材挑圖」（Art Director 做，經幕僚長請 mumi 挑）。21 個決定、39 張，約 12 分鐘（其中 6 個只有一張，確認即可）；王印 16 由 Art Director 挑，Page 只小圖給看。
 - 挑完怎麼接進遊戲（檔案槽、路徑、載入、退回、FXS 寫法）照 `specs/M2-33-3a-scene-assets.md` §3–4：地磚 `img/tiles/<地形>-floor.png` 等；王印拼成 `img/ic_wy32.png`、`img/ic_wy16.png`；特效由 `tools/vfx_sheet.py` 寫進 `js/fxsig.js`（不動自動產生的 `js/fxsheets.js`）。
