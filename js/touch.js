@@ -335,6 +335,9 @@ function touchInit() {
   });
   /* 右上選單、說明框的動作 */
   document.addEventListener('click', e => {
+    /* M1-26：角色頁鎖住的護符／神格格（直立與桌機）：講一句怎麼開 */
+    const lk = e.target.closest('#pinv [data-lk]');
+    if (lk) return hudWarn(lk.dataset.lk);
     /* 直立的角色頁：點一格（有沒有東西都算）＝選這一格，底下列出倉庫裡可以換的 */
     const sq = PORT() && e.target.closest('#pinv .doll2 [data-eq]');
     if (sq && !sq.classList.contains('lock') && NAV.slot !== sq.dataset.eq) (NAV.slot = sq.dataset.eq), hudPanels();
