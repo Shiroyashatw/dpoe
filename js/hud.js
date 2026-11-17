@@ -614,33 +614,35 @@ function moreHTML() {
   </div>`;
 }
 /* 「地點」（0.5.2，工坊與解鎖表第 7 節）：取代世界地圖的唯一入口。上面是星級（全域，上限照斥候營），
-   底下一列一個節點、照區域分組；0.5.4（考核 B1～B4）只列開了的＋下一個（「升瞭望台 Lv n 就開」），其餘折成一行「還有 N 個地點」；
+   底下一列一個節點、照區域分組；M2-07：全部列出（面板自己捲動），主幹照順序、特殊節點接在它掛的主幹後面；
+   鎖著的寫條件（wWhy），下一個寫「升瞭望台 Lv n 就開」、點了去營地；其他鎖著的點了也寫原因。
    每列寫怪物 Lv 與這個地點刷過的靈魂／分（S.spm，刷過才有）、正在刷的那一列。點一列＝去那裡刷 */
 function nodeHTML() {
   const st0 = wStar(S),
     spm = S.spm || {},
-    open = k => {
-      const n = WNODE[k];
-      return n.i != null || campCan(W_LINE[n.t] || '');
-    },
-    all = wList(S).filter(open),
     nx = TRUNK_K[wFront(S) + 1],
-    show = all.filter(k => k === nx || !wWhy(S, ...wXY(k)));
+    keys = TRUNK_K.flatMap((k, i) => [k, ...SPECIAL.filter(o => o.at === i).map(o => wKey(o.q, o.r))]);
   let g = '';
-  const rows = show
+  const rows = keys
     .map(k => {
       const [q, r] = wXY(k),
-        lock = k === nx,
+        why = wWhy(S, q, r),
         n = WNODE[k],
         head = n.g !== g ? `<li class="ndg">${esc((g = n.g))}</li>` : '',
-        st = S.world.cur === k ? '<em class="c-gold">正在刷</em>' : lock ? `<em>升瞭望台 Lv ${n.i} 就開</em>` : '';
-      return `${head}<li class="${lock ? 'lock nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${lock ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${fmtN(spm[k])} 靈魂` : ''}</small>${st}</button></li>`;
+        st =
+          S.world.cur === k
+            ? '<em class="c-gold">正在刷</em>'
+            : k === nx
+              ? `<em>升瞭望台 Lv ${n.i} 就開</em>`
+              : why
+                ? `<em>${esc(why)}</em>`
+                : '';
+      return `${head}<li class="${why ? 'lock' : ''}${k === nx ? ' nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${k === nx ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${fmtN(spm[k])} 靈魂` : ''}</small>${st}</button></li>`;
     })
     .join('');
-  const more = wList(S).length - show.length;
   return `<div class="ph"><b>地點</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="bagf ndst" role="radiogroup" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => `<button class="chip ${st0 === i + 1 ? 'on' : ''}" role="radio" aria-checked="${st0 === i + 1}" data-a="nstar:${i + 1}">${i + 1}★</button>`).join('')}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條地圖詞・星越多越危險、掉得越好</span></div>
-  <ul class="ndl">${rows}</ul>${more > 0 ? `<p class="ndmore">還有 ${more} 個地點</p>` : ''}`;
+  <ul class="ndl">${rows}</ul>`;
 }
 /* 鍛造分頁的三段（M2-38，M2-37.1）：打造永遠在；通貨（點了就用）、鍛造台（填、淬鍊、災魘）要鍛造台 Lv1 */
 const CSEG = () =>
@@ -695,6 +697,7 @@ function closePanels() {
       false;
   NAV.pick = NAV.full = 0;
   NAV.slot = null;
+  CHUI.v = 0;
   clearTimeout(REV.tm);
   hideTip();
   hudPanels();
@@ -761,9 +764,9 @@ function setHTML() {
   }
   <div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
   <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
-  ${acctHTML()}
   <div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
-  <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>`;
+  <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>
+  ${acctHTML()}`;
 }
 /* 帳號：訪客 → 信箱＋密碼、註冊／登入；登入後顯示信箱、登出；點重設密碼信回來 → 設定新密碼 */
 function acctHTML() {
@@ -837,6 +840,7 @@ function hudPanels() {
   /* 版面的 class 與畫布高度先定下來，再寫內容：反過來的話內容會排版兩次 */
   sheetSync();
   $('pset').hidden = !PANEL.set;
+  $('scrim').hidden = !PANEL.set;
   /* 正在輸入帳密時不重畫（撿東西等事件會重畫面板，焦點和輸入法會被打斷） */
   if (
     PANEL.set &&
@@ -1259,7 +1263,7 @@ function cmpCol(it, head) {
       ).join('')}${L.length ? '' : '<li class="none">（空）</li>'}`;
     };
   return `<div><div class="h">${icHTML(itemIc(it))}${head}${it.q ? `<span class="qq">+${Math.round(it.q * 100)}%</span>` : ''}</div>
-  ${kv.map(([k, v]) => `<div class="kv"><span>${k}</span>${v}</div>`).join('')}
+  ${kv.map(([k, v]) => `<div class="kv"><span>${k}</span>${v}</div>`).join('')}${WY_FX[it.wy] ? `<p class="wyl">${esc(wyText(it.wy))}</p>` : ''}
   <ul>${side(true, '前綴')}${side(false, '後綴')}</ul>${it.mem ? `<p class="mem">◆ 追憶：${esc(memText(it.mem))}</p>` : ''}</div>`;
 }
 /* 比哪一格：放得進的欄位，直立角色頁選了一格就比那一格 */
@@ -1281,7 +1285,7 @@ function cmpHTML(it, noX) {
     cur
       ? cmpCol(cur, `<span class="sub">身上・${esc(itemName(cur))}</span>`)
       : `<div class="emp">${e ? `${e.n}現在空著` : '沒有能放的欄位'}</div>`
-  }</div>${it.chase ? `<p class="dlt chs-t">追逐物品・${esc(chaseProg(it.chase))}${it.wy ? `・套上${esc(chaseName(it.wy))}` : ''}</p>` : ''}${eqDeltaHTML(it, e)}`;
+  }</div>${it.chase ? `<p class="dlt chs-t">追逐物品・${esc(chaseProg(it.chase))}</p>` : ''}${eqDeltaHTML(it, e)}`;
 }
 /* M1-20b／M1-15b：換上去跟身上同部位的差（DPS、生命；有能量護盾的另列）＋會讓哪些招失效；不能裝寫原因（itemDelta 的 why）。
    定稿文案：「DPS +16」「生命 +20」、沒有變化、「DPS −16」（U+2212，--bad-hi）；「會讓這些招失效：｛名稱｝、｛名稱｝。」 */
@@ -1400,12 +1404,7 @@ document.addEventListener('click', e => {
   /* 靈魂包沒有物品詳情：點橫幅開掉落紀錄（第 20 點） */
   if (e.target.closest('#banner.bn-pack')) return ($('banner').hidden = true), PANEL.log || fmenuOpen('log');
   const chs = e.target.closest('[data-chs]');
-  if (chs && chs.closest('#pchase')) {
-    CHSEL = chs.dataset.chs;
-    hudPanels();
-    const el = document.querySelector(`#pchase [data-chs="${CHSEL}"]`);
-    return el && chaseTip(el);
-  }
+  if (chs && chs.closest('#pchase')) return (CHSEL = chs.dataset.chs), (CHUI.v = 0), hudPanels();
   if (chs) return chaseTip(chs);
   if (!e.target.closest('#ttip')) $('ttip').hidden = true;
   /* 點說明框以外：收起說明框 */
@@ -1994,11 +1993,14 @@ function logHTML() {
    王倒下後 30 秒換成「這一輪掉的」清單＋看戰利品／推進（不按＝照設定） ---------- */
 let IDLE_T = 0;
 let CAMP_T = 0;
+/* 防誤觸（M2-08，UI 審查 C10）：卡剛出現、或內容換了讓按鈕移位（王倒下的清單），這之後 400 毫秒內點卡上的鈕不算 */
+let IDLE_MV = 0;
 function idleBar(force) {
   const el = $('pidle'),
     on = idleOn();
   if (el.hidden !== !on) {
     el.hidden = !on;
+    IDLE_MV = performance.now();
     /* 直立：掛機卡出現或收起＝半版切換（畫布高度、分頁列） */
     sheetSync();
   }
@@ -2007,7 +2009,11 @@ function idleBar(force) {
   if (!force && now - IDLE_T < 500) return;
   IDLE_T = now;
   const h = idleHTML();
-  if (HV.idle !== h) el.innerHTML = HV.idle = h;
+  if (HV.idle === h) return;
+  /* 只有字變＝版面沒動；標籤變了（換成王倒下的清單、多一行保底）當作按鈕可能移位 */
+  const sk = x => x.replace(/>[^<]*</g, '><').replace(/\d/g, '');
+  if (HV.idle && sk(HV.idle) !== sk(h)) IDLE_MV = now;
+  el.innerHTML = HV.idle = h;
 }
 const fmtDur = ms => {
   const m = Math.floor(ms / 60000);
@@ -2065,7 +2071,7 @@ function chaseLog(sel) {
 function chaseTip(el) {
   const k = el.dataset.chs;
   showTip(
-    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="c-dim">用法還沒開放。</p>`,
+    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="wyl">${esc(wyText(k))}</p>`,
     el.getBoundingClientRect(),
     $('ttip')
   );
@@ -2116,7 +2122,89 @@ function chaseGo(k) {
   if (!PANEL.chase) fmenuOpen('chase');
   else hudPanels();
 }
+/* M2-29 介面：套在有效裝備上的王印種類（同名只算一次；失效欄位不算）、那一枚現在的效果字、齊鳴那一行 */
+const wyOn = () =>
+  new Set(
+    EQS.filter(
+      e =>
+        S.eq[e.k] &&
+        WY_FX[S.eq[e.k].wy] &&
+        !(ST.eqBad || []).includes(e.k) &&
+        (e.k !== 'off' || offOK(S.eq.weapon, S.eq.off))
+    ).map(e => S.eq[e.k].wy)
+  );
+function wyText(k) {
+  const f = WY_FX[k],
+    m = wyOn().size >= WY_SET.n ? WY_SET.mul : 1;
+  return strT('wyLine', {
+    n: chaseName(k),
+    t: statText(f.k, f.k === 'leech' ? Math.round(f.v * m * 10) / 10 : Math.round(f.v * m))
+  });
+}
+const wySetText = (k = wyOn().size) =>
+  strT('wySet', { k, n: WY_SET.n }) + (k >= WY_SET.n ? strT('wySetOn', { m: WY_SET.mul }) : '');
+/* 物品說明、比較框：王印那一行＋齊鳴進度（只在有王印的裝備） */
+const wyHTML = it =>
+  WY_FX[it.wy] ? `<p class="wyl">${esc(wyText(it.wy))}</p><p class="wys">${esc(wySetText())}</p>` : '';
+/* 追逐物品面板的套用流程：v 0 收集格／'pick' 選裝備／'swap' 換掉舊印確認（slot＝那一格） */
+const CHUI = { v: 0, slot: null };
+function wyPickHTML(k) {
+  const F = S.frags || {},
+    L = EQS.filter(e => eqOpen(S, e.k) && S.eq[e.k]),
+    ok = L.filter(e => S.eq[e.k].r === 1 || S.eq[e.k].r === 2),
+    row = e => {
+      const it = S.eq[e.k],
+        bad = (ST.eqBad || []).includes(e.k),
+        why = it.r !== 1 && it.r !== 2 ? STR_T.wyOnly : '';
+      return `<button class="wyr" data-a="wy:eq:${e.k}" data-wyk="${e.k}" ${why || !F[k] ? 'disabled' : ''}>${it.wy ? `<span class="chf">${icHTML(itemIc(it))}</span>` : `<span class="wyi">${icHTML(itemIc(it))}</span>`}<span><b class="rc${it.r}">${esc(itemName(it))}</b><small>${esc(it.wy ? wyText(it.wy) : e.n)}</small>${why || bad ? `<small class="${why ? 'c-off' : 'c-warn'}">${why || STR_T.wyBad}</small>` : ''}</span></button>`;
+    };
+  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><span>${strT('wyHave', { n: F[k] || 0, m: EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <p class="chnote ${F[k] ? '' : 'c-off'}">${F[k] ? STR_T.wyPickSub : STR_T.wyNoUse}</p>${ok.length ? '' : `<p class="chnote c-warn">${STR_T.wyNoEq}</p>`}
+  <div class="wyl-list">${[...ok, ...L.filter(e => !ok.includes(e))].map(row).join('')}</div>`;
+}
+function wySwapHTML(k) {
+  const it = S.eq[CHUI.slot];
+  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="wysw"><p><b class="rc${it.r}">${esc(itemName(it))}</b></p><p class="c-bad">${esc(strT('wySwap', { n: chaseName(it.wy) }))}</p>
+  <div class="pbtns"><button class="btn pri" data-a="wy:back">取消<kbd class="donly">Esc</kbd></button><button class="btn wyx" data-a="wy:ok">${STR_T.wySwapOk}<kbd class="donly">Enter</kbd></button></div></div>`;
+}
+function wyAct(a) {
+  const k = CHSEL;
+  if (a === 'back') CHUI.v = CHUI.v === 'swap' ? 'pick' : 0;
+  else if (a === 'use') CHUI.v = 'pick';
+  else if (a.startsWith('eq:')) {
+    CHUI.slot = a.slice(3);
+    if (S.eq[CHUI.slot] && S.eq[CHUI.slot].wy) CHUI.v = 'swap';
+    else return wyApply(k);
+  } else if (a === 'ok') return CHUI.v === 'swap' && wyApply(k);
+  hudPanels();
+}
+/* 套上（M2-23 §10）：吐司、chaseBell；剛好湊齊四種多一行吐司、疊 lvup；那一格外框印角往內收 240ms 再彈一下 280ms（減少動態只換外框） */
+function wyApply(k) {
+  const e = CHUI.slot,
+    it = S.eq[e],
+    n0 = wyOn().size,
+    why = it ? wangyinSet(it, k) : STR_T.wyOnly;
+  if (why) return hudWarn(why);
+  CHUI.v = 'pick';
+  changed();
+  const n1 = wyOn().size;
+  hudWarn(strT('wyDone', { n: chaseName(k), i: itemName(it) }));
+  sfx('chaseBell');
+  if (n1 >= WY_SET.n && n0 < WY_SET.n) setTimeout(() => (hudWarn(wySetText(n1)), sfx('lvup')), 900);
+  hudPanels();
+  const f = document.querySelector(`#pchase [data-wyk="${e}"] .chf`);
+  if (!f || !f.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  f.animate(
+    { inset: ['-8px', '-1px'], opacity: [0, 1] },
+    { duration: 240, easing: 'ease-out', pseudoElement: '::before' }
+  );
+  f.animate({ transform: ['scale(1)', 'scale(1.05)', 'scale(1)'] }, { duration: 280, delay: 240, easing: 'ease-out' });
+}
 function chasePanelHTML() {
+  if (CHUI.v && CHSEL && isWy(CHSEL))
+    return CHUI.v === 'swap' && S.eq[CHUI.slot] ? wySwapHTML(CHSEL) : wyPickHTML(CHSEL);
+  CHUI.v = 0;
   const C = chaseOf(),
     F = S.frags || {},
     n = chasePct(),
@@ -2128,8 +2216,13 @@ function chasePanelHTML() {
         : `<button class="chc no ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chsil">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${STR_T.wyNone}</small></button>`;
   return `<div class="ph"><b>${STR_T.chase}</b><span>${strT('pool', { p: STR_T.poolWy, k: wyGot(), N: CHASE_POOL.trunk.length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="chg">${CHASE_POOL.trunk.map(cell).join('')}</div>
+  <p class="wys chset ${wyOn().size >= WY_SET.n ? 'full' : ''}">${esc(wySetText())}</p>
   <div class="chs chp"><span>${strT('pity', { n })}</span><div class="pb ${n >= 100 ? 'full' : ''}" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="transform:scaleX(${n / 100})"></i></div></div>
-  <p class="chnote">${STR_T.pityTip}</p>${here ? '' : `<p class="chnote">${STR_T.pityNo}</p>`}`;
+  <p class="chnote">${STR_T.pityTip}</p>${here ? '' : `<p class="chnote">${STR_T.pityNo}</p>`}${
+    CHSEL && isWy(CHSEL)
+      ? `<div class="chact"><p class="wyl">${esc(wyText(CHSEL))}</p>${F[CHSEL] > 0 ? `<button class="btn pri" data-a="wy:use">${STR_T.wyUse}</button>` : `<button class="btn" disabled>${STR_T.wyNoUse}</button>`}</div>`
+      : ''
+  }`;
 }
 /* 營地現在買得起的（王倒下的卡、離線卡；考核 D2、E3）：一件一列（圖示、名字、給什麼、升級鈕），最多 n 件；pri＝第一件用主要鈕 */
 function campUpsHTML(n = 3, pri = true) {
@@ -2497,8 +2590,8 @@ function itemTip(it, cmp) {
     reqP = [req.lv ? `等級 ${req.lv}` : '', ...ATTR.map(k => (req[k] ? `${ATTN[k]} ${req[k]}` : ''))].filter(Boolean);
   let html = `<b class="rc${it.r}">${esc(itemName(it))}</b><small>${RARN[it.r]} ${B.k === 'weapon' ? WTN[B.wt] || KINDS[B.k].n : KINDS[B.k].n} · <span class="tt">T${itemT(it)}</span>${baseLayers(it) ? ' · ' + baseLayers(it) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${un ? ' · <span class="c-warn">未鑑定</span>' : ''}</small>`;
   /* M2-18 追逐標記：打造、套王印之後都還在（it.chase） */
-  if (it.chase)
-    html += `<p class="chs-t">追逐物品・${esc(chaseProg(it.chase))}${it.wy ? `・套上${esc(chaseName(it.wy))}` : ''}</p>`;
+  if (it.chase) html += `<p class="chs-t">追逐物品・${esc(chaseProg(it.chase))}</p>`;
+  html += wyHTML(it);
   if (lack.length) html += `<p class="c-bad">${worn ? '已失效，數值不算' : '不能裝上'}：${lackTxt(lack)}</p>`;
   if (cmp && !un && !lack.length) {
     /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄；直立的角色頁選了一格就比那一格 */
@@ -2641,6 +2734,8 @@ function inputInit() {
     else if (k === 'i' || k === 'b') PANEL.inv ? closePanels() : openPanel('inv');
     else if (k === 'l' && CB.st !== 'idle') chaseLog(1);
     else if (FMENU.some(f => f[2].toLowerCase() === k)) fmenuOpen(FMENU.find(f => f[2].toLowerCase() === k)[0]);
+    else if (PANEL.chase && CHUI.v && (k === 'escape' || (k === 'enter' && CHUI.v === 'swap')))
+      e.preventDefault(), wyAct(k === 'enter' ? 'ok' : 'back');
     else if (k === 'escape')
       G.ask ? act('askno') : TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
     else if (k === 't') homeAsk();
@@ -2695,6 +2790,7 @@ function inputInit() {
   });
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-a]');
+    if (a && e.isTrusted && a.closest('#pidle') && performance.now() - IDLE_MV < 400) return;
     if (a) act(a.dataset.a, a);
   });
   document.addEventListener('pointerover', e => {
@@ -2760,6 +2856,7 @@ function act(a, el) {
     S.world.note = '';
     save();
   } else if (a === 'chaselog') chaseGo();
+  else if (a.startsWith('wy:')) wyAct(a.slice(3));
   else if (a === 'offch') (REV.chx = !REV.chx), sfx('click'), hudPanels();
   else if (a === 'genall') {
     const n = genAll();

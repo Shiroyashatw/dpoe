@@ -1,5 +1,6 @@
 /* dungeonPOE · 樣式（0.2.0 起桌機優先，深色） */
 :root {
+  --scrim: rgba(0, 0, 0, 0.55);
   --bg: #070606;
   --panel: rgba(16, 13, 12, 0.95);
   --line: rgba(205, 210, 220, 0.16);
@@ -173,8 +174,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 #tip .sktip { margin: 0; }
 
 /* ---------- 死掉、通關 ---------- */
-#over { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); }
+#over { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: var(--scrim); }
 #over[hidden] { display: none; }
+/* 設定的暗幕（M2-08，UI 審查 E11）：跟 #over 同一層暗度，蓋在其他面板與 HUD 上、設定（z 12）底下；點了關設定。直立的設定是半版，不加 */
+#scrim { position: fixed; inset: 0; z-index: 11; background: var(--scrim); animation: pop 200ms ease-out; }
+#scrim[hidden], body.touch.port #scrim { display: none; }
 #over .card { display: block; min-width: 340px; max-width: 440px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; animation: pop 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 #over h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
 #over p { color: var(--dim); margin: 0 0 18px; }
@@ -1386,6 +1390,7 @@ body.touch.port #pinv .foot .btn { flex: 1; min-height: 48px; }
 .ndr:active { transform: scale(0.98); }
 .ndl li.on .ndr { border-color: var(--fr-hi); }
 .ndl li.lock .ndr b { color: var(--dim); }
+.ndl li.lock .ndr em { color: var(--dim); }
 .ndl .wm-body { overflow: visible; padding: 10px 12px 12px; border: 1px solid var(--fr-o); border-top: 0; background: var(--s1); }
 .ndl .wm-body h2, .ndl .wm-st { display: none; }
 .ndl .wm-acts { position: static; margin-top: 4px; padding-top: 0; background: none; }
@@ -1509,8 +1514,10 @@ body:not(.touch) .tbar > b { position: static; transform: none; }
 .tbar .tleft { white-space: nowrap; font-size: var(--fs); color: var(--tx); }
 .tbar .tleft b { font-size: var(--fs-l); font-variant-numeric: tabular-nums; }
 #tfind { flex: 1 1 60px; min-width: 0; width: auto; max-width: 260px; height: 44px; margin-left: auto; }
-#tfound { min-width: 0; white-space: nowrap; }
-#tfound:empty { display: none; }
+#tfound { min-width: 44px; min-height: 44px; padding: 0 6px; white-space: nowrap; background: none; border: 0; font: 700 var(--fs) var(--font); font-variant-numeric: tabular-nums; color: var(--tx); cursor: pointer; }
+#tfound[hidden] { display: none; }
+/* 目前跳到的那一個：比其他命中更粗、更亮（M2-08） */
+.nd.hit.cur circle, .nd.hit.cur:not(.asc) circle { stroke: var(--act); stroke-opacity: 1; stroke-width: 14; }
 .tbar .x { flex: none; width: 44px; height: 44px; }
 .tbar .x .ico { width: 20px; height: 20px; }
 /* 重置：左下角，離右上的關閉最遠；說明卡開著時被卡片蓋住 */
@@ -1830,7 +1837,6 @@ body:not(.touch) .mid { padding: 0; background: none; box-shadow: none; margin: 
 #area, .hud .loc { padding: 4px 8px; background: var(--plate-world); border-radius: 2px; font: 500 14px var(--font); color: var(--milk); text-shadow: 0 1px 2px #000; }
 body.touch.port #area::after { content: ''; }
 body.touch.port .tmenu { display: none; }
-body.touch.port.sheet #prog { display: none; }
 /* 按鈕：次要是細框、主要是磚紅；分段、晶片 */
 .btn { background: none; border: 1px solid #5e4e3a; border-radius: 3px; color: var(--milk); font-weight: 700; box-shadow: none; }
 .btn:not(:disabled):hover { border-color: var(--fr-hi); color: var(--milk); }
@@ -1847,7 +1853,7 @@ body.touch.port.sheet #prog { display: none; }
 #pidle { display: flex; flex-direction: column; gap: 10px; padding: 12px var(--pp); overflow: auto; }
 #pidle .acts { position: sticky; bottom: 0; margin: auto 0 0; padding: 10px 0 0; background: var(--s1); }
 #pidle .rows { flex: none; }
-body:not(.touch.port) #pidle { left: 12px; top: auto; bottom: 12px; right: auto; width: 380px; max-height: calc(100vh - 100px); background: none; box-shadow: none; padding: 0; animation: pop 200ms ease-out; z-index: 5; }
+body:not(.touch.port) #pidle { left: 16px; top: auto; bottom: 16px; right: auto; width: 380px; max-height: calc(100vh - 100px); background: none; box-shadow: none; padding: 0; animation: pop 200ms ease-out; z-index: 5; }
 body:not(.touch.port) #pidle .pile .it, body:not(.touch.port) #pidle .lrow .it { width: 48px; }
 .paper { position: relative; background: var(--s2); border-radius: 3px; box-shadow: 0 1px 0 rgba(255, 235, 200, 0.06), 0 6px 16px rgba(0, 0, 0, 0.35); }
 .paper .k { font-size: 12px; color: var(--milk2); }
@@ -2169,7 +2175,6 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 .sumh .btn.wide { width: 100%; min-height: 48px; }
 /* 地點清單（0.5.4，考核 B1）：下一個（升瞭望台就開）、最後一行還有幾個地點 */
 .ndl li.nx .ndr em { color: var(--milk2); }
-.ndmore { margin: 10px 0 0; text-align: center; font-size: var(--fs-s); color: var(--milk2); }
 #pnav .dot.n, #dnav .dot.n { width: auto; min-width: 16px; height: 16px; padding: 0 4px; font: 700 10px/16px var(--font); font-style: normal; color: #111; text-align: center; border-radius: 8px; }
 /* 地點清單（0.5.2，唯一入口）：區域名分組、上面一排星級 */
 .ndl .ndg { padding: 10px 4px 2px; font: 700 var(--fs-s) var(--font); color: var(--dim); letter-spacing: 0.06em; }
@@ -2430,6 +2435,38 @@ body:not(.touch) #pchase .chc { min-height: 96px; }
 #pchase .chs .pb { height: 6px; padding: 1px; background: var(--s0); box-shadow: inset 0 0 0 1px var(--fr); border-radius: 3px; overflow: hidden; }
 #pchase .chs .pb i { display: block; height: 100%; background: var(--r4); border-radius: 2px; transform-origin: left; }
 #pchase .chs:has(.pb.full) span { color: var(--r4); }
+/* M2-29 王印介面：王印那一行（--r4，◆ 在 M2-33 換圖示）、齊鳴進度、選中格底部黏住的效果＋套到裝備、選裝備列、換印確認 */
+.wyl { margin: 4px 0 0; font: 700 14px/1.4 var(--font); color: var(--r4); }
+.wys { margin: 2px 0 0; font: 500 13px/1.4 var(--font); color: var(--tx-dim); }
+#tip .wyl, .cmpc .wyl { font-size: 13px; }
+#pchase .chset { margin: 0 var(--pp) 4px; font-weight: 700; }
+#pchase .chset.full { color: var(--r4); }
+#pchase .chact { position: sticky; bottom: calc(-1 * var(--pp)); z-index: 2; display: grid; gap: 6px; margin: 12px calc(-1 * var(--pp)) calc(-1 * var(--pp)); padding: 10px var(--pp) var(--pp); background: var(--s2); border-top: 1px solid var(--fr); }
+#pchase .chact .wyl { margin: 0; }
+#pchase .chact .btn { min-height: 48px; width: 100%; }
+#pchase .chact .btn:disabled { color: var(--tx-off); }
+#pchase .ph .wyb { margin-left: 0; margin-right: 4px; font-size: 22px; line-height: 1; }
+#pchase .wyl-list { display: grid; gap: 6px; padding: 6px var(--pp) 0; }
+body:not(.touch) #pchase .wyl-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#pchase .wyr { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 8px; align-items: center; min-height: 48px; padding: 6px 8px; text-align: left; background: var(--s0); border: 1px solid var(--line); border-radius: 3px; color: var(--tx); font: 700 14px/1.3 var(--font); cursor: pointer; }
+#pchase .wyr:active:not(:disabled) { transform: scale(0.98); }
+#pchase .wyr:hover:not(:disabled) { border-color: var(--fr-hi); }
+#pchase .wyr:disabled { cursor: default; opacity: 0.6; }
+#pchase .wyr:focus-visible { outline: 2px solid var(--fr-c); outline-offset: 2px; }
+#pchase .wyr > span:last-child { display: grid; min-width: 0; }
+#pchase .wyr b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pchase .wyr small { font: 500 13px/1.3 var(--font); color: var(--tx-dim); }
+#pchase .wyr small.c-off, #pchase .chnote.c-off { color: var(--tx-off); }
+#pchase .wyr .chf, #pchase .wyr .wyi { width: 40px; height: 40px; padding: 4px; display: grid; place-items: center; }
+#pchase .wyr .ic { width: 32px; height: 32px; }
+#pchase .wysw { padding: 4px var(--pp) 0; }
+#pchase .wysw p { margin: 0 0 8px; font: 700 15px/1.4 var(--font); }
+#pchase .wysw .pbtns .btn { min-height: 48px; }
+#pchase .wysw .wyx { color: var(--bad-hi); }
+body.touch #pchase kbd { display: none; }
+#pchase kbd { padding: 1px 4px; background: var(--s0); color: var(--title); border-radius: 3px; font: 600 12px/1.2 var(--font); }
+body:not(.touch) #pchase .wysw .pbtns { flex-direction: row; justify-content: flex-end; }
+body:not(.touch) #pchase .wysw .pbtns .btn { min-width: 140px; }
 .mrow .cnew { margin-left: 6px; }
 /* 角色頁空格（M2-37.6）：部位剪影（單色、淡）、右上候選數、讀屏字 */
 .eqs.emp .sil { flex: 1; display: grid; place-items: center; }
