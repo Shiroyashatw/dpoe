@@ -3,7 +3,8 @@
   "speed": 847.1,
   "base": 30.8,
   "sens": 194.7,
-  "offline": 0.4
+  "offline": 0.4,
+  "a8sens": 2665.2
  },
  "seed": 20261118,
  "players": 100000,
