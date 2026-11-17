@@ -167,8 +167,8 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 | 快捷列技能圖示 | 40 → 32 | L69 |
 | 王印 16 | 物品說明那一行的 ◆ 換成 16 px（M2-29） | 第 2 批物品說明 |
 | SVG 圖示 | `ICO`（hud.js L33）的 viewBox 改 24×24、線寬 2、方端點；一律顯示 24（不准 20、22） | #pnav L1429、#dnav L1906 |
-| 跳數字下限 | 字級 = max(表內字級×pop, ceil(11／ZOOM))；dot 用 9 | render.js L461 |
-| 地板區塊 | 換成 PixelLab 地磚時：區塊以材質像素烘（8 格 × 32 = 256 px），貼圖時放大 1.5，只縮放一次 | biome.js `bakeChunk` L329、`bStatic` L305 |
+| 跳數字下限 | 分種類（M2-05.2h）：一般 13、暴擊／大獎 18、受傷 14、其他 11；字級 = max(表內字級×pop, ceil(下限／ZOOM))，細節見 `M2-33-3a-scene-assets.md` §1.3 | render.js L461 |
+| 地板區塊 | 換成 PixelLab 地磚時：區塊以材質像素烘（8 格 × 32 = 256 px），貼圖時放大 1.5，只縮放一次；完整寫法見 `M2-33-3a-scene-assets.md` §3 | biome.js `bakeChunk` L329、`bStatic` L305 |
 - 第 2 批會處理其他非整數倍：`.skp .ic` 36（L1737）、裝備格圖示。
 
 ## 13. 驗收（雲端 Claude Code 無頭瀏覽器截圖與量測；不合併）
