@@ -1,0 +1,8 @@
+{"sec":144,"star":1,"hours":100,"runs":300,"roundsPerHour":25,"perHour":0.5621,"med":56,"p10":51,"p90":62,"mean":56.21,"minKindMed":11,"dupMed":52,"dupP10":47,"dupP90":58,"feelK":10}
+{"sec":134.83,"star":1,"hours":100,"runs":300,"roundsPerHour":26.700289253133572,"perHour":0.6005333333333334,"med":60,"p10":54,"p90":66,"mean":60.053333333333335,"minKindMed":12,"dupMed":56,"dupP10":50,"dupP90":62,"feelK":11}
+{"sec":50.21,"star":1,"hours":100,"runs":300,"roundsPerHour":71.69886476797451,"perHour":1.6152333333333333,"med":162,"p10":150,"p90":172,"mean":161.52333333333334,"minKindMed":34,"dupMed":158,"dupP10":146,"dupP90":168,"feelK":29}
+{"sec":47,"star":1,"hours":100,"runs":300,"roundsPerHour":76.59574468085107,"perHour":1.7246333333333335,"med":172,"p10":162,"p90":183,"mean":172.46333333333334,"minKindMed":36,"dupMed":168,"dupP10":158,"dupP90":179,"feelK":31}
+{"sec":113.02,"star":5,"hours":100,"runs":300,"roundsPerHour":31.852769421341357,"perHour":0.9398333333333333,"med":94,"p10":86,"p90":101,"mean":93.98333333333333,"minKindMed":18,"dupMed":90,"dupP10":82,"dupP90":97,"feelK":13}
+{"sec":96.81,"star":5,"hours":100,"runs":300,"roundsPerHour":37.18624109079641,"perHour":1.0986,"med":110,"p10":102,"p90":118,"mean":109.86,"minKindMed":22,"dupMed":106,"dupP10":98,"dupP90":114,"feelK":15}
+{"sec":70.59,"star":5,"hours":100,"runs":300,"roundsPerHour":50.9987250318742,"perHour":1.5039333333333333,"med":151,"p10":141,"p90":160,"mean":150.39333333333335,"minKindMed":31,"dupMed":147,"dupP10":137,"dupP90":156,"feelK":21}
+{"sec":75.99,"star":5,"hours":100,"runs":300,"roundsPerHour":47.3746545598105,"perHour":1.3958000000000002,"med":140,"p10":130,"p90":149,"mean":139.58,"minKindMed":29,"dupMed":136,"dupP10":126,"dupP90":145,"feelK":19}
