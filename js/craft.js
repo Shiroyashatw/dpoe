@@ -1346,9 +1346,11 @@ function chasePut(k, t) {
   if (S.inv) invPut(S.inv, it);
   return it;
 }
-/* 套上王印（第 4 點）：⚠️ 用法與固定詞數值待定，現在只扣一個王印、記在物品上（it.wy），物品帶上追逐標記（原本有的不動） */
+/* 套上王印（M2-29）：只能套在魔法或稀有裝備；扣一個王印、記在物品上（it.wy），已有的印直接換掉、不退回；物品帶上追逐標記（原本有的不動）。
+   效果在 items.js 的 stats()（WY_FX） */
 function wangyinSet(it, k) {
   if (!isWy(k) || !((S.frags || {})[k] > 0)) return '沒有這個王印';
+  if (it.r !== 1 && it.r !== 2) return '只能套在魔法或稀有裝備';
   S.frags[k]--;
   it.wy = k;
   it.chase = it.chase || k;
