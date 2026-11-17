@@ -92,7 +92,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .ph, .ph2 { display: flex; align-items: center; gap: var(--sp); }
 .ph b { font-size: var(--fs-l); }
 .ph span, .ph2 span { color: var(--dim); font-size: var(--fs-s); }
-.ph .x { margin-left: auto; width: 32px; height: 32px; background: none; border: 1px solid var(--line); color: var(--tx); border-radius: var(--rad); cursor: pointer; font: inherit; }
+.ph .x { margin-left: auto; width: 44px; height: 44px; flex: none; background: none; border: 1px solid var(--line); color: var(--tx); border-radius: var(--rad); cursor: pointer; font: inherit; }
 .ph .x:active { transform: scale(0.94); }
 .ph2 { margin: 8px 0 6px; font-weight: 700; }
 /* 裝備人形欄 */
@@ -345,7 +345,7 @@ body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-le
 body.touch #pshop, body.touch #pflt, body.touch #preveal, body.touch #plog { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch .eqrow { flex-wrap: wrap; gap: 8px; }
 body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-space: normal; }
-body.touch .ph .x { width: 40px; height: 40px; }
+body.touch .ph .x { width: 44px; height: 44px; }
 @media (max-width: 799px) {
   body.touch #pinv, body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); right: calc(6px + env(safe-area-inset-right)); width: auto; }
   body.touch .ph .sw { display: block; width: auto; padding: 0 12px; margin-left: auto; }
