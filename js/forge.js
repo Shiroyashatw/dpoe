@@ -75,7 +75,7 @@ function makeHTML() {
         `mk:T:${T}`,
         MK.T === T,
         `T${T}<small>${Object.keys(c.mats)
-          .map(m => `${MATS[m].n} ${fmtN(matN(m, T))}`)
+          .map(m => `${matName(m, T)} ${fmtN(matN(m, T))}`)
           .join('／')}</small>`
       )
     )
@@ -310,7 +310,6 @@ function genCardHTML(k) {
     msAt = ms && ms.at <= g.lv + n,
     f = ccFx(k),
     top = genTierTop(k),
-    out = MATS[k].n,
     r = genRate(k, W),
     roll = f && f.to != null && !reduced() && performance.now() - f.t < 300,
     m0 = genMs0(g.lv),
@@ -318,7 +317,7 @@ function genCardHTML(k) {
   return `<div class="paper camp cc gen ${ok ? 'can' : ''} ${f ? 'up' : ''} ${f && f.ms ? 'ms' : ''}" id="cc-${k}">
   <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}">${icHTML(CAMP_IC[k])}<b>${GEN[k].n}</b><span>Lv ${g.lv}</span>${wkHTML(k, W[k], s)}${ICO.down}</button>
   ${ms ? `<div class="ccm" role="progressbar" aria-label="到下一個里程碑" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${mp}"><i style="--m:${mp}%"></i></div><div class="ccml"><span>Lv ${ms.at}：${esc(ms.t)}</span><span>總共產了 ${fmtN(g.tot || 0)}</span></div>` : ''}
-  <div class="ccbig"><small>每分鐘</small><b class="${roll ? 'nroll' : ''}" ${roll ? `data-r="${f.from}:${f.to}:${f.t}"` : ''}>+${fmtR(roll ? f.from : r)}</b><small>${T ? `${out} T${T}` : out}</small>${f && f.add ? `<em class="ccfl">${esc(f.add)}</em>` : ''}</div>
+  <div class="ccbig"><small>每分鐘</small><b class="${roll ? 'nroll' : ''}" ${roll ? `data-r="${f.from}:${f.to}:${f.t}"` : ''}>+${fmtR(roll ? f.from : r)}</b><small>${matName(k, T)}</small>${f && f.add ? `<em class="ccfl">${esc(f.add)}</em>` : ''}</div>
   <i class="rt rtg" data-rg="${k}"><i></i></i>
   ${!W[k] ? '<p class="cchint">升民房就有人來做</p>' : W[k] < s ? `<p class="cchint">升民房再來 ${s - W[k]} 個人</p>` : ''}
   <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="gen:${k}:${n}" ${ok ? '' : 'disabled'}>${ok ? `升 ${n} 級・${esc(costTxt(c))}` : esc(lackTxt1(e))}${msAt ? `<em class="ccms">${esc(ms.t)}</em>` : ''}</button>
@@ -355,7 +354,7 @@ function campOpenHTML(b) {
     return `<div class="ccopen"><button class="btn" data-a="ctab:make">去打造</button>${wtPickHTML()}</div>`;
   if (b === 'watch') {
     const nx = TRUNK[wFront(S) + 1];
-    return `<div class="ccopen"><p class="sub">開到第 ${wFront(S) + 1} 個地點・材料階上限 T${tierCap()}${nx ? `；下一個：${esc(nx.n)}（怪物 Lv ${nx.lv}）` : ''}</p><button class="btn" data-tm="nav:node">地點清單</button></div>`;
+    return `<div class="ccopen"><p class="sub">開到第 ${wFront(S) + 1} 個地點・材料階上限 T${tierCap()}（${matName('iron', tierCap())}）${nx ? `；下一個：${esc(nx.n)}（怪物 Lv ${nx.lv}）` : ''}</p><button class="btn" data-tm="nav:node">地點清單</button></div>`;
   }
   if (b === 'scout')
     return `<div class="ccopen"><div class="bagf" role="group" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => chipB(`star:${i + 1}`, wStar(S) === i + 1, `${i + 1}★`)).join('')}</div><p class="sub">星級越高越危險、掉得越好；每一輪重抽地圖詞</p></div>`;

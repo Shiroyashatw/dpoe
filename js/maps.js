@@ -25,6 +25,7 @@ const MAPMOD = {
   res2: { d: 2, g: 'res', t: '+35% 怪物元素抗性', fx: { mres: 35 } },
   arm: { d: 1, g: 'arm', t: '怪物增加 50% 護甲', fx: { marm: 50 } },
   acc: { d: 1, g: 'acc', t: '怪物增加 30% 命中值', fx: { macc: 30 } },
+  /* fx.pack 是 game.js 的 roll(fx×2) 用的半值：25 ＝ 文案的 50% 機率，不要當 25% 來調 */
   pack: { d: 1, g: 'pack', t: '每個房間有 50% 機率多 1 群怪物', fx: { pack: 25 } },
   elite: { d: 1, g: 'elite', t: '菁英怪物數量加倍', fx: { elite: 100 } },
   boss: { d: 2, g: 'boss', t: '地圖王增加 50% 生命、增加 20% 傷害', fx: { bhp: 50, bdmg: 20 } },

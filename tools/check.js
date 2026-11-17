@@ -4090,7 +4090,7 @@ const ASC_COMBOS = `const combos = k => {
       let c = campUpCheck('forge'); if (c.why || c.lack.map(x => x[0]).join() !== '靈魂,木' || campUp('forge') !== '靈魂還差 150、木還差 40') return 'lack0 ' + JSON.stringify(c.lack);
       S.mat.soul = 150; matAdd('wood', 0, 40); if (campUp('forge') !== null || S.camp.forge !== 1 || S.mat.soul !== 0 || matN('wood') !== 0) return 'up1';
       S.mat.soul = 1e6; S.gold = 1e6; matAdd('wood', 0, 1e6); campUp('forge');
-      c = campUpCheck('forge'); if (c.lack.map(x => x[0]).join() !== '鐵 T1') return 'iron ' + JSON.stringify(c.lack);
+      c = campUpCheck('forge'); if (c.lack.map(x => x[0]).join() !== '生鐵') return 'iron ' + JSON.stringify(c.lack);
       matAdd('iron', 1, 30); if (campUp('forge') !== null || matN('iron', 1) !== 0) return 'up3';
       matAdd('hide', 1, 10); if (campUp('scout') !== null || S.star !== 2 || campN('star') !== 2) return 'scout';
       S.camp.forge = 20; if (campUpCheck('forge').why !== '已經滿級') return 'max';
@@ -4144,6 +4144,18 @@ const ASC_COMBOS = `const combos = k => {
       S.mat = m0;
       return '';
     })()`) === ''
+  );
+  ok(
+    'M1 材料顯示名：iron:1＝生鐵、hide:6＝神獸革、silk:3＝彩絲、木＝木；內部鍵仍是 iron:1、MATS.iron.n 仍是鐵',
+    R(
+      `[matName('iron', 1), matName('hide', 6), matName('silk', 3), matName('wood', 0), matKey('iron', 1), MATS.iron.n].join()`
+    ) === '生鐵,神獸革,彩絲,木,iron:1,鐵'
+  );
+  ok(
+    'M1 名詞表：18 個材料顯示名都在 TERMS、開頭寫「一種材料」；百煉鋼／寒鐵／隕鐵寫明跟天賦大點、寒鐵盾、隕鐵鎚不同',
+    R(
+      `Object.values(MAT_TIER_N).flat().every(n => /^一種材料/.test(TERMS[n])) && /天賦大點/.test(TERMS['百煉鋼']) && /寒鐵盾/.test(TERMS['寒鐵']) && /隕鐵鎚/.test(TERMS['隕鐵'])`
+    ) === true
   );
   ok(
     '十座的解鎖鍵都有人讀：CAMP 的每個 un 鍵在 js/ 裡至少一處讀到',
@@ -8373,6 +8385,14 @@ const ASC_COMBOS = `const combos = k => {
     c2,
     { filename: 'main.js' }
   );
+  ok(
+    'M1 舊存檔：材料鍵 iron:1／iron:2／wood 經 migrate 數量不變，顯示名照新表（生鐵、熟鐵）',
+    R2(`(() => {
+      const o = newGame(); o.mat.mats = { wood: 30, 'iron:1': 123, 'iron:2': 7 };
+      const m = migrate(JSON.parse(JSON.stringify(o))).mat.mats;
+      return [m.wood, m['iron:1'], m['iron:2'], matName('iron', 1), matName('iron', 2)].join();
+    })()`) === '30,123,7,生鐵,熟鐵'
+  );
   /* 0.5.2：序章刪了，main.js 的 proBoot／proGive：沒看過開場＝放開場、看過＝新存檔給劍、記版本號；老存檔不動 */
   R2('save = () => {}');
   const boot = st => R2(`BOOT = ''; S = newGame(); S.story = ${JSON.stringify(st)}; proBoot(); BOOT`);
@@ -9288,7 +9308,7 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify(pools)
     );
   });
-  /* 4. 追憶詞的效果：進 stats、擊中施加曝露與詛咒、技能等級 +1（combat.js、skills.js 實跑） */
+  /* 4. 追憶詞的效果：進 stats、擊中施加曝曬與詛咒、技能等級 +1（combat.js、skills.js 實跑） */
   {
     const cx = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
     vm.createContext(cx);
@@ -9331,7 +9351,7 @@ const ASC_COMBOS = `const combos = k => {
       o.cfgLv = [gemCfg(g, 0).lv];
       S = mkS('ring1', null, rg); ST = stats(S);
       o.cfgLv.push(gemCfg(g, 0).lv);
-      /* 擊中施加曝露：只降那一種元素的抗性、4 秒後消失 */
+      /* 擊中施加曝曬：只降那一種元素的抗性、4 秒後消失 */
       const mk = () => ({ D: Object.values(MOBS)[0], x: 40, y: 0, r: 12, sz: 20, hp: 1e6, mhp: 1e6, arm: 0, arm0: 0, dmg: 100, res: { fire: 50, cold: 50, light: 50, chaos: 50 }, ail: {} });
       const hit = m => onHitBase(m, { crit: false, spell: false, pre: { light: 0 }, d: 10 }, { D: { tags: ['attack', 'melee'] } });
       S = mkS('gloves', { k: 'm_exp', el: 'cold', v: 18 }, gl); ST = stats(S);
@@ -9367,7 +9387,7 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify([r.proj, r.chain, r.spirit, r.lv, r.cfgLv])
     );
     ok(
-      '追憶詞效果：擊中施加冰冷曝露（只降冰冷抗性 −18%、4 秒後消失、怪物頭上有曝曬圖示）',
+      '追憶詞效果：擊中施加冰冷曝曬（只降冰冷抗性 −18%、4 秒後消失、怪物頭上有曝曬圖示）',
       r.exp0.cold === 18 && r.exp1.join() === '32,50,50,50' && r.expState && r.exp2 === 50,
       JSON.stringify([r.exp0, r.exp1, r.expState, r.exp2])
     );
@@ -10522,7 +10542,7 @@ const ASC_COMBOS = `const combos = k => {
         '祭壇 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
         '祭壇 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
         '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。',
-        '礦場 Lv25：產量 ×2。可以產 T2 鐵，上限看瞭望台。'
+        '礦場 Lv25：產量 ×2。可以產熟鐵，上限看瞭望台。'
       ]),
     JSON.stringify(sy)
   );
