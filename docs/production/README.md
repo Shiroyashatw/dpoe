@@ -39,7 +39,7 @@ dungeonPOE（dpoe）是 PoE 式增量／掛機遊戲：玩家配一套 build 讓
 | M2-28 | 符文回歸時決定腐化開孔的去留 | 製作人 | 規劃中 | M1-09；製作人決定 2026-11-16 22:47 | [tasks/M2-28.md](tasks/M2-28.md) |
 | M2-31 | 對比小修 T1–T10：Art Director 規格 0.5 天… | 開發工程師 | 已合併（main 0a9d3c3），待里程碑驗收 | — | [tasks/M2-31.md](tasks/M2-31.md) |
 | M2-33 | 元件與畫面規格，兩個尺寸 | Game Art Director | 規劃中（等 M2-36、M2-37；預計 11/26） | M2-36、M2-37 | [tasks/M2-33.md](tasks/M2-33.md) |
-| M2-34 | 視覺實作 | 開發工程師 | 暫停（等重新分派） | M2-33 | [tasks/M2-34.md](tasks/M2-34.md) |
+| M2-34 | 視覺實作 | 開發工程師 | 3a 素材接入已交（PR #66）；其他批次暫停（等重新分派） | M2-33 | [tasks/M2-34.md](tasks/M2-34.md) |
 | M2-36 | 新美術方向：統一的繪製方式、色票與 token、場景對 UI 的用… | Game Art Director | 已交辦（三個方向樣張 11/17 晚；mumi 11/18 選定；預計 11/21） | mumi 選方向（11/18） | [tasks/M2-36.md](tasks/M2-36.md) |
 | M2-35 | 改寫 `DESIGN.md`、`docs/介面規範.md` 外觀段… | Game Art Director | 規劃中（等 M2-36；預計 11/24） | M2-36 | [tasks/M2-35.md](tasks/M2-35.md) |
 | M3-05 | 照規格實作 P2 打磨，含山海寶盒「還差多少」 | 開發工程師 | 暫停（等重新分派） | M3-04 | [tasks/M3-05.md](tasks/M3-05.md) |

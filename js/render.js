@@ -275,17 +275,13 @@ function draw() {
       CX.stroke();
     }
   }
-  /* 掉落（地上的光點） */
+  /* 掉落（地上的光點；光柱在暗層之後 drawBeams） */
   for (const d of G.drops) {
-    const f = Math.min(1, d.t / 0.35),
-      x = d.sx + (d.x - d.sx) * f,
-      y = d.sy + (d.y - d.sy) * f - Math.sin(f * Math.PI) * 40;
+    const [x, y] = dropXY(d);
     if (d.gold) spr('mat_gold', x, y + 8, 22);
     else if (d.chase) {
       /* 追逐物品（M2-19.2b）：橘色雙線光柱 360（0.24 秒長出來）＋地上慢轉的虛線印環、落地擴散一圈；地上不寫字；減少動態不轉不呼吸 */
       const rm = reduced(),
-        bh = 360 * Math.min(1, d.t / 0.24),
-        a = rm ? 0.8 : 0.8 * (0.8 + 0.2 * Math.sin(G.t * 3 + d.sx)),
         k = (d.t - 0.35) / 0.5;
       CX.save();
       CX.translate(x, y + 8);
@@ -306,28 +302,9 @@ function draw() {
         CX.stroke();
       }
       CX.restore();
-      const g = CX.createLinearGradient(x, y - bh, x, y);
-      g.addColorStop(0, 'rgba(255,154,74,0)');
-      g.addColorStop(1, `rgba(255,154,74,${a})`);
-      CX.fillStyle = g;
-      CX.fillRect(x - 14, y - bh, 28, bh);
-      CX.fillStyle = `rgba(255,236,214,${a})`;
-      CX.fillRect(x - 3, y - bh * 0.9, 6, bh * 0.9);
-      CX.fillStyle = `rgba(255,154,74,${a * 0.6})`;
-      CX.fillRect(x - 19, y - bh * 0.7, 1.5, bh * 0.7);
-      CX.fillRect(x + 17.5, y - bh * 0.7, 1.5, bh * 0.7);
       spr(d.chase, x, y + 8, 32);
     } else if (d.show) {
-      /* 稀有通貨（0.4.1）：金色光柱（完美更高）＋圖示 */
-      const bh = /3$/.test(d.show) ? 300 : 230,
-        a = 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
-        g = CX.createLinearGradient(x, y - bh, x, y);
-      g.addColorStop(0, 'rgba(255,209,102,0)');
-      g.addColorStop(1, `rgba(255,209,102,${a})`);
-      CX.fillStyle = g;
-      CX.fillRect(x - 10, y - bh, 20, bh);
-      CX.fillStyle = `rgba(255,244,214,${a})`;
-      CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
+      /* 稀有通貨（0.4.1）：金色光柱（完美更高，drawBeams）＋圖示 */
       spr(d.show === 'pack' ? 'soulpack' : CUR[d.show].ic, x, y + 8, 26);
     } else {
       const col = RCOL[d.it.r];
@@ -434,56 +411,10 @@ function draw() {
   }
   drawFx();
   if (G.scene === 'map') drawFront();
-  /* 跳數字；減少動態時不彈、不飄（M2-05.2i） */
-  CX.textAlign = 'center';
-  const rm = reduced();
-  for (const n of G.nums) {
-    const f = n.t / 0.9,
-      pop = !rm && n.t < 0.08 ? 1 + (0.08 - n.t) * 8 : 1,
-      y = n.y - (rm ? 0 : 30 * Math.sqrt(f)) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
-    const st = {
-      phys: ['#fff3e0', 15],
-      fire: [ELC.fire, 15],
-      cold: [ELC.cold, 15],
-      light: [ELC.light, 15],
-      chaos: [ELC.chaos, 15],
-      block: ['#cfd8e3', 16],
-      hit: ['#fff3e0', 15],
-      crit: ['#ffd166', 24],
-      /* 豪賭的大獎（0.2.74 賭徒）：金色、更大 */
-      jackpot: ['#ffc21a', 30],
-      hurt: ['#ff5a5a', 17],
-      gold: ['#ffd166', 14],
-      perfect: ['#8fe0ff', 26],
-      ev: ['#b8f0c8', 18],
-      miss: ['#9aa3ad', 14],
-      mat: ['#d6b8ff', 15],
-      /* 持續傷害：小、淡，跟擊中分開 */
-      dot: ['#c9a3a3', 12]
-    }[n.c];
-    const fa = 1 - Math.max(0, f - 0.6) / 0.4;
-    CX.font = `700 ${Math.round(st[1] * pop)}px "Noto Sans TC", sans-serif`;
-    const txt =
-      n.c === 'gold'
-        ? '+' + n.v + ' 金'
-        : n.c === 'jackpot'
-          ? '大獎 ' + n.v
-          : n.c === 'block'
-            ? '格擋'
-            : n.c === 'perfect'
-              ? '完美閃避'
-              : n.c === 'ev'
-                ? '閃避'
-                : n.txt || n.v;
-    /* 描邊比字慢淡出（M2-31 C1） */
-    CX.globalAlpha = Math.min(1, fa + 0.3);
-    CX.lineWidth = 4;
-    CX.strokeStyle = 'rgba(0,0,0,0.95)';
-    CX.strokeText(txt, n.x, y);
-    CX.globalAlpha = fa;
-    CX.fillStyle = st[0];
-    CX.fillText(txt, n.x, y);
-  }
+  /* 跳數字、怪物生命條：白天畫在暗層之後看得清楚；燭龍閉眼（天黑）與蚩尤大霧期間照舊被壓暗（玩法；製作人 2026-11-17 19:46） */
+  const night = G.night > G.t,
+    fog = !night && G.fog > G.t; /* 蚩尤的大霧（0.2.81）：比天黑淺、看得比較遠 */
+  if (night || fog) drawBars(), drawNums();
   CX.globalAlpha = 1;
   drawAim();
   drawPrompts();
@@ -504,8 +435,6 @@ function draw() {
   dg.globalCompositeOperation = 'source-over';
   dg.clearRect(0, 0, CV.width, CV.height);
   /* 燭龍閉眼（0.2.80）：天黑，只剩你身邊看得到 */
-  const night = G.night > G.t,
-    fog = !night && G.fog > G.t; /* 蚩尤的大霧（0.2.81）：比天黑淺、看得比較遠 */
   dg.fillStyle = `rgba(${BIO().dark},${night ? 0.96 : fog ? 0.9 : G.scene === 'hide' ? 0.45 : 0.74})`;
   dg.fillRect(0, 0, CV.width, CV.height);
   dg.globalCompositeOperation = 'destination-out';
@@ -522,6 +451,13 @@ function draw() {
   CX.drawImage(DARK, 0, 0, DARK.width * DS, DARK.height * DS);
   CX.imageSmoothingEnabled = false;
   bGlow(ox, oy);
+  /* 暗層之後：掉落光柱一律（夜晚、大霧也看得到）；跳數字、怪物生命條只有白天 */
+  CX.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, 0, 0);
+  CX.save();
+  CX.translate(ox, oy);
+  drawBeams();
+  if (!night && !fog) drawBars(), drawNums();
+  CX.restore();
   CX.setTransform(DPR, 0, 0, DPR, 0, 0);
   {
     const W = SW,
@@ -627,7 +563,7 @@ function drawArrow(m) {
 function drawMob(m) {
   if (m.arrow) return drawArrow(m);
   const D = m.D,
-    fly = D.fly ? 14 + Math.sin(m.ph * 0.5) * 4 : 0;
+    fly = mobFly(m);
   shadow(m.x, m.y, m.r * 1.1);
   /* 菁英：腳下光圈；王：大光圈 */
   if (m.elite || m.boss) {
@@ -671,27 +607,155 @@ function drawMob(m) {
     CX.fill();
   }
   drawMobStates(m, m.y - fly - m.sz - 13);
-  mobHp(m);
 }
-/* 生命條（受傷或菁英才顯示；王用上面的王血條）；drawFront 會在特效上面再畫一次 */
-function mobHp(m) {
-  if (m.boss || m.arrow || !(m.hp < m.mhp || m.elite)) return;
-  const w = Math.max(36, m.r * 2.4),
-    y = m.y - (m.D.fly ? 14 + Math.sin(m.ph * 0.5) * 4 : 0) - m.sz - 8;
-  CX.fillStyle = 'rgba(0,0,0,0.7)';
-  CX.fillRect(m.x - w / 2 - 1, y - 1, w + 2, 6);
-  CX.fillStyle = m.elite ? '#8ab4ff' : '#e5484d';
-  CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
+const mobFly = m => (m.D.fly ? 14 + Math.sin(m.ph * 0.5) * 4 : 0);
+/* 怪物頭上的生命條（受傷或菁英才顯示；王用 HUD 的王血條）：draw 決定在暗層前或後畫 */
+function drawBars() {
+  for (const m of G.mobs) {
+    if (m.hp <= 0 || m.arrow || m.boss || !(m.hp < m.mhp || m.elite)) continue;
+    const w = Math.max(36, m.r * 2.4),
+      y = m.y - mobFly(m) - m.sz - 8;
+    CX.fillStyle = 'rgba(0,0,0,0.7)';
+    CX.fillRect(m.x - w / 2 - 1, y - 1, w + 2, 6);
+    CX.fillStyle = m.elite ? '#8ab4ff' : '#e5484d';
+    CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
+  }
+}
+/* 跳數字；減少動態時不彈、不飄（M2-05.2i） */
+function drawNums() {
+  CX.textAlign = 'center';
+  const rm = reduced();
+  for (const n of G.nums) {
+    const f = n.t / 0.9,
+      pop = !rm && n.t < 0.08 ? 1 + (0.08 - n.t) * 8 : 1,
+      y = n.y - (rm ? 0 : 30 * Math.sqrt(f)) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
+    const st = {
+      phys: ['#fff3e0', 15],
+      fire: [ELC.fire, 15],
+      cold: [ELC.cold, 15],
+      light: [ELC.light, 15],
+      chaos: [ELC.chaos, 15],
+      block: ['#cfd8e3', 16],
+      hit: ['#fff3e0', 15],
+      crit: ['#ffd166', 24],
+      /* 豪賭的大獎（0.2.74 賭徒）：金色、更大 */
+      jackpot: ['#ffc21a', 30],
+      hurt: ['#ff5a5a', 17],
+      gold: ['#ffd166', 14],
+      perfect: ['#8fe0ff', 26],
+      ev: ['#b8f0c8', 18],
+      miss: ['#9aa3ad', 14],
+      mat: ['#d6b8ff', 15],
+      /* 持續傷害：小、淡，跟擊中分開 */
+      dot: ['#c9a3a3', 12]
+    }[n.c];
+    const fa = 1 - Math.max(0, f - 0.6) / 0.4;
+    CX.font = `700 ${Math.round(st[1] * pop)}px "Noto Sans TC", sans-serif`;
+    const txt =
+      n.c === 'gold'
+        ? '+' + n.v + ' 金'
+        : n.c === 'jackpot'
+          ? '大獎 ' + n.v
+          : n.c === 'block'
+            ? '格擋'
+            : n.c === 'perfect'
+              ? '完美閃避'
+              : n.c === 'ev'
+                ? '閃避'
+                : n.txt || n.v;
+    /* 描邊比字慢淡出（M2-31 C1） */
+    CX.globalAlpha = Math.min(1, fa + 0.3);
+    CX.lineWidth = 4;
+    CX.strokeStyle = 'rgba(0,0,0,0.95)';
+    CX.strokeText(txt, n.x, y);
+    CX.globalAlpha = fa;
+    CX.fillStyle = st[0];
+    CX.fillText(txt, n.x, y);
+  }
+  CX.globalAlpha = 1;
+}
+/* 掉落飛出去的位置（0.35 秒拋物線落地） */
+function dropXY(d) {
+  const f = Math.min(1, d.t / 0.35);
+  return [d.sx + (d.x - d.sx) * f, d.sy + (d.y - d.sy) * f - Math.sin(f * Math.PI) * 40];
+}
+/* 掉落光柱（追逐物品橘 M2-19.2b、稀有通貨金 0.4.1）：畫在暗層之後（製作人 2026-11-17 19:46），夜晚、大霧也看得到。
+   有 sig_beam（M2-33-3a §4.2，灰階圖）就上同一個色當柱身，不然程式畫 */
+const BEAMC = {};
+function beamSheet(rgb) {
+  if (!sigFx('sig_beam')) return null;
+  let c = BEAMC[rgb];
+  if (!c) {
+    const im = fxImg('sig_beam');
+    c = BEAMC[rgb] = document.createElement('canvas');
+    (c.width = im.naturalWidth), (c.height = im.naturalHeight);
+    const g = c.getContext('2d');
+    g.drawImage(im, 0, 0);
+    g.globalCompositeOperation = 'multiply';
+    g.fillStyle = `rgb(${rgb})`;
+    g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = 'destination-in';
+    g.drawImage(im, 0, 0);
+  }
+  return c;
+}
+function drawBeams() {
+  for (const d of G.drops) {
+    if (d.gold || !(d.chase || d.show)) continue;
+    const [x, y] = dropXY(d),
+      rgb = d.chase ? '255,154,74' : '255,209,102',
+      bh = d.chase ? 360 * Math.min(1, d.t / 0.24) : /3$/.test(d.show) ? 300 : 230,
+      a = d.chase
+        ? reduced()
+          ? 0.8
+          : 0.8 * (0.8 + 0.2 * Math.sin(G.t * 3 + d.sx))
+        : 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
+      sh = beamSheet(rgb);
+    if (sh) {
+      const S = FXS.sig_beam,
+        i = Math.floor(G.t * S.fps) % S.n,
+        k = bh / S.oy;
+      CX.globalAlpha = a;
+      CX.drawImage(
+        sh,
+        (i % S.cols) * S.w,
+        Math.floor(i / S.cols) * S.h,
+        S.w,
+        S.h,
+        x - S.ox * k,
+        y - S.oy * k,
+        S.w * k,
+        S.h * k
+      );
+      CX.globalAlpha = 1;
+      continue;
+    }
+    const g = CX.createLinearGradient(x, y - bh, x, y);
+    g.addColorStop(0, `rgba(${rgb},0)`);
+    g.addColorStop(1, `rgba(${rgb},${a})`);
+    CX.fillStyle = g;
+    if (d.chase) {
+      CX.fillRect(x - 14, y - bh, 28, bh);
+      CX.fillStyle = `rgba(255,236,214,${a})`;
+      CX.fillRect(x - 3, y - bh * 0.9, 6, bh * 0.9);
+      CX.fillStyle = `rgba(${rgb},${a * 0.6})`;
+      CX.fillRect(x - 19, y - bh * 0.7, 1.5, bh * 0.7);
+      CX.fillRect(x + 17.5, y - bh * 0.7, 1.5, bh * 0.7);
+    } else {
+      CX.fillRect(x - 10, y - bh, 20, bh);
+      CX.fillStyle = `rgba(255,244,214,${a})`;
+      CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
+    }
+  }
 }
 /* 火焰放滿時看得到自己與怪（M2-05.4）：特效畫完後，目前敵人（aiTarget：王優先、其他取最近）腳下 --bad-hi 圈＋重畫一次、
-   怪物生命條、玩家重畫在最上面；玩家腳下 60 內有 ≥2 個自己的特效或地面時加 --paper 外框與腳下圈 */
+   玩家重畫在最上面（怪物生命條由 draw 的 drawBars 畫在特效之上：天黑大霧在暗層前、白天在暗層後）；玩家腳下 60 內有 ≥2 個自己的特效或地面時加 --paper 外框與腳下圈 */
 const CSSV = {};
 const cssv = n => CSSV[n] || (CSSV[n] = getComputedStyle(document.documentElement).getPropertyValue(n).trim());
 function drawFront() {
   const T = G.mobs.length ? aiTarget() : null;
   for (const m of G.mobs)
     if (m.hp > 0 && (m === T || m.boss)) footRing(m.x, m.y, m.r * 1.4, cssv('--bad-hi')), drawMob(m);
-  for (const m of G.mobs) if (m.hp > 0) mobHp(m);
   const n =
     G.fx.filter(o => o.k === 'sh' && Math.hypot(o.x - P.x, o.y - P.y) < 60).length +
     G.ground.filter(g => g.side !== 'm' && Math.hypot(g.x - P.x, g.y - P.y) < g.r + 60).length;
@@ -795,6 +859,8 @@ function drawHero(top, ol) {
 }
 const FXI = {};
 const fxImg = n => FXI[n] || Object.assign((FXI[n] = new Image()), { src: `img/fx/${n}.png?v=${VER}` });
+/* 招牌特效先載（game.js 的 sigFx 看圖載好才用） */
+for (const k in FXS) if (k.startsWith('sig_')) fxImg(k);
 /* 畫序列圖的第 i 格；rot：原圖朝右，照方向轉，朝左時上下翻（弧線才不會倒過來）；圖還沒載入回傳 false */
 function drawSh(n, x, y, sc, rot, i) {
   const S = FXS[n],
