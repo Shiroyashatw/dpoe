@@ -446,7 +446,6 @@ button.mcard:active { transform: scale(0.96); }
   --stone: var(--s1);
   --panel: var(--s1);
   --line: rgba(214, 218, 226, 0.16);
-  --fr-o: #454952;
   --fr: #5f636e;
   --fr-hi: #c3c7d0;
   --title: #f4f5f7;
@@ -1865,7 +1864,7 @@ body.touch .sk-chips button { min-height: 44px; }
    色調照第五節：底 L 0.13、卡 L 0.17、紙（--sel）只給主數字與選中、磚紅（--act）是唯一的飽和色。寫在最後蓋過前面的鑄鐵銀框 */
 :root {
   --bg: #0b0806; --s0: #1f1915; --s1: #26201b; --s2: #332a23; --s3: #3a3027; --stone: var(--s1); --panel: var(--s1);
-  --fr-o: #4a3e2c; --fr: #5e4e3a; --fr-hi: #a08f78; --line: #4a3e2c;
+  --fr-o: #907956; --fr: #5e4e3a; --fr-hi: #a08f78; --line: #4a3e2c;
   --title: #d9cdb4; --tx: #d9cdb4; --dim: #a6957e; --lock: #8a7a62; --gold: #f1ebdc;
   --act: #8f3a2b; --act-hi: #a5452f; --sel: #e6d9bd; --sel-ink: #2a1a12;
   --r0: #d9cdb4; --r1: #7ea7ff; --r2: #ffcf5c; --r3: #52d6c3; --good: #7fc95a; --bad: #e0553f; --warn: #e0614a;
