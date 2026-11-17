@@ -2,7 +2,7 @@
 
 > 本檔由製作人從 Page 同步，來源：<https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4a048eaf-301e-4490-9f07-81ced2fe7050>；同步日期：2026-11-17；請勿直接在 repo 修改，改動請經製作人
 
-> 同步說明：本檔是 Game Art Director 規格 Page 的完整轉換，數字、文案與線框照原文（線框放在程式碼區塊）。本頁「已決定」各項是製作人 2026-11-17 10:29 的決定，Art Director 已回寫到 Page；決定內容也記在 [`gdd.md`](gdd.md) 決策紀錄與 [`milestones.md`](milestones.md)，不同時以決策紀錄為準。放進 DOC-06（只改文件的 PR）。
+> 同步說明：本檔是 Game Art Director 規格 Page 的完整轉換，數字、文案與線框照原文（線框放在程式碼區塊）。本頁「已決定」各項是製作人 2026-11-17 10:29 的決定，Art Director 已回寫到 Page；決定內容也記在 [`CHANGELOG.md`](../CHANGELOG.md) 變更紀錄與 [`README.md`](../README.md)，不同時以變更紀錄為準。放進 DOC-06（只改文件的 PR）。
 
 網頁／PWA 線（原 M4-03）。iOS 與 Android 的圖示、啟動畫面尺寸齊全，加上桌機安裝與分頁圖示；安裝說明頁的 390×844 與 1280×720 版面。不含 Steam 素材（膠囊圖、截圖計畫等在 M3-09，等真人試玩通過、Steam 階段恢復後才做）。2026-11-17（台北時間）。
 

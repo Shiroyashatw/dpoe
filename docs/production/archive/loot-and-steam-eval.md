@@ -2,7 +2,7 @@
 
 > 本檔由製作人從 Page 同步，來源：<https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/167c56bb-e9cf-4954-b91f-3d39084385bd>；同步日期：2026-11-16；請勿直接在 repo 修改，改動請經製作人
 
-> 註（同步時加）：mumi 已於 2026-11-16 決定 Q14 D、Q15 E＋F（G 不當主打，M4S 可選評估）、Q16 I，見 [`gdd.md`](gdd.md#決策紀錄)；落地任務 M2-17～20、M3-09～13、M4S-06 見 [`milestones.md`](milestones.md)。以下為 Page 原文，選項與建議保留評估當時的寫法。
+> 註（同步時加）：mumi 已於 2026-11-16 決定 Q14 D、Q15 E＋F（G 不當主打，M4S 可選評估）、Q16 I，見 [`CHANGELOG.md`](../CHANGELOG.md#決策紀錄)；落地任務 M2-17～20、M3-09～13、M4S-06 見 [`README.md`](../README.md)。以下為 Page 原文，選項與建議保留評估當時的寫法。
 
 回答 mumi 的三個問題：要不要打造、桌面破壞神是哪款、dpoe 在 Steam 有沒有亮點。結論是保留打造當骨幹，再加一層看得到保底的追逐掉落。資料讀取日 2026-11-16，選項由 mumi 決定。
 
@@ -44,7 +44,7 @@
 
 | 版本 | 現象 | 說明 |
 | --- | --- | --- |
-| 0.3.6 | 量多、價值低、看不到 | 掉落 0.4 秒就被吸走，光柱和標籤幾乎看不到；開獎要中斷巡邏；開完不知道哪件比身上好。每小時約 150～200 件未鑑定黃裝，只有約 2.5 件 ★、1 件追憶有感（`docs/待做清單.md`，暫定估算）。 |
+| 0.3.6 | 量多、價值低、看不到 | 掉落 0.4 秒就被吸走，光柱和標籤幾乎看不到；開獎要中斷巡邏；開完不知道哪件比身上好。每小時約 150～200 件未鑑定黃裝，只有約 2.5 件 ★、1 件追憶有感（`docs/archive/待做清單-0.3-0.5.md`，暫定估算）。 |
 | 0.4.9 | AI 試玩 40 分鐘，有感掉落 0 次 | 64 件全是 T6／T5，★ 0、追憶 0；保底計數「★ 42／2858」要好幾小時。崇高石第 2 分鐘就掉、整場 12 顆，變成背景噪音（`docs/試玩報告_0.4.9_Opus.md` 第 4 節）。 |
 | 0.4.10 | 「只有戰鬥爽、掉寶無感」 | mumi 自己玩加 AI 試玩的結論；而且掛機掉 N 件跟手刷掉 N 件體感不同，掛機的掉落是背景噪音（`docs/工坊與解鎖表.md` 第 0 節）。 |
 
@@ -234,7 +234,7 @@ Steam 評價為 2026-11-16 讀取；Melvor、Loop Hero、Halls of Torment 的數
 - [dpoe 平台策略評估 Page（Melvor、Loop Hero、Halls of Torment 評價數字）](https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/60da64d9-8faa-4f56-8a3b-1126a93c934b)（Page）
 - [repo：docs/工坊與解鎖表.md（0.5 權威）](https://github.com/Shiroyashatw/dpoe/blob/main/docs/%E5%B7%A5%E5%9D%8A%E8%88%87%E8%A7%A3%E9%8E%96%E8%A1%A8.md)（github.com）
 - [repo：docs/試玩報告_0.4.9_Opus.md](https://github.com/Shiroyashatw/dpoe/blob/main/docs/%E8%A9%A6%E7%8E%A9%E5%A0%B1%E5%91%8A_0.4.9_Opus.md)（github.com）
-- [repo：docs/待做清單.md](https://github.com/Shiroyashatw/dpoe/blob/main/docs/%E5%BE%85%E5%81%9A%E6%B8%85%E5%96%AE.md)（github.com）
+- [repo：docs/archive/待做清單-0.3-0.5.md](../../archive/待做清單-0.3-0.5.md)
 - [repo：docs/打寶遊戲比較.md](https://github.com/Shiroyashatw/dpoe/blob/main/docs/%E6%89%93%E5%AF%B6%E9%81%8A%E6%88%B2%E6%AF%94%E8%BC%83.md)（github.com）
 - [repo：docs/增量遊戲參考.md](https://github.com/Shiroyashatw/dpoe/blob/main/docs/%E5%A2%9E%E9%87%8F%E9%81%8A%E6%88%B2%E5%8F%83%E8%80%83.md)（github.com）
 - [repo：js/craft.js](https://github.com/Shiroyashatw/dpoe/blob/main/js/craft.js)（github.com）
