@@ -1,0 +1,8 @@
+❌ M2-18 圖檔 id：王印是 wangyin_zhenyue／chixiao／jiting／guixu（沒有 seal 開頭）；M2-34 3a 起正式圖在 ic_wy32／ic_wy16 拼條 x=0／33／66／99、0／17／34／51（不再借 cur_regal、沒有 WANGYIN_X） ["wangyin_zhenyue,wangyin_chixiao,wangyin_jiting,wangyin_guixu",false,true]
+❌ M2-34 3a 繪製順序（白天）：跳數字、怪物生命條、掉落光柱都畫在暗層之後，看得清楚 {"ev":"beam beam bar num dark","dark":4,"num":[3,3],"bar":[2,2],"beam":[0,1]}
+❌ M2-34 3a 繪製順序（燭龍閉眼天黑）：跳數字、怪物生命條照舊在暗層之前（被壓暗）；掉落光柱在暗層之後（看得到） {"ev":"beam beam bar num dark","dark":4,"num":[3,3],"bar":[2,2],"beam":[0,1]}
+❌ M2-34 3a 繪製順序（蚩尤大霧）：跳數字、怪物生命條照舊在暗層之前（被壓暗）；掉落光柱在暗層之後（看得到） {"ev":"beam beam bar num dark","dark":4,"num":[3,3],"bar":[2,2],"beam":[0,1]}
+❌ M2-34 3a 地磚：js/tiles.js 四種地形都有地板、牆頂、牆面 a／b；載好才換成 256 材質像素區塊、地板每格 32 對齊 1:1 貼、不畫 bFloor 花紋，載好時清 G.bc 重烘 {"err":"Error: ENOENT: no such file or directory, open '/tmp/claude-0/-home-user-dpoe/7e6c90ad-2736-5daa-b60d-bd79120713a3/scratchpad/oldmain/js/tiles.js'"}
+❌ M2-34 3a 地磚缺圖退回：一張載不到 → 整套退回程式畫法（384 區塊、bFloor 花紋、不混用地磚）、不報錯；TILE_SRC 沒這種地形也一樣 {"err":"Error: ENOENT: no such file or directory, open '/tmp/claude-0/-home-user-dpoe/7e6c90ad-2736-5daa-b60d-bd79120713a3/scratchpad/oldmain/js/tiles.js'"}
+❌ M2-34 3a 王印圖：拼條載到時用 ic_wy32（赤霄 x=33）、ic_wy16（歸墟 x=51）；拼條載不到退回借 cur_regal（ic_cur x=297），不報錯 {"ok":["img/ic_cur.fc024028.png","297,0,32,32"],"err":"TypeError: Cannot read properties of null (reading 'im')"}
+❌ M2-34 3a 招牌特效：fxsig.js 有 sig_beam／chase／crit／lvup／wyapply；暴擊圖載好播 sig_crit，沒載到或減少動態播舊的 crit "Error: ENOENT: no such file or directory, open '/tmp/claude-0/-home-user-dpoe/7e6c90ad-2736-5daa-b60d-bd79120713a3/scratchpad/oldmain/js/fxsig.js'"
