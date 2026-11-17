@@ -1,0 +1,1 @@
+for sd in 20261115 1 2 3 4 5 6 7 8 9; do for sec in 150 130 120 110 100 90 80 75; do for c in "550 50 10" "210 50 130" "205 50 130" "200 50 130" "245 75 10"; do set -- $c; W=$1 WW=$2 WI=$3 SEED=$sd node /tmp/claude-1000/-home-box-claude-runs-dpoe-m128/70e3c71e-0184-48f1-ab63-0f6a2ff28372/scratchpad/sim.js $sec 40 40; done; done; done

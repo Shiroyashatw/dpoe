@@ -62,7 +62,7 @@ const r = R(`(() => {
 })()`);
 const first = {};
 for (const e of r.ev) if (!(e.b + e.lv in first)) first[e.b + e.lv] = e.t;
-const pick = ['house1', 'forge1', 'watch1', 'altar1', 'house2', 'forge2', 'house3', 'forge3', 'scout1', 'watch2'];
+const pick = ['house1', 'forge1', 'watch1', 'altar1', 'house2', 'forge2', 'house3', 'forge3', 'forge4', 'scout1', 'watch2'];
 const out = { cfg: { W: W0.soul, WW: W0.wood, WI: W0.iron, SEC, NS, seed: +(process.env.SEED || 20261115), ORDER: ORDER.join('>') }, spm: +(r.rows[r.rows.length - 1].soulIn / MIN).toFixed(1), t: Object.fromEntries(pick.map(k => [k, k in first ? +(first[k] / 60).toFixed(2) : null])) };
 const ci = process.argv.indexOf('--csv');
 if (ci > 0) {
