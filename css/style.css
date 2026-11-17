@@ -151,7 +151,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); c
 .tinfo span { color: var(--dim); }
 /* 昇華石碑（0.2.25）：兩張卡並排（窄螢幕上下排），大點照選擇組合併成一行 */
 #pasc { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(980px, calc(100vw - 24px)); height: min(720px, calc(100vh - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
-#pshop { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 .shopg { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
 .shopg .btn { padding: 6px 4px; }
 .shopres { display: flex; gap: 10px; align-items: center; padding: 8px 10px; margin-top: 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--fr-o); border-radius: 2px; }
@@ -342,7 +341,7 @@ body.touch .tmenu { display: flex; gap: 6px; position: fixed; top: calc(8px + en
 body.touch .panel { top: calc(6px + env(safe-area-inset-top)); max-height: calc(100dvh - 12px); padding: 10px; overscroll-behavior: contain; }
 body.touch #pinv { right: calc(6px + env(safe-area-inset-right)); width: calc(50vw - 9px); }
 body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); width: calc(50vw - 9px); }
-body.touch #pshop, body.touch #pflt, body.touch #preveal, body.touch #plog { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
+body.touch #preveal, body.touch #plog { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 body.touch .eqrow { flex-wrap: wrap; gap: 8px; }
 body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-space: normal; }
 body.touch .ph .x { width: 44px; height: 44px; } /* BASE-01：關閉可見底與熱區 44×44 */
@@ -903,7 +902,6 @@ body.touch .panel > .ph:first-child { padding-left: 10px; }
 body.touch #tip .tqa { padding: 0 8px; }
 
 /* ---------- 0.2.35 物品過濾器面板、倉庫寶石頁、異常圖示的扇形倒數 ---------- */
-#pflt { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(540px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); z-index: 12; }
 .flist { display: grid; gap: 6px; margin: 6px 0; }
 .frule { border: 1px solid var(--line); border-radius: 2px; background: rgba(0, 0, 0, 0.25); }
 .frule.off { opacity: 0.55; }
@@ -963,15 +961,6 @@ body.touch #tip .tqa { padding: 0 8px; }
 body.touch #prac { top: calc(30px + env(safe-area-inset-top)); left: calc(8px + env(safe-area-inset-left)); }
 body.touch #prac .btn { min-height: 44px; }
 body.touch.port #prac { top: calc(60px + env(safe-area-inset-top)); }
-#talk { position: fixed; inset: 0; z-index: 12; display: flex; align-items: flex-end; justify-content: center; padding: 0 12px 146px; pointer-events: auto; cursor: pointer; }
-#talk[hidden] { display: none; }
-.tkb { width: min(640px, 100%); padding: 10px 14px; background: linear-gradient(160deg, var(--s2), var(--s1) 42%); border: 8px solid transparent; border-image: url(../img/ui/frame.png) 16 / 32px stretch; image-rendering: pixelated; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6); animation: pop 160ms ease-out; }
-.tkb b { display: block; font: 900 var(--fs-l) var(--serif); letter-spacing: 0.06em; color: var(--title); }
-.tkb p { min-height: 3em; margin: 6px 0; font: 500 16px/1.5 var(--font); color: var(--tx); }
-.tkf { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--dim); }
-.tkf small { font-size: var(--fs-s); }
-body.touch #talk { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-body.touch .tkf .btn { min-height: 44px; min-width: 64px; }
 /* ---------- 昇華石碑 ---------- */
 .ax-sum { white-space: nowrap; }
 #pskill .ph > b, #pasc .ph > b { flex: none; white-space: nowrap; }
@@ -1096,97 +1085,11 @@ body.cine #hud { visibility: hidden; }
 #lid i:last-child { bottom: 0; animation-name: lidB; }
 @keyframes lidT { to { transform: translateY(-100%); } }
 @keyframes lidB { to { transform: translateY(100%); } }
-/* 序章的目標列：一句話，做到才換 */
-#pro { position: absolute; left: 50%; top: 112px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 24px); padding: 6px 8px 6px 14px; background: var(--s1); border: 1px solid var(--fr); border-radius: 2px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6); }
-#pro[hidden] { display: none; }
-#pron { color: var(--dim); font-size: var(--fs-s); font-variant-numeric: tabular-nums; white-space: nowrap; }
-#prot { flex: 1; font: 700 var(--fs) var(--font); color: var(--title); }
-#prot.in { animation: proin 220ms cubic-bezier(0.23, 1, 0.32, 1); }
-@keyframes proin { from { opacity: 0; transform: translateY(4px); } }
-#pro .btn { flex: none; pointer-events: auto; white-space: nowrap; }
-#pro .btn.arm { color: var(--warn); }
-.pro-hl { outline: 2px solid var(--title); outline-offset: 2px; animation: prohl 1200ms ease-in-out infinite; }
-@keyframes prohl { 50% { outline-color: rgba(244, 245, 247, 0.2); } }
-/* 序章第 2 步：背包面板裡的引導，貼在格子上面；道具的閃框不能被隔壁蓋住 */
-.pro-inv { margin: 0 auto 8px; padding: 6px 10px; text-align: center; font: 700 var(--fs) var(--font); color: var(--title); background: var(--s3); border: 1px solid var(--fr-hi); border-radius: 2px; }
-.it.pro-hl { z-index: 2; outline-offset: 1px; }
-body.touch .ponly { display: none; }
-body.touch #pro { transform: none; max-width: none; left: calc(8px + env(safe-area-inset-left)); right: calc(76px + env(safe-area-inset-right)); top: calc(116px + env(safe-area-inset-top)); }
-body.touch:not(.port) #pro { left: calc(60px + env(safe-area-inset-left)); right: calc(215px + env(safe-area-inset-right)); top: calc(10px + env(safe-area-inset-top)); }
-/* 橫向高度不夠：地名讓位，王出現時目標列移到血條下面，還是不蓋主角 */
-body.touch:not(.port) #hud:has(#pro:not([hidden])) #area { display: none; }
-body.touch:not(.port) #hud:has(#bossbar:not([hidden])) #pro { top: calc(72px + env(safe-area-inset-top)); }
-body.touch #pro .btn { min-height: 44px; }
-/* 掌櫃的一句話 */
-.tsay { margin: 0 0 6px; color: var(--dim); font-size: var(--fs-s); }
 @media (prefers-reduced-motion: reduce) {
   #lid i { animation: lidFade 500ms ease-out both; }
   #lid i:last-child { animation-name: lidFade; }
-  #prot.in, .pro-hl { animation: none; }
 }
 @keyframes lidFade { to { opacity: 0; } }
-
-/* ---------- 世界地圖（wmap.js）：全螢幕像素大陸＋右側節點面板；手機直立面板在下、手機橫向窄一點 ---------- */
-#pdev { position: fixed; inset: 0; z-index: 10; display: grid; grid-template-columns: minmax(0, 1fr) 348px; background: #0c1014; }
-#pdev[hidden] { display: none; }
-.wm-map { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
-#wmc { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
-#wmc.drag { cursor: grabbing; }
-.wm-rift { position: absolute; left: 50%; top: calc(10px + env(safe-area-inset-top)); transform: translateX(-50%); max-width: calc(100% - 16px); min-height: 32px; padding: 4px 14px; font: 500 var(--fs-s)/1.4 var(--font); color: var(--dim); background: rgba(23, 24, 27, 0.9); border: 1px solid #7a2b2e; border-radius: 2px; cursor: pointer; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.wm-rift:hover { color: var(--title); border-color: var(--bad); }
-.wm-rift:focus-visible { outline: 1px solid var(--fr-hi); outline-offset: 2px; }
-.wm-rift:active { transform: translateX(-50%) scale(0.97); }
-.wm-rift > b { margin-right: 8px; font: 700 15px var(--serif); color: #ffb9ad; letter-spacing: 0.05em; }
-.wm-hunt { display: block; height: 4px; margin-top: 4px; background: var(--s0); }
-.wm-hunt i { display: block; height: 100%; background: var(--bad); transition: width 200ms cubic-bezier(0.23, 1, 0.32, 1); }
-.wm-hunt.full i { background: #ff8a4c; }
-.wm-cap { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; pointer-events: none; }
-.wm-cap[hidden] { display: none; }
-.wm-cap p { margin: 0; font: 900 clamp(22px, 4.2vw, 40px)/1.5 var(--serif); text-align: center; color: var(--title); text-shadow: 0 2px 2px #000, 0 0 24px rgba(0, 0, 0, 0.9); letter-spacing: 0.08em; text-wrap: balance; animation: wmcap 900ms ease-out; }
-@keyframes wmcap { from { opacity: 0; } }
-.wm-tools { position: absolute; right: calc(10px + env(safe-area-inset-right)); bottom: calc(10px + env(safe-area-inset-bottom)); display: flex; gap: 6px; }
-.wm-tools .btn { width: 44px; height: 44px; min-height: 0; padding: 0; display: grid; place-items: center; background: var(--s0); }
-.wm-tools .ico { width: 16px; height: 16px; }
-.wm-side { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--stone); border-left: 1px solid var(--fr); box-shadow: inset 2px 0 0 #000, inset 3px 0 0 var(--fr-o); }
-.wm-side > .ph { flex: none; padding: 10px 14px; padding-right: max(14px, env(safe-area-inset-right)); background: var(--s2); border-bottom: 1px solid var(--fr); }
-.wm-side > .ph .x { flex: none; }
-.wm-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px; padding-right: max(14px, env(safe-area-inset-right)); display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; scrollbar-color: var(--fr) var(--s0); }
-.wm-body h2 { margin: 0; font: 700 21px/1.3 var(--serif); color: var(--title); }
-.wm-body p { margin: 0; font-size: var(--fs-s); color: var(--dim); }
-.wm-body .wm-kind { color: var(--tx); font-variant-numeric: tabular-nums; }
-.wm-note { color: var(--dim); }
-.wm-stars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 6px 0; }
-.wm-stars .mc2 { min-height: 48px; padding: 6px 2px; justify-content: center; }
-.wm-stars .mc2 .mstar { color: var(--sc); font-weight: 700; }
-.wm-body .msel { margin: 0; }
-.wm-mods { columns: 1; margin: 0; }
-.mrou { display: flex; gap: 4px; margin-top: 1px; } .mrou i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6); }
-.wm-rou { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 4px; font-size: var(--fs-s); line-height: 1.45; }
-.wm-rou li { padding: 2px 0 2px 8px; border-left: 3px solid var(--rc, var(--fr)); color: var(--tx); }
-.wm-rou b { color: var(--rc, var(--warn)); }
-.wm-acts { position: sticky; bottom: -14px; display: grid; gap: 6px; margin-top: auto; padding-top: 8px; background: linear-gradient(transparent, var(--s1) 8px); }
-.wm-acts .btn, .wm-body > .btn { width: 100%; }
-.wm-q { margin: 4px 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.wm-q li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; padding: 8px 10px; background: var(--s0); border: 1px solid var(--fr-o); }
-.wm-q li span { color: var(--dim); font-size: var(--fs-s); font-variant-numeric: tabular-nums; }
-.wm-q li.lock { border-style: dashed; color: var(--dim); }
-.wm-zod { flex-basis: 100%; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 4px; }
-.wm-zod span { display: grid; place-items: center; aspect-ratio: 1; background: rgba(0, 0, 0, 0.3); opacity: 0.35; filter: grayscale(1); }
-.wm-zod span.on { opacity: 1; filter: none; }
-.wm-zod .ic { width: 100%; height: 100%; }
-body.touch.port #pdev { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, auto); }
-body.touch.port .wm-side { max-height: 56dvh; border-left: 0; border-top: 1px solid var(--fr); box-shadow: inset 0 2px 0 #000; }
-body.touch .wm-acts { grid-template-columns: auto 1fr; }
-body.touch .wm-acts .btn { padding-inline: 10px; white-space: nowrap; }
-body.touch .wm-side > .ph { padding: 4px 10px; }
-body.touch .wm-side > .ph b { font-size: var(--fs); }
-body.touch .wm-body { padding: 8px 10px; gap: 4px; }
-body.touch .wm-body h2 { font-size: var(--fs-l); }
-body.touch .wm-stars .mc2 { min-height: 44px; }
-body.touch .wm-acts { bottom: -8px; }
-body.touch.port .wm-acts { bottom: calc(-8px - env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }
-body.touch:not(.port) #pdev { grid-template-columns: minmax(0, 1fr) min(320px, 46vw); }
-@media (prefers-reduced-motion: reduce) { .wm-cap p { animation-duration: 200ms; } .wm-hunt i { transition: none; } }
 
 /* ---------- 天賦樹（0.2.45，照 PoE2）：黑底、沒點亮也看得到系色（--c＝data.js 的 PT_FAM）、鎖住的預留點 ---------- */
 #ptree { --pt-bg: #090b13; --pt-node: #10131b; --pt-line: 162, 148, 110; background: var(--pt-bg); }
@@ -1644,7 +1547,7 @@ body:not(.touch) #treset { bottom: 52px; }
 .tcard .why { margin: 0; color: var(--dim); font-size: var(--fs-s); }
 /* 直立：天賦樹蓋到分頁列上面為止，分頁列照樣可以按（別的畫面都能直接切走） */
 body.touch.port #ptree { bottom: var(--nav-h); }
-body.touch.port #pnav:not([hidden]) { grid-template-columns: repeat(6, minmax(0, 1fr)); z-index: 11; }
+body.touch.port #pnav:not([hidden]) { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); z-index: 11; }
 #pnav button { position: relative; }
 #pnav .dot { position: absolute; top: 7px; left: calc(50% + 9px); width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 2px var(--s1, #1c2129); }
 @media (prefers-reduced-motion: reduce) { .tcard { animation: none; } }
@@ -1895,26 +1798,31 @@ body { background: var(--bg); }
 body.touch.port .panel { background: var(--s1); }
 body.touch.port #pnav:not([hidden]) { background: var(--s0); border-top: 0; box-shadow: none; }
 #pnav button { color: var(--milk2); font-size: 12px; border-top: 0; }
-#pnav button.on { background: var(--paper); color: var(--ink); border-top: 0; }
+#pnav button.on { background: var(--sel); color: var(--sel-ink); border-top: 0; }
 #pnav .dot, #dnav .dot { position: absolute; top: 6px; right: 22%; width: 8px; height: 8px; border-radius: 50%; background: var(--act); box-shadow: 0 0 0 2px var(--s0); }
 body.touch.port #phand:not([hidden]) { background: var(--s1); border-top: 0; box-shadow: none; }
 #phand i { background: var(--fr-hi); } /* BASE-01：把手橫條 --fr-hi */
 /* 桌機（0.4.9）：右上同一排分頁、功能列收起、球換成長條 */
-#dnav { position: absolute; right: 12px; top: 12px; z-index: 4; display: flex; gap: 4px; pointer-events: auto; }
+#dnav { position: absolute; right: 12px; top: 10px; z-index: 4; display: flex; gap: 4px; pointer-events: auto; }
 #dnav[hidden] { display: none; }
 #dnav button { position: relative; width: 66px; height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; font: 700 12px var(--font); color: var(--milk2); background: rgba(31, 25, 21, 0.92); border: 0; border-radius: 3px; cursor: pointer; }
 #dnav button .ico { width: 20px; height: 20px; }
-#dnav button.on { background: var(--paper); color: var(--ink); }
+#dnav button.on { background: var(--sel); color: var(--sel-ink); }
 #dnav button:active { transform: scale(0.95); }
 body:not(.touch) .dmenu { display: none; }
 body:not(.touch) #pskill { left: auto; right: 16px; width: 476px; }
 /* 底下留 158px 給生命／魔力條與技能列（含上面一排狀態圖示），面板不蓋 HUD */
 body:not(.touch) .panel { top: 76px; max-height: calc(100vh - 234px); }
-body:not(.touch) #pset, body:not(.touch) #pflt, body:not(.touch) #plog { top: 50%; max-height: calc(100vh - 92px); }
-body:not(.touch) .top { right: 420px; }
+/* M2-38（M2-37.5）：設定、掉落紀錄、追逐物品進右欄（top 76、最高到畫面底 − 158），不蓋生命魔力條與技能列 */
+body:not(.touch) #pset, body:not(.touch) #plog, body:not(.touch) #pchase { left: auto; right: 16px; width: 476px; top: 76px; transform: none; max-height: calc(100vh - 234px); }
+/* M2-38 頂列（M2-37.4 Z1）：地點列 16–300、首領進度 320–680（y 16–56）、右邊讓出分頁 */
+body:not(.touch) .top { top: 8px; right: 580px; }
+body:not(.touch) #area { max-width: 284px; }
+body:not(.touch) #prog, body:not(.touch) #bossbar { position: fixed; left: 320px; top: 16px; width: 360px; margin: 0; }
 .orb { display: none; }
 .bars { display: flex; flex-direction: column; gap: 3px; width: 360px; }
-body:not(.touch) .bottom { align-items: center; left: calc(50% + 80px); }
+body:not(.touch) .bottom { align-items: center; left: 50%; }
+body:not(.touch) .mid { align-items: center; }
 body:not(.touch) .mid { padding: 0; background: none; box-shadow: none; margin: 0; }
 .hb { height: 12px; background: rgba(0, 0, 0, 0.7); border: 0; box-shadow: none; border-radius: 2px; }
 .hb i { background: #8a2a2a; }
@@ -2080,9 +1988,8 @@ body.touch.port .cmpc > div { padding: 8px; }
 .doll2 .mi-b { margin-top: auto; min-height: 40px; font-size: 12px; }
 .doll2x { display: flex; gap: 8px; justify-content: center; width: 100%; }
 .eqs { position: relative; width: 56px; height: 56px; left: auto !important; top: auto !important; display: grid; place-items: center; background: var(--s0); border: 0; border-radius: 3px; box-shadow: inset 0 0 0 1px #3f342b, inset 0 2px 6px rgba(0, 0, 0, 0.5); }
-.eqs.emp { background: none; box-shadow: none; border: 1px dashed #5a4a38; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.eqs.emp { position: relative; background: var(--s0); box-shadow: none; border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; padding-bottom: 2px; }
 .eqs .nm, .eqs.emp small { font-size: 11px; color: var(--milk2); }
-.eqs.emp small { color: #6a5a48; }
 .eqs.r1, .eqs.r2 { border: 0; box-shadow: inset 0 0 0 1px #3f342b; }
 .eqs.sel { outline: 2px solid var(--paper); outline-offset: 0; }
 .eqs.noreq { box-shadow: inset 0 0 0 1px var(--bad); }
@@ -2243,12 +2150,6 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 @keyframes ccup { from { background: rgba(123, 211, 107, 0.18); } }
 @keyframes ccms { 0%, 60% { box-shadow: 0 0 0 2px #e6c36a; } }
 @media (prefers-reduced-motion: reduce) { .ccfl, .cc.up, .cc.ms, .wk img.new, .rt.flow > i::after, .rbar.flow .rt > i::after { animation: none; } }
-/* 桌機（考核 A8）：營地總覽放寬到 60%、≥1280 兩欄卡片，庫存列一排 */
-body:not(.touch) #pcraft.cwide { width: min(60vw, 1080px); }
-@media (min-width: 1280px) {
-  body:not(.touch) #pcraft.cwide .cmcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
-  body:not(.touch) #pcraft.cwide .cmtop { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-}
 /* 營地買得起的一件一列（王倒下的卡、離線卡） */
 .cups { display: flex; flex-direction: column; gap: 6px; }
 .cup { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--s2); border-radius: 3px; }
@@ -2307,7 +2208,6 @@ body:not(.touch) #pcraft.cwide { width: min(60vw, 1080px); }
 body.touch.port .panel > .ph:first-child { min-height: 44px; padding-top: 0; padding-bottom: 0; align-items: center; }
 /* M1-12：裝備格標籤 13／1.3／500 milk2、空格虛線 --fr-hi、空標 13 px milk2；捲動內容底下留 16 px */
 .eqs .nm, .eqs.emp small { font: 500 13px/1.3 var(--font); color: var(--milk2); }
-.eqs.emp { border: 1px dashed var(--fr-hi); }
 .eqs.emp small .ico { width: 13px; height: 13px; }
 body.touch.port #pinv { padding-bottom: 16px; }
 body.touch.port .doll2, body.touch.port .doll2 .col { gap: 6px; }
@@ -2388,7 +2288,7 @@ body.touch.port #pinv .eqrow.col { margin-top: 0; }
 #pcraft .ftabs button { min-height: 44px; font-size: 14px; }
 #pcraft [data-fg='go'] { width: 100%; min-height: 48px; }
 /* M1-CP.2 徽章：pill 高 18、12／700、#f3e4d2 on --act，「3 可升級」 */
-#pnav .dot.n.pill, #dnav .dot.n.pill { top: -9px; left: 50%; right: auto; transform: translateX(-50%); width: auto; min-width: 0; height: 18px; padding: 0 8px; border-radius: 9px; background: var(--act); box-shadow: 0 0 0 2px var(--s0); color: #f3e4d2; font: 700 12px/18px var(--font); white-space: nowrap; }
+#pnav .dot.n.pill, #dnav .dot.n.pill { top: -9px; left: 50%; right: auto; transform: translateX(-50%); width: auto; min-width: 0; height: 18px; padding: 0 8px; border-radius: 9px; background: var(--act); box-shadow: 0 0 0 2px var(--s0); color: var(--on-act); font: 700 12px/18px var(--font); white-space: nowrap; }
 /* M1-02.3：掛機卡的「去營地」 */
 #pidle .igo { width: 100%; min-height: 48px; margin-top: 8px; }
 /* BASE-03：分頁列文字不小於 13 px */
@@ -2459,19 +2359,11 @@ body.sheetfull #chase { top: calc(env(safe-area-inset-top) + 4px); }
 #chase .cbr i { font-style: normal; font-size: 16px; line-height: 16px; }
 body.touch #chase kbd { display: none; }
 #chase kbd { padding: 0 6px; height: 20px; font: 700 13px/18px var(--font); color: var(--milk2); border: 1px solid var(--line); border-radius: 3px; }
-/* 桌機：top 76、高 88 的全寬條（兩端漸淡、上下 2 px 線），內容塊最寬 640 置中；右欄開著時 hud.js 把右欄寬設成 --cr，right 與左右留白都照它算 */
-body:not(.touch) #chase { left: 0; right: var(--cr, 0px); top: 76px; height: 88px; padding: 0 max(16px, calc((100vw - var(--cr, 0px) - 640px) / 2)); column-gap: 14px; box-shadow: none;
-  background: linear-gradient(90deg, transparent, var(--chase-bnr) 18%, var(--chase-bnr) 82%, transparent); }
-body:not(.touch) #chase::before { inset: 0; background: linear-gradient(90deg, transparent, var(--r4) 18%, var(--r4) 82%, transparent) top / 100% 2px no-repeat,
-  linear-gradient(90deg, transparent, var(--r4) 18%, var(--r4) 82%, transparent) bottom / 100% 2px no-repeat; }
-body:not(.touch) #chase:hover::before { background: linear-gradient(90deg, transparent, var(--r4-hi) 18%, var(--r4-hi) 82%, transparent) top / 100% 2px no-repeat,
-  linear-gradient(90deg, transparent, var(--r4-hi) 18%, var(--r4-hi) 82%, transparent) bottom / 100% 2px no-repeat; }
-body:not(.touch) #chase .cbi { width: 64px; height: 64px; }
-body:not(.touch) #chase .cbi:has(.chf + .chf) { width: 84px; }
-body:not(.touch) #chase .cbi .chf { width: 64px; height: 64px; }
-body:not(.touch) #chase .cbi .ic { width: 48px; height: 48px; }
+/* 桌機（M2-38，M2-37.5）：只蓋頂列 y 6–70、x 16 到分頁左緣 − 12；王血條顯示時（body.bossup）改 y 76–140、避開右欄 */
+body:not(.touch) #chase { left: 16px; right: 580px; top: 6px; height: 64px; padding: 4px 14px 4px 4px; column-gap: 12px; }
+body:not(.touch).bossup #chase { top: 76px; right: 492px; }
 body:not(.touch) #chase .cbt small, body:not(.touch) #chase .cbr { font-size: 14px; }
-body:not(.touch) #chase .cbt b { font-size: 24px; }
+body:not(.touch) #chase .cbt b { font-size: 22px; }
 body:not(.touch) #chase .cbr { flex-direction: row; align-items: center; gap: 10px; }
 /* 手機橫向：照桌機縮小，置中、寬 min(560, 畫面寬 − 16)、高 60 */
 body.touch:not(.port) #chase { top: calc(env(safe-area-inset-top) + 8px); left: max(8px, calc(50% - 280px)); right: max(8px, calc(50% - 280px)); height: 60px; padding: 4px 12px 4px 4px; }
@@ -2508,3 +2400,57 @@ body:not(.touch) #pidle .chs:hover span { color: var(--milk); }
 .offchl li b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .offchl li small { font: 700 14px var(--font); color: var(--milk2); }
 @media (prefers-reduced-motion: reduce) { .offch > i { transition: none; } }
+
+/* ================= M2-38 資訊架構重整（M2-37 v1.3）：只用現有變數；角色 token 收斂（M2-34 第 0 批）合併後換成 §2 的角色名 =================
+   對照：--panel-inset→--s0、--panel-raised→--s2、--border→--line、--border-mid→--fr、--border-ctl→--fr-hi、--border-hi→--fr-c、--tx-title→--title、--tx-scene→--tx、--rar-chase→--r4 */
+/* 桌機 Z2：面板一定有 1px 框 */
+body:not(.touch) .panel { border: 1px solid var(--fr); }
+/* 桌機營地總覽：右欄（不同時開戰利品） */
+body:not(.touch) #pcraft.cwide { left: auto; right: 16px; width: 476px; animation-name: inR; }
+/* #warn：桌機基線 548（Z2 下緣），不壓生命魔力條 */
+body:not(.touch) #warn { bottom: 172px; }
+/* 追逐物品面板：直立半版（通用規則）、桌機右欄（上面）、手機橫向置中 */
+#pchase { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(476px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); z-index: 12; }
+body.touch.port #pchase { z-index: 8; }
+#pchase .chg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 4px var(--pp) 8px; }
+body:not(.touch) #pchase .chc { min-height: 96px; }
+#pchase .chc { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 8px; align-items: center; min-height: 88px; padding: 8px; text-align: left; background: var(--s0); border: 1px solid var(--line); border-radius: 3px; color: var(--tx); font: 700 14px/1.3 var(--font); cursor: pointer; }
+#pchase .chc .chf, #pchase .chc .chsil { grid-row: 1 / 3; width: 40px; height: 40px; padding: 4px; }
+#pchase .chc .ic { width: 32px; height: 32px; }
+#pchase .chc .chsil { display: grid; place-items: center; }
+#pchase .chc .chsil .ic { filter: grayscale(1) brightness(0.6); opacity: 0.6; }
+#pchase .chc small { font: 500 13px/1.3 var(--font); color: var(--tx-dim); }
+#pchase .chc.no b { color: var(--tx-dim); }
+#pchase .chc.on { border-color: var(--fr-hi); }
+#pchase .chc:focus-visible { outline: 2px solid var(--fr-c); outline-offset: 2px; }
+#pchase .chp { margin: 4px var(--pp) 0; }
+#pchase .chnote { margin: 6px var(--pp) 0; font: 500 13px/1.4 var(--font); color: var(--tx-dim); }
+#pchase .chs { position: relative; display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; column-gap: 8px; min-height: 32px; white-space: nowrap; font: 700 13px/20px var(--font); color: var(--tx-dim); }
+#pchase .chs span { min-width: 7.6em; font-variant-numeric: tabular-nums; }
+#pchase .chs .pb { height: 6px; padding: 1px; background: var(--s0); box-shadow: inset 0 0 0 1px var(--fr); border-radius: 3px; overflow: hidden; }
+#pchase .chs .pb i { display: block; height: 100%; background: var(--r4); border-radius: 2px; transform-origin: left; }
+#pchase .chs:has(.pb.full) span { color: var(--r4); }
+.mrow .cnew { margin-left: 6px; }
+/* 角色頁空格（M2-37.6）：部位剪影（單色、淡）、右上候選數、讀屏字 */
+.eqs.emp .sil { flex: 1; display: grid; place-items: center; }
+.eqs.emp .sil .ic { width: 32px; height: 32px; filter: grayscale(1) brightness(0.6); opacity: 0.5; }
+.eqs.emp .cn { position: absolute; top: 2px; right: 4px; font: 700 12px/1 var(--font); font-style: normal; color: var(--tx-dim); }
+.eqs.emp .cn.c-good { color: var(--good); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.chbelt { flex: 1 1 100%; min-height: 44px; padding: 0 12px; text-align: left; background: var(--s2); border: 1px solid var(--line); border-radius: 3px; color: var(--tx); font: 500 14px/1.3 var(--font); cursor: pointer; }
+.bagno p { margin: 0 0 10px; font: 500 14px/1.4 var(--font); color: var(--tx-dim); text-align: left; }
+.bagno .btn.wide { width: 100%; min-height: 48px; }
+/* 快捷列（M2-37.4）：只在手動；開了但空著的技能格＝外框＋鍵帽，點了開技能面板 */
+.sk.emp { border-color: var(--fr-hi); cursor: pointer; }
+.sk.emp kbd { position: static; padding: 1px 6px; background: var(--s0); color: var(--title); border-radius: 3px; font-size: 12px; }
+body:not(.touch) #bar { transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s 0s; }
+body:not(.touch).mauto #bar { visibility: hidden; opacity: 0; transform: translateY(12px); transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s 160ms; }
+/* 模式切換（桌機底帶 884–1052 × 656–700）：自動｜手動＋鍵帽 C */
+body.touch .modesw { display: none; }
+.modesw { position: absolute; left: calc(50% + 244px); bottom: 20px; display: flex; align-items: center; gap: 0; pointer-events: auto; }
+.modesw button { width: 84px; height: 44px; background: var(--s2); color: var(--tx-dim); border: 1px solid var(--fr-hi); font: 700 14px var(--font); cursor: pointer; }
+.modesw button + button { border-left: 0; }
+.modesw button.on { background: var(--sel); color: var(--sel-ink); }
+.modesw button:focus-visible { outline: 2px solid var(--fr-c); outline-offset: 2px; }
+.modesw kbd { margin-left: 4px; padding: 1px 4px; background: var(--s0); color: var(--title); border-radius: 3px; font: 700 12px var(--font); }
+@media (prefers-reduced-motion: reduce) { body:not(.touch) #bar { transition: none !important; } }

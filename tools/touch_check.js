@@ -430,7 +430,8 @@ let fail = 0;
       S.mat.mats = {};
       matAdd('iron', 1, 16);
       CRAFT.tab = 'make';
-      fmenuOpen('craft');
+      FSEG = 'make';
+      fmenuOpen('forge');
     });
     await p.waitForTimeout(200);
     const mkL = await p.evaluate(() => {
@@ -448,8 +449,8 @@ let fail = 0;
       ];
     });
     ok(
-      '橫向：營地全 0 分頁只有「總覽」「打造」（跟直立同名）、沒有鍛造台／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
-      mkL[0] === '總覽,打造' && !/鍛造台|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
+      '橫向：鍛造台全 0 的鍛造只有「打造」（跟直立同名，M2-38 起營地是另一頁）、沒有鍛造台／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
+      mkL[0] === '打造' && !/鍛造台|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
       JSON.stringify(mkL)
     );
     await tapL('#pcraft [data-fg=go]');
@@ -507,8 +508,8 @@ let fail = 0;
       })
     );
     ok(
-      '底部分頁列：六格（0.4.7 加天賦）、每格 ≥44px、在畫面內',
-      nav.length === 6 && nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
+      '底部分頁列：七格（0.4.7 加天賦、M2-38 加鍛造）、每格 ≥44px、在畫面內',
+      nav.length === 7 && nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
       JSON.stringify(nav)
     );
     ok(
@@ -585,8 +586,8 @@ let fail = 0;
     );
     await tap('#tip [data-tq=craft]');
     ok(
-      '按「做裝」：開做裝頁、裝備放在中間',
-      await p.evaluate(() => !!S.curIt && !$('pstash').hidden && $('pinv').hidden && navOn() === 'craft')
+      '按「做裝」：開鍛造 › 通貨、裝備放在中間',
+      await p.evaluate(() => !!S.curIt && !$('pstash').hidden && $('pinv').hidden && navOn() === 'forge')
     );
     /* 換一件：挑裝備只看倉庫清單，點一下直接放上去 */
     const cur0 = await p.evaluate(() => S.curIt.id);
@@ -687,14 +688,14 @@ let fail = 0;
     ok('再點把手：面板放大到蓋滿', !!full && full[1] < 60, JSON.stringify(full));
     await tap('#phand');
     /* 點亮著的分頁＝收起來 */
-    await tap('#pnav [data-tm="nav:craft"]');
+    await tap('#pnav [data-tm="nav:forge"]');
     ok(
       '點亮著的分頁＝收起來、畫布回到整個畫面',
       await p.evaluate(
         () => !anyPanel() && CV.clientHeight === innerHeight && !document.body.classList.contains('sheet')
       )
     );
-    /* ---------- 0.5.0 打造：鍛造台 Lv0 的做裝只有「打造」「碎片」、材料夠按一下打一件、翻牌出換裝卡與三顆鈕、換上／分解、升級鈕 ---------- */
+    /* ---------- 0.5.0 打造：鍛造台 Lv0 的鍛造只有「打造」（M2-38 起碎片頁拆掉）、材料夠按一下打一件、翻牌出換裝卡與三顆鈕、換上／分解、升級鈕 ---------- */
     await p.evaluate(() => {
       closePanels();
       S.camp = newCamp();
@@ -702,16 +703,16 @@ let fail = 0;
       S.mat.mats = {};
       matAdd('iron', 1, 16);
       CRAFT.tab = 'make';
-      PANEL.ctab = 'make';
+      FSEG = 'make';
       window._n0 = S.inv.items.length;
     });
-    await tap('#pnav [data-tm="nav:craft"]');
+    await tap('#pnav [data-tm="nav:forge"]');
     const seg0 = await p.evaluate(() =>
       [...document.querySelectorAll('#pcraft .ftabs button')].map(b => b.textContent)
     );
     ok(
-      '營地全 0：營地只有「總覽」「打造」（通貨、鍛造台、碎片藏起來）',
-      seg0.join() === '總覽,打造' && (await p.evaluate(() => CRAFT.tab === 'make' && !$('pcraft').hidden)),
+      '鍛造台全 0：鍛造只有「打造」（通貨、鍛造台藏起來）',
+      seg0.join() === '打造' && (await p.evaluate(() => CRAFT.tab === 'make' && !$('pcraft').hidden)),
       seg0.join()
     );
     const mk = await p.evaluate(() => {
@@ -771,7 +772,7 @@ let fail = 0;
       )
     );
     await p.evaluate(() => closePanels());
-    await tap('#pnav [data-tm="nav:craft"]');
+    await tap('#pnav [data-tm="nav:forge"]');
     await tap('#pcraft [data-fg=go]');
     await p.waitForTimeout(500);
     const s0 = await p.evaluate(() => S.mat.soul);
@@ -793,7 +794,6 @@ let fail = 0;
       S.mat.soul = 150;
       matAdd('wood', 0, 40 - matN('wood'));
       CRAFT.tab = 'camp';
-      PANEL.ctab = 'camp';
     });
     await tap('#pnav [data-tm="nav:craft"]');
     const up = await p.evaluate(() => {
@@ -807,12 +807,13 @@ let fail = 0;
     );
     await tap('#pcraft [data-fg="camp:forge"]');
     await p.waitForTimeout(200);
+    await tap('#pnav [data-tm="nav:forge"]');
     const seg1 = await p.evaluate(() =>
       [...document.querySelectorAll('#pcraft .ftabs button')].map(b => b.textContent)
     );
     ok(
-      '升到 Lv1：靈魂扣 150、通貨與鍛造台分頁出現',
-      (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '總覽,打造,通貨,鍛造台',
+      '升到 Lv1：靈魂扣 150、鍛造的通貨與鍛造台段出現',
+      (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '打造,通貨,鍛造台',
       seg1.join()
     );
     /* ---------- 0.5.3 破裂石、完美石：鍛造台「填」選石頭 → 按鈕在畫面內、≥44px → 用下去 ---------- */
@@ -827,10 +828,10 @@ let fail = 0;
       CRAFT.tab = 'forge';
       CRAFT.sel = { src: 'inv', id: it.id };
       CRAFT.op = 'frac';
-      PANEL.ctab = 'forge';
+      FSEG = 'forge';
       window._st = it;
     });
-    await tap('#pnav [data-tm="nav:craft"]');
+    await tap('#pnav [data-tm="nav:forge"]');
     const stB = async () =>
       p.evaluate(() => {
         const b = document.querySelector('#pcraft [data-fg="op"]'),
@@ -865,7 +866,6 @@ let fail = 0;
       S.mat.mats = { wood: 400, 'iron:1': 400 };
       S.mat.soul = 0;
       CRAFT.tab = 'camp';
-      PANEL.ctab = 'camp';
       CAMPUI.mul = 1;
     });
     await tap('#pnav [data-tm="nav:craft"]');
@@ -883,8 +883,8 @@ let fail = 0;
       ];
     });
     ok(
-      '營地總覽（0.5.1）：開局 8 張卡（解鎖表六座＋林場、礦場）都在畫面寬度內、升級鈕與 ×1／×10／最大 ≥44px、上面兩行（庫存＋速率、下一件事）、分頁列寫買得起幾件',
-      cm[0] === 8 && cm[1] && cm[2] && cm[3] && /^\d+ 可升級$/.test(cm[4]) && parseInt(cm[4]) >= 2,
+      '營地總覽（0.5.1）：開局 8 張卡（解鎖表六座＋林場、礦場）都在畫面寬度內、升級鈕與 ×1／×10／最大 ≥44px、上面兩行（庫存＋速率、下一件事）、分頁列徽章寫買得起幾件（M2-38 只寫數字）',
+      cm[0] === 8 && cm[1] && cm[2] && cm[3] && /^\d+$/.test(cm[4]) && parseInt(cm[4]) >= 2,
       JSON.stringify(cm)
     );
     /* 0.5.4（工項 12-C）：資源條在跑（同一條隔 1.5 秒寬度變了、數字有字）、卡片固定順序（產生器在前、解鎖表照 CAMP_B，升級後不重排）、上面兩行黏住 */
@@ -955,12 +955,13 @@ let fail = 0;
           document.querySelectorAll('#pidle .rbar').length,
           !!r && r.height >= 44 && r.bottom <= innerHeight && r.top >= 0,
           b ? b.textContent : '',
-          !document.querySelector('#pidle [data-fg^="camp:"], #pidle [data-fg^="gen:"]')
+          !document.querySelector('#pidle [data-fg^="camp:"], #pidle [data-fg^="gen:"]'),
+          campReady()
         ];
       });
       ok(
-        '掛機卡（M1-CP.4）：下半有資源條（木、鐵、靈魂）與「去營地」主鈕 ≥48px 在畫面內，沒有升級鈕',
-        ic[0] && ic[1] >= 3 && ic[2] && ic[3] === '去營地' && ic[4],
+        '掛機卡（M1-CP.4）：下半有資源條（木、鐵、靈魂）與「去營地」主鈕 ≥48px 在畫面內（M2-38：有可升級寫「去營地・n 可升級」），沒有升級鈕',
+        ic[0] && ic[1] >= 3 && ic[2] && ic[3] === (ic[5] ? `去營地・${ic[5]} 可升級` : '去營地') && ic[4],
         JSON.stringify(ic)
       );
       await tap('#pidle .igo');
@@ -2113,9 +2114,14 @@ let fail = 0;
       return [baseLayers(it), document.querySelector('.cmpc') ? document.querySelector('.cmpc').innerText : ''];
     });
     ok('M1-09：說明框與換裝卡不寫裝備的孔', !so.join().includes('孔') && !so.join().includes('○'), JSON.stringify(so));
-    /* M1-09（製作人決定 5）：角色頁截圖，每一格點了都有反應（裝備欄、護符、神格），沒有寶石格 */
+    /* M1-09（製作人決定 5）：角色頁截圖，每一格點了都有反應（裝備欄、護符、神格），沒有寶石格。
+       M2-38（M2-37.6）起護符、神格只畫開了的格：先裝 3 槽腰帶、開弒神，讓每一格都在，數完拿掉 */
     await p.evaluate(() => {
       closePanels();
+      window._w0 = S.camp.watch;
+      S.camp.watch = CAMP.watch.length;
+      S.eq.belt = mkItem(BASES.find(b => b.k === 'belt').id, 1, 0);
+      S.eq.belt.cs = 3;
       navGo('char');
     });
     await p.waitForTimeout(400);
@@ -2128,6 +2134,10 @@ let fail = 0;
       dc.length >= 13 && !dc.some(t => /寶石/.test(t)),
       JSON.stringify(dc)
     );
+    await p.evaluate(() => {
+      S.camp.watch = _w0;
+      S.eq.belt = null;
+    });
     await p.evaluate(() => {
       closePanels();
       navGo('bag');
@@ -2367,7 +2377,7 @@ let fail = 0;
       JSON.stringify(cr)
     );
     await p.screenshot({ path: shot('m1ui_char') });
-    /* M1-CP：營地首屏有下一個解鎖一列、「還有 N 座」、卡頭箭頭；徽章「n 可升級」 */
+    /* M1-CP：營地首屏有下一個解鎖一列、「還有 N 座」、卡頭箭頭；徽章「n」（M2-38 只寫數字） */
     const cp = await p.evaluate(() => {
       closePanels();
       Object.assign(S.camp, { forge: 1 });
