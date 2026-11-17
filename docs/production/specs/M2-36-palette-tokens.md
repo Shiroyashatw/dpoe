@@ -38,7 +38,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac2
 | 主按鈕 vs 負向色 ΔE | 越大越好 | --act／--bad | 54.6 |
 
 語意色共 14 個：負向、警告、火、追逐、稀有、雷、正向、昇華、傳奇、冰、魔法、覺醒、混沌、受傷。
-場景亮部（L* 44）對 `--border-mid` 只有 1.75:1，面板不能貼在大片亮部上而不加框外的 `--scrim-rgb` 陰影；畫法規則（11/20）會寫。
+場景亮部（L* 44）對 `--border-mid` 只有 1.75:1，面板不能貼在大片亮部上而不加框外的 `--scrim-rgb` 陰影，做法見 `specs/M2-36-drawing-rules.md` §4。
 
 ## token 值
 「同 X」是指同一個值；token 還是分開的兩個。
