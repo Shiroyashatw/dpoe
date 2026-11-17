@@ -67,6 +67,9 @@ const ev = (p, f, a) => p.evaluate(f, a);
     await q.waitForTimeout(w);
     await ev(q, () => (closePanels(), DBG.biome('temple'), DBG.clear(), DBG.freeze()));
     await q.mouse.move(-1, -1);
+    /* 字型照 unicode 範圍分段載入：新出現的字要再等一次 */
+    await q.waitForLoadState('networkidle');
+    await ev(q, () => document.fonts.ready.then(() => 0));
     await q.waitForTimeout(300);
     const s = await q.screenshot();
     await q.context().close();
