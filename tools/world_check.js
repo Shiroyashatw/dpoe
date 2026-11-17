@@ -59,20 +59,33 @@ async function flow(b) {
     openPanel('node');
   });
   ok(
-    '地點清單（0.5.4）：一開始只列開了的第 1 個＋下一個（「升瞭望台 Lv 1 就開」、點了去營地）、其餘一行「還有 N 個地點」，沒有「打過」「還沒打」「材料 T」',
+    '地點清單（M2-07）：全部地點都列出（面板捲動），第 1 個能刷、下一個「升瞭望台 Lv 1 就開」點了去營地、其餘鎖著的都寫條件，沒有「還有 N 個地點」「打過」「還沒打」「材料 T」',
     await p.evaluate(() => {
       const L = [...document.querySelectorAll('#pnode .ndr')],
         t = $('pnode').textContent;
       return (
-        L.length === 2 &&
+        L.length === W_ALL.length &&
         L[0].dataset.a === 'ngo:' + TRUNK_K[0] &&
         /升瞭望台 Lv 1 就開/.test(L[1].textContent) &&
         L[1].dataset.tm === 'nav:craft' &&
-        /還有 \d+ 個地點/.test(t) &&
+        L.slice(2).every(e => e.closest('li').classList.contains('lock') && /才開|需達|需要/.test(e.textContent)) &&
+        !/還有 \d+ 個地點/.test(t) &&
         !/打過|還沒打|材料 T/.test(t)
       );
     })
   );
+  ok(
+    '地點清單（M2-07）：清單比面板高時面板可以捲到最後一個',
+    await p.evaluate(() => {
+      const P = $('pnode'),
+        L = P.querySelectorAll('.ndr');
+      P.scrollTop = P.scrollHeight;
+      const a = L[L.length - 1].getBoundingClientRect(),
+        b = P.getBoundingClientRect();
+      return P.scrollHeight > P.clientHeight && a.bottom <= b.bottom + 1 && a.top >= b.top;
+    })
+  );
+  await p.evaluate(() => ($('pnode').scrollTop = 0));
   await p.click(`#pnode [data-a="ngo:${await p.evaluate(() => TRUNK_K[0])}"]`);
   ok(
     '在這裡刷：直接進場地（不用傳送門）、第 1 輪',
