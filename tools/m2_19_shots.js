@@ -235,8 +235,20 @@ fs.mkdirSync(OUT, { recursive: true });
       () => (($('ttip').hidden = true), closePanels(), openPanel('inv'), chaseBnHide(), devChase()),
       () => {
         const bn = __r('#chase'),
-          pn = __r('#pinv');
-        return [!!bn && !!pn && bn.x + bn.w <= pn.x + 1 && bn.y === 76, { 橫幅: bn, 右欄: pn }];
+          pn = __r('#pinv'),
+          nm = document.querySelector('#chase .cbt b'),
+          nr = __r(nm);
+        /* 名字欄寬 > 0 且名字整個放得下（沒有被 … 截掉） */
+        return [
+          !!bn &&
+            !!pn &&
+            bn.x + bn.w <= pn.x + 1 &&
+            bn.y === 76 &&
+            !!nr &&
+            nr.w > 0 &&
+            nm.scrollWidth <= nm.clientWidth,
+          { 橫幅: bn, 右欄: pn, 名字: nr, 名字字寬: nm && nm.scrollWidth, 名字文字: nm && nm.textContent }
+        ];
       },
       600
     );
