@@ -457,7 +457,7 @@ function draw() {
       /* 持續傷害：小、淡，跟擊中分開 */
       dot: ['#c9a3a3', 12]
     }[n.c];
-    CX.globalAlpha = 1 - Math.max(0, f - 0.6) / 0.4;
+    const fa = 1 - Math.max(0, f - 0.6) / 0.4;
     CX.font = `700 ${Math.round(st[1] * pop)}px "Noto Sans TC", sans-serif`;
     const txt =
       n.c === 'gold'
@@ -473,9 +473,12 @@ function draw() {
                 : n.c === 'ev'
                   ? '閃避'
                   : n.txt || n.v;
+    /* 描邊比字慢淡出（M2-31 C1） */
+    CX.globalAlpha = Math.min(1, fa + 0.3);
     CX.lineWidth = 4;
-    CX.strokeStyle = 'rgba(0,0,0,0.8)';
+    CX.strokeStyle = 'rgba(0,0,0,0.95)';
     CX.strokeText(txt, n.x, y);
+    CX.globalAlpha = fa;
     CX.fillStyle = st[0];
     CX.fillText(txt, n.x, y);
   }

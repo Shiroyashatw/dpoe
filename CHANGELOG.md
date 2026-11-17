@@ -1,5 +1,15 @@
 # dungeonPOE 更新紀錄
 
+## 0.5.4 之後：M2-31 對比小修 T1–T10＋canvas C1（還沒換版本號；Game Art Director 規格 P0）
+
+存檔版本還是 35，遊戲數值與邏輯沒動。量測工具與前後數字在 `evidence/m2-31/`。
+- **新 token**（style.css 0.4.9 那段 `:root` 最後）：`--tx-dim`（＝`--dim`）、`--tx-off #aa9a84`、`--on-act #f3e4d2`、`--plate-world rgba(11, 8, 6, 0.8)`。
+- **T1** 換裝卡「（空）」`.cmpc li.none` 拿掉寫死的 `#6a5a48` → `--tx-dim`（2.12 → 4.83）。**T2** 負抗性 `.doll2 .res span.neg b`、**T3** 死亡卡擊殺者 `.ddeath b`：`--bad` → `--bad-hi`（4.25 → 5.27）。
+- **T4** 主按鈕的字與小字 `.btn.pri`、`.btn.pri small`（含換裝卡動作列 `.acts .btn.pri small`，原本被 `.acts .btn small` 蓋成 `--milk2`、2.30）→ 不透明 `--on-act`。**T5** 停用鈕 `.btn:disabled`、`.skr-up:disabled` 字 `--milk2` → `--tx-off`（4.43 → 4.70）。
+- **T6** 桌機技能列鍵帽 `.sk kbd` 加 `--s0` 小底板、圖示縮成 36 往下 6 px，不再壓在劍上（「左鍵」1.82 → 11.04）。**T10** 狀態格數字 `.stc b` 離紅框 2 px、加 `--s0` 小底板。
+- **場景字底板**（T7 首領進度 `#prog b`、T8 掉落紀錄 `#dlog p`、T9 地點名 `#area`）：`--plate-world` 底板貼著字、`text-shadow: 0 1px 2px #000`，`#prog b` 字色 `--dim` → `--tx`。
+- **C1 跳數字**（render.js）：描邊比字慢淡出——描邊 `globalAlpha = min(1, fa + 0.3)`、`rgba(0,0,0,0.95)`，填色才用 `fa`；字色、大小、時序不動。紅色受傷數字疊在紅／橙特效上（直立 03、桌機 09）延到 M2-32。
+
 ## 0.5.4 之後：M1-21 瞭望台 Lv1（還沒換版本號）
 
 存檔版本還是 35。
