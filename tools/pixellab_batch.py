@@ -4,16 +4,16 @@
 金鑰只讀環境變數 PIXELLAB_API_KEY，不要寫進程式或 commit（雲端環境由代理注入，可不設）。
 
 用法（在 dpoe/ 底下）：
-    python3 tools/pixellab_batch.py list                          # 列出工作表
-    python3 tools/pixellab_batch.py run --job tile_temple_floor   # 只預覽，不花點數
-    python3 tools/pixellab_batch.py run --job tile_temple_floor --n 1 --go
-    python3 tools/pixellab_batch.py run --all --go                # 全部，一批 5 張依序跑
-    python3 tools/pixellab_batch.py post                          # 從原圖重做後處理（不花點數）
+    python3 tools/pixellab_batch.py list                          # 列出工作表（含換好的提示詞）
+    python3 tools/pixellab_batch.py run --wave A                  # 只預覽，不花點數
+    python3 tools/pixellab_batch.py run --wave A --go             # 真的送出，一批 5 張依序跑
+    python3 tools/pixellab_batch.py --repost all                  # 從 art/_raw 原圖重做後處理＋asset_check（不花點數）
+    python3 tools/pixellab_batch.py recolor --job tile_ice_walltop --from tile_tomb_walltop-s1312   # 冰窟牆頂備案
     python3 tools/pixellab_batch.py balance
-- 沒加 --go 一律只預覽；一批最多 5 張（--all 就是一批一批跑）。
-- 第 k 張用 seed0 + k；art/_raw/<id>/<id>-s<seed>.png 已存在就跳過（重跑接著做）。
-- 原圖與 .json 在 art/_raw/<id>/，後處理結果在 art/_raw/<id>/post/；挑去正式目錄由 tools/asset_check.py 做。
-- 有 after 的工作（16 的王印）：init_image = 該 32 工作在正式目錄裡種子最小的過關圖，最近鄰縮成 16。
+- 沒加 --go 一律只預覽；第 k 張用 seed0 + k；art/_raw/<id>/<id>-s<seed>.png 已存在就跳過。
+- palette 寫 token 名，送出前從 specs/M2-36-palette-tokens.md 換成值；地磚的後處理與檢查一律用該地形四色。
+- 工作表沒有的 id（第一輪）從 art/_raw/<id>/*.json 還原。
+- init_from：規格指定的 32（alpha_binary 後、已過檢查、在正式目錄）；端點拒收 init_image 時加 --no-init。
 """
 import argparse, base64, io, json, os, pathlib, re, sys, urllib.error, urllib.request
 import numpy as np
@@ -26,9 +26,78 @@ RAW = ROOT / 'art/_raw'
 BATCH = 5
 
 
+TOK = ROOT / 'docs/production/specs/M2-36-palette-tokens.md'
+MOTIF = {'zhenyue': '--tx-strong', 'chixiao': '--el-fire', 'jiting': '--el-light', 'guixu': '--rar-magic'}
+SEAL = ['--scene-void', '--panel-inset', '--border', '--border-mid', '--border-cap', '--rar-chase-bg', '--rar-chase', '--rar-chase-hi']
+
+
+def tokens():
+    """色票檔的 token → 色值：`| --a／-b | `#x`／`#y` |` 與場景表 `| temple | -ground… |`"""
+    t, scene = {}, None
+    for line in TOK.read_text(encoding='utf-8').splitlines():
+        c = [x.strip() for x in line.strip().strip('|').split('|')]
+        if c[0] == '地形':
+            scene = c[1:]
+            continue
+        if scene and c[0] in ('temple', 'lava', 'tomb', 'ice'):
+            for k, v in zip(scene, c[1:]):
+                if v.startswith('`#'):
+                    t[f'--scene-{c[0]}{k}'] = v.strip('`')
+        elif c[0].startswith('--') and len(c) > 1 and c[1].startswith('`#'):
+            names = c[0].split()[0].split('／')
+            vals = [v.strip('`') for v in c[1].split('／')]
+            for i, (n, v) in enumerate(zip(names, vals)):
+                t[n if n.startswith('--') else names[0] + n] = v
+    return t
+
+
+def palette(job):
+    """後處理、檢查用的色：地磚一律該地形四色（-edge、-ground、-mid、-light），其餘照工作表"""
+    if job['id'].startswith('tile_'):
+        b = job['id'].split('_')[1]
+        return [tokens()[f'--scene-{b}-{k}'] for k in ('edge', 'ground', 'mid', 'light')]
+    return [tokens().get(c, c) for c in job['palette']]
+
+
+def job_of(jid):
+    """工作表沒有的 id（第一輪跑過的）：從 art/_raw/<id>/ 的 .json 還原"""
+    j = next((x for x in jobs() if x['id'] == jid), None)
+    if j:
+        return j
+    m = json.loads(next((RAW / jid).glob('*.json')).read_text(encoding='utf-8'))
+    k = jid.split('_')[-1]
+    post = {'floor': 'floor_shift', 'walltop': 'wall_shift', 'wallface': 'face_shift'}.get(k, 'alpha_binary')
+    pal = [] if jid.startswith('tile_') else SEAL + [MOTIF[jid.split('_')[1]]]
+    body = {x: v for x, v in m['request'].items() if x not in ('seed', 'color_image', 'init_image')}
+    out = f"art/tiles/{jid.split('_')[1]}/{k}/" if jid.startswith('tile_') else f"art/icons/wangyin/wangyin_{jid.split('_')[1]}/"
+    return {'id': jid, 'endpoint': m['endpoint'].replace('POST /v2', ''), 'body': body, 'palette': pal, 'post': post, 'out': out}
+
+
 def jobs():
+    """§3 JSON（跳過還沒定的 <名>）；body 是字串時照說明從別的 job 補"""
     text = DOC.read_text(encoding='utf-8')
-    return json.loads(re.search(r'## 3\..*?```json\n(.*?)\n```', text, re.S).group(1))
+    js = [j for j in json.loads(re.search(r'## 3\..*?```json\n(.*?)\n```', text, re.S).group(1)) if '<' not in j['id']]
+    by = {j['id']: j for j in js}
+    for j in js:
+        b = j['body']
+        if isinstance(b, str):
+            if m := re.match(r'同 (art/_raw/\S+\.json) 的 body', b):
+                r = json.loads(next(ROOT.glob(m.group(1))).read_text(encoding='utf-8'))['request']
+                j['body'] = {x: v for x, v in r.items() if x not in ('seed', 'color_image', 'init_image')}
+            elif m := re.match(r'同 (\w+)，刻紋換成 (.+)', b):
+                src = next(v for k, v in by.items() if k.split('_')[1] == m.group(1))
+                old = re.search(r'(?:a|an) [^,]*? carved on the plaque face', src['body']['description']).group(0)
+                j['body'] = dict(src['body'], description=src['body']['description'].replace(old, m.group(2) + ' carved on the plaque face'))
+            else:
+                sys.exit(f'{j["id"]} 的 body 看不懂：{b}')
+    return js
+
+
+def all_jobs():
+    """工作表＋art/_raw 裡第一輪的 job"""
+    js = jobs()
+    ids = {j['id'] for j in js}
+    return js + [job_of(d.name) for d in sorted(RAW.iterdir()) if d.is_dir() and d.name not in ids and any(d.glob('*.json'))]
 
 
 def hexrgb(c):
@@ -95,37 +164,71 @@ def nearest(rgb, pal):
 
 
 # ---- §5 後處理 ----
-def fix_isolated(idx):
-    """上下左右都不同色的像素改成多數鄰居色（左右上下相接，因為地磚要拼）"""
-    nb = np.stack([np.roll(idx, s, a) for s, a in ((1, 0), (-1, 0), (1, 1), (-1, 1))])
-    iso = (nb != idx).all(0)
-    out = idx.copy()
-    for y, x in zip(*np.nonzero(iso)):
-        v, n = np.unique(nb[:, y, x], return_counts=True)
-        out[y, x] = v[n.argmax()]
+def mode(a):
+    v, n = np.unique(a, return_counts=True)
+    return v[n.argmax()]
+
+
+def levels(im, pal):
+    """每個像素對地形四色（-edge、-ground、-mid、-light → 0–3）的最近色"""
+    return nearest(np.asarray(im.convert('RGB')), pal)[0]
+
+
+def paint(idx, pal):
+    return Image.fromarray(np.array([hexrgb(c) for c in pal], np.uint8)[idx], 'RGB')
+
+
+def neighbours(idx, wrapy=True):
+    """上下左右四鄰；左右一定繞回，上下看 wrapy（牆面不繞回，邊外記 -1）"""
+    lr = [np.roll(idx, 1, 1), np.roll(idx, -1, 1)]
+    if wrapy:
+        return np.stack([np.roll(idx, 1, 0), np.roll(idx, -1, 0)] + lr)
+    p = np.pad(idx, ((1, 1), (0, 0)), constant_values=-1)
+    return np.stack([p[:-2], p[2:]] + lr)
+
+
+def wrap_heal(idx):
+    """上下、左右接縫兩邊相對的像素不同色 → 兩格都改成整張最多的色"""
+    m, out = mode(idx), idx.copy()
+    for a, b in ((np.s_[:, 0], np.s_[:, -1]), (np.s_[0], np.s_[-1])):
+        bad = idx[a] != idx[b]
+        out[a][bad] = m
+        out[b][bad] = m
     return out
 
 
-def floor_remap(im, pal):
-    """明度排名：最暗 28% → -edge，最亮 2% → -mid，其他 → -ground。
-    PixelLab 回來只有 3 色，同明度一大片；只照掃描順序會讓 -mid 永遠擠在右下角，
-    所以同明度再比周圍 5×5（左右上下相接）的平均明度，最後才照原本排列。"""
-    a = np.asarray(im.convert('RGB'))
-    L2 = lab(a)[..., 0]
-    near = sum(np.roll(np.roll(L2, dy, 0), dx, 1) for dy in range(-2, 3) for dx in range(-2, 3))
-    L = L2.ravel()
-    order = np.lexsort((near.ravel(), L))
-    n = L.size
-    idx = np.ones(n, int)
-    idx[order[: round(n * 0.28)]] = 0
-    idx[order[n - round(n * 0.02):]] = 2
-    idx = fix_isolated(idx.reshape(a.shape[:2]))
-    return [Image.fromarray(np.array([hexrgb(c) for c in pal], np.uint8)[idx], 'RGB')], {}
+def despeckle(idx, wrapy=True, keep_edges=False):
+    """四鄰都跟自己不同 → 改成鄰居裡最多的色，做一次。keep_edges：牆面左右邊那兩欄不動（接縫已統一）"""
+    nb = neighbours(idx, wrapy)
+    iso = (nb != idx).all(0)
+    if keep_edges:
+        iso[:, [0, -1]] = False
+    out = idx.copy()
+    for y, x in zip(*np.nonzero(iso)):
+        v = nb[:, y, x]
+        out[y, x] = mode(v[v >= 0])
+    return out
 
 
-def split_2x32(im, pal):
-    w = im.width // 2
-    return [im.crop((0, 0, w, im.height)), im.crop((w, 0, im.width, im.height))], {}
+def shift(im, pal):
+    """floor_shift／wall_shift：色階 −1（最低 0），再 wrap_heal、despeckle"""
+    return [paint(despeckle(wrap_heal(np.maximum(levels(im, pal) - 1, 0))), pal)], {}
+
+
+def face_shift(im, pal):
+    """牆面 64×18：−1；每列第 0、31、32、63 欄不全同 → 都改成這列最多的色；切成 a、b 各自 despeckle"""
+    idx = np.maximum(levels(im, pal) - 1, 0)
+    w = idx.shape[1] // 2
+    cols = [0, w - 1, w, 2 * w - 1]
+    for row in idx:
+        if len(set(row[cols])) > 1:
+            row[cols] = mode(row)
+    return [paint(despeckle(h, False, True), pal) for h in (idx[:, :w], idx[:, w:])], {}
+
+
+def recolor(src, pal, src_pal):
+    """另一地形已過的色階圖（後處理後）用這個地形的四色重畫"""
+    return [paint(levels(Image.open(src), src_pal), pal)], {'recolor_from': src.name}
 
 
 def alpha_binary(im, pal):
@@ -138,15 +241,20 @@ def alpha_binary(im, pal):
     return [Image.fromarray(a, 'RGBA')], {'max_de_before_snap': round(float(d.max()), 2) if d.size else 0}
 
 
-POST = {'floor_remap': floor_remap, 'split_2x32': split_2x32, 'alpha_binary': alpha_binary, 'none': lambda im, pal: ([im], {})}
+POST = {'floor_shift': shift, 'wall_shift': shift, 'face_shift': face_shift, 'alpha_binary': alpha_binary}
 
 
 def post_names(stem, post):
-    return [f'{stem}-a.png', f'{stem}-b.png'] if post == 'split_2x32' else [f'{stem}.png']
+    return [f'{stem}-a.png', f'{stem}-b.png'] if post == 'face_shift' else [f'{stem}.png']
 
 
-def post(job, d, stem):
-    outs, info = POST[job['post']](Image.open(d / f'{stem}.png'), job['palette'])
+def post(job, d, stem, meta=None):
+    if meta and meta.get('recolor_from'):  # 備案：從來源地形的後處理圖重畫，不是 API 原圖
+        sj = job_of(meta['recolor_from'].split('-s')[0])
+        outs, info = recolor(RAW / sj['id'] / 'post' / meta['recolor_from'], palette(job), palette(sj))
+        outs[0].save(d / f'{stem}.png')  # 「原圖」就是重畫的圖（沒有 API 原圖可量）
+    else:
+        outs, info = POST[job['post']](Image.open(d / f'{stem}.png'), palette(job))
     for o, name in zip(outs, post_names(stem, job['post'])):
         o.save(d / 'post' / name)
     return info
@@ -167,33 +275,30 @@ def http(method, path, body=None):
         sys.exit(f'API 錯誤 {e.code}：{e.read().decode("utf-8", "replace")[:300]}')
 
 
-def init_image(job, all_jobs, init=None):
-    src = next(j for j in all_jobs if j['id'] == job['after'])
-    picks = [pathlib.Path(init)] if init else sorted(pathlib.Path(ROOT / src['out']).glob(f"{src['id']}-s*.png"), key=lambda p: int(re.search(r'-s(\d+)', p.name).group(1)))
-    if not picks:
-        return None, None
+def init_image(job):
+    """init_from：規格指定、已過檢查的 32（alpha_binary 後、在正式目錄裡），縮成這張的尺寸"""
+    src = job['init_from'].split('-s')[0]
+    f = ROOT / job_of(src)['out'] / f"{job['init_from']}.png"
+    if not f.exists():
+        sys.exit(f'init_from {f.relative_to(ROOT)} 不在正式目錄（先跑 asset_check.py，要過關）')
     w, h = job['body']['image_size']['width'], job['body']['image_size']['height']
-    return Image.open(picks[0]).convert('RGBA').resize((w, h), Image.NEAREST), picks[0].name
+    return Image.open(f).convert('RGBA').resize((w, h), Image.NEAREST), f.name
 
 
-def request(job, seed, all_jobs, init=None):
-    body = dict(job['body'], seed=seed, color_image=b64img(palette_png(job['palette'])))
+def request(job, seed, no_init=False):
+    body = dict(job['body'], seed=seed, color_image=b64img(palette_png([tokens().get(c, c) for c in job['palette']])))
     note = {}
-    if 'after' in job:
-        im, name = init_image(job, all_jobs, init)
-        if im is None:
-            return None, None
-        body['init_image'], note['init_from'] = b64img(im), name
+    if 'init_from' in job and not no_init:
+        im, note['init_from'] = init_image(job)
+        body['init_image'], body['init_image_strength'] = b64img(im), job['init_image_strength']
     return body, note
 
 
-def run_one(job, k, all_jobs, init=None):
+def run_one(job, k, no_init=False):
     seed = job['seed0'] + k
     stem = f"{job['id']}-s{seed}"
     d = RAW / job['id']
-    body, note = request(job, seed, all_jobs, init)
-    if body is None:
-        return print(f"  跳過 {stem}：{job['after']} 還沒有過關的圖（先跑 asset_check.py）")
+    body, note = request(job, seed, no_init)
     r = http('POST', job['endpoint'], body)
     d.mkdir(parents=True, exist_ok=True)
     (d / 'post').mkdir(exist_ok=True)
@@ -202,52 +307,80 @@ def run_one(job, k, all_jobs, init=None):
     info = post(job, d, stem)
     req = {k2: ('(base64 略)' if isinstance(v, dict) and 'base64' in v else v) for k2, v in body.items()}
     r['image']['base64'] = '(存成 png，略)'
-    meta = {'endpoint': 'POST /v2' + job['endpoint'], 'job': job['id'], 'seed': seed, 'post': job['post'], **note, **info,
+    meta = {'endpoint': 'POST /v2' + job['endpoint'], 'job': job['id'], 'seed': seed, 'wave': job.get('wave'), 'post': job['post'], **note, **info,
             'request': req, 'usage': r.get('usage'), 'response': r}
     (d / f'{stem}.json').write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f"  完成 {stem}.png {im.size} {im.mode}，用量 {r.get('usage')}")
 
 
+def repost(ids):
+    """只用 art/_raw 的原圖重做 §5 後處理，不花生成；接著跑 asset_check（§6）"""
+    for j in all_jobs():
+        if ids != ['all'] and j['id'] not in ids:
+            continue
+        d = RAW / j['id']
+        for old in (d / 'post').glob('*.png'):
+            old.unlink()
+        for f in sorted(d.glob('*.json')):
+            m = json.loads(f.read_text(encoding='utf-8'))
+            m['post'] = j['post']
+            m.update(post(j, d, f.stem, m))
+            f.write_text(json.dumps(m, ensure_ascii=False, indent=2), encoding='utf-8')
+            print('重做', f.stem, j['post'])
+    import asset_check
+    asset_check.main()
+
+
+def make_recolor(dst, src_stem):
+    """備案：把 src_stem（另一地形已過的後處理圖）用 dst 地形的四色重畫，存成 dst 的一張"""
+    j = job_of(dst)
+    d = RAW / dst
+    (d / 'post').mkdir(parents=True, exist_ok=True)
+    stem = f'{dst}-recolor-{src_stem.split("_")[1]}-s{src_stem.rsplit("-s", 1)[1]}'
+    m = {'job': dst, 'seed': int(src_stem.rsplit('-s', 1)[1]), 'post': j['post'], 'recolor_from': src_stem + '.png', 'usage': None}
+    m.update(post(j, d, stem, m))
+    (d / f'{stem}.json').write_text(json.dumps(m, ensure_ascii=False, indent=2), encoding='utf-8')
+    print('備案', stem)
+
+
 def main():
     p = argparse.ArgumentParser(description='PixelLab 地磚與王印批次工具（M2-36 §3）')
-    p.add_argument('cmd', choices=['list', 'run', 'post', 'balance'])
+    p.add_argument('cmd', nargs='?', choices=['list', 'run', 'balance', 'recolor'])
     p.add_argument('--job', default='', help='逗號分隔的 id')
     p.add_argument('--all', action='store_true')
+    p.add_argument('--wave', help='只跑這一波（A、B）')
     p.add_argument('--n', type=int, default=0, help='每個工作最多幾張（0 = 照工作表）')
-    p.add_argument('--init', help='16 的王印改用這張當 init_image（只給小跑驗工具用）')
+    p.add_argument('--repost', help='逗號分隔的 id 或 all：從 art/_raw 原圖重做後處理與檢查，不花生成')
+    p.add_argument('--from', dest='src', help='recolor 的來源，例如 tile_tomb_walltop-s1312')
+    p.add_argument('--no-init', action='store_true', help='不送 init_image（端點拒收時）')
     p.add_argument('--go', action='store_true', help='真的送出，會花點數')
     a = p.parse_args()
+    if a.repost:
+        return repost(a.repost.split(','))
     if a.cmd == 'balance':
         return print(json.dumps(http('GET', '/balance'), ensure_ascii=False))
+    if a.cmd == 'recolor':
+        return make_recolor(a.job, a.src)
     js = jobs()
     if a.cmd == 'list':
         for j in js:
             s = j['body']['image_size']
-            print(f"{j['id']:22} {j['endpoint']:22} {s['width']}×{s['height']} n={j['n']} seed0={j['seed0']} post={j['post']} → {j['out']}")
-        return
-    if a.cmd == 'post':  # 改了後處理：從 art/_raw 的原圖重做，不花點數
-        for j in js:
-            for f in sorted((RAW / j['id']).glob('*.json')):
-                m = json.loads(f.read_text(encoding='utf-8'))
-                m.update(post(j, RAW / j['id'], f.stem))
-                f.write_text(json.dumps(m, ensure_ascii=False, indent=2), encoding='utf-8')
-                print('重做', f.stem)
+            print(f"{j['wave']} {j['id']:22} {j['endpoint']:22} {s['width']}×{s['height']} n={j['n']} seed0={j['seed0']} post={j['post']} init={j.get('init_from', '-')} → {j['out']}")
+            print('   ', j['body']['description'])
         return
     want = [x for x in a.job.split(',') if x]
     bad = [x for x in want if x not in {j['id'] for j in js}]
-    if bad or not (want or a.all):
-        sys.exit('沒有這些 id：' + '、'.join(bad) if bad else '請用 --job 指定 id，或加 --all')
-    todo = [(j, k) for j in js if a.all or j['id'] in want for k in range(min(j['n'], a.n or j['n']))
+    if bad or not (want or a.all or a.wave):
+        sys.exit('沒有這些 id：' + '、'.join(bad) if bad else '請用 --job 指定 id，或加 --all／--wave')
+    todo = [(j, k) for j in js if (a.all or j['id'] in want or j['wave'] == a.wave) for k in range(min(j['n'], a.n or j['n']))
             if not (RAW / j['id'] / f"{j['id']}-s{j['seed0'] + k}.png").exists()]
     print(f'這次 {len(todo)} 張，預估 {len(todo)} 次生成；一批最多 {BATCH} 張')
-    if not a.all:
-        todo = todo[:BATCH]
     for b in range(0, len(todo), BATCH):
         print(f'第 {b // BATCH + 1} 批')
         for j, k in todo[b:b + BATCH]:
             print(f"- {j['id']} s{j['seed0'] + k}：{j['endpoint']} {j['body']['description'][:90]}…")
             if a.go:
-                run_one(j, k, js, a.init)
+                run_one(j, k, a.no_init)
     if not a.go:
         print('只是預覽，沒有送出。確認後加 --go')
 

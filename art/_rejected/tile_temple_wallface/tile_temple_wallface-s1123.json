@@ -2,7 +2,7 @@
   "endpoint": "POST /v2/create-image-pixflux",
   "job": "tile_temple_wallface",
   "seed": 1123,
-  "post": "split_2x32",
+  "post": "face_shift",
   "request": {
     "description": "horizontally seamless wall strip, straight-on front view, front face of a temple wall, dark timber panels above a plaster band, dark, light from the top-left, darkest at the bottom where it meets the floor, no objects, no text, no border, no dithering",
     "image_size": {

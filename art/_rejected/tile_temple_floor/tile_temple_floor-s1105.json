@@ -2,7 +2,7 @@
   "endpoint": "POST /v2/create-image-pixflux",
   "job": "tile_temple_floor",
   "seed": 1105,
-  "post": "floor_remap",
+  "post": "floor_shift",
   "request": {
     "description": "seamless tileable floor tile, flat top-down, worn wooden floor boards of an abandoned temple hall, long horizontal planks with staggered seams, almost entirely one flat very dark tone, seams and cracks in the darkest tone, tiny worn highlights only on a few corners, faded old map feel, no objects, no characters, no text, no border, no noise, no dithering",
     "image_size": {

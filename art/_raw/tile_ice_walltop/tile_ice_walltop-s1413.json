@@ -2,7 +2,7 @@
   "endpoint": "POST /v2/create-image-pixflux",
   "job": "tile_ice_walltop",
   "seed": 1413,
-  "post": "none",
+  "post": "wall_shift",
   "request": {
     "description": "seamless tileable wall top tile, flat top-down, top of a thick ice cave wall seen from above, frosted rock cap, light from the top-left, lit edge on the top-left only, no objects, no text, no border, no dithering",
     "image_size": {
