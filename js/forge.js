@@ -429,7 +429,7 @@ function campNxuHTML() {
 function campHTML() {
   /* M1-CP.1：首屏＝資源、下一件主升級、下一個解鎖、還有幾座（產生器與設施的大卡往下捲或上拉全版） */
   const n = GEN_K.filter(genOn).length + CAMP_B.length;
-  return `<div class="cmhead">${campTopHTML()}${campNextHTML()}${campNxuHTML()}<p class="cmmore">還有 ${n} 座・往下捲或上拉全版</p></div>
+  return `<div class="cmhead">${campTopHTML()}${campNextHTML()}${campNxuHTML()}<p class="cmmore">還有 ${n} 座・${PORT() ? '往下捲或上拉全版' : '往下捲動看全部'}</p></div>
   <div class="cmgrp"><span>產生器</span><div class="bagf cmmul" role="group" aria-label="產生器一次升幾級">${[
     [1, '×1'],
     [10, '×10'],
@@ -948,9 +948,9 @@ function forgeHTML() {
   const it = craftItem(),
     tab = CRAFT.tab,
     tabs = [
-      ['camp', '營地'],
+      ['camp', '總覽'],
       ['make', '打造'],
-      ['forge', '填', 'tab:fill'],
+      ['forge', '鍛造台', 'tab:fill'],
       ['temper', '淬鍊', 'tab:temper'],
       ['holy', '聖化', 'tab:holy'],
       ['corr', '腐化', 'tab:corr'],

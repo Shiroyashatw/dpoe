@@ -1398,6 +1398,7 @@ body:not(.touch) .tmore .tonly { display: none; }
 .lg-frac { color: #fff7d6 !important; } .lg-mem { color: #6fe3ff !important; } .lg-cur, .lg-perf { color: var(--gold) !important; }
 #plog { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; z-index: 12; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #plog > * { flex: none; }
+body.touch.port #plog { z-index: 8; } /* 直立是半版面板：退到分頁列（z 11）底下，「可升級」角標才不被切 */
 .lgbar { display: grid; grid-template-columns: 8.5em 1fr auto; align-items: center; gap: 8px; margin: 4px 12px; font-size: var(--fs-s); }
 .lgbar .pb { height: 8px; background: var(--s0); border: 1px solid var(--fr-o); }
 .lgbar .pb i { display: block; height: 100%; background: linear-gradient(90deg, #7a4a14, #e1a54c); }
@@ -1906,8 +1907,9 @@ body.touch.port #phand:not([hidden]) { background: var(--s1); border-top: 0; box
 #dnav button:active { transform: scale(0.95); }
 body:not(.touch) .dmenu { display: none; }
 body:not(.touch) #pskill { left: auto; right: 16px; width: 476px; }
-body:not(.touch) .panel { top: 76px; max-height: calc(100vh - 92px); }
-body:not(.touch) #pset, body:not(.touch) #pflt, body:not(.touch) #plog { top: 50%; }
+/* 底下留 158px 給生命／魔力條與技能列（含上面一排狀態圖示），面板不蓋 HUD */
+body:not(.touch) .panel { top: 76px; max-height: calc(100vh - 234px); }
+body:not(.touch) #pset, body:not(.touch) #pflt, body:not(.touch) #plog { top: 50%; max-height: calc(100vh - 92px); }
 body:not(.touch) .top { right: 420px; }
 .orb { display: none; }
 .bars { display: flex; flex-direction: column; gap: 3px; width: 360px; }
@@ -2364,8 +2366,9 @@ body.touch.port #pinv .eqrow.col { margin-top: 0; }
 .sk-row.emp.lk { opacity: 1; border: 1px dashed var(--fr-hi); color: var(--milk2); cursor: default; }
 .sk-row.emp.lk small { font-size: 14px; color: var(--milk2); }
 /* ===== M1-PK 技能挑選 ===== */
-.sk-chips { flex-wrap: wrap; overflow: visible; gap: 8px 6px; padding: 0 16px 8px; }
-.sk-chips button { min-height: 44px; min-width: 44px; font: 500 14px var(--font) !important; }
+.sk-chips { flex-wrap: nowrap; overflow-x: auto; gap: 4px; padding: 0 16px 8px; }
+/* 一行：7 顆在 375 寬剛好平分；更多時橫向捲，不換行把清單往下推 */
+.sk-chips button { flex: 1 0 auto; min-height: 44px; min-width: 44px; padding: 0 8px; font: 500 14px var(--font) !important; }
 .sk-list { scrollbar-width: auto; }
 .sk-list .sk-row { min-height: 60px; }
 .sk-list .sk-row b, .sk-list .sk-row small { font-size: 14px; }
