@@ -1,0 +1,11 @@
+run,forge2_min,cum_income_at_forge2,cum_camp_spend_at_forge2,house2_min,cum_income_at_house2,avg_spm_to_forge2,order_before_forge2
+before_390x844,10,934,850,12,1108,93.4,forge1>house1>altar1>forge2
+before_1280x720,11,898,850,14,1242,81.6,house1>forge1>altar1>forge2
+before_1280x720_36min_paired,12,902,850,15,1116,75.2,house1>forge1>altar1>forge2
+f200_390x844,16,1355,1300,13,1002,84.7,house1>forge1>altar1>watch1>house2>forge2
+f200_1280x720,17,1387,1300,13,1016,81.6,forge1>house1>altar1>watch1>house2>forge2
+merged67844a4_390x844_r2,20,1307,1300,15,1026,65.3,house1>forge1>altar1>watch1>house2>forge2
+merged_1280x720,8,978,850,9,1129,122.3,house1>forge1>altar1>forge2
+main_390x844_a,16,1361,1300,13,1063,85.1,house1>forge1>altar1>watch1>house2>forge2
+main_390x844_b,17,1344,1300,14,1123,79.1,forge1>house1>altar1>watch1>house2>forge2
+main_1280x720_b,15,1355,1300,12,1036,90.3,forge1>house1>altar1>watch1>house2>forge2
