@@ -1,5 +1,9 @@
 # dungeonPOE 更新紀錄
 
+## 0.5.4 之後：M2-14 清殘件（還沒換版本號）
+
+- 刪掉沒載入的 `js/market.js`，以及畫面上看不到的殘件：`#talk`、`#pro` 節點與 `#pdev`、`#pflt`、`#pshop`、對話框、序章目標列的 CSS。玩法、數值、存檔版本不變。
+
 ## 0.5.4 之後：M2-38 資訊架構重整（照 M2-37 v1.3；還沒換版本號）
 
 存檔版本還是 35（新欄位 `S.chase.seen` 用到才補，舊存檔拿過追逐物品就當作開放且看過）；掉率、保底點數不變（`loot_check.js`、`chase_check.js` 跟 main 輸出一樣）。截圖與量測在 `evidence/m2-38b/`（`tools/m2_38_shots.js`）。
