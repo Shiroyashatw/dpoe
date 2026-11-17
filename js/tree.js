@@ -199,7 +199,7 @@ function treeRender() {
   $('ptree').innerHTML = `<div class="tbar">
     <b>天賦樹</b>
     <span class="tleft" title="每級 1 點，逢 10 級 +3">剩 <b id="tpts"></b> 點</span>
-    <input id="tfind" type="search" placeholder="搜尋天賦" aria-label="搜尋天賦" autocomplete="off"><span id="tfound"></span>
+    <input id="tfind" type="search" placeholder="搜尋天賦" aria-label="搜尋天賦" autocomplete="off"><button id="tfound" data-ta="next" aria-live="polite" hidden></button>
     <button class="x" aria-label="回到我點到的地方" title="回到我點到的地方" data-ta="mine">${ICO.aim}</button>
     <button class="x" aria-label="關閉" data-ta="close">${ICO.x}</button></div>
   <div id="tview"><svg id="tsvg" viewBox="${B.x} ${B.y} ${B.w} ${B.h}" width="${B.w}" height="${B.h}"><g id="tg">${html}</g></svg></div>
@@ -270,7 +270,7 @@ function treeRefresh() {
   for (const [id, el] of TEL.n) {
     const n = PTREE.I[id],
       st = have.has(id) ? 'on' : left && !n.lock && (PTREE.ADJ[id] || []).some(o => have.has(o)) ? 'can' : 'off',
-      cls = `nd ${st} b${n.big}${n.lock ? ' lk' : ''}${TREE.sel === id ? ' sel' : ''}${path.has(id) ? ' pth' : ''}${hits && hits.has(id) ? ' hit' : ''}`;
+      cls = `nd ${st} b${n.big}${n.lock ? ' lk' : ''}${TREE.sel === id ? ' sel' : ''}${path.has(id) ? ' pth' : ''}${hits && hits.has(id) ? (TREE.hits[TREE.hi] === id ? ' hit cur' : ' hit') : ''}`;
     if (TEL.k.get(id) !== cls) TEL.k.set(id, cls), el.setAttribute('class', cls);
   }
   for (const x of TEL.e) {
@@ -371,7 +371,10 @@ function treeFind(q) {
   TREE.hs = q ? new Set(TREE.hits) : null;
   $('tsvg').classList.toggle('finding', !!q);
   treeRefresh();
-  $('tfound').textContent = q ? `${TREE.hits.length} 個` : '';
+  /* 搜尋 N／總數（M2-08，UI 審查 F1）：找不到寫 0／0；點這顆＝下一個（手機沒有 Enter） */
+  const f = $('tfound');
+  f.hidden = !q;
+  f.textContent = '0／0';
   treeJump(1);
 }
 function treeJump(d) {
@@ -383,7 +386,9 @@ function treeJump(d) {
   TREE.x = -n.x * TREE.z;
   TREE.y = -n.y * TREE.z;
   treeView();
-  $('tfound').textContent = `${TREE.hi + 1} / ${TREE.hits.length}`;
+  treeRefresh();
+  $('tfound').textContent = `${TREE.hi + 1}／${TREE.hits.length}`;
+  $('tfound').setAttribute('aria-label', `第 ${TREE.hi + 1} 個，共 ${TREE.hits.length} 個，點一下到下一個`);
 }
 function treeView() {
   const sv = $('tsvg');
@@ -839,6 +844,7 @@ function treeInit() {
     if (!a) return;
     const ta = a.dataset.ta;
     if (ta === 'close') treeClose();
+    if (ta === 'next') treeJump(1);
     if (ta === 'attrx') treeAttrClose();
     if (ta.startsWith('attr:')) treePick(...ta.split(':').slice(1));
     /* 回到我點到的地方（還沒點過＝看全圖） */
