@@ -1,0 +1,1 @@
+後處理檢查通過：beam_cap、fade_tail

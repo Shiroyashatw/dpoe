@@ -1,0 +1,18 @@
+{
+ "day": "drawFx drawFront DARK drawBeams drawBars drawNums",
+ "night": "drawFx drawFront drawBars drawNums DARK drawBeams",
+ "fog": "drawFx drawFront drawBars drawNums DARK drawBeams",
+ "reducedNums": {
+  "reduced": true,
+  "fs": [
+   [
+    "bold 24px \"Noto Sans TC\", sans-serif",
+    183.6461494507558
+   ],
+   [
+    "bold 24px \"Noto Sans TC\", sans-serif",
+    183.6461494507558
+   ]
+  ]
+ }
+} errors []

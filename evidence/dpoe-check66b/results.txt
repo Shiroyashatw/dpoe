@@ -1,0 +1,27 @@
+驗證 HEAD a372136（PR #66 併 main 3456ad5 後；js/tools 與 d85b278 相同）
+check exit=0 ✅864 ❌0
+touch_390x844 exit=0 ✅141 ❌0
+touch_375x667 exit=0 ✅141 ❌0
+touch_412x915 exit=0 ✅141 ❌0
+touch_844x390 exit=0 ✅60 ❌0
+touch_1280x720 exit=0 ✅60 ❌0
+touch_1440x900 exit=0 ✅60 ❌0
+hide exit=0 ✅34 ❌0
+world exit=0 ✅30 ❌0
+pro exit=0 ✅43 ❌0
+vfx exit=0 後處理檢查通過：beam_cap、fade_tail
+dmg same as main
+shots_full exit=0 ✅24 ❌0
+shots_fb exit=0 ✅7 ❌0
+
+[exited with code 0]
+order_full ✅12 ❌0；order_fb ✅12 ❌0（見 order-*.txt；腳本切分支後還原重跑）
+dmg_check：與 origin/main 輸出逐字相同（219 行）
+
+--- check.js 最後幾行
+✅ M2-06 1280×720 設定「傷害數字」三鈕（全部／只暴擊與受傷／關閉）一列不換行、預選 all、點了就存
+✅ M2-06 1280×720 連升兩級只有一顆升級膠囊、天賦點 +2、#warn 不亮
+✅ M2-06 1280×720 火焰放滿（各 4 個爆炸＋燃燒地面）看得到自己與怪：像素不變比例 ≥ 50%（玩家、怪：1、0.959）
+✅ M2-06 1280×720 沒有頁面錯誤
+
+--- 前一輪（d85b278，併 3456ad5 前）也全過：check 864/0、touch 六尺寸 0 ❌、hide 34、world 30、pro 43、shots 24+7
