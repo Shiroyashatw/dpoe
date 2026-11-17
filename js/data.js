@@ -8785,6 +8785,29 @@ const FRAGS = {
   },
   book: { n: '生死簿', ic: 'yanluo', d: '在山海寶盒使用：四種勾魂令各 1 張＋生死簿、角色等級 70 開啟十殿閻羅' }
 };
+/* ---------- 字串表（M2-18／M2-19，Game Art Director 11/17 13:09、13:11、13:27）：追逐物品的名字只從這裡讀，鍵 wangyin（主幹 4 王印）／base（賽制線各 2 個異寶基底，M2 關著不掉）；
+   pack／packGain：有感保底的靈魂包（橫幅、掉落紀錄「靈魂包 +{n} 靈魂」、撿起來的飄字）。⚠️ 異寶基底名稱待定，先用「線名異寶基底・一／二」 ---------- */
+const STR_T = {
+  wangyin: { wangyin_zhenyue: '鎮嶽印', wangyin_chixiao: '赤霄印', wangyin_jiting: '疾霆印', wangyin_guixu: '歸墟印' },
+  base: {
+    ghost1: '鬼門關異寶基底・一',
+    ghost2: '鬼門關異寶基底・二',
+    dream1: '心魔幻境異寶基底・一',
+    dream2: '心魔幻境異寶基底・二',
+    fiend1: '凶地異寶基底・一',
+    fiend2: '凶地異寶基底・二',
+    army1: '陰兵借道異寶基底・一',
+    army2: '陰兵借道異寶基底・二',
+    rift1: '裂口異寶基底・一',
+    rift2: '裂口異寶基底・二'
+  },
+  pack: '靈魂包',
+  packGain: '+{n} 靈魂'
+};
+/* 王印的圖檔（M2-19.9）：正式圖在第二條通貨圖 ic_cur-2，x 照這裡、y 0、32×32；圖還沒做好，先全部借 cur_regal 那格（第一條 x=297, y=0）。
+   靈魂包 soulpack（13:27）：art.js 已經有 ic_cur x=396 那格，圖還沒到先借 cur_soul。sprites.js 的 artImg／artIconURL 照 ART_ALIAS 換（圖到了就刪那一個鍵） */
+const WANGYIN_X = { wangyin_zhenyue: 132, wangyin_chixiao: 165, wangyin_jiting: 198, wangyin_guixu: 231 };
+const ART_ALIAS = { ...Object.fromEntries(Object.keys(WANGYIN_X).map(k => [k, 'cur_regal'])), soulpack: 'cur_soul' };
 const newFrags = () => ({
   ox: 0,
   horse: 0,

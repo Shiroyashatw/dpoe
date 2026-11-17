@@ -1222,7 +1222,7 @@ function cmpHTML(it, noX) {
     cur
       ? cmpCol(cur, `<span class="sub">身上・${esc(itemName(cur))}</span>`)
       : `<div class="emp">${e ? `${e.n}現在空著` : '沒有能放的欄位'}</div>`
-  }</div>${eqDeltaHTML(it, e)}`;
+  }</div>${it.chase ? `<p class="dlt chs-t">追逐物品・${esc(chaseProg(it.chase))}${it.wy ? `・套上${esc(chaseName(it.wy))}` : ''}</p>` : ''}${eqDeltaHTML(it, e)}`;
 }
 /* M1-20b／M1-15b：換上去跟身上同部位的差（DPS、生命；有能量護盾的另列）＋會讓哪些招失效；不能裝寫原因（itemDelta 的 why）。
    定稿文案：「DPS +16」「生命 +20」、沒有變化、「DPS −16」（U+2212，--bad-hi）；「會讓這些招失效：｛名稱｝、｛名稱｝。」 */
@@ -1337,6 +1337,10 @@ document.addEventListener('click', e => {
   if (iv) return (PANEL.invT = iv.dataset.invt), hudPanels();
   const tm = e.target.closest('[data-term]');
   if (tm) return showTerm(tm);
+  const bn = e.target.closest('#banner.bn-chase');
+  if (bn) return chaseOpen(bn.dataset.chase);
+  const chs = e.target.closest('[data-chs]');
+  if (chs) return chaseTip(chs);
   if (!e.target.closest('#ttip')) $('ttip').hidden = true;
   /* 點說明框以外：收起說明框 */
   if (!e.target.closest('#tip,#ttip') && $('tip').classList.contains('act') && !TOUCH.on) hideTip();
@@ -1803,7 +1807,8 @@ function banner(t, c) {
   el.className = 'bn-' + c;
   el.hidden = false;
   clearTimeout(BANT);
-  BANT = setTimeout(() => (el.hidden = true), 2600);
+  /* 追逐物品的橫幅點了開詳情，多留一下 */
+  BANT = setTimeout(() => (el.hidden = true), c === 'chase' ? 6000 : 2600);
 }
 /* HUD 的掉落紀錄（0.4.1）：最新 3 筆，30 秒後淡掉；完整的在「掉落紀錄」面板 */
 const LOG_SHOW = 30000;
@@ -1815,7 +1820,7 @@ function logBar() {
   HV.log = k;
   $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
 }
-const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚' };
+const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
 /* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
 function logHTML() {
   const P = S.prd || {},
@@ -1876,10 +1881,39 @@ function idleHTML() {
   /* 0.5.4（考核 C1、C2）：上面一行本次掛機；中間營地的資源條（跟營地頁同一個元件、一直在跑）；M1-CP.4 下面只放「去營地」（升級只在營地） */
   return `<div class="paper idl">
     <div class="k row2"><span>本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪${ses.cur ? `・通貨 ${ses.cur} 顆` : ''}${ses.deaths ? `・倒下 ${ses.deaths}` : ''}</span><span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
-    <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>
+    <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>${chaseHTML()}
     <button class="btn pri wide igo" data-a="gocamp">去營地</button>
     ${pct >= 80 ? `<p class="note"><span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span></p>` : ''}
   </div>`;
+}
+/* 掛機卡的追逐保底（M2-18）：一行「下一件保底 n%」＋細條；只在會觸發保底的地點（怪物 Lv45 以上）有，其他地點整行不出、不留空位 */
+function chaseHTML() {
+  const t = chaseLine(G.mapT),
+    n = chasePct();
+  return t
+    ? `<div class="chs"><span>${t}</span><div class="pb" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="width:${n}%"></i></div></div>`
+    : '';
+}
+/* 王印的詳情（碎片頁點一列、點追逐橫幅）：疊在那一列旁邊 */
+function chaseTip(el) {
+  const k = el.dataset.chs;
+  showTip(
+    `<b class="chs-t">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="c-dim">用法還沒開放。</p>`,
+    el.getBoundingClientRect(),
+    $('ttip')
+  );
+}
+/* 點追逐橫幅（製作人第 1 點）：王印＝打開碎片頁、那一列的詳情；異寶基底＝到戰利品、選那一件（換裝卡就是詳情） */
+function chaseOpen(k) {
+  $('banner').hidden = true;
+  if (isWy(k)) {
+    act('ctab:frags');
+    const el = document.querySelector(`#pstash [data-chs="${k}"]`);
+    if (el) el.scrollIntoView({ block: 'nearest' }), chaseTip(el);
+    return;
+  }
+  const it = [...S.inv.items].reverse().find(x => x.chase === k);
+  if (it) act('lootsel:' + it.id);
 }
 /* 營地現在買得起的（王倒下的卡、離線卡；考核 D2、E3）：一件一列（圖示、名字、給什麼、升級鈕），最多 n 件；pri＝第一件用主要鈕 */
 function campUpsHTML(n = 3, pri = true) {
@@ -2246,6 +2280,9 @@ function itemTip(it, cmp) {
     req = itemReq(it),
     reqP = [req.lv ? `等級 ${req.lv}` : '', ...ATTR.map(k => (req[k] ? `${ATTN[k]} ${req[k]}` : ''))].filter(Boolean);
   let html = `<b class="rc${it.r}">${esc(itemName(it))}</b><small>${RARN[it.r]} ${B.k === 'weapon' ? WTN[B.wt] || KINDS[B.k].n : KINDS[B.k].n} · <span class="tt">T${itemT(it)}</span>${baseLayers(it) ? ' · ' + baseLayers(it) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${un ? ' · <span class="c-warn">未鑑定</span>' : ''}</small>`;
+  /* M2-18 追逐標記：打造、套王印之後都還在（it.chase） */
+  if (it.chase)
+    html += `<p class="chs-t">追逐物品・${esc(chaseProg(it.chase))}${it.wy ? `・套上${esc(chaseName(it.wy))}` : ''}</p>`;
   if (lack.length) html += `<p class="c-bad">${worn ? '已失效，數值不算' : '不能裝上'}：${lackTxt(lack)}</p>`;
   if (cmp && !un && !lack.length) {
     /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄；直立的角色頁選了一格就比那一格 */
