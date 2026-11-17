@@ -4125,7 +4125,7 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 10（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
+    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 5（第 1 級固定 W_LV1 的靈魂與鐵，M1-21）（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
     R(`(() => {
       S.camp = newCamp(); S.world = newWorld(); S.lv = 99; S.frags = newFrags();
       if (wWhy(S, ...wXY(TRUNK_K[0])) || !wWhy(S, ...wXY(TRUNK_K[1])) || !campCan('node:' + TRUNK_K[0]) || campCan('node:' + TRUNK_K[1])) return 'lv0';
@@ -4136,11 +4136,12 @@ const ASC_COMBOS = `const combos = k => {
       const m0 = S.mat;
       for (let n = 1; n <= 21; n++) {
         const r = CAMP.watch[n - 1], T = TRUNK[n - 1];
-        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== 10 * n) return 'row ' + n;
+        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== (n > 1 ? 10 * n : 130)) return 'row ' + n;
         S.mat = newMat(); const a = roundLoot(lvT(TRUNK[0].lv), 1, 40, 0); S.mat = newMat(); const b = roundLoot(lvT(T.lv), 1, 40, 0);
         const want = ((W_SPM * b) / a) * W_MIN;
-        if (Math.abs(r.soul - want) / want > 0.1) return 'soul ' + n + ' ' + r.soul + ' ' + want;
+        if (n > 1 ? Math.abs(r.soul - want) / want > 0.1 : r.soul !== 200) return 'soul ' + n + ' ' + r.soul + ' ' + want;
       }
+      if (CAMP.watch[1].soul !== 570 || CAMP.watch[7].soul !== 780 || CAMP.watch[20].soul !== 2090) return 'lv2/8/21';
       S.mat = m0;
       return '';
     })()`) === ''
