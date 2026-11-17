@@ -127,11 +127,9 @@ function hudInit() {
   <div class="modesw donly" role="group" aria-label="自動／手動"><button data-a="auto:1" aria-pressed="false">${STR_T.modeAuto}</button><button data-a="auto:0" aria-pressed="false">${STR_T.modeMan}</button><kbd>C</kbd></div>
   <nav id="dnav" class="donly" aria-label="功能"></nav>
   <div id="prac" hidden></div>
-  <div id="talk" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
   <div id="paused" hidden>已暫停</div>
   <div id="banner" role="status" aria-live="polite" hidden></div>
-  <div id="pro" hidden><small id="pron"></small><b id="prot" role="status"></b><button class="btn mini" data-pro="skip">跳過<span class="ponly">序章</span></button></div>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}倉庫</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
   <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="home">${ICO.home}回藏身處</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
