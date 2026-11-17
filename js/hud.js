@@ -109,6 +109,7 @@ function hudInit() {
   <div class="bottom">
     <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
     <div class="mid">
+      <div id="lvup" role="status" aria-live="polite"></div>
       <div class="mech" id="mech" role="status" aria-label="目前的狀態"></div>
       <div class="bars tonly"><div class="hb hp" id="bhp"><i></i><b class="ward"></b><span></span></div><div class="hb bv" id="bbv" hidden><i></i></div><div class="hb mp" id="bmp"><i></i><span></span></div></div>
       <div class="xp" id="xp" data-tip="經驗"><i></i></div>
@@ -168,6 +169,17 @@ function hudWarn(t) {
   w.classList.add('on');
   clearTimeout(warnT);
   warnT = setTimeout(() => w.classList.remove('on'), 1600);
+}
+/* 升級膠囊（M2-05.3）：唯一的升級提示，獨立於 #warn、各自計時；還亮著時再升級只改等級、天賦點寫總數 */
+let lvpT,
+  lvN = 0;
+function lvPill() {
+  const w = $('lvup');
+  lvN = w.classList.contains('on') ? lvN + 1 : 1;
+  w.innerHTML = `升級！<b>Lv ${S.lv}</b>・天賦點 +${lvN}`;
+  w.classList.add('on');
+  clearTimeout(lvpT);
+  lvpT = setTimeout(() => w.classList.remove('on'), 2000);
 }
 /* 每格畫面更新：只改數值，不重畫 HTML */
 const HV = {};
@@ -716,6 +728,13 @@ function setHTML() {
   }
   <div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
   <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
+  <div class="ph2">傷害數字</div><div class="gkind">${[
+    ['all', '全部'],
+    ['crit', '只暴擊與受傷'],
+    ['off', '關閉']
+  ]
+    .map(([k, n]) => `<button class="btn ${dmgN() === k ? 'on' : ''}" data-a="dmgn:${k}">${n}</button>`)
+    .join('')}</div><p class="sethint">關掉的數字不影響傷害，只是不畫</p>
   ${acctHTML()}
   <div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
   <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>`;
@@ -2636,6 +2655,13 @@ function act(a, el) {
   } else if (a.startsWith('mute:')) {
     S.mute = +a.slice(5);
     if (AC) ac(); /* 正在響的（開場的風聲雨聲）也跟著關 */
+    save();
+    sfx('click');
+    hudPanels();
+  } else if (a.startsWith('dmgn:')) {
+    /* 選過就存進存檔，之後不因換裝置、轉方向而改；畫面上不該留的數字直接拿掉 */
+    S.dmgn = a.slice(5);
+    G.nums = G.nums.filter(n => numShown(n.c));
     save();
     sfx('click');
     hudPanels();

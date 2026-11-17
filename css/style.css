@@ -2508,3 +2508,9 @@ body:not(.touch) #pidle .chs:hover span { color: var(--milk); }
 .offchl li b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .offchl li small { font: 700 14px var(--font); color: var(--milk2); }
 @media (prefers-reduced-motion: reduce) { .offch > i { transition: none; } }
+/* M2-05.3 升級膠囊：生命條（.mid）上方 8 px、置中；跟 #warn 分開 */
+.mid { position: relative; }
+#lvup { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); height: 32px; padding: 0 12px; border-radius: 16px; background: color-mix(in srgb, var(--s1) 92%, transparent); border: 1px solid var(--fr-hi); font: 700 14px/30px var(--font); color: var(--milk); white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 300ms; }
+#lvup b { color: var(--gold); font-weight: 700; }
+#lvup.on { opacity: 1; transition-duration: 150ms; }
+body:not(.touch) #lvup { bottom: calc(100% + 12px); height: 36px; border-radius: 18px; font-size: 16px; line-height: 34px; }
