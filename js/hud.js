@@ -914,7 +914,7 @@ function dollHTML() {
     .map(([n, v]) => `<div class="mi"><small>${n}</small><b>${v}</b></div>`)
     .join(
       ''
-    )}<div class="res">${RESK.map(r => `<span class="res-${r} ${effRes(r) < 0 ? 'neg' : ''}" title="${ELN[r]}抗性${pen ? `（這一階 −${pen}%）` : ''}">${ELN[r][0]}<b>${effRes(r)}%</b></span>`).join('')}</div>${
+    )}<div class="res">${RESK.map(r => `<span class="res-${r} ${effRes(r) < 0 ? 'neg' : ''}" title="${ELN[r]}抗性${pen ? `（這一階 −${pen}%）` : ''}">${ELN[r][0]}<b>${String(effRes(r)).replace('-', '−')}%</b></span>`).join('')}</div>${
     ptLeft() > 0 ? `<button class="btn mi-b" data-tm="nav:tree">天賦 ${ptLeft()} 點未用</button>` : ''
   }</div>
   <div class="col">${DOLL_R.map(dollCell).join('')}</div></div>

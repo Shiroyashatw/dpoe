@@ -67,6 +67,7 @@
 | `tools/ui_look.js` | 介面亂不亂（0.4.8，`DESIGN.md` 第 7 節的預算）：量每個畫面看得到的範圍裡幾種字的樣式、字色、框，幾個有框的元素，12px 以下的字佔幾成，對比不足的字；另存瞇眼圖（模糊＋灰階）看最亮的是不是主數字與主要按鈕；只量不改，要量的畫面在檔案裡的 `SCREENS`；`node tools/ui_look.js [寬] [高] [網址] [圖存哪]`，別的腳本可以 `require` 它的 `audit`／`squint` |
 | `tools/mock_ui.html` | 介面重做的示意頁第 9 版（2026-11-14，不動遊戲程式；廟宇古地圖、亮度壓進 Melvor 的帶子，規則在 `docs/介面體驗模擬.md` 第五節與第九節、外部審查的取捨在第七節、歷次回饋在 `docs/討論清單.md` 第 7 項；像素圖直接載 `js/art.js`）：掛機中、王倒下、戰利品、技能、角色 × 直立／寬版；`?s=idle\|loot\|bag\|skill\|char&v=p\|w` 只畫一個；`http://localhost:8003/tools/mock_ui.html` |
 | `tools/ui_tone.py` | 色調量法（`docs/介面體驗模擬.md` 第五節）：截圖縮成每 10 個 CSS 像素一格（餘光），量最亮 5% 像素的亮度（≤ 0.60）與飽和色面積（≤ 5%）；手機 2 倍截圖加 `--dpr 2`；只量不改，改介面前後各跑一次；`python3 tools/ui_tone.py [--dpr 2] 圖…`（Pillow） |
+| `tools/m1ui_shots.js` | M1 第二批介面的驗收截圖（規格「dpoe M1 直立視覺規格」）：新存檔自動刷第一個地點，截十個畫面並先量規格的數字（主鈕、熱區、已暫停、徽章、空狀態），存 `docs/production/evidence/M1-UI/編號_名_寬x高.png`；`node tools/m1ui_shots.js [寬] [高] [網址] [存哪]` |
 | `tools/ui_shots.js` | 介面對照截圖（skill `ui-design` 的改之前／改之後）：新存檔、倉庫 24 件、第一個節點，依序截戰鬥、戰利品、說明框、角色、技能、做裝、天賦樹、更多、世界地圖；只截不改；`node tools/ui_shots.js [寬] [高] [網址]`，存系統暫存資料夾的 `ui_shots` |
 | `tools/hide_bake.js` | 藏身處烘圖（0.2.44）：地形、擺設、光都在這支（`L`、`PROPS`、`ZONE`、`layout`），`node tools/hide_bake.js` 寫 `img/hide-*.png` 與 `js/hideart.js`，並檢查每個設施從出生點走得到 |
 | `tools/hide_check.js` | 藏身處實測（Playwright；0.5.2 沒有 NPC，地圖台開地點清單）：走到每個設施、打三隻稻草人、實戰模式、DPS、召喚物圖騰地面、盲擊撲的煙霧、每把武器配輕盾的 DPS 對帳、清場、傳送門、存檔還原；`node tools/hide_check.js [網址]`（`PW_CHROME` 指定瀏覽器） |
