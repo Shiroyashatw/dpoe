@@ -7,7 +7,7 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   OUT = process.argv[5] || 'evidence/names',
   MOB = VW < 900;
 (async () => {
-  const b = await chromium.launch();
+  const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await b.newContext({
     viewport: { width: VW, height: VH },
     hasTouch: MOB,
