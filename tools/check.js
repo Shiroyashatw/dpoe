@@ -10832,5 +10832,57 @@ const ASC_COMBOS = `const combos = k => {
       ad.room,
     JSON.stringify([ad.keep, ad.room])
   );
+  /* M2-19 追逐演出（docs/交辦/M2-19-追逐演出.md）：字從字串表 strT 取；追逐物品落地停 2.4 秒、記紀錄（帶鍵）、橫幅走 #chase；
+     追逐橫幅顯示中（加 300 ms）不出 #banner、600 ms 內不播 orb（紀錄照記）；撿起來不再加東西；賽制線關著時演出只會出現王印 */
+  const m19 = R(`(() => {
+    const rnd = Math.random, r = {}, snd = [], bn = [];
+    try {
+      S = newGame(); S.world.cur = TRUNK_K[14]; SES = { cur: 0, best: null, soul: 0 };
+      G.drops = []; G.nums = []; G.tiles = null; let now = 5e9;
+      performance = { now: () => now }; sfx = k => snd.push(k); banner = (t, c, k) => bn.push([t, c, k].filter(Boolean).join('/'));
+      const hi = lvT(TRUNK[14].lv);
+      S.chase.pts = 185;
+      r.str = [chaseLine(hi), chaseOffRow(2), strT('merge', { a: '甲', n: 3 }), strT('chaseN', { n: 2 })];
+      STR_T.pity = '保底{n}'; r.str.push(chaseLine(hi)); STR_T.pity = '下一件保底 {n}%';
+      Math.random = () => 0;
+      const k = chaseGive(hi), n0 = S.inv.items.length, f0 = S.frags[k];
+      dropAt(0, 0, { chase: k });
+      const d = G.drops[0];
+      r.drop = [d.chase === k, d.hold, S.log[0].c, S.log[0].k === k, S.log[0].n === chaseBanner(k), bn[0] === chaseBanner(k) + '/chase/' + k, SES.cur];
+      pickup(d);
+      r.drop.push(G.drops.length, S.inv.items.length - n0, S.frags[k] - f0);
+      CHASE_UNTIL = now + 1000; CHASE_T = now - 100; bn.length = 0; snd.length = 0;
+      dropAt(0, 0, { show: 'exalt' });
+      r.quiet = [bn.length, snd.includes('orb'), S.log[0].n, SES.cur];
+      now += 2000; RARE_T = 0;
+      dropAt(0, 0, { show: 'exalt' });
+      r.quiet.push(bn.length, snd.includes('orb'));
+      S.world.cur = Object.keys(WNODE).find(x => WNODE[x].t === 'ghost');
+      r.line = [CHASE.line, chaseLine(hi), Array.from({ length: 20 }, () => isWy(chaseGive(hi))).every(Boolean)];
+    } finally {
+      Math.random = rnd;
+    }
+    return r;
+  })()`);
+  ok(
+    'M2-19 字串表：保底一行、離線那一列、合併字從 STR_T 取（改字串表就跟著變）',
+    JSON.stringify(m19.str) === '["下一件保底 37%","追逐物品 ×2、目前保底 37%","甲 等 3 件","追逐物品 ×2","保底37"]',
+    JSON.stringify(m19.str)
+  );
+  ok(
+    'M2-19 追逐物品落地：停 2.4 秒、掉落紀錄類別 chase 帶鍵、不算通貨數、橫幅轉 #chase；撿起來只收演出（王印不再加、倉庫不動）',
+    JSON.stringify(m19.drop) === '[true,2.4,"chase",true,true,true,0,0,0,0]',
+    JSON.stringify(m19.drop)
+  );
+  ok(
+    'M2-19 讓路：追逐橫幅顯示中通貨不出 #banner、600 ms 內不播 orb，紀錄與通貨數照記；過了之後照常',
+    JSON.stringify(m19.quiet) === '[0,false,"崇高石",1,1,true]',
+    JSON.stringify(m19.quiet)
+  );
+  ok(
+    'M2-19 賽制線池關著（CHASE.line 0）：賽制線地點沒有保底行，開發觸發也只給王印（異寶基底不會出現在演出）',
+    JSON.stringify(m19.line) === '[0,"",true]',
+    JSON.stringify(m19.line)
+  );
 }
 process.exit(bad ? 1 : 0);
