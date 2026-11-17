@@ -8,6 +8,20 @@
 - **JS 不寫色碼**：新增 `js/palette.js`（`PAL`，開機時從 `:root` 讀；`index.html` 接在 `core.js` 後面）。render、biome（`BIOMES` → `--scene-<地形>-ground/mid/light/edge/dark-rgb/glow-rgb`，地形細節 `--scene-detail-n`）、hideout（`HIDE_BIO`）、game、mech、skills、maps、world、combat、tree、forge、touch 與 data.js 的 `ELC` 全改讀 `PAL`；沒有角色的特效色 `--fx-<檔名>-n`。intro.js、sprites.js、技能與職業的識別色照規格不動；biome.js 兩處逐點亂數算出來的顏色（`rgba(255,${…},30,…)`）不是常數，留著。
 - **檢查**：`check.js` 加 4 條（只有一個 `:root`、`:root` 外沒有色碼、JS 沒有色碼、`PAL` 用到的 token 都有定義）；Node 的檢查工具在每個 vm 環境放 `PAL_CSS`（style.css 全文），`palette.js` 在 Node 照讀，數值檢查結果不變。
 
+## 0.5.4 之後：M2-29 王印介面（還沒換版本號）
+
+數值、掉率、保底、存檔版本都不變（邏輯在 PR #43）。截圖與量測在 `evidence/dpoe-m2-29-ui/`（`tools/m2_29_shots.js`）。
+- **追逐物品**：收集格下多一行「四印齊鳴 k／4」（k＝套在有效裝備上的種類，齊了接「・效果 ×1.25」）；點一格，底部黏住那一枚的效果與「套到裝備」（擁有 0 停用「沒有可以套用的印」）。
+- **套到裝備**：列出身上的裝備，能套的（魔法、稀有）排前面；已有印的那件先問「會換掉○○印，舊印不會退回」。套上：吐司「○○印套在○○上了」＋鈴聲，外框印角往內收再彈一下；湊齊四種再多一行「四印齊鳴 4／4・效果 ×1.25」。
+- **物品說明、比較框**：有王印的裝備多「◆ 鎮嶽印　增加 24% 全域防禦」（數字照現在的齊鳴，歸墟印 1.3）＋齊鳴進度；追逐標記那行不再寫「・套上○○」。
+
+## 0.5.4 之後：M2-10 每版 AI 試玩報告（還沒換版本號）
+
+只加量測工具與文件，遊戲數值與邏輯沒動；存檔版本還是 35。
+
+- **`tools/ai_report.js`**：`node tools/ai_report.js evidence/<代號> [網址]` 五個尺寸同時跑 `camp_run.js`（390×844、1280×720 各 120 分鐘，375×667、844×390、1440×900 各 30 分鐘），收成一張 A1–A10 總表 `A1-A10.md`；同一個 commit 已有 JSON 的尺寸不重跑。每個改 `VER` 的 PR 照做（CLAUDE.md、`docs/本機執行.md`）。
+- **第一份報告**（main 4ab239a，`evidence/dpoe-m2-10/`）：A1、A6、A7、A10 全過；A2、A3、A4、A5 有尺寸未達標；A8 兩小時內還沒開放；A9 還沒量。
+
 ## 0.5.4 之後：M2-14 清殘件（還沒換版本號）
 
 - 刪掉沒載入的 `js/market.js`，以及畫面上看不到的殘件：`#talk`、`#pro` 節點與 `#pdev`、`#pflt`、`#pshop`、對話框、序章目標列的 CSS。玩法、數值、存檔版本不變。
