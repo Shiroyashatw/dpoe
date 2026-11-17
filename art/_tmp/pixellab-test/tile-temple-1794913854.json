@@ -1,0 +1,31 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "request": {
+    "description": "seamless tileable dungeon floor tile, top-down, ancient temple flagstones like a faded old map, worn square stone slabs with thin engraved lines and cracks, dark muted earth tones, low contrast, even lighting, no objects, no characters, no text, no border",
+    "image_size": {
+      "width": 64,
+      "height": 64
+    },
+    "view": "high top-down",
+    "outline": "lineless",
+    "shading": "basic shading",
+    "detail": "medium detail",
+    "no_background": false,
+    "seed": 1794913854,
+    "color_image": {
+      "type": "base64",
+      "base64": "iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAAFUlEQVR4nGOQFWL2ttauSfERYmcAAA5FAimEShATAAAAAElFTkSuQmCC"
+    }
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

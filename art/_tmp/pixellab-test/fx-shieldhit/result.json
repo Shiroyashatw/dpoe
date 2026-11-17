@@ -1,0 +1,39 @@
+{
+  "fps": 20,
+  "kind": "new",
+  "loop": false,
+  "name": "dpoe_shieldhit",
+  "files": {
+    "dpoe-shieldhit.gif": "https://api.pixellab.ai/mcp/pixel-tools/a64cbb97-14a4-431f-aae2-0a415ba75bbb/dpoe-shieldhit.gif",
+    "dpoe-shieldhit.png": "https://api.pixellab.ai/mcp/pixel-tools/a64cbb97-14a4-431f-aae2-0a415ba75bbb/dpoe-shieldhit.png",
+    "dpoe-shieldhit.json": "https://api.pixellab.ai/mcp/pixel-tools/a64cbb97-14a4-431f-aae2-0a415ba75bbb/dpoe-shieldhit.json"
+  },
+  "parts": [],
+  "anchor": {
+    "x": 32,
+    "y": 32,
+    "kind": "origin"
+  },
+  "artist": "lite",
+  "canvas": {
+    "h": 64,
+    "w": 64
+  },
+  "frames": 8,
+  "message": "A 64x64 one-shot, 8 frames at 20 fps: a steel-grey shield spins face-on, flips edge-on and back as it strikes, with a short white flash at its centre, a ring of white and steel sparks flung outward, and small grey debris scattering. No outline, transparent background, no character. The sparks and debris counts and the flash size are the sliders to try for a punchier or denser hit.",
+  "edit_url": "https://pixellab.ai/create-vfx?effect=8fa444fc-c096-4ea8-9189-dcdca04fca9d",
+  "effect_id": "8fa444fc-c096-4ea8-9189-dcdca04fca9d",
+  "gif_exact": true,
+  "result_id": "a64cbb97-14a4-431f-aae2-0a415ba75bbb",
+  "conversation": "A5tvWsTDVHbY1jPYJG5WGQ.15a429c585ec38258fe1bb960ea3260dd2154ecf552b80c7729efe2a53a6d8db",
+  "billing_usage": {
+    "usd": 0.0,
+    "type": "generations",
+    "generations": 1.760103125
+  },
+  "generation_id": "f428bdcd-ecb4-416f-8a20-b4593cfb23d0",
+  "billing_charged": true,
+  "generation_mode": "vfx",
+  "pixel_tools_image": true,
+  "quoted_generations": 1
+}
