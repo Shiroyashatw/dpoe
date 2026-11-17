@@ -126,4 +126,4 @@ a square bronze stamp presses down at the centre and lifts away, leaving a squar
 ## 7. 給 mumi 挑圖
 - 過了 §6 的候選，由工程拼成對照圖（地磚：每張 2×2 拼＋放一個主角；王印：32 與 2 倍並排、轉灰階一列；特效：gif 放在 `-ground` 底上），推到分支 `art/m2-36-assets`、開 draft PR，不合併。
 - Art Director 把對照圖放到 Page，經幕僚長請 mumi 挑：地磚 12 組（4 地形 × 地板／牆頂／牆面）每組 3–4 張、王印 4 枚每枚 4 張、特效 5 個每個 3 張，共約 75 張、挑 21 次，約 25 分鐘。
-- 挑完：地磚放 `img/tiles/<地形>-floor.png` 等、王印放 `img/icons/wangyin_<名>_32.png`／`_16.png`、特效照 `fx_sheets.mjs` 接進 `js/fxsheets.js`；這一步屬 M2-33 第 3 批。
+- 挑完怎麼接進遊戲（檔案槽、路徑、載入、退回、FXS 寫法）照 `specs/M2-33-3a-scene-assets.md` §3–4：地磚 `img/tiles/<地形>-floor.png` 等；王印拼成 `img/ic_wy32.png`、`img/ic_wy16.png`；特效由 `tools/vfx_sheet.py` 寫進 `js/fxsig.js`（不動自動產生的 `js/fxsheets.js`）。
