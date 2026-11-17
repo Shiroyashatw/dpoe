@@ -2,12 +2,17 @@ const { chromium } = require('playwright');
 /* dungeonPOE 0.5.1 · 新存檔實掛（docs/工坊與解鎖表.md 第 2 節）：手機直立 390×844、AI 自動打，一個「會按的玩家」每 5 秒看一次營地：
    解鎖表夠了就升（鍛造台、民房、瞭望台、祭壇、斥候營、倉房）、產生器用剩下的木買（一次一級、最便宜的先，留下一件解鎖表要的木與材料）、
    瞭望台開了新地點就去那裡刷、一分鐘打造一件（部位輪流，留下一件升級要的鐵）並在 ▲ 時換上、其他分解。每分鐘印一列，最後寫總結。
-   用法：先開本機伺服器，node tools/camp_run.js [網址] [分鐘，預設 30]；只量不改。環境變數 PW_CHROME 指定瀏覽器 */
+   M1-21：另外記首輪完成時間（打倒第一隻王）、每一次「小變強」（產生器 +1 級、營地設施 +1 級、換上 ▲ 的裝備、角色升級）的秒數與前 15 分鐘的最大間隔、
+   跳出的解鎖一句話（hudWarn 裡「Lv」開頭的那些，M1-14）。
+   用法：先開本機伺服器，node tools/camp_run.js [網址] [分鐘，預設 30] [寬 390] [高 844]；只量不改。環境變數 PW_CHROME 指定瀏覽器 */
 const URL = process.argv[2] || 'http://localhost:8000/',
-  MIN = +process.argv[3] || 30;
+  MIN = +process.argv[3] || 30,
+  VW = +process.argv[4] || 390,
+  VH = +process.argv[5] || 844,
+  MOB = VW < 900;
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
-  const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const ctx = await b.newContext({ viewport: { width: VW, height: VH }, hasTouch: MOB, isMobile: MOB });
   await ctx.route('**/*.supabase.co/**', r => r.abort());
   const p = await ctx.newPage(),
     errs = [];
@@ -31,6 +36,25 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     window.__gen = 0;
     window.__craft = [0, 0];
     window.__t0 = Date.now();
+    /* M1-21：首輪、小變強、解鎖句（每 250 毫秒看一次；hudWarn 包一層記下來） */
+    window.__r1 = 0;
+    window.__up = [];
+    window.__say = [];
+    const sec = () => Math.round((Date.now() - __t0) / 1000),
+      w0 = hudWarn;
+    hudWarn = t => (/^\S+ Lv\d+：/.test(t) && __say.push(`${sec()} ${t}`), w0(t));
+    let lv = S.lv,
+      sig = '';
+    setInterval(() => {
+      if (!__r1 && SES && SES.rounds > 0) __r1 = Date.now() - __t0;
+      const g =
+        GEN_K.map(k => genOf(k).lv).join() +
+        '|' +
+        ['forge', 'watch', 'scout', 'house', 'altar', 'store'].map(b => S.camp[b]).join();
+      if (sig && g !== sig) __up.push([sec(), '營地']);
+      sig = g;
+      if (S.lv > lv) __up.push([sec(), '角色 Lv' + S.lv]), (lv = S.lv);
+    }, 250);
   });
   /* 會按的玩家（每 5 秒） */
   const PLAY = () => {
@@ -80,7 +104,11 @@ const URL = process.argv[2] || 'http://localhost:8000/',
       for (const it of r.items) {
         if (it.salv) continue;
         const slot = EQS.find(e => eqTakes(e, kindOf(it)));
-        if (itemUp(it) && slot) equipTo(it, slot.k), __craft[1]++, __ev.push(`${m} 換上 ${itemName(it)}`);
+        if (itemUp(it) && slot)
+          equipTo(it, slot.k),
+            __craft[1]++,
+            __ev.push(`${m} 換上 ${itemName(it)}`),
+            __up.push([Math.round((Date.now() - __t0) / 1000), '換上']);
         else takeOut('inv', it), salvageDo(it);
       }
       ST = stats();
@@ -117,10 +145,22 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     );
   }
   const news = rows.reduce((a, r) => a + r.ev.filter(e => !/換上/.test(e)).length, 0),
-    ups = rows.reduce((a, r) => a + r.ev.filter(e => /換上/.test(e)).length, 0);
+    ups = rows.reduce((a, r) => a + r.ev.filter(e => /換上/.test(e)).length, 0),
+    M = await p.evaluate(() => ({ r1: __r1, up: __up, say: __say }));
+  /* 前 15 分鐘的小變強：秒數去重，算最大間隔（含 0 秒到第一次）與每分鐘幾次 */
+  const T = [...new Set(M.up.map(u => u[0]).filter(t => t <= 900))].sort((a, b) => a - b),
+    gaps = [...T, Math.min(900, MIN * 60)].map((t, i, L) => t - (i ? L[i - 1] : 0)),
+    per = Array.from({ length: Math.min(15, MIN) }, (_, i) => T.filter(t => t >= i * 60 && t < (i + 1) * 60).length);
   console.log(
-    `\n${MIN} 分鐘：新東西 ${news} 個、換上 ${ups} 次、產生器升了 ${rows[rows.length - 1].gens} 級、頁面錯誤 ${errs.length}`
+    `\n${MIN} 分鐘（${VW}×${VH}）：新東西 ${news} 個、換上 ${ups} 次、產生器升了 ${rows[rows.length - 1].gens} 級、頁面錯誤 ${errs.length}`
   );
+  console.log(
+    `首輪完成：${M.r1 ? `${Math.floor(M.r1 / 60000)} 分 ${Math.round((M.r1 % 60000) / 1000)} 秒` : '沒有打完'}`
+  );
+  console.log(
+    `前 15 分鐘小變強（產生器／設施／換上／角色升級）：${T.length} 次，最大間隔 ${Math.max(0, ...gaps)} 秒，超過 60 秒的間隔 ${gaps.filter(g => g > 60).length} 個；每分鐘 ${per.join(' ')}`
+  );
+  console.log(`解鎖句（M1-14）${M.say.length} 句：\n      ${M.say.join('\n      ')}`);
   if (errs.length) console.log(errs.slice(0, 5).join('\n'));
   await b.close();
 })().catch(e => {
