@@ -985,9 +985,11 @@ function stats(s = S) {
     }
   }
   /* 腐化詞（0.2.72，不占前後綴）：跟天賦一樣進同一池（hpP 等在 pt，其他走 put）；失效的裝備不算 */
+  const wy = new Set();
   for (const e of EQS) {
     const it = s.eq[e.k];
     if (!it || chk.bad.has(e.k) || (e.k === 'off' && !offOK(w, it))) continue;
+    if (WY_FX[it.wy]) wy.add(it.wy);
     for (const c of it.cw || []) {
       const f = CORR[c.k].fx(c.v);
       for (const k in f) k in pt ? (pt[k] += f[k]) : put(k, f[k]);
@@ -1002,6 +1004,12 @@ function stats(s = S) {
           const f = T[c.k].fx(c.v);
           for (const k in f) k in pt ? (pt[k] += f[k]) : put(k, f[k]);
         }
+  }
+  /* 王印（M2-29）：有效裝備上的同名只算一次；4 種不同 → 四印齊鳴，每枚 ×1.25（leech 取 1 位小數，其他取整數） */
+  const wyM = wy.size >= WY_SET.n ? WY_SET.mul : 1;
+  for (const k of wy) {
+    const f = WY_FX[k];
+    put(f.k, f.k === 'leech' ? Math.round(f.v * wyM * 10) / 10 : Math.round(f.v * wyM));
   }
   /* 昇華（0.2.25）：小點的數值跟天賦一樣加；大點是開關或數值（only＝拿那種武器才生效） */
   const treeHpP = pt.hpP,

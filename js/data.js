@@ -8815,8 +8815,20 @@ const STR_T = {
   poolWy: '王印',
   poolBase: '{l}基底',
   merge: '{a} 等 {n} 件',
-  merge2: '{a}、{b}'
+  merge2: '{a}、{b}',
+  /* M2-29：四印齊鳴進度（{k}＝目前套在有效裝備上的王印種類數），齊了接 wySetOn */
+  wySet: '四印齊鳴 {k}／{n}',
+  wySetOn: '・效果 ×{m}'
 };
+/* M2-29 王印固定詞（數值設計師 v1.0 定稿）：能力鍵與單印數值；不佔前後綴，items.js 的 stats() 加。
+   四印齊鳴：有效欄位上 4 種不同王印 → 每枚 ×mul（leech 取 1 位小數，其他取整數）；同名只算一次 */
+const WY_FX = {
+  wangyin_zhenyue: { k: 'defP', v: 24 },
+  wangyin_chixiao: { k: 'dmgA', v: 13 },
+  wangyin_jiting: { k: 'ss', v: 12 },
+  wangyin_guixu: { k: 'leech', v: 1 }
+};
+const WY_SET = { n: 4, mul: 1.25 };
 /* 字串表填參數：strT('pity', { n: 37 }) → 「下一件保底 37%」 */
 const strT = (k, o = {}) => STR_T[k].replace(/\{(\w+)\}/g, (_, x) => o[x]);
 /* 王印的圖檔（M2-19.9）：正式圖在第二條通貨圖 ic_cur-2，x 照這裡、y 0、32×32；圖還沒做好，先全部借 cur_regal 那格（第一條 x=297, y=0）。
