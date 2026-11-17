@@ -1390,6 +1390,7 @@ body.touch.port #pinv .foot .btn { flex: 1; min-height: 48px; }
 .ndr:active { transform: scale(0.98); }
 .ndl li.on .ndr { border-color: var(--fr-hi); }
 .ndl li.lock .ndr b { color: var(--dim); }
+.ndl li.lock .ndr em { color: var(--dim); }
 .ndl .wm-body { overflow: visible; padding: 10px 12px 12px; border: 1px solid var(--fr-o); border-top: 0; background: var(--s1); }
 .ndl .wm-body h2, .ndl .wm-st { display: none; }
 .ndl .wm-acts { position: static; margin-top: 4px; padding-top: 0; background: none; }
@@ -2174,7 +2175,6 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 .sumh .btn.wide { width: 100%; min-height: 48px; }
 /* 地點清單（0.5.4，考核 B1）：下一個（升瞭望台就開）、最後一行還有幾個地點 */
 .ndl li.nx .ndr em { color: var(--milk2); }
-.ndmore { margin: 10px 0 0; text-align: center; font-size: var(--fs-s); color: var(--milk2); }
 #pnav .dot.n, #dnav .dot.n { width: auto; min-width: 16px; height: 16px; padding: 0 4px; font: 700 10px/16px var(--font); font-style: normal; color: #111; text-align: center; border-radius: 8px; }
 /* 地點清單（0.5.2，唯一入口）：區域名分組、上面一排星級 */
 .ndl .ndg { padding: 10px 4px 2px; font: 700 var(--fs-s) var(--font); color: var(--dim); letter-spacing: 0.06em; }
