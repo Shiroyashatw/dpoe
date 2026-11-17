@@ -128,6 +128,8 @@ function hudInit() {
   <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}倉庫</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
   <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="home">${ICO.home}回藏身處</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
+  $('chase').addEventListener('mouseenter', () => chaseBnHover(1));
+  $('chase').addEventListener('mouseleave', () => chaseBnHover(0));
   pracInit();
   introInit();
   hudBar();
@@ -1154,7 +1156,8 @@ function itemHTML(it, src, eqk) {
             : it.cor
               ? '<i class="bs co" aria-label="腐化">腐</i>'
               : '') +
-        (b ? `<i class="btr ${b <= itemT(it) ? 'top' : ''}">T${b}</i>` : '');
+        (b ? `<i class="btr ${b <= itemT(it) ? 'top' : ''}">T${b}</i>` : '') +
+        (it.chase ? '<i class="chm" aria-label="追逐物品"></i>' : '');
   return `<div class="it r${it.r} ${isSlot(src) ? 'full' : ''} ${src === 'inv' && cantWear(it) ? 'nq' : ''} ${src === 'inv' && BAG.sel === it.id ? 'on' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''}>${icHTML(itemIc(it))}${mark}</div>`;
 }
 /* ---------- 換裝卡（0.4.9，示意頁第 9 版）：「這件｜身上」並排，不下判定；傷害合一欄（物理白、元素各自的顏色）、攻速、暴擊率、需求；前綴 3／後綴 3 ---------- */
@@ -1337,8 +1340,9 @@ document.addEventListener('click', e => {
   if (iv) return (PANEL.invT = iv.dataset.invt), hudPanels();
   const tm = e.target.closest('[data-term]');
   if (tm) return showTerm(tm);
-  const bn = e.target.closest('#banner.bn-chase');
-  if (bn) return chaseOpen(bn.dataset.chase);
+  if (e.target.closest('#chase')) return chaseBnClick();
+  /* 靈魂包沒有物品詳情：點橫幅開掉落紀錄（第 20 點） */
+  if (e.target.closest('#banner.bn-pack')) return ($('banner').hidden = true), PANEL.log || fmenuOpen('log');
   const chs = e.target.closest('[data-chs]');
   if (chs) return chaseTip(chs);
   if (!e.target.closest('#ttip')) $('ttip').hidden = true;
@@ -1680,6 +1684,7 @@ function revealOpen(L = identifyAll(S), o = {}) {
     title: o.title || '撿骨師的鑑定',
     head: o.head || '',
     sum: o.sum ? 1 : 0,
+    chx: 0,
     more: o.more || ''
   });
   PANEL.ident = true;
@@ -1800,15 +1805,103 @@ document.addEventListener('click', e => {
 /* 巡邏卡（0.3.0，企劃書 2.1 第 12 項）：目前區塊與節點、卡、開通、撿到、連死、停機原因；桌機是右邊的面板、手機直立是下半的抽屜（同一份 HTML） */
 /* 稀有掉落的橫幅（0.4.1）：畫面上方、2.6 秒；c＝frac／mem／cur／perf（顏色） */
 let BANT;
-function banner(t, c) {
+function banner(t, c, k) {
+  if (c === 'chase') return chaseBn(k);
   const el = $('banner');
   if (!el) return;
   el.textContent = t;
   el.className = 'bn-' + c;
   el.hidden = false;
   clearTimeout(BANT);
-  /* 追逐物品的橫幅點了開詳情，多留一下 */
-  BANT = setTimeout(() => (el.hidden = true), c === 'chase' ? 6000 : 2600);
+  BANT = setTimeout(() => (el.hidden = true), 2600);
+}
+/* ---------- 追逐物品的橫幅 #chase（M2-19.2c–g）：進場 220 → 停 2800 → 退場 320；顯示中再來一件＝合併成 ×n（重新計時，從第一件起最多 5.6 秒）；
+   出現 400 ms 內點了不算；桌機滑鼠停在上面暫停倒數（最多多 8 秒）。不暫停戰鬥。直立貼在半版面板上緣、桌機 top 76 全寬條、手機橫向置中 ---------- */
+const CB = { st: 'idle', items: [], t0: 0, end: 0, guard: 0, hs: 0, ext: 0, tm: 0 };
+const CB_IN = 220,
+  CB_HOLD = 2800,
+  CB_OUT = 320,
+  CB_CAP = 5600,
+  CB_GUARD = 400,
+  CB_HOVER = 8000;
+function chaseBn(k) {
+  const el = $('chase'),
+    now = performance.now();
+  if (!el) return;
+  if (CB.st === 'idle') {
+    Object.assign(CB, { items: [k], t0: now, guard: now + CB_GUARD, end: now + CB_IN + CB_HOLD, hs: 0, ext: 0 });
+    el.className = 'in';
+    sfx('chase');
+  } else {
+    CB.items.push(k);
+    CB.end = Math.min(now + CB_HOLD, CB.t0 + CB_CAP);
+    el.classList.remove('out');
+    sfx('chaseBell');
+  }
+  CB.st = 'on';
+  $('banner').hidden = true;
+  el.innerHTML = chaseBnHTML();
+  el.setAttribute('aria-label', `${STR_T.chase}：${CB.items.map(chaseName).join('、')}`);
+  /* 桌機：右欄開著時只蓋左邊看得到的畫布 */
+  const rp = TOUCH.on
+    ? null
+    : [...document.querySelectorAll('.panel')].find(p => !p.hidden && p.offsetLeft > innerWidth / 2);
+  el.style.right = rp ? innerWidth - rp.offsetLeft + 'px' : '';
+  el.hidden = false;
+  chaseBnTimer();
+}
+function chaseBnHTML() {
+  const L = CB.items,
+    k = L[L.length - 1],
+    n = L.length,
+    one = n === 1,
+    fresh = one && chaseOf().got[k] === 1;
+  return `<span class="cbi">${L.slice(-2)
+    .map(x => `<span class="chf">${icHTML(x)}</span>`)
+    .join(
+      ''
+    )}</span><span class="cbt"><small>${esc(one ? STR_T.chase : strT('chaseN', { n }))}${fresh ? `<em class="cnew">${esc(STR_T.new)}</em>` : ''}</small><b>${esc(one ? chaseName(k) : n === 2 ? strT('merge2', { a: chaseName(L[0]), b: chaseName(L[1]) }) : strT('merge', { a: chaseName(L[0]), n }))}</b></span><span class="cbr">${one ? `<small>${esc(chaseProg(k))}</small>` : ''}<i aria-hidden="true">›</i><kbd class="donly">L</kbd></span>`;
+}
+function chaseBnTimer() {
+  clearTimeout(CB.tm);
+  CHASE_UNTIL = CB.hs ? Infinity : CB.end + CB_OUT + 300;
+  if (!CB.hs) CB.tm = setTimeout(chaseBnOut, Math.max(0, CB.end - performance.now()));
+}
+function chaseBnOut() {
+  const el = $('chase');
+  CB.st = 'out';
+  el.classList.add('out');
+  CB.tm = setTimeout(chaseBnHide, reduced() ? 0 : CB_OUT);
+}
+function chaseBnHide() {
+  clearTimeout(CB.tm);
+  CB.st = 'idle';
+  CB.hs = 0;
+  CHASE_UNTIL = performance.now() + 300;
+  $('chase').hidden = true;
+}
+/* 桌機懸停：暫停倒數，最多多 8 秒 */
+function chaseBnHover(on) {
+  const now = performance.now();
+  if (CB.st !== 'on' || TOUCH.on) return;
+  if (on && !CB.hs) {
+    CB.hs = now;
+    chaseBnTimer();
+    CB.tm = setTimeout(() => chaseBnHover(0), CB_HOVER - CB.ext);
+  } else if (!on && CB.hs) {
+    const d = Math.min(now - CB.hs, CB_HOVER - CB.ext);
+    CB.ext += d;
+    CB.end += d;
+    CB.hs = 0;
+    chaseBnTimer();
+  }
+}
+/* 點橫幅：王印開那一件的詳情（碎片頁那一列，製作人第 1 點）；合併的＝最新一件 */
+function chaseBnClick() {
+  if (performance.now() < CB.guard) return;
+  const k = CB.items[CB.items.length - 1];
+  chaseBnHide();
+  chaseOpen(k);
 }
 /* HUD 的掉落紀錄（0.4.1）：最新 3 筆，30 秒後淡掉；完整的在「掉落紀錄」面板 */
 const LOG_SHOW = 30000;
@@ -1821,19 +1914,21 @@ function logBar() {
   $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
 }
 const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
+/* 掉落紀錄選中的那一筆（橫幅顯示中按 L：最新的追逐物品） */
+let LOGSEL = null;
 /* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
 function logHTML() {
   const P = S.prd || {},
-    bar = (n, v, max) =>
-      `<div class="lgbar"><span>${n}</span><div class="pb" role="progressbar" aria-label="${n}保底" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${v}"><i style="width:${Math.min(100, (v / max) * 100)}%"></i></div><small>${v}／${max}</small></div>`,
+    bar = (n, v, max, t = `${v}／${max}`) =>
+      `<div class="lgbar"><span>${n}</span><div class="pb" role="progressbar" aria-label="${n}保底" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${v}"><i style="width:${Math.min(100, (v / max) * 100)}%"></i></div><small>${t}</small></div>`,
     ago = t => {
       const m = Math.floor((Date.now() - t) / 60000);
       return m < 1 ? '剛剛' : m < 60 ? `${m} 分鐘前` : `${Math.floor(m / 60)} 小時前`;
     };
   return `<div class="ph"><b>掉落紀錄</b><span>最近 50 筆重點掉落</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="ph2">保底進度<span>滿了下一次必出</span></div>
-  ${campCan('cur:frac') ? bar('破裂石（王）', P.fracO2 || 0, prdMax(NEW_P.frac[2])) : ''}${campCan('cur:perf') ? bar('完美石（王）', P.perfO2 || 0, prdMax(NEW_P.perf[2])) : ''}${campCan('cur:ink') ? bar('追憶之墨（王）', P.ink2 || 0, prdMax(NEW_P.ink[2])) : ''}${bar('完美通貨', P.perfC || 0, TIER_P.pity)}
-  <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c}"><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。</li>'}</ul>`;
+  ${campCan('cur:frac') ? bar('破裂石（王）', P.fracO2 || 0, prdMax(NEW_P.frac[2])) : ''}${campCan('cur:perf') ? bar('完美石（王）', P.perfO2 || 0, prdMax(NEW_P.perf[2])) : ''}${campCan('cur:ink') ? bar('追憶之墨（王）', P.ink2 || 0, prdMax(NEW_P.ink[2])) : ''}${bar('完美通貨', P.perfC || 0, TIER_P.pity)}${chaseOf().pts || chaseN() ? bar(STR_T.chase, chasePct(), 100, chasePct() + '%') : ''}
+  <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c} ${x === LOGSEL ? 'on' : ''}" ${x.k ? `data-chs="${x.k}" role="button" tabindex="0"` : ''}><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。</li>'}</ul>`;
 }
 /* ---------- 掛機卡（0.4.9，示意頁第 9 版）：刷圖中、沒開面板時直立佔下半、桌機在左下。
    上層：再幾隻王就出來（主數字＝進度 %）；本次掛機：掛了多久、幾輪、稀有、★、追憶、通貨、金、死亡；
@@ -1886,19 +1981,31 @@ function idleHTML() {
     ${pct >= 80 ? `<p class="note"><span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span></p>` : ''}
   </div>`;
 }
-/* 掛機卡的追逐保底（M2-18）：一行「下一件保底 n%」＋細條；只在會觸發保底的地點（怪物 Lv45 以上）有，其他地點整行不出、不留空位 */
+/* 掛機卡的追逐保底（M2-18；M2-19.4）：一行「下一件保底 n%」＋6 px 細條；只在會觸發保底的地點（怪物 Lv45 以上）有，其他地點整行不出、不留空位。
+   100% 條慢慢呼吸（full）；歸零那一次條先滿格再淡掉（reset，chaseHTML.p 記上一次）；整行是一顆透明鈕（熱區 44）開掉落紀錄 */
 function chaseHTML() {
   const t = chaseLine(G.mapT),
     n = chasePct();
-  return t
-    ? `<div class="chs"><span>${t}</span><div class="pb" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="width:${n}%"></i></div></div>`
-    : '';
+  if (!t) return '';
+  const p = chaseHTML.p,
+    cls = n >= 100 ? 'full' : p != null && n < p ? 'reset' : '';
+  chaseHTML.p = n;
+  return `<div class="chs"><span>${t}</span><div class="pb ${cls}" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="transform:scaleX(${cls === 'reset' ? 1 : n / 100})"></i></div><button class="chsb" data-a="chaselog" aria-label="${esc(strT('pityAria', { n }))}" data-tip="${esc(STR_T.pityTip)}"></button></div>`;
+}
+/* 開掉落紀錄（點保底一行；sel＝橫幅顯示中按 L：選中最新的追逐物品、展開它的詳情） */
+function chaseLog(sel) {
+  LOGSEL = sel ? (S.log || []).find(x => x.c === 'chase') || null : null;
+  if (sel) chaseBnHide();
+  if (!PANEL.log) fmenuOpen('log');
+  else hudPanels();
+  const li = sel && document.querySelector('#plog li.on');
+  if (li) li.scrollIntoView({ block: 'nearest' }), chaseTip(li);
 }
 /* 王印的詳情（碎片頁點一列、點追逐橫幅）：疊在那一列旁邊 */
 function chaseTip(el) {
   const k = el.dataset.chs;
   showTip(
-    `<b class="chs-t">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="c-dim">用法還沒開放。</p>`,
+    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="c-dim">用法還沒開放。</p>`,
     el.getBoundingClientRect(),
     $('ttip')
   );
@@ -1938,7 +2045,7 @@ function lootHTML(L) {
         `<div class="lrow">${icHTML(curIc(n).ic)}<span class="t">${esc(n)}${cur[n] > 1 ? ` ×${cur[n]}` : ''}<small>通貨</small></span></div>`
     )
     .join('');
-  return `<div class="row2 sub lh"><span>這一輪掉的</span><b>+${fmtN(L.gold)} 金</b></div>
+  return `<div class="row2 sub lh"><span>這一輪掉的</span><b>+${fmtN(L.gold)} 金</b></div>${chaseHTML()}
   ${rows ? `<div class="rows">${rows}</div>` : ''}
   ${L.hint ? '<p class="sub">王倒下會在這裡再刷一輪，不用按；升瞭望台就開新的地點</p>' : ''}
   <button class="btn pri wide igo" data-a="gocamp">去營地</button>`;
@@ -2423,6 +2530,7 @@ function inputInit() {
     else if (k === '2') drinkFlask(1);
     else if (k === 'f') interact();
     else if (k === 'i' || k === 'b') PANEL.inv ? closePanels() : openPanel('inv');
+    else if (k === 'l' && CB.st !== 'idle') chaseLog(1);
     else if (FMENU.some(f => f[2].toLowerCase() === k)) fmenuOpen(FMENU.find(f => f[2].toLowerCase() === k)[0]);
     else if (k === 'escape')
       G.ask ? act('askno') : TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
@@ -2541,7 +2649,9 @@ function act(a, el) {
   } else if (a === 'runok') {
     S.world.note = '';
     save();
-  } else if (a === 'genall') {
+  } else if (a === 'chaselog') chaseLog();
+  else if (a === 'offch') (REV.chx = !REV.chx), sfx('click'), hudPanels();
+  else if (a === 'genall') {
     const n = genAll();
     hudWarn(n ? `產生器升了 ${n} 級` : '沒有買得起的');
     sfx(n ? 'lvup' : 'click');

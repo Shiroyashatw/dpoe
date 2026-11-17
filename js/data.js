@@ -8802,8 +8802,23 @@ const STR_T = {
     rift2: '裂口異寶基底・二'
   },
   pack: '靈魂包',
-  packGain: '+{n} 靈魂'
+  packGain: '+{n} 靈魂',
+  /* M2-19.6：演出的字（語序可改，程式只填參數） */
+  chase: '追逐物品',
+  chaseN: '追逐物品 ×{n}',
+  new: '新',
+  pity: '下一件保底 {n}%',
+  pityAria: '下一件保底 {n}%，打開掉落紀錄',
+  pityTip: '滿 100% 時，下一隻輪末王一定掉追逐物品',
+  offRow: '追逐物品 ×{n}、目前保底 {p}%',
+  pool: '{p} {k}／{N}',
+  poolWy: '王印',
+  poolBase: '{l}基底',
+  merge: '{a} 等 {n} 件',
+  merge2: '{a}、{b}'
 };
+/* 字串表填參數：strT('pity', { n: 37 }) → 「下一件保底 37%」 */
+const strT = (k, o = {}) => STR_T[k].replace(/\{(\w+)\}/g, (_, x) => o[x]);
 /* 王印的圖檔（M2-19.9）：正式圖在第二條通貨圖 ic_cur-2，x 照這裡、y 0、32×32；圖還沒做好，先全部借 cur_regal 那格（第一條 x=297, y=0）。
    靈魂包 soulpack（13:27）：art.js 已經有 ic_cur x=396 那格，圖還沒到先借 cur_soul。sprites.js 的 artImg／artIconURL 照 ART_ALIAS 換（圖到了就刪那一個鍵） */
 const WANGYIN_X = { wangyin_zhenyue: 132, wangyin_chixiao: 165, wangyin_jiting: 198, wangyin_guixu: 231 };
