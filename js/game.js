@@ -713,9 +713,44 @@ function shake(a) {
   if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   G.trauma = Math.min(1, G.trauma + a);
 }
+/* 傷害數字設定（M2-05.5，S.dmgn）：all 全部／crit 只暴擊與受傷／off 關閉；沒選過依裝置：觸控手機（短邊 < 600，含橫向）crit，其他 all */
+const PHONE = () => typeof TOUCH !== 'undefined' && TOUCH.on && Math.min(innerWidth, innerHeight) < 600;
+const dmgN = () => S.dmgn || (PHONE() ? 'crit' : 'all');
+/* 一般擊中（crit 就不畫）、其他傷害字（off 才不畫）；金幣、材料不算傷害數字 */
+const NUM_HIT = ['phys', 'fire', 'cold', 'light', 'chaos', 'hit', 'dot', 'miss'],
+  NUM_DMG = ['crit', 'jackpot', 'hurt', 'ev', 'block', 'perfect'];
+const numShown = (c, m = dmgN()) => m === 'all' || (!NUM_HIT.includes(c) && (m === 'crit' || !NUM_DMG.includes(c)));
+/* 畫面上限超過時先丟優先最低的（M2-05.2e）：挨打 > 暴擊／大獎 > 一般擊中 > 金幣 > 持續傷害 > 閃避／格擋字 */
+const NUMP = {
+  hurt: 5,
+  crit: 4,
+  jackpot: 4,
+  phys: 3,
+  fire: 3,
+  cold: 3,
+  light: 3,
+  chaos: 3,
+  hit: 3,
+  gold: 2,
+  mat: 2,
+  dot: 1
+};
 /* txt：直接顯示的文字（材料、學會寶石） */
 function num(x, y, v, c, txt) {
-  G.nums.push({ x: x + rnd(-8, 8), y, v: Math.round(v), c, t: 0, txt });
+  if (!numShown(c)) return;
+  v = Math.round(v);
+  /* 合併（M2-05.2a、c）：同一個位置（同一隻怪／玩家頭上）、同色、0.3 秒內的擊中與挨打加成一個，壽命從最後一次算；暴擊不合併 */
+  const o =
+    !txt &&
+    NUMP[c] !== 4 &&
+    G.nums.find(n => n.c === c && !n.txt && n.t < 0.3 && Math.abs(n.x0 - x) < 30 && Math.abs(n.y0 - y) < 30);
+  if (o) return (o.v += v), (o.t = 0);
+  G.nums.push({ x: x + rnd(-8, 8), y, x0: x, y0: y, v, c, t: 0, txt });
+  if (G.nums.length > (PHONE() ? 8 : 14)) {
+    let i = 0;
+    G.nums.forEach((n, j) => (NUMP[n.c] || 0) < (NUMP[G.nums[i].c] || 0) && (i = j));
+    G.nums.splice(i, 1);
+  }
 }
 /* 圓環、電弧、死亡、補血這些舊特效，順便疊一張 pixelfx 的序列圖（圓環留著，看得出範圍） */
 const RINGFX = {
@@ -733,7 +768,7 @@ function fx(o) {
   if (o.k === 'ring') fxs(RINGFX[o.col || '#fff3d6'], o.x, o.y, o.r);
   else if (o.k === 'zap') fxs('zap', o.x2, o.y2);
   else if (o.k === 'die') fxs('poof', o.x, o.y, o.sz * 0.5);
-  else if (o.k === 'heal' || o.k === 'lvup') fxs(o.k, o.x, o.y);
+  else if (o.k === 'heal') fxs(o.k, o.x, o.y);
   else if (o.k === 'perfect') fxs('blink', o.x, o.y);
 }
 /* 播一張序列圖（js/fxsheets.js）；r 是想要的半徑，照原圖的半徑縮放 */
@@ -1187,10 +1222,9 @@ function gainXp(v) {
     ST = stats();
     P.hp = ST.hp;
     P.mp = ST.mp;
-    fx({ k: 'lvup', x: P.x, y: P.y, dur: 1.1 });
+    /* 升級只留一個提示（M2-05.3）：金色圓環＋升級膠囊（hud.js 的 lvPill） */
     fx({ k: 'ring', x: P.x, y: P.y, r: 120, col: '#ffd166', dur: 0.6 });
-    num(P.x, P.y - 90, S.lv, 'lv');
-    hudWarn(`升級！Lv ${S.lv}・天賦點 +1`);
+    lvPill();
     if (PORT()) sheetSync(); /* 分頁列「天賦」亮一個點 */
     sfx('lvup');
   }

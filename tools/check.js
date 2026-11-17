@@ -11166,4 +11166,248 @@ const ASC_COMBOS = `const combos = k => {
       }
     }
 }
-process.exit(bad ? 1 : 0);
+/* M2-06 戰鬥可讀性（規格 specs/M2-05-combat-readability.md）：傷害數字三段設定與依裝置預設（製作人 11-17 10:42）、合併與上限、升級只剩一種提示 */
+{
+  const c = {
+    ...ctx,
+    Set,
+    document: { getElementById: () => ({}), querySelectorAll: () => [], getElementsByClassName: () => [] }
+  };
+  vm.createContext(c);
+  for (const f of [
+    'core.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'world.js',
+    'mech.js',
+    'ai.js',
+    'game.js',
+    'skills.js'
+  ])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c, { filename: f });
+  const R = s => vm.runInContext(s, c);
+  const r = R(`(() => {
+    const r = {}, dev = (on, w, h) => ((globalThis.TOUCH = { on }), (globalThis.innerWidth = w), (globalThis.innerHeight = h), dmgN());
+    S = newGame();
+    /* 預設依裝置、不依方向：觸控且短邊 < 600（直立、橫向）只暴擊與受傷；桌機、平板全部 */
+    r.def = [dev(true, 390, 844), dev(true, 375, 667), dev(true, 844, 390), dev(true, 667, 375), dev(false, 1280, 720), dev(false, 1440, 900), dev(true, 768, 1024)];
+    /* 選過就照選的，換裝置不變；新存檔沒有這個欄位（沒選過） */
+    r.fresh = 'dmgn' in S;
+    S.dmgn = 'off';
+    r.pick = [dev(true, 390, 844), dev(false, 1280, 720)];
+    /* 三段各畫什麼：crit 只留暴擊、大獎、受傷、閃避／格擋；off 一個傷害字都不留；金幣、材料三段都畫 */
+    const C = ['phys', 'fire', 'dot', 'miss', 'crit', 'jackpot', 'hurt', 'ev', 'block', 'perfect', 'gold', 'mat'];
+    r.show = ['all', 'crit', 'off'].map(m => C.filter(k => numShown(k, m)).join(','));
+    /* 真的 num()：同一隻怪同色 0.3 秒內合併（數字加總）、暴擊不合併；手機上限 8、桌機 14，超過先丟優先最低的 */
+    S.dmgn = 'all';
+    G.nums = [];
+    num(100, 50, 21, 'phys'); num(104, 52, 26, 'phys'); num(100, 50, 9, 'fire'); num(100, 50, 96, 'crit'); num(100, 50, 50, 'crit');
+    r.merge = G.nums.map(n => n.c + n.v).join(',');
+    G.nums[0].t = 0.31; num(100, 50, 5, 'phys');
+    r.merge2 = G.nums.length;
+    const cap = (on, w, h) => { dev(on, w, h); G.nums = []; for (let i = 0; i < 20; i++) num(i * 100, 0, 1, i ? 'phys' : 'hurt'); num(9999, 0, 1, 'ev'); return [G.nums.length, G.nums.some(n => n.c === 'hurt'), G.nums.some(n => n.c === 'ev')]; };
+    r.cap = [cap(true, 390, 844), cap(false, 1280, 720)];
+    S.dmgn = 'crit'; G.nums = []; num(0, 0, 5, 'phys'); num(0, 0, 5, 'dot'); num(0, 0, 9, 'hurt'); num(0, 0, 9, 'crit'); num(0, 0, 3, 'gold');
+    r.crit = G.nums.map(n => n.c).join(',');
+    /* 升級：連升兩級 → 只有升級膠囊（lvPill）與金圈，沒有 #warn 吐司、世界大字、lvup 序列圖 */
+    S = newGame(); S.dmgn = 'off';
+    P = { x: 0, y: 0, hp: 1, mp: 1 }; G.fx = []; G.nums = []; SES = null; G.rs = null;
+    let warn = 0, pill = 0;
+    hudWarn = () => warn++; lvPill = () => pill++; sfx = () => {}; sheetSync = () => {}; PORT = () => false;
+    gainXp(xpNeed(1) + xpNeed(2));
+    r.lv = [S.lv, pill, warn, G.nums.length, G.fx.filter(o => o.k === 'ring' && o.col === '#ffd166').length, G.fx.filter(o => o.k === 'lvup' || o.n === 'lvup').length];
+    return r;
+  })()`);
+  ok(
+    'M2-06 傷害數字預設依裝置不依方向：觸控手機 390×844、375×667、844×390、667×375 → crit；桌機 1280×720、1440×900、觸控平板 768×1024 → all；新存檔沒有 dmgn',
+    r.def.join() === 'crit,crit,crit,crit,all,all,all' && !r.fresh,
+    JSON.stringify([r.def, r.fresh])
+  );
+  ok('M2-06 選過（S.dmgn）就照選的，換裝置不變', r.pick.join() === 'off,off', r.pick.join());
+  ok(
+    'M2-06 三段：全部畫全部；只暴擊與受傷不畫一般擊中、持續傷害、未命中；關閉只剩金幣與材料',
+    JSON.stringify(r.show) ===
+      '["phys,fire,dot,miss,crit,jackpot,hurt,ev,block,perfect,gold,mat","crit,jackpot,hurt,ev,block,perfect,gold,mat","gold,mat"]' &&
+      r.crit === 'hurt,crit,gold',
+    JSON.stringify([r.show, r.crit])
+  );
+  ok(
+    'M2-06 合併：同一隻怪同色 0.3 秒內加總（21＋26＝47）、不同色分開、暴擊各自一個；過了 0.3 秒另起一個',
+    r.merge === 'phys47,fire9,crit96,crit50' && r.merge2 === 5,
+    JSON.stringify([r.merge, r.merge2])
+  );
+  ok(
+    'M2-06 全畫面上限：手機 8、桌機 14；超過先丟閃避字、挨打留著',
+    JSON.stringify(r.cap) === '[[8,true,false],[14,true,false]]',
+    JSON.stringify(r.cap)
+  );
+  ok(
+    'M2-06 升級只剩一種提示：連升兩級 → 升級膠囊 2 次（同一顆）、#warn 0 次、沒有世界大字、一個金圈一級、沒有 lvup 序列圖；關閉傷害數字不影響膠囊',
+    JSON.stringify(r.lv) === '[3,2,0,0,2,0]',
+    JSON.stringify(r.lv)
+  );
+  const rsrc = fs.readFileSync(path.join(__dirname, '..', 'js', 'render.js'), 'utf8');
+  ok('M2-06 render.js 不再畫「升級！Lv」世界字與 lvup 圈', !/升級！Lv|'lvup'/.test(rsrc));
+}
+/* M2-06 實機量測（Playwright，PW_CHROME 指定瀏覽器；自己開靜態伺服器，不連雲端）：
+   火焰放滿：停住主迴圈，玩家與一隻怪各疊 4 個火焰爆炸（boom）＋自己的燃燒地面，比對「沒有特效」與「特效放滿」兩張畫面在玩家、怪身上 32×44 世界單位的方框，
+   只看角色本身的像素（拿掉玩家與怪再畫一張，跟原圖 RGB 差 ≥ 24 的像素），其中特效放滿後 RGB 差仍 < 24 的比例要 ≥ 50%（改前玩家 1%、怪 0–2%）。
+   DOM：設定面板「傷害數字」三鈕、預選依裝置、375 寬不換行；升級膠囊連升只有一顆、#warn 不亮 */
+(async () => {
+  let pw;
+  try {
+    pw = require('playwright');
+  } catch (e) {
+    ok('M2-06 實機量測要 Playwright', false, '裝 playwright 或設 NODE_PATH');
+    return;
+  }
+  const http = require('http'),
+    root = path.join(__dirname, '..'),
+    MIME = {
+      '.js': 'text/javascript',
+      '.css': 'text/css',
+      '.html': 'text/html',
+      '.png': 'image/png',
+      '.json': 'application/json'
+    };
+  const srv = http.createServer((q, s) => {
+    const f = path.join(root, decodeURIComponent(q.url.split('?')[0]).replace(/\/$/, '/index.html'));
+    if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) return s.writeHead(404), s.end();
+    s.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream' });
+    fs.createReadStream(f).pipe(s);
+  });
+  await new Promise(r => srv.listen(0, r));
+  const URL = `http://localhost:${srv.address().port}/`;
+  let b;
+  try {
+    b = await pw.chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
+  } catch (e) {
+    ok('M2-06 實機量測要能開瀏覽器', false, '設 PW_CHROME：' + e.message.split('\n')[0]);
+    srv.close();
+    return;
+  }
+  for (const [W, H, touch] of [
+    [390, 844, 1],
+    [375, 667, 1],
+    [1280, 720, 0]
+  ]) {
+    const cx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !!touch, isMobile: !!touch });
+    await cx.route(/supabase/, r => r.abort());
+    const p = await cx.newPage(),
+      errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(URL + '?' + Date.now());
+    await p.evaluate(() => localStorage.clear());
+    await p.reload();
+    await p.waitForTimeout(1200);
+    await p.evaluate(() => {
+      fxImg('boom');
+      proSkip();
+      S.story.tips = 0;
+      S.auto = 0;
+      runNode(TRUNK_K[0]);
+    });
+    await p.waitForTimeout(1500);
+    const m = await p
+      .evaluate(() => {
+        const r = {};
+        /* 設定面板：三鈕、預選、一列不換行 */
+        openPanel('set');
+        const bs = [...document.querySelectorAll('#pset [data-a^="dmgn:"]')];
+        r.set = [
+          bs.map(x => x.textContent).join('/'),
+          (bs.find(x => x.classList.contains('on')) || {}).dataset.a,
+          new Set(bs.map(x => x.getBoundingClientRect().top)).size,
+          bs.every(x => x.getClientRects().length === 1 && x.scrollHeight <= x.clientHeight + 1)
+        ];
+        bs[2].click();
+        r.set.push(S.dmgn);
+        closePanels();
+        /* 升級膠囊：連升兩級只有一顆、天賦點寫總數、#warn 不亮 */
+        $('warn').classList.remove('on');
+        gainXp(xpNeed(S.lv) + xpNeed(S.lv + 1));
+        r.lv = [
+          document.querySelectorAll('#lvup.on').length,
+          $('lvup').textContent,
+          $('warn').classList.contains('on')
+        ];
+        /* 火焰放滿 */
+        frame = () => {};
+        const mob = G.mobs.find(x => !x.boss);
+        G.mobs = [mob];
+        Object.assign(mob, { x: P.x + 120, y: P.y, hp: mob.mhp, st: 'idle', flash: 0, sq: 0 });
+        Object.assign(P, { hurtT: 0, act: null, mv: 0, roll: null, iuntil: 0 });
+        Object.assign(G, {
+          trauma: 0,
+          fx: [],
+          nums: [],
+          ground: [],
+          drops: [],
+          shots: [],
+          remnants: [],
+          cam: { x: P.x + 60, y: P.y - 30 }
+        });
+        const c2 = CV.getContext('2d'),
+          k = DPR * ZOOM,
+          box = (x, y) =>
+            c2.getImageData(
+              Math.round((x - G.cam.x - 16) * k + CV.width / 2),
+              Math.round((y - G.cam.y - 50) * k + (cvH() * DPR) / 2),
+              Math.round(32 * k),
+              Math.round(44 * k)
+            ).data;
+        /* 遮罩：拿掉玩家與怪再畫一張，跟原圖不同的像素才是角色本身 */
+        const dh = drawHero;
+        drawHero = () => {};
+        G.mobs = [];
+        draw();
+        const Z = [box(P.x, P.y), box(mob.x, mob.y)];
+        drawHero = dh;
+        G.mobs = [mob];
+        draw();
+        const A = [box(P.x, P.y), box(mob.x, mob.y)];
+        for (const t of [P, mob]) {
+          for (let i = 0; i < 4; i++) fxs('boom', t.x + (i - 1.5) * 8, t.y - 10, 90, { t: 0.15 });
+          G.ground.push({ k: 'fire', x: t.x, y: t.y, r: 90, dur: 4, t: 0 });
+        }
+        draw();
+        const B = [box(P.x, P.y), box(mob.x, mob.y)],
+          same = (a, b, i) =>
+            Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2])) < 24;
+        r.vis = A.map((a, j) => {
+          let n = 0,
+            s = 0;
+          for (let i = 0; i < a.length; i += 4) if (!same(a, Z[j], i)) n++, same(a, B[j], i) && s++;
+          return +(s / n).toFixed(3);
+        });
+        r.fx = G.fx.filter(o => o.n === 'boom').length;
+        return r;
+      })
+      .catch(e => (errs.push(e.message), { set: [], lv: [] }));
+    const tag = `${W}×${H}`,
+      want = touch ? 'dmgn:crit' : 'dmgn:all';
+    ok(
+      `M2-06 ${tag} 設定「傷害數字」三鈕（全部／只暴擊與受傷／關閉）一列不換行、預選 ${want.slice(5)}、點了就存`,
+      m.set[0] === '全部/只暴擊與受傷/關閉' && m.set[1] === want && m.set[2] === 1 && m.set[3] && m.set[4] === 'off',
+      JSON.stringify(m.set)
+    );
+    ok(
+      `M2-06 ${tag} 連升兩級只有一顆升級膠囊、天賦點 +2、#warn 不亮`,
+      m.lv[0] === 1 && /^升級！Lv \d+・天賦點 \+2$/.test(m.lv[1]) && !m.lv[2],
+      JSON.stringify(m.lv)
+    );
+    ok(
+      `M2-06 ${tag} 火焰放滿（各 4 個爆炸＋燃燒地面）看得到自己與怪：像素不變比例 ≥ 50%（玩家、怪：${m.vis && m.vis.join('、')}）`,
+      m.fx === 8 && m.vis[0] >= 0.5 && m.vis[1] >= 0.5,
+      JSON.stringify(m.vis)
+    );
+    ok(`M2-06 ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
+    await cx.close();
+  }
+  await b.close();
+  srv.close();
+})().then(() => process.exit(bad ? 1 : 0));
