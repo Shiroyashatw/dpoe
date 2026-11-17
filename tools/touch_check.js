@@ -10,6 +10,16 @@ const W = +process.argv[2] || 844,
   tag = W + 'x' + H,
   shot = n => path.join(os.tmpdir(), `touch_${tag}_${n}.png`);
 let fail = 0;
+/* 等版面穩定再量（面板滑進來、機器忙時畫格慢）：每次先等 100 毫秒再等兩個畫格，連三次結果一樣（最多約 4 秒）才回傳 */
+const settle = async (p, fn, arg) => {
+  const L = [];
+  for (let i = 0; i < 20 && !(L.length >= 3 && L.slice(-3).every(x => x === L[L.length - 1])); i++) {
+    await p.waitForTimeout(100);
+    await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    L.push(JSON.stringify(await p.evaluate(fn, arg)));
+  }
+  return JSON.parse(L[L.length - 1]);
+};
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await b.newContext({
@@ -1482,7 +1492,7 @@ let fail = 0;
       return true;
     };
     const look = () =>
-      p.evaluate(() => {
+      settle(p, () => {
         const pn = $('pskill').getBoundingClientRect(),
           small = [],
           out = [];
@@ -1599,7 +1609,8 @@ let fail = 0;
     const inView = async (open, ...sel) => {
       await p.evaluate(open);
       await p.waitForTimeout(260);
-      return p.evaluate(
+      return settle(
+        p,
         sel =>
           sel.map(q => {
             const r = document.querySelector(q).getBoundingClientRect();
