@@ -119,7 +119,7 @@ function draw() {
     H = SH / ZOOM;
   CX.setTransform(DPR * ZOOM, 0, 0, DPR * ZOOM, 0, 0);
   CX.imageSmoothingEnabled = false;
-  CX.fillStyle = PAL.sceneVoidV15;
+  CX.fillStyle = PAL.sceneVoidV14;
   CX.fillRect(0, 0, W + 1, H + 1);
   const tr = G.trauma * G.trauma,
     sx = (Math.random() * 2 - 1) * 14 * tr,
@@ -822,7 +822,7 @@ function drawFx() {
       CX.fill();
     } else if (o.k === 'claw') {
       CX.globalAlpha = 1 - f;
-      CX.strokeStyle = o.big ? PAL.elFireV1 : PAL.ascHiV3;
+      CX.strokeStyle = o.big ? PAL.elFireV1 : PAL.ascHiV2;
       CX.lineWidth = o.big ? 6 : 3;
       for (let i = -1; i <= 1; i++) {
         CX.beginPath();
@@ -1015,7 +1015,7 @@ function drawUnit(u) {
     CX.beginPath();
     CX.arc(u.x, u.y - 4, 9, 0, TAU);
     CX.fill();
-    CX.fillStyle = Math.sin(G.t * 14) > 0 ? PAL.dmgHurt : PAL.hpV4;
+    CX.fillStyle = Math.sin(G.t * 14) > 0 ? PAL.dmgHurt : PAL.hpV3;
     CX.fillRect(u.x - 2, u.y - 7, 4, 4);
   } else if (u.type === 'turret') {
     CX.fillStyle = PAL.progLoV1;

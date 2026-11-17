@@ -8,6 +8,10 @@
 - **JS 不寫色碼**：新增 `js/palette.js`（`PAL`，開機時從 `:root` 讀；`index.html` 接在 `core.js` 後面）。render、biome（`BIOMES` → `--scene-<地形>-ground/mid/light/edge/dark-rgb/glow-rgb`，地形細節 `--scene-detail-n`）、hideout（`HIDE_BIO`）、game、mech、skills、maps、world、combat、tree、forge、touch 與 data.js 的 `ELC` 全改讀 `PAL`；沒有角色的特效色 `--fx-<檔名>-n`。intro.js、sprites.js、技能與職業的識別色照規格不動；biome.js 兩處逐點亂數算出來的顏色（`rgba(255,${…},30,…)`）不是常數，留著。
 - **檢查**：`check.js` 加 4 條（只有一個 `:root`、`:root` 外沒有色碼、JS 沒有色碼、`PAL` 用到的 token 都有定義）；Node 的檢查工具在每個 vm 環境放 `PAL_CSS`（style.css 全文），`palette.js` 在 Node 照讀，數值檢查結果不變。
 
+## 0.5.4 之後：M2-14 清殘件（還沒換版本號）
+
+- 刪掉沒載入的 `js/market.js`，以及畫面上看不到的殘件：`#talk`、`#pro` 節點與 `#pdev`、`#pflt`、`#pshop`、對話框、序章目標列的 CSS。玩法、數值、存檔版本不變。
+
 ## 0.5.4 之後：M2-38 資訊架構重整（照 M2-37 v1.3；還沒換版本號）
 
 存檔版本還是 35（新欄位 `S.chase.seen` 用到才補，舊存檔拿過追逐物品就當作開放且看過）；掉率、保底點數不變（`loot_check.js`、`chase_check.js` 跟 main 輸出一樣）。截圖與量測在 `evidence/m2-38b/`（`tools/m2_38_shots.js`）。
