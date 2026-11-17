@@ -339,7 +339,9 @@ function touchInit() {
     const lk = e.target.closest('#pinv [data-lk]');
     if (lk) return hudWarn(lk.dataset.lk);
     /* 直立的角色頁：點一格（有沒有東西都算）＝選這一格，底下列出倉庫裡可以換的 */
-    const sq = PORT() && e.target.closest('#pinv .doll2 [data-eq]');
+    /* 桌機（M2-38）：空格也能點，底下列候選或「去鍛造打一件」 */
+    let sq = e.target.closest('#pinv .doll2 [data-eq]');
+    if (sq && !PORT() && !(!TOUCH.on && sq.classList.contains('emp'))) sq = null;
     if (sq && !sq.classList.contains('lock') && NAV.slot !== sq.dataset.eq) (NAV.slot = sq.dataset.eq), hudPanels();
     if (PORT() && e.target.closest('#area') && G.scene === 'map') return navGo('node');
     const m = e.target.closest('[data-tm]');
@@ -378,8 +380,8 @@ function touchInit() {
         HP_HOLD++;
         closePanels();
         NAV.full = 1;
-        if (src === 'inv') (PANEL.ctab = 'cur'), (PANEL.stab = 'cur'), openPanel('stash'), quickMove(src, it, eqk);
-        else (PANEL.ctab = 'forge'), openPanel('craft'), craftPick(src, it, eqk);
+        if (src === 'inv') openPanel('stash'), quickMove(src, it, eqk);
+        else (CRAFT.tab = FTABS.includes(CRAFT.tab) ? CRAFT.tab : 'forge'), openPanel('craft'), craftPick(src, it, eqk);
         HP_HOLD--;
         NOSNAP = 1;
         hudPanels();

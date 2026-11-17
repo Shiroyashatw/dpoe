@@ -122,7 +122,7 @@ fs.mkdirSync(OUT, { recursive: true });
       __in(P) &&
         !worldPaused() &&
         document.querySelectorAll('#pcraft .cmnxu').length <= 1 &&
-        bd.every(t => /^\d+ 可升級$/.test(t)) &&
+        bd.every(t => /^\d+$/.test(t)) &&
         /* 桌機：分頁名稱跟直立同一套、不寫手機手勢、面板不蓋生命／魔力條與技能列 */
         (TOUCH.on ||
           (/^總覽打造/.test(document.querySelector('#pcraft .ftabs').textContent) &&
@@ -139,7 +139,7 @@ fs.mkdirSync(OUT, { recursive: true });
     () => (closePanels(), openPanel('log')),
     () => {
       const t = (document.querySelector('#plog .none') || {}).textContent;
-      /* 角標（「1 可升級」）整顆看得到：中心那一點最上面的是它自己 */
+      /* 角標（「1」，M2-38 只寫數字）整顆看得到：中心那一點最上面的是它自己 */
       const pill = document.querySelector('#pnav .dot.pill, #dnav .dot.pill'),
         pr = __r(pill),
         top = pr && document.elementFromPoint(pr.x + pr.w / 2, pr.y + 3);
