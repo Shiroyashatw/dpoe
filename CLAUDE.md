@@ -88,3 +88,10 @@ python3 -m http.server 8000   # 在 dpoe/ 底下，開 http://localhost:8000
 
 ## 部署
 GitHub Pages：`main` 分支，網址 https://shiroyashatw.github.io/dpoe/ 。
+
+## 需要 Grok 幫忙的時後
+
+1. 取一個代號，把要 Grok 做的步驟、停在哪一步，寫進 ~/claude-runs/<代號>.prompt。
+2. 寫 ~/claude-runs/<代號>.json，內容是 {"kind":"request_to_assistant","result":"<同樣的步驟>"}。
+3. 用 Webhook 網址和金鑰 POST {"source":"claude-code","event":"run_done","name":"<代號>"}。
+4. 等 ~/claude-runs/<代號>.reply 出現，讀完再自己打開頁面核對結果。
