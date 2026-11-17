@@ -709,7 +709,14 @@ function fragPageHTML() {
     row = (ic, nm, d, v) =>
       `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(nm)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
     uw = fdHallWhy(S, 'uber');
-  return `<div class="ph2">酆都<span>鬼門關：角色 Lv ${spNeed('ghost')} 開</span></div>
+  return `<div class="ph2">追逐物品<span>主幹 Lv${CHASE.lv} 以上的輪末王掉落</span></div>
+  <ul class="mpg">${CHASE_POOL.trunk
+    .map(
+      k =>
+        `<li class="${F[k] ? '' : 'z'}" data-chs="${k}" role="button" tabindex="0"><span class="chf">${icHTML(k)}</span><div><b>${esc(chaseName(k))}</b><small>${esc(chaseProg(k))}</small></div><em>${fmtN(F[k] || 0)}</em></li>`
+    )
+    .join('')}</ul>
+  <div class="ph2">酆都<span>鬼門關：角色 Lv ${SPECIAL.find(s => s.t === 'ghost').need} 開</span></div>
   <ul class="mpg">${FENG.elites.map(k => row(FRAGS[k].ic, FRAGS[k].n, FRAGS[k].d, F[k])).join('')}${row(FRAGS.book.ic, FRAGS.book.n, FRAGS.book.d, F.book)}</ul>
   <div class="fgoal"><p><b>閻羅殿</b><span class="${n >= FENG.hun ? 'c-good' : ''}">勾魂令 ${n}／${FENG.hun}${n >= FENG.hun ? '：在山海寶盒開啟' : `：再 ${FENG.hun - n} 張`}</span></p>
   <p><b>十殿閻羅</b><span class="${uw ? '' : 'c-good'}">${esc(uw || '在山海寶盒開啟')}</span></p></div>
@@ -982,7 +989,7 @@ function forgeHTML() {
   return `${
     PORT()
       ? `<div class="ph"><b>營地</b>${craftSeg('forge')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div><div class="fsub">${tabsH}</div>`
-      : `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金幣 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span>${tabsH}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
+      : `<div class="ph"><b>鍛造台</b><span class="fmat">${tab === 'temper' ? `金 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span>${tabsH}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`
   }
   <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">未鑑定：回藏身處找撿骨師免費鑑定</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
   <div class="fr"><div class="ftop">${P.top}</div><div class="fmid">${P.mid}</div><div class="fact">${P.act}</div></div></div>`;

@@ -179,6 +179,7 @@ setTimeout(() => {
 const SKURL = new Map();
 /* PNG 圖示（art/icons 的檔名）轉成圖片網址；沒有或還沒載好回傳 null */
 function artIconURL(n) {
+  n = (typeof ART !== 'undefined' && !ART[n] && ART_ALIAS[n]) || n;
   if (typeof ART === 'undefined' || !ART[n]) return null;
   if (SKURL.has(n)) return SKURL.get(n);
   const c = artSprite('a_' + n);

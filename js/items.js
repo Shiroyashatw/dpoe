@@ -211,16 +211,20 @@ function rareName(it) {
 const itemName = it =>
   it.charm
     ? CHARMS[it.charm].n
-    : it.uid
-      ? baseOf(it).n
-      : it.r === 2
-        ? rareName(it)
-        : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
+    : it.chase && !it.r && !isWy(it.chase)
+      ? chaseName(it.chase)
+      : it.uid
+        ? baseOf(it).n
+        : it.r === 2
+          ? rareName(it)
+          : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
 /* 物品等級決定的 T（這件能出的最高階），標籤與說明框的「T2」 */
 const itemT = it => bestTier(it.L);
 /* 地上標籤的小字：T、孔、★、追憶（未鑑定也看得到的資訊） */
 const labelTag = it =>
-  it.charm ? '' : ` T${itemT(it)}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}${it.mem2 ? '◈' : ''}`;
+  it.charm
+    ? ''
+    : ` T${itemT(it)}${it.chase ? ' ◆' : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}${it.mem2 ? '◈' : ''}`;
 const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + ' 至 ' + a.v[1] : a.v);
 /* 腐化詞（0.2.72）：it.cw 的一條 */
 const cwText = c => CORR[c.k].n.replace('{}', c.v);
@@ -386,7 +390,7 @@ function offWhy(w, off) {
    容量 INV_CAP 件，★ 與追憶另外多留 INV_SPARE 格（滿了普通裝換金幣，它們照樣收）。回傳 false＝放不下 ---------- */
 const INV_CAP = 300 /* 0.5.0：3000 → 300，只放打造後留下來的 */,
   INV_SPARE = 50;
-const invRoom = (g, it) => g.items.length < INV_CAP + (it && (it.frac || it.mem) ? INV_SPARE : 0);
+const invRoom = (g, it) => g.items.length < INV_CAP + (it && (it.frac || it.mem || it.chase) ? INV_SPARE : 0);
 function invPut(g, it) {
   if (!invRoom(g, it)) return false;
   delete it.x, delete it.y;

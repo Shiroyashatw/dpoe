@@ -318,8 +318,8 @@ function offShow(o, g, away) {
     head: () => {
       const gen = GEN_K.some(k => genOn(k) && genAfford(k) > 0);
       return `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>${o ? `，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `・倒下 ${o.n - o.won} 輪` : ''}` : ''}${o && o.lv ? `・升了 <b>${o.lv}</b> 級` : ''}</p>
-      <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold')}<span class="rn">金幣</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
-      ${o && (o.chase || chaseOf().pts) ? `<p class="sub">追逐物品 ×${o.chase}、目前保底 ${Math.floor(chaseOf().pts / 5)}%</p>` : ''}
+      <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold')}<span class="rn">金</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
+      ${o && (o.chase || chaseOf().pts) ? `<p class="sub">${chaseOffRow(o.chase)}</p>` : ''}
       ${o && o.cur.length ? `<p class="sub">通貨：${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}
       ${gen ? '<button class="btn pri wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}${campUpsHTML(4, false)}</div>`;
     }
@@ -1017,7 +1017,9 @@ function killMob(m) {
   };
   const mat = killMat(m, t, od);
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
-  if (mat.chase) rareShow(chaseName(mat.chase), 'chase', 'star');
+  if (mat.chase) chaseShow(mat.chase);
+  /* 材料包（數值設計師第 6、7 點）：橫幅只寫「材料包」、掉落紀錄自成一類 pack；裡面的材料用下面的拾取文字 */
+  if (mat.feel && mat.feel.pack) rareShow('材料包', 'pack', 'orb');
   [
     ...mat,
     ...(m.boss && m.D.fd ? fdDrop(m.D.fd) : []),
@@ -1111,6 +1113,19 @@ function rareShow(txt, c, snd) {
   banner(txt, c);
   sfx(snd);
 }
+/* 追逐物品的橫幅（M2-18）：名字＋收集進度「王印 2／4」；點了開那一件的詳情（hud.js 的 chaseOpen） */
+function chaseShow(k) {
+  rareShow(chaseBanner(k), 'chase', 'star');
+  const el = $('banner');
+  if (el) el.dataset.chase = k;
+}
+/* 開發觸發（Game Art Director 13:11 第 14 點）：在現在的地點直接掉一件追逐物品，pk 指定池（'trunk'、賽制線 'ghost'…），走跟輪末王一樣的收起來與演出；?test=chase 與測試工具用 */
+function devChase(pk) {
+  const k = chaseGive(G.mapT || 1, pk);
+  chaseShow(k);
+  hudPanels();
+  return k;
+}
 function dropAt(x, y, o) {
   const a = rnd(0, TAU),
     s = rnd(30, 90);
@@ -1155,7 +1170,7 @@ function pickup(d) {
     S.gold += p;
     num(d.x, d.y - 20, p, 'gold');
     sfx('coin');
-    if (!G.fullW) (G.fullW = 1), hudWarn(`倉庫滿了（${INV_CAP} 件）：新掉的普通裝直接換成金幣`);
+    if (!G.fullW) (G.fullW = 1), hudWarn(`倉庫滿了（${INV_CAP} 件）：新掉的普通裝直接換成金`);
   } else {
     sfx('pick');
     bagDirty();

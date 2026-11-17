@@ -1,7 +1,7 @@
 /* dungeonPOE M2-18 · 追逐掉落驗收（docs/交辦/M2-18-追逐掉落.md）：在 Node 載入純邏輯，走真的 killMat（追逐判定、有感保底、通貨、珠寶），
    每個種子從新的保底點數開始掛 H 小時。一輪的小怪、菁英照時間平均攤開（王在輪末），有感掉落的空窗用這個時間量。
    情境：基準（第 15 個主幹地點 Lv48、1★、每小時 25 輪、鍛造台 20）、離線 12 小時（roundLoot，跟 offSettle 同一條路）、
-   速度下限（5★、每小時 60 輪）、鍛造台 14（只開破裂石）。
+   速度下限（5★、每小時 60 輪）、鍛造台 13–16（只開破裂石，每一級都量）。
    用法：node tools/chase_check.js [種子數，預設 200] [小時，預設 100] [小怪數，預設 40]；固定亂數，同參數結果一樣。只量不改數字 */
 'use strict';
 const fs = require('fs'),
@@ -131,20 +131,22 @@ ok(
 const F = scen({ rph: 60, star: 5, forge: 20 }, Math.min(SEEDS, 100)),
   fAvg = (Math.min(SEEDS, 100) * H) / F.reduce((a, r) => a + r.ch.length, 0);
 ok('速度下限 5★、每小時 60 輪的平均間隔（時）', f2(fAvg), fAvg >= 0.5, '≥ 0.5');
-/* 鍛造台 14（只開破裂石） */
-const K = scen({ rph: 25, star: 1, forge: 14 }, Math.min(SEEDS, 50)),
-  kFrac = K.reduce((a, r) => a + r.frac, 0),
-  kPack = K.reduce((a, r) => a + r.pack, 0),
-  kMax = Math.max(
-    ...K.map(r => {
-      let l = 0,
-        m = 0;
-      for (const ft of r.feel) (m = Math.max(m, (ft - l) / 60)), (l = ft);
-      return m;
-    })
-  );
-ok('鍛造台 14：有感保底給的破裂石', kFrac + ' 件', kFrac === 0, '0 件');
-ok('鍛造台 14：材料包（計入有感掉落）', `${kPack} 個（每人最長空窗 ${kMax.toFixed(1)} 分）`, kPack > 0, '有出現');
+/* 鍛造台 13–16（只開破裂石）：每一級都量 */
+for (const fg of [13, 14, 15, 16]) {
+  const K = scen({ rph: 25, star: 1, forge: fg }, Math.min(SEEDS, 50)),
+    kFrac = K.reduce((a, r) => a + r.frac, 0),
+    kPack = K.reduce((a, r) => a + r.pack, 0),
+    kMax = Math.max(
+      ...K.map(r => {
+        let l = 0,
+          m = 0;
+        for (const ft of r.feel) (m = Math.max(m, (ft - l) / 60)), (l = ft);
+        return m;
+      })
+    );
+  ok(`鍛造台 ${fg}：有感保底給的破裂石`, kFrac + ' 件', kFrac === 0, '0 件');
+  ok(`鍛造台 ${fg}：材料包（計入有感掉落）`, `${kPack} 個（每人最長空窗 ${kMax.toFixed(1)} 分）`, kPack > 0, '有出現');
+}
 console.log(rows.join('\n'));
 console.log(`\n${((Date.now() - t0) / 1000).toFixed(0)} 秒`);
 process.exitCode = rows.some(r => r.includes('❌')) ? 1 : 0;

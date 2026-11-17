@@ -215,7 +215,7 @@ function useSave(r) {
   save();
   proBoot();
 }
-/* ---------- 測試入口（M1-24）：?test=dualweap／nearDeath／midgame。每次載入照情境重建，存在 test_名字 存檔位、不連雲端 ----------
+/* ---------- 測試入口（M1-24）：?test=dualweap／nearDeath／midgame／chase。每次載入照情境重建，存在 test_名字 存檔位、不連雲端 ----------
    build 在 hudInit 之前做存檔；go 在開場之後（已經看過開場）做要進場地、扣血的事 */
 const TESTS = {
   /* 拿劍、斬擊＋幻影斬，倉庫有一把穿得上的短矛（M1-15） */
@@ -252,6 +252,19 @@ const TESTS = {
       s.mat.soul = 3000;
     },
     go: () => runNode(TRUNK_K[8])
+  },
+  /* M2-18 追逐掉落：角色 Lv 70、營地滿、在賽制線的凶地（怪物 Lv45 以上）；進場 1.5 秒後用開發觸發 devChase 掉一件那條線的基底 */
+  chase: {
+    build: s => {
+      Object.assign(s.camp, { altar: 10, forge: 20, watch: CAMP.watch.length, scout: 5, house: 10, store: 5 });
+      for (const k of GEN_K) s.camp.gen[k] = { lv: 20, w: 0 };
+      s.lv = 70;
+      s.chase.pts = 230;
+    },
+    go: () => {
+      runNode(Object.keys(WNODE).find(k => WNODE[k].t === 'fiend'));
+      setTimeout(() => devChase(), 1500);
+    }
   }
 };
 function testSave(name) {
@@ -296,7 +309,7 @@ function start() {
   if (TEST) {
     ST = stats();
     popAssign();
-    TESTS[TEST] ? TESTS[TEST].go() : hudWarn(`沒有「${TEST}」這個測試情境：dualweap、nearDeath、midgame`);
+    TESTS[TEST] ? TESTS[TEST].go() : hudWarn(`沒有「${TEST}」這個測試情境：dualweap、nearDeath、midgame、chase`);
     hudWarn(`測試入口：${TEST}（不存進正式存檔、不連雲端）`);
   } else {
     if (resume) runNode(S.world.cur);
