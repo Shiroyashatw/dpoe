@@ -2435,6 +2435,38 @@ body:not(.touch) #pchase .chc { min-height: 96px; }
 #pchase .chs .pb { height: 6px; padding: 1px; background: var(--s0); box-shadow: inset 0 0 0 1px var(--fr); border-radius: 3px; overflow: hidden; }
 #pchase .chs .pb i { display: block; height: 100%; background: var(--r4); border-radius: 2px; transform-origin: left; }
 #pchase .chs:has(.pb.full) span { color: var(--r4); }
+/* M2-29 王印介面：王印那一行（--r4，◆ 在 M2-33 換圖示）、齊鳴進度、選中格底部黏住的效果＋套到裝備、選裝備列、換印確認 */
+.wyl { margin: 4px 0 0; font: 700 14px/1.4 var(--font); color: var(--r4); }
+.wys { margin: 2px 0 0; font: 500 13px/1.4 var(--font); color: var(--tx-dim); }
+#tip .wyl, .cmpc .wyl { font-size: 13px; }
+#pchase .chset { margin: 0 var(--pp) 4px; font-weight: 700; }
+#pchase .chset.full { color: var(--r4); }
+#pchase .chact { position: sticky; bottom: calc(-1 * var(--pp)); z-index: 2; display: grid; gap: 6px; margin: 12px calc(-1 * var(--pp)) calc(-1 * var(--pp)); padding: 10px var(--pp) var(--pp); background: var(--s2); border-top: 1px solid var(--fr); }
+#pchase .chact .wyl { margin: 0; }
+#pchase .chact .btn { min-height: 48px; width: 100%; }
+#pchase .chact .btn:disabled { color: var(--tx-off); }
+#pchase .ph .wyb { margin-left: 0; margin-right: 4px; font-size: 22px; line-height: 1; }
+#pchase .wyl-list { display: grid; gap: 6px; padding: 6px var(--pp) 0; }
+body:not(.touch) #pchase .wyl-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#pchase .wyr { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 8px; align-items: center; min-height: 48px; padding: 6px 8px; text-align: left; background: var(--s0); border: 1px solid var(--line); border-radius: 3px; color: var(--tx); font: 700 14px/1.3 var(--font); cursor: pointer; }
+#pchase .wyr:active:not(:disabled) { transform: scale(0.98); }
+#pchase .wyr:hover:not(:disabled) { border-color: var(--fr-hi); }
+#pchase .wyr:disabled { cursor: default; opacity: 0.6; }
+#pchase .wyr:focus-visible { outline: 2px solid var(--fr-c); outline-offset: 2px; }
+#pchase .wyr > span:last-child { display: grid; min-width: 0; }
+#pchase .wyr b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pchase .wyr small { font: 500 13px/1.3 var(--font); color: var(--tx-dim); }
+#pchase .wyr small.c-off, #pchase .chnote.c-off { color: var(--tx-off); }
+#pchase .wyr .chf, #pchase .wyr .wyi { width: 40px; height: 40px; padding: 4px; display: grid; place-items: center; }
+#pchase .wyr .ic { width: 32px; height: 32px; }
+#pchase .wysw { padding: 4px var(--pp) 0; }
+#pchase .wysw p { margin: 0 0 8px; font: 700 15px/1.4 var(--font); }
+#pchase .wysw .pbtns .btn { min-height: 48px; }
+#pchase .wysw .wyx { color: var(--bad-hi); }
+body.touch #pchase kbd { display: none; }
+#pchase kbd { padding: 1px 4px; background: var(--s0); color: var(--title); border-radius: 3px; font: 600 12px/1.2 var(--font); }
+body:not(.touch) #pchase .wysw .pbtns { flex-direction: row; justify-content: flex-end; }
+body:not(.touch) #pchase .wysw .pbtns .btn { min-width: 140px; }
 .mrow .cnew { margin-left: 6px; }
 /* 角色頁空格（M2-37.6）：部位剪影（單色、淡）、右上候選數、讀屏字 */
 .eqs.emp .sil { flex: 1; display: grid; place-items: center; }

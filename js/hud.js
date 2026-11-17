@@ -695,6 +695,7 @@ function closePanels() {
       false;
   NAV.pick = NAV.full = 0;
   NAV.slot = null;
+  CHUI.v = 0;
   clearTimeout(REV.tm);
   hideTip();
   hudPanels();
@@ -1257,7 +1258,7 @@ function cmpCol(it, head) {
       ).join('')}${L.length ? '' : '<li class="none">（空）</li>'}`;
     };
   return `<div><div class="h">${icHTML(itemIc(it))}${head}${it.q ? `<span class="qq">+${Math.round(it.q * 100)}%</span>` : ''}</div>
-  ${kv.map(([k, v]) => `<div class="kv"><span>${k}</span>${v}</div>`).join('')}
+  ${kv.map(([k, v]) => `<div class="kv"><span>${k}</span>${v}</div>`).join('')}${WY_FX[it.wy] ? `<p class="wyl">${esc(wyText(it.wy))}</p>` : ''}
   <ul>${side(true, '前綴')}${side(false, '後綴')}</ul>${it.mem ? `<p class="mem">◆ 追憶：${esc(memText(it.mem))}</p>` : ''}</div>`;
 }
 /* 比哪一格：放得進的欄位，直立角色頁選了一格就比那一格 */
@@ -1279,7 +1280,7 @@ function cmpHTML(it, noX) {
     cur
       ? cmpCol(cur, `<span class="sub">身上・${esc(itemName(cur))}</span>`)
       : `<div class="emp">${e ? `${e.n}現在空著` : '沒有能放的欄位'}</div>`
-  }</div>${it.chase ? `<p class="dlt chs-t">追逐物品・${esc(chaseProg(it.chase))}${it.wy ? `・套上${esc(chaseName(it.wy))}` : ''}</p>` : ''}${eqDeltaHTML(it, e)}`;
+  }</div>${it.chase ? `<p class="dlt chs-t">追逐物品・${esc(chaseProg(it.chase))}</p>` : ''}${eqDeltaHTML(it, e)}`;
 }
 /* M1-20b／M1-15b：換上去跟身上同部位的差（DPS、生命；有能量護盾的另列）＋會讓哪些招失效；不能裝寫原因（itemDelta 的 why）。
    定稿文案：「DPS +16」「生命 +20」、沒有變化、「DPS −16」（U+2212，--bad-hi）；「會讓這些招失效：｛名稱｝、｛名稱｝。」 */
@@ -1398,12 +1399,7 @@ document.addEventListener('click', e => {
   /* 靈魂包沒有物品詳情：點橫幅開掉落紀錄（第 20 點） */
   if (e.target.closest('#banner.bn-pack')) return ($('banner').hidden = true), PANEL.log || fmenuOpen('log');
   const chs = e.target.closest('[data-chs]');
-  if (chs && chs.closest('#pchase')) {
-    CHSEL = chs.dataset.chs;
-    hudPanels();
-    const el = document.querySelector(`#pchase [data-chs="${CHSEL}"]`);
-    return el && chaseTip(el);
-  }
+  if (chs && chs.closest('#pchase')) return (CHSEL = chs.dataset.chs), (CHUI.v = 0), hudPanels();
   if (chs) return chaseTip(chs);
   if (!e.target.closest('#ttip')) $('ttip').hidden = true;
   /* 點說明框以外：收起說明框 */
@@ -2069,7 +2065,7 @@ function chaseLog(sel) {
 function chaseTip(el) {
   const k = el.dataset.chs;
   showTip(
-    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="c-dim">用法還沒開放。</p>`,
+    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="wyl">${esc(wyText(k))}</p>`,
     el.getBoundingClientRect(),
     $('ttip')
   );
@@ -2120,7 +2116,89 @@ function chaseGo(k) {
   if (!PANEL.chase) fmenuOpen('chase');
   else hudPanels();
 }
+/* M2-29 介面：套在有效裝備上的王印種類（同名只算一次；失效欄位不算）、那一枚現在的效果字、齊鳴那一行 */
+const wyOn = () =>
+  new Set(
+    EQS.filter(
+      e =>
+        S.eq[e.k] &&
+        WY_FX[S.eq[e.k].wy] &&
+        !(ST.eqBad || []).includes(e.k) &&
+        (e.k !== 'off' || offOK(S.eq.weapon, S.eq.off))
+    ).map(e => S.eq[e.k].wy)
+  );
+function wyText(k) {
+  const f = WY_FX[k],
+    m = wyOn().size >= WY_SET.n ? WY_SET.mul : 1;
+  return strT('wyLine', {
+    n: chaseName(k),
+    t: statText(f.k, f.k === 'leech' ? Math.round(f.v * m * 10) / 10 : Math.round(f.v * m))
+  });
+}
+const wySetText = (k = wyOn().size) =>
+  strT('wySet', { k, n: WY_SET.n }) + (k >= WY_SET.n ? strT('wySetOn', { m: WY_SET.mul }) : '');
+/* 物品說明、比較框：王印那一行＋齊鳴進度（只在有王印的裝備） */
+const wyHTML = it =>
+  WY_FX[it.wy] ? `<p class="wyl">${esc(wyText(it.wy))}</p><p class="wys">${esc(wySetText())}</p>` : '';
+/* 追逐物品面板的套用流程：v 0 收集格／'pick' 選裝備／'swap' 換掉舊印確認（slot＝那一格） */
+const CHUI = { v: 0, slot: null };
+function wyPickHTML(k) {
+  const F = S.frags || {},
+    L = EQS.filter(e => eqOpen(S, e.k) && S.eq[e.k]),
+    ok = L.filter(e => S.eq[e.k].r === 1 || S.eq[e.k].r === 2),
+    row = e => {
+      const it = S.eq[e.k],
+        bad = (ST.eqBad || []).includes(e.k),
+        why = it.r !== 1 && it.r !== 2 ? STR_T.wyOnly : '';
+      return `<button class="wyr" data-a="wy:eq:${e.k}" data-wyk="${e.k}" ${why || !F[k] ? 'disabled' : ''}>${it.wy ? `<span class="chf">${icHTML(itemIc(it))}</span>` : `<span class="wyi">${icHTML(itemIc(it))}</span>`}<span><b class="rc${it.r}">${esc(itemName(it))}</b><small>${esc(it.wy ? wyText(it.wy) : e.n)}</small>${why || bad ? `<small class="${why ? 'c-off' : 'c-warn'}">${why || STR_T.wyBad}</small>` : ''}</span></button>`;
+    };
+  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><span>${strT('wyHave', { n: F[k] || 0, m: EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <p class="chnote ${F[k] ? '' : 'c-off'}">${F[k] ? STR_T.wyPickSub : STR_T.wyNoUse}</p>${ok.length ? '' : `<p class="chnote c-warn">${STR_T.wyNoEq}</p>`}
+  <div class="wyl-list">${[...ok, ...L.filter(e => !ok.includes(e))].map(row).join('')}</div>`;
+}
+function wySwapHTML(k) {
+  const it = S.eq[CHUI.slot];
+  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="wysw"><p><b class="rc${it.r}">${esc(itemName(it))}</b></p><p class="c-bad">${esc(strT('wySwap', { n: chaseName(it.wy) }))}</p>
+  <div class="pbtns"><button class="btn pri" data-a="wy:back">取消<kbd class="donly">Esc</kbd></button><button class="btn wyx" data-a="wy:ok">${STR_T.wySwapOk}<kbd class="donly">Enter</kbd></button></div></div>`;
+}
+function wyAct(a) {
+  const k = CHSEL;
+  if (a === 'back') CHUI.v = CHUI.v === 'swap' ? 'pick' : 0;
+  else if (a === 'use') CHUI.v = 'pick';
+  else if (a.startsWith('eq:')) {
+    CHUI.slot = a.slice(3);
+    if (S.eq[CHUI.slot] && S.eq[CHUI.slot].wy) CHUI.v = 'swap';
+    else return wyApply(k);
+  } else if (a === 'ok') return CHUI.v === 'swap' && wyApply(k);
+  hudPanels();
+}
+/* 套上（M2-23 §10）：吐司、chaseBell；剛好湊齊四種多一行吐司、疊 lvup；那一格外框印角往內收 240ms 再彈一下 280ms（減少動態只換外框） */
+function wyApply(k) {
+  const e = CHUI.slot,
+    it = S.eq[e],
+    n0 = wyOn().size,
+    why = it ? wangyinSet(it, k) : STR_T.wyOnly;
+  if (why) return hudWarn(why);
+  CHUI.v = 'pick';
+  changed();
+  const n1 = wyOn().size;
+  hudWarn(strT('wyDone', { n: chaseName(k), i: itemName(it) }));
+  sfx('chaseBell');
+  if (n1 >= WY_SET.n && n0 < WY_SET.n) setTimeout(() => (hudWarn(wySetText(n1)), sfx('lvup')), 900);
+  hudPanels();
+  const f = document.querySelector(`#pchase [data-wyk="${e}"] .chf`);
+  if (!f || !f.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  f.animate(
+    { inset: ['-8px', '-1px'], opacity: [0, 1] },
+    { duration: 240, easing: 'ease-out', pseudoElement: '::before' }
+  );
+  f.animate({ transform: ['scale(1)', 'scale(1.05)', 'scale(1)'] }, { duration: 280, delay: 240, easing: 'ease-out' });
+}
 function chasePanelHTML() {
+  if (CHUI.v && CHSEL && isWy(CHSEL))
+    return CHUI.v === 'swap' && S.eq[CHUI.slot] ? wySwapHTML(CHSEL) : wyPickHTML(CHSEL);
+  CHUI.v = 0;
   const C = chaseOf(),
     F = S.frags || {},
     n = chasePct(),
@@ -2132,8 +2210,13 @@ function chasePanelHTML() {
         : `<button class="chc no ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chsil">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${STR_T.wyNone}</small></button>`;
   return `<div class="ph"><b>${STR_T.chase}</b><span>${strT('pool', { p: STR_T.poolWy, k: wyGot(), N: CHASE_POOL.trunk.length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="chg">${CHASE_POOL.trunk.map(cell).join('')}</div>
+  <p class="wys chset ${wyOn().size >= WY_SET.n ? 'full' : ''}">${esc(wySetText())}</p>
   <div class="chs chp"><span>${strT('pity', { n })}</span><div class="pb ${n >= 100 ? 'full' : ''}" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="transform:scaleX(${n / 100})"></i></div></div>
-  <p class="chnote">${STR_T.pityTip}</p>${here ? '' : `<p class="chnote">${STR_T.pityNo}</p>`}`;
+  <p class="chnote">${STR_T.pityTip}</p>${here ? '' : `<p class="chnote">${STR_T.pityNo}</p>`}${
+    CHSEL && isWy(CHSEL)
+      ? `<div class="chact"><p class="wyl">${esc(wyText(CHSEL))}</p>${F[CHSEL] > 0 ? `<button class="btn pri" data-a="wy:use">${STR_T.wyUse}</button>` : `<button class="btn" disabled>${STR_T.wyNoUse}</button>`}</div>`
+      : ''
+  }`;
 }
 /* 營地現在買得起的（王倒下的卡、離線卡；考核 D2、E3）：一件一列（圖示、名字、給什麼、升級鈕），最多 n 件；pri＝第一件用主要鈕 */
 function campUpsHTML(n = 3, pri = true) {
@@ -2501,8 +2584,8 @@ function itemTip(it, cmp) {
     reqP = [req.lv ? `等級 ${req.lv}` : '', ...ATTR.map(k => (req[k] ? `${ATTN[k]} ${req[k]}` : ''))].filter(Boolean);
   let html = `<b class="rc${it.r}">${esc(itemName(it))}</b><small>${RARN[it.r]} ${B.k === 'weapon' ? WTN[B.wt] || KINDS[B.k].n : KINDS[B.k].n} · <span class="tt">T${itemT(it)}</span>${baseLayers(it) ? ' · ' + baseLayers(it) : ''}${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${un ? ' · <span class="c-warn">未鑑定</span>' : ''}</small>`;
   /* M2-18 追逐標記：打造、套王印之後都還在（it.chase） */
-  if (it.chase)
-    html += `<p class="chs-t">追逐物品・${esc(chaseProg(it.chase))}${it.wy ? `・套上${esc(chaseName(it.wy))}` : ''}</p>`;
+  if (it.chase) html += `<p class="chs-t">追逐物品・${esc(chaseProg(it.chase))}</p>`;
+  html += wyHTML(it);
   if (lack.length) html += `<p class="c-bad">${worn ? '已失效，數值不算' : '不能裝上'}：${lackTxt(lack)}</p>`;
   if (cmp && !un && !lack.length) {
     /* 只看真的放得上去的欄位：弓放不進副手，比較的是武器欄；直立的角色頁選了一格就比那一格 */
@@ -2645,6 +2728,8 @@ function inputInit() {
     else if (k === 'i' || k === 'b') PANEL.inv ? closePanels() : openPanel('inv');
     else if (k === 'l' && CB.st !== 'idle') chaseLog(1);
     else if (FMENU.some(f => f[2].toLowerCase() === k)) fmenuOpen(FMENU.find(f => f[2].toLowerCase() === k)[0]);
+    else if (PANEL.chase && CHUI.v && (k === 'escape' || (k === 'enter' && CHUI.v === 'swap')))
+      e.preventDefault(), wyAct(k === 'enter' ? 'ok' : 'back');
     else if (k === 'escape')
       G.ask ? act('askno') : TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
     else if (k === 't') homeAsk();
@@ -2765,6 +2850,7 @@ function act(a, el) {
     S.world.note = '';
     save();
   } else if (a === 'chaselog') chaseGo();
+  else if (a.startsWith('wy:')) wyAct(a.slice(3));
   else if (a === 'offch') (REV.chx = !REV.chx), sfx('click'), hudPanels();
   else if (a === 'genall') {
     const n = genAll();
