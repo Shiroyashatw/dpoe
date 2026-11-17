@@ -7,7 +7,7 @@ description: 新增或替換塞令老師的怪物、首領、老師頭像、道�
 
 # 像素圖（PixelLab）提示詞與接入流程
 
-> dpoe 現行流程以 `docs/production/specs/M2-36-pixellab-prompts.md`（PixelLab API 產圖）與 `M2-36-drawing-rules.md`（描邊、配色）為準；本檔以下與它們衝突處一律照 M2-36。
+> dpoe 現行美術流程以 `docs/production/specs/M2-36-drawing-rules.md`（畫法、描邊、光向）與 `M2-36-pixellab-prompts.md`（PixelLab API 產圖）為準；本檔與它們衝突時以 specs 為準。
 
 使用者要新增或替換怪物、首領、裝備圖示時，**先給提示詞，不要自己畫**。使用者到 PixelLab 生圖後會把 PNG 丟回來，再照「接入遊戲」的步驟處理。
 
