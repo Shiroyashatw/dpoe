@@ -2,7 +2,7 @@
 
 > 本檔由製作人從 Page 同步，來源：<https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/167c56bb-e9cf-4954-b91f-3d39084385bd>；同步日期：2026-11-16；請勿直接在 repo 修改，改動請經製作人
 
-> 註（同步時加）：mumi 已於 2026-11-16 決定 Q14 D、Q15 E＋F（G 不當主打，M4S 可選評估）、Q16 I，見 [`gdd.md`](gdd.md#決策紀錄)；落地任務 M2-17～20、M3-09～13、M4S-06 見 [`milestones.md`](milestones.md)。以下為 Page 原文，選項與建議保留評估當時的寫法。
+> 註（同步時加）：mumi 已於 2026-11-16 決定 Q14 D、Q15 E＋F（G 不當主打，M4S 可選評估）、Q16 I，見 [`gdd.md`](../CHANGELOG.md#決策紀錄)；落地任務 M2-17～20、M3-09～13、M4S-06 見 [`milestones.md`](../README.md)。以下為 Page 原文，選項與建議保留評估當時的寫法。
 
 回答 mumi 的三個問題：要不要打造、桌面破壞神是哪款、dpoe 在 Steam 有沒有亮點。結論是保留打造當骨幹，再加一層看得到保底的追逐掉落。資料讀取日 2026-11-16，選項由 mumi 決定。
 

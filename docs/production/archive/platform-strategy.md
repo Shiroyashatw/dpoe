@@ -6,16 +6,16 @@
 
 ## 決定：Q12 C（mumi 2026-11-16）
 
-mumi 選 **C：同一份程式做雙平台；Steam 買斷是主要收入，網頁／PWA 免費導流。** 落到里程碑（依 GDD，任務細節見 [`milestones.md`](milestones.md)）：
+mumi 選 **C：同一份程式做雙平台；Steam 買斷是主要收入，網頁／PWA 免費導流。** 落到里程碑（依 GDD，任務細節見 [`milestones.md`](../README.md)）：
 
 | 範圍 | 變動 |
 | --- | --- |
-| 平台規則 | 改成分階段：M0–M1 手機直立優先；M2 起直立 390×844 與桌機 1280×720 同級；M4 Steam 線加驗 Steam Deck 1280×800（見 [`gdd.md`](gdd.md#平台優先順序分階段)） |
+| 平台規則 | 改成分階段：M0–M1 手機直立優先；M2 起直立 390×844 與桌機 1280×720 同級；M4 Steam 線加驗 Steam Deck 1280×800（見 [`gdd.md`](../CHANGELOG.md#平台優先順序分階段)） |
 | M0、M1 | 照舊，已交辦的任務不改 |
 | M2 | M2-04 桌機縮放升 P0；新增 M2-16 桌機 1280×720 版面規格（Game Art Director） |
 | M3 | 真人試玩通過後：M3-08 Steam Direct 註冊與上架費（mumi 執行）、M3-09 Steam 商店頁素材、M3-10 商店頁上線（Coming Soon）與願望單追蹤 |
 | M4 | 拆成 M4P（PWA 線，原 M4-01～05 改編 M4P-01～05）與 M4S（Steam 線：包殼、Steam 雲端存檔、成就、Steam Deck 驗證、上架） |
-| 待決 | Q13：免費版與付費版的內容差異，M3 前決定（見 [`gdd.md`](gdd.md#待決事項)） |
+| 待決 | Q13：免費版與付費版的內容差異，M3 前決定（見 [`gdd.md`](../CHANGELOG.md#待決事項)） |
 
 編號以企劃書的 M4P、M4S 為準。本檔評估原文裡的寫法對照：
 
