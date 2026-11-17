@@ -2084,9 +2084,20 @@ function frame(now) {
   }
   G.trauma = Math.max(0, G.trauma - rdt * 1.6);
   const w = mouseWorld(),
-    tx = P.x + (w.x - P.x) * 0.12,
-    ty = P.y + (w.y - P.y) * 0.12,
     f = 1 - Math.exp(-rdt * 9);
+  let tx = P.x + (w.x - P.x) * 0.12,
+    ty = P.y + (w.y - P.y) * 0.12;
+  /* BASE-01.s：直立半版（上面只剩 321／253 px 的戰鬥區）時，鏡頭對準玩家與目前敵人的中點、玩家略偏上（約 42%），
+     底下 40 px 留給生命／魔力條；夾住讓玩家整身留在安全框裡 */
+  if (G.scene === 'map' && PORT() && sheetOn() && !(NAV.full && anyPanel())) {
+    const W = IW / ZOOM,
+      H = cvH() / ZOOM,
+      m = aiTarget();
+    if (m) (tx = (P.x + m.x) / 2), (ty = (P.y + m.y) / 2);
+    ty += 0.08 * H;
+    tx = clamp(tx, P.x - W / 2 + 40, P.x + W / 2 - 40);
+    ty = clamp(ty, P.y + H / 2 - (H - 40 / ZOOM - 10), P.y + H / 2 - 70);
+  }
   G.cam.x += (tx - G.cam.x) * f;
   G.cam.y += (ty - G.cam.y) * f;
   for (const o of G.fx) o.t += dt || rdt * 0.25;

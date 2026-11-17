@@ -4125,7 +4125,7 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 5（第 1 級固定 W_LV1 的靈魂與木，M1-21）（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
+    '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 5（第 1 級固定 W_LV1 的靈魂與鐵，M1-21）（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
     R(`(() => {
       S.camp = newCamp(); S.world = newWorld(); S.lv = 99; S.frags = newFrags();
       if (wWhy(S, ...wXY(TRUNK_K[0])) || !wWhy(S, ...wXY(TRUNK_K[1])) || !campCan('node:' + TRUNK_K[0]) || campCan('node:' + TRUNK_K[1])) return 'lv0';
@@ -4136,11 +4136,12 @@ const ASC_COMBOS = `const combos = k => {
       const m0 = S.mat;
       for (let n = 1; n <= 21; n++) {
         const r = CAMP.watch[n - 1], T = TRUNK[n - 1];
-        if (r.wood !== (n > 1 ? 50 * n : W_LV1.wood) || r.mats['iron:' + matTier(T.lv)] !== 10 * n) return 'row ' + n;
+        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== (n > 1 ? 10 * n : 130)) return 'row ' + n;
         S.mat = newMat(); const a = roundLoot(lvT(TRUNK[0].lv), 1, 40, 0); S.mat = newMat(); const b = roundLoot(lvT(T.lv), 1, 40, 0);
         const want = ((W_SPM * b) / a) * W_MIN;
-        if (n > 1 ? Math.abs(r.soul - want) / want > 0.1 : r.soul !== W_LV1.soul) return 'soul ' + n + ' ' + r.soul + ' ' + want;
+        if (n > 1 ? Math.abs(r.soul - want) / want > 0.1 : r.soul !== 200) return 'soul ' + n + ' ' + r.soul + ' ' + want;
       }
+      if (CAMP.watch[1].soul !== 570 || CAMP.watch[7].soul !== 780 || CAMP.watch[20].soul !== 2090) return 'lv2/8/21';
       S.mat = m0;
       return '';
     })()`) === ''
@@ -10539,6 +10540,22 @@ const ASC_COMBOS = `const combos = k => {
       R(`campSay('watch', 22)`) === '瞭望台 Lv22：酆都開了，「鬼門關」出現在地點清單，它的通貨開始掉。'
   );
   ok('M1-14：六座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
+  /* M1-26：角色頁鎖住的護符／神格格的一句話（是什麼＋怎麼開）；條件照 lockTxt 與腰帶的護符槽，不另編數字 */
+  const lk26 = R(`(() => {
+    S = newGame(); const r = [lockSlotTxt('ch0'), lockSlotTxt('gh')];
+    S.eq.belt = mkItem(BASES.find(b => b.k === 'belt').id, 1, 1); S.eq.belt.cs = 1; r.push(lockSlotTxt('ch1'), lockSlotTxt('ch2'));
+    S.camp.watch = CAMP.watch.length; r.push(lockSlotTxt('gh'));
+    return r;
+  })()`);
+  ok(
+    'M1-26：鎖住的護符／神格格的提示（沒腰帶、槽不夠、神格跟弒神；弒神開了就不鎖）',
+    lk26.join('|') ===
+      '護符：裝上腰帶才開|神格：升瞭望台到 Lv ' +
+        R('CAMP.watch.length') +
+        ' 才開|護符：腰帶要有 2 格護符槽才開|護符：腰帶要有 3 格護符槽才開|神格：之後開放' &&
+      R("(S.camp.watch = CAMP.watch.length, lockTxt('line:rift'))") === '',
+    lk26.join('|')
+  );
   /* M1-24：三個測試情境照描述；用自己的存檔位、沒帶參數時是空字串 */
   const ts = R(`(() => {
     const d = testSave('dualweap'), n = testSave('nearDeath'), m = testSave('midgame');

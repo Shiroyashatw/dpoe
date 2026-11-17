@@ -334,19 +334,19 @@ const wCard = s => rollCard(wStar(s));
 const W_SPM = 110 /* 0.5.1 新存檔實掛 30 分鐘：第 2～5 個地點每分鐘約 110（含分解的靈魂；0.5.0 量的是 70） */,
   W_MIN = 5 /* ⚠️ 自己定的：文件寫刷 10 分鐘，實測第一小時的靈魂只夠一半，改成 5 分鐘 */,
   W_LV1 = {
-    soul: 245,
-    wood: 75
-  }; /* M1-21：第 1 級照公式是 550 靈魂、50 木，比鍛造台 Lv1～3、民房 Lv1～3、祭壇 Lv1 都貴，會按的玩家先買完那些才輪到它（第 2 個地點 23～40 分）。
-     前期卡的是木：木 75 排在祭壇 Lv1（60）之後、鍛造台 Lv2／民房 Lv2（80）之前（木 50 會搶在祭壇前面，第 5～7 分）；
-     靈魂 245 比民房 Lv2 的 250 便宜，才是「下一件最便宜的」（280／300 會輸給鍛造台 Lv2、民房 Lv2，桌機第 16～17 分） */
+    soul: 200,
+    mats: { 'iron:1': 130 }
+  }; /* M1-21（數值定案 M1-28 候選 F，evidence/m1-28）：第 1 級照公式是 550 靈魂，比鍛造台 Lv1～3、民房 Lv1～3、祭壇 Lv1 都貴，第 2 個地點 23～40 分才開。
+     靈魂 200 讓祭壇 Lv1 第 5 輪還買得起；鐵 T1 130 當計時器，把瞭望台推到 8 分以後。木照公式 50 */
 const wSoulMin = lv => W_SPM * (1 + 0.2 * (lvT(lv) - 1));
 {
   const rows = TRUNK.slice(0, -1).map((T, i) => ({
-    soul: i ? Math.round((wSoulMin(T.lv) * W_MIN) / 10) * 10 : W_LV1.soul,
-    wood: i ? 50 * (i + 1) : W_LV1.wood,
+    soul: Math.round((wSoulMin(T.lv) * W_MIN) / 10) * 10,
+    wood: 50 * (i + 1),
     mats: { [`iron:${matTier(T.lv)}`]: 10 * (i + 1) },
     d: `第 ${i + 2} 個地點：${TRUNK[i + 1].n}（怪物 Lv ${TRUNK[i + 1].lv}）`
   }));
+  Object.assign(rows[0], W_LV1);
   const top = rows[rows.length - 1];
   CAMP.watch = [
     ...rows,

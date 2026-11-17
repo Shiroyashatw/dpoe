@@ -102,7 +102,10 @@ let fail = 0;
         return [r.left + r.width / 2, r.top + r.height / 2];
       });
   await touch('touchStart', [r0]);
-  await p.waitForTimeout(900);
+  /* 要先走到怪旁邊才揮得到：機器忙時遊戲時間比牆鐘慢，固定等 900 毫秒會偶發失敗；改成打中就停、最多 3 秒 */
+  await p
+    .waitForFunction(() => _m.hp < _hp || !G.mobs.includes(_m), null, { timeout: 3000, polling: 50 })
+    .catch(() => {});
   ok(
     PORTM ? '畫面上按住不動＝連續普攻最近的怪' : '普攻按住會自動打最近的怪',
     await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m))
@@ -445,14 +448,14 @@ let fail = 0;
       ];
     });
     ok(
-      '橫向：營地全 0 分頁只有「營地」「打造」、沒有填／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
-      mkL[0] === '營地,打造' && !/填|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
+      '橫向：營地全 0 分頁只有「總覽」「打造」（跟直立同名）、沒有鍛造台／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
+      mkL[0] === '總覽,打造' && !/鍛造台|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
       JSON.stringify(mkL)
     );
     await tapL('#pcraft [data-fg=go]');
     await p.waitForTimeout(500);
     const rvL = await p.evaluate(() => {
-      const b = [...document.querySelectorAll('#preveal .acts .btn')];
+      const b = [...document.querySelectorAll('#preveal .acts .btn, #preveal .dlink2')];
       return [
         PANEL.ident,
         b.length,
@@ -731,7 +734,8 @@ let fail = 0;
     await tap('#pcraft [data-fg=go]');
     await p.waitForTimeout(500);
     const rv = await p.evaluate(() => {
-      const b = [...document.querySelectorAll('#preveal .acts .btn')];
+      /* BASE-04：分解是主行動下一行的文字鏈（.dlink2） */
+      const b = [...document.querySelectorAll('#preveal .acts .btn, #preveal .dlink2')];
       return [
         PANEL.ident,
         REV.craft,
@@ -880,7 +884,7 @@ let fail = 0;
     });
     ok(
       '營地總覽（0.5.1）：開局 8 張卡（解鎖表六座＋林場、礦場）都在畫面寬度內、升級鈕與 ×1／×10／最大 ≥44px、上面兩行（庫存＋速率、下一件事）、分頁列寫買得起幾件',
-      cm[0] === 8 && cm[1] && cm[2] && cm[3] && +cm[4] >= 2,
+      cm[0] === 8 && cm[1] && cm[2] && cm[3] && /^\d+ 可升級$/.test(cm[4]) && parseInt(cm[4]) >= 2,
       JSON.stringify(cm)
     );
     /* 0.5.4（工項 12-C）：資源條在跑（同一條隔 1.5 秒寬度變了、數字有字）、卡片固定順序（產生器在前、解鎖表照 CAMP_B，升級後不重排）、上面兩行黏住 */
@@ -944,24 +948,23 @@ let fail = 0;
         matAdd('wood', 0, 500);
         await new Promise(r => setTimeout(r, 900));
         idleBar(1);
-        const b = document.querySelector('#pidle .cmnext .btn.pri'),
+        const b = document.querySelector('#pidle .igo'),
           r = b && b.getBoundingClientRect();
         return [
           idleOn(),
           document.querySelectorAll('#pidle .rbar').length,
           !!r && r.height >= 44 && r.bottom <= innerHeight && r.top >= 0,
-          b ? b.dataset.fg : ''
+          b ? b.textContent : '',
+          !document.querySelector('#pidle [data-fg^="camp:"], #pidle [data-fg^="gen:"]')
         ];
       });
       ok(
-        '掛機卡：下半有資源條（木、鐵、靈魂）與「下一件事」主要鈕 ≥44px 在畫面內',
-        ic[0] && ic[1] >= 3 && ic[2],
+        '掛機卡（M1-CP.4）：下半有資源條（木、鐵、靈魂）與「去營地」主鈕 ≥48px 在畫面內，沒有升級鈕',
+        ic[0] && ic[1] >= 3 && ic[2] && ic[3] === '去營地' && ic[4],
         JSON.stringify(ic)
       );
-      const lv0 = await p.evaluate(() => JSON.stringify([S.camp, MAT().soul]));
-      await tap('#pidle .cmnext .btn.pri');
-      const lv1 = await p.evaluate(() => JSON.stringify([S.camp, MAT().soul]));
-      ok('掛機卡：按升級鈕就升（營地或靈魂變了）', lv0 !== lv1);
+      await tap('#pidle .igo');
+      ok('掛機卡：按「去營地」打開營地總覽', await p.evaluate(() => !!PANEL.craft && CRAFT.tab === 'camp'));
     }
     await p.evaluate(() => {
       S.camp = JSON.parse(JSON.stringify(_CAMP));
@@ -1543,14 +1546,20 @@ let fail = 0;
     await p.evaluate(port => (port ? navGo('skill') : openPanel('skill')), PORTM);
     await p.waitForTimeout(260);
     let taps = 0;
-    for (const q of ['#pskill [data-sk="go:one:0"]', '#pskill .sk-row.emp[data-sk^="hole"]', '#pskill .sk-bar .pri']) {
+    /* M1-PK.1：空孔沒有目前項＝不預選，要先點一列（推薦排第一的就是差最多的）再按「放上」 */
+    for (const q of [
+      '#pskill [data-sk="go:one:0"]',
+      '#pskill .sk-row.emp[data-sk^="hole"]',
+      '#pskill .sk-list .sk-row',
+      '#pskill .sk-bar .pri'
+    ]) {
       taps += (await tap(q)) ? 1 : 0;
       await p.waitForTimeout(200);
     }
     const got = await p.evaluate(() => S.skills[0].so[1]);
     ok(
       `技能面板：找出讓第 1 格每秒最高的輔助並插上 ${taps} 下（不含打開技能分頁那一下）`,
-      taps <= 3 && got === best.k,
+      taps <= 4 && got === best.k,
       `插上 ${got}，暴力算的最好是 ${best.k}`
     );
     await p.evaluate(() => closePanels());
@@ -1693,7 +1702,7 @@ let fail = 0;
           !anyPanel() &&
           $('pidle').hidden &&
           +getComputedStyle($('over')).zIndex >= 40 &&
-          document.querySelectorAll('#over .pbtns .btn').length === 2
+          document.querySelectorAll('#over .pbtns .btn:not(.dup)').length === 2
       )) && (await onTop())
     );
     await p.screenshot({ path: shot('m0_dead') });
@@ -2094,11 +2103,11 @@ let fail = 0;
     });
     await p.waitForTimeout(400);
     const cm = await p.evaluate(() => {
-      const c = document.querySelector('#pinv .cmpno, .cmpno');
-      return c ? c.textContent : '';
+      const c = [...document.querySelectorAll('#pinv .dlt')].map(e => e.textContent).join(' ');
+      return c;
     });
     await p.screenshot({ path: shot('m1_cmp') });
-    ok('M1-15：換裝卡先寫「換上後：斬擊、幻影斬不能用」', /換上後：斬擊、幻影斬不能用/.test(cm), cm);
+    ok('M1-15：換裝卡先寫「會讓這些招失效：斬擊、幻影斬。」', /會讓這些招失效：斬擊、幻影斬。/.test(cm), cm);
     const so = await p.evaluate(() => {
       const it = S.inv.items.find(i => i.b === 'w_spear_0');
       return [baseLayers(it), document.querySelector('.cmpc') ? document.querySelector('.cmpc').innerText : ''];
@@ -2179,6 +2188,206 @@ let fail = 0;
     await p.goto(URL + '?p=7&' + Date.now());
     await p.waitForTimeout(1500);
     ok('M1-24：不帶 ?test 時是自己的存檔位', await p.evaluate(() => SLOT === '7' && TEST === ''));
+  }
+  /* ---------- M1 第二批介面（規格「dpoe M1 直立視覺規格」）：直立先驗 ---------- */
+  if (PORTM) {
+    await p.goto(URL + '?p=21&' + Date.now());
+    await p.waitForTimeout(1500);
+    await p.evaluate(() => {
+      introStop();
+      proSkip();
+      Object.assign(S.camp, { forge: 1, altar: 2 });
+      ST = stats();
+    });
+    await p.waitForTimeout(800);
+    /* BASE-01：跑圖中開技能、營地是半版（自動模式戰鬥照跑） */
+    const half = await p.evaluate(() => {
+      navGo('skill');
+      const a = [NAV.full, $('pskill').getBoundingClientRect().top > 200, !worldPaused()];
+      navGo('craft');
+      return [...a, NAV.full, $('pcraft').getBoundingClientRect().top > 200];
+    });
+    ok('BASE-01：跑圖中技能、營地預設半版，自動模式不暫停', half.join() === '0,true,true,0,true', JSON.stringify(half));
+    /* BASE-01.s：半版時同時看得到玩家、目前敵人、生命條（畫布裡的螢幕座標） */
+    const bs = await p.evaluate(async () => {
+      navGo('skill');
+      await new Promise(r => setTimeout(r, 1200));
+      const H = cvH(),
+        m = aiTarget(),
+        sy = y => H / 2 + (y - G.cam.y) * ZOOM,
+        sx = x => IW / 2 + (x - G.cam.x) * ZOOM,
+        hp = $('bhp').getBoundingClientRect();
+      return {
+        p: [Math.round(sx(P.x)), Math.round(sy(P.y))],
+        m: m ? [Math.round(sx(m.x)), Math.round(sy(m.y))] : null,
+        H,
+        hp: [Math.round(hp.top), Math.round(hp.bottom)]
+      };
+    });
+    const inb = ([x, y], top = 0) => x >= 0 && x <= W && y >= top && y <= bs.H - 40;
+    ok(
+      'BASE-01.s：半版時玩家整身、目前敵人、生命條都在戰鬥區裡',
+      inb(bs.p, 60) && (!bs.m || inb(bs.m)) && bs.hp[0] >= 0 && bs.hp[1] <= bs.H,
+      JSON.stringify(bs)
+    );
+    await p.screenshot({ path: shot('m1ui_battle_half') });
+    /* M1-10 視覺：暫停時「已暫停」在戰鬥區頂列置中、#area 下面、半版時在戰鬥區裡；自動開一般面板不出現 */
+    const pz = await p.evaluate(async () => {
+      const a = $('paused').hidden;
+      SKUI.view = 'skills';
+      hudPanels();
+      await new Promise(r => setTimeout(r, 200));
+      const r = $('paused').getBoundingClientRect(),
+        ar = $('area').getBoundingClientRect();
+      const o = [
+        a,
+        !$('paused').hidden,
+        Math.round(r.left + r.width / 2 - innerWidth / 2),
+        r.top >= ar.bottom,
+        r.bottom <= cvH(),
+        Math.round(r.height)
+      ];
+      skHome();
+      hudPanels();
+      return o;
+    });
+    ok(
+      'M1-10 視覺：「已暫停」只在暫停時出現、頂列置中、在 #area 下面、在戰鬥區裡、高 22',
+      pz[0] && pz[1] && Math.abs(pz[2]) <= 2 && pz[3] && pz[4] && pz[5] === 22,
+      JSON.stringify(pz)
+    );
+    /* M1-SK.1：總覽每列有「換」44×44、頻率「Lv 1 · 每秒…下／…秒一次」、下一個解鎖只一列 */
+    const sk = await p.evaluate(() => {
+      const sw = document.querySelector('#pskill .skr-sw'),
+        r = sw && sw.getBoundingClientRect();
+      return [
+        !!r && r.width >= 44 && r.height >= 44,
+        (document.querySelector('#pskill .skr .fq') || {}).textContent || '',
+        document.querySelectorAll('#pskill .skr.nxu').length,
+        (document.querySelector('#pskill .skr.nxu') || {}).textContent || ''
+      ];
+    });
+    ok(
+      'M1-SK.1／M1-16b／M1-07b：每列「換」44×44、名稱下一行寫頻率、技能面板的下一個解鎖只一列',
+      sk[0] &&
+        /^Lv 1 · (每秒 [\d.]+ 下|[\d.]+ 秒一次)$/.test(sk[1]) &&
+        sk[2] === 1 &&
+        sk[3] === '升祭壇到 Lv3，開第 3 格技能。',
+      JSON.stringify(sk)
+    );
+    /* M1-PK.1：從「換」進來預選現在這招、底部鈕停用；點別的列＝改選、底部「換成｛名｝」 */
+    const pk = await p.evaluate(async () => {
+      document.querySelector('#pskill .skr-sw').click();
+      await new Promise(r => setTimeout(r, 150));
+      const a = [SKUI.view, SKUI.pick, document.querySelector('#pskill .sk-bar .pri').disabled];
+      SKUI.f.skills = '全部';
+      hudPanels();
+      const other = [...document.querySelectorAll('#pskill .sk-list .sk-row:not(.dim)')].find(
+        b => b.dataset.sk !== 'pick:' + S.skills[0].k
+      );
+      other.click();
+      await new Promise(r => setTimeout(r, 150));
+      const b = document.querySelector('#pskill .sk-bar .pri');
+      skHome();
+      hudPanels();
+      return [...a, b.disabled, b.textContent];
+    });
+    ok(
+      'M1-PK.1：預選現在這招、底部停用；點別列後底部「換成｛名｝」可以按',
+      pk[0] === 'skills' && pk[1] === 'slash' && pk[2] && !pk[3] && /^換成/.test(pk[4]),
+      JSON.stringify(pk)
+    );
+    /* M1-17 視覺：手動模式倒下，升級鈕＝主鈕在最上面、再試一次改次要、回藏身處文字鏈 */
+    const dc = await p.evaluate(async () => {
+      closePanels();
+      S.auto = 0;
+      S.mat.soul = 1e5;
+      matAdd('wood', 0, 1e4);
+      P.hp = 0;
+      die();
+      await new Promise(r => setTimeout(r, 200));
+      const bs = [...document.querySelectorAll('#over .pbtns .btn')];
+      const o = bs.map(b => b.className.replace('btn', '').trim() + ':' + Math.round(b.getBoundingClientRect().height));
+      act('again');
+      S.auto = 1;
+      return o;
+    });
+    ok(
+      'M1-17 視覺：死亡卡升級鈕是主鈕在最上、再試一次次要、回藏身處文字鏈，都 ≥44',
+      /^pri wide dup:/.test(dc[0]) &&
+        +dc[0].split(':')[1] >= 48 &&
+        /^:/.test(dc[1]) &&
+        +dc[1].split(':')[1] >= 48 &&
+        /^dlink:/.test(dc[2]) &&
+        +dc[2].split(':')[1] >= 44,
+      JSON.stringify(dc)
+    );
+    /* M1-11：護符滿格，點倉庫的護符＝「要換掉哪一格」，點一格換上並關閉 */
+    const ch = await p.evaluate(async () => {
+      S.eq.belt = mkItem(BASES.find(b => b.k === 'belt').id, 20, 0);
+      S.eq.belt.cs = 1;
+      S.charms[0] = mkCharm(Object.keys(CHARMS)[0]);
+      const it = mkCharm(Object.keys(CHARMS)[1]);
+      invPut(S.inv, it);
+      ST = stats();
+      navGo('bag');
+      quickMove('inv', it);
+      await new Promise(r => setTimeout(r, 150));
+      const rows = document.querySelectorAll('#pinv .chsr').length,
+        t = (document.querySelector('#pinv .ph b') || {}).textContent;
+      document.querySelector('#pinv .chsr').click();
+      await new Promise(r => setTimeout(r, 150));
+      return [rows, t, S.charms[0] === it, !document.querySelector('#pinv .chsr')];
+    });
+    ok(
+      'M1-11：護符滿格跳「要換掉哪一格」、點一格就換上並關閉',
+      ch[0] === 1 && ch[1] === '要換掉哪一格' && ch[2] && ch[3],
+      JSON.stringify(ch)
+    );
+    /* M1-12：角色頁護符列：390 不必捲就看得到（底下留 16、不被分頁列裁）、375 有捲動提示 */
+    const cr = await p.evaluate(async () => {
+      closePanels();
+      navGo('char');
+      await new Promise(r => setTimeout(r, 300));
+      const c = document.querySelector('#pinv .doll2x').getBoundingClientRect(),
+        n = $('pnav').getBoundingClientRect(),
+        h = document.querySelector('#pinv .schint');
+      return [
+        Math.round(c.bottom),
+        Math.round(n.top),
+        !!h && !h.hidden,
+        parseFloat(getComputedStyle(document.querySelector('#pinv .eqs .nm')).fontSize)
+      ];
+    });
+    ok(
+      H >= 800
+        ? 'M1-12：390 護符列不必捲就完整露出（含 16 px 底距）、沒有捲動提示、標籤 13 px'
+        : 'M1-12：短屏護符列沒露出時有捲動提示、標籤 13 px',
+      (H >= 800 ? cr[0] + 16 <= cr[1] && !cr[2] : cr[0] > cr[1] - 16 && cr[2]) && cr[3] === 13,
+      JSON.stringify(cr)
+    );
+    await p.screenshot({ path: shot('m1ui_char') });
+    /* M1-CP：營地首屏有下一個解鎖一列、「還有 N 座」、卡頭箭頭；徽章「n 可升級」 */
+    const cp = await p.evaluate(() => {
+      closePanels();
+      Object.assign(S.camp, { forge: 1 });
+      navGo('craft');
+      CRAFT.tab = 'camp';
+      hudPanels();
+      return [
+        document.querySelectorAll('#pcraft .cmnxu').length,
+        (document.querySelector('#pcraft .cmnxu') || {}).textContent,
+        !!document.querySelector('#pcraft .cmmore'),
+        document.querySelectorAll('#pcraft .cch > .ico:last-child').length > 0
+      ];
+    });
+    ok(
+      'M1-CP／M1-07b：營地首屏一列下一個解鎖「升鍛造台到 Lv 3 開獵場」、還有幾座、卡頭箭頭',
+      cp[0] === 1 && cp[1] === '升鍛造台到 Lv 3 開獵場' && cp[2] && cp[3],
+      JSON.stringify(cp)
+    );
+    await p.screenshot({ path: shot('m1ui_camp') });
+    await p.evaluate(() => closePanels());
   }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');
