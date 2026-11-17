@@ -1846,7 +1846,8 @@ function chaseBn(k) {
   const rp = TOUCH.on
     ? null
     : [...document.querySelectorAll('.panel')].find(p => !p.hidden && p.offsetLeft > innerWidth / 2);
-  el.style.right = rp ? innerWidth - rp.offsetLeft + 'px' : '';
+  /* 右欄寬記成 --cr：right 與左右留白都照它算（padding 的 % 是照視窗寬，不能用） */
+  el.style.setProperty('--cr', rp ? innerWidth - rp.offsetLeft + 'px' : '0px');
   el.hidden = false;
   chaseBnTimer();
 }

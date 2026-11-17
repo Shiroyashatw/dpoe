@@ -2456,8 +2456,8 @@ body.sheetfull #chase { top: calc(env(safe-area-inset-top) + 4px); }
 #chase .cbr i { font-style: normal; font-size: 16px; line-height: 16px; }
 body.touch #chase kbd { display: none; }
 #chase kbd { padding: 0 6px; height: 20px; font: 700 13px/18px var(--font); color: var(--milk2); border: 1px solid var(--line); border-radius: 3px; }
-/* 桌機：top 76、高 88 的全寬條（兩端漸淡、上下 2 px 線），內容塊最寬 640 置中；右欄開著時 right 由 hud.js 設成面板左緣 */
-body:not(.touch) #chase { left: 0; right: 0; top: 76px; height: 88px; padding: 0 max(16px, calc((100% - 640px) / 2)); column-gap: 14px; box-shadow: none;
+/* 桌機：top 76、高 88 的全寬條（兩端漸淡、上下 2 px 線），內容塊最寬 640 置中；右欄開著時 hud.js 把右欄寬設成 --cr，right 與左右留白都照它算 */
+body:not(.touch) #chase { left: 0; right: var(--cr, 0px); top: 76px; height: 88px; padding: 0 max(16px, calc((100vw - var(--cr, 0px) - 640px) / 2)); column-gap: 14px; box-shadow: none;
   background: linear-gradient(90deg, transparent, var(--chase-bnr) 18%, var(--chase-bnr) 82%, transparent); }
 body:not(.touch) #chase::before { inset: 0; background: linear-gradient(90deg, transparent, var(--r4) 18%, var(--r4) 82%, transparent) top / 100% 2px no-repeat,
   linear-gradient(90deg, transparent, var(--r4) 18%, var(--r4) 82%, transparent) bottom / 100% 2px no-repeat; }
