@@ -76,6 +76,37 @@ const ev = (p, f, a) => p.evaluate(f, a);
     return s;
   };
   ok('?freeze=1＋?seed=7：兩次載入的截圖逐像素相同', Buffer.compare(await px(0), await px(1500)) === 0);
+  /* 營地（?test=1 一載入就在營地）：火堆的火焰、火星不能因為載入時跑的格數不同而不一樣；兩尺寸各載入 3 次（等的時間不同） */
+  for (const [w, h] of [
+    [390, 844],
+    [1280, 720]
+  ]) {
+    const s = [];
+    for (const wt of [0, 700, 1500]) {
+      const q = await open('?test=1&seed=7&freeze=1', {
+        viewport: { width: w, height: h },
+        ...(w < 900 && { isMobile: true, hasTouch: true })
+      });
+      await q.waitForLoadState('networkidle');
+      await ev(q, () => document.fonts.ready.then(() => 0));
+      await q.waitForTimeout(wt);
+      await q.mouse.move(-1, -1);
+      await q.waitForTimeout(300);
+      s.push(await q.screenshot());
+      if (process.env.DBG_SHOT)
+        require('fs').writeFileSync(`${process.env.DBG_SHOT}/camp_${w}x${h}_${s.length}.png`, s.at(-1));
+      ok(
+        `營地 ${w}×${h} 第 ${s.length} 次：在營地、沒有 JS 錯誤`,
+        (await ev(q, () => G.scene)) === 'hide' && !q.errs.length,
+        q.errs.join(' | ')
+      );
+      await q.context().close();
+    }
+    ok(
+      `?test=1&seed=7&freeze=1 營地 ${w}×${h}：3 次載入截圖逐像素相同`,
+      s.every(x => Buffer.compare(x, s[0]) === 0)
+    );
+  }
   /* ---------- 測試模式：每個掛鉤 ---------- */
   const p = await open('?test=midgame&seed=7');
   ok(
