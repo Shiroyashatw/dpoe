@@ -11226,6 +11226,36 @@ const ASC_COMBOS = `const combos = k => {
    火焰放滿：停住主迴圈，玩家與一隻怪各疊 4 個火焰爆炸（boom）＋自己的燃燒地面，比對「沒有特效」與「特效放滿」兩張畫面在玩家、怪身上 32×44 世界單位的方框，
    只看角色本身的像素（拿掉玩家與怪再畫一張，跟原圖 RGB 差 ≥ 24 的像素），其中特效放滿後 RGB 差仍 < 24 的比例要 ≥ 50%（改前玩家 1%、怪 0–2%）。
    DOM：設定面板「傷害數字」三鈕、預選依裝置、375 寬不換行；升級膠囊連升只有一顆、#warn 不亮 */
+/* M2-34-0 色票：CSS 只有一個 :root、:root 以外不寫色碼；JS 不寫色碼（開場、像素圖、技能與職業的識別色除外），PAL 用到的 token 都有定義 */
+{
+  const J = f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'),
+    css = PAL_CSS.replace(/\/\*[\s\S]*?\*\//g, ''),
+    roots = css.match(/:root\s*\{/g) || [],
+    out = css.replace(/:root\s*\{[^}]*\}/, ''),
+    cssLit = out.match(/#[0-9a-fA-F]{3,8}\b(?![\w-]*\s*[{,])|rgba?\(\s*\d/g) || [];
+  ok('色票：style.css 只有一個 :root，而且在最前面', roots.length === 1 && /^\s*:root/.test(css), roots.length);
+  ok('色票：style.css 的 :root 以外沒有寫死的色碼', !cssLit.length, cssLit.slice(0, 5).join(' '));
+  const files = fs.readdirSync(path.join(__dirname, '..', 'js')).filter(f => f.endsWith('.js')),
+    SKIP = ['intro.js', 'sprites.js', 'core.js', 'palette.js', 'art.js', 'hideart.js', 'fxsheets.js', 'ptdata.js'],
+    lit = [],
+    miss = [];
+  for (const f of files) {
+    const src = J(f)
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    if (!SKIP.includes(f))
+      (f === 'data.js' ? src.split('\n').filter(l => l.startsWith('const ELC')) : src.split('\n')).forEach(l => {
+        const m = l.match(/'#[0-9a-fA-F]{3,8}'|rgba?\(\d+,\s*\d+,\s*\d+[,)]|'\d{1,3},\d{1,3},\d{1,3}'/);
+        if (m) lit.push(f + '：' + m[0]);
+      });
+    for (const m of src.matchAll(/\bPAL\.(?:scene\.(\w+)\.(\w+)|rgb\.(\w+)|(\w+))/g)) {
+      const v = m[1] ? (PAL.scene[m[1]] || {})[m[2]] : m[3] ? PAL.rgb[m[3]] : PAL[m[4]];
+      if (!v) miss.push(f + '：' + m[0]);
+    }
+  }
+  ok('色票：JS 不寫色碼（canvas 一律用 PAL）', !lit.length, lit.slice(0, 5).join('、'));
+  ok('色票：JS 用到的 PAL 都在 :root 有定義', !miss.length, [...new Set(miss)].slice(0, 5).join('、'));
+}
 (async () => {
   let pw;
   try {
