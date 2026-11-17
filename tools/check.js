@@ -10707,7 +10707,7 @@ const ASC_COMBOS = `const combos = k => {
       const lo = lvT(TRUNK[13].lv), hi = lvT(TRUNK[14].lv);
       /* 10、11、12、13：wangyin_* 圖檔 id、名字從字串表 wangyin／base 讀、沒有 seal 開頭的鍵 */
       r.ids = CHASE_POOL.trunk.join(',');
-      r.alias = CHASE_POOL.trunk.every(k => ART_ALIAS[k] === 'cur_regal') && JSON.stringify(Object.values(WANGYIN_X)) === '[132,165,198,231]';
+      r.alias = !CHASE_POOL.trunk.some(k => k in ART_ALIAS) && typeof WANGYIN_X === 'undefined';
       r.soulpack = ART_ALIAS.soulpack;
       r.noSeal = !JSON.stringify([CHASE_POOL, STR_T]).includes('seal') && 'wangyin' in STR_T && 'base' in STR_T;
       r.names = CHASE_POOL.trunk.map(chaseName).join(',');
@@ -10765,9 +10765,18 @@ const ASC_COMBOS = `const combos = k => {
     return r;
   })()`);
   ok(
-    'M2-18 圖檔 id：王印是 wangyin_zhenyue／chixiao／jiting／guixu（沒有 seal 開頭），先借 cur_regal、正式位置第二條 x=132／165／198／231',
+    'M2-18 圖檔 id：王印是 wangyin_zhenyue／chixiao／jiting／guixu（沒有 seal 開頭）；M2-34 3a 起正式圖在 ic_wy32／ic_wy16 拼條 x=0／33／66／99、0／17／34／51（不再借 cur_regal、沒有 WANGYIN_X）',
     ad.ids === 'wangyin_zhenyue,wangyin_chixiao,wangyin_jiting,wangyin_guixu' &&
       ad.alias &&
+      ad.ids
+        .split(',')
+        .every(
+          (k, i) =>
+            new RegExp(`^  ${k}: \\['ic_wy32', ${i * 33}, 0, 32, 32\\],$`, 'm').test(art) &&
+            new RegExp(`^  ${k}_16: \\['ic_wy16', ${i * 17}, 0, 16, 16\\],$`, 'm').test(art)
+        ) &&
+      /^  ic_wy32: 'img\/ic_wy32\.[0-9a-f]{8}\.png',?$/m.test(art) &&
+      /^  ic_wy16: 'img\/ic_wy16\.[0-9a-f]{8}\.png',?$/m.test(art) &&
       ad.noSeal &&
       has('cur_regal') &&
       /'ic_cur-2'/.test(art),
@@ -11119,6 +11128,266 @@ const ASC_COMBOS = `const combos = k => {
         );
       }
     }
+}
+/* M2-34 3a（素材接入，M2-33-3a）：繪製順序（製作人 2026-11-17 19:46）、地磚缺圖退回、王印拼條缺圖退回、招牌特效缺圖退回 */
+{
+  const JS = f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8');
+  /* 1. 繪製順序：真的跑 render.js 的 draw()，記下跳數字（fillText）、怪物生命條（#e5484d 的 fillRect）、掉落光柱（漸層或 sig_beam）跟暗層（drawImage DARK）的先後 */
+  const order = mode => {
+    const ev = [],
+      mk = log =>
+        new Proxy(
+          {},
+          {
+            get: (o, k) =>
+              k in o
+                ? o[k]
+                : String(k).startsWith('create')
+                  ? () => (log && log('beam'), { addColorStop() {} })
+                  : (...a) => {
+                      if (!log) return;
+                      if (k === 'fillText') log('num');
+                      if (k === 'fillRect' && o.fillStyle === '#e5484d') log('bar');
+                      if (k === 'drawImage' && a[0] && a[0].dark) log('dark');
+                    },
+            set: (o, k, v) => ((o[k] = v), true)
+          }
+        ),
+      c = {
+        console,
+        Math,
+        JSON,
+        Object,
+        Array,
+        String,
+        Proxy,
+        VER: '0',
+        Image: function () {},
+        document: { createElement: () => ({ dark: 1, getContext: () => mk() }) }
+      };
+    vm.createContext(c);
+    c.FXS = {};
+    vm.runInContext(JS('render.js'), c, { filename: 'render.js' });
+    c.CX = mk(e => ev.push(e));
+    vm.runInContext(
+      `var TAU = Math.PI * 2, clamp = (v, a, b) => Math.min(b, Math.max(a, v)), IW = 800, DPR = 1, CV = { width: 800, height: 600 }, TOUCH = { on: 0 }, ELC = {}, CUR = { chaos: { ic: 'x' } }, ST = { hp: 100 };
+      var aiTarget = () => G.mobs[0], getComputedStyle = () => ({ getPropertyValue: () => '#fff' }), cvH = () => 600, artImg = () => null, reduced = () => false, sigFx = () => undefined, mobStates = () => [], BIO = () => ({ dark: '0,0,0' });
+      var bStatic = () => {}, bDecals = () => {}, bDeco = () => {}, bLights = () => {}, bGlow = () => {}, hideFront = () => {}, drawMech = () => {};
+      drawHero = () => {}; drawMinimap = () => {}; drawPrompts = () => {}; var drawAim = () => {};
+      var P = { x: 0, y: 0, hp: 100, hurtT: 0 };
+      var G = { t: 1, night: ${mode === 'night' ? 9 : 0}, fog: ${mode === 'fog' ? 9 : 0}, scene: 'map', cam: { x: 0, y: 0 }, trauma: 0, ground: [],
+        tele: [], pools: [], units: [], meteors: [], portal: null, allies: [], npcs: [], shots: [], fx: [],
+        mobs: [{ x: 10, y: 10, hp: 50, mhp: 100, r: 20, sz: 40, D: { sp: 'x' }, sq: 0, ph: 0, st: 'go', ail: {} }],
+        drops: [{ chase: 'wangyin_zhenyue', t: 1, x: 0, y: 0, sx: 0, sy: 0 }, { show: 'chaos', t: 1, x: 40, y: 0, sx: 40, sy: 0 }],
+        nums: [{ x: 0, y: 0, t: 0.2, c: 'hit', v: 5 }] };
+      draw();`,
+      c
+    );
+    const at = e => [ev.indexOf(e), ev.lastIndexOf(e)];
+    return { ev: ev.join(' '), dark: ev.indexOf('dark'), num: at('num'), bar: at('bar'), beam: at('beam') };
+  };
+  const run = m => {
+    try {
+      return order(m);
+    } catch (e) {
+      return { err: String(e) };
+    }
+  };
+  const day = run('day'),
+    after = (r, k) => r.dark >= 0 && !!r[k] && r[k][0] > r.dark,
+    before = (r, k) => !!r[k] && r[k][0] >= 0 && r[k][1] < r.dark;
+  ok(
+    'M2-34 3a 繪製順序（白天）：跳數字、怪物生命條、掉落光柱都畫在暗層之後，看得清楚',
+    after(day, 'num') && after(day, 'bar') && after(day, 'beam'),
+    JSON.stringify(day)
+  );
+  for (const m of ['night', 'fog']) {
+    const r = run(m);
+    ok(
+      `M2-34 3a 繪製順序（${m === 'night' ? '燭龍閉眼天黑' : '蚩尤大霧'}）：跳數字、怪物生命條照舊在暗層之前（被壓暗）；掉落光柱在暗層之後（看得到）`,
+      before(r, 'num') && before(r, 'bar') && after(r, 'beam'),
+      JSON.stringify(r)
+    );
+  }
+  /* 2. 地磚：一種地形全部載好才換成 256 材質像素區塊（地板 1:1）；缺任一張整套退回程式畫法（384 區塊、bFloor 花紋），不報錯 */
+  const tl = (() => {
+    const imgs = [],
+      log = [],
+      ctx2 = () =>
+        new Proxy(
+          {},
+          {
+            get: (o, k) =>
+              k in o
+                ? o[k]
+                : (...a) => (log.push([k, a[0] && a[0].src, a[1], a[2]]), k === 'createPattern' ? {} : undefined),
+            set: (o, k, v) => ((o[k] = v), true)
+          }
+        ),
+      c = {
+        console,
+        Math,
+        JSON,
+        Object,
+        Array,
+        Proxy,
+        Map,
+        Image: function () {
+          imgs.push(this);
+        },
+        document: { createElement: () => ({ getContext: ctx2 }) }
+      };
+    vm.createContext(c);
+    const r = {};
+    try {
+      for (const f of ['core.js', 'tiles.js', 'biome.js']) vm.runInContext(JS(f), c, { filename: f });
+      vm.runInContext(
+        `var TS = 48, TAU = Math.PI * 2, G = { t: 0, scene: 'map', biome: 'temple', cols: 16, rows: 16, cam: { x: 0, y: 0 } };
+        G.tiles = Array.from({ length: 256 }, (_, i) => (i % 16 < 2 || i < 32 ? 1 : 0));`,
+        c
+      );
+      c.CX = ctx2();
+      const R = s => vm.runInContext(s, c);
+      r.src = R(
+        "['temple', 'lava', 'tomb', 'ice'].every(b => TILE_SRC[b] && TILE_SRC[b].floor.length && TILE_SRC[b].top && TILE_SRC[b].face.length === 2)"
+      );
+      r.loading = R("tileSet('temple')") === null;
+      R('G.bc = { t: G.tiles, m: new Map() }');
+      imgs.forEach(im => im.onload());
+      r.loaded = !!R("tileSet('temple')") && R('G.bc') === null;
+      log.length = 0;
+      const ch = R("bakeChunk(0, 0, BCH * TS, tileSet('temple'))"),
+        fl = log.filter(l => l[0] === 'drawImage' && /temple-floor/.test(l[1]));
+      r.tile = [
+        ch.width,
+        ch.height,
+        fl.length,
+        fl.every(l => l[2] % 32 === 0 && l[3] % 32 === 0),
+        log.some(l => l[0] === 'createPattern')
+      ];
+      R("G.biome = 'lava'");
+      const n0 = imgs.length;
+      R("tileSet('lava')");
+      imgs.slice(n0).forEach((im, i) => (i === 1 ? im.onerror() : im.onload()));
+      r.bad = R("tileSet('lava')");
+      log.length = 0;
+      R('G.bc = null; bStatic(800, 600)');
+      const big = log.filter(l => l[0] === 'drawImage' && l[1] === undefined);
+      r.fall = [
+        R('[...G.bc.m.values()][0].width'),
+        log.some(l => l[0] === 'createPattern'),
+        log.some(l => /img\/tiles/.test(l[1] || '')),
+        big.length > 0
+      ];
+      R("delete TILE_SRC.ice; G.biome = 'ice'; G.bc = null; bStatic(800, 600)");
+      r.none = R("tileSet('ice')") === null && R('[...G.bc.m.values()][0].width') === 384;
+    } catch (e) {
+      r.err = String(e);
+    }
+    return r;
+  })();
+  ok(
+    'M2-34 3a 地磚：js/tiles.js 四種地形都有地板、牆頂、牆面 a／b；載好才換成 256 材質像素區塊、地板每格 32 對齊 1:1 貼、不畫 bFloor 花紋，載好時清 G.bc 重烘',
+    tl.src && tl.loading && tl.loaded && JSON.stringify(tl.tile) === '[256,256,64,true,false]',
+    JSON.stringify(tl)
+  );
+  ok(
+    'M2-34 3a 地磚缺圖退回：一張載不到 → 整套退回程式畫法（384 區塊、bFloor 花紋、不混用地磚）、不報錯；TILE_SRC 沒這種地形也一樣',
+    !tl.err && tl.bad === null && JSON.stringify(tl.fall) === '[384,true,false,true]' && tl.none,
+    JSON.stringify(tl)
+  );
+  /* 3. 王印拼條：載到用 ic_wy32／ic_wy16；載不到（onerror）退回借 cur_regal，不報錯 */
+  const wy = (() => {
+    const c = {
+      console,
+      Math,
+      JSON,
+      Object,
+      Array,
+      location: { search: '' },
+      URLSearchParams,
+      setTimeout() {},
+      Image: function () {},
+      document: { createElement: () => ({ getContext: () => ({}) }) }
+    };
+    vm.createContext(c);
+    const r = {};
+    try {
+      for (const f of ['core.js', 'ptdata.js', 'data.js', 'art.js', 'sprites.js'])
+        vm.runInContext(JS(f), c, { filename: f });
+      const R = s => vm.runInContext(s, c);
+      r.ok = R("(a => [a.im.src, a.r.join()])(artImg('wangyin_chixiao'))");
+      r.ok16 = R("(a => [a.im.src, a.r.join()])(artImg('wangyin_guixu_16'))");
+      R("artImg('wangyin_chixiao').im.onerror()");
+      r.bad = R("(a => [a.im.src, a.r.join()])(artImg('wangyin_chixiao'))");
+      r.soul = R("artImg('soulpack').r.join()");
+    } catch (e) {
+      r.err = String(e);
+    }
+    return r;
+  })();
+  ok(
+    'M2-34 3a 王印圖：拼條載到時用 ic_wy32（赤霄 x=33）、ic_wy16（歸墟 x=51）；拼條載不到退回借 cur_regal（ic_cur x=297），不報錯',
+    !wy.err &&
+      /ic_wy32\./.test(wy.ok[0]) &&
+      wy.ok[1] === '33,0,32,32' &&
+      /ic_wy16\./.test(wy.ok16[0]) &&
+      wy.ok16[1] === '51,0,16,16' &&
+      /ic_cur\./.test(wy.bad[0]) &&
+      wy.bad[1] === '297,0,32,32' &&
+      wy.soul === '363,0,32,32',
+    JSON.stringify(wy)
+  );
+  /* 4. 招牌特效：圖載好才播 sig_crit，沒載到或減少動態播舊的 crit；js/fxsig.js 五個鍵都在 */
+  const fxc = {
+    console,
+    Math,
+    JSON,
+    Object,
+    Array,
+    location: { search: '' },
+    URLSearchParams,
+    document: { addEventListener() {} },
+    addEventListener() {}
+  };
+  vm.createContext(fxc);
+  let fr;
+  try {
+    for (const f of [
+      'core.js',
+      'ptdata.js',
+      'data.js',
+      'items.js',
+      'craft.js',
+      'combat.js',
+      'maps.js',
+      'world.js',
+      'mech.js',
+      'ai.js',
+      'game.js'
+    ])
+      vm.runInContext(JS(f), fxc, { filename: f });
+    vm.runInContext(
+      'var FXS = { crit: { n: 19, fps: 24, rad: 50 } }, LD = 0, RM = 0, fxImg = () => ({ naturalWidth: LD ? 96 : 0 }), reduced = () => !!RM;',
+      fxc
+    );
+    vm.runInContext(JS('fxsig.js'), fxc, { filename: 'fxsig.js' });
+    fr = JSON.parse(
+      vm.runInContext(
+        `G.fx = []; const n = () => (fxs('crit', 0, 0, 40), G.fx.pop().n);
+        JSON.stringify([Object.keys(FXS).filter(k => k.startsWith('sig_')).sort().join(), n(), (LD = 1), n(), (RM = 1), n()])`,
+        fxc
+      )
+    );
+  } catch (e) {
+    fr = String(e);
+  }
+  ok(
+    'M2-34 3a 招牌特效：fxsig.js 有 sig_beam／chase／crit／lvup／wyapply；暴擊圖載好播 sig_crit，沒載到或減少動態播舊的 crit',
+    JSON.stringify(fr) ===
+      JSON.stringify(['sig_beam,sig_chase,sig_crit,sig_lvup,sig_wyapply', 'crit', 1, 'sig_crit', 1, 'crit']),
+    JSON.stringify(fr)
+  );
 }
 /* M2-06 戰鬥可讀性（規格 specs/M2-05-combat-readability.md）：傷害數字三段設定與依裝置預設（製作人 11-17 10:42）、合併與上限、升級只剩一種提示 */
 {
