@@ -119,7 +119,7 @@ function gemCfg(g, i) {
   if (D.lightAdd) c.lightAdd = D.lightAdd;
   /* 大開大合（0.2.70 角鬥士）：雙手時每點盛怒範圍提高（跟範圍的提高同一池，所以除掉原本的提高再乘；stats() 沒拿雙手就歸零） */
   if (ST.rageAoe && P && P.rage) c.aoe *= (100 + ST.aoe + ST.rageAoe * P.rage) / (100 + ST.aoe);
-  /* 重裝彈頭（0.2.70 千機）：彈藥技能每發更多、穿透 +1（彈夾減半在 mech.js 的 clipOf） */
+  /* 重裝彈頭（0.2.70 千機）：彈藥技能每發更多、穿透 +1（彈匣減半在 mech.js 的 clipOf） */
   if (ST.heavyAmmo && D.ammo) (c.more *= 1 + ST.heavyAmmo / 100), c.pierce++;
   /* 重擊的品質：粉碎重擊後的下一下 */
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
@@ -972,7 +972,7 @@ function actHit2(a, idx, R, hitArc) {
     fxs('blinkin', p.x, p.y, 40);
   } else if (a.k === 'axethrow' || a.k === 'apshot' || a.k === 'chaosbolt') {
     const n = c.proj,
-      /* 穿甲彈的品質、斷後：彈夾最後一發（ammoUse 已經扣過，剩 0 就是最後一發） */
+      /* 穿甲彈的品質、斷後：彈匣最後一發（ammoUse 已經扣過，剩 0 就是最後一發） */
       last = a.k === 'apshot' && ammoLeft(a.k) === 0;
     let dropped = 0;
     const o = {
