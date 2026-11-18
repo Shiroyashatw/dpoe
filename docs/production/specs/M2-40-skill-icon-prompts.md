@@ -5,10 +5,12 @@
 ## 1. 上限與批
 
 - **第 2 輪（R5b）上限 40 次**（mumi 2026-11-18 15:30 選 A 重跑）。第 1 輪 icons-3 的 40 次另記、不算在內；那 24 張全部不定稿，原因是平塗、沒有明暗，跟現有技能圖畫風對不起來。本輪從 0 起算，約 1 次／張。
-- 本輪種子＝§3.2 的 seed0 ＋ 1000；重跑 1 再＋100，重跑 2 再＋200。
-- **先試跑 4 張**：`sk_fire`、`sk_gasflask`、`sk_ironaura`、`sk_clarity`。4 張裡至少 3 張過 §5「畫風」那列，才往下跑 A0–A5；沒過就停，PR 留言回報，不再花次數。
+- 第 3 輪（R5c，icons-5）用第 2 輪剩下的 **28 次**。第 2 輪（icons-4）花 12 次，畫風過了，但參考圖的斜箭、羽毛構圖被抄進來，意思全錯，所以本輪**不用參考圖**。
+- 本輪種子＝§3.2 的 seed0 ＋ 2000；重跑再＋100。
+- **先試跑 3 張**：`sk_fire`、`sk_gasflask`、`sk_clarity`。3 張裡至少 2 張「畫風」過、而且目視意思對（照 §3.1 剪影家族），才往下跑其餘 21 張；沒過就停，PR 留言回報。
+- 次數：試跑 3＋其餘 21＝24，重跑只剩 4 次，給 `sk_deadeye` 與 #1–19 先用；不夠就列出來交美術總監手修。
 - 張數：22 列，其中「毒霧藥劑／油榴彈」拆成兩張，共 **23 張新圖**；另外重畫 **1 張舊圖** `sk_deadeye`（§3.3，UIUX設計師 14:48）。
-- 次數分配（合計永遠 ≤ 40）：
+- 第 1 輪的次數分配（第 3 輪以上面兩條為準）：
   - 23 張新圖首跑 23 次。
   - 17 次備用先拿 1 次給 `sk_deadeye` 首跑，剩 16 次是重跑共用池。
 - 重跑池的順序：
@@ -38,8 +40,7 @@
 
 沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-prompts.md` §2），只改上限與工作表：
 
-- 先查 PixelLab v2 文件（`https://api.pixellab.ai/v2/llms.txt` 或 `/v2/docs`），找能吃「畫風參考圖」的端點（例如 bitforge 的 `style_image`／`style_strength`）。有就用它，`style_strength` 先用 40；沒有才退回 `/create-image-pixflux`，PR 留言寫明用了哪個端點。不要的東西寫在 description 的 `no …`。
-- 畫風參考圖照 §2.2。
+- 用 `/create-image-pixflux`，**不給 style_image、不給 init**。要的寫 `description`，不要的全部寫 `negative_description`（端點不收就退回寫進 description 的 `no …`，留言寫明）。
 - `color_image`：不給。第 1 輪只給 4–6 個 token 色，圖就被壓成平塗。§3 的 palette 欄只當「主色方向」寫進 description，不鎖色。
 - 檔名 `sk_<id>-s<seed>.png`。旁邊存同名 `.json`，內容是 request 去掉 base64，加上 usage。
 - 輸出目錄 `art/icons/skill/<id>/`。原圖留在 `art/_raw/skill/`。
@@ -49,7 +50,7 @@
 ### 2.1 共用 body
 
 ```json
-{"description":"fantasy action RPG skill icon in the same pixel art style as the reference icons, <silhouette>, main colours <colours>, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin, no text, no letters, no background, no circular badge, no round frame, no <not>","image_size":{"width":32,"height":32},"outline":"single color black outline","shading":"detailed shading","detail":"highly detailed","no_background":true}
+{"description":"fantasy action RPG skill icon, <silhouette>, main colours <colours>, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin","negative_description":"text, letters, background, circular badge, round frame, flat colours, plain silhouette, <not>","image_size":{"width":32,"height":32},"outline":"single color black outline","shading":"detailed shading","detail":"highly detailed","no_background":true}
 ```
 
 - `<silhouette>` 填 §3 的 prompt 欄；`<not>` 填 not 欄；`<colours>` 用英文寫 palette 欄的色相（例如 deep blue and pale cyan）。
@@ -58,9 +59,7 @@
 
 ### 2.2 畫風參考圖
 
-- 用現有、明暗最完整的技能圖：`sk_markshot`、`sk_hasteaura`、`sk_sacrifice`、`sk_iceshatter`、`sk_decay`（原圖，從 sheet 依 `js/art.js` 座標切出 32×32）。
-- 端點只收 1 張時，技能列用 `sk_markshot`，光環欄用 `sk_hasteaura`；收多張就 5 張全給。
-- 參考圖只取畫風，不准照抄造型；新圖對參考圖 IoU 也要 < 0.6。
+本輪不用。第 2 輪用 `sk_markshot`／`sk_hasteaura` 當 32×32 單張 style_image，構圖會整個轉過來。畫風改由 §2.1 的 shading／detail 與 §5「畫風」檢查把關。
 
 ## 3. 工作表
 
@@ -142,7 +141,7 @@
 | 24 | 4224 | two dice side by side, the right one tipped up on its corner and higher than the left, a few pips showing | eye, target, shield, face, centred disc |
 
 - 重跑 1：同一個 prompt，把 §5 的撞圖對象寫進 `<not>`。
-- 重跑 2：換種子，`style_strength` 降到 25。
+- 重跑 2：本輪不做（次數不夠）。
 
 ### 3.3 舊圖之間的配對（換上 23 張新圖後重算）
 
@@ -180,7 +179,7 @@
 
 | 項 | 量 | 通過 | 不過 |
 | --- | --- | --- | --- |
-| 32 剪影 IoU（新圖與 `sk_deadeye`） | 對同欄集每一枚（含其他新圖） | 全部 < 0.6 | 重跑 1，再重跑 2，再手修 |
+| 32 剪影 IoU（新圖與 `sk_deadeye`） | 對同欄集每一枚（含其他新圖）；目視意思要對上剪影家族 | 全部 < 0.6 | 重跑 1，再重跑 2，再手修 |
 | 舊圖之間 | 同欄集內，兩枚都是沒重畫的舊圖 | < 0.75；0.6–0.75 只列出 | 列入 PR，不重跑 |
 | 拆圖對象 | 新圖對原共用圖；`sk_fireburst` 加比 `sk_iceshatter`；`sk_ironaura` 加比 `sk_determination` | < 0.6 | 同上 |
 | 不是實心塊 | 填滿率＝不透明 ÷ 1024；外框填滿率＝不透明 ÷ 外框面積 | 0.15–0.50；外框 ≤ 0.75 | 重跑 |
