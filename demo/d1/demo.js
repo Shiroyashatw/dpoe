@@ -445,8 +445,8 @@ function note() {
   let s = r ? `<b>${r.id}</b> ${esc(r.t)}` : '';
   if (MISS.length) s += `　<b>缺欄</b>（9b 為「—」）沿用中期：${MISS.join('、')}`;
   if (r && r.nv) s += `　<b>demo 未驗，進遊戲量</b>：${esc(r.nv)}`;
-  s += `　<b>第 21 項 王印圖示</b>：${WY_TIP}`;
   $('c-note').innerHTML = s;
+  $('c-21').innerHTML = `<b>第 21 項 王印圖示</b>：${WY_TIP}`;
 }
 const devTouch = () => (S.dev === 'auto' ? !!SIZES[P.size].port : S.dev === 'touch');
 const kc = k => (devTouch() ? '' : `<span class="kc">${k}</span>`);
@@ -902,9 +902,10 @@ function panelHTML(g) {
         st = `<button class="stamp kf${solid ? ' can' : ' off'}" data-hit="stamp" data-k="st-${c.n}" data-fac="${c.n}" data-solid="${solid ? 1 : 0}" aria-label="${esc(T('升級'))} ${esc(c.n)}">▲</button>`;
         prog = `<span class="cp"><i class="${k.pct >= 100 ? 'full' : ''}" style="width:${k.pct}%"></i></span>`;
       }
-      /* N3：名字先截斷（英文先換兩行），「Lv n」、「建議」不截斷、不換行 */
-      const lvT = c.lv == null ? '' : `<span class="lv">Lv\u00a0${c.lv}</span>`;
-      h += `<div class="${cl.join(' ')}" data-m="cell" data-fac="${c.n}"><button class="cb kf" data-hit="cell" data-k="cb-${c.n}" data-fac="${c.n}"><b data-role="body"><span class="fn">${esc(facName(c.n))}</span>${lvT}${c.c && c.c.sug ? `<span class="tag" data-role="label">${esc(T('建議'))}</span>` : ''}</b>${sub}</button>${st}${prog}</div>`;
+      /* N10／N11：「建議」改左上角標（不佔名字那一行）；名字至少留 4 個字寬再截斷（英文先換兩行），「Lv n」不截 */
+      const lvT = c.lv == null ? '' : `<span class="lv">Lv\u00a0${c.lv}</span>`,
+        fn = facName(c.n);
+      h += `<div class="${cl.join(' ')}" data-m="cell" data-fac="${c.n}">${c.c && c.c.sug ? `<span class="tag" data-m="sugtag" data-role="label">${esc(T('建議'))}</span>` : ''}<button class="cb kf" data-hit="cell" data-k="cb-${c.n}" data-fac="${c.n}"><b data-role="body"><span class="fn" style="min-width:${Math.min(4, [...fn].length)}${isEN() ? 'ch' : 'em'}">${esc(fn)}</span>${lvT}</b>${sub}</button>${st}${prog}</div>`;
     }
     return h + '</div></div></div>';
   }
