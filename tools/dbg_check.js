@@ -9,10 +9,24 @@ const ok = (n, c, info = '') => {
   if (!c) bad++;
 };
 let b;
+/* Google 字型（Noto Sans TC 400／500／700 共用同一個可變字型檔）每次從網路抓，先到的字重不同時，
+   Chrome 偶爾整頁字畫得粗細不一樣（約 1／30 次）；同一輪測試第一次抓到就存起來，之後的頁面都從記憶體給 */
+const FONT = new Map();
+async function font(r) {
+  const u = r.request().url();
+  let v = FONT.get(u);
+  if (!v) {
+    const res = await r.fetch();
+    v = { status: res.status(), headers: res.headers(), body: await res.body() };
+    FONT.set(u, v);
+  }
+  return r.fulfill(v);
+}
 async function open(q, o = {}) {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1, ...o });
   /* 測試絕對不能碰正式雲端 */
   await ctx.route(/supabase/, r => r.abort());
+  await ctx.route(/fonts\.(googleapis|gstatic)\.com/, font);
   const p = await ctx.newPage();
   p.errs = [];
   p.js = [];
@@ -161,6 +175,13 @@ const ev = (p, f, a) => p.evaluate(f, a);
     await ev(p, () => DBG.fx('crit', P.x, P.y) && G.fx.some(o => o.k === 'sh' && o.n === 'crit'))
   );
   ok('fx(不存在) 回傳 false', (await ev(p, () => DBG.fx('sig_nope'))) === false);
+  /* M2-34 3a 的招牌特效接進 FXS 之後也能播：每個 sig_* 圖載好、回傳 true、G.fx 有那張 */
+  await p.waitForFunction(() => Object.keys(FXS).every(k => !k.startsWith('sig_') || fxImg(k).naturalWidth));
+  for (const k of ['sig_crit', 'sig_lvup', 'sig_beam', 'sig_chase', 'sig_wyapply'])
+    ok(
+      `fx(${k})：播招牌特效`,
+      await ev(p, k => DBG.fx(k, P.x, P.y) === true && G.fx.some(o => o.k === 'sh' && o.n === k), k)
+    );
   const nk = ['hit', 'crit', 'hurt', 'gain', 'minor', 'miss', 'dodge', 'block', 'dot'];
   ok(
     'num：9 種都跳得出來',

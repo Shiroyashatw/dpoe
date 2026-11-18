@@ -7,6 +7,7 @@
 - **CSS**：`env(safe-area-inset-bottom)` 改寫成 `var(--sab, env(safe-area-inset-bottom))`（沒設 `--sab` 時跟原本一樣），讓 `DBG.safeArea` 能模擬。
 - **檢查**：`tools/dbg_check.js`（正式載入沒有 `DBG`、沒抓 `dbg.js`、時鐘是原生的；測試模式每個掛鉤做得出狀態；同種子截圖逐像素相同）。
 - **營地凍結截圖**：測試模式凍結時營地火堆不冒新火星（原本每格取一次亂數，載入時跑的格數不同，`?test=1&seed=7&freeze=1` 的營地截圖每次差幾個像素）；`dbg_check` 加營地 390×844、1280×720 各載入 3 次逐像素相同。正式模式不變。
+- **併 main（M2-34 3a）**：`DBG.fx` 照指定的鍵播，能播 sig_crit、sig_lvup、sig_beam、sig_chase、sig_wyapply（圖沒載好回傳 false）；`dbg_check` 的 Google 字型同一輪從記憶體給，營地凍結截圖不再因字型下載先後偶爾差一點。
 
 ## 0.5.4 之後：M2-34 第 3a 批 PixelLab 素材接入（還沒換版本號）
 

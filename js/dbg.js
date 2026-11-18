@@ -120,10 +120,13 @@ const DBG = (() => {
       (G.zod = z), (G.fdB = f);
       return G.mobs[G.mobs.length - 1];
     },
-    /* 在世界座標播一次序列圖特效（FXS 的鍵；sig_* 素材接進 FXS 之後同樣能播）；沒有這個特效回傳 false */
+    /* 在世界座標播一次序列圖特效（FXS 的鍵，含 sig_* 招牌特效）；照指定的鍵播（不經 fxs 把 crit 換成 sig_crit）。
+       沒有這個特效、或 sig_* 的圖還沒載好（render.js 一開始就載，沒載好就畫不出來）回傳 false */
     fx(id, x, y) {
-      if (typeof FXS === 'undefined' || !FXS[id]) return false;
-      fxs(id, ...at(x, y));
+      const S = typeof FXS !== 'undefined' && FXS[id];
+      if (!S || (id.startsWith('sig_') && !fxImg(id).naturalWidth)) return false;
+      const [px, py] = at(x, y);
+      G.fx.push({ k: 'sh', n: id, x: px, y: py, s: 1, t: 0, dur: S.n / S.fps });
       return true;
     },
     num(kind = 'hit', v = 123, x, y) {
