@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
 /* D1 展示頁（demo/d1/）的截圖、錄影與預篩。只開展示頁，不碰遊戲。
-   用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/d1_demo.js [shots|videos|all|V9d|V<n>]（預設 all；V9d＝逐種抽屜量主角偏移）
+   用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/d1_demo.js [shots|videos|all|V9d|V<n>|fix3]（預設 all；V9d＝逐種抽屜量主角偏移；fix3＝複審第三輪 5 張補拍＋角標量測，D1_OUT 指到 review-fix3）
    產出 docs/production/evidence/dpoe-d1-demo/review-fix2/（D1_OUT 可改）：v9/<尺寸>/<情況>.png、frames/<V>_<尺寸>_<模式>/（帶時間戳的幀）、shots/<尺寸>/<列>.png、extra/<尺寸>/<名>.png（審查補拍）、toggles/<尺寸>/<列>_<fs|en|rm>.png、
    videos/<V>_<尺寸>_<一般|rm>.mp4（60 fps 逐幀）、results.json、results.md。
    預篩只抓明顯的失敗（裁字、出框、重疊、字級、熱區、對比、安全區、時間），不放寬清單門檻；有 ❌ 結束碼 1 */
@@ -271,8 +271,13 @@ function measure(port) {
   /* 焦點框（K06）：每顆 × 的 2 px 往外 2 px 框，四邊都不能被 overflow 的祖先裁掉 */
   for (const e of ui.querySelectorAll('.x44')) {
     if (!vis(e)) continue;
+    const had = e.classList.contains('fv');
+    e.classList.add('fv'); /* .kf.fv 跟 :focus-visible 同一條規則：讀實際的框寬＋偏移 */
+    const oc = getComputedStyle(e),
+      ow = Math.max(0, parseFloat(oc.outlineWidth) + parseFloat(oc.outlineOffset));
+    if (!had) e.classList.remove('fv');
     const r = e.getBoundingClientRect(),
-      o = 4 * s;
+      o = Math.max(ow, 0) * s;
     for (let a = e.parentElement; a && a !== ui.parentElement; a = a.parentElement) {
       const c = getComputedStyle(a);
       if (c.overflow === 'visible' && c.overflowX === 'visible' && c.overflowY === 'visible') continue;
@@ -288,8 +293,8 @@ function measure(port) {
       if (r.right + o > q.right - br + 0.5) cut.push('右');
       if (cut.length) {
         const msg = `焦點框被裁 ${name(e)}（${e.getAttribute('aria-label') || ''}）${cut.join('')}緣`;
-        /* K06 管抽屜的 ×；掛機條 44 高、鈕也 44，另列備註 */
-        if (e.closest('[data-panel]')) F.push(msg);
+        /* K06 管抽屜的 ×；N12 起掛機條的鈕也算 */
+        if (e.closest('[data-panel], .idle')) F.push(msg);
         else INFO.push(msg + '（不在抽屜）');
         break;
       }
@@ -1158,6 +1163,162 @@ function report(res) {
   fs.writeFileSync(path.join(OUT, 'results.md'), L.join('\n'));
 }
 
+/* ---------- 複審第三輪（N10、N11、#21、N12）：只補拍 5 張＋角標量測 ---------- */
+function sugTag() {
+  const F = [],
+    c = document.querySelector('#d-drw .cc.sug');
+  if (!c) return { F: ['沒有建議格'] };
+  const R = e => e.getBoundingClientRect(),
+    C = R(c),
+    t = c.querySelector('.tag'),
+    fn = c.querySelector('.fn'),
+    lv = c.querySelector('.lv'),
+    st = c.querySelector('.stamp'),
+    T = R(t),
+    ts = getComputedStyle(t);
+  const m = {
+    tag: {
+      x: T.x - C.x,
+      y: T.y - C.y,
+      w: T.width,
+      h: T.height,
+      font: `${ts.fontSize}/${ts.fontWeight}`,
+      pad: [ts.paddingLeft, ts.paddingRight],
+      bg: ts.backgroundColor,
+      border: `${ts.borderTopWidth} ${ts.borderTopColor}`
+    },
+    name: fn.textContent,
+    lv: lv.textContent
+  };
+  const tok = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const rgb = v => {
+    const d = document.createElement('i');
+    d.style.color = tok(v);
+    document.body.append(d);
+    const x = getComputedStyle(d).color;
+    d.remove();
+    return x;
+  };
+  if (Math.abs(T.height - 16) > 0.5) F.push(`角標高 ${T.height} ≠ 16`);
+  /* UIUX 寫 11／700；清單字級量法徽章 ≥ 12（measure 照舊擋），所以只准 11–12 */
+  if (!['11px', '12px'].includes(ts.fontSize) || ts.fontWeight !== '700')
+    F.push(`角標字 ${m.tag.font} 不是 11–12px/700`);
+  if (ts.paddingLeft !== '4px' || ts.paddingRight !== '4px') F.push(`角標內距 ${m.tag.pad} ≠ 4`);
+  if (ts.backgroundColor !== rgb('--panel-inset')) F.push(`角標底色 ${ts.backgroundColor} ≠ --panel-inset`);
+  if (ts.borderTopWidth !== '1px' || ts.borderTopColor !== rgb('--border-cap'))
+    F.push(`角標框 ${m.tag.border} ≠ 1px --border-cap`);
+  if (Math.abs(T.top + T.height / 2 - C.top) > 0.5)
+    F.push(`角標沒跟卡片上緣重疊一半（上 ${(T.top - C.top).toFixed(1)}）`);
+  if (T.left - C.left > 12 || T.left < C.left) F.push(`角標不在左上（左 ${(T.left - C.left).toFixed(1)}）`);
+  const ov = (a, b) =>
+    Math.min(a.right, b.right) - Math.max(a.left, b.left) > 0.5 &&
+    Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 0.5;
+  /* 角標不佔名字那一行：不壓名字、不壓 Lv、不壓升級鈕 */
+  for (const r of fn.getClientRects()) if (ov(T, r)) F.push('角標壓到名字');
+  if (ov(T, R(lv))) F.push('角標壓到 Lv');
+  if (ov(T, R(st))) F.push('角標壓到升級鈕');
+  /* 右側升級鈕保留 44：名字、Lv 都不進入 */
+  const S0 = R(st);
+  if (S0.width < 43.5) F.push(`升級鈕寬 ${S0.width} < 44`);
+  if (R(lv).right > S0.left + 0.5) F.push('Lv 進入升級鈕的 44');
+  if (R(fn).right > S0.left + 0.5) F.push('名字進入升級鈕的 44');
+  /* Lv 不截；名字至少 4 個字寬再截 */
+  if (lv.scrollWidth > lv.clientWidth + 1) F.push(`Lv 被截「${lv.textContent}」`);
+  const cx = document.createElement('canvas').getContext('2d');
+  cx.font = `${getComputedStyle(fn).fontWeight} ${getComputedStyle(fn).fontSize} ${getComputedStyle(fn).fontFamily}`;
+  const need = cx.measureText([...fn.textContent].slice(0, 4).join('')).width;
+  m.nameW = R(fn).width;
+  m.need4 = need;
+  if (R(fn).width + 0.5 < need) F.push(`名字寬 ${R(fn).width.toFixed(1)} < 4 個字 ${need.toFixed(1)}`);
+  return { F, m };
+}
+async function fix3(b, open, page) {
+  const out = {},
+    dir = OUT;
+  fs.mkdirSync(dir, { recursive: true });
+  for (const size of SIZES) {
+    const p = await page(size),
+      port = size.startsWith('390');
+    for (const [t, q] of [
+      ['en', { en: 1 }],
+      ['fs', { fs: 1 }]
+    ]) {
+      await open(p, { size, row: 'C04', save: 'mid', ...q });
+      await p.evaluate(() => demo.step(20));
+      const m = await p.evaluate(measure, port),
+        k = await p.evaluate(sugTag),
+        f = `C02_sug_${t}_${size}.png`;
+      m.F.push(...k.F);
+      await p.screenshot({ path: path.join(dir, f) });
+      out[f] = { ...m, tag: k.m };
+      console.log(
+        `${m.F.length ? '❌' : '✅'} ${f} 角標 ${JSON.stringify(k.m && k.m.tag)} ${m.F.slice(0, 4).join('；')}`
+      );
+    }
+    /* N12：鍵盤聚焦掛機條展開鈕（demo 的 Tab 換底分頁〔K 列〕，焦點用方向鍵走到展開鈕） */
+    if (port) {
+      await open(p, { size, row: 'I01', save: 'mid' });
+      await p.evaluate(() => demo.step(20));
+      for (let i = 0; i < 40; i++) {
+        if (await p.evaluate(() => document.activeElement && document.activeElement.dataset.k === 'idlex')) break;
+        await p.keyboard.press(i ? 'ArrowRight' : 'ArrowDown');
+        if (i > 20 && !(await p.evaluate(() => document.activeElement && document.activeElement.dataset.k === 'idlex')))
+          await p.evaluate(() => demo.focus('idlex'));
+      }
+      const m = await p.evaluate(measure, port),
+        fo = await p.evaluate(() => {
+          const a = document.activeElement,
+            c = getComputedStyle(a),
+            r = a.getBoundingClientRect(),
+            q = document.getElementById('d-idle').getBoundingClientRect();
+          return {
+            k: a.dataset.k,
+            fv: a.matches(':focus-visible'),
+            outline: `${c.outlineWidth} ${c.outlineStyle} offset ${c.outlineOffset}`,
+            btn: [r.x - q.x, r.y - q.y, r.width, r.height],
+            bar: [q.width, q.height],
+            z: c.zIndex
+          };
+        });
+      if (fo.k !== 'idlex') m.F.push('焦點沒到展開鈕');
+      if (!fo.fv) m.F.push('展開鈕沒有 :focus-visible');
+      const f = `I01_idlex_focus_${size}.png`;
+      await p.screenshot({ path: path.join(dir, f) });
+      out[f] = { ...m, focus: fo };
+      console.log(`${m.F.length ? '❌' : '✅'} ${f} ${JSON.stringify(fo)} ${m.F.slice(0, 4).join('；')}`);
+    }
+    /* #21：頁頂說明列（不是 bare）看得到那一句 */
+    {
+      await p.goto(URL + '?' + new URLSearchParams({ size, row: 'H01', save: 'mid' }));
+      await p.waitForFunction(() => window.__ready, null, { timeout: 15000 });
+      const n = await p.evaluate(() => {
+        const e = document.getElementById('c-21'),
+          r = e.getBoundingClientRect();
+        return { t: e.textContent, y: r.y, h: r.height, vis: r.height > 0 && r.y >= 0 && r.bottom <= innerHeight };
+      });
+      const F = [];
+      if (!n.vis || !n.t.includes('暫用現有圖示，16px 新圖等美術復工')) F.push('#21 說明列看不到那一句');
+      out[`note21|${size}`] = { F, INFO: [], note: n };
+      console.log(`${F.length ? '❌' : '✅'} #21 說明列 ${size} ${JSON.stringify(n)}`);
+    }
+    if (p.errs.length) console.log('❌ 頁面錯誤', p.errs.join('；'));
+    out[`errs|${size}`] = { F: p.errs.slice(), INFO: [] };
+    await p.context().close();
+  }
+  fs.writeFileSync(path.join(dir, 'results.json'), JSON.stringify(out, null, 1));
+  const L = ['# D1 複審第三輪 預篩（N10、N11、#21、N12）', ''];
+  for (const [k, v] of Object.entries(out)) {
+    L.push(`## ${k}`, '', v.F.length ? '❌ ' + v.F.join('；') : '✅');
+    if (v.tag) L.push('', '角標：' + '`' + JSON.stringify(v.tag) + '`');
+    if (v.focus) L.push('', '焦點：' + '`' + JSON.stringify(v.focus) + '`');
+    if (v.note) L.push('', '說明列：' + '`' + JSON.stringify(v.note) + '`');
+    if (v.INFO && v.INFO.length) L.push('', '備註：' + v.INFO.join('；'));
+    L.push('');
+  }
+  fs.writeFileSync(path.join(dir, 'results.md'), L.join('\n'));
+  return Object.values(out).some(v => v.F.length);
+}
+
 /* ---------- 主程式 ---------- */
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
@@ -1180,6 +1341,11 @@ function report(res) {
     await p.goto(URL + '?bare=1&cap=1&' + new URLSearchParams(q));
     await p.waitForFunction(() => window.__ready, null, { timeout: 15000 });
   };
+  if (MODE === 'fix3') {
+    const bad = await fix3(b, open, page);
+    await b.close();
+    process.exit(bad ? 1 : 0);
+  }
   if (MODE === 'all' || MODE === 'shots') {
     for (const size of SIZES) {
       const port = size.startsWith('390');
