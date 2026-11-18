@@ -265,7 +265,7 @@ async function quick(b) {
         node = s.world.cur;
       s.savedAt -= 600e3;
       s.offAt = s.savedAt;
-      enterHideout();
+      enterCamp();
       useSave(s);
       return node;
     });
@@ -277,7 +277,7 @@ async function quick(b) {
     );
     await ctx.close();
   }
-  /* B2：在裂口裡關掉（血霧之印用完了，裂口進不去）：重開退回進裂口前的地點接著刷，不是停在藏身處 */
+  /* B2：在裂口裡關掉（血霧之印用完了，裂口進不去）：重開退回進裂口前的地點接著刷，不是停在營地 */
   {
     const { ctx, p } = await fresh(b, 30);
     const back = await p.evaluate(() => S.world.cur);
@@ -295,15 +295,15 @@ async function quick(b) {
     );
     await ctx.close();
   }
-  /* B2：自己按「回藏身處」之後關掉，重開留在藏身處（M2-12：刷圖暫停時停在營地） */
+  /* B2：自己按「回營地」之後關掉，重開留在營地（M2-12：刷圖暫停時停在營地） */
   {
     const { ctx, p } = await fresh(b, 30);
-    await p.evaluate(() => act('home'));
+    await p.evaluate(() => act('camp'));
     const { p: p2 } = await reopen(ctx, p, 600e3);
     await p2.waitForTimeout(1500);
     ok(
-      `B2 ${tag}：自己回藏身處的，重開還在藏身處`,
-      await p2.evaluate(() => G.scene === 'hide'),
+      `B2 ${tag}：自己回營地的，重開還在營地`,
+      await p2.evaluate(() => G.scene === 'camp'),
       JSON.stringify(await now(p2))
     );
     await ctx.close();

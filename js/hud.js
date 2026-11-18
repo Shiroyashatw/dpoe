@@ -30,7 +30,7 @@ const BAR = [
   { k: 'mflask', key: '2', ic: 'it_potion', n: '魔力藥劑', d: '回復一半魔力（1.4 秒內）。殺怪會補充。' },
   ...SLOTKEY.map((key, i) => ({ k: 's' + i, key, slot: i })),
   { k: 'roll', key: '空白', n: '翻滾', d: '短暫無敵。怪物出手的瞬間翻滾＝完美閃避：時間變慢，下一擊必定暴擊。' },
-  { k: 'use', key: 'F', n: '互動', d: '撿東西、使用藏身處的擺設', touch: 1 }
+  { k: 'use', key: 'F', n: '互動', d: '撿東西', touch: 1 }
 ];
 /* 介面小圖示：同一套線條（1.5px、currentColor），取代 emoji 與符號字 */
 const ICO = (() => {
@@ -86,7 +86,7 @@ const DMENU = [
   ['inv', 'bag', '裝備與倉庫', 'I'],
   ['skill', 'gem', '技能', 'G'],
   ['tree', 'tree', '天賦樹', 'P'],
-  ['home', 'home', '回藏身處', 'T'],
+  ['camp', 'home', '回營地', 'T'],
   ['set', 'gear', '設定與快捷鍵', 'Esc']
 ];
 /* 功能選單（0.4.0）：刷圖時也能開（面板開著戰鬥照跑）；桌機「功能」鈕、手機 ☰ 都列這些 */
@@ -142,7 +142,7 @@ function hudInit() {
   <div id="banner" role="status" aria-live="polite" hidden></div>
   <div class="tonly" id="stick"><i></i></div>
   <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}倉庫</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
-  <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="home">${ICO.home}回藏身處</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
+  <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="camp">${ICO.home}回營地</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
   $('chase').addEventListener('mouseenter', () => chaseBnHover(1));
   $('chase').addEventListener('mouseleave', () => chaseBnHover(0));
@@ -360,8 +360,8 @@ function hudTick() {
   }
   pracHud();
   const at =
-    G.scene === 'hide'
-      ? `藏身處 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
+    G.scene === 'camp'
+      ? `營地 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
       : /* M2-12 §1：不寫第幾輪、王倒下也不換字（輪是後台的事） */
         `${G.nodeN || '地圖'}・${G.star || 1}★・怪物 Lv ${mobLv(G.mapT)}`;
   setT($('area'), 'at', at);
@@ -394,7 +394,7 @@ function hudTick() {
   const hm = G.scene !== 'map';
   if (HV.hm !== hm) {
     HV.hm = hm;
-    for (const e of document.querySelectorAll('[data-tm=home]')) e.hidden = hm;
+    for (const e of document.querySelectorAll('[data-tm=camp]')) e.hidden = hm;
   }
   /* 手機：血、魔力長條；「互動」只在附近有東西時出現 */
   setV($('bhp'), 'hp2', HV.hp);
@@ -404,9 +404,7 @@ function hudTick() {
   if (HV.w2 !== wv) $('bhp').style.setProperty('--w', (HV.w2 = wv));
   if (TOUCH.on) {
     const near =
-      (G.scene === 'hide' && (!!nearProp() || (G.portal && dist(P, G.portal) < 90))) ||
-      (G.portal && G.scene === 'map' && dist(P, G.portal) < 90) ||
-      G.drops.some(d => d.t > 0.3 && dist(P, d) < 110);
+      (G.portal && G.scene === 'map' && dist(P, G.portal) < 90) || G.drops.some(d => d.t > 0.3 && dist(P, d) < 110);
     if (HV.near !== near) document.querySelector('.sk[data-k=use]').classList.toggle('far', !(HV.near = near));
   }
 }
@@ -452,13 +450,13 @@ function hudState() {
           ? `<button class="btn pri wide dup" data-fg="${GEN[up.k] ? `gen:${up.k}:1` : `camp:${up.k}`}">現在可以升：${esc(up.n)}<small>${esc(costTxt(up.c))}</small></button>`
           : '';
     o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}${mods.length ? `<p class="dmods">地圖詞：${mods.map(m => esc(MAPMOD[m].t)).join('、')}</p>` : ''}<p>不扣經驗，裝備都還在。</p>
-      <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : `<button class="btn pri" data-a="home">回藏身處<small>自動刷圖暫停</small></button>`}</div></div>`;
+      <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : `<button class="btn pri" data-a="camp">回營地<small>自動刷圖暫停</small></button>`}</div></div>`;
     overOn(o);
-  } else if (G.ask === 'home' && G.scene === 'map' && G.state === 'play') {
+  } else if (G.ask === 'camp' && G.scene === 'map' && G.state === 'play') {
     /* 桌機：T 再按一次＝回去、Esc＝繼續刷圖（M0-04） */
     const k = t => (TOUCH.on ? '' : `<small>${t}</small>`);
-    o.innerHTML = `<div class="card ask"><h2>回藏身處？</h2><p>地上的東西照樣收進倉庫。${S.auto ? '<br>自動刷圖會暫停。' : ''}</p>
-      <div class="pbtns"><button class="btn pri" data-a="home">回藏身處${k('T')}</button><button class="btn" data-a="askno">繼續刷圖${k('Esc')}</button></div></div>`;
+    o.innerHTML = `<div class="card ask"><h2>回營地？</h2><p>地上的東西照樣收進倉庫。${S.auto ? '<br>自動刷圖會暫停。' : ''}</p>
+      <div class="pbtns"><button class="btn pri" data-a="camp">回營地${k('T')}</button><button class="btn" data-a="askno">繼續刷圖${k('Esc')}</button></div></div>`;
     overOn(o);
   } else o.hidden = true;
 }
@@ -545,7 +543,7 @@ function navGo(t) {
   NOSNAP = 1;
   if (on) return hudPanels(), (NOSNAP = 0);
   /* 做裝要同時看得到裝備的詞與通貨、技能面板很長（圓環＋說明＋升級鈕）：打開就蓋滿，把手可以縮回半版 */
-  /* BASE-01：跑圖中一律半版（自動模式要看得到戰鬥），把手上拉才全版；藏身處（M2 併進營地前）營地／技能照舊蓋滿 */
+  /* BASE-01：跑圖中一律半版（自動模式要看得到戰鬥），把手上拉才全版；在營地時鍛造／營地／技能照舊蓋滿 */
   NAV.full = G.scene !== 'map' && (t === 'forge' || t === 'craft' || t === 'skill') ? 1 : 0;
   if (t === 'bag' || t === 'char') (NAV.view = t), openPanel('inv');
   else if (t === 'craft' && G.scene === 'map') openPanel('camp');
@@ -660,7 +658,7 @@ function moreHTML() {
     ${nxu ? `<button class="mrow" data-fg="jump:${nxu.b}"><b>下一個</b><small>${esc(nxu.t)}</small></button>` : ''}
     ${row('f:log', '掉落紀錄', `${(S.log || []).length} 筆 · 保底進度`)}
     ${row('set', '設定', '操作、音效、帳號')}
-    ${G.scene === 'map' ? row('home', '回藏身處', '刷圖暫停') : ''}
+    ${G.scene === 'map' ? row('camp', '回營地', '刷圖暫停') : ''}
     ${!inApp() && !fsOn() ? row('fs', '全螢幕', '藏起網址列') : ''}
   </div>`;
 }
@@ -711,7 +709,7 @@ const craftSeg = on =>
 /* 鍛造的標題列：「鍛造」＋三段＋關閉（直立、桌機同一份） */
 const forgeHead = on =>
   `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
-/* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點藏身處的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
+/* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點營地場景的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
 const PANEL_LOCK = { asc: 'asc', box: 'box' };
 function openPanel(k) {
   const lk = PANEL_LOCK[k] && lockTxt(PANEL_LOCK[k]);
@@ -789,7 +787,7 @@ const KEYS_PC = [
   ['U', '昇華石碑'],
   ['J', '山海寶盒'],
   ['L', '掉落紀錄'],
-  ['T', '回藏身處（地圖裡先確認，再按一次 T＝回去）'],
+  ['T', '回營地（地圖裡先確認，再按一次 T＝回去）'],
   ['Esc', '取消確認、關閉面板；都沒有時打開設定']
 ];
 const KEYS_PORT = [
@@ -2312,16 +2310,16 @@ function chasePanelHTML() {
       : ''
   }`;
 }
-/* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、藏身處的「繼續刷」 */
+/* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、營地的「繼續刷」 */
 function runBar() {
   const W = S.world,
     cur = W.cur || (wOpen(S) ? null : wGoal(S)),
-    k = (W.note ? 'n' + W.note : '') + (G.scene === 'hide' && cur ? 'r' + cur : '');
+    k = (W.note ? 'n' + W.note : '') + (G.scene === 'camp' && cur ? 'r' + cur : '');
   if (HV.run === k) return;
   HV.run = k;
   const el = $('run');
   el.hidden = !k;
-  el.innerHTML = `${W.note ? `<span class="c-warn">${esc(W.note)}</span><button class="x" data-a="runok" aria-label="知道了">${ICO.x}</button>` : ''}${G.scene === 'hide' && cur ? `<button class="btn pri" data-a="resume">繼續刷 ${esc(wName(S, ...wXY(cur)))}</button>` : ''}`;
+  el.innerHTML = `${W.note ? `<span class="c-warn">${esc(W.note)}</span><button class="x" data-a="runok" aria-label="知道了">${ICO.x}</button>` : ''}${G.scene === 'camp' && cur ? `<button class="btn pri" data-a="resume">繼續刷 ${esc(wName(S, ...wXY(cur)))}</button>` : ''}`;
 }
 /* ---------- 找道具、移動道具 ---------- */
 /* 通貨面板開在通貨頁（點倉庫的裝備＝放進中間） */
@@ -2469,17 +2467,17 @@ function sell(src, it, eqk) {
   sfx('coin');
   changed();
 }
-/* 丟到地上：地圖裡掉在腳邊（離開地圖就消失、過濾器不會再撿回來）；藏身處直接消失，稀有以上要丟兩次 */
+/* 丟到地上：地圖裡掉在腳邊（離開地圖就消失、過濾器不會再撿回來）；營地直接消失，稀有以上要丟兩次 */
 let DROP_ARM = 0;
 function dropFloor(src, it, eqk) {
-  if (G.scene === 'hide' && it.r >= 2 && DROP_ARM !== it.id) {
+  if (G.scene === 'camp' && it.r >= 2 && DROP_ARM !== it.id) {
     DROP_ARM = it.id;
     hudWarn('再丟一次會消失');
     return hudPanels();
   }
   DROP_ARM = 0;
   takeOut(src, it, eqk);
-  if (G.scene === 'hide') hudWarn('丟掉了');
+  if (G.scene === 'camp') hudWarn('丟掉了');
   else {
     dropAt(P.x, P.y, { it, nopick: 1 });
     for (const d of G.drops) delete d.full;
@@ -2634,7 +2632,7 @@ let TIPRE = null,
 function itemTip(it, cmp) {
   if (it.charm) {
     const C = CHARMS[it.charm];
-    return `<b class="rc1">${esc(C.n)}</b><small>護符 · 放在腰帶的護符槽</small><p class="aff">${esc(C.d)}</p><p class="base">充能 ${Math.floor(it.ch || 0)}／${C.max} · 每次用 ${C.use} · 殺怪充能</p><p class="hint">條件達成時自動觸發${G.scene === 'hide' ? ' · 賣價 3 金' : ''}</p>`;
+    return `<b class="rc1">${esc(C.n)}</b><small>護符 · 放在腰帶的護符槽</small><p class="aff">${esc(C.d)}</p><p class="base">充能 ${Math.floor(it.ch || 0)}／${C.max} · 每次用 ${C.use} · 殺怪充能</p><p class="hint">條件達成時自動觸發${G.scene === 'camp' ? ' · 賣價 3 金' : ''}</p>`;
   }
   const B = baseOf(it),
     un = !!it.uid;
@@ -2684,12 +2682,12 @@ function itemTip(it, cmp) {
   }
   if (it.mem) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem))}</p>`;
   if (it.mem2) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem2))}</p>`;
-  html += un ? `<p class="hint c-warn">回藏身處找撿骨師免費鑑定，鑑定後才能裝備與做裝</p>` : tipSlots(it);
+  html += un ? `<p class="hint c-warn">回營地找撿骨師免費鑑定，鑑定後才能裝備與做裝</p>` : tipSlots(it);
   if (!un && it.cw && it.cw.length) html += `<p class="aff cor">${it.cw.map(c => esc(cwText(c))).join('<br>')}</p>`;
   if (!un && it.cal)
     html += `<p class="aff"><span class="c-good">${esc(calText(it.cal.g))}</span>${it.cal.b ? `<br><span class="c-bad">${esc(calText(it.cal.b, 1))}</span>` : ''}</p>`;
   html += `<p class="base">${baseText(it).filter(Boolean).join(' · ')}${reqP.length && !lack.length ? `<br>需求：${reqP.join(' · ')}` : ''}</p>`;
-  if (!TOUCH.on) html += `<p class="hint">${G.scene === 'hide' && !un ? '賣價 ' + sellPrice(it) + ' 金' : ''}</p>`;
+  if (!TOUCH.on) html += `<p class="hint">${G.scene === 'camp' && !un ? '賣價 ' + sellPrice(it) + ' 金' : ''}</p>`;
   return html;
 }
 /* 說明框貼在 a（被點或滑過的東西的方框）旁邊：右 → 左 → 下 → 上，第一個放得下的；
@@ -2801,7 +2799,7 @@ function inputInit() {
       e.preventDefault(), wyAct(k === 'enter' ? 'ok' : 'back');
     else if (k === 'escape')
       G.ask ? act('askno') : TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
-    else if (k === 't') homeAsk();
+    else if (k === 't') campAsk();
     else if (k === 'c') autoToggle();
     pressFx(k);
   });
@@ -2813,17 +2811,17 @@ function inputInit() {
   CV.addEventListener('pointermove', e => {
     M.x = e.clientX;
     M.y = e.clientY;
-    CV.style.cursor = G.scene === 'hide' && propAt(e) ? 'pointer' : 'crosshair';
+    if (CAMP_DRAG != null) campPan(-(e.clientX - CAMP_DRAG) / ZOOM), (CAMP_DRAG = e.clientX);
+    G.hov = G.scene === 'camp' && propAt(e);
+    CV.style.cursor = G.hov ? 'pointer' : 'crosshair';
   });
   CV.addEventListener('pointerdown', e => {
     if (e.pointerType === 'touch') return; /* 觸控在 touch.js */
     M.x = e.clientX;
     M.y = e.clientY;
-    if (G.scene === 'hide' && e.button === 0) {
-      const p = propAt(e);
-      if (p === 'portal') return dist(P, G.portal) < 120 ? enterMap(G.portal.to) : hudWarn('走近一點');
-      if (p) return useProp(p);
-    }
+    /* 營地（M2-12）：左鍵點物件＝捷徑、按住拖＝平移鏡頭；空地左右鍵不放技能（練習區石圈裡照常出招） */
+    if (G.scene === 'camp' && e.button === 0 && useProp(propAt(e))) return;
+    if (G.scene === 'camp' && !PRAC.in) return void (e.button === 0 && (CAMP_DRAG = e.clientX));
     if (e.button === 0) {
       M.L = 1;
       useSlot(0);
@@ -2836,7 +2834,7 @@ function inputInit() {
     }
   });
   addEventListener('pointerup', e => {
-    if (e.button === 0) M.L = 0;
+    if (e.button === 0) (M.L = 0), (CAMP_DRAG = null);
     if (e.button === 2) M.R = 0;
     dragEnd(e);
   });
@@ -2876,13 +2874,14 @@ function inputInit() {
     }
   });
 }
-/* 滑鼠底下的藏身處物件 */
+/* 營地：滑鼠左鍵按住拖曳平移鏡頭時，上一次的 clientX（沒在拖＝null） */
+let CAMP_DRAG = null;
+/* 滑鼠／手指底下的營地物件 */
 function propAt(e) {
   const w = {
     x: (e.clientX - IW / 2) / ZOOM + G.cam.x,
     y: (e.clientY - cvTop() - cvH() / 2) / ZOOM + G.cam.y
   };
-  if (G.portal && Math.hypot(w.x - G.portal.x, w.y - G.portal.y) < 50) return 'portal';
   return (G.props || []).find(p => Math.hypot(w.x - p.x, w.y + 25 - p.y) < p.r + 20);
 }
 const inL = (l, e) => e.clientX >= l.x && e.clientX <= l.x + l.w && e.clientY >= l.y && e.clientY <= l.y + l.h;
@@ -2897,13 +2896,13 @@ function pressFx(key) {
 }
 function act(a, el) {
   if (a === 'close') closePanels();
-  else if (a === 'home') {
-    /* 玩家自己回藏身處（確認卡、死亡卡）：地上的照樣收、刷圖暫停（HUD 上排「繼續刷」再開始） */
+  else if (a === 'camp') {
+    /* 玩家自己回營地（確認卡、死亡卡、T 連按兩下）：地上的照樣收、刷圖暫停（HUD 上排「繼續刷」再開始） */
     G.ask = 0;
     if (G.scene === 'map' && G.state === 'play')
       for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full)) pickup(d);
-    S.stopWhy = 'home';
-    enterHideout();
+    S.stopWhy = 'camp';
+    enterCamp();
   } else if (/^(fs|shk|vib):/.test(a)) {
     /* M2-12 §10：文字大小 100／115／130%（新骨架的字走 --tscale）、畫面震動、手機震動兩個獨立開關 */
     const [k, v] = a.split(':');

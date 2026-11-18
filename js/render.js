@@ -1,4 +1,4 @@
-/* dungeonPOE · 畫面：藏身處、地板、石頭、預警、怪物、玩家、特效、跳數字、掉落標籤、光照、小地圖 */
+/* dungeonPOE · 畫面：營地、地板、石頭、預警、怪物、玩家、特效、跳數字、掉落標籤、光照、小地圖 */
 'use strict';
 /* '#rrggbb' → '255,0,0'（拼 rgba 用） */
 const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(',');
@@ -134,7 +134,7 @@ function draw() {
   CX.save();
   CX.translate(ox, oy);
   /* 地板、地上細節、牆、擺設（場景在 biome.js） */
-  if (G.scene === 'hide') drawHideout(W, H);
+  if (G.scene === 'camp') drawHideout(W, H);
   else {
     CX.strokeStyle = '#3a2f28';
     CX.lineWidth = 6;
@@ -260,7 +260,7 @@ function draw() {
     CX.arc(o.x + (1 - f) * 120, o.y - (1 - f) * 360, 14, 0, TAU);
     CX.fill();
   }
-  /* 傳送門：藏身處的＝進地圖（紫），地圖裡的＝回家（藍） */
+  /* 傳送門：地圖裡的＝回家（藍） */
   if (G.portal) {
     const p = G.portal;
     CX.fillStyle = p.home ? 'rgba(90,160,255,0.18)' : 'rgba(178,141,255,0.18)';
@@ -334,7 +334,7 @@ function draw() {
   for (const e of ents)
     if (e === P) drawHero();
     else if (e.x > vx0 && e.x < vx1 && e.y > vy0 && e.y < vy1) e.npc ? drawNpc(e) : e.src ? drawWolf(e) : drawMob(e);
-  if (G.scene === 'hide') hideFront();
+  if (G.scene === 'camp') hideFront();
   /* 投射物 */
   for (const s of G.shots) {
     /* 有 pixelfx 投射物圖（箭、子彈、飛斧…）就照方向畫序列圖 */
@@ -435,7 +435,7 @@ function draw() {
   dg.globalCompositeOperation = 'source-over';
   dg.clearRect(0, 0, CV.width, CV.height);
   /* 燭龍閉眼（0.2.80）：天黑，只剩你身邊看得到 */
-  dg.fillStyle = `rgba(${BIO().dark},${night ? 0.96 : fog ? 0.9 : G.scene === 'hide' ? 0.45 : 0.74})`;
+  dg.fillStyle = `rgba(${BIO().dark},${night ? 0.96 : fog ? 0.9 : G.scene === 'camp' ? 0.45 : 0.74})`;
   dg.fillRect(0, 0, CV.width, CV.height);
   dg.globalCompositeOperation = 'destination-out';
   const R = (night ? 260 : fog ? 340 : 560) * DPR * ZOOM,
@@ -1024,24 +1024,31 @@ function drawMinimap(W) {
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);
 }
 
-/* 互動提示：走近的東西頭上「F 名字」 */
+/* 營地的擺設常駐弱名牌；桌機滑鼠停在上面的那個變亮（M2-12：主角不走動，不再有「走近按 F」） */
 function drawPrompts() {
-  const p = G.scene === 'hide' && nearProp(),
-    port = G.portal && dist(P, G.portal) < 90;
-  const lab =
-    port && G.scene === 'hide'
-      ? [(TOUCH.on ? '' : 'F ') + '進入' + (G.portal.n || '地圖'), G.portal.x, G.portal.y - 40]
-      : p
-        ? [(TOUCH.on ? '' : 'F ') + p.n, p.x, p.y - p.ny]
-        : null;
-  if (G.scene === 'hide') drawPropNames();
-  if (!lab) return;
-  plate(lab[0], lab[1], lab[2], '#eceef2', 1);
-}
-/* 藏身處的擺設常駐弱名牌（走近才變成互動提示） */
-function drawPropNames() {
-  const p = nearProp();
-  for (const k of G.props) if (k !== p) plate(k.n, k.x, k.y - k.ny, '#aeb3bc', 0.75);
+  if (G.scene !== 'camp') return;
+  CX.font = '700 14px "Noto Sans TC", sans-serif';
+  /* 名牌被左上「繼續刷」鈕（#run）蓋到就往下移到鈕下面（1280×720 的鍛造台，dpoe-check85） */
+  const el = $('run'),
+    r = el && !el.hidden && el.querySelector ? el.querySelector('[data-a=resume]') : null,
+    b = r ? r.getBoundingClientRect() : null,
+    c = b && b.height ? CV.getBoundingClientRect() : null,
+    t = c && CX.getTransform(),
+    q = c ? CV.width / c.width : 0,
+    dn = (n, x, y) => {
+      if (!c) return y;
+      const L = (b.left - c.left) * q,
+        R = (b.right - c.left) * q,
+        B = (b.bottom - c.top) * q + 4,
+        sx = t.a * x + t.e,
+        sy = t.d * (y - 15) + t.f,
+        hw = ((CX.measureText(n).width + 18) / 2) * t.a;
+      return sx + hw > L && sx - hw < R && sy < B ? y + (B - sy) / t.d : y;
+    };
+  for (const k of G.props) {
+    const y = dn(k.n, k.x, k.y - k.ny);
+    k === G.hov ? plate(k.n, k.x, y, '#eceef2', 1) : plate(k.n, k.x, y, '#aeb3bc', 0.75);
+  }
   if (PRAC.in) for (const m of G.mobs) if (m.dummy) plate(m.D.n, m.x, m.y + 26, '#aeb3bc', 0.75);
 }
 function plate(txt, x, y, col, a) {

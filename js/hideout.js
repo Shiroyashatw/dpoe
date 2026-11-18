@@ -1,4 +1,4 @@
-/* dungeonPOE · 藏身處：場景圖（hideart.js，tools/hide_bake.js 烘的）、練習區、稻草人、DPS 統計（0.3.2 起不畫十二神像，點亮的進度 S.idols 照舊） */
+/* dungeonPOE · 營地場景（M2-12 起藏身處併入營地，美術沿用）：場景圖（hideart.js，tools/hide_bake.js 烘的）、練習區、稻草人、DPS 統計（0.3.2 起不畫十二神像，點亮的進度 S.idols 照舊） */
 'use strict';
 /* 場景的暗層與光暈色（biome.js 的 BIO） */
 const HIDE_BIO = { dark: '5,3,3', light: '255,150,70' };
@@ -101,8 +101,14 @@ function pracLeave() {
   Object.assign(P, { hp: ST.hp, mp: ST.mp, flask: FLASK.n, mflask: FLASK.n });
   for (const m of G.mobs) if (m.dummy) (m.ail = {}), (m.hp = m.mhp);
 }
+/* 點練習區（M2-12）：主角不走過去，直接切進石圈（王稻草人前面）；已經在裡面就回站位。進出照 hideTick */
+function pracGo() {
+  const z = HIDE_ART.zone,
+    p = PRAC.in ? HIDE_ART.spawn : { x: z.x, y: z.y + 60 };
+  Object.assign(P, { x: p.x, y: p.y, vx: 0, vy: 0 });
+  G.pan = 0;
+}
 function hideTick() {
-  const near = nearProp();
   const z = HIDE_ART.zone,
     on = ((P.x - z.x) / z.rx) ** 2 + ((P.y - z.y) / z.ry) ** 2 < 1;
   if (on === PRAC.in) return;

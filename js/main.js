@@ -130,6 +130,9 @@ function migrate(s) {
     if (o.world) delete o.world.star;
     o.v = 35;
   }
+  /* M2-12：藏身處併入營地。玩家自己回去（刷圖暫停）的旗標 'home' 改叫 'camp'；早期存檔殘留的場景欄位拿掉（場景一律從營地開始） */
+  if (o.stopWhy === 'home') o.stopWhy = 'camp';
+  delete o.scene;
   o.camp = { ...newCamp(), ...o.camp };
   o.camp.gen = { ...newCamp().gen, ...o.camp.gen };
   o.auto2 = { ...AUTO2(), ...o.auto2 };
@@ -214,14 +217,14 @@ function proSkip() {
 function useSave(r) {
   introStop();
   S = migrate(r);
-  enterHideout();
+  enterCamp();
   applyOrient();
   fsApply();
   proBoot();
   comeBack(r.farm, r.offAt || r.savedAt || Date.now());
   save();
 }
-/* 重開網頁（M2-25，試玩報告 A4／B2）：上次關掉時在刷圖、或沒有自己按回藏身處 → 先結算離線、回到原地點接著刷，再出離線摘要
+/* 重開網頁（M2-25，試玩報告 A4／B2）：上次關掉時在刷圖、或沒有自己按回營地 → 先結算離線、回到原地點接著刷，再出離線摘要
    （M3-04 選項 A：摘要後面已經在打）。手動模式也回去（摘要開著時世界照 M1-10 暫停）；離線輪數只算自動模式（offSettle）。
    原地點進不去了（裂口的血霧之印用完）就退回 wBack；產生器不管在不在刷都照產（0.5.1） */
 function comeBack(farm, offAt) {
@@ -304,13 +307,13 @@ function start() {
   resize();
   addEventListener('resize', resize);
   S = TEST ? testSave(TEST) : migrate(load());
-  /* 離線結算要用的（enterHideout 之後存檔會蓋掉） */
+  /* 離線結算要用的（enterCamp 之後存檔會蓋掉） */
   const farm = S.farm,
     offAt = S.offAt || S.savedAt || Date.now();
   ST = stats();
   hudInit();
   fsApply();
-  enterHideout();
+  enterCamp();
   inputInit();
   treeInit();
   touchInit();
@@ -344,7 +347,7 @@ function start() {
   requestAnimationFrame(frame);
   (window.requestIdleCallback || (f => setTimeout(f, 1500)))(treePrebuild, { timeout: 4000 });
   verCheck();
-  document.addEventListener('visibilitychange', () => !document.hidden && G.scene === 'hide' && verCheck());
+  document.addEventListener('visibilitychange', () => !document.hidden && G.scene === 'camp' && verCheck());
 }
 /* 新版上線後手機常拿到快取的舊 index.html（GitHub Pages 快取 10 分鐘、主畫面 App 更久）：
    問一次 version.json（不走快取），版本不同就換網址（加 v=）重新載入；已經換過就不再換，避免一直重載 */

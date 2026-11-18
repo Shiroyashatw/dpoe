@@ -163,7 +163,7 @@ async function flow(b) {
     node: G.node,
     note: S.world.note,
     run: $('run').textContent,
-    home: !!document.querySelector('#over [data-a=home]')
+    home: !!document.querySelector('#over [data-a=camp]')
   }));
   ok(
     '連死 3 次（手動）：留在同一個節點、不退回、沒有通知與回藏身處鈕',
@@ -259,11 +259,11 @@ async function flow(b) {
   );
   await p.evaluate(() => (die(), deadAgain()));
   ok('陰兵借道：死了怨恨值歸零', await p.evaluate(() => G.army.res === 0 && armyRes(S, G.node) === 0));
-  /* 回藏身處：刷圖暫停，HUD 有「繼續刷」 */
-  await p.evaluate(() => act('home'));
+  /* 回營地：刷圖暫停，HUD 有「繼續刷」 */
+  await p.evaluate(() => act('camp'));
   ok(
-    '回藏身處：HUD 有「繼續刷」，按了回到原本的節點',
-    await until(p, () => G.scene === 'hide' && /繼續刷/.test($('run').textContent))
+    '回營地：HUD 有「繼續刷」，按了回到原本的節點',
+    await until(p, () => G.scene === 'camp' && /繼續刷/.test($('run').textContent))
   );
   await p.click('#run [data-a=resume]');
   ok('繼續刷', await until(p, () => G.scene === 'map' && G.node === S.world.cur));

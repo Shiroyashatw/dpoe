@@ -69,6 +69,44 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => getComputedStyle($('rot')).display === 'none'),
     PORTM ? '直立' : '橫向'
   );
+  /* M2-12：營地主角不走動——單指拖＝左右平移鏡頭（不出搖桿、主角不動、不出招）；點場景物件＝開跟分頁同一個面板 */
+  await p.evaluate(() => enterCamp());
+  await p.waitForTimeout(600);
+  {
+    const c0 = await p.evaluate(() => ({ x: P.x, y: P.y, cam: G.cam.x })),
+      x0 = Math.round(W * 0.6),
+      y0 = Math.round(H * 0.55);
+    await touch('touchStart', [[x0, y0]]);
+    for (let i = 1; i <= 8; i++) {
+      await touch('touchMove', [[x0 - i * 18, y0 + i]]);
+      await p.waitForTimeout(16);
+    }
+    await p.waitForTimeout(250);
+    const mid = await p.evaluate(() => ({ stick: $('stick').classList.contains('on'), cam: G.cam.x, act: !!P.act }));
+    await touch('touchEnd', []);
+    await p.waitForTimeout(200);
+    const c1 = await p.evaluate(() => ({ x: P.x, y: P.y, mv: P.mv }));
+    ok(
+      '營地：單指往左拖＝鏡頭往右平移，不出搖桿、主角不動、沒出招',
+      !mid.stick && mid.cam > c0.cam + 60 && !mid.act && c1.x === c0.x && c1.y === c0.y,
+      JSON.stringify([c0, mid, c1])
+    );
+    await p.evaluate(() => (G.pan = 0));
+    await p.waitForTimeout(700);
+    const dv = await p.evaluate(() => {
+      const d = G.props.find(q => q.k === 'device');
+      return [(d.x - G.cam.x) * ZOOM + IW / 2, (d.y - 25 - G.cam.y) * ZOOM + cvH() / 2];
+    });
+    await touch('touchStart', [dv]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(400);
+    ok(
+      '營地：點地圖台＝開地點清單（跟分頁同一個面板），主角不動',
+      await p.evaluate(c0 => PANEL.node && P.x === c0.x && P.y === c0.y, c0),
+      JSON.stringify(dv)
+    );
+    await p.evaluate(() => closePanels());
+  }
   await p.screenshot({ path: shot('hide') });
   await p.evaluate(() => {
     enterMap(1);
@@ -271,9 +309,9 @@ const settle = async (p, fn, arg) => {
   );
   await p.evaluate(() => closePanels());
   await p.screenshot({ path: shot('map') });
-  /* 回藏身處，開裝備與清單倉庫（0.4.0） */
+  /* 回營地，開裝備與清單倉庫（0.4.0） */
   await p.evaluate(() => {
-    enterHideout();
+    enterCamp();
     for (let i = 0; i < 10; i++) invPut(S.inv, dropItem(i < 6 ? 3 : 5));
     /* 最新的一件（清單排第一）是沒有需求的戒指：點了「裝備」一定裝得上 */
     invPut(S.inv, mkItem('r_iron', 1, 1));
@@ -1211,7 +1249,7 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => {
       S.auto = 0;
       closePanels();
-      enterHideout();
+      enterCamp();
       openPanel('inv');
     });
     await p.waitForTimeout(300);
@@ -1780,7 +1818,7 @@ const settle = async (p, fn, arg) => {
           +getComputedStyle($('over')).zIndex >= 40 &&
           /* M2-40 定案：拿掉回營地，只剩「再試一次」 */
           document.querySelectorAll('#over .pbtns .btn:not(.dup)').length === 1 &&
-          !document.querySelector('#over [data-a=home]')
+          !document.querySelector('#over [data-a=camp]')
       )) && (await onTop())
     );
     await p.screenshot({ path: shot('m0_dead') });
@@ -1794,7 +1832,7 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => {
       openPanel('more');
       for (const m of G.mobs) (m.aggro = 1), (m.x = P.x + 20), (m.y = P.y);
-      homeAsk();
+      campAsk();
       window._m0 = { hp: P.hp, t: G.t, n: G.nums.length };
     });
     await p.waitForTimeout(300);
@@ -1822,12 +1860,12 @@ const settle = async (p, fn, arg) => {
         return !!s && s.textContent.includes('正在刷：' + G.nodeN);
       })
     );
-    /* 回藏身處：「繼續刷」是標準主按鈕（≥44px、字 14～17px）；地點名 14px */
-    /* 鍵盤（M0-04）：T 開確認卡、Esc＝取消、連按兩下 T＝回藏身處 */
+    /* 回營地：「繼續刷」是標準主按鈕（≥44px、字 14～17px）；地點名 14px */
+    /* 鍵盤（M0-04）：T 開確認卡、Esc＝取消、連按兩下 T＝回營地（M2-12） */
     await p.evaluate(() => closePanels());
     await p.keyboard.press('t');
     await p.waitForTimeout(200);
-    const askT = await p.evaluate(() => !$('over').hidden && G.ask === 'home');
+    const askT = await p.evaluate(() => !$('over').hidden && G.ask === 'camp' && /回營地/.test($('over').textContent));
     await p.keyboard.press('Escape');
     await p.waitForTimeout(200);
     ok(
@@ -1838,7 +1876,10 @@ const settle = async (p, fn, arg) => {
     await p.waitForTimeout(150);
     await p.keyboard.press('t');
     await p.waitForTimeout(500);
-    ok('連按兩下 T：回到藏身處', await p.evaluate(() => G.scene === 'hide' && $('over').hidden));
+    ok(
+      '連按兩下 T：回到營地、停在營地（刷圖暫停）',
+      await p.evaluate(() => G.scene === 'camp' && $('over').hidden && S.stopWhy === 'camp')
+    );
     const rb = await p.evaluate(() => {
       const b = document.querySelector('#run [data-a=resume]'),
         a = $('area');
@@ -2043,9 +2084,9 @@ const settle = async (p, fn, arg) => {
       !lk[0] && lk[1] === '升祭壇到 Lv 4 才開' && !lk[2] && lk[3] === '升祭壇到 Lv 7 才開',
       JSON.stringify(lk)
     );
-    /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點藏身處的昇華石碑；山海寶盒例外照開 */
+    /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點營地的昇華石碑；山海寶盒例外照開 */
     const lk2 = await p.evaluate(() => {
-      enterHideout();
+      enterCamp();
       closePanels();
       navGo('more');
       const rows = [...document.querySelectorAll('#pmore .mrow b')].map(b => b.textContent),
@@ -2485,7 +2526,7 @@ const settle = async (p, fn, arg) => {
       pk[0] === 'skills' && pk[1] === 'slash' && pk[2] && !pk[3] && /^換成/.test(pk[4]),
       JSON.stringify(pk)
     );
-    /* M1-17 視覺：手動模式倒下，升級鈕＝主鈕在最上面、再試一次改次要、回藏身處文字鏈 */
+    /* M1-17 視覺：手動模式倒下，升級鈕＝主鈕在最上面、再試一次改次要、回營地文字鏈 */
     const dc = await p.evaluate(async () => {
       closePanels();
       S.auto = 0;
@@ -2605,7 +2646,7 @@ const settle = async (p, fn, arg) => {
     idleBar(1);
     const z = getComputedStyle($('pidle')).zIndex;
     a.push(z === 'auto' || +z < +getComputedStyle($('over')).zIndex);
-    G.ask = 'home';
+    G.ask = 'camp';
     hudState();
     idleBar(1);
     a.push($('pidle').hidden && !$('over').hidden);
