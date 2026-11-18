@@ -1196,7 +1196,7 @@ body.cine #hud { visibility: hidden; }
 .wm-sin { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; margin: 6px 0; }
 .wm-sin .chip { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 6px; height: auto; min-height: 44px; padding: 4px 8px; text-align: left; line-height: 1.35; }
 .wm-sin .chip i { grid-column: 1 / -1; }
-.wm-sin .chip:disabled { opacity: 0.45; }
+.wm-sin .chip:disabled, .chip[data-fg^="tr:"]:disabled { opacity: 0.45; cursor: default; }
 .wm-sin .chip i { font-style: normal; font-size: var(--fs-s); color: var(--dim); }
 .wm-sin .chip.on i { color: inherit; }
 .fom { margin: 6px 0; }
