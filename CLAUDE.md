@@ -26,7 +26,7 @@
 
 ## 檢查（改了遊戲邏輯一定要跑）
 - `node tools/check.js`：有 ❌ 不交差。
-- **每版 PR（改了 `VER`）附 A1–A10 指標表**：`node tools/ai_report.js evidence/<代號>`（先開本機伺服器，約 2 小時），把產出的 `A1-A10.md` 貼進 PR 說明；未達標照實寫，細節見 `docs/本機執行.md`。
+- **版本守門：改了 `VER`、加新系統或改經濟（掉落、產生器、花費、解鎖門檻、保底）的 PR 都附 AI 試玩回歸報告**：`node tools/ai_report.js evidence/<代號>`（先開本機伺服器，約 2 小時，不用改 `VER`），照 `docs/production/specs/M2-02-regression-template.md` 填進 PR 說明；未達標、退步照實寫，觸發條件與細節見 `docs/本機執行.md`「版本守門」。
 - 改了傷害、防禦、天賦、詞綴、怪物數值：`node tools/dmg_check.js`。
 - 戰鬥、面板、拖曳用 Playwright 在本機實際操作（先開 `python3 -m http.server`）。動到藏身處 `node tools/hide_check.js`；開場、存檔流程 `node tools/pro_check.js`；地點與連續刷 `node tools/world_check.js`。新存檔一開始是開場，其他測試進遊戲後先 `proSkip()`；`S.auto` 預設 1，手動流程的測試要設 `S.auto = 0`；開節點用 `runNode(鍵)`。
 - 改介面：各尺寸都要做、都要測，`node tools/touch_check.js 寬 高`（先開本機伺服器），順不順用 `tools/ui_perf.js`。
