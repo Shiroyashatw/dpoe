@@ -499,6 +499,8 @@ function eqLack(s, it, key) {
 /* 技能寶石放得出來嗎（用 ST 的能力值總量） */
 const gemLack = (g, att = ST) => attrLack(gemAttrReq(g), att);
 const MAXRK = { maxResF: 'fire', maxResC: 'cold', maxResL: 'light', maxResX: 'chaos' };
+/* 神格格開放的角色等級（製作人 2026-11-17 17:35；神格去留等 mumi 決定） */
+const GH_LV = 26;
 function stats(s = S) {
   /* 0.2.7 照 PoE2（企劃書 7.2）：角色等級只給生命、魔力（到 100 級），不給傷害；提高同池相加在 combat.js 的 hitCalc */
   const lv = Math.min(100, s.lv);
@@ -1022,7 +1024,7 @@ function stats(s = S) {
     for (const k in v) if (k !== 'only' && !ATTR.includes(k)) k in pt ? (pt[k] += v[k]) : put(k, v[k]);
   }
   /* 神格（0.2.82）：裝著的那一個（S.gods[S.godOn]），那位神在神裔的大點＋小點 × 強度、1 條小詞 */
-  const gh = s.godOn != null && (s.gods || [])[s.godOn];
+  const gh = s.godOn != null && s.lv >= GH_LV && (s.gods || [])[s.godOn];
   if (gh) {
     for (const [k, v] of Object.entries(ghFx(gh, s))) k in pt ? (pt[k] += v) : put(k, v);
     for (const a of gh.a || []) put(a.k, a.v);

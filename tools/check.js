@@ -8051,7 +8051,7 @@ const ASC_COMBOS = `const combos = k => {
           .readdirSync(path.join(root, 'js'))
           .filter(f => f.endsWith('.js'))
           .map(f => 'js/' + f),
-        ...['企劃書', '品質效果表', '開發參考', '待做清單', '天賦修正提案'].map(f => 'docs/' + f + '.md')
+        ...['企劃書', '品質效果表', '開發參考', '天賦修正提案'].map(f => 'docs/' + f + '.md')
       ],
       left = files.filter(f => fs.readFileSync(path.join(root, f), 'utf8').includes(old));
     ok('榴彈改名：js 與現行文件裡沒有舊名字', !left.length, left.join());
@@ -10565,16 +10565,28 @@ const ASC_COMBOS = `const combos = k => {
     S = newGame(); const r = [lockSlotTxt('ch0'), lockSlotTxt('gh')];
     S.eq.belt = mkItem(BASES.find(b => b.k === 'belt').id, 1, 1); S.eq.belt.cs = 1; r.push(lockSlotTxt('ch1'), lockSlotTxt('ch2'));
     S.camp.watch = CAMP.watch.length; r.push(lockSlotTxt('gh'));
+    S.lv = GH_LV; r.push(lockSlotTxt('gh'));
     return r;
   })()`);
   ok(
-    'M1-26：鎖住的護符／神格格的提示（沒腰帶、槽不夠、神格跟弒神；弒神開了就不鎖）',
+    'M1-26：鎖住的護符／神格格的提示（沒腰帶、槽不夠、神格跟弒神；弒神開了、角色 Lv26 就不鎖；M2-30 弒神開了但角色不到 Lv26 寫「角色到 Lv 26 才開」）',
     lk26.join('|') ===
       '護符：裝上腰帶才開|神格：升瞭望台到 Lv ' +
         R('CAMP.watch.length') +
-        ' 才開|護符：腰帶要有 2 格護符槽才開|護符：腰帶要有 3 格護符槽才開|神格：之後開放' &&
+        ' 才開|護符：腰帶要有 2 格護符槽才開|護符：腰帶要有 3 格護符槽才開|神格：角色到 Lv 26 才開|神格：之後開放' &&
       R("(S.camp.watch = CAMP.watch.length, lockTxt('line:rift'))") === '',
     lk26.join('|')
+  );
+  /* M2-30：神格格鎖到角色 Lv26：不到 26 裝著也不算進 stats、寶盒按「裝上」講 M1-26 那一句；角色頁畫鎖住的格子 */
+  const gh26 = R(`(() => {
+    S = newGame(); S.camp.watch = CAMP.watch.length; S.gods = [{ g: 'rooster', p: 100, a: [{ k: 'life', T: 1, v: 50 }] }];
+    const hp = (lv, on) => ((S.lv = lv), (S.godOn = on), stats().hp);
+    return [hp(25, 0) - hp(25, null), hp(26, 0) - hp(26, null) >= 50, GH_LV];
+  })()`);
+  ok(
+    'M2-30：神格格鎖到角色 Lv26（Lv25 裝著不加、Lv26 才加）',
+    JSON.stringify(gh26) === '[0,true,26]',
+    JSON.stringify(gh26)
   );
   /* M1-24：三個測試情境照描述；用自己的存檔位、沒帶參數時是空字串 */
   const ts = R(`(() => {
@@ -10978,6 +10990,40 @@ const ASC_COMBOS = `const combos = k => {
     'M2-19 賽制線池關著（CHASE.line 0）：賽制線地點沒有保底行，開發觸發也只給王印（異寶基底不會出現在演出）',
     JSON.stringify(m19.line) === '[0,"",true]',
     JSON.stringify(m19.line)
+  );
+}
+/* M2-30 掛機卡牆：召喚、分裂落在外圍牆裡改放附近地板；中心卡進牆的東西往場地裡推、不推到地圖外（推出去就永遠卡在牆裡，AI 鎖定牠 0 產出） */
+{
+  const c = { console, Math, Date, JSON, Object, Array, Set, Map, location: { search: '' }, URLSearchParams };
+  vm.createContext(c);
+  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js'])
+    vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c, { filename: f });
+  const gs = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, ''),
+    cut = (a, b) => gs.slice(gs.indexOf(a), gs.indexOf(b));
+  const w = vm.runInContext(
+    `var G = { t: 0, mapT: 1, mm: null, mobs: [], cols: 21, rows: 13 };
+    const TAU = Math.PI * 2;
+    ${cut('const TS = 48', 'function enterMap')}
+    ${cut('const isWall', '/* 首領進度滿了')}
+    ${cut('function pushTiles', 'function doRoll')}
+    ${cut('function spawnMob', '/* ---------- 輸入')}
+    (() => {
+      G.W = G.cols * TS; G.H = G.rows * TS;
+      G.tiles = new Uint8Array(G.cols * G.rows).fill(1);
+      for (let y = 1; y < G.rows - 1; y++) for (let x = 1; x < G.cols - 1; x++) G.tiles[y * G.cols + x] = 0;
+      const inF = o => !isWall(o.x, o.y) && o.x > 0 && o.y > 0 && o.x < G.W && o.y < G.H,
+        D = Object.values(MOBS)[0],
+        push = (x, y) => { const o = { x, y, r: 14 }; pushTiles(o); return inF(o); },
+        sp = [[456, 608], [800, 18], [10, 300], [1000, 300], [20, 20]].map(([x, y]) => inF(spawnMob(D, x, y, 99, false))),
+        mid = spawnMob(D, 300, 300, 99, false);
+      return [push(456, 608), push(800, 18), push(10, 300), push(1000, 300), sp.every(Boolean), mid.x === 300 && mid.y === 300];
+    })()`,
+    c
+  );
+  ok(
+    'M2-30 卡牆：中心在外圍牆裡的推回場地（下、上、左、右）、召喚落在牆裡改放地板（含角落）、場地裡的不動',
+    JSON.stringify(w) === '[true,true,true,true,true,true]',
+    JSON.stringify(w)
   );
 }
 /* M2-38（M2-37 v1.3 §12 第 16 步）：分頁格數與順序、鍵位、沒開的技能格不畫、改過的地方沒有色碼字面值與虛線空狀態、新字串在字串表 */
