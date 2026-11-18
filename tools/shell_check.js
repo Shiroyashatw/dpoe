@@ -951,27 +951,29 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     G.prog = 0;
     const bar = $('prog').querySelector('.pb i');
     let n = 0;
-    for (; n < 60 && bar.getBoundingClientRect().width > 0; n++) await new Promise(r => requestAnimationFrame(r));
+    for (; n < 120 && ($('prog').hidden || bar.getBoundingClientRect().width > 0); n++)
+      await new Promise(r => requestAnimationFrame(r));
     await new Promise(r => requestAnimationFrame(r));
     G.prog = Math.round(G.need * 0.5);
-    const i = $('prog').querySelector('.pb i'),
-      w = () => Math.round(i.getBoundingClientRect().width),
-      wait = ms => new Promise(r => setTimeout(r, ms)),
-      r = [getComputedStyle(i).transitionDuration];
-    await wait(150);
-    r.push(w());
-    await wait(400);
-    r.push(w());
-    await wait(400);
-    r.push(w());
-    r.push(`歸 0 等了 ${n} 格・bossOut ${G.bossOut}・prog ${G.prog}/${G.need}・${$('prog').hidden ? '藏' : '在'}`);
-    return r;
+    /* 等到這一格畫出來，看 CSS 產生的寬度轉場（時間不受機器忙不忙影響）；再等到終點 */
+    const t0 = performance.now();
+    let tr = null;
+    while (!tr && performance.now() - t0 < 1000) {
+      await new Promise(r => requestAnimationFrame(r));
+      tr = bar.getAnimations().find(a => a.transitionProperty === 'width');
+    }
+    const d = tr ? tr.effect.getTiming().duration : 0,
+      e = tr ? String(tr.effect.getTiming().easing) : '',
+      mid = Math.round(bar.getBoundingClientRect().width);
+    await new Promise(r => setTimeout(r, 700));
+    const W = $('prog').querySelector('.pb').clientWidth;
+    return [d, e, mid, Math.round(bar.getBoundingClientRect().width), Math.round(W * 0.5), `歸 0 等了 ${n} 格`];
   });
   ok(
-    '修訂(b) 重填：300 ms 填入動畫（150 ms 時還在填、550 ms 已填完）',
-    pg3[0] === '0.3s' && pg3[1] > 0 && pg3[1] < pg3[2] && Math.abs(pg3[2] - pg3[3]) <= 1,
-    '0.3s、150 ms 還在填、550 ms 填完',
-    `transition ${pg3[0]}、150 ms 寬 ${pg3[1]}、550 ms 寬 ${pg3[2]}、950 ms 寬 ${pg3[3]}（${pg3[4]}）`,
+    '修訂(b) 重填：往上 300 ms 填入（CSS 寬度轉場 300 ms，停在一半）',
+    pg3[0] === 300 && pg3[2] < pg3[3] && Math.abs(pg3[3] - pg3[4]) <= 2,
+    '轉場 300 ms、終點＝一半',
+    `轉場 ${pg3[0]} ms（${pg3[1]}）、開始時寬 ${pg3[2]}、終點 ${pg3[3]}（一半 ${pg3[4]}）・${pg3[5]}`,
     await shot('10b_prog_refill')
   );
 
