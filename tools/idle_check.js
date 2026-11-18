@@ -1,0 +1,421 @@
+const { chromium } = require('playwright');
+/* 掛機不中斷與回訪續刷（M2-25）：Playwright 在本機實際跑，遊戲時間用加速（每個畫格多跑幾格模擬，不畫圖）。
+   用法：先在 dpoe/ 開 python3 -m http.server 8000，再
+     node tools/idle_check.js [寬 390] [高 844]                       快速檢查：B1 星級、B2 重開續刷（自動／手動／雲端存檔／裂口）、A4 主線最後一個地點掛 10 分鐘
+     node tools/idle_check.js 寬 高 long [分鐘 120] [倍率 12] [資料夾]  長掛：無人操作 N 分鐘（遊戲時間），每分鐘一列產出與停住秒數，寫成 idle_寬x高.csv
+   網址用環境變數 URL（預設 http://localhost:8000/）；PW_CHROME 指定瀏覽器；有 ❌ 時結束碼 1 */
+const fs = require('fs'),
+  path = require('path');
+const W = +process.argv[2] || 390,
+  H = +process.argv[3] || 844,
+  MODE = process.argv[4] || 'quick',
+  MIN = +process.argv[5] || 120,
+  SPD = +process.argv[6] || 12,
+  OUT = process.argv[7] || path.join(__dirname, '..', 'evidence', 'dpoe-m2-25'),
+  URL = process.env.URL || 'http://localhost:8000/',
+  SLOT = 'm225';
+let bad = 0;
+const ok = (n, c, info = '') => {
+  console.log((c ? '✅ ' : '❌ ') + n + (c ? '' : ' ' + info));
+  if (!c) bad++;
+};
+/* 加速：每個真的畫格之前先多跑 k−1 格同樣長的模擬（不畫圖、不更新 HUD）；
+   停住的判斷每 1 秒遊戲時間取一次樣：不在場地、開場、等玩家按（確認卡、暫停）、倒下超過 3 秒、或 30 秒內沒有進展（輪數、首領進度、波數、王的血、怪物的血都沒變少）都算停住 */
+const FAST = k => {
+  if (window.__F) return (window.__F.k = k);
+  const F = frame,
+    D = draw,
+    HT = hudTick,
+    st = (window.__F = { k, gt: 0, acc: 0, stall: 0, sig: '', sigT: 0, deadT: 0, why: {} });
+  const sample = () => {
+    const boss = G.mobs.find(m => m.boss && m.hp > 0),
+      /* 進展＝第幾輪、首領進度、第幾波、王的血、怪物的血變少；怪物回血、角色走來走去不算 */
+      sig = [G.round, G.prog, G.waveN, boss ? Math.round(boss.hp) : '-'].join();
+    /* 怪物的血有變少（打中了）也算進展；回血不算 */
+    const hp = G.mobs.reduce((a, m) => a + Math.max(0, m.hp), 0),
+      hit = st.hp != null && hp < st.hp - 0.5;
+    st.hp = hp;
+    if (sig !== st.sig || hit) (st.sig = sig), (st.sigT = st.gt);
+    st.deadT = G.state === 'dead' ? st.deadT + 1 : 0;
+    const why =
+      G.scene !== 'map'
+        ? 'scene:' + G.scene
+        : IV.on
+          ? 'intro'
+          : G.state === 'dead'
+            ? st.deadT > 3 && 'dead'
+            : worldPaused()
+              ? 'paused'
+              : st.gt - st.sigT > 30 && 'still';
+    if (why) st.stall++, (st.why[why] = (st.why[why] || 0) + 1);
+    /* 停住的那一刻記一張快照（最多 5 張），找原因用 */
+    if (why && !st.was && (st.snap = st.snap || []).length < 5)
+      st.snap.push({
+        t: Math.round(st.gt),
+        why,
+        round: G.round,
+        prog: G.prog + '/' + G.need,
+        waves: G.waves ? G.waves.length : 0,
+        bossOut: G.bossOut,
+        state: G.state,
+        P: [Math.round(P.x), Math.round(P.y), Math.round(P.hp)],
+        mv: AI.mv.map(v => +v.toFixed(2)),
+        tgt: (T => T && [T.D.n, Math.round(T.x), Math.round(T.y), Math.round(T.hp)])(aiTarget()),
+        mobs: G.mobs
+          .filter(m => m.hp > 0)
+          .map(m => [m.D.n, Math.round(m.x), Math.round(m.y), Math.round(m.hp), m.boss ? 'B' : '']),
+        drops: G.drops.length,
+        mp: [Math.round(P.mp), Math.round(ST.mp), P.mflask, P.flask],
+        act: P.act && P.act.k,
+        cds: JSON.stringify(P.cds),
+        why0: (c => c && [c.k, skillWhy(c, AI.aim), aiReach(c, aiTarget()), aiCan(c, 0, AI.aim)])(slotCfg(0)),
+        hold: [G.state, G.slow, G.hs, P.roll ? 1 : 0, (G.ai || {}).dodgeHold],
+        size: [G.W, G.H]
+      });
+    st.was = !!why;
+  };
+  const step = (now, dt) => {
+    F(now);
+    st.gt += dt / 1000;
+    st.acc += dt / 1000;
+    while (st.acc >= 1) (st.acc -= 1), sample();
+  };
+  window.frame = now => {
+    const l0 = last,
+      dt = Math.max(0, Math.min(50, now - l0));
+    if (st.k > 1 && dt > 0) {
+      const raf = window.requestAnimationFrame;
+      window.requestAnimationFrame = () => 0;
+      window.draw = window.hudTick = () => {};
+      try {
+        for (let i = 1; i < st.k; i++) step(last + dt, dt);
+      } finally {
+        window.requestAnimationFrame = raf;
+        window.draw = D;
+        window.hudTick = HT;
+      }
+      last = l0;
+    }
+    step(now, dt);
+  };
+};
+/* 等遊戲時間過 sec 秒 */
+const gwait = async (p, sec) => {
+  const g0 = await p.evaluate(() => window.__F.gt);
+  while ((await p.evaluate(() => window.__F.gt)) - g0 < sec) await p.waitForTimeout(250);
+};
+async function ctxOf(b) {
+  const touch = W < 1000;
+  const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: touch, isMobile: touch });
+  await ctx.route(/supabase/, r => r.abort()); /* 測試絕對不能碰正式雲端 */
+  return ctx;
+}
+async function page(ctx, init, arg) {
+  const p = await ctx.newPage();
+  p.errs = [];
+  p.on('pageerror', e => p.errs.push(e.message));
+  if (init) await p.addInitScript(init, arg);
+  await p.goto(URL + `?p=${SLOT}&` + Date.now());
+  await p.waitForFunction(() => typeof G === 'object' && !!G.scene && typeof frame === 'function');
+  return p;
+}
+/* 新存檔跳過開場（自動模式開刷第一個地點），加速刷 sec 秒，讓 S.rounds 有真的紀錄 */
+async function fresh(b, sec = 240, prep) {
+  const ctx = await ctxOf(b),
+    p = await page(ctx, () => localStorage.clear());
+  await p.evaluate(() => (proSkip(), (S.story.tips = 0)));
+  if (prep) await p.evaluate(prep);
+  await p.evaluate(FAST, 20);
+  await gwait(p, sec);
+  return { ctx, p };
+}
+/* 關掉網頁、離開 ms 毫秒（存檔時間往前調）、再打開；回傳打開後的新頁與打開的時刻 */
+async function reopen(ctx, p, ms, edit) {
+  const sv = await p.evaluate(
+    ([ms, edit]) => {
+      save();
+      const s = JSON.parse(localStorage.getItem(KEY + SLOT));
+      s.savedAt -= ms;
+      s.offAt = s.savedAt;
+      if (edit) new Function('s', edit)(s);
+      return JSON.stringify(s);
+    },
+    [ms, edit]
+  );
+  await p.close();
+  const t0 = Date.now(),
+    p2 = await page(ctx, ([k, sv]) => localStorage.setItem(k, sv), ['dungeonpoe_v1' + SLOT, sv]);
+  return { p: p2, t0 };
+}
+/* 打開後每 100 毫秒看一次，直到回到 node 地點在刷（場地、世界沒停、有怪）；回傳秒數（等不到回 99） */
+async function backIn(p, t0, node, sum) {
+  for (;;) {
+    const r = await p.evaluate(
+      ([node, sum]) =>
+        G.scene === 'map' &&
+        G.node === node &&
+        !worldPaused() === !!S.auto &&
+        G.mobs.some(m => m.hp > 0) &&
+        /* M2-12 §7：離線摘要換成離線結算卡（#poff） */
+        (!sum || !$('poff').hidden),
+      [node, sum]
+    );
+    if (r) return (Date.now() - t0) / 1000;
+    if (Date.now() - t0 > 15000) return 99;
+    await p.waitForTimeout(100);
+  }
+}
+const now = p =>
+  p.evaluate(() => ({
+    scene: G.scene,
+    node: G.node,
+    cur: S.world.cur,
+    auto: S.auto,
+    ident: !!PANEL.ident,
+    title: REV.title,
+    off: !$('poff').hidden,
+    paused: worldPaused(),
+    t: +G.t.toFixed(1)
+  }));
+async function quick(b) {
+  const tag = `${W}×${H}`;
+  /* B1：地點清單的星級點得動（真的點，不是叫函式） */
+  {
+    const { ctx, p } = await fresh(b, 5, () => (S.camp.scout = 5));
+    await p.evaluate(FAST, 1); /* 點的時候用正常速度 */
+    await p.evaluate(() => openPanel('node'));
+    await p.waitForTimeout(400);
+    const r = [];
+    for (const n of [2, 3, 1]) {
+      const el = p.locator(`#pnode [data-a="nstar:${n}"]`);
+      await el.scrollIntoViewIfNeeded();
+      await el.click({ timeout: 3000 }).catch(e => r.push('點不到 ' + e.message.split('\n')[0]));
+      await p.waitForTimeout(200);
+      r.push(
+        await p.evaluate(
+          n => S.star === n && wStar(S) === n && document.querySelector('#pnode .ndst .on')?.textContent === n + '★',
+          n
+        )
+      );
+    }
+    ok(
+      `B1 ${tag}：地點清單的星級 2★／3★／1★ 點得動，存進 S.star、選中的那顆亮`,
+      r.every(x => x === true),
+      JSON.stringify(r)
+    );
+    await ctx.close();
+  }
+  /* B2：自動刷第一個地點，關掉 10 分鐘再開：5 秒內回到原地點、後面已經在打、離線摘要出現、按鈕「收下」 */
+  {
+    const { ctx, p } = await fresh(b);
+    const node = await p.evaluate(() => S.world.cur);
+    const { p: p2, t0 } = await reopen(ctx, p, 600e3);
+    const s = await backIn(p2, t0, node, 1);
+    ok(
+      `B2 ${tag}：自動、離開 10 分鐘重開，${s.toFixed(1)} 秒回到原地點在打、離線摘要已出現（要 ≤5 秒）`,
+      s <= 5,
+      JSON.stringify(await now(p2))
+    );
+    await p2.evaluate(FAST, 1);
+    const g0 = await p2.evaluate(() => G.t);
+    await p2.waitForTimeout(1500);
+    ok(
+      `B2 ${tag}：摘要開著時後面照打（M3-04 選項 A），主鈕是「收下・繼續刷」`,
+      await p2.evaluate(
+        g0 =>
+          G.t > g0 + 0.5 &&
+          /* M2-12 §7：主鈕「收下・繼續刷」（桌機另有鍵帽 Enter） */
+          [...document.querySelectorAll('#poff .offb .btn.pri')].some(
+            e => e.childNodes[0].textContent.trim() === '收下・繼續刷'
+          ),
+        g0
+      ),
+      JSON.stringify(await now(p2))
+    );
+    await p2.screenshot({ path: path.join(OUT, `b2_offline_${W}x${H}${process.env.SHOT_TAG || ''}.png`) });
+    await p2.evaluate(() => document.querySelector('#poff [data-a="offok"]').click());
+    await p2.waitForTimeout(300);
+    ok(
+      `B2 ${tag}：按「收下」只關卡片，還在原地點刷`,
+      await p2.evaluate(n => $('poff').hidden && G.scene === 'map' && G.node === n, node)
+    );
+    ok(`B2 ${tag}：沒有錯誤`, !p2.errs.length, p2.errs.join(' | '));
+    await ctx.close();
+  }
+  /* B2：手動模式在刷時關掉，重開也回到原地點（摘要開著時世界暫停，收下就接著自己打） */
+  {
+    const { ctx, p } = await fresh(b, 60);
+    const node = await p.evaluate(() => S.world.cur);
+    await p.evaluate(() => (S.auto = 0));
+    const { p: p2, t0 } = await reopen(ctx, p, 600e3);
+    const s = await backIn(p2, t0, node, 1);
+    ok(
+      `B2 ${tag}：手動模式離開 10 分鐘重開，${s.toFixed(1)} 秒回到原地點、摘要開著時暫停（要 ≤5 秒）`,
+      s <= 5,
+      JSON.stringify(await now(p2))
+    );
+    await ctx.close();
+  }
+  /* B2：重開時雲端存檔比較新（換裝置、本機存檔被清掉）：換成雲端那份也回到它在刷的地點 */
+  {
+    const { ctx, p } = await fresh(b, 60);
+    const r = await p.evaluate(() => {
+      save();
+      const s = JSON.parse(localStorage.getItem(KEY + SLOT)),
+        node = s.world.cur;
+      s.savedAt -= 600e3;
+      s.offAt = s.savedAt;
+      enterHideout();
+      useSave(s);
+      return node;
+    });
+    await p.waitForTimeout(300);
+    ok(
+      `B2 ${tag}：換成雲端存檔（useSave）也回到原地點在刷、出離線摘要`,
+      await p.evaluate(n => G.scene === 'map' && G.node === n && !$('poff').hidden, r),
+      JSON.stringify(await now(p))
+    );
+    await ctx.close();
+  }
+  /* B2：在裂口裡關掉（血霧之印用完了，裂口進不去）：重開退回進裂口前的地點接著刷，不是停在藏身處 */
+  {
+    const { ctx, p } = await fresh(b, 30);
+    const back = await p.evaluate(() => S.world.cur);
+    const { p: p2, t0 } = await reopen(
+      ctx,
+      p,
+      600e3,
+      `const k = W_ALL.find(k => WNODE[k].t === 'rift'); s.world.back = s.world.cur; s.world.cur = k; s.frags.mist = 0;`
+    );
+    const s = await backIn(p2, t0, back, 0);
+    ok(
+      `B2 ${tag}：裂口進不去了，重開 ${s.toFixed(1)} 秒退回原本的地點接著刷（要 ≤5 秒）`,
+      s <= 5,
+      JSON.stringify(await now(p2))
+    );
+    await ctx.close();
+  }
+  /* B2：自己按「回藏身處」之後關掉，重開留在藏身處（M2-12：刷圖暫停時停在營地） */
+  {
+    const { ctx, p } = await fresh(b, 30);
+    await p.evaluate(() => act('home'));
+    const { p: p2 } = await reopen(ctx, p, 600e3);
+    await p2.waitForTimeout(1500);
+    ok(
+      `B2 ${tag}：自己回藏身處的，重開還在藏身處`,
+      await p2.evaluate(() => G.scene === 'hide'),
+      JSON.stringify(await now(p2))
+    );
+    await ctx.close();
+  }
+  /* A4：主線最後一個地點（瞭望台開滿、斥候營開滿、角色 Lv 70、5★），無人操作掛 10 分鐘遊戲時間：停住 0 秒、王打得倒（一輪接一輪）。
+     開局裝備打不動最後一個地點，這裡只在測試裡把怪物的生命設 1、傷害縮到 2%（測的是流程不停，不是數值） */
+  {
+    const { ctx, p } = await fresh(b, 1, () => {
+      Object.assign(S.camp, {
+        watch: TRUNK.length - 1,
+        scout: CAMP.scout.length,
+        altar: 10,
+        forge: 20,
+        house: 10,
+        store: 5
+      });
+      S.lv = 70;
+      S.star = 5;
+      const sm = spawnMob;
+      window.spawnMob = (...a) => {
+        const m = sm(...a);
+        m.hp = m.mhp = 1;
+        m.dmg = (m.dmg || 0) * 0.02;
+        return m;
+      };
+      runNode(TRUNK_K[TRUNK.length - 1]);
+    });
+    await p.evaluate(() => Object.assign(window.__F, { stall: 0, why: {} }));
+    await gwait(p, 600);
+    const r = await p.evaluate(() => ({
+      stall: __F.stall,
+      why: __F.why,
+      scene: G.scene,
+      node: G.node,
+      rounds: SES && SES.rounds,
+      deaths: SES && SES.deaths,
+      last: TRUNK_K[TRUNK.length - 1],
+      prog: G.prog + '/' + G.need,
+      gt: Math.round(__F.gt),
+      t: Math.round(G.t)
+    }));
+    ok(
+      `A4 ${tag}：主線打完（最後一個地點、5★）無人掛 10 分鐘，停住 ${r.stall} 秒（要 0）、打完 ${r.rounds} 輪、還在最後一個地點`,
+      r.stall === 0 && r.rounds >= 3 && r.node === r.last,
+      JSON.stringify(r)
+    );
+    console.log('   ', JSON.stringify(r));
+    await ctx.close();
+  }
+}
+/* 長掛：新存檔、跳過開場，什麼都不按，遊戲時間 MIN 分鐘；每分鐘一列 */
+async function long(b) {
+  const { ctx, p } = await fresh(b, 0);
+  await p.evaluate(FAST, SPD);
+  const rows = [['分鐘', '地點', '輪數', '倒下', '靈魂', '金幣', '等級', '本分鐘停住秒數', '停住原因']];
+  let prev = await p.evaluate(() => ({ r: 0, d: 0, soul: MAT().soul, gold: S.gold, stall: 0 })),
+    total = 0;
+  const T0 = Date.now();
+  for (let m = 1; m <= MIN; m++) {
+    await gwait(p, 60);
+    const c = await p.evaluate(() => ({
+      node: G.node ? wName(S, ...wXY(G.node)) : G.scene,
+      r: SES ? SES.rounds : 0,
+      d: SES ? SES.deaths : 0,
+      soul: MAT().soul,
+      gold: S.gold,
+      lv: S.lv,
+      stall: __F.stall,
+      why: JSON.stringify(__F.why)
+    }));
+    const st = c.stall - prev.stall;
+    total += st;
+    rows.push([
+      m,
+      c.node,
+      c.r - prev.r,
+      c.d - prev.d,
+      c.soul - prev.soul,
+      c.gold - prev.gold,
+      c.lv,
+      st,
+      st ? c.why : ''
+    ]);
+    if (m % 10 === 0)
+      console.log(`  ${m} 分（實際 ${((Date.now() - T0) / 60e3).toFixed(1)} 分）累計輪數 ${c.r}、停住 ${total} 秒`);
+    prev = c;
+  }
+  fs.mkdirSync(OUT, { recursive: true });
+  const f = path.join(OUT, `idle_${W}x${H}.csv`);
+  fs.writeFileSync(f, rows.map(r => r.join(',')).join('\n') + '\n');
+  const real = (Date.now() - T0) / 60e3;
+  console.log(
+    `  寫入 ${f}；遊戲時間 ${MIN} 分，實際 ${real.toFixed(1)} 分（倍率設 ${SPD}，實得約 ${(MIN / real).toFixed(1)} 倍）`
+  );
+  ok(
+    `長掛 ${W}×${H}：無人操作 ${MIN} 分鐘（遊戲時間），停住 ${total} 秒（要 0）`,
+    total === 0,
+    JSON.stringify(await p.evaluate(() => __F.snap))
+  );
+  ok(`長掛 ${W}×${H}：沒有錯誤`, !p.errs.length, p.errs.slice(0, 3).join(' | '));
+  await p.screenshot({ path: path.join(OUT, `idle_${W}x${H}.png`) });
+  await ctx.close();
+}
+(async () => {
+  fs.mkdirSync(OUT, { recursive: true });
+  const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
+  try {
+    await (MODE === 'long' ? long : quick)(b);
+  } catch (e) {
+    ok('執行', false, e.stack);
+  }
+  await b.close();
+  console.log(bad ? `❌ ${bad} 項沒過` : '✅ 全過');
+  process.exit(bad ? 1 : 0);
+})();

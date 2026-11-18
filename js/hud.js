@@ -74,7 +74,11 @@ const ICO = (() => {
     down: s('<path d="M3 6l5 5 5-5"/>')
   };
 })();
-const fsApply = () => document.documentElement.style.setProperty('--tscale', ((S && S.fs) || 100) / 100);
+const fsApply = () => {
+  const r = document.documentElement;
+  r.style.setProperty('--tscale', ((S && S.fs) || 100) / 100);
+  r.classList.toggle('fsbig', !!S && S.fs > 100);
+};
 /* 直立操作：手機而且設定選直立（桌機一律橫向） */
 const PORT = () => TOUCH.on && !!S && S.orient === 'p';
 /* 桌機：魔力球旁的功能列；手機：右上的 ☰ 選單（data-tm 的處理在 touch.js） */
@@ -117,7 +121,7 @@ const fmenuHTML = () =>
     .join('');
 function hudInit() {
   $('hud').innerHTML = `
-  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="dlog"></div><div id="bossbar" hidden><b id="bossn"></b><em class="bsh">現身</em><div class="bb"><i></i></div></div><div id="prog" hidden><b>首領進度</b><div class="pb"><i></i></div></div></div>
+  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="dlog"></div><div id="bossbar" hidden><b id="bossn"></b><em class="bsh">現身</em><div class="bb"><i></i></div></div><div id="prog" hidden><b id="progt">王 0%</b><div class="pb"><i></i></div></div></div>
   <div class="bottom">
     <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
     <div class="mid">
@@ -348,7 +352,12 @@ function hudTick() {
   if (show) setV($('bossbar'), 'bhp', (b.hp / b.mhp).toFixed(3));
   const pr = G.scene === 'map' && !G.bossOut;
   if (HV.pr !== pr) $('prog').hidden = !(HV.pr = pr);
-  if (pr) setV($('prog'), 'prog', Math.min(1, G.prog / G.need).toFixed(3));
+  /* M2-12 修訂：離王進度當「下一個王」短期目標，寫「王 n%」（不寫波數、輪數） */
+  if (pr) {
+    const v = Math.min(1, G.prog / G.need);
+    setV($('prog'), 'prog', v.toFixed(3));
+    setT($('progt'), 'progt', `王 ${Math.floor(v * 100)}%`);
+  }
   pracHud();
   const at =
     G.scene === 'hide'
@@ -1849,7 +1858,9 @@ function revealHTML() {
   ${
     sel
       ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button></div><button class="dlink2" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div>`
-      : `<div class="rvf">${REV.done ? `<button class="btn ${REV.sum && campReady() ? '' : 'pri'}" data-a="close">收下</button>` : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
+      : REV.sum
+        ? `<div class="rvf offf">${GEN_K.some(k => genOn(k) && genAfford(k) > 0) ? '<button class="btn wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}<button class="btn pri wide" data-a="close">收下</button></div>`
+        : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
 /* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */

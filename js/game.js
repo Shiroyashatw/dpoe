@@ -318,7 +318,7 @@ function offBack(o, g, away) {
   idleBar(1);
 }
 /* 離線結算的卡：標題「離開 h 時 m 分」、一行計數（數字 1200 ms 跑上去）、掉落 3 列（追逐那列最後）、接下來一行、兩顆鈕（收下・繼續刷是主鈕） */
-const OFFC = { t0: 0, n: [] };
+const OFFC = { t0: 0, n: [], on: 0 };
 function offShow(o, g, away) {
   const gs = Object.entries(g || {}).filter(([, v]) => v > 0);
   if (!o && !gs.length) return;
@@ -347,6 +347,7 @@ function offShow(o, g, away) {
   el.innerHTML = `<h2>${esc(strT('offT', { t: idleDur(t) }))}</h2><p class="offc">${cnt}</p><ul class="offl">${rows.join('')}</ul>${g1 ? `<p class="offn">${esc(strT('offNext', { t: g1.t }))}</p>` : ''}
   <div class="offb"><button class="btn" data-a="offcamp">${STR_T.offCamp}<kbd class="donly">H</kbd></button><button class="btn pri" data-a="offok">${STR_T.offOk}<kbd class="donly">Enter</kbd></button></div>`;
   el.hidden = false;
+  OFFC.on = 1;
   document.body.classList.add('offon');
   OFFC.t0 = reduced() ? -1e9 : performance.now();
   OFFC.n = [...el.querySelectorAll('[data-n]')];
@@ -361,6 +362,7 @@ function offShow(o, g, away) {
 }
 function offClose() {
   $('poff').hidden = true;
+  OFFC.on = 0;
   document.body.classList.remove('offon');
 }
 /* 離線摘要的追逐物品一列（M2-19.5）：「追逐物品 ×n、目前保底 p%」，有拿到的可以點開（REV.chx）一種一列；0 件不能點 */
@@ -2164,7 +2166,9 @@ let last = 0;
 /* 世界停住嗎（Q9 的共用開關，企劃書第 9 節）：確認卡、倒下、技能挑選、天賦樹一律停；手動模式開任何面板也停（M1-10）；
    自動模式開一般面板照打。停住時產生器與離線計時照跑（frame 開頭的 genTick） */
 const skPicking = () => PANEL.skill && PICKV.includes(SKUI.view);
-const worldPaused = () => !!G.ask || G.state === 'dead' || TREE.open || skPicking() || (!S.auto && anyPanel());
+/* 手動模式時離線結算（M2-12 §7）開著也算面板：世界停，收下才接著打（M2-25） */
+const worldPaused = () =>
+  !!G.ask || G.state === 'dead' || TREE.open || skPicking() || (!S.auto && (anyPanel() || OFFC.on));
 function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
