@@ -1810,7 +1810,9 @@ function revealHTML() {
   ${
     sel
       ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button></div><button class="dlink2" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div>`
-      : `<div class="rvf">${REV.done ? `<button class="btn ${REV.sum && campReady() ? '' : 'pri'}" data-a="close">收下</button>` : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
+      : REV.sum
+        ? `<div class="rvf offf">${GEN_K.some(k => genOn(k) && genAfford(k) > 0) ? '<button class="btn wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}<button class="btn pri wide" data-a="close">收下</button></div>`
+        : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
 /* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */

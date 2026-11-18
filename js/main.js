@@ -206,14 +206,29 @@ function proSkip() {
   introStop();
   proGive();
 }
-/* 換成另一份存檔（雲端較新、登入帳號）：回藏身處重來 */
+/* 換成另一份存檔（雲端較新、登入帳號）：跟重開網頁一樣，那份存檔在刷就回到它的地點接著刷（M2-25） */
 function useSave(r) {
   introStop();
   S = migrate(r);
   enterHideout();
   applyOrient();
-  save();
   proBoot();
+  comeBack(r.farm, r.offAt || r.savedAt || Date.now());
+  save();
+}
+/* 重開網頁（M2-25，試玩報告 A4／B2）：上次關掉時在刷圖、或沒有自己按回藏身處 → 先結算離線、回到原地點接著刷，再出離線摘要
+   （M3-04 選項 A：摘要後面已經在打）。手動模式也回去（摘要開著時世界照 M1-10 暫停）；離線輪數只算自動模式（offSettle）。
+   原地點進不去了（裂口的血霧之印用完）就退回 wBack；產生器不管在不在刷都照產（0.5.1） */
+function comeBack(farm, offAt) {
+  const away = Date.now() - offAt,
+    c = S.world.cur;
+  if (c && wWhy(S, ...wXY(c)) && wBack(c)) S.world.cur = wBack(c);
+  const k = S.world.cur,
+    resume = (farm || !S.stopWhy) && k && !wWhy(S, ...wXY(k)),
+    o = resume ? offSettle(away) : null,
+    g = offGen(away);
+  if (resume) runNode(k);
+  if (o || away >= OFF_MIN) offShow(o, g, away);
 }
 /* ---------- 測試入口（M1-24）：?test=dualweap／nearDeath／midgame／chase。每次載入照情境重建，存在 test_名字 存檔位、不連雲端 ----------
    build 在 hudInit 之前做存檔；go 在開場之後（已經看過開場）做要進場地、扣血的事 */
@@ -301,20 +316,12 @@ function start() {
     } else cloudPush();
   });
   setInterval(save, 10000);
-  /* 離線結算（0.4.1）：上次關掉時在刷圖（或沒有自己按回藏身處，試玩報告 B2）→ 照存檔時間算，接著刷同一個節點；產生器不管在不在刷都照產（0.5.1） */
-  const away = Date.now() - offAt,
-    resume = (farm || !S.stopWhy) && S.auto && S.world.cur && !wWhy(S, ...wXY(S.world.cur)),
-    o = resume ? offSettle(away) : null,
-    g = offGen(away);
   if (TEST) {
     ST = stats();
     popAssign();
     TESTS[TEST] ? TESTS[TEST].go() : hudWarn(`沒有「${TEST}」這個測試情境：dualweap、nearDeath、midgame、chase`);
     hudWarn(`測試入口：${TEST}（不存進正式存檔、不連雲端）`);
-  } else {
-    if (resume) runNode(S.world.cur);
-    if (o || away >= OFF_MIN) offShow(o, g, away);
-  }
+  } else comeBack(farm, offAt);
   /* 分頁切走、手機鎖螢幕：記時間，回來時結算（主迴圈停著，產生器也要補） */
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return (HIDE_AT = Date.now()), save();
