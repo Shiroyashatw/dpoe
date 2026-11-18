@@ -1,0 +1,22 @@
+❌ 390×844 full（例外） page.evaluate: ReferenceError: IDLE is not defined
+❌ 390×844 收起（例外） 找不到 #pidle .itop .ibt[data-a="idle:mini"]
+❌ 390×844 觀戰（例外） page.evaluate: ReferenceError: feed is not defined
+❌ 390×844 鍵與自動離開（例外） page.evaluate: ReferenceError: idleSet is not defined
+❌ 390×844 記住（例外） page.evaluate: ReferenceError: idleSet is not defined
+❌ 390×844 掉落動態（例外） page.evaluate: ReferenceError: FEED is not defined
+❌ 390×844 停留（例外） page.evaluate: ReferenceError: FEED is not defined
+❌ 1280×720 full（例外） page.evaluate: ReferenceError: IDLE is not defined
+❌ 1280×720 收起（例外） 找不到 #pidle .itop .ibt[data-a="idle:mini"]
+❌ 1280×720 觀戰（例外） page.evaluate: ReferenceError: feed is not defined
+❌ 1280×720 鍵與自動離開（例外） page.evaluate: ReferenceError: IDLE is not defined
+❌ 1280×720 記住（例外） page.evaluate: ReferenceError: idleSet is not defined
+❌ 1280×720 掉落動態（例外） page.evaluate: ReferenceError: FEED is not defined
+❌ 1280×720 停留（例外） page.evaluate: ReferenceError: FEED is not defined
+❌ 375×667 full（例外） page.evaluate: ReferenceError: IDLE is not defined
+❌ 375×667 收起（例外） 找不到 #pidle .itop .ibt[data-a="idle:mini"]
+❌ 375×667 觀戰（例外） page.evaluate: ReferenceError: feed is not defined
+❌ 375×667 鍵與自動離開（例外） page.evaluate: ReferenceError: idleSet is not defined
+❌ 375×667 記住（例外） page.evaluate: ReferenceError: idleSet is not defined
+❌ 375×667 掉落動態（例外） page.evaluate: ReferenceError: FEED is not defined
+❌ 減少動態（例外） page.evaluate: ReferenceError: idleSet is not defined
+❌ 21 項沒過

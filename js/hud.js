@@ -71,7 +71,9 @@ const ICO = (() => {
     full: s('<path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/>'),
     prev: s('<path d="M10 3L5 8l5 5"/>'),
     next: s('<path d="M6 3l5 5-5 5"/>'),
-    down: s('<path d="M3 6l5 5 5-5"/>')
+    down: s('<path d="M3 6l5 5 5-5"/>'),
+    up: s('<path d="M3 10l5-5 5 5"/>'),
+    shrink: s('<path d="M6 2.5V6H2.5M13.5 6H10V2.5M10 13.5V10h3.5M2.5 10H6v3.5"/>')
   };
 })();
 /* 直立操作：手機而且設定選直立（桌機一律橫向） */
@@ -115,7 +117,7 @@ const fmenuHTML = () =>
     .join('');
 function hudInit() {
   $('hud').innerHTML = `
-  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="dlog"></div><div id="bossbar" hidden><b id="bossn"></b><div class="bb"><i></i></div></div><div id="prog" hidden><b>首領進度</b><div class="pb"><i></i></div></div></div>
+  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="bossbar" hidden><b id="bossn"></b><div class="bb"><i></i></div></div><div id="prog" hidden><b>首領進度</b><div class="pb"><i></i></div></div></div>
   <div class="bottom">
     <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
     <div class="mid">
@@ -176,8 +178,10 @@ function tipOf(b) {
   return `${c.D.n} Lv ${c.lv}${wtNeed(c.D) ? `（${wtNeed(c.D)}）` : ''}\n${c.D.d}${c.mp ? `\n魔力 ${c.mp}` : ''}${c.cd ? ` · 冷卻 ${c.cd.toFixed(1)} 秒` : ''}`;
 }
 let warnT;
-function hudWarn(t) {
+/* dng＝危險吐司（倉庫滿）：觀戰時照樣出，其他的觀戰時不出（補遺 §5.1） */
+function hudWarn(t, dng) {
   const w = $('warn');
+  w.classList.toggle('dng', !!dng);
   w.textContent = t;
   w.classList.remove('on');
   void w.offsetWidth;
@@ -355,7 +359,7 @@ function hudTick() {
   /* 營地分頁開著：每秒補畫數字變了的卡（0.5.1）；分頁列的小點跟著買得起幾件 */
   const ct = performance.now();
   if (ct - CAMP_T > 1000) (CAMP_T = ct), campRefresh(), sheetSync();
-  logBar();
+  feedTick();
   if (HV.ai !== AI.on) document.body.classList.toggle('ai', !!(HV.ai = AI.on));
   const au = S.auto ? 1 : 0;
   if (HV.bar !== barKey()) hudBar();
@@ -549,10 +553,15 @@ const idleOn = () =>
   G.state !== 'dead' &&
   !G.ask &&
   (!TOUCH.on || (PORT() && !!S.auto));
-/* 半版面板開著（世界地圖是全螢幕，不算）；直立的掛機卡也算半版 */
-const sheetOn = () => !!(PORT() && (anyPanel() || idleOn()));
-/* 遊戲畫布的高度：半版面板開著時縮到上半，戰鬥照樣看得到；掛機卡永遠半版 */
-const cvH = () => (sheetOn() && !(NAV.full && anyPanel()) ? Math.round(IH * SHEET_TOP) : IH);
+/* 半版面板開著（世界地圖是全螢幕，不算）；直立的掛機卡也算半版（觀戰時不畫卡） */
+const sheetOn = () => !!(PORT() && (anyPanel() || (idleOn() && IDLE.v !== 'watch')));
+/* 遊戲畫布的高度：半版面板開著時縮到上半，戰鬥照樣看得到；掛機卡展開＝半版、收起＝畫到收起列上緣（補遺 §5.1；IDLE.cv 在動畫結束才換） */
+const cvH = () =>
+  sheetOn() && !(NAV.full && anyPanel())
+    ? !anyPanel() && IDLE.cv === 'mini'
+      ? IH - ($('pnav').offsetHeight || 56) - 44
+      : Math.round(IH * SHEET_TOP)
+    : IH;
 function sheetSync() {
   const on = sheetOn(),
     b = document.body,
@@ -560,6 +569,7 @@ function sheetSync() {
   b.classList.toggle('sheet', on);
   b.classList.toggle('sheetfull', on && !!NAV.full && anyPanel());
   b.style.setProperty('--sheet-top', (on && !(NAV.full && anyPanel()) ? cvH() : 0) + 'px');
+  b.style.setProperty('--idle-top', Math.round(IH * SHEET_TOP) + 'px');
   nav.hidden = !PORT();
   $('phand').hidden = !on || !anyPanel();
   /* 桌機（0.4.9）：右上同一排分頁 */
@@ -751,7 +761,9 @@ const KEYS_PC = [
   ['J', '山海寶盒'],
   ['L', '掉落紀錄'],
   ['T', '回藏身處（地圖裡先確認，再按一次 T＝回去）'],
-  ['Esc', '取消確認、關閉面板；都沒有時打開設定']
+  ['X', '收起／展開掛機卡'],
+  ['N', '觀戰（再按一次離開）'],
+  ['Esc', '取消確認、離開觀戰、關閉面板；都沒有時打開設定']
 ];
 const KEYS_PORT = [
   ['按住拖', '移動（手指按哪裡，搖桿就在哪裡）'],
@@ -1982,16 +1994,6 @@ function chaseBnClick() {
   chaseBnHide();
   chaseOpen(k);
 }
-/* HUD 的掉落紀錄（0.4.1）：最新 3 筆，30 秒後淡掉；完整的在「掉落紀錄」面板 */
-const LOG_SHOW = 30000;
-function logBar() {
-  const now = Date.now(),
-    L = (S.log || []).filter(x => now - x.t < LOG_SHOW).slice(0, 3),
-    k = LOGV + ':' + L.length;
-  if (HV.log === k) return;
-  HV.log = k;
-  $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
-}
 const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
 /* 掉落紀錄選中的那一筆（橫幅顯示中按 L：最新的追逐物品） */
 let LOGSEL = null;
@@ -2018,24 +2020,207 @@ let CAMP_T = 0;
 /* 防誤觸（M2-08，UI 審查 C10）：卡剛出現、或內容換了讓按鈕移位（王倒下的清單），這之後 400 毫秒內點卡上的鈕不算 */
 let IDLE_MV = 0;
 function idleBar(force) {
+  /* 觀戰的自動離開（補遺 §5.1）：倒下、對話框、切成手動、開了面板、離線摘要（也是面板）、離開地圖 */
+  if (IDLE.v === 'watch' && (!idleOn() || !S.auto || !$('over').hidden)) watchOff();
   const el = $('pidle'),
-    on = idleOn();
+    on = idleOn() && IDLE.v !== 'watch';
   if (el.hidden !== !on) {
     el.hidden = !on;
     IDLE_MV = performance.now();
     /* 直立：掛機卡出現或收起＝半版切換（畫布高度、分頁列） */
     sheetSync();
   }
-  if (!on) return void (HV.idle = null);
+  if (!on) return void ((HV.idle = null), document.body.classList.remove('imini'));
   const now = performance.now();
   if (!force && now - IDLE_T < 500) return;
   IDLE_T = now;
-  const h = idleHTML();
+  const h = IDLE.r === 'mini' ? miniHTML() : idleHTML();
+  el.classList.toggle('mini', IDLE.r === 'mini');
+  document.body.classList.toggle('imini', IDLE.r === 'mini');
   if (HV.idle === h) return;
   /* 只有字變＝版面沒動；標籤變了（換成王倒下的清單、多一行保底）當作按鈕可能移位 */
   const sk = x => x.replace(/>[^<]*</g, '><').replace(/\d/g, '');
   if (HV.idle && sk(HV.idle) !== sk(h)) IDLE_MV = now;
   el.innerHTML = HV.idle = h;
+}
+/* ---------- 掛機卡展開／收起／觀戰（補遺 §5.1）：v＝要的狀態、r＝畫成哪一種（收起的滑動結束才換）、cv＝畫布照哪一種排（動畫結束才換）。
+   full／mini 存在這台裝置（不進雲端存檔），watch 不記 ---------- */
+const IDLE_KEY = KEY + SLOT + ':idle';
+const IDLE = { v: 'full', r: 'full', cv: 'full', prev: 'full', anim: null, fin: null, hist: 0 };
+try {
+  if (localStorage.getItem(IDLE_KEY) === 'mini') IDLE.v = IDLE.r = IDLE.cv = 'mini';
+} catch (e) {}
+const idleBtns = () => {
+  const m = IDLE.r === 'mini',
+    tg = `<button class="ibt" data-a="idle:${m ? 'full' : 'mini'}" aria-label="${m ? '展開掛機卡' : '收起掛機卡'}" aria-pressed="${m}">${ICO[m ? 'up' : 'down']}</button>`,
+    w = `<button class="ibt" data-a="idle:watch" aria-label="觀戰" aria-pressed="false">${ICO.full}</button>`;
+  return `<span class="ibts">${m ? w + tg : tg + w}</span>`;
+};
+/* 收起的那一條：左邊掛機時間（倉庫快滿、王倒下時換字）、中間保底、右邊觀戰＋展開；點鈕以外＝展開 */
+function miniHTML() {
+  const ses = SES || SES0(),
+    L = G.loot && performance.now() - G.loot.t < 30000 ? G.loot : null,
+    full = (S.inv.items.length / INV_CAP) * 100 >= 80,
+    t = chaseLine(G.mapT),
+    n = chasePct(),
+    left = L
+      ? `打倒 ${L.boss || ''}・${Math.max(1, Math.ceil(30 - (performance.now() - L.t) / 1000))} 秒`
+      : full
+        ? '倉庫快滿'
+        : `掛機 ${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪`;
+  return `<div class="imini" data-a="idle:full" role="button" tabindex="0" aria-label="展開掛機卡"><span class="iml ${L ? '' : full ? 'w' : ''}">${esc(left)}</span>${
+    t
+      ? `<span class="imp ${n >= 100 ? 'full' : ''}" aria-label="${esc(strT('pityAria', { n }))}">${n}%<i class="pb"><i style="transform:scaleX(${n / 100})"></i></i></span>`
+      : ''
+  }${idleBtns()}</div>`;
+}
+function idleSet(v) {
+  if (v === 'watch') return IDLE.v === 'watch' ? watchOff() : watchOn();
+  if (IDLE.v === 'watch') watchOff();
+  if (IDLE.anim) IDLE.anim.cancel(), IDLE.fin();
+  if (v === IDLE.v) return;
+  IDLE.v = v;
+  try {
+    localStorage.setItem(IDLE_KEY, v);
+  } catch (e) {}
+  const el = $('pidle'),
+    end = () => ((IDLE.anim = IDLE.fin = null), (IDLE.r = IDLE.cv = v), idleBar(1), sheetSync());
+  /* 卡不在畫面上、減少動態：直接換 */
+  if (el.hidden || reduced()) return end();
+  IDLE_MV = performance.now();
+  const go = (a, b) => {
+    IDLE.fin = end;
+    IDLE.anim = el.animate([{ transform: `translateY(${a}px)` }, { transform: `translateY(${b}px)` }], {
+      duration: 200,
+      easing: 'cubic-bezier(0.23, 1, 0.32, 1)'
+    });
+    IDLE.anim.onfinish = end;
+  };
+  /* 收起：整張往下滑到收起列的位置，結束時才換成那一條、畫布一次改高 */
+  if (v === 'mini') return go(0, el.offsetHeight - 44);
+  /* 展開：先畫成整張、從收起列的位置往上滑；畫布在結束時才改高 */
+  IDLE.r = 'full';
+  idleBar(1);
+  go(el.offsetHeight - 44, 0);
+}
+function watchOn() {
+  if (!idleOn() || !S.auto) return;
+  IDLE.prev = IDLE.v;
+  IDLE.v = 'watch';
+  document.body.classList.add('watch');
+  /* Android 返回鍵＝離開觀戰：推一筆瀏覽紀錄 */
+  if (TOUCH.on && !IDLE.hist) (IDLE.hist = 1), history.pushState({ watch: 1 }, '');
+  idleBar(1);
+  sheetSync();
+}
+function watchOff() {
+  if (IDLE.v !== 'watch') return;
+  IDLE.v = IDLE.prev;
+  document.body.classList.remove('watch');
+  if (IDLE.hist) (IDLE.hist = 0), history.back();
+  idleBar(1);
+  sheetSync();
+}
+addEventListener('popstate', () => {
+  IDLE.hist = 0;
+  watchOff();
+});
+/* ---------- 掉落動態（補遺 §5.2，取代 HUD 的 #dlog 與材料的世界字）：一列一種東西，同一種還沒消失前再掉就合併、移到最上面、重新計時 ---------- */
+const FEED = { L: [], t: 0, seq: 0 };
+/* 掉落紀錄的類別 → 稀有度（沒有類別＝一般材料） */
+const FEED_R = { cur: 'rare', mid: 'rare', perf: 'uniq', frac: 'uniq', mem: 'uniq', chase: 'chase', pack: 'norm' },
+  FEED_HOLD = { norm: 3000, rare: 6000, uniq: 6000, chase: 10000 },
+  FEED_G = { frac: '★', mem: '◈' };
+const feedMax = () => (TOUCH.on ? (PORT() && IW >= 380 ? 3 : 2) : 6);
+function feedAdd(name, n, c, ic) {
+  const r = FEED_R[c] || 'norm',
+    box = $('feed');
+  let f = FEED.L.find(x => x.k === name);
+  if (f) (f.n += n), f.el.classList.remove('out');
+  else {
+    /* 滿了：先擠掉最舊的一般；全是稀有以上才擠掉最舊的 */
+    while (FEED.L.length >= feedMax()) {
+      const i = FEED.L.map(x => x.r).lastIndexOf('norm');
+      feedDrop(FEED.L[i >= 0 ? i : FEED.L.length - 1]);
+    }
+    f = { k: name, n, r, ic, el: document.createElement('p') };
+    f.el.className = 'fd fd-' + r;
+    f.el.innerHTML = `${ic ? icHTML(ic, '', 16) : ''}${c === 'chase' ? '' : '<b></b>'}<span>${FEED_G[c] || ''}${esc(name)}</span>`;
+    box.append(f.el);
+  }
+  /* 新的在最上面（用 order 排，不搬節點：搬了進場動畫會重播） */
+  f.el.style.order = -++FEED.seq;
+  FEED.L = [f, ...FEED.L.filter(x => x !== f)];
+  f.end = performance.now() + FEED_HOLD[r];
+  const b = f.el.querySelector('b');
+  if (b) b.textContent = '＋' + (f.n > 9999 ? '9,999+' : fmtN(f.n));
+  /* 讀屏只念稀有以上 */
+  if (r !== 'norm') $('feedsr').textContent = name + (c === 'chase' ? '' : ' ＋' + f.n);
+  feedTick(1);
+}
+function feedDrop(f) {
+  f.el.remove();
+  FEED.L = FEED.L.filter(x => x !== f);
+}
+/* 一個元素的螢幕矩形（沒畫出來回 null） */
+const rectOf = e => {
+  if (!e || e.hidden || !e.getClientRects().length) return null;
+  const r = e.getBoundingClientRect();
+  return r.width && r.height ? r : null;
+};
+/* 小地圖的螢幕矩形（render.js drawMinimap 的公式） */
+const mmRect = () => {
+  const t = TOUCH.on,
+    w = t ? Math.min(PORT() ? 62 : 104, (68 * G.W) / G.H) / ZOOM : 190,
+    h = (w * G.H) / G.W,
+    y = t ? 60 / ZOOM : cvH() - h - 16,
+    x = IW - w - (t ? 10 / ZOOM : 16);
+  return { left: x, right: x + w, top: y, bottom: y + h };
+};
+const FEED_OB =
+  '#area,#run,#prog,#bossbar,#mech,#chase,#pidle,#prac,#wexit,#banner,#ohp,#omp,.bars,#bar,.modesw,#dnav,#pnav,#xp';
+function feedTick(force) {
+  const now = performance.now(),
+    box = $('feed');
+  if (!force && now - FEED.t < 100) return;
+  FEED.t = now;
+  for (const f of FEED.L.slice()) {
+    if (now > f.end + 400) feedDrop(f);
+    else if (now > f.end) f.el.classList.add('out');
+    /* 圖示第一次用到才載：先畫空格，載好了補上 */
+    const e = f.ic && f.el.querySelector('span.ic');
+    if (e && artIconURL(f.ic, 16)) e.outerHTML = icHTML(f.ic, '', 16);
+  }
+  if (!FEED.L.length || G.scene !== 'map') return void (box.hidden = true);
+  /* 位置：直立靠右、從小地圖（觀戰時離開鈕）下緣 + 8 往下；桌機靠左、從追逐橫幅下緣 + 8（沒有時 76）往下。
+     碰到 HUD 就停在它上緣 − 8，放不下就少畫幾列（至少 1 列）；桌機左欄面板開著時不畫 */
+  const t = TOUCH.on,
+    w = t ? 176 : 300,
+    x0 = t ? IW - 12 - w : 16,
+    x1 = x0 + w,
+    rh = t ? 22 : 24;
+  let y = t ? (IDLE.v === 'watch' ? (rectOf($('wexit')) || { bottom: 56 }).bottom : mmRect().bottom) + 8 : 76,
+    y1 = IH - 8,
+    off = 0;
+  if (!t && rectOf($('chase'))) y = rectOf($('chase')).bottom + 8;
+  const ob = [...document.querySelectorAll(FEED_OB + ',.panel')]
+    .map(e => [e, rectOf(e)])
+    .filter(([, r]) => r && r.right > x0 && r.left < x1)
+    .sort((a, b) => a[1].top - b[1].top);
+  for (const [e, r] of ob) {
+    if (r.bottom <= y) continue;
+    if (r.top > y) y1 = Math.min(y1, r.top - 8);
+    else if (e.classList.contains('panel')) off = 1;
+    else y = r.bottom + 8;
+  }
+  box.hidden = !!off;
+  if (off) return;
+  const fit = Math.max(1, Math.floor((y1 - y + 4) / (rh + 4)));
+  FEED.L.forEach((f, i) => f.el.classList.toggle('cut', i >= fit));
+  const s = box.style;
+  s.top = Math.round(y) + 'px';
+  s.left = x0 + 'px';
+  s.width = w + 'px';
 }
 const fmtDur = ms => {
   const m = Math.floor(ms / 60000);
@@ -2061,7 +2246,7 @@ function idleHTML() {
     keys = ['wood', ...GEN_K.filter(k => k !== 'wood' && genOn(k)).map(k => matKey(k, genTier(k))), 'soul'];
   /* 0.5.4（考核 C1、C2）：上面一行本次掛機；中間營地的資源條（跟營地頁同一個元件、一直在跑）；M1-CP.4 下面只放「去營地」（升級只在營地） */
   return `<div class="paper idl">
-    <div class="k row2"><span>本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪${ses.cur ? `・通貨 ${ses.cur} 顆` : ''}${ses.deaths ? `・倒下 ${ses.deaths}` : ''}</span><span>${esc(G.nodeN || '')}・${G.star || 1}★</span></div>
+    <div class="k row2 itop"><span>本次掛機・${fmtDur(Date.now() - ses.t0)}・${ses.rounds} 輪${ses.cur ? `・通貨 ${ses.cur} 顆` : ''}${ses.deaths ? `・倒下 ${ses.deaths}` : ''}</span><span>${esc(G.nodeN || '')}・${G.star || 1}★</span>${idleBtns()}</div>
     <div class="cmtop">${keys.map(k => genBarHTML(k)).join('')}</div>${chaseHTML()}
     <button class="btn pri wide igo" data-a="gocamp">${goCampT()}</button>
     ${pct >= 80 ? `<p class="note"><span class="w">倉庫 ${pct}% 滿・滿了打造出來的直接分解</span></p>` : ''}
@@ -2771,7 +2956,17 @@ function inputInit() {
     else if (PANEL.chase && CHUI.v && (k === 'escape' || (k === 'enter' && CHUI.v === 'swap')))
       e.preventDefault(), wyAct(k === 'enter' ? 'ok' : 'back');
     else if (k === 'escape')
-      G.ask ? act('askno') : TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
+      G.ask
+        ? act('askno')
+        : IDLE.v === 'watch'
+          ? watchOff()
+          : TREE.open
+            ? treeClose()
+            : anyPanel()
+              ? closePanels()
+              : openPanel('set');
+    else if (k === 'x') !$('pidle').hidden && idleSet(IDLE.v === 'mini' ? 'full' : 'mini');
+    else if (k === 'n') idleSet('watch');
     else if (k === 't') homeAsk();
     else if (k === 'c') autoToggle();
     pressFx(k);
@@ -2864,7 +3059,8 @@ function pressFx(key) {
   el.classList.add('hit');
 }
 function act(a, el) {
-  if (a === 'close') closePanels();
+  if (a.startsWith('idle:')) idleSet(a.slice(5));
+  else if (a === 'close') closePanels();
   else if (a === 'home') {
     /* 玩家自己回藏身處（確認卡、死亡卡）：地上的照樣收、刷圖暫停（HUD 上排「繼續刷」再開始） */
     G.ask = 0;

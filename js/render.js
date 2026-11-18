@@ -471,7 +471,7 @@ function draw() {
       CX.fillStyle = vg;
       CX.fillRect(0, 0, W, H);
     }
-    if (G.scene === 'map') drawMinimap(W);
+    if (G.scene === 'map' && (typeof IDLE === 'undefined' || IDLE.v !== 'watch')) drawMinimap(W);
   }
 }
 const RCOL = ['#e8e2d6', '#8ab4ff', '#ffd166'];
