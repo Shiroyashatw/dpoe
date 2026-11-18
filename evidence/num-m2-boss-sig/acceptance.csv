@@ -1,1 +1,7 @@
-boss,scen,winDropPP,killTimeChgPct,deathsDelta,maxNewAvgHitPct,passWin,passKill,passDeaths,passHit,pass
+build,boss,scen,winDropPP,killTimeChgPct,deathsDelta,maxNewAvgHitPct,passWin,passKill,passDeaths,passHit,pass
+L55,taotie,WIRED,0.0,-4.0,0.000,20.9,PASS,PASS,PASS,PASS,PASS
+L55,qiongqi,WIRED,0.0,-1.4,0.000,11.0,PASS,PASS,PASS,PASS,PASS
+L55,taowu,WIRED,0.0,4.3,0.000,24.8,PASS,PASS,PASS,PASS,PASS
+L55,hundun,WIRED,0.0,7.9,0.000,0.0,PASS,PASS,PASS,PASS,PASS
+L55,zhulong,WIRED,0.0,-4.0,0.000,0.0,PASS,PASS,PASS,PASS,PASS
+L70,zhu9,WIRED,0.0,11.6,0.000,19.8,PASS,PASS,PASS,PASS,PASS
