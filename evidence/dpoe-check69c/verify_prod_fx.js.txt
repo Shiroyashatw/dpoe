@@ -1,0 +1,68 @@
+const { chromium } = require('playwright');
+const fs = require('fs'), crypto = require('crypto');
+const OUT = '/home/user/dpoe/evidence/dpoe-check69c';
+const FONT = new Map();
+async function font(r) { const u = r.request().url(); let v = FONT.get(u);
+  if (!v) { const res = await r.fetch(); v = { status: res.status(), headers: res.headers(), body: await res.body() }; FONT.set(u, v); }
+  return r.fulfill(v); }
+const md5 = b => crypto.createHash('md5').update(b).digest('hex').slice(0, 12);
+(async () => {
+  const b = await chromium.launch();
+  const res = {};
+  // 1) sig_* fx
+  { const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+    await ctx.route(/supabase/, r => r.abort()); await ctx.route(/fonts\.(googleapis|gstatic)\.com/, font);
+    const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
+    await p.goto('http://localhost:8000/?test=midgame&seed=7');
+    await p.waitForFunction(() => typeof DBG === 'object' && typeof G === 'object' && G.scene === 'map', null, { timeout: 30000 });
+    await p.waitForFunction(() => Object.keys(FXS).every(k => !k.startsWith('sig_') || fxImg(k).naturalWidth));
+    await p.evaluate(() => { DBG.clear(); DBG.hp(100); });
+    await p.waitForTimeout(500);
+    for (const k of ['none', 'sig_crit', 'sig_lvup', 'sig_beam', 'sig_chase', 'sig_wyapply']) {
+      const r = await p.evaluate(k => {
+        DBG.freeze(); DBG.clear(); G.fx.length = 0; DBG.step(33);
+        const c = document.querySelector('canvas'), x = c.getContext('2d');
+        const a = x.getImageData(0, 0, c.width, c.height).data;
+        const ret = k === 'none' ? null : DBG.fx(k, P.x, P.y - 20);
+        DBG.step(k === 'sig_beam' || k === 'sig_chase' ? 300 : 150);
+        const bb = x.getImageData(0, 0, c.width, c.height).data;
+        let d = 0; for (let i = 0; i < a.length; i += 4) if (a[i] !== bb[i] || a[i + 1] !== bb[i + 1] || a[i + 2] !== bb[i + 2]) d++;
+        return { ret, inFx: G.fx.filter(o => o.n === k).length, diffPx: d };
+      }, k);
+      res['fx_' + k] = r;
+      if (k !== 'none') fs.writeFileSync(`${OUT}/fx-${k}-1280x720.png`, await p.screenshot());
+    }
+    res.fxErrs = errs; await ctx.close(); }
+  // 2) prod: no DBG etc (independent check), both servers
+  for (const [name, port] of [['branch', 8000], ['main', 8001]]) for (const [w, h] of [[390, 844], [1280, 720]]) for (const run of [1, 2]) {
+    const mob = w < 900;
+    const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, ...(mob && { isMobile: true, hasTouch: true }) });
+    await ctx.route(/supabase/, r => r.abort()); await ctx.route(/fonts\.(googleapis|gstatic)\.com/, font);
+    await ctx.addInitScript(() => { let s = 12345; Math.random = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x80000000); });
+    await ctx.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+    const p = await ctx.newPage(); const errs = [], reqs = [];
+    p.on('pageerror', e => errs.push(e.message)); p.on('request', r => reqs.push(r.url()));
+    await p.goto(`http://localhost:${port}/`);
+    await p.waitForLoadState('networkidle');
+    await p.clock.runFor(3000);
+    await p.evaluate(() => document.fonts.ready.then(() => 0));
+    await p.waitForLoadState('networkidle');
+    await p.clock.runFor(2000);
+    await p.mouse.move(-1, -1).catch(() => {});
+    const info = name === 'branch' ? await p.evaluate(() => ({ dbg: typeof DBG, tag: !!document.querySelector('script[src*="dbg.js"]') })) : await p.evaluate(() => ({ dbg: typeof DBG }));
+    const nat = await ctx.newPage(); await nat.goto(`http://localhost:${port}/`); await nat.waitForTimeout(500);
+    const s = await p.screenshot();
+    const f = `${OUT}/prod-${name}-${w}x${h}-${run}.png`; fs.writeFileSync(f, s);
+    res[`prod_${name}_${w}x${h}_${run}`] = { md5: md5(s), ...info, dbgReq: reqs.some(u => /dbg\.js/.test(u)), errs };
+    await ctx.close();
+  }
+  // native check (no fake clock) on branch prod
+  { const ctx = await b.newContext(); await ctx.route(/supabase/, r => r.abort());
+    const p = await ctx.newPage(); const reqs = []; p.on('request', r => reqs.push(r.url()));
+    await p.goto('http://localhost:8000/'); await p.waitForTimeout(2000);
+    res.prodNative = await p.evaluate(() => ({ dbg: typeof DBG, tag: !!document.querySelector('script[src*="dbg.js"]'),
+      pn: /\[native code\]/.test(performance.now.toString()), raf: /\[native code\]/.test(requestAnimationFrame.toString()), mr: /\[native code\]/.test(Math.random.toString()) }));
+    res.prodNative.dbgReq = reqs.some(u => /dbg\.js/.test(u)); await ctx.close(); }
+  console.log(JSON.stringify(res, null, 1));
+  await b.close();
+})();
