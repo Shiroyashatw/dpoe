@@ -1,0 +1,26 @@
+{
+  "round": "r5b",
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "sk_clarity",
+  "seed": 5201,
+  "rerun": 0,
+  "style_image": "sk_hasteaura",
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon in the same pixel art style as the reference icons, an open crescent moon facing right with two small water droplets falling from its lower tip, main colours deep blue and pale cyan with white highlights, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin, no text, no letters, no background, no circular badge, no round frame, no full disc, ring, shield",
+    "seed": 5201,
+    "style_image": "(base64 略)",
+    "style_strength": 40
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

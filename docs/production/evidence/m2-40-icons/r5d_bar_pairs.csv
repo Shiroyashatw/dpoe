@@ -1,0 +1,4 @@
+bar,a,b,iou32,iou16,note
+S,sk_fire-s7222,sk_bloodhowl,0.561,0.632,試跑新圖對同欄集；舊圖之間見 r5_bar_pairs.csv
+S,sk_fire-s7222,sk_shieldcharge,0.633,0.653,試跑新圖對同欄集；舊圖之間見 r5_bar_pairs.csv
+S,sk_gasflask-s7211,sk_smokebomb,0.608,0.626,試跑新圖對同欄集；舊圖之間見 r5_bar_pairs.csv

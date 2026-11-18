@@ -1,0 +1,25 @@
+{
+  "round": "r5c",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_clarity",
+  "seed": 6201,
+  "rerun": 0,
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, an open crescent moon facing right with two small water droplets falling from its lower tip, main colours deep blue and pale cyan with white highlights, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 6201,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, full disc, ring, shield"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

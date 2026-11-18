@@ -1,0 +1,32 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_refract",
+  "seed": 4313,
+  "rerun": 1,
+  "palette": [
+    "--scene-void",
+    "--border-mid",
+    "--tx-strong",
+    "--el-fire",
+    "--el-cold",
+    "--el-light"
+  ],
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, flat front view, one arrow stuck straight down into a short ground strip, three short light rays fanning up from its tail, bold simple shapes readable as a black silhouette at 32 pixels, light from the top-left, 1 pixel transparent margin, 1 pixel black outline, clear negative space, no perspective, no isometric, no 3D, no face, no eyes, no text, no letters, no background, no circular badge, no round frame, no dithering, no gradient, no target, bow, diagonal arrow, thin needle, tiny",
+    "seed": 4313,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

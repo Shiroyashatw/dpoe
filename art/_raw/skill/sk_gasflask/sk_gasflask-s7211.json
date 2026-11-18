@@ -1,0 +1,28 @@
+{
+  "round": "r5d",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_gasflask",
+  "seed": 7211,
+  "rerun": 0,
+  "init_image": "art/_raw/skill/guide/sk_gasflask.png",
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, a small vial at the lower left tipped toward the upper right, a large three-lobed poison cloud billowing out, main colours magenta-pink poison, dark brown glass, bronze tan cork, white highlights, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 7211,
+    "init_image": "(base64 略)",
+    "init_image_strength": 150,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, tornado, skull, round flask in centre"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

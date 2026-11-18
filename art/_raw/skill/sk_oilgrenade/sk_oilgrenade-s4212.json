@@ -1,0 +1,31 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_oilgrenade",
+  "seed": 4212,
+  "rerun": 0,
+  "palette": [
+    "--scene-void",
+    "--warn",
+    "--border-mid",
+    "--panel-inset",
+    "--border"
+  ],
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, flat front view, a wide flat oil puddle along the bottom, a small round pot bouncing above it at the upper left, separated, bold simple shapes readable as a black silhouette at 32 pixels, light from the top-left, 1 pixel transparent margin, 1 pixel black outline, clear negative space, no perspective, no isometric, no 3D, no face, no eyes, no text, no letters, no background, no circular badge, no round frame, no dithering, no gradient, no bomb fuse, flame, centred ball",
+    "seed": 4212,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

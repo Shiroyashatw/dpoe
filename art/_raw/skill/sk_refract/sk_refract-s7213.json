@@ -1,0 +1,28 @@
+{
+  "round": "r5e",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_refract",
+  "seed": 7213,
+  "rerun": 0,
+  "init_image": "art/_raw/skill/guide/sk_refract.png",
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, one arrow stuck straight down into a short ground strip, three short light rays fanning up from its tail, main colours bronze tan and white arrow with orange, pale cyan and pale yellow light, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 7213,
+    "init_image": "(base64 略)",
+    "init_image_strength": 150,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, target, bow, diagonal arrow"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

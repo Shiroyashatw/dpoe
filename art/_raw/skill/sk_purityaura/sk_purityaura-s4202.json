@@ -1,0 +1,31 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_purityaura",
+  "seed": 4202,
+  "rerun": 0,
+  "palette": [
+    "--scene-void",
+    "--el-fire",
+    "--el-cold",
+    "--el-light",
+    "--tx-strong"
+  ],
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, flat front view, three small separate gems in a triangle, joined by thin lines, empty centre, bold simple shapes readable as a black silhouette at 32 pixels, light from the top-left, 1 pixel transparent margin, 1 pixel black outline, clear negative space, no perspective, no isometric, no 3D, no face, no eyes, no text, no letters, no background, no circular badge, no round frame, no dithering, no gradient, no ring, single crystal, disc",
+    "seed": 4202,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

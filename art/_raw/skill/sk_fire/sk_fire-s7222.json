@@ -1,0 +1,28 @@
+{
+  "round": "r5d",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_fire",
+  "seed": 7222,
+  "rerun": 0,
+  "init_image": "art/_raw/skill/guide/sk_fire.png",
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, a fireball on the right with a short straight tail trailing horizontally to the left, main colours orange, olive gold and dark red, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 7222,
+    "init_image": "(base64 略)",
+    "init_image_strength": 150,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, diagonal comet, meteor rock"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

@@ -1,0 +1,23 @@
+id,guide,fill,colors,max_iou,with,second,third,sent
+sk_deadeye,art/_raw/skill/guide/sk_deadeye.png,0.271,10,0.435,sk_smokebomb,0.43 guide:sk_gasflask,0.423 sk_rend,是
+sk_purityaura,art/_raw/skill/guide/sk_purityaura.png,0.373,13,0.472,sk_command,0.46 sk_iceshatter,0.401 sk_decay,是
+sk_staticfield,art/_raw/skill/guide/sk_staticfield.png,0.35,6,0.548,sk_inferno,0.437 guide:sk_ironaura,0.42 sk_hasteaura,是
+sk_summongod,art/_raw/skill/guide/sk_summongod.png,0.404,7,0.429,sk_iceshield,0.374 sk_iceshatter,0.36 sk_inferno,是
+sk_ironaura,art/_raw/skill/guide/sk_ironaura.png,0.431,8,0.533,sk_iceshatter,0.52 sk_iceshield,0.46 sk_inferno,是
+sk_despair,art/_raw/skill/guide/sk_despair.png,0.331,7,0.519,sk_sacrifice,0.513 sk_frostnova,0.489 sk_smokebomb,是
+sk_weaken,art/_raw/skill/guide/sk_weaken.png,0.337,7,0.453,sk_frostnova,0.448 sk_bash,0.446 sk_daunt,是
+sk_holyshield,art/_raw/skill/guide/sk_holyshield.png,0.269,10,0.453,sk_hasteaura,0.439 sk_shieldcharge,0.43 sk_chaosbolt,是
+sk_bloodlust,art/_raw/skill/guide/sk_bloodlust.png,0.357,6,0.549,sk_daunt,0.543 guide:sk_tidepull,0.541 sk_shieldcharge,是
+sk_fireburst,art/_raw/skill/guide/sk_fireburst.png,0.254,7,0.438,sk_poisoncloud,0.438 sk_chaosbolt,0.436 guide:sk_despair,是
+sk_gasflask,art/_raw/skill/guide/sk_gasflask.png,0.362,8,0.542,sk_berserk,0.536 sk_poisoncloud,0.512 sk_bloodhowl,是（重跑 1）
+sk_refract,art/_raw/skill/guide/sk_refract.png,0.355,13,0.496,sk_sacrifice,0.444 guide:sk_oilgrenade,0.415 sk_shadowstep,是
+sk_tidepull,art/_raw/skill/guide/sk_tidepull.png,0.4,7,0.548,sk_shieldcharge,0.548 sk_berserk,0.545 sk_daunt,是
+sk_windflask,art/_raw/skill/guide/sk_windflask.png,0.393,7,0.52,sk_berserk,0.494 sk_poisoncloud,0.462 sk_smokebomb,是
+sk_assassinate,art/_raw/skill/guide/sk_assassinate.png,0.244,10,0.466,guide:sk_meteor,0.464 sk_slash2,0.391 sk_frostchain,是
+sk_combust,art/_raw/skill/guide/sk_combust.png,0.265,12,0.51,sk_rend,0.467 sk_smokebomb,0.454 sk_iceshard,是
+sk_doom,art/_raw/skill/guide/sk_doom.png,0.365,10,0.549,sk_bladestorm,0.535 sk_daunt,0.503 sk_shadowstep,是
+sk_rage,art/_raw/skill/guide/sk_rage.png,0.329,7,0.45,sk_bladestorm,0.442 guide:sk_talisman,0.415 sk_daunt,是
+sk_talisman,art/_raw/skill/guide/sk_talisman.png,0.362,6,0.526,sk_shadowstep,0.515 sk_chaosbolt,0.498 sk_shieldcharge,是
+sk_exorcise,art/_raw/skill/guide/sk_exorcise.png,0.313,10,0.485,sk_sweep,0.474 sk_whirl,0.41 sk_smokebomb,是
+sk_fire,art/_raw/skill/guide/sk_fire.png,0.271,10,0.532,sk_shieldcharge,0.504 sk_poisoncloud,0.504 sk_bloodhowl,是（重跑 1）
+sk_meteor,art/_raw/skill/guide/sk_meteor.png,0.358,10,0.525,sk_shieldcharge,0.525 sk_bladestorm,0.523 sk_poisoncloud,是

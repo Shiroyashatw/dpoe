@@ -1,0 +1,28 @@
+batch,ids,balance_before,balance_after,generations,cumulative_spent
+A1,,未查（無金鑰，停在開跑前）,,0,0
+A0,sk_deadeye-s4224,1055.99,1054.99,1,1
+R1,sk_deadeye-s4324,1054.99,1053.99,1,2
+R1,sk_deadeye-s4424,1053.99,1052.99,1,3
+A1,sk_clarity-s4201 sk_purityaura-s4202 sk_staticfield-s4203 sk_summongod-s4204 sk_ironaura-s4205,1052.99,1047.99,5,8
+A2,sk_despair-s4206 sk_weaken-s4207 sk_holyshield-s4208 sk_bloodlust-s4209 sk_fireburst-s4210,1047.99,1042.99,5,13
+A3,sk_gasflask-s4211 sk_oilgrenade-s4212 sk_refract-s4213 sk_tidepull-s4214 sk_windflask-s4215,1042.99,1037.99,5,18
+A4,sk_assassinate-s4216 sk_combust-s4217 sk_doom-s4218 sk_rage-s4219,1037.99,1033.99,4,22
+A5,sk_talisman-s4220 sk_exorcise-s4221 sk_fire-s4222 sk_meteor-s4223,1033.99,1029.99,4,26
+R2,sk_ironaura-s4305 sk_despair-s4306 sk_weaken-s4307 sk_bloodlust-s4309 sk_fireburst-s4310,1029.99,1024.99,5,31
+R3,sk_refract-s4313 sk_windflask-s4315 sk_assassinate-s4316 sk_combust-s4317,1024.99,1020.99,4,35
+R4,sk_fire-s4322 sk_meteor-s4323,1020.99,1018.99,2,37
+R5,sk_ironaura-s4405 sk_weaken-s4407 sk_fireburst-s4410,1018.99,1015.99,3,40
+r5b-T,sk_fire-s5222 sk_gasflask-s5211 sk_ironaura-s5205 sk_clarity-s5201,1015.99,1011.99,4,4
+r5b-A0A1,sk_deadeye-s5224 sk_purityaura-s5202 sk_staticfield-s5203 sk_summongod-s5204,1011.99,1007.99,4,8
+r5b-R1,sk_deadeye-s5324 sk_staticfield-s5303,1007.99,1005.99,2,10
+r5b-R2,sk_purityaura-s5302 sk_summongod-s5304,1005.99,1003.99,2,12
+r5c-auth,(第 1 步 GET /v2/balance，不算次數),1003.99,1003.99,0,0
+r5c-T,sk_fire-s6222 sk_gasflask-s6211 sk_clarity-s6201,1003.99,1000.99,3,3
+r5d-auth,(第 1 步 GET /v2/balance，不算次數),1000.99,1000.99,0,0
+r5d-T,sk_fire-s7222 sk_gasflask-s7211 sk_oilgrenade-s7212,1000.99,997.99,3,3
+r5e-auth,(第 1 步 GET /v2/balance，不算次數),997.99,997.99,0,0
+r5e-B1,sk_deadeye-s7224 sk_purityaura-s7202 sk_staticfield-s7203 sk_summongod-s7204 sk_ironaura-s7205,997.99,992.99,5,5
+r5e-B2,sk_despair-s7206 sk_weaken-s7207 sk_holyshield-s7208 sk_bloodlust-s7209 sk_fireburst-s7210,992.99,987.99,5,10
+r5e-B3,sk_refract-s7213 sk_tidepull-s7214 sk_windflask-s7215 sk_assassinate-s7216 sk_combust-s7217,987.99,982.99,5,15
+r5e-B4,sk_doom-s7218 sk_rage-s7219 sk_talisman-s7220 sk_exorcise-s7221 sk_meteor-s7223,982.99,977.99,5,20
+r5e-B5,sk_fire-s7322 sk_gasflask-s7311,977.99,975.99,2,22

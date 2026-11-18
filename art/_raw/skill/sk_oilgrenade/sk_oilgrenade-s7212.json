@@ -1,0 +1,28 @@
+{
+  "round": "r5d",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_oilgrenade",
+  "seed": 7212,
+  "rerun": 0,
+  "init_image": "art/_raw/skill/guide/sk_oilgrenade.png",
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, a wide flat oil puddle along the bottom, a small round pot bouncing above it at the upper left, separated, main colours olive gold oil, bronze tan, dark brown and grey-brown, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 7212,
+    "init_image": "(base64 略)",
+    "init_image_strength": 150,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, bomb fuse, flame, centred ball"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

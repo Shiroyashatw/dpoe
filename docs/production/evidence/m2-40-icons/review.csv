@@ -1,0 +1,25 @@
+id,bar,final,tries,gens,hand,result,iou32_max,iou32_with,iou16_max,iou16_with,fill,box_fill,fill16,visual
+sk_deadeye,S,sk_deadeye-s4424h,sk_deadeye-s4224 sk_deadeye-s4324 sk_deadeye-s4424,3,手畫骰點（剪影不變）；上色,過,0.597,sk_bloodhowl,0.597,sk_bloodhowl,0.367,0.499,0.367,原圖骰面空白，手畫骰點；右骰立角、較高，合提示
+sk_clarity,A,sk_clarity-s4201h,sk_clarity-s4201,1,；上色,過,0.418,sk_iceshield,0.472,sk_iceshield,0.355,0.464,0.391,新月＋水滴不明顯；內側兩點像眼睛，UIUX 要看
+sk_purityaura,A,sk_purityaura-s4202h,sk_purityaura-s4202,1,；上色,過,0.55,sk_decay,0.594,sk_decay,0.234,0.574,0.258,三瓣連成一塊，沒有『三顆分開＋細線』，偏離剪影欄
+sk_staticfield,A,sk_staticfield-s4203h,sk_staticfield-s4203,1,；上色,過,0.521,sk_decay,0.534,sk_decay,0.202,0.45,0.215,雲＋閃電，合
+sk_summongod,A,sk_summongod-s4204,sk_summongod-s4204,1,,過,0.459,sk_iceshield,0.507,sk_iceshield,0.305,0.506,0.336,斷開的 C 形鐐銬，合
+sk_ironaura,A,sk_ironaura-s4405m,sk_ironaura-s4205 sk_ironaura-s4305 sk_ironaura-s4405,3,"平移 (-1,0)",過,0.55,sk_iceshield,0.537,sk_iceshield,0.482,0.63,0.539,重跑 2 幾乎照導引圖：平塗盾＋劍尖，細節少，建議手修補明暗
+sk_despair,S,sk_despair-s4306,sk_despair-s4206 sk_despair-s4306,2,,過,0.43,sk_shadowstep,0.495,sk_shadowstep,0.183,0.45,0.223,鉤形斷莖，原圖全黑（內部多半是描邊色），在暗鈕上偏暗
+sk_weaken,S,sk_weaken-s4407,sk_weaken-s4207 sk_weaken-s4307 sk_weaken-s4407,3,,過,0.55,sk_deadeye,0.578,sk_smokebomb,0.406,0.512,0.457,重跑 2 幾乎照導引圖：兩片錯開＋右上菱點，平塗，建議手修補明暗
+sk_holyshield,S,sk_holyshield-s4208,sk_holyshield-s4208,1,,過,0.585,sk_markshot,0.571,sk_shadowstep,0.218,0.539,0.227,小盾＋速度線，但盾面有十字（not 欄要求不要），UIUX 要看
+sk_bloodlust,S,sk_bloodlust-s4309,sk_bloodlust-s4209 sk_bloodlust-s4309,2,,過,0.458,sk_banner,0.5,sk_banner,0.164,0.477,0.172,三道爪痕＋血滴，合
+sk_fireburst,S,sk_fireburst-s4410m,sk_fireburst-s4210 sk_fireburst-s4310 sk_fireburst-s4410,3,"平移 (-2,0)",過,0.571,sk_daunt,0.611,sk_daunt,0.371,0.522,0.406,空心環＋6 道火舌，合；平塗
+sk_gasflask,S,sk_gasflask-s4211h,sk_gasflask-s4211,1,；上色,過,0.573,sk_bolt,0.583,sk_talisman,0.272,0.484,0.277,像一棵樹，看不出小瓶＋毒雲，偏離
+sk_oilgrenade,S,sk_oilgrenade-s4212h,sk_oilgrenade-s4212,1,；上色,過,0.488,sk_windflask,0.545,sk_blastmine,0.17,0.403,0.199,像油燈，油漬與小罐沒分開，偏離
+sk_refract,S,sk_refract-s4313hm,sk_refract-s4213 sk_refract-s4313,2,加粗 1 px＋上色,過,0.543,sk_markshot,0.615,sk_markshot,0.226,0.438,0.246,扭曲的粉色條狀物，看不出插地箭＋光，偏離
+sk_tidepull,S,sk_tidepull-s4214h,sk_tidepull-s4214,1,；上色,過,0.564,sk_sweep,0.628,sk_sweep,0.368,0.481,0.414,內捲螺旋，合
+sk_windflask,S,sk_windflask-s4315h,sk_windflask-s4215 sk_windflask-s4315,2,；上色,過,0.571,sk_meteor,0.654,sk_shadowstep,0.262,0.543,0.34,直立瓶，沒有兩道往右的風線，偏離
+sk_assassinate,S,sk_assassinate-s4216hm,sk_assassinate-s4216 sk_assassinate-s4316,2,"加粗 1 px＋平移 (-1,0)＋上色",過,0.578,sk_rend,0.582,sk_rend,0.212,0.277,0.223,斜刺匕首，柄端準星環不明顯
+sk_combust,S,sk_combust-s4317h,sk_combust-s4217 sk_combust-s4317,2,；上色,過,0.443,sk_windflask,0.455,sk_shadowstep,0.155,0.398,0.168,圓彈＋引信＋火花，合
+sk_doom,S,sk_doom-s4218h,sk_doom-s4218,1,；上色,過,0.483,sk_shadowstep,0.583,sk_banner,0.234,0.42,0.25,三尖冠＋空心環，合
+sk_rage,S,sk_rage-s4219h,sk_rage-s4219,1,；上色,過,0.503,sk_firetotem,0.566,sk_shadowstep,0.237,0.463,0.273,熊掌印，合；裂紋不明顯
+sk_talisman,S,sk_talisman-s4220h,sk_talisman-s4220,1,；上色,過,0.594,sk_shadowstep,0.66,sk_shadowstep,0.293,0.502,0.316,剪紙人形，合
+sk_exorcise,S,sk_exorcise-s4221h,sk_exorcise-s4221,1,；上色,過,0.558,sk_chaosbolt,0.567,sk_banner,0.261,0.411,0.293,整顆寶石＋外圍短光，沒有碎成四片，偏離
+sk_fire,S,sk_fire-s4322m,sk_fire-s4222 sk_fire-s4322,2,"平移 (-1,0)",過,0.576,sk_hasteaura,0.569,sk_assassinate,0.169,0.277,0.176,斜向火羽，不是『水平往左的短尾』，偏離
+sk_meteor,S,sk_meteor-s4323m,sk_meteor-s4223 sk_meteor-s4323,2,"平移 (-1,1)",過,0.598,sk_frosttrap,0.653,sk_windflask,0.289,0.407,0.293,像火盆／燈籠，看不出岩石＋火尾，偏離
