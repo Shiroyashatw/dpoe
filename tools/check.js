@@ -11435,6 +11435,227 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(fr)
   );
 }
+/* M2-34 3a 修正（Art Director 審查 eb6d5f7／PR #72）：(3) sig_beam 柱頂四階淡出、(4) 光柱顏色讀 --rar-* token（ΔE2000 ≤ 2）、(5) 追逐橫幅王印圖補畫、底色不透明 */
+{
+  const rd = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+  /* PNG（8 位元 RGBA、不交錯）解成像素 */
+  const png = f => {
+    const b = fs.readFileSync(path.join(__dirname, '..', f)),
+      idat = [];
+    let w, h;
+    for (let o = 8; o < b.length; ) {
+      const n = b.readUInt32BE(o),
+        t = b.toString('ascii', o + 4, o + 8);
+      if (t === 'IHDR') (w = b.readUInt32BE(o + 8)), (h = b.readUInt32BE(o + 12));
+      if (t === 'IDAT') idat.push(b.subarray(o + 8, o + 8 + n));
+      o += 12 + n;
+    }
+    const raw = require('zlib').inflateSync(Buffer.concat(idat)),
+      st = w * 4,
+      px = Buffer.alloc(st * h);
+    for (let y = 0; y < h; y++) {
+      const f = raw[y * (st + 1)];
+      for (let i = 0; i < st; i++) {
+        const x = raw[y * (st + 1) + 1 + i],
+          a = i >= 4 ? px[y * st + i - 4] : 0,
+          u = y ? px[(y - 1) * st + i] : 0,
+          c = y && i >= 4 ? px[(y - 1) * st + i - 4] : 0,
+          p = a + u - c,
+          pr =
+            Math.abs(p - a) <= Math.abs(p - u) && Math.abs(p - a) <= Math.abs(p - c)
+              ? a
+              : Math.abs(p - u) <= Math.abs(p - c)
+                ? u
+                : c;
+        px[y * st + i] = (x + [0, a, u, (a + u) >> 1, pr][f]) & 255;
+      }
+    }
+    return { w, h, A: (x, y) => px[(y * w + x) * 4 + 3] };
+  };
+  /* (3) 每一幀：柱子（有像素的列）上面 30% 平分四段，alpha 上限 25／50／75／100% */
+  let st;
+  try {
+    const S = vm.runInNewContext(rd('js/fxsig.js').replace('Object.assign(FXS,', '(')),
+      B = S.sig_beam,
+      im = png('img/fx/sig_beam.png');
+    st = Array.from({ length: B.n }, (_, i) => {
+      const ox = (i % B.cols) * B.w,
+        oy = Math.floor(i / B.cols) * B.h,
+        mx = y => Math.max(...Array.from({ length: B.w }, (_, x) => im.A(ox + x, oy + y))),
+        rows = Array.from({ length: B.h }, (_, y) => y).filter(y => mx(y)),
+        top = rows[0],
+        cap = 0.3 * (rows[rows.length - 1] - top + 1),
+        band = [0, 1, 2, 3].map(k => {
+          const ys = rows.filter(y => y >= top + (cap * k) / 4 && y < top + (cap * (k + 1)) / 4);
+          return Math.max(...ys.map(mx));
+        });
+      return band.join('/');
+    });
+  } catch (e) {
+    st = [String(e)];
+  }
+  ok(
+    'M2-34 3a 修正 (3)：sig_beam 每一幀柱頂 30% 分四階 alpha（25／50／75／100%），不再是方頭',
+    st.length === 8 && st.every(s => s === '64/128/191/255'),
+    JSON.stringify(st)
+  );
+  /* (3) 柱頂不出場景：直立開半版面板（cvH 321、ZOOM 0.8125）時，主角腳下的追逐、稀有光柱最高到畫面上緣下 8；sig_beam 與程式畫兩條路都一樣 */
+  const tops = sig => {
+    const top = [],
+      cx = new Proxy(
+        {},
+        {
+          get: (o, k) =>
+            k in o
+              ? o[k]
+              : k === 'createLinearGradient'
+                ? () => ({ addColorStop() {} })
+                : k === 'fillRect'
+                  ? (x, y) => top.push(y)
+                  : k === 'drawImage'
+                    ? (...a) => a.length === 9 && top.push(a[6])
+                    : () => {},
+          set: (o, k, v) => ((o[k] = v), true)
+        }
+      ),
+      c = {
+        Math,
+        String,
+        Object,
+        VER: '0',
+        Image: function () {
+          this.naturalWidth = 96;
+          this.naturalHeight = 384;
+        },
+        document: { createElement: () => ({ getContext: () => new Proxy({}, { get: () => () => {} }) }) }
+      };
+    vm.createContext(c);
+    c.FXS = { sig_beam: { w: 32, h: 128, n: 8, cols: 3, fps: 8, ox: 16, oy: 120 } };
+    vm.runInContext(rd('js/render.js'), c, { filename: 'render.js' });
+    c.CX = cx;
+    vm.runInContext(
+      `ZOOM = 0.8125; var cvH = () => 321, reduced = () => false, getComputedStyle = () => ({ getPropertyValue: () => '1,2,3' }),
+        sigFx = () => ${sig ? "'sig_beam'" : 'undefined'};
+      var G = { t: 9, cam: { x: 460, y: 340 }, drops: [{ chase: 'wangyin_zhenyue', t: 9, x: 420, y: 325, sx: 420, sy: 325 }, { show: 'exalt', t: 9, x: 500, y: 325, sx: 500, sy: 325 }] };
+      drawBeams();`,
+      c
+    );
+    return Math.round(Math.min(...top) - (340 - 321 / 0.8125 / 2));
+  };
+  let bt;
+  try {
+    bt = [tops(0), tops(1)];
+  } catch (e) {
+    bt = [String(e)];
+  }
+  ok(
+    'M2-34 3a 修正 (3)：直立開半版面板時光柱最高到場景上緣下 8（sig_beam、程式畫都不頂出場景）',
+    bt.length === 2 && bt.every(v => v >= 8),
+    JSON.stringify(bt)
+  );
+  /* (4) 光柱色讀 token，不寫死；token 同 PR #68 的名與值；白色柱芯上色後就是 -rgb，跟 hex 的 ΔE2000 ≤ 2 */
+  const css = rd('css/style.css'),
+    rjs = rd('js/render.js'),
+    beams = rjs.slice(rjs.indexOf('function drawBeams'), rjs.indexOf('function drawFront')),
+    tok = n => (css.match(new RegExp(`${n}:\\s*([^;]+);`)) || [])[1],
+    lab = c => {
+      const f = v => ((v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4),
+        [r, g, b] = c.map(f),
+        g3 = t => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116),
+        X = g3((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047),
+        Y = g3(0.2126 * r + 0.7152 * g + 0.0722 * b),
+        Z = g3((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+      return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+    },
+    de00 = (c1, c2) => {
+      const [L1, a1, b1] = lab(c1),
+        [L2, a2, b2] = lab(c2),
+        R = Math.PI / 180,
+        Cb = (Math.hypot(a1, b1) + Math.hypot(a2, b2)) / 2,
+        G = 0.5 * (1 - Math.sqrt(Cb ** 7 / (Cb ** 7 + 25 ** 7))),
+        A1 = (1 + G) * a1,
+        A2 = (1 + G) * a2,
+        C1 = Math.hypot(A1, b1),
+        C2 = Math.hypot(A2, b2),
+        h1 = (Math.atan2(b1, A1) / R + 360) % 360,
+        h2 = (Math.atan2(b2, A2) / R + 360) % 360;
+      let dh = h2 - h1;
+      if (Math.abs(dh) > 180) dh -= 360 * Math.sign(dh);
+      const dH = 2 * Math.sqrt(C1 * C2) * Math.sin((dh / 2) * R),
+        Lb = (L1 + L2) / 2,
+        Cp = (C1 + C2) / 2,
+        hb = Math.abs(h1 - h2) <= 180 ? (h1 + h2) / 2 : (h1 + h2 + 360) / 2,
+        T =
+          1 -
+          0.17 * Math.cos((hb - 30) * R) +
+          0.24 * Math.cos(2 * hb * R) +
+          0.32 * Math.cos((3 * hb + 6) * R) -
+          0.2 * Math.cos((4 * hb - 63) * R),
+        SL = 1 + (0.015 * (Lb - 50) ** 2) / Math.sqrt(20 + (Lb - 50) ** 2),
+        SC = 1 + 0.045 * Cp,
+        SH = 1 + 0.015 * Cp * T,
+        RT = -2 * Math.sin(60 * Math.exp(-(((hb - 275) / 25) ** 2)) * R) * Math.sqrt(Cp ** 7 / (Cp ** 7 + 25 ** 7)),
+        dL = (L2 - L1) / SL,
+        dC = (C2 - C1) / SC,
+        dHs = dH / SH;
+      return Math.sqrt(dL ** 2 + dC ** 2 + dHs ** 2 + RT * dC * dHs);
+    },
+    hex = h => (h ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : [0, 0, 0]),
+    rgb = s => (s ? s.split(',').map(Number) : [0, 0, 0]),
+    de = ['chase', 'rare'].map(k => +de00(rgb(tok(`--rar-${k}-rgb`)), hex(tok(`--rar-${k}`))).toFixed(2));
+  ok(
+    'M2-34 3a 修正 (4)：掉落光柱顏色讀 --rar-chase-rgb／--rar-rare-rgb（不寫死）；token 同 #68：#ff9a4a／255, 154, 74、#ffcf5c／255, 209, 102；上色後跟 --rar-* ΔE2000 ≤ 2',
+    !/255,\s*154,\s*74|255,\s*209,\s*102/.test(beams) &&
+      beams.includes("cssv(d.chase ? '--rar-chase-rgb' : '--rar-rare-rgb')") &&
+      [tok('--rar-chase'), tok('--rar-chase-rgb'), tok('--rar-rare'), tok('--rar-rare-rgb')].join('|') ===
+        '#ff9a4a|255, 154, 74|#ffcf5c|255, 209, 102' &&
+      de.every(v => v <= 2),
+    JSON.stringify({ de, tok: [tok('--rar-chase-rgb'), tok('--rar-rare-rgb')] })
+  );
+  /* (5a) 王印拼條第一次用到才載：橫幅先畫出空 span.ic，圖載好（artRepaint）要補畫橫幅 */
+  const hjs = rd('js/hud.js'),
+    rep = hjs.slice(hjs.indexOf('function artRepaint'), hjs.indexOf('/* 技能列'));
+  let ic;
+  try {
+    const el = { innerHTML: '<span class="cbi"><span class="chf"><span class="ic "></span></span></span>' },
+      c = {
+        CB: { st: 'on' },
+        HV: {},
+        $: id => (id === 'chase' ? el : null),
+        document: {
+          querySelector: q => (q === '#chase span.ic' ? (/span class="ic/.test(el.innerHTML) ? el : null) : null)
+        },
+        setTimeout: f => f(),
+        clearTimeout: () => {},
+        hudPanels: () => {},
+        hudBar: () => {},
+        treeIcons: () => {},
+        chaseBnHTML: () => '<span class="cbi"><span class="chf"><img class="ic " src="x" alt=""></span></span>'
+      };
+    vm.createContext(c);
+    vm.runInContext('let ART_T = 0;' + rep + 'artRepaint();', c);
+    ic = [/<img class="ic/.test(el.innerHTML)];
+    c.CB.st = 'idle';
+    el.innerHTML = 'X<span class="ic "></span>';
+    vm.runInContext('artRepaint();', c);
+    ic.push(el.innerHTML);
+  } catch (e) {
+    ic = [String(e)];
+  }
+  ok(
+    'M2-34 3a 修正 (5)：追逐橫幅的王印圖還沒載好時畫出空格，圖載好（artRepaint）補畫成 <img>；橫幅收起時不動',
+    JSON.stringify(ic) === JSON.stringify([true, 'X<span class="ic "></span>']),
+    JSON.stringify(ic)
+  );
+  /* (5b) 橫幅底色不透明（底下的字不會透上來） */
+  const bnr = tok('--chase-bnr') || '';
+  ok(
+    'M2-34 3a 修正 (5)：#chase 底色 --chase-bnr 不透明（不是 rgba／transparent／8 位 hex）',
+    /background-color: var\(--chase-bnr\)/.test(css.match(/\n#chase \{[^}]*\}/)[0]) &&
+      /^#[0-9a-f]{6}$|^rgb\(\s*\d+,\s*\d+,\s*\d+\s*\)$/i.test(bnr),
+    bnr
+  );
+}
 /* M2-06 戰鬥可讀性（規格 specs/M2-05-combat-readability.md）：傷害數字三段設定與依裝置預設（製作人 11-17 10:42）、合併與上限、升級只剩一種提示 */
 {
   const c = {

@@ -17,6 +17,8 @@ function artRepaint() {
     hudPanels();
     HV.sts = null; /* 圖載好了：狀態列強制重畫（key 不含秒數，不會自己補圖） */
     if (document.querySelector('.sk span.ic')) hudBar();
+    if (CB.st !== 'idle' && document.querySelector('#chase span.ic'))
+      $('chase').innerHTML = chaseBnHTML(); /* 王印圖第一次用到才載，橫幅先畫出空格 */
     treeIcons();
   }, 80);
 }
