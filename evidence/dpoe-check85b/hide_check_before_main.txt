@@ -1,0 +1,13 @@
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: ReferenceError: enterCamp is not defined
+    at eval (eval at evaluate (:370:30), <anonymous>:6:5)
+    at UtilityScript.evaluate (<anonymous>:372:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at /tmp/claude-0/-home-user-dpoe/1fb23b8c-39ed-54cb-8adf-dfb93de2596e/scratchpad/main/tools/hide_check.js:40:11 {
+  log: []
+}
+
+Node.js v22.23.5

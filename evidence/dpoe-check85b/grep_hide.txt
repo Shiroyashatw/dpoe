@@ -1,0 +1,32 @@
+# (a) HEAD f37edf8：grep -rnE "scene *={2,3} *'hide'|enterHideout|homeAsk|stopWhy *={2,3} *'home'" js index.html
+js/main.js:134:  if (o.stopWhy === 'home') o.stopWhy = 'camp';
+(exit 0)
+
+# 對照 origin/main 2845e5a：scene === 'hide' 次數
+origin/main:js/biome.js:1
+origin/main:js/game.js:1
+origin/main:js/hud.js:10
+origin/main:js/main.js:1
+origin/main:js/render.js:6
+origin/main:js/skills.js:2
+origin/main:js/touch.js:1
+
+# 'hide' 其他出現（材料名 hide＝獸皮、全螢幕 navigationUI）
+js/forge.js:383:  for (const m of ['iron', 'hide', 'silk'])
+js/craft.js:184:const SYS_MAT = { armor: 'iron', ev: 'hide', es: 'silk' };
+js/craft.js:190:  if (b.k === 'quiver') return ['hide'];
+js/touch.js:94:  Promise.resolve(rq.call(el, { navigationUI: 'hide' }))
+
+# 回藏身處／藏身處 字樣（js、index.html）
+js/hideout.js:1:/* dungeonPOE · 營地場景（M2-12 起藏身處併入營地，美術沿用）：場景圖（hideart.js，tools/hide_bake.js 烘的）、練習區、稻草人、DPS 統計（0.3.2 起不畫十二神像，點亮的進度 S.idols 照舊） */
+js/forge.js:1:/* dungeonPOE · 鍛造台面板（0.2.72 重做，企劃書 5.3）：藏身處的鍛造台打開（左邊），背包在右邊。
+js/combat.js:2038:/* 抗性：扣完懲罰、上限是最大抗性（藏身處不扣） */
+js/game.js:46:    /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
+js/game.js:62:  /* 昇華（0.2.25）：藏身處的昇華石碑選，S.at 是點過的點（a_st 是起點） */
+js/game.js:156:/* 營地（M2-12：藏身處併入營地）：地層出口的山腹營地。場景圖與座標在 hideart.js（tools/hide_bake.js 產生），碰撞用地圖的格子牆；
+js/intro.js:125:/* 天空：有限色帶＋Bayer 抖色（跟藏身處同一種畫法） */
+js/intro.js:883:/* 播完或跳過：睜開眼，人就在藏身處（0.3.0 起不進序章，proGive 給新手的劍） */
+js/craft.js:639:/* 每一格累加產量（主迴圈叫，藏身處、場地、面板開著都算；離線用同一條公式乘時間）；回這一次加了多少 { 材料鍵: n } */
+js/data.js:5689:/* ---------- 昇華（0.2.25 重做）：不分職業，藏身處的昇華石碑直接選一個（免費換、點數退回），點畫在天賦樹中間挖空的地方 ----------
+js/data.js:6538:/* 0.2.74 第四批：神裔（十二生肖；十二個大點＝十二位神各一條規則改寫，照 Phrecia Polytheist「一個大點一個神」，接藏身處的十二神像；F 特殊結構）。
+js/main.js:133:  /* M2-12：藏身處併入營地。玩家自己回去（刷圖暫停）的旗標 'home' 改叫 'camp'；早期存檔殘留的場景欄位拿掉（場景一律從營地開始） */
