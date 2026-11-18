@@ -2330,7 +2330,9 @@ p.bagno { font: 500 14px/1.4 var(--font); color: var(--milk2); text-align: left;
 /* ================= M2-19 追逐物品的演出（docs/交辦/M2-19-追逐演出.md）：色票 --r4、追逐外框 .chf（雙框＋四角印角）、追逐標記 .chm、
    橫幅 #chase（直立貼半版面板上緣、桌機 top 76 全寬條、手機橫向置中）、掛機卡保底一行、掉落紀錄的追逐列、離線摘要那一列 ================= */
 :root {
-  --r4: #ff9a4a; --r4-hi: #ffc08a; --r4-bg: #3a2214; --r4-glow: rgba(255, 154, 74, 0.35); --chase-bnr: rgba(28, 19, 13, 0.94);
+  --r4: #ff9a4a; --r4-hi: #ffc08a; --r4-bg: #3a2214; --r4-glow: rgba(255, 154, 74, 0.35); --chase-bnr: #1c130d;
+  /* 掉落光柱讀的稀有度色（M2-34 第 0 批 token 收斂同名同值） */
+  --rar-chase: #ff9a4a; --rar-chase-rgb: 255, 154, 74; --rar-rare: #ffcf5c; --rar-rare-rgb: 255, 209, 102;
 }
 .rc4, .chs-t { color: var(--r4); }
 .chf, #chase { position: relative; background: var(--s0); box-shadow: 0 0 0 1px #000, inset 0 0 0 2px var(--r4), inset 0 0 0 3px #120c08, inset 0 0 0 4px rgba(255, 154, 74, 0.45), 0 0 10px var(--r4-glow); }
