@@ -83,14 +83,14 @@ function gdSet(a, g, el, mv) {
   if (!(a.gd && a.gd.t > G.t && a.gd.v > v)) a.gd = { v, el, mv, n: GROUND[g.k].n, t: G.t + 0.2 };
 }
 const GROUND = {
-  jagged: { n: '碎裂地面', col: '#b08a5a', slow: 0.3 },
-  gas: { n: '毒氣雲', col: '#8fd16b', burn: 1 },
+  jagged: { n: '碎裂地面', col: PAL.borderHiV2, slow: 0.3 },
+  gas: { n: '毒氣雲', col: PAL.goodV4, burn: 1 },
   /* 緩速在被油纏身裡（離開還留 2 秒），地面本身不另外緩速 */
-  oil: { n: '油滑地面', col: '#8a6a2a', burn: 1, dur: 6, on: a => (a.oiled = G.t + DEBUFF.oilT) },
-  fire: { n: '燃燒地面', col: '#ff6b3d' },
+  oil: { n: '油滑地面', col: PAL.rarRareBgV3, burn: 1, dur: 6, on: a => (a.oiled = G.t + DEBUFF.oilT) },
+  fire: { n: '燃燒地面', col: PAL.badHiV2 },
   chill: {
     n: '冰緩地面',
-    col: '#8fd6ff',
+    col: PAL.elCold,
     el: 'cold',
     dur: 4,
     on(a, t) {
@@ -102,7 +102,7 @@ const GROUND = {
   /* 0.2.74 汐引留下的鹹水地面（玩家方）：站在上面的敵人冰緩 30%、你的閃電擊中必定感電（a.salt，combat.js 的 applyAil 讀） */
   salt: {
     n: '鹹水地面',
-    col: '#6fd3ff',
+    col: PAL.elColdV3,
     el: 'cold',
     dur: 3,
     on(a) {
@@ -113,12 +113,12 @@ const GROUND = {
       a.chill = { ...c0, v: c0 ? Math.max(c0.v, 30) : 30, t: c0 ? Math.max(c0.t, G.t + 0.5) : G.t + 0.5 };
     }
   },
-  blades: { n: '劍陣', col: '#e8e2d6' },
+  blades: { n: '劍陣', col: PAL.borderCapV1 },
   /* 0.2.55：震地戰吼強化的重擊，原地 0.4 秒後的餘震（skills.js 的 empUse） */
-  aftershock: { n: '餘震', col: '#b08a5a' },
+  aftershock: { n: '餘震', col: PAL.borderHiV2 },
   cons: {
     n: '奉獻地面',
-    col: '#ffe08a',
+    col: PAL.elLightV1,
     ally: 1,
     dur: 6,
     on(a, t, g, dt) {
@@ -129,16 +129,16 @@ const GROUND = {
       else t.hp = Math.min(t.mhp, t.hp + ((t.mhp * (t.boss ? DEBUFF.consBoss : DEBUFF.consHeal)) / 100) * dt);
     }
   },
-  corrupt: { n: '腐化地面', col: '#7a3fa0', dot: 0.6, dur: 6, on: (a, t, g) => gdSet(a, g, 'chaos') },
+  corrupt: { n: '腐化地面', col: PAL.fxMech1, dot: 0.6, dur: 6, on: (a, t, g) => gdSet(a, g, 'chaos') },
   smoke: {
     n: '煙霧',
-    col: '#9aa0a8',
+    col: PAL.dmgMinorV8,
     dur: 6,
     on: a => (a.blind = Math.max(a.blind || 0, G.t + DEBUFF.blindT))
   },
   shockg: {
     n: '感電地面',
-    col: '#ffe14d',
+    col: PAL.elLightV2,
     el: 'light',
     dur: 6,
     on: a => noAil(a, 'shock') || (a.shock = Math.max(a.shock || 0, G.t + DEBUFF.shockGT))
@@ -146,7 +146,7 @@ const GROUND = {
   /* 持續累積易燃（被油纏身 200% 更多），到 50% 點燃 */
   ignited: {
     n: '點燃地面',
-    col: '#ff8a2a',
+    col: PAL.rarChaseV2,
     el: 'fire',
     dot: 0.5,
     dur: 4,
@@ -161,7 +161,7 @@ const GROUND = {
   /* 每秒疊 1 層（a.gwT 是這個目標下一層的時間） */
   wither: {
     n: '凋零地面',
-    col: '#5fae7a',
+    col: PAL.fxMech2,
     dur: 6,
     on(a) {
       if (a.gwT > G.t) return;
@@ -170,10 +170,10 @@ const GROUND = {
     }
   },
   /* 生成時打一次（addGround），之後在裡面移動才受傷 */
-  thorn: { n: '荊棘地面', col: '#a8c24a', dot: 0.4, burst: 1, dur: 6, on: (a, t, g) => gdSet(a, g, 'phys', 1) },
+  thorn: { n: '荊棘地面', col: PAL.goodV5, dot: 0.4, burst: 1, dur: 6, on: (a, t, g) => gdSet(a, g, 'phys', 1) },
   howl: {
     n: '怒號地面',
-    col: '#ff5a8a',
+    col: PAL.fxMech3,
     ally: 1,
     dur: 6,
     on(a, t) {
@@ -233,7 +233,7 @@ function detonate(x, y, r, c) {
 function boomAt(x, y, r, c, mul = 1, el) {
   if (!c) return 0;
   const cc = el ? { ...c, D: { ...c.D, el, tags: [...(c.D.tags || []), 'aoe'] } } : c;
-  fx({ k: 'ring', x, y, r, dur: 0.3, col: el ? ELC[el] : '#fff3d6' });
+  fx({ k: 'ring', x, y, r, dur: 0.3, col: el ? ELC[el] : PAL.catFracV4 });
   let n = 0; /* 回傳打到幾隻（爆炸補給用） */
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r) {
@@ -764,7 +764,7 @@ function drawMech() {
       CX.fill();
       if (!foe) continue;
       CX.globalAlpha = 0.95 * f;
-      CX.strokeStyle = '#ff3b3b';
+      CX.strokeStyle = PAL.badV5;
       CX.lineWidth = 3;
       CX.setLineDash([10, 6]);
       CX.stroke();
@@ -786,7 +786,7 @@ function drawMech() {
   CX.globalAlpha = 1;
   for (const c of G.corpses) {
     CX.globalAlpha = 0.4;
-    CX.fillStyle = '#3a1a14';
+    CX.fillStyle = PAL.rarChaseBgV3;
     CX.beginPath();
     CX.ellipse(c.x, c.y, c.sz * 0.35, c.sz * 0.15, 0, 0, TAU);
     CX.fill();
@@ -797,7 +797,7 @@ function drawMech() {
       y = r.y - 14 + bob;
     CX.globalAlpha = 0.85 + 0.15 * Math.sin(G.t * 6 + r.x);
     CX.fillStyle = ELC[r.el];
-    CX.strokeStyle = 'rgba(255,255,255,0.8)';
+    CX.strokeStyle = `rgba(${PAL.rgb.glint},0.8)`;
     CX.lineWidth = 1.5;
     CX.beginPath();
     CX.moveTo(r.x, y - 10);
@@ -820,7 +820,7 @@ function drawMech() {
       CX.restore();
       continue;
     }
-    CX.fillStyle = n.el ? ELC[n.el] : '#cfd8e3';
+    CX.fillStyle = n.el ? ELC[n.el] : PAL.hlV2;
     CX.beginPath();
     CX.arc(n.x, n.y - 8, 6, 0, TAU);
     CX.fill();
@@ -828,24 +828,24 @@ function drawMech() {
   for (const M of G.mirages) heroCell(0, dirCol(P.face), M.x, M.y, false, 0.45);
   if (G.banner && G.banner.t > G.t) {
     const B = G.banner;
-    CX.strokeStyle = '#ffd166';
+    CX.strokeStyle = PAL.dmgCrit;
     CX.lineWidth = 3;
     CX.beginPath();
     CX.moveTo(B.x, B.y);
     CX.lineTo(B.x, B.y - 60);
     CX.stroke();
-    CX.fillStyle = '#c0392b';
+    CX.fillStyle = PAL.hurtVignetteV1;
     CX.fillRect(B.x, B.y - 60, 22, 14);
     CX.globalAlpha = 0.12;
     CX.beginPath();
     CX.ellipse(B.x, B.y, B.r, B.r * 0.75, 0, 0, TAU);
-    CX.fillStyle = '#ffd166';
+    CX.fillStyle = PAL.dmgCrit;
     CX.fill();
     CX.globalAlpha = 1;
   }
   /* 飛劍：繞著玩家轉 */
   const sw = swordN();
-  CX.strokeStyle = '#e8f4ff';
+  CX.strokeStyle = PAL.hlV6;
   CX.lineWidth = 2;
   for (let i = 0; i < sw; i++) {
     const a = G.t * 3 + (i * TAU) / sw,

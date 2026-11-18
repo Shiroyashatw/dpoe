@@ -1479,6 +1479,7 @@ if (typeof require !== 'undefined' && require.main === module) {
       PT_BAKE: { N: [], E: [] }
     };
   vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(js('palette.js'), 'utf8'), ctx, { filename: 'palette.js' });
   vm.runInContext(fs.readFileSync(js('data.js'), 'utf8'), ctx, { filename: 'data.js' });
   const env = vm.runInContext('({ PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS, PT_FIX })', ctx),
     T = ptreeGen2(env),

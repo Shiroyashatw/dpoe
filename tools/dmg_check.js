@@ -4,6 +4,10 @@
 const fs = require('fs'),
   vm = require('vm'),
   path = require('path');
+/* js/palette.js 在 Node 讀 css/style.css（M2-34-0）：每個 vm 環境都帶 PAL_CSS */
+const PAL_CSS = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8'),
+  vmCtx = vm.createContext;
+vm.createContext = o => vmCtx(Object.assign(o, { PAL_CSS }));
 /* 固定亂數（mulberry32）：同一份程式每次結果一樣，批次前後的數字才比得出差別 */
 let seed = 12345;
 const sMath = Object.create(Math);
@@ -15,7 +19,7 @@ sMath.random = () => {
 };
 const ctx = { console, Math: sMath, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 /* 遊戲裡由 game.js 提供的全域：這裡給最小的替身 */
 vm.runInContext(

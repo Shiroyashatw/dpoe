@@ -5,11 +5,11 @@
 /* 星級：顏色（藍黃紫橘紅）、詞綴數、出現權重（越高越少） */
 const STARS = [
   null,
-  { c: '#8ab4ff', n: [1, 3], w: 34 },
-  { c: '#ffd166', n: [4, 6], w: 30 },
-  { c: '#c38bff', n: [7, 9], w: 20 },
-  { c: '#ff9f43', n: [10, 12], w: 11 },
-  { c: '#ff5a5a', n: [13, 15], w: 5 }
+  { c: PAL.rarMagicV2, n: [1, 3], w: 34 },
+  { c: PAL.rarRareV1, n: [4, 6], w: 30 },
+  { c: PAL.elChaos, n: [7, 9], w: 20 },
+  { c: PAL.asc, n: [10, 12], w: 11 },
+  { c: PAL.dmgHurt, n: [13, 15], w: 5 }
 ];
 /* 地圖詞：d 危險度（1 溫和、2 中等、3 致命；1～2★ 只抽 1～2）、g 同一組只會出一條、fx 效果（G.mm 合計） */
 const MAPMOD = {
@@ -75,33 +75,39 @@ const MOD_REW = [null, [4, 3, 4], [8, 6, 7], [13, 10, 11]];
 /* 命運輪盤（0.2.74 賭徒的大點）：6 種籌碼，每種是強正面＋小代價；進圖時從中抽 2 種（rouletteOf，照地圖卡的種子，開地圖卡時就看得到）。
    fx 進 stats()（items.js，能力鍵都是既有的或 STATN 的），m 進 G.mm（跟地圖詞一樣：掉落與怪物生命）；t 是卡片與狀態列的說明 */
 const ROUL = [
-  { id: 'red', n: '紅', c: '#ff5a5a', t: '造成 30%更多傷害、增加 15% 承受的傷害', fx: { more: 30, takenUp: 15 } },
-  { id: 'black', n: '黑', c: '#aab4c4', t: '承受 30%更少擊中傷害、造成 10%更少傷害', fx: { hitLess: 30, more: -10 } },
+  { id: 'red', n: '紅', c: PAL.dmgHurt, t: '造成 30%更多傷害、增加 15% 承受的傷害', fx: { more: 30, takenUp: 15 } },
+  {
+    id: 'black',
+    n: '黑',
+    c: PAL.dmgMinorV9,
+    t: '承受 30%更少擊中傷害、造成 10%更少傷害',
+    fx: { hitLess: 30, more: -10 }
+  },
   {
     id: 'gold',
     n: '金',
-    c: '#ffd166',
+    c: PAL.rarRareV1,
     t: '增加 60% 找到的物品稀有度、增加 30% 物品數量、怪物增加 20% 生命',
     m: { rar: 60, qty: 30, mhp: 20 }
   },
   {
     id: 'green',
     n: '綠',
-    c: '#6ee06e',
+    c: PAL.goodV6,
     t: '增加 25% 技能速度、增加 20% 移動速度、增加 30% 技能魔力消耗',
     fx: { ss: 25, ms: 20, mpCostUp: 30 }
   },
   {
     id: 'blue',
     n: '藍',
-    c: '#5ad1ff',
+    c: PAL.elColdV4,
     t: '增加 100% 異常機率、增加 50% 異常幅度、減少 30% 異常持續時間',
     fx: { ailCh: 100, ailMag: 50, ignDur: -30, bleedDur: -30, poiDur: -30, chillDur: -30, shockDur: -30 }
   },
   {
     id: 'purple',
     n: '紫',
-    c: '#c38bff',
+    c: PAL.elChaos,
     t: '增加 100% 暴擊率、+50% 暴擊傷害加成、非暴擊的擊中造成 20%更少傷害',
     fx: { critInc: 100, critX: 50, nonCritLess: 20 }
   }
