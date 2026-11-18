@@ -1,0 +1,233 @@
+{
+ "key": "en",
+ "name": "最長英文",
+ "setup": {
+  "進度": "後期，回雪埋古道刷王印",
+  "瞭望台／開到": "Lv18／腐沼渡",
+  "鍛造台・祭壇・斥候營・民房・倉房": "17・9・4・8・5",
+  "林場・礦場・獵場・絲地": "90・100・80・84",
+  "王印（拿過幾種）": "4／4"
+ },
+ "raw": {
+  "角色等級": "Lv 72",
+  "地點名、★ 星級、怪物 Lv": "雪埋古道・5★・怪物 Lv 48；EN「Broken Stele Field · 5★ · Monster Lv 48」（量框：名詞表最長地點「斷碑原 Broken Stele Field」18 字元；本存檔實際地點雪埋古道＝Snowburied Road）",
+  "王名、王血 %、離王進度 %": "EN「Venom Serpent Queen 100%」（量框：名詞表最長王名「毒涎蛇姬 Venom Serpent Queen」19 字元；一般王池最長為 Tiger Granny／Bone Colossus 13）；離王「Boss 99%」",
+  "生命、魔力：現在／上限": "—",
+  "靈魂與各項營地資源（資源列順序：木、鐵、皮、靈絲、靈魂）": "—",
+  "掛機分鐘（含 ≥ 60 分）": "掛機 23 時 59 分；EN「Idle 23h 59m」（名詞表 v0.6.12 時長格式）",
+  "打倒王次數（這次掛機）": "打倒王 599 次；EN「Idle 23h 59m · 599 boss kills」",
+  "下一件保底 %（含 0、未累積、100）": "保底 100%（`--rar-chase`）；EN「Chase pity 100%」，窄區「Pity 100%」",
+  "營地 10 格等級、哪些格還沒出現": "林場 90・礦場 100・獵場 80・絲地 84・鍛造台 17・瞭望台 18・斥候營 4・民房 8・祭壇 9・倉房 5；EN 最長設施名「Hunting Ground」（量框：名詞表最長設施「獵場 Hunting Ground」14 字元；斥候營＝Scout Camp）",
+  "每格費用：需要／現有；建議那座": "—",
+  "下一個目標（名＋進度）": "鍛造台 Lv18・開高階通貨｜82%（靈魂 41,000／50,000；此存檔另有 木 22,000、寒鐵 120）；EN「Next goal: Anvil Lv18 · Higher-tier currency」（設施名照名詞表 Anvil；有解鎖目標的設施裡最長是 Watchtower／Scout Camp／Storehouse 10 字元，獵場等產生器沒有解鎖目標；「Higher-tier currency」是解鎖說明句，名詞表未收）",
+  "倉庫件數／INV_CAP（不寫死 300）": "297／300；EN「Stash almost full: 3 slots left」",
+  "掉落動態佇列（普通／稀有／傳奇／追逐；預設稀有以上）": "普通：轉化石 ×2（EN「Conversion Orb」，被濾掉）｜稀有：完美災魘石 ×1（「Perfect Calamity Orb」，量框：名詞表最長通貨 20 字元；實際只有十殿閻羅掉）、追憶之墨 ×1（「Ink of Remembrance」）",
+  "被濾掉件數（+n 件已收）": "+138 件已收；EN 示意「+138 items collected」",
+  "最近 3 筆稀有以上": "EN（名詞表 v0.6.12）：Perfect Calamity Orb｜Ink of Remembrance｜Boss Seal · 4/4（量框：最長通貨「完美災魘石 Perfect Calamity Orb」20 字元；四個王印的個別 EN 名名詞表未收，先寫 Boss Seal）",
+  "離線時長（< 60 秒／4 分／≥ 10 分）": "11 時 59 分：出離線結算；EN「Away 11h 59m」（名詞表 v0.6.12 時長格式）",
+  "離線結算：打倒王、倒下次數、掉落 3 列、追逐列": "「離開 11 時 59 分」｜「打倒王 296 次・倒下 3 次・靈魂 +21萬」｜破裂石 +13、崇高石 +313、追憶之墨 +4｜「追逐物品 ×6、目前保底 100%」；EN 示意「296 boss kills · 3 deaths」",
+  "營地期間 +N：靈魂、件數、稀有以上、追逐": "EN 示意「While in camp: Boss Seal 1 · Souls +2,336 · 37 items · ◆ 2」（8 分）",
+  "倒下紀錄 ×3：誰、哪一招、傷害、元素；玩家該抗性": "EN（名詞表 v0.6.12）「③ Venom Serpent Queen · Tenfold Wheel −126 (Chaos)」（量框：最長王名「毒涎蛇姬 Venom Serpent Queen」19 字元＋最長王招「十殿輪轉 Tenfold Wheel」13 字元；實際蛇姬不會這招，只拿來量框）",
+  "狀態圖示：增益、減益各幾顆（0／1／8／9+）": "—",
+  "技能 5 招：名、剩幾發／段、冷卻": "5 格全開：EN（名詞表 v0.6.12）Elemental Weakness／Refracting Arrow／Temporal Chains／Lightning Arrow／Stoneskin Flask（量框：名詞表最長的 5 個技能名，元素要害 18、折射箭矢 16、時空鎖鏈 15、閃電箭 15、石膚藥劑 15 字元；不是實際配置）",
+  "假戰場：怪數、投射物數、每秒跳數字數、王出場時間": "—"
+ },
+ "d": {
+  "lv": 72,
+  "area": [
+   "雪埋古道",
+   5,
+   48
+  ],
+  "en": {
+   "area": "Broken Stele Field · 5★ · Monster Lv 48",
+   "boss": "Venom Serpent Queen 100%",
+   "bossName": "Venom Serpent Queen",
+   "prog": "Boss 99%",
+   "idle": "Idle 23h 59m · 599 boss kills",
+   "pity": "Chase pity 100%",
+   "pityShort": "Pity 100%",
+   "fac": "Hunting Ground",
+   "goal": "Next goal: Anvil Lv18 · Higher-tier currency",
+   "stash": "Stash almost full: 3 slots left",
+   "filtered": "+138 items collected",
+   "recent": [
+    "Perfect Calamity Orb",
+    "Ink of Remembrance",
+    "Boss Seal · 4/4"
+   ],
+   "away": "Away 11h 59m",
+   "offSum": "296 boss kills · 3 deaths",
+   "campGain": "While in camp: Boss Seal 1 · Souls +2,336 · 37 items · ◆ 2",
+   "death": "③ Venom Serpent Queen · Tenfold Wheel −126 (Chaos)",
+   "skills": [
+    "Elemental Weakness",
+    "Refracting Arrow",
+    "Temporal Chains",
+    "Lightning Arrow",
+    "Stoneskin Flask"
+   ],
+   "drops": [
+    "Conversion Orb",
+    "Perfect Calamity Orb",
+    "Ink of Remembrance"
+   ]
+  },
+  "boss": {
+   "prog": 99,
+   "name": "毒涎蛇姬",
+   "hp": [
+    100,
+    100
+   ]
+  },
+  "idle": 1439,
+  "kills": 599,
+  "pity": 100,
+  "camp": [
+   [
+    "林場",
+    90
+   ],
+   [
+    "礦場",
+    100
+   ],
+   [
+    "獵場",
+    80
+   ],
+   [
+    "絲地",
+    84
+   ],
+   [
+    "鍛造台",
+    17
+   ],
+   [
+    "瞭望台",
+    18
+   ],
+   [
+    "斥候營",
+    4
+   ],
+   [
+    "民房",
+    8
+   ],
+   [
+    "祭壇",
+    9
+   ],
+   [
+    "倉房",
+    5
+   ]
+  ],
+  "goal": {
+   "name": "鍛造台 Lv18・開高階通貨",
+   "fac": "鍛造台",
+   "pct": 82,
+   "have": 41000,
+   "need": 50000,
+   "res": "靈魂"
+  },
+  "inv": {
+   "free": 3
+  },
+  "drops": {
+   "normal": [
+    [
+     "轉化石",
+     2
+    ]
+   ],
+   "rare": [
+    [
+     "完美災魘石",
+     1
+    ],
+    [
+     "追憶之墨",
+     1
+    ]
+   ],
+   "leg": [],
+   "chase": []
+  },
+  "filtered": 138,
+  "recent": [
+   [
+    "完美災魘石",
+    "rare"
+   ],
+   [
+    "追憶之墨",
+    "rare"
+   ],
+   [
+    "王印 4／4",
+    "chase",
+    "wangyin_guixu_16"
+   ]
+  ],
+  "away": {
+   "kind": "settle",
+   "text": "11 時 59 分"
+  },
+  "off": {
+   "t": "離開 11 時 59 分",
+   "sum": "打倒王 296 次・倒下 3 次・靈魂 +21萬",
+   "rows": [
+    [
+     "破裂石 +13",
+     "rare"
+    ],
+    [
+     "崇高石 +313",
+     "rare"
+    ],
+    [
+     "追憶之墨 +4",
+     "rare"
+    ]
+   ],
+   "chase": "追逐物品 ×6、目前保底 100%",
+   "chaseIc": "wangyin_guixu_16",
+   "next": "鍛造台 Lv18・開高階通貨"
+  },
+  "campGain": {
+   "min": 8,
+   "chase": 1
+  },
+  "deaths": {
+   "rows": [
+    "③ 毒涎蛇姬・十殿輪轉 −126（混沌）"
+   ]
+  },
+  "skills": [
+   {
+    "n": "元素要害",
+    "ic": "sk_elemweak"
+   },
+   {
+    "n": "折射箭矢",
+    "ic": "sk_markshot"
+   },
+   {
+    "n": "時空鎖鏈",
+    "ic": "sk_chaoschain"
+   },
+   {
+    "n": "閃電箭",
+    "ic": "sk_lightarrow"
+   },
+   {
+    "n": "石膚藥劑",
+    "ic": "sk_determination"
+   }
+  ]
+ }
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dpoe D1 展示頁</title>
+<!-- token：demo.js 開頭從遊戲 css/style.css 取出第一段 :root 角色 token 注入（沒有獨立 B2 包；不載遊戲元件樣式，免得類名互撞） -->
+<link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<div id="ctl">
+  <label>尺寸 <select id="c-size"></select></label>
+  <label>存檔 <select id="c-save"></select></label>
+  <label>畫面・狀態 <select id="c-row"></select></label>
+  <button id="c-prev" type="button">‹</button><button id="c-next" type="button">›</button>
+  <label><input type="checkbox" id="c-fs"> 文字 130%</label>
+  <label><input type="checkbox" id="c-en"> 英文 +40%</label>
+  <label><input type="checkbox" id="c-rm"> 減少動態</label>
+  <label>動態 <select id="c-scn"></select></label>
+  <button id="c-play" type="button">播放</button>
+  <div class="note" id="c-note"></div>
+</div>
+<div id="stage"><div id="vpwrap"><div id="vp"><canvas id="cv"></canvas><div id="ui"></div></div></div></div>
+<script src="../../js/art.js"></script>
+<script src="demo.js"></script>
+</body>
+</html>
