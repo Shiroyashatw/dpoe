@@ -5,9 +5,17 @@
 ## 1. 上限與批
 
 - **R5 上限 40 次**（mumi 批准，與 M2-39 的 100 次分開記）。本工項已花從 0 起算。約 1 次／張。
-- 張數：22 列，其中「毒霧藥劑／油榴彈」拆成兩張，實際 **23 張**。首跑 23 次，備用 17 次給 §5 不過的重跑。
-- 每 id 最多重跑 2 次；兩次都不過，改由美術總監手修，不再花生成。
-- 若預算只夠 20 張：先砸 `sk_meteor`、`sk_fire`（次優先最後兩列）。
+- 張數：22 列，其中「毒霧藥劑／油榴彈」拆成兩張，共 **23 張新圖**；另外重畫 **1 張舊圖** `sk_deadeye`（§3.3，UIUX設計師 14:48）。
+- 次數分配（合計永遠 ≤ 40）：
+  - 23 張新圖首跑 23 次。
+  - 17 次備用先拿 1 次給 `sk_deadeye` 首跑，剩 16 次是重跑共用池。
+- 重跑池的順序：
+  1. `sk_deadeye` 的重跑；
+  2. 主清單與拆圖的新圖（§3.1 #1–19）；
+  3. 次優先（#20–23）。
+  同一順位照不過的先後排。
+- 每 id 最多重跑 2 次。重跑池用完、或兩次都不過時，改由美術總監手修，不花生成；手修後一樣要過 §5。
+- 若預算只夠 20 張新圖：先砸 `sk_meteor`、`sk_fire`（次優先最後兩列）。
 - 每批前在雲端 `GET /v2/balance`，把餘額記進 `spend.csv`。**已花＋這批張數 > 40 就停**，回報製作人，不自行追加。
 - 跑前先預覽（不加 `--go`），一次最多 5 張。
 - 只做 32×32。不生成 16；16 是 32 的縮圖檢查（§5）。
@@ -16,12 +24,13 @@
 
 | 批 | 張 | id |
 | --- | --- | --- |
+| A0 舊圖 | 1 | `sk_deadeye`（先跑；後面每批都拿它的新圖來比） |
 | A1 光環 | 5 | `sk_clarity`、`sk_purityaura`、`sk_staticfield`、`sk_summongod`、`sk_ironaura` |
 | A2 詛咒與近身 | 5 | `sk_despair`、`sk_weaken`、`sk_holyshield`、`sk_bloodlust`、`sk_fireburst` |
 | A3 拆圖 | 5 | `sk_gasflask`、`sk_oilgrenade`、`sk_refract`、`sk_tidepull`、`sk_windflask` |
 | A4 武器互斥 | 4 | `sk_assassinate`、`sk_combust`、`sk_doom`、`sk_rage` |
 | A5 次優先 | 4 | `sk_talisman`、`sk_exorcise`、`sk_fire`、`sk_meteor` |
-| R 重跑 | ≤17 | §5 不過的 id，照 §3.2 |
+| R 重跑 | ≤16 | §5 不過的 id，照 §1 順序與 §3.2 |
 
 ## 2. 呼叫方式
 
@@ -122,8 +131,26 @@
 | 22 | 4222 | a fireball on the right with a short straight tail trailing horizontally to the left | diagonal comet, meteor rock |
 | 23 | 4223 | a large angular rock at the lower right with a short wide flame tail toward the upper left | round fireball, long thin tail |
 
+| 24 | 4224 | two dice side by side, the right one tipped up on its corner and higher than the left, a few pips showing | eye, target, shield, face, centred disc |
+
 - 重跑 1：同一個 prompt，把 §5 的撞圖對象寫進 `<not>`。
 - 重跑 2：加 §2.1 的剪影導引圖。
+
+### 3.3 舊圖之間的配對（換上 23 張新圖後重算）
+
+舊圖之間 IoU ≥ 0.75 的配對，換圖後還剩 3 對，都在技能列、都跟 `sk_deadeye`（`allin`，梭哈）有關：
+- `sk_daunt` 0.788
+- `sk_shieldcharge` 0.756
+- `sk_determination` 0.753（現在只留給石膚藥劑）
+
+光環欄沒有 ≥ 0.75 的舊配對，因為堅毅改用新圖。
+
+所以只重畫 `sk_deadeye` 一張（#24，技能列）：
+- 剪影：兩顆骰子並排，右邊那顆用角立起、位置比左邊高。
+- palette：`--scene-void`、`--tx-strong`、`--warn`、`--bad`、`--panel-inset`。
+- 過關門檻跟新圖一樣：對同欄集 < 0.6。
+
+重畫後，舊圖之間最高剩 0.734（`sk_chaosbolt`／`sk_markshot`）。0.6–0.75 的舊配對共 69 對（技能列 61、光環欄 8），只列在 `r5_bar_pairs.csv`，這次不另花預算。
 
 ## 4. 後處理
 
@@ -140,11 +167,13 @@
 - 技能列集：`js/data.js` 裡 `SKILLS` 用到的 `ic`，共 78 枚 `sk_*` 加 `ail_mark`。
 - 光環欄集：`AURAS` 用到的 `ic`，共 18 枚。
 - 這兩集的圖都先換成本批與先前批已過的新圖；要被取代的舊圖不比。
+- 堅毅換新圖後，光環欄不再有 `sk_determination`；它只在技能列（石膚藥劑）。
 - 遮罩：32×32、alpha > 127。IoU＝交集 ÷ 聯集。算法同 r17 評估的 `sil.py`。
 
 | 項 | 量 | 通過 | 不過 |
 | --- | --- | --- | --- |
-| 32 剪影 IoU | 對同欄集每一枚（含其他新圖） | 全部 < 0.6 | 重跑 1，再重跑 2，再手修 |
+| 32 剪影 IoU（新圖與 `sk_deadeye`） | 對同欄集每一枚（含其他新圖） | 全部 < 0.6 | 重跑 1，再重跑 2，再手修 |
+| 舊圖之間 | 同欄集內，兩枚都是沒重畫的舊圖 | < 0.75；0.6–0.75 只列出 | 列入 PR，不重跑 |
 | 拆圖對象 | 新圖對原共用圖；`sk_fireburst` 加比 `sk_iceshatter`；`sk_ironaura` 加比 `sk_determination` | < 0.6 | 同上 |
 | 不是實心塊 | 填滿率＝不透明 ÷ 1024；外框填滿率＝不透明 ÷ 外框面積 | 0.15–0.50；外框 ≤ 0.75 | 重跑 |
 | 16 縮圖 | 32 每 2×2 有 ≥ 2 格不透明就算不透明，取最多的色；對同欄集量 IoU | 填滿率 ≤ 0.6；IoU ≥ 0.6 的列出給 UIUX設計師目視，目視分不開就不過 | 重跑 |
@@ -171,6 +200,23 @@
 - `r5_bar_mock.png`：本批每組撞圖放進 52 與 56 的空白鈕裡並排（彩色＋灰階）。
 - `r5_iou.csv`：每枚新圖對同欄集每一枚的 IoU，32 與 16 都要，附最大值與對象。
 - `r5_bar_pairs.csv`：換圖後同欄集所有 IoU ≥ 0.6 的配對（包括舊圖之間）。
+- `r5_locations.csv`：**每一處受影響的位置**，一處一列：id、檔案:行、用途（技能／光環／狀態列／天賦主題／其他）、改後用哪張圖。用 `git grep` 在 `js/` 全部找，不要只靠下面這份清單。
+
+規則：同一件東西永遠用同一張圖（UIUX設計師 14:48）。重畫的 id 在每一處都換成新圖。拆圖的新 id，原本借用舊圖的狀態列和天賦主題也要一起改。依 `c1cd757`，已知的有：
+- `js/combat.js` 狀態列：
+  - `arcane` 用 `sk_clarity`；
+  - `unholy` 用 `sk_despair`；
+  - `prowess` 用 `sk_talisman`；
+  - `bloodrage` 用 `sk_bloodlust`；
+  - `perfect` 用 `sk_deadeye`；
+  - `herT` 用 `sk_staticfield`；
+  - `fury` 用 `sk_summongod`；
+  - `windflask` 從 `sk_hasteaura` 改 `sk_windflask`。
+- `js/combat.js` 不改的：`stone`、`jade` 仍用 `sk_determination`（石膚藥劑留舊圖）；`onslaught`、`phasing`、`tail`、`sac` 仍用 `sk_hasteaura`；`frozen` 仍用 `sk_frostnova`；`mark` 仍用 `sk_markshot`。
+- `js/data.js` 天賦主題：`sk_rage`（戰吼）、`sk_staticfield`（捷光環）、`sk_doom`（波動）、`sk_fireburst`（榴彈）。
+- `js/data.js` 技能、光環的 `ic`：新 id 6 個——`gasflask`、`oilgrenade`、`refract`、`tidepull`、`windflask`、`iron`。
+
+疾風藥劑狀態用的是藥劑本身的效果，所以跟著藥劑換新圖。猛攻、迷蹤等是迅捷這一類的效果，留在 `sk_hasteaura`。這兩條如果 UIUX設計師要改，就照他的。
 - `review.csv`、`asset_check.csv`、`spend.csv`（已花／上限、每批前餘額）。
 
 結束時在 PR 留一則留言，內容：
@@ -180,11 +226,11 @@
 - 要手修的 id；
 - `r5_bar_pairs.csv` 舊圖之間還剩幾對。
 
+PR 結束留言另外要寫：`r5_locations.csv` 共幾處，以及哪些是「借圖改新 id」的。
+
 挑圖：美術總監先篩，再交 UIUX設計師審可辨識度。定稿後交開發工程師接入：
 - 新 sheet；
 - 改 `js/art.js` 的座標；
 - 新 id 改 `js/data.js` 的 `ic`。
-
-狀態列借圖（`windflask` 狀態、`stone` 狀態等）要不要跟著換，由 UIUX設計師定。
 
 雲端跑；美術總監不開遊戲網頁。
