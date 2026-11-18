@@ -669,7 +669,7 @@ function spawnBoss() {
   b.cd = 1.2;
   fx({ k: 'ring', x: p.x, y: p.y, r: 160, dur: 0.6, col: '#ff6b3d' });
   sfx('boss');
-  hudWarn(b.D.n + '出現了！');
+  /* M2-12 §4：王出現由 #bossbar 的 44 高橫幅「{王名}現身」講，不另外跳字 */
 }
 /* 回藏身處（地圖就結束了） */
 function goHome() {

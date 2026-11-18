@@ -211,7 +211,8 @@ function setT(el, k, v) {
 /* M1-10 視覺：世界停住時，戰鬥區頂列置中一顆「已暫停」（#area／王血條下方 8 px；直立半版時落在上半的戰鬥區） */
 function pausedTick() {
   const el = $('paused'),
-    on = G.scene === 'map' && worldPaused();
+    /* 自動模式倒下（M2-12 §4）用字板講，不出「已暫停」 */
+    on = G.scene === 'map' && worldPaused() && !(G.state === 'dead' && S.auto && G.node);
   if (el.hidden === !on && !on) return;
   el.hidden = !on;
   if (!on) return;
@@ -340,6 +341,9 @@ function hudTick() {
     /* M2-12 §4：先出 44 高橫幅「{王名}現身」800 ms，再 240 ms 縮成王血條（CSS 動畫 bossin） */
     bb.classList.remove('intro');
     if (show) ($('bossn').textContent = b.D.n), void bb.offsetWidth, bb.classList.add('intro');
+    /* 播完（1040 ms）拿掉 intro：「現身」兩字不留在畫面與讀屏上 */
+    clearTimeout(HV.bt);
+    if (show) HV.bt = setTimeout(() => bb.classList.remove('intro'), 1100);
   }
   if (show) setV($('bossbar'), 'bhp', (b.hp / b.mhp).toFixed(3));
   const pr = G.scene === 'map' && !G.bossOut;
@@ -928,7 +932,7 @@ function hudPanels() {
     else if (PANEL.skill || PANEL.stash || PANEL.craft) $('pinv').hidden = true;
   }
   $('pcamp').hidden = !PANEL.camp;
-  if (PANEL.camp) campDrawer(1);
+  if (PANEL.camp) campDrawer();
   $('pmore').hidden = !PANEL.more;
   if (PANEL.more) $('pmore').innerHTML = moreHTML();
   idleBar(1);

@@ -2518,11 +2518,11 @@ body.touch.port #bar { bottom: calc(var(--hb) + 8px); }
 #dnav kbd { position: absolute; right: 3px; bottom: 2px; font: 600 10px var(--font); color: var(--tx-dim); background: none; border: 0; padding: 0; }
 
 /* 掛機條：直立 390×44 貼在分頁上面（y 710–754），點開 200 高蓋在戰場上；桌機左下 380×40，展開 380×200 */
-#pidle { position: fixed; z-index: 10; display: flex; flex-direction: row; gap: 0; padding: 0; align-items: stretch; overflow: hidden; background: var(--s1); border-top: 1px solid var(--fr); color: var(--tx); font: 700 var(--f14) var(--font); pointer-events: auto; transition: height 200ms ease-out; }
+#pidle { position: fixed; z-index: 10; display: flex; flex-direction: row; gap: 0; padding: 0; align-items: stretch; overflow: hidden; background: var(--s1); border-top: 0; box-shadow: inset 0 1px 0 var(--fr); color: var(--tx); font: 700 var(--f14) var(--font); pointer-events: auto; transition: height 200ms ease-out; }
 #pidle[hidden] { display: none; }
 body.touch.port #pidle { left: 0; right: 0; bottom: var(--nav-h); height: 44px; padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left); }
 body.touch.port #pidle.open { height: 200px; }
-body:not(.touch.port) #pidle { left: 16px; right: auto; top: auto; bottom: 16px; width: 380px; height: 40px; max-height: none; padding: 0; border: 1px solid var(--fr); border-radius: 3px; box-shadow: none; animation: none; z-index: 5; }
+body:not(.touch.port) #pidle { left: 16px; right: auto; top: auto; bottom: 16px; width: 380px; height: 40px; max-height: none; padding: 0; border: 0; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--fr); animation: none; z-index: 5; }
 body:not(.touch.port) #pidle.open { height: 200px; }
 @media (prefers-reduced-motion: reduce) { #pidle { transition: opacity 150ms; } }
 #pidle .ib { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0 0 0 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
@@ -2549,7 +2549,8 @@ body:not(.touch.port) #pidle .ix { height: 40px; }
 @media (max-width: 380px) { #pidle .ipb .pb { display: none; } }
 
 /* 下一個目標條（抽屜、掛機條展開、離線結算共用）：字 14＋進度條 4 */
-.goal { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 100%; min-height: 36px; padding: 4px 12px; background: none; border: 0; color: var(--tx); font: 500 var(--f14) var(--font); text-align: left; cursor: pointer; }
+/* 規格寫 36 高；抽屜裡上面緊貼標題列、熱區沒地方外延，直接做 44 高（格子區照樣到 710 為止） */
+.goal { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 100%; min-height: 44px; padding: 4px 12px; background: none; border: 0; color: var(--tx); font: 500 var(--f14) var(--font); text-align: left; cursor: pointer; }
 .goal span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goal .gp { display: block; height: 4px; background: var(--s0); }
 .goal .gp i, #pcamp .cdp i { display: block; height: 100%; background: var(--fr-hi); transform-origin: left; transform: scaleX(0); }
@@ -2568,18 +2569,20 @@ body.touch.port #pcamp > .ph:first-child { margin: 0; }
 #pcamp > .ph b { flex: 1; font: 700 var(--f16) var(--font); }
 #pcamp .cdlook { min-height: 44px; padding: 0 12px; font-size: var(--f14); }
 #pcamp .x { width: 44px; height: 44px; }
-#pcamp .cdg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 4px 4px; }
+/* 直立 380 高：標題 44＋目標 44＋5 列 52（間距 6）＝376，不用捲 */
+#pcamp .cdg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; padding: 2px 4px; }
+body:not(.touch.port) #pcamp .cdg { gap: 8px; padding: 4px; }
 #pcamp .cdc { position: relative; display: flex; align-items: center; min-height: 52px; overflow: hidden; background: var(--panel); border: 1px solid var(--fr); border-radius: 3px; }
 body:not(.touch.port) #pcamp .cdc { min-height: 64px; }
 #pcamp .cdb { flex: 1; min-width: 0; height: 100%; min-height: 48px; display: flex; align-items: center; gap: 6px; padding: 0 4px 4px 6px; background: none; border: 0; color: var(--tx); font: 700 var(--f14)/1.2 var(--font); text-align: left; cursor: pointer; }
 #pcamp .cdb .ic { flex: none; width: 20px; height: 20px; }
-#pcamp .cdb b { font: inherit; }
+#pcamp .cdb b { font: inherit; min-width: 0; overflow-wrap: anywhere; }
 #pcamp .cdb .lv { display: inline-block; white-space: nowrap; }
 #pcamp .stamp:not(.one) { flex: none; width: 44px; height: 44px; margin: 0 4px 4px 0; padding: 0; border-radius: 50%; background: none; border: 2px solid var(--act); color: var(--act); font: 700 18px var(--font); cursor: pointer; }
 #pcamp .stamp.sug { background: var(--act); color: var(--on-act); }
 #pcamp .stamp.off { border-color: var(--tx-off); color: var(--tx-off); }
 #pcamp .stamp:active { background: var(--sel); color: var(--sel-ink); transition: none; }
-#pcamp .cdp { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--s0); }
+#pcamp .cdp { pointer-events: none; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--s0); }
 #pcamp .cdc.up { animation: cdup 300ms cubic-bezier(0.34, 1.56, 0.64, 1); }
 #pcamp .cdc.up .lv { animation: cdflip 100ms ease-out; }
 @keyframes cdup { 0% { transform: scale(1); box-shadow: inset 0 0 0 2px var(--act); } 50% { transform: scale(1.03); box-shadow: inset 0 0 0 2px var(--act); } 100% { transform: scale(1); } }
@@ -2600,7 +2603,7 @@ body:not(.touch.port) #pcamp .cdc { min-height: 64px; }
 #bossbar.intro { animation: bossin 1040ms both; }
 body.touch.port #bossbar.intro { animation-name: bossinp; }
 #bossbar b, #bossbar .bsh { font-style: normal; }
-@keyframes bsh { 0%, 76.92% { opacity: 1; } 77%, 100% { opacity: 0; font-size: 0; } }
+@keyframes bsh { 0%, 76.92% { opacity: 1; font-size: 1em; } 77%, 100% { opacity: 0; font-size: 0; } }
 @keyframes bossin { 0%, 76.92% { transform: translateY(60px); min-height: 44px; background: var(--plate-world); animation-timing-function: ease-out; } }
 @keyframes bossinp { 0%, 76.92% { width: calc(100vw - 24px); min-height: 44px; background: var(--plate-world); animation-timing-function: ease-out; } }
 @media (prefers-reduced-motion: reduce) { #bossbar.intro, #bossbar.intro .bsh { animation-duration: 1ms; } }
@@ -2641,3 +2644,10 @@ body.touch.port.sheet.inmap:not(.sheetfull) #pinv .doll2 .col { gap: 4px; }
 body.touch.port.sheet.inmap:not(.sheetfull) #pinv .eqs { width: 44px; height: 44px; }
 body.touch.port.sheet.inmap:not(.sheetfull) #pinv .eqrow.col { gap: 4px; }
 body.touch.port.sheet.inmap:not(.sheetfull) #pinv > .ph:first-child { margin-bottom: 6px; }
+
+/* 王橫幅與血條在直立的位置（§1.1）：資訊列下面先是王橫幅／血條（x 12–270），掉落動態排在後面 */
+body.touch.port #bossbar { order: 1; width: calc(100% - 112px); }
+body.touch.port #prog { order: 2; }
+body.touch.port #dlog { order: 3; }
+body.touch #poff kbd, body.touch #dplate kbd { display: none; }
+#poff kbd, #dplate kbd { margin-left: 6px; font: 600 11px var(--font); opacity: 0.7; }
