@@ -45,7 +45,8 @@ const URL = process.argv[2] || 'http://localhost:8000/',
       },
       [tab, pre]
     );
-    if (MOB) await p.evaluate(() => navGo('craft'));
+    /* M2-38 起行動版「營地」分頁固定開營地、打造在「鍛造」分頁（開 FSEG 那一段） */
+    if (MOB) await p.evaluate(tab => (tab === 'camp' ? navGo('craft') : ((FSEG = tab), navGo('forge'))), tab);
     else await p.evaluate(() => openPanel('craft'));
   };
   /* 行動尺寸用觸控點（M2-30），桌機用滑鼠 */
