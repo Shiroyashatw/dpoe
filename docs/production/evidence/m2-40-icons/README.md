@@ -1,3 +1,48 @@
+# M2-40 R5d（第 4 輪）技能圖示：試跑沒過，停在 3／25
+
+照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5d，1dd8a0f）。**沒有定稿**，下面 r5c_、r5b_、r5_ 的檔不動。
+
+## 結果
+
+- 端點 `POST /v2/create-image-pixflux`，`init_image`＝上色導引圖（`art/_raw/skill/guide/<id>.png`）、`init_image_strength` 150；**不給 style_image、color_image**。body 照 §2.1，不要的寫 `negative_description`——**端點接受**。種子＝seed0＋3000。後處理不吸色（同 r5c）。
+- 導引圖照 §2.2：位置照剪影欄、每塊用 palette 主色分 3 階（左上亮、中、右下暗）、外緣 1 px `--scene-void`，不是單色實心；填滿率 0.30–0.39。拼圖 `r5d_guide_sheet.png`。
+- **導引圖鎖構圖有效**：3 張都照位置畫（生成圖對導引圖 IoU 0.90–0.93），r5c 的「置中／斜彗星」問題解掉；畫風 3／3 過。
+- 但剪影 IoU 只有 `sk_oilgrenade` 過，**三項都過 1／3，未達 2／3**，照 §1 停下；其餘 20 張與重跑都沒跑。
+
+| stem | 畫風（色數／L* 差） | 意思（對 §3 剪影欄） | IoU32 最大（對象） | 三項 |
+| --- | --- | --- | --- | --- |
+| `sk_fire-s7222` | 過（27／84.3） | 大致對：火球在右、尾巴水平往左；火感弱，火球像斑點圓球 | **0.633 不過**（`sk_shieldcharge`） | 不過 |
+| `sk_gasflask-s7211` | 過（21／75.9） | 對：小瓶左下、瓶口斜往右上、右上三瓣洋紅毒雲 | **0.608 不過**（`sk_smokebomb`） | 不過 |
+| `sk_oilgrenade-s7212` | 過（18／80.9） | 對：底部寬扁油漬、左上小圓罐、分開 | 0.492 過（`sk_sacrifice`） | **過** |
+
+- 不過的原因在導引圖：導引圖本身對同欄集就 0.652（fire 對 `sk_shieldcharge`）、0.596（gasflask 對 `sk_smokebomb`），生成圖照著畫所以跟著撞。`scripts/r5d_guide.py` 已加預檢，畫完就印導引圖對同欄集的最大 IoU；**下一輪導引圖先壓在 0.55 以下再送**。
+- 次數 **3／25**，餘額 1000.99 → 997.99。沒有手修。
+
+## 檔案（本輪）
+
+| 檔 | 內容 |
+| --- | --- |
+| `r5d_guide_sheet.png` | 用到的 3 張導引圖，4x＋1x 拼圖（原檔 `art/_raw/skill/guide/sk_fire.png`、`sk_gasflask.png`、`sk_oilgrenade.png`） |
+| `r5d_32_compare.png` | 3 張：導引圖 4x、彩色 4x＋1x、灰階 4x＋1x、生成原圖 4x、撞圖舊圖 4x、目視 |
+| `r5d_sil.png` | 黑剪影 32（1x、2x）與 16 縮圖（1x、4x），新圖與撞圖並排 |
+| `r5d_bar_mock.png` | 52／56 空白鈕：新圖與撞圖，彩色＋灰階 |
+| `r5d_review.csv` | 每張：量測、negative_description 是否接受、意思、目視；手修欄空 |
+| `r5d_iou.csv` | 每張對同欄集（＋拆圖對象）的 IoU 32／16 |
+| `r5d_bar_pairs.csv` | 試跑新圖在同欄集 IoU32 或 16 ≥ 0.6 的配對（3 對）；舊圖之間見 `r5_bar_pairs.csv` |
+| `r5d_visual_notes.json`、`r5d_state.json` | 目視理由；量測過的 stem（`sk_oilgrenade-s7212`，另 `sk_clarity` 沿用 r5c `s6201`） |
+| `spend.csv` | `r5d-` 開頭兩列是本輪（`r5d-auth` 是第 1 步查餘額，0 次） |
+| `scripts/r5d.py`、`scripts/r5d_guide.py`、`scripts/r5d_evidence.py` | 生成（沿用 r5c 後處理與檢查）；導引圖＋預檢；證據 |
+
+`js/` 沒變，`r5_locations.csv` 仍適用，本輪沒另出 locations。
+
+## 給美術總監的建議
+
+1. 導引圖法可用，續跑前先改兩張導引圖、預檢 < 0.55：`sk_fire` 把火球縮小、尾巴拉長變細（現在的「圓＋錐」跟 `sk_shieldcharge` 的盾＋衝刺線輪廓太像）；`sk_gasflask` 讓雲更大、三瓣分得更開，瓶身更細（`sk_smokebomb` 也是左下圓彈＋右上煙）。
+2. `sk_oilgrenade-s7212` 可當候選。
+3. 預算還剩 22 次（本輪 25），改導引圖後可再試跑 2 張（fire、gasflask 重跑 1），過了再續跑 20 張。
+
+---
+
 # M2-40 R5c（第 3 輪）技能圖示：試跑沒過，停在 3／28
 
 照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5c，cc7b018）。**沒有定稿**，下面 r5b_、r5_ 的檔不動。

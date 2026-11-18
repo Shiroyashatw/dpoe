@@ -18,3 +18,5 @@ r5b-R1,sk_deadeye-s5324 sk_staticfield-s5303,1007.99,1005.99,2,10
 r5b-R2,sk_purityaura-s5302 sk_summongod-s5304,1005.99,1003.99,2,12
 r5c-auth,(第 1 步 GET /v2/balance，不算次數),1003.99,1003.99,0,0
 r5c-T,sk_fire-s6222 sk_gasflask-s6211 sk_clarity-s6201,1003.99,1000.99,3,3
+r5d-auth,(第 1 步 GET /v2/balance，不算次數),1000.99,1000.99,0,0
+r5d-T,sk_fire-s7222 sk_gasflask-s7211 sk_oilgrenade-s7212,1000.99,997.99,3,3
