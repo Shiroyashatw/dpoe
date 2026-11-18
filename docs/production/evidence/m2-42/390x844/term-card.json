@@ -1,0 +1,769 @@
+{
+ "id": "B-Y4",
+ "screen": "term",
+ "state": "card",
+ "viewport": "390x844",
+ "star": 0,
+ "s": 0,
+ "file": "390x844/term-card.png",
+ "v": {
+  "ttip": true,
+  "R": [
+   22,
+   503,
+   280,
+   92
+  ],
+  "W": 390
+ },
+ "checks": {
+  "inside": 1
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     390,
+     321
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     370,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     237,
+     366,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     275,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     788,
+     390,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     345,
+     390,
+     443
+    ]
+   ],
+   "ttip": [
+    [
+     22,
+     503,
+     280,
+     92
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     180,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     306,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     321,
+     390,
+     24
+    ]
+   ]
+  },
+  "vw": 390,
+  "vh": 844,
+  "hit": {
+   "n": 20,
+   "min": [
+    28,
+    22,
+    "#pskill button.term.kw"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32",
+    "#pskill button.term.kw 28x22",
+    "#phand 390x24"
+   ],
+   "nbad": 4,
+   "adj_lt8": 9
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#prog b 12",
+    "#pskill h3.sk-lab 13",
+    "#pskill span 13",
+    "#pskill button.sk-more[calc] 12",
+    "#pskill button.sk-more[aw] 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#ttip p 12"
+   ],
+   "nlt14": 13,
+   "h_lt18": [
+    "#pskill h3.sk-lab 13"
+   ]
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     273,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     289,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     351,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pskill b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     263,
+     357,
+     61,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.soul",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     401,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     304,
+     401,
+     70,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     70,
+     328,
+     194,
+     47
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 18,
+    "w": "700",
+    "s": "#pskill span",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     70,
+     355,
+     194,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     30,
+     394,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     30,
+     410,
+     33,
+     40
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 28,
+    "w": "700",
+    "s": "#pskill b.sk-n",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     30,
+     447,
+     191,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     16,
+     486,
+     350,
+     40
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill p.sk-p.sk-hint",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     16,
+     539,
+     336,
+     22
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill p.sk-p",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     310,
+     539,
+     28,
+     20
+    ],
+    "c": "rgb(154, 166, 255)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button.term.kw",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     16,
+     572,
+     358,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pskill h3.sk-lab",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     330,
+     572,
+     44,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     606,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     625,
+     70,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     281,
+     616,
+     81,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.sk-up",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     663,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     683,
+     70,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     281,
+     673,
+     81,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.sk-up",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     77,
+     721,
+     42,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     77,
+     741,
+     172,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     16,
+     796,
+     66,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pskill button.sk-more[calc]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     16,
+     842,
+     30,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pskill button.sk-more[aw]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     73,
+     689,
+     139,
+     21
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill button.sk-btn.pri[up:seiscry]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     139,
+     690,
+     32,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.soul",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     179,
+     689,
+     34,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.sk-up",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     305,
+     690,
+     42,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill button.sk-btn.sk-sw2[swap]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     24,
+     744,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill button.sk-out[out]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     8,
+     819,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     71,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     182,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     238,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     34,
+     510,
+     29,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#ttip b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     34,
+     534,
+     252,
+     53
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "500",
+    "s": "#ttip p",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pskill div.sk-scroll"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 5220
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81",
+   "#pskill img.ic 1.38"
+  ],
+  "nicon_bad": 3,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": null
+}

@@ -254,6 +254,8 @@ const ROWS = [
     s: 1,
     go: st => {
       U.idle();
+      /* 自動模式不畫技能列（兩尺寸都是），技能格上的數字只有手動看得到：這列改手動 */
+      act('auto:0');
       U.wpn('w_xbow_0');
       U.skSet(1, 'apshot');
       U.skSet(2, 'grenade');
@@ -281,6 +283,8 @@ const ROWS = [
     st: ['gren-full', 'gren-cd'],
     go: st => {
       U.idle();
+      /* 自動模式不畫技能列（兩尺寸都是），技能格上的數字只有手動看得到：這列改手動 */
+      act('auto:0');
       U.wpn('w_xbow_0');
       U.skSet(1, 'apshot');
       U.skSet(2, 'grenade');
@@ -340,6 +344,8 @@ const ROWS = [
     st: ['flask-cd', 'flask-skill'],
     go: st => {
       U.idle();
+      /* 自動模式不畫技能列（兩尺寸都是），技能格上的數字只有手動看得到：這列改手動 */
+      act('auto:0');
       if (st === 'flask-skill') {
         const k = Object.keys(SKILLS).find(k => (SKILLS[k].tags || []).includes('flask'));
         U.skSet(2, k);

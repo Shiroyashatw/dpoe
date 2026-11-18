@@ -1,0 +1,578 @@
+{
+ "id": "A-O6",
+ "screen": "rotate",
+ "state": "prompt",
+ "viewport": "390x844",
+ "star": 0,
+ "s": 0,
+ "file": "390x844/rotate-prompt.png",
+ "v": {
+  "rot": true,
+  "txt": "直立操作：把手機轉直",
+  "orient": "p"
+ },
+ "checks": {},
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     844,
+     148
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     824,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     64,
+     820,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     102,
+     360,
+     28
+    ]
+   ],
+   "pidle": [
+    [
+     0,
+     172,
+     844,
+     162
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     334,
+     844,
+     56
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     634,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     760,
+     44
+    ]
+   ],
+   "rot": [
+    [
+     0,
+     0,
+     844,
+     61
+    ]
+   ]
+  },
+  "vw": 844,
+  "vh": 390,
+  "hit": {
+   "n": 11,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32"
+   ],
+   "nbad": 2,
+   "adj_lt8": 4
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#prog b 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 8,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     301,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     100,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     116,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     16,
+     20,
+     140,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#rott",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     725,
+     20,
+     84,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#rotb",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     24,
+     194,
+     115,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pidle span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     741,
+     194,
+     79,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pidle span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     46,
+     222,
+     14,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     222,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     355,
+     222,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     451,
+     222,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     485,
+     222,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     760,
+     222,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     46,
+     256,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     80,
+     256,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     363,
+     256,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     451,
+     256,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     485,
+     256,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     768,
+     256,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     46,
+     290,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     80,
+     290,
+     25,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     398,
+     347,
+     49,
+     24
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 16,
+    "w": "700",
+    "s": "#pidle button.btn.pri[gocamp]",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     41,
+     365,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     168,
+     365,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     288,
+     365,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     409,
+     365,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     530,
+     365,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     650,
+     365,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     771,
+     365,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pidle"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/bottom": 28700,
+   "top/prog": 18386,
+   "bottom/prog": 18328
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81"
+  ],
+  "nicon_bad": 2,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": "844x390"
+}

@@ -1,0 +1,109 @@
+{
+ "id": "A-I2",
+ "screen": "intro",
+ "state": "march",
+ "viewport": "1280x720",
+ "star": 0,
+ "s": 0,
+ "file": "1280x720/intro-march.png",
+ "v": {
+  "shot": "遠征",
+  "ivs": "人們拋下家園，四處逃難。",
+  "t_in_shot": 0.8
+ },
+ "checks": {
+  "sub_t": "0.80"
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     1280,
+     720
+    ]
+   ],
+   "intro": [
+    [
+     0,
+     0,
+     1280,
+     720
+    ]
+   ]
+  },
+  "vw": 1280,
+  "vh": 720,
+  "hit": {
+   "n": 1,
+   "min": [
+    66,
+    44,
+    "#intro button.btn.ivskip"
+   ],
+   "bad": [],
+   "nbad": 0,
+   "adj_lt8": 0
+  },
+  "fonts": {
+   "min": 14,
+   "lt12": [],
+   "nlt12": 0,
+   "lt14": [],
+   "nlt14": 0,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     1221,
+     24,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#intro button.btn.ivskip",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     490,
+     651,
+     300,
+     35
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 24,
+    "w": "900",
+    "s": "#ivs",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [],
+  "scroll_depth": 0,
+  "overlap": {},
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [],
+  "nicon_bad": 0,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 1,
+ "vw": 1280,
+ "vh": 720,
+ "viewport_override": null
+}

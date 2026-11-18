@@ -83,8 +83,7 @@ const FLOWS = {
     if (!on) await R.tap('#pskill [data-sk="f:推薦"]', '點篩選「推薦」', '推薦清單');
     await R.tap('#pskill [data-sk="pick:lightadd"]', '點「附加閃電」', '展開（I／II、說明、底部「放上」）');
     await R.tap('#pskill [data-sk^="put:"]', '點「放上附加閃電」', '回到這一招，孔裡是附加閃電');
-    const plugged = await p.$('#pskill [data-sk="hole:1"]');
-    await R.tap(plugged, '點有附加閃電的那一孔', '這一孔的詳細');
+    await R.tap('#pskill [data-sk="hole:1"]', '點有附加閃電的那一孔', '這一孔的詳細');
     await R.tap('#pskill [data-sk="unplug"]', '點「卸下」', '孔空了');
     const r = await R.ev(() => S.skills[1].so.join(','));
     return { note: `技能›招›孔›清單 4 層；結束時孔＝[${r}]` };

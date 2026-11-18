@@ -1,0 +1,673 @@
+{
+ "id": "A-O5",
+ "screen": "offline",
+ "state": "chase",
+ "viewport": "1280x720",
+ "star": 0,
+ "s": 0,
+ "file": "1280x720/offline-chase.png",
+ "v": {
+  "title": "離開的時候"
+ },
+ "checks": {},
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     1280,
+     720
+    ]
+   ],
+   "top": [
+    [
+     16,
+     8,
+     684,
+     42
+    ]
+   ],
+   "bottom": [
+    [
+     440,
+     609,
+     400,
+     97
+    ]
+   ],
+   "bars": [
+    [
+     460,
+     609,
+     360,
+     28
+    ]
+   ],
+   "dnav": [
+    [
+     712,
+     10,
+     556,
+     52
+    ]
+   ],
+   "modesw": [
+    [
+     884,
+     656,
+     188,
+     44
+    ]
+   ],
+   "panel": [
+    [
+     380,
+     127,
+     520,
+     467
+    ]
+   ],
+   "prog": [
+    [
+     320,
+     16,
+     360,
+     29
+    ]
+   ],
+   "area": [
+    [
+     16,
+     8,
+     284,
+     28
+    ]
+   ]
+  },
+  "vw": 1280,
+  "vh": 720,
+  "hit": {
+   "n": 13,
+   "min": [
+    44,
+    44,
+    "#preveal button.x[close]"
+   ],
+   "bad": [],
+   "nbad": 0,
+   "adj_lt8": 0
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#prog b 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#preveal p 12",
+    "#preveal b 12",
+    "#preveal b 12",
+    "#preveal b 12",
+    "#preveal p.sub 12"
+   ],
+   "nlt14": 14,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     24,
+     12,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     474,
+     17,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     607,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     623,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     912,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button.on[auto:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     996,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button[auto:0]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1060,
+     670,
+     8,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#hud kbd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     727,
+     38,
+     36,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     873,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     943,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1013,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1083,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1141,
+     38,
+     48,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1223,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     395,
+     137,
+     112,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#preveal b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     407,
+     196,
+     360,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal p",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     434,
+     196,
+     77,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     610,
+     196,
+     21,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     745,
+     196,
+     7,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     513,
+     249,
+     14,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#preveal span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     512,
+     271,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.nroll",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     746,
+     249,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#preveal span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     752,
+     271,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.nroll",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     506,
+     315,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#preveal span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     512,
+     337,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.nroll",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     746,
+     315,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#preveal span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     752,
+     337,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.nroll",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     506,
+     381,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#preveal span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     512,
+     403,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.nroll",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     753,
+     381,
+     14,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#preveal span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     737,
+     403,
+     46,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     407,
+     437,
+     153,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal p.sub",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     441,
+     479,
+     176,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     500,
+     479,
+     22,
+     20
+    ],
+    "c": "rgb(255, 154, 74)",
+    "fs": 14,
+    "w": "900",
+    "s": "#preveal b.rc4",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     868,
+     477,
+     5,
+     24
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 16,
+    "w": "700",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     624,
+     542,
+     33,
+     24
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 16,
+    "w": "700",
+    "s": "#preveal button.btn.pri[close]",
+    "x": false,
+    "key": true
+   }
+  ],
+  "scroll": [],
+  "scroll_depth": 0,
+  "overlap": {
+   "top/prog": 10440
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#preveal img.ic 0.63"
+  ],
+  "nicon_bad": 1,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 1,
+ "vw": 1280,
+ "vh": 720,
+ "viewport_override": null
+}

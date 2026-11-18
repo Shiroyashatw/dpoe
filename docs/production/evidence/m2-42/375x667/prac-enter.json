@@ -1,0 +1,397 @@
+{
+ "id": "B-P8",
+ "screen": "prac",
+ "state": "enter",
+ "viewport": "375x667",
+ "star": 1,
+ "s": 1,
+ "file": "375x667/prac-enter.png",
+ "v": {
+  "in": true,
+  "real": false,
+  "prd": false,
+  "prac": true
+ },
+ "checks": {},
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     375,
+     667
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     355,
+     112
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     487,
+     351,
+     38
+    ]
+   ],
+   "bar": [
+    [
+     0,
+     543,
+     375,
+     56
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     487,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     611,
+     375,
+     56
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     291,
+     44
+    ]
+   ],
+   "run": [
+    [
+     10,
+     64,
+     355,
+     48
+    ]
+   ],
+   "prac": [
+    [
+     8,
+     60,
+     244,
+     98
+    ]
+   ]
+  },
+  "vw": 375,
+  "vh": 667,
+  "hit": {
+   "n": 18,
+   "min": [
+    36,
+    44,
+    "#prac button.btn.mini"
+   ],
+   "bad": [
+    "#prac button.btn.mini 36x44",
+    "#prac button.btn.mini 36x44"
+   ],
+   "nbad": 2,
+   "adj_lt8": 5
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10",
+    "#prm 11"
+   ],
+   "nlt12": 3,
+   "lt14": [
+    "#prac button.btn.mini 12",
+    "#prt 12",
+    "#prac button.btn.mini 12",
+    "#prac button.btn.mini 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 11,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     181,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     26,
+     75,
+     118,
+     24
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 16,
+    "w": "700",
+    "s": "#run button.btn.pri[resume]",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     170,
+     485,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     501,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     22,
+     74,
+     45,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "900",
+    "s": "#prac b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     145,
+     77,
+     93,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#prm",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     36,
+     114,
+     7,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prac button.btn.mini",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     64,
+     114,
+     50,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prt",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     132,
+     114,
+     12,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prac button.btn.mini",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     176,
+     114,
+     48,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prac button.btn.mini",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     7,
+     642,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     121,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     174,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     228,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     282,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     335,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [],
+  "scroll_depth": 0,
+  "overlap": {
+   "top/prac": 15004,
+   "top/run": 17040,
+   "prac/run": 11616
+  },
+  "sk_area": 18352,
+  "sk_block": 1936,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [],
+  "nicon_bad": 0,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 375,
+ "vh": 667,
+ "viewport_override": null
+}

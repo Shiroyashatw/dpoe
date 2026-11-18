@@ -1,0 +1,686 @@
+{
+ "id": "B-S6",
+ "screen": "skill",
+ "state": "pick-sups",
+ "viewport": "375x667",
+ "star": 1,
+ "s": 1,
+ "file": "375x667/skill-pick-sups.png",
+ "v": {
+  "view": "sups",
+  "i": 1,
+  "hole": 2,
+  "f": "{\"sups\":\"推薦\"}",
+  "four": "fireadd,coldadd,lightadd,chaosadd"
+ },
+ "checks": {
+  "rows": 33,
+  "rec_same": 1,
+  "rec": "[\"＝ 沒有變化\",\"＝ 沒有變化\",\"＝ 沒有變化\",\"＝ 沒有變化\",\"＝ 沒有變化\",\"＝ 沒有變化\",\"＝ 沒有變化\",\"＝ 沒有變化\"]",
+  "rec_kinds": 1,
+  "desc_trunc": 28,
+  "chips_scroll": 1,
+  "depth": "總覽›招›孔›清單=4"
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     375,
+     253
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     355,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     169,
+     351,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     207,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     611,
+     375,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     277,
+     375,
+     334
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     165,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     291,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     253,
+     375,
+     24
+    ]
+   ],
+   "paused": [
+    [
+     157,
+     105,
+     61,
+     22
+    ]
+   ]
+  },
+  "vw": 375,
+  "vh": 667,
+  "hit": {
+   "n": 23,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32",
+    "#phand 375x24"
+   ],
+   "nbad": 3,
+   "adj_lt8": 13
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#prog b 12",
+    "#paused 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 9,
+   "h_lt18": []
+  },
+  "trunc": [
+   "#pskill small「被輔助的技能造成 35%更多傷害」",
+   "#pskill small「被輔助的技能 25%更多技能速度」",
+   "#pskill small「被輔助的技能增加 50% 暴擊率」"
+  ],
+  "ntrunc": 3,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     205,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     221,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     168,
+     106,
+     39,
+     19
+    ],
+    "c": "rgb(230, 217, 189)",
+    "fs": 13,
+    "w": "700",
+    "s": "#paused",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     283,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pskill b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     248,
+     289,
+     61,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.soul",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     333,
+     56,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     228,
+     333,
+     131,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     24,
+     377,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button[f:推薦]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     72,
+     377,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button[f:元素]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     120,
+     377,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button[f:通用]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     168,
+     377,
+     70,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button[f:範圍與近戰]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     258,
+     377,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button[f:異常]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     306,
+     377,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button[f:轉換]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     354,
+     377,
+     28,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button.on[f:全部]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     426,
+     56,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     446,
+     172,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     274,
+     436,
+     73,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span.sk-d0",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     496,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     516,
+     200,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     274,
+     506,
+     73,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span.sk-d0",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     566,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     586,
+     200,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     274,
+     576,
+     73,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span.sk-d0",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     636,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     76,
+     656,
+     189,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     274,
+     646,
+     73,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span.sk-d0",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     146,
+     565,
+     84,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill button.sk-btn.pri",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     7,
+     642,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     121,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     174,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     228,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     282,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     335,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pskill div.sk-chips",
+   "#pskill div.sk-scroll.sk-list"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 4785
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81",
+   "#pskill img.ic 1.13"
+  ],
+  "nicon_bad": 6,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 375,
+ "vh": 667,
+ "viewport_override": null
+}

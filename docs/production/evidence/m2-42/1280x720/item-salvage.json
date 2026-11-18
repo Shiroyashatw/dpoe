@@ -1,0 +1,1315 @@
+{
+ "id": "B-E9",
+ "screen": "item",
+ "state": "salvage",
+ "viewport": "1280x720",
+ "star": 0,
+ "s": 0,
+ "file": "1280x720/item-salvage.png",
+ "v": {
+  "btn": true,
+  "confirm": "確定分解？",
+  "main_w": 310,
+  "sal_w": 86
+ },
+ "checks": {
+  "main_w": 310,
+  "sal_w": 86
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     1280,
+     720
+    ]
+   ],
+   "top": [
+    [
+     16,
+     8,
+     684,
+     42
+    ]
+   ],
+   "bottom": [
+    [
+     440,
+     609,
+     400,
+     97
+    ]
+   ],
+   "bars": [
+    [
+     460,
+     609,
+     360,
+     28
+    ]
+   ],
+   "dnav": [
+    [
+     782,
+     10,
+     486,
+     52
+    ]
+   ],
+   "modesw": [
+    [
+     884,
+     656,
+     188,
+     44
+    ]
+   ],
+   "panel": [
+    [
+     788,
+     76,
+     476,
+     486
+    ]
+   ],
+   "prog": [
+    [
+     320,
+     16,
+     360,
+     29
+    ]
+   ],
+   "area": [
+    [
+     16,
+     8,
+     284,
+     28
+    ]
+   ]
+  },
+  "vw": 1280,
+  "vh": 720,
+  "hit": {
+   "n": 46,
+   "min": [
+    36,
+    36,
+    "#pinv button.x.cmpx[selno]"
+   ],
+   "bad": [
+    "#pinv button.chip.on[bagf:all] 34x40",
+    "#pinv button.chip[bagf:weapon] 34x40",
+    "#pinv button.chip[bagf:armor] 34x40",
+    "#pinv button.chip[bagf:acc] 34x40",
+    "#pinv button.chip[bagf:charm] 34x40"
+   ],
+   "nbad": 5,
+   "adj_lt8": 0
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv li.hd 11",
+    "#pinv li.hd 11",
+    "#pinv li.hd 11",
+    "#pinv li.hd 11",
+    "#pinv small 11"
+   ],
+   "nlt12": 24,
+   "lt14": [
+    "#prog b 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#pinv span 12",
+    "#pinv button.chip.on[bagf:all] 13",
+    "#pinv button.chip[bagf:weapon] 13",
+    "#pinv button.chip[bagf:armor] 13",
+    "#pinv button.chip[bagf:acc] 13",
+    "#pinv button.chip[bagf:charm] 13",
+    "#pinv button.chip.sort[bagoc] 13",
+    "#pinv i.bs.fr 12",
+    "#pinv span.qq 12",
+    "#pinv b.cold 13",
+    "#pinv b.fire 13",
+    "#pinv b 13",
+    "#pinv b 13",
+    "#pinv b 13",
+    "#pinv span.sub 12",
+    "#pinv span.qq 12",
+    "#pinv b 13",
+    "#pinv b.light 13",
+    "#pinv b 13",
+    "#pinv b 13",
+    "#pinv b 13"
+   ],
+   "nlt14": 29,
+   "h_lt18": []
+  },
+  "trunc": [
+   "#pinv span.sub「身上・鋒利天珠戒・抗腐」"
+  ],
+  "ntrunc": 1,
+  "text": [
+   {
+    "r": [
+     24,
+     12,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     474,
+     17,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     607,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     623,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     912,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button.on[auto:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     996,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button[auto:0]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1060,
+     670,
+     8,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#hud kbd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     797,
+     38,
+     36,
+     17
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     873,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     943,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1013,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1083,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1153,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1223,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     86,
+     67,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pinv b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     880,
+     97,
+     87,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     903,
+     148,
+     26,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv button.chip.on[bagf:all]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     945,
+     148,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv button.chip[bagf:weapon]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     987,
+     148,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv button.chip[bagf:armor]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1029,
+     148,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv button.chip[bagf:acc]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1071,
+     148,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv button.chip[bagf:charm]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1113,
+     148,
+     35,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv button.chip.sort[bagoc]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     845,
+     224,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     907,
+     223,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     971,
+     223,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1101,
+     223,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1166,
+     223,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     842,
+     288,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     910,
+     289,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1036,
+     288,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1101,
+     288,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1231,
+     288,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     842,
+     353,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     971,
+     353,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1036,
+     353,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1131,
+     311,
+     12,
+     17
+    ],
+    "c": "rgb(241, 235, 220)",
+    "fs": 12,
+    "w": "900",
+    "s": "#pinv i.bs.fr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1166,
+     353,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1231,
+     353,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     907,
+     418,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     974,
+     419,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     851,
+     220,
+     120,
+     21
+    ],
+    "c": "rgb(255, 207, 92)",
+    "fs": 15,
+    "w": "900",
+    "s": "#pinv span.name.rc2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     979,
+     222,
+     25,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv span.qq",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     815,
+     258,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     845,
+     258,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     815,
+     277,
+     93,
+     19
+    ],
+    "c": "rgb(143, 214, 255)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b.cold",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     912,
+     278,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     815,
+     297,
+     93,
+     19
+    ],
+    "c": "rgb(255, 138, 76)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b.fire",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     912,
+     298,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     815,
+     322,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     845,
+     322,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     815,
+     341,
+     52,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     871,
+     342,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     815,
+     361,
+     112,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     931,
+     362,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     815,
+     382,
+     103,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     922,
+     383,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1075,
+     222,
+     132,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv span.sub",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1212,
+     222,
+     25,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv span.qq",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1039,
+     258,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1069,
+     258,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1039,
+     277,
+     93,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1135,
+     278,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1039,
+     297,
+     93,
+     19
+    ],
+    "c": "rgb(255, 224, 102)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b.light",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1135,
+     298,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1039,
+     322,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1069,
+     322,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1039,
+     341,
+     90,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1133,
+     342,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1039,
+     361,
+     112,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1154,
+     362,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1039,
+     382,
+     52,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1094,
+     383,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     424,
+     56,
+     20
+    ],
+    "c": "rgb(240, 106, 80)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv span.c-bad",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     875,
+     424,
+     56,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv span.c-good",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     819,
+     458,
+     278,
+     36
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 16,
+    "w": "700",
+    "s": "#pinv button.btn.pri[selmove]",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     896,
+     478,
+     125,
+     16
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 11,
+    "w": "400",
+    "s": "#pinv small",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     1138,
+     467,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv button.btn[seltip]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1206,
+     467,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv button.btn[sellock]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     811,
+     509,
+     70,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv button.dlink2.arm[selsell]",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pinv"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 10440
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#pinv img.ic 1.07",
+   "#pinv img.ic 0.88"
+  ],
+  "nicon_bad": 27,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 1,
+ "vw": 1280,
+ "vh": 720,
+ "viewport_override": null
+}

@@ -360,6 +360,9 @@ S = []
 S.append(f'# M2-42 全頁 UI/UX 體檢截圖（{T}）\n')
 S.append(f"遊戲 commit `{COMMIT}`（main），執行 {man.get('run_at', '')}（台北時間）。清單：`specs/M2-42-ux-audit-checklist.md`、`-b.md` @ `{man.get('checklist_commit', '')}`。流程：`specs/visual-review-protocol.md`。\n")
 S.append(f"第一輪 154 列 × 2 尺寸 = {sum(cnt.values())} 筆：過 {cnt.get('pass', 0)}、沒過 {cnt.get('fail', 0)}、卡住 {cnt.get('blocked', 0)}、n/a {cnt.get('n/a', 0)}。\n")
+tot = sum(os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(ROOT) for f in fs)
+mp4 = [os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(ROOT) for f in fs if f.endswith('.mp4')]
+S.append(f"證據共 {tot / 1e6:.0f} MB（超過流程 §7 建議的 80 MB）：靜態圖要逐像素量測與比對，沒有壓縮或縮圖；影片 {len(mp4)} 支、最大 {max(mp4) / 1e6 if mp4 else 0:.1f} MB（都 ≤ 3 MB），單檔都遠小於 GitHub 100 MB。\n")
 S.append('「沒過」幾乎都是 UX 預篩（PF3／PF10–PF16）抓到的現行問題；這是體檢，PF1／PF2 過的 ★ 圖照樣列在「給美術總監看」。狀態都照清單用 `?test=midgame&seed=42&dbg=1`、全域函式與 `DBG.*` 做，AUDIT 補丁只在截圖工具裡注入（`tools/m2_42_page.js`）。\n')
 S.append('## 每列結果\n\n| ID | 畫面－狀態 | 390×844 | 1280×720 | 重點數字 |\n| --- | --- | --- | --- | --- |')
 icon = {'pass': '✅', 'fail': '❌', 'blocked': '⛔', 'n/a': 'n/a'}
@@ -428,7 +431,7 @@ for rid in ('A-D1', 'A-D2', 'A-D3', 'A-D4'):
             S.append(f"| {rid} {k[1]} | {vp} | {v.get('G_t')}／{v.get('G_night')}／{v.get('G_fog')} | {c.get('L_beam', '')} | {c.get('L_bar', '')} | {c.get('L_num-near', '')} | {c.get('L_num-far', '')} | {c.get('L_near_minus_far', '')} | {c.get('L_ground', '')} | {cr} |")
 # 流程點擊紀錄
 S.append('\n## 流程點擊紀錄\n')
-for vp in VPS:
+for vp in VPS + ['375x667']:
     S.append(f'\n### {vp}\n\n| 流程 | 尺寸 | 步驟（動作 → 畫面） | 點擊或按鍵次數 | 層數或備註 |\n| --- | --- | --- | --- | --- |')
     for fl in [f for f in flows if f['viewport'] == vp]:
         S.append(f"| {fl['flow']} | {vp} | {' → '.join(fl['steps'])} | {fl['clicks']} | {fl['note']}{' · [影片](' + fl['video'] + ')' if fl.get('video') else ''} |")

@@ -1,0 +1,345 @@
+{
+ "id": "A-H6",
+ "screen": "combat",
+ "state": "flask-skill",
+ "viewport": "390x844",
+ "star": 0,
+ "s": 0,
+ "file": "390x844/combat-flask-skill.png",
+ "v": {
+  "k": "gasflask",
+  "flask": 2.4800000000000004
+ },
+ "checks": {
+  "sk_num": "\"2\"",
+  "sk_text": "\"2\""
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     390,
+     844
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     370,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     626,
+     366,
+     76
+    ]
+   ],
+   "bar": [
+    [
+     0,
+     720,
+     390,
+     56
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     664,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     788,
+     390,
+     56
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     180,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     306,
+     44
+    ]
+   ]
+  },
+  "vw": 390,
+  "vh": 844,
+  "hit": {
+   "n": 17,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32"
+   ],
+   "nbad": 2,
+   "adj_lt8": 5
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#prog b 12",
+    "#bar em.use 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 9,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     662,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     678,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     94,
+     735,
+     11,
+     26
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 18,
+    "w": "700",
+    "s": "#bar u",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     158,
+     735,
+     11,
+     26
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 18,
+    "w": "700",
+    "s": "#bar u",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     183,
+     607,
+     24,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#bar em.use",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     8,
+     819,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     71,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     182,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     238,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [],
+  "scroll_depth": 0,
+  "overlap": {
+   "top/prog": 5220
+  },
+  "sk_area": 22224,
+  "sk_block": 2112,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81"
+  ],
+  "nicon_bad": 2,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": null
+}

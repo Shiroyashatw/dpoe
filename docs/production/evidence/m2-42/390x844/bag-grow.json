@@ -1,0 +1,945 @@
+{
+ "id": "B-E7",
+ "screen": "bag",
+ "state": "grow",
+ "viewport": "390x844",
+ "star": 0,
+ "s": 0,
+ "file": "390x844/bag-grow.png",
+ "v": {
+  "items": 200,
+  "shown": 56
+ },
+ "checks": {
+  "schint": 0,
+  "more_btn": "\"再顯示 56 件（共 200）\""
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     390,
+     321
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     370,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     237,
+     366,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     275,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     788,
+     390,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     345,
+     390,
+     443
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     180,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     306,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     321,
+     390,
+     24
+    ]
+   ]
+  },
+  "vw": 390,
+  "vh": 844,
+  "hit": {
+   "n": 72,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32",
+    "#phand 390x24"
+   ],
+   "nbad": 3,
+   "adj_lt8": 52
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr 10"
+   ],
+   "nlt12": 42,
+   "lt14": [
+    "#prog b 12",
+    "#pinv span 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 9,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     273,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     289,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     351,
+     67,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pinv b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     85,
+     358,
+     93,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     135,
+     3,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     214,
+     4,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     362,
+     3,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     62,
+     79,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     211,
+     78,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     289,
+     79,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     59,
+     154,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     138,
+     155,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     289,
+     155,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     365,
+     155,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     135,
+     230,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     214,
+     231,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     362,
+     230,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     59,
+     305,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     211,
+     305,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     286,
+     305,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     59,
+     381,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     135,
+     381,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     289,
+     382,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     362,
+     381,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     135,
+     456,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     214,
+     457,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     362,
+     456,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     59,
+     532,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     211,
+     532,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     289,
+     533,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     62,
+     609,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     138,
+     609,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     286,
+     608,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     365,
+     609,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     138,
+     684,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     214,
+     684,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     365,
+     684,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     62,
+     760,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     211,
+     759,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     289,
+     760,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     59,
+     835,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     138,
+     836,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     289,
+     836,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     362,
+     835,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     91,
+     740,
+     208,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv button.btn[bagsell]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     8,
+     819,
+     39,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     71,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     182,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     238,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pinv"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 5220
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81",
+   "#pinv img.ic 1.27"
+  ],
+  "nicon_bad": 62,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": null
+}
