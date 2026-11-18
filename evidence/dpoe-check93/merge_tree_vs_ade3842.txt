@@ -1,0 +1,10 @@
+b47d00ff925ebbd9b698d77a1e7bb44d2439121d
+CHANGELOG.md
+docs/production/CHANGELOG.md
+
+Auto-merging CHANGELOG.md
+CONFLICT (content): Merge conflict in CHANGELOG.md
+Auto-merging css/style.css
+Auto-merging docs/production/CHANGELOG.md
+CONFLICT (content): Merge conflict in docs/production/CHANGELOG.md
+Auto-merging js/forge.js
