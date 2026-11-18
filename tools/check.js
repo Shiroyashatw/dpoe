@@ -4146,6 +4146,37 @@ const ASC_COMBOS = `const combos = k => {
       return '';
     })()`) === ''
   );
+  {
+    const e =
+      (R(
+        fs
+          .readFileSync(path.join(__dirname, '..', 'js', 'forge.js'), 'utf8')
+          .match(/^function trade(List|Do)\([^]*?^\}$/gm)
+          .join('\n')
+      ),
+      R(`(() => {
+      const m0 = S.mat, c0 = S.camp; S.camp = newCamp(); S.mat = newMat();
+      const fill = () => { S.mat = newMat(); for (let T = 1; T <= 6; T++) matAdd('iron', T, 5); };
+      const at = cap => { for (let w = 0; w <= 26; w++) { S.camp.watch = w; if (tierCap() === cap) return 1; } return 0; };
+      const lk = () => tradeList().filter(x => x.g[0] === 'iron').map(x => x.g[1] + (x.why ? 'x' : 'o')).join();
+      let e = '';
+      fill(); if (!at(1)) e = 'noT1'; else if (lk() !== '1x,2x,3x,4x,5x') e = 'T1 ' + lk();
+      else if (tradeList()[0].why !== '瞭望台開到更深的地點才能換' + matName('iron', 2)) e = 'why ' + tradeList()[0].why;
+      else if (tradeDo('0') === null || matN('iron', 1) !== 5 || matN('iron', 2) !== 5) e = 'do1';
+      fill(); if (!e && !at(2)) e = 'noT2'; else if (!e && lk() !== '1o,2x,3x,4x,5x') e = 'T2 ' + lk();
+      else if (!e && (tradeDo('1') === null || matN('iron', 2) !== 5 || matN('iron', 3) !== 5)) e = 'do2';
+      else if (!e && (tradeDo('0') !== null || matN('iron', 1) !== 0 || matN('iron', 2) !== 6)) e = 'ok2';
+      fill(); if (!e && !at(6)) e = 'noT6'; else if (!e && lk() !== '1o,2o,3o,4o,5o') e = 'T6 ' + lk();
+      else if (!e && (tradeDo('4') !== null || matN('iron', 6) !== 6)) e = 'ok6';
+      S.mat = m0; S.camp = c0;
+      return e;
+    })()`));
+    ok(
+      '倉房商會 5 換 1（M2-trade-tiercap）：換出階 T+1 ≤ tierCap()；tierCap=T1 時 T1→T2 鎖住、T2 時 T1→T2 能換 T2→T3 鎖住、T6 時全部能換；tradeDo 對鎖住的選項不扣材料也不給產出；說明文字照規格',
+      e === '',
+      e
+    );
+  }
   ok(
     'M1 材料顯示名：iron:1＝生鐵、hide:6＝神獸革、silk:3＝彩絲、木＝木；內部鍵仍是 iron:1、MATS.iron.n 仍是鐵',
     R(
@@ -11266,7 +11297,10 @@ const ASC_COMBOS = `const combos = k => {
             get: (o, k) =>
               k in o
                 ? o[k]
-                : (...a) => (log.push([k, a[0] && a[0].src, a[1], a[2]]), k === 'createPattern' ? {} : undefined),
+                : (...a) => (
+                    log.push([k, a[0] && a[0].src, a[1], a[2]]),
+                    k === 'createPattern' ? {} : k === 'getTransform' ? { a: 1, d: 1, e: 0, f: 0 } : undefined
+                  ),
             set: (o, k, v) => ((o[k] = v), true)
           }
         ),
