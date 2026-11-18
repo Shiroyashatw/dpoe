@@ -1,3 +1,67 @@
+# M2-40 R5e（第 5 輪）技能圖示：續跑 22／22 次，17 張候選、7 張待手修
+
+照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5e，a8cef7c）。**還沒定稿、沒接入遊戲**（`js/`、`css/`、`index.html` 沒動）。r5_／r5b_／r5c_／r5d_ 的舊檔都沒動。
+
+## 做法
+
+- 生成跟 R5d 一樣：`POST /v2/create-image-pixflux`，`init_image` 用上色導引圖、`init_image_strength` 150，不給 style_image／color_image，不要的寫進 `negative_description`（端點有收）。種子是 seed0＋3000；`sk_fire`、`sk_gasflask` 是重跑 1，再＋100，`<not>` 加了撞圖對象（`r5e_rerun_not.json`）。`sk_fire` 的主色改寫成白黃核心、橘、紅外緣，`<not>` 加了 pink、brown、stone、egg。
+- 導引圖照 §2.2 畫：位置照剪影欄，每塊用 palette 主色分 3 階，外緣 1 px `--scene-void`。`sk_fire` 用三階 hex（白黃→橘→紅），因為 `--el-fire` 本身偏粉。**22 張都先預檢，同欄集 IoU < 0.55 才送出**；比對的對象包含沒被取代的舊圖、已過的新圖、拆圖對象，以及本輪其他導引圖。預檢最高 0.549，最低 0.429（`r5e_guide_precheck.csv`、`r5e_guide_sheet.png`）。預檢不過的導引圖先改圖，沒有花任何次數。
+- 次數 **22／22**，餘額 997.99 → 975.99（`spend.csv` 的 `r5e-` 列）。我沒有手修。
+- 最終 IoU 拿 24 張新圖互比，量測不過、待手修的新圖也算在內。新圖相關的配對沒有任何一對 IoU32 ≥ 0.6。
+
+## 各張判定（畫風＝§5 色數 ≥ 8 且 L* 差 ≥ 35；意思＝對照 §3 剪影欄；IoU＝32 剪影對同欄集最大值）
+
+| id | stem | 畫風 | 意思 | IoU32（對象） | 判定 |
+| --- | --- | --- | --- | --- | --- |
+| `sk_deadeye` | sk_deadeye-s7224 | 不過（6／75.6） | 對 | 0.446（`sk_gasflask`） | 不過，待手修 |
+| `sk_purityaura` | sk_purityaura-s7202 | 過（16／93.0） | 對 | 0.466（`sk_command`） | 候選 |
+| `sk_staticfield` | sk_staticfield-s7203 | 過（9／95.2） | 對 | 0.564（`sk_inferno`） | 候選 |
+| `sk_summongod` | sk_summongod-s7204 | 過（8／71.5） | 對 | 0.417（`sk_iceshield`） | 候選 |
+| `sk_ironaura` | sk_ironaura-s7205 | 過（21／88.9） | 對 | 0.533（`sk_iceshatter`） | 候選 |
+| `sk_despair` | sk_despair-s7206 | 過（15／92.5） | 對 | 0.499（`sk_daunt`） | 候選 |
+| `sk_weaken` | sk_weaken-s7207 | 過（22／86.2） | 對 | 0.465（`sk_frostnova`） | 候選 |
+| `sk_holyshield` | sk_holyshield-s7208 | 過（18／94.9） | 不對 | 0.462（`sk_hasteaura`） | 不過，待手修 |
+| `sk_bloodlust` | sk_bloodlust-s7209 | 過（13／96.9） | 對 | 0.538（`sk_daunt`） | 候選 |
+| `sk_fireburst` | sk_fireburst-s7210 | 過（31／75.4） | 對 | 0.428（`sk_despair`） | 三項過，雜點超標待手修（雜點 0.088） |
+| `sk_gasflask` | sk_gasflask-s7311 | 過（15／87.2） | 對 | 0.569（`sk_berserk`） | 候選 |
+| `sk_refract` | sk_refract-s7213 | 過（21／88.8） | 對 | 0.461（`sk_sacrifice`） | 三項過，雜點超標待手修（雜點 0.031） |
+| `sk_tidepull` | sk_tidepull-s7214 | 過（15／45.3） | 對 | 0.506（`sk_berserk`） | 候選 |
+| `sk_windflask` | sk_windflask-s7215 | 過（22／65.4） | 對 | 0.5（`sk_berserk`） | 候選 |
+| `sk_assassinate` | sk_assassinate-s7216 | 過（26／94.0） | 對 | 0.471（`sk_slash2`） | 候選 |
+| `sk_combust` | sk_combust-s7217 | 過（23／90.6） | 對 | 0.488（`sk_rend`） | 候選 |
+| `sk_doom` | sk_doom-s7218 | 過（18／80.3） | 對 | 0.542（`sk_bladestorm`） | 三項過，雜點超標待手修（雜點 0.033） |
+| `sk_rage` | sk_rage-s7219 | 過（21／76.3） | 不對 | 0.466（`sk_talisman`） | 不過，待手修 |
+| `sk_talisman` | sk_talisman-s7220 | 過（13／87.0） | 對 | 0.505（`sk_chaosbolt`） | 候選 |
+| `sk_exorcise` | sk_exorcise-s7221 | 過（10／82.2） | 對 | 0.468（`sk_sweep`） | 候選 |
+| `sk_fire` | sk_fire-s7322 | 過（22／95.2） | 對 | 0.532（`sk_shieldcharge`） | 候選 |
+| `sk_meteor` | sk_meteor-s7223 | 過（15／57.2） | 對 | 0.557（`sk_shieldcharge`） | 候選 |
+| `sk_oilgrenade` | sk_oilgrenade-s7212 | 過（18／80.9） | 對 | 0.492（`sk_sacrifice`） | 候選 |
+| `sk_clarity` | sk_clarity-s6201 | 過（9／74.5） | 對 | 0.485（`sk_iceshield`） | 沿用 r5c，美術手修 |
+
+- 不過、待美術手修的（本輪不再生成）：
+  - `sk_deadeye`：畫風不過，只有 6 色。
+  - `sk_holyshield`：意思不對，畫成彎角，看不出盾。
+  - `sk_rage`：意思不對，畫成石頭加散落的紅點，看不出熊掌。
+  - `sk_fireburst`、`sk_refract`、`sk_doom`：三項都過，但雜點超過 3%，分別是 8.8%、3.1%、3.3%。
+  - `sk_clarity`：沿用 r5c s6201。
+- 16 縮圖 IoU ≥ 0.6，給 UIUX 目視：`sk_gasflask`／`sk_berserk` 0.602、`sk_doom`／`sk_bladestorm` 0.617。
+- 舊圖之間 IoU32 ≥ 0.6 的有 70 對（技能 62、光環 8），最高 0.742，沒有 ≥ 0.75 的（`r5e_bar_pairs.csv`）。
+- `r5e_locations.csv` 共 72 處，其中借圖改新 id 的有 7 處。
+
+## 檔案（本輪）
+
+| 檔 | 內容 |
+| --- | --- |
+| `r5e_guide_sheet.png`、`r5e_guide_precheck.csv` | 22 張導引圖的 4x＋1x 拼圖，以及送出前的預檢數字（原檔在 `art/_raw/skill/guide/<id>.png`；前幾輪的導引圖改名成 `<id>_r5.png`、`<id>_r5d.png` 留著） |
+| `r5e_32_compare.png` | 24 張：導引圖 4x、彩色 4x＋1x、灰階 4x＋1x、生成原圖 4x、最撞對象 4x、判定與理由 |
+| `r5e_sil_32.png`、`r5e_sil_16.png` | 同欄集的**完整**黑剪影（換上 24 張新圖），金框是新圖，紅字是在 ≥ 0.6 配對裡的 |
+| `r5e_bar_mock.png` | 52／56 空白鈕：新圖和最撞對象，彩色＋灰階 |
+| `r5e_iou.csv`、`r5e_bar_pairs.csv`、`r5e_locations.csv` | IoU 32／16 全表；同欄集所有 ≥ 0.6 的配對；`js/` 裡受影響的每一處 |
+| `r5e_review.csv`、`r5e_visual_notes.json`、`r5e_state.json` | 每張的量測、意思、理由、判定；量測過的 stem |
+| `scripts/r5e.py`、`scripts/r5e_evidence.py`、`scripts/r5d_guide.py` | 生成、證據、導引圖與預檢 |
+
+---
+
 # M2-40 R5d（第 4 輪）技能圖示：試跑沒過，停在 3／25
 
 照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5d，1dd8a0f）。**沒有定稿**，下面 r5c_、r5b_、r5_ 的檔不動。

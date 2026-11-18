@@ -1,0 +1,28 @@
+{
+  "round": "r5e",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_deadeye",
+  "seed": 7224,
+  "rerun": 0,
+  "init_image": "art/_raw/skill/guide/sk_deadeye.png",
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, two dice side by side, the right one tipped up on its corner and higher than the left, a few pips showing, main colours ivory white dice with bright red and olive gold pips, dark brown shadows, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 7224,
+    "init_image": "(base64 略)",
+    "init_image_strength": 150,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, eye, target, shield, face, centred disc"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

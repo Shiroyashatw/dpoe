@@ -1,0 +1,28 @@
+{
+  "round": "r5e",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_bloodlust",
+  "seed": 7209,
+  "rerun": 0,
+  "init_image": "art/_raw/skill/guide/sk_bloodlust.png",
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, three parallel diagonal claw slashes from top-left to bottom-right, one blood drip at each end, main colours dark blood red and bright red-pink with white highlights, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 7209,
+    "init_image": "(base64 略)",
+    "init_image_strength": 150,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, blood orb, face"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

@@ -41,7 +41,7 @@ def gen(i, k):
     d.mkdir(parents=True, exist_ok=True)
     Image.open(io.BytesIO(base64.b64decode(r['image']['base64']))).save(d / f'{stem}.png')
     req = {a: ('(base64 略)' if isinstance(v, dict) and 'base64' in v else v) for a, v in body.items()}
-    (d / f'{stem}.json').write_text(json.dumps({'round': 'r5d', 'endpoint': 'POST /v2' + r5c.ENDPOINT, 'job': i, 'seed': s, 'rerun': k,
+    (d / f'{stem}.json').write_text(json.dumps({'round': r5c.ROUND, 'endpoint': 'POST /v2' + r5c.ENDPOINT, 'job': i, 'seed': s, 'rerun': k,
                                                 'init_image': f'art/_raw/skill/guide/{i}.png', 'negative_description_accepted': not r5c.NEG_FALLBACK,
                                                 'request': req, 'usage': r.get('usage')}, ensure_ascii=False, indent=2), encoding='utf-8')
     print('  完成', stem, r.get('usage'))

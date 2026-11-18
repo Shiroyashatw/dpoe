@@ -1,0 +1,28 @@
+{
+  "round": "r5e",
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_rage",
+  "seed": 7219,
+  "rerun": 0,
+  "init_image": "art/_raw/skill/guide/sk_rage.png",
+  "negative_description_accepted": true,
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, a bear paw print, one large pad and four separate toe pads, two short cracks under it, main colours bronze tan with dark red and bright red, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin",
+    "seed": 7219,
+    "init_image": "(base64 略)",
+    "init_image_strength": 150,
+    "negative_description": "text, letters, background, circular badge, round frame, flat colours, plain silhouette, angry face, fist, disc"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

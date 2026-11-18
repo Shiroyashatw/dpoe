@@ -20,3 +20,9 @@ r5c-auth,(第 1 步 GET /v2/balance，不算次數),1003.99,1003.99,0,0
 r5c-T,sk_fire-s6222 sk_gasflask-s6211 sk_clarity-s6201,1003.99,1000.99,3,3
 r5d-auth,(第 1 步 GET /v2/balance，不算次數),1000.99,1000.99,0,0
 r5d-T,sk_fire-s7222 sk_gasflask-s7211 sk_oilgrenade-s7212,1000.99,997.99,3,3
+r5e-auth,(第 1 步 GET /v2/balance，不算次數),997.99,997.99,0,0
+r5e-B1,sk_deadeye-s7224 sk_purityaura-s7202 sk_staticfield-s7203 sk_summongod-s7204 sk_ironaura-s7205,997.99,992.99,5,5
+r5e-B2,sk_despair-s7206 sk_weaken-s7207 sk_holyshield-s7208 sk_bloodlust-s7209 sk_fireburst-s7210,992.99,987.99,5,10
+r5e-B3,sk_refract-s7213 sk_tidepull-s7214 sk_windflask-s7215 sk_assassinate-s7216 sk_combust-s7217,987.99,982.99,5,15
+r5e-B4,sk_doom-s7218 sk_rage-s7219 sk_talisman-s7220 sk_exorcise-s7221 sk_meteor-s7223,982.99,977.99,5,20
+r5e-B5,sk_fire-s7322 sk_gasflask-s7311,977.99,975.99,2,22
