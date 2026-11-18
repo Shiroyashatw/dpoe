@@ -855,7 +855,7 @@ function actHit(a, idx) {
       fire = use('fire'),
       cold = use('cold'),
       R2 = R * (fire ? 1.5 : 1);
-    fx({ k: 'ring', x: P.x, y: P.y, r: R2, dur: 0.32, col: '#ff8a4c' });
+    fx({ k: 'ring', x: P.x, y: P.y, r: R2, dur: 0.32, col: PAL.elFire });
     fxs('firering', P.x, P.y, R2);
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R2 + m.r) hitMob(m, c, angTo(P, m), 140 * c.kb, { a });
     if (fire) addGround({ k: 'fire', x: P.x, y: P.y, r: R2, dur: 4, c, dps: 0.3 });
@@ -920,14 +920,14 @@ function actHit(a, idx) {
     sfx('cast');
   } else if (D.curse) {
     G.meteors.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: 1.5, curse: D.curse, lv: c.lv, q: c.q, dm: durOf(c) / D.dur });
-    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: '#c38bff' });
+    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: PAL.elChaos });
     sfx('cast');
   } else if (D.mark) {
     const m = G.mobs
       /* 印記挑滑鼠位置 120 內最近的一隻（覺醒 B 的範圍補丁乘 c.aoe） */
       .filter(o => o.hp > 0 && Math.hypot(o.x - a.tx, o.y - a.ty) < 120 * c.aoe + o.r)
       .sort((x, y) => Math.hypot(x.x - a.tx, x.y - a.ty) - Math.hypot(y.x - a.tx, y.y - a.ty))[0];
-    if (m) markMob(m, D.mark, c.q), fx({ k: 'ring', x: m.x, y: m.y, r: 40, dur: 0.3, col: '#ff6b6b' }), sfx('cast');
+    if (m) markMob(m, D.mark, c.q), fx({ k: 'ring', x: m.x, y: m.y, r: 40, dur: 0.3, col: PAL.dmgHurtV1 }), sfx('cast');
   } else if (a.k === 'meteor') {
     /* 覺醒 B「三連隕石」：同時落下 c.volley 顆（繞著落點，每顆晚 0.1 秒） */
     const n = c.volley || 1;
@@ -947,7 +947,7 @@ function actHit(a, idx) {
   } else if (a.k === 'wolf') {
     for (const w of G.allies.filter(w => w.src === 'gem')) allyDie(w);
     for (let i = 0; i < c.wolves; i++) callWolf('gem', c);
-    fx({ k: 'ring', x: P.x, y: P.y, r: 90, dur: 0.35, col: '#9df29d' });
+    fx({ k: 'ring', x: P.x, y: P.y, r: 90, dur: 0.35, col: PAL.goodV2 });
   } else actHit2(a, idx, R, hitArc);
 }
 /* 0.2.11 的武器技能（docs/技能分配.md）；機制都在 mech.js、combat.js */
@@ -1087,14 +1087,14 @@ function actHit2(a, idx, R, hitArc) {
     P.rage = Math.min(rageCap(), (P.rage || 0) + 15);
     P.rageT = G.t;
     fxs('rage', P.x, P.y - 30, 40);
-    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#ff6b3d' });
+    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.badHiV2 });
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) (m.ail.intim = G.t + durOf(c)), (m.ail.intimQ = c.q);
     if (cryEmpower(R, 'emInf')) P.emInfV = 30 + (c.lv - 1);
   } else if (a.k === 'seiscry') {
     /* 震地戰吼：周圍傷害＋擊退，瀕臨沉重暈眩的粉碎重擊（給耐力球） */
     cryFx(R, c);
     fxs('slam', P.x, P.y, R * 0.6);
-    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: '#b08a5a' });
+    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.borderHiV2 });
     sfx('slam');
     shake(0.1);
     for (const m of G.mobs)
@@ -1129,7 +1129,7 @@ function actHit2(a, idx, R, hitArc) {
     } else
       for (const w of L) {
         fxs('slam', w.x, w.y, R * 0.6);
-        fx({ k: 'ring', x: w.x, y: w.y, r: R, dur: 0.35, col: '#ffcf6b' });
+        fx({ k: 'ring', x: w.x, y: w.y, r: R, dur: 0.35, col: PAL.dmgCritV2 });
         sfx('slam');
         for (const m of G.mobs)
           if (m.hp > 0 && dist(m, w) < R + m.r) {
@@ -1277,7 +1277,7 @@ function actHit2(a, idx, R, hitArc) {
     }
   } else if (a.k === 'flyswords') {
     if (swordN() >= SWORD_MAX) launchSwords(a.tx, a.ty), sfx('throw');
-    else gainSwords(3 + c.proj - 1, c), fx({ k: 'ring', x: P.x, y: P.y, r: 45, dur: 0.25, col: '#cfd8e3' });
+    else gainSwords(3 + c.proj - 1, c), fx({ k: 'ring', x: P.x, y: P.y, r: 45, dur: 0.25, col: PAL.hlV2 });
   } else if (a.k === 'shadowstrike' || a.k === 'wolfpounce') {
     /* 撲到目標身邊：影襲必定暴擊（翻滾後 2 秒內 ×2），狼撲上獵人印記 */
     const t = a.tm;
@@ -1335,7 +1335,7 @@ function actHit2(a, idx, R, hitArc) {
       P.rage += 4 * c.q - D.rageCost;
       P.rageT = G.t;
       fxs('rage', P.x, P.y - 30, 40);
-      fx({ k: 'ring', x: P.x, y: P.y, r: R * 1.5, dur: 0.35, col: '#ff6b3d' });
+      fx({ k: 'ring', x: P.x, y: P.y, r: R * 1.5, dur: 0.35, col: PAL.badHiV2 });
       around(P.x, P.y, R * 1.5, 260);
       addGround({ k: 'jagged', x: P.x, y: P.y, r: R, dur: 2, c, after: 1 });
     }
@@ -1381,7 +1381,7 @@ function actHit2(a, idx, R, hitArc) {
     else if (plantSwords(a.tx, a.ty, c)) {
       const nw = G.ground[G.ground.length - 1];
       nw.r *= 1 + 0.2 * c.q;
-      fx({ k: 'ring', x: nw.x, y: nw.y, r: nw.r, dur: 0.3, col: '#cfd8e3' });
+      fx({ k: 'ring', x: nw.x, y: nw.y, r: nw.r, dur: 0.3, col: PAL.hlV2 });
       sfx('throw');
     }
   } else if (a.k === 'bloodrage') {
@@ -1396,7 +1396,7 @@ function actHit2(a, idx, R, hitArc) {
     if (a.k === 'gasflask') {
       /* 毒霧：地面 'gas'（mech.js）每 0.5 秒對圈內擊中一次並必定中毒；每下＝主手武器傷害 ×0.4 轉混沌（dps 0.8 × 0.5 秒） */
       addGround({ k: 'gas', x: a.tx, y: a.ty, r: R, dur: t, c, dps: 0.8 });
-      fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: '#8fd16b' });
+      fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: PAL.goodV4 });
     } else if (a.k === 'windflask') {
       gainBuff('onslaught', t);
       gainBuff('phasing', t);
@@ -1406,7 +1406,7 @@ function actHit2(a, idx, R, hitArc) {
       /* 石膚：守護（P.stoneV，combat.js 的 absorb）最多最大生命的 30%（吃藥劑效果），期間不會被擊退（hurtPlayer） */
       gainBuff('stone', t);
       P.stoneV = ST.hp * 0.3 * flaskEff();
-      fx({ k: 'ring', x: P.x, y: P.y, r: 50, dur: 0.4, col: '#b8c4d4' });
+      fx({ k: 'ring', x: P.x, y: P.y, r: 50, dur: 0.4, col: PAL.hlV7 });
     }
     sfx('drink');
   } else if (a.k === 'allin') {
@@ -1540,7 +1540,7 @@ function boom(s) {
     addGround({ k: 'gas', x: s.x, y: s.y + 18, r: s.gas, dur: durOf(s.c), c: s.c, dps: 0.6, drift: 60 * (s.c.q || 0) });
     return fxs('gas', s.x, s.y + 18, s.gas);
   }
-  fx({ k: 'ring', x: s.x, y: s.y + 18, r: s.boom, dur: 0.3, col: '#ff8a4c' });
+  fx({ k: 'ring', x: s.x, y: s.y + 18, r: s.boom, dur: 0.3, col: PAL.elFire });
   sfx('slam');
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - s.x, m.y - 18 - s.y) < s.boom + m.r)
@@ -1667,7 +1667,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   num(m.x, m.y - m.sz, r.d, r.jackpot ? 'jackpot' : r.crit ? 'crit' : r.el);
   fxs(r.crit || r.jackpot ? 'crit' : 'hit', m.x, m.y - m.sz * 0.3, m.sz * (r.crit || r.jackpot ? 0.8 : 0.5));
   if (!o.quiet) {
-    sparks(m.x, m.y - m.sz * 0.4, ang, r.crit ? 10 : 5, r.crit ? '#ffd166' : ELC[r.el]);
+    sparks(m.x, m.y - m.sz * 0.4, ang, r.crit ? 10 : 5, r.crit ? PAL.dmgCrit : ELC[r.el]);
     sfx(r.crit ? 'crit' : 'hit');
     if (ST.loh) P.hp = Math.min(ST.hp, P.hp + ST.loh);
   }
@@ -1955,7 +1955,7 @@ function updAllies(dt) {
         m.ail.tauntBy = w;
         m.ail.tauntT = G.t + MINION.tauntT * (m.boss ? 0.5 : 1);
       }
-      if (near.length) fx({ k: 'ring', x: w.x, y: w.y, r: MINION.tauntR, dur: 0.35, col: '#ffcf6b' });
+      if (near.length) fx({ k: 'ring', x: w.x, y: w.y, r: MINION.tauntR, dur: 0.35, col: PAL.dmgCritV2 });
     }
     leechTick(dt, w, [['hp', w.mhp]]);
     /* 復甦召喚物：一段時間沒受傷就自癒 */
@@ -2028,7 +2028,7 @@ function updPools(dt) {
           curseMob(m, o.curse, o.lv, o.q, o.dm);
     } else if (o.t >= o.dur && !o.done) {
       o.done = 1;
-      fx({ k: 'ring', x: o.x, y: o.y, r: o.r, dur: 0.4, col: '#ff6b3d' });
+      fx({ k: 'ring', x: o.x, y: o.y, r: o.r, dur: 0.4, col: PAL.badHiV2 });
       sfx('slam');
       let n = 0;
       for (const m of G.mobs)
@@ -2129,7 +2129,7 @@ function unitHurt(u, d) {
   if (!(u.hp > 0)) return;
   u.hp -= d;
   u.hurtT = G.t;
-  if (u.hp <= 0) fx({ k: 'ring', x: u.x, y: u.y, r: 26, dur: 0.3, col: '#cfd8e3' }), sfx('slam');
+  if (u.hp <= 0) fx({ k: 'ring', x: u.x, y: u.y, r: 26, dur: 0.3, col: PAL.hlV2 }), sfx('slam');
 }
 const UNIT_N = { trap: '陷阱', mine: '地雷', totem: '圖騰', turret: '砲塔圖騰' };
 function placeUnit(c, w) {
@@ -2176,7 +2176,7 @@ function putUnit(c, type, x, y) {
     (u.r = 14), (u.hp = u.mhp = allyLife('totem', c) * (1 + ST.totemLife / 100));
   G.units.push(u);
   if (type === 'mine') G.mineT = G.t + 1.2;
-  fx({ k: 'ring', x, y, r: 30, dur: 0.25, col: '#cfd8e3' });
+  fx({ k: 'ring', x, y, r: 30, dur: 0.25, col: PAL.hlV2 });
 }
 /* 從場上單位施放：本身就是單位的技能（陷阱爆開、地雷爆開、砲塔圖騰射擊、火焰圖騰）或轉換來的技能 */
 function unitFire(u, tgt, mul = 1) {
@@ -2188,7 +2188,7 @@ function unitFire(u, tgt, mul = 1) {
     const r = (D.r || 100) * ST.aoeM * c.aoe,
       /* 閃電陷阱（0.2.64）：場上每多一個其他陷阱，本體這一下傷害 +20%（品質再加）；閃電連鎖到每個其他陷阱，在那裡也爆一次（半傷害，不吃這個加成，免得平方成長） */
       others = D.chainTrap ? G.units.filter(x => x !== u && x.type === 'trap' && !x.spent) : [],
-      col = { cold: '#8fd6ff', light: '#ffe066', fire: '#ff8a4c' }[D.el] || '#cfd8e3';
+      col = { cold: PAL.elCold, light: PAL.elLight, fire: PAL.elFire }[D.el] || PAL.hlV2;
     /* 同一格已經爆掉、還在 G.units 裡的陷阱不算（冰霜陷阱的品質讓它留下時在 updUnits 清掉） */
     u.spent = 1;
     const boom = (p, o) => {

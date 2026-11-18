@@ -5,39 +5,39 @@
 const BIOMES = {
   ice: {
     n: '冰雪洞窟',
-    top: '#1f3044',
-    face: '#35607e',
-    hi: '#a8d8f0',
-    line: '#16263a',
-    dark: '3,7,14',
-    light: '143,214,255'
+    top: PAL.scene.ice.ground,
+    face: PAL.scene.ice.mid,
+    hi: PAL.scene.ice.light,
+    line: PAL.scene.ice.edge,
+    dark: PAL.scene.ice.dark,
+    light: PAL.scene.ice.glow
   },
   lava: {
     n: '岩漿地城',
-    top: '#1b1311',
-    face: '#2a1d18',
-    hi: '#5c3a28',
-    line: '#0c0807',
-    dark: '12,4,2',
-    light: '255,138,60'
+    top: PAL.scene.lava.ground,
+    face: PAL.scene.lava.mid,
+    hi: PAL.scene.lava.light,
+    line: PAL.scene.lava.edge,
+    dark: PAL.scene.lava.dark,
+    light: PAL.scene.lava.glow
   },
   tomb: {
     n: '毒沼古墓',
-    top: '#18201a',
-    face: '#28362b',
-    hi: '#4c6250',
-    line: '#0b100c',
-    dark: '3,9,5',
-    light: '140,240,140'
+    top: PAL.scene.tomb.ground,
+    face: PAL.scene.tomb.mid,
+    hi: PAL.scene.tomb.light,
+    line: PAL.scene.tomb.edge,
+    dark: PAL.scene.tomb.dark,
+    light: PAL.scene.tomb.glow
   },
   temple: {
     n: '廢棄廟宇',
-    top: '#1c181e',
-    face: '#6a241b',
-    hi: '#a63c2b',
-    line: '#2a150e',
-    dark: '7,4,3',
-    light: '255,179,90'
+    top: PAL.scene.temple.ground,
+    face: PAL.scene.temple.mid,
+    hi: PAL.scene.temple.light,
+    line: PAL.scene.temple.edge,
+    dark: PAL.scene.temple.dark,
+    light: PAL.scene.temple.glow
   }
 };
 const BIO = () => (G.scene === 'camp' ? HIDE_BIO : BIOMES[G.biome] || BIOMES.temple);
@@ -60,7 +60,7 @@ function bFloor() {
     };
   if (b === 'temple') {
     /* 木地板：橫條、接縫錯開、木紋 */
-    g.fillStyle = '#140d09';
+    g.fillStyle = PAL.sceneDetail1;
     g.fillRect(0, 0, N, N);
     for (let y = 0; y < N; y += 16) {
       let x = -Math.floor(R() * 96);
@@ -69,15 +69,15 @@ function bFloor() {
           v = 40 + Math.floor(R() * 12);
         g.fillStyle = `rgb(${v + 10},${v - 6},${v - 18})`;
         g.fillRect(x + 1, y + 1, w - 2, 14);
-        g.fillStyle = 'rgba(0,0,0,0.18)';
+        g.fillStyle = `rgba(${PAL.rgb.scrim},0.18)`;
         for (let k = 0; k < 3; k++) g.fillRect(x + 4 + R() * (w - 12), y + 4 + R() * 7, 6 + R() * 18, 1);
         x += w;
       }
     }
-    dots(500, '255,220,170', 0.05);
+    dots(500, PAL.rgb.sceneDetail2, 0.05);
   } else if (b === 'tomb') {
     /* 青石墓磚：長磚錯縫、苔痕 */
-    g.fillStyle = '#080b09';
+    g.fillStyle = PAL.sceneDetail3;
     g.fillRect(0, 0, N, N);
     for (let y = 0; y < N; y += 16)
       for (let x = (y / 16) % 2 ? -16 : 0; x < N; x += 32) {
@@ -86,16 +86,16 @@ function bFloor() {
         g.fillRect(x + 1, y + 1, 30, 14);
       }
     for (let i = 0; i < 14; i++) {
-      g.fillStyle = `rgba(70,110,60,${0.12 + R() * 0.12})`;
+      g.fillStyle = `rgba(${PAL.rgb.sceneDetail4},${0.12 + R() * 0.12})`;
       g.beginPath();
       g.ellipse(R() * N, R() * N, 6 + R() * 14, 3 + R() * 6, R() * 3, 0, TAU);
       g.fill();
     }
-    dots(600, '150,220,140', 0.05);
+    dots(600, PAL.rgb.sceneDetail5, 0.05);
   } else {
     /* 冰、岩漿：大石板＋裂縫（冰是白色霜裂，岩漿是發光的紅縫） */
     const ice = b === 'ice';
-    g.fillStyle = ice ? '#0b1118' : '#060303';
+    g.fillStyle = ice ? PAL.sceneDetail6 : PAL.sceneDetail7;
     g.fillRect(0, 0, N, N);
     for (let y = 0; y < 4; y++)
       for (let x = 0; x < 4; x++) {
@@ -107,7 +107,7 @@ function bFloor() {
     g.lineWidth = ice ? 1 : 2;
     for (let i = 0; i < (ice ? 10 : 7); i++) {
       g.strokeStyle = ice
-        ? `rgba(220,240,255,${0.15 + R() * 0.15})`
+        ? `rgba(${PAL.rgb.sceneDetail8},${0.15 + R() * 0.15})`
         : `rgba(255,${90 + Math.floor(R() * 60)},30,${0.45 + R() * 0.3})`;
       g.beginPath();
       let px = R() * N,
@@ -116,7 +116,7 @@ function bFloor() {
       for (let k = 0; k < 5; k++) g.lineTo((px += R() * 30 - 15), (py += R() * 30 - 15));
       g.stroke();
     }
-    dots(ice ? 900 : 400, ice ? '230,245,255' : '255,140,60', ice ? 0.12 : 0.1);
+    dots(ice ? 900 : 400, ice ? PAL.rgb.sceneDetail9 : PAL.rgb.sceneDetail10, ice ? 0.12 : 0.1);
   }
   return (FLOORS[b] = CX.createPattern(c, 'repeat'));
 }
@@ -138,18 +138,18 @@ function bDecals(W, H) {
         py = y * TS + ((v >>> 17) % 32) + 8;
       if (b === 'ice') {
         if (k === 2) {
-          CX.fillStyle = 'rgba(200,230,255,0.25)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail11},0.25)`;
           CX.fillRect(px - 1, py - 6, 2, 8);
           CX.fillRect(px + 4, py - 3, 2, 5);
         } else {
-          CX.fillStyle = 'rgba(235,245,255,0.13)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail12},0.13)`;
           CX.beginPath();
           CX.ellipse(px, py, 16 + k * 6, 6, 0, 0, TAU);
           CX.fill();
         }
       } else if (b === 'lava') {
         if (k === 0) {
-          CX.fillStyle = 'rgba(0,0,0,0.35)';
+          CX.fillStyle = `rgba(${PAL.rgb.scrim},0.35)`;
           CX.beginPath();
           CX.ellipse(px, py, 18, 8, 0, 0, TAU);
           CX.fill();
@@ -160,34 +160,34 @@ function bDecals(W, H) {
         }
       } else if (b === 'tomb') {
         if (k === 0) {
-          CX.fillStyle = 'rgba(120,200,90,0.16)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail13},0.16)`;
           CX.beginPath();
           CX.ellipse(px, py, 14, 6, 0, 0, TAU);
           CX.fill();
         } else if (k === 1) {
           /* 骨頭 */
-          CX.fillStyle = 'rgba(220,214,190,0.5)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail14},0.5)`;
           CX.fillRect(px - 6, py, 12, 2);
           CX.fillRect(px - 7, py - 1, 3, 4);
           CX.fillRect(px + 4, py - 1, 3, 4);
         } else {
-          CX.fillStyle = 'rgba(60,90,50,0.35)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail15},0.35)`;
           CX.fillRect(px - 8, py, 16, 3);
         }
       } else {
         if (k === 0) {
           /* 冥紙 */
-          CX.fillStyle = 'rgba(214,170,70,0.55)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail16},0.55)`;
           CX.fillRect(px, py, 7, 5);
           CX.fillRect(px + 9, py + 4, 6, 4);
         } else if (k === 1) {
           /* 掉在地上的符咒 */
-          CX.fillStyle = 'rgba(230,200,90,0.6)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail17},0.6)`;
           CX.fillRect(px, py, 5, 14);
-          CX.fillStyle = 'rgba(170,30,20,0.7)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail18},0.7)`;
           CX.fillRect(px + 2, py + 3, 1, 8);
         } else {
-          CX.fillStyle = 'rgba(0,0,0,0.25)';
+          CX.fillStyle = `rgba(${PAL.rgb.scrim},0.25)`;
           CX.fillRect(px - 10, py, 20, 2);
         }
       }
@@ -214,14 +214,14 @@ function bWalls(W, H, T) {
         v = h(x, y, 3);
       let near = false;
       for (let dy = -1; dy <= 1 && !near; dy++) for (let dx = -1; dx <= 1; dx++) if (!wall(x + dx, y + dy)) near = true;
-      CX.fillStyle = near ? B.top : '#050404';
+      CX.fillStyle = near ? B.top : PAL.sceneDetail19;
       if (T && near) CX.drawImage(T.top, px, py, TS, TS);
       else CX.fillRect(px, py, TS, TS);
       if (!near) continue;
       /* 頂面：廟宇是屋瓦（一排排弧），其他是粗石；有地磚就是牆頂圖 */
       if (T) {
       } else if (b === 'temple') {
-        CX.strokeStyle = 'rgba(255,255,255,0.06)';
+        CX.strokeStyle = `rgba(${PAL.rgb.glint},0.06)`;
         CX.lineWidth = 2;
         for (let r = 0; r < 3; r++) {
           CX.beginPath();
@@ -229,7 +229,7 @@ function bWalls(W, H, T) {
           CX.stroke();
         }
       } else {
-        CX.fillStyle = 'rgba(255,255,255,0.03)';
+        CX.fillStyle = `rgba(${PAL.rgb.glint},0.03)`;
         CX.fillRect(px + (v % 20), py + ((v >>> 5) % 20), 16, 12);
       }
       CX.fillStyle = B.hi;
@@ -252,10 +252,10 @@ function bWalls(W, H, T) {
           /* 紅漆牆＋木樑＋金邊；隔幾格一根木柱 */
           CX.fillStyle = B.line;
           CX.fillRect(px, fy + 3, TS, 5);
-          CX.fillStyle = '#c9a227';
+          CX.fillStyle = PAL.sceneDetail20;
           CX.fillRect(px, fy + 8, TS, 1);
           if (v % 3 === 0) {
-            CX.fillStyle = '#3a2418';
+            CX.fillStyle = PAL.sceneDetail21;
             CX.fillRect(px + 2, fy + 3, 7, FH - 3);
           }
         } else {
@@ -270,7 +270,7 @@ function bWalls(W, H, T) {
         }
       }
       if (b === 'ice') {
-        CX.strokeStyle = 'rgba(220,245,255,0.35)';
+        CX.strokeStyle = `rgba(${PAL.rgb.sceneDetail22},0.35)`;
         CX.lineWidth = 1;
         CX.beginPath();
         CX.moveTo(px + (v % 30) + 6, fy + 5);
@@ -278,7 +278,7 @@ function bWalls(W, H, T) {
         CX.stroke();
         /* 冰柱 */
         if (v % 4 === 0) {
-          CX.fillStyle = 'rgba(190,230,255,0.7)';
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail23},0.7)`;
           CX.beginPath();
           CX.moveTo(px + 20, py + TS);
           CX.lineTo(px + 26, py + TS);
@@ -286,7 +286,7 @@ function bWalls(W, H, T) {
           CX.fill();
         }
       } else if (b === 'lava' && v % 2 === 0) {
-        CX.strokeStyle = `rgba(255,120,40,${pulse})`;
+        CX.strokeStyle = `rgba(${PAL.rgb.sceneDetail24},${pulse})`;
         CX.lineWidth = 2;
         CX.beginPath();
         CX.moveTo(px + (v % 24) + 8, fy + 4);
@@ -294,12 +294,12 @@ function bWalls(W, H, T) {
         CX.lineTo(px + (v % 24) + 10, fy + FH);
         CX.stroke();
       } else if (b === 'tomb') {
-        CX.fillStyle = 'rgba(80,130,70,0.7)';
+        CX.fillStyle = `rgba(${PAL.rgb.sceneDetail25},0.7)`;
         for (let i = 0; i < 3; i++)
           if ((v >>> i) & 1) CX.fillRect(px + 6 + i * 14, fy + 3, 3, 4 + ((v >>> (i + 4)) % 12));
       }
       /* 牆腳的影子落在地板上 */
-      CX.fillStyle = 'rgba(0,0,0,0.35)';
+      CX.fillStyle = `rgba(${PAL.rgb.scrim},0.35)`;
       CX.fillRect(px, py + TS, TS, 6);
     }
 }
@@ -439,24 +439,24 @@ function bDeco(W, H) {
     if (d.k === 'torch') {
       if (b === 'temple') {
         /* 紅燈籠 */
-        CX.fillStyle = '#2a150e';
+        CX.fillStyle = PAL.sceneDetail26;
         CX.fillRect(x - 1, y - 18, 2, 6);
-        CX.fillStyle = `rgba(214,52,34,${0.9})`;
+        CX.fillStyle = `rgba(${PAL.rgb.sceneDetail27},${0.9})`;
         CX.beginPath();
         CX.ellipse(x, y - 4, 9, 10, 0, 0, TAU);
         CX.fill();
-        CX.fillStyle = `rgba(255,200,110,${0.55 * fk})`;
+        CX.fillStyle = `rgba(${PAL.rgb.sceneDetail28},${0.55 * fk})`;
         CX.beginPath();
         CX.ellipse(x, y - 4, 5, 7, 0, 0, TAU);
         CX.fill();
-        CX.fillStyle = '#c9a227';
+        CX.fillStyle = PAL.sceneDetail20;
         CX.fillRect(x - 6, y - 14, 12, 2);
         CX.fillRect(x - 6, y + 5, 12, 2);
         CX.fillRect(x - 1, y + 7, 2, 6);
       } else {
         /* 壁上的火盆／冰晶燈／磷火燈 */
-        const col = b === 'ice' ? '170,225,255' : b === 'tomb' ? '150,250,150' : '255,150,60';
-        CX.fillStyle = '#151010';
+        const col = b === 'ice' ? PAL.rgb.sceneDetail29 : b === 'tomb' ? PAL.rgb.sceneDetail30 : PAL.rgb.sceneDetail31;
+        CX.fillStyle = PAL.sceneDetail32;
         CX.fillRect(x - 6, y, 12, 4);
         CX.fillRect(x - 2, y + 4, 4, 6);
         CX.fillStyle = `rgba(${col},${0.85 * fk})`;
@@ -464,7 +464,7 @@ function bDeco(W, H) {
         CX.moveTo(x - 5, y);
         CX.quadraticCurveTo(x, y - 18 * fk, x + 5, y);
         CX.fill();
-        CX.fillStyle = `rgba(255,255,230,${0.7 * fk})`;
+        CX.fillStyle = `rgba(${PAL.rgb.sceneDetail33},${0.7 * fk})`;
         CX.fillRect(x - 1, y - 6, 2, 5);
       }
     } else if (d.k === 'lava' || d.k === 'poison') {
@@ -472,10 +472,10 @@ function bDeco(W, H) {
         rx = 46 * s,
         ry = 22 * s,
         g = CX.createRadialGradient(x, y, 2, x, y, rx);
-      g.addColorStop(0, lava ? `rgba(255,220,120,${fk})` : `rgba(170,255,120,${0.75 * fk})`);
-      g.addColorStop(0.45, lava ? 'rgba(255,110,30,0.95)' : 'rgba(70,160,60,0.8)');
-      g.addColorStop(1, lava ? 'rgba(90,20,10,0.9)' : 'rgba(20,50,25,0.85)');
-      CX.fillStyle = lava ? '#140807' : '#0a140b';
+      g.addColorStop(0, lava ? `rgba(${PAL.rgb.sceneDetail34},${fk})` : `rgba(${PAL.rgb.sceneDetail35},${0.75 * fk})`);
+      g.addColorStop(0.45, lava ? `rgba(${PAL.rgb.sceneDetail36},0.95)` : `rgba(${PAL.rgb.sceneDetail37},0.8)`);
+      g.addColorStop(1, lava ? `rgba(${PAL.rgb.sceneDetail38},0.9)` : `rgba(${PAL.rgb.sceneDetail39},0.85)`);
+      CX.fillStyle = lava ? PAL.sceneDetail40 : PAL.sceneDetail41;
       CX.beginPath();
       CX.ellipse(x, y, rx + 5, ry + 4, 0, 0, TAU);
       CX.fill();
@@ -485,7 +485,7 @@ function bDeco(W, H) {
       CX.fill();
       /* 冒泡 */
       const t = (G.t * 0.7 + x * 0.01) % 1;
-      CX.fillStyle = lava ? `rgba(255,240,180,${1 - t})` : `rgba(200,255,170,${1 - t})`;
+      CX.fillStyle = lava ? `rgba(${PAL.rgb.sceneDetail42},${1 - t})` : `rgba(${PAL.rgb.sceneDetail43},${1 - t})`;
       CX.beginPath();
       CX.arc(x + Math.sin(x) * rx * 0.4, y - t * 6, 2 + t * 3, 0, TAU);
       CX.fill();
@@ -495,7 +495,7 @@ function bDeco(W, H) {
         const a = -1.2 + i * 0.75,
           len = (22 + ((i * 7) % 11)) * s,
           bx = x + (i - 1.5) * 7 * s;
-        CX.fillStyle = i % 2 ? 'rgba(150,210,245,0.9)' : 'rgba(200,240,255,0.95)';
+        CX.fillStyle = i % 2 ? `rgba(${PAL.rgb.sceneDetail44},0.9)` : `rgba(${PAL.rgb.sceneDetail45},0.95)`;
         CX.beginPath();
         CX.moveTo(bx - 4 * s, y);
         CX.lineTo(bx + Math.sin(a) * len - 2, y - Math.cos(a) * len);
@@ -504,79 +504,79 @@ function bDeco(W, H) {
         CX.fill();
       }
     } else if (d.k === 'icicle') {
-      CX.fillStyle = 'rgba(220,240,255,0.18)';
+      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail8},0.18)`;
       CX.beginPath();
       CX.ellipse(x, y, 22 * s, 8 * s, 0, 0, TAU);
       CX.fill();
-      CX.fillStyle = 'rgba(180,225,250,0.8)';
+      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail46},0.8)`;
       CX.fillRect(x - 8 * s, y - 6 * s, 5 * s, 6 * s);
       CX.fillRect(x + 2 * s, y - 9 * s, 6 * s, 9 * s);
     } else if (d.k === 'rock') {
-      CX.fillStyle = '#1e1513';
+      CX.fillStyle = PAL.sceneDetail47;
       CX.beginPath();
       CX.ellipse(x, y, 14 * s, 9 * s, 0, 0, TAU);
       CX.fill();
-      CX.fillStyle = `rgba(255,110,40,${0.6 * fk})`;
+      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail48},${0.6 * fk})`;
       CX.fillRect(x - 5 * s, y - 2, 10 * s, 2);
     } else if (d.k === 'brazier') {
-      CX.fillStyle = '#231a17';
+      CX.fillStyle = PAL.sceneDetail49;
       CX.fillRect(x - 3, y - 14, 6, 14);
       CX.fillRect(x - 12, y - 20, 24, 7);
-      CX.fillStyle = `rgba(255,140,50,${0.9 * fk})`;
+      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail50},${0.9 * fk})`;
       CX.beginPath();
       CX.moveTo(x - 10, y - 20);
       CX.quadraticCurveTo(x, y - 44 * fk, x + 10, y - 20);
       CX.fill();
     } else if (d.k === 'grave') {
-      CX.fillStyle = '#2f3a32';
+      CX.fillStyle = PAL.sceneDetail51;
       CX.fillRect(x - 10 * s, y - 24 * s, 20 * s, 24 * s);
       CX.beginPath();
       CX.arc(x, y - 24 * s, 10 * s, Math.PI, 0);
       CX.fill();
-      CX.fillStyle = 'rgba(0,0,0,0.4)';
+      CX.fillStyle = `rgba(${PAL.rgb.scrim},0.4)`;
       CX.fillRect(x - 1, y - 26 * s, 2, 18 * s);
-      CX.fillStyle = 'rgba(80,130,70,0.6)';
+      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail25},0.6)`;
       CX.fillRect(x - 10 * s, y - 4, 20 * s, 4);
     } else if (d.k === 'urn') {
-      CX.fillStyle = b === 'temple' ? '#4a3020' : '#34302a';
+      CX.fillStyle = b === 'temple' ? PAL.sceneDetail52 : PAL.sceneDetail53;
       CX.beginPath();
       CX.ellipse(x, y - 9 * s, 8 * s, 10 * s, 0, 0, TAU);
       CX.fill();
       CX.fillRect(x - 5 * s, y - 22 * s, 10 * s, 4 * s);
-      CX.fillStyle = 'rgba(255,255,255,0.08)';
+      CX.fillStyle = `rgba(${PAL.rgb.glint},0.08)`;
       CX.fillRect(x - 5 * s, y - 14 * s, 3, 8 * s);
     } else if (d.k === 'slant') {
       /* 石燈籠 */
-      CX.fillStyle = '#4a4540';
+      CX.fillStyle = PAL.sceneDetail54;
       CX.fillRect(x - 4, y - 18, 8, 18);
       CX.fillRect(x - 12, y - 24, 24, 6);
       CX.fillRect(x - 9, y - 38, 18, 14);
-      CX.fillStyle = '#5a554f';
+      CX.fillStyle = PAL.sceneDetail55;
       CX.beginPath();
       CX.moveTo(x - 16, y - 38);
       CX.lineTo(x, y - 48);
       CX.lineTo(x + 16, y - 38);
       CX.fill();
-      CX.fillStyle = `rgba(255,190,100,${0.85 * fk})`;
+      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail56},${0.85 * fk})`;
       CX.fillRect(x - 4, y - 35, 8, 8);
     } else if (d.k === 'incense') {
       /* 香爐：三腳銅爐＋三炷香＋煙 */
-      CX.fillStyle = '#3b3e45';
+      CX.fillStyle = PAL.sceneDetail57;
       CX.beginPath();
       CX.ellipse(x, y - 10, 18 * s, 10 * s, 0, 0, TAU);
       CX.fill();
-      CX.fillStyle = '#7c8290';
+      CX.fillStyle = PAL.sceneDetail58;
       CX.fillRect(x - 18 * s, y - 14, 36 * s, 3);
-      CX.fillStyle = '#3a2d18';
+      CX.fillStyle = PAL.sceneDetail59;
       CX.fillRect(x - 12, y - 2, 3, 6);
       CX.fillRect(x + 9, y - 2, 3, 6);
-      CX.fillStyle = '#8a2a1a';
+      CX.fillStyle = PAL.sceneDetail60;
       for (let i = -1; i <= 1; i++) CX.fillRect(x + i * 5, y - 30, 1.5, 16);
-      CX.fillStyle = `rgba(255,160,80,${fk})`;
+      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail61},${fk})`;
       for (let i = -1; i <= 1; i++) CX.fillRect(x + i * 5 - 0.5, y - 31, 2.5, 2);
       for (let i = 0; i < 3; i++) {
         const t = (G.t * 0.35 + i / 3) % 1;
-        CX.fillStyle = `rgba(200,200,210,${0.22 * (1 - t)})`;
+        CX.fillStyle = `rgba(${PAL.rgb.sceneDetail62},${0.22 * (1 - t)})`;
         CX.beginPath();
         CX.arc(x + Math.sin(G.t + i * 2) * 6 * t, y - 34 - t * 40, 3 + t * 8, 0, TAU);
         CX.fill();
@@ -602,8 +602,8 @@ function lightsInView(ox, oy) {
 function bLights(dg, ox, oy) {
   for (const [x, y, r] of lightsInView(ox, oy)) {
     const g = dg.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, 'rgba(0,0,0,0.85)');
-    g.addColorStop(1, 'rgba(0,0,0,0)');
+    g.addColorStop(0, `rgba(${PAL.rgb.scrim},0.85)`);
+    g.addColorStop(1, `rgba(${PAL.rgb.scrim},0)`);
     dg.fillStyle = g;
     dg.fillRect(x - r, y - r, r * 2, r * 2);
   }

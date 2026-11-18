@@ -459,9 +459,9 @@ function treeMini() {
       g = m.getContext('2d'),
       have = new Set(S.pt);
     m.width = m.height = TMINI; /* 設寬高也會清空 */
-    g.fillStyle = 'rgba(170,160,130,0.45)';
+    g.fillStyle = `rgba(${PAL.rgb.txOffV1},0.45)`;
     for (const n of PTREE.N) if (!have.has(n.id)) g.fillRect(ox + n.x * k - 0.5, oy + n.y * k - 0.5, 1.4, 1.4);
-    g.fillStyle = '#ffd166';
+    g.fillStyle = PAL.dmgCrit;
     for (const n of PTREE.N) if (have.has(n.id)) g.fillRect(ox + n.x * k - 1.5, oy + n.y * k - 1.5, 3.5, 3.5);
   }
   const g = c.getContext('2d'),
@@ -470,7 +470,7 @@ function treeMini() {
     h = (TREE.vh || 0) / z;
   g.clearRect(0, 0, TMINI, TMINI);
   g.drawImage(TREE.mini, 0, 0);
-  g.strokeStyle = '#fff';
+  g.strokeStyle = PAL.glint;
   g.lineWidth = 2;
   g.strokeRect(ox + (-TREE.x / z - w / 2) * k, oy + (-TREE.y / z - h / 2) * k, Math.max(6, w * k), Math.max(6, h * k));
 }

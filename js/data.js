@@ -6981,7 +6981,7 @@ const IMPN = {
   fullStrike: '你的擊中為屠戮打擊，移除滿血敵人 {}% 生命'
 };
 const ELN = { phys: '物理', fire: '火焰', cold: '冰冷', light: '閃電', chaos: '混沌' };
-const ELC = { phys: '#fff3e0', fire: '#ff8a4c', cold: '#8fd6ff', light: '#ffe066', chaos: '#c38bff' };
+const ELC = { phys: PAL.elPhys, fire: PAL.elFire, cold: PAL.elCold, light: PAL.elLight, chaos: PAL.elChaos };
 const RES_CAP = 75;
 /* 低血門檻（0.2.42）：生命、魔力、能量護盾低於最大值的 35% 叫貧血、貧魔、貧能量護盾 */
 const LOW = 0.35;

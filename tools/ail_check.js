@@ -6,6 +6,10 @@
 const fs = require('fs'),
   vm = require('vm'),
   path = require('path');
+/* js/palette.js 在 Node 讀 css/style.css（M2-34-0）：每個 vm 環境都帶 PAL_CSS */
+const PAL_CSS = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8'),
+  vmCtx = vm.createContext;
+vm.createContext = o => vmCtx(Object.assign(o, { PAL_CSS }));
 const FIGHTS = +process.argv[2] || 200,
   SECS = +process.argv[3] || 60,
   WRITE = process.argv.includes('--write');
@@ -32,7 +36,7 @@ function load(old) {
     URLSearchParams
   };
   vm.createContext(ctx);
-  for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js']) {
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js']) {
     let src = JS(f);
     if (old && f === 'combat.js') src = patchOld(src);
     vm.runInContext(src, ctx, { filename: f });
