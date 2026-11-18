@@ -1,7 +1,7 @@
 # dpoe 變更紀錄
 
 所有決定與調整，新的在上，一行一條：`日期 時間｜決定者｜影響工項｜結論`。要記新的決定就加一行在最上面，不要改寫規格或任務檔裡的歷史。2026-11-17 以前的列由企劃書決策紀錄轉來；「—」是原紀錄沒寫時間。
-- 2026-11-18 14:18｜開發工程師｜M2-33 補遺 §5.1、§5.2（dpoe-idle-card）｜掛機卡 full／mini／watch、切換鈕、mini 列、觀戰、X／N／Esc、full／mini 存本機；掉落動態取代 #dlog 與材料世界字。取捨：掛機卡外觀照現行（3b §4 紙帶未做），切換鈕圖示用 --tx-dim 而不是 --sel-ink（現行那一行不是紙底，--sel-ink 看不到）；稀有度一般／完美借 --r0／--r3 當 --rar-normal／--rar-unique（不加新色碼）；直立收起時追逐橫幅放在收起列上面（短暫壓到生命魔力條，不蓋分頁列）；王倒下卡沒有「本次掛機」那一行，切換只能用 X 或等卡結束
+- 2026-11-18 15:00｜開發工程師｜M2-33 補遺 §5.1、§5.2（dpoe-idle-card）｜掛機卡 full／mini／watch、切換鈕、mini 列、觀戰、X／N／Esc、full／mini 存本機；掉落動態取代 #dlog 與材料世界字。取捨：掛機卡外觀照現行（3b §4 紙帶未做），切換鈕圖示用 --tx-dim 而不是 --sel-ink（現行那一行不是紙底，--sel-ink 看不到）；稀有度一般／完美借 --r0／--r3 當 --rar-normal／--rar-unique（不加新色碼）；直立收起時追逐橫幅放在收起列上面（短暫壓到生命魔力條，不蓋分頁列）；王倒下卡沒有「本次掛機」那一行，切換只能用 X 或等卡結束
 - 2026-11-18 14:47｜美術總監｜M2-40 R5｜技能圖示重畫提示詞表 specs/M2-40-skill-icon-prompts.md：23 張（毒霧藥劑／油榴彈拆兩張），首跑 23 次＋備用 17 次＝上限 40；過關門檻 32 剪影 IoU < 0.6（對同欄集）、非實心塊、16 縮圖可分且棋盤 ≤ 6；拆圖新 id sk_gasflask、sk_oilgrenade、sk_refract、sk_tidepull、sk_windflask、sk_ironaura（堅毅換新圖，石膚藥劑留舊圖）；可辨識度以 UIUX設計師審查為準
 - 2026-11-18 14:48｜美術總監｜M2-39｜PR #96 第 2 輪（7df2a49）審查：32 可用 38、16 可用 37；anemia、calm、crip、inc、intim 兩尺寸過；unbr 退回改回直立盾斜放；riven／vine／cb 32、brittle、counter、daze、sac 32、sap、tail、taunt、weak 再手修；第 1 輪手修 broken、seal、fury、shatter、stain、petr、oiled、chg_e、chg_p（32）與 ad 三色、broken、shatter、stain（16）未做；全部手修 0 次，M2-39 83／100；specs/M2-39-picks.md 更新
 - 2026-11-18 14:46｜UIUX設計師｜M2-40｜混沌色盲記號用中毒剪影；狀態圖示直立／桌機 32×32（M2-40-skill-panel-hud.md §2）；Deck 40 格放 32 圖示四邊空 4、圖示不縮放；R1／R2 門檻、R3、R4、R6 照 specs/M2-40-combat-readability-art.md
