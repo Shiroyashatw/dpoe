@@ -797,9 +797,11 @@ def main():
                     fails.append(f"PF6 黑邊 {blk}% > {THR['fx_black']}%")
             if iid.startswith('X-3'):
                 bm = (r.get('data') or {}).get('beam')
-                if bm and bm.get('core'):
+                if bm and bm.get('core') and not (bm.get('val') or bm.get('rgbTok')):
+                    fails.append(f"PF9 量不到 beam_de：{bm['tok']} 這個 token 在 :root 沒有定義")
+                elif bm and bm.get('core'):
                     core = np.array([float(x) for x in bm['core'].split(',')])
-                    tok = hexrgb(bm['val'])
+                    tok = hexrgb(bm['val']) if bm.get('val') else np.array([float(x) for x in bm['rgbTok'].replace(',', ' ').split()])
                     de = float(de2000(lab(core[None])[0], lab(tok[None])[0])[0])
                     checks['beam_de'] = round(de, 2)
                     checks['beam_core'] = bm['core']
