@@ -1148,7 +1148,7 @@ function sysHTML(g) {
 }
 /* 格線（S12–S14）：8 px 格＋規格框 */
 function gridHTML(g) {
-  const z = (x, y, w, h, l) => `<div class="gzone" style="${px(x, y, w, h)}">${l}</div>`;
+  const z = (x, y, w, h, l) => `<div class="gzone" data-note style="${px(x, y, w, h)}">${l}</div>`;
   let h = '<div class="grid8"></div>';
   if (g.port) {
     h += z(0, 0, 390, g.st, '上 ' + g.st) + z(0, g.H - g.sb, 390, g.sb, '下 ' + g.sb);
