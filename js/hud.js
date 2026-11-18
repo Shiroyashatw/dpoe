@@ -4,8 +4,9 @@
 let IW = innerWidth,
   IH = innerHeight;
 let C = 36; /* 背包一格的大小（px）；手機照螢幕寬度調（main.js 的 resize） */
-const icHTML = (n, cls = '') => {
-  const u = ICONS[n] ? iconURL(n) : artIconURL(n);
+/* px：要顯示的大小比原圖小時（資源條 16）先縮好原圖，顯示寬 ÷ naturalWidth 才是整數 */
+const icHTML = (n, cls = '', px) => {
+  const u = ICONS[n] ? iconURL(n) : artIconURL(n, px);
   return u ? `<img class="ic ${cls}" src="${u}" alt="">` : `<span class="ic ${cls}"></span>`;
 };
 /* 圖還沒載好時，載好後補畫面板 */
@@ -2144,7 +2145,7 @@ function feedAdd(name, n, c, ic) {
     }
     f = { k: name, n, r, ic, el: document.createElement('p') };
     f.el.className = 'fd fd-' + r;
-    f.el.innerHTML = `${ic ? icHTML(ic) : ''}${c === 'chase' ? '' : '<b></b>'}<span>${FEED_G[c] || ''}${esc(name)}</span>`;
+    f.el.innerHTML = `${ic ? icHTML(ic, '', 16) : ''}${c === 'chase' ? '' : '<b></b>'}<span>${FEED_G[c] || ''}${esc(name)}</span>`;
     box.append(f.el);
   }
   /* 新的在最上面（用 order 排，不搬節點：搬了進場動畫會重播） */
@@ -2188,7 +2189,7 @@ function feedTick(force) {
     else if (now > f.end) f.el.classList.add('out');
     /* 圖示第一次用到才載：先畫空格，載好了補上 */
     const e = f.ic && f.el.querySelector('span.ic');
-    if (e && artIconURL(f.ic)) e.outerHTML = icHTML(f.ic);
+    if (e && artIconURL(f.ic, 16)) e.outerHTML = icHTML(f.ic, '', 16);
   }
   if (!FEED.L.length || G.scene !== 'map') return void (box.hidden = true);
   /* 位置：直立靠右、從小地圖（觀戰時離開鈕）下緣 + 8 往下；桌機靠左、從追逐橫幅下緣 + 8（沒有時 76）往下。
