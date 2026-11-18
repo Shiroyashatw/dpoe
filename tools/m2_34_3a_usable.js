@@ -157,6 +157,13 @@ async function run(b, W, H) {
     `${tag} 營地圖示（#cmtop、#cmnext、#cc-*）整數倍`,
     camp.filter(r => !intK([r])).concat(camp.length ? [] : ['沒有圖示'])
   );
+  /* 資源條 .rbar 的圖示一律 16：倍率剛好 1（併 hotfix-ui 的 flex 版面後不能回到 20／16＝1.25） */
+  const rbc = await p.evaluate(icons, '#pcraft .rbar img.ic');
+  ok(
+    rbc.length >= 1 && rbc.every(r => r.k === 1),
+    `${tag} 營地資源條 .rbar img.ic 倍率＝1（${rbc.length} 個）`,
+    rbc.filter(r => r.k !== 1).concat(rbc.length ? [] : ['沒有圖示'])
+  );
   /* 營地場景（面板關著）的技能列 */
   await p.evaluate(async () => {
     closePanels();
@@ -185,6 +192,12 @@ async function run(b, W, H) {
     idle.length >= 3 && intK(idle),
     `${tag} #pidle img.ic 整數倍`,
     idle.filter(r => !intK([r])).concat(idle.length >= 3 ? [] : ['圖示不到 3 個'])
+  );
+  const rbi = await p.evaluate(icons, '#pidle .rbar img.ic');
+  ok(
+    rbi.length >= 1 && rbi.every(r => r.k === 1),
+    `${tag} 掛機卡資源條 .rbar img.ic 倍率＝1（${rbi.length} 個）`,
+    rbi.filter(r => r.k !== 1).concat(rbi.length ? [] : ['沒有圖示'])
   );
   await p.evaluate(async () => {
     S.auto = 0;
