@@ -1,0 +1,56 @@
+{
+ "size": "390x844",
+ "info": {
+  "GH_LV": 26,
+  "lv25_on_minus_off": 0,
+  "lv26_on_minus_off": 50
+ },
+ "lock": {
+  "lk": "神格：角色到 Lv 26 才開",
+  "r": [
+   333,
+   538,
+   47,
+   56
+  ],
+  "inView": true
+ },
+ "warn": {
+  "t": "神格：角色到 Lv 26 才開",
+  "on": true
+ },
+ "lv26": {
+  "lock": false,
+  "gh": true
+ },
+ "errs": []
+}
+✅ 神格 Lv26 鎖
+{
+ "size": "1280x720",
+ "info": {
+  "GH_LV": 26,
+  "lv25_on_minus_off": 0,
+  "lv26_on_minus_off": 50
+ },
+ "lock": {
+  "lk": "神格：角色到 Lv 26 才開",
+  "r": [
+   1200,
+   291,
+   49,
+   56
+  ],
+  "inView": true
+ },
+ "warn": {
+  "t": "神格：角色到 Lv 26 才開",
+  "on": true
+ },
+ "lv26": {
+  "lock": false,
+  "gh": true
+ },
+ "errs": []
+}
+✅ 神格 Lv26 鎖
