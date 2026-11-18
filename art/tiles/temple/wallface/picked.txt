@@ -1,0 +1,2 @@
+tile_temple_wallface-s1122-a.png
+tile_temple_wallface-s1122-b.png
