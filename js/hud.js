@@ -20,11 +20,6 @@ function artRepaint() {
     if (CB.st !== 'idle' && document.querySelector('#chase span.ic'))
       $('chase').innerHTML = chaseBnHTML(); /* 王印圖第一次用到才載，橫幅先畫出空格 */
     treeIcons();
-    /* 掉落動態：圖示第一次用到才載，先畫空格 */
-    for (const f of FEED.L) {
-      const e = f.ic && f.el.querySelector('span.ic');
-      if (e) e.outerHTML = icHTML(f.ic);
-    }
   }, 80);
 }
 
@@ -2188,9 +2183,13 @@ function feedTick(force) {
     box = $('feed');
   if (!force && now - FEED.t < 100) return;
   FEED.t = now;
-  for (const f of FEED.L.slice())
+  for (const f of FEED.L.slice()) {
     if (now > f.end + 400) feedDrop(f);
     else if (now > f.end) f.el.classList.add('out');
+    /* 圖示第一次用到才載：先畫空格，載好了補上 */
+    const e = f.ic && f.el.querySelector('span.ic');
+    if (e && artIconURL(f.ic)) e.outerHTML = icHTML(f.ic);
+  }
   if (!FEED.L.length || G.scene !== 'map') return void (box.hidden = true);
   /* 位置：直立靠右、從小地圖（觀戰時離開鈕）下緣 + 8 往下；桌機靠左、從追逐橫幅下緣 + 8（沒有時 76）往下。
      碰到 HUD 就停在它上緣 − 8，放不下就少畫幾列（至少 1 列）；桌機左欄面板開著時不畫 */
