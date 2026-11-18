@@ -4,7 +4,7 @@ FINAL	art/icons/ailment/ail_ad_light_32/ail_ad_light_32-recolor-s3912.png
 FINAL	art/icons/ailment/ail_anemia_32/ail_anemia_32-hand.png
 FINAL	art/icons/ailment/ail_brittle_32/ail_brittle_32-r3.png
 R4	art/icons/ailment/ail_broken_32/ail_broken_32-r3.png
-R4	art/icons/ailment/ail_calm_32/ail_calm_32-hand.png
+FINAL	art/icons/ailment/ail_calm_32/ail_calm_32-r4.png
 FINAL	art/icons/ailment/ail_cb_32/ail_cb_32-r3.png
 FINAL	art/icons/ailment/ail_chg_e_32/ail_chg_e_32-r3.png
 FINAL	art/icons/ailment/ail_chg_f_32/ail_chg_f_32-s3933.png
@@ -43,7 +43,7 @@ FINAL	art/icons/ailment/ail_ad_light_16/ail_ad_light_16-r3.png
 FINAL	art/icons/ailment/ail_anemia_16/ail_anemia_16-hand.png
 FINAL	art/icons/ailment/ail_brittle_16/ail_brittle_16-r3.png
 R4	art/icons/ailment/ail_broken_16/ail_broken_16-r3.png
-R4	art/icons/ailment/ail_calm_16/ail_calm_16-hand.png
+FINAL	art/icons/ailment/ail_calm_16/ail_calm_16-r4.png
 FINAL	art/icons/ailment/ail_cb_16/ail_cb_16-hand.png
 FINAL	art/icons/ailment/ail_chg_e_16/ail_chg_e_16-s4032.png
 FINAL	art/icons/ailment/ail_chg_f_16/ail_chg_f_16-s4033.png
