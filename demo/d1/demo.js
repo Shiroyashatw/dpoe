@@ -270,7 +270,10 @@ function enAuto(zh) {
 }
 const pad0 = s => (P.en ? pad(s) : s);
 const fmt = n => n.toLocaleString('en-US');
-const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const esc = s =>
+  String(s)
+    .replace(/Lv (\d)/g, 'Lv\u00a0$1') /* N4：Lv 和數字用 U+00A0，不拆開 */
+    .replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const hm = m => (m >= 60 ? `${Math.floor(m / 60)} 時 ${String(m % 60).padStart(2, '0')} 分` : `${m} 分`);
 const hmEn = m => (m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m} min`);
 
@@ -319,6 +322,8 @@ function img(k) {
   return (IMGS[k] = { im, r });
 }
 const HERO = new Image();
+/* 主角幀（hero.png 0,80 的 80×80）不透明外框 x 23–55、y 18–63：可見中心 (39, 41)，畫在鏡頭中心上（V9 量的是這個點） */
+const HERO_C = [39, 41];
 HERO.src = '../../img/hero.png';
 const FLOOR = { ice: new Image(), tomb: new Image() };
 FLOOR.ice.src = '../../img/tiles/ice-floor.d57a67ce.png';
@@ -404,6 +409,7 @@ function build() {
   b.classList.toggle('touch', devTouch());
   b.classList.toggle('fs130', P.fs);
   b.classList.toggle('en', P.en);
+  b.classList.toggle('lat', isEN());
   b.classList.toggle('rm', P.rm);
   document.documentElement.style.setProperty('--tscale', P.fs ? 1.3 : 1);
   const fk = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.k;
@@ -423,6 +429,7 @@ function build() {
   resFit();
   idleFit();
   mainFit();
+  plqFit();
   drawerFit();
   stackTop();
   stackBottom();
@@ -438,6 +445,7 @@ function note() {
   let s = r ? `<b>${r.id}</b> ${esc(r.t)}` : '';
   if (MISS.length) s += `　<b>缺欄</b>（9b 為「—」）沿用中期：${MISS.join('、')}`;
   if (r && r.nv) s += `　<b>demo 未驗，進遊戲量</b>：${esc(r.nv)}`;
+  s += `　<b>第 21 項 王印圖示</b>：${WY_TIP}`;
   $('c-note').innerHTML = s;
 }
 const devTouch = () => (S.dev === 'auto' ? !!SIZES[P.size].port : S.dev === 'touch');
@@ -552,8 +560,14 @@ function skillsHTML(g) {
     if (s.cd)
       ex += `<span class="cdv" style="height:${(s.left / s.cd) * 100}%"></span><span class="cdt num">${s.left}</span>`;
     if (s.next) ex += `<span class="cdv" style="height:40%"></span>`;
+    /* 蓄力段：右上「n 段」、下緣每段一格，正在蓄的那格照進度填（#8 H19_charge） */
+    if (s.charge)
+      ex += `<span class="chg" style="height:${s.charge[2] * 100}%"></span><span class="cnt" data-role="label">${s.charge[0]}${isEN() ? '' : '段'}</span><span class="pips">${Array.from({ length: s.charge[1] }, (_, j) => `<i class="${j < s.charge[0] ? 'on' : ''}" style="${j === s.charge[0] ? `background:linear-gradient(to right, var(--ready) ${s.charge[2] * 100}%, transparent 0)` : ''}"></i>`).join('')}</span>`;
+    /* 藥劑：右上剩幾次、下緣每次一格；生效中 2 px --good 框＋剩餘時間條（#8 H19_flask） */
+    if (s.flask)
+      ex += `<span class="cnt" data-role="label">${s.flask[0]}</span><span class="pips">${Array.from({ length: s.flask[1] }, (_, j) => `<i class="${j < s.flask[0] ? 'on' : ''}"></i>`).join('')}</span>${s.flask[2] ? `<span class="fla" style="width:${s.flask[2] * 100}%"></span>` : ''}`;
     const nm = enN && isEN() ? enN[i] : s.n;
-    h += `<button class="sk" data-hit="sk" data-k="sk${i}" style="width:${sz}px;height:${sz}px" aria-label="${esc(enN && isEN() ? pad0(nm) : T(nm))}">${art(s.ic)}${kc(keys[i])}${ex}</button>`;
+    h += `<button class="sk${s.flask && s.flask[2] ? ' act' : ''}" data-hit="sk" data-k="sk${i}" style="width:${sz}px;height:${sz}px" aria-label="${esc(enN && isEN() ? pad0(nm) : T(nm))}">${art(s.ic)}${kc(keys[i])}${ex}</button>`;
   });
   return h + '</div>';
 }
@@ -566,13 +580,23 @@ const CHASE_IC = {
   鎮嶽印: 'wangyin_zhenyue_16'
 };
 const chaseIc = name => CHASE_IC[Object.keys(CHASE_IC).find(k => String(name).startsWith(k))] || 'wangyin_guixu_16';
+/* 第 21 項（製作人 23:08 裁定）：暫用現有圖示，16px 新圖等美術復工。
+   原圖 1×（不縮放）取不透明外框，置中放進 16×16 框；框 1 px --rar-chase，不用 ★ */
+const WY_TIP = '暫用現有圖示，16px 新圖等美術復工';
+const WY_BOX = { wangyin_jiting_16: [2, 1, 11, 13] }; /* 量 img/ic_wy16 alpha 外框；其餘三張 [2, 1, 12, 14] */
+function wy(k) {
+  const r = typeof ART !== 'undefined' && ART[k];
+  if (!r) return '';
+  const [x, y, w, h] = WY_BOX[k] || [2, 1, 12, 14];
+  return `<span class="wy" data-wy="${k}" title="${WY_TIP}"><i class="art" style="width:${w}px;height:${h}px;background-image:url('../../${ART_SHEET[r[0]]}');background-position:-${r[1] + x}px -${r[2] + y}px"></i></span>`;
+}
 const mark = (rar, ic, name) =>
   rar === 'rare'
     ? '<span class="mk">◆</span>'
     : rar === 'leg'
       ? '<span class="mk">◈</span>'
       : rar === 'chase'
-        ? art(ic || chaseIc(name))
+        ? wy(ic || chaseIc(name))
         : '';
 /* 追逐短格式：「赤霄印・王印 2／4」→「赤霄印 2/4」 */
 const chaseShort = s => {
@@ -737,11 +761,54 @@ function mainFit() {
   for (const x of c.querySelectorAll('.btn')) x.style.minHeight = '64px';
   c.style.top = c.offsetTop - 8 + 'px';
 }
-/* 抽屜內容可捲：底部 12 px scrim 漸層（同 S15） */
+/* N1：牌匾（直立最寬 160、桌機 220，字換兩行）互相隔 ≥ 8 px，放不下就往下排；
+   排到主鈕列上方 8 px 還放不下，就收進邊緣箭頭「› n」 */
+function plqFit() {
+  const L = [...UI().querySelectorAll('.plq')].sort((a, b) => a.offsetTop - b.offsetTop || a.offsetLeft - b.offsetLeft),
+    cm = UI().querySelector('[data-m="C08"]'),
+    edge = UI().querySelector('[data-m="edge"]');
+  if (!L.length || !cm) return;
+  const hit = (a, b) => a.x < b.x + b.w + 8 && b.x < a.x + a.w + 8 && a.y < b.y + b.h + 8 && b.y < a.y + a.h + 8,
+    eb = (([x, y, w, h]) => ({ x, y, w, h }))(['left', 'top', 'width', 'height'].map(k => parseFloat(edge.style[k])));
+  /* 先不算邊緣箭頭排一次；有排不下的（箭頭要出現）就把箭頭的位置留出來再排一次 */
+  const lay = withEdge => {
+    const placed = withEdge ? [eb] : [],
+      out = [];
+    for (const e of L) {
+      const r = { x: e.offsetLeft, y: e.offsetTop, w: e.offsetWidth, h: e.offsetHeight };
+      for (let o; (o = placed.find(q => hit(r, q))); ) r.y = o.y + o.h + 8;
+      if (r.y + r.h > cm.offsetTop - 8) out.push([e, null]);
+      else out.push([e, r.y]), placed.push(r);
+    }
+    return out;
+  };
+  let res = lay(!edge.classList.contains('hide'));
+  if (edge.classList.contains('hide') && res.some(x => x[1] == null)) res = lay(true);
+  const off = res.filter(x => x[1] == null).length;
+  for (const [e, y] of res) y == null ? e.remove() : (e.style.top = y + 'px');
+  if (off) {
+    const n = +edge.dataset.n + off;
+    edge.dataset.n = n;
+    edge.textContent = '› ' + n;
+    edge.classList.remove('hide');
+  }
+}
+/* 可以捲動的地方（抽屜內容、離線結算、系統元件頁）：還沒捲到底就在底部加 24 px 漸層提示（#23、N6）；
+   黏底動作列（S15）已有自己的 12 px scrim，不另加 */
 function drawerFit() {
-  for (const d of document.querySelectorAll('.drw')) {
-    const bd = d.querySelector('.bd');
-    d.classList.toggle('more', !!bd && bd.scrollHeight > bd.clientHeight + 1 && !d.querySelector('.sticky'));
+  const ui = UI();
+  for (const f of ui.querySelectorAll('.sfade')) f.remove();
+  const U = ui.getBoundingClientRect(),
+    sc = U.width / ui.offsetWidth;
+  for (const e of ui.querySelectorAll('.drw .bd, .off, .sys')) {
+    if (e.closest('.drw') && e.closest('.drw').querySelector('.sticky')) continue;
+    if (e.scrollHeight <= e.clientHeight + 1 || e.scrollTop + e.clientHeight >= e.scrollHeight - 1) continue;
+    const r = e.getBoundingClientRect(),
+      z = getComputedStyle(e.closest('.ab') || e).zIndex;
+    ui.insertAdjacentHTML(
+      'beforeend',
+      `<div class="ab sfade" style="${px((r.x - U.x) / sc, (r.bottom - U.y) / sc - 24, r.width / sc, 24)}z-index:${z === 'auto' ? 1 : +z + 1}"></div>`
+    );
   }
 }
 /* 資源列放不下：從後面收成「…+n」，數字不截斷、不換行（C11） */
@@ -835,8 +902,9 @@ function panelHTML(g) {
         st = `<button class="stamp kf${solid ? ' can' : ' off'}" data-hit="stamp" data-k="st-${c.n}" data-fac="${c.n}" data-solid="${solid ? 1 : 0}" aria-label="${esc(T('升級'))} ${esc(c.n)}">▲</button>`;
         prog = `<span class="cp"><i class="${k.pct >= 100 ? 'full' : ''}" style="width:${k.pct}%"></i></span>`;
       }
-      const lvT = c.lv == null ? '' : `Lv ${c.lv}`;
-      h += `<div class="${cl.join(' ')}" data-m="cell" data-fac="${c.n}"><button class="cb kf" data-hit="cell" data-k="cb-${c.n}" data-fac="${c.n}"><b data-role="body">${esc(facName(c.n))} ${lvT}${c.c && c.c.sug ? `<span class="tag" data-role="label">${esc(T('建議'))}</span>` : ''}</b>${sub}</button>${st}${prog}</div>`;
+      /* N3：名字先截斷（英文先換兩行），「Lv n」、「建議」不截斷、不換行 */
+      const lvT = c.lv == null ? '' : `<span class="lv">Lv\u00a0${c.lv}</span>`;
+      h += `<div class="${cl.join(' ')}" data-m="cell" data-fac="${c.n}"><button class="cb kf" data-hit="cell" data-k="cb-${c.n}" data-fac="${c.n}"><b data-role="body"><span class="fn">${esc(facName(c.n))}</span>${lvT}${c.c && c.c.sug ? `<span class="tag" data-role="label">${esc(T('建議'))}</span>` : ''}</b>${sub}</button>${st}${prog}</div>`;
     }
     return h + '</div></div></div>';
   }
@@ -853,21 +921,21 @@ function panelHTML(g) {
     const w = port ? 390 : 400;
     return `<div class="ab pnl drw" id="d-drw" data-m="C06" data-panel style="${port ? box : px(g.W - 16 - 400, 76, 400, 380)}${z}">
       <div class="hd"><button class="x44 kf" data-hit="x" data-k="cprev" aria-label="上一座">${ICO.prev}</button><b data-role="body">${esc(facName(n))}</b><button class="x44 kf" data-hit="x" data-k="cnext" aria-label="下一座">${ICO.next}</button><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
-      <div class="bd"><div class="one"><h4 data-role="body">Lv ${cell.lv} → Lv ${cell.lv + 1}</h4><p data-role="body">${esc(T(n === '瞭望台' ? '開下一個主幹地點' : n === '獵場' || n === '林場' || n === '礦場' || n === '絲地' ? '產量提高' : '下一級的效果照解鎖表'))}</p>
+      <div class="bd"><div class="one"><h4 data-role="body">Lv\u00a0${cell.lv} → Lv\u00a0${cell.lv + 1}</h4><p data-role="body">${esc(T(n === '瞭望台' ? '開下一個主幹地點' : n === '獵場' || n === '林場' || n === '礦場' || n === '絲地' ? '產量提高' : '下一級的效果照解鎖表'))}</p>
       <ul>${lis}</ul><div class="ms" data-role="body">${esc(T('下一個里程碑'))}：${goalLine()}<div class="bar"><i style="width:${D('goal').pct}%"></i></div></div></div></div>
       <div style="padding:${port ? '0 8px 8px' : '0 16px 16px'}"><button class="btn pri kf${k.can ? '' : ' off'}" data-hit="up1" data-k="up1" style="width:${port ? 374 : 368}px;min-height:${port ? 54 : 48}px">▲ ${esc(T('升級'))}</button></div></div>`;
   }
   if (S.panel === 'log') {
     const pity = D('pity'),
       rc = D('recent') || [];
-    /* 最近 50 筆：同一物品連續進來合成一列，記號統一「+n」（跟掉落動態一樣） */
+    /* 最近 50 筆：同名（同稀有度）的合成一列，寫「×n」（#19；不只連續的） */
     const raw = [...S.feed.map(f => [f.name, f.rar, f.n]), ...rc.map(r => [r[0], r[1], 1, r[2]])];
     const pool = [...D('drops').normal, ['玄鐵', 12], ['轉化石', 2], ['磨刀石', 5], ['蛻變石', 3], ['預知石', 1]];
     for (let i = 0; raw.length < 14; i++) raw.push([pool[i % pool.length][0], 'normal', pool[i % pool.length][1]]);
     const items = [];
     for (const it of raw) {
-      const p = items[items.length - 1];
-      if (p && p[0] === it[0] && p[1] === it[1]) p[2] += it[2];
+      const p = items.find(x => x[0] === it[0] && x[1] === it[1]);
+      if (p) p[2] += it[2];
       else items.push(it.slice());
     }
     return `<div class="ab pnl drw" id="d-drw" data-m="H11" data-panel style="${box}${z}"><div class="hd"><b data-role="body">${esc(T('掉落紀錄'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
@@ -876,7 +944,7 @@ function panelHTML(g) {
         .slice(0, 50)
         .map(
           (it, i) =>
-            `<li class="r-${it[1]}" id="${i === 0 ? 'd-logsel' : ''}" style="${i === 0 ? 'outline:2px solid var(--border-cap);outline-offset:-2px' : ''}" data-role="body">${mark(it[1], it[3], it[0])}<span class="nm ell">${esc(T(it[0]))}</span>${it[2] > 1 ? `<span class="n num">+${fmt(it[2])}</span>` : ''}</li>`
+            `<li class="r-${it[1]}" id="${i === 0 ? 'd-logsel' : ''}" style="${i === 0 ? 'outline:2px solid var(--border-cap);outline-offset:-2px' : ''}" data-role="body">${mark(it[1], it[3], it[0])}<span class="nm ell">${esc(T(it[0]))}</span>${it[2] > 1 ? `<span class="n num">×${fmt(it[2])}</span>` : ''}</li>`
         )
         .join('')}</ul></div></div>`;
   }
@@ -931,7 +999,7 @@ function fullHTML(g) {
       <div class="hd" style="width:100%"><b>${esc(T('鍛造'))}・${esc(T('打造'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
       <div class="flip" id="d-flip"><div class="fb" id="d-fb">${esc(T('打造'))}…</div><div class="ff" id="d-ff">◆ ${esc(T('稀有'))}<span>${esc(T('赤鐵十字弓'))}</span></div></div>
       <div class="pslot"><div class="pity" id="d-pity" data-role="body"><span id="d-pityt">${esc(T('下一件保底'))} 96%</span><div class="bar"><i id="d-pityf" style="width:96%"></i></div></div>
-      <div class="chban hide" id="d-chban">${art('wangyin_guixu_16')} ${esc(T('保底 100%：歸墟印'))}</div></div>
+      <div class="chban hide" id="d-chban">${wy('wangyin_guixu_16')} ${esc(T('保底 100%：歸墟印'))}</div></div>
       <div class="rw" style="display:flex;gap:8px"><button class="btn pri kf" data-k="fmake" data-hit="pri">${esc(T('打造'))}</button><button class="btn sec off kf" id="d-f4" data-k="f4" data-hit="sec" aria-disabled="true">F4 ${esc(T('腐化'))}</button></div>
       <div class="why" data-role="body">F4：${esc(T('鍛造台 Lv15 開'))}（120 ms 抖動：demo 未驗，進遊戲量）</div></div>`;
   }
@@ -997,11 +1065,10 @@ function campHTML(g) {
     const sp = spots[i];
     if (!sp || (port && sp[1] + 44 > g.idleTop - 72)) return offR++;
     const can = c.c && c.c.can;
-    h += `<div class="ab plq kf" data-m="C07" data-hit="plq" data-k="pq-${c.n}" data-fac="${c.n}" role="button" tabindex="0" style="${px(sp[0], (port ? g.st : 0) + sp[1])}"><span class="nm" data-role="body">${esc(facName(c.n))} Lv ${c.lv}</span>${c.c ? `<span class="stp${can ? ' can' : ''}" data-role="label">▲</span>` : ''}</div>`;
+    h += `<div class="ab plq kf" data-m="C07" data-hit="plq" data-k="pq-${c.n}" data-fac="${c.n}" role="button" tabindex="0" style="${px(sp[0], (port ? g.st : 0) + sp[1])}"><span class="nm" data-role="body">${esc(facName(c.n))} Lv\u00a0${c.lv}</span>${c.c ? `<span class="stp${can ? ' can' : ''}" data-role="label">▲</span>` : ''}</div>`;
   });
   const hidden = campCells().filter(c => c.c && c.c.can).length > 3 ? 2 : 0;
-  if (hidden || offR)
-    h += `<div class="ab edge" data-m="edge" style="${port ? px(390 - 52, g.st + 300, 44, 44) : px(g.W - 60, 340, 52, 44)}">› ${hidden || offR}</div>`;
+  h += `<div class="ab edge${hidden || offR ? '' : ' hide'}" data-m="edge" data-n="${hidden || offR}" style="${port ? px(390 - 52, g.st + 300, 44, 44) : px(g.W - 60, 340, 52, 44)}">› ${hidden || offR}</div>`;
   /* 主鈕列 */
   /* 主鈕：動詞保留，只砍地點名；放不下就換兩行、高 56→64（mainFit） */
   const full = T(`繼續刷 ${loc()}`, `Keep farming ${EN[loc()] || enAuto(loc())}`),
@@ -1036,7 +1103,7 @@ function offHTML(g) {
     .join('');
   return `<div class="scrim" style="z-index:19"></div><div class="ab off" id="d-off" data-m="I07" style="${box}z-index:20" role="dialog" aria-label="${esc(T('離線結算'))}">
     <h2 data-role="body">${esc(isEN() && ENV('away') ? pad0(t) : T(t))}</h2><p class="sum" id="d-offsum" data-role="body" data-v="${esc(sum)}">${esc(isEN() && ENV('offSum') ? pad0(sum) : T(sum))}</p>
-    <ul>${rows}<li class="r-chase offr ch" data-i="ch" data-role="body">${o.chaseIc ? art(o.chaseIc) : ''}${esc(T(chaseRow(o.chase)))}</li></ul>
+    <ul>${rows}<li class="r-chase offr ch" data-i="ch" data-role="body">${o.chaseIc ? wy(o.chaseIc) : ''}${esc(T(chaseRow(o.chase)))}</li></ul>
     <div class="nx" data-role="body"><span>${esc(T('接下來'))}：${esc(isEN() && ENV('goal') ? ENV('goal') : T(o.next))}</span><span class="gp"><i style="width:${goal.pct}%"></i></span></div>
     <button class="btn pri ok kf" id="d-offok" data-m="I08" data-hit="pri" data-k="offok" style="${port ? 'width:374px;min-height:56px;align-self:center' : 'width:320px;min-height:48px;align-self:center'}">${esc(T('收下'))}${devTouch() ? '' : '<kbd>Enter</kbd>'}</button></div>`;
 }
@@ -1266,13 +1333,13 @@ function drawField() {
   if (S.boss !== 'none') {
     const o = img(P.save === 'mid' ? 'zhongkui' : 'hugupo'),
       [, sx, sy, w, h] = o.r,
-      bx = z.port ? -180 : -w,
-      by = z.port ? -70 - h * 2 : -170 - h;
+      bx = S.bossAt ? S.bossAt[0] : z.port ? -180 : -w,
+      by = S.bossAt ? S.bossAt[1] : z.port ? -70 - h * 2 : -170 - h;
     if (o.im.complete) c.drawImage(o.im, sx, sy, w, h, bx, by, w * 2, h * 2);
     F.boxes.push(toUI(bx, by, w * 2, h * 2));
   }
   /* 主角 */
-  if (HERO.complete) c.drawImage(HERO, 0, 80, 80, 80, -40, -63, 80, 80);
+  if (HERO.complete) c.drawImage(HERO, 0, 80, 80, 80, -HERO_C[0], -HERO_C[1], 80, 80);
   /* 投射物 */
   for (const s of F.shots) {
     const k2 = s.t / s.d;
@@ -1415,10 +1482,12 @@ function feedRandom() {
 function feedSeed() {
   const d = D('drops');
   S.filtered = SV[P.save].d.filtered || 0;
+  const nm = S.filter === 'all' ? d.normal : [];
+  /* 「全部」：最新的一列普通放最上，普通／傳奇／稀有同屏都看得到（#8 H09_all） */
+  for (const [n, k] of nm.slice(0, 1)) S.feed.push({ name: n, rar: 'normal', n: k, t0: NOW, tIn: NOW - 1000 });
   for (const [n, k] of d.leg || []) S.feed.push({ name: n, rar: 'leg', n: k, t0: NOW, tIn: NOW - 1000 });
   for (const [n, k] of d.rare) S.feed.push({ name: n, rar: 'rare', n: k, t0: NOW, tIn: NOW - 1000 });
-  for (const [n, k] of d.normal)
-    if (S.filter === 'all') S.feed.push({ name: n, rar: 'normal', n: k, t0: NOW, tIn: NOW - 1000 });
+  for (const [n, k] of nm.slice(1)) S.feed.push({ name: n, rar: 'normal', n: k, t0: NOW, tIn: NOW - 1000 });
 }
 function drawFeed() {
   const fd = $('d-feed');
@@ -1454,8 +1523,22 @@ function drawFeed() {
 }
 
 /* ---------- 每格動畫（全由 NOW 算） ---------- */
-/* 淡入：一般 160；減少動態一律 150 */
-const FIN = () => (P.rm ? 150 : 160);
+/* 淡入：一般 160；減少動態 120（逐幀量要 ≤ 150，#20） */
+const FIN = () => (P.rm ? 120 : 160);
+/* 低血紅框（N2）：四邊各一條 24 px linear-gradient，最邊緣 α 0.35／0.55，往內漸變到 0（不用模糊陰影） */
+const vign = a => {
+  if (!a) return '';
+  const c = `rgb(var(--hurt-vignette-rgb) / ${a})`,
+    z = 'rgb(var(--hurt-vignette-rgb) / 0)';
+  return [
+    ['bottom', 'top', '100% 24px'],
+    ['top', 'bottom', '100% 24px'],
+    ['right', 'left', '24px 100%'],
+    ['left', 'right', '24px 100%']
+  ]
+    .map(([to, at, sz]) => `linear-gradient(to ${to}, ${c}, ${z}) ${at} / ${sz} no-repeat`)
+    .join(', ');
+};
 const easeOut = t => 1 - (1 - t) * (1 - t);
 const easeOutExpo = t => (t >= 1 ? 1 : 1 - 2 ** (-10 * t));
 function tick() {
@@ -1536,7 +1619,7 @@ function tick() {
   if (vg) {
     const hp = S.hp != null ? S.hp : 1,
       a = hp < 0.2 ? 0.55 : hp < 0.35 ? 0.35 : 0;
-    vg.style.boxShadow = a ? `inset 0 0 24px 0 rgba(var(--hurt-vignette-rgb), ${a})` : '';
+    vg.style.background = vign(a);
     vg.dataset.a = a;
   }
   const mp = $('d-mp');
@@ -1581,7 +1664,7 @@ function tick() {
       const c = D('campGain');
       const txt = isEN() && ENV('campGain') ? ENV('campGain') : c.text;
       const body = esc(isEN() && ENV('campGain') ? pad0(txt) : T(txt)).replace(/◆/g, '<span class="r-rare">◆</span>');
-      const html = c.chase ? `<span class="ch">${art('wangyin_guixu_16')}</span>${body}` : body;
+      const html = c.chase ? `<span class="ch">${wy('wangyin_guixu_16')}</span>${body}` : body;
       if (cg.dataset.h !== html) (cg.innerHTML = html), (cg.dataset.h = html);
       cg.style.opacity = t < 3000 ? 1 : (1 - (t - 3000) / 300).toFixed(3);
     }
@@ -1689,7 +1772,7 @@ function tick() {
     if (tc) tc.style.top = hh + 'px';
     const hp = S.hp != null ? S.hp : 0.8,
       a = hp < 0.35 ? (hp < 0.2 ? 0.55 : 0.35) : 0;
-    $('d-sv').style.boxShadow = a ? `inset 0 0 24px 0 rgba(var(--hurt-vignette-rgb), ${a})` : '';
+    $('d-sv').style.background = vign(a);
     $('d-back').classList.toggle('hide', !(hp < 0.35));
     $('d-shp').style.width = hp * 100 + '%';
     const life = D('life');
@@ -1759,9 +1842,10 @@ function backToField() {
   S.scr = 'hud';
   S.panel = null;
   S.fieldPanel = 0;
-  S.fadeT = NOW - 120; /* 淡入 160（減少動態 150） */
+  S.fadeT = NOW - 120; /* 淡入 160（減少動態 120） */
   log('camp-out', { stay });
-  if (stay >= 10000 && D('campGain')) (S.gainT = NOW + FIN()), log('gain', { at: NOW + FIN() });
+  if (stay >= 10000 && D('campGain'))
+    (S.gainT = NOW + 160), log('gain', { at: NOW + 160 }); /* 淡入 160 結束後出（減少動態淡入較短，仍等 160） */
   build();
 }
 function down() {
@@ -2178,7 +2262,7 @@ const SCN = {
   V6: {
     t: '掉落動態合併與停留',
     save: 'mid',
-    dur: 17200,
+    dur: 22200,
     at: [
       [0, () => ((S.filter = 'all'), (S.feed = []), build())],
       [200, () => feedPush('百煉鋼', 'normal', 3)],
@@ -2197,7 +2281,11 @@ const SCN = {
       [11800, () => feedPush('百煉鋼', 'normal', 5)],
       /* 列沒滿的一段：只進 1 列普通，量它停滿 3 秒（V6 審查） */
       [13000, () => ((S.filter = 'all'), (S.feed = []), log('feed-quiet'), build())],
-      [13200, () => feedPush('聖化石', 'normal')]
+      [13200, () => feedPush('聖化石', 'normal')],
+      /* 列沒滿的合併：同一列普通 +1 兩次，停留從最後一次 +1 重新算（V6 23:16） */
+      [17000, () => ((S.feed = []), log('feed-quiet2'), build())],
+      [17200, () => feedPush('百煉鋼', 'normal', 3)],
+      [18400, () => feedPush('百煉鋼', 'normal', 1)]
     ]
   },
   V7: {
@@ -2308,6 +2396,7 @@ function apply(rowId) {
   if (S.scr === 'sys' && S.sec) {
     const sec = document.querySelector(`[data-sec="${S.sec}"]`) || document.querySelector('[data-sec="S06"]');
     if (sec) sec.scrollIntoView({ block: 'center' });
+    drawerFit();
   }
   if (r && r.id === 'S05') document.querySelector('[data-k="b7"]').focus();
   if (r && r.id === 'K08') {
@@ -2453,6 +2542,18 @@ window.demo = {
   },
   geo: () => geo(),
   hero: () => F.hero || null,
+  /* 戰場框（UI 座標）：直立＝fieldTop–fieldBot；天賦樹＝即時戰場條；桌機＝全畫面 */
+  frame() {
+    const g = geo(),
+      st = $('d-strip');
+    if (S.panel === 'tree' && st) {
+      const u = UI().getBoundingClientRect(),
+        r = st.getBoundingClientRect(),
+        sc = u.width / UI().offsetWidth;
+      return { x: (r.x - u.x) / sc, y: (r.y - u.y) / sc, w: r.width / sc, h: r.height / sc };
+    }
+    return g.port ? { x: 0, y: g.fieldTop, w: g.W, h: g.fieldBot - g.fieldTop } : { x: 0, y: 0, w: g.W, h: g.H };
+  },
   isEN: () => isEN(),
   key: (k, o) => key(k, o),
   tap: k => tap(k),
@@ -2479,6 +2580,7 @@ window.demo = {
   if (Q.has('bare')) document.body.classList.add('bare');
   setupCtl();
   $('ui').addEventListener('click', onClick);
+  $('ui').addEventListener('scroll', () => drawerFit(), true);
   $('ui').addEventListener('pointerdown', e => {
     if (e.pointerType) S.dev = e.pointerType === 'touch' ? 'touch' : SIZES[P.size].port ? 'auto' : 'kbd';
     const h = e.target.closest('[data-hold]');
