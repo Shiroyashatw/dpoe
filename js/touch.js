@@ -423,7 +423,7 @@ function handInit() {
     const dy = e.clientY - d.y0;
     if (Math.abs(dy) > 8) d.moved = 1;
     if (!d.moved) return;
-    const half = Math.round(IH * SHEET_TOP);
+    const half = sheetTop();
     let top = d.top0 + dy;
     /* 半版再往下＝要收起來：超過的部分打折（橡皮筋） */
     if (top > half) top = half + (top - half) * 0.5;
@@ -438,7 +438,7 @@ function handInit() {
     if (!dd.moved) return;
     TOUCH.handDrag = 1;
     setTimeout(() => (TOUCH.handDrag = 0), 0);
-    const half = Math.round(IH * SHEET_TOP),
+    const half = sheetTop(),
       cur = topNow();
     if (cur <= dd.top0) NAV.full = 1;
     else if (dd.top0 < half / 2 && cur < half + 40) NAV.full = 0;

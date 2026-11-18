@@ -2634,3 +2634,10 @@ body.offon #pidle { visibility: hidden; }
 #poff .offb .btn { flex: 1; min-height: 56px; font-size: var(--f14); }
 body:not(.touch.port) #poff .offb .btn { min-height: 48px; }
 @media (prefers-reduced-motion: reduce) { #poff, #poff .offl li { animation: none; } }
+
+/* 刷圖中的半版只有 380 高（§1.1）：角色頁人形欄縮成 44 格（熱區仍 ≥44），護符列不必捲就看得到（M1-12） */
+body.touch.port.sheet.inmap:not(.sheetfull) #pinv .doll2 { grid-template-columns: 44px 1fr 44px; }
+body.touch.port.sheet.inmap:not(.sheetfull) #pinv .doll2 .col { gap: 4px; }
+body.touch.port.sheet.inmap:not(.sheetfull) #pinv .eqs { width: 44px; height: 44px; }
+body.touch.port.sheet.inmap:not(.sheetfull) #pinv .eqrow.col { gap: 4px; }
+body.touch.port.sheet.inmap:not(.sheetfull) #pinv > .ph:first-child { margin-bottom: 6px; }

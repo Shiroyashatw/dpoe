@@ -551,8 +551,14 @@ const navHTML = () => {
     )
     .join('');
 };
-/* 掛機條（M2-12 §2）：刷圖中一直在（面板開著也在，倒下也在）；手機只在直立（橫向太矮），桌機在左下；天賦樹蓋滿時不畫 */
-const idleOn = () => !!S && G.scene === 'map' && !TREE.open && (!TOUCH.on || PORT());
+/* 掛機條（M2-12 §2）：刷圖中一直在（面板開著也在，自動模式倒下也在；確認卡、手動的死亡卡蓋上來時收起）；手機只在直立（橫向太矮），桌機在左下；天賦樹蓋滿時不畫 */
+const idleOn = () =>
+  !!S &&
+  G.scene === 'map' &&
+  !TREE.open &&
+  !G.ask &&
+  !(G.state === 'dead' && !(S.auto && G.node)) &&
+  (!TOUCH.on || PORT());
 /* 半版面板開著（世界地圖是全螢幕，不算）；M2-12 起掛機條是 44 高的條，不算半版 */
 const sheetOn = () => !!(PORT() && anyPanel());
 /* M2-12 §1.1 直立版面：上下安全區（SAFE，main.js 的 resize 量）不放東西；底下是分頁 56＋（刷圖中）掛機條 44；
@@ -562,7 +568,10 @@ const portFix = () => 56 + (G.scene === 'map' ? 44 : 0);
 const sheetH = () => Math.min(380, Math.max(0, IH - SAFE.t - SAFE.b - portFix() - 280));
 const portFull = () => NAV.full && anyPanel();
 const cvTop = () => (PORT() && !portFull() ? SAFE.t : 0);
-const cvH = () => (!PORT() || portFull() ? IH : IH - SAFE.t - SAFE.b - portFix() - (sheetOn() ? sheetH() : 0));
+/* 藏身處（第二段才改營地場景）照舊：半版面板上緣在畫面高 38%（SHEET_TOP） */
+const SHEET_TOP = 0.38;
+const sheetTop = () => (G.scene !== 'map' ? Math.round(IH * SHEET_TOP) : IH - SAFE.b - portFix() - sheetH());
+const cvH = () => (!PORT() || portFull() ? IH : (sheetOn() ? sheetTop() : IH - SAFE.b - portFix()) - SAFE.t);
 function sheetSync() {
   const on = sheetOn(),
     b = document.body,
@@ -571,6 +580,7 @@ function sheetSync() {
   b.classList.toggle('sheetfull', on && !!NAV.full && anyPanel());
   b.style.setProperty('--sheet-top', (on && !portFull() ? cvTop() + cvH() : 0) + 'px');
   b.style.setProperty('--idle-h', (G.scene === 'map' ? 44 : 0) + 'px');
+  b.classList.toggle('inmap', G.scene === 'map');
   nav.hidden = !PORT();
   $('phand').hidden = !on || !anyPanel() || PANEL.camp;
   /* 桌機（0.4.9）：右上同一排分頁 */

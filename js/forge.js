@@ -836,7 +836,6 @@ document.addEventListener('click', e => {
         sfx('equip');
   } else if (k === 'fs') foreSkip(), (CUI.log = '沒有用，通貨留著');
   if (err) hudWarn(err);
-  if (stamp) err ? stampNo(b) : buzz(15);
   changed();
 });
 
