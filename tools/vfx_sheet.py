@@ -2,7 +2,7 @@
 """招牌特效後處理＋接進遊戲（M2-36 PL §5、M2-33-3a §4.2），不連網、不花生成。
 
     python3 tools/vfx_sheet.py            # 全部 sig_*：讀原檔、後處理、寫 sheet／gif／img/fx／js/fxsig.js
-    python3 tools/vfx_sheet.py test       # 不連網的自我檢查（beam_cap、fade_tail）
+    python3 tools/vfx_sheet.py test       # 不連網的自我檢查（beam_cap、beam_steps、fade_tail）
 
 - 用哪一張照 art/fx/<id>/picked.txt（沒有就找 dpoe-*.png），json 同檔名。
 - main 只放處理後的檔（M2-34 3a）：沒有 art/_raw/fx/<id>/ 時把 art/fx 當成已處理好，不再後處理（重做後處理先從 art/m2-36-assets 分支拿 art/_raw/fx）。
@@ -10,6 +10,7 @@
 - 原檔（PixelLab /vfx 的 png、gif、json）第一次執行時搬到 art/_raw/fx/<id>/，之後一律從那裡讀，重跑結果一樣。
 - 處理後的 sheet、gif 寫回 art/fx/<id>/（gif 墊 --scene-void 底，才看得到半透明淡出），sheet 另存 img/fx/<id>.png。
 - beam_cap：sig_chase 每一幀；fade_tail：sig_wyapply 第 8 幀起（幀從 0 數）。
+- beam_steps：sig_beam 每一幀，柱子上面 30% 分四階 alpha 25／50／75／100%（取 min，重跑結果一樣，不用原檔）。
 """
 import json, pathlib, sys
 from PIL import Image
@@ -22,6 +23,7 @@ CHASE_HI = (0xFF, 0xBF, 0x73)  # --rar-chase-hi
 VOID = (0x0D, 0x0A, 0x07)  # --scene-void
 HALF, SEARCH, TAPER = 12, 40, [(3, 64), (2, 128), (1, 191)]  # 柱寬半徑、往下找幾列、最上 3 列（削幾格, alpha）
 TAIL, TAIL_A = 8, [191, 128, 64]
+STEPS = [64, 128, 191, 255]  # beam_steps：柱頂 30% 四階
 
 
 def pixels(im):
@@ -60,6 +62,21 @@ def beam_cap(im):
     return im
 
 
+def beam_steps(im):
+    """柱子（有像素的列，頂到底）上面 30% 平分四段，alpha 上限依序 25／50／75／100%：柱頂不再是方頭。"""
+    px, w = im.load(), im.width
+    rows = [y for y in range(im.height) if any(px[x, y][3] for x in range(w))]
+    if not rows:
+        return im
+    top, cap = rows[0], 0.3 * (rows[-1] - rows[0] + 1)
+    for y in range(top, top + int(cap)):
+        a = STEPS[int((y - top) * 4 / cap)]
+        for x in range(w):
+            p = px[x, y]
+            px[x, y] = p[:3] + (min(p[3], a),)
+    return im
+
+
 def fade_tail(frames):
     """第 8 幀最多的色把外框整塊填滿，第 9–11 幀同一塊 alpha 75%、50%、25%。"""
     f = frames[TAIL]
@@ -81,8 +98,8 @@ def fade_tail(frames):
 
 def process(fid):
     d = FX / fid
-    post = fid in ('sig_chase', 'sig_wyapply') and (RAW / fid).exists()
-    raw = RAW / fid if post else d  # 沒後處理的只複製進 img/fx，art/fx 不動
+    post = fid == 'sig_beam' or (fid in ('sig_chase', 'sig_wyapply') and (RAW / fid).exists())
+    raw = RAW / fid if post and (RAW / fid).exists() else d  # 沒後處理的只複製進 img/fx，art/fx 不動
     pick = d / 'picked.txt'
     png = raw / pick.read_text(encoding='utf-8').split()[0] if pick.exists() else next(raw.glob('dpoe-*.png'))
     meta = json.loads(png.with_suffix('.json').read_text(encoding='utf-8'))
@@ -91,6 +108,8 @@ def process(fid):
     frames = [sheet.crop((r['x'], r['y'], r['x'] + r['w'], r['y'] + r['h'])) for r in fr]
     if post and fid == 'sig_chase':
         frames = [beam_cap(f) for f in frames]
+    if fid == 'sig_beam':
+        frames = [beam_steps(f) for f in frames]
     if post and fid == 'sig_wyapply':
         frames = fade_tail(frames)
     out = Image.new('RGBA', sheet.size)
@@ -133,6 +152,17 @@ def self_test():
     assert [len(span(y)) for y in (10, 11, 12, 13)] == [5, 7, 9, 11], [len(span(y)) for y in range(10, 14)]
     assert [im.getpixel((32, y))[3] for y in (10, 11, 12, 13)] == [64, 128, 191, 255]
     assert all(im.getpixel((x, y))[:3] == CHASE_HI for y in range(10, 50) for x in span(y)), '柱頂還有深色'
+    # 柱頂四階：40 列的柱，上 12 列每 3 列一階；重跑一樣
+    im = Image.new('RGBA', (8, 64))
+    for y in range(20, 60):
+        for x in range(2, 6):
+            im.putpixel((x, y), (255, 255, 255, 255))
+    a = lambda: [im.getpixel((3, y))[3] for y in range(20, 33)]
+    beam_steps(im)
+    want = [64] * 3 + [128] * 3 + [191] * 3 + [255] * 4
+    assert a() == want, a()
+    beam_steps(im)
+    assert a() == want, '重跑變了'
     # 結尾：第 8 幀有洞的方塊＋一點別的色
     fr = [Image.new('RGBA', (32, 32)) for _ in range(12)]
     for x in range(8, 20):
@@ -156,7 +186,7 @@ def self_test():
         bb = tail[0].getbbox()
         assert all(t.getbbox() == bb for t in tail) and sum(1 for p in pixels(tail[0]) if p[3]) == (bb[2] - bb[0]) * (bb[3] - bb[1]), '結尾有洞'
         assert 'sig_chase' in JS.read_text(encoding='utf-8') and (IMG / 'sig_chase.png').exists()
-    return '後處理檢查通過：beam_cap、fade_tail'
+    return '後處理檢查通過：beam_cap、beam_steps、fade_tail'
 
 
 if __name__ == '__main__':
