@@ -262,7 +262,9 @@ function drawHideout(W, H) {
   /* 火星 */
   const f0 = A.fires[0],
     sp = FIRE.sparks;
-  if (Math.random() < 0.3) sp.push({ x: f0.x + rnd(-14, 14), y: f0.y - 30, t: G.t, v: rnd(30, 80), d: rnd(1, 2.2) });
+  /* 測試模式凍結時不冒新火星（js/dbg.js；每格取亂數會讓截圖跟著載入時跑的格數變） */
+  if (!(typeof DBG === 'object' && DBG.frozen) && Math.random() < 0.3)
+    sp.push({ x: f0.x + rnd(-14, 14), y: f0.y - 30, t: G.t, v: rnd(30, 80), d: rnd(1, 2.2) });
   CX.fillStyle = PAL.progHiV3;
   for (const s of sp) {
     const a = G.t - s.t;

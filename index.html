@@ -52,6 +52,13 @@
 </div>
 <script src="js/core.js?v=0.5.4"></script>
 <script src="js/palette.js?v=0.5.4"></script>
+<script>
+  /* 視覺審查的除錯掛鉤（js/dbg.js）：只有 ?test= 或 ?dbg=1 才載入，正式玩家不載 */
+  {
+    const q = new URLSearchParams(location.search);
+    if (q.get('test') || q.get('dbg') === '1') document.write('<script src="js/dbg.js?v=0.5.4"><\/script>');
+  }
+</script>
 <script src="js/ptdata.js?v=0.5.4"></script>
 <script src="js/data.js?v=0.5.4"></script>
 <script src="js/sprites.js?v=0.5.4"></script>
