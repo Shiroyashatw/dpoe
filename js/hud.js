@@ -4,8 +4,9 @@
 let IW = innerWidth,
   IH = innerHeight;
 let C = 36; /* 背包一格的大小（px）；手機照螢幕寬度調（main.js 的 resize） */
-const icHTML = (n, cls = '') => {
-  const u = ICONS[n] ? iconURL(n) : artIconURL(n);
+/* px：要顯示的大小比原圖小時（資源條 16）先縮好原圖，顯示寬 ÷ naturalWidth 才是整數 */
+const icHTML = (n, cls = '', px) => {
+  const u = ICONS[n] ? iconURL(n) : artIconURL(n, px);
   return u ? `<img class="ic ${cls}" src="${u}" alt="">` : `<span class="ic ${cls}"></span>`;
 };
 /* 圖還沒載好時，載好後補畫面板 */
