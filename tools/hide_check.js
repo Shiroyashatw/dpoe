@@ -1,5 +1,7 @@
 const { chromium } = require('playwright');
-/* 藏身處實測（Playwright，實際走路、出招）：走到每個設施、打三隻稻草人、實戰模式、DPS 重置、開傳送門進地圖、回藏身處、存檔還原。
+/* 營地實測（M2-12，Playwright，實際按鍵、點滑鼠、出招）：藏身處併入營地後——停在營地、主角不走動（WASD、F 不用）、鏡頭可拖、
+   點場景物件＝開跟分頁同一個面板（鎖住的出 M1-06 那一句）、沒有市集名牌、點練習區直接切進石圈打三隻稻草人、實戰模式、DPS 重置、
+   地點清單進場地、T 回營地（先確認、再按一次）、刷圖中開營地分頁上方仍是戰鬥、刷圖暫停重新整理停在營地、舊存檔（藏身處）轉成營地。
    用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/hide_check.js [網址]。
    環境變數 PW_CHROME 可以指定 Chrome 路徑；截圖存在系統暫存資料夾（hide_*.png）；有 ❌ 時結束碼 1 */
 const os = require('os'),
@@ -38,93 +40,181 @@ const ok = (n, c, info = '') => {
   await p.evaluate(() => {
     proSkip();
     S.story.tips = 0;
-    /* M1-01：新存檔跳過開場會直接開刷；這裡測藏身處 */
-    enterHideout();
+    /* M1-01：新存檔跳過開場會直接開刷；這裡測營地（手動模式：刷圖暫停時停在營地，不會自己開刷） */
+    S.auto = 0;
+    enterCamp();
   });
-  /* 真的按鍵走路：往目標走到距離 d 以內，回傳花了幾秒 */
-  const walk = (x, y, d = 60) =>
-    p.evaluate(
-      ([x, y, d]) =>
-        new Promise(ok => {
-          const t0 = performance.now();
-          let px = P.x,
-            py = P.y,
-            n = 0,
-            side = 0;
-          const tick = () => {
-            const dx = x - P.x,
-              dy = y - P.y,
-              r = Math.hypot(dx, dy),
-              late = performance.now() - t0 > 12000;
-            K.a = dx < -8;
-            K.d = dx > 8;
-            K.w = dy < -8;
-            K.s = dy > 8;
-            /* 被擺設卡住：往旁邊繞一下 */
-            if (++n % 15 === 0) {
-              if (Math.hypot(P.x - px, P.y - py) < 12) side = 30;
-              px = P.x;
-              py = P.y;
-            }
-            if (side > 0) {
-              side--;
-              K.w = true;
-              K.s = false;
-            }
-            if (r < d || late) {
-              K.a = K.d = K.w = K.s = false;
-              return ok({ r: Math.round(r), s: (performance.now() - t0) / 1000 });
-            }
-            requestAnimationFrame(tick);
-          };
-          tick();
-        }),
-      [x, y, d]
-    );
-  ok('進藏身處', await p.evaluate(() => G.scene === 'hide' && !!G.tiles && G.props.length >= 7));
+  await p.waitForTimeout(400);
+  /* 世界座標 → 畫面座標（propAt 在名牌下方 25 世界 px 判定） */
+  const scr = (x, y) =>
+    p.evaluate(([x, y]) => ({ x: (x - G.cam.x) * ZOOM + IW / 2, y: (y - G.cam.y) * ZOOM + cvH() / 2 }), [x, y]);
+  const settle = async () => {
+    await p.evaluate(() => (G.pan = 0));
+    await p.waitForTimeout(700);
+  };
   ok(
-    '鏡頭跟著人物',
-    await p.evaluate(() => Math.abs(G.cam.x - P.x) < 120 && Math.abs(G.cam.y - P.y) < 120),
+    '進營地：場景是營地、擺設都在',
+    await p.evaluate(() => G.scene === 'camp' && !!G.tiles && G.props.length >= 6),
+    await p.evaluate(() => G.scene + ' ' + G.props.length)
+  );
+  ok(
+    '沒有「市集（之後開放）」名牌',
+    await p.evaluate(
+      () => !G.props.some(q => q.k === 'market' || /市集/.test(q.n)) && !HIDE_ART.props.some(q => /市集/.test(q.n))
+    )
+  );
+  ok(
+    '主角站在站位、鏡頭對準主角',
+    await p.evaluate(
+      () =>
+        P.x === HIDE_ART.spawn.x &&
+        P.y === HIDE_ART.spawn.y &&
+        Math.abs(G.cam.x - P.x) < 2 &&
+        Math.abs(G.cam.y - P.y) < 2
+    ),
     await p.evaluate(() => [G.cam.x, G.cam.y, P.x, P.y].join())
   );
-  /* 1. 每個設施：走過去、按 F、面板或對話打開 */
-  const spots = await p.evaluate(() => G.props.map(q => ({ k: q.k, n: q.n, x: q.x, y: q.y, r: q.r })));
-  const home = await p.evaluate(() => ({ x: P.x, y: P.y }));
-  for (const s of spots) {
-    await p.evaluate(h => Object.assign(P, h), home);
-    /* 石碑在地圖台正後面：從旁邊繞 */
-    if (s.k === 'asc') await walk(s.x - 90, s.y + 30, 30);
-    const w = await walk(s.x, s.y, s.r + 30);
-    const opened = await p.evaluate(k => {
-      const pk = { device: 'node', stash: 'stash', forge: 'craft', asc: 'asc', box: 'box' }[k];
-      interact();
-      /* M1-06：祭壇還沒到，石碑只出一句「升祭壇到 Lv n 才開」，那句出來也算有反應 */
-      const o = pk
-        ? !!PANEL[pk] || (!!lockTxt(k) && $('warn').textContent === lockTxt(k))
-        : k === 'market' || k === 'prac';
-      closePanels();
-      return o || (nearProp() || {}).k + ' @' + Math.round(P.x) + ',' + Math.round(P.y);
-    }, s.k);
-    ok(
-      `走到${s.n}：${w.s.toFixed(1)} 秒`,
-      w.r <= s.r + 30 && w.s <= 3.3 && opened === true,
-      JSON.stringify(w) + ' 開了 ' + opened
-    );
-  }
-  /* 2. 出招：外面不行、石圈裡可以；三隻稻草人都打得到、都不會死 */
-  await p.evaluate(h => Object.assign(P, h), home);
-  ok('石圈外不能出招', await p.evaluate(() => !useSlot(0) && !P.act));
-  const z = await p.evaluate(() => HIDE_ART.zone);
-  await p.evaluate(() => (P.x = HIDE_ART.zone.x - 180));
-  await p.evaluate(zz => {
-    P.y = zz.y + 20;
-  }, z);
-  await walk(z.x, z.y + 30, 30);
   ok(
-    '走進石圈：面板出現，還沒打所以沒有 DPS',
-    await p.evaluate(() => PRAC.in && !$('prac').hidden && $('prd').hidden && G.mobs.filter(m => m.dummy).length === 3)
+    '頂部資訊列寫「營地」',
+    await p.evaluate(() => /^營地 · /.test($('area').textContent)),
+    await p.evaluate(() => $('area').textContent)
+  );
+  /* 1. 主角不在營地走動：WASD 真的按下去，人不動；A／D 平移鏡頭，放開 3 秒後回到主角 */
+  const home = await p.evaluate(() => ({ x: P.x, y: P.y }));
+  await p.keyboard.down('d');
+  await p.keyboard.down('s');
+  await p.waitForTimeout(700);
+  await p.keyboard.up('s');
+  await p.keyboard.up('d');
+  const kd = await p.evaluate(() => ({ x: P.x, y: P.y, cam: G.cam.x, mv: P.mv }));
+  ok('按 D、S：主角不動', kd.x === home.x && kd.y === home.y, JSON.stringify(kd));
+  ok('按 D：鏡頭往右平移', kd.cam > home.x + 60, JSON.stringify(kd));
+  await p.keyboard.down('a');
+  await p.keyboard.down('w');
+  await p.waitForTimeout(700);
+  await p.keyboard.up('w');
+  await p.keyboard.up('a');
+  const ka = await p.evaluate(() => ({ x: P.x, y: P.y, cam: G.cam.x }));
+  ok('按 A、W：主角不動、鏡頭往左', ka.x === home.x && ka.y === home.y && ka.cam < kd.cam - 60, JSON.stringify(ka));
+  const vw = await p.evaluate(() => IW / ZOOM);
+  ok(
+    '鏡頭卡在場景邊界內',
+    await p.evaluate(vw => G.cam.x >= vw / 2 - 1 && G.cam.x <= HIDE_ART.W - vw / 2 + 1, vw),
+    await p.evaluate(() => G.cam.x)
+  );
+  await p.waitForTimeout(4200);
+  ok(
+    '放開 3 秒後鏡頭慢慢回到主角',
+    await p.evaluate(() => Math.abs(G.cam.x - P.x) < 20),
+    await p.evaluate(() => G.cam.x)
+  );
+  /* 2. 滑鼠按住左鍵拖＝平移鏡頭，不放技能、主角不動 */
+  await settle();
+  const e0 = await scr(home.x + 120, home.y + 160);
+  await p.mouse.move(e0.x, e0.y);
+  await p.mouse.down();
+  for (let i = 1; i <= 8; i++) await p.mouse.move(e0.x - i * 30, e0.y, { steps: 2 });
+  await p.waitForTimeout(250);
+  const dr = await p.evaluate(() => ({ cam: G.cam.x, pan: G.pan, act: !!P.act, x: P.x, y: P.y }));
+  await p.mouse.up();
+  ok(
+    '按住左鍵往左拖：鏡頭往右平移、沒放技能、主角不動',
+    dr.pan > 100 && dr.cam > home.x + 60 && !dr.act && dr.x === home.x && dr.y === home.y,
+    JSON.stringify(dr)
+  );
+  /* 3. F 互動在營地不用：站位就在地圖台旁，按 F 也不開面板 */
+  await settle();
+  await p.keyboard.press('f');
+  await p.waitForTimeout(150);
+  ok('按 F：不開任何面板', await p.evaluate(() => !anyPanel()));
+  /* 4. 點場景物件＝開跟分頁（功能選單）同一個面板；未解鎖的出 M1-06「升 … 到 Lv n 才開」、不開面板 */
+  const want = { device: 'node', stash: 'stash', forge: 'forge', asc: 'asc', box: 'box' };
+  const spots = await p.evaluate(() => G.props.map(q => ({ k: q.k, n: q.n, x: q.x, y: q.y })));
+  const panelOf = () =>
+    p.evaluate(() =>
+      PANEL.node
+        ? 'node'
+        : PANEL.asc
+          ? 'asc'
+          : PANEL.box
+            ? 'box'
+            : PANEL.stash
+              ? 'stash'
+              : PANEL.craft
+                ? 'forge:' + CRAFT.tab
+                : ''
+    );
+  for (const s of spots.filter(s => want[s.k])) {
+    await p.evaluate(() => closePanels());
+    /* 跟分頁一樣：功能選單（M、O、K、U、J）打開的那一個 */
+    const ref = await p.evaluate(
+      k => (
+        fmenuOpen(k),
+        PANEL.node
+          ? 'node'
+          : PANEL.asc
+            ? 'asc'
+            : PANEL.box
+              ? 'box'
+              : PANEL.stash
+                ? 'stash'
+                : PANEL.craft
+                  ? 'forge:' + CRAFT.tab
+                  : ''
+      ),
+      want[s.k]
+    );
+    await p.evaluate(() => (closePanels(), ($('warn').textContent = '')));
+    await settle();
+    const at = await scr(s.x, s.y - 25);
+    await p.mouse.click(at.x, at.y);
+    await p.waitForTimeout(200);
+    const got = await panelOf(),
+      warn = await p.evaluate(() => $('warn').textContent),
+      lk = await p.evaluate(k => lockTxt(k), want[s.k]);
+    if (lk)
+      ok(
+        `點${s.n}（未解鎖）：出「${lk}」、不開面板`,
+        !got && warn === lk && /^升.+到 Lv \d+ 才開$/.test(lk),
+        got + ' ' + warn
+      );
+    else ok(`點${s.n}：開跟分頁同一個面板（${ref}）`, !!ref && got === ref, got + ' vs ' + ref);
+    const st = await p.evaluate(() => ({ x: P.x, y: P.y }));
+    ok(`點${s.n}：主角不動`, st.x === home.x && st.y === home.y, JSON.stringify(st));
+  }
+  /* 昇華石碑：祭壇升到 Lv 7 之後點了就開 */
+  await p.evaluate(() => {
+    closePanels();
+    S.camp.altar = campKey('asc')[1];
+  });
+  {
+    await settle();
+    const s = spots.find(s => s.k === 'asc'),
+      at = await scr(s.x, s.y - 25);
+    await p.mouse.click(at.x, at.y);
+    await p.waitForTimeout(200);
+    ok('祭壇到了之後點昇華石碑：開昇華面板', (await panelOf()) === 'asc');
+    await p.evaluate(() => {
+      closePanels();
+      S.camp.altar = 0;
+    });
+  }
+  /* 5. 練習區：點一下直接切進石圈（不用走過去） */
+  await settle();
+  ok('石圈外不能出招', await p.evaluate(() => !useSlot(0) && !P.act));
+  {
+    const s = spots.find(s => s.k === 'prac'),
+      at = await scr(s.x, s.y - 25);
+    await p.mouse.click(at.x, at.y);
+    await p.waitForTimeout(250);
+  }
+  ok(
+    '點練習區：切進石圈，面板出現，還沒打所以沒有 DPS',
+    await p.evaluate(() => PRAC.in && !$('prac').hidden && $('prd').hidden && G.mobs.filter(m => m.dummy).length === 3),
+    await p.evaluate(() => [PRAC.in, Math.round(P.x), Math.round(P.y)].join())
   );
   await p.screenshot({ path: shot('practice') });
+  /* 三隻稻草人都打得到、都不會死 */
   const hit = await p.evaluate(async () => {
     const out = [];
     for (const m of G.mobs.filter(x => x.dummy)) {
@@ -327,21 +417,35 @@ const ok = (n, c, info = '') => {
     audit.n > 50 && audit.nl > 20 && audit.light && !audit.bad.length && audit.hp,
     JSON.stringify(audit)
   );
-  /* 7. 離開石圈：場上清掉 */
+  /* 6. 再點一次練習區：回站位、離開石圈就清場 */
   await p.evaluate(async () => {
     addGround({ k: 'oil', x: P.x, y: P.y, r: 60 });
     callWolf('gem', slotCfg(0));
   });
-  await p.evaluate(h => Object.assign(P, h), home);
-  await p.waitForTimeout(150);
+  {
+    await settle();
+    const s = spots.find(s => s.k === 'prac'),
+      at = await scr(s.x, s.y - 25);
+    await p.mouse.click(at.x, at.y);
+    await p.waitForTimeout(200);
+  }
   ok(
-    '離開石圈就清場',
-    await p.evaluate(() => !PRAC.in && !G.allies.length && !G.ground.length && $('prac').hidden),
-    await p.evaluate(() => [PRAC.in, G.allies.length, G.ground.length].join())
+    '再點練習區：回站位、離開石圈就清場',
+    await p.evaluate(
+      () =>
+        !PRAC.in &&
+        !G.allies.length &&
+        !G.ground.length &&
+        $('prac').hidden &&
+        P.x === HIDE_ART.spawn.x &&
+        P.y === HIDE_ART.spawn.y
+    ),
+    await p.evaluate(() => [PRAC.in, G.allies.length, G.ground.length, P.x, P.y].join())
   );
-  /* 8. 地圖台 → 地點清單點一列（0.5.2 世界地圖刪了，點一列＝runNode）→ 直接進場地、回家、存檔 */
+  await p.screenshot({ path: shot('camp') });
+  /* 7. 地點清單（點地圖台＝地點清單）點一列＝runNode → 直接進場地 */
   await p.evaluate(() => {
-    openPanel('device');
+    fmenuOpen('node');
     runNode(TRUNK_K[0]);
   });
   await p.waitForTimeout(300);
@@ -349,12 +453,49 @@ const ok = (n, c, info = '') => {
     '地點清單點一列直接進場地',
     await p.evaluate(() => G.scene === 'map' && G.node === TRUNK_K[0] && !G.mobs.some(m => m.dummy) && !G.solid.length)
   );
-  /* 玩家自己按回家（act('home') 記 S.stopWhy）；直接叫 goHome() 的話，重新整理會照離線結算接著刷 */
-  await p.evaluate(() => act('home'));
+  /* 8. 刷圖中開營地分頁：上方（左邊）仍是戰鬥，場景不換成營地 */
+  await p.evaluate(() => fmenuOpen('craft'));
+  await p.waitForTimeout(400);
+  ok(
+    '刷圖中開營地分頁：營地面板開著、上方仍是戰鬥（場景是地圖、沒有營地擺設）',
+    await p.evaluate(
+      () =>
+        PANEL.craft &&
+        CRAFT.tab === 'camp' &&
+        G.scene === 'map' &&
+        !G.props.some(q => q.k === 'device') &&
+        !G.mobs.some(m => m.dummy)
+    )
+  );
+  await p.screenshot({ path: shot('map_camp_tab') });
+  await p.evaluate(() => closePanels());
+  /* 9. T 回營地：地圖裡先確認、再按一次 T＝回去，回去後停在營地、刷圖暫停 */
+  await p.keyboard.press('t');
+  await p.waitForTimeout(150);
+  ok(
+    '刷圖中按 T：跳「回營地？」確認卡，還在地圖',
+    await p.evaluate(
+      () => G.ask === 'camp' && G.scene === 'map' && !$('over').hidden && /回營地/.test($('over').textContent)
+    ),
+    await p.evaluate(() => G.ask + ' ' + $('over').textContent.slice(0, 40))
+  );
+  await p.keyboard.press('t');
   await p.waitForTimeout(300);
-  ok('回藏身處', await p.evaluate(() => G.scene === 'hide' && G.mobs.filter(m => m.dummy).length === 3));
-  /* 9. 存檔還原：故事旗標、神像 */
+  ok(
+    '再按一次 T：回到營地、停在營地（刷圖暫停、主角在站位、稻草人在）',
+    await p.evaluate(
+      () =>
+        G.scene === 'camp' &&
+        $('over').hidden &&
+        S.stopWhy === 'camp' &&
+        P.x === HIDE_ART.spawn.x &&
+        G.mobs.filter(m => m.dummy).length === 3
+    )
+  );
+  ok('營地上排有「繼續刷」', await p.evaluate(() => /繼續刷/.test($('run').textContent)));
+  /* 10. 存檔還原：故事旗標、神像；刷圖暫停（自動模式也一樣）重新整理後停在營地，不會自己開刷 */
   await p.evaluate(() => {
+    S.auto = 1;
     S.idols = ['rat', 'dragon'];
     S.story.boneMet = 1;
     S.savedAt = Date.now();
@@ -363,10 +504,45 @@ const ok = (n, c, info = '') => {
   await p.goto(URL + '?p=8&' + Date.now());
   await p.waitForTimeout(1500);
   ok(
-    '存檔還原：神像、故事旗標都在',
-    await p.evaluate(() => S.idols.length === 2 && S.story.boneMet === 1 && G.scene === 'hide')
+    '存檔還原：神像、故事旗標都在；刷圖暫停時重新整理停在營地',
+    await p.evaluate(() => S.idols.length === 2 && S.story.boneMet === 1 && G.scene === 'camp' && S.stopWhy === 'camp')
   );
-  /* 10. 舊存檔（沒有 idols、story）直接進新藏身處 */
+  /* 11. 舊存檔：停在藏身處（stopWhy 'home'、殘留 scene 'hide'）載入後轉成營地、停在營地 */
+  await p.evaluate(() => {
+    const o = JSON.parse(JSON.stringify(S));
+    o.stopWhy = 'home';
+    o.scene = 'hide';
+    o.farm = 0;
+    o.auto = 1;
+    o.savedAt = o.offAt = Date.now();
+    localStorage.setItem(KEY + SLOT, JSON.stringify(o));
+  });
+  await p.goto(URL + '?p=8&' + Date.now());
+  await p.waitForTimeout(1500);
+  const mig = await p.evaluate(() => ({
+    scene: G.scene,
+    stop: S.stopWhy,
+    hasScene: 'scene' in S,
+    cur: S.world.cur,
+    run: /繼續刷/.test($('run').textContent)
+  }));
+  ok(
+    '舊存檔（停在藏身處）載入：轉成營地、停在營地、刷圖照舊暫停',
+    mig.scene === 'camp' && mig.stop === 'camp' && !mig.hasScene && !!mig.cur && mig.run,
+    JSON.stringify(mig)
+  );
+  await p.screenshot({ path: shot('old_save') });
+  ok(
+    '舊存檔轉換（migrate）：stopWhy home → camp、拿掉 scene',
+    await p.evaluate(() => {
+      const o = JSON.parse(JSON.stringify(S));
+      o.stopWhy = 'home';
+      o.scene = 'hide';
+      const m = migrate(o);
+      return m.stopWhy === 'camp' && !('scene' in m) && migrate({ ...o, stopWhy: null }).stopWhy === null;
+    })
+  );
+  /* 12. 舊存檔（沒有 idols、story）直接進營地 */
   const old = await p.evaluate(() => {
     const o = JSON.parse(JSON.stringify(S));
     delete o.idols;

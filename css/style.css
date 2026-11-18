@@ -2201,7 +2201,7 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 /* M1-10 視覺：「已暫停」膠囊（頂列置中、不擋點擊；#over 開著時也在最上面） */
 #paused { position: fixed; left: 50%; transform: translateX(-50%); z-index: 41; height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(15, 12, 10, 0.75); border: 1px solid var(--fr-hi); color: var(--paper); font: 700 13px/20px var(--font); pointer-events: none; white-space: nowrap; }
 #paused[hidden] { display: none; }
-/* M1-17 視覺：死亡卡。升級鈕＝主鈕在最上面（滿寬 48）；再試一次次要 48；回藏身處文字鏈；直排間距 8、不等寬並排 */
+/* M1-17 視覺：死亡卡。升級鈕＝主鈕在最上面（滿寬 48）；再試一次次要 48；回營地文字鏈；直排間距 8、不等寬並排 */
 #over .card.dead { max-width: min(358px, calc(100vw - 32px)); }
 #over .card.dead h2 { font: 900 22px/1.2 var(--serif); }
 #over .card.dead .ddeath, #over .card.dead .dmods, #over .card.dead > p { font-size: 14px; line-height: 1.4; }

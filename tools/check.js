@@ -989,7 +989,7 @@ vm.runInContext(
     ST.bleedCh = 10; c = gemCfg(mkGem('slash', 5), 0); skillPay(c, 0); o.gearBleed = [P.hp, c.bleedMore];
     P.hp = 1000; c = gemCfg(mkGem('fireball', 5), 0); skillPay(c, 0); o.spell = [P.hp, c.bleedMore || 0]; ST.bleedCh = 0;
     P.hp = 1000; ST.bloodPrice = 0; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.off = [P.hp, c.bleedMore || 0]; ST.bloodPrice = 40;
-    P.hp = 1000; G.scene = 'hide'; PRAC.in = true; PRAC.real = false; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.prac = [P.hp, c.bleedMore]; PRAC.in = false; G.scene = 'map';
+    P.hp = 1000; G.scene = 'camp'; PRAC.in = true; PRAC.real = false; c = gemCfg(mkGem('cleave', 5), 0); skillPay(c, 0); o.prac = [P.hp, c.bleedMore]; PRAC.in = false; G.scene = 'map';
     /* 赤鐮不觸發血價（它打到的目標 1 秒內免疫流血，加成是浪費） */
     ST.bleedCh = 10; P.hp = 1000; c = gemCfg(mkGem('sickle', 5), 0); skillPay(c, 0); o.sickleNo = [P.hp, c.bleedMore || 0]; ST.bleedCh = 0;
     /* 血魔法（基石）照舊算失去生命：重設生命充能的延遲 */
@@ -3223,7 +3223,7 @@ const ASC_COMBOS = `const combos = k => {
     rs(); ST.gasflask = 1; P.flask = 0.4; ST.flaskHalf = 1; o.emptyHalf = skillWhy(cfgOf('gasflask'), { x: 0, y: 0 });
     rs(); ST.gasflask = 1; P.flask = 0.6; ST.flaskHalf = 1; o.halfOK = skillWhy(cfgOf('gasflask'), { x: 0, y: 0 });
     rs(); ST.gasflask = 1; ST.noFlask = 1; o.noFlask = skillWhy(cfgOf('gasflask'), { x: 0, y: 0 });
-    rs(); ST.gasflask = 1; P.flask = 0; PRAC.in = true; G.scene = 'hide'; const pf0 = P.flask; skillPay(cfgOf('gasflask'), 0); o.prac = [P.flask === pf0, pracFree()]; PRAC.in = false; G.scene = 'map';
+    rs(); ST.gasflask = 1; P.flask = 0; PRAC.in = true; G.scene = 'camp'; const pf0 = P.flask; skillPay(cfgOf('gasflask'), 0); o.prac = [P.flask === pf0, pracFree()]; PRAC.in = false; G.scene = 'map';
 
     /* 毒霧藥劑：算喝藥；圈內（半徑 120）每 0.5 秒受一次混沌擊中（武器傷害 ×0.4 轉成混沌）並必定中毒；圈外不動；持續 3 秒（吃藥劑效果 50% → 4.5 秒、品質 20% 再 +1 秒） */
     const gas = (ex = {}, q = 0) => {
@@ -4606,7 +4606,7 @@ const ASC_COMBOS = `const combos = k => {
     /* 未限抗性與最大抗性 */
     const rs = [{ k: 'resF', v: 112 }, { k: 'maxResF', v: 5 }];
     const sA = o(rs.slice(0, 1)), sB = o(rs);
-    S0 = S; ST0 = ST; G.mm = null; G.scene = 'hideout';
+    S0 = S; ST0 = ST; G.mm = null; G.scene = 'camp';
     S = mk(rs.slice(0, 1)); ST = stats(S); const rA = [ST.resRaw.fire, ST.maxRes.fire, effRes('fire')];
     S = mk(rs); ST = stats(S); const rB = [ST.resRaw.fire, ST.maxRes.fire, effRes('fire')];
     S = mk([{ k: 'resF', v: 60 }, { k: 'maxResF', v: 5 }]); ST = stats(S); const rC = [ST.resRaw.fire, ST.maxRes.fire, effRes('fire')];
@@ -4859,7 +4859,7 @@ const ASC_COMBOS = `const combos = k => {
     const out = {}, st0 = { ...ST }, p0 = { ...P }, g0 = { t: G.t, scene: G.scene, mapT: G.mapT, mm: G.mm, mobs: G.mobs, allies: G.allies, state: G.state };
     Object.assign(ST, { hp: 1000, mp: 1000, es: 1000, leech: 0, rageLeech: 0, allyLeech: 0, lifeRec: 0, esMana: 0, adapt: 0, defl: 0, armor: 0, physAsFire: 0, bv: 0, ev: 0, block: 0, heavyShield: 0,
       res: { fire: 0, cold: 0, light: 0, chaos: 0 }, maxRes: { fire: 75, cold: 75, light: 75, chaos: 75 } });
-    Object.assign(G, { t: 100, scene: 'hide', mm: null, mobs: [], allies: [], state: 'play' });
+    Object.assign(G, { t: 100, scene: 'camp', mm: null, mobs: [], allies: [], state: 'play' });
     Object.assign(P, { hp: 500, mp: 500, es: 500, rage: 0, rageT: 0, leech: null, ail: {}, guardV: 0, bv: 0, bvRe: null, adapt: {}, lifeLost: -9, tail: 0, evE: null });
     /* 盛怒偷取：直接當盛怒點數、取最快一筆、1 秒回完、小數不被捨去、重設消退計時、滿了清掉 */
     leechAdd('rage', 4); leechAdd('rage', 12); leechAdd('rage', 6);
@@ -5914,7 +5914,7 @@ const ASC_COMBOS = `const combos = k => {
   for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
-  R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+  R(`var G = { t: 100, mapT: 5, scene: 'camp', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
      const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
      var LOS = true, HURT = null, DEAD = 0;
      const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, hudWarn = () => {}, los = () => LOS, open = () => true, floorNear = () => null, isWall = () => false,
@@ -6376,7 +6376,7 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify([shots('w_xbow_0'), shots('w_xbow_2'), shots('w_xbow_4')])
   );
 }
-/* 藏身處（0.2.44）：地形走得到、對話資料、稻草人不會死、DPS 統計 */
+/* 營地場景（0.2.44 藏身處，M2-12 併入營地）：地形走得到、對話資料、稻草人不會死、DPS 統計 */
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Uint8Array, Float64Array };
   vm.createContext(c4);
@@ -6405,10 +6405,23 @@ const ASC_COMBOS = `const combos = k => {
     return b;
   };
   const far = [...A.props, ...A.dummies, ...Object.values(A.npc), A.exit].filter(o => near(o) > 690);
-  ok('藏身處：每個設施從出生點 3 秒內走得到', !far.length, JSON.stringify(far));
-  ok('藏身處：出生點、傳送門不在牆裡', !tiles[at(A.spawn.x, A.spawn.y)] && !tiles[at(A.portal.x, A.portal.y)]);
+  ok('營地：每個設施從出生點 3 秒內走得到', !far.length, JSON.stringify(far));
+  ok('營地：沒有「市集（之後開放）」名牌（M2-12）', !A.props.some(p => p.k === 'market' || /市集/.test(p.n)));
   ok(
-    '藏身處：沒有神像（0.3.2 拿掉，S.idols 照舊）、三隻稻草人都在石圈裡',
+    '營地：程式裡沒有藏身處場景分支（M2-12：G.scene 只剩 camp／map，沒有 enterHideout）',
+    fs
+      .readdirSync(path.join(__dirname, '..', 'js'))
+      .filter(f => f.endsWith('.js'))
+      .every(
+        f =>
+          !/scene\s*(===|!==|==|=)\s*'hide|enterHideout|scene: 'hide'/.test(
+            fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8')
+          )
+      )
+  );
+  ok('營地：出生點、傳送門不在牆裡', !tiles[at(A.spawn.x, A.spawn.y)] && !tiles[at(A.portal.x, A.portal.y)]);
+  ok(
+    '營地：沒有神像（0.3.2 拿掉，S.idols 照舊）、三隻稻草人都在石圈裡',
     !A.statues &&
       A.dummies.length === 3 &&
       A.dummies.every(d => ((d.x - A.zone.x) / A.zone.rx) ** 2 + ((d.y - A.zone.y) / A.zone.ry) ** 2 < 1)
@@ -6455,7 +6468,7 @@ const ASC_COMBOS = `const combos = k => {
   for (const f of ['ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c5, { filename: f });
   const R = s => vm.runInContext(s, c5);
-  R(`var G = { t: 100, mapT: 5, scene: 'hide', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
+  R(`var G = { t: 100, mapT: 5, scene: 'camp', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
      const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y), angTo = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
      var LOS = true, HURT = null, DEAD = 0;
      const num = () => {}, fx = () => {}, fxs = () => {}, sfx = () => {}, hudWarn = () => {}, los = () => LOS, open = () => true, floorNear = () => null, isWall = () => false,
@@ -6478,7 +6491,7 @@ const ASC_COMBOS = `const combos = k => {
       r2 = v => Math.round(v * 100) / 100,
       base = { ...ST },
       reset = () => {
-        G.t = 100; G.mm = null; G.mobs = []; G.state = 'play'; G.scene = 'hide'; DEAD = 0;
+        G.t = 100; G.mm = null; G.mobs = []; G.state = 'play'; G.scene = 'camp'; DEAD = 0;
         ST = { ...base, dmg: [100, 100], armor: 0, block: 0, defl: 0, ev: 0, hp: 1000, mp: 1000, es: 1000 };
         Object.assign(P, { x: 0, y: 0, hp: 1000, mp: 1000, es: 1000, ail: {}, buf: {}, stk: null, stkC: null, stkE: null, drain: null, chg: {}, rage: 0, rageCd: 0, flask: 0, mflask: 0, heal: 0, mheal: 0, form: null, charmRes: {}, evE: null, lastHit: null });
       },
@@ -8405,7 +8418,7 @@ const ASC_COMBOS = `const combos = k => {
   );
   const len = R2('IV_LEN');
   ok('開場：約 85 秒', len > 83 && len < 88, len);
-  R2(`hudBar = () => {}; save = () => {}; closePanels = () => {}; enterHideout = () => {}; introStop = () => {};
+  R2(`hudBar = () => {}; save = () => {}; closePanels = () => {}; enterCamp = () => {}; introStop = () => {};
     var BOOT = ''; introGate = () => (BOOT = 'gate'); var RUN = null; runNode = k => (RUN = k);`);
   ok(
     '新存檔：沒有武器、有 fresh 旗標',
@@ -10367,7 +10380,7 @@ const ASC_COMBOS = `const combos = k => {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c3, { filename: f });
   const R = s => vm.runInContext(s, c3);
   R(`var PANEL = { skill: false }, SKUI = { view: 'home' }, TREE = { open: false }, NAV = {}, UI_SKIP = 0, CV_NEW = 0, PICKV = ['skills', 'sups', 'auras'], OPEN = 0,
-    anyPanel = () => OPEN || PANEL.skill, PORT = () => true, IV = { on: false }, N = { m: 0, p: 0 };
+    anyPanel = () => OPEN || PANEL.skill, PORT = () => true, IV = { on: false }, N = { m: 0, p: 0 }, IW = 390, ZOOM = 1;
     requestAnimationFrame = () => {}; rbTick = sesSample = draw = hudTick = () => {}; mouseWorld = () => ({ x: 0, y: 0 });
     updMobs = () => N.m++; updShots = updSkills = () => {}; updPlayer = () => N.p++;
     S = newGame(); S.camp.house = 1; genOf('wood').lv = 5; P = { x: 0, y: 0 }; G.state = 'play'; G.ask = 0; G.t = 0;
@@ -10383,7 +10396,7 @@ const ASC_COMBOS = `const combos = k => {
     自動開天賦樹: run(`S.auto = 1; PANEL.skill = false; TREE.open = true`),
     手動開面板: run(`S.auto = 0; TREE.open = false; OPEN = 1`),
     手動沒面板: run(`S.auto = 0; OPEN = 0`),
-    確認卡: run(`S.auto = 1; G.ask = 'home'`)
+    確認卡: run(`S.auto = 1; G.ask = 'camp'`)
   };
   const want = {
     自動開一般面板: 1,
