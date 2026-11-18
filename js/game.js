@@ -306,7 +306,7 @@ function offSettle(away) {
 /* 離開的時候產生器照產（0.5.1，3.7）：上限照倉房；回產了多少 { 材料鍵: n } */
 const offGen = away => genTick(Math.min(away, offMax()) / 1000);
 /* 回來時的摘要（0.5.1，工坊與解鎖表第 3 節；0.5.4 照考核 E1～E3）：離開多久、打了幾輪；賺到的每一項用資源條的圖示＋數字（從 0 滾上去）；
-   營地現在買得起的一件一列（設施各自一顆鈕）＋一顆主要鈕「全部升級」（只買產生器，最便宜的先） */
+   營地現在買得起的一件一列（設施各自一顆鈕）；底部固定「全部升級」次要鈕（只買產生器，最便宜的先）＋「收下」主鈕（M3-04 選項 A：後面已經在打，收下只關卡片，hud.js 的 revealHTML） */
 function offShow(o, g, away) {
   const gs = Object.entries(g || {});
   if (!o && !gs.length) return;
@@ -325,12 +325,11 @@ function offShow(o, g, away) {
     title: '離開的時候',
     sum: 1,
     head: () => {
-      const gen = GEN_K.some(k => genOn(k) && genAfford(k) > 0);
       return `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>${o ? `，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `・倒下 ${o.n - o.won} 輪` : ''}` : ''}${o && o.lv ? `・升了 <b>${o.lv}</b> 級` : ''}</p>
       <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold')}<span class="rn">金</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
       ${o && o.cur.length ? `<p class="sub">通貨：${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}
       ${o && o.here ? offChaseHTML(o) : ''}
-      ${gen ? '<button class="btn pri wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}${campUpsHTML(4, false)}</div>`;
+      ${campUpsHTML(4, false)}</div>`;
     }
   });
 }
