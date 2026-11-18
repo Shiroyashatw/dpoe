@@ -48,14 +48,14 @@ body.bare #vp { outline: 0; }
 .kf:focus-visible, .kf.fv { outline: 2px solid var(--border-hi); outline-offset: 2px; }
 body.touch .kf.fv { outline: 0; }
 .btn.danger { background: var(--panel-raised); color: var(--bad-hi); border: 2px solid var(--bad); }
-.btn .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(var(--bad-rgb), 0.45); pointer-events: none; }
+.btn .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgb(var(--bad-rgb) / 0.45); pointer-events: none; }
 .btn.hold { position: relative; overflow: hidden; }
 .btn.hold.pri .fill { background: rgba(var(--on-act-rgb), 0.35); }
 .btn > span { position: relative; }
 
 /* ---------- 面板、卡片 ---------- */
 .pnl { background: var(--panel); border: 1px solid var(--border-mid); color: var(--tx); }
-.pnl .hd { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 0 0 12px; border-bottom: 1px solid var(--border); font: 700 var(--f16) var(--font); color: var(--tx-title); }
+.pnl .hd { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 4px 8px 0 12px; border-bottom: 1px solid var(--border); font: 700 var(--f16) var(--font); color: var(--tx-title); }
 .pnl .hd > b { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .x44 { width: 44px; height: 44px; flex: none; display: grid; place-items: center; background: none; border: 0; color: var(--tx-dim); cursor: pointer; }
 .card { background: var(--panel-raised); border: 1px solid var(--border-hi); border-radius: 3px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
@@ -93,26 +93,31 @@ body:not(.port) .ult { font-size: var(--f16); }
 .feed { display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
 .feed .fr { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; background: rgba(var(--scene-void-rgb-v1), 0.92); border-left: 2px solid currentColor; font: 700 var(--f14)/1 var(--font); }
 body:not(.port) .feed .fr { height: 28px; font-size: var(--f16); }
-body.fs130 .feed .fr { height: auto; min-height: 26px; padding-top: 3px; padding-bottom: 3px; }
+body.fs130 .feed .fr { height: 34px; }
+body.fs130:not(.port) .feed .fr { height: 36px; }
 .feed .fr .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .feed .fr .n { flex: none; font-variant-numeric: tabular-nums; }
 .r-normal { color: var(--rar-normal); }
 .r-rare { color: var(--rar-rare); }
 .r-leg { color: var(--rar-unique); }
 .r-chase { color: var(--rar-chase); }
-.feed .fr.sum { color: var(--tx-scene-dim); border-left-color: var(--border-mid); font-weight: 500; }
+/* 「+n 件已收」：不透明底、--tx-scene-dim 實色（#a6957e 約 6.3:1） */
+.feed .fr.sum { color: var(--tx-scene-dim); border-left-color: var(--border-mid); background: rgb(var(--scene-void-rgb-v1)); opacity: 1; }
+/* 王或菁英進到動態框：底板 0.92 → 0.6，字不變 */
+.feed.thin .fr:not(.sum) { background: rgba(var(--scene-void-rgb-v1), 0.6); }
 .feed .fr.pick { outline: 2px solid var(--border-cap); outline-offset: -2px; }
 .lifebox { display: flex; flex-direction: column; gap: 2px; }
-.lb { position: relative; background: var(--panel-inset); box-shadow: 0 0 0 1px var(--border); overflow: hidden; }
+/* M2-36 修正 1：條底不透明 --panel-inset＋1 px --border-mid 框；填色平塗；字 --tx-strong＋陰影 */
+.lb { position: relative; background: var(--panel-inset); box-shadow: 0 0 0 1px var(--border-mid); overflow: hidden; }
 .lb i { position: absolute; left: 0; top: 0; bottom: 0; }
 .lb.hp i { background: var(--hp); }
 .lb.mp i { background: var(--mp); }
-.lb span { position: relative; display: block; text-align: center; font: 700 12px/1 var(--font); color: var(--tx-strong); font-variant-numeric: tabular-nums; text-shadow: 1px 0 0 #000, -1px 0 0 #000, 0 1px 0 #000, 0 -1px 0 #000; }
+.lb span { position: relative; display: block; text-align: center; font: 700 12px/1 var(--font); color: var(--tx-strong); font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 rgb(var(--scrim-rgb)); }
 .lb.hp span { line-height: 16px; }
 .lb.mp span { line-height: 13px; font-size: 11px; }
 body.fs130 .lb span { font-size: calc(12px * var(--tscale)); line-height: 1.2; }
+/* 過熱：不換底色、不發光，只加 1 px --warn 外框（框的呼吸在 demo.js） */
 .lb.mp.hot { box-shadow: 0 0 0 1px var(--warn); }
-.lb.mp.hot i { background: var(--warn); }
 .sts { display: flex; gap: 4px; }
 .st { position: relative; width: 24px; height: 24px; display: grid; place-items: center; background: var(--panel-inset); border: 1px solid var(--good); border-radius: 6px; color: var(--good); }
 .st.de { border-radius: 0; border-color: var(--bad); color: var(--bad-hi); clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px); }
@@ -130,7 +135,8 @@ body.fs130 .lb span { font-size: calc(12px * var(--tscale)); line-height: 1.2; }
 .sk .pips i.on { background: var(--ready); }
 .sk .lk { display: flex; flex-direction: column; align-items: center; font: 500 12px/1.15 var(--font); text-align: center; padding: 0 2px; color: var(--tx-off); }
 .sk .nm { position: absolute; left: 0; right: 0; bottom: -18px; font: 500 11px var(--font); text-align: center; color: var(--tx-scene-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vign { position: absolute; pointer-events: none; z-index: 2; }
+/* 低血邊：戰場畫布之上、HUD 之下（DOM 放第一個、不設 z-index）；柔邊 inset 0 0 24px 0 */
+.vign { position: absolute; pointer-events: none; }
 .dplate { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; background: var(--plate-world); border: 1px solid var(--border-mid); border-radius: 3px; font: 700 var(--f14) var(--font); color: var(--tx-scene); white-space: nowrap; }
 body:not(.port) .dplate { font-size: var(--f16); }
 .d3 { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 4px 8px 4px 10px; background: var(--plate-world); border-left: 2px solid var(--el-light); cursor: pointer; }
@@ -151,7 +157,9 @@ body:not(.port) .dplate { font-size: var(--f16); }
 .tab .kc { position: absolute; right: 3px; bottom: 2px; font: 700 12px var(--font); color: var(--tx-dim); }
 .tab[aria-selected='true'] .kc { color: var(--sel-ink); }
 .tab .bdg { position: absolute; right: 8px; top: 4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--act); color: var(--on-act); font: 700 12px/16px var(--font); }
-.tab .dot { position: absolute; right: 10px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
+/* 達成點在分頁圖示左上（−2, −2），數字徽章留右上，兩個不重疊 */
+.tab .tico { position: relative; display: inline-flex; }
+.tab .dot { position: absolute; left: -2px; top: -2px; width: 8px; height: 8px; border-radius: 50%; background: var(--good); }
 body:not(.port) .tabs { gap: 4px; }
 body:not(.port) .tab { border: 1px solid var(--border-mid); border-radius: 3px; }
 .navtip { padding: 4px 8px; background: var(--plate-world); border: 1px solid var(--border-mid); border-radius: 3px; font: 700 var(--f14) var(--font); white-space: nowrap; transform: translate(-50%, -100%); z-index: 50; }
@@ -173,14 +181,15 @@ body:not(.port) .idle { border-radius: 3px; box-shadow: inset 0 0 0 1px var(--bo
 .idle .ipb.full .pb i { background: var(--rar-chase); }
 .idle .ilast { display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 120px; padding-left: 4px; border-left: 2px solid currentColor; font-weight: 500; }
 .idle .ilast span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.idle .ex { position: absolute; left: 0; right: 0; top: 4px; display: flex; flex-direction: column; padding: 0 0 0 12px; }
+.idle .ex { position: absolute; left: 0; right: 0; top: 4px; display: flex; flex-direction: column; padding: 0 8px 0 12px; }
 .idle .ex .er { display: flex; align-items: center; gap: 8px; min-height: 40px; font-weight: 500; }
 .idle .ex .er > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .idle .ex .er b { font-weight: 700; }
 .idle .ex .er.go { cursor: pointer; }
 .idle .ex .er .x44 { color: var(--tx-dim); }
 .idle .away { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 12px; background: var(--panel); border-left: 2px solid var(--good); font: 700 var(--f14) var(--font); color: var(--tx-strong); }
-.cgain { display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--plate-world); border-left: 2px solid var(--good); font: 700 var(--f14) var(--font); color: var(--tx-scene); }
+/* 營地期間 +N：不透明底（--plate-world 的 α 1.0），底下掛機條不透出來 */
+.cgain { display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--plate-world-1); border-left: 2px solid var(--good); font: 700 var(--f14) var(--font); color: var(--tx-scene); }
 .cgain .ch { color: var(--rar-chase); display: inline-flex; align-items: center; gap: 4px; }
 
 /* ---------- 營地 ---------- */
@@ -191,7 +200,7 @@ body:not(.port) .idle { border-radius: 3px; box-shadow: inset 0 0 0 1px var(--bo
 .goalb .gp { height: 4px; background: var(--panel-inset); }
 .goalb .gp i { display: block; height: 100%; background: var(--good); }
 .goalb .gp i.flash { background: var(--glint); }
-.goalb span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goalb > span:first-child { min-width: 0; }
 .plq { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; background: rgba(var(--scene-void-rgb-v1), 0.92); border: 1px solid var(--border-mid); border-radius: 3px; font: 700 var(--f14) var(--font); color: var(--tx-scene); cursor: pointer; max-width: 220px; }
 .plq .nm { overflow-wrap: anywhere; }
 .plq .stp { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border-hi); color: var(--tx-strong); display: grid; place-items: center; font: 700 14px var(--font); position: relative; }
@@ -201,6 +210,11 @@ body:not(.port) .idle { border-radius: 3px; box-shadow: inset 0 0 0 1px var(--bo
 .edge { display: flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; background: var(--plate-world); color: var(--tx-scene); font: 700 var(--f14) var(--font); }
 .cmain { display: flex; gap: 8px; }
 .cmain .btn { min-height: 56px; }
+/* 主鈕：動詞保留，只砍地點名；放不下換兩行（高 64） */
+.cmain .btn .vb { flex: none; white-space: nowrap; }
+.cmain .btn .pl { white-space: nowrap; }
+.cmain .btn.two { flex-direction: column; gap: 0; }
+.cmain .btn.two .pl { max-width: 100%; }
 /* 營地升級抽屜 */
 .drw { display: flex; flex-direction: column; overflow: hidden; }
 .drw .bd { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
@@ -216,6 +230,8 @@ body:not(.port) .cc { min-height: 64px; }
 .cc .cb b { overflow-wrap: anywhere; }
 .cc .cb small { font: 500 var(--f14)/1.2 var(--font); color: var(--tx-dim); overflow-wrap: anywhere; }
 .cc .cb small.lack { color: var(--warn); }
+.cc .cb small.cst { display: flex; gap: 4px; min-width: 0; white-space: nowrap; }
+.cc .cb small.cst .num { flex: none; }
 .cc .cb .tag { display: inline-block; margin-left: 4px; padding: 0 4px; border: 1px solid var(--border-cap); border-radius: 2px; font: 700 12px/16px var(--font); color: var(--tx-strong); }
 .cc .stamp { flex: none; width: 44px; height: 44px; margin-right: 4px; border-radius: 50%; border: 2px solid var(--border-hi); background: none; color: var(--tx-strong); font: 700 18px var(--font); cursor: pointer; padding: 0; }
 .cc .stamp.can { background: var(--act); color: var(--on-act); border-color: var(--act); }
@@ -295,7 +311,7 @@ body:not(.port) .holdtip { font-size: var(--f16); }
 .opt { display: flex; gap: 8px; flex-wrap: wrap; }
 body.port .card { padding: 12px 8px; border-left: 0; border-right: 0; }
 body.port .card > .btn { width: 100% !important; }
-.cc .cb small.ell { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 .tree, .strip { background: transparent; }
 #d-treecv { background: var(--scene-void-v8); }
 .sk .lk .ico { width: 14px; height: 14px; }
@@ -306,3 +322,43 @@ body.port .sys section { border-left: 0; border-right: 0; }
 .cg { row-gap: 6px; }
 .idle .ex .er.go { min-height: 44px; }
 .prog b { background: var(--plate-world); padding: 0 4px; }
+
+/* ---------- D1 審查修正（只改 demo；色票依 M2-36，覆寫 css/style.css 注入的 :root） ---------- */
+:root {
+  --bad: #fe7883;
+  --bad-hi: #fe7883;
+  --bad-rgb: 254 120 131;
+  --warn: #b7ad66;
+  --hp: #823630;
+  --mp: #304e8b;
+  --tx-strong: #f7f0e5; /* M2-36 定值；條上字對 --hp／--mp 的 7.36／7.17 是用這個值算的 */
+  --plate-world-1: rgb(11, 8, 6); /* --plate-world 的 α 1.0 */
+}
+/* 稀有度記號 */
+.mk { flex: none; }
+.lst li .nm { flex: 1; min-width: 0; margin-left: 4px; }
+.lst li .n { flex: none; margin-left: 8px; }
+.lst li .art { margin-right: 2px; }
+/* 吐司：直立 36 高 */
+body.port .toast { min-height: 36px; padding: 6px 12px; }
+/* 目標列：名稱可省略號、進度數字完整；文字 130% 拆兩行 */
+.gl { display: flex; min-width: 0; white-space: nowrap; }
+.gl .gn { min-width: 0; }
+.gl .gv { flex: none; }
+.gl.two { flex-direction: column; }
+.drw .goalr, .goalb { min-width: 0; }
+/* 營地升級格・文字 130%：費用掉到第 2 行（滿寬），格高 直立 68／桌機 80；不縮字、數字不砍 */
+body.fs130 .cc { display: grid; grid-template-columns: 1fr 48px; grid-template-rows: 44px auto; align-items: start; min-height: 68px; }
+body.fs130:not(.port) .cc { grid-template-rows: 52px auto; min-height: 80px; }
+body.fs130 .cc .cb { grid-column: 1 / 3; grid-row: 1 / 3; align-self: stretch; justify-content: flex-start; padding: 0 8px 8px; }
+body.fs130 .cc .cb b { display: flex; align-items: center; min-height: 44px; padding-right: 48px; }
+body.fs130:not(.port) .cc .cb b { min-height: 52px; }
+body.fs130 .cc .stamp { grid-column: 2; grid-row: 1; margin: 0; align-self: center; position: relative; z-index: 1; }
+/* 抽屜可捲：底部 12 px scrim 漸層（同 S15） */
+.drw.more::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 12px; background: linear-gradient(to top, rgba(var(--panel-rgb), 1), rgba(var(--panel-rgb), 0)); pointer-events: none; }
+/* 鍛造（直立是抽屜，上面接假戰場）；保底 100% 橫幅蓋在保底列同一格，不推版面 */
+body.port .forge { padding: 0 8px 8px; gap: 8px; }
+body.port .forge .flip { height: 112px; }
+.forge > .hd { align-self: stretch; }
+.pslot { position: relative; width: 100%; min-height: 44px; display: flex; align-items: center; }
+.pslot .chban { position: absolute; inset: 0; justify-content: center; }
