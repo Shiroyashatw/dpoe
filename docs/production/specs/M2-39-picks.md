@@ -1,8 +1,57 @@
-# M2-39 佇列 40 挑圖（PR #96 draft，HEAD ad30268，只挑不合併）
+# M2-39 佇列 40 挑圖（PR #96 draft，HEAD 7df2a49，只挑不合併）
 
-看圖：35 張 32、32 張 16 全部 4 倍彩＋灰階＋1 倍（`picks_4x.png`、`v32_*.png`、`v16_*.png`）。代號：**K** 照用、**F** 照用但建議手修、**H** 不手修不能用、**R** 退。
+看圖：第 2 輪 17 枚新圖／手修圖，32 與 16 都看了 4 倍與 1 倍、彩色與灰階，並跟整組（`r2/all32.png`、`r2/all16.png`）並排比對。代號：**K** 照用、**F** 先照用但要手修、**H** 不手修不能用、**R** 退。花費 83／100，剩 17；16 次留給優先 32，備用 1。下面的修改全是手修，不花次數。
 
-## 1. 逐枚（32／16）
+## 1. 第 2 輪（17 枚）
+
+| id | 32 | 16 | 判定與手修 |
+| --- | --- | --- | --- |
+| riven s3941 | F | K | 32：整體是圓的，又有內肋，1 倍看起來像核桃，跟 ad、scorch 同屬圓盤。修：中縫改 4 px 透明，兩片甲各壓成 2 階平塗，拿掉內肋。16 兩片括號形可用 |
+| vine s3942 | F | K | 32：`--scene-void` 描邊 0%。修：補 1 px 外描邊 |
+| cb s3943 | F | K | 32：描邊 0%，捲鬚 1 px 又斷，灰階就剩一顆水滴。修：補描邊，捲鬚改 2 px 連續 `--el-chaos` |
+| anemia | K | K | 空心水滴，跟 oiled、cb 分得開 |
+| brittle | F | F | 平的白頂加下尖，1 倍讀成甜筒。修：白頂改成 2–3 個鋸齒尖，加 1 條斜的 `--scene-void` 裂線；32 上緣 y0=0，下移 1 px 留邊 |
+| calm | K | K | 可用。外觀像「減號／禁止」按鈕，請 UIUX設計師確認不會跟收起鈕混 |
+| counter（32 用手加回鉤版） | F | F | 32：回鉤太短，1 倍就是一把直劍；上緣 y0=0。修：回鉤延長 3 px，沿刃右側往柄彎，用 `--tx-strong` 加描邊，整張下移 1 px。16：讀成往右上的箭（綠色像箭羽）。修：柄端加 3 px 寬的護手 |
+| crip | K | K | 靴子加 `--bad` 斜線，清楚 |
+| daze | F | F | 兩個方框互扣，像鏈環或「2」，跟之後詛咒的鏈結符號會撞；32 bbox 貼邊。修：外框左下邊、內框右上邊各斷 2 px，讓兩圈接成一條螺旋；32 內縮 1 px 留邊 |
+| inc | K | K | 三道斜砍，很好 |
+| intim | K | K | `--bad` 下箭頭，清楚 |
+| sac ★標記 | F | K | 判定：可用。有速度線，讀成「往前衝」，不像「下一頁」的 >。修：32 x0=0 貼邊，右移 1 px |
+| sap ★標記 | F | F | 判定：16 的 1×2 火花在 1 倍是雜點。修：16 只留一顆 2×2 `--el-light` 火花加描邊，放在尖端下方 1 px，其餘單點刪掉；32 的兩顆單點火花各改成 2×2 |
+| tail | F | F | 三條橫棒，1 倍就是「≡」選單鈕。修：每條右端往上捲 2 px（風捲）、左端收成 1 px，三條起點各錯開 3 px；32 留 1 px 邊 |
+| taunt | F | F | 跟 daze 都是 `--warn` 的方塊感造型，1 倍兩顆黃塊分不開。修：鉤身改 `--bad`、中心點改 `--warn` |
+| unbr ★標記 | R | R | 判定：轉 90° 這版不採用。它讀成吊牌／鉛筆，又跟 sac、tail 一樣朝右。改法：用原來直立盾，每 4 列右移 1 px（16 每 3 列），做出約 15° 前傾；整張貼底，上方留空，讀成「放低」；右半填 `--border`，不要 `--scene-void`，免得又像 broken |
+| weak | F | F | 硬直角讀成角括號「¬」。修：直角改成 2 階斜折往下垂，末端收細，`--bad` 尖端保留 |
+
+調色盤：17 枚都只用 token（`--dmg-gain`、`--ready` 跟 `--good`、`--border-cap` 同值，可以接受）。
+
+## 2. 第 1 輪的手修還沒做（照第 1 輪清單）
+
+32 有 broken、seal、fury、shatter、stain、petr、oiled、chg_e、chg_p，16 有 ad、ad_cold、ad_light、broken、shatter、stain。這輪的圖跟第 1 輪一樣沒動，例如 broken 仍然 64% 是 `--scene-void`，stain 16 那兩顆「眼睛」也還在。做法見 `r1_picks.md` §1。
+
+## 3. 詛咒
+
+cu_eleweak、cu_vuln、cu_despair（32），以及 cu_eleweak、cu_tchains、cu_vuln、cu_despair（16），都等 mumi 挑完菱形後一起手繪。cu_enfeeble 32／16、cu_tchains 32 先暫用。
+
+## 4. 整組
+
+- 這輪解掉了：暗底看不見（intim、calm、crip）、sap 跟 shock 撞、盾太多（剩 broken、shatter）、方塊三枚（inc 已改成斜砍）、fury／tail 同形。
+- 新出現的撞形：tail 像選單鈕、calm 像減號鈕（屬 UI 控制項，UIUX設計師要知道）；daze 跟 taunt 同色同重量（上面已修）；朝右的造型有 sac、tail（unbr 改了就只剩這兩枚）。
+- 留邊：daze、tail、sac、counter、brittle 的 32 貼邊，違反 1 px 透明邊。
+
+## 5. 數字
+
+| | K | F（暫用、要修） | H | R／等詛咒 | 合計 |
+| --- | --- | --- | --- | --- | --- |
+| 32 | 18 | 20 | 0 | 1＋3 | 42 |
+| 16 | 24 | 13 | 0 | 1＋4 | 42 |
+
+- 32 能用 38（不修就能用的 18），16 能用 37（不修就能用的 24）。
+- 42 是 40 id 加 ad_cold、ad_light；16 的 cu_despair 從沒有圖。
+- 檔名清單：`picked.txt`（第一欄 K／F；R 不列）。
+
+## 附錄：第 1 輪逐枚指示（§2 未做的手修照這裡）
 
 | id | 32 | 16 | 理由／手修（像素層級，不生成） |
 | --- | --- | --- | --- |
@@ -47,46 +96,3 @@
 | cu_vuln | R | R | 寶石切面 |
 | cu_despair | R | 不過 | 只畫了半個菱形加幾條線 |
 
-## 2. 不過的 10 個：做法與次數
-
-**次數：** 上限 100，已花 77，剩 **23**（工程留言寫「剩 16」，實際是「23 裡 16 留給優先 32」）。優先 16 獨立 32 要 **16**，所以能挪的是 **7**。原計畫 4 次備用已用完；這 7 次沒超過 100，但屬於計畫外重跑，要製作人點頭（不用再批上限）。
-
-| id | 做法 | 次數 |
-| --- | --- | --- |
-| riven（32） | 重生成 32；16 用最近鄰縮小＋手修（同赤霄做法） | 1 |
-| vine（32） | 重生成 32；16 縮小＋手修 | 1 |
-| cb（32） | 重生成 32；16 縮小＋手修 | 1 |
-| counter（32＋16） | 重生成 32；16 縮小＋手修 | 1 |
-| brittle（32） | 手繪：拿優先 frozen 16 的冰塊，斜切成尖片、2 條 `--tx-strong` 裂線；32 先用 16 的 2 倍 | 0 |
-| anemia（32） | 手繪：oiled 的水滴外形，內部挖空成透明，1 px `--hp` 外環＋1 px `--tx-dim` 內環（空心＝跟 oiled 分開） | 0 |
-| weak（32） | 手繪：一條橫棒右端往下折垂，`--tx-dim` 棒身、`--bad` 末端；不畫箭頭（避免跟 intim 撞） | 0 |
-| taunt（32） | 手繪：一個彎鉤箭頭指向中央 1 顆 `--bad` 點，`--warn` 鉤身；生成三次都畫成角色，不再花次數 | 0 |
-| tail（16，32 也退） | 手繪：三條往右的短風勾，`--tx-strong` 身、`--good` 勾尖 | 0 |
-| cu_despair（16，32 也退） | 照 §3 詛咒家族手繪 | 0 |
-| 備用 | riven 前兩次都畫成角色，最可能要重跑 | ≤ 3 |
-| **合計** | | **4＋≤3＝≤7** |
-
-改寫的提示詞（32 pixflux，套 §2.1 共用 body，seed 接 3941 起）：
-
-- riven：`two curved metal armor plates split apart to the left and right with a bright gap between them, loose empty pieces only, no statue, no robot, no person, no head`
-- vine：`one thick green vine stem curling into a single spiral hook with two small leaves, one continuous line 2 pixels wide, no scattered dots, not a poison diamond, not a shield`
-- cb：`a thick dark red blood droplet melting into one curling purple tendril at the bottom, a single solid shape, not a thin ring, not a clean droplet, not a poison diamond`
-- counter：`a single short sword whose blade curves back into a hook toward the hilt, riposte, small green accent on the hilt, not a shield, not a badge, not crossed swords`
-
-我自己的退件（daze、inc 兩尺寸；cu_eleweak、cu_vuln）也不花次數：daze 手繪兩個歪菱形螺旋（`--warn`）；inc 手繪三條平行斜砍痕（`--tx-strong` 加 `--bad` 邊），不要方框。
-
-## 3. 整組的問題
-
-1. **暗底看不見：** `--scene-void` 佔比 intim 100%、calm 95%、crip 84%、cu_despair 79%、cu_eleweak 74%、broken 64%、daze 62%、unbr 55%。怪物頭上沒有框，這些會消失。上面手修都是把主體換成角色 token。
-2. **描邊不一致：** fury 0%、petr 1%、stain 2%、shatter 3% 沒有 1 px `--scene-void` 外框；seal 32 沒留透明邊。
-3. **剪影撞形：** 盾（broken／unbr／shatter／counter／sac）、圓盤（ad／scorch／calm／daze／easy／chg_e）、直立橢圓（petr／chg_p／oiled，加上優先 wet／bleed）、方塊（seal／mark／inc）、彗星（fury／tail）。照上表處理後，盾剩 broken、shatter（縫跟洞能分），方塊剩 seal、mark。
-4. **詛咒五種不像同一家：** 鑰匙孔菱形、五角寶石、多面菱形、寬寶石、半個三角。建議等 mumi 挑定優先 curse 16，拿它的菱形把中央十字換成小符號，手繪五枚（0 次）：衰弱＝垂下的橫棒、元素要害＝火／冰／雷三色各 1 px、時空鎖鏈＝兩節鏈、脆弱＝斜裂的板、絕望＝往下彎的小鉤。32 先用 2 倍，等優先 curse 32 生成後再照同法加符號。在那之前 cu_enfeeble、cu_tchains（32）暫用。
-5. **尺寸偏小：** fury 32 只有 13×19、chg_p 32 只有 16×18，16 版只有 7×9／8×9。不重生成的話先接受，標給 UIUX設計師。
-6. **跟優先 16 撞：** sap 跟 shock（要手修）；fury、revive 的灰階像火，跟 ign 靠角度和底環區分，接受。
-7. **ad 三色灰階完全一樣：** 是同一個狀態換元素，接受；靠顏色和說明分。
-
-## 4. 數字
-
-- 32：照用 22（K 13、F 9）＋手修後可用 6（H）＝28；退 7（counter、tail、daze、inc、cu_eleweak、cu_vuln、cu_despair）。
-- 16：照用 21（K 15、F 6）＋手修後可用 6（H）＝27；退 5（daze、inc、cu_eleweak、cu_tchains、cu_vuln）。
-- 檔名清單：`picked.txt`（第一欄 K／F／H）。
