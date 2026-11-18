@@ -5,4 +5,5 @@
 - #72 王印 16、#75 3a 修正的畫面（`tools/capture_fix.js`，畫面照 `tools/m2_34_3a_fix_shots.js` 與 `tools/wy16_shots.js`）：390×844、1280×720 各截四個王印的追逐橫幅、掉寶光柱、王印 16 測試框（390 另截開半版面板的光柱），另擋掉 `sig_beam` 截程式畫的光柱，共 16 張。
 - 用法：兩個資料夾各開 `python3 -m http.server`（改動前 main、分支），`bash tools/run_all.sh <main 網址> <分支網址> <輸出> 2`，再 `python3 tools/compare.py <輸出>`；嚴格 RGB 比對 `python3 tools/strict_rgb.py <輸出>`（compare.py 先轉灰階，單一通道差 1 可能算成 0 px）。
 - 判定：同一張畫面，main 的 N 次 × 分支的 N 次兩兩比，至少有一對逐像素相同（差異 0）才算相同。同一份程式跑兩次也會有雜訊（戰鬥模擬偶爾走另一條路、canvas 抗鋸齒差 1 階），表上「改動前自己比的雜訊」那欄就是 main 自己跟自己比的最大差。
-- `compare.md`、`strict_rgb.md`：最後一次（main 2f48878 × 分支合併後 29dd4af）的結果，91 張（51＋3a 24＋#72／#75 16）。直立、桌機、#72／#75 是 main 4 次 × 分支 4 次；3a 第一輪 4×4 有一張差（1280x720-biome-tomb 2 px、通道差 1；main 自己比也差 4 px），3a 組各加跑 4 次（main／分支輪流單獨跑）成 8×8 後相同。前一輪（main 8451209）桌機 02_藏身處、3a 390x844-fallback-day 也是這樣，8×8 後相同、main 自己也會在同一點跳。
+- `compare.md`、`strict_rgb.md`：最後一次（main 8451209 × 分支合併後 3df6cd5）的結果，91 張（51＋3a 24＋#72／#75 16）。直立與 #72／#75 是 main 4 次 × 分支 4 次；桌機與 3a 第一輪 4×4 有兩張差（桌機 02_藏身處 2 px、3a 390x844-fallback-day 1 px，通道差都是 1，在圓角反鋸齒的像素），這兩組各加跑 4 次（main／分支輪流單獨跑）成 8×8 後都有逐像素相同的一對；main 自己跑也會在同一點出現同樣的差（base1 對 base6 差 2 px、base1 對 base5～8 差 1 px），是雜訊。
+- `compare_main3.md`、`strict_rgb_main3.md`：dpoe-m2-34-0-main3 的另一份比對（main 2f48878 × 分支 29dd4af，91 張：51＋3a 24＋#72／#75 16，3a 8×8），91／91 相同、嚴格 RGB 91／91。
