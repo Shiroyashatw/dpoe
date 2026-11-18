@@ -1,0 +1,26 @@
+{
+  "round": "r5b",
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "sk_staticfield",
+  "seed": 5303,
+  "rerun": 1,
+  "style_image": "sk_hasteaura",
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon in the same pixel art style as the reference icons, a flat storm cloud band across the top, one thick lightning bolt striking down to the lower left, main colours pale yellow and olive gold with white highlights, dark storm grey, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin, no text, no letters, no background, no circular badge, no round frame, no round burst, sun, disc, arrow, feather, diagonal stick, sword, skull",
+    "seed": 5303,
+    "style_image": "(base64 略)",
+    "style_strength": 10
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

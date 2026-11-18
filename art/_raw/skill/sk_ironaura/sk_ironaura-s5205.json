@@ -1,0 +1,26 @@
+{
+  "round": "r5b",
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "sk_ironaura",
+  "seed": 5205,
+  "rerun": 0,
+  "style_image": "sk_hasteaura",
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon in the same pixel art style as the reference icons, a broad tower shield with a flat bottom, top-right corner cut away showing a short sword tip, main colours dark grey-brown iron and bronze tan with cream highlights and dark red, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin, no text, no letters, no background, no circular badge, no round frame, no ring, round badge, cross",
+    "seed": 5205,
+    "style_image": "(base64 略)",
+    "style_strength": 40
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

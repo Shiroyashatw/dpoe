@@ -1,0 +1,26 @@
+{
+  "round": "r5b",
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "sk_summongod",
+  "seed": 5204,
+  "rerun": 0,
+  "style_image": "sk_hasteaura",
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon in the same pixel art style as the reference icons, a broken shackle, two C-shaped halves pulled apart diagonally with a clear gap, main colours lavender, orange and pale yellow with tarnished bronze, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin, no text, no letters, no background, no circular badge, no round frame, no human figure, arch, square block",
+    "seed": 5204,
+    "style_image": "(base64 略)",
+    "style_strength": 25
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

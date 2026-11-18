@@ -1,3 +1,37 @@
+# M2-40 R5b（第 2 輪）技能圖示：停在 12／40
+
+照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5b，6ff1ea7）。**沒有定稿**，下面第 1 輪的 r5_ 檔不動。
+
+## 結果
+
+- 端點 `POST /v2/create-image-bitforge`，body 照 §2.1（不給 `color_image`），`style_image` 一張（技能列 `sk_markshot`、光環欄 `sk_hasteaura`），種子＝seed0＋1000（重跑 1 再＋100）。後處理只做 alpha_binary、外緣 1 px `--scene-void`、1 px 透明邊、去 2 px 角，**不吸色**。
+- 試跑 4 張（強度 40）：§5「畫風」4／4 過（色數 10–18、L* 差 86–99），照規則往下跑。
+- 但 12 張**目視意思全部不過**：參考圖的斜箭／羽毛構圖被抄進來（對參考圖 IoU 0.61–0.72），強度 25、10 都一樣；強度 10 時明暗也掉（`sk_staticfield-s5303` 4 色）。不送參考圖（強度 0）明暗有，但意思仍錯、配色過飽和，而且寫在 description 的 `no arrow` 反而畫出箭。
+- 再跑剩下 20 張首跑只會多出同樣的錯圖，所以停在 **12／40**（餘額 1015.99 → 1003.99），剩 28 次沒用。
+
+## 檔案
+
+| 檔 | 內容 |
+| --- | --- |
+| `r5b_32_compare.png` | 12 次生成：彩色 4x＋1x、灰階 4x＋1x、所用參考圖、量測與目視 |
+| `r5b_review.csv` | 每張：量測（畫風、IoU、填滿、16、棋盤、雜點、描邊、追逐色）、強度、參考圖、目視；手修欄全空（沒有手修） |
+| `r5b_iou.csv` | 每張對同欄集（＋拆圖對象）的 IoU 32／16 |
+| `r5b_visual_notes.json` | 目視理由 |
+| `r5b_rerun_not.json` | 重跑 1 加進 `<not>` 的字 |
+| `r5b_state.json` | 量測全過的 stem（`sk_deadeye-s5224`、`sk_summongod-s5204`）；**兩張目視都不過，不是定稿** |
+| `spend.csv` | `r5b-` 開頭四列是本輪 |
+| `scripts/r5b.py`、`scripts/r5b_evidence.py` | 生成、後處理、檢查；證據 |
+
+沒有定稿，所以沒做剪影 32／16、52／56 模擬鈕、bar_pairs、locations（`js/` 沒變，`r5_locations.csv` 仍適用）。
+
+## 給美術總監的建議
+
+1. `no …` 移到 bitforge 的 `negative_description`，description 只寫要的東西。
+2. 32×32 單張 style_image 會連構圖一起轉。可改：參考圖換成不帶斜向主體的、或改用一次出多張候選的風格端點（`/generate-with-style-v2`：32 px 一次 64 張、最多 4 張參考圖；**先查每次扣多少**再決定預算）。
+3. 或回到 pixflux、不帶參考圖，只用新 body＋negative_description，先試 2–3 張。
+
+---
+
 # M2-40 R5 技能圖示重畫 evidence
 
 照 `docs/production/specs/M2-40-skill-icon-prompts.md`（14:50 版）。草稿，不合併、不接入遊戲；最後由 UIUX設計師審可辨識度。

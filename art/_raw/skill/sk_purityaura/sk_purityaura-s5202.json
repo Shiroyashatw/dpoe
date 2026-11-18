@@ -1,0 +1,26 @@
+{
+  "round": "r5b",
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "sk_purityaura",
+  "seed": 5202,
+  "rerun": 0,
+  "style_image": "sk_hasteaura",
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon in the same pixel art style as the reference icons, three small separate gems in a triangle, joined by thin lines, empty centre, main colours orange-red, pale cyan and pale yellow gems with white highlights, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin, no text, no letters, no background, no circular badge, no round frame, no ring, single crystal, disc",
+    "seed": 5202,
+    "style_image": "(base64 略)",
+    "style_strength": 25
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

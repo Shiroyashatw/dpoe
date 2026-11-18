@@ -1,0 +1,26 @@
+{
+  "round": "r5b",
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "sk_deadeye",
+  "seed": 5224,
+  "rerun": 0,
+  "style_image": "sk_markshot",
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon in the same pixel art style as the reference icons, two dice side by side, the right one tipped up on its corner and higher than the left, a few pips showing, main colours ivory white dice with bright red and olive gold pips, dark brown shadows, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin, no text, no letters, no background, no circular badge, no round frame, no eye, target, shield, face, centred disc",
+    "seed": 5224,
+    "style_image": "(base64 略)",
+    "style_strength": 25
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

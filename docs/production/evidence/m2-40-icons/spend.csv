@@ -12,3 +12,7 @@ R2,sk_ironaura-s4305 sk_despair-s4306 sk_weaken-s4307 sk_bloodlust-s4309 sk_fire
 R3,sk_refract-s4313 sk_windflask-s4315 sk_assassinate-s4316 sk_combust-s4317,1024.99,1020.99,4,35
 R4,sk_fire-s4322 sk_meteor-s4323,1020.99,1018.99,2,37
 R5,sk_ironaura-s4405 sk_weaken-s4407 sk_fireburst-s4410,1018.99,1015.99,3,40
+r5b-T,sk_fire-s5222 sk_gasflask-s5211 sk_ironaura-s5205 sk_clarity-s5201,1015.99,1011.99,4,4
+r5b-A0A1,sk_deadeye-s5224 sk_purityaura-s5202 sk_staticfield-s5203 sk_summongod-s5204,1011.99,1007.99,4,8
+r5b-R1,sk_deadeye-s5324 sk_staticfield-s5303,1007.99,1005.99,2,10
+r5b-R2,sk_purityaura-s5302 sk_summongod-s5304,1005.99,1003.99,2,12
