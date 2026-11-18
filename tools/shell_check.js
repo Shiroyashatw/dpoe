@@ -243,7 +243,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   await p.waitForFunction(() => G.state === 'play', null, { timeout: 6000 }).catch(() => {});
   await p.evaluate(() => (P.hp = ST.hp));
   /* ---------- 換波：介面 0 位移、不出字 ---------- */
-  /* 同一個 evaluate 裡：量一次 → 放下一波 → 等兩格 → 再量（時間窗只有兩格，不被別的事件干擾）；掉落動態（§5.2 照舊）不算 */
+  /* 同一個 evaluate 裡：量一次 → 放下一波 → 等兩格 → 再量（時間窗只有兩格，不被別的事件干擾）；#dlog（掉落紀錄最新 3 筆）不算 */
   const wv = await p.evaluate(async () => {
     /* 狀態圖示列（buff、異常）是戰鬥自己會變的，量換波時先固定成空的，量完還原 */
     const ps = playerStates;
@@ -256,7 +256,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       JSON.stringify([
         [
           ...document.querySelectorAll(
-            '#hud > *, #hud .top > *, #hud .bottom, #bar, #pidle, #pidle .ib > *, #pnav, #pnav button, #dnav, #dnav button'
+            '#hud > *, #hud .top > :not(#dlog), #hud .bottom, #bar, #pidle, #pidle .ib > *, #pnav, #pnav button, #dnav, #dnav button'
           )
         ]
           .filter(e => e.getClientRects().length)
@@ -345,7 +345,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       : '沒有',
     f5b
   );
-  /* 最忙的戰鬥：王＋整波＋掉落動態 */
+  /* 最忙的戰鬥：王＋整波＋#dlog 掉落 */
   await p.evaluate(() => {
     for (let i = 0; i < 3; i++) dropLog(['崇高石', '完美崇高石', '破裂石'][i], ['cur', 'perf', 'cur'][i]);
     for (const w of G.waves || []) spawnWave();
@@ -449,9 +449,18 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     scene: G.scene,
     t0: SES && SES.t0,
     pts: chaseOf().pts,
-    k0: TRUNK_K[0]
+    k0: TRUNK_K[0],
+    warn: [$('warn').textContent, $('warn').style.animationDuration, $('warn').classList.contains('on')],
+    over: !$('over').hidden
   }));
   const f7b = await shot('07b_fallback');
+  ok(
+    'rev2 D2 連死 3 次退回：不出卡，只出一行提示停 6 秒',
+    /連死 3 次，退回/.test(h1.warn[0]) && h1.warn[1] === '6000ms' && h1.warn[2] && !h1.over,
+    '一行、6000ms、沒有卡',
+    `「${h1.warn[0]}」${h1.warn[1]}、卡 ${h1.over ? '有' : '無'}`,
+    f7b
+  );
   ok(
     'D 連死 3 次退回上一個地點接著刷：不回營地、掛機時間與保底不歸零',
     k1 !== h1.k0 && h1.node === h1.k0 && h1.scene === 'map' && h1.t0 === h0.t0 && h1.t0 > 0 && h1.pts >= h0.pts,
@@ -861,7 +870,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     ''
   );
 
-  /* ================= M2-12 修訂（15:00）與追加（掉落動態）：dpoe-ui1a-rev ================= */
+  /* ================= M2-12 修訂（15:00）：dpoe-ui1a-rev ================= */
   /* 這一段量的是介面：主角不倒下（倒下會重開這一輪、清掉進度與王），先等已經倒下的重開完 */
   await p.waitForFunction(() => G.state === 'play', null, { timeout: 6000 }).catch(() => {});
   await p.evaluate(() => {
@@ -872,7 +881,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     die = () => {};
   });
   /* ---------- (b) #prog 離王條：位置、高度、字級；王出現被王血條取代；王倒下 0 ms 跳回、300 ms 填入 ---------- */
-  const PG = PORTM ? [8, SAT + 39, 290, SAT + 55, 6, 13] : [360, 20, 920, 42, 8, 16];
+  const PG = PORTM ? [8, SAT + 39, 290, SAT + 55, 6, 13] : [360, 20, 840, 42, 8, 16];
   await p.evaluate(() => {
     G.mobs = G.mobs.filter(m => !m.boss);
     G.bossOut = 0;
@@ -914,6 +923,20 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     f10a
   );
   ok('修訂(b) #prog 不寫波數、輪數', !/波|輪/.test(pg0.txt), '沒有', pg0.txt, f10a);
+  if (!PORTM) {
+    /* rev2：桌機離王條 x 360–840，不能壓到 x 848 起的頂列分頁 */
+    const nv = await p.evaluate(() => {
+      const L = [...document.querySelectorAll('#dnav button')].map(e => e.getBoundingClientRect());
+      return [Math.round(Math.min(...L.map(r => r.left))), Math.round(Math.max(...L.map(r => r.right)))];
+    });
+    ok(
+      'rev2 桌機 #prog 不壓分頁：條右緣 840 < 分頁左緣 848',
+      pg0.r[2] <= 840 && nv[0] >= 848 && pg0.r[2] < nv[0],
+      '條 ≤840、分頁 ≥848',
+      `條 x ${pg0.r[0]}–${pg0.r[2]}、分頁 x ${nv[0]}–${nv[1]}`,
+      f10a
+    );
+  }
   await p.evaluate(() => {
     spawnBoss();
     for (const m of G.mobs) (m.dmg = 0), m.boss && ((m.hp = m.mhp = 1e9), (m.aggro = 1));
@@ -1089,6 +1112,82 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     ''
   );
 
+  /* ---------- rev2：桌機分頁鍵帽 V／K／G／P／H／Z＋Tab 換分頁；I 是倉庫段、Esc 一層一層關（不綁分頁）；1／2 喝藥 ---------- */
+  if (!PORTM) {
+    const kc = await p.evaluate(async () => {
+      const r = {},
+        on = () => navOn(),
+        press = async (key, o = {}) => {
+          document.activeElement && document.activeElement.blur && document.activeElement.blur();
+          dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...o }));
+          dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true }));
+          await new Promise(r => setTimeout(r, 60));
+          return on();
+        };
+      closePanels();
+      HV.nav = null;
+      sheetSync();
+      r.caps = [...document.querySelectorAll('#dnav button')].map(b => [
+        b.dataset.tm.slice(4),
+        (b.querySelector('kbd') || {}).textContent
+      ]);
+      r.keys = [];
+      for (const [k, t] of [
+        ['v', 'char'],
+        ['k', 'forge'],
+        ['g', 'skill'],
+        ['h', 'craft'],
+        ['z', 'more']
+      ]) {
+        closePanels();
+        r.keys.push([k, await press(k), t]);
+      }
+      closePanels();
+      r.vView = (await press('v'), NAV.view);
+      r.tab = [on()];
+      for (let i = 0; i < 2; i++) r.tab.push(await press('Tab'));
+      r.tab.push(await press('Tab', { shiftKey: true }));
+      closePanels();
+      r.i = [await press('i'), NAV.view];
+      r.esc = await press('Escape');
+      closePanels();
+      r.n1 = [await press('1'), await press('2')];
+      closePanels();
+      return r;
+    });
+    const caps = kc.caps.map(c => c[1]).join('');
+    ok(
+      'rev2 桌機分頁鍵帽 V／K／G／P／H／Z（不是 I／Esc、不是數字）',
+      /^VKG(P)?HZ$/.test(caps) && kc.caps.every(c => /^[VKGPHZ]$/.test(c[1])),
+      'V K G P H Z',
+      kc.caps.map(c => c.join(':')).join(' '),
+      ''
+    );
+    ok(
+      'rev2 按 V／K／G／H／Z 開對應分頁，V 開角色段',
+      kc.keys.every(([, a, t]) => a === t) && kc.vView === 'char',
+      kc.keys.map(x => x[0] + '→' + x[2]).join(' '),
+      kc.keys.map(x => x[0] + '→' + x[1]).join(' ') + '、V 段 ' + kc.vView,
+      ''
+    );
+    const order = kc.caps.map(c => c[0]),
+      nx = (t, d) => order[(order.indexOf(t) + d + order.length) % order.length];
+    ok(
+      'rev2 Tab 換下一個分頁、Shift+Tab 上一個（分頁開著、焦點在畫面上）',
+      kc.tab[0] === 'char' && kc.tab[1] === nx('char', 1) && kc.tab[2] === nx(kc.tab[1], 1) && kc.tab[3] === kc.tab[1],
+      `char → ${nx('char', 1)} → ${nx(nx('char', 1), 1)} → ${nx('char', 1)}`,
+      kc.tab.join(' → '),
+      ''
+    );
+    ok(
+      'rev2 I 開倉庫段（不是分頁鍵帽）、Esc 關面板不換分頁、1／2 不開分頁',
+      kc.i[0] === 'char' && kc.i[1] === 'bag' && kc.esc === '' && kc.n1.every(x => x === ''),
+      'I → 倉庫、Esc → 關、1／2 → 無',
+      `I → ${kc.i.join('／')}、Esc → ${kc.esc || '關'}、1／2 → ${kc.n1.map(x => x || '無').join('／')}`,
+      ''
+    );
+  }
+
   /* ---------- #4 鍵盤：焦點順序（Tab）、方向鍵空間導覽、Enter／Space、Esc 返回、焦點框 ---------- */
   await p.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
   const zoneOf = () =>
@@ -1241,108 +1340,37 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     ''
   );
 
-  /* ---------- 掉落動態（M2-33 補遺 §5.2；位置照 part1）：位置、列數、合併、停留 3／6／10 秒、aria-live 只念稀有以上 ---------- */
-  const FD = PORTM ? [202, SAT + 101, 378, IW_ROWS()] : [16, 76, 316, 6];
-  function IW_ROWS() {
-    return W >= 380 ? 3 : 2;
-  }
-  const fd = await p.evaluate(async () => {
-    /* 量的時候戰鬥不掉東西進來：場上的怪打不死、不再放下一波 */
+  /* ---------- dpoe-ui1a-rev2：掉落訊息照 main 的 #dlog（最新 3 筆、30 秒淡掉），沒有掉落動態 #feed ---------- */
+  const dl = await p.evaluate(async () => {
     for (const m of G.mobs) (m.hp = m.mhp = 1e9), (m.dmg = 0);
     G.waves = [];
     G.bossOut = 1;
-    for (const f of FEED.L.slice()) feedDrop(f);
-    $('feedsr').textContent = '';
-    const r = {};
-    feedAdd('測試磨刀石', 2, null, null);
-    r.srN = $('feedsr').textContent;
-    feedAdd('測試磨刀石', 3, null, null);
-    feedAdd('崇高石', 1, 'cur', feedIc('崇高石'));
-    r.srR = $('feedsr').textContent;
-    const ck = CHASE_POOL.trunk[0];
-    feedAdd(chaseName(ck), 1, 'chase', ck);
-    r.srC = $('feedsr').textContent;
+    S.log = [];
+    for (const [n, c] of [
+      ['崇高石', 'cur'],
+      ['完美崇高石', 'perf'],
+      ['破裂石', 'cur'],
+      ['測試碎片', 'frac']
+    ])
+      dropLog(n, c);
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const now = performance.now();
-    r.hold = FEED.L.map(f => [f.r, Math.round((f.end - now) / 1000)]);
-    r.rows = [...$('feed').querySelectorAll('.fd:not(.out)')]
-      .map(e => [e.getBoundingClientRect(), e.textContent, e.className])
-      .sort((a, b) => a[0].top - b[0].top)
-      .map(([q, t, c]) => [Math.round(q.left), Math.round(q.top), Math.round(q.right), Math.round(q.height), t, c]);
-    const bx = $('feed').getBoundingClientRect();
-    r.box = [bx.left, bx.top, bx.right].map(Math.round);
-    r.live = [$('feed').getAttribute('aria-hidden'), $('feedsr').getAttribute('aria-live')];
-    r.col = [...$('feed').querySelectorAll('.fd')].map(e => getComputedStyle(e).color);
-    return r;
+    const e = $('dlog'),
+      q = e.getBoundingClientRect();
+    return {
+      feed: !!document.getElementById('feed') || !!document.getElementById('feedsr') || typeof feedAdd !== 'undefined',
+      inTop: e.parentElement.classList.contains('top'),
+      rows: [...e.querySelectorAll('p')].map(x => x.className + ':' + x.textContent),
+      anim: getComputedStyle(e.querySelector('p')).animationName,
+      box: [q.left, q.top, q.right, q.bottom].map(Math.round)
+    };
   });
-  const f12 = await shot('12_feed');
-  const gaps = fd.rows.slice(1).map((r, i) => r[1] - fd.rows[i][1] - fd.rows[i][3]);
+  const f12 = await shot('12_dlog');
   ok(
-    `追加 掉落動態位置：x ${FD[0]}–${FD[2]}、y ${FD[1]} 起，每列 24、間距 4`,
-    fd.box[0] === FD[0] &&
-      fd.box[2] === FD[2] &&
-      fd.box[1] === FD[1] &&
-      fd.rows.every(r => r[3] === 24) &&
-      gaps.every(g => g === 4),
-    `x ${FD[0]}–${FD[2]} y ${FD[1]}、24／4`,
-    `x ${fd.box[0]}–${fd.box[2]} y ${fd.box[1]}、高 ${fd.rows.map(r => r[3]).join(',')}、間距 ${gaps.join(',')}`,
+    'rev2 掉落訊息：#dlog 在 HUD 上方、最新 3 筆、30 秒淡掉（lgfade）；沒有 #feed／#feedsr／feedAdd',
+    !dl.feed && dl.inTop && dl.rows.length === 3 && /^lg-frac:/.test(dl.rows[0]) && dl.anim === 'lgfade',
+    '#dlog 3 筆、無 #feed',
+    `${dl.rows.join('／')}、${dl.anim}、x ${dl.box[0]}–${dl.box[2]} y ${dl.box[1]}–${dl.box[3]}、feed ${dl.feed ? '有' : '無'}`,
     f12
-  );
-  ok(
-    '追加 掉落動態：同類合併（＋2＋3＝＋5 一列）、新的在最上面、稀有度色（一般／稀有／追逐不同色）',
-    fd.rows.filter(r => /測試磨刀石/.test(r[4])).length === 1 &&
-      fd.rows.some(r => /＋5/.test(r[4]) && /fd-norm/.test(r[5])) &&
-      /fd-chase/.test(fd.rows[0][5]) &&
-      new Set(fd.col).size === 3,
-    '1 列＋5、追逐在最上',
-    fd.rows.map(r => r[4] + '（' + r[5].replace('fd ', '') + '）').join('／'),
-    f12
-  );
-  ok(
-    '追加 掉落動態停留：一般 3 秒、稀有 6 秒、追逐 10 秒',
-    JSON.stringify(fd.hold.map(h => h.join(':')).sort()) === JSON.stringify(['chase:10', 'norm:3', 'rare:6']),
-    'norm 3／rare 6／chase 10',
-    fd.hold.map(h => h.join(' ')).join('、'),
-    ''
-  );
-  ok(
-    '追加 讀屏：掉落動態本身 aria-hidden，aria-live="polite" 區只念稀有以上（一般不念）',
-    fd.live[0] === 'true' &&
-      fd.live[1] === 'polite' &&
-      fd.srN === '' &&
-      /崇高石/.test(fd.srR) &&
-      fd.srC === chaseNameOf(fd),
-    '一般不念、稀有與追逐念',
-    `一般「${fd.srN}」稀有「${fd.srR}」追逐「${fd.srC}」`,
-    ''
-  );
-  function chaseNameOf(f) {
-    return f.rows[0][4];
-  }
-  const fdOut = await p.evaluate(async () => {
-    await new Promise(r => setTimeout(r, 3500));
-    /* 只看這裡放的三列（戰鬥自己掉的材料照常進來，不算） */
-    return ['測試磨刀石', '崇高石', chaseName(CHASE_POOL.trunk[0])]
-      .map(n => (FEED.L.find(f => f.k === n) || { r: '無' }).r)
-      .join(',');
-  });
-  ok(
-    '追加 掉落動態：一般 3 秒＋400 ms 淡出後消失，稀有以上還在',
-    fdOut === '無,rare,chase',
-    '無,rare,chase',
-    fdOut,
-    ''
-  );
-  const fdMax = await p.evaluate(() => {
-    for (let i = 0; i < 9; i++) feedAdd('測試材料' + i, 1, null, null);
-    return [FEED.L.length, $('feed').querySelectorAll('.fd').length, FEED.L.filter(f => f.r !== 'norm').length];
-  });
-  ok(
-    `追加 掉落動態最多 ${FD[3]} 列：滿了先擠掉最舊的一般`,
-    fdMax[0] === FD[3] && fdMax[1] === FD[3] && fdMax[2] === Math.min(2, FD[3] - 1),
-    String(FD[3]),
-    fdMax.join('／'),
-    ''
   );
 
   await p.evaluate(() => (die = window.dieOrig));
