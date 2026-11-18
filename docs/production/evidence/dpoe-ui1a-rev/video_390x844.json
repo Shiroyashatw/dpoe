@@ -1,0 +1,75 @@
+{
+ "wave": "0 位移、0 字",
+ "banner": {
+  "出現": 5,
+  "開始縮": 805,
+  "縮完": 1038,
+  "停": 800,
+  "縮": 233
+ },
+ "down": 1496,
+ "taps": [
+  {
+   "間隔": 0,
+   "升": 1,
+   "第一個畫面變化ms": 9
+  },
+  {
+   "間隔": 150,
+   "升": 0,
+   "第一個畫面變化ms": 14
+  },
+  {
+   "間隔": 350,
+   "升": 1,
+   "第一個畫面變化ms": 16
+  }
+ ],
+ "tap": [
+  9,
+  7,
+  12,
+  11,
+  12
+ ],
+ "idle": 6007,
+ "progSnap": {
+  "王倒下後第一格": [
+   0,
+   0
+  ],
+  "前五格": [
+   "0ms:0",
+   "11ms:0",
+   "27ms:0",
+   "44ms:0",
+   "61ms:0"
+  ]
+ },
+ "progFill": {
+  "開始": 24,
+  "填滿": 24,
+  "歷時": 0,
+  "終點寬": 116
+ },
+ "fallback": {
+  "字板": "倒下・2 秒後退回地層出口",
+  "回到戰場ms": 1500,
+  "地點": "第 2 個 → 第 1 個",
+  "場景": "map"
+ },
+ "keyboard": [
+  "ArrowLeft→pnav:nav:skill",
+  "ArrowRight→pnav:nav:craft",
+  "Enter→pnav:nav:craft",
+  "ArrowUp→pcamp:one:iron",
+  "ArrowUp→pcamp:one:store",
+  "ArrowDown→pcamp:one:iron",
+  "Escape→pnav:nav:craft"
+ ],
+ "feed": {
+  "開始": "chase,rare,norm",
+  "一般消失ms": 3389
+ },
+ "frames": 1653
+}

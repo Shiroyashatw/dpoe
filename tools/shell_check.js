@@ -239,6 +239,9 @@ const ok = (n, v, goal = '', got = '', file = '') => {
 
   /* 量換波、王橫幅、王倒下時主角不能倒下（倒下會原地重開、清掉王，量不到）；量完在「倒下」那段之前還原 */
   await p.evaluate(() => ((window.dieOrig = die), (die = () => {})));
+  /* 已經倒下的先等 AI 重開完（重開會清掉場上的王） */
+  await p.waitForFunction(() => G.state === 'play', null, { timeout: 6000 }).catch(() => {});
+  await p.evaluate(() => (P.hp = ST.hp));
   /* ---------- 換波：介面 0 位移、不出字 ---------- */
   /* 同一個 evaluate 裡：量一次 → 放下一波 → 等兩格 → 再量（時間窗只有兩格，不被別的事件干擾）；掉落動態（§5.2 照舊）不算 */
   const wv = await p.evaluate(async () => {
@@ -859,10 +862,14 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   );
 
   /* ================= M2-12 修訂（15:00）與追加（掉落動態）：dpoe-ui1a-rev ================= */
+  /* 這一段量的是介面：主角不倒下（倒下會重開這一輪、清掉進度與王），先等已經倒下的重開完 */
+  await p.waitForFunction(() => G.state === 'play', null, { timeout: 6000 }).catch(() => {});
   await p.evaluate(() => {
     closePanels();
     S.auto = 1;
     for (const m of G.mobs) m.dmg = 0;
+    P.hp = ST.hp;
+    die = () => {};
   });
   /* ---------- (b) #prog 離王條：位置、高度、字級；王出現被王血條取代；王倒下 0 ms 跳回、300 ms 填入 ---------- */
   const PG = PORTM ? [8, SAT + 39, 290, SAT + 55, 6, 13] : [360, 20, 920, 42, 8, 16];
@@ -942,7 +949,10 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     for (const m of G.mobs) (m.hp = m.mhp = 1e9), (m.dmg = 0);
     /* 先歸 0（往下 0 ms 跳），兩格後再補到一半（往上 300 ms 填） */
     G.prog = 0;
-    await new Promise(r => setTimeout(r, 100));
+    const bar = $('prog').querySelector('.pb i');
+    let n = 0;
+    for (; n < 60 && bar.getBoundingClientRect().width > 0; n++) await new Promise(r => requestAnimationFrame(r));
+    await new Promise(r => requestAnimationFrame(r));
     G.prog = Math.round(G.need * 0.5);
     const i = $('prog').querySelector('.pb i'),
       w = () => Math.round(i.getBoundingClientRect().width),
@@ -954,13 +964,14 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     r.push(w());
     await wait(400);
     r.push(w());
+    r.push(`歸 0 等了 ${n} 格・bossOut ${G.bossOut}・prog ${G.prog}/${G.need}・${$('prog').hidden ? '藏' : '在'}`);
     return r;
   });
   ok(
     '修訂(b) 重填：300 ms 填入動畫（150 ms 時還在填、550 ms 已填完）',
     pg3[0] === '0.3s' && pg3[1] > 0 && pg3[1] < pg3[2] && Math.abs(pg3[2] - pg3[3]) <= 1,
     '0.3s、150 ms 還在填、550 ms 填完',
-    `transition ${pg3[0]}、150 ms 寬 ${pg3[1]}、550 ms 寬 ${pg3[2]}、950 ms 寬 ${pg3[3]}`,
+    `transition ${pg3[0]}、150 ms 寬 ${pg3[1]}、550 ms 寬 ${pg3[2]}、950 ms 寬 ${pg3[3]}（${pg3[4]}）`,
     await shot('10b_prog_refill')
   );
 
@@ -1234,12 +1245,16 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     return W >= 380 ? 3 : 2;
   }
   const fd = await p.evaluate(async () => {
+    /* 量的時候戰鬥不掉東西進來：場上的怪打不死、不再放下一波 */
+    for (const m of G.mobs) (m.hp = m.mhp = 1e9), (m.dmg = 0);
+    G.waves = [];
+    G.bossOut = 1;
     for (const f of FEED.L.slice()) feedDrop(f);
     $('feedsr').textContent = '';
     const r = {};
-    feedAdd('磨刀石', 2, null, null);
+    feedAdd('測試磨刀石', 2, null, null);
     r.srN = $('feedsr').textContent;
-    feedAdd('磨刀石', 3, null, null);
+    feedAdd('測試磨刀石', 3, null, null);
     feedAdd('崇高石', 1, 'cur', feedIc('崇高石'));
     r.srR = $('feedsr').textContent;
     const ck = CHASE_POOL.trunk[0];
@@ -1273,7 +1288,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   );
   ok(
     '追加 掉落動態：同類合併（＋2＋3＝＋5 一列）、新的在最上面、稀有度色（一般／稀有／追逐不同色）',
-    fd.rows.filter(r => /磨刀石/.test(r[4])).length === 1 &&
+    fd.rows.filter(r => /測試磨刀石/.test(r[4])).length === 1 &&
       fd.rows.some(r => /＋5/.test(r[4]) && /fd-norm/.test(r[5])) &&
       /fd-chase/.test(fd.rows[0][5]) &&
       new Set(fd.col).size === 3,
@@ -1304,9 +1319,18 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   }
   const fdOut = await p.evaluate(async () => {
     await new Promise(r => setTimeout(r, 3500));
-    return FEED.L.map(f => f.r).join(',');
+    /* 只看這裡放的三列（戰鬥自己掉的材料照常進來，不算） */
+    return ['測試磨刀石', '崇高石', chaseName(CHASE_POOL.trunk[0])]
+      .map(n => (FEED.L.find(f => f.k === n) || { r: '無' }).r)
+      .join(',');
   });
-  ok('追加 掉落動態：一般 3 秒＋400 ms 淡出後消失，稀有以上還在', fdOut === 'chase,rare', 'chase,rare', fdOut, '');
+  ok(
+    '追加 掉落動態：一般 3 秒＋400 ms 淡出後消失，稀有以上還在',
+    fdOut === '無,rare,chase',
+    '無,rare,chase',
+    fdOut,
+    ''
+  );
   const fdMax = await p.evaluate(() => {
     for (let i = 0; i < 9; i++) feedAdd('測試材料' + i, 1, null, null);
     return [FEED.L.length, $('feed').querySelectorAll('.fd').length, FEED.L.filter(f => f.r !== 'norm').length];
@@ -1319,6 +1343,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     ''
   );
 
+  await p.evaluate(() => (die = window.dieOrig));
   ok('沒有頁面錯誤', !errs.length, '0', errs.join(' / ') || '0', '');
   const md =
     `# M2-12 第一段量測 ${tag}\n\n由 tools/shell_check.js 產生（本機 Playwright Chromium${PORTM && SAT ? '，模擬安全區上 47、下 34' : ''}）。\n\n| 項目 | 尺寸 | 目標 | 實測 | 過／不過 | 檔名 |\n| --- | --- | --- | --- | --- | --- |\n` +
