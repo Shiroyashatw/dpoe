@@ -16,7 +16,9 @@ const VP = {
 };
 const B4 = ['temple', 'lava', 'tomb', 'ice'];
 const ROWS = []; /* 每個「清單列 × 尺寸」一筆，measure.py 讀 */
-const rowsFile = path.join(OUT, 'rows.json');
+const TAG = process.env.TAG || 'all',
+  rowsFile = path.join(OUT, `rows-${TAG}.json`),
+  extraFile = path.join(OUT, `extra-${TAG}.json`);
 let OLD = [];
 try {
   OLD = JSON.parse(fs.readFileSync(rowsFile, 'utf8'));
@@ -1441,30 +1443,35 @@ async function videos(v) {
   return out;
 }
 
+/* 每跑完一組就存一次（中途當掉也留得住） */
+const key = r => [r.id, r.viewport, r.screen, r.state].join('|');
+function save(extra) {
+  const mine = new Set(ROWS.map(key));
+  fs.writeFileSync(rowsFile, JSON.stringify(OLD.filter(r => !mine.has(key(r))).concat(ROWS), null, 1));
+  let ex = {};
+  try {
+    ex = JSON.parse(fs.readFileSync(extraFile, 'utf8'));
+  } catch (e) {}
+  Object.assign(ex, extra);
+  fs.writeFileSync(extraFile, JSON.stringify(ex, null, 1));
+}
 (async () => {
   BR = await chromium.launch({ executablePath: process.env.PW_CHROME || '/opt/pw-browsers/chromium' });
   const t0 = Date.now(),
-    errs = {},
-    extra = {};
-  for (const v of (process.env.VPS || 'P,D,S').split(',')) {
+    errs = {};
+  for (const v of (process.env.VPS || 'P,D,S').split(',').filter(Boolean)) {
     errs[v + ':static'] = await staticGroup(v);
-    if (v !== 'S' && (want('X') || want('N2'))) errs[v + ':fx'] = await fxGroup(v);
-    if (v !== 'S' && want('X')) errs[v + ':rm'] = await rmGroup(v);
-    if (v !== 'S' && (want('T5') || want('Q'))) errs[v + ':fallback'] = await fallbackGroup(v);
+    save({ errs });
+    if (v !== 'S' && (want('X') || want('N2'))) (errs[v + ':fx'] = await fxGroup(v)), save({ errs });
+    if (v !== 'S' && want('X')) (errs[v + ':rm'] = await rmGroup(v)), save({ errs });
+    if (v !== 'S' && (want('T5') || want('Q'))) (errs[v + ':fallback'] = await fallbackGroup(v)), save({ errs });
   }
-  if (want('T6')) extra.perf = { P: await perfGroup('P'), D: await perfGroup('D') };
-  if (want('V')) extra.videos = { P: await videos('P'), D: await videos('D') };
+  if (want('T6')) save({ perf: { P: await perfGroup('P'), D: await perfGroup('D') } });
+  if (want('V')) {
+    const vd = {};
+    for (const v of ['P', 'D']) (vd[v] = await videos(v)), save({ videos: vd });
+  }
   await BR.close();
-  /* 只重跑部分群組時：保留其他群組的舊列 */
-  const key = r => [r.id, r.viewport, r.screen, r.state].join('|');
-  const mine = new Set(ROWS.map(key));
-  const all = OLD.filter(r => !mine.has(key(r))).concat(ROWS);
-  fs.writeFileSync(rowsFile, JSON.stringify(all, null, 1));
-  let ex = {};
-  try {
-    ex = JSON.parse(fs.readFileSync(path.join(OUT, 'extra.json'), 'utf8'));
-  } catch (e) {}
-  Object.assign(ex, extra, { errs: Object.assign(ex.errs || {}, errs) });
-  fs.writeFileSync(path.join(OUT, 'extra.json'), JSON.stringify(ex, null, 1));
+  save({ errs });
   console.log(`完成 ${ROWS.length} 列，${((Date.now() - t0) / 1000).toFixed(0)} 秒`);
 })();

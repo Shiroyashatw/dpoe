@@ -8,7 +8,7 @@ br, sha, pushed = (sys.argv + ['', '', ''])[1:4]
 BLOB = f'https://github.com/Shiroyashatw/dpoe/blob/{br}/evidence/dpoe-m2-36-shots/'
 d = json.loads((HERE / 'prefilter.json').read_text())
 PF = d['pf']
-ex = json.loads((HERE / 'extra.json').read_text()) if (HERE / 'extra.json').exists() else {}
+
 NAME = {
     'T-1': '地磚 idle', 'T-2': '天黑 night', 'T-3': '大霧 fog', 'T-4': '火焰放滿 fire', 'T-5': '缺磚退回 fallback', 'T-6': 'bStatic 效能',
     'C-1': '特寫 地板接縫', 'C-2': '特寫 牆頂接縫', 'C-3': '特寫 牆面接縫', 'C-4': '特寫 暗處地板', 'A-1': '地磚素材 2×2',

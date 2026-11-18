@@ -621,8 +621,15 @@ def measure_burst(r):
 
 # ---------- 主程式 ----------
 def main():
-    rows = json.loads((HERE / 'rows.json').read_text())
-    extra = json.loads((HERE / 'extra.json').read_text()) if (HERE / 'extra.json').exists() else {}
+    rows, extra = [], {}
+    for f in sorted(HERE.glob('rows-*.json')):
+        rows += json.loads(f.read_text())
+    for f in sorted(HERE.glob('extra-*.json')):
+        for k, v in json.loads(f.read_text()).items():
+            if isinstance(v, dict) and isinstance(extra.get(k), dict):
+                extra[k].update(v)
+            else:
+                extra[k] = v
     commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=ROOT).decode().strip()
     M, PF = [], []
     MCOLS = ['task', 'id', 'viewport', 'screen', 'state', 'file', 'frame', 'commit', 'dpr', 'px_w', 'px_h', 'a_scene_l', 'a_panel_l', 'a_key_l', 'a_panel_minus_scene', 'a_key_minus_layer', 'b_panel_scene', 'c_sat_pct', 'c_sat_where', 'd_brown_pct', 'e_text_min', 'e_text_max', 'e_text_fail', 'e_ui_colors', 'f_bright_pct', 'bar_contrast', 'num_min_px', 'icon_scale', 'hit_min', 'fx_sat_pct', 'fx_black_pct', 'checks', 'verdict', 'fail']
@@ -934,7 +941,6 @@ def main():
         for p in PF:
             w.writerow(p)
     json.dump({'commit': commit, 'pf': PF}, open(HERE / 'prefilter.json', 'w'), ensure_ascii=False, indent=0)
-    json.dump(rows, open(HERE / 'rows.json', 'w'), ensure_ascii=False, indent=0)
     from collections import Counter
     print(Counter(p['verdict'] for p in PF), len(PF))
 
