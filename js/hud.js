@@ -121,7 +121,7 @@ const fmenuHTML = () =>
     .join('');
 function hudInit() {
   $('hud').innerHTML = `
-  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="dlog"></div><div id="bossbar" hidden><b id="bossn"></b><em class="bsh">現身</em><div class="bb"><i></i></div></div><div id="prog" hidden><b id="progt">王 0%</b><div class="pb"><i></i></div></div></div>
+  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="bossbar" hidden><b id="bossn"></b><em class="bsh">現身</em><div class="bb"><i></i></div></div><div id="prog" hidden><b id="progt">王 0%</b><div class="pb"><i></i></div></div></div>
   <div class="bottom">
     <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
     <div class="mid">
@@ -350,11 +350,15 @@ function hudTick() {
     if (show) HV.bt = setTimeout(() => bb.classList.remove('intro'), 1100);
   }
   if (show) setV($('bossbar'), 'bhp', (b.hp / b.mhp).toFixed(3));
-  const pr = G.scene === 'map' && !G.bossOut;
+  /* M2-12 修訂：離王進度當「下一個王」短期目標，寫「王 n%」（不寫波數、輪數）；王出現時被王血條取代，
+     王倒下（後台 2 秒空檔）就回到 0 重填：往下 0 ms 跳回，往上 300 ms 填入（CSS transition） */
+  const bAlive = G.bossOut && G.mobs.some(m => m.boss && !m.mini && !m.dummy && m.hp > 0),
+    pr = G.scene === 'map' && !G.arena && !bAlive && !show;
   if (HV.pr !== pr) $('prog').hidden = !(HV.pr = pr);
-  /* M2-12 修訂：離王進度當「下一個王」短期目標，寫「王 n%」（不寫波數、輪數） */
   if (pr) {
-    const v = Math.min(1, G.prog / G.need);
+    const v = G.bossOut ? 0 : Math.min(1, G.prog / G.need),
+      i = $('prog').lastChild.firstChild;
+    i.style.transition = v < (HV.prog || 0) ? 'none' : '';
     setV($('prog'), 'prog', v.toFixed(3));
     setT($('progt'), 'progt', `王 ${Math.floor(v * 100)}%`);
   }
@@ -371,7 +375,7 @@ function hudTick() {
   /* 營地分頁開著：每秒補畫數字變了的卡（0.5.1）；分頁列的小點跟著買得起幾件 */
   const ct = performance.now();
   if (ct - CAMP_T > 1000) (CAMP_T = ct), campRefresh(), sheetSync(), PANEL.camp && campDrawer();
-  logBar();
+  feedTick();
   if (HV.ai !== AI.on) document.body.classList.toggle('ai', !!(HV.ai = AI.on));
   const au = S.auto ? 1 : 0;
   if (HV.bar !== barKey()) hudBar();
@@ -429,19 +433,16 @@ function hudState() {
   const dp = $('dplate');
   dp.hidden = !(G.state === 'dead' && S.auto && G.node);
   document.body.classList.toggle('downed', G.state === 'dead');
-  if (G.state === 'dead' && G.halt) {
-    /* M2-40 定案（D2）：同一處連死 3 次停下，只有「繼續刷」一顆鈕（沒有回營地） */
-    dp.innerHTML = `<span>${strT('dHalt', { n: DEAD_MAX })}</span><button class="btn pri" data-a="again">${STR_T.dGo}<kbd class="donly">Enter</kbd></button>`;
-    dp.classList.add('halt');
-    o.hidden = true;
-  } else if (G.state === 'dead' && S.auto && G.node) {
-    /* M2-12 §4：自動模式倒下不出卡——中下方字板，約 1.5 秒原地附近重來（ai.js 的 deadT），面板開著也一樣 */
-    dp.classList.remove('halt');
-    dp.innerHTML = `<span>${strT('dDown', { s: 2 })}</span>`;
+  if (G.state === 'dead' && S.auto && G.node) {
+    /* M2-12 §4：自動模式倒下不出卡——中下方字板，約 1.5 秒原地附近重來（ai.js 的 deadT），面板開著也一樣；
+       連死 3 次那一下字板先講退回哪裡（D2：退回上一個地點接著刷，不停機、不回營地） */
+    const bk = deadBack();
+    dp.innerHTML = `<span>${bk ? strT('dBack', { s: 2, p: wName(S, ...wXY(bk)) }) : strT('dDown', { s: 2 })}</span>`;
     o.hidden = true;
   } else if (G.state === 'dead') {
     /* 0.4.0：原地重來（同一個地點、這一輪重抽詞）；寫出這一輪的地圖詞，看得出死在哪一組詞 */
     const again = !!G.node,
+      bk = deadBack(),
       mods = (G.card && G.card.mods) || [],
       /* M1-17：營地的「下一件事」現在買得起就給一顆鈕，按了就升（forge.js 的 data-fg） */
       up = campNextThing(),
@@ -450,7 +451,7 @@ function hudState() {
           ? `<button class="btn pri wide dup" data-fg="${GEN[up.k] ? `gen:${up.k}:1` : `camp:${up.k}`}">現在可以升：${esc(up.n)}<small>${esc(costTxt(up.c))}</small></button>`
           : '';
     o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}${mods.length ? `<p class="dmods">地圖詞：${mods.map(m => esc(MAPMOD[m].t)).join('、')}</p>` : ''}<p>不扣經驗，裝備都還在。</p>
-      <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>同一個地點重新開始</small></button>` : `<button class="btn pri" data-a="camp">回營地<small>自動刷圖暫停</small></button>`}</div></div>`;
+      <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>${bk ? esc(`連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(bk))}`) : '同一個地點重新開始'}</small></button>` : `<button class="btn pri" data-a="camp">回營地<small>自動刷圖暫停</small></button>`}</div></div>`;
     overOn(o);
   } else if (G.ask === 'camp' && G.scene === 'map' && G.state === 'play') {
     /* 桌機：T 再按一次＝回去、Esc＝繼續刷圖（M0-04） */
@@ -552,13 +553,23 @@ function navGo(t) {
   else openPanel(t);
   NOSNAP = 0;
 }
+/* 英文的分頁字（還沒有語系，<html lang="en"> 時用；長名＋短名，短名照規格 §1.4 ≤7 字元） */
+const NAV_EN = {
+  char: ['Character', 'Hero'],
+  forge: ['Forge', 'Forge'],
+  skill: ['Skills', 'Skills'],
+  tree: ['Talents', 'Tree'],
+  craft: ['Camp', 'Camp'],
+  more: ['More', 'More']
+};
 const navHTML = () => {
-  const on = navOn();
+  const on = navOn(),
+    en = document.documentElement.lang === 'en';
   /* 天賦樹分頁要祭壇 Lv4（0.5.1）；營地的小點寫買得起幾件 */
   return NAV_T.filter(([k]) => k !== 'tree' || campCan('tree'))
     .map(
       ([k, ic, t, key]) =>
-        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" aria-pressed="${on === k}">${ICO[ic]}<span>${t}</span>${TOUCH.on ? '' : `<kbd>${key}</kbd>`}${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : k === 'more' ? STR_T.chaseNew : '有點數沒用'}"></i>`) : ''}</button>`
+        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" data-s="${en ? NAV_EN[k][1] : t}" aria-pressed="${on === k}">${ICO[ic]}<span>${en ? NAV_EN[k][0] : t}</span>${TOUCH.on ? '' : `<kbd>${key}</kbd>`}${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : k === 'more' ? STR_T.chaseNew : '有點數沒用'}"></i>`) : ''}</button>`
     )
     .join('');
 };
@@ -598,8 +609,14 @@ function sheetSync() {
   const dn = $('dnav');
   dn.hidden = TOUCH.on;
   if (!nav.hidden || !dn.hidden) {
-    const h = navHTML();
-    if (HV.nav !== h) (nav.hidden ? dn : nav).innerHTML = HV.nav = h;
+    const h = navHTML(),
+      key = h + IW + ':' + ((S && S.fs) || 100);
+    if (HV.nav !== key) {
+      const box = nav.hidden ? dn : nav;
+      keepFocus(box, () => (box.innerHTML = h));
+      HV.nav = key;
+      navFit(box);
+    }
   }
   const h = cvH(),
     t = cvTop();
@@ -611,6 +628,55 @@ function sheetSync() {
     CV_NEW = 1;
   }
 }
+/* M2-12 修訂 #13：分頁字永遠一行、不換行；放不下時依序 ① 圖示 24→20 ② 換短標籤（data-s）③ 只留圖示（aria-label＋長按 400 ms 顯示名稱）。分頁高不變 */
+function navFit(box) {
+  const bs = [...box.querySelectorAll('button')],
+    over = () =>
+      bs.some(b => {
+        const sp = b.querySelector('span');
+        return sp && sp.getBoundingClientRect().width > b.clientWidth - 4;
+      });
+  box.classList.remove('ic20', 'icon');
+  for (const b of bs) b.removeAttribute('aria-label');
+  if (!over()) return;
+  box.classList.add('ic20');
+  if (!over()) return;
+  for (const b of bs) {
+    const sp = b.querySelector('span');
+    if (sp) (b.dataset.n = sp.textContent), (sp.textContent = b.dataset.s);
+  }
+  if (!over()) return;
+  box.classList.add('icon');
+  for (const b of bs) b.setAttribute('aria-label', b.dataset.n);
+}
+/* 只留圖示時：長按 400 ms 在分頁上方顯示名稱；顯示過就不算點 */
+const NAVLP = { t: 0, on: 0 };
+function navLong(e) {
+  const b = e.target.closest('#pnav.icon button, #dnav.icon button');
+  clearTimeout(NAVLP.t);
+  if (e.type !== 'pointerdown') return void (NAVLP.t = setTimeout(() => ($('navtip').hidden = true), 600));
+  if (!b) return;
+  NAVLP.on = 0;
+  NAVLP.t = setTimeout(() => {
+    const tp = $('navtip'),
+      r = b.getBoundingClientRect();
+    tp.textContent = b.getAttribute('aria-label');
+    tp.hidden = false;
+    tp.style.left = Math.round(r.left + r.width / 2) + 'px';
+    tp.style.top = Math.round(r.top - 8) + 'px';
+    NAVLP.on = 1;
+  }, 400);
+}
+addEventListener('pointerdown', navLong, true);
+addEventListener('pointerup', navLong, true);
+addEventListener('pointercancel', navLong, true);
+addEventListener(
+  'click',
+  e => {
+    if (NAVLP.on && e.target.closest('#pnav, #dnav')) (NAVLP.on = 0), e.stopPropagation(), e.preventDefault();
+  },
+  true
+);
 /* 這一格放得下的倉庫裝備：可能升級的排前面，再照 T、新舊 */
 function slotCands(k) {
   const e = EQS.find(q => q.k === k),
@@ -2032,15 +2098,64 @@ function chaseBnClick() {
   chaseBnHide();
   chaseOpen(k);
 }
-/* HUD 的掉落紀錄（0.4.1）：最新 3 筆，30 秒後淡掉；完整的在「掉落紀錄」面板 */
-const LOG_SHOW = 30000;
-function logBar() {
-  const now = Date.now(),
-    L = (S.log || []).filter(x => now - x.t < LOG_SHOW).slice(0, 3),
-    k = LOGV + ':' + L.length;
-  if (HV.log === k) return;
-  HV.log = k;
-  $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
+/* ---------- 掉落動態（補遺 §5.2，取代 HUD 的 #dlog 與材料的世界字）：一列一種東西，同一種還沒消失前再掉就合併（＋n 累加）、移到最上面、重新計時。
+   位置照 M2-12 第一段：直立 x 202–378、y 148 起 3 列（375 寬 2 列）；桌機 x 16–316、y 76 起 6 列；每列 24、間距 4（CSS #feed） ---------- */
+const FEED = { L: [], t: 0, seq: 0 };
+/* 掉落紀錄的類別 → 稀有度（沒有類別＝一般材料） */
+const FEED_R = { cur: 'rare', mid: 'rare', perf: 'uniq', frac: 'uniq', mem: 'uniq', chase: 'chase', pack: 'norm' },
+  FEED_HOLD = { norm: 3000, rare: 6000, uniq: 6000, chase: 10000 },
+  FEED_G = { frac: '★', mem: '◈' };
+const feedMax = () => (PORT() ? (IW >= 380 ? 3 : 2) : TOUCH.on ? 2 : 6);
+function feedAdd(name, n, c, ic) {
+  const r = FEED_R[c] || 'norm',
+    box = $('feed');
+  let f = FEED.L.find(x => x.k === name);
+  if (f) (f.n += n), f.el.classList.remove('out');
+  else {
+    /* 滿了：先擠掉最舊的一般；全是稀有以上才擠掉最舊的 */
+    while (FEED.L.length >= feedMax()) {
+      const i = FEED.L.map(x => x.r).lastIndexOf('norm');
+      feedDrop(FEED.L[i >= 0 ? i : FEED.L.length - 1]);
+    }
+    f = { k: name, n, r, ic, el: document.createElement('p') };
+    f.el.className = 'fd fd-' + r;
+    f.el.innerHTML = `${ic ? icHTML(ic, '', 16) : ''}${c === 'chase' ? '' : '<b></b>'}<span>${FEED_G[c] || ''}${esc(name)}</span>`;
+    box.append(f.el);
+  }
+  /* 新的在最上面（用 order 排，不搬節點：搬了進場動畫會重播） */
+  f.el.style.order = -++FEED.seq;
+  FEED.L = [f, ...FEED.L.filter(x => x !== f)];
+  f.end = performance.now() + FEED_HOLD[r];
+  const b = f.el.querySelector('b');
+  if (b) b.textContent = '＋' + (f.n > 9999 ? '9,999+' : fmtN(f.n));
+  /* 讀屏只念稀有以上 */
+  if (r !== 'norm') $('feedsr').textContent = name + (c === 'chase' ? '' : ' ＋' + f.n);
+  feedTick(1);
+}
+function feedDrop(f) {
+  f.el.remove();
+  FEED.L = FEED.L.filter(x => x !== f);
+}
+function feedTick(force) {
+  const now = performance.now(),
+    box = $('feed');
+  if (!force && now - FEED.t < 100) return;
+  FEED.t = now;
+  for (const f of FEED.L.slice()) {
+    if (now > f.end + 400) feedDrop(f);
+    else if (now > f.end) f.el.classList.add('out');
+    /* 圖示第一次用到才載：先畫空格，載好了補上 */
+    const e = f.ic && f.el.querySelector('span.ic');
+    if (e && artIconURL(f.ic, 16)) e.outerHTML = icHTML(f.ic, '', 16);
+  }
+  /* 不在地圖、或有面板蓋到這一塊（桌機左欄鍛造、直立蓋滿）時不畫 */
+  if (!FEED.L.length || G.scene !== 'map') return void (box.hidden = true);
+  box.hidden = false;
+  const r = box.getBoundingClientRect();
+  box.hidden = [...document.querySelectorAll('.panel:not([hidden])')].some(e => {
+    const q = e.getBoundingClientRect();
+    return q.width && q.left < r.right && q.right > r.left && q.top < r.bottom && q.bottom > r.top;
+  });
 }
 const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
 /* 掉落紀錄選中的那一筆（橫幅顯示中按 L：最新的追逐物品） */
@@ -2087,7 +2202,7 @@ function idleBar(force) {
   /* 只有字變＝版面沒動；標籤變了（換成王倒下的清單、多一行保底）當作按鈕可能移位 */
   const sk = x => x.replace(/>[^<]*</g, '><').replace(/\d/g, '');
   if (HV.idle && sk(HV.idle) !== sk(h)) IDLE_MV = now;
-  el.innerHTML = HV.idle = h;
+  keepFocus(el, () => (el.innerHTML = HV.idle = h));
 }
 /* M2-12 §2 掛機條：收起 44 高（掛機 N 分・保底 n%・最近一筆稀有以上・展開鈕），點條展開 200 高、6 秒沒操作自動收。
    不寫輪數；掛機時間＝SES.t0（停止刷才歸零）；保底只在會累積的地點（chaseLine）；倉庫快滿、離開 60 秒–10 分那一行換掉左字 */
@@ -2765,6 +2880,11 @@ function inputInit() {
   );
   addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT') return;
+    /* M2-12 修訂 #4：骨架元件用鍵盤操作——焦點在上面（鍵盤帶過來的，滑鼠點的不算）時方向鍵空間導覽、Enter／Space 確認 */
+    if (knOn(e.target)) {
+      if (e.key === 'Enter' || e.key === ' ') return e.preventDefault(), e.repeat || e.target.click();
+      if (e.key.startsWith('Arrow')) return e.preventDefault(), knMove(e.target, e.key.slice(5).toLowerCase());
+    }
     if (e.target.matches && e.target.matches('[role=button]:not(.it)') && (e.key === 'Enter' || e.key === ' ')) {
       e.preventDefault();
       return e.target.click();
@@ -2782,7 +2902,6 @@ function inputInit() {
     K[k] = 1;
     /* 離線結算開著（M2-12 §7）：Enter 收下、H 去營地升級 */
     if (!$('poff').hidden && (k === 'enter' || k === 'h')) return act(k === 'enter' ? 'offok' : 'offcamp');
-    if (G.halt && G.state === 'dead' && k === 'enter') return act('again');
     if (k === ' ') {
       e.preventDefault();
       doRoll();
@@ -2799,10 +2918,12 @@ function inputInit() {
     else if (FMENU.some(f => f[2].toLowerCase() === k)) fmenuOpen(FMENU.find(f => f[2].toLowerCase() === k)[0]);
     else if (PANEL.chase && CHUI.v && (k === 'escape' || (k === 'enter' && CHUI.v === 'swap')))
       e.preventDefault(), wyAct(k === 'enter' ? 'ok' : 'back');
-    else if (k === 'escape')
-      G.ask ? act('askno') : TREE.open ? treeClose() : anyPanel() ? closePanels() : openPanel('set');
+    else if (k === 'escape') knEsc();
     else if (k === 't') campAsk();
     else if (k === 'c') autoToggle();
+    /* 用鍵盤開營地升級：焦點放在建議那顆印章 */
+    if (k === 'h' && PANEL.camp)
+      requestAnimationFrame(() => knFocus('#pcamp .stamp.sug, #pcamp .stamp, #pcamp button'));
     pressFx(k);
   });
   addEventListener('keyup', e => (K[e.key.toLowerCase()] = 0));
@@ -2896,6 +3017,81 @@ function pressFx(key) {
   void el.offsetWidth;
   el.classList.add('hit');
 }
+/* ---------- M2-12 修訂 #4：鍵盤（手把排 M4S）——新骨架元件的焦點順序照 DOM（分頁、抽屜、掛機條、結算、字板都是 button），
+   方向鍵在看得到的元件之間找那個方向最近的（主軸距離＋2×側向距離）；Esc 一層一層返回 ---------- */
+const KN_Z = '#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over';
+const knOn = el => !!(el && el.closest && el.closest(KN_Z) && el.matches(':focus-visible'));
+/* 現在能走到的元件：結算卡、死亡卡開著時只在卡裡走 */
+const knAll = () => {
+  const m = !$('poff').hidden ? '#poff' : !$('over').hidden ? '#over' : KN_Z;
+  return [...document.querySelectorAll(`:is(${m}) :is(button, [tabindex="0"]):not([disabled])`)].filter(e => {
+    const r = e.getBoundingClientRect();
+    return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden';
+  });
+};
+function knMove(el, d) {
+  const c = r => [r.left + r.width / 2, r.top + r.height / 2],
+    [x0, y0] = c(el.getBoundingClientRect()),
+    h = d === 'left' || d === 'right',
+    sg = d === 'right' || d === 'down' ? 1 : -1,
+    dirOk = e => {
+      const [x, y] = c(e.getBoundingClientRect());
+      return e !== el && (h ? x - x0 : y - y0) * sg > 1;
+    };
+  /* 先在同一塊（分頁、抽屜、掛機條…）裡找，那個方向沒有才跨到別塊 */
+  const z = el.closest(KN_Z),
+    all = knAll(),
+    same = all.filter(e => e.closest(KN_Z) === z);
+  let best = null,
+    bs = 1e9;
+  for (const e of [...same, ...(same.some(e => dirOk(e)) ? [] : all)]) {
+    if (e === el) continue;
+    const [x, y] = c(e.getBoundingClientRect()),
+      a = (h ? x - x0 : y - y0) * sg,
+      o = Math.abs(h ? y - y0 : x - x0);
+    if (a <= 1) continue;
+    const sc = a + 2 * o;
+    if (sc < bs) (bs = sc), (best = e);
+  }
+  if (best) best.focus();
+  return best;
+}
+/* 照順序試每個選擇器，第一個找到的拿焦點 */
+function knFocus(q) {
+  const e = q
+    .split(',')
+    .map(x => document.querySelector(x))
+    .find(Boolean);
+  if (e) e.focus();
+  return e;
+}
+/* Esc：結算卡收下 → 單座卡回格子 → 收起掛機條 → 原本的（確認卡、天賦樹、面板、設定）；關掉的那一塊有焦點就回到它的分頁 */
+function knEsc() {
+  const f = document.activeElement,
+    fin = f && f.closest && f.closest('#pcamp, #pidle, #poff');
+  if (G.ask) act('askno');
+  else if (!$('poff').hidden) act('offok');
+  else if (PANEL.camp && CDR.one) (CDR.one = null), hudPanels(), fin && knFocus('#pcamp .cdb');
+  else if (IDLE.open && !$('pidle').hidden) idleToggle(), fin && knFocus('#pidle .ib');
+  else if (TREE.open) treeClose();
+  else if (anyPanel()) closePanels(), fin && knFocus('[data-tm="nav:craft"]');
+  else openPanel('set');
+}
+/* 重畫一塊（innerHTML）時保住焦點：照同一個 data-* 找回來，找不到就照順序 */
+function keepFocus(box, fn) {
+  const a = document.activeElement,
+    q = 'button, [tabindex="0"]';
+  if (!a || !box.contains(a)) return fn();
+  const all = [...box.querySelectorAll(q)],
+    i = all.indexOf(a),
+    at = ['data-fg', 'data-cd', 'data-a', 'data-tm'].find(x => a.hasAttribute(x)),
+    v = at && a.getAttribute(at);
+  fn();
+  const e =
+    (at && [...box.querySelectorAll(`[${at}]`)].find(x => x.getAttribute(at) === v)) ||
+    box.querySelectorAll(q)[Math.min(i, box.querySelectorAll(q).length - 1)];
+  if (e) e.focus({ preventScroll: true });
+}
 function act(a, el) {
   if (a === 'close') closePanels();
   else if (a === 'camp') {
@@ -2929,8 +3125,7 @@ function act(a, el) {
     G.ask = 0;
     hudState();
   } else if (a === 'again') {
-    /* 停下之後按「繼續刷」：這次倒下已經記過，直接原地重開 */
-    if (G.state === 'dead') G.halt ? ((G.halt = 0), runNode(G.node, true)) : deadAgain();
+    if (G.state === 'dead') deadAgain();
   } else if (a === 'idlex') idleToggle();
   else if (a === 'offok') offClose();
   else if (a === 'offcamp') offClose(), navGo('craft');

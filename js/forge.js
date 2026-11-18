@@ -538,7 +538,7 @@ function campDrawerHTML() {
 function campDrawer(force) {
   const el = $('pcamp'),
     h = campDrawerHTML();
-  if (force || CDR.h !== h) el.innerHTML = CDR.h = h;
+  if (force || CDR.h !== h) keepFocus(el, () => (el.innerHTML = CDR.h = h));
   for (const i of document.querySelectorAll('[data-cp]')) {
     const c = cdCost(i.dataset.cp);
     i.style.transform = `scaleX(${affP(c).toFixed(3)})`;

@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 /* M2-12 第一段（刷圖外框）驗收：規格 docs/production/specs/M2-12-shell-part1.md §12 的 A／B／C／D 與 §13 的量測、截圖。
    用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/shell_check.js [寬 390] [高 844] [網址]
    直立 390×844 模擬安全區上 47、下 34（DBG.safeArea）；其他直立尺寸不模擬（瀏覽器分頁）。
-   截圖存 docs/production/evidence/dpoe-ui1a/<寬x高>_*.png；量測表存同一夾的 measure_<寬x高>.md（項目｜尺寸｜目標｜實測｜過／不過｜檔名）。有 ❌ 結束碼 1 */
+   截圖存 docs/production/evidence/dpoe-ui1a-rev/<寬x高>_*.png；量測表存同一夾的 measure_<寬x高>.md（項目｜尺寸｜目標｜實測｜過／不過｜檔名）。有 ❌ 結束碼 1 */
 const path = require('path'),
   fs = require('fs');
 const W = +process.argv[2] || 390,
@@ -10,7 +10,7 @@ const W = +process.argv[2] || 390,
   URL = process.argv[4] || 'http://localhost:8000/',
   PORTM = H > W,
   tag = W + 'x' + H,
-  OUT = process.env.SHOTS || path.join(__dirname, '..', 'docs', 'production', 'evidence', 'dpoe-ui1a'),
+  OUT = process.env.SHOTS || path.join(__dirname, '..', 'docs', 'production', 'evidence', 'dpoe-ui1a-rev'),
   SAT = PORTM && H === 844 ? 47 : 0,
   SAB = PORTM && H === 844 ? 34 : 0;
 fs.mkdirSync(OUT, { recursive: true });
@@ -237,17 +237,23 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   );
   await p.evaluate(m => ((IDLE.msg = ''), (G.mapT = m)), mapT0);
 
+  /* 量換波、王橫幅、王倒下時主角不能倒下（倒下會原地重開、清掉王，量不到）；量完在「倒下」那段之前還原 */
+  await p.evaluate(() => ((window.dieOrig = die), (die = () => {})));
   /* ---------- 換波：介面 0 位移、不出字 ---------- */
   /* 同一個 evaluate 裡：量一次 → 放下一波 → 等兩格 → 再量（時間窗只有兩格，不被別的事件干擾）；掉落動態（§5.2 照舊）不算 */
   const wv = await p.evaluate(async () => {
-    G.waves = G.waves && G.waves.length ? G.waves : [[]];
+    /* 狀態圖示列（buff、異常）是戰鬥自己會變的，量換波時先固定成空的，量完還原 */
+    const ps = playerStates;
+    playerStates = () => [];
     $('warn').textContent = '';
     await new Promise(r => setTimeout(r, 300));
+    /* 等完再補一波（等的時候遊戲自己可能把最後一波放出去了） */
+    G.waves = G.waves && G.waves.length ? G.waves : [[]];
     const snap = () =>
       JSON.stringify([
         [
           ...document.querySelectorAll(
-            '#hud > *, #hud .top > :not(#dlog), #hud .bottom, #bar, #pidle, #pidle .ib > *, #pnav, #pnav button, #dnav, #dnav button'
+            '#hud > *, #hud .top > *, #hud .bottom, #bar, #pidle, #pidle .ib > *, #pnav, #pnav button, #dnav, #dnav button'
           )
         ]
           .filter(e => e.getClientRects().length)
@@ -268,7 +274,11 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     spawnWave();
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     const s1 = snap();
-    return [s0 === s1, G.waveN - n0, $('warn').textContent, s0 === s1 ? '' : s0 + ' ≠ ' + s1];
+    /* 不一樣時只列出變了的那幾個（好查是哪一塊動了） */
+    const d = (x, y) =>
+      JSON.parse(x)[0].filter(e => !JSON.parse(y)[0].some(f => JSON.stringify(f) === JSON.stringify(e)));
+    playerStates = ps;
+    return [s0 === s1, G.waveN - n0, $('warn').textContent, s0 === s1 ? '' : JSON.stringify([d(s0, s1), d(s1, s0)])];
   });
   ok(
     'B 換波 0 ms：介面 0 位移、不出字',
@@ -372,11 +382,13 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     ''
   );
 
-  /* ---------- 倒下 ≤3000 ms 回戰場；連死 3 次停下＋繼續刷 ---------- */
+  await p.evaluate(() => (die = window.dieOrig));
+  /* ---------- 倒下 ≤3000 ms 原地回戰場（掛機時間、保底不歸零）；連死 3 次退回上一個地點（D2，不停機、不回營地） ---------- */
   const dd = await p.evaluate(async () => {
     S.auto = 1;
     S.world.dn = 0;
-    const t0 = performance.now();
+    const s0 = [SES && SES.t0, chaseOf().pts, G.node],
+      t0 = performance.now();
     die();
     await new Promise(r => setTimeout(r, 350));
     const pl = [
@@ -386,53 +398,63 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       $('over').hidden
     ];
     while (G.state === 'dead' && performance.now() - t0 < 6000) await new Promise(r => setTimeout(r, 16));
-    return [Math.round(performance.now() - t0), ...pl];
+    return [
+      Math.round(performance.now() - t0),
+      ...pl,
+      JSON.stringify(s0) === JSON.stringify([SES && SES.t0, chaseOf().pts, G.node])
+    ];
   });
   ok('B 倒下到能再操作 ≤3000 ms（自動）', dd[0] <= 3000, '≤3000 ms', dd[0] + ' ms', '');
   ok(
-    'D 倒下：中下方字板「倒下・{s} 秒後回到戰場」、去色、不出卡',
-    !dd[1] && /^倒下・\d 秒後回到戰場$/.test(dd[2]) && dd[3] && dd[4],
+    'D 倒下：中下方字板「倒下・{s} 秒後回到戰場」、去色、不出卡、沒有輪數與「重來」',
+    !dd[1] && /^倒下・\d 秒後回到戰場$/.test(dd[2]) && !/輪|重來/.test(dd[2]) && dd[3] && dd[4],
     '字板、去色、沒有選單',
-    dd.slice(1).join('｜'),
+    dd.slice(1, 5).join('｜'),
     ''
   );
-  await p.evaluate(() => {
+  ok('D 倒下原地重開：同一個地點，掛機時間與保底點數不歸零', dd[5], '不歸零', String(dd[5]), '');
+  /* 連死 3 次：從第 2 個地點退回第 1 個（照現行規則，M2-12 D2） */
+  const k1 = await p.evaluate(() => {
+    runNode(TRUNK_K[1]);
+    return G.node;
+  });
+  await p.waitForTimeout(300);
+  const h0 = await p.evaluate(() => {
     S.world.dn = 2;
+    const s0 = { t0: SES && SES.t0, pts: chaseOf().pts };
     die();
+    return s0;
   });
   await p.waitForTimeout(400);
-  const f7 = await shot('07_down_plate');
-  await p.waitForFunction(() => G.halt, null, { timeout: 4000 }).catch(() => {});
-  const halt = await p.evaluate(() => [
-    G.state,
+  const pl3 = await p.evaluate(() => [
+    $('dplate').hidden,
     $('dplate').innerText,
-    document.querySelectorAll('#dplate button').length,
-    $('over').hidden
+    $('over').hidden,
+    document.querySelectorAll('#dplate button').length
   ]);
-  const f7b = await shot('07b_halt');
+  const f7 = await shot('07_down_plate');
   ok(
-    'D 連死 3 次停下：字板「連續倒下 3 次・已停下」＋只有「繼續刷」（沒有回營地）',
-    halt[0] === 'dead' && /連續倒下 3 次・已停下/.test(halt[1]) && /繼續刷/.test(halt[1]) && halt[2] === 1 && halt[3],
-    '停下＋繼續刷',
-    halt.join('｜'),
-    f7b
-  );
-  const go = await rect('#dplate button');
-  ok(
-    'A 「繼續刷」184×56',
-    go && go[2] - go[0] === 184 && go[3] - go[1] >= 56,
-    '184×56',
-    go ? `${go[2] - go[0]}×${go[3] - go[1]}` : '沒有',
-    f7b
-  );
-  await press('#dplate button');
-  await p.waitForTimeout(300);
-  ok(
-    'D 按「繼續刷」原地重開',
-    await p.evaluate(() => G.state === 'play' && !G.halt && $('dplate').hidden),
-    'play',
-    await p.evaluate(() => G.state),
+    'D 連死 3 次那一下：字板「倒下・{s} 秒後退回{上一個地點}」、沒有按鈕、沒有卡、沒有「輪」「重來」',
+    !pl3[0] && /^倒下・\d 秒後退回.+/.test(pl3[1]) && pl3[2] && pl3[3] === 0 && !/輪|重來/.test(pl3[1]),
+    '退回字板、0 顆鈕',
+    pl3.join('｜'),
     f7
+  );
+  await p.waitForFunction(() => G.state === 'play', null, { timeout: 4000 }).catch(() => {});
+  const h1 = await p.evaluate(() => ({
+    node: G.node,
+    scene: G.scene,
+    t0: SES && SES.t0,
+    pts: chaseOf().pts,
+    k0: TRUNK_K[0]
+  }));
+  const f7b = await shot('07b_fallback');
+  ok(
+    'D 連死 3 次退回上一個地點接著刷：不回營地、掛機時間與保底不歸零',
+    k1 !== h1.k0 && h1.node === h1.k0 && h1.scene === 'map' && h1.t0 === h0.t0 && h1.t0 > 0 && h1.pts >= h0.pts,
+    '退回第 1 個地點、map、不歸零',
+    JSON.stringify([h0, h1]),
+    f7b
   );
 
   /* ---------- 營地升級抽屜：戰場 283、抽屜 330–710（桌機 420×536）、1 顆實心印章、升級一下就好、300 ms 內重複不算 ---------- */
@@ -833,6 +855,467 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     au[1] === 'suspended' && au[2] === 'running',
     'suspended → running',
     au.join(' → '),
+    ''
+  );
+
+  /* ================= M2-12 修訂（15:00）與追加（掉落動態）：dpoe-ui1a-rev ================= */
+  await p.evaluate(() => {
+    closePanels();
+    S.auto = 1;
+    for (const m of G.mobs) m.dmg = 0;
+  });
+  /* ---------- (b) #prog 離王條：位置、高度、字級；王出現被王血條取代；王倒下 0 ms 跳回、300 ms 填入 ---------- */
+  const PG = PORTM ? [8, SAT + 39, 290, SAT + 55, 6, 13] : [360, 20, 920, 42, 8, 16];
+  await p.evaluate(() => {
+    G.mobs = G.mobs.filter(m => !m.boss);
+    G.bossOut = 0;
+    G.nextT = 0;
+    G.prog = Math.round(G.need * 0.62);
+    HV.boss = null;
+  });
+  await frames(4);
+  const pgm = () =>
+    p.evaluate(() => {
+      const e = $('prog'),
+        r = e.getBoundingClientRect(),
+        i = e.querySelector('.pb i'),
+        t = $('progt');
+      return {
+        r: [r.left, r.top, r.right, r.bottom].map(Math.round),
+        bh: Math.round(e.querySelector('.pb').getBoundingClientRect().height),
+        fs: parseFloat(getComputedStyle(t).fontSize),
+        fw: getComputedStyle(t).fontWeight,
+        txt: t.textContent,
+        hid: e.hidden,
+        w: i.getBoundingClientRect().width,
+        tr: getComputedStyle(i).transitionDuration,
+        bb: !$('bossbar').hidden
+      };
+    });
+  const pg0 = await pgm();
+  const f10a = await shot('10a_prog');
+  ok(
+    `修訂(b) #prog 離王條在王血條同一格 ${PG.slice(0, 4).join('／')}、${PG[4]} 高細條、字 ${PG[5]}／700、寫「王 n%」`,
+    !pg0.hid &&
+      pg0.r.join() === PG.slice(0, 4).join() &&
+      pg0.bh === PG[4] &&
+      pg0.fs === PG[5] &&
+      +pg0.fw >= 700 &&
+      /^王 \d+%$/.test(pg0.txt),
+    `x ${PG[0]}–${PG[2]} y ${PG[1]}–${PG[3]}、條 ${PG[4]}、字 ${PG[5]}`,
+    `x ${pg0.r[0]}–${pg0.r[2]} y ${pg0.r[1]}–${pg0.r[3]}、條 ${pg0.bh}、字 ${pg0.fs}／${pg0.fw}「${pg0.txt}」`,
+    f10a
+  );
+  ok('修訂(b) #prog 不寫波數、輪數', !/波|輪/.test(pg0.txt), '沒有', pg0.txt, f10a);
+  await p.evaluate(() => {
+    spawnBoss();
+    for (const m of G.mobs) (m.dmg = 0), m.boss && ((m.hp = m.mhp = 1e9), (m.aggro = 1));
+  });
+  await frames(4);
+  const pg1 = await pgm();
+  ok(
+    '修訂(b) 王出現：#prog 被王血條取代',
+    pg1.hid && pg1.bb,
+    '#prog 藏、王血條出',
+    `#prog ${pg1.hid ? '藏' : '在'}、王血條 ${pg1.bb ? '出' : '沒出'}`,
+    ''
+  );
+  const pg2 = await p.evaluate(async () => {
+    const m = G.mobs.find(x => x.boss && !x.mini);
+    m.hp = 1;
+    killMob(m);
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const i = $('prog').querySelector('.pb i');
+    return [$('prog').hidden, $('progt').textContent, i.getBoundingClientRect().width, i.style.transition];
+  });
+  ok(
+    '修訂(b) 王倒下：#prog 0 ms 跳回 0（不播往下的動畫）',
+    !pg2[0] && pg2[1] === '王 0%' && pg2[2] === 0,
+    '王 0%、寬 0',
+    pg2.join('｜'),
+    ''
+  );
+  /* 後台 2 秒空檔過了（下一輪）再補進度：往上用 300 ms 填 */
+  await p.waitForTimeout(2400);
+  const pg3 = await p.evaluate(async () => {
+    /* 不讓怪被打死（進度只照這裡設的值） */
+    for (const m of G.mobs) (m.hp = m.mhp = 1e9), (m.dmg = 0);
+    /* 先歸 0（往下 0 ms 跳），兩格後再補到一半（往上 300 ms 填） */
+    G.prog = 0;
+    await new Promise(r => setTimeout(r, 100));
+    G.prog = Math.round(G.need * 0.5);
+    const i = $('prog').querySelector('.pb i'),
+      w = () => Math.round(i.getBoundingClientRect().width),
+      wait = ms => new Promise(r => setTimeout(r, ms)),
+      r = [getComputedStyle(i).transitionDuration];
+    await wait(150);
+    r.push(w());
+    await wait(400);
+    r.push(w());
+    await wait(400);
+    r.push(w());
+    return r;
+  });
+  ok(
+    '修訂(b) 重填：300 ms 填入動畫（150 ms 時還在填、550 ms 已填完）',
+    pg3[0] === '0.3s' && pg3[1] > 0 && pg3[1] < pg3[2] && Math.abs(pg3[2] - pg3[3]) <= 1,
+    '0.3s、150 ms 還在填、550 ms 填完',
+    `transition ${pg3[0]}、150 ms 寬 ${pg3[1]}、550 ms 寬 ${pg3[2]}、950 ms 寬 ${pg3[3]}`,
+    await shot('10b_prog_refill')
+  );
+
+  /* ---------- #13 底分頁：字永遠一行（中文、英文、130%），高度不變；放不下時 ①圖示 20 ②短標籤 ③只留圖示＋aria-label＋長按 400 ms ---------- */
+  const tabFit = (lang, f) =>
+    p.evaluate(
+      async ([lang, f]) => {
+        document.documentElement.lang = lang;
+        S.fs = f;
+        fsApply();
+        HV.nav = null;
+        sheetSync();
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const box = $(TOUCH.on ? 'pnav' : 'dnav'),
+          bs = [...box.querySelectorAll('button')],
+          ic = box.classList.contains('icon');
+        return {
+          mode: ic ? 'icon' : bs.some(b => b.dataset.n) ? 'short' : box.classList.contains('ic20') ? 'ic20' : 'full',
+          one: bs.every(b => {
+            const s = b.querySelector('span'),
+              r = s.getBoundingClientRect();
+            return (
+              ic ||
+              (s.getClientRects().length === 1 &&
+                r.width <= b.clientWidth &&
+                r.height <= parseFloat(getComputedStyle(s).fontSize) * 1.7)
+            );
+          }),
+          h: bs.map(b => Math.round(b.getBoundingClientRect().height)).join(','),
+          aria: bs.every(b => !ic || !!b.getAttribute('aria-label')),
+          txt: bs.map(b => b.querySelector('span').textContent).join('/')
+        };
+      },
+      [lang, f]
+    );
+  const tb = {};
+  for (const [lang, f] of [
+    ['zh-Hant', 100],
+    ['zh-Hant', 130],
+    ['en', 100],
+    ['en', 130]
+  ]) {
+    tb[lang + f] = await tabFit(lang, f);
+    if (lang === 'en' && f === 130) await shot('08b_tabs_en130');
+  }
+  for (const [k, v] of Object.entries(tb))
+    ok(
+      `#13 分頁字一行、高度不變（${k.replace(/(\d+)$/, ' $1%')}）`,
+      v.one && v.aria && v.h === tb['zh-Hant100'].h,
+      '一行、高 ' + tb['zh-Hant100'].h.split(',')[0],
+      `${v.mode}「${v.txt}」高 ${v.h.split(',')[0]}`,
+      k === 'en130' ? shotF('08b_tabs_en130') : ''
+    );
+  /* 第 ③ 段：英文長名、短名都放不下（測試把名字加長）→ 只留圖示、每格 aria-label、長按 400 ms 顯示名稱且不算點 */
+  const lp = await p.evaluate(async () => {
+    const keep = JSON.stringify(NAV_EN);
+    for (const k in NAV_EN) NAV_EN[k] = [NAV_EN[k][0] + 'Overflowing', NAV_EN[k][1] + 'Overflowing'];
+    HV.nav = null;
+    sheetSync();
+    await new Promise(r => requestAnimationFrame(r));
+    const box = $(TOUCH.on ? 'pnav' : 'dnav'),
+      b = box.querySelector('[data-tm="nav:char"]'),
+      r = [box.classList.contains('icon'), b.getAttribute('aria-label')];
+    const pv = PANEL.inv;
+    b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 200));
+    r.push($('navtip').hidden);
+    await new Promise(r => setTimeout(r, 260));
+    r.push($('navtip').hidden, $('navtip').textContent);
+    b.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    b.click();
+    r.push(PANEL.inv === pv);
+    Object.assign(NAV_EN, JSON.parse(keep));
+    return r;
+  });
+  ok(
+    '#13 ③ 只留圖示：aria-label、長按 400 ms 顯示名稱（200 ms 還沒出）、長按放開不算點',
+    lp[0] && /^CharacterOverflowing$/.test(lp[1]) && lp[2] && !lp[3] && lp[4] === lp[1] && lp[5],
+    'icon、400 ms 出名稱',
+    lp.join('｜'),
+    await shot('08c_tabs_icon')
+  );
+  await p.evaluate(async () => {
+    document.documentElement.lang = 'zh-Hant';
+    S.fs = 100;
+    fsApply();
+    HV.nav = null;
+    sheetSync();
+    $('navtip').hidden = true;
+  });
+
+  /* ---------- D4：手動模式開抽屜世界暫停；自動模式不停 ---------- */
+  const d4 = await p.evaluate(async () => {
+    const r = [];
+    for (const a of [0, 1]) {
+      S.auto = a;
+      closePanels();
+      navGo('craft');
+      await new Promise(r => setTimeout(r, 100));
+      const t = G.t;
+      await new Promise(r => setTimeout(r, 500));
+      r.push([PANEL.camp, worldPaused(), +(G.t - t).toFixed(2)]);
+      closePanels();
+    }
+    S.auto = 1;
+    return r;
+  });
+  ok(
+    'D4 手動模式開營地升級：世界暫停；自動模式：AI 繼續刷',
+    d4[0][0] && d4[0][1] && d4[0][2] === 0 && d4[1][0] && !d4[1][1] && d4[1][2] > 0.2,
+    '手動停、自動跑',
+    JSON.stringify(d4),
+    ''
+  );
+
+  /* ---------- #4 鍵盤：焦點順序（Tab）、方向鍵空間導覽、Enter／Space、Esc 返回、焦點框 ---------- */
+  await p.evaluate(() => document.activeElement && document.activeElement.blur && document.activeElement.blur());
+  const zoneOf = () =>
+    p.evaluate(() => {
+      const a = document.activeElement,
+        z = a && a.closest && a.closest('#pnav, #dnav, #pcamp, #pidle, #poff');
+      if (!z) return null;
+      const cs = getComputedStyle(a);
+      return [
+        z.id,
+        a.dataset.tm || a.dataset.a || a.dataset.fg || a.dataset.cd || a.className,
+        cs.outlineWidth,
+        cs.outlineStyle,
+        cs.transform
+      ];
+    });
+  const seen = [];
+  let ringOk = true;
+  for (let i = 0; i < 80 && seen.length < 2; i++) {
+    await p.keyboard.press('Tab');
+    const z = await zoneOf();
+    if (!z) continue;
+    if (z[2] !== '3px' || z[3] !== 'solid') ringOk = false;
+    if (!seen.includes(z[0])) seen.push(z[0]);
+  }
+  const navZ = PORTM ? 'pnav' : 'dnav';
+  ok(
+    '#4 Tab 走得到掛機條與分頁（焦點順序照 DOM）、焦點框 3 px',
+    seen.includes('pidle') && seen.includes(navZ) && ringOk,
+    PORTM ? 'pidle → pnav' : 'dnav → pidle',
+    seen.join(' → ') + (ringOk ? '、框 3px' : '、框不對'),
+    ''
+  );
+  const kf = q => p.evaluate(q => document.querySelector(q).focus(), q);
+  const key = async k => (await p.keyboard.press(k), await frames(2), zoneOf());
+  await kf(`#${navZ} [data-tm="nav:craft"]`);
+  const qk1 = await key('ArrowLeft'),
+    qk2 = await key('ArrowRight'),
+    qk3 = await key(PORTM ? 'ArrowUp' : 'ArrowDown');
+  ok(
+    '#4 方向鍵：分頁 ← 天賦、→ 營地，' + (PORTM ? '↑ 到掛機條' : '↓ 到掛機條'),
+    qk1 && qk1[1] === 'nav:tree' && qk2 && qk2[1] === 'nav:craft' && qk3 && qk3[0] === 'pidle',
+    'nav:tree → nav:craft → pidle',
+    [qk1, qk2, qk3].map(x => (x ? x[0] + ':' + x[1] : '無')).join(' → '),
+    ''
+  );
+  await kf('#pidle .ib');
+  await p.keyboard.press('Enter');
+  await frames(2);
+  const io = await p.evaluate(() => IDLE.open);
+  await p.keyboard.press('Escape');
+  await frames(2);
+  const ic2 = await p.evaluate(() => [
+    IDLE.open,
+    document.activeElement && document.activeElement.closest('#pidle') ? 1 : 0
+  ]);
+  ok(
+    '#4 掛機條：Enter 展開、Esc 收起（焦點留在掛機條）',
+    io === 1 && ic2[0] === 0 && ic2[1] === 1,
+    '1 → 0',
+    `${io} → ${ic2.join('／')}`,
+    ''
+  );
+  await kf(`#${navZ} [data-tm="nav:craft"]`);
+  await p.keyboard.press('Enter');
+  await p.waitForTimeout(300);
+  const c0 = await p.evaluate(() => PANEL.camp);
+  /* 直立：分頁 ↑ 先到掛機條、再 ↑ 進抽屜；桌機：分頁 ↓ 直接進抽屜 */
+  if (PORTM) await key('ArrowUp');
+  const c1 = await key(PORTM ? 'ArrowUp' : 'ArrowDown');
+  /* 抽屜裡：直立從右下往上一格、再往左；桌機從標題列往下兩格 */
+  const c2 = await key(PORTM ? 'ArrowUp' : 'ArrowDown');
+  const c3 = await key(PORTM ? 'ArrowLeft' : 'ArrowDown');
+  ok(
+    '#4 分頁 Enter 開營地升級、方向鍵走進抽屜、在格子間移動',
+    c0 && c1 && c1[0] === 'pcamp' && c2 && c2[0] === 'pcamp' && c3 && c3[0] === 'pcamp' && c3[1] !== c1[1],
+    '開、pcamp 裡移動',
+    [c0, ...[c1, c2, c3].map(x => (x ? x[0] + ':' + x[1] : '無'))].join(' → '),
+    ''
+  );
+  const su = await p.evaluate(() => {
+    for (const k in MAT()) if (typeof MAT()[k] === 'number') MAT()[k] = 1e9;
+    S.gold = 1e9;
+    campDrawer(1);
+    const b = document.querySelector('#pcamp [data-fg="gen:wood:1"]');
+    b.focus();
+    return [b.dataset.fg, cdLv(b.dataset.fg.replace(/^(camp|gen):/, '').replace(/:1$/, ''))];
+  });
+  await p.waitForTimeout(350);
+  const ring = await zoneOf();
+  const f11 = await shot('11_kbd_focus');
+  await p.keyboard.press(' ');
+  await p.waitForTimeout(400);
+  const su2 = await p.evaluate(
+    k => [
+      cdLv(k.replace(/^(camp|gen):/, '').replace(/:1$/, '')),
+      document.activeElement.dataset.fg || document.activeElement.className
+    ],
+    su[0]
+  );
+  ok(
+    '#4 印章：焦點框 3 px＋放大 1.04；Space 升一級、重畫後焦點還在同一顆',
+    ring && ring[2] === '3px' && /matrix\(1\.04/.test(ring[4]) && su2[0] === su[1] + 1 && su2[1] === su[0],
+    '3px、1.04、Lv+1、焦點不掉',
+    `${ring ? ring[2] + ' ' + ring[4] : '無'}、Lv ${su[1]}→${su2[0]}、焦點 ${su2[1]}`,
+    f11
+  );
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(300);
+  const e1 = await p.evaluate(() => [PANEL.camp, document.activeElement && document.activeElement.dataset.tm]);
+  await p.keyboard.press('h');
+  await p.waitForTimeout(300);
+  const e2 = await p.evaluate(() => [
+    PANEL.camp,
+    document.activeElement && document.activeElement.classList.contains('stamp'),
+    document.activeElement &&
+      (document.activeElement.dataset.fg || document.activeElement.id || document.activeElement.tagName)
+  ]);
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(300);
+  ok(
+    '#4 Esc 關營地升級、焦點回「營地」分頁；H 開抽屜焦點在建議的印章',
+    !e1[0] && e1[1] === 'nav:craft' && e2[0] && e2[1],
+    'Esc 回分頁、H 焦點在印章',
+    JSON.stringify([e1, e2]),
+    ''
+  );
+  await p.evaluate(() =>
+    offShow(
+      { away: 15 * 60e3, n: 9, won: 8, soul: 1200, gold: 0, cur: [], here: 0, chase: 0, chaseL: [], lv: 0 },
+      { wood: 30 },
+      15 * 60e3
+    )
+  );
+  await frames(2);
+  const of1 = await p.evaluate(() => [
+    document.activeElement.dataset.a,
+    document.activeElement.matches(':focus-visible')
+  ]);
+  await p.keyboard.press('ArrowLeft');
+  const of2 = await p.evaluate(() => document.activeElement.dataset.a);
+  await p.keyboard.press('ArrowRight');
+  await p.keyboard.press('Enter');
+  await frames(2);
+  ok(
+    '#4 離線結算：預設焦點「收下・繼續刷」、← 到「去營地升級」、Enter 收下',
+    of1[0] === 'offok' && of2 === 'offcamp' && (await p.evaluate(() => $('poff').hidden)),
+    'offok → offcamp → 收下',
+    `${of1.join('／')} → ${of2}`,
+    ''
+  );
+
+  /* ---------- 掉落動態（M2-33 補遺 §5.2；位置照 part1）：位置、列數、合併、停留 3／6／10 秒、aria-live 只念稀有以上 ---------- */
+  const FD = PORTM ? [202, SAT + 101, 378, IW_ROWS()] : [16, 76, 316, 6];
+  function IW_ROWS() {
+    return W >= 380 ? 3 : 2;
+  }
+  const fd = await p.evaluate(async () => {
+    for (const f of FEED.L.slice()) feedDrop(f);
+    $('feedsr').textContent = '';
+    const r = {};
+    feedAdd('磨刀石', 2, null, null);
+    r.srN = $('feedsr').textContent;
+    feedAdd('磨刀石', 3, null, null);
+    feedAdd('崇高石', 1, 'cur', feedIc('崇高石'));
+    r.srR = $('feedsr').textContent;
+    const ck = CHASE_POOL.trunk[0];
+    feedAdd(chaseName(ck), 1, 'chase', ck);
+    r.srC = $('feedsr').textContent;
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const now = performance.now();
+    r.hold = FEED.L.map(f => [f.r, Math.round((f.end - now) / 1000)]);
+    r.rows = [...$('feed').querySelectorAll('.fd:not(.out)')]
+      .map(e => [e.getBoundingClientRect(), e.textContent, e.className])
+      .sort((a, b) => a[0].top - b[0].top)
+      .map(([q, t, c]) => [Math.round(q.left), Math.round(q.top), Math.round(q.right), Math.round(q.height), t, c]);
+    const bx = $('feed').getBoundingClientRect();
+    r.box = [bx.left, bx.top, bx.right].map(Math.round);
+    r.live = [$('feed').getAttribute('aria-hidden'), $('feedsr').getAttribute('aria-live')];
+    r.col = [...$('feed').querySelectorAll('.fd')].map(e => getComputedStyle(e).color);
+    return r;
+  });
+  const f12 = await shot('12_feed');
+  const gaps = fd.rows.slice(1).map((r, i) => r[1] - fd.rows[i][1] - fd.rows[i][3]);
+  ok(
+    `追加 掉落動態位置：x ${FD[0]}–${FD[2]}、y ${FD[1]} 起，每列 24、間距 4`,
+    fd.box[0] === FD[0] &&
+      fd.box[2] === FD[2] &&
+      fd.box[1] === FD[1] &&
+      fd.rows.every(r => r[3] === 24) &&
+      gaps.every(g => g === 4),
+    `x ${FD[0]}–${FD[2]} y ${FD[1]}、24／4`,
+    `x ${fd.box[0]}–${fd.box[2]} y ${fd.box[1]}、高 ${fd.rows.map(r => r[3]).join(',')}、間距 ${gaps.join(',')}`,
+    f12
+  );
+  ok(
+    '追加 掉落動態：同類合併（＋2＋3＝＋5 一列）、新的在最上面、稀有度色（一般／稀有／追逐不同色）',
+    fd.rows.filter(r => /磨刀石/.test(r[4])).length === 1 &&
+      fd.rows.some(r => /＋5/.test(r[4]) && /fd-norm/.test(r[5])) &&
+      /fd-chase/.test(fd.rows[0][5]) &&
+      new Set(fd.col).size === 3,
+    '1 列＋5、追逐在最上',
+    fd.rows.map(r => r[4] + '（' + r[5].replace('fd ', '') + '）').join('／'),
+    f12
+  );
+  ok(
+    '追加 掉落動態停留：一般 3 秒、稀有 6 秒、追逐 10 秒',
+    JSON.stringify(fd.hold.map(h => h.join(':')).sort()) === JSON.stringify(['chase:10', 'norm:3', 'rare:6']),
+    'norm 3／rare 6／chase 10',
+    fd.hold.map(h => h.join(' ')).join('、'),
+    ''
+  );
+  ok(
+    '追加 讀屏：掉落動態本身 aria-hidden，aria-live="polite" 區只念稀有以上（一般不念）',
+    fd.live[0] === 'true' &&
+      fd.live[1] === 'polite' &&
+      fd.srN === '' &&
+      /崇高石/.test(fd.srR) &&
+      fd.srC === chaseNameOf(fd),
+    '一般不念、稀有與追逐念',
+    `一般「${fd.srN}」稀有「${fd.srR}」追逐「${fd.srC}」`,
+    ''
+  );
+  function chaseNameOf(f) {
+    return f.rows[0][4];
+  }
+  const fdOut = await p.evaluate(async () => {
+    await new Promise(r => setTimeout(r, 3500));
+    return FEED.L.map(f => f.r).join(',');
+  });
+  ok('追加 掉落動態：一般 3 秒＋400 ms 淡出後消失，稀有以上還在', fdOut === 'chase,rare', 'chase,rare', fdOut, '');
+  const fdMax = await p.evaluate(() => {
+    for (let i = 0; i < 9; i++) feedAdd('測試材料' + i, 1, null, null);
+    return [FEED.L.length, $('feed').querySelectorAll('.fd').length, FEED.L.filter(f => f.r !== 'norm').length];
+  });
+  ok(
+    `追加 掉落動態最多 ${FD[3]} 列：滿了先擠掉最舊的一般`,
+    fdMax[0] === FD[3] && fdMax[1] === FD[3] && fdMax[2] === Math.min(2, FD[3] - 1),
+    String(FD[3]),
+    fdMax.join('／'),
     ''
   );
 

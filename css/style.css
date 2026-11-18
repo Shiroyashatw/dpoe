@@ -1303,10 +1303,6 @@ body:not(.touch) .tmore .tonly { display: none; }
 #banner.bn-pack { color: var(--gold); border-color: var(--gold); pointer-events: auto; cursor: pointer; }
 .mpg li[data-chs] { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { #banner { animation: none; } }
-#dlog { margin-top: 4px; pointer-events: none; }
-#dlog p { width: fit-content; margin: 2px 0 0; padding: 1px 6px; background: var(--plate-world); border-radius: 2px; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 2px #000; animation: lgfade 30s linear forwards; }
-@keyframes lgfade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { #dlog p { animation: none; } }
 .lg-chase { color: #ffb35c !important; } .lg-frac { color: #fff7d6 !important; } .lg-mem { color: #6fe3ff !important; } .lg-cur, .lg-perf { color: var(--gold) !important; }
 #plog { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; z-index: 12; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #plog > * { flex: none; }
@@ -2419,6 +2415,25 @@ body:not(.touch) #pidle .chs:hover span { color: var(--milk); }
 #lvup.on { opacity: 1; transition-duration: 150ms; }
 body:not(.touch) #lvup { bottom: calc(100% + 12px); height: 36px; border-radius: 18px; font-size: 16px; line-height: 34px; }
 
+/* 掉落動態（M2-33 補遺 §5.2，位置照 M2-12 第一段）：不能點；新的在最上面（JS 設 order）。
+   直立 x 202–378（右緣 12、寬 176）、y 148 起；桌機 x 16–316、y 76 起；每列 24、間距 4。稀有度一般／完美用 --r0／--r3 */
+#feed { position: fixed; z-index: 8; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+#feed[hidden] { display: none; }
+body.touch.port #feed { right: 12px; width: 176px; top: calc(var(--st) + 101px); align-items: flex-end; }
+body:not(.touch.port) #feed { left: 16px; width: 300px; top: 76px; align-items: flex-start; }
+body.touch:not(.port) #feed { left: auto; right: 12px; width: 176px; top: 120px; align-items: flex-end; }
+.fd { display: flex; align-items: center; gap: 4px; max-width: 100%; height: 24px; margin: 0; padding: 0 6px; background: var(--plate-world); border-radius: 2px; font: 700 13px/1 var(--font); white-space: nowrap; color: var(--r0); animation: fdin 120ms ease-out; transition: opacity 400ms; }
+.fd .ic { flex: none; width: 16px; height: 16px; image-rendering: auto; }
+.fd b { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--good); }
+.fd span { overflow: hidden; text-overflow: ellipsis; }
+.fd-rare { color: var(--rar-rare); box-shadow: inset 2px 0 0 var(--rar-rare); }
+.fd-uniq { color: var(--r3); box-shadow: inset 2px 0 0 var(--r3); }
+.fd-chase { color: var(--rar-chase); box-shadow: inset 2px 0 0 var(--rar-chase); }
+.fd.out { opacity: 0; }
+@keyframes fdin { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes fdin0 { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .fd { animation-name: fdin0; } }
+
 /* ================= M2-38 資訊架構重整（M2-37 v1.3）：只用現有變數；角色 token 收斂（M2-34 第 0 批）合併後換成 §2 的角色名 =================
    對照：--panel-inset→--s0、--panel-raised→--s2、--border→--line、--border-mid→--fr、--border-ctl→--fr-hi、--border-hi→--fr-c、--tx-title→--title、--tx-scene→--tx、--rar-chase→--r4 */
 /* 桌機 Z2：面板一定有 1px 框 */
@@ -2620,7 +2635,6 @@ body.downed #cv { filter: grayscale(1); transition: filter 300ms ease-in; }
 #dplate { position: fixed; z-index: 11; left: 50%; transform: translateX(-50%); bottom: calc(var(--hb, 0px) + 140px); display: flex; align-items: center; gap: 12px; min-height: 44px; max-width: calc(100vw - 24px); padding: 0 16px; background: var(--plate-world); border: 1px solid var(--fr); border-radius: 3px; color: var(--tx); font: 700 var(--f14) var(--font); white-space: nowrap; pointer-events: auto; }
 body:not(.touch.port) #dplate { bottom: 120px; font-size: var(--f16); }
 #dplate[hidden] { display: none; }
-#dplate.halt { white-space: normal; padding-right: 8px; }
 #dplate .btn { flex: none; width: 184px; min-height: 56px; }
 
 /* 離線結算：直立蓋在 420–754（掛機條藏起來）；桌機 480×420 在戰場中間；主鈕「收下・繼續刷」在右 */
@@ -2654,7 +2668,6 @@ body.touch.port.sheet.inmap:not(.sheetfull) #pinv > .ph:first-child { margin-bot
 /* 王橫幅與血條在直立的位置（§1.1）：資訊列下面先是王橫幅／血條（x 12–270），掉落動態排在後面 */
 body.touch.port #bossbar { order: 1; width: calc(100% - 112px); }
 body.touch.port #prog { order: 2; }
-body.touch.port #dlog { order: 3; }
 body.touch #poff kbd, body.touch #dplate kbd { display: none; }
 #poff kbd, #dplate kbd { margin-left: 6px; font: 600 11px var(--font); opacity: 0.7; }
 
@@ -2663,10 +2676,18 @@ body.touch #poff kbd, body.touch #dplate kbd { display: none; }
 #prog b { flex: none; padding: 0; background: none; font: 700 13px var(--font); letter-spacing: 0; color: var(--tx); text-shadow: 0 1px 2px var(--bg); }
 #prog .pb { flex: 1; height: 6px; margin: 0; }
 #prog .pb i { transition: width 300ms ease-out; }
-body.touch.port #prog { width: calc(100% - 112px); margin-top: 0; }
-body:not(.touch) #prog { width: 560px; }
+body.touch.port #prog { position: fixed; left: 8px; top: calc(var(--st) + 39px); width: 282px; height: 16px; margin: 0; }
+body:not(.touch) #prog { position: fixed; left: 360px; top: 20px; width: 560px; height: 22px; margin: 0; }
 body:not(.touch) #prog b { font-size: 16px; }
 body:not(.touch) #prog .pb { height: 8px; }
 /* 分頁字永遠一行；文字放大時圖示 24→20 */
 #pnav span, #dnav span { white-space: nowrap; }
-.fsbig #pnav .ico { width: 20px; height: 20px; }
+/* 放不下時（navFit）：① 圖示 20 ② 短標籤 ③ 只留圖示（字藏給讀屏、長按 400 ms 出 #navtip） */
+#pnav.ic20 .ico, #dnav.ic20 .ico { width: 20px; height: 20px; }
+#pnav.icon span, #dnav.icon span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+#navtip { position: fixed; z-index: 30; transform: translate(-50%, -100%); padding: 4px 8px; background: var(--plate-world); border: 1px solid var(--fr); border-radius: 3px; color: var(--tx); font: 700 var(--f14) var(--font); white-space: nowrap; pointer-events: none; }
+#navtip[hidden] { display: none; }
+
+/* M2-12 修訂 #4：鍵盤焦點框（新骨架：分頁、營地升級、掛機條、結算、字板、死亡卡）3 px＋放大 1.04；滑鼠點的不畫（:focus-visible） */
+:is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { outline: 3px solid var(--fr-c); outline-offset: -3px; transform: scale(1.04); z-index: 1; }
+@media (prefers-reduced-motion: reduce) { :is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { transform: none; } }

@@ -350,6 +350,8 @@ function offShow(o, g, away) {
   <div class="offb"><button class="btn" data-a="offcamp">${STR_T.offCamp}<kbd class="donly">H</kbd></button><button class="btn pri" data-a="offok">${STR_T.offOk}<kbd class="donly">Enter</kbd></button></div>`;
   el.hidden = false;
   OFFC.on = 1;
+  /* 預設焦點在「收下・繼續刷」（M2-12 §9；鍵盤 Enter／Space 就收下） */
+  el.querySelector('.btn.pri').focus({ preventScroll: true });
   document.body.classList.add('offon');
   OFFC.t0 = reduced() ? -1e9 : performance.now();
   OFFC.n = [...el.querySelectorAll('[data-n]')];
@@ -370,20 +372,25 @@ function offClose() {
 /* 退回去哪：裂口回到進來之前在刷的節點，其他照 wPrev */
 const wBack = k =>
   wType(S, ...wXY(k)) === 'rift' && S.world.back && !wWhy(S, ...wXY(S.world.back)) ? S.world.back : wPrev(k);
-/* 死了（0.4.0）：原地復活、這一輪重來（掛機時間、保底不歸零）。
-   M2-40 定案（M2-12 D2）：自動模式同一處連死 DEAD_MAX 次停下（字板＋「繼續刷」），不再退回上一個地點、不回營地 */
+/* 死了（0.4.0）：原地復活、重開（掛機時間、保底不歸零）；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（玩家自己從地點清單再去）。
+   M2-12 D2（製作人定）：照這條規則，不停機、不回營地 */
 const DEAD_MAX = 3;
+/* 這次倒下之後會不會退回（字板、死亡卡先講退回哪裡）：回上一個節點的鍵，不退回就 null */
+const deadBack = () => (G.node && (S.world.dn || 0) + 1 >= DEAD_MAX && wBack(G.node)) || null;
 function deadAgain() {
   const k = G.node;
   if (!k) return enterCamp();
-  if (G.halt) return;
   S.world.dn = (S.world.dn || 0) + 1;
   if (SES) SES.deaths++;
   roundRec({ d: G.t, die: 1 });
   /* 陰兵借道（0.4.2）：死了怨恨值歸零 */
   if (S.army) delete S.army[k];
-  if (S.auto && S.world.dn >= DEAD_MAX) return (G.halt = 1), (S.world.dn = 0), hudState();
-  runNode(k, true);
+  if (S.world.dn < DEAD_MAX || !wBack(k)) return runNode(k, true);
+  const pv = wBack(k);
+  S.world.dn = 0;
+  S.world.note = `在${wName(S, ...wXY(k))}連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}：換裝、降星級或升營地再回去`;
+  hudWarn(S.world.note);
+  runNode(pv);
 }
 /* 山海寶盒（0.2.80）：花碎片開王場（酆都、心魔、四凶的殿），地圖台前面開傳送門；王場只有一個房間、2 秒後出王。
    等級＝打過的節點裡最高的（最高 Lv83）；死了照一般死亡，碎片不退 */
@@ -1104,7 +1111,8 @@ function killMob(m) {
     zod: !!G.zod,
     ei: G.rs ? G.rs.nE : 0
   };
-  const mat = killMat(m, t, od);
+  const mat = killMat(m, t, od),
+    skip = [...(mat.rare || []).map(k => CUR[k].n), mat.chase && chaseName(mat.chase)];
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   /* M2-19.2：追逐物品落在地上（橘色雙光柱＋印環，停 CHASE_HOLD 秒再吸）；王印早就進碎片頁了，地上的只是演出 */
   if (mat.chase) dropAt(m.x, m.y, { chase: mat.chase });
@@ -1117,7 +1125,11 @@ function killMob(m) {
     ...(m.boss && m.D.xi ? xiDrop(m.D.xi) : []),
     ...(m.boss && m.D.army ? armyDrop(m.D.army, G.army && G.army.c, G.army ? G.army.res : 0) : []),
     ...(m.boss && !m.mini && (m.D.ts || od.zod) ? tsDrop(m.D.ts || 'zod', S, od.ilvl) : [])
-  ].forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
+  ].forEach(s => {
+    /* 掉落動態（補遺 §5.2）：取代怪身上的材料世界字；稀有通貨與追逐物品在 rareShow／chaseShow 進 */
+    const [, n, nm] = s.match(/^(\d+) (.+)$/) || [0, 1, s];
+    if (!skip.includes(nm)) feed(nm, +n, null, feedIc(nm));
+  });
   /* 0.5.0：戰鬥不掉裝備（材料在 killMat）；護符照舊小機率掉 */
   if (Math.random() < (m.boss || m.elite ? 1 : 0.4))
     dropAt(m.x, m.y, { gold: Math.round(rnd(2, 6) * (1 + t * 0.5) * (m.boss ? 12 : m.elite ? 3 : 1)) });
@@ -1179,6 +1191,10 @@ const RARE_HOLD = 1.5;
 const CHASE_HOLD = 2.4;
 let CHASE_T = -1e9,
   CHASE_UNTIL = 0;
+/* 掉落動態（hud.js 的 feedAdd；Node 檢查沒載 hud.js 就不做）；通貨名 → 圖示（材料清單只有字） */
+const feed = (...a) => typeof feedAdd === 'function' && feedAdd(...a);
+let FEED_IC = null;
+const feedIc = n => (FEED_IC = FEED_IC || Object.fromEntries(Object.values(CUR).map(c => [c.n, c.ic])))[n] || null;
 let LOGV = 0; /* 掉落紀錄改了就加一（HUD 重畫） */
 function dropLog(n, c, k) {
   const L = (S.log = S.log || []);
@@ -1192,6 +1208,7 @@ function dropLog(n, c, k) {
 let RARE_T = 0;
 function rareShow(txt, c, snd, log) {
   dropLog(log || txt, c);
+  feed(c === 'pack' ? STR_T.pack : txt, 1, c, c === 'pack' ? 'cur_soul' : feedIc(txt));
   const now = performance.now();
   if ((c === 'cur' || c === 'perf') && now - RARE_T < 1200) return;
   RARE_T = now;
@@ -1201,6 +1218,7 @@ function rareShow(txt, c, snd, log) {
 /* 追逐物品的演出（M2-19.2）：記進掉落紀錄（類別 chase，不算通貨數）、#chase 橫幅（hud.js 的 banner 轉給 chaseBn，音效也在那裡：第一件 chase、合併進來的 chaseBell） */
 function chaseShow(k) {
   dropLog(chaseBanner(k), 'chase', k);
+  feed(chaseName(k), 1, 'chase', k);
   banner(chaseBanner(k), 'chase', k);
   CHASE_T = performance.now();
 }
