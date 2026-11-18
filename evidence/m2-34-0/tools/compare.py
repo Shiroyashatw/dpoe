@@ -13,7 +13,7 @@ def diff(a, b):
     m = d.convert('L').point(lambda v: 255 if v else 0)
     return (m.histogram()[255], max(x[1] for x in d.getextrema()), d)
 rows = []; bad = 0
-for size in ('portrait', 'desktop'):
+for size in ('portrait', 'desktop', '3a'):
     names = sorted(os.path.basename(p) for p in glob.glob(os.path.join(base[0], size, '*.png')))
     for n in names:
         ok = lambda d: os.path.exists(os.path.join(d, size, n))
@@ -28,5 +28,5 @@ for size in ('portrait', 'desktop'):
 print('| 尺寸 | 畫面 | 改動前×分支 最小差異（像素） | 最大通道差 | 兩兩比對最大差異 | 改動前自己比的雜訊（最大） | 結果 |')
 print('| --- | --- | --- | --- | --- | --- | --- |')
 for s, n, b, mx, worst, nz in rows:
-    print('| %s | %s | %s | %s | %s | %s | %s |' % ('直立 390×844' if s == 'portrait' else '桌機 1280×720', n, b, mx, worst, nz, '✅ 相同' if b == 0 else '❌ 不同'))
+    print('| %s | %s | %s | %s | %s | %s | %s |' % ({'portrait': '直立 390×844', 'desktop': '桌機 1280×720', '3a': '3a 素材'}[s], n, b, mx, worst, nz, '✅ 相同' if b == 0 else '❌ 不同'))
 print('\n相同 %d／%d，不同 %d' % (len(rows) - bad, len(rows), bad))
