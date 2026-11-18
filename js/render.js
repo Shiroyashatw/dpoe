@@ -685,8 +685,8 @@ function dropXY(d) {
   const f = Math.min(1, d.t / 0.35);
   return [d.sx + (d.x - d.sx) * f, d.sy + (d.y - d.sy) * f - Math.sin(f * Math.PI) * 40];
 }
-/* 掉落光柱（追逐物品橘 M2-19.2b、稀有通貨金 0.4.1）：畫在暗層之後（製作人 2026-11-17 19:46），夜晚、大霧也看得到。
-   有 sig_beam（M2-33-3a §4.2，灰階圖）就上同一個色當柱身，不然程式畫 */
+/* 掉落光柱（追逐物品 --rar-chase M2-19.2b、稀有通貨 --rar-rare 0.4.1）：畫在暗層之後（製作人 2026-11-17 19:46），夜晚、大霧也看得到。
+   有 sig_beam（M2-33-3a §4.2，灰階圖，柱頂 30% 已烘成四階淡出）就上同一個色當柱身，不然程式畫 */
 const BEAMC = {};
 function beamSheet(rgb) {
   if (!sigFx('sig_beam')) return null;
@@ -709,8 +709,10 @@ function drawBeams() {
   for (const d of G.drops) {
     if (d.gold || !(d.chase || d.show)) continue;
     const [x, y] = dropXY(d),
-      rgb = d.chase ? PAL.rgb.rarChase : PAL.rgb.rarRare,
-      bh = d.chase ? 360 * Math.min(1, d.t / 0.24) : /3$/.test(d.show) ? 300 : 230,
+      rgb = cssv(d.chase ? '--rar-chase-rgb' : '--rar-rare-rgb'),
+      bh0 = d.chase ? 360 * Math.min(1, d.t / 0.24) : /3$/.test(d.show) ? 300 : 230,
+      /* 柱頂不出場景（直立開半版面板時場景只剩上半）：最高到畫面上緣下 8，只壓高、寬照舊 */
+      bh = Math.max(0, Math.min(bh0, y - (G.cam.y - cvH() / ZOOM / 2) - 8)),
       a = d.chase
         ? reduced()
           ? 0.8
@@ -720,7 +722,8 @@ function drawBeams() {
     if (sh) {
       const S = FXS.sig_beam,
         i = Math.floor(G.t * S.fps) % S.n,
-        k = bh / S.oy;
+        k = bh0 / S.oy,
+        ky = bh / S.oy;
       CX.globalAlpha = a;
       CX.drawImage(
         sh,
@@ -729,9 +732,9 @@ function drawBeams() {
         S.w,
         S.h,
         x - S.ox * k,
-        y - S.oy * k,
+        y - S.oy * ky,
         S.w * k,
-        S.h * k
+        S.h * ky
       );
       CX.globalAlpha = 1;
       continue;

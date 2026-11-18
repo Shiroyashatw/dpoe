@@ -36,7 +36,7 @@
   --panel-rgb: 31, 25, 21;
   --panel-rgb-v1: 34, 36, 41;
   --panel-rgb-v2: 38, 40, 45;
-  --chase-bnr: rgba(28, 19, 13, 0.94);
+  --chase-bnr: #1c130d;
   /* 疊層 */
   --scrim-rgb: 0, 0, 0;
   --scrim-rgb-v1: 12, 10, 9;
