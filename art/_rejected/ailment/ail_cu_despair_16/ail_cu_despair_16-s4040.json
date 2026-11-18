@@ -1,0 +1,41 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "ail_cu_despair_16",
+  "seed": 4040,
+  "post": "alpha_binary",
+  "palette": [
+    "--scene-void",
+    "--el-chaos",
+    "--awk",
+    "--panel-inset"
+  ],
+  "init_from": "ail_cu_despair_32-s3940.png",
+  "request": {
+    "description": "tiny 16 pixel game status icon, flat front view, a solid diamond curse sigil with a small wilted mark inside, bold, 1 pixel black outline, no transparent margin",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 4040,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 300
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

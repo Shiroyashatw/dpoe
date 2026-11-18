@@ -1,0 +1,41 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "ail_revive_32",
+  "seed": 3909,
+  "post": "alpha_binary",
+  "palette": [
+    "--scene-void",
+    "--good",
+    "--tx-strong",
+    "--panel-inset"
+  ],
+  "request": {
+    "description": "game status icon, flat front view, a small spirit rising from a floor mark, upward spark over a short base, centred, fills the canvas, light from the top-left, bold simple shapes readable at small size, 1 pixel transparent margin, 1 pixel black outline, no perspective, no isometric, no 3D, no face, no eyes unless the silhouette is an eye, no text, no characters, no background, no dithering, no gradient",
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "seed": 3909,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

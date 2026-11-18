@@ -1,0 +1,42 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "ail_broken_16",
+  "seed": 4004,
+  "post": "alpha_binary",
+  "palette": [
+    "--scene-void",
+    "--border",
+    "--border-mid",
+    "--tx-strong",
+    "--bad"
+  ],
+  "init_from": "ail_broken_32-s3904.png",
+  "request": {
+    "description": "tiny 16 pixel game status icon, flat front view, a shield split into two halves with a gap down the middle, bold, 1 pixel black outline, no transparent margin",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 4004,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 300
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

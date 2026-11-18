@@ -1,0 +1,41 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "ail_vine_32",
+  "seed": 3942,
+  "post": "alpha_binary",
+  "palette": [
+    "--scene-void",
+    "--asc",
+    "--good",
+    "--panel-inset"
+  ],
+  "request": {
+    "description": "game status icon, flat front view, one thick green vine stem curling into a single spiral hook with two small leaves, one continuous line 2 pixels wide, no scattered dots, centred, fills the canvas, light from the top-left, bold simple shapes readable at small size, 1 pixel transparent margin, 1 pixel black outline, no perspective, no isometric, no 3D, no face, no eyes unless the silhouette is an eye, no text, no characters, no background, no dithering, no gradient, no poison diamond, no shield",
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "seed": 3942,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

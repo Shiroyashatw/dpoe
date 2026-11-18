@@ -1,0 +1,10 @@
+{
+  "job": "ail_ad_cold_32",
+  "recolor_from": "ail_ad_32-s3912.png",
+  "swap": [
+    "--el-fire",
+    "--el-cold"
+  ],
+  "pixels": 37,
+  "usage": null
+}

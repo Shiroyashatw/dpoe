@@ -1,0 +1,10 @@
+{
+  "job": "ail_ad_light_16",
+  "recolor_from": "ail_ad_16-s4012-fix.png",
+  "swap": [
+    "--el-fire",
+    "--el-light"
+  ],
+  "pixels": 16,
+  "usage": null
+}
