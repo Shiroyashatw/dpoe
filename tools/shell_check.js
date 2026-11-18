@@ -480,8 +480,12 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       const bad = [];
       for (const e of document.querySelectorAll(sel)) {
         if (!e.getClientRects().length) continue;
-        const r = e.getBoundingClientRect(),
-          cx = r.left + r.width / 2,
+        /* 捲到面板外的（390×664 的抽屜要捲）不量：捲進來才點得到 */
+        const sc = e.closest('#pcamp'),
+          sr = sc && sc.getBoundingClientRect(),
+          r = e.getBoundingClientRect();
+        if (sr && (r.top < sr.top || r.bottom > sr.bottom)) continue;
+        const cx = r.left + r.width / 2,
           cy = r.top + r.height / 2,
           dy = Math.max(0, (T - r.height) / 2),
           dx = Math.max(0, (T - r.width) / 2),
