@@ -8,7 +8,7 @@ FINAL	art/icons/ailment/ail_calm_32/ail_calm_32-r4.png
 FINAL	art/icons/ailment/ail_cb_32/ail_cb_32-r3.png
 FINAL	art/icons/ailment/ail_chg_e_32/ail_chg_e_32-r3.png
 FINAL	art/icons/ailment/ail_chg_f_32/ail_chg_f_32-s3933.png
-R6	art/icons/ailment/ail_chg_p_32/ail_chg_p_32-r5.png
+FINAL	art/icons/ailment/ail_chg_p_32/ail_chg_p_32-r6.png
 FINAL	art/icons/ailment/ail_counter_32/ail_counter_32-r5.png
 FINAL	art/icons/ailment/ail_crip_32/ail_crip_32-hand.png
 FINAL	art/icons/ailment/ail_crush_32/ail_crush_32-s3914.png

@@ -4,9 +4,16 @@
 
 ## 1. 上限與批
 
-- **R5 上限 40 次**（mumi 批准，與 M2-39 的 100 次分開記）。本工項已花從 0 起算。約 1 次／張。
+- **第 2 輪（R5b）上限 40 次**（mumi 2026-11-18 15:30 選 A 重跑）。第 1 輪 icons-3 的 40 次另記、不算在內；那 24 張全部不定稿，原因是平塗、沒有明暗，跟現有技能圖畫風對不起來。本輪從 0 起算，約 1 次／張。
+- 第 4 輪（R5d，icons-6）用剩下的 **25 次**。第 2 輪抄了參考圖構圖；第 3 輪（pixflux 無參考，3 次）不照位置詞畫、退回置中。本輪改用**上色導引圖 init** 鎖構圖。
+- 本輪種子＝§3.2 的 seed0 ＋ 3000；重跑再＋100。
+- 試跑 3 張（3 次）：`sk_oilgrenade` s7212 三項都過，是候選。`sk_fire`、`sk_gasflask` 因為導引圖本身就撞圖，所以沒過。導引圖做法有效，續跑剩下的 **22 次**：
+  1. 每張導引圖先預檢：對同欄集 IoU < 0.55 才准送（`scripts/r5d_guide.py`）。
+  2. `sk_fire` 重跑 1：火球縮小，尾巴拉長變細、有 2–3 道火舌；配色是白黃核心、橘、紅外緣，不准粉棕色，要能一眼看出是火。`sk_gasflask` 重跑 1：瓶身變細，毒雲放大、三瓣分開。
+  3. 其餘 20 張照導引圖首跑，不用等第 2 步的結果。
+  4. 不過的不再生成，列出來交美術總監手修。`sk_clarity` 取 r5c s6201 手修。
 - 張數：22 列，其中「毒霧藥劑／油榴彈」拆成兩張，共 **23 張新圖**；另外重畫 **1 張舊圖** `sk_deadeye`（§3.3，UIUX設計師 14:48）。
-- 次數分配（合計永遠 ≤ 40）：
+- 第 1 輪的次數分配（第 3 輪以上面兩條為準）：
   - 23 張新圖首跑 23 次。
   - 17 次備用先拿 1 次給 `sk_deadeye` 首跑，剩 16 次是重跑共用池。
 - 重跑池的順序：
@@ -36,9 +43,8 @@
 
 沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-prompts.md` §2），只改上限與工作表：
 
-- 32 用 `/create-image-pixflux`。不要的東西寫在 description 的 `no …`。
-- `color_image`：把該列 palette 的 token 值排成 1 列的 PNG。token 值從 `specs/M2-36-palette-tokens.md` 取，規格不寫色碼。
-- 種子：首跑 `seed0`；重跑 1 用 `seed0 + 100`；重跑 2 用 `seed0 + 200`。
+- 用 `/create-image-pixflux`，不給 style_image、不給 color_image；**給 init_image＝上色導引圖（§2.2），`init_image_strength` 150**。不要的寫 `negative_description`。prompt 的位置詞（左下、右上）保留，但 init 才是構圖依據。
+- `color_image`：不給。第 1 輪只給 4–6 個 token 色，圖就被壓成平塗。§3 的 palette 欄只當「主色方向」寫進 description，不鎖色。
 - 檔名 `sk_<id>-s<seed>.png`。旁邊存同名 `.json`，內容是 request 去掉 base64，加上 usage。
 - 輸出目錄 `art/icons/skill/<id>/`。原圖留在 `art/_raw/skill/`。
 - `--repost` 只重做後處理與檢查，不花生成。
@@ -47,12 +53,19 @@
 ### 2.1 共用 body
 
 ```json
-{"description":"fantasy action RPG skill icon, flat front view, <silhouette>, bold simple shapes readable as a black silhouette at 32 pixels, light from the top-left, 1 pixel transparent margin, 1 pixel black outline, clear negative space, no perspective, no isometric, no 3D, no face, no eyes, no text, no letters, no background, no circular badge, no round frame, no dithering, no gradient, no <not>","image_size":{"width":32,"height":32},"view":"side","outline":"single color black outline","shading":"medium shading","detail":"low detail","no_background":true}
+{"description":"fantasy action RPG skill icon, <silhouette>, main colours <colours>, rich shading with highlights and shadows, light from the top-left, 1 pixel black outline, 1 pixel transparent margin","negative_description":"text, letters, background, circular badge, round frame, flat colours, plain silhouette, <not>","image_size":{"width":32,"height":32},"outline":"single color black outline","shading":"detailed shading","detail":"highly detailed","no_background":true}
 ```
 
-- `<silhouette>` 填 §3 的 prompt 欄；`<not>` 填 not 欄。
-- 首跑沒有 init。
-- 重跑 2 加 `init_image`＝剪影導引圖，`init_image_strength` 200。導引圖由雲端 Claude 照 §3 剪影欄畫：32×32，造型用 `--tx-dim` 實心，外加 1 px `--scene-void` 描邊，其餘透明。導引圖存 `art/_raw/skill/guide/<id>.png`。
+- `<silhouette>` 填 §3 的 prompt 欄；`<not>` 填 not 欄；`<colours>` 用英文寫 palette 欄的色相（例如 deep blue and pale cyan）。
+- 拿掉了第 1 輪的 `flat front view`、`bold simple shapes readable as a black silhouette`、`no dithering`、`no gradient`、`low detail`，這些是平塗的主因，不准加回。
+- init 只用 §2.2 的上色導引圖。
+
+### 2.2 上色導引圖
+
+- 雲端 Claude 照 §3.1 剪影家族逐張畫 32×32 導引圖，存 `art/_raw/skill/guide/<id>.png`，PR 附 4 倍拼圖。
+- 造型位置照剪影欄（不置中、留負空間）；填滿率 0.20–0.45。
+- 上色：每塊用該列 palette 主色，分 3 階（左上亮、中間、右下暗），外加 1 px `--scene-void` 描邊。不准單色實心，否則出圖又會平塗。
+- 不用參考圖（第 2 輪的教訓：構圖會被抄）。
 
 ## 3. 工作表
 
@@ -134,7 +147,7 @@
 | 24 | 4224 | two dice side by side, the right one tipped up on its corner and higher than the left, a few pips showing | eye, target, shield, face, centred disc |
 
 - 重跑 1：同一個 prompt，把 §5 的撞圖對象寫進 `<not>`。
-- 重跑 2：加 §2.1 的剪影導引圖。
+- 重跑 2：本輪不做（次數不夠）。
 
 ### 3.3 舊圖之間的配對（換上 23 張新圖後重算）
 
@@ -155,7 +168,7 @@
 ## 4. 後處理
 
 沿用 `pixellab_batch.py` 的 `post`：
-- `alpha_binary`：alpha ≥ 128 → 255，其餘 → 0；不透明像素取 palette 最近色，記最大 ΔE。
+- `alpha_binary`：alpha ≥ 128 → 255，其餘 → 0。**不准把顏色吸到 token palette**，保留生成的明暗。
 - 外緣描邊補成連續的 1 px `--scene-void`，角上不准 2 px 粗；內部不描邊。
 - 不跑地磚用的 `floor_shift`、`wall_shift`、`face_shift`，也不平滑縮放。
 
@@ -172,17 +185,18 @@
 
 | 項 | 量 | 通過 | 不過 |
 | --- | --- | --- | --- |
-| 32 剪影 IoU（新圖與 `sk_deadeye`） | 對同欄集每一枚（含其他新圖） | 全部 < 0.6 | 重跑 1，再重跑 2，再手修 |
+| 32 剪影 IoU（新圖與 `sk_deadeye`） | 對同欄集每一枚（含其他新圖）；目視意思要對上剪影家族 | 全部 < 0.6 | 重跑 1，再重跑 2，再手修 |
 | 舊圖之間 | 同欄集內，兩枚都是沒重畫的舊圖 | < 0.75；0.6–0.75 只列出 | 列入 PR，不重跑 |
 | 拆圖對象 | 新圖對原共用圖；`sk_fireburst` 加比 `sk_iceshatter`；`sk_ironaura` 加比 `sk_determination` | < 0.6 | 同上 |
 | 不是實心塊 | 填滿率＝不透明 ÷ 1024；外框填滿率＝不透明 ÷ 外框面積 | 0.15–0.50；外框 ≤ 0.75 | 重跑 |
 | 16 縮圖 | 32 每 2×2 有 ≥ 2 格不透明就算不透明，取最多的色；對同欄集量 IoU | 填滿率 ≤ 0.6；IoU ≥ 0.6 的列出給 UIUX設計師目視，目視分不開就不過 | 重跑 |
 | 圖示棋盤 | 不透明 2×2「a b／b a」交錯格數 | 16 縮圖 ≤ 6；32 只回報 | 重跑或手修 |
-| 色票偏移 | 不透明像素對 palette 最近色的 ΔE2000 | ΔE > 3 的 ≤ 5%、最大 ≤ 10；後處理後 100% 是 palette 色 | 重跑或 `alpha_binary` |
-| 色數 | 整張（含描邊） | ≤ 10 | 併色 |
+| 畫風（明暗） | 不透明且非描邊像素：色數、L* 最大減最小 | 色數 ≥ 8 且 L* 差 ≥ 35（對照：參考圖都過） | 重跑 |
+| 色數上限 | 整張（含描邊） | ≤ 32 | 併色（只併相近色，不准壓成平塗） |
 | 描邊 | 外緣 1 px `--scene-void` 連續；1 px 透明邊 | 無斷線、無 2 px 角 | 後處理修 |
 | 圖示雜點 | 8 鄰沒有同類（暗／中／亮）的不透明像素 | ≤ 3% | 手修 |
 | 追逐色 | `--rar-chase` | 0 | 退回 |
+| 手修 | 只改造型、補描邊或移像素 | 不准整片重塗成單色；手修後仍要過「畫風」 | 退回 |
 | 目視（美術總監） | 沒有臉或眼；不是圓徽章；跟同元素的舊圖放一起不突兀 | 判 | 退回 |
 
 可辨識度最後由 UIUX設計師審，美術總監只先篩。按鈕是 52／56，圖示照 M2-36 §1 只用 32 原尺寸或整數倍顯示，置中放。
