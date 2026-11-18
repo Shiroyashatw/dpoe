@@ -138,6 +138,9 @@ async function flow(b) {
     JSON.stringify(st)
   );
   /* 死亡：原地重來；連死 3 次退回上一個節點、留著（hold）、有通知、HUD 有「再推一次」 */
+  /* M2-12：自動模式倒下改字板、不出死亡卡；死亡卡（地圖詞、再試一次）在手動模式測，測完切回自動 */
+  const a0 = await p.evaluate(() => S.auto);
+  await p.evaluate(() => (S.auto = 0));
   const dead = async () => {
     await p.evaluate(() => die());
     await until(p, () => !$('over').hidden && G.state === 'dead');
@@ -146,22 +149,30 @@ async function flow(b) {
     return t;
   };
   const t1 = await dead();
+  /* M2-12：畫面不寫「輪」，死亡卡寫「地圖詞：…」 */
   ok(
-    '死亡卡寫出這一輪的地圖詞；再試一次＝同一個節點重來',
-    /這一輪的地圖詞/.test(t1) && (await until(p, () => G.state === 'play' && G.node === TRUNK_K[9]))
+    '死亡卡寫出這一次的地圖詞（不寫「輪」）；再試一次＝同一個節點重來',
+    /地圖詞：/.test(t1) && !/輪/.test(t1) && (await until(p, () => G.state === 'play' && G.node === TRUNK_K[9]))
   );
   await dead();
   await dead();
   const K = await p.evaluate(() => TRUNK_K);
-  await until(p, () => /連死 3 次/.test($('run').textContent), 3000);
-  const rb = await p.evaluate(() => ({ node: G.node, note: S.world.note, run: $('run').textContent }));
+  /* M2-40 定案（M2-12 D2）：連死 3 次不再退回上一個節點、沒有回營地；手動模式每次都是死亡卡「再試一次」，留在同一個節點 */
+  await until(p, () => G.state === 'play', 3000);
+  const rb = await p.evaluate(() => ({
+    node: G.node,
+    note: S.world.note,
+    run: $('run').textContent,
+    home: !!document.querySelector('#over [data-a=home]')
+  }));
   ok(
-    '連死 3 次：退回上一個節點、HUD 有通知（寫換裝、降星級或升營地）',
-    rb.node === K[8] && /連死 3 次/.test(rb.note) && /升營地/.test(rb.run),
+    '連死 3 次（手動）：留在同一個節點、不退回、沒有通知與回藏身處鈕',
+    rb.node === K[9] && !rb.note && !/連死/.test(rb.run) && !rb.home,
     JSON.stringify(rb)
   );
+  await p.evaluate(a0 => (S.auto = a0), a0);
   await p.evaluate(CLEAR);
-  ok('退回之後打倒王照樣留在這裡', await until(p, () => G.node === TRUNK_K[8] && G.round === 2, 6000));
+  ok('連死之後打倒王照樣留在這裡', await until(p, () => G.node === TRUNK_K[9] && G.round === 2, 6000));
   /* 倉庫滿了：普通裝換金幣、★ 照樣收 */
   const full = await p.evaluate(() => {
     S.inv.items = Array.from({ length: INV_CAP }, () => mkItem('c_leather', 10, 0));
@@ -327,18 +338,27 @@ async function auto(b) {
     return !g || !onGround(g);
   });
   ok('AI：踩到怪物方的地面就往外走', gz);
-  /* 連死：AI 自己按重來，第 3 次退回 */
+  /* 連死：AI 自己按重來；M2-40 定案（M2-12 D2）第 3 次停下（字板＋只有「繼續刷」），按了原地接著刷 */
   const k0 = await p.evaluate(() => G.node);
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < 2; i++) {
     await p.evaluate(() => die());
     await until(p, () => G.state === 'play' && G.t < 1, 6000);
   }
-  const rb = await p.evaluate(() => ({ node: G.node, scene: G.scene }));
+  await p.evaluate(() => die());
+  await until(p, () => G.halt, 6000);
+  const rb = await p.evaluate(() => ({
+    node: G.node,
+    scene: G.scene,
+    halt: !!G.halt && G.state === 'dead',
+    btn: [...document.querySelectorAll('#dplate button')].map(b => b.dataset.a).join()
+  }));
   ok(
-    'AI：倒下自己重來，連死 3 次退回上一個節點繼續刷',
-    rb.node === K[0] && rb.scene === 'map' && k0 === K[1],
+    'AI：倒下自己重來，連死 3 次停下（只有「繼續刷」）、不退回',
+    rb.node === K[1] && rb.scene === 'map' && k0 === K[1] && rb.halt && rb.btn === 'again',
     JSON.stringify(rb)
   );
+  await p.evaluate(() => document.querySelector('#dplate [data-a=again]').click());
+  ok('AI：按「繼續刷」原地接著刷', await until(p, () => G.state === 'play' && G.node === TRUNK_K[1], 3000));
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }

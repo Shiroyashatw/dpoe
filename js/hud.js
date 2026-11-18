@@ -2089,23 +2089,6 @@ function idleBar(force) {
   if (HV.idle && sk(HV.idle) !== sk(h)) IDLE_MV = now;
   el.innerHTML = HV.idle = h;
 }
-const fmtDur = ms => {
-  const m = Math.floor(ms / 60000);
-  return m >= 60 ? `${Math.floor(m / 60)} 小時 ${String(m % 60).padStart(2, '0')} 分` : `${m} 分`;
-};
-const lootScore = it =>
-  (it.frac ? 40 : 0) + (it.mem ? 20 : 0) + (it.cor ? 10 : 0) + (it.r === 2 ? 8 : 0) + (t1N(it) >= 2 ? 4 : 0) + it.r;
-const agoTxt = t => {
-  const sec = Math.floor((Date.now() - t) / 1000);
-  return sec < 5
-    ? '剛剛'
-    : sec < 60
-      ? `${sec} 秒前`
-      : sec < 3600
-        ? `${Math.floor(sec / 60)} 分鐘前`
-        : `${Math.floor(sec / 3600)} 小時前`;
-};
-const bossMob = () => G.mobs.find(m => m.boss && !m.mini && !m.dummy);
 /* M2-12 §2 掛機條：收起 44 高（掛機 N 分・保底 n%・最近一筆稀有以上・展開鈕），點條展開 200 高、6 秒沒操作自動收。
    不寫輪數；掛機時間＝SES.t0（停止刷才歸零）；保底只在會累積的地點（chaseLine）；倉庫快滿、離開 60 秒–10 分那一行換掉左字 */
 const IDLE = { open: 0, at: 0, msg: '', msgT: 0 };
@@ -2328,18 +2311,6 @@ function chasePanelHTML() {
       ? `<div class="chact"><p class="wyl">${esc(wyText(CHSEL))}</p>${F[CHSEL] > 0 ? `<button class="btn pri" data-a="wy:use">${STR_T.wyUse}</button>` : `<button class="btn" disabled>${STR_T.wyNoUse}</button>`}</div>`
       : ''
   }`;
-}
-/* 營地現在買得起的（王倒下的卡、離線卡；考核 D2、E3）：一件一列（圖示、名字、給什麼、升級鈕），最多 n 件；pri＝第一件用主要鈕 */
-function campUpsHTML(n = 3, pri = true) {
-  const L = campThings().filter(t => t.e.m === 0);
-  return L.length
-    ? `<div class="cups">${L.slice(0, n)
-        .map(
-          (t, i) =>
-            `<div class="cup">${icHTML(CAMP_IC[t.k])}<span><b>${esc(t.n)}</b><small>${esc(t.d)}</small></span><button class="btn ${pri && !i ? 'pri' : ''}" data-fg="${GEN[t.k] ? `gen:${t.k}:1` : `camp:${t.k}`}">升級<small>${esc(costTxt(t.c))}</small></button></div>`
-        )
-        .join('')}${L.length > n ? `<p class="sub">還有 ${L.length - n} 件買得起：到營地看</p>` : ''}</div>`
-    : '';
 }
 /* 目前在刷的地方（0.4.0，HUD 上排）：通知（連死退回）、退回後的「再推一次」、藏身處的「繼續刷」 */
 function runBar() {
@@ -2970,14 +2941,7 @@ function act(a, el) {
     save();
   } else if (a === 'chaselog') chaseGo();
   else if (a.startsWith('wy:')) wyAct(a.slice(3));
-  else if (a === 'offch') (REV.chx = !REV.chx), sfx('click'), hudPanels();
-  else if (a === 'genall') {
-    const n = genAll();
-    hudWarn(n ? `產生器升了 ${n} 級` : '沒有買得起的');
-    sfx(n ? 'lvup' : 'click');
-    save();
-    hudPanels();
-  } else if (a.startsWith('ctab:')) {
+  else if (a.startsWith('ctab:')) {
     /* 鍛造的三段（M2-38）：打造／通貨／鍛造台。鍛造台沒選裝備時，接著用通貨頁中間那一件 */
     const k = a.slice(5);
     sfx('click');
@@ -3059,11 +3023,7 @@ function act(a, el) {
     navGo('bag');
   } else if (a === 'bagmore') bagGrow();
   else if (a === 'chswno') (CHSW = null), hudInv();
-  else if (a === 'gocamp') {
-    /* M1-CP.4：掛機卡不放升級鈕，只帶去營地（升級只在營地） */
-    CRAFT.tab = 'camp';
-    PORT() ? navGo('craft') : (closePanels(), openPanel('craft'));
-  } else if (a.startsWith('chsw:')) {
+  else if (a.startsWith('chsw:')) {
     /* M1-11：點一格＝換上並關閉；換下來的回倉庫 */
     const it = S.inv.items.find(x => x.id === CHSW),
       i = +a.slice(5);
@@ -3097,10 +3057,6 @@ function act(a, el) {
     BAG.sel = id;
     BAG.f = 'all';
     BAG.k = '';
-    NAV.view = 'bag';
-    if (PORT()) navGo('bag');
-    else openPanel('inv');
-  } else if (a === 'lootbag') {
     NAV.view = 'bag';
     if (PORT()) navGo('bag');
     else openPanel('inv');

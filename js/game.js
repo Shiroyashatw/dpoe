@@ -365,23 +365,6 @@ function offClose() {
   OFFC.on = 0;
   document.body.classList.remove('offon');
 }
-/* 離線摘要的追逐物品一列（M2-19.5）：「追逐物品 ×n、目前保底 p%」，有拿到的可以點開（REV.chx）一種一列；0 件不能點 */
-function offChaseHTML(o) {
-  const row = esc(chaseOffRow(o.chase)).replace(/×\d+/, '<b class="rc4">$&</b>'),
-    ic = `<span class="chf sm">${icHTML(CHASE_POOL.trunk[0])}</span>`;
-  if (!o.chase) return `<div class="offch z">${ic}<span>${row}</span></div>`;
-  const on = REV.chx;
-  return `<button class="offch ${on ? 'on' : ''}" data-a="offch" aria-expanded="${on ? 'true' : 'false'}">${ic}<span>${row}</span><i aria-hidden="true">›</i></button>${
-    on
-      ? `<ul class="offchl">${o.chaseL
-          .map(
-            ([k, n, f]) =>
-              `<li><span class="chf sm">${icHTML(k)}</span><b>${esc(chaseName(k))}</b>${f ? `<em class="cnew">${esc(STR_T.new)}</em>` : ''}<small>×${n}</small></li>`
-          )
-          .join('')}</ul>`
-      : ''
-  }`;
-}
 /* 退回去哪：裂口回到進來之前在刷的節點，其他照 wPrev */
 const wBack = k =>
   wType(S, ...wXY(k)) === 'rift' && S.world.back && !wWhy(S, ...wXY(S.world.back)) ? S.world.back : wPrev(k);
