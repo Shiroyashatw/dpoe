@@ -1,0 +1,25 @@
+✅ 390x844 有圖：地磚 256 區塊、王印 ic_wy32、暴擊 sig_crit、光柱 sig_beam {"biome":"tomb","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 390x844 有追逐物品掉落（光柱） {"chase":true,"mobs":26}
+✅ 390x844 套王印播 sig_wyapply（96×96、不擋點擊） [96,96,"none","wangyin_guixu"]
+✅ 390x844 sig_wyapply 播完拿掉 
+✅ 390x844 頁面沒有錯誤 []
+✅ 1280x720 有圖：地磚 256 區塊、王印 ic_wy32、暴擊 sig_crit、光柱 sig_beam {"biome":"tomb","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 1280x720 有追逐物品掉落（光柱） {"chase":true,"mobs":41}
+✅ 1280x720 temple 地磚 256 區塊 {"biome":"temple","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 1280x720 lava 地磚 256 區塊 {"biome":"lava","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 1280x720 tomb 地磚 256 區塊 {"biome":"tomb","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 1280x720 ice 地磚 256 區塊 {"biome":"ice","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 1280x720 套王印播 sig_wyapply（96×96、不擋點擊） [96,96,"none","wangyin_guixu"]
+✅ 1280x720 sig_wyapply 播完拿掉 
+✅ 1280x720 頁面沒有錯誤 []
+✅ 375x667 有圖：地磚 256 區塊、王印 ic_wy32、暴擊 sig_crit、光柱 sig_beam {"biome":"ice","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 375x667 有追逐物品掉落（光柱） {"chase":true,"mobs":28}
+✅ 375x667 頁面沒有錯誤 []
+✅ 844x390 有圖：地磚 256 區塊、王印 ic_wy32、暴擊 sig_crit、光柱 sig_beam {"biome":"ice","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 844x390 有追逐物品掉落（光柱） {"chase":true,"mobs":31}
+✅ 844x390 頁面沒有錯誤 []
+✅ 1440x900 有圖：地磚 256 區塊、王印 ic_wy32、暴擊 sig_crit、光柱 sig_beam {"biome":"ice","tiles":true,"chunk":256,"wy":"ic_wy32.ca6118ed.png","crit":"sig_crit","beam":true}
+✅ 1440x900 有追逐物品掉落（光柱） {"chase":true,"mobs":27}
+✅ 1440x900 頁面沒有錯誤 []
+✅ 全部通過
+EXIT 0

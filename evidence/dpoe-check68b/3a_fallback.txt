@@ -1,0 +1,8 @@
+✅ 390x844 缺圖：地磚退回程式畫法（384 區塊）、王印借 cur_regal、暴擊播舊 crit、光柱程式畫 {"biome":"temple","tiles":false,"chunk":384,"wy":"ic_cur.fc024028.png","crit":"crit","beam":false}
+✅ 390x844 有追逐物品掉落（光柱） {"chase":true,"mobs":21}
+✅ 390x844-fallback 頁面沒有錯誤 []
+✅ 1280x720 缺圖：地磚退回程式畫法（384 區塊）、王印借 cur_regal、暴擊播舊 crit、光柱程式畫 {"biome":"lava","tiles":false,"chunk":384,"wy":"ic_cur.fc024028.png","crit":"crit","beam":false}
+✅ 1280x720 有追逐物品掉落（光柱） {"chase":true,"mobs":27}
+✅ 1280x720-fallback 頁面沒有錯誤 []
+✅ 全部通過
+EXIT 0
