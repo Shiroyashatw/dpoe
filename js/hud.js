@@ -714,6 +714,8 @@ const PANEL_LOCK = { asc: 'asc', box: 'box' };
 function openPanel(k) {
   const lk = PANEL_LOCK[k] && lockTxt(PANEL_LOCK[k]);
   if (lk) return hudWarn(lk);
+  /* 展開的掛機條（200 高）會蓋到半版面板：開面板就收起來 */
+  IDLE.open = 0;
   TOUCH.front = k === 'stash' || k === 'skill' || k === 'craft' ? 'other' : 'inv';
   /* 左邊一次只開一個（倉庫／技能寶石／鍛造台），右邊是背包 */
   if (k === 'stash' || k === 'skill' || k === 'craft') {
