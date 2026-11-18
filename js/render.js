@@ -1023,8 +1023,28 @@ function drawMinimap(W) {
 /* 營地的擺設常駐弱名牌；桌機滑鼠停在上面的那個變亮（M2-12：主角不走動，不再有「走近按 F」） */
 function drawPrompts() {
   if (G.scene !== 'camp') return;
-  for (const k of G.props)
-    k === G.hov ? plate(k.n, k.x, k.y - k.ny, '#eceef2', 1) : plate(k.n, k.x, k.y - k.ny, '#aeb3bc', 0.75);
+  CX.font = '700 14px "Noto Sans TC", sans-serif';
+  /* 名牌被左上「繼續刷」鈕（#run）蓋到就往下移到鈕下面（1280×720 的鍛造台，dpoe-check85） */
+  const el = $('run'),
+    r = el && !el.hidden && el.querySelector ? el.querySelector('[data-a=resume]') : null,
+    b = r ? r.getBoundingClientRect() : null,
+    c = b && b.height ? CV.getBoundingClientRect() : null,
+    t = c && CX.getTransform(),
+    q = c ? CV.width / c.width : 0,
+    dn = (n, x, y) => {
+      if (!c) return y;
+      const L = (b.left - c.left) * q,
+        R = (b.right - c.left) * q,
+        B = (b.bottom - c.top) * q + 4,
+        sx = t.a * x + t.e,
+        sy = t.d * (y - 15) + t.f,
+        hw = ((CX.measureText(n).width + 18) / 2) * t.a;
+      return sx + hw > L && sx - hw < R && sy < B ? y + (B - sy) / t.d : y;
+    };
+  for (const k of G.props) {
+    const y = dn(k.n, k.x, k.y - k.ny);
+    k === G.hov ? plate(k.n, k.x, y, '#eceef2', 1) : plate(k.n, k.x, y, '#aeb3bc', 0.75);
+  }
   if (PRAC.in) for (const m of G.mobs) if (m.dummy) plate(m.D.n, m.x, m.y + 26, '#aeb3bc', 0.75);
 }
 function plate(txt, x, y, col, a) {
