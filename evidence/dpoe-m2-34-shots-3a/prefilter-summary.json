@@ -1,0 +1,29 @@
+{
+ "expect": 100,
+ "rows": 100,
+ "count": {
+  "fail": 70,
+  "n/a": 6,
+  "blocked": 10,
+  "pass": 14
+ },
+ "missing": [],
+ "crops": [
+  "1280x720/crops/combat-ice-idle-seam-floor-x4.png",
+  "1280x720/crops/combat-lava-idle-seam-floor-x4.png",
+  "1280x720/crops/combat-temple-idle-seam-floor-x4.png",
+  "1280x720/crops/combat-tomb-idle-seam-floor-x4.png",
+  "1440x900/crops/combat-ice-idle-seam-floor-x4.png",
+  "1440x900/crops/combat-lava-idle-seam-floor-x4.png",
+  "1440x900/crops/combat-temple-idle-seam-floor-x4.png",
+  "1440x900/crops/combat-tomb-idle-seam-floor-x4.png",
+  "375x667/crops/combat-ice-idle-seam-floor-x4.png",
+  "375x667/crops/combat-lava-idle-seam-floor-x4.png",
+  "375x667/crops/combat-temple-idle-seam-floor-x4.png",
+  "375x667/crops/combat-tomb-idle-seam-floor-x4.png",
+  "390x844/crops/combat-ice-idle-seam-floor-x4.png",
+  "390x844/crops/combat-lava-idle-seam-floor-x4.png",
+  "390x844/crops/combat-temple-idle-seam-floor-x4.png",
+  "390x844/crops/combat-tomb-idle-seam-floor-x4.png"
+ ]
+}

@@ -300,20 +300,28 @@ async function boot(vk, q = `?test=midgame&seed=${SEED}`, o = {}) {
   });
   return p;
 }
-const idle = (p, b = 'temple') =>
-  ev(
+/* DBG.biome 換了 G.biome 但沒清區塊快取 G.bc（快取只看 G.tiles）→ 會沿用前一個地形烘好的地板與牆。
+   這裡照 biome.js 圖載好時的做法：等這個地形的磚載完（或載不到）再清 G.bc 重烘 */
+async function idle(p, b = 'temple') {
+  await ev(
     p,
     b => {
       closePanels();
       DBG.biome(b);
       DBG.clear();
       S.auto = 1;
-      DBG.step(33);
-      DBG.freeze();
-      return G.biome;
+      tileSet(b);
     },
     b
   );
+  await p.waitForFunction(b => !!tileSet(b) || (TILES[b] && TILES[b].bad), b, { timeout: 8000 }).catch(() => 0);
+  return ev(p, () => {
+    G.bc = null;
+    DBG.step(33);
+    DBG.freeze();
+    return G.biome;
+  });
+}
 const IDLE_COND = b => new Function(`return G.scene==='map' && G.biome==='${b}' && !(G.night>G.t) && !(G.fog>G.t) && G.fx.length===0 && G.nums.length===0`);
 
 /* ---------- S-1 combat－ground ---------- */
@@ -845,7 +853,10 @@ async function E4(vk, fb) {
     await ev(p, () => {
       DBG.biome('temple');
       DBG.clear();
+      tileSet('temple');
     });
+    await p.waitForFunction(() => !!tileSet('temple'), null, { timeout: 8000 }).catch(() => 0);
+    await ev(p, () => (G.bc = null));
   };
   await video(vk, `fx-crit-play${tag}`, `?test=midgame&seed=${SEED}`, setup, p => ev(p, fb => ({ ok: fb ? DBG.fx('crit') : DBG.fx('sig_crit'), sig: sigFx('sig_crit', 'crit') }), fb), 1.0, { block });
   await video(vk, `fx-lvup-play${tag}`, `?test=midgame&seed=${SEED}`, setup, p => ev(p, () => (DBG.lvup(), { lv: S.lv, sig: !!sigFx('sig_lvup') })), 1.5, { block });

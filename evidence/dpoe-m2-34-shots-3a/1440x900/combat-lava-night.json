@@ -1,0 +1,631 @@
+{
+ "id": "E-1n",
+ "vp": "1440x900",
+ "vk": "W",
+ "screen": "combat-lava",
+ "state": "night",
+ "file": "1440x900/combat-lava-night.png",
+ "cond": "G.night>G.t（拍前確認真的是夜）",
+ "state_ok": true,
+ "checks": {
+  "night_left": 4.97
+ },
+ "note": "",
+ "star": false,
+ "round": 2,
+ "errs": [],
+ "dom": {
+  "vw": 1440,
+  "vh": 900,
+  "dpr": 1,
+  "zoom": 1.35,
+  "canvas": {
+   "x": 0,
+   "y": 0,
+   "w": 1440,
+   "h": 900
+  },
+  "ui": [
+   {
+    "sel": "#hud #area",
+    "x": 16,
+    "y": 8,
+    "w": 284,
+    "h": 28,
+    "bg": "rgba(11, 8, 6, 0.8)"
+   },
+   {
+    "sel": "#hud #bhp",
+    "x": 540,
+    "y": 789,
+    "w": 360,
+    "h": 12,
+    "bg": "rgba(0, 0, 0, 0.7)"
+   },
+   {
+    "sel": "#hud #bmp",
+    "x": 540,
+    "y": 804,
+    "w": 360,
+    "h": 13,
+    "bg": "rgba(0, 0, 0, 0.7)"
+   },
+   {
+    "sel": "#hud #xp",
+    "x": 719,
+    "y": 823,
+    "w": 2,
+    "h": 5,
+    "bg": "rgb(31, 25, 21)"
+   },
+   {
+    "sel": "#hud button.on",
+    "x": 964,
+    "y": 836,
+    "w": 84,
+    "h": 44,
+    "bg": "rgb(230, 217, 189)"
+   },
+   {
+    "sel": "#hud button",
+    "x": 1048,
+    "y": 836,
+    "w": 84,
+    "h": 44,
+    "bg": "rgb(51, 42, 35)"
+   },
+   {
+    "sel": "#hud kbd",
+    "x": 1136,
+    "y": 848.5,
+    "w": 15.875,
+    "h": 19,
+    "bg": "rgb(31, 25, 21)"
+   },
+   {
+    "sel": "#dnav button",
+    "x": 942,
+    "y": 10,
+    "w": 66,
+    "h": 52,
+    "bg": "rgba(31, 25, 21, 0.92)"
+   },
+   {
+    "sel": "#dnav button",
+    "x": 1012,
+    "y": 10,
+    "w": 66,
+    "h": 52,
+    "bg": "rgba(31, 25, 21, 0.92)"
+   },
+   {
+    "sel": "#dnav button",
+    "x": 1082,
+    "y": 10,
+    "w": 66,
+    "h": 52,
+    "bg": "rgba(31, 25, 21, 0.92)"
+   },
+   {
+    "sel": "#dnav button",
+    "x": 1152,
+    "y": 10,
+    "w": 66,
+    "h": 52,
+    "bg": "rgba(31, 25, 21, 0.92)"
+   },
+   {
+    "sel": "#dnav button",
+    "x": 1222,
+    "y": 10,
+    "w": 66,
+    "h": 52,
+    "bg": "rgba(31, 25, 21, 0.92)"
+   },
+   {
+    "sel": "#dnav button",
+    "x": 1292,
+    "y": 10,
+    "w": 66,
+    "h": 52,
+    "bg": "rgba(31, 25, 21, 0.92)"
+   },
+   {
+    "sel": "#dnav button",
+    "x": 1362,
+    "y": 10,
+    "w": 66,
+    "h": 52,
+    "bg": "rgba(31, 25, 21, 0.92)"
+   },
+   {
+    "sel": "#pidle div.paper.idl",
+    "x": 17,
+    "y": 671,
+    "w": 378,
+    "h": 212,
+    "bg": "rgb(51, 42, 35)"
+   }
+  ],
+  "texts": [
+   {
+    "sel": "#hud #area",
+    "txt": "裂谷斷崖 · 1★ · 怪物 Lv 18 · 第",
+    "x": 16,
+    "y": 8,
+    "w": 284,
+    "h": 28,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#bhp span",
+    "txt": "428 / 428",
+    "x": 540,
+    "y": 789,
+    "w": 360,
+    "h": 12,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 10,
+    "fw": 700,
+    "item": false,
+    "key": true
+   },
+   {
+    "sel": "#bmp span",
+    "txt": "152 / 152",
+    "x": 540,
+    "y": 804,
+    "w": 360,
+    "h": 13,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 10,
+    "fw": 700,
+    "item": false,
+    "key": true
+   },
+   {
+    "sel": "#hud button.on",
+    "txt": "自動",
+    "x": 964,
+    "y": 836,
+    "w": 84,
+    "h": 44,
+    "color": "rgb(42, 26, 18)",
+    "fsz": 14,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#hud button",
+    "txt": "手動",
+    "x": 1048,
+    "y": 836,
+    "w": 84,
+    "h": 44,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 14,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#hud kbd",
+    "txt": "C",
+    "x": 1136,
+    "y": 848.5,
+    "w": 15.875,
+    "h": 19,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#dnav span",
+    "txt": "戰利品",
+    "x": 956.984375,
+    "y": 38,
+    "w": 36.015625,
+    "h": 17,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#dnav span",
+    "txt": "角色",
+    "x": 1032.984375,
+    "y": 38,
+    "w": 24.015625,
+    "h": 17,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#dnav span",
+    "txt": "鍛造",
+    "x": 1102.984375,
+    "y": 38,
+    "w": 24.015625,
+    "h": 17,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#dnav span",
+    "txt": "技能",
+    "x": 1172.984375,
+    "y": 38,
+    "w": 24.015625,
+    "h": 17,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#dnav span",
+    "txt": "天賦",
+    "x": 1242.984375,
+    "y": 38,
+    "w": 24.015625,
+    "h": 17,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#dnav span",
+    "txt": "營地",
+    "x": 1312.984375,
+    "y": 38,
+    "w": 24.015625,
+    "h": 17,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#dnav span",
+    "txt": "更多",
+    "x": 1382.984375,
+    "y": 38,
+    "w": 24.015625,
+    "h": 17,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle span",
+    "txt": "本次掛機・0 分・0 輪",
+    "x": 31,
+    "y": 681,
+    "w": 115.09375,
+    "h": 18,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle span",
+    "txt": "裂谷斷崖・1★",
+    "x": 302.15625,
+    "y": 681,
+    "w": 78.84375,
+    "h": 18,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 12,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle span.rn",
+    "txt": "木",
+    "x": 57,
+    "y": 709,
+    "w": 14,
+    "h": 21,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle b",
+    "txt": "43",
+    "x": 77,
+    "y": 711.09375,
+    "w": 16.53125,
+    "h": 16.796875,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 14,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle small",
+    "txt": "+240／分",
+    "x": 139.078125,
+    "y": 709,
+    "w": 59.921875,
+    "h": 21,
+    "color": "rgb(127, 201, 90)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle span.rn",
+    "txt": "生鐵",
+    "x": 239,
+    "y": 709,
+    "w": 28,
+    "h": 21,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle b",
+    "txt": "15",
+    "x": 273,
+    "y": 711.09375,
+    "w": 16.53125,
+    "h": 16.796875,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 14,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle small",
+    "txt": "+160／分",
+    "x": 321.078125,
+    "y": 709,
+    "w": 59.921875,
+    "h": 21,
+    "color": "rgb(127, 201, 90)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle span.rn",
+    "txt": "生皮",
+    "x": 57,
+    "y": 743,
+    "w": 28,
+    "h": 21,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle b",
+    "txt": "7",
+    "x": 91,
+    "y": 745.09375,
+    "w": 8.265625,
+    "h": 16.796875,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 14,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle small",
+    "txt": "+80／分",
+    "x": 147.046875,
+    "y": 743,
+    "w": 51.953125,
+    "h": 21,
+    "color": "rgb(127, 201, 90)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle span.rn",
+    "txt": "繭絲",
+    "x": 239,
+    "y": 743,
+    "w": 28,
+    "h": 21,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle b",
+    "txt": "3",
+    "x": 273,
+    "y": 745.09375,
+    "w": 8.265625,
+    "h": 16.796875,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 14,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle small",
+    "txt": "+40／分",
+    "x": 329.046875,
+    "y": 743,
+    "w": 51.953125,
+    "h": 21,
+    "color": "rgb(127, 201, 90)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle span.rn",
+    "txt": "靈魂",
+    "x": 57,
+    "y": 777,
+    "w": 28,
+    "h": 21,
+    "color": "rgb(166, 149, 126)",
+    "fsz": 14,
+    "fw": 500,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle b",
+    "txt": "3,012",
+    "x": 91,
+    "y": 779.09375,
+    "w": 37.59375,
+    "h": 16.796875,
+    "color": "rgb(217, 205, 180)",
+    "fsz": 14,
+    "fw": 700,
+    "item": false,
+    "key": false
+   },
+   {
+    "sel": "#pidle button.btn.pri",
+    "txt": "去營地",
+    "x": 31,
+    "y": 823,
+    "w": 350,
+    "h": 48,
+    "color": "rgb(243, 228, 210)",
+    "fsz": 16,
+    "fw": 700,
+    "item": false,
+    "key": true
+   }
+  ],
+  "icons": [
+   {
+    "sel": "#pidle img.ic",
+    "src": "98NezQAAAABklEQVQDAKMIcSGd4tTUAAAAAElFTkSuQmCC",
+    "w": 20,
+    "nw": 16,
+    "k": 1.25
+   },
+   {
+    "sel": "#pidle img.ic",
+    "src": "9LB7uYAAAAGSURBVAMA7DyOVM68qTIAAAAASUVORK5CYII=",
+    "w": 20,
+    "nw": 34,
+    "k": 0.588
+   },
+   {
+    "sel": "#pidle img.ic",
+    "src": "9qqhgEAAAABklEQVQDAE74cWOU4R5dAAAAAElFTkSuQmCC",
+    "w": 20,
+    "nw": 34,
+    "k": 0.588
+   },
+   {
+    "sel": "#pidle img.ic",
+    "src": "+jE72FAAAABklEQVQDAJ2QpCGCWYNUAAAAAElFTkSuQmCC",
+    "w": 20,
+    "nw": 16,
+    "k": 1.25
+   },
+   {
+    "sel": "#pidle img.ic",
+    "src": "pIilxAAAABklEQVQDAAYWOlTCDaDkAAAAAElFTkSuQmCC",
+    "w": 20,
+    "nw": 34,
+    "k": 0.588
+   }
+  ],
+  "clk_min": [
+   {
+    "sel": "#hud button.on",
+    "x": 964,
+    "y": 836,
+    "w": 84,
+    "h": 44
+   },
+   {
+    "sel": "#hud button",
+    "x": 1048,
+    "y": 836,
+    "w": 84,
+    "h": 44
+   },
+   {
+    "sel": "#pidle button.btn.pri",
+    "x": 31,
+    "y": 823,
+    "w": 350,
+    "h": 48
+   },
+   {
+    "sel": "#dnav button",
+    "x": 942,
+    "y": 10,
+    "w": 66,
+    "h": 52
+   },
+   {
+    "sel": "#dnav button",
+    "x": 1012,
+    "y": 10,
+    "w": 66,
+    "h": 52
+   }
+  ],
+  "g": {
+   "scene": "map",
+   "biome": "lava",
+   "t": 0.099,
+   "night": 5.066,
+   "fog": 0,
+   "mobs": 0,
+   "fx": 0,
+   "nums": 0,
+   "drops": 0
+  },
+  "frozen": true
+ },
+ "log": null,
+ "blocked_ref": false
+}

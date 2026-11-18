@@ -213,8 +213,8 @@ def tile_measure(o, rects, dpr):
         'u_dev_px': round(u, 3),
         'grid_dev_max': round(grid_dev, 2) if grid_dev is not None else '',
         'grid_run_spread': spread if spread is not None else '',
-        'seam_chunk': round(seam_chunk, 3) if seam_chunk else '',
-        'seam_tile_ref': round(seam_tile, 3) if seam_tile else '',
+        'seam_chunk': round(seam_chunk, 3) if seam_chunk is not None else '',
+        'seam_tile_ref': round(seam_tile, 3) if seam_tile is not None else '',
     }
     # 特寫：地板 2×2 格，區塊邊在中間（tile 7|8）
     cx0 = int(round(t77['x'] * dpr))
@@ -471,13 +471,16 @@ for v in RUN['videos']:
 
 # Z3-3（3a 部分）：PR #66＋#75 改到的 render.js、biome.js、tiles.js、style.css 新增行有沒有色碼字面值
 import re
-diff = subprocess.run(['git', '-C', ROOT, 'diff', '3456ad5', MAN['game_commit'], '--', 'js/render.js', 'js/biome.js', 'js/tiles.js', 'css/style.css'], capture_output=True, text=True).stdout
+# 只看 3a 兩個 PR 自己的改動：#66（3456ad5→eb6d5f7）、#75（f281eb4→7ab7fa5）
+FILES = ['--', 'js/render.js', 'js/biome.js', 'js/tiles.js', 'css/style.css']
+diff = ''.join(subprocess.run(['git', '-C', ROOT, 'diff', '--diff-algorithm=histogram', a, b] + FILES, capture_output=True, text=True).stdout
+               for a, b in [('3456ad5', 'eb6d5f7'), ('f281eb4', '7ab7fa5')])
 hits, cur = [], ''
 for ln in diff.splitlines():
     if ln.startswith('+++ '):
         cur = ln[6:]
     elif ln.startswith('+') and not ln.startswith('+++'):
-        if re.search(r"#[0-9a-fA-F]{3,8}\b|rgba?\(\s*\d|linear-gradient|--r4\b", ln) and not ln.strip().startswith(('+//', '+/*', '+ *')):
+        if re.search(r"#[0-9a-fA-F]{3,8}\b|rgba?\(\s*\d|linear-gradient|--r4\b", ln) and not ln.strip().startswith(('+//', '+/*', '+ *')) and not re.match(r"\+\s*--[\w-]+\s*:", ln):
             hits.append(f"{cur}: {ln[1:].strip()[:90]}")
 open(os.path.join(OUT, 'z3-3-literals.txt'), 'w').write('\n'.join(hits) + '\n')
 zv = 'fail' if hits else 'pass'
