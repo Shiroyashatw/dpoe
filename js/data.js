@@ -8863,10 +8863,9 @@ const WY_FX = {
 const WY_SET = { n: 4, mul: 1.25 };
 /* 字串表填參數：strT('pity', { n: 37 }) → 「下一件保底 37%」 */
 const strT = (k, o = {}) => STR_T[k].replace(/\{(\w+)\}/g, (_, x) => o[x]);
-/* 王印的圖檔（M2-19.9）：正式圖在第二條通貨圖 ic_cur-2，x 照這裡、y 0、32×32；圖還沒做好，先全部借 cur_regal 那格（第一條 x=297, y=0）。
+/* 王印的圖檔（M2-33-3a §4.1）：art.js 的 ic_wy32／ic_wy16 拼條（tools/art_pick.py）；拼條載不到時 sprites.js 的 artImg 退回借 cur_regal。
    靈魂包 soulpack（13:27）：art.js 已經有 ic_cur x=396 那格，圖還沒到先借 cur_soul。sprites.js 的 artImg／artIconURL 照 ART_ALIAS 換（圖到了就刪那一個鍵） */
-const WANGYIN_X = { wangyin_zhenyue: 132, wangyin_chixiao: 165, wangyin_jiting: 198, wangyin_guixu: 231 };
-const ART_ALIAS = { ...Object.fromEntries(Object.keys(WANGYIN_X).map(k => [k, 'cur_regal'])), soulpack: 'cur_soul' };
+const ART_ALIAS = { soulpack: 'cur_soul' };
 const newFrags = () => ({
   ox: 0,
   horse: 0,

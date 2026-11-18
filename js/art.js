@@ -185,7 +185,9 @@ const ART_SHEET = {
   'sin-8': 'img/sin-8.edaa7128.png',
   'sin-9': 'img/sin-9.e989dc05.png',
   z: 'img/z.e8e34779.png',
-  'z-2': 'img/z-2.97368307.png'
+  'z-2': 'img/z-2.97368307.png',
+  ic_wy16: 'img/ic_wy16.e9d88827.png',
+  ic_wy32: 'img/ic_wy32.ca6118ed.png'
 };
 const ART = {
   ail_bleed: ['ic_ail', 0, 0, 32, 32],
@@ -576,6 +578,14 @@ const ART = {
   cur_scrap: ['ic_cur', 330, 0, 32, 32],
   cur_soul: ['ic_cur', 363, 0, 32, 32],
   soulpack: ['ic_cur', 396, 0, 32, 32],
+  wangyin_zhenyue: ['ic_wy32', 0, 0, 32, 32],
+  wangyin_zhenyue_16: ['ic_wy16', 0, 0, 16, 16],
+  wangyin_chixiao: ['ic_wy32', 33, 0, 32, 32],
+  wangyin_chixiao_16: ['ic_wy16', 17, 0, 16, 16],
+  wangyin_jiting: ['ic_wy32', 66, 0, 32, 32],
+  wangyin_jiting_16: ['ic_wy16', 34, 0, 16, 16],
+  wangyin_guixu: ['ic_wy32', 99, 0, 32, 32],
+  wangyin_guixu_16: ['ic_wy16', 51, 0, 16, 16],
   cur_trans: ['ic_cur-2', 0, 0, 32, 32],
   cur_vaal: ['ic_cur-2', 33, 0, 32, 32],
   cur_whet: ['ic_cur-2', 66, 0, 32, 32],

@@ -8,6 +8,14 @@
 - **JS 不寫色碼**：新增 `js/palette.js`（`PAL`，開機時從 `:root` 讀；`index.html` 接在 `core.js` 後面）。render、biome（`BIOMES` → `--scene-<地形>-ground/mid/light/edge/dark-rgb/glow-rgb`，地形細節 `--scene-detail-n`）、hideout（`HIDE_BIO`）、game、mech、skills、maps、world、combat、tree、forge、touch 與 data.js 的 `ELC` 全改讀 `PAL`；沒有角色的特效色 `--fx-<檔名>-n`。intro.js、sprites.js、技能與職業的識別色照規格不動；biome.js 兩處逐點亂數算出來的顏色（`rgba(255,${…},30,…)`）不是常數，留著。
 - **檢查**：`check.js` 加 4 條（只有一個 `:root`、`:root` 外沒有色碼、JS 沒有色碼、`PAL` 用到的 token 都有定義）；Node 的檢查工具在每個 vm 環境放 `PAL_CSS`（style.css 全文），`palette.js` 在 Node 照讀，數值檢查結果不變。
 
+## 0.5.4 之後：M2-34 第 3a 批 PixelLab 素材接入（還沒換版本號）
+
+照 `specs/M2-33-3a-scene-assets.md`；素材是 mumi 22:33 定稿的那幾張（每個素材資料夾的 `picked.txt`）。數值、掉落、存檔版本都不變。截圖在 `evidence/dpoe-m2-34-3a/`（`tools/m2_34_3a_shots.js`）。
+- **地板與牆**：四種地形改用 PixelLab 地磚（地板、牆頂、牆面 a／b），區塊以 32 材質像素烘成 256×256、貼上畫面時只放大一次；任一張載不到，那種地形整套退回原本程式畫的地板與牆。
+- **王印圖示**：鎮嶽、赤霄、疾霆、歸墟有自己的 32 與 16 圖（`img/ic_wy32`、`ic_wy16` 拼條），不再借崇高石；拼條載不到時照舊借。
+- **招牌特效**：暴擊、升級、追逐物品落地、掉落光柱柱身、套王印各有新的序列圖；圖沒載到或開了減少動態時播原本的特效。
+- **看得清楚**（製作人決定）：白天的跳數字與怪物生命條畫在暗層之上，不再被壓暗；燭龍閉眼與蚩尤大霧期間照舊被壓暗。掉落光柱一律畫在暗層之上，天黑、大霧也看得到。
+
 ## 0.5.4 之後：M2-38 375×667 追逐物品不捲修正（還沒換版本號）
 
 數值、存檔版本都不變。截圖在 `evidence/dpoe-m2-38-scrollfix/`（before／after）。

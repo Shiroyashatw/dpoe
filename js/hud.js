@@ -2215,6 +2215,18 @@ function wyApply(k) {
     { duration: 240, easing: 'ease-out', pseudoElement: '::before' }
   );
   f.animate({ transform: ['scale(1)', 'scale(1.05)', 'scale(1)'] }, { duration: 280, delay: 240, easing: 'ease-out' });
+  /* sig_wyapply（M2-33-3a §4.2）：96 CSS px 置中蓋在那一格，一格一格播（圖 4 欄 × 3 列），播完拿掉 */
+  if (!sigFx('sig_wyapply')) return;
+  const F = FXS.sig_wyapply,
+    r = f.getBoundingClientRect(),
+    d = document.createElement('div');
+  d.style.cssText = `position:fixed;left:${r.left + r.width / 2 - F.w / 2}px;top:${r.top + r.height / 2 - F.h / 2}px;width:${F.w}px;height:${F.h}px;pointer-events:none;z-index:99;image-rendering:pixelated;background:url(${fxImg('sig_wyapply').src})`;
+  document.body.appendChild(d);
+  const fr = i => ({
+    backgroundPosition: `${-(i % F.cols) * F.w}px ${-Math.floor(i / F.cols) * F.h}px`,
+    easing: 'steps(1, end)'
+  });
+  d.animate([...Array(F.n).keys(), F.n - 1].map(fr), (F.n * 1000) / F.fps).onfinish = () => d.remove();
 }
 function chasePanelHTML() {
   if (CHUI.v && CHSEL && isWy(CHSEL))

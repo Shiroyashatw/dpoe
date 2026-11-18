@@ -195,17 +195,16 @@ function bDecals(W, H) {
 }
 
 /* ---------- 牆：頂面＋朝下的正面（有磚縫、場景的特徵）；鄰接地板的邊描亮線 ---------- */
-function bWalls(W, H) {
+function bWalls(W, H, T) {
   const B = BIO(),
     b = G.biome,
     x0 = Math.max(0, Math.floor((G.cam.x - W / 2) / TS) - 1),
     x1 = Math.min(G.cols - 1, Math.ceil((G.cam.x + W / 2) / TS) + 1),
     y0 = Math.max(0, Math.floor((G.cam.y - H / 2) / TS) - 1),
     y1 = Math.min(G.rows - 1, Math.ceil((G.cam.y + H / 2) / TS) + 1),
-    T = G.tiles,
     C = G.cols,
-    wall = (x, y) => x < 0 || y < 0 || x >= C || y >= G.rows || T[y * C + x] === 1,
-    FH = TS * 0.55,
+    wall = (x, y) => x < 0 || y < 0 || x >= C || y >= G.rows || G.tiles[y * C + x] === 1,
+    FH = T ? 27 : TS * 0.55 /* 地磚牆面 32×18 材質像素 = 世界 27 */,
     pulse = 0.55 + 0.3 * Math.sin(G.t * 2);
   for (let y = y0; y <= y1; y++)
     for (let x = x0; x <= x1; x++) {
@@ -216,10 +215,12 @@ function bWalls(W, H) {
       let near = false;
       for (let dy = -1; dy <= 1 && !near; dy++) for (let dx = -1; dx <= 1; dx++) if (!wall(x + dx, y + dy)) near = true;
       CX.fillStyle = near ? B.top : PAL.sceneDetail19;
-      CX.fillRect(px, py, TS, TS);
+      if (T && near) CX.drawImage(T.top, px, py, TS, TS);
+      else CX.fillRect(px, py, TS, TS);
       if (!near) continue;
-      /* 頂面：廟宇是屋瓦（一排排弧），其他是粗石 */
-      if (b === 'temple') {
+      /* 頂面：廟宇是屋瓦（一排排弧），其他是粗石；有地磚就是牆頂圖 */
+      if (T) {
+      } else if (b === 'temple') {
         CX.strokeStyle = `rgba(${PAL.rgb.glint},0.06)`;
         CX.lineWidth = 2;
         for (let r = 0; r < 3; r++) {
@@ -233,65 +234,69 @@ function bWalls(W, H) {
       }
       CX.fillStyle = B.hi;
       CX.globalAlpha = 0.35;
-      if (!wall(x - 1, y)) CX.fillRect(px, py, 2, TS);
-      if (!wall(x + 1, y)) CX.fillRect(px + TS - 2, py, 2, TS);
-      if (!wall(x, y - 1)) CX.fillRect(px, py, TS, 2);
+      const e = T ? TS / 32 : 2; /* 外露的邊：地磚是 1 材質像素 */
+      if (!wall(x - 1, y)) CX.fillRect(px, py, e, TS);
+      if (!wall(x + 1, y)) CX.fillRect(px + TS - e, py, e, TS);
+      if (!wall(x, y - 1)) CX.fillRect(px, py, TS, e);
       CX.globalAlpha = 1;
       if (wall(x, y + 1)) continue;
       /* 正面 */
       const fy = py + TS - FH;
-      CX.fillStyle = B.face;
-      CX.fillRect(px, fy, TS, FH);
-      CX.fillStyle = B.hi;
-      CX.fillRect(px, fy, TS, 3);
-      if (b === 'temple') {
-        /* 紅漆牆＋木樑＋金邊；隔幾格一根木柱 */
-        CX.fillStyle = B.line;
-        CX.fillRect(px, fy + 3, TS, 5);
-        CX.fillStyle = PAL.sceneDetail20;
-        CX.fillRect(px, fy + 8, TS, 1);
-        if (v % 3 === 0) {
-          CX.fillStyle = PAL.sceneDetail21;
-          CX.fillRect(px + 2, fy + 3, 7, FH - 3);
-        }
-      } else {
-        CX.fillStyle = B.line;
-        CX.globalAlpha = 0.6;
-        for (let r = 1; r < 3; r++) {
-          const ly = fy + 3 + r * 8;
-          CX.fillRect(px, ly, TS, 1);
-          CX.fillRect(px + ((v >>> (r * 4)) % 36) + 4, ly - 8, 1, 8);
-        }
-        CX.globalAlpha = 1;
-        if (b === 'ice') {
-          CX.strokeStyle = `rgba(${PAL.rgb.sceneDetail22},0.35)`;
-          CX.lineWidth = 1;
-          CX.beginPath();
-          CX.moveTo(px + (v % 30) + 6, fy + 5);
-          CX.lineTo(px + (v % 30) + 14, fy + FH - 2);
-          CX.stroke();
-          /* 冰柱 */
-          if (v % 4 === 0) {
-            CX.fillStyle = `rgba(${PAL.rgb.sceneDetail23},0.7)`;
-            CX.beginPath();
-            CX.moveTo(px + 20, py + TS);
-            CX.lineTo(px + 26, py + TS);
-            CX.lineTo(px + 23, py + TS + 10);
-            CX.fill();
+      if (T) CX.drawImage(T.face[v % T.face.length], px, fy, TS, FH);
+      else {
+        CX.fillStyle = B.face;
+        CX.fillRect(px, fy, TS, FH);
+        CX.fillStyle = B.hi;
+        CX.fillRect(px, fy, TS, 3);
+        if (b === 'temple') {
+          /* 紅漆牆＋木樑＋金邊；隔幾格一根木柱 */
+          CX.fillStyle = B.line;
+          CX.fillRect(px, fy + 3, TS, 5);
+          CX.fillStyle = PAL.sceneDetail20;
+          CX.fillRect(px, fy + 8, TS, 1);
+          if (v % 3 === 0) {
+            CX.fillStyle = PAL.sceneDetail21;
+            CX.fillRect(px + 2, fy + 3, 7, FH - 3);
           }
-        } else if (b === 'lava' && v % 2 === 0) {
-          CX.strokeStyle = `rgba(${PAL.rgb.sceneDetail24},${pulse})`;
-          CX.lineWidth = 2;
-          CX.beginPath();
-          CX.moveTo(px + (v % 24) + 8, fy + 4);
-          CX.lineTo(px + (v % 24) + 14, fy + 12);
-          CX.lineTo(px + (v % 24) + 10, fy + FH);
-          CX.stroke();
-        } else if (b === 'tomb') {
-          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail25},0.7)`;
-          for (let i = 0; i < 3; i++)
-            if ((v >>> i) & 1) CX.fillRect(px + 6 + i * 14, fy + 3, 3, 4 + ((v >>> (i + 4)) % 12));
+        } else {
+          CX.fillStyle = B.line;
+          CX.globalAlpha = 0.6;
+          for (let r = 1; r < 3; r++) {
+            const ly = fy + 3 + r * 8;
+            CX.fillRect(px, ly, TS, 1);
+            CX.fillRect(px + ((v >>> (r * 4)) % 36) + 4, ly - 8, 1, 8);
+          }
+          CX.globalAlpha = 1;
         }
+      }
+      if (b === 'ice') {
+        CX.strokeStyle = `rgba(${PAL.rgb.sceneDetail22},0.35)`;
+        CX.lineWidth = 1;
+        CX.beginPath();
+        CX.moveTo(px + (v % 30) + 6, fy + 5);
+        CX.lineTo(px + (v % 30) + 14, fy + FH - 2);
+        CX.stroke();
+        /* 冰柱 */
+        if (v % 4 === 0) {
+          CX.fillStyle = `rgba(${PAL.rgb.sceneDetail23},0.7)`;
+          CX.beginPath();
+          CX.moveTo(px + 20, py + TS);
+          CX.lineTo(px + 26, py + TS);
+          CX.lineTo(px + 23, py + TS + 10);
+          CX.fill();
+        }
+      } else if (b === 'lava' && v % 2 === 0) {
+        CX.strokeStyle = `rgba(${PAL.rgb.sceneDetail24},${pulse})`;
+        CX.lineWidth = 2;
+        CX.beginPath();
+        CX.moveTo(px + (v % 24) + 8, fy + 4);
+        CX.lineTo(px + (v % 24) + 14, fy + 12);
+        CX.lineTo(px + (v % 24) + 10, fy + FH);
+        CX.stroke();
+      } else if (b === 'tomb') {
+        CX.fillStyle = `rgba(${PAL.rgb.sceneDetail25},0.7)`;
+        for (let i = 0; i < 3; i++)
+          if ((v >>> i) & 1) CX.fillRect(px + 6 + i * 14, fy + 3, 3, 4 + ((v >>> (i + 4)) % 12));
       }
       /* 牆腳的影子落在地板上 */
       CX.fillStyle = `rgba(${PAL.rgb.scrim},0.35)`;
@@ -299,10 +304,26 @@ function bWalls(W, H) {
     }
 }
 
+/* PixelLab 地磚（M2-33-3a §3）：網址在 js/tiles.js（tools/art_pick.py 產生）。一種地形全部載好才換畫法、載好清 G.bc 重烘；
+   缺任一張（載不到）整套退回程式畫的 bFloor／bWalls，不混用 */
+const TILES = {};
+function tileSet(b) {
+  const s = typeof TILE_SRC !== 'undefined' && TILE_SRC[b];
+  if (!s) return null;
+  let t = TILES[b];
+  if (!t) {
+    const ld = u =>
+      Object.assign(new Image(), { onload: () => --t.n || (G.bc = null), onerror: () => (t.bad = 1), src: u });
+    t = TILES[b] = { n: s.floor.length + 1 + s.face.length };
+    (t.floor = s.floor.map(ld)), (t.top = ld(s.top)), (t.face = s.face.map(ld));
+  }
+  return t.n || t.bad ? null : t;
+}
 /* 地板＋牆不會動：切成 8×8 格的區塊，第一次進畫面時畫成一張圖，之後每格只貼圖（每格重畫 400 多個方塊太貴）。
    shortcut: 岩漿牆的裂縫亮度固定在畫的那一刻，不再閃；要閃的話另外每格畫裂縫 */
 const BCH = 8;
 function bStatic(W, H) {
+  const T = tileSet(G.biome || 'temple');
   if (!G.bc || G.bc.t !== G.tiles) G.bc = { t: G.tiles, m: new Map() };
   const S = BCH * TS,
     x0 = Math.max(0, Math.floor((G.cam.x - W / 2) / S)),
@@ -313,7 +334,7 @@ function bStatic(W, H) {
     const k = cy * 1000 + cx;
     let c = G.bc.m.get(k);
     if (c) G.bc.m.delete(k);
-    else c = bakeChunk(cx, cy, S);
+    else c = bakeChunk(cx, cy, S, T);
     /* 用到的排到最後；最多留 48 塊（約 28 MB，畫面加外一圈夠用），最久沒用的丟掉 */
     G.bc.m.set(k, c);
     if (G.bc.m.size > 48) G.bc.m.delete(G.bc.m.keys().next().value);
@@ -321,24 +342,34 @@ function bStatic(W, H) {
   };
   const inMap = (cx, cy) => cx >= 0 && cy >= 0 && cx * BCH < G.cols && cy * BCH < G.rows;
   for (let cy = y0; cy <= y1; cy++)
-    for (let cx = x0; cx <= x1; cx++) if (inMap(cx, cy)) CX.drawImage(get(cx, cy), cx * S, cy * S);
+    for (let cx = x0; cx <= x1; cx++) if (inMap(cx, cy)) CX.drawImage(get(cx, cy), cx * S, cy * S, S, S);
   /* 每格先畫好畫面外一圈的一塊，走過去時不用當場畫（不然那一格會頓） */
   for (let cy = y0 - 1; cy <= y1 + 1; cy++)
     for (let cx = x0 - 1; cx <= x1 + 1; cx++) if (inMap(cx, cy) && !G.bc.m.has(cy * 1000 + cx)) return void get(cx, cy);
 }
-function bakeChunk(cx, cy, S) {
+/* 有地磚（T）：區塊畫布是材質像素 BCH×32＝256，地板 1:1 貼、牆照世界座標縮 32/48 畫；貼到畫面時才放大（只縮放這一次） */
+function bakeChunk(cx, cy, S, T) {
   const c = document.createElement('canvas');
-  c.width = c.height = S;
+  c.width = c.height = T ? BCH * 32 : S;
   const main = CX,
     cam = G.cam;
   CX = c.getContext('2d');
+  if (T) {
+    CX.imageSmoothingEnabled = false;
+    for (let y = 0; y < BCH; y++)
+      for (let x = 0; x < BCH; x++)
+        CX.drawImage(T.floor[h(cx * BCH + x, cy * BCH + y) % T.floor.length], x * 32, y * 32);
+    CX.scale(32 / TS, 32 / TS);
+  }
   CX.translate(-cx * S, -cy * S);
-  CX.fillStyle = bFloor();
-  CX.fillRect(cx * S, cy * S, S, S);
+  if (!T) {
+    CX.fillStyle = bFloor();
+    CX.fillRect(cx * S, cy * S, S, S);
+  }
   /* bWalls 只畫鏡頭附近（多一格），把鏡頭放在這塊中間 */
   G.cam = { x: cx * S + S / 2, y: cy * S + S / 2 };
   try {
-    bWalls(S, S);
+    bWalls(S, S, T);
   } finally {
     (CX = main), (G.cam = cam);
   }
