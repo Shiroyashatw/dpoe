@@ -1,6 +1,8 @@
 # dpoe 變更紀錄
 
 所有決定與調整，新的在上，一行一條：`日期 時間｜決定者｜影響工項｜結論`。要記新的決定就加一行在最上面，不要改寫規格或任務檔裡的歷史。2026-11-17 以前的列由企劃書決策紀錄轉來；「—」是原紀錄沒寫時間。
+- 2026-11-18 15:04｜美術總監｜M2-39｜佇列 40 第 3 輪挑圖：35 張 r3 中 29 張定稿（fury 32 約 15×21 接受）；第 4 輪手修 calm、counter 32／16、chg_p 32、broken 32／16、stain 16（避免像 UI 鈕或撞 rage）；定稿 32／16 各 33，詛咒等 mumi 挑菱形；檔名清單 specs/M2-39-previews/picked.txt，判定 specs/M2-39-picks.md
+- 2026-11-18 15:00｜UIUX設計師｜M2-12｜依可行性回覆修規格：底分頁字一行（圖示 24→20→短英文→只留圖示）；#prog 當「王 n%」放王血條同格；倒下原地重開輪可，不顯輪數；手把移出第一段但先留焦點順序；換外觀級取消 1.1 倍推近改淡化 150ms；營地時繼續刷做法與手把排程待製作人
 - 2026-11-18 14:50｜UIUX設計師｜M2-40 R5｜剪影門檻：新圖 IoU < 0.6、舊圖之間放寬到 < 0.75；換圖後舊圖 ≥ 0.75 剩 3 對，都牽涉 sk_deadeye（梭哈），加重畫 1 張；次數 23 新圖首跑＋1 sk_deadeye＋16 重跑池＝40，重跑順序 sk_deadeye → 主清單與拆圖 → 次優先，用完改手修；0.6–0.75 舊配對 69 對只列在 PR；同一件東西用同一張圖，天賦主題、狀態列與藥劑借圖一起換，PR 要列出每一處受影響的位置；拆圖照美術總監提案。規格 specs/M2-40-skill-icon-prompts.md
 - 2026-11-18 14:47｜美術總監｜M2-40 R5｜技能圖示重畫提示詞表 specs/M2-40-skill-icon-prompts.md：23 張（毒霧藥劑／油榴彈拆兩張），首跑 23 次＋備用 17 次＝上限 40；過關門檻 32 剪影 IoU < 0.6（對同欄集）、非實心塊、16 縮圖可分且棋盤 ≤ 6；拆圖新 id sk_gasflask、sk_oilgrenade、sk_refract、sk_tidepull、sk_windflask、sk_ironaura（堅毅換新圖，石膚藥劑留舊圖）；可辨識度以 UIUX設計師審查為準
 - 2026-11-18 14:48｜美術總監｜M2-39｜PR #96 第 2 輪（7df2a49）審查：32 可用 38、16 可用 37；anemia、calm、crip、inc、intim 兩尺寸過；unbr 退回改回直立盾斜放；riven／vine／cb 32、brittle、counter、daze、sac 32、sap、tail、taunt、weak 再手修；第 1 輪手修 broken、seal、fury、shatter、stain、petr、oiled、chg_e、chg_p（32）與 ad 三色、broken、shatter、stain（16）未做；全部手修 0 次，M2-39 83／100；specs/M2-39-picks.md 更新
