@@ -1,0 +1,37 @@
+{
+ "task": "m2-36",
+ "branch": "claude/dpoe-m2-36-shots-76exsh",
+ "game_commit": "aa8f220（main，含 PR #69 aa8f220）",
+ "checklist": "docs/production/specs/M2-36-review-checklist.md @ de8654b",
+ "protocol": "docs/production/specs/visual-review-protocol.md",
+ "run_taipei": "2026-11-18 16:23",
+ "viewports": {
+  "390x844": {
+   "dpr": 2,
+   "isMobile": true,
+   "hasTouch": true
+  },
+  "1280x720": {
+   "dpr": 1,
+   "mouse": "移出畫面"
+  },
+  "375x667": {
+   "dpr": 2,
+   "isMobile": true,
+   "hasTouch": true
+  }
+ },
+ "entry": "?test=chase&dbg=1&seed=7&freeze=1（雲端存檔連線 abort、Google 字型同一輪快取）",
+ "hooks": "js/dbg.js DBG.ver 1",
+ "browser": "Playwright Chromium /opt/pw-browsers/chromium（headless）",
+ "harness_notes": [
+  "DBG.step 會多排 raf(pump) 鏈（step 過後每個真實畫格主迴圈跑 N 次）；shots.js 在頁面裡去重（同一個 document.timeline 時間只跑一次），沒改遊戲碼",
+  "Playwright recordVideo 要的 ffmpeg-1013 不在這台：影片改用 CDP Page.startScreencast 收幀＋系統 ffmpeg 組 mp4",
+  "新舊對照：main 已含 M2-36 素材（同一份程式），左邊用「擋掉 img/tiles 牆頂磚／拿掉 FXS.sig_*」的舊畫法代替 main"
+ ],
+ "scripts": [
+  "shots.js（截圖、連拍、影片、效能）",
+  "measure.py（量測、預篩、特寫、素材對照、總覽圖）",
+  "report.py（summary.md、comment.md）"
+ ]
+}

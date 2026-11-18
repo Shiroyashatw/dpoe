@@ -486,8 +486,9 @@ def crops(rows, M, P):
                 chk['seam'] = round(float(dx[:, 31].mean() / max(inner, 1e-6)), 2)
                 chk['chunk'] = chk['seam']
             elif key == 'top':
-                inner = np.concatenate([np.delete(dx, 31, 1).ravel(), np.delete(dy, 31, 0).ravel()]).mean()
-                chk['seam'] = round(float(max(dx[:, 31].mean(), dy[31].mean()) / max(inner, 1e-6)), 2)
+                # L 形轉角：左上、右上、左下三格是牆，右下是地板；只量牆接牆的兩條縫（上排的直縫、左欄的橫縫）
+                inner = np.concatenate([np.delete(dx[:32], 31, 1).ravel(), dx[32:, :31].ravel(), np.delete(dy[:, :32], 31, 0).ravel(), dy[:31, 32:].ravel()]).mean()
+                chk['seam'] = round(float(max(dx[:32, 31].mean(), dy[31, :32].mean()) / max(inner, 1e-6)), 2)
             elif key == 'face':
                 # 牆面只量貼在格子底部的 18 材質像素高那一段
                 fh = int(round(18 * s))
