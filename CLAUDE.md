@@ -3,7 +3,7 @@
 ## 讀哪些檔
 - **每個工作階段只讀 `docs/production/README.md`＋自己的 `docs/production/tasks/<ID>.md`＋任務檔連到的規格。** 文件結構規則在 `docs/production/DOCS-STRUCTURE.md`。
 - **除非任務需要歷史，不要讀 `CHANGELOG.md`（根目錄與 `docs/production/` 的）或任何 `archive/`。**
-- 改機制或數值先讀 `docs/設計原則.md`；規則與數值在 `docs/企劃書.md`、`docs/工坊與解鎖表.md`，改了要同步。docs 索引在 `docs/索引.md`。
+- 改機制或數值先讀 `docs/設計原則.md`；規則與數值只在 `docs/企劃書.md`（唯一權威，營地與解鎖表在第 3 節），改了就改那一份。docs 索引在 `docs/索引.md`。
 - 每個檔案管什麼：`docs/專案結構.md`。本機伺服器、存檔版本、各檢查工具的細節、找 Grok 幫忙：`docs/本機執行.md`。
 
 ## Skill

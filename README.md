@@ -45,6 +45,5 @@ node tools/touch_check.js 390 844  # 手機直立操作測試（要先開上面�
 ```
 
 ## 文件
-- [docs/工坊與解鎖表.md](docs/工坊與解鎖表.md)：0.5 以這份為準
-- [docs/企劃書.md](docs/企劃書.md)
+- [docs/企劃書.md](docs/企劃書.md)：現行規則與數值的唯一權威（營地與解鎖表在第 3 節）
 - [docs/設計原則.md](docs/設計原則.md)
