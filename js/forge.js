@@ -117,7 +117,9 @@ function auto2HTML() {
    會跑的東西（資源條、數字、鈕的底色、滾數字）每格由 rbTick 只改 transform 與文字，不重畫卡；卡片每秒只補畫字變了的（campRefresh） ---------- */
 const CAMPUI = { mul: 1, open: null, fx: {}, wt: {}, w: {} };
 const CAMP_B = ['forge', 'watch', 'scout', 'house', 'altar', 'store'];
-const fmtR = v => (v >= 10 ? fmtN(Math.round(v)) : +v.toFixed(1));
+/* 資源條的數字：1 萬以上縮寫（671k、2.64M），兩欄才放得下 */
+const fmtC = n => (n >= 1e6 ? +(n / 1e6).toPrecision(3) + 'M' : n >= 1e4 ? +(n / 1e3).toPrecision(3) + 'k' : fmtN(n));
+const fmtR = v => (v >= 10 ? fmtC(Math.round(v)) : +v.toFixed(1));
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* 「還要多久」寫成一句：算得出來寫「還要 N 分・缺 X 12」、算不出來（沒在刷、沒有人做）只寫缺什麼（只寫最慢那一項） */
 const etaTxt = e =>
@@ -176,8 +178,8 @@ const rbIc = key => (key === 'soul' ? CAMP_IC.soul : MATS[matOf(key)[0]].ic);
 const rbName = key => (key === 'soul' ? '靈魂' : matName(...matOf(key)));
 function genBarHTML(key, add) {
   return add != null
-    ? `<div class="rbar st">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
-    : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
+    ? `<div class="rbar st">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
+    : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
 }
 /* 這個材料鍵是哪一座產生器正在產的（條的進度＝那一座的 acc）；靈魂、沒在產的階回 null */
 const rbGen = key => {
@@ -215,7 +217,7 @@ function rbTick() {
       gk = rbGen(key);
     if (el._v !== v) {
       const up = el._v != null && v > el._v;
-      el._b.textContent = fmtN((el._v = v));
+      el._b.textContent = fmtC((el._v = v));
       if (up && !el._flow && !RB.rm) el._b.animate(POP, POP_T);
     }
     if (slow || el._r == null) {
@@ -375,20 +377,32 @@ function campOpenHTML(b) {
     return `<div class="ccopen"><p class="sub">離線結算上限 ${campN('off')} 小時・分解回收 ${Math.round(salvRate() * 100)}%</p>${storeHTML()}</div>`;
   return '';
 }
-/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階；鐵 20（最高階）→ 1 顆蛻變石；1 顆蛻變石 → 木 50 */
+/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階（高一階超過 tierCap() 的列出但鎖住）；鐵 20（最高階）→ 1 顆蛻變石；1 顆蛻變石 → 木 50 */
 function tradeList() {
   const L = [];
   for (const m of ['iron', 'hide', 'silk'])
-    for (let T = 1; T < 6; T++) if (matN(m, T) >= 5) L.push({ g: [m, T, 5], t: [m, T + 1, 1] });
+    for (let T = 1; T < 6; T++)
+      if (matN(m, T) >= 5)
+        L.push({
+          g: [m, T, 5],
+          t: [m, T + 1, 1],
+          why: T + 1 > tierCap() ? `瞭望台開到更深的地點才能換${matName(m, T + 1)}` : ''
+        });
   return L;
 }
 function storeHTML() {
   if (!campCan('trade')) return '';
-  const L = tradeList();
+  const L = tradeList(),
+    seen = {},
+    why = L.filter(x => x.why && !seen[x.g[0]] && (seen[x.g[0]] = 1)).map(x => `<p class="sub">${x.why}</p>`);
   return `<div class="ph2">商會<span>固定匯率</span></div><div class="bagf">${
-    L.map((x, i) => chipB(`tr:${i}`, 0, `${matName(x.g[0], x.g[1])} ×5 → ${matName(x.t[0], x.t[1])}`)).join('') ||
-    '<span class="c-dim">同一階的材料有 5 個才能換高一階</span>'
-  }${matN('iron', tierCap()) >= 20 ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×20 → 蛻變石`) : ''}${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>`;
+    L.map((x, i) => {
+      const t = `${matName(x.g[0], x.g[1])} ×5 → ${matName(x.t[0], x.t[1])}`;
+      return x.why
+        ? `<button class="chip" data-fg="tr:${i}" aria-pressed="false" disabled title="${x.why}">${t}</button>`
+        : chipB(`tr:${i}`, 0, t);
+    }).join('') || '<span class="c-dim">同一階的材料有 5 個才能換高一階</span>'
+  }${matN('iron', tierCap()) >= 20 ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×20 → 蛻變石`) : ''}${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>${why.join('')}`;
 }
 function tradeDo(i) {
   if (i === 'cur') {
@@ -402,6 +416,7 @@ function tradeDo(i) {
   } else {
     const x = tradeList()[+i];
     if (!x) return '換不了';
+    if (x.why) return x.why;
     matAdd(x.g[0], x.g[1], -5);
     matAdd(x.t[0], x.t[1], 1);
   }
@@ -945,7 +960,7 @@ function forgeHTML() {
     .join('')}</span>`;
   /* 標題列是鍛造的三段，鍛造台自己的五個分頁放第二列（直立、桌機同一份） */
   return `${forgeHead('forge')}<div class="fsub">${tabsH}${PORT() ? '' : `<span class="fmat">${tab === 'temper' ? `金 <b class="c-gold">${S.gold}</b>` : '只能加、不能減'}</span>`}</div>
-  <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">未鑑定：回藏身處找撿骨師免費鑑定</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
+  <div class="fcols"><div class="fl">${cardHTML(it)}<div class="fslots">${it ? (it.uid ? '<p class="fhint c-warn">未鑑定：回營地找撿骨師免費鑑定</p>' : slotsHTML(it, mode)) : ''}${CRAFT.log ? `<p class="flog">${esc(CRAFT.log)}</p>` : ''}</div></div>
   <div class="fr"><div class="ftop">${P.top}</div><div class="fmid">${P.mid}</div><div class="fact">${P.act}</div></div></div>`;
 }
 /* 做完一次：寫下拿掉什麼、加了什麼 */

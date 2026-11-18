@@ -29,7 +29,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac2
 - 同步回應：`POST https://api.pixellab.ai/v2/create-image-pixflux`、`/create-image-bitforge`，Bearer 驗證；回應 `image.base64` 存 PNG。`color_image` = 把 `palette` 的 token 值排成 1 列的 PNG。
 - pixflux 的「不要的東西」寫在 description 的 `no …`；bitforge 才有 `negative_description`。16 的圖示用 bitforge。`init_image` 送 base64 PNG，`init_image_strength` 1–999。
 - 種子：第 k 張用 `seed0 + k`。檔名 `<id>-s<seed>.png`，旁邊存同名 `.json`（request 去掉 base64、usage）。已跑過的提示詞都在這些 `.json` 裡，本檔不再重抄。
-- 跑前預覽（不加 `--go`）、一次最多 5 張；每批前 `GET /v2/balance`：**已花＋這批張數 > 120 就停**。
+- 跑前預覽（不加 `--go`）、一次最多 5 張；每批前 `GET /v2/balance`：**已花＋這批張數 > 120 就停**（120 是 M2-36 自設花費上限，不是帳號餘額）。
 - 新增 `--repost <job>`：只對 `art/_raw/` 原圖重做 §5 後處理與 §6 檢查，不花生成。
 
 ## 3. 重跑工作表（直接讀這段 JSON）
@@ -56,7 +56,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac2
 | 鎮嶽 | s2104 | s2151 | 定稿 |
 | 赤霄 | s2141 | `wangyin_chixiao_16-fix`（32 s2141 最近鄰縮小、量化後逐像素手修；PR #72） | 定稿：正面方牌、上緣小圓環、實心外框、2 px 劍身，§6 雜點 0%、飽和 9.59% |
 | 疾霆 | s2149 | s2155 | 定稿 |
-| 歸墟 | s2162 | `wangyin_guixu_16-fix`（赤霄 16-fix 外框＋下面的漩渦；PR #72，`tools/wy16_fix.py`）；s2166 不採用（尖屋頂形、沒有圓環、右半是棋盤抖色，違反畫法規則 §2、§5.1）；加深弧臂的試做也不採用 | 手修完，待 Art Director 看：§6 雜點 0%、飽和 14.38%、圖示棋盤 5 |
+| 歸墟 | s2162 | **待手修**：s2166 不採用（尖屋頂形、沒有圓環、右半是棋盤抖色，違反畫法規則 §2、§5.1；1 倍看起來像房子）；加深弧臂的試做也不採用 | 照赤霄做法手修，見下 |
 
 **歸墟 16 手修（不花生成）**：外框、圓環、牌面直接沿用 `wangyin_chixiao_16-fix` 的同一批像素（四枚同一個家族），只換牌面裡 8×7 的紋樣（x 4–11、y 6–12）。字母：`v` `--scene-void`、`m` `--border-mid`、`c` `--border-cap`、`b` `--border`、`i` `--panel-inset`、`o` `--rar-chase`、`h` `--rar-chase-hi`，`.` 透明：
 ```text
@@ -83,10 +83,10 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac2
 | 批 | 內容 | 張數 |
 | --- | --- | --- |
 | 第 1 輪＋A 批＋B 批＋16 重跑（已做） | 88 次＋A 批 14＋B 批 12＋赤霄 s2165、歸墟 s2166 | 已花 118.75 |
-| 手修 | 赤霄 16、歸墟 16（已做） | 0 |
+| 手修 | 赤霄 16（已做）、歸墟 16 | 0 |
 | 特效 | 不重跑，改零成本後處理（§5 `beam_cap`、`fade_tail`） | 0 |
 
-已到工程上限 118.75，沒有備用；之後只准手修，不再生成。每批跑前查餘額，「已花＋這批張數 > 120」就停。
+已到 **M2-36 自設花費上限**（已花 118.75／120），本工項不再生成、只准手修。120 不是帳號餘額；帳號於 2026-11-17 夜 `GET /v2/balance` 約 1138.99 次（約 1139）。之後工項另設上限（M2-39 見 `specs/M2-39-pixellab-prompts.md`）。每批跑前仍查餘額，「已花＋這批張數 > 120」就停。
 
 ## 4. 招牌特效（/vfx，vfx_gen.py 的格式；已產完，不重跑）
 輸出 `art/fx/<id>/`。`old/<時間>/` 的版本已永久不見，每個 id 只剩最新一張；sig_chase、sig_wyapply 的毛病用 §5 的後處理修，不花生成。提示詞裡的 `{token}` 由工具換成值（/vfx 不能鎖色，只能靠字）。下表留著是給以後重跑用。
@@ -145,7 +145,7 @@ pixel art VFX animation, transparent background, no character, no text, no frame
 | 牆頂 | temple ★s1112、s1113；lava ★s1213、s1212；tomb ★s1312、s1311、s1314；ice ★s1417 |
 | 牆面 | temple ★s1122、s1124；lava ★s1224、s1223；tomb ★s1322、s1323；ice ★s1423、s1422 |
 | 王印 32 | 赤霄 ★s2141、s2144；鎮嶽 ★s2104、s2145；疾霆 ★s2149、s2124、s2150（牌子略帶側面）；歸墟 ★s2162（螺旋）、s2133（同心圓） |
-| 王印 16 | 定稿見 §3「王印定稿」：鎮嶽 s2151、疾霆 s2155、赤霄 s2141 手修版；歸墟手修版 `16-fix`（s2166 不採用） |
+| 王印 16 | 定稿見 §3「王印定稿」：鎮嶽 s2151、疾霆 s2155、赤霄 s2141 手修版；歸墟待手修（s2166 不採用） |
 | 特效 | 每種只剩最新一張，只要確認：sig_crit、sig_lvup、sig_beam；sig_chase、sig_wyapply 加 §5 後處理 |
 
 目視淘汰（過了數字但不給 mumi）：

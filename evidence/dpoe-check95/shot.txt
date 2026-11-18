@@ -1,0 +1,2 @@
+390 844 has 彈匣: true has 彈夾: false errs []
+1280 720 has 彈匣: true has 彈夾: false errs []

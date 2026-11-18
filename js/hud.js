@@ -4,8 +4,9 @@
 let IW = innerWidth,
   IH = innerHeight;
 let C = 36; /* 背包一格的大小（px）；手機照螢幕寬度調（main.js 的 resize） */
-const icHTML = (n, cls = '') => {
-  const u = ICONS[n] ? iconURL(n) : artIconURL(n);
+/* px：要顯示的大小比原圖小時（資源條 16）先縮好原圖，顯示寬 ÷ naturalWidth 才是整數 */
+const icHTML = (n, cls = '', px) => {
+  const u = ICONS[n] ? iconURL(n) : artIconURL(n, px);
   return u ? `<img class="ic ${cls}" src="${u}" alt="">` : `<span class="ic ${cls}"></span>`;
 };
 /* 圖還沒載好時，載好後補畫面板 */
@@ -1235,7 +1236,7 @@ function itemHTML(it, src, eqk) {
             : it.cor
               ? '<i class="bs co" aria-label="腐化">腐</i>'
               : '') +
-        (b ? `<i class="btr ${b <= itemT(it) ? 'top' : ''}">T${b}</i>` : '') +
+        (b ? `<i class="btr ${b <= itemT(it) ? 'btop' : ''}">T${b}</i>` : '') +
         (it.chase ? '<i class="chm" aria-label="追逐物品"></i>' : '');
   return `<div class="it r${it.r} ${isSlot(src) ? 'full' : ''} ${src === 'inv' && cantWear(it) ? 'nq' : ''} ${src === 'inv' && BAG.sel === it.id ? 'on' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''}>${icHTML(itemIc(it))}${mark}</div>`;
 }
@@ -1807,7 +1808,9 @@ function revealHTML() {
   ${
     sel
       ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button></div><button class="dlink2" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div>`
-      : `<div class="rvf">${REV.done ? `<button class="btn ${REV.sum && campReady() ? '' : 'pri'}" data-a="close">收下</button>` : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
+      : REV.sum
+        ? `<div class="rvf offf">${GEN_K.some(k => genOn(k) && genAfford(k) > 0) ? '<button class="btn wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}<button class="btn pri wide" data-a="close">收下</button></div>`
+        : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
 /* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */

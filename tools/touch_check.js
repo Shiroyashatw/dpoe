@@ -2223,10 +2223,119 @@ const settle = async (p, fn, arg) => {
       dc.length >= 13 && !dc.some(t => /寶石/.test(t)),
       JSON.stringify(dc)
     );
+    /* hotfix-ui：物品格的圖示不能被角標蓋住（「T6」最高階角標的 class 叫 top，吃到 HUD 頂列的 .top 被撐滿整格，只剩米色方塊）。
+       角色頁、戰利品、鍛造（通貨頁＋換一件）各看一次：每格圖有載好、圖中心不在任何角標裡、角標不高過半格（桌機會撐成左邊一長條） */
+    const icCover = () =>
+      [...document.querySelectorAll('.it')]
+        .filter(e => e.offsetParent && e.getBoundingClientRect().width)
+        .map(e => {
+          const im = e.querySelector('img.ic'),
+            r = im && im.getBoundingClientRect(),
+            x = r && r.left + r.width / 2,
+            y = r && r.top + r.height / 2,
+            hit = [...e.querySelectorAll(':scope > i')].find(i => {
+              const q = i.getBoundingClientRect();
+              return (
+                (x >= q.left && x <= q.right && y >= q.top && y <= q.bottom) ||
+                q.height > e.getBoundingClientRect().height / 2
+              );
+            });
+          return !im || !im.naturalWidth || hit
+            ? e.getAttribute('aria-label') + ':' + (hit ? hit.className : 'no-img')
+            : '';
+        })
+        .filter(Boolean);
+    await p.evaluate(() => {
+      const it = mkItem(BASES.find(b => b.k === 'helm').id, 40, 2);
+      for (const a of it.a) a.T = itemT(it);
+      S.eq.helm = it;
+      S.inv.items.push(mkItem(it.b, 40, 2));
+      for (const a of S.inv.items[S.inv.items.length - 1].a) a.T = itemT(it);
+      S.curIt = S.inv.items[S.inv.items.length - 1];
+      hudPanels();
+    });
+    for (const [n, f] of [
+      ['角色頁', () => (closePanels(), navGo('char'))],
+      ['戰利品', () => (closePanels(), navGo('bag'))],
+      ['鍛造（通貨）', () => (closePanels(), act('ctab:cur'))],
+      ['鍛造（換一件）', () => PORT() && act('pick')]
+    ]) {
+      await p.evaluate(f);
+      await p.waitForTimeout(500);
+      const bad = await p.evaluate(icCover),
+        n0 = await p.evaluate(
+          () => [...document.querySelectorAll('.it .btr.btop, .it .btr.top')].filter(e => e.offsetParent).length
+        );
+      ok(
+        `hotfix-ui：${n} 物品格有圖示、沒被「T」角標蓋住（最高階角標 ${n0} 個）`,
+        (n0 > 0 || n.startsWith('鍛造')) && !bad.length,
+        JSON.stringify(bad)
+      );
+    }
+    await p.evaluate(() => {
+      act('pickno');
+      closePanels();
+      S.eq.helm = null;
+      S.inv.items = S.inv.items.filter(i => i !== S.curIt);
+      S.curIt = null;
+    });
     await p.evaluate(() => {
       S.camp.watch = _w0;
       S.eq.belt = null;
     });
+    /* hotfix-ui：掛機卡資源列用大數字（百萬級總量、千級以上速率）：每列的字與條不超出自己那一欄、不超出卡片，兩欄的條中間有空隙 */
+    const rb = await p.evaluate(async () => {
+      closePanels();
+      if (G.scene !== 'map') runNode(TRUNK_K[0]);
+      G.loot = null;
+      const a0 = S.auto;
+      S.auto = 1;
+      if (!idleOn()) return (S.auto = a0), { skip: 1 };
+      const g0 = genRates,
+        s0 = soulRate,
+        m0 = JSON.stringify(MAT()),
+        R = { wood: 2976 };
+      for (const k of GEN_K)
+        if (k !== 'wood' && genOn(k)) (R[matKey(k, genTier(k))] = 24000), matAdd(k, genTier(k), 671232);
+      matAdd('wood', 0, 2644835);
+      MAT().soul = 1234567;
+      window.genRates = () => R;
+      window.soulRate = () => 12345;
+      RB.R = null;
+      idleBar(1);
+      await new Promise(r => setTimeout(r, 1200));
+      const card = document.querySelector('#pidle .idl'),
+        cr = card && card.getBoundingClientRect(),
+        bars = [...document.querySelectorAll('#pidle .rbar')],
+        bad = [];
+      for (const e of bars) {
+        const r = e.getBoundingClientRect();
+        for (const c of e.children)
+          if (c.getBoundingClientRect().right > r.right + 0.5) bad.push(e.dataset.rb + ' 超出欄 ' + c.textContent);
+        if (r.right > cr.right + 0.5) bad.push(e.dataset.rb + ' 超出卡片');
+      }
+      for (let i = 0; i + 1 < bars.length; i++) {
+        const a = bars[i].querySelector('.rt').getBoundingClientRect(),
+          b = bars[i + 1].querySelector('.rt').getBoundingClientRect();
+        if (Math.abs(a.top - b.top) < 1 && b.left - a.right < 6) bad.push(bars[i].dataset.rb + ' 跟右欄的條黏在一起');
+      }
+      const txt = bars.map(e => e.querySelector('b').textContent + ' ' + e.querySelector('small').textContent);
+      window.genRates = g0;
+      window.soulRate = s0;
+      S.mat = JSON.parse(m0);
+      RB.R = null;
+      S.auto = a0;
+      return { on: !!cr, n: bars.length, bad, txt };
+    });
+    if (rb.skip) console.log('（這個尺寸觸控模式不出掛機卡，略過 hotfix-ui 掛機卡大數字）');
+    else {
+      await p.screenshot({ path: shot('idle_big') });
+      ok(
+        'hotfix-ui：掛機卡資源列大數字不超出欄位與卡片、兩欄的條分開',
+        rb.on && rb.n >= 3 && !rb.bad.length,
+        JSON.stringify(rb)
+      );
+    }
     await p.evaluate(() => {
       closePanels();
       navGo('bag');
