@@ -532,7 +532,7 @@ function grenadeTick(dt) {
 }
 
 /* ---------- 10. 彈藥 ---------- */
-/* 射一發；彈夾空了開始裝填（這段時間這招不能用）。回傳能不能射 */
+/* 射一發；彈匣空了開始裝填（這段時間這招不能用）。回傳能不能射 */
 function ammoUse(k, clip, reload) {
   const A = ((P.ammo = P.ammo || {})[k] = P.ammo[k] || { n: clip, until: 0 });
   if (A.until > G.t) return false;
@@ -542,9 +542,9 @@ function ammoUse(k, clip, reload) {
   return true;
 }
 const ammoLeft = k => (P.ammo && P.ammo[k] ? (P.ammo[k].until > G.t ? 0 : P.ammo[k].n) : null);
-/* 彈夾發數（重裝彈頭 heavyAmmo：減半，進位） */
+/* 彈匣發數（重裝彈頭 heavyAmmo：減半，進位） */
 const clipOf = D => Math.max(1, Math.ceil((D.ammo[0] + ST.ammoN) / (ST.heavyAmmo ? 2 : 1)));
-/* 裝填完成的那一刻才補滿：彈夾加上裝填中拿到的補給（A.extra，爆炸補給），最多 2 倍彈夾 */
+/* 裝填完成的那一刻才補滿：彈匣加上裝填中拿到的補給（A.extra，爆炸補給），最多 2 倍彈匣 */
 function ammoSettle(A, clip) {
   if (A.until && A.until <= G.t) (A.n = Math.min(clip * 2, clip + (A.extra || 0))), (A.until = 0), (A.extra = 0);
 }
@@ -555,12 +555,12 @@ function ammoFull() {
       A = P.ammo[k];
     if (!D || !D.ammo) continue;
     const clip = clipOf(D);
-    ammoSettle(A, clip); /* 裝填已經完成的先結算（彈夾＋補給，最多 2 倍） */
-    /* 裝填中：直接完成（彈夾＋裝填中拿到的補給）；沒在裝填：現有發數和一個彈夾取大的，爆炸補給多出來的不會被打回彈夾 */
+    ammoSettle(A, clip); /* 裝填已經完成的先結算（彈匣＋補給，最多 2 倍） */
+    /* 裝填中：直接完成（彈匣＋裝填中拿到的補給）；沒在裝填：現有發數和一個彈匣取大的，爆炸補給多出來的不會被打回彈匣 */
     P.ammo[k] = { n: A.until > G.t ? Math.min(clip * 2, clip + (A.extra || 0)) : Math.max(A.n, clip), until: 0 };
   }
 }
-/* 爆炸補給（blastSupply，0.2.70 千機）：裝著的每個彈藥技能多 1 發，可以超過彈夾、最多到 2 倍；裝填中的，裝填完多 1 發 */
+/* 爆炸補給（blastSupply，0.2.70 千機）：裝著的每個彈藥技能多 1 發，可以超過彈匣、最多到 2 倍；裝填中的，裝填完多 1 發 */
 function ammoSupply() {
   for (const s of S.skills) {
     const D = s.k && SKILLS[s.k];

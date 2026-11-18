@@ -3,7 +3,7 @@
    觸控：左半邊浮動搖桿；右下 5 個技能鍵（大的是普攻＝左鍵欄），點一下自動瞄準最近的敵人（王優先）、
    按住拖＝手動瞄準（地上畫線）放開施放、拖回按鈕上取消；普攻按住連打。翻滾、藥劑、互動在技能鍵外圈。 */
 'use strict';
-const TOUCH = { on: false, stick: null, mv: [0, 0], sk: null, cast: false, sel: null, front: 'inv' };
+const TOUCH = { on: false, stick: null, pan: null, mv: [0, 0], sk: null, cast: false, sel: null, front: 'inv' };
 const AIM_R = 360; /* 手動瞄準最遠的距離 */
 
 function setTouch(on) {
@@ -115,11 +115,11 @@ function moreMenu(on) {
   el.hidden = !on;
   for (const b of document.querySelectorAll('[data-tm=more]')) b.setAttribute('aria-expanded', on);
 }
-/* 刷圖中回藏身處：跳確認卡（hud.js 的 hudState，G.ask），按「回藏身處」或再按一次 T 才走（M0-04） */
-function homeAsk() {
+/* 刷圖中回營地：跳確認卡（hud.js 的 hudState，G.ask），按「回營地」或再按一次 T 才走（M0-04） */
+function campAsk() {
   if (G.scene !== 'map' || G.state !== 'play') return;
-  if (G.ask === 'home') return act('home');
-  G.ask = 'home';
+  if (G.ask === 'camp') return act('camp');
+  G.ask = 'camp';
   hudState();
 }
 
@@ -187,15 +187,16 @@ function touchInit() {
     if (TOUCH.prop) useProp(TOUCH.prop);
     TOUCH.prop = null;
   });
-  /* 畫面：撿東西、藏身處的擺設，左半邊是搖桿 */
+  /* 畫面：撿東西、營地的擺設，左半邊是搖桿 */
   CV.addEventListener('pointerdown', e => {
     if (e.pointerType !== 'touch') return;
     TOUCH.prop = null;
-    if (G.scene === 'hide') {
+    if (G.scene === 'camp') {
+      /* 營地（M2-12）：主角不走動。點物件＝捷徑（放開才開，上面的 click）；其他地方單指拖＝左右平移鏡頭，練習區石圈裡點一下＝普攻 */
       const p = propAt(e);
-      if (p === 'portal') return dist(P, G.portal) < 120 ? enterMap(G.portal.to) : hudWarn('走近一點');
-      /* 跟互動鍵一樣放開才開（上面的 click） */
       if (p) return void (TOUCH.prop = p);
+      if (!TOUCH.pan) TOUCH.pan = { id: e.pointerId, x: e.clientX, x0: e.clientX };
+      return;
     }
     /* 直立（龍絆式）：整個畫面都是手勢區。拖＝移動、點＝普攻、按住不動＝連打、快速一撥＝翻滾 */
     if (PORT()) {
@@ -221,6 +222,8 @@ function touchInit() {
     }
   });
   addEventListener('pointermove', e => {
+    const pn = TOUCH.pan;
+    if (pn && e.pointerId === pn.id) campPan(-(e.clientX - pn.x) / ZOOM), (pn.x = e.clientX);
     const st = TOUCH.stick;
     if (st && e.pointerId === st.id) {
       if (st.port && !st.mv) {
@@ -262,6 +265,12 @@ function touchInit() {
     }
   });
   const up = e => {
+    const pn = TOUCH.pan;
+    if (pn && e.pointerId === pn.id) {
+      TOUCH.pan = null;
+      if (e.type === 'pointerup' && PRAC.in && Math.abs(e.clientX - pn.x0) < 12)
+        (TOUCH.cast = true), useSlot(0), (TOUCH.cast = false);
+    }
     const st = TOUCH.stick;
     if (st && e.pointerId === st.id) {
       if (st.port) {
@@ -359,7 +368,7 @@ function touchInit() {
       if (k === 'inv') PANEL.inv && !PANEL.stash && !PANEL.skill ? closePanels() : openPanel('inv');
       else if (k === 'skill') PANEL.skill ? closePanels() : openPanel('skill');
       else if (k === 'tree') treeOpen('pt');
-      else if (k === 'home') homeAsk();
+      else if (k === 'camp') campAsk();
       else if (k === 'set') PANEL.set ? closePanels() : (closePanels(), (NAV.full = PORT() ? 1 : 0), openPanel('set'));
       else if (k === 'port' || k === 'land') setOrient(k[0]);
       else if (k === 'flip') setOrient(PORT() ? 'l' : 'p');

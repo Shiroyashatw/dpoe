@@ -1,4 +1,4 @@
-/* dungeonPOE · 地圖場景（0.2.14）：冰雪洞窟、岩漿地城、毒沼古墓、廢棄廟宇（藏身處在 hideout.js）。
+/* dungeonPOE · 地圖場景（0.2.14）：冰雪洞窟、岩漿地城、毒沼古墓、廢棄廟宇（營地在 hideout.js）。
    只有外觀，不影響戰鬥。地板花紋 bFloor、地上細節 bDecals、牆 bWalls、擺設 decorate／bDeco、
    光源 bLights（在暗層挖洞）／bGlow（疊一層色光）。擺設只是畫，不擋路 */
 'use strict';
@@ -40,7 +40,7 @@ const BIOMES = {
     light: '255,179,90'
   }
 };
-const BIO = () => (G.scene === 'hide' ? HIDE_BIO : BIOMES[G.biome] || BIOMES.temple);
+const BIO = () => (G.scene === 'camp' ? HIDE_BIO : BIOMES[G.biome] || BIOMES.temple);
 
 /* ---------- 地板：每種場景一張 256×256 的花紋（固定亂數，畫一次） ---------- */
 const FLOORS = {};
@@ -341,8 +341,19 @@ function bStatic(W, H) {
     return c;
   };
   const inMap = (cx, cy) => cx >= 0 && cy >= 0 && cx * BCH < G.cols && cy * BCH < G.rows;
+  /* 貼到裝置像素上（3a §3.2）：區塊四邊換算成畫布像素後取整數，相鄰地磚寬差 ≤1 裝置 px、不會半格錯開 */
+  const m = CX.getTransform(),
+    dx = v => Math.round(m.a * v + m.e),
+    dy = v => Math.round(m.d * v + m.f);
+  CX.setTransform(1, 0, 0, 1, 0, 0);
   for (let cy = y0; cy <= y1; cy++)
-    for (let cx = x0; cx <= x1; cx++) if (inMap(cx, cy)) CX.drawImage(get(cx, cy), cx * S, cy * S, S, S);
+    for (let cx = x0; cx <= x1; cx++)
+      if (inMap(cx, cy)) {
+        const x = dx(cx * S),
+          y = dy(cy * S);
+        CX.drawImage(get(cx, cy), x, y, dx(cx * S + S) - x, dy(cy * S + S) - y);
+      }
+  CX.setTransform(m);
   /* 每格先畫好畫面外一圈的一塊，走過去時不用當場畫（不然那一格會頓） */
   for (let cy = y0 - 1; cy <= y1 + 1; cy++)
     for (let cx = x0 - 1; cx <= x1 + 1; cx++) if (inMap(cx, cy) && !G.bc.m.has(cy * 1000 + cx)) return void get(cx, cy);

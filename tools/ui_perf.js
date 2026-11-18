@@ -170,7 +170,7 @@ const URL = process.argv[2] || 'http://localhost:8000/',
       closePanels();
     });
   };
-  await run('藏身處');
+  await run('營地');
   await p.evaluate(() => runNode(TRUNK_K[6]));
   await p.waitForTimeout(3000);
   await run('刷圖中');
