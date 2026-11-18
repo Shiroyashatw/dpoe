@@ -180,15 +180,26 @@ setTimeout(() => {
     Object.keys(ART_SHEET).forEach((s, i) => setTimeout(() => artSheet(s), i * 200));
 }, 5000);
 const SKURL = new Map();
-/* PNG 圖示（art/icons 的檔名）轉成圖片網址；沒有或還沒載好回傳 null */
-function artIconURL(n) {
+/* PNG 圖示（art/icons 的檔名）轉成圖片網址；沒有或還沒載好回傳 null。
+   不留邊（原圖 32 → naturalWidth 32，顯示 32／64 才是整數倍）；px＝16 時最近鄰縮成 16 原圖（資源條，不開平滑） */
+function artIconURL(n, px) {
   n = (typeof ART_ALIAS !== 'undefined' && ART_ALIAS[n]) || n;
   if (typeof ART === 'undefined' || !ART[n]) return null;
-  if (SKURL.has(n)) return SKURL.get(n);
-  const c = artSprite('a_' + n);
-  if (c.pending) return null;
+  const key = px ? n + '|' + px : n;
+  if (SKURL.has(key)) return SKURL.get(key);
+  const a = artImg(n),
+    im = a && a.im;
+  if (!im || !im.complete || !im.naturalWidth) return null;
+  const [sx, sy, w, h] = a.r,
+    N = Math.max(w, h),
+    k = px && px < N ? px / N : 1,
+    c = document.createElement('canvas');
+  c.width = c.height = N * k;
+  const x = c.getContext('2d');
+  x.imageSmoothingEnabled = false;
+  x.drawImage(im, sx, sy, w, h, fl(((N - w) / 2) * k), (N - h) * k, w * k, h * k);
   const u = c.toDataURL();
-  SKURL.set(n, u);
+  SKURL.set(key, u);
   return u;
 }
 /* 回傳正方形畫布（圖貼底置中、留 1 格邊）；還沒載好時回傳空白（不快取） */

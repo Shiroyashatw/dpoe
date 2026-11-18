@@ -221,7 +221,7 @@ const BUILDS = {
   }
 };
 /* 0.2.46 每種武器一套（之後每批技能的數值驗收拿這些當基準）：路線與裝備跟劍近戰同一組權重，只換武器專精與主力招。
-   shortcut: 只算主力招單發 × 出手速度，段數、彈夾裝填、盛怒、連擊都沒算；要比連招時再加 */
+   shortcut: 只算主力招單發 × 出手速度，段數、彈匣裝填、盛怒、連擊都沒算；要比連招時再加 */
 const WG = {
     dmgP: 1,
     flat: 3,
@@ -272,7 +272,7 @@ Object.assign(BUILDS, {
     asc: ['gladiator', 's7', 'wide', 's1', 'war', 's3', 'vent', 's4', 'exec'],
     rage: 1
   },
-  /* 0.2.70：千機（十字弓＋穿甲彈＋爆裂榴彈）。⚠️ 估算：跟前面只算單發的十字弓不同，這兩行把裝填算進去（彈夾 ÷（彈夾 + 裝填），沒算戰術翻滾的立刻裝填
+  /* 0.2.70：千機（十字弓＋穿甲彈＋爆裂榴彈）。⚠️ 估算：跟前面只算單發的十字弓不同，這兩行把裝填算進去（彈匣 ÷（彈匣 + 裝填），沒算戰術翻滾的立刻裝填
      與爆炸補給）、王當作一直完全破甲（穿甲彈本身就破甲）、再加爆裂榴彈的持續傷害（可存幾顆 ÷ 冷卻，子母彈再 +90%）。
      「十字弓＊」是同一套模型但沒有昇華，千機要跟它比，不要跟上面沒算裝填的十字弓比 */
   '十字弓＊': {
@@ -665,7 +665,7 @@ for (SD = 0; SD < SEEDS; SD++)
         const atkRate = (ST.asM / D.t) * R('hitChance')(ST.acc, boss.ev);
         cocDps = (ss / N) * ((atkRate * crits) / N) * ((10 * (ST.hexCoc ? 2 : 1)) / 100) * ((sd.chain || 0) + 1);
       }
-      /* 千機：彈夾 ÷（彈夾 + 裝填）；榴彈的持續傷害 */
+      /* 千機：彈匣 ÷（彈匣 + 裝填）；榴彈的持續傷害 */
       let ammoF = 1,
         grenDps = 0;
       if (B.ammo) {
@@ -837,7 +837,7 @@ for (SD = 0; SD < SEEDS; SD++)
             : '',
           B.blood ? '⚠️ 假設：流血一直掛著（腐化之血的層數照攻速估）' : '',
           B.ammo
-            ? `⚠️ 估算：裝填係數 ${ammoF.toFixed(2)}、彈夾 ${R('clipOf')(D)}、榴彈 ${Math.round(grenDps)}/秒（占 ${Math.round((grenDps / dps) * 100)}%）、王一直完全破甲`
+            ? `⚠️ 估算：裝填係數 ${ammoF.toFixed(2)}、彈匣 ${R('clipOf')(D)}、榴彈 ${Math.round(grenDps)}/秒（占 ${Math.round((grenDps / dps) * 100)}%）、王一直完全破甲`
             : '',
           B.trap
             ? `⚠️ 估算：每秒觸發 ${trapTrig.toFixed(2)} 次（陷阱上限 ${Math.max(1, 4 + ST.units + ST.trapMax)} 沒算）、傷害更多 +${ST.unitMore}%`

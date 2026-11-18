@@ -178,8 +178,8 @@ const rbIc = key => (key === 'soul' ? CAMP_IC.soul : MATS[matOf(key)[0]].ic);
 const rbName = key => (key === 'soul' ? '靈魂' : matName(...matOf(key)));
 function genBarHTML(key, add) {
   return add != null
-    ? `<div class="rbar st">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
-    : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
+    ? `<div class="rbar st">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
+    : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
 }
 /* 這個材料鍵是哪一座產生器正在產的（條的進度＝那一座的 acc）；靈魂、沒在產的階回 null */
 const rbGen = key => {
@@ -377,20 +377,32 @@ function campOpenHTML(b) {
     return `<div class="ccopen"><p class="sub">離線結算上限 ${campN('off')} 小時・分解回收 ${Math.round(salvRate() * 100)}%</p>${storeHTML()}</div>`;
   return '';
 }
-/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階；鐵 20（最高階）→ 1 顆蛻變石；1 顆蛻變石 → 木 50 */
+/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階（高一階超過 tierCap() 的列出但鎖住）；鐵 20（最高階）→ 1 顆蛻變石；1 顆蛻變石 → 木 50 */
 function tradeList() {
   const L = [];
   for (const m of ['iron', 'hide', 'silk'])
-    for (let T = 1; T < 6; T++) if (matN(m, T) >= 5) L.push({ g: [m, T, 5], t: [m, T + 1, 1] });
+    for (let T = 1; T < 6; T++)
+      if (matN(m, T) >= 5)
+        L.push({
+          g: [m, T, 5],
+          t: [m, T + 1, 1],
+          why: T + 1 > tierCap() ? `瞭望台開到更深的地點才能換${matName(m, T + 1)}` : ''
+        });
   return L;
 }
 function storeHTML() {
   if (!campCan('trade')) return '';
-  const L = tradeList();
+  const L = tradeList(),
+    seen = {},
+    why = L.filter(x => x.why && !seen[x.g[0]] && (seen[x.g[0]] = 1)).map(x => `<p class="sub">${x.why}</p>`);
   return `<div class="ph2">商會<span>固定匯率</span></div><div class="bagf">${
-    L.map((x, i) => chipB(`tr:${i}`, 0, `${matName(x.g[0], x.g[1])} ×5 → ${matName(x.t[0], x.t[1])}`)).join('') ||
-    '<span class="c-dim">同一階的材料有 5 個才能換高一階</span>'
-  }${matN('iron', tierCap()) >= 20 ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×20 → 蛻變石`) : ''}${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>`;
+    L.map((x, i) => {
+      const t = `${matName(x.g[0], x.g[1])} ×5 → ${matName(x.t[0], x.t[1])}`;
+      return x.why
+        ? `<button class="chip" data-fg="tr:${i}" aria-pressed="false" disabled title="${x.why}">${t}</button>`
+        : chipB(`tr:${i}`, 0, t);
+    }).join('') || '<span class="c-dim">同一階的材料有 5 個才能換高一階</span>'
+  }${matN('iron', tierCap()) >= 20 ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×20 → 蛻變石`) : ''}${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>${why.join('')}`;
 }
 function tradeDo(i) {
   if (i === 'cur') {
@@ -404,6 +416,7 @@ function tradeDo(i) {
   } else {
     const x = tradeList()[+i];
     if (!x) return '換不了';
+    if (x.why) return x.why;
     matAdd(x.g[0], x.g[1], -5);
     matAdd(x.t[0], x.t[1], 1);
   }
