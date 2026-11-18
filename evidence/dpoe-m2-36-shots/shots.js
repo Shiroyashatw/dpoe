@@ -496,51 +496,44 @@ async function burst(p, v, row, n, dt, o = {}) {
   });
   console.log(`🎞️  ${row.id} ${V.dir} ${row.screen}-${row.state} ${n} 幀`);
 }
-/* 影片：recordVideo 錄 webm，ffmpeg 轉 mp4（H.264、yuv420p、crf 28、faststart、無聲、30 fps） */
+/* 影片：Playwright 的 recordVideo 要它自己那一版 ffmpeg（這台沒有），改用 CDP 的 screencast 收每一幀（帶時間戳），
+   再用系統 ffmpeg 照真實時間組成 mp4（H.264、yuv420p、crf 28、faststart、無聲、30 fps、畫面＝視窗 CSS 大小） */
 async function video(v, name, fn, o = {}) {
   const V = VP[v],
-    tmp = path.join(OUT, '_vid');
+    tmp = path.join(OUT, '_vid', name + '-' + v);
+  fs.rmSync(tmp, { recursive: true, force: true });
   fs.mkdirSync(tmp, { recursive: true });
-  const ctx = await ctxOf(v, { video: tmp, rm: o.rm, block: o.block });
+  const ctx = await ctxOf(v, { rm: o.rm, block: o.block });
   const p = await load(ctx);
+  const cdp = await ctx.newCDPSession(p),
+    F = [];
+  let rec = false;
+  cdp.on('Page.screencastFrame', async e => {
+    cdp.send('Page.screencastFrameAck', { sessionId: e.sessionId }).catch(() => 0);
+    if (!rec) return;
+    const f = path.join(tmp, String(F.length).padStart(5, '0') + '.png');
+    fs.writeFileSync(f, Buffer.from(e.data, 'base64'));
+    F.push({ f, t: e.metadata.timestamp });
+  });
+  await cdp.send('Page.startScreencast', { format: 'png', maxWidth: V.w * V.dpr, maxHeight: V.h * V.dpr, everyNthFrame: 1 });
+  await fn(p, () => (rec = true));
+  rec = false;
+  await cdp.send('Page.stopScreencast').catch(() => 0);
   const errs = p.errs;
-  await fn(p);
-  const vp = await p.video().path();
   await ctx.close();
   const dst = path.join(OUT, V.dir, name + '.mp4');
   fs.mkdirSync(path.dirname(dst), { recursive: true });
-  /* 開頭載入的那一段剪掉，只留最後 o.len 秒 */
-  const dur = parseFloat(
-    execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', vp]).toString()
-  );
-  const len = o.len || 3,
-    ss = Math.max(0, dur - len);
-  execFileSync('ffmpeg', [
-    '-y',
-    '-loglevel',
-    'error',
-    '-ss',
-    String(ss),
-    '-i',
-    vp,
-    '-an',
-    '-r',
-    '30',
-    '-c:v',
-    'libx264',
-    '-pix_fmt',
-    'yuv420p',
-    '-crf',
-    '28',
-    '-movflags',
-    '+faststart',
-    '-vf',
-    `scale=${V.w}:${V.h}`,
-    dst
-  ]);
-  fs.rmSync(vp, { force: true });
-  console.log(`🎬 ${V.dir}/${name}.mp4 ${(fs.statSync(dst).size / 1e6).toFixed(2)} MB`);
-  return { file: path.relative(OUT, dst), errs };
+  if (F.length < 2) {
+    console.log(`❌ ${name} ${v} 沒有收到畫格`);
+    return { file: '', errs, frames: F.length };
+  }
+  const list = F.map((x, i) => `file '${x.f}'\nduration ${((F[i + 1] ? F[i + 1].t : x.t + 1 / 30) - x.t).toFixed(4)}`).join('\n') + `\nfile '${F[F.length - 1].f}'\n`;
+  fs.writeFileSync(path.join(tmp, 'list.txt'), list);
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', path.join(tmp, 'list.txt'), '-an', '-vf', `scale=${V.w}:${V.h}:flags=lanczos,fps=30`, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '28', '-movflags', '+faststart', dst]);
+  fs.rmSync(tmp, { recursive: true, force: true });
+  const dur = (F[F.length - 1].t - F[0].t).toFixed(2);
+  console.log(`🎬 ${V.dir}/${name}.mp4 ${(fs.statSync(dst).size / 1e6).toFixed(2)} MB ${dur} 秒 ${F.length} 幀`);
+  return { file: path.relative(OUT, dst), errs, frames: F.length, dur: +dur };
 }
 /* 真時間跑（影片用）：解除凍結 ms 毫秒後再凍結 */
 const runFor = async (p, ms) => {
@@ -1381,9 +1374,11 @@ async function videos(v) {
     out[n] = await video(
       v,
       n,
-      async p => {
+      async (p, go) => {
         await prep(p);
         await p.evaluate(() => (S.auto = 0)); /* 主角不走動，鏡頭不晃 */
+        await p.waitForTimeout(300);
+        go();
         await p.waitForTimeout(500);
         await f(p);
         await p.waitForTimeout(ms + 500);
@@ -1401,8 +1396,9 @@ async function videos(v) {
     out['fx-' + k + '-fallback'] = await video(
       v,
       `fx-${k}-fallback`,
-      async p => {
+      async (p, go) => {
         await prep(p);
+        go();
         await p.evaluate(() => {
           S.auto = 0;
           for (const k of Object.keys(FXS)) if (k.startsWith('sig_')) delete FXS[k];
@@ -1417,8 +1413,9 @@ async function videos(v) {
   out['forge-make-scroll'] = await video(
     v,
     'forge-make-scroll',
-    async p => {
+    async (p, go) => {
       await prep(p);
+      go();
       await p.evaluate(() => {
         S.auto = 0;
         fmenuOpen('forge');

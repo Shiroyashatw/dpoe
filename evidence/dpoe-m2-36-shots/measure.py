@@ -150,8 +150,8 @@ def measure_static(r, dom, A):
     # (a)
     out['a_scene_l'] = round(float(Ls[scene].mean()), 2) if scene.any() else ''
     out['a_panel_l'] = round(float(Ls[pm].mean()), 2) if pm.any() else ''
-    keyd = []
-    keyL = []
+    # 關鍵資訊：字色（計算後樣式）的 L* 對它所在那一層（字框內最多的顏色，排除跟字色接近的像素）
+    keyd, keyL, keyS = [], [], []
     for t in dom['texts']:
         if not t['key']:
             continue
@@ -159,22 +159,22 @@ def measure_static(r, dom, A):
         px = rgb[m]
         if len(px) < 4:
             continue
-        bg = mode_rgb(px)
-        lb = lab(bg[None])[0][0]
-        lp = L[m]
-        fg = np.abs(lp[..., 0] - lb[0]) > 10
-        if fg.sum() < 3:
-            continue
-        keyL.append(float(lp[fg][:, 0].mean()))
-        keyd.append(abs(float(lp[fg][:, 0].mean()) - lb[0]))
+        fg, fa = cssrgb(t['color'])
+        far = np.abs(px - fg).sum(1) > 60
+        bg = mode_rgb(px[far]) if far.sum() > 4 else mode_rgb(px)
+        fg = fg * fa + bg * (1 - fa)
+        lf, lb = lab(fg[None])[0][0][0], lab(bg[None])[0][0][0]
+        keyL.append(float(lf))
+        keyd.append(abs(float(lf - lb)))
+        keyS.append(t['sel'][-40:])
     out['a_key_l'] = round(float(np.mean(keyL)), 2) if keyL else ''
     out['a_panel_minus_scene'] = round(out['a_panel_l'] - out['a_scene_l'], 2) if pm.any() and scene.any() else ''
     out['a_key_minus_layer'] = round(float(min(keyd)), 2) if keyd else ''
     if out['a_panel_minus_scene'] != '' and out['a_panel_minus_scene'] < THR['a_panel_scene']:
         fails.append(f"(a) 面板−場景 {out['a_panel_minus_scene']} < {THR['a_panel_scene']}")
     if out['a_key_minus_layer'] != '' and out['a_key_minus_layer'] < THR['a_key']:
-        worst = min(zip(keyd, [t['sel'] for t in dom['texts'] if t['key']]))[1] if keyd else ''
-        fails.append(f"(a) 關鍵資訊−所在層最小 {out['a_key_minus_layer']} < {THR['a_key']}")
+        worst = min(zip(keyd, keyS))[1]
+        fails.append(f"(a) 關鍵資訊−所在層最小 {out['a_key_minus_layer']} < {THR['a_key']}（{worst}）")
     # (b)
     if pm.any() and scene.any() and not nightfog:
         out['b_panel_scene'] = round(float((Y[pm].mean() + 0.05) / (Y[scene].mean() + 0.05)), 3)
@@ -213,8 +213,9 @@ def measure_static(r, dom, A):
         px = rgb[m]
         if len(px) < 4:
             continue
-        bg = mode_rgb(px)
         fg, fa = cssrgb(t['color'])
+        far = np.abs(px - fg).sum(1) > 60
+        bg = mode_rgb(px[far]) if far.sum() > 4 else mode_rgb(px)
         fg = fg * fa + bg * (1 - fa)
         v = cr(float(relY(fg[None])[0]), float(relY(bg[None])[0]))
         crs.append(v)
