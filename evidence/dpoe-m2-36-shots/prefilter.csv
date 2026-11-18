@@ -1,0 +1,355 @@
+# M2-36 清單展開後 353 列（清單列 × 尺寸；連拍、特寫、素材、效能、影片各算一列），commit 9e1a4dc
+id,viewport,screen,state,verdict,why,file,star
+N-1-temple,1280x720,num-temple,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF5 圖示非整數倍 8 個,1280x720/num-temple-kinds.png,★
+N-3-temple,1280x720,num-temple,far,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF5 圖示非整數倍 8 個,1280x720/num-temple-far.png,★
+N-3-temple,1280x720,num-temple,far-night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.84）；PF5 圖示非整數倍 8 個,1280x720/num-temple-far-night.png,★
+N-1-lava,1280x720,num-lava,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF5 圖示非整數倍 8 個,1280x720/num-lava-kinds.png,★
+N-3-lava,1280x720,num-lava,far,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF5 圖示非整數倍 8 個,1280x720/num-lava-far.png,
+N-3-lava,1280x720,num-lava,far-night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF5 圖示非整數倍 8 個,1280x720/num-lava-far-night.png,
+N-1-tomb,1280x720,num-tomb,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/num-tomb-kinds.png,★
+N-3-tomb,1280x720,num-tomb,far,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/num-tomb-far.png,
+N-3-tomb,1280x720,num-tomb,far-night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 8 個,1280x720/num-tomb-far-night.png,
+N-1-ice,1280x720,num-ice,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/num-ice-kinds.png,★
+N-3-ice,1280x720,num-ice,far,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/num-ice-far.png,
+N-3-ice,1280x720,num-ice,far-night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/num-ice-far-night.png,
+B-1-temple,1280x720,hud-temple,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 8 個,1280x720/hud-temple-hp100.png,
+B-1-temple,1280x720,hud-temple,hp30,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個,1280x720/hud-temple-hp30.png,★
+B-1-temple,1280x720,hud-temple,hp5,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個；PF9 生命 5% 沒有跳吐司,1280x720/hud-temple-hp5.png,
+B-2-temple,1280x720,hud-temple,mp0,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/hud-temple-mp0.png,
+B-2-temple,1280x720,hud-temple,mphot,fail,"(a) 關鍵資訊−所在層最小 6.94 < 40（#bmp > span）；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",1280x720/hud-temple-mphot.png,
+B-3-temple,1280x720,hud-temple,boss,fail,(b) 面板÷場景 1.194 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 8 個,1280x720/hud-temple-boss.png,★
+B-1-lava,1280x720,hud-lava,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 8 個,1280x720/hud-lava-hp100.png,
+B-1-lava,1280x720,hud-lava,hp30,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個,1280x720/hud-lava-hp30.png,★
+B-1-lava,1280x720,hud-lava,hp5,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個；PF9 生命 5% 沒有跳吐司,1280x720/hud-lava-hp5.png,
+B-2-lava,1280x720,hud-lava,mp0,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/hud-lava-mp0.png,
+B-2-lava,1280x720,hud-lava,mphot,fail,"(a) 關鍵資訊−所在層最小 6.94 < 40（#bmp > span）；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",1280x720/hud-lava-mphot.png,
+B-3-lava,1280x720,hud-lava,boss,fail,(b) 面板÷場景 1.224 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 8 個,1280x720/hud-lava-boss.png,★
+B-1-tomb,1280x720,hud-tomb,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/hud-tomb-hp100.png,
+B-1-tomb,1280x720,hud-tomb,hp30,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個,1280x720/hud-tomb-hp30.png,★
+B-1-tomb,1280x720,hud-tomb,hp5,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個；PF9 生命 5% 沒有跳吐司,1280x720/hud-tomb-hp5.png,
+B-2-tomb,1280x720,hud-tomb,mp0,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/hud-tomb-mp0.png,
+B-2-tomb,1280x720,hud-tomb,mphot,fail,"(a) 關鍵資訊−所在層最小 6.94 < 40（#bmp > span）；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",1280x720/hud-tomb-mphot.png,
+B-3-tomb,1280x720,hud-tomb,boss,fail,(b) 面板÷場景 1.23 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/hud-tomb-boss.png,★
+B-1-ice,1280x720,hud-ice,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/hud-ice-hp100.png,
+B-1-ice,1280x720,hud-ice,hp30,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個,1280x720/hud-ice-hp30.png,★
+B-1-ice,1280x720,hud-ice,hp5,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 8 個；PF9 生命 5% 沒有跳吐司,1280x720/hud-ice-hp5.png,
+B-2-ice,1280x720,hud-ice,mp0,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/hud-ice-mp0.png,
+B-2-ice,1280x720,hud-ice,mphot,fail,"(a) 關鍵資訊−所在層最小 6.94 < 40（#bmp > span）；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",1280x720/hud-ice-mphot.png,
+B-3-ice,1280x720,hud-ice,boss,fail,(b) 面板÷場景 1.218 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/hud-ice-boss.png,★
+G-1-temple,1280x720,bag-temple,open,fail,(b) 面板÷場景 1.266 < 1.4；(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 3 個,1280x720/bag-temple-open.png,★
+G-3-temple,1280x720,dialog-temple,camp,fail,(e) 正文對比不在 4.5–12：12 筆（例 #area「雪埋古道 · 1」13.12）；PF5 圖示非整數倍 3 個,1280x720/dialog-temple-camp.png,
+G-4-temple,1280x720,tip-temple,item,fail,(b) 面板÷場景 1.335 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/tip-temple-item.png,
+G-1-lava,1280x720,bag-lava,open,fail,(b) 面板÷場景 1.3 < 1.4；(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 3 個,1280x720/bag-lava-open.png,★
+G-3-lava,1280x720,dialog-lava,camp,fail,(e) 正文對比不在 4.5–12：14 筆（例 #area「雪埋古道 · 1」13.12）；PF5 圖示非整數倍 3 個,1280x720/dialog-lava-camp.png,
+G-4-lava,1280x720,tip-lava,item,fail,(b) 面板÷場景 1.317 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/tip-lava-item.png,
+G-1-tomb,1280x720,bag-tomb,open,fail,(b) 面板÷場景 1.283 < 1.4；(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.79）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 3 個,1280x720/bag-tomb-open.png,★
+G-3-tomb,1280x720,dialog-tomb,camp,fail,(e) 正文對比不在 4.5–12：14 筆（例 #area「雪埋古道 · 1」13.10）；PF5 圖示非整數倍 3 個,1280x720/dialog-tomb-camp.png,
+G-4-tomb,1280x720,tip-tomb,item,fail,(b) 面板÷場景 1.305 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/tip-tomb-item.png,
+G-1-ice,1280x720,bag-ice,open,fail,(b) 面板÷場景 1.272 < 1.4；(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.79）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 3 個,1280x720/bag-ice-open.png,★
+G-3-ice,1280x720,dialog-ice,camp,fail,(e) 正文對比不在 4.5–12：13 筆（例 #area「雪埋古道 · 1」13.10）；PF5 圖示非整數倍 3 個,1280x720/dialog-ice-camp.png,
+G-4-ice,1280x720,tip-ice,item,fail,(b) 面板÷場景 1.32 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/tip-ice-item.png,
+G-2,1280x720,forge-lava,twocol,fail,(b) 面板÷場景 1.343 < 1.4；(e) 正文對比不在 4.5–12：17 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 7 種 > 5；PF5 圖示非整數倍 16 個,1280x720/forge-lava-twocol.png,★
+W-1,1280x720,bag,wangyin,fail,PF2 驗狀態不成立：[...document.querySelectorAll('#pinv img')].filter(__vis).some(i => Object.entries(__wyURL()).some((；(b) 面板÷場景 1.266 < 1.4；(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 3 個；PF9 畫面上沒有 32 px 王印圖示,1280x720/bag-wangyin.png,★
+W-2,1280x720,tip,wangyin-line,fail,(b) 面板÷場景 1.351 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 8 個；PF9 畫面上沒有 16 px 王印圖示,1280x720/tip-wangyin-line.png,★
+W-3,1280x720,tip,wangyin-item,fail,(b) 面板÷場景 1.373 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 7 個；PF9 王印圖示不是 1 倍：0.941,1280x720/tip-wangyin-item.png,
+W-4,1280x720,log,chase,fail,(a) 面板−場景 7.16 < 8；(b) 面板÷場景 1.18 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 3 個；PF5 熱區 < 32：5 個（最小 422x31 #plog > ul.lgl > li.lg-chase）；PF9 畫面上沒有 32 px 王印圖示,1280x720/log-chase.png,
+W-5,1280x720,pchase,locked,fail,(a) 面板−場景 5.85 < 8；(b) 面板÷場景 1.127 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「地層出口 · 1」12.81）；PF5 圖示非整數倍 7 個,1280x720/pchase-locked.png,
+W-5,1280x720,pchase,k0,fail,(a) 面板−場景 5.58 < 8；(b) 面板÷場景 1.113 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 7 個,1280x720/pchase-k0.png,
+W-5,1280x720,pchase,k2,fail,(a) 面板−場景 6.11 < 8；(b) 面板÷場景 1.166 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 7 個；PF9 王印圖示不是 1 倍：0.941,1280x720/pchase-k2.png,★
+W-5,1280x720,pchase,k4,fail,(a) 面板−場景 6.65 < 8；(b) 面板÷場景 1.221 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 7 個；PF9 王印圖示不是 1 倍：0.941,1280x720/pchase-k4.png,
+W-6,1280x720,banner,single,fail,(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 9 個；PF9 王印圖示不是 1 倍：1.176,1280x720/banner-single.png,★
+W-6,1280x720,banner,merged,fail,(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 10 個；PF9 王印圖示不是 1 倍：1.176,1280x720/banner-merged.png,
+W-6,1280x720,banner,bossbar,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.82）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 9 個；PF9 王印圖示不是 1 倍：1.176,1280x720/banner-bossbar.png,
+W-7,1280x720,bosscard,wangyin,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF9 畫面上沒有 32 px 王印圖示,1280x720/bosscard-wangyin.png,
+W-8,1280x720,offline,chase,fail,(b) 面板÷場景 1.362 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個；PF9 王印圖示不是 1 倍：0.588,1280x720/offline-chase.png,
+W-8,1280x720,offline,zero,fail,(a) 面板−場景 6.98 < 8；(b) 面板÷場景 1.23 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個；PF9 王印圖示不是 1 倍：0.588,1280x720/offline-zero.png,
+K-1,1280x720,forge-make,top,fail,(b) 面板÷場景 1.377 < 1.4；(e) 正文對比不在 4.5–12：16 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 7 種 > 5；PF5 圖示非整數倍 16 個；PF9 動作列上緣外沒有 scrim 陰影,1280x720/forge-make-top.png,
+K-1,1280x720,forge-make,mid,fail,(b) 面板÷場景 1.37 < 1.4；(e) 正文對比不在 4.5–12：16 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 7 種 > 5；PF5 圖示非整數倍 15 個；PF9 動作列上緣外沒有 scrim 陰影,1280x720/forge-make-mid.png,★
+K-1,1280x720,forge-make,bottom,fail,(e) 正文對比不在 4.5–12：12 筆（例 #area「雪埋古道 · 1」12.81）；(e) 介面字色 7 種 > 5；PF5 圖示非整數倍 10 個；PF9 動作列上緣外沒有 scrim 陰影,1280x720/forge-make-bottom.png,
+G-5,1280x720,camp,scene,fail,(a) 關鍵資訊−所在層最小 15.15 < 40（#bmp > span）；(e) 正文對比不在 4.5–12：3 筆（例 #area「藏身處 · 角色」12.82）；PF5 圖示非整數倍 3 個,1280x720/camp-scene.png,
+G-5,1280x720,camp,overview,fail,(a) 面板−場景 -8.11 < 8；(a) 關鍵資訊−所在層最小 15.15 < 40（#bmp > span）；(b) 面板÷場景 0.693 < 1.4；(e) 正文對比不在 4.5–12：4 筆（例 #area「藏身處 · 角色」12.82）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 13 個,1280x720/camp-overview.png,★
+X-1-temple,1280x720,fx-crit-temple,play,pass,,1280x720/fx-crit-temple-play-sheet.png,★（影片）
+X-2-temple,1280x720,fx-lvup-temple,play,pass,,1280x720/fx-lvup-temple-play-sheet.png,★（影片）
+X-4-temple,1280x720,fx-chase-temple,play,pass,,1280x720/fx-chase-temple-play-sheet.png,★（影片）
+X-3-temple,1280x720,fx-beam-temple,rare,pass,,1280x720/fx-beam-temple-rare-sheet.png,★（影片）
+X-3-temple,1280x720,fx-beam-temple,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,1280x720/fx-beam-temple-unique-sheet.png,★（影片）
+X-3-temple,1280x720,fx-beam-temple,chase,pass,,1280x720/fx-beam-temple-chase-sheet.png,★（影片）
+X-1-lava,1280x720,fx-crit-lava,play,pass,,1280x720/fx-crit-lava-play-sheet.png,
+X-2-lava,1280x720,fx-lvup-lava,play,pass,,1280x720/fx-lvup-lava-play-sheet.png,
+X-4-lava,1280x720,fx-chase-lava,play,pass,,1280x720/fx-chase-lava-play-sheet.png,
+X-3-lava,1280x720,fx-beam-lava,rare,pass,,1280x720/fx-beam-lava-rare-sheet.png,
+X-3-lava,1280x720,fx-beam-lava,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,1280x720/fx-beam-lava-unique-sheet.png,
+X-3-lava,1280x720,fx-beam-lava,chase,pass,,1280x720/fx-beam-lava-chase-sheet.png,
+X-1-tomb,1280x720,fx-crit-tomb,play,pass,,1280x720/fx-crit-tomb-play-sheet.png,
+X-2-tomb,1280x720,fx-lvup-tomb,play,pass,,1280x720/fx-lvup-tomb-play-sheet.png,
+X-4-tomb,1280x720,fx-chase-tomb,play,pass,,1280x720/fx-chase-tomb-play-sheet.png,
+X-3-tomb,1280x720,fx-beam-tomb,rare,pass,,1280x720/fx-beam-tomb-rare-sheet.png,
+X-3-tomb,1280x720,fx-beam-tomb,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,1280x720/fx-beam-tomb-unique-sheet.png,
+X-3-tomb,1280x720,fx-beam-tomb,chase,pass,,1280x720/fx-beam-tomb-chase-sheet.png,
+X-1-ice,1280x720,fx-crit-ice,play,pass,,1280x720/fx-crit-ice-play-sheet.png,
+X-2-ice,1280x720,fx-lvup-ice,play,pass,,1280x720/fx-lvup-ice-play-sheet.png,
+X-4-ice,1280x720,fx-chase-ice,play,pass,,1280x720/fx-chase-ice-play-sheet.png,
+X-3-ice,1280x720,fx-beam-ice,rare,pass,,1280x720/fx-beam-ice-rare-sheet.png,
+X-3-ice,1280x720,fx-beam-ice,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,1280x720/fx-beam-ice-unique-sheet.png,
+X-3-ice,1280x720,fx-beam-ice,chase,pass,,1280x720/fx-beam-ice-chase-sheet.png,
+X-5,1280x720,fx-wyapply,play,pass,,1280x720/fx-wyapply-play-sheet.png,★（影片）
+X-7,1280x720,combat-temple,fx5s,pass,,1280x720/combat-temple-fx5s-sheet.png,
+N-2-temple,1280x720,num-temple,fire10s,fail,PF7 數字外框交疊：53／60 幀,1280x720/num-temple-fire10s-sheet.png,
+N-2-temple,1280x720,num-temple,fire10s-crit,fail,PF7 數字外框交疊：42／60 幀,1280x720/num-temple-fire10s-crit-sheet.png,
+N-2-temple,1280x720,num-temple,fire10s-off,pass,,1280x720/num-temple-fire10s-off-sheet.png,
+N-2-lava,1280x720,num-lava,fire10s,fail,PF7 數字外框交疊：56／60 幀,1280x720/num-lava-fire10s-sheet.png,
+N-2-lava,1280x720,num-lava,fire10s-crit,fail,PF7 數字外框交疊：42／60 幀,1280x720/num-lava-fire10s-crit-sheet.png,
+N-2-lava,1280x720,num-lava,fire10s-off,pass,,1280x720/num-lava-fire10s-off-sheet.png,
+N-2-tomb,1280x720,num-tomb,fire10s,fail,PF7 數字外框交疊：56／60 幀,1280x720/num-tomb-fire10s-sheet.png,
+N-2-tomb,1280x720,num-tomb,fire10s-crit,fail,PF7 數字外框交疊：42／60 幀,1280x720/num-tomb-fire10s-crit-sheet.png,
+N-2-tomb,1280x720,num-tomb,fire10s-off,pass,,1280x720/num-tomb-fire10s-off-sheet.png,
+N-2-ice,1280x720,num-ice,fire10s,fail,PF7 數字外框交疊：42／60 幀,1280x720/num-ice-fire10s-sheet.png,
+N-2-ice,1280x720,num-ice,fire10s-crit,fail,PF7 數字外框交疊：40／60 幀,1280x720/num-ice-fire10s-crit-sheet.png,
+N-2-ice,1280x720,num-ice,fire10s-off,pass,,1280x720/num-ice-fire10s-off-sheet.png,
+X-6,1280x720,fx-crit,rm,fail,PF9 減少動態仍有位移或縮放：變化區域外框差 18 裝置 px,1280x720/fx-crit-rm-sheet.png,
+X-6,1280x720,fx-lvup,rm,fail,PF9 減少動態仍有位移或縮放：變化區域外框差 86 裝置 px,1280x720/fx-lvup-rm-sheet.png,
+X-6,1280x720,fx-beam,rm,pass,,1280x720/fx-beam-rm-sheet.png,
+X-6,1280x720,fx-chase,rm,pass,,1280x720/fx-chase-rm-sheet.png,
+X-6,1280x720,fx-wyapply,rm,pass,,1280x720/fx-wyapply-rm-sheet.png,
+T-5-temple,1280x720,combat-temple,fallback,fail,(b) 面板÷場景 1.319 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/combat-temple-fallback.png,
+T-5-lava,1280x720,combat-lava,fallback,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/combat-lava-fallback.png,
+T-5-tomb,1280x720,combat-tomb,fallback,fail,(b) 面板÷場景 1.374 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/combat-tomb-fallback.png,
+T-5-ice,1280x720,combat-ice,fallback,fail,(a) 面板−場景 7.12 < 8；(b) 面板÷場景 1.208 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/combat-ice-fallback.png,
+T-1-temple,1280x720,combat-temple,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/combat-temple-idle.png,★
+T-2-temple,1280x720,combat-temple,night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.84）；PF5 圖示非整數倍 8 個,1280x720/combat-temple-night.png,★（燭龍出戰的地形）
+T-3-temple,1280x720,combat-temple,fog,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.84）；PF5 圖示非整數倍 8 個,1280x720/combat-temple-fog.png,★（蚩尤出戰的地形）
+T-4-temple,1280x720,combat-temple,fire,fail,(b) 面板÷場景 1.003 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 5 個,1280x720/combat-temple-fire.png,★
+T-1-lava,1280x720,combat-lava,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 8 個,1280x720/combat-lava-idle.png,★
+T-2-lava,1280x720,combat-lava,night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF5 圖示非整數倍 8 個,1280x720/combat-lava-night.png,★（燭龍出戰的地形）
+T-3-lava,1280x720,combat-lava,fog,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF5 圖示非整數倍 8 個,1280x720/combat-lava-fog.png,★（蚩尤出戰的地形）
+T-4-lava,1280x720,combat-lava,fire,fail,(b) 面板÷場景 1.012 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 5 個,1280x720/combat-lava-fire.png,★
+T-1-tomb,1280x720,combat-tomb,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/combat-tomb-idle.png,★
+T-2-tomb,1280x720,combat-tomb,night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 8 個,1280x720/combat-tomb-night.png,★（燭龍出戰的地形）
+T-3-tomb,1280x720,combat-tomb,fog,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 8 個,1280x720/combat-tomb-fog.png,★（蚩尤出戰的地形）
+T-4-tomb,1280x720,combat-tomb,fire,fail,(b) 面板÷場景 0.996 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 5 個,1280x720/combat-tomb-fire.png,★
+T-1-ice,1280x720,combat-ice,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/combat-ice-idle.png,★
+T-2-ice,1280x720,combat-ice,night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/combat-ice-night.png,★（燭龍出戰的地形）
+T-3-ice,1280x720,combat-ice,fog,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 8 個,1280x720/combat-ice-fog.png,★（蚩尤出戰的地形）
+T-4-ice,1280x720,combat-ice,fire,fail,(b) 面板÷場景 1.031 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 5 個,1280x720/combat-ice-fire.png,★
+N-1-temple,390x844,num-temple,kinds,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.83）；PF7 hit「100」字高 12.19 < 13；PF7 hurt「322」字高 13.81 < 14；PF7 other「988」字高 9.75 < 11；PF5 圖示非整數倍 2 個,390x844/num-temple-kinds.png,★
+N-3-temple,390x844,num-temple,far,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.83）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-temple-far.png,★
+N-3-temple,390x844,num-temple,far-night,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.85）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-temple-far-night.png,★
+N-1-lava,390x844,num-lava,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF7 hit「100」字高 12.19 < 13；PF7 hurt「322」字高 13.81 < 14；PF7 other「988」字高 9.75 < 11；PF5 圖示非整數倍 2 個,390x844/num-lava-kinds.png,★
+N-3-lava,390x844,num-lava,far,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-lava-far.png,
+N-3-lava,390x844,num-lava,far-night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.83）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-lava-far-night.png,
+N-1-tomb,390x844,num-tomb,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF7 hit「100」字高 12.19 < 13；PF7 hurt「322」字高 13.81 < 14；PF7 other「988」字高 9.75 < 11；PF5 圖示非整數倍 2 個,390x844/num-tomb-kinds.png,★
+N-3-tomb,390x844,num-tomb,far,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-tomb-far.png,
+N-3-tomb,390x844,num-tomb,far-night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-tomb-far-night.png,
+N-1-ice,390x844,num-ice,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF7 hit「100」字高 12.19 < 13；PF7 hurt「322」字高 13.81 < 14；PF7 other「988」字高 9.75 < 11；PF5 圖示非整數倍 2 個,390x844/num-ice-kinds.png,★
+N-3-ice,390x844,num-ice,far,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-ice-far.png,
+N-3-ice,390x844,num-ice,far-night,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF7 hurt「87」字高 13.81 < 14；PF5 圖示非整數倍 2 個,390x844/num-ice-far-night.png,
+B-1-temple,390x844,hud-temple,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個,390x844/hud-temple-hp100.png,
+B-1-temple,390x844,hud-temple,hp30,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.71）；PF5 圖示非整數倍 2 個,390x844/hud-temple-hp30.png,★
+B-1-temple,390x844,hud-temple,hp5,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.71）；PF5 圖示非整數倍 2 個；PF9 生命 5% 沒有跳吐司,390x844/hud-temple-hp5.png,
+B-2-temple,390x844,hud-temple,mp0,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個,390x844/hud-temple-mp0.png,
+B-2-temple,390x844,hud-temple,mphot,fail,"(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",390x844/hud-temple-mphot.png,
+B-3-temple,390x844,hud-temple,boss,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個,390x844/hud-temple-boss.png,★
+B-1-lava,390x844,hud-lava,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個,390x844/hud-lava-hp100.png,
+B-1-lava,390x844,hud-lava,hp30,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 2 個,390x844/hud-lava-hp30.png,★
+B-1-lava,390x844,hud-lava,hp5,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.72）；PF5 圖示非整數倍 2 個；PF9 生命 5% 沒有跳吐司,390x844/hud-lava-hp5.png,
+B-2-lava,390x844,hud-lava,mp0,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個,390x844/hud-lava-mp0.png,
+B-2-lava,390x844,hud-lava,mphot,fail,"(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",390x844/hud-lava-mphot.png,
+B-3-lava,390x844,hud-lava,boss,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.82）；PF5 圖示非整數倍 2 個,390x844/hud-lava-boss.png,★
+B-1-tomb,390x844,hud-tomb,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 2 個,390x844/hud-tomb-hp100.png,
+B-1-tomb,390x844,hud-tomb,hp30,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.71）；PF5 圖示非整數倍 2 個,390x844/hud-tomb-hp30.png,★
+B-1-tomb,390x844,hud-tomb,hp5,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.71）；PF5 圖示非整數倍 2 個；PF9 生命 5% 沒有跳吐司,390x844/hud-tomb-hp5.png,
+B-2-tomb,390x844,hud-tomb,mp0,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 2 個,390x844/hud-tomb-mp0.png,
+B-2-tomb,390x844,hud-tomb,mphot,fail,"(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 2 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",390x844/hud-tomb-mphot.png,
+B-3-tomb,390x844,hud-tomb,boss,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 2 個,390x844/hud-tomb-boss.png,★
+B-1-ice,390x844,hud-ice,hp100,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個,390x844/hud-ice-hp100.png,
+B-1-ice,390x844,hud-ice,hp30,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.71）；PF5 圖示非整數倍 2 個,390x844/hud-ice-hp30.png,★
+B-1-ice,390x844,hud-ice,hp5,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.71）；PF5 圖示非整數倍 2 個；PF9 生命 5% 沒有跳吐司,390x844/hud-ice-hp5.png,
+B-2-ice,390x844,hud-ice,mp0,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個,390x844/hud-ice-mp0.png,
+B-2-ice,390x844,hud-ice,mphot,fail,"(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個；PF9 過熱有外發光／濾鏡：#bmp rgba(255, 138, 76, 0.7) 0px 0px 8px 0px",390x844/hud-ice-mphot.png,
+B-3-ice,390x844,hud-ice,boss,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個,390x844/hud-ice-boss.png,★
+G-1-temple,390x844,bag-temple,open,fail,(a) 面板−場景 2.94 < 8；(b) 面板÷場景 1.002 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.61）；PF5 熱區 < 44：1 個（最小 390x24 #phand）,390x844/bag-temple-open.png,★
+G-3-temple,390x844,dialog-temple,camp,fail,(e) 正文對比不在 4.5–12：5 筆（例 #area「雪埋古道 · 1」13.12）；PF5 圖示非整數倍 2 個,390x844/dialog-temple-camp.png,
+G-4-temple,390x844,tip-temple,item,fail,(b) 面板÷場景 1.26 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個,390x844/tip-temple-item.png,
+G-1-lava,390x844,bag-lava,open,fail,(a) 面板−場景 6.17 < 8；(b) 面板÷場景 1.144 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.49）；PF5 熱區 < 44：1 個（最小 390x24 #phand）,390x844/bag-lava-open.png,★
+G-3-lava,390x844,dialog-lava,camp,fail,(e) 正文對比不在 4.5–12：5 筆（例 #area「雪埋古道 · 1」13.12）；PF5 圖示非整數倍 2 個,390x844/dialog-lava-camp.png,
+G-4-lava,390x844,tip-lava,item,fail,(b) 面板÷場景 1.261 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個,390x844/tip-lava-item.png,
+G-1-tomb,390x844,bag-tomb,open,fail,(a) 面板−場景 4.76 < 8；(b) 面板÷場景 1.095 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.56）；PF5 熱區 < 44：1 個（最小 390x24 #phand）,390x844/bag-tomb-open.png,★
+G-3-tomb,390x844,dialog-tomb,camp,fail,(e) 正文對比不在 4.5–12：5 筆（例 #area「雪埋古道 · 1」13.09）；PF5 圖示非整數倍 2 個,390x844/dialog-tomb-camp.png,
+G-4-tomb,390x844,tip-tomb,item,fail,(b) 面板÷場景 1.248 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個,390x844/tip-tomb-item.png,
+G-1-ice,390x844,bag-ice,open,fail,(a) 面板−場景 4.23 < 8；(b) 面板÷場景 1.074 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.60）；PF5 熱區 < 44：1 個（最小 390x24 #phand）,390x844/bag-ice-open.png,★
+G-3-ice,390x844,dialog-ice,camp,fail,(e) 正文對比不在 4.5–12：5 筆（例 #area「雪埋古道 · 1」13.09）；PF5 圖示非整數倍 2 個,390x844/dialog-ice-camp.png,
+G-4-ice,390x844,tip-ice,item,fail,(b) 面板÷場景 1.263 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個,390x844/tip-ice-item.png,
+G-2,390x844,forge-lava,twocol,n/a,只桌機（直立鍛造是半版，沒有兩欄）,,★
+W-1,390x844,bag,wangyin,fail,PF2 驗狀態不成立：[...document.querySelectorAll('#pinv img')].filter(__vis).some(i => Object.entries(__wyURL()).some((；(a) 面板−場景 2.94 < 8；(b) 面板÷場景 1.002 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.61）；PF5 熱區 < 44：1 個（最小 390x24 #phand）；PF9 畫面上沒有 32 px 王印圖示,390x844/bag-wangyin.png,★
+W-2,390x844,tip,wangyin-line,fail,(b) 面板÷場景 1.303 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個；PF9 畫面上沒有 16 px 王印圖示,390x844/tip-wangyin-line.png,★
+W-3,390x844,tip,wangyin-item,fail,(a) 面板−場景 5.56 < 8；(b) 面板÷場景 1.234 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.61）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 4 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）；PF9 王印圖示不是 1 倍：0.941,390x844/tip-wangyin-item.png,
+W-4,390x844,log,chase,fail,(a) 面板−場景 2.71 < 8；(b) 面板÷場景 1.042 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.61）；PF5 熱區 < 44：6 個（最小 390x24 #phand）；PF9 畫面上沒有 32 px 王印圖示,390x844/log-chase.png,
+W-5,390x844,pchase,locked,fail,(a) 面板−場景 1.43 < 8；(b) 面板÷場景 0.984 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「地層出口 · 1」12.61）；PF5 圖示非整數倍 4 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）,390x844/pchase-locked.png,
+W-5,390x844,pchase,k0,fail,(a) 面板−場景 1.08 < 8；(b) 面板÷場景 0.96 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 4 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）,390x844/pchase-k0.png,
+W-5,390x844,pchase,k2,fail,(a) 面板−場景 1.6 < 8；(b) 面板÷場景 1.006 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 4 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）；PF9 王印圖示不是 1 倍：0.941,390x844/pchase-k2.png,★
+W-5,390x844,pchase,k4,fail,(a) 面板−場景 2.14 < 8；(b) 面板÷場景 1.055 < 1.4；(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 4 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）；PF9 王印圖示不是 1 倍：0.941,390x844/pchase-k4.png,
+W-6,390x844,banner,single,fail,(e) 正文對比不在 4.5–12：1 筆（例 #bmp > span「287 / 28」12.69）；PF5 圖示非整數倍 3 個；PF9 王印圖示不是 1 倍：1.176,390x844/banner-single.png,★
+W-6,390x844,banner,merged,fail,(e) 正文對比不在 4.5–12：1 筆（例 #bmp > span「287 / 28」12.69）；PF5 圖示非整數倍 4 個；PF9 王印圖示不是 1 倍：1.176,390x844/banner-merged.png,
+W-6,390x844,banner,bossbar,fail,(e) 正文對比不在 4.5–12：2 筆（例 #bossn「虎姑婆」12.96）；PF5 圖示非整數倍 3 個；PF9 王印圖示不是 1 倍：1.176,390x844/banner-bossbar.png,
+W-7,390x844,bosscard,wangyin,fail,(a) 面板−場景 4.23 < 8；(b) 面板÷場景 1.052 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.61）；PF9 畫面上沒有 32 px 王印圖示,390x844/bosscard-wangyin.png,
+W-8,390x844,offline,chase,fail,(a) 面板−場景 4.12 < 8；(b) 面板÷場景 1.178 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 2 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）；PF9 王印圖示不是 1 倍：0.588,390x844/offline-chase.png,
+W-8,390x844,offline,zero,fail,(a) 面板−場景 2.64 < 8；(b) 面板÷場景 1.03 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 2 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）；PF9 王印圖示不是 1 倍：0.588,390x844/offline-zero.png,
+K-1,390x844,forge-make,top,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 12 個；PF5 熱區 < 44：5 個（最小 390x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 778 < 844）,390x844/forge-make-top.png,
+K-1,390x844,forge-make,mid,fail,(a) 面板−場景 4.87 < 8；(b) 面板÷場景 1.311 < 1.4；(e) 正文對比不在 4.5–12：4 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 13 個；PF5 熱區 < 44：5 個（最小 390x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 778 < 844）,390x844/forge-make-mid.png,★
+K-1,390x844,forge-make,bottom,fail,(a) 面板−場景 6.3 < 8；(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 12 個；PF5 熱區 < 44：5 個（最小 390x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 778 < 844）,390x844/forge-make-bottom.png,
+K-1,390x844,forge-make,top-sa34,fail,(a) 面板−場景 7.82 < 8；(e) 正文對比不在 4.5–12：6 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 12 個；PF5 熱區 < 44：5 個（最小 390x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 744 < 844）,390x844/forge-make-top-sa34.png,
+K-1,390x844,forge-make,mid-sa34,fail,(a) 面板−場景 4.16 < 8；(b) 面板÷場景 1.286 < 1.4；(e) 正文對比不在 4.5–12：4 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 13 個；PF5 熱區 < 44：5 個（最小 390x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 744 < 844）,390x844/forge-make-mid-sa34.png,
+K-1,390x844,forge-make,bottom-sa34,fail,(a) 面板−場景 6.78 < 8；(e) 正文對比不在 4.5–12：6 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 12 個；PF5 熱區 < 44：5 個（最小 390x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 744 < 844）,390x844/forge-make-bottom-sa34.png,
+G-5,390x844,camp,scene,fail,(c) C*>40 17.45% > 10.0%；(e) 正文對比不在 4.5–12：1 筆（例 #area「藏身處 · 角色」12.83）；PF5 圖示非整數倍 2 個,390x844/camp-scene.png,
+G-5,390x844,camp,overview,fail,(e) 正文對比不在 4.5–12：1 筆（例 #run > button.btn.pri「繼續刷 雪埋古道」12.90）；(e) 介面字色 6 種 > 5；PF5 圖示非整數倍 11 個；PF5 熱區 < 44：1 個（最小 390x24 #phand）,390x844/camp-overview.png,★
+X-1-temple,390x844,fx-crit-temple,play,pass,,390x844/fx-crit-temple-play-sheet.png,★（影片）
+X-2-temple,390x844,fx-lvup-temple,play,pass,,390x844/fx-lvup-temple-play-sheet.png,★（影片）
+X-4-temple,390x844,fx-chase-temple,play,pass,,390x844/fx-chase-temple-play-sheet.png,★（影片）
+X-3-temple,390x844,fx-beam-temple,rare,pass,,390x844/fx-beam-temple-rare-sheet.png,★（影片）
+X-3-temple,390x844,fx-beam-temple,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,390x844/fx-beam-temple-unique-sheet.png,★（影片）
+X-3-temple,390x844,fx-beam-temple,chase,pass,,390x844/fx-beam-temple-chase-sheet.png,★（影片）
+X-1-lava,390x844,fx-crit-lava,play,pass,,390x844/fx-crit-lava-play-sheet.png,
+X-2-lava,390x844,fx-lvup-lava,play,pass,,390x844/fx-lvup-lava-play-sheet.png,
+X-4-lava,390x844,fx-chase-lava,play,pass,,390x844/fx-chase-lava-play-sheet.png,
+X-3-lava,390x844,fx-beam-lava,rare,pass,,390x844/fx-beam-lava-rare-sheet.png,
+X-3-lava,390x844,fx-beam-lava,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,390x844/fx-beam-lava-unique-sheet.png,
+X-3-lava,390x844,fx-beam-lava,chase,pass,,390x844/fx-beam-lava-chase-sheet.png,
+X-1-tomb,390x844,fx-crit-tomb,play,pass,,390x844/fx-crit-tomb-play-sheet.png,
+X-2-tomb,390x844,fx-lvup-tomb,play,pass,,390x844/fx-lvup-tomb-play-sheet.png,
+X-4-tomb,390x844,fx-chase-tomb,play,pass,,390x844/fx-chase-tomb-play-sheet.png,
+X-3-tomb,390x844,fx-beam-tomb,rare,pass,,390x844/fx-beam-tomb-rare-sheet.png,
+X-3-tomb,390x844,fx-beam-tomb,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,390x844/fx-beam-tomb-unique-sheet.png,
+X-3-tomb,390x844,fx-beam-tomb,chase,pass,,390x844/fx-beam-tomb-chase-sheet.png,
+X-1-ice,390x844,fx-crit-ice,play,pass,,390x844/fx-crit-ice-play-sheet.png,
+X-2-ice,390x844,fx-lvup-ice,play,pass,,390x844/fx-lvup-ice-play-sheet.png,
+X-4-ice,390x844,fx-chase-ice,play,pass,,390x844/fx-chase-ice-play-sheet.png,
+X-3-ice,390x844,fx-beam-ice,rare,pass,,390x844/fx-beam-ice-rare-sheet.png,
+X-3-ice,390x844,fx-beam-ice,unique,fail,PF9 量不到 beam_de：--rar-unique 這個 token 在 :root 沒有定義,390x844/fx-beam-ice-unique-sheet.png,
+X-3-ice,390x844,fx-beam-ice,chase,pass,,390x844/fx-beam-ice-chase-sheet.png,
+X-5,390x844,fx-wyapply,play,pass,,390x844/fx-wyapply-play-sheet.png,★（影片）
+X-7,390x844,combat-temple,fx5s,pass,,390x844/combat-temple-fx5s-sheet.png,
+N-2-temple,390x844,num-temple,fire10s,fail,PF7 數字外框交疊：37／60 幀；PF7 other「1」字高 9.75 < 11,390x844/num-temple-fire10s-sheet.png,
+N-2-temple,390x844,num-temple,fire10s-crit,fail,PF7 數字外框交疊：32／60 幀,390x844/num-temple-fire10s-crit-sheet.png,
+N-2-temple,390x844,num-temple,fire10s-off,pass,,390x844/num-temple-fire10s-off-sheet.png,
+N-2-lava,390x844,num-lava,fire10s,fail,PF7 數字外框交疊：44／60 幀；PF7 other「1」字高 10.56 < 11,390x844/num-lava-fire10s-sheet.png,
+N-2-lava,390x844,num-lava,fire10s-crit,fail,PF7 數字外框交疊：24／60 幀,390x844/num-lava-fire10s-crit-sheet.png,
+N-2-lava,390x844,num-lava,fire10s-off,pass,,390x844/num-lava-fire10s-off-sheet.png,
+N-2-tomb,390x844,num-tomb,fire10s,fail,PF7 數字外框交疊：50／60 幀；PF7 other「1」字高 9.75 < 11,390x844/num-tomb-fire10s-sheet.png,
+N-2-tomb,390x844,num-tomb,fire10s-crit,fail,PF7 數字外框交疊：48／60 幀,390x844/num-tomb-fire10s-crit-sheet.png,
+N-2-tomb,390x844,num-tomb,fire10s-off,pass,,390x844/num-tomb-fire10s-off-sheet.png,
+N-2-ice,390x844,num-ice,fire10s,fail,PF7 數字外框交疊：40／60 幀；PF7 other「1」字高 9.75 < 11,390x844/num-ice-fire10s-sheet.png,
+N-2-ice,390x844,num-ice,fire10s-crit,fail,PF7 數字外框交疊：46／60 幀,390x844/num-ice-fire10s-crit-sheet.png,
+N-2-ice,390x844,num-ice,fire10s-off,pass,,390x844/num-ice-fire10s-off-sheet.png,
+X-6,390x844,fx-crit,rm,fail,PF9 減少動態仍有位移或縮放：變化區域外框差 19 裝置 px,390x844/fx-crit-rm-sheet.png,
+X-6,390x844,fx-lvup,rm,fail,PF9 減少動態仍有位移或縮放：變化區域外框差 19 裝置 px,390x844/fx-lvup-rm-sheet.png,
+X-6,390x844,fx-beam,rm,fail,PF9 減少動態仍有位移或縮放：變化區域外框差 19 裝置 px,390x844/fx-beam-rm-sheet.png,
+X-6,390x844,fx-chase,rm,fail,PF9 減少動態仍有位移或縮放：變化區域外框差 141 裝置 px,390x844/fx-chase-rm-sheet.png,
+X-6,390x844,fx-wyapply,rm,pass,,390x844/fx-wyapply-rm-sheet.png,
+T-5-temple,390x844,combat-temple,fallback,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個,390x844/combat-temple-fallback.png,
+T-5-lava,390x844,combat-lava,fallback,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個,390x844/combat-lava-fallback.png,
+T-5-tomb,390x844,combat-tomb,fallback,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個,390x844/combat-tomb-fallback.png,
+T-5-ice,390x844,combat-ice,fallback,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF5 圖示非整數倍 2 個,390x844/combat-ice-fallback.png,
+T-1-temple,390x844,combat-temple,idle,fail,(e) 正文對比不在 4.5–12：2 筆（例 #area「雪埋古道 · 1」12.81）；PF5 圖示非整數倍 2 個,390x844/combat-temple-idle.png,★
+T-2-temple,390x844,combat-temple,night,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.85）；PF5 圖示非整數倍 2 個,390x844/combat-temple-night.png,★（燭龍出戰的地形）
+T-3-temple,390x844,combat-temple,fog,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.84）；PF5 圖示非整數倍 2 個,390x844/combat-temple-fog.png,★（蚩尤出戰的地形）
+T-4-temple,390x844,combat-temple,fire,fail,(a) 面板−場景 -4.73 < 8；(b) 面板÷場景 0.536 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.45）；PF5 圖示非整數倍 5 個,390x844/combat-temple-fire.png,★
+T-1-lava,390x844,combat-lava,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）,390x844/combat-lava-idle.png,★
+T-2-lava,390x844,combat-lava,night,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.83）,390x844/combat-lava-night.png,★（燭龍出戰的地形）
+T-3-lava,390x844,combat-lava,fog,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.83）,390x844/combat-lava-fog.png,★（蚩尤出戰的地形）
+T-4-lava,390x844,combat-lava,fire,fail,(a) 面板−場景 -2.9 < 8；(b) 面板÷場景 0.58 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.46）；PF5 圖示非整數倍 5 個,390x844/combat-lava-fire.png,★
+T-1-tomb,390x844,combat-tomb,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）,390x844/combat-tomb-idle.png,★
+T-2-tomb,390x844,combat-tomb,night,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.80）,390x844/combat-tomb-night.png,★（燭龍出戰的地形）
+T-3-tomb,390x844,combat-tomb,fog,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.80）,390x844/combat-tomb-fog.png,★（蚩尤出戰的地形）
+T-4-tomb,390x844,combat-tomb,fire,fail,(a) 面板−場景 -3.94 < 8；(b) 面板÷場景 0.568 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.22）；PF5 圖示非整數倍 5 個,390x844/combat-tomb-fire.png,★
+T-1-ice,390x844,combat-ice,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）,390x844/combat-ice-idle.png,★
+T-2-ice,390x844,combat-ice,night,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.79）,390x844/combat-ice-night.png,★（燭龍出戰的地形）
+T-3-ice,390x844,combat-ice,fog,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.79）,390x844/combat-ice-fog.png,★（蚩尤出戰的地形）
+T-4-ice,390x844,combat-ice,fire,fail,(a) 面板−場景 -4.16 < 8；(b) 面板÷場景 0.569 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.32）；PF5 圖示非整數倍 5 個,390x844/combat-ice-fire.png,★
+N-1-temple,375x667,num-temple,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF7 hit「100」字高 11.72 < 13；PF7 hurt「322」字高 13.28 < 14；PF7 other「+433 金」字高 10.94 < 11；PF7 other「544」字高 10.94 < 11；PF7 other「未命中」字高 10.94 < 11；PF7 other「988」字高 9.38 < 11；PF5 圖示非整數倍 2 個,375x667/num-temple-kinds.png,★
+N-1-lava,375x667,num-lava,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.81）；PF7 hit「100」字高 11.72 < 13；PF7 hurt「322」字高 13.28 < 14；PF7 other「+433 金」字高 10.94 < 11；PF7 other「544」字高 10.94 < 11；PF7 other「未命中」字高 10.94 < 11；PF7 other「988」字高 9.38 < 11；PF5 圖示非整數倍 2 個,375x667/num-lava-kinds.png,★
+N-1-tomb,375x667,num-tomb,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF7 hit「100」字高 11.72 < 13；PF7 hurt「322」字高 13.28 < 14；PF7 other「+433 金」字高 10.94 < 11；PF7 other「544」字高 10.94 < 11；PF7 other「未命中」字高 10.94 < 11；PF7 other「988」字高 9.38 < 11；PF5 圖示非整數倍 2 個,375x667/num-tomb-kinds.png,★
+N-1-ice,375x667,num-ice,kinds,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）；PF7 hit「100」字高 11.72 < 13；PF7 hurt「322」字高 13.28 < 14；PF7 other「+433 金」字高 10.94 < 11；PF7 other「544」字高 10.94 < 11；PF7 other「未命中」字高 10.94 < 11；PF7 other「988」字高 9.38 < 11；PF5 圖示非整數倍 2 個,375x667/num-ice-kinds.png,★
+K-1,375x667,forge-make,top,fail,(e) 正文對比不在 4.5–12：4 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 9 個；PF5 熱區 < 44：5 個（最小 375x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 601 < 667）,375x667/forge-make-top.png,
+K-1,375x667,forge-make,mid,fail,(e) 正文對比不在 4.5–12：3 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 13 個；PF5 熱區 < 44：5 個（最小 375x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 601 < 667）,375x667/forge-make-mid.png,★
+K-1,375x667,forge-make,bottom,fail,(e) 正文對比不在 4.5–12：5 筆（例 #area「雪埋古道 · 1」12.61）；PF5 圖示非整數倍 12 個；PF5 熱區 < 44：1 個（最小 375x24 #phand）；PF9 動作列上緣外沒有 scrim 陰影；PF9 底色沒鋪到螢幕底（列底 601 < 667）,375x667/forge-make-bottom.png,
+T-1-temple,375x667,combat-temple,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）；PF5 圖示非整數倍 2 個,375x667/combat-temple-idle.png,★
+T-4-temple,375x667,combat-temple,fire,fail,(a) 面板−場景 -4.27 < 8；(b) 面板÷場景 0.555 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.47）；PF5 圖示非整數倍 5 個,375x667/combat-temple-fire.png,★
+T-1-lava,375x667,combat-lava,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.80）,375x667/combat-lava-idle.png,★
+T-4-lava,375x667,combat-lava,fire,fail,(a) 面板−場景 -1.67 < 8；(b) 面板÷場景 0.612 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.46）；PF5 圖示非整數倍 5 個,375x667/combat-lava-fire.png,★
+T-1-tomb,375x667,combat-tomb,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）,375x667/combat-tomb-idle.png,★
+T-4-tomb,375x667,combat-tomb,fire,fail,(a) 面板−場景 -2.63 < 8；(b) 面板÷場景 0.599 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.53）；PF5 圖示非整數倍 5 個,375x667/combat-tomb-fire.png,★
+T-1-ice,375x667,combat-ice,idle,fail,(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.79）,375x667/combat-ice-idle.png,★
+T-4-ice,375x667,combat-ice,fire,fail,(a) 面板−場景 -3.41 < 8；(b) 面板÷場景 0.585 < 1.4；(e) 正文對比不在 4.5–12：1 筆（例 #area「雪埋古道 · 1」12.37）；PF5 圖示非整數倍 5 個,375x667/combat-ice-fire.png,★
+C-1-temple,1280x720,combat-temple,idle／seam-floor-x4,pass,,1280x720/crops/combat-temple-idle-seam-floor-x4.png,★
+C-2-temple,1280x720,combat-temple,idle／seam-walltop-x4,fail,seam 2.77 > 1.2,1280x720/crops/combat-temple-idle-seam-walltop-x4.png,★
+C-3-temple,1280x720,combat-temple,idle／seam-wallface-x4,pass,,1280x720/crops/combat-temple-idle-seam-wallface-x4.png,★
+C-4-temple,1280x720,combat-temple,idle／dark-floor-x2,pass,,1280x720/crops/combat-temple-idle-dark-floor-x2.png,
+C-1-lava,1280x720,combat-lava,idle／seam-floor-x4,pass,,1280x720/crops/combat-lava-idle-seam-floor-x4.png,★
+C-2-lava,1280x720,combat-lava,idle／seam-walltop-x4,pass,,1280x720/crops/combat-lava-idle-seam-walltop-x4.png,★
+C-3-lava,1280x720,combat-lava,idle／seam-wallface-x4,pass,,1280x720/crops/combat-lava-idle-seam-wallface-x4.png,★
+C-4-lava,1280x720,combat-lava,idle／dark-floor-x2,pass,,1280x720/crops/combat-lava-idle-dark-floor-x2.png,
+C-1-tomb,1280x720,combat-tomb,idle／seam-floor-x4,pass,,1280x720/crops/combat-tomb-idle-seam-floor-x4.png,★
+C-2-tomb,1280x720,combat-tomb,idle／seam-walltop-x4,fail,seam 1.4 > 1.2,1280x720/crops/combat-tomb-idle-seam-walltop-x4.png,★
+C-3-tomb,1280x720,combat-tomb,idle／seam-wallface-x4,pass,,1280x720/crops/combat-tomb-idle-seam-wallface-x4.png,★
+C-4-tomb,1280x720,combat-tomb,idle／dark-floor-x2,pass,,1280x720/crops/combat-tomb-idle-dark-floor-x2.png,
+C-1-ice,1280x720,combat-ice,idle／seam-floor-x4,pass,,1280x720/crops/combat-ice-idle-seam-floor-x4.png,★
+C-2-ice,1280x720,combat-ice,idle／seam-walltop-x4,fail,seam 1.54 > 1.2,1280x720/crops/combat-ice-idle-seam-walltop-x4.png,★
+C-3-ice,1280x720,combat-ice,idle／seam-wallface-x4,pass,,1280x720/crops/combat-ice-idle-seam-wallface-x4.png,★
+C-4-ice,1280x720,combat-ice,idle／dark-floor-x2,pass,,1280x720/crops/combat-ice-idle-dark-floor-x2.png,
+C-1-temple,390x844,combat-temple,idle／seam-floor-x4,pass,,390x844/crops/combat-temple-idle-seam-floor-x4.png,★
+C-2-temple,390x844,combat-temple,idle／seam-walltop-x4,fail,seam 2.78 > 1.2,390x844/crops/combat-temple-idle-seam-walltop-x4.png,★
+C-3-temple,390x844,combat-temple,idle／seam-wallface-x4,pass,,390x844/crops/combat-temple-idle-seam-wallface-x4.png,★
+C-4-temple,390x844,combat-temple,idle／dark-floor-x2,pass,,390x844/crops/combat-temple-idle-dark-floor-x2.png,
+C-1-lava,390x844,combat-lava,idle／seam-floor-x4,pass,,390x844/crops/combat-lava-idle-seam-floor-x4.png,★
+C-2-lava,390x844,combat-lava,idle／seam-walltop-x4,pass,,390x844/crops/combat-lava-idle-seam-walltop-x4.png,★
+C-3-lava,390x844,combat-lava,idle／seam-wallface-x4,pass,,390x844/crops/combat-lava-idle-seam-wallface-x4.png,★
+C-4-lava,390x844,combat-lava,idle／dark-floor-x2,pass,,390x844/crops/combat-lava-idle-dark-floor-x2.png,
+C-1-tomb,390x844,combat-tomb,idle／seam-floor-x4,pass,,390x844/crops/combat-tomb-idle-seam-floor-x4.png,★
+C-2-tomb,390x844,combat-tomb,idle／seam-walltop-x4,fail,seam 1.42 > 1.2,390x844/crops/combat-tomb-idle-seam-walltop-x4.png,★
+C-3-tomb,390x844,combat-tomb,idle／seam-wallface-x4,pass,,390x844/crops/combat-tomb-idle-seam-wallface-x4.png,★
+C-4-tomb,390x844,combat-tomb,idle／dark-floor-x2,pass,,390x844/crops/combat-tomb-idle-dark-floor-x2.png,
+C-1-ice,390x844,combat-ice,idle／seam-floor-x4,pass,,390x844/crops/combat-ice-idle-seam-floor-x4.png,★
+C-2-ice,390x844,combat-ice,idle／seam-walltop-x4,fail,seam 1.58 > 1.2,390x844/crops/combat-ice-idle-seam-walltop-x4.png,★
+C-3-ice,390x844,combat-ice,idle／seam-wallface-x4,pass,,390x844/crops/combat-ice-idle-seam-wallface-x4.png,★
+C-4-ice,390x844,combat-ice,idle／dark-floor-x2,pass,,390x844/crops/combat-ice-idle-dark-floor-x2.png,
+C-1-temple,375x667,combat-temple,idle／seam-floor-x4,pass,,375x667/crops/combat-temple-idle-seam-floor-x4.png,★
+C-2-temple,375x667,combat-temple,idle／seam-walltop-x4,fail,seam 2.78 > 1.2,375x667/crops/combat-temple-idle-seam-walltop-x4.png,★
+C-3-temple,375x667,combat-temple,idle／seam-wallface-x4,pass,,375x667/crops/combat-temple-idle-seam-wallface-x4.png,★
+C-4-temple,375x667,combat-temple,idle／dark-floor-x2,pass,,375x667/crops/combat-temple-idle-dark-floor-x2.png,
+C-1-lava,375x667,combat-lava,idle／seam-floor-x4,pass,,375x667/crops/combat-lava-idle-seam-floor-x4.png,★
+C-2-lava,375x667,combat-lava,idle／seam-walltop-x4,pass,,375x667/crops/combat-lava-idle-seam-walltop-x4.png,★
+C-3-lava,375x667,combat-lava,idle／seam-wallface-x4,pass,,375x667/crops/combat-lava-idle-seam-wallface-x4.png,★
+C-4-lava,375x667,combat-lava,idle／dark-floor-x2,pass,,375x667/crops/combat-lava-idle-dark-floor-x2.png,
+C-1-tomb,375x667,combat-tomb,idle／seam-floor-x4,pass,,375x667/crops/combat-tomb-idle-seam-floor-x4.png,★
+C-2-tomb,375x667,combat-tomb,idle／seam-walltop-x4,fail,seam 1.42 > 1.2,375x667/crops/combat-tomb-idle-seam-walltop-x4.png,★
+C-3-tomb,375x667,combat-tomb,idle／seam-wallface-x4,pass,,375x667/crops/combat-tomb-idle-seam-wallface-x4.png,★
+C-4-tomb,375x667,combat-tomb,idle／dark-floor-x2,pass,,375x667/crops/combat-tomb-idle-dark-floor-x2.png,
+C-1-ice,375x667,combat-ice,idle／seam-floor-x4,pass,,375x667/crops/combat-ice-idle-seam-floor-x4.png,★
+C-2-ice,375x667,combat-ice,idle／seam-walltop-x4,fail,seam 1.57 > 1.2,375x667/crops/combat-ice-idle-seam-walltop-x4.png,★
+C-3-ice,375x667,combat-ice,idle／seam-wallface-x4,pass,,375x667/crops/combat-ice-idle-seam-wallface-x4.png,★
+C-4-ice,375x667,combat-ice,idle／dark-floor-x2,pass,,375x667/crops/combat-ice-idle-dark-floor-x2.png,
+A-1-temple,assets,assets,tiles-temple-2x2,pass,,assets/tiles-temple-2x2.png,★
+A-1-lava,assets,assets,tiles-lava-2x2,pass,,assets/tiles-lava-2x2.png,★
+A-1-tomb,assets,assets,tiles-tomb-2x2,pass,,assets/tiles-tomb-2x2.png,★
+A-1-ice,assets,assets,tiles-ice-2x2,pass,,assets/tiles-ice-2x2.png,★
+W-9,assets,assets,wangyin-sheet,pass,,assets/wangyin-sheet.png,★
+T-6,390x844,combat,perf,pass,temple:warm 0.028ms vs 舊 0.038ms；cold 2.622ms vs 舊 5.019ms | lava:warm 0.036ms vs 舊 0.027ms；cold 2.522ms vs 舊 2.412ms | tomb:warm 0.034ms vs 舊 0.023ms；cold 2.62ms vs 舊 2.431ms | ice:warm 0.042ms vs 舊 0.034ms；cold 2.673ms vs 舊 2.461ms,,
+T-6,1280x720,combat,perf,pass,temple:warm 0.043ms vs 舊 0.038ms；cold 2.807ms vs 舊 4.739ms | lava:warm 0.052ms vs 舊 0.039ms；cold 2.809ms vs 舊 2.414ms | tomb:warm 0.027ms vs 舊 0.031ms；cold 2.591ms vs 舊 2.377ms | ice:warm 0.035ms vs 舊 0.027ms；cold 2.65ms vs 舊 2.422ms,,
+Q-1,1280x720,combat-temple,idle,pass,左：擋掉素材的舊畫法；右：這次,compare/1280x720/combat-temple-idle.png,
+Q-1,1280x720,combat-lava,idle,pass,左：擋掉素材的舊畫法；右：這次,compare/1280x720/combat-lava-idle.png,
+Q-2,1280x720,bag-temple,open,pass,左：擋掉素材的舊畫法；右：這次,compare/1280x720/bag-temple-open.png,
+Q-1,390x844,combat-temple,idle,pass,左：擋掉素材的舊畫法；右：這次,compare/390x844/combat-temple-idle.png,
+Q-1,390x844,combat-lava,idle,pass,左：擋掉素材的舊畫法；右：這次,compare/390x844/combat-lava-idle.png,
+Q-2,390x844,bag-temple,open,pass,左：擋掉素材的舊畫法；右：這次,compare/390x844/bag-temple-open.png,
+Q-3,390x844,fx-chase,play,pass,左：拿掉 FXS.sig_* 的舊特效（變化最大那一幀）；右：這次最大那一幀,compare/390x844/fx-chase-play.png,
+Q-3,1280x720,fx-chase,play,pass,左：拿掉 FXS.sig_* 的舊特效（變化最大那一幀）；右：這次最大那一幀,compare/1280x720/fx-chase-play.png,
+X-8,390x844,fx-crit,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,390x844/fx-crit-fallback.mp4,
+X-8,390x844,fx-lvup,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,390x844/fx-lvup-fallback.mp4,
+X-8,390x844,fx-beam,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,390x844/fx-beam-fallback.mp4,
+X-8,390x844,fx-chase,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,390x844/fx-chase-fallback.mp4,
+X-8,390x844,fx-wyapply,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,390x844/fx-wyapply-fallback.mp4,
+X-8,1280x720,fx-crit,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,1280x720/fx-crit-fallback.mp4,
+X-8,1280x720,fx-lvup,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,1280x720/fx-lvup-fallback.mp4,
+X-8,1280x720,fx-beam,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,1280x720/fx-beam-fallback.mp4,
+X-8,1280x720,fx-chase,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,1280x720/fx-chase-fallback.mp4,
+X-8,1280x720,fx-wyapply,fallback,pass,拿掉 FXS.sig_* 後觸發，播舊特效、沒有錯誤（看影片）,1280x720/fx-wyapply-fallback.mp4,

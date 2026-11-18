@@ -1,5 +1,11 @@
-# 跑到一半的輸出先不提交；量完再放行（連拍逐幀不提交，只留總覽與最大幀）
-/*
-!/*.js
-!/*.py
-!/.gitignore
+# 連拍逐幀、基準幀、舊畫法中間檔、暫存不提交（量測已進 measure.csv；同種子重跑 shots.js 可重現）。總覽 -sheet.png 全提交；-max.png 只留 temple（★影片那幾個）
+*-burst/
+*-base.png
+*-max.png
+!*temple*-max.png
+!fx-wyapply-play-max.png
+_vid/
+_old/
+_cache_burst.json
+prefilter.json
+comment.md

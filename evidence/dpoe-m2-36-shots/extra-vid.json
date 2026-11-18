@@ -1,0 +1,431 @@
+{
+ "errs": {
+  "P:static": [],
+  "D:static": [],
+  "S:static": []
+ },
+ "perf": {
+  "P": {
+   "temple": {
+    "tiles": {
+     "warm": {
+      "n": 90,
+      "avg": 0.028,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 91,
+      "avg": 2.622,
+      "p50": 2.5,
+      "p95": 3.5
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.038,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 80,
+      "avg": 5.019,
+      "p50": 4.6,
+      "p95": 7.2
+     },
+     "tiles": false
+    }
+   },
+   "lava": {
+    "tiles": {
+     "warm": {
+      "n": 90,
+      "avg": 0.036,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.522,
+      "p50": 2.4,
+      "p95": 3
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.027,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.412,
+      "p50": 2.4,
+      "p95": 3.2
+     },
+     "tiles": false
+    }
+   },
+   "tomb": {
+    "tiles": {
+     "warm": {
+      "n": 90,
+      "avg": 0.034,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 91,
+      "avg": 2.62,
+      "p50": 2.5,
+      "p95": 3.5
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.023,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.431,
+      "p50": 2.4,
+      "p95": 3.7
+     },
+     "tiles": false
+    }
+   },
+   "ice": {
+    "tiles": {
+     "warm": {
+      "n": 90,
+      "avg": 0.042,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.673,
+      "p50": 2.5,
+      "p95": 3.7
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.034,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.461,
+      "p50": 2.4,
+      "p95": 3.1
+     },
+     "tiles": false
+    }
+   }
+  },
+  "D": {
+   "temple": {
+    "tiles": {
+     "warm": {
+      "n": 90,
+      "avg": 0.043,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.807,
+      "p50": 2.6,
+      "p95": 4.1
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.038,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 4.739,
+      "p50": 4.5,
+      "p95": 6
+     },
+     "tiles": false
+    }
+   },
+   "lava": {
+    "tiles": {
+     "warm": {
+      "n": 90,
+      "avg": 0.052,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.809,
+      "p50": 2.6,
+      "p95": 3.7
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.039,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.414,
+      "p50": 2.4,
+      "p95": 3.3
+     },
+     "tiles": false
+    }
+   },
+   "tomb": {
+    "tiles": {
+     "warm": {
+      "n": 90,
+      "avg": 0.027,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.591,
+      "p50": 2.4,
+      "p95": 3.7
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.031,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.377,
+      "p50": 2.3,
+      "p95": 3.1
+     },
+     "tiles": false
+    }
+   },
+   "ice": {
+    "tiles": {
+     "warm": {
+      "n": 91,
+      "avg": 0.035,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 90,
+      "avg": 2.65,
+      "p50": 2.5,
+      "p95": 3.6
+     },
+     "tiles": true
+    },
+    "old": {
+     "warm": {
+      "n": 90,
+      "avg": 0.027,
+      "p50": 0,
+      "p95": 0.1
+     },
+     "cold": {
+      "n": 91,
+      "avg": 2.422,
+      "p50": 2.3,
+      "p95": 3
+     },
+     "tiles": false
+    }
+   }
+  }
+ },
+ "videos": {
+  "P": {
+   "fx-crit-temple-play": {
+    "file": "390x844/fx-crit-temple-play.mp4",
+    "errs": [],
+    "frames": 121,
+    "dur": 2
+   },
+   "fx-lvup-temple-play": {
+    "file": "390x844/fx-lvup-temple-play.mp4",
+    "errs": [],
+    "frames": 150,
+    "dur": 2.48
+   },
+   "fx-beam-temple-rare": {
+    "file": "390x844/fx-beam-temple-rare.mp4",
+    "errs": [],
+    "frames": 192,
+    "dur": 3.19
+   },
+   "fx-beam-temple-unique": {
+    "file": "390x844/fx-beam-temple-unique.mp4",
+    "errs": [],
+    "frames": 193,
+    "dur": 3.2
+   },
+   "fx-beam-temple-chase": {
+    "file": "390x844/fx-beam-temple-chase.mp4",
+    "errs": [],
+    "frames": 193,
+    "dur": 3.2
+   },
+   "fx-chase-temple-play": {
+    "file": "390x844/fx-chase-temple-play.mp4",
+    "errs": [],
+    "frames": 156,
+    "dur": 2.58
+   },
+   "fx-wyapply-play": {
+    "file": "390x844/fx-wyapply-play.mp4",
+    "errs": [],
+    "frames": 142,
+    "dur": 2.63
+   },
+   "fx-crit-fallback": {
+    "file": "390x844/fx-crit-fallback.mp4",
+    "errs": [],
+    "frames": 122,
+    "dur": 2.02
+   },
+   "fx-lvup-fallback": {
+    "file": "390x844/fx-lvup-fallback.mp4",
+    "errs": [],
+    "frames": 120,
+    "dur": 1.99
+   },
+   "fx-beam-fallback": {
+    "file": "390x844/fx-beam-fallback.mp4",
+    "errs": [],
+    "frames": 122,
+    "dur": 2.02
+   },
+   "fx-chase-fallback": {
+    "file": "390x844/fx-chase-fallback.mp4",
+    "errs": [],
+    "frames": 120,
+    "dur": 1.98
+   },
+   "fx-wyapply-fallback": {
+    "file": "390x844/fx-wyapply-fallback.mp4",
+    "errs": [],
+    "frames": 120,
+    "dur": 2.01
+   },
+   "forge-make-scroll": {
+    "file": "390x844/forge-make-scroll.mp4",
+    "errs": [],
+    "frames": 142,
+    "dur": 2.74
+   }
+  },
+  "D": {
+   "fx-crit-temple-play": {
+    "file": "1280x720/fx-crit-temple-play.mp4",
+    "errs": [],
+    "frames": 121,
+    "dur": 2
+   },
+   "fx-lvup-temple-play": {
+    "file": "1280x720/fx-lvup-temple-play.mp4",
+    "errs": [],
+    "frames": 150,
+    "dur": 2.48
+   },
+   "fx-beam-temple-rare": {
+    "file": "1280x720/fx-beam-temple-rare.mp4",
+    "errs": [],
+    "frames": 191,
+    "dur": 3.18
+   },
+   "fx-beam-temple-unique": {
+    "file": "1280x720/fx-beam-temple-unique.mp4",
+    "errs": [],
+    "frames": 191,
+    "dur": 3.22
+   },
+   "fx-beam-temple-chase": {
+    "file": "1280x720/fx-beam-temple-chase.mp4",
+    "errs": [],
+    "frames": 190,
+    "dur": 3.18
+   },
+   "fx-chase-temple-play": {
+    "file": "1280x720/fx-chase-temple-play.mp4",
+    "errs": [],
+    "frames": 156,
+    "dur": 2.6
+   },
+   "fx-wyapply-play": {
+    "file": "1280x720/fx-wyapply-play.mp4",
+    "errs": [],
+    "frames": 156,
+    "dur": 2.63
+   },
+   "fx-crit-fallback": {
+    "file": "1280x720/fx-crit-fallback.mp4",
+    "errs": [],
+    "frames": 121,
+    "dur": 1.99
+   },
+   "fx-lvup-fallback": {
+    "file": "1280x720/fx-lvup-fallback.mp4",
+    "errs": [],
+    "frames": 120,
+    "dur": 2.01
+   },
+   "fx-beam-fallback": {
+    "file": "1280x720/fx-beam-fallback.mp4",
+    "errs": [],
+    "frames": 120,
+    "dur": 1.98
+   },
+   "fx-chase-fallback": {
+    "file": "1280x720/fx-chase-fallback.mp4",
+    "errs": [],
+    "frames": 122,
+    "dur": 2.02
+   },
+   "fx-wyapply-fallback": {
+    "file": "1280x720/fx-wyapply-fallback.mp4",
+    "errs": [],
+    "frames": 123,
+    "dur": 2.03
+   },
+   "forge-make-scroll": {
+    "file": "1280x720/forge-make-scroll.mp4",
+    "errs": [],
+    "frames": 173,
+    "dur": 2.88
+   }
+  }
+ }
+}
