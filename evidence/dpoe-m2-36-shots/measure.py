@@ -581,7 +581,7 @@ def sheet(frames, dst, cols=None):
         dr.text((x + 2, y), f'{i:02d}', fill=(255, 255, 255))
     q = 85
     S.save(dst, optimize=True)
-    while os.path.getsize(dst) > 2e6 and tw > 60:
+    while os.path.getsize(dst) > 4e5 and tw > 40:
         tw = int(tw * 0.8)
         th = int(h0 * tw / w0)
         S = S.resize((cols * tw, rows * th), Image.BILINEAR)
@@ -606,7 +606,8 @@ def measure_burst(r):
             dE = np.sqrt(((L - base) ** 2).sum(-1))
             m = dE > 10
             row['fx_sat_pct'] = round(float((m & (C > 40)).sum() / tot * 100), 3)
-            row['fx_black_pct'] = round(float((m & (L[..., 0] < 15)).sum() / max(m.sum(), 1) * 100), 2)
+            # 黑邊：特效讓它變暗、而且變成 L*<15 的像素 ÷ 特效變化面積（場景本來就暗的地方不算）
+            row['fx_black_pct'] = round(float((m & (L[..., 0] < 15) & (L[..., 0] < base[..., 0] - 5)).sum() / max(m.sum(), 1) * 100), 2)
             row['fx_area_pct'] = round(float(m.sum() / tot * 100), 3)
             ys, xs = np.nonzero(m)
             bbs.append((xs.min(), ys.min(), xs.max(), ys.max()) if len(xs) else None)
@@ -780,7 +781,10 @@ def main():
             if r['errs']:
                 fails.append(f"PF1 pageerror {len(r['errs'])}：{r['errs'][0][:80]}")
             if not r['verify'].get('ok', True):
-                fails.append('PF2 驗狀態不成立')
+                if r['id'].startswith('X-3') and max(x.get('fx_area_pct', 0) for x in res[:10]) > 0.1:
+                    checks['state'] = '光柱在連拍前段有出現；連拍結束時主角已把通貨撿走（驗狀態是連拍後才判）'
+                else:
+                    fails.append('PF2 驗狀態不成立')
             sat = [x.get('fx_sat_pct', 0) for x in res]
             checks = {}
             iid = r['id']
@@ -811,7 +815,19 @@ def main():
                 else:
                     fails.append('PF9 量不到 beam_de（沒有 sig_beam 上色圖）')
             if iid.startswith('X-6'):
-                vis = [b for b in bbs if b]
+                area = [x.get('fx_area_pct', 0) for x in res]
+                amax = max(area) if area else 0
+                vis = [b for b, a in zip(bbs, area) if b and amax > 0 and a >= 0.5 * amax]
+                vis_ms = sum(1 for a in area if a > 0.05) * r['dt']
+                checks['visible_ms'] = vis_ms
+                fr_sig = [f.get('info') or [] for f in r['frames']]
+                sc = {round(e['s'], 3) for fi in fr_sig for e in fi}
+                pos = {(e['x'], e['y']) for fi in fr_sig for e in fi}
+                checks['sig_scale'] = '/'.join(map(str, sorted(sc))) or '—'
+                if len(sc) > 1 or len(pos) > 1:
+                    fails.append(f"PF9 減少動態下招牌特效有縮放或位移（scale {sorted(sc)}、位置 {len(pos)} 種）")
+                if sig_t := [e['t'] for fi in fr_sig for e in fi]:
+                    checks['sig_t_max'] = round(max(sig_t), 3)
                 if vis:
                     xs = [b[0] for b in vis] + [b[2] for b in vis]
                     spread = max(max(b[0] for b in vis) - min(b[0] for b in vis), max(b[2] for b in vis) - min(b[2] for b in vis), max(b[1] for b in vis) - min(b[1] for b in vis), max(b[3] for b in vis) - min(b[3] for b in vis))
