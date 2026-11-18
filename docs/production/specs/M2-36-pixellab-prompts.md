@@ -50,16 +50,43 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4ac2
 
 刻紋：鎮嶽 a stylised mountain peak with three summits（紋樣色 `--tx-strong`）、赤霄 an upright sword wrapped in a rising flame（`--el-fire`）、疾霆 a single zigzag lightning bolt（`--el-light`）、歸墟 a spiral whirlpool sinking into the centre（`--rar-magic`）。昇華綠、`--bad` 紅、`--act` 不准用在王印。id 照 M2-29：`wangyin_zhenyue`（防禦）、`wangyin_chixiao`（傷害）、`wangyin_jiting`（技能速度）、`wangyin_guixu`（續航）。
 
-**王印 16（Art Director 挑，不給 mumi）**：鎮嶽 s2151、疾霆 s2155（配 s2149、s2124 都行）、赤霄 s2154（暫用，偏弱，沒有實心牌面）、歸墟 s2160（暫用，縮小後看不出漩渦；而且是照 s2133 做的，跟推薦的 s2162 不同款）。鎮嶽 s2152 灰、弱，不用。mumi 挑完 32 後，赤霄、歸墟各用「挑到的那張 32」當 init 重跑 1 張 16（bitforge，同上筆 body，seed 2165、2166），共 2 張。疾霆不管挑哪張都用 s2155。鎮嶽若挑 s2145，那枚 16 也要重跑 1 張，會到 119.75，超過工程的 118.75：先問 mumi，不准就從 s2145 手修 16。
+**王印定稿（32 由 mumi 2026-11-17 22:33 挑、16 由 Art Director 定）**
+| 枚 | 32 | 16 | 狀態 |
+| --- | --- | --- | --- |
+| 鎮嶽 | s2104 | s2151 | 定稿 |
+| 赤霄 | s2141 | `wangyin_chixiao_16-fix`（32 s2141 最近鄰縮小、量化後逐像素手修；PR #72） | 定稿：正面方牌、上緣小圓環、實心外框、2 px 劍身，§6 雜點 0%、飽和 9.59% |
+| 疾霆 | s2149 | s2155 | 定稿 |
+| 歸墟 | s2162 | **待手修**：s2166 不採用（尖屋頂形、沒有圓環、右半是棋盤抖色，違反畫法規則 §2、§5.1；1 倍看起來像房子）；加深弧臂的試做也不採用 | 照赤霄做法手修，見下 |
+
+**歸墟 16 手修（不花生成）**：外框、圓環、牌面直接沿用 `wangyin_chixiao_16-fix` 的同一批像素（四枚同一個家族），只換牌面裡 8×7 的紋樣（x 4–11、y 6–12）。字母：`v` `--scene-void`、`m` `--border-mid`、`c` `--border-cap`、`b` `--border`、`i` `--panel-inset`、`o` `--rar-chase`、`h` `--rar-chase-hi`，`.` 透明：
+```text
+................
+......vvvv......
+.....vmcmmv.....
+.....vm..bv.....
+..vvvvvmbvvvvv..
+..vcbbbbbbbbcv..
+..vbioooooiibv..
+..vboiiiiioibv..
+..vboihhhioibv..
+..vboihiiioibv..
+..vboiiiioiibv..
+..vbiooooiiibv..
+..vbiiiiiiiibv..
+..vcbbbbbbbbcv..
+..vvvvvvvvvvvv..
+................
+```
+一條外弧從左上繞到右下、內鉤 `--rar-chase-hi` 收在中心，讀成漩渦；顏色只用赤霄 16 已有的這 7 色。做完過 §6 與下面的「圖示棋盤」，四枚灰階並排再截一次給 Art Director。
 
 **預算**
 | 批 | 內容 | 張數 |
 | --- | --- | --- |
-| 第 1 輪＋A 批＋B 批（已做） | 88 次＋A 批 14＋B 批 12 | 已花 116.75 |
-| 保留 | 赤霄 16、歸墟 16 各 1（mumi 挑完 32 才跑） | 2 |
+| 第 1 輪＋A 批＋B 批＋16 重跑（已做） | 88 次＋A 批 14＋B 批 12＋赤霄 s2165、歸墟 s2166 | 已花 118.75 |
+| 手修 | 赤霄 16（已做）、歸墟 16 | 0 |
 | 特效 | 不重跑，改零成本後處理（§5 `beam_cap`、`fade_tail`） | 0 |
 
-全部做完 118.75（工程上限），不超過 120；保留的 2 張用完就沒有備用。每批跑前查餘額，「已花＋這批張數 > 120」就停。
+已到工程上限 118.75，沒有備用；之後只准手修，不再生成。每批跑前查餘額，「已花＋這批張數 > 120」就停。
 
 ## 4. 招牌特效（/vfx，vfx_gen.py 的格式；已產完，不重跑）
 輸出 `art/fx/<id>/`。`old/<時間>/` 的版本已永久不見，每個 id 只剩最新一張；sig_chase、sig_wyapply 的毛病用 §5 的後處理修，不花生成。提示詞裡的 `{token}` 由工具換成值（/vfx 不能鎖色，只能靠字）。下表留著是給以後重跑用。
@@ -105,6 +132,7 @@ pixel art VFX animation, transparent background, no character, no text, no frame
 | 接縫 | 接縫平均 RGB 色差 ÷ 磚內相鄰平均（牆面量四種接法） | ≤ 1.2 | — |
 | 圖示雜點 | 色分三類：暗（`--scene-void`、`--panel-inset`、`--rar-chase-bg`）、銅（`--border`、`--border-mid`、`--border-cap`）、亮（`--rar-chase`、`--rar-chase-hi`、紋樣色）；8 鄰沒有同類的不透明像素 | ≤ 3% | — |
 | 王印飽和 | C* > 40 ÷ 不透明 | ≤ 35% | (c) |
+| 圖示棋盤 | 不透明的 2×2 像素是「a b／b a」交錯兩色的格數（材質類別雜點量不到同類兩色的棋盤；細線轉角也會算到幾格） | 16：≤ 6（歸墟 s2166 是 17）；32 只回報（已定稿的 s2162 是 20，不追溯） | — |
 | 目視（Art Director） | 牆頂是正上方的面、不是側面風景或立體塊；王印正面平視、看不到頂面或側面、沒有臉；四枚轉灰階縮成 16 分得出 | Art Director 判 | — |
 | 特效 | 最大一幀不透明面積、C* > 40 面積（換成兩種畫面比例，見 §1 偏差 6）；L* < 15 | 招牌 ≤ 12%；黑邊 ≤ 5% | (c) |
 
@@ -117,7 +145,7 @@ pixel art VFX animation, transparent background, no character, no text, no frame
 | 牆頂 | temple ★s1112、s1113；lava ★s1213、s1212；tomb ★s1312、s1311、s1314；ice ★s1417 |
 | 牆面 | temple ★s1122、s1124；lava ★s1224、s1223；tomb ★s1322、s1323；ice ★s1423、s1422 |
 | 王印 32 | 赤霄 ★s2141、s2144；鎮嶽 ★s2104、s2145；疾霆 ★s2149、s2124、s2150（牌子略帶側面）；歸墟 ★s2162（螺旋）、s2133（同心圓） |
-| 王印 16 | Art Director 已挑：鎮嶽 s2151、疾霆 s2155、赤霄 s2154（暫用）、歸墟 s2160（暫用）；赤霄、歸墟等 mumi 挑完 32 再各重跑 1 |
+| 王印 16 | 定稿見 §3「王印定稿」：鎮嶽 s2151、疾霆 s2155、赤霄 s2141 手修版；歸墟待手修（s2166 不採用） |
 | 特效 | 每種只剩最新一張，只要確認：sig_crit、sig_lvup、sig_beam；sig_chase、sig_wyapply 加 §5 後處理 |
 
 目視淘汰（過了數字但不給 mumi）：
