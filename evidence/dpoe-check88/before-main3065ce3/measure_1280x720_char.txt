@@ -1,0 +1,11 @@
+http://localhost:8001/ [{"slot":"helm","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"chest","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"gloves","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"boots","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"belt","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"weapon","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"off","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"amulet","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"ring1","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false},
+{"slot":"ring2","cls":"btr top","tag":"T1","badgeH":46,"badgeW":6,"cellH":56,"cellW":56,"pos":"absolute","top":"8px","left":"16px","ok":false}]
+btop 個數 0 超過半格 10
