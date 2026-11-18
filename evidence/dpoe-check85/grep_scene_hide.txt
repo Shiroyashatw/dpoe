@@ -1,0 +1,6 @@
+# grep scene==='hide' (js/ tools/ index.html)
+(no match in js/ index.html)
+# grep enterHideout|'home' stopWhy
+js/main.js:134:  if (o.stopWhy === 'home') o.stopWhy = 'camp';
+# origin/main count
+22
