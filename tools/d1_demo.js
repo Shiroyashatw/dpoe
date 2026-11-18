@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 /* D1 展示頁（demo/d1/）的截圖、錄影與預篩。只開展示頁，不碰遊戲。
-   用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/d1_demo.js [shots|videos|all]（預設 all）
-   產出 docs/production/evidence/dpoe-d1-demo/review-fix/（D1_OUT 可改）：shots/<尺寸>/<列>.png、extra/<尺寸>/<名>.png（審查補拍）、toggles/<尺寸>/<列>_<fs|en|rm>.png、
+   用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/d1_demo.js [shots|videos|all|V9d|V<n>]（預設 all；V9d＝逐種抽屜量主角偏移）
+   產出 docs/production/evidence/dpoe-d1-demo/review-fix2/（D1_OUT 可改）：v9/<尺寸>/<情況>.png、frames/<V>_<尺寸>_<模式>/（帶時間戳的幀）、shots/<尺寸>/<列>.png、extra/<尺寸>/<名>.png（審查補拍）、toggles/<尺寸>/<列>_<fs|en|rm>.png、
    videos/<V>_<尺寸>_<一般|rm>.mp4（60 fps 逐幀）、results.json、results.md。
    預篩只抓明顯的失敗（裁字、出框、重疊、字級、熱區、對比、安全區、時間），不放寬清單門檻；有 ❌ 結束碼 1 */
 const fs = require('fs'),
@@ -10,7 +10,7 @@ const fs = require('fs'),
   { execFileSync } = require('child_process');
 const MODE = process.argv[2] || 'all',
   URL = process.env.D1_URL || 'http://localhost:8000/demo/d1/',
-  OUT = process.env.D1_OUT || path.join(__dirname, '..', 'docs/production/evidence/dpoe-d1-demo/review-fix');
+  OUT = process.env.D1_OUT || path.join(__dirname, '..', 'docs/production/evidence/dpoe-d1-demo/review-fix2');
 const SIZES = process.env.D1_SIZES ? process.env.D1_SIZES.split(',') : ['390x844', '1280x720'];
 /* 三個切換每個畫面挑一列（清單第 7 節的 9 個畫面） */
 const TOG = {
@@ -42,12 +42,19 @@ const EXTRA = [
   ['H17_8', 'H17', 'mid', 'S.status = { buff: 5, debuff: 3 }', 20],
   ['H17_n', 'H17', 'mid', 'S.status = { buff: 8, debuff: 9 }', 20],
   ['H19_ammo0', 'H19', 'mid', 'Object.assign(demo.SV().mid.d.skills[0], { ammo: [0, 6], cd: 1.5, left: 1.5 })', 20],
-  ['H19_charge', 'H19', 'mid', '', 20],
-  ['H19_flask', 'H19', 'en', '', 20],
+  [
+    'H19_charge',
+    'H19',
+    'mid',
+    'const k = demo.SV().mid.d.skills[1]; delete k.ammo; delete k.next; k.charge = [2, 3, 0.5]',
+    20
+  ],
+  ['H19_flask', 'H19', 'en', 'demo.SV().en.d.skills[4].flask = [2, 3, 0.6]', 20],
   ['H01_leg', 'H01', 'mid', 'S.filter = "all"; S.feed = []; demo.reseed()', 20],
   ['C01_badge_dot', 'C01', 'big', '', 20],
   ['C03_lack', 'C03', 'mid', '', 4],
-  ['H04_boss_feed', 'H04', 'mid', '', 20],
+  /* #9：王走進掉落動態框（底板 0.92 → 0.6） */
+  ['H04_boss_feed', 'H05', 'mid', 'S.bossAt = demo.geo().port ? [20, -250] : [-560, -250]', 20],
   ['H23_before', 'H01', 'mid', 'demo.key("h")', 11, null, 1],
   ['H23_after', 'H01', 'mid', 'demo.key("h")', 13, null, 1],
   ['K06_x_focus', 'K06', 'mid', '', 20],
@@ -65,6 +72,22 @@ const EXTRA = [
   ['I04_near', 'I04', 'near', '', 20],
   ['C04_sug', 'C04', 'mid', '', 20]
 ];
+
+/* 這輪改到的列，切換狀態（文字 130%、英文 +40%、減少動態）一併重拍：第 8 格＝網址參數 */
+for (const [nm, ts] of [
+  ['H14', 'fs,en,rm'],
+  ['H15', 'fs,en,rm'],
+  ['S13', 'fs,en,rm'],
+  ['H09_all', 'fs,en,rm'],
+  ['H19_charge', 'fs,en'],
+  ['H19_flask', 'fs,en'],
+  ['H04_boss_feed', 'fs,en,rm'],
+  ['C04_sug', 'fs,en']
+])
+  for (const t of ts.split(',')) {
+    const x = EXTRA.find(e => e[0] === nm) || [nm, nm, 'mid', '', 20, nm === 'S13' ? '390x664' : null];
+    EXTRA.push([`${nm}_${t}`, x[1], x[2], x[3], x[4], x[5] || null, x[6] || 0, { [t]: 1 }]);
+  }
 
 /* ---------- 量測（在頁面裡跑） ---------- */
 function measure(port) {
@@ -385,6 +408,10 @@ function vignette() {
   }).length;
   return {
     shadow: cs.boxShadow,
+    bg: cs.backgroundImage,
+    bgSize: cs.backgroundSize,
+    bgPos: cs.backgroundPosition,
+    token: getComputedStyle(document.documentElement).getPropertyValue('--hurt-vignette-rgb').trim(),
     z: cs.zIndex,
     first,
     hud: ui.querySelectorAll('[data-hud]').length,
@@ -417,7 +444,8 @@ function probe() {
       r.dataset.rar,
       +r.style.opacity,
       r.querySelector('.nm').textContent,
-      r.style.transform
+      r.style.transform,
+      r.querySelector('.n') ? r.querySelector('.n').textContent : ''
     ]),
     idleH: q('#d-idle') ? parseFloat(q('#d-idle').style.height) : null,
     idleOpen: S.idleOpen,
@@ -459,6 +487,14 @@ function probe() {
 /* ---------- 時間檢查（照清單第 6 節；±1 幀＝16.7 ms） ---------- */
 const FR = 1000 / 60,
   near = (a, b, tol = FR + 0.5) => Math.abs(a - b) <= tol;
+/* 淡入（黑幕退掉）時間：從 from 起最暗那一格（fade 最大）到之後第一格 fade＝0 */
+const fadeIn = (P, from) => {
+  const fs = firstT(P, p => p.fade > 0, from),
+    fe = fs != null ? firstT(P, p => p.fade === 0, fs) : null;
+  if (fe == null) return null;
+  const pk = P.filter(p => p.t >= fs && p.t < fe).reduce((a, p) => (p.fade > a.fade ? p : a), { fade: -1 });
+  return fe - pk.t;
+};
 const firstT = (P, f, from = 0) => {
   const p = P.find(x => x.t >= from && f(x));
   return p ? p.t : null;
@@ -510,6 +546,10 @@ function timing(V, P, L, rm) {
     const co2 = ev('camp-out', 1),
       g2 = firstT(P, p => p.gain > 0, co2);
     ok(co2 != null && g2 == null, '在營地 < 10 秒不出');
+    /* #20：減少動態回戰場淡入 ≤ 150（逐幀量，不加 1 幀容差） */
+    const fi = fadeIn(P, co - FR);
+    if (rm) ok(fi != null && fi <= 150, `減少動態：回戰場淡入 ${fi != null ? fi.toFixed(0) : '—'} ms（≤ 150）`);
+    else R.push(`ℹ️ 一般：回戰場淡入 ${fi != null ? fi.toFixed(0) : '—'} ms（160）`);
   }
   if (V === 'V3') {
     const hs = L.filter(x => x.ev === 'hold-start').map(x => x.t),
@@ -591,8 +631,9 @@ function timing(V, P, L, rm) {
         fe = fs != null && firstT(P, p => p.fade === 0, fs + 130);
       const peak =
         fs != null && P.filter(p => p.t >= fs && p.t < fe).reduce((a, p) => (p.fade > a.fade ? p : a), { fade: -1 });
+      /* #20：≤ 150 照字面判，167 要 FAIL（拿掉原本多給的 1 幀容差） */
       ok(
-        fe != null && peak && fe - peak.t <= 150 + FR + 0.5,
+        fe != null && peak && fe - peak.t <= 150,
         `減少動態：淡入 ${fe != null && peak ? (fe - peak.t).toFixed(0) : '—'} ms（≤ 150）`
       );
     } else R.push(`ℹ️ 一般：HUD 位置 ${hudSet.size} 種、主角位置 ${heroSet.size} 種`);
@@ -637,8 +678,27 @@ function timing(V, P, L, rm) {
     const qt = ev('feed-quiet'),
       rq = qt != null ? stay('聖化石', 3000, qt) : null;
     ok(
-      rq && rq[0] != null && near(rq[0], 3000, FR * 1.5) && rq[1] != null && near(rq[1], 400, FR * 1.5),
+      rq &&
+        rq[0] != null &&
+        rq[0] >= 3000 &&
+        near(rq[0], 3000, FR * 1.5) &&
+        rq[1] != null &&
+        near(rq[1], 400, FR * 1.5),
       `列沒滿時普通停留 ${rq && rq[0] != null ? rq[0].toFixed(0) : '—'} ms＋淡出 ${rq && rq[1] != null ? rq[1].toFixed(0) : '—'} ms（3,000＋400）`
+    );
+    /* V6 23:16：合併後的普通列，停留從最後一次 +1 重新算，也要 ≥ 3,000 */
+    const q2 = ev('feed-quiet2'),
+      mg = L.filter(x => x.ev === 'feed-merge' && x.name === '百煉鋼' && x.t >= (q2 || 0)),
+      r2 = q2 != null ? stay('百煉鋼', 3000, q2) : null;
+    ok(
+      mg.length === 1 &&
+        r2 &&
+        r2[0] != null &&
+        r2[0] >= 3000 &&
+        near(r2[0], 3000, FR * 1.5) &&
+        r2[1] != null &&
+        near(r2[1], 400, FR * 1.5),
+      `列沒滿時合併後的普通（百煉鋼 +3 → +${mg.length ? mg[0].n : '—'}）從最後一次 +1 起停留 ${r2 && r2[0] != null ? r2[0].toFixed(0) : '—'} ms＋淡出 ${r2 && r2[1] != null ? r2[1].toFixed(0) : '—'} ms（≥ 3,000＋400）`
     );
     const r3 = stay('增幅石', 3000);
     ok(
@@ -762,6 +822,160 @@ function timing(V, P, L, rm) {
   return R;
 }
 
+/* ---------- 帶時間戳的幀（V6 兩種普通列、V8 減少動態逐幀） ---------- */
+/* 回傳 [標籤, 幀號, 說明]；幀號＝P 的索引（第 i 幀在 t＝P[i].t，相對開始＝P[i].t − P[0].t + 1 幀） */
+function keyFrames(V, P, L, rm) {
+  const K = [],
+    at = t => P.findIndex(p => p.t >= t - 0.01),
+    row = (p, nm) => p.feed.find(r => r[2] === nm);
+  if (V === 'V6') {
+    for (const [lab, q, nm] of [
+      ['single', 'feed-quiet', '聖化石'],
+      ['merged', 'feed-quiet2', '百煉鋼']
+    ]) {
+      const t0 = (L.find(x => x.ev === q) || {}).t;
+      if (t0 == null) continue;
+      const ev = L.filter(x => (x.ev === 'feed-in' || x.ev === 'feed-merge') && x.name === nm && x.t >= t0),
+        last = ev[ev.length - 1];
+      if (!last) continue;
+      if (ev.length > 1) {
+        const i = at(last.t);
+        K.push([`${lab}_before_merge`, i - 1, `合併前一幀：${(row(P[i - 1], nm) || [])[2] || '—'}`]);
+      }
+      const i0 = at(last.t),
+        iF = P.findIndex((p, j) => j > i0 && row(p, nm) && row(p, nm)[1] < 0.999 && p.t > last.t + 200),
+        iG = P.findIndex((p, j) => j > i0 && !row(p, nm));
+      K.push([`${lab}_last_plus1`, i0, `最後一次 +1（t0）`]);
+      K.push([`${lab}_t0+3000`, at(last.t + 3000) - 1, '最後一格不透明（停留 3,000 內）']);
+      if (iF > 0) K.push([`${lab}_fade_start`, iF, `開始淡出 α ${row(P[iF], nm)[1].toFixed(3)}`]);
+      if (iG > 0) K.push([`${lab}_gone`, iG, '列消失']);
+    }
+  }
+  if (V === 'V8' && rm) {
+    for (const [lab, e] of [
+      ['flip', 'flip'],
+      ['f4', 'f4-shake']
+    ]) {
+      const t = (L.filter(x => x.ev === e).pop() || {}).t;
+      if (t == null) continue;
+      const i0 = at(t);
+      for (let j = i0 - 1; j <= i0 + 9 && j < P.length; j++)
+        K.push([`${lab}_${j - i0 >= 0 ? '+' : ''}${j - i0}`, j, '']);
+    }
+  }
+  return K.filter(k => k[1] >= 0 && k[1] < P.length);
+}
+function burn(dir, V, size, mode, P, K) {
+  if (!K.length) return [];
+  const sub = `${V}_${size}_${mode}`,
+    out = path.join(OUT, 'frames', sub);
+  fs.rmSync(out, { recursive: true, force: true });
+  fs.mkdirSync(out, { recursive: true });
+  const jobs = K.map(([lab, i, note]) => {
+    const rel = (P[i].t - P[0].t + FR).toFixed(1);
+    return {
+      src: path.join(dir, String(i).padStart(5, '0') + '.jpg'),
+      dst: path.join(out, `${lab}_f${i + 1}_t${Math.round(P[i].t - P[0].t + FR)}ms.png`),
+      txt: `${V} ${size} ${mode}  第 ${i + 1} 幀  t=${rel} ms  ${lab} ${note}`
+    };
+  });
+  execFileSync('python3', [
+    '-c',
+    `import json,sys
+from PIL import Image,ImageDraw,ImageFont
+f=ImageFont.truetype('/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc',14)
+for j in json.loads(sys.argv[1]):
+  a=Image.open(j['src']).convert('RGB'); o=Image.new('RGB',(a.width,a.height+24),(0,0,0)); o.paste(a,(0,24))
+  ImageDraw.Draw(o).text((6,4),j['txt'],font=f,fill=(255,230,120)); o.save(j['dst'])`,
+    JSON.stringify(jobs)
+  ]);
+  return jobs.map((j, n) => ({
+    lab: K[n][0],
+    f: K[n][1] + 1,
+    t: +(P[K[n][1]].t - P[0].t + FR).toFixed(1),
+    file: path.relative(OUT, j.dst),
+    p: P[K[n][1]]
+  }));
+}
+
+/* ---------- V9d：逐種抽屜（含疊加）量主角中心相對戰場框中心的偏移，兩尺寸 ---------- */
+/* 每一步是在頁面裡跑的字串；開法照實際輸入：直立點分頁／格子，桌機按鍵 */
+const V9D = port => {
+  const tab = (k, key) => (port ? `demo.tap('tab-${k}')` : `demo.key('${key}')`);
+  const camp = tab('camp', 'h'),
+    more = tab('more', 'z'),
+    tree = tab('tree', 'p'),
+    forge = tab('forge', 'k'),
+    card = `demo.tap('cb-林場')`,
+    death = `demo.S.d3T = demo.NOW; demo.build(); demo.tap('d3')`;
+  return [
+    ['營地升級', [camp]],
+    ['設定（分頁）', [more]],
+    ['設定（Esc）', [`demo.key('Escape')`]],
+    ['單座卡', [camp, card]],
+    ['倒下詳情', [death]],
+    ['天賦', [tree]],
+    ['鐵匠', [forge]],
+    ['疊加・營地升級→設定', [camp, more]],
+    ['疊加・設定→營地升級', [more, camp]],
+    ['疊加・營地升級→鐵匠', [camp, forge]],
+    ['疊加・倒下詳情→營地升級', [death, camp]],
+    /* 直立開天賦時底分頁收起：先按 × 再開營地升級 */
+    ['疊加・天賦→營地升級', port ? [tree, `demo.tap('px')`, camp] : [tree, camp]],
+    ['疊加・單座卡→設定', [camp, card, more]]
+  ];
+};
+async function v9d(p, size, open) {
+  const port = size.startsWith('390'),
+    out = [];
+  fs.mkdirSync(path.join(OUT, 'v9', size), { recursive: true });
+  for (const [name, steps] of V9D(port)) {
+    for (const rm of [0, 1]) {
+      await open(p, { size, row: 'H01', save: 'mid', ...(rm ? { rm: 1 } : {}) });
+      await p.evaluate(() => demo.step(20));
+      const before = await p.evaluate(() => [demo.hero(), demo.frame()]);
+      const each = [];
+      for (const js of steps) {
+        await p.evaluate(js).catch(e => {
+          throw new Error(name + '：' + js + '：' + e.message);
+        });
+        await p.evaluate(() => demo.step(40)); /* 滑入 200 ms＋鏡頭 200 ms 都走完 */
+        each.push(await p.evaluate(() => ({ h: demo.hero(), f: demo.frame(), panel: demo.S.panel })));
+      }
+      const last = each[each.length - 1],
+        cx = last.f.x + last.f.w / 2,
+        cy = last.f.y + last.f.h / 2,
+        dx = last.h.x - cx,
+        dy = last.h.y - cy,
+        d = Math.hypot(dx, dy);
+      const file = `v9/${size}/${name.replace(/[・→（）]/g, '_')}${rm ? '_rm' : ''}.png`;
+      await p.screenshot({ path: path.join(OUT, file) });
+      out.push({
+        name,
+        rm,
+        steps: steps.join('；'),
+        panel: last.panel,
+        frame: last.f,
+        c: [cx, cy],
+        hero: [last.h.x, last.h.y],
+        dx,
+        dy,
+        d,
+        mid: each.slice(0, -1).map(e => Math.hypot(e.h.x - (e.f.x + e.f.w / 2), e.h.y - (e.f.y + e.f.h / 2))),
+        before:
+          before[0] &&
+          Math.hypot(before[0].x - (before[1].x + before[1].w / 2), before[0].y - (before[1].y + before[1].h / 2)),
+        file,
+        ok: d <= 2 && !!last.panel
+      });
+      console.log(
+        `${d <= 2 && last.panel ? '✅' : '❌'} V9d ${size} ${rm ? '減少動態' : '一般'} ${name}：${last.panel} 偏移 ${d.toFixed(2)} px`
+      );
+    }
+  }
+  return out;
+}
+
 /* ---------- results.md ---------- */
 const VID = {
   S05: 'V9',
@@ -854,10 +1068,56 @@ function report(res) {
         const v = res.shots[id] && res.shots[id][sz] && res.shots[id][sz].vign;
         if (v)
           L.push(
-            `- ${id} ${sz}：box-shadow \`${v.shadow}\`；z-index ${v.z}；在 #ui 第一個（戰場畫布之上）：${v.first ? '是' : '否'}；HUD ${v.hud} 個都畫在它上面：${v.hudOver === v.hud ? '是' : '否'}（${v.hudOver}/${v.hud}）`
+            `- ${id} ${sz}：${v.ok ? '✅' : '❌'} background \`${v.bg}\`（size \`${v.bgSize}\`、position \`${v.bgPos}\`）；box-shadow \`${v.shadow}\`；\`--hurt-vignette-rgb: ${v.token}\`；z-index ${v.z}；在 #ui 第一個（戰場畫布之上）：${v.first ? '是' : '否'}；HUD ${v.hud} 個都畫在它上面：${v.hudOver === v.hud ? '是' : '否'}（${v.hudOver}/${v.hud}）`
           );
       }
     L.push('', '錄影量測（V5、V6、V7a、V8、V9 的時間與位移）寫在下面錄影表的「時間檢查」欄。', '');
+  }
+  if (res.v9d) {
+    L.push(
+      '## V9 逐種抽屜：主角中心相對戰場框中心',
+      '',
+      '主角中心＝主角圖的可見中心（hero.png 那一幀不透明外框的中心）；戰場框＝直立 fieldTop–fieldBot（天賦＝即時戰場條）、桌機全畫面。每一步之後推 40 幀（滑入 200 ms＋鏡頭 200 ms 走完）再量；門檻 ≤ 2 px。',
+      '',
+      '| 尺寸 | 模式 | 情況 | 開法 | 開著的 | 戰場框 x,y,w,h | 框中心 | 角色中心 | 偏移 dx／dy | 偏移 | 中途（疊加前） | 截圖 |',
+      '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+    );
+    const f1 = v => v.toFixed(1);
+    for (const [sz, rows] of Object.entries(res.v9d))
+      for (const x of rows)
+        L.push(
+          `| ${sz} | ${x.rm ? '減少動態' : '一般'} | ${x.name} | \`${x.steps}\` | ${x.panel} | ${[x.frame.x, x.frame.y, x.frame.w, x.frame.h].map(f1).join(',')} | ${x.c.map(f1).join(',')} | ${x.hero.map(f1).join(',')} | ${x.dx.toFixed(2)}／${x.dy.toFixed(2)} | ${x.ok ? '✅' : '❌'} ${x.d.toFixed(2)} px | ${x.mid.length ? x.mid.map(v => v.toFixed(2) + ' px').join('、') : '—'} | \`${x.file}\` |`
+        );
+    L.push('');
+  }
+  {
+    const vs = Object.entries(res.videos).filter(([, v]) => v.KF && v.KF.length);
+    if (vs.length) {
+      L.push(
+        '## 帶時間戳的幀',
+        '',
+        '幀檔上緣印「第 n 幀、t＝相對錄影開始的毫秒」（60 fps，1 幀＝16.7 ms）；檔名同。',
+        ''
+      );
+      for (const [k, v] of vs) {
+        const [V, sz, m] = k.split('|');
+        L.push(`### ${V} ${sz} ${m === 'rm' ? '減少動態' : '一般'}`, '');
+        if (V === 'V6') {
+          L.push('| 標籤 | 幀 | t（ms） | 掉落動態列（名稱＋數量 α） | 檔案 |', '| --- | --- | --- | --- | --- |');
+          for (const x of v.KF) L.push(`| ${x.lab} | ${x.f} | ${x.t} | ${x.feed || '—'} | \`${x.file}\` |`);
+        } else {
+          L.push(
+            '| 標籤 | 幀 | t（ms） | 揭曉面 filter | 揭曉面 transform | 翻牌 | 物品框 x,y,w,h | F4 transform | F4 filter | 檔案 |',
+            '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
+          );
+          for (const x of v.KF)
+            L.push(
+              `| ${x.lab} | ${x.f} | ${x.t} | ${x.ffF || '—'} | ${x.ffT || '—'} | ${x.flip || '—'} | ${x.flipR || '—'} | ${x.f4T || '—'} | ${x.f4F || '—'} | \`${x.file}\` |`
+            );
+        }
+        L.push('');
+      }
+    }
   }
   L.push(
     '## 三個切換（每個畫面各一張）',
@@ -946,7 +1206,22 @@ function report(res) {
           await p.screenshot({ path: path.join(OUT, 'shots', size, 'S14_1280x800.png') });
           m.F.push(...m2.F.map(x => '1280×800×1.25 ' + x));
         }
-        if (['H14', 'H15'].includes(r.id)) m.vign = await p.evaluate(vignette);
+        if (['H14', 'H15'].includes(r.id)) {
+          /* N2：四邊各一條 24 px linear-gradient，最邊緣 190 30 25 α 0.35／0.55 → 0；仍在 HUD 下 */
+          const v = (m.vign = await p.evaluate(vignette)),
+            a = r.id === 'H14' ? 0.35 : 0.55,
+            gs = (v.bg.match(/linear-gradient/g) || []).length,
+            edge = (v.bg.match(/rgba\(190, 30, 25, ([\d.]+)\)/g) || []).filter(x => x.endsWith(` ${a})`)).length,
+            sz = v.bgSize.split(',').map(x => x.trim());
+          v.ok =
+            gs === 4 &&
+            edge === 4 &&
+            sz.filter(x => x === '100% 24px').length === 2 &&
+            sz.filter(x => x === '24px 100%').length === 2;
+          if (!v.ok) m.F.push(`低血紅框不是四邊 24 px 漸層 ${a}（${v.bg.slice(0, 60)}…／${v.bgSize}）`);
+          if (v.token !== '190 30 25') m.F.push(`--hurt-vignette-rgb ${v.token} ≠ 190 30 25`);
+          if (!v.first || v.hudOver !== v.hud) m.F.push('低血紅框不在 HUD 下');
+        }
         if (r.id === 'H16') m.palette = await p.evaluate(palette);
         res.shots[r.id] = Object.assign(res.shots[r.id] || {}, { [size]: { size: sz, save: r.save || 'mid', ...m } });
         console.log(`${m.F.length ? '❌' : '✅'} ${size} ${r.id} ${m.F.slice(0, 3).join('；')}`);
@@ -954,11 +1229,11 @@ function report(res) {
       /* 審查補拍 */
       fs.mkdirSync(path.join(OUT, 'extra', size), { recursive: true });
       res.extra = res.extra || {};
-      for (const [nm, row, save, js, steps, only, trans] of EXTRA) {
+      for (const [nm, row, save, js, steps, only, trans, tq] of EXTRA) {
         if (only && only !== size && !(only.startsWith('390') && port)) continue;
         const sz = only || size;
         await p.setViewportSize({ width: +sz.split('x')[0], height: +sz.split('x')[1] });
-        await open(p, { size: sz, row, save });
+        await open(p, { size: sz, row, save, ...(tq || {}) });
         if (js) await p.evaluate(`(() => { const S = demo.S; ${js}; demo.build(); })()`);
         await p.evaluate(n => demo.step(n), steps);
         const m = await p.evaluate(measure, !!port);
@@ -966,6 +1241,15 @@ function report(res) {
         if (trans)
           m.INFO.push(...m.F.filter(x => x.startsWith('面板蓋到')).map(x => '滑入中 ' + x)),
             (m.F = m.F.filter(x => !x.startsWith('面板蓋到')));
+        if (nm.startsWith('H04_boss_feed')) {
+          const th = await p.evaluate(() => [
+            demo.feedThin(),
+            getComputedStyle(document.querySelector('#d-feed .fr:not(.sum)')).backgroundColor
+          ]);
+          if (th[0] !== '1') m.F.push('王沒進到掉落動態框（底板沒換 0.6）');
+          else m.INFO.push(`王在掉落動態框裡：物品列底板 ${th[1]}`);
+          m.thin = th;
+        }
         await p.screenshot({ path: path.join(OUT, 'extra', size, nm + '.png') });
         res.extra[`${nm}|${size}`] = { row, save, size: sz, ...m };
         console.log(`${m.F.length ? '❌' : '✅'} ${size} 補拍 ${nm} ${m.F.slice(0, 3).join('；')}`);
@@ -989,7 +1273,15 @@ function report(res) {
       await p.context().close();
     }
   }
-  if (MODE === 'all' || MODE === 'videos' || /^V\d\w?$/.test(MODE)) {
+  if (MODE === 'all' || MODE === 'V9d') {
+    res.v9d = {};
+    for (const size of SIZES) {
+      const p = await page(size);
+      res.v9d[size] = await v9d(p, size, open);
+      await p.context().close();
+    }
+  }
+  if (MODE === 'all' || MODE === 'videos' || (/^V\d\w?$/.test(MODE) && MODE !== 'V9d')) {
     fs.mkdirSync(path.join(OUT, 'videos'), { recursive: true });
     for (const size of SIZES) {
       const p = await page(size);
@@ -1033,9 +1325,22 @@ function report(res) {
             'pad=ceil(iw/2)*2:ceil(ih/2)*2',
             out
           ]);
-          fs.rmSync(dir, { recursive: true });
           const R = timing(V, P, L, rm);
-          res.videos[`${V}|${size}|${rm ? 'rm' : '一般'}`] = { frames: n, file: path.relative(OUT, out), R };
+          const KF = burn(dir, V, size, rm ? 'rm' : '一般', P, keyFrames(V, P, L, rm)).map(k => ({
+            lab: k.lab,
+            f: k.f,
+            t: k.t,
+            file: k.file,
+            feed: k.p.feed.map(r => `${r[2]}${r[4] || ''} α${r[1].toFixed(3)}`).join('／'),
+            ffF: k.p.ffF,
+            ffT: k.p.ffT,
+            flip: k.p.flip,
+            f4T: k.p.f4T,
+            f4F: k.p.f4F,
+            flipR: k.p.flipR
+          }));
+          fs.rmSync(dir, { recursive: true });
+          res.videos[`${V}|${size}|${rm ? 'rm' : '一般'}`] = { frames: n, file: path.relative(OUT, out), R, KF };
           console.log(
             `${R.some(x => x.startsWith('❌')) ? '❌' : '✅'} ${V} ${size} ${rm ? '減少動態' : '一般'} ${n} 幀\n   ${R.join('\n   ')}`
           );
@@ -1058,6 +1363,8 @@ function report(res) {
       ...Object.values(res.shots).flatMap(x => Object.values(x)),
       ...Object.values(res.toggles),
       ...Object.values(res.extra || {})
-    ].some(x => x.F && x.F.length) || Object.values(res.videos).some(v => v.R.some(x => x.startsWith('❌')));
+    ].some(x => x.F && x.F.length) ||
+    Object.values(res.videos).some(v => v.R.some(x => x.startsWith('❌'))) ||
+    Object.values(res.v9d || {}).some(L => L.some(x => !x.ok));
   process.exit(bad ? 1 : 0);
 })();
