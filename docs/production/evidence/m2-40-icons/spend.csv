@@ -1,2 +1,14 @@
 batch,ids,balance_before,balance_after,generations,cumulative_spent
 A1,,未查（無金鑰，停在開跑前）,,0,0
+A0,sk_deadeye-s4224,1055.99,1054.99,1,1
+R1,sk_deadeye-s4324,1054.99,1053.99,1,2
+R1,sk_deadeye-s4424,1053.99,1052.99,1,3
+A1,sk_clarity-s4201 sk_purityaura-s4202 sk_staticfield-s4203 sk_summongod-s4204 sk_ironaura-s4205,1052.99,1047.99,5,8
+A2,sk_despair-s4206 sk_weaken-s4207 sk_holyshield-s4208 sk_bloodlust-s4209 sk_fireburst-s4210,1047.99,1042.99,5,13
+A3,sk_gasflask-s4211 sk_oilgrenade-s4212 sk_refract-s4213 sk_tidepull-s4214 sk_windflask-s4215,1042.99,1037.99,5,18
+A4,sk_assassinate-s4216 sk_combust-s4217 sk_doom-s4218 sk_rage-s4219,1037.99,1033.99,4,22
+A5,sk_talisman-s4220 sk_exorcise-s4221 sk_fire-s4222 sk_meteor-s4223,1033.99,1029.99,4,26
+R2,sk_ironaura-s4305 sk_despair-s4306 sk_weaken-s4307 sk_bloodlust-s4309 sk_fireburst-s4310,1029.99,1024.99,5,31
+R3,sk_refract-s4313 sk_windflask-s4315 sk_assassinate-s4316 sk_combust-s4317,1024.99,1020.99,4,35
+R4,sk_fire-s4322 sk_meteor-s4323,1020.99,1018.99,2,37
+R5,sk_ironaura-s4405 sk_weaken-s4407 sk_fireburst-s4410,1018.99,1015.99,3,40

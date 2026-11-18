@@ -1,0 +1,30 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_clarity",
+  "seed": 4201,
+  "rerun": 0,
+  "palette": [
+    "--scene-void",
+    "--mp",
+    "--el-cold",
+    "--tx-strong"
+  ],
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, flat front view, an open crescent moon facing right with two small water droplets falling from its lower tip, bold simple shapes readable as a black silhouette at 32 pixels, light from the top-left, 1 pixel transparent margin, 1 pixel black outline, clear negative space, no perspective, no isometric, no 3D, no face, no eyes, no text, no letters, no background, no circular badge, no round frame, no dithering, no gradient, no full disc, ring, shield",
+    "seed": 4201,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

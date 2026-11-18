@@ -1,0 +1,33 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_ironaura",
+  "seed": 4405,
+  "rerun": 2,
+  "palette": [
+    "--scene-void",
+    "--border",
+    "--border-mid",
+    "--border-cap",
+    "--hp"
+  ],
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, flat front view, a broad tower shield with a flat bottom, top-right corner cut away showing a short sword tip, bold simple shapes readable as a black silhouette at 32 pixels, light from the top-left, 1 pixel transparent margin, 1 pixel black outline, clear negative space, no perspective, no isometric, no 3D, no face, no eyes, no text, no letters, no background, no circular badge, no round frame, no dithering, no gradient, no ring, round badge, cross, plain kite shield, tapered blob like a flame tornado",
+    "seed": 4405,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 200
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}

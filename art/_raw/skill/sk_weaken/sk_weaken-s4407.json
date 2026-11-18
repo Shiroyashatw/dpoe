@@ -1,0 +1,33 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "sk_weaken",
+  "seed": 4407,
+  "rerun": 2,
+  "palette": [
+    "--scene-void",
+    "--el-chaos",
+    "--border",
+    "--border-mid",
+    "--tx-strong"
+  ],
+  "request": {
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "low detail",
+    "no_background": true,
+    "description": "fantasy action RPG skill icon, flat front view, an armour plate cracked diagonally into two offset pieces with a gap, a tiny diamond pip at the top right, bold simple shapes readable as a black silhouette at 32 pixels, light from the top-left, 1 pixel transparent margin, 1 pixel black outline, clear negative space, no perspective, no isometric, no 3D, no face, no eyes, no text, no letters, no background, no circular badge, no round frame, no dithering, no gradient, no whole shield, disc, down arrow, whole intact shield, solid filled plate",
+    "seed": 4407,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 200
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  }
+}
