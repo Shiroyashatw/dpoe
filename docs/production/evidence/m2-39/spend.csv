@@ -1,0 +1,19 @@
+batch,files,before,after,spent_batch,spent_total
+1,ail_scorch_32-s3901 ail_brittle_32-s3902 ail_sap_32-s3903 ail_broken_32-s3904 ail_parried_32-s3905,1138.9864,1133.9864,5.0000,5.0000
+2,ail_intim_32-s3906 ail_counter_32-s3907 ail_seal_32-s3908 ail_revive_32-s3909 ail_mark_32-s3910,1133.9864,1128.9864,5.0000,10.0000
+3,ail_fury_32-s3911 ail_ad_32-s3912 ail_tail_32-s3913 ail_crush_32-s3914 ail_shatter_32-s3915,1128.9864,1123.9864,5.0000,15.0000
+4,ail_riven_32-s3916 ail_unbr_32-s3917 ail_daze_32-s3918 ail_crip_32-s3919 ail_stain_32-s3920,1123.9864,1118.9864,5.0000,20.0000
+5,ail_inc_32-s3921 ail_cb_32-s3922 ail_anemia_32-s3923 ail_petr_32-s3924 ail_calm_32-s3925,1118.9864,1113.9864,5.0000,25.0000
+6,ail_weak_32-s3926 ail_taunt_32-s3927 ail_easy_32-s3928 ail_over_32-s3929 ail_vine_32-s3930,1113.9864,1108.9864,5.0000,30.0000
+7,ail_oiled_32-s3931 ail_chg_e_32-s3932 ail_chg_f_32-s3933 ail_chg_p_32-s3934 ail_sac_32-s3935,1108.9864,1103.9864,5.0000,35.0000
+8,ail_cu_enfeeble_32-s3936 ail_cu_eleweak_32-s3937 ail_cu_tchains_32-s3938 ail_cu_vuln_32-s3939 ail_cu_despair_32-s3940,1103.9864,1098.9864,5.0000,40.0000
+9,ail_riven_32-s3917 ail_weak_32-s3927 ail_taunt_32-s3928 ail_calm_32-s3926,1098.9864,1094.9864,4.0000,44.0000
+10,ail_scorch_16-s4001 ail_sap_16-s4003 ail_broken_16-s4004 ail_parried_16-s4005 ail_intim_16-s4006,1094.9864,1089.9864,5.0000,49.0000
+11,ail_counter_16-s4007 ail_seal_16-s4008 ail_revive_16-s4009 ail_mark_16-s4010 ail_fury_16-s4011,1089.9864,1084.9864,5.0000,54.0000
+12,ail_ad_16-s4012 ail_tail_16-s4013 ail_crush_16-s4014 ail_shatter_16-s4015 ail_unbr_16-s4017,1084.9864,1079.9864,5.0000,59.0000
+12b,ail_daze_16-s4018 ail_crip_16-s4019（連線中斷，stain／inc／petr 沒送出，補記）,1079.9864,1077.9864,2.0000,61.0000
+13,ail_easy_16-s4028 ail_over_16-s4029 ail_oiled_16-s4031 ail_chg_e_16-s4032 ail_chg_f_16-s4033,1077.9864,1072.9864,5.0000,66.0000
+14,ail_chg_p_16-s4034 ail_sac_16-s4035 ail_cu_enfeeble_16-s4036 ail_cu_eleweak_16-s4037 ail_cu_tchains_16-s4038,1072.9864,1067.9864,5.0000,71.0000
+15,ail_cu_vuln_16-s4039 ail_cu_despair_16-s4040,1067.9864,1065.9864,2.0000,73.0000
+16,ail_stain_16-s4020 ail_inc_16-s4021 ail_petr_16-s4024,1065.9864,1062.9864,3.0000,76.0000
+18,ail_calm_16-s4025,1062.9864,1061.9864,1.0000,77.0000

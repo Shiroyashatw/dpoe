@@ -1,0 +1,41 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "ail_calm_16",
+  "seed": 4025,
+  "post": "alpha_binary",
+  "palette": [
+    "--scene-void",
+    "--mp",
+    "--el-cold",
+    "--tx-strong"
+  ],
+  "init_from": "ail_calm_32-s3926-fix.png",
+  "request": {
+    "description": "tiny 16 pixel game status icon, flat front view, a still, closed circle, silence, damage at zero, bold, 1 pixel black outline, no transparent margin",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 4025,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 300
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

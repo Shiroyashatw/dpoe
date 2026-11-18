@@ -1,0 +1,12 @@
+file,verdict,reason
+ail_riven_32-s3916,不過,目視：畫成機器人角色（規格 no characters）
+ail_weak_32-s3926,不過,目視：畫成有臉的小怪（規格 no face／no characters）
+ail_taunt_32-s3927,不過,目視：畫成有臉的小怪（規格 no face／no characters）
+ail_calm_32-s3925,不過,目視：畫成眼睛（規格 no eyes unless the silhouette is an eye）
+ail_brittle_32-s3902,不過,目視：實心方塊（規格 not a solid cube）
+ail_anemia_32-s3923,不過,目視：實心水滴（規格 hollow，not a filled blood drop）；灰階跟 oiled 分不開
+ail_cb_32-s3922,不過,目視：只剩一圈淡環，小尺寸看不出形狀
+ail_vine_32-s3930,不過,目視：散點雜訊，看不出藤蔓剪影
+ail_riven_32-s3917,不過,目視（備用重跑）：又是石像角色（規格 no characters）
+ail_weak_32-s3927,不過,目視（備用重跑）：畫成火焰（規格 not a flame）
+ail_taunt_32-s3928,不過,目視（備用重跑）：人形剪影＋紅眼（規格 no characters／no eyes）
