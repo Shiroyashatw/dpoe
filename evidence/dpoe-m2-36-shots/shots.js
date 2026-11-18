@@ -592,19 +592,9 @@ async function staticGroup(v) {
             for (const [x, y] of near) {
               if (!floor && x % 8 === 7 && on(x, y, 2, 2) && !wall(x, y) && !wall(x + 1, y) && !wall(x, y + 1) && !wall(x + 1, y + 1))
                 floor = { x, y };
-              /* 牆頂 2×2：四格都是牆、而且下面一列有一格是地板（轉角：一邊是牆面一邊還是牆頂） */
-              if (
-                !top &&
-                on(x, y, 2, 2) &&
-                wall(x, y) &&
-                wall(x + 1, y) &&
-                wall(x, y + 1) &&
-                wall(x + 1, y + 1) &&
-                wall(x, y - 1) &&
-                (!wall(x, y + 2) || !wall(x + 1, y + 2)) &&
-                wall(x, y + 2) !== wall(x + 1, y + 2)
-              )
-                top = { x, y };
+              /* 牆頂 2×2：四格都是牆（優先挑旁邊有地板的，含轉角） */
+              /* 牆在這張地圖只有一格厚：取「三格牆＋一格地板」的 L 形轉角 2×2 */
+              if (!top && on(x, y, 2, 2) && wall(x, y) + wall(x + 1, y) + wall(x, y + 1) + wall(x + 1, y + 1) === 3 && wall(x, y)) top = { x, y };
               if (!face && on(x, y, 4, 1) && [0, 1, 2, 3].every(i => wall(x + i, y) && !wall(x + i, y + 1))) face = { x, y };
             }
             /* 光圈外：離主角最遠、整塊在畫面裡的 3×3 地板 */

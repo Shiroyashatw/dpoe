@@ -285,6 +285,13 @@ NUMC = {'#fff3e0': 'hit', '#ffd166': 'crit', '#ffc21a': 'crit', '#ff5a5a': 'hurt
 
 
 def num_check(nums):
+    seen, nn = set(), []
+    for n in nums:  # 等一格的時間裡可能畫了好幾格：同一個字只算一次
+        k = (n['kind'], n['txt'], n['px'], n['box']['x'], n['box']['y'])
+        if k not in seen:
+            seen.add(k)
+            nn.append(n)
+    nums = nn
     fills = [n for n in nums if n['kind'] == 'fill' and n['fill'].lower() in NUMC]
     strokes = [n for n in nums if n['kind'] == 'stroke']
     res = {'min': None, 'fails': [], 'kinds': {}}
@@ -588,6 +595,35 @@ def sheet(frames, dst, cols=None):
         S.save(dst, optimize=True)
 
 
+SIGK = {'fx-crit': 'sig_crit', 'fx-lvup': 'sig_lvup', 'fx-beam': 'sig_beam', 'fx-chase': 'sig_chase', 'fx-wyapply': 'sig_wyapply'}
+
+
+def sig_black(k):
+    """PL §6 黑邊：素材每一幀不透明像素裡 L*<15 的比例，取最大那幀（場景暗處會跟著燈光閃，截圖差分量不準）。"""
+    import re
+    js = (ROOT / 'js/fxsig.js').read_text()
+    m = re.search(k + r": \{ w: (\d+), h: (\d+), n: (\d+), cols: (\d+)", js)
+    w, h, n, cols = map(int, m.groups())
+    A = np.asarray(Image.open(ROOT / f'img/fx/{k}.png').convert('RGBA')).astype(float)
+    best = 0
+    for i in range(n):
+        f = A[(i // cols) * h:(i // cols + 1) * h, (i % cols) * w:(i % cols + 1) * w]
+        op = f[..., 3] > 0
+        if op.sum() < 4:
+            continue
+        L = lab(f[..., :3][op])[0][:, 0]
+        best = max(best, float((L < 15).mean() * 100))
+    return round(best, 2)
+
+
+BURST_CACHE = HERE / '_cache_burst.json'
+
+
+def burst_job(r):
+    res, bbs = measure_burst(r)
+    return r['file'], res, [list(map(int, b)) if b else None for b in bbs]
+
+
 def measure_burst(r):
     fr = r['frames']
     base = None
@@ -622,6 +658,9 @@ def measure_burst(r):
 
 
 # ---------- 主程式 ----------
+BURSTS = {}
+
+
 def main():
     rows, extra = [], {}
     for f in sorted(HERE.glob('rows-*.json')):
@@ -637,6 +676,18 @@ def main():
     MCOLS = ['task', 'id', 'viewport', 'screen', 'state', 'file', 'frame', 'commit', 'dpr', 'px_w', 'px_h', 'a_scene_l', 'a_panel_l', 'a_key_l', 'a_panel_minus_scene', 'a_key_minus_layer', 'b_panel_scene', 'c_sat_pct', 'c_sat_where', 'd_brown_pct', 'e_text_min', 'e_text_max', 'e_text_fail', 'e_ui_colors', 'f_bright_pct', 'bar_contrast', 'num_min_px', 'icon_scale', 'hit_min', 'fx_sat_pct', 'fx_black_pct', 'checks', 'verdict', 'fail']
     def pf(id_, vp, screen, state, verdict, why, file='', star=''):
         PF.append({'id': id_, 'viewport': vp, 'screen': screen, 'state': state, 'verdict': verdict, 'why': why, 'file': file, 'star': star})
+    global BURSTS
+    try:
+        BURSTS = {k: tuple(v) for k, v in json.loads(BURST_CACHE.read_text()).items()}
+    except Exception:
+        BURSTS = {}
+    todo = [r for r in rows if r['kind'] == 'burst' and r['file'] not in BURSTS]
+    if todo:
+        from multiprocessing import Pool
+        with Pool(4) as pool:
+            for f, res, bbs in pool.imap_unordered(burst_job, todo):
+                BURSTS[f] = (res, bbs)
+        BURST_CACHE.write_text(json.dumps(BURSTS))
     hashes = {}
     pf4res = {b: pf4(b) for b in B4}
     for r in rows:
@@ -776,7 +827,7 @@ def main():
             pf(r['id'], r['viewport'], r['screen'], r['state'], base['verdict'], base['fail'], r['file'], r.get('star', ''))
             continue
         if r['kind'] == 'burst':
-            res, bbs = measure_burst(r)
+            res, bbs = BURSTS[r['file']]
             fails = []
             if r['errs']:
                 fails.append(f"PF1 pageerror {len(r['errs'])}：{r['errs'][0][:80]}")
@@ -791,14 +842,15 @@ def main():
             if r.get('base') and not iid.startswith('X-6'):
                 mx = max(sat)
                 over = sum(1 for s in sat if s > 8) * r['dt'] / 1000
-                blk = max(x['fx_black_pct'] for x in res if x.get('fx_area_pct', 0) > 0.05) if any(x.get('fx_area_pct', 0) > 0.05 for x in res) else 0
-                checks.update(fx_max=mx, fx_over8_s=round(over, 3), fx_black_max=blk, max_frame=int(np.argmax(sat)))
+                sk = next((v for k, v in SIGK.items() if r['screen'].startswith(k)), None)
+                blk = sig_black(sk) if sk else 0
+                checks.update(fx_max=mx, fx_over8_s=round(over, 3), fx_black_asset=blk, max_frame=int(np.argmax(sat)))
                 if mx > THR['fx_max']:
                     fails.append(f"PF6 最大幀 C*>40 {mx}% > {THR['fx_max']}%")
                 if over > THR['fx_8_s']:
                     fails.append(f"PF6 超過 8% 的時間 {over:.2f} 秒 > {THR['fx_8_s']}")
                 if blk > THR['fx_black']:
-                    fails.append(f"PF6 黑邊 {blk}% > {THR['fx_black']}%")
+                    fails.append(f"PF6 黑邊（{sk} 素材，最大幀 L*<15）{blk}% > {THR['fx_black']}%")
             if iid.startswith('X-3'):
                 bm = (r.get('data') or {}).get('beam')
                 if bm and bm.get('core') and not (bm.get('val') or bm.get('rgbTok')):
