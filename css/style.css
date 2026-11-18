@@ -1541,7 +1541,7 @@ body.cine #hud { visibility: hidden; }
 .rvf { display: flex; justify-content: flex-end; gap: 8px; }
 .rvf .btn { min-height: 44px; min-width: 120px; }
 /* 離線摘要（M3-04.4f 選項 A）：底部固定「全部升級」次要 44＋「收下」主鈕 48 滿寬，不用捲就按得到 */
-.rvf.offf { --pp: 14px; position: sticky; bottom: calc(-1 * var(--pp)); z-index: 1; flex-direction: column; margin: 8px calc(-1 * var(--pp)) calc(-1 * var(--pp)); padding: 8px var(--pp) var(--pp); background: var(--s1); border-top: 1px solid var(--line); }
+.rvf.offf { --pp: 14px; position: sticky; bottom: calc(-1 * var(--pp)); z-index: 1; flex-direction: column; margin: 8px calc(-1 * var(--pp)) calc(-1 * var(--pp)); padding: 8px var(--pp) var(--pp); background: var(--panel); border-top: 1px solid var(--border); }
 body.touch .rvf.offf { --pp: 10px; }
 .rvf.offf .btn.pri { min-height: 48px; }
 /* 矮的畫面（橫向手機）：兩顆並排，不然面板只剩按鈕 */
