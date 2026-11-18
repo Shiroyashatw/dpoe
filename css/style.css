@@ -1196,7 +1196,7 @@ body.cine #hud { visibility: hidden; }
 .wm-sin { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; margin: 6px 0; }
 .wm-sin .chip { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 6px; height: auto; min-height: 44px; padding: 4px 8px; text-align: left; line-height: 1.35; }
 .wm-sin .chip i { grid-column: 1 / -1; }
-.wm-sin .chip:disabled { opacity: 0.45; }
+.wm-sin .chip:disabled, .chip[data-fg^="tr:"]:disabled { opacity: 0.45; cursor: default; }
 .wm-sin .chip i { font-style: normal; font-size: var(--fs-s); color: var(--dim); }
 .wm-sin .chip.on i { color: inherit; }
 .fom { margin: 6px 0; }
@@ -1935,7 +1935,7 @@ body.touch.port .bag { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8p
 .it > .bu { display: none; }
 .it > .bt { right: auto; left: 4px; top: 16px; bottom: auto; font-size: 10px; color: var(--milk); }
 .it > .btr { right: 3px; bottom: 2px; font-size: 10px; font-weight: 700; color: var(--milk2); }
-.it > .btr.top { background: var(--paper); color: var(--ink); padding: 1px 3px; border-radius: 2px; }
+.it > .btr.btop { background: var(--paper); color: var(--ink); padding: 1px 3px; border-radius: 2px; }
 .bag > .it.nq { opacity: 0.4; }
 .bag > .it.nq.on { opacity: 0.7; }
 /* 換裝卡：「這件｜身上」並排，不下判定 */
@@ -2091,13 +2091,13 @@ body:not(.touch.port) .stg > div { justify-content: space-between; }
 .cmhead { position: sticky; top: calc(-1 * var(--pp)); z-index: 3; display: flex; flex-direction: column; gap: 8px; margin: 0 calc(-1 * var(--pp)); padding: 4px var(--pp) 10px; background: var(--s1); box-shadow: 0 8px 8px -8px rgba(0, 0, 0, 0.7); }
 /* 資源條 genBarHTML：圖示、名字、庫存、速率一行，下面一條「這一單位的進度」 */
 .cmtop { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
-.rbar { display: grid; grid-template-columns: 20px auto 1fr auto; align-items: center; column-gap: 6px; row-gap: 3px; min-width: 0; }
-.rbar .ic { width: 20px; height: 20px; }
+/* 兩欄放不下速率就換到下一行靠右（hotfix-ui：大數字擠出欄位、蓋到右欄） */
+.rbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 6px; min-width: 0; }
+.rbar .ic { flex: none; width: 20px; height: 20px; }
 .rbar .rn { font-size: var(--fs-s); color: var(--milk2); white-space: nowrap; }
-.rbar b { justify-self: start; display: inline-block; transform-origin: left center; font: 700 var(--fs)/1.2 var(--font); color: var(--milk); font-variant-numeric: tabular-nums; }
-.rbar small { font-size: var(--fs-s); color: var(--good); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.rbar .rt { grid-column: 1 / -1; }
-.rbar.st { grid-template-columns: 20px auto 1fr; }
+.rbar b { display: inline-block; transform-origin: left center; font: 700 var(--fs)/1.2 var(--font); color: var(--milk); font-variant-numeric: tabular-nums; }
+.rbar small { margin-left: auto; font-size: var(--fs-s); color: var(--good); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rbar .rt { flex: 0 0 100%; }
 .rt { position: relative; display: block; height: 4px; background: var(--s0); border-radius: 2px; overflow: hidden; }
 .rt > i { position: absolute; inset: 0; transform-origin: left center; transform: scaleX(0); background: var(--milk2); border-radius: 2px; will-change: transform; }
 /* 速率 ≥240／分：條不再一格一格跑，改成流動的常亮條（AdCap 的做法） */
