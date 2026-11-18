@@ -1,0 +1,25 @@
+id,stem,base,kind,bar,result,style,style_colors,style_dL,iou32_max,iou32_with,iou16_max,iou16_with,fill,box_fill,fill16,checker16,noise,colors,chase,fail,hand
+sk_deadeye,sk_deadeye-s7224h,sk_deadeye-s7224,手修,S,過,過,9,71.3,0.467,sk_holyshield,0.464,sk_rend,0.273,0.432,0.289,0,0.0,10,0,,剪影不動；兩顆骰子各分 3 面：頂面 --tx-strong、左面 --border-mid、右面 --border，稜線與底邊用相鄰 token 混色；左骰點數 2×2 --scene-void（頂 1、左 2、右 2），立起那顆點數 2×2 --bad（右下格 --bad 暗階）
+sk_holyshield,sk_holyshield-r5fh,sk_holyshield-s7208,手修,S,過,過,9,61.1,0.529,sk_gasflask,0.544,sk_gasflask,0.334,0.393,0.355,0,0.0,10,0,,重畫：右上 14×16 鳶形小盾、往右傾 20°；盾面 --border-mid：中脊一道亮線，左半迎光（上段混 --border-cap）、右半背光（混 --border，右下 --border 最暗）；盾緣 --border-cap（右下半混 --border-mid）；左下 2 道 1 px 弧形速度線 --tx-strong，尾端混 --border-mid
+sk_rage,sk_rage-s7219h,sk_rage-s7219,手修,S,過,過,8,49.3,0.47,sk_doom,0.51,sk_daunt,0.341,0.445,0.391,2,0.0,9,0,,重畫成熊掌印：刪掉散開的 6 顆紅點；主掌墊改下寬上窄的圓角梯形；4 顆 4×5 橢圓趾墊排成弧形、描邊間隔 1 px；掌墊、趾墊都用 --hp 三階（左上亮→右下暗），左上一格 --bad 高光、旁邊 --bad／--hp 亮階混色；掌下 2 道 4 px 斜向短裂紋 --border（上端混 --border-mid、下端暗階）
+sk_despair,sk_despair-s7206h,sk_despair-s7206,手修,S,過,過,13,69.9,0.336,sk_fireburst,0.381,sk_shieldcharge,0.176,0.341,0.195,0,0.017,14,0,,左腿從弧頂往下約 1/3（y12）截斷並補描邊；刪掉右鉤尖黏著的粉色塊與底部花瓣，只留右邊彎鉤下垂（鉤尖 y19）；原本那片花瓣（原色、原明暗）移到鉤尖正下方，描邊間空 1 px
+sk_windflask,sk_windflask-s7215h,sk_windflask-s7215,手修,S,過,過,11,67.7,0.489,sk_berserk,0.56,sk_berserk,0.364,0.476,0.426,0,0.0,12,0,,重畫成小瓶：頂端 2 px 瓶塞（--border-mid 三階）、細瓶頸上段空玻璃（--panel-inset／--tx-strong 混色）、下段鼓出瓶身裝 --good 三階藥水、左側 --tx-strong 反光；兩道風線跟瓶身斷開 1 px，改成波浪、由 3 px 收細到 1 px（--good，上緣混 --tx-strong、下緣暗階）
+sk_clarity,sk_clarity-s6201h,sk_clarity-s6201,手修,A,過,過,12,74.5,0.462,sk_iceshield,0.474,sk_souldrain,0.449,0.529,0.477,1,0.007,13,0,,新月右下尖端下方加 2 顆斷開的水滴（2×3、1×2），--el-cold、亮點 --tx-strong、2×3 那顆右下一格混 --mp；為了留 1 px 空隙削掉新月右下緣 1–2 px 並補描邊
+sk_fireburst,sk_fireburst-s7210h,sk_fireburst-s7210,手修,S,過,過,29,75.4,0.408,sk_chaosbolt,0.475,sk_shieldcharge,0.221,0.31,0.262,0,0.0,30,0,,去孤立點：20 格改成 8 鄰裡 Lab 最接近的非描邊色（剪影不動、不加新色），雜點 0.088 → 0.000
+sk_refract,sk_refract-s7213h,sk_refract-s7213,手修,S,過,過,20,88.8,0.461,sk_sacrifice,0.514,sk_sacrifice,0.319,0.418,0.355,0,0.0,21,0,,去孤立點：10 格改成 8 鄰裡 Lab 最接近的非描邊色（剪影不動、不加新色），雜點 0.031 → 0.000
+sk_doom,sk_doom-s7218h,sk_doom-s7218,手修,S,過,過,18,80.3,0.542,sk_bladestorm,0.617,sk_bladestorm,0.358,0.485,0.398,0,0.0,19,0,,去孤立點：12 格改成 8 鄰裡 Lab 最接近的非描邊色（剪影不動、不加新色），雜點 0.033 → 0.000
+sk_purityaura,sk_purityaura-s7202,sk_purityaura-s7202,候選（§1，不動）,A,過,過,16,93.0,0.466,sk_command,0.486,sk_command,0.355,0.448,0.383,0,0.022,17,0,,
+sk_staticfield,sk_staticfield-s7203,sk_staticfield-s7203,候選（§1，不動）,A,過,過,9,95.2,0.564,sk_inferno,0.575,sk_inferno,0.307,0.416,0.328,1,0.006,10,0,,
+sk_summongod,sk_summongod-s7204,sk_summongod-s7204,候選（§1，不動）,A,過,過,8,71.5,0.417,sk_iceshield,0.441,sk_iceshield,0.387,0.471,0.434,2,0.013,9,0,,
+sk_ironaura,sk_ironaura-s7205,sk_ironaura-s7205,候選（§1，不動）,A,過,過,21,88.9,0.533,sk_iceshatter,0.586,sk_iceshatter,0.422,0.552,0.441,0,0.021,22,0,,
+sk_weaken,sk_weaken-s7207,sk_weaken-s7207,候選（§1，不動）,S,過,過,22,86.2,0.465,sk_frostnova,0.527,sk_frostnova,0.332,0.484,0.398,0,0.029,23,0,,
+sk_bloodlust,sk_bloodlust-s7209,sk_bloodlust-s7209,候選（§1，不動）,S,過,過,13,96.9,0.538,sk_daunt,0.571,sk_daunt,0.338,0.444,0.359,0,0.009,14,0,,
+sk_gasflask,sk_gasflask-s7311,sk_gasflask-s7311,候選（§1，不動）,S,過,過,15,87.2,0.569,sk_berserk,0.602,sk_berserk,0.414,0.487,0.465,0,0.002,16,0,,
+sk_tidepull,sk_tidepull-s7214,sk_tidepull-s7214,候選（§1，不動）,S,過,過,15,45.3,0.506,sk_berserk,0.585,sk_daunt,0.362,0.55,0.41,2,0.011,16,0,,
+sk_assassinate,sk_assassinate-s7216,sk_assassinate-s7216,候選（§1，不動）,S,過,過,26,94.0,0.471,sk_slash2,0.505,sk_slash2,0.241,0.315,0.258,0,0.016,27,0,,
+sk_combust,sk_combust-s7217,sk_combust-s7217,候選（§1，不動）,S,過,過,23,90.6,0.488,sk_rend,0.479,sk_rend,0.259,0.326,0.277,0,0.019,24,0,,
+sk_talisman,sk_talisman-s7220,sk_talisman-s7220,候選（§1，不動）,S,過,過,13,87.0,0.505,sk_chaosbolt,0.56,sk_shadowstep,0.336,0.424,0.375,0,0.017,14,0,,
+sk_exorcise,sk_exorcise-s7221,sk_exorcise-s7221,候選（§1，不動）,S,過,過,10,82.2,0.468,sk_sweep,0.496,sk_rage,0.303,0.442,0.328,0,0.013,11,0,,
+sk_fire,sk_fire-s7322,sk_fire-s7322,候選（§1，不動）,S,過,過,22,95.2,0.532,sk_shieldcharge,0.564,sk_meteor,0.262,0.563,0.285,0,0.004,23,0,,
+sk_meteor,sk_meteor-s7223,sk_meteor-s7223,候選（§1，不動）,S,過,過,15,57.2,0.557,sk_shieldcharge,0.564,sk_fire,0.373,0.524,0.387,0,0.01,16,0,,
+sk_oilgrenade,sk_oilgrenade-s7212,sk_oilgrenade-s7212,候選（§1，不動）,S,過,過,18,80.9,0.492,sk_sacrifice,0.521,sk_sacrifice,0.336,0.455,0.359,0,0.02,19,0,,

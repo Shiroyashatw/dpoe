@@ -1,3 +1,49 @@
+# M2-40 R5f 技能圖示手修：9 枚，0 次生成，§5 都過
+
+照 `docs/production/specs/M2-40-skill-icon-picks.md` §2（美術 16:24，a42e1d2），量測門檻照 `M2-40-skill-icon-prompts.md` §5。**還沒定稿、沒接入遊戲**（`js/`、`css/`、`index.html` 沒動）。舊輪（r5_～r5e_）的檔和底圖都沒動，§1 的 15 枚候選也沒動。
+
+## 做法
+
+- **沒有呼叫 PixelLab**（生成 0 次，`spend.csv` 沒加列）。全部由 `scripts/r5f.py` 用程式逐像素畫：手修圖存成 `art/icons/skill/<id>/<底圖 stem>h.png`。`sk_holyshield` 是重畫，存成 `sk_holyshield-r5fh.png`。
+- 顏色只用該列 palette 與 §2 指定的 token。明暗用 token 本身、兩個 token 的混色，或 r5d 導引圖的三階（亮＝往白混 40%，暗＝×0.55）。沒有平塗，也沒有單色實心。
+- 畫完都跑 r5c 的後處理（外緣 1 px `--scene-void`、1 px 透明邊、去 2 px 角），再用 r5c 的 `evaluate` 量 §5。IoU 拿 24 枚全集互比。
+
+## 9 枚（手修後的數字；畫風＝不透明非描邊的色數 ≥ 8 且 L* 差 ≥ 35）
+
+| id | 底圖 → 手修 | 改法 | 畫風 | IoU32（對象） | IoU16（對象） | 填滿／外框／16 | 雜點 | §5 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `sk_deadeye` | sk_deadeye-s7224 → sk_deadeye-s7224h | 剪影不動；兩顆骰子各分 3 面：頂面 --tx-strong、左面 --border-mid、右面 --border，稜線與底邊用相鄰 token 混色；左骰點數 2×2 --scene-void（頂 1、左 2、右 2），立起那顆點數 2×2 --bad（右下格 --bad 暗階） | 9 色／71.3 | 0.467（`sk_holyshield`） | 0.464（`sk_rend`） | 0.273／0.432／0.289 | 0.0 | 過 |
+| `sk_holyshield` | sk_holyshield-s7208 → sk_holyshield-r5fh | 重畫：右上 14×16 鳶形小盾、往右傾 20°；盾面 --border-mid：中脊一道亮線，左半迎光（上段混 --border-cap）、右半背光（混 --border，右下 --border 最暗）；盾緣 --border-cap（右下半混 --border-mid）；左下 2 道 1 px 弧形速度線 --tx-strong，尾端混 --border-mid | 9 色／61.1 | 0.529（`sk_gasflask`） | 0.544（`sk_gasflask`） | 0.334／0.393／0.355 | 0.0 | 過 |
+| `sk_rage` | sk_rage-s7219 → sk_rage-s7219h | 重畫成熊掌印：刪掉散開的 6 顆紅點；主掌墊改下寬上窄的圓角梯形；4 顆 4×5 橢圓趾墊排成弧形、描邊間隔 1 px；掌墊、趾墊都用 --hp 三階（左上亮→右下暗），左上一格 --bad 高光、旁邊 --bad／--hp 亮階混色；掌下 2 道 4 px 斜向短裂紋 --border（上端混 --border-mid、下端暗階） | 8 色／49.3 | 0.47（`sk_doom`） | 0.51（`sk_daunt`） | 0.341／0.445／0.391 | 0.0 | 過 |
+| `sk_despair` | sk_despair-s7206 → sk_despair-s7206h | 左腿從弧頂往下約 1/3（y12）截斷並補描邊；刪掉右鉤尖黏著的粉色塊與底部花瓣，只留右邊彎鉤下垂（鉤尖 y19）；原本那片花瓣（原色、原明暗）移到鉤尖正下方，描邊間空 1 px | 13 色／69.9 | 0.336（`sk_fireburst`） | 0.381（`sk_shieldcharge`） | 0.176／0.341／0.195 | 0.017 | 過 |
+| `sk_windflask` | sk_windflask-s7215 → sk_windflask-s7215h | 重畫成小瓶：頂端 2 px 瓶塞（--border-mid 三階）、細瓶頸上段空玻璃（--panel-inset／--tx-strong 混色）、下段鼓出瓶身裝 --good 三階藥水、左側 --tx-strong 反光；兩道風線跟瓶身斷開 1 px，改成波浪、由 3 px 收細到 1 px（--good，上緣混 --tx-strong、下緣暗階） | 11 色／67.7 | 0.489（`sk_berserk`） | 0.56（`sk_berserk`） | 0.364／0.476／0.426 | 0.0 | 過 |
+| `sk_clarity` | sk_clarity-s6201 → sk_clarity-s6201h | 新月右下尖端下方加 2 顆斷開的水滴（2×3、1×2），--el-cold、亮點 --tx-strong、2×3 那顆右下一格混 --mp；為了留 1 px 空隙削掉新月右下緣 1–2 px 並補描邊 | 12 色／74.5 | 0.462（`sk_iceshield`） | 0.474（`sk_souldrain`） | 0.449／0.529／0.477 | 0.007 | 過 |
+| `sk_fireburst` | sk_fireburst-s7210 → sk_fireburst-s7210h | 去孤立點：20 格改成 8 鄰裡 Lab 最接近的非描邊色（剪影不動、不加新色），雜點 0.088 → 0.000 | 29 色／75.4 | 0.408（`sk_chaosbolt`） | 0.475（`sk_shieldcharge`） | 0.221／0.31／0.262 | 0.0 | 過 |
+| `sk_refract` | sk_refract-s7213 → sk_refract-s7213h | 去孤立點：10 格改成 8 鄰裡 Lab 最接近的非描邊色（剪影不動、不加新色），雜點 0.031 → 0.000 | 20 色／88.8 | 0.461（`sk_sacrifice`） | 0.514（`sk_sacrifice`） | 0.319／0.418／0.355 | 0.0 | 過 |
+| `sk_doom` | sk_doom-s7218 → sk_doom-s7218h | 去孤立點：12 格改成 8 鄰裡 Lab 最接近的非描邊色（剪影不動、不加新色），雜點 0.033 → 0.000 | 18 色／80.3 | 0.542（`sk_bladestorm`） | 0.617（`sk_bladestorm`） | 0.358／0.485／0.398 | 0.0 | 過 |
+
+- 9 枚 §5 全過：畫風、32 IoU < 0.6、填滿 0.15–0.50、外框 ≤ 0.75、16 填滿 ≤ 0.6、16 棋盤 ≤ 6、色數 ≤ 32、雜點 ≤ 3%、描邊、追逐色 0。可辨識度還要給美術總監和 UIUX設計師目視。
+- 有兩枚畫風過得比較勉強：`sk_rage` 剛好 8 色（L* 差 49.3），`sk_deadeye`、`sk_holyshield` 各 9 色。原因是規格把顏色限定在少數幾個 token。
+- 16 縮圖 IoU ≥ 0.6 的配對，跟 R5e 一樣還是兩對，要給 UIUX 目視：`sk_gasflask`／`sk_berserk` 0.602、`sk_doom`／`sk_bladestorm` 0.617（去雜點沒有改剪影）。
+- 新圖相關的配對，沒有任何一對 IoU32 ≥ 0.6。舊圖之間 ≥ 0.6 的有 70 對（技能 62、光環 8），最高 0.742，沒有 ≥ 0.75 的（`r5f_bar_pairs.csv`）。
+- 自己目視覺得還可以再修的地方：`sk_windflask` 的瓶子加兩道橫向風線，輪廓還是有一點像「F」，只是風線斷開、改成波浪，又往下移了。`sk_rage` 的掌墊偏扁。
+
+## 檔案（本輪）
+
+| 檔 | 內容 |
+| --- | --- |
+| `r5f_hand_compare.png` | 9 枚手修前後：左邊底圖 4x＋1x，右邊手修 4x＋1x，加手修灰階 4x；附改法與 §5 數字 |
+| `r5f_32_compare.png` | 全 24 枚：彩色 4x＋1x、灰階 4x＋1x、最撞對象 4x、§5 數字與判定 |
+| `r5f_sil_32.png`、`r5f_sil_16.png` | 同欄集完整黑剪影（換上 24 枚），金框是新圖，紅字是在 ≥ 0.6 配對裡的 |
+| `r5f_bar_mock.png` | 52／56 空白鈕：每枚新圖和最撞對象，彩色＋灰階 |
+| `r5f_iou.csv`、`r5f_bar_pairs.csv` | IoU 32／16 全表；同欄集所有 ≥ 0.6 的配對 |
+| `r5f_review.csv` | 24 枚各一列：§5 數字、判定、手修改法 |
+| `scripts/r5f.py`、`scripts/r5f_evidence.py` | 手修（在 dpoe/ 底下 `python3 -I` 跑）、證據 |
+
+`js/` 沒變，所以 `r5e_locations.csv` 還是適用。
+
+---
+
 # M2-40 R5e（第 5 輪）技能圖示：續跑 22／22 次，17 張候選、7 張待手修
 
 照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5e，a8cef7c）。**還沒定稿、沒接入遊戲**（`js/`、`css/`、`index.html` 沒動）。r5_／r5b_／r5c_／r5d_ 的舊檔都沒動。
