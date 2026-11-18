@@ -1,5 +1,5 @@
 const { chromium } = require('playwright');
-/* 開場實測（Playwright）：0.3.0 起沒有序章，開場看完直接在藏身處。
+/* 開場實測（Playwright）：0.3.0 起沒有序章，開場看完直接在營地（M2-12 前叫藏身處）。
    新存檔（開場、拿到劍、撿骨師第一次對話、設施提示、掌櫃）、老存檔（角色不動、版本號重跑）、跳過與重新整理、減少動態、手機四個尺寸的字幕。
    用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/pro_check.js [網址] [fresh／vet／skip／calm／phone]。
    環境變數 PW_CHROME 可以指定 Chrome 路徑；截圖存在系統暫存資料夾（pro_*.png）；有 ❌ 時結束碼 1 */
@@ -45,37 +45,15 @@ const clean = async (p, slot) => {
   await p.evaluate(() => localStorage.clear());
   await open(p, slot);
 };
-/* 真的按鍵走路（K 是 game.js 的按鍵狀態）：一直走到目標 d 以內 */
-const walk = (p, x, y, d = 50) =>
-  p.evaluate(
-    ([x, y, d]) =>
-      new Promise(done => {
-        const t0 = performance.now(),
-          tick = () => {
-            const dx = x - P.x,
-              dy = y - P.y;
-            K.a = dx < -8;
-            K.d = dx > 8;
-            K.w = dy < -8;
-            K.s = dy > 8;
-            if (Math.hypot(dx, dy) < d || performance.now() - t0 > 15000) {
-              K.a = K.d = K.w = K.s = 0;
-              return done(Math.hypot(dx, dy));
-            }
-            requestAnimationFrame(tick);
-          };
-        tick();
-      }),
-    [x, y, d]
-  );
-/* 開場快轉到底：老存檔回到藏身處，新存檔直接開刷第一個地點（M1-01） */
+
+/* 開場快轉到底：老存檔回到營地，新存檔直接開刷第一個地點（M1-01） */
 const toHome = async p => {
   await p.evaluate(() => (IV.speed = 200));
-  await p.waitForFunction(() => !IV.on && (G.scene === 'hide' || G.scene === 'map'));
+  await p.waitForFunction(() => !IV.on && (G.scene === 'camp' || G.scene === 'map'));
 };
 
 async function fresh() {
-  console.log('— 新存檔：開場 → 藏身處 —');
+  console.log('— 新存檔：開場 → 營地 —');
   const p = await page(1280, 720);
   await clean(p, 41);
   ok('新存檔沒有武器', await p.evaluate(() => !S.eq.weapon && S.fresh === 1));
@@ -125,15 +103,17 @@ async function fresh() {
   );
   await p.waitForTimeout(1200);
   await p.screenshot({ path: shot('home') });
-  /* 下面驗藏身處：自己回去 */
-  await p.evaluate(() => enterHideout());
+  /* 下面驗營地：自己回去 */
+  await p.evaluate(() => enterCamp());
   /* 0.5.2：地圖台打開地點清單；沒有 NPC、沒有設施提示 */
-  ok(
-    '藏身處沒有 NPC（只剩山海寶盒）',
-    await p.evaluate(() => G.npcs.length === 1 && !G.props.some(q => q.k === 'npc'))
-  );
-  await walk(p, 660, 530, 60);
-  await p.keyboard.press('f');
+  ok('營地沒有 NPC（只剩山海寶盒）', await p.evaluate(() => G.npcs.length === 1 && !G.props.some(q => q.k === 'npc')));
+  /* M2-12：主角不在營地走動，用滑鼠點地圖台（propAt 判定在名牌下方 25 世界 px） */
+  await p.waitForTimeout(600);
+  const dv = await p.evaluate(() => {
+    const d = G.props.find(q => q.k === 'device');
+    return { x: (d.x - G.cam.x) * ZOOM + IW / 2, y: (d.y - 25 - G.cam.y) * ZOOM + cvH() / 2 };
+  });
+  await p.mouse.click(dv.x, dv.y);
   await p.waitForFunction(() => PANEL.node);
   ok('地圖台打開地點清單', await p.evaluate(() => PANEL.node && !!document.querySelector('#pnode .ndr')));
   await p.keyboard.press('Escape');
@@ -162,7 +142,7 @@ async function veteran() {
   const before = await p.evaluate(CORE);
   await p.click('#ivgo');
   await toHome(p);
-  ok('看完在藏身處、角色一模一樣', (await p.evaluate(CORE)) === before);
+  ok('看完在營地、角色一模一樣', (await p.evaluate(CORE)) === before);
   ok('存檔也一模一樣', (await p.evaluate(DISK)) === before);
   ok('記版本號', await p.evaluate(() => S.story.prologue === PRO_VER && S.story.intro === PRO_VER));
   ok('老玩家沒有多一把劍', await p.evaluate(() => S.eq.weapon.b === 'w_bow_0' && !S.inv.items.length));
