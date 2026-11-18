@@ -1595,18 +1595,18 @@ const RA = (() => {
     const roll = flag => { reset(); ST.tacRoll = flag; P.ammo = { apshot: { n: 0, until: G.t + 5 }, nothing: { n: 1, until: 0 } }; doRoll(); return P.ammo.apshot; };
     o.tac = [roll(1), roll(0)];
     reset(); ST.tacRoll = 1; ST.heavyAmmo = 60; P.ammo = { apshot: { n: 0, until: G.t + 5 } }; doRoll(); o.tacHeavy = P.ammo.apshot.n;
-    /* 爆炸補給多出來的子彈，翻滾不會打回一個彈夾：6 發的彈夾補到 9 → 翻滾後還是 9；裝填中（補給 2 發）→ 6 + 2；裝填剛完成還沒用 → 同樣 6 + 2 */
+    /* 爆炸補給多出來的子彈，翻滾不會打回一個彈匣：6 發的彈匣補到 9 → 翻滾後還是 9；裝填中（補給 2 發）→ 6 + 2；裝填剛完成還沒用 → 同樣 6 + 2 */
     const rollWith = a => { reset(); ST.tacRoll = 1; P.ammo = { apshot: a }; doRoll(); return P.ammo.apshot; };
     o.tacMore = [rollWith({ n: 9, until: 0 }).n, rollWith({ n: 0, until: G.t + 5, extra: 2 }).n, rollWith({ n: 0, until: G.t - 1, extra: 2 }).n, rollWith({ n: 3, until: 0 }).n];
 
-    /* 重裝彈頭：彈夾減半（進位）、每發更多 60%、穿透 +1，只給彈藥技能 */
+    /* 重裝彈頭：彈匣減半（進位）、每發更多 60%、穿透 +1，只給彈藥技能 */
     reset(); ST.heavyAmmo = 60; ST.ammoN = 1;
     const hv = gemCfg(apG(), 0), hv0 = gemCfg(mkGem('cleave', 5), 0);
     o.heavy = [clipOf(SKILLS.apshot), r2(hv.more), hv.pierce, hv0.more, hv0.pierce];
     reset(); const hv1 = gemCfg(apG(), 0); o.heavy0 = [clipOf(SKILLS.apshot), hv1.more, hv1.pierce];
     reset(); ST.heavyAmmo = 60; ST.ammoN = 0; const gA = apG(); const shots = []; for (let i = 0; i < 3; i++) { skillPay(gemCfg(gA, 0), 0); shots.push(ammoLeft('apshot')); } o.heavyClip = shots;
 
-    /* 斷後：彈夾打空的那一發，在命中處留一顆你裝著的榴彈（每次出手一顆、不花榴彈次數）；前面的發數不留；沒點、沒裝榴彈不留 */
+    /* 斷後：彈匣打空的那一發，在命中處留一顆你裝著的榴彈（每次出手一顆、不花榴彈次數）；前面的發數不留；沒點、沒裝榴彈不留 */
     const rear = (flag, withGr = true, q = 0, proj = 0) => {
       reset(); ST.rearGuard = flag; ST.proj = proj;
       const a = apG(); a.aw = q ? 'A' : ''; eq2(a, withGr ? grG() : null);
@@ -1643,7 +1643,7 @@ const RA = (() => {
     o.cluster = [clus(1), clus(0)];
     reset(); ST.cluster = 1; ST.grenFuse = -100 / 3; G.mobs = [mk(0, 0)]; boomG(0, 0); o.clusterFuse = G.grenades.map(n => r2(n.fuse));
 
-    /* 爆炸補給：榴彈爆炸打中敵人時，彈藥技能多 1 發（可超過彈夾、最多 2 倍）；沒打中不給；裝填中的，裝填完多 1 發 */
+    /* 爆炸補給：榴彈爆炸打中敵人時，彈藥技能多 1 發（可超過彈匣、最多 2 倍）；沒打中不給；裝填中的，裝填完多 1 發 */
     const sup = (n, hit, flag = 1) => { reset(); ST.blastSupply = flag; eq2(apG()); P.ammo = { apshot: { n, until: 0 } }; G.mobs = hit ? [mk(0, 0)] : []; boomG(0, 0); return P.ammo.apshot.n; };
     o.supply = [sup(4, 1), sup(6, 1), sup(12, 1), sup(4, 0), sup(4, 1, 0)];
     reset(); ST.blastSupply = 1; eq2(apG()); P.ammo = { apshot: { n: 0, until: G.t + 2 } }; G.mobs = [mk(0, 0)]; boomG(0, 0);
@@ -1654,12 +1654,12 @@ const RA = (() => {
   })()`);
   const j = x => JSON.stringify(x);
   ok(
-    '戰術翻滾：翻滾時所有彈藥技能裝滿彈夾、裝填中的直接完成（真的跑 doRoll）；沒點不動；跟重裝彈頭一起＝裝滿減半的彈夾；爆炸補給超過彈夾的不會變少（9 發 → 9、裝填中補 2 發 → 8、裝填剛完成補 2 發 → 8、不足彈夾 3 → 6）',
+    '戰術翻滾：翻滾時所有彈藥技能裝滿彈匣、裝填中的直接完成（真的跑 doRoll）；沒點不動；跟重裝彈頭一起＝裝滿減半的彈匣；爆炸補給超過彈匣的不會變少（9 發 → 9、裝填中補 2 發 → 8、裝填剛完成補 2 發 → 8、不足彈匣 3 → 6）',
     j(g.tac) === '[{"n":6,"until":0},{"n":0,"until":105}]' && g.tacHeavy === 3 && j(g.tacMore) === '[9,8,8,6]',
     j([g.tac, g.tacHeavy, g.tacMore])
   );
   ok(
-    '重裝彈頭：彈夾發數減半（6 + 1 → 4，沒點 6）、每發更多 60%、穿透 +1，只給彈藥技能；3 發的彈夾打 3 發就裝填',
+    '重裝彈頭：彈匣發數減半（6 + 1 → 4，沒點 6）、每發更多 60%、穿透 +1，只給彈藥技能；3 發的彈匣打 3 發就裝填',
     j(g.heavy.slice(0, 3)) === '[4,1.6,1]' &&
       j(g.heavy.slice(3)) === '[1,0]' &&
       j(g.heavy0) === '[6,1,0]' &&
@@ -1667,7 +1667,7 @@ const RA = (() => {
     j([g.heavy, g.heavy0, g.heavyClip])
   );
   ok(
-    '斷後：彈夾打空的那一發在命中處留一顆你裝著的榴彈（前 5 發沒有、不花榴彈次數、多重投射也只留一顆）；沒點、沒裝榴彈不留；跟穿甲彈品質的最後一發爆炸疊；油榴彈也行',
+    '斷後：彈匣打空的那一發在命中處留一顆你裝著的榴彈（前 5 發沒有、不花榴彈次數、多重投射也只留一顆）；沒點、沒裝榴彈不留；跟穿甲彈品質的最後一發爆炸疊；油榴彈也行',
     j(g.rear[0]) === '[[0,0,0,0,0,1],[40,"grenade"],0]' &&
       j(g.rear[1][0]) === '[0,0,0,0,0,0]' &&
       j(g.rear[2][0]) === '[0,0,0,0,0,0]' &&
@@ -1694,7 +1694,7 @@ const RA = (() => {
     j([g.cluster, g.clusterFuse])
   );
   ok(
-    '爆炸補給：榴彈爆炸打中敵人時，彈藥技能多 1 發（4 → 5，可超過彈夾 6 → 7，最多 2 倍＝12）；沒打中、沒點不給；裝填中的，裝填完多 1 發（6 + 1 − 1 ＝ 6）',
+    '爆炸補給：榴彈爆炸打中敵人時，彈藥技能多 1 發（4 → 5，可超過彈匣 6 → 7，最多 2 倍＝12）；沒打中、沒點不給；裝填中的，裝填完多 1 發（6 + 1 − 1 ＝ 6）',
     j(g.supply) === '[5,7,12,4,4]' && j(g.supplyReload) === '[0,6]',
     j([g.supply, g.supplyReload])
   );
@@ -11297,7 +11297,10 @@ const ASC_COMBOS = `const combos = k => {
             get: (o, k) =>
               k in o
                 ? o[k]
-                : (...a) => (log.push([k, a[0] && a[0].src, a[1], a[2]]), k === 'createPattern' ? {} : undefined),
+                : (...a) => (
+                    log.push([k, a[0] && a[0].src, a[1], a[2]]),
+                    k === 'createPattern' ? {} : k === 'getTransform' ? { a: 1, d: 1, e: 0, f: 0 } : undefined
+                  ),
             set: (o, k, v) => ((o[k] = v), true)
           }
         ),
