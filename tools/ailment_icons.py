@@ -23,6 +23,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from pixellab_batch import ROOT, alpha_binary, b64img, hexrgb, http, lab, nearest, palette_png, tokens  # noqa: E402
 
 DOC = ROOT / 'docs/production/specs/M2-39-pixellab-prompts.md'
+PICKS = ROOT / 'docs/production/specs/M2-39-picks.md'
 RAW = ROOT / 'art/_raw/ailment'
 OUT = ROOT / 'art/icons/ailment'
 REJ = ROOT / 'art/_rejected/ailment'
@@ -49,6 +50,11 @@ def jobs():
         if len(c) == 7 and c[4].isdigit():
             js.append({'id': c[0].strip('`'), 'name': c[1], 'seed0': int(c[4]), 'palette': re.findall(r'`(--[a-z-]+)`', c[5]), 'desc': c[6]})
     return js
+
+
+def rewrites():
+    """picks.md §2 改寫的提示詞：「- riven：`…`」"""
+    return dict(re.findall(r'^- (\w+)：`([^`]+)`', PICKS.read_text(encoding='utf-8'), re.M))
 
 
 def split_desc(d):
@@ -136,6 +142,9 @@ def run_one(job, size, k):
 
 def run(a):
     js = {j['id']: j for j in jobs()}
+    if a.seed:  # 重生：用 picks.md §2 的提示詞，seed 從 a.seed 起依序（只做 32）
+        rw = rewrites()
+        js = {jid: dict(js[jid], desc=rw[jid], seed0=a.seed + i) for i, jid in enumerate(a.job.split(',')) if jid in rw}
     want = [x for x in a.job.split(',') if x] if a.job else list(js)
     bad = [x for x in want if x not in js]
     if bad:
@@ -383,6 +392,7 @@ def main():
     p.add_argument('--size', type=int, choices=[32, 16], default=32)
     p.add_argument('--job', default='')
     p.add_argument('--k', type=int, default=0, help='第幾張（0＝首跑，1 起＝備用重跑）')
+    p.add_argument('--seed', type=int, default=0, help='重生：用 picks.md §2 的提示詞，--job 依序 seed、seed+1…')
     p.add_argument('--go', action='store_true')
     a = p.parse_args()
     if a.cmd == 'balance':

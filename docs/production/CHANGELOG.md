@@ -1,6 +1,7 @@
 # dpoe 變更紀錄
 
 所有決定與調整，新的在上，一行一條：`日期 時間｜決定者｜影響工項｜結論`。要記新的決定就加一行在最上面，不要改寫規格或任務檔裡的歷史。2026-11-17 以前的列由企劃書決策紀錄轉來；「—」是原紀錄沒寫時間。
+- 2026-11-18 14:37｜工程（雲端，dpoe-m2-39-icons-2）｜M2-39｜picks §2 重生 32：riven s3941、vine s3942、cb s3943 過；counter s3944 直劍沒回鉤→手加回鉤（s3945、cb s3946 備用重跑不過）；16 由過關 32 最近鄰縮小再手排。手修 sap、intim、unbr、crip、calm、sac，手繪 brittle、anemia、weak、taunt、tail、daze、inc（16＋32，0 次，原始檔 `-hand.txt`，工具 `tools/ailment_hand.py`）。已花 77→83／100（6 次，留 1 次備用沒用）；優先 16 獨立 32 等 mumi 定稿 16 沒跑；五枚詛咒（含 cu_eleweak、cu_vuln）等詛咒菱形定稿，待定
 - 2026-11-18 16:00｜開發工程師｜商會 5 換 1（dpoe-trade-tiercap-main）｜PR #93 併 main（6ab472a，含 #88 hotfix-ui、DOC-34）：只有兩份 CHANGELOG 衝突、兩邊都留；js/forge.js、css/style.css 自動合併、改的區塊不重疊（hotfix-ui 的 fmtC／.rbar／.btr.btop 與商會鎖住選項都保留）；功能、數值、存檔版本、VER 不動
 - 2026-11-18 15:30｜開發工程師｜hotfix-ui（mumi 手機回報）｜裝備格只剩「T6」米色方塊：起因是 10a5139（repo 第一個提交）就有的 class 撞名——角標 `.btr.top` 吃到 HUD 頂列 `.top` 的 `position:absolute; top; left`，改名 `btop`（不是 PR #66／token 收斂）；掛機卡資源列大數字縮寫（1 萬以上 671k／2.64M）＋速率放不下換行；touch_check 加兩條會在這兩個錯誤下失敗的斷言
 - 2026-11-18 14:30｜開發工程師｜商會 5 換 1（dpoe-trade-tiercap）｜照規格實作：超過 tierCap 的選項列出但停用（沿用 0.45 透明度），說明文字放在選項列下方一整行（放在按鈕裡會被橫向捲動列切掉），每種材料只寫最低一個鎖住的階；tradeDo 一併擋
