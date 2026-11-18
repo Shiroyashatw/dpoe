@@ -186,7 +186,7 @@ const ART_SHEET = {
   'sin-9': 'img/sin-9.e989dc05.png',
   z: 'img/z.e8e34779.png',
   'z-2': 'img/z-2.97368307.png',
-  ic_wy16: 'img/ic_wy16.e9d88827.png',
+  ic_wy16: 'img/ic_wy16.9393f7dc.png',
   ic_wy32: 'img/ic_wy32.ca6118ed.png'
 };
 const ART = {

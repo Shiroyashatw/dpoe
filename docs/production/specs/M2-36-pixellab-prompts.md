@@ -117,7 +117,7 @@ pixel art VFX animation, transparent background, no character, no text, no frame
 | 牆頂 | temple ★s1112、s1113；lava ★s1213、s1212；tomb ★s1312、s1311、s1314；ice ★s1417 |
 | 牆面 | temple ★s1122、s1124；lava ★s1224、s1223；tomb ★s1322、s1323；ice ★s1423、s1422 |
 | 王印 32 | 赤霄 ★s2141、s2144；鎮嶽 ★s2104、s2145；疾霆 ★s2149、s2124、s2150（牌子略帶側面）；歸墟 ★s2162（螺旋）、s2133（同心圓） |
-| 王印 16 | Art Director 已挑：鎮嶽 s2151、疾霆 s2155、赤霄 s2154（暫用）、歸墟 s2160（暫用）；赤霄、歸墟等 mumi 挑完 32 再各重跑 1 |
+| 王印 16 | 定稿：鎮嶽 s2151、疾霆 s2155、赤霄 `16-fix`（32 s2141 手修，`tools/wy16_fix.py`）、歸墟 s2166 |
 | 特效 | 每種只剩最新一張，只要確認：sig_crit、sig_lvup、sig_beam；sig_chase、sig_wyapply 加 §5 後處理 |
 
 目視淘汰（過了數字但不給 mumi）：

@@ -1,0 +1,6 @@
+file,from,changed_from_nn,opaque,palette_pct,alpha_ok,upscaled,isolated_px,isolated_pct,sat_pct,colors,pass
+wangyin_chixiao_16-fix,32 s2141 最近鄰→量化→清理,98,146,100.0,True,False,0,0.0,9.59,V I G M C O H,True
+wangyin_chixiao_16-s2154（舊暫用）,對照,,148,100.0,True,False,3,2.03,12.84,I B G M C O F,True
+wangyin_chixiao_16 nn+quant,對照,,147,100.0,True,False,7,4.76,12.93,V I B G M C O H,False
+wangyin_guixu_16-s2166（原檔）,對照,,126,100.0,True,False,0,0.0,6.35,I B G M C O H,True
+wangyin_guixu_16 試做,s2166 筆畫加深一階（試做，目視不採用）,17,126,100.0,True,False,0,0.0,6.35,I B G M C O H,True
