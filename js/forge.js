@@ -176,8 +176,8 @@ const rbIc = key => (key === 'soul' ? CAMP_IC.soul : MATS[matOf(key)[0]].ic);
 const rbName = key => (key === 'soul' ? '靈魂' : matName(...matOf(key)));
 function genBarHTML(key, add) {
   return add != null
-    ? `<div class="rbar st">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
-    : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key))}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
+    ? `<div class="rbar st">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
+    : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
 }
 /* 這個材料鍵是哪一座產生器正在產的（條的進度＝那一座的 acc）；靈魂、沒在產的階回 null */
 const rbGen = key => {

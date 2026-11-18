@@ -11266,7 +11266,10 @@ const ASC_COMBOS = `const combos = k => {
             get: (o, k) =>
               k in o
                 ? o[k]
-                : (...a) => (log.push([k, a[0] && a[0].src, a[1], a[2]]), k === 'createPattern' ? {} : undefined),
+                : (...a) => (
+                    log.push([k, a[0] && a[0].src, a[1], a[2]]),
+                    k === 'createPattern' ? {} : k === 'getTransform' ? { a: 1, d: 1, e: 0, f: 0 } : undefined
+                  ),
             set: (o, k, v) => ((o[k] = v), true)
           }
         ),

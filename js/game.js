@@ -327,7 +327,7 @@ function offShow(o, g, away) {
     head: () => {
       const gen = GEN_K.some(k => genOn(k) && genAfford(k) > 0);
       return `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>${o ? `，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `・倒下 ${o.n - o.won} 輪` : ''}` : ''}${o && o.lv ? `・升了 <b>${o.lv}</b> 級` : ''}</p>
-      <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold')}<span class="rn">金</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
+      <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold', '', 16)}<span class="rn">金</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
       ${o && o.cur.length ? `<p class="sub">通貨：${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}
       ${o && o.here ? offChaseHTML(o) : ''}
       ${gen ? '<button class="btn pri wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}${campUpsHTML(4, false)}</div>`;
