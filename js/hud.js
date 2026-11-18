@@ -1237,7 +1237,7 @@ function itemHTML(it, src, eqk) {
             : it.cor
               ? '<i class="bs co" aria-label="腐化">腐</i>'
               : '') +
-        (b ? `<i class="btr ${b <= itemT(it) ? 'top' : ''}">T${b}</i>` : '') +
+        (b ? `<i class="btr ${b <= itemT(it) ? 'btop' : ''}">T${b}</i>` : '') +
         (it.chase ? '<i class="chm" aria-label="追逐物品"></i>' : '');
   return `<div class="it r${it.r} ${isSlot(src) ? 'full' : ''} ${src === 'inv' && cantWear(it) ? 'nq' : ''} ${src === 'inv' && BAG.sel === it.id ? 'on' : ''}" tabindex="0" role="button" aria-label="${esc(itemName(it))}" data-src="${src}" data-id="${it.id}" ${eqk ? `data-eqk="${eqk}"` : ''}>${icHTML(itemIc(it))}${mark}</div>`;
 }
