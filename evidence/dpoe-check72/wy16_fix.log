@@ -1,0 +1,8 @@
+$ python3 tools/wy16_fix.py
+赤霄 過 {'opaque': 146, 'palette_pct': 100.0, 'alpha_ok': True, 'upscaled': False, 'isolated_px': 0, 'isolated_pct': 0.0, 'sat_pct': 9.59, 'colors': 'V I G M C O H', 'checker': 0, 'pass': True} 孤立 [] 改了 98 格
+歸墟 過 {'opaque': 146, 'palette_pct': 100.0, 'alpha_ok': True, 'upscaled': False, 'isolated_px': 0, 'isolated_pct': 0.0, 'sat_pct': 14.38, 'colors': 'V I G M C O H', 'checker': 5, 'pass': True} 孤立 []
+exit=0
+
+$ python3 tools/wy16_fix_test.py
+wy16_fix_test ok
+exit=0

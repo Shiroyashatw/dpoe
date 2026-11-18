@@ -1,0 +1,9 @@
+token（palette-tokens.md） {'v': '#0d0a07', 'i': '#24211e', 'b': '#554f48', 'm': '#a38e6b', 'c': '#e3d6bb', 'o': '#f69625', 'h': '#ffbf73'}
+size (16, 16) alpha 值 [0, 255]
+與 §3 像素逐格相同: True
+不透明色數 7 ；7 色以外的新色: 無
+ic_wy16.fb42c2c2.png size (16, 67)
+zhenyue wangyin_zhenyue_16-s2151.png 棋盤(獨立迴圈計) 1 ≤6 拼條 x=0 切片逐像素相同 True
+chixiao wangyin_chixiao_16-fix.png 棋盤(獨立迴圈計) 0 ≤6 拼條 x=17 切片逐像素相同 True
+jiting wangyin_jiting_16-s2155.png 棋盤(獨立迴圈計) 2 ≤6 拼條 x=34 切片逐像素相同 True
+guixu wangyin_guixu_16-fix.png 棋盤(獨立迴圈計) 5 ≤6 拼條 x=51 切片逐像素相同 True

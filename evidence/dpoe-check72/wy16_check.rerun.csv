@@ -1,0 +1,10 @@
+file,from,changed_from_nn,opaque,palette_pct,alpha_ok,upscaled,isolated_px,isolated_pct,sat_pct,colors,checker,pass
+wangyin_chixiao_16-fix,32 s2141 最近鄰→量化→清理,98,146,100.0,True,False,0,0.0,9.59,V I G M C O H,0,True
+wangyin_chixiao_16-s2154（舊暫用）,對照,,148,100.0,True,False,3,2.03,12.84,I B G M C O F,5,True
+wangyin_chixiao_16 nn+quant,對照,,147,100.0,True,False,7,4.76,12.93,V I B G M C O H,1,False
+wangyin_guixu_16-fix,赤霄 16-fix 外框＋§3 漩渦,34,146,100.0,True,False,0,0.0,14.38,V I G M C O H,5,True
+wangyin_guixu_16-s2166（舊，不採用）,對照,,126,100.0,True,False,0,0.0,6.35,I B G M C O H,17,False
+wangyin_zhenyue_16-s2151.png（定稿）,picked.txt,,147,100.0,True,False,2,1.36,8.16,V I G M C O H,1,True
+wangyin_chixiao_16-fix.png（定稿）,picked.txt,,146,100.0,True,False,0,0.0,9.59,V I G M C O H,0,True
+wangyin_jiting_16-s2155.png（定稿）,picked.txt,,122,100.0,True,False,2,1.64,9.02,V I G M C O H,2,True
+wangyin_guixu_16-fix.png（定稿）,picked.txt,,146,100.0,True,False,0,0.0,14.38,V I G M C O H,5,True
