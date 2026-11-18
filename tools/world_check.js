@@ -171,8 +171,13 @@ async function flow(b) {
     JSON.stringify(rb)
   );
   await p.evaluate(a0 => (S.auto = a0), a0);
+  /* 原地重開這一輪會讓 G.round 接著加（後台照輪算）：打倒王之後是下一輪、還在同一個節點 */
+  const r0 = await p.evaluate(() => G.round);
   await p.evaluate(CLEAR);
-  ok('連死之後打倒王照樣留在這裡', await until(p, () => G.node === TRUNK_K[9] && G.round === 2, 6000));
+  ok(
+    '連死之後打倒王照樣留在這裡（下一輪、同一個節點）',
+    await until(p, r0 => G.node === TRUNK_K[9] && G.round === r0 + 1, 6000, r0)
+  );
   /* 倉庫滿了：普通裝換金幣、★ 照樣收 */
   const full = await p.evaluate(() => {
     S.inv.items = Array.from({ length: INV_CAP }, () => mkItem('c_leather', 10, 0));
