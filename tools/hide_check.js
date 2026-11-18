@@ -457,11 +457,12 @@ const ok = (n, c, info = '') => {
   await p.evaluate(() => fmenuOpen('craft'));
   await p.waitForTimeout(400);
   ok(
-    '刷圖中開營地分頁：營地面板開著、上方仍是戰鬥（場景是地圖、沒有營地擺設）',
+    /* M2-12 第一段 §3：刷圖中開的是營地升級抽屜（PANEL.camp），不是營地總覽 */
+    '刷圖中開營地分頁：營地升級抽屜開著、上方仍是戰鬥（場景是地圖、沒有營地擺設）',
     await p.evaluate(
       () =>
-        PANEL.craft &&
-        CRAFT.tab === 'camp' &&
+        PANEL.camp &&
+        !!document.querySelector('#pcamp .cdg') &&
         G.scene === 'map' &&
         !G.props.some(q => q.k === 'device') &&
         !G.mobs.some(m => m.dummy)

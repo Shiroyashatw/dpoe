@@ -11143,11 +11143,14 @@ const ASC_COMBOS = `const combos = k => {
       ])
     ),
     navF = fnOf(hud, 'navHTML');
+  /* M2-12 第一段 §5 取代 M2-38 的 8 格：戰利品併進角色頁（角色頁上方「角色｜倉庫」）、追逐物品搬進「更多」；直立、桌機都是 6 格（天賦照祭壇） */
   ok(
-    'M2-38 分頁：戰利品・角色・鍛造・技能・天賦・營地・（桌機追逐物品）・更多；天賦照祭壇、追逐物品只在桌機且開放後（直立 6／7 格、桌機 6～8 格）',
-    navK.join() === 'bag,char,forge,skill,tree,craft,chase,more' &&
+    'M2-12 分頁：角色（含戰利品）・鍛造・技能・天賦・營地・更多；天賦照祭壇；沒有戰利品、追逐物品分頁（追逐物品在「更多」與 Y 鍵）；角色頁有「角色｜倉庫」切換',
+    navK.join() === 'char,forge,skill,tree,craft,more' &&
       navF.includes("k !== 'tree' || campCan('tree')") &&
-      navF.includes("k !== 'chase' || (!TOUCH.on && chaseOn())"),
+      !/'chase'|chaseOn/.test(navF) &&
+      /data-tm="f:chase"/.test(fnOf(hud, 'moreHTML')) &&
+      /\['eq', '角色'\],\s*\['bag', '倉庫'\]/.test(fnOf(hud, 'invHTML')),
     navK.join()
   );
   ok(

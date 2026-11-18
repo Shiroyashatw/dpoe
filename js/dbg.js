@@ -207,9 +207,11 @@ const DBG = (() => {
       return { x: r.left + (tx * TS + ox) * ZOOM, y: r.top + (ty * TS + oy) * ZOOM, w: TS * ZOOM, h: TS * ZOOM };
     },
     /* 模擬底部 safe-area：CSS 的 env(safe-area-inset-bottom) 都寫成 var(--sab, env(...))；null 還原 */
-    safeArea(px) {
+    safeArea(px, top) {
       const st = document.documentElement.style;
       px == null ? st.removeProperty('--sab') : st.setProperty('--sab', px + 'px');
+      top == null ? st.removeProperty('--sat') : st.setProperty('--sat', top + 'px');
+      resize();
     },
     /* 存檔內容：物件就淺層蓋到 S 上，函式就拿 S 去改；之後重算數值、重畫面板 */
     save(preset) {

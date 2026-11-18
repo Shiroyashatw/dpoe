@@ -127,14 +127,17 @@ const URL = process.argv[2] || 'http://localhost:8000/',
       ? (bad++, '❌ 找不到')
       : `${r[1] + r[2] <= ok ? '✅' : (bad++, '❌')} ${String(r[1] + r[2]).padStart(3)}（等 ${r[0]}・跑 ${r[1]}・畫 ${r[2]}・全部 ${r[3]}）${ok !== TAP_OK ? `（標準 ≤${ok}）` : ''}`;
   const SEQ = [
-    ['分頁：戰利品', '#pnav [data-tm="nav:bag"]'],
+    /* M2-12：戰利品併進角色頁（角色｜倉庫）；刷圖中「營地」開營地升級抽屜；掛機條點開 */
+    ['分頁：角色', '#pnav [data-tm="nav:char"]'],
+    ['角色頁：切到倉庫', '#pinv [data-invt="bag"]'],
     ['篩選：防具', '#pinv [data-a="bagf:armor"]'],
     ['點一件裝備（說明框）', '#pinv .bag .it'],
     ['換裝卡：鎖定', '#pinv [data-a=sellock]'],
-    ['分頁：角色', '#pnav [data-tm="nav:char"]'],
+    ['角色頁：切回角色', '#pinv [data-invt="eq"]'],
     ['角色：點手套欄', '#pinv .doll2 [data-eq="gloves"]'],
-    ['分頁：營地（總覽）', '#pnav [data-tm="nav:craft"]'],
-    ['營地：升一級林場', '#pcraft [data-fg^="gen:wood:"]'],
+    ['分頁：營地（營地升級抽屜）', '#pnav [data-tm="nav:craft"]'],
+    ['抽屜：升一級林場（印章）', '#pcamp [data-fg^="gen:wood:"]'],
+    ['掛機條：展開', '#pidle .ib'],
     ['分頁：更多', '#pnav [data-tm="nav:more"]'],
     ['更多：地點', '#pmore [data-tm="nav:node"]'],
     ['分頁：技能（總覽）', '#pnav [data-tm="nav:skill"]'],

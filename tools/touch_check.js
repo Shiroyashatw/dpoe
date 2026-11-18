@@ -569,9 +569,12 @@ const settle = async (p, fn, arg) => {
         return [e.textContent, Math.round(r.width), Math.round(r.height), Math.round(r.bottom)];
       })
     );
+    /* M2-12 §5 取代 M2-38 的七格：戰利品併進角色頁，6 格照順序、每格 ≥44px、在畫面內 */
     ok(
-      '底部分頁列：七格（0.4.7 加天賦、M2-38 加鍛造）、每格 ≥44px、在畫面內',
-      nav.length === 7 && nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
+      '底部分頁列：6 格（角色・鍛造・技能・天賦・營地・更多）、每格 ≥44px、在畫面內',
+      nav.length === 6 &&
+        nav.map(n => n[0].replace(/\d+$/, '')).join() === '角色,鍛造,技能,天賦,營地,更多' &&
+        nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
       JSON.stringify(nav)
     );
     ok(
@@ -580,7 +583,9 @@ const settle = async (p, fn, arg) => {
         () => [...document.querySelectorAll('.tmenu button')].filter(e => e.getClientRects().length).length === 0
       )
     );
-    await tap('#pnav [data-tm="nav:bag"]');
+    /* 戰利品併進角色頁（M2-12 §5）：點「角色」再切「倉庫」 */
+    await tap('#pnav [data-tm="nav:char"]');
+    await tap('#pinv [data-invt="bag"]');
     const cvb = await box('#cv'),
       pb = await box('#pinv'),
       nb = await box('#pnav');
@@ -752,9 +757,12 @@ const settle = async (p, fn, arg) => {
     /* 點亮著的分頁＝收起來 */
     await tap('#pnav [data-tm="nav:forge"]');
     ok(
-      '點亮著的分頁＝收起來、畫布回到整個畫面',
+      '點亮著的分頁＝收起來、畫布回到整個戰場（M2-12：扣掉安全區、分頁與刷圖中的掛機條）',
       await p.evaluate(
-        () => !anyPanel() && CV.clientHeight === innerHeight && !document.body.classList.contains('sheet')
+        () =>
+          !anyPanel() &&
+          CV.clientHeight === innerHeight - SAFE.t - SAFE.b - portFix() &&
+          !document.body.classList.contains('sheet')
       )
     );
     /* ---------- 0.5.0 打造：鍛造台 Lv0 的鍛造只有「打造」（M2-38 起碎片頁拆掉）、材料夠按一下打一件、翻牌出換裝卡與三顆鈕、換上／分解、升級鈕 ---------- */
@@ -1000,38 +1008,55 @@ const settle = async (p, fn, arg) => {
       return [c.length, c.every(b => b.getBoundingClientRect().height >= 44)];
     });
     ok('民房展開：每座產生器一列、「優先」≥44px', ho[0] === 2 && ho[1], JSON.stringify(ho));
-    /* 掛機卡（0.5.4，考核 C2）：刷圖中下半有資源條與「下一件事」的升級鈕（≥44px、在畫面內），按了就升 */
+    /* M2-12 §2 取代掛機卡（0.5.4 C2、M1-CP.4）：刷圖中分頁上面一條 44 高的掛機條（掛機 N 分、展開鈕 ≥44、在畫面內），沒有升級鈕、不寫輪；
+       營地升級改從分頁「營地」開抽屜（刷圖不停） */
     if (PORTM) {
       const ic = await p.evaluate(async () => {
         closePanels();
         S.auto = 1;
         if (G.scene !== 'map') runNode(TRUNK_K[0]);
-        G.loot = null;
         matAdd('wood', 0, 500);
         await new Promise(r => setTimeout(r, 900));
         idleBar(1);
-        const b = document.querySelector('#pidle .igo'),
-          r = b && b.getBoundingClientRect();
+        const el = $('pidle'),
+          r = el.getBoundingClientRect(),
+          x = el.querySelector('.ix').getBoundingClientRect(),
+          nv = $('pnav').getBoundingClientRect();
         return [
           idleOn(),
-          document.querySelectorAll('#pidle .rbar').length,
-          !!r && r.height >= 44 && r.bottom <= innerHeight && r.top >= 0,
-          b ? b.textContent : '',
-          !document.querySelector('#pidle [data-fg^="camp:"], #pidle [data-fg^="gen:"]'),
-          campReady()
+          Math.round(r.height),
+          Math.round(r.bottom) === Math.round(nv.top) && r.top >= 0,
+          el.textContent,
+          !el.querySelector('[data-fg^="camp:"], [data-fg^="gen:"]'),
+          x.width >= 44 && x.height >= 44
         ];
       });
       ok(
-        '掛機卡（M1-CP.4）：下半有資源條（木、鐵、靈魂）與「去營地」主鈕 ≥48px 在畫面內（M2-38：有可升級寫「去營地・n 可升級」），沒有升級鈕',
-        ic[0] && ic[1] >= 3 && ic[2] && ic[3] === (ic[5] ? `去營地・${ic[5]} 可升級` : '去營地') && ic[4],
+        '掛機條（M2-12 §2）：刷圖中在分頁上面、44 高、寫「掛機 N 分」、不寫輪、展開鈕 ≥44、沒有升級鈕',
+        ic[0] && ic[1] === 44 && ic[2] && /^掛機 \d+ 分/.test(ic[3]) && !/輪/.test(ic[3]) && ic[4] && ic[5],
         JSON.stringify(ic)
       );
-      await tap('#pidle .igo');
-      ok('掛機卡：按「去營地」打開營地總覽', await p.evaluate(() => !!PANEL.craft && CRAFT.tab === 'camp'));
+      await tap('#pnav [data-tm="nav:craft"]');
+      const dr = await p.evaluate(() => {
+        const st = [...document.querySelectorAll('#pcamp .stamp')];
+        return [
+          !!PANEL.camp,
+          !PANEL.craft,
+          document.querySelectorAll('#pcamp .cdc').length,
+          st.length > 0 &&
+            st.every(b => b.getBoundingClientRect().height >= 44 && b.getBoundingClientRect().width >= 44),
+          document.querySelectorAll('#pcamp .stamp.sug').length
+        ];
+      });
+      ok(
+        '刷圖中點「營地」：開營地升級抽屜（不是營地總覽），6 設施＋已出現的產生器、印章 ≥44、只有 1 顆實心（建議）',
+        dr[0] && dr[1] && dr[2] >= 8 && dr[3] && dr[4] === 1,
+        JSON.stringify(dr)
+      );
       /* M2-08：面板開著（半版）首領進度照樣看得到、在面板上緣之上 */
       const pg = await p.evaluate(() => {
         const r = $('prog').getBoundingClientRect(),
-          top = $('pcraft').getBoundingClientRect().top;
+          top = $('pcamp').getBoundingClientRect().top;
         return [G.scene, getComputedStyle($('prog')).display, Math.round(r.top), Math.round(r.bottom), Math.round(top)];
       });
       ok(
@@ -1039,18 +1064,20 @@ const settle = async (p, fn, arg) => {
         pg[0] === 'map' && pg[1] !== 'none' && pg[3] > pg[2] && pg[3] <= pg[4],
         JSON.stringify(pg)
       );
-      /* M2-08：掛機卡剛出現 400 毫秒內的點擊不算（關面板那一下、清單換版不會誤按），過了就照常 */
+      /* M2-08：掛機條換版面（離開幾分鐘那一行換掉左字）400 毫秒內的點擊不算，過了就照常（點了展開） */
       await p.evaluate(() => {
         closePanels();
-        G.loot = null;
+        IDLE.open = 0;
+        IDLE.msg = '離開 4 分・靈魂 +12';
+        IDLE.msgT = Date.now() + 6000;
         idleBar(1);
       });
-      await tap('#pidle .igo');
-      const g0 = await p.evaluate(() => !!PANEL.craft);
-      await p.waitForTimeout(300);
-      await tap('#pidle .igo');
-      const g1 = await p.evaluate(() => !!PANEL.craft);
-      ok('M2-08：掛機卡剛出現時點「去營地」不算，等一下再點才開營地', !g0 && g1, JSON.stringify([g0, g1]));
+      await tap('#pidle .ib');
+      const g0 = await p.evaluate(() => !!IDLE.open);
+      await p.waitForTimeout(400);
+      await tap('#pidle .ib');
+      const g1 = await p.evaluate(() => !!IDLE.open);
+      ok('M2-08：掛機條剛換版面時點了不算，等一下再點才展開', !g0 && g1, JSON.stringify([g0, g1]));
     }
     await p.evaluate(() => {
       S.camp = JSON.parse(JSON.stringify(_CAMP));
@@ -1496,7 +1523,7 @@ const settle = async (p, fn, arg) => {
         return b.classList.contains('on') && !!b.querySelector('.dot') && !!top.closest('#pnav');
       })
     );
-    await tapSel('#pnav [data-tm="nav:bag"]');
+    await tapSel('#pnav [data-tm="nav:char"]');
     ok('天賦樹開著時按別的分頁直接切過去', await p.evaluate(() => !TREE.open && PANEL.inv && $('ptree').hidden));
     await p.evaluate(() => navGo('tree'));
     await p.waitForTimeout(300);
@@ -1782,14 +1809,16 @@ const settle = async (p, fn, arg) => {
     });
     await p.waitForTimeout(300);
     ok(
-      '開著戰利品與營地時倒下：死亡卡在最上層、面板收起來、兩顆鈕點得到',
+      '開著戰利品與營地時倒下：死亡卡在最上層、面板收起來、「再試一次」點得到（沒有回藏身處）',
       (await p.evaluate(
         () =>
           !$('over').hidden &&
           !anyPanel() &&
           $('pidle').hidden &&
           +getComputedStyle($('over')).zIndex >= 40 &&
-          document.querySelectorAll('#over .pbtns .btn:not(.dup)').length === 2
+          /* M2-40 定案：拿掉回營地，只剩「再試一次」 */
+          document.querySelectorAll('#over .pbtns .btn:not(.dup)').length === 1 &&
+          !document.querySelector('#over [data-a=camp]')
       )) && (await onTop())
     );
     await p.screenshot({ path: shot('m0_dead') });
@@ -2283,56 +2312,43 @@ const settle = async (p, fn, arg) => {
       S.camp.watch = _w0;
       S.eq.belt = null;
     });
-    /* hotfix-ui：掛機卡資源列用大數字（百萬級總量、千級以上速率）：每列的字與條不超出自己那一欄、不超出卡片，兩欄的條中間有空隙 */
+    /* hotfix-ui → M2-12 §2：掛機條用大數字（掛機 2 時 05 分、很長的掉落名、倉庫快滿的警示）：每一段不超出條、不互相重疊、條維持 44 高；長名字省略號 */
     const rb = await p.evaluate(async () => {
       closePanels();
       if (G.scene !== 'map') runNode(TRUNK_K[0]);
-      G.loot = null;
-      const a0 = S.auto;
+      const a0 = S.auto,
+        t0 = SES.t0;
       S.auto = 1;
       if (!idleOn()) return (S.auto = a0), { skip: 1 };
-      const g0 = genRates,
-        s0 = soulRate,
-        m0 = JSON.stringify(MAT()),
-        R = { wood: 2976 };
-      for (const k of GEN_K)
-        if (k !== 'wood' && genOn(k)) (R[matKey(k, genTier(k))] = 24000), matAdd(k, genTier(k), 671232);
-      matAdd('wood', 0, 2644835);
-      MAT().soul = 1234567;
-      window.genRates = () => R;
-      window.soulRate = () => 12345;
-      RB.R = null;
+      SES.t0 = Date.now() - 125 * 60e3;
+      (S.log = S.log || []).unshift({ t: Date.now(), n: '完美崇高石・完美崇高石・完美崇高石', c: 'perf' });
+      IDLE.open = 0;
+      IDLE.msg = '';
       idleBar(1);
-      await new Promise(r => setTimeout(r, 1200));
-      const card = document.querySelector('#pidle .idl'),
-        cr = card && card.getBoundingClientRect(),
-        bars = [...document.querySelectorAll('#pidle .rbar')],
+      await new Promise(r => setTimeout(r, 300));
+      const bar = $('pidle').getBoundingClientRect(),
+        kids = [...document.querySelectorAll('#pidle .ib > *, #pidle .ix')],
         bad = [];
-      for (const e of bars) {
+      for (const e of kids) {
         const r = e.getBoundingClientRect();
-        for (const c of e.children)
-          if (c.getBoundingClientRect().right > r.right + 0.5) bad.push(e.dataset.rb + ' 超出欄 ' + c.textContent);
-        if (r.right > cr.right + 0.5) bad.push(e.dataset.rb + ' 超出卡片');
+        if (r.right > bar.right + 0.5 || r.left < bar.left - 0.5) bad.push(e.textContent + ' 超出條');
       }
-      for (let i = 0; i + 1 < bars.length; i++) {
-        const a = bars[i].querySelector('.rt').getBoundingClientRect(),
-          b = bars[i + 1].querySelector('.rt').getBoundingClientRect();
-        if (Math.abs(a.top - b.top) < 1 && b.left - a.right < 6) bad.push(bars[i].dataset.rb + ' 跟右欄的條黏在一起');
-      }
-      const txt = bars.map(e => e.querySelector('b').textContent + ' ' + e.querySelector('small').textContent);
-      window.genRates = g0;
-      window.soulRate = s0;
-      S.mat = JSON.parse(m0);
-      RB.R = null;
+      for (let k = 0; k + 1 < kids.length; k++)
+        if (kids[k].getBoundingClientRect().right > kids[k + 1].getBoundingClientRect().left + 0.5)
+          bad.push(kids[k].textContent + ' 跟下一段重疊');
+      const nm = document.querySelector('#pidle .ilast span'),
+        txt = kids.map(e => e.textContent);
+      S.log.shift();
+      SES.t0 = t0;
       S.auto = a0;
-      return { on: !!cr, n: bars.length, bad, txt };
+      return { on: true, h: Math.round(bar.height), ell: !!nm && nm.scrollWidth > nm.clientWidth, bad, txt };
     });
-    if (rb.skip) console.log('（這個尺寸觸控模式不出掛機卡，略過 hotfix-ui 掛機卡大數字）');
+    if (rb.skip) console.log('（這個尺寸觸控模式沒有掛機條，略過 hotfix-ui 掛機條大數字）');
     else {
       await p.screenshot({ path: shot('idle_big') });
       ok(
-        'hotfix-ui：掛機卡資源列大數字不超出欄位與卡片、兩欄的條分開',
-        rb.on && rb.n >= 3 && !rb.bad.length,
+        'hotfix-ui：掛機條大數字（掛機 2 時 05 分、長掉落名）不超出條、不重疊、44 高、長名字省略號',
+        rb.on && rb.h === 44 && rb.ell && !rb.bad.length && rb.txt[0] === '掛機 2 時 05 分',
         JSON.stringify(rb)
       );
     }
@@ -2413,9 +2429,14 @@ const settle = async (p, fn, arg) => {
       navGo('skill');
       const a = [NAV.full, $('pskill').getBoundingClientRect().top > 200, !worldPaused()];
       navGo('craft');
-      return [...a, NAV.full, $('pcraft').getBoundingClientRect().top > 200];
+      return [...a, NAV.full, $('pcamp').getBoundingClientRect().top > 200 && !!PANEL.camp && !worldPaused()];
     });
-    ok('BASE-01：跑圖中技能、營地預設半版，自動模式不暫停', half.join() === '0,true,true,0,true', JSON.stringify(half));
+    /* M2-12 §3：刷圖中「營地」開的是營地升級抽屜（半版、刷圖不停） */
+    ok(
+      'BASE-01：跑圖中技能、營地升級抽屜預設半版，自動模式不暫停',
+      half.join() === '0,true,true,0,true',
+      JSON.stringify(half)
+    );
     /* BASE-01.s：半版時同時看得到玩家、目前敵人、生命條（畫布裡的螢幕座標） */
     const bs = await p.evaluate(async () => {
       navGo('skill');
@@ -2520,14 +2541,14 @@ const settle = async (p, fn, arg) => {
       S.auto = 1;
       return o;
     });
+    /* M2-40 定案（M2-12 第一段）：拿掉回藏身處（回營地），死亡卡只剩升級鈕（主鈕、最上）＋再試一次（次要） */
     ok(
-      'M1-17 視覺：死亡卡升級鈕是主鈕在最上、再試一次次要、回營地文字鏈，都 ≥44',
-      /^pri wide dup:/.test(dc[0]) &&
+      'M1-17 視覺：死亡卡升級鈕是主鈕在最上、再試一次次要、沒有回藏身處，都 ≥48',
+      dc.length === 2 &&
+        /^pri wide dup:/.test(dc[0]) &&
         +dc[0].split(':')[1] >= 48 &&
         /^:/.test(dc[1]) &&
-        +dc[1].split(':')[1] >= 48 &&
-        /^dlink:/.test(dc[2]) &&
-        +dc[2].split(':')[1] >= 44,
+        +dc[1].split(':')[1] >= 48,
       JSON.stringify(dc)
     );
     /* M1-11：護符滿格，點倉庫的護符＝「要換掉哪一格」，點一格換上並關閉 */
@@ -2591,6 +2612,8 @@ const settle = async (p, fn, arg) => {
       closePanels();
       Object.assign(S.camp, { forge: 1 });
       navGo('craft');
+      /* M2-12 §3：刷圖中「營地」先開營地升級抽屜，營地總覽從抽屜的「回營地看」進（藏身處照舊直接開總覽） */
+      if (PANEL.camp) document.querySelector('#pcamp [data-cd=look]').click();
       CRAFT.tab = 'camp';
       hudPanels();
       return [

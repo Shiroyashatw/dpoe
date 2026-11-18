@@ -138,6 +138,9 @@ async function flow(b) {
     JSON.stringify(st)
   );
   /* 死亡：原地重來；連死 3 次退回上一個節點、留著（hold）、有通知、HUD 有「再推一次」 */
+  /* M2-12：自動模式倒下改字板、不出死亡卡；死亡卡（地圖詞、再試一次）在手動模式測，測完切回自動 */
+  const a0 = await p.evaluate(() => S.auto);
+  await p.evaluate(() => (S.auto = 0));
   const dead = async () => {
     await p.evaluate(() => die());
     await until(p, () => !$('over').hidden && G.state === 'dead');
@@ -146,20 +149,23 @@ async function flow(b) {
     return t;
   };
   const t1 = await dead();
+  /* M2-12：畫面不寫「輪」，死亡卡寫「地圖詞：…」 */
   ok(
-    '死亡卡寫出這一輪的地圖詞；再試一次＝同一個節點重來',
-    /這一輪的地圖詞/.test(t1) && (await until(p, () => G.state === 'play' && G.node === TRUNK_K[9]))
+    '死亡卡寫出這一次的地圖詞（不寫「輪」）；再試一次＝同一個節點重來',
+    /地圖詞：/.test(t1) && !/輪/.test(t1) && (await until(p, () => G.state === 'play' && G.node === TRUNK_K[9]))
   );
   await dead();
   await dead();
   const K = await p.evaluate(() => TRUNK_K);
   await until(p, () => /連死 3 次/.test($('run').textContent), 3000);
   const rb = await p.evaluate(() => ({ node: G.node, note: S.world.note, run: $('run').textContent }));
+  /* M2-12 D2（製作人定）：維持連死 3 次退回上一個地點繼續刷（不停機、不回營地） */
   ok(
     '連死 3 次：退回上一個節點、HUD 有通知（寫換裝、降星級或升營地）',
     rb.node === K[8] && /連死 3 次/.test(rb.note) && /升營地/.test(rb.run),
     JSON.stringify(rb)
   );
+  await p.evaluate(a0 => (S.auto = a0), a0);
   await p.evaluate(CLEAR);
   ok('退回之後打倒王照樣留在這裡', await until(p, () => G.node === TRUNK_K[8] && G.round === 2, 6000));
   /* 倉庫滿了：普通裝換金幣、★ 照樣收 */
@@ -327,17 +333,32 @@ async function auto(b) {
     return !g || !onGround(g);
   });
   ok('AI：踩到怪物方的地面就往外走', gz);
-  /* 連死：AI 自己按重來，第 3 次退回 */
+  /* 連死：AI 自己按重來，第 3 次退回（M2-12 D2：照現行規則，不停機、不回營地；掛機時間與保底不歸零） */
   const k0 = await p.evaluate(() => G.node);
+  const s0 = await p.evaluate(() => ({ t0: SES && SES.t0, pts: chaseOf().pts }));
   for (let i = 0; i < 3; i++) {
     await p.evaluate(() => die());
+    /* 第 3 次倒下那一下字板先講退回哪裡，不出死亡卡、不寫「輪」「重來」 */
+    if (i === 2) {
+      const pl = await p.evaluate(() => [$('dplate').hidden, $('dplate').textContent, $('over').hidden]);
+      ok(
+        'AI：第 3 次倒下字板寫「退回{上一個地點}」，沒有死亡卡、沒有「輪」「重來」',
+        !pl[0] && /退回/.test(pl[1]) && !/輪|重來/.test(pl[1]) && pl[2],
+        pl.join('｜')
+      );
+    }
     await until(p, () => G.state === 'play' && G.t < 1, 6000);
   }
-  const rb = await p.evaluate(() => ({ node: G.node, scene: G.scene }));
+  const rb = await p.evaluate(() => ({ node: G.node, scene: G.scene, t0: SES && SES.t0, pts: chaseOf().pts }));
   ok(
     'AI：倒下自己重來，連死 3 次退回上一個節點繼續刷',
     rb.node === K[0] && rb.scene === 'map' && k0 === K[1],
     JSON.stringify(rb)
+  );
+  ok(
+    'AI：連死退回不回營地，掛機時間（SES.t0）與保底點數不歸零',
+    rb.scene === 'map' && rb.t0 === s0.t0 && rb.t0 > 0 && rb.pts >= s0.pts,
+    JSON.stringify([s0, rb])
   );
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();

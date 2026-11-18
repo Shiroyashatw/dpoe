@@ -156,7 +156,8 @@ async function backIn(p, t0, node, sum) {
         G.node === node &&
         !worldPaused() === !!S.auto &&
         G.mobs.some(m => m.hp > 0) &&
-        (!sum || (PANEL.ident && REV.title === '離開的時候')),
+        /* M2-12 §7：離線摘要換成離線結算卡（#poff） */
+        (!sum || !$('poff').hidden),
       [node, sum]
     );
     if (r) return (Date.now() - t0) / 1000;
@@ -172,6 +173,7 @@ const now = p =>
     auto: S.auto,
     ident: !!PANEL.ident,
     title: REV.title,
+    off: !$('poff').hidden,
     paused: worldPaused(),
     t: +G.t.toFixed(1)
   }));
@@ -218,21 +220,24 @@ async function quick(b) {
     const g0 = await p2.evaluate(() => G.t);
     await p2.waitForTimeout(1500);
     ok(
-      `B2 ${tag}：摘要開著時後面照打（M3-04 選項 A），主鈕是「收下」`,
+      `B2 ${tag}：摘要開著時後面照打（M3-04 選項 A），主鈕是「收下・繼續刷」`,
       await p2.evaluate(
         g0 =>
           G.t > g0 + 0.5 &&
-          [...document.querySelectorAll('#preveal .rvf .btn.pri')].some(e => e.textContent.trim() === '收下'),
+          /* M2-12 §7：主鈕「收下・繼續刷」（桌機另有鍵帽 Enter） */
+          [...document.querySelectorAll('#poff .offb .btn.pri')].some(
+            e => e.childNodes[0].textContent.trim() === '收下・繼續刷'
+          ),
         g0
       ),
       JSON.stringify(await now(p2))
     );
     await p2.screenshot({ path: path.join(OUT, `b2_offline_${W}x${H}${process.env.SHOT_TAG || ''}.png`) });
-    await p2.evaluate(() => document.querySelector('#preveal .rvf [data-a="close"]').click());
+    await p2.evaluate(() => document.querySelector('#poff [data-a="offok"]').click());
     await p2.waitForTimeout(300);
     ok(
       `B2 ${tag}：按「收下」只關卡片，還在原地點刷`,
-      await p2.evaluate(n => !PANEL.ident && G.scene === 'map' && G.node === n, node)
+      await p2.evaluate(n => $('poff').hidden && G.scene === 'map' && G.node === n, node)
     );
     ok(`B2 ${tag}：沒有錯誤`, !p2.errs.length, p2.errs.join(' | '));
     await ctx.close();
@@ -267,7 +272,7 @@ async function quick(b) {
     await p.waitForTimeout(300);
     ok(
       `B2 ${tag}：換成雲端存檔（useSave）也回到原地點在刷、出離線摘要`,
-      await p.evaluate(n => G.scene === 'map' && G.node === n && PANEL.ident && REV.title === '離開的時候', r),
+      await p.evaluate(n => G.scene === 'map' && G.node === n && !$('poff').hidden, r),
       JSON.stringify(await now(p))
     );
     await ctx.close();

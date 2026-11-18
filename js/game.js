@@ -160,7 +160,6 @@ function enterCamp() {
   resetWorld(A.W, A.H);
   G.scene = 'camp';
   G.pan = 0;
-  G.loot = null;
   SES = null;
   G.mm = null;
   G.tiles = hideTiles();
@@ -307,56 +306,77 @@ function offSettle(away) {
 }
 /* 離開的時候產生器照產（0.5.1，3.7）：上限照倉房；回產了多少 { 材料鍵: n } */
 const offGen = away => genTick(Math.min(away, offMax()) / 1000);
-/* 回來時的摘要（0.5.1，工坊與解鎖表第 3 節；0.5.4 照考核 E1～E3）：離開多久、打了幾輪；賺到的每一項用資源條的圖示＋數字（從 0 滾上去）；
-   營地現在買得起的一件一列（設施各自一顆鈕）；底部固定「全部升級」次要鈕（只買產生器，最便宜的先）＋「收下」主鈕（M3-04 選項 A：後面已經在打，收下只關卡片，hud.js 的 revealHTML） */
+/* 回來時（M2-12 §7，依離開多久分三段）：<60 秒什麼都不出；60 秒–10 分只在掛機條一行 6 秒；≥10 分出離線結算（半版／桌機中間的卡）。
+   計算門檻照舊（OFF_MIN，後台不改）；這裡只決定怎麼顯示 */
+const OFF_LINE = 60e3,
+  OFF_CARD = 10 * 60e3;
+function offBack(o, g, away) {
+  if (away < OFF_LINE) return;
+  if (away >= OFF_CARD) return offShow(o, g, away);
+  const gs = Object.entries(g || {}).filter(([, v]) => v > 0),
+    r = o && o.soul > 0 ? `靈魂 +${fmtN(o.soul)}` : gs.length ? `${rbName(gs[0][0])} +${fmtN(gs[0][1])}` : '';
+  IDLE.msg = strT('idleAway', { t: idleDur(away), r }).replace(/・$/, '');
+  IDLE.msgT = Date.now() + 6000;
+  idleBar(1);
+}
+/* 離線結算的卡：標題「離開 h 時 m 分」、一行計數（數字 1200 ms 跑上去）、掉落 3 列（追逐那列最後）、接下來一行、兩顆鈕（收下・繼續刷是主鈕） */
+const OFFC = { t0: 0, n: [], on: 0 };
 function offShow(o, g, away) {
-  const gs = Object.entries(g || {});
+  const gs = Object.entries(g || {}).filter(([, v]) => v > 0);
   if (!o && !gs.length) return;
   const t = o ? o.away : Math.min(away || 0, offMax()),
-    h = Math.floor(t / 3600e3),
-    m = Math.floor((t % 3600e3) / 60e3),
-    t0 = performance.now(),
-    got = [...gs, ...(o ? [['soul', o.soul]] : [])].filter(([, v]) => v > 0),
-    roll = (k, v) =>
-      genBarHTML(k, v).replace(
-        /<b>[^<]*<\/b>/,
-        reduced() ? `<b>+${fmtN(v)}</b>` : `<b class="nroll" data-r="0:${v}:${t0}:900">+0</b>`
-      );
-  if (o && o.here && o.chase) sfx('chaseBell');
-  revealOpen([], {
-    title: '離開的時候',
-    sum: 1,
-    head: () => {
-      return `<div class="sumh"><p>離開 <b>${h ? h + ' 小時 ' : ''}${m} 分鐘</b>${o ? `，在${esc(wName(S, ...wXY(S.world.cur)))}打了 <b>${o.won}</b> 輪${o.n > o.won ? `・倒下 ${o.n - o.won} 輪` : ''}` : ''}${o && o.lv ? `・升了 <b>${o.lv}</b> 級` : ''}</p>
-      <div class="cmtop off">${got.map(([k, v]) => roll(k, v)).join('')}${o && o.gold ? `<div class="rbar st">${icHTML('mat_gold', '', 16)}<span class="rn">金</span><b>+${fmtN(o.gold)}</b></div>` : ''}</div>
-      ${o && o.cur.length ? `<p class="sub">通貨：${o.cur.map(([c, v]) => `${esc(CUR[c].n)} +${v}`).join('、')}</p>` : ''}
-      ${o && o.here ? offChaseHTML(o) : ''}
-      ${campUpsHTML(4, false)}</div>`;
-    }
-  });
-}
-/* 離線摘要的追逐物品一列（M2-19.5）：「追逐物品 ×n、目前保底 p%」，有拿到的可以點開（REV.chx）一種一列；0 件不能點 */
-function offChaseHTML(o) {
-  const row = esc(chaseOffRow(o.chase)).replace(/×\d+/, '<b class="rc4">$&</b>'),
-    ic = `<span class="chf sm">${icHTML(CHASE_POOL.trunk[0])}</span>`;
-  if (!o.chase) return `<div class="offch z">${ic}<span>${row}</span></div>`;
-  const on = REV.chx;
-  return `<button class="offch ${on ? 'on' : ''}" data-a="offch" aria-expanded="${on ? 'true' : 'false'}">${ic}<span>${row}</span><i aria-hidden="true">›</i></button>${
-    on
-      ? `<ul class="offchl">${o.chaseL
+    rows = o
+      ? o.cur
+          .filter(([c]) => rareCur(c))
+          .sort((a, b) => /3$/.test(b[0]) - /3$/.test(a[0]))
+          .slice(0, o.here && o.chase ? 2 : 3)
           .map(
-            ([k, n, f]) =>
-              `<li><span class="chf sm">${icHTML(k)}</span><b>${esc(chaseName(k))}</b>${f ? `<em class="cnew">${esc(STR_T.new)}</em>` : ''}<small>×${n}</small></li>`
+            ([c, v]) =>
+              `<li class="lg-${/3$/.test(c) ? 'perf' : 'cur'}"><i>${/3$/.test(c) ? '★' : '◆'}</i><span>${esc(CUR[c].n)} ×${v}</span></li>`
           )
-          .join('')}</ul>`
-      : ''
-  }`;
+      : [];
+  if (o && o.here && o.chase) {
+    rows.push(`<li class="lg-chase ch"><i>印</i><span>${esc(strT('chaseN', { n: o.chase }))}</span></li>`);
+    sfx('chaseBell');
+    buzz(30);
+  }
+  const num = v => `<b data-n="${v}">0</b>`,
+    cnt = o
+      ? strT('offCnt', { b: num(o.won), s: num(o.soul) })
+      : gs.map(([k, v]) => `${esc(rbName(k))} +${num(v)}`).join('・'),
+    g1 = campGoal(),
+    el = $('poff');
+  el.innerHTML = `<h2>${esc(strT('offT', { t: idleDur(t) }))}</h2><p class="offc">${cnt}</p><ul class="offl">${rows.join('')}</ul>${g1 ? `<p class="offn">${esc(strT('offNext', { t: g1.t }))}</p>` : ''}
+  <div class="offb"><button class="btn" data-a="offcamp">${STR_T.offCamp}<kbd class="donly">H</kbd></button><button class="btn pri" data-a="offok">${STR_T.offOk}<kbd class="donly">Enter</kbd></button></div>`;
+  el.hidden = false;
+  OFFC.on = 1;
+  /* 預設焦點在「收下・繼續刷」（M2-12 §9；鍵盤 Enter／Space 就收下） */
+  el.querySelector('.btn.pri').focus({ preventScroll: true });
+  document.body.classList.add('offon');
+  OFFC.t0 = reduced() ? -1e9 : performance.now();
+  OFFC.n = [...el.querySelectorAll('[data-n]')];
+  const tick = () => {
+    const p = Math.min(1, (performance.now() - OFFC.t0) / 1200),
+      e = p >= 1 ? 1 : 1 - 2 ** (-10 * p);
+    for (const b of OFFC.n) b.textContent = fmtN(Math.round(+b.dataset.n * e));
+    if (p < 1 && !el.hidden) requestAnimationFrame(tick);
+    else el.classList.add('done');
+  };
+  tick();
+}
+function offClose() {
+  $('poff').hidden = true;
+  OFFC.on = 0;
+  document.body.classList.remove('offon');
 }
 /* 退回去哪：裂口回到進來之前在刷的節點，其他照 wPrev */
 const wBack = k =>
   wType(S, ...wXY(k)) === 'rift' && S.world.back && !wWhy(S, ...wXY(S.world.back)) ? S.world.back : wPrev(k);
-/* 死了（0.4.0）：原地復活、這一輪重來；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（玩家自己從地點清單再去） */
+/* 死了（0.4.0）：原地復活、重開（掛機時間、保底不歸零）；同一個節點連死 3 次自動退回上一個節點，留在那裡刷（玩家自己從地點清單再去）。
+   M2-12 D2（製作人定）：照這條規則，不停機、不回營地 */
 const DEAD_MAX = 3;
+/* 這次倒下之後會不會退回（字板、死亡卡先講退回哪裡）：回上一個節點的鍵，不退回就 null */
+const deadBack = () => (G.node && (S.world.dn || 0) + 1 >= DEAD_MAX && wBack(G.node)) || null;
 function deadAgain() {
   const k = G.node;
   if (!k) return enterCamp();
@@ -369,7 +389,8 @@ function deadAgain() {
   const pv = wBack(k);
   S.world.dn = 0;
   S.world.note = `在${wName(S, ...wXY(k))}連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}：換裝、降星級或升營地再回去`;
-  hudWarn(S.world.note);
+  /* 製作人 D2：不出卡，只出一行提示停 6 秒 */
+  hudWarn(S.world.note, 6000);
   runNode(pv);
 }
 /* 山海寶盒（0.2.80）：花碎片開王場（酆都、心魔、四凶的殿），地圖台前面開傳送門；王場只有一個房間、2 秒後出王。
@@ -446,8 +467,12 @@ const TS = 48,
   WAVES = 4;
 function enterMap(t, keep) {
   const [cols, rows] = FIELD,
-    was = keep ? { biome: G.biome, deco: G.deco, x: P.x, y: P.y, round: G.round } : null;
+    was = keep
+      ? { biome: G.biome, deco: G.deco, x: P.x, y: P.y, round: G.round, fx: G.fx, nums: G.nums, cam: G.cam }
+      : null;
   resetWorld(cols * TS, rows * TS);
+  /* M2-12 §4：同一個場地接著刷時王倒下的爆開、跳數字、鏡頭接著跑（純畫面；輪、掉率、時程不動） */
+  if (was) Object.assign(G, { fx: was.fx, nums: was.nums, cam: was.cam });
   G.easy = 0;
   G.round = was ? was.round + 1 : 1;
   G.nextT = 0;
@@ -549,7 +574,8 @@ function enterMap(t, keep) {
   /* 王場（0.2.80）：沒有小怪，2 秒後出王 */
   G.arenaT = G.arena ? G.t + 2 : 0;
   G.prog = 0;
-  sfx('portal');
+  /* M2-12 §8：接著刷（換輪）不出聲 */
+  if (!was) sfx('portal');
   hudState();
   slotBadWarn();
 }
@@ -585,7 +611,7 @@ function spawnWave() {
     b.dmg *= BOSS_DMG;
     mobDef(b, G.mapT);
   }
-  if (G.waveN > 1) hudWarn(`第 ${G.waveN} 波`);
+  /* M2-12 §4：換波 0 ms、介面不動不出字（下一波從牆邊走進來） */
 }
 const isWall = (x, y) => {
   if (!G.tiles) return false;
@@ -638,7 +664,7 @@ function spawnBoss() {
   b.cd = 1.2;
   fx({ k: 'ring', x: p.x, y: p.y, r: 160, dur: 0.6, col: PAL.badHiV2 });
   sfx('boss');
-  hudWarn(b.D.n + '出現了！');
+  /* M2-12 §4：王出現由 #bossbar 的 44 高橫幅「{王名}現身」講，不另外跳字 */
 }
 function spawnMob(D, x, y, pack, elite) {
   /* 召喚、分裂是在怪旁邊隨機偏移放的：落在牆裡就改放附近的地板（M2-30：生在外圍牆裡的怪打不到也出不來，AI 一直鎖定牠就卡住） */
@@ -706,6 +732,7 @@ function hitstop(s) {
 /* 系統開了「減少動態」就不震動 */
 function shake(a) {
   if (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (typeof S !== 'undefined' && S && S.shk === 0) return;
   G.trauma = Math.min(1, G.trauma + a);
 }
 /* 傷害數字設定（M2-05.5，S.dmgn）：all 全部／crit 只暴擊與受傷／off 關閉；沒選過依裝置：觸控手機（短邊 < 600，含橫向）crit，其他 all */
@@ -1040,6 +1067,7 @@ function die() {
   P.act = P.roll = null;
   save();
   sfx('die');
+  buzz(40);
   hudState();
 }
 
@@ -1140,25 +1168,16 @@ function bossDown(m) {
     if (SES && G.t > 5) (S.spm = S.spm || {})[G.node] = Math.round(((SES.soul - (G.rs.s0 || 0)) / G.t) * 60);
   }
   if (SES) SES.rounds++;
-  /* 0.4.9 王倒下的卡：這一輪撿到的，留 30 秒（hud.js 的 idleHTML） */
-  G.loot = {
-    t: performance.now(),
-    items: G.rs.items.slice(),
-    gold: G.rs.gold,
-    sold: G.rs.sold,
-    log: G.rs.log.slice(),
-    node: G.node,
-    hint: !(S.hint || {}).boss
-  };
+  /* M2-12 §4：不出王倒下卡（掉落看 HUD 的 #dlog 與掉落紀錄） */
   (S.hint = S.hint || {}).boss = 1;
   if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
   if (m.D.fd && FENG.elites.includes(m.D.fd) && fdHun(S) >= FENG.hun)
     hudWarn(`勾魂令 ${fdHun(S)} 張：山海寶盒可以開閻羅殿了`);
   G.nextT = G.t + ROUND_GAP;
-  hitstop(0.25);
-  G.slow = 0.9;
+  /* M2-12 §4／§8：400 ms 慢動作 0.6 倍（減少動態時不放慢）；不出字 */
+  if (!reduced()) (G.slow = 0.4), (G.slowK = 0.6);
   sfx('boss');
-  hudWarn(`打倒${m.D.n}！`);
+  buzz(20);
   save();
 }
 const ROUND_GAP = 2;
@@ -2140,7 +2159,9 @@ let last = 0;
 /* 世界停住嗎（Q9 的共用開關，企劃書第 9 節）：確認卡、倒下、技能挑選、天賦樹一律停；手動模式開任何面板也停（M1-10）；
    自動模式開一般面板照打。停住時產生器與離線計時照跑（frame 開頭的 genTick） */
 const skPicking = () => PANEL.skill && PICKV.includes(SKUI.view);
-const worldPaused = () => !!G.ask || G.state === 'dead' || TREE.open || skPicking() || (!S.auto && anyPanel());
+/* 手動模式時離線結算（M2-12 §7）開著也算面板：世界停，收下才接著打（M2-25） */
+const worldPaused = () =>
+  !!G.ask || G.state === 'dead' || TREE.open || skPicking() || (!S.auto && (anyPanel() || OFFC.on));
 function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
@@ -2156,8 +2177,8 @@ function frame(now) {
   let dt = rdt;
   if (G.slow > 0) {
     G.slow -= rdt;
-    dt *= ROLL.slowScale;
-  }
+    dt *= G.slowK || ROLL.slowScale;
+  } else G.slowK = 0;
   /* 世界暫停（M0-02）：敵人、投射物、傷害、出怪都停，產生器照產（上面的 genTick）；倒下時只跑 AI 的重來計時 */
   if (dt > 0 && worldPaused()) {
     if (G.state === 'dead') aiTick(dt);
@@ -2193,23 +2214,13 @@ function frame(now) {
     f = 1 - Math.exp(-rdt * 9);
   let tx = P.x + (w.x - P.x) * 0.12,
     ty = P.y + (w.y - P.y) * 0.12;
+  /* M2-12 §1.1：開抽屜、面板時戰場改高，鏡頭中心不變（拿掉 BASE-01.s 的半版偏移） */
   /* 營地（M2-12）：鏡頭＝主角＋拖曳的平移，只左右、卡在場景邊界；放開 3 秒後慢慢回到主角 */
   if (G.scene === 'camp') {
     const hw = Math.min(G.W, IW / ZOOM) / 2;
     if (G.t - (G.panT || 0) > 3) G.pan *= Math.exp(-rdt * 3);
     G.pan = clamp(G.pan, hw - P.x, G.W - hw - P.x);
     (tx = P.x + G.pan), (ty = P.y);
-  }
-  /* BASE-01.s：直立半版（上面只剩 321／253 px 的戰鬥區）時，鏡頭對準玩家與目前敵人的中點、玩家略偏上（約 42%），
-     底下 40 px 留給生命／魔力條；夾住讓玩家整身留在安全框裡 */
-  if (G.scene === 'map' && PORT() && sheetOn() && !(NAV.full && anyPanel())) {
-    const W = IW / ZOOM,
-      H = cvH() / ZOOM,
-      m = aiTarget();
-    if (m) (tx = (P.x + m.x) / 2), (ty = (P.y + m.y) / 2);
-    ty += 0.08 * H;
-    tx = clamp(tx, P.x - W / 2 + 40, P.x + W / 2 - 40);
-    ty = clamp(ty, P.y + H / 2 - (H - 40 / ZOOM - 10), P.y + H / 2 - 70);
   }
   G.cam.x += (tx - G.cam.x) * f;
   G.cam.y += (ty - G.cam.y) * f;

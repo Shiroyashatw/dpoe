@@ -455,6 +455,129 @@ function campHTML() {
   <div class="cmgrp"><span>設施</span></div>
   <div class="cmcards">${CAMP_B.map(campCardHTML).join('')}</div>`;
 }
+/* ---------- M2-12 §6 下一個目標：最近的解鎖里程碑（還差最少級的那一個；新地點、技能格、輔助孔、天賦樹、昇華、產生器…），一次一個、不能釘 ---------- */
+const affP = c => (c ? Math.min(1, ...costRows(c).map(([, h, w]) => (w ? Math.max(0, h) / w : 1))) : 1);
+function campGoal() {
+  const C = S.camp,
+    L = ['slot', 'hole', 'wt', 'tree', 'asc', 'aura', 'camp'].map(nextUnlock).filter(Boolean),
+    nx = TRUNK_K[wFront(S) + 1];
+  if (nx && WNODE[nx].i <= campMax('watch')) L.push({ b: 'watch', lv: WNODE[nx].i, n: wName(S, ...wXY(nx)) });
+  if (!L.length) return null;
+  const g = L.reduce((a, b) => (b.lv - (C[b.b] || 0) < a.lv - (C[a.b] || 0) ? b : a));
+  return { b: g.b, lv: g.lv, t: `${CAMPN[g.b]} Lv ${g.lv}・開${g.n}` };
+}
+/* 目標條（抽屜、掛機條展開、離線結算共用）：字＋4 高的買得起程度；達成（換成下一個）那一次亮 240 ms；點了開那一座的單座卡 */
+const GOAL = { k: '', t: -1e9 };
+function goalHTML() {
+  const g = campGoal();
+  if (!g) return `<div class="goal"><span>${STR_T.goalNone}</span></div>`;
+  const now = performance.now();
+  if (GOAL.k && GOAL.k !== g.t) GOAL.t = now;
+  GOAL.k = g.t;
+  return `<button class="goal ${now - GOAL.t < 240 ? 'hit' : ''}" data-cd="one:${g.b}"><span>${esc(strT('goal', { t: g.t }))}</span><i class="gp"><i data-cp="${g.b}"></i></i></button>`;
+}
+/* ---------- M2-12 §3 營地升級抽屜（刷圖中開，刷圖不停）：6 設施＋已出現的產生器，一格一個印章鈕（一下就升、不能復原、300 ms 內重複不算）；
+   點格子本體＝單座卡（‹ › 換座、× 回格子）；「回營地看」＝現有營地總覽（第二段改營地場景） ---------- */
+const CDR = { one: null, tap: {}, h: '' };
+const cdKeys = () => [...CAMP_B, ...GEN_K.filter(genOn)];
+const cdCost = k => (GEN[k] ? genCost(k) : campNext(k));
+const cdLv = k => (GEN[k] ? genOf(k).lv : S.camp[k] || 0);
+const cdName = k => (GEN[k] ? GEN[k].n : CAMPN[k]);
+const cdFg = k => (GEN[k] ? `gen:${k}:1` : `camp:${k}`);
+/* 建議那一座（只有它是實心印章）：推進下一個目標的那座；沒有就選買得起的裡面最便宜的（靈魂＋木） */
+function cdSug() {
+  const g = campGoal();
+  if (g && cdCost(g.b)) return g.b;
+  const ok = cdKeys().filter(k => cdCost(k) && affP(cdCost(k)) >= 1),
+    sum = c => (c.soul || 0) + (c.wood || 0);
+  return ok.length ? ok.reduce((a, b) => (sum(cdCost(b)) < sum(cdCost(a)) ? b : a)) : null;
+}
+function cdCellHTML(k, sug) {
+  const c = cdCost(k),
+    f = CAMPUI.fx[k],
+    up = f && performance.now() - f.t < 400,
+    cls = k === sug ? 'sug' : affP(c) >= 1 ? 'can' : 'off';
+  return `<div class="cdc ${up ? 'up' : ''}"><button class="cdb" data-cd="one:${k}">${icHTML(CAMP_IC[k])}<b>${cdName(k)} <span class="lv">Lv ${cdLv(k)}</span></b></button>${
+    c
+      ? `<button class="stamp ${cls}" data-fg="${cdFg(k)}" aria-label="升級${cdName(k)}">▲</button>`
+      : `<small class="c-dim">${STR_T.cdMax}</small>`
+  }<i class="cdp"><i data-cp="${k}"></i></i></div>`;
+}
+function cdOneHTML(k) {
+  const c = cdCost(k),
+    lv = cdLv(k),
+    ms = GEN[k] && genNextMs(k),
+    d = GEN[k] ? `每分鐘 +${fmtR(genRate1(k))}` : c ? c.d : '';
+  return `<div class="cd1"><p class="cdlv">Lv ${lv}${c ? ` → Lv ${lv + 1}` : ''}</p>${d ? `<p class="cdd">${esc(d)}</p>` : ''}
+  ${
+    c
+      ? `<ul class="cdcost">${costRows(c)
+          .map(
+            ([nm, h, w]) =>
+              `<li><span>${nm}</span><b>${fmtN(w)}／${fmtN(Math.floor(h))}</b>${h >= w ? `<em class="c-good">${STR_T.cdEnough}</em>` : ''}</li>`
+          )
+          .join('')}</ul>`
+      : `<p class="c-dim">${STR_T.cdMax}</p>`
+  }
+  ${ms ? `<p class="cdms">Lv ${ms.at}：${esc(ms.t)}</p>` : ''}
+  ${c ? `<button class="btn pri wide stamp one" data-fg="${cdFg(k)}">${STR_T.cdUp}</button>` : ''}</div>`;
+}
+function campDrawerHTML() {
+  const one = CDR.one,
+    sug = cdSug();
+  return `<div class="ph">${one ? `<button class="x" data-cd="nav:-1" aria-label="上一座">‹</button><b>${cdName(one)}</b><button class="x" data-cd="nav:1" aria-label="下一座">›</button>` : `<b>${STR_T.campUpT}</b><button class="btn cdlook" data-cd="look">${STR_T.campLook}</button>`}<button class="x" aria-label="${one ? '回格子' : '關閉'}" ${one ? 'data-cd="back"' : 'data-a="close"'}>${ICO.x}</button></div>
+  ${
+    one
+      ? cdOneHTML(one)
+      : `${goalHTML()}<div class="cdg">${cdKeys()
+          .map(k => cdCellHTML(k, sug))
+          .join('')}</div>`
+  }`;
+}
+/* 畫抽屜：字串沒變不重畫（進度條另外填，資源一直在跑不會讓格子重建） */
+function campDrawer(force) {
+  const el = $('pcamp'),
+    h = campDrawerHTML();
+  if (force || CDR.h !== h) keepFocus(el, () => (el.innerHTML = CDR.h = h));
+  for (const i of document.querySelectorAll('[data-cp]')) {
+    const c = cdCost(i.dataset.cp);
+    i.style.transform = `scaleX(${affP(c).toFixed(3)})`;
+    i.classList.toggle('full', affP(c) >= 1);
+  }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-cd]');
+  if (!b) return;
+  const [k, v] = b.dataset.cd.split(':'),
+    L = cdKeys();
+  if (k === 'one') {
+    if (!PANEL.camp) {
+      HP_HOLD++;
+      closePanels();
+      HP_HOLD--;
+      PANEL.camp = true;
+    }
+    CDR.one = v;
+  } else if (k === 'nav') CDR.one = L[(L.indexOf(CDR.one) + +v + L.length) % L.length];
+  else if (k === 'back') CDR.one = null;
+  else if (k === 'look') {
+    closePanels();
+    CRAFT.tab = 'camp';
+    NAV.full = PORT() ? 1 : 0;
+    return openPanel('craft');
+  }
+  hudPanels();
+});
+/* 買不起時按印章（§8「資源不夠」）：鈕抖 2 px×2、悶木聲、短震；缺的那項由 hudWarn 講 */
+function stampNo(b) {
+  sfx('thud');
+  buzz(10);
+  if (b.animate && !reduced())
+    b.animate(
+      { transform: ['translateX(0)', 'translateX(-2px)', 'translateX(2px)', 'translateX(-2px)', 'translateX(0)'] },
+      120
+    );
+}
 /* 每秒補畫：只換字變了的卡與上面兩行（不整片重畫、不重排；會跑的東西在 rbTick） */
 function campRefresh() {
   if (!PANEL.craft || CRAFT.tab !== 'camp') return;
@@ -1001,6 +1124,13 @@ function corrLog(it, r) {
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-fg]');
   if (!b || b.disabled) return;
+  /* 營地升級的印章：同一顆 300 ms 內重複點不算（§3） */
+  const stamp = b.classList.contains('stamp');
+  if (stamp) {
+    const t = performance.now();
+    if (t - (CDR.tap[b.dataset.fg] || -1e9) < 300) return;
+    CDR.tap[b.dataset.fg] = t;
+  }
   const [k, v, x] = b.dataset.fg.split(':'),
     it = craftItem(),
     op = it ? curOp(it) : 'tran',
@@ -1135,6 +1265,7 @@ document.addEventListener('click', e => {
     }
   }
   if (err) hudWarn(err);
+  if (stamp) err ? stampNo(b) : buzz(15);
   changed();
   /* 死亡卡上的升級鈕（M1-17）：升完重畫卡片（下一件買得起的接著出來） */
   if (G.state === 'dead' && !$('over').hidden) hudState();
