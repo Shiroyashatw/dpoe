@@ -9967,6 +9967,46 @@ const ASC_COMBOS = `const combos = k => {
       [...new Set(bad)].slice(0, 4).join('、')
     );
   });
+  /* 6b2. 王戰招式補接（num-m2-boss-sig，issue #109）：四凶、燭龍、燭九陰的招牌招接進 BOSS_NEAR／BOSS_FAR（權重 1，devour 只近身）；
+     舊的招一條不動，所以其他王（pat 不含這五招）近遠出招表不變 */
+  {
+    const gsrc = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8'),
+      tab = n => Function('return ' + gsrc.match(new RegExp(n + ' = (\\{[^}]*\\})'))[1])(),
+      NEAR = tab('BOSS_NEAR'),
+      FAR = tab('BOSS_FAR'),
+      SIG = ['devour', 'gale', 'unstop', 'chaosjump', 'daynight'],
+      OLD_N = 'swipe slam nova blink verdict wheel laugh wrath dread tether repel greed qiwu whirl rain fog duty',
+      OLD_F = 'charge slam summon nova line blink verdict wheel hook laugh wrath tears tether qiwu whirl rain fog duty',
+      bad = [];
+    if (Object.keys(NEAR).join(' ') !== OLD_N + ' ' + SIG.join(' ')) bad.push('BOSS_NEAR 鍵 ' + Object.keys(NEAR));
+    if (Object.keys(FAR).join(' ') !== OLD_F + ' ' + SIG.slice(1).join(' '))
+      bad.push('BOSS_FAR 鍵 ' + Object.keys(FAR));
+    if ([...Object.values(NEAR), ...Object.values(FAR)].some(v => v !== 1)) bad.push('權重不是 1');
+    if ('devour' in FAR) bad.push('devour 在 BOSS_FAR');
+    const X = G.BOSSES.filter(b => b.xi).concat(B('xiUber()'));
+    if (X.map(b => b.xi).join() !== 'taotie,zhulong,qiongqi,taowu,hundun,zhu9') bad.push('四凶王 ' + X.map(b => b.xi));
+    for (const b of X)
+      for (const k of b.pat.filter(k => SIG.includes(k)))
+        if (!NEAR[k] || (k !== 'devour') !== !!FAR[k]) bad.push(b.xi + ' ' + k);
+    const pats = [
+        ...['data.js', 'world.js', 'maps.js']
+          .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+          .join('')
+          .matchAll(/pat: (\[[^\]]*\])/g)
+      ].map(m => Function('return ' + m[1])()),
+      eff = (t, p) => p.filter(k => t[k]).join();
+    for (const p of pats.filter(p => !p.some(k => SIG.includes(k))))
+      if (
+        eff(NEAR, p) !== eff(Object.fromEntries(OLD_N.split(' ').map(k => [k, 1])), p) ||
+        eff(FAR, p) !== eff(Object.fromEntries(OLD_F.split(' ').map(k => [k, 1])), p)
+      )
+        bad.push('其他王變了 ' + p);
+    ok(
+      `王戰招式補接：四凶、燭龍、燭九陰的 5 招接進 BOSS_NEAR／BOSS_FAR（權重 1、devour 只近身）；其他 ${pats.length - X.length} 組王出招表不變`,
+      !bad.length && pats.length > X.length,
+      bad.slice(0, 4).join('、')
+    );
+  }
   /* 6c. 陰兵借道（0.2.81；地圖上的節點 0.4.2 才開）：將印、兵符（第三位、怨恨值 ≥ 12、一塊一次）；追憶裝保底、舊的雙追憶裝兩條都生效；門票 */
   seeded(7806, () => {
     const bad = [],
