@@ -310,7 +310,7 @@ body.touch .top { left: calc(10px + env(safe-area-inset-left)); right: calc(10px
 body.touch #area { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 body.touch #warn { bottom: auto; top: 30%; }
 /* 右下技能鍵：大的是普攻，4 個技能排成弧形，外圈翻滾、藥水、互動 */
-body.touch #bar { position: fixed; right: calc(70px + env(safe-area-inset-right)); bottom: calc(64px + env(safe-area-inset-bottom)); width: 0; height: 0; display: block; }
+body.touch #bar { position: fixed; right: calc(70px + env(safe-area-inset-right)); bottom: calc(64px + var(--sab, env(safe-area-inset-bottom))); width: 0; height: 0; display: block; }
 body.touch #bar .sk { display: grid; position: absolute; left: 0; top: 0; width: 58px; height: 58px; border-radius: 50%; background: rgba(12, 10, 9, 0.72); border: 2px solid rgba(205, 210, 220, 0.28); transform: translate(calc(var(--x) - 50%), calc(var(--y) - 50%)); transition: scale 90ms ease-out; }
 body.touch #bar .sk s { border-radius: 50%; }
 body.touch #bar .sk .ic { width: 64%; height: 64%; }
@@ -327,7 +327,7 @@ body.touch #bar .sk[data-k='mflask'] { --x: -214px; --y: -58px; width: 48px; hei
 body.touch #bar .sk[data-k='use'] { --x: -104px; --y: -148px; width: 48px; height: 48px; }
 .sk .use { font-style: normal; font-size: var(--fs-s); font-weight: 700; }
 /* 浮動搖桿：平常淡淡的在左下，手指按哪裡就出現在哪裡 */
-body.touch #stick { display: block; position: fixed; left: calc(110px + env(safe-area-inset-left)); bottom: calc(40px + env(safe-area-inset-bottom)); width: 124px; height: 124px; margin: -62px 0 0 -62px; transform: translateY(62px); border-radius: 50%; border: 2px solid rgba(205, 210, 220, 0.16); background: rgba(0, 0, 0, 0.22); opacity: 0.55; pointer-events: none; }
+body.touch #stick { display: block; position: fixed; left: calc(110px + env(safe-area-inset-left)); bottom: calc(40px + var(--sab, env(safe-area-inset-bottom))); width: 124px; height: 124px; margin: -62px 0 0 -62px; transform: translateY(62px); border-radius: 50%; border: 2px solid rgba(205, 210, 220, 0.16); background: rgba(0, 0, 0, 0.22); opacity: 0.55; pointer-events: none; }
 body.touch #stick.on { opacity: 1; transform: none; }
 #stick i { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(205, 210, 220, 0.32); border: 2px solid rgba(205, 210, 220, 0.5); }
 /* 右上選單 */
@@ -574,7 +574,7 @@ body:not(.touch) .panel > .ph:first-child > .x { position: absolute; right: 12px
 /* 字擠：裝備欄名字不換行 */
 .eqs small { white-space: nowrap; }
 /* 手機：提示字放在底部、搖桿和技能鍵中間的空檔（不壓主角、王、王血條） */
-body.touch #warn { top: auto; bottom: calc(60px + env(safe-area-inset-bottom)); left: calc(184px + env(safe-area-inset-left)); right: calc(316px + env(safe-area-inset-right)); transform: none; font-size: var(--fs); text-align: center; white-space: normal; }
+body.touch #warn { top: auto; bottom: calc(60px + var(--sab, env(safe-area-inset-bottom))); left: calc(184px + env(safe-area-inset-left)); right: calc(316px + env(safe-area-inset-right)); transform: none; font-size: var(--fs); text-align: center; white-space: normal; }
 body.touch #warn.on { animation-name: warnT; }
 @keyframes warnT { 0% { opacity: 0; transform: translateY(6px); } 10%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 /* 說明框不超出畫面（手機橫向矮，詞綴多的稀有裝會很長；下面的動作按鈕要按得到） */
@@ -647,7 +647,7 @@ body.touch .tmore:not([hidden]) { display: flex; flex-direction: column; gap: 4p
 #rot .btn { flex: none; min-height: 44px; }
 
 /* 手機橫向（MOBA 式）：血藍經驗長條在底部中間（搖桿和技能鍵之間），左上只剩地圖名稱 */
-body.touch:not(.port) .bottom { left: calc(186px + env(safe-area-inset-left)); right: calc(322px + env(safe-area-inset-right)); top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); transform: none; display: block; }
+body.touch:not(.port) .bottom { left: calc(186px + env(safe-area-inset-left)); right: calc(322px + env(safe-area-inset-right)); top: auto; bottom: calc(10px + var(--sab, env(safe-area-inset-bottom))); transform: none; display: block; }
 body.touch:not(.port) .mid { width: auto; padding: 0; }
 body.touch:not(.port) .top { top: calc(10px + env(safe-area-inset-top)); right: calc(130px + env(safe-area-inset-right)); }
 
@@ -656,15 +656,15 @@ body.touch.port .top { left: calc(10px + env(safe-area-inset-left)); right: calc
 body.touch.port #area { max-width: calc(100% - 130px); }
 body.touch.port #bossbar, body.touch.port #prog { align-self: flex-start; width: calc(100% - 130px); margin-top: 18px; }
 body.touch.port #prog + #bossbar, body.touch.port #bossbar + #prog { margin-top: 0; }
-body.touch.port .bottom { left: calc(12px + env(safe-area-inset-left)); right: calc(12px + env(safe-area-inset-right)); top: auto; bottom: calc(86px + env(safe-area-inset-bottom)); transform: none; display: block; }
+body.touch.port .bottom { left: calc(12px + env(safe-area-inset-left)); right: calc(12px + env(safe-area-inset-right)); top: auto; bottom: calc(86px + var(--sab, env(safe-area-inset-bottom))); transform: none; display: block; }
 body.touch.port .mid { width: auto; padding: 0; }
-body.touch.port #bar { left: 0; right: 0; bottom: calc(12px + env(safe-area-inset-bottom)); width: auto; height: auto; display: flex; justify-content: center; align-items: center; gap: 8px; }
+body.touch.port #bar { left: 0; right: 0; bottom: calc(12px + var(--sab, env(safe-area-inset-bottom))); width: auto; height: auto; display: flex; justify-content: center; align-items: center; gap: 8px; }
 body.touch.port #bar .sk { position: relative; transform: none; width: 56px; height: 56px; order: 1; }
 body.touch.port #bar .sk[data-k='s0'], body.touch.port #bar .sk[data-k='roll'] { display: none; }
 body.touch.port #bar .sk[data-k='flask'] { order: 0; width: 44px; height: 44px; }
 body.touch.port #bar .sk[data-k='mflask'] { order: 2; width: 44px; height: 44px; }
-body.touch.port #bar .sk[data-k='use'] { position: fixed; left: 50%; top: auto; bottom: calc(150px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: 88px; height: 44px; border-radius: 22px; }
-body.touch.port #warn { left: 16px; right: 16px; bottom: calc(204px + env(safe-area-inset-bottom)); }
+body.touch.port #bar .sk[data-k='use'] { position: fixed; left: 50%; top: auto; bottom: calc(150px + var(--sab, env(safe-area-inset-bottom))); transform: translateX(-50%); width: 88px; height: 44px; border-radius: 22px; }
+body.touch.port #warn { left: 16px; right: 16px; bottom: calc(204px + var(--sab, env(safe-area-inset-bottom))); }
 body.touch.port #stick { opacity: 0; }
 body.touch.port #stick.on { opacity: 1; }
 body.touch.port .ph .sw { display: none; }
@@ -696,7 +696,7 @@ body.touch.port .ph .sw { display: none; }
 /* 桌機翻滾冷卻：游標旁的小圓環，走完就消失 */
 #rcd { position: fixed; left: 0; top: 0; z-index: 6; width: 22px; height: 22px; border-radius: 50%; pointer-events: none; background: conic-gradient(var(--tx) calc(var(--v, 0) * 360deg), rgba(0, 0, 0, 0.45) 0); -webkit-mask: radial-gradient(circle, transparent 6px, #000 7px); mask: radial-gradient(circle, transparent 6px, #000 7px); }
 /* 直立沒有翻滾鍵（一撥就翻），留一個不能按的小圖示顯示冷卻 */
-body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: auto; top: auto; right: calc(12px + env(safe-area-inset-right)); bottom: calc(150px + env(safe-area-inset-bottom)); width: 44px; height: 44px; pointer-events: none; }
+body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: auto; top: auto; right: calc(12px + env(safe-area-inset-right)); bottom: calc(150px + var(--sab, env(safe-area-inset-bottom))); width: 44px; height: 44px; pointer-events: none; }
 
 /* ---------- 0.2.30 暗石細線：平面、1px 細線、沒有雙框與鉚釘；寫在最後蓋過前面的舊規則 ---------- */
 .panel, #over .card, #tip, #ttip, .mid { background: var(--s1); border: 1px solid var(--fr); border-radius: 4px; outline: none; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6); }
@@ -1078,7 +1078,7 @@ body.cine #hud { visibility: hidden; }
 #ivg h1 { margin: 0; font: 900 clamp(32px, 7vmin, 56px) var(--serif); letter-spacing: 0.08em; color: var(--title); }
 #ivgo { min-width: 160px; }
 .ivskip { position: absolute; z-index: 2; top: calc(12px + env(safe-area-inset-top)); right: calc(12px + env(safe-area-inset-right)); min-height: 44px; padding: 0 18px; background: rgba(23, 24, 27, 0.72); }
-.ivb { position: absolute; left: 0; right: 0; bottom: 0; padding: 56px calc(24px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(24px + env(safe-area-inset-left)); text-align: center; pointer-events: none; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.72)); }
+.ivb { position: absolute; left: 0; right: 0; bottom: 0; padding: 56px calc(24px + env(safe-area-inset-right)) calc(32px + var(--sab, env(safe-area-inset-bottom))) calc(24px + env(safe-area-inset-left)); text-align: center; pointer-events: none; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.72)); }
 #ivs { min-height: 3.2em; margin: 0 auto; max-width: 30em; display: flex; align-items: flex-end; justify-content: center; font: 900 clamp(16px, 3.4vmin, 24px)/1.6 var(--serif); letter-spacing: 0.04em; color: var(--title); text-wrap: balance; text-shadow: 0 1px 3px #000; opacity: 0; transition: opacity 320ms cubic-bezier(0.23, 1, 0.32, 1); }
 #ivs.on { opacity: 1; }
 /* 睜眼：上下兩片黑往外退 */
@@ -1324,14 +1324,14 @@ body.touch.port #plog { z-index: 8; } /* 直立是半版面板：退到分頁列
 /* ---------- 0.4.4 手機直立重排（企劃書第 9 節、介面規範第 3 節）：上半看戰鬥、下半是面板、底部固定一排分頁 ----------
    --sheet-top（px，hud.js 的 sheetSync 設）＝半版面板的上緣；--hb＝HUD 下排的基準（沒開面板＝分頁列上面，開了＝戰鬥畫面的底） */
 #pnav, #phand { display: none; }
-body.touch.port { --nav-h: calc(56px + env(safe-area-inset-bottom)); --hand-h: 24px; --hb: var(--nav-h); }
+body.touch.port { --nav-h: calc(56px + var(--sab, env(safe-area-inset-bottom))); --hand-h: 24px; --hb: var(--nav-h); }
 body.touch.port.sheet { --hb: calc(100dvh - var(--sheet-top)); }
 body.touch.port.sheetfull { --hand-h: calc(24px + env(safe-area-inset-top)); }
 body.touch.port .panel, body.touch.port #phand { transition: top 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 body.touch.port.sheetdrag .panel, body.touch.port.sheetdrag #phand { transition: none; }
 @media (prefers-reduced-motion: reduce) { body.touch.port .panel, body.touch.port #phand { transition: none; } }
 /* 底部分頁列：拇指區，五格平均 */
-body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; z-index: 9; left: 0; right: 0; bottom: 0; height: var(--nav-h); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: var(--s2); border-top: 1px solid var(--fr); box-shadow: 0 -1px 0 #000; }
+body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); position: fixed; z-index: 9; left: 0; right: 0; bottom: 0; height: var(--nav-h); padding: 0 env(safe-area-inset-right) var(--sab, env(safe-area-inset-bottom)) env(safe-area-inset-left); background: var(--s2); border-top: 1px solid var(--fr); box-shadow: 0 -1px 0 #000; }
 #pnav button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; padding: 0; font: 700 11px var(--font); color: var(--dim); background: none; border: 0; border-top: 2px solid transparent; }
 #pnav .ico { width: 22px; height: 22px; }
 #pnav button.on { color: var(--title); border-top-color: var(--fr-hi); background: rgba(200, 205, 215, 0.07); }
@@ -1539,7 +1539,7 @@ body:not(.touch) #treset { bottom: 52px; }
 #tg .ascgo.todo text.s { fill: var(--gold); }
 .nd.pth:not(.asc) circle { stroke: #fff; stroke-opacity: 1; stroke-width: 5; stroke-dasharray: 5 4; }
 /* 說明卡：跟面板同一套（深底、上緣一條線、標題靠左），固定在底部 */
-.tcard { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); background: var(--s2); border-top: 1px solid var(--fr-hi); box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5); animation: sheetin 160ms cubic-bezier(0.23, 1, 0.32, 1); }
+.tcard { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 10px 14px calc(12px + var(--sab, env(safe-area-inset-bottom))); background: var(--s2); border-top: 1px solid var(--fr-hi); box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5); animation: sheetin 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 .tcard[hidden] { display: none; }
 .tcard .tc-h { position: relative; padding-right: 52px; min-height: 44px; }
 .tcard .tc-h > b { display: inline; font: 700 var(--fs-l) var(--font); color: var(--title); margin-right: 8px; }
