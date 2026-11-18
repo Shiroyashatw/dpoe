@@ -1,0 +1,65 @@
+✅ 正式 ?p=dbgprod：沒有 DBG
+✅ 正式 ?p=dbgprod：沒有 dbg.js 的 script 標籤、沒抓 dbg.js
+✅ 正式 ?p=dbgprod：performance.now、requestAnimationFrame、Math.random 是原生的
+✅ 正式 ?p=dbgprod：沒有 JS 錯誤
+✅ 正式 ?p=dbgprod&dbg=0：沒有 DBG
+✅ 正式 ?p=dbgprod&dbg=0：沒有 dbg.js 的 script 標籤、沒抓 dbg.js
+✅ 正式 ?p=dbgprod&dbg=0：performance.now、requestAnimationFrame、Math.random 是原生的
+✅ 正式 ?p=dbgprod&dbg=0：沒有 JS 錯誤
+✅ 正式 ?p=dbgprod&seed=7&freeze=1：沒有 DBG
+✅ 正式 ?p=dbgprod&seed=7&freeze=1：沒有 dbg.js 的 script 標籤、沒抓 dbg.js
+✅ 正式 ?p=dbgprod&seed=7&freeze=1：performance.now、requestAnimationFrame、Math.random 是原生的
+✅ 正式 ?p=dbgprod&seed=7&freeze=1：沒有 JS 錯誤
+✅ ?seed=7 兩次載入的地形與擺設逐項相同
+✅ ?seed=8 跟 ?seed=7 不同
+✅ ?freeze=1＋?seed=7：兩次載入的截圖逐像素相同
+✅ 營地 390×844 第 1 次：在營地、沒有 JS 錯誤
+✅ 營地 390×844 第 2 次：在營地、沒有 JS 錯誤
+✅ 營地 390×844 第 3 次：在營地、沒有 JS 錯誤
+✅ ?test=1&seed=7&freeze=1 營地 390×844：3 次載入截圖逐像素相同
+✅ 營地 1280×720 第 1 次：在營地、沒有 JS 錯誤
+✅ 營地 1280×720 第 2 次：在營地、沒有 JS 錯誤
+✅ 營地 1280×720 第 3 次：在營地、沒有 JS 錯誤
+✅ ?test=1&seed=7&freeze=1 營地 1280×720：3 次載入截圖逐像素相同
+✅ ?test=：DBG 存在、載入 dbg.js、種子 7
+✅ ?dbg=1：DBG 存在
+✅ ?dbg=1：沒有 JS 錯誤
+✅ freeze：0.4 秒後 G.t 沒動
+✅ step(330)：G.t 剛好前進 0.33 秒
+✅ step 後仍凍結
+✅ step：凍結中開始的 CSS 動畫停住、step 才前進
+✅ resume：時間又在走
+✅ biome(temple)：在地圖、地形對、怪清光、主角在左上
+✅ biome(lava)：在地圖、地形對、怪清光、主角在左上
+✅ biome(tomb)：在地圖、地形對、怪清光、主角在左上
+✅ biome(ice)：在地圖、地形對、怪清光、主角在左上
+✅ biome(不存在) 回傳 false
+✅ night(5)：G.night > G.t
+✅ fog(5)：G.fog > G.t 而且不是天黑
+✅ fx(crit)：播一張序列圖
+✅ fx(不存在) 回傳 false
+✅ fx(sig_crit)：播招牌特效
+✅ fx(sig_lvup)：播招牌特效
+✅ fx(sig_beam)：播招牌特效
+✅ fx(sig_chase)：播招牌特效
+✅ fx(sig_wyapply)：播招牌特效
+✅ num：9 種都跳得出來
+✅ hp(30)：生命 30%
+✅ mp(0)：魔力 0
+✅ boss(hugupo)：叫出虎姑婆
+✅ lvup：等級 +1
+✅ beam(rare／unique)：地上有通貨光柱
+✅ chaseDrop：地上有追逐物品
+✅ toast：#warn 寫上文字
+✅ tileRect：一格 48×ZOOM，位置跟著鏡頭
+✅ save：蓋上存檔內容
+✅ save(函式)：照函式改
+✅ fireAll：技能格都是火焰法術、旁邊有怪
+✅ flip：打造翻牌打開
+✅ wyApply(weapon)：武器套上王印
+✅ hot(1)：魔力球是過熱的地獄火
+✅ hot(0)：還原
+✅ 測試模式沒有 JS 錯誤
+✅ safeArea(34)：直立 #pnav 高 +34px、還原後回來
+✅ 除錯掛鉤全部通過
+EXIT 0
