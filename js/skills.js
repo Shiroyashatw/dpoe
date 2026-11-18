@@ -119,7 +119,7 @@ function gemCfg(g, i) {
   if (D.lightAdd) c.lightAdd = D.lightAdd;
   /* 大開大合（0.2.70 角鬥士）：雙手時每點盛怒範圍提高（跟範圍的提高同一池，所以除掉原本的提高再乘；stats() 沒拿雙手就歸零） */
   if (ST.rageAoe && P && P.rage) c.aoe *= (100 + ST.aoe + ST.rageAoe * P.rage) / (100 + ST.aoe);
-  /* 重裝彈頭（0.2.70 千機）：彈藥技能每發更多、穿透 +1（彈夾減半在 mech.js 的 clipOf） */
+  /* 重裝彈頭（0.2.70 千機）：彈藥技能每發更多、穿透 +1（彈匣減半在 mech.js 的 clipOf） */
   if (ST.heavyAmmo && D.ammo) (c.more *= 1 + ST.heavyAmmo / 100), c.pierce++;
   /* 重擊的品質：粉碎重擊後的下一下 */
   if (g.gem === 'smash' && P && P.smashQ) c.speed /= 1 - 0.5 * P.smashQ;
@@ -355,12 +355,12 @@ function itemDelta(it, k) {
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */
 const metaOf = g =>
   g && (g.sup || []).find(x => x && SUPPORTS[x.gem] && SUPPORTS[x.gem].meta && supOK(awD(g.gem, g.aw), x, g));
-/* 練習區（藏身處的石圈，hideout.js）：in 站在裡面、real 實戰模式、t 稻草人階級、dot 正在結算持續傷害 */
+/* 練習區（營地的石圈，hideout.js）：in 站在裡面、real 實戰模式、t 稻草人階級、dot 正在結算持續傷害 */
 const PRAC = { in: false, real: false, t: 0, dot: 0 };
-/* 能不能出招：地圖裡，或藏身處的練習區 */
+/* 能不能出招：地圖裡，或營地的練習區 */
 const fightOn = () => G.scene === 'map' || PRAC.in;
 /* 練習區預設無限魔力、無冷卻；實戰模式才照真的算 */
-const pracFree = () => G.scene === 'hide' && PRAC.in && !PRAC.real;
+const pracFree = () => G.scene === 'camp' && PRAC.in && !PRAC.real;
 /* 放不放得出來（手動與自動共用）：回傳不能放的原因。地獄火（0.2.26）不扣魔力、改成累積，所以不檢查魔力；血魔法優先 */
 function skillWhy(c, at) {
   if (c.g && gemLack(c.g).length) return '能力值不足';
@@ -614,12 +614,12 @@ function useSlot(i) {
   if (c.k === 'shieldcharge') startCounter(durOf(c) + c.q), fxs('parry', P.x, P.y - 20, 50);
   return true;
 }
-/* 在藏身處想出招：提醒去練習區（按住連打時不要一直跳） */
+/* 在營地想出招：提醒去練習區（按住連打時不要一直跳） */
 let pracHintT = -9;
 function pracHint() {
   if (G.t - pracHintT < 3) return;
   pracHintT = G.t;
-  hudWarn('到練習區才能出招');
+  hudWarn('點練習區才能出招');
 }
 /* (x, y) 附近 r 內、離自己 far 以內最近的怪 */
 function mobNear(x, y, r, far = 1e9) {
@@ -972,7 +972,7 @@ function actHit2(a, idx, R, hitArc) {
     fxs('blinkin', p.x, p.y, 40);
   } else if (a.k === 'axethrow' || a.k === 'apshot' || a.k === 'chaosbolt') {
     const n = c.proj,
-      /* 穿甲彈的品質、斷後：彈夾最後一發（ammoUse 已經扣過，剩 0 就是最後一發） */
+      /* 穿甲彈的品質、斷後：彈匣最後一發（ammoUse 已經扣過，剩 0 就是最後一發） */
       last = a.k === 'apshot' && ammoLeft(a.k) === 0;
     let dropped = 0;
     const o = {
@@ -2074,7 +2074,7 @@ function updSkills(dt) {
   updPools(dt);
   updUnits(dt);
   if (fightOn()) mechTick(dt), autoTick(), ancTick(), volTick();
-  if (G.scene === 'hide') hideTick();
+  if (G.scene === 'camp') hideTick();
 }
 /* 自動化（0.2.28）：冷卻好了、魔力夠、480 內看得到敵人就放；不佔玩家的出手（P.act），砲塔圖騰、圖騰放在敵人方向 */
 const AUTO_R = 480;
@@ -2097,7 +2097,7 @@ function autoTick() {
     sfx(c.D.tags.includes('spell') ? 'cast' : 'throw');
   }
 }
-/* 進地圖、回藏身處：重設狀態 */
+/* 進地圖、回營地：重設狀態 */
 function skillsEnter() {
   Object.assign(P, { lastHurt: -9, rage: 0, rageT: 0, lifeLost: -9, adapt: {} });
   Object.assign(G, { allies: [], pools: [], meteors: [], units: [], mineT: 0 });

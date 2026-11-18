@@ -69,6 +69,44 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => getComputedStyle($('rot')).display === 'none'),
     PORTM ? '直立' : '橫向'
   );
+  /* M2-12：營地主角不走動——單指拖＝左右平移鏡頭（不出搖桿、主角不動、不出招）；點場景物件＝開跟分頁同一個面板 */
+  await p.evaluate(() => enterCamp());
+  await p.waitForTimeout(600);
+  {
+    const c0 = await p.evaluate(() => ({ x: P.x, y: P.y, cam: G.cam.x })),
+      x0 = Math.round(W * 0.6),
+      y0 = Math.round(H * 0.55);
+    await touch('touchStart', [[x0, y0]]);
+    for (let i = 1; i <= 8; i++) {
+      await touch('touchMove', [[x0 - i * 18, y0 + i]]);
+      await p.waitForTimeout(16);
+    }
+    await p.waitForTimeout(250);
+    const mid = await p.evaluate(() => ({ stick: $('stick').classList.contains('on'), cam: G.cam.x, act: !!P.act }));
+    await touch('touchEnd', []);
+    await p.waitForTimeout(200);
+    const c1 = await p.evaluate(() => ({ x: P.x, y: P.y, mv: P.mv }));
+    ok(
+      '營地：單指往左拖＝鏡頭往右平移，不出搖桿、主角不動、沒出招',
+      !mid.stick && mid.cam > c0.cam + 60 && !mid.act && c1.x === c0.x && c1.y === c0.y,
+      JSON.stringify([c0, mid, c1])
+    );
+    await p.evaluate(() => (G.pan = 0));
+    await p.waitForTimeout(700);
+    const dv = await p.evaluate(() => {
+      const d = G.props.find(q => q.k === 'device');
+      return [(d.x - G.cam.x) * ZOOM + IW / 2, (d.y - 25 - G.cam.y) * ZOOM + cvH() / 2];
+    });
+    await touch('touchStart', [dv]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(400);
+    ok(
+      '營地：點地圖台＝開地點清單（跟分頁同一個面板），主角不動',
+      await p.evaluate(c0 => PANEL.node && P.x === c0.x && P.y === c0.y, c0),
+      JSON.stringify(dv)
+    );
+    await p.evaluate(() => closePanels());
+  }
   await p.screenshot({ path: shot('hide') });
   await p.evaluate(() => {
     enterMap(1);
@@ -271,9 +309,9 @@ const settle = async (p, fn, arg) => {
   );
   await p.evaluate(() => closePanels());
   await p.screenshot({ path: shot('map') });
-  /* 回藏身處，開裝備與清單倉庫（0.4.0） */
+  /* 回營地，開裝備與清單倉庫（0.4.0） */
   await p.evaluate(() => {
-    enterHideout();
+    enterCamp();
     for (let i = 0; i < 10; i++) invPut(S.inv, dropItem(i < 6 ? 3 : 5));
     /* 最新的一件（清單排第一）是沒有需求的戒指：點了「裝備」一定裝得上 */
     invPut(S.inv, mkItem('r_iron', 1, 1));
@@ -1184,7 +1222,7 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => {
       S.auto = 0;
       closePanels();
-      enterHideout();
+      enterCamp();
       openPanel('inv');
     });
     await p.waitForTimeout(300);
@@ -1765,7 +1803,7 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => {
       openPanel('more');
       for (const m of G.mobs) (m.aggro = 1), (m.x = P.x + 20), (m.y = P.y);
-      homeAsk();
+      campAsk();
       window._m0 = { hp: P.hp, t: G.t, n: G.nums.length };
     });
     await p.waitForTimeout(300);
@@ -1793,12 +1831,12 @@ const settle = async (p, fn, arg) => {
         return !!s && s.textContent.includes('正在刷：' + G.nodeN);
       })
     );
-    /* 回藏身處：「繼續刷」是標準主按鈕（≥44px、字 14～17px）；地點名 14px */
-    /* 鍵盤（M0-04）：T 開確認卡、Esc＝取消、連按兩下 T＝回藏身處 */
+    /* 回營地：「繼續刷」是標準主按鈕（≥44px、字 14～17px）；地點名 14px */
+    /* 鍵盤（M0-04）：T 開確認卡、Esc＝取消、連按兩下 T＝回營地（M2-12） */
     await p.evaluate(() => closePanels());
     await p.keyboard.press('t');
     await p.waitForTimeout(200);
-    const askT = await p.evaluate(() => !$('over').hidden && G.ask === 'home');
+    const askT = await p.evaluate(() => !$('over').hidden && G.ask === 'camp' && /回營地/.test($('over').textContent));
     await p.keyboard.press('Escape');
     await p.waitForTimeout(200);
     ok(
@@ -1809,7 +1847,10 @@ const settle = async (p, fn, arg) => {
     await p.waitForTimeout(150);
     await p.keyboard.press('t');
     await p.waitForTimeout(500);
-    ok('連按兩下 T：回到藏身處', await p.evaluate(() => G.scene === 'hide' && $('over').hidden));
+    ok(
+      '連按兩下 T：回到營地、停在營地（刷圖暫停）',
+      await p.evaluate(() => G.scene === 'camp' && $('over').hidden && S.stopWhy === 'camp')
+    );
     const rb = await p.evaluate(() => {
       const b = document.querySelector('#run [data-a=resume]'),
         a = $('area');
@@ -2014,9 +2055,9 @@ const settle = async (p, fn, arg) => {
       !lk[0] && lk[1] === '升祭壇到 Lv 4 才開' && !lk[2] && lk[3] === '升祭壇到 Lv 7 才開',
       JSON.stringify(lk)
     );
-    /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點藏身處的昇華石碑；山海寶盒例外照開 */
+    /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點營地的昇華石碑；山海寶盒例外照開 */
     const lk2 = await p.evaluate(() => {
-      enterHideout();
+      enterCamp();
       closePanels();
       navGo('more');
       const rows = [...document.querySelectorAll('#pmore .mrow b')].map(b => b.textContent),
@@ -2182,10 +2223,119 @@ const settle = async (p, fn, arg) => {
       dc.length >= 13 && !dc.some(t => /寶石/.test(t)),
       JSON.stringify(dc)
     );
+    /* hotfix-ui：物品格的圖示不能被角標蓋住（「T6」最高階角標的 class 叫 top，吃到 HUD 頂列的 .top 被撐滿整格，只剩米色方塊）。
+       角色頁、戰利品、鍛造（通貨頁＋換一件）各看一次：每格圖有載好、圖中心不在任何角標裡、角標不高過半格（桌機會撐成左邊一長條） */
+    const icCover = () =>
+      [...document.querySelectorAll('.it')]
+        .filter(e => e.offsetParent && e.getBoundingClientRect().width)
+        .map(e => {
+          const im = e.querySelector('img.ic'),
+            r = im && im.getBoundingClientRect(),
+            x = r && r.left + r.width / 2,
+            y = r && r.top + r.height / 2,
+            hit = [...e.querySelectorAll(':scope > i')].find(i => {
+              const q = i.getBoundingClientRect();
+              return (
+                (x >= q.left && x <= q.right && y >= q.top && y <= q.bottom) ||
+                q.height > e.getBoundingClientRect().height / 2
+              );
+            });
+          return !im || !im.naturalWidth || hit
+            ? e.getAttribute('aria-label') + ':' + (hit ? hit.className : 'no-img')
+            : '';
+        })
+        .filter(Boolean);
+    await p.evaluate(() => {
+      const it = mkItem(BASES.find(b => b.k === 'helm').id, 40, 2);
+      for (const a of it.a) a.T = itemT(it);
+      S.eq.helm = it;
+      S.inv.items.push(mkItem(it.b, 40, 2));
+      for (const a of S.inv.items[S.inv.items.length - 1].a) a.T = itemT(it);
+      S.curIt = S.inv.items[S.inv.items.length - 1];
+      hudPanels();
+    });
+    for (const [n, f] of [
+      ['角色頁', () => (closePanels(), navGo('char'))],
+      ['戰利品', () => (closePanels(), navGo('bag'))],
+      ['鍛造（通貨）', () => (closePanels(), act('ctab:cur'))],
+      ['鍛造（換一件）', () => PORT() && act('pick')]
+    ]) {
+      await p.evaluate(f);
+      await p.waitForTimeout(500);
+      const bad = await p.evaluate(icCover),
+        n0 = await p.evaluate(
+          () => [...document.querySelectorAll('.it .btr.btop, .it .btr.top')].filter(e => e.offsetParent).length
+        );
+      ok(
+        `hotfix-ui：${n} 物品格有圖示、沒被「T」角標蓋住（最高階角標 ${n0} 個）`,
+        (n0 > 0 || n.startsWith('鍛造')) && !bad.length,
+        JSON.stringify(bad)
+      );
+    }
+    await p.evaluate(() => {
+      act('pickno');
+      closePanels();
+      S.eq.helm = null;
+      S.inv.items = S.inv.items.filter(i => i !== S.curIt);
+      S.curIt = null;
+    });
     await p.evaluate(() => {
       S.camp.watch = _w0;
       S.eq.belt = null;
     });
+    /* hotfix-ui：掛機卡資源列用大數字（百萬級總量、千級以上速率）：每列的字與條不超出自己那一欄、不超出卡片，兩欄的條中間有空隙 */
+    const rb = await p.evaluate(async () => {
+      closePanels();
+      if (G.scene !== 'map') runNode(TRUNK_K[0]);
+      G.loot = null;
+      const a0 = S.auto;
+      S.auto = 1;
+      if (!idleOn()) return (S.auto = a0), { skip: 1 };
+      const g0 = genRates,
+        s0 = soulRate,
+        m0 = JSON.stringify(MAT()),
+        R = { wood: 2976 };
+      for (const k of GEN_K)
+        if (k !== 'wood' && genOn(k)) (R[matKey(k, genTier(k))] = 24000), matAdd(k, genTier(k), 671232);
+      matAdd('wood', 0, 2644835);
+      MAT().soul = 1234567;
+      window.genRates = () => R;
+      window.soulRate = () => 12345;
+      RB.R = null;
+      idleBar(1);
+      await new Promise(r => setTimeout(r, 1200));
+      const card = document.querySelector('#pidle .idl'),
+        cr = card && card.getBoundingClientRect(),
+        bars = [...document.querySelectorAll('#pidle .rbar')],
+        bad = [];
+      for (const e of bars) {
+        const r = e.getBoundingClientRect();
+        for (const c of e.children)
+          if (c.getBoundingClientRect().right > r.right + 0.5) bad.push(e.dataset.rb + ' 超出欄 ' + c.textContent);
+        if (r.right > cr.right + 0.5) bad.push(e.dataset.rb + ' 超出卡片');
+      }
+      for (let i = 0; i + 1 < bars.length; i++) {
+        const a = bars[i].querySelector('.rt').getBoundingClientRect(),
+          b = bars[i + 1].querySelector('.rt').getBoundingClientRect();
+        if (Math.abs(a.top - b.top) < 1 && b.left - a.right < 6) bad.push(bars[i].dataset.rb + ' 跟右欄的條黏在一起');
+      }
+      const txt = bars.map(e => e.querySelector('b').textContent + ' ' + e.querySelector('small').textContent);
+      window.genRates = g0;
+      window.soulRate = s0;
+      S.mat = JSON.parse(m0);
+      RB.R = null;
+      S.auto = a0;
+      return { on: !!cr, n: bars.length, bad, txt };
+    });
+    if (rb.skip) console.log('（這個尺寸觸控模式不出掛機卡，略過 hotfix-ui 掛機卡大數字）');
+    else {
+      await p.screenshot({ path: shot('idle_big') });
+      ok(
+        'hotfix-ui：掛機卡資源列大數字不超出欄位與卡片、兩欄的條分開',
+        rb.on && rb.n >= 3 && !rb.bad.length,
+        JSON.stringify(rb)
+      );
+    }
     await p.evaluate(() => {
       closePanels();
       navGo('bag');
@@ -2355,7 +2505,7 @@ const settle = async (p, fn, arg) => {
       pk[0] === 'skills' && pk[1] === 'slash' && pk[2] && !pk[3] && /^換成/.test(pk[4]),
       JSON.stringify(pk)
     );
-    /* M1-17 視覺：手動模式倒下，升級鈕＝主鈕在最上面、再試一次改次要、回藏身處文字鏈 */
+    /* M1-17 視覺：手動模式倒下，升級鈕＝主鈕在最上面、再試一次改次要、回營地文字鏈 */
     const dc = await p.evaluate(async () => {
       closePanels();
       S.auto = 0;
@@ -2371,7 +2521,7 @@ const settle = async (p, fn, arg) => {
       return o;
     });
     ok(
-      'M1-17 視覺：死亡卡升級鈕是主鈕在最上、再試一次次要、回藏身處文字鏈，都 ≥44',
+      'M1-17 視覺：死亡卡升級鈕是主鈕在最上、再試一次次要、回營地文字鏈，都 ≥44',
       /^pri wide dup:/.test(dc[0]) &&
         +dc[0].split(':')[1] >= 48 &&
         /^:/.test(dc[1]) &&
@@ -2473,7 +2623,7 @@ const settle = async (p, fn, arg) => {
     idleBar(1);
     const z = getComputedStyle($('pidle')).zIndex;
     a.push(z === 'auto' || +z < +getComputedStyle($('over')).zIndex);
-    G.ask = 'home';
+    G.ask = 'camp';
     hudState();
     idleBar(1);
     a.push($('pidle').hidden && !$('over').hidden);

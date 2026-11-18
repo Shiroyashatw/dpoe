@@ -130,6 +130,9 @@ function migrate(s) {
     if (o.world) delete o.world.star;
     o.v = 35;
   }
+  /* M2-12：藏身處併入營地。玩家自己回去（刷圖暫停）的旗標 'home' 改叫 'camp'；早期存檔殘留的場景欄位拿掉（場景一律從營地開始） */
+  if (o.stopWhy === 'home') o.stopWhy = 'camp';
+  delete o.scene;
   o.camp = { ...newCamp(), ...o.camp };
   o.camp.gen = { ...newCamp().gen, ...o.camp.gen };
   o.auto2 = { ...AUTO2(), ...o.auto2 };
@@ -206,14 +209,29 @@ function proSkip() {
   introStop();
   proGive();
 }
-/* 換成另一份存檔（雲端較新、登入帳號）：回藏身處重來 */
+/* 換成另一份存檔（雲端較新、登入帳號）：跟重開網頁一樣，那份存檔在刷就回到它的地點接著刷（M2-25） */
 function useSave(r) {
   introStop();
   S = migrate(r);
-  enterHideout();
+  enterCamp();
   applyOrient();
-  save();
   proBoot();
+  comeBack(r.farm, r.offAt || r.savedAt || Date.now());
+  save();
+}
+/* 重開網頁（M2-25，試玩報告 A4／B2）：上次關掉時在刷圖、或沒有自己按回營地 → 先結算離線、回到原地點接著刷，再出離線摘要
+   （M3-04 選項 A：摘要後面已經在打）。手動模式也回去（摘要開著時世界照 M1-10 暫停）；離線輪數只算自動模式（offSettle）。
+   原地點進不去了（裂口的血霧之印用完）就退回 wBack；產生器不管在不在刷都照產（0.5.1） */
+function comeBack(farm, offAt) {
+  const away = Date.now() - offAt,
+    c = S.world.cur;
+  if (c && wWhy(S, ...wXY(c)) && wBack(c)) S.world.cur = wBack(c);
+  const k = S.world.cur,
+    resume = (farm || !S.stopWhy) && k && !wWhy(S, ...wXY(k)),
+    o = resume ? offSettle(away) : null,
+    g = offGen(away);
+  if (resume) runNode(k);
+  if (o || away >= OFF_MIN) offShow(o, g, away);
 }
 /* ---------- 測試入口（M1-24）：?test=dualweap／nearDeath／midgame／chase。每次載入照情境重建，存在 test_名字 存檔位、不連雲端 ----------
    build 在 hudInit 之前做存檔；go 在開場之後（已經看過開場）做要進場地、扣血的事 */
@@ -284,12 +302,12 @@ function start() {
   resize();
   addEventListener('resize', resize);
   S = TEST ? testSave(TEST) : migrate(load());
-  /* 離線結算要用的（enterHideout 之後存檔會蓋掉） */
+  /* 離線結算要用的（enterCamp 之後存檔會蓋掉） */
   const farm = S.farm,
     offAt = S.offAt || S.savedAt || Date.now();
   ST = stats();
   hudInit();
-  enterHideout();
+  enterCamp();
   inputInit();
   treeInit();
   touchInit();
@@ -301,20 +319,12 @@ function start() {
     } else cloudPush();
   });
   setInterval(save, 10000);
-  /* 離線結算（0.4.1）：上次關掉時在刷圖（或沒有自己按回藏身處，試玩報告 B2）→ 照存檔時間算，接著刷同一個節點；產生器不管在不在刷都照產（0.5.1） */
-  const away = Date.now() - offAt,
-    resume = (farm || !S.stopWhy) && S.auto && S.world.cur && !wWhy(S, ...wXY(S.world.cur)),
-    o = resume ? offSettle(away) : null,
-    g = offGen(away);
   if (TEST) {
     ST = stats();
     popAssign();
     TESTS[TEST] ? TESTS[TEST].go() : hudWarn(`沒有「${TEST}」這個測試情境：dualweap、nearDeath、midgame、chase`);
     hudWarn(`測試入口：${TEST}（不存進正式存檔、不連雲端）`);
-  } else {
-    if (resume) runNode(S.world.cur);
-    if (o || away >= OFF_MIN) offShow(o, g, away);
-  }
+  } else comeBack(farm, offAt);
   /* 分頁切走、手機鎖螢幕：記時間，回來時結算（主迴圈停著，產生器也要補） */
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) return (HIDE_AT = Date.now()), save();
@@ -329,7 +339,7 @@ function start() {
   requestAnimationFrame(frame);
   (window.requestIdleCallback || (f => setTimeout(f, 1500)))(treePrebuild, { timeout: 4000 });
   verCheck();
-  document.addEventListener('visibilitychange', () => !document.hidden && G.scene === 'hide' && verCheck());
+  document.addEventListener('visibilitychange', () => !document.hidden && G.scene === 'camp' && verCheck());
 }
 /* 新版上線後手機常拿到快取的舊 index.html（GitHub Pages 快取 10 分鐘、主畫面 App 更久）：
    問一次 version.json（不走快取），版本不同就換網址（加 v=）重新載入；已經換過就不再換，避免一直重載 */

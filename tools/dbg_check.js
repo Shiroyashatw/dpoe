@@ -111,7 +111,7 @@ const ev = (p, f, a) => p.evaluate(f, a);
         require('fs').writeFileSync(`${process.env.DBG_SHOT}/camp_${w}x${h}_${s.length}.png`, s.at(-1));
       ok(
         `營地 ${w}×${h} 第 ${s.length} 次：在營地、沒有 JS 錯誤`,
-        (await ev(q, () => G.scene)) === 'hide' && !q.errs.length,
+        (await ev(q, () => G.scene)) === 'camp' && !q.errs.length,
         q.errs.join(' | ')
       );
       await q.context().close();
