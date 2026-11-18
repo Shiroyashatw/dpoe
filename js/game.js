@@ -1569,7 +1569,12 @@ const BOSS_NEAR = {
     whirl: 1,
     rain: 1,
     fog: 1,
-    duty: 1
+    duty: 1,
+    devour: 1,
+    gale: 1,
+    unstop: 1,
+    chaosjump: 1,
+    daynight: 1
   },
   BOSS_FAR = {
     charge: 1,
@@ -1589,7 +1594,11 @@ const BOSS_NEAR = {
     whirl: 1,
     rain: 1,
     fog: 1,
-    duty: 1
+    duty: 1,
+    gale: 1,
+    unstop: 1,
+    chaosjump: 1,
+    daynight: 1
   },
   BOSS_WIND = {
     swipe: 0.5,
