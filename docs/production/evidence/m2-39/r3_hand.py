@@ -54,7 +54,7 @@ def main():
         ones[size].append((jid, im, not why))
         print(f'{jid} {size}: {row["result"]} {row["reason"]}  不透明 {row["opaque_pct"]}% 雜點 {row["isolated_pct"]}% 棋盤 {row["checker"]}')
     sheet(f'M2-39 第 {N} 輪手修（0 次）：每枚 上彩 4 倍＋1 倍／下灰階 4 倍＋1 倍', cells, 7).save(EV / f'{R}_compare.png')
-    for size in (32, 16):
+    for size in (s for s in (32, 16) if grays[s]):  # r6 只有 32
         sheet(f'M2-39 第 {N} 輪 {size} 灰階並排（4 倍）', grays[size], 7).save(EV / f'{R}_{size}_gray.png')
         sheet(f'M2-39 第 {N} 輪 {size} 1 倍', ones[size], 11).save(EV / f'{R}_{size}_1x.png')
     f = EV / 'asset_check.csv'
