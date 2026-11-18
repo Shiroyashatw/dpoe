@@ -16,7 +16,7 @@ def diff(a, b):
     d = np.abs(A - B)
     return (int((d.max(axis=2) > 0).sum()), int(d.max()))
 rows = []; bad = 0
-for size in ('portrait', 'desktop', '3a', 'fix'):
+for size in ('portrait', 'desktop', '3a', 'fix', 'camp'):
     names = sorted(os.path.basename(p) for p in glob.glob(os.path.join(base[0], size, '*.png')))
     for n in names:
         pairs = [diff(os.path.join(a, size, n), os.path.join(b, size, n)) for a, b in itertools.product(base, head)
