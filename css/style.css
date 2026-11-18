@@ -1,5 +1,7 @@
 /* dungeonPOE · 樣式（0.2.0 起桌機優先，深色） */
 :root {
+  /* M2-12 文字大小（S.fs 100／115／130%）：hud.js 在 html 的 style 改 --tscale */
+  --tscale: 1; --f14: calc(14px * var(--tscale)); --f16: calc(16px * var(--tscale)); --f20: calc(20px * var(--tscale)); --f22: calc(22px * var(--tscale));
   /* 角色 token（M2-34-0 收斂；值沿用 0.5.4 的畫面）。M2-36 只改這裡的值。半透明一律用 -rgb 三元組：rgba(var(--x-rgb), α)（逗號寫法＝舊式語法，Chromium 才會跟原本的 rgba() 畫得一模一樣） */
   /* 場景 */
   --scene-void: #0b0806;
@@ -2869,7 +2871,6 @@ body.touch .modesw { display: none; }
 
 /* ================= M2-12 第一段：刷圖外框（掛機條、營地升級抽屜、6 格分頁、王橫幅、倒下字板、離線結算） =================
    顏色只用既有 token；新骨架的字吃 --tscale（設定的文字大小 100／115／130%）。直立的 y 由 JS（SAFE、cvH）與下面的 --nav-h／--idle-h 排 */
-:root { --tscale: 1; --f14: calc(14px * var(--tscale)); --f16: calc(16px * var(--tscale)); --f20: calc(20px * var(--tscale)); --f22: calc(22px * var(--tscale)); }
 #safep { position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; pointer-events: none; padding: var(--sat, env(safe-area-inset-top)) 0 var(--sab, env(safe-area-inset-bottom)); }
 body.touch.port { --st: var(--sat, env(safe-area-inset-top)); --sb: var(--sab, env(safe-area-inset-bottom)); --nav-h: calc(56px + var(--sb)); --hb: calc(var(--nav-h) + var(--idle-h, 0px)); }
 body.touch.port.sheet { --hb: calc(100dvh - var(--sheet-top)); }
