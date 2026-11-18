@@ -1,4 +1,4 @@
-/* dungeonPOE · 遊戲：存檔結構、場景（藏身處／地圖）、玩家與技能、打擊感（停頓、震動、擊退、閃白、完美閃避）、怪物 AI、王、掉落、主迴圈 */
+/* dungeonPOE · 遊戲：存檔結構、場景（營地／地圖）、玩家與技能、打擊感（停頓、震動、擊退、閃白、完美閃避）、怪物 AI、王、掉落、主迴圈 */
 'use strict';
 const TAU = Math.PI * 2;
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -42,7 +42,7 @@ function newGame() {
     inv: { items: [] },
     /* 0.3.0 掛機：1 自動（AI 操作）、0 手動 */
     auto: 1,
-    stopWhy: null /* 'home'＝玩家自己回藏身處，刷圖暫停 */,
+    stopWhy: null /* 'camp'＝玩家自己回營地，刷圖暫停（M2-12 前叫 'home'，main.js 的 migrate 轉） */,
     /* 藏身處（0.2.44）：點亮的神像（生肖鍵，狩獵之血接）、故事旗標（序章、狩獵之血共用，npc.js 的 set） */
     idols: [],
     story: {},
@@ -88,14 +88,14 @@ const G = {
   tele: [],
 
   state: 'play',
-  scene: 'hide'
+  scene: 'camp'
 };
 let P, ST;
 function resetWorld(W, H) {
   Object.assign(G, {
     W,
     H,
-    ask: 0 /* 回藏身處的確認卡（touch.js 的 homeAsk） */,
+    ask: 0 /* 回營地的確認卡（touch.js 的 campAsk） */,
     fullW: 0 /* 這張圖提醒過倉庫滿了 */,
     mobs: [],
     shots: [],
@@ -153,11 +153,13 @@ function newPlayer(x, y) {
   G.cam.x = x;
   G.cam.y = y;
 }
-/* 藏身處：地層出口的山腹營地。場景圖與座標在 hideart.js（tools/hide_bake.js 產生），碰撞用地圖的格子牆 */
-function enterHideout() {
+/* 營地（M2-12：藏身處併入營地）：地層出口的山腹營地。場景圖與座標在 hideart.js（tools/hide_bake.js 產生），碰撞用地圖的格子牆；
+   主角站在站位不走動，鏡頭可以左右拖（G.pan），場景物件是營地分頁那些面板的捷徑（useProp） */
+function enterCamp() {
   const A = HIDE_ART;
   resetWorld(A.W, A.H);
-  G.scene = 'hide';
+  G.scene = 'camp';
+  G.pan = 0;
   G.loot = null;
   SES = null;
   G.mm = null;
@@ -179,7 +181,7 @@ function enterHideout() {
   ['scene', 'sky', 'fg'].forEach(himg);
   hudState();
 }
-/* 開始刷一個節點（0.4.0，企劃書 2.1）：在哪裡都能開（藏身處、地圖裡、世界地圖），直接進場地；每一輪照選的星級重抽地圖詞。
+/* 開始刷一個節點（0.4.0，企劃書 2.1）：在哪裡都能開（營地、地圖裡、世界地圖），直接進場地；每一輪照選的星級重抽地圖詞。
    keep：連續刷的下一輪（同一個場地：外觀、站的位置、輪數接著算） */
 function runNode(k, keep) {
   const [q, r] = wXY(k),
@@ -206,7 +208,7 @@ function runNode(k, keep) {
 const EASY_N = 3,
   EASY_MUL = 0.5;
 const easyMul = k => (k === TRUNK_K[0] && wStar(S) === 1 && (S.world.r0 || 0) < EASY_N ? EASY_MUL : 0);
-/* 本次掛機（0.4.9，掛機卡）：從藏身處進場地開始累計，回藏身處歸零；xp／靈魂算每小時的進度；0.5.0：craft 打造幾件、rare 打出幾件稀有、mat 材料幾個 */
+/* 本次掛機（0.4.9，掛機卡）：從營地進場地開始累計，回營地歸零；xp／靈魂算每小時的進度；0.5.0：craft 打造幾件、rare 打出幾件稀有、mat 材料幾個 */
 let SES = null;
 const SES0 = () => ({
   t0: Date.now(),
@@ -236,7 +238,7 @@ function sesSample() {
 /* 這一輪結束（王倒下 2 秒後，或死了重來）：場上沒撿的照樣收進倉庫，同一個地點再刷一輪（0.5.1 起推進＝升瞭望台，打倒王不推進） */
 function roundEnd() {
   for (const d of G.drops.slice()) if (d.gold || (d.it && !d.nopick && !d.full)) pickup(d);
-  if (G.arena) return S.world.cur ? runNode(S.world.cur) : enterHideout();
+  if (G.arena) return S.world.cur ? runNode(S.world.cur) : enterCamp();
   const k = G.node;
   /* 裂口打完（0.4.2）：回到進裂口之前在刷的節點 */
   if (G.zod) return runNode(wBack(k));
@@ -358,7 +360,7 @@ const wBack = k =>
 const DEAD_MAX = 3;
 function deadAgain() {
   const k = G.node;
-  if (!k) return enterHideout();
+  if (!k) return enterCamp();
   S.world.dn = (S.world.dn || 0) + 1;
   if (SES) SES.deaths++;
   roundRec({ d: G.t, die: 1 });
@@ -639,12 +641,6 @@ function spawnBoss() {
   sfx('boss');
   hudWarn(b.D.n + '出現了！');
 }
-/* 回藏身處（地圖就結束了） */
-function goHome() {
-  if (G.scene !== 'map') return;
-  save();
-  enterHideout();
-}
 function spawnMob(D, x, y, pack, elite) {
   /* 召喚、分裂是在怪旁邊隨機偏移放的：落在牆裡就改放附近的地板（M2-30：生在外圍牆裡的怪打不到也出不來，AI 一直鎖定牠就卡住） */
   if (G.tiles && isWall(x, y)) {
@@ -827,6 +823,11 @@ function updPlayer(dt) {
   if (TOUCH.mv[0] || TOUCH.mv[1]) [mx, my] = TOUCH.mv;
   /* 掛機（0.3.0）：AI 在操作時，移動方向是 AI 給的 */
   if (AI.on) [mx, my] = AI.mv;
+  /* 營地（M2-12）：主角不走動；←／→、A／D 改成左右平移鏡頭 */
+  if (G.scene === 'camp') {
+    if (mx) campPan(mx * 700 * dt);
+    mx = my = 0;
+  }
   const ml = Math.hypot(mx, my);
   if (ml) (mx /= ml), (my /= ml);
   P.mv = ml ? 1 : 0;
@@ -857,7 +858,7 @@ function updPlayer(dt) {
           : Math.atan2(w.y - P.y, w.x - P.x);
   }
 }
-/* 移動＋碰撞：牆一格一格推出去，藏身處再推開擺設；分段走，快速衝刺也不會穿牆 */
+/* 移動＋碰撞：牆一格一格推出去，營地再推開擺設；分段走，快速衝刺也不會穿牆 */
 function moveBody(o, dx, dy) {
   /* 釘身（combat.js）：不能移動、不能被擊退 */
   if (o.ail && o.ail.pinT > G.t) return;
@@ -867,7 +868,7 @@ function moveBody(o, dx, dy) {
     o.y += dy / n;
     if (G.tiles) pushTiles(o);
   }
-  /* 藏身處的擺設 */
+  /* 營地的擺設 */
   for (const k of G.solid) {
     const ddx = o.x - k.x,
       ddy = o.y - k.y,
@@ -1031,7 +1032,7 @@ function hurtPlayer(d, src, el = 'phys', noEv) {
   }
   if (P.hp <= 0) die();
 }
-/* 死亡（PoE 式）：地圖失敗、回藏身處；0.3.0 起不扣經驗（企劃書 2.1 第 7 項），裝備不會掉 */
+/* 死亡（PoE 式）：地圖失敗、回營地；0.3.0 起不扣經驗（企劃書 2.1 第 7 項），裝備不會掉 */
 function die() {
   /* 已經倒下：持續傷害還在跑時不要再扣一次經驗、蓋掉死因 */
   if (G.state === 'dead') return;
@@ -1276,35 +1277,20 @@ function pickNearest() {
   if (best) pickup(best);
   return !!best;
 }
-/* 藏身處的東西：走到旁邊按 F 或點一下 */
-function nearProp() {
-  let best = null,
-    bd = 1e9;
-  for (const p of G.props) {
-    const d = dist(P, p);
-    if (d < p.r + 70 && d < bd) (bd = d), (best = p);
-  }
-  return best;
-}
+/* 營地的場景物件（M2-12）：點一下＝開跟功能選單／分頁同一個面板（鎖照 openPanel，M1-06）；練習區＝主角直接切進石圈、再點一次回站位 */
+const PROP_PANEL = { device: 'node', stash: 'stash', forge: 'forge', asc: 'asc', box: 'box' };
 function useProp(p) {
   if (!p) return false;
-  if (dist(P, p) > p.r + 90) return hudWarn('走近一點'), true;
-  if (p.k === 'device') openPanel('node');
-  else if (p.k === 'stash') openPanel('stash');
-  else if (p.k === 'forge') openPanel('craft');
-  else if (p.k === 'asc') openPanel('asc');
-  else if (p.k === 'box') openPanel('box');
-  else if (p.k === 'prac') hudWarn('走進石圈就能出招');
-  else hudWarn('市集之後開放');
+  if (p.k === 'prac') pracGo();
+  else if (PROP_PANEL[p.k]) fmenuOpen(PROP_PANEL[p.k]);
   return true;
 }
-function interact() {
-  if (G.scene === 'hide') {
-    if (G.portal && dist(P, G.portal) < 80) return enterMap(G.portal.to);
-    if (useProp(nearProp())) return;
-  }
-  pickNearest();
+/* 營地鏡頭左右平移（世界 px）：拖曳、←／→；放開 3 秒後慢慢回到主角（主迴圈） */
+function campPan(dx) {
+  G.pan = (G.pan || 0) + dx;
+  G.panT = G.t;
 }
+const interact = () => pickNearest();
 
 /* ---------- 怪物 AI ---------- */
 /* 怪物找路（0.2.7）：從玩家的格子做 BFS（每 0.25 秒一次），看不到玩家的怪沿著距離變小的格子走，不會卡在房間外 */
@@ -2173,7 +2159,7 @@ function frame(now) {
       d.t += dt;
       /* 追逐物品落地那一刻（M2-19.2a 0.35 秒）播 sig_chase；印環、擴散圈照程式畫 */
       if (d.chase && d.t >= 0.35 && d.t - dt < 0.35) fxs(sigFx('sig_chase'), d.x, d.y + 8, 64);
-      /* 0.3.3：地圖裡的掉落不看距離全部吸過來（自己丟的、放不下的不吸）；藏身處只吸 150 以內的金幣（0.5.2 過濾器刪了） */
+      /* 0.3.3：地圖裡的掉落不看距離全部吸過來（自己丟的、放不下的不吸）；營地只吸 150 以內的金幣（0.5.2 過濾器刪了） */
       const map = G.scene === 'map';
       if (
         (d.gold || d.show || d.chase || (map && d.it && !d.nopick && !d.full)) &&
@@ -2192,6 +2178,13 @@ function frame(now) {
     f = 1 - Math.exp(-rdt * 9);
   let tx = P.x + (w.x - P.x) * 0.12,
     ty = P.y + (w.y - P.y) * 0.12;
+  /* 營地（M2-12）：鏡頭＝主角＋拖曳的平移，只左右、卡在場景邊界；放開 3 秒後慢慢回到主角 */
+  if (G.scene === 'camp') {
+    const hw = Math.min(G.W, IW / ZOOM) / 2;
+    if (G.t - (G.panT || 0) > 3) G.pan *= Math.exp(-rdt * 3);
+    G.pan = clamp(G.pan, hw - P.x, G.W - hw - P.x);
+    (tx = P.x + G.pan), (ty = P.y);
+  }
   /* BASE-01.s：直立半版（上面只剩 321／253 px 的戰鬥區）時，鏡頭對準玩家與目前敵人的中點、玩家略偏上（約 42%），
      底下 40 px 留給生命／魔力條；夾住讓玩家整身留在安全框裡 */
   if (G.scene === 'map' && PORT() && sheetOn() && !(NAV.full && anyPanel())) {
