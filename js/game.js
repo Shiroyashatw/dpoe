@@ -1084,7 +1084,8 @@ function killMob(m) {
     zod: !!G.zod,
     ei: G.rs ? G.rs.nE : 0
   };
-  const mat = killMat(m, t, od);
+  const mat = killMat(m, t, od),
+    skip = [...(mat.rare || []).map(k => CUR[k].n), mat.chase && chaseName(mat.chase)];
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   /* M2-19.2：追逐物品落在地上（橘色雙光柱＋印環，停 CHASE_HOLD 秒再吸）；王印早就進碎片頁了，地上的只是演出 */
   if (mat.chase) dropAt(m.x, m.y, { chase: mat.chase });
@@ -1097,7 +1098,11 @@ function killMob(m) {
     ...(m.boss && m.D.xi ? xiDrop(m.D.xi) : []),
     ...(m.boss && m.D.army ? armyDrop(m.D.army, G.army && G.army.c, G.army ? G.army.res : 0) : []),
     ...(m.boss && !m.mini && (m.D.ts || od.zod) ? tsDrop(m.D.ts || 'zod', S, od.ilvl) : [])
-  ].forEach((n, i) => num(m.x, m.y - m.sz * 0.6 - i * 18, 0, 'mat', '+' + n));
+  ].forEach(s => {
+    /* 掉落動態（補遺 §5.2）：取代怪身上的材料世界字；稀有通貨與追逐物品在 rareShow／chaseShow 進 */
+    const [, n, nm] = s.match(/^(\d+) (.+)$/) || [0, 1, s];
+    if (!skip.includes(nm)) feed(nm, +n, null, feedIc(nm));
+  });
   /* 0.5.0：戰鬥不掉裝備（材料在 killMat）；護符照舊小機率掉 */
   if (Math.random() < (m.boss || m.elite ? 1 : 0.4))
     dropAt(m.x, m.y, { gold: Math.round(rnd(2, 6) * (1 + t * 0.5) * (m.boss ? 12 : m.elite ? 3 : 1)) });
@@ -1140,16 +1145,20 @@ function bossDown(m) {
     if (SES && G.t > 5) (S.spm = S.spm || {})[G.node] = Math.round(((SES.soul - (G.rs.s0 || 0)) / G.t) * 60);
   }
   if (SES) SES.rounds++;
-  /* 0.4.9 王倒下的卡：這一輪撿到的，留 30 秒（hud.js 的 idleHTML） */
-  G.loot = {
-    t: performance.now(),
-    items: G.rs.items.slice(),
-    gold: G.rs.gold,
-    sold: G.rs.sold,
-    log: G.rs.log.slice(),
-    node: G.node,
-    hint: !(S.hint || {}).boss
-  };
+  /* 0.4.9 王倒下的卡：這一輪撿到的，留 30 秒（hud.js 的 idleHTML）；觀戰中不出（補遺 §5.1），掉的照記在掉落紀錄 */
+  G.loot =
+    typeof IDLE !== 'undefined' && IDLE.v === 'watch'
+      ? null
+      : {
+          t: performance.now(),
+          boss: m.D.n,
+          items: G.rs.items.slice(),
+          gold: G.rs.gold,
+          sold: G.rs.sold,
+          log: G.rs.log.slice(),
+          node: G.node,
+          hint: !(S.hint || {}).boss
+        };
   (S.hint = S.hint || {}).boss = 1;
   if (ty === 'rift') hudWarn('十二尊神像，又亮了一尊');
   if (m.D.fd && FENG.elites.includes(m.D.fd) && fdHun(S) >= FENG.hun)
@@ -1168,6 +1177,10 @@ const RARE_HOLD = 1.5;
 const CHASE_HOLD = 2.4;
 let CHASE_T = -1e9,
   CHASE_UNTIL = 0;
+/* 掉落動態（hud.js 的 feedAdd；Node 檢查沒載 hud.js 就不做）；通貨名 → 圖示（材料清單只有字） */
+const feed = (...a) => typeof feedAdd === 'function' && feedAdd(...a);
+let FEED_IC = null;
+const feedIc = n => (FEED_IC = FEED_IC || Object.fromEntries(Object.values(CUR).map(c => [c.n, c.ic])))[n] || null;
 let LOGV = 0; /* 掉落紀錄改了就加一（HUD 重畫） */
 function dropLog(n, c, k) {
   const L = (S.log = S.log || []);
@@ -1181,6 +1194,7 @@ function dropLog(n, c, k) {
 let RARE_T = 0;
 function rareShow(txt, c, snd, log) {
   dropLog(log || txt, c);
+  feed(c === 'pack' ? STR_T.pack : txt, 1, c, c === 'pack' ? 'cur_soul' : feedIc(txt));
   const now = performance.now();
   if ((c === 'cur' || c === 'perf') && now - RARE_T < 1200) return;
   RARE_T = now;
@@ -1190,6 +1204,7 @@ function rareShow(txt, c, snd, log) {
 /* 追逐物品的演出（M2-19.2）：記進掉落紀錄（類別 chase，不算通貨數）、#chase 橫幅（hud.js 的 banner 轉給 chaseBn，音效也在那裡：第一件 chase、合併進來的 chaseBell） */
 function chaseShow(k) {
   dropLog(chaseBanner(k), 'chase', k);
+  feed(chaseName(k), 1, 'chase', k);
   banner(chaseBanner(k), 'chase', k);
   CHASE_T = performance.now();
 }
@@ -1246,12 +1261,12 @@ function pickup(d) {
     num(d.x, d.y - 20, d.gold, 'gold');
     sfx('coin');
   } else if (!invPut(S.inv, d.it)) {
-    if (d.it.frac || d.it.mem) return (d.full = 1), hudWarn('倉庫滿了：★ 與追憶也放不下，先整理倉庫');
+    if (d.it.frac || d.it.mem) return (d.full = 1), hudWarn('倉庫滿了：★ 與追憶也放不下，先整理倉庫', 1);
     const p = sellPrice(d.it);
     S.gold += p;
     num(d.x, d.y - 20, p, 'gold');
     sfx('coin');
-    if (!G.fullW) (G.fullW = 1), hudWarn(`倉庫滿了（${INV_CAP} 件）：新掉的普通裝直接換成金`);
+    if (!G.fullW) (G.fullW = 1), hudWarn(`倉庫滿了（${INV_CAP} 件）：新掉的普通裝直接換成金`, 1);
   } else {
     sfx('pick');
     bagDirty();

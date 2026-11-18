@@ -1297,10 +1297,6 @@ body:not(.touch) .tmore .tonly { display: none; }
 #banner.bn-pack { color: var(--gold); border-color: var(--gold); pointer-events: auto; cursor: pointer; }
 .mpg li[data-chs] { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { #banner { animation: none; } }
-#dlog { margin-top: 4px; pointer-events: none; }
-#dlog p { width: fit-content; margin: 2px 0 0; padding: 1px 6px; background: var(--plate-world); border-radius: 2px; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px #000, 0 0 2px #000; animation: lgfade 30s linear forwards; }
-@keyframes lgfade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { #dlog p { animation: none; } }
 .lg-chase { color: #ffb35c !important; } .lg-frac { color: #fff7d6 !important; } .lg-mem { color: #6fe3ff !important; } .lg-cur, .lg-perf { color: var(--gold) !important; }
 #plog { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; z-index: 12; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #plog > * { flex: none; }
@@ -2499,3 +2495,62 @@ body.touch .modesw { display: none; }
 .modesw button:focus-visible { outline: 2px solid var(--fr-c); outline-offset: 2px; }
 .modesw kbd { margin-left: 4px; padding: 1px 4px; background: var(--s0); color: var(--title); border-radius: 3px; font: 700 12px var(--font); }
 @media (prefers-reduced-motion: reduce) { body:not(.touch) #bar { transition: none !important; } }
+
+/* ================= 補遺 §5.1 掛機卡展開／收起／觀戰、§5.2 掉落動態（M2-33 addendum）：只用現有 token；
+   稀有度一般／完美借 --r0／--r3（介面規範的普通與第四階），不加新色碼。外觀照現行掛機卡，只加狀態、鈕、列 ================= */
+:root { --rar-normal: var(--r0); --rar-unique: var(--r3); }
+/* 直立：展開的卡永遠在半版位置（--idle-top），畫布在收起／展開動畫結束才改高（--sheet-top 跟著畫布） */
+body.touch.port #pidle { top: calc(var(--idle-top) + var(--hand-h)) !important; }
+body.touch.port #pidle.mini { top: auto !important; height: 44px !important; bottom: var(--nav-h) !important; padding: 0; overflow: hidden; background: var(--panel); box-shadow: inset 0 1px 0 var(--fr); }
+body:not(.touch.port) #pidle.mini { height: 44px; padding: 0; overflow: hidden; background: var(--panel); animation: none; }
+/* 收起時追逐橫幅放在收起列上面（不蓋收起列與分頁列；短暫壓到生命／魔力條） */
+body.touch.port.imini:not(.sheetfull) #chase { top: calc(var(--sheet-top) - 76px); }
+/* 「本次掛機」那一行右邊兩顆鈕：直立 44（行高 44）、桌機 32 */
+#pidle .itop { align-items: center; min-height: 44px; }
+#pidle .itop > span:first-child { flex: 1; min-width: 0; }
+body:not(.touch) #pidle .itop { min-height: 32px; }
+.ibts { display: flex; flex: none; margin-right: -8px; }
+.ibt { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; background: none; border: 0; border-radius: 2px; color: var(--tx-dim); cursor: pointer; }
+body.touch .ibt { width: 44px; height: 44px; }
+.ibt .ico { width: 24px; height: 24px; }
+body:not(.touch) .ibt:hover { color: var(--tx); background: rgba(200, 205, 215, 0.07); }
+.ibt:focus-visible, .imini:focus-visible, #wexit:focus-visible { outline: 2px solid var(--fr-hi); outline-offset: -2px; }
+/* 收起的那一條 */
+.imini { display: flex; align-items: center; gap: 8px; height: 100%; padding-left: 12px; cursor: pointer; font: 13px/1 var(--font); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.imini .ibts { margin-right: 0; }
+.iml { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--tx-dim); }
+.iml.w { color: var(--warn); }
+.imp { display: flex; align-items: center; gap: 6px; color: var(--tx); }
+.imp .pb { display: block; width: 48px; height: 6px; padding: 1px; background: var(--s0); box-shadow: inset 0 0 0 1px var(--fr-o); }
+.imp .pb i { display: block; height: 100%; background: var(--rar-chase); transform-origin: left; }
+.imp.full { color: var(--rar-chase); }
+@media (max-width: 379px) { .imp .pb { display: none; } }
+/* 觀戰：藏掛機卡（idleBar 收）、分頁列、技能列、模式切換、資訊列、狀態圖示、一般吐司；小地圖在 render.js 不畫。淡出 160、淡入 120 */
+:is(#pnav, #dnav, #bar, .modesw, #area, #run, #mech, .dmenu, #xp) { transition: opacity 120ms ease-out, visibility 0s; }
+body.watch :is(#pnav, #dnav, #bar, .modesw, #area, #run, #mech, .dmenu, #xp) { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 160ms ease-out, visibility 0s 160ms; }
+body.watch :is(#warn:not(.dng), #lvup) { visibility: hidden; }
+body.touch.port.watch { --hb: var(--sab, env(safe-area-inset-bottom)); }
+#wexit { position: fixed; z-index: 12; top: calc(12px + env(safe-area-inset-top)); right: 12px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; background: var(--plate-world); border: 1px solid var(--fr-hi); border-radius: 2px; color: var(--tx); opacity: 0.6; cursor: pointer; }
+body.touch #wexit { width: 44px; height: 44px; }
+body:not(.watch) #wexit { display: none; }
+#wexit:hover, #wexit:active, #wexit:focus-visible { opacity: 1; }
+#wexit svg { width: 24px; height: 24px; }
+/* 掉落動態：不能點；新的在最上面（JS 設 order） */
+#feed { position: fixed; z-index: 8; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; }
+body.touch #feed { align-items: flex-end; }
+.fd { display: flex; align-items: center; gap: 4px; max-width: 100%; height: 24px; margin: 0; padding: 0 6px; background: var(--plate-world); border-radius: 2px; font: 700 13px/1 var(--font); white-space: nowrap; color: var(--rar-normal); animation: fdin 120ms ease-out; transition: opacity 400ms; }
+body.touch .fd { height: 22px; }
+.fd .ic { flex: none; width: 16px; height: 16px; image-rendering: auto; }
+.fd b { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--good); }
+.fd span { overflow: hidden; text-overflow: ellipsis; }
+.fd-rare { color: var(--rar-rare); box-shadow: inset 2px 0 0 var(--rar-rare); }
+.fd-uniq { color: var(--rar-unique); box-shadow: inset 2px 0 0 var(--rar-unique); }
+.fd-chase { color: var(--rar-chase); box-shadow: inset 2px 0 0 var(--rar-chase); }
+.fd.out { opacity: 0; }
+.fd.cut { display: none; }
+@keyframes fdin { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes fdin0 { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .fd { animation-name: fdin0; }
+  :is(#pnav, #dnav, #bar, .modesw, #area, #run, #mech, .dmenu, #xp) { transition: none !important; }
+}
