@@ -1,0 +1,12 @@
+boss,scen,pattern,fires,firesPerMin,hitRatePct,hits,avgHitPctMaxLife,avgPerFirePctMaxLife,maxPerFirePctMaxLife,big
+hundun,BASE,slam,32,11.42,9.4,3,15.7,15.7,15.7,0
+hundun,BASE,nova,40,14.27,65.0,26,11.4,11.4,11.4,0
+hundun,BASE,line,3,1.07,33.3,1,14.3,14.3,14.3,0
+qiongqi,BASE,swipe,101,13.03,0.0,0,,,,0
+qiongqi,BASE,blink,98,12.64,0.0,0,,,,0
+taotie,BASE,swipe,152,13.84,2.6,4,0.0,0.0,0.0,0
+taotie,BASE,slam,148,13.47,8.1,12,17.8,17.8,27.7,0
+taotie,BASE,charge,17,1.55,0.0,0,,,,1
+taowu,BASE,slam,138,13.65,11.6,18,14.3,16.1,29.1,0
+taowu,BASE,charge,19,1.88,5.3,1,18.8,18.8,18.8,1
+taowu,BASE,swipe,126,12.46,0.0,0,,,,0
