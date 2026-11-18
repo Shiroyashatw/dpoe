@@ -1,0 +1,25 @@
+state {"scene":"map","node":"9,-3","arena":false,"bossOut":0,"prog":true,"tree":true}
+desk #prog [360,840,20,42] #dnav [848,1264,10,62] [["nav:char","V",848,914],["nav:forge","K",918,984],["nav:skill","G",988,1054],["nav:tree","P",1058,1124],["nav:craft","H",1128,1194],["nav:more","Z",1198,1264]]
+✅ (c) 桌機 #prog x 360–840、y 20–42 [360,840,20,42]
+✅ (c) 桌機分頁 x 848–1264 且不與 #prog 重疊 [848,1264]
+✅ (b) 鍵帽 V K G P H Z V K G P H Z
+✅ (b) V K G P H Z 各開對應分頁 {"v":"char","k":"forge","g":"skill","p":"tree","h":"craft","z":"more"}
+✅ (b) Tab 依序換分頁、繞回 char,forge,skill,tree,craft,more,char
+✅ (b) Shift+Tab 往回 more,craft
+✅ (b) I／B 開倉庫段（背包 view=bag） [[true,"bag","char"],[true,"bag","char"]]
+✅ (b) Esc：先關開著的分頁，沒面板時再按開設定 {"e0":[true,"char"],"e1":[false,"",false],"e2":[true,"more",["set"]]}
+✅ (b) 1／2 是藥、不開分頁 [[0,0],[2.150000000000003,2.5833000000000026,"",false]]
+✅ (d) 退回上一個地點 {"from":"9,-3","to":"3,-1"}
+✅ (d) 不出停機卡／死亡卡（#over 隱藏） false
+✅ (d) 一行提示、6000ms ["在焦土坡連死 3 次，退回裂谷斷崖：換裝、降星級或升營地再回去","6000ms"]
+✅ (d) SES.t0 不歸零、保底不歸零 {"d0":{"node":"9,-3","t0":1795004541693,"pts":210,"pct":42},"t0":1795004541693,"pts":210}
+WL [[14315,"在焦土坡連死 3 次，退回裂谷斷崖：換裝、降星級或升營地再回去",6000],[14333,"class","on"],[20325,"class",""]]
+✅ (d) 提示實際亮 ~6000ms 後消失（從第 3 次回到戰場起算） 5794 ms
+✅ (d) 手動開面板停、自動不停 {"manual":true,"manualDt":0,"auto":false,"why":{"ask":false,"st":"play","tree":false,"sk":false,"off":false},"autoDt":0.5}
+desk errs []
+state {"scene":"map","node":"9,-3","arena":false,"bossOut":0,"prog":true,"tree":true}
+❌ (c) 直立 #prog 8–290 × 86–102 [8,290,39,55]
+✅ 觸控不顯示鍵帽 0
+port errs []
+desk prog text ["王 0%",false]
+❌ 1
