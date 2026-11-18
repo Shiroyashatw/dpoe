@@ -5,10 +5,10 @@
 ## 1. 上限與批
 
 - **第 2 輪（R5b）上限 40 次**（mumi 2026-11-18 15:30 選 A 重跑）。第 1 輪 icons-3 的 40 次另記、不算在內；那 24 張全部不定稿，原因是平塗、沒有明暗，跟現有技能圖畫風對不起來。本輪從 0 起算，約 1 次／張。
-- 第 3 輪（R5c，icons-5）用第 2 輪剩下的 **28 次**。第 2 輪（icons-4）花 12 次，畫風過了，但參考圖的斜箭、羽毛構圖被抄進來，意思全錯，所以本輪**不用參考圖**。
-- 本輪種子＝§3.2 的 seed0 ＋ 2000；重跑再＋100。
-- **先試跑 3 張**：`sk_fire`、`sk_gasflask`、`sk_clarity`。3 張裡至少 2 張「畫風」過、而且目視意思對（照 §3.1 剪影家族），才往下跑其餘 21 張；沒過就停，PR 留言回報。
-- 次數：試跑 3＋其餘 21＝24，重跑只剩 4 次，給 `sk_deadeye` 與 #1–19 先用；不夠就列出來交美術總監手修。
+- 第 4 輪（R5d，icons-6）用剩下的 **25 次**。第 2 輪抄了參考圖構圖；第 3 輪（pixflux 無參考，3 次）不照位置詞畫、退回置中。本輪改用**上色導引圖 init** 鎖構圖。
+- 本輪種子＝§3.2 的 seed0 ＋ 3000；重跑再＋100。
+- **先試跑 3 張**：`sk_fire`、`sk_gasflask`、`sk_oilgrenade`（三張都是位置構圖）。至少 2 張「畫風」過、目視意思對、剪影 IoU 過，才往下跑其餘 20 張（`sk_clarity` 用 r5c 的 s6201 起手修，不再生成）；沒過就停，PR 留言回報。
+- 次數：試跑 3＋其餘 20（clarity 不跑）＝23，重跑 2 次給 `sk_deadeye` 與 #1–19。
 - 張數：22 列，其中「毒霧藥劑／油榴彈」拆成兩張，共 **23 張新圖**；另外重畫 **1 張舊圖** `sk_deadeye`（§3.3，UIUX設計師 14:48）。
 - 第 1 輪的次數分配（第 3 輪以上面兩條為準）：
   - 23 張新圖首跑 23 次。
@@ -40,7 +40,7 @@
 
 沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-prompts.md` §2），只改上限與工作表：
 
-- 用 `/create-image-pixflux`，**不給 style_image、不給 init**。要的寫 `description`，不要的全部寫 `negative_description`（端點不收就退回寫進 description 的 `no …`，留言寫明）。
+- 用 `/create-image-pixflux`，不給 style_image、不給 color_image；**給 init_image＝上色導引圖（§2.2），`init_image_strength` 150**。不要的寫 `negative_description`。prompt 的位置詞（左下、右上）保留，但 init 才是構圖依據。
 - `color_image`：不給。第 1 輪只給 4–6 個 token 色，圖就被壓成平塗。§3 的 palette 欄只當「主色方向」寫進 description，不鎖色。
 - 檔名 `sk_<id>-s<seed>.png`。旁邊存同名 `.json`，內容是 request 去掉 base64，加上 usage。
 - 輸出目錄 `art/icons/skill/<id>/`。原圖留在 `art/_raw/skill/`。
@@ -55,11 +55,14 @@
 
 - `<silhouette>` 填 §3 的 prompt 欄；`<not>` 填 not 欄；`<colours>` 用英文寫 palette 欄的色相（例如 deep blue and pale cyan）。
 - 拿掉了第 1 輪的 `flat front view`、`bold simple shapes readable as a black silhouette`、`no dithering`、`no gradient`、`low detail`，這些是平塗的主因，不准加回。
-- 不用剪影導引圖，也不用 init。
+- init 只用 §2.2 的上色導引圖。
 
-### 2.2 畫風參考圖
+### 2.2 上色導引圖
 
-本輪不用。第 2 輪用 `sk_markshot`／`sk_hasteaura` 當 32×32 單張 style_image，構圖會整個轉過來。畫風改由 §2.1 的 shading／detail 與 §5「畫風」檢查把關。
+- 雲端 Claude 照 §3.1 剪影家族逐張畫 32×32 導引圖，存 `art/_raw/skill/guide/<id>.png`，PR 附 4 倍拼圖。
+- 造型位置照剪影欄（不置中、留負空間）；填滿率 0.20–0.45。
+- 上色：每塊用該列 palette 主色，分 3 階（左上亮、中間、右下暗），外加 1 px `--scene-void` 描邊。不准單色實心，否則出圖又會平塗。
+- 不用參考圖（第 2 輪的教訓：構圖會被抄）。
 
 ## 3. 工作表
 
