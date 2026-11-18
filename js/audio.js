@@ -59,10 +59,36 @@ function tone(f0, f1, dur, vol, type = 'sine', delay = 0) {
   o.stop(t + dur);
 }
 let lastHit = 0;
+/* M2-12 §8：回饋類的聲音同時最多 2 個（戰鬥的打擊聲不算）；FB_END＝正在響的那幾個結束的時間 */
+const FB = new Set([
+  'lvup',
+  'coin',
+  'rare',
+  'orb',
+  'star',
+  'mem',
+  'chase',
+  'chaseBell',
+  'boss',
+  'die',
+  'thud',
+  'flip',
+  'flipRare'
+]);
+let FB_END = [];
+/* 震動（M2-12 §8，只有 Android 有 navigator.vibrate；iOS 什麼都不做）：設定「手機震動」關了就不震 */
+const buzz = ms => {
+  if (typeof S !== 'undefined' && S && S.vib !== 0 && navigator.vibrate) navigator.vibrate(ms);
+};
 function sfx(k) {
   if (muted() || !AC) return; /* 還沒有手勢：略過 */
   try {
     const now = ac().currentTime;
+    if (FB.has(k)) {
+      FB_END = FB_END.filter(t => t > now);
+      if (FB_END.length >= 2) return;
+      FB_END.push(now + 0.6);
+    }
     if ((k === 'hit' || k === 'crit') && now - lastHit < 0.03) return;
     if (k === 'hit' || k === 'crit') lastHit = now;
     ({
@@ -112,6 +138,8 @@ function sfx(k) {
       lvup: () => [523, 659, 784, 1046].forEach((f, i) => tone(f, f, 0.3, 0.09, 'triangle', i * 0.08)),
       slam: () => (tone(90, 40, 0.3, 0.35, 'sine'), nz(0.25, 400, 80, 0.3, 'lowpass')),
       die: () => tone(300, 60, 0.8, 0.25, 'sawtooth'),
+      /* 資源不夠（M2-12 §8）：悶木聲 */
+      thud: () => (tone(140, 90, 0.12, 0.2, 'sine'), nz(0.06, 500, 200, 0.12, 'lowpass')),
       cast: () => (tone(300, 900, 0.18, 0.08, 'sine'), nz(0.15, 1200, 3000, 0.05)),
       portal: () => [330, 440, 660].forEach((f, i) => tone(f, f * 1.5, 0.4, 0.07, 'sine', i * 0.06)),
       block: () => (tone(900, 700, 0.08, 0.12, 'square'), nz(0.06, 3000, 1500, 0.1, 'highpass')),

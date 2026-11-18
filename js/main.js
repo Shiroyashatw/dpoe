@@ -166,6 +166,10 @@ function resize() {
   DPR = Math.min(2, devicePixelRatio || 1);
   IW = innerWidth;
   IH = innerHeight;
+  /* M2-12：量安全區（CSS 的 --sat／--sab 可蓋過 env()，dbg.js 的 safeArea 用） */
+  const sp = getComputedStyle($('safep'));
+  SAFE.t = parseFloat(sp.paddingTop) || 0;
+  SAFE.b = parseFloat(sp.paddingBottom) || 0;
   /* 手機：畫面高度看得到差不多的範圍；背包格子照寬度（夠寬就兩個面板並排） */
   NARROW = IW < 800;
   /* 直立：左右看得到約 10 格（480 px）；橫向手機：照高度 */
@@ -212,6 +216,7 @@ function useSave(r) {
   S = migrate(r);
   enterHideout();
   applyOrient();
+  fsApply();
   save();
   proBoot();
 }
@@ -289,6 +294,7 @@ function start() {
     offAt = S.offAt || S.savedAt || Date.now();
   ST = stats();
   hudInit();
+  fsApply();
   enterHideout();
   inputInit();
   treeInit();
@@ -313,16 +319,18 @@ function start() {
     hudWarn(`測試入口：${TEST}（不存進正式存檔、不連雲端）`);
   } else {
     if (resume) runNode(S.world.cur);
-    if (o || away >= OFF_MIN) offShow(o, g, away);
+    offBack(o, g, away);
   }
   /* 分頁切走、手機鎖螢幕：記時間，回來時結算（主迴圈停著，產生器也要補） */
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) return (HIDE_AT = Date.now()), save();
+    /* M2-12 §11-2：藏起來時聲音也停（AudioContext suspend），回來由 audioWake 恢復 */
+    if (document.hidden) return (HIDE_AT = Date.now()), AC && AC.suspend(), save();
+    if (AC && AC.state === 'suspended') AC.resume();
     if (HIDE_AT) {
       const t = Date.now() - HIDE_AT,
         o2 = G.scene === 'map' ? offSettle(t) : null,
         g2 = offGen(t);
-      if (o2 || t >= OFF_MIN) offShow(o2, g2, t);
+      offBack(o2, g2, t);
     }
     HIDE_AT = 0;
   });

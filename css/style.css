@@ -2498,3 +2498,139 @@ body.touch .modesw { display: none; }
 .modesw button:focus-visible { outline: 2px solid var(--fr-c); outline-offset: 2px; }
 .modesw kbd { margin-left: 4px; padding: 1px 4px; background: var(--s0); color: var(--title); border-radius: 3px; font: 700 12px var(--font); }
 @media (prefers-reduced-motion: reduce) { body:not(.touch) #bar { transition: none !important; } }
+
+/* ================= M2-12 第一段：刷圖外框（掛機條、營地升級抽屜、6 格分頁、王橫幅、倒下字板、離線結算） =================
+   顏色只用既有 token；新骨架的字吃 --tscale（設定的文字大小 100／115／130%）。直立的 y 由 JS（SAFE、cvH）與下面的 --nav-h／--idle-h 排 */
+:root { --tscale: 1; --f14: calc(14px * var(--tscale)); --f16: calc(16px * var(--tscale)); --f20: calc(20px * var(--tscale)); --f22: calc(22px * var(--tscale)); }
+#safep { position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; pointer-events: none; padding: var(--sat, env(safe-area-inset-top)) 0 var(--sab, env(safe-area-inset-bottom)); }
+body.touch.port { --st: var(--sat, env(safe-area-inset-top)); --sb: var(--sab, env(safe-area-inset-bottom)); --nav-h: calc(56px + var(--sb)); --hb: calc(var(--nav-h) + var(--idle-h, 0px)); }
+body.touch.port.sheet { --hb: calc(100dvh - var(--sheet-top)); }
+body.touch.port .panel { bottom: calc(var(--nav-h) + var(--idle-h, 0px)) !important; }
+body.touch.port .top { top: calc(var(--st) + 5px); }
+body.touch.port .bottom { bottom: calc(var(--hb) + 82px); }
+body.touch.port #bar { bottom: calc(var(--hb) + 8px); }
+
+/* 6 格分頁：直立 754–810 每格 65×56（圖示 24＋字 14）；桌機頂列右 66×52＋鍵帽 */
+#pnav button { gap: 2px; font: 700 var(--f14) var(--font); }
+#pnav .ico { width: 24px; height: 24px; }
+#dnav button { font-size: var(--f14); }
+#dnav { right: 16px; }
+#dnav kbd { position: absolute; right: 3px; bottom: 2px; font: 600 10px var(--font); color: var(--tx-dim); background: none; border: 0; padding: 0; }
+
+/* 掛機條：直立 390×44 貼在分頁上面（y 710–754），點開 200 高蓋在戰場上；桌機左下 380×40，展開 380×200 */
+#pidle { position: fixed; z-index: 10; display: flex; flex-direction: row; gap: 0; padding: 0; align-items: stretch; overflow: hidden; background: var(--s1); border-top: 1px solid var(--fr); color: var(--tx); font: 700 var(--f14) var(--font); pointer-events: auto; transition: height 200ms ease-out; }
+#pidle[hidden] { display: none; }
+body.touch.port #pidle { left: 0; right: 0; bottom: var(--nav-h); height: 44px; padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left); }
+body.touch.port #pidle.open { height: 200px; }
+body:not(.touch.port) #pidle { left: 16px; right: auto; top: auto; bottom: 16px; width: 380px; height: 40px; max-height: none; padding: 0; border: 1px solid var(--fr); border-radius: 3px; box-shadow: none; animation: none; z-index: 5; }
+body:not(.touch.port) #pidle.open { height: 200px; }
+@media (prefers-reduced-motion: reduce) { #pidle { transition: opacity 150ms; } }
+#pidle .ib { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0 0 0 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+#pidle .ib:active, #pidle .ix:active { background: var(--sel); color: var(--sel-ink); }
+#pidle .ib > b { flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#pidle .ipb { display: flex; flex: none; align-items: center; gap: 6px; white-space: nowrap; font-weight: 500; font-variant-numeric: tabular-nums; }
+#pidle .ipb .pb { display: block; width: 48px; height: 6px; background: var(--s0); }
+#pidle .ipb .pb i { display: block; height: 100%; background: var(--fr-hi); transform-origin: left; }
+#pidle .ipb.full { color: var(--rar-chase); }
+#pidle .ipb.full .pb i { background: var(--rar-chase); }
+#pidle .ilast { display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 120px; padding-left: 4px; border-left: 2px solid currentColor; font-weight: 500; }
+#pidle .ilast span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pidle .ix { flex: none; align-self: flex-start; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; background: none; border: 0; color: var(--tx-dim); }
+body:not(.touch.port) #pidle .ix { height: 40px; }
+#pidle .ix .ico { width: 18px; height: 18px; transform: rotate(180deg); }
+#pidle .ix[aria-expanded='true'] .ico { transform: none; }
+#pidle .iex { flex: 1; min-width: 0; display: flex; flex-direction: column; padding-left: 12px; }
+#pidle .ir { display: flex; align-items: center; gap: 12px; min-height: 40px; min-width: 0; }
+#pidle .ir > span { flex: 1; min-width: 0; font-weight: 500; color: var(--tx-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pidle .il3 { gap: 8px; }
+#pidle .il3 .ilast { max-width: none; flex: 0 1 auto; }
+#pidle .chs { min-height: 40px; margin: 0 12px 0 0; }
+#pidle .ir .goal { padding: 0 12px 0 0; }
+@media (max-width: 380px) { #pidle .ipb .pb { display: none; } }
+
+/* 下一個目標條（抽屜、掛機條展開、離線結算共用）：字 14＋進度條 4 */
+.goal { display: flex; flex-direction: column; justify-content: center; gap: 4px; width: 100%; min-height: 36px; padding: 4px 12px; background: none; border: 0; color: var(--tx); font: 500 var(--f14) var(--font); text-align: left; cursor: pointer; }
+.goal span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goal .gp { display: block; height: 4px; background: var(--s0); }
+.goal .gp i, #pcamp .cdp i { display: block; height: 100%; background: var(--fr-hi); transform-origin: left; transform: scaleX(0); }
+.goal .gp i.full, #pcamp .cdp i.full { background: var(--good); }
+.goal:active { background: var(--sel); color: var(--sel-ink); }
+.goal.hit { animation: ghit 240ms ease-out; }
+@keyframes ghit { 50% { background: var(--sel); } }
+
+/* 營地升級抽屜：直立 330–710（面板區）；桌機右側 420×536（x 844–1264、y 76–612），不用捲 */
+#pcamp { display: flex; flex-direction: column; overscroll-behavior: contain; }
+body:not(.touch.port) #pcamp { left: auto; right: 16px; top: 76px; width: 420px; height: 536px; max-height: calc(100vh - 92px); }
+body.touch:not(.port) #pcamp { right: calc(6px + env(safe-area-inset-right)); top: 6px; width: min(420px, 60vw); height: auto; max-height: calc(100dvh - 12px); }
+body.touch.port #pcamp { padding: 0; top: var(--sheet-top) !important; }
+body.touch.port #pcamp > .ph:first-child { margin: 0; }
+#pcamp > .ph { display: flex; align-items: center; gap: 8px; min-height: 44px; padding-top: 0; padding-bottom: 0; }
+#pcamp > .ph b { flex: 1; font: 700 var(--f16) var(--font); }
+#pcamp .cdlook { min-height: 44px; padding: 0 12px; font-size: var(--f14); }
+#pcamp .x { width: 44px; height: 44px; }
+#pcamp .cdg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 4px 4px 4px; }
+#pcamp .cdc { position: relative; display: flex; align-items: center; min-height: 52px; overflow: hidden; background: var(--panel); border: 1px solid var(--fr); border-radius: 3px; }
+body:not(.touch.port) #pcamp .cdc { min-height: 64px; }
+#pcamp .cdb { flex: 1; min-width: 0; height: 100%; min-height: 48px; display: flex; align-items: center; gap: 6px; padding: 0 4px 4px 6px; background: none; border: 0; color: var(--tx); font: 700 var(--f14)/1.2 var(--font); text-align: left; cursor: pointer; }
+#pcamp .cdb .ic { flex: none; width: 20px; height: 20px; }
+#pcamp .cdb b { font: inherit; }
+#pcamp .cdb .lv { display: inline-block; white-space: nowrap; }
+#pcamp .stamp:not(.one) { flex: none; width: 44px; height: 44px; margin: 0 4px 4px 0; padding: 0; border-radius: 50%; background: none; border: 2px solid var(--act); color: var(--act); font: 700 18px var(--font); cursor: pointer; }
+#pcamp .stamp.sug { background: var(--act); color: var(--on-act); }
+#pcamp .stamp.off { border-color: var(--tx-off); color: var(--tx-off); }
+#pcamp .stamp:active { background: var(--sel); color: var(--sel-ink); transition: none; }
+#pcamp .cdp { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--s0); }
+#pcamp .cdc.up { animation: cdup 300ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+#pcamp .cdc.up .lv { animation: cdflip 100ms ease-out; }
+@keyframes cdup { 0% { transform: scale(1); box-shadow: inset 0 0 0 2px var(--act); } 50% { transform: scale(1.03); box-shadow: inset 0 0 0 2px var(--act); } 100% { transform: scale(1); } }
+@keyframes cdflip { from { transform: rotateX(90deg); } }
+#pcamp .cd1 { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px 12px; }
+#pcamp .cdlv { margin: 0; font: 700 var(--f22) var(--font); color: var(--title); }
+#pcamp .cdd { margin: 0; font-size: var(--f16); }
+#pcamp .cdcost { list-style: none; margin: 0; padding: 0; }
+#pcamp .cdcost li { display: flex; gap: 8px; align-items: center; min-height: 28px; font-size: var(--f14); }
+#pcamp .cdcost li span { flex: 1; }
+#pcamp .cdms { margin: 0; font-size: var(--f14); color: var(--tx-dim); }
+#pcamp .stamp.one { width: 100%; min-height: 54px; margin-top: 4px; font-size: var(--f16); }
+@media (prefers-reduced-motion: reduce) { #pcamp .cdc.up, #pcamp .cdc.up .lv, .goal.hit { animation: none; } }
+
+/* 王出現：44 高橫幅「{王名}現身」停 800 ms，再 240 ms（ease-out）縮成王血條；直立 x 12–378 → 12–270，桌機在血條下面 y 76–120 → 16–56 */
+#bossbar .bsh { display: none; }
+#bossbar.intro .bsh { display: inline; animation: bsh 1040ms both; }
+#bossbar.intro { animation: bossin 1040ms both; }
+body.touch.port #bossbar.intro { animation-name: bossinp; }
+#bossbar b, #bossbar .bsh { font-style: normal; }
+@keyframes bsh { 0%, 76.92% { opacity: 1; } 77%, 100% { opacity: 0; font-size: 0; } }
+@keyframes bossin { 0%, 76.92% { transform: translateY(60px); min-height: 44px; background: var(--plate-world); animation-timing-function: ease-out; } }
+@keyframes bossinp { 0%, 76.92% { width: calc(100vw - 24px); min-height: 44px; background: var(--plate-world); animation-timing-function: ease-out; } }
+@media (prefers-reduced-motion: reduce) { #bossbar.intro, #bossbar.intro .bsh { animation-duration: 1ms; } }
+
+/* 倒下：300 ms 去色＋中下方 44 高字板（減少動態時只有字板）；連死 3 次停下時字板帶「繼續刷」184×56 */
+body.downed #cv { filter: grayscale(1); transition: filter 300ms ease-in; }
+@media (prefers-reduced-motion: reduce) { body.downed #cv { filter: none; } }
+#dplate { position: fixed; z-index: 11; left: 50%; transform: translateX(-50%); bottom: calc(var(--hb, 0px) + 140px); display: flex; align-items: center; gap: 12px; min-height: 44px; max-width: calc(100vw - 24px); padding: 0 16px; background: var(--plate-world); border: 1px solid var(--fr); border-radius: 3px; color: var(--tx); font: 700 var(--f14) var(--font); white-space: nowrap; pointer-events: auto; }
+body:not(.touch.port) #dplate { bottom: 120px; font-size: var(--f16); }
+#dplate[hidden] { display: none; }
+#dplate.halt { white-space: normal; padding-right: 8px; }
+#dplate .btn { flex: none; width: 184px; min-height: 56px; }
+
+/* 離線結算：直立蓋在 420–754（掛機條藏起來）；桌機 480×420 在戰場中間；主鈕「收下・繼續刷」在右 */
+#poff { position: fixed; z-index: 14; display: flex; flex-direction: column; gap: 8px; padding: 16px; background: var(--s1); border-top: 1px solid var(--fr-hi); color: var(--tx); font: 500 var(--f14) var(--font); pointer-events: auto; animation: sheetin 200ms ease-out; }
+#poff[hidden] { display: none; }
+body.touch.port #poff { left: 0; right: 0; bottom: var(--nav-h); height: min(334px, calc(100dvh - var(--nav-h) - 48px)); overflow-y: auto; }
+body:not(.touch.port) #poff { left: 50%; top: 50%; width: 480px; max-width: calc(100vw - 24px); height: 420px; max-height: calc(100vh - 24px); transform: translate(-50%, -50%); border: 1px solid var(--fr); border-radius: 3px; animation: pop 200ms ease-out; }
+body.offon #pidle { visibility: hidden; }
+#poff h2 { margin: 0; font: 700 var(--f20) var(--font); color: var(--title); }
+#poff .offc { margin: 0; font-variant-numeric: tabular-nums; }
+#poff .offl { list-style: none; margin: 0; padding: 0; }
+#poff .offl li { display: flex; align-items: center; gap: 8px; min-height: 34px; border-left: 2px solid currentColor; padding-left: 8px; animation: offrow 240ms ease-out both; }
+#poff .offl li:nth-child(2) { animation-delay: 120ms; }
+#poff .offl li:nth-child(3) { animation-delay: 240ms; }
+#poff .offl li.ch { animation-delay: 600ms; }
+#poff.done .offl li { animation: none; }
+@keyframes offrow { from { opacity: 0; transform: translateY(6px); } }
+#poff .offn { margin: 0; color: var(--tx-dim); }
+#poff .offb { display: flex; gap: 8px; margin-top: auto; }
+#poff .offb .btn { flex: 1; min-height: 56px; font-size: var(--f14); }
+body:not(.touch.port) #poff .offb .btn { min-height: 48px; }
+@media (prefers-reduced-motion: reduce) { #poff, #poff .offl li { animation: none; } }

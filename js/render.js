@@ -990,10 +990,14 @@ function drawFx() {
 }
 function drawMinimap(W) {
   /* 手機：小一點，放在右上選單下面 */
-  const mw = TOUCH.on ? Math.min(PORT() ? 62 : 104, (68 * G.W) / G.H) / ZOOM : 190,
+  /* M2-12 §1：直立 88×88 在右上（y 52–140、x 290–378）；桌機 160×160 在右下，營地升級開著時不畫 */
+  if (!TOUCH.on && PANEL.camp) return;
+  const land = TOUCH.on && !PORT(),
+    box = PORT() ? 88 : 160,
+    mw = land ? Math.min(104, (68 * G.W) / G.H) / ZOOM : Math.min(box, (box * G.W) / G.H),
     mh = (mw * G.H) / G.W,
-    x0 = W - mw - (TOUCH.on ? 10 / ZOOM : 16),
-    y0 = TOUCH.on ? 60 / ZOOM : cvH() - mh - 16 /* 桌機在右下（M2-38，M2-37.5）：右欄最低 562，不重疊 */,
+    x0 = W - mw - (land ? 10 / ZOOM : PORT() ? 12 : 16),
+    y0 = land ? 60 / ZOOM : PORT() ? 5 : cvH() - mh - 16,
     s = mw / G.W;
   CX.fillStyle = 'rgba(8,6,5,0.78)';
   CX.fillRect(x0, y0, mw, mh);
