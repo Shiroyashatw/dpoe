@@ -331,6 +331,7 @@ body.port .sys section { border-left: 0; border-right: 0; }
   --warn: #b7ad66;
   --hp: #823630;
   --mp: #304e8b;
+  --tx-strong: #f7f0e5; /* M2-36 定值；條上字對 --hp／--mp 的 7.36／7.17 是用這個值算的 */
   --plate-world-1: rgb(11, 8, 6); /* --plate-world 的 α 1.0 */
 }
 /* 稀有度記號 */

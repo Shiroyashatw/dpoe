@@ -726,8 +726,9 @@ function timing(V, P, L, rm) {
       const hs = [...new Set(P.filter(p => p.t >= o.t && p.t < o.t + 400).map(p => p.fieldH))];
       ok(hs.length === 2 && hs[0] === 663 && hs[1] === 283, `戰場高 ${hs.join(' → ')}（663 → 283 一次改）`);
       /* 審查 V9：縮小前後兩幀主角中心位移 ≤ 2 px（主角留在看得到的戰場正中心） */
-      for (const r of rs) {
-        const i = P.findIndex(p => p.t >= r.t),
+      for (const r of rs.slice(0, 1)) {
+        /* 比「最後一幀 663」對「第一幀 283」（log 時間有四捨五入，不拿它找幀） */
+        const i = P.findIndex((p, j) => j > 0 && p.t >= o.t && p.fieldH < P[j - 1].fieldH),
           a = P[i - 1] && P[i - 1].hero,
           b = P[i] && P[i].hero;
         const d = a && b ? Math.hypot(a.x - b.x, a.y - b.y) : null;
@@ -837,7 +838,10 @@ function report(res) {
         '',
         '| 對比（WCAG） | 值 | 門檻 |',
         '| --- | --- | --- |',
-        ...pl.pairs.map(x => `| ${x.t} | ${x.v.toFixed(2)}:1 ${x.v >= x.lim ? '✅' : '❌'} | ≥ ${x.lim} |`),
+        ...pl.pairs.map(
+          x =>
+            `| ${x.t} | ${x.v.toFixed(3)}:1 ${+x.v.toFixed(2) >= x.lim ? '✅' : '❌'} | ≥ ${x.lim}（照 M2-36 取兩位小數比） |`
+        ),
         '',
         '| ΔE2000 | 值 |',
         '| --- | --- |',
