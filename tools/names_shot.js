@@ -48,6 +48,8 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     if (MOB) await p.evaluate(() => navGo('craft'));
     else await p.evaluate(() => openPanel('craft'));
   };
+  /* 行動尺寸用觸控點（M2-30），桌機用滑鼠 */
+  const hit = sel => (MOB ? p.tap(sel) : p.click(sel));
   const txt = sel => p.evaluate(s => [...document.querySelectorAll(s)].map(e => e.textContent).join(' | '), sel);
   const res = {};
   /* 1. 營地總覽：資源條、鍛造台卡的還差 */
@@ -66,12 +68,12 @@ const URL = process.argv[2] || 'http://localhost:8000/',
     hudPanels();
   });
   await p.waitForTimeout(300);
-  await p.click('#pcraft [data-fg=go]');
+  await hit('#pcraft [data-fg=go]');
   await p.waitForTimeout(1200);
   await p.screenshot({ path: `${OUT}/${VW}x${VH}_3_salvage.png` });
   res.salv = await txt('#preveal');
   /* 4. 商會：倉房 Lv4 */
-  await p.click('#preveal [data-a=rvsalv]').catch(() => {});
+  await hit('#preveal [data-a=rvsalv]').catch(() => {});
   await p.waitForTimeout(800);
   await open('camp', "S.camp.store = 4; CAMPUI.open = 'store'; S.mat.mats['iron:1'] = 200");
   await p.waitForTimeout(600);

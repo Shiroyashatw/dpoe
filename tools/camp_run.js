@@ -17,6 +17,7 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   CSV = process.argv.slice(6).find(a => /\.csv$/i.test(a)),
   OUT = process.argv.slice(6).find(a => !/\.csv$/i.test(a)) || path.join(__dirname, '..', 'evidence', 'm2-01'),
   MOB = VW < 900,
+  ZERO = 3 /* M2-30：連續這麼多分鐘 0 靈魂（玩家或無人任一份）就整場失敗、結束碼 1 */,
   STALL = 30; /* 這麼多秒畫面上什麼都沒變（場景、輪數、首領進度、活著的怪、靈魂，怪的總生命也沒往下掉）＝AI 卡住，整段算掛機停住 */
 
 /* ---------- 指標算法（純函式，--self 檢查） ---------- */
@@ -321,6 +322,13 @@ function ROW(min) {
     })(),
     dbg: __M.dbg()
   };
+  /* M2-30：這一分鐘打怪拿到的靈魂（SES.soul 是本次掛機累計，花掉不扣；SES 歸零就從 0 算）與首領進度 */
+  const e = SES ? SES.soul : 0;
+  r.gain = Math.round(e >= (__M.e0 || 0) ? e - (__M.e0 || 0) : e);
+  __M.e0 = e;
+  const B = G.mobs.find(m => m.boss && !m.mini && m.hp > 0);
+  /* 王出來後首領進度看王剩幾 % 血 */
+  r.prog = `${r.rounds} 輪 ${Math.round(G.prog)}／${G.need}${G.bossOut ? ` 王 ${B ? Math.round((B.hp / B.mhp) * 100) : 0}%` : ''}`;
   const t = min * 60;
   /* AI 卡住的另外兩種（第一種是 MON 的畫面不動）：0 靈魂／分（開刷 5 分鐘後）、10 分鐘沒打完一輪 */
   if (min >= 5 && r.spm === 0) __M.flag.push({ t, who: __M.who, why: '0 靈魂／分', dbg: r.dbg });
@@ -529,7 +537,8 @@ else
     const rows = [],
       nrows = [],
       accs = [],
-      evs = [];
+      evs = [],
+      zero = [];
     /* 頁面卡住（例如程式無窮迴圈）：一分鐘的遊戲時間 10 分鐘真實時間還跑不完就停，不當成正常結果 */
     const dog = (pr, min) =>
       Promise.race([
@@ -546,9 +555,20 @@ else
       const [r, n] = await Promise.all([P.pg.evaluate(ROW, min), N.pg.evaluate(ROW, min)]),
         ev = await P.pg.evaluate(m => __M.ev.filter(e => e[0] > (m - 1) * 60 && e[2]).map(e => e[1]), min);
       rows.push(r), nrows.push(n);
+      for (const [x, L, who] of [
+        [r, rows, '玩家'],
+        [n, nrows, '無人']
+      ])
+        if (
+          L.length >= ZERO &&
+          L.slice(-ZERO).every(o => !o.gain) &&
+          !zero.some(z => z.who === who && z.end === min - 1)
+        )
+          zero.push({ who, a: min - ZERO + 1, end: min, dbg: x.dbg });
+        else if (!x.gain) zero.forEach(z => z.who === who && z.end === min - 1 && (z.end = min));
       if (CSV) accs.push(await P.pg.evaluate(ACCROW)), evs.push(ev);
       console.log(
-        `${String(min).padStart(3)} 分 | ${r.node} Lv${r.lv} | 靈魂 ${r.soul}（${r.spm}/分）| 木 ${r.wood} | ${r.iron} | ${r.gen} | 鍛瞭斥民祭倉 ${r.camp} | 輪 ${r.rounds} 死 ${r.deaths} | ${r.dbg} ‖ 無人：${n.dbg} 輪 ${n.rounds}${ev.length ? '\n      ' + ev.join('\n      ') : ''}`
+        `${String(min).padStart(3)} 分 | ${r.node} Lv${r.lv} | 靈魂 ${r.soul}（本分 +${r.gain}，${r.spm}/分）| 木 ${r.wood} | ${r.iron} | ${r.gen} | 鍛瞭斥民祭倉 ${r.camp} | 輪 ${r.rounds} 死 ${r.deaths} | ${r.dbg} ‖ 無人：${n.dbg} 本分 +${n.gain} 輪 ${n.rounds}${ev.length ? '\n      ' + ev.join('\n      ') : ''}`
       );
       if (min === 30 || min === MIN)
         await P.pg.screenshot({ path: path.join(OUT, `${VW}x${VH}_${MIN}m_第${min}分.png`) }).catch(() => {});
@@ -609,11 +629,26 @@ else
       )
     );
     if (CSV) csvOut(rows, accs, evs);
+    /* M2-30 每分鐘一列：靈魂收入與首領進度（玩家、無人） */
+    fs.writeFileSync(
+      base + '_每分鐘.csv',
+      ['分,玩家地點,玩家靈魂收入,玩家首領進度,無人地點,無人靈魂收入,無人首領進度']
+        .concat(
+          rows.map((r, i) => [r.min, r.node, r.gain, r.prog, nrows[i].node, nrows[i].gain, nrows[i].prog].join(','))
+        )
+        .join('\n') + '\n'
+    );
     console.log('\n' + md);
     console.log(
       `首輪完成：${R.r1 ? mmss(R.r1) : '沒有打完'}；頁面錯誤 ${P.errs.length + N.errs.length}；寫到 ${base}.md／.json`
     );
     if (P.errs.length + N.errs.length) console.log([...P.errs, ...N.errs].slice(0, 5).join('\n'));
+    for (const z of zero)
+      console.log(`❌ ${z.who}連續 ${z.end - z.a + 1} 分鐘 0 靈魂（第 ${z.a}～${z.end} 分）：${z.dbg}`);
+    console.log(
+      zero.length ? `❌ 有 ${zero.length} 段連續 ${ZERO} 分鐘以上 0 產出` : `✅ 沒有連續 ${ZERO} 分鐘 0 產出`
+    );
+    if (zero.length) process.exitCode = 1;
     await b.close();
   })().catch(e => {
     console.error(e);

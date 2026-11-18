@@ -10,6 +10,16 @@ const W = +process.argv[2] || 844,
   tag = W + 'x' + H,
   shot = n => path.join(os.tmpdir(), `touch_${tag}_${n}.png`);
 let fail = 0;
+/* 等版面穩定再量（面板滑進來、機器忙時畫格慢）：每次先等 100 毫秒再等兩個畫格，連三次結果一樣（最多約 4 秒）才回傳 */
+const settle = async (p, fn, arg) => {
+  const L = [];
+  for (let i = 0; i < 20 && !(L.length >= 3 && L.slice(-3).every(x => x === L[L.length - 1])); i++) {
+    await p.waitForTimeout(100);
+    await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+    L.push(JSON.stringify(await p.evaluate(fn, arg)));
+  }
+  return JSON.parse(L[L.length - 1]);
+};
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await b.newContext({
@@ -110,7 +120,10 @@ let fail = 0;
     PORTM ? '畫面上按住不動＝連續普攻最近的怪' : '普攻按住會自動打最近的怪',
     await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m))
   );
-  const face = await p.evaluate(() => Math.cos(P.face - Math.atan2(_m.y - P.y, _m.x - P.x)));
+  /* 出手中朝向鎖住、下一下才轉：等朝向到位（最多 2 秒、每 50 毫秒看）再判定，不在出手的半途量 */
+  const faceOf = () => Math.cos(P.face - Math.atan2(_m.y - P.y, _m.x - P.x));
+  await p.waitForFunction(`(${faceOf})() > 0.7`, null, { timeout: 2000, polling: 50 }).catch(() => {});
+  const face = await p.evaluate(faceOf);
   ok('朝向怪物', face > 0.7, face.toFixed(2));
   await touch('touchEnd', []);
   /* 技能鍵拖曳：畫瞄準線，拖回按鈕取消 */
@@ -145,16 +158,27 @@ let fail = 0;
   ok('點一下技能＝施放', await p.evaluate(() => P.mp < _mp || P.cds.s1 > 0 || !!P.act));
   /* 翻滾：橫向按翻滾鍵；直立快速一撥 */
   if (PORTM) {
-    await p.evaluate(() => {
-      P.cds.roll = 0;
-      P.act = null;
-      P.roll = null;
-    });
-    await touch('touchStart', [[W / 2, H * 0.45]]);
-    await touch('touchMove', [[W / 2 + 30, H * 0.45]]);
-    await touch('touchMove', [[W / 2 + 80, H * 0.45]]);
-    await touch('touchEnd', []);
-    ok('快速一撥＝翻滾（往撥的方向）', await p.evaluate(() => (!!P.roll && P.roll.dx > 0.7) || P.cds.roll > 0));
+    /* 快速一撥＝按下到放開不到 260 毫秒（touch.js）。機器忙時送四個觸控事件就超過 260 毫秒，送出去的不是快速一撥：
+       在頁面記下這次手勢實際花多久，太慢就重送（最多 3 次）；撥的判定在下一格才跑，等到翻滾開始（最多 1 秒）再判定 */
+    const rolled = () => (!!P.roll && P.roll.dx > 0.7) || P.cds.roll > 0;
+    for (let k = 0; k < 3; k++) {
+      await p.evaluate(() => {
+        P.cds.roll = 0;
+        P.act = null;
+        P.roll = null;
+        window._sw = [];
+        const f = e => _sw.push(performance.now());
+        addEventListener('pointerdown', f, { once: true });
+        addEventListener('pointerup', f, { once: true });
+      });
+      await touch('touchStart', [[W / 2, H * 0.45]]);
+      await touch('touchMove', [[W / 2 + 30, H * 0.45]]);
+      await touch('touchMove', [[W / 2 + 80, H * 0.45]]);
+      await touch('touchEnd', []);
+      await p.waitForFunction(rolled, null, { timeout: 1000, polling: 16 }).catch(() => {});
+      if (await p.evaluate(() => _sw.length < 2 || _sw[1] - _sw[0] < 240)) break;
+    }
+    ok('快速一撥＝翻滾（往撥的方向）', await p.evaluate(rolled));
     /* 點一下＝普攻一次 */
     await p.evaluate(() => {
       P.act = null;
@@ -1476,7 +1500,7 @@ let fail = 0;
       return true;
     };
     const look = () =>
-      p.evaluate(() => {
+      settle(p, () => {
         const pn = $('pskill').getBoundingClientRect(),
           small = [],
           out = [];
@@ -1593,7 +1617,8 @@ let fail = 0;
     const inView = async (open, ...sel) => {
       await p.evaluate(open);
       await p.waitForTimeout(260);
-      return p.evaluate(
+      return settle(
+        p,
         sel =>
           sel.map(q => {
             const r = document.querySelector(q).getBoundingClientRect();
@@ -2381,16 +2406,27 @@ let fail = 0;
     const cr = await p.evaluate(async () => {
       closePanels();
       navGo('char');
-      await new Promise(r => setTimeout(r, 300));
-      const c = document.querySelector('#pinv .doll2x').getBoundingClientRect(),
-        n = $('pnav').getBoundingClientRect(),
-        h = document.querySelector('#pinv .schint');
-      return [
-        Math.round(c.bottom),
-        Math.round(n.top),
-        !!h && !h.hidden,
-        parseFloat(getComputedStyle(document.querySelector('#pinv .eqs .nm')).fontSize)
-      ];
+      /* 面板滑進來與捲動提示要幾格才定（提示在 hudTick 裡每 100 毫秒更新，機器忙時畫格慢）：
+         每次取樣先等 100 毫秒再等兩個畫格，連三次一樣（最多 3 秒）才判定 */
+      const at = () => {
+        const c = document.querySelector('#pinv .doll2x').getBoundingClientRect(),
+          n = $('pnav').getBoundingClientRect(),
+          h = document.querySelector('#pinv .schint');
+        return JSON.stringify([
+          Math.round(c.bottom),
+          Math.round(n.top),
+          !!h && !h.hidden,
+          parseFloat(getComputedStyle(document.querySelector('#pinv .eqs .nm')).fontSize)
+        ]);
+      };
+      const L = [];
+      for (let i = 0; i < 20 && !(L.length >= 3 && L.slice(-3).every(x => x === L[L.length - 1])); i++) {
+        await new Promise(r => setTimeout(r, 100));
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        L.push(at());
+      }
+      const b = JSON.parse(L[L.length - 1]);
+      return b;
     });
     ok(
       H >= 800
