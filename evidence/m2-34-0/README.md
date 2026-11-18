@@ -5,4 +5,4 @@
 - #72 王印 16、#75 3a 修正的畫面（`tools/capture_fix.js`，畫面照 `tools/m2_34_3a_fix_shots.js` 與 `tools/wy16_shots.js`）：390×844、1280×720 各截四個王印的追逐橫幅、掉寶光柱、王印 16 測試框（390 另截開半版面板的光柱），另擋掉 `sig_beam` 截程式畫的光柱，共 16 張。
 - 用法：兩個資料夾各開 `python3 -m http.server`（改動前 main、分支），`bash tools/run_all.sh <main 網址> <分支網址> <輸出> 2`，再 `python3 tools/compare.py <輸出>`；嚴格 RGB 比對 `python3 tools/strict_rgb.py <輸出>`（compare.py 先轉灰階，單一通道差 1 可能算成 0 px）。
 - 判定：同一張畫面，main 的 N 次 × 分支的 N 次兩兩比，至少有一對逐像素相同（差異 0）才算相同。同一份程式跑兩次也會有雜訊（戰鬥模擬偶爾走另一條路、canvas 抗鋸齒差 1 階），表上「改動前自己比的雜訊」那欄就是 main 自己跟自己比的最大差。
-- `compare.md`、`strict_rgb.md`：最後一次（main aa8f220 × 分支合併後 4950caf）的結果，main 4 次 × 分支 4 次，91 張（51＋3a 24＋#72／#75 16）。`shots/`：分支的樣張。
+- `compare.md`、`strict_rgb.md`：最後一次（main 4a74dce × 分支合併後 39a33ca）的結果，main 4 次 × 分支 4 次，91 張（51＋3a 24＋#72／#75 16）；3a 的 375x667-night 4×4 差 1 px（通道差 1，main 自己跑也會在同一點跳），3a 組各加跑 4 次成 8×8 後相同。`shots/`：分支的樣張。
