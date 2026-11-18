@@ -1,3 +1,43 @@
+# M2-40 R5c（第 3 輪）技能圖示：試跑沒過，停在 3／28
+
+照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5c，cc7b018）。**沒有定稿**，下面 r5b_、r5_ 的檔不動。
+
+## 結果
+
+- 端點 `POST /v2/create-image-pixflux`，**不給 style_image、init_image、color_image**。body 照 §2.1：description 只寫要的，不要的全部放 `negative_description`——**端點接受**（沒有退回 `no …`）。shading `detailed shading`、detail `highly detailed`，種子＝seed0＋2000。後處理只做 alpha_binary、外緣 1 px `--scene-void`、1 px 透明邊、去 2 px 角，不吸色。
+- 試跑 3 張：§5「畫風」3／3 過，但「意思」只有 `sk_clarity` 對，**畫風過且意思對 1／3，未達 2／3**，照 §1 停下，其餘 21 張與重跑都沒跑。
+
+| stem | 畫風（色數／L* 差） | 意思（對 §3 剪影欄） | 量測 |
+| --- | --- | --- | --- |
+| `sk_fire-s6222` | 過（31／78.3） | 不對：火球在左下、尾巴斜往右上，是 not 欄的 diagonal comet；規格要火球在右、尾巴水平往左 | 不過（IoU32 0.70 對 `sk_berserk`） |
+| `sk_gasflask-s6211` | 過（15／85.0） | 不對：置中直立圓肚瓶（not 欄 round flask in centre），只有兩條紫觸手、沒有比瓶大的三瓣雲 | 過 |
+| `sk_clarity-s6201` | 過（9／74.5） | 大致對：開口新月；水滴只有左下尖端一小滴，不是右下 2 顆（可手修補） | 過 |
+
+- 跟 R5b 比：不用參考圖後，構圖不再被抄成斜箭／羽毛，明暗也保留；但 pixflux 仍不太照位置描述（「左下／右上」「水平」），會回到最常見的置中構圖。
+- 次數 **3／28**，餘額 1003.99 → 1000.99。沒有手修。
+
+## 檔案（本輪）
+
+| 檔 | 內容 |
+| --- | --- |
+| `r5c_32_compare.png` | 3 張：彩色 4x＋1x、灰階 4x＋1x、生成原圖 4x、量測與目視 |
+| `r5c_review.csv` | 每張：量測（畫風、IoU、填滿、16、棋盤、雜點、描邊、追逐色）、negative_description 是否接受、意思、目視；手修欄空 |
+| `r5c_iou.csv` | 每張對同欄集（＋拆圖對象）的 IoU 32／16 |
+| `r5c_visual_notes.json` | 畫風與意思的理由 |
+| `r5c_state.json` | 量測過的 stem（`sk_gasflask-s6211`、`sk_clarity-s6201`）；**`sk_gasflask` 目視不過，不是定稿** |
+| `spend.csv` | `r5c-` 開頭兩列是本輪（`r5c-auth` 是第 1 步查餘額，0 次） |
+| `scripts/r5c.py`、`scripts/r5c_evidence.py` | 生成、後處理、檢查；證據 |
+
+沒有定稿，所以沒做剪影 32／16、52／56 模擬鈕、bar_pairs、locations（`js/` 沒變，`r5_locations.csv` 仍適用）。
+
+## 給美術總監的建議
+
+1. pixflux 對位置詞不穩。可試把位置換成形狀詞（如 sk_fire 用「horizontal fireball, flame tail to the left, wide and short」），或把 not 欄的禁止構圖再加重（`centred`、`diagonal`）。
+2. 或以 `init_image`（手畫剪影導引，低強度）鎖構圖、不給 color_image，保留明暗。
+3. `sk_clarity-s6201` 可直接當候選，手修補右下 2 顆水滴。
+
+---
+
 # M2-40 R5b（第 2 輪）技能圖示：停在 12／40
 
 照 `docs/production/specs/M2-40-skill-icon-prompts.md`（R5b，6ff1ea7）。**沒有定稿**，下面第 1 輪的 r5_ 檔不動。
