@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 /* D1 展示頁（demo/d1/）的截圖、錄影與預篩。只開展示頁，不碰遊戲。
    用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/d1_demo.js [shots|videos|all]（預設 all）
-   產出 docs/production/evidence/dpoe-d1-demo/：shots/<尺寸>/<列>.png、toggles/<尺寸>/<列>_<fs|en|rm>.png、
+   產出 docs/production/evidence/dpoe-d1-demo/review-fix/（D1_OUT 可改）：shots/<尺寸>/<列>.png、extra/<尺寸>/<名>.png（審查補拍）、toggles/<尺寸>/<列>_<fs|en|rm>.png、
    videos/<V>_<尺寸>_<一般|rm>.mp4（60 fps 逐幀）、results.json、results.md。
    預篩只抓明顯的失敗（裁字、出框、重疊、字級、熱區、對比、安全區、時間），不放寬清單門檻；有 ❌ 結束碼 1 */
 const fs = require('fs'),
@@ -10,7 +10,7 @@ const fs = require('fs'),
   { execFileSync } = require('child_process');
 const MODE = process.argv[2] || 'all',
   URL = process.env.D1_URL || 'http://localhost:8000/demo/d1/',
-  OUT = path.join(__dirname, '..', 'docs/production/evidence/dpoe-d1-demo');
+  OUT = process.env.D1_OUT || path.join(__dirname, '..', 'docs/production/evidence/dpoe-d1-demo/review-fix');
 const SIZES = process.env.D1_SIZES ? process.env.D1_SIZES.split(',') : ['390x844', '1280x720'];
 /* 三個切換每個畫面挑一列（清單第 7 節的 9 個畫面） */
 const TOG = {
@@ -24,6 +24,47 @@ const TOG = {
   倒下提示: 'H21',
   底分頁: 'C01'
 };
+
+/* 審查補拍（D1 審查第 8、12、26 項等）：[檔名, 列, 存檔, 在頁面裡跑的設定, 推幾格, 只拍這個尺寸, 抽屜滑入中] */
+const EXTRA = [
+  ['H09_all', 'H09', 'mid', 'S.filter = "all"', 20],
+  ['H09_rare', 'H09', 'mid', 'S.filter = "rare"; S.feed = []; demo.reseed()', 20],
+  ['H09_leg', 'H09', 'mid', 'S.filter = "leg"; S.feed = []; demo.reseed()', 20],
+  [
+    'H09_option_leg',
+    'H09',
+    'mid',
+    'S.filter = "leg"; S.panel = "more"; S.fieldPanel = 1; S.drawerT = demo.NOW - 1000',
+    20
+  ],
+  ['H17_0', 'H17', 'mid', 'S.status = { buff: 0, debuff: 0 }', 20],
+  ['H17_1', 'H17', 'mid', 'S.status = { buff: 1, debuff: 0 }', 20],
+  ['H17_8', 'H17', 'mid', 'S.status = { buff: 5, debuff: 3 }', 20],
+  ['H17_n', 'H17', 'mid', 'S.status = { buff: 8, debuff: 9 }', 20],
+  ['H19_ammo0', 'H19', 'mid', 'Object.assign(demo.SV().mid.d.skills[0], { ammo: [0, 6], cd: 1.5, left: 1.5 })', 20],
+  ['H19_charge', 'H19', 'mid', '', 20],
+  ['H19_flask', 'H19', 'en', '', 20],
+  ['H01_leg', 'H01', 'mid', 'S.filter = "all"; S.feed = []; demo.reseed()', 20],
+  ['C01_badge_dot', 'C01', 'big', '', 20],
+  ['C03_lack', 'C03', 'mid', '', 4],
+  ['H04_boss_feed', 'H04', 'mid', '', 20],
+  ['H23_before', 'H01', 'mid', 'demo.key("h")', 11, null, 1],
+  ['H23_after', 'H01', 'mid', 'demo.key("h")', 13, null, 1],
+  ['K06_x_focus', 'K06', 'mid', '', 20],
+  ['C06_x_focus', 'C06', 'mid', 'S.dev = "kbd"; demo.build(); demo.focus("px")', 20],
+  ['H22_x_focus', 'H22', 'mid', 'S.dev = "kbd"; demo.build(); demo.focus("px")', 20],
+  ['C02_x_focus', 'C02', 'mid', 'S.dev = "kbd"; demo.build(); demo.focus("px")', 20],
+  ['S10_toast', 'S10', 'mid', '', 20],
+  ['S11_toast', 'S11', 'near', '', 20],
+  ['I08_scrim', 'I08', 'full', '', 20],
+  ['S13_scroll', 'S13', 'mid', '', 20, '390x664'],
+  ['I01_en', 'I01', 'en', '', 20],
+  ['I01_mid', 'I01', 'mid', '', 20],
+  ['H12_nums', 'H12', 'mid', '', 20],
+  ['H16_hot', 'H16', 'mid', '', 20],
+  ['I04_near', 'I04', 'near', '', 20],
+  ['C04_sug', 'C04', 'mid', '', 20]
+];
 
 /* ---------- 量測（在頁面裡跑） ---------- */
 function measure(port) {
@@ -204,7 +245,152 @@ function measure(port) {
     if (k < lim && !seenC.has(id))
       seenC.add(id), F.push(`對比 ${name(e)}「${e.textContent.trim().slice(0, 14)}」${k.toFixed(2)} < ${lim}`);
   }
+  /* 焦點框（K06）：每顆 × 的 2 px 往外 2 px 框，四邊都不能被 overflow 的祖先裁掉 */
+  for (const e of ui.querySelectorAll('.x44')) {
+    if (!vis(e)) continue;
+    const r = e.getBoundingClientRect(),
+      o = 4 * s;
+    for (let a = e.parentElement; a && a !== ui.parentElement; a = a.parentElement) {
+      const c = getComputedStyle(a);
+      if (c.overflow === 'visible' && c.overflowX === 'visible' && c.overflowY === 'visible') continue;
+      const q = a.getBoundingClientRect(),
+        bl = parseFloat(c.borderLeftWidth) * s,
+        bt = parseFloat(c.borderTopWidth) * s,
+        br = parseFloat(c.borderRightWidth) * s,
+        bb = parseFloat(c.borderBottomWidth) * s;
+      const cut = [];
+      if (r.top - o < q.top + bt - 0.5) cut.push('上');
+      if (r.bottom + o > q.bottom - bb + 0.5) cut.push('下');
+      if (r.left - o < q.left + bl - 0.5) cut.push('左');
+      if (r.right + o > q.right - br + 0.5) cut.push('右');
+      if (cut.length) {
+        const msg = `焦點框被裁 ${name(e)}（${e.getAttribute('aria-label') || ''}）${cut.join('')}緣`;
+        /* K06 管抽屜的 ×；掛機條 44 高、鈕也 44，另列備註 */
+        if (e.closest('[data-panel]')) F.push(msg);
+        else INFO.push(msg + '（不在抽屜）');
+        break;
+      }
+    }
+  }
+  /* 英文（存檔或 +40%）：畫面上不該剩中文字 */
+  if (demo.isEN()) {
+    const tw = document.createTreeWalker(ui, NodeFilter.SHOW_TEXT),
+      bad = new Set();
+    for (let n; (n = tw.nextNode()); ) {
+      if (!/[\u3400-\u9fff]/.test(n.data) || !vis(n.parentElement) || n.parentElement.closest('[data-note]'))
+        continue; /* 標註（清單列名）不算 */
+      bad.add(n.data.trim().slice(0, 16));
+    }
+    if (bad.size)
+      F.push(`英文畫面還有中文 ${[...bad].slice(0, 6).join('／')}${bad.size > 6 ? ` 等 ${bad.size} 處` : ''}`);
+  }
   return { F, INFO, miss: demo.miss() };
+}
+
+/* 審查量測：色票對比（WCAG）、ΔE2000、低血邊的樣式與層級 */
+function palette() {
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const hex = c => {
+    const d = document.createElement('div');
+    d.style.color = c;
+    document.body.appendChild(d);
+    const m = getComputedStyle(d)
+      .color.match(/[\d.]+/g)
+      .map(Number);
+    d.remove();
+    return m.slice(0, 3);
+  };
+  const lin = c => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const cr = (a, b) => {
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+  };
+  const lab = ([r, g, b]) => {
+    const [R, G, B] = [r, g, b].map(lin);
+    const X = (0.4124 * R + 0.3576 * G + 0.1805 * B) / 0.95047,
+      Y = 0.2126 * R + 0.7152 * G + 0.0722 * B,
+      Z = (0.0193 * R + 0.1192 * G + 0.9505 * B) / 1.08883;
+    const f = t => (t > 216 / 24389 ? Math.cbrt(t) : ((24389 / 27) * t + 16) / 116);
+    return [116 * f(Y) - 16, 500 * (f(X) - f(Y)), 200 * (f(Y) - f(Z))];
+  };
+  const de = (c1, c2) => {
+    const [L1, a1, b1] = lab(c1),
+      [L2, a2, b2] = lab(c2),
+      rad = Math.PI / 180;
+    const C1 = Math.hypot(a1, b1),
+      C2 = Math.hypot(a2, b2),
+      Cb = (C1 + C2) / 2,
+      G = 0.5 * (1 - Math.sqrt(Cb ** 7 / (Cb ** 7 + 25 ** 7)));
+    const a1p = (1 + G) * a1,
+      a2p = (1 + G) * a2,
+      C1p = Math.hypot(a1p, b1),
+      C2p = Math.hypot(a2p, b2);
+    const h = (b, a) => (Math.atan2(b, a) / rad + 360) % 360;
+    const h1 = h(b1, a1p),
+      h2 = h(b2, a2p);
+    const dL = L2 - L1,
+      dC = C2p - C1p;
+    let dh = h2 - h1;
+    if (C1p * C2p === 0) dh = 0;
+    else if (dh > 180) dh -= 360;
+    else if (dh < -180) dh += 360;
+    const dH = 2 * Math.sqrt(C1p * C2p) * Math.sin((dh / 2) * rad);
+    const Lb = (L1 + L2) / 2,
+      Cbp = (C1p + C2p) / 2;
+    let hb = h1 + h2;
+    if (C1p * C2p !== 0) hb = Math.abs(h1 - h2) > 180 ? (h1 + h2 + 360) / 2 : (h1 + h2) / 2;
+    const T =
+      1 -
+      0.17 * Math.cos((hb - 30) * rad) +
+      0.24 * Math.cos(2 * hb * rad) +
+      0.32 * Math.cos((3 * hb + 6) * rad) -
+      0.2 * Math.cos((4 * hb - 63) * rad);
+    const SL = 1 + (0.015 * (Lb - 50) ** 2) / Math.sqrt(20 + (Lb - 50) ** 2),
+      SC = 1 + 0.045 * Cbp,
+      SH = 1 + 0.015 * Cbp * T;
+    const RT =
+      -2 * Math.sqrt(Cbp ** 7 / (Cbp ** 7 + 25 ** 7)) * Math.sin(60 * Math.exp(-(((hb - 275) / 25) ** 2)) * rad);
+    return Math.sqrt((dL / SL) ** 2 + (dC / SC) ** 2 + (dH / SH) ** 2 + RT * (dC / SC) * (dH / SH));
+  };
+  const C = n => hex(css(n));
+  const pairs = [
+    ['條上字 --tx-strong／生命條填色 --hp', '--tx-strong', '--hp', 7.17],
+    ['條上字 --tx-strong／魔力條填色 --mp', '--tx-strong', '--mp', 7.17],
+    ['條上字 --tx-strong／條底 --panel-inset', '--tx-strong', '--panel-inset', 7.17],
+    ['--warn（過熱外框、倉庫快滿）／--panel', '--warn', '--panel', 4.5],
+    ['--warn（差 280 靈魂）／--panel-raised', '--warn', '--panel-raised', 4.5],
+    ['--bad／--panel-raised', '--bad', '--panel-raised', 4.5],
+    ['--warn 外框／--panel-inset（框，≥ 3）', '--warn', '--panel-inset', 3]
+  ].map(([t, a, b, lim]) => ({ t, v: cr(C(a), C(b)), lim }));
+  const deltas = [
+    ['--warn／--bad（警告不再像危險紅）', '--warn', '--bad'],
+    ['--warn／--hp（過熱跟生命條不撞色）', '--warn', '--hp'],
+    ['--mp／--hp', '--mp', '--hp'],
+    ['--warn／--rar-rare', '--warn', '--rar-rare']
+  ].map(([t, a, b]) => ({ t, v: de(C(a), C(b)) }));
+  const tok = Object.fromEntries(['--bad', '--bad-hi', '--bad-rgb', '--warn', '--hp', '--mp'].map(n => [n, css(n)]));
+  return { pairs, deltas, tok };
+}
+/* 低血邊：樣式、層級（戰場畫布之上、HUD 之下） */
+function vignette() {
+  const v = document.getElementById('d-vign'),
+    ui = document.getElementById('ui');
+  if (!v) return null;
+  const first = [...ui.children].filter(e => e.matches('.ab:not(.safe)'))[0] === v;
+  const cs = getComputedStyle(v);
+  const hudOver = [...ui.querySelectorAll('[data-hud]')].filter(e => {
+    const z = getComputedStyle(e).zIndex;
+    return v.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING || z !== 'auto';
+  }).length;
+  return {
+    shadow: cs.boxShadow,
+    z: cs.zIndex,
+    first,
+    hud: ui.querySelectorAll('[data-hud]').length,
+    hudOver,
+    a: +v.dataset.a
+  };
 }
 
 /* 每格探針（錄影時量時間） */
@@ -250,7 +436,23 @@ function probe() {
     offSum: q('#d-offsum') ? q('#d-offsum').textContent : null,
     offK: q('#d-off') ? +q('#d-off').dataset.k : null,
     idleMs: S.idleMs,
-    hp: S.hp
+    hp: S.hp,
+    hero: demo.hero(),
+    thin: demo.feedThin(),
+    hud: ['H02', 'H13', 'H17', 'H18', 'H07']
+      .map(m => q(`[data-m="${m}"]`))
+      .map(e => (e ? `${e.offsetLeft},${e.offsetTop},${e.style.transform || ''}` : '-'))
+      .concat([q('#cv').style.transform || '', q('#ui').style.transform || ''])
+      .join('|'),
+    flipR: q('#d-flip')
+      ? (r => `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)}`)(
+          q('#d-flip').getBoundingClientRect()
+        )
+      : null,
+    ffT: q('#d-ff') ? q('#d-ff').style.transform : null,
+    ffF: q('#d-ff') ? q('#d-ff').style.filter : null,
+    f4T: q('#d-f4') ? q('#d-f4').style.transform : null,
+    f4F: q('#d-f4') ? q('#d-f4').style.filter : null
   };
 }
 
@@ -377,6 +579,23 @@ function timing(V, P, L, rm) {
       lEnd != null && near(lEnd - l, 6000, FR * 1.5) && lOff != null && near(lOff - lEnd, 300, FR * 1.5),
       `一行 ${lEnd != null ? (lEnd - l).toFixed(0) : '—'} ms＋淡出 ${lOff != null && lEnd != null ? (lOff - lEnd).toFixed(0) : '—'} ms（6,000＋300）`
     );
+    /* 審查 V5：減少動態時不震、不縮放、不位移（HUD 位置、畫布與 #ui 的 transform、主角位置整段不變），淡入 ≤ 150 */
+    const hudSet = new Set(P.map(p => p.hud)),
+      heroSet = new Set(P.map(p => (p.hero ? `${p.hero.x.toFixed(1)},${p.hero.y.toFixed(1)}` : '-')));
+    if (rm) {
+      ok(
+        hudSet.size === 1 && heroSet.size === 1,
+        `減少動態：不震、不縮放、不位移（HUD 位置 ${hudSet.size} 種、主角位置 ${heroSet.size} 種）`
+      );
+      const fs = firstT(P, p => p.fade > 0, rv[2]),
+        fe = fs != null && firstT(P, p => p.fade === 0, fs + 130);
+      const peak =
+        fs != null && P.filter(p => p.t >= fs && p.t < fe).reduce((a, p) => (p.fade > a.fade ? p : a), { fade: -1 });
+      ok(
+        fe != null && peak && fe - peak.t <= 150 + FR + 0.5,
+        `減少動態：淡入 ${fe != null && peak ? (fe - peak.t).toFixed(0) : '—'} ms（≤ 150）`
+      );
+    } else R.push(`ℹ️ 一般：HUD 位置 ${hudSet.size} 種、主角位置 ${heroSet.size} 種`);
   }
   if (V === 'V6') {
     const ins = L.filter(x => x.ev === 'feed-in'),
@@ -415,6 +634,12 @@ function timing(V, P, L, rm) {
       ev1.length && ev1.every(x => x.rar === 'normal' || !x.hadNormal),
       `滿了先擠普通（稀有以上只在沒有普通時才被擠）：${ev1.map(x => x.name + '（' + x.rar + '）').join('、') || '—'}`
     );
+    const qt = ev('feed-quiet'),
+      rq = qt != null ? stay('聖化石', 3000, qt) : null;
+    ok(
+      rq && rq[0] != null && near(rq[0], 3000, FR * 1.5) && rq[1] != null && near(rq[1], 400, FR * 1.5),
+      `列沒滿時普通停留 ${rq && rq[0] != null ? rq[0].toFixed(0) : '—'} ms＋淡出 ${rq && rq[1] != null ? rq[1].toFixed(0) : '—'} ms（3,000＋400）`
+    );
     const r3 = stay('增幅石', 3000);
     ok(
       r3 == null || (r3[0] != null && near(r3[0], 3000, FR * 1.5)) || r3[0] == null,
@@ -451,6 +676,19 @@ function timing(V, P, L, rm) {
       rm ? '減少動態：直接是最終值，點一下就收' : `點一下立刻跑完（${sk ? (sk.t - op2).toFixed(0) : '—'} ms 點）`
     );
   }
+  if (V === 'V7a') {
+    const o = ev('idle-open'),
+      auto = L.find(x => x.ev === 'idle-close' && x.why === 'auto'),
+      shut = auto && firstT(P, p => p.idleH <= 44.01, auto.t);
+    ok(
+      auto && near(auto.t - o, 6000, FR * 1.5),
+      `展開後 6 秒沒操作自動收：${auto ? (auto.t - o).toFixed(0) : '—'} ms（6,000）`
+    );
+    ok(
+      shut != null && (rm ? shut - auto.t <= FR + 0.5 : near(shut - auto.t, 200)),
+      `收回 ${shut != null && auto ? (shut - auto.t).toFixed(0) : '—'} ms（200${rm ? '，減少動態不滑' : ''}）`
+    );
+  }
   if (V === 'V8') {
     const f = ev('flip'),
       fe = firstT(P, p => /rotateY\(180(\.0+)?deg\)/.test(p.flip) || p.flip === 'o0', f);
@@ -463,6 +701,18 @@ function timing(V, P, L, rm) {
       s.length >= 2 && (rm || (se && se - s[0].t <= 120 + FR + 1)),
       `F4 停用抖 ${se ? (se - s[0].t).toFixed(0) : '—'} ms（120；demo 未驗，進遊戲量）`
     );
+    /* 審查 V8：減少動態時物品框不抖（位置不變、沒有 transform），揭曉改一次 120 ms 亮度閃光 */
+    if (rm) {
+      const fr = new Set(P.filter(p => p.flipR).map(p => p.flipR)),
+        tr = P.some(p => (p.ffT && p.ffT !== 'none') || (p.f4T && p.f4T !== 'none' && p.f4T !== ''));
+      ok(fr.size === 1 && !tr, `減少動態：物品框不抖（位置 ${fr.size} 種、transform ${tr ? '有' : '無'}）`);
+      const a = firstT(P, p => /brightness/.test(p.ffF || ''), f),
+        b2 = a != null && firstT(P, p => !p.ffF, a);
+      ok(
+        a != null && b2 != null && near(b2 - a, 120),
+        `揭曉亮度閃光 ${a != null && b2 ? (b2 - a).toFixed(0) : '—'} ms（120）`
+      );
+    }
   }
   if (V === 'V9') {
     const o = L.find(x => x.ev === 'panel' && x.p === 'camp'),
@@ -475,7 +725,27 @@ function timing(V, P, L, rm) {
       );
       const hs = [...new Set(P.filter(p => p.t >= o.t && p.t < o.t + 400).map(p => p.fieldH))];
       ok(hs.length === 2 && hs[0] === 663 && hs[1] === 283, `戰場高 ${hs.join(' → ')}（663 → 283 一次改）`);
-    } else ok(true, '桌機：右欄滑入，戰場不改高');
+      /* 審查 V9：縮小前後兩幀主角中心位移 ≤ 2 px（主角留在看得到的戰場正中心） */
+      for (const r of rs) {
+        const i = P.findIndex(p => p.t >= r.t),
+          a = P[i - 1] && P[i - 1].hero,
+          b = P[i] && P[i].hero;
+        const d = a && b ? Math.hypot(a.x - b.x, a.y - b.y) : null;
+        ok(
+          d != null && d <= 2,
+          `縮小那一格主角中心位移 ${d != null ? d.toFixed(2) : '—'} px（≤ 2；${a ? a.y.toFixed(1) : '—'} → ${b ? b.y.toFixed(1) : '—'}，戰場 ${P[i - 1] ? P[i - 1].fieldH : '—'} → ${P[i] ? P[i].fieldH : '—'}）`
+        );
+        if (b) R.push(`ℹ️ 縮小後主角在戰場框的相對位置 ${((b.y - 47) / P[i].fieldH).toFixed(3)}（0.5＝正中心）`);
+      }
+    } else {
+      ok(true, '桌機：右欄滑入，戰場不改高');
+      const hs = new Set(
+        P.filter(p => p.scr === 'hud' && p.panel !== 'tree' && p.hero).map(
+          p => `${p.hero.x.toFixed(1)},${p.hero.y.toFixed(1)}`
+        )
+      );
+      ok(hs.size === 1, `桌機：抽屜開關時主角位置 ${hs.size} 種（不動）`);
+    }
     const tabs = L.filter(x => x.ev === 'key' && x.k === 'Tab').map(x => P.find(p => p.t >= x.t).focus);
     ok(tabs.length === 3 && tabs.every(Boolean) && tabs[0] !== tabs[1], `Tab 換分頁、焦點 0 ms：${tabs.join(' → ')}`);
     const esc = L.filter(x => x.ev === 'esc').map(x => x.what);
@@ -547,6 +817,44 @@ function report(res) {
     );
   }
   L.push('', '截圖：`shots/<尺寸>/<列>.png`（S12 是 390×763、S13 是 390×664、S14 另有 `S14_1280x800.png`）。', '');
+  if (res.extra) {
+    L.push('## 審查補拍', '', '| 檔名 | 列 | 存檔 | 尺寸 | 預篩 |', '| --- | --- | --- | --- | --- |');
+    for (const [k, x] of Object.entries(res.extra)) {
+      const [nm, sz] = k.split('|');
+      L.push(`| \`extra/${sz}/${nm}.png\` | ${x.row} | ${x.save} | ${x.size} | ${cell(x)} |`);
+    }
+    L.push('');
+  }
+  {
+    L.push('## 審查量測', '');
+    const h16 = res.shots.H16 && (res.shots.H16['390x844'] || res.shots.H16['1280x720']);
+    if (h16 && h16.palette) {
+      const pl = h16.palette;
+      L.push(
+        `demo 覆寫的 token（量到的值）：${Object.entries(pl.tok)
+          .map(([k, v]) => `\`${k}: ${v}\``)
+          .join('、')}`,
+        '',
+        '| 對比（WCAG） | 值 | 門檻 |',
+        '| --- | --- | --- |',
+        ...pl.pairs.map(x => `| ${x.t} | ${x.v.toFixed(2)}:1 ${x.v >= x.lim ? '✅' : '❌'} | ≥ ${x.lim} |`),
+        '',
+        '| ΔE2000 | 值 |',
+        '| --- | --- |',
+        ...pl.deltas.map(x => `| ${x.t} | ${x.v.toFixed(1)} |`),
+        ''
+      );
+    }
+    for (const id of ['H14', 'H15'])
+      for (const sz of SIZES) {
+        const v = res.shots[id] && res.shots[id][sz] && res.shots[id][sz].vign;
+        if (v)
+          L.push(
+            `- ${id} ${sz}：box-shadow \`${v.shadow}\`；z-index ${v.z}；在 #ui 第一個（戰場畫布之上）：${v.first ? '是' : '否'}；HUD ${v.hud} 個都畫在它上面：${v.hudOver === v.hud ? '是' : '否'}（${v.hudOver}/${v.hud}）`
+          );
+      }
+    L.push('', '錄影量測（V5、V6、V7a、V8、V9 的時間與位移）寫在下面錄影表的「時間檢查」欄。', '');
+  }
   L.push(
     '## 三個切換（每個畫面各一張）',
     '',
@@ -623,7 +931,7 @@ function report(res) {
         const sz = r.size && r.size !== 'desk' ? r.size : size;
         await p.setViewportSize({ width: +sz.split('x')[0], height: +sz.split('x')[1] });
         await open(p, { size: sz, row: r.id, save: r.save || 'mid' });
-        await p.evaluate(() => demo.step(20));
+        await p.evaluate(n => demo.step(n), r.steps || 20);
         const m = await p.evaluate(measure, !!port);
         await p.screenshot({ path: path.join(OUT, 'shots', size, r.id + '.png') });
         if (r.id === 'S14') {
@@ -634,9 +942,31 @@ function report(res) {
           await p.screenshot({ path: path.join(OUT, 'shots', size, 'S14_1280x800.png') });
           m.F.push(...m2.F.map(x => '1280×800×1.25 ' + x));
         }
+        if (['H14', 'H15'].includes(r.id)) m.vign = await p.evaluate(vignette);
+        if (r.id === 'H16') m.palette = await p.evaluate(palette);
         res.shots[r.id] = Object.assign(res.shots[r.id] || {}, { [size]: { size: sz, save: r.save || 'mid', ...m } });
         console.log(`${m.F.length ? '❌' : '✅'} ${size} ${r.id} ${m.F.slice(0, 3).join('；')}`);
       }
+      /* 審查補拍 */
+      fs.mkdirSync(path.join(OUT, 'extra', size), { recursive: true });
+      res.extra = res.extra || {};
+      for (const [nm, row, save, js, steps, only, trans] of EXTRA) {
+        if (only && only !== size && !(only.startsWith('390') && port)) continue;
+        const sz = only || size;
+        await p.setViewportSize({ width: +sz.split('x')[0], height: +sz.split('x')[1] });
+        await open(p, { size: sz, row, save });
+        if (js) await p.evaluate(`(() => { const S = demo.S; ${js}; demo.build(); })()`);
+        await p.evaluate(n => demo.step(n), steps);
+        const m = await p.evaluate(measure, !!port);
+        /* 抽屜滑入中途那一格：抽屜照規格蓋著 HUD（滑完那一格才改戰場高），改列備註 */
+        if (trans)
+          m.INFO.push(...m.F.filter(x => x.startsWith('面板蓋到')).map(x => '滑入中 ' + x)),
+            (m.F = m.F.filter(x => !x.startsWith('面板蓋到')));
+        await p.screenshot({ path: path.join(OUT, 'extra', size, nm + '.png') });
+        res.extra[`${nm}|${size}`] = { row, save, size: sz, ...m };
+        console.log(`${m.F.length ? '❌' : '✅'} ${size} 補拍 ${nm} ${m.F.slice(0, 3).join('；')}`);
+      }
+      await p.setViewportSize({ width: +size.split('x')[0], height: +size.split('x')[1] });
       /* 三個切換 */
       fs.mkdirSync(path.join(OUT, 'toggles', size), { recursive: true });
       await p.setViewportSize({ width: +size.split('x')[0], height: +size.split('x')[1] });
@@ -644,7 +974,7 @@ function report(res) {
         for (const t of ['fs', 'en', 'rm']) {
           const r = rows.find(x => x.id === id);
           await open(p, { size, row: id, save: r.save || 'mid', [t]: 1 });
-          await p.evaluate(() => demo.step(20));
+          await p.evaluate(n => demo.step(n), r.steps || 20);
           const m = await p.evaluate(measure, !!port);
           await p.screenshot({ path: path.join(OUT, 'toggles', size, `${id}_${t}.png`) });
           res.toggles[`${scr}|${t}|${size}`] = { id, ...m };
@@ -655,14 +985,14 @@ function report(res) {
       await p.context().close();
     }
   }
-  if (MODE === 'all' || MODE === 'videos' || /^V\d$/.test(MODE)) {
+  if (MODE === 'all' || MODE === 'videos' || /^V\d\w?$/.test(MODE)) {
     fs.mkdirSync(path.join(OUT, 'videos'), { recursive: true });
     for (const size of SIZES) {
       const p = await page(size);
       await open(p, { size });
       const scn = await p.evaluate(() => demo.SCN());
       for (const [V, s] of Object.entries(scn)) {
-        if (/^V\d$/.test(MODE) && MODE !== V) continue;
+        if (/^V\d\w?$/.test(MODE) && MODE !== V) continue;
         for (const rm of [0, 1]) {
           await open(p, { size, scn: V, ...(rm ? { rm: 1 } : {}) });
           const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'd1v-'));
@@ -720,8 +1050,10 @@ function report(res) {
   fs.writeFileSync(path.join(OUT, 'results.json'), JSON.stringify(res, null, 1));
   report(res);
   const bad =
-    [...Object.values(res.shots).flatMap(x => Object.values(x)), ...Object.values(res.toggles)].some(
-      x => x.F && x.F.length
-    ) || Object.values(res.videos).some(v => v.R.some(x => x.startsWith('❌')));
+    [
+      ...Object.values(res.shots).flatMap(x => Object.values(x)),
+      ...Object.values(res.toggles),
+      ...Object.values(res.extra || {})
+    ].some(x => x.F && x.F.length) || Object.values(res.videos).some(v => v.R.some(x => x.startsWith('❌')));
   process.exit(bad ? 1 : 0);
 })();
