@@ -554,18 +554,24 @@ function genMs(L) {
 }
 /* 下一個里程碑：{ at 第幾級, t 獎勵 }（「產量 ×2」「+1 工位」「階 +1」） */
 function genNextMs(k) {
-  const L = genOf(k).lv,
-    a = genMs(L);
+  const L = genOf(k).lv;
   for (let x = L + 1; x < L + 200; x++) {
-    const b = genMs(x),
-      t = [
-        b.m > a.m ? `產量 ×${b.m / a.m}` : '',
-        b.slots > a.slots ? '+1 工位' : '',
-        b.tu > a.tu && k !== 'wood' ? '階 +1' : ''
-      ].filter(Boolean);
-    if (t.length) return { at: x, t: t.join('、') };
+    const t = genMsT(k, x);
+    if (t) return { at: x, t };
   }
   return null;
+}
+/* 第 x 級本身的里程碑字（跟前一級比）；沒有回空字串 */
+function genMsT(k, x) {
+  const a = genMs(x - 1),
+    b = genMs(x);
+  return [
+    b.m > a.m ? `產量 ×${b.m / a.m}` : '',
+    b.slots > a.slots ? '+1 工位' : '',
+    b.tu > a.tu && k !== 'wood' ? '階 +1' : ''
+  ]
+    .filter(Boolean)
+    .join('、');
 }
 /* 材料階的上限＝瞭望台開到最深的主幹地點（3.2） */
 const tierCap = () => matTier(TRUNK[Math.min(S.camp.watch || 0, TRUNK.length - 1)].lv);

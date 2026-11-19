@@ -393,7 +393,7 @@ function deadAgain() {
   if (S.world.dn < DEAD_MAX || !wBack(k)) return runNode(k, true);
   const pv = wBack(k);
   S.world.dn = 0;
-  S.world.note = `在${wName(S, ...wXY(k))}連倒 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}：換裝、降星級或升營地再回去`;
+  S.world.note = `在${wName(S, ...wXY(k))}${strT('deadN', { n: DEAD_MAX })}，退回${wName(S, ...wXY(pv))}：換裝、降星級或升營地再回去`;
   /* 製作人 D2：不出卡，只出一行提示停 6 秒 */
   hudWarn(S.world.note, 6000);
   runNode(pv);

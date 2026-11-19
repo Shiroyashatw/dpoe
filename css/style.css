@@ -1726,7 +1726,7 @@ body.touch.port #plog { z-index: 8; } /* 直立是半版面板：退到分頁列
 #pnav, #phand { display: none; }
 body.touch.port { --nav-h: calc(56px + var(--sab, env(safe-area-inset-bottom))); --hand-h: 24px; --hb: var(--nav-h); }
 body.touch.port.sheet { --hb: calc(100dvh - var(--sheet-top)); }
-body.touch.port.sheetfull { --hand-h: calc(24px + env(safe-area-inset-top)); }
+body.touch.port.sheetfull { --hand-h: calc(24px + var(--sat, env(safe-area-inset-top))); }
 body.touch.port .panel, body.touch.port #phand { transition: top 220ms cubic-bezier(0.23, 1, 0.32, 1); }
 body.touch.port.sheetdrag .panel, body.touch.port.sheetdrag #phand { transition: none; }
 @media (prefers-reduced-motion: reduce) { body.touch.port .panel, body.touch.port #phand { transition: none; } }
@@ -2906,7 +2906,7 @@ body.touch.port #pidle { left: 0; right: 0; bottom: var(--nav-h); height: 44px; 
 body.touch.port #pidle.open { height: 200px; }
 body:not(.touch.port) #pidle { left: 16px; right: auto; top: auto; bottom: 16px; width: 380px; height: 40px; max-height: none; padding: 0; border: 0; border-radius: 3px; box-shadow: inset 0 0 0 1px var(--border-mid); animation: none; z-index: 5; }
 body:not(.touch.port) #pidle.open { height: 200px; }
-@media (prefers-reduced-motion: reduce) { #pidle { transition: opacity 150ms; } }
+@media (prefers-reduced-motion: reduce) { #pidle { transition: none; } }
 #pidle .ib { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 0 0 0 12px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 #pidle .ib:active, #pidle .ix:active { background: var(--sel); color: var(--sel-ink); }
 #pidle .ib > b { flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -2929,8 +2929,23 @@ body:not(.touch.port) #pidle .ix { height: 40px; }
 #pidle .il3 .ilast { max-width: none; flex: 0 1 auto; }
 #pidle .chs { min-height: 40px; margin: 0 12px 0 0; }
 #pidle .ir .goal { padding: 0 12px 0 0; }
-@media (max-width: 380px) { #pidle .ipb .pb { display: none; } }
-@media (max-width: 330px) { #pidle .ipb .ipw { display: none; } }
+/* B1 D1-10／D2-03：收起列一行（nowrap）；放不下時 idleFit 依序加 f0 拿掉保底小條、f1 打倒王次數、f2 追逐物品名、f3「追逐保底」字樣、f4「掛機」字頭、f5 其餘字尾省略；數字與 %（.tn）永遠完整 */
+#pidle .ib, #pidle .ib > b, #pidle .ipb, #pidle .ilast { white-space: nowrap; }
+#pidle .ib { overflow: hidden; }
+#pidle .tn { flex: none; white-space: nowrap; }
+#pidle.f0 .ipb .pb, #pidle.f1 .ik, #pidle.f2 .ib .ilast .nm, #pidle.f3 .ib .cw, #pidle.f4 .ib .iw { display: none; }
+#pidle.f5 .ib > b.c-warn, #pidle.f5 .ib .ilast { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#pidle .ilast .ipw { margin-right: 0; }
+#pidle .ilast > i { font-style: normal; }
+/* B1 D1-02（部分）：掛機條、掛機卡裡的追逐（王印）列吃稀有度 token（色值在 B2） */
+#pidle .lg-chase { color: var(--rar-chase) !important; }
+/* B1 D1-01：展開的標題列數字永遠完整；放不下先拿掉「・打倒王 {n} 次」（f1），再換 2 行（44→64），字不縮 */
+#pidle .it1 { min-height: 44px; flex: none; }
+#pidle .it1 > b { flex: 1; min-width: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#pidle .it1 > b > span { white-space: nowrap; }
+#pidle .it1.two { min-height: 64px; }
+#pidle .it1.two > b { white-space: normal; line-height: 22px; }
+#pidle .iex { overflow-y: auto; overscroll-behavior: contain; }
 
 /* 下一個目標條（抽屜、掛機條展開、離線結算共用）：字 14＋進度條 4 */
 /* 規格寫 36 高；抽屜裡上面緊貼標題列、熱區沒地方外延，直接做 44 高（格子區照樣到 710 為止） */
@@ -2973,11 +2988,18 @@ body:not(.touch.port) #pcamp .cdc { min-height: 64px; }
 @keyframes cdflip { from { transform: rotateX(90deg); } }
 #pcamp .cd1 { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px 12px; }
 #pcamp .cdlv { margin: 0; font: 700 var(--f22) var(--font); color: var(--tx-title); }
-#pcamp .cdd { margin: 0; font-size: var(--f16); }
+#pcamp .cdd { margin: 0; font: 700 var(--f16) var(--font); color: var(--tx-strong); }
+/* B1 D1-04：解鎖路線「接下來會解鎖」：下一級亮（左 3 px --border-cap、--tx-strong、右邊進度 %＋4 px 條），之後各級 --tx-dim；只是資訊、不能點 */
+#pcamp .cdnx { margin: 4px 0 0; font-size: calc(13px * var(--tscale)); color: var(--tx-dim); }
+#pcamp .cdrt { list-style: none; margin: 0; padding: 0; }
+#pcamp .cdrt li { position: relative; display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 2px 0 2px 9px; border-left: 3px solid transparent; font-size: var(--f14); color: var(--tx-dim); }
+#pcamp .cdrt li span { flex: 1; min-width: 0; }
+#pcamp .cdrt li.on { border-left-color: var(--border-cap); color: var(--tx-strong); }
+#pcamp .cdrt li em { flex: none; font-style: normal; font-variant-numeric: tabular-nums; }
+#pcamp .cdrt li .cdp { left: 9px; }
 #pcamp .cdcost { list-style: none; margin: 0; padding: 0; }
 #pcamp .cdcost li { display: flex; gap: 8px; align-items: center; min-height: 28px; font-size: var(--f14); }
 #pcamp .cdcost li span { flex: 1; }
-#pcamp .cdms { margin: 0; font-size: var(--f14); color: var(--tx-dim); }
 #pcamp .stamp.one { width: 100%; min-height: 54px; margin-top: 4px; font-size: var(--f16); }
 @media (prefers-reduced-motion: reduce) { #pcamp .cdc.up, #pcamp .cdc.up .lv, .goal.hit { animation: none; } }
 
@@ -3054,3 +3076,17 @@ body:not(.touch) #prog .pb { height: 8px; }
 /* M2-12 修訂 #4：鍵盤焦點框（新骨架：分頁、營地升級、掛機條、結算、字板、死亡卡）3 px＋放大 1.04；滑鼠點的不畫（:focus-visible） */
 :is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { outline: 3px solid var(--border-cap); outline-offset: -3px; transform: scale(1.04); z-index: 1; }
 @media (prefers-reduced-motion: reduce) { :is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { transform: none; } }
+/* ---------- B1 骨架第一段 ---------- */
+/* S6／D2-13／D3-03：資源列（金、靈魂）。直立外觀 x 202–382 × 110–142、熱區 106–150；桌機 x 16–316 × 66–98（資訊列下）。字直立 14／桌機 16、700、等寬，每格留 5 字元；底 --plate-world */
+#curs { position: fixed; z-index: 6; display: flex; flex-direction: column; justify-content: flex-start; padding: 0; margin: 0; background: none; border: 0; color: var(--tx); font: 700 var(--f14) var(--font); font-variant-numeric: tabular-nums; cursor: pointer; pointer-events: auto; }
+#curs[hidden] { display: none; }
+#curs .cv { flex: none; display: grid; grid-template-columns: 1fr 1fr; align-items: center; height: 32px; padding: 0 8px; background: var(--plate-world); border-radius: 2px; }
+#curs .cv > span { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; }
+#curs b { min-width: 5ch; font-weight: 700; }
+#curs .ic.ci { width: 16px; height: 16px; flex: none; image-rendering: pixelated; }
+#curs:active .cv { background: var(--sel); color: var(--sel-ink); }
+body.touch.port #curs { top: calc(var(--st, 0px) + 59px); right: 8px; width: 180px; height: 44px; }
+body.touch.port #curs .cv { margin-top: 4px; }
+body:not(.touch) #curs { left: 16px; top: 66px; width: 300px; height: 32px; font-size: var(--f16); }
+/* D2-05（部分）：桌機窄視窗（1280×800 ×1.25＝CSS 1024×640）右欄最寬 100vw − 644（右邊距 16＋間隔 16，戰場留 ≥612）；1280×720 不變 */
+body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcamp) { max-width: calc(100vw - 644px); }
