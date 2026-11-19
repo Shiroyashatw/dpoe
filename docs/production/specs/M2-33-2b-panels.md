@@ -21,7 +21,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 - 桌機：總覽、詳情、挑選都在右欄，挑選暫停戰鬥照現行；拖曳排序可用滑鼠。
 
 ## 2. 天賦樹（tree.js `treeOpen` L58、`treeRender` L125、`treeMini` L439、`treeCard` L510；全版 `#ptree`）
-- **蓋滿整個畫面**（兩種尺寸，照現行）。底 `--scene-void`（拿掉 L552 的放射漸層、L1192 的 `--pt-bg`／`--pt-node`／`--pt-line`）。上方 `.tbar`（L215）：`--panel` 底、下緣 1 px `--border-mid`，高 56；頁籤用分段；剩餘點數主數字 22 `--tx-strong`；關閉 44（桌機 36）。P 或 Esc 關。
+- **蓋滿整個畫面**（兩種尺寸；分頁列、掛機條也蓋）。**開著時戰鬥暫停、回來補算**，同營地（mumi 11/19 13:25；取代 B6／T1「照刷＋戰場條」）；昇華石碑同一套（製作人 13:36，頂列／更多／U 都一樣）。左上 ← 44 返回，見 D1-fix-mumi-1119-part2.md §6。底 `--scene-void`（拿掉 L552 的放射漸層、L1192 的 `--pt-bg`／`--pt-node`／`--pt-line`）。上方 `.tbar`（L215）：`--panel` 底、下緣 1 px `--border-mid`，高 56；頁籤用分段；剩餘點數主數字 22 `--tx-strong`；關閉 44（桌機 36）。P 或 Esc 關。
 - **節點**（SVG `#tsvg`，`.nd circle` L1196–1197）
 | 狀態 | 填色 | 外圈 | 其他 |
 | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 - 上方：保底條 `.lgbar`（L1401）一列一條：名 13 `--tx`＋條（高 8，凹槽 `--panel-inset`＋1 px `--border`，平塗 `--prog-hi`；追逐保底用 `--rar-chase`）＋百分比 13 等寬。
 - 篩選：分段（全部／裝備／通貨／追逐，追逐開放後才有）。
 - 列：高 44（桌機 36）：時間 12 `--tx-dim` 等寬｜圖示 32（通貨、裝備）或 16（文字列）｜名稱用稀有度字色｜數量／來源 13 `--tx-dim`。★ 照字形，記憶用文字標「記憶」。追逐列：左緣 3 px `--rar-chase`＋名稱 `--rar-chase`，不加整列底色（取代 `.chf` 小框）。選中列 `--panel-raised-2`＋1 px `--border-hi`。
-- 空狀態（M1-14）：一行 14 `--tx-dim`「還沒有掉落。刷地點時，王和菁英掉的東西會記在這裡」。
+- 空狀態（M1-14）：一行 14 `--tx-dim`「還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。」（EN「No drops yet. Rare+ drops from farming are listed here (last 50).」；名詞表 v0.6.15）。小標「滿了下一次一定掉」（取代「必出」）。
 
 ## 6. 地點清單（`nodeHTML` L582，`.ndl` L1478、`.ndr` L1479）
 - 位置：直立半版；桌機右欄。M 開關。
