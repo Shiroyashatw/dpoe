@@ -1,12 +1,12 @@
 # D3 預篩（prefilter.md）
 
-tools/d3_demo.js 產生；2026-11-19T06:49。預篩只抓明顯的失敗，門檻照 D3-checklist.md 第 11 節，不放寬。
+tools/d3_demo.js 產生；2026-11-19T07:39。預篩只抓明顯的失敗，門檻照 D3-checklist.md 第 11 節，不放寬。
 
 | 代號 | 檢查 | 結果 | 量測 |
 | --- | --- | --- | --- |
 | PF1 | 檔案：寬高＝視窗×DPR、不透明、L* 標準差 ≥ 2、雜湊不同、無 pageerror | ✅ | 170 張；不合 0；雜湊重複 0 組；pageerror 0 |
 | PF2 | 狀態條件成立（每列 ok()） | ✅ | 112／112 |
-| PF3 | 舒服 (c) 飽和 ≤ 10%、(d) 中明度褐 ≤ 50%、(f) 大片亮面 ≤ 25%（閒置截圖） | ✅ | (c) 最高 1.0%；(d) 最高 2.0%；(f) 最高 6.9%；(a)(b) 見 PF-L；(e) 見對比 |
+| PF3 | 舒服 (c) 飽和 ≤ 10%、(d) 中明度褐 ≤ 50%、(f) 大片亮面 ≤ 25%（閒置截圖） | ✅ | (c) 最高 1.5%；(d) 最高 1.3%；(f) 最高 6.9%；(a)(b) 見 PF-L；(e) 見對比 |
 | PF4 | 新素材 | ✅ | ℹ️ 主視覺兩張底圖待素材（畫面標「待素材」，清單寫「不算不過」）；沒有新美術素材、沒跑 PixelLab |
 | PF5 | 圖示整數倍、token、焦點框 | ✅ | 圖示全為 16 px（1 倍）；不合 0 |
 | PF10 | 熱區（直立 ≥ 44、桌機 ≥ 32） | ✅ | 不合 0 |
@@ -17,8 +17,8 @@ tools/d3_demo.js 產生；2026-11-19T06:49。預篩只抓明顯的失敗，門�
 | PF16 | D3 選擇器色碼字面值 0；token 都有定義；tokens.css＝M2-36 | ✅ | 字面值 0；未定義 token 0；與 M2-36 不符 0；用到 49 個 token |
 | PF-K | 數字縮寫：abbr 測試表 17 列；完整位置 0 個 K／M；縮寫 ≤ 5 字元、可看完整 | ✅ | 測試表 17／17；畫面不合 0 |
 | PF-W | 禁用字：輪、再刷一輪、必出、稀有掉落、令牌、精英、魔法（掉落區） | ✅ | 0 筆 |
-| PF-L | 面板 vs 場景地面亮度比（戰場、營地 4 角 32×32）≥ 1.4 | ✅ | 390x844 戰場 1.50；390x844 營地 1.42；1280x720 戰場 1.43；1280x720 營地 1.42 |
-| PF-R | 藥劑充能環 vs --panel ≥ 3:1 | ✅ | 藥劑 1 充能環對 --panel ≥ 3:1 3.45；藥劑 2 充能環對 --panel ≥ 3:1 3.45 |
+| PF-L | 面板 vs 場景地面亮度比（戰場、營地 4 角 32×32）≥ 1.4 | ✅ | 390x844 戰場 1.43；390x844 營地 1.42；1280x720 戰場 1.43；1280x720 營地 1.42 |
+| PF-R | 藥劑冷卻環 vs --panel ≥ 3:1；藥劑鈕上數字 0 個 | ✅ | 藥劑 1 冷卻環對 --panel ≥ 3:1 3.45；藥劑 2 冷卻環對 --panel ≥ 3:1 3.45；藥劑鈕上數字 0 個（不寫次數） ｜；藥劑鈕上數字 0 個（不寫次數） 1｜2 |
 | PF-F | 焦點框四邊完整；Tab 換分頁、方向鍵走面板內 | ✅ | 16／16 |
 | 對比 | 介面字對實際背後 ≥ 4.5 | ✅ | 不合 0 |
 
@@ -29,27 +29,27 @@ tools/d3_demo.js 產生；2026-11-19T06:49。預篩只抓明顯的失敗，門�
 | 390x844 | 設定・Tab 換分頁 | ✅ sec-view outline 2px offset 2px | [圖](focus/390x844/設定_Tab_換分頁.png) |
 | 390x844 | 設定・Shift+Tab | ✅ sec-acct outline 2px offset 2px | [圖](focus/390x844/設定_Shift_Tab.png) |
 | 390x844 | 地點・↓ 走清單 | ✅ go-2 outline 2px offset -2px | [圖](focus/390x844/地點_↓_走清單.png) |
-| 390x844 | 掉落紀錄・Tab＋↓ | ✅ lr-5 outline 2px offset -2px | [圖](focus/390x844/掉落紀錄_Tab_↓.png) |
-| 390x844 | 商會・Tab＋↓ | ✅ g1-1 outline 2px offset -2px | [圖](focus/390x844/商會_Tab_↓.png) |
-| 390x844 | 寶盒・↓ | ✅ hall-1 outline 2px offset -2px | [圖](focus/390x844/寶盒_↓.png) |
-| 390x844 | 更多・↓ | ✅ mc-box outline 2px offset -2px | [圖](focus/390x844/更多_↓.png) |
+| 390x844 | 掉落紀錄・Tab＋↓ | ✅ lr-7 outline 2px offset -2px | [圖](focus/390x844/掉落紀錄_Tab_↓.png) |
+| 390x844 | 商會・Tab＋↓ | ✅ g1-0 outline 2px offset -2px | [圖](focus/390x844/商會_Tab_↓.png) |
+| 390x844 | 寶盒・↓ | ✅ hall-0 outline 2px offset -2px | [圖](focus/390x844/寶盒_↓.png) |
+| 390x844 | 更多・↓ | ✅ mc-tree outline 2px offset -2px | [圖](focus/390x844/更多_↓.png) |
 | 390x844 | 進殿確認・開卡焦點 | ✅ hall-no outline 2px offset 2px | [圖](focus/390x844/進殿確認_開卡焦點.png) |
 | 1280x720 | 設定・Tab 換分頁 | ✅ sec-view outline 2px offset 2px | [圖](focus/1280x720/設定_Tab_換分頁.png) |
 | 1280x720 | 設定・Shift+Tab | ✅ sec-acct outline 2px offset 2px | [圖](focus/1280x720/設定_Shift_Tab.png) |
 | 1280x720 | 地點・↓ 走清單 | ✅ go-2 outline 2px offset -2px | [圖](focus/1280x720/地點_↓_走清單.png) |
-| 1280x720 | 掉落紀錄・Tab＋↓ | ✅ lr-5 outline 2px offset -2px | [圖](focus/1280x720/掉落紀錄_Tab_↓.png) |
-| 1280x720 | 商會・Tab＋↓ | ✅ g1-1 outline 2px offset -2px | [圖](focus/1280x720/商會_Tab_↓.png) |
-| 1280x720 | 寶盒・↓ | ✅ hall-1 outline 2px offset -2px | [圖](focus/1280x720/寶盒_↓.png) |
-| 1280x720 | 更多・↓ | ✅ mc-box outline 2px offset -2px | [圖](focus/1280x720/更多_↓.png) |
+| 1280x720 | 掉落紀錄・Tab＋↓ | ✅ lr-7 outline 2px offset -2px | [圖](focus/1280x720/掉落紀錄_Tab_↓.png) |
+| 1280x720 | 商會・Tab＋↓ | ✅ g1-0 outline 2px offset -2px | [圖](focus/1280x720/商會_Tab_↓.png) |
+| 1280x720 | 寶盒・↓ | ✅ hall-0 outline 2px offset -2px | [圖](focus/1280x720/寶盒_↓.png) |
+| 1280x720 | 更多・↓ | ✅ mc-tree outline 2px offset -2px | [圖](focus/1280x720/更多_↓.png) |
 | 1280x720 | 進殿確認・開卡焦點 | ✅ hall-no outline 2px offset 2px | [圖](focus/1280x720/進殿確認_開卡焦點.png) |
 
 ## PF-L 量測
 
 | 尺寸 | 場景 | 四角 Y | 面板 Y | 比 | 場景圖 |
 | --- | --- | --- | --- | --- | --- |
-| 390x844 | 戰場 | 0.007／0.007／0.007／0.007 | 0.03531 | 1.50 | [圖](shots/390x844/PFL_戰場_場景.png) |
+| 390x844 | 戰場 | 0.007／0.007／0.007／0.007 | 0.03135 | 1.43 | [圖](shots/390x844/PFL_戰場_場景.png) |
 | 390x844 | 營地 | 0.00734／0.00734／0.00734／0.00734 | 0.03135 | 1.42 | [圖](shots/390x844/PFL_營地_場景.png) |
 | 1280x720 | 戰場 | 0.007／0.007／0.007／0.007 | 0.03135 | 1.43 | [圖](shots/1280x720/PFL_戰場_場景.png) |
 | 1280x720 | 營地 | 0.00734／0.00734／0.00734／0.00734 | 0.03135 | 1.42 | [圖](shots/1280x720/PFL_營地_場景.png) |
 
-合計：列截圖 112／112 全過；錄影 40／40；預篩 17／17；❌ 總數 0。
+合計：列截圖 112／112 全過；錄影 44／44；預篩 17／17；❌ 總數 0。
