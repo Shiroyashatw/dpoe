@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dpoe D3 展示頁</title>
+<!-- D3-checklist.md：地點／星級、更多、設定、掉落紀錄、商會＋山海寶盒、試招場、開場＋重開、共用定案。
+     色票只在 tokens.css（M2-36）；假資料只在 fixtures.js（佔位，等 F01–F26）；不載遊戲程式。 -->
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<div id="ctl">
+  <label>尺寸 <select id="c-size"></select></label>
+  <label>存檔 <select id="c-save"></select></label>
+  <label>畫面・狀態 <select id="c-row"></select></label>
+  <button id="c-prev" type="button">‹</button><button id="c-next" type="button">›</button>
+  <label><input type="checkbox" id="c-fs"> 文字 130%</label>
+  <label><input type="checkbox" id="c-en"> 英文 +40%</label>
+  <label><input type="checkbox" id="c-rm"> 減少動態</label>
+  <label>動態 <select id="c-scn"></select></label>
+  <button id="c-play" type="button">播放</button>
+  <div class="note" id="c-note"></div>
+</div>
+<div id="stage"><div id="vp"><canvas id="cv"></canvas><div id="ui"></div></div></div>
+<script src="fixtures.js"></script>
+<script src="num.js"></script>
+<script src="demo.js"></script>
+</body>
+</html>

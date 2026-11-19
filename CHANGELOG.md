@@ -1,5 +1,13 @@
 # dungeonPOE 更新紀錄
 
+## D3 展示頁（demo/d3，只加展示頁，遊戲沒動）
+
+照 `docs/production/specs/D3-checklist.md` 做獨立展示頁 `demo/d3/`：地點／星級、更多、設定、掉落紀錄、商會＋山海寶盒、試招場、開場＋重開、共用定案共 56 列，兩尺寸（390×844、1280×720），另驗 390×664、1280×800（×1.25）。證據 `docs/production/evidence/dpoe-d3-demo/`。
+- **色票**：顏色只在 `demo/d3/tokens.css`（M2-36 值），其他檔 0 個色值字面值（PF16）；直立半版底改用不透明 `--panel`（`--sheet-bg` 0.94 疊在營地地面只有 1.38，過不了 PF-L 1.4）。
+- **數字**：`demo/d3/num.js` 照 number-abbrev v1.1（`abbr` 捨去／進位、`full` 千分位），測試表 17 列全對；縮寫處點一下或滑鼠停 300 ms 看完整；確認卡、說明卡、商會換法列、離線結算、試招場 DPS 卡、設定全寫完整。
+- **佔位**：假資料集中在 `demo/d3/fixtures.js`（等 F01–F26）；主視覺底圖「待素材」；圖示「暫用」（程式畫 16 px）；掉落紀錄空狀態句「待定」；按鍵表「待對照」e5f18530。
+- **驗收**：`tools/d3_demo.js` 截圖、60 fps 逐幀錄影 V1–V10（兩尺寸 × 一般／減少動態）、預篩 PF1–PF16／PF-K／PF-W／PF-L／PF-R／PF-F。
+
 ## D1 展示頁複審第三輪修正（demo/d1，只改展示頁，遊戲沒動）
 
 UIUX 00:07 複審（只改 C02 建議格）。證據 `docs/production/evidence/dpoe-d1-demo/review-fix3/`（只補拍 5 張，不重錄）。
