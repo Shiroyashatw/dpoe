@@ -737,7 +737,10 @@ async function shots(b) {
 }
 
 /* ---------- 錄影（第 8 節）：60 fps 逐幀；每幀記 probe，再量時間 ---------- */
-const VID = ['V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V-F2_flask_busy'];
+/* D2_VID=V8,V9 只重錄這幾支，其他沿用上次結果 */
+const VID = process.env.D2_VID
+  ? process.env.D2_VID.split(',')
+  : ['V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V-F2_flask_busy'];
 const FXD = require(path.join(ROOT, 'demo/d2/fixtures.js'));
 const F = 1000 / 60;
 async function videos(b) {
@@ -981,7 +984,7 @@ function vcheck(v, rm, pr, LOG, size) {
     );
     const mid = hpD[0] && pr.find(x => x.t >= hpD[0].t + 1500);
     add('冷卻一半掃過 50±5%', mid && Math.abs(+mid.fHp - 0.5) <= 0.05, mid ? mid.fHp : null);
-    const end = hpD[0] && firstAfter(hpD[0].t, x => x.fHp === '');
+    const end = hpD[0] && firstAfter(hpD[0].t + 1, x => x.fHp === ''); /* log 的 t 取到 0.01，+1 跳過喝之前那幀 */
     add('冷卻 3 秒（±1 幀）', end && near(end.t - hpD[0].t, 3000), end ? +(end.t - hpD[0].t).toFixed(1) : null);
     const sh = bz[0]
       ? pr.filter(x => x.t > bz[0].t && x.t <= bz[0].t + 300 && x.fShake && x.fShake !== 'translateX(0.00px)')
@@ -1111,7 +1114,10 @@ function report() {
   const vPass = vids.filter(([, x]) => x.checks.every(c => c.pass)).length;
   L.push('# dpoe-d2-demo 預篩（tools/d2_demo.js）', '');
   L.push(`截圖 ${keys.length} 張（74 列 × 2 尺寸＋變體＋另驗尺寸＋三個切換）：✅ ${pass}、❌ ${fail}`);
-  L.push(`影片 ${vids.length} 支（${VID.length} 支 × 2 尺寸 × 一般／減少動態）：時序全過 ${vPass}／${vids.length}`, '');
+  L.push(
+    `影片 ${vids.length} 支（${vids.length / 4} 支 × 2 尺寸 × 一般／減少動態）：時序全過 ${vPass}／${vids.length}`,
+    ''
+  );
   L.push('## D2 加項', '', '| 代號 | 結果 | 量測 |', '| --- | --- | --- |');
   L.push(
     `| PF-D2-1 K/M 單元表 | ${u && !u.bad.length && !u.width.length && u.buyOk ? '✅' : '❌'} | ${u ? `${u.rows.length - u.bad.length}/${u.rows.length} 照表；寬度 > 5 字元 ${u.width.length}；買得起邊界 ${u.buy.show} 可買=${u.buy.can}` : '—'} |`
@@ -1239,8 +1245,10 @@ function report() {
     await shots(b);
     pixels();
   } else if (prev) Object.assign(res, { rows: prev.rows, pf: prev.pf, rowList: prev.rowList });
-  if (MODE === 'all' || MODE === 'videos') await videos(b);
-  else if (prev) res.videos = prev.videos;
+  if (MODE === 'all' || MODE === 'videos') {
+    if (prev && process.env.D2_VID) res.videos = prev.videos;
+    await videos(b);
+  } else if (prev) res.videos = prev.videos;
   await b.close();
   const bad = report();
   process.exitCode = bad ? 1 : 0;
