@@ -1,5 +1,21 @@
 # dungeonPOE 更新紀錄
 
+## D2 展示頁修正輪（demo/d2，只改展示頁，遊戲沒動）
+
+照新版 `D2-checklist.md`、`D2-fakedata.md` v1.0 與 11/19 追加交辦 §1–§4、§6 修 D2 展示頁。證據同 `docs/production/evidence/dpoe-d2-demo/`（新增 `check-output.txt`、`d2_demo-output.txt`、F2-2 冷卻截圖 `G02-F2-2.png`、錄影 `V-F2_flask_busy`）。
+- **藥劑**：生命、魔力藥劑不限次數、各自冷卻 3 秒；鈕上只畫冷卻環＋掃過（`--hp-hi` #ae766c／`--mp-hi` #7d81ac），不寫任何次數；冷卻中按抖 ≤ 80 ms（減少動態只亮外框）；位置照 D1-fix §2。
+- **貨幣列**：只放金、靈魂，位置照 D1-fix §9，點一下開通貨明細（完整數字）。
+- **說明卡**：比較改成最上面一行總結＋每列 ▲▼ 差值，兩欄拿掉，桌機卡寬 320；直立點總結行、桌機按住 Shift 看身上那件。
+- **假資料**：全部照 D2-fakedata（裝備 10 格＋第三戒指＋護符、倉庫分布、通貨、技能、天賦 3 點、昇華 4／8、王印、補算）；推不出來的標「假定」。
+- **字串**：缺料「熟鐵還差 12」、稀有保底句、天賦樹期間補算行（開不到 10 秒不出）、王印重擲鈕兩行、「+{n} 件已收」照名詞表 v0.6.17。
+
+## D2 展示頁（demo/d2，只加展示頁，遊戲沒動）
+
+照 `docs/production/specs/D2-checklist.md` 做「刷到 → 換裝 → 變強」一關的獨立展示頁。證據 `docs/production/evidence/dpoe-d2-demo/`（`results.md`、`prefilter.md`、截圖、9 支錄影 × 2 尺寸 × 一般／減少動態）。
+- **畫面**：角色＋倉庫（裝備格五種稀有度、空格候選、比較列、批次分解與保護件、數值子頁、不能裝備）、物品說明（比較排最前）、鍛造（打造、缺料、空格不夠→去整理、翻牌、自動分解規則、鍛造台、腐化確認）、技能孔板與挑選頁、天賦樹滿版（暫停、回來補算、昇華石碑）、追逐物品＋王印（保底、套到裝備、重擲印詞、追逐橫幅）、按鍵。
+- **色票**：顏色只在 `demo/d2/tokens.css`（M2-36 值），其他檔 0 色值；**數字**：`demo/d2/num.js` 照 number-abbrev v1.1，縮寫處點一下或滑鼠停留看完整數字，確認卡一律完整。
+- **佔位**：假資料只在 `demo/d2/fixtures.js`；主視覺底圖、`--hp-hi`／`--mp-hi` 待素材；王印圖示暫用現有圖；藥劑與貨幣條位置待 D1-fix 規格；天賦補算行、重擲鈕字待定。
+- 驗收：`node tools/d2_demo.js`（先開本機伺服器）。
 ## D1 修正第二輪：11/19 追加交辦（紅藍水冷卻制、字串照名詞表 v0.6.17、數字縮寫 v1.1、藥劑技能充能改名）
 
 規格 `docs/production/specs/D1-fix-mumi-1119.md`／`-part2.md` v1.1、`number-abbrev.md` v1.1、`D1-fix-fakedata.md`、名詞表 v0.6.17。證據 `docs/production/evidence/dpoe-d1-demo/fix-mumi-1119/`（`node tools/d1_fix.js`、`node tools/d1_game_check.js`）。

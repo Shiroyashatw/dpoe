@@ -1,0 +1,106 @@
+/* D2 展示頁色票：唯一可以寫色值的檔。值照 docs/production/specs/M2-36-palette-tokens.md（廟宇古地圖）。
+   之後色票整組換值時只改這個檔；demo.css／demo.js 只用 var(--x)，canvas 也從這裡讀（demo.js tok()）。
+   --hp-hi／--mp-hi 照 M2-36-demo-tokens.md（13:31 定）。 */
+:root {
+  --tscale: 1;
+  --f12: calc(12px * var(--tscale)); --f13: calc(13px * var(--tscale)); --f14: calc(14px * var(--tscale));
+  --f15: calc(15px * var(--tscale)); --f16: calc(16px * var(--tscale)); --f17: calc(17px * var(--tscale));
+  --f20: calc(20px * var(--tscale)); --f22: calc(22px * var(--tscale)); --f28: calc(28px * var(--tscale));
+  --font: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* 面板與疊層 */
+  --scene-void: #0d0a07;
+  --panel-inset: #24211e;
+  --panel: #35312c;
+  --panel-raised: #39342f;
+  --panel-raised-2: #3c3732;
+  --plate-world: rgba(36, 33, 30, 0.85);
+  --sheet-bg: rgba(53, 49, 44, 0.94);
+  --panel-rgb: 53 49 44;
+  --chase-bnr: rgba(44, 36, 30, 0.94);
+  --scrim-rgb: 10 8 6;
+  --hl-rgb: 225 220 213;
+  --glint: #ffffff;
+  --glint-rgb: 255 255 255;
+  --warm-glint-rgb: 255 225 170;
+  --hurt-vignette-rgb: 190 30 25;
+
+  /* 框線與文字 */
+  --border: #554f48;
+  --border-mid: #a38e6b;
+  --border-ctl: #b8a482;
+  --border-hi: #cdbd9f;
+  --border-hi-rgb: 205 189 159;
+  --border-cap: #e3d6bb;
+  --tx: #dfd6c8;
+  --tx-title: #dfd6c8;
+  --tx-strong: #f7f0e5;
+  --tx-dim: #c7bdb0;
+  --tx-off: #ada69e;
+  --tx-lock: #ada69e;
+  --tx-empty: #ada69e;
+  --tx-scene: #f7f0e5;
+
+  /* 動作與狀態 */
+  --act: #2b6769;
+  --act-hi: #327273;
+  --on-act: #f7f0e5;
+  --on-act-rgb: 247 240 229;
+  --sel: #e3d6bb;
+  --paper: #e3d6bb;
+  --sel-ink: #2a1a12;
+  --good: #95d24e;
+  --good-rgb: 149 210 78;
+  --bad: #fe7883;
+  --bad-hi: #fe7883;
+  --bad-rgb: 254 120 131;
+  --warn: #b7ad66;
+  --ready: #e3d6bb;
+  --hp: #823630;
+  --mp: #304e8b;
+  /* 藥劑鈕冷卻環、低血外框（M2-36-demo-tokens.md、M2-36-palette-tokens.md；美術總監 13:31） */
+  --hp-hi: #ae766c;
+  --mp-hi: #7d81ac;
+  --prog-lo: #4a3d2b;
+  --prog-hi: #b89a68;
+
+  /* 稀有度、昇華、元素 */
+  --rar-normal: #dfd6c8;
+  --rar-magic: #83aaf2;
+  --rar-magic-bg: #161921;
+  --rar-rare: #ffcf5c;
+  --rar-rare-bg: #201b12;
+  --rar-unique: #04e1e8;
+  --rar-unique-bg: #111e1e;
+  --rar-chase: #f69625;
+  --rar-chase-hi: #ffbf73;
+  --rar-chase-bg: #251c13;
+  --asc: #0fb89f;
+  --asc-hi: #8ce1cf;
+  --asc-bg: #121e1b;
+  --asc-on: #1c4941;
+  --cat-frac: #f7f0e5;
+  --cat-mem: #ade2f9;
+  --mod-co: #fe7883;
+  --awk: #caaef4;
+  --el-fire: #ee9978;
+  --el-cold: #ade2f9;
+  --el-light: #f3f9a4;
+  --el-chaos: #e97ccf;
+  --dmg-hit: #ffffff;
+  --dmg-crit: #ffcf5c;
+  --dmg-hurt: #fdb3d0;
+  --dmg-gain: #95d24e;
+  --dmg-outline: rgba(10, 8, 6, 0.95);
+
+  /* 場景（主視覺底圖待素材：先用 tomb 地形色畫佔位格；營地用 temple） */
+  --scene-tomb-ground: #171507;
+  --scene-tomb-mid: #413e2d;
+  --scene-tomb-light: #6d6950;
+  --scene-tomb-edge: #0c0900;
+  --scene-temple-ground: #1d1203;
+  --scene-temple-mid: #4b3b2b;
+  --scene-temple-light: #7c644c;
+  --scene-temple-edge: #120700;
+}

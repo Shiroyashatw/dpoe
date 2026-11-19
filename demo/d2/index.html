@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dpoe D2 展示頁</title>
+<!-- 色票只在 tokens.css（M2-36 值）；demo.css／demo.js 只用 var(--x)。假資料只在 fixtures.js（佔位）。 -->
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="demo.css">
+</head>
+<body>
+<div id="ctl">
+  <label>尺寸 <select id="c-size"></select></label>
+  <label>存檔 <select id="c-save"></select></label>
+  <label>畫面・狀態 <select id="c-row"></select></label>
+  <button id="c-prev" type="button">‹</button><button id="c-next" type="button">›</button>
+  <label><input type="checkbox" id="c-fs"> 文字 130%</label>
+  <label><input type="checkbox" id="c-en"> 英文 +40%</label>
+  <label><input type="checkbox" id="c-rm"> 減少動態</label>
+  <label>錄影腳本 <select id="c-scn"></select></label>
+  <button id="c-play" type="button">播放</button>
+  <div class="note" id="c-ph"></div>
+  <div class="note" id="c-note"></div>
+</div>
+<div id="stage"><div id="vp"><canvas id="cv"></canvas><div id="ui"></div></div></div>
+<script src="../../js/art.js"></script>
+<script src="num.js"></script>
+<script src="fixtures.js"></script>
+<script src="demo.js"></script>
+</body>
+</html>
