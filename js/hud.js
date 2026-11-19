@@ -138,6 +138,8 @@ function hudInit() {
   <nav id="dnav" class="donly" aria-label="功能"></nav>
   <div id="prac" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
+  <div id="warn2" aria-hidden="true" hidden></div>
+  <div id="hask" role="dialog" aria-modal="true" aria-labelledby="haskT" hidden></div>
   <div id="paused" hidden>已暫停</div>
   <div id="banner" role="status" aria-live="polite" hidden></div>
   <div class="tonly" id="stick"><i></i></div>
@@ -147,6 +149,7 @@ function hudInit() {
   $('chase').addEventListener('mouseenter', () => chaseBnHover(1));
   $('chase').addEventListener('mouseleave', () => chaseBnHover(0));
   pracInit();
+  holdInit();
   introInit();
   hudBar();
   hudState();
@@ -182,8 +185,29 @@ function tipOf(b) {
   return `${c.D.n} Lv ${c.lv}${wtNeed(c.D) ? `（${wtNeed(c.D)}）` : ''}\n${c.D.d}${c.mp ? `\n魔力 ${c.mp}` : ''}${c.cd ? ` · 冷卻 ${c.cd.toFixed(1)} 秒` : ''}`;
 }
 let warnT;
+/* 吐司最多疊 2 條（B2）：#warn 永遠是最新那條；前一條還亮著就搬到 #warn2，疊在上面 4 px、照原本剩下的時間收 */
+let warn2T,
+  warnEnd = 0;
 function hudWarn(t, ms = 1600) {
-  const w = $('warn');
+  const w = $('warn'),
+    w2 = $('warn2');
+  if (w.classList.contains('on') && w.textContent && w.textContent !== t) {
+    const r = w.getBoundingClientRect(),
+      cs = getComputedStyle(w);
+    w2.textContent = w.textContent;
+    Object.assign(w2.style, {
+      left: r.left + 'px',
+      width: r.width + 'px',
+      top: r.top - r.height - 4 + 'px',
+      font: cs.font,
+      color: cs.color,
+      textShadow: cs.textShadow
+    });
+    w2.hidden = false;
+    clearTimeout(warn2T);
+    warn2T = setTimeout(() => (w2.hidden = true), Math.max(0, warnEnd - performance.now()));
+  }
+  warnEnd = performance.now() + ms;
   w.textContent = t;
   w.style.animationDuration = ms + 'ms';
   w.classList.remove('on');
@@ -769,7 +793,7 @@ function nodeHTML() {
               : why
                 ? `<em>${esc(why)}</em>`
                 : '';
-      return `${head}<li class="${why ? 'lock' : ''}${k === nx ? ' nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${k === nx ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${fmtN(spm[k])} 靈魂` : ''}</small>${st}</button></li>`;
+      return `${head}<li class="${why ? 'lock' : ''}${k === nx ? ' nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${k === nx ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${abbr(spm[k], 'own')} 靈魂` : ''}</small>${st}</button></li>`;
     })
     .join('');
   return `<div class="ph"><b>地點</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
@@ -1173,7 +1197,7 @@ function invHTML() {
       ? `<b>選一件裝備</b><span>點一下就放上去</span><button class="x" aria-label="取消" data-a="pickno">${ICO.x}</button>`
       : tb === 'eq'
         ? `<b>角色</b><span>Lv ${S.lv}・經驗 ${Math.round((100 * S.xp) / xpNeed(S.lv))}%${ptLeft() > 0 ? `・天賦 ${ptLeft()} 點未用` : ''}</span>${invTabs}${swapB(PANEL.stash ? '倉庫' : PANEL.craft ? '鍛造' : '技能')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`
-        : `<b>戰利品</b><span>${fmtN(n)}／${fmtN(INV_CAP)}・${fmtN(S.gold)} 金</span>${invTabs}${swapB(PANEL.stash ? '倉庫' : PANEL.craft ? '鍛造' : '技能')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`;
+        : `<b>戰利品</b><span>${fullN(n)}／${fullN(INV_CAP)}・${abbrH(S.gold, 'own')} 金</span>${invTabs}${swapB(PANEL.stash ? '倉庫' : PANEL.craft ? '鍛造' : '技能')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`;
   /* 0.4.9：篩選四列跟著清單捲（黏在上面會吃掉半個畫面） */
   return `<div class="ph">${head}</div>
   ${tb === 'bag' ? bagHTML() : `<div class="eqrow col">${dollHTML()}${NAV.slot ? slotPickHTML() : ''}${statsHTML(s, pen)}</div>${port ? '<div class="schint" hidden aria-hidden="true">' + ICO.down + '</div>' : ''}`}`;
@@ -1451,7 +1475,7 @@ function eqDeltaHTML(it, e = cmpSlot(it)) {
   const d = itemDelta(it, e.k),
     f = (n, v) => {
       const r = Math.round(v);
-      return `<span class="${r > 0 ? 'c-good' : r < 0 ? 'c-bad' : 'c-dim'}">${n} ${r > 0 ? '+' + fmtN(r) : r < 0 ? '−' + fmtN(-r) : '沒有變化'}</span>`;
+      return `<span class="${r > 0 ? 'c-good' : r < 0 ? 'c-bad' : 'c-dim'}">${n} ${r > 0 ? '+' + fullN(r) : r < 0 ? '−' + fullN(-r) : '沒有變化'}</span>`;
     },
     h = d.why
       ? `<p class="dlt c-bad">${esc(d.why)}</p>`
@@ -1509,8 +1533,6 @@ const TAGN = {
   final: '最終打擊',
   temp: '暫時召喚物'
 };
-/* 技能列第二行的數字（skills.js 的 skillNums）：傷害用元素色、魔力藍、冷卻金 */
-const fmtN = n => Math.round(n).toLocaleString('en-US');
 /* 數字縮寫（specs/number-abbrev.md）：mode 'own'＝擁有／獲得（捨去）、'cost'＝費用／需求（進位）。
    < 10,000 完整加千分位；以上 3 位有效數字 K／M／B／T（尾數 0 不刪），≥ 1e15 寫 1.23e15；進位到 1000 換下一個單位 */
 const fullN = (n, mode) => (mode === 'cost' ? Math.ceil(n - 1e-9) : Math.floor(n + 1e-9)).toLocaleString('en-US');
@@ -1545,19 +1567,75 @@ const termify = t => {
     .replace(TERM_RE, w => (seen.has(w) ? w : (seen.add(w), `<button class="term" data-term="${w}">${w}</button>`)))
     .replace(/\n/g, '<br>');
 };
-/* 花得多的動作按兩次（跟回家一樣）：第一次把按鈕換成確認文字，2.5 秒沒按就恢復；回傳 true＝確認了 */
-function confirm2(b, lab) {
-  if (b.dataset.armed) return true;
-  const t = b.innerHTML;
-  b.dataset.armed = 1;
-  b.innerHTML = lab;
-  b.classList.add('arm');
-  setTimeout(() => {
-    delete b.dataset.armed;
-    b.innerHTML = t;
-    b.classList.remove('arm');
-  }, 2500);
-  return false;
+/* 長按確認卡（M2-33-2b §7 照 P4；B2 取代原 confirm2「再按一次」13 處）：不能復原的動作先開卡，
+   左「長按{動作}」次要＋--bad 字、右下「取消」主樣式；外圈 600 ms 填滿才執行，提早放開＝取消；Enter 按住 600＝長按、Esc＝取消。
+   填滿後在原按鈕記一次許可、再點它一下，呼叫處照原流程往下跑（按鈕被重畫過就用同一個 data- 屬性找回來） */
+const HOLD_MS = 600;
+let HASK = null;
+function holdAsk(b, act, why = '') {
+  if (b.dataset.ok) return delete b.dataset.ok, false;
+  const a = [...b.attributes].find(x => x.name.startsWith('data-'));
+  HASK = { b, q: a && `[${a.name}="${CSS.escape(a.value)}"]`, t: 0 };
+  const o = $('hask');
+  o.innerHTML = `<div class="card"><h2 id="haskT">${esc(act)}？</h2>${why ? `<p>${esc(why)}</p>` : ''}<p class="hno">⚠ 不能復原</p><p class="hhint" hidden>按住 0.6 秒</p>
+    <div class="hbtns"><button class="btn hgo" data-h="go">長按${esc(act)}</button><button class="btn pri" data-h="no">取消</button></div></div>`;
+  o.hidden = false;
+  o.querySelector('[data-h="no"]').focus();
+  return true;
+}
+function holdClose() {
+  if (!HASK) return;
+  clearTimeout(HASK.t);
+  $('hask').hidden = true;
+  HASK = null;
+}
+function holdStart() {
+  const g = $('hask').querySelector('.hgo');
+  g.classList.add('on');
+  $('hask').querySelector('.hhint').hidden = true;
+  HASK.t = setTimeout(() => {
+    const { b, q } = HASK,
+      el = (b.isConnected ? b : q && document.querySelector(q)) || b;
+    holdClose();
+    el.dataset.ok = 1;
+    el.click();
+    delete el.dataset.ok;
+  }, HOLD_MS);
+}
+function holdStop() {
+  if (!HASK || !HASK.t) return;
+  clearTimeout(HASK.t);
+  HASK.t = 0;
+  const o = $('hask');
+  o.querySelector('.hgo').classList.remove('on');
+  o.querySelector('.hhint').hidden = false;
+}
+function holdInit() {
+  const o = $('hask');
+  /* 要蓋住整個畫面（HUD 容器有自己的堆疊層）：卡與第 2 條吐司搬到 body 下 */
+  document.body.append(o, $('warn2'));
+  o.addEventListener('pointerdown', e => e.target.closest('.hgo') && (e.preventDefault(), holdStart()));
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) o.addEventListener(ev, holdStop);
+  o.addEventListener('click', e => (e.target === o || e.target.closest('[data-h="no"]')) && holdClose());
+  o.addEventListener('contextmenu', e => e.preventDefault());
+  /* 卡開著：鍵盤只給卡（Tab 在兩顆鈕之間、Esc 取消、Enter 照焦點；長按鈕上按住 Enter＝長按） */
+  addEventListener(
+    'keydown',
+    e => {
+      if (!HASK) return;
+      e.stopImmediatePropagation();
+      const go = e.target.closest && e.target.closest('.hgo');
+      if (e.key === 'Escape') holdClose();
+      else if (e.key === 'Tab') e.preventDefault(), o.querySelector(go ? '[data-h="no"]' : '.hgo').focus();
+      else if (e.key === 'Enter' || e.key === ' ') e.preventDefault(), go ? e.repeat || holdStart() : holdClose();
+    },
+    true
+  );
+  addEventListener(
+    'keyup',
+    e => HASK && (e.key === 'Enter' || e.key === ' ') && (e.stopImmediatePropagation(), holdStop()),
+    true
+  );
 }
 /* 名詞說明：疊在說明框上面，貼著被點的字 */
 function showTerm(el) {
@@ -1886,7 +1964,7 @@ document.addEventListener('click', e => {
   else if (k === 'reset') {
     const why = eqUnloadWhy(S, ['a_st']);
     if (why) return hudWarn(why);
-    if (!confirm2(b, '再按一次')) return;
+    if (holdAsk(b, '重置', '退回這個昇華的全部點數')) return;
     S.at = ['a_st'];
     treeChanged();
   }
@@ -2032,7 +2110,7 @@ document.addEventListener('click', e => {
   else if (k === 'gh' && S.lv < GH_LV && S.godOn !== +v) hudWarn(lockSlotTxt('gh'));
   else if (k === 'gh') (S.godOn = S.godOn === +v ? null : +v), (ST = stats()), save();
   else if (k === 'ghx') {
-    if (!confirm2(b, '再按一次：拆成 200 靈魂')) return;
+    if (holdAsk(b, '拆解', '拆成 200 靈魂')) return;
     const w = ghSalvage(+v);
     if (w) return hudWarn(w);
     save();
@@ -2781,7 +2859,7 @@ function itemTip(it, cmp) {
       ].filter(r => Math.abs(r[1]) >= 0.5);
       html += `<div class="cmp2"><span>${cur ? `換掉 <i class="rc${cur.r}">${esc(itemName(cur))}</i>` : `${e.n}現在空著，裝上去`}</span>${
         rows.length
-          ? `<div class="cg">${rows.map(([n, v]) => `<div><span>${n}</span><b class="${v > 0 ? 'c-good' : 'c-bad'}">${v > 0 ? '▲' : '▼'} ${fmtN(Math.abs(v))}</b></div>`).join('')}</div>`
+          ? `<div class="cg">${rows.map(([n, v]) => `<div><span>${n}</span><b class="${v > 0 ? 'c-good' : 'c-bad'}">${v > 0 ? '▲' : '▼'} ${fullN(Math.abs(v))}</b></div>`).join('')}</div>`
           : '<em>數值一樣</em>'
       }</div>`;
     }
@@ -3237,7 +3315,7 @@ function act(a, el) {
     if (a === 'selno') return (BAG.sel = null), hudInv();
     if (a === 'selmove') (BAG.sel = null), quickMove('inv', it);
     else if (a === 'selsell') {
-      if (el && confirm2(el, `確定分解？`)) (BAG.sel = null), sell('inv', it);
+      if (el && !holdAsk(el, '分解')) (BAG.sel = null), sell('inv', it);
     } else if (a === 'sellock') lockToggle(it);
     else if (a === 'seltip') tapItem({ el, src: 'inv', it }); /* 詳細：說明框＋做裝、賣、鎖定 */
   } else if (a === 'tipx') hideTip();
@@ -3255,7 +3333,7 @@ function act(a, el) {
     if (PORT()) navGo('bag');
     else openPanel('inv');
   } else if (a === 'bagsell') {
-    if (el && confirm2(el, `確定分解 ${bagSells().length} 件？`)) sellAll();
+    if (el && !holdAsk(el, '分解', `分解 ${bagSells().length} 件`)) sellAll();
   } else if (a.startsWith('asc:')) {
     /* 選昇華／換昇華：點數全部退回（被關掉的欄位裡的裝備脫到背包，放不下就擋下來） */
     const why = eqUnloadWhy(S, ['a_st'], a.slice(4));

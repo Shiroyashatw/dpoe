@@ -125,13 +125,13 @@ const etaTxt = e =>
   !e || e.m === 0
     ? ''
     : e.m === Infinity
-      ? `缺${e.nm} ${fmtN(e.d)}`
-      : `還要 ${Math.max(1, Math.ceil(e.m))} 分・缺${e.nm} ${fmtN(e.d)}`;
+      ? `缺${e.nm} ${fullN(e.d, 'cost')}`
+      : `還要 ${Math.max(1, Math.ceil(e.m))} 分・缺${e.nm} ${fullN(e.d, 'cost')}`;
 /* M1-18／BASE-05：買不起的鈕寫「缺靈魂 n」（只寫最慢那一項） */
-const lackTxt1 = e => (e && e.nm ? `缺${e.nm} ${fmtN(e.d)}` : '');
+const lackTxt1 = e => (e && e.nm ? `缺${e.nm} ${fullN(e.d, 'cost')}` : '');
 const costTxt = c =>
   costRows(c)
-    .map(([nm, , w]) => `${nm} ${fmtN(w)}`)
+    .map(([nm, , w]) => `${nm} ${fullN(w, 'cost')}`)
     .join('・');
 /* 產生器這一次按下去買幾級：×1、×10、最大（買得起的全部；一級都買不起時照 1 級算缺多少） */
 const genN = k => (CAMPUI.mul === 'max' ? Math.max(1, genAfford(k)) : CAMPUI.mul);
@@ -177,7 +177,7 @@ const rbIc = key => (key === 'soul' ? CAMP_IC.soul : MATS[matOf(key)[0]].ic);
 const rbName = key => (key === 'soul' ? '靈魂' : matName(...matOf(key)));
 function genBarHTML(key, add) {
   return add != null
-    ? `<div class="rbar st">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b>+${fmtN(add)}</b></div>`
+    ? `<div class="rbar st">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b>+${fullN(add)}</b></div>`
     : `<div class="rbar" data-rb="${key}">${icHTML(rbIc(key), '', 16)}<span class="rn">${esc(rbName(key))}</span><b></b><small></small><i class="rt"><i></i></i></div>`;
 }
 /* 這個材料鍵是哪一座產生器正在產的（條的進度＝那一座的 acc）；靈魂、沒在產的階回 null */
@@ -257,7 +257,7 @@ function rbTick() {
       [a, b, t0, d = 300] = el.dataset.r.split(':').map(Number),
       p = Math.min(1, (now - t0) / d),
       x = a + (b - a) * (1 - (1 - p) ** 3);
-    el.textContent = '+' + (Number.isInteger(a) && Number.isInteger(b) ? fmtN(Math.round(x)) : fmtR(x));
+    el.textContent = '+' + (Number.isInteger(a) && Number.isInteger(b) ? fullN(Math.round(x)) : fmtR(x));
     if (p >= 1) el.classList.remove('nroll');
   }
 }
@@ -319,7 +319,7 @@ function genCardHTML(k) {
     mp = ms ? Math.round((100 * (g.lv - m0)) / (ms.at - m0)) : 100;
   return `<div class="paper camp cc gen ${ok ? 'can' : ''} ${f ? 'up' : ''} ${f && f.ms ? 'ms' : ''}" id="cc-${k}">
   <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}">${icHTML(CAMP_IC[k])}<b>${GEN[k].n}</b><span>Lv ${g.lv}</span>${wkHTML(k, W[k], s)}${ICO.down}</button>
-  ${ms ? `<div class="ccm" role="progressbar" aria-label="到下一個里程碑" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${mp}"><i style="--m:${mp}%"></i></div><div class="ccml"><span>Lv ${ms.at}：${esc(ms.t)}</span><span>總共產了 ${fmtN(g.tot || 0)}</span></div>` : ''}
+  ${ms ? `<div class="ccm" role="progressbar" aria-label="到下一個里程碑" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${mp}"><i style="--m:${mp}%"></i></div><div class="ccml"><span>Lv ${ms.at}：${esc(ms.t)}</span><span>總共產了 ${fullN(g.tot || 0)}</span></div>` : ''}
   <div class="ccbig"><small>每分鐘</small><b class="${roll ? 'nroll' : ''}" ${roll ? `data-r="${f.from}:${f.to}:${f.t}"` : ''}>+${fmtR(roll ? f.from : r)}</b><small>${matName(k, T)}</small>${f && f.add ? `<em class="ccfl">${esc(f.add)}</em>` : ''}</div>
   <i class="rt rtg" data-rg="${k}"><i></i></i>
   ${!W[k] ? '<p class="cchint">升民房就有人來做</p>' : W[k] < s ? `<p class="cchint">升民房再來 ${s - W[k]} 個人</p>` : ''}
@@ -667,27 +667,27 @@ function curPortHTML() {
       const w = why(k),
         n = M[k] || 0,
         on = (k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore);
-      return `<button class="curow ${w ? 'no' : ''} ${n ? '' : 'z'} ${on ? 'on' : ''}" data-cu="u:${k}" ${on ? 'aria-pressed="true"' : ''}>${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w && n ? 'c-warn' : ''}">${esc(n ? w || desc(k) : notYet(k) || w || desc(k))}</small></span><em>×${fmtN(n)}</em></button>`;
+      return `<button class="curow ${w ? 'no' : ''} ${n ? '' : 'z'} ${on ? 'on' : ''}" data-cu="u:${k}" ${on ? 'aria-pressed="true"' : ''}>${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w && n ? 'c-warn' : ''}">${esc(n ? w || desc(k) : notYet(k) || w || desc(k))}</small></span><em>×${fullN(n)}</em></button>`;
     },
     grp = k => {
       const w = why(k),
         ns = [M[k] || 0, M[k + '2'] || 0, M[k + '3'] || 0];
       /* 沒選裝備或不能用在這件上：收成一列，只寫三階各有幾顆 */
       if (!it || w)
-        return `<button class="curow ${w ? 'no' : ''} ${ns.some(Boolean) ? '' : 'z'}" data-cu="u:${k}">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w && ns.some(Boolean) ? 'c-warn' : ''}">${esc(ns.some(Boolean) ? w || CUR[k].d : notYet(k) || w || CUR[k].d)}</small></span><em class="t3"><i>普</i>${fmtN(ns[0])}<i>高</i>${fmtN(ns[1])}<i>完</i>${fmtN(ns[2])}</em></button>`;
+        return `<button class="curow ${w ? 'no' : ''} ${ns.some(Boolean) ? '' : 'z'}" data-cu="u:${k}">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}</b><small class="${w && ns.some(Boolean) ? 'c-warn' : ''}">${esc(ns.some(Boolean) ? w || CUR[k].d : notYet(k) || w || CUR[k].d)}</small></span><em class="t3"><i>普</i>${fullN(ns[0])}<i>高</i>${fullN(ns[1])}<i>完</i>${fullN(ns[2])}</em></button>`;
       return `<div class="cugrp ${rec === k ? 'rec' : ''}"><div class="curow">${icHTML(CUR[k].ic)}<span class="ct"><b>${esc(CUR[k].n)}${rec === k ? '<i>下一步</i>' : ''}</b><small>${esc(CUR[k].d)}</small></span></div>
         <div class="cut3">${[1, 2, 3]
           .filter(g => g === 1 || campCan('tier' + g))
           .map(
             g =>
-              `<button class="g${g} ${ns[g - 1] ? '' : 'z'}" data-cu="u:${k}${g > 1 ? g : ''}" aria-label="${esc(CUR[k + (g > 1 ? g : '')].n)}"><b>${['普通', '高階', '完美'][g - 1]}</b><small>${span(g)}</small><em>×${fmtN(ns[g - 1])}</em></button>`
+              `<button class="g${g} ${ns[g - 1] ? '' : 'z'}" data-cu="u:${k}${g > 1 ? g : ''}" aria-label="${esc(CUR[k + (g > 1 ? g : '')].n)}"><b>${['普通', '高階', '完美'][g - 1]}</b><small>${span(g)}</small><em>×${fullN(ns[g - 1])}</em></button>`
           )
           .join('')}</div></div>`;
     },
     ess = essList(),
     rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k) && campCan(curKey(k))),
     li = (ic, n, d, v) =>
-      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`,
+      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fullN(v)}</em></li>`,
     top = !it
       ? emptySlotHTML(false)
       : `${cardHTML(it)}${
@@ -728,7 +728,7 @@ function curPageHTML() {
     it = S.curIt,
     f = it && foreOf(it),
     btn = k =>
-      `<button class="cub ${M[k] ? '' : 'z'} ${(k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore) ? 'on' : ''} ${/[23]$/.test(k) ? 'g' + k.slice(-1) : ''}" ${CUR_RING.includes(k) ? `style="grid-area:${k}"` : ''} data-cu="u:${k}" title="${esc(CUR[k].n + '：' + CUR[k].d)}" aria-label="${esc(CUR[k].n)}">${icHTML(CUR[k].ic)}<em>${fmtN(M[k] || 0)}</em></button>`,
+      `<button class="cub ${M[k] ? '' : 'z'} ${(k === 'conv' && CUI.conv) || (k === 'fore' && CUI.fore) ? 'on' : ''} ${/[23]$/.test(k) ? 'g' + k.slice(-1) : ''}" ${CUR_RING.includes(k) ? `style="grid-area:${k}"` : ''} data-cu="u:${k}" title="${esc(CUR[k].n + '：' + CUR[k].d)}" aria-label="${esc(CUR[k].n)}">${icHTML(CUR[k].ic)}<em>${fullN(M[k] || 0)}</em></button>`,
     center = `<div class="cuc" style="grid-area:mid" data-cur="1">${it ? itemHTML(it, 'cur', 'cur') : PORT() ? '<button class="btn pickb" data-a="pick">選一件裝備</button>' : `<span>${TOUCH.on ? '點倉庫的裝備<br>按「放進中間」' : '把裝備拖進來<br>或點倉庫的裝備'}</span>`}</div>`,
     hint = !it
       ? ''
@@ -740,7 +740,7 @@ function curPageHTML() {
     ess = essList(),
     rest = Object.keys(CUR).filter(k => !CUR_RING.includes(k) && !CUR_TIERS.includes(k) && campCan(curKey(k))),
     row = (ic, n, d, v) =>
-      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fmtN(v)}</em></li>`;
+      `<li class="${v ? '' : 'z'}">${icHTML(ic)}<div><b>${esc(n)}</b><small>${esc(d)}</small></div><em>${fullN(v)}</em></li>`;
   return `<div class="cupg">${CUR_RING.filter(k => campCan(curKey(k)))
     .map(btn)
     .join('')}${center}</div>
@@ -812,7 +812,7 @@ document.addEventListener('click', e => {
       err = holyDo(it);
       if (!err) (CUI.log = '聖化完成：' + it.a.map(a => '×' + a.m.toFixed(2)).join(' ')), sfx('lvup');
     } else if (v === 'corr') {
-      if (!corruptCheck(it) && !confirm2(b, `<i>再按一次</i>`)) return;
+      if (!corruptCheck(it) && holdAsk(b, '腐化', '全部鎖定')) return;
       const r = corruptDo(it);
       if (r.why) err = r.why;
       else {
@@ -1232,7 +1232,7 @@ document.addEventListener('click', e => {
     err = holyDo(it);
     if (!err) (CRAFT.log = '聖化完成：' + it.a.map(a => '×' + a.m.toFixed(2)).join(' ')), sfx('lvup');
   } else if (k === 'cor' && it) {
-    if (!confirm2(b, `<span>再按一次</span><small>全部鎖定、不能反悔</small>`)) return;
+    if (holdAsk(b, '腐化', '全部鎖定')) return;
     const r = corruptDo(it);
     if (r.why) err = r.why;
     else {
@@ -1251,7 +1251,7 @@ document.addEventListener('click', e => {
   } else if (k === 'cal' && it) {
     const perf = CRAFT.perf && MAT().pcalam > 0,
       pen = CRAFT.pen && MAT().pen > 0;
-    if (!pen && !confirm2(b, `<span>再按一次</span><small>失敗會毀掉這件</small>`)) return;
+    if (!pen && holdAsk(b, '災魘', '失敗會毀掉這件')) return;
     const r = calamDo(it, perf, pen);
     if (r.why) err = r.why;
     else {

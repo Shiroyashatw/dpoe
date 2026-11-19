@@ -858,7 +858,7 @@ function treeInit() {
     if (ta === 'go' || ta.startsWith('go:')) treeGo(ta.slice(3));
     if (ta === 'back') treeToggle(TREE.sel), treeSelect(TREE.sel);
     /* 重置按兩次：一鍵清空幾十點太容易誤觸 */
-    if (ta === 'reset' && confirm2(a, '再按一次：退回全部天賦點'))
+    if (ta === 'reset' && !holdAsk(a, '重置', '退回全部天賦點'))
       (S.pt = [...PT_START]), (S.ptA = {}), (TREE.sel = null), (TREE.path = []), treeChanged(), treeCard();
     /* 珠寶孔（0.2.84） */
     const [k, x, y] = ta.split(':');
@@ -869,7 +869,7 @@ function treeInit() {
       treeChanged();
       treeSockOpen(+x);
     }
-    if (k === 'jx' && confirm2(a, '再按一次：拆成 200 靈魂')) {
+    if (k === 'jx' && !holdAsk(a, '拆解', '拆成 200 靈魂')) {
       const w = jwSalvage(x);
       if (w) return hudWarn(w);
       save();
