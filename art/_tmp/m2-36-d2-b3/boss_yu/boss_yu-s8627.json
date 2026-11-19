@@ -1,0 +1,37 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "boss_yu",
+  "seed": 8627,
+  "wave": "6-2",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a bloated greedy demon with a huge grinning mouth, clutching strings of square-holed copper coins and a sack of ingots, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no goblin, no small imp, no paper scroll",
+    "image_size": {
+      "width": 64,
+      "height": 64
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "seed": 8627,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

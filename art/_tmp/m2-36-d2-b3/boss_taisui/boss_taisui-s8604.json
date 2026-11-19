@@ -1,0 +1,37 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "boss_taisui",
+  "seed": 8604,
+  "wave": "6-2",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a towering star-lord general in dark red lacquered armour with pale gold trim, a long halberd, a ring of twelve small round medallions floating behind his back, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no angel, no wings, no halo, no white robe",
+    "image_size": {
+      "width": 64,
+      "height": 64
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "seed": 8604,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}
