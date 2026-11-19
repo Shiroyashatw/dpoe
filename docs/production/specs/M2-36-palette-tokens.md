@@ -158,7 +158,8 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --el-fire／--el-cold／--el-light／--el-chaos | `#ee9978`／`#ade2f9`／`#f3f9a4`／`#e97ccf` |
 | --cat-frac／--cat-mem | 同 --tx-strong／同 --el-cold |
 | --cat-corr | `#ff6066`（L* 62.2） | 腐化詞字色＋腐化圖示（M2-item-display v0.4 §9）；對 --panel 5.41、--hdr 5.10、--panel-raised 4.95；ΔE2000 對 --tx 34.1、--cat-frac 36.8、--cat-mem 52.7、--rar-chase 68.3、--bad 17.8 |
-| --cat-cal | `#bd7aff`（L* 63.3） | 災魘詞字色＋災魘圖示；對 --panel 5.62、--hdr 5.29、--panel-raised 5.14；ΔE2000 對 --tx 36.5、--cat-frac 38.4、--cat-mem 27.1、--rar-chase 48.5、--bad 24.5；對 --cat-corr 33.9。離 --rar-magic 只有 15.5、綠色盲下 5.5，靠圖示分（魔法色只在名稱） |
+| --cat-cal | `#bd7aff`（L* 63.3） | 災化詞字色＋災化徽章邊線；對 --panel 5.62、--hdr 5.29、--panel-raised 5.14；ΔE2000 對 --tx 36.5、--cat-frac 38.4、--cat-mem 27.1、--rar-chase 48.5、--bad 24.5；對 --cat-corr 33.9。離 --rar-magic 只有 15.5、綠色盲下 5.5，靠圖示分（魔法色只在名稱） |
+| --cat-cal-hi | `#f1e4ff` | 只用在災化徽章內部，不得用於文字或其他元素；讓災化徽章灰階 ΔL* 對普通腐化 16.6（≥15）；對 --panel 13.14 |
 | --mod-mm／--mod-co | 同 --el-chaos／同 --bad |
 這組跟新的語意＋稀有度組有撞色（見「未過」）。**定案規則（mumi 2026-11-19 選 B）：元素、昇華、覺醒色一律搭圖示或文字使用，不能單靠顏色區分；色值沿用，不再為撞色重定。**
 

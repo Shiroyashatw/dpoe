@@ -1,6 +1,6 @@
 # M2-36 PixelLab D2 補跑清單＋第二波／第三批審圖結論
 
-負責：Game Art Director。版本 2026-11-19 21:20（台北）。審的是 `art/m2-36-d2-b2`（PR #122，項 1–6 全部）與 `art/m2-36-d2-b3`（PR #121，§5a–5d＋§6）。呼叫 body、palette、post、過關都照 `M2-36-pixellab-d2-batch2.md`（下稱 batch2）與 `M2-36-pixellab-d2.md`（下稱主檔）原列，本檔只改 `<DESC>`、`<NOT>` 加詞與種子。規格、JSON、日誌、對話不寫 API key 的名或值。
+負責：Game Art Director。版本 2026-11-19 22:05（台北）：補跑（PR #124，`art/m2-36-d2-rerun`）已審，§3 是定稿挑圖、§4 是補跑結果。審的是 `art/m2-36-d2-b2`（PR #122，項 1–6 全部）與 `art/m2-36-d2-b3`（PR #121，§5a–5d＋§6）。呼叫 body、palette、post、過關都照 `M2-36-pixellab-d2-batch2.md`（下稱 batch2）與 `M2-36-pixellab-d2.md`（下稱主檔）原列，本檔只改 `<DESC>`、`<NOT>` 加詞與種子。規格、JSON、日誌、對話不寫 API key 的名或值。
 
 ## 0. 審圖規則的修正（美術總監定，11/19 21:10）
 
@@ -61,20 +61,45 @@
 
 標 ⚠ 的是可用但不理想。種子後面沒標的是第二波，標 \* 的是第三批。
 
-**大點 tn（44 組，37 組可用）**：base 8201\*⚠五角星｜life 6205｜armour 8205\*｜melee 6215｜atkspd 6217⚠沒速度線｜proj 6221｜evade 6224｜critdmg 6230｜acc 6232｜trap 6235｜ail 6237｜elem 8228\*｜elemskill 6244｜spell 8231\*｜es 6251｜mpcd 6253｜occult 6256｜minion 6258｜aura 6263｜primal 6264｜totem 6267｜attack 8249\*｜phys 6277｜fire 6280｜cold 8256\*｜light 8257\*｜chaos 6290⚠沒混色｜bleed 6291⚠六滴｜poison 6294｜leech 6298⚠沒牙｜strike 8270\*｜heavy 6308｜stun 8274\*｜deflect 6320｜curse 6326｜rage 6328｜parry 6331。無可用：block、crit、area、regen、tough、thorns、duration（§1）。
+**大點 tn（44 組，42 組定）**：base 8201\*⚠五角星｜life 6205｜armour 8205\*｜melee 6215｜atkspd 6217⚠沒速度線｜proj 6221｜evade 6224｜critdmg 6230｜crit 9018｜acc 6232｜trap 6235｜ail 6237｜elem 8228\*｜elemskill 6244｜spell 8231\*｜es 6251｜mpcd 6253｜occult 6256｜minion 6258｜aura 6263｜primal 6264｜totem 6267｜attack 8249\*｜phys 6277｜fire 6280｜cold 8256\*｜light 8257\*｜chaos 6290⚠沒混色｜bleed 6291⚠六滴｜poison 6294｜leech 9084｜strike 8270\*｜heavy 6308｜stun 8274\*｜deflect 6320｜curse 6326｜rage 6328｜parry 6331｜regen 9026｜tough 9031｜thorns 9033｜duration 9038。無可用、用現有借圖：block、area。
 
-**小點 ts（24 組，17 組可用）**：attack 6402｜fire 6409｜cold 8407\*｜bleed 8414\*｜poison 6423｜ignite 6425｜life 6429｜mana 8421\*｜armour 8426\*⚠｜evade 8428\*｜block 8429\*｜speed 6451｜minion 8440\*｜flask 8442\*｜curse 8444\*｜aura 6468｜attr 6471⚠五角星。無可用：phys、light、chaos、es、crit、proj、area（§1）。
+**小點 ts（24 組，23 組定）**：attack 6402｜fire 6409｜cold 8407\*｜bleed 8414\*｜poison 6423｜ignite 6425｜life 6429｜mana 8421\*｜armour 8426\*⚠｜evade 8428\*｜block 8429\*｜speed 6451｜minion 8440\*｜flask 8442\*｜curse 8444\*｜aura 6468｜attr 6471⚠五角星｜es 9053⚠實心六角｜crit 9057｜proj 9063｜phys＝借大點 tn_phys 6277｜light＝借大點 tn_light 8257｜chaos＝借大點 tn_chaos 6290（借大點的照小點流程：最近鄰縮 16 再 `alpha_binary`）。無可用、用現有借圖：area。
 
 易混對（同表、灰階要再看）：tn_ail／tn_poison／tn_leech（都是滴形）；tn_life 與補跑的 tn_regen；ts_bleed／ts_fire／ts_ignite（16 px 都是尖頂滴形，靠顏色）。
 
-**部位 slot（11 組，10 組可用）**：weapon 6701｜focus 6706｜shield 6707｜helm 6711｜chest 6714｜gloves 6717｜boots 6721｜belt 6722｜quiver 6730｜amulet 6732。ring 無可用（§1）。
+**部位 slot（11 組，10 組可用）**：weapon 6701｜focus 6706｜shield 6707｜helm 6711｜chest 6714｜gloves 6717｜boots 6721｜belt 6722｜quiver 6730｜amulet 6732。ring 補跑仍是實心圓盤，用現有圖。
 
-**通貨 16**：gold 5401⚠偏灰｜trans 5322｜aug 5324｜regal 5327｜exalt 5329⚠｜chaos 5330｜whet 5335｜scrap 5336｜prism 5339｜vaal 5340｜eng 5343｜soulpack 5351｜calam 5351｜pen 5357｜frac 6803\*⚠｜perf 6805\*。無可用：wish、pcalam、ink（§1）。灰階：calam≠vaal 過；pcalam 待補跑。
+**通貨 16**：gold 5401⚠偏灰｜trans 5322｜aug 5324｜regal 5327｜exalt 5329⚠｜chaos 5330｜whet 5335｜scrap 5336｜prism 5339｜vaal 5340｜eng 5343｜soulpack 5351｜calam 5351｜pen 5357｜frac 6803\*⚠｜perf 6805\*。wish 9101｜pcalam 9103｜ink 9108⚠（細棍＋墨滴）。灰階：calam≠vaal、pcalam≠exalt 過。
 
 **歸墟王印 16**：5510（5512 備）。
 
-**狀態 16（5c）**：ign 7001｜bleed 7004｜poison 7007｜chill 7011⚠棋盤 9｜frozen 7013｜shock 7017⚠｜elc 7021｜stun 7023⚠只有一顆星｜wither 7025｜exp 7032⚠｜rage 7038｜wet 7042。無可用：blind、curse、cons、pin（§1）。沒過的組先留 M2-39 舊圖。
+**狀態 16（5c）**：ign 7001｜bleed 7004｜poison 7007｜chill 7011⚠棋盤 9｜frozen 7013｜shock 7017⚠｜elc 7021｜stun 7023⚠只有一顆星｜wither 7025｜exp 7032⚠｜rage 7038｜wet 7042。cons 9094｜pin 9098。blind、curse 補跑仍不過，**留 M2-39 舊圖**。
 
-**牌匾（5d）**：身 5702（四角鉚釘每 96 px 重複一次，拉到 220 會看到兩組；不行就換 5703）｜端 5706｜角花無可用（§1，砍掉也行，角花本來就可以不畫）。
+**牌匾（5d）**：身 5702（四角鉚釘每 96 px 重複一次，拉到 220 會看到兩組；不行就換 5703）｜端 5706｜角花補跑仍不是 L 形（9110 是 T 形），**不用角花**。
 
 **道具 32（項 6）**：lantern 5243⚠｜ash 5244⚠灰色火焰形，違反 no flame｜joss 5247｜stele 5249｜crate 5252｜barrel 5255｜rack 5256。不補跑（點數留給天賦與王）。
+
+## 4. 補跑結果（PR #124，110／111 張；tk_crimson s9011 斷線未扣點）
+
+| id | 結果 | 定 |
+| --- | --- | --- |
+| `boss_xingtian` | 9003 無頭（頸部是空的領口），胸眼看不出；其餘 5 張有頭 | 9003 進 mumi 挑（只有 1 張） |
+| `boss_fengbo` | 9072 鳥喙頭＋鹿角＋蛇尾，但有翅膀；9069 鳥頭但有地面影子；9070／9071 仍是鹿頭 | 9072 加進 mumi 挑 |
+| `tk_crimson` | 9007–9010 箭形朝上、沒有底盤；9012 盾底 | 4 張進 mumi 挑 |
+| `tk_deflect` | 3 張仍只有羽毛 | 沿用 6087／8087 |
+| `tk_inevcrit` | 9077 劍尖有爆點、9078 劍尖有光 | 加進 mumi 挑 |
+| `tn_block`、`tn_area` | 全是圓盤 | 用現有借圖 |
+| `tn_crit`／`regen`／`tough`／`thorns`／`duration`／`leech` | 都有可用 | 見 §3 |
+| `ts_phys`／`light`／`chaos` | 圓盤或灰團 | 借大點縮 16 |
+| `ts_es` | 9053 實心藍六角，16 看得出六角 | 9053⚠ |
+| `ts_crit`／`proj` | 可用 | 9057／9063 |
+| `ts_area` | 圓盤或長條 | 用現有借圖 |
+| `ts_attr` | 9080 五角星、9081 多角星 | 沿用 6471 |
+| `slot_ring` | 全是實心圓盤 | 用現有圖 |
+| `ail_blind`／`ail_curse` | 糰、棍、X、太小 | 留 M2-39 舊圖 |
+| `ail_cons`／`ail_pin` | 可用 | 9094／9098 |
+| `cur_wish`／`cur_pcalam`／`cur_ink` | 可用（ink 偏弱） | 9101／9103／9108 |
+| `plq_corner` | 不是 L 形 | 不用角花 |
+| 牆面 | 程式畫，L\* 19.3，四邊接縫比 0.00 | 用程式畫；牆頂 s5221 |
+
+PixelLab 點數今晚 24:00 到期，這輪之後不再跑。剩下沒過的組都有退路（現有借圖或 M2-39 舊圖），不擋接線。
