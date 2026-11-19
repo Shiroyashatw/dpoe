@@ -1,0 +1,102 @@
+# 完整性：清單列×尺寸 100 列（第一輪 390×844、1280×720；第二輪 375×667、1440×900；另 3a §5 驗收列 E-*）；本檔 100 列：blocked 10、fail 70、n/a 6、pass 14；缺 0
+id,viewport,screen,state,round,star,verdict,reason,file
+S-1,390x844,combat,ground,1,star,fail,PF3 (a) 面板−場景 1.9<8；(a) 關鍵−所在層 34.2<40；(b) 0.98<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 直立 32→16 沒開平滑縮；怪物地面框仍是寫死 #ff3b3b（應 PAL.bad）,390x844/combat-ground.png
+S-1,1280x720,combat,ground,1,star,fail,PF3 (a) 關鍵−所在層 33.7<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 中央圖示 20|20px ≠ 32（3a §1.2）；怪物地面框仍是寫死 #ff3b3b（應 PAL.bad）,1280x720/combat-ground.png
+S-1,375x667,combat,ground,2,star,fail,PF3 (a) 面板−場景 2.9<8；(a) 關鍵−所在層 34.2<40；(b) 1.02<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.4） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 直立 32→16 沒開平滑縮；怪物地面框仍是寫死 #ff3b3b（應 PAL.bad）,375x667/combat-ground.png
+S-1,1440x900,combat,ground,2,star,fail,PF3 (a) 關鍵−所在層 33.7<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 中央圖示 20|20px ≠ 32（3a §1.2）；怪物地面框仍是寫死 #ff3b3b（應 PAL.bad）,1440x900/combat-ground.png
+S-2,390x844,combat,fire,1,star,fail,"PF3 (a) 面板−場景 -4.5<8；(a) 關鍵−所在層 31.8<40；(b) 0.60<1.4；(e) 正文對比不在 4.5–12 的 2 筆（4.8–16.6）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 跳數字低於下限 hit 12.2<13|hurt 13.8<14|dot 9.8<11；跳數字描邊仍是寫死 rgba(0,0,0,0.95)（應 PAL.dmgOutline，3a §1.3）",390x844/combat-fire.png
+S-2,1280x720,combat,fire,1,star,fail,"PF3 (a) 關鍵−所在層 31.6<40；(b) 1.06<1.4；(e) 正文對比不在 4.5–12 的 3 筆（3.9–16.9）；(e) 字色 7 種>5 ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 跳數字描邊仍是寫死 rgba(0,0,0,0.95)（應 PAL.dmgOutline，3a §1.3）",1280x720/combat-fire.png
+S-2,375x667,combat,fire,2,star,fail,"PF3 (a) 面板−場景 -4.1<8；(a) 關鍵−所在層 31.8<40；(b) 0.60<1.4；(e) 正文對比不在 4.5–12 的 2 筆（4.8–16.5）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 跳數字低於下限 hit 11.7<13|hurt 13.3<14|gold 10.9<11|miss 10.9<11|dot 9.4<11；跳數字描邊仍是寫死 rgba(0,0,0,0.95)（應 PAL.dmgOutline，3a §1.3）",375x667/combat-fire.png
+S-2,1440x900,combat,fire,2,star,fail,"PF3 (a) 關鍵−所在層 31.7<40；(b) 1.24<1.4；(e) 正文對比不在 4.5–12 的 3 筆（3.9–17.0）；(e) 字色 7 種>5 ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 跳數字描邊仍是寫死 rgba(0,0,0,0.95)（應 PAL.dmgOutline，3a §1.3）",1440x900/combat-fire.png
+S-3,390x844,combat,layers,1,,fail,跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,390x844/combat-fire.json（log）
+S-3,1280x720,combat,layers,1,,fail,跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,1280x720/combat-fire.json（log）
+S-3,375x667,combat,layers,2,,fail,跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,375x667/combat-fire.json（log）
+S-3,1440x900,combat,layers,2,,fail,跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,1440x900/combat-fire.json（log）
+Z3-5,390x844,combat,layers,1,,fail,同 S-3：跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,390x844/combat-fire.json（log）
+Z3-5,1280x720,combat,layers,1,,fail,同 S-3：跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,1280x720/combat-fire.json（log）
+Z3-5,375x667,combat,layers,2,,fail,同 S-3：跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,375x667/combat-fire.json（log）
+Z3-5,1440x900,combat,layers,2,,fail,同 S-3：跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後,1440x900/combat-fire.json（log）
+S-4,390x844,camp,hover,1,,n/a,直立觸控沒有懸停（清單：桌機停一座設施）,
+S-4,1280x720,camp,hover,1,,blocked,狀態不成立：滑鼠停在「鍛造台」上，那座的名牌變亮或有設施描邊（render.js 只看主角距離 nearProp，沒有滑鼠懸停）｜PF3 (a) 關鍵−所在層 33.0<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）,1280x720/camp-hover-blocked.png
+S-4,375x667,camp,hover,2,,n/a,直立觸控沒有懸停（清單：桌機停一座設施）,
+S-4,1440x900,camp,hover,2,,blocked,狀態不成立：滑鼠停在「鍛造台」上，那座的名牌變亮或有設施描邊（render.js 只看主角距離 nearProp，沒有滑鼠懸停）｜PF3 (a) 關鍵−所在層 33.1<40；(e) 正文對比不在 4.5–12 的 3 筆（3.8–12.8）,1440x900/camp-hover-blocked.png
+S-4,390x844,camp,lock,1,,blocked,狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場）｜PF3 (a) 面板−場景 -17.9<8；(a) 關鍵−所在層 32.7<40；(b) 0.51<1.4；(c) 17.9%>10%；(e) 正文對比不在 4.5–12 的 1 筆（5.2–12.5） ／ PF5 圖示非整數倍：#bar img.ic,390x844/camp-lock-blocked.png
+S-4,1280x720,camp,lock,1,,blocked,狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場）｜PF3 (a) 關鍵−所在層 32.2<40；(e) 正文對比不在 4.5–12 的 2 筆（3.7–12.8）,1280x720/camp-lock-blocked.png
+S-4,375x667,camp,lock,2,,blocked,狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場）｜PF3 (a) 面板−場景 -19.1<8；(a) 關鍵−所在層 32.9<40；(b) 0.49<1.4；(c) 16.5%>10% ／ PF5 圖示非整數倍：#bar img.ic,375x667/camp-lock-blocked.png
+S-4,1440x900,camp,lock,2,,blocked,狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場）｜PF3 (a) 關鍵−所在層 32.2<40；(e) 正文對比不在 4.5–12 的 3 筆（3.9–12.8）,1440x900/camp-lock-blocked.png
+S-4,390x844,camp,ready,1,,blocked,狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個）｜PF3 (a) 面板−場景 -17.0<8；(a) 關鍵−所在層 30.7<40；(b) 0.55<1.4；(c) 17.2%>10%；(e) 正文對比不在 4.5–12 的 1 筆（5.2–12.5） ／ PF5 圖示非整數倍：#bar img.ic,390x844/camp-ready-blocked.png
+S-4,1280x720,camp,ready,1,,blocked,狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個）｜PF3 (a) 關鍵−所在層 30.9<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）,1280x720/camp-ready-blocked.png
+S-4,375x667,camp,ready,2,,blocked,狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個）｜PF3 (a) 面板−場景 -18.2<8；(a) 關鍵−所在層 32.7<40；(b) 0.54<1.4；(c) 15.6%>10% ／ PF5 圖示非整數倍：#bar img.ic,375x667/camp-ready-blocked.png
+S-4,1440x900,camp,ready,2,,blocked,狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個）｜PF3 (a) 關鍵−所在層 30.8<40；(e) 正文對比不在 4.5–12 的 3 筆（3.7–12.8）,1440x900/camp-ready-blocked.png
+S-4,390x844,camp,scene,1,star,fail,"PF3 (a) 面板−場景 -17.6<8；(a) 關鍵−所在層 31.7<40；(b) 0.52<1.4；(c) 17.2%>10%；(e) 正文對比不在 4.5–12 的 1 筆（5.2–12.5） ／ PF5 圖示非整數倍：#bar img.ic ／ PF9 名牌高 25（世界 px；螢幕 20.3 CSS px）≠ 26；名牌底仍是寫死 rgba(38,40,45,0.94)（應 PAL.plateWorld）；名牌沒有 16 px 設施圖示",390x844/camp-scene.png
+S-4,1280x720,camp,scene,1,star,fail,"PF3 (a) 關鍵−所在層 30.9<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF9 名牌高 25（世界 px；螢幕 33.8 CSS px）≠ 26；名牌底仍是寫死 rgba(38,40,45,0.94)（應 PAL.plateWorld）；名牌沒有 16 px 設施圖示",1280x720/camp-scene.png
+S-4,375x667,camp,scene,2,star,fail,"PF3 (a) 面板−場景 -18.9<8；(a) 關鍵−所在層 30.3<40；(b) 0.51<1.4；(c) 15.7%>10% ／ PF5 圖示非整數倍：#bar img.ic ／ PF9 名牌高 25（世界 px；螢幕 19.5 CSS px）≠ 26；名牌底仍是寫死 rgba(38,40,45,0.94)（應 PAL.plateWorld）；名牌沒有 16 px 設施圖示",375x667/camp-scene.png
+S-4,1440x900,camp,scene,2,star,fail,"PF3 (a) 關鍵−所在層 30.5<40；(e) 正文對比不在 4.5–12 的 3 筆（3.7–12.8） ／ PF9 名牌高 25（世界 px；螢幕 33.8 CSS px）≠ 26；名牌底仍是寫死 rgba(38,40,45,0.94)（應 PAL.plateWorld）；名牌沒有 16 px 設施圖示",1440x900/camp-scene.png
+S-5,390x844,camp,expand,1,star,fail,"PF3 (a) 面板−場景 -18.6<8；(a) 關鍵−所在層 35.6<40；(b) 0.54<1.4；(c) 12.1%>10%；(e) 正文對比不在 4.5–12 的 12 筆（1.0–14.9）；(e) 字色 7 種>5 ／ PF5 圖示非整數倍：#cc-forge img.ic|#cc-hide img.ic|#cc-scout img.ic|#cc-silk img.ic|#cc-watch img.ic|#cmnext img.ic|#cmtop img.ic；熱區 339x14 #cc-scout button.cch < 44 ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",390x844/camp-expand.png
+S-5,1280x720,camp,expand,1,star,fail,"PF3 (a) 面板−場景 -0.8<8；(b) 0.80<1.4；(e) 正文對比不在 4.5–12 的 4 筆（2.6–12.9）；(e) 字色 7 種>5 ／ PF5 圖示非整數倍：#cc-forge img.ic|#cc-scout img.ic|#cc-silk img.ic|#cc-watch img.ic|#cmnext img.ic|#cmtop img.ic ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",1280x720/camp-expand.png
+S-5,375x667,camp,expand,2,star,fail,"PF3 (a) 面板−場景 -21.9<8；(b) 0.51<1.4；(c) 11.3%>10%；(e) 正文對比不在 4.5–12 的 9 筆（1.9–13.9）；(e) 字色 7 種>5 ／ PF5 圖示非整數倍：#cc-forge img.ic|#cc-silk img.ic|#cc-watch img.ic|#cmnext img.ic|#cmtop img.ic；熱區 375x24 #phand < 44 ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",375x667/camp-expand.png
+S-5,1440x900,camp,expand,2,star,fail,"PF3 (a) 面板−場景 0.7<8；(b) 0.82<1.4；(e) 正文對比不在 4.5–12 的 6 筆（1.1–15.6）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#cc-forge img.ic|#cc-house img.ic|#cc-scout img.ic|#cc-silk img.ic|#cc-watch img.ic|#cmnext img.ic|#cmtop img.ic；熱區 415x4 #cc-house button.btn.pri < 32 ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",1440x900/camp-expand.png
+S-5,390x844,camp,overview,1,star,fail,"PF3 (a) 面板−場景 -20.3<8；(b) 0.53<1.4；(e) 正文對比不在 4.5–12 的 2 筆（4.8–13.9） ／ PF5 圖示非整數倍：#cc-wood img.ic|#cmnext img.ic|#cmtop img.ic；熱區 339x16 #cc-wood button.btn.pri < 44 ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",390x844/camp-overview.png
+S-5,1280x720,camp,overview,1,star,fail,"PF3 (a) 面板−場景 -2.7<8；(a) 關鍵−所在層 39.8<40；(b) 0.80<1.4；(e) 正文對比不在 4.5–12 的 5 筆（1.6–15.3） ／ PF5 圖示非整數倍：#cc-iron img.ic|#cc-wood img.ic|#cmnext img.ic|#cmtop img.ic ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",1280x720/camp-overview.png
+S-5,375x667,camp,overview,2,star,fail,"PF3 (a) 面板−場景 -22.1<8；(b) 0.53<1.4；(c) 11.3%>10% ／ PF5 圖示非整數倍：#cc-wood img.ic|#cmnext img.ic|#cmtop img.ic；熱區 375x24 #phand < 44 ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",375x667/camp-overview.png
+S-5,1440x900,camp,overview,2,star,fail,"PF3 (a) 面板−場景 1.1<8；(b) 0.89<1.4；(e) 正文對比不在 4.5–12 的 5 筆（1.1–15.7） ／ PF5 圖示非整數倍：#cc-hide img.ic|#cc-iron img.ic|#cc-wood img.ic|#cmnext img.ic|#cmtop img.ic ／ PF9 設施卡寫死色：.cc.can{rgb(230, 195, 106)} ; .ccms{rgb(230, 195, 106)} ; @keyframes ccup{rgba(123, 211, 107, 0.18)} ; @keyframes ccms{rgb(230, 195, 106)}",1440x900/camp-overview.png
+S-6,390x844,camp,upgrade,1,star,fail,"卡放大最大 1，M2-23.7 要 1→1.03→1；升級底色仍是寫死綠 rgba(123,211,107,0.18)（應 --hl-rgb）",390x844/camp-upgrade-sheet.png
+S-6,1280x720,camp,upgrade,1,star,fail,"卡放大最大 1，M2-23.7 要 1→1.03→1；升級底色仍是寫死綠 rgba(123,211,107,0.18)（應 --hl-rgb）",1280x720/camp-upgrade-sheet.png
+S-6,375x667,camp,upgrade,2,star,fail,"卡放大最大 1，M2-23.7 要 1→1.03→1；升級底色仍是寫死綠 rgba(123,211,107,0.18)（應 --hl-rgb）",375x667/camp-upgrade-sheet.png
+S-6,1440x900,camp,upgrade,2,star,fail,"卡放大最大 1，M2-23.7 要 1→1.03→1；升級底色仍是寫死綠 rgba(123,211,107,0.18)（應 --hl-rgb）",1440x900/camp-upgrade-sheet.png
+S-6,390x844,video,camp-upgrade,1,star,pass,全過（手感由美術總監看影片）,390x844/camp-upgrade.mp4
+S-6,1280x720,video,camp-upgrade,1,star,pass,全過（手感由美術總監看影片）,1280x720/camp-upgrade.mp4
+Z3-3,390x844,diff,literals,1,,fail,23 行新增色碼字面值,z3-3-literals.txt
+Z3-3,1280x720,diff,literals,1,,fail,23 行新增色碼字面值,z3-3-literals.txt
+Q3-1,390x844,combat-auto,compare,1,,n/a,(g) 不是預篩，給美術總監與 mumi 看,compare/390x844/combat-auto.png
+Q3-1,1280x720,combat-auto,compare,1,,n/a,(g) 不是預篩，給美術總監與 mumi 看,compare/1280x720/combat-auto.png
+Q3-2,390x844,camp-overview,compare,1,,n/a,(g) 不是預篩，給美術總監與 mumi 看,compare/390x844/camp-overview.png
+Q3-2,1280x720,camp-overview,compare,1,,n/a,(g) 不是預篩，給美術總監與 mumi 看,compare/1280x720/camp-overview.png
+E-1,390x844,combat-ice,idle,1,star,fail,PF3 (a) 面板−場景 5.8<8；(a) 關鍵−所在層 34.5<40；(b) 1.19<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.2） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 地磚格偏差 1.13 裝置 px>1；相鄰方塊寬差 2>1,390x844/combat-ice-idle.png
+E-1,1280x720,combat-ice,idle,1,star,fail,PF3 (a) 關鍵−所在層 33.5<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-ice-idle.png
+E-1,375x667,combat-ice,idle,2,star,fail,PF3 (a) 面板−場景 6.8<8；(a) 關鍵−所在層 34.5<40；(b) 1.23<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.4） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 地磚格偏差 1.09 裝置 px>1；相鄰方塊寬差 2>1,375x667/combat-ice-idle.png
+E-1,1440x900,combat-ice,idle,2,star,fail,PF3 (a) 關鍵−所在層 33.4<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 相鄰方塊寬差 2>1,1440x900/combat-ice-idle.png
+E-1,390x844,combat-lava,idle,1,star,fail,PF3 (a) 關鍵−所在層 34.4<40；(b) 1.29<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.4） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 地磚格偏差 1.13 裝置 px>1；相鄰方塊寬差 2>1,390x844/combat-lava-idle.png
+E-1,1280x720,combat-lava,idle,1,star,fail,PF3 (a) 關鍵−所在層 33.5<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 相鄰方塊寬差 2>1,1280x720/combat-lava-idle.png
+E-1,375x667,combat-lava,idle,2,star,fail,PF3 (a) 關鍵−所在層 34.2<40；(b) 1.34<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 地磚格偏差 1.03 裝置 px>1；相鄰方塊寬差 2>1,375x667/combat-lava-idle.png
+E-1,1440x900,combat-lava,idle,2,star,fail,PF3 (a) 關鍵−所在層 33.6<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1440x900/combat-lava-idle.png
+E-1,390x844,combat-temple,idle,1,star,fail,PF3 (a) 面板−場景 4.8<8；(a) 關鍵−所在層 27.4<40；(b) 1.12<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.4） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 相鄰方塊寬差 2>1,390x844/combat-temple-idle.png
+E-1,1280x720,combat-temple,idle,1,star,fail,PF3 (a) 關鍵−所在層 27.3<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-temple-idle.png
+E-1,375x667,combat-temple,idle,2,star,fail,PF3 (a) 面板−場景 5.5<8；(a) 關鍵−所在層 27.9<40；(b) 1.15<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic,375x667/combat-temple-idle.png
+E-1,1440x900,combat-temple,idle,2,star,fail,PF3 (a) 關鍵−所在層 26.0<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1440x900/combat-temple-idle.png
+E-1,390x844,combat-tomb,idle,1,star,fail,PF3 (a) 面板−場景 6.7<8；(a) 關鍵−所在層 34.5<40；(b) 1.24<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.3） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 相鄰方塊寬差 2>1,390x844/combat-tomb-idle.png
+E-1,1280x720,combat-tomb,idle,1,star,fail,PF3 (a) 關鍵−所在層 33.2<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-tomb-idle.png
+E-1,375x667,combat-tomb,idle,2,star,fail,PF3 (a) 面板−場景 7.8<8；(a) 關鍵−所在層 34.4<40；(b) 1.30<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 相鄰方塊寬差 2>1,375x667/combat-tomb-idle.png
+E-1,1440x900,combat-tomb,idle,2,star,fail,PF3 (a) 關鍵−所在層 33.6<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic ／ PF9 相鄰方塊寬差 2>1,1440x900/combat-tomb-idle.png
+E-1n,390x844,combat-ice,night,1,,fail,PF3 (a) 關鍵−所在層 34.1<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.3） ／ PF5 圖示非整數倍：#pidle img.ic,390x844/combat-ice-night.png
+E-1n,1280x720,combat-ice,night,1,,fail,PF3 (a) 關鍵−所在層 33.0<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-ice-night.png
+E-1n,375x667,combat-ice,night,2,,fail,PF3 (a) 關鍵−所在層 34.1<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.4） ／ PF5 圖示非整數倍：#pidle img.ic,375x667/combat-ice-night.png
+E-1n,1440x900,combat-ice,night,2,,fail,PF3 (a) 關鍵−所在層 33.2<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic,1440x900/combat-ice-night.png
+E-1n,390x844,combat-lava,night,1,,fail,PF3 (a) 關鍵−所在層 34.2<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic,390x844/combat-lava-night.png
+E-1n,1280x720,combat-lava,night,1,,fail,PF3 (a) 關鍵−所在層 32.9<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-lava-night.png
+E-1n,375x667,combat-lava,night,2,,fail,PF3 (a) 關鍵−所在層 34.1<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic,375x667/combat-lava-night.png
+E-1n,1440x900,combat-lava,night,2,,fail,PF3 (a) 關鍵−所在層 33.1<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1440x900/combat-lava-night.png
+E-1n,390x844,combat-temple,night,1,,fail,PF3 (a) 關鍵−所在層 34.1<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.4） ／ PF5 圖示非整數倍：#pidle img.ic,390x844/combat-temple-night.png
+E-1n,1280x720,combat-temple,night,1,,fail,PF3 (a) 關鍵−所在層 32.8<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-temple-night.png
+E-1n,375x667,combat-temple,night,2,,fail,PF3 (a) 關鍵−所在層 34.1<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic,375x667/combat-temple-night.png
+E-1n,1440x900,combat-temple,night,2,,fail,PF3 (a) 關鍵−所在層 33.1<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1440x900/combat-temple-night.png
+E-1n,390x844,combat-tomb,night,1,,fail,PF3 (a) 關鍵−所在層 34.1<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.3） ／ PF5 圖示非整數倍：#pidle img.ic,390x844/combat-tomb-night.png
+E-1n,1280x720,combat-tomb,night,1,,fail,PF3 (a) 關鍵−所在層 33.0<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8） ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-tomb-night.png
+E-1n,375x667,combat-tomb,night,2,,fail,PF3 (a) 關鍵−所在層 34.1<40；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.5） ／ PF5 圖示非整數倍：#pidle img.ic,375x667/combat-tomb-night.png
+E-1n,1440x900,combat-tomb,night,2,,fail,PF3 (a) 關鍵−所在層 33.2<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic,1440x900/combat-tomb-night.png
+E-3,390x844,combat-temple,fallback,1,,fail,PF3 (a) 面板−場景 -1.5<8；(a) 關鍵−所在層 30.2<40；(b) 0.99<1.4；(e) 正文對比不在 4.5–12 的 1 筆（4.8–12.2） ／ PF5 圖示非整數倍：#pidle img.ic,390x844/combat-temple-fallback.png
+E-3,1280x720,combat-temple,fallback,1,,fail,PF3 (a) 關鍵−所在層 26.0<40；(e) 正文對比不在 4.5–12 的 2 筆（3.9–12.8）；(e) 字色 6 種>5 ／ PF5 圖示非整數倍：#pidle img.ic,1280x720/combat-temple-fallback.png
+E-4,390x844,video,fx-chase-play,1,,pass,全過（手感由美術總監看影片）,390x844/fx-chase-play.mp4
+E-4,1280x720,video,fx-chase-play,1,,pass,全過（手感由美術總監看影片）,1280x720/fx-chase-play.mp4
+E-4,390x844,video,fx-chase-play-fallback,1,,pass,全過（手感由美術總監看影片）,390x844/fx-chase-play-fallback.mp4
+E-4,1280x720,video,fx-chase-play-fallback,1,,pass,全過（手感由美術總監看影片）,1280x720/fx-chase-play-fallback.mp4
+E-4,390x844,video,fx-crit-play,1,,pass,全過（手感由美術總監看影片）,390x844/fx-crit-play.mp4
+E-4,1280x720,video,fx-crit-play,1,,pass,全過（手感由美術總監看影片）,1280x720/fx-crit-play.mp4
+E-4,390x844,video,fx-crit-play-fallback,1,,pass,全過（手感由美術總監看影片）,390x844/fx-crit-play-fallback.mp4
+E-4,1280x720,video,fx-crit-play-fallback,1,,pass,全過（手感由美術總監看影片）,1280x720/fx-crit-play-fallback.mp4
+E-4,390x844,video,fx-lvup-play,1,,pass,全過（手感由美術總監看影片）,390x844/fx-lvup-play.mp4
+E-4,1280x720,video,fx-lvup-play,1,,pass,全過（手感由美術總監看影片）,1280x720/fx-lvup-play.mp4
+E-4,390x844,video,fx-lvup-play-fallback,1,,pass,全過（手感由美術總監看影片）,390x844/fx-lvup-play-fallback.mp4
+E-4,1280x720,video,fx-lvup-play-fallback,1,,pass,全過（手感由美術總監看影片）,1280x720/fx-lvup-play-fallback.mp4
+E-5,390x844,wangyin,icon-scale,1,,fail,王印圖示寬 ÷ naturalWidth 不是整數,
+E-5,1280x720,wangyin,icon-scale,1,,fail,王印圖示寬 ÷ naturalWidth 不是整數,

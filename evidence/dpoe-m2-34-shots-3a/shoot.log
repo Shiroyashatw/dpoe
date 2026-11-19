@@ -1,0 +1,86 @@
+📸 S-1 390x844 combat-ground 
+📸 S-2 390x844 combat-fire 
+📸 S-4 390x844 camp-scene 
+⛔ S-4 390x844 camp-ready （狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個））
+⛔ S-4 390x844 camp-lock （狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場））
+📸 S-5 390x844 camp-overview 
+📸 S-5 390x844 camp-expand 
+🎞 S-6 390x844 連拍 30 幀（watch Lv8→9）
+📸 E-1 390x844 combat-temple-idle 
+📸 E-1n 390x844 combat-temple-night 
+📸 E-1 390x844 combat-lava-idle 
+📸 E-1n 390x844 combat-lava-night 
+📸 E-1 390x844 combat-tomb-idle 
+📸 E-1n 390x844 combat-tomb-night 
+📸 E-1 390x844 combat-ice-idle 
+📸 E-1n 390x844 combat-ice-night 
+📸 E-3 390x844 combat-temple-fallback 
+📸 S-1 1280x720 combat-ground 
+📸 S-2 1280x720 combat-fire 
+📸 S-4 1280x720 camp-scene 
+⛔ S-4 1280x720 camp-hover （狀態不成立：滑鼠停在「鍛造台」上，那座的名牌變亮或有設施描邊（render.js 只看主角距離 nearProp，沒有滑鼠懸停））
+⛔ S-4 1280x720 camp-ready （狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個））
+⛔ S-4 1280x720 camp-lock （狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場））
+📸 S-5 1280x720 camp-overview 
+📸 S-5 1280x720 camp-expand 
+🎞 S-6 1280x720 連拍 30 幀（watch Lv8→9）
+📸 E-1 1280x720 combat-temple-idle 
+📸 E-1n 1280x720 combat-temple-night 
+📸 E-1 1280x720 combat-lava-idle 
+📸 E-1n 1280x720 combat-lava-night 
+📸 E-1 1280x720 combat-tomb-idle 
+📸 E-1n 1280x720 combat-tomb-night 
+📸 E-1 1280x720 combat-ice-idle 
+📸 E-1n 1280x720 combat-ice-night 
+📸 E-3 1280x720 combat-temple-fallback 
+📸 S-1 375x667 combat-ground 
+📸 S-2 375x667 combat-fire 
+📸 S-4 375x667 camp-scene 
+⛔ S-4 375x667 camp-ready （狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個））
+⛔ S-4 375x667 camp-lock （狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場））
+📸 S-5 375x667 camp-overview 
+📸 S-5 375x667 camp-expand 
+🎞 S-6 375x667 連拍 30 幀（watch Lv8→9）
+📸 E-1 375x667 combat-temple-idle 
+📸 E-1n 375x667 combat-temple-night 
+📸 E-1 375x667 combat-lava-idle 
+📸 E-1n 375x667 combat-lava-night 
+📸 E-1 375x667 combat-tomb-idle 
+📸 E-1n 375x667 combat-tomb-night 
+📸 E-1 375x667 combat-ice-idle 
+📸 E-1n 375x667 combat-ice-night 
+📸 S-1 1440x900 combat-ground 
+📸 S-2 1440x900 combat-fire 
+📸 S-4 1440x900 camp-scene 
+⛔ S-4 1440x900 camp-hover （狀態不成立：滑鼠停在「鍛造台」上，那座的名牌變亮或有設施描邊（render.js 只看主角距離 nearProp，沒有滑鼠懸停））
+⛔ S-4 1440x900 camp-ready （狀態不成立：有可以升級的設施（3 座）且場景名牌畫出 ▲（現在 0 個））
+⛔ S-4 1440x900 camp-lock （狀態不成立：營地場景畫出下一個解鎖的虛線地基（6／4 虛線；下一個解鎖：升鍛造台到 Lv 3 開獵場））
+📸 S-5 1440x900 camp-overview 
+📸 S-5 1440x900 camp-expand 
+🎞 S-6 1440x900 連拍 30 幀（watch Lv8→9）
+📸 E-1 1440x900 combat-temple-idle 
+📸 E-1n 1440x900 combat-temple-night 
+📸 E-1 1440x900 combat-lava-idle 
+📸 E-1n 1440x900 combat-lava-night 
+📸 E-1 1440x900 combat-tomb-idle 
+📸 E-1n 1440x900 combat-tomb-night 
+📸 E-1 1440x900 combat-ice-idle 
+📸 E-1n 1440x900 combat-ice-night 
+🎬 390x844/camp-upgrade.mp4 65 KB 75 幀 {"fac":"watch","lv0":8,"lv1":9}
+🎬 390x844/fx-crit-play.mp4 27 KB 60 幀 {"ok":true,"sig":"sig_crit"}
+🎬 390x844/fx-lvup-play.mp4 36 KB 75 幀 {"lv":26,"sig":true}
+🎬 390x844/fx-chase-play.mp4 57 KB 75 幀 {"chase":true,"sig":true}
+🎬 390x844/fx-crit-play-fallback.mp4 30 KB 60 幀 {"ok":true,"sig":"crit"}
+🎬 390x844/fx-lvup-play-fallback.mp4 34 KB 75 幀 {"lv":26,"sig":false}
+🎬 390x844/fx-chase-play-fallback.mp4 54 KB 75 幀 {"chase":true,"sig":false}
+🎬 1280x720/camp-upgrade.mp4 175 KB 75 幀 {"fac":"watch","lv0":8,"lv1":9}
+🎬 1280x720/fx-crit-play.mp4 65 KB 60 幀 {"ok":true,"sig":"sig_crit"}
+🎬 1280x720/fx-lvup-play.mp4 85 KB 75 幀 {"lv":26,"sig":true}
+🎬 1280x720/fx-chase-play.mp4 120 KB 75 幀 {"chase":true,"sig":true}
+🎬 1280x720/fx-crit-play-fallback.mp4 72 KB 60 幀 {"ok":true,"sig":"crit"}
+🎬 1280x720/fx-lvup-play-fallback.mp4 81 KB 75 幀 {"lv":26,"sig":false}
+🎬 1280x720/fx-chase-play-fallback.mp4 156 KB 75 幀 {"chase":true,"sig":false}
+🆚 Q3-1 390x844 /home/user/dpoe/evidence/dpoe-m2-34-shots-3a/compare/390x844/combat-auto.png
+🆚 Q3-2 390x844 /home/user/dpoe/evidence/dpoe-m2-34-shots-3a/compare/390x844/camp-overview.png
+🆚 Q3-1 1280x720 /home/user/dpoe/evidence/dpoe-m2-34-shots-3a/compare/1280x720/combat-auto.png
+🆚 Q3-2 1280x720 /home/user/dpoe/evidence/dpoe-m2-34-shots-3a/compare/1280x720/camp-overview.png

@@ -1,0 +1,937 @@
+{
+ "task": "dpoe-m2-34-shots-3a",
+ "game_commit": "c936749d6185602325165d6cc853178b0ceb617a",
+ "branch": "claude/dpoe-m2-34-shots-3a-qqklf1",
+ "checklist": "docs/production/specs/M2-34-review-checklist.md §3（3a）＋ M2-33-3a §5",
+ "checklist_commit": "38ca18e",
+ "compare_old": "3456ad5（PR #66 合併前的 main）",
+ "run_at_taipei": "2026-11-18 13:15",
+ "seed": 7,
+ "viewports": {
+  "P": {
+   "dir": "390x844",
+   "w": 390,
+   "h": 844,
+   "dpr": 2,
+   "mob": 1
+  },
+  "D": {
+   "dir": "1280x720",
+   "w": 1280,
+   "h": 720,
+   "dpr": 1,
+   "mob": 0
+  },
+  "S": {
+   "dir": "375x667",
+   "w": 375,
+   "h": 667,
+   "dpr": 2,
+   "mob": 1
+  },
+  "W": {
+   "dir": "1440x900",
+   "w": 1440,
+   "h": 900,
+   "dpr": 1,
+   "mob": 0
+  }
+ },
+ "dbg_ver": 1,
+ "run": {
+  "shots": [
+   {
+    "id": "S-1",
+    "vp": "390x844",
+    "screen": "combat",
+    "state": "ground",
+    "file": "390x844/combat-ground.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-2",
+    "vp": "390x844",
+    "screen": "combat",
+    "state": "fire",
+    "file": "390x844/combat-fire.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "390x844",
+    "screen": "camp",
+    "state": "scene",
+    "file": "390x844/camp-scene.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "390x844",
+    "screen": "camp",
+    "state": "ready",
+    "file": "390x844/camp-ready-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-4",
+    "vp": "390x844",
+    "screen": "camp",
+    "state": "lock",
+    "file": "390x844/camp-lock-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-5",
+    "vp": "390x844",
+    "screen": "camp",
+    "state": "overview",
+    "file": "390x844/camp-overview.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-5",
+    "vp": "390x844",
+    "screen": "camp",
+    "state": "expand",
+    "file": "390x844/camp-expand.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "390x844",
+    "screen": "combat-temple",
+    "state": "idle",
+    "file": "390x844/combat-temple-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "390x844",
+    "screen": "combat-temple",
+    "state": "night",
+    "file": "390x844/combat-temple-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "390x844",
+    "screen": "combat-lava",
+    "state": "idle",
+    "file": "390x844/combat-lava-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "390x844",
+    "screen": "combat-lava",
+    "state": "night",
+    "file": "390x844/combat-lava-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "390x844",
+    "screen": "combat-tomb",
+    "state": "idle",
+    "file": "390x844/combat-tomb-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "390x844",
+    "screen": "combat-tomb",
+    "state": "night",
+    "file": "390x844/combat-tomb-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "390x844",
+    "screen": "combat-ice",
+    "state": "idle",
+    "file": "390x844/combat-ice-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "390x844",
+    "screen": "combat-ice",
+    "state": "night",
+    "file": "390x844/combat-ice-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-3",
+    "vp": "390x844",
+    "screen": "combat-temple",
+    "state": "fallback",
+    "file": "390x844/combat-temple-fallback.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-1",
+    "vp": "1280x720",
+    "screen": "combat",
+    "state": "ground",
+    "file": "1280x720/combat-ground.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-2",
+    "vp": "1280x720",
+    "screen": "combat",
+    "state": "fire",
+    "file": "1280x720/combat-fire.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "1280x720",
+    "screen": "camp",
+    "state": "scene",
+    "file": "1280x720/camp-scene.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "1280x720",
+    "screen": "camp",
+    "state": "hover",
+    "file": "1280x720/camp-hover-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-4",
+    "vp": "1280x720",
+    "screen": "camp",
+    "state": "ready",
+    "file": "1280x720/camp-ready-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-4",
+    "vp": "1280x720",
+    "screen": "camp",
+    "state": "lock",
+    "file": "1280x720/camp-lock-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-5",
+    "vp": "1280x720",
+    "screen": "camp",
+    "state": "overview",
+    "file": "1280x720/camp-overview.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-5",
+    "vp": "1280x720",
+    "screen": "camp",
+    "state": "expand",
+    "file": "1280x720/camp-expand.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1280x720",
+    "screen": "combat-temple",
+    "state": "idle",
+    "file": "1280x720/combat-temple-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1280x720",
+    "screen": "combat-temple",
+    "state": "night",
+    "file": "1280x720/combat-temple-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1280x720",
+    "screen": "combat-lava",
+    "state": "idle",
+    "file": "1280x720/combat-lava-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1280x720",
+    "screen": "combat-lava",
+    "state": "night",
+    "file": "1280x720/combat-lava-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1280x720",
+    "screen": "combat-tomb",
+    "state": "idle",
+    "file": "1280x720/combat-tomb-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1280x720",
+    "screen": "combat-tomb",
+    "state": "night",
+    "file": "1280x720/combat-tomb-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1280x720",
+    "screen": "combat-ice",
+    "state": "idle",
+    "file": "1280x720/combat-ice-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1280x720",
+    "screen": "combat-ice",
+    "state": "night",
+    "file": "1280x720/combat-ice-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-3",
+    "vp": "1280x720",
+    "screen": "combat-temple",
+    "state": "fallback",
+    "file": "1280x720/combat-temple-fallback.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-1",
+    "vp": "375x667",
+    "screen": "combat",
+    "state": "ground",
+    "file": "375x667/combat-ground.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-2",
+    "vp": "375x667",
+    "screen": "combat",
+    "state": "fire",
+    "file": "375x667/combat-fire.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "375x667",
+    "screen": "camp",
+    "state": "scene",
+    "file": "375x667/camp-scene.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "375x667",
+    "screen": "camp",
+    "state": "ready",
+    "file": "375x667/camp-ready-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-4",
+    "vp": "375x667",
+    "screen": "camp",
+    "state": "lock",
+    "file": "375x667/camp-lock-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-5",
+    "vp": "375x667",
+    "screen": "camp",
+    "state": "overview",
+    "file": "375x667/camp-overview.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-5",
+    "vp": "375x667",
+    "screen": "camp",
+    "state": "expand",
+    "file": "375x667/camp-expand.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "375x667",
+    "screen": "combat-temple",
+    "state": "idle",
+    "file": "375x667/combat-temple-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "375x667",
+    "screen": "combat-temple",
+    "state": "night",
+    "file": "375x667/combat-temple-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "375x667",
+    "screen": "combat-lava",
+    "state": "idle",
+    "file": "375x667/combat-lava-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "375x667",
+    "screen": "combat-lava",
+    "state": "night",
+    "file": "375x667/combat-lava-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "375x667",
+    "screen": "combat-tomb",
+    "state": "idle",
+    "file": "375x667/combat-tomb-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "375x667",
+    "screen": "combat-tomb",
+    "state": "night",
+    "file": "375x667/combat-tomb-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "375x667",
+    "screen": "combat-ice",
+    "state": "idle",
+    "file": "375x667/combat-ice-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "375x667",
+    "screen": "combat-ice",
+    "state": "night",
+    "file": "375x667/combat-ice-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-1",
+    "vp": "1440x900",
+    "screen": "combat",
+    "state": "ground",
+    "file": "1440x900/combat-ground.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-2",
+    "vp": "1440x900",
+    "screen": "combat",
+    "state": "fire",
+    "file": "1440x900/combat-fire.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "1440x900",
+    "screen": "camp",
+    "state": "scene",
+    "file": "1440x900/camp-scene.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-4",
+    "vp": "1440x900",
+    "screen": "camp",
+    "state": "hover",
+    "file": "1440x900/camp-hover-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-4",
+    "vp": "1440x900",
+    "screen": "camp",
+    "state": "ready",
+    "file": "1440x900/camp-ready-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-4",
+    "vp": "1440x900",
+    "screen": "camp",
+    "state": "lock",
+    "file": "1440x900/camp-lock-blocked.png",
+    "state_ok": false
+   },
+   {
+    "id": "S-5",
+    "vp": "1440x900",
+    "screen": "camp",
+    "state": "overview",
+    "file": "1440x900/camp-overview.png",
+    "state_ok": true
+   },
+   {
+    "id": "S-5",
+    "vp": "1440x900",
+    "screen": "camp",
+    "state": "expand",
+    "file": "1440x900/camp-expand.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1440x900",
+    "screen": "combat-temple",
+    "state": "idle",
+    "file": "1440x900/combat-temple-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1440x900",
+    "screen": "combat-temple",
+    "state": "night",
+    "file": "1440x900/combat-temple-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1440x900",
+    "screen": "combat-lava",
+    "state": "idle",
+    "file": "1440x900/combat-lava-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1440x900",
+    "screen": "combat-lava",
+    "state": "night",
+    "file": "1440x900/combat-lava-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1440x900",
+    "screen": "combat-tomb",
+    "state": "idle",
+    "file": "1440x900/combat-tomb-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1440x900",
+    "screen": "combat-tomb",
+    "state": "night",
+    "file": "1440x900/combat-tomb-night.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1",
+    "vp": "1440x900",
+    "screen": "combat-ice",
+    "state": "idle",
+    "file": "1440x900/combat-ice-idle.png",
+    "state_ok": true
+   },
+   {
+    "id": "E-1n",
+    "vp": "1440x900",
+    "screen": "combat-ice",
+    "state": "night",
+    "file": "1440x900/combat-ice-night.png",
+    "state_ok": true
+   }
+  ],
+  "videos": [
+   {
+    "vp": "390x844",
+    "name": "camp-upgrade",
+    "file": "390x844/camp-upgrade.mp4",
+    "bytes": 66963,
+    "frames": 75,
+    "info": {
+     "fac": "watch",
+     "lv0": 8,
+     "lv1": 9
+    },
+    "errs": []
+   },
+   {
+    "vp": "390x844",
+    "name": "fx-crit-play",
+    "file": "390x844/fx-crit-play.mp4",
+    "bytes": 27890,
+    "frames": 60,
+    "info": {
+     "ok": true,
+     "sig": "sig_crit"
+    },
+    "errs": []
+   },
+   {
+    "vp": "390x844",
+    "name": "fx-lvup-play",
+    "file": "390x844/fx-lvup-play.mp4",
+    "bytes": 36584,
+    "frames": 75,
+    "info": {
+     "lv": 26,
+     "sig": true
+    },
+    "errs": []
+   },
+   {
+    "vp": "390x844",
+    "name": "fx-chase-play",
+    "file": "390x844/fx-chase-play.mp4",
+    "bytes": 58344,
+    "frames": 75,
+    "info": {
+     "chase": true,
+     "sig": true
+    },
+    "errs": []
+   },
+   {
+    "vp": "390x844",
+    "name": "fx-crit-play-fallback",
+    "file": "390x844/fx-crit-play-fallback.mp4",
+    "bytes": 30790,
+    "frames": 60,
+    "info": {
+     "ok": true,
+     "sig": "crit"
+    },
+    "errs": []
+   },
+   {
+    "vp": "390x844",
+    "name": "fx-lvup-play-fallback",
+    "file": "390x844/fx-lvup-play-fallback.mp4",
+    "bytes": 34782,
+    "frames": 75,
+    "info": {
+     "lv": 26,
+     "sig": false
+    },
+    "errs": []
+   },
+   {
+    "vp": "390x844",
+    "name": "fx-chase-play-fallback",
+    "file": "390x844/fx-chase-play-fallback.mp4",
+    "bytes": 55407,
+    "frames": 75,
+    "info": {
+     "chase": true,
+     "sig": false
+    },
+    "errs": []
+   },
+   {
+    "vp": "1280x720",
+    "name": "camp-upgrade",
+    "file": "1280x720/camp-upgrade.mp4",
+    "bytes": 179060,
+    "frames": 75,
+    "info": {
+     "fac": "watch",
+     "lv0": 8,
+     "lv1": 9
+    },
+    "errs": []
+   },
+   {
+    "vp": "1280x720",
+    "name": "fx-crit-play",
+    "file": "1280x720/fx-crit-play.mp4",
+    "bytes": 66574,
+    "frames": 60,
+    "info": {
+     "ok": true,
+     "sig": "sig_crit"
+    },
+    "errs": []
+   },
+   {
+    "vp": "1280x720",
+    "name": "fx-lvup-play",
+    "file": "1280x720/fx-lvup-play.mp4",
+    "bytes": 86739,
+    "frames": 75,
+    "info": {
+     "lv": 26,
+     "sig": true
+    },
+    "errs": []
+   },
+   {
+    "vp": "1280x720",
+    "name": "fx-chase-play",
+    "file": "1280x720/fx-chase-play.mp4",
+    "bytes": 122502,
+    "frames": 75,
+    "info": {
+     "chase": true,
+     "sig": true
+    },
+    "errs": []
+   },
+   {
+    "vp": "1280x720",
+    "name": "fx-crit-play-fallback",
+    "file": "1280x720/fx-crit-play-fallback.mp4",
+    "bytes": 73503,
+    "frames": 60,
+    "info": {
+     "ok": true,
+     "sig": "crit"
+    },
+    "errs": []
+   },
+   {
+    "vp": "1280x720",
+    "name": "fx-lvup-play-fallback",
+    "file": "1280x720/fx-lvup-play-fallback.mp4",
+    "bytes": 82710,
+    "frames": 75,
+    "info": {
+     "lv": 26,
+     "sig": false
+    },
+    "errs": []
+   },
+   {
+    "vp": "1280x720",
+    "name": "fx-chase-play-fallback",
+    "file": "1280x720/fx-chase-play-fallback.mp4",
+    "bytes": 160195,
+    "frames": 75,
+    "info": {
+     "chase": true,
+     "sig": false
+    },
+    "errs": []
+   }
+  ],
+  "numbers": [
+   {
+    "id": "S-3",
+    "vp": "390x844",
+    "screen": "combat",
+    "state": "layers",
+    "checks": {
+     "order": "bStatic>bDecals>bDeco>drawMech>drawMob>drawHero>drawFx>drawFront>DARK>drawBeams>drawBars>drawNums>drawMinimap",
+     "layers": "2>3>3>4>6>6>7>7.5>10>5>8>9>12",
+     "inversions": "drawBeams(5) 畫在 DARK(10) 之後|drawBars(8) 畫在 DARK(10) 之後|drawNums(9) 畫在 DARK(10) 之後"
+    },
+    "verdict": "fail",
+    "fail": "跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後",
+    "src": "390x844/combat-fire.json（log）"
+   },
+   {
+    "id": "S-4",
+    "vp": "390x844",
+    "screen": "camp",
+    "state": "hover",
+    "verdict": "n/a",
+    "fail": "直立觸控沒有懸停（清單：桌機停一座設施）",
+    "checks": {}
+   },
+   {
+    "id": "S-6",
+    "vp": "390x844",
+    "screen": "camp",
+    "state": "upgrade",
+    "burst": "390x844/camp-upgrade-burst/",
+    "checks": {
+     "fac": "watch",
+     "lv": "8->9",
+     "scale_max": 1,
+     "scale_want": "1.03（M2-23.7 卡 1→1.03→1，280 ms）",
+     "bg_f0": "rgba(123, 211, 107, 0.18)",
+     "anims": "ccup,",
+     "shadow_any": "yes"
+    },
+    "verdict": null
+   },
+   {
+    "id": "E-5",
+    "vp": "390x844",
+    "screen": "wangyin",
+    "state": "icon-scale",
+    "checks": {
+     "chase": "0.941|0.941|0.941|0.941",
+     "log": ""
+    },
+    "verdict": "fail",
+    "fail": "王印圖示寬 ÷ naturalWidth 不是整數"
+   },
+   {
+    "id": "S-3",
+    "vp": "1280x720",
+    "screen": "combat",
+    "state": "layers",
+    "checks": {
+     "order": "bStatic>bDecals>bDeco>drawMech>drawMob>drawHero>drawFx>drawFront>DARK>drawBeams>drawBars>drawNums>drawMinimap",
+     "layers": "2>3>3>4>6>6>7>7.5>10>5>8>9>12",
+     "inversions": "drawBeams(5) 畫在 DARK(10) 之後|drawBars(8) 畫在 DARK(10) 之後|drawNums(9) 畫在 DARK(10) 之後"
+    },
+    "verdict": "fail",
+    "fail": "跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後",
+    "src": "1280x720/combat-fire.json（log）"
+   },
+   {
+    "id": "S-6",
+    "vp": "1280x720",
+    "screen": "camp",
+    "state": "upgrade",
+    "burst": "1280x720/camp-upgrade-burst/",
+    "checks": {
+     "fac": "watch",
+     "lv": "8->9",
+     "scale_max": 1,
+     "scale_want": "1.03（M2-23.7 卡 1→1.03→1，280 ms）",
+     "bg_f0": "rgba(123, 211, 107, 0.18)",
+     "anims": "ccup,",
+     "shadow_any": "yes"
+    },
+    "verdict": null
+   },
+   {
+    "id": "E-5",
+    "vp": "1280x720",
+    "screen": "wangyin",
+    "state": "icon-scale",
+    "checks": {
+     "chase": "0.941|0.941|0.941|0.941",
+     "log": ""
+    },
+    "verdict": "fail",
+    "fail": "王印圖示寬 ÷ naturalWidth 不是整數"
+   },
+   {
+    "id": "S-3",
+    "vp": "375x667",
+    "screen": "combat",
+    "state": "layers",
+    "checks": {
+     "order": "bStatic>bDecals>bDeco>drawMech>drawMob>drawHero>drawFx>drawFront>DARK>drawBeams>drawBars>drawNums>drawMinimap",
+     "layers": "2>3>3>4>6>6>7>7.5>10>5>8>9>12",
+     "inversions": "drawBeams(5) 畫在 DARK(10) 之後|drawBars(8) 畫在 DARK(10) 之後|drawNums(9) 畫在 DARK(10) 之後"
+    },
+    "verdict": "fail",
+    "fail": "跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後",
+    "src": "375x667/combat-fire.json（log）"
+   },
+   {
+    "id": "S-4",
+    "vp": "375x667",
+    "screen": "camp",
+    "state": "hover",
+    "verdict": "n/a",
+    "fail": "直立觸控沒有懸停（清單：桌機停一座設施）",
+    "checks": {}
+   },
+   {
+    "id": "S-6",
+    "vp": "375x667",
+    "screen": "camp",
+    "state": "upgrade",
+    "burst": "375x667/camp-upgrade-burst/",
+    "checks": {
+     "fac": "watch",
+     "lv": "8->9",
+     "scale_max": 1,
+     "scale_want": "1.03（M2-23.7 卡 1→1.03→1，280 ms）",
+     "bg_f0": "rgba(123, 211, 107, 0.18)",
+     "anims": "ccup,",
+     "shadow_any": "yes"
+    },
+    "verdict": null
+   },
+   {
+    "id": "S-3",
+    "vp": "1440x900",
+    "screen": "combat",
+    "state": "layers",
+    "checks": {
+     "order": "bStatic>bDecals>bDeco>drawMech>drawMob>drawHero>drawFx>drawFront>DARK>drawBeams>drawBars>drawNums>drawMinimap",
+     "layers": "2>3>3>4>6>6>7>7.5>10>5>8>9>12",
+     "inversions": "drawBeams(5) 畫在 DARK(10) 之後|drawBars(8) 畫在 DARK(10) 之後|drawNums(9) 畫在 DARK(10) 之後"
+    },
+    "verdict": "fail",
+    "fail": "跟 M2-33-3a §1.1 表順序不同：drawBeams(5) 畫在 DARK(10) 之後；drawBars(8) 畫在 DARK(10) 之後；drawNums(9) 畫在 DARK(10) 之後",
+    "src": "1440x900/combat-fire.json（log）"
+   },
+   {
+    "id": "S-6",
+    "vp": "1440x900",
+    "screen": "camp",
+    "state": "upgrade",
+    "burst": "1440x900/camp-upgrade-burst/",
+    "checks": {
+     "fac": "watch",
+     "lv": "8->9",
+     "scale_max": 1,
+     "scale_want": "1.03（M2-23.7 卡 1→1.03→1，280 ms）",
+     "bg_f0": "rgba(123, 211, 107, 0.18)",
+     "anims": "ccup,",
+     "shadow_any": "yes"
+    },
+    "verdict": null
+   },
+   {
+    "id": "Q3-1",
+    "vp": "390x844",
+    "screen": "combat-auto",
+    "state": "compare",
+    "file": "compare/390x844/combat-auto.png",
+    "verdict": "n/a",
+    "fail": "(g) 不是預篩，給美術總監與 mumi 看",
+    "checks": {}
+   },
+   {
+    "id": "Q3-2",
+    "vp": "390x844",
+    "screen": "camp-overview",
+    "state": "compare",
+    "file": "compare/390x844/camp-overview.png",
+    "verdict": "n/a",
+    "fail": "(g) 不是預篩，給美術總監與 mumi 看",
+    "checks": {}
+   },
+   {
+    "id": "Q3-1",
+    "vp": "1280x720",
+    "screen": "combat-auto",
+    "state": "compare",
+    "file": "compare/1280x720/combat-auto.png",
+    "verdict": "n/a",
+    "fail": "(g) 不是預篩，給美術總監與 mumi 看",
+    "checks": {}
+   },
+   {
+    "id": "Q3-2",
+    "vp": "1280x720",
+    "screen": "camp-overview",
+    "state": "compare",
+    "file": "compare/1280x720/camp-overview.png",
+    "verdict": "n/a",
+    "fail": "(g) 不是預篩，給美術總監與 mumi 看",
+    "checks": {}
+   }
+  ]
+ }
+}
