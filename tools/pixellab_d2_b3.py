@@ -310,16 +310,13 @@ def report():
             note = f"API 原圖 `{stem}-{j['body']['image_size']['width']}x{j['body']['image_size']['height']}.png` 最近鄰縮半；" if j.get('shrink') else ''
             rows.append([j['wave'], j['id'], seed, '成功', note + '；'.join(f'{a} {b}' for a, b in m.items()), '✅' if ok else '❌', f"待美術看：{EYE[j['wave']]}"])
             groups.setdefault(j['wave'], {}).setdefault(j['id'], []).append((seed, preview(j, post)))
-    # 天賦樹同表兩兩剪影 IoU（不同 id 之間取最大）：6-1、6-4 <0.7；6-5 小點也照 <0.7
+    # 天賦樹同表跨組剪影 IoU（不同 id 之間取最大）：只回報
     for w, ms in masks.items():
         if w not in ('6-1', '6-4', '6-5'):
             continue
         for i, s, a, r in ms:
             mx = max([iou(a, b) for i2, _, b, _ in ms if i2 != i and b.shape == a.shape] or [0])
             rows[r][4] += f'；跨組最大 IoU {mx:.2f}'
-            if mx >= 0.7 and rows[r][5] == '✅':
-                rows[r][5] = '❌'
-                stat[w][2] -= 1
     for w, g in groups.items():
         items = list(g.items())
         contact(items, 1).save(OUT / f'contact-{w}-1x.png')
@@ -331,7 +328,7 @@ def report():
     tot = [sum(x[i] for x in stat.values()) for i in range(3)]
     head += [f'| 合計 | {tot[0]} | {tot[1]} | {tot[2]} | {tot[0] - tot[2]} |', '',
              '量法與過關：', '- 共用（主檔 §6）：原圖色票偏移（ΔE>3 比例、最大值，只回報）；放大圖＝最近鄰縮半再放大後與原圖相同（不准）；禁色 `#faaa5e` `#7c5729` `#fa8915`（ΔE≤2，0 像素）；不透明 >5%；16×16 棋盤 ≤6。',
-             '- 天賦樹（6-1／6-4／6-5，batch2 §1）：C*>40 ≤25% 不透明；同表跨組剪影 IoU <0.7（只跟本批同表比）。',
+             '- 天賦樹（6-1／6-4／6-5，batch2 §1）：C*>40 ≤25% 不透明；同表跨組剪影 IoU 只回報、不進預篩（規格的 <0.7 是對挑定的那組；每張候選對所有別組候選取最大，圓形主形常互撞，挑圖時再量）。',
              '- 牌匾（5d，主檔 §5）：C*>40 ≤5%；匾身左右接縫比 ≤1.0（接縫不大於體內）。',
              '- 王（5b／6-2／6-3）：色票、禁色、不反鋸齒（alpha_binary 後）；主特徵目視。', '',
              '| 項 | id | 種子 | 結果 | 量測值 | 自動預篩 | 目視 |', '| --- | --- | --- | --- | --- | --- | --- |']
