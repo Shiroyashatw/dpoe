@@ -1,0 +1,770 @@
+{
+ "id": "B-S2",
+ "screen": "skill",
+ "state": "one",
+ "viewport": "1280x720",
+ "star": 1,
+ "s": 1,
+ "file": "1280x720/skill-one.png",
+ "v": {
+  "view": "one",
+  "i": 1,
+  "holesOpen": 2
+ },
+ "checks": {
+  "holes_shown": 2,
+  "holes": "[\"附加火焰 被輔助的技\",\"空孔 挑一顆輔助 ▲\"]",
+  "hole3": "locked(無孔列，只有底部開孔)"
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     1280,
+     720
+    ]
+   ],
+   "top": [
+    [
+     16,
+     8,
+     684,
+     42
+    ]
+   ],
+   "bottom": [
+    [
+     440,
+     609,
+     400,
+     97
+    ]
+   ],
+   "bars": [
+    [
+     460,
+     609,
+     360,
+     28
+    ]
+   ],
+   "dnav": [
+    [
+     782,
+     10,
+     486,
+     52
+    ]
+   ],
+   "modesw": [
+    [
+     884,
+     656,
+     188,
+     44
+    ]
+   ],
+   "panel": [
+    [
+     788,
+     76,
+     476,
+     486
+    ]
+   ],
+   "prog": [
+    [
+     320,
+     16,
+     360,
+     29
+    ]
+   ],
+   "area": [
+    [
+     16,
+     8,
+     284,
+     28
+    ]
+   ]
+  },
+  "vw": 1280,
+  "vh": 720,
+  "hit": {
+   "n": 19,
+   "min": [
+    28,
+    22,
+    "#pskill button.term.kw"
+   ],
+   "bad": [
+    "#pskill button.term.kw 28x22"
+   ],
+   "nbad": 1,
+   "adj_lt8": 0
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#prog b 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#pskill h3.sk-lab 13",
+    "#pskill span 13",
+    "#pskill button.sk-more[calc] 12",
+    "#pskill button.sk-more[aw] 12"
+   ],
+   "nlt14": 12,
+   "h_lt18": [
+    "#pskill h3.sk-lab 13"
+   ]
+  },
+  "trunc": [
+   "#pskill small「被輔助的技能獲得等同於 25% 傷害」"
+  ],
+  "ntrunc": 1,
+  "text": [
+   {
+    "r": [
+     24,
+     12,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     474,
+     17,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     607,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     623,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     912,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button.on[auto:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     996,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button[auto:0]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1060,
+     670,
+     8,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#hud kbd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     797,
+     38,
+     36,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     873,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     943,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1013,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1083,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1153,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1223,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     86,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pskill b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     1146,
+     96,
+     61,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.soul",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     821,
+     139,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1177,
+     139,
+     70,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     859,
+     181,
+     194,
+     47
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 18,
+    "w": "700",
+    "s": "#pskill span",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     859,
+     208,
+     194,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     819,
+     247,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     819,
+     262,
+     33,
+     40
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 28,
+    "w": "700",
+    "s": "#pskill b.sk-n",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     819,
+     299,
+     191,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     805,
+     339,
+     434,
+     40
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill p.sk-p.sk-hint",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     805,
+     391,
+     336,
+     22
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill p.sk-p",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1099,
+     391,
+     28,
+     20
+    ],
+    "c": "rgb(154, 166, 255)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill button.term.kw",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     805,
+     424,
+     442,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pskill h3.sk-lab",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1203,
+     424,
+     44,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pskill span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     865,
+     458,
+     56,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     865,
+     478,
+     315,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1187,
+     468,
+     48,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.sk-vv",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     865,
+     515,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     865,
+     535,
+     70,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1154,
+     525,
+     81,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.sk-up",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     866,
+     574,
+     42,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     866,
+     593,
+     172,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pskill small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     805,
+     648,
+     66,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pskill button.sk-more[calc]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     805,
+     694,
+     30,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pskill button.sk-more[aw]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     904,
+     462,
+     139,
+     21
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill button.sk-btn.pri[up:seiscry]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     970,
+     463,
+     32,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.soul",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1010,
+     462,
+     34,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill span.sk-up",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1178,
+     463,
+     42,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill button.sk-btn.sk-sw2[swap]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     813,
+     517,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pskill button.sk-out[out]",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pskill div.sk-scroll"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 10440
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#pskill img.ic 1.38",
+   "#pskill img.ic 1.13"
+  ],
+  "nicon_bad": 2,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 1,
+ "vw": 1280,
+ "vh": 720,
+ "viewport_override": null
+}

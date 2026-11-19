@@ -1,0 +1,45 @@
+{
+ "task": "m2-42",
+ "commit": "2845e5a7cc89602d46dcfb9e303f6615db85dd42",
+ "commit_short": "2845e5a",
+ "branch": "claude/dpoe-m2-42-shots-9p34op",
+ "checklist": [
+  "docs/production/specs/M2-42-ux-audit-checklist.md",
+  "docs/production/specs/M2-42-ux-audit-checklist-b.md"
+ ],
+ "checklist_commit": "67de865",
+ "protocol": "docs/production/specs/visual-review-protocol.md",
+ "run_at": "2026-11-18 16:20",
+ "viewports": {
+  "390x844": {
+   "dpr": 2,
+   "isMobile": true,
+   "hasTouch": true
+  },
+  "1280x720": {
+   "dpr": 1,
+   "mouse": "游標移出畫面"
+  },
+  "375x667": {
+   "dpr": 2,
+   "isMobile": true,
+   "hasTouch": true,
+   "round": 2
+  }
+ },
+ "hooks": {
+  "DBG.ver": 1,
+  "url": "?test=midgame&seed=42&dbg=1&freeze=1",
+  "audit": "tools/m2_42_page.js M42.audit()"
+ },
+ "browser": "Chromium 1243（/opt/pw-browsers/chromium），Playwright 1.65.1；本機 python3 -m http.server 8000；supabase 連線擋掉",
+ "tools": [
+  "tools/m2_42_shots.js",
+  "tools/m2_42_rows.js",
+  "tools/m2_42_rows_b.js",
+  "tools/m2_42_page.js",
+  "tools/m2_42_flows.js",
+  "tools/m2_42_post.py"
+ ],
+ "note": "分支從 3065ce3 開，跑完第一次後 main 前進到 2845e5a（10 個遊戲檔），併 main 後整輪重跑；證據對準 2845e5a。"
+}

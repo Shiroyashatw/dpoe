@@ -1,0 +1,1315 @@
+{
+ "id": "B-F4",
+ "screen": "reveal",
+ "state": "craft",
+ "viewport": "390x844",
+ "star": 1,
+ "s": 0,
+ "file": "390x844/reveal-craft.png",
+ "v": {
+  "n": 3,
+  "craft": 1
+ },
+ "checks": {},
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     390,
+     321
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     370,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     237,
+     366,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     275,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     788,
+     390,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     345,
+     390,
+     443
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     180,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     306,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     321,
+     390,
+     24
+    ]
+   ]
+  },
+  "vw": 390,
+  "vh": 844,
+  "hit": {
+   "n": 16,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#phand 390x24"
+   ],
+   "nbad": 2,
+   "adj_lt8": 8
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal i 11",
+    "#preveal li.hd 11",
+    "#preveal li.hd 11",
+    "#preveal li.hd 11",
+    "#preveal li.hd 11"
+   ],
+   "nlt12": 21,
+   "lt14": [
+    "#prog b 12",
+    "#preveal span 12",
+    "#preveal span.rva 12",
+    "#preveal span.rva 12",
+    "#preveal span.rva 12",
+    "#preveal span.qq 12",
+    "#preveal b 13",
+    "#preveal b 13",
+    "#preveal b 13",
+    "#preveal b 13",
+    "#preveal b 13",
+    "#preveal span.sub 12",
+    "#preveal span.qq 12",
+    "#preveal b 13",
+    "#preveal b 13",
+    "#preveal b 13",
+    "#preveal b 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 24,
+   "h_lt18": []
+  },
+  "trunc": [
+   "#preveal span.sub「身上・奧術日輪墜・智慧」"
+  ],
+  "ntrunc": 1,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     273,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     289,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     351,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#preveal b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     63,
+     358,
+     40,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     205,
+     112,
+     20
+    ],
+    "c": "rgb(255, 207, 92)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.rc2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     226,
+     76,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     244,
+     295,
+     35
+    ],
+    "c": "rgb(154, 166, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal span.rva",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     141,
+     245,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     291,
+     245,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     106,
+     263,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     181,
+     263,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     299,
+     263,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     287,
+     56,
+     20
+    ],
+    "c": "rgb(240, 106, 80)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-bad",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     139,
+     287,
+     64,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-good",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     326,
+     112,
+     20
+    ],
+    "c": "rgb(255, 207, 92)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.rc2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     347,
+     76,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     365,
+     304,
+     35
+    ],
+    "c": "rgb(154, 166, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal span.rva",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     124,
+     366,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     223,
+     366,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     322,
+     366,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     145,
+     384,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     263,
+     384,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     408,
+     296,
+     40
+    ],
+    "c": "rgb(240, 106, 80)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal p.dlt.c-bad",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     466,
+     112,
+     20
+    ],
+    "c": "rgb(255, 207, 92)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal b.rc2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     487,
+     76,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     505,
+     301,
+     35
+    ],
+    "c": "rgb(154, 166, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal span.rva",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     141,
+     506,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     264,
+     506,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     82,
+     524,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     157,
+     524,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     256,
+     524,
+     13,
+     16
+    ],
+    "c": "rgb(138, 134, 160)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     548,
+     87,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-dim",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     548,
+     56,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-good",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     242,
+     548,
+     84,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-good",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     54,
+     422,
+     90,
+     39
+    ],
+    "c": "rgb(255, 207, 92)",
+    "fs": 15,
+    "w": "900",
+    "s": "#preveal span.name.rc2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     162,
+     433,
+     25,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal span.qq",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     473,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     48,
+     473,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     492,
+     78,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     100,
+     493,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     512,
+     104,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     513,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     537,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     48,
+     537,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     556,
+     99,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     121,
+     557,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     576,
+     52,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     577,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     597,
+     78,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     100,
+     598,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     240,
+     429,
+     132,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal span.sub",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     340,
+     429,
+     32,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal span.qq",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     204,
+     465,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     234,
+     465,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     204,
+     484,
+     112,
+     19
+    ],
+    "c": "rgb(241, 235, 220)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     319,
+     485,
+     29,
+     17
+    ],
+    "c": "rgb(241, 235, 220)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     204,
+     508,
+     58,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#preveal li.hd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     234,
+     508,
+     28,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "400",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     204,
+     527,
+     52,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     259,
+     528,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     204,
+     548,
+     52,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     259,
+     549,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     204,
+     568,
+     52,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "700",
+    "s": "#preveal b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     259,
+     569,
+     14,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     639,
+     87,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-dim",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     113,
+     639,
+     56,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-good",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     185,
+     639,
+     84,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal span.c-good",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     145,
+     689,
+     33,
+     24
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 16,
+    "w": "700",
+    "s": "#preveal button.btn.pri[rvwear]",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     337,
+     692,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal button.btn[rvkeep]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     18,
+     734,
+     144,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#preveal button.dlink2[rvsalv]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     54,
+     735,
+     108,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#preveal small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     8,
+     819,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     71,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     182,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     238,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#preveal",
+   "#preveal div.rvl.sm"
+  ],
+  "scroll_depth": 2,
+  "overlap": {
+   "top/prog": 5220
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81",
+   "#preveal img.ic 1.13",
+   "#preveal img.ic 0.88"
+  ],
+  "nicon_bad": 6,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": null
+}

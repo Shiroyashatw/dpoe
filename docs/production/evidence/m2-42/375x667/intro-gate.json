@@ -1,0 +1,239 @@
+{
+ "id": "A-I1",
+ "screen": "intro",
+ "state": "gate",
+ "viewport": "375x667",
+ "star": 1,
+ "s": 1,
+ "file": "375x667/intro-gate.png",
+ "v": {
+  "intro": true,
+  "ivg": true,
+  "gate": true
+ },
+ "checks": {
+  "skip_clickable": true
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     375,
+     667
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     611,
+     375,
+     56
+    ]
+   ],
+   "intro": [
+    [
+     0,
+     0,
+     375,
+     667
+    ]
+   ]
+  },
+  "vw": 375,
+  "vh": 667,
+  "hit": {
+   "n": 8,
+   "min": [
+    66,
+    44,
+    "#intro button.btn.ivskip"
+   ],
+   "bad": [],
+   "nbad": 0,
+   "adj_lt8": 3
+  },
+  "fonts": {
+   "min": 12,
+   "lt12": [],
+   "nlt12": 0,
+   "lt14": [
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 6,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     12,
+     642,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     81,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     143,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     206,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     268,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     278,
+     602,
+     7,
+     17
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pnav i.dot.n",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     331,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     316,
+     24,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#intro button.btn.ivskip",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     273,
+     241,
+     46
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 32,
+    "w": "900",
+    "s": "#ivg h1",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     171,
+     358,
+     33,
+     24
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 16,
+    "w": "700",
+    "s": "#ivgo",
+    "x": false,
+    "key": true
+   }
+  ],
+  "scroll": [],
+  "scroll_depth": 0,
+  "overlap": {},
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [],
+  "nicon_bad": 0,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": {
+   "s": "#ivgo",
+   "outline": "2px solid"
+  }
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 375,
+ "vh": 667,
+ "viewport_override": null
+}

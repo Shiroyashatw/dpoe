@@ -1,0 +1,705 @@
+{
+ "id": "B-P1",
+ "screen": "camp",
+ "state": "sheet",
+ "viewport": "375x667",
+ "star": 1,
+ "s": 1,
+ "file": "375x667/camp-sheet.png",
+ "v": {
+  "tab": "camp",
+  "full": 0
+ },
+ "checks": {
+  "cmtop_h": 96,
+  "scroll_layers": 1,
+  "pidle": 0,
+  "camp_idle": "hidden",
+  "more_hint": "\"木 30 +240／分 生鐵 6 +160／分 生皮 3 +\"",
+  "shortcut5": "none"
+ },
+ "crops": {
+  "cmtop": [
+   10,
+   337,
+   355,
+   96
+  ]
+ },
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     375,
+     253
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     355,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     169,
+     351,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     207,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     611,
+     375,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     277,
+     375,
+     334
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     165,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     291,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     253,
+     375,
+     24
+    ]
+   ]
+  },
+  "vw": 375,
+  "vh": 667,
+  "hit": {
+   "n": 16,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32",
+    "#phand 375x24"
+   ],
+   "nbad": 3,
+   "adj_lt8": 13
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#prog b 12",
+    "#pcraft span 12",
+    "#pcraft p.cmmore 13",
+    "#pcraft span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 11,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     205,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     221,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     283,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pcraft b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     63,
+     290,
+     64,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     337,
+     14,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     52,
+     337,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     121,
+     337,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     217,
+     337,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     251,
+     337,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     305,
+     337,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     371,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     371,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     129,
+     371,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     217,
+     371,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     251,
+     371,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     313,
+     371,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     405,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     405,
+     25,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     65,
+     449,
+     66,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmnext b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     65,
+     470,
+     64,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cmnext small.d",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     65,
+     490,
+     109,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cmnext small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     304,
+     469,
+     14,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmnext button.btn[jump:wood]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     524,
+     177,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pcraft p.cmmore",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     580,
+     42,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     207,
+     579,
+     22,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.chip.on[mul:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     265,
+     579,
+     31,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.chip[mul:10]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     324,
+     579,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.chip[mul:max]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     643,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cc-wood b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     103,
+     643,
+     34,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cc-wood span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     7,
+     642,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     121,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     174,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     228,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     282,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     335,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pcraft"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 4785
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 56,
+  "icon_bad": [
+   "#mech img.ic 0.81"
+  ],
+  "nicon_bad": 2,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 375,
+ "vh": 667,
+ "viewport_override": null
+}

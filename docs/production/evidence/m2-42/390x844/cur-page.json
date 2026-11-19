@@ -1,0 +1,794 @@
+{
+ "id": "B-E11",
+ "screen": "cur",
+ "state": "page",
+ "viewport": "390x844",
+ "star": 0,
+ "s": 0,
+ "file": "390x844/cur-page.png",
+ "v": {
+  "stash": true
+ },
+ "checks": {},
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     390,
+     321
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     370,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     237,
+     366,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     275,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     788,
+     390,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     345,
+     390,
+     443
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     180,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     306,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     321,
+     390,
+     24
+    ]
+   ]
+  },
+  "vw": 390,
+  "vh": 844,
+  "hit": {
+   "n": 19,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32",
+    "#phand 390x24"
+   ],
+   "nbad": 3,
+   "adj_lt8": 14
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11",
+    "#pstash i 11"
+   ],
+   "nlt12": 14,
+   "lt14": [
+    "#prog b 12",
+    "#pstash button[ctab:make] 12",
+    "#pstash button.on[ctab:cur] 12",
+    "#pstash button[ctab:forge] 12",
+    "#pstash div.ph2 12",
+    "#pstash span 12",
+    "#pstash em.t3 12",
+    "#pstash em.t3 12",
+    "#pstash em.t3 12",
+    "#pstash em.t3 12",
+    "#pstash div.ph2 12",
+    "#pstash span 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 19,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     273,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     289,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     351,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pstash b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     181,
+     359,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pstash button[ctab:make]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     231,
+     359,
+     24,
+     17
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pstash button.on[ctab:cur]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     281,
+     359,
+     36,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pstash button[ctab:forge]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     173,
+     426,
+     70,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pstash span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     490,
+     125,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pstash div.ph2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     44,
+     490,
+     91,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pstash span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     524,
+     42,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pstash b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     543,
+     196,
+     39
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "400",
+    "s": "#pstash small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     544,
+     76,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pstash em.t3",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     545,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     321,
+     545,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     545,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     600,
+     42,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pstash b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     619,
+     196,
+     39
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "400",
+    "s": "#pstash small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     620,
+     76,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pstash em.t3",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     621,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     321,
+     621,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     621,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     676,
+     42,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pstash b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     695,
+     196,
+     39
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "400",
+    "s": "#pstash small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     696,
+     76,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pstash em.t3",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     697,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     321,
+     697,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     697,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     751,
+     42,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pstash b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     770,
+     196,
+     39
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "400",
+    "s": "#pstash small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     772,
+     76,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pstash em.t3",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     773,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     321,
+     773,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     773,
+     11,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pstash i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     824,
+     177,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pstash div.ph2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     44,
+     824,
+     143,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pstash span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     8,
+     819,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     71,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     182,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     238,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pstash"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 5220
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81"
+  ],
+  "nicon_bad": 2,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": null
+}

@@ -1,0 +1,904 @@
+{
+ "id": "B-F2",
+ "screen": "forge",
+ "state": "temper",
+ "viewport": "390x844",
+ "star": 0,
+ "s": 0,
+ "file": "390x844/forge-temper.png",
+ "v": {
+  "tab": "temper",
+  "sel": true,
+  "forge": 10
+ },
+ "checks": {
+  "tabs": "打造|通貨|鍛造台|鍛造台|淬鍊",
+  "forge_lv": 10,
+  "watch_lv": 8
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     390,
+     321
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     370,
+     89
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     237,
+     366,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     275,
+     360,
+     28
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     788,
+     390,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     345,
+     390,
+     443
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     180,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     306,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     321,
+     390,
+     24
+    ]
+   ]
+  },
+  "vw": 390,
+  "vh": 844,
+  "hit": {
+   "n": 17,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32",
+    "#phand 390x24"
+   ],
+   "nbad": 3,
+   "adj_lt8": 12
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10",
+    "#pcraft i 11",
+    "#pcraft i 11",
+    "#pcraft i 11",
+    "#pcraft i 11",
+    "#pcraft i 11",
+    "#pcraft i 11"
+   ],
+   "nlt12": 8,
+   "lt14": [
+    "#prog b 12",
+    "#pcraft button.btn.mini[pick] 12",
+    "#pcraft h5.fsh 12",
+    "#pcraft span 12",
+    "#pcraft em 12",
+    "#pcraft button.btn.mini[tmp:0] 12",
+    "#pcraft span 12",
+    "#pcraft em 12",
+    "#pcraft button.btn.mini[tmp:1] 12",
+    "#pcraft span 12",
+    "#pcraft em 12",
+    "#pcraft button.btn.mini[tmp:2] 12",
+    "#pcraft h5.fsh 12",
+    "#pcraft span 12",
+    "#pcraft em 12",
+    "#pcraft button.btn.mini[tmp:3] 12",
+    "#pcraft span 12",
+    "#pcraft em 12",
+    "#pcraft button.btn.mini[tmp:4] 12",
+    "#pcraft span 12",
+    "#pcraft em 12",
+    "#pcraft button.btn.mini[tmp:5] 12",
+    "#pcraft p.fhint 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 30,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     273,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     289,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     351,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pcraft b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     167,
+     357,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button[ctab:make]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     221,
+     357,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button[ctab:cur]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     275,
+     357,
+     42,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.on[ctab:forge]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     81,
+     413,
+     42,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button[tab:forge]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     275,
+     413,
+     28,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.on[tab:temper]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     77,
+     462,
+     112,
+     20
+    ],
+    "c": "rgb(255, 207, 92)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft b.rc2",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     77,
+     483,
+     45,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     104,
+     483,
+     18,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span.qb0",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     77,
+     501,
+     64,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     116,
+     501,
+     26,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     326,
+     482,
+     36,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft button.btn.mini[pick]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     536,
+     26,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft h5.fsh",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     17,
+     557,
+     27,
+     111
+    ],
+    "c": "rgb(138, 180, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     35,
+     604,
+     13,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pcraft i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     80,
+     604,
+     18,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft em",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     113,
+     604,
+     63,
+     17
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft button.btn.mini[tmp:0]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     17,
+     675,
+     27,
+     48
+    ],
+    "c": "rgb(138, 180, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     35,
+     691,
+     13,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pcraft i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     73,
+     691,
+     25,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft em",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     113,
+     691,
+     63,
+     17
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft button.btn.mini[tmp:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     17,
+     731,
+     32,
+     64
+    ],
+    "c": "rgb(138, 180, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     35,
+     755,
+     13,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pcraft i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     754,
+     32,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft em",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     113,
+     755,
+     63,
+     17
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft button.btn.mini[tmp:2]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     198,
+     536,
+     26,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft h5.fsh",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     205,
+     557,
+     32,
+     79
+    ],
+    "c": "rgb(138, 180, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     223,
+     589,
+     13,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pcraft i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     261,
+     588,
+     25,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft em",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     301,
+     588,
+     63,
+     17
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft button.btn.mini[tmp:3]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     205,
+     644,
+     32,
+     95
+    ],
+    "c": "rgb(138, 180, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     223,
+     684,
+     13,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pcraft i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     255,
+     683,
+     32,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft em",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     301,
+     683,
+     63,
+     17
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft button.btn.mini[tmp:4]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     205,
+     747,
+     32,
+     79
+    ],
+    "c": "rgb(138, 180, 255)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     223,
+     778,
+     13,
+     16
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pcraft i",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     255,
+     778,
+     32,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft em",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     301,
+     778,
+     63,
+     17
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pcraft button.btn.mini[tmp:5]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     837,
+     368,
+     35
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft p.fhint",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     136,
+     739,
+     119,
+     24
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 16,
+    "w": "700",
+    "s": "#pcraft button.btn.pri[tmp:all]",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     8,
+     819,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     71,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     182,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     238,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pcraft"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 5220
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81",
+   "#pcraft img.ic 0.90"
+  ],
+  "nicon_bad": 3,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": null
+}

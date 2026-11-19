@@ -1,0 +1,681 @@
+{
+ "id": "A-D3",
+ "screen": "combat",
+ "state": "dark-fog",
+ "viewport": "390x844",
+ "star": 1,
+ "s": 1,
+ "file": "390x844/combat-dark-fog.png",
+ "v": {
+  "night": 0,
+  "fog": 1,
+  "G_t": 2.57,
+  "G_night": 0,
+  "G_fog": 32.5,
+  "beams": 1,
+  "mobs": 12,
+  "nums": 8,
+  "far": 1,
+  "bars": 6
+ },
+ "checks": {
+  "order": "beams,bars,nums_after_dark(現行選項2)"
+ },
+ "crops": {
+  "beam": [
+   260,
+   -29,
+   33,
+   114
+  ],
+  "bar": [
+   196,
+   147,
+   48,
+   15
+  ],
+  "num-near": [
+   160,
+   15,
+   57,
+   28
+  ],
+  "num-far": [
+   21,
+   56,
+   57,
+   28
+  ],
+  "ground": [
+   182,
+   124,
+   65,
+   24
+  ]
+ },
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     390,
+     321
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     370,
+     111
+    ]
+   ],
+   "bottom": [
+    [
+     12,
+     237,
+     366,
+     76
+    ]
+   ],
+   "bars": [
+    [
+     12,
+     275,
+     360,
+     28
+    ]
+   ],
+   "pidle": [
+    [
+     0,
+     345,
+     390,
+     443
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     788,
+     390,
+     56
+    ]
+   ],
+   "banner": [
+    [
+     143,
+     186,
+     104,
+     47
+    ]
+   ],
+   "dlog": [
+    [
+     10,
+     64,
+     370,
+     22
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     92,
+     180,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     306,
+     44
+    ]
+   ]
+  },
+  "vw": 390,
+  "vh": 844,
+  "hit": {
+   "n": 10,
+   "min": [
+    32,
+    32,
+    "#mech button.stc.bad"
+   ],
+   "bad": [
+    "#mech button.stc.bad 32x32",
+    "#mech button.stc.bad 32x32"
+   ],
+   "nbad": 2,
+   "adj_lt8": 5
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10"
+   ],
+   "nlt12": 2,
+   "lt14": [
+    "#dlog p.lg-cur 12",
+    "#prog b 12",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 9,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     16,
+     67,
+     36,
+     17
+    ],
+    "c": "rgb(241, 235, 220)",
+    "fs": 12,
+    "w": "500",
+    "s": "#dlog p.lg-cur",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     74,
+     93,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     273,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     170,
+     289,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     164,
+     195,
+     62,
+     29
+    ],
+    "c": "rgb(241, 235, 220)",
+    "fs": 20,
+    "w": "900",
+    "s": "#banner",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     24,
+     367,
+     175,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pidle span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     287,
+     367,
+     79,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pidle span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     46,
+     395,
+     14,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     395,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     128,
+     395,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     224,
+     395,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     258,
+     395,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     306,
+     395,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     46,
+     429,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     80,
+     429,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     136,
+     429,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     224,
+     429,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     258,
+     429,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     314,
+     429,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     46,
+     463,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pidle span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     80,
+     463,
+     25,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pidle b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     171,
+     520,
+     49,
+     24
+    ],
+    "c": "rgb(243, 228, 210)",
+    "fs": 16,
+    "w": "700",
+    "s": "#pidle button.btn.pri[gocamp]",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     8,
+     819,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     71,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     126,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     182,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     238,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     293,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     349,
+     819,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [],
+  "scroll_depth": 0,
+  "overlap": {
+   "top/prog": 5220,
+   "top/dlog": 8140
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#mech img.ic 0.81"
+  ],
+  "nicon_bad": 2,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": [
+  {
+   "f": "390x844/combat-dark-fog-burst/00.png",
+   "t": 2.566,
+   "night": 0,
+   "fog": 1,
+   "nums": 8,
+   "beams": 3
+  },
+  {
+   "f": "390x844/combat-dark-fog-burst/01.png",
+   "t": 2.732,
+   "night": 0,
+   "fog": 1,
+   "nums": 8,
+   "beams": 3
+  },
+  {
+   "f": "390x844/combat-dark-fog-burst/02.png",
+   "t": 2.898,
+   "night": 0,
+   "fog": 1,
+   "nums": 8,
+   "beams": 3
+  },
+  {
+   "f": "390x844/combat-dark-fog-burst/03.png",
+   "t": 3.064,
+   "night": 0,
+   "fog": 1,
+   "nums": 8,
+   "beams": 2
+  },
+  {
+   "f": "390x844/combat-dark-fog-burst/04.png",
+   "t": 3.23,
+   "night": 0,
+   "fog": 1,
+   "nums": 8,
+   "beams": 1
+  },
+  {
+   "f": "390x844/combat-dark-fog-burst/05.png",
+   "t": 3.396,
+   "night": 0,
+   "fog": 1,
+   "nums": 8,
+   "beams": 1
+  },
+  {
+   "f": "390x844/combat-dark-fog-burst/06.png",
+   "t": 3.562,
+   "night": 0,
+   "fog": 1,
+   "nums": 0,
+   "beams": 1
+  }
+ ],
+ "dpr": 2,
+ "vw": 390,
+ "vh": 844,
+ "viewport_override": null
+}

@@ -1,0 +1,806 @@
+{
+ "id": "B-P2",
+ "screen": "camp",
+ "state": "full",
+ "viewport": "375x667",
+ "star": 1,
+ "s": 1,
+ "file": "375x667/camp-full.png",
+ "v": {
+  "full": 1,
+  "sheetfull": true
+ },
+ "checks": {
+  "cmtop_h": 96,
+  "cmtop_pct": 14,
+  "scroll_layers": 1,
+  "pnav": 1,
+  "desk": ""
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     375,
+     667
+    ]
+   ],
+   "top": [
+    [
+     10,
+     10,
+     355,
+     89
+    ]
+   ],
+   "pnav": [
+    [
+     0,
+     611,
+     375,
+     56
+    ]
+   ],
+   "panel": [
+    [
+     0,
+     24,
+     375,
+     587
+    ]
+   ],
+   "prog": [
+    [
+     10,
+     70,
+     165,
+     29
+    ]
+   ],
+   "area": [
+    [
+     10,
+     10,
+     291,
+     44
+    ]
+   ],
+   "phand": [
+    [
+     0,
+     0,
+     375,
+     24
+    ]
+   ]
+  },
+  "vw": 375,
+  "vh": 667,
+  "hit": {
+   "n": 15,
+   "min": [
+    44,
+    44,
+    "#pcraft button.x[close]"
+   ],
+   "bad": [
+    "#phand 375x24"
+   ],
+   "nbad": 1,
+   "adj_lt8": 6
+  },
+  "fonts": {
+   "min": 12,
+   "lt12": [],
+   "nlt12": 0,
+   "lt14": [
+    "#prog b 12",
+    "#pcraft span 12",
+    "#pcraft p.cmmore 13",
+    "#pcraft span 13",
+    "#cc-wood span 13",
+    "#cc-wood span 13",
+    "#cc-iron span 13",
+    "#cc-iron span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13",
+    "#pnav span 13"
+   ],
+   "nlt14": 15,
+   "h_lt18": []
+  },
+  "trunc": [],
+  "ntrunc": 0,
+  "text": [
+   {
+    "r": [
+     18,
+     22,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     71,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     30,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pcraft b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     63,
+     37,
+     64,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     84,
+     14,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     52,
+     84,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     121,
+     84,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     217,
+     84,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     251,
+     84,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     305,
+     84,
+     60,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     118,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     118,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     129,
+     118,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     217,
+     118,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     251,
+     118,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     313,
+     118,
+     52,
+     20
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     32,
+     152,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cmtop span.rn",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     66,
+     152,
+     25,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmtop b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     65,
+     196,
+     66,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmnext b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     65,
+     217,
+     64,
+     19
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cmnext small.d",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     65,
+     237,
+     109,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cmnext small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     304,
+     216,
+     14,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cmnext button.btn[jump:wood]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     271,
+     177,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pcraft p.cmmore",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     10,
+     327,
+     42,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pcraft span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     207,
+     326,
+     22,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.chip.on[mul:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     265,
+     326,
+     31,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.chip[mul:10]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     324,
+     326,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pcraft button.chip[mul:max]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     390,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cc-wood b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     103,
+     390,
+     34,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cc-wood span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     27,
+     437,
+     94,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cc-wood span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     281,
+     437,
+     70,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cc-wood span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     27,
+     470,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cc-wood small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     72,
+     460,
+     54,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#cc-wood b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     132,
+     470,
+     13,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cc-wood small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     165,
+     519,
+     48,
+     20
+    ],
+    "c": "rgb(170, 154, 132)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cc-wood button.btn.wide[gen:wood:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     591,
+     28,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#cc-iron b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     103,
+     590,
+     34,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "500",
+    "s": "#cc-iron span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     27,
+     638,
+     138,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cc-iron span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     289,
+     638,
+     62,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#cc-iron span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     72,
+     660,
+     51,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#cc-iron b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     7,
+     642,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     67,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     121,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     174,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     228,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     282,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     335,
+     642,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pnav span",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pcraft"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "panel/top": 26625,
+   "panel/prog": 4785,
+   "top/prog": 4785
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 56,
+  "icon_bad": [],
+  "nicon_bad": 0,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 2,
+ "vw": 375,
+ "vh": 667,
+ "viewport_override": null
+}

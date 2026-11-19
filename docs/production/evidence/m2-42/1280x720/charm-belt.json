@@ -1,0 +1,1202 @@
+{
+ "id": "B-E10",
+ "screen": "charm",
+ "state": "belt",
+ "viewport": "1280x720",
+ "star": 0,
+ "s": 0,
+ "file": "1280x720/charm-belt.png",
+ "v": {
+  "belt": false,
+  "cs": 0
+ },
+ "checks": {
+  "charm_txt": "\"T1 T1 T2 T1 腰帶 2 腰帶空著，倉庫有 2 件可\""
+ },
+ "crops": {},
+ "m": {
+  "regions": {
+   "cv": [
+    [
+     0,
+     0,
+     1280,
+     720
+    ]
+   ],
+   "top": [
+    [
+     16,
+     8,
+     684,
+     42
+    ]
+   ],
+   "bottom": [
+    [
+     440,
+     609,
+     400,
+     97
+    ]
+   ],
+   "bars": [
+    [
+     460,
+     609,
+     360,
+     28
+    ]
+   ],
+   "dnav": [
+    [
+     782,
+     10,
+     486,
+     52
+    ]
+   ],
+   "modesw": [
+    [
+     884,
+     656,
+     188,
+     44
+    ]
+   ],
+   "panel": [
+    [
+     788,
+     76,
+     476,
+     486
+    ]
+   ],
+   "prog": [
+    [
+     320,
+     16,
+     360,
+     29
+    ]
+   ],
+   "area": [
+    [
+     16,
+     8,
+     284,
+     28
+    ]
+   ]
+  },
+  "vw": 1280,
+  "vh": 720,
+  "hit": {
+   "n": 21,
+   "min": [
+    44,
+    44,
+    "#pinv button.x[close]"
+   ],
+   "bad": [],
+   "nbad": 0,
+   "adj_lt8": 0
+  },
+  "fonts": {
+   "min": 10,
+   "lt12": [
+    "#bhp span 10",
+    "#bmp span 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr 10",
+    "#pinv i.btr.btop 10",
+    "#pinv small 10",
+    "#pinv small 10",
+    "#pinv small 10",
+    "#pinv span.res-fire.neg 11",
+    "#pinv span.res-cold.neg 11",
+    "#pinv span.res-light.neg 11",
+    "#pinv span.res-chaos 11",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10",
+    "#pinv i.btr.btop 10"
+   ],
+   "nlt12": 18,
+   "lt14": [
+    "#prog b 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#dnav span 12",
+    "#pinv span 12",
+    "#pinv span.nm 13",
+    "#pinv em.cn.c-good 12",
+    "#pinv b 13",
+    "#pinv b 13",
+    "#pinv b 13",
+    "#pinv b 13",
+    "#pinv button.btn.mi-b[nav:tree] 12",
+    "#pinv i.bs.fr 12",
+    "#pinv h4 12",
+    "#pinv span 13",
+    "#pinv span 13",
+    "#pinv span 13",
+    "#pinv span 13",
+    "#pinv span 13",
+    "#pinv h4 12",
+    "#pinv span 13",
+    "#pinv span 13",
+    "#pinv span 13",
+    "#pinv h4 12",
+    "#pinv span 13",
+    "#pinv span 13"
+   ],
+   "nlt14": 32,
+   "h_lt18": []
+  },
+  "trunc": [
+   "#pinv span.sr「腰帶空著，倉庫有 2 件可以裝備」"
+  ],
+  "ntrunc": 1,
+  "text": [
+   {
+    "r": [
+     24,
+     12,
+     246,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#area",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     474,
+     17,
+     53,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#prog b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     607,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bhp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     618,
+     623,
+     44,
+     15
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 10,
+    "w": "700",
+    "s": "#bmp span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     912,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button.on[auto:1]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     996,
+     668,
+     28,
+     20
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 14,
+    "w": "700",
+    "s": "#hud button[auto:0]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1060,
+     670,
+     8,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#hud kbd",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     797,
+     38,
+     36,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     873,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     943,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1013,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1083,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1153,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1223,
+     38,
+     24,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#dnav span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     86,
+     45,
+     31
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 22,
+    "w": "900",
+    "s": "#pinv b",
+    "x": false,
+    "key": true
+   },
+   {
+    "r": [
+     858,
+     97,
+     177,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     854,
+     60,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     854,
+     124,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     857,
+     189,
+     12,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     854,
+     252,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     831,
+     311,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span.nm",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     860,
+     276,
+     7,
+     17
+    ],
+    "c": "rgb(127, 201, 90)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pinv em.cn.c-good",
+    "x": true,
+    "key": false
+   },
+   {
+    "r": [
+     844,
+     328,
+     196,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pinv span.sr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1000,
+     28,
+     19,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1025,
+     23,
+     27,
+     21
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 15,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1000,
+     60,
+     20,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1026,
+     55,
+     27,
+     21
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 15,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1009,
+     92,
+     20,
+     15
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 10,
+    "w": "500",
+    "s": "#pinv small",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1035,
+     87,
+     9,
+     21
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 15,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     930,
+     120,
+     49,
+     19
+    ],
+    "c": "rgb(255, 138, 76)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv span.res-fire.neg",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     943,
+     120,
+     36,
+     19
+    ],
+    "c": "rgb(240, 106, 80)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     980,
+     120,
+     49,
+     19
+    ],
+    "c": "rgb(143, 214, 255)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv span.res-cold.neg",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     993,
+     120,
+     36,
+     19
+    ],
+    "c": "rgb(240, 106, 80)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1031,
+     120,
+     49,
+     19
+    ],
+    "c": "rgb(255, 224, 102)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv span.res-light.neg",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1044,
+     120,
+     36,
+     19
+    ],
+    "c": "rgb(240, 106, 80)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1081,
+     120,
+     41,
+     19
+    ],
+    "c": "rgb(195, 139, 255)",
+    "fs": 11,
+    "w": "500",
+    "s": "#pinv span.res-chaos",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1094,
+     120,
+     28,
+     19
+    ],
+    "c": "rgb(195, 139, 255)",
+    "fs": 13,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     986,
+     304,
+     80,
+     17
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pinv button.btn.mi-b[nav:tree]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1218,
+     60,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1218,
+     124,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1184,
+     147,
+     12,
+     17
+    ],
+    "c": "rgb(241, 235, 220)",
+    "fs": 12,
+    "w": "900",
+    "s": "#pinv i.bs.fr",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1218,
+     188,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1218,
+     252,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1218,
+     316,
+     12,
+     15
+    ],
+    "c": "rgb(42, 26, 18)",
+    "fs": 10,
+    "w": "700",
+    "s": "#pinv i.btr.btop",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     816,
+     354,
+     134,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "500",
+    "s": "#pinv button.chbelt[selbelt]",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     406,
+     26,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pinv h4",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     428,
+     25,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     916,
+     427,
+     25,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     957,
+     428,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1063,
+     427,
+     32,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1111,
+     428,
+     52,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1220,
+     427,
+     29,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     456,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     906,
+     455,
+     35,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     957,
+     456,
+     39,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1057,
+     455,
+     38,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     488,
+     26,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pinv h4",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     510,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     916,
+     509,
+     25,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     957,
+     510,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1087,
+     509,
+     8,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1111,
+     510,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1227,
+     509,
+     22,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     543,
+     39,
+     17
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 12,
+    "w": "700",
+    "s": "#pinv h4",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     565,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     924,
+     564,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     957,
+     565,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1078,
+     564,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1111,
+     565,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     1232,
+     564,
+     17,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     803,
+     592,
+     26,
+     19
+    ],
+    "c": "rgb(166, 149, 126)",
+    "fs": 13,
+    "w": "500",
+    "s": "#pinv span",
+    "x": false,
+    "key": false
+   },
+   {
+    "r": [
+     902,
+     591,
+     39,
+     20
+    ],
+    "c": "rgb(217, 205, 180)",
+    "fs": 14,
+    "w": "700",
+    "s": "#pinv b",
+    "x": false,
+    "key": false
+   }
+  ],
+  "scroll": [
+   "#pinv"
+  ],
+  "scroll_depth": 1,
+  "overlap": {
+   "top/prog": 10440
+  },
+  "sk_area": 0,
+  "sk_block": 0,
+  "rbar_overlap": 0,
+  "rbar_outside": 0,
+  "icon_bad": [
+   "#pinv img.ic 1.05"
+  ],
+  "nicon_bad": 9,
+  "img_broken": [],
+  "color_lit": [],
+  "focus": null
+ },
+ "errs": [],
+ "burst": null,
+ "dpr": 1,
+ "vw": 1280,
+ "vh": 720,
+ "viewport_override": null
+}

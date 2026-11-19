@@ -1,0 +1,3432 @@
+[
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "omen",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-omen.png"
+ },
+ {
+  "id": "A-I1",
+  "screen": "intro",
+  "state": "gate",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/intro-gate.png"
+ },
+ {
+  "id": "A-I1",
+  "screen": "intro",
+  "state": "gate",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/intro-gate.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "peace",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-peace.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "crack",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/intro-crack.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "fall",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-fall.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "march",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-march.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "rain",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-rain.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "you",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/intro-you.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "omen",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-omen.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "peace",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-peace.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "crack",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/intro-crack.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "fall",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-fall.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "rain",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-rain.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "march",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-march.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "you",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/intro-you.png"
+ },
+ {
+  "id": "A-I3",
+  "screen": "intro",
+  "state": "skip",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-skip.png"
+ },
+ {
+  "id": "A-I3",
+  "screen": "intro",
+  "state": "skip",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-skip.png"
+ },
+ {
+  "id": "A-I3",
+  "screen": "intro",
+  "state": "lid",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-lid.png"
+ },
+ {
+  "id": "A-I3",
+  "screen": "intro",
+  "state": "lid",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-lid.png"
+ },
+ {
+  "id": "A-I4",
+  "screen": "intro",
+  "state": "rm",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/intro-rm.png"
+ },
+ {
+  "id": "A-H1",
+  "screen": "combat",
+  "state": "auto",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-auto.png"
+ },
+ {
+  "id": "A-H1",
+  "screen": "combat",
+  "state": "auto",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-auto.png"
+ },
+ {
+  "id": "A-I4",
+  "screen": "intro",
+  "state": "rm",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/intro-rm.png"
+ },
+ {
+  "id": "A-H2",
+  "screen": "combat",
+  "state": "manual",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-manual.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-mid",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-ammo-mid.png"
+ },
+ {
+  "id": "A-H2",
+  "screen": "combat",
+  "state": "manual",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-manual.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-last",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-ammo-last.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-reload",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-ammo-reload.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-mid",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-ammo-mid.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-last",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-ammo-last.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-reload",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-ammo-reload.png"
+ },
+ {
+  "id": "A-H4",
+  "screen": "combat",
+  "state": "gren-full",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-gren-full.png"
+ },
+ {
+  "id": "A-H4",
+  "screen": "combat",
+  "state": "gren-cd",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-gren-cd.png"
+ },
+ {
+  "id": "A-H4",
+  "screen": "combat",
+  "state": "gren-full",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-gren-full.png"
+ },
+ {
+  "id": "A-H4",
+  "screen": "combat",
+  "state": "gren-cd",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-gren-cd.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-1",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-charge-1.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-2",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-charge-2.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-1",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-charge-1.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-3",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-charge-3.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-2",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-charge-2.png"
+ },
+ {
+  "id": "A-H6",
+  "screen": "combat",
+  "state": "flask-cd",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-flask-cd.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-3",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-charge-3.png"
+ },
+ {
+  "id": "A-H6",
+  "screen": "combat",
+  "state": "flask-skill",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-flask-skill.png"
+ },
+ {
+  "id": "A-H6",
+  "screen": "combat",
+  "state": "flask-cd",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-flask-cd.png"
+ },
+ {
+  "id": "A-H6",
+  "screen": "combat",
+  "state": "flask-skill",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-flask-skill.png"
+ },
+ {
+  "id": "A-H7",
+  "screen": "combat",
+  "state": "cooldown",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-cooldown.png"
+ },
+ {
+  "id": "A-H7",
+  "screen": "combat",
+  "state": "cooldown",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-cooldown.png"
+ },
+ {
+  "id": "A-H7",
+  "screen": "combat",
+  "state": "invalid",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-invalid.png"
+ },
+ {
+  "id": "A-H7",
+  "screen": "combat",
+  "state": "invalid",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-invalid.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "hp-mid",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-hp-mid.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "hp-low",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-hp-low.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "es",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-es.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "block",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-block.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "hellfire",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-hellfire.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "hp-mid",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-hp-mid.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "hp-low",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-hp-low.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "es",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-es.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "block",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-block.png"
+ },
+ {
+  "id": "A-H9",
+  "screen": "combat",
+  "state": "status-3",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-status-3.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "hellfire",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-hellfire.png"
+ },
+ {
+  "id": "A-H9",
+  "screen": "combat",
+  "state": "status-3",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-status-3.png"
+ },
+ {
+  "id": "A-H10",
+  "screen": "combat",
+  "state": "boss",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-boss.png"
+ },
+ {
+  "id": "A-H10",
+  "screen": "combat",
+  "state": "prog",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-prog.png"
+ },
+ {
+  "id": "A-H10",
+  "screen": "combat",
+  "state": "boss",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-boss.png"
+ },
+ {
+  "id": "A-H10",
+  "screen": "combat",
+  "state": "prog",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-prog.png"
+ },
+ {
+  "id": "A-H11",
+  "screen": "combat",
+  "state": "minimap",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-minimap.png"
+ },
+ {
+  "id": "A-H11",
+  "screen": "combat",
+  "state": "minimap",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-minimap.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-cur",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-dlog-cur.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-mix",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-dlog-mix.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-chase",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-dlog-chase.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-cur",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-dlog-cur.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-mix",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-dlog-mix.png"
+ },
+ {
+  "id": "A-H13",
+  "screen": "combat",
+  "state": "banner-cur",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-banner-cur.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-chase",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-dlog-chase.png"
+ },
+ {
+  "id": "A-H13",
+  "screen": "combat",
+  "state": "banner-chase",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-banner-chase.png"
+ },
+ {
+  "id": "A-H13",
+  "screen": "combat",
+  "state": "banner-cur",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-banner-cur.png"
+ },
+ {
+  "id": "A-H14",
+  "screen": "combat",
+  "state": "toast",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-toast.png"
+ },
+ {
+  "id": "A-H13",
+  "screen": "combat",
+  "state": "banner-chase",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-banner-chase.png"
+ },
+ {
+  "id": "A-H14",
+  "screen": "combat",
+  "state": "toast",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-toast.png"
+ },
+ {
+  "id": "A-H16",
+  "screen": "combat",
+  "state": "paused",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-paused.png"
+ },
+ {
+  "id": "A-H15",
+  "screen": "combat",
+  "state": "lvup",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-lvup.png"
+ },
+ {
+  "id": "A-H15",
+  "screen": "combat",
+  "state": "lvup",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-lvup.png"
+ },
+ {
+  "id": "A-H18",
+  "screen": "mode",
+  "state": "auto",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "直立沒有 .modesw（donly），自動／手動在設定裡切"
+ },
+ {
+  "id": "A-H18",
+  "screen": "mode",
+  "state": "manual",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "直立沒有 .modesw（donly），自動／手動在設定裡切"
+ },
+ {
+  "id": "A-H16",
+  "screen": "combat",
+  "state": "paused",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-paused.png"
+ },
+ {
+  "id": "A-H17",
+  "screen": "combat",
+  "state": "area-run",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-area-run.png"
+ },
+ {
+  "id": "A-H17",
+  "screen": "combat",
+  "state": "area-run",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-area-run.png"
+ },
+ {
+  "id": "A-H19",
+  "screen": "nav",
+  "state": "plain",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/nav-plain.png"
+ },
+ {
+  "id": "A-H18",
+  "screen": "mode",
+  "state": "auto",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/mode-auto.png"
+ },
+ {
+  "id": "A-H19",
+  "screen": "nav",
+  "state": "plain",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/nav-plain.png"
+ },
+ {
+  "id": "A-H18",
+  "screen": "mode",
+  "state": "manual",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/mode-manual.png"
+ },
+ {
+  "id": "A-H19",
+  "screen": "nav",
+  "state": "badge",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/nav-badge.png"
+ },
+ {
+  "id": "A-H20",
+  "screen": "nav",
+  "state": "hover",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "直立沒有滑鼠停留"
+ },
+ {
+  "id": "A-H19",
+  "screen": "nav",
+  "state": "dot",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/nav-dot.png"
+ },
+ {
+  "id": "A-H19",
+  "screen": "nav",
+  "state": "dot",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/nav-dot.png"
+ },
+ {
+  "id": "A-H20",
+  "screen": "nav",
+  "state": "press",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機沒有觸控按住"
+ },
+ {
+  "id": "A-H19",
+  "screen": "nav",
+  "state": "badge",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/nav-badge.png"
+ },
+ {
+  "id": "A-H20",
+  "screen": "nav",
+  "state": "press",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/nav-press.png"
+ },
+ {
+  "id": "A-H21",
+  "screen": "tip",
+  "state": "hover",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tip-hover.png"
+ },
+ {
+  "id": "A-H21",
+  "screen": "tip",
+  "state": "edge",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tip-edge.png"
+ },
+ {
+  "id": "A-H20",
+  "screen": "nav",
+  "state": "hover",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/nav-hover.png"
+ },
+ {
+  "id": "A-H21",
+  "screen": "tip",
+  "state": "hover",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tip-hover.png"
+ },
+ {
+  "id": "A-H21",
+  "screen": "tip",
+  "state": "edge",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tip-edge.png"
+ },
+ {
+  "id": "A-H22",
+  "screen": "roll",
+  "state": "rcd",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/roll-rcd.png"
+ },
+ {
+  "id": "A-H22",
+  "screen": "roll",
+  "state": "rcd",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/roll-rcd.png"
+ },
+ {
+  "id": "A-H23",
+  "screen": "combat",
+  "state": "safe-0",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-safe-0.png"
+ },
+ {
+  "id": "A-H23",
+  "screen": "combat",
+  "state": "safe-34",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-safe-34.png"
+ },
+ {
+  "id": "A-H23",
+  "screen": "combat",
+  "state": "safe-0",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-safe-0.png"
+ },
+ {
+  "id": "A-D1",
+  "screen": "combat",
+  "state": "dark-normal",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-dark-normal.png"
+ },
+ {
+  "id": "A-H23",
+  "screen": "combat",
+  "state": "safe-34",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-safe-34.png"
+ },
+ {
+  "id": "A-D1",
+  "screen": "combat",
+  "state": "dark-normal",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-dark-normal.png"
+ },
+ {
+  "id": "A-D2",
+  "screen": "combat",
+  "state": "dark-night",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-dark-night.png"
+ },
+ {
+  "id": "A-D3",
+  "screen": "combat",
+  "state": "dark-fog",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/combat-dark-fog.png"
+ },
+ {
+  "id": "A-D4",
+  "screen": "combat",
+  "state": "dark-night-unique",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-dark-night-unique.png"
+ },
+ {
+  "id": "A-D4",
+  "screen": "combat",
+  "state": "dark-fog-chase",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/combat-dark-fog-chase.png"
+ },
+ {
+  "id": "A-D2",
+  "screen": "combat",
+  "state": "dark-night",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-dark-night.png"
+ },
+ {
+  "id": "A-D3",
+  "screen": "combat",
+  "state": "dark-fog",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/combat-dark-fog.png"
+ },
+ {
+  "id": "A-C1",
+  "screen": "idle",
+  "state": "expand",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/idle-expand.png"
+ },
+ {
+  "id": "A-D4",
+  "screen": "combat",
+  "state": "dark-night-unique",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-dark-night-unique.png"
+ },
+ {
+  "id": "A-D4",
+  "screen": "combat",
+  "state": "dark-fog-chase",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/combat-dark-fog-chase.png"
+ },
+ {
+  "id": "A-C1",
+  "screen": "idle",
+  "state": "expand",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/idle-expand.png"
+ },
+ {
+  "id": "A-C3",
+  "screen": "idle",
+  "state": "pity",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/idle-pity.png"
+ },
+ {
+  "id": "A-C2",
+  "screen": "idle",
+  "state": "resbar",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/idle-resbar.png"
+ },
+ {
+  "id": "A-C2",
+  "screen": "idle",
+  "state": "resbar",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/idle-resbar.png"
+ },
+ {
+  "id": "A-C3",
+  "screen": "idle",
+  "state": "stash80",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/idle-stash80.png"
+ },
+ {
+  "id": "A-C3",
+  "screen": "idle",
+  "state": "stash80",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/idle-stash80.png"
+ },
+ {
+  "id": "A-C5",
+  "screen": "idle",
+  "state": "desk",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "直立的掛機卡是半版（A-C1）；桌機左下卡只有桌機"
+ },
+ {
+  "id": "A-C4",
+  "screen": "idle",
+  "state": "loot",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/idle-loot.png"
+ },
+ {
+  "id": "A-C3",
+  "screen": "idle",
+  "state": "pity",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/idle-pity.png"
+ },
+ {
+  "id": "A-C4",
+  "screen": "idle",
+  "state": "loot",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/idle-loot.png"
+ },
+ {
+  "id": "A-C5",
+  "screen": "idle",
+  "state": "desk",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/idle-desk.png"
+ },
+ {
+  "id": "A-O2",
+  "screen": "death",
+  "state": "auto-toast",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機沒有半版面板（sheetOn 只在直立），死亡一律出死亡卡"
+ },
+ {
+  "id": "A-O1",
+  "screen": "death",
+  "state": "manual",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/death-manual.png"
+ },
+ {
+  "id": "A-O1",
+  "screen": "death",
+  "state": "manual",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/death-manual.png"
+ },
+ {
+  "id": "A-O2",
+  "screen": "death",
+  "state": "auto-toast",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/death-auto-toast.png"
+ },
+ {
+  "id": "A-O3",
+  "screen": "death",
+  "state": "upgrade",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/death-upgrade.png"
+ },
+ {
+  "id": "A-O3",
+  "screen": "death",
+  "state": "upgrade",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/death-upgrade.png"
+ },
+ {
+  "id": "A-O4",
+  "screen": "ask",
+  "state": "home",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/ask-home.png"
+ },
+ {
+  "id": "A-O4",
+  "screen": "ask",
+  "state": "home",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/ask-home.png"
+ },
+ {
+  "id": "A-O5",
+  "screen": "offline",
+  "state": "sum",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/offline-sum.png"
+ },
+ {
+  "id": "A-O5",
+  "screen": "offline",
+  "state": "chase",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/offline-chase.png"
+ },
+ {
+  "id": "A-O6",
+  "screen": "rotate",
+  "state": "prompt",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機沒有觸控方向提示（#rot 只在觸控）"
+ },
+ {
+  "id": "A-O5",
+  "screen": "offline",
+  "state": "sum",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/offline-sum.png"
+ },
+ {
+  "id": "A-O5",
+  "screen": "offline",
+  "state": "chase",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/offline-chase.png"
+ },
+ {
+  "id": "A-O6",
+  "screen": "rotate",
+  "state": "prompt",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/rotate-prompt.png"
+ },
+ {
+  "id": "A-M1",
+  "screen": "more",
+  "state": "home",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/more-home.png"
+ },
+ {
+  "id": "A-M1",
+  "screen": "more",
+  "state": "home",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/more-home.png"
+ },
+ {
+  "id": "A-M2",
+  "screen": "set",
+  "state": "main",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/set-main.png"
+ },
+ {
+  "id": "A-M3",
+  "screen": "set",
+  "state": "acct-guest",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/set-acct-guest.png"
+ },
+ {
+  "id": "A-M2",
+  "screen": "set",
+  "state": "main",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/set-main.png"
+ },
+ {
+  "id": "A-M4",
+  "screen": "node",
+  "state": "list",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/node-list.png"
+ },
+ {
+  "id": "A-M3",
+  "screen": "set",
+  "state": "acct-guest",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/set-acct-guest.png"
+ },
+ {
+  "id": "A-M4",
+  "screen": "node",
+  "state": "stars",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/node-stars.png"
+ },
+ {
+  "id": "A-M4",
+  "screen": "node",
+  "state": "list",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/node-list.png"
+ },
+ {
+  "id": "A-M5",
+  "screen": "hide",
+  "state": "resume",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/hide-resume.png"
+ },
+ {
+  "id": "A-M4",
+  "screen": "node",
+  "state": "stars",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/node-stars.png"
+ },
+ {
+  "id": "A-M5",
+  "screen": "hide",
+  "state": "resume",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/hide-resume.png"
+ },
+ {
+  "id": "B-S1",
+  "screen": "skill",
+  "state": "home",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/skill-home.png"
+ },
+ {
+  "id": "B-S2",
+  "screen": "skill",
+  "state": "one",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/skill-one.png"
+ },
+ {
+  "id": "B-S1",
+  "screen": "skill",
+  "state": "home",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/skill-home.png"
+ },
+ {
+  "id": "B-S2",
+  "screen": "skill",
+  "state": "one",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/skill-one.png"
+ },
+ {
+  "id": "B-S3",
+  "screen": "skill",
+  "state": "calc",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-calc.png"
+ },
+ {
+  "id": "B-S3",
+  "screen": "skill",
+  "state": "awake",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-awake.png"
+ },
+ {
+  "id": "B-S3",
+  "screen": "skill",
+  "state": "calc",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-calc.png"
+ },
+ {
+  "id": "B-S3",
+  "screen": "skill",
+  "state": "awake",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-awake.png"
+ },
+ {
+  "id": "B-S4",
+  "screen": "skill",
+  "state": "pick-skills",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-pick-skills.png"
+ },
+ {
+  "id": "B-S4",
+  "screen": "skill",
+  "state": "pick-skills",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-pick-skills.png"
+ },
+ {
+  "id": "B-S5",
+  "screen": "skill",
+  "state": "pick-aura",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-pick-aura.png"
+ },
+ {
+  "id": "B-S6",
+  "screen": "skill",
+  "state": "pick-sups",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/skill-pick-sups.png"
+ },
+ {
+  "id": "B-S5",
+  "screen": "skill",
+  "state": "pick-aura",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-pick-aura.png"
+ },
+ {
+  "id": "B-S7",
+  "screen": "skill",
+  "state": "sup-open",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/skill-sup-open.png"
+ },
+ {
+  "id": "B-S6",
+  "screen": "skill",
+  "state": "pick-sups",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/skill-pick-sups.png"
+ },
+ {
+  "id": "B-S7",
+  "screen": "skill",
+  "state": "sup-open",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/skill-sup-open.png"
+ },
+ {
+  "id": "B-S8",
+  "screen": "skill",
+  "state": "filter-el",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-filter-el.png"
+ },
+ {
+  "id": "B-S8",
+  "screen": "skill",
+  "state": "filter-gen",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-filter-gen.png"
+ },
+ {
+  "id": "B-S8",
+  "screen": "skill",
+  "state": "filter-all",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-filter-all.png"
+ },
+ {
+  "id": "B-S8",
+  "screen": "skill",
+  "state": "filter-el",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-filter-el.png"
+ },
+ {
+  "id": "B-S8",
+  "screen": "skill",
+  "state": "filter-gen",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-filter-gen.png"
+ },
+ {
+  "id": "B-S9",
+  "screen": "skill",
+  "state": "reorder",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-reorder.png"
+ },
+ {
+  "id": "B-S8",
+  "screen": "skill",
+  "state": "filter-all",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-filter-all.png"
+ },
+ {
+  "id": "B-S11",
+  "screen": "skill",
+  "state": "desk-home",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機版技能面板（直立見 B-S1、B-S6）"
+ },
+ {
+  "id": "B-S11",
+  "screen": "skill",
+  "state": "desk-sups",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機版技能面板（直立見 B-S1、B-S6）"
+ },
+ {
+  "id": "B-S10",
+  "screen": "skill",
+  "state": "drill",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/skill-drill.png"
+ },
+ {
+  "id": "B-S9",
+  "screen": "skill",
+  "state": "reorder",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-reorder.png"
+ },
+ {
+  "id": "B-S10",
+  "screen": "skill",
+  "state": "drill",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-drill.png"
+ },
+ {
+  "id": "B-S11",
+  "screen": "skill",
+  "state": "desk-home",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-desk-home.png"
+ },
+ {
+  "id": "B-E1",
+  "screen": "char",
+  "state": "beige",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/char-beige.png"
+ },
+ {
+  "id": "B-S11",
+  "screen": "skill",
+  "state": "desk-sups",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/skill-desk-sups.png"
+ },
+ {
+  "id": "B-E2",
+  "screen": "char",
+  "state": "stats",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/char-stats.png"
+ },
+ {
+  "id": "B-E1",
+  "screen": "char",
+  "state": "beige",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/char-beige.png"
+ },
+ {
+  "id": "B-E3",
+  "screen": "char",
+  "state": "empty",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/char-empty.png"
+ },
+ {
+  "id": "B-E4",
+  "screen": "char",
+  "state": "slotpick",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機點裝備格不出 slotPickHTML（NAV.slot 只在直立）；桌機選裝備走 B-E5 對比"
+ },
+ {
+  "id": "B-E2",
+  "screen": "char",
+  "state": "stats",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/char-stats.png"
+ },
+ {
+  "id": "B-E3",
+  "screen": "char",
+  "state": "empty",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/char-empty.png"
+ },
+ {
+  "id": "B-E4",
+  "screen": "char",
+  "state": "slotpick",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/char-slotpick.png"
+ },
+ {
+  "id": "B-E5",
+  "screen": "char",
+  "state": "compare",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/char-compare.png"
+ },
+ {
+  "id": "B-E5",
+  "screen": "char",
+  "state": "compare",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/char-compare.png"
+ },
+ {
+  "id": "B-E6",
+  "screen": "bag",
+  "state": "all",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/bag-all.png"
+ },
+ {
+  "id": "B-E6",
+  "screen": "bag",
+  "state": "filter",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/bag-filter.png"
+ },
+ {
+  "id": "B-E6",
+  "screen": "bag",
+  "state": "sort",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/bag-sort.png"
+ },
+ {
+  "id": "B-E6",
+  "screen": "bag",
+  "state": "all",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/bag-all.png"
+ },
+ {
+  "id": "B-E6",
+  "screen": "bag",
+  "state": "filter",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/bag-filter.png"
+ },
+ {
+  "id": "B-E6",
+  "screen": "bag",
+  "state": "sort",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/bag-sort.png"
+ },
+ {
+  "id": "B-E7",
+  "screen": "bag",
+  "state": "grow",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/bag-grow.png"
+ },
+ {
+  "id": "B-E7",
+  "screen": "bag",
+  "state": "grow",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/bag-grow.png"
+ },
+ {
+  "id": "B-E8",
+  "screen": "item",
+  "state": "tip",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/item-tip.png"
+ },
+ {
+  "id": "B-E8",
+  "screen": "item",
+  "state": "tip",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/item-tip.png"
+ },
+ {
+  "id": "B-E9",
+  "screen": "item",
+  "state": "salvage",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/item-salvage.png"
+ },
+ {
+  "id": "B-E9",
+  "screen": "item",
+  "state": "salvage",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/item-salvage.png"
+ },
+ {
+  "id": "B-E10",
+  "screen": "charm",
+  "state": "belt",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/charm-belt.png"
+ },
+ {
+  "id": "B-E10",
+  "screen": "charm",
+  "state": "slots",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/charm-slots.png"
+ },
+ {
+  "id": "B-E10",
+  "screen": "charm",
+  "state": "belt",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/charm-belt.png"
+ },
+ {
+  "id": "B-E11",
+  "screen": "cur",
+  "state": "page",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/cur-page.png"
+ },
+ {
+  "id": "B-E10",
+  "screen": "charm",
+  "state": "slots",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/charm-slots.png"
+ },
+ {
+  "id": "B-E11",
+  "screen": "cur",
+  "state": "page",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/cur-page.png"
+ },
+ {
+  "id": "B-F1",
+  "screen": "forge",
+  "state": "make-empty",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-make-empty.png"
+ },
+ {
+  "id": "B-F1",
+  "screen": "forge",
+  "state": "make-item",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-make-item.png"
+ },
+ {
+  "id": "B-F1",
+  "screen": "forge",
+  "state": "make-empty",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-make-empty.png"
+ },
+ {
+  "id": "B-F1",
+  "screen": "forge",
+  "state": "make-item",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-make-item.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "forge",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-forge.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "temper",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-temper.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "holy",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-holy.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "corr",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-corr.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "calam",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-calam.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "forge",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-forge.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "temper",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-temper.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "corr",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-corr.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "holy",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-holy.png"
+ },
+ {
+  "id": "B-F2",
+  "screen": "forge",
+  "state": "calam",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-calam.png"
+ },
+ {
+  "id": "B-F3",
+  "screen": "forge",
+  "state": "corr-confirm",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/forge-corr-confirm.png"
+ },
+ {
+  "id": "B-F3",
+  "screen": "forge",
+  "state": "corr-confirm",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/forge-corr-confirm.png"
+ },
+ {
+  "id": "B-F4",
+  "screen": "reveal",
+  "state": "craft",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/reveal-craft.png"
+ },
+ {
+  "id": "B-F4",
+  "screen": "reveal",
+  "state": "identify",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/reveal-identify.png"
+ },
+ {
+  "id": "B-P1",
+  "screen": "camp",
+  "state": "sheet",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/camp-sheet.png"
+ },
+ {
+  "id": "B-F4",
+  "screen": "reveal",
+  "state": "identify",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/reveal-identify.png"
+ },
+ {
+  "id": "B-F4",
+  "screen": "reveal",
+  "state": "craft",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/reveal-craft.png"
+ },
+ {
+  "id": "B-P2",
+  "screen": "camp",
+  "state": "full",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/camp-full.png"
+ },
+ {
+  "id": "B-P1",
+  "screen": "camp",
+  "state": "sheet",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/camp-sheet.png"
+ },
+ {
+  "id": "B-P3",
+  "screen": "camp",
+  "state": "card",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/camp-card.png"
+ },
+ {
+  "id": "B-P3",
+  "screen": "camp",
+  "state": "can-up",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/camp-can-up.png"
+ },
+ {
+  "id": "B-P2",
+  "screen": "camp",
+  "state": "full",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/camp-full.png"
+ },
+ {
+  "id": "B-P3",
+  "screen": "camp",
+  "state": "ms",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/camp-ms.png"
+ },
+ {
+  "id": "B-P3",
+  "screen": "camp",
+  "state": "card",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/camp-card.png"
+ },
+ {
+  "id": "B-P3",
+  "screen": "camp",
+  "state": "ms",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/camp-ms.png"
+ },
+ {
+  "id": "B-P5",
+  "screen": "camp",
+  "state": "desk",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機營地寬欄（.cwide）；直立見 B-P1、B-P2"
+ },
+ {
+  "id": "B-P4",
+  "screen": "camp",
+  "state": "mul",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/camp-mul.png"
+ },
+ {
+  "id": "B-P3",
+  "screen": "camp",
+  "state": "can-up",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/camp-can-up.png"
+ },
+ {
+  "id": "B-P6",
+  "screen": "hide",
+  "state": "scene",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/hide-scene.png"
+ },
+ {
+  "id": "B-P4",
+  "screen": "camp",
+  "state": "mul",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/camp-mul.png"
+ },
+ {
+  "id": "B-P6",
+  "screen": "hide",
+  "state": "scene",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/hide-scene.png"
+ },
+ {
+  "id": "B-P5",
+  "screen": "camp",
+  "state": "desk",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/camp-desk.png"
+ },
+ {
+  "id": "B-P7",
+  "screen": "hide",
+  "state": "props",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/hide-props.png"
+ },
+ {
+  "id": "B-P7",
+  "screen": "hide",
+  "state": "props",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/hide-props.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "enter",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/prac-enter.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "enter",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/prac-enter.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "dps",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/prac-dps.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "dps",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/prac-dps.png"
+ },
+ {
+  "id": "B-P9",
+  "screen": "camp",
+  "state": "from-idle",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "桌機掛機卡的「去營地」一樣能點，但這列是直立的流程（F-cp 有兩尺寸點擊紀錄）"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "real",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/prac-real.png"
+ },
+ {
+  "id": "B-P9",
+  "screen": "camp",
+  "state": "from-idle",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/camp-from-idle.png"
+ },
+ {
+  "id": "B-T1",
+  "screen": "tree",
+  "state": "far",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/tree-far.png"
+ },
+ {
+  "id": "B-T1",
+  "screen": "tree",
+  "state": "near",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "390x844/tree-near.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "real",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/prac-real.png"
+ },
+ {
+  "id": "B-T1",
+  "screen": "tree",
+  "state": "far",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/tree-far.png"
+ },
+ {
+  "id": "B-T1",
+  "screen": "tree",
+  "state": "near",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "1280x720/tree-near.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "can",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tree-can.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "lock",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tree-lock.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "taken",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tree-taken.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "refund",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tree-refund.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "can",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tree-can.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "taken",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tree-taken.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "lock",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tree-lock.png"
+ },
+ {
+  "id": "B-T2",
+  "screen": "tree",
+  "state": "refund",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tree-refund.png"
+ },
+ {
+  "id": "B-T3",
+  "screen": "tree",
+  "state": "search",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tree-search.png"
+ },
+ {
+  "id": "B-T3",
+  "screen": "tree",
+  "state": "search",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tree-search.png"
+ },
+ {
+  "id": "B-T4",
+  "screen": "tree",
+  "state": "jewel",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tree-jewel.png"
+ },
+ {
+  "id": "B-T4",
+  "screen": "tree",
+  "state": "jewel",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tree-jewel.png"
+ },
+ {
+  "id": "B-T5",
+  "screen": "tree",
+  "state": "reset",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/tree-reset.png"
+ },
+ {
+  "id": "B-T5",
+  "screen": "tree",
+  "state": "reset",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/tree-reset.png"
+ },
+ {
+  "id": "B-A1",
+  "screen": "asc",
+  "state": "pick",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/asc-pick.png"
+ },
+ {
+  "id": "B-A1",
+  "screen": "asc",
+  "state": "path",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/asc-path.png"
+ },
+ {
+  "id": "B-A1",
+  "screen": "asc",
+  "state": "taken",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/asc-taken.png"
+ },
+ {
+  "id": "B-A1",
+  "screen": "asc",
+  "state": "pick",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/asc-pick.png"
+ },
+ {
+  "id": "B-Y1",
+  "screen": "chase",
+  "state": "list",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/chase-list.png"
+ },
+ {
+  "id": "B-A1",
+  "screen": "asc",
+  "state": "path",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/asc-path.png"
+ },
+ {
+  "id": "B-A1",
+  "screen": "asc",
+  "state": "taken",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/asc-taken.png"
+ },
+ {
+  "id": "B-Y1",
+  "screen": "chase",
+  "state": "pick",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/chase-pick.png"
+ },
+ {
+  "id": "B-Y1",
+  "screen": "chase",
+  "state": "swap",
+  "viewport": "390x844",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/chase-swap.png"
+ },
+ {
+  "id": "B-Y1",
+  "screen": "chase",
+  "state": "list",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/chase-list.png"
+ },
+ {
+  "id": "B-Y1",
+  "screen": "chase",
+  "state": "pick",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/chase-pick.png"
+ },
+ {
+  "id": "B-Y1",
+  "screen": "chase",
+  "state": "swap",
+  "viewport": "1280x720",
+  "star": 1,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/chase-swap.png"
+ },
+ {
+  "id": "B-Y2",
+  "screen": "log",
+  "state": "pity",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/log-pity.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "fd",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/box-fd.png"
+ },
+ {
+  "id": "B-Y2",
+  "screen": "log",
+  "state": "pity",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/log-pity.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "sin",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/box-sin.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "xi",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/box-xi.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "army",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/box-army.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "god",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/box-god.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "fd",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/box-fd.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "sin",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/box-sin.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "xi",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/box-xi.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "army",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/box-army.png"
+ },
+ {
+  "id": "B-Y5",
+  "screen": "focus",
+  "state": "tour",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "n/a",
+  "reason": "直立沒有鍵盤焦點巡覽"
+ },
+ {
+  "id": "B-Y4",
+  "screen": "term",
+  "state": "card",
+  "viewport": "390x844",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "390x844/term-card.png"
+ },
+ {
+  "id": "B-Y3",
+  "screen": "box",
+  "state": "god",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/box-god.png"
+ },
+ {
+  "id": "B-Y4",
+  "screen": "term",
+  "state": "card",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/term-card.png"
+ },
+ {
+  "id": "B-Y5",
+  "screen": "focus",
+  "state": "tour",
+  "viewport": "1280x720",
+  "star": 0,
+  "s": 0,
+  "verdict": "shot",
+  "file": "1280x720/focus-tour.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "crack",
+  "viewport": "375x667",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/intro-crack.png"
+ },
+ {
+  "id": "A-I1",
+  "screen": "intro",
+  "state": "gate",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/intro-gate.png"
+ },
+ {
+  "id": "A-I2",
+  "screen": "intro",
+  "state": "you",
+  "viewport": "375x667",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/intro-you.png"
+ },
+ {
+  "id": "A-H1",
+  "screen": "combat",
+  "state": "auto",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-auto.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-last",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-ammo-last.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-mid",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-ammo-mid.png"
+ },
+ {
+  "id": "A-H2",
+  "screen": "combat",
+  "state": "manual",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-manual.png"
+ },
+ {
+  "id": "A-H3",
+  "screen": "combat",
+  "state": "ammo-reload",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-ammo-reload.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-1",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-charge-1.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-2",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-charge-2.png"
+ },
+ {
+  "id": "A-H8",
+  "screen": "combat",
+  "state": "hp-low",
+  "viewport": "375x667",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-hp-low.png"
+ },
+ {
+  "id": "A-H5",
+  "screen": "combat",
+  "state": "charge-3",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-charge-3.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-cur",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-dlog-cur.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-chase",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-dlog-chase.png"
+ },
+ {
+  "id": "A-H12",
+  "screen": "combat",
+  "state": "dlog-mix",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-dlog-mix.png"
+ },
+ {
+  "id": "A-H23",
+  "screen": "combat",
+  "state": "safe-34",
+  "viewport": "375x667",
+  "star": 0,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-safe-34.png"
+ },
+ {
+  "id": "A-D1",
+  "screen": "combat",
+  "state": "dark-normal",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-dark-normal.png"
+ },
+ {
+  "id": "A-C1",
+  "screen": "idle",
+  "state": "expand",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/idle-expand.png"
+ },
+ {
+  "id": "A-C2",
+  "screen": "idle",
+  "state": "resbar",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/idle-resbar.png"
+ },
+ {
+  "id": "A-M4",
+  "screen": "node",
+  "state": "list",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/node-list.png"
+ },
+ {
+  "id": "A-M4",
+  "screen": "node",
+  "state": "stars",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/node-stars.png"
+ },
+ {
+  "id": "B-S1",
+  "screen": "skill",
+  "state": "home",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/skill-home.png"
+ },
+ {
+  "id": "B-S2",
+  "screen": "skill",
+  "state": "one",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/skill-one.png"
+ },
+ {
+  "id": "A-D2",
+  "screen": "combat",
+  "state": "dark-night",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-dark-night.png"
+ },
+ {
+  "id": "A-D3",
+  "screen": "combat",
+  "state": "dark-fog",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/combat-dark-fog.png"
+ },
+ {
+  "id": "B-S6",
+  "screen": "skill",
+  "state": "pick-sups",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/skill-pick-sups.png"
+ },
+ {
+  "id": "B-S7",
+  "screen": "skill",
+  "state": "sup-open",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/skill-sup-open.png"
+ },
+ {
+  "id": "B-E1",
+  "screen": "char",
+  "state": "beige",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/char-beige.png"
+ },
+ {
+  "id": "B-P1",
+  "screen": "camp",
+  "state": "sheet",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/camp-sheet.png"
+ },
+ {
+  "id": "B-P2",
+  "screen": "camp",
+  "state": "full",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/camp-full.png"
+ },
+ {
+  "id": "B-T1",
+  "screen": "tree",
+  "state": "far",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/tree-far.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "enter",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/prac-enter.png"
+ },
+ {
+  "id": "B-T1",
+  "screen": "tree",
+  "state": "near",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/tree-near.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "real",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/prac-real.png"
+ },
+ {
+  "id": "B-P8",
+  "screen": "prac",
+  "state": "dps",
+  "viewport": "375x667",
+  "star": 1,
+  "s": 1,
+  "verdict": "shot",
+  "file": "375x667/prac-dps.png"
+ }
+]
