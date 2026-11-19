@@ -1,0 +1,37 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "tn_regen",
+  "seed": 9025,
+  "wave": "6",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "game item icon, flat front view, a plain heart with a large bold green plus sign overlapping its lower right corner, the plus clearly separate, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow",
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "medium detail",
+    "no_background": true,
+    "seed": 9025,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}
