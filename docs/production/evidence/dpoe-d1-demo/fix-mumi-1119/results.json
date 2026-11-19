@@ -2,7 +2,7 @@
  "shots": {
   "F1-1_idle_list_390x844.png": {
    "row": "F1-1",
-   "save": "mid",
+   "save": "big",
    "q": {},
    "C": [
     {
@@ -18,7 +18,7 @@
     {
      "ok": true,
      "lab": "本次掉落 ≥ 14 筆（清單可捲）",
-     "v": "16 筆＋連結列"
+     "v": "15 筆＋連結列"
     },
     {
      "ok": true,
@@ -34,7 +34,7 @@
   },
   "F1-2_idle_list_end_390x844.png": {
    "row": "F1-2",
-   "save": "mid",
+   "save": "big",
    "q": {},
    "C": [
     {
@@ -50,12 +50,12 @@
     {
      "ok": true,
      "lab": "本次掉落 ≥ 14 筆（清單可捲）",
-     "v": "16 筆＋連結列"
+     "v": "15 筆＋連結列"
     },
     {
      "ok": true,
      "lab": "最後一列是「全部掉落紀錄 ›」",
-     "v": "全部掉落紀錄 ›另有 +49 件已收"
+     "v": "全部掉落紀錄 ›+37 件已收"
     },
     {
      "ok": true,
@@ -70,13 +70,18 @@
     {
      "ok": true,
      "lab": "最後一列字不被切",
-     "v": "260/260"
+     "v": "292/292"
+    },
+    {
+     "ok": true,
+     "lab": "同列右邊「+37 件已收」（不寫「另有」）",
+     "v": "+37 件已收"
     }
    ]
   },
   "F1-3_idle_field_390x844.png": {
    "row": "F1-3",
-   "save": "mid",
+   "save": "big",
    "q": {},
    "C": [
     {
@@ -93,7 +98,7 @@
   },
   "F1-4_idle_list_fs_390x844.png": {
    "row": "F1-4",
-   "save": "mid",
+   "save": "big",
    "q": {
     "fs": 1,
     "en": 1
@@ -112,12 +117,12 @@
     {
      "ok": true,
      "lab": "本次掉落 ≥ 14 筆（清單可捲）",
-     "v": "16 筆＋連結列"
+     "v": "15 筆＋連結列"
     },
     {
      "ok": true,
      "lab": "×n 完整",
-     "v": "×1 ×3 ×2 ×1 ×4 ×12.8K ×1 ×1"
+     "v": "×1 ×1 ×1 ×1 ×1 ×1 ×1 ×1"
     },
     {
      "ok": true,
@@ -131,7 +136,7 @@
     }
    ]
   },
-  "F2-1_flask_full_390x844.png": {
+  "F2-1_flask_ready_390x844.png": {
    "row": "F2-1",
    "save": "mid",
    "q": {},
@@ -160,10 +165,20 @@
      "ok": true,
      "lab": "跟其他 HUD 交集 0",
      "v": "技能鈕 0、生命／魔力條 0、狀態圖示 0、掉落動態 0"
+    },
+    {
+     "ok": true,
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "兩瓶都不在冷卻：沒有環",
+     "v": "false/false"
     }
    ]
   },
-  "F2-2_flask_charging_390x844.png": {
+  "F2-2_flask_cooling_390x844.png": {
    "row": "F2-2",
    "save": "mid",
    "q": {},
@@ -195,75 +210,33 @@
     },
     {
      "ok": true,
-     "lab": "數字「1」",
-     "v": "1"
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
     },
     {
      "ok": true,
-     "lab": "環 50±5%",
+     "lab": "掃過 50±5%",
+     "v": "50.0%"
+    },
+    {
+     "ok": true,
+     "lab": "冷卻環剩 50±5%",
      "v": "50%"
     },
     {
      "ok": true,
-     "lab": "環對 --panel ≥ 3:1（--hp-hi 待素材，未驗）",
-     "v": "佔位 --bad-hi 對 --panel 6.31:1"
-    }
-   ]
-  },
-  "F2-3_flask_empty_390x844.png": {
-   "row": "F2-3",
-   "save": "mid",
-   "q": {},
-   "C": [
-    {
-     "ok": true,
-     "lab": "生命藥劑 56×56±1",
-     "v": "56×56"
+     "lab": "環 --hp-hi 對 --panel ≥ 3:1",
+     "v": "rgb(174, 118, 108) 對 --panel #26201b = 4.3:1（--mp-hi 4.3:1）"
     },
     {
      "ok": true,
-     "lab": "生命藥劑位置 ±2（8,576）",
-     "v": "8,576"
+     "lab": "圖示變暗 50%",
+     "v": "brightness(0.5)"
     },
     {
      "ok": true,
-     "lab": "魔力藥劑 56×56±1",
-     "v": "56×56"
-    },
-    {
-     "ok": true,
-     "lab": "魔力藥劑位置 ±2（8,644）",
-     "v": "8,644"
-    },
-    {
-     "ok": true,
-     "lab": "跟其他 HUD 交集 0",
-     "v": "技能鈕 0、生命／魔力條 0、狀態圖示 0、掉落動態 0"
-    },
-    {
-     "ok": true,
-     "lab": "圖示 40%",
-     "v": "0.4"
-    },
-    {
-     "ok": true,
-     "lab": "數字 --tx-off",
-     "v": "rgb(170, 154, 132)"
-    },
-    {
-     "ok": true,
-     "lab": "底填拿掉",
-     "v": ""
-    },
-    {
-     "ok": true,
-     "lab": "點了出「沒有充能」",
-     "v": "沒有充能"
-    },
-    {
-     "ok": true,
-     "lab": "不消耗",
-     "v": "0/3/0"
+     "lab": "魔力藥劑不在冷卻",
+     "v": false
     }
    ]
   },
@@ -299,8 +272,65 @@
     },
     {
      "ok": true,
-     "lab": "外框 2 px --bad-hi",
-     "v": "2px rgb(254, 120, 131)"
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "不在冷卻：外框 2 px --hp-hi",
+     "v": "2px rgb(174, 118, 108)"
+    },
+    {
+     "ok": true,
+     "lab": "生命藥劑不在冷卻",
+     "v": false
+    }
+   ]
+  },
+  "F2-4_flask_lowhp_cd_390x844.png": {
+   "row": "F2-4c",
+   "save": "mid",
+   "q": {},
+   "C": [
+    {
+     "ok": true,
+     "lab": "生命藥劑 56×56±1",
+     "v": "56×56"
+    },
+    {
+     "ok": true,
+     "lab": "生命藥劑位置 ±2（8,576）",
+     "v": "8,576"
+    },
+    {
+     "ok": true,
+     "lab": "魔力藥劑 56×56±1",
+     "v": "56×56"
+    },
+    {
+     "ok": true,
+     "lab": "魔力藥劑位置 ±2（8,644）",
+     "v": "8,644"
+    },
+    {
+     "ok": true,
+     "lab": "跟其他 HUD 交集 0",
+     "v": "技能鈕 0、生命／魔力條 0、狀態圖示 0、掉落動態 0"
+    },
+    {
+     "ok": true,
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "冷卻中：沒有外框",
+     "v": "無"
+    },
+    {
+     "ok": true,
+     "lab": "生命藥劑冷卻中（環有）",
+     "v": true
     }
    ]
   },
@@ -333,6 +363,16 @@
      "ok": true,
      "lab": "跟其他 HUD 交集 0",
      "v": "生命／魔力條 0、狀態圖示 0、抽屜 0、掉落動態 0"
+    },
+    {
+     "ok": true,
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "兩瓶都不在冷卻：沒有環",
+     "v": "false/false"
     }
    ]
   },
@@ -964,8 +1004,18 @@
    "C": [
     {
      "ok": true,
-     "lab": "「這級：開下一個主幹地點」在等級行下",
-     "v": "這級：開下一個主幹地點"
+     "lab": "「這級：新地點「冰封神殿」開了（怪物 Lv 53）」在等級行下",
+     "v": "這級：新地點「冰封神殿」開了（怪物 Lv 53）"
+    },
+    {
+     "ok": true,
+     "lab": "每列「Lv{n}・{解鎖}」",
+     "v": "Lv15・新地點「冰封神殿」開了（怪物 Lv 53）｜Lv16・新地點「血原邊境」開了（怪物 Lv 58）｜Lv17・新地點「白骨丘」開了（怪物 Lv 63）｜Lv18・新地點「腐沼渡」開了（怪物 Lv 68）｜Lv19・新地點「沉城」開了（怪物 Lv 73）｜Lv20・新地點「毒霧林」開了（怪物 Lv 78）"
+    },
+    {
+     "ok": true,
+     "lab": "畫面沒有「主幹」",
+     "v": 0
     },
     {
      "ok": true,
@@ -975,7 +1025,7 @@
     {
      "ok": true,
      "lab": "只有 Lv15 那列亮＋80% 條",
-     "v": "Lv 15・開下一個主幹地點80%"
+     "v": "Lv15・新地點「冰封神殿」開了（怪物 Lv 53）80%"
     }
    ]
   },
@@ -1017,7 +1067,7 @@
     {
      "ok": true,
      "lab": "路線列換行不疊字",
-     "v": "46/28/28/28/28/28"
+     "v": "63/42/42/42/42/42"
     }
    ]
   },
@@ -1182,13 +1232,13 @@
     {
      "ok": true,
      "lab": "沒被切",
-     "v": "366×18 @ y 201"
+     "v": "366×18 @ y 219"
     }
    ]
   },
   "F1-1_idle_list_1280x720.png": {
    "row": "F1-1",
-   "save": "mid",
+   "save": "big",
    "q": {},
    "C": [
     {
@@ -1204,7 +1254,7 @@
     {
      "ok": true,
      "lab": "本次掉落 ≥ 14 筆（清單可捲）",
-     "v": "16 筆＋連結列"
+     "v": "15 筆＋連結列"
     },
     {
      "ok": true,
@@ -1220,7 +1270,7 @@
   },
   "F1-2_idle_list_end_1280x720.png": {
    "row": "F1-2",
-   "save": "mid",
+   "save": "big",
    "q": {},
    "C": [
     {
@@ -1236,12 +1286,12 @@
     {
      "ok": true,
      "lab": "本次掉落 ≥ 14 筆（清單可捲）",
-     "v": "16 筆＋連結列"
+     "v": "15 筆＋連結列"
     },
     {
      "ok": true,
      "lab": "最後一列是「全部掉落紀錄 ›」",
-     "v": "全部掉落紀錄 ›另有 +49 件已收"
+     "v": "全部掉落紀錄 ›+37 件已收"
     },
     {
      "ok": true,
@@ -1256,13 +1306,18 @@
     {
      "ok": true,
      "lab": "最後一列字不被切",
-     "v": "250/250"
+     "v": "282/282"
+    },
+    {
+     "ok": true,
+     "lab": "同列右邊「+37 件已收」（不寫「另有」）",
+     "v": "+37 件已收"
     }
    ]
   },
   "F1-3_idle_field_1280x720.png": {
    "row": "F1-3",
-   "save": "mid",
+   "save": "big",
    "q": {},
    "C": [
     {
@@ -1284,7 +1339,7 @@
   },
   "F1-4_idle_list_fs_1280x720.png": {
    "row": "F1-4",
-   "save": "mid",
+   "save": "big",
    "q": {
     "fs": 1,
     "en": 1
@@ -1303,12 +1358,12 @@
     {
      "ok": true,
      "lab": "本次掉落 ≥ 14 筆（清單可捲）",
-     "v": "16 筆＋連結列"
+     "v": "15 筆＋連結列"
     },
     {
      "ok": true,
      "lab": "×n 完整",
-     "v": "×1 ×3 ×2 ×1 ×4 ×12.8K ×1 ×1"
+     "v": "×1 ×1 ×1 ×1 ×1 ×1 ×1 ×1"
     },
     {
      "ok": true,
@@ -1322,7 +1377,7 @@
     }
    ]
   },
-  "F2-1_flask_full_1280x720.png": {
+  "F2-1_flask_ready_1280x720.png": {
    "row": "F2-1",
    "save": "mid",
    "q": {},
@@ -1356,10 +1411,20 @@
      "ok": true,
      "lab": "鍵帽「1」「2」看得到",
      "v": "1、2"
+    },
+    {
+     "ok": true,
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "兩瓶都不在冷卻：沒有環",
+     "v": "false/false"
     }
    ]
   },
-  "F2-2_flask_charging_1280x720.png": {
+  "F2-2_flask_cooling_1280x720.png": {
    "row": "F2-2",
    "save": "mid",
    "q": {},
@@ -1396,80 +1461,33 @@
     },
     {
      "ok": true,
-     "lab": "數字「1」",
-     "v": "1"
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
     },
     {
      "ok": true,
-     "lab": "環 50±5%",
+     "lab": "掃過 50±5%",
+     "v": "50.0%"
+    },
+    {
+     "ok": true,
+     "lab": "冷卻環剩 50±5%",
      "v": "50%"
     },
     {
      "ok": true,
-     "lab": "環對 --panel ≥ 3:1（--hp-hi 待素材，未驗）",
-     "v": "佔位 --bad-hi 對 --panel 6.31:1"
-    }
-   ]
-  },
-  "F2-3_flask_empty_1280x720.png": {
-   "row": "F2-3",
-   "save": "mid",
-   "q": {},
-   "C": [
-    {
-     "ok": true,
-     "lab": "生命藥劑 48×48±1",
-     "v": "48×48"
+     "lab": "環 --hp-hi 對 --panel ≥ 3:1",
+     "v": "rgb(174, 118, 108) 對 --panel #26201b = 4.3:1（--mp-hi 4.3:1）"
     },
     {
      "ok": true,
-     "lab": "生命藥劑位置 ±2（732,632）",
-     "v": "732,632"
+     "lab": "圖示變暗 50%",
+     "v": "brightness(0.5)"
     },
     {
      "ok": true,
-     "lab": "魔力藥劑 48×48±1",
-     "v": "48×48"
-    },
-    {
-     "ok": true,
-     "lab": "魔力藥劑位置 ±2（788,632）",
-     "v": "788,632"
-    },
-    {
-     "ok": true,
-     "lab": "跟其他 HUD 交集 0",
-     "v": "技能鈕 0、生命／魔力條 0、狀態圖示 0、小地圖 0、掉落動態 0"
-    },
-    {
-     "ok": true,
-     "lab": "鍵帽「1」「2」看得到",
-     "v": "1、2"
-    },
-    {
-     "ok": true,
-     "lab": "圖示 40%",
-     "v": "0.4"
-    },
-    {
-     "ok": true,
-     "lab": "數字 --tx-off",
-     "v": "rgb(170, 154, 132)"
-    },
-    {
-     "ok": true,
-     "lab": "底填拿掉",
-     "v": ""
-    },
-    {
-     "ok": true,
-     "lab": "點了出「沒有充能」",
-     "v": "沒有充能"
-    },
-    {
-     "ok": true,
-     "lab": "不消耗",
-     "v": "0/3/0"
+     "lab": "魔力藥劑不在冷卻",
+     "v": false
     }
    ]
   },
@@ -1510,8 +1528,70 @@
     },
     {
      "ok": true,
-     "lab": "外框 2 px --bad-hi",
-     "v": "2px rgb(254, 120, 131)"
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "不在冷卻：外框 2 px --hp-hi",
+     "v": "2px rgb(174, 118, 108)"
+    },
+    {
+     "ok": true,
+     "lab": "生命藥劑不在冷卻",
+     "v": false
+    }
+   ]
+  },
+  "F2-4_flask_lowhp_cd_1280x720.png": {
+   "row": "F2-4c",
+   "save": "mid",
+   "q": {},
+   "C": [
+    {
+     "ok": true,
+     "lab": "生命藥劑 48×48±1",
+     "v": "48×48"
+    },
+    {
+     "ok": true,
+     "lab": "生命藥劑位置 ±2（732,632）",
+     "v": "732,632"
+    },
+    {
+     "ok": true,
+     "lab": "魔力藥劑 48×48±1",
+     "v": "48×48"
+    },
+    {
+     "ok": true,
+     "lab": "魔力藥劑位置 ±2（788,632）",
+     "v": "788,632"
+    },
+    {
+     "ok": true,
+     "lab": "跟其他 HUD 交集 0",
+     "v": "技能鈕 0、生命／魔力條 0、狀態圖示 0、小地圖 0、掉落動態 0"
+    },
+    {
+     "ok": true,
+     "lab": "鍵帽「1」「2」看得到",
+     "v": "1、2"
+    },
+    {
+     "ok": true,
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "冷卻中：沒有外框",
+     "v": "無"
+    },
+    {
+     "ok": true,
+     "lab": "生命藥劑冷卻中（環有）",
+     "v": true
     }
    ]
   },
@@ -1549,6 +1629,16 @@
      "ok": true,
      "lab": "鍵帽「1」「2」看得到",
      "v": "1、2"
+    },
+    {
+     "ok": true,
+     "lab": "鈕上沒有任何次數字",
+     "v": "[\"\",\"\",\"生命藥劑\"]"
+    },
+    {
+     "ok": true,
+     "lab": "兩瓶都不在冷卻：沒有環",
+     "v": "false/false"
     }
    ]
   },
@@ -2185,8 +2275,18 @@
    "C": [
     {
      "ok": true,
-     "lab": "「這級：開下一個主幹地點」在等級行下",
-     "v": "這級：開下一個主幹地點"
+     "lab": "「這級：新地點「冰封神殿」開了（怪物 Lv 53）」在等級行下",
+     "v": "這級：新地點「冰封神殿」開了（怪物 Lv 53）"
+    },
+    {
+     "ok": true,
+     "lab": "每列「Lv{n}・{解鎖}」",
+     "v": "Lv15・新地點「冰封神殿」開了（怪物 Lv 53）｜Lv16・新地點「血原邊境」開了（怪物 Lv 58）｜Lv17・新地點「白骨丘」開了（怪物 Lv 63）｜Lv18・新地點「腐沼渡」開了（怪物 Lv 68）｜Lv19・新地點「沉城」開了（怪物 Lv 73）｜Lv20・新地點「毒霧林」開了（怪物 Lv 78）"
+    },
+    {
+     "ok": true,
+     "lab": "畫面沒有「主幹」",
+     "v": 0
     },
     {
      "ok": true,
@@ -2196,7 +2296,7 @@
     {
      "ok": true,
      "lab": "只有 Lv15 那列亮＋80% 條",
-     "v": "Lv 15・開下一個主幹地點80%"
+     "v": "Lv15・新地點「冰封神殿」開了（怪物 Lv 53）80%"
     }
    ]
   },
@@ -2238,7 +2338,7 @@
     {
      "ok": true,
      "lab": "路線列換行不疊字",
-     "v": "46/32/32/32/32/32"
+     "v": "63/42/42/42/42/42"
     }
    ]
   },
@@ -2571,15 +2671,19 @@
     "frames/V-F1_idle_expand_rm_390x844/f475_t7917ms_close-start+200.jpg"
    ]
   },
-  "V-F1_idle_expand_1280x720": {
-   "file": "V-F1_idle_expand_1280x720.mp4",
-   "frames": 564,
+  "V-F2_flask_busy_390x844": {
+   "file": "V-F2_flask_busy_390x844.mp4",
+   "frames": 156,
    "fps": 60,
    "R": [
-    "✅ 展開 200.0 ms（200±17）",
-    "✅ 最後一次捲動 1700 ms → 自動收 7717 ms（相隔 6017，要 6,000）",
-    "✅ 收起 166.7 ms（160±17）",
-    "✅ 捲動中不自動收"
+    "✅ 按 3 次：第 1 下喝、第 2、3 下冷卻中（喝 剩 0 ms、忙 剩 2000 ms、忙 剩 1400 ms）",
+    "✅ 第 1 下生命 0.5 → 0.8",
+    "✅ 冷卻中按（1300 ms）：生命不變（0.8）",
+    "✅ 抖 67 ms（≤ 80），水平 2 px",
+    "✅ 一般：沒有外框閃",
+    "✅ 冷卻中按（1900 ms）：生命不變（0.8）",
+    "✅ 抖 67 ms（≤ 80），水平 2 px",
+    "✅ 一般：沒有外框閃"
    ],
    "log": [
     {
@@ -2589,50 +2693,65 @@
     {
      "t": 10000,
      "ev": "scn",
-     "k": "V-F1_idle_expand"
+     "k": "V-F2_flask_busy"
     },
     {
      "t": 10300,
-     "ev": "idle-open",
-     "why": "key"
+     "ev": "potion",
+     "k": "hp",
+     "busy": false,
+     "left": 0,
+     "hp": 0.5
     },
     {
      "t": 11300,
-     "ev": "scroll-list",
-     "top": 88
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 2000,
+     "hp": 0.8
     },
     {
-     "t": 11700,
-     "ev": "scroll-list",
-     "top": 176
-    },
-    {
-     "t": 17716.67,
-     "ev": "idle-close",
-     "why": "auto"
+     "t": 11900,
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 1400,
+     "hp": 0.8
     }
    ],
    "keyframes": [
-    "frames/V-F1_idle_expand_1280x720/f18_t300ms_idle-open+0.jpg",
-    "frames/V-F1_idle_expand_1280x720/f23_t383ms_idle-open+80.jpg",
-    "frames/V-F1_idle_expand_1280x720/f28_t467ms_idle-open+160.jpg",
-    "frames/V-F1_idle_expand_1280x720/f30_t500ms_idle-open+200.jpg",
-    "frames/V-F1_idle_expand_1280x720/f463_t7717ms_idle-close+0.jpg",
-    "frames/V-F1_idle_expand_1280x720/f468_t7800ms_idle-close+80.jpg",
-    "frames/V-F1_idle_expand_1280x720/f473_t7883ms_idle-close+160.jpg",
-    "frames/V-F1_idle_expand_1280x720/f475_t7917ms_idle-close+200.jpg"
+    "frames/V-F2_flask_busy_390x844/f18_t300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_390x844/f20_t333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_390x844/f21_t350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_390x844/f23_t383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_390x844/f26_t433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_390x844/f108_t1800ms_potion+1500.jpg",
+    "frames/V-F2_flask_busy_390x844/f78_t1300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_390x844/f80_t1333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_390x844/f81_t1350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_390x844/f83_t1383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_390x844/f86_t1433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_390x844/f114_t1900ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_390x844/f116_t1933ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_390x844/f117_t1950ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_390x844/f119_t1983ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_390x844/f122_t2033ms_potion+120.jpg"
    ]
   },
-  "V-F1_idle_expand_rm_1280x720": {
-   "file": "V-F1_idle_expand_rm_1280x720.mp4",
-   "frames": 564,
+  "V-F2_flask_busy_rm_390x844": {
+   "file": "V-F2_flask_busy_rm_390x844.mp4",
+   "frames": 156,
    "fps": 60,
    "R": [
-    "✅ 展開 133.3 ms（減少動態 ≤ 150）",
-    "✅ 減少動態只有不透明度（不滑）",
-    "✅ 最後一次捲動 1700 ms → 自動收 7717 ms（相隔 6017，要 6,000）",
-    "✅ 收起 133.3 ms（≤ 150）",
-    "✅ 捲動中不自動收"
+    "✅ 按 3 次：第 1 下喝、第 2、3 下冷卻中（喝 剩 0 ms、忙 剩 2000 ms、忙 剩 1400 ms）",
+    "✅ 第 1 下生命 0.5 → 0.8",
+    "✅ 冷卻中按（1300 ms）：生命不變（0.8）",
+    "✅ 減少動態：不抖（沒有位移）",
+    "✅ 減少動態：外框 2 px 亮 117 ms（7 幀，≤ 120）",
+    "✅ 冷卻中按（1900 ms）：生命不變（0.8）",
+    "✅ 減少動態：不抖（沒有位移）",
+    "✅ 減少動態：外框 2 px 亮 117 ms（7 幀，≤ 120）"
    ],
    "log": [
     {
@@ -2642,38 +2761,50 @@
     {
      "t": 10000,
      "ev": "scn",
-     "k": "V-F1_idle_expand"
+     "k": "V-F2_flask_busy"
     },
     {
      "t": 10300,
-     "ev": "idle-open",
-     "why": "key"
+     "ev": "potion",
+     "k": "hp",
+     "busy": false,
+     "left": 0,
+     "hp": 0.5
     },
     {
      "t": 11300,
-     "ev": "scroll-list",
-     "top": 88
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 2000,
+     "hp": 0.8
     },
     {
-     "t": 11700,
-     "ev": "scroll-list",
-     "top": 176
-    },
-    {
-     "t": 17716.67,
-     "ev": "idle-close",
-     "why": "auto"
+     "t": 11900,
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 1400,
+     "hp": 0.8
     }
    ],
    "keyframes": [
-    "frames/V-F1_idle_expand_rm_1280x720/f18_t300ms_idle-open+0.jpg",
-    "frames/V-F1_idle_expand_rm_1280x720/f23_t383ms_idle-open+80.jpg",
-    "frames/V-F1_idle_expand_rm_1280x720/f28_t467ms_idle-open+160.jpg",
-    "frames/V-F1_idle_expand_rm_1280x720/f30_t500ms_idle-open+200.jpg",
-    "frames/V-F1_idle_expand_rm_1280x720/f463_t7717ms_idle-close+0.jpg",
-    "frames/V-F1_idle_expand_rm_1280x720/f468_t7800ms_idle-close+80.jpg",
-    "frames/V-F1_idle_expand_rm_1280x720/f473_t7883ms_idle-close+160.jpg",
-    "frames/V-F1_idle_expand_rm_1280x720/f475_t7917ms_idle-close+200.jpg"
+    "frames/V-F2_flask_busy_rm_390x844/f18_t300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f20_t333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f21_t350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f23_t383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f26_t433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f108_t1800ms_potion+1500.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f78_t1300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f80_t1333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f81_t1350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f83_t1383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f86_t1433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f114_t1900ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f116_t1933ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f117_t1950ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f119_t1983ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_rm_390x844/f122_t2033ms_potion+120.jpg"
    ]
   },
   "V-F2_lowhp_390x844": {
@@ -2753,7 +2884,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「天賦樹期間 +72 靈魂」",
+    "✅ 「天賦樹期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -2786,7 +2917,10 @@
      "t": 25500,
      "ev": "gain",
      "at": 25660.00000000043,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "天賦樹期間 靈魂 +72・1 件"
     },
     {
      "t": 25500,
@@ -2814,7 +2948,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「天賦樹期間 +72 靈魂」",
+    "✅ 「天賦樹期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -2847,7 +2981,10 @@
      "t": 25500,
      "ev": "gain",
      "at": 25660.00000000043,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "天賦樹期間 靈魂 +72・1 件"
     },
     {
      "t": 25500,
@@ -2875,7 +3012,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「昇華石碑期間 +72 靈魂」",
+    "✅ 「昇華石碑期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -2918,7 +3055,10 @@
      "t": 26000,
      "ev": "gain",
      "at": 26160.000000000466,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "昇華石碑期間 靈魂 +72・1 件"
     },
     {
      "t": 26000,
@@ -2946,7 +3086,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「昇華石碑期間 +72 靈魂」",
+    "✅ 「昇華石碑期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -2989,7 +3129,10 @@
      "t": 26000,
      "ev": "gain",
      "at": 26160.000000000466,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "昇華石碑期間 靈魂 +72・1 件"
     },
     {
      "t": 26000,
@@ -3578,6 +3721,247 @@
     "frames/V-R_drawer_close_rm_390x844/f384_t6400ms_close-start+200.jpg"
    ]
   },
+  "V-F1_idle_expand_1280x720": {
+   "file": "V-F1_idle_expand_1280x720.mp4",
+   "frames": 564,
+   "fps": 60,
+   "R": [
+    "✅ 展開 200.0 ms（200±17）",
+    "✅ 最後一次捲動 1700 ms → 自動收 7717 ms（相隔 6017，要 6,000）",
+    "✅ 收起 166.7 ms（160±17）",
+    "✅ 捲動中不自動收"
+   ],
+   "log": [
+    {
+     "t": 0,
+     "ev": "skip-3min"
+    },
+    {
+     "t": 10000,
+     "ev": "scn",
+     "k": "V-F1_idle_expand"
+    },
+    {
+     "t": 10300,
+     "ev": "idle-open",
+     "why": "key"
+    },
+    {
+     "t": 11300,
+     "ev": "scroll-list",
+     "top": 88
+    },
+    {
+     "t": 11700,
+     "ev": "scroll-list",
+     "top": 176
+    },
+    {
+     "t": 17716.67,
+     "ev": "idle-close",
+     "why": "auto"
+    }
+   ],
+   "keyframes": [
+    "frames/V-F1_idle_expand_1280x720/f18_t300ms_idle-open+0.jpg",
+    "frames/V-F1_idle_expand_1280x720/f23_t383ms_idle-open+80.jpg",
+    "frames/V-F1_idle_expand_1280x720/f28_t467ms_idle-open+160.jpg",
+    "frames/V-F1_idle_expand_1280x720/f30_t500ms_idle-open+200.jpg",
+    "frames/V-F1_idle_expand_1280x720/f463_t7717ms_idle-close+0.jpg",
+    "frames/V-F1_idle_expand_1280x720/f468_t7800ms_idle-close+80.jpg",
+    "frames/V-F1_idle_expand_1280x720/f473_t7883ms_idle-close+160.jpg",
+    "frames/V-F1_idle_expand_1280x720/f475_t7917ms_idle-close+200.jpg"
+   ]
+  },
+  "V-F1_idle_expand_rm_1280x720": {
+   "file": "V-F1_idle_expand_rm_1280x720.mp4",
+   "frames": 564,
+   "fps": 60,
+   "R": [
+    "✅ 展開 133.3 ms（減少動態 ≤ 150）",
+    "✅ 減少動態只有不透明度（不滑）",
+    "✅ 最後一次捲動 1700 ms → 自動收 7717 ms（相隔 6017，要 6,000）",
+    "✅ 收起 133.3 ms（≤ 150）",
+    "✅ 捲動中不自動收"
+   ],
+   "log": [
+    {
+     "t": 0,
+     "ev": "skip-3min"
+    },
+    {
+     "t": 10000,
+     "ev": "scn",
+     "k": "V-F1_idle_expand"
+    },
+    {
+     "t": 10300,
+     "ev": "idle-open",
+     "why": "key"
+    },
+    {
+     "t": 11300,
+     "ev": "scroll-list",
+     "top": 88
+    },
+    {
+     "t": 11700,
+     "ev": "scroll-list",
+     "top": 176
+    },
+    {
+     "t": 17716.67,
+     "ev": "idle-close",
+     "why": "auto"
+    }
+   ],
+   "keyframes": [
+    "frames/V-F1_idle_expand_rm_1280x720/f18_t300ms_idle-open+0.jpg",
+    "frames/V-F1_idle_expand_rm_1280x720/f23_t383ms_idle-open+80.jpg",
+    "frames/V-F1_idle_expand_rm_1280x720/f28_t467ms_idle-open+160.jpg",
+    "frames/V-F1_idle_expand_rm_1280x720/f30_t500ms_idle-open+200.jpg",
+    "frames/V-F1_idle_expand_rm_1280x720/f463_t7717ms_idle-close+0.jpg",
+    "frames/V-F1_idle_expand_rm_1280x720/f468_t7800ms_idle-close+80.jpg",
+    "frames/V-F1_idle_expand_rm_1280x720/f473_t7883ms_idle-close+160.jpg",
+    "frames/V-F1_idle_expand_rm_1280x720/f475_t7917ms_idle-close+200.jpg"
+   ]
+  },
+  "V-F2_flask_busy_1280x720": {
+   "file": "V-F2_flask_busy_1280x720.mp4",
+   "frames": 156,
+   "fps": 60,
+   "R": [
+    "✅ 按 3 次：第 1 下喝、第 2、3 下冷卻中（喝 剩 0 ms、忙 剩 2000 ms、忙 剩 1400 ms）",
+    "✅ 第 1 下生命 0.5 → 0.8",
+    "✅ 冷卻中按（1300 ms）：生命不變（0.8）",
+    "✅ 抖 67 ms（≤ 80），水平 2 px",
+    "✅ 一般：沒有外框閃",
+    "✅ 冷卻中按（1900 ms）：生命不變（0.8）",
+    "✅ 抖 67 ms（≤ 80），水平 2 px",
+    "✅ 一般：沒有外框閃"
+   ],
+   "log": [
+    {
+     "t": 0,
+     "ev": "skip-3min"
+    },
+    {
+     "t": 10000,
+     "ev": "scn",
+     "k": "V-F2_flask_busy"
+    },
+    {
+     "t": 10300,
+     "ev": "potion",
+     "k": "hp",
+     "busy": false,
+     "left": 0,
+     "hp": 0.5
+    },
+    {
+     "t": 11300,
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 2000,
+     "hp": 0.8
+    },
+    {
+     "t": 11900,
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 1400,
+     "hp": 0.8
+    }
+   ],
+   "keyframes": [
+    "frames/V-F2_flask_busy_1280x720/f18_t300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_1280x720/f20_t333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_1280x720/f21_t350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_1280x720/f23_t383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_1280x720/f26_t433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_1280x720/f108_t1800ms_potion+1500.jpg",
+    "frames/V-F2_flask_busy_1280x720/f78_t1300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_1280x720/f80_t1333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_1280x720/f81_t1350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_1280x720/f83_t1383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_1280x720/f86_t1433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_1280x720/f114_t1900ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_1280x720/f116_t1933ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_1280x720/f117_t1950ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_1280x720/f119_t1983ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_1280x720/f122_t2033ms_potion+120.jpg"
+   ]
+  },
+  "V-F2_flask_busy_rm_1280x720": {
+   "file": "V-F2_flask_busy_rm_1280x720.mp4",
+   "frames": 156,
+   "fps": 60,
+   "R": [
+    "✅ 按 3 次：第 1 下喝、第 2、3 下冷卻中（喝 剩 0 ms、忙 剩 2000 ms、忙 剩 1400 ms）",
+    "✅ 第 1 下生命 0.5 → 0.8",
+    "✅ 冷卻中按（1300 ms）：生命不變（0.8）",
+    "✅ 減少動態：不抖（沒有位移）",
+    "✅ 減少動態：外框 2 px 亮 117 ms（7 幀，≤ 120）",
+    "✅ 冷卻中按（1900 ms）：生命不變（0.8）",
+    "✅ 減少動態：不抖（沒有位移）",
+    "✅ 減少動態：外框 2 px 亮 117 ms（7 幀，≤ 120）"
+   ],
+   "log": [
+    {
+     "t": 0,
+     "ev": "skip-3min"
+    },
+    {
+     "t": 10000,
+     "ev": "scn",
+     "k": "V-F2_flask_busy"
+    },
+    {
+     "t": 10300,
+     "ev": "potion",
+     "k": "hp",
+     "busy": false,
+     "left": 0,
+     "hp": 0.5
+    },
+    {
+     "t": 11300,
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 2000,
+     "hp": 0.8
+    },
+    {
+     "t": 11900,
+     "ev": "potion",
+     "k": "hp",
+     "busy": true,
+     "left": 1400,
+     "hp": 0.8
+    }
+   ],
+   "keyframes": [
+    "frames/V-F2_flask_busy_rm_1280x720/f18_t300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f20_t333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f21_t350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f23_t383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f26_t433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f108_t1800ms_potion+1500.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f78_t1300ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f80_t1333ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f81_t1350ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f83_t1383ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f86_t1433ms_potion+120.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f114_t1900ms_potion+0.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f116_t1933ms_potion+17.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f117_t1950ms_potion+50.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f119_t1983ms_potion+67.jpg",
+    "frames/V-F2_flask_busy_rm_1280x720/f122_t2033ms_potion+120.jpg"
+   ]
+  },
   "V-F2_lowhp_1280x720": {
    "file": "V-F2_lowhp_1280x720.mp4",
    "frames": 192,
@@ -3655,7 +4039,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「天賦樹期間 +72 靈魂」",
+    "✅ 「天賦樹期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -3693,7 +4077,10 @@
      "t": 25500,
      "ev": "gain",
      "at": 25660.00000000043,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "天賦樹期間 靈魂 +72・1 件"
     },
     {
      "t": 25500,
@@ -3721,7 +4108,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「天賦樹期間 +72 靈魂」",
+    "✅ 「天賦樹期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -3759,7 +4146,10 @@
      "t": 25500,
      "ev": "gain",
      "at": 25660.00000000043,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "天賦樹期間 靈魂 +72・1 件"
     },
     {
      "t": 25500,
@@ -3787,7 +4177,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「昇華石碑期間 +72 靈魂」",
+    "✅ 「昇華石碑期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -3825,7 +4215,10 @@
      "t": 26000,
      "ev": "gain",
      "at": 26160.000000000466,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "昇華石碑期間 靈魂 +72・1 件"
     },
     {
      "t": 26000,
@@ -3853,7 +4246,7 @@
     "✅ 滿版（沒有戰場、HUD）",
     "✅ 掛機時間照走（+14.9 秒）",
     "✅ 關後 166.7 ms 出（淡入 160 後）",
-    "✅ 「昇華石碑期間 +72 靈魂」",
+    "✅ 「昇華石碑期間 靈魂 +72・1 件」",
     "✅ 停 3000 ms（3,000）＋淡出 300"
    ],
    "log": [
@@ -3891,7 +4284,10 @@
      "t": 26000,
      "ev": "gain",
      "at": 26160.000000000466,
-     "n": 72
+     "n": 72,
+     "it": 1,
+     "r": 0,
+     "txt": "昇華石碑期間 靈魂 +72・1 件"
     },
     {
      "t": 26000,
@@ -4455,13 +4851,13 @@
   "390x844": {
    "file": "F11-1_tokens_390x844.json",
    "screens": 40,
-   "colors": 35,
+   "colors": 37,
    "off": []
   },
   "1280x720": {
    "file": "F11-1_tokens_1280x720.json",
    "screens": 40,
-   "colors": 36,
+   "colors": 38,
    "off": []
   }
  }

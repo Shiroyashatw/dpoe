@@ -57,7 +57,7 @@ function makeHTML() {
     costTxt =
       Object.entries(c.mats)
         .map(([m, n]) => `${matName(m, MK.T)} ×${n * MK.n}`)
-        .join('、') + (c.gold ? `、${c.gold * MK.n} 金` : ''),
+        .join('、') + (c.gold ? `、${abbr(c.gold * MK.n, 'cost')} 金` : ''),
     kinds = MK_KINDS.filter(([k]) => mkKindOK(k))
       .map(([k, n]) => {
         const bb = craftBase(k, { sys: k === MK.kind ? MK.sys : '', wt: MK.wt, T: MK.T });
@@ -82,7 +82,7 @@ function makeHTML() {
     .join(
       ''
     )}${ns.length > 1 ? `<span class="sep"></span>${ns.map(n => chipB(`mk:n:${n}`, MK.n === n, `${n} 件`)).join('')}` : ''}</div>
-  <div class="mkpv"><div class="it r0 fic">${icHTML(b.ic)}</div><div><b>${esc(b.n)}</b><small>物品等級 ${matIlvl(MK.T)}${MK.sys ? `・${SYSN[MK.sys]}` : ''}・普通 ${w}%・魔法 ${bl}%${y ? `・<span class="rc2">稀有 ${y}%</span>` : ''}</small>${y ? `<small>再 ${Math.max(0, prdMax(y / 100) - (S.prd.craftR || 0))} 件沒出稀有，下一件必出</small>` : ''}</div></div>
+  <div class="mkpv"><div class="it r0 fic">${icHTML(b.ic)}</div><div><b>${esc(b.n)}</b><small>物品等級 ${matIlvl(MK.T)}${MK.sys ? `・${SYSN[MK.sys]}` : ''}・普通 ${w}%・魔法 ${bl}%${y ? `・<span class="rc2">稀有 ${y}%</span>` : ''}</small>${y ? `<small>再 ${Math.max(0, prdMax(y / 100) - (S.prd.craftR || 0))} 件沒出稀有，下一件一定是稀有</small>` : ''}</div></div>
   ${
     campCan('cur:ink') && MAT().ink >= 1 && Object.keys(MEM).some(k => MEM[k].on(b))
       ? `<div class="bagf" role="group" aria-label="追憶之墨">${chipB(`mk:ink:${MK.ink ? 0 : 1}`, MK.ink, `加一瓶追憶之墨（有 ${MAT().ink}）`)}<span class="c-dim">這一批第一件保證一條追憶</span></div>`

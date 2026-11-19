@@ -1,0 +1,58 @@
+# §8 grep：玩家可見字串不再出現「藥劑充能」（「藥劑技能充能」除外）
+# HEAD 工作樹（未 commit 前）；2026-11-19T06:56:39Z
+
+## 1. 遊戲與 demo 原始碼（js/、demo/、index.html）
+$ git grep -n "藥劑充能" -- js demo index.html | grep -v "藥劑技能充能"
+js/game.js:1114:  /* 調製（0.2.74 追獵者 poiKillChg）：殺死中毒的敵人多得藥劑充能（10 點＝1 瓶，吃藥劑充能獲得） */
+→ 共 1 筆，全部是 /* */ 程式註解（交辦 §8「不改」：過時註解），不是玩家看得到的字串。
+
+## 2. 全 repo（含 tools、evidence、docs）
+$ git -c core.quotepath=false grep -n "藥劑充能" | grep -v "藥劑技能充能" | cut -d: -f1 | sort | uniq -c
+      1 "docs/PoE\345\220\215\350\251\236\347\233\244\351\273\236.md"
+      1 "docs/PoE\345\272\225\345\261\244\346\237\245\350\255\211.md"
+      1 "docs/PoE\346\255\246\345\231\250\350\210\207\345\272\225\346\235\220.md"
+      5 "docs/\344\274\201\345\212\203\346\233\270.md"
+      2 "docs/\345\244\251\350\263\246\344\277\256\346\255\243\346\217\220\346\241\210.md"
+      1 CHANGELOG.md
+      2 evidence/dpoe-check70/logs/check.txt
+      2 evidence/dpoe-check95/check.txt
+      2 evidence/dpoe-check98/check.txt
+      2 evidence/dpoe-hotfix-ui/check.txt
+      2 evidence/dpoe-m2-03/check.log
+      2 evidence/dpoe-m2-10/check.log
+      2 evidence/dpoe-m2-12-main/check.txt
+      2 evidence/dpoe-m2-12/check.txt
+      2 evidence/dpoe-m2-25-main2/check.txt
+      2 evidence/dpoe-m2-25/check.txt
+      2 evidence/dpoe-m2-30/check.log
+      2 evidence/dpoe-m2-30/main-aa8f220/check.txt
+      2 evidence/dpoe-m2-30/pr/check.log
+      2 evidence/dpoe-mag-term/check.txt
+      2 evidence/dpoe-trade-tiercap-main/check.txt
+      2 evidence/m1-21/check.log
+      2 evidence/m1-21/check_merge67844a4.log
+      2 evidence/m2-01/check.log
+      2 evidence/m2-34-0/main4/check.txt
+      2 evidence/m2-34-0/main4/r1_main8451209/check.txt
+      2 evidence/names/check.log
+      1 js/game.js
+      3 tools/check.js
+→ docs/、CHANGELOG.md 是文件與歷史紀錄（不是畫面）；tools/check.js 是開發者測試標題（不進遊戲畫面）；evidence/**/check*.{txt,log} 是舊版 check.js 的歷史輸出（不改歷史證據）；js/game.js 是註解。
+
+## 3. 改完後的玩家可見字串（藥劑技能充能）
+$ git grep -n "藥劑技能充能" -- js
+js/combat.js:1663:    d: '每秒獲得 2 點藥劑技能充能；增加 30% 藥劑效果',
+js/data.js:184:    '藥劑技能沒有冷卻時間，彼此共用 0.5 秒的間隔。每次使用消耗 1 次藥劑技能充能，視為使用藥劑；持續時間與效果受藥劑效果影響。無法連結輔助。',
+js/data.js:288:  滿溢聖杯: '滿溢聖杯是每秒獲得 2 點藥劑技能充能、增加 30% 藥劑效果的增益效果。',
+js/data.js:5080:  flaskChg: ['藥劑技能充能獲得', '%', 0, '增加 {}% 獲得的藥劑技能充能'],
+js/data.js:5083:  flaskUse: ['藥劑技能充能消耗', '%', 0, '減少 {}% 藥劑技能每次消耗的充能'],
+js/data.js:6489:    d: '以藥劑技能作戰。消耗藥劑技能充能使用毒霧、疾風與石膚藥劑，使用藥劑時引爆敵人身上的中毒。',
+js/data.js:6531:        '藥劑技能消耗 50%更少的藥劑技能充能\n擊殺受中毒的敵人時，獲得 3 點藥劑技能充能',
+js/data.js:6770:  flaskHalf: ['調製', '', 1, '藥劑技能消耗 50%更少的藥劑技能充能'],
+js/data.js:6771:  poiKillChg: ['中毒擊殺充能', '點', 0, '擊殺受中毒的敵人時，獲得 {} 點藥劑技能充能']
+js/data.js:7713:  b_flask: { n: '減少 {}% 獲得的藥劑技能充能', r: [30, 40], g: 'flask', fx: v => ({ flaskChg: -v }) },
+js/skills.js:371:    if (!pracFree() && P.flask < flaskCost() - 1e-9) return '藥劑技能充能不夠：殺怪會補';
+
+## 4. 舊句型 0 筆
+$ git grep -nE "生命與魔力藥劑(各)?獲得|藥劑每秒獲得 2 充能|點藥劑充能|藥劑充能不夠|沒有充能" -- js demo | grep -v "^\S*:[0-9]*:\s*/\*"
+→ 0 筆（「藥劑技能充能不夠」不算）

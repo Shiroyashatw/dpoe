@@ -279,10 +279,10 @@ const D = {
       ['崇高石', 'rare'],
       ['高階增幅石', 'rare']
     ],
-    away: { kind: 'line', min: 4, text: '離開 4 分・靈魂 +1,170' },
+    away: { kind: 'line', min: 4, text: '離開 4 分・靈魂 +1,167' },
     off: {
       t: '離開 1 時 40 分',
-      sum: '打倒王 40 次・倒下 1 次・靈魂 +29,200',
+      sum: '打倒王 40 次・倒下 1 次・靈魂 +29,192',
       rows: [
         ['崇高石 +43', 'rare'],
         ['高階增幅石 +4', 'rare'],
@@ -402,7 +402,7 @@ const D = {
     away: { kind: 'settle', text: '3 時 12 分' },
     off: {
       t: '離開 3 時 12 分',
-      sum: '打倒王 78 次・倒下 2 次・靈魂 +64,128',
+      sum: '打倒王 78 次・倒下 2 次・靈魂 +64,172',
       rows: [
         ['破裂石 +3', 'rare'],
         ['崇高石 +84', 'rare'],
@@ -427,6 +427,7 @@ const D = {
     idle: 138,
     kills: 57,
     pity: 0,
+    filtered: 37 /* D1-fix-fakedata §1a「+37 件已收」（假定） */,
     camp: [
       ['林場', 112],
       ['礦場', 118],
@@ -493,7 +494,6 @@ const D = {
       prog: 'Boss 99%',
       idle: 'Idle 23h 59m · 599 boss kills',
       pity: 'Chase pity 100%',
-      pityShort: 'Pity 100%',
       fac: 'Hunting Ground',
       goal: 'Next goal: Anvil Lv18 · Higher-tier currency',
       stash: 'Stash almost full: 3 slots left',
@@ -542,7 +542,7 @@ const D = {
     away: { kind: 'settle', text: '11 時 59 分' },
     off: {
       t: '離開 11 時 59 分',
-      sum: '打倒王 296 次・倒下 3 次・靈魂 +209,948',
+      sum: '打倒王 296 次・倒下 3 次・靈魂 +209,892',
       rows: [
         ['破裂石 +13', 'rare'],
         ['崇高石 +313', 'rare'],

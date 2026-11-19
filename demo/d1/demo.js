@@ -79,6 +79,8 @@ function fresh() {
     fieldPanel: 0,
     shakeT: -1e9,
     shakeEl: null,
+    flhT: -1e9 /* 喝生命藥劑的時間（冷卻 3 秒） */,
+    flmT: -1e9,
     flipT: -1e9,
     pityT: -1e9,
     pity100: 0,
@@ -204,6 +206,13 @@ Object.assign(EN, {
   疾霆印: 'Thunder Seal',
   歸墟印: 'Abyss Seal',
   鎮嶽印: 'Mountain Seal',
+  '赤霄印・王印 3／4': 'Crimson Sky Seal · Seals 3/4' /* EN「Seals 3/4」假定（fakedata §1a） */,
+  '鎮嶽印・王印 2／4': 'Mountain Seal · Seals 2/4',
+  高階富豪石: 'Greater Regal Orb',
+  完美崇高石: 'Perfect Exalted Orb',
+  高階蛻變石: 'Greater Transmutation Orb',
+  完美石: 'Perfect Orb',
+  完美富豪石: 'Perfect Regal Orb',
   林場: 'Lumber Yard',
   礦場: 'Mine',
   獵場: 'Hunting Ground',
@@ -249,7 +258,6 @@ Object.assign(EN, {
   '鍛造台 Lv13：破裂石開始掉': 'Anvil Lv13: Fracturing Orbs now drop',
   '祭壇 Lv7 開': 'Opens at Altar Lv7',
   '鍛造台 Lv15 開': 'Opens at Anvil Lv15',
-  開下一個主幹地點: 'Opens the next main area',
   產量提高: 'Higher output',
   下一級的效果照解鎖表: 'Next level per unlock table',
   '本體屬 D2／D3；這裡只驗鍵盤焦點與換分頁': 'Body is D2/D3; only keyboard focus and tab switching here',
@@ -297,34 +305,37 @@ const tokA = (k, a) => `rgba(${tok(k)}, ${a})`; /* -rgb 三元組 token ＋ α *
 
 /* ---------- 假資料（D1-fix §12；跟數值設計師要的值，到之前用這份） ---------- */
 /* 本次掛機的掉落（新的在上；稀有以上）：≥ 14 筆 */
-const SESS = [
-  ['赤霄印', 'chase', 1],
-  ['崇高石', 'rare', 3],
-  ['高階增幅石', 'rare', 2],
-  ['判官筆', 'leg', 1],
-  ['預知石', 'rare', 4],
-  ['聖化石', 'rare', 12840],
-  ['破裂石', 'rare', 1],
-  ['完美災魘石', 'leg', 1],
+/* D1-fix-fakedata §1a（7 位數存檔，鍛造台 Lv20、裂口腹地 Lv83）：15 筆，新的在上；cur／perf 都畫 ◆（遊戲 .lg-cur、.lg-perf 同色） */
+const SESS_BIG = [
+  ['赤霄印・王印 3／4', 'chase', 1],
+  ['崇高石', 'rare', 1],
   ['高階崇高石', 'rare', 1],
-  ['追憶之墨', 'leg', 2],
-  ['歸墟印', 'chase', 1],
-  ['轉化石', 'rare', 5],
-  ['崇高石', 'rare', 2],
+  ['崇高石', 'rare', 1],
+  ['破裂石', 'rare', 1],
+  ['高階富豪石', 'rare', 1],
+  ['完美崇高石', 'rare', 1],
+  ['崇高石', 'rare', 1],
+  ['追憶之墨', 'rare', 1],
+  ['高階蛻變石', 'rare', 1],
+  ['崇高石', 'rare', 1],
+  ['完美石', 'rare', 1],
   ['高階增幅石', 'rare', 1],
-  ['預知石', 'rare', 2],
-  ['破裂石', 'rare', 1]
+  ['崇高石', 'rare', 1],
+  ['完美富豪石', 'rare', 1]
 ];
+/* §1b（中期，鍛造台 Lv12 只開到崇高石）：崇高石 ×13＋鎮嶽印・王印 2／4（同字重複 13 列的版面） */
+const SESS = [['鎮嶽印・王印 2／4', 'chase', 1], ...Array.from({ length: 13 }, () => ['崇高石', 'rare', 1])];
 const FAKE = {
   new: { gold: 120, sess: [], sessSoul: 168 },
   mid: { gold: 8640, sess: SESS, sessSoul: 12345 },
   near: { gold: 21400, sess: SESS, sessSoul: 9240 },
   full: { gold: 30200, sess: SESS, sessSoul: 14200 },
-  big: { gold: 3402118, soul: 12345, sess: SESS, sessSoul: 1284560 },
+  big: { gold: 3402118, soul: 12345, sess: SESS_BIG, sessSoul: 1284560 },
   en: { gold: 9600, sess: SESS, sessSoul: 12345 }
 };
-/* 藥劑：[剩幾次, 最多, 下一次充能進度 0–1]（遊戲資料到之前一律 3 次，未驗） */
-const FLASK0 = { hp: [3, 3, 0], mp: [3, 3, 0] };
+/* 紅藍水（mumi 11/19 14:04）：不限次數，各自冷卻 3 秒（game.js drinkFlask、FLASK.cd 3）；沒有次數、沒有充能 */
+const FL_CD = 3000;
+const flLeft = k => Math.max(0, FL_CD - (NOW - S[k === 'hp' ? 'flhT' : 'flmT'])) / FL_CD;
 /* 稀有通貨（通貨明細用，完整數字） */
 const RARECUR = [
   ['崇高石', 43],
@@ -334,25 +345,27 @@ const RARECUR = [
   ['聖化石', 12840]
 ];
 /* 營地單座卡的解鎖路線（瞭望台 Lv14 起後面 6 級；其他座照解鎖表示意） */
+/* D1-fix-fakedata §7：瞭望台 Lv15–20 開的地點（world.js TRUNK2）；列裡去掉「到地點清單點它就去刷。」（假定） */
 const ROUTE = {
   瞭望台: [
-    [15, '開下一個主幹地點'],
-    [16, '地點星級上限 +1'],
-    [17, '開斥候營 Lv3'],
-    [18, '開下一個主幹地點'],
-    [19, '地點詞綴 +1 條'],
-    [20, '開鬼門關']
+    [15, '新地點「冰封神殿」開了（怪物 Lv 53）'],
+    [16, '新地點「血原邊境」開了（怪物 Lv 58）'],
+    [17, '新地點「白骨丘」開了（怪物 Lv 63）'],
+    [18, '新地點「腐沼渡」開了（怪物 Lv 68）'],
+    [19, '新地點「沉城」開了（怪物 Lv 73）'],
+    [20, '新地點「毒霧林」開了（怪物 Lv 78）']
   ]
 };
+/* 其他座：示意（假定）；產生器寫里程碑「產量 ×2」「+1 工位」「階 +1」，一般級「每分鐘 +{Δ} {材料}」（名詞表 v0.6.15；不寫「產量 +12%」） */
 const routeOf = (n, lv) =>
   ROUTE[n] || [
-    [lv + 1, '產量 +12%'],
-    [`${lv + 2}–${lv + 5}`, '效果 +n', 1],
-    [lv + 6, '開下一階材料'],
-    [lv + 7, '產量 +12%']
+    [lv + 1, '+1 工位'],
+    [`${lv + 2}–${lv + 5}`, '每分鐘 +3 木', 1],
+    [lv + 6, '階 +1'],
+    [lv + 7, '產量 ×2']
   ];
-/* 這級得到什麼（M1-13 解鎖字；沒有解鎖寫效果差） */
-const thisLv = (n, lv) => (ROUTE[n] ? ROUTE[n][0][1] : n === '鍛造台' ? '開腐化' : '產量 +12%');
+/* 這級得到什麼（M1-13 解鎖句去掉「{設施} Lv n：」；照 part2 §8 F8-1 與名詞表例句，一行放得下：不加「到地點清單點它就去刷。」） */
+const thisLv = (n, lv) => (ROUTE[n] ? ROUTE[n][0][1] : n === '鍛造台' ? '開腐化' : '每分鐘 +3 木');
 const esc = s =>
   String(s)
     .replace(/Lv (\d)/g, 'Lv\u00a0$1') /* N4：Lv 和數字用 U+00A0，不拆開 */
@@ -676,9 +689,9 @@ function curHTML(g) {
   return `<button class="ab curs kf" id="d-cur" data-m="F9" data-hud data-hit="cur" data-k="cur" aria-label="${esc(T('通貨明細', 'Currency details'))}" style="${port ? px(202, g.st + 59, 180, 44) : px(16, 66, 300, 32)}"><span class="cv">
     <span class="cc2" data-role="body">${IC16.gold}${ab(gold)}</span><span class="cc2" data-role="body">${IC16.soul}${ab(soul)}</span></span></button>`;
 }
-/* §2 藥劑：常駐 HUD 鈕。直立 56（抽屜開著 44、移到戰場右下）、桌機 48；
-   底填 --hp／--mp 60%；右上剩幾次；外圈 3 px 充能環（--hp-hi／--mp-hi 待素材，demo 用現有 token 佔位）；
-   低血 < 35% 且生命藥劑 ≥ 1：2 px --bad-hi 外框 1 Hz 呼吸（減少動態常亮） */
+/* §2 藥劑：常駐 HUD 鈕。直立 56（抽屜開著 44、移到戰場右下）、桌機 48；底填 --hp／--mp 60%；不寫任何次數。
+   只畫冷卻：外圈 3 px 環（--hp-hi／--mp-hi）＋鈕面扇形掃過（剩餘部分蓋 scrim 50%）、圖示 50% 亮度；冷卻完環消失（tick 每幀更新）。
+   低血 < 35% 且生命藥劑冷卻好了：2 px --hp-hi 外框 1 Hz 呼吸（減少動態常亮）；冷卻中不畫 */
 const FLIC = {
   hp: art('it_potion'),
   mp: art('it_potion').replace('class="art"', 'class="art blue"') /* 暫用：沒有藍水圖，紅水圖轉色 */
@@ -687,7 +700,6 @@ function flaskHTML(g) {
   const port = g.port,
     small = port && S.fieldPanel,
     sz = port ? (small ? 44 : 56) : 48,
-    fl = S.fl || FLASK0,
     hp = S.hp != null ? S.hp : D('life')[0] / D('life')[1];
   const pos = k =>
     port
@@ -697,17 +709,32 @@ function flaskHTML(g) {
       : px(k === 'hp' ? 732 : 788, 632 + g.dy, 48, 48);
   let h = '';
   for (const k of ['hp', 'mp']) {
-    const [n, max, pr] = fl[k],
-      emp = n <= 0,
-      low = k === 'hp' && hp < 0.35 && n >= 1,
-      r = sz - 3,
+    const r = sz - 3,
       nm = k === 'hp' ? '生命藥劑' : '魔力藥劑';
-    h += `<button class="ab fl ${k}${emp ? ' emp' : ''}${low ? ' low' : ''} kf" id="d-fl-${k}" data-m="F2-${k}" data-hud data-hit="flask" data-k="fl-${k}" data-fl="${k}" aria-label="${esc(T(nm))} ${n}/${max}" style="${pos(k)}z-index:6">
-      ${emp ? '' : '<i class="fill"></i>'}<span class="fic">${FLIC[k]}</span>${kc(k === 'hp' ? '1' : '2')}<b class="fn num" data-role="label">${n}</b>
-      <svg class="ring" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><rect class="trk" x="1.5" y="1.5" width="${r}" height="${r}" rx="4"/>${emp ? '' : `<rect class="arc" x="1.5" y="1.5" width="${r}" height="${r}" rx="4" pathLength="100" stroke-dasharray="${(pr * 100).toFixed(1)} 100"/>`}</svg>
-      ${low ? '<i class="lo" id="d-flo"></i>' : ''}</button>`;
+    h += `<button class="ab fl ${k} kf" id="d-fl-${k}" data-m="F2-${k}" data-hud data-hit="flask" data-k="fl-${k}" data-fl="${k}" aria-label="${esc(T(nm))}" style="${pos(k)}z-index:6">
+      <i class="fill"></i><span class="fic">${FLIC[k]}</span><i class="sw"></i>${kc(k === 'hp' ? '1' : '2')}
+      <svg class="ring" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><rect class="arc" x="1.5" y="1.5" width="${r}" height="${r}" rx="4" pathLength="100"/></svg>
+      ${k === 'hp' && hp < 0.35 ? '<i class="lo" id="d-flo"></i>' : ''}</button>`;
   }
   return h;
+}
+/* 每幀：冷卻環、扇形、圖示亮度；低血外框只在生命藥劑冷卻好時畫 */
+function flaskTick() {
+  for (const k of ['hp', 'mp']) {
+    const b = $('d-fl-' + k);
+    if (!b) continue;
+    const p = flLeft(k),
+      v = p.toFixed(3);
+    if (b.dataset.cd !== v) {
+      b.dataset.cd = v;
+      b.classList.toggle('cd', p > 0);
+      b.style.setProperty('--cd', v);
+      /* 環＝剩餘部分，跟扇形一樣從 12 點鐘順時針讓出（方框路徑從左上角起算，12 點鐘在 12.5%） */
+      const a = b.querySelector('.arc');
+      a.setAttribute('stroke-dasharray', `${(p * 100).toFixed(1)} ${(100 - p * 100).toFixed(1)}`);
+      a.setAttribute('stroke-dashoffset', (-(12.5 + (1 - p) * 100)).toFixed(1));
+    }
+  }
 }
 /* 稀有度記號：◆ 稀有、◈ 傳奇、追逐＝王印 16 圖示（掉落動態、掉落紀錄、掛機條同一份） */
 const CHASE_IC = {
@@ -813,8 +840,8 @@ function idleHTML(g) {
           ([n, r, q]) =>
             `<li class="r-${r}" data-role="body"><i class="rb"></i>${r === 'chase' ? wy(chaseIc(n)) : `<span class="i16g" data-tmp="暫用">${ICO.gem}</span>`}<span class="nm">${r === 'chase' ? '' : mark(r)}${esc(T(n))}</span><span class="q">×${ab(q)}</span></li>`
         ).join('')
-      : `<li class="none" data-role="body">${esc(T('這次還沒有稀有以上的掉落'))}</li>`;
-    const more = `<li class="lk kf" data-hit="alllog" data-k="alllog" role="button" tabindex="0" data-role="body"><span class="nm">${esc(T('全部掉落紀錄'))} ›</span>${hid ? `<span class="hd2">${esc(isEN() ? pad0(`+${fmt(hid)} more collected`) : `另有 +${fmt(hid)} 件已收`)}</span>` : ''}</li>`;
+      : ''; /* §1：沒有稀有以上的掉落時清單只剩「全部掉落紀錄 ›」 */
+    const more = `<li class="lk kf" data-hit="alllog" data-k="alllog" role="button" tabindex="0" data-role="body"><span class="nm">${esc(isEN() ? pad0('All drops ›') : '全部掉落紀錄 ›')}</span>${hid ? `<span class="hd2">${esc(isEN() ? pad0(`+${abbr(hid, 'own')} items collected`) : `+${abbr(hid, 'own')} 件已收`)}</span>` : ''}</li>`;
     h += `<div class="ab icard" id="d-icard" data-m="I02" data-over style="${px(B.x, B.y, B.w, B.h)}z-index:13">
       <div class="ih" style="height:${port ? 44 : 40}px"><b data-role="body" class="ell">${killsT}</b><button class="x44 kf" data-hit="spect" data-k="spect" aria-label="${esc(T('觀戰'))}" style="width:${bs}px;height:${bs}px">${ICO.hero}</button><button class="x44 kf" data-hit="idlex" data-k="idlex2" aria-expanded="true" aria-label="${esc(T('收起'))}" style="width:${bs}px;height:${bs}px">${ICO.down}</button></div>
       <div class="ip" data-m="F5-pity">${pityRow}</div>
@@ -1091,7 +1118,9 @@ function panelHTML(g) {
     /* 最近 50 筆：同名（同稀有度）的合成一列，寫「×n」（#19；不只連續的） */
     const raw = [...S.feed.map(f => [f.name, f.rar, f.n]), ...rc.map(r => [r[0], r[1], 1, r[2]])];
     const pool = [...D('drops').normal, ['玄鐵', 12], ['轉化石', 2], ['磨刀石', 5], ['蛻變石', 3], ['預知石', 1]];
-    for (let i = 0; raw.length < 14; i++) raw.push([pool[i % pool.length][0], 'normal', pool[i % pool.length][1]]);
+    const none = !raw.length && P.save === 'new';
+    for (let i = 0; !none && raw.length < 14; i++)
+      raw.push([pool[i % pool.length][0], 'normal', pool[i % pool.length][1]]);
     const items = [];
     for (const it of raw) {
       const p = items.find(x => x[0] === it[0] && x[1] === it[1]);
@@ -1100,13 +1129,16 @@ function panelHTML(g) {
     }
     return `<div class="ab pnl drw" id="d-drw" data-m="H11" data-panel style="${box}${z}"><div class="hd"><b data-role="body">${esc(T('掉落紀錄'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
       <div class="goalr"><span data-role="body">${esc(pity == null ? T('這裡不累積保底：怪物 Lv 45 以上的地點才會累積') : isEN() ? pad0(`Chase pity ${pity}%`) : `下一件保底 ${pity}%`)}</span><span class="gp"><i style="width:${pity || 0}%;background:var(--rar-chase)"></i></span></div>
-      <div class="bd"><ul class="lst">${items
-        .slice(0, 50)
-        .map(
-          (it, i) =>
-            `<li class="r-${it[1]}" id="${i === 0 ? 'd-logsel' : ''}" style="${i === 0 ? 'outline:2px solid var(--border-cap);outline-offset:-2px' : ''}" data-role="body">${mark(it[1], it[3], it[0])}<span class="nm ell">${esc(T(it[0]))}</span>${it[2] > 1 ? `<span class="n num">×${fmt(it[2])}</span>` : ''}</li>`
-        )
-        .join('')}</ul></div></div>`;
+      <div class="bd"><ul class="lst">${
+        items
+          .slice(0, 50)
+          .map(
+            (it, i) =>
+              `<li class="r-${it[1]}" id="${i === 0 ? 'd-logsel' : ''}" style="${i === 0 ? 'outline:2px solid var(--border-cap);outline-offset:-2px' : ''}" data-role="body">${mark(it[1], it[3], it[0])}<span class="nm ell">${esc(T(it[0]))}</span>${it[2] > 1 ? `<span class="n num">×${fmt(it[2])}</span>` : ''}</li>`
+          )
+          .join('') ||
+        `<li class="none c-dim" data-role="body">${esc(isEN() ? pad0('No drops yet. Rare+ drops from farming are listed here (last 50).') : '還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。')}</li>`
+      }</ul></div></div>`;
   }
   if (S.panel === 'death') {
     const dd = D('deaths'),
@@ -1150,7 +1182,7 @@ function cardHTML(g, box, z) {
   const rt = routeOf(n, cell.lv)
     .map(([lv, t, merged], j) => {
       const nx = j === 0;
-      return `<li class="${nx ? 'nx' : ''}" data-role="body"><span class="rl">Lv${typeof lv === 'number' ? ' ' + lv : ' ' + lv}・${esc(T(t))}</span>${nx ? `<span class="rp num">${k.pct}%</span><span class="rbar"><i style="width:${k.pct}%"></i></span>` : ''}</li>`;
+      return `<li class="${nx ? 'nx' : ''}" data-role="body"><span class="rl">${esc(isEN() ? 'Lv' + lv + ' · ' : 'Lv' + lv + '・')}${esc(T(t))}</span>${nx ? `<span class="rp num">${k.pct}%</span><span class="rbar"><i style="width:${k.pct}%"></i></span>` : ''}</li>`;
     })
     .join('');
   const wr = k.worst,
@@ -1161,9 +1193,9 @@ function cardHTML(g, box, z) {
     <div class="hd"><button class="x44 kf back" data-hit="x" data-k="cback" aria-label="${esc(T('回清單', 'Back to list'))}">${ICO.back}${kc('Esc')}</button><b data-role="body" class="cn"><span class="ell">${esc(facName(n))}</span><small class="num">${i + 1}/${L.length}</small></b>${nb('cprev', ICO.prev, '上一座', i <= 0, '←')}${nb('cnext', ICO.next, '下一座', i >= L.length - 1, '→')}</div>
     <div class="cbody" id="d-cbody">
       <h4 data-role="body">Lv ${cell.lv} → Lv ${cell.lv + 1}</h4>
-      <p class="tl" data-role="body">${esc(T('這級：' + thisLv(n, cell.lv)))}</p>
+      <p class="tl" data-role="body">${esc(isEN() ? 'This level: ' + T(thisLv(n, cell.lv)) : '這級：' + thisLv(n, cell.lv))}</p>
       <ul class="cost">${lis}</ul>
-      <div class="rtw"><div class="rts" id="d-rts"><h6 data-role="body">${esc(T('接下來會解鎖'))}</h6><ul class="rt" style="--rh:${port ? 28 : 32}px">${rt}</ul></div><i class="ifade t hide" id="d-rft"></i><i class="ifade b hide" id="d-rfb"></i></div>
+      <div class="rtw"><div class="rts" id="d-rts"><h6 data-role="body">${esc(T('接下來會解鎖', 'Coming up'))}</h6><ul class="rt" style="--rh:${port ? 28 : 32}px">${rt}</ul></div><i class="ifade t hide" id="d-rft"></i><i class="ifade b hide" id="d-rfb"></i></div>
     </div>
     <div class="cfoot"><span class="lk ${k.can ? 'ok' : 'lack'}" data-role="body">${lackT}</span><button class="upb kf ${k.can ? 'can' : 'no'}" data-hit="up1" data-k="up1"><span class="v">▲ ${esc(T('升級'))}</span></button></div></div>`;
 }
@@ -1207,8 +1239,8 @@ function fullHTML(g) {
     return `<div class="ab forge pnl" id="d-forge" data-m="V8" data-panel style="${port ? px(0, g.drawerTop, 390, g.drawerH) : px(g.colX, 76, 420, g.colH)}z-index:11">
       <div class="hd" style="width:100%"><b>${esc(T('鍛造'))}・${esc(T('打造'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
       <div class="flip" id="d-flip"><div class="fb" id="d-fb">${esc(T('打造'))}…</div><div class="ff" id="d-ff">◆ ${esc(T('稀有'))}<span>${esc(T('赤鐵十字弓'))}</span></div></div>
-      <div class="pslot"><div class="pity" id="d-pity" data-role="body"><span id="d-pityt">${esc(T('再 1 件沒出稀有，下一件必出'))}</span><div class="bar"><i id="d-pityf" style="width:96%"></i></div></div>
-      <div class="chban hide" id="d-chban">◆ ${esc(T('下一件必出稀有'))}</div></div>
+      <div class="pslot"><div class="pity" id="d-pity" data-role="body"><span id="d-pityt">${esc(isEN() ? pad0('After 1 more non-Rare crafts, the next is Rare') : '再 1 件沒出稀有，下一件一定是稀有')}</span><div class="bar"><i id="d-pityf" style="width:96%"></i></div></div>
+      <div class="chban hide" id="d-chban">◆ ${esc(isEN() ? pad0('The next is Rare') : '下一件一定是稀有')}</div></div>
       <div class="rw" style="display:flex;gap:8px"><button class="btn pri kf" data-k="fmake" data-hit="pri">${esc(T('打造'))}</button><button class="btn sec off kf" id="d-f4" data-k="f4" data-hit="sec" aria-disabled="true">F4 ${esc(T('腐化'))}</button></div>
       <div class="why" data-role="body">F4：${esc(T('鍛造台 Lv15 開'))}（120 ms 抖動：demo 未驗，進遊戲量）</div></div>`;
   }
@@ -2038,9 +2070,14 @@ function tick() {
       gh.dataset.k = (P.rm ? t / CLOSE_RM : q).toFixed(4);
     }
   }
-  /* §2 低血：生命藥劑 2 px --bad-hi 外框 1 Hz 呼吸（不透明度 0.4↔1，ease-in-out）；減少動態常亮 */
+  /* §2 冷卻環；低血：生命藥劑冷卻好了才畫 2 px --hp-hi 外框 1 Hz 呼吸（不透明度 0.4↔1，ease-in-out）；減少動態常亮 */
+  flaskTick();
   const lo = $('d-flo');
-  if (lo) lo.style.opacity = P.rm ? 1 : (0.7 + 0.3 * Math.cos((NOW / 1000) * Math.PI * 2)).toFixed(3);
+  if (lo) {
+    const off = flLeft('hp') > 0;
+    lo.hidden = off;
+    lo.style.opacity = P.rm ? 1 : (0.7 + 0.3 * Math.cos((NOW / 1000) * Math.PI * 2)).toFixed(3);
+  }
   /* §8 換座：200 ms 橫滑（減少動態 140 ms 淡入） */
   const cb = $('d-cbody');
   if (cb && S.cardSw) {
@@ -2136,7 +2173,11 @@ function tick() {
   if (S.shakeEl) {
     const e = document.querySelector(S.shakeEl),
       t = NOW - S.shakeT;
-    if (e) {
+    if (e && S.shakeEl.startsWith('#d-fl-')) {
+      /* 藥劑忙碌：水平 2 px、80 ms；減少動態不抖，2 px --border-hi 外框 120 ms */
+      e.style.translate = t < 80 && !P.rm ? `${(Math.sin((t / 80) * Math.PI * 2) * 2).toFixed(2)}px 0` : '';
+      e.classList.toggle('busy', P.rm && t < 120);
+    } else if (e) {
       e.style.transform = t < 120 && !P.rm ? `translateX(${(Math.sin((t / 120) * Math.PI * 4) * 2).toFixed(2)}px)` : '';
       /* 減少動態：不抖，改一次 120 ms 亮度閃光 */
       e.style.filter = t < 120 && P.rm ? `brightness(${(1.8 - (0.8 * t) / 120).toFixed(3)})` : '';
@@ -2164,7 +2205,7 @@ function tick() {
       pv = Math.round(96 + 4 * pk);
     $('d-pityf').style.width = pv + '%';
     $('d-pityt').textContent = T(
-      pv >= 100 ? '下一件必出稀有' : '再 1 件沒出稀有，下一件必出'
+      pv >= 100 ? '下一件一定是稀有' : '再 1 件沒出稀有，下一件一定是稀有'
     ); /* §5：鍛造不出現「保底」 */
     $('d-pity').classList.toggle('full', pv >= 100);
     const cb = $('d-chban');
@@ -2247,7 +2288,7 @@ function openPanel(p, opt) {
   log('panel', { p });
   build();
 }
-/* 天賦樹／石碑關掉：回戰場淡入 160 ms，開著 ≥ 10 秒才出「天賦樹期間 +n 靈魂」（停 3,000、淡出 300） */
+/* 天賦樹／石碑關掉：回戰場淡入 160 ms，開著 ≥ 10 秒才出「天賦樹期間 靈魂 +n・k 件・◆ r」（停 3,000、淡出 300） */
 const SOUL_PER_MIN = 291.92; /* 中期 Lv48 每分鐘靈魂（number-abbrev.md） */
 function closeFull() {
   const stay = NOW - S.treeT,
@@ -2255,12 +2296,20 @@ function closeFull() {
   S.fadeT = NOW - 120;
   log('resume', { p: k, stay });
   if (stay >= 10000) {
-    const n = Math.floor((SOUL_PER_MIN * stay) / 60000);
-    S.gainTxt = isEN()
-      ? `${k === 'stele' ? 'During Stele' : 'During Talent Tree'} +${abbr(n, 'own')} Souls`
-      : `${k === 'stele' ? '昇華石碑' : '天賦樹'}期間 +${abbr(n, 'own')} 靈魂`;
+    /* 名詞表 v0.6.15：「天賦樹期間 靈魂 +{n}・{k} 件・◆ {r}」；件數、稀有照中期營地期間 3 分 14 件・◆ 1 的速率（假定）；0 的項從後面省略 */
+    const m = stay / 60000,
+      n = Math.floor(SOUL_PER_MIN * m),
+      it = Math.floor((14 / 3) * m),
+      r = Math.floor(m / 3),
+      en = isEN(),
+      parts = [en ? `Souls +${abbr(n, 'own')}` : `靈魂 +${abbr(n, 'own')}`];
+    if (it || r) parts.push(en ? `${abbr(it, 'own')} items` : `${abbr(it, 'own')} 件`);
+    if (r) parts.push(`◆ ${abbr(r, 'own')}`);
+    S.gainTxt = en
+      ? `${k === 'stele' ? 'While at Ascendancy Stele' : 'While in Talent Tree'}: ${parts.join(' · ')}`
+      : `${k === 'stele' ? '昇華石碑' : '天賦樹'}期間 ${parts.join('・')}`;
     S.gainT = NOW + 160;
-    log('gain', { at: NOW + 160, n });
+    log('gain', { at: NOW + 160, n, it, r, txt: S.gainTxt });
   }
 }
 function closePanel() {
@@ -2297,18 +2346,17 @@ function cardGo(d) {
   log('card-nav', { d, f: L[i] });
   build();
 }
-/* 藥劑：有次數就喝（生命 +30%），沒有就給停用回饋「沒有充能」、不消耗 */
+/* 藥劑：冷卻好了就喝（生命 +30%）並開始 3 秒冷卻；冷卻中按＝不喝、不出字，鈕抖 ≤80 ms（減少動態只亮外框 120 ms） */
 function potion(k) {
-  const kk = k === '1' ? 'hp' : k === '2' ? 'mp' : k;
-  S.fl = S.fl || JSON.parse(JSON.stringify(FLASK0));
-  const f = S.fl[kk];
-  log('potion', { k: kk, n: f[0] });
-  if (f[0] <= 0) {
+  const kk = k === '1' ? 'hp' : k === '2' ? 'mp' : k,
+    left = flLeft(kk);
+  log('potion', { k: kk, busy: left > 0, left: +(left * FL_CD).toFixed(0), hp: S.hp });
+  if (left > 0) {
     S.shakeEl = '#d-fl-' + kk;
     S.shakeT = NOW;
-    return toast('', T('沒有充能'), 1500);
+    return;
   }
-  f[0]--;
+  S[kk === 'hp' ? 'flhT' : 'flmT'] = NOW;
   if (kk === 'hp') S.hp = Math.min(1, (S.hp != null ? S.hp : 0.84) + 0.3);
   else S.mpHot = 0;
   build();
@@ -2686,12 +2734,17 @@ const ROWS = [
   R('F1-2', '掛機卡展開・捲到底', () => idleNow(), { after: () => (($('d-il').scrollTop = 1e6), idleListFit()) }),
   R('F1-3', '掛機卡展開・戰場高與交集', () => idleNow()),
   R('F1-4', '掛機卡展開・130%＋英文', () => idleNow()),
-  R('F2-1', '藥劑・兩瓶 3／3、生命 84%', () => (S.hp = 0.84)),
-  R('F2-2', '藥劑・生命瓶 1 次、充能環 50%', () => ((S.hp = 0.84), (S.fl = { hp: [1, 3, 0.5], mp: [3, 3, 0] }))),
-  R('F2-3', '藥劑・兩瓶 0 次（點了出「沒有充能」）', () => ((S.hp = 0.84), (S.fl = { hp: [0, 3, 0], mp: [0, 3, 0] })), {
+  R('F2-1', '藥劑・兩瓶都不在冷卻、生命 84%', () => (S.hp = 0.84)),
+  R(
+    'F2-2',
+    '藥劑・剛喝生命藥劑 1.5 秒（冷卻一半；拍照前 demo.step(20) 再走 333 ms）',
+    () => ((S.hp = 0.84), (S.flhT = -1167))
+  ),
+  R('F2-3', '藥劑・冷卻中再按一次（不喝、鈕抖）', () => ((S.hp = 0.84), (S.flhT = -1000)), {
     after: () => potion('hp')
   }),
-  R('F2-4', '藥劑・生命 30%（外框呼吸）', () => (S.hp = 0.3)),
+  R('F2-4', '藥劑・生命 30%、生命藥劑不在冷卻（外框呼吸）', () => (S.hp = 0.3)),
+  R('F2-4c', '藥劑・生命 30%、生命藥劑冷卻中（沒有外框）', () => ((S.hp = 0.3), (S.flhT = -1500))),
   R('F2-5', '藥劑・營地升級抽屜開著', () => ((S.hp = 0.84), openNow('camp'))),
   R('F3-1', '單座卡・升級鈕（買得起）', () => cardNow('瞭望台', 1)),
   R('F3-2', '單座卡・升級鈕（英文＋130%）', () => cardNow('瞭望台', 1)),
@@ -2956,6 +3009,17 @@ Object.assign(SCN, {
       [8400, () => 0]
     ]
   },
+  'V-F2_flask_busy': {
+    t: '§2 藥劑冷卻中再按：不喝、鈕抖 ≤80 ms（減少動態只亮外框）',
+    save: 'mid',
+    dur: 2600,
+    at: [
+      [0, () => ((S.hp = 0.5), build())],
+      [300, () => tap('fl-hp')],
+      [1300, () => tap('fl-hp')],
+      [1900, () => key('1')]
+    ]
+  },
   'V-F2_lowhp': {
     t: '§2 低血：生命藥劑外框 1 Hz 呼吸（減少動態常亮）',
     save: 'mid',
@@ -3060,7 +3124,9 @@ function apply(rowId) {
       'pickT',
       'holdTipT',
       'shakeT',
-      'idleT'
+      'idleT',
+      'flhT',
+      'flmT'
     ])
       if (S[k] > -1e8 && S[k] <= 0) S[k] += NOW;
     if (S.hold) S.hold.t0 += NOW;

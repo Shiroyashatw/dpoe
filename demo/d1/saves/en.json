@@ -46,7 +46,6 @@
    "prog": "Boss 99%",
    "idle": "Idle 23h 59m · 599 boss kills",
    "pity": "Chase pity 100%",
-   "pityShort": "Pity 100%",
    "fac": "Hunting Ground",
    "goal": "Next goal: Anvil Lv18 · Higher-tier currency",
    "stash": "Stash almost full: 3 slots left",
@@ -179,7 +178,7 @@
   },
   "off": {
    "t": "離開 11 時 59 分",
-   "sum": "打倒王 296 次・倒下 3 次・靈魂 +209,948",
+   "sum": "打倒王 296 次・倒下 3 次・靈魂 +209,892",
    "rows": [
     [
      "破裂石 +13",

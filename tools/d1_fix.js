@@ -98,7 +98,8 @@ const CHK = {
       const last = full[full.length - 1];
       out.push(U.ok(last && /全部掉落紀錄|›/.test(last.textContent) && last.classList.contains('lk'), '最後一列是「全部掉落紀錄 ›」', last && last.textContent.trim()),
         U.ok(ft && Math.abs(ft.h - 24) <= 2, '頂漸層 24±2 有', ft ? ft.h : '無'), U.ok(!fb, '底漸層沒有', fb ? fb.h : '無'),
-        U.ok(!U.clip(last.querySelector('.nm')), '最後一列字不被切', last.querySelector('.nm').scrollWidth + '/' + last.querySelector('.nm').clientWidth));
+        U.ok(!U.clip(last.querySelector('.nm')), '最後一列字不被切', last.querySelector('.nm').scrollWidth + '/' + last.querySelector('.nm').clientWidth),
+        U.ok(last && /^\\+37 件已收$/.test(U.txt('#d-il .lk .hd2').trim()) && !/另有/.test(last.textContent), '同列右邊「+37 件已收」（不寫「另有」）', U.txt('#d-il .lk .hd2')));
     }
     if ('${mode}' === 'fs') {
       const q = rows.filter(li => li.querySelector('.q'));
@@ -132,21 +133,24 @@ const CHK = {
       const k = [...document.querySelectorAll('.fl .kc')].map(e => e.textContent);
       out.push(U.ok(k.join() === '1,2' && [...document.querySelectorAll('.fl .kc')].every(e => U.vis(e)), '鍵帽「1」「2」看得到', k.join('、')));
     }
-    if ('${mode}' === 'charging') {
-      const n = U.txt('#d-fl-hp .fn'), arc = document.querySelector('#d-fl-hp .arc'), da = arc ? parseFloat(arc.getAttribute('stroke-dasharray')) : 0;
-      const ring = U.tokRGB('--hp-hi'), pan = U.tokRGB('--panel'), c = U.cr(ring, pan);
-      out.push(U.ok(n === '1', '數字「1」', n), U.ok(Math.abs(da - 50) <= 5, '環 50±5%', da + '%'),
-        { ok: true, lab: '環對 --panel ≥ 3:1（--hp-hi 待素材，未驗）', v: '佔位 --bad-hi 對 --panel ' + c + ':1' });
+    /* 紅藍水不限次數：鈕上不寫任何次數（鍵帽以外沒有字） */
+    const txt = k => [...document.querySelectorAll('#d-fl-' + k + ' *')].filter(e => !e.closest('.kc') && !e.children.length).map(e => e.textContent.trim()).join('');
+    out.push(U.ok(!txt('hp') && !txt('mp') && !/\\d+\\s*[\\/／]\\s*\\d/.test(document.getElementById('d-fl-hp').getAttribute('aria-label')), '鈕上沒有任何次數字', JSON.stringify([txt('hp'), txt('mp'), document.getElementById('d-fl-hp').getAttribute('aria-label')])));
+    const cdOn = k => document.getElementById('d-fl-' + k).classList.contains('cd') && U.vis('#d-fl-' + k + ' .ring');
+    if ('${mode}' === 'ready' || '${mode}' === 'drawer') out.push(U.ok(!cdOn('hp') && !cdOn('mp'), '兩瓶都不在冷卻：沒有環', [cdOn('hp'), cdOn('mp')].join('/')));
+    if ('${mode}' === 'cooling') {
+      const b = document.getElementById('d-fl-hp'), sw = parseFloat(b.style.getPropertyValue('--cd')), arc = b.querySelector('.arc'), da = parseFloat(arc.getAttribute('stroke-dasharray'));
+      const ring = U.rgb(getComputedStyle(arc).stroke), pan = U.tokRGB('--panel'), c = U.cr(ring, pan), ringM = U.cr(U.rgb(getComputedStyle(document.querySelector('#d-fl-mp .arc')).stroke), pan);
+      const f = getComputedStyle(b.querySelector('.fic')).filter;
+      out.push(U.ok(Math.abs(sw * 100 - 50) <= 5 && U.vis(b.querySelector('.sw')), '掃過 50±5%', (sw * 100).toFixed(1) + '%'), U.ok(Math.abs(da - 50) <= 5 && cdOn('hp'), '冷卻環剩 50±5%', da + '%'),
+        U.ok(getComputedStyle(arc).stroke === 'rgb(' + U.tokRGB('--hp-hi').join(', ') + ')' && c >= 3, '環 --hp-hi 對 --panel ≥ 3:1', getComputedStyle(arc).stroke + ' 對 --panel ' + U.tok('--panel') + ' = ' + c + ':1（--mp-hi ' + ringM + ':1）'),
+        U.ok(/brightness\\(0\\.5\\)/.test(f), '圖示變暗 50%', f), U.ok(!cdOn('mp'), '魔力藥劑不在冷卻', cdOn('mp')));
     }
-    if ('${mode}' === 'empty') {
-      const ic = getComputedStyle(document.querySelector('#d-fl-hp .fic')).opacity, col = getComputedStyle(document.querySelector('#d-fl-hp .fn')).color;
-      const off = 'rgb(' + U.tokRGB('--tx-off').join(', ') + ')';
-      out.push(U.ok(+ic === 0.4, '圖示 40%', ic), U.ok(col === off, '數字 --tx-off', col), U.ok(!document.querySelector('#d-fl-hp .fill'), '底填拿掉', ''),
-        U.ok(/沒有充能/.test(U.txt('#d-toast')), '點了出「沒有充能」', U.txt('#d-toast')), U.ok(demo.S.fl.hp[0] === 0, '不消耗', demo.S.fl.hp.join('/')));
-    }
-    if ('${mode}' === 'lowhp') {
-      const lo = document.querySelector('#d-flo'), c = lo && getComputedStyle(lo);
-      out.push(U.ok(lo && c.borderTopWidth === '2px' && c.borderTopColor === 'rgb(' + U.tokRGB('--bad-hi').join(', ') + ')', '外框 2 px --bad-hi', lo ? c.borderTopWidth + ' ' + c.borderTopColor : '無'));
+    if ('${mode}' === 'lowhp' || '${mode}' === 'lowhpcd') {
+      const lo = document.querySelector('#d-flo'), c = lo && getComputedStyle(lo), on = lo && !lo.hidden && U.vis(lo);
+      if ('${mode}' === 'lowhp')
+        out.push(U.ok(on && c.borderTopWidth === '2px' && c.borderTopColor === 'rgb(' + U.tokRGB('--hp-hi').join(', ') + ')', '不在冷卻：外框 2 px --hp-hi', lo ? c.borderTopWidth + ' ' + c.borderTopColor : '無'), U.ok(!cdOn('hp'), '生命藥劑不在冷卻', cdOn('hp')));
+      else out.push(U.ok(!on, '冷卻中：沒有外框', on ? '有' : '無'), U.ok(cdOn('hp'), '生命藥劑冷卻中（環有）', cdOn('hp')));
     }
     return out;
   })()`,
@@ -238,9 +242,11 @@ const CHK = {
     const out = [], c = document.getElementById('d-drw'), h4 = U.r(c.querySelector('h4')), tl = c.querySelector('.tl');
     const rt = U.r('#d-rts'), rows = [...c.querySelectorAll('.rt li')], vis = rows.filter(li => { const q = U.r(li); return q.y >= rt.y - 0.5 && q.y + q.h <= rt.y + rt.h + 0.5; });
     if ('${mode}' === 'track') {
-      out.push(U.ok(/這級：開下一個主幹地點/.test(tl.textContent) && U.r(tl).y >= h4.y + h4.h - 1, '「這級：開下一個主幹地點」在等級行下', tl.textContent.trim()),
+      out.push(U.ok(/^這級：新地點「冰封神殿」開了（怪物 Lv.53）/.test(tl.textContent.trim()) && U.r(tl).y >= h4.y + h4.h - 1, '「這級：新地點「冰封神殿」開了（怪物 Lv 53）」在等級行下', tl.textContent.trim()),
+        U.ok(rows.every(li => /^Lv\\d+(–\\d+)?・\\S/.test(li.querySelector('.rl').textContent.trim())), '每列「Lv{n}・{解鎖}」', rows.map(li => li.querySelector('.rl').textContent.trim()).join('｜')),
+        U.ok(!/主幹/.test(document.getElementById('ui').textContent), '畫面沒有「主幹」', (document.getElementById('ui').textContent.match(/主幹/g) || []).length),
         U.ok(vis.length >= (${port} ? 4 : 6), '路線 ' + (${port} ? '≥ 4' : '≥ 6') + ' 列', vis.length),
-        U.ok(rows.filter(li => li.classList.contains('nx')).length === 1 && rows[0].classList.contains('nx') && /Lv\\s15/.test(rows[0].textContent) && /80%/.test(rows[0].textContent) && rows[0].querySelector('.rbar'), '只有 Lv15 那列亮＋80% 條', rows[0].textContent.trim()));
+        U.ok(rows.filter(li => li.classList.contains('nx')).length === 1 && rows[0].classList.contains('nx') && /^Lv15・/.test(rows[0].textContent.trim()) && /80%/.test(rows[0].textContent) && rows[0].querySelector('.rbar'), '只有 Lv15 那列亮＋80% 條', rows[0].textContent.trim()));
     }
     if ('${mode}' === 'back') {
       const b = U.r('[data-k="cback"]'), p = U.r('[data-k="cprev"]'), n = U.r('[data-k="cnext"]');
@@ -305,14 +311,14 @@ const CHK = {
 
 /* ---------- §12 拍攝清單：[檔名, 列, 存檔, 切換, 量測, 只拍這個尺寸, 動作(page, port)] ---------- */
 const SHOTS = [
-  ['F1-1_idle_list', 'F1-1', 'mid', {}, p => CHK.idleList(p, 'top')],
-  ['F1-2_idle_list_end', 'F1-2', 'mid', {}, p => CHK.idleList(p, 'end')],
-  ['F1-3_idle_field', 'F1-3', 'mid', {}, p => CHK.idleField(p)],
-  ['F1-4_idle_list_fs', 'F1-4', 'mid', { fs: 1, en: 1 }, p => CHK.idleList(p, 'fs')],
-  ['F2-1_flask_full', 'F2-1', 'mid', {}, p => CHK.flask(p, 'full')],
-  ['F2-2_flask_charging', 'F2-2', 'mid', {}, p => CHK.flask(p, 'charging')],
-  ['F2-3_flask_empty', 'F2-3', 'mid', {}, p => CHK.flask(p, 'empty')],
+  ['F1-1_idle_list', 'F1-1', 'big', {}, p => CHK.idleList(p, 'top')],
+  ['F1-2_idle_list_end', 'F1-2', 'big', {}, p => CHK.idleList(p, 'end')],
+  ['F1-3_idle_field', 'F1-3', 'big', {}, p => CHK.idleField(p)],
+  ['F1-4_idle_list_fs', 'F1-4', 'big', { fs: 1, en: 1 }, p => CHK.idleList(p, 'fs')],
+  ['F2-1_flask_ready', 'F2-1', 'mid', {}, p => CHK.flask(p, 'ready')],
+  ['F2-2_flask_cooling', 'F2-2', 'mid', {}, p => CHK.flask(p, 'cooling')],
   ['F2-4_flask_lowhp', 'F2-4', 'mid', {}, p => CHK.flask(p, 'lowhp')],
+  ['F2-4_flask_lowhp_cd', 'F2-4c', 'mid', {}, p => CHK.flask(p, 'lowhpcd')],
   ['F2-5_flask_drawer', 'F2-5', 'mid', {}, p => CHK.flask(p, 'drawer')],
   ['F3-1_card_btn', 'F3-1', 'mid', {}, p => CHK.upbtn(p, 0)],
   ['F3-2_card_btn_en_fs', 'F3-2', 'mid', { fs: 1, en: 1 }, p => CHK.upbtn(p, 1)],
@@ -371,6 +377,7 @@ const SHOTS = [
 /* 影片：[代號, 只要一般, 只要這個尺寸] */
 const VIDS = [
   ['V-F1_idle_expand'],
+  ['V-F2_flask_busy'],
   ['V-F2_lowhp'],
   ['V-F6_tree_pause'],
   ['V-F6_stele_pause'],
@@ -413,7 +420,14 @@ function probe() {
     idleMs: S.idleMs,
     fr: f,
     off: f && h ? +Math.hypot(h.x - (f.x + f.w / 2), h.y - (f.y + f.h / 2)).toFixed(2) : null,
-    tree: !!q('d-tree')
+    tree: !!q('d-tree'),
+    hp: S.hp,
+    flCd: q('d-fl-hp') ? +q('d-fl-hp').dataset.cd || 0 : null,
+    flTr: q('d-fl-hp') ? q('d-fl-hp').style.translate || '' : null,
+    flBusy: q('d-fl-hp') ? q('d-fl-hp').classList.contains('busy') : null,
+    flOl: q('d-fl-hp')
+      ? getComputedStyle(q('d-fl-hp')).outlineWidth + ' ' + getComputedStyle(q('d-fl-hp')).outlineColor
+      : null
   };
 }
 /* ---------- 影片判定 ---------- */
@@ -458,6 +472,44 @@ function judge(V, P, L, port, rm) {
     } else ok(0, '沒有自動收');
     ok(!P.some(p => p.t > o + 200 && p.t < (c ? c.t - 1 : 1e12) && p.idle === 0), '捲動中不自動收');
   }
+  if (V === 'V-F2_flask_busy') {
+    /* 第一下喝（生命 +30%、開始 3 秒冷卻）；冷卻中再按兩次（點、鍵 1）：生命不變、一般抖 ≤ 80 ms、減少動態只亮外框 ≤ 120 ms 不動 */
+    const pt = L.filter(x => x.ev === 'potion');
+    ok(
+      pt.length === 3 && !pt[0].busy && pt[1].busy && pt[2].busy,
+      `按 3 次：第 1 下喝、第 2、3 下冷卻中（${pt.map(x => (x.busy ? '忙' : '喝') + ' 剩 ' + x.left + ' ms').join('、')}）`
+    );
+    const hpAt = t => (P.find(p => p.t >= t) || P[P.length - 1]).hp;
+    ok(
+      hpAt(pt[0].t + FR) > hpAt(pt[0].t - FR - 0.5),
+      `第 1 下生命 ${hpAt(pt[0].t - FR - 0.5)} → ${hpAt(pt[0].t + FR)}`
+    );
+    for (const b of pt.slice(1)) {
+      const before = hpAt(b.t - FR - 0.5),
+        after = P.filter(p => p.t > b.t && p.t < b.t + 500).map(p => p.hp);
+      ok(
+        after.length && after.every(h => h === before),
+        `冷卻中按（${(b.t - t0).toFixed(0)} ms）：生命不變（${before}）`
+      );
+      const mv = P.filter(p => p.t > b.t && p.t < b.t + 400 && p.flTr && !/^-?0(\.0+)?px/.test(p.flTr)).map(
+          p => p.t - b.t
+        ),
+        bz = P.filter(p => p.t > b.t && p.t < b.t + 400 && p.flBusy).map(p => p.t - b.t);
+      if (rm) {
+        ok(!P.some(p => p.flTr && !/^(0(\.0+)?px 0|)$/.test(p.flTr)), '減少動態：不抖（沒有位移）');
+        ok(
+          bz.length && bz.length * FR <= 120 + 0.5 && P.find(p => p.t > b.t && p.flBusy).flOl.startsWith('2px'),
+          `減少動態：外框 2 px 亮 ${(bz.length * FR).toFixed(0)} ms（${bz.length} 幀，≤ 120）`
+        );
+      } else {
+        ok(
+          mv.length && Math.max(...mv) <= 80,
+          `抖 ${mv.length ? Math.max(...mv).toFixed(0) : '—'} ms（≤ 80），水平 2 px`
+        );
+        ok(!bz.length, '一般：沒有外框閃');
+      }
+    }
+  }
   if (V === 'V-F2_lowhp') {
     const a = P.filter(p => p.lo != null).map(p => p.lo);
     if (rm) ok(a.length && a.every(x => x === 1), `減少動態常亮不動（${Math.min(...a)}–${Math.max(...a)}）`);
@@ -497,7 +549,12 @@ function judge(V, P, L, port, rm) {
     );
     const g0 = P.find(p => p.t > cl.t && p.gain),
       g1 = [...P].reverse().find(p => p.gain);
-    const want = V === 'V-F6_tree_pause' ? /天賦樹期間 \+\d[\d,.KM]* 靈魂/ : /昇華石碑期間 \+\d[\d,.KM]* 靈魂/;
+    /* 名詞表 v0.6.15：「天賦樹期間 靈魂 +{n}・{k} 件・◆ {r}」，0 的項從後面省略（不出現「0 件」「◆ 0」） */
+    const want = new RegExp(
+      '^' +
+        (V === 'V-F6_tree_pause' ? '天賦樹' : '昇華石碑') +
+        '期間 靈魂 \\+\\d[\\d,.KM]*(・[1-9][\\d,.KM]* 件(・◆ [1-9][\\d,.KM]*)?)?$'
+    );
     ok(g0 && Math.abs(g0.t - cl.t - 160) <= FR + 1, `關後 ${g0 ? (g0.t - cl.t).toFixed(1) : '—'} ms 出（淡入 160 後）`);
     ok(g0 && want.test(g0.gain), `「${g0 ? g0.gain : '—'}」`);
     const on = g0 && P.filter(p => p.gain && p.gainO >= 0.999).length * FR;
@@ -564,9 +621,20 @@ function keyFrames(V, P, L) {
     t0 = P[0].t - FR;
   const near = t => P.findIndex(p => p.t >= t - 0.01);
   for (const x of L.filter(x =>
-    ['idle-open', 'idle-close', 'close-start', 'card-nav', 'card-back', 'pause', 'resume', 'gain', 'esc'].includes(x.ev)
+    [
+      'idle-open',
+      'idle-close',
+      'close-start',
+      'card-nav',
+      'card-back',
+      'pause',
+      'resume',
+      'gain',
+      'esc',
+      'potion'
+    ].includes(x.ev)
   )) {
-    for (const d of [0, 80, 160, 200]) {
+    for (const d of x.ev === 'potion' ? [0, 17, 33, 50, 67, 83, 120, 1500] : [0, 80, 160, 200]) {
       const i = near(x.t + d);
       if (i >= 0) K.push([`${x.ev}+${d}`, i]);
     }

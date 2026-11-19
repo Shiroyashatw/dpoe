@@ -381,8 +381,8 @@ body.port .forge .flip { height: 112px; }
    D1-fix（mumi 11/19 九項＋複審餘項）：只用現有 token；新色票（--hp-hi、--mp-hi、M2-36-demo-tokens）待素材，先用現有 token 佔位
    ==================================================================================== */
 :root {
-  --hp-hi: var(--bad-hi); /* 待素材（美術總監）：藥劑充能環，佔位用 --bad-hi */
-  --mp-hi: var(--rar-magic); /* 待素材（美術總監）：藥劑充能環，佔位用 --rar-magic */
+  --hp-hi: #ae766c; /* M2-36-palette-tokens（美術總監 13:31）：藥劑鈕冷卻環、低血外框 */
+  --mp-hi: #7d81ac; /* M2-36-palette-tokens：魔力藥劑冷卻環 */
 }
 /* §4 縮寫數字：等寬、右對齊、預留 5 字元；完整值說明框 */
 .abn { cursor: help; }
@@ -414,16 +414,20 @@ body:not(.port) .lst.cur li { min-height: 36px; }
 .fl.mp .fill { background: var(--mp); }
 .fl .fic { position: relative; display: grid; place-items: center; }
 .fl .art.blue { filter: hue-rotate(200deg) saturate(0.9); } /* 暫用：沒有藍水圖 */
-.fl .fn { position: absolute; right: 4px; top: 2px; font: 700 13px/1 var(--font); color: var(--tx-strong); text-shadow: 0 1px 0 var(--scrim-v1), 0 0 2px var(--scrim-v1); }
-.fl .kc { position: absolute; left: 4px; top: 2px; font: 700 12px/1 var(--font); color: var(--tx-strong); text-shadow: 0 1px 0 var(--scrim-v1); }
-.fl .ring { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.fl .kc { position: absolute; left: 4px; top: 2px; z-index: 2; font: 700 12px/1 var(--font); color: var(--tx-strong); text-shadow: 0 1px 0 var(--scrim-v1); }
+/* 冷卻：環＋扇形掃過（剩餘部分蓋 scrim 50%，順時針讓出）、圖示 50% 亮度；冷卻好了都不畫 */
+.fl .sw { position: absolute; inset: 3px; border-radius: 2px; pointer-events: none; display: none;
+  background: conic-gradient(transparent 0 calc((1 - var(--cd, 0)) * 360deg), rgba(var(--scrim-rgb), 0.5) 0 360deg); }
+.fl.cd .sw { display: block; }
+.fl.cd .fic { filter: brightness(0.5); }
+.fl .ring { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; display: none; }
+.fl.cd .ring { display: block; }
 .fl .ring rect { fill: none; stroke-width: 3; }
-.fl .ring .trk { stroke: var(--panel-inset); }
 .fl.hp .ring .arc { stroke: var(--hp-hi); }
 .fl.mp .ring .arc { stroke: var(--mp-hi); }
-.fl.emp .fic { opacity: 0.4; }
-.fl.emp .fn { color: var(--tx-off); }
-.fl .lo { position: absolute; inset: -2px; border: 2px solid var(--bad-hi); border-radius: 5px; pointer-events: none; }
+/* 冷卻中按：減少動態只亮 2 px 外框 120 ms */
+.fl.busy { outline: 2px solid var(--border-hi); outline-offset: 0; }
+.fl .lo { position: absolute; inset: -2px; border: 2px solid var(--hp-hi); border-radius: 5px; pointer-events: none; }
 /* §5 掛機條「追逐保底 n%」：王印 16 在前 */
 .idle .ipb .wy { margin-right: -2px; }
 /* §1 掛機卡 */
@@ -481,6 +485,9 @@ body.fs130 .card1 .cost li { height: auto; min-height: 24px; }
 .card1 .rt li .rp { flex: none; }
 .card1 .rt li .rbar { flex: none; width: 48px; height: 4px; background: var(--panel-inset); }
 .card1 .rt li .rbar i { display: block; height: 100%; background: var(--good); }
+/* 直立：一列放不下「Lv15・新地點「冰封神殿」開了（怪物 Lv 53）」＋80%＋48 寬條 → 條改貼這一列底緣（仍在同一列、4 px），字一行放得下 */
+body.port .card1 .rt li.nx { position: relative; }
+body.port .card1 .rt li.nx .rbar { position: absolute; left: 8px; right: 0; bottom: 1px; width: auto; }
 .card1 .cfoot { flex: none; display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; padding: 0 8px 0 12px; height: 48px; }
 body:not(.port) .card1 .cfoot { margin-bottom: 8px; padding-right: 16px; }
 .card1 .cfoot .lk { flex: 1; min-width: 0; font: 700 var(--f14) var(--font); overflow-wrap: anywhere; }

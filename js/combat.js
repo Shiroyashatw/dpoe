@@ -1660,7 +1660,7 @@ const BUFF = {
   chalice: {
     n: '滿溢聖杯',
     ic: 'sk_vitality',
-    d: '生命與魔力藥劑每秒獲得 2 充能；增加 30% 藥劑效果',
+    d: '每秒獲得 2 點藥劑技能充能；增加 30% 藥劑效果',
     max: 1,
     st: { flaskP: 30, flaskChg: 2 }
   }
