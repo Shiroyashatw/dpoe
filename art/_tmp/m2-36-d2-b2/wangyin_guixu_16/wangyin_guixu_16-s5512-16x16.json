@@ -1,0 +1,38 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "wangyin_guixu_16",
+  "seed": 5512,
+  "item": 3,
+  "post": "alpha_binary",
+  "init_from": "wangyin_chixiao_16-s5404.png",
+  "max_de_before_snap": 0.0,
+  "seconds": 34.5,
+  "request": {
+    "description": "tiny 16 pixel game icon, flat front view, a small square plaque with a small ring on top, front view, a single thin spiral line carved in the centre of the plaque face, glowing cyan, warm grey plaque body, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, cube, whirlpool landscape, face, figure, person, lightning, sword",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 5512,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 300
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

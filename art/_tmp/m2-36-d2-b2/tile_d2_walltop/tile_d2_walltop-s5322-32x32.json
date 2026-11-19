@@ -1,0 +1,40 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "tile_d2_walltop",
+  "seed": 5322,
+  "item": 2,
+  "post": "wall_shift",
+  "init_from": "tile_temple_walltop-s1112.png",
+  "seconds": 8.9,
+  "request": {
+    "description": "seamless tileable texture, orthographic view from directly above, the flat top of a thick stone wall seen from directly above, large rectangular capstones in two staggered rows, wide dark joints, a few chipped corners, no horizon, no peaks, no side silhouette, no objects, the pattern fills the whole canvas evenly, light from the top-left, muted warm paper-ash grey, low chroma, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "high top-down",
+    "outline": "lineless",
+    "shading": "basic shading",
+    "detail": "low detail",
+    "no_background": false,
+    "seed": 5322,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 300
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}
