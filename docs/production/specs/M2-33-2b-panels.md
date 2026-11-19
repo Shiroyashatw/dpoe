@@ -21,7 +21,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 - 桌機：總覽、詳情、挑選都在右欄，挑選暫停戰鬥照現行；拖曳排序可用滑鼠。
 
 ## 2. 天賦樹（tree.js `treeOpen` L58、`treeRender` L125、`treeMini` L439、`treeCard` L510；全版 `#ptree`）
-- **蓋滿整個畫面**（兩種尺寸，照現行）。底 `--scene-void`（拿掉 L552 的放射漸層、L1192 的 `--pt-bg`／`--pt-node`／`--pt-line`）。上方 `.tbar`（L215）：`--panel` 底、下緣 1 px `--border-mid`，高 56；頁籤用分段；剩餘點數主數字 22 `--tx-strong`；關閉 44（桌機 36）。P 或 Esc 關。
+- **蓋滿整個畫面**（兩種尺寸；分頁列、掛機條也蓋）。**開著時戰鬥暫停、回來補算**，同營地（mumi 11/19 13:25；取代 B6／T1「照刷＋戰場條」）；昇華石碑同一套（製作人 13:36，頂列／更多／U 都一樣）。左上 ← 44 返回，見 D1-fix-mumi-1119-part2.md §6。底 `--scene-void`（拿掉 L552 的放射漸層、L1192 的 `--pt-bg`／`--pt-node`／`--pt-line`）。上方 `.tbar`（L215）：`--panel` 底、下緣 1 px `--border-mid`，高 56；頁籤用分段；剩餘點數主數字 22 `--tx-strong`；關閉 44（桌機 36）。P 或 Esc 關。
 - **節點**（SVG `#tsvg`，`.nd circle` L1196–1197）
 | 狀態 | 填色 | 外圈 | 其他 |
 | --- | --- | --- | --- |
