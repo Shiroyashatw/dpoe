@@ -1,0 +1,141 @@
+# M2-36 PixelLab D2 第二批（點數到期前產完）
+
+負責：Game Art Director。共用畫法、鎖色、呼叫 body、後處理、§6 收圖檢查都照 `M2-36-pixellab-d2.md`（下稱主檔）；本檔只列這批的清單與提示詞。規格、JSON、日誌、對話不寫 API key 的名或值。每張 1 點（16／24／32／48／64 實測）。產出放草稿分支 `art/_tmp/m2-36-d2-b2/<id>/`，過主檔 §6 的才進挑圖。
+
+## 0. 跑的順序
+
+| 序 | 批 | 張數（含候選） | 尺寸 | 提示詞在哪 |
+| --- | --- | --- | --- | --- |
+| 1 | 天賦樹圖示（本檔 §1） | **296** | 基石 48、大點 32、小點 32→16 | 本檔 §1 |
+| 2 | 牆重跑 | 6 | 32×32、64×18 | 主檔「首跑重跑」與 §1 |
+| 3 | 王的替身圖、物品部位圖示 | 下一版補進本檔 | 64、32 | 本檔 §2、§3（待寫） |
+| 4 | 其餘通貨 #5–19 | 45（每種 3） | 16 | 主檔 §2，n 改 3、種子照 seed0 往後排 |
+| 5 | 營地與戰場道具 | 21（每種 3） | 32 | 主檔 §1 道具表，n 改 3 |
+
+不做：第 4 表技能與狀態圖示（M2-40 會改）、王印加跑、怪物（主檔畫法規則：這輪不動）。
+
+## 1. 天賦樹節點圖示
+
+**為什麼要重做**：現在節點圖示全是借的（昇華 `asc_*`、輔助 `sup_*`、技能 `sk_*`、狀態 `ail_*`、裝備 `gear_*`、舊 `tree_n／tree_s`），畫風、線寬、留白都不一，縮到節點裡細節糊掉。節點圖示在 SVG 地圖裡跟著縮放（`tree.js` L157–164）：小點圖示寬＝半徑 10×1.3＝**13** 世界單位，大點 19×1.4＝**26.6**，入口 20×1.4＝28，基石 30×1.4＝**42**。所以照顯示大小出圖，**粗剪影、少細節**，不要大圖縮小。
+
+**尺寸**：基石 48（顯示 42）；大點 32（顯示 26.6）；小點產 32、最近鄰 2× 縮成 16（PIL NEAREST），再 `alpha_binary` 吸 palette（同主檔藥水作法；pixflux 畫布至少 32×32）。
+
+**畫法（三種共用）**：pixflux 圖示 body（主檔 §0），`<NOT>`＝text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow。透明底；**不畫圓框或底盤**（節點圓、外圈、已點／可點／不能點三狀態都由程式畫）。主形佔畫布 80–90%，最細的線 2 px（16 成品 1 px），1 px `#000` 外緣。轉灰階要能分（剪影不同，不靠顏色）。要在三種節點底上都看得清：已點 `--border-cap`、可點 `--panel-raised-2`、不能點 `--panel-inset`，所以主形要有 `#e8e5e1` 亮面＋`#33302b` 暗面兩側。
+
+**palette**：共用 `#000000` `#33302b` `#615b56` `#aeaba7` `#e8e5e1`，再加該列「點綴」1–2 色（元素色規則 B：顏色一定搭形狀）。點綴代號：火 `#ee9978`、冰 `#ade2f9`、雷 `#f3f9a4`、混 `#e97ccf`、命 `#934341` `#af6c64`、魔 `#3a5b98` `#6b7dad`、綠 `#95e886`、金 `#f2cb9b`、無＝不加。
+
+**種子**：第 k 列 seed0＝表首 seed0＋(k−1)×n；檔名 `<id>-s<seed>.png`。
+
+**過關（另加主檔 §6）**：每組 n 張至少 1 張在顯示尺寸（13／27／42 px）上一眼認得出主形；同一表兩兩剪影 IoU <0.7；不准有圓框、字、臉；C*>40 ≤25% 不透明像素。挑圖：大點 44 組、小點 24 組由我挑；**基石 23 組放 mumi 挑圖 Page**。
+
+### 1a. 基石（48×48，n 4，seed0 6001，共 92）
+
+| id | 名 | 點綴 | `<DESC>` |
+| --- | --- | --- | --- |
+| `tk_judge` | 堅定技巧 | 金 | a straight arrow stuck dead centre in a round target, bold and simple |
+| `tk_phalanx` | 鐵壁 | 無 | a wall of three overlapping square iron shield plates |
+| `tk_hunter` | 箭雨 | 無 | three arrows falling from above in a narrow fan |
+| `tk_master` | 疾風步 | 綠 | a winged boot with three wind streaks behind it |
+| `tk_shadow` | 混沌免疫 | 混 | a pale crystal heart inside a hexagon, purple mist kept outside the hexagon |
+| `tk_bloodclaw` | 瓦爾契約 | 命 | a rolled contract scroll sealed with one large blood drop |
+| `tk_storm` | 火焰化身 | 火 | a standing human silhouette made entirely of flame, no face |
+| `tk_medium` | 心靈凌駕 | 魔 | a blue mana orb held in front of a red heart like a shield |
+| `tk_bloodmage` | 血魔法 | 命 | a broken blue orb ring with a red drop falling through the gap |
+| `tk_bonelord` | 亡者之主 | 無 | a small bone crown above two wolf silhouettes standing side by side |
+| `tk_peach` | 不動如山 | 無 | a heavy anchor planted at the foot of a small mountain |
+| `tk_banner` | 先祖羈絆 | 金 | two short carved totem poles joined by a rope |
+| `tk_scythe` | 黑暗血鐮訓練 | 命 | a dark crescent scythe blade with a red cutting edge |
+| `tk_circular` | 循環教義 | 金 | three curved arrows chasing each other in a closed circle |
+| `tk_knightly` | 騎士信條 | 金 | a knight lance crossed with a short pennant |
+| `tk_irongrip` | 堅鐵之力 | 無 | an iron gauntlet gripping a thick metal bar |
+| `tk_ironwill` | 鋼鐵意志 | 魔 | a closed steel helm with one blue gem on the brow, no face |
+| `tk_stance` | 磐石姿態 | 無 | a square boulder planted on cracked ground |
+| `tk_rolltank` | 堅壁 | 無 | a tower shield tilted mid-roll with one motion arc |
+| `tk_esmana` | 異能魔力 | 魔 | a blue mana drop wrapped in a pale thin shield ring |
+| `tk_inevcrit` | 必然 | 雷 | a sword point meeting a small four-point burst exactly at the tip |
+| `tk_deflect` | 擦身而過 | 無 | an arrow glancing off a curved feather, the arrow bent away |
+| `tk_crimson` | 緋紅猛攻 | 命 | three crimson forward chevrons stacked left to right |
+
+### 1b. 大點：每個主題 1 枚（32×32，n 3，seed0 6201，共 132）
+
+同主題的大點共用這一枚（取代 `PT_ICONS` 的輪流借圖；入口點也用該主題這枚）。
+
+| id | 主題 | 點綴 | `<DESC>` |
+| --- | --- | --- | --- |
+| `tn_base` | 基礎 | 無 | a small four-point star |
+| `tn_life` | 生命 | 命 | a plain bold heart |
+| `tn_armour` | 護甲 | 無 | a breastplate seen from the front |
+| `tn_block` | 格擋與盾 | 無 | a round shield with a centre boss |
+| `tn_melee` | 近戰 | 無 | a short broad sword pointing up |
+| `tn_atkspd` | 攻擊速度 | 無 | a sword with two speed lines beside the blade |
+| `tn_proj` | 投射物 | 無 | a single arrow flying right with fletching |
+| `tn_evade` | 身法 | 綠 | a feather curving sideways |
+| `tn_crit` | 暴擊率 | 雷 | an open eye shape made only of lines, centred dot, no face |
+| `tn_critdmg` | 暴擊傷害加成 | 命 | a jagged burst with a cracked centre |
+| `tn_acc` | 命中 | 無 | a crosshair over a small target dot |
+| `tn_trap` | 陷阱地雷 | 無 | an open bear trap with teeth |
+| `tn_ail` | 異常 | 混 | a drop with a swirl inside |
+| `tn_elem` | 元素 | 火 | three small shapes in a triangle: flame, snowflake, bolt |
+| `tn_elemskill` | 元素技能 | 冰 | a staff head with a glowing crystal |
+| `tn_spell` | 法術 | 魔 | an open book with a spark above it |
+| `tn_es` | 能量護盾 | 魔 | a hexagon shield made of light lines |
+| `tn_mpcd` | 魔力冷卻 | 魔 | an hourglass with blue sand |
+| `tn_occult` | 秘術技能 | 混 | a crescent moon over a small rune stone |
+| `tn_minion` | 召喚 | 無 | a paw print |
+| `tn_aura` | 精魂光環 | 金 | a lotus flower with a thin halo arc |
+| `tn_primal` | 原始技能 | 綠 | a sprouting leaf from a seed |
+| `tn_totem` | 砲塔圖騰 | 無 | a short carved totem pole |
+| `tn_area` | 範圍 | 無 | three expanding arcs from a centre dot |
+| `tn_attack` | 攻擊 | 無 | a fist striking forward |
+| `tn_phys` | 物理 | 無 | a heavy hammer head |
+| `tn_fire` | 火焰 | 火 | a single flame |
+| `tn_cold` | 冰冷 | 冰 | a six-arm snowflake |
+| `tn_light` | 閃電 | 雷 | a zigzag lightning bolt |
+| `tn_chaos` | 混沌 | 混 | a spiral vortex |
+| `tn_bleed` | 流血 | 命 | three drops, two on top, one below |
+| `tn_poison` | 中毒 | 綠 | a bubbling flask drop with one bubble |
+| `tn_leech` | 偷取 | 命 | a fang with one red drop |
+| `tn_regen` | 回復 | 綠 | a heart with a small plus beside it |
+| `tn_strike` | 打擊 | 無 | a mace head with impact lines |
+| `tn_heavy` | 重擊 | 無 | a hammer coming down on a crack |
+| `tn_stun` | 暈眩 | 雷 | three small stars circling a dot |
+| `tn_tough` | 堅韌 | 無 | a flexed arm |
+| `tn_thorns` | 荊棘 | 綠 | a thorny vine loop |
+| `tn_deflect` | 偏斜 | 無 | an arrow bending off a small shield edge |
+| `tn_duration` | 持續時間 | 金 | a sundial |
+| `tn_curse` | 詛咒 | 混 | a hanging talisman tag with one mark, no readable text |
+| `tn_rage` | 盛怒 | 命 | a clenched fist with flame-shaped streaks |
+| `tn_parry` | 招架 | 無 | two crossed blades meeting at one spark |
+
+### 1c. 小點：數值家族（產 32→成品 16，n 3，seed0 6401，共 72）
+
+`PT_STAT_IC` 的 143 個數值鍵併成 24 族（對照表由工程師依族名接，族名不夠清楚的問我）。16 成品只准 1 個主形，主形 ≥10 px。
+
+| id | 族（含哪些鍵） | 點綴 | `<DESC>` |
+| --- | --- | --- | --- |
+| `ts_attack` | 攻擊（atkP 等） | 無 | a single sword, bold |
+| `ts_phys` | 物理 | 無 | a fist |
+| `ts_fire` | 火 | 火 | a flame |
+| `ts_cold` | 冰 | 冰 | a snowflake |
+| `ts_light` | 雷 | 雷 | a bolt |
+| `ts_chaos` | 混沌 | 混 | a spiral |
+| `ts_bleed` | 流血、偷取 | 命 | one blood drop |
+| `ts_poison` | 中毒 | 綠 | a green drop with a bubble |
+| `ts_ignite` | 點燃 | 火 | a small flame on an ember |
+| `ts_life` | 生命、回復 | 命 | a heart |
+| `ts_mana` | 魔力 | 魔 | a blue orb |
+| `ts_es` | 能量護盾 | 魔 | a hexagon outline |
+| `ts_armour` | 護甲 | 無 | a breastplate |
+| `ts_evade` | 閃避、敏捷 | 綠 | a feather |
+| `ts_block` | 格擋、力量 | 無 | an anvil |
+| `ts_crit` | 暴擊、命中 | 雷 | an eye made of lines, no face |
+| `ts_speed` | 攻速、施放、移速 | 無 | a wing |
+| `ts_proj` | 投射物 | 無 | an arrow |
+| `ts_area` | 範圍 | 無 | concentric arcs |
+| `ts_minion` | 召喚、夥伴 | 無 | a paw |
+| `ts_flask` | 藥劑 | 命 | a small flask |
+| `ts_curse` | 詛咒、減益 | 混 | a talisman tag |
+| `ts_aura` | 光環、增益、精魂 | 金 | a lotus |
+| `ts_attr` | 屬性、智慧 | 金 | a four-point star |
+
+**接線（工程師）**：`PT_KEYS[].ic`→`tk_*`；`PT_ICONS` 每主題改成只有 `tn_*` 一枚；`PT_STAT_IC` 依族改 `ts_*`。舊圖留著不刪，挑圖定稿前不改程式。顯示尺寸是 UIUX 的事：小點 13 單位低於 16，建議 UIUX 考慮放大到 16（`r×1.6`）。
