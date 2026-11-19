@@ -17,9 +17,13 @@
 
 ## 1. 天賦樹節點圖示
 
-**為什麼要重做**：現在節點圖示全是借的（昇華 `asc_*`、輔助 `sup_*`、技能 `sk_*`、狀態 `ail_*`、裝備 `gear_*`、舊 `tree_n／tree_s`），畫風、線寬、留白都不一，縮到節點裡細節糊掉。節點圖示在 SVG 地圖裡跟著縮放（`tree.js` L157–164）：小點圖示寬＝半徑 10×1.3＝**13** 世界單位，大點 19×1.4＝**26.6**，入口 20×1.4＝28，基石 30×1.4＝**42**。所以照顯示大小出圖，**粗剪影、少細節**，不要大圖縮小。
+**為什麼要重做**：現在節點圖示全是借的（昇華 `asc_*`、輔助 `sup_*`、技能 `sk_*`、狀態 `ail_*`、裝備 `gear_*`、舊 `tree_n／tree_s`），畫風、線寬、留白都不一，縮到節點裡細節糊掉。節點圖示在 SVG 地圖裡跟著縮放（`tree.js` L157–164），現在小點圖示只有 13 世界單位寬。新圖照顯示大小出圖，**粗剪影、少細節**，不要大圖縮小。
 
-**尺寸**：基石 48（顯示 42）；大點 32（顯示 26.6）；小點產 32、最近鄰 2× 縮成 16（PIL NEAREST），再 `alpha_binary` 吸 palette（同主檔藥水作法；pixflux 畫布至少 32×32）。
+**尺寸（UIUX 定，11/19）**：圖示 16／32／48（小點／大點／基石）。節點半徑不變（小 10、大 19、基石 30），樹的排版不動。圖示寬約＝節點直徑×0.8（16/20、32/38、48/60），外圍留 ≥2 單位給程式畫的三狀態外圈。SVG 會縮放，世界單位不等於像素；預設縮放、390 寬時小點圖示要 ≥16 CSS px（**未驗，工程師量**）。
+
+**工程端改動**：`tree.js` 圖示倍數 小點 1.3→1.6、大點 1.4→1.68、基石 1.4→1.6（入口點半徑 20 用大點圖，倍數照舊，UIUX 未另定）。
+
+**生成**：基石 48、大點 32 直出；小點產 32、最近鄰 2× 縮成 16（PIL NEAREST），再 `alpha_binary` 吸 palette（同主檔藥水作法；pixflux 畫布至少 32×32）。
 
 **畫法（三種共用）**：pixflux 圖示 body（主檔 §0），`<NOT>`＝text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow。透明底；**不畫圓框或底盤**（節點圓、外圈、已點／可點／不能點三狀態都由程式畫）。主形佔畫布 80–90%，最細的線 2 px（16 成品 1 px），1 px `#000` 外緣。轉灰階要能分（剪影不同，不靠顏色）。要在三種節點底上都看得清：已點 `--border-cap`、可點 `--panel-raised-2`、不能點 `--panel-inset`，所以主形要有 `#e8e5e1` 亮面＋`#33302b` 暗面兩側。
 
@@ -27,7 +31,7 @@
 
 **種子**：第 k 列 seed0＝表首 seed0＋(k−1)×n；檔名 `<id>-s<seed>.png`。
 
-**過關（另加主檔 §6）**：每組 n 張至少 1 張在顯示尺寸（13／27／42 px）上一眼認得出主形；同一表兩兩剪影 IoU <0.7；不准有圓框、字、臉；C*>40 ≤25% 不透明像素。挑圖：大點 44 組、小點 24 組由我挑；**基石 23 組放 mumi 挑圖 Page**。
+**過關（另加主檔 §6）**：每組 n 張至少 1 張在顯示尺寸（16／32／48 px）上一眼認得出主形；同一表兩兩剪影 IoU <0.7；不准有圓框、字、臉；C*>40 ≤25% 不透明像素。挑圖：大點 44 組、小點 24 組由我挑；**基石 23 組放 mumi 挑圖 Page**。
 
 ### 1a. 基石（48×48，n 4，seed0 6001，共 92）
 
@@ -139,7 +143,7 @@
 | `ts_aura` | 光環、增益、精魂 | 金 | a lotus |
 | `ts_attr` | 屬性、智慧 | 金 | a four-point star |
 
-**接線（工程師）**：`PT_KEYS[].ic`→`tk_*`；`PT_ICONS` 每主題改成只有 `tn_*` 一枚；`PT_STAT_IC` 依族改 `ts_*`。舊圖留著不刪，挑圖定稿前不改程式。顯示尺寸是 UIUX 的事：小點 13 單位低於 16，建議 UIUX 考慮放大到 16（`r×1.6`）。
+**接線（工程師）**：`PT_KEYS[].ic`→`tk_*`；`PT_ICONS` 每主題改成只有 `tn_*` 一枚；`PT_STAT_IC` 依族改 `ts_*`。舊圖留著不刪，挑圖定稿前不改程式（倍數改動可先做）。
 
 ## 2. 王的替身圖（64×64，n 4，seed0 6601，共 28）
 
@@ -189,3 +193,87 @@
 | `wangyin_guixu_16` | 3 | 5510–5512 | 首跑 3 張都沒有方牌外形。`init_file`＝`art/_tmp/m2-36-d2-first/wangyin_chixiao_16/post/wangyin_chixiao_16-s5404.png`（strength 300，借牌形）；`<DESC>`＝a small square plaque with a small ring on top, front view, a single thin spiral line carved in the centre of the plaque face, glowing cyan, warm grey plaque body；`<NOT>` 另加 cube, whirlpool landscape, face, figure, person, lightning, sword；palette 同主檔 §3 |
 
 其餘照主檔 §2、§3 的畫法與過關。
+
+## 5. 待 mumi 決定，未放行不跑
+
+製作人報 mumi 點頭的子項才跑；每張 1 點。挑圖 Page 上的營地地板與基石不在這裡。
+
+| 子項 | 張數 | 尺寸 | 種子 | 風險 |
+| --- | --- | --- | --- | --- |
+| 5a 借圖通貨 3 種 | 9 | 16 | 6801 起，每種 3 | 低 |
+| 5b 其餘 8 隻借圖王 | 32 | 64 | 6901 起，每隻 4 | 低 |
+| 5c 戰鬥狀態 16 枚 | 48 | 16 | 7001 起，每枚 3 | 中 |
+| 5d B3 牌匾 | 9 | 主檔 §5 | 主檔 §5 | 低 |
+| 5e 一般怪物 30 種 | 90 | 64 | 7101 起，每種 3 | 中 |
+
+### 5a 借圖通貨（bitforge 16，n 3）
+
+畫法、palette 規則、過關照主檔 §2。
+
+| id | 名 | `<DESC>` | 主色 |
+| --- | --- | --- | --- |
+| `cur_frac` | 破裂石 | a small grey stone split by one clean crack, the two halves slightly apart, not a skull, not an egg | `#615b56` `#aeaba7` |
+| `cur_perf` | 完美石 | a flawless polished oval stone with one bright facet highlight, not a coin, no wings | `#aeaba7` `#e8e5e1` `#f2cb9b` |
+| `cur_ink` | 追憶之墨 | a short ink stick lying diagonally with one small ink drop beside it, not a brush, not a sword | `#33302b` `#3a5b98` `#e8e5e1` |
+
+### 5b 其餘 8 隻借圖王（64×64，n 4）
+
+body、禁色、過關、新鍵 `boss_<id>` 的規則同 §2。這些圖也是道具圖示（喜怒哀懼愛＝預兆與碎片；上尸 `necro`＝三彭鼎；中尸＝三尸鼎），道具 `ic` 一樣先留舊圖。
+
+| id | 王 | palette（另加 `#000000`） | `<DESC>` | `<NOT>` |
+| --- | --- | --- | --- | --- |
+| `boss_xi` | 喜 | `#2a1c18` `#934341` `#c43d24` `#f2cb9b` `#e8e5e1` `#615b56` | a dancing demon in a grinning laughing mask, long red ribbons whirling around it | belly dancer, bikini |
+| `boss_nu` | 怒 | `#1f1a16` `#5a2a22` `#934341` `#e2552c` `#ffd890` `#aeaba7` | a wrathful guardian with a red scowling face and flame-shaped hair, raising a heavy club | western devil, bat wings |
+| `boss_ai` | 哀 | `#141c26` `#22344a` `#6b7dad` `#ade2f9` `#aeaba7` `#e8e5e1` | a weeping water ghost woman with long wet hair, tears pooling into a puddle at her feet | mermaid, skeleton |
+| `boss_ju` | 懼 | `#16130f` `#2c2825` `#615b56` `#8a6a7a` `#aeaba7` `#e8e5e1` | a hollow-eyed shadow ghost cowering, many thin hands reaching out from its robe | grim reaper, scythe |
+| `boss_ai2` | 愛 | `#1f1a16` `#5a2a22` `#934341` `#c43d24` `#f2cb9b` `#e8e5e1` | a ghost bride in a red veil and red wedding robe, a long red thread trailing from her finger | western wedding dress |
+| `boss_shang` | 上尸 | `#1f2a26` `#3a4a40` `#6b7d6a` `#95e886` `#aeaba7` `#e8e5e1` | a pale long-robed corpse spirit with an oversized head and a scholar cap, clutching a jade tablet | necromancer staff, skull mask |
+| `boss_zhong` | 中尸 | `#1f1a16` `#4a3a2a` `#7a5a3a` `#a9ae68` `#aeaba7` `#e8e5e1` | a bloated corpse spirit with a huge belly and gaping mouth, holding two empty rice bowls | ogre, club |
+| `boss_xia` | 下尸 | `#141c26` `#22344a` `#615b56` `#6b7dad` `#aeaba7` `#e8e5e1` | a hunched long-legged corpse spirit with pale skin, chains dragging from its ankles | giant, hammer |
+
+### 5c 戰鬥狀態 16 枚（bitforge 16，n 3）
+
+照主檔 §4「狀態」表 16 列原樣跑，只改 n＝3、種子 seed0＝7001＋(k−1)×3。第 4 表的 14 枚技能 32 **不跑**（M2-40 手修中，重產會跟手修撞）。
+
+### 5d B3 牌匾
+
+照主檔 §5 三列原樣跑（9 張）。
+
+### 5e 一般怪物 30 種（64×64，n 3）
+
+`MOBS` 現有圖約 60 px，新圖照 §2 的 body，把 `game boss sprite` 改成 `game monster sprite`、`detail` 改 `medium detail`；palette 由工程師從該怪舊圖取 8 個最多的色（排除禁色）＋`#000000`；新鍵 `mob_<鍵>`，舊圖不刪。`<DESC>`＝下表名稱的英文描述＋「same scale as a 60 px tall sprite」。
+
+| 鍵 | 名 | `<DESC>` |
+| --- | --- | --- |
+| slime | 綠史萊姆 | a green slime blob |
+| dog | 流浪狗 | a mangy stray dog |
+| bat | 蝙蝠 | a cave bat, wings spread |
+| fire | 鬼火 | a floating blue-green will-o'-wisp flame |
+| wolf | 雪原狼 | a white snow wolf |
+| tbat | 雷蝠 | a bat crackling with yellow lightning |
+| shroom | 毒菇 | a walking purple poison mushroom |
+| bear | 黑熊 | a black bear standing on hind legs |
+| islime | 冰史萊姆 | a pale blue ice slime with frost shards |
+| fslime | 火史萊姆 | an orange-red fire slime with a flame top |
+| tslime | 腐臭史萊姆 | a murky brown-green rotten slime with flies |
+| lgolem | 熔岩魔像 | a lava rock golem with glowing cracks |
+| tgolem | 雷魔像 | a stone golem with lightning runes |
+| bknight | 骷髏騎士 | a skeleton knight with sword and shield |
+| ltoad | 熔岩蟾蜍 | a lava toad with ember spots |
+| tfrog | 雷蛙 | a frog with electric yellow stripes |
+| treefrog | 毒樹蛙 | a small bright poison tree frog |
+| lantern | 燈籠鬼 | a haunted paper lantern with a tongue |
+| joss | 金紙火 | a floating burning joss paper bundle |
+| hghost | 餓鬼 | a starving ghost with a thin neck and swollen belly |
+| imp | 地獄小鬼 | a small red hell imp with horns |
+| paper | 紙人 | a paper effigy doll |
+| cobra | 眼鏡蛇 | a hooded cobra rearing up |
+| viper | 青竹絲 | a green bamboo viper coiled |
+| bailiff | 鬼差 | an underworld bailiff with a chain and a tall hat |
+| jiangshi | 殭屍 | a hopping jiangshi in Qing robes with a talisman |
+| skel | 骷髏兵 | a skeleton soldier with a rusty spear |
+| yaksha | 夜叉 | a blue-skinned yaksha with a trident |
+| judge | 判官 | an underworld judge with a brush and ledger |
+| priest | 鬼道士 | a ghost Taoist priest with a peach-wood sword |
+
+風險：怪物畫風要跟主角、王接得上，接不上就整批不換（點數明天到期，不跑也是浪費）。過關照 §2，另加與舊圖並排目視。
