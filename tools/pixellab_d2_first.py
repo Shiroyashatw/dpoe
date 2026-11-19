@@ -4,6 +4,8 @@
     python3 tools/pixellab_d2_first.py sheet     # 寫 art/_tmp/m2-36-d2-first/jobs.json（給 pixellab_batch.py --sheet）
     python3 tools/pixellab_d2_first.py repost    # 只用原圖重做後處理（不花生成）
     python3 tools/pixellab_d2_first.py report    # 量 §6／各表能自動量的項目 → results.md、拼圖總覽
+    python3 tools/pixellab_d2_first.py flask48   # 藥水補跑：寫 jobs-flask48.json（48×48；pixflux 畫布至少 32×32，24 會 422）
+    python3 tools/pixellab_d2_first.py shrink    # 補跑後：48 原圖改名 -48，最近鄰縮 2 倍成 -24（再 alpha_binary）
 生成：python3 tools/pixellab_batch.py run --sheet art/_tmp/m2-36-d2-first/jobs.json --raw art/_tmp/m2-36-d2-first --all [--go]
 """
 import json, pathlib, sys
@@ -83,6 +85,25 @@ def sheet():
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / 'jobs.json').write_text(json.dumps(js, ensure_ascii=False, indent=2), encoding='utf-8')
     print('寫好', (OUT / 'jobs.json').relative_to(pb.ROOT), len(js), '個 id，', sum(j['n'] for j in js), '張')
+
+
+def flask48():
+    js = [dict(j, body=dict(j['body'], image_size={'width': 48, 'height': 48})) for j in json.loads((OUT / 'jobs.json').read_text(encoding='utf-8'))
+          if j['id'].startswith('flask')]
+    (OUT / 'jobs-flask48.json').write_text(json.dumps(js, ensure_ascii=False, indent=2), encoding='utf-8')
+    print('寫好 jobs-flask48.json', [j['id'] for j in js])
+
+
+def shrink():
+    for j in json.loads((OUT / 'jobs-flask48.json').read_text(encoding='utf-8')):
+        d = OUT / j['id']
+        for f in sorted(d.glob(f"{j['id']}-s????.png")):
+            for x in (f, f.with_suffix('.json'), d / 'post' / f.name):
+                x.rename(x.with_name(f'{f.stem}-48{x.suffix}'))
+            im = Image.open(d / f'{f.stem}-48.png')
+            im.resize((im.width // 2, im.height // 2), Image.NEAREST).save(d / f'{f.stem}-24.png')
+            pb.post(j, d, f'{f.stem}-24')
+            print('縮好', f.stem, '48 → 24')
 
 
 # ---- 量測 ----
@@ -240,10 +261,11 @@ def measure_icon(j, raw, post):
 
 def contact(groups, scale):
     """依表分組的總覽：每列一個 id、每格一張（地磚 2×2 拼）"""
-    cell, pad, lab_h = 64, 4, 12
+    pad, lab_h = 4, 12
     rows = [(t, jid, ims) for t, items in groups for jid, ims in items]
+    cell = max([64] + [im.width for _, _, ims in rows for _, im in ims])
     W = pad + 4 * (cell + pad)
-    H = sum(cell + pad + lab_h for _ in rows) + pad + 3 * lab_h
+    H = sum(64 + pad + lab_h for _ in rows) + pad + 3 * lab_h
     bg = Image.new('RGBA', (W, H), (0x16, 0x13, 0x0f, 255))
     dr = ImageDraw.Draw(bg)
     y, last = pad, None
@@ -256,10 +278,10 @@ def contact(groups, scale):
         y += lab_h
         for k, (seed, im) in enumerate(ims):
             x = pad + k * (cell + pad)
-            dr.rectangle([x, y, x + cell - 1, y + cell - 1], fill=(0x46, 0x41, 0x3c, 255))
-            bg.alpha_composite(im, (x + (cell - im.width) // 2, y + (cell - im.height) // 2))
-            dr.text((x + 1, y + cell - 10), str(seed), fill=(251, 249, 246, 255))
-        y += cell + pad
+            dr.rectangle([x, y, x + cell - 1, y + 63], fill=(0x46, 0x41, 0x3c, 255))
+            bg.alpha_composite(im, (x + (cell - im.width) // 2, y + (64 - im.height) // 2))
+            dr.text((x + 1, y + 54), str(seed), fill=(251, 249, 246, 255))
+        y += 64 + pad
     return bg.resize((W * scale, H * scale), Image.NEAREST) if scale > 1 else bg
 
 
@@ -306,12 +328,18 @@ def report():
         for k in range(j['n']):
             seed = j['seed0'] + k
             stem = f"{j['id']}-s{seed}"
+            if j['id'].startswith('flask'):  # 補跑：48 產圖、縮成 24 量
+                stem += '-24'
             f = d / f'{stem}.png'
             if not f.exists():
                 n_fail += 1
                 rows.append((j['table'], j['id'], seed, '失敗', fmap.get((j['id'], seed), '沒有圖（未送出或失敗）'), '—', '—'))
                 continue
             n_ok += 1
+            if j['id'].startswith('flask'):
+                note = f"48 `{stem[:-3]}-48.png`、24 `{stem}.png`（48 補跑，最近鄰縮 2 倍）；"
+            else:
+                note = ''
             raw = Image.open(f)
             posts = [Image.open(d / 'post' / n) for n in pb.post_names(stem, j['post'])]
             m, ok = (measure_tile(j, raw, posts) if j['id'].startswith('tile') else measure_icon(j, raw, posts[0]))
@@ -324,7 +352,7 @@ def report():
                 eye = '有塞有液、非空瓶、HP／MP 同家族、無數字環'
             elif j['id'].startswith('cur'):
                 eye = '1× 可辨、灰階金≠靈魂'
-            rows.append((j['table'], j['id'], seed, '成功', '；'.join(f'{a} {b}' for a, b in m.items()), '✅' if ok else '❌', f'待美術看：{eye}'))
+            rows.append((j['table'], j['id'], seed, '成功', note + '；'.join(f'{a} {b}' for a, b in m.items()), '✅' if ok else '❌', f'待美術看：{eye}'))
             groups.setdefault(j['table'], []).append((j['id'], seed, preview(j, posts)))
     by = {}
     for t, items in groups.items():
@@ -336,7 +364,7 @@ def report():
     if g:
         contact(g, 1).save(OUT / 'contact-1x.png')
         contact(g, 4).save(OUT / 'contact-4x.png')
-    head = ['# M2-36 D2 首跑 38 張：自動預篩',
+    head = ['# M2-36 D2 首跑 38 張（藥水 6 張 48 補跑、縮成 24）：自動預篩',
             '',
             f'成功 {n_ok} 張、失敗 {n_fail} 張；自動預篩 ✅ {n_pass}／❌ {n_ok - n_pass}。目視項目一律「待美術看」。量測用後處理圖（`post/`），色票偏移與放大圖用原圖。',
             '',
@@ -355,4 +383,4 @@ def report():
 
 
 if __name__ == '__main__':
-    {'sheet': sheet, 'repost': repost, 'report': report}[sys.argv[1]]()
+    {'sheet': sheet, 'repost': repost, 'report': report, 'flask48': flask48, 'shrink': shrink}[sys.argv[1]]()

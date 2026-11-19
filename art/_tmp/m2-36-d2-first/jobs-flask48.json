@@ -1,0 +1,62 @@
+[
+  {
+    "id": "flask_hp",
+    "table": 2,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a small upright flask with a cork, filled with dark red liquid, readable bottle silhouette, not empty, not a skull, not a heart, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no empty bottle, no skull, no heart",
+      "image_size": {
+        "width": 48,
+        "height": 48
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5311,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1",
+      "#934341",
+      "#af6c64",
+      "#fbf9f6"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "flask_mp",
+    "table": 2,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, the same flask family as flask_hp, filled with deep blue liquid, same cork and body, not empty, not a star, not a book, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no empty bottle, no star, no book",
+      "image_size": {
+        "width": 48,
+        "height": 48
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5314,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1",
+      "#3a5b98",
+      "#6b7dad",
+      "#fbf9f6"
+    ],
+    "wave": "D2"
+  }
+]
