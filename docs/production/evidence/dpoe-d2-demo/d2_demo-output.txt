@@ -41,16 +41,5 @@
 錄影 V-F2_flask_busy 390x844 rm
 錄影 V-F2_flask_busy 1280x720 一般
 錄影 V-F2_flask_busy 1280x720 rm
-截圖 ✅ 208 ❌ 0；影片 ✅ 36 ❌ 4
-exit 1
-
-== 修正「冷卻 3 秒」量法後只重錄 V-F2_flask_busy（D2_VID=V-F2_flask_busy node tools/d2_demo.js videos）
-✅ PF-D2-1 K/M 單元表 62/62
-✅ PF-D2-1 買得起邊界 12.3K／12.4K 可買=true
-✅ G06 demo 色值字面值 0 處（tokens.css 以外）
-錄影 V-F2_flask_busy 390x844 一般
-錄影 V-F2_flask_busy 390x844 rm
-錄影 V-F2_flask_busy 1280x720 一般
-錄影 V-F2_flask_busy 1280x720 rm
 截圖 ✅ 208 ❌ 0；影片 ✅ 40 ❌ 0
 exit 0
