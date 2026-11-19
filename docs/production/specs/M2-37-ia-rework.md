@@ -63,7 +63,7 @@
 「通貨」段：現行 curPortHTML，空狀態照 M2-37.6 的新寫法
 ```
 
-- 標題列：「鍛造」＋「打造｜通貨｜鍛造台」＋關閉；鍛造台第二列放填、淬鍊、聖化、腐化、災魘（`tabsH`，不改）。
+- 標題列：「鍛造」＋「打造｜鍛造台」（通貨在鍛造台段裡，mumi 11/18 15:38 F1 甲）＋關閉；鍛造台第二列放填、淬鍊、聖化、腐化、災魘（`tabsH`，不改）。
 - 預設段：從分頁進來＝這次遊戲上次離開的段；第一次、或從掛機卡、王倒下的卡、空格「去鍛造打一件」進來一律打造。
 - 材料一行只列打造會扣的；半版，上拉全版。
 
@@ -230,7 +230,7 @@ token 收斂（M2-36a）合併後，從那時的 main 開分支做。只做版�
 | --- | --- | --- |
 | 1 | 分頁加「鍛造」，順序改成 戰利品・角色・鍛造・技能・天賦・營地・更多 | hud.js `NAV_T`（L428）加 `['forge','hammer','鍛造']`；營地先借 `home` 圖示（新圖示在 M2-33）；`navOn`（L438）：鍛造的三段與通貨頁亮 `forge`、營地總覽亮 `craft`；`navGo`（L459）加 `forge`；style.css L1647 `body.touch.port #pnav:not([hidden])` 的 `repeat(6, …)` 改成依格數（6 或 7）；選中分頁 `--sel`／`--sel-ink`（M2-37.1） |
 | 2 | 營地徽章只寫數字 | hud.js `navHTML`（L481，膠囊在 L487）字改 `${campReady()}`，aria-label 不變；徽章 `--act` 底＋`--on-act` 字（style.css L2391 `.dot.n.pill`）；掛機卡與王倒下的卡 `data-a="gocamp"`（L1981、L2052）按鈕字改「去營地・{n} 可升級」，n＝0 時只寫「去營地」；營地標題加「{n} 可升級」（D1） |
-| 3 | 鍛造分頁：打造｜通貨｜鍛造台 | hud.js `CSEG`／`craftSeg`（L609–620）拆成鍛造的三段（通貨、鍛造台照舊 `campCan('tab:fill')`；選中段 `--sel`／`--sel-ink`）；`ctab:` 處理（L2664）跟著改；forge.js `forgeHTML`（L953）標題列在非總覽時寫「鍛造」；預設段規則照 M2-37.1；桌機左欄 `#pcraft` 照舊、右欄開戰利品（M2-37.1 鍛造分頁） |
+| 3 | 鍛造分頁：打造｜鍛造台（通貨在鍛造台裡） | hud.js `CSEG`／`craftSeg`（L609–620）拆成鍛造的兩段（打造、鍛造台；原通貨段併進鍛造台，鍛造台照舊 `campCan('tab:fill')`；選中段 `--sel`／`--sel-ink`）；`ctab:` 處理（L2664）跟著改；forge.js `forgeHTML`（L953）標題列在非總覽時寫「鍛造」；預設段規則照 M2-37.1；桌機左欄 `#pcraft` 照舊、右欄開戰利品（M2-37.1 鍛造分頁） |
 | 4 | 營地縮成只剩總覽 | forge.js `forgeHTML` 的 camp 分支拿掉段切換，標題「營地」＋靈魂；桌機營地改開在右欄（`#pcraft` 在 camp 時用右欄位置，且 `openPanel` 不同時開 `PANEL.inv`）；`campOpenHTML` 鍛造台的「去打造」（L354）改「去鍛造」開鍛造 › 打造（M2-37.1 營地怎麼縮小） |
 | 5 | 拆碎片頁 | hud.js `CSEG` 的 `frags`、`PANEL.stab` 的 frags、L2018 `act('ctab:frags')`；forge.js `fragPageHTML`（L705）的王印部分搬進追逐物品；首領碎片已在 `boxHTML`（L1735）列出數量，不動（D2） |
 | 6 | 鍵位 | hud.js `FMENU`（L85）：鍛造 K、營地 H、追逐物品 Y；O 開鍛造 › 通貨；`KEYS_PC`（L673）同步；按鍵處理 L2535（D4） |
