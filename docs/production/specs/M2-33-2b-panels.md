@@ -54,7 +54,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 - 上方：保底條 `.lgbar`（L1401）一列一條：名 13 `--tx`＋條（高 8，凹槽 `--panel-inset`＋1 px `--border`，平塗 `--prog-hi`；追逐保底用 `--rar-chase`）＋百分比 13 等寬。
 - 篩選：分段（全部／裝備／通貨／追逐，追逐開放後才有）。
 - 列：高 44（桌機 36）：時間 12 `--tx-dim` 等寬｜圖示 32（通貨、裝備）或 16（文字列）｜名稱用稀有度字色｜數量／來源 13 `--tx-dim`。★ 照字形，記憶用文字標「記憶」。追逐列：左緣 3 px `--rar-chase`＋名稱 `--rar-chase`，不加整列底色（取代 `.chf` 小框）。選中列 `--panel-raised-2`＋1 px `--border-hi`。
-- 空狀態（M1-14）：一行 14 `--tx-dim`「還沒有掉落。刷地點時，王和菁英掉的東西會記在這裡」。
+- 空狀態（M1-14）：一行 14 `--tx-dim`「還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。」（EN「No drops yet. Rare+ drops from farming are listed here (last 50).」；名詞表 v0.6.15）。小標「滿了下一次一定掉」（取代「必出」）。
 
 ## 6. 地點清單（`nodeHTML` L582，`.ndl` L1478、`.ndr` L1479）
 - 位置：直立半版；桌機右欄。M 開關。
