@@ -456,7 +456,11 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const f7b = await shot('07b_fallback');
   ok(
     'rev2 D2 連死 3 次退回：不出卡，只出一行提示停 6 秒',
-    /連倒 3 次，退回/.test(h1.warn[0]) && h1.warn[1] === '6000ms' && h1.warn[2] && !h1.over,
+    /連續倒下 3 次，退回/.test(h1.warn[0]) &&
+      !/連倒|連死/.test(h1.warn[0]) &&
+      h1.warn[1] === '6000ms' &&
+      h1.warn[2] &&
+      !h1.over,
     '一行、6000ms、沒有卡',
     `「${h1.warn[0]}」${h1.warn[1]}、卡 ${h1.over ? '有' : '無'}`,
     f7b

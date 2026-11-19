@@ -140,29 +140,57 @@ function campThings() {
   const L = [];
   for (const b of CAMP_B) {
     const n = campNext(b);
-    if (n) L.push({ k: b, c: n, n: `${CAMPN[b]} Lv ${n.lv}`, d: n.d });
+    if (n) L.push({ k: b, c: n, n: `${CAMPN[b]} Lv ${n.lv}`, d: cdThis(b) });
   }
   for (const k of GEN_K)
     if (genOn(k)) {
-      const L1 = genOf(k).lv + 1,
-        ms = genNextMs(k);
+      const L1 = genOf(k).lv + 1;
       L.push({
         k,
         c: genCost(k),
         n: `${GEN[k].n} Lv ${L1}`,
-        d: ms && ms.at === L1 ? ms.t : `每分鐘 +${fmtR(genRate1(k))}`
+        d: cdThis(k)
       });
     }
   for (const t of L) t.e = costEta(t.c);
   return L;
 }
 /* 升一級多產多少（每分鐘） */
-function genRate1(k) {
-  const g = genOf(k),
-    W = popAssign(),
+function genRate1(k, x = genOf(k).lv + 1) {
+  const W = popAssign(),
     s = genSlots(k),
     f = s ? W[k] / s : 0;
-  return GEN[k].r * f * ((g.lv + 1) * genMs(g.lv + 1).m - g.lv * genMs(g.lv).m);
+  return GEN[k].r * f * (x * genMs(x).m - (x - 1) * genMs(x - 1).m);
+}
+/* ---------- B1 D1-04／D1-08：「這級：{效果}」全遊戲只從這裡組（單座卡、營地總覽卡、下一件事同一句短式）。
+   {效果}＝M1-13 那一級的解鎖句（campSay，S.camp 暫時當作那一級）去掉「{設施} Lv n：」、取第一句；
+   產生器：那一級的里程碑（產量 ×2、+1 工位、階 +1，genMsT），沒有就「每分鐘 +{Δ} {材料}」（名詞表 v0.6.15） ---------- */
+function lvFx(k, lv) {
+  if (GEN[k]) return genMsT(k, lv) || `每分鐘 +${fmtR(genRate1(k, lv))} ${matName(k, genTier(k))}`;
+  const C = S.camp,
+    o = C[k];
+  let t;
+  C[k] = lv;
+  try {
+    t = campSay(k, lv) || '';
+  } finally {
+    C[k] = o;
+  }
+  return t.replace(/^[^：]*Lv\s?\d+：/, '').split('。')[0];
+}
+/* 「這級」取目標級（Lv14→15 寫 Lv15 那句）；滿級寫目前級 */
+const cdThis = k => strT('cdThis', { t: lvFx(k, cdCost(k) ? cdLv(k) + 1 : cdLv(k)) });
+/* 解鎖路線（單座卡「接下來會解鎖」）：從目標級起每級一列；第一列以外，效果一樣的連續等級合成一列「Lv{a}–{b}」；產生器往後看 200 級、最多 8 列 */
+function cdRoute(k) {
+  const lv = cdLv(k),
+    R = [];
+  for (let x = lv + 1, top = GEN[k] ? lv + 200 : campMax(k); x <= top && (!GEN[k] || R.length <= 8); x++) {
+    const t = lvFx(k, x),
+      r = R[R.length - 1];
+    if (r && R.length > 1 && r.t === t) r.b = x;
+    else R.push({ a: x, b: x, t });
+  }
+  return R.slice(0, GEN[k] ? 8 : R.length);
 }
 /* 下一件事：最快能按的那一個（{ k, n, d, e }）；都升滿了回 null */
 function campNextThing() {
@@ -346,7 +374,7 @@ function campCardHTML(b) {
   <button class="cch" data-fg="cc:${b}" aria-expanded="${CAMPUI.open === b}">${icHTML(CAMP_IC[b])}<b>${CAMPN[b]}</b><span>Lv ${lv}／${campMax(b)}</span>${ICO.down}</button>
   ${
     n
-      ? `<div class="ccbig sm">下一級：${esc(n.d)}</div>
+      ? `<div class="ccbig sm">${esc(cdThis(b))}</div>
   <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="camp:${b}" ${ok ? '' : 'disabled'}>${ok ? `升級到 Lv ${n.lv}・${esc(costTxt(n))}` : esc(lackTxt1(e))}</button>`
       : '<div class="ccbig sm">都蓋好了</div>'
   }${CAMPUI.open === b ? campOpenHTML(b) : ''}</div>`;
@@ -507,9 +535,8 @@ function cdCellHTML(k, sug) {
 function cdOneHTML(k) {
   const c = cdCost(k),
     lv = cdLv(k),
-    ms = GEN[k] && genNextMs(k),
-    d = GEN[k] ? `每分鐘 +${fmtR(genRate1(k))}` : c ? c.d : '';
-  return `<div class="cd1"><p class="cdlv">Lv ${lv}${c ? ` → Lv ${lv + 1}` : ''}</p>${d ? `<p class="cdd">${esc(d)}</p>` : ''}
+    rt = cdRoute(k);
+  return `<div class="cd1"><p class="cdlv">Lv ${lv}${c ? ` → Lv ${lv + 1}` : ''}</p><p class="cdd">${esc(cdThis(k))}</p>
   ${
     c
       ? `<ul class="cdcost">${costRows(c)
@@ -520,7 +547,16 @@ function cdOneHTML(k) {
           .join('')}</ul>`
       : `<p class="c-dim">${STR_T.cdMax}</p>`
   }
-  ${ms ? `<p class="cdms">Lv ${ms.at}：${esc(ms.t)}</p>` : ''}
+  ${
+    rt.length
+      ? `<p class="cdnx">${STR_T.cdNext}</p><ul class="cdrt">${rt
+          .map(
+            (r, i) =>
+              `<li class="${i ? '' : 'on'}"><span>${esc(r.a === r.b ? strT('cdRow', { n: r.a, t: r.t }) : strT('cdRowR', { a: r.a, b: r.b, t: r.t }))}</span>${i ? '' : `<em>${Math.floor(affP(c) * 100)}%</em><i class="cdp"><i data-cp="${k}"></i></i>`}</li>`
+          )
+          .join('')}</ul>`
+      : ''
+  }
   ${c ? `<button class="btn pri wide stamp one" data-fg="${cdFg(k)}">${STR_T.cdUp}</button>` : ''}</div>`;
 }
 function campDrawerHTML() {

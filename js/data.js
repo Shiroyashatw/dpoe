@@ -8835,7 +8835,9 @@ const STR_T = {
   idleT: '掛機 {t}',
   idlePity: '追逐保底 {n}%',
   idleAria: '掛機 {t}，下一件保底 {n}%',
-  idleGot: '靈魂 +{s}・王 {b} 隻',
+  /* B1（名詞表 v0.6.11／v0.6.15）：掛機條、掛機卡標題列「掛機 {t}・打倒王 {b} 次」（EN Idle {m} min · {n} boss kills）；卡上再接「・靈魂 +{s}」 */
+  idleBoss: '・打倒王 {b} 次',
+  idleSoul: '・靈魂 +{s}',
   idleNone: '還沒有稀有以上的掉落',
   idleFull: '倉庫快滿',
   idleAway: '離開 {t}・{r}',
@@ -8846,6 +8848,13 @@ const STR_T = {
   cdEnough: '夠',
   cdMax: '滿級',
   cdUp: '▲ 升級',
+  /* B1 D1-04／D1-08：單座卡「這級」與解鎖路線（名詞表 v0.6.15 畫面字串；EN This level: {effect}／Coming up）；字只從 cdThis（forge.js）組 */
+  cdThis: '這級：{t}',
+  cdNext: '接下來會解鎖',
+  cdRow: 'Lv{n}・{t}',
+  cdRowR: 'Lv{a}–{b}・{t}',
+  /* B1 D3-08：連續倒下（EN Died {n} times in a row） */
+  deadN: '連續倒下 {n} 次',
   dDown: '倒下・{s} 秒後回到戰場',
   dBack: '倒下・{s} 秒後退回{p}',
   offT: '離開 {t}',

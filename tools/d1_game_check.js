@@ -196,9 +196,19 @@ const TESTS = ['midgame', 'chase', 'dualweap', 'nearDeath'];
     const src = await p.evaluate(async () => {
       const t = await (await fetch('js/game.js?' + Date.now())).text(),
         h = await (await fetch('js/hud.js?' + Date.now())).text();
-      return { die: /連死 \$\{DEAD_MAX\}/.test(t + h), dao: /連倒 \$\{DEAD_MAX\} 次，退回/.test(t) };
+      return {
+        die: /連死 \$\{DEAD_MAX\}|連倒 \$\{DEAD_MAX\}/.test(t + h),
+        dao:
+          /strT\('deadN', \{ n: DEAD_MAX \}\)\}，退回/.test(t) && /strT\('deadN', \{ n: DEAD_MAX \}\)\}，退回/.test(h),
+        s: strT('deadN', { n: 3 })
+      };
     });
-    ok(!src.die && src.dao, '「連死 3 次」改「連倒 3 次」（game.js 字板、hud.js 死亡卡）', JSON.stringify(src));
+    /* B1 D3-08：「連死／連倒 3 次」改「連續倒下 {n} 次」（字串表 deadN，game.js 提示、hud.js 死亡卡同一個來源） */
+    ok(
+      !src.die && src.dao && src.s === '連續倒下 3 次',
+      '「連死／連倒 3 次」改「連續倒下 3 次」（game.js 提示、hud.js 死亡卡）',
+      JSON.stringify(src)
+    );
     if (p.errs.length) ok(0, '頁面錯誤', p.errs.join('；'));
     await p.context().close();
   }
