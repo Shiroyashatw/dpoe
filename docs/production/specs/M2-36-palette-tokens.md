@@ -122,6 +122,7 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --rar-normal | `#f1ebdb` | 普通；沒有光柱 |
 | --rar-magic／-bg | `#9da7ff`／`#23232b` | 魔法；沒有光柱 |
 | --rar-rare／-bg | `#fbe53a`／`#26241b` | 稀有；名稱前綴 ◆（掉落牌、拾取紀錄都要）；光柱 64 px |
+| --rar-rare-frame | `#ccb72e`（L* 74.1） | 稀有**格框**專用，2 px；◆ 與稀有名稱仍用 --rar-rare。魔法格框 1 px。灰階靠框寬分稀有／魔法，不加 ◆ 角標 |
 | --rar-unique／-bg | `#fa8915`／`#2a221c` | 傳奇；名稱前綴 ◈（掉落牌、拾取紀錄都要）；光柱 96 px；只當字、◈、光柱、物品框，永不當按鈕底 |
 | --rar-chase／-hi／-bg | `#0cf6ee`／`#8ffbf6`／`#192625` | 追逐；光柱 ≥ 傳奇 1.8 倍（176 px）、連續不斷；名稱前綴王印圖示 16 px（掉落牌、拾取紀錄都要） |
 | --affix | 同 --rar-magic | 技能關鍵字 |
@@ -156,6 +157,8 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --el-phys | 同 --tx-strong |
 | --el-fire／--el-cold／--el-light／--el-chaos | `#ee9978`／`#ade2f9`／`#f3f9a4`／`#e97ccf` |
 | --cat-frac／--cat-mem | 同 --tx-strong／同 --el-cold |
+| --cat-corr | `#ff6066`（L* 62.2） | 腐化詞字色＋腐化圖示（M2-item-display v0.4 §9）；對 --panel 5.41、--hdr 5.10、--panel-raised 4.95；ΔE2000 對 --tx 34.1、--cat-frac 36.8、--cat-mem 52.7、--rar-chase 68.3、--bad 17.8 |
+| --cat-cal | `#bd7aff`（L* 63.3） | 災魘詞字色＋災魘圖示；對 --panel 5.62、--hdr 5.29、--panel-raised 5.14；ΔE2000 對 --tx 36.5、--cat-frac 38.4、--cat-mem 27.1、--rar-chase 48.5、--bad 24.5；對 --cat-corr 33.9。離 --rar-magic 只有 15.5、綠色盲下 5.5，靠圖示分（魔法色只在名稱） |
 | --mod-mm／--mod-co | 同 --el-chaos／同 --bad |
 這組跟新的語意＋稀有度組有撞色（見「未過」）。**定案規則（mumi 2026-11-19 選 B）：元素、昇華、覺醒色一律搭圖示或文字使用，不能單靠顏色區分；色值沿用，不再為撞色重定。**
 
