@@ -164,7 +164,9 @@ const TESTS = ['midgame', 'chase', 'dualweap', 'nearDeath'];
       })();
       o.dpsN = [dpsN(12345.9), dpsN(9999.99)];
       IDLE.open = 0;
-      o.idle = idleHTML().match(/<span class="ipb[^"]*">.*?<\/span>/)?.[0];
+      o.idle = idleHTML().match(
+        /<span class="ipb[^"]*">.*?<i class="pb">/
+      )?.[0]; /* B1：段裡拆成字頭＋數字兩個 span，取到小條為止 */
       IDLE.open = 1;
       o.idleX = idleHTML().match(/<div class="chs"><span>.*?<\/span>/)?.[0];
       IDLE.open = 0;
@@ -187,9 +189,14 @@ const TESTS = ['midgame', 'chase', 'dualweap', 'nearDeath'];
     ok(/^再 \d+ 件沒出稀有，下一件一定是稀有$/.test(r.forge || ''), '鍛造稀有保底句', r.forge);
     ok(r.forgeGold[1], '打造按鈕金幣套 abbr（費用進位）', r.forgeGold[0]);
     ok(r.dpsN[0] === '12,345' && r.dpsN[1] === '9,999', '試招場 DPS 卡寫完整（捨去）', r.dpsN.join('／'));
-    ok(/ipw/.test(r.idle || '') && /追逐保底 \d+%/.test(r.idle || ''), '掛機條收起列「追逐保底 n%」＋王印 16', r.idle);
+    /* B1 D2-03：字頭、數字拆成 span（放不下時照步驟收），所以比去掉標籤後的字 */
     ok(
-      /ipw/.test(r.idleX || '') && /追逐保底 \d+%/.test(r.idleX || ''),
+      /ipw/.test(r.idle || '') && /追逐保底 \d+%/.test((r.idle || '').replace(/<[^>]+>/g, '')),
+      '掛機條收起列「追逐保底 n%」＋王印 16',
+      r.idle
+    );
+    ok(
+      /ipw/.test(r.idleX || '') && /追逐保底 \d+%/.test((r.idleX || '').replace(/<[^>]+>/g, '')),
       '掛機卡展開列「追逐保底 n%」＋王印 16',
       r.idleX
     );
