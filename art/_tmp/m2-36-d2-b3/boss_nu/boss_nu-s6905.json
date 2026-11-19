@@ -1,0 +1,37 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "boss_nu",
+  "seed": 6905,
+  "wave": "5b",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a wrathful guardian with a red scowling face and flame-shaped hair, raising a heavy club, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no western devil, no bat wings",
+    "image_size": {
+      "width": 64,
+      "height": 64
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "seed": 6905,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}
