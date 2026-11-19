@@ -75,9 +75,9 @@ function skLines(c) {
   const N = skillNums(c),
     el = ELN[N.el] || '';
   if (N.eff) L.push(N.eff);
-  if (N.unit != null && N.hit != null) L.push(`每下造成 ${fmtN(N.hit)} ${el}傷害（平均）`);
-  else if (N.dot != null) L.push(`每秒造成 ${fmtN(N.dot)} ${el}傷害（平均）`);
-  else if (N.hit != null) L.push(`造成 ${fmtN(N.hit)} ${el}傷害（平均）`);
+  if (N.unit != null && N.hit != null) L.push(`每下造成 ${fullN(N.hit)} ${el}傷害（平均）`);
+  else if (N.dot != null) L.push(`每秒造成 ${fullN(N.dot)} ${el}傷害（平均）`);
+  else if (N.hit != null) L.push(`造成 ${fullN(N.hit)} ${el}傷害（平均）`);
   if (D.tags.includes('proj') && c.projEv) L.push(`發射 ${fmtS(c.projEv)} 個投射物`);
   if (D.r) L.push(`範圍為 ${fmtM(D.r * ST.aoeM * c.aoe)} 公尺`);
   /* 詛咒的持續時間跟著等級（combat.js 的 curseMob：6 ＋ 0.07 × 等級） */
@@ -96,13 +96,13 @@ function skDetail(g, i = -1) {
     row = (k, v) => `<dt>${k}</dt><dd>${v}</dd>`,
     rows = [];
   if (N.hit != null) {
-    if (isSpell(D)) rows.push(row('基礎', `技能 Lv ${c.lv}：${fmtN(spellDmg(c.lv, 1) * D.m)}`));
+    if (isSpell(D)) rows.push(row('基礎', `技能 Lv ${c.lv}：${fullN(spellDmg(c.lv, 1) * D.m)}`));
     else {
       const W = D.shield ? ST.sdmg : ST.dmg;
-      rows.push(row('基礎', `${D.shield ? '盾' : '武器'} ${fmtN(W[0])}～${fmtN(W[1])}`));
+      rows.push(row('基礎', `${D.shield ? '盾' : '武器'} ${fullN(W[0])}～${fullN(W[1])}`));
       rows.push(row('技能倍率', '×' + c.mult.toFixed(2)));
     }
-    rows.push(row('增加', `+${fmtN(N.inc)}%`), row('更多', '×' + N.more.toFixed(2)));
+    rows.push(row('增加', `+${fullN(N.inc)}%`), row('更多', '×' + N.more.toFixed(2)));
     rows.push(row('暴擊', `${N.ch.toFixed(1)}% · 傷害 ×${N.cm.toFixed(2)}`));
     rows.push(row('基礎攻擊時間', `${baseT(c).toFixed(2)} 秒`), row('出手', `${actDur(c).toFixed(2)} 秒`));
     if (D.tAdd) rows.push(row('增加使用時間', `+${D.tAdd} 秒，不受速度影響`));
@@ -115,7 +115,7 @@ function skDetail(g, i = -1) {
     nN = nx && skillNums(nx);
   return `<dl class="sk-dl">${rows.join('')}</dl><p class="sk-lab">${
     nx
-      ? `下一級：${skMain(N) != null ? `${N.dps != null ? '每秒' : '傷害'} ${fmtN(skMain(N))} → ${fmtN(skMain(nN))}` : '效果不變'}${nx.mp !== c.mp ? `・魔力 ${c.mp} → ${nx.mp}` : ''}`
+      ? `下一級：${skMain(N) != null ? `${N.dps != null ? '每秒' : '傷害'} ${fullN(skMain(N))} → ${fullN(skMain(nN))}` : '效果不變'}${nx.mp !== c.mp ? `・魔力 ${c.mp} → ${nx.mp}` : ''}`
       : '已經滿級'
   }・未計入怪物的抗性、護甲與閃避</p>`;
 }
@@ -167,7 +167,7 @@ function supWhy(c, k, hole) {
   /* 沒解鎖的 II（0.4.8）：相容照 I 判斷，列出來但灰掉 */
   const lock = sup2Lock(k);
   if (!supOK(c.D, { gem: lock ? SUPPORTS[k].base : k }, null)) return null;
-  if (lock) return `II 還沒解鎖（${fmtN(SUP2_COST)} 靈魂）`;
+  if (lock) return `II 還沒解鎖（${fullN(SUP2_COST, 'cost')} 靈魂）`;
   const dup = c.rec.so.findIndex((x, j) => x && j !== hole && supCat(x) === supCat(k));
   return dup >= 0 ? `同分類的「${SUPPORTS[c.rec.so[dup]].n}」已插` : '';
 }
@@ -317,7 +317,7 @@ function skTodo() {
     L.push({
       t: `${SKILLS[r.k].n}有 ${emp} 個空孔`,
       s: `插上「${SUPPORTS[b.k].n}」`,
-      up: `▲ ${unitOf(slotCfg(i))} +${fmtN(b.d)}`,
+      up: `▲ ${unitOf(slotCfg(i))} +${fullN(b.d)}`,
       ic: SKILLS[r.k].ic,
       d: b.d,
       go: `hole:${i}:${j}`
@@ -335,8 +335,8 @@ function skTodo() {
   if (best)
     L.push({
       t: `${SKILLS[best.r.k].n}升到 Lv ${best.lv + 1}`,
-      s: `${fmtN(best.c)} 靈魂`,
-      up: `▲ ${unitOf(slotCfg(best.i))} +${fmtN(best.d)}`,
+      s: `${abbr(best.c, 'cost')} 靈魂`,
+      up: `▲ ${unitOf(slotCfg(best.i))} +${fullN(best.d)}`,
       ic: SKILLS[best.r.k].ic,
       d: best.d,
       go: `one:${best.i}`
@@ -397,12 +397,12 @@ const upCell = (k, i, aura) => {
   if (!aura && i != null) {
     const a = dpsOf(i),
       { v } = probe(i, () => ((S.lib.sk[k] = lv + 1), () => (S.lib.sk[k] = lv)));
-    if (a != null && v - a > 0.5) to = ` → ${fmtN(v)}`;
+    if (a != null && v - a > 0.5) to = ` → ${fullN(v)}`;
   }
   /* M1-SK.1：單行「升級 14 靈魂」，高 44、寬 ≥96；升完多少寫在 title（詳情頁有主鈕） */
   /* BASE-05：買不起寫原因（缺靈魂 n） */
   const lack = u.c - MAT().soul;
-  return `<button class="skr-up" data-sk="up:${k}" ${u.why ? 'disabled' : ''} title="${esc(u.why || (to ? '升完' + to.replace(' → ', ' ') : ''))}">${u.why ? (lack > 0 ? `缺靈魂 ${fmtN(lack)}` : esc(u.why)) : `升級 ${fmtN(u.c)} 靈魂`}</button>`;
+  return `<button class="skr-up" data-sk="up:${k}" ${u.why ? 'disabled' : ''} title="${esc(u.why || (to ? '升完' + to.replace(' → ', ' ') : ''))}">${u.why ? (lack > 0 ? `缺靈魂 ${fullN(lack)}` : esc(u.why)) : `升級 ${fullN(u.c)} 靈魂`}</button>`;
 };
 const holesHTML = r =>
   `<span class="holes">${Array.from({ length: soN(r) }, (_, j) => (r.so[j] ? `<span class="h" title="${esc(SUPPORTS[r.so[j]].n)}">${icHTML(SUPPORTS[r.so[j]].ic)}</span>` : '<span class="h emp">空</span>')).join('')}</span>`;
@@ -430,7 +430,7 @@ function homeHTML() {
       <div class="skr-2">${holesHTML(r)}${
         bad
           ? `<span class="why">${esc(bad)}</span>`
-          : `<span class="dps">DPS<b>${v != null ? fmtN(v) : '—'}</b></span>${upCell(r.k, i)}`
+          : `<span class="dps">DPS<b>${v != null ? fullN(v) : '—'}</b></span>${upCell(r.k, i)}`
       }</div></div>`;
     })
     .join('');
@@ -450,7 +450,7 @@ function homeHTML() {
     .join('');
   const main = mainDps();
   return `<div class="sk-scroll">
-    <div class="paper strip"><div><div class="k">預設 DPS・最強的那一招</div><div class="big">${fmtN(main)}</div></div><div class="sub">魔力 ${ST.mp}<br>回復 ${+ST.mpReg.toFixed(1)}／秒</div></div>
+    <div class="paper strip"><div><div class="k">預設 DPS・最強的那一招</div><div class="big">${fullN(main)}</div></div><div class="sub">魔力 ${ST.mp}<br>回復 ${+ST.mpReg.toFixed(1)}／秒</div></div>
     <p class="sk-lab">${auto ? '出招順序・由上往下放，拖左邊橫線換' : '技能・照按鍵'}</p>
     <section class="sk-sec rows">${rows}${skNextHTML()}</section>
     ${
@@ -477,14 +477,14 @@ function heroHTML(c) {
     N = skillNums(cf),
     v = skMain(N);
   const rest = [
-    N.hit != null && N.dps != null ? `擊中 ${fmtN(N.hit)}` : '',
+    N.hit != null && N.dps != null ? `擊中 ${fullN(N.hit)}` : '',
     cf.mp ? `魔力 ${Math.round(cf.mp)}` : '',
     cf.cd ? `冷卻 ${cf.cd.toFixed(1)} 秒` : ''
   ]
     .filter(Boolean)
     .join('・');
   return v != null
-    ? `<div class="sk-hero"><div><small>${unitOf(cf)}</small><b class="sk-n">${fmtN(v)}</b></div><small>${rest}</small></div>`
+    ? `<div class="sk-hero"><div><small>${unitOf(cf)}</small><b class="sk-n">${fullN(v)}</b></div><small>${rest}</small></div>`
     : `<div class="sk-hero eff"><div><small>效果</small><p>${N.eff ? rich(N.eff, 1) : '—'}</p></div><small>${rest}</small></div>`;
 }
 /* 這招插著的輔助：每一孔一列（名字只在這裡寫，圓環只畫圖示）；右邊是拿掉會少多少 */
@@ -499,7 +499,7 @@ function supRows(c) {
     const k = r.so[j];
     if (!k) {
       const b = i === 5 ? null : bestSup(i, j);
-      return `<button class="sk-row emp" data-sk="hole:${j}">${ICO.plus}<span class="sk-t"><b>空孔</b><small>挑一顆輔助</small></span>${b ? `<span class="sk-up">▲ 最多 +${fmtN(b.d)}</span>` : ''}</button>`;
+      return `<button class="sk-row emp" data-sk="hole:${j}">${ICO.plus}<span class="sk-t"><b>空孔</b><small>挑一顆輔助</small></span>${b ? `<span class="sk-up">▲ 最多 +${fullN(b.d)}</span>` : ''}</button>`;
     }
     const bad = !supOK(c.D, c.g.sup[j], c.g);
     let right = '';
@@ -511,7 +511,7 @@ function supRows(c) {
         return () => (r.so[j] = o);
       });
       const d = base - v;
-      right = d > 0.5 ? `<span class="sk-vv">${u} +${fmtN(d)}</span>` : `<span class="sk-d0">不加${u}</span>`;
+      right = d > 0.5 ? `<span class="sk-vv">${u} +${fullN(d)}</span>` : `<span class="sk-d0">不加${u}</span>`;
     }
     return `<button class="sk-row" data-sk="hole:${j}">${icHTML(SUPPORTS[k].ic)}<span class="sk-t"><b>${esc(SUPPORTS[k].n)}</b><small>${plainTxt((SUPPORTS[k].x && SUPPORTS[k].x[0]) || SUPPORTS[k].d)}</small></span>${right}</button>`;
   });
@@ -548,7 +548,7 @@ function holeHTML(c, j) {
     bad = !supOK(c.D, sp, c.g),
     note =
       k !== cur
-        ? `還沒解鎖，要 ${fmtN(SUP2_COST)} 靈魂；解鎖後所有技能的這顆都可以切成 II`
+        ? `還沒解鎖，要 ${fullN(SUP2_COST, 'cost')} 靈魂；解鎖後所有技能的這顆都可以切成 II`
         : bad
           ? sup2Lock(k)
             ? 'II 還沒解鎖，沒有效果'
@@ -574,11 +574,11 @@ function holeHTML(c, j) {
       const d = supProbe(SKUI.i, j, k).v - base;
       gain =
         Math.abs(d) > 0.5
-          ? `換成 II：<span class="${d > 0 ? 'sk-up' : 'sk-dn'}">${d > 0 ? '▲' : '▼'} ${u} ${d > 0 ? '+' : '−'}${fmtN(Math.abs(d))}</span>`
+          ? `換成 II：<span class="${d > 0 ? 'sk-up' : 'sk-dn'}">${d > 0 ? '▲' : '▼'} ${u} ${d > 0 ? '+' : '−'}${fullN(Math.abs(d))}</span>`
           : '換成 II：每秒不變';
     } else {
       const d = base - probe(SKUI.i, () => ((r.so[j] = null), () => (r.so[j] = cur))).v;
-      gain = d > 0.5 ? `這顆讓${u}多 <b class="sk-vv">${fmtN(d)}</b>` : `這顆不加${u}`;
+      gain = d > 0.5 ? `這顆讓${u}多 <b class="sk-vv">${fullN(d)}</b>` : `這顆不加${u}`;
     }
   }
   return `<section class="sk-sec sk-hole"><div class="sk-hh"><h3 class="sk-h">${esc(U.n)}${U.aw ? `<small>Lv ${libLv(k)}</small>` : ''}</h3>${seg}</div>
@@ -619,7 +619,7 @@ function upBtn(c) {
   if (!c.aura) {
     const a = dpsOf(SKUI.i),
       { v } = probe(SKUI.i, () => ((S.lib.sk[k] = lv + 1), () => (S.lib.sk[k] = lv)));
-    if (a != null && v - a > 0.5) up = `<span class="sk-up">▲ +${fmtN(v - a)}</span>`;
+    if (a != null && v - a > 0.5) up = `<span class="sk-up">▲ +${fullN(v - a)}</span>`;
   }
   return `<button class="sk-btn pri" data-sk="up:${k}">升到 Lv ${lv + 1}${soulB(u.c)}${up}</button>`;
 }
@@ -783,11 +783,11 @@ const recOK = x => !x.why && (SKUI.view !== 'sups' || (x.d != null && Math.abs(x
 function deltaHTML(x, P) {
   if (x.why) return `<span class="sk-d0">${esc(x.why)}</span>`;
   const pct = P.base ? `（${Math.round((x.d / P.base) * 100)}%）` : '';
-  if (x.d != null && x.d > 0.5) return `<span class="sk-up">▲ ${P.u} +${fmtN(x.d)}${pct}</span>`;
-  if (x.d != null && x.d < -0.5) return `<span class="sk-dn">▼ ${P.u} −${fmtN(-x.d)}</span>`;
+  if (x.d != null && x.d > 0.5) return `<span class="sk-up">▲ ${P.u} +${fullN(x.d)}${pct}</span>`;
+  if (x.d != null && x.d < -0.5) return `<span class="sk-dn">▼ ${P.u} −${fullN(-x.d)}</span>`;
   if (SKUI.view === 'skills') {
     if (x.key === SKUI.i) return `<span class="sk-d0">現在這招</span>`;
-    return x.val != null ? `<span class="sk-vv">${x.unit} ${fmtN(x.val)}</span>` : `<span class="sk-d0">無直傷</span>`;
+    return x.val != null ? `<span class="sk-vv">${x.unit} ${fullN(x.val)}</span>` : `<span class="sk-d0">無直傷</span>`;
   }
   if (x.fx && x.fx !== '*') return `<span class="sk-vv">${x.fx}</span>`;
   return `<span class="sk-d0">＝ ${SKUI.view === 'auras' ? '每秒不變' : x.fx ? '效果見說明' : '沒有變化'}</span>`;
@@ -809,9 +809,9 @@ function pickHTML(c) {
   const title = `${ICO.prev}<span>${c.rec ? esc(c.D.n) : '總覽'}</span>`;
   const right =
     v === 'skills'
-      ? `${c.name}・${S.skills[SKUI.i].k && P.base != null ? `現在${P.u} ${fmtN(P.base)}` : '挑一招'}`
+      ? `${c.name}・${S.skills[SKUI.i].k && P.base != null ? `現在${P.u} ${fullN(P.base)}` : '挑一招'}`
       : v === 'sups'
-        ? `第 ${SKUI.hole + 1} 孔・現在${P.u} ${P.base != null ? fmtN(P.base) : '—'}`
+        ? `第 ${SKUI.hole + 1} 孔・現在${P.u} ${P.base != null ? fullN(P.base) : '—'}`
         : `精魂 ${ST.spiritUsed}／${ST.spirit}・比主力的每秒`;
   const row = x => {
     const on = x === sel,
@@ -857,7 +857,7 @@ function expandHTML(x, P) {
   let seg = '';
   if (k2) {
     const t2 = SKUI.tier === 2,
-      d = t => (t != null && Math.abs(t) > 0.5 ? `${t > 0 ? '▲ +' : '▼ −'}${fmtN(Math.abs(t))}` : '＝');
+      d = t => (t != null && Math.abs(t) > 0.5 ? `${t > 0 ? '▲ +' : '▼ −'}${fullN(Math.abs(t))}` : '＝');
     seg = `<div class="sk-seg" role="group" aria-label="輔助的階"><button class="${t2 ? '' : 'on'}" data-sk="ptier:1" aria-pressed="${!t2}">I　${d(x.d1)}</button><button class="${t2 ? 'on' : ''}" data-sk="ptier:2" aria-pressed="${t2}">II${sup2Lock(k2) ? ICO.lock : ''}　${d(x.d2)}</button></div>${
       t2
         ? `<ul class="sk-x">${(SUPPORTS[k2].x && SUPPORTS[k2].x.length ? SUPPORTS[k2].x : [SUPPORTS[k2].d]).map(l => `<li>${rich(l)}</li>`).join('')}</ul>`
@@ -873,14 +873,14 @@ function expandHTML(x, P) {
 /* 挑選的主要按鈕：插上／放到／放進，寫差多少 */
 function putBtn(x, P, c) {
   const v = SKUI.view,
-    up = x.d != null && x.d > 0.5 ? `<span class="sk-up">▲ +${fmtN(x.d)}</span>` : '';
+    up = x.d != null && x.d > 0.5 ? `<span class="sk-up">▲ +${fullN(x.d)}</span>` : '';
   if (x.why) return `<button class="sk-btn pri" disabled>${esc(x.why)}</button>`;
   if (v === 'sups') {
     const k2 = sup2Of(x.k);
     if (SKUI.tier === 2 && k2 && sup2Lock(k2)) return iiBtn(k2).replace('class="sk-btn"', 'class="sk-btn pri"');
     const kk = SKUI.tier === 2 && k2 ? k2 : x.k,
       d = k2 ? (SKUI.tier === 2 ? x.d2 : x.d1) : x.d,
-      up2 = d != null && d > 0.5 ? `<span class="sk-up">▲ +${fmtN(d)}</span>` : '';
+      up2 = d != null && d > 0.5 ? `<span class="sk-up">▲ +${fullN(d)}</span>` : '';
     /* 定稿用詞：輔助、光環、空格的確認鈕＝「放上｛名｝」；選的就是現在這顆＝停用 */
     if (supBase(c.rec.so[SKUI.hole]) === x.k && c.rec.so[SKUI.hole] === kk)
       return `<button class="sk-btn pri" disabled>現在就是這顆</button>`;
@@ -903,7 +903,7 @@ function skillHTML() {
     body = PICKV.includes(v) ? pickHTML(c) : v === 'one' ? oneHTML(c) : homeHTML(),
     anim = SKUI.anim;
   SKUI.anim = '';
-  return `<div class="ph"><b>技能</b><span class="soul" title="靈魂：升級、開孔、解鎖輔助 II 都花它"><i></i>${fmtN(MAT().soul)}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><b>技能</b><span class="soul" title="靈魂：升級、開孔、解鎖輔助 II 都花它"><i></i>${abbrH(MAT().soul, 'own')}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="skp ${v === 'home' ? 'home' : v === 'one' ? 'one' : 'pick'} ${anim}">${body}</div>`;
 }
 
@@ -969,14 +969,14 @@ function skAct(b) {
     SKUI[k] = SKUI[k] ? 0 : 1;
     if (SKUI[k]) SKUI.reveal = k === 'calc' ? 'skcalc' : 'skaw';
   } else if (k === 'awpick') {
-    if (!awOf(c.k) && !confirm2(b, `<b>再按一次</b><small>花 1 顆覺醒石</small>`)) return;
+    if (!awOf(c.k) && holdAsk(b, '覺醒', '花 1 顆覺醒石')) return;
     const err = awakeDo(c.k, v);
     if (err) return hudWarn(err);
     sfx('lvup');
     return changed();
   } else if (k === 'drill') {
     const d = drillCheck(c.rec);
-    if (d.c >= MAT().soul * 0.5 && !confirm2(b, `再按一次・${soulB(d.c)}`)) return;
+    if (d.c >= MAT().soul * 0.5 && holdAsk(b, '開孔', `花 ${fullN(d.c, 'cost')} 靈魂`)) return;
     const err = drillDo(c.rec);
     if (err) return hudWarn(err);
     sfx('equip');
@@ -987,7 +987,7 @@ function skAct(b) {
     changed();
     return skTop();
   } else if (k === 'ii') {
-    if (SUP2_COST >= MAT().soul * 0.5 && !confirm2(b, `再按一次・${soulB(SUP2_COST)}`)) return;
+    if (SUP2_COST >= MAT().soul * 0.5 && holdAsk(b, '解鎖 II', `花 ${fullN(SUP2_COST, 'cost')} 靈魂`)) return;
     const err = sup2Unlock(v);
     if (err) return hudWarn(err);
     sfx('lvup');
@@ -1044,8 +1044,7 @@ function skAct(b) {
       return changed();
     }
     /* 光環：開過的孔與插著的輔助會一起拿掉，花了靈魂的東西要確認 */
-    if ((c.rec.n > 2 || c.rec.so.some(Boolean)) && !confirm2(b, `<b>再按一次</b><small>孔與輔助一起拿掉</small>`))
-      return;
+    if ((c.rec.n > 2 || c.rec.so.some(Boolean)) && holdAsk(b, '拿掉', '孔與輔助一起拿掉')) return;
     S.auras[SKUI.ai] = null;
     skHome();
     SKUI.anim = 'back';

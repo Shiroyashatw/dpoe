@@ -11713,13 +11713,23 @@ const ASC_COMBOS = `const combos = k => {
     rgb = s => (s ? s.split(',').map(Number) : [0, 0, 0]),
     de = ['chase', 'rare'].map(k => +de00(rgb(tok(`--rar-${k}-rgb`)), hex(tok(`--rar-${k}`))).toFixed(2));
   ok(
-    'M2-34 3a 修正 (4)：掉落光柱顏色讀 --rar-chase-rgb／--rar-rare-rgb（不寫死）；token 同 #68：#ff9a4a／255, 154, 74、#ffcf5c／255, 209, 102；上色後跟 --rar-* ΔE2000 ≤ 2',
-    !/255,\s*154,\s*74|255,\s*209,\s*102/.test(beams) &&
+    'M2-34 3a 修正 (4)：掉落光柱顏色讀 --rar-chase-rgb／--rar-rare-rgb（不寫死）；token 照 B2 S2：#0cf6ee／12, 246, 238、#ffcf5c／255, 209, 102；上色後跟 --rar-* ΔE2000 ≤ 2',
+    !/12,\s*246,\s*238|255,\s*209,\s*102/.test(beams) &&
       beams.includes("cssv(d.chase ? '--rar-chase-rgb' : '--rar-rare-rgb')") &&
       [tok('--rar-chase'), tok('--rar-chase-rgb'), tok('--rar-rare'), tok('--rar-rare-rgb')].join('|') ===
-        '#ff9a4a|255, 154, 74|#ffcf5c|255, 209, 102' &&
+        '#0cf6ee|12, 246, 238|#ffcf5c|255, 209, 102' &&
       de.every(v => v <= 2),
     JSON.stringify({ de, tok: [tok('--rar-chase-rgb'), tok('--rar-rare-rgb')] })
+  );
+  /* B2-CAT：M2-36 腐化／災魘色票只定義、還沒套用（之後徽章批次才用） */
+  const catUse = ['css/style.css', ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)].filter(f =>
+    /var\(--cat-(corr|cal)/.test(rd(f))
+  );
+  ok(
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff，還沒有元件用到',
+    [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
+      !catUse.length,
+    JSON.stringify({ tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')], catUse })
   );
   /* (5a) 王印拼條第一次用到才載：橫幅先畫出空 span.ic，圖載好（artRepaint）要補畫橫幅 */
   const hjs = rd('js/hud.js'),

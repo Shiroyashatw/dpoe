@@ -18,8 +18,8 @@ const CSS = `
 .m .ic { image-rendering: pixelated; width: 36px; height: 36px; flex: none; }
 .m-row { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 12px; background: var(--s2); border: 0; border-radius: 2px; color: var(--tx); font: inherit; text-align: left; width: 100%; }
 .m-row.emp { background: transparent; outline: 1px dashed var(--fr-o); outline-offset: -1px; color: var(--dim); min-height: 52px; }
-.m-row.on { background: var(--sel); color: var(--sel-ink); }
-.m-row.on small, .m-row.on .m-d0 { color: var(--sel-ink); }
+.m-row.on { background: var(--sel-bg); color: var(--sel-tx); box-shadow: inset 0 0 0 2px var(--sel-bd); font-weight: 700; }
+.m-row.on small, .m-row.on .m-d0 { color: var(--sel-tx); }
 .m-row.dimmed { opacity: 0.55; }
 .m-ord { flex: none; width: 16px; text-align: center; font: 500 12px var(--font); color: var(--dim); }
 .m-t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -72,7 +72,7 @@ const CSS = `
 .m-btn .soul { font: 700 14px var(--font); }
 .m-x { margin: 6px 0 0; padding: 0; list-style: none; font: 500 14px/1.5 var(--font); }
 .m-rowx { display: block; background: var(--sel); color: var(--sel-ink); border-radius: 2px; padding: 0 12px 10px 60px; margin-top: -2px; }
-.m-rowx .kw, .m-rowx .term, .m-rowx .n, .m-row.on .m-up { color: var(--sel-ink) !important; border-color: transparent !important; }
+.m-rowx .kw, .m-rowx .term, .m-rowx .n, .m-row.on .m-up { color: var(--sel-tx) !important; border-color: transparent !important; }
 /* 昇華 */
 .m-ah { display: flex; align-items: center; gap: 14px; }
 .m-ah .ic { width: 56px; height: 56px; }
@@ -109,7 +109,7 @@ const BUILD = () => {
     return N.dps != null || N.dot != null ? '每秒' : N.unit != null ? '單體每秒' : '每下';
   };
   const pct = (a, b) => (b ? Math.round((a / b - 1) * 100) : 0);
-  const up = (a, b) => `<span class="m-up">▲ ${lab0} +${fmtN(a - b)}</span>`;
+  const up = (a, b) => `<span class="m-up">▲ ${lab0} +${fullN(a - b)}</span>`;
   let lab0 = '每秒';
   const pips = r =>
     `<span class="m-pips">${Array.from({ length: r.n }, (_, j) => `<i class="${r.so[j] ? '' : 'e'}"></i>`).join('')}</span>`;
@@ -157,7 +157,7 @@ const BUILD = () => {
       todo.push([
         `${SKILLS[r.k].n}有 ${emp} 個空孔`,
         '插一顆輔助',
-        bd > 0.5 ? `▲ 最多 +${fmtN(bd)}` : '',
+        bd > 0.5 ? `▲ 最多 +${fullN(bd)}` : '',
         SKILLS[r.k].ic,
         bd
       ]);
@@ -176,8 +176,8 @@ const BUILD = () => {
     if (best)
       todo.push([
         `${SKILLS[best.r.k].n}升到 Lv ${best.lv + 1}`,
-        `${fmtN(best.c)} 靈魂`,
-        `▲ ${lab(best.i)} +${fmtN(best.d)}`,
+        `${fullN(best.c)} 靈魂`,
+        `▲ ${lab(best.i)} +${fullN(best.d)}`,
         SKILLS[best.r.k].ic,
         best.d
       ]);
@@ -190,7 +190,7 @@ const BUILD = () => {
           return `<button class="m-row emp"><span class="m-ord">${i + 1}</span>${ICO.plus}<span class="m-t"><b>挑一招</b></span></button>`;
         const D = SKILLS[r.k],
           v = dpsOf(i);
-        return `<button class="m-row"><span class="m-ord">${i + 1}</span>${icHTML(D.ic)}<span class="m-t"><b>${D.n}</b><small>Lv ${libLv(r.k)}${pips(r)}${i === 0 ? '　普攻，最後才放' : ''}</small></span><span class="m-v"><b>${v != null ? fmtN(v) : '—'}</b></span><svg class="m-grip" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h12M4 13h12"/></svg></button>`;
+        return `<button class="m-row"><span class="m-ord">${i + 1}</span>${icHTML(D.ic)}<span class="m-t"><b>${D.n}</b><small>Lv ${libLv(r.k)}${pips(r)}${i === 0 ? '　普攻，最後才放' : ''}</small></span><span class="m-v"><b>${v != null ? fullN(v) : '—'}</b></span><svg class="m-grip" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h12M4 13h12"/></svg></button>`;
       })
       .join('');
     put(`<div class="m-scroll">
@@ -235,7 +235,7 @@ const BUILD = () => {
         upc = y < -20 ? 'up' : '';
       if (j >= r.n) {
         const d = drillCheck(r);
-        return `<button class="m-nd lock" ${pos}>${ICO.lock}</button><span class="m-nl ${upc}" ${pos}>打開・${fmtN(d.c)} 靈魂</span>`;
+        return `<button class="m-nd lock" ${pos}>${ICO.lock}</button><span class="m-nl ${upc}" ${pos}>打開・${fullN(d.c)} 靈魂</span>`;
       }
       const k = r.so[j];
       return k
@@ -247,10 +247,10 @@ const BUILD = () => {
     <div class="m-scroll" style="padding-top:0;gap:12px">
       <h2 class="m-h">${D.n}<small>Lv ${lv}　${tags.slice(0, 3).join('・')}</small></h2>
       <div class="m-ring"><div class="m-ctr">${icHTML(D.ic)}</div>${nodes}</div>
-      <div class="m-hero"><div><small>${lab(i)}</small><b class="m-n">${fmtN(v)}</b></div><small>${[N.hit != null && N.dps != null ? `擊中 ${fmtN(N.hit)}` : '', cf.mp ? `魔力 ${cf.mp}` : '', cf.cd ? `冷卻 ${cf.cd.toFixed(1)} 秒` : ''].filter(Boolean).join('　')}</small></div>
+      <div class="m-hero"><div><small>${lab(i)}</small><b class="m-n">${fullN(v)}</b></div><small>${[N.hit != null && N.dps != null ? `擊中 ${fullN(N.hit)}` : '', cf.mp ? `魔力 ${cf.mp}` : '', cf.cd ? `冷卻 ${cf.cd.toFixed(1)} 秒` : ''].filter(Boolean).join('　')}</small></div>
       <div><p class="m-p">${rich(D.d)}</p><button class="m-more">算式與詳細 ›</button></div>
     </div>
-    <div class="m-bar"><button class="m-btn pri">升到 Lv ${lv + 1}${soulB(u.c)}${v2 > v ? `<span class="m-up">▲ +${fmtN(v2 - v)}</span>` : ''}</button><button class="m-btn">換一招</button><button class="m-btn">卸下</button></div>`);
+    <div class="m-bar"><button class="m-btn pri">升到 Lv ${lv + 1}${soulB(u.c)}${v2 > v ? `<span class="m-up">▲ +${fullN(v2 - v)}</span>` : ''}</button><button class="m-btn">換一招</button><button class="m-btn">卸下</button></div>`);
   }
 
   /* 3. 挑輔助 */
@@ -279,9 +279,9 @@ const BUILD = () => {
         right = x.why
           ? `<span class="m-d0">${x.why}</span>`
           : x.d > 0.5
-            ? `<span class="m-up">▲ +${fmtN(x.d)}（${pct(base + x.d, base)}%）</span>`
+            ? `<span class="m-up">▲ +${fullN(x.d)}（${pct(base + x.d, base)}%）</span>`
             : x.d < -0.5
-              ? `<span class="m-d0">▼ ${fmtN(x.d)}</span>`
+              ? `<span class="m-d0">▼ ${fullN(x.d)}</span>`
               : `<span class="m-d0">不改每秒</span>`;
       return `<button class="m-row ${x === sel ? 'on' : ''} ${x.why ? 'dimmed' : ''}">${icHTML(x.D.ic)}<span class="m-t"><b>${x.D.n}</b>${x === sel ? '' : `<small>${line.replace(/<[^>]+>/g, '')}</small>`}</span>${right}</button>${
         x === sel
@@ -290,10 +290,10 @@ const BUILD = () => {
       }`;
     };
     const tabs = ['全部', ...new Set(L.flatMap(x => x.tabs))];
-    put(`<div class="m-top"><button class="m-back">‹ ${SKILLS[r.k].n}</button><span>第 ${j + 1} 孔・現在${lab(i)} ${fmtN(base)}</span></div>
+    put(`<div class="m-top"><button class="m-back">‹ ${SKILLS[r.k].n}</button><span>第 ${j + 1} 孔・現在${lab(i)} ${fullN(base)}</span></div>
     <div class="m-chips">${tabs.map((t, n) => `<button class="m-chip ${n ? '' : 'on'}">${t}</button>`).join('')}</div>
     <div class="m-scroll" style="padding-top:0;gap:2px">${L.map(row).join('')}</div>
-    <div class="m-bar"><button class="m-btn pri">插上${sel.D.n}<span class="m-up" style="color:var(--tx)">▲ +${fmtN(sel.d)}</span></button><button class="m-btn">升到 Lv ${libLv(sel.k) + 1}${soulB(libUpCheck(sel.k).c)}</button></div>`);
+    <div class="m-bar"><button class="m-btn pri">插上${sel.D.n}<span class="m-up" style="color:var(--tx)">▲ +${fullN(sel.d)}</span></button><button class="m-btn">升到 Lv ${libLv(sel.k) + 1}${soulB(libUpCheck(sel.k).c)}</button></div>`);
     return L.slice(0, 8).map(x => [x.D.n, Math.round(x.d)]);
   }
 

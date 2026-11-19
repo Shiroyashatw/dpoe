@@ -86,7 +86,7 @@ const ACT_ROW = {
 };
 const HERO_IMG = new Image();
 let HERO_W, HERO_P;
-/* 單色剪影：受傷閃白用的白色版、被特效蓋到時外框用的 --paper 版（M2-05.4a） */
+/* 單色剪影：受傷閃白用的白色版、被特效蓋到時外框用的 --sel-tx 版（M2-05.4a） */
 function heroTint(col) {
   const c = document.createElement('canvas');
   c.width = HERO_IMG.width;
@@ -100,7 +100,7 @@ function heroTint(col) {
 }
 HERO_IMG.onload = () => {
   HERO_W = heroTint(PAL.glint);
-  HERO_P = heroTint(cssv('--paper'));
+  HERO_P = heroTint(cssv('--sel-tx'));
 };
 HERO_IMG.src = 'img/hero.png?v=' + VER;
 const HSC = 1.35;
@@ -760,7 +760,7 @@ function drawBeams() {
   }
 }
 /* 火焰放滿時看得到自己與怪（M2-05.4）：特效畫完後，目前敵人（aiTarget：王優先、其他取最近）腳下 --bad-hi 圈＋重畫一次、
-   玩家重畫在最上面（怪物生命條由 draw 的 drawBars 畫在特效之上：天黑大霧在暗層前、白天在暗層後）；玩家腳下 60 內有 ≥2 個自己的特效或地面時加 --paper 外框與腳下圈 */
+   玩家重畫在最上面（怪物生命條由 draw 的 drawBars 畫在特效之上：天黑大霧在暗層前、白天在暗層後）；玩家腳下 60 內有 ≥2 個自己的特效或地面時加 --sel-tx 外框與腳下圈 */
 const CSSV = {};
 const cssv = n => CSSV[n] || (CSSV[n] = getComputedStyle(document.documentElement).getPropertyValue(n).trim());
 function drawFront() {
@@ -770,7 +770,7 @@ function drawFront() {
   const n =
     G.fx.filter(o => o.k === 'sh' && Math.hypot(o.x - P.x, o.y - P.y) < 60).length +
     G.ground.filter(g => g.side !== 'm' && Math.hypot(g.x - P.x, g.y - P.y) < g.r + 60).length;
-  if (n >= 2) footRing(P.x, P.y, 22, cssv('--paper'));
+  if (n >= 2) footRing(P.x, P.y, 22, cssv('--sel-tx'));
   drawHero(1, n >= 2);
 }
 function footRing(x, y, r, col) {
@@ -817,7 +817,7 @@ function chargeBar() {
     CX.fillRect(x0 + i * (w + gap), y, w * f, 4);
   }
 }
-/* top：drawFront 在特效上面再畫一次（不畫影子、蓄力條、能量球）；ol：加 --paper 外框 */
+/* top：drawFront 在特效上面再畫一次（不畫影子、蓄力條、能量球）；ol：加 --sel-tx 外框 */
 function drawHero(top, ol) {
   if (!top) chargeBar(), shadow(P.x, P.y, 18);
   const a = G.t < P.iuntil ? 0.8 : 1,
@@ -845,7 +845,7 @@ function drawHero(top, ol) {
         : [7, Math.floor(G.t * 12) % 8, false, a];
     else c = col === 0 ? [1, Math.floor(G.t * 8) % 8, false, a] : [0, col, false, a];
   }
-  /* 外框：--paper 色的剪影往四個方向各推一個像素格（TX） */
+  /* 外框：--sel-tx 色的剪影往四個方向各推一個像素格（TX） */
   if (ol && HERO_P)
     for (const [ox, oy] of [
       [-1, 0],
