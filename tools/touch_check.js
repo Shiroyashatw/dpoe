@@ -2348,7 +2348,8 @@ const settle = async (p, fn, arg) => {
       await p.screenshot({ path: shot('idle_big') });
       ok(
         'hotfix-ui：掛機條大數字（掛機 2 時 05 分、長掉落名）不超出條、不重疊、44 高、長名字省略號',
-        rb.on && rb.h === 44 && rb.ell && !rb.bad.length && rb.txt[0] === '掛機 2 時 05 分',
+        /* B1 D2-03：收起列左字改「掛機 {t}・打倒王 {n} 次」（textContent 含放不下時藏起來的那段） */
+        rb.on && rb.h === 44 && rb.ell && !rb.bad.length && rb.txt[0] === '掛機 2 時 05 分・打倒王 0 次',
         JSON.stringify(rb)
       );
     }
