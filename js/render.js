@@ -1,5 +1,7 @@
 /* dungeonPOE · 畫面：營地、地板、石頭、預警、怪物、玩家、特效、跳數字、掉落標籤、光照、小地圖 */
 'use strict';
+/* 飄字數字照 number-abbrev 縮寫（獲得，捨去）；abbr 在 hud.js，render.js 單獨載入時（check.js 的繪製順序測試）照寫整數 */
+const numT = v => (typeof v === 'number' && typeof abbr === 'function' ? abbr(v, 'own') : v);
 /* '#rrggbb' → '255,0,0'（拼 rgba 用） */
 const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(',');
 /* 畫圖：腳底在 (x, y)，高度 hgt，flip 左右翻；圖用 sprites.js 的大圖（用到才載） */
@@ -659,16 +661,16 @@ function drawNums() {
     CX.font = `700 ${Math.round(st[1] * pop)}px "Noto Sans TC", sans-serif`;
     const txt =
       n.c === 'gold'
-        ? '+' + n.v + ' 金'
+        ? '+' + numT(n.v) + ' 金'
         : n.c === 'jackpot'
-          ? '大獎 ' + n.v
+          ? '大獎 ' + numT(n.v)
           : n.c === 'block'
             ? '格擋'
             : n.c === 'perfect'
               ? '完美閃避'
               : n.c === 'ev'
                 ? '閃避'
-                : n.txt || n.v;
+                : n.txt || numT(n.v);
     /* 描邊比字慢淡出（M2-31 C1） */
     CX.globalAlpha = Math.min(1, fa + 0.3);
     CX.lineWidth = 4;

@@ -144,7 +144,7 @@ fs.mkdirSync(OUT, { recursive: true });
         pr = __r(pill),
         top = pr && document.elementFromPoint(pr.x + pr.w / 2, pr.y + 3);
       return [
-        t === '這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。' &&
+        t === '還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。' &&
           __in(__r('#plog')) &&
           /* 手機橫向的分頁列藏著（角標沒畫出來）；其他模式找不到角標算失敗 */
           (TOUCH.on && !PORT() ? !pr : !!pr && (pill.contains(top) || top === pill.parentNode)),

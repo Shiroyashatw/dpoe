@@ -79,6 +79,8 @@ function fresh() {
     fieldPanel: 0,
     shakeT: -1e9,
     shakeEl: null,
+    flhT: -1e9 /* 喝生命藥劑的時間（冷卻 3 秒） */,
+    flmT: -1e9,
     flipT: -1e9,
     pityT: -1e9,
     pity100: 0,
@@ -204,6 +206,13 @@ Object.assign(EN, {
   疾霆印: 'Thunder Seal',
   歸墟印: 'Abyss Seal',
   鎮嶽印: 'Mountain Seal',
+  '赤霄印・王印 3／4': 'Crimson Sky Seal · Seals 3/4' /* EN「Seals 3/4」假定（fakedata §1a） */,
+  '鎮嶽印・王印 2／4': 'Mountain Seal · Seals 2/4',
+  高階富豪石: 'Greater Regal Orb',
+  完美崇高石: 'Perfect Exalted Orb',
+  高階蛻變石: 'Greater Transmutation Orb',
+  完美石: 'Perfect Orb',
+  完美富豪石: 'Perfect Regal Orb',
   林場: 'Lumber Yard',
   礦場: 'Mine',
   獵場: 'Hunting Ground',
@@ -249,7 +258,6 @@ Object.assign(EN, {
   '鍛造台 Lv13：破裂石開始掉': 'Anvil Lv13: Fracturing Orbs now drop',
   '祭壇 Lv7 開': 'Opens at Altar Lv7',
   '鍛造台 Lv15 開': 'Opens at Anvil Lv15',
-  開下一個主幹地點: 'Opens the next main area',
   產量提高: 'Higher output',
   下一級的效果照解鎖表: 'Next level per unlock table',
   '本體屬 D2／D3；這裡只驗鍵盤焦點與換分頁': 'Body is D2/D3; only keyboard focus and tab switching here',
@@ -270,6 +278,94 @@ function enAuto(zh) {
 }
 const pad0 = s => (P.en ? pad(s) : s);
 const fmt = n => n.toLocaleString('en-US');
+/* 數字縮寫（specs/number-abbrev.md；跟 js/hud.js 的 fullN／abbr 同一份規則）：'own' 擁有／獲得捨去、'cost' 費用／需求進位 */
+const fullN = (n, mode) => (mode === 'cost' ? Math.ceil(n - 1e-9) : Math.floor(n + 1e-9)).toLocaleString('en-US');
+function abbr(n, mode) {
+  if (n < 0) return '-' + abbr(-n, mode);
+  if (!(n >= 1e4)) return fullN(n || 0, mode);
+  const s = Math.floor(n).toLocaleString('en-US', { useGrouping: false });
+  let e = s.length - 1,
+    q = +s.slice(0, 3);
+  if (mode === 'cost' && (n % 1 > 0 || /[1-9]/.test(s.slice(3)))) q++;
+  if (q >= 1000) (q = 100), e++;
+  if (e >= 15) return (q / 100).toFixed(2) + 'e' + e;
+  const u = Math.floor(e / 3),
+    d = 2 - (e - 3 * u);
+  return (q / 10 ** d).toFixed(d) + 'KMBT'[u - 1];
+}
+/* 縮寫的數字：點一下（觸控）／滑鼠停 300 ms 出完整值（§4）；< 10,000 照寫 */
+const ab = (n, mode = 'own') =>
+  n >= 1e4
+    ? `<span class="abn num" data-full="${fullN(n, mode)}">${abbr(n, mode)}</span>`
+    : `<span class="num">${fullN(n, mode)}</span>`;
+/* 讀 :root token 的值（畫布用；不寫死色值） */
+const TKC = {};
+const tok = k => TKC[k] || (TKC[k] = getComputedStyle(document.documentElement).getPropertyValue(k).trim());
+const tokA = (k, a) => `rgba(${tok(k)}, ${a})`; /* -rgb 三元組 token ＋ α */
+
+/* ---------- 假資料（D1-fix §12；跟數值設計師要的值，到之前用這份） ---------- */
+/* 本次掛機的掉落（新的在上；稀有以上）：≥ 14 筆 */
+/* D1-fix-fakedata §1a（7 位數存檔，鍛造台 Lv20、裂口腹地 Lv83）：15 筆，新的在上；cur／perf 都畫 ◆（遊戲 .lg-cur、.lg-perf 同色） */
+const SESS_BIG = [
+  ['赤霄印・王印 3／4', 'chase', 1],
+  ['崇高石', 'rare', 1],
+  ['高階崇高石', 'rare', 1],
+  ['崇高石', 'rare', 1],
+  ['破裂石', 'rare', 1],
+  ['高階富豪石', 'rare', 1],
+  ['完美崇高石', 'rare', 1],
+  ['崇高石', 'rare', 1],
+  ['追憶之墨', 'rare', 1],
+  ['高階蛻變石', 'rare', 1],
+  ['崇高石', 'rare', 1],
+  ['完美石', 'rare', 1],
+  ['高階增幅石', 'rare', 1],
+  ['崇高石', 'rare', 1],
+  ['完美富豪石', 'rare', 1]
+];
+/* §1b（中期，鍛造台 Lv12 只開到崇高石）：崇高石 ×13＋鎮嶽印・王印 2／4（同字重複 13 列的版面） */
+const SESS = [['鎮嶽印・王印 2／4', 'chase', 1], ...Array.from({ length: 13 }, () => ['崇高石', 'rare', 1])];
+const FAKE = {
+  new: { gold: 120, sess: [], sessSoul: 168 },
+  mid: { gold: 8640, sess: SESS, sessSoul: 12345 },
+  near: { gold: 21400, sess: SESS, sessSoul: 9240 },
+  full: { gold: 30200, sess: SESS, sessSoul: 14200 },
+  big: { gold: 3402118, soul: 12345, sess: SESS_BIG, sessSoul: 1284560 },
+  en: { gold: 9600, sess: SESS, sessSoul: 12345 }
+};
+/* 紅藍水（mumi 11/19 14:04）：不限次數，各自冷卻 3 秒（game.js drinkFlask、FLASK.cd 3）；沒有次數、沒有充能 */
+const FL_CD = 3000;
+const flLeft = k => Math.max(0, FL_CD - (NOW - S[k === 'hp' ? 'flhT' : 'flmT'])) / FL_CD;
+/* 稀有通貨（通貨明細用，完整數字） */
+const RARECUR = [
+  ['崇高石', 43],
+  ['高階增幅石', 12],
+  ['預知石', 7],
+  ['破裂石', 3],
+  ['聖化石', 12840]
+];
+/* 營地單座卡的解鎖路線（瞭望台 Lv14 起後面 6 級；其他座照解鎖表示意） */
+/* D1-fix-fakedata §7：瞭望台 Lv15–20 開的地點（world.js TRUNK2）；列裡去掉「到地點清單點它就去刷。」（假定） */
+const ROUTE = {
+  瞭望台: [
+    [15, '新地點「冰封神殿」開了（怪物 Lv 53）'],
+    [16, '新地點「血原邊境」開了（怪物 Lv 58）'],
+    [17, '新地點「白骨丘」開了（怪物 Lv 63）'],
+    [18, '新地點「腐沼渡」開了（怪物 Lv 68）'],
+    [19, '新地點「沉城」開了（怪物 Lv 73）'],
+    [20, '新地點「毒霧林」開了（怪物 Lv 78）']
+  ]
+};
+/* 其他座：示意（假定）；產生器寫里程碑「產量 ×2」「+1 工位」「階 +1」，一般級「每分鐘 +{Δ} {材料}」（名詞表 v0.6.15；不寫「產量 +12%」） */
+const routeOf = (n, lv) =>
+  ROUTE[n] || [
+    [lv + 1, '+1 工位'],
+    [`${lv + 2}–${lv + 5}`, '每分鐘 +3 木', 1],
+    [lv + 6, '階 +1'],
+    [lv + 7, '產量 ×2']
+  ];
+/* 這級得到什麼（M1-13 解鎖句去掉「{設施} Lv n：」；照 part2 §8 F8-1 與名詞表例句，一行放得下：不加「到地點清單點它就去刷。」） */
+const thisLv = (n, lv) => (ROUTE[n] ? ROUTE[n][0][1] : n === '鍛造台' ? '開腐化' : '每分鐘 +3 木');
 const esc = s =>
   String(s)
     .replace(/Lv (\d)/g, 'Lv\u00a0$1') /* N4：Lv 和數字用 U+00A0，不拆開 */
@@ -291,6 +387,7 @@ const ICO = (() => {
     hero: s('<circle cx="8" cy="5" r="2.6"/><path d="M3 14c.6-3 2.6-4.6 5-4.6s4.4 1.6 5 4.6"/>'),
     hammer: s('<path d="M8.6 2.6l4.8 4.8-1.7 1.7-1.3-1.3-6 6-1.8-1.8 6-6-1.3-1.3z"/>'),
     prev: s('<path d="M10 3L5 8l5 5"/>'),
+    back: s('<path d="M13.5 8h-11M6.5 4l-4 4 4 4"/>'),
     next: s('<path d="M6 3l5 5-5 5"/>'),
     down: s('<path d="M3 6l5 5 5-5"/>'),
     up: s('<path d="M3 10l5-5 5 5"/>'),
@@ -334,6 +431,8 @@ CAMPBG.src = '../../img/hide-scene.cf31b881.png';
 /* ---------- 存檔讀值（缺欄＝9b 的「—」，改用中期，控制列標出） ---------- */
 let MISS = [];
 function D(k) {
+  const fk = FAKE[P.save] && FAKE[P.save][k];
+  if (fk !== undefined) return fk;
   const s = SV[P.save].d;
   if (s[k] !== undefined && s[k] !== null) return s[k];
   if (!MISS.includes(k)) MISS.push(k);
@@ -378,8 +477,7 @@ function geo() {
   return g;
 }
 /* 面板蓋住戰場（直立）：抽屜滑完那一格才改戰場高 */
-const panelOpen = () => !!S.panel && S.panel !== 'tree';
-const fullPanel = () => S.panel === 'tree';
+const fullPanel = () => S.panel === 'tree' || S.panel === 'stele';
 
 /* ---------- DOM ---------- */
 const UI = () => $('ui');
@@ -419,7 +517,7 @@ function build() {
   if (S.scr === 'sys') h += sysHTML(g);
   else if (S.scr === 'camp') h += campHTML(g);
   else h += hudHTML(g);
-  if (S.scr !== 'sys' && !S.offOn && !(S.panel === 'tree' && z.port)) h += navHTML(g);
+  if (S.scr !== 'sys' && !S.offOn && !fullPanel()) h += navHTML(g);
   if (S.offOn) h += offHTML(g);
   if (S.dlg) h += dlgHTML(g);
   if (S.toast) h += toastHTML(g);
@@ -428,6 +526,8 @@ function build() {
   navFit();
   resFit();
   idleFit();
+  idleListFit();
+  routeFit();
   mainFit();
   plqFit();
   drawerFit();
@@ -457,7 +557,7 @@ function hudHTML(g) {
     life = D('life'),
     port = g.port;
   let h = '';
-  if (S.panel === 'tree') return panelHTML(g);
+  if (fullPanel()) return panelHTML(g);
   const areaTxt = ENV('area') || `${loc()}・${sv[1]}★・怪物 Lv ${sv[2]}`;
   const T2 = (ENV('area') ? pad0(areaTxt) : T(areaTxt))
     .replace(/(怪物|Monster) Lv /g, '$1\u00a0Lv\u00a0')
@@ -492,26 +592,23 @@ function hudHTML(g) {
   /* 掉落動態 */
   const fRows = feedCap(),
     rowH = port ? (P.fs ? 34 : 26) : P.fs ? 36 : 28;
-  h += `<div class="ab feed" id="d-feed" data-m="H07" data-hud data-hit="feed" role="button" tabindex="0" aria-label="${esc(T('掉落紀錄'))}" data-k="feed" style="${port ? px(202, g.st + 101, 176, null) : px(16, 76, 300, null)}min-height:${Math.max(44, rowH)}px" data-rows="${fRows}"></div>`;
+  h += `<div class="ab feed" id="d-feed" data-m="H07" data-hud data-hit="feed" role="button" tabindex="0" aria-label="${esc(T('掉落紀錄'))}" data-k="feed" style="${port ? px(202, g.st + 107, 176, null) : px(16, 106, 300, null)}min-height:${Math.max(44, rowH)}px" data-rows="${fRows}"></div>`;
+  h += curHTML(g);
   /* 狀態圖示、生命／魔力、技能 */
-  const stY = port ? (S.fieldPanel ? g.fieldBot - 58 : g.fieldBot - 138) : 560 + g.dy,
-    stX = port ? 8 : Math.min(400, g.colX - 16 - 380);
+  /* §2：直立狀態圖示 72–292 × 548–572（藥劑讓位）；抽屜開著回左邊 8（藥劑在右邊） */
+  const stY = port ? (S.fieldPanel ? g.fieldBot - 58 : g.fieldBot - 162) : 560 + g.dy,
+    stX = port ? (S.fieldPanel ? 8 : 72) : Math.min(400, g.colX - 16 - 380);
   h += `<div class="ab sts" data-m="H17" data-hud style="${px(stX, stY, port ? 220 : 380, 24)}">${statusHTML()}</div>`;
   const dx = port ? 400 : Math.min(400, g.colX - 16 - 380),
-    lx = port ? 8 : dx,
-    lw = port ? 374 : 380,
-    lb = port
-      ? S.fieldPanel
-        ? g.H - g.fieldBot
-        : S.idleOpen
-          ? g.H - (g.idleTop + 44 - 200) /* 展開的掛機條 554–754：生命／魔力條移到上緣 524–554 */
-          : g.H - g.fieldBot + 79
-      : 100;
+    lx = port ? 72 : dx,
+    lw = port ? 310 : 380,
+    lb = port ? (S.fieldPanel ? g.H - g.fieldBot : g.H - g.fieldBot + 79) : 100;
   const hpv = S.hp != null ? S.hp : life[0] / life[1];
   h += `<div class="ab lifebox" data-m="H13" data-hud style="${pxb(lx, lb, lw, null)}">
     <div class="lb hp" style="height:${P.fs ? 'auto' : '16px'}"><i id="d-hpf" style="width:${hpv * 100}%"></i><span data-role="num" id="d-hpt">${fmt(Math.round(life[1] * hpv))}／${fmt(life[1])}</span></div>
     <div class="lb mp${S.mpHot ? ' hot' : ''}" id="d-mp" style="height:${P.fs ? 'auto' : '13px'}"><i style="width:${(life[2] / life[3]) * 100}%"></i><span data-role="num">${fmt(life[2])}／${fmt(life[3])}</span></div></div>`;
   if (!(port && S.fieldPanel)) h += skillsHTML(g);
+  h += flaskHTML(g);
   /* 倒下字板、連死 3 次 */
   h += `<div class="ab dplate hide" id="d-dplate" data-m="H20" data-hud data-role="body" style="${port ? px(8, g.fieldBot - 260, 374, 44) : px(440, 430 + g.dy, 400, 44)}"></div>`;
   const dd = D('deaths');
@@ -522,10 +619,16 @@ function hudHTML(g) {
   h += idleHTML(g);
   h += fieldOverlays(g);
   if (S.panel) h += panelHTML(g);
+  if (S.itip && S.panel === 'char') {
+    h += itipHTML(g, S.itip);
+    if (S.itipCmp && EQUIPPED[S.itip]) h += itipHTML(g, EQUIPPED[S.itip], 1);
+  }
+  if (S.abTip)
+    h += `<div class="ab abtip" id="d-abtip" data-m="F4-tip" style="${px(S.abTip.x, S.abTip.y)}">${esc(S.abTip.t)}</div>`;
   return h;
 }
 function fieldOverlays(g) {
-  return `<div class="ab" id="d-fade" style="${px(0, 0, g.W, g.H)}background:#000;opacity:0;pointer-events:none;z-index:30"></div>`;
+  return `<div class="ab" id="d-fade" style="${px(0, 0, g.W, g.H)}background:var(--scrim-v1);opacity:0;pointer-events:none;z-index:30"></div>`;
 }
 function statusHTML() {
   const st = S.status || D('status'),
@@ -548,7 +651,7 @@ function skillsHTML(g) {
     sz = port ? 56 : 52,
     keys = isEN() ? ['LMB', 'RMB', 'Q', 'E', 'R'] : ['左', '右', 'Q', 'E', 'R'],
     enN = ENV('skills');
-  let h = `<div class="ab sks" data-m="H18" data-hud style="${port ? px(35, g.fieldBot - 66, 320, 56) : px(Math.max(412, Math.min(400, g.colX - 16 - 380) + 20), 630 + g.dy, 300, 52)}">`;
+  let h = `<div class="ab sks" data-m="H18" data-hud style="${port ? px(76, g.fieldBot - 66, 304, 56) : px(Math.max(412, Math.min(400, g.colX - 16 - 380) + 20), 630 + g.dy, 300, 52)}">`;
   sk.forEach((s, i) => {
     if (s.off) {
       h += `<button class="sk off" data-hit="sk" data-k="sk${i}" style="width:${sz}px;height:${sz}px" aria-label="${esc(T(s.off))}" aria-disabled="true">${kc(keys[i])}<span class="lk" data-role="label">${ICO.lock}${esc(s.off.match(/Lv\d+/)[0])}</span></button>`;
@@ -572,6 +675,67 @@ function skillsHTML(g) {
   return h + '</div>';
 }
 
+/* §9 貨幣列：只放金、靈魂；圖示 16（程式畫的暫代圖，暫用）＋數字（擁有，捨去縮寫）；點一下開通貨明細 */
+const soulOf = () => (FAKE[P.save] && FAKE[P.save].soul) || (D('res').find(r => r[0] === '靈魂') || [0, 0])[1];
+const IC16 = {
+  gold: '<svg class="ico i16 ic-gold" viewBox="0 0 16 16" aria-hidden="true" data-tmp="暫用"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v6M6.2 6.4h2.8a1.2 1.2 0 0 1 0 2.4H7a1.2 1.2 0 0 0 0 2.4h2.8"/></svg>',
+  soul: '<svg class="ico i16 ic-soul" viewBox="0 0 16 16" aria-hidden="true" data-tmp="暫用"><path d="M8 2c.7 2.7 3.3 3.3 3.3 6.7a3.3 3.3 0 0 1-6.6 0c0-2 1.3-2.7 1.3-4 .7.7 1.4 1.3 2 .7-.7-1.4-.7-2.7 0-3.4z"/></svg>'
+};
+function curHTML(g) {
+  if (S.spect || fullPanel()) return '';
+  const port = g.port,
+    gold = D('gold'),
+    soul = soulOf();
+  return `<button class="ab curs kf" id="d-cur" data-m="F9" data-hud data-hit="cur" data-k="cur" aria-label="${esc(T('通貨明細', 'Currency details'))}" style="${port ? px(202, g.st + 59, 180, 44) : px(16, 66, 300, 32)}"><span class="cv">
+    <span class="cc2" data-role="body">${IC16.gold}${ab(gold)}</span><span class="cc2" data-role="body">${IC16.soul}${ab(soul)}</span></span></button>`;
+}
+/* §2 藥劑：常駐 HUD 鈕。直立 56（抽屜開著 44、移到戰場右下）、桌機 48；底填 --hp／--mp 60%；不寫任何次數。
+   只畫冷卻：外圈 3 px 環（--hp-hi／--mp-hi）＋鈕面扇形掃過（剩餘部分蓋 scrim 50%）、圖示 50% 亮度；冷卻完環消失（tick 每幀更新）。
+   低血 < 35% 且生命藥劑冷卻好了：2 px --hp-hi 外框 1 Hz 呼吸（減少動態常亮）；冷卻中不畫 */
+const FLIC = {
+  hp: art('it_potion'),
+  mp: art('it_potion').replace('class="art"', 'class="art blue"') /* 暫用：沒有藍水圖，紅水圖轉色 */
+};
+function flaskHTML(g) {
+  const port = g.port,
+    small = port && S.fieldPanel,
+    sz = port ? (small ? 44 : 56) : 48,
+    hp = S.hp != null ? S.hp : D('life')[0] / D('life')[1];
+  const pos = k =>
+    port
+      ? small
+        ? px(k === 'hp' ? 290 : 338, g.fieldBot - 78, 44, 44)
+        : px(8, g.fieldBot - (k === 'hp' ? 134 : 66), 56, 56)
+      : px(k === 'hp' ? 732 : 788, 632 + g.dy, 48, 48);
+  let h = '';
+  for (const k of ['hp', 'mp']) {
+    const r = sz - 3,
+      nm = k === 'hp' ? '生命藥劑' : '魔力藥劑';
+    h += `<button class="ab fl ${k} kf" id="d-fl-${k}" data-m="F2-${k}" data-hud data-hit="flask" data-k="fl-${k}" data-fl="${k}" aria-label="${esc(T(nm))}" style="${pos(k)}z-index:6">
+      <i class="fill"></i><span class="fic">${FLIC[k]}</span><i class="sw"></i>${kc(k === 'hp' ? '1' : '2')}
+      <svg class="ring" viewBox="0 0 ${sz} ${sz}" aria-hidden="true"><rect class="arc" x="1.5" y="1.5" width="${r}" height="${r}" rx="4" pathLength="100"/></svg>
+      ${k === 'hp' && hp < 0.35 ? '<i class="lo" id="d-flo"></i>' : ''}</button>`;
+  }
+  return h;
+}
+/* 每幀：冷卻環、扇形、圖示亮度；低血外框只在生命藥劑冷卻好時畫 */
+function flaskTick() {
+  for (const k of ['hp', 'mp']) {
+    const b = $('d-fl-' + k);
+    if (!b) continue;
+    const p = flLeft(k),
+      v = p.toFixed(3);
+    if (b.dataset.cd !== v) {
+      b.dataset.cd = v;
+      b.classList.toggle('cd', p > 0);
+      b.style.setProperty('--cd', v);
+      /* 環＝剩餘部分，跟扇形一樣從 12 點鐘順時針讓出（方框路徑從左上角起算，12 點鐘在 12.5%） */
+      const a = b.querySelector('.arc');
+      a.setAttribute('stroke-dasharray', `${(p * 100).toFixed(1)} ${(100 - p * 100).toFixed(1)}`);
+      a.setAttribute('stroke-dashoffset', (-(12.5 + (1 - p) * 100)).toFixed(1));
+    }
+  }
+}
 /* 稀有度記號：◆ 稀有、◈ 傳奇、追逐＝王印 16 圖示（掉落動態、掉落紀錄、掛機條同一份） */
 const CHASE_IC = {
   赤霄印: 'wangyin_chixiao_16',
@@ -604,7 +768,20 @@ const chaseShort = s => {
   return m ? `${m[1] ? m[1] + ' ' : ''}${m[2]}/${m[3]}` : s;
 };
 
-/* 掛機條（I01–I06、C09） */
+/* 掛機條（I01–I06、C09）；展開＝掛機卡（D1-fix §1：直立半版、桌機左下欄；掉落清單是卡內唯一捲動區） */
+/* 追逐保底一格：王印 16＋「追逐保底 n%」＋48×6 條（§5；窄區先拿掉條、再拿掉圖示，字不縮） */
+const pityLab = p => (isEN() ? pad0(`Chase pity ${p}%`) : `追逐保底 ${p}%`);
+const pityIc = () => wy(chaseIc((D('recent') || []).find(r => r[1] === 'chase')?.[0] || '歸墟印'));
+/* 卡片幾何：直立＝抽屜上緣到底分頁上緣；桌機＝底 704、高 min(402, 112＋清單)，最矮 200 */
+const ICARD = { rowP: 44, rowD: 36, headP: 44 + 36 + 36, headD: 40 + 36 + 36 };
+function idleBox(g) {
+  if (g.port) return { x: 0, y: g.drawerTop, w: g.W, h: g.navTop - g.drawerTop };
+  const n = idleRows().length + 1,
+    h = Math.max(200, Math.min(402, ICARD.headD + Math.min(290, n * ICARD.rowD)));
+  return { x: 16, y: g.H - 16 - h, w: 380, h };
+}
+/* 本次掉落（套掉落提示門檻）；被門檻藏掉的件數 */
+const idleRows = () => (D('sess') || []).filter(r => passes(r[1]));
 function idleHTML(g) {
   const port = g.port,
     open = S.idleOpen,
@@ -625,7 +802,7 @@ function idleHTML(g) {
   const pityHTML =
     pity == null || camp
       ? ''
-      : `<span class="ipb${pity >= 100 ? ' full' : ''}" data-m="I06" data-role="label">${esc(isEN() ? (pity >= 100 && ENV('pityShort') ? ENV('pityShort') : `Pity ${pity}%`) : `保底 ${pity}%`)}<span class="pb"><i style="width:${pity}%"></i></span></span>`;
+      : `<span class="ipb${pity >= 100 ? ' full' : ''}" data-m="I06" data-role="label">${pityIc()}<span class="pl">${esc(pityLab(pity))}</span><span class="pb"><i style="width:${pity}%"></i></span></span>`;
   const rc = D('recent'),
     last = rc && rc[0];
   const lastHTML =
@@ -633,43 +810,56 @@ function idleHTML(g) {
       ? ''
       : `<span class="ilast r-${last[1]}">${mark(last[1], last[2])}<span class="lt">${esc(isEN() && ENV('recent') ? pad0(ENV('recent')[0]) : T(chaseShort(last[0])))}</span><span class="lq hide">×1</span></span>`;
   const gp = goal.pct;
-  let h = `<div class="ab idle" id="d-idle" data-m="${open ? 'I02' : camp ? 'C09' : 'I01'}" ${open ? 'data-over' : 'data-hud'} style="${pxb(x, bot, w, null)}height:${open ? 200 : port ? 44 : 40}px;z-index:12">
-    <div class="gs" data-m="goalstrip" style="${port ? '' : 'width:380px'}"><i id="d-gs" style="width:${gp}%"></i></div>`;
-  if (!open) {
-    h += `<div class="ir" style="top:0"><button class="ib kf" data-hit="idle" data-k="idle" aria-expanded="false" aria-label="${esc(T('展開'))}"><b class="${near && !camp ? 'warn' : ''}" data-role="body" id="d-idlet">${esc(lt)}</b>${pityHTML}${lastHTML}</button>
-      <button class="x44 kf" data-hit="idlex" data-k="idlex" aria-label="${esc(T('展開'))}" style="height:${port ? 44 : 40}px">${ICO.up}</button></div>`;
-  } else {
-    const rcT = (rc || [])
-      .map(
-        (r, i) =>
-          `<span class="r-${r[1]}">${mark(r[1], r[2])} ${esc(isEN() && ENV('recent') ? pad0(ENV('recent')[i]) : T(r[0]))}</span>`
-      )
-      .join('　');
+  /* 收起列一直在（展開時卡片蓋在它上面：直立從下往上滑、桌機長高） */
+  let h = `<div class="ab idle" id="d-idle" data-m="${camp ? 'C09' : 'I01'}" data-hud style="${pxb(x, bot, w, port ? 44 : 40)}z-index:12">
+    <div class="gs" data-m="goalstrip" style="${port ? '' : 'width:380px'}"><i id="d-gs" style="width:${gp}%"></i></div>
+    <div class="ir" style="top:0"><button class="ib kf" data-hit="idle" data-k="idle" aria-expanded="false" aria-label="${esc(T('展開'))}"><b class="${near && !camp ? 'warn' : ''}" data-role="body" id="d-idlet">${esc(lt)}</b>${pityHTML}${lastHTML}</button>
+      <button class="x44 kf" data-hit="idlex" data-k="idlex" aria-label="${esc(T('展開'))}" style="height:${port ? 44 : 40}px">${ICO.up}</button></div>
+    <div class="away hide" id="d-away" data-m="I05" data-role="body"></div></div>`;
+  if (open && !camp) {
+    const B = idleBox(g),
+      soulT = ab(D('sessSoul'));
     const killsT = isEN()
-      ? ENV('idle') || `Idle ${hmEn(idleM)} · ${kills} boss kills`
-      : `掛機 ${hm(idleM)}・打倒王 ${kills} 次`;
+      ? `${esc(pad0(`Idle ${hmEn(idleM)} · ${kills} boss kills · Souls +`))}${soulT}`
+      : `${esc(`掛機 ${hm(idleM)}・打倒王 ${kills} 次・靈魂 +`)}${soulT}`;
     const goalT =
       gp >= 100
         ? T(`可以解鎖：${goal.name.split('・')[1] || goal.name}`)
         : isEN() && ENV('goal')
           ? ENV('goal')
           : T(`下一個：${goal.short || goal.name.split('・')[1]}・${fmt(goal.have)}/${fmt(goal.need)} ${goal.res}`);
-    const pityT =
+    const pityRow =
       pity == null
-        ? T('這裡不累積保底：怪物 Lv 45 以上的地點才會累積')
-        : isEN()
-          ? ENV('pity') || `Chase pity ${pity}%`
-          : `下一件保底 ${pity}%`;
-    h += `<div class="ex">
-      <div class="er"><b data-role="body" class="ell">${esc(pad0(killsT))}</b><span></span><button class="x44 kf" data-hit="spect" data-k="spect" aria-label="${esc(T('觀戰'))}">${ICO.hero}</button><button class="x44 kf" data-hit="idlex" data-k="idlex" aria-expanded="true" aria-label="${esc(T('收起'))}">${ICO.down}</button></div>
-      <div class="er"><span data-role="body" class="${pity >= 100 ? 'r-chase' : ''}">${esc(pityT)}</span></div>
-      <div class="er"><span data-role="body">${esc(T('本次收穫'))}：${rcT || '—'}</span></div>
-      <div class="er go kf" data-hit="goal" data-k="goal" role="button" tabindex="0"><span data-role="body" id="d-goalt">${esc(goalT)}</span></div></div>`;
+        ? `<span class="pl" data-role="body">${esc(T('這裡不累積保底：怪物 Lv 45 以上的地點才會累積'))}</span>`
+        : `${pityIc()}<span class="pl ${pity >= 100 ? 'r-chase' : ''}" data-role="body">${esc(pityLab(pity))}</span><span class="pb${pity >= 100 ? ' full' : ''}"><i style="width:${pity}%"></i></span>`;
+    const L = idleRows(),
+      hid = S.filtered || 0,
+      bs = port ? 44 : 32;
+    const rows = L.length
+      ? L.map(
+          ([n, r, q]) =>
+            `<li class="r-${r}" data-role="body"><i class="rb"></i>${r === 'chase' ? wy(chaseIc(n)) : `<span class="i16g" data-tmp="暫用">${ICO.gem}</span>`}<span class="nm">${r === 'chase' ? '' : mark(r)}${esc(T(n))}</span><span class="q">×${ab(q)}</span></li>`
+        ).join('')
+      : ''; /* §1：沒有稀有以上的掉落時清單只剩「全部掉落紀錄 ›」 */
+    const more = `<li class="lk kf" data-hit="alllog" data-k="alllog" role="button" tabindex="0" data-role="body"><span class="nm">${esc(isEN() ? pad0('All drops ›') : '全部掉落紀錄 ›')}</span>${hid ? `<span class="hd2">${esc(isEN() ? pad0(`+${abbr(hid, 'own')} items collected`) : `+${abbr(hid, 'own')} 件已收`)}</span>` : ''}</li>`;
+    h += `<div class="ab icard" id="d-icard" data-m="I02" data-over style="${px(B.x, B.y, B.w, B.h)}z-index:13">
+      <div class="ih" style="height:${port ? 44 : 40}px"><b data-role="body" class="ell">${killsT}</b><button class="x44 kf" data-hit="spect" data-k="spect" aria-label="${esc(T('觀戰'))}" style="width:${bs}px;height:${bs}px">${ICO.hero}</button><button class="x44 kf" data-hit="idlex" data-k="idlex2" aria-expanded="true" aria-label="${esc(T('收起'))}" style="width:${bs}px;height:${bs}px">${ICO.down}</button></div>
+      <div class="ip" data-m="F5-pity">${pityRow}</div>
+      <div class="ig kf" data-hit="goal" data-k="goal" role="button" tabindex="0"><span data-role="body" id="d-goalt">${esc(goalT)}</span></div>
+      <div class="ilw"><ul class="il" id="d-il" style="--row:${port ? 44 : 36}px">${rows}${more}</ul><i class="ifade t hide" id="d-ift"></i><i class="ifade b hide" id="d-ifb"></i></div></div>`;
   }
-  h += `<div class="away hide" id="d-away" data-m="I05" data-role="body"></div></div>`;
-  /* 回戰場「營地期間 +N」蓋在掛機條上 */
+  /* 回戰場「營地期間 +N」／「天賦樹期間 +N」蓋在掛機條上 */
   h += `<div class="ab cgain hide" id="d-cgain" data-m="C10" data-role="body" style="${pxb(x, bot, w, port ? 44 : 40)}z-index:13"></div>`;
   return h;
+}
+/* 清單捲動邊緣漸層：還有內容的那一邊畫 24 高；捲到頂／底那一邊不畫 */
+function idleListFit() {
+  const l = $('d-il');
+  if (!l) return;
+  const top = l.scrollTop > 1,
+    bot = l.scrollTop + l.clientHeight < l.scrollHeight - 1;
+  $('d-ift').classList.toggle('hide', !top);
+  $('d-ifb').classList.toggle('hide', !bot);
 }
 
 /* ---------- 分頁（C01、K01、K03、K04、K08） ---------- */
@@ -698,15 +888,17 @@ function navHTML(g) {
   if (S.tip) h += `<div class="ab navtip" style="${px(S.tip.x, S.tip.y)}">${esc(S.tip.t)}</div>`;
   return h;
 }
-/* 掛機條放不下：先拿掉保底小條 → 拿掉最近一筆 → 左字換兩行（不縮字） */
+/* 掛機條放不下：先拿掉保底小條 → 拿掉王印圖示 → 拿掉最近一筆 → 左字換兩行（不縮字、不省略「追逐」） */
 function idleFit() {
   const ib = document.querySelector('#d-idle .ib');
   if (!ib) return;
   const over = () => ib.scrollWidth > ib.clientWidth + 1;
   const pb = ib.querySelector('.pb'),
+    pw = ib.querySelector('.ipb .wy'),
     la = ib.querySelector('.ilast'),
     b = ib.querySelector('b');
   if (over() && pb) pb.classList.add('hide');
+  if (over() && pw) pw.classList.add('hide');
   /* 最近一筆：看得到的字少於 4 個就只留記號＋數量（例「◆ ×1」） */
   const lt = la && la.querySelector('.lt');
   if (lt && lt.scrollWidth > lt.clientWidth + 1) {
@@ -739,13 +931,13 @@ function stackTop() {
     want = (g.port ? g.st + 39 : 20) - 6;
   if (!g.port || bottom <= want) return;
   const d = bottom - want;
-  for (const id of ['d-boss', 'd-ult', 'd-feed']) {
+  for (const id of ['d-boss', 'd-ult', 'd-feed', 'd-cur']) {
     const e = $(id);
     if (e) e.dataset.dy = d;
   }
   const pr = document.querySelector('[data-m="H03"]');
   if (pr) pr.style.top = pr.offsetTop + d + 'px';
-  for (const id of ['d-ult', 'd-feed']) {
+  for (const id of ['d-ult', 'd-feed', 'd-cur']) {
     const e = $(id);
     if (e) e.style.top = e.offsetTop + d + 'px';
   }
@@ -844,7 +1036,7 @@ function navFit() {
 
 /* ---------- 營地費用 ---------- */
 function costOf(fac) {
-  const c = D('cost')[fac];
+  const c = (S.costOver && S.costOver[fac]) || D('cost')[fac];
   if (!c) return null;
   const need = c.need,
     can = need.every(([, n, h]) => h >= n),
@@ -897,8 +1089,8 @@ function panelHTML(g) {
         sub = k.can
           ? `<small>${esc(T('買得起'))}</small>`
           : k.sug
-            ? `<small class="lack cst"><span class="ell">${esc(T('差'))} ${fmt(k.lack)} ${esc(T(wr[0]))}</span></small>`
-            : `<small class="cst${lk}"><span class="ell">${esc(T(wr[0]))}</span> <span class="num">${fmt(wr[2])}/${fmt(wr[1])}</span></small>`;
+            ? `<small class="lack cst"><span class="ell">${esc(T('差'))} ${ab(k.lack, 'cost')} ${esc(T(wr[0]))}</span></small>`
+            : `<small class="cst${lk}"><span class="ell">${esc(T(wr[0]))}</span> <span class="num nw">${ab(wr[2])}/${ab(wr[1], 'cost')}</span></small>`;
         st = `<button class="stamp kf${solid ? ' can' : ' off'}" data-hit="stamp" data-k="st-${c.n}" data-fac="${c.n}" data-solid="${solid ? 1 : 0}" aria-label="${esc(T('升級'))} ${esc(c.n)}">▲</button>`;
         prog = `<span class="cp"><i class="${k.pct >= 100 ? 'full' : ''}" style="width:${k.pct}%"></i></span>`;
       }
@@ -909,22 +1101,16 @@ function panelHTML(g) {
     }
     return h + '</div></div></div>';
   }
-  if (S.panel === 'card') {
-    const n = S.cardFac,
-      cell = campCells().find(c => c.n === n),
-      k = cell.c;
-    const lis = k.need
-      .map(
-        ([r, need, have]) =>
-          `<li><span>${esc(r)}</span><b class="num ${have >= need ? 'ok' : 'lack'}">${fmt(have)}／${fmt(need)}</b><b class="${have >= need ? 'ok' : 'lack'}">${esc(have >= need ? T('夠') : T(`差 ${fmt(need - have)}`))}</b></li>`
-      )
-      .join('');
-    const w = port ? 390 : 400;
-    return `<div class="ab pnl drw" id="d-drw" data-m="C06" data-panel style="${port ? box : px(g.W - 16 - 400, 76, 400, 380)}${z}">
-      <div class="hd"><button class="x44 kf" data-hit="x" data-k="cprev" aria-label="上一座">${ICO.prev}</button><b data-role="body">${esc(facName(n))}</b><button class="x44 kf" data-hit="x" data-k="cnext" aria-label="下一座">${ICO.next}</button><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
-      <div class="bd"><div class="one"><h4 data-role="body">Lv\u00a0${cell.lv} → Lv\u00a0${cell.lv + 1}</h4><p data-role="body">${esc(T(n === '瞭望台' ? '開下一個主幹地點' : n === '獵場' || n === '林場' || n === '礦場' || n === '絲地' ? '產量提高' : '下一級的效果照解鎖表'))}</p>
-      <ul>${lis}</ul><div class="ms" data-role="body">${esc(T('下一個里程碑'))}：${goalLine()}<div class="bar"><i style="width:${D('goal').pct}%"></i></div></div></div></div>
-      <div style="padding:${port ? '0 8px 8px' : '0 16px 16px'}"><button class="btn pri kf${k.can ? '' : ' off'}" data-hit="up1" data-k="up1" style="width:${port ? 374 : 368}px;min-height:${port ? 54 : 48}px">▲ ${esc(T('升級'))}</button></div></div>`;
+  if (S.panel === 'card') return cardHTML(g, box, z);
+  if (S.panel === 'cur') {
+    /* §9 通貨明細：分組 主要／材料／稀有通貨 ◆；全部完整數字；列高 44／36 */
+    const res = D('res').filter(r => r[0] !== '靈魂'),
+      row = (n, v, ic) =>
+        `<li data-role="body" style="min-height:${port ? 44 : 36}px">${ic || ''}<span class="nm">${esc(T(n))}</span><span class="n num">${fullN(v)}</span></li>`;
+    return `<div class="ab pnl drw" id="d-drw" data-m="F9-3" data-panel style="${box}${z}"><div class="hd"><b data-role="body">${esc(T('通貨明細', 'Currency details'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
+      <div class="bd"><h6 data-role="body">${esc(T('主要'))}</h6><ul class="lst cur">${row('金', D('gold'), IC16.gold)}${row('靈魂', soulOf(), IC16.soul)}</ul>
+      <h6 data-role="body">${esc(T('材料'))}</h6><ul class="lst cur">${res.map(r => row(r[0], r[1])).join('')}</ul>
+      <h6 data-role="body">${esc(T('稀有通貨'))} ◆</h6><ul class="lst cur r-rare">${RARECUR.map(r => row(r[0], r[1], '<span class="mk">◆</span>')).join('')}</ul></div></div>`;
   }
   if (S.panel === 'log') {
     const pity = D('pity'),
@@ -932,7 +1118,9 @@ function panelHTML(g) {
     /* 最近 50 筆：同名（同稀有度）的合成一列，寫「×n」（#19；不只連續的） */
     const raw = [...S.feed.map(f => [f.name, f.rar, f.n]), ...rc.map(r => [r[0], r[1], 1, r[2]])];
     const pool = [...D('drops').normal, ['玄鐵', 12], ['轉化石', 2], ['磨刀石', 5], ['蛻變石', 3], ['預知石', 1]];
-    for (let i = 0; raw.length < 14; i++) raw.push([pool[i % pool.length][0], 'normal', pool[i % pool.length][1]]);
+    const none = !raw.length && P.save === 'new';
+    for (let i = 0; !none && raw.length < 14; i++)
+      raw.push([pool[i % pool.length][0], 'normal', pool[i % pool.length][1]]);
     const items = [];
     for (const it of raw) {
       const p = items.find(x => x[0] === it[0] && x[1] === it[1]);
@@ -941,13 +1129,16 @@ function panelHTML(g) {
     }
     return `<div class="ab pnl drw" id="d-drw" data-m="H11" data-panel style="${box}${z}"><div class="hd"><b data-role="body">${esc(T('掉落紀錄'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
       <div class="goalr"><span data-role="body">${esc(pity == null ? T('這裡不累積保底：怪物 Lv 45 以上的地點才會累積') : isEN() ? pad0(`Chase pity ${pity}%`) : `下一件保底 ${pity}%`)}</span><span class="gp"><i style="width:${pity || 0}%;background:var(--rar-chase)"></i></span></div>
-      <div class="bd"><ul class="lst">${items
-        .slice(0, 50)
-        .map(
-          (it, i) =>
-            `<li class="r-${it[1]}" id="${i === 0 ? 'd-logsel' : ''}" style="${i === 0 ? 'outline:2px solid var(--border-cap);outline-offset:-2px' : ''}" data-role="body">${mark(it[1], it[3], it[0])}<span class="nm ell">${esc(T(it[0]))}</span>${it[2] > 1 ? `<span class="n num">×${fmt(it[2])}</span>` : ''}</li>`
-        )
-        .join('')}</ul></div></div>`;
+      <div class="bd"><ul class="lst">${
+        items
+          .slice(0, 50)
+          .map(
+            (it, i) =>
+              `<li class="r-${it[1]}" id="${i === 0 ? 'd-logsel' : ''}" style="${i === 0 ? 'outline:2px solid var(--border-cap);outline-offset:-2px' : ''}" data-role="body">${mark(it[1], it[3], it[0])}<span class="nm ell">${esc(T(it[0]))}</span>${it[2] > 1 ? `<span class="n num">×${fmt(it[2])}</span>` : ''}</li>`
+          )
+          .join('') ||
+        `<li class="none c-dim" data-role="body">${esc(isEN() ? pad0('No drops yet. Rare+ drops from farming are listed here (last 50).') : '還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。')}</li>`
+      }</ul></div></div>`;
   }
   if (S.panel === 'death') {
     const dd = D('deaths'),
@@ -970,6 +1161,50 @@ function panelHTML(g) {
   }
   return fullHTML(g);
 }
+/* §8 營地升級單座卡（取代 C06 舊版）＋§3 升級鈕：重點先講、解鎖路線、左右滑換座、← 回清單（卡上沒有 ×） */
+const cardList = () =>
+  campCells()
+    .filter(c => c.c)
+    .map(c => c.n);
+function cardHTML(g, box, z) {
+  const port = g.port,
+    n = S.cardFac,
+    cell = campCells().find(c => c.n === n),
+    k = cell.c,
+    L = cardList(),
+    i = L.indexOf(n);
+  const lis = k.need
+    .map(
+      ([r, need, have]) =>
+        `<li><span class="ell">${esc(T(r))}</span><b class="num nw ${have >= need ? 'ok' : 'lack'}">${ab(have)}／${ab(need, 'cost')}</b><b class="cs2 ${have >= need ? 'ok' : 'lack'}">${have >= need ? esc(T('夠')) : `${esc(T('差'))} ${ab(need - have, 'cost')}`}</b></li>`
+    )
+    .join('');
+  const rt = routeOf(n, cell.lv)
+    .map(([lv, t, merged], j) => {
+      const nx = j === 0;
+      return `<li class="${nx ? 'nx' : ''}" data-role="body"><span class="rl">${esc(isEN() ? 'Lv' + lv + ' · ' : 'Lv' + lv + '・')}${esc(T(t))}</span>${nx ? `<span class="rp num">${k.pct}%</span><span class="rbar"><i style="width:${k.pct}%"></i></span>` : ''}</li>`;
+    })
+    .join('');
+  const wr = k.worst,
+    lackT = k.can ? esc(T('夠了')) : `${esc(T('差'))} ${ab(k.lack, 'cost')} ${esc(T(wr[0]))}`;
+  const nb = (key, ic, lab, off, kk) =>
+    `<button class="x44 kf nav${off ? ' dis' : ''}" data-hit="x" data-k="${key}" aria-label="${lab}"${off ? ' aria-disabled="true"' : ''}>${ic}${kc(kk)}</button>`;
+  return `<div class="ab pnl drw card1" id="d-drw" data-m="F8" data-panel style="${box}${z}">
+    <div class="hd"><button class="x44 kf back" data-hit="x" data-k="cback" aria-label="${esc(T('回清單', 'Back to list'))}">${ICO.back}${kc('Esc')}</button><b data-role="body" class="cn"><span class="ell">${esc(facName(n))}</span><small class="num">${i + 1}/${L.length}</small></b>${nb('cprev', ICO.prev, '上一座', i <= 0, '←')}${nb('cnext', ICO.next, '下一座', i >= L.length - 1, '→')}</div>
+    <div class="cbody" id="d-cbody">
+      <h4 data-role="body">Lv ${cell.lv} → Lv ${cell.lv + 1}</h4>
+      <p class="tl" data-role="body">${esc(isEN() ? 'This level: ' + T(thisLv(n, cell.lv)) : '這級：' + thisLv(n, cell.lv))}</p>
+      <ul class="cost">${lis}</ul>
+      <div class="rtw"><div class="rts" id="d-rts"><h6 data-role="body">${esc(T('接下來會解鎖', 'Coming up'))}</h6><ul class="rt" style="--rh:${port ? 28 : 32}px">${rt}</ul></div><i class="ifade t hide" id="d-rft"></i><i class="ifade b hide" id="d-rfb"></i></div>
+    </div>
+    <div class="cfoot"><span class="lk ${k.can ? 'ok' : 'lack'}" data-role="body">${lackT}</span><button class="upb kf ${k.can ? 'can' : 'no'}" data-hit="up1" data-k="up1"><span class="v">▲ ${esc(T('升級'))}</span></button></div></div>`;
+}
+function routeFit() {
+  const r = $('d-rts');
+  if (!r) return;
+  $('d-rft').classList.toggle('hide', !(r.scrollTop > 1));
+  $('d-rfb').classList.toggle('hide', !(r.scrollTop + r.clientHeight < r.scrollHeight - 1));
+}
 /* 目標列：名稱（可省略號）＋進度（數字永遠完整）；文字 130% 拆成兩行：名稱一行、「80%・靈魂 1,180／1,460」一行 */
 const goalLine = () => {
   const goal = D('goal');
@@ -986,21 +1221,26 @@ const goalLine = () => {
 function fullHTML(g) {
   const port = g.port;
   const box = port ? px(0, g.st, 390, g.navTop - g.st) : px(0, 0, g.W, g.H);
-  if (S.panel === 'tree') {
-    const sh = stripH(g);
-    return `<div class="ab tree" id="d-tree" data-m="V1" style="${port ? px(0, g.st, 390, g.H - g.st - g.sb) : px(0, 0, g.W, g.H)}z-index:9">
-      <div class="ab strip" id="d-strip" data-m="T1" style="${px(0, 0, port ? 390 : g.W - 448, sh)}"><div class="sv" id="d-sv"></div>
-      <button class="btn pri back kf hide" id="d-back" data-hit="back" data-k="back" style="min-height:44px">${esc(T('回戰場'))}</button>
-      <div class="lifebox" style="height:auto"><div class="lb hp" style="height:16px"><i id="d-shp" style="width:50%"></i><span data-role="num" id="d-shpt"></span></div></div></div>
-      <canvas class="ab" id="d-treecv" style="${px(0, sh, port ? 390 : g.W - 448, (port ? g.H - g.st - g.sb : g.H) - sh)}"></canvas>
-      ${port ? `<button class="x44 kf ab" data-hit="x" data-k="px" style="right:4px;bottom:${g.sb + 4}px;background:var(--panel)" aria-label="關閉">${ICO.x}</button>` : ''}</div>`;
+  if (fullPanel()) {
+    /* §6 天賦樹／昇華石碑滿版：蓋掉戰場、HUD、掛機條、底分頁；戰鬥暫停、回來補算 */
+    const st = S.panel === 'stele',
+      top = port ? g.st : 0,
+      tb = 56,
+      bs = port ? 44 : 36,
+      mm = port ? 120 : 160;
+    const tt = st ? T('昇華石碑', 'Ascendancy Stele') : T('天賦樹', 'Talent Tree');
+    return `<div class="ab tree" id="d-tree" data-m="${st ? 'F6-5' : 'F6-1'}" style="${px(0, 0, g.W, g.H)}z-index:30">
+      <div class="ab tbar" id="d-tbar" data-m="tbar" style="${px(0, top, g.W, tb)}"><button class="x44 kf tback" data-hit="x" data-k="tback" aria-label="${esc(T('回戰場'))}">${ICO.back}${kc('Esc')}</button><b data-role="body" class="ell">${esc(tt)}</b>
+        <span class="tpt" data-role="label" style="min-width:${bs}px;height:${bs}px" title="${esc(T('剩餘點數', 'Points left'))}">${st ? 2 : 22}</span><button class="x44 kf" data-k="tsearch" aria-label="${esc(T('搜尋'))}" style="width:${bs}px;height:${bs}px">${ICO.gem}</button><button class="x44 kf" data-k="tme" aria-label="${esc(T('回到我'))}" style="width:${bs}px;height:${bs}px">${ICO.hero}</button></div>
+      <canvas class="ab" id="d-treecv" style="${px(0, top + tb, g.W, (port ? g.H - g.sb : g.H) - top - tb)}"></canvas>
+      <canvas class="ab tmini" id="d-tmini" width="${mm}" height="${mm}" style="${port ? px(262, 682, mm, mm) : px(1104, 544, mm, mm)}"></canvas></div>`;
   }
   if (S.panel === 'forge') {
     return `<div class="ab forge pnl" id="d-forge" data-m="V8" data-panel style="${port ? px(0, g.drawerTop, 390, g.drawerH) : px(g.colX, 76, 420, g.colH)}z-index:11">
       <div class="hd" style="width:100%"><b>${esc(T('鍛造'))}・${esc(T('打造'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
       <div class="flip" id="d-flip"><div class="fb" id="d-fb">${esc(T('打造'))}…</div><div class="ff" id="d-ff">◆ ${esc(T('稀有'))}<span>${esc(T('赤鐵十字弓'))}</span></div></div>
-      <div class="pslot"><div class="pity" id="d-pity" data-role="body"><span id="d-pityt">${esc(T('下一件保底'))} 96%</span><div class="bar"><i id="d-pityf" style="width:96%"></i></div></div>
-      <div class="chban hide" id="d-chban">${wy('wangyin_guixu_16')} ${esc(T('保底 100%：歸墟印'))}</div></div>
+      <div class="pslot"><div class="pity" id="d-pity" data-role="body"><span id="d-pityt">${esc(isEN() ? pad0('After 1 more non-Rare crafts, the next is Rare') : '再 1 件沒出稀有，下一件一定是稀有')}</span><div class="bar"><i id="d-pityf" style="width:96%"></i></div></div>
+      <div class="chban hide" id="d-chban">◆ ${esc(isEN() ? pad0('The next is Rare') : '下一件一定是稀有')}</div></div>
       <div class="rw" style="display:flex;gap:8px"><button class="btn pri kf" data-k="fmake" data-hit="pri">${esc(T('打造'))}</button><button class="btn sec off kf" id="d-f4" data-k="f4" data-hit="sec" aria-disabled="true">F4 ${esc(T('腐化'))}</button></div>
       <div class="why" data-role="body">F4：${esc(T('鍛造台 Lv15 開'))}（120 ms 抖動：demo 未驗，進遊戲量）</div></div>`;
   }
@@ -1010,21 +1250,122 @@ function fullHTML(g) {
       `<button class="btn ${S[k] === v || P[k] === v ? 'sel' : 'sec'} kf" data-hit="opt" data-k="o-${k}-${v}" data-opt="${k}:${v}">${esc(T(lab))}</button>`;
     return `<div class="ab pnl drw" data-m="more" data-panel style="${port ? px(0, g.drawerTop, 390, g.drawerH) : px(g.colX, 76, 420, g.colH)}z-index:11"><div class="hd"><b>${esc(T('設定'))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
       <div class="bd ph2 grid"><p>${esc(T('掉落提示門檻'))}</p><div class="opt">${opt('filter', 'all', '全部')}${opt('filter', 'rare', '稀有以上')}${opt('filter', 'leg', '傳奇以上')}</div>
-      <p style="margin-top:12px">${esc(T('文字大小'))}・${esc(T('減少動態'))}：控制列切換</p></div></div>`;
+      <p style="margin-top:12px">${esc(T('文字大小'))}・${esc(T('減少動態'))}：控制列切換</p>
+      <button class="btn sec kf" data-hit="sec" data-k="stele" style="margin-top:12px">${esc(T('昇華石碑', 'Ascendancy Stele'))} ${kc('U')}</button></div></div>`;
   }
   return `<div class="ab pnl drw" data-m="${S.panel}" data-panel style="${port ? px(0, g.drawerTop, 390, g.drawerH) : px(g.colX, 76, 420, g.colH)}z-index:11"><div class="hd"><b>${esc(T(t[2]))}</b><button class="x44 kf" data-hit="x" data-k="px" aria-label="關閉">${ICO.x}</button></div>
     <div class="bd ph2"><p>${esc(T('本體屬 D2／D3；這裡只驗鍵盤焦點與換分頁'))}</p><div class="g grid">${Array.from({ length: 6 }, (_, i) => `<button class="btn sec kf" data-hit="sec" data-k="g${i}">${i + 1}</button>`).join('')}</div></div></div>`;
 }
-/* 天賦樹即時戰場條：平常 120；生命 < 20% 或王大招拉高到 330（200 ms） */
-const stripBig = () => (S.hp != null && S.hp < 0.2) || S.ult;
-function stripH(g) {
-  const lo = 120,
-    hi = 330,
-    k = P.rm ? 1 : Math.min(1, (NOW - S.stripT) / 200);
-  const from = S.strip ? lo : hi,
-    to = S.strip ? hi : lo;
-  return Math.round(S.stripT < 0 ? (S.strip ? hi : lo) : from + (to - from) * easeOut(k));
+/* ---------- §7 物品說明：比較放最前面（總結一行＋每列差值）；不能裝備的沒有比較區 ---------- */
+/* 假資料：能裝備的好／差／混合三件＋空槽＋通貨。st：[名, 值, 方向 up|dn|eq, 差值] */
+const ITEMS = {
+  better: {
+    n: '赤鐵十字弓',
+    r: 'rare',
+    base: '十字弓・T3・品質 12%',
+    sum: ['up', '比現在 +12% 傷害'],
+    st: [
+      ['物理傷害', '148–296', 'up', '+24'],
+      ['命中', '1,240', 'up', '+180'],
+      ['攻擊速度', '1.45', 'up', '+0.10'],
+      ['暴擊率', '6.5%', 'eq', '']
+    ],
+    af: ['+18 敏捷', '+12% 火焰傷害', '+9% 攻擊速度'],
+    wy: '王印：還沒套',
+    req: '需要 Lv 45・敏捷 80',
+    fl: '赤鐵鍛成，弦上還有爐火的溫度。',
+    act: ['裝上', '分解']
+  },
+  worse: {
+    n: '粗麻腰帶',
+    r: 'rare',
+    base: '腰帶・T2・品質 0%',
+    sum: ['dn', '比現在 −8% 生命'],
+    st: [
+      ['生命', '+1,240', 'dn', '−108'],
+      ['護甲', '320', 'dn', '−46'],
+      ['火焰抗性', '+18%', 'dn', '−6%']
+    ],
+    af: ['+42 生命', '+18% 火焰抗性'],
+    wy: '王印：還沒套',
+    req: '需要 Lv 40',
+    bad: '不能裝備：需要力量 120',
+    fl: '麻線打的結，比看起來牢。',
+    act: ['分解']
+  },
+  mixed: {
+    n: '霜脊頭盔',
+    r: 'leg',
+    base: '頭盔・T4・品質 8%',
+    sum: ['up', '比現在 +3% 傷害'],
+    st: [
+      ['護甲', '612', 'up', '+88'],
+      ['生命', '+96', 'dn', '−32'],
+      ['冰冷抗性', '+30%', 'up', '+12%'],
+      ['移動速度', '0%', 'dn', '−5%']
+    ],
+    af: ['+30% 冰冷抗性', '+96 生命', '技能冷卻 −6%'],
+    wy: '王印：疾霆印',
+    req: '需要 Lv 48・力量 60',
+    fl: '雪埋古道的兵留下的，裡面還結著霜。',
+    act: ['裝上', '分解']
+  },
+  empty: {
+    n: '獸皮腰帶',
+    r: 'rare',
+    base: '腰帶・T2・品質 4%',
+    sum: ['up', '腰帶現在空著'],
+    empty: 1,
+    st: [
+      ['生命', '+64', 'up', '+64'],
+      ['護甲', '120', 'up', '+120'],
+      ['閃電抗性', '+14%', 'up', '+14%']
+    ],
+    af: ['+64 生命', '+14% 閃電抗性'],
+    wy: '王印：還沒套',
+    req: '需要 Lv 30',
+    fl: '虎姑婆的皮，摸起來還是溫的。',
+    act: ['裝上', '分解']
+  },
+  cur: {
+    n: '崇高石',
+    r: 'rare',
+    base: '通貨・擁有 43',
+    cur: 1,
+    af: ['給稀有物品加一條隨機詞綴'],
+    fl: '高階通貨，鍛造台用。',
+    act: ['使用']
+  }
+};
+const ARW = { up: '▲', dn: '▼', eq: '—' };
+function itipHTML(g, key, cmp) {
+  const it = ITEMS[key],
+    port = g.port,
+    pre = it.r === 'rare' ? '◆ ' : it.r === 'leg' ? '◈ ' : '';
+  const sum = it.cur
+    ? ''
+    : `<div class="sm ${it.sum[0]}" data-m="F7-sum" data-hit="itcmp" data-k="itcmp" role="button" tabindex="0" data-role="body">${ARW[it.sum[0]]} ${esc(T(it.sum[1]))}</div>`;
+  const st = (it.st || [])
+    .map(
+      ([n, v, d, dv]) =>
+        `<li data-role="body"><span class="sn">${esc(T(n))}</span><span class="sv num">${esc(v)}</span>${it.cur ? '' : `<span class="sd num ${d}" data-d="${d}">${ARW[d]}${dv ? ' ' + esc(dv) : ''}</span>`}</li>`
+    )
+    .join('');
+  /* 直立：底部黏住、最高＝半版 60%（身上那件在上方）；桌機：滑鼠旁 320 寬（身上那件再往左） */
+  const box = port
+    ? cmp
+      ? `left:0;top:${g.drawerTop}px;width:390px;max-height:${Math.round(g.drawerH * 0.4) - 4}px;`
+      : `left:0;bottom:${g.H - g.drawerTop - g.drawerH}px;width:390px;max-height:${Math.round(g.drawerH * 0.6)}px;`
+    : px(g.colX - 8 - 320 - (cmp ? 328 : 0), 96, 320, null) + 'max-height:520px;';
+  return `<div class="ab itip${cmp ? ' cmp' : ''}" id="d-itip${cmp ? '2' : ''}" data-m="F7" data-it="${key}" style="${box}z-index:${cmp ? 17 : 16}">
+    <div class="ihd"><div class="tt"><b class="r-${it.r}" data-role="body">${pre}${esc(T(it.n))}</b><small data-role="body">${esc(T(it.base))}</small></div>${sum}</div>
+    ${st ? `<ul class="ist">${st}</ul>` : ''}<ul class="iaf">${it.af.map(a => `<li data-role="body">${esc(T(a))}</li>`).join('')}</ul>
+    ${it.wy ? `<p class="iwy r-chase" data-role="body">${esc(T(it.wy))}</p>` : ''}${it.req ? `<p class="req" data-role="body">${esc(T(it.req))}</p>` : ''}${it.bad ? `<p class="req bad" data-role="body">${esc(T(it.bad))}</p>` : ''}
+    <p class="flv" data-role="body">${esc(T(it.fl))}</p>
+    <div class="iact">${it.act.map((a, i) => `<button class="btn ${i ? 'sec' : 'pri'} kf" data-hit="sec" data-k="ia${i}">${esc(T(a))}</button>`).join('')}</div></div>`;
 }
+/* 身上那件（Shift／點總結行）：示意用同一件的「身上」版 */
+const EQUIPPED = { better: 'worse', worse: 'mixed', mixed: 'better' };
 
 /* ---------- 營地場景（C07–C12） ---------- */
 function campHTML(g) {
@@ -1032,7 +1373,7 @@ function campHTML(g) {
     res = D('res');
   let h = '';
   /* 資源列：放不下收成「…+3」（C11） */
-  h += `<div class="ab plate res" id="d-res" data-m="C11" data-hud style="${port ? px(8, g.st + 5, 374, 36) : px(16, 10, 540, 52)}">${res.map(([n, v]) => `<span data-role="body"><b>${esc(T(n))}</b>${fmt(v)}</span>`).join('')}<span class="more hide" id="d-resmore"></span></div>`;
+  h += `<div class="ab plate res" id="d-res" data-m="C11" data-hud style="${port ? px(8, g.st + 5, 374, 36) : px(16, 10, 540, 52)}">${res.map(([n, v]) => `<span data-role="body"><b>${esc(T(n))}</b>${ab(n === '靈魂' ? soulOf() : v)}</span>`).join('')}<span class="more hide" id="d-resmore"></span></div>`;
   h += `<button class="ab goalb kf" data-m="C12" data-hud data-hit="goal" data-k="goal" style="${port ? px(8, g.st + 49, 374, 44) : px(16, 66, 540, 44)}"><span data-role="body" id="d-goalt">${goalLine()}</span><span class="gp"><i id="d-gs" style="width:${D('goal').pct}%"></i></span></button>`;
   /* 牌匾：10 座，畫面外的用邊緣箭頭 */
   const cells = campCells().filter(c => c.lv != null);
@@ -1119,6 +1460,16 @@ function dlgHTML(g) {
   if (S.dlg === 'confirm')
     return `<div class="scrim" style="z-index:25"></div><div class="ab card" id="d-dlg" data-m="S08" role="dialog" style="${box}z-index:26"><h3 data-role="body">${esc(T('回營地？'))}</h3><p data-role="body">${esc(T('地上的東西照樣收下'))}</p><p data-role="body">${esc(T('戰鬥暫停、回來補算'))}</p>
       <button class="btn sec kf" data-hit="sec" data-k="dno" style="${port ? 'width:358px' : ''}">${esc(T('取消'))}</button><button class="btn pri kf" data-hit="pri" data-k="dyes" style="${port ? 'width:358px' : ''}">${esc(T('回營地'))}${devTouch() ? '' : ' <kbd style="font:600 12px var(--font);opacity:.8">Enter</kbd>'}</button></div>`;
+  if (S.dlg === 'up') {
+    /* §4：購買／升級確認框，費用、擁有都寫完整（加千分位），不縮寫 */
+    const n = S.cardFac,
+      cell = campCells().find(c => c.n === n),
+      k = cell.c;
+    return `<div class="scrim" style="z-index:25"></div><div class="ab card" id="d-dlg" data-m="F4-up" role="dialog" style="${box}z-index:26"><h3 data-role="body">${esc(T(`升級 ${n} 到 Lv ${cell.lv + 1}？`))}</h3>
+      <ul class="dcost">${k.need.map(([r, need, have]) => `<li data-role="body"><span>${esc(T(r))}</span><b class="num ${have >= need ? 'ok' : 'lack'}">${fullN(have)}／${fullN(need, 'cost')}</b></li>`).join('')}</ul>
+      ${k.can ? '' : `<p class="why" data-role="body">${esc(T('資源不夠'))}</p>`}
+      <button class="btn sec kf" data-hit="sec" data-k="dno" style="${port ? 'width:358px' : ''}">${esc(T('取消'))}</button><button class="btn pri kf${k.can ? '' : ' off'}" data-hit="pri" data-k="dupok" ${k.can ? '' : 'aria-disabled="true"'} style="${port ? 'width:358px' : ''}">${esc(T('升級'))}</button></div>`;
+  }
   return `<div class="scrim" style="z-index:25"></div><div class="ab card" id="d-dlg" data-m="S09" role="dialog" style="${box}z-index:26"><h3 data-role="body">${esc(T('分解 3 件稀有以上？'))}</h3><p data-role="body">${esc(T('分解後拿回材料'))}</p>
     <div class="holdtip" id="d-holdtip" data-role="body"></div>
     <div class="row2"><button class="btn danger hold kf" data-hit="hold" data-k="dhold" data-hold="danger">${ICO.trash}<span>${esc(T('長按分解'))}</span><i class="fill"></i></button><button class="btn sec kf" data-hit="sec" data-k="dno">${esc(T('取消'))}</button></div></div>`;
@@ -1198,7 +1549,7 @@ function spawnMob(p, init) {
   });
 }
 function sim(dt) {
-  if (S.scr !== 'hud' && S.panel !== 'tree') return;
+  if (S.scr !== 'hud' || fullPanel()) return; /* §6：天賦樹／石碑開著戰鬥暫停 */
   if (NOW - S.downT < 3000) return; /* 倒下：0 ms 停輸入與戰鬥 */
   const p = D('field');
   F.t += dt;
@@ -1226,7 +1577,11 @@ function sim(dt) {
     m.hp--;
     m.hit = NOW;
     const crit = rnd() < 0.15;
-    addNum(m, crit ? 'crit' : 'hit', Math.round((crit ? 2.1 : 1) * (40 + rnd() * 60) * (P.save === 'new' ? 0.4 : 6)));
+    addNum(
+      m,
+      crit ? 'crit' : 'hit',
+      Math.round((crit ? 2.1 : 1) * (40 + rnd() * 60) * (P.save === 'new' ? 0.4 : 6) * (S.dmgMul || 1))
+    );
     if (m.hp <= 0) {
       F.mobs = F.mobs.filter(x => x !== m);
       if (rnd() < 0.5) F.drops.push({ x: m.x, y: m.y, t: NOW, r: rnd() < 0.2 ? 'rare' : 'normal' });
@@ -1260,7 +1615,7 @@ function drawField() {
   const c = cv.getContext('2d'),
     k = z.port ? 1 : z.z;
   c.setTransform(1, 0, 0, 1, 0, 0);
-  c.fillStyle = '#000';
+  c.fillStyle = tok('--scrim-v1');
   c.fillRect(0, 0, z.w, z.h);
   c.imageSmoothingEnabled = false;
   if (S.scr === 'camp') {
@@ -1278,16 +1633,12 @@ function drawField() {
     }
     return;
   }
-  /* 戰場範圍：直立 fieldTop–fieldBot；天賦樹時畫在即時戰場條裡 */
+  /* 戰場範圍：直立 fieldTop–fieldBot；天賦樹／石碑滿版時不畫（§6） */
   let top = g.fieldTop * (z.port ? 1 : k),
     bot = g.fieldBot * (z.port ? 1 : k),
     left = 0,
     right = z.w;
-  if (S.panel === 'tree') {
-    top = z.port ? g.st : 0;
-    bot = top + stripH(g) * (z.port ? 1 : k);
-    right = z.port ? 390 : (g.W - 448) * k;
-  } else if (S.scr === 'sys') return;
+  if (S.scr === 'sys' || fullPanel()) return;
   c.save();
   c.beginPath();
   c.rect(left, top, right - left, bot - top);
@@ -1296,7 +1647,7 @@ function drawField() {
   if (fl.complete && fl.naturalWidth) {
     c.fillStyle = c.createPattern(fl, 'repeat');
     c.fillRect(left, top, right - left, bot - top);
-    c.fillStyle = 'rgba(8,6,5,0.35)';
+    c.fillStyle = tokA('--scene-void-rgb-v2', 0.35);
     c.fillRect(left, top, right - left, bot - top);
   }
   const cx = (left + right) / 2,
@@ -1307,7 +1658,7 @@ function drawField() {
   c.scale(sc, sc);
   /* 地上掉落 */
   for (const d of F.drops) {
-    c.fillStyle = d.r === 'rare' ? '#ffcf5c' : '#d9cdb4';
+    c.fillStyle = tok(d.r === 'rare' ? '--rar-rare' : '--rar-normal');
     c.beginPath();
     c.moveTo(d.x, d.y - 5);
     c.lineTo(d.x + 4, d.y);
@@ -1323,7 +1674,7 @@ function drawField() {
     if (o.im.complete) c.drawImage(o.im, sx, sy, w, h, Math.round(m.x - w / 2), Math.round(m.y - h), w, h);
     c.filter = 'none';
     if (m.el) {
-      c.strokeStyle = '#7ea7ff';
+      c.strokeStyle = tok('--rar-magic');
       c.strokeRect(Math.round(m.x - 16), Math.round(m.y - h - 8), 32, 4);
     }
   }
@@ -1344,7 +1695,7 @@ function drawField() {
   /* 投射物 */
   for (const s of F.shots) {
     const k2 = s.t / s.d;
-    c.fillStyle = '#ffe066';
+    c.fillStyle = tok('--ready');
     c.beginPath();
     c.arc(s.x + (s.tx - s.x) * k2, s.y + (s.ty - s.y) * k2, 3, 0, 7);
     c.fill();
@@ -1359,7 +1710,7 @@ function drawField() {
   for (const n of F.nums) {
     const a = (NOW - n.t0) / 700,
       fs = n.kind === 'hurt' ? 14 : n.kind === 'crit' ? 15 : 12,
-      t = fmt(n.v);
+      t = abbr(n.v, 'own'); /* §4：飄字縮寫（獲得，捨去） */
     c.font = `700 ${fs}px ${ff}`;
     c.globalAlpha = 1 - Math.max(0, a - 0.6) / 0.4;
     const hw = c.measureText(t).width / 2 + 2,
@@ -1372,10 +1723,10 @@ function drawField() {
     placed.push({ x, y, hw });
     n.sx = x;
     n.sy = y;
-    c.strokeStyle = 'rgba(0,0,0,0.8)';
+    c.strokeStyle = tokA('--scrim-rgb', 0.8);
     c.lineWidth = 3;
     c.strokeText(t, x, y);
-    c.fillStyle = n.kind === 'hurt' ? '#ff5a5a' : n.kind === 'crit' ? '#ffd166' : '#fff3e0';
+    c.fillStyle = tok(n.kind === 'hurt' ? '--bad-hi' : n.kind === 'crit' ? '--rar-rare-v1' : '--tx-strong');
     c.fillText(t, x, y);
   }
   c.globalAlpha = 1;
@@ -1385,7 +1736,7 @@ function drawField() {
    滑完那一格戰場 663 → 283 一次改、主角不動；關抽屜 200 ms 回中心。減少動態不平移，開關那一格直接切 */
 function camY(g, top, bot) {
   if (!g.port) return (top + bot) / 2;
-  const sliding = S.panel && !fullPanel() && !S.fieldPanel;
+  const sliding = ((S.panel && !fullPanel()) || S.idleOpen) && !S.fieldPanel;
   let vb = bot;
   if (sliding) {
     const k = P.rm ? 1 : Math.min(1, (NOW - S.drawerT) / 200);
@@ -1406,37 +1757,49 @@ function drawMini() {
   const m = $('d-mini');
   if (!m) return;
   const c = m.getContext('2d');
-  c.fillStyle = '#0b0806';
+  c.fillStyle = tok('--scene-void');
   c.fillRect(0, 0, 164, 104);
-  c.fillStyle = '#5e4e3a';
+  c.fillStyle = tok('--border-mid');
   c.fillRect(10, 48, 144, 8);
   c.fillRect(78, 10, 8, 84);
-  c.fillStyle = '#f1ebdc';
+  c.fillStyle = tok('--border-cap');
   c.fillRect(80, 50, 4, 4);
-  c.fillStyle = '#e0553f';
+  c.fillStyle = tok('--bad');
   for (const mo of F.mobs) c.fillRect(82 + mo.x / 8, 52 + mo.y / 8, 2, 2);
 }
 function drawTree() {
   const cv = $('d-treecv');
   if (!cv) return;
-  const r = cv.getBoundingClientRect(),
-    z = SIZES[P.size],
-    k = z.port ? 1 : z.z,
-    w = Math.round(r.width / (window.__vs || 1)),
-    h = Math.round(r.height / (window.__vs || 1));
+  const w = parseFloat(cv.style.width),
+    h = parseFloat(cv.style.height);
   if (cv.width !== w || cv.height !== h) (cv.width = w), (cv.height = h);
-  const c = cv.getContext('2d');
-  c.fillStyle = '#10131b';
+  const c = cv.getContext('2d'),
+    R0 = RND;
+  c.fillStyle = tok('--scene-void-v8');
   c.fillRect(0, 0, w, h);
-  c.strokeStyle = '#3a3027';
-  c.fillStyle = '#5e4e3a';
+  c.strokeStyle = tok('--panel-raised-2');
   RND = 99;
   const pts = Array.from({ length: 40 }, () => [20 + rnd() * (w - 40), 20 + rnd() * (h - 40)]);
   c.beginPath();
   pts.forEach((p, i) => i && c.lineTo(p[0], p[1]));
   c.stroke();
-  for (const p of pts) c.beginPath(), c.arc(p[0], p[1], 6, 0, 7), c.fill();
-  RND = 7 + Math.floor(NOW);
+  pts.forEach(
+    (p, i) => (
+      (c.fillStyle = tok(i < 9 ? '--rar-rare' : '--border-mid')), c.beginPath(), c.arc(p[0], p[1], 6, 0, 7), c.fill()
+    )
+  );
+  const m = $('d-tmini');
+  if (m) {
+    const x = m.getContext('2d'),
+      s = m.width / w;
+    x.fillStyle = tok('--scene-void');
+    x.fillRect(0, 0, m.width, m.height);
+    x.fillStyle = tok('--border-mid');
+    for (const p of pts) x.fillRect(p[0] * s - 1, p[1] * (m.height / h) - 1, 2, 2);
+    x.strokeStyle = tok('--border-cap');
+    x.strokeRect(m.width * 0.3, m.height * 0.3, m.width * 0.4, m.height * 0.4);
+  }
+  RND = R0; /* 樹的假點不動戰場的亂數 */
 }
 
 /* ---------- 掉落動態（V6） ---------- */
@@ -1508,7 +1871,7 @@ function drawFeed() {
     const dy = P.rm ? 0 : -6 * (1 - Math.min(1, age / 120));
     const mk = mark(f.rar, null, f.name);
     const nm = T(f.name);
-    h += `<div class="fr r-${f.rar}${NOW - S.pickT < 2000 && f === live[0] ? ' pick' : ''}" style="opacity:${a.toFixed(3)};transform:translateY(${dy.toFixed(2)}px)" data-role="body" data-rar="${f.rar}">${mk}<span class="nm">${esc(nm)}</span>${f.n > 1 ? `<span class="n">+${fmt(f.n)}</span>` : ''}</div>`;
+    h += `<div class="fr r-${f.rar}${NOW - S.pickT < 2000 && f === live[0] ? ' pick' : ''}" style="opacity:${a.toFixed(3)};transform:translateY(${dy.toFixed(2)}px)" data-role="body" data-rar="${f.rar}">${mk}<span class="nm">${esc(nm)}</span>${f.n > 1 ? `<span class="n">+${ab(f.n)}</span>` : ''}</div>`;
   }
   if (S.filter !== 'all' && S.filtered)
     h += `<div class="fr sum" data-role="body"><span class="nm">${esc(isEN() ? pad0(`+${fmt(S.filtered)} items collected`) : `+${fmt(S.filtered)} 件已收`)}</span></div>`;
@@ -1632,18 +1995,100 @@ function tick() {
   /* 吐司 */
   const ts = $('d-toast');
   if (ts && S.toast) ts.style.opacity = P.rm ? 1 : Math.min(1, (NOW - S.toast.t0) / 150).toFixed(3);
-  /* 掛機條：展開／收 200 ms；6 秒沒操作自動收 */
-  const id = $('d-idle');
-  if (id) {
+  /* 掛機卡（§1）：展開 200 ms ease-out（直立從下往上滑、桌機往上長）；收起 160 ms ease-in（直立是殘影滑出、桌機變矮）；
+     減少動態一律 ≤ 150 ms 淡入淡出。6 秒沒操作自動收（手指／滑鼠在清單上、或捲過都重新計時） */
+  const id = $('d-idle'),
+    ic = $('d-icard');
+  if (ic) {
     const t = NOW - S.idleT,
-      hc = port ? 44 : 40,
-      ho = 200;
-    const k = P.rm ? 1 : Math.min(1, t / 200),
-      from = S.idleOpen ? hc : ho,
-      to = S.idleOpen ? ho : hc;
-    id.style.height = (from + (to - from) * easeOut(k)).toFixed(2) + 'px';
-    if (P.rm) id.style.opacity = S.idleT > 0 ? Math.min(1, t / 150).toFixed(3) : 1;
-    if (S.idleOpen && NOW - Math.max(S.idleT, S.idleTouch) > 6000) idleToggle(0, 'auto');
+      k = Math.min(1, t / 200),
+      B = idleBox(g);
+    if (P.rm) ic.style.opacity = Math.min(1, t / 130).toFixed(3);
+    else if (port) ic.style.transform = `translateY(${((1 - easeOut(k)) * (B.h - 44)).toFixed(2)}px)`;
+    else {
+      const hh = 40 + (B.h - 40) * easeOut(k);
+      ic.style.height = hh.toFixed(2) + 'px';
+      ic.style.top = (B.y + B.h - hh).toFixed(2) + 'px';
+    }
+    ic.dataset.k = P.rm ? Math.min(1, t / 130).toFixed(3) : easeOut(k).toFixed(4);
+    if (port && t >= (P.rm ? 130 : 200) && !S.fieldPanel && !S.panel) {
+      S.fieldPanel = 1;
+      log('field-resize', { h: geo().fieldBot - geo().fieldTop, by: 'idle' });
+      build();
+      return;
+    }
+    if (S.idleHover) S.idleTouch = NOW;
+    if (NOW - Math.max(S.idleT, S.idleTouch) > 6000) return idleToggle(0, 'auto');
+  } else if (S.idleH0 && !port) {
+    /* 桌機收起：卡片 160 ms ease-in 變矮回 40（減少動態 140 ms 淡出） */
+    const t = NOW - S.idleT;
+    let gh = $('d-ighost');
+    if (t >= (P.rm ? CLOSE_RM : CLOSE_MS)) (S.idleH0 = 0), gh && gh.remove();
+    else {
+      if (!gh) {
+        UI().insertAdjacentHTML(
+          'beforeend',
+          `<div class="ab icard" id="d-ighost" style="left:16px;width:380px;z-index:13;pointer-events:none"></div>`
+        );
+        gh = $('d-ighost');
+      }
+      const k = t / CLOSE_MS,
+        hh = P.rm ? S.idleH0 : S.idleH0 + (40 - S.idleH0) * k * k;
+      gh.style.height = hh.toFixed(2) + 'px';
+      gh.style.top = (g.H - 16 - hh).toFixed(2) + 'px';
+      gh.style.opacity = P.rm ? (1 - t / CLOSE_RM).toFixed(3) : 1;
+      gh.dataset.k = (P.rm ? t / CLOSE_RM : k * k).toFixed(4);
+    }
+  }
+  /* §10.3 殘影：關抽屜 160 ms ease-in 往外滑出（直立往下、桌機往右）；減少動態 140 ms 只淡出 */
+  if (S.ghost) {
+    const G = S.ghost,
+      t = NOW - G.t0,
+      end = P.rm ? CLOSE_RM : CLOSE_MS;
+    let gh = $('d-ghost');
+    if (t >= end) (S.ghost = null), gh && gh.remove(), log('close-end', { ms: t });
+    else {
+      if (!gh) {
+        const e = el(G.html);
+        e.id = 'd-ghost';
+        e.removeAttribute('data-m');
+        e.removeAttribute('data-panel');
+        e.style.pointerEvents = 'none';
+        e.style.zIndex = 15;
+        e.style.transform = '';
+        e.style.opacity = '';
+        UI().appendChild(e);
+        gh = e;
+      }
+      const k = t / CLOSE_MS,
+        q = k * k; /* ease-in */
+      if (P.rm) gh.style.opacity = (1 - t / CLOSE_RM).toFixed(3);
+      else
+        gh.style.transform = G.port
+          ? `translateY(${(q * (g.H - G.r.y)).toFixed(2)}px)`
+          : `translateX(${(q * (g.W - G.r.x)).toFixed(2)}px)`;
+      gh.dataset.k = (P.rm ? t / CLOSE_RM : q).toFixed(4);
+    }
+  }
+  /* §2 冷卻環；低血：生命藥劑冷卻好了才畫 2 px --hp-hi 外框 1 Hz 呼吸（不透明度 0.4↔1，ease-in-out）；減少動態常亮 */
+  flaskTick();
+  const lo = $('d-flo');
+  if (lo) {
+    const off = flLeft('hp') > 0;
+    lo.hidden = off;
+    lo.style.opacity = P.rm ? 1 : (0.7 + 0.3 * Math.cos((NOW / 1000) * Math.PI * 2)).toFixed(3);
+  }
+  /* §8 換座：200 ms 橫滑（減少動態 140 ms 淡入） */
+  const cb = $('d-cbody');
+  if (cb && S.cardSw) {
+    const t = NOW - S.cardSw.t0,
+      k = Math.min(1, t / (P.rm ? 130 : 200));
+    if (P.rm) cb.style.opacity = k.toFixed(3);
+    else cb.style.transform = `translateX(${((1 - easeOut(k)) * 60 * S.cardSw.d).toFixed(2)}px)`;
+    cb.dataset.k = k.toFixed(4);
+    if (k >= 1) S.cardSw = null;
+  }
+  if (id) {
     const aw = $('d-away'),
       at = NOW - S.awayT;
     if (aw) {
@@ -1662,9 +2107,11 @@ function tick() {
       on = t >= 0 && t < 3300;
     cg.classList.toggle('hide', !on);
     if (on) {
-      const c = D('campGain');
-      const txt = isEN() && ENV('campGain') ? ENV('campGain') : c.text;
-      const body = esc(isEN() && ENV('campGain') ? pad0(txt) : T(txt)).replace(/◆/g, '<span class="r-rare">◆</span>');
+      const c = S.gainTxt ? { text: S.gainTxt } : D('campGain');
+      const txt = !S.gainTxt && isEN() && ENV('campGain') ? ENV('campGain') : c.text;
+      const body = S.gainTxt
+        ? esc(txt)
+        : esc(isEN() && ENV('campGain') ? pad0(txt) : T(txt)).replace(/◆/g, '<span class="r-rare">◆</span>');
       const html = c.chase ? `<span class="ch">${wy('wangyin_guixu_16')}</span>${body}` : body;
       if (cg.dataset.h !== html) (cg.innerHTML = html), (cg.dataset.h = html);
       cg.style.opacity = t < 3000 ? 1 : (1 - (t - 3000) / 300).toFixed(3);
@@ -1726,7 +2173,11 @@ function tick() {
   if (S.shakeEl) {
     const e = document.querySelector(S.shakeEl),
       t = NOW - S.shakeT;
-    if (e) {
+    if (e && S.shakeEl.startsWith('#d-fl-')) {
+      /* 藥劑忙碌：水平 2 px、80 ms；減少動態不抖，2 px --border-hi 外框 120 ms */
+      e.style.translate = t < 80 && !P.rm ? `${(Math.sin((t / 80) * Math.PI * 2) * 2).toFixed(2)}px 0` : '';
+      e.classList.toggle('busy', P.rm && t < 120);
+    } else if (e) {
       e.style.transform = t < 120 && !P.rm ? `translateX(${(Math.sin((t / 120) * Math.PI * 4) * 2).toFixed(2)}px)` : '';
       /* 減少動態：不抖，改一次 120 ms 亮度閃光 */
       e.style.filter = t < 120 && P.rm ? `brightness(${(1.8 - (0.8 * t) / 120).toFixed(3)})` : '';
@@ -1753,7 +2204,9 @@ function tick() {
       pk = S.pityT < 0 ? 0 : Math.min(1, pt / 400),
       pv = Math.round(96 + 4 * pk);
     $('d-pityf').style.width = pv + '%';
-    $('d-pityt').textContent = T(`下一件保底 ${pv}%`);
+    $('d-pityt').textContent = T(
+      pv >= 100 ? '下一件一定是稀有' : '再 1 件沒出稀有，下一件一定是稀有'
+    ); /* §5：鍛造不出現「保底」 */
     $('d-pity').classList.toggle('full', pv >= 100);
     const cb = $('d-chban');
     cb.classList.toggle('hide', pk < 1);
@@ -1762,24 +2215,7 @@ function tick() {
         ? ''
         : `0 0 ${(8 + 8 * Math.sin(((pt - 400) / 600) * Math.PI * 2)).toFixed(1)}px rgba(var(--rar-chase-rgb), 0.6)`;
   }
-  /* 天賦樹即時戰場條（V1） */
-  const sp = $('d-strip');
-  if (sp) {
-    const want = stripBig() ? 1 : 0;
-    if (want !== S.strip) (S.strip = want), (S.stripT = NOW), log('strip', { big: want });
-    const hh = stripH(g);
-    sp.style.height = hh + 'px';
-    const tc = $('d-treecv');
-    if (tc) tc.style.top = hh + 'px';
-    const hp = S.hp != null ? S.hp : 0.8,
-      a = hp < 0.35 ? (hp < 0.2 ? 0.55 : 0.35) : 0;
-    $('d-sv').style.background = vign(a);
-    $('d-back').classList.toggle('hide', !(hp < 0.35));
-    $('d-shp').style.width = hp * 100 + '%';
-    const life = D('life');
-    $('d-shpt').textContent = `${fmt(Math.round(life[1] * hp))}／${fmt(life[1])}`;
-    drawTree();
-  }
+  if (fullPanel()) drawTree();
   /* 下一個目標 100%：條亮 160 ms（減少動態只換字） */
   const gs = $('d-gs');
   if (gs) gs.classList.toggle('flash', !P.rm && NOW - S.goalT >= 0 && NOW - S.goalT < 160);
@@ -1799,34 +2235,130 @@ function countText(s, k, en) {
     const v = +m.replace(/,/g, '');
     if (!isFinite(v)) return m;
     const cur = v * k;
-    return m.includes('.') ? cur.toFixed(1) : m.includes(',') ? fmt(Math.round(cur)) : String(Math.round(cur));
+    return m.includes('.')
+      ? cur.toFixed(1)
+      : m.includes(',')
+        ? fullN(cur)
+        : String(Math.floor(cur + 1e-9)); /* §4：離線結算寫完整、捨去 */
   });
   return en ? T(o) : o;
 }
 
 /* ---------- 動作 ---------- */
+/* §10.3 關抽屜：160 ms ease-in 往外滑出（直立往下、桌機往右）；減少動態 140 ms 淡出、不滑。
+   關的那一格狀態就改好（戰場恢復全高、墊在抽屜下），舊抽屜複製一份當「殘影」滑出去，不擋輸入 */
+const CLOSE_MS = 160,
+  CLOSE_RM = 130;
+function ghostOut(sel) {
+  const e = document.querySelector(sel);
+  if (!e) return false;
+  const r = { x: e.offsetLeft, y: e.offsetTop, w: e.offsetWidth, h: e.offsetHeight };
+  S.ghost = { html: e.outerHTML.replace(/ id="[^"]*"/g, ''), t0: NOW, r, port: !!SIZES[P.size].port };
+  log('close-start', { sel });
+  return true;
+}
 function idleToggle(open, why) {
+  const port = !!SIZES[P.size].port;
+  if (!open && S.idleOpen) {
+    if (port) ghostOut('#d-icard');
+    else S.idleH0 = $('d-icard') ? $('d-icard').offsetHeight : 0;
+  }
+  if (open && S.panel && !fullPanel()) (S.panel = null), (S.fieldPanel = 0);
   S.idleOpen = open;
   S.idleT = NOW;
   S.idleTouch = NOW;
+  if (port) {
+    S.fieldPanel = 0;
+    if (open) S.drawerT = NOW;
+  }
+  F.wantLast = null; /* 關的那一格鏡頭直接到新中心（不 200 ms 補間） */
+  S.camT = 0;
   log(open ? 'idle-open' : 'idle-close', { why });
   build();
 }
 function openPanel(p, opt) {
   if (S.panel === p) return closePanel();
   const was = S.panel;
+  if (S.idleOpen) (S.idleOpen = 0), (S.fieldPanel = 0);
+  if (was && fullPanel()) closeFull();
   S.panel = p;
   if (opt) Object.assign(S, opt);
   if (!was || fullPanel()) S.drawerT = NOW;
-  if (fullPanel()) S.fieldPanel = 0;
+  if (fullPanel()) (S.fieldPanel = 0), (S.treeT = NOW), (S.treeK = p), log('pause', { p });
   log('panel', { p });
   build();
 }
+/* 天賦樹／石碑關掉：回戰場淡入 160 ms，開著 ≥ 10 秒才出「天賦樹期間 靈魂 +n・k 件・◆ r」（停 3,000、淡出 300） */
+const SOUL_PER_MIN = 291.92; /* 中期 Lv48 每分鐘靈魂（number-abbrev.md） */
+function closeFull() {
+  const stay = NOW - S.treeT,
+    k = S.panel;
+  S.fadeT = NOW - 120;
+  log('resume', { p: k, stay });
+  if (stay >= 10000) {
+    /* 名詞表 v0.6.15：「天賦樹期間 靈魂 +{n}・{k} 件・◆ {r}」；件數、稀有照中期營地期間 3 分 14 件・◆ 1 的速率（假定）；0 的項從後面省略 */
+    const m = stay / 60000,
+      n = Math.floor(SOUL_PER_MIN * m),
+      it = Math.floor((14 / 3) * m),
+      r = Math.floor(m / 3),
+      en = isEN(),
+      parts = [en ? `Souls +${abbr(n, 'own')}` : `靈魂 +${abbr(n, 'own')}`];
+    if (it || r) parts.push(en ? `${abbr(it, 'own')} items` : `${abbr(it, 'own')} 件`);
+    if (r) parts.push(`◆ ${abbr(r, 'own')}`);
+    S.gainTxt = en
+      ? `${k === 'stele' ? 'While at Ascendancy Stele' : 'While in Talent Tree'}: ${parts.join(' · ')}`
+      : `${k === 'stele' ? '昇華石碑' : '天賦樹'}期間 ${parts.join('・')}`;
+    S.gainT = NOW + 160;
+    log('gain', { at: NOW + 160, n, it, r, txt: S.gainTxt });
+  }
+}
 function closePanel() {
+  if (fullPanel()) closeFull();
+  else if (S.panel) ghostOut('#d-drw') || ghostOut('[data-panel]');
+  if (S.panel === 'card' || S.panel === 'camp') S.campScroll = 0;
   S.panel = null;
   S.fieldPanel = 0;
   S.pick = null;
+  S.itip = null;
+  F.wantLast = null;
+  S.camT = 0;
   log('panel', { p: null });
+  build();
+}
+/* 單座卡 → 清單：選中剛才那格、捲動位置不變 */
+function cardBack() {
+  const f = S.cardFac;
+  S.panel = 'camp';
+  S.pick = f;
+  log('card-back', { f });
+  build();
+  const bd = document.querySelector('#d-drw .bd');
+  if (bd) bd.scrollTop = S.campScroll || 0;
+  focusK('cb-' + f);
+}
+/* 換座：照清單順序、不循環；200 ms 橫滑（減少動態 ≤ 150 ms 淡入） */
+function cardGo(d) {
+  const L = cardList(),
+    i = L.indexOf(S.cardFac) + d;
+  if (i < 0 || i >= L.length) return log('card-end', { d });
+  S.cardFac = L[i];
+  S.cardSw = { t0: NOW, d };
+  log('card-nav', { d, f: L[i] });
+  build();
+}
+/* 藥劑：冷卻好了就喝（生命 +30%）並開始 3 秒冷卻；冷卻中按＝不喝、不出字，鈕抖 ≤80 ms（減少動態只亮外框 120 ms） */
+function potion(k) {
+  const kk = k === '1' ? 'hp' : k === '2' ? 'mp' : k,
+    left = flLeft(kk);
+  log('potion', { k: kk, busy: left > 0, left: +(left * FL_CD).toFixed(0), hp: S.hp });
+  if (left > 0) {
+    S.shakeEl = '#d-fl-' + kk;
+    S.shakeT = NOW;
+    return;
+  }
+  S[kk === 'hp' ? 'flhT' : 'flmT'] = NOW;
+  if (kk === 'hp') S.hp = Math.min(1, (S.hp != null ? S.hp : 0.84) + 0.3);
+  else S.mpHot = 0;
   build();
 }
 function goCamp() {
@@ -1937,8 +2469,16 @@ function onClick(e) {
   const k = t.dataset.k;
   S.idleTouch = NOW;
   if (k.startsWith('tab-')) return tabGo(t.dataset.tab);
-  if (k === 'idle' || k === 'idlex') return idleToggle(!S.idleOpen, 'click');
-  if (k === 'spect') return (S.spect = 1), (S.idleOpen = 0), build();
+  if (k === 'idle' || k === 'idlex' || k === 'idlex2') return idleToggle(!S.idleOpen, 'click');
+  if (k === 'spect') return (S.spect = 1), (S.idleOpen = 0), (S.fieldPanel = 0), build();
+  if (k === 'cur') return openPanel('cur');
+  if (k === 'alllog') return (S.idleOpen = 0), (S.pickT = NOW), openPanel('log');
+  if (k === 'cback') return cardBack();
+  if (k === 'tback') return closePanel();
+  if (k === 'stele') return openPanel('stele');
+  if (k === 'itcmp') return (S.itipCmp = !S.itipCmp), build();
+  if (k.startsWith('fl-')) return potion(t.dataset.fl);
+  if (k === 'dupok') return t.classList.contains('off') ? 0 : ((S.dlg = null), toast('', T('升級完成')));
   if (k === 'goal' || k === 'goal2')
     return openPanel('camp', { pick: D('goal').fac }), S.panel !== 'camp' && openPanel('camp', { pick: D('goal').fac });
   if (k === 'feed') return (S.pickT = NOW), openPanel('log');
@@ -1957,15 +2497,17 @@ function onClick(e) {
       return;
     }
     if (!costOf(f)) return;
+    const bd = document.querySelector('#d-drw .bd');
+    S.campScroll = bd ? bd.scrollTop : 0;
     return (S.panel = 'card'), (S.cardFac = f), (S.drawerT = S.drawerT > 0 ? S.drawerT : NOW), build();
   }
-  if (k === 'cprev' || k === 'cnext') {
-    const L = campCells()
-        .filter(c => c.c)
-        .map(c => c.n),
-      i = L.indexOf(S.cardFac);
-    S.cardFac = L[(i + (k === 'cnext' ? 1 : L.length - 1)) % L.length];
-    return build();
+  if (k === 'cprev' || k === 'cnext') return cardGo(k === 'cnext' ? 1 : -1);
+  if (k === 'up1') {
+    const c = costOf(S.cardFac);
+    if (c.can) return (S.dlg = 'up'), build(), focusK('dupok');
+    S.shakeEl = '[data-k="up1"]';
+    S.shakeT = NOW;
+    return toast('', T('資源不夠'), 1500);
   }
   if (k === 'cgo') return backToField();
   if (k === 'dyes') return (S.dlg = null), goCamp();
@@ -1997,12 +2539,17 @@ function onKey(e) {
   const k = e.key;
   if (e.type === 'keyup') {
     if ((k === 'Enter' || k === ' ') && S.hold) holdEnd();
+    if (k === 'Shift' && S.itipCmp) (S.itipCmp = 0), build();
     return;
   }
   if (e.repeat) return e.preventDefault();
   S.idleTouch = NOW;
   log('key', { k });
   if (k === 'Escape') return escLayer(), e.preventDefault();
+  if (k === 'Shift' && S.itip) return (S.itipCmp = 1), build();
+  /* §8：桌機 ←／→ 換座（單座卡開著時） */
+  if ((k === 'ArrowLeft' || k === 'ArrowRight') && S.panel === 'card' && !SIZES[P.size].port)
+    return e.preventDefault(), cardGo(k === 'ArrowRight' ? 1 : -1);
   if (k === 'Tab') {
     e.preventDefault();
     const cur = ORDER.indexOf(tabOn()),
@@ -2018,6 +2565,7 @@ function onKey(e) {
   if (k === 'Enter' && S.dlg === 'confirm') return onClick({ target: document.querySelector('[data-k="dyes"]') });
   if ((k === 'Enter' || k === ' ') && a && a.dataset && a.dataset.k) return e.preventDefault(), onClick({ target: a });
   if (k.startsWith('Arrow')) return e.preventDefault(), arrowMove(k);
+  if (k.toLowerCase() === 'u') return openPanel('stele');
   const L = { v: 'char', k: 'forge', g: 'skill', p: 'tree', h: 'camp', z: 'more' }[k.toLowerCase()];
   if (L) return tabGo(L), focusK('tab-' + L);
   const lk = k.toLowerCase();
@@ -2028,21 +2576,17 @@ function onKey(e) {
   if (k === '1' || k === '2') return potion(k);
   if (k === 'F4') return e.preventDefault(), S.panel === 'forge' && onClick({ target: $('d-f4') });
 }
-function potion(k) {
-  log('potion', { k });
-  if (k === '1') S.hp = Math.min(1, (S.hp != null ? S.hp : 0.84) + 0.3);
-  else S.mpHot = 0;
-  build();
-}
-/* Esc 逐層關：對話框 → 觀戰 → 天賦樹 → 面板 → 開設定；設定開著再按＝關 */
+/* Esc 逐層關（D1-fix §8）：對話框 → 觀戰 → 天賦樹／石碑 → 單座卡回清單 → 面板 → 開設定；設定開著再按＝關 */
 function escLayer() {
   let what;
   if (S.dlg) (S.dlg = null), (what = 'dialog');
   else if (S.offOn) (S.offOn = 0), (what = 'offline');
   else if (S.spect) (S.spect = 0), (what = 'spect');
-  else if (S.panel === 'tree') (S.panel = null), (what = 'tree');
-  else if (S.panel === 'more') (S.panel = null), (S.fieldPanel = 0), (what = 'settings');
-  else if (S.panel) (S.panel = null), (S.fieldPanel = 0), (what = 'panel');
+  else if (fullPanel()) return log('esc', { what: S.panel }), closePanel();
+  else if (S.panel === 'card') return log('esc', { what: 'card' }), cardBack();
+  else if (S.panel === 'more') return log('esc', { what: 'settings' }), closePanel();
+  else if (S.panel) return log('esc', { what: 'panel' }), closePanel();
+  else if (S.idleOpen) return log('esc', { what: 'idle' }), idleToggle(0, 'esc');
   else (S.panel = 'more'), (S.drawerT = NOW), (what = 'open-settings');
   log('esc', { what });
   build();
@@ -2078,6 +2622,15 @@ function arrowMove(dir) {
   if (best) best.focus(), log('focus', { k: best.dataset.k });
 }
 
+/* 縮寫數字的完整值小說明框：放在數字正上方（不擋下一個輸入：pointer-events none） */
+function showAbTip(a) {
+  const u = UI().getBoundingClientRect(),
+    r = a.getBoundingClientRect(),
+    sc = u.width / UI().offsetWidth;
+  S.abTip = { t: a.dataset.full, x: (r.x - u.x) / sc + r.width / sc / 2, y: (r.y - u.y) / sc - 4, el: a.dataset.full };
+  log('abtip', { t: a.dataset.full });
+  build();
+}
 /* ---------- 列：每一列把畫面設成那個狀態 ---------- */
 const R = (id, t, fn, o = {}) => Object.assign({ id, t, fn }, o); /* o.steps：截圖前推幾格（預設 20） */
 const ROWS = [
@@ -2175,8 +2728,89 @@ const ROWS = [
     () => ((S.dev = 'kbd'), (S.panel = 'log'), (S.fieldPanel = 1), (S.drawerT = -1000), (S.pickT = -100))
   ),
   R('K07', '方向鍵／Enter／空白', () => ((S.dev = 'kbd'), openNow('camp'), (S.focus = 'cb-瞭望台'))),
-  R('K08', '分頁只剩圖示時', () => ((S.navIcon = 1), (S.tip = { t: '營地', x: 0, y: 0 })))
+  R('K08', '分頁只剩圖示時', () => ((S.navIcon = 1), (S.tip = { t: '營地', x: 0, y: 0 }))),
+  /* ---------- D1-fix（mumi 11/19）：§12 拍攝清單的狀態 ---------- */
+  R('F1-1', '掛機卡展開・掉落清單捲在頂', () => idleNow()),
+  R('F1-2', '掛機卡展開・捲到底', () => idleNow(), { after: () => (($('d-il').scrollTop = 1e6), idleListFit()) }),
+  R('F1-3', '掛機卡展開・戰場高與交集', () => idleNow()),
+  R('F1-4', '掛機卡展開・130%＋英文', () => idleNow()),
+  R('F2-1', '藥劑・兩瓶都不在冷卻、生命 84%', () => (S.hp = 0.84)),
+  R(
+    'F2-2',
+    '藥劑・剛喝生命藥劑 1.5 秒（冷卻一半；拍照前 demo.step(20) 再走 333 ms）',
+    () => ((S.hp = 0.84), (S.flhT = -1167))
+  ),
+  R('F2-3', '藥劑・冷卻中再按一次（不喝、鈕抖）', () => ((S.hp = 0.84), (S.flhT = -1000)), {
+    after: () => potion('hp')
+  }),
+  R('F2-4', '藥劑・生命 30%、生命藥劑不在冷卻（外框呼吸）', () => (S.hp = 0.3)),
+  R('F2-4c', '藥劑・生命 30%、生命藥劑冷卻中（沒有外框）', () => ((S.hp = 0.3), (S.flhT = -1500))),
+  R('F2-5', '藥劑・營地升級抽屜開著', () => ((S.hp = 0.84), openNow('camp'))),
+  R('F3-1', '單座卡・升級鈕（買得起）', () => cardNow('瞭望台', 1)),
+  R('F3-2', '單座卡・升級鈕（英文＋130%）', () => cardNow('瞭望台', 1)),
+  R(
+    'F4-1',
+    'K／M 縮寫・big 存檔',
+    () => (openNow('camp'), SIZES[P.size].port || ((S.idleOpen = 1), (S.idleT = -1000))),
+    { save: 'big' }
+  ),
+  R('F4-2', 'K／M 縮寫・完整值說明框', () => 0, {
+    save: 'big',
+    after: () => showAbTip(document.querySelector('#d-cur .abn'))
+  }),
+  R('F4-3a', '完整數字・升級確認框', () => (cardNow('瞭望台'), (S.dlg = 'up')), { save: 'big' }),
+  R('F4-3b', '完整數字・物品說明', () => (openNow('char'), (S.itip = 'better')), { save: 'big' }),
+  R('F4-3c', '完整數字・通貨明細', () => openNow('cur'), { save: 'big' }),
+  R('F4-3d', '完整數字・離線結算', () => ((S.offOn = 1), (S.offDone = 1)), { save: 'big' }),
+  R(
+    'F4-4',
+    'K／M 邊界・擁有 10,050／費用 10,099',
+    () => ((S.costOver = { 瞭望台: { need: [['靈魂', 10099, 10050]] } }), cardNow('瞭望台'))
+  ),
+  R('F4-5', '飄字 ≥ 10,000', () => ((S.dmgMul = 22), (S.numBurst = 1))),
+  R('F5-1', '鍛造開著・追逐保底 42%', () => openNow('forge')),
+  R('F5-2', '鍛造開著・英文＋130%', () => openNow('forge')),
+  R('F6-1', '天賦樹滿版', () => openNow('tree')),
+  R('F6-4', '天賦樹滿版・130%＋英文', () => openNow('tree')),
+  R('F6-5', '昇華石碑滿版', () => openNow('stele')),
+  R('F7-1', '物品說明・比身上好', () => (openNow('char'), (S.itip = 'better'))),
+  R('F7-2', '物品說明・比身上差', () => (openNow('char'), (S.itip = 'worse'))),
+  R('F7-3', '物品說明・有升有降', () => (openNow('char'), (S.itip = 'mixed'))),
+  R('F7-4', '物品說明・通貨', () => (openNow('char'), (S.itip = 'cur'))),
+  R('F7-5', '物品說明・該槽空著', () => (openNow('char'), (S.itip = 'empty'))),
+  R('F7-6', '物品說明・130%＋英文', () => (openNow('char'), (S.itip = 'better'))),
+  R('F8-1', '單座卡・瞭望台 Lv14 解鎖路線', () => cardNow('瞭望台')),
+  R('F8-2', '單座卡・頂列（← 沒有 ×）', () => cardNow('瞭望台')),
+  R('F8-4', '單座卡・130%＋英文', () => cardNow('瞭望台')),
+  R('F9-1', '貨幣列・中期', () => 0),
+  R('F9-2', '貨幣列・big', () => 0, { save: 'big' }),
+  R('F9-3', '貨幣列・通貨明細', () => openNow('cur')),
+  R('F9-4', '貨幣列・130%＋英文', () => 0),
+  R('F11-2', '戰場背景（待素材）', () => 0),
+  R('F11-3', '營地背景（待素材）', () => (S.scr = 'camp'))
 ];
+/* 掛機卡展開完（直立：戰場已改高） */
+function idleNow() {
+  S.idleOpen = 1;
+  S.idleT = -1000;
+  S.drawerT = -1000;
+  S.fieldPanel = SIZES[P.size].port ? 1 : 0;
+}
+/* 單座卡；can＝把費用換成買得起的假資料（§3 F3-1） */
+function cardNow(f, can) {
+  openNow('card');
+  S.cardFac = f;
+  if (can)
+    S.costOver = {
+      [f]: {
+        need: [
+          ['靈魂', 1460, 1520],
+          ['木', 750, 9860],
+          ['百煉鋼', 150, 18600]
+        ]
+      }
+    };
+}
 function sys(k) {
   S.scr = 'sys';
   S.sec = k;
@@ -2346,6 +2980,113 @@ const SCN = {
     ]
   }
 };
+/* ---------- D1-fix 錄影（§12）：60 fps 逐幀；直立用點、桌機用鍵盤（照實際輸入） ---------- */
+const PORTQ = () => !!SIZES[P.size].port;
+const swipe = dx => {
+  const b = $('d-cbody');
+  if (!b) return;
+  const r = b.getBoundingClientRect(),
+    y = r.y + 40,
+    x0 = r.x + r.width / 2;
+  const ev = (t, x) =>
+    b.dispatchEvent(new PointerEvent(t, { bubbles: true, clientX: x, clientY: y, pointerType: 'touch' }));
+  ev('pointerdown', x0);
+  ev('pointerup', x0 + dx);
+};
+const scrollList = d => {
+  const l = $('d-il');
+  if (l) (l.scrollTop += d), l.dispatchEvent(new Event('scroll')), log('scroll-list', { top: l.scrollTop });
+};
+Object.assign(SCN, {
+  'V-F1_idle_expand': {
+    t: '§1 掛機卡：展開 → 捲 → 6 秒不動 → 自動收',
+    save: 'mid',
+    dur: 9400,
+    at: [
+      [300, () => (PORTQ() ? tap('idlex') : key('x'))],
+      [1300, () => scrollList(88)],
+      [1700, () => scrollList(88)],
+      [8400, () => 0]
+    ]
+  },
+  'V-F2_flask_busy': {
+    t: '§2 藥劑冷卻中再按：不喝、鈕抖 ≤80 ms（減少動態只亮外框）',
+    save: 'mid',
+    dur: 2600,
+    at: [
+      [0, () => ((S.hp = 0.5), build())],
+      [300, () => tap('fl-hp')],
+      [1300, () => tap('fl-hp')],
+      [1900, () => key('1')]
+    ]
+  },
+  'V-F2_lowhp': {
+    t: '§2 低血：生命藥劑外框 1 Hz 呼吸（減少動態常亮）',
+    save: 'mid',
+    dur: 3200,
+    at: [[0, () => ((S.hp = 0.3), build())]]
+  },
+  'V-F6_tree_pause': {
+    t: '§6 天賦樹：開 15 秒 → 關（戰鬥暫停、回來補算）',
+    save: 'mid',
+    dur: 20000,
+    at: [
+      [500, () => (PORTQ() ? tap('tab-tree') : key('p'))],
+      [15500, () => (PORTQ() ? tap('tback') : key('Escape'))]
+    ]
+  },
+  'V-F6_stele_pause': {
+    t: '§6 昇華石碑：開 15 秒 → 關（直立從更多、桌機按 U）',
+    save: 'mid',
+    dur: 20500,
+    at: [
+      [300, () => (PORTQ() ? tap('tab-more') : 0)],
+      [1000, () => (PORTQ() ? tap('stele') : key('u'))],
+      [16000, () => (PORTQ() ? tap('tback') : key('Escape'))]
+    ]
+  },
+  'V-F8_card_nav': {
+    t: '§8 單座卡：換座兩次 → ← 回清單 → Esc（直立滑、桌機 ←→）',
+    save: 'mid',
+    dur: 5200,
+    at: [
+      [200, () => (PORTQ() ? tap('tab-camp') : key('h'))],
+      [700, () => tap('cb-瞭望台')],
+      [1300, () => (PORTQ() ? swipe(-90) : key('ArrowRight'))],
+      [2000, () => (PORTQ() ? swipe(-90) : key('ArrowRight'))],
+      [2700, () => (PORTQ() ? tap('cback') : key('Escape'))],
+      [3500, () => key('Escape')]
+    ]
+  },
+  'V-R_drawer_close': {
+    t: '§10 關抽屜 160 ms ease-in 滑出（營地升級、技能、設定、通貨明細、直立掛機卡）',
+    save: 'mid',
+    dur: 7400,
+    at: [
+      [200, () => (PORTQ() ? tap('tab-camp') : key('h'))],
+      [900, () => tap('px')],
+      [1500, () => (PORTQ() ? tap('tab-skill') : key('g'))],
+      [2200, () => tap('px')],
+      [2800, () => (PORTQ() ? tap('tab-more') : key('z'))],
+      [3500, () => key('Escape')],
+      [4100, () => tap('cur')],
+      [4800, () => tap('px')],
+      [5400, () => (PORTQ() ? tap('idlex') : 0)],
+      [6200, () => (PORTQ() ? tap('idlex2') : 0)]
+    ]
+  },
+  'V-F6_tree_keys': {
+    t: '§6 天賦樹：Esc、P 各關一次（只關天賦樹這層）',
+    save: 'mid',
+    dur: 3400,
+    at: [
+      [300, () => key('p')],
+      [1100, () => key('Escape')],
+      [1900, () => key('p')],
+      [2700, () => key('p')]
+    ]
+  }
+});
 let SCN_ON = null;
 function startScn(k) {
   const s = SCN[k];
@@ -2383,7 +3124,9 @@ function apply(rowId) {
       'pickT',
       'holdTipT',
       'shakeT',
-      'idleT'
+      'idleT',
+      'flhT',
+      'flmT'
     ])
       if (S[k] > -1e8 && S[k] <= 0) S[k] += NOW;
     if (S.hold) S.hold.t0 += NOW;
@@ -2411,6 +3154,7 @@ function apply(rowId) {
     }
   }
   if (r && r.id === 'K06') focusK('px');
+  if (r && r.after) r.after();
   sel();
 }
 function fillFeed() {
@@ -2461,12 +3205,13 @@ function setupCtl() {
     H: '2 戰鬥 HUD',
     C: '3 營地＋全域骨架',
     I: '4 掛機條與離線',
-    K: '5 按鍵（只鍵盤）'
+    K: '5 按鍵（只鍵盤）',
+    F: '6 D1-fix mumi 11/19'
   };
   $('c-row').innerHTML = Object.entries(secs)
     .map(
       ([p, n]) =>
-        `<optgroup label="${n}">${ROWS.filter(r => r.id[0] === p)
+        `<optgroup label="${n}">${ROWS.filter(r => r.id[0] === p || (p === 'F' && r.id[0] === 'R'))
           .map(r => `<option value="${r.id}">${r.id} ${r.t}</option>`)
           .join('')}</optgroup>`
     )
@@ -2510,7 +3255,7 @@ function frame(dt) {
   runScn();
   runTimers();
   sim(dt);
-  if (S.scr === 'hud' || S.scr === 'camp') S.idleMs += dt; /* 掛機時間照走（營地、抽屜開著都不停） */
+  if (S.scr === 'hud' || S.scr === 'camp') S.idleMs += dt; /* 掛機時間照走（營地、抽屜、天賦樹開著都不停） */
   tick();
 }
 let last = 0;
@@ -2533,6 +3278,9 @@ window.demo = {
   },
   LOG,
   ROWS: () => ROWS.map(r => ({ id: r.id, t: r.t, size: r.size, save: r.save, nv: r.nv, steps: r.steps })),
+  potion: k => potion(k),
+  idle: o => idleToggle(o, 'demo'),
+  card: d => cardGo(d),
   build: () => build(),
   SV: () => SV,
   SCN: () => Object.fromEntries(Object.entries(SCN).map(([k, s]) => [k, { t: s.t, dur: s.dur, save: s.save }])),
@@ -2543,16 +3291,10 @@ window.demo = {
   },
   geo: () => geo(),
   hero: () => F.hero || null,
-  /* 戰場框（UI 座標）：直立＝fieldTop–fieldBot；天賦樹＝即時戰場條；桌機＝全畫面 */
+  /* 戰場框（UI 座標）：直立＝fieldTop–fieldBot；桌機＝全畫面；天賦樹／石碑滿版時沒有戰場 */
   frame() {
-    const g = geo(),
-      st = $('d-strip');
-    if (S.panel === 'tree' && st) {
-      const u = UI().getBoundingClientRect(),
-        r = st.getBoundingClientRect(),
-        sc = u.width / UI().offsetWidth;
-      return { x: (r.x - u.x) / sc, y: (r.y - u.y) / sc, w: r.width / sc, h: r.height / sc };
-    }
+    const g = geo();
+    if (fullPanel()) return null;
     return g.port ? { x: 0, y: g.fieldTop, w: g.W, h: g.fieldBot - g.fieldTop } : { x: 0, y: 0, w: g.W, h: g.H };
   },
   isEN: () => isEN(),
@@ -2561,6 +3303,10 @@ window.demo = {
   focus: k => focusK(k),
   reseed: () => feedSeed(),
   feedThin: () => ($('d-feed') ? $('d-feed').dataset.thin : null),
+  /* 錄影量測：戰場的怪、飄字（暫停時應該不動） */
+  fieldSig: () => F.mobs.map(m => `${m.x.toFixed(2)},${m.y.toFixed(2)}`).join(';') + '|' + F.nums.length,
+  nums: () => F.nums.map(n => ({ v: n.v, t: abbr(n.v, 'own') })),
+  abbr: (n, m) => abbr(n, m),
   INV: () => ({ INV_CAP, INV_SPARE }),
   miss: () => MISS.slice()
 };
@@ -2581,9 +3327,37 @@ window.demo = {
   if (Q.has('bare')) document.body.classList.add('bare');
   setupCtl();
   $('ui').addEventListener('click', onClick);
-  $('ui').addEventListener('scroll', () => drawerFit(), true);
+  $('ui').addEventListener(
+    'scroll',
+    e => {
+      drawerFit();
+      if (e.target.id === 'd-il') (S.idleTouch = NOW), idleListFit();
+      if (e.target.id === 'd-rts') routeFit();
+    },
+    true
+  );
+  /* 掛機卡清單：指標在上面就不自動收 */
+  $('ui').addEventListener('pointerover', e => {
+    S.idleHover = !!e.target.closest('#d-il');
+    /* §4 縮寫數字：滑鼠停 300 ms 出完整值；移開就收 */
+    const a = e.target.closest('.abn');
+    if (e.pointerType === 'mouse' && a && (!S.abTip || S.abTip.el !== a.dataset.full)) {
+      const k = a.dataset.full;
+      S.abHov = k;
+      later(300, () => S.abHov === k && showAbTip(a));
+    }
+    if (e.pointerType === 'mouse' && !a && (S.abTip || S.abHov))
+      (S.abHov = null), S.abTip && ((S.abTip = null), build());
+  });
+  $('ui').addEventListener('pointerout', e => {
+    if (e.target.closest('#d-il') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('#d-il')))
+      S.idleHover = false;
+  });
   $('ui').addEventListener('pointerdown', e => {
     if (e.pointerType) S.dev = e.pointerType === 'touch' ? 'touch' : SIZES[P.size].port ? 'auto' : 'kbd';
+    const a = e.target.closest('.abn');
+    if (a && e.pointerType !== 'mouse') showAbTip(a);
+    if (e.target.closest('#d-cbody')) S.swipe = { x: e.clientX, y: e.clientY };
     const h = e.target.closest('[data-hold]');
     if (h) holdStart(h.dataset.hold);
     const tb = e.target.closest('.tabs.icon .tab');
@@ -2600,9 +3374,17 @@ window.demo = {
         )
       );
   });
-  $('ui').addEventListener('pointerup', () => {
+  $('ui').addEventListener('pointerup', e => {
     holdEnd();
     if (S.tip) (S.tip = null), build();
+    if (S.abTip && e.pointerType !== 'mouse') (S.abTip = null), build();
+    /* §8 直立左右滑換座：水平 ≥ 48 px 且 |dx| > 2|dy| */
+    if (S.swipe) {
+      const dx = e.clientX - S.swipe.x,
+        dy = e.clientY - S.swipe.y;
+      S.swipe = null;
+      if (Math.abs(dx) >= 48 && Math.abs(dx) > 2 * Math.abs(dy)) cardGo(dx < 0 ? 1 : -1);
+    }
   });
   $('ui').addEventListener('pointerleave', () => holdEnd());
   window.addEventListener('keydown', onKey);

@@ -40,7 +40,7 @@ function rich(t, plain) {
 /* 清單上的一行說明：拿掉代價記號 */
 const plainTxt = t => esc(String(t || '').replace(/[]/g, ''));
 const skMain = n => n.dps ?? n.unit ?? n.dot ?? n.hit;
-const soulB = (c, sm) => `<span class="soul${sm ? ' sm' : ''}"><i></i>${fmtN(c)}</span>`;
+const soulB = (c, sm) => `<span class="soul${sm ? ' sm' : ''}"><i></i>${abbrH(c, 'cost')}</span>`;
 /* 按鈕上的原因要短，詳細的在 title */
 const gemShort = w =>
   /靈魂/.test(w)

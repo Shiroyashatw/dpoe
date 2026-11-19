@@ -279,10 +279,10 @@ const D = {
       ['崇高石', 'rare'],
       ['高階增幅石', 'rare']
     ],
-    away: { kind: 'line', min: 4, text: '離開 4 分・靈魂 +1,170' },
+    away: { kind: 'line', min: 4, text: '離開 4 分・靈魂 +1,167' },
     off: {
       t: '離開 1 時 40 分',
-      sum: '打倒王 40 次・倒下 1 次・靈魂 +2.9萬',
+      sum: '打倒王 40 次・倒下 1 次・靈魂 +29,192',
       rows: [
         ['崇高石 +43', 'rare'],
         ['高階增幅石 +4', 'rare'],
@@ -402,7 +402,7 @@ const D = {
     away: { kind: 'settle', text: '3 時 12 分' },
     off: {
       t: '離開 3 時 12 分',
-      sum: '打倒王 78 次・倒下 2 次・靈魂 +6.4萬',
+      sum: '打倒王 78 次・倒下 2 次・靈魂 +64,172',
       rows: [
         ['破裂石 +3', 'rare'],
         ['崇高石 +84', 'rare'],
@@ -427,6 +427,7 @@ const D = {
     idle: 138,
     kills: 57,
     pity: 0,
+    filtered: 37 /* D1-fix-fakedata §1a「+37 件已收」（假定） */,
     camp: [
       ['林場', 112],
       ['礦場', 118],
@@ -471,7 +472,7 @@ const D = {
     goal: { name: '瞭望台 Lv22・開鬼門關', fac: '瞭望台', pct: 100, have: 3100, need: 3100, res: '靈魂' },
     off: {
       t: '離開 12 時 0 分',
-      sum: '打倒王 296 次・倒下 4 次・靈魂 +31.7萬',
+      sum: '打倒王 296 次・倒下 4 次・靈魂 +316,800',
       rows: [
         ['破裂石 +13', 'rare'],
         ['崇高石 +313', 'rare'],
@@ -493,7 +494,6 @@ const D = {
       prog: 'Boss 99%',
       idle: 'Idle 23h 59m · 599 boss kills',
       pity: 'Chase pity 100%',
-      pityShort: 'Pity 100%',
       fac: 'Hunting Ground',
       goal: 'Next goal: Anvil Lv18 · Higher-tier currency',
       stash: 'Stash almost full: 3 slots left',
@@ -542,7 +542,7 @@ const D = {
     away: { kind: 'settle', text: '11 時 59 分' },
     off: {
       t: '離開 11 時 59 分',
-      sum: '打倒王 296 次・倒下 3 次・靈魂 +21萬',
+      sum: '打倒王 296 次・倒下 3 次・靈魂 +209,892',
       rows: [
         ['破裂石 +13', 'rare'],
         ['崇高石 +313', 'rare'],

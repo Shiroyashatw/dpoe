@@ -64,7 +64,7 @@
 | B-P9 | `camp`－`from-idle` | 直立掛機卡按「去營地」 | 點擊次數（應 1）；進營地後掛機卡與捲動（同 B-P1） | 算進 F-cp | — |
 
 ## 11. 天賦、昇華
-祭壇 Lv6（midgame）天賦樹已開。`navGo('tree')` → `treeOpen()`，`#ptree` 蓋滿、分頁列留著。
+祭壇 Lv6（midgame）天賦樹已開。`navGo('tree')` → `treeOpen()`，`#ptree` 蓋滿（分頁列也蓋）、戰鬥暫停回來補算（D1-fix part2 §6，11/19）。
 
 | ID | screen－state | 怎麼做 | 量測 | 動態 | ★／S |
 | --- | --- | --- | --- | --- | --- |

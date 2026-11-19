@@ -163,7 +163,8 @@ function pracInit() {
     else dpsReset();
   });
 }
-const dpsN = v => Math.round(v).toLocaleString('en-US');
+/* 試招場 DPS 卡寫完整數字（number-abbrev：統計，捨去） */
+const dpsN = v => fullN(v, 'own');
 function pracHud() {
   const el = $('prac');
   if (HV.prac !== PRAC.in) el.hidden = !(HV.prac = PRAC.in);

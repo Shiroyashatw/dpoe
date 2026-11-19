@@ -25,7 +25,7 @@
   "被濾掉件數（+n 件已收）": "+138 件已收；EN 示意「+138 items collected」",
   "最近 3 筆稀有以上": "EN（名詞表 v0.6.12）：Perfect Calamity Orb｜Ink of Remembrance｜Boss Seal · 4/4（量框：最長通貨「完美災魘石 Perfect Calamity Orb」20 字元；四個王印的個別 EN 名名詞表未收，先寫 Boss Seal）",
   "離線時長（< 60 秒／4 分／≥ 10 分）": "11 時 59 分：出離線結算；EN「Away 11h 59m」（名詞表 v0.6.12 時長格式）",
-  "離線結算：打倒王、倒下次數、掉落 3 列、追逐列": "「離開 11 時 59 分」｜「打倒王 296 次・倒下 3 次・靈魂 +21萬」｜破裂石 +13、崇高石 +313、追憶之墨 +4｜「追逐物品 ×6、目前保底 100%」；EN 示意「296 boss kills · 3 deaths」",
+  "離線結算：打倒王、倒下次數、掉落 3 列、追逐列": "「離開 11 時 59 分」｜「打倒王 296 次・倒下 3 次・靈魂 +209,948」｜破裂石 +13、崇高石 +313、追憶之墨 +4｜「追逐物品 ×6、目前保底 100%」；EN 示意「296 boss kills · 3 deaths」",
   "營地期間 +N：靈魂、件數、稀有以上、追逐": "EN 示意「While in camp: Boss Seal 1 · Souls +2,336 · 37 items · ◆ 2」（8 分）",
   "倒下紀錄 ×3：誰、哪一招、傷害、元素；玩家該抗性": "EN（名詞表 v0.6.12）「③ Venom Serpent Queen · Tenfold Wheel −126 (Chaos)」（量框：最長王名「毒涎蛇姬 Venom Serpent Queen」19 字元＋最長王招「十殿輪轉 Tenfold Wheel」13 字元；實際蛇姬不會這招，只拿來量框）",
   "狀態圖示：增益、減益各幾顆（0／1／8／9+）": "—",
@@ -46,7 +46,6 @@
    "prog": "Boss 99%",
    "idle": "Idle 23h 59m · 599 boss kills",
    "pity": "Chase pity 100%",
-   "pityShort": "Pity 100%",
    "fac": "Hunting Ground",
    "goal": "Next goal: Anvil Lv18 · Higher-tier currency",
    "stash": "Stash almost full: 3 slots left",
@@ -179,7 +178,7 @@
   },
   "off": {
    "t": "離開 11 時 59 分",
-   "sum": "打倒王 296 次・倒下 3 次・靈魂 +21萬",
+   "sum": "打倒王 296 次・倒下 3 次・靈魂 +209,892",
    "rows": [
     [
      "破裂石 +13",

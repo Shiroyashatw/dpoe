@@ -3343,8 +3343,8 @@ const ASC_COMBOS = `const combos = k => {
     j(g.pay) === '[["",1],["",0.5],["",0.5],["",0.25]]' &&
       j(g.gap) === '["藥劑技能共用 0.5 秒間隔",0.5]' &&
       g.gap2 === '' &&
-      g.empty === '藥劑充能不夠：殺怪會補' &&
-      g.emptyHalf === '藥劑充能不夠：殺怪會補' &&
+      g.empty === '藥劑技能充能不夠：殺怪會補' &&
+      g.emptyHalf === '藥劑技能充能不夠：殺怪會補' &&
       g.halfOK === '' &&
       g.noFlask === '蟾蜍之血：不能使用藥劑' &&
       j(g.prac) === '[true,true]',
@@ -10830,7 +10830,7 @@ const ASC_COMBOS = `const combos = k => {
       /* 2：Lv<45 地點整行不出（空字串）；Lv≥45 一行 */
       S.chase.pts = 600;
       r.line = [chaseLine(lo), chaseLine(hi), chaseLine(0)];
-      r.html = ((G) => { ${fnSrc(hudSrc, 'chaseHTML')}; return [chaseHTML(), (G.mapT = hi), chaseHTML()]; })({ mapT: lo });
+      r.html = ((G) => { const icHTML = (n, c) => '<i data-ic="' + n + '" class="' + c + '"></i>'; ${fnSrc(hudSrc, 'chaseHTML')}; return [chaseHTML(), (G.mapT = hi), chaseHTML()]; })({ mapT: lo });
       /* 8：離線那一列 n 與 p 是兩個值 */
       S.chase.pts = 125;
       r.off = chaseOffRow(3);
@@ -10902,12 +10902,12 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(ad.pct)
   );
   ok(
-    'M2-18 掛機卡：Lv<45 地點不出保底行（空字串、不留空位），Lv≥45 一行「下一件保底 100%」（點數 600）',
+    'M2-18 掛機卡：Lv<45 地點不出保底行（空字串、不留空位），Lv≥45 一行「下一件保底 100%」、掛機卡展開列「追逐保底 100%」＋王印 16（點數 600）',
     ad.line[0] === '' &&
       ad.line[1] === '下一件保底 100%' &&
       ad.line[2] === '' &&
       ad.html[0] === '' &&
-      /^<div class="chs"><span>下一件保底 100%<\/span>/.test(ad.html[2]),
+      /^<div class="chs"><span><i data-ic="wangyin_guixu_16" class="ipw"><\/i>追逐保底 100%<\/span>/.test(ad.html[2]),
     JSON.stringify([ad.line, ad.html])
   );
   ok(

@@ -26,8 +26,8 @@ function artRepaint() {
 
 /* 技能列：1 生命藥劑、2 魔力藥劑、5 個技能欄（左鍵、右鍵、Q、E、R）、空白翻滾 */
 const BAR = [
-  { k: 'flask', key: '1', ic: 'it_potion', n: '生命藥劑', d: '回復一半生命（1.4 秒內）。殺怪會補充。' },
-  { k: 'mflask', key: '2', ic: 'it_potion', n: '魔力藥劑', d: '回復一半魔力（1.4 秒內）。殺怪會補充。' },
+  { k: 'flask', key: '1', ic: 'it_potion', n: '生命藥劑', d: '回復一半生命（1.4 秒內）。冷卻 3 秒，不限次數。' },
+  { k: 'mflask', key: '2', ic: 'it_potion', n: '魔力藥劑', d: '回復一半魔力（1.4 秒內）。冷卻 3 秒，不限次數。' },
   ...SLOTKEY.map((key, i) => ({ k: 's' + i, key, slot: i })),
   { k: 'roll', key: '空白', n: '翻滾', d: '短暫無敵。怪物出手的瞬間翻滾＝完美閃避：時間變慢，下一擊必定暴擊。' },
   { k: 'use', key: 'F', n: '互動', d: '撿東西', touch: 1 }
@@ -172,7 +172,7 @@ function hudBar() {
       return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
     })
     .join('');
-  for (const k in HV) if (/^[tnb]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$/.test(k)) delete HV[k];
+  for (const k in HV) if (/^[tnb]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$|^[cl](flask|mflask)$/.test(k)) delete HV[k];
 }
 const barKey = () => (TOUCH.on ? 't' : campN('slots'));
 function tipOf(b) {
@@ -261,9 +261,11 @@ function hudTick() {
     let cd = 0,
       txt = '';
     if (k === 'flask' || k === 'mflask') {
-      /* 0.3.1：不限次數，只畫冷卻 */
+      /* 0.3.1：不限次數，只畫冷卻環＋扇形掃過（不寫次數、秒數）；低血（< 35%）且生命藥劑冷卻好了才呼吸外框 */
       cd = (P.cds[k] || 0) / FLASK.cd;
-      if (P.cds[k] > 0) txt = Math.ceil(P.cds[k]) + '';
+      const low = k === 'flask' && !(cd > 0) && P.hp < ST.hp * 0.35;
+      if (HV['c' + k] !== cd > 0) el.classList.toggle('cdn', (HV['c' + k] = cd > 0));
+      if (HV['l' + k] !== low) el.classList.toggle('low', (HV['l' + k] = low));
     } else if (k === 'roll') cd = (P.cds.roll || 0) / (ROLL.cd + ROLL.t);
     else if (c && isFlaskSk(c.D)) {
       /* 藥劑技能（0.2.74 追獵者）：還能放幾次（跟紅水同一池）；共用 0.5 秒間隔畫成冷卻圈 */
@@ -452,7 +454,7 @@ function hudState() {
           ? `<button class="btn pri wide dup" data-fg="${GEN[up.k] ? `gen:${up.k}:1` : `camp:${up.k}`}">現在可以升：${esc(up.n)}<small>${esc(costTxt(up.c))}</small></button>`
           : '';
     o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}${mods.length ? `<p class="dmods">地圖詞：${mods.map(m => esc(MAPMOD[m].t)).join('、')}</p>` : ''}<p>不扣經驗，裝備都還在。</p>
-      <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>${bk ? esc(`連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(bk))}`) : '同一個地點重新開始'}</small></button>` : `<button class="btn pri" data-a="camp">回營地<small>自動刷圖暫停</small></button>`}</div></div>`;
+      <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>${bk ? esc(`連倒 ${DEAD_MAX} 次，退回${wName(S, ...wXY(bk))}`) : '同一個地點重新開始'}</small></button>` : `<button class="btn pri" data-a="camp">回營地<small>自動刷圖暫停</small></button>`}</div></div>`;
     overOn(o);
   } else if (G.ask === 'camp' && G.scene === 'map' && G.state === 'play') {
     /* 桌機：T 再按一次＝回去、Esc＝繼續刷圖（M0-04） */
@@ -729,7 +731,7 @@ function moreHTML() {
     pts = ptLeft(),
     row = (tm, n, d, a) =>
       `<button class="mrow" ${a ? `data-a="${tm}"` : `data-tm="${tm}"`}><b>${n}</b><small>${d}</small></button>`;
-  return `<div class="ph"><b>更多</b><span>角色 Lv ${S.lv} · ${S.gold} 金</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><b>更多</b><span>角色 Lv ${S.lv} · ${abbrH(S.gold, 'own')} 金</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="mgrid">
     ${row('nav:node', '地點', esc(G.scene === 'map' && G.nodeN ? `正在刷：${G.nodeN} · ${G.star || 1}★` : '選一個地點開始刷'))}
     ${campCan('tree') ? row('tree', '天賦樹', pts > 0 ? `<span class="c-good">剩 ${pts} 點</span>` : '點數用完了') : ''}
@@ -1113,11 +1115,11 @@ function dollHTML() {
       : `<button class="chbelt" data-a="selbelt">${STR_T.beltCharm} ›</button>`;
   return `<div class="doll2"><div class="col">${DOLL_L.map(dollCell).join('')}</div>
   <div class="mid">${[
-    ['DPS', fmtN(Math.round(dps(ST)))],
-    ['生命', fmtN(ST.hp)],
-    ST.es ? ['能量護盾', fmtN(ST.es)] : null,
-    ['護甲', fmtN(ST.armor)],
-    ST.ev ? ['閃避', fmtN(ST.ev)] : null
+    ['DPS', fullN(dps(ST), 'own')],
+    ['生命', fullN(ST.hp, 'own')],
+    ST.es ? ['能量護盾', fullN(ST.es, 'own')] : null,
+    ['護甲', fullN(ST.armor, 'own')],
+    ST.ev ? ['閃避', fullN(ST.ev, 'own')] : null
   ]
     .filter(Boolean)
     .map(([n, v]) => `<div class="mi"><small>${n}</small><b>${v}</b></div>`)
@@ -1185,16 +1187,16 @@ function statsHTML(s, pen) {
       `<section><h4>${n}${note ? `<small>${note}</small>` : ''}</h4><div class="stg">${cells.filter(Boolean).join('')}</div></section>`,
     hit = Math.round(100 * hitChance(s.acc, mobEv(S.lv)));
   return `<div class="st2">${grp('攻擊', [
-    cell('DPS', fmtN(Math.round(dps(s)))),
+    cell('DPS', fullN(dps(s), 'own')),
     cell('傷害', `${Math.round(s.dmg[0])}–${Math.round(s.dmg[1])}`),
     cell('攻擊速度', s.aps.toFixed(2)),
     cell('暴擊率', `${s.crit.toFixed(1)}%${s.lukCrit ? `<small>有效 ${effCh(s.crit, 1).toFixed(1)}%</small>` : ''}`),
     cell('命中率', `${hit}%`, `命中值 ${s.acc}：對同等級普通怪的命中率；法術必定命中`)
   ])}${grp('防禦', [
-    cell('生命', fmtN(s.hp)),
-    s.es ? cell('能量護盾', fmtN(s.es)) : '',
-    cell('護甲', fmtN(s.armor)),
-    s.ev ? cell('閃避', fmtN(s.ev)) : '',
+    cell('生命', fullN(s.hp, 'own')),
+    s.es ? cell('能量護盾', fullN(s.es, 'own')) : '',
+    cell('護甲', fullN(s.armor, 'own')),
+    s.ev ? cell('閃避', fullN(s.ev, 'own')) : '',
     cell('格擋', `${s.block}%${s.blockOver ? `<small>超限 +${s.blockOver}%</small>` : ''}`),
     s.defl
       ? cell(
@@ -1509,8 +1511,26 @@ const TAGN = {
 };
 /* 技能列第二行的數字（skills.js 的 skillNums）：傷害用元素色、魔力藍、冷卻金 */
 const fmtN = n => Math.round(n).toLocaleString('en-US');
-/* 窄格子裡的數字：1000 以上寫成 1.2k */
-const shortN = n => (n >= 1000 ? +(n / 1000).toFixed(1) + 'k' : n);
+/* 數字縮寫（specs/number-abbrev.md）：mode 'own'＝擁有／獲得（捨去）、'cost'＝費用／需求（進位）。
+   < 10,000 完整加千分位；以上 3 位有效數字 K／M／B／T（尾數 0 不刪），≥ 1e15 寫 1.23e15；進位到 1000 換下一個單位 */
+const fullN = (n, mode) => (mode === 'cost' ? Math.ceil(n - 1e-9) : Math.floor(n + 1e-9)).toLocaleString('en-US');
+function abbr(n, mode) {
+  if (n < 0) return '-' + abbr(-n, mode);
+  if (!(n >= 1e4)) return fullN(n || 0, mode);
+  /* 用整數的字串取前 3 位，不走浮點除法（12.3 × 10 不會變 122.99…） */
+  const s = Math.floor(n).toLocaleString('en-US', { useGrouping: false });
+  let e = s.length - 1,
+    q = +s.slice(0, 3);
+  if (mode === 'cost' && (n % 1 > 0 || /[1-9]/.test(s.slice(3)))) q++;
+  if (q >= 1000) (q = 100), e++;
+  if (e >= 15) return (q / 100).toFixed(2) + 'e' + e;
+  const u = Math.floor(e / 3),
+    d = 2 - (e - 3 * u);
+  return (q / 10 ** d).toFixed(d) + 'KMBT'[u - 1];
+}
+/* 縮寫的數字：滑鼠停留／點一下（data-tip）看完整數字 */
+const abbrH = (n, mode) =>
+  n >= 1e4 ? `<span class="abn" data-tip="${fullN(n, mode)}">${abbr(n, mode)}</span>` : fullN(n, mode);
 /* 名詞變成可以點（說明框有動作時、昇華面板才用；同一段文字只標第一次） */
 const TERM_RE = new RegExp(
   Object.keys(TERMS)
@@ -1959,7 +1979,7 @@ function boxHTML() {
       ['god', '弒神']
     ],
     row = (k, n) =>
-      `<li class="${n ? '' : 'z'}">${icHTML(FRAGS[k].ic)}<div><b>${esc(FRAGS[k].n)}</b></div><em>${n}</em></li>`,
+      `<li class="${n ? '' : 'z'}">${icHTML(FRAGS[k].ic)}<div><b>${esc(FRAGS[k].n)}</b></div><em>${fullN(n || 0, 'own')}</em></li>`,
     btn = (kind, cost) => {
       const w = arenaWhy(S, kind, BOXUI.sel);
       return `<button class="btn wm-hall ${w ? '' : 'pri'}" data-bx="go:${kind}" ${w ? 'disabled' : ''}><b>${ARENA[kind]}</b><small>${esc(w || cost)}</small></button>`;
@@ -2132,16 +2152,16 @@ let LOGSEL = null;
 /* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
 function logHTML() {
   const P = S.prd || {},
-    bar = (n, v, max, t = `${v}／${max}`) =>
+    bar = (n, v, max, t = `${abbr(v, 'own')}／${abbr(max, 'cost')}`) =>
       `<div class="lgbar"><span>${n}</span><div class="pb" role="progressbar" aria-label="${n}保底" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${v}"><i style="width:${Math.min(100, (v / max) * 100)}%"></i></div><small>${t}</small></div>`,
     ago = t => {
       const m = Math.floor((Date.now() - t) / 60000);
       return m < 1 ? '剛剛' : m < 60 ? `${m} 分鐘前` : `${Math.floor(m / 60)} 小時前`;
     };
   return `<div class="ph"><b>掉落紀錄</b><span>最近 50 筆重點掉落</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="ph2">保底進度<span>滿了下一次必出</span></div>
+  <div class="ph2">保底進度・<span>滿了下一次一定掉</span></div>
   ${campCan('cur:frac') ? bar('破裂石（王）', P.fracO2 || 0, prdMax(NEW_P.frac[2])) : ''}${campCan('cur:perf') ? bar('完美石（王）', P.perfO2 || 0, prdMax(NEW_P.perf[2])) : ''}${campCan('cur:ink') ? bar('追憶之墨（王）', P.ink2 || 0, prdMax(NEW_P.ink[2])) : ''}${bar('完美通貨', P.perfC || 0, TIER_P.pity)}${chaseOf().pts || chaseN() ? bar(STR_T.chase, chasePct(), 100, chasePct() + '%') : ''}
-  <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c} ${x === LOGSEL ? 'on' : ''}" ${x.k ? `data-chs="${x.k}" role="button" tabindex="0"` : ''}><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">這裡只記稀有掉落與通貨。上面的條是保底進度，滿了一定掉一顆。</li>'}</ul>`;
+  <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c} ${x === LOGSEL ? 'on' : ''}" ${x.k ? `data-chs="${x.k}" role="button" tabindex="0"` : ''}><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。</li>'}</ul>`;
 }
 /* ---------- 掛機卡（0.4.9，示意頁第 9 版）：刷圖中、沒開面板時直立佔下半、桌機在左下。
    上層：再幾隻王就出來（主數字＝進度 %）；本次掛機：掛了多久、幾輪、稀有、★、追憶、通貨、金、死亡；
@@ -2199,11 +2219,11 @@ function idleHTML() {
     lab = esc(strT('idleAria', { t: dur, n: ch ? n : '—' }));
   if (IDLE.open)
     return `<div class="iex" role="group" aria-label="${lab}">
-    <div class="ir"><b>${strT('idleT', { t: dur })}</b><span>${strT('idleGot', { s: fmtN(ses.soul || 0), b: ses.rounds })}</span><button class="ix" data-a="idlex" aria-label="收起" aria-expanded="true">${ICO.down}</button></div>
+    <div class="ir"><b>${strT('idleT', { t: dur })}</b><span>${strT('idleGot', { s: abbrH(ses.soul || 0, 'own'), b: ses.rounds })}</span><button class="ix" data-a="idlex" aria-label="收起" aria-expanded="true">${ICO.down}</button></div>
     ${ch ? chaseHTML() : ''}
     <div class="ir il3">${L.slice(0, 3).map(logRow).join('') || `<span class="c-dim">${STR_T.idleNone}</span>`}</div>
     <div class="ir">${goalHTML()}</div></div>`;
-  return `<button class="ib" data-a="idlex" aria-label="${lab}" aria-expanded="false">${warn ? `<b class="c-warn">${esc(warn)}</b>` : `<b>${strT('idleT', { t: dur })}</b>`}${ch ? `<span class="ipb ${n >= 100 ? 'full' : ''}">${strT('idlePity', { n })}<i class="pb"><i style="transform:scaleX(${n / 100})"></i></i></span>` : ''}${L[0] ? logRow(L[0]) : ''}</button><button class="ix" data-a="idlex" aria-label="展開" aria-expanded="false">${ICO.down}</button>`;
+  return `<button class="ib" data-a="idlex" aria-label="${lab}" aria-expanded="false">${warn ? `<b class="c-warn">${esc(warn)}</b>` : `<b>${strT('idleT', { t: dur })}</b>`}${ch ? `<span class="ipb ${n >= 100 ? 'full' : ''}">${icHTML('wangyin_guixu_16', 'ipw')}${strT('idlePity', { n })}<i class="pb"><i style="transform:scaleX(${n / 100})"></i></i></span>` : ''}${L[0] ? logRow(L[0]) : ''}</button><button class="ix" data-a="idlex" aria-label="展開" aria-expanded="false">${ICO.down}</button>`;
 }
 /* 掛機卡的追逐保底（M2-18；M2-19.4）：一行「下一件保底 n%」＋6 px 細條；只在會觸發保底的地點（怪物 Lv45 以上）有，其他地點整行不出、不留空位。
    100% 條慢慢呼吸（full）；歸零那一次條先滿格再淡掉（reset，chaseHTML.p 記上一次）；整行是一顆透明鈕（熱區 44）開掉落紀錄 */
@@ -2216,7 +2236,7 @@ function chaseHTML() {
   const p = chaseHTML.p,
     cls = n >= 100 ? 'full' : p != null && n < p ? 'reset' : '';
   chaseHTML.p = n;
-  return `<div class="chs"><span>${t}</span><div class="pb ${cls}" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="transform:scaleX(${cls === 'reset' ? 1 : n / 100})"></i></div><button class="chsb" data-a="chaselog" aria-label="${esc(strT('pityAria', { n }))}" data-tip="${esc(STR_T.pityTip)}"></button></div>`;
+  return `<div class="chs"><span>${icHTML('wangyin_guixu_16', 'ipw')}${strT('idlePity', { n })}</span><div class="pb ${cls}" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="transform:scaleX(${cls === 'reset' ? 1 : n / 100})"></i></div><button class="chsb" data-a="chaselog" aria-label="${esc(strT('pityAria', { n }))}" data-tip="${esc(STR_T.pityTip)}"></button></div>`;
 }
 /* 開掉落紀錄（點保底一行；sel＝橫幅顯示中按 L：選中最新的追逐物品、展開它的詳情） */
 function chaseLog(sel) {
@@ -2231,7 +2251,7 @@ function chaseLog(sel) {
 function chaseTip(el) {
   const k = el.dataset.chs;
   showTip(
-    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="wyl">${esc(wyText(k))}</p>`,
+    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${abbrH((S.frags || {})[k] || 0, 'own')}</p><p class="wyl">${esc(wyText(k))}</p>`,
     el.getBoundingClientRect(),
     $('ttip')
   );
@@ -2318,7 +2338,7 @@ function wyPickHTML(k) {
         why = it.r !== 1 && it.r !== 2 ? STR_T.wyOnly : '';
       return `<button class="wyr" data-a="wy:eq:${e.k}" data-wyk="${e.k}" ${why || !F[k] ? 'disabled' : ''}>${it.wy ? `<span class="chf">${icHTML(itemIc(it))}</span>` : `<span class="wyi">${icHTML(itemIc(it))}</span>`}<span><b class="rc${it.r}">${esc(itemName(it))}</b><small>${esc(it.wy ? wyText(it.wy) : e.n)}</small>${why || bad ? `<small class="${why ? 'c-off' : 'c-warn'}">${why || STR_T.wyBad}</small>` : ''}</span></button>`;
     };
-  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><span>${strT('wyHave', { n: F[k] || 0, m: EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><span>${strT('wyHave', { n: abbrH(F[k] || 0, 'own'), m: EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <p class="chnote ${F[k] ? '' : 'c-off'}">${F[k] ? STR_T.wyPickSub : STR_T.wyNoUse}</p>${ok.length ? '' : `<p class="chnote c-warn">${STR_T.wyNoEq}</p>`}
   <div class="wyl-list">${[...ok, ...L.filter(e => !ok.includes(e))].map(row).join('')}</div>`;
 }
@@ -2384,7 +2404,7 @@ function chasePanelHTML() {
     worn = k => EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length,
     cell = k =>
       C.got[k]
-        ? `<button class="chc ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chf">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${strT('wyHave', { n: F[k] || 0, m: worn(k) })}</small></button>`
+        ? `<button class="chc ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chf">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${strT('wyHave', { n: abbrH(F[k] || 0, 'own'), m: worn(k) })}</small></button>`
         : `<button class="chc no ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chsil">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${STR_T.wyNone}</small></button>`;
   return `<div class="ph"><b>${STR_T.chase}</b><span>${strT('pool', { p: STR_T.poolWy, k: wyGot(), N: CHASE_POOL.trunk.length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="chg">${CHASE_POOL.trunk.map(cell).join('')}</div>
@@ -2953,6 +2973,9 @@ function inputInit() {
     if (a && e.isTrusted && a.closest('#pidle') && performance.now() - IDLE_MV < 400) return;
     /* 離線結算：點鈕以外任一處＝數字直接跑完 */
     if (!a && e.target.closest('#poff')) OFFC.t0 = -1e9;
+    /* 觸控：點縮寫數字出完整數字（滑鼠走 pointerover 的 data-tip） */
+    const ab = TOUCH.on && e.target.closest('.abn');
+    if (ab) showTip(`<p class="sktip">${esc(ab.dataset.tip)}</p>`, ab.getBoundingClientRect());
     if (a) act(a.dataset.a, a);
   });
   document.addEventListener('pointerover', e => {

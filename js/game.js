@@ -314,7 +314,12 @@ function offBack(o, g, away) {
   if (away < OFF_LINE) return;
   if (away >= OFF_CARD) return offShow(o, g, away);
   const gs = Object.entries(g || {}).filter(([, v]) => v > 0),
-    r = o && o.soul > 0 ? `靈魂 +${fmtN(o.soul)}` : gs.length ? `${rbName(gs[0][0])} +${fmtN(gs[0][1])}` : '';
+    r =
+      o && o.soul > 0
+        ? `靈魂 +${abbr(o.soul, 'own')}`
+        : gs.length
+          ? `${rbName(gs[0][0])} +${abbr(gs[0][1], 'own')}`
+          : '';
   IDLE.msg = strT('idleAway', { t: idleDur(away), r }).replace(/・$/, '');
   IDLE.msgT = Date.now() + 6000;
   idleBar(1);
@@ -358,7 +363,7 @@ function offShow(o, g, away) {
   const tick = () => {
     const p = Math.min(1, (performance.now() - OFFC.t0) / 1200),
       e = p >= 1 ? 1 : 1 - 2 ** (-10 * p);
-    for (const b of OFFC.n) b.textContent = fmtN(Math.round(+b.dataset.n * e));
+    for (const b of OFFC.n) b.textContent = fullN(+b.dataset.n * e, 'own');
     if (p < 1 && !el.hidden) requestAnimationFrame(tick);
     else el.classList.add('done');
   };
@@ -388,7 +393,7 @@ function deadAgain() {
   if (S.world.dn < DEAD_MAX || !wBack(k)) return runNode(k, true);
   const pv = wBack(k);
   S.world.dn = 0;
-  S.world.note = `在${wName(S, ...wXY(k))}連死 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}：換裝、降星級或升營地再回去`;
+  S.world.note = `在${wName(S, ...wXY(k))}連倒 ${DEAD_MAX} 次，退回${wName(S, ...wXY(pv))}：換裝、降星級或升營地再回去`;
   /* 製作人 D2：不出卡，只出一行提示停 6 秒 */
   hudWarn(S.world.note, 6000);
   runNode(pv);
@@ -952,6 +957,20 @@ function doRoll() {
   if (!ST.rollTank) P.iuntil = G.t + ROLL.iframe;
   sfx('roll');
 }
+/* 藥劑冷卻中再按：不喝；鈕水平抖 2 px（≤80 ms），減少動態改閃 2 px 外框 120 ms */
+function flaskBusy(k) {
+  const el = typeof document !== 'undefined' && document.querySelector(`#bar .sk[data-k='${k}']`);
+  if (!el || !el.animate) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches)
+    el.animate([{ outline: '2px solid var(--border-hi)' }, { outline: '2px solid var(--border-hi)' }], {
+      duration: 120
+    });
+  else
+    el.animate(
+      [{ translate: '0' }, { translate: '-2px' }, { translate: '2px' }, { translate: '-2px' }, { translate: '0' }],
+      80
+    );
+}
 /* mana：喝魔力藥劑（2）回魔力，不然喝生命藥劑（1）回生命；藥劑效果的詞綴與地圖詞兩種都算 */
 function drinkFlask(mana) {
   if (!fightOn() || G.state !== 'play') return;
@@ -959,7 +978,7 @@ function drinkFlask(mana) {
   if (ST.noFlask) return hudWarn('蟾蜍之血：不能使用藥劑');
   /* 0.3.1：不限次數、不花充能，各自冷卻 FLASK.cd 秒；魔力泉（mpFlask）：魔力藥劑回復更多 */
   const k = mana ? 'mflask' : 'flask';
-  if (P.cds[k] > 0) return;
+  if (P.cds[k] > 0) return flaskBusy(k);
   P.cds[k] = FLASK.cd;
   flaskDrunk();
   const v = flaskEff() + (mana ? ST.mpFlask : 0) / 100;
