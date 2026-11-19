@@ -232,11 +232,11 @@ def measure(j, raw, post):
         m['棋盤'] = ck
         ck > 6 and bad.append(f'棋盤 {ck} 超過 6')
     if not j['id'].startswith('boss_'):
-        fr = frame_check(on)
-        if fr and j['id'] in OUTLINE_OK:
-            m['外框判定'] = f'{fr}（{OUTLINE_OK[j["id"]]}，不擋，待美術看）'
-        elif fr:
-            bad.append(fr)
+        for fr in (frame_check(on) or '').split('、'):  # 主體就是外框的只豁免「圓框」，底盤照擋
+            if fr.startswith('圓框') and j['id'] in OUTLINE_OK:
+                m['外框判定'] = f'{fr}（{OUTLINE_OK[j["id"]]}，不擋，待美術看）'
+            elif fr:
+                bad.append(fr)
     return m, bad, on
 
 
@@ -317,7 +317,7 @@ def report():
             '- 擋：原圖是放大圖、禁色 `#faaa5e` `#7c5729` `#fa8915`（ΔE≤2）、不透明 ≤5%、16×16 棋盤 >6、**圓框**、**底盤**（實心圓盤或方形底），❌ 後面寫原因。',
             '- 天賦樹 tk／tn／ts：C*>40 ≤25%；元素本身是主體（`ts_light`、`ts_chaos`）≤80%。牌匾角花 ≤5%。',
             '- 天賦樹與部位的 IoU（跟本批別組比）只列出來，不淘汰。',
-            '- 圓框判定：外圈環帶（0.72–1.0 R）角度覆蓋 ≥80%、環帶不透明 ≥35% 且中心比環帶空；底盤：剪影跟同面積圓（放重心）IoU ≥0.87，或外接框 ≥80% 畫布且填滿 ≥90%。`ts_es`（六角外框）、`slot_ring`（環）主體就是外框，判到也不擋、標待美術看。王不判外框。', '',
+            '- 圓框判定：外圈環帶（0.72–1.0 R）角度覆蓋 ≥80%、環帶不透明 ≥35% 且中心比環帶空；底盤：剪影跟同面積圓（放重心）IoU ≥0.87，或外接框 ≥80% 畫布且填滿 ≥90%。`ts_es`（六角外框）、`slot_ring`（環）主體就是外框，判到圓框不擋（標待美術看），底盤照擋。王不判外框。', '',
             '## 每列', '', '| 序 | id | 張 | 成功 | 失敗 | 預篩 ✅ |', '| --- | --- | --- | --- | --- | --- |']
     head += [f'| {k} | `{v[0]}` | {v[1]} | {v[2]} | {v[3]} | {v[4]} |' for k, v in sorted(stat.items())]
     tot = [sum(v[i] for v in stat.values()) for i in (1, 2, 3, 4)]
