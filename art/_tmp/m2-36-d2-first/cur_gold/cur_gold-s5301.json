@@ -1,0 +1,34 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "cur_gold",
+  "seed": 5301,
+  "wave": "D2",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "tiny 16 pixel game icon, flat front view, a short stack of two or three coins, pale gold faces, warm grey edges, not a single ingot, not a crown, not a rare-item star, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, single ingot, crown, star, bright yellow, orange",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 5301,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}
