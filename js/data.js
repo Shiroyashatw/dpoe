@@ -8809,7 +8809,7 @@ const STR_T = {
   new: '新',
   pity: '下一件保底 {n}%',
   pityAria: '下一件保底 {n}%，打開追逐物品',
-  pityTip: '滿 100% 時，下一隻輪末王一定掉追逐物品',
+  pityTip: '保底滿 100% 就會掉一件追逐物品' /* EN：At 100%, a chase item is guaranteed to drop */,
   offRow: '追逐物品 ×{n}、目前保底 {p}%',
   pool: '{p} {k}／{N}',
   poolWy: '王印',

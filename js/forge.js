@@ -75,7 +75,7 @@ function makeHTML() {
         `mk:T:${T}`,
         MK.T === T,
         `T${T}<small>${Object.keys(c.mats)
-          .map(m => `${matName(m, T)} ${fmtN(matN(m, T))}`)
+          .map(m => `${matName(m, T)} ${abbrH(matN(m, T), 'own')}`)
           .join('／')}</small>`
       )
     )
@@ -117,9 +117,8 @@ function auto2HTML() {
    會跑的東西（資源條、數字、鈕的底色、滾數字）每格由 rbTick 只改 transform 與文字，不重畫卡；卡片每秒只補畫字變了的（campRefresh） ---------- */
 const CAMPUI = { mul: 1, open: null, fx: {}, wt: {}, w: {} };
 const CAMP_B = ['forge', 'watch', 'scout', 'house', 'altar', 'store'];
-/* 資源條的數字：1 萬以上縮寫（671k、2.64M），兩欄才放得下 */
-const fmtC = n => (n >= 1e6 ? +(n / 1e6).toPrecision(3) + 'M' : n >= 1e4 ? +(n / 1e3).toPrecision(3) + 'k' : fmtN(n));
-const fmtR = v => (v >= 10 ? fmtC(Math.round(v)) : +v.toFixed(1));
+/* 資源條的數字與每分鐘產量：照 abbr（擁有／獲得，捨去） */
+const fmtR = v => (v >= 10 ? abbr(v, 'own') : +v.toFixed(1));
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* 「還要多久」寫成一句：算得出來寫「還要 N 分・缺 X 12」、算不出來（沒在刷、沒有人做）只寫缺什麼（只寫最慢那一項） */
 const etaTxt = e =>
@@ -217,7 +216,9 @@ function rbTick() {
       gk = rbGen(key);
     if (el._v !== v) {
       const up = el._v != null && v > el._v;
-      el._b.textContent = fmtC((el._v = v));
+      el._b.textContent = abbr((el._v = v), 'own');
+      if (v >= 1e4) el._b.dataset.tip = fullN(v, 'own');
+      else delete el._b.dataset.tip;
       if (up && !el._flow && !RB.rm) el._b.animate(POP, POP_T);
     }
     if (slow || el._r == null) {
@@ -514,7 +515,7 @@ function cdOneHTML(k) {
       ? `<ul class="cdcost">${costRows(c)
           .map(
             ([nm, h, w]) =>
-              `<li><span>${nm}</span><b>${fmtN(w)}／${fmtN(Math.floor(h))}</b>${h >= w ? `<em class="c-good">${STR_T.cdEnough}</em>` : ''}</li>`
+              `<li><span>${nm}</span><b>${abbrH(w, 'cost')}／${abbrH(h, 'own')}</b>${h >= w ? `<em class="c-good">${STR_T.cdEnough}</em>` : ''}</li>`
           )
           .join('')}</ul>`
       : `<p class="c-dim">${STR_T.cdMax}</p>`
@@ -1069,7 +1070,7 @@ function forgeHTML() {
     ].filter(t => !t[2] || campCan(t[2]));
   /* M2-38：營地只剩總覽（標題「營地」＋靈魂＋可升級幾件）；鍛造是自己的分頁（打造／通貨／鍛造台），沒開的段不畫 */
   if (tab === 'camp')
-    return `<div class="ph"><b>營地</b><span>${strT('campSoul', { n: fmtN(MAT().soul) })}${campReady() ? `・${strT('campUp', { n: campReady() })}` : ''}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div><div class="fmake fcamp">${campHTML()}</div>`;
+    return `<div class="ph"><b>營地</b><span>${strT('campSoul', { n: abbrH(MAT().soul, 'own') })}${campReady() ? `・${strT('campUp', { n: campReady() })}` : ''}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div><div class="fmake fcamp">${campHTML()}</div>`;
   if (!tabs.some(t => t[0] === tab)) CRAFT.tab = 'make';
   if (CRAFT.tab === 'make') return `${forgeHead('make')}<div class="fmake">${makeHTML()}</div>`;
   if (!it) (CRAFT.conv = null), (CRAFT.op = CRAFT.op || null);

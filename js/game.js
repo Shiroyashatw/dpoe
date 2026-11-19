@@ -314,7 +314,12 @@ function offBack(o, g, away) {
   if (away < OFF_LINE) return;
   if (away >= OFF_CARD) return offShow(o, g, away);
   const gs = Object.entries(g || {}).filter(([, v]) => v > 0),
-    r = o && o.soul > 0 ? `靈魂 +${fmtN(o.soul)}` : gs.length ? `${rbName(gs[0][0])} +${fmtN(gs[0][1])}` : '';
+    r =
+      o && o.soul > 0
+        ? `靈魂 +${abbr(o.soul, 'own')}`
+        : gs.length
+          ? `${rbName(gs[0][0])} +${abbr(gs[0][1], 'own')}`
+          : '';
   IDLE.msg = strT('idleAway', { t: idleDur(away), r }).replace(/・$/, '');
   IDLE.msgT = Date.now() + 6000;
   idleBar(1);
@@ -358,7 +363,7 @@ function offShow(o, g, away) {
   const tick = () => {
     const p = Math.min(1, (performance.now() - OFFC.t0) / 1200),
       e = p >= 1 ? 1 : 1 - 2 ** (-10 * p);
-    for (const b of OFFC.n) b.textContent = fmtN(Math.round(+b.dataset.n * e));
+    for (const b of OFFC.n) b.textContent = fullN(+b.dataset.n * e, 'own');
     if (p < 1 && !el.hidden) requestAnimationFrame(tick);
     else el.classList.add('done');
   };

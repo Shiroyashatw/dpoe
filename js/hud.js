@@ -1509,8 +1509,26 @@ const TAGN = {
 };
 /* 技能列第二行的數字（skills.js 的 skillNums）：傷害用元素色、魔力藍、冷卻金 */
 const fmtN = n => Math.round(n).toLocaleString('en-US');
-/* 窄格子裡的數字：1000 以上寫成 1.2k */
-const shortN = n => (n >= 1000 ? +(n / 1000).toFixed(1) + 'k' : n);
+/* 數字縮寫（specs/number-abbrev.md）：mode 'own'＝擁有／獲得（捨去）、'cost'＝費用／需求（進位）。
+   < 10,000 完整加千分位；以上 3 位有效數字 K／M／B／T（尾數 0 不刪），≥ 1e15 寫 1.23e15；進位到 1000 換下一個單位 */
+const fullN = (n, mode) => (mode === 'cost' ? Math.ceil(n - 1e-9) : Math.floor(n + 1e-9)).toLocaleString('en-US');
+function abbr(n, mode) {
+  if (n < 0) return '-' + abbr(-n, mode);
+  if (!(n >= 1e4)) return fullN(n || 0, mode);
+  /* 用整數的字串取前 3 位，不走浮點除法（12.3 × 10 不會變 122.99…） */
+  const s = Math.floor(n).toLocaleString('en-US', { useGrouping: false });
+  let e = s.length - 1,
+    q = +s.slice(0, 3);
+  if (mode === 'cost' && (n % 1 > 0 || /[1-9]/.test(s.slice(3)))) q++;
+  if (q >= 1000) (q = 100), e++;
+  if (e >= 15) return (q / 100).toFixed(2) + 'e' + e;
+  const u = Math.floor(e / 3),
+    d = 2 - (e - 3 * u);
+  return (q / 10 ** d).toFixed(d) + 'KMBT'[u - 1];
+}
+/* 縮寫的數字：滑鼠停留／點一下（data-tip）看完整數字 */
+const abbrH = (n, mode) =>
+  n >= 1e4 ? `<span class="abn" data-tip="${fullN(n, mode)}">${abbr(n, mode)}</span>` : fullN(n, mode);
 /* 名詞變成可以點（說明框有動作時、昇華面板才用；同一段文字只標第一次） */
 const TERM_RE = new RegExp(
   Object.keys(TERMS)
@@ -2199,7 +2217,7 @@ function idleHTML() {
     lab = esc(strT('idleAria', { t: dur, n: ch ? n : '—' }));
   if (IDLE.open)
     return `<div class="iex" role="group" aria-label="${lab}">
-    <div class="ir"><b>${strT('idleT', { t: dur })}</b><span>${strT('idleGot', { s: fmtN(ses.soul || 0), b: ses.rounds })}</span><button class="ix" data-a="idlex" aria-label="收起" aria-expanded="true">${ICO.down}</button></div>
+    <div class="ir"><b>${strT('idleT', { t: dur })}</b><span>${strT('idleGot', { s: abbrH(ses.soul || 0, 'own'), b: ses.rounds })}</span><button class="ix" data-a="idlex" aria-label="收起" aria-expanded="true">${ICO.down}</button></div>
     ${ch ? chaseHTML() : ''}
     <div class="ir il3">${L.slice(0, 3).map(logRow).join('') || `<span class="c-dim">${STR_T.idleNone}</span>`}</div>
     <div class="ir">${goalHTML()}</div></div>`;
@@ -2231,7 +2249,7 @@ function chaseLog(sel) {
 function chaseTip(el) {
   const k = el.dataset.chs;
   showTip(
-    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${(S.frags || {})[k] || 0}</p><p class="wyl">${esc(wyText(k))}</p>`,
+    `<b class="chs-t rc4">${esc(chaseName(k))}</b><p>追逐物品・王印（主幹 Lv${CHASE.lv} 以上地點的輪末王掉落）</p><p>${esc(chaseProg(k))}・擁有 ×${abbrH((S.frags || {})[k] || 0, 'own')}</p><p class="wyl">${esc(wyText(k))}</p>`,
     el.getBoundingClientRect(),
     $('ttip')
   );
@@ -2318,7 +2336,7 @@ function wyPickHTML(k) {
         why = it.r !== 1 && it.r !== 2 ? STR_T.wyOnly : '';
       return `<button class="wyr" data-a="wy:eq:${e.k}" data-wyk="${e.k}" ${why || !F[k] ? 'disabled' : ''}>${it.wy ? `<span class="chf">${icHTML(itemIc(it))}</span>` : `<span class="wyi">${icHTML(itemIc(it))}</span>`}<span><b class="rc${it.r}">${esc(itemName(it))}</b><small>${esc(it.wy ? wyText(it.wy) : e.n)}</small>${why || bad ? `<small class="${why ? 'c-off' : 'c-warn'}">${why || STR_T.wyBad}</small>` : ''}</span></button>`;
     };
-  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><span>${strT('wyHave', { n: F[k] || 0, m: EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><button class="x wyb" aria-label="返回" data-a="wy:back">‹</button><b>${esc(strT('wyPick', { n: chaseName(k) }))}</b><span>${strT('wyHave', { n: abbrH(F[k] || 0, 'own'), m: EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <p class="chnote ${F[k] ? '' : 'c-off'}">${F[k] ? STR_T.wyPickSub : STR_T.wyNoUse}</p>${ok.length ? '' : `<p class="chnote c-warn">${STR_T.wyNoEq}</p>`}
   <div class="wyl-list">${[...ok, ...L.filter(e => !ok.includes(e))].map(row).join('')}</div>`;
 }
@@ -2384,7 +2402,7 @@ function chasePanelHTML() {
     worn = k => EQS.filter(e => S.eq[e.k] && S.eq[e.k].wy === k).length,
     cell = k =>
       C.got[k]
-        ? `<button class="chc ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chf">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${strT('wyHave', { n: F[k] || 0, m: worn(k) })}</small></button>`
+        ? `<button class="chc ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chf">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${strT('wyHave', { n: abbrH(F[k] || 0, 'own'), m: worn(k) })}</small></button>`
         : `<button class="chc no ${CHSEL === k ? 'on' : ''}" data-chs="${k}" aria-pressed="${CHSEL === k}"><span class="chsil">${icHTML(k)}</span><b>${esc(chaseName(k))}</b><small>${STR_T.wyNone}</small></button>`;
   return `<div class="ph"><b>${STR_T.chase}</b><span>${strT('pool', { p: STR_T.poolWy, k: wyGot(), N: CHASE_POOL.trunk.length })}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="chg">${CHASE_POOL.trunk.map(cell).join('')}</div>
@@ -2953,6 +2971,9 @@ function inputInit() {
     if (a && e.isTrusted && a.closest('#pidle') && performance.now() - IDLE_MV < 400) return;
     /* 離線結算：點鈕以外任一處＝數字直接跑完 */
     if (!a && e.target.closest('#poff')) OFFC.t0 = -1e9;
+    /* 觸控：點縮寫數字出完整數字（滑鼠走 pointerover 的 data-tip） */
+    const ab = TOUCH.on && e.target.closest('.abn');
+    if (ab) showTip(`<p class="sktip">${esc(ab.dataset.tip)}</p>`, ab.getBoundingClientRect());
     if (a) act(a.dataset.a, a);
   });
   document.addEventListener('pointerover', e => {
