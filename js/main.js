@@ -177,12 +177,8 @@ function resize() {
   NARROW = IW < 800;
   /* 直立：左右看得到約 10 格（480 px）；橫向手機：照高度 */
   ZOOM = PORT() ? clamp(IW / 480, 0.6, 1.35) : TOUCH.on ? clamp(IH / 470, 0.72, 1.35) : 1.35;
-  /* 直立（0.4.4）：倉庫清單一列 7 格，每格至少 44px */
-  C = PORT()
-    ? clamp(Math.floor((IW - 36) / 7), 44, 56)
-    : TOUCH.on
-      ? clamp(Math.floor(((NARROW ? IW : IW / 2) - 50) / 12), 26, 36)
-      : 36;
+  /* 直立（0.4.4）：倉庫清單一列 7 格，每格至少 44px；橫向觸控（B2 D2-07）也 44，放不下就換行往下捲 */
+  C = PORT() ? clamp(Math.floor((IW - 36) / 7), 44, 56) : TOUCH.on ? 44 : 36;
   document.documentElement.style.setProperty('--cell', C + 'px');
   if (S) hudPanels();
   CV.width = Math.round(IW * DPR);

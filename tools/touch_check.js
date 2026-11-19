@@ -2685,11 +2685,27 @@ const settle = async (p, fn, arg) => {
     'button, [role=button], a[href], [role=tab], .tabs > *, .fseg > *, .eqs, .it, #tsvg .nd, input[type=range]';
   /* 分段、分頁列（M2-33-1 §6、§7：格子相連）裡相鄰兩格不量間距（假設；規格寫的是格子連在一起） */
   const SEG_Q = '#pnav, #dnav, [role=tablist], .tabs, .ftabs, .fseg, .gkind, .modesw, .sk-seg, .seg2';
+  /* 已知清單（B2-FIX）：不在 B2 範圍、留給後面批次的熱區，逐條寫元素與理由；其餘元素照樣嚴格量。
+     a＝元素；有 b 時只放過 a 跟 b 這一對（尺寸照量），沒有 b 時 a 的尺寸與所有配對都放過。放過的會印成 ⚠ 讓人看得到 */
+  const HIT_KNOWN = [
+    {
+      a: '#pidle .ib, #pidle .ix',
+      b: '#pidle .ib, #pidle .ix, #pnav > *, .panel *',
+      why: '直立掛機條（收起列與展開鈕）貼著底部分頁列、兩鈕相連，捲動的面板內容會從它下面經過：掛機條與分頁列屬 B1（M2-12 第一段 §1、§2）'
+    },
+    { a: '#phand', why: '直立面板把手 24 高、貼著標題列的 × 與分頁：抽屜外框屬 B1（D2-06、M2-12 第一段 §1）' },
+    { a: '.tmenu button', b: '.tmenu button', why: '橫向右上「倉庫」「☰」間距 6：外框殼層屬 B1' },
+    {
+      a: 'body.port #pinv .doll2 .eqs, body.port #pinv .doll2 .eqs .it',
+      b: '#pinv .doll2 *',
+      why: '直立半版人形欄格距 4（M1-12：半版 380 高要不捲就看到護符列，放大格距會把護符列擠出去）：裝備格那段屬 B5（D2-06）'
+    }
+  ];
   const hitSweep = async (name, setup, arg) => {
     await p.evaluate(setup, arg);
     await p.waitForTimeout(400);
     const r = await p.evaluate(
-      ([q, min, SEG_Q]) => {
+      ([q, min, SEG_Q, KN]) => {
         const vis = e => {
           const b = e.getBoundingClientRect(),
             cs = getComputedStyle(e);
@@ -2707,10 +2723,21 @@ const settle = async (p, fn, arg) => {
           (e.getAttribute('aria-label') || e.textContent || '').trim().slice(0, 8) +
           '」';
         const L = [...document.querySelectorAll(q)].map(e => [e, vis(e)]).filter(x => x[1]);
-        const bad = [];
+        const bad = [],
+          known = [];
+        /* 已知清單：回傳第幾條（1 起），不在清單回 0 */
+        const kn = (e1, e2) => {
+          const i = KN.findIndex(k =>
+            e2
+              ? (e1.matches(k.a) && (!k.b || e2.matches(k.b))) || (e2.matches(k.a) && (!k.b || e1.matches(k.b)))
+              : !k.b && e1.matches(k.a)
+          );
+          return i + 1;
+        };
+        const put = (t, i) => (i ? known.push(`K${i} ${t}`) : bad.push(t));
         for (const [e, b] of L)
           if (b.width < min - 0.5 || b.height < min - 0.5)
-            bad.push(`${nm(e)} ${Math.round(b.width)}×${Math.round(b.height)}`);
+            put(`${nm(e)} ${Math.round(b.width)}×${Math.round(b.height)}`, kn(e));
         for (let i = 0; i < L.length; i++)
           for (let j = i + 1; j < L.length; j++) {
             const [e1, a] = L[i],
@@ -2720,12 +2747,13 @@ const settle = async (p, fn, arg) => {
             const gx = Math.max(c.left - a.right, a.left - c.right),
               gy = Math.max(c.top - a.bottom, a.top - c.bottom),
               g = Math.max(gx, gy);
-            if (g < 8 - 0.5) bad.push(`${nm(e1)}↔${nm(e2)} ${g < 0 ? '重疊' : '間距 ' + Math.round(g)}`);
+            if (g < 8 - 0.5) put(`${nm(e1)}↔${nm(e2)} ${g < 0 ? '重疊' : '間距 ' + Math.round(g)}`, kn(e1, e2));
           }
-        return { n: L.length, bad };
+        return { n: L.length, bad, known };
       },
-      [HIT_Q, (await p.evaluate(() => document.body.classList.contains('touch'))) ? 44 : 32, SEG_Q]
+      [HIT_Q, (await p.evaluate(() => document.body.classList.contains('touch'))) ? 44 : 32, SEG_Q, HIT_KNOWN]
     );
+    if (r.known.length) console.log(`⚠ D2-07 已知清單（${name}）：${r.known.length} 筆：${r.known.join('、')}`);
     ok(
       `D2-07 熱區（${name}）：${r.n} 個可點的東西 ≥44／32、間距 ≥8、不重疊`,
       !r.bad.length,

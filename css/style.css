@@ -3024,7 +3024,7 @@ body.touch.port.sheet.inmap:not(.sheetfull) #pinv .doll2 { grid-template-columns
 body.touch.port.sheet.inmap:not(.sheetfull) #pinv .doll2 .col { gap: 4px; }
 body.touch.port.sheet.inmap:not(.sheetfull) #pinv .eqs { width: 44px; height: 44px; }
 body.touch.port.sheet.inmap:not(.sheetfull) #pinv .eqrow.col { gap: 4px; }
-body.touch.port.sheet.inmap:not(.sheetfull) #pinv > .ph:first-child { margin-bottom: 6px; }
+body.touch.port.sheet.inmap:not(.sheetfull) #pinv > .ph:first-child { margin-bottom: 8px; }
 
 /* 王橫幅與血條在直立的位置（§1.1）：資訊列下面是王橫幅／血條（x 12–270） */
 body.touch.port #bossbar { order: 1; width: calc(100% - 112px); }
@@ -3080,3 +3080,11 @@ body:not(.touch) #prog .pb { height: 8px; }
 /* 吐司第 2 條（hud.js hudWarn 定位，字型顏色照 #warn） */
 #warn2 { position: fixed; z-index: 30; pointer-events: none; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #warn2[hidden] { display: none; }
+/* B2-FIX（D2-07 熱區）：觸控每個可點的東西 ≥44×44、兩個之間 ≥8（殼層：掛機條、分頁列、把手、右上選單在 B1） */
+body.touch .mech { gap: 8px; }
+body.touch .stc { width: 44px; height: 44px; }
+body.touch .stc .ic { width: 34px; height: 34px; }
+.skr { row-gap: 8px; }
+.cmgrp .cmmul { gap: 8px; }
+body.touch .ph .ftabs button, body.touch .bagf.grp .chip { min-width: 44px; min-height: 44px; }
+body.touch:not(.port) .bagfs { margin-bottom: 8px; }
