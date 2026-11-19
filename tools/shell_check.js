@@ -193,14 +193,20 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const f4a = await shot('04a_idle');
   ok(
     'D 掛機條收起：掛機 N 分・保底 n%・最近一筆稀有以上（不寫輪）',
-    it[0] === '掛機 16 分' && it[1] === '追逐保底 42%' && /崇高石/.test(it[2]) && !/輪/.test(it.join('')),
-    '掛機 16 分／追逐保底 42%／◆崇高石',
+    /* B1 D2-03：左字改「掛機 {t}・打倒王 {n} 次」（textContent 含放不下時藏起來的那段） */
+    /^掛機 16 分・打倒王 \d+ 次$/.test(it[0]) &&
+      it[1] === '追逐保底 42%' &&
+      /崇高石/.test(it[2]) &&
+      !/輪/.test(it.join('')),
+    '掛機 16 分・打倒王 n 次／追逐保底 42%／◆崇高石',
     it.slice(0, 3).join('｜'),
     f4a
   );
   ok('A 讀屏：掛機條 aria-label', it[3] === '掛機 16 分，下一件保底 42%', '掛機 16 分，下一件保底 42%', it[3], f4a);
-  const t6 = Date.now();
+  let t6 = Date.now();
   await press('#pidle .ib');
+  /* B1 D1-12：滑鼠還在卡上不收——桌機點完把滑鼠移開，從移開那一刻算 6 秒 */
+  if (!PORTM) await p.mouse.move(640, 300), (t6 = Date.now());
   await p.waitForTimeout(400);
   const ex = await rect('#pidle');
   const f4b = await shot('04b_idle_open');
@@ -456,7 +462,11 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const f7b = await shot('07b_fallback');
   ok(
     'rev2 D2 連死 3 次退回：不出卡，只出一行提示停 6 秒',
-    /連倒 3 次，退回/.test(h1.warn[0]) && h1.warn[1] === '6000ms' && h1.warn[2] && !h1.over,
+    /連續倒下 3 次，退回/.test(h1.warn[0]) &&
+      !/連倒|連死/.test(h1.warn[0]) &&
+      h1.warn[1] === '6000ms' &&
+      h1.warn[2] &&
+      !h1.over,
     '一行、6000ms、沒有卡',
     `「${h1.warn[0]}」${h1.warn[1]}、卡 ${h1.over ? '有' : '無'}`,
     f7b

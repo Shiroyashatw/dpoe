@@ -2352,7 +2352,8 @@ const settle = async (p, fn, arg) => {
       await p.screenshot({ path: shot('idle_big') });
       ok(
         'hotfix-ui：掛機條大數字（掛機 2 時 05 分、長掉落名）不超出條、不重疊、44 高、長名字省略號',
-        rb.on && rb.h === 44 && rb.ell && !rb.bad.length && rb.txt[0] === '掛機 2 時 05 分',
+        /* B1 D2-03：收起列左字改「掛機 {t}・打倒王 {n} 次」（textContent 含放不下時藏起來的那段） */
+        rb.on && rb.h === 44 && rb.ell && !rb.bad.length && rb.txt[0] === '掛機 2 時 05 分・打倒王 0 次',
         JSON.stringify(rb)
       );
     }
@@ -2606,8 +2607,9 @@ const settle = async (p, fn, arg) => {
     ok(
       H >= 800
         ? 'M1-12：390 護符列不必捲就完整露出（含 16 px 底距）、沒有捲動提示、標籤 13 px'
-        : 'M1-12：短屏護符列沒露出時有捲動提示、標籤 13 px',
-      (H >= 800 ? cr[0] + 16 <= cr[1] && !cr[2] : cr[0] > cr[1] - 16 && cr[2]) && cr[3] === 13,
+        : 'M1-12：短屏護符列露出（B1 D2-06 角色頁全版）就沒有捲動提示、沒露出就有提示、標籤 13 px',
+      /* B1 D2-06：矮螢幕角色頁改全版，護符列可能整列露出；照實際位置判：露出（含 16 底距）＝不出提示，沒露出＝要有提示 */
+      (H >= 800 ? cr[0] + 16 <= cr[1] && !cr[2] : cr[0] + 16 <= cr[1] ? !cr[2] : cr[2]) && cr[3] === 13,
       JSON.stringify(cr)
     );
     await p.screenshot({ path: shot('m1ui_char') });
@@ -2699,6 +2701,11 @@ const settle = async (p, fn, arg) => {
       a: 'body.port #pinv .doll2 .eqs, body.port #pinv .doll2 .eqs .it',
       b: '#pinv .doll2 *',
       why: '直立半版人形欄格距 4（M1-12：半版 380 高要不捲就看到護符列，放大格距會把護符列擠出去）：裝備格那段屬 B5（D2-06）'
+    },
+    {
+      a: 'body.port .panel *',
+      b: '#pnav > *',
+      why: '合併 B1 後開面板時掛機條收起，直立面板直接貼分頁列，捲動中的面板內容被分頁列上緣裁切（這裡量的是沒裁切的外框）：分頁列與抽屜外框屬 B1（M2-12 第一段 §1）'
     }
   ];
   const hitSweep = async (name, setup, arg) => {
