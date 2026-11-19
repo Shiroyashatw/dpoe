@@ -1,0 +1,37 @@
+[
+  {
+    "id": "tile_d2_walltop",
+    "seed": 5222,
+    "error": "API 錯誤 500：Internal Server Error"
+  },
+  {
+    "id": "flask_hp",
+    "seed": 5311,
+    "error": "API 錯誤 422：{\"detail\":\"Canvas must be size 32x32 area or larger\"}"
+  },
+  {
+    "id": "flask_hp",
+    "seed": 5312,
+    "error": "API 錯誤 422：{\"detail\":\"Canvas must be size 32x32 area or larger\"}"
+  },
+  {
+    "id": "flask_hp",
+    "seed": 5313,
+    "error": "API 錯誤 422：{\"detail\":\"Canvas must be size 32x32 area or larger\"}"
+  },
+  {
+    "id": "flask_mp",
+    "seed": 5314,
+    "error": "API 錯誤 422：{\"detail\":\"Canvas must be size 32x32 area or larger\"}"
+  },
+  {
+    "id": "flask_mp",
+    "seed": 5315,
+    "error": "API 錯誤 422：{\"detail\":\"Canvas must be size 32x32 area or larger\"}"
+  },
+  {
+    "id": "flask_mp",
+    "seed": 5316,
+    "error": "API 錯誤 422：{\"detail\":\"Canvas must be size 32x32 area or larger\"}"
+  }
+]

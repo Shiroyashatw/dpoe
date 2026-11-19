@@ -1,0 +1,37 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "wangyin_chixiao_16",
+  "seed": 5405,
+  "wave": "D2",
+  "post": "alpha_binary",
+  "init_from": "wangyin_chixiao_32-s2141.png",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "tiny 16 pixel game icon, flat front view, a square warm-grey stone seal plaque seen flat from the front with a small round ring loop on its top edge, an upright sword wrapped in a rising flame, all carved glow in cyan, no orange fire, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, unique orange, bird, face",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 5405,
+    "color_image": "(base64 略)",
+    "init_image": "(base64 略)",
+    "init_image_strength": 300
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

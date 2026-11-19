@@ -1,0 +1,390 @@
+[
+  {
+    "id": "tile_d2_battle_floor",
+    "table": 1,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "seamless tileable texture, orthographic view from directly above, worn temple courtyard flagstones, thin grout filled with warm grey ash, a few hairline cracks, no props, ground is the base colour, grout in the cracks, light tiles only as small worn corners, the pattern fills the whole canvas evenly, light from the top-left, muted warm paper-ash grey, low chroma, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "high top-down",
+      "outline": "lineless",
+      "shading": "basic shading",
+      "detail": "low detail",
+      "no_background": false
+    },
+    "n": 4,
+    "seed0": 5201,
+    "post": "floor_shift",
+    "palette": [
+      "#33302b",
+      "#46413c",
+      "#615b56"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "tile_d2_camp_floor",
+    "table": 1,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "seamless tileable texture, orthographic view from directly above, packed warm brown dirt ground with a worn footpath and a few small dark green grass tufts, village camp at night, no stone slabs, no ash, no paper, no props, no water, the pattern fills the whole canvas evenly, light from the top-left, warm brown earth at night, muted, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "high top-down",
+      "outline": "lineless",
+      "shading": "basic shading",
+      "detail": "low detail",
+      "no_background": false
+    },
+    "n": 4,
+    "seed0": 5211,
+    "post": "camp_shift",
+    "palette": [
+      "#4a3829",
+      "#604832",
+      "#836240",
+      "#344224",
+      "#46562e"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "tile_d2_walltop",
+    "table": 1,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "seamless tileable texture, orthographic view from directly above, flat top surface of a thick warm-grey stone wall seen from directly above, irregular slabs and thin cracks, no horizon, no peaks, no side silhouette, no objects, the pattern fills the whole canvas evenly, light from the top-left, muted warm paper-ash grey, low chroma, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "high top-down",
+      "outline": "lineless",
+      "shading": "basic shading",
+      "detail": "low detail",
+      "no_background": false
+    },
+    "n": 3,
+    "seed0": 5221,
+    "post": "wall_shift",
+    "palette": [
+      "#33302b",
+      "#46413c",
+      "#615b56"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "tile_d2_wallface",
+    "table": 1,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "horizontally seamless wall strip, straight-on front view, front face of the same wall, darker toward the bottom, light from top-left, no doors, no windows, no text, the pattern fills the whole canvas evenly, light from the top-left, muted warm paper-ash grey, low chroma, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+      "image_size": {
+        "width": 64,
+        "height": 18
+      },
+      "view": "side",
+      "outline": "lineless",
+      "shading": "basic shading",
+      "detail": "low detail",
+      "no_background": false
+    },
+    "n": 3,
+    "seed0": 5231,
+    "post": "face_shift",
+    "palette": [
+      "#33302b",
+      "#46413c",
+      "#615b56"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "cur_gold",
+    "table": 2,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a short stack of two or three coins, pale gold faces, warm grey edges, not a single ingot, not a crown, not a rare-item star, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, single ingot, crown, star, bright yellow, orange",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5301,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#f2cb9b",
+      "#aeaba7",
+      "#615b56",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "cur_soul",
+    "table": 2,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a small floating soul wisp, pale core, muted cool violet-grey swirl, not a flame, not a chase cyan seal, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, flame, fire, cyan, seal",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5304,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#fbf9f6",
+      "#caaef4",
+      "#6b7dad",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "flask_hp",
+    "table": 2,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a small upright flask with a cork, filled with dark red liquid, readable bottle silhouette, not empty, not a skull, not a heart, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no empty bottle, no skull, no heart",
+      "image_size": {
+        "width": 24,
+        "height": 24
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5311,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1",
+      "#934341",
+      "#af6c64",
+      "#fbf9f6"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "flask_mp",
+    "table": 2,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, the same flask family as flask_hp, filled with deep blue liquid, same cork and body, not empty, not a star, not a book, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no empty bottle, no star, no book",
+      "image_size": {
+        "width": 24,
+        "height": 24
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5314,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1",
+      "#3a5b98",
+      "#6b7dad",
+      "#fbf9f6"
+    ],
+    "wave": "D2"
+  },
+  {
+    "id": "wangyin_zhenyue_16",
+    "table": 3,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a square warm-grey stone seal plaque seen flat from the front with a small round ring loop on its top edge, mountain ridges carved on the plaque face, glowing cyan, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, peak silhouette, animal, face",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5401,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75",
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "wave": "D2",
+    "init_recolor": "art/icons/wangyin/wangyin_zhenyue/wangyin_zhenyue_32-s2104.png",
+    "init_image_strength": 300,
+    "init_cyan": [
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "init_grey": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75"
+    ]
+  },
+  {
+    "id": "wangyin_chixiao_16",
+    "table": 3,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a square warm-grey stone seal plaque seen flat from the front with a small round ring loop on its top edge, an upright sword wrapped in a rising flame, all carved glow in cyan, no orange fire, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, unique orange, bird, face",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5404,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75",
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "wave": "D2",
+    "init_recolor": "art/icons/wangyin/wangyin_chixiao/wangyin_chixiao_32-s2141.png",
+    "init_image_strength": 300,
+    "init_cyan": [
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "init_grey": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75"
+    ]
+  },
+  {
+    "id": "wangyin_jiting_16",
+    "table": 3,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a square warm-grey stone seal plaque seen flat from the front with a small round ring loop on its top edge, a single lightning bolt carved on the plaque face, glowing cyan, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, bare bolt without the plaque, mountain",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5407,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75",
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "wave": "D2",
+    "init_recolor": "art/icons/wangyin/wangyin_jiting/wangyin_jiting_32-s2149.png",
+    "init_image_strength": 300,
+    "init_cyan": [
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "init_grey": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75"
+    ]
+  },
+  {
+    "id": "wangyin_guixu_16",
+    "table": 3,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a square warm-grey stone seal plaque seen flat from the front with a small round ring loop on its top edge, a single spiral vortex carved on the plaque face, glowing cyan, not concentric rings, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, cube, whirlpool landscape, face",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5410,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75",
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "wave": "D2",
+    "init_recolor": "art/icons/wangyin/wangyin_guixu/wangyin_guixu_32-s2162.png",
+    "init_image_strength": 300,
+    "init_cyan": [
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "init_grey": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75"
+    ]
+  }
+]
