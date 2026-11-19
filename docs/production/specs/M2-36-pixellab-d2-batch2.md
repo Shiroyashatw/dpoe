@@ -8,9 +8,10 @@
 | --- | --- | --- | --- | --- |
 | 1 | 天賦樹圖示（本檔 §1） | **296** | 基石 48、大點 32、小點 32→16 | 本檔 §1 |
 | 2 | 牆重跑 | 6 | 32×32、64×18 | 主檔「首跑重跑」與 §1 |
-| 3 | 王的替身圖、物品部位圖示 | 下一版補進本檔 | 64、32 | 本檔 §2、§3（待寫） |
-| 4 | 其餘通貨 #5–19 | 45（每種 3） | 16 | 主檔 §2，n 改 3、種子照 seed0 往後排 |
-| 5 | 營地與戰場道具 | 21（每種 3） | 32 | 主檔 §1 道具表，n 改 3 |
+| 3 | 首跑補跑：金幣、歸墟 | 6 | 16 | 本檔 §4 |
+| 4 | 王的替身圖、物品部位圖示 | 28＋33 | 64、32 | 本檔 §2、§3 |
+| 5 | 其餘通貨 #5–19 | 45（每種 3） | 16 | 主檔 §2，n 改 3、種子照 seed0 往後排 |
+| 6 | 營地與戰場道具 | 21（每種 3） | 32 | 主檔 §1 道具表，n 改 3 |
 
 不做：第 4 表技能與狀態圖示（M2-40 會改）、王印加跑、怪物（主檔畫法規則：這輪不動）。
 
@@ -139,3 +140,52 @@
 | `ts_attr` | 屬性、智慧 | 金 | a four-point star |
 
 **接線（工程師）**：`PT_KEYS[].ic`→`tk_*`；`PT_ICONS` 每主題改成只有 `tn_*` 一枚；`PT_STAT_IC` 依族改 `ts_*`。舊圖留著不刪，挑圖定稿前不改程式。顯示尺寸是 UIUX 的事：小點 13 單位低於 16，建議 UIUX 考慮放大到 16（`r×1.6`）。
+
+## 2. 王的替身圖（64×64，n 4，seed0 6601，共 28）
+
+這 7 隻現在借用名字對不上的圖（`js/data.js` 的 `BOSSES`）。怪物不受 D2 鎖色（主檔畫法規則），但要跟現有王圖同一畫風：約 60 px 高、全身、正面偏 3/4、深色外緣、細節多。其餘 8 隻借圖（喜怒哀懼愛、三尸）可以接受，這批不做。
+
+**body**：pixflux，`{"description":"game boss sprite, full body, standing, facing the viewer at three-quarter angle, <DESC>, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI","image_size":{"width":64,"height":64},"view":"side","outline":"single color black outline","shading":"detailed shading","detail":"highly detailed","no_background":true}`；post `alpha_binary`；palette 照下表＋`#000000`。全部禁 `#faaa5e` `#7c5729` `#fa8915`（傳奇橘只給掉寶）。
+
+**新圖用新鍵 `boss_<id>`，舊鍵不動**：這些王圖同時是道具圖示——刑天／風伯／雨師的圖＝「將印・刑天／風伯／雨師」（`FRAGS` 用 `BOSSES…sp` 動態取）；蚩尤 `satan`＝「兵符」；惡 `sin_pride_mirror`＝「預兆・厭棄」「惡之碎片」；欲 `sin_greed_usurer`＝「預兆・貪欲」「欲之碎片」。工程師只把該王的 `sp` 換成新鍵，道具的 `ic` 先留舊圖；道具要不要跟著換，等 mumi 挑完再定。
+
+| id | 王 | palette（另加 `#000000`） | `<DESC>` | `<NOT>` |
+| --- | --- | --- | --- | --- |
+| `boss_taisui` | 太歲 | `#2a1c18` `#5a2a22` `#934341` `#c43d24` `#f2cb9b` `#e8e5e1` `#615b56` | a towering star-lord general in dark red lacquered armour with pale gold trim, a long halberd, a ring of twelve small round medallions floating behind his back | angel, wings, halo, white robe |
+| `boss_chiyou` | 蚩尤 | `#1f1a16` `#4a3a2a` `#7a5a3a` `#a07a4a` `#6b7d6a` `#aeaba7` `#e2552c` | a giant bull-horned war god with bronze armour and copper-green skin, four arms holding a dagger-axe, a short sword and a round shield, low mist at his feet | red devil, bat wings, trident |
+| `boss_xingtian` | 刑天 | `#1f1a16` `#4a3a2a` `#7a5a3a` `#8a6c4e` `#934341` `#aeaba7` `#e8e5e1` | a headless giant warrior, two eyes on his chest and a mouth at his navel, a large axe in one hand and a square shield in the other, mid-dance stance | head, helmet, ice armour, skeleton |
+| `boss_fengbo` | 風伯 | `#1f2a26` `#3a4a40` `#6b7d6a` `#a9ae68` `#aeaba7` `#e8e5e1` `#ade2f9` | a deer-bodied beast with a bird head and a snake tail, carrying an open cloth wind bag, swirling wind ribbons around it | eagle only, griffin, dragon |
+| `boss_yushi` | 雨師 | `#141c26` `#22344a` `#3a5b98` `#6b7dad` `#ade2f9` `#aeaba7` `#e8e5e1` | an old rain master in dark blue robes pouring rain from a bowl, a small black dragon coiled around his shoulders, falling rain streaks | sea serpent only, fish, trident |
+| `boss_e` | 惡 | `#1a1618` `#3a2e34` `#615b56` `#8a6a7a` `#e97ccf` `#aeaba7` `#e8e5e1` | a gaunt grey demon in tattered dark robes, a sneering mask, both hands thrust forward pushing something away | mirror, knight armour, cute |
+| `boss_yu` | 欲 | `#1f1a16` `#4a3a2a` `#7a5a3a` `#a07a4a` `#f2cb9b` `#934341` `#e8e5e1` | a bloated greedy demon with a huge grinning mouth, clutching strings of square-holed copper coins and a sack of ingots | goblin, small imp, paper scroll |
+
+**過關**：主檔 §6 的色票偏移、不反鋸齒、禁色；剪影 2× 縮小（遊戲 sz 120 世界單位）還認得出主特徵（太歲背後圓牌、蚩尤牛角四臂、刑天無頭胸眼、風伯鹿身鳥頭、雨師碗與小龍、惡推手、欲錢串）；不像現有任何王或怪。每隻 4 張全放 mumi 挑圖 Page。
+
+## 3. 物品部位圖示（32×32，n 3，seed0 6701，共 33）
+
+用在空格剪影（M2-33-2a「空格」：該部位圖示轉單色 `--tx-dim`、透明 0.5），也可當部位篩選。所以**剪影要一眼分得出**，不靠顏色、不畫寶石或稀有度光。pixflux 圖示 body（主檔 §0），`<NOT>`＝text, numerals, gem glow, rarity colour, frame, background disc, hand, character；palette `#000000` `#33302b` `#615b56` `#aeaba7` `#e8e5e1`；post `alpha_binary`。主形佔畫布 80–90%，置中。
+
+| id | 部位 | `<DESC>` |
+| --- | --- | --- |
+| `slot_weapon` | 武器 | a straight sword pointing up-right at 45 degrees, plain guard |
+| `slot_focus` | 法器 | a small orb resting on a short three-prong holder |
+| `slot_shield` | 盾 | a kite shield seen front-on, plain face |
+| `slot_helm` | 頭部 | a simple open-face helmet seen front-on, empty inside, no face |
+| `slot_chest` | 胸甲 | a breastplate with shoulder guards seen front-on |
+| `slot_gloves` | 手套 | one gauntlet, fingers up, back of the hand toward the viewer |
+| `slot_boots` | 鞋子 | one boot in side view, toe pointing left |
+| `slot_belt` | 腰帶 | a belt in a gentle arc with a square buckle in the centre |
+| `slot_ring` | 戒指 | a plain ring seen at a slight angle, no gem |
+| `slot_quiver` | 箭袋 | a quiver at 45 degrees with three arrow fletchings sticking out |
+| `slot_amulet` | 項鍊 | a pendant on a V-shaped chain, plain round pendant |
+
+**過關**：轉單色 `#aeaba7` 50% 墊 `--panel-inset`，24 與 32 都分得出 11 種；兩兩剪影 IoU <0.6（盾≠胸甲、戒指≠項鍊）。由我挑。
+
+## 4. 首跑補跑（bitforge 16，共 6）
+
+| id | n | 種子 | 改法 |
+| --- | --- | --- | --- |
+| `cur_gold` | 3 | 5401–5403 | 首跑 3 張都不像幣（兩團、灰寶石、竹籤）。`<DESC>`＝a single round cash coin with a square hole in the centre, seen straight on, pale gold face, warm grey rim, fills the canvas；`<NOT>` 另加 stack, ingot, gem, octagon, stick, crown, star；palette `#000000` `#46413c` `#817b75` `#aeaba7` `#e8e5e1` `#f2cb9b` |
+| `wangyin_guixu_16` | 3 | 5510–5512 | 首跑 3 張都沒有方牌外形。`init_file`＝`art/_tmp/m2-36-d2-first/wangyin_chixiao_16/post/wangyin_chixiao_16-s5404.png`（strength 300，借牌形）；`<DESC>`＝a small square plaque with a small ring on top, front view, a single thin spiral line carved in the centre of the plaque face, glowing cyan, warm grey plaque body；`<NOT>` 另加 cube, whirlpool landscape, face, figure, person, lightning, sword；palette 同主檔 §3 |
+
+其餘照主檔 §2、§3 的畫法與過關。
