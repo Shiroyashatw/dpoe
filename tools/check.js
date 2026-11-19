@@ -11721,6 +11721,16 @@ const ASC_COMBOS = `const combos = k => {
       de.every(v => v <= 2),
     JSON.stringify({ de, tok: [tok('--rar-chase-rgb'), tok('--rar-rare-rgb')] })
   );
+  /* B2-CAT：M2-36 腐化／災魘色票只定義、還沒套用（之後徽章批次才用） */
+  const catUse = ['css/style.css', ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)].filter(f =>
+    /var\(--cat-(corr|cal)/.test(rd(f))
+  );
+  ok(
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff，還沒有元件用到',
+    [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
+      !catUse.length,
+    JSON.stringify({ tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')], catUse })
+  );
   /* (5a) 王印拼條第一次用到才載：橫幅先畫出空 span.ic，圖載好（artRepaint）要補畫橫幅 */
   const hjs = rd('js/hud.js'),
     rep = hjs.slice(hjs.indexOf('function artRepaint'), hjs.indexOf('/* 技能列'));

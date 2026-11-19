@@ -250,6 +250,10 @@
   --cat-mem-v1: #7be6ff;
   --cat-mem-v2: #8fe0ff;
   --cat-mem-rgb-v1: 143, 224, 255;
+  /* M2-36 色票（PR #119）：腐化、災魘徽章；先只定義，還沒套到元件 */
+  --cat-corr: #ff6066;
+  --cat-cal: #bd7aff;
+  --cat-cal-hi: #f1e4ff; /* 只用在災魘腐化徽章內部，不得用於文字 */
   --mod-mm: #c79bff;
   --mod-co: #e0614a;
   --affix: #9aa6ff;
