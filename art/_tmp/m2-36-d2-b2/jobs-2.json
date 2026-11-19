@@ -1,0 +1,67 @@
+[
+  {
+    "id": "tile_d2_walltop",
+    "table": 1,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "seamless tileable texture, orthographic view from directly above, the flat top of a thick stone wall seen from directly above, large rectangular capstones in two staggered rows, wide dark joints, a few chipped corners, no horizon, no peaks, no side silhouette, no objects, the pattern fills the whole canvas evenly, light from the top-left, muted warm paper-ash grey, low chroma, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "high top-down",
+      "outline": "lineless",
+      "shading": "basic shading",
+      "detail": "low detail",
+      "no_background": false
+    },
+    "n": 3,
+    "seed0": 5321,
+    "post": "wall_shift",
+    "palette": [
+      "#33302b",
+      "#46413c",
+      "#615b56"
+    ],
+    "wave": "D2b2",
+    "item": 2,
+    "drop": 0,
+    "init_file": "art/tiles/temple/walltop/tile_temple_walltop-s1112.png",
+    "init_image_strength": 300
+  },
+  {
+    "id": "tile_d2_wallface",
+    "table": 1,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "horizontally seamless wall strip, straight-on front view, two courses of large dressed stone blocks seen straight on, staggered, thin dark mortar joints, a few chipped edges, no doors, no windows, no text, the pattern fills the whole canvas evenly, light from the top-left, muted warm paper-ash grey, low chroma, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+      "image_size": {
+        "width": 64,
+        "height": 18
+      },
+      "view": "side",
+      "outline": "lineless",
+      "shading": "basic shading",
+      "detail": "low detail",
+      "no_background": false
+    },
+    "n": 3,
+    "seed0": 5331,
+    "post": "face_shift",
+    "palette": [
+      "#25211e",
+      "#33302b",
+      "#46413c",
+      "#615b56"
+    ],
+    "wave": "D2b2",
+    "item": 2,
+    "drop": 2,
+    "grade": true,
+    "init_image_strength": 300,
+    "init_file": [
+      "art/tiles/temple/wallface/tile_temple_wallface-s1122-a.png",
+      "art/tiles/temple/wallface/tile_temple_wallface-s1122-b.png"
+    ]
+  }
+]

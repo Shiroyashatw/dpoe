@@ -1,0 +1,545 @@
+[
+  {
+    "id": "boss_taisui",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a towering star-lord general in dark red lacquered armour with pale gold trim, a long halberd, a ring of twelve small round medallions floating behind his back, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no angel, wings, halo, white robe",
+      "image_size": {
+        "width": 64,
+        "height": 64
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "detailed shading",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "n": 4,
+    "seed0": 6601,
+    "post": "alpha_binary",
+    "palette": [
+      "#2a1c18",
+      "#5a2a22",
+      "#934341",
+      "#c43d24",
+      "#f2cb9b",
+      "#e8e5e1",
+      "#615b56",
+      "#000000"
+    ],
+    "wave": "D2b2",
+    "tier": "boss"
+  },
+  {
+    "id": "boss_chiyou",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a giant bull-horned war god with bronze armour and copper-green skin, four arms holding a dagger-axe, a short sword and a round shield, low mist at his feet, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no red devil, bat wings, trident",
+      "image_size": {
+        "width": 64,
+        "height": 64
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "detailed shading",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "n": 4,
+    "seed0": 6605,
+    "post": "alpha_binary",
+    "palette": [
+      "#1f1a16",
+      "#4a3a2a",
+      "#7a5a3a",
+      "#a07a4a",
+      "#6b7d6a",
+      "#aeaba7",
+      "#e2552c",
+      "#000000"
+    ],
+    "wave": "D2b2",
+    "tier": "boss"
+  },
+  {
+    "id": "boss_xingtian",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a headless giant warrior, two eyes on his chest and a mouth at his navel, a large axe in one hand and a square shield in the other, mid-dance stance, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no head, helmet, ice armour, skeleton",
+      "image_size": {
+        "width": 64,
+        "height": 64
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "detailed shading",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "n": 4,
+    "seed0": 6609,
+    "post": "alpha_binary",
+    "palette": [
+      "#1f1a16",
+      "#4a3a2a",
+      "#7a5a3a",
+      "#8a6c4e",
+      "#934341",
+      "#aeaba7",
+      "#e8e5e1",
+      "#000000"
+    ],
+    "wave": "D2b2",
+    "tier": "boss"
+  },
+  {
+    "id": "boss_fengbo",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a deer-bodied beast with a bird head and a snake tail, carrying an open cloth wind bag, swirling wind ribbons around it, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no eagle only, griffin, dragon",
+      "image_size": {
+        "width": 64,
+        "height": 64
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "detailed shading",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "n": 4,
+    "seed0": 6613,
+    "post": "alpha_binary",
+    "palette": [
+      "#1f2a26",
+      "#3a4a40",
+      "#6b7d6a",
+      "#a9ae68",
+      "#aeaba7",
+      "#e8e5e1",
+      "#ade2f9",
+      "#000000"
+    ],
+    "wave": "D2b2",
+    "tier": "boss"
+  },
+  {
+    "id": "boss_yushi",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, an old rain master in dark blue robes pouring rain from a bowl, a small black dragon coiled around his shoulders, falling rain streaks, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no sea serpent only, fish, trident",
+      "image_size": {
+        "width": 64,
+        "height": 64
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "detailed shading",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "n": 4,
+    "seed0": 6617,
+    "post": "alpha_binary",
+    "palette": [
+      "#141c26",
+      "#22344a",
+      "#3a5b98",
+      "#6b7dad",
+      "#ade2f9",
+      "#aeaba7",
+      "#e8e5e1",
+      "#000000"
+    ],
+    "wave": "D2b2",
+    "tier": "boss"
+  },
+  {
+    "id": "boss_e",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a gaunt grey demon in tattered dark robes, a sneering mask, both hands thrust forward pushing something away, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no mirror, knight armour, cute",
+      "image_size": {
+        "width": 64,
+        "height": 64
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "detailed shading",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "n": 4,
+    "seed0": 6621,
+    "post": "alpha_binary",
+    "palette": [
+      "#1a1618",
+      "#3a2e34",
+      "#615b56",
+      "#8a6a7a",
+      "#e97ccf",
+      "#aeaba7",
+      "#e8e5e1",
+      "#000000"
+    ],
+    "wave": "D2b2",
+    "tier": "boss"
+  },
+  {
+    "id": "boss_yu",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a bloated greedy demon with a huge grinning mouth, clutching strings of square-holed copper coins and a sack of ingots, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no goblin, small imp, paper scroll",
+      "image_size": {
+        "width": 64,
+        "height": 64
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "detailed shading",
+      "detail": "highly detailed",
+      "no_background": true
+    },
+    "n": 4,
+    "seed0": 6625,
+    "post": "alpha_binary",
+    "palette": [
+      "#1f1a16",
+      "#4a3a2a",
+      "#7a5a3a",
+      "#a07a4a",
+      "#f2cb9b",
+      "#934341",
+      "#e8e5e1",
+      "#000000"
+    ],
+    "wave": "D2b2",
+    "tier": "boss"
+  },
+  {
+    "id": "slot_weapon",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a straight sword pointing up-right at 45 degrees, plain guard, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6701,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_focus",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a small orb resting on a short three-prong holder, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6704,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_shield",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a kite shield seen front-on, plain face, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6707,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_helm",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a simple open-face helmet seen front-on, empty inside, no face, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6710,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_chest",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a breastplate with shoulder guards seen front-on, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6713,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_gloves",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, one gauntlet, fingers up, back of the hand toward the viewer, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6716,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_boots",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, one boot in side view, toe pointing left, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6719,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_belt",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a belt in a gentle arc with a square buckle in the centre, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6722,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_ring",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a plain ring seen at a slight angle, no gem, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6725,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_quiver",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a quiver at 45 degrees with three arrow fletchings sticking out, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6728,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  },
+  {
+    "id": "slot_amulet",
+    "item": 4,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a pendant on a V-shaped chain, plain round pendant, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 6731,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2",
+    "tier": "slot"
+  }
+]

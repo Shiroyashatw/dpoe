@@ -1,0 +1,410 @@
+[
+  {
+    "id": "cur_trans",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a small dull blue-grey transmutation stone, round, not a coin, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, coin",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5321,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#3a5b98",
+      "#6b7dad",
+      "#aeaba7",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_aug",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a small cyan-grey stone with a tiny plus notch, not letters, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, letters",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5323,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#ade2f9",
+      "#aeaba7",
+      "#615b56",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_regal",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a faceted stone with a tiny crown pip, not coins, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, coins",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5325,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#f2cb9b",
+      "#aeaba7",
+      "#615b56",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_exalt",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a pale stone with two short wing ticks, not a bird, not orange, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, bird, orange",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5327,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#fbf9f6",
+      "#aeaba7",
+      "#615b56",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_chaos",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a stone with a muted red-violet and grey swirl core, not a yin-yang, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, yin-yang",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5329,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#934341",
+      "#e97ccf",
+      "#615b56",
+      "#aeaba7",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_wish",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a small four-point star stone, not a snowflake, not a sun, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, snowflake, sun",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5331,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#f3f9a4",
+      "#fbf9f6",
+      "#aeaba7",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_whet",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a flat grey whetstone bar, not a blade, not a brick wall, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, blade, brick wall",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5333,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_scrap",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a small bent metal plate scrap, not a full shield, not a coin, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, full shield, coin",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5335,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#615b56",
+      "#aeaba7",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_prism",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a short crystal prism, muted facets, no rainbow glow, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, rainbow glow",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5337,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#caaef4",
+      "#ade2f9",
+      "#aeaba7",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_vaal",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a dark red corked vial stone, not a health flask, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, health flask",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5339,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#934341",
+      "#af6c64",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_eng",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a teal-grey rune tablet chip, one simple mark, no readable letters, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, readable letters",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5341,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#6b7d6a",
+      "#aeaba7",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "soulpack",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a small tied pouch with one wisp leak, not a coin purse, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, coin purse",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5349,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#615b56",
+      "#caaef4",
+      "#6b7dad",
+      "#fbf9f6",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_calam",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a darker corrupted stone with one hooked crack, distinct from cur_vaal, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, nothing",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5351,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#25211e",
+      "#8a6a7a",
+      "#e97ccf",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_pcalam",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, like cur_calam with a sharper pale facet, not winged, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, winged",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5353,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#25211e",
+      "#8a6a7a",
+      "#e97ccf",
+      "#fbf9f6",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "cur_pen",
+    "item": 5,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a short calligraphy brush, tip down, not a sword, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, sword",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5355,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#6b5440",
+      "#8a6c4e",
+      "#46413c",
+      "#817b75",
+      "#e8e5e1"
+    ],
+    "wave": "D2b2"
+  }
+]
