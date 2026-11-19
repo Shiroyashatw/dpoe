@@ -1,0 +1,34 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "cur_frac",
+  "seed": 6801,
+  "wave": "5a",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "tiny 16 pixel game icon, flat front view, a small grey stone split by one clean crack, the two halves slightly apart, not a skull, not an egg, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, skull, egg",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 6801,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

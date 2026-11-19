@@ -1,0 +1,36 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "plq_body",
+  "seed": 5703,
+  "wave": "5d",
+  "post": "plq",
+  "request": {
+    "description": "seamless tileable texture, orthographic view from directly above, a horizontal dark warm-brown wooden plaque surface, flat, faint wood grain, seamless on the left and right edges, no text, no nails in the middle, no logo, the pattern fills the whole canvas evenly, light from the top-left, muted warm paper-ash grey, low chroma, no horizon, no sky, no objects, no text, no border, no dithering, no gradient, no anti-aliasing, no logo, no UI, no saturated amber",
+    "image_size": {
+      "width": 96,
+      "height": 44
+    },
+    "view": "side",
+    "outline": "lineless",
+    "shading": "basic shading",
+    "detail": "low detail",
+    "no_background": false,
+    "seed": 5703,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

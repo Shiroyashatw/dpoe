@@ -1,0 +1,34 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "ail_shock",
+  "seed": 7016,
+  "wave": "5c",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "tiny 16 pixel game icon, flat front view, a single bold zigzag lightning bolt from top-right to bottom-left, not inside a ring, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, inside a ring",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 7016,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}
