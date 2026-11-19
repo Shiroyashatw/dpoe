@@ -295,6 +295,16 @@ function MEASURE(ctx) {
       tokOk: JSON.stringify(oc && oc.slice(0, 3)) === JSON.stringify(tokv('border-hi').slice(0, 3))
     };
   }
+  /* PF-D2-8：藥劑鈕上的數字（鍵帽 1／2 不算）；裝備格：主欄 10 格＋第三戒指、護符 */
+  out.flaskNum = [...ui.querySelectorAll('.flask')]
+    .map(e => {
+      const c = e.cloneNode(true);
+      c.querySelectorAll('.kc').forEach(k => k.remove());
+      return (c.textContent.match(/\d/g) || []).length;
+    })
+    .reduce((a, b) => a + b, 0);
+  out.eqMain = ui.querySelectorAll('#d-eq .eq:not(.xs)').length;
+  out.eqX = ui.querySelectorAll('#d-eq .eq.xs').length;
   /* 文字（黑名單、記號）、矩形 */
   out.text = scope.innerText;
   const fd = ui.querySelector('#d-feed');
@@ -322,10 +332,19 @@ const EXP = {
   '390x844': {
     G01: { feed: P('#d-feed', { y0: 148, y1: 204 }), pnl: P('#p-char', { y0: 330, y1: 710 }) },
     G02: {
-      bars: P('[data-box=bars]', { y0: 300, y1: 330 }),
-      f0: P('[data-box=flask0]', { minW: 44, minH: 44 }),
-      f1: P('[data-box=flask1]', { minW: 44, minH: 44 })
+      bars: P('[data-box=bars]', { y0: 300, y1: 330, x0: 72, x1: 382 }),
+      f0: P('[data-box=flask0]', { minW: 44, minH: 44, x0: 290, y0: 252, w: 44, h: 44 }),
+      f1: P('[data-box=flask1]', { minW: 44, minH: 44, x0: 338, y0: 252, w: 44, h: 44 })
     },
+    /* D1-fix §2：沒開面板時 56×56；技能鈕 76–380 × 644–700 */
+    'G02-hud': {
+      f0: P('[data-box=flask0]', { x0: 8, y0: 576, w: 56, h: 56 }),
+      f1: P('[data-box=flask1]', { x0: 8, y0: 644, w: 56, h: 56 }),
+      bars: P('[data-box=bars]', { x0: 72, x1: 382, y0: 600 }),
+      sk0: P('[data-box=skb0]', { x0: 76, y0: 644, w: 56, h: 56 })
+    },
+    /* D1-fix §9：外觀 202–382 × 110–142、熱區 106–150 */
+    G03: { res: P('[data-box=res]', { x0: 202, y0: 110, x1: 382, y1: 142 }), hit: P('[data-k=res]', { minH: 44 }) },
     G04: { idle: P('[data-box=idle]', { y0: 710, y1: 754 }), bar: P('.idle .goalbar', { h: 4 }) },
     G05: { feed: P('#d-feed', { y0: 148, y1: 204 }) },
     G10: { back: P('#p-char .back', { w: 44, h: 44 }) },
@@ -398,6 +417,20 @@ const EXP = {
   },
   '1280x720': {
     G01: { feed: P('#d-feed', { x0: 500, x1: 780, y1: 136 }) },
+    G02: {
+      f0: P('[data-box=flask0]', { x0: 732, y0: 632, w: 48, h: 48 }),
+      f1: P('[data-box=flask1]', { x0: 788, y0: 632, w: 48, h: 48 })
+    },
+    'G02-hud': {
+      f0: P('[data-box=flask0]', { x0: 732, y0: 632, w: 48, h: 48 }),
+      f1: P('[data-box=flask1]', { x0: 788, y0: 632, w: 48, h: 48 })
+    },
+    G03: { res: P('[data-box=res]', { x0: 16, x1: 316, h: 32 }) },
+    /* 說明卡寬 ≤ 320（D1-fix §7；兩欄拿掉） */
+    T01: { card: P('#p-detail', { w: 320 }), sum: P('#d-csum', { minH: 32 }) },
+    T02: { card: P('#p-detail', { w: 320 }) },
+    T03: { card: P('#p-detail', { w: 320 }) },
+    T05: { card: P('#p-detail', { w: 320 }) },
     G04: { idle: P('[data-box=idle]', { x0: 16, y0: 664, x1: 396, y1: 704 }) },
     E01: {
       l: P('#p-char', { x0: 16, x1: 492 }),
@@ -453,7 +486,21 @@ function chkExp(rect, exp) {
 }
 
 /* PF-D2-2 字串黑名單 */
-const BLACK = ['輪', '四印齊鳴', '輪末王', '下一隻王', '印記', '封印', '背包', '多的直接分解', '全部裝備 ▲'];
+const BLACK = [
+  '輪',
+  '四印齊鳴',
+  '輪末王',
+  '下一隻王',
+  '印記',
+  '封印',
+  '背包',
+  '多的直接分解',
+  '全部裝備 ▲',
+  /* 名詞表 v0.6.16／v0.6.17 禁用 */
+  '必出',
+  '藥劑充能',
+  '沒有充能'
+];
 
 async function openPage(b, size, q = '') {
   const [w, h] = size.split('x').map(Number);
@@ -491,7 +538,9 @@ function verdictOf(row, m, errs) {
   if (m.icon.length) f.push('PF5 圖示 ' + m.icon.slice(0, 3).join('、'));
   if (m.exp.bad.length) f.push('PF9 ' + m.exp.bad.join('、'));
   const bl = BLACK.filter(w => m.text.includes(w));
+  if (/\bPity \d/.test(m.text)) bl.push('Pity n%（v0.6.15 停用）');
   if (bl.length) f.push('PF-D2-2 ' + bl.join('、'));
+  if (m.flaskNum) f.push(`PF-D2-8 藥劑鈕上有數字 ${m.flaskNum} 個`);
   if (/魔法/.test(m.feed)) f.push('PF-D2-2 掉落列出現「魔法」');
   if (m.sym.length) f.push('PF-D2-3 ' + m.sym.join('、'));
   if (m.focus && (m.focus.w < 2 || m.focus.cut || m.focus.con < 3 || !m.focus.tokOk))
@@ -518,7 +567,7 @@ async function shots(b) {
         await settle(p);
         const f = path.join(OUT, size, `${id}${v ? '-' + v : ''}.png`);
         await p.screenshot({ path: f });
-        const m = await measure(p, size, v ? null : id);
+        const m = await measure(p, size, v ? (EXP[size] || {})[`${id}-${v}`] && `${id}-${v}` : id);
         const extra = {};
         if (id === 'F12')
           extra.baodi = (await p.evaluate(() => document.querySelector('#p-forge').innerText.includes('保底')))
@@ -539,8 +588,35 @@ async function shots(b) {
           });
           extra.cover = cover;
         }
+        if (id === 'F12' && !v) {
+          const t = await p.evaluate(() => document.querySelector('#p-forge').innerText);
+          extra.rarePity = t.includes('再 3 件沒出稀有，下一件一定是稀有');
+        }
+        if (id === 'F02' && !v)
+          extra.lack = await p.evaluate(() => /熟鐵還差\s*12/.test(document.querySelector('#ui').innerText));
+        if (id === 'E01' && !v) extra.eq = { main: m.eqMain, x: m.eqX };
+        if (id === 'P03' && v === 'short') extra.noGain = !m.text.includes('期間');
+        if (id === 'G02' && v === 'F2-2')
+          extra.cool = await p.evaluate(() => {
+            const e = document.querySelector('[data-k="flask-hp"]');
+            return {
+              p: +e.dataset.cool,
+              ring: !!e.querySelector('.ring'),
+              dim: getComputedStyle(e.querySelector('.fl')).filter
+            };
+          });
         const fails = verdictOf(id, m, p.errs);
         if (extra.baodi && extra.baodi.startsWith('❌')) fails.push('F12 ' + extra.baodi);
+        if (extra.rarePity === false) fails.push('F12 沒有稀有保底句');
+        if (extra.lack === false) fails.push('F02 沒有「熟鐵還差 12」');
+        if (extra.eq && (extra.eq.main !== 10 || extra.eq.x !== 3))
+          fails.push(`E01 裝備 ${extra.eq.main} 格＋${extra.eq.x}（要 10＋第三戒指、護符 2）`);
+        if (extra.noGain === false) fails.push('P03 開 < 10 秒仍出補算行');
+        if (
+          extra.cool &&
+          (Math.abs(extra.cool.p - 0.5) > 0.05 || !extra.cool.ring || !/brightness/.test(extra.cool.dim))
+        )
+          fails.push('F2-2 冷卻一半 ' + JSON.stringify(extra.cool));
         if (extra.pause && !extra.pause.same) fails.push('PF-D2-5 3 秒內假戰場雜湊改變');
         if (extra.cover) {
           const [W, H] = size.split('x').map(Number);
@@ -661,7 +737,8 @@ async function shots(b) {
 }
 
 /* ---------- 錄影（第 8 節）：60 fps 逐幀；每幀記 probe，再量時間 ---------- */
-const VID = ['V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16'];
+const VID = ['V8', 'V9', 'V10', 'V11', 'V12', 'V13', 'V14', 'V15', 'V16', 'V-F2_flask_busy'];
+const FXD = require(path.join(ROOT, 'demo/d2/fixtures.js'));
 const F = 1000 / 60;
 async function videos(b) {
   for (const v of VID)
@@ -853,9 +930,10 @@ function vcheck(v, rm, pr, LOG, size) {
         g1 ? g1.t - cl.t : null
       );
     }
+    const tg = FXD.S.mid.treeGain;
     add(
       '補算 N 按秒數比例',
-      cl && cl.gain && cl.gain.soul === Math.floor((342 / 75) * cl.sec),
+      cl && cl.gain && cl.gain.soul === Math.floor((tg.soul / tg.sec) * cl.sec),
       cl ? JSON.stringify(cl.gain) + ' / ' + cl.sec.toFixed(2) + ' 秒' : null
     );
   }
@@ -890,6 +968,36 @@ function vcheck(v, rm, pr, LOG, size) {
         '減少動態沒有位移',
         pr.every(x => x.off === 0),
         pr.filter(x => x.off !== 0).length
+      );
+  }
+  if (v === 'V-F2_flask_busy') {
+    const dr = ev('flask-drink'),
+      bz = ev('flask-busy');
+    const hpD = dr.filter(e => e.k === 'hp');
+    add(
+      '冷卻中再按不喝（生命只喝 1 次）',
+      hpD.length === 1 && bz.length === 1 && bz[0].k === 'hp',
+      `喝 ${hpD.length}、忙 ${bz.length}`
+    );
+    const mid = hpD[0] && pr.find(x => x.t >= hpD[0].t + 1500);
+    add('冷卻一半掃過 50±5%', mid && Math.abs(+mid.fHp - 0.5) <= 0.05, mid ? mid.fHp : null);
+    const end = hpD[0] && firstAfter(hpD[0].t, x => x.fHp === '');
+    add('冷卻 3 秒（±1 幀）', end && near(end.t - hpD[0].t, 3000), end ? +(end.t - hpD[0].t).toFixed(1) : null);
+    const sh = bz[0]
+      ? pr.filter(x => x.t > bz[0].t && x.t <= bz[0].t + 300 && x.fShake && x.fShake !== 'translateX(0.00px)')
+      : [];
+    const fl = bz[0] ? pr.filter(x => x.t > bz[0].t && x.t <= bz[0].t + 300 && x.fFlash) : [];
+    if (!rm)
+      add(
+        '忙碌抖 ≤ 80 ms、不亮框',
+        sh.length && sh[sh.length - 1].t - bz[0].t + F <= 80 + F && !fl.length,
+        sh.length ? +(sh[sh.length - 1].t - bz[0].t + F).toFixed(1) : null
+      );
+    else
+      add(
+        '減少動態不抖、只亮外框 120',
+        !sh.length && fl.length && near(fl[fl.length - 1].t - bz[0].t + F, 120, F + 0.5),
+        fl.length ? +(fl[fl.length - 1].t - bz[0].t + F).toFixed(1) : null
       );
   }
   if (v === 'V9') {
@@ -1003,7 +1111,7 @@ function report() {
   const vPass = vids.filter(([, x]) => x.checks.every(c => c.pass)).length;
   L.push('# dpoe-d2-demo 預篩（tools/d2_demo.js）', '');
   L.push(`截圖 ${keys.length} 張（74 列 × 2 尺寸＋變體＋另驗尺寸＋三個切換）：✅ ${pass}、❌ ${fail}`);
-  L.push(`影片 ${vids.length} 支（9 支 × 2 尺寸 × 一般／減少動態）：時序全過 ${vPass}／${vids.length}`, '');
+  L.push(`影片 ${vids.length} 支（${VID.length} 支 × 2 尺寸 × 一般／減少動態）：時序全過 ${vPass}／${vids.length}`, '');
   L.push('## D2 加項', '', '| 代號 | 結果 | 量測 |', '| --- | --- | --- |');
   L.push(
     `| PF-D2-1 K/M 單元表 | ${u && !u.bad.length && !u.width.length && u.buyOk ? '✅' : '❌'} | ${u ? `${u.rows.length - u.bad.length}/${u.rows.length} 照表；寬度 > 5 字元 ${u.width.length}；買得起邊界 ${u.buy.show} 可買=${u.buy.can}` : '—'} |`
@@ -1040,11 +1148,12 @@ function report() {
     `| PF-D2-7 面板／場景地面亮度 | ${g7.length === 4 && g7.every(r => r.px.ratio >= 1.4) ? '✅（佔位底圖）' : '❌'} | ${g7.map(r => `${r.id}@${r.size} ${r.px.ratio.toFixed(2)}`).join('、')}；底圖待素材，量的是 token 佔位格 |`
   );
   const rg = res.pf.ring;
+  const fn = keys.map(k => res.rows[k].fails.filter(f => f.startsWith('PF-D2-8'))).flat();
   L.push(
-    `| PF-D2-8 藥劑充能環對 --panel | ${rg && rg.hp >= 3 && rg.mp >= 3 ? '✅（待素材值）' : '❌'} | ${rg ? `生命 ${rg.hp}、魔力 ${rg.mp}（--hp-hi／--mp-hi 待美術，先借 --bad／--rar-magic）` : '—'} |`
+    `| PF-D2-8 藥劑冷卻環對 --panel；鈕上數字 0 個 | ${rg && rg.hp >= 3 && rg.mp >= 3 && !fn.length ? '✅' : '❌'} | ${rg ? `生命 ${rg.hp}、魔力 ${rg.mp}（--hp-hi #ae766c／--mp-hi #7d81ac，M2-36-demo-tokens.md）` : '—'}；鈕上數字 ${fn.length ? fn.slice(0, 3).join('、') : `0 個（${keys.length} 張，鍵帽 1／2 不算）`} |`
   );
   L.push(
-    `| G06 色值 | ${u && !u.hex.length ? '✅' : '❌'} | tokens.css 以外色值字面值 ${u ? u.hex.length : '—'} 處；美術 token 對照表待交 |`,
+    `| G06 色值 | ${u && !u.hex.length ? '✅' : '❌'} | tokens.css 以外色值字面值 ${u ? u.hex.length : '—'} 處；值照 M2-36-demo-tokens.md |`,
     ''
   );
   L.push('## PF1–PF9（visual-review-protocol §6）', '');

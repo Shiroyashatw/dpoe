@@ -1,6 +1,6 @@
 /* D2 展示頁色票：唯一可以寫色值的檔。值照 docs/production/specs/M2-36-palette-tokens.md（廟宇古地圖）。
    之後色票整組換值時只改這個檔；demo.css／demo.js 只用 var(--x)，canvas 也從這裡讀（demo.js tok()）。
-   待素材：--hp-hi／--mp-hi（Game Art Director 未交）先指到現有 token，畫面標「待素材」。 */
+   --hp-hi／--mp-hi 照 M2-36-demo-tokens.md（13:31 定）。 */
 :root {
   --tscale: 1;
   --f12: calc(12px * var(--tscale)); --f13: calc(13px * var(--tscale)); --f14: calc(14px * var(--tscale));
@@ -59,9 +59,9 @@
   --ready: #e3d6bb;
   --hp: #823630;
   --mp: #304e8b;
-  /* 待素材：--hp-hi／--mp-hi 值待美術，先借現有 token（--bad／--rar-magic） */
-  --hp-hi: var(--bad);
-  --mp-hi: var(--rar-magic);
+  /* 藥劑鈕冷卻環、低血外框（M2-36-demo-tokens.md、M2-36-palette-tokens.md；美術總監 13:31） */
+  --hp-hi: #ae766c;
+  --mp-hi: #7d81ac;
   --prog-lo: #4a3d2b;
   --prog-hi: #b89a68;
 
