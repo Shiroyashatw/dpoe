@@ -230,8 +230,8 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const away = await p.evaluate(() => [$('pidle').querySelector('.ib > b').textContent, $('poff').hidden]);
   ok(
     'D 離開 60 秒–10 分：只在掛機條一行',
-    /^離開 4 分・木 \+12,000$/.test(away[0]) && away[1],
-    '離開 4 分・木 +12,000（不出結算卡）',
+    /^離開 4 分・木 \+12\.0K$/.test(away[0]) && away[1],
+    '離開 4 分・木 +12.0K（number-abbrev v1.1：掛機條離開那一行縮寫；不出結算卡）',
     away.join('｜'),
     await shot('04d_idle_away')
   );
@@ -456,7 +456,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const f7b = await shot('07b_fallback');
   ok(
     'rev2 D2 連死 3 次退回：不出卡，只出一行提示停 6 秒',
-    /連死 3 次，退回/.test(h1.warn[0]) && h1.warn[1] === '6000ms' && h1.warn[2] && !h1.over,
+    /連倒 3 次，退回/.test(h1.warn[0]) && h1.warn[1] === '6000ms' && h1.warn[2] && !h1.over,
     '一行、6000ms、沒有卡',
     `「${h1.warn[0]}」${h1.warn[1]}、卡 ${h1.over ? '有' : '無'}`,
     f7b
