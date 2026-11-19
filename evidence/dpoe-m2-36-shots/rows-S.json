@@ -1,0 +1,257 @@
+[
+ {
+  "id": "N-1-temple",
+  "viewport": "375x667",
+  "screen": "num-temple",
+  "state": "kinds",
+  "file": "375x667/num-temple-kinds.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.nums.length===9"
+  },
+  "errs": [],
+  "meas": "PF7 字高、描邊；num_min_px",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "N-1-lava",
+  "viewport": "375x667",
+  "screen": "num-lava",
+  "state": "kinds",
+  "file": "375x667/num-lava-kinds.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.nums.length===9"
+  },
+  "errs": [],
+  "meas": "PF7 字高、描邊；num_min_px",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "N-1-tomb",
+  "viewport": "375x667",
+  "screen": "num-tomb",
+  "state": "kinds",
+  "file": "375x667/num-tomb-kinds.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.nums.length===9"
+  },
+  "errs": [],
+  "meas": "PF7 字高、描邊；num_min_px",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "N-1-ice",
+  "viewport": "375x667",
+  "screen": "num-ice",
+  "state": "kinds",
+  "file": "375x667/num-ice-kinds.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.nums.length===9"
+  },
+  "errs": [],
+  "meas": "PF7 字高、描邊；num_min_px",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "K-1",
+  "viewport": "375x667",
+  "screen": "forge-make",
+  "state": "top",
+  "file": "375x667/forge-make-top.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "PANEL.craft && FSEG==='make'"
+  },
+  "errs": [],
+  "meas": "動作列不透明、上緣 1 px --border-mid＋scrim、底色鋪到螢幕底",
+  "star": "",
+  "note": ""
+ },
+ {
+  "id": "K-1",
+  "viewport": "375x667",
+  "screen": "forge-make",
+  "state": "mid",
+  "file": "375x667/forge-make-mid.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "PANEL.craft && FSEG==='make'"
+  },
+  "errs": [],
+  "meas": "動作列不透明、上緣 1 px --border-mid＋scrim、底色鋪到螢幕底",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "K-1",
+  "viewport": "375x667",
+  "screen": "forge-make",
+  "state": "bottom",
+  "file": "375x667/forge-make-bottom.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "PANEL.craft && FSEG==='make'"
+  },
+  "errs": [],
+  "meas": "動作列不透明、上緣 1 px --border-mid＋scrim、底色鋪到螢幕底",
+  "star": "",
+  "note": ""
+ },
+ {
+  "id": "T-1-temple",
+  "viewport": "375x667",
+  "screen": "combat-temple",
+  "state": "idle",
+  "file": "375x667/combat-temple-idle.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='temple' && !(G.night>G.t) && !(G.fog>G.t) && !G.fx.length && !G.nums.length && __tilesOk('temple')"
+  },
+  "errs": [],
+  "meas": "PF4;grid;chunk;(b)(d)",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "T-4-temple",
+  "viewport": "375x667",
+  "screen": "combat-temple",
+  "state": "fire",
+  "file": "375x667/combat-temple-fire.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='temple' && G.mobs.length>0 && S.skills.some(r=>r.k && SKILLS[r.k].el==='fire')"
+  },
+  "errs": [],
+  "meas": "輪廓（美術總監看）；(c) 不算閒置",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "T-1-lava",
+  "viewport": "375x667",
+  "screen": "combat-lava",
+  "state": "idle",
+  "file": "375x667/combat-lava-idle.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='lava' && !(G.night>G.t) && !(G.fog>G.t) && !G.fx.length && !G.nums.length && __tilesOk('lava')"
+  },
+  "errs": [],
+  "meas": "PF4;grid;chunk;(b)(d)",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "T-4-lava",
+  "viewport": "375x667",
+  "screen": "combat-lava",
+  "state": "fire",
+  "file": "375x667/combat-lava-fire.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='lava' && G.mobs.length>0 && S.skills.some(r=>r.k && SKILLS[r.k].el==='fire')"
+  },
+  "errs": [],
+  "meas": "輪廓（美術總監看）；(c) 不算閒置",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "T-1-tomb",
+  "viewport": "375x667",
+  "screen": "combat-tomb",
+  "state": "idle",
+  "file": "375x667/combat-tomb-idle.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='tomb' && !(G.night>G.t) && !(G.fog>G.t) && !G.fx.length && !G.nums.length && __tilesOk('tomb')"
+  },
+  "errs": [],
+  "meas": "PF4;grid;chunk;(b)(d)",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "T-4-tomb",
+  "viewport": "375x667",
+  "screen": "combat-tomb",
+  "state": "fire",
+  "file": "375x667/combat-tomb-fire.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='tomb' && G.mobs.length>0 && S.skills.some(r=>r.k && SKILLS[r.k].el==='fire')"
+  },
+  "errs": [],
+  "meas": "輪廓（美術總監看）；(c) 不算閒置",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "T-1-ice",
+  "viewport": "375x667",
+  "screen": "combat-ice",
+  "state": "idle",
+  "file": "375x667/combat-ice-idle.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='ice' && !(G.night>G.t) && !(G.fog>G.t) && !G.fx.length && !G.nums.length && __tilesOk('ice')"
+  },
+  "errs": [],
+  "meas": "PF4;grid;chunk;(b)(d)",
+  "star": "★",
+  "note": ""
+ },
+ {
+  "id": "T-4-ice",
+  "viewport": "375x667",
+  "screen": "combat-ice",
+  "state": "fire",
+  "file": "375x667/combat-ice-fire.png",
+  "kind": "static",
+  "verdict0": "",
+  "verify": {
+   "ok": true,
+   "cond": "G.biome==='ice' && G.mobs.length>0 && S.skills.some(r=>r.k && SKILLS[r.k].el==='fire')"
+  },
+  "errs": [],
+  "meas": "輪廓（美術總監看）；(c) 不算閒置",
+  "star": "★",
+  "note": ""
+ }
+]
