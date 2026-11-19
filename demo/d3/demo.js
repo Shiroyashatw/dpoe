@@ -1,5 +1,5 @@
 /* dpoe D3 展示頁（docs/production/specs/D3-checklist.md）
-   只讀 fixtures.js（佔位假資料）與 num.js（數字縮寫），不跑遊戲邏輯、不載遊戲程式。
+   只讀 fixtures.js（假資料，照 D3-fakedata.md）與 num.js（數字縮寫），不跑遊戲邏輯、不載遊戲程式。
    顏色只用 tokens.css 的 CSS 變數（canvas 也從 getComputedStyle 取 token）。
    時間全用虛擬時鐘 NOW：平常跟著畫格走；?cap=1 時停住，由擷取腳本 demo.step() 一格一格推（60 fps 逐幀錄影）。
    網址參數：size、save、row、fs、en、rm、scn（動態腳本 V1–V10）、bare（只留畫面框）、cap */
@@ -72,11 +72,14 @@ const ICO = {
   dia2: sv('<path d="M8 1.5l5.5 6.5-5.5 6.5-5.5-6.5z"/><path d="M8 5l2.5 3L8 11 5.5 8z"/>'),
   gear: sv('<path d="M4 13l8-8M9 4h3v3"/>'),
   orb: sv('<circle cx="8" cy="8" r="4.5"/>'),
-  hold: sv('<circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/>')
+  hold: sv('<circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/>'),
+  drop: sv('<path d="M6 2h4M7 2v3L4 10a3.5 3.5 0 0 0 3 5h2a3.5 3.5 0 0 0 3-5L9 5V2"/>')
 };
-/* 稀有、傳奇的記號是字（◆ ◈），列首不再畫圖示；普通畫圈、追逐畫王印 */
-const RICO = { normal: ICO.orb, rare: '', leg: '', chase: ICO.seal };
-const RMARK = { normal: '', rare: '◆ ', leg: '◈ ', chase: '' };
+/* 掉落紀錄只記類別（LOGN：★、◈、通貨、完美、追逐、靈魂包），不分來源、數量、階級。
+   類別 → 字色 class 與記號：通貨 ◆、完美 ◈、★ 破裂裝備、◈ 記憶、追逐畫王印、靈魂包畫圈 */
+const CAT = { cur: 'rare', perf: 'leg', star: 'rare', mem: 'leg', chase: 'chase', soul: 'normal' };
+const RICO = { soul: ICO.orb, chase: ICO.seal };
+const RMARK = { cur: '◆ ', perf: '◈ ', star: '', mem: '◈ ', chase: '', soul: '' };
 
 /* ---------- 按鍵表（T06 由這張表產生；鍵盤處理也讀同一張） ---------- */
 const KEYS = [
@@ -259,7 +262,7 @@ const ROWS = [
     'T07',
     '設定',
     '帳號・訪客登出',
-    'mid',
+    'new',
     S => ((S.panel = 'set'), (S.sec = 'acct')),
     () => !!q('[data-m=T07]')
   ),
@@ -283,7 +286,7 @@ const ROWS = [
     'G03',
     '掉落紀錄',
     '篩選＋清單',
-    'mid',
+    'late',
     S => ((S.panel = 'log'), (S.logF = 'all')),
     () => qa('.grow2').length > 5
   ),
@@ -298,7 +301,7 @@ const ROWS = [
   R(
     'G05',
     '掉落紀錄',
-    '裝備列說明卡',
+    '裝備列說明卡（假定：0.5.0 起裝備不掉）',
     'mid',
     S => ((S.panel = 'log'), (S.logItem = 1)),
     () => !!q('[data-m=G05]')
@@ -315,15 +318,15 @@ const ROWS = [
     'B01',
     '商會＋寶盒',
     '商會・換法列',
-    'mid',
+    'cap',
     S => ((S.panel = 'guild'), (S.gTab = '鐵')),
     () => qa('[data-m=B01] .btn').length >= 2
   ),
   R(
     'B02',
     '商會＋寶盒',
-    '商會・不夠',
-    'mid',
+    '商會・持有 < 5 的階不列',
+    'cap',
     S => ((S.panel = 'guild'), (S.gTab = '鐵')),
     () => !!q('[data-m=B02]')
   ),
@@ -339,7 +342,7 @@ const ROWS = [
     'B04',
     '商會＋寶盒',
     '鍛造缺材料指到商會',
-    'mid',
+    'cap',
     S => (S.panel = 'forge'),
     () => !!q('[data-m=B04]')
   ),
@@ -362,9 +365,9 @@ const ROWS = [
   R(
     'B07',
     '商會＋寶盒',
-    '寶盒・心魔劫／弒神',
+    '寶盒・心魔／弒神',
     'late',
-    S => ((S.panel = 'box'), (S.bTab = '心魔劫')),
+    S => ((S.panel = 'box'), (S.bTab = '心魔')),
     () => qa('.frow').length === 7
   ),
   R(
@@ -372,7 +375,7 @@ const ROWS = [
     '商會＋寶盒',
     '進殿確認',
     'late',
-    S => ((S.panel = 'box'), (S.bTab = '酆都'), (S.dlg = 'hall'), (S.hallI = 4)),
+    S => ((S.panel = 'box'), (S.bTab = '酆都'), (S.dlg = 'hall'), (S.hallI = 0)),
     () => !!q('[data-m=B08]')
   ),
   R(
@@ -381,7 +384,7 @@ const ROWS = [
     '還沒拿過碎片的系',
     'late',
     S => ((S.panel = 'box'), (S.bTab = '酆都')),
-    () => !q('[data-tab="兵家"]')
+    () => !q('[data-tab="陰兵"]')
   ),
   R(
     'P01',
@@ -508,7 +511,7 @@ const ROWS = [
     '共用定案',
     '貨幣列＋完整貨幣清單',
     'big',
-    S => (S.panel = 'cur'),
+    S => ((S.panel = 'cur'), (S.goldB = 1)),
     () => !!q('[data-m=X01]') && !!q('[data-m=X01b]')
   ),
   R(
@@ -516,7 +519,7 @@ const ROWS = [
     '共用定案',
     '藥劑看得到',
     'mid',
-    S => 0,
+    S => (S.fl = [-1200, -1e9]) /* F2-2：生命藥劑冷卻中（喝了 1.2 秒） */,
     () => qa('[data-m=X02] .flask').length === 2
   ),
   R(
@@ -624,7 +627,11 @@ function fresh() {
     scoutUp: 0,
     unlockDone: {},
     campHint: 0,
-    kbd: 0
+    kbd: 0,
+    fl: [-1e9, -1e9] /* 藥劑上次喝的時間 */,
+    flBusy: [null, null] /* 冷卻中按下：抖一下／閃外框 */,
+    pityOpen: 0,
+    goldB: 0
   };
 }
 
@@ -684,6 +691,10 @@ function build() {
   }
   h += `<div class="fade" id="d-fade"></div><div class="toast hide" id="d-toast" data-over></div><div class="tipn hide" id="d-tip"></div>`;
   ui.innerHTML = h;
+  /* 直立：地點牌不准壓到貨幣列（文字 130% 時貨幣列變寬） */
+  const ar = q('[data-m=area]'),
+    cb = q('[data-m=X01]');
+  if (g.port && ar && cb) ar.style.maxWidth = Math.min(190, cb.offsetLeft - 8 - ar.offsetLeft) + 'px';
   if (S.locScroll || S.boxScroll) scrollTo0();
   if (fk) {
     const e = q(`[data-k="${CSS.escape(fk)}"]`);
@@ -709,9 +720,12 @@ function scrollTo0() {
 function tagsHTML(g) {
   const t = [
     `<i data-row>${P.row}${P.fs ? '・130%' : ''}${P.en ? '・EN' : ''}${P.rm ? '・減少動態' : ''}</i>`,
-    `<i>${esc(FIX.PH.slice(0, 4))}・F01–F26</i>`,
+    `<i>${esc(FIX.PH)}</i>`,
     '<i>圖示暫用（程式畫）</i>'
   ];
+  if (P.en) t.push('<i data-m="ENa">EN 未譯＝假定（假字 ×1.4）</i>');
+  if (F().soulTest && S.panel === 'loc') t.push('<i>每分鐘 ≥ 10,000＝版面測試（假定）</i>');
+  if (S.goldB) t.push('<i>金暫改 B 邊界（F24）</i>');
   if (S.scr === 'camp') t.push('<i data-m="X07">待素材：營地底圖</i>');
   else t.push('<i data-m="X07">待素材：戰場底圖</i>');
   return `<div class="ab tags" data-over style="${g.port ? px(8, 2, g.W - 16, Math.max(20, g.st - 4)) : px(332, 16, 220, 40)}">${t.join('')}</div>`;
@@ -727,7 +741,7 @@ function hudHTML(g) {
   let h = '';
   const loc =
     S.scr === 'hall'
-      ? T(FIX.saves.late.box.halls[S.hallI].name, FIX.saves.late.box.halls[S.hallI].en)
+      ? T(F().box.halls[S.hallI].name, F().box.halls[S.hallI].en)
       : S.scr === 'prac'
         ? T('試招場', 'Practice Ground')
         : S.scr === 'camp'
@@ -737,25 +751,27 @@ function hudHTML(g) {
     h += `<div class="ab plate area" data-hud data-role="body" data-m="area" style="${port ? px(8, g.st + 6, null, 28) + 'max-width:190px' : px(16, 16, null, 44) + 'max-width:300px'}"><span class="ell">${esc(loc)}</span></div>`;
   /* X01 貨幣列：只放金幣、靈魂（縮寫）；點了開完整貨幣清單 */
   if (!underTop)
-    h += `<button class="ab plate curbar kf" data-hud data-hit="cur" data-k="cur" data-m="X01" data-role="body" aria-label="${esc(T('完整貨幣清單', 'All currency'))}" style="${port ? `right:8px;top:${g.st || 4}px;height:40px` : `left:${g.W - 16 - 264}px;top:16px;width:264px;height:44px;justify-content:flex-end`}"><span class="ci cg">${esc(T('金幣', 'Gold'))} ${NA(f.gold)}</span><span class="ci cs">${esc(T('靈魂', 'Souls'))} ${NA(f.soul)}</span></button>`;
+    h += `<button class="ab plate curbar kf" data-hud data-hit="cur" data-k="cur" data-m="X01" data-role="body" aria-label="${esc(T('完整貨幣清單', 'All currency'))}" style="${port ? `right:8px;top:${g.st || 4}px;height:40px` : `left:${g.W - 16 - 264}px;top:16px;width:264px;height:44px;justify-content:flex-end`}"><span class="ci cg">${esc(T('金幣', 'Gold'))} ${NA(S.goldB ? f.goldB : f.gold)}</span><span class="ci cs">${esc(T('靈魂', 'Souls'))} ${NA(f.soul)}</span></button>`;
   if (!port) h += navHTML(g);
   /* 掉落動態（試招場不掉東西，不畫） */
-  if (S.scr !== 'prac' && !underTop && !(S.intro && feedRows().length === 0)) {
+  if (S.scr !== 'prac' && !underTop && !S.intro && feedRows().length) {
     const fy = port ? (unlockOn() ? g.top + 80 : g.st + 48) : unlockOn() ? 164 : 76;
     h += `<div class="ab feed" data-hud data-m="feed" data-hit="feed" style="${port ? px(g.W - 8 - 180, fy, 180, null) : px(16, fy, 300, null)}">${feedRows()
       .map(
         e =>
-          `<div class="fr r-${e.rar} kf" role="button" tabindex="0" data-k="feed-${e.id}" data-role="body"><span class="nm ell">${esc(RMARK[e.rar] + (P.en ? e.en : e.name))}</span><span class="num">×${e.n}</span></div>`
+          `<div class="fr r-${CAT[e.cat]} kf" role="button" tabindex="0" data-k="feed-${e.id}" data-role="body"><span class="nm ell">${esc(RMARK[e.cat] + T(e.name, e.en))}</span></div>`
       )
-      .join('')}</div>`;
+      .join(
+        ''
+      )}${f.feedHidden ? `<div class="fr fh" data-m="feedh" data-role="body"><span class="nm">+${NA(f.feedHidden)} ${esc(T('件已收', 'items collected'))}</span></div>` : ''}</div>`;
   }
-  /* X02 藥劑＋技能 */
+  /* X02 藥劑＋技能：不限次數，各自冷卻 3 秒；鈕上只畫冷卻環（--hp-hi／--mp-hi），不寫次數 */
   const fx = port ? 8 : Math.max(16 + 380 + 8, g.W / 2 - 150);
   if (!under)
-    h += `<div class="ab" data-hud data-m="X02" style="${px(fx, g.skY + 4, 96, 44)}display:flex;gap:8px">${f.flask
+    h += `<div class="ab" data-hud data-m="X02" style="${px(fx, g.skY + 4, 96, 44)}display:flex;gap:8px">${[0, 1]
       .map(
-        ([c, m, p], i) =>
-          `<button class="flask kf" data-k="flask${i}" data-hit="flask" aria-label="${esc(T('藥劑', 'Flask'))} ${i + 1}"><i class="ring" data-ring="${i ? 'mp' : 'hp'}" style="background:conic-gradient(var(${i ? '--mp-hi' : '--hp-hi'}) ${Math.round(p * 360)}deg, var(--panel-inset) 0)"></i><i class="core"></i><b class="num" data-role="num">${c}/${m}</b><kbd data-role="label">${i + 1}</kbd></button>`
+        i =>
+          `<button class="flask kf" id="d-flask${i}" data-k="flask${i}" data-hit="flask" aria-label="${esc(i ? T('魔力藥劑', 'Mana Flask') : T('生命藥劑', 'Life Flask'))}"><i class="ring" data-ring="${i ? 'mp' : 'hp'}" style="${ringCss(i)}"></i><i class="core"></i>${ICO.drop}${port ? '' : `<kbd data-role="label">${i + 1}</kbd>`}</button>`
       )
       .join('')}</div>`;
   const sx = port ? g.W - 8 - 4 * 52 - 3 * 6 : fx + 110;
@@ -768,8 +784,13 @@ function hudHTML(g) {
         (port ? '' : '・T ' + T('離開', 'leave'))
       : S.scr === 'camp'
         ? T('營地中・戰鬥暫停、回來補算', 'In camp · combat paused, settled on return')
-        : `${T('掛機', 'Idle')} 12 ${T('分', 'min')}・${T('保底', 'Pity')} ${f.pity}%`;
-  h += `<div class="ab idle" data-hud data-m="${S.scr === 'prac' ? 'P06' : 'idle'}" data-role="body" style="${port ? px(0, g.idleTop, g.W, 44) : px(16, g.H - 56, 380, 44)}"><span>${esc(it)}</span></div>`;
+        : null;
+  /* 掛機條：「追逐保底 {n}%」前放王印 16（名詞表 v0.6.15）；沒有窄版 */
+  const ih =
+    it != null
+      ? `<span>${esc(it)}</span>`
+      : `<span>${esc(T('掛機', 'Idle'))} 12 ${esc(T('分', 'min'))}・</span><span class="r-chase" data-m="idlePity">${ICO.seal}</span><span>${esc(T('追逐保底', 'Chase pity'))} ${f.pity}%</span>`;
+  h += `<div class="ab idle" data-hud data-m="${S.scr === 'prac' ? 'P06' : 'idle'}" data-role="body" style="${port ? px(0, g.idleTop, g.W, 44) : px(16, g.H - 56, 380, 44)}">${ih}</div>`;
   if (port) h += navHTML(g);
   /* 回戰場補算一行（P07、O07、X04） */
   if (S.gain) {
@@ -782,43 +803,38 @@ function hudHTML(g) {
   }
   return h;
 }
+/* 藥劑冷卻環：冷卻中從 0 掃到 360°；好了是滿環 */
+const FL_CD = 3000;
+const flLeft = i => Math.max(0, FL_CD - (NOW - S.fl[i]));
+const ringCss = i => {
+  const k = 1 - flLeft(i) / FL_CD;
+  return `background:conic-gradient(var(${i ? '--mp-hi' : '--hp-hi'}) ${Math.round(k * 360)}deg, var(--panel-inset) 0)`;
+};
 const curLoc = () => {
   const f = F();
   return f.locs[S.bounced ? f.locs.findIndex(l => l.name === f.bounce.to) : f.at];
 };
 function feedRows() {
+  /* 開場前 30 秒不掉通貨（F21）；紀錄只收稀有以上，門檻「傳奇以上」只留 ◈ 與追逐 */
   const f = F();
-  if (S.intro)
-    return NOW - S.intro.t0 >= f.intro.beats[0][0]
-      ? [{ id: 'i0', rar: 'normal', name: '熟鐵', en: 'Wrought Iron', n: 3 }]
-      : [];
-  return f.log
-    .filter(
-      e =>
-        !e.unlock &&
-        (S.alert === 'all' || e.rar !== 'normal') &&
-        (S.alert !== 'leg' || e.rar === 'leg' || e.rar === 'chase')
-    )
-    .slice(0, 3);
+  if (S.intro) return [];
+  return f.log.filter(e => S.alert !== 'leg' || CAT[e.cat] === 'leg' || e.cat === 'chase').slice(0, 3);
+}
+/* 期間補算一行：「{畫面}期間 靈魂 +{n}・{k} 件・◆ {r}」，值 0 的項從後面省略（名詞表 v0.6.15） */
+function gainLine(zh, en, g) {
+  const p = [`${esc(T(zh + '期間', en))} ${esc(T('靈魂', 'Souls'))} +${NA(g.soul)}`];
+  if (g.items) p.push(`${NA(g.items)} ${esc(T('件', 'items'))}`);
+  if (g.items && g.rare) p.push(`◆ ${NA(g.rare)}`);
+  return p.join('・');
 }
 function gainTxt() {
   const f = F(),
     k = S.gain.kind,
     pg = f.pracGain;
-  if (k === 'prac')
-    return {
-      m: 'P07',
-      h: `${esc(T('試招期間', 'While practicing'))} ${esc(T('靈魂', 'Souls'))} +${NA(pg.soul)}・${pg.items} ${esc(T('件', 'items'))}（${esc(T('稀有以上', 'Rare+'))} ${pg.rare}）`
-    };
-  if (k === 'both')
-    return {
-      m: 'P07',
-      h: `${esc(T('營地＋試招期間', 'Camp + practice'))} ${esc(T('靈魂', 'Souls'))} +${NA(pg.soul + pg.camp)}・${pg.items} ${esc(T('件', 'items'))}`
-    };
-  return {
-    m: 'X04g',
-    h: `${esc(T('天賦樹期間', 'While in tree'))} ${esc(T('靈魂', 'Souls'))} +${NA(820)}・2 ${esc(T('件', 'items'))}`
-  };
+  if (k === 'prac') return { m: 'P07', h: gainLine('試招', 'While practicing:', pg) };
+  /* 營地＋試招合一行（字「營地與試招期間」＝假定，F20） */
+  if (k === 'both') return { m: 'P07', h: gainLine('營地與試招', 'While in camp and practicing:', pg.both || pg) };
+  return { m: 'X04g', h: gainLine('天賦樹', 'While in Talent Tree:', f.treeGain || { soul: 0 }) };
 }
 function navHTML(g) {
   const T6 = [
@@ -845,7 +861,7 @@ function shell(g, id, title, body, opt = {}) {
   const back = opt.back
     ? `<button class="x44 kf" data-k="${opt.back}" data-hit="back" aria-label="${esc(T('返回', 'Back'))}">${ICO.back}</button>`
     : '';
-  return `<section class="ab pnl ${g.port ? 'sheet' : ''}" id="d-pnl" data-panel="${id}" data-m="${opt.m || id}" style="${px(g.port ? 0 : g.colX, y, g.port ? g.W : 420, h)}"><div class="hd">${back}<b data-role="body">${esc(title)}</b>${opt.extra || ''}${key}<button class="x44 kf" data-k="px" data-hit="x" aria-label="${esc(T('關閉', 'Close'))}">${ICO.x}</button></div>${opt.top || ''}<div class="bd" data-list>${body}</div>${opt.foot || ''}</section>`;
+  return `<section class="ab pnl ${g.port ? 'sheet' : ''}" id="d-pnl" data-panel="${id}" data-m="${opt.m || id}" style="${px(g.port ? 0 : g.colX, y, g.port ? g.W : 420, h)}"><div class="hd">${back}<b data-role="body">${opt.th || esc(title)}</b>${opt.extra || ''}${key}<button class="x44 kf" data-k="px" data-hit="x" aria-label="${esc(T('關閉', 'Close'))}">${ICO.x}</button></div>${opt.top || ''}<div class="bd" data-list>${body}</div>${opt.foot || ''}</section>`;
 }
 function panelHTML(g) {
   const p = S.panel;
@@ -867,7 +883,7 @@ function locHTML(g) {
     L = curLoc();
   if (S.locView === 'mods') {
     const body = f.mods
-      ? `<div class="mods" data-m="L07">${f.mods.map(m => `<div class="mrow ${m.d === 3 ? 'd3' : ''}" data-role="body">${m.d === 3 ? ICO.warn : ''}<span style="flex:1">${esc(P.en ? m.en : m.name)}</span><span class="dg" data-role="label">${esc(T('危險', 'Risk'))} ${m.d}</span></div>`).join('')}</div>`
+      ? `<div class="mods" data-m="L07">${f.mods.map(m => `<div class="mrow ${m.d === 3 ? 'd3' : ''}" data-role="body">${m.d === 3 ? ICO.warn : ''}<span style="flex:1">${esc(T(m.name, m.en))}</span><span class="dg" data-role="label">${esc(T('危險', 'Risk'))} ${m.d}</span></div>`).join('')}</div>`
       : `<div class="empty" data-m="L07" data-role="body">${esc(T('王倒下後才知道', 'Known after the boss falls'))}</div>`;
     return shell(g, 'loc', T('這張圖的地圖詞', 'Map mods on this map'), body, {
       back: 'loc-list',
@@ -877,8 +893,8 @@ function locHTML(g) {
   /* L02／L03 正在刷卡 */
   const nMods = f.mods ? f.mods.length : 0;
   const r2 = S.bounced
-    ? `<div class="r2 warnt" data-role="body">${esc(T(`連倒 3 次，退回這裡・${f.bounce.why}`, `3 deaths in a row, sent back here · ${f.bounce.whyEn}`))}</div>`
-    : `<div class="r2" data-role="body">${esc(T('怪物', 'Monster'))} Lv${L.lv}・${esc(T('每分鐘', 'per min'))} ${NA(L.soul)} ${esc(T('靈魂', 'Souls'))}・${esc(f.pityOn && L.lv >= 45 ? T('保底累積中', 'pity building') : T('不累積保底', 'no pity here'))}</div>`;
+    ? `<div class="r2 warnt" data-role="body">${esc(T(`連倒 3 次，退回這裡・${f.bounce.why}`, null))}</div>`
+    : `<div class="r2" data-role="body">${esc(T('怪物', 'Monster'))} Lv${L.lv}・${esc(T('每分鐘', 'per min'))} ${NA(L.soul)} ${esc(T('靈魂', 'Souls'))}・${esc(L.lv >= 45 ? T('保底累積中', 'pity building') : T('不累積保底', 'no pity here'))}</div>`;
   const rb = S.bounced
     ? `<button class="btn sm kf" data-k="retry" data-hit="retry" style="min-width:102px">${esc(T('再試', 'Retry '))}${esc(P.en ? f.bounce.fromEn : f.bounce.from)}</button>`
     : `<button class="btn sm kf mbtn" data-k="mods" data-hit="mods" style="${port ? 'width:102px' : ''}">${esc(T(`地圖詞 ${nMods} 條 ›`, `${nMods} map mods ›`))}</button>`;
@@ -887,8 +903,10 @@ function locHTML(g) {
   let nx = '';
   if (f.next) {
     const n = f.next,
-      pct = Math.min(1, n.have / n.need);
-    nx = `<button class="lnext kf" data-m="L04" data-k="next" data-hit="next" style="height:${port ? 56 : 48}px;margin-top:4px"><span class="t" data-role="body">${esc(T(`升${n.fac} Lv${n.facLv} 就開`, `${n.facEn} Lv${n.facLv} opens`))} ${esc(nm(n))} Lv${n.lv} ›</span><span class="dim" data-role="body" style="font-size:var(--f14)"><i class="mbar" style="width:110px"><i style="width:${pct * 100}%"></i></i> ${esc(P.en ? n.matEn : n.mat)} ${NA(n.have)}／${NA(n.need, 'cost')}</span></button>`;
+      [mz, me, have, need] = n.mats[0],
+      pct = Math.min(1, have / need);
+    /* 條＝最缺的那一項（材料列第一個）；差額同營地卡算法 */
+    nx = `<button class="lnext kf" data-m="L04" data-k="next" data-hit="next" style="height:${port ? 56 : 48}px;margin-top:4px"><span class="t" data-role="body">${esc(T(`升${n.fac} Lv${n.facLv} 就開`, `${n.facEn} Lv${n.facLv} opens`))} ${esc(nm(n))} Lv${n.lv} ›</span><span class="dim" data-role="body" style="font-size:var(--f14)"><i class="mbar" style="width:110px"><i style="width:${pct * 100}%"></i></i> ${esc(T(mz, me))} ${NA(have)}／${NA(need, 'cost')}</span></button>`;
   }
   /* L05 星級列（沒開的星不畫） */
   const star = S.starPend || f.star;
@@ -913,11 +931,11 @@ function locHTML(g) {
     if (l.zone !== zone) {
       zone = l.zone;
       const zs = f.locs.filter(x => x.zone === zone);
-      list += `<div class="zh" data-role="body">${esc(P.en ? l.zoneEn : l.zone)}<span>${esc(T('開了', 'open'))} ${zs.filter(x => x.open).length}／${zs.length}</span></div>`;
+      list += `<div class="zh" data-role="body">${esc(T(l.zone, l.zoneEn))}<span>${esc(T('開了', 'open'))} ${zs.filter(x => x.open).length}／${zs.length}</span></div>`;
     }
     const on = l.name === L.name;
     if (!l.open) {
-      const n = f.next || { fac: '瞭望台', facEn: 'Watchtower', facLv: '—' };
+      const n = f.next || { fac: '瞭望台', facEn: 'Watchtower', facLv: '—' }; /* 全開的存檔不會走到 */
       list += `<div class="lrow lock kf" tabindex="0" role="button" data-m="L08" data-k="lock-${i}" data-hit="lock" id="d-lock">${ICO.lock}<span class="nm"><b class="ell" data-role="body">${esc(nm(l))} Lv${l.lv}</b><span class="cond" data-role="label">${esc(T(`升${n.fac} Lv${n.facLv} 就開`, `Opens at ${n.facEn} Lv${n.facLv}`))}</span></span></div>`;
       return;
     }
@@ -944,20 +962,27 @@ function moreHTML(g) {
     .map((c, i) => {
       const x = fs1 ? 12 : (port ? 12 : 4) + (i % 2) * (cw + 8),
         y = 8 + (fs1 ? i * 64 : Math.floor(i / 2) * (ch + 8));
-      const st = c.st.replace('{dps}', abbr(f.prac.avg10)).replace('{kills}', full(f.prac.kills));
-      const stE = c.stEn.replace('{dps}', abbr(f.prac.avg10)).replace('{kills}', full(f.prac.kills));
-      return `<button class="mcard kf" data-k="mc-${c.k}" data-hit="mcard" style="${px(x, y, fs1 ? g.W - 24 : cw, fs1 ? 56 : ch)}"><b class="ell" data-role="body">${esc(T(c.name, c.en))}</b><span class="ell" data-role="body" data-num="abbr">${esc(T(st, stE))}</span>${c.dot && !S.seen[c.k] ? '<i class="dot" data-m="M02"></i>' : ''}</button>`;
+      return `<button class="mcard kf" data-k="mc-${c.k}" data-hit="mcard" style="${px(x, y, fs1 ? g.W - 24 : cw, fs1 ? 56 : ch)}"><b class="ell" data-role="body">${esc(T(c.name, c.en))}</b><span class="ell" data-role="body" data-num="abbr">${esc(T(c.st, c.stEn))}</span>${c.dot && !S.seen[c.k] ? '<i class="dot" data-m="M02"></i>' : ''}</button>`;
     })
     .join('');
   const rows = fs1 ? f.more.length : Math.ceil(f.more.length / 2);
   const gh = 8 + rows * ((fs1 ? 56 : ch) + 8);
+  /* F08：「下一個」一行（全開不顯示） */
+  const nxl = f.moreNext
+    ? `<div class="dim" data-m="Mnext" data-role="body" style="padding:0 12px 8px;font-size:var(--f14)">${esc(T('下一個', 'Next'))}：${esc(T(f.moreNext[0], f.moreNext[1]))}</div>`
+    : '';
   const foot = `<div style="padding:16px 12px 4px;flex:none"><button class="btn kf" data-k="tocamp" data-hit="tocamp" style="width:${port ? 366 : 404}px">${esc(T('回營地', 'Return to camp'))}</button></div>`;
   return shell(
     g,
     'more',
+    /* 標題「角色 Lv {n} · {金} 金」：金照數字縮寫（hud.js:732 再套 abbr） */
     T('更多', 'More'),
-    `<div data-m="M01" style="position:relative;height:${gh}px">${cards}</div>`,
-    { key: port ? '' : 'Z', foot }
+    `<div data-m="M01" style="position:relative;height:${gh}px">${cards}</div>${nxl}`,
+    {
+      key: port ? '' : 'Z',
+      foot,
+      th: `${esc(T('角色', 'Hero'))} Lv ${f.lv} · ${NA(f.gold)} ${esc(T('金', 'Gold'))}`
+    }
   );
 }
 
@@ -1037,7 +1062,7 @@ function setHTML(g) {
       : `<div class="sec" data-m="T06"><div class="ktab" id="d-keys">${KEYS.map(([k, z, e]) => `<div class="krow" data-role="body"><span>${esc(T(z, e))}</span><kbd data-role="label">${esc(k)}</kbd></div>`).join('')}</div><div class="note" data-role="body"><span class="ph">待對照</span> ${esc(T('全鍵位表 e5f18530 不在 repo，表由程式的 KEYS 產生', 'Reference table e5f18530 not in repo'))}</div></div>`;
   if (S.sec === 'acct') {
     const a = f.account;
-    b = `<div class="sec" data-m="T07" style="min-height:100%"><div data-role="body">${esc(a.guest ? T('目前是訪客', 'Playing as guest') : T('已登入', 'Signed in') + ' ' + a.mail)}</div>${a.guest ? `<div class="note" data-role="body" style="color:var(--warn)">${ICO.warn} ${esc(T('訪客存檔只在這台裝置，登出後可能找不回來', 'Guest saves live only on this device and may be lost after signing out'))}</div>` : ''}<button class="btn danger kf" data-k="logout" data-hit="logout" data-hold="logout" style="width:100%"><i class="fill" id="d-fill-logout"></i><span>${ICO.hold} ${esc(T('長按登出', 'Hold to sign out'))}</span></button><div style="display:flex;justify-content:flex-end"><button class="btn kf" data-k="logout-no" data-hit="cancel" style="width:110px">${esc(T('取消', 'Cancel'))}</button></div><div class="note" data-role="body">${esc(T('版本', 'Version'))} ${esc(f.ver)}</div></div>`;
+    b = `<div class="sec" data-m="T07" style="min-height:100%"><div data-role="body">${esc(a.guest ? T('訪客', 'Guest') : T('已登入', 'Signed in') + ' ' + a.mail)} · ${esc(T(a.st, null))}</div>${a.guest ? `<div class="note" data-role="body" style="color:var(--warn)">${ICO.warn} ${esc(T('訪客存檔只在這台裝置，登出後可能找不回來', 'Guest saves live only on this device and may be lost after signing out'))}</div>` : ''}<button class="btn danger kf" data-k="logout" data-hit="logout" data-hold="logout" style="width:100%"><i class="fill" id="d-fill-logout"></i><span>${ICO.hold} ${esc(T('長按登出', 'Hold to sign out'))}</span></button><div style="display:flex;justify-content:flex-end"><button class="btn kf" data-k="logout-no" data-hit="cancel" style="width:110px">${esc(T('取消', 'Cancel'))}</button></div><div class="note" data-role="body">${esc(T('版本', 'Version'))} ${esc(f.ver)}</div></div>`;
   }
   return shell(g, 'set', T('設定', 'Settings'), b, { full: 1, key: port ? '' : 'Esc', top, m: 'T' });
 }
@@ -1050,7 +1075,16 @@ function logHTML(g) {
   const on = L.lv >= 45;
   let top = '';
   if (f.log.length || f.pity) {
-    top = `<div class="pityr" data-m="G01" style="min-height:${port ? 28 : 56}px;margin-top:${port ? 3 : 0}px"><b data-role="body">${esc(T('下一件保底', 'Chase pity'))} ${f.pity}%</b><i class="pbar"><i style="width:${f.pity}%"></i></i></div>`;
+    /* 掉落紀錄寫全名「下一件保底 n%」（EN Chase pity n%），前放王印 16 */
+    top = `<div class="pityr" data-m="G01" style="min-height:${port ? 28 : 56}px;margin-top:${port ? 3 : 0}px"><b data-role="body"><span class="r-chase">${ICO.seal}</span> ${esc(T('下一件保底', 'Chase pity'))} ${f.pity}%</b><i class="pbar"><i style="width:${f.pity}%"></i></i></div>`;
+    /* 其他保底：「保底進度・滿了下一次一定掉」，v／max 照縮寫 */
+    if (S.pityOpen && f.pityOther.length)
+      top += `<div data-m="G01o" style="padding:2px 12px 4px;flex:none"><div class="dim" data-role="body" style="font-size:var(--f14)">${esc(T('保底進度・滿了下一次一定掉', 'Pity progress · When a bar fills, that item drops next'))}</div>${f.pityOther
+        .map(
+          ([z, e, v, m]) =>
+            `<div class="grow" data-role="body" style="min-height:28px"><b style="flex:1;width:auto">${esc(T(z, e))}</b>${NA(v)}／${NA(m, 'cost')}</div>`
+        )
+        .join('')}</div>`;
     if (!on)
       top += `<div class="note" data-m="G02" data-role="body" style="padding:2px 12px;font-size:var(--f14);color:var(--tx-dim)">${esc(T('這裡不累積保底：怪物 Lv 45 以上的地點才會累積', 'No pity here: only maps with monster Lv 45+ build it'))}</div>`;
   }
@@ -1063,18 +1097,19 @@ function logHTML(g) {
   top += `<div class="seg" style="padding:4px 8px;flex:none" data-m="G03f">${FL.map(([k, z, e]) => `<button class="kf" data-k="lf-${k}" data-hit="seg" aria-pressed="${S.logF === k}" data-role="label" style="flex:0 0 ${port ? 76 : 76}px">${esc(T(z, e))}</button>`).join('')}</div>`;
   let body;
   if (!f.log.length)
-    body = `<div class="empty" data-m="G06" data-role="body"><span class="ph">待定</span> ${esc(T('（佔位句）打倒怪物和王，掉的東西會記在這裡', '(placeholder) Defeat monsters and bosses — drops are listed here'))}</div>`;
+    body = `<div class="empty" data-m="G06" data-role="body">${esc(T('還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。', 'No drops yet. Rare+ drops from farming are listed here (last 50).'))}</div>`;
   else if (S.logItem) body = itemCard(g);
   else
     body = `<div data-m="G03">${f.log
-      .filter(e => S.logF === 'all' || e.cat === S.logF)
+      .filter(e => S.logF === 'all' || LOGF[e.cat] === S.logF)
       .map(
         e =>
-          `<div class="grow2 kf inset-f ${e.rar === 'chase' ? 'chase' : ''} ${S.logPick === e.id ? 'pick' : ''}" tabindex="0" role="button" data-k="lr-${e.id}" data-hit="lrow" data-id="${e.id}">${e.unlock || !RICO[e.rar] ? '' : `<span class="r-${e.rar}">${RICO[e.rar]}</span>`}<span class="nm ell r-${e.rar}" data-role="body">${esc(RMARK[e.rar] + (P.en ? e.en : e.name))}</span>${e.mem ? `<span class="memt">${esc(T('記憶', 'Memory'))}</span>` : ''}${e.unlock ? `<span class="unlockt">${esc(T('開了', 'Unlocked'))}</span>` : ''}<small data-role="label">${esc(P.en ? e.srcEn : e.src)}・${e.min} ${esc(T('分前', 'min ago'))}</small><span class="q num" data-role="body">×${e.n}</span></div>`
+          `<div class="grow2 kf inset-f ${e.cat === 'chase' ? 'chase' : ''} ${S.logPick === e.id ? 'pick' : ''}" tabindex="0" role="button" data-k="lr-${e.id}" data-hit="lrow" data-id="${e.id}">${RICO[e.cat] ? `<span class="r-${CAT[e.cat]}">${RICO[e.cat]}</span>` : ''}<span class="nm ell r-${CAT[e.cat]}" data-role="body">${esc(RMARK[e.cat] + T(e.name, e.en))}</span>${e.cat === 'mem' ? `<span class="memt">${esc(T('記憶', 'Memory'))}</span>` : ''}<small data-role="label">${esc(T(e.t, e.tEn))}</small></div>`
       )
       .join('')}</div>`;
-  const more = f.log.length
-    ? `<button class="lk kf" data-k="pity-more" data-hit="link" data-m="G01b">${esc(T('其他保底 3 項', '3 more pity'))} ›</button>`
+  const no = f.pityOther.length;
+  const more = no
+    ? `<button class="lk kf" data-k="pity-more" data-hit="link" data-m="G01b" aria-expanded="${!!S.pityOpen}">${esc(T(`其他保底 ${no} 項`, `${no} more pity`))} ${S.pityOpen ? '‹' : '›'}</button>`
     : '';
   return shell(g, 'log', T('掉落紀錄', 'Drop log'), body, {
     key: port ? '' : 'L',
@@ -1083,6 +1118,8 @@ function logHTML(g) {
     extra: more
   });
 }
+/* 篩選：裝備＝★ 破裂裝備；追逐＝王印；其他都算通貨 */
+const LOGF = { star: 'gear', chase: 'chase', cur: 'cur', perf: 'cur', mem: 'cur', soul: 'cur' };
 function itemCard(g) {
   const it = F().item;
   return `<div class="icard" data-m="G05"><div class="cmp" data-role="body">${it.cmp
@@ -1093,7 +1130,10 @@ function itemCard(g) {
     })
     .join(
       ''
-    )}</div><h5 class="r-${it.rar}" data-role="body">◆ ${esc(T(it.name, it.en))}</h5><div class="dim" data-role="body">${esc(T(it.base, it.baseEn))}</div><div class="mods">${(P.en ? it.modsEn : it.mods).map(m => `<div data-role="body">${esc(m)}</div>`).join('')}</div></div>`;
+    )}</div><h5 class="r-${it.rar}" data-role="body">◆ ${esc(T(it.name, it.en))}</h5><div class="dim" data-role="body">${esc(T(it.base, it.baseEn))}</div><div class="mods">${it.mods
+    .map(m => T(m, null))
+    .map(m => `<div data-role="body">${esc(m)}</div>`)
+    .join('')}</div></div>`;
 }
 
 /* ---------- 5 商會＋山海寶盒 ---------- */
@@ -1102,58 +1142,72 @@ function guildHTML(g) {
     port = g.port,
     G = f.guild;
   const top = `<div class="seg" style="padding:4px 8px;flex:none" data-m="Bt">${G.tabs.map(t => `<button class="kf" data-k="gt-${t}" data-hit="seg" aria-pressed="${S.gTab === t}" data-role="label" style="flex:0 0 ${port ? 90 : 96}px">${esc(T(t, { 鐵: 'Iron', 皮: 'Hide', 靈絲: 'Silk', 通貨: 'Currency' }[t]))}</button>`).join('')}</div>`;
+  /* 商會（forge.js:380–423）：只列持有 ≥ 5 的階、一次換 1 份（沒有「全部」）；高一階 > tierCap 的列鎖住；數字完整 */
   const rows = G.rows[S.gTab]
     .map((r, i) => {
       const have = S.gHave && S.gHave[S.gTab + i] != null ? S.gHave[S.gTab + i] : r.have;
-      const n = Math.floor(have / r.k),
-        capd = r.tier > G.capTier,
-        sel = S.gSel === i;
+      const sel = S.gSel === i;
       const shown = S.roll && S.roll.k === S.gTab + i ? S.roll.cur : have;
-      const title = `${esc(T(r.from, r.fromEn))} ×${r.k} → ${esc(T(r.to, r.toEn))} ×1`;
-      if (capd)
-        return `<div class="grow3 capd" data-m="B03" data-k="gr-${i}">${ICO.lock}<span class="nm"><b data-role="body">${title}</b><span data-role="body">${esc(T(G.capWhy, G.capWhyEn))}</span></span></div>`;
-      if (!n)
-        return `<div class="grow3 ${sel ? 'sel' : ''}" data-m="B02" data-k="gr-${i}"><span class="nm"><b data-role="body">${title}</b><span data-role="body">${esc(T('有', 'Have'))} ${NF(have)}</span></span><span class="no" data-role="body">${esc(T('不夠', 'Not enough'))}</span></div>`;
-      return `<div class="grow3 ${sel ? 'sel' : ''}" data-m="B01" data-k="gr-${i}"><span class="nm"><b data-role="body">${title}</b><span data-role="body">${esc(T('有', 'Have'))} <span class="num" data-num="full" id="d-have-${i}">${full(shown)}</span>・${esc(T('可換', 'trades'))} ${full(n)} ${esc(T('次', ''))}</span></span><button class="btn sm kf b60" data-k="g1-${i}" data-hit="g1">${esc(T('換 1', 'Trade 1'))}</button><button class="btn sm kf b86" data-k="ga-${i}" data-hit="ga">${esc(T(`全部 ${full(n)}`, `All ×${full(n)}`))}</button></div>`;
+      const title = `${esc(T(r.from, r.fromEn))} ×${r.k} → ${esc(T(r.to, r.toEn))}${r.out ? ' ' + r.out : ''}`;
+      if (r.lock)
+        return `<div class="grow3 capd" data-m="B03" data-k="gr-${i}">${ICO.lock}<span class="nm"><b data-role="body">${title}</b><span data-role="body">${esc(T(`瞭望台開到更深的地點才能換${r.to}`, null))}</span></span></div>`;
+      return `<div class="grow3 ${sel ? 'sel' : ''}" data-m="B01" data-k="gr-${i}"><span class="nm"><b data-role="body">${title}</b><span data-role="body">${esc(T('有', 'Have'))} <span class="num" data-num="full" id="d-have-${i}">${full(shown)}</span></span></span><button class="btn sm kf b60" data-k="g1-${i}" data-hit="g1" ${have < r.k ? 'disabled aria-disabled="true"' : ''}>${esc(T('換 1', 'Trade 1'))}</button></div>`;
     })
     .join('');
-  return shell(g, 'guild', T('商會', 'Guild'), rows, { key: port ? '' : '', top });
+  /* 持有 < 5 的階整列不列（不留空列）；記在容器上給預篩對照 */
+  const om = G.omit[S.gTab];
+  const body = rows
+    ? `<div data-m="B02" data-omit="${esc(om.join('、'))}">${rows}</div>`
+    : `<div class="empty" data-m="B02" data-role="body">${esc(T('同一階的材料有 5 個才能換高一階', null))}</div>`;
+  return shell(g, 'guild', T('商會', 'Guild'), body, { key: port ? '' : '', top });
 }
 function boxHTML(g) {
   const f = F(),
     port = g.port,
     B = f.box;
+  /* 沒拿過碎片的系不畫分頁（不預告） */
   const seen = B.sys.filter(s => s.seen);
   const top = `<div class="seg" style="padding:4px 8px;gap:1px;flex:none;flex-wrap:${P.en ? 'nowrap' : 'wrap'};overflow-x:${P.en ? 'auto' : 'visible'}" data-m="Bb">${seen.map(s => `<button class="kf" data-tab="${s.k}" data-k="bt-${s.k}" data-hit="seg" aria-pressed="${S.bTab === s.k}" data-role="label" style="flex:0 0 ${port ? 74 : 76}px">${esc(T(s.k, s.en))}</button>`).join('')}</div>`;
   const sys = B.sys.find(s => s.k === S.bTab);
   let b = '';
-  if (S.bTab === '心魔劫')
+  if (S.bTab === '心魔')
     b = `<div data-m="B07">${B.demon.map((d, i) => `<div class="frow"><label data-hit="chk"><input type="checkbox" class="kf" data-k="dm-${i}" ${S.pick['dm' + i] ? 'checked' : ''} ${d.n ? '' : 'disabled'} aria-label="${esc(T(d.name, d.en))}"></label><span class="nm"><b data-role="body">${esc(T(d.name, d.en))} ×${d.n}</b><span data-role="body">${esc(T(d.debuff, d.debuffEn))}</span></span></div>`).join('')}</div>`;
   else if (S.bTab === '弒神')
-    b = `<div data-m="B07g"><div class="cells" style="grid-template-columns:repeat(1,${port ? 146 : 156}px)">${cellHTML(sys.frags[0], B.need)}</div><div class="zh" data-role="body">${esc(T('神格', 'Godhood'))}</div>${B.godhood.map((d, i) => `<div class="frow"><label data-hit="chk"><input type="checkbox" class="kf" data-k="gh-${i}" ${d.n ? '' : 'disabled'} aria-label="${esc(T(d.name, d.en))}"></label><span class="nm"><b data-role="body">${esc(T(d.name, d.en))} ×${d.n}</b></span></div>`).join('')}</div>`;
+    b = `<div data-m="B07g"><div class="cells" style="grid-template-columns:repeat(1,${port ? 146 : 156}px)">${cellHTML(sys.frags[0], sys.unit)}</div><div class="zh" data-role="body">${esc(T('神格', 'Godhood'))}</div><div class="empty" data-role="body">—</div></div>`;
   else {
-    b = `<div class="cells" data-m="B05">${sys.frags.map(fr => cellHTML(fr, B.need)).join('')}</div>`;
-    const hallsOf = B.halls.map((h, i) => Object.assign({ i }, h)).filter(h => sys.frags.some(fr => fr[0] === h.frag));
-    b += `<div data-m="B06">${hallsOf
+    /* 收集格：每格寫張數；酆都另寫「勾魂令 合計 n／5」（任 5 張開閻羅殿） */
+    b = `${sys.sum ? `<div class="zh" data-m="B05s" data-role="body">${esc(T(`${sys.sum.name} 合計 ${sys.sum.n}／${sys.sum.need}`, null))}</div>` : ''}<div class="cells" data-m="B05">${sys.frags.map(fr => cellHTML(fr, sys.unit)).join('')}</div>`;
+    const loc = nm(curLoc());
+    b += `<div data-m="B06">${B.halls
+      .map((h, i) => Object.assign({ i }, h))
+      .filter(h => h.sys === S.bTab)
       .map(h => {
-        const have = sys.frags.find(fr => fr[0] === h.frag)[2],
-          ok = have >= h.need;
-        const loc = nm(curLoc());
-        return `<div class="hall ${ok ? 'ok' : ''}"><span class="nm"><b data-role="body">${esc(T(h.name, h.en))}</b><span data-role="body">${esc(T('王', 'Boss'))} Lv${h.lv}・${esc(T(`打完回${loc}接著刷`, `then back to ${loc}`))}</span><span class="dim" data-role="body" style="font-size:var(--f14)">${esc(T('難度', 'Difficulty'))} ${h.diff}</span>${ok ? '' : `<span class="why" data-role="body">${esc(T(`${h.frag}還差 ${h.need - have} 張`, `${h.need - have} more ${h.frag}`))}</span>`}</span>${ok ? `<button class="btn kf b102" data-k="hall-${h.i}" data-hit="hall">${esc(T('進殿', 'Enter'))}</button>` : `<button class="btn offb b102" disabled aria-disabled="true" data-hit="hall" data-k="hall-off-${h.i}">${esc(T(`還差 ${h.need - have} 張`, `${h.need - have} short`))}</button>`}</div>`;
+        const ok = h.have >= h.need,
+          d = h.need - h.have;
+        return `<div class="hall ${ok ? 'ok' : ''}"><span class="nm"><b data-role="body">${esc(T(h.name, h.en))}</b><span data-role="body">${esc(T('王', 'Boss'))} Lv${h.lv}・${esc(T(`打完回${loc}接著刷`, `then back to ${loc}`))}</span><span class="dim" data-role="body" style="font-size:var(--f14)">${esc(T('難度', 'Difficulty'))} ${h.diff}</span>${ok ? '' : `<span class="why" data-role="body">${esc(T(h.why || `${h.frag}還差 ${d} ${sys.unit}`, null))}</span>`}</span>${ok ? `<button class="btn kf b102" data-k="hall-${h.i}" data-hit="hall">${esc(T('進殿', 'Enter'))}</button>` : `<button class="btn offb b102" disabled aria-disabled="true" data-hit="hall" data-k="hall-off-${h.i}">${esc(T(`還差 ${d} ${sys.unit}`, `${d} short`))}</button>`}</div>`;
       })
       .join('')}</div>`;
   }
   return shell(g, 'box', T('山海寶盒', 'Shan Hai Box'), b, { key: port ? '' : 'J', top });
 }
-const cellHTML = (fr, need) =>
-  `<div class="cell ${fr[2] ? '' : 'zero'} ${fr[2] >= need ? 'full' : ''}"><b data-role="label">${esc(T(fr[0], fr[1]))}</b><span class="num" data-role="body">${fr[2]}／${need}</span></div>`;
+const cellHTML = (fr, unit) =>
+  `<div class="cell ${fr[2] ? '' : 'zero'}"><b data-role="label">${esc(T(fr[0], fr[1]))}</b><span class="num" data-role="body">${fr[2]} ${esc(T(unit, null))}</span></div>`;
 function forgeHTML(g) {
-  const n = F().guild.rows.鐵[1];
+  /* 打造要 百煉鋼 25（假定）；材料數照縮寫（鍛造素材數） */
+  const G = F().guild,
+    r = G && G.rows.鐵.find(x => x.from === '百煉鋼'),
+    have = r ? r.have : 0,
+    need = 25,
+    src = G && G.rows.鐵.find(x => x.to === '百煉鋼');
+  const lack =
+    have < need && src
+      ? `<button class="btn kf" data-m="B04" data-k="to-guild" data-hit="to-guild" style="justify-content:flex-start">${esc(T(`差 ${need - have} 個百煉鋼`, `${need - have} Tempered Steel short`))} › ${esc(T('商會可換', 'trade at Guild'))}</button>`
+      : '';
   return shell(
     g,
     'forge',
     T('鍛造・打造', 'Forge · Craft'),
-    `<div class="forge"><div data-role="body">${esc(T('打造：玄紋 長劍（需要 百煉鋼 ×5）', 'Craft: Dark Rune Longsword (needs 5 Tempered Steel)'))}</div><button class="btn kf" data-m="B04" data-k="to-guild" data-hit="to-guild" style="justify-content:flex-start">${esc(T('差 3 個百煉鋼', '3 Tempered Steel short'))} › ${esc(T('商會可換', 'trade at Guild'))}</button><div class="dim" data-role="body">${esc(T('有', 'Have'))} ${NF(2)}・${esc(T(n.from, n.fromEn))} ${NF(n.have)}</div></div>`,
+    `<div class="forge"><div data-role="body">${esc(T(`打造：連弩（要 百煉鋼 ×${need}）`, null))}</div>${lack}<div class="dim" data-role="body">${esc(T('百煉鋼', 'Tempered Steel'))} ${NA(have)}${src ? `・${esc(T(src.from, src.fromEn))} ${NA(src.have)}` : ''}</div></div>`,
     { key: g.port ? '' : 'K' }
   );
 }
@@ -1163,7 +1217,13 @@ function curHTML(g) {
     g,
     'cur',
     T('完整貨幣清單', 'All currency'),
-    `<div data-m="X01b">${f.cur.map(([z, e, v]) => `<div class="grow" data-role="body" style="padding:0 12px"><b style="flex:1;width:auto">${esc(T(z, e))}</b>${NF(v)}</div>`).join('')}</div>`
+    `<div data-m="X01b">${f.cur
+      .map(([z, e, v], i) => [z, e, S.goldB && !i ? f.goldB : v])
+      .map(
+        ([z, e, v]) =>
+          `<div class="grow" data-role="body" style="padding:0 12px"><b style="flex:1;width:auto">${esc(T(z, e))}</b>${NF(v)}</div>`
+      )
+      .join('')}</div>`
   );
 }
 
@@ -1189,7 +1249,7 @@ function dlgHTML(g) {
     const Wd = port ? 358 : 400,
       Xd = (g.W - Wd) / 2,
       Hd = 260;
-    h += `<div class="dlg" role="dialog" data-m="B08" style="${px(Xd, (g.H - Hd) / 2, Wd, Hd)}"><h3 data-role="body">${esc(T(`進${hl.name}？`, `Enter ${hl.en}?`))}</h3><p data-role="body">${esc(T('花掉', 'Spends'))}：${esc(T(hl.frag, 'Soul Hook Token'))} ×${NF(hl.need)}（${esc(T('有', 'have'))} ${NF(5)}）</p><p data-role="body">${esc(T('王', 'Boss'))} Lv${hl.lv}</p><p class="badt" data-role="body">${esc(T(`倒下的話${hl.frag}不退回`, `If you fall, the ${hl.frag} is not refunded`))} <span class="ph">${esc(T('（未驗）', '(unverified)'))}</span></p><div style="display:flex;gap:8px;margin-top:auto;align-items:flex-end"><button class="btn pri kf" data-k="hall-yes" data-hit="dlg" data-hold="hall" style="width:208px;height:56px"><i class="fill" id="d-fill-hall"></i><span>${ICO.hold} ${esc(T('長按進殿', 'Hold to enter'))}</span></button><button class="btn kf" data-k="hall-no" data-hit="dlg" style="width:110px;height:56px;margin-left:auto">${esc(T('取消', 'Cancel'))}</button></div></div>`;
+    h += `<div class="dlg" role="dialog" data-m="B08" style="${px(Xd, (g.H - Hd) / 2, Wd, Hd)}"><h3 data-role="body">${esc(T(`進${hl.name}？`, `Enter ${hl.en}?`))}</h3><p data-role="body">${esc(T('花掉', 'Spends'))}：${esc(T(hl.frag, null))} ×${NF(hl.need)}（${esc(T('有', 'have'))} ${NF(hl.have)}）</p><p data-role="body">${esc(T('王', 'Boss'))} Lv${hl.lv}</p><p class="badt" data-role="body">${esc(T(`倒下的話${hl.frag}不退回`, null))} <span class="ph">${esc(T('（未驗）', '(unverified)'))}</span></p><div style="display:flex;gap:8px;margin-top:auto;align-items:flex-end"><button class="btn pri kf" data-k="hall-yes" data-hit="dlg" data-hold="hall" style="width:208px;height:56px"><i class="fill" id="d-fill-hall"></i><span>${ICO.hold} ${esc(T('長按進殿', 'Hold to enter'))}</span></button><button class="btn kf" data-k="hall-no" data-hit="dlg" style="width:110px;height:56px;margin-left:auto">${esc(T('取消', 'Cancel'))}</button></div></div>`;
     if (S.fly) for (let i = 0; i < 5; i++) h += `<span class="fly" id="d-fly${i}">${ICO.seal}</span>`;
   }
   return h;
@@ -1211,8 +1271,18 @@ function pracHTML(g) {
   let inner = `<div class="t"><span data-role="body">${esc(T('試招場', 'Practice Ground'))}</span>${btns}</div>`;
   if (!hit)
     inner += `<div class="lab" data-role="label" style="flex:1;display:flex;align-items:center">${esc(T('打稻草人就開始算', 'Hit a dummy to start'))}</div>`;
-  else
-    inner += `<div data-m="P03"><div class="lab" data-role="label">${esc(T('10 秒平均', '10 s avg'))}</div><div class="big" data-role="num">${NF(p.avg10)}</div><div class="mid" data-role="num"><span class="lab" style="font-family:var(--font)">${esc(T('從第一下起平均', 'Since first hit'))}</span> ${NF(p.first)}</div><div class="rat" data-role="body"><i class="rbar"><i style="width:${p.direct * 100}%"></i></i><span>${esc(T('直接', 'Real'))} ${NF(p.avg10 * p.direct)}｜${esc(T('持續', 'DoT'))} ${NF(p.avg10 * (1 - p.direct))}</span></div><div class="rat" data-m="P04" data-role="body"><span>${esc(T('推薦估', 'Est.'))} —</span><span>・${esc(T('換之前', 'Before swap'))} —</span><span class="dim">▲▼ —</span></div></div>`;
+  /* 三欄照程式（hideout.js:152）：10 秒平均（主數字）、總傷害、最高一擊；數字完整；DPS 標籤沒有 EN（假定） */ else
+    inner += `<div data-m="P03"><div class="lab" data-role="label">${esc(T('10 秒平均', null))}</div><div class="big" data-role="num">${NF(p.avg10)}</div><div>${[
+      ['總傷害', p.total],
+      ['最高一擊', p.top]
+    ]
+      .map(
+        ([z, v]) =>
+          `<div class="mid" data-role="num"><span class="lab" style="font-family:var(--font)">${esc(T(z, null))}</span> ${NF(v)}</div>`
+      )
+      .join(
+        ''
+      )}</div><div class="rat" data-m="P04" data-role="body"><span>${esc(T('推薦估', 'Est.'))} —</span><span>・${esc(T('換之前', 'Before swap'))} —</span><span class="dim">▲▼ —</span></div></div>`;
   let h = `<div class="ab pnl dps" data-hud data-m="${hit ? 'P03c' : 'P02'}" style="${rect}">${inner}</div>`;
   h += `<div class="ab plate lvc" data-hud data-m="P05" style="${port ? px(8, g.top + ch + 8, g.W - 16, 48) : px(16, 76 + ch + 8, 380, 40)}"><button class="btn kf ${bot ? 'offb' : ''}" data-k="lv-dn" data-hit="lv" ${bot ? 'aria-disabled="true"' : ''}>−</button><span data-role="body">${esc(T('怪物', 'Monster'))} Lv${lv}</span><span class="lab" data-role="label" style="color:var(--tx-dim);flex:1;text-align:right">${esc(T('這次受傷', 'Damage taken'))} ${p.hurt.join('%／')}%</span><button class="btn kf ${top ? 'offb' : ''}" data-k="lv-up" data-hit="lv" ${top ? 'aria-disabled="true"' : ''}>＋</button></div>`;
   return h;
@@ -1251,14 +1321,16 @@ function introHTML(g) {
   h += `<div class="ab sub hide" id="d-sub" data-m="O02" data-k="sub" data-role="body" style="${port ? px(40, g.st + 133, 310, 50) : px(390, 140, 500, 56)}">${esc(T(it.sub, it.subEn))}</div>`;
   const big = t < 6000;
   h += `<button class="ab btn plate kf snd" id="d-snd" data-hud data-m="O03" data-k="snd" data-hit="snd" style="${port ? (big ? px(g.W - 8 - 132, g.skY - 48, 132, 44) : px(g.W - 8 - 44, g.skY - 48, 44, 44)) : big ? px(g.W - 16 - 164, g.H - 56, 164, 40) : px(g.W - 16 - 44, g.H - 56, 44, 40)}">${ICO.spk}${big ? `<span>${esc(T('聲音：點一下開', 'Sound: tap to turn on'))}</span>` : ''}</button>`;
-  const [fac, facEn, lv, have, need] = it.goal;
-  h += `<div class="ab pnl goal" data-hud data-m="O04" style="${port ? px(8, g.goalTop, g.W - 16, 140) : px(16, g.H - 160, 380, 96)}"><small data-role="label">${esc(T('下一個目標', 'Next goal'))}</small><b data-role="body">${esc(T(fac, facEn))} Lv${lv}・${esc(T('靈魂', 'Souls'))} ${NF(have)}／${NF(need, 'cost')}</b><i class="gbar"><i style="width:${(have / need) * 100}%"></i></i></div>`;
+  /* 第一個目標＝祭壇 Lv1（靈魂 300、木 60，F21）；數字永遠完整；條＝最缺的那一項 */
+  const gl = it.goal,
+    pct = Math.min(...gl.mats.map(m => m[2] / m[3]));
+  h += `<div class="ab pnl goal" data-hud data-m="O04" style="${port ? px(8, g.goalTop, g.W - 16, 140) : px(16, g.H - 160, 380, 96)}"><small data-role="label">${esc(T('下一個目標', 'Next goal'))}</small><b data-role="body">${esc(T(gl.fac, gl.facEn))} Lv${gl.lv}・${gl.mats.map(([z, e, a, b]) => `${esc(T(z, e))} ${NF(a)}／${NF(b, 'cost')}`).join('・')}</b><i class="gbar"><i style="width:${pct * 100}%"></i></i></div>`;
   const us = unlockState();
   for (const u of us) {
-    const [z, e, key] = f.unlocks[u.i];
+    const [z, e, key] = f.unlocks[u.i]; /* M1-13 原文；EN 只有瞭望台那條有新擬（待 mumi） */
     h += `<button class="ab unl kf hide" id="d-unl${u.i}" data-m="O05" data-hud data-k="unl-${u.i}" data-hit="unl" style="${port ? px(8, g.top, g.W - 16, 72) : px(16, 76, 380, 80)}"><span data-role="body">${esc(T(z, e))}</span>${port ? '' : `<kbd data-role="label">${key}</kbd>`}</button>`;
   }
-  if (t >= it.beats[2][0] && !S.seen.camp)
+  if (t >= it.campReady && !S.seen.camp)
     h += `<div class="ab plate gainl" data-hud data-m="O06" data-role="body" style="${port ? px(8, g.st + 48, 186, 40) : px(g.W - 16 - 264, 68, 264, 40)}">${esc(T('營地可以升級了', 'Camp upgrade ready'))} ›</div>`;
   return h;
 }
@@ -1272,7 +1344,7 @@ function offHTML(g) {
   const hh = Math.floor(a.long / 60),
     mm = String(a.long % 60).padStart(2, '0');
   const nx = f.next;
-  return `<div class="ab off-s" data-m="O08" data-k="off-skip" style="${px(0, g.st, g.W, g.H - g.st - g.sb)}"><h2 data-role="body">${esc(T('離開', 'Away'))} ${hh}h ${mm}m</h2><div class="r" data-role="body"><span>${esc(T('打倒王', 'Boss kills'))}</span><b id="d-off-k">${n(a.kills)} ${esc(T('次', ''))}</b></div><div class="r" data-role="body"><span>${esc(T('靈魂', 'Souls'))}</span><b>+${n(soul)}</b></div><div class="r" data-role="body"><span>${esc(T('掉落', 'Drops'))}</span><b>${n(a.items)} ${esc(T('件', 'items'))}（${esc(T('稀有以上', 'Rare+'))} ${n(a.rare)}）</b></div>${nx ? `<div class="r" data-role="body"><span>${esc(T('下一個目標', 'Next goal'))}</span><b>${esc(T(`${nx.fac} Lv${nx.facLv}`, `${nx.facEn} Lv${nx.facLv}`))}・${esc(T(nx.mat, nx.matEn))} ${NF(nx.have)}／${NF(nx.need, 'cost')}</b></div>` : ''}<button class="btn pri kf" data-k="off-ok" data-hit="off" style="width:100%">${esc(T('收下', 'Collect'))}${g.port ? '' : ' <kbd>Enter</kbd>'}</button></div>`;
+  return `<div class="ab off-s" data-m="O08" data-k="off-skip" style="${px(0, g.st, g.W, g.H - g.st - g.sb)}"><h2 data-role="body">${esc(T('離開', 'Away'))} ${hh}h ${mm}m</h2><div class="r" data-role="body"><span>${esc(T('打倒王', 'Boss kills'))}</span><b id="d-off-k">${n(a.kills)} ${esc(T('次', ''))}</b></div><div class="r" data-role="body"><span>${esc(T('靈魂', 'Souls'))}</span><b>+${n(soul)}</b></div><div class="r" data-role="body"><span>${esc(T('掉落', 'Drops'))}</span><b>${n(a.items)} ${esc(T('件', 'items'))}（${esc(T('稀有以上', 'Rare+'))} ${n(a.rare)}）</b></div>${nx ? `<div class="r" data-role="body"><span>${esc(T('下一個目標', 'Next goal'))}</span><b>${esc(T(`${nx.fac} Lv${nx.facLv}`, `${nx.facEn} Lv${nx.facLv}`))}・${esc(T(nx.mats[0][0], nx.mats[0][1]))} ${NF(nx.mats[0][2])}／${NF(nx.mats[0][3], 'cost')}</b></div>` : ''}<button class="btn pri kf" data-k="off-ok" data-hit="off" style="width:100%">${esc(T('收下・繼續刷', 'Collect · Keep farming'))}${g.port ? '' : ' <kbd>Enter</kbd>'}</button></div>`;
 }
 
 /* ---------- 共用：天賦樹滿版（D2 本體佔位）、營地單座卡 ---------- */
@@ -1282,20 +1354,15 @@ function treeHTML(g) {
 function campHTML(g) {
   const port = g.port,
     f = F();
-  const facs = [
-    ['瞭望台', 'Watchtower', 14],
-    ['斥候營', 'Scout Camp', f.scout],
-    ['鍛造台', 'Anvil', 12],
-    ['倉房', 'Storehouse', 6],
-    ['祭壇', 'Altar', 5],
-    ['民房', 'Houses', 7]
-  ];
+  const facs = f.camp;
   let body,
     back = '';
-  if (S.campCard) {
-    const n = f.next || { facLv: 15, mat: '熟鐵', matEn: 'Wrought Iron', have: 0, need: 1 };
+  if (S.campCard && f.next) {
+    /* 單座卡（瞭望台）：「這級：」＋「接下來會解鎖」每列「Lv{n}・{解鎖}」；費用照縮寫 */
+    const n = f.next,
+      lv = facs[0][2];
     back = 'camp-list';
-    body = `<div class="forge" data-m="X05"><b data-role="body" style="font-size:var(--f20)">${esc(T(S.campCard, 'Watchtower'))} Lv14 → Lv15</b><div data-role="body">${esc(T('開更深的地點、提高材料階上限', 'Opens deeper maps; raises material tier cap'))}</div><div data-role="body">${esc(T(n.mat, n.matEn))} ${NA(n.have)}／${NA(n.need, 'cost')}</div><div class="dim" data-role="body">${esc(T(`升到 Lv${n.facLv} 開${n.name || ''}`, `Lv${n.facLv} opens ${n.en || ''}`))}</div><button class="btn offb" disabled data-hit="up">${esc(T('材料不夠', 'Not enough'))}</button></div>`;
+    body = `<div class="forge" data-m="X05"><b data-role="body" style="font-size:var(--f20)">${esc(T(S.campCard, 'Watchtower'))} Lv${lv} → Lv${n.facLv}</b><div data-role="body">${esc(T(`這級：新地點「${n.name}」開了（怪物 Lv ${n.lv}）`, null))}</div><div data-role="body">${n.mats.map(([z, e, a, b]) => `${esc(T(z, e))} ${NA(a)}／${NA(b, 'cost')}`).join('・')}</div>${f.nextUp ? `<div class="dim" data-role="body">${esc(T('接下來會解鎖', 'Coming up'))}</div>${f.nextUp.map(([l, z]) => `<div class="dim" data-role="body">${esc(T(`Lv${l}・${z}`, null))}</div>`).join('')}` : ''}<button class="btn offb" disabled data-hit="up">${esc(T('材料不夠', 'Not enough'))}</button></div>`;
   } else
     body = facs
       .map(
@@ -1305,7 +1372,7 @@ function campHTML(g) {
       .join('');
   const y = port ? g.sheetTop : g.colTop,
     h = port ? g.idleTop - y : g.colBot - g.colTop;
-  return `<section class="ab pnl ${port ? 'sheet' : ''}" data-panel="camp" data-m="camp" style="${px(port ? 0 : g.colX, y, port ? g.W : 420, h)}"><div class="hd">${back ? `<button class="x44 kf" data-k="${back}" data-hit="back" data-m="X05b" aria-label="${esc(T('回清單', 'Back to list'))}">‹</button>` : ''}<b data-role="body">${esc(S.campCard ? T(S.campCard, 'Watchtower') : T('營地升級', 'Camp upgrade'))}</b><button class="btn sm kf" data-k="camp-out" data-hit="campout" style="margin-right:4px">${esc(T('繼續刷', 'Keep farming'))}</button><button class="x44 kf" data-k="camp-x" data-hit="x" aria-label="${esc(T('關閉營地', 'Close camp'))}">${ICO.x}</button></div><div class="bd" data-list>${body}</div></section>`;
+  return `<section class="ab pnl ${port ? 'sheet' : ''}" data-panel="camp" data-m="camp" style="${px(port ? 0 : g.colX, y, port ? g.W : 420, h)}"><div class="hd">${back ? `<button class="x44 kf" data-k="${back}" data-hit="back" data-m="X05b" aria-label="${esc(T('回清單', 'Back to list'))}">←</button>` : ''}<b data-role="body">${esc(S.campCard ? T(S.campCard, 'Watchtower') : T('營地升級', 'Camp upgrade'))}</b><button class="btn sm kf" data-k="camp-out" data-hit="campout" style="margin-right:4px">${esc(T('繼續刷', 'Keep farming'))}</button><button class="x44 kf" data-k="camp-x" data-hit="x" aria-label="${esc(T('關閉營地', 'Close camp'))}">${ICO.x}</button></div><div class="bd" data-list>${body}</div></section>`;
 }
 
 /* ---------- 每格：動畫與 canvas ---------- */
@@ -1398,6 +1465,16 @@ function tick() {
     if (nw) nw.style.transform = `translateY(${(1 - x) * 20}px)`;
     if (x >= 1 && o) o.remove();
     PR.roll = x;
+  }
+  /* 藥劑冷卻環＋冷卻中按下 */
+  for (const i of [0, 1]) {
+    const b = $('d-flask' + i);
+    if (!b) continue;
+    b.querySelector('.ring').style.cssText = ringCss(i);
+    const bt = S.flBusy[i] == null ? 1e9 : NOW - S.flBusy[i];
+    b.style.transform = !P.rm && bt < 80 ? `translateX(${Math.round(3 * Math.sin((bt / 80) * Math.PI * 2))}px)` : '';
+    b.classList.toggle('busy', P.rm && bt < 200);
+    PR['fl' + i] = { left: Math.round(flLeft(i)), busy: bt < (P.rm ? 200 : 80) ? 1 : 0, dx: b.style.transform };
   }
   const lk = $('d-lock');
   if (lk && S.shake) {
@@ -1564,8 +1641,9 @@ function tick() {
     tr.style.transform = P.rm ? '' : `scale(${0.96 + 0.04 * a})`;
     PR.tree = a;
     if (S.tree.out && (P.rm || x <= 0)) {
+      /* 天賦樹期間一行：開著不到 10 秒不出 */
+      S.gain = S.tree.out - S.tree.t0 >= 10000 ? { kind: 'tree', t0: NOW } : null;
       S.tree = null;
-      S.gain = { kind: 'tree', t0: NOW };
       log('tree-closed');
       return build();
     }
@@ -1598,7 +1676,7 @@ function tick() {
         `<div class="pop mods" id="d-modpop" data-over style="${px((r.left - u.left) / s - 336, (r.top - u.top) / s, 330, null)}">${F()
           .mods.map(
             m =>
-              `<div class="mrow ${m.d === 3 ? 'd3' : ''}">${m.d === 3 ? ICO.warn : ''}<span style="flex:1">${esc(P.en ? m.en : m.name)}</span><span class="dg">${esc(T('危險', 'Risk'))} ${m.d}</span></div>`
+              `<div class="mrow ${m.d === 3 ? 'd3' : ''}">${m.d === 3 ? ICO.warn : ''}<span style="flex:1">${esc(T(m.name, m.en))}</span><span class="dg">${esc(T('危險', 'Risk'))} ${m.d}</span></div>`
           )
           .join('')}</div>`
       );
@@ -1761,6 +1839,13 @@ function act(k, el) {
   log('act', { k });
   const f = F();
   if (k === 'px') return closePanel();
+  if (k === 'flask0' || k === 'flask1') {
+    /* 不限次數、冷卻 3 秒（game.js:956–970）；冷卻中按下不發動，鈕抖一下 ≤ 80 ms（減少動態改只閃外框） */
+    const i = +k.slice(5);
+    if (flLeft(i) > 0) return (S.flBusy[i] = NOW), log('flask-busy', { i, left: Math.round(flLeft(i)) });
+    S.fl[i] = NOW;
+    return log('flask', { i });
+  }
   if (k === 'cur') return openPanel('cur');
   if (k.startsWith('tab-')) {
     const t = k.slice(4);
@@ -1853,27 +1938,34 @@ function act(k, el) {
   if (k.startsWith('lf-')) return (S.logF = k.slice(3)), build();
   if (k.startsWith('lr-')) {
     const e = f.log.find(x => x.id === +k.slice(3));
-    if (e && e.cat === 'gear') return (S.logItem = 1), build();
+    if (e && e.cat === 'star') return (S.logItem = 1), build();
     return;
   }
+  if (k === 'pity-more') return (S.pityOpen = !S.pityOpen), build();
   if (k === 'item-back') return (S.logItem = 0), build();
   if (k.startsWith('feed-')) return openLogPick(+k.slice(5));
   if (k.startsWith('gt-')) return (S.gTab = k.slice(3)), (S.gSel = -1), build();
-  if (k.startsWith('g1-') || k.startsWith('ga-')) {
+  if (k.startsWith('g1-')) {
     const i = +k.slice(3),
-      r = f.guild.rows[S.gTab][i],
-      all = k.startsWith('ga-');
+      r = f.guild.rows[S.gTab][i];
     S.gHave = S.gHave || {};
     const have = S.gHave[S.gTab + i] != null ? S.gHave[S.gTab + i] : r.have;
-    const n = all ? Math.floor(have / r.k) : 1;
-    S.gHave[S.gTab + i] = have - n * r.k;
-    S.roll = { k: S.gTab + i, i, from: have, to: have - n * r.k, cur: have, t0: NOW, dur: all ? 300 : 200 };
-    toast(`${T(r.to, r.toEn)} +${n}`);
-    log('trade', { n });
+    if (have < r.k) return;
+    S.gHave[S.gTab + i] = have - r.k;
+    S.roll = { k: S.gTab + i, i, from: have, to: have - r.k, cur: have, t0: NOW, dur: 200 };
+    toast(`${T(r.to, r.toEn)} +${r.out || 1}`);
+    log('trade', { n: 1 });
     return build();
   }
   if (k === 'to-guild')
-    return (S.panel = 'guild'), (S.gTab = '鐵'), (S.gSel = 1), (S.pOpenT = NOW - 1000), log('guild-pick'), build();
+    return (
+      (S.panel = 'guild'),
+      (S.gTab = '鐵'),
+      (S.gSel = f.guild.rows.鐵.findIndex(r => r.to === '百煉鋼')),
+      (S.pOpenT = NOW - 1000),
+      log('guild-pick'),
+      build()
+    );
   if (k.startsWith('bt-')) return (S.bTab = k.slice(3)), build();
   if (k.startsWith('hall-') && !k.startsWith('hall-off')) return (S.hallI = +k.slice(5)), (S.dlg = 'hall'), build();
   if (k.startsWith('dm-')) return (S.pick[k.replace('-', '')] = !S.pick[k.replace('-', '')]), build();
@@ -1883,9 +1975,9 @@ function act(k, el) {
     const i = +k.slice(4);
     S.unlockDone[i] = NOW;
     log('unl-click', { i });
-    if (i === 2) return openTree();
-    if (i === 0) return (S.scr = 'camp'), (S.pOpenT = NOW), build();
-    return openPanel('forge');
+    const to = F().unlocks[i][3];
+    if (to === 'tree') return openTree();
+    return openPanel(to);
   }
   if (k === 'off-skip') {
     if (S.away && !S.away.skip) (S.away.skip = 1), log('off-skip'), build();
@@ -1894,7 +1986,10 @@ function act(k, el) {
   if (k === 'off-ok') return (S.away.done = 1), log('off-ok'), build();
   if (k === 'tree-back') return closeTree();
   if (k === 'camp-list') return (S.campCard = null), build();
-  if (k.startsWith('cf-')) return (S.campCard = k.slice(3)), build();
+  if (k.startsWith('cf-'))
+    return k === 'cf-瞭望台' && f.next
+      ? ((S.campCard = '瞭望台'), build())
+      : toast(T('這頁屬 D1／D2', 'Covered by D1/D2'));
   if (k === 'camp-x') return closePanel();
   if (k === 'camp-out')
     return (S.scr = 'field'), (S.gain = { kind: 'both', t0: NOW + 160 }), startFade(0, 160, () => build()), build();
@@ -2006,7 +2101,7 @@ function key(e) {
     if (S.dlg === 'camp' && !(ae && ae.dataset.k === 'dlg-no')) return act('camp-yes');
     if (S.dlg === 'prac' && !(ae && ae.dataset.k === 'dlg-no')) return act('prac-yes');
     if (S.away && S.away.kind === 'long' && !S.away.done) return act('off-ok');
-    if (S.panel === 'guild' && S.gSel >= 0) return act('ga-' + S.gSel);
+    if (S.panel === 'guild' && S.gSel >= 0) return act('g1-' + S.gSel);
     return;
   }
   if (k === 'Escape') {
@@ -2045,6 +2140,7 @@ function key(e) {
   }
   if ((k === 'ArrowLeft' || k === 'ArrowRight') && ae && ae.type === 'range') return;
   if (e.shiftKey && /^Digit[1-5]$/.test(e.code) && S.panel === 'loc') return act('star-' + e.code.slice(5));
+  if ((k === '1' || k === '2') && !e.shiftKey) return act('flask' + (+k - 1));
   const lk = k.toLowerCase();
   if (lk === 'm') return S.panel === 'loc' ? closePanel() : openPanel('loc');
   if (lk === 'z') return S.panel === 'more' ? closePanel() : openPanel('more');
@@ -2087,7 +2183,7 @@ const press = sel => act(pt(sel).dataset.k);
 const SC = {
   V1: () => [
     [300, () => press('[data-k=star-2]')],
-    [900, () => press('[data-k=star-4]')],
+    [900, () => press('[data-k=star-1]')],
     [1500, () => (pt('#d-lock').scrollIntoView({ block: 'center' }), press('#d-lock'))],
     [
       2100,
@@ -2121,8 +2217,9 @@ const SC = {
     [3000, () => 0]
   ],
   V5: () => [
-    [300, () => press('[data-k=g1-1]')],
-    [1000, () => press('[data-k=ga-1]')],
+    [300, () => press('[data-k=g1-0]')],
+    [1000, () => press('[data-k=g1-1]')],
+    [1500, () => press('[data-k=g1-1]')],
     [2400, () => 0]
   ],
   V6: () => [
@@ -2149,7 +2246,18 @@ const SC = {
   V10: () => [
     [500, () => (pt('[data-k=unl-2]'), act('unl-2'))],
     [1400, () => act('tree-back')],
-    [5200, () => 0]
+    [2000, () => openTree()],
+    [12300, () => act('tree-back')],
+    [16000, () => 0]
+  ],
+  /* F2-3：紅藍水冷卻中按下（V-F2_flask_busy） */
+  'V-F2': () => [
+    [300, () => act('flask0')],
+    [1000, () => act('flask0')],
+    [1500, () => act('flask1')],
+    [2200, () => act('flask1')],
+    [3400, () => act('flask0')],
+    [4800, () => 0]
   ]
 };
 /* 每支腳本的起始列（V8 從新存檔 0 秒開始；V10 從天賦樹解鎖卡那一刻） */
@@ -2163,16 +2271,18 @@ const SC0 = {
   V7: 'P01',
   V8: 'O01',
   V9: 'X02',
-  V10: 'O01'
+  V10: 'O01',
+  'V-F2': 'L01'
 };
 function startScn(v) {
   P.row = SC0[v];
   applyRow();
-  if (v === 'V6') (S.dlg = 'hall'), (S.hallI = 4);
+  if (v === 'V6') (S.dlg = 'hall'), (S.hallI = 0);
   if (v === 'V8') (S.intro = { t0: NOW }), (S.hits = 0);
   if (v === 'V10')
     (S.intro = { t0: NOW - 24000 + 300 }), (S.unlockDone[0] = NOW - 15000), (S.unlockDone[1] = NOW - 3000);
   if (v === 'V1' || v === 'V2') S.pOpenT = NOW - 1000;
+  if (v === 'V-F2') (S.panel = null), (S.fl = [-1e9, -1e9]);
   build();
   SCN = { v, t0: NOW, ev: SC[v](), i: 0 };
   LOG.length = 0;
@@ -2201,12 +2311,13 @@ function applyRow() {
   if (S.gain) S.gain.t0 = NOW + S.gain.t0;
   if (S.tree) S.tree.t0 = NOW + S.tree.t0;
   if (S.pickT === 0) S.pickT = NOW - 300;
+  S.fl = S.fl.map(t => (t > -1e8 ? NOW + t : t));
   /* 開場列：照時間線補到該時刻的戰鬥 */
   if (S.intro) {
     const t = NOW - S.intro.t0;
     const fh = F().intro.firstHit;
     S.hits = t >= fh ? 1 + Math.floor((t - fh) / 700) : 0;
-    if (t >= F().intro.beats[2][0]) S.campHint = 1;
+    if (t >= F().intro.campReady) S.campHint = 1;
   }
   build();
   syncCtl();

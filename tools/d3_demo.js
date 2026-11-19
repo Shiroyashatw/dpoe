@@ -72,8 +72,7 @@ const GEO = {
   B01: [
     E('分段 90×44', '[data-k=gt-鐵]', { w: 90, h: 44 }, { minH: 36 }),
     E('列 60／44', '[data-m=B01]', { minH: 60 }, { minH: 44 }),
-    E('換 1 60×44／56×32', '[data-k=g1-1]', { w: 60, h: 44 }, { w: 56, h: 32 }),
-    E('全部 86×44／80×32', '[data-k=ga-1]', { w: 86, h: 44 }, { w: 80, h: 32 })
+    E('換 1 60×44／56×32', '[data-k=g1-1]', { w: 60, h: 44 }, { w: 56, h: 32 })
   ],
   B04: [E('指到商會', '[data-k=to-guild]', { minH: 44 }, { minH: 32 })],
   B05: [
@@ -105,7 +104,7 @@ const GEO = {
   ],
   P03: [
     E('DPS 卡 87–259', '[data-m=P03c]', { y: 87, h: 172 }, { x: 16, y: 76, w: 300, h: 236 }),
-    E('比例條 138×8', '.rbar', { w: 138, h: 8 }, { w: 138, h: 8 })
+    E('總傷害／最高一擊 欄', '.dps .mid', { minH: 15 }, { minH: 15 })
   ],
   P05: [E('Lv −／＋ 44×44／32×32', '[data-k=lv-dn]', { w: 44, h: 44 }, { w: 32, h: 32 })],
   P06: [E('掛機條 710–754／x 16–396', '[data-m=P06]', { y: 710, h: 44 }, { x: 16, w: 380 })],
@@ -142,12 +141,13 @@ const GEO = {
     E('返回鈕', '[data-k=tree-back]', { minW: 44, minH: 44 }, { minW: 32, minH: 32 })
   ],
   X05: [
-    E('‹ 44×44', '[data-k=camp-list]', { w: 44, h: 44 }, { w: 44, h: 44 }),
+    E('← 44×44', '[data-k=camp-list]', { w: 44, h: 44 }, { w: 44, h: 44 }),
     E('× 關整個營地', '[data-k=camp-x]', { w: 44, h: 44 }, { minW: 36 })
   ]
 };
 /* 每列的額外條件（頁面裡跑，回 [說明, 過不過, 值]） */
 const COND = {
+  L02: `return [['「怪物 Lv48・每分鐘 291 靈魂・保底累積中」（F01）',/怪物 Lv48・每分鐘 291 靈魂・保底累積中/.test(txt('[data-m=L02]')),txt('[data-m=L02] .r2')]]`,
   L03: `const e=q('[data-m=L02] .warnt');return [['第二行 --warn',!!e&&getComputedStyle(e).color===tc('--warn'),e&&e.textContent],['右鈕「再試」',/再試/.test(txt('[data-k=retry]')),txt('[data-k=retry]')]]`,
   L05: `return [['只畫開了的星',qa('[data-k^=star-]').length===demo.S&&qa('[data-k^=star-]').length<=5||qa('[data-k^=star-]').length===F().maxStar,qa('[data-k^=star-]').length],['寫「王倒下後換成」',/王倒下後換成/.test(document.getElementById('ui').textContent),'']]`,
   L06: `const on=q('.lrow.on');return [['正在刷 --sel',!!on&&getComputedStyle(on).backgroundColor===tc('--sel'),''],['正在刷字樣',!!on&&/正在刷/.test(on.textContent),''],['最好／差不多',/最好/.test(txt('[data-m=L06]'))&&/差不多/.test(txt('[data-m=L06]')),''],['「印」小標',qa('.tg.seal').length>0,qa('.tg.seal').length]]`,
@@ -158,38 +158,38 @@ const COND = {
   T02: `return [['預設稀有以上',q('[data-k=alert-rare]').getAttribute('aria-pressed')==='true',''],['選中 --sel／--sel-ink',getComputedStyle(q('[data-k=alert-rare]')).backgroundColor===tc('--sel'),'']]`,
   T06: `return demo.geo().port?[['直立寫手勢',qa('[data-m=T06] .grow').length>=5,qa('[data-m=T06] .grow').length]]:(()=>{const r=qa('.krow');const ok=r.length===demo.KEYS.length&&r.every((e,i)=>e.querySelector('kbd').textContent===demo.KEYS[i][0]&&e.textContent.includes(demo.KEYS[i][1]));return [['按鍵表＝程式 KEYS（100%）',ok,r.length+'／'+demo.KEYS.length],['鍵帽字 ≥ 12',r.every(e=>parseFloat(getComputedStyle(e.querySelector('kbd')).fontSize)>=12),'']]})()`,
   T07: `const b=q('[data-k=logout]');return [['危險鈕 --bad 框＋圖示',getComputedStyle(b).borderTopColor===tc('--bad')&&!!b.querySelector('svg'),''],['訪客警告句',/訪客存檔只在這台裝置，登出後可能找不回來/.test(txt('[data-m=T07]')),'']]`,
-  G01: `return [['條 --rar-chase',getComputedStyle(q('.pbar i')).backgroundColor===tc('--rar-chase'),''],['其他保底收起',/其他保底 3 項/.test(txt('[data-m=G01b]')),'']]`,
+  G01: `return [['條 --rar-chase',getComputedStyle(q('.pbar i')).backgroundColor===tc('--rar-chase'),''],['其他保底收起（項數＝假資料 F11）',txt('[data-m=G01b]').includes('其他保底 '+F().pityOther.length+' 項')&&!q('[data-m=G01o]'),txt('[data-m=G01b]')],['「下一件保底 n%」前放王印',/下一件保底 \\d+%/.test(txt('[data-m=G01]'))&&!!q('[data-m=G01] .r-chase svg'),txt('[data-m=G01] b')]]`,
   G02: `return [['不累積保底一行',/怪物 Lv 45 以上的地點才會累積/.test(txt('[data-m=G02]')),'']]`,
   G03: `const c=q('.grow2.chase');return [['追逐列左緣 3 px',!!c&&getComputedStyle(c).borderLeftWidth==='3px'&&getComputedStyle(c).borderLeftColor===tc('--rar-chase'),''],['◆ 稀有',/◆/.test(txt('[data-m=G03]')),''],['◈ 傳奇',/◈/.test(txt('[data-m=G03]')),''],['★ 破裂裝備',/★ 破裂裝備/.test(txt('[data-m=G03]')),''],['「記憶」文字標',qa('.memt').length>0,'']]`,
   G04: `const e=q('.grow2.pick');return [['選中 2 px --border-cap',!!e&&getComputedStyle(e).outlineWidth==='2px'&&getComputedStyle(e).outlineColor===tc('--border-cap'),'']]`,
   G05: `const c=q('[data-m=G05]');return [['比較排最上',c.firstElementChild.classList.contains('cmp'),''],['▲▼ 記號',/▲/.test(c.textContent)&&/▼/.test(c.textContent),''],['數字完整',!/\\d[KMBT]\\b/.test(c.textContent),'']]`,
-  G06: `return [['空狀態一行 --tx-dim',getComputedStyle(q('[data-m=G06]')).color===tc('--tx-dim'),''],['標待定',/待定/.test(txt('[data-m=G06]')),'']]`,
-  B01: `const r=q('[data-m=B01]');return [['完整數字「有 23・可換 4 次」',/有 23・可換 4 次/.test(r.textContent),r.textContent.trim().slice(0,40)],['鈕間距 ≥ 8',q('[data-k=ga-1]').getBoundingClientRect().left-q('[data-k=g1-1]').getBoundingClientRect().right>=8,'']]`,
-  B02: `const r=q('[data-m=B02]');return [['副行「有 3」右「不夠」',/有 3/.test(r.textContent)&&/不夠/.test(r.textContent),''],['不畫鈕',!r.querySelector('button'),'']]`,
-  B03: `const r=q('[data-m=B03]');return [['--panel-inset＋鎖',getComputedStyle(r).backgroundColor===tc('--panel-inset')&&!!r.querySelector('svg'),''],['說明',/瞭望台開到更深的地點才能換玄鐵/.test(r.textContent),'']]`,
-  B05: `const z=q('.cell.zero');return [['0 張 --panel-inset＋--tx-off',!z||getComputedStyle(z).backgroundColor===tc('--panel-inset'),z?'有':'本系沒有 0 張'],['「n／5」',qa('.cell').every(e=>/\\d／5/.test(e.textContent)),'']]`,
+  G06: `return [['空狀態一行 --tx-dim',getComputedStyle(q('[data-m=G06]')).color===tc('--tx-dim'),''],['名詞表空狀態句',txt('[data-m=G06]').trim()==='還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。',txt('[data-m=G06]').trim()]]`,
+  B01: `const t=txt('[data-panel=guild]');return [['完整數字「有 12,480」（F14）',/有 12,480/.test(t),t.match(/有 [\\d,.KM]+/g).join('、')],['一次換 1，沒有「全部」',!q('[data-k^=ga-]')&&!/全部|All ×/.test(t),''],['鈕間距 ≥ 8',q('[data-k=g1-1]').getBoundingClientRect().top-q('[data-k=g1-0]').getBoundingClientRect().bottom>=8,'']]`,
+  B02: `const r=q('[data-m=B02]'),G=F().guild;return [['持有 < 5 的階整列不列（生鐵 3）',r.dataset.omit==='生鐵'&&!/生鐵 ×5/.test(r.textContent),r.dataset.omit],['列數＝持有 ≥ 5 的階',qa('[data-m=B01],[data-m=B03]').length===G.rows.鐵.length,qa('.grow3').length]]`,
+  B03: `const r=q('[data-m=B03]');return [['--panel-inset＋鎖',getComputedStyle(r).backgroundColor===tc('--panel-inset')&&!!r.querySelector('svg'),''],['說明（F14：寒鐵 → 隕鐵 被擋）',/瞭望台開到更深的地點才能換隕鐵/.test(r.textContent),r.textContent.trim().slice(-20)]]`,
+  B05: `const z=q('.cell.zero'),fr=F().box.sys[0].frags;return [['0 張 --panel-inset＋--tx-off',!z||getComputedStyle(z).backgroundColor===tc('--panel-inset'),z?'有':'本系沒有 0 張'],['「勾魂令 合計 n／5」（F15 任 5 張）',/勾魂令 合計 \\d+／5/.test(txt('[data-m=B05s]')),txt('[data-m=B05s]')],['每格張數＝假資料',qa('.cell').every((e,i)=>e.querySelector('span').textContent===fr[i][2]+' 張'),'']]`,
   B06: `return [['夠了外框 2 px --border-hi',qa('.hall.ok').every(e=>getComputedStyle(e).borderTopWidth==='2px'&&getComputedStyle(e).borderTopColor===tc('--border-hi')),qa('.hall.ok').length],['不夠＝「還差 n 張」停用',qa('.hall .offb').every(e=>e.disabled&&/還差/.test(e.textContent)),qa('.hall .offb').length],['難度「—」',/難度 —/.test(txt('[data-m=B06]')),'']]`,
   B08: `return [['開卡焦點在取消',document.activeElement&&document.activeElement.dataset.k==='hall-no',document.activeElement&&document.activeElement.dataset.k],['--bad 不退回（未驗）',getComputedStyle(q('[data-m=B08] .badt')).color===tc('--bad'),'']]`,
-  B09: `return [['沒拿過的系不畫',!q('[data-tab="兵家"]'),'']]`,
+  B09: `return [['沒拿過的系不畫（陰兵、弒神）',!q('[data-tab="陰兵"]')&&!q('[data-tab="弒神"]'),'']]`,
   P01: `return [['--warn 暫停句',getComputedStyle(q('[data-m=P01] .warn')).color===tc('--warn'),''],['不長按',!q('[data-m=P01] [data-hold]'),'']]`,
   P02: `const a=q('[data-k=pr-reset]').getBoundingClientRect(),b=q('[data-k=pr-leave]').getBoundingClientRect();return [['重置／離開隔 20',Math.round(b.left-a.right)===20,Math.round(b.left-a.right)],['「打稻草人就開始算」13',parseFloat(getComputedStyle(q('[data-m=P02] .lab')).fontSize)===13,'']]`,
-  P03: `const b=q('.dps .big'),c=getComputedStyle(b);return [['主數字 24／700 等寬',c.fontSize==='24px'&&c.fontWeight==='700'&&/Mono|mono/.test(c.fontFamily),c.fontSize],['從第一下起 15／700',getComputedStyle(q('.dps .mid')).fontSize==='15px',''],['完整數字',!/\\d[KMBT]\\b/.test(txt('[data-m=P03]')),'']]`,
+  P03: `const b=q('.dps .big'),c=getComputedStyle(b);return [['主數字 24／700 等寬',c.fontSize==='24px'&&c.fontWeight==='700'&&/Mono|mono/.test(c.fontFamily),c.fontSize],['三欄「10 秒平均」「總傷害」「最高一擊」，副欄 15／700',/10 秒平均/.test(txt('[data-m=P03]'))&&qa('.dps .mid').length===2&&/總傷害/.test(qa('.dps .mid')[0].textContent)&&/最高一擊/.test(qa('.dps .mid')[1].textContent)&&qa('.dps .mid').every(e=>getComputedStyle(e).fontSize==='15px'&&getComputedStyle(e).fontWeight==='700'),''],['完整數字',!/\\d[KMBT]\\b/.test(txt('[data-m=P03]')),'']]`,
   P04: `return [['換之前「—」、▲▼ 位置',/換之前 —/.test(txt('[data-m=P04]'))&&/▲▼/.test(txt('[data-m=P04]')),''],['字 14',getComputedStyle(q('[data-m=P04]')).fontSize==='14px','']]`,
   P05: `return [['到頂 --tx-off',getComputedStyle(q('[data-k=lv-up]')).color===tc('--tx-off'),'']]`,
   P06: `return [['「試招中・戰鬥暫停，回戰場補算」',/試招中・戰鬥暫停，回戰場補算/.test(txt('[data-m=P06]')),txt('[data-m=P06]')]]`,
   P07: `return [['「試招期間 +N」',/試招期間/.test(txt('[data-m=P07]')),txt('[data-m=P07]')]]`,
   O01: `return [['0 點擊開刷（已打到）',demo.S.hits>0,demo.S.hits]]`,
   O02: `const c=getComputedStyle(q('[data-m=O02]'));return [['16／700 --tx-strong（桌機 18）',(c.fontSize==='16px'||c.fontSize==='18px')&&c.fontWeight==='700'&&c.color===tc('--tx-strong'),c.fontSize]]`,
-  O04: `return [['「鍛造台 Lv1・靈魂 120／400」',/鍛造台 Lv1・靈魂 120／400/.test(txt('[data-m=O04]')),'']]`,
+  O04: `return [['「祭壇 Lv1・靈魂 0／300・木 20／60」（F21）',/祭壇 Lv1・靈魂 0／300・木 20／60/.test(txt('[data-m=O04]')),txt('[data-m=O04] b')]]`,
   O05: `const e=q('[data-m=O05]:not(.hide) span'),lh=parseFloat(getComputedStyle(e).lineHeight);return [['≤ 2 行',e.getBoundingClientRect().height<=lh*2+1,Math.round(e.getBoundingClientRect().height/lh)+' 行'],['14／700',getComputedStyle(e).fontSize==='14px','']]`,
   O06: `return [['營地分頁提示點',!!q('[data-k=tab-camp] .dot'),''],['一行',/營地可以升級了/.test(txt('[data-m=O06]')),'']]`,
   O07: `return [['「離開 4 分・靈魂 +1,167」',/離開 4 分・靈魂 \\+1,167/.test(txt('[data-m=O07]')),txt('[data-m=O07]')]]`,
-  O08: `return [['完整數字＋千分位',/\\+29,192/.test(txt('[data-m=O08]'))&&!/\\d[KMBT]\\b/.test(txt('[data-m=O08]')),''],['同一下一個目標',/瞭望台 Lv16/.test(txt('[data-m=O08]')),''],['主鈕最下',q('[data-m=O08]').lastElementChild.dataset.k==='off-ok','']]`,
-  X01: `const b=q('[data-m=X01]');return [['只放金幣、靈魂',b.querySelectorAll('.ci').length===2,''],['清單完整數字',qa('[data-m=X01b] [data-num=full]').length===8&&!/\\d[KMBT]\\b/.test(txt('[data-m=X01b]')),''],['12,345,678,901 完整',/12,345,678,901/.test(txt('[data-m=X01b]')),'']]`,
-  X02: `return qa('.flask .ring').map((r,i)=>{const c=tc(i?'--mp-hi':'--hp-hi'),p=tc('--panel');return ['藥劑 '+(i+1)+' 充能環對 --panel ≥ 3:1',cr(c,p)>=3,cr(c,p).toFixed(2)]})`,
+  O08: `return [['完整數字＋千分位',/\\+29,192/.test(txt('[data-m=O08]'))&&!/\\d[KMBT]\\b/.test(txt('[data-m=O08]')),''],['同一下一個目標',txt('[data-m=O08]').includes('瞭望台 Lv'+F().next.facLv),'瞭望台 Lv'+F().next.facLv],['主鈕最下',q('[data-m=O08]').lastElementChild.dataset.k==='off-ok','']]`,
+  X01: `const b=q('[data-m=X01]');return [['只放金幣、靈魂',b.querySelectorAll('.ci').length===2,''],['清單完整數字',qa('[data-m=X01b] [data-num=full]').length===F().cur.length&&!/\\d[KMBT]\\b/.test(txt('[data-m=X01b]')),''],['12,345,678,901 完整',/12,345,678,901/.test(txt('[data-m=X01b]')),'']]`,
+  X02: `return [...qa('.flask .ring').map((r,i)=>{const c=tc(i?'--mp-hi':'--hp-hi'),p=tc('--panel');return ['藥劑 '+(i+1)+' 冷卻環對 --panel ≥ 3:1',cr(c,p)>=3,cr(c,p).toFixed(2)]}),['藥劑鈕上數字 0 個（不寫次數）',qa('.flask').every(b=>!b.querySelector('[data-role=num]')&&!/\\d/.test([...b.childNodes].filter(n=>n.nodeName!=='KBD').map(n=>n.textContent).join(''))),qa('.flask').map(b=>b.textContent).join('｜')],['冷卻中的鈕（F2-2）：生命藥劑環 0–360° 之間',demo.probe().fl0&&demo.probe().fl0.left>0&&demo.probe().fl0.left<3000,demo.probe().fl0&&demo.probe().fl0.left+' ms']]`,
   X03: `return [['縮寫可看完整（title／data-full）',qa('.nb').every(e=>e.title&&e.dataset.full),qa('.nb').length]]`,
   X04: `return [['戰場露出 0 px',(()=>{const r=q('[data-m=X04]').getBoundingClientRect(),u=document.getElementById('ui').getBoundingClientRect();return Math.abs(r.width-u.width)<1&&Math.abs(r.height-u.height)<1})(),'']]`,
-  X05: `return [['‹ 回清單，× 關整個營地',!!q('[data-k=camp-list]')&&!!q('[data-k=camp-x]'),'']]`,
+  X05: `return [['← 回清單，× 關整個營地',txt('[data-k=camp-list]')==='←'&&!!q('[data-k=camp-x]'),txt('[data-k=camp-list]')],['「這級：」＋「接下來會解鎖」每列「Lv{n}・」',/這級：新地點「冰封神殿」開了（怪物 Lv 53）/.test(txt('[data-m=X05]'))&&/接下來會解鎖/.test(txt('[data-m=X05]'))&&/Lv16・新地點/.test(txt('[data-m=X05]')),'']]`,
   X07: `return [['畫面標「待素材」',/待素材/.test(txt('.tags')),txt('.tags')]]`
 };
 
@@ -542,7 +542,20 @@ print(json.dumps([cs,float(np.median(pv))]))`,
 }
 
 /* ---------- 錄影：逐幀推虛擬時鐘、截圖、ffmpeg ---------- */
-const VDUR = { V1: 3300, V2: 3100, V3: 4500, V4: 3100, V5: 2500, V6: 2700, V7: 5300, V8: 60600, V9: 11600, V10: 5300 };
+const VDUR = {
+  V1: 3300,
+  V2: 3100,
+  V3: 4500,
+  V4: 3100,
+  V5: 2500,
+  V6: 2700,
+  V7: 5300,
+  V8: 60600,
+  V9: 11600,
+  V10: 16100,
+  'V-F2': 4900
+};
+const VNAME = { 'V-F2': 'V-F2_flask_busy' };
 async function record(b, V, size, rm) {
   const [w, h] = size.split('x').map(Number);
   const p = await b.newPage({ viewport: { width: w, height: h } });
@@ -563,7 +576,7 @@ async function record(b, V, size, rm) {
   await p.close();
   const vd = path.join(OUT, 'videos');
   fs.mkdirSync(vd, { recursive: true });
-  const mp4 = path.join(vd, `${V}_${size}_${rm ? 'rm' : '一般'}.mp4`);
+  const mp4 = path.join(vd, `${VNAME[V] || V}_${size}_${rm ? 'rm' : '一般'}.mp4`);
   execFileSync('ffmpeg', [
     '-y',
     '-loglevel',
@@ -673,9 +686,11 @@ function timing(V, P, L, rm) {
   }
   if (V === 'V5') {
     const tr = L.filter(x => x.ev === 'trade').map(x => x.t);
+    /* 一次換 1、沒有「全部」：每次都滾 200（連按三下） */
     for (const [i, d] of [
       [0, 200],
-      [1, 300]
+      [1, 200],
+      [2, 200]
     ]) {
       const e = first(P, p => p.roll5 && p.roll5.x >= 1, tr[i]);
       if (rm) ok(!P.some(p => p.roll5 && p.roll5.x < 1), `減少動態：第 ${i + 1} 次數字直接換（沒有滾動中的幀）`);
@@ -798,8 +813,31 @@ function timing(V, P, L, rm) {
       bt.length && Math.max(...bt) - Math.min(...bt) < 0.01,
       `戰鬥停在開的那一幀（bt ${bt.length ? bt[0].toFixed(0) : '—'} 不動）`
     );
-    const g = first(P, p => p.gain === 1, d);
-    ok(g != null, `回來補算一行出現（${f0(g - d)} ms）`);
+    /* 天賦樹期間一行：開不到 10 秒不出；開 ≥ 10 秒出（名詞表 v0.6.15） */
+    const o2 = ev('tree-open', 1),
+      d2 = ev('tree-closed', 1);
+    ok(!P.some(p => p.t > d && p.t < o2 && p.gain > 0), `開 ${f0(c - o)} ms（< 10 秒）關掉：不出補算一行`);
+    const g = first(P, p => p.gain === 1, d2);
+    ok(g != null && d2 - o2 >= 10000, `開 ${f0(d2 - o2)} ms（≥ 10 秒）關掉：補算一行出現（${f0(g - d2)} ms）`);
+  }
+  if (V === 'V-F2') {
+    /* 紅藍水：不限次數、各自冷卻 3 秒；冷卻中按下不發動，抖一下 ≤ 80 ms（減少動態只閃外框） */
+    for (const i of [0, 1]) {
+      const dk = L.filter(x => x.ev === 'flask' && x.i === i).map(x => x.t),
+        bz = L.filter(x => x.ev === 'flask-busy' && x.i === i).map(x => x.t);
+      const rd = first(P, p => p['fl' + i] && p['fl' + i].left === 0, dk[0] + 1);
+      ok(near(rd - dk[0], 3000), `藥劑 ${i + 1} 冷卻 ${f0(rd - dk[0])} ms（3,000）`);
+      ok(
+        bz.length > 0 && dk.length === (i ? 1 : 2),
+        `藥劑 ${i + 1} 冷卻中按下不發動（喝 ${dk.length} 次、擋下 ${bz.length} 次）`
+      );
+      const mv = P.filter(p => p.t > bz[0] && p['fl' + i] && p['fl' + i].dx);
+      if (rm) ok(mv.length === 0, `減少動態：藥劑 ${i + 1} 不抖，只閃外框`);
+      else {
+        const last = Math.max(...mv.map(p => p.t));
+        ok(mv.length > 0 && last - bz[0] <= 80, `藥劑 ${i + 1} 抖 ${f0(last - bz[0])} ms（≤ 80）`);
+      }
+    }
   }
   return R;
 }
@@ -1010,7 +1048,6 @@ function pf16() {
   const spec = fs.readFileSync(path.join(__dirname, '..', 'docs/production/specs/M2-36-palette-tokens.md'), 'utf8');
   const mism = [];
   for (const [, k, v] of tok.matchAll(/(--[\w-]+):\s*(#[0-9a-f]{6})/g)) {
-    if (/hp-hi|mp-hi/.test(k)) continue;
     const row = spec.split('\n').find(
       l =>
         l.startsWith('| --') &&
@@ -1043,7 +1080,7 @@ function report(res, vids) {
     ''
   );
   L.push(
-    '**全部佔位**：假資料在 `demo/d3/fixtures.js`（等 F01–F26）；主視覺底圖「待素材」；圖示「暫用」（程式畫的 16 px SVG，1 倍）；掉落紀錄空狀態句「待定」；殿／碎片／地圖詞／心魔劫減益／解鎖句部分名稱「佔位」；按鍵表「待對照」e5f18530。',
+    '**假資料**：`demo/d3/fixtures.js` 照 `specs/D3-fakedata.md` v1.0（F01–F26；fakedata 標「假定」的值照樣標）。**佔位**：主視覺兩張底圖「待素材」；圖示「暫用」（程式畫的 16 px SVG，1 倍）；按鍵表「待對照」e5f18530；英文切換時沒有 EN 的字（地圖詞、首領碎片、設定、DPS 標籤、9 個殿名）用假字並標「EN 未譯＝假定」。',
     ''
   );
   L.push(
@@ -1063,6 +1100,7 @@ function report(res, vids) {
     G04: 'V4',
     B01: 'V5',
     B08: 'V6',
+    X02: 'V-F2',
     P01: 'V7',
     P07: 'V7',
     O01: 'V8',
@@ -1138,8 +1176,8 @@ function report(res, vids) {
   const pfl = res.pfl || [],
     pflBad = pfl.filter(x => x.ratio < 1.4);
   const ring = rowsAll
-    .filter(m => m.G && m.G.some(g => /充能環/.test(g.d)))
-    .flatMap(m => m.G.filter(g => /充能環/.test(g.d)));
+    .filter(m => m.G && m.G.some(g => /冷卻環|藥劑鈕上數字/.test(g.d)))
+    .flatMap(m => m.G.filter(g => /冷卻環|藥劑鈕上數字/.test(g.d)));
   const ringBad = ring.filter(g => !g.ok);
   const foc = Object.values(res.focus).flat(),
     focBad = foc.filter(x => !x.ok);
@@ -1234,7 +1272,7 @@ function report(res, vids) {
     ],
     [
       'PF-R',
-      '藥劑充能環 vs --panel ≥ 3:1',
+      '藥劑冷卻環 vs --panel ≥ 3:1；藥劑鈕上數字 0 個',
       !ringBad.length && ring.length > 0,
       [...new Set(ring.map(g => `${g.d} ${g.v}`))].join('；')
     ],
@@ -1292,7 +1330,7 @@ function report(res, vids) {
   let res = fs.existsSync(RJ) ? JSON.parse(fs.readFileSync(RJ, 'utf8')) : {};
   if (MODE === 'all' || MODE === 'shots') res.shots = await shots(b);
   const VS =
-    MODE === 'all' || MODE === 'videos' ? Object.keys(VDUR) : /^V\d+(,V\d+)*$/.test(MODE) ? MODE.split(',') : [];
+    MODE === 'all' || MODE === 'videos' ? Object.keys(VDUR) : /^V[\w-]+(,V[\w-]+)*$/.test(MODE) ? MODE.split(',') : [];
   res.vids = (res.vids || []).filter(v => !VS.includes(v.V));
   for (const V of VS)
     for (const size of SIZES)

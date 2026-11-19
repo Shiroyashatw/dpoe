@@ -1,7 +1,7 @@
 /* D3 展示頁色票：唯一放色值的檔案（docs/production/specs/M2-36-palette-tokens.md 的值）。
    色票整組換值時只改這個檔；demo.css、demo.js 只准用 var(--…)。
    -rgb 三元組是同一個值拆開給半透明用（rgb(var(--x-rgb) / a)）。
-   --hp-hi、--mp-hi 是 D3 檢查表 X02 的暫存值（藥劑充能環）。 */
+   --hp-hi、--mp-hi 照 M2-36-palette-tokens.md（藥劑鈕冷卻環，3 秒冷卻、不限次數）。 */
 :root {
   /* 面板與疊層 */
   --scene-void: #0d0a07;

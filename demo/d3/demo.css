@@ -112,7 +112,8 @@ body:not(.port) .curbar::after { display: none; }
 .flask { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--panel); position: relative; cursor: pointer; border: 0; padding: 0; }
 .flask .ring { position: absolute; inset: 0; border-radius: 50%; }
 .flask .core { position: absolute; inset: 5px; border-radius: 50%; background: var(--panel-inset); }
-.flask b { position: relative; font: 700 12px var(--font); color: var(--tx-strong); }
+.flask .ico { position: relative; color: var(--tx-strong); }
+.flask.busy { outline: 2px solid var(--border-hi); outline-offset: 1px; }
 .flask kbd { position: absolute; left: -2px; top: -4px; font: 700 12px/14px var(--font); color: var(--tx-dim); background: var(--panel-inset); padding: 0 3px; border-radius: 2px; }
 .skb { width: 52px; height: 52px; border-radius: 6px; background: var(--panel-raised); border: 1px solid var(--border-ctl); display: grid; place-items: center; color: var(--tx-dim); font: 700 12px var(--font); }
 .feed { display: flex; flex-direction: column; gap: 4px; min-height: 44px; cursor: pointer; }
@@ -271,8 +272,6 @@ body:not(.port) .dps .t { font-size: var(--f18); }
 .dps .big { font: 700 var(--f24)/1.2 var(--mono); color: var(--tx-strong); }
 .dps .mid { font: 700 var(--f15) var(--mono); color: var(--tx-strong); }
 .dps .rat { display: flex; align-items: center; gap: 6px; font-size: var(--f14); }
-.rbar { width: 138px; height: 8px; background: var(--panel-inset); box-shadow: 0 0 0 1px var(--border-mid); position: relative; flex: none; }
-.rbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--prog-hi); }
 .dps .brow { display: flex; gap: 20px; }
 .dps .t { min-height: 44px; }
 .lvc { display: flex; align-items: center; gap: 8px; padding: 0 8px; font: 700 var(--f14) var(--font); }
@@ -318,3 +317,4 @@ body.fs130 .starrow { flex-wrap: wrap; }
 body.fs130 .starrow .rng { flex-basis: 100%; text-align: left; }
 body.fs130 .starrow .rng span { position: static; }
 body.fs130 .starrow .rng { height: auto; overflow: visible; }
+.feed .fr.fh { color: var(--tx-dim); border-left-color: rgb(var(--scrim-rgb) / 0); cursor: default; }
