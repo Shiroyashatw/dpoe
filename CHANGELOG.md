@@ -1,5 +1,13 @@
 # dungeonPOE 更新紀錄
 
+## D2 展示頁（demo/d2，只加展示頁，遊戲沒動）
+
+照 `docs/production/specs/D2-checklist.md` 做「刷到 → 換裝 → 變強」一關的獨立展示頁。證據 `docs/production/evidence/dpoe-d2-demo/`（`results.md`、`prefilter.md`、截圖、9 支錄影 × 2 尺寸 × 一般／減少動態）。
+- **畫面**：角色＋倉庫（裝備格五種稀有度、空格候選、比較列、批次分解與保護件、數值子頁、不能裝備）、物品說明（比較排最前）、鍛造（打造、缺料、空格不夠→去整理、翻牌、自動分解規則、鍛造台、腐化確認）、技能孔板與挑選頁、天賦樹滿版（暫停、回來補算、昇華石碑）、追逐物品＋王印（保底、套到裝備、重擲印詞、追逐橫幅）、按鍵。
+- **色票**：顏色只在 `demo/d2/tokens.css`（M2-36 值），其他檔 0 色值；**數字**：`demo/d2/num.js` 照 number-abbrev v1.1，縮寫處點一下或滑鼠停留看完整數字，確認卡一律完整。
+- **佔位**：假資料只在 `demo/d2/fixtures.js`；主視覺底圖、`--hp-hi`／`--mp-hi` 待素材；王印圖示暫用現有圖；藥劑與貨幣條位置待 D1-fix 規格；天賦補算行、重擲鈕字待定。
+- 驗收：`node tools/d2_demo.js`（先開本機伺服器）。
+
 ## D1 展示頁複審第三輪修正（demo/d1，只改展示頁，遊戲沒動）
 
 UIUX 00:07 複審（只改 C02 建議格）。證據 `docs/production/evidence/dpoe-d1-demo/review-fix3/`（只補拍 5 張，不重錄）。
