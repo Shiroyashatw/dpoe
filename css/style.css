@@ -176,6 +176,9 @@
   --hp-v2: #7e1610;
   --hp-v3: #7a1c1c;
   --mp: #2b4a8a;
+  /* M2-36-palette-tokens：藥劑鈕冷卻環、低血外框（非文字圖形，對 --panel ≥3:1） */
+  --hp-hi: #ae766c;
+  --mp-hi: #7d81ac;
   --mp-v1: #1a2f8e;
   --prog-lo: #7a4a14;
   --prog-lo-v1: #6b4a2b;
@@ -487,6 +490,16 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--scene-
 .sk[data-k='mflask'] .ic { filter: hue-rotate(225deg); }
 .sk[data-k='flask'] u,
 .sk[data-k='mflask'] u { place-items: end; padding: 0 5px 2px 0; font-size: var(--fs-s); }
+.sk[data-k='flask'], .sk[data-k='mflask'] { --hi: var(--hp-hi); }
+.sk[data-k='mflask'] { --hi: var(--mp-hi); }
+/* 紅藍水（mumi 11/19 14:04）：不限次數、冷卻 3 秒；冷卻中 3 px 環＋剩餘部分扇形蓋 50% 暗、圖示 50% 亮度；冷卻好了環消失 */
+.sk[data-k='flask'] s, .sk[data-k='mflask'] s { transform: none; background: conic-gradient(rgba(var(--scrim-rgb), 0.5) calc(var(--v, 0) * 360deg), transparent 0); }
+.sk.cdn { box-shadow: inset 0 0 0 3px var(--hi); }
+.sk.cdn .ic { filter: brightness(0.5); }
+/* 低血且生命藥劑冷卻好了：2 px 外框 1 Hz 呼吸；減少動態常亮 */
+.sk.low::after { content: ''; position: absolute; inset: -3px; border: 2px solid var(--hp-hi); border-radius: inherit; pointer-events: none; animation: flLow 0.5s ease-in-out infinite alternate; }
+@keyframes flLow { from { opacity: 0.4; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sk.low::after { animation: none; } }
 .sk kbd { position: absolute; left: 3px; top: 1px; font: 700 10px var(--font); color: var(--tx-dim); text-shadow: 0 1px 1px rgb(var(--scrim-rgb)); }
 .sk.no .ic { filter: grayscale(1) brightness(0.55); }
 .sk.hit { animation: press 160ms ease-out; }
@@ -2899,6 +2912,7 @@ body:not(.touch.port) #pidle.open { height: 200px; }
 #pidle .ib > b { flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #pidle .ipb { display: flex; flex: none; align-items: center; gap: 6px; white-space: nowrap; font-weight: 500; font-variant-numeric: tabular-nums; }
 #pidle .ipb .pb { display: block; width: 48px; height: 6px; background: var(--panel-inset); }
+#pidle .ic.ipw { width: 16px; height: 16px; flex: none; vertical-align: -3px; margin-right: 4px; image-rendering: pixelated; }
 #pidle .ipb .pb i { display: block; height: 100%; background: var(--border-hi); transform-origin: left; }
 #pidle .ipb.full { color: var(--rar-chase); }
 #pidle .ipb.full .pb i { background: var(--rar-chase); }
@@ -2916,6 +2930,7 @@ body:not(.touch.port) #pidle .ix { height: 40px; }
 #pidle .chs { min-height: 40px; margin: 0 12px 0 0; }
 #pidle .ir .goal { padding: 0 12px 0 0; }
 @media (max-width: 380px) { #pidle .ipb .pb { display: none; } }
+@media (max-width: 330px) { #pidle .ipb .ipw { display: none; } }
 
 /* 下一個目標條（抽屜、掛機條展開、離線結算共用）：字 14＋進度條 4 */
 /* 規格寫 36 高；抽屜裡上面緊貼標題列、熱區沒地方外延，直接做 44 高（格子區照樣到 710 為止） */

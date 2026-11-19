@@ -157,12 +157,12 @@ async function flow(b) {
   await dead();
   await dead();
   const K = await p.evaluate(() => TRUNK_K);
-  await until(p, () => /連死 3 次/.test($('run').textContent), 3000);
+  await until(p, () => /連倒 3 次/.test($('run').textContent), 3000);
   const rb = await p.evaluate(() => ({ node: G.node, note: S.world.note, run: $('run').textContent }));
   /* M2-12 D2（製作人定）：維持連死 3 次退回上一個地點繼續刷（不停機、不回營地） */
   ok(
     '連死 3 次：退回上一個節點、HUD 有通知（寫換裝、降星級或升營地）',
-    rb.node === K[8] && /連死 3 次/.test(rb.note) && /升營地/.test(rb.run),
+    rb.node === K[8] && /連倒 3 次/.test(rb.note) && /升營地/.test(rb.run),
     JSON.stringify(rb)
   );
   await p.evaluate(a0 => (S.auto = a0), a0);
