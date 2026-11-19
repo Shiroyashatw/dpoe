@@ -423,6 +423,7 @@ def main():
     p.add_argument('--no-init', action='store_true', help='不送 init_image（端點拒收時）')
     p.add_argument('--sheet', help='改讀這個 json 工作表（D2 首跑）')
     p.add_argument('--raw', help='原圖與 json 另存的目錄（預設 art/_raw）')
+    p.add_argument('--stop-utc', help='到這個 UTC 時刻（HH:MM）就不再送新請求')
     p.add_argument('--go', action='store_true', help='真的送出，會花點數')
     a = p.parse_args()
     global SHEET, RAW
@@ -460,6 +461,9 @@ def main():
                 print(f"    description: {b2['description']}")
                 if 'negative_description' in b2:
                     print(f"    negative: {b2['negative_description']}")
+            if a.go and a.stop_utc and __import__('datetime').datetime.utcnow().strftime('%H:%M') >= a.stop_utc:
+                print(f'  到了 {a.stop_utc} UTC，不再送新請求', flush=True)
+                return
             if a.go:
                 try:
                     run_one(j, k, a.no_init)
