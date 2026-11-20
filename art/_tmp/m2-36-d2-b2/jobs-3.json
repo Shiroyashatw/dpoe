@@ -1,0 +1,58 @@
+[
+  {
+    "id": "cur_gold",
+    "item": 3,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a single round cash coin with a square hole in the centre, seen straight on, pale gold face, warm grey rim, fills the canvas, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, single ingot, crown, star, bright yellow, orange, stack, ingot, gem, octagon, stick",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5401,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#46413c",
+      "#817b75",
+      "#aeaba7",
+      "#e8e5e1",
+      "#f2cb9b"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "wangyin_guixu_16",
+    "item": 3,
+    "endpoint": "/create-image-bitforge",
+    "body": {
+      "description": "tiny 16 pixel game icon, flat front view, a small square plaque with a small ring on top, front view, a single thin spiral line carved in the centre of the plaque face, glowing cyan, warm grey plaque body, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+      "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, cube, whirlpool landscape, face, figure, person, lightning, sword",
+      "image_size": {
+        "width": 16,
+        "height": 16
+      },
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5510,
+    "post": "alpha_binary",
+    "palette": [
+      "#000000",
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75",
+      "#143a38",
+      "#0cf6ee",
+      "#8ffbf6"
+    ],
+    "wave": "D2b2",
+    "init_file": "art/_tmp/m2-36-d2-first/wangyin_chixiao_16/post/wangyin_chixiao_16-s5404.png",
+    "init_image_strength": 300
+  }
+]

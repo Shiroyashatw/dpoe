@@ -1,0 +1,38 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "slot_belt",
+  "seed": 6723,
+  "item": 4,
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "seconds": 13.4,
+  "request": {
+    "description": "game item icon, flat front view, a belt in a gentle arc with a square buckle in the centre, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character",
+    "image_size": {
+      "width": 32,
+      "height": 32
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "medium shading",
+    "detail": "medium detail",
+    "no_background": true,
+    "seed": 6723,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

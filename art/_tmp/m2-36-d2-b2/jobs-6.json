@@ -1,0 +1,201 @@
+[
+  {
+    "id": "prop_lantern",
+    "item": 6,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a hanging warm brown cloth lantern in a dark wood frame, not white, no baked glow, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no logo, promo, character, monster, UI, white lantern, paper-white, saturated orange, unique orange fill",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5241,
+    "post": "alpha_binary",
+    "palette": [
+      "#3f3226",
+      "#6b5440",
+      "#8a6c4e",
+      "#b98a5e",
+      "#000000"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "prop_ash",
+    "item": 6,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a low pile of paper ash and burnt scraps, flat, no flame, no ember glow, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no logo, promo, character, monster, UI, white lantern, paper-white, saturated orange, unique orange fill",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5243,
+    "post": "alpha_binary",
+    "palette": [
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#aeaba7",
+      "#000000"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "prop_joss",
+    "item": 6,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a small stack of burnt joss paper, charred edges, mostly grey, only a hint of pale gold on unburnt corners, no fire, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no logo, promo, character, monster, UI, white lantern, paper-white, saturated orange, unique orange fill",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5245,
+    "post": "alpha_binary",
+    "palette": [
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#e8e5e1",
+      "#f2cb9b",
+      "#000000"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "prop_stele",
+    "item": 6,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a short broken square stone pillar stump, flat top, no glyphs, not a tombstone, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no logo, promo, character, monster, UI, white lantern, paper-white, saturated orange, unique orange fill",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5247,
+    "post": "alpha_binary",
+    "palette": [
+      "#33302b",
+      "#46413c",
+      "#615b56",
+      "#817b75",
+      "#000000"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "prop_crate",
+    "item": 6,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a closed wooden crate with a few split firewood logs beside it, warm brown wood, not a treasure chest, no gold, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no logo, promo, character, monster, UI, white lantern, paper-white, saturated orange, unique orange fill, incense, joss paper, crow, bone, skull, tattered cloth",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5251,
+    "post": "alpha_binary",
+    "palette": [
+      "#3f3226",
+      "#6b5440",
+      "#8a6c4e",
+      "#a07a4a",
+      "#000000"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "prop_barrel",
+    "item": 6,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a wooden barrel, a basket of bread and a grain sack grouped unevenly, not round jars, not white, not in a row, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no logo, promo, character, monster, UI, white lantern, paper-white, saturated orange, unique orange fill, incense, joss paper, crow, bone, skull, tattered cloth",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5253,
+    "post": "alpha_binary",
+    "palette": [
+      "#3f3226",
+      "#6b5440",
+      "#8a5a40",
+      "#8c7a4a",
+      "#b3a592",
+      "#000000"
+    ],
+    "wave": "D2b2"
+  },
+  {
+    "id": "prop_rack",
+    "item": 6,
+    "endpoint": "/create-image-pixflux",
+    "body": {
+      "description": "game item icon, flat front view, a low wooden weapon rack with two practice swords and a spear, not a scarecrow, not a cross, no stone ring, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no logo, promo, character, monster, UI, white lantern, paper-white, saturated orange, unique orange fill, incense, joss paper, crow, bone, skull, tattered cloth",
+      "image_size": {
+        "width": 32,
+        "height": 32
+      },
+      "view": "side",
+      "outline": "single color black outline",
+      "shading": "medium shading",
+      "detail": "medium detail",
+      "no_background": true
+    },
+    "n": 3,
+    "seed0": 5255,
+    "post": "alpha_binary",
+    "palette": [
+      "#2e2a27",
+      "#3f3226",
+      "#6b5440",
+      "#8a6c4e",
+      "#817b75",
+      "#000000"
+    ],
+    "wave": "D2b2"
+  }
+]
