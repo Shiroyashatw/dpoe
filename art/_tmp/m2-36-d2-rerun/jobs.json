@@ -1,0 +1,934 @@
+[
+ {
+  "id": "boss_xingtian",
+  "item": 4,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a headless giant warrior, the neck is a flat stump between broad shoulders with nothing above it, two large round eyes on the chest, a wide mouth at the navel, a large axe in one hand and a square shield in the other, mid-dance stance, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no head, helmet, ice armour, skeleton, skull, hood, horns, face above the shoulders",
+   "image_size": {
+    "width": 64,
+    "height": 64
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "detailed shading",
+   "detail": "highly detailed",
+   "no_background": true
+  },
+  "n": 6,
+  "seed0": 9001,
+  "post": "alpha_binary",
+  "palette": [
+   "#1f1a16",
+   "#4a3a2a",
+   "#7a5a3a",
+   "#8a6c4e",
+   "#934341",
+   "#aeaba7",
+   "#e8e5e1",
+   "#000000"
+  ],
+  "wave": "1",
+  "tier": "boss",
+  "row": 1,
+  "size": "64"
+ },
+ {
+  "id": "tk_crimson",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, three bold crimson forward chevrons stacked left to right, free-floating, nothing behind them, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, disc, badge, shield, hexagon, crystal, backing shape",
+   "image_size": {
+    "width": 48,
+    "height": 48
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 6,
+  "seed0": 9007,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#934341",
+   "#af6c64"
+  ],
+  "wave": "2",
+  "tier": "tk",
+  "row": 2,
+  "size": "48"
+ },
+ {
+  "id": "tn_block",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a round shield turned to a steep three-quarter angle so it reads as a narrow upright oval, centre boss, rim thickness visible on the right side, strap on the back, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, front view, full circle, ring, disc",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9013,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "3",
+  "tier": "tn",
+  "row": 3,
+  "size": "32"
+ },
+ {
+  "id": "tn_crit",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a pointed almond-shaped eye outline, wider than tall, sharp corners left and right, one small solid pupil dot, made only of lines, no face, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, circle, ring, disc, round eye, target",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9017,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#f3f9a4"
+  ],
+  "wave": "4",
+  "tier": "tn",
+  "row": 4,
+  "size": "32"
+ },
+ {
+  "id": "tn_area",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, three short arcs opening upward like a signal icon, upper halves only, above a small centre dot, arcs not closed, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, full circle, ring, disc, ball, spikes",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9021,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "5",
+  "tier": "tn",
+  "row": 5,
+  "size": "32"
+ },
+ {
+  "id": "tn_regen",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a plain heart with a large bold green plus sign overlapping its lower right corner, the plus clearly separate, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9025,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#934341",
+   "#af6c64",
+   "#95e886"
+  ],
+  "wave": "6",
+  "tier": "tn",
+  "row": 6,
+  "size": "32"
+ },
+ {
+  "id": "tn_tough",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a flexed arm seen from the side, bicep bulging, fist up, elbow at the bottom left, no body, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, disc, ring, mask, helmet, torso",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9029,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "7",
+  "tier": "tn",
+  "row": 7,
+  "size": "32"
+ },
+ {
+  "id": "tn_thorns",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a short thorny vine branch curving in an S shape from bottom left to top right, five sharp thorns, both ends open, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, circle, ring, wreath, loop",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9033,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#95e886"
+  ],
+  "wave": "8",
+  "tier": "tn",
+  "row": 8,
+  "size": "32"
+ },
+ {
+  "id": "tn_duration",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a sundial seen from the side: a low flat stone slab with a tall triangular gnomon standing on it, one thin shadow line, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, round face, clock, compass, circle, disc",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9037,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#f2cb9b"
+  ],
+  "wave": "9",
+  "tier": "tn",
+  "row": 9,
+  "size": "32"
+ },
+ {
+  "id": "ts_phys",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a clenched fist seen from the front, knuckles up, bold, fills the canvas, nothing behind it, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, ring, disc, coin, badge, round border",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9041,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "10",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 10,
+  "size": "32→16"
+ },
+ {
+  "id": "ts_light",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a single bold zigzag lightning bolt, diagonal, fills the canvas, nothing behind it, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, ring, disc, coin, badge, round border, square frame",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9045,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#f3f9a4"
+  ],
+  "wave": "11",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 11,
+  "size": "32→16"
+ },
+ {
+  "id": "ts_chaos",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a bold three-arm spiral swirl with open arm ends, nothing behind it, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, ring, disc, coin, badge, round border, square frame",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9049,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#e97ccf"
+  ],
+  "wave": "12",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 12,
+  "size": "32→16"
+ },
+ {
+  "id": "ts_es",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a thick pale-blue hexagon outline with an empty transparent centre, flat edges, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, eye sockets, circle, disc",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9053,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#3a5b98",
+   "#6b7dad"
+  ],
+  "wave": "13",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 13,
+  "size": "32→16"
+ },
+ {
+  "id": "ts_crit",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, an almond-shaped eye made of two curved lines meeting at sharp points, one pupil dot, wider than tall, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, circle, ring, round eye, target, disc",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9057,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#f3f9a4"
+  ],
+  "wave": "14",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 14,
+  "size": "32→16"
+ },
+ {
+  "id": "ts_proj",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a single arrow pointing up-right at 45 degrees, clear triangular head, two fletching ticks, thin straight shaft, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, feather, leaf, ring, disc",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9061,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "15",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 15,
+  "size": "32→16"
+ },
+ {
+  "id": "ts_area",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, three short arcs opening upward like a signal icon, upper halves only, arcs not closed, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, full circle, ring, disc, square frame",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9065,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "16",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 16,
+  "size": "32→16"
+ },
+ {
+  "id": "boss_fengbo",
+  "item": 4,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a beast with a deer body, antlers growing from a bird head with a sharp hooked beak, a long snake tail, carrying an open cloth wind bag, swirling wind ribbons, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no eagle only, griffin, dragon, deer head, horse head, wings",
+   "image_size": {
+    "width": 64,
+    "height": 64
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "detailed shading",
+   "detail": "highly detailed",
+   "no_background": true
+  },
+  "n": 4,
+  "seed0": 9069,
+  "post": "alpha_binary",
+  "palette": [
+   "#1f2a26",
+   "#3a4a40",
+   "#6b7d6a",
+   "#a9ae68",
+   "#aeaba7",
+   "#e8e5e1",
+   "#ade2f9",
+   "#000000"
+  ],
+  "wave": "17",
+  "tier": "boss",
+  "row": 17,
+  "size": "64"
+ },
+ {
+  "id": "tk_deflect",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a straight arrow bent sharply away after glancing off the edge of a large curved feather, arrow and feather both large and separate, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, disc, ring, round badge",
+   "image_size": {
+    "width": 48,
+    "height": 48
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9073,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "18",
+  "tier": "tk",
+  "row": 18,
+  "size": "48"
+ },
+ {
+  "id": "tk_inevcrit",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a sword pointing up with a bright four-point burst exactly at the tip, the burst as wide as the blade is long, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, disc, ring",
+   "image_size": {
+    "width": 48,
+    "height": 48
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9076,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#f3f9a4"
+  ],
+  "wave": "19",
+  "tier": "tk",
+  "row": 19,
+  "size": "48"
+ },
+ {
+  "id": "ts_attr",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a four-point star with four long sharp points up, down, left and right, gold, nothing behind it, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow, five-point star, disc, ring, coin",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9079,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#f2cb9b"
+  ],
+  "wave": "20",
+  "tier": "ts",
+  "shrink": 2,
+  "row": 20,
+  "size": "32→16"
+ },
+ {
+  "id": "tn_leech",
+  "item": 1,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a single curved white fang, tip down, one red drop falling from the tip, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, letters, numerals, face, skull, circle frame, node ring, background disc, gradient glow",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9082,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1",
+   "#934341",
+   "#af6c64"
+  ],
+  "wave": "21",
+  "tier": "tn",
+  "row": 21,
+  "size": "32"
+ },
+ {
+  "id": "slot_ring",
+  "item": 4,
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a plain thin ring band seen at a steep angle so it reads as a narrow ellipse, hollow transparent centre, no gem, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no text, numerals, gem glow, rarity colour, frame, background disc, hand, character, disc, coin, shield, filled centre, gem",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9085,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#615b56",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "wave": "22",
+  "tier": "slot",
+  "row": 22,
+  "size": "32"
+ },
+ {
+  "id": "ail_blind",
+  "wave": "23",
+  "endpoint": "/create-image-bitforge",
+  "body": {
+   "description": "tiny 16 pixel game icon, flat front view, a front-view almond eye with one thick diagonal slash across it, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+   "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, plain circle, round, spiral, ring, disc",
+   "image_size": {
+    "width": 16,
+    "height": 16
+   },
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9088,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#e8e5e1",
+   "#ff9bba",
+   "#46413c"
+  ],
+  "row": 23,
+  "size": "16"
+ },
+ {
+  "id": "ail_curse",
+  "wave": "24",
+  "endpoint": "/create-image-bitforge",
+  "body": {
+   "description": "tiny 16 pixel game icon, flat front view, a solid magenta diamond about 12 px tall with a bright pale cross on it, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+   "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, eye, square block, ring, circle",
+   "image_size": {
+    "width": 16,
+    "height": 16
+   },
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9091,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#e97ccf",
+   "#e8e5e1",
+   "#46413c"
+  ],
+  "row": 24,
+  "size": "16"
+ },
+ {
+  "id": "ail_cons",
+  "wave": "25",
+  "endpoint": "/create-image-bitforge",
+  "body": {
+   "description": "tiny 16 pixel game icon, flat front view, a small upright grey stone tablet with a rounded top, one small green light dot on the top edge, mostly grey, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+   "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, bottle, cross, banner, ring, disc, all-green fill",
+   "image_size": {
+    "width": 16,
+    "height": 16
+   },
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9094,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#817b75",
+   "#95e886",
+   "#46413c"
+  ],
+  "row": 25,
+  "size": "16"
+ },
+ {
+  "id": "ail_pin",
+  "wave": "26",
+  "endpoint": "/create-image-bitforge",
+  "body": {
+   "description": "tiny 16 pixel game icon, flat front view, an upright nail, head at the top, a short horizontal crossbar near the top, vertical, fills the height, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+   "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, pickaxe, hammer, diagonal",
+   "image_size": {
+    "width": 16,
+    "height": 16
+   },
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9097,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#817b75",
+   "#e8e5e1",
+   "#46413c"
+  ],
+  "row": 26,
+  "size": "16"
+ },
+ {
+  "id": "cur_wish",
+  "item": 5,
+  "endpoint": "/create-image-bitforge",
+  "body": {
+   "description": "tiny 16 pixel game icon, flat front view, a small four-point star stone, flat 3-tone shading, no dithering, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+   "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, snowflake, sun, checker pattern, dither",
+   "image_size": {
+    "width": 16,
+    "height": 16
+   },
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9100,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#f3f9a4",
+   "#fbf9f6",
+   "#aeaba7",
+   "#46413c",
+   "#817b75",
+   "#e8e5e1"
+  ],
+  "wave": "27",
+  "row": 27,
+  "size": "16"
+ },
+ {
+  "id": "cur_pcalam",
+  "item": 5,
+  "endpoint": "/create-image-bitforge",
+  "body": {
+   "description": "tiny 16 pixel game icon, flat front view, a dark corrupted oval stone with one hooked crack and one sharp pale facet highlight, chunky, fills the canvas, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+   "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, winged, stick, blade, scythe, staff, wing",
+   "image_size": {
+    "width": 16,
+    "height": 16
+   },
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9103,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#25211e",
+   "#8a6a7a",
+   "#e97ccf",
+   "#fbf9f6",
+   "#46413c",
+   "#817b75",
+   "#e8e5e1"
+  ],
+  "wave": "28",
+  "row": 28,
+  "size": "16"
+ },
+ {
+  "id": "cur_ink",
+  "wave": "29",
+  "endpoint": "/create-image-bitforge",
+  "body": {
+   "description": "tiny 16 pixel game icon, flat front view, a short thick black ink stick, a rectangular block about 3:1, lying at 45 degrees, fills 70% of the canvas, one round blue ink drop beside its lower end, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+   "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, brush, sword, pen, thin line, chalk",
+   "image_size": {
+    "width": 16,
+    "height": 16
+   },
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9106,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#33302b",
+   "#3a5b98",
+   "#e8e5e1",
+   "#46413c",
+   "#817b75"
+  ],
+  "row": 29,
+  "size": "16"
+ },
+ {
+  "id": "plq_corner",
+  "wave": "30",
+  "endpoint": "/create-image-pixflux",
+  "body": {
+   "description": "game item icon, flat front view, a small L-shaped carved dark wood corner bracket, two equal arms along the top and left edges, low chroma, centred, light from the top-left, 1 pixel black outline, rich three-tone shading plus one highlight, muted palette, no perspective, no isometric, no 3D, no face, no text, no background, no dithering, no baked frame, no badge, no cooldown ring, no numerals, no paper-cut, flower, wreath, face, unique orange seal, ring, gem, cube",
+   "image_size": {
+    "width": 32,
+    "height": 32
+   },
+   "view": "side",
+   "outline": "single color black outline",
+   "shading": "medium shading",
+   "detail": "medium detail",
+   "no_background": true
+  },
+  "n": 3,
+  "seed0": 9109,
+  "post": "alpha_binary",
+  "palette": [
+   "#000000",
+   "#25211e",
+   "#2c2825",
+   "#3f3226",
+   "#6b5440",
+   "#817b75",
+   "#aeaba7",
+   "#e8e5e1"
+  ],
+  "shrink": 2,
+  "row": 30,
+  "size": "16"
+ }
+]

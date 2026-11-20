@@ -1,0 +1,37 @@
+{
+  "endpoint": "POST /v2/create-image-pixflux",
+  "job": "boss_fengbo",
+  "seed": 9070,
+  "wave": "17",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "game boss sprite, full body, standing, facing the viewer at three-quarter angle, a beast with a deer body, antlers growing from a bird head with a sharp hooked beak, a long snake tail, carrying an open cloth wind bag, swirling wind ribbons, dark fantasy Chinese mythology, centred, feet near the bottom edge, light from the top-left, no text, no background, no ground shadow, no frame, no UI, no eagle only, griffin, dragon, deer head, horse head, wings",
+    "image_size": {
+      "width": 64,
+      "height": 64
+    },
+    "view": "side",
+    "outline": "single color black outline",
+    "shading": "detailed shading",
+    "detail": "highly detailed",
+    "no_background": true,
+    "seed": 9070,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}

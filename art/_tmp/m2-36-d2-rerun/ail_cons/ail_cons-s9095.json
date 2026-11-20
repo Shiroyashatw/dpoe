@@ -1,0 +1,34 @@
+{
+  "endpoint": "POST /v2/create-image-bitforge",
+  "job": "ail_cons",
+  "seed": 9095,
+  "wave": "25",
+  "post": "alpha_binary",
+  "max_de_before_snap": 0.0,
+  "request": {
+    "description": "tiny 16 pixel game icon, flat front view, a small upright grey stone tablet with a rounded top, one small green light dot on the top edge, mostly grey, bold, 1 pixel black outline, no transparent margin, light from the top-left",
+    "negative_description": "blurry, anti-aliasing, gradient, text, background, noise, perspective, isometric, 3D, face, dithering, baked frame, circular badge, numerals, logo, bottle, cross, banner, ring, disc, all-green fill",
+    "image_size": {
+      "width": 16,
+      "height": 16
+    },
+    "no_background": true,
+    "seed": 9095,
+    "color_image": "(base64 略)"
+  },
+  "usage": {
+    "type": "generations",
+    "generations": 1.0
+  },
+  "response": {
+    "usage": {
+      "type": "generations",
+      "generations": 1.0
+    },
+    "image": {
+      "type": "base64",
+      "base64": "(存成 png，略)",
+      "format": "png"
+    }
+  }
+}
