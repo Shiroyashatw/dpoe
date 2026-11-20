@@ -1,14 +1,14 @@
 {
  "390x844": {
-  "plaque_layer_L80_px": 3545,
-  "plaque_layer_L80_pct": 1.077,
+  "plaque_layer_L80_px": 3449,
+  "plaque_layer_L80_pct": 1.048,
   "screen_L80_pct_before": 2.475,
-  "screen_L80_pct_after": 3.131
+  "screen_L80_pct_after": 3.102
  },
  "1280x720": {
-  "plaque_layer_L80_px": 4944,
-  "plaque_layer_L80_pct": 0.536,
+  "plaque_layer_L80_px": 4800,
+  "plaque_layer_L80_pct": 0.521,
   "screen_L80_pct_before": 1.409,
-  "screen_L80_pct_after": 1.788
+  "screen_L80_pct_after": 1.773
  }
 }

@@ -41,7 +41,7 @@
    9.33
   ]
  },
- "seal": {
+ "seal_cinnabar_fallback": {
   "tri_txstrong_vs_fill": 4.95,
   "tri_txstrong_vs_flame_speckle": 3.59,
   "tri_vs_speckle_clothred": 5.29,
@@ -72,11 +72,49 @@
   "fill_Lstar": 45.9,
   "paper_Lstar": 88.1
  },
- "seal_btn2": {
-  "tri_vs_btn2": 8.05,
-  "border_vs_well": 3.62,
-  "ready_vs_btn2": 6.73,
-  "border_vs_wood": 1.69
+ "seal_btn2_official": {
+  "tri_txstrong_vs_btn2": 8.05,
+  "ready_mark_vs_btn2": 6.73,
+  "outer_void_vs": {
+   "well": 1.22,
+   "wood": 2.62,
+   "wood_lightest_grain": 8.1,
+   "ground": 1.84,
+   "mid": 1.41,
+   "light": 2.77
+  },
+  "inner_border_vs": {
+   "well": 3.62,
+   "wood": 1.69,
+   "wood_lightest_grain": 1.83,
+   "ground": 2.41,
+   "mid": 3.14,
+   "light": 1.6
+  },
+  "inner_border_vs_void": 4.43,
+  "btn2_vs_void": 2.19
+ },
+ "seal_btn2_cap_alt": {
+  "inner_bordercap_vs": {
+   "well": 10.18,
+   "wood": 4.77,
+   "wood_lightest_grain": 1.54,
+   "ground": 6.8,
+   "mid": 8.85,
+   "light": 4.51
+  },
+  "bordercap_vs_void": 12.48
+ },
+ "hover_ring_with_void": {
+  "void_vs": {
+   "wood": 2.62,
+   "wood_lightest_grain": 8.1,
+   "ground": 1.84,
+   "mid": 1.41,
+   "light": 2.77
+  },
+  "border_hi_vs_void": 8.05,
+  "border_hi_vs_light": 2.91
  },
  "breath": {
   "0.3": {
