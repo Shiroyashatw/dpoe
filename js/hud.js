@@ -3136,7 +3136,10 @@ function inputInit() {
     M.x = e.clientX;
     M.y = e.clientY;
     /* 營地（M2-12）：左鍵點物件＝捷徑、按住拖＝平移鏡頭；空地左右鍵不放技能（練習區石圈裡照常出招） */
-    if (G.scene === 'camp' && e.button === 0 && useProp(propAt(e))) return;
+    if (G.scene === 'camp' && e.button === 0) {
+      const p = propAt(e);
+      if (p && propGo(p, PROP_PL)) return;
+    }
     if (G.scene === 'camp' && !PRAC.in) return void (e.button === 0 && (CAMP_DRAG = e.clientX));
     if (e.button === 0) {
       M.L = 1;
@@ -3204,8 +3207,12 @@ function propAt(e) {
     body = L.find(p => Math.hypot(w.x - p.x, w.y + 25 - p.y) < p.r + 20),
     /* 牌匾 > 建築（M2-12 §3.1；疊在一起取畫在上面的），但不蓋住別座的本體：地圖台的牌匾正好在昇華石碑上 */
     pl = L.findLast(p => p._pr && x >= p._pr[0] && x < p._pr[0] + p._pr[2] && y >= p._pr[1] && y < p._pr[1] + p._pr[3]);
-  return pl && (!body || body === pl) ? pl : body;
+  PROP_PL = !!pl && (!body || body === pl);
+  return PROP_PL ? pl : body;
 }
+/* propAt 最後一次是不是點在牌匾上（牌匾＝設施，本體＝擺設功能；§12-3） */
+let PROP_PL = false;
+const propGo = (p, pl) => (pl ? plqUse(p) : useProp(p));
 const inL = (l, e) => e.clientX >= l.x && e.clientX <= l.x + l.w && e.clientY >= l.y && e.clientY <= l.y + l.h;
 function pressFx(key) {
   const b = BAR.find(b => b.key.toLowerCase() === key || (key === ' ' && b.k === 'roll'));

@@ -184,7 +184,7 @@ function touchInit() {
   );
   document.addEventListener('click', e => e.target.closest('.sk[data-k=use]') && interact());
   CV.addEventListener('click', () => {
-    if (TOUCH.prop) useProp(TOUCH.prop);
+    if (TOUCH.prop) propGo(TOUCH.prop, TOUCH.pl);
     TOUCH.prop = null;
   });
   /* 畫面：撿東西、營地的擺設，左半邊是搖桿 */
@@ -192,9 +192,9 @@ function touchInit() {
     if (e.pointerType !== 'touch') return;
     TOUCH.prop = null;
     if (G.scene === 'camp') {
-      /* 營地（M2-12）：主角不走動。點物件＝捷徑（放開才開，上面的 click）；其他地方單指拖＝左右平移鏡頭，練習區石圈裡點一下＝普攻 */
+      /* 營地（M2-12）：主角不走動。點物件＝捷徑（放開才開，上面的 click）；單指拖＝左右平移鏡頭（從牌匾上拖也算，拖超過 12 px 就不開），練習區石圈裡點一下＝普攻 */
       const p = propAt(e);
-      if (p) return void (TOUCH.prop = p);
+      if (p) (TOUCH.prop = p), (TOUCH.pl = PROP_PL);
       if (!TOUCH.pan) TOUCH.pan = { id: e.pointerId, x: e.clientX, x0: e.clientX };
       return;
     }
@@ -223,7 +223,11 @@ function touchInit() {
   });
   addEventListener('pointermove', e => {
     const pn = TOUCH.pan;
-    if (pn && e.pointerId === pn.id) campPan(-(e.clientX - pn.x) / ZOOM), (pn.x = e.clientX);
+    if (pn && e.pointerId === pn.id) {
+      campPan(-(e.clientX - pn.x) / ZOOM);
+      pn.x = e.clientX;
+      if (Math.abs(e.clientX - pn.x0) >= 12) TOUCH.prop = null;
+    }
     const st = TOUCH.stick;
     if (st && e.pointerId === st.id) {
       if (st.port && !st.mv) {
@@ -268,7 +272,7 @@ function touchInit() {
     const pn = TOUCH.pan;
     if (pn && e.pointerId === pn.id) {
       TOUCH.pan = null;
-      if (e.type === 'pointerup' && PRAC.in && Math.abs(e.clientX - pn.x0) < 12)
+      if (e.type === 'pointerup' && PRAC.in && !TOUCH.prop && Math.abs(e.clientX - pn.x0) < 12)
         (TOUCH.cast = true), useSlot(0), (TOUCH.cast = false);
     }
     const st = TOUCH.stick;

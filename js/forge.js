@@ -582,20 +582,24 @@ function campDrawer(force) {
     i.classList.toggle('full', affP(c) >= 1);
   }
 }
+/* 營地抽屜開到某一座（格子點一座、營地牌匾） */
+function cdOne(v) {
+  if (!PANEL.camp) {
+    HP_HOLD++;
+    closePanels();
+    HP_HOLD--;
+    PANEL.camp = true;
+  }
+  CDR.one = v;
+  hudPanels();
+}
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-cd]');
   if (!b) return;
   const [k, v] = b.dataset.cd.split(':'),
     L = cdKeys();
-  if (k === 'one') {
-    if (!PANEL.camp) {
-      HP_HOLD++;
-      closePanels();
-      HP_HOLD--;
-      PANEL.camp = true;
-    }
-    CDR.one = v;
-  } else if (k === 'nav') CDR.one = L[(L.indexOf(CDR.one) + +v + L.length) % L.length];
+  if (k === 'one') return cdOne(v);
+  else if (k === 'nav') CDR.one = L[(L.indexOf(CDR.one) + +v + L.length) % L.length];
   else if (k === 'back') CDR.one = null;
   else if (k === 'look') {
     closePanels();

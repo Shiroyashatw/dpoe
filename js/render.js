@@ -1043,20 +1043,40 @@ function drawPrompts() {
 const PLQI = {};
 const plqImg = n => PLQI[n] || Object.assign((PLQI[n] = new Image()), { src: `img/ui/${n}.png?v=${VER}` });
 const plqU = () => (IW >= 2560 && IH >= 1440 ? 2 : 1);
-/* 擺設對應的設施（M2-11.1：地圖台＝瞭望台、昇華石碑＝祭壇、倉庫＝倉房）：牌匾寫擺設名＋那座設施的「Lv N」；其他擺設只有名字 */
+/* 擺設對應的設施（M2-11.1：地圖台＝瞭望台、昇華石碑＝祭壇、倉庫＝倉房）：牌匾寫設施名＋「Lv N」（§12-3）；其他擺設只有名字 */
 const PLQ_B = { forge: 'forge', device: 'watch', asc: 'altar', stash: 'store' };
-const plqTxt = k => (PLQ_B[k.k] ? `${k.n} Lv${S.camp[PLQ_B[k.k]] || 0}` : k.n);
+const plqTxt = k => (PLQ_B[k.k] ? `${CAMPN[PLQ_B[k.k]]} Lv${S.camp[PLQ_B[k.k]] || 0}` : k.n);
+/* 每座的牌匾錨點（§12-2）：up／down＝建築上方／下方，dx、dy 世界 px；lookTiers＝換外觀的等級（§12-5，空＝等美術分級） */
+const PLQ_CFG = {
+  stash: { side: 'up', dx: 0, dy: 0, lookTiers: [] },
+  forge: { side: 'up', dx: 0, dy: 0, lookTiers: [] },
+  asc: { side: 'up', dx: 30, dy: 0, lookTiers: [] },
+  device: { side: 'down', dx: 0, dy: 0, lookTiers: [] },
+  box: { side: 'up', dx: 0, dy: 0 },
+  prac: { side: 'down', dx: 0, dy: 0 }
+};
+/* 選中（§12-4）：點牌匾開單座卡那一座；3 px --border-cap 框跟著單座卡工項做 */
+let PLQ_SEL = null;
+/* 點牌匾＝設施（升級，開那一座的營地抽屜）；不是設施的擺設＝跟點本體一樣 */
+function plqUse(k) {
+  if (!PLQ_B[k.k]) return useProp(k);
+  PLQ_SEL = k;
+  cdOne(PLQ_B[k.k]);
+  return true;
+}
 /* 還沒蓋（Lv0）的設施裡「下一個解鎖」那一座（最快買得起的；M2-11.1、M2-12 §7） */
 function plqNext() {
   const L = campThings().filter(t => !S.camp[t.k] && Object.values(PLQ_B).includes(t.k));
   return L.length ? L.reduce((a, b) => (b.e.m < a.e.m ? b : a)).k : null;
 }
-/* 施工時牌匾 1→1.03→1（M2-12 §4）：前 300 ms 放大、後 300 ms ease-out-back 回到 1；連升與減少動態不縮放 */
-const backOut = x => 1 + 2.70158 * (x - 1) ** 3 + 1.70158 * (x - 1) ** 2;
-const plqScale = b => {
+/* 施工時牌匾 1→1.03→1（§12-7）：前 300 ms ease-out 放大、後 300 ms ease-in-out 回到 1；連升與減少動態不縮放 */
+const plqScale = (b, now = performance.now()) => {
   const f = DUST.up[b],
-    p = f && !f.q && !reduced() ? (performance.now() - f.t) / 600 : 1;
-  return p >= 1 || p < 0 ? 1 : p < 0.5 ? 1 + 0.03 * (1 - (1 - 2 * p) ** 3) : 1.03 - 0.03 * backOut(2 * p - 1);
+    p = f && !f.q && !reduced() ? (now - f.t) / 600 : 1;
+  if (p >= 1 || p < 0) return 1;
+  if (p < 0.5) return 1 + 0.03 * (1 - (1 - 2 * p) ** 3);
+  const x = 2 * p - 1;
+  return 1.03 - 0.03 * (x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2);
 };
 /* 鎖圖示 16（ICO.lock 同一條線） */
 const LOCK_D = [
@@ -1073,19 +1093,20 @@ function plqBtns() {
     box.replaceChildren(
       ...L.map(k => {
         const b = (k._b = document.createElement('button'));
-        b.onclick = () => useProp(k);
+        b.onclick = () => plqUse(k);
         b.onfocus = () => {
           const r = k._pr;
-          if (r && (r[0] < 0 || r[0] + r[2] > IW)) campPan(k.x - G.cam.x);
+          if (!r || r[0] < 0 || r[0] + r[2] > IW) campPan(k.x - G.cam.x);
         };
         return b;
       }),
       Object.assign(document.createElement('span'), { className: 'sr', id: 'plqsay', role: 'status' })
     );
   for (const k of L) {
-    const r = k._pr,
-      lv = PLQ_B[k.k] && (S.camp[PLQ_B[k.k]] || 0),
-      lb = PLQ_B[k.k] ? `${k.n} ${lv} 級${k._pl.can ? '，可以升級' : ''}` : k.n,
+    /* 錨點在畫面外沒有牌匾：按鈕放在建築那一側畫面外，Tab 到時 onfocus 移鏡頭 */
+    const r = k._pr || [Math.round((k.x - G.cam.x) * ZOOM + IW / 2), 0, 1, 1],
+      fb = PLQ_B[k.k],
+      lb = fb ? `${CAMPN[fb]} ${S.camp[fb] || 0} 級${k._pl && k._pl.can ? '，可以升級' : ''}` : k.n,
       st = `left:${r[0]}px;top:${r[1] + cvTop()}px;width:${r[2]}px;height:${r[3]}px`;
     if (k._b.getAttribute('aria-label') !== lb) k._b.setAttribute('aria-label', lb);
     if (k._b._st !== st) k._b.style.cssText = k._b._st = st;
@@ -1117,38 +1138,125 @@ function plqRing(X, Y, w, h, off, th, col) {
   CX.fillRect(x, y + th, th, H - 2 * th);
   CX.fillRect(x + W - th, y + th, th, H - 2 * th);
 }
+/* 牌匾安全框（§12-2）：左右 8、頂列下緣 +8、底部 HUD 上緣 −8；障礙＝「繼續刷」鈕、橫向右側技能鈕群（畫布座標，250 ms 量一次） */
+const PLQ_SF = { t: -1e9 };
+function plqSafe() {
+  const now = performance.now(),
+    H = cvH();
+  if (now - PLQ_SF.t < 250 && PLQ_SF.w === IW && PLQ_SF.h === H) return PLQ_SF;
+  const y0 = cvTop(),
+    R = [...document.querySelectorAll('#area, #dnav, .tmenu, .bottom .mid, #run [data-a=resume], .sk')]
+      .filter(e => e.offsetParent || getComputedStyle(e).position === 'fixed')
+      .map(e => [e, e.getBoundingClientRect()])
+      .filter(([, r]) => r.width && r.height),
+    of = s => R.filter(([e]) => e.matches(s)).map(([, r]) => r),
+    box = L => [L[0], L[1] - y0, L[2] - L[0], L[3] - L[1]],
+    ob = of('#run [data-a=resume]').map(r => box([r.left, r.top, r.right, r.bottom])),
+    sk = !PORT() && document.body.classList.contains('touch') ? of('.sk') : [];
+  if (sk.length)
+    ob.push(
+      box([
+        Math.min(...sk.map(r => r.left)),
+        Math.min(...sk.map(r => r.top)),
+        Math.max(...sk.map(r => r.right)),
+        Math.max(...sk.map(r => r.bottom))
+      ])
+    );
+  const mid = of('.bottom .mid')[0];
+  return Object.assign(PLQ_SF, {
+    t: now,
+    w: IW,
+    h: H,
+    l: 8,
+    r: IW - 8,
+    top: Math.max(0, ...of('#area, #dnav, .tmenu').map(r => r.bottom - y0)) + 8,
+    b: (mid ? mid.top - y0 : H) - 8,
+    ob
+  });
+}
+/* 擺牌匾（§12-2）：先設施、再其他；照錨點設定（上方／下方＋偏移），夾進安全框；
+   碰到別座本體點擊圈、別的牌匾（間距 4）或障礙（間距 8）就左右挪 8 px 一步，再不行換另一邊。錨點在畫面外不畫 */
+/* 挪動的候選：左右 s、離建築再遠 v（各 8 px 一步）、換到另一邊 f（多算 24），挪得少的先試 */
+const PLQ_STEP = [];
+for (let s = -320; s <= 320; s += 8)
+  for (let v = 0; v <= 160; v += 8) for (const f of [0, 1]) PLQ_STEP.push([s, v, f, Math.abs(s) + v + 24 * f]);
+PLQ_STEP.sort((a, b) => a[3] - b[3]);
+/* 擺放順序＝PLQ_CFG 的順序（先擺的先挑位置） */
+const plqOrd = k => (k.k in PLQ_CFG ? Object.keys(PLQ_CFG).indexOf(k.k) : 99);
+function plqPlace(ox, oy, u) {
+  const sf = plqSafe(),
+    key = [ox, oy, ZOOM, IW, cvH(), sf.top, sf.b, ...sf.ob.flat(), ...G.props.map(k => k._pl.W * u + k._pl.H)].join();
+  if (key === plqPlace.key) return;
+  plqPlace.key = key;
+  const Z = ZOOM,
+    cl = (v, a, b) => Math.round(Math.max(a, Math.min(b, v))),
+    body = G.props.map(k => [k, (k.x + ox) * Z, (k.y - 25 + oy) * Z, (k.r + 20) * Z]),
+    done = [],
+    meet = (A, B, g) =>
+      A[0] < B[0] + B[2] + g && B[0] < A[0] + A[2] + g && A[1] < B[1] + B[3] + g && B[1] < A[1] + A[3] + g,
+    hit = (k, A) =>
+      body.some(
+        ([o, x, y, r]) =>
+          o !== k && Math.hypot(x - cl(x, A[0] - 4, A[0] + A[2] + 4), y - cl(y, A[1] - 4, A[1] + A[3] + 4)) < r
+      ) ||
+      done.some(B => meet(A, B, 4)) ||
+      sf.ob.some(B => meet(A, B, 8));
+  for (const k of [...G.props].sort((a, b) => plqOrd(a) - plqOrd(b))) {
+    const ax = (k.x + ox) * Z,
+      ay = (k.y + oy) * Z;
+    k._pr = null;
+    if (ax < 0 || ax > IW || ay < 0 || ay > cvH()) continue;
+    const c = PLQ_CFG[k.k] || PLQ_CFG.box,
+      w = k._pl.W * u,
+      h = k._pl.H * u;
+    let first = null;
+    for (const [s, v, f] of PLQ_STEP) {
+      if (Math.abs(s) > 1.5 * w) continue;
+      const sd = f ? (c.side === 'up' ? 'down' : 'up') : c.side;
+      const A = [
+        cl(ax + c.dx * Z - w / 2 + s, sf.l, sf.r - w),
+        cl(
+          sd === 'up' ? (k.y - k.ny + c.dy + oy) * Z - h / 2 - v : (k.y + k.r - 5 + c.dy + oy) * Z + 4 + v,
+          sf.top,
+          sf.b - h
+        ),
+        w,
+        h
+      ];
+      first = first || A;
+      if (!hit(k, A)) {
+        first = A;
+        break;
+      }
+    }
+    done.push((k._pr = first));
+  }
+}
 function drawPlaques(ox, oy) {
   if (G.scene !== 'camp') return;
   const u = plqU(),
     fs = Math.round((14 * ((S && S.fs) || 100)) / 100) * u,
     a = plqA(performance.now() / 1000),
-    /* 牌匾被左上「繼續刷」鈕（#run）蓋到就往下移到鈕下面（dpoe-check85） */
-    el = $('run'),
-    r = el && !el.hidden && el.querySelector ? el.querySelector('[data-a=resume]') : null,
-    b = r ? r.getBoundingClientRect() : null,
-    c = b && b.height ? CV.getBoundingClientRect() : null,
     nx = G.props.some(k => PLQ_B[k.k] && !S.camp[PLQ_B[k.k]]) ? plqNext() : null,
     fk = document.activeElement;
   CX.setTransform(DPR, 0, 0, DPR, 0, 0);
   CX.imageSmoothingEnabled = false;
+  dustTick(performance.now());
   drawDust(ox, oy, u);
   for (const k of G.props) {
     const fb = PLQ_B[k.k],
-      txt = plqTxt(k),
-      { W, H, L } = plqLay(txt, fs),
-      im = plqImg(H === 44 ? 'plq-44' : 'plq-64'),
+      { W, H, L } = plqLay(plqTxt(k), fs),
       cost = fb ? campNext(fb) : null,
       p = cost ? affP(cost) : 0,
-      X = Math.round((k.x + ox) * ZOOM - (W * u) / 2);
-    let Y = Math.round((k.y - k.ny + oy) * ZOOM - (H * u) / 2);
-    if (c) {
-      const B = Math.round(b.bottom - c.top + 4);
-      if (X + W * u > b.left - c.left && X < b.right - c.left && Y < B) Y = B;
-    }
-    k._pr = [X, Y, W * u, H * u];
-    /* 還沒蓋：下一個解鎖那座畫地基虛線（1 世界 px、6／4、--border-hi 60%）＋鎖 16（--tx-lock）；牌匾不加印章、不呼吸（B3-art §2.5） */
-    const off = fb === nx && !!nx;
-    k._pl = { W, H, L, fs, can: !!cost && p >= 1 && !off, off };
+      /* 還沒蓋：下一個解鎖那座畫地基虛線（1 世界 px、6／4、--border-hi 60%）＋鎖 16（--tx-lock）；牌匾不加印章、不呼吸（B3-art §2.5） */
+      off = fb === nx && !!nx;
+    k._pl = { W, H, L, fs, can: !!cost && p >= 1 && !off, off, p, cost };
+  }
+  plqPlace(ox, oy, u);
+  for (const k of G.props) {
+    const fb = PLQ_B[k.k],
+      { W, H, L, p, cost, off } = k._pl,
+      im = plqImg(H === 44 ? 'plq-44' : 'plq-64');
     if (off) {
       const cx = Math.round((k.x + ox) * ZOOM),
         cy = Math.round((k.y + oy) * ZOOM);
@@ -1167,6 +1275,8 @@ function drawPlaques(ox, oy) {
       for (const q of LOCK_D) CX.stroke(new Path2D(q));
       CX.setTransform(DPR, 0, 0, DPR, 0, 0);
     }
+    if (!k._pr) continue;
+    const [X, Y] = k._pr;
     if (!im.complete || !im.naturalWidth) continue;
     /* 施工縮放：中心在牌匾下緣中間 */
     const sc = fb ? plqScale(fb) : 1;
@@ -1218,7 +1328,29 @@ function drawPlaques(ox, oy) {
   plqBtns();
 }
 /* 施工塵土（§5）：一般升級 16 顆、10 秒內同一座連升 6 顆；減少動態不放；全營地同時最多 32 顆 */
-const DUST = { p: [], last: {}, up: {} };
+const DUST = { p: [], last: {}, up: {}, ft: [], half: 0 };
+/* 掉幀減半（§12-6）：最近 30 幀平均幀時間 > 20 ms 就減半；平均 < 17.5 ms 維持 2 秒才恢復 */
+function dustTick(now) {
+  const dt = now - (DUST.t || now);
+  DUST.t = now;
+  if (dt <= 0 || dt > 1000) return;
+  DUST.ft.push(dt);
+  if (DUST.ft.length > 30) DUST.ft.shift();
+  if (DUST.ft.length < 30) return;
+  const m = DUST.ft.reduce((a, b) => a + b) / 30;
+  if (m > 20) (DUST.half = 1), (DUST.ok = 0);
+  else if (DUST.half && m < 17.5) {
+    DUST.ok = DUST.ok || now;
+    if (now - DUST.ok >= 2000) DUST.half = DUST.ok = 0;
+  } else DUST.ok = 0;
+}
+/* 這次升級跨過那座的換外觀等級（lookTiers）＝1200 ms；連升 250、一般 600（§4、§12-5） */
+const buildMs = (bk, lv, q) =>
+  q
+    ? 250
+    : G.props.some(k => PLQ_B[k.k] === bk && (PLQ_CFG[k.k].lookTiers || []).some(t => t > lv - 1 && t <= lv))
+      ? 1200
+      : 600;
 const DUST_SET = {
   n: [16, 100, 250, 250, 350, [2, 3, 4], [0.2, 0.45, 0.35]],
   q: [6, 0, 40, 150, 210, [2, 3], [0.5, 0.5]]
@@ -1235,15 +1367,18 @@ function campDust(bk) {
     say = $('plqsay');
   if (say && CAMPN[bk]) say.textContent = `${k ? k.n : CAMPN[bk]}升到 ${S.camp[bk]} 級`;
   if (!k || reduced()) return;
-  const [n, b0, b1, l0, l1, sz, sw] = DUST_SET[q ? 'q' : 'n'],
+  const [n0, b0, b1, l0, l1, sz, sw] = DUST_SET[q ? 'q' : 'n'],
+    T = buildMs(bk, S.camp[bk], q),
+    /* 換外觀那一段 1200 ms：出生時間拉長，塵土跟著放到最後（新外觀交叉淡化等美術分級圖） */
+    n = DUST.half ? Math.ceil(n0 / 2) : n0,
     rnd = (a, b) => a + Math.random() * (b - a);
   DUST.last[bk] = now;
-  DUST.up[bk] = { t: now, q };
+  DUST.up[bk] = { t: now, q, T };
   for (let i = 0; i < n; i++) {
     const x = rnd(-0.4, 0.4);
     DUST.p.push({
       k,
-      t0: now + rnd(b0, b1),
+      t0: now + rnd(b0, b1) + (T === 1200 ? rnd(0, 600) : 0),
       T: rnd(l0, l1),
       s: dustPick(sz, sw),
       row: dustPick([0, 1, 2], [0.45, 0.4, 0.15]),
