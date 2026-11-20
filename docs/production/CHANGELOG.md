@@ -1,6 +1,7 @@
 # dpoe 變更紀錄
 
 所有決定與調整，新的在上，一行一條：`日期 時間｜決定者｜影響工項｜結論`。要記新的決定就加一行在最上面，不要改寫規格或任務檔裡的歷史。2026-11-17 以前的列由企劃書決策紀錄轉來；「—」是原紀錄沒寫時間。
+- 2026-11-20 18:20｜mumi（18:14，經幕僚長）／數值設計師｜名詞表 v0.6.37｜底部分頁「戰利品」改叫「倉庫」，跟面板標題一致；「戰利品」畫面禁用；「還有 {n} 件：看戰利品」改「看倉庫」（EN {n} more: View Stash）；程式 id bag 不改。同 PR 已改：M2-37、INDEX、README、M2-23、M1-13、M2-33、battle-hud、M2-camp-cards 等；倉庫桌機鍵 I／B 統一成 L（對齊 mumi 15:14）。恢復開發後再改：hud.js。
 - 2026-11-20 18:12｜數值設計師｜battle-hud 借用素材 #1、art-picks sk_clarity｜確認冥思（sk_clarity）是物理，顏色用 --tx-strong，形狀不變
 - 2026-11-20 17:50｜UIUX設計師｜battle-hud 借用素材 #1｜光環色加混沌 `--el-chaos`（sk_blight 用）；第二批 12 個元素歸屬暫定，待數值設計師確認
 - 2026-11-20 17:46｜mumi（經幕僚長）｜art-picks battle-hud-v1.3 光環第二批｜光環第二批 12 個由 mumi 挑定並放進 art-picks/battle-hud-v1.3/1-aura/：command、guardtotem、scorch、iceshield、tesla、blight、decay、souldrain、summongod、inferno 用原檔；iceshatter、staticfield 用 mumi 挑的 B 案（檔名去掉 _B），A 案不收；48 檔 sha256 對過 MANIFEST.csv
