@@ -1,0 +1,14 @@
+{
+ "390x844": {
+  "plaque_layer_L80_px": 4701,
+  "plaque_layer_L80_pct": 1.428,
+  "screen_L80_pct_before": 2.475,
+  "screen_L80_pct_after": 3.468
+ },
+ "1280x720": {
+  "plaque_layer_L80_px": 6244,
+  "plaque_layer_L80_pct": 0.678,
+  "screen_L80_pct_before": 1.409,
+  "screen_L80_pct_after": 1.929
+ }
+}

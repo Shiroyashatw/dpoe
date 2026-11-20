@@ -1,0 +1,199 @@
+{
+ "well": {
+  "main": "#2b2521",
+  "lightest": "#302c29"
+ },
+ "text_on_well(main,worst)": {
+  "tx-strong": [
+   14.38,
+   13.16
+  ],
+  "tx": [
+   12.04,
+   11.02
+  ],
+  "rar-normal": [
+   12.7,
+   11.63
+  ],
+  "rar-magic": [
+   6.77,
+   6.2
+  ],
+  "rar-rare": [
+   11.78,
+   10.78
+  ],
+  "rar-unique": [
+   6.23,
+   5.7
+  ],
+  "rar-chase": [
+   11.11,
+   10.17
+  ],
+  "tx-off": [
+   5.34,
+   4.89
+  ],
+  "good": [
+   10.2,
+   9.33
+  ]
+ },
+ "seal_cinnabar_fallback": {
+  "tri_txstrong_vs_fill": 4.95,
+  "tri_txstrong_vs_flame_speckle": 3.59,
+  "tri_vs_speckle_clothred": 5.29,
+  "tri_vs_speckle_flame": 2.77,
+  "rim_paper_vs_void_outline": 13.62,
+  "rim_paper_vs": {
+   "well": 11.12,
+   "well_worst": 10.17,
+   "wood": 5.2,
+   "wood_light": 1.68,
+   "ground": 7.42,
+   "mid": 9.66,
+   "light": 4.92,
+   "void": 13.62
+  },
+  "void_outline_vs": {
+   "wood": 2.62,
+   "wood_light": 8.1,
+   "ground": 1.84,
+   "light": 2.77
+  },
+  "fill_vs": {
+   "well": 2.91,
+   "wood": 1.36,
+   "ground": 1.94,
+   "void": 3.56
+  },
+  "fill_Lstar": 45.9,
+  "paper_Lstar": 88.1
+ },
+ "seal_btn2_official": {
+  "tri_txstrong_vs_btn2": 8.05,
+  "ready_mark_vs_btn2": 6.73,
+  "outer_void_vs": {
+   "well": 1.22,
+   "wood": 2.62,
+   "wood_lightest_grain": 8.1,
+   "ground": 1.84,
+   "mid": 1.41,
+   "light": 2.77
+  },
+  "inner_border_vs": {
+   "well": 3.62,
+   "wood": 1.69,
+   "wood_lightest_grain": 1.83,
+   "ground": 2.41,
+   "mid": 3.14,
+   "light": 1.6
+  },
+  "inner_border_vs_void": 4.43,
+  "btn2_vs_void": 2.19
+ },
+ "seal_btn2_cap_alt": {
+  "inner_bordercap_vs": {
+   "well": 10.18,
+   "wood": 4.77,
+   "wood_lightest_grain": 1.54,
+   "ground": 6.8,
+   "mid": 8.85,
+   "light": 4.51
+  },
+  "bordercap_vs_void": 12.48
+ },
+ "hover_ring_old_border_hi": {
+  "void_vs": {
+   "wood": 2.62,
+   "wood_lightest_grain": 8.1,
+   "ground": 1.84,
+   "mid": 1.41,
+   "light": 2.77
+  },
+  "border_hi_vs_void": 8.05,
+  "border_hi_vs_light": 2.91
+ },
+ "breath": {
+  "0.3": {
+   "hex": "#645f5b",
+   "vs_well": 2.4,
+   "L*": 40.7
+  },
+  "0.5": {
+   "hex": "#8a8581",
+   "vs_well": 4.14,
+   "L*": 55.9
+  },
+  "0.75": {
+   "hex": "#b9b5b1",
+   "vs_well": 7.42,
+   "L*": 73.9
+  }
+ },
+ "prog": {
+  "hi_vs_lo": 5.34,
+  "good_vs_lo": 7.75,
+  "lo_vs_well": 1.32
+ },
+ "rings": {
+  "border-hi": {
+   "ground": 4.39,
+   "mid": 5.71,
+   "light": 2.91,
+   "scene-void": 8.05
+  },
+  "border-cap": {
+   "ground": 6.8,
+   "mid": 8.85,
+   "light": 4.51,
+   "scene-void": 12.48
+  },
+  "focus": {
+   "ground": 9.6,
+   "mid": 12.5,
+   "light": 6.37,
+   "scene-void": 17.62
+  }
+ },
+ "dust": {
+  "smoke": {
+   "L*": 56.8,
+   "vs_ground": 2.85,
+   "vs_mid": 3.71
+  },
+  "dirt": {
+   "L*": 44.1,
+   "vs_ground": 1.82,
+   "vs_mid": 2.37
+  },
+  "linen": {
+   "L*": 68.4,
+   "vs_ground": 4.19,
+   "vs_mid": 5.45
+  }
+ },
+ "plaque_edge": {
+  "end_light_vs_ground": 4.41,
+  "end_dark_vs_light": 2.39
+ },
+ "focus_ring": {
+  "focus_vs": {
+   "wood": 6.73,
+   "wood_lightest_grain": 2.18,
+   "ground": 9.6,
+   "mid": 12.5,
+   "light": 6.37
+  },
+  "focus_vs_void_edge": 17.62,
+  "void_edge_vs": {
+   "wood": 2.62,
+   "wood_lightest_grain": 8.1,
+   "ground": 1.84,
+   "mid": 1.41,
+   "light": 2.77
+  }
+ }
+}
