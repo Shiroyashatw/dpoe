@@ -1,0 +1,2 @@
+main working tree /workspace/dpoe @ 51162c9a (js/art.js, img/, art/fx, art/tiles, art/icons, art/hero)
+（2026-11-20 16:4x 搬進 repo 時只留 render_color.py 用到的檔；完整清單見 ../render_meta.json 的 used）

@@ -64,9 +64,9 @@
 
 | 畫面 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 戰鬥 HUD | （無） | — | **待定**。草稿 battle-hud v1.0 暫定在本機 W1-final，mumi 調整中，不得當交辦依據。mumi 15:14 已定：快捷鍵（藥劑 1／2、技能 左鍵／右鍵／Q／E／R、戰利品分頁 L）；頂列 4 種通貨；底部 7 格。技能列位置待定。第 7 個驗收尺寸（mumi 實機）先保留 |
-| 戰鬥線框 | W/W1-battle/ | — | 待定（跟著戰鬥 HUD） |
-| 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 待定 |
+| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3 定稿（mumi 2026-11-20 16:32） | 現行（定稿）：戰鬥 HUD 版面與 5 種狀態（390×844／1280×720）；光環小方塊（名詞表 v0.6.36）；收起列 390×44／桌機兩行 320×64；上色示意圖與借用素材清單｜負責：UIUX設計師｜依據：mumi 16:06、16:32｜**開發仍暫停（mumi 11/20 14:40），等 mumi 放行才能開工** |
+| 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
+| 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3 |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
 | 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.1／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
 | 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0 | 現行；e0f94cc8 的字串併進 §5.1 |
@@ -79,7 +79,7 @@
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
 | 倉庫 | `S/M2-33-2a-items-crafting.md` §3＋`S/M2-37-ia-rework.md` §8 | 11/18 | 現行；B5 新檔 S/stash.md 待寫 |
 | 商會 | 規則 `S/M2-trade-tiercap.md` | v1.0 | 規則現行；畫面待寫（各自批次到了再定） |
-| 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2 | 待定（版面段已作廢，技能分頁段要拆成 S/skills-panel.md） |
+| 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2 | 待定（版面段已作廢，技能分頁段要拆成 S/skills-panel.md）；**戰鬥 HUD 部分已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3 |
 | 天賦樹 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（S2 改版暫停；天賦樹開著時照刷） |
 | 昇華石碑 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（入口兩處都留） |
 | 更多分頁 | `S/M2-33-2b-panels.md` §3＋`S/M2-37-ia-rework.md` §3 | 11/18 | 現行 |
@@ -92,6 +92,8 @@
 | 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；畫面 B9 待寫 |
 | 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | v1.1 | 現行 |
 | PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 現行 |
+
+借用素材見 `docs/production/specs/battle-hud/assets-borrowed.md`，正式素材由 Game Art Director 補。
 
 ## 名詞與數值（數值設計師）
 
