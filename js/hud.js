@@ -3197,11 +3197,14 @@ function inputInit() {
 let CAMP_DRAG = null;
 /* 滑鼠／手指底下的營地物件 */
 function propAt(e) {
-  const w = {
-    x: (e.clientX - IW / 2) / ZOOM + G.cam.x,
-    y: (e.clientY - cvTop() - cvH() / 2) / ZOOM + G.cam.y
-  };
-  return (G.props || []).find(p => Math.hypot(w.x - p.x, w.y + 25 - p.y) < p.r + 20);
+  const L = G.props || [],
+    x = e.clientX,
+    y = e.clientY - cvTop(),
+    w = { x: (x - IW / 2) / ZOOM + G.cam.x, y: (y - cvH() / 2) / ZOOM + G.cam.y },
+    body = L.find(p => Math.hypot(w.x - p.x, w.y + 25 - p.y) < p.r + 20),
+    /* 牌匾 > 建築（M2-12 §3.1；疊在一起取畫在上面的），但不蓋住別座的本體：地圖台的牌匾正好在昇華石碑上 */
+    pl = L.findLast(p => p._pr && x >= p._pr[0] && x < p._pr[0] + p._pr[2] && y >= p._pr[1] && y < p._pr[1] + p._pr[3]);
+  return pl && (!body || body === pl) ? pl : body;
 }
 const inL = (l, e) => e.clientX >= l.x && e.clientX <= l.x + l.w && e.clientY >= l.y && e.clientY <= l.y + l.h;
 function pressFx(key) {
@@ -3215,7 +3218,7 @@ function pressFx(key) {
 }
 /* ---------- M2-12 修訂 #4：鍵盤（手把排 M4S）——新骨架元件的焦點順序照 DOM（分頁、抽屜、掛機條、結算、字板都是 button），
    方向鍵在看得到的元件之間找那個方向最近的（主軸距離＋2×側向距離）；Esc 一層一層返回 ---------- */
-const KN_Z = '#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over';
+const KN_Z = '#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over, #plqs';
 const knOn = el => !!(el && el.closest && el.closest(KN_Z) && el.matches(':focus-visible'));
 /* 現在能走到的元件：結算卡、死亡卡開著時只在卡裡走 */
 const knAll = () => {

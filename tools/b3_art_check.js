@@ -50,8 +50,8 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       runNode(TRUNK_K[0]);
       act('camp');
       /* 鍛造台買得起：照下一級的花費補足 */
-      window.rich = () => {
-        const c = campNext('forge'),
+      window.rich = (b = 'forge') => {
+        const c = campNext(b),
           M = MAT();
         M.soul += (c.soul || 0) * 3;
         if (c.wood) matAdd('wood', 0, c.wood * 3);
@@ -183,11 +183,13 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     'u 1、高 44',
     L0.map(k => k.pr.join(',')).join(' ')
   );
+  /* dpoe-b3-art-fix：擺設對應設施照 M2-11.1（地圖台＝瞭望台、昇華石碑＝祭壇、倉庫＝倉房），Lv 取那座設施 */
+  const LV = { forge: '鍛造台 Lv5', device: '地圖台 Lv26', asc: '昇華石碑 Lv11', stash: '倉庫 Lv5' };
   ok(
-    '只有鍛造台有 Lv（設施），其他擺設只有名字',
-    L0.find(k => k.k === 'forge').n === '鍛造台 Lv5' && L0.filter(k => /Lv/.test(k.n)).length === 1,
-    '鍛造台 Lv5',
-    L0.find(k => k.k === 'forge').n
+    '設施擺設寫 Lv（M2-11.1 對應）：鍛造台 Lv5、地圖台 Lv26（瞭望台）、昇華石碑 Lv11（祭壇）、倉庫 Lv5（倉房）；練習區、山海寶盒只有名字',
+    L0.every(k => (LV[k.k] ? k.n === LV[k.k] : !/Lv/.test(k.n))),
+    Object.values(LV).join('、'),
+    L0.map(k => k.n).join('、')
   );
   const fg = L0.find(k => k.k === 'forge');
   ok('買得起：鍛造台有印章', fg.can, 'can true', fg.can);
@@ -328,7 +330,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   /* ---- 長名、兩行、130%、英文 ---- */
   await p.evaluate(() => {
     window.N0 = G.props.map(k => k.n);
-    G.props.find(k => k.k === 'stash').n = 'Scout Camp Lv12';
+    G.props.find(k => k.k === 'prac').n = 'Scout Camp Lv12'; /* 練習區不是設施，字就是這一串 */
     G.props.find(k => k.k === 'forge').n = 'Scout Encampment of the Far Ridge';
   });
   await p.waitForTimeout(200);
@@ -336,7 +338,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const fLong = await shot(p, 'camp_plaque_long_two');
   ok(
     '長名一行、兩行換 plq-64（實畫）',
-    L1.find(k => k.k === 'stash').H === 44 && L1.find(k => k.k === 'forge').H === 64 && L1.every(k => k.W <= 220),
+    L1.find(k => k.k === 'prac').H === 44 && L1.find(k => k.k === 'forge').H === 64 && L1.every(k => k.W <= 220),
     '一行 44、兩行 64、W ≤220',
     L1.map(k => `${k.n}:${k.W}×${k.H}`).join(' '),
     fLong
@@ -379,7 +381,276 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     L3.map(k => `${k.n}:${k.W}×${k.H}`).join(' '),
     f130
   );
-  await p.evaluate(() => ((S.fs = 100), fsApply()));
+  await p.evaluate(() => ((S.fs = 100), fsApply(), G.props.forEach((k, i) => (k.n = N0[i]))));
+  /* ---- dpoe-b3-art-fix：營地首頁 ≥3 顆印章（四座設施都買得起）、實際首頁亮區 ---- */
+  const home = await p.evaluate(() => {
+    /* 瞭望台 26、祭壇 11、倉房 5 都是滿級：降下來才有下一級可買 */
+    Object.assign(S.camp, { watch: 10, altar: 5, store: 2 });
+    for (const b of ['forge', 'watch', 'altar', 'store']) rich(b);
+    G.pan = 0;
+    G.panT = 1e9;
+    G.hov = G.props.find(k => k.k === 'device');
+    return new Promise(r =>
+      setTimeout(
+        () =>
+          r(
+            G.props
+              .filter(
+                k =>
+                  /* 印章本身（W−52 起 28×28，y 8／18）整顆在畫面內 */
+                  k._pl.can &&
+                  k._pr[0] + k._pr[2] - 52 >= 0 &&
+                  k._pr[0] + k._pr[2] - 24 <= IW &&
+                  k._pr[1] + (k._pl.H === 44 ? 8 : 18) >= 0 &&
+                  k._pr[1] + (k._pl.H === 44 ? 36 : 46) <= cvH()
+              )
+              .map(k => k.k)
+          ),
+        400
+      )
+    );
+  });
+  await p.evaluate(() => ((window._dp = drawPlaques), (drawPlaques = () => {})));
+  await p.waitForTimeout(150);
+  const lum20 = await bright(p, await shot(p, 'fix_camp_home_noplaque'));
+  await p.evaluate(() => (drawPlaques = window._dp));
+  await p.waitForTimeout(150);
+  const fHome2 = await shot(p, 'fix_camp_home_seals');
+  const lum2 = await bright(p, fHome2);
+  /* §9 只要求 390×844、1280×720；其他尺寸只記錄 */
+  ok(
+    '營地首頁（鏡頭在主角）畫面內看得到整顆的印章 ≥3 顆',
+    home.length >= 3 || !['390x844', '1280x720'].includes(tag),
+    '≥3（390、1280）',
+    home.length + ' 顆：' + home.join('、'),
+    fHome2
+  );
+  ok(
+    '亮區：實際營地首頁（≥3 顆印章＋1 座懸停）全畫面 L*>80 ≤ 2.0%',
+    lum2.L80 <= 2 || !['390x844', '1280x720'].includes(tag),
+    '≤2.0%',
+    `${lum2.L80}%（同一畫面不畫牌匾 ${lum20.L80}%，牌匾層 +${(lum2.L80 - lum20.L80).toFixed(2)}%；C*>40 ${lum2.C40}%，不畫牌匾 ${lum20.C40}%）`,
+    fHome2
+  );
+  /* ---- 還沒蓋：Lv0 設施裡下一個解鎖那座畫地基虛線＋鎖、牌匾沒有印章；其他 Lv0 不畫地基 ---- */
+  const un = await p.evaluate(() => {
+    G.hov = null;
+    S.camp.watch = 0;
+    S.camp.store = 0;
+    rich('watch');
+    rich('store');
+    const nx = plqNext();
+    return new Promise(r =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const k = G.props.find(k => PLQ_B[k.k] === nx),
+            o = G.props.find(k => PLQ_B[k.k] && PLQ_B[k.k] !== nx && !S.camp[PLQ_B[k.k]]),
+            cx = Math.round((k.x - G.cam.x) * ZOOM + IW / 2),
+            cy = Math.round((k.y - 25 - G.cam.y) * ZOOM + cvH() / 2),
+            d = CX.getImageData((cx - 8) * DPR, (cy - 8) * DPR, 16 * DPR, 16 * DPR).data,
+            hex = [1, 3, 5].map(i => parseInt(PAL.txLock.slice(i, i + 2), 16));
+          let n = 0;
+          for (let i = 0; i < d.length; i += 4)
+            if (Math.abs(d[i] - hex[0]) + Math.abs(d[i + 1] - hex[1]) + Math.abs(d[i + 2] - hex[2]) <= 6) n++;
+          r({ nx, k: k.k, off: k._pl.off, can: k._pl.can, other: o && [o.k, o._pl.off], lockPx: n });
+        })
+      )
+    );
+  });
+  const fUn = await shot(p, 'fix_camp_unbuilt');
+  ok(
+    '還沒蓋：只有下一個解鎖那座（Lv0 最快買得起）畫鎖 16（--tx-lock）＋地基虛線，買得起也不出印章',
+    un.off && !un.can && un.lockPx >= 8 && un.other && un.other[1] === false,
+    'off true、can false、鎖像素 ≥8、另一座 Lv0 不畫',
+    un,
+    fUn
+  );
+  await p.evaluate(() => Object.assign(S.camp, { watch: 10, store: 2 }));
+  /* ---- 施工縮放 1→1.03→1（600 ms，中心在下緣中間）；連升不縮 ---- */
+  const scl = await p.evaluate(() => {
+    const now = performance.now(),
+      at = (ms, q) => ((DUST.up.forge = { t: now - ms, q }), +plqScale('forge').toFixed(4));
+    const r = { s: [0, 150, 300, 450, 600].map(ms => at(ms)), quick: at(300, true) };
+    DUST.up = {};
+    return r;
+  });
+  ok(
+    '施工：牌匾 1→1.03（300 ms）→1（600 ms）；連升（250 ms 那段）不縮放',
+    scl.s[0] === 1 &&
+      Math.abs(scl.s[2] - 1.03) < 1e-3 &&
+      scl.s[4] === 1 &&
+      Math.max(...scl.s) < 1.04 &&
+      scl.quick === 1,
+    '1、1.03、1；連升 1',
+    scl
+  );
+  const sclPx = await p.evaluate(
+    () =>
+      new Promise(r => {
+        G.pan = G.props.find(k => k.k === 'forge').x - P.x;
+        rich();
+        DUST.last = {};
+        campUp('forge');
+        campDust('forge');
+        setTimeout(() => r(+plqScale('forge').toFixed(3)), 270);
+      })
+  );
+  const fScl = await shot(p, 'fix_camp_build_scale');
+  ok('施工中截圖：牌匾放大中（> 1）', sclPx > 1, '> 1', sclPx, fScl);
+  /* ---- 熱區：點牌匾＝開那一座（牌匾 > 建築），但不蓋住別座的本體 ---- */
+  await p.waitForTimeout(700);
+  const hz = await p.evaluate(() => {
+    G.pan = 0;
+    return new Promise(r =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const L = [];
+          for (const k of G.props) {
+            const [X, Y, w, h] = k._pr,
+              x = X + (w >> 1),
+              y = Y + (h >> 1);
+            if (x < 0 || x >= IW || y < 0 || y >= cvH()) continue;
+            const got = propAt({ clientX: x, clientY: y + cvTop() }),
+              wx = (x - IW / 2) / ZOOM + G.cam.x,
+              wy = (y - cvH() / 2) / ZOOM + G.cam.y,
+              body = G.props.find(p => Math.hypot(wx - p.x, wy + 25 - p.y) < p.r + 20);
+            L.push({ k: k.k, got: got && got.k, body: body && body.k, ok: got === (body && body !== k ? body : k) });
+          }
+          r(L);
+        })
+      )
+    );
+  });
+  ok(
+    '熱區：點牌匾中心＝那一座；落在別座本體上的讓給本體（不蓋住別的可點元素）',
+    hz.length >= 2 && hz.every(h => h.ok),
+    '全部對',
+    hz.map(h => `${h.k}→${h.got}${h.body && h.body !== h.k ? `（本體 ${h.body}）` : ''}`).join(' ')
+  );
+  {
+    const fp = (await P(p)).find(k => k.k === 'stash');
+    await p.mouse.click(fp.pr[0] + 30, fp.pr[1] + (fp.H >> 1) + (await p.evaluate(() => cvTop())));
+    await p.waitForTimeout(250);
+    const pan = await p.evaluate(() =>
+      PANEL.stash
+        ? 'stash'
+        : Object.keys(PANEL)
+            .filter(k => PANEL[k])
+            .join()
+    );
+    ok('滑鼠點倉庫牌匾左半（字上）＝開倉庫', pan === 'stash', 'stash', pan);
+    await p.evaluate(() => closePanels());
+  }
+  /* ---- 鍵盤：Tab 走到牌匾、方向鍵在牌匾間移動、焦點框、aria-label、Enter 開那一座 ---- */
+  await p.evaluate(() => {
+    rich();
+    document.activeElement && document.activeElement.blur();
+  });
+  let tabs = 0;
+  for (; tabs < 40; tabs++) {
+    if (await p.evaluate(() => !!(document.activeElement && document.activeElement.closest('#plqs')))) break;
+    await p.keyboard.press('Tab');
+  }
+  const kb = await p.evaluate(() => {
+    const k0 = G.props.find(k => k._b === document.activeElement);
+    return { k0: k0 && k0.k, labels: [...$('plqs').querySelectorAll('button')].map(b => b.getAttribute('aria-label')) };
+  });
+  ok('Tab 走得到牌匾（#plqs 透明按鈕，照場景左右順序）', !!kb.k0 && tabs < 40, '≤40 次 Tab', `${tabs} 次 → ${kb.k0}`);
+  ok(
+    'aria-label：設施「{名} {n} 級，可以升級」、其他擺設只有名字',
+    kb.labels.some(l => /^鍛造台 \d+ 級，可以升級$/.test(l)) &&
+      kb.labels.includes('練習區') &&
+      kb.labels.includes('山海寶盒') &&
+      kb.labels.length === 6,
+    '鍛造台 n 級，可以升級／練習區',
+    kb.labels.join('／')
+  );
+  await p.mouse.move(W - 2, 2);
+  await p.evaluate(() => ((G.pan = G.props.find(k => k.k === 'forge').x - P.x), (G.hov = null)));
+  /* 方向鍵：→ 走到右邊另一座、← 再往左（第一次 Tab 停在最左邊的鍛造台） */
+  const cx = () =>
+    p.evaluate(() => {
+      const k = G.props.find(k => k._b === document.activeElement);
+      return k && { k: k.k, x: k.x };
+    });
+  const mv = [await cx()];
+  await p.keyboard.press('ArrowRight');
+  await p.waitForTimeout(80);
+  mv.push(await cx());
+  await p.keyboard.press('ArrowLeft');
+  await p.waitForTimeout(80);
+  mv.push(await cx());
+  ok(
+    '方向鍵在牌匾間移動：→ 到右邊另一座、← 再往左',
+    mv.every(Boolean) && mv[1].x > mv[0].x && mv[2].x < mv[1].x,
+    '→ x 變大、← x 變小',
+    mv.map(m => m && m.k).join('→')
+  );
+  await p.waitForTimeout(300);
+  /* 焦點那座的牌匾若在畫面上下緣外（鏡頭只左右移，667×375 鍛造台牌匾在上緣外），用 → 換到整座在畫面內的那一座再量框 */
+  const vis = () =>
+    p.evaluate(() => {
+      const k = G.props.find(k => k._b === document.activeElement),
+        [X, Y, w, h] = k._pr;
+      return X >= 5 && Y >= 5 && X + w + 5 <= IW && Y + h + 5 <= cvH() ? '' : `${k.k} ${k._pr.join(',')}`;
+    });
+  const outV = [];
+  for (let i = 0, o; i < 6 && (o = await vis()); i++) {
+    outV.push(o);
+    await p.keyboard.press('ArrowRight');
+    await p.waitForTimeout(400);
+  }
+  if (outV.length) console.log('ℹ️ 牌匾不在畫面內：' + outV.join('、'));
+  const fr = await p.evaluate(
+    () =>
+      new Promise(r =>
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            const k = G.props.find(k => k._b === document.activeElement),
+              [X, Y, w, h] = k._pr,
+              px = (x, y) => [...CX.getImageData(x * DPR, y * DPR, 1, 1).data.slice(0, 3)],
+              hex = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16));
+            r({
+              k: k.k,
+              X,
+              px: [px(X - 3, Y + (h >> 1)), px(X - 5, Y + (h >> 1))].join('／'),
+              hov: !!G.hov,
+              in: px(X - 3, Y + (h >> 1)).join() === hex(PAL.focus).join(),
+              out: px(X - 5, Y + (h >> 1)).join() === hex(PAL.sceneVoid).join()
+            });
+          })
+        )
+      )
+  );
+  const fTab = await shot(p, 'fix_camp_tab_focus');
+  ok(
+    '鍵盤焦點框同懸停（2 px --focus 外推 2＋1 px --scene-void），沒有滑鼠懸停',
+    !fr.hov && fr.in && fr.out,
+    '框對',
+    { ...fr, 畫面外: outV.join('、') },
+    fTab
+  );
+  const ref = await p.evaluate(() => {
+    const k = G.props.find(k => k._b === document.activeElement);
+    if (k.k === 'prac') return 'prac';
+    fmenuOpen(PROP_PANEL[k.k]);
+    const r = Object.keys(PANEL)
+      .filter(k => PANEL[k])
+      .join();
+    closePanels();
+    return r;
+  });
+  await p.keyboard.press('Enter');
+  await p.waitForTimeout(250);
+  const ent = await p.evaluate(() =>
+    PRAC.in
+      ? 'prac'
+      : Object.keys(PANEL)
+          .filter(k => PANEL[k])
+          .join()
+  );
+  ok('Enter＝開焦點那一座（跟點擺設同一個面板）', !!ref && ent === ref, ref, ent);
+  await p.evaluate(() => closePanels());
   ok('沒有頁面錯誤', !p.errs.length, '0', p.errs.slice(0, 3).join(' | '));
   /* ---- 減少動態 ---- */
   const q = await mk('reduce');

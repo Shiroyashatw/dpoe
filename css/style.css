@@ -3037,6 +3037,10 @@ body.downed #cv { filter: grayscale(1); transition: filter 300ms ease-in; }
 #dplate { position: fixed; z-index: 11; left: 50%; transform: translateX(-50%); bottom: calc(var(--hb, 0px) + 140px); display: flex; align-items: center; gap: 12px; min-height: 44px; max-width: calc(100vw - 24px); padding: 0 16px; background: var(--plate-world); border: 1px solid var(--border-mid); border-radius: 3px; color: var(--tx); font: 700 var(--f14) var(--font); white-space: nowrap; pointer-events: auto; }
 body:not(.touch.port) #dplate { bottom: 120px; font-size: var(--f16); }
 #dplate[hidden] { display: none; }
+/* B3：營地牌匾的焦點按鈕（透明、不吃滑鼠與觸控，框由 canvas 畫） */
+#plqs { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+#plqs[hidden], body.inmap #plqs { display: none; }
+#plqs button { position: absolute; padding: 0; border: 0; background: none; outline: none; pointer-events: none; }
 #dplate .btn { flex: none; width: 184px; min-height: 56px; }
 
 /* 離線結算：直立蓋在 420–754（掛機條藏起來）；桌機 480×420 在戰場中間；主鈕「收下・繼續刷」在右 */
@@ -3123,6 +3127,8 @@ body:not(.touch) #prog .pb { height: 8px; }
 #warn2[hidden] { display: none; }
 /* B2-FIX（D2-07 熱區）：觸控每個可點的東西 ≥44×44、兩個之間 ≥8（殼層：掛機條、分頁列、把手、右上選單在 B1） */
 body.touch .mech { gap: 8px; }
+/* 橫向的「更多」只蓋到狀態列一半，圖示被切一半、跟面板右欄的按鈕疊在一起：開著時藏起來（其他左側面板本來就整排蓋住） */
+body.touch:not(.port):has(#pmore:not([hidden])) .mech { visibility: hidden; }
 body.touch .stc { width: 44px; height: 44px; }
 body.touch .stc .ic { width: 34px; height: 34px; }
 .skr { row-gap: 8px; }
