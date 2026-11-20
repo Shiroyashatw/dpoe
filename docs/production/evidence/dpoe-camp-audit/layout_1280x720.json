@@ -1,0 +1,134 @@
+{
+ "sel": [
+  {
+   "s": "#area",
+   "txt": "營地 · 角色 Lv 1 · 0 金",
+   "rect": [
+    16,
+    8,
+    300,
+    36
+   ],
+   "vis": "visible",
+   "hidden": false
+  },
+  {
+   "s": "#run [data-a=resume]",
+   "txt": "繼續刷 地層出口",
+   "rect": [
+    16,
+    50,
+    166,
+    98
+   ],
+   "vis": "visible",
+   "hidden": false
+  },
+  {
+   "s": "#run",
+   "txt": "繼續刷 地層出口",
+   "rect": [
+    16,
+    50,
+    700,
+    98
+   ],
+   "vis": "visible",
+   "hidden": false
+  },
+  {
+   "s": "#pidle",
+   "txt": "掛機 0 分・打倒王 0 次",
+   "rect": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "vis": "visible",
+   "hidden": true
+  },
+  {
+   "s": "#dnav",
+   "txt": "角色 V 鍛造 K 技能 G 營地 H 1 更多 Z",
+   "rect": [
+    918,
+    10,
+    1264,
+    62
+   ],
+   "vis": "visible",
+   "hidden": false
+  },
+  {
+   "s": "#pcline",
+   "txt": "",
+   "rect": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "vis": "visible",
+   "hidden": true
+  },
+  {
+   "s": ".bottom .mid",
+   "txt": "140 / 140 80 / 80",
+   "rect": [
+    460,
+    609,
+    820,
+    706
+   ],
+   "vis": "visible",
+   "hidden": false
+  }
+ ],
+ "props": [
+  {
+   "k": "device",
+   "n": "地圖台",
+   "plaque": "瞭望台 Lv0",
+   "shown": true,
+   "can": false
+  },
+  {
+   "k": "asc",
+   "n": "昇華石碑",
+   "plaque": "祭壇 Lv0",
+   "shown": true,
+   "can": false
+  },
+  {
+   "k": "stash",
+   "n": "倉庫",
+   "plaque": "倉房 Lv0",
+   "shown": true,
+   "can": false
+  },
+  {
+   "k": "forge",
+   "n": "鍛造台",
+   "plaque": "鍛造台 Lv0",
+   "shown": true,
+   "can": false
+  },
+  {
+   "k": "prac",
+   "n": "練習區",
+   "plaque": "練習區",
+   "shown": true,
+   "can": false
+  },
+  {
+   "k": "box",
+   "n": "山海寶盒",
+   "plaque": "山海寶盒",
+   "shown": true,
+   "can": false
+  }
+ ],
+ "zoom": 1.35,
+ "viewWorldW": 948
+}
