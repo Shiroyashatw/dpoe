@@ -12,9 +12,9 @@
 | `cur_soul` | `m2-36-d2-first/cur_soul/cur_soul-s5306.png` | `art/_tmp/m2-36-d2-first/cur_soul/post/cur_soul-s5306.png` | `art/currency/cur_soul/` |  |
 | `flask_hp` | `m2-36-d2-first/flask_hp/flask_hp-s5312-24.png` | `art/_tmp/m2-36-d2-first/flask_hp/post/flask_hp-s5312-24.png` | `art/flasks/flask_hp/` |  |
 | `flask_mp` | `m2-36-d2-first/flask_mp/flask_mp-s5316-24.png` | `art/_tmp/m2-36-d2-first/flask_mp/post/flask_mp-s5316-24.png` | `art/flasks/flask_mp/` |  |
-| `wangyin_zhenyue_16` | `m2-36-d2-first/wangyin_zhenyue_16/wangyin_zhenyue_16-s5403.png` | `art/_tmp/m2-36-d2-first/wangyin_zhenyue_16/post/wangyin_zhenyue_16-s5403.png` | `art/icons/wangyin/wangyin_zhenyue/`（取代既有 _16） | 這次沒有取代既有 _16 |
-| `wangyin_chixiao_16` | `m2-36-d2-first/wangyin_chixiao_16/wangyin_chixiao_16-s5404.png` | `art/_tmp/m2-36-d2-first/wangyin_chixiao_16/post/wangyin_chixiao_16-s5404.png` | `art/icons/wangyin/wangyin_chixiao/`（取代既有 _16） | 這次沒有取代既有 _16 |
-| `wangyin_jiting_16` | `m2-36-d2-first/wangyin_jiting_16/wangyin_jiting_16-s5407.png` | `art/_tmp/m2-36-d2-first/wangyin_jiting_16/post/wangyin_jiting_16-s5407.png` | `art/icons/wangyin/wangyin_jiting/`（取代既有 _16） | 待 AD 手修後再進 art/（§0b：閃電加粗 1 px）；這裡放的是 post 原檔 |
+| `wangyin_zhenyue_16` | `m2-36-d2-first/wangyin_zhenyue_16/wangyin_zhenyue_16-s5403.png` | `art/_tmp/m2-36-d2-first/wangyin_zhenyue_16/post/wangyin_zhenyue_16-s5403.png` | `art/icons/wangyin/wangyin_zhenyue/`（取代既有 _16） | 這次沒有取代既有 _16；只是 #120 挑圖的參考，跟王印 v0.2 規格無關 |
+| `wangyin_chixiao_16` | `m2-36-d2-first/wangyin_chixiao_16/wangyin_chixiao_16-s5404.png` | `art/_tmp/m2-36-d2-first/wangyin_chixiao_16/post/wangyin_chixiao_16-s5404.png` | `art/icons/wangyin/wangyin_chixiao/`（取代既有 _16） | 這次沒有取代既有 _16；只是 #120 挑圖的參考，跟王印 v0.2 規格無關 |
+| `wangyin_jiting_16` | `m2-36-d2-first/wangyin_jiting_16/wangyin_jiting_16-s5407.png` | `art/_tmp/m2-36-d2-first/wangyin_jiting_16/post/wangyin_jiting_16-s5407.png` | `art/icons/wangyin/wangyin_jiting/`（取代既有 _16） | 待 AD 手修後再進 art/（§0b：閃電加粗 1 px）；這裡放的是 post 原檔；只是 #120 挑圖的參考，跟王印 v0.2 規格無關 |
 | `tile_d2_battle_floor` | `m2-36-d2-first/tile_d2_battle_floor/tile_d2_battle_floor-s5201.png` | `art/_tmp/m2-36-d2-first/tile_d2_battle_floor/post/tile_d2_battle_floor-s5201.png` | `art/tiles/temple/floor/` |  |
 | `tile_d2_camp_floor` | `m2-36-d2-first/tile_d2_camp_floor/tile_d2_camp_floor-s5212.png` | `art/_tmp/m2-36-d2-first/tile_d2_camp_floor/post/tile_d2_camp_floor-s5212.png` | `art/tiles/camp/floor/` | 營地場景已廢，路徑待確認 |
 

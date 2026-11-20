@@ -1,6 +1,6 @@
 # M2-21 前 30 分鐘節奏表 v2（草案，含待決）
 
-數值設計師草案（2026-11-17）。只放現行版本。證據：分支 `numbers/num-m2-21-pacing`，HEAD `7577349`（完整 sha `75773492eb23efb8e778cee72d7c3f4f584dd954`），測 main `62c2e305bec912b1dce6da77a9e9d49ace8dfaad`（遊戲 0.5.4，Option F：`W_LV1 = { soul: 200, mats: { 'iron:1': 130 } }`）。詳見 issue #64 與 `evidence/num-m2-21-pacing/summary.md`。本輪實掛只測 390×844 與 1280×720；沒有在本機重跑模擬，數字只引用 evidence。缺的標「未測」。
+草稿 v2，不可交辦；Page 只是閱讀版｜數值設計師草案（2026-11-17）。只放現行版本。證據：分支 `numbers/num-m2-21-pacing`，HEAD `7577349`（完整 sha `75773492eb23efb8e778cee72d7c3f4f584dd954`），測 main `62c2e305bec912b1dce6da77a9e9d49ace8dfaad`（遊戲 0.5.4，Option F：`W_LV1 = { soul: 200, mats: { 'iron:1': 130 } }`）。詳見 issue #64 與 `evidence/num-m2-21-pacing/summary.md`。本輪實掛只測 390×844 與 1280×720；沒有在本機重跑模擬，數字只引用 evidence。缺的標「未測」。
 
 ## 結論
 

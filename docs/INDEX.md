@@ -107,12 +107,12 @@
 | 試招場稻草人 | `S/M2-13-practice-dummies.md` | v1.0 | 現行 |
 | 上癮門檻 | `S/M2-03-addictiveness-criteria.md` | — | 現行 |
 | 王招元素 | `S/boss-move-element-unify.md` | — | 現行（已決定，待解凍） |
-| 前 30 分鐘節奏 | `S/M2-21-pacing-v2.md` | v2 草案 | 現行（草稿） |
-| 詞綴階級 | `S/affix-tiers-framework.md` | v0.5 | 現行（草稿） |
-| 腐化與災魘 | `S/corruption-calamity-analysis.md` | v0.5 | 現行（草稿） |
-| 耐力球詞 | `S/B5b-c-endure.md` | v0.1 | 現行（草稿） |
-| 數值排程 | `docs/production/數值待排.md` | — | 現行（排程與依賴，不是規格） |
-| 劍技能草案 | `docs/production/劍技能草案.md` | — | 現行（草稿，記錄待排） |
+| 前 30 分鐘節奏 | `S/M2-21-pacing-v2.md` | v2 草案 | 草稿，不可交辦 |
+| 詞綴階級 | `S/affix-tiers-framework.md` | v0.5 | 草稿，不可交辦 |
+| 腐化與災魘 | `S/corruption-calamity-analysis.md` | v0.5 | 草稿，不可交辦 |
+| 耐力球詞 | `S/B5b-c-endure.md` | v0.1 | 草稿，不可交辦 |
+| 數值排程 | `docs/production/數值待排.md` | — | 草稿，不可交辦 |
+| 劍技能草案 | `docs/production/劍技能草案.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
 | 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | 現行（原定併進 `S/M2-camp-cards.md` §5.1） |
 
