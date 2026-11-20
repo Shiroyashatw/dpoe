@@ -1,0 +1,46 @@
+{
+  "fetch_time": "2026-11-18 18:58 Asia/Taipei",
+  "final": 3058,
+  "game": {
+    "1": 2598,
+    "2": 460
+  },
+  "source": {
+    "Bestiary": 8,
+    "Corrupted Implicit（Vaal Orb）": 269,
+    "Crafting Bench": 253,
+    "Crusader影響": 78,
+    "Delve（Fossil限定）": 67,
+    "Elder影響": 118,
+    "Eldritch（Eater of Worlds）": 315,
+    "Eldritch（Searing Exarch）": 287,
+    "Elevated影響詞綴": 199,
+    "Enchant": 6,
+    "Essence": 181,
+    "Hunter影響": 63,
+    "Incursion（Temple）": 30,
+    "Infamous": 11,
+    "Redeemer影響": 68,
+    "Scourge（正面）": 84,
+    "Scourge（負面）": 49,
+    "Sentinel": 8,
+    "Shaper影響": 133,
+    "Synthesis Implicit": 298,
+    "Synthesis Implicit（Corrupted）": 17,
+    "Veiled（Betrayal）": 109,
+    "Warbands": 3,
+    "Warlord影響": 65,
+    "Desecrated": 154,
+    "Omen": 50,
+    "Rune（Bonded）": 24,
+    "Rune（Socketable）": 36,
+    "Soul Core（Socketable）": 75
+  },
+  "category": {
+    "其他": 911,
+    "傷害": 1174,
+    "續航": 352,
+    "速度": 136,
+    "防禦": 485
+  }
+}

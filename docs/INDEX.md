@@ -97,7 +97,8 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 名詞表 | `docs/名詞表.md` | v0.6.29 | 現行：main 版；v0.6.34 對齊中 |
+| 名詞表 | `docs/名詞表.md` | v0.6.36 | 現行 |
+| 數值總表 | `S/數值總表.md` | v0.4 | 現行 v0.4 |
 | 追逐掉落 | `S/M2-17-chase-drops.md` | v1.3 | 現行 |
 | 大招判定 | `S/M2-40-big-attack.md` | v1.0 | 現行 |
 | 輔助推薦分數 | `S/M2-40-rec-score.md` | v1.0 | 現行 |
@@ -106,12 +107,14 @@
 | 試招場稻草人 | `S/M2-13-practice-dummies.md` | v1.0 | 現行 |
 | 上癮門檻 | `S/M2-03-addictiveness-criteria.md` | — | 現行 |
 | 王招元素 | `S/boss-move-element-unify.md` | — | 現行（已決定，待解凍） |
-| 前 30 分鐘節奏 | `S/M2-21-pacing-v2.md` | 草稿 | 待轉入（草稿） |
-| 詞綴階級 | `S/affix-tiers-framework.md` | v0.5 | 待轉入（草稿） |
-| 腐化與災魘 | `S/corruption-calamity-analysis.md` | v0.5 | 待轉入（草稿） |
-| 耐力球詞 | `S/B5b-c-endure.md` | v0.1 | 待轉入（草稿） |
-| 護符 | （無） | — | 待寫（Page d2df44d4 評估中） |
-| 營地資源產量 | 併進 `S/M2-camp-cards.md` §5.1 | v1.0 | 待轉入（來源 Page e0f94cc8） |
+| 前 30 分鐘節奏 | `S/M2-21-pacing-v2.md` | v2 草案 | 現行（草稿） |
+| 詞綴階級 | `S/affix-tiers-framework.md` | v0.5 | 現行（草稿） |
+| 腐化與災魘 | `S/corruption-calamity-analysis.md` | v0.5 | 現行（草稿） |
+| 耐力球詞 | `S/B5b-c-endure.md` | v0.1 | 現行（草稿） |
+| 數值排程 | `docs/production/數值待排.md` | — | 現行（排程與依賴，不是規格） |
+| 劍技能草案 | `docs/production/劍技能草案.md` | — | 現行（草稿，記錄待排） |
+| 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
+| 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | 現行（原定併進 `S/M2-camp-cards.md` §5.1） |
 
 ## 美術（Game Art Director）
 
@@ -126,6 +129,7 @@
 | 戰鬥可讀性美術 | `S/M2-40-combat-readability-art.md` | — | 現行（R4 彈藥格位置待戰鬥 HUD） |
 | 營地外觀分級 | `S/M2-12-lookTiers.md` | 11/20 12:01 | 現行（要改寫成卡片用） |
 | 印章 | `S/M2-12-B3-art.md` 印章段 | 11/20 09:55 | 現行（牌匾段作廢） |
+| 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
 
 ## 流程與工程
 
@@ -139,3 +143,5 @@
 | 匿名漏斗 | `S/M2-26-funnel.md` | 現行 |
 | 設計原則、世界觀 | `docs/設計原則.md`、`docs/世界觀.md` | 現行 |
 | 研究資料 | `docs/PoE*.md`、`docs/增量遊戲*.md`、`docs/打寶遊戲比較.md`、`docs/火炬之光無限參考.md`、`docs/音樂音效來源.md` | 參考（不跟版本；之後移到 docs/research/） |
+| PoE 腐化、詞綴資料 | `docs/reference/poe/poe_corruption_2026-11-19/`、`docs/reference/poe/poe_affixes_2026-11-18/` | 參考，不是規格 |
+| v0.5.4 測試證據截圖 | `docs/production/evidence/v0.5.4/`（README 列 8 張對應必須修項） | 參考，不是規格 |

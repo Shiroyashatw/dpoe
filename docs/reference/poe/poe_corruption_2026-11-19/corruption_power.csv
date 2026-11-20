@@ -1,0 +1,854 @@
+﻿game,slot,implicit_or_effect,min,max,source_type,version,source_url
+PoE1,Amulets,(20-24)% increased Elemental Damage with Attack Skills,20,24,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(3-5)% increased Attributes,3,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(4-5)% Chance to Block Attack Damage,4,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(4-5)% Chance to Block Spell Damage,4,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(4-6)% increased Dexterity(4-6)% increased Intelligence,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(4-6)% increased Strength(4-6)% increased Dexterity,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(4-6)% increased Strength(4-6)% increased Intelligence,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(8-10)% increased Attack Speed,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,(8-10)% increased Movement Speed,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,+(20-30)% to Item Rarity,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,+1 to Minimum Endurance Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,+1 to Minimum Frenzy Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,+1 to Minimum Power Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,+1% to all maximum Resistances,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,0.5% of Cold Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,0.5% of Fire Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,0.5% of Lightning Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Anger has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Determination has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Discipline has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Grace has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Hatred has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Malevolence has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Pride has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Purity of Elements has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Wrath has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,You can apply an additional Curse,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Amulets,Zealotry has (20-30)% increased Aura Effect,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Amulets
+PoE1,Belts,(12-15)% increased Skill Effect Duration,12,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(3-5)% increased Attributes,3,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(35-40)% increased Critical Strike Chance during any Flask Effect,35,40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(4-6)% increased Dexterity(4-6)% increased Intelligence,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(4-6)% increased Strength(4-6)% increased Dexterity,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(4-6)% increased Strength(4-6)% increased Intelligence,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(6-10)% increased maximum Life,6,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(8-10)% increased Area of Effect,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(8-10)% increased maximum Energy Shield,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(8-12)% increased Attack Speed during any Flask Effect,8,12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(8-12)% increased Cast Speed during any Flask Effect,8,12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,(8-12)% increased Movement Speed during any Flask Effect,8,12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,+(20-25)% to Critical Strike Multiplier during any Flask Effect,20,25,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,+(20-30)% to Item Rarity,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,Bleeding cannot be inflicted on you,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,Cannot be Ignited,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Belts,Cannot be Poisoned,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Belts
+PoE1,Body Armours,(3-5)% additional Physical Damage Reduction while stationary,3,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,(4-6)% increased maximum Energy Shield,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,(4-6)% increased maximum Life,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,(4-6)% reduced Chaos Damage taken,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,(4-6)% reduced Cold Damage taken,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,(4-6)% reduced Fire Damage taken,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,(4-6)% reduced Lightning Damage taken,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,(40-50)% increased Damage,40,50,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+1 to Level of Socketed Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+1% to all maximum Resistances,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed AoE Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed Aura Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed Curse Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed Duration Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed Minion Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed Projectile Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed Trap or Mine Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,+2 to Level of Socketed Warcry Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Body Armours,You take 50% reduced Extra Damage from Critical Strikes,50,50,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Body_Armours_int
+PoE1,Boots,(10-15)% chance to gain Onslaught for 4 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,(4-6)% increased Action Speed,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,(4-6)% increased maximum Energy Shield,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,(4-6)% increased maximum Life,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,(8-10)% increased Movement Speed,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+(6-9)% chance to Suppress Spell Damage,6,9,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+1 to Level of Socketed Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+1 to Maximum Endurance Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed AoE Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed Aura Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed Curse Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed Duration Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed Minion Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed Projectile Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed Trap or Mine Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2 to Level of Socketed Warcry Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,+2% to maximum Fire Resistance,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,Regenerate 100 Life per second while moving,100,100,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,Unaffected by Burning Ground,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,Unaffected by Chilled Ground,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,Unaffected by Desecrated Ground,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,Unaffected by Shocked Ground,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Boots,Unwavering Stance,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Boots_int
+PoE1,Bows,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,(3-5)% increased Attack Speed,3,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,(9-11)% chance to gain a Frenzy Charge on Kill,9,11,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (12-17) to (23-27) Fire Damage,12 / 23,17 / 27,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (2-3) to (35-39) Lightning Damage,2 / 35,3 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (22-27) to (36-44) Cold Damage,22 / 36,27 / 44,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (26-32) to (45-55) Cold Damage,26 / 45,32 / 55,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (27-31) to (39-50) Fire Damage,27 / 39,31 / 50,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (3-7) to (73-84) Lightning Damage,3 / 73,7 / 84,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (31-39) to (52-61) Fire Damage,31 / 52,39 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (4-5) to (6-8) Physical Damage,4 / 6,5 / 8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (5-9) to (103-107) Lightning Damage,5 / 103,9 / 107,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (8-9) to (11-13) Physical Damage,8 / 11,9 / 13,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds (9-13) to (20-23) Cold Damage,9 / 20,13 / 23,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Adds 1 to (2-3) Physical Damage,2,3,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Arrows Chain +1 times,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Bow Attacks fire 1 additional Arrows,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Socketed Gems are Supported by Level 10 Blind Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Socketed Gems are Supported by Level 10 Chain Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Socketed Gems are Supported by Level 10 Faster Projectiles Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Socketed Gems are Supported by Level 10 Fork Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Socketed Gems are Supported by Level 10 Momentum Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Socketed Gems are Supported by Level 10 Multiple Projectiles Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Bows,Socketed Gems are Supported by Level 17 Added Chaos Damage Support,17,17,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Bows
+PoE1,Claws,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,(5-7)% chance to gain a Power Charge on Critical Strike,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,(9-11)% chance to gain a Frenzy Charge on Kill,9,11,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,+(25-30)% to Global Critical Strike Multiplier,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,+(8-10)% Chance to Block Attack Damage while Dual Wielding,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (1-2) to (27-28) Lightning Damage,1 / 27,2 / 28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (14-18) to (27-32) Cold Damage,14 / 27,18 / 32,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (17-22) to (33-39) Fire Damage,17 / 33,22 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (17-23) to (24-40) Cold Damage,17 / 24,23 / 40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (2-5) to (58-61) Lightning Damage,2 / 58,5 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (2-6) to (72-76) Lightning Damage,2 / 72,6 / 76,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (21-28) to (40-48) Fire Damage,21 / 40,28 / 48,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (6-8) to (13-15) Cold Damage,6 / 13,8 / 15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Claws,Adds (8-10) to (15-18) Fire Damage,8 / 15,10 / 18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Claws
+PoE1,Daggers,(10-15)% chance to gain Unholy Might for 3 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,(5-7)% chance to gain a Power Charge on Critical Strike,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,(50-60)% increased Damage over Time,50,60,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,(9-11)% chance to gain a Frenzy Charge on Kill,9,11,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,+(25-30)% to Global Critical Strike Multiplier,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (1-2) to (27-28) Lightning Damage,1 / 27,2 / 28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (1-2) to (3-5) Chaos Damage,1 / 3,2 / 5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (14-18) to (27-32) Cold Damage,14 / 27,18 / 32,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (17-22) to (33-39) Fire Damage,17 / 33,22 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (17-23) to (24-40) Cold Damage,17 / 24,23 / 40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (2-5) to (58-61) Lightning Damage,2 / 58,5 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (2-6) to (72-76) Lightning Damage,2 / 72,6 / 76,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (21-28) to (40-48) Fire Damage,21 / 40,28 / 48,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (6-8) to (11-13) Chaos Damage,6 / 11,8 / 13,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (6-8) to (13-15) Cold Damage,6 / 13,8 / 15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (8-10) to (15-18) Fire Damage,8 / 15,10 / 18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Daggers,Adds (8-11) to (19-23) Chaos Damage,8 / 19,11 / 23,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Daggers
+PoE1,Gloves,(4-6)% increased maximum Energy Shield,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,(4-6)% increased maximum Life,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,(8-10)% increased Attack Speed,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,(8-10)% increased Cast Speed,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+(0.5-0.8)% to Spell Critical Strike Chance,0.5,0.8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+1 to Level of Socketed Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+1 to Maximum Frenzy Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed AoE Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed Aura Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed Curse Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed Duration Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed Minion Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed Projectile Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed Trap or Mine Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2 to Level of Socketed Warcry Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,+2% to maximum Cold Resistance,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Attacks have +(0.5-0.8)% to Critical Strike Chance,0.5,0.8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Conductivity on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Despair on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Elemental Weakness on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Enfeeble on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Flammability on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Frostbite on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Punishment on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Temporal Chains on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Gloves,Curse Enemies with Vulnerability on Hit,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Gloves_str_dex
+PoE1,Helmets,(25-30)% increased Effect of Cold Ailments,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,(25-30)% increased Effect of Shock,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,(25-30)% increased Light Radius,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,(4-6)% increased maximum Energy Shield,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,(4-6)% increased maximum Life,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+(10-15)% to Damage over Time Multiplier,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+1 to Maximum Power Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed AoE Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Aura Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Chaos Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Cold Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Curse Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Duration Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Fire Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Lightning Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Minion Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Physical Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Projectile Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Trap or Mine Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2 to Level of Socketed Warcry Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,+2% to maximum Lightning Resistance,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,0.5% of Cold Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,0.5% of Fire Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,0.5% of Lightning Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,Cannot be Blinded,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,Regenerate (1.6-2)% of Life per second,1.6,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,Helmets,Socketed Skill Gems get a 90% Cost & Reservation Multiplier,90,90,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Helmets_int
+PoE1,One Hand Axes,(10-15)% chance to gain Onslaught for 4 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,(15-20)% increased Area of Effect,15,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,+(0.2-0.4) metres to Weapon Range,0.2,0.4,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,20% chance to cause Bleeding on Hit(30-40)% increased Attack Damage against Bleeding Enemies,30,40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,Adds (3-4) to (5-7) Physical Damage,3 / 5,4 / 7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,Adds (5-7) to (10-12) Physical Damage,5 / 10,7 / 12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,Adds 1 to 2 Physical Damage,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Axes,Melee Hits have (10-15)% chance to Fortify,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Axes
+PoE1,One Hand Maces,(10-15)% chance to gain Onslaught for 4 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,(15-20)% increased Area of Effect,15,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,(5-7)% chance to gain an Endurance Charge when you Stun an Enemy,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,Adds (3-4) to (5-7) Physical Damage,3 / 5,4 / 7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,Adds (5-7) to (10-12) Physical Damage,5 / 10,7 / 12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,Adds 1 to 2 Physical Damage,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Maces,Melee Hits have (10-15)% chance to Fortify,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Maces
+PoE1,One Hand Swords,(10-15)% chance to gain Onslaught for 4 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,(15-20)% increased Area of Effect,15,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,+(0.2-0.4) metres to Weapon Range,0.2,0.4,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,Adds (3-4) to (5-7) Physical Damage,3 / 5,4 / 7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,Adds (5-7) to (10-12) Physical Damage,5 / 10,7 / 12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,Adds 1 to 2 Physical Damage,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,Melee Hits have (10-15)% chance to Fortify,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,One Hand Swords,Resolute Technique,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/One_Hand_Swords
+PoE1,Quivers,(1-3) to (38-39) Added Lightning Damage with Bow Attacks,1 / 38,3 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(11-14) to (21-25) Added Fire Damage with Bow Attacks,11 / 21,14 / 25,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(20-25) to (38-45) Added Cold Damage with Bow Attacks,20 / 38,25 / 45,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(23-29) to (37-43) Added Chaos Damage with Bow Attacks,23 / 37,29 / 43,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(24-31) to (46-55) Added Fire Damage with Bow Attacks,24 / 46,31 / 55,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(29-35) to (55-62) Added Cold Damage with Bow Attacks,29 / 55,35 / 62,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(29-39) to (59-69) Added Fire Damage with Bow Attacks,29 / 59,39 / 69,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(3-4) to (6-10) Added Physical Damage with Bow Attacks,3 / 6,4 / 10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(3-7) to (81-85) Added Lightning Damage with Bow Attacks,3 / 81,7 / 85,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(3-8) to (101-106) Added Lightning Damage with Bow Attacks,3 / 101,8 / 106,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(5-7) to (10-14) Added Physical Damage with Bow Attacks,5 / 10,7 / 14,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(8-11) to (18-21) Added Cold Damage with Bow Attacks,8 / 18,11 / 21,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,(9-12) to (16-19) Added Physical Damage with Bow Attacks,9 / 16,12 / 19,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,+(8-12)% chance to Suppress Spell Damage,8,12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,0.5% of Cold Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,0.5% of Fire Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,0.5% of Lightning Damage Leeched as Life,0.5,0.5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Arrows Chain +1 times,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Bow Attacks fire 1 additional Arrows,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Gain (8-12)% of Physical Damage as Extra Cold Damage,8,12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Gain (8-12)% of Physical Damage as Extra Fire Damage,8,12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Gain (8-12)% of Physical Damage as Extra Lightning Damage,8,12,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Point Blank,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Projectiles deal (20-25)% increased Damage with Hits and Ailments for each time they have Chained,20,25,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Quivers,Projectiles deal (8-10)% increased Damage with Hits and Ailments for each Enemy Pierced,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Quivers
+PoE1,Rings,(15-25)% increased Damage,15,25,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,(20-25)% increased Mana Cost Efficiency,20,25,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,(3-5)% increased Attributes,3,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,(4-6)% increased Dexterity(4-6)% increased Intelligence,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,(4-6)% increased Strength(4-6)% increased Dexterity,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,(4-6)% increased Strength(4-6)% increased Intelligence,4 / 4,6 / 6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,(8-10)% increased Attack Speed,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,(8-10)% increased Cast Speed,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+(10-15)% to Damage over Time Multiplier,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+(15-20)% to Global Critical Strike Multiplier,15,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+(20-30)% to Item Rarity,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+1 to Maximum Endurance Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+1 to Maximum Frenzy Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,+1 to Maximum Power Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (1-2) to (27-28) Lightning Damage to Spells and Attacks,1 / 27,2 / 28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (1-5) to (50-52) Lightning Damage to Spells and Attacks,1 / 50,5 / 52,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (12-16) to (24-28) Cold Damage to Spells and Attacks,12 / 24,16 / 28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (13-18) to (28-33) Fire Damage to Spells and Attacks,13 / 28,18 / 33,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (3-4) to (7-8) Cold Damage to Spells and Attacks,3 / 7,4 / 8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (3-5) to (7-8) Fire Damage to Spells and Attacks,3 / 7,5 / 8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (6-9) to (13-16) Cold Damage to Spells and Attacks,6 / 13,9 / 16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds (7-10) to (15-18) Fire Damage to Spells and Attacks,7 / 15,10 / 18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Adds 1 to (14-15) Lightning Damage to Spells and Attacks,14,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Anger has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Bleeding cannot be inflicted on you,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Cannot be Ignited,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Cannot be Poisoned,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Determination has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Discipline has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Gain (4-6) Mana per Enemy Hit with Attacks,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Grace has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Hatred has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Malevolence has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Pride has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Purity of Elements has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Wrath has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rings,Zealotry has (20-30)% increased Mana Reservation Efficiency,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rings
+PoE1,Rune Daggers,(10-15)% chance to gain Unholy Might for 3 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,(14-18)% increased Cast Speed,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,(5-7)% chance to gain a Power Charge on Critical Strike,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,(50-60)% increased Damage over Time,50,60,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,(50-60)% increased Spell Damage,50,60,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,(9-11)% chance to gain a Frenzy Charge on Kill,9,11,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,+(25-30)% to Global Critical Strike Multiplier,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,+1 to Level of all Chaos Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,+1 to Level of all Cold Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,+1 to Level of all Lightning Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,+1 to Level of all Physical Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (1-2) to (27-28) Lightning Damage,1 / 27,2 / 28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (1-2) to (3-5) Chaos Damage,1 / 3,2 / 5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (14-18) to (27-32) Cold Damage,14 / 27,18 / 32,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (17-22) to (33-39) Fire Damage,17 / 33,22 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (17-23) to (24-40) Cold Damage,17 / 24,23 / 40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (2-5) to (58-61) Lightning Damage,2 / 58,5 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (2-6) to (72-76) Lightning Damage,2 / 72,6 / 76,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (21-28) to (40-48) Fire Damage,21 / 40,28 / 48,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (6-8) to (11-13) Chaos Damage,6 / 11,8 / 13,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (6-8) to (13-15) Cold Damage,6 / 13,8 / 15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (8-10) to (15-18) Fire Damage,8 / 15,10 / 18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,Adds (8-11) to (19-23) Chaos Damage,8 / 19,11 / 23,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Rune Daggers,"Enemies you Kill have a (10-15)% chance to Explode, dealing a tenth of their maximum Life as Physical Damage",10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Rune_Daggers
+PoE1,Sceptres,(14-18)% increased Cast Speed,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,(15-20)% increased Area of Effect,15,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,(5-7)% chance to gain a Power Charge on Critical Strike,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,(5-7)% chance to gain an Endurance Charge when you Stun an Enemy,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,+1 to Level of all Cold Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,+1 to Level of all Fire Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,+1 to Level of all Lightning Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (1-2) to (27-28) Lightning Damage,1 / 27,2 / 28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (14-18) to (27-32) Cold Damage,14 / 27,18 / 32,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (17-22) to (33-39) Fire Damage,17 / 33,22 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (17-23) to (24-40) Cold Damage,17 / 24,23 / 40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (2-5) to (58-61) Lightning Damage,2 / 58,5 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (2-6) to (72-76) Lightning Damage,2 / 72,6 / 76,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (21-28) to (40-48) Fire Damage,21 / 40,28 / 48,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (6-8) to (13-15) Cold Damage,6 / 13,8 / 15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,Adds (8-10) to (15-18) Fire Damage,8 / 15,10 / 18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Sceptres,"Enemies you Kill have a (10-15)% chance to Explode, dealing a tenth of their maximum Life as Physical Damage",10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Sceptres
+PoE1,Shields,(20-30)% increased Chance to Block,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,(4-5)% Chance to Block Spell Damage,4,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,(4-6)% increased maximum Energy Shield,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,(4-6)% increased maximum Life,4,6,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+(14-16)% to all Elemental Resistances,14,16,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+(19-29)% to Chaos Resistance,19,29,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+1 to Level of Socketed Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+1 to Minimum Endurance Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+1 to Minimum Frenzy Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+1 to Minimum Power Charges,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+1% to all maximum Resistances,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+1% to maximum Chance to Block Attack Damage,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed AoE Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed Aura Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed Curse Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed Duration Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed Minion Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed Projectile Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed Trap or Mine Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2 to Level of Socketed Warcry Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2% to maximum Cold Resistance,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2% to maximum Fire Resistance,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,+2% to maximum Lightning Resistance,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,Glancing Blows,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,Versatile Combatant,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Shields,You take (20-30)% reduced Extra Damage from Critical Strikes,20,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Shields_dex
+PoE1,Staves,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,(22-28)% increased Cast Speed,22,28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,(25-30)% increased Area of Effect,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,(5-7)% chance to gain a Power Charge on Critical Strike,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,(5-7)% chance to gain an Endurance Charge when you Stun an Enemy,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,(70-90)% increased Spell Damage,70,90,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,+(35-50)% to Global Critical Strike Multiplier,35,50,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,+2 to Level of Socketed Chaos Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,+2 to Level of Socketed Cold Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,+2 to Level of Socketed Fire Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,+2 to Level of Socketed Lightning Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,+2 to Level of Socketed Physical Gems,2,2,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (12-17) to (23-27) Fire Damage,12 / 23,17 / 27,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (2-3) to (35-39) Lightning Damage,2 / 35,3 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (22-27) to (36-44) Cold Damage,22 / 36,27 / 44,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (26-32) to (45-55) Cold Damage,26 / 45,32 / 55,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (27-31) to (39-50) Fire Damage,27 / 39,31 / 50,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (3-7) to (73-84) Lightning Damage,3 / 73,7 / 84,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (31-39) to (52-61) Fire Damage,31 / 52,39 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (5-9) to (103-107) Lightning Damage,5 / 103,9 / 107,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Adds (9-13) to (20-23) Cold Damage,9 / 20,13 / 23,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,"Enemies you Kill have a (20-25)% chance to Explode, dealing a tenth of their maximum Life as Physical Damage",20,25,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Socketed Gems are Supported by Level 10 Cruelty Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Socketed Gems are Supported by Level 10 Elemental Penetration Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Socketed Gems are Supported by Level 10 Increased Area of Effect Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Staves,Socketed Gems are Supported by Level 10 Multiple Projectiles Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Staves
+PoE1,Thrusting One Hand Swords,(10-15)% chance to gain Onslaught for 4 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,+(0.2-0.4) metres to Weapon Range,0.2,0.4,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,Damage Penetrates (8-10)% Elemental Resistances,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,Gain a Frenzy Charge after Spending a total of 200 Mana,200,200,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,Resolute Technique,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Thrusting One Hand Swords,Skills fire 1 additional Projectiles,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Thrusting_One_Hand_Swords
+PoE1,Two Hand Axes,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,(25-30)% increased Area of Effect,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,+(0.2-0.4) metres to Weapon Range,0.2,0.4,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,20% chance to cause Bleeding on Hit(30-40)% increased Attack Damage against Bleeding Enemies,30,40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Adds (4-5) to (6-8) Physical Damage,4 / 6,5 / 8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Adds (8-9) to (11-13) Physical Damage,8 / 11,9 / 13,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Adds 1 to (2-3) Physical Damage,2,3,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 1 Lifetap Support,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 10 Cruelty Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 10 Fortify Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 10 Impale Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 10 Inspiration Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 10 Momentum Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 10 Rage Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Axes,Socketed Gems are Supported by Level 15 Life Gain on Hit Support,15,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Axes
+PoE1,Two Hand Maces,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,(25-30)% increased Area of Effect,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,(5-7)% chance to gain an Endurance Charge when you Stun an Enemy,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Adds (4-5) to (6-8) Physical Damage,4 / 6,5 / 8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Adds (8-9) to (11-13) Physical Damage,8 / 11,9 / 13,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Adds 1 to (2-3) Physical Damage,2,3,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Socketed Gems are Supported by Level 10 Cruelty Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Socketed Gems are Supported by Level 10 Fortify Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Socketed Gems are Supported by Level 10 Increased Area of Effect Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Socketed Gems are Supported by Level 10 Inspiration Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Socketed Gems are Supported by Level 10 Momentum Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Maces,Socketed Gems are Supported by Level 10 Rage Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Maces
+PoE1,Two Hand Swords,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,(25-30)% increased Area of Effect,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,+(0.2-0.4) metres to Weapon Range,0.2,0.4,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Adds (4-5) to (6-8) Physical Damage,4 / 6,5 / 8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Adds (8-9) to (11-13) Physical Damage,8 / 11,9 / 13,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Adds 1 to (2-3) Physical Damage,2,3,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Resolute Technique,—,—,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Socketed Gems are Supported by Level 10 Additional Accuracy Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Socketed Gems are Supported by Level 10 Fortify Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Socketed Gems are Supported by Level 10 Impale Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Socketed Gems are Supported by Level 10 Momentum Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Two Hand Swords,Socketed Gems are Supported by Level 17 Added Chaos Damage Support,17,17,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Two_Hand_Swords
+PoE1,Wands,(10-15)% chance to gain Unholy Might for 3 seconds on Kill,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,(14-18)% increased Cast Speed,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,(15-20)% increased Area of Effect,15,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,(3-5)% increased Attack Speed,3,5,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,(5-7)% chance to gain a Power Charge on Critical Strike,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,+(25-30)% to Global Critical Strike Multiplier,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,+1 to Level of all Chaos Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,+1 to Level of all Cold Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,+1 to Level of all Fire Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,+1 to Level of all Lightning Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,+1 to Level of all Physical Spell Skill Gems,1,1,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (1-2) to (27-28) Lightning Damage,1 / 27,2 / 28,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (14-18) to (27-32) Cold Damage,14 / 27,18 / 32,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (17-22) to (33-39) Fire Damage,17 / 33,22 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (17-23) to (24-40) Cold Damage,17 / 24,23 / 40,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (2-5) to (58-61) Lightning Damage,2 / 58,5 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (2-6) to (72-76) Lightning Damage,2 / 72,6 / 76,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (21-28) to (40-48) Fire Damage,21 / 40,28 / 48,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (6-8) to (13-15) Cold Damage,6 / 13,8 / 15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Adds (8-10) to (15-18) Fire Damage,8 / 15,10 / 18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,Damage Penetrates (8-10)% Elemental Resistances,8,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Wands,"Enemies you Kill have a (10-15)% chance to Explode, dealing a tenth of their maximum Life as Physical Damage",10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Wands
+PoE1,Warstaves,(10-15)% increased Physical Damage,10,15,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,(14-18)% increased Critical Strike Chance,14,18,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,(16-20)% increased Physical Damage,16,20,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,(25-30)% increased Area of Effect,25,30,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,(5-7)% chance to gain a Power Charge on Critical Strike,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,(5-7)% chance to gain an Endurance Charge when you Stun an Enemy,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,(5-7)% increased Attack Speed,5,7,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,+(35-50)% to Global Critical Strike Multiplier,35,50,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,+(5-10)% to Quality of Socketed Gems,5,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (12-17) to (23-27) Fire Damage,12 / 23,17 / 27,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (2-3) to (35-39) Lightning Damage,2 / 35,3 / 39,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (22-27) to (36-44) Cold Damage,22 / 36,27 / 44,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (26-32) to (45-55) Cold Damage,26 / 45,32 / 55,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (27-31) to (39-50) Fire Damage,27 / 39,31 / 50,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (3-7) to (73-84) Lightning Damage,3 / 73,7 / 84,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (31-39) to (52-61) Fire Damage,31 / 52,39 / 61,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (4-5) to (6-8) Physical Damage,4 / 6,5 / 8,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (5-9) to (103-107) Lightning Damage,5 / 103,9 / 107,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (8-9) to (11-13) Physical Damage,8 / 11,9 / 13,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds (9-13) to (20-23) Cold Damage,9 / 20,13 / 23,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Adds 1 to (2-3) Physical Damage,2,3,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Socketed Gems are Supported by Level 10 Cruelty Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Socketed Gems are Supported by Level 10 Elemental Penetration Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE1,Warstaves,Socketed Gems are Supported by Level 10 Increased Area of Effect Support,10,10,poedb ModsView corrupted pool,3.30.0c,https://poedb.tw/us/Warstaves
+PoE2,Amulets,(10-15)% increased Rarity of Items found,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,+(10-15) to Dexterity,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,+(10-15) to Intelligence,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,+(10-15) to Strength,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,+(5-10)% to all Elemental Resistances,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,+1 to Level of all Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,+1% to all Maximum Elemental Resistances,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,Charms gain (0.08-0.17) charges per Second,0.08,0.17,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,Leech 2% of Physical Attack Damage as Mana,2,2,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,Leech 3% of Physical Attack Damage as Life,3,3,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,Life Flasks gain (0.08-0.17) charges per Second,0.08,0.17,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Amulets,Mana Flasks gain (0.08-0.17) charges per Second,0.08,0.17,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Amulets
+PoE2,Belts,(15-25)% increased Armour,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,(15-25)% increased Evasion Rating,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,(15-25)% increased maximum Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(1-3)% to Maximum Fire Resistance,1,3,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(10-15) to Dexterity,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(10-15) to Intelligence,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(10-15) to Strength,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(20-25)% to Cold Resistance,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(20-25)% to Fire Resistance,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(20-25)% to Lightning Resistance,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+(30-40) to maximum Life,30,40,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Belts,+1 to Maximum Endurance Charges,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Belts
+PoE2,Body Armours,(10-20)% of Damage taken Recouped as Life,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,(10-20)% of Damage taken Recouped as Mana,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,(15-25)% increased Armour,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_str
+PoE2,Body Armours,(15-25)% increased Armour and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_str_int
+PoE2,Body Armours,(15-25)% increased Armour and Evasion,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_str_dex
+PoE2,Body Armours,(15-25)% increased Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_int
+PoE2,Body Armours,(15-25)% increased Evasion Rating,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,(15-25)% increased Evasion and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex_int
+PoE2,Body Armours,(3-5)% additional Physical Damage Reduction,3,5,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,(40-50)% increased Thorns damage,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,+(13-19)% to Chaos Resistance,13,19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,+(30-40) to maximum Life,30,40,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Body Armours,+1% to all Maximum Elemental Resistances,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Body_Armours_dex
+PoE2,Boots,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,(15-25)% increased Armour,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_str
+PoE2,Boots,(15-25)% increased Armour and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_str_int
+PoE2,Boots,(15-25)% increased Armour and Evasion,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_str_dex
+PoE2,Boots,(15-25)% increased Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_int
+PoE2,Boots,(15-25)% increased Evasion Rating,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,(15-25)% increased Evasion and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex_int
+PoE2,Boots,(20-30)% increased Freeze Threshold,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,(20-30)% increased Stun Threshold,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,(20-30)% reduced Slowing Potency of Debuffs on You,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,(3-5)% increased Movement Speed,3,5,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,+(1-3)% to Maximum Lightning Resistance,1,3,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,+(20-25)% to Cold Resistance,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,+(20-25)% to Fire Resistance,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Boots,+(20-25)% to Lightning Resistance,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Boots_dex
+PoE2,Bows,(10-15)% chance to Maim on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,(5-10)% chance to Blind Enemies on hit,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bows,Bow Attacks fire 1 additional Arrows,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bows
+PoE2,Bucklers,(10-15) Mana gained when you Block,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bucklers
+PoE2,Bucklers,(10-15)% increased Block chance,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bucklers
+PoE2,Bucklers,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bucklers
+PoE2,Bucklers,(15-25)% increased Evasion Rating,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bucklers
+PoE2,Bucklers,(20-25) Life gained when you Block,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bucklers
+PoE2,Bucklers,(40-50)% increased Thorns damage,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bucklers
+PoE2,Bucklers,+3% to maximum Block chance,3,3,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Bucklers
+PoE2,Claws,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Claws,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Claws
+PoE2,Crossbows,(10-15)% chance to Maim on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,(40-50)% increased Elemental Damage with Attacks,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,(5-10)% chance to Blind Enemies on hit,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,Adds (1-3) to (41-61) Lightning Damage,1 / 41,3 / 61,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,Adds (10-16) to (17-25) Chaos damage,10 / 17,16 / 25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,Adds (11-17) to (18-26) Cold Damage,11 / 18,17 / 26,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,Adds (13-20) to (21-31) Fire Damage,13 / 21,20 / 31,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Crossbows,Loads an additional bolt,—,—,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Crossbows
+PoE2,Daggers,(10-15)% chance to Poison on Hit with this weapon,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Daggers,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Daggers
+PoE2,Flails,(10-15)% chance to cause Bleeding on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Flails,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Flails
+PoE2,Foci,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Foci
+PoE2,Foci,(15-25)% increased Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Foci
+PoE2,Foci,(20-30)% increased Spell Damage,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Foci
+PoE2,Foci,+(20-25) to maximum Mana,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Foci
+PoE2,Gloves,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,(15-25)% increased Armour,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,(15-25)% increased Armour and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str_int
+PoE2,Gloves,(15-25)% increased Armour and Evasion,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str_dex
+PoE2,Gloves,(15-25)% increased Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_int
+PoE2,Gloves,(15-25)% increased Evasion Rating,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_dex
+PoE2,Gloves,(15-25)% increased Evasion and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_dex_int
+PoE2,Gloves,(5-10)% increased Quantity of Gold Dropped by Slain Enemies,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,+1 to Level of all Melee Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,+1 to Maximum Frenzy Charges,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,Break (10-15)% increased Armour,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,Damage Penetrates (10-15)% Cold Resistance,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,Damage Penetrates (10-15)% Fire Resistance,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Gloves,Damage Penetrates (10-15)% Lightning Resistance,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Gloves_str
+PoE2,Helmets,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,(15-25)% increased Armour,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_str
+PoE2,Helmets,(15-25)% increased Armour and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_str_int
+PoE2,Helmets,(15-25)% increased Armour and Evasion,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_str_dex
+PoE2,Helmets,(15-25)% increased Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_int
+PoE2,Helmets,(15-25)% increased Evasion Rating,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,(15-25)% increased Evasion and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex_int
+PoE2,Helmets,(15-25)% increased Life Regeneration rate,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,(20-30)% increased Mana Regeneration Rate,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,+(1-3)% to Maximum Cold Resistance,1,3,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,+(20-30) to Spirit,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,+(50-100) to Accuracy Rating,50,100,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,+1 to Level of all Minion Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Helmets,+1 to Maximum Power Charges,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Helmets_dex
+PoE2,Jewels,+(3-7) % to Chaos Resistance,3,7,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,+(4-6) to Dexterity,4,6,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,+(4-6) to Intelligence,4,6,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,+(4-6) to Strength,4,6,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,+(5-10) % to Cold Resistance,5,10,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,+(5-10) % to Fire Resistance,5,10,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,+(5-10) % to Lightning Resistance,5,10,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,Cannot be Blinded,—,—,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,Corrupted Blood cannot be inflicted on you,—,—,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,Immune to Maim,—,—,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,Jewels,You cannot be Hindered,—,—,poe2db Corrupted Mods table (Domain=Jewel),0.5.5h,https://poe2db.tw/us/Vaal_Orb
+PoE2,One Hand Axes,(10-15)% chance to cause Bleeding on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Axes,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Axes
+PoE2,One Hand Maces,(10-15)% chance to cause Bleeding on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Maces,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Maces
+PoE2,One Hand Swords,(10-15)% chance to Poison on Hit with this weapon,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,(10-15)% chance to cause Bleeding on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,One Hand Swords,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/One_Hand_Swords
+PoE2,Quarterstaves,(10-15)% chance to Poison on Hit with this weapon,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,(40-50)% increased Elemental Damage with Attacks,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,Adds (1-3) to (41-61) Lightning Damage,1 / 41,3 / 61,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,Adds (10-16) to (17-25) Chaos damage,10 / 17,16 / 25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,Adds (11-17) to (18-26) Cold Damage,11 / 18,17 / 26,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,Adds (13-20) to (21-31) Fire Damage,13 / 21,20 / 31,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quarterstaves,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quarterstaves
+PoE2,Quivers,(15-20)% increased Critical Damage Bonus,15,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,(20-30)% chance to Pierce an Enemy,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,(20-30)% increased Damage,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,(4-6)% increased Skill Speed,4,6,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,+(20-25) to maximum Mana,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,+(50-100) to Accuracy Rating,50,100,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,Gain (10-15) Mana per enemy killed,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,Gain (20-25) Life per enemy killed,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Quivers,Projectiles have (10-20)% chance to Chain an additional time from terrain,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Quivers
+PoE2,Rings,(10-15)% increased Rarity of Items found,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,(15-20)% increased Critical Damage Bonus,15,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,(15-25)% increased Life Regeneration rate,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,(20-30)% increased Damage,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,(20-30)% increased Mana Regeneration Rate,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,(4-6)% increased Skill Speed,4,6,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,+(10-15) to Dexterity,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,+(10-15) to Intelligence,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,+(10-15) to Strength,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,+(13-19)% to Chaos Resistance,13,19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,+(20-25) to maximum Mana,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Rings,+(5-10)% to all Elemental Resistances,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Rings
+PoE2,Sceptres,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Sceptres
+PoE2,Sceptres,(15-25)% increased Spirit,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Sceptres
+PoE2,Sceptres,Allies in your Presence deal (20-30)% increased Damage,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Sceptres
+PoE2,Sceptres,Allies in your Presence have (10-15)% increased Critical Damage Bonus,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Sceptres
+PoE2,Sceptres,Allies in your Presence have (5-10)% increased Attack Speed,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Sceptres
+PoE2,Sceptres,Allies in your Presence have (5-10)% increased Cast Speed,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Sceptres
+PoE2,Shields,(10-15) Mana gained when you Block,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_int
+PoE2,Shields,(10-15)% increased Block chance,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_int
+PoE2,Shields,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_int
+PoE2,Shields,(15-25)% increased Armour,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str
+PoE2,Shields,(15-25)% increased Armour and Energy Shield,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_int
+PoE2,Shields,(15-25)% increased Armour and Evasion,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_dex
+PoE2,Shields,(20-25) Life gained when you Block,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_int
+PoE2,Shields,(40-50)% increased Thorns damage,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_int
+PoE2,Shields,+3% to maximum Block chance,3,3,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Shields_str_int
+PoE2,Spears,(10-15)% chance to Poison on Hit with this weapon,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,(20-30)% increased Elemental Damage with Attacks,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,Adds (1-2) to (29-43) Lightning Damage,1 / 29,2 / 43,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,Adds (7-11) to (12-18) Chaos damage,7 / 12,11 / 18,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,Adds (8-12) to (13-19) Cold Damage,8 / 13,12 / 19,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,Adds (9-14) to (15-22) Fire Damage,9 / 15,14 / 22,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Spears,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Spears
+PoE2,Staves,(10-15)% increased Cast Speed,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,(20-30)% increased Critical Hit Chance for Spells,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,(20-30)% increased Flammability Magnitude,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,(20-30)% increased Freeze Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,(20-30)% increased chance to Shock,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,(40-60)% increased Spell Damage,40,60,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,+1 to Level of all Chaos Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,+1 to Level of all Cold Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,+1 to Level of all Fire Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,+1 to Level of all Lightning Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,+1 to Level of all Physical Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,Gain (10-15) Mana per enemy killed,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Staves,Gain (20-25) Life per enemy killed,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Staves
+PoE2,Two Hand Axes,(10-15)% chance to cause Bleeding on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,(40-50)% increased Elemental Damage with Attacks,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,Adds (1-3) to (41-61) Lightning Damage,1 / 41,3 / 61,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,Adds (10-16) to (17-25) Chaos damage,10 / 17,16 / 25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,Adds (11-17) to (18-26) Cold Damage,11 / 18,17 / 26,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,Adds (13-20) to (21-31) Fire Damage,13 / 21,20 / 31,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Axes,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Axes
+PoE2,Two Hand Maces,(10-15)% chance to cause Bleeding on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,(40-50)% increased Elemental Damage with Attacks,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,Adds (1-3) to (41-61) Lightning Damage,1 / 41,3 / 61,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,Adds (10-16) to (17-25) Chaos damage,10 / 17,16 / 25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,Adds (11-17) to (18-26) Cold Damage,11 / 18,17 / 26,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,Adds (13-20) to (21-31) Fire Damage,13 / 21,20 / 31,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Maces,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Maces
+PoE2,Two Hand Swords,(10-15)% chance to Poison on Hit with this weapon,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,(10-15)% chance to cause Bleeding on Hit,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,(10-20)% increased Melee Strike Range with this weapon,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,(15-25)% increased Physical Damage,15,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,(40-50)% increased Elemental Damage with Attacks,40,50,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,(6-8)% increased Attack Speed,6,8,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,+(5-10)% to Critical Damage Bonus,5,10,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,Adds (1-3) to (41-61) Lightning Damage,1 / 41,3 / 61,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,Adds (10-16) to (17-25) Chaos damage,10 / 17,16 / 25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,Adds (11-17) to (18-26) Cold Damage,11 / 18,17 / 26,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,Adds (13-20) to (21-31) Fire Damage,13 / 21,20 / 31,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,Causes (20-30)% increased Stun Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Two Hand Swords,Grants 1 Rage on Hit,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Two_Hand_Swords
+PoE2,Wands,(10-15)% increased Cast Speed,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,(10-20)% reduced Attribute Requirements,10,20,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,(20-30)% increased Critical Hit Chance for Spells,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,(20-30)% increased Flammability Magnitude,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,(20-30)% increased Freeze Buildup,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,(20-30)% increased Spell Damage,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,(20-30)% increased chance to Shock,20,30,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,+1 to Level of all Chaos Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,+1 to Level of all Cold Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,+1 to Level of all Fire Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,+1 to Level of all Lightning Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,+1 to Level of all Physical Spell Skills,1,1,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,Gain (10-15) Mana per enemy killed,10,15,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands
+PoE2,Wands,Gain (20-25) Life per enemy killed,20,25,poe2db ModsView corrupted pool,0.5.5h,https://poe2db.tw/us/Wands

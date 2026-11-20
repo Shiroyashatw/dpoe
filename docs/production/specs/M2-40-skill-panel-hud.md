@@ -2,7 +2,7 @@
 
 > 現行規格，只放目前有效的內容；決定記在 [`CHANGELOG.md`](../CHANGELOG.md)。
 > 定案：mumi 2026-11-18 14:32（經製作人），方案 1「孔板一頁＋邊緣 HUD」。全部數字是設計值，**還沒在遊戲裡驗過（未驗）**，以驗收截圖與影片為準。
-> 來源：Page 25c36ef3（M2-40 方向案）、Page 774e49fd（營地＋全域骨架，方案甲）、[`M2-40-rec-score.md`](M2-40-rec-score.md) v1.0、[`M2-40-big-attack.md`](M2-40-big-attack.md) v1.0（main c4b1a1d）、[`M2-36-palette-tokens.md`](M2-36-palette-tokens.md)、名詞表 v0.6.7（收大招、預警與輔助四類名）；圖示範圍與輔助四類框照 [`M2-40-icon-scope-support-class.md`](M2-40-icon-scope-support-class.md)。
+> 來源：Page 25c36ef3（M2-40 方向案）、Page 774e49fd（營地＋全域骨架，方案甲）、[`M2-40-rec-score.md`](M2-40-rec-score.md) v1.0、[`M2-40-big-attack.md`](M2-40-big-attack.md) v1.0（main c4b1a1d）、[`M2-36-palette-tokens.md`](M2-36-palette-tokens.md)、名詞表 v0.6.7（收大招、預警與輔助四類名）；圖示範圍與輔助四類框照 `M2-40-icon-scope-support-class.md`（已刪）。
 > 名詞：魔力／魔力條、輔助／輔助孔、插上輔助／卸下輔助、彈匣／發／裝填、儲存／顆、段、祭壇、光環欄、推薦／最好／差不多、大招（HUD 危險提示）／預警（出招前的地面提示）。不用「預兆」（那是心魔劫掉落物）、「寶石」「法力」「彈夾」。
 
 ## 1. 範圍
