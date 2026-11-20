@@ -85,7 +85,7 @@
 
 | # | id | 欄 | 技能 key（畫面名） | 撞圖（現 IoU） | 剪影家族 | palette |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `sk_clarity` | A | `clarity`（冥思） | `sk_purityaura` 0.92、`sk_precise` 0.83 | 開口新月，右下掉 2 顆小水滴 | `--scene-void`、`--mp`、`--el-cold`、`--tx-strong` |
+| 1 | `sk_clarity` | A | `clarity`（冥思） | `sk_purityaura` 0.92、`sk_precise` 0.83 | 開口新月，右下掉 2 顆小水滴 | `--scene-void`、`--mp`、魔力藍明暗、`--tx-strong`（不用 `--el-cold`：冥思是物理／無，11/20） |
 | 2 | `sk_purityaura` | A | `purity`（純淨） | `sk_clarity` 0.92、`sk_determination` 0.87 | 三顆分開的小寶石排成正三角，細線相連，中間空 | `--scene-void`、`--el-fire`、`--el-cold`、`--el-light`、`--tx-strong` |
 | 3 | `sk_staticfield` | A | `h_thunder`（雷霆捷光環） | `sk_weaken` 0.83、`sk_fireburst` 0.79；過實 0.57 | 上緣一條扁雲帶，一道粗閃電從雲往左下劈 | `--scene-void`、`--el-light`、`--warn`、`--tx-strong` |
 | 4 | `sk_summongod` | A | `unboundav`（無縛化身） | `sk_weaken` 0.83；過實 0.68 | 斷開的鐐銬：兩半 C 形環，左上與右下分開，中間有缺口 | `--scene-void`、`--awk`、`--el-fire`、`--el-light`、`--border-mid` |

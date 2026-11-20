@@ -350,7 +350,7 @@ def pack_items(chase_at=None):
     return G
 
 def loot_screen(items, sel=None):
-    img=background(); fix_hud(img); d=sheet_base(img,V); y=header(img,d,V,'戰利品')
+    img=background(); fix_hud(img); d=sheet_base(img,V); y=header(img,d,V,'倉庫')
     tx(d,(W-12-44-10,y-22),'20／300・12,480 金',14,T['dim'],False,anchor='rm')
     y+=12; g0=y
     for i,it in enumerate(items):

@@ -1,4 +1,4 @@
-# battle-hud v1.3.2（final，2026-11-20 mumi 16:32；mumi 11/20 17:33 拿掉觀戰鍵）續篇：狀態、技能格、戰場訊號、驗收
+# battle-hud v1.3.3（final，2026-11-20 mumi 16:32；mumi 11/20 17:33 拿掉觀戰鍵）續篇：狀態、技能格、戰場訊號、驗收
 
 > 接 [`battle-hud.md`](battle-hud.md)、[`battle-hud-2.md`](battle-hud-2.md)、[`battle-hud-3.md`](battle-hud-3.md)。
 

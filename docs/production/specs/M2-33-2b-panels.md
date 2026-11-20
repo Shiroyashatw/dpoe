@@ -1,5 +1,7 @@
 # M2-33 第 2 批（下）：技能、天賦樹、更多、設定、掉落紀錄、地點清單、確認對話框
 
+版本 v1.0.1｜2026-11-20｜掉落紀錄鍵「;」（mumi 18:45 定）。
+
 Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267db90c-7a0a-485e-ac26-a75a2c871232（上半 `specs/M2-33-2a-items-crafting.md`）
 負責：Game Art Director。元件用第 1 批（F＝`specs/M2-33-1-foundations.md`）；共通尺寸見上半開頭。行號是 main 01cc2ab。只寫 token 名。
 
@@ -94,10 +96,10 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 3. 圖示：每個 `.ic` 顯示寬 ÷ `naturalWidth` 是整數（物品格 32、角色大格 64、技能 32）；天賦樹除外。
 4. 色：本批選擇器的 color、background、border 都解析得到 token；diff 掃不到色碼、`linear-gradient`、`radial-gradient`、`color-mix`、舊 token 名（`--pt-*`、`--sc`、`--r0`–`--r4`）。
 5. 熱區：直立可按 ≥ 44×44、主動作 48；桌機次要 ≥ 36。
-6. 鍵：I／B、V、K、O、G、P、M、L、Esc 各開對的面板，再按一次關（V 若查到衝突，回報製作人）。設定頁快捷鍵表的列跟 F §11 一致（由程式比對）。
+6. 鍵：L（倉庫）、V、K、O、G、P、M、;（掉落紀錄）、Esc 各開對的面板，再按一次關（V 若查到衝突，回報製作人）。設定頁快捷鍵表的列跟 F §11 一致（由程式比對）。
 7. 對話框：Tab 不跑出卡；Esc 取消；破壞性對話框開啟時焦點在取消。
 8. 轉灰階：稀有度格（普通／魔法／稀有／傳奇／追逐）靠框與角標分得出；天賦節點三狀態分得出。
-9. 舒服量測：`tools/comfort.py` (a)–(g) 在戰利品、鍛造、天賦樹三張截圖全過（天賦樹算全版面板）。
+9. 舒服量測：`tools/comfort.py` (a)–(g) 在倉庫、鍛造、天賦樹三張截圖全過（天賦樹算全版面板）。
 
 ## 10. 待決
 - 天賦樹拿掉區段色（§2）是視覺上的大改，等 mumi 視覺簽核（M2-38、M2-34 之後）時一起看；不改規則與數值。

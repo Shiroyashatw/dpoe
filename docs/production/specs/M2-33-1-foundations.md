@@ -1,5 +1,7 @@
 # M2-33 第 1 批：基礎元件與桌機殼層（兩種尺寸）
 
+版本 v1.0.1｜2026-11-20｜倉庫鍵 L；掉落紀錄鍵「;」（mumi 18:45 定）。
+
 Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267db90c-7a0a-485e-ac26-a75a2c871232（索引 `docs/INDEX.md`）
 負責：Game Art Director。依據：`specs/M2-36-palette-tokens.md`（token）、`specs/M2-36-drawing-rules.md`（畫法）、`specs/M2-37-ia-rework.md`（版面與流程，不改）。M2-16 併入本批第 9–10 節，不再另開文件。行號是 main 68e4452；token 收斂（M2-36a）合併後以選擇器、函式名為準。只寫 token 名，不寫色值。
 
@@ -151,7 +153,7 @@ Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267d
 | M | 地點 | 不變 |
 | U | 昇華石碑 | 不變 |
 | J | 山海寶盒 | 不變 |
-| L | 掉落紀錄（有橫幅時選中那一筆） | 不變 |
+| ; | 掉落紀錄（有橫幅時選中那一筆） | 原 L，mumi 18:45 定「;」 |
 | T | 回營地 | 字改「回營地」（M2-12） |
 | Esc | 關對話框 → 關天賦樹／昇華石碑 → 單座卡回清單 → 關面板 → 開設定（11/19，D1-fix part2 §8） | 不變 |
 | Tab／Shift+Tab | 焦點移動 | §10 順序 |
