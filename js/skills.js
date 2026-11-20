@@ -1651,7 +1651,7 @@ function hitMob(m, c, ang, kb, o = {}) {
   heraldHit(m, c, o, a);
   if (hp0 > 0 && m.hp <= 0) heraldKill(m, c, o, a);
   if (a) a.any = 1;
-  m.flash = 0.09;
+  m.flash = 0.02; /* M2-40 §10：一般擊中敵人白閃 1 幀（B4 閃光尖峰：原 0.09 秒＝5 幀，王身上整片白）*/
   m.sq = 1;
   if (o.stun && !m.boss) m.stun = o.stun;
   if (o.blind) m.ail.blind = G.t + 4;

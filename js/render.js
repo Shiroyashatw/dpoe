@@ -186,7 +186,7 @@ function draw() {
       CX.rotate(m.ang);
       CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.12 + 0.18 * f})`;
       CX.fillRect(0, -wd / 2, len, wd);
-      CX.fillStyle = `rgba(${PAL.rgb.badV1},0.35)`;
+      CX.fillStyle = `rgba(${PAL.rgb.badV1},${TELE_A})`;
       CX.fillRect(0, -wd / 2, len * f, wd);
       CX.restore();
     } else if (D.ai === 'slam') {
@@ -195,7 +195,7 @@ function draw() {
       teleCircle(x, y, 95, f);
     } else if (D.ai === 'melee' || (m.boss && m.pat === 'swipe')) {
       const R = m.boss ? 150 : D.reach + 10;
-      CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.1 + 0.25 * f})`;
+      CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.1 + (TELE_A - 0.1) * f})`;
       CX.beginPath();
       CX.moveTo(m.x, m.y);
       CX.arc(m.x, m.y, R, m.ang - 1.2, m.ang + 1.2);
@@ -467,9 +467,27 @@ function draw() {
   {
     const W = SW,
       H = SH;
-    /* 受傷：畫面邊緣紅；完美閃避：藍 */
-    if (P.hurtT > 0 || P.hp < ST.hp * 0.3 || G.slow > 0) {
-      const a = G.slow > 0 ? 0.35 : Math.max(P.hurtT / 0.35, P.hp < ST.hp * 0.3 ? 0.35 + 0.15 * Math.sin(G.t * 6) : 0),
+    /* S1⑧（B4，M2-40 §10）：低血 < 35% 四周 24 px 紅邊 0.35、< 20% 0.55，常亮不閃 */
+    const lo = P.hp < ST.hp * 0.2 ? 0.55 : P.hp < ST.hp * 0.35 ? 0.35 : 0;
+    if (lo && G.scene === 'map') {
+      const c = PAL.rgb.hurtVignette,
+        e = 24;
+      for (const [x0, y0, x1, y1, rx, ry, rw, rh] of [
+        [0, 0, 0, e, 0, 0, W, e],
+        [0, H, 0, H - e, 0, H - e, W, e],
+        [0, 0, e, 0, 0, 0, e, H],
+        [W, 0, W - e, 0, W - e, 0, e, H]
+      ]) {
+        const g = CX.createLinearGradient(x0, y0, x1, y1);
+        g.addColorStop(0, `rgba(${c},${lo})`);
+        g.addColorStop(1, `rgba(${c},0)`);
+        CX.fillStyle = g;
+        CX.fillRect(rx, ry, rw, rh);
+      }
+    }
+    /* 受傷：畫面邊緣紅閃；完美閃避：藍 */
+    if (P.hurtT > 0 || G.slow > 0) {
+      const a = G.slow > 0 ? 0.35 : P.hurtT / 0.35,
         vg = CX.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.7);
       vg.addColorStop(0, `rgba(${PAL.rgb.scrim},0)`);
       vg.addColorStop(1, G.slow > 0 ? `rgba(${PAL.rgb.dodgeVignette},${a})` : `rgba(${PAL.rgb.hurtVignette},${a})`);
@@ -498,7 +516,7 @@ function teleCircle(x, y, r, f) {
   CX.beginPath();
   CX.arc(x, y, r, 0, TAU);
   CX.fill();
-  CX.fillStyle = `rgba(${PAL.rgb.badV1},0.3)`;
+  CX.fillStyle = `rgba(${PAL.rgb.badV1},${TELE_A})`;
   CX.beginPath();
   CX.arc(x, y, r * clamp(f, 0, 1), 0, TAU);
   CX.fill();
@@ -628,6 +646,16 @@ function drawBars() {
     CX.fillRect(m.x - w / 2 - 1, y - 1, w + 2, 6);
     CX.fillStyle = m.elite ? PAL.rarMagicV2 : PAL.badV1;
     CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
+    /* S1⑨（B4）：菁英名牌（生命條上方），墊 --plate-world */
+    if (m.elite) {
+      CX.font = '700 12px "Noto Sans TC", sans-serif';
+      CX.textAlign = 'center';
+      const pw = CX.measureText(m.D.n).width + 12;
+      CX.fillStyle = PAL.plateWorld;
+      CX.fillRect(m.x - pw / 2, y - 19, pw, 17);
+      CX.fillStyle = PAL.rarMagic;
+      CX.fillText(m.D.n, m.x, y - 6);
+    }
   }
 }
 /* 跳數字；減少動態時不彈、不飄（M2-05.2i） */
@@ -636,7 +664,9 @@ function drawNums() {
   const rm = reduced();
   for (const n of G.nums) {
     const f = n.t / 0.9,
-      pop = !rm && n.t < 0.08 ? 1 + (0.08 - n.t) * 8 : 1,
+      /* S1③（B4）：只有暴擊彈 1.0→1.35→1.0（前 80 ms 放大、後 80 ms 收回）；一般數字不彈 */
+      pop =
+        !rm && (n.c === 'crit' || n.c === 'jackpot') && n.t < 0.16 ? 1 + 0.35 * (1 - Math.abs(n.t - 0.08) / 0.08) : 1,
       y = n.y - (rm ? 0 : 30 * Math.sqrt(f)) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
     const st = {
       phys: [PAL.dmgHit, 15],
@@ -649,7 +679,8 @@ function drawNums() {
       crit: [PAL.dmgCrit, 24],
       /* 豪賭的大獎（0.2.74 賭徒）：金色、更大 */
       jackpot: [PAL.dmgCritV1, 30],
-      hurt: [PAL.dmgHurt, 17],
+      /* D1-03（B4）：受傷數字 --tx-strong＋2 px #000 描邊、字級＝打怪數字 ×0.8（--bad 不上戰場） */
+      hurt: [PAL.txStrong, 12],
       gold: [PAL.dmgGain, 14],
       perfect: [PAL.dmgGainV1, 26],
       ev: [PAL.dmgGainV2, 18],
@@ -675,7 +706,7 @@ function drawNums() {
     /* 描邊比字慢淡出（M2-31 C1） */
     CX.globalAlpha = Math.min(1, fa + 0.3);
     CX.lineWidth = 4;
-    CX.strokeStyle = `rgba(${PAL.rgb.scrim},0.95)`;
+    CX.strokeStyle = n.c === 'hurt' ? PAL.scrimV1 : `rgba(${PAL.rgb.scrim},0.95)`;
     CX.strokeText(txt, n.x, y);
     CX.globalAlpha = fa;
     CX.fillStyle = st[0];
@@ -721,7 +752,14 @@ function drawBeams() {
           ? 0.8
           : 0.8 * (0.8 + 0.2 * Math.sin(G.t * 3 + d.sx))
         : 0.75 * (0.75 + 0.25 * Math.sin(G.t * 5 + d.sx)),
-      sh = beamSheet(rgb);
+      sh = beamSheet(rgb),
+      bw = d.chase ? 14 : 10;
+    /* S1⑤（B4）：光柱兩側 1 px #000 黑邊，亮地面上也分得出 */
+    CX.globalAlpha = a;
+    CX.fillStyle = PAL.scrimV1;
+    CX.fillRect(x - bw - 1, y - bh, 1, bh);
+    CX.fillRect(x + bw, y - bh, 1, bh);
+    CX.globalAlpha = 1;
     if (sh) {
       const S = FXS.sig_beam,
         i = Math.floor(G.t * S.fps) % S.n,
@@ -771,8 +809,20 @@ function drawFront() {
   const n =
     G.fx.filter(o => o.k === 'sh' && Math.hypot(o.x - P.x, o.y - P.y) < 60).length +
     G.ground.filter(g => g.side !== 'm' && Math.hypot(g.x - P.x, g.y - P.y) < g.r + 60).length;
-  if (n >= 2) footRing(P.x, P.y, 22, cssv('--sel-tx'));
+  /* S1⑥（B4）：主角腳圈＋頭上 ▼ 一直畫（特效再多也找得到自己） */
+  footRing(P.x, P.y, 22, PAL.selTx);
   drawHero(1, n >= 2);
+  const ty = P.y - 52;
+  CX.beginPath();
+  CX.moveTo(P.x - 6, ty - 8);
+  CX.lineTo(P.x + 6, ty - 8);
+  CX.lineTo(P.x, ty);
+  CX.closePath();
+  CX.lineWidth = 2;
+  CX.strokeStyle = PAL.scrimV1;
+  CX.stroke();
+  CX.fillStyle = PAL.selTx;
+  CX.fill();
 }
 function footRing(x, y, r, col) {
   CX.globalAlpha = 0.6;
@@ -895,16 +945,20 @@ function drawSh(n, x, y, sc, rot, i) {
   CX.restore();
   return true;
 }
+/* S1⑦（B4）：我方特效不透明度 ≤ 20%（FX_A 乘在每一種特效上），敵方預警 55%（TELE_A）；
+   閃光尖峰（M2-12 第二段 §12 第 8 點）也靠這個壓：斬擊月牙、死掉閃白、序列圖都乘 FX_A，預警永遠透得出來 */
+const FX_A = 0.2,
+  TELE_A = 0.55;
 function drawFx() {
   for (const o of G.fx) {
     const f = o.t / o.dur;
     if (o.k === 'p') {
-      CX.globalAlpha = 1 - f;
+      CX.globalAlpha = FX_A * (1 - f);
       CX.fillStyle = o.col;
       CX.fillRect(o.x + o.vx * o.t, o.y + o.vy * o.t + 200 * o.t * o.t, o.sz, o.sz);
     } else if (o.k === 'slash') {
       /* 斬擊：一彎月牙，從細到粗再消失 */
-      CX.globalAlpha = 1 - f * f;
+      CX.globalAlpha = FX_A * (1 - f * f);
       const a0 = o.ang - o.arc / 2 + o.arc * Math.min(1, f * 2.4) * 0;
       const g = CX.createRadialGradient(o.x, o.y - 20, o.r * 0.3, o.x, o.y - 20, o.r);
       g.addColorStop(0, `rgba(${PAL.rgb.glint},0)`);
@@ -917,7 +971,7 @@ function drawFx() {
       CX.closePath();
       CX.fill();
     } else if (o.k === 'quake') {
-      CX.globalAlpha = 0.6 * (1 - f);
+      CX.globalAlpha = FX_A * 0.6 * (1 - f);
       CX.fillStyle = PAL.txOffV1;
       CX.beginPath();
       CX.moveTo(o.x, o.y);
@@ -925,7 +979,7 @@ function drawFx() {
       CX.closePath();
       CX.fill();
     } else if (o.k === 'claw') {
-      CX.globalAlpha = 1 - f;
+      CX.globalAlpha = FX_A * (1 - f);
       CX.strokeStyle = o.big ? PAL.elFireV1 : PAL.ascHiV2;
       CX.lineWidth = o.big ? 6 : 3;
       for (let i = -1; i <= 1; i++) {
@@ -935,7 +989,7 @@ function drawFx() {
       }
     } else if (o.k === 'zap') {
       /* 電弧：兩點之間鋸齒狀的閃電 */
-      CX.globalAlpha = 1 - f;
+      CX.globalAlpha = FX_A * (1 - f);
       CX.strokeStyle = PAL.elLight;
       CX.lineWidth = 3;
       CX.beginPath();
@@ -951,25 +1005,25 @@ function drawFx() {
       CX.stroke();
       CX.globalAlpha = 1;
     } else if (o.k === 'ring') {
-      CX.globalAlpha = (1 - f) * 0.9;
+      CX.globalAlpha = FX_A * ((1 - f) * 0.9);
       CX.strokeStyle = o.col || PAL.catFracV4;
       CX.lineWidth = 10 * (1 - f) + 2;
       CX.beginPath();
       CX.ellipse(o.x, o.y - 10, o.r * (0.6 + 0.4 * f), o.r * (0.6 + 0.4 * f) * 0.75, 0, 0, TAU);
       CX.stroke();
     } else if (o.k === 'ghost') {
-      heroCell(6, 2, o.x, o.y, o.flip, 0.35 * (1 - f));
+      heroCell(6, 2, o.x, o.y, o.flip, FX_A * 0.35 * (1 - f));
     } else if (o.k === 'dust') {
-      CX.globalAlpha = 0.35 * (1 - f);
+      CX.globalAlpha = FX_A * 0.35 * (1 - f);
       CX.fillStyle = PAL.txLockV3;
       CX.beginPath();
       CX.arc(o.x, o.y - f * 10, 4 + f * 10, 0, TAU);
       CX.fill();
     } else if (o.k === 'die') {
       /* 死掉：閃白、往上散、淡出 */
-      spr(o.sp, o.x, o.y, o.sz, { flip: o.flip, white: f < 0.25, a: 1 - f, sx: 1 + f * 0.4, sy: 1 - f * 0.6 });
+      spr(o.sp, o.x, o.y, o.sz, { flip: o.flip, white: f < 0.25, a: FX_A * (1 - f), sx: 1 + f * 0.4, sy: 1 - f * 0.6 });
     } else if (o.k === 'heal') {
-      CX.globalAlpha = 1 - f;
+      CX.globalAlpha = FX_A * (1 - f);
       CX.strokeStyle = PAL.dmgHurtV1;
       CX.lineWidth = 3;
       CX.beginPath();
@@ -978,6 +1032,7 @@ function drawFx() {
     } else if (o.k === 'sh') {
       /* pixelfx 序列圖：照時間挑一格，對齊原圖的中心點 */
       const S = FXS[o.n];
+      CX.globalAlpha = FX_A;
       drawSh(
         o.n,
         o.x,
@@ -987,7 +1042,7 @@ function drawFx() {
         o.loop ? Math.floor((o.t * S.fps) % S.n) : Math.min(S.n - 1, Math.floor(f * S.n))
       );
     } else if (o.k === 'perfect') {
-      CX.globalAlpha = 1 - f;
+      CX.globalAlpha = FX_A * (1 - f);
       CX.strokeStyle = PAL.catMemV2;
       CX.lineWidth = 3;
       CX.beginPath();

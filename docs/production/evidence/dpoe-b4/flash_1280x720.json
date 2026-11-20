@@ -1,0 +1,54 @@
+{
+ "tag": "1280x720",
+ "stills": [
+  0.56,
+  0.78,
+  0.63,
+  0.54,
+  0.38,
+  0.5,
+  0.53,
+  0.48
+ ],
+ "A": {
+  "name": "一般戰鬥",
+  "frames": 685,
+  "sec": 11.96,
+  "fps": 57.3,
+  "median": 0.5,
+  "p90": 0.72,
+  "max": 1.35,
+  "over": 0,
+  "spikes": 0,
+  "spikeMaxMs": 0,
+  "spikeMs": [],
+  "perSecMax": 0
+ },
+ "B": {
+  "name": "王戰",
+  "frames": 346,
+  "sec": 5.97,
+  "fps": 57.9,
+  "median": 0.64,
+  "p90": 0.91,
+  "max": 2.47,
+  "over": 4,
+  "spikes": 4,
+  "spikeMaxMs": 34,
+  "spikeMs": [
+   15,
+   34,
+   19,
+   17
+  ],
+  "perSecMax": 3
+ },
+ "tel": {
+  "fxA": 0.2,
+  "teleA": 0.55,
+  "maxDiff": 33,
+  "px": 12544,
+  "over": 0
+ },
+ "when": "2026-11-20T07:00:04.789Z"
+}

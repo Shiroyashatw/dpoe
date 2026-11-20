@@ -222,6 +222,8 @@ const SES0 = () => ({
   craft: 0,
   mat: 0,
   cur: 0,
+  /* B4：被掉落門檻藏掉、照樣撿起來的件數（掛機卡「+{n} 件已收」） */
+  got: 0,
   best: '',
   gold: 0,
   deaths: 0,
@@ -978,7 +980,7 @@ function doRoll() {
 }
 /* 藥劑冷卻中再按：不喝；鈕水平抖 2 px（≤80 ms），減少動態改閃 2 px 外框 120 ms */
 function flaskBusy(k) {
-  const el = typeof document !== 'undefined' && document.querySelector(`#bar .sk[data-k='${k}']`);
+  const el = typeof document !== 'undefined' && document.querySelector(`.sk[data-k='${k}']`);
   if (!el || !el.animate) return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches)
     el.animate([{ outline: '2px solid var(--border-hi)' }, { outline: '2px solid var(--border-hi)' }], {
@@ -1226,6 +1228,8 @@ const CHASE_HOLD = 2.4;
 let CHASE_T = -1e9,
   CHASE_UNTIL = 0;
 let LOGV = 0; /* 掉落紀錄改了就加一（HUD 重畫） */
+/* B4：被掉落門檻藏掉（普通）的拾取時間，HUD 掉落動態「+{n} 件已收」只算 30 秒內的 */
+const GOT = [];
 function dropLog(n, c, k) {
   const L = (S.log = S.log || []);
   L.unshift(k ? { t: Date.now(), n, c, k } : { t: Date.now(), n, c });
@@ -1313,6 +1317,7 @@ function pickup(d) {
     sfx('pick');
     bagDirty();
     if (G.rs) G.rs.items.push(d.it);
+    if (!d.it.frac && !d.it.mem) GOT.push(Date.now()), SES && SES.got++;
     if (SES) {
       if (d.it.r === 2) SES.rare++;
       if (d.it.frac) SES.frac++;

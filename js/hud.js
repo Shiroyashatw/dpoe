@@ -124,8 +124,10 @@ const fmenuHTML = () =>
     .join('');
 function hudInit() {
   $('hud').innerHTML = `
-  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="dlog"></div><div id="bossbar" hidden><b id="bossn"></b><em class="bsh">現身</em><div class="bb"><i></i></div></div><div id="prog" hidden><b id="progt">王 0%</b><div class="pb"><i></i></div></div></div>
+  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="bossbar" hidden><b id="bossn"></b><em class="bsh">現身</em><div class="bb"><i></i></div></div><div id="prog" hidden><b id="progt">王 0%</b><div class="pb"><i></i></div></div></div>
   <button id="curs" data-a="curs" hidden></button>
+  <button id="dlog" data-a="dlog" hidden></button>
+  <div id="flk" role="group" aria-label="藥劑"></div>
   <div class="bottom">
     <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
     <div class="mid">
@@ -150,6 +152,10 @@ function hudInit() {
   <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}倉庫</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
   <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="camp">${ICO.home}回營地</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
+  $('flk').addEventListener('click', e => {
+    const el = e.target.closest('.sk');
+    if (el && !TOUCH.on) drinkFlask(el.dataset.k === 'mflask');
+  });
   $('chase').addEventListener('mouseenter', () => chaseBnHover(1));
   $('chase').addEventListener('mouseleave', () => chaseBnHover(0));
   pracInit();
@@ -161,8 +167,7 @@ function hudInit() {
 /* 技能列的圖示跟著技能欄換（換寶石後重畫）。桌機（M2-38，M2-37.4）：祭壇沒開的技能格不畫；開了但空著的只畫外框＋鍵帽，點了開技能面板 */
 function hudBar() {
   HV.bar = barKey();
-  $('bar').innerHTML = BAR.filter(b => b.slot == null || TOUCH.on || b.slot < campN('slots'))
-    .map(b => {
+  const skH = b => {
       if (!TOUCH.on && b.slot != null && !S.skills[b.slot].k)
         return `<button class="sk emp" data-k="${b.k}" data-tm="skill" data-tip="${esc(tipOf(b))}" aria-label="${b.key}：空的"><kbd>${b.key}</kbd></button>`;
       const g = b.slot != null && S.skills[b.slot].k,
@@ -177,7 +182,12 @@ function hudBar() {
                   : `<em class="empty">${ICO.plus}</em>`
                 : icHTML(b.ic);
       return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
-    })
+    },
+    fl = b => b.k === 'flask' || b.k === 'mflask';
+  /* S5（B4）：藥劑是常駐鈕（#flk），不在技能列裡；自動、抽屜開著都畫 */
+  $('flk').innerHTML = BAR.filter(fl).map(skH).join('');
+  $('bar').innerHTML = BAR.filter(b => !fl(b) && (b.slot == null || TOUCH.on || b.slot < campN('slots')))
+    .map(skH)
     .join('');
   for (const k in HV) if (/^[tnb]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$|^[cl](flask|mflask)$/.test(k)) delete HV[k];
 }
@@ -641,7 +651,8 @@ const sheetH = () =>
   shortSheet()
     ? Math.max(0, IH - SAFE.t - SAFE.b - 56 - 283)
     : Math.min(380, Math.max(0, IH - SAFE.t - SAFE.b - portFix() - 280));
-const fullOf = k => shortScr() && ['char', 'bag', 'inv', 'forge', 'stash'].includes(k);
+/* D2-04（B4）：矮的直立（390×664）技能分頁也拉全版，孔板首屏 ≥4 列（M2-40 §2.1） */
+const fullOf = k => shortScr() && ['char', 'bag', 'inv', 'forge', 'stash', 'skill'].includes(k);
 const portFull = () => NAV.full && anyPanel();
 const cvTop = () => (PORT() && !portFull() ? SAFE.t : 0);
 /* 藏身處（第二段才改營地場景）照舊：半版面板上緣在畫面高 38%（SHEET_TOP） */
@@ -2228,15 +2239,26 @@ function chaseBnClick() {
   chaseBnHide();
   chaseOpen(k);
 }
-/* HUD 的掉落紀錄（0.4.1）：最新 3 筆，30 秒後淡掉；完整的在「掉落紀錄」面板 */
+/* 掉落動態（B4：M2-40 §2、§9；S6／D2-10／D2-14／D3-03）：直立 202–378 從 154 起 3 列×26（抽屜開著 2 列、375 寬 2 列），
+   桌機 16–316 從 106 起 6 列×28；間距 4；新的在上、30 秒後淡掉。預設稀有以上：普通照撿不出列，最後一列合併「+{n} 件已收」（S3）。
+   整塊一個熱區（≥44），點了開掉落紀錄並選中最新一筆 */
 const LOG_SHOW = 30000;
 function logBar() {
   const now = Date.now(),
-    L = (S.log || []).filter(x => now - x.t < LOG_SHOW).slice(0, 3),
-    k = LOGV + ':' + L.length;
+    el = $('dlog'),
+    on = G.scene === 'map' && !(PORT() && portFull()),
+    max = PORT() ? (sheetOn() || IW < 390 ? 2 : 3) : TOUCH.on ? 2 : 6;
+  while (GOT.length && now - GOT[0] > LOG_SHOW) GOT.shift();
+  const hid = GOT.length,
+    L = (S.log || []).filter(x => now - x.t < LOG_SHOW).slice(0, hid ? max - 1 : max),
+    k = `${LOGV}:${L.length}:${hid}:${max}:${on}`;
   if (HV.log === k) return;
   HV.log = k;
-  $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
+  el.hidden = !on || !(L.length || hid);
+  el.innerHTML =
+    L.map(x => `<p class="lg-${x.c}">${logSh(x)}<span class="nm">${esc(x.n)}</span></p>`).join('') +
+    (hid ? `<p class="lg-got">${esc(strT('logGot', { n: abbrH(hid, 'own') }))}</p>` : '');
+  el.setAttribute('aria-label', STR_T.logAll);
 }
 const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
 /* 掉落紀錄選中的那一筆（橫幅顯示中按 L：最新的追逐物品） */
@@ -2396,6 +2418,7 @@ function idleHTML() {
     <div class="ir it1"><b>${tm}<span class="is">${strT('idleSoul', { s: abbrH(ses.soul || 0, 'own') })}</span></b><button class="ix" data-a="idlex" aria-label="收起" aria-expanded="true">${ICO.down}</button></div>
     ${ch ? chaseHTML() : ''}
     <div class="ir il3">${L.slice(0, 3).map(logRow).join('') || `<span class="c-dim">${STR_T.idleNone}</span>`}</div>
+    <button class="ir ilk" data-a="dlog"><span>${STR_T.logAll}</span>${ses.got ? `<small>${esc(strT('logGot', { n: abbrH(ses.got, 'own') }))}</small>` : ''}</button>
     <div class="ir">${goalHTML()}</div></div>`;
   return `<button class="ib" data-a="idlex" aria-label="${lab}" aria-expanded="false">${warn ? `<b class="c-warn">${esc(warn)}</b>` : `<b class="itm">${tm}</b>`}${ch ? `<span class="ipb ${n >= 100 ? 'full' : ''}">${icHTML('wangyin_guixu_16', 'ipw')}${tplSp('idlePity', 'n', n, 'cw')}<i class="pb"><i style="transform:scaleX(${n / 100})"></i></i></span>` : ''}${L[0] ? logRow(L[0]) : ''}</button><button class="ix" data-a="idlex" aria-label="展開" aria-expanded="false">${ICO.down}</button>`;
 }
@@ -3335,7 +3358,12 @@ function act(a, el) {
   } else if (a === 'idlex') idleToggle();
   else if (a === 'campline') ($('pcline').hidden = true), idleOpen();
   else if (a === 'curs') fmenuOpen('stash');
-  else if (a === 'offok') offClose();
+  else if (a === 'dlog') {
+    /* 掉落動態／掛機卡「全部掉落紀錄 ›」：開掉落紀錄並選中最新一筆 */
+    LOGSEL = (S.log || [])[0] || null;
+    if (!PANEL.log) fmenuOpen('log');
+    else hudPanels();
+  } else if (a === 'offok') offClose();
   else if (a === 'offcamp') offClose(), navGo('craft');
   else if (a === 'resume') {
     const k = S.world.cur || wGoal(S);

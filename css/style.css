@@ -34,6 +34,8 @@
   --panel-raised-2-v1: #3f342b;
   --panel-raised-2-v2: #3a2f28;
   --plate-world: rgba(11, 8, 6, 0.8);
+  /* B4 掉落動態字牌底 0.92（M2-40 §9） */
+  --plate-feed: rgba(11, 8, 6, 0.92);
   --sheet-bg: rgba(31, 25, 21, 0.92);
   --panel-rgb: 31, 25, 21;
   --panel-rgb-v1: 34, 36, 41;
@@ -503,7 +505,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--scene-
 .sk[data-k='mflask'] { --hi: var(--mp-hi); }
 /* 紅藍水（mumi 11/19 14:04）：不限次數、冷卻 3 秒；冷卻中 3 px 環＋剩餘部分扇形蓋 50% 暗、圖示 50% 亮度；冷卻好了環消失 */
 .sk[data-k='flask'] s, .sk[data-k='mflask'] s { transform: none; background: conic-gradient(rgba(var(--scrim-rgb), 0.5) calc(var(--v, 0) * 360deg), transparent 0); }
-.sk.cdn { box-shadow: inset 0 0 0 3px var(--hi); }
 .sk.cdn .ic { filter: brightness(0.5); }
 /* 低血且生命藥劑冷卻好了：2 px 外框 1 Hz 呼吸；減少動態常亮 */
 .sk.low::after { content: ''; position: absolute; inset: -3px; border: 2px solid var(--hp-hi); border-radius: inherit; pointer-events: none; animation: flLow 0.5s ease-in-out infinite alternate; }
@@ -756,8 +757,6 @@ body.touch #bar .sk[data-k='s2'] { --x: -83px; --y: -60px; }
 body.touch #bar .sk[data-k='s3'] { --x: -32px; --y: -97px; }
 body.touch #bar .sk[data-k='s4'] { --x: 32px; --y: -97px; }
 body.touch #bar .sk[data-k='roll'] { --x: -180px; --y: 0px; width: 56px; height: 56px; }
-body.touch #bar .sk[data-k='flask'] { --x: -156px; --y: -90px; width: 48px; height: 48px; }
-body.touch #bar .sk[data-k='mflask'] { --x: -214px; --y: -58px; width: 48px; height: 48px; }
 body.touch #bar .sk[data-k='use'] { --x: -104px; --y: -148px; width: 48px; height: 48px; }
 .sk .use { font-style: normal; font-size: var(--fs-s); font-weight: 700; }
 /* 浮動搖桿：平常淡淡的在左下，手指按哪裡就出現在哪裡 */
@@ -1064,8 +1063,6 @@ body.touch.port .mid { width: auto; padding: 0; }
 body.touch.port #bar { left: 0; right: 0; bottom: calc(12px + var(--sab, env(safe-area-inset-bottom))); width: auto; height: auto; display: flex; justify-content: center; align-items: center; gap: 8px; }
 body.touch.port #bar .sk { position: relative; transform: none; width: 56px; height: 56px; order: 1; }
 body.touch.port #bar .sk[data-k='s0'], body.touch.port #bar .sk[data-k='roll'] { display: none; }
-body.touch.port #bar .sk[data-k='flask'] { order: 0; width: 44px; height: 44px; }
-body.touch.port #bar .sk[data-k='mflask'] { order: 2; width: 44px; height: 44px; }
 body.touch.port #bar .sk[data-k='use'] { position: fixed; left: 50%; top: auto; bottom: calc(150px + var(--sab, env(safe-area-inset-bottom))); transform: translateX(-50%); width: 88px; height: 44px; border-radius: 22px; }
 body.touch.port #warn { left: 16px; right: 16px; bottom: calc(204px + var(--sab, env(safe-area-inset-bottom))); }
 body.touch.port #stick { opacity: 0; }
@@ -1704,10 +1701,7 @@ body:not(.touch) .tmore .tonly { display: none; }
 #banner.bn-pack { color: var(--tx-strong); border-color: var(--tx-strong); pointer-events: auto; cursor: pointer; }
 .mpg li[data-chs] { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { #banner { animation: none; } }
-#dlog { margin-top: 4px; pointer-events: none; }
-#dlog p { width: fit-content; margin: 2px 0 0; padding: 1px 6px; background: var(--plate-world); border-radius: 2px; font-size: var(--fs-s); color: var(--tx); text-shadow: 0 1px 2px rgb(var(--scrim-rgb)), 0 0 2px rgb(var(--scrim-rgb)); animation: lgfade 30s linear forwards; }
 @keyframes lgfade { 0%, 85% { opacity: 1; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { #dlog p { animation: none; } }
 .lg-chase { color: var(--rar-chase) !important; } .lg-frac { color: var(--cat-frac) !important; } .lg-mem { color: var(--cat-mem) !important; } .lg-cur, .lg-perf { color: var(--tx-strong) !important; }
 #plog { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); display: flex; flex-direction: column; z-index: 12; animation: pop 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #plog > * { flex: none; }
@@ -3149,3 +3143,85 @@ body.touch.port #curs .cv { margin-top: 4px; }
 body:not(.touch) #curs { left: 16px; top: 66px; width: 300px; height: 32px; font-size: var(--f16); }
 /* D2-05（部分）：桌機窄視窗（1280×800 ×1.25＝CSS 1024×640）右欄最寬 100vw − 644（右邊距 16＋間隔 16，戰場留 ≥612）；1280×720 不變 */
 body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcamp) { max-width: calc(100vw - 644px); }
+
+/* ---------- B4 戰鬥 HUD（fix-list B4；M2-40 §2、§9；D1-fix-mumi-1119 §2） ---------- */
+/* S6／D2-10／D2-14／D3-03 掉落動態：直立 202–378 從 154 起（資源列 110–142 下 12）3 列×26、字 14；桌機 16–316 從 106 起 6 列×28、字 16；間距 4。
+   字牌底 0.92；整塊一個熱區 ≥44，點了開掉落紀錄 */
+#dlog { position: fixed; z-index: 6; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 44px; margin: 0; padding: 0; background: none; border: 0; text-align: left; cursor: pointer; pointer-events: auto; }
+#dlog[hidden] { display: none; }
+#dlog p { display: flex; align-items: center; gap: 4px; max-width: 100%; height: 26px; margin: 0; padding: 0 6px; background: var(--plate-feed); border-radius: 2px; font: 700 var(--f14) var(--font); color: var(--tx); white-space: nowrap; overflow: hidden; animation: lgfade 30s linear forwards; }
+#dlog p .nm { overflow: hidden; text-overflow: ellipsis; }
+#dlog p .ipw { width: 16px; height: 16px; flex: none; image-rendering: pixelated; }
+#dlog p.lg-got { color: var(--tx-dim); animation: none; }
+/* 直立：字牌從 154 起，熱區從 158 起（跟資源列熱區 106–150 隔 8，D2-07） */
+body.touch.port #dlog { top: calc(var(--st, 0px) + 111px); right: 12px; width: 176px; }
+body.touch.port #dlog p:first-child { margin-top: -4px; }
+body:not(.touch) #dlog { left: 16px; top: 106px; width: 300px; }
+body:not(.touch) #dlog p { height: 28px; font-size: var(--f16); }
+body.touch:not(.port) #dlog { left: calc(10px + env(safe-area-inset-left)); top: calc(56px + env(safe-area-inset-top)); width: 220px; }
+@media (prefers-reduced-motion: reduce) { #dlog p { animation: none; } }
+/* 掛機卡展開清單最後一列「全部掉落紀錄 ›」＋「+{n} 件已收」（D1-fix §1） */
+#pidle .ilk { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 0 12px; background: none; border: 0; color: var(--tx-dim); font: 700 var(--f14) var(--font); cursor: pointer; }
+#pidle .ilk small { font: 400 var(--f14) var(--font); font-variant-numeric: tabular-nums; }
+body:not(.touch) #pidle .ilk { min-height: 36px; font-size: var(--f16); }
+
+/* S5／D3-03 藥劑常駐鈕：不限次數、只畫 3 秒冷卻（外圈 3 px 環＋1 px 黑邊（--scrim-v1）、鈕面扇形掃過、圖示 50%）；沒有次數、沒有停用。
+   直立 56×56 在 x 8–64（生命 576–632、魔力 644–700）；抽屜開著 44×44 在 290–382 × 252–296；桌機 48×48 在 732–836 × 632–680，鍵帽 1／2 */
+#flk { position: fixed; z-index: 5; display: flex; gap: 12px; pointer-events: auto; }
+#flk .sk { flex: none; width: 56px; height: 56px; cursor: pointer; }
+#flk .sk .ic { width: 32px; height: 32px; }
+#flk .sk[data-k='flask'] { background: var(--hp); }
+#flk .sk[data-k='mflask'] { background: var(--mp); }
+#flk .sk.cdn::before { content: ''; position: absolute; inset: -4px; z-index: 1; padding: 3px; border-radius: 2px; background: conic-gradient(var(--hi) calc(var(--v, 0) * 360deg), transparent 0); mask: linear-gradient(var(--scrim-v1) 0 0) content-box exclude, linear-gradient(var(--scrim-v1) 0 0); pointer-events: none; }
+#flk .sk.cdn::after { content: ''; position: absolute; inset: -5px; border: 1px solid var(--scrim-v1); border-radius: 2px; pointer-events: none; }
+body.touch.port #flk { left: 8px; bottom: calc(var(--hb) + 10px); flex-direction: column; }
+body.touch.port.sheet #flk { left: auto; right: 8px; bottom: calc(var(--hb) + 34px); flex-direction: row; gap: 4px; }
+body.touch.port.sheet #flk .sk { width: 44px; height: 44px; }
+body.touch.port.sheetfull #flk, body:not(.inmap) #flk { display: none; }
+body:not(.touch) #flk { left: calc(50% + 92px); bottom: 40px; gap: 8px; }
+body:not(.touch) #flk .sk { width: 48px; height: 48px; }
+/* 手機橫向：規格沒寫座標（找不到，待指示）；沿用 B4 前橫向藥劑的位置（技能群左上方，同 #bar 錨點 −156／−214, −90） */
+body.touch:not(.port) #flk { right: calc(202px + env(safe-area-inset-right)); bottom: calc(130px + var(--sab, env(safe-area-inset-bottom))); gap: 10px; }
+body.touch:not(.port) #flk .sk { width: 48px; height: 48px; }
+
+/* 生命／魔力條（M2-40 §2；D2-02）：直立 72–382 × 600–631（生命 16＋魔力 13、間距 2）；桌機 400–780 × 590–620（寬 380）。
+   條上「現值／上限」12／700 等寬＋2 px 黑描邊（--scrim-v1）；文字 130% 時 16、條高 +4 */
+.hb span { font: 700 round(up, calc(12px * var(--tscale)), 1px) / 1 var(--font) !important; font-variant-numeric: tabular-nums !important; color: var(--tx-strong); -webkit-text-stroke: 2px var(--scrim-v1); paint-order: stroke fill; text-shadow: none; }
+body .bars #bhp { height: calc(16px + (var(--tscale) - 1) / 0.3 * 4px); }
+body .bars #bmp { height: calc(13px + (var(--tscale) - 1) / 0.3 * 4px); }
+body .bars { gap: 2px; width: auto; }
+body.touch.port .bottom, body.touch.port.ai .bottom { left: 72px; right: 8px; bottom: calc(var(--hb) + 69px); }
+body.touch.port.sheet .bottom { left: 72px; right: 8px; bottom: calc(var(--hb) - 10px); }
+body.touch.port .mid { width: auto; flex: 1; }
+/* 技能鈕 56×56 從 x 76 起、間距 6（給藥劑讓位），底在 700 */
+body.touch.port #bar { left: 76px; right: 8px; bottom: calc(var(--hb) + 10px); justify-content: flex-start; gap: 6px; }
+body:not(.touch) .bottom { left: calc(50% - 240px); width: 380px; bottom: 91px; transform: none; }
+body:not(.touch) .mid { flex: 1; gap: 4px; margin: 0; }
+body:not(.touch) .xp { width: 100%; box-sizing: border-box; }
+body:not(.touch) .bars { width: 100%; }
+body:not(.touch) #bar { position: fixed; left: calc(50% - 220px); bottom: 38px; gap: 10px; }
+body:not(.touch) .bars #bmp { height: calc(12px + (var(--tscale) - 1) / 0.3 * 4px); }
+body.touch.port.sheet .mech { margin-right: 96px; }
+
+/* D2-04 技能孔板（M2-40 §2.1）：直立每列 44 高、列距 16；招圖示 44＋輔助孔各 44、間距 8；右邊「{n}/秒」14／700。招名放在 aria／說明，點圖示進那一招 */
+body.touch.port #pskill .sk-sec.rows { gap: 16px; }
+body.touch.port #pskill .skr:not(.emp):not(.nxu) { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 44px; padding: 0; }
+body.touch.port #pskill .skr-up { min-width: 96px; padding: 0 8px; }
+body.touch.port #pskill .skr .sk-grip, body.touch.port #pskill .skr .sk-grip0 { width: 44px; min-height: 44px; }
+body.touch.port #pskill .skr .sk-grip0 { width: 0; }
+body.touch.port #pskill .skr-main { flex: none; }
+body.touch.port #pskill .skr-main .t, body.touch.port #pskill .skr-sw { display: none; }
+body.touch.port #pskill .skr-main .ic { width: 44px; height: 44px; }
+body.touch.port #pskill .skr-2 { display: contents; }
+body.touch.port #pskill .holes { gap: 8px; margin-right: auto; }
+body.touch.port #pskill .holes .h { width: 44px; height: 44px; border-radius: 2px; }
+body.touch.port #pskill .holes .h .ic { width: 32px; height: 32px; }
+body.touch.port #pskill .skr .dps { font: 700 14px var(--font); }
+body.touch.port #pskill .skr .dps b { font: 700 14px var(--font); margin: 0; }
+body.touch.port #pskill .skr.emp, body.touch.port #pskill .skr.nxu { min-height: 44px; }
+/* II 另起一行：I、II 各 44 高、間距 16 */
+.sk-seg.sk-seg2 { display: flex; flex-direction: column; gap: 16px; }
+.sk-seg.sk-seg2 button { justify-content: flex-start; min-height: 44px; }
+/* D2-02：條填色改平塗 --hp／--mp（字 --tx-strong 對填色 7.2、對空軌 --panel-inset 14.6；原漸層上緣 --bad-v4 對字只有約 2.9） */
+.bars #bhp > i { background: var(--hp); }
+.bars #bmp:not(.hf) > i { background: var(--mp); }

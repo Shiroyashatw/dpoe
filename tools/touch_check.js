@@ -2430,27 +2430,32 @@ const settle = async (p, fn, arg) => {
     });
     await p.waitForTimeout(800);
     /* BASE-01：跑圖中開技能、營地是半版（自動模式戰鬥照跑） */
+    /* B4 D2-04（M2-40 §2.1、SK10）：矮的直立（shortScr，例 375×667、390×664）半版抽屜只剩約 210 高、放不下孔板 4 列（4×44＋3×16＝224），
+       技能分頁改預設全版（首屏 ≥4 列）；營地升級抽屜照舊半版。其他尺寸技能照舊半版 */
     const half = await p.evaluate(() => {
       navGo('skill');
-      const a = [NAV.full, $('pskill').getBoundingClientRect().top > 200, !worldPaused()];
+      const sh = shortScr(),
+        a = [NAV.full === (sh ? 1 : 0), $('pskill').getBoundingClientRect().top > 200 === !sh, !worldPaused()];
       navGo('craft');
       return [...a, NAV.full, $('pcamp').getBoundingClientRect().top > 200 && !!PANEL.camp && !worldPaused()];
     });
     /* M2-12 §3：刷圖中「營地」開的是營地升級抽屜（半版、刷圖不停） */
     ok(
-      'BASE-01：跑圖中技能、營地升級抽屜預設半版，自動模式不暫停',
-      half.join() === '0,true,true,0,true',
+      'BASE-01：跑圖中技能、營地升級抽屜預設半版（矮直立技能預設全版，B4 D2-04），自動模式不暫停',
+      half.join() === 'true,true,true,0,true',
       JSON.stringify(half)
     );
     /* BASE-01.s：半版時同時看得到玩家、目前敵人、生命條（畫布裡的螢幕座標） */
     const bs = await p.evaluate(async () => {
-      navGo('skill');
+      navGo(shortScr() ? 'craft' : 'skill'); /* 矮直立技能是全版（B4），改量營地升級半版抽屜 */
       await new Promise(r => setTimeout(r, 1200));
       const H = cvH(),
         m = aiTarget(),
         sy = y => H / 2 + (y - G.cam.y) * ZOOM,
         sx = x => IW / 2 + (x - G.cam.x) * ZOOM,
         hp = $('bhp').getBoundingClientRect();
+      /* 後面 M1-10、M1-SK.1 量的是技能半版抽屜：矮直立量完營地後開回技能、拉成半版（玩家往下拉就是半版） */
+      if (shortScr()) navGo('skill'), (NAV.full = 0), hudPanels();
       return {
         p: [Math.round(sx(P.x)), Math.round(sy(P.y))],
         m: m ? [Math.round(sx(m.x)), Math.round(sy(m.y))] : null,
@@ -2490,19 +2495,31 @@ const settle = async (p, fn, arg) => {
       pz[0] && pz[1] && Math.abs(pz[2]) <= 2 && pz[3] && pz[4] && pz[5] === 22,
       JSON.stringify(pz)
     );
-    /* M1-SK.1：總覽每列有「換」44×44、頻率「Lv 1 · 每秒…下／…秒一次」、下一個解鎖只一列 */
+    /* M1-SK.1：總覽每列有「換」44×44、頻率「Lv 1 · 每秒…下／…秒一次」、下一個解鎖只一列。
+       B4 D2-04（M2-40 §2.1）直立孔板每列 44 高：「換」與招名收進招圖示鈕（點了進那一招再換），改量招圖示鈕與每個輔助孔都 ≥44×44、
+       招圖示鈕的 aria-label 有招名＋同一句頻率（直立）；桌機照舊量「換」 */
     const sk = await p.evaluate(() => {
-      const sw = document.querySelector('#pskill .skr-sw'),
-        r = sw && sw.getBoundingClientRect();
+      const big = e => {
+          const r = e && e.getBoundingClientRect();
+          return !!r && r.width >= 44 && r.height >= 44;
+        },
+        port = document.body.classList.contains('port'),
+        mn = document.querySelector('#pskill .skr-main'),
+        fq = (document.querySelector('#pskill .skr .fq') || {}).textContent || '';
       return [
-        !!r && r.width >= 44 && r.height >= 44,
+        port
+          ? big(mn) &&
+            [...document.querySelectorAll('#pskill .skr .holes .h')].every(big) &&
+            (mn.getAttribute('aria-label') || '').endsWith(fq) &&
+            !!fq
+          : big(document.querySelector('#pskill .skr-sw')),
         (document.querySelector('#pskill .skr .fq') || {}).textContent || '',
         document.querySelectorAll('#pskill .skr.nxu').length,
         (document.querySelector('#pskill .skr.nxu') || {}).textContent || ''
       ];
     });
     ok(
-      'M1-SK.1／M1-16b／M1-07b：每列「換」44×44、名稱下一行寫頻率、技能面板的下一個解鎖只一列',
+      'M1-SK.1／M1-16b／M1-07b：每列「換」44×44（直立 B4 孔板：招圖示鈕＋孔 ≥44×44、aria-label 有頻率）、名稱下一行寫頻率、技能面板的下一個解鎖只一列',
       sk[0] &&
         /^Lv 1 · (每秒 [\d.]+ 下|[\d.]+ 秒一次)$/.test(sk[1]) &&
         sk[2] === 1 &&

@@ -8839,6 +8839,9 @@ const STR_T = {
   idleBoss: '・打倒王 {b} 次',
   idleSoul: '・靈魂 +{s}',
   idleNone: '還沒有稀有以上的掉落',
+  /* B4 S3：掉落動態最後一列、掛機卡清單最後一列（名詞表 v0.6.17；EN +{n} items collected／All drops ›） */
+  logGot: '+{n} 件已收',
+  logAll: '全部掉落紀錄 ›',
   idleFull: '倉庫快滿',
   idleAway: '離開 {t}・{r}',
   /* B3 D2-11：回戰場那一行（M2-12 第二段 §0.1；EN While in camp: Boss Seal {n} · Souls +{s} · {k} items · ◆ {r}）；0 的項不寫 */

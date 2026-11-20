@@ -426,11 +426,11 @@ function homeHTML() {
         i
           ? `<button class="sk-grip" data-sk="mv:${i}" aria-label="調整${esc(D.n)}的順序">${GRIP}</button>`
           : '<span class="sk-grip0"></span>'
-      }<button class="skr-main" data-sk="go:one:${i}">${icHTML(D.ic)}<span class="t"><span class="n">${esc(D.n)}${i === 0 ? '<small>普攻</small>' : late.includes(i) ? '<small>條件技</small>' : ''}</span><small class="fq">${key ? key + '・' : ''}Lv ${libLv(r.k)} · ${freqTxt(c)}</small></span></button><button class="skr-sw" data-sk="go:skills:${i}" aria-label="換掉${esc(D.n)}">換</button>
+      }<button class="skr-main" data-sk="go:one:${i}" aria-label="${esc(D.n)}・${key ? key + '・' : ''}Lv ${libLv(r.k)} · ${freqTxt(c)}">${icHTML(D.ic)}<span class="t"><span class="n">${esc(D.n)}${i === 0 ? '<small>普攻</small>' : late.includes(i) ? '<small>條件技</small>' : ''}</span><small class="fq">${key ? key + '・' : ''}Lv ${libLv(r.k)} · ${freqTxt(c)}</small></span></button><button class="skr-sw" data-sk="go:skills:${i}" aria-label="換掉${esc(D.n)}">換</button>
       <div class="skr-2">${holesHTML(r)}${
         bad
           ? `<span class="why">${esc(bad)}</span>`
-          : `<span class="dps">DPS<b>${v != null ? fullN(v) : '—'}</b></span>${upCell(r.k, i)}`
+          : `<span class="dps"><b>${v != null ? fullN(v) : '—'}</b>/秒</span>${upCell(r.k, i)}`
       }</div></div>`;
     })
     .join('');
@@ -858,7 +858,9 @@ function expandHTML(x, P) {
   if (k2) {
     const t2 = SKUI.tier === 2,
       d = t => (t != null && Math.abs(t) > 0.5 ? `${t > 0 ? '▲ +' : '▼ −'}${fullN(Math.abs(t))}` : '＝');
-    seg = `<div class="sk-seg" role="group" aria-label="輔助的階"><button class="${t2 ? '' : 'on'}" data-sk="ptier:1" aria-pressed="${!t2}">I　${d(x.d1)}</button><button class="${t2 ? 'on' : ''}" data-sk="ptier:2" aria-pressed="${t2}">II${sup2Lock(k2) ? ICO.lock : ''}　${d(x.d2)}</button></div>${
+    /* D2-04（B4）：I、II 各一行（高 44、間距 16）；II 鎖住寫解鎖條件（鍛造台 Lv20 才開），條件到了寫「解鎖 II・15,000」 */
+    const lk = sup2Lock(k2) && sup2Check(k2);
+    seg = `<div class="sk-seg sk-seg2" role="group" aria-label="輔助的階"><button class="${t2 ? '' : 'on'}" data-sk="ptier:1" aria-pressed="${!t2}">I　${d(x.d1)}</button><button class="${t2 ? 'on' : ''}" data-sk="ptier:2" aria-pressed="${t2}">II${lk ? `${ICO.lock}　${esc(lk.why === '鍛造台 Lv20 才開' ? lk.why : `解鎖 II・${fullN(lk.c, 'cost')}`)}` : `　${d(x.d2)}`}</button></div>${
       t2
         ? `<ul class="sk-x">${(SUPPORTS[k2].x && SUPPORTS[k2].x.length ? SUPPORTS[k2].x : [SUPPORTS[k2].d]).map(l => `<li>${rich(l)}</li>`).join('')}</ul>`
         : ''
