@@ -1,0 +1,748 @@
+﻿game,mod,affix_type,slots,tier,ilvl,min,max,source_url,version
+PoE1,maximum Life,prefix,Body Armours,1,86,175,189,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,2,81,160,174,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,3,73,145,159,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,4,64,130,144,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,5,54,115,129,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,6,44,100,114,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,7,36,85,99,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,8,30,70,84,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,9,24,55,69,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,10,18,40,54,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,11,11,25,39,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,12,5,10,24,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,Body Armours,13,1,3,9,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",1,54,115,129,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",2,44,100,114,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",3,36,85,99,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",4,30,70,84,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",5,24,55,69,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",6,18,40,54,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",7,11,25,39,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",8,5,10,24,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Gloves, Boots, Amulets",9,1,3,9,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",1,64,130,144,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",2,54,115,129,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",3,44,100,114,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",4,36,85,99,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",5,30,70,84,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",6,24,55,69,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",7,18,40,54,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",8,11,25,39,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",9,5,10,24,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,"Helmets, Quivers, Belts",10,1,3,9,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,maximum Life,prefix,Rings,1,44,100,114,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Rings,2,36,85,99,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Rings,3,30,70,84,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Rings,4,24,55,69,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Rings,5,18,40,54,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Rings,6,11,25,39,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Rings,7,5,10,24,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Rings,8,1,3,9,https://poedb.tw/us/Rings,3.30.0c
+PoE1,maximum Life,prefix,Shields,1,73,145,159,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,2,64,130,144,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,3,54,115,129,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,4,44,100,114,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,5,36,85,99,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,6,30,70,84,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,7,24,55,69,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,8,18,40,54,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,9,11,25,39,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,10,5,10,24,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Life,prefix,Shields,11,1,3,9,https://poedb.tw/us/Shields_dex,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",1,85,74,78,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",2,81,69,73,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",3,75,65,68,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",4,69,60,64,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",5,60,55,59,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",6,51,50,54,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",7,42,45,49,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",8,35,40,44,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",9,29,35,39,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",10,23,30,34,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",11,17,25,29,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",12,11,20,24,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,"Amulets, Rings",13,1,15,19,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,maximum Mana,prefix,Belts,1,75,65,68,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,2,69,60,64,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,3,60,55,59,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,4,51,50,54,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,5,42,45,49,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,6,35,40,44,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,7,29,35,39,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,8,23,30,34,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,9,17,25,29,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,10,11,20,24,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,Belts,11,1,15,19,https://poedb.tw/us/Belts,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",1,81,69,73,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",2,75,65,68,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",3,69,60,64,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",4,60,55,59,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",5,51,50,54,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",6,42,45,49,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",7,35,40,44,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",8,29,35,39,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",9,23,30,34,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",10,17,25,29,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",11,11,20,24,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Body Armours, Helmets, Gloves, Boots, Shields",12,1,15,19,https://poedb.tw/us/Body_Armours_dex_int,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",1,81,140,159,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",2,75,130,139,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",3,69,120,129,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",4,60,110,119,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",5,51,100,109,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",6,42,90,99,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",7,35,80,89,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",8,29,70,79,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",9,23,60,69,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",10,17,50,59,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",11,11,40,49,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres",12,1,30,39,https://poedb.tw/us/Claws,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",1,81,200,229,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",2,75,180,199,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",3,69,160,179,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",4,60,140,159,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",5,51,120,139,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",6,42,100,119,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",7,35,90,99,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",8,29,80,89,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",9,23,70,79,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",10,17,60,69,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",11,11,50,59,https://poedb.tw/us/Staves,3.30.0c
+PoE1,maximum Mana,prefix,"Staves, Warstaves",12,1,40,49,https://poedb.tw/us/Staves,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",1,84,46,48,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",2,72,42,45,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",3,60,36,41,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",4,48,30,35,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",5,36,24,29,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",6,24,18,23,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",7,12,12,17,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",8,1,6,11,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",1,84,46,48,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",2,72,42,45,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",3,60,36,41,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",4,50,30,35,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",5,38,24,29,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",6,26,18,23,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",7,14,12,17,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",8,1,6,11,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",1,84,46,48,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",2,72,42,45,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",3,60,36,41,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",4,49,30,35,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",5,37,24,29,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",6,25,18,23,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",7,13,12,17,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",8,1,6,11,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",1,81,31,35,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",2,65,26,30,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",3,56,21,25,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",4,44,16,20,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",5,30,11,15,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Quivers, Amulets, Rings, Belts",6,16,5,10,https://poedb.tw/us/Body_Armours_dex,3.30.0c
+PoE1,Strength,suffix,Belts,1,85,56,60,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,2,82,51,55,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,3,74,43,50,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,4,66,38,42,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,5,55,33,37,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,6,44,28,32,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,7,33,23,27,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,8,22,18,22,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,9,11,13,17,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,Belts,10,1,8,12,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",1,82,51,55,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",2,74,43,50,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",3,66,38,42,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",4,55,33,37,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",5,44,28,32,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",6,33,23,27,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",7,22,18,22,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",8,11,13,17,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Strength,suffix,"Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",9,1,8,12,https://poedb.tw/us/Sceptres,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",1,82,51,55,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",2,74,43,50,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",3,66,38,42,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",4,55,33,37,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",5,44,28,32,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",6,33,23,27,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",7,22,18,22,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",8,11,13,17,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Claws, Daggers, Rune Daggers, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, Bows, Two Hand Swords, Two Hand Axes, Body Armours, Helmets, Boots, Shields, Amulets, Rings",9,1,8,12,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",1,85,56,60,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",2,82,51,55,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",3,74,43,50,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",4,66,38,42,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",5,55,33,37,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",6,44,28,32,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",7,33,23,27,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",8,22,18,22,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",9,11,13,17,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Dexterity,suffix,"Gloves, Quivers",10,1,8,12,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",1,82,51,55,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",2,74,43,50,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",3,66,38,42,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",4,55,33,37,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",5,44,28,32,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",6,33,23,27,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",7,22,18,22,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",8,11,13,17,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, Staves, Warstaves, Body Armours, Gloves, Boots, Shields, Amulets, Rings",9,1,8,12,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Intelligence,suffix,Helmets,1,85,56,60,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,2,82,51,55,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,3,74,43,50,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,4,66,38,42,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,5,55,33,37,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,6,44,28,32,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,7,33,23,27,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,8,22,18,22,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,9,11,13,17,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Intelligence,suffix,Helmets,10,1,8,12,https://poedb.tw/us/Helmets_dex,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,77,34-47,72-84,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,65,30-40,63-73,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,54,25-33,52-61,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,46,20-28,43-51,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,36,16-22,35-40,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,29,13-17,28-32,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,21,10-13,21-25,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,13,6-8,12-15,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",9,2,2,4-5,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",1,77,22-29,45-52,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",2,65,19-25,39-45,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",3,54,16-21,32-38,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",4,46,13-18,27-31,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",5,36,11-14,21-25,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",6,29,8-12,17-20,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",7,21,6-9,13-15,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",8,13,4-5,8-9,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",9,2,1,2-3,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,82,165-225,335-390,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,74,137-188,279-325,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,62,110-150,223-260,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,51,85-115,172-200,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,42,63-85,128-148,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,33,45-61,91-106,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,26,32-44,65-76,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,18,23-31,47-54,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",9,11,14-20,29-33,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",10,1,3-5,6-7,https://poedb.tw/us/Bows,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",1,82,89-121,180-210,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",2,74,74-101,150-175,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",3,62,59-81,120-140,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",4,51,46-62,93-107,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",5,42,34-46,68-80,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",6,33,24-33,49-57,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",7,26,17-24,35-41,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",8,18,12-17,25-29,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",9,11,8-10,15-18,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Adds # to # Fire Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces",10,1,1-2,3-4,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,83,170,179,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,73,155,169,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,60,135,154,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,46,110,134,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,35,85,109,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,23,65,84,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,11,50,64,https://poedb.tw/us/Claws,3.30.0c
+PoE1,% increased Physical Damage,prefix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,1,40,49,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,77,26,27,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,60,23,25,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,45,20,22,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,37,17,19,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,30,14,16,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,22,11,13,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,11,8,10,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Claws, Daggers, Rune Daggers, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,1,5,7,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Attack Speed,suffix,"Gloves, Shields, Quivers",1,76,14,16,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Attack Speed,suffix,"Gloves, Shields, Quivers",2,22,11,13,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Attack Speed,suffix,"Gloves, Shields, Quivers",3,11,8,10,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Attack Speed,suffix,"Gloves, Shields, Quivers",4,1,5,7,https://poedb.tw/us/Gloves_dex,3.30.0c
+PoE1,Attack Speed,suffix,Rings,1,1,5,7,https://poedb.tw/us/Rings,3.30.0c
+PoE1,Attack Speed,suffix,"Wands, Bows",1,37,17,19,https://poedb.tw/us/Wands,3.30.0c
+PoE1,Attack Speed,suffix,"Wands, Bows",2,30,14,16,https://poedb.tw/us/Wands,3.30.0c
+PoE1,Attack Speed,suffix,"Wands, Bows",3,22,11,13,https://poedb.tw/us/Wands,3.30.0c
+PoE1,Attack Speed,suffix,"Wands, Bows",4,11,8,10,https://poedb.tw/us/Wands,3.30.0c
+PoE1,Attack Speed,suffix,"Wands, Bows",5,1,5,7,https://poedb.tw/us/Wands,3.30.0c
+PoE1,Critical Strike Chance,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,73,35,38,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Critical Strike Chance,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,59,30,34,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Critical Strike Chance,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,44,25,29,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Critical Strike Chance,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,30,20,24,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Critical Strike Chance,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,20,15,19,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Critical Strike Chance,suffix,"Claws, Daggers, Rune Daggers, Wands, Sceptres, One Hand Swords, Thrusting One Hand Swords, One Hand Axes, One Hand Maces, Bows, Staves, Warstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,1,10,14,https://poedb.tw/us/Claws,3.30.0c
+PoE1,Global Critical Strike Chance,suffix,Amulets,1,72,35,38,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,Global Critical Strike Chance,suffix,Amulets,2,58,30,34,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,Global Critical Strike Chance,suffix,Amulets,3,44,25,29,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,Global Critical Strike Chance,suffix,Amulets,4,30,20,24,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,Global Critical Strike Chance,suffix,Amulets,5,20,15,19,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,Global Critical Strike Chance,suffix,Amulets,6,5,10,14,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,Armour,prefix,Belts,1,86,461,540,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Belts,2,83,401,460,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Belts,3,71,323,400,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Belts,4,57,139,322,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Belts,5,44,61,138,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Belts,6,30,36,60,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Belts,7,18,11,35,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Belts,8,1,3,10,https://poedb.tw/us/Belts,3.30.0c
+PoE1,Armour,prefix,Body Armours,1,77,401,500,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,2,69,301,400,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,3,60,201,300,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,4,51,151,200,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,5,43,121,150,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,6,35,102,120,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,7,29,83,101,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,8,23,64,82,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,9,17,36,63,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,10,11,13,35,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,Body Armours,11,1,6,12,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,Armour,prefix,"Gloves, Boots",1,43,121,150,https://poedb.tw/us/Gloves_str,3.30.0c
+PoE1,Armour,prefix,"Gloves, Boots",2,35,102,120,https://poedb.tw/us/Gloves_str,3.30.0c
+PoE1,Armour,prefix,"Gloves, Boots",3,29,83,101,https://poedb.tw/us/Gloves_str,3.30.0c
+PoE1,Armour,prefix,"Gloves, Boots",4,23,64,82,https://poedb.tw/us/Gloves_str,3.30.0c
+PoE1,Armour,prefix,"Gloves, Boots",5,17,36,63,https://poedb.tw/us/Gloves_str,3.30.0c
+PoE1,Armour,prefix,"Gloves, Boots",6,11,13,35,https://poedb.tw/us/Gloves_str,3.30.0c
+PoE1,Armour,prefix,"Gloves, Boots",7,1,6,12,https://poedb.tw/us/Gloves_str,3.30.0c
+PoE1,Armour,prefix,Helmets,1,51,151,200,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Helmets,2,43,121,150,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Helmets,3,35,102,120,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Helmets,4,29,83,101,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Helmets,5,23,64,82,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Helmets,6,17,36,63,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Helmets,7,11,13,35,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Helmets,8,1,6,12,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Armour,prefix,Shields,1,69,301,400,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,2,60,201,300,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,3,51,151,200,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,4,43,121,150,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,5,35,102,120,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,6,29,83,101,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,7,23,64,82,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,8,17,36,63,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,9,11,13,35,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,Armour,prefix,Shields,10,1,6,12,https://poedb.tw/us/Shields_str,3.30.0c
+PoE1,% increased Armour,prefix,Amulets,1,77,33,36,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Armour,prefix,Amulets,2,70,29,32,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Armour,prefix,Amulets,3,56,24,28,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Armour,prefix,Amulets,4,42,19,23,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Armour,prefix,Amulets,5,30,14,18,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Armour,prefix,Amulets,6,18,9,13,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Armour,prefix,Amulets,7,2,4,8,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",1,86,101,110,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",2,84,92,100,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",3,72,80,91,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",4,60,68,79,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",5,42,56,67,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",6,29,43,55,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",7,17,27,42,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Body Armours, Shields",8,3,15,26,https://poedb.tw/us/Body_Armours_str,3.30.0c
+PoE1,% increased Armour,prefix,"Helmets, Gloves, Boots",1,84,92,100,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,% increased Armour,prefix,"Helmets, Gloves, Boots",2,72,80,91,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,% increased Armour,prefix,"Helmets, Gloves, Boots",3,60,68,79,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,% increased Armour,prefix,"Helmets, Gloves, Boots",4,42,56,67,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,% increased Armour,prefix,"Helmets, Gloves, Boots",5,29,43,55,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,% increased Armour,prefix,"Helmets, Gloves, Boots",6,17,27,42,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,% increased Armour,prefix,"Helmets, Gloves, Boots",7,3,15,26,https://poedb.tw/us/Helmets_str,3.30.0c
+PoE1,Movement Speed,prefix,Boots,1,86,35,35,https://poedb.tw/us/Boots_dex,3.30.0c
+PoE1,Movement Speed,prefix,Boots,2,55,30,30,https://poedb.tw/us/Boots_dex,3.30.0c
+PoE1,Movement Speed,prefix,Boots,3,40,25,25,https://poedb.tw/us/Boots_dex,3.30.0c
+PoE1,Movement Speed,prefix,Boots,4,30,20,20,https://poedb.tw/us/Boots_dex,3.30.0c
+PoE1,Movement Speed,prefix,Boots,5,15,15,15,https://poedb.tw/us/Boots_dex,3.30.0c
+PoE1,Movement Speed,prefix,Boots,6,1,10,10,https://poedb.tw/us/Boots_dex,3.30.0c
+PoE1,% increased Spell Damage,prefix,Amulets,1,76,23,26,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Spell Damage,prefix,Amulets,2,56,18,22,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Spell Damage,prefix,Amulets,3,38,13,17,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Spell Damage,prefix,Amulets,4,20,8,12,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Spell Damage,prefix,Amulets,5,5,3,7,https://poedb.tw/us/Amulets,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",1,84,100,109,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",2,64,85,99,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",3,58,70,84,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",4,46,55,69,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",5,35,40,54,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",6,23,30,39,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",7,11,20,29,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,"Rune Daggers, Wands, Sceptres, Shields",8,2,10,19,https://poedb.tw/us/Rune_Daggers,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,1,84,175,200,https://poedb.tw/us/Staves,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,2,79,150,174,https://poedb.tw/us/Staves,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,3,58,121,149,https://poedb.tw/us/Staves,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,4,46,96,120,https://poedb.tw/us/Staves,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,5,35,70,95,https://poedb.tw/us/Staves,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,6,23,53,69,https://poedb.tw/us/Staves,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,7,11,35,52,https://poedb.tw/us/Staves,3.30.0c
+PoE1,% increased Spell Damage,prefix,Staves,8,2,18,34,https://poedb.tw/us/Staves,3.30.0c
+PoE2,maximum Life,prefix,Body Armours,1,80,200,214,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,2,75,190,199,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,3,70,175,189,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,4,65,150,174,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,5,60,120,149,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,6,54,100,119,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,7,46,85,99,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,8,38,70,84,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,9,33,60,69,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,10,24,40,59,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,11,16,30,39,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,12,6,20,29,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,Body Armours,13,1,10,19,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",1,60,120,149,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",2,54,100,119,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",3,46,85,99,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",4,38,70,84,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",5,33,60,69,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",6,24,40,59,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",7,16,30,39,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",8,6,20,29,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Gloves, Boots, Amulets",9,1,10,19,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",1,65,150,174,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",2,60,120,149,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",3,54,100,119,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",4,46,85,99,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",5,38,70,84,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",6,33,60,69,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",7,24,40,59,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",8,16,30,39,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",9,6,20,29,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,"Helmets, Belts",10,1,10,19,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Life,prefix,Rings,1,54,100,119,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,Rings,2,46,85,99,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,Rings,3,38,70,84,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,Rings,4,33,60,69,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,Rings,5,24,40,59,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,Rings,6,16,30,39,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,Rings,7,6,20,29,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,Rings,8,1,10,19,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",1,70,175,189,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",2,65,150,174,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",3,60,120,149,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",4,54,100,119,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",5,46,85,99,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",6,38,70,84,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",7,33,60,69,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",8,24,40,59,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",9,16,30,39,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",10,6,20,29,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Life,prefix,"Shields, Bucklers",11,1,10,19,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,1,82,180,189,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,2,75,165,179,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,3,70,150,164,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,4,65,125,149,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,5,60,105,124,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,6,54,90,104,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,7,46,80,89,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,8,38,65,79,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,9,33,55,64,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,10,25,35,54,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,11,16,25,34,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,12,6,15,24,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,Amulets,13,1,10,14,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",1,60,105,124,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",2,54,90,104,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",3,46,80,89,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",4,38,65,79,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",5,33,55,64,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",6,25,35,54,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",7,16,25,34,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",8,6,15,24,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,"Gloves, Boots, Belts",9,1,10,14,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,1,65,125,149,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,2,60,105,124,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,3,54,90,104,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,4,46,80,89,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,5,38,65,79,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,6,33,55,64,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,7,25,35,54,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,8,16,25,34,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,9,6,15,24,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Helmets,10,1,10,14,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,maximum Mana,prefix,Rings,1,75,165,179,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,2,70,150,164,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,3,65,125,149,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,4,60,105,124,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,5,54,90,104,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,6,46,80,89,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,7,38,65,79,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,8,33,55,64,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,9,25,35,54,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,10,16,25,34,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,11,6,15,24,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Rings,12,1,10,14,https://poe2db.tw/us/Rings,0.5.5h
+PoE2,maximum Mana,prefix,Staves,1,70,299,328,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,2,65,249,298,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,3,60,209,248,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,4,54,179,208,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,5,46,159,178,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,6,38,129,158,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,7,33,109,128,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,8,25,69,108,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,9,16,49,68,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,10,6,29,48,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,Staves,11,1,20,28,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",1,70,150,164,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",2,65,125,149,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",3,60,105,124,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",4,54,90,104,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",5,46,80,89,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",6,38,65,79,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",7,33,55,64,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",8,25,35,54,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",9,16,25,34,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",10,6,15,24,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,maximum Mana,prefix,"Wands, Sceptres, Foci",11,1,10,14,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",1,82,41,45,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",2,71,36,40,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",3,60,31,35,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",4,48,26,30,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",5,36,21,25,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",6,24,16,20,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",7,12,11,15,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Fire Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",8,1,6,10,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",1,82,41,45,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",2,71,36,40,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",3,60,31,35,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",4,50,26,30,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",5,38,21,25,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",6,26,16,20,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",7,14,11,15,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Cold Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",8,1,6,10,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",1,82,41,45,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",2,71,36,40,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",3,60,31,35,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",4,49,26,30,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",5,37,21,25,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",6,25,16,20,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",7,13,11,15,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Lightning Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",8,1,6,10,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",1,81,24,27,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",2,68,20,23,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",3,56,16,19,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",4,44,12,15,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",5,30,8,11,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Chaos Resistance,suffix,"Body Armours, Helmets, Gloves, Boots, Shields, Bucklers, Foci, Amulets, Rings, Belts",6,16,4,7,https://poe2db.tw/us/Body_Armours_dex,0.5.5h
+PoE2,Strength,suffix,Belts,1,81,34,36,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,2,74,31,33,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,3,66,28,30,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,4,55,25,27,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,5,44,21,24,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,6,33,17,20,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,7,22,13,16,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,8,11,9,12,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,Belts,9,1,5,8,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",1,74,31,33,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",2,66,28,30,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",3,55,25,27,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",4,44,21,24,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",5,33,17,20,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",6,22,13,16,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",7,11,9,12,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Strength,suffix,"Sceptres, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Crossbows, Two Hand Swords, Two Hand Axes, Two Hand Maces, Body Armours, Helmets, Gloves, Boots, Shields, Amulets, Rings",8,1,5,8,https://poe2db.tw/us/Sceptres,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",1,74,31,33,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",2,66,28,30,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",3,55,25,27,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",4,44,21,24,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",5,33,17,20,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",6,22,13,16,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",7,11,9,12,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,"Claws, Daggers, One Hand Swords, Spears, Bows, Crossbows, Quarterstaves, Two Hand Swords, Body Armours, Helmets, Boots, Shields, Bucklers, Quivers, Amulets, Rings",8,1,5,8,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Dexterity,suffix,Gloves,1,81,34,36,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,2,74,31,33,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,3,66,28,30,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,4,55,25,27,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,5,44,21,24,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,6,33,17,20,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,7,22,13,16,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,8,11,9,12,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Dexterity,suffix,Gloves,9,1,5,8,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",1,74,31,33,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",2,66,28,30,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",3,55,25,27,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",4,44,21,24,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",5,33,17,20,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",6,22,13,16,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",7,11,9,12,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,"Daggers, Wands, Sceptres, Flails, Quarterstaves, Staves, Body Armours, Gloves, Boots, Shields, Foci, Amulets, Rings",8,1,5,8,https://poe2db.tw/us/Daggers,0.5.5h
+PoE2,Intelligence,suffix,Helmets,1,81,34,36,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,2,74,31,33,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,3,66,28,30,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,4,55,25,27,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,5,44,21,24,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,6,33,17,20,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,7,22,13,16,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,8,11,9,12,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Intelligence,suffix,Helmets,9,1,5,8,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",1,75,26-39,44-66,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",2,65,21-31,36-53,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",3,60,16-24,28-42,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",4,54,13-20,23-35,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",5,46,10-15,18-26,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",6,33,8-12,14-21,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",7,16,6-9,11-16,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",8,8,4-6,7-11,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",9,1,1-2,4-5,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,75,37-55,63-94,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,65,29-44,50-75,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,60,23-35,39-59,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,54,19-29,33-49,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,46,14-21,25-37,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,33,11-17,20-30,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,16,8-12,15-22,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,8,5-8,10-15,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Physical Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",9,1,2-3,5-7,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",1,81,88-101,133-154,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",2,75,62-85,101-129,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",3,65,47-59,74-97,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",4,60,35-44,56-71,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",5,54,25-33,38-54,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",6,46,20-24,32-37,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",7,33,13-19,21-29,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",8,16,7-11,13-19,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",9,8,4-6,7-10,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows",10,1,1-2,3-5,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,81,135-156,205-236,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,75,102-130,155-198,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,65,73-97,112-149,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,60,56-70,84-107,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,54,39-53,59-80,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,46,30-37,45-56,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,33,19-27,30-42,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,16,11-17,19-28,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",9,8,6-9,10-16,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,Adds # to # Fire Damage,prefix,"Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",10,1,2-4,5-7,https://poe2db.tw/us/Crossbows,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,82,170,179,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,75,155,169,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,60,135,154,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,46,110,134,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,33,85,109,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,16,65,84,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,8,50,64,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,% increased Physical Damage,prefix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,1,40,49,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Bows, Crossbows",1,37,17,19,https://poe2db.tw/us/Bows,0.5.5h
+PoE2,Attack Speed,suffix,"Bows, Crossbows",2,30,14,16,https://poe2db.tw/us/Bows,0.5.5h
+PoE2,Attack Speed,suffix,"Bows, Crossbows",3,22,11,13,https://poe2db.tw/us/Bows,0.5.5h
+PoE2,Attack Speed,suffix,"Bows, Crossbows",4,11,8,10,https://poe2db.tw/us/Bows,0.5.5h
+PoE2,Attack Speed,suffix,"Bows, Crossbows",5,1,5,7,https://poe2db.tw/us/Bows,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,77,26,28,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,60,23,25,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,45,20,22,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,37,17,19,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,30,14,16,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,22,11,13,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",7,11,8,10,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",8,1,5,7,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Attack Speed,suffix,"Gloves, Quivers",1,60,14,16,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Attack Speed,suffix,"Gloves, Quivers",2,37,11,13,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Attack Speed,suffix,"Gloves, Quivers",3,22,8,10,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,Attack Speed,suffix,"Gloves, Quivers",4,1,5,7,https://poe2db.tw/us/Gloves_dex,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Amulets,1,72,35,38,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Amulets,2,58,30,34,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Amulets,3,44,25,29,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Amulets,4,30,20,24,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Amulets,5,20,15,19,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Amulets,6,5,10,14,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Helmets,1,58,30,34,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Helmets,2,44,25,29,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Helmets,3,30,20,24,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Helmets,4,20,15,19,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,% increased Critical Hit Chance,suffix,Helmets,5,5,10,14,https://poe2db.tw/us/Helmets_dex,0.5.5h
+PoE2,+% to Critical Hit Chance,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",1,73,4.41,5,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,+% to Critical Hit Chance,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",2,59,3.81,4.4,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,+% to Critical Hit Chance,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",3,44,3.11,3.8,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,+% to Critical Hit Chance,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",4,30,2.11,2.7,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,+% to Critical Hit Chance,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",5,20,1.51,2.1,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,+% to Critical Hit Chance,suffix,"Claws, Daggers, One Hand Swords, One Hand Axes, One Hand Maces, Spears, Flails, Bows, Crossbows, Quarterstaves, Two Hand Swords, Two Hand Axes, Two Hand Maces",6,1,1.01,1.5,https://poe2db.tw/us/Claws,0.5.5h
+PoE2,Armour,prefix,Belts,1,80,312,351,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,2,70,268,311,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,3,65,226,267,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,4,54,187,225,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,5,46,141,186,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,6,33,108,140,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,7,25,69,107,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,8,16,52,68,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,9,11,23,51,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Belts,10,1,12,22,https://poe2db.tw/us/Belts,0.5.5h
+PoE2,Armour,prefix,Body Armours,1,79,278,310,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,2,75,249,277,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,3,65,222,248,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,4,60,191,221,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,5,54,160,190,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,6,46,128,159,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,7,33,99,127,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,8,25,78,98,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,9,16,57,77,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,10,8,28,56,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,Body Armours,11,1,16,27,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,Armour,prefix,"Gloves, Boots",1,54,160,190,https://poe2db.tw/us/Gloves_str,0.5.5h
+PoE2,Armour,prefix,"Gloves, Boots",2,46,128,159,https://poe2db.tw/us/Gloves_str,0.5.5h
+PoE2,Armour,prefix,"Gloves, Boots",3,33,99,127,https://poe2db.tw/us/Gloves_str,0.5.5h
+PoE2,Armour,prefix,"Gloves, Boots",4,25,78,98,https://poe2db.tw/us/Gloves_str,0.5.5h
+PoE2,Armour,prefix,"Gloves, Boots",5,16,57,77,https://poe2db.tw/us/Gloves_str,0.5.5h
+PoE2,Armour,prefix,"Gloves, Boots",6,8,28,56,https://poe2db.tw/us/Gloves_str,0.5.5h
+PoE2,Armour,prefix,"Gloves, Boots",7,1,16,27,https://poe2db.tw/us/Gloves_str,0.5.5h
+PoE2,Armour,prefix,Helmets,1,60,191,221,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Helmets,2,54,160,190,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Helmets,3,46,128,159,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Helmets,4,33,99,127,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Helmets,5,25,78,98,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Helmets,6,16,57,77,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Helmets,7,8,28,56,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Helmets,8,1,16,27,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Armour,prefix,Shields,1,75,249,277,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,2,65,222,248,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,3,60,191,221,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,4,54,160,190,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,5,46,128,159,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,6,33,99,127,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,7,25,78,98,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,8,16,57,77,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,9,8,28,56,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,Armour,prefix,Shields,10,1,16,27,https://poe2db.tw/us/Shields_str,0.5.5h
+PoE2,% increased Armour,prefix,Amulets,1,75,45,50,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Armour,prefix,Amulets,2,65,39,44,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Armour,prefix,Amulets,3,54,33,38,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Armour,prefix,Amulets,4,46,27,32,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Armour,prefix,Amulets,5,33,21,26,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Armour,prefix,Amulets,6,16,15,20,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Armour,prefix,Amulets,7,2,10,14,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",1,75,101,110,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",2,65,92,100,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",3,60,80,91,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",4,54,68,79,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",5,46,56,67,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",6,35,43,55,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",7,16,27,42,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Body Armours, Shields",8,2,15,26,https://poe2db.tw/us/Body_Armours_str,0.5.5h
+PoE2,% increased Armour,prefix,"Helmets, Gloves, Boots",1,65,92,100,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,% increased Armour,prefix,"Helmets, Gloves, Boots",2,60,80,91,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,% increased Armour,prefix,"Helmets, Gloves, Boots",3,54,68,79,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,% increased Armour,prefix,"Helmets, Gloves, Boots",4,46,56,67,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,% increased Armour,prefix,"Helmets, Gloves, Boots",5,35,43,55,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,% increased Armour,prefix,"Helmets, Gloves, Boots",6,16,27,42,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,% increased Armour,prefix,"Helmets, Gloves, Boots",7,2,15,26,https://poe2db.tw/us/Helmets_str,0.5.5h
+PoE2,Movement Speed,prefix,Boots,1,82,35,35,https://poe2db.tw/us/Boots_dex,0.5.5h
+PoE2,Movement Speed,prefix,Boots,2,65,30,30,https://poe2db.tw/us/Boots_dex,0.5.5h
+PoE2,Movement Speed,prefix,Boots,3,46,25,25,https://poe2db.tw/us/Boots_dex,0.5.5h
+PoE2,Movement Speed,prefix,Boots,4,33,20,20,https://poe2db.tw/us/Boots_dex,0.5.5h
+PoE2,Movement Speed,prefix,Boots,5,16,15,15,https://poe2db.tw/us/Boots_dex,0.5.5h
+PoE2,Movement Speed,prefix,Boots,6,1,10,10,https://poe2db.tw/us/Boots_dex,0.5.5h
+PoE2,% increased Spell Damage,prefix,Amulets,1,75,27,30,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Spell Damage,prefix,Amulets,2,60,23,26,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Spell Damage,prefix,Amulets,3,46,18,22,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Spell Damage,prefix,Amulets,4,33,13,17,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Spell Damage,prefix,Amulets,5,16,8,12,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Spell Damage,prefix,Amulets,6,1,3,7,https://poe2db.tw/us/Amulets,0.5.5h
+PoE2,% increased Spell Damage,prefix,Foci,1,60,75,89,https://poe2db.tw/us/Foci,0.5.5h
+PoE2,% increased Spell Damage,prefix,Foci,2,46,65,74,https://poe2db.tw/us/Foci,0.5.5h
+PoE2,% increased Spell Damage,prefix,Foci,3,33,55,64,https://poe2db.tw/us/Foci,0.5.5h
+PoE2,% increased Spell Damage,prefix,Foci,4,16,45,54,https://poe2db.tw/us/Foci,0.5.5h
+PoE2,% increased Spell Damage,prefix,Foci,5,8,35,44,https://poe2db.tw/us/Foci,0.5.5h
+PoE2,% increased Spell Damage,prefix,Foci,6,1,25,34,https://poe2db.tw/us/Foci,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,1,80,209,238,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,2,70,189,208,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,3,60,149,188,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,4,46,129,148,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,5,33,109,128,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,6,16,89,108,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,7,8,69,88,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Staves,8,1,50,68,https://poe2db.tw/us/Staves,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,1,80,105,119,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,2,70,90,104,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,3,60,75,89,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,4,46,65,74,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,5,33,55,64,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,6,16,45,54,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,7,8,35,44,https://poe2db.tw/us/Wands,0.5.5h
+PoE2,% increased Spell Damage,prefix,Wands,8,1,25,34,https://poe2db.tw/us/Wands,0.5.5h
