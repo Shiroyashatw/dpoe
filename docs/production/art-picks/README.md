@@ -35,3 +35,7 @@
 | `m2-40-skills/sk_windflask-s7215h.png` | `/workspace/m240-r5/r5f/sk_windflask-s7215h.png` | `art/icons/skills/` |
 
 審查用拼圖（`r5f/big.png` 等）不放。
+
+## battle-hud-v1.3（戰鬥 HUD v1.3.1 正式素材，mumi 17:18 定案）
+
+48 檔（光環第一批 6 個、分頁 A、sk_gasflask B、boss_shang s6921、藥水球 A），選項、來源、sha256 與建議的 art/ 路徑見 [battle-hud-v1.3/README.md](battle-hud-v1.3/README.md)。開發暫停中，進 art/ 另開 PR。
