@@ -160,7 +160,9 @@ function enterCamp() {
   resetWorld(A.W, A.H);
   G.scene = 'camp';
   G.pan = 0;
-  SES = null;
+  /* B3：進營地（含試招場）＝暫停補算，本次掛機不歸零；記下從戰場離開的時間，回戰場時 campBack 補算 */
+  if (SES && !SES.away) SES.away = Date.now();
+  $('pcline').hidden = true;
   G.mm = null;
   G.tiles = hideTiles();
   G.cols = A.cols;
@@ -186,6 +188,8 @@ function runNode(k, keep) {
   const [q, r] = wXY(k),
     why = wWhy(S, q, r);
   if (why) return hudWarn(why), false;
+  /* 從試招場直接按「繼續刷」：離開石圈（不然戰場上還掛著練習區面板） */
+  PRAC.in = false;
   if (S.world.cur !== k) {
     S.world.dn = 0;
     /* 陰兵借道的怨恨值：換節點就歸零（0.4.2）；進裂口記住原本在刷的節點，打完回去 */
@@ -193,8 +197,10 @@ function runNode(k, keep) {
     if (wType(S, q, r) === 'rift' && S.world.cur && wType(S, ...wXY(S.world.cur)) !== 'rift')
       S.world.back = S.world.cur;
   }
+  /* 回營地（stopWhy 'camp'）＝暫停：先清掉再補算，補算才照「一直在刷」 */
   S.stopWhy = null;
-  if (!SES || G.scene !== 'map') sesReset();
+  if (SES && SES.away) campBack();
+  if (!SES) sesReset();
   S.world.cur = k;
   S.node = k;
   S.card = wCard(S);
@@ -207,7 +213,7 @@ function runNode(k, keep) {
 const EASY_N = 3,
   EASY_MUL = 0.5;
 const easyMul = k => (k === TRUNK_K[0] && wStar(S) === 1 && (S.world.r0 || 0) < EASY_N ? EASY_MUL : 0);
-/* 本次掛機（0.4.9，掛機卡）：從營地進場地開始累計，回營地歸零；xp／靈魂算每小時的進度；0.5.0：craft 打造幾件、rare 打出幾件稀有、mat 材料幾個 */
+/* 本次掛機（0.4.9，掛機卡）：這次開遊戲第一次進場地開始累計，跨王、換地點、回營地與試招場都不歸零，只有重開遊戲才歸零（B3，名詞表 v0.6.29「掛機 N 分」）；xp／靈魂算每小時的進度；0.5.0：craft 打造幾件、rare 打出幾件稀有、mat 材料幾個 */
 let SES = null;
 const SES0 = () => ({
   t0: Date.now(),
@@ -248,17 +254,30 @@ function roundEnd() {
    每一輪走真的掉落函式（roundLoot），過濾器照樣作用（隱藏的不撿、賣掉的換金幣），倉庫滿了照樣換金幣。
    shortcut: 地圖詞的數量／稀有度不算（每輪的詞是隨機的），要更準就記最近 10 輪的 qty／rar 平均 */
 const OFF_MIN = 5 * 60e3;
+/* B3 暫停補算（M2-12 第二段 §0.1）：在營地場景、試招場的時間回戰場時一次補算（同離線結算的估法，不設 5 分門檻）；
+   打倒王次數照加、靈魂由 killMat 加進 SES；<10 秒不出那一行。假設：件數＝拿到的通貨個數（離線估法不掉裝備），◆＝稀有通貨個數 */
+const CAMP_LINE = 10e3;
+function campBack() {
+  const t = Date.now() - SES.away;
+  SES.away = 0;
+  const o = offSettle(t, 0);
+  if (!o) return;
+  const r = o.cur.filter(([c]) => rareCur(c)).reduce((a, [, v]) => a + v, 0);
+  SES.rounds += o.won;
+  SES.cur += r;
+  if (t >= CAMP_LINE) campLine({ soul: o.soul, n: o.cur.reduce((a, [, v]) => a + v, 0), r, ch: o.here ? o.chase : 0 });
+}
 /* 離線上限照倉房（campN('off')：1／4／8／12 小時） */
 const offMax = () => campN('off') * 3600e3;
 function roundRec(r) {
   (S.rounds = S.rounds || []).push(r);
   if (S.rounds.length > 10) S.rounds.shift();
 }
-function offSettle(away) {
+function offSettle(away, min = OFF_MIN) {
   const k = S.world.cur,
     R = S.rounds || [],
     ok = R.filter(r => !r.die);
-  if (!k || !S.auto || S.stopWhy || !ok.length || away < OFF_MIN || wWhy(S, ...wXY(k))) return null;
+  if (!k || !S.auto || S.stopWhy || !ok.length || away < min || wWhy(S, ...wXY(k))) return null;
   const avg = R.reduce((a, r) => a + r.d, 0) / R.length,
     die = 1 - ok.length / R.length,
     mean = f => ok.reduce((a, r) => a + (r[f] || 0), 0) / ok.length,

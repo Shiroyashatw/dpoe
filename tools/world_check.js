@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 /* 世界地圖實測（Playwright，0.4.0 固定節點＋連續刷）：選節點 → 打倒王 → 同一個場地下一輪、往下推 → 世界展開 → 選星級 → 死亡重來、連死退回 → 再推一次 → 倉庫滿 → 特殊節點 → 存檔還原；
    手勢（拖曳、滾輪、單指、雙指）、減少動態、手機降速 4 倍的效能。序章前 7 步在 pro_check.js 走。
-   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|auto|patrol|gesture|still|perf]（預設全跑）。
+   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|auto|patrol|ses|gesture|still|perf]（預設全跑）。
    環境變數 PW_CHROME 指定瀏覽器；截圖存在系統暫存資料夾（world_*.png）；有 ❌ 時結束碼 1 */
 const os = require('os'),
   path = require('path');
@@ -403,11 +403,87 @@ async function patrol(b) {
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
+/* B3 回營地補算（名詞表 v0.6.29「掛機 N 分」）：本次掛機（SES：掛機時間 t0、打倒王次數 rounds）換地點、進出營地、試招場都不歸零，
+   回戰場補算（打倒王次數只增不減）；只有重開遊戲才歸零 */
+async function ses(b) {
+  const p = await open(b);
+  const st = () => p.evaluate(() => SES && { t0: SES.t0, r: SES.rounds, away: SES.away || 0, scene: G.scene });
+  await p.evaluate(() => {
+    S.auto = 1;
+    runNode(TRUNK_K[0]);
+    /* 假裝已經掛了 4 分、打倒王 5 次；補算用的最近幾輪（每輪 20 秒）；回營地走真的 act('camp')（會設 stopWhy） */
+    SES.t0 = Date.now() - 4 * 60e3;
+    SES.rounds = 5;
+    S.rounds = [0, 1, 2].map(() => ({ d: 20, die: 0, xp: 10, gold: 5, nS: 12, nE: 1 }));
+  });
+  const a = await st();
+  const k2 = await p.evaluate(() => {
+    S.camp.watch = Math.max(S.camp.watch || 0, 1);
+    const k = TRUNK_K[1];
+    return !wWhy(S, ...wXY(k)) && runNode(k) && k;
+  });
+  const b1 = await st();
+  ok('①換地點：掛機時間與打倒王次數不歸零', !!k2 && b1.t0 === a.t0 && b1.r === a.r, JSON.stringify([k2, a, b1]));
+  await p.evaluate(() => act('camp'));
+  const c = await st();
+  ok(
+    '②進營地：本次掛機還在（不設 null）、記下暫停時間',
+    !!c && c.t0 === a.t0 && c.r === a.r && c.away > 0,
+    JSON.stringify(c)
+  );
+  /* 在營地待 60 秒（把暫停時間往前推）再按「繼續刷」 */
+  await p.evaluate(() => (SES.away -= 60e3));
+  await p.evaluate(() => act('resume'));
+  await p.waitForTimeout(300);
+  const d = await st(),
+    line = await p.evaluate(() => !$('pcline').hidden && $('pcline').textContent);
+  ok(
+    '②回戰場：掛機時間接著算、打倒王次數補算後只增不減、暫停時間清掉',
+    d.scene === 'map' && d.t0 === a.t0 && d.r > a.r && !d.away,
+    JSON.stringify(d)
+  );
+  ok('②回戰場：補算那一行「營地期間 +N」出現', /^營地期間 /.test(line || ''), String(line));
+  await p.evaluate(() => act('camp'));
+  await p.waitForTimeout(200);
+  ok('進營地：那一行跟掛機條一起收', await p.evaluate(() => $('pcline').hidden));
+  await p.evaluate(() => (SES.away -= 5e3));
+  await p.evaluate(() => act('resume'));
+  await p.waitForTimeout(300);
+  ok('②在營地 <10 秒就回來：不出那一行', await p.evaluate(() => $('pcline').hidden));
+  /* 試招場：在營地場景裡走進石圈 */
+  await p.evaluate(() => (act('camp'), pracGo()));
+  await until(p, () => PRAC.in, 3000);
+  const e0 = await st();
+  await p.evaluate(() => (SES.away -= 30e3));
+  await p.evaluate(() => act('resume'));
+  await p.waitForTimeout(300);
+  const e = await st();
+  ok(
+    '試招場直接「繼續刷」：離開練習區（PRAC.in 清掉、練習區面板收起）',
+    await p.evaluate(() => !PRAC.in && $('prac').hidden)
+  );
+  ok(
+    '②試招場進出：掛機時間不歸零、打倒王次數不減',
+    e0 && e0.t0 === a.t0 && e.scene === 'map' && e.t0 === a.t0 && e.r >= d.r,
+    JSON.stringify([e0, e])
+  );
+  /* ③重開遊戲：SES 是記憶體裡的，重新載入才歸零 */
+  await p.evaluate(() => save());
+  const t1 = Date.now();
+  await p.reload();
+  await p.waitForFunction(() => typeof G === 'object' && !!G.scene);
+  await p.waitForTimeout(800);
+  const f = await p.evaluate(() => SES && { t0: SES.t0, r: SES.rounds });
+  ok('③關掉重開才歸零', !f || (f.t0 >= t1 && f.r === 0), JSON.stringify(f));
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
+  await p.context().close();
+}
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   if (!ONLY || ONLY === 'flow') await flow(b);
   if (!ONLY || ONLY === 'auto') await auto(b);
   if (!ONLY || ONLY === 'patrol') await patrol(b);
+  if (!ONLY || ONLY === 'ses') await ses(b);
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '世界地圖實測全部通過');
   process.exit(bad ? 1 : 0);

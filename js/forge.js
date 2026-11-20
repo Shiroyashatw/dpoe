@@ -582,20 +582,24 @@ function campDrawer(force) {
     i.classList.toggle('full', affP(c) >= 1);
   }
 }
+/* 營地抽屜開到某一座（格子點一座、營地牌匾） */
+function cdOne(v) {
+  if (!PANEL.camp) {
+    HP_HOLD++;
+    closePanels();
+    HP_HOLD--;
+    PANEL.camp = true;
+  }
+  CDR.one = v;
+  hudPanels();
+}
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-cd]');
   if (!b) return;
   const [k, v] = b.dataset.cd.split(':'),
     L = cdKeys();
-  if (k === 'one') {
-    if (!PANEL.camp) {
-      HP_HOLD++;
-      closePanels();
-      HP_HOLD--;
-      PANEL.camp = true;
-    }
-    CDR.one = v;
-  } else if (k === 'nav') CDR.one = L[(L.indexOf(CDR.one) + +v + L.length) % L.length];
+  if (k === 'one') return cdOne(v);
+  else if (k === 'nav') CDR.one = L[(L.indexOf(CDR.one) + +v + L.length) % L.length];
   else if (k === 'back') CDR.one = null;
   else if (k === 'look') {
     closePanels();
@@ -1181,6 +1185,7 @@ document.addEventListener('click', e => {
     if (!err) {
       /* 那一句由 craft.js 的 campUp → sayOnce 講（M1-14） */
       CAMPUI.fx[v] = { t: performance.now() };
+      campDust(v);
       sfx('lvup');
       /* 解鎖了東西：分頁列、技能、光環跟著變 */
       ST = stats();
@@ -1188,13 +1193,15 @@ document.addEventListener('click', e => {
     }
   } else if (k === 'gen') {
     const r0 = genRate(v),
-      ms0 = genMs(genOf(v).lv);
+      lv0 = genOf(v).lv,
+      ms0 = genMs(lv0);
     err = genUp(v, x === 'max' ? Math.max(1, genAfford(v)) : +x);
     if (!err) {
       const ms1 = genMs(genOf(v).lv),
         ms = ms1.m > ms0.m || ms1.slots > ms0.slots || ms1.tu > ms0.tu;
       const r1 = genRate(v);
       CAMPUI.fx[v] = { t: performance.now(), add: `+${fmtR(r1 - r0)}／分`, ms, from: r0, to: r1 };
+      campDust(v, lv0);
       sfx(ms ? 'lvup' : 'coin');
       save();
     }
