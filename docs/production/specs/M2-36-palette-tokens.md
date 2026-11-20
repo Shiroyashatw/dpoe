@@ -109,7 +109,7 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --ready | 同 --tx `#e8e5e1` | 「可以做／買得起」的左邊標記（3 px） |
 | --prog-lo／--prog-hi | `#3c3935`／`#b6b0a8` | 進度條（中性紙灰，不用暖色） |
 | --hp／--mp | `#934341`／`#3a5b98` | 生命條／魔力條，平塗；條上字 --tx-strong 6.41／6.38 |
-| --hp-hi／--mp-hi | `#af6c64`／`#6b7dad` | 藥劑鈕冷卻環 3 px＋外 1 px `#000`；藥劑不限次數、冷卻 3 秒，沒有次數格、沒有空瓶圖示；低血時藥劑鈕外框用 --hp-hi |
+| --hp-hi／--mp-hi | `#af6c64`／`#6b7dad` | 藥劑鈕冷卻環 2 px＋外 1 px `#000`（戰鬥 HUD 藥劑球照 battle-hud v1.3；UIUX 11/20 17:06）；藥劑不限次數、冷卻 3 秒，沒有次數格、沒有空瓶圖示；低血時藥劑鈕外框用 --hp-hi |
 
 按鈕形狀規則：主鈕圓角 6、高 ≥ 40、熱區 ≥ 44。一個畫面最多 1 顆（戰場「去營地」、營地單座卡「▲ 升級」、確認框的確認鈕、天賦樹「確認配點」）。主鈕只放在 --panel、--plate-world 或磚縫上，不直接放在淺磚上；HUD 上要墊 --plate-world。停用鈕：底 --panel-raised、1 px 虛線 --border、字 --tx-dim。分頁徽章 `.tab .bdg`、`.plq .stp.can`、`.cc .stamp.can` 改 --btn2＋--ready 左標。
 

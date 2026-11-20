@@ -64,7 +64,7 @@
 
 | 畫面 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3 定稿（mumi 2026-11-20 16:32） | 現行 v1.3 定稿（UIUX設計師；mumi 11/20 16:32）；借用素材見 assets-borrowed.md；開發仍暫停 |
+| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3.1 定稿（mumi 16:32；勘誤 17:18） | 現行；正式素材挑定見 art-picks/battle-hud-v1.3/；光環第二批 12 個、觀戰鈕待定；開發仍暫停 |
 | 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分取代：掛機條版面與光柱外觀 → specs/battle-hud/；掛機條營地訊號（M2-camp-cards §7）、橫幅／王倒下（M2-33-3b、M2-23 §6）、倒下（M2-40 §8）仍現行；觀戰鈕待定 |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
@@ -93,7 +93,7 @@
 | 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | v1.1 | 現行 |
 | PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 現行 |
 
-借用素材見 `docs/production/specs/battle-hud/assets-borrowed.md`，正式素材由 Game Art Director 補。
+正式素材已挑定（mumi 17:18），見 art-picks/battle-hud-v1.3/；光環第二批由 Game Art Director 補。
 
 ## 名詞與數值（數值設計師）
 
@@ -122,16 +122,16 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版 | 現行 |
+| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版（11/20 17:10 藥劑冷卻環 2 px＋1 px #000，對齊 battle-hud v1.3） | 現行 |
 | D2 介面色 | `S/palette-D2-final-ui.md` | v1.6 | 現行 |
-| 畫法 | `S/M2-36-drawing-rules.md` | — | 現行 |
+| 畫法 | `S/M2-36-drawing-rules.md` | 11/20 17:10（§2 光環／分頁遮罩不描暗邊、§5.2 390 戰鬥分頁 16 px 遮罩，對齊 battle-hud v1.3） | 現行 |
 | PixelLab 提示詞與挑圖 | `S/M2-36-pixellab-d2.md`、`S/M2-36-d2-picks.md` | — | 待轉入（PR #119、#126） |
 | 異常狀態圖示 | `S/M2-39-status-icons.md`、`S/M2-39-picks.md`、`S/M2-39-pixellab-prompts.md` | — | 現行 |
 | 技能圖示 | `S/M2-40-skill-icon-picks.md`、`S/M2-40-skill-icon-prompts.md` | — | 現行（PR #101 開著） |
 | 戰鬥可讀性美術 | `S/M2-40-combat-readability-art.md` | — | 現行（R4 彈藥格位置見 battle-hud v1.3） |
 | 營地外觀分級 | `S/M2-12-lookTiers.md` | 11/20 12:01 | 現行（要改寫成卡片用） |
 | 印章 | `S/M2-12-B3-art.md` 印章段 | 11/20 09:55 | 現行（牌匾段作廢） |
-| 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
+| 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示、battle-hud-v1.3 正式素材 48 檔） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑；battle-hud-v1.3 見該資料夾 README） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
 
 ## 流程與工程
 

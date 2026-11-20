@@ -1,4 +1,4 @@
-# battle-hud v1.3（final，2026-11-20 mumi 16:32）
+# battle-hud v1.3.1（final，2026-11-20 mumi 16:32；v1.3 勘誤 mumi 17:18）
 
 > **狀態：定稿（final）。** mumi 16:06 核准示意圖；**mumi 16:32 核准上色版定稿進 repo**，同時定三項：1280 收起列改兩行 320×64（§3）、390 收起列 T32 寬 108（§3）、掉落牌／菁英名牌寬度跟名稱（battle-hud-4.md §12）。現行戰鬥 HUD 以本檔為準；M2-40 的戰鬥 HUD 版面、Page 389c5787（dpoe 戰場 定案）與 W1 各草稿都已 superseded。決定記在 [`CHANGELOG.md`](../../CHANGELOG.md)。
 > **裁定：** 畫面規格由 UIUX設計師裁定。交付必須跟本檔一致，用實機截圖疊示意圖比對；不符就退回、不 merge。
