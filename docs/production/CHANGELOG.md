@@ -1,6 +1,7 @@
 # dpoe 變更紀錄
 
 所有決定與調整，新的在上，一行一條：`日期 時間｜決定者｜影響工項｜結論`。要記新的決定就加一行在最上面，不要改寫規格或任務檔裡的歷史。2026-11-17 以前的列由企劃書決策紀錄轉來；「—」是原紀錄沒寫時間。
+- 2026-11-20 18:12｜數值設計師｜battle-hud 借用素材 #1、art-picks sk_clarity｜確認冥思（sk_clarity）是物理，顏色用 --tx-strong，形狀不變
 - 2026-11-20 17:50｜UIUX設計師｜battle-hud 借用素材 #1｜光環色加混沌 `--el-chaos`（sk_blight 用）；第二批 12 個元素歸屬暫定，待數值設計師確認
 - 2026-11-20 17:46｜mumi（經幕僚長）｜art-picks battle-hud-v1.3 光環第二批｜光環第二批 12 個由 mumi 挑定並放進 art-picks/battle-hud-v1.3/1-aura/：command、guardtotem、scorch、iceshield、tesla、blight、decay、souldrain、summongod、inferno 用原檔；iceshatter、staticfield 用 mumi 挑的 B 案（檔名去掉 _B），A 案不收；48 檔 sha256 對過 MANIFEST.csv
 - 2026-11-20 17:45｜UIUX設計師（對齊 mumi 15:14）｜M2-camp-cards v1.0.1、battle-hud-2 P54｜倉庫入口從「角色 › 戰利品」改成戰利品分頁，1280 鍵帽 I → L；版面不變

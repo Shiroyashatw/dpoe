@@ -27,10 +27,10 @@
 | `1-aura/sk_anger_10@2x.png` | `candidates/1-aura/sk_anger_10@2x.png` | 20x20 | `3a90f3a02e2532b9bf6029270ad5356edf87a6d21fb6c0bc8fc5c46dc9c80b40` |
 | `1-aura/sk_anger_12.png` | `candidates/1-aura/sk_anger_12.png` | 12x12 | `395a51bccad982ea97296e2a84291ba5899d0204de83eae4215869e4db0b43d9` |
 | `1-aura/sk_anger_12@2x.png` | `candidates/1-aura/sk_anger_12@2x.png` | 24x24 | `94da1f43f2f5f52f9335a9b510efed07a36fcad899fb60795d67000dbc0abe02` |
-| `1-aura/sk_clarity_10.png` | `candidates/1-aura/sk_clarity_10.png` | 10x10 | `60619f46743258ef395f0c9635f367b830e70454d2fe801219bc79d5efcd415b` |
-| `1-aura/sk_clarity_10@2x.png` | `candidates/1-aura/sk_clarity_10@2x.png` | 20x20 | `faf832203edabfb9c56b79e9cfebbfe376dd07707c607bd2ab8f6c82d643d93b` |
-| `1-aura/sk_clarity_12.png` | `candidates/1-aura/sk_clarity_12.png` | 12x12 | `d17aae94ba492abdd38e8b9ddd508ddd8a2bcce4338b0f390b78537c6260394b` |
-| `1-aura/sk_clarity_12@2x.png` | `candidates/1-aura/sk_clarity_12@2x.png` | 24x24 | `ed3bfcb390efd05502583ab150af63d5c6caadb48e901cc8f728cfdf85325fc5` |
+| `1-aura/sk_clarity_10.png` | `candidates/1-aura/sk_clarity_10.png` | 10x10 | `ef41a1cf6430e3bfd196905f6adf21e177f19c5194f4510af98d8c64c652e2e4` |
+| `1-aura/sk_clarity_10@2x.png` | `candidates/1-aura/sk_clarity_10@2x.png` | 20x20 | `7251316199e1648f7af06d06357bb778b9b70fe5d7782d065237fbd7080bb5a6` |
+| `1-aura/sk_clarity_12.png` | `candidates/1-aura/sk_clarity_12.png` | 12x12 | `64d35c632aee7277671b62ad57ac601d74892c4311a4f291a415a832cd2809e2` |
+| `1-aura/sk_clarity_12@2x.png` | `candidates/1-aura/sk_clarity_12@2x.png` | 24x24 | `fb04e80fef8f3917807394d673a4349efc87ca370052c770e3a60c547caf0312` |
 | `1-aura/sk_determination_10.png` | `candidates/1-aura/sk_determination_10.png` | 10x10 | `5121fa108f1ca781349eb10b376e88aac165792cdef6454f0ef12b795fd843b6` |
 | `1-aura/sk_determination_10@2x.png` | `candidates/1-aura/sk_determination_10@2x.png` | 20x20 | `6372c1968c07438068775eccfe64fa4f6489f7ffca985ad067988dd9067c49f0` |
 | `1-aura/sk_determination_12.png` | `candidates/1-aura/sk_determination_12.png` | 12x12 | `ec1a903ca47a20a3a0f8338393959ac4d7cb1d730c9e3a8a83aabab392a23a2b` |
