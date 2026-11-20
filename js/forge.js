@@ -1181,6 +1181,7 @@ document.addEventListener('click', e => {
     if (!err) {
       /* 那一句由 craft.js 的 campUp → sayOnce 講（M1-14） */
       CAMPUI.fx[v] = { t: performance.now() };
+      campDust(v);
       sfx('lvup');
       /* 解鎖了東西：分頁列、技能、光環跟著變 */
       ST = stats();

@@ -103,6 +103,8 @@
   --border-hi-rgb: 160, 143, 120;
   --border-cap: #f1ebdc;
   --border-cap-v1: #e8e2d6;
+  /* B3 牌匾懸停／手把焦點框（M2-12 §7；值照 palette-directions D2，對 void 17.6 吻合 M2-12-B3-art measure.json） */
+  --focus: #fbf9f5;
   /* 文字 */
   --tx: #d9cdb4;
   --tx-v1: #cbb89a;

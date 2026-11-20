@@ -462,6 +462,7 @@ function draw() {
   drawBeams();
   if (!night && !fog) drawBars(), drawNums();
   CX.restore();
+  drawPlaques(ox, oy);
   CX.setTransform(DPR, 0, 0, DPR, 0, 0);
   {
     const W = SW,
@@ -1032,32 +1033,174 @@ function drawMinimap(W) {
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);
 }
 
-/* 營地的擺設常駐弱名牌；桌機滑鼠停在上面的那個變亮（M2-12：主角不走動，不再有「走近按 F」） */
+/* 營地：試招場稻草人的名牌（擺設的名牌改成牌匾，見 drawPlaques） */
 function drawPrompts() {
+  if (G.scene === 'camp' && PRAC.in)
+    for (const m of G.mobs) if (m.dummy) plate(m.D.n, m.x, m.y + 26, PAL.dmgMinorV6, 0.75);
+}
+/* ---------- B3 美術（M2-12-B3-art.md）：營地牌匾、升級印章、呼吸外框、施工塵土。
+   都是螢幕尺寸（不乘 ZOOM）、整數倍 u、每幀取整數；畫在暗層之後（建築、居民之上） ---------- */
+const PLQI = {};
+const plqImg = n => PLQI[n] || Object.assign((PLQI[n] = new Image()), { src: `img/ui/${n}.png?v=${VER}` });
+const plqU = () => (IW >= 2560 && IH >= 1440 ? 2 : 1);
+/* 牌匾的字：設施（S.camp 有的鍵）加「Lv N」；其他擺設只有名字 */
+const plqTxt = k => (CAMP_B.includes(k.k) ? `${k.n} Lv${S.camp[k.k] || 0}` : k.n);
+/* 寬 W＝max(124, 32＋字寬＋60)、最寬 220；放不下換兩行（高 64），不縮字（§2.2） */
+function plqLay(txt, fs) {
+  CX.font = `700 ${fs}px "Noto Sans TC", sans-serif`;
+  const tw = t => Math.ceil(CX.measureText(t).width),
+    w = tw(txt);
+  if (32 + w + 60 <= 220) return { W: Math.max(124, 32 + w + 60), H: 44, L: [txt] };
+  let i = 1;
+  while (i < txt.length && tw(txt.slice(0, i + 1)) <= 128) i++;
+  const sp = txt.lastIndexOf(' ', i);
+  if (sp > 0) i = sp;
+  const L = [txt.slice(0, i).trim(), txt.slice(i).trim()];
+  return { W: Math.min(220, Math.max(124, 92 + Math.max(...L.map(tw)))), H: 64, L };
+}
+const plqA = t => (reduced() ? 0.75 : 0.3 + 0.45 * (0.5 - 0.5 * Math.cos(2 * Math.PI * 0.8 * t)));
+/* 外接矩形的框：off 往外推、th 粗 */
+function plqRing(X, Y, w, h, off, th, col) {
+  CX.fillStyle = col;
+  const x = X - off - th,
+    y = Y - off - th,
+    W = w + 2 * (off + th),
+    H = h + 2 * (off + th);
+  CX.fillRect(x, y, W, th);
+  CX.fillRect(x, y + H - th, W, th);
+  CX.fillRect(x, y + th, th, H - 2 * th);
+  CX.fillRect(x + W - th, y + th, th, H - 2 * th);
+}
+function drawPlaques(ox, oy) {
   if (G.scene !== 'camp') return;
-  CX.font = '700 14px "Noto Sans TC", sans-serif';
-  /* 名牌被左上「繼續刷」鈕（#run）蓋到就往下移到鈕下面（1280×720 的鍛造台，dpoe-check85） */
-  const el = $('run'),
+  const u = plqU(),
+    fs = Math.round((14 * ((S && S.fs) || 100)) / 100) * u,
+    a = plqA(performance.now() / 1000),
+    /* 牌匾被左上「繼續刷」鈕（#run）蓋到就往下移到鈕下面（dpoe-check85） */
+    el = $('run'),
     r = el && !el.hidden && el.querySelector ? el.querySelector('[data-a=resume]') : null,
     b = r ? r.getBoundingClientRect() : null,
-    c = b && b.height ? CV.getBoundingClientRect() : null,
-    t = c && CX.getTransform(),
-    q = c ? CV.width / c.width : 0,
-    dn = (n, x, y) => {
-      if (!c) return y;
-      const L = (b.left - c.left) * q,
-        R = (b.right - c.left) * q,
-        B = (b.bottom - c.top) * q + 4,
-        sx = t.a * x + t.e,
-        sy = t.d * (y - 15) + t.f,
-        hw = ((CX.measureText(n).width + 18) / 2) * t.a;
-      return sx + hw > L && sx - hw < R && sy < B ? y + (B - sy) / t.d : y;
-    };
+    c = b && b.height ? CV.getBoundingClientRect() : null;
+  CX.setTransform(DPR, 0, 0, DPR, 0, 0);
+  CX.imageSmoothingEnabled = false;
+  drawDust(ox, oy, u);
   for (const k of G.props) {
-    const y = dn(k.n, k.x, k.y - k.ny);
-    k === G.hov ? plate(k.n, k.x, y, PAL.glintV6, 1) : plate(k.n, k.x, y, PAL.dmgMinorV6, 0.75);
+    const txt = plqTxt(k),
+      { W, H, L } = plqLay(txt, fs),
+      im = plqImg(H === 44 ? 'plq-44' : 'plq-64'),
+      cost = CAMP_B.includes(k.k) ? campNext(k.k) : null,
+      p = cost ? affP(cost) : 0,
+      X = Math.round((k.x + ox) * ZOOM - (W * u) / 2);
+    let Y = Math.round((k.y - k.ny + oy) * ZOOM - (H * u) / 2);
+    if (c) {
+      const B = Math.round(b.bottom - c.top + 4);
+      if (X + W * u > b.left - c.left && X < b.right - c.left && Y < B) Y = B;
+    }
+    k._pr = [X, Y, W * u, H * u];
+    k._pl = { W, H, L, fs, can: !!cost && p >= 1 };
+    if (!im.complete || !im.naturalWidth) continue;
+    /* 三段：左 26、中 72 橫向重複不縮放（最後一塊照剩下的寬切）、右 26 */
+    CX.drawImage(im, 0, 0, 26, H, X, Y, 26 * u, H * u);
+    for (let x = 26; x < W - 26; x += 72) {
+      const w = Math.min(72, W - 26 - x);
+      CX.drawImage(im, 26, 0, w, H, X + x * u, Y, w * u, H * u);
+    }
+    CX.drawImage(im, 98, 0, 26, H, X + (W - 26) * u, Y, 26 * u, H * u);
+    /* 凹槽 x 24 到 W−25、y 10 到 H−11 */
+    CX.fillStyle = PAL.plateWorld;
+    CX.fillRect(X + 24 * u, Y + 10 * u, (W - 48) * u, (H - 20) * u);
+    CX.font = `700 ${fs}px "Noto Sans TC", sans-serif`;
+    CX.textAlign = 'left';
+    CX.textBaseline = 'middle';
+    CX.fillStyle = PAL.txScene;
+    L.forEach((t, i) => CX.fillText(t, X + 32 * u, Y + (20 + 18 * i) * u));
+    CX.textBaseline = 'alphabetic';
+    if (cost) {
+      /* 買得起進度條：x 26 到 W−57、凹槽下緣 4 px */
+      const bw = W - 82;
+      CX.fillStyle = PAL.progLo;
+      CX.fillRect(X + 26 * u, Y + (H - 15) * u, bw * u, 4 * u);
+      CX.fillStyle = p >= 1 ? PAL.good : PAL.progHi;
+      CX.fillRect(X + 26 * u, Y + (H - 15) * u, Math.round(bw * Math.min(1, p)) * u, 4 * u);
+    }
+    if (k._pl.can) {
+      /* 呼吸外框：凹槽往內 1 px，--ready，全部共用一個時鐘 */
+      CX.globalAlpha = a;
+      plqRing(X + 26 * u, Y + 12 * u, (W - 52) * u, (H - 24) * u, 0, u, PAL.ready);
+      CX.globalAlpha = 1;
+      const sl = plqImg('seal-28-btn2-cap');
+      if (sl.complete && sl.naturalWidth)
+        CX.drawImage(sl, X + (W - 52) * u, Y + (H === 44 ? 8 : 18) * u, 28 * u, 28 * u);
+    }
+    /* 懸停／焦點：2 px --focus 往外推 2 px，外面再 1 px --scene-void */
+    if (k === G.hov) {
+      plqRing(X, Y, W * u, H * u, 2 * u, 2 * u, PAL.focus);
+      plqRing(X, Y, W * u, H * u, 4 * u, u, PAL.sceneVoid);
+    }
   }
-  if (PRAC.in) for (const m of G.mobs) if (m.dummy) plate(m.D.n, m.x, m.y + 26, PAL.dmgMinorV6, 0.75);
+}
+/* 施工塵土（§5）：一般升級 16 顆、10 秒內同一座連升 6 顆；減少動態不放；全營地同時最多 32 顆 */
+const DUST = { p: [], last: {} };
+const DUST_SET = {
+  n: [16, 100, 250, 250, 350, [2, 3, 4], [0.2, 0.45, 0.35]],
+  q: [6, 0, 40, 150, 210, [2, 3], [0.5, 0.5]]
+};
+const dustPick = (a, w) => {
+  let r = Math.random();
+  for (let i = 0; i < a.length; i++) if ((r -= w[i]) < 0) return a[i];
+  return a[a.length - 1];
+};
+function campDust(bk) {
+  const k = G.scene === 'camp' && G.props.find(p => p.k === bk),
+    now = performance.now();
+  if (!k || reduced()) return;
+  const [n, b0, b1, l0, l1, sz, sw] = DUST_SET[now - (DUST.last[bk] || -1e9) < 10000 ? 'q' : 'n'],
+    rnd = (a, b) => a + Math.random() * (b - a);
+  DUST.last[bk] = now;
+  for (let i = 0; i < n; i++) {
+    const x = rnd(-0.4, 0.4);
+    DUST.p.push({
+      k,
+      t0: now + rnd(b0, b1),
+      T: rnd(l0, l1),
+      s: dustPick(sz, sw),
+      row: dustPick([0, 1, 2], [0.45, 0.4, 0.15]),
+      x,
+      y: rnd(0, 6),
+      vx: (x < 0 ? -1 : 1) * rnd(12, 36),
+      vy: rnd(30, 60)
+    });
+  }
+}
+function drawDust(ox, oy, u) {
+  if (!DUST.p.length) return;
+  const now = performance.now(),
+    im = plqImg('dust-sheet'),
+    COL = { 2: 0, 3: 1, 4: 2, 6: 3 },
+    DN = { 6: 4, 4: 3, 3: 2, 2: 2 };
+  let live = DUST.p.filter(d => d.on && now < d.t0 + d.T).length;
+  DUST.p = DUST.p.filter(d => {
+    if (now >= d.t0 + d.T) return false;
+    if (now < d.t0) return true;
+    /* 出生那一刻滿 32 顆就不生（不殺舊的） */
+    if (!d.on) {
+      if (live >= 32) return false;
+      d.on = 1;
+      live++;
+    }
+    const f = (now - d.t0) / d.T,
+      tau = (now - d.t0) / 1000,
+      m = tau - (0.35 * tau * tau) / (d.T / 1000),
+      s = f >= 0.6 ? DN[d.s] : d.s,
+      x = Math.round((d.k.x + ox) * ZOOM + d.x * 2 * d.k.r * ZOOM + d.vx * m * u),
+      y = Math.round((d.k.y + oy) * ZOOM - (d.y + d.vy * m) * u);
+    if (im.complete && im.naturalWidth) {
+      CX.globalAlpha = f < 0.4 ? 0.85 : 0.85 * (1 - (f - 0.4) / 0.6);
+      CX.drawImage(im, COL[s] * 8, d.row * 8, 8, 8, x - 4 * u, y - 4 * u, 8 * u, 8 * u);
+      CX.globalAlpha = 1;
+    }
+    return true;
+  });
 }
 function plate(txt, x, y, col, a) {
   CX.font = '700 14px "Noto Sans TC", sans-serif';
