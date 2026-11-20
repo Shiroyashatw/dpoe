@@ -1,6 +1,6 @@
 # M2-33 第 1 批：基礎元件與桌機殼層（兩種尺寸）
 
-Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267db90c-7a0a-485e-ac26-a75a2c871232（索引 `specs/M2-33-index.md`）
+Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267db90c-7a0a-485e-ac26-a75a2c871232（索引 `docs/INDEX.md`）
 負責：Game Art Director。依據：`specs/M2-36-palette-tokens.md`（token）、`specs/M2-36-drawing-rules.md`（畫法）、`specs/M2-37-ia-rework.md`（版面與流程，不改）。M2-16 併入本批第 9–10 節，不再另開文件。行號是 main 68e4452；token 收斂（M2-36a）合併後以選擇器、函式名為準。只寫 token 名，不寫色值。
 
 ## 0. 三批怎麼分

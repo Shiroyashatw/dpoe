@@ -41,7 +41,7 @@
 
 ## 2. 呼叫方式
 
-沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-prompts.md` §2），只改上限與工作表：
+沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-d2.md`（PR #119） §2），只改上限與工作表：
 
 - 用 `/create-image-pixflux`，不給 style_image、不給 color_image；**給 init_image＝上色導引圖（§2.2），`init_image_strength` 150**。不要的寫 `negative_description`。prompt 的位置詞（左下、右上）保留，但 init 才是構圖依據。
 - `color_image`：不給。第 1 輪只給 4–6 個 token 色，圖就被壓成平塗。§3 的 palette 欄只當「主色方向」寫進 description，不鎖色。

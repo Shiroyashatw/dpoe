@@ -4,7 +4,7 @@
 
 ## 1. 上限與批
 
-- 帳號餘額（2026-11-17 夜 `GET /v2/balance`）約 1138.99 次。先前 120／118.75 是 **M2-36 自設花費上限**，只約束 M2-36，見 `specs/M2-36-pixellab-prompts.md`。
+- 帳號餘額（2026-11-17 夜 `GET /v2/balance`）約 1138.99 次。先前 120／118.75 是 **M2-36 自設花費上限**，只約束 M2-36，見 `specs/M2-36-pixellab-d2.md`（PR #119）。
 - **M2-39 上限 100 次**（mumi 經幕僚長批准）。約 1 次／張。計畫 96 次，備用 4 次給不過 §5 的重跑；不得開第二輪大量重跑，除非再批。
 - 批：
   1. **佇列 32**：40 張，`/create-image-pixflux`，無手繪底。適應只做 `ad` 火焰版，冰／雷用零成本 `recolor`。
@@ -14,7 +14,7 @@
 
 ## 2. 呼叫方式
 
-沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-prompts.md` §2），只改上限與工作表：
+沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-d2.md`（PR #119） §2），只改上限與工作表：
 
 - 16 用 bitforge（有 `negative_description`）；32 用 pixflux（不要的東西寫在 description 的 `no …`）。
 - `color_image`＝把該列 `palette` 的 token 值排成 1 列的 PNG。token 值從 `specs/M2-36-palette-tokens.md` 換，規格不寫色碼。

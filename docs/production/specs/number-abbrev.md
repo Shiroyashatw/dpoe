@@ -90,7 +90,7 @@ abbr(n, mode)   // mode: 'own' 捨去、'cost' 進位
 全部縮寫都經過一個共用函式 `abbr(n, mode)`；完整數字的函式也要分 'own'／'cost' 兩種取整方向。
 
 ## 文件裡的「萬」要換掉（只列，不改 UIUX 的頁）
-名詞表（本機與 Page ca5d7bf1）沒有數字＋萬；以下都在 UIUX 的 D1 檢查表（Page 2012c37e 與本機 production/specs/D1-demo-checklist.md、M2-12-shell-part2.md）。v1.1 起離線結算寫完整數字，所以全部改成完整千分位、不用 K。原值照 wSoulMin（world.js:345：110 ×（1＋0.2 ×（lvT − 1）），lvT＝1＋(Lv−5)×15÷78，combat.js:10）× 離開分鐘，捨去：Lv48＝291.92／分、Lv58＝334.23／分、Lv83＝440／分。
+名詞表（本機與 Page ca5d7bf1）沒有數字＋萬；以下都在 UIUX 的 D1 檢查表（`specs/D1-demo-checklist.md`、M2-12-shell-part2.md）。v1.1 起離線結算寫完整數字，所以全部改成完整千分位、不用 K。原值照 wSoulMin（world.js:345：110 ×（1＋0.2 ×（lvT − 1）），lvT＝1＋(Lv−5)×15÷78，combat.js:10）× 離開分鐘，捨去：Lv48＝291.92／分、Lv58＝334.23／分、Lv83＝440／分。
 
 | 位置 | 現在 | 推回原值 | 改成 |
 | --- | --- | --- | --- |

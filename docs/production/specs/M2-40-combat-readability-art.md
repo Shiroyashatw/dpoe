@@ -2,7 +2,7 @@
 
 > **實作要等製作人開工指示。** 本檔先定規格，工程師收到製作人排程後才動程式。
 >
-> 現行規格，只放目前有效的內容；決定記在 [`CHANGELOG.md`](../CHANGELOG.md)。負責：Game Art Director。定案來源：UIUX設計師 2026-11-18 14:3x（R 節，Page 25c36ef3）。量測基準：main `ddfe996`（`/workspace/r17-assess/measure.json`、`cvd.json`），行號都是這個版本。色值只寫 token 名，值看 [`M2-36-palette-tokens.md`](M2-36-palette-tokens.md)。
+> 現行規格，只放目前有效的內容；決定記在 [`CHANGELOG.md`](../CHANGELOG.md)。負責：Game Art Director。定案來源：UIUX設計師 2026-11-18 14:3x（R 節；戰鬥 HUD 見 `docs/INDEX.md` 戰鬥 HUD 列，待定）。量測基準：main `ddfe996`（`/workspace/r17-assess/measure.json`、`cvd.json`），行號都是這個版本。色值只寫 token 名，值看 [`M2-36-palette-tokens.md`](M2-36-palette-tokens.md)。
 >
 > 相關：[`M2-40-skill-panel-hud.md`](M2-40-skill-panel-hud.md)（HUD 版面與動態，本檔只補美術尺寸與顏色）、[`M2-40-big-attack.md`](M2-40-big-attack.md)（大招判定）、[`M2-40-icon-scope-support-class.md`](M2-40-icon-scope-support-class.md)（R5 重畫範圍、R6 輔助分類）、[`M2-39-status-icons.md`](M2-39-status-icons.md)／[`M2-39-picks.md`](M2-39-picks.md)（狀態圖示）。R5 技能圖示重畫（上限 40 次生成）另開檔，不在本檔。
 >

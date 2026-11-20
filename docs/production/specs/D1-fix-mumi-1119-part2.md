@@ -123,7 +123,7 @@
 
 ## 11. 新色票與主視覺（三關 demo 共用）
 
-- 色：全部用 M2-36 token（Page 4ac24fae；`M2-36-palette-tokens.md`），含 `--bad`／`--bad-hi` #fe7883、`--warn` #b7ad66、`--hp` #823630、`--mp` #304e8b、`--hurt-vignette-rgb` 190 30 25。token 對照表＝`specs/M2-36-demo-tokens.md`（美術總監 13:32）；`--hp-hi` #ae766c、`--mp-hi` #7d81ac（13:31）。畫面未驗。
+- 色：全部用 M2-36 token（Page 4ac24fae；`M2-36-palette-tokens.md`），含 `--bad`／`--bad-hi` #fe7883、`--warn` #b7ad66、`--hp` #823630、`--mp` #304e8b、`--hurt-vignette-rgb` 190 30 25。token 對照表＝`specs/M2-36-palette-tokens.md`（美術總監 13:32）；`--hp-hi` #ae766c、`--mp-hi` #7d81ac（13:31）。畫面未驗。
 - 主視覺：只有**戰場背景**和**營地背景**兩張，不含 logo、宣傳圖。素材待美術總監交（未到，未驗）。
 
 | 列 | 截圖 | 量什麼 | 過關門檻 |
