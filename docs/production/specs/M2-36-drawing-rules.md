@@ -1,7 +1,7 @@
 # M2-36 畫法規則（廟宇古地圖）
 
 色票：`specs/M2-36-palette-tokens.md`（D2）
-負責：Game Art Director。色值只用 `specs/M2-36-palette-tokens.md` 的 token；這份只寫怎麼畫。PixelLab 的呼叫參數、提示詞和收圖檢查在 `specs/M2-36-pixellab-d2.md`（PR #119）。兩種尺寸同級：390×844 直立（也要放得進 375×667）與 1280×720 桌機（只用滑鼠也能玩）。
+負責：Game Art Director。色值只用 `specs/M2-36-palette-tokens.md` 的 token；這份只寫怎麼畫。PixelLab 的呼叫參數、提示詞和收圖檢查在 `specs/M2-36-pixellab-d2.md`（在 PR #119，尚未進 main）。兩種尺寸同級：390×844 直立（也要放得進 375×667）與 1280×720 桌機（只用滑鼠也能玩）。
 
 ## 0. 誰畫什麼
 | 素材 | 誰做 | 規則在 |

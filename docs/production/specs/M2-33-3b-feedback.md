@@ -1,7 +1,7 @@
 # M2-33 第 3 批（下）：追逐物品、掛機卡、王倒下卡、離線摘要、開場跳過、M2-23 的呈現
 
 Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267db90c-7a0a-485e-ac26-a75a2c871232（上半 `specs/M2-33-3a-scene-assets.md`）
-負責：Game Art Director。元件用 F（`specs/M2-33-1-foundations.md`）；內容、流程、時間照原規格：追逐 M2-19（Page 75e64e59）、追逐物品面板 M2-37.3、演出 `specs/M2-23-feedback.md`、離線與開場 `specs/M3-04-polish.md`。這裡只定外觀、尺寸、token，跟原規格衝突處以本檔為準（每處都寫「取代」）。行號 main a42686c。只寫 token 名。
+負責：Game Art Director。元件用 F（`specs/M2-33-1-foundations.md`）；內容、流程、時間照原規格：追逐 M2-19（Page 75e64e59）、追逐物品面板 M2-37.3、演出 `specs/M2-23-feedback.md`、離線與開場 `specs/M3-04-polish.md`（已刪）。這裡只定外觀、尺寸、token，跟原規格衝突處以本檔為準（每處都寫「取代」）。行號 main a42686c。只寫 token 名。
 
 ## 1. 追逐物品面板 `#pchase`（M2-37.3；M2-38 新增）
 | 元件 | 直立 390／375 | 桌機（右欄 476） | token |

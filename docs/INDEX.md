@@ -69,13 +69,13 @@
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 待定 |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
 | 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.1／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
-| 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0 | 待轉入；e0f94cc8 的字串併進 §5.1 |
+| 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0 | 現行；e0f94cc8 的字串併進 §5.1 |
 | 營地線框 | W/W2-camp/ | — | **待 HUD**（只先轉印章與牌匾圖） |
 | 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
 | 山海寶盒 | （無） | — | 待寫（各自批次到了再定） |
 | 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | v1.0 | 現行（只限這幾節；照刷） |
-| 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.0＋§16 | 待轉入；示意圖 W/W3-items/ 待轉入 |
-| 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 待轉入 |
+| 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.0＋§16 | 現行；示意圖 W/W3-items/ 現行 |
+| 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
 | 倉庫 | `S/M2-33-2a-items-crafting.md` §3＋`S/M2-37-ia-rework.md` §8 | 11/18 | 現行；B5 新檔 S/stash.md 待寫 |
 | 商會 | 規則 `S/M2-trade-tiercap.md` | v1.0 | 規則現行；畫面待寫（各自批次到了再定） |
@@ -90,15 +90,15 @@
 | 標題、暫停、讀取 | （無） | — | 待寫（W6） |
 | 設定、鍵位 | `S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 | 11/18 | 現行；鍵位以戰鬥 HUD 定稿為準 |
 | 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；畫面 B9 待寫 |
-| 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | v1.1 | panel-1plus 待轉入 |
+| 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | v1.1 | 現行 |
 | PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 現行 |
 
 ## 名詞與數值（數值設計師）
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 名詞表 | `docs/名詞表.md` | v0.6.34 | 待轉入（main 是 v0.6.29） |
-| 追逐掉落 | `S/M2-17-chase-drops.md` | v1.3 | 現行（本機版多 1 行，待同步） |
+| 名詞表 | `docs/名詞表.md` | v0.6.29 | 現行：main 版；v0.6.34 對齊中 |
+| 追逐掉落 | `S/M2-17-chase-drops.md` | v1.3 | 現行 |
 | 大招判定 | `S/M2-40-big-attack.md` | v1.0 | 現行 |
 | 輔助推薦分數 | `S/M2-40-rec-score.md` | v1.0 | 現行 |
 | 商會階上限 | `S/M2-trade-tiercap.md` | v1.0 | 現行 |
@@ -117,8 +117,8 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版 | 待轉入（main 是舊的廟宇古地圖版） |
-| D2 介面色 | `S/palette-D2-final-ui.md` | v1.6 | 待轉入（UIUX） |
+| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版 | 現行 |
+| D2 介面色 | `S/palette-D2-final-ui.md` | v1.6 | 現行 |
 | 畫法 | `S/M2-36-drawing-rules.md` | — | 現行 |
 | PixelLab 提示詞與挑圖 | `S/M2-36-pixellab-d2.md`、`S/M2-36-d2-picks.md` | — | 待轉入（PR #119、#126） |
 | 異常狀態圖示 | `S/M2-39-status-icons.md`、`S/M2-39-picks.md`、`S/M2-39-pixellab-prompts.md` | — | 現行 |

@@ -14,7 +14,7 @@
 
 ## 平台
 - 掛機打寶：角色由 AI 自動戰鬥（企劃書 2.1、2.2）。
-- **M2 起手機直立 390×844 與桌機 1280×720 同級，兩個都驗過才算完成**；再驗 375×667、橫向 844×390 與 667×375、1440×900（面板不能超出畫面）。桌機以滑鼠＋鍵盤為主，也要能只用滑鼠玩。Steam 線另驗 1280×800。詳見 `docs/production/README.md`。
+- **M2 起手機直立 390×844 與桌機 1280×720 同級，兩個都驗過才算完成**；再驗 375×667、橫向 844×390 與 667×375、1440×900（面板不能超出畫面）。桌機以滑鼠＋鍵盤為主，也要能只用滑鼠玩。Steam 線另驗 1280×800。現況與文件位置見 `docs/INDEX.md`。
 - 手機有直立／橫向兩種操作（`S.orient`、`PORT()`），操作規則在企劃書第 9 節。
 - 遊戲邏輯只透過 `mouseWorld()` 與移動方向拿輸入（`AI.on` 時讀 `AI.aim`、`AI.mv`），不要在技能、戰鬥程式裡判斷是不是手機或自動。
 
@@ -22,7 +22,7 @@
 - **一律用繁體中文回覆**（包含 commit 訊息）。
 - **遊戲內文字**（技能、輔助、名詞、能力、昇華、通貨、面板提示）照 `docs/INDEX.md` 列的名詞表（`docs/名詞表.md`）；`docs/文字規範.md` 之後併進名詞表，併完前兩份都照（PoE2 台服寫法，照程式寫、不寫預設規則與贅字）；能力的一行字由 `items.js` 的 `statText` 照 STATN 第四格的模板組。
 - 改版本時改 `js/data.js` 的 `VER`、`index.html` 所有 `?v=` 和 `version.json`（`main.js` 的 `verCheck` 看它不同就重新載入），再更新根目錄 `CHANGELOG.md`。存檔格式改了要在 `main.js` 的 `migrate()` 補轉換。
-- 決定與調整記在 `docs/production/CHANGELOG.md` 最上面一行；任務做完照 `DOCS-STRUCTURE.md` 規則 3 收尾。
+- 決定與調整記在 `docs/production/CHANGELOG.md` 最上面一行；任務做完照文件規則收尾，文件規則見 `docs/INDEX.md` 頂端。
 - 獨立 repo（https://github.com/Shiroyashatw/dpoe ）；不要再去讀《塞令老師》（`Shiroyashatw/wayfarer`）的檔案。
 
 ## 檢查（改了遊戲邏輯一定要跑）

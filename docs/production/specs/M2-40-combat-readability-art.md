@@ -4,7 +4,7 @@
 >
 > 現行規格，只放目前有效的內容；決定記在 [`CHANGELOG.md`](../CHANGELOG.md)。負責：Game Art Director。定案來源：UIUX設計師 2026-11-18 14:3x（R 節；戰鬥 HUD 見 `docs/INDEX.md` 戰鬥 HUD 列，待定）。量測基準：main `ddfe996`（`/workspace/r17-assess/measure.json`、`cvd.json`），行號都是這個版本。色值只寫 token 名，值看 [`M2-36-palette-tokens.md`](M2-36-palette-tokens.md)。
 >
-> 相關：[`M2-40-skill-panel-hud.md`](M2-40-skill-panel-hud.md)（HUD 版面與動態，本檔只補美術尺寸與顏色）、[`M2-40-big-attack.md`](M2-40-big-attack.md)（大招判定）、[`M2-40-icon-scope-support-class.md`](M2-40-icon-scope-support-class.md)（R5 重畫範圍、R6 輔助分類）、[`M2-39-status-icons.md`](M2-39-status-icons.md)／[`M2-39-picks.md`](M2-39-picks.md)（狀態圖示）。R5 技能圖示重畫（上限 40 次生成）另開檔，不在本檔。
+> 相關：[`M2-40-skill-panel-hud.md`](M2-40-skill-panel-hud.md)（HUD 版面與動態，本檔只補美術尺寸與顏色）、[`M2-40-big-attack.md`](M2-40-big-attack.md)（大招判定）、`M2-40-icon-scope-support-class.md`（已刪）（R5 重畫範圍、R6 輔助分類）、[`M2-39-status-icons.md`](M2-39-status-icons.md)／[`M2-39-picks.md`](M2-39-picks.md)（狀態圖示）。R5 技能圖示重畫（上限 40 次生成）另開檔，不在本檔。
 >
 > 名詞：彈匣／發／裝填、儲存／顆、段（不用「彈夾」；「充能」不用在彈藥）；預警＝出招前的地面提示；大招照 big-attack 判定。
 
@@ -177,7 +177,7 @@ Deck 的 ×1.25 由全域介面縮放處理，不做新圖；但像素圖不能�
 
 ### 5.1 分類
 
-類別與每顆輔助的歸類以 [`M2-40-icon-scope-support-class.md`](M2-40-icon-scope-support-class.md)「R6 輔助四類框」為準（本檔不抄表）：四類＝**附加、異常、傷害、機制**，兩類都像時照 附加 → 異常 → 傷害 → 機制 的先後；I、II、覺醒同名同一類；沒有第五類；畫面最多 77 顆。
+類別與每顆輔助的歸類以 `M2-40-icon-scope-support-class.md`（已刪）「R6 輔助四類框」為準（本檔不抄表）：四類＝**附加、異常、傷害、機制**，兩類都像時照 附加 → 異常 → 傷害 → 機制 的先後；I、II、覺醒同名同一類；沒有第五類；畫面最多 77 顆。
 
 **框的類別、挑選清單分頁 `SUPTAB`（skpanel.js:138 的 8 個分頁）、不能同插的 `SUP_CAT` 是三套不同的東西，不要混用**：框只看上面那份分類檔，不讀 `SUPTAB` 也不讀 `SUP_CAT`。
 

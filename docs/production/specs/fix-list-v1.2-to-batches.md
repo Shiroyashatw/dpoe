@@ -153,7 +153,7 @@ B5 補充：遊戲畫面裡 0 個「ms」字（原 D1-09 的規則，見不適�
 
 ## B10 M2 UI 收尾
 
-驗收參考：`D1-demo-checklist.md` §7、`D2-checklist.md` §9、`D3-checklist.md` §10（三個切換）；三份的「demo 未驗，進遊戲量」節（D1 §8、D3 §12）；`M2-42-ux-audit-checklist.md`。
+驗收參考：`D1-demo-checklist.md` §7、`D2-checklist.md` §9、`D3-checklist.md` §10（三個切換）；三份的「demo 未驗，進遊戲量」節（D1 §8、D3 §12）；`M2-42-ux-audit-checklist.md`（已刪）。
 
 | ID | 做什麼（一句話） | 照哪裡 | 驗收 |
 | --- | --- | --- | --- |
