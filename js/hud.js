@@ -20,6 +20,8 @@ function artRepaint() {
     if (document.querySelector('.sk span.ic')) hudBar();
     if (CB.st !== 'idle' && document.querySelector('#chase span.ic'))
       $('chase').innerHTML = chaseBnHTML(); /* 王印圖第一次用到才載，橫幅先畫出空格 */
+    const cl = document.querySelector('#pcline span.ic');
+    if (cl) cl.outerHTML = icHTML('wangyin_guixu_16', 'ipw'); /* 「營地期間」那一行同上（只換圖，不重播動畫） */
     treeIcons();
   }, 80);
 }
@@ -2270,7 +2272,7 @@ function idleBar(force) {
     /* 直立：掛機卡出現或收起＝半版切換（畫布高度、分頁列） */
     sheetSync();
   }
-  if (!on) return void (HV.idle = null);
+  if (!on) return void ((HV.idle = null), ($('pcline').hidden = true));
   const now = performance.now();
   el.classList.toggle('open', !!IDLE.open);
   if (!force && now - IDLE_T < 500) return;
@@ -2298,7 +2300,7 @@ function curStrip() {
       el.setAttribute('aria-label', `金 ${fullN(S.gold, 'own')}、靈魂 ${fullN(MAT().soul || 0, 'own')}`);
 }
 /* M2-12 §2 掛機條：收起 44 高（掛機 N 分・打倒王 n 次・追逐保底 n%・最近一筆稀有以上・展開鈕），點條展開 200 高、6 秒沒操作自動收。
-   不寫輪數；掛機時間＝SES.t0（停止刷才歸零）；追逐保底只在會累積的地點（chaseLine，怪物 Lv45 以上；新存檔沒刷過就不畫）；倉庫快滿、離開 60 秒–10 分那一行換掉左字 */
+   不寫輪數；掛機時間＝SES.t0（只有重開遊戲才歸零，B3）；追逐保底只在會累積的地點（chaseLine，怪物 Lv45 以上；新存檔沒刷過就不畫）；倉庫快滿、離開 60 秒–10 分那一行換掉左字 */
 const IDLE = { open: 0, at: 0, tm: 0, hold: 0, msg: '', msgT: 0, fk: '', fade: 0 };
 const idleDur = ms => {
   const m = Math.floor(ms / 60000);
@@ -2396,6 +2398,29 @@ function idleHTML() {
     <div class="ir il3">${L.slice(0, 3).map(logRow).join('') || `<span class="c-dim">${STR_T.idleNone}</span>`}</div>
     <div class="ir">${goalHTML()}</div></div>`;
   return `<button class="ib" data-a="idlex" aria-label="${lab}" aria-expanded="false">${warn ? `<b class="c-warn">${esc(warn)}</b>` : `<b class="itm">${tm}</b>`}${ch ? `<span class="ipb ${n >= 100 ? 'full' : ''}">${icHTML('wangyin_guixu_16', 'ipw')}${tplSp('idlePity', 'n', n, 'cw')}<i class="pb"><i style="transform:scaleX(${n / 100})"></i></i></span>` : ''}${L[0] ? logRow(L[0]) : ''}</button><button class="ix" data-a="idlex" aria-label="展開" aria-expanded="false">${ICO.down}</button>`;
+}
+/* B3 D2-11：回戰場那一行「營地期間 +N」（M2-12 第二段 §0.1）：蓋在掛機條上（同位置），淡入 160 後出現、停 3,000、淡出 300（CSS）；
+   0 的項不寫、追逐放第一個（王印 16 圖示）、放不下從後面省略；點一下展開掛機條 */
+function campLine(o) {
+  const L = [
+      o.ch && [
+        `<span class="lg-chase">${icHTML('wangyin_guixu_16', 'ipw')}${strT('clCh', { n: o.ch })}</span>`,
+        `王印 ${o.ch}`
+      ],
+      o.soul && [strT('clSoul', { s: abbrH(o.soul, 'own') }), `靈魂加 ${fullN(o.soul, 'own')}`],
+      o.n && [strT('clN', { n: abbrH(o.n, 'own') }), `${o.n} 件`],
+      o.r && [`<span class="lg-cur">${strT('clR', { r: o.r })}</span>`, `稀有 ${o.r} 件`]
+    ].filter(Boolean),
+    el = $('pcline');
+  if (!L.length) return;
+  el.innerHTML = `${STR_T.clT} ${L.map(x => x[0]).join('・')}`;
+  el.setAttribute('aria-label', strT('clAria', { t: L.map(x => x[1]).join('，') }));
+  el.hidden = false;
+  el.classList.remove('go');
+  void el.offsetWidth;
+  el.classList.add('go');
+  clearTimeout(campLine.tm);
+  campLine.tm = setTimeout(() => (el.hidden = true), 3460);
 }
 /* 掛機卡的追逐保底（M2-18；M2-19.4）：一行「下一件保底 n%」＋6 px 細條；只在會觸發保底的地點（怪物 Lv45 以上）有，其他地點整行不出、不留空位。
    100% 條慢慢呼吸（full）；歸零那一次條先滿格再淡掉（reset，chaseHTML.p 記上一次）；整行是一顆透明鈕（熱區 44）開掉落紀錄 */
@@ -3298,6 +3323,7 @@ function act(a, el) {
   } else if (a === 'again') {
     if (G.state === 'dead') deadAgain();
   } else if (a === 'idlex') idleToggle();
+  else if (a === 'campline') ($('pcline').hidden = true), idleOpen();
   else if (a === 'curs') fmenuOpen('stash');
   else if (a === 'offok') offClose();
   else if (a === 'offcamp') offClose(), navGo('craft');

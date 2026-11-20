@@ -8841,6 +8841,13 @@ const STR_T = {
   idleNone: '還沒有稀有以上的掉落',
   idleFull: '倉庫快滿',
   idleAway: '離開 {t}・{r}',
+  /* B3 D2-11：回戰場那一行（M2-12 第二段 §0.1；EN While in camp: Boss Seal {n} · Souls +{s} · {k} items · ◆ {r}）；0 的項不寫 */
+  clT: '營地期間',
+  clCh: '王印 {n}',
+  clSoul: '靈魂 +{s}',
+  clN: '{n} 件',
+  clR: '◆ {r}',
+  clAria: '營地期間 {t}',
   campUpT: '營地升級',
   campLook: '回營地看',
   goal: '下一個目標：{t}',
