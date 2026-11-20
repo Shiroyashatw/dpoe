@@ -1,6 +1,6 @@
 # B5b：腐化詞 c_endure（耐力球上限 +1）工程規格 v0.1
 
-維護：數值設計師｜2026-11-19 22:18（Asia/Taipei）｜來源：mumi 2026-11-19 22:13（經幕僚長）確認 Q9：B5b 加腐化詞「耐力球上限 +1」｜程式依據 origin/main 98567a4｜設計見 `specs/corruption-calamity-analysis.md` v0.5｜本檔是現行版；Page 只是閱讀版（設計分析 Page a2f065f0：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/a2f065f0-5eba-470a-8dca-4aba1d7bf0f6）
+維護：數值設計師｜2026-11-19 22:18（Asia/Taipei）｜來源：mumi 2026-11-19 22:13（經幕僚長）確認 Q9：B5b 加腐化詞「耐力球上限 +1」｜程式依據 origin/main 98567a4｜設計見 `specs/corruption-calamity-analysis.md` v0.5｜草稿 v0.1，不可交辦；Page 只是閱讀版（設計分析 Page a2f065f0：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/a2f065f0-5eba-470a-8dca-4aba1d7bf0f6）
 
 **所有數字都是「佔位值，待 B 階段模擬」**（mumi 指示先用佔位值；沒有跑過模擬）。B5b 規定數值放在一張集中的表，c_endure 的數字一起放進去。
 
