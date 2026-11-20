@@ -1,7 +1,10 @@
 # dpoe 變更紀錄
 
 所有決定與調整，新的在上，一行一條：`日期 時間｜決定者｜影響工項｜結論`。要記新的決定就加一行在最上面，不要改寫規格或任務檔裡的歷史。2026-11-17 以前的列由企劃書決策紀錄轉來；「—」是原紀錄沒寫時間。
-- 2026-11-20 18:20｜mumi（18:14，經幕僚長）／數值設計師｜名詞表 v0.6.37｜底部分頁「戰利品」改叫「倉庫」，跟面板標題一致；「戰利品」畫面禁用；「還有 {n} 件：看戰利品」改「看倉庫」（EN {n} more: View Stash）；程式 id bag 不改。同 PR 已改：M2-37、INDEX、README、M2-23、M1-13、M2-33、battle-hud、M2-camp-cards 等；倉庫桌機鍵 I／B 統一成 L（對齊 mumi 15:14）。恢復開發後再改：hud.js。
+- 2026-11-20 18:45｜mumi｜M2-12、企劃書、M2-40、D2-checklist、battle-hud、W1／W3 圖｜掉落紀錄桌機鍵定為「;」；物品鎖定不綁鍵（滑鼠或快捷選單）；現行規格底部分頁一律 7 格、倉庫獨立（對齊 battle-hud；根目錄 README 快捷鍵等恢復開發、hud.js 一起改）。圖只改分頁字「戰利品」→「倉庫」。
+- 2026-11-20 18:42｜UIUX設計師（#141 收尾，底版 a38bdf6）｜企劃書、M2-12／33／37、專案結構、W1／W3 產生源、D2-checklist、M2-33 增補｜補改分頁／畫面名「戰利品」→「倉庫」；倉庫桌機鍵 I／B 改 L；更正 18:20 行「同 PR 已改 README」。根目錄 README 快捷鍵等恢復開發、hud.js 一起改。掉落紀錄原 L 與倉庫撞鍵，暫提「;」（待 mumi 定；Steam Deck／手把走選單焦點）。圖未重畫。
+- 2026-11-20 18:40｜Game Art Director｜M2-40 冥思技能圖改色｜冥思是物理／無（數值設計師 18:12）：32px `sk_clarity` 不重畫，冰青明暗整組改魔力藍（色相 222°、明度不變、飽和 ≤0.55），造型與色數不變；picks 第 23 行、prompts 第 88 行拿掉 `--el-cold`；新檔 `sk_clarity-s6201h-mana.png` 取代 `sk_clarity-s6201h.png`。
+- 2026-11-20 18:20｜mumi（18:14，經幕僚長）／數值設計師｜名詞表 v0.6.37｜底部分頁「戰利品」改叫「倉庫」，跟面板標題一致；「戰利品」畫面禁用；「還有 {n} 件：看戰利品」改「看倉庫」（EN {n} more: View Stash）；程式 id bag 不改。同 PR 已改：M2-37、INDEX、M2-23、M1-13、M2-33、battle-hud、M2-camp-cards 等（README 當時未改，見 18:42 收尾）；倉庫桌機鍵 I／B 統一成 L（對齊 mumi 15:14）。恢復開發後再改：hud.js。
 - 2026-11-20 18:12｜數值設計師｜battle-hud 借用素材 #1、art-picks sk_clarity｜確認冥思（sk_clarity）是物理，顏色用 --tx-strong，形狀不變
 - 2026-11-20 17:50｜UIUX設計師｜battle-hud 借用素材 #1｜光環色加混沌 `--el-chaos`（sk_blight 用）；第二批 12 個元素歸屬暫定，待數值設計師確認
 - 2026-11-20 17:46｜mumi（經幕僚長）｜art-picks battle-hud-v1.3 光環第二批｜光環第二批 12 個由 mumi 挑定並放進 art-picks/battle-hud-v1.3/1-aura/：command、guardtotem、scorch、iceshield、tesla、blight、decay、souldrain、summongod、inferno 用原檔；iceshatter、staticfield 用 mumi 挑的 B 案（檔名去掉 _B），A 案不收；48 檔 sha256 對過 MANIFEST.csv
