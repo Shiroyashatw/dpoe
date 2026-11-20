@@ -1,7 +1,7 @@
 # M2-33 第 3 批（上）：戰鬥畫面、營地、PixelLab 素材接進遊戲
 
-Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267db90c-7a0a-485e-ac26-a75a2c871232（索引 `specs/M2-33-index.md`；下半 `specs/M2-33-3b-feedback.md`）
-負責：Game Art Director。元件用第 1 批（F＝`specs/M2-33-1-foundations.md`）；畫法照 `specs/M2-36-drawing-rules.md`（D）；素材的 id、尺寸、輸出位置照 `specs/M2-36-pixellab-prompts.md`（PL）。演出內容與時間照 `specs/M2-23-feedback.md`，這裡不重寫。行號是 main a42686c（js、css 跟 01cc2ab 相同）。只寫 token 名；canvas 用 `PAL.xxx`（鍵＝token 名去掉 `--` 改駝峰，例 `--scene-void` → `PAL.sceneVoid`、`--scene-temple-mid` → `PAL.sceneTempleMid`，跟 M2-36a 的 PAL 同一份）。
+Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/267db90c-7a0a-485e-ac26-a75a2c871232（索引 `docs/INDEX.md`；下半 `specs/M2-33-3b-feedback.md`）
+負責：Game Art Director。元件用第 1 批（F＝`specs/M2-33-1-foundations.md`）；畫法照 `specs/M2-36-drawing-rules.md`（D）；素材的 id、尺寸、輸出位置照 `specs/M2-36-pixellab-d2.md`（在 PR #119，尚未進 main）（PL）。演出內容與時間照 `specs/M2-23-feedback.md`，這裡不重寫。行號是 main a42686c（js、css 跟 01cc2ab 相同）。只寫 token 名；canvas 用 `PAL.xxx`（鍵＝token 名去掉 `--` 改駝峰，例 `--scene-void` → `PAL.sceneVoid`、`--scene-temple-mid` → `PAL.sceneTempleMid`，跟 M2-36a 的 PAL 同一份）。
 
 **mumi 還沒挑圖。** 本檔的程式只依「槽」（固定路徑、固定尺寸）寫，挑哪一張都不用改程式；圖不在時退回現在的畫法。真的要等選定的圖才能做的事，標 **〔要等圖〕**。
 

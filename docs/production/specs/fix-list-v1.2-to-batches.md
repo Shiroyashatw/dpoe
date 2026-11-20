@@ -50,16 +50,16 @@
 
 B2 另外從 Page 定義要做的元件（不在 52 項內）：一般確認框、長按卡（13 處「再按一次」全換）、吐司（最多疊 2 條）、名詞說明卡、手動暫停鈕、旋轉提示。
 
-## B3 營地場景首頁（規格：`M2-12-shell-part2.md`、`M2-33-addendum-camp-zoom.md`、`camp-mood-D2.md` v1.1）
+## B3 營地場景首頁（規格：`M2-12-shell-part2.md`、`M2-33-addendum-camp-zoom.md`、camp-mood-D2 v1.1（已刪））
 
-驗收參考：`D1-demo-checklist.md` §3 營地、§8 demo 未驗進遊戲量；M2-12 第二段 §10 完成標準；camp-mood-D2 §7。
+驗收參考：`D1-demo-checklist.md` §3 營地、§8 demo 未驗進遊戲量；M2-12 第二段 §10 完成標準；camp-mood-D2 §7（已刪）。
 
 | ID | 做什麼（一句話） | 照哪裡 | 驗收 |
 | --- | --- | --- | --- |
 | D1-14 | 667×375 營地點地圖台要開地點清單：先記 `elementFromPoint(333, 96)`（tag、class、id、z-index）；1–2 行 z-index／熱區修正就在 B3 改，要改 HUD 版面就另開小工項 | 清單 D1-14；製作人 P1 裁定 | 探針紀錄；667 smoke「營地地圖台」＋`touch_check` |
 | D2-11 | 補算那一行（「營地期間 +N」）蓋在掛機條上：390 0–390 × 710–754、1280 16–396 × 664–704，14／700，`--plate-world` 不透明，左 2 px `--good`；不放 y52 | 清單 D2-11；M2-12 第二段 §0.1 | 回戰場那一行截圖兩尺寸（B6 再用同一套） |
 | D1-04、D1-08（部分） | 營地場景點牌匾開的單座卡，跟 B1 抽屜單座卡用同一個「這級」字串 | M2-12 第二段 §3.2 | F8-1 同字 |
-| D3-13（部分） | 營地、戰場底圖：先用現有圖，PixelLab 圖等 mumi 挑完再換（Page 定） | 清單 D3-13、§0 | X07、camp-mood-D2 §7 五秒測試 |
+| D3-13（部分） | 營地、戰場底圖：先用現有圖，PixelLab 圖等 mumi 挑完再換（Page 定） | 清單 D3-13、§0 | X07、camp-mood-D2 §7（已刪）五秒測試 |
 
 ## B4 戰鬥 HUD＋技能列＋輔助孔（規格：`M2-40-skill-panel-hud.md`、`M2-40-big-attack.md`、`M2-40-rec-score.md`）
 
@@ -153,7 +153,7 @@ B5 補充：遊戲畫面裡 0 個「ms」字（原 D1-09 的規則，見不適�
 
 ## B10 M2 UI 收尾
 
-驗收參考：`D1-demo-checklist.md` §7、`D2-checklist.md` §9、`D3-checklist.md` §10（三個切換）；三份的「demo 未驗，進遊戲量」節（D1 §8、D3 §12）；`M2-42-ux-audit-checklist.md`。
+驗收參考：`D1-demo-checklist.md` §7、`D2-checklist.md` §9、`D3-checklist.md` §10（三個切換）；三份的「demo 未驗，進遊戲量」節（D1 §8、D3 §12）；`M2-42-ux-audit-checklist.md`（已刪）。
 
 | ID | 做什麼（一句話） | 照哪裡 | 驗收 |
 | --- | --- | --- | --- |

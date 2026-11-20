@@ -1,6 +1,6 @@
 # dpoe M4P-03 PWA 圖示、啟動畫面、安裝說明頁規格
 
-> 本檔由製作人從 Page 同步，來源：<https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/4a048eaf-301e-4490-9f07-81ced2fe7050>；同步日期：2026-11-17；請勿直接在 repo 修改，改動請經製作人
+> 現行版就是本檔（repo）；Page 4a048eaf 只是閱讀版，兩邊不同時以本檔為準。改動照 docs/INDEX.md 的定稿流程。
 
 > 同步說明：本檔是 Game Art Director 規格 Page 的完整轉換，數字、文案與線框照原文（線框放在程式碼區塊）。本頁「已決定」各項是製作人 2026-11-17 10:29 的決定，Art Director 已回寫到 Page；決定內容也記在 [`CHANGELOG.md`](../CHANGELOG.md) 變更紀錄與 [`README.md`](../README.md)，不同時以變更紀錄為準。放進 DOC-06（只改文件的 PR）。
 
@@ -180,7 +180,7 @@
 
 ## 來源（Page sources）
 
-- <https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/a647bf26-aa82-4684-8c89-311e76640026>
+- `docs/production/README.md`
 - <https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/91bce2cc-463c-400c-adf4-8ed14ac0ba8c>
 - <https://github.com/Shiroyashatw/dpoe>
 - <https://support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/26/ios/26>

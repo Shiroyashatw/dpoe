@@ -1,6 +1,6 @@
 # D1 修正規格（mumi 11/19 試玩 9 項＋D1 最終複審餘項）第 2 段
 
-版本 v1.1｜2026-11-19 14:08（Asia/Taipei；v1.0 13:45）｜字串照名詞表 v0.6.15「畫面字串」段；假資料照 `specs/D1-fix-fakedata.md`｜UIUX設計師｜共通規則、證據路徑、檔名規則見第 1 段 `D1-fix-mumi-1119.md` §0。
+版本 v1.1｜2026-11-19 14:08（Asia/Taipei；v1.0 13:45）｜字串照名詞表 v0.6.15「畫面字串」段；假資料照 `specs/D1-fix-fakedata.md`（已刪）｜UIUX設計師｜共通規則、證據路徑、檔名規則見第 1 段 `D1-fix-mumi-1119.md` §0。
 
 ## 6. 天賦樹（含昇華石碑）滿版（mumi 第 6 項；mumi 11/19 13:25 定，經製作人；石碑 製作人 13:36）
 
@@ -113,7 +113,7 @@
 | F9-3 | `F9-3_cur_detail` 390／1280 | 點資源列 | 通貨明細 | 開明細；數字完整加千分位；× 與 Esc 關 |
 | F9-4 | `F9-4_cur_fs_en` 390／1280 | 130%＋英文 | 截字 | 不縮字、不截斷、不換行 |
 
-## 10. D1 最終複審餘項（Page 78e9944d 第三輪）
+## 10. D1 最終複審餘項（Page 78e9944d（已作廢，現行版見 docs/INDEX.md） 第三輪）
 
 | 列 | 內容 | 截圖／影片 | 過關門檻 |
 | --- | --- | --- | --- |
@@ -123,7 +123,7 @@
 
 ## 11. 新色票與主視覺（三關 demo 共用）
 
-- 色：全部用 M2-36 token（Page 4ac24fae；`M2-36-palette-tokens.md`），含 `--bad`／`--bad-hi` #fe7883、`--warn` #b7ad66、`--hp` #823630、`--mp` #304e8b、`--hurt-vignette-rgb` 190 30 25。token 對照表＝`specs/M2-36-demo-tokens.md`（美術總監 13:32）；`--hp-hi` #ae766c、`--mp-hi` #7d81ac（13:31）。畫面未驗。
+- 色：全部用 M2-36 token（Page 4ac24fae（已作廢，現行版見 docs/INDEX.md）；`M2-36-palette-tokens.md`），含 `--bad`／`--bad-hi` #fe7883、`--warn` #b7ad66、`--hp` #823630、`--mp` #304e8b、`--hurt-vignette-rgb` 190 30 25。token 對照表＝`specs/M2-36-palette-tokens.md`（美術總監 13:32）；`--hp-hi` #ae766c、`--mp-hi` #7d81ac（13:31）。畫面未驗。
 - 主視覺：只有**戰場背景**和**營地背景**兩張，不含 logo、宣傳圖。素材待美術總監交（未到，未驗）。
 
 | 列 | 截圖 | 量什麼 | 過關門檻 |
@@ -151,7 +151,7 @@
 - `V-F1_idle_expand`、`V-F2_flask_busy`、`V-F2_lowhp`、`V-F6_tree_pause`、`V-F6_stele_pause`、`V-F8_card_nav`、`V-R_drawer_close`
 - 只要一般、只要 1280：`V-F6_tree_keys`
 
-假資料：見 `specs/D1-fix-fakedata.md`（數值設計師 v1.0，每個數字附程式依據或標「假定」）。重點：中期存檔（鍛造台 Lv12）沒有 ★ 破裂、記憶、腐化、高階通貨，F1 清單用 7 位數存檔；藥劑沒有次數，只拍冷卻。
+假資料：見 `specs/D1-fix-fakedata.md`（已刪）（數值設計師 v1.0，每個數字附程式依據或標「假定」）。重點：中期存檔（鍛造台 Lv12）沒有 ★ 破裂、記憶、腐化、高階通貨，F1 清單用 7 位數存檔；藥劑沒有次數，只拍冷卻。
 
 ## 13. 待決與待入
 

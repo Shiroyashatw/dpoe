@@ -1,6 +1,6 @@
 # M2-40 R5 PixelLab 提示詞表（技能圖示重畫）
 
-負責：Game Art Director。範圍照 `specs/M2-40-icon-scope-support-class.md`（數值設計師，UIUX設計師確認 22 列）；可辨識度最後由 UIUX設計師審。畫法照 `specs/M2-36-drawing-rules.md` §1、§2、§5.1，另以本檔 §5 為準。金鑰只讀雲端環境變數 `PIXELLAB_API_KEY`，不准寫進 repo、規格、日誌、JSON 或 PR 留言。產出放草稿 PR（不合併）。資料依 origin/main `c1cd757`（`js/data.js`、`js/art.js`）。
+負責：Game Art Director。範圍照 `specs/M2-40-icon-scope-support-class.md`（已刪）（數值設計師，UIUX設計師確認 22 列）；可辨識度最後由 UIUX設計師審。畫法照 `specs/M2-36-drawing-rules.md` §1、§2、§5.1，另以本檔 §5 為準。金鑰只讀雲端環境變數 `PIXELLAB_API_KEY`，不准寫進 repo、規格、日誌、JSON 或 PR 留言。產出放草稿 PR（不合併）。資料依 origin/main `c1cd757`（`js/data.js`、`js/art.js`）。
 
 ## 1. 上限與批
 
@@ -41,7 +41,7 @@
 
 ## 2. 呼叫方式
 
-沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-prompts.md` §2），只改上限與工作表：
+沿用 `tools/pixellab_batch.py`（`specs/M2-36-pixellab-d2.md`（在 PR #119，尚未進 main） §2），只改上限與工作表：
 
 - 用 `/create-image-pixflux`，不給 style_image、不給 color_image；**給 init_image＝上色導引圖（§2.2），`init_image_strength` 150**。不要的寫 `negative_description`。prompt 的位置詞（左下、右上）保留，但 init 才是構圖依據。
 - `color_image`：不給。第 1 輪只給 4–6 個 token 色，圖就被壓成平塗。§3 的 palette 欄只當「主色方向」寫進 description，不鎖色。

@@ -98,7 +98,7 @@ docs/production/evidence/<task>/
 | PF1 檔案 | 圖存在；像素寬高 = 視窗 × DPR；截圖不透明（任何 alpha < 255 就不過）；不是空白或全黑（L* 標準差 ≥ 2）；跟同一列的其他狀態不是同一張圖（雜湊不同）；頁面沒有 `pageerror` | 本節 |
 | PF2 狀態 | 「驗狀態」條件成立 | 清單 |
 | PF3 舒服 | (a)–(f) | `specs/M2-36-palette-tokens.md`「舒服」量測表；(c) 演出中的圖不算閒置（照 M2-23 §12-8） |
-| PF4 素材 | 有用到新素材檔時，檔案本身過色票偏移、沒被放大、雜點、地板／牆頂／牆面、接縫、圖示雜點、王印飽和 | `specs/M2-36-pixellab-prompts.md` §6 |
+| PF4 素材 | 有用到新素材檔時，檔案本身過色票偏移、沒被放大、雜點、地板／牆頂／牆面、接縫、圖示雜點、王印飽和 | `specs/M2-36-pixellab-d2.md`（在 PR #119，尚未進 main） §6 |
 | PF5 介面 | 圖示整數倍、熱區、token 解析與沒有色碼、焦點框 | `specs/M2-33-1-foundations.md` §12–13；各批的驗收節 |
 | PF6 特效 | 最大幀飽和面積、超過 8% 的時間、黑邊、戰鬥 5 秒平均 | `specs/M2-36-drawing-rules.md` §6、`specs/M2-33-3a-scene-assets.md` §4.2 |
 | PF7 數字 | 跳數字螢幕字高下限、描邊、重疊 | `specs/M2-33-3a-scene-assets.md` §1.3、`specs/M2-23-feedback.md` §12-4 |

@@ -1,0 +1,408 @@
+{
+ "Lgt80_pct": 1.23,
+ "Lgt80_panel_pct": 1.15,
+ "overlaps_full": [
+  [
+   1,
+   [
+    "破裂",
+    "印"
+   ],
+   {
+    "▲": 19,
+    "✦": 23,
+    "鎖": 6
+   },
+   0.0
+  ],
+  [
+   3,
+   [
+    "追憶",
+    "印"
+   ],
+   {
+    "▲": 23,
+    "✦": 23,
+    "鎖": 6
+   },
+   0.0
+  ],
+  [
+   4,
+   [
+    "破裂",
+    "追憶",
+    "印"
+   ],
+   {
+    "✦": 23
+   },
+   0.0
+  ],
+  [
+   7,
+   [
+    "破裂"
+   ],
+   {
+    "✦": 23,
+    "鎖": 24
+   },
+   0
+  ],
+  [
+   10,
+   [],
+   {},
+   0
+  ],
+  [
+   13,
+   [
+    "破裂",
+    "印"
+   ],
+   {
+    "▲": 23,
+    "✦": 23
+   },
+   0.0
+  ],
+  [
+   16,
+   [
+    "印"
+   ],
+   {
+    "▲": 23,
+    "✦": 23
+   },
+   0
+  ],
+  [
+   17,
+   [],
+   {},
+   0
+  ],
+  [
+   18,
+   [],
+   {},
+   0
+  ]
+ ],
+ "icons_full": [
+  {
+   "cell": 1,
+   "kind": "破裂",
+   "box": [
+    94,
+    187,
+    111,
+    204
+   ],
+   "icon_vs_darkest": 13.29,
+   "icon_vs_lightest": 13.29,
+   "outline_vs_darkest": 1.33,
+   "outline_vs_lightest": 1.33,
+   "icon_vs_outline": 17.62,
+   "worst_pixel_best_of_two": 13.29
+  },
+  {
+   "cell": 1,
+   "kind": "印",
+   "box": [
+    112,
+    187,
+    129,
+    204
+   ],
+   "icon_vs_darkest": 10.26,
+   "icon_vs_lightest": 10.26,
+   "outline_vs_darkest": 1.33,
+   "outline_vs_lightest": 1.33,
+   "icon_vs_outline": 13.61,
+   "worst_pixel_best_of_two": 10.26
+  },
+  {
+   "cell": 3,
+   "kind": "追憶",
+   "box": [
+    238,
+    187,
+    255,
+    204
+   ],
+   "icon_vs_darkest": 11.12,
+   "icon_vs_lightest": 11.12,
+   "outline_vs_darkest": 1.19,
+   "outline_vs_lightest": 1.19,
+   "icon_vs_outline": 13.25,
+   "worst_pixel_best_of_two": 11.12
+  },
+  {
+   "cell": 3,
+   "kind": "印",
+   "box": [
+    256,
+    187,
+    273,
+    204
+   ],
+   "icon_vs_darkest": 15.31,
+   "icon_vs_lightest": 11.43,
+   "outline_vs_darkest": 1.13,
+   "outline_vs_lightest": 1.19,
+   "icon_vs_outline": 13.61,
+   "worst_pixel_best_of_two": 11.43
+  },
+  {
+   "cell": 4,
+   "kind": "破裂",
+   "box": [
+    310,
+    187,
+    327,
+    204
+   ],
+   "icon_vs_darkest": 14.8,
+   "icon_vs_lightest": 14.8,
+   "outline_vs_darkest": 1.19,
+   "outline_vs_lightest": 1.19,
+   "icon_vs_outline": 17.62,
+   "worst_pixel_best_of_two": 14.8
+  },
+  {
+   "cell": 4,
+   "kind": "+2",
+   "box": [
+    329,
+    188,
+    344,
+    203
+   ],
+   "text_contrast_vs_plate": 14.66
+  },
+  {
+   "cell": 7,
+   "kind": "破裂",
+   "box": [
+    166,
+    259,
+    183,
+    276
+   ],
+   "icon_vs_darkest": 14.8,
+   "icon_vs_lightest": 14.8,
+   "outline_vs_darkest": 1.19,
+   "outline_vs_lightest": 1.19,
+   "icon_vs_outline": 17.62,
+   "worst_pixel_best_of_two": 14.8
+  },
+  {
+   "cell": 13,
+   "kind": "破裂",
+   "box": [
+    238,
+    331,
+    255,
+    348
+   ],
+   "icon_vs_darkest": 13.26,
+   "icon_vs_lightest": 8.68,
+   "outline_vs_darkest": 1.33,
+   "outline_vs_lightest": 2.03,
+   "icon_vs_outline": 17.62,
+   "worst_pixel_best_of_two": 8.68
+  },
+  {
+   "cell": 13,
+   "kind": "印",
+   "box": [
+    256,
+    331,
+    273,
+    348
+   ],
+   "icon_vs_darkest": 10.24,
+   "icon_vs_lightest": 6.7,
+   "outline_vs_darkest": 1.33,
+   "outline_vs_lightest": 2.03,
+   "icon_vs_outline": 13.61,
+   "worst_pixel_best_of_two": 6.7
+  },
+  {
+   "cell": 16,
+   "kind": "印",
+   "box": [
+    94,
+    403,
+    111,
+    420
+   ],
+   "icon_vs_darkest": 11.43,
+   "icon_vs_lightest": 11.43,
+   "outline_vs_darkest": 1.19,
+   "outline_vs_lightest": 1.19,
+   "icon_vs_outline": 13.61,
+   "worst_pixel_best_of_two": 11.43
+  }
+ ],
+ "closeup": [
+  [
+   "稀有｜一般",
+   [],
+   {},
+   0
+  ],
+  [
+   "稀有｜腐化",
+   [],
+   {},
+   0
+  ],
+  [
+   "稀有｜災魘",
+   [],
+   {},
+   0
+  ],
+  [
+   "魔法｜一般",
+   [],
+   {},
+   0
+  ],
+  [
+   "魔法｜腐化",
+   [],
+   {},
+   0
+  ],
+  [
+   "魔法｜災魘",
+   [],
+   {},
+   0
+  ],
+  [
+   "普通｜一般",
+   [],
+   {},
+   0
+  ],
+  [
+   "普通｜腐化",
+   [],
+   {},
+   0
+  ],
+  [
+   "普通｜災魘",
+   [],
+   {},
+   0
+  ],
+  [
+   "最壞例｜3 種＋鎖",
+   [
+    "破裂",
+    "追憶",
+    "印"
+   ],
+   {
+    "▲": 19,
+    "✦": 23,
+    "鎖": 7
+   },
+   0.0
+  ],
+  [
+   "最壞例｜腐化＋2 種＋鎖",
+   [
+    "破裂",
+    "印"
+   ],
+   {
+    "▲": 19,
+    "✦": 23,
+    "鎖": 6
+   },
+   0.0
+  ]
+ ],
+ "stripe_vs_caltint": 1.53,
+ "frame_vs_tint": {
+  "rare": {
+   "corr": 6.9,
+   "cal": 6.89
+  },
+  "magic": {
+   "corr": 6.25,
+   "cal": 6.24
+  },
+  "normal": {
+   "corr": 3.34,
+   "cal": 3.33
+  }
+ },
+ "frame_vs_stripe": {
+  "rare": 4.51,
+  "magic": 4.08,
+  "normal": 2.18
+ },
+ "gray_dL_stripe": 12.6,
+ "corr_vs_cal_dE": {
+  "normal": 17.4,
+  "protan": 18.6,
+  "deutan": 22.5,
+  "tritan": 16.7
+ },
+ "icon_vs_stripe": {
+  "印": 6.7,
+  "追憶": 6.52,
+  "破裂": 8.68
+ },
+ "plate_on_stripe": {
+  "plate_vs_stripe": 1.64,
+  "star": 14.21,
+  "up": 10.07,
+  "lock": 11.89
+ },
+ "art_contrast_cal_T2": {
+  "mean_plain": 3.04,
+  "mean_cal": 2.68,
+  "pct": -11.7,
+  "worst": [
+   "gear_helm_4",
+   "normal",
+   -20.2
+  ]
+ },
+ "art_contrast_corr": {
+  "mean_plain": 3.04,
+  "mean_tint": 2.76,
+  "pct": -9.3,
+  "worst": [
+   "gear_helm_4",
+   "normal",
+   -16.3
+  ]
+ },
+ "frame_vs_adjacent_inset": {
+  "rare": {
+   "corr": 6.9,
+   "cal": 6.89
+  },
+  "magic": {
+   "corr": 6.25,
+   "cal": 6.24
+  },
+  "normal": {
+   "corr": 3.34,
+   "cal": 3.33
+  }
+ }
+}

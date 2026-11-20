@@ -1,10 +1,10 @@
 # dpoe UI demo D3 檢查表
 
-UIUX設計師 2026-11-19 13:31 初稿；格式同 D1（Page 2012c37e、specs/D1-demo-checklist.md）。Page「D3 展示頁檢查清單」（6dab80d2-642e-492e-a3f6-ad152369f230）為本檔鏡像。全部未驗。
+UIUX設計師 2026-11-19 13:31 初稿；格式同 D1（Page 2012c37e（已作廢，現行版見 docs/INDEX.md）、specs/D1-demo-checklist.md）。Page「D3 展示頁檢查清單」（6dab80d2-642e-492e-a3f6-ad152369f230（已作廢，現行版見 docs/INDEX.md））為本檔鏡像。全部未驗。
 
 D3＝地點／星級、更多、設定、掉落紀錄、商會＋山海寶盒、試招場（只翻新現有石圈）、開場與重開（ee479f88 demo 段，對應 B7、B8、B9）。56 列：地點 8、更多 4、設定 7、掉落紀錄 6、商會＋寶盒 9、試招場 7、開場＋重開 8、共用定案 7。19 列要錄影，對到 10 個動態項目。另有預篩 9 項、demo 未驗 5 項、假資料 26 欄 × 6 存檔。
 
-來源：地點 Page da74b0f7；更多＋設定＋掉落紀錄 Page e5f18530（全鍵位表）；商會＋寶盒 Page 34b6ef58；試招場 Page 10b3faf8；開場 Page f9b6d19c；M2-33-2b §3–7；M2-12 第二段 §1；M1-13；M2-36-palette-tokens.md／Page 4ac24fae；specs/number-abbrev.md（名詞表 v0.6.15，數值設計師）；假資料 specs/D3-fakedata.md；M2-42 預篩 PF1–PF16。
+來源：地點 Page da74b0f7；更多＋設定＋掉落紀錄 Page e5f18530（全鍵位表）；商會＋寶盒 Page 34b6ef58；試招場 Page 10b3faf8；開場 Page f9b6d19c；M2-33-2b §3–7；M2-12 第二段 §1；M1-13；M2-36-palette-tokens.md／Page 4ac24fae（已作廢，現行版見 docs/INDEX.md）；specs/number-abbrev.md（名詞表 v0.6.15，數值設計師）；假資料 specs/D3-fakedata.md；M2-42 預篩 PF1–PF16。
 
 ## 量法與門檻
 
