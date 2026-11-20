@@ -1,6 +1,9 @@
 # dpoe 變更紀錄
 
 所有決定與調整，新的在上，一行一條：`日期 時間｜決定者｜影響工項｜結論`。要記新的決定就加一行在最上面，不要改寫規格或任務檔裡的歷史。2026-11-17 以前的列由企劃書決策紀錄轉來；「—」是原紀錄沒寫時間。
+- 2026-11-20 17:50｜UIUX設計師｜battle-hud 借用素材 #1｜光環色加混沌 `--el-chaos`（sk_blight 用）；第二批 12 個元素歸屬暫定，待數值設計師確認
+- 2026-11-20 17:46｜mumi（經幕僚長）｜art-picks battle-hud-v1.3 光環第二批｜光環第二批 12 個由 mumi 挑定並放進 art-picks/battle-hud-v1.3/1-aura/：command、guardtotem、scorch、iceshield、tesla、blight、decay、souldrain、summongod、inferno 用原檔；iceshatter、staticfield 用 mumi 挑的 B 案（檔名去掉 _B），A 案不收；48 檔 sha256 對過 MANIFEST.csv
+- 2026-11-20 17:45｜UIUX設計師（對齊 mumi 15:14）｜M2-camp-cards v1.0.1、battle-hud-2 P54｜倉庫入口從「角色 › 戰利品」改成戰利品分頁，1280 鍵帽 I → L；版面不變
 - 2026-11-20 17:33｜mumi｜battle-hud v1.3.2、INDEX、M2-33 補遺 §1.5／§5、M2-12 第一段、M2-39、D1-demo-checklist、D1-fix 第 1／2 段、art-picks battle-hud-v1.3｜拿掉觀戰鍵：觀戰鈕、`watch` 觀戰狀態、離開鈕與 N 鍵從規格拿掉，N 不綁（不改給別的功能）；Esc 順序刪「離開觀戰」；掛機卡標題列只留收起／展開一顆鈕；battle-hud 全套（含借用素材清單）升 v1.3.2，INDEX 兩列「觀戰鈕待定」改「已拿掉」；W1 線框與上色圖本來就沒畫觀戰鈕，圖不重畫（consistency_check PASS）。F §11、2b §4 本來就沒有 N／觀戰，不改
 - 2026-11-20 17:10｜UIUX裁定／Game Art Director｜battle-hud v1.3 素材｜UIUX 17:06 審 /workspace/hud13：分頁、gasflask、王、藥劑候選照原樣交 mumi 挑（美術總監建議 分頁 A、gasflask B、王 s6921、藥劑 A；UIUX 也建議藥劑 A）；光環第一批改 6 個（anger／precise／hasteaura／determination／purityaura／clarity，10×10＋12×12＋@2x，precise、purityaura 新畫），亮部剪影 1−IoU 最小 0.58（10）／0.561（12）；hatred 等 5 個移到 spare；尺寸不變（格 12／14 內放 10／12）；M2-36 色票冷卻環改 2 px＋1 px #000，畫法規則 §2 光環／分頁遮罩不描暗邊、§5.2 390 戰鬥分頁改 16 px 單色遮罩。
 - 2026-11-20 17:06｜UIUX設計師｜battle-hud v1.3、借用素材 #1｜光環素材清單改照 main data.js（tags 含 aura）：第一批 6 個 anger／precise／hasteaura／determination／purityaura／clarity，第二批其餘 12 個；刪掉遊戲沒有的 hatred／wrathaura／grace／discipline／zealotry；§4 例外清單舊字修正為 1280 光環 14、狀態 28，390 收起光環 12、狀態 24；藥劑冷卻環以 v1.3 的 2 px＋1 px #000 為準；390 分頁圖示以 v1.3 的 16 px 單色遮罩為準
