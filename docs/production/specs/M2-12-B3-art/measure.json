@@ -105,7 +105,7 @@
   },
   "bordercap_vs_void": 12.48
  },
- "hover_ring_with_void": {
+ "hover_ring_old_border_hi": {
   "void_vs": {
    "wood": 2.62,
    "wood_lightest_grain": 8.1,
@@ -178,5 +178,22 @@
  "plaque_edge": {
   "end_light_vs_ground": 4.41,
   "end_dark_vs_light": 2.39
+ },
+ "focus_ring": {
+  "focus_vs": {
+   "wood": 6.73,
+   "wood_lightest_grain": 2.18,
+   "ground": 9.6,
+   "mid": 12.5,
+   "light": 6.37
+  },
+  "focus_vs_void_edge": 17.62,
+  "void_edge_vs": {
+   "wood": 2.62,
+   "wood_lightest_grain": 8.1,
+   "ground": 1.84,
+   "mid": 1.41,
+   "light": 2.77
+  }
  }
 }
