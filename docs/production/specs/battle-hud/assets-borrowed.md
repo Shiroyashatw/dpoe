@@ -1,4 +1,4 @@
-# battle-hud v1.3.1 借用素材清單（final，2026-11-20 mumi 16:32；v1.3 勘誤 mumi 17:18）
+# battle-hud v1.3.2 借用素材清單（final，2026-11-20 mumi 16:32；v1.3 勘誤 mumi 17:18；mumi 11/20 17:33 拿掉觀戰鍵，本檔內容不變）
 
 > 上色示意圖（[`../wireframes/W1-battle-hud/color/`](../wireframes/W1-battle-hud/color/)）沒有用生圖，也沒有「佔位」框；下面這些元件是**借現有素材或用程式畫**暫代。正式素材由美術總監排；規格欄是 UIUX 對正式素材的需求。
 > 共同規則：像素圖只做**整數倍**縮放（1x／2x，`@2x` 給 DPR 2）；外框、底色、染色都由程式用 token 畫，素材本身不畫外框；色票只用 D2 定案（`palette-D2-final-ui.md` v1.6、`palette-D2-panel-1plus.md` v1.1、`M2-36-palette-tokens.md`）。

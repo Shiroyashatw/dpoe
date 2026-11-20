@@ -14,7 +14,7 @@
 | ④ 王「上尸」boss_shang | **s6921**：`boss_shang-s6921-f64.png` 64×64 | s6924、s6922 | 1 | `art/monsters/`（建議，照 js/art.js 檔頭「來源 art/monsters/*.png」） |
 | ⑥ 藥劑球 | **A**（淺玻璃邊）：`flask_{hp,mp}_{12,14}`＋`@2x` | B | 8 | `art/flasks/flask_hp/`、`art/flasks/flask_mp/`（建議，同 m2-36-d2-first 的 flask 路徑） |
 
-沒收：未選的 B 組、s6924、s6922、`overview/`、`tools/`、`mockctx/`、`1-aura/spare/`。待定：光環第二批 12 個（由 Game Art Director 補）、觀戰鈕。⑤ 菁英標記照 UIUX 維持程式畫，沒有素材。
+沒收：未選的 B 組、s6924、s6922、`overview/`、`tools/`、`mockctx/`、`1-aura/spare/`。待定：光環第二批 12 個（由 Game Art Director 補）。觀戰鈕已從規格拿掉（mumi 11/20 17:33 拿掉觀戰鍵），不需要素材。⑤ 菁英標記照 UIUX 維持程式畫，沒有素材。
 
 ## 檔案、來源與 sha256
 

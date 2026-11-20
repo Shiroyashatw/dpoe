@@ -1,4 +1,4 @@
-# battle-hud v1.3（final，2026-11-20 mumi 16:32）續篇：直立 390×844
+# battle-hud v1.3.2（final，2026-11-20 mumi 16:32；mumi 11/20 17:33 拿掉觀戰鍵）續篇：直立 390×844
 
 > 接 [`battle-hud.md`](battle-hud.md)。寫法、狀態碼、旗同下。桌機見 [`battle-hud-3.md`](battle-hud-3.md)。
 
