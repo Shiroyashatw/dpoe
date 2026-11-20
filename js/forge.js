@@ -1193,13 +1193,15 @@ document.addEventListener('click', e => {
     }
   } else if (k === 'gen') {
     const r0 = genRate(v),
-      ms0 = genMs(genOf(v).lv);
+      lv0 = genOf(v).lv,
+      ms0 = genMs(lv0);
     err = genUp(v, x === 'max' ? Math.max(1, genAfford(v)) : +x);
     if (!err) {
       const ms1 = genMs(genOf(v).lv),
         ms = ms1.m > ms0.m || ms1.slots > ms0.slots || ms1.tu > ms0.tu;
       const r1 = genRate(v);
       CAMPUI.fx[v] = { t: performance.now(), add: `+${fmtR(r1 - r0)}／分`, ms, from: r0, to: r1 };
+      campDust(v, lv0);
       sfx(ms ? 'lvup' : 'coin');
       save();
     }

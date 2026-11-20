@@ -1046,12 +1046,12 @@ const plqU = () => (IW >= 2560 && IH >= 1440 ? 2 : 1);
 /* 擺設對應的設施（M2-11.1：地圖台＝瞭望台、昇華石碑＝祭壇、倉庫＝倉房）：牌匾寫設施名＋「Lv N」（§12-3）；其他擺設只有名字 */
 const PLQ_B = { forge: 'forge', device: 'watch', asc: 'altar', stash: 'store' };
 const plqTxt = k => (PLQ_B[k.k] ? `${CAMPN[PLQ_B[k.k]]} Lv${S.camp[PLQ_B[k.k]] || 0}` : k.n);
-/* 每座的牌匾錨點（§12-2）：up／down＝建築上方／下方，dx、dy 世界 px；lookTiers＝換外觀的等級（§12-5，空＝等美術分級） */
+/* 每座的牌匾錨點（§12-2）：up／down＝建築上方／下方，dx、dy 世界 px */
 const PLQ_CFG = {
-  stash: { side: 'up', dx: 0, dy: 0, lookTiers: [] },
-  forge: { side: 'up', dx: 0, dy: 0, lookTiers: [] },
-  asc: { side: 'up', dx: 30, dy: 0, lookTiers: [] },
-  device: { side: 'down', dx: 0, dy: 0, lookTiers: [] },
+  stash: { side: 'up', dx: 0, dy: 0 },
+  forge: { side: 'up', dx: 0, dy: 0 },
+  asc: { side: 'up', dx: 30, dy: 0 },
+  device: { side: 'down', dx: 0, dy: 0 },
   box: { side: 'up', dx: 0, dy: 0 },
   prac: { side: 'down', dx: 0, dy: 0 }
 };
@@ -1344,13 +1344,21 @@ function dustTick(now) {
     if (now - DUST.ok >= 2000) DUST.half = DUST.ok = 0;
   } else DUST.ok = 0;
 }
-/* 這次升級跨過那座的換外觀等級（lookTiers）＝1200 ms；連升 250、一般 600（§4、§12-5） */
-const buildMs = (bk, lv, q) =>
-  q
-    ? 250
-    : G.props.some(k => PLQ_B[k.k] === bk && (PLQ_CFG[k.k].lookTiers || []).some(t => t > lv - 1 && t <= lv))
-      ? 1200
-      : 600;
+/* 換外觀的等級（M2-12-lookTiers.md，設施 id／GEN id）：升到或一次連升跨過表內等級＝1200 ms */
+const LOOK_TIERS = {
+  forge: [1, 5, 10, 15, 20],
+  watch: [1, 8, 15, 22, 26] /* 23～25 只加光點，600 */,
+  scout: [1, 2, 3, 4],
+  house: [1, 4, 7, 10],
+  altar: [1, 4, 7, 11] /* 畫面名：長老屋 */,
+  store: [1, 3, 5],
+  wood: [5, 10, 25, 50],
+  iron: [5, 10, 25, 50],
+  hide: [5, 10, 25, 50] /* Lv0→1 首次出現不在表內，600 */,
+  silk: [5, 10, 25, 50]
+};
+/* 從 a 級升到 b 級：跨過表內等級＝1200 ms；10 秒內連升 250、其餘 600（§4、§12-5） */
+const buildMs = (bk, a, b, q) => (q ? 250 : (LOOK_TIERS[bk] || []).some(t => t > a && t <= b) ? 1200 : 600);
 const DUST_SET = {
   n: [16, 100, 250, 250, 350, [2, 3, 4], [0.2, 0.45, 0.35]],
   q: [6, 0, 40, 150, 210, [2, 3], [0.5, 0.5]]
@@ -1360,20 +1368,22 @@ const dustPick = (a, w) => {
   for (let i = 0; i < a.length; i++) if ((r -= w[i]) < 0) return a[i];
   return a[a.length - 1];
 };
-function campDust(bk) {
+/* a＝升級前的等級（產生器可一次連升多級）；沒擺設的設施只記時機（翻牌在卡上） */
+function campDust(bk, a) {
   const k = G.scene === 'camp' && G.props.find(p => PLQ_B[p.k] === bk),
     now = performance.now(),
     q = now - (DUST.last[bk] || -1e9) < 10000,
+    lv = GEN[bk] ? genOf(bk).lv : S.camp[bk],
+    T = buildMs(bk, a ?? lv - 1, lv, q),
     say = $('plqsay');
-  if (say && CAMPN[bk]) say.textContent = `${k ? k.n : CAMPN[bk]}升到 ${S.camp[bk]} 級`;
+  DUST.last[bk] = now;
+  DUST.up[bk] = { t: now, q, T };
+  if (say && CAMPN[bk]) say.textContent = `${k ? k.n : CAMPN[bk]}升到 ${lv} 級`;
   if (!k || reduced()) return;
   const [n0, b0, b1, l0, l1, sz, sw] = DUST_SET[q ? 'q' : 'n'],
-    T = buildMs(bk, S.camp[bk], q),
     /* 換外觀那一段 1200 ms：出生時間拉長，塵土跟著放到最後（新外觀交叉淡化等美術分級圖） */
     n = DUST.half ? Math.ceil(n0 / 2) : n0,
     rnd = (a, b) => a + Math.random() * (b - a);
-  DUST.last[bk] = now;
-  DUST.up[bk] = { t: now, q, T };
   for (let i = 0; i < n; i++) {
     const x = rnd(-0.4, 0.4);
     DUST.p.push({
