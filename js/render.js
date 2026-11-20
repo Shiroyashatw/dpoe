@@ -1080,7 +1080,7 @@ function plqBtns() {
         };
         return b;
       }),
-      Object.assign(document.createElement('span'), { className: 'sr', id: 'plqsay' })
+      Object.assign(document.createElement('span'), { className: 'sr', id: 'plqsay', role: 'status' })
     );
   for (const k of L) {
     const r = k._pr,
