@@ -74,7 +74,7 @@
 | 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
 | 山海寶盒 | （無） | — | 待寫（各自批次到了再定） |
 | 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | v1.0 | 現行（只限這幾節；照刷） |
-| 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.0＋§16 | 現行；示意圖 W/W3-items/ 現行 |
+| 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.1 | 現行（v1.0 已由本檔取代）；示意圖 W/W3-items/ 現行 |
 | 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
 | 倉庫 | `S/M2-33-2a-items-crafting.md` §3＋`S/M2-37-ia-rework.md` §8 | 11/18 | 現行；B5 新檔 S/stash.md 待寫 |
