@@ -46,7 +46,7 @@
 | 疊圖驗收、簽核 | UIUX設計師或數值設計師 |
 | merge | 開發工程師（簽核後） |
 
-狀態說明：**現行**＝在 repo main，可以交辦；**待轉入**＝內容已判定現行，還沒進 repo，不能交辦；**待定**＝mumi 還在定，不能交辦；**待寫**＝還沒有規格；**待 HUD**＝等戰鬥 HUD 定稿。
+狀態說明：**現行**＝在 repo main，可以交辦；**待轉入**＝內容已判定現行，還沒進 repo，不能交辦；**待定**＝mumi 還在定，不能交辦；**待寫**＝還沒有規格。
 縮寫：S/＝`docs/production/specs/`，W/＝`docs/production/specs/wireframes/`。
 
 ## 製作
@@ -64,13 +64,13 @@
 
 | 畫面 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3 定稿（mumi 2026-11-20 16:32） | 現行（定稿）：戰鬥 HUD 版面與 5 種狀態（390×844／1280×720）；光環小方塊（名詞表 v0.6.36）；收起列 390×44／桌機兩行 320×64；上色示意圖與借用素材清單｜負責：UIUX設計師｜依據：mumi 16:06、16:32｜**開發仍暫停（mumi 11/20 14:40），等 mumi 放行才能開工** |
+| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3 定稿（mumi 2026-11-20 16:32） | 現行 v1.3 定稿（UIUX設計師；mumi 11/20 16:32）；借用素材見 assets-borrowed.md；開發仍暫停 |
 | 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
-| 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3 |
+| 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分由 battle-hud v1.3 取代，範圍待 UIUX 確認 |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
 | 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.1／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
 | 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0 | 現行；e0f94cc8 的字串併進 §5.1 |
-| 營地線框 | W/W2-camp/ | — | **待 HUD**（只先轉印章與牌匾圖） |
+| 營地線框 | W/W2-camp/ | — | HUD 位置對齊 battle-hud v1.3；W2 仍在上色示意圖關 |
 | 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
 | 山海寶盒 | （無） | — | 待寫（各自批次到了再定） |
 | 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | v1.0 | 現行（只限這幾節；照刷） |
@@ -88,7 +88,7 @@
 | 掉落紀錄 | `S/M2-33-2b-panels.md` §5 | 11/18 | 現行 |
 | 王印 | 王印 v0.2（Page 685f7eea） | v0.2 | 待轉入成 S/king-seal.md（各自批次到了再定） |
 | 標題、暫停、讀取 | （無） | — | 待寫（W6） |
-| 設定、鍵位 | `S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 | 11/18 | 現行；鍵位以戰鬥 HUD 定稿為準 |
+| 設定、鍵位 | `S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 | 11/18 | 現行；以 battle-hud v1.3 為準 |
 | 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；畫面 B9 待寫 |
 | 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | v1.1 | 現行 |
 | PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 現行 |
@@ -128,7 +128,7 @@
 | PixelLab 提示詞與挑圖 | `S/M2-36-pixellab-d2.md`、`S/M2-36-d2-picks.md` | — | 待轉入（PR #119、#126） |
 | 異常狀態圖示 | `S/M2-39-status-icons.md`、`S/M2-39-picks.md`、`S/M2-39-pixellab-prompts.md` | — | 現行 |
 | 技能圖示 | `S/M2-40-skill-icon-picks.md`、`S/M2-40-skill-icon-prompts.md` | — | 現行（PR #101 開著） |
-| 戰鬥可讀性美術 | `S/M2-40-combat-readability-art.md` | — | 現行（R4 彈藥格位置待戰鬥 HUD） |
+| 戰鬥可讀性美術 | `S/M2-40-combat-readability-art.md` | — | 現行（R4 彈藥格位置見 battle-hud v1.3） |
 | 營地外觀分級 | `S/M2-12-lookTiers.md` | 11/20 12:01 | 現行（要改寫成卡片用） |
 | 印章 | `S/M2-12-B3-art.md` 印章段 | 11/20 09:55 | 現行（牌匾段作廢） |
 | 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
