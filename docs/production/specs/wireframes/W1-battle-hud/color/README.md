@@ -28,3 +28,11 @@ python3 check_overlay.py           # → ../check_report.md、../check/overlay-*
 
 ## 已知（照規格處理，不是錯）
 - 390 P43 放不下「・目標 62%」→ 照規則收掉；1280 D27 放不下目標名「長老屋 Lv7」→ 照 P43 規則先收。
+
+## v1.3.5 經驗條與格擋弧（2026-11-21 mumi 12:07）
+規格：[`../../../battle-hud/battle-hud-5.md`](../../../battle-hud/battle-hud-5.md)。名詞「經驗」「格擋值」照名詞表 v0.6.38。
+- `battle-hud-v135-xpblk-{name}.png`（上色＋id＋說明欄，上方 42 px 標題）與 `-clean.png`（剛好 W×H）。name：`hud-390-A`（常態最忙＋提示）、`hud-390-A-collapsed`、`hud-1280-A`、`block-{390,1280}-{full,partial,refilling,none}`（格擋值四態）。
+- 產生：`cd src && python3 render_xpblk.py`（底圖＝`render_color.py` 原樣，不改；新元件座標只讀 `../../src/xpblk.py`）。`--mock` 另出 @2x、elements.json、evidence。
+- 色：M2-36 `--block` #a9b8c3、`--block-dim` #40484e、`--block-regen` #758088、`--block-hi` #eaf2f8（美術總監 H6，色組 A 冷鋼）；弧外圍 1 px #000。
+- 盾牌：遊戲路徑 `art/icons/hud/hud_block_16.png`（＋同目錄 `hud_block_16@2x.png`）；來源 main `docs/production/art-picks/block-steel/` 同名檔，逐位元複製（mumi 12:32 同 PR 進 art/）。美術總監定案盾 a，不染色、不墊框。
+- 右下戳記「battle-hud v1.3.5（mumi 11/21 12:07）・上色」。既有 v13 圖不重畫。

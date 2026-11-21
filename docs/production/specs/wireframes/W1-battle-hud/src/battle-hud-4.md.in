@@ -1,6 +1,6 @@
-# battle-hud v1.3.4（final，2026-11-20 mumi 16:32；mumi 11/20 17:33 拿掉觀戰鍵；v1.3.4 勘誤 2026-11-21）續篇：狀態、技能格、戰場訊號、驗收
+# battle-hud v1.3.5（final，2026-11-20 mumi 16:32；mumi 11/20 17:33 拿掉觀戰鍵；v1.3.4 勘誤 2026-11-21；v1.3.5 經驗條與格擋值弧 2026-11-21 12:07）續篇：狀態、技能格、戰場訊號、驗收
 
-> 接 [`battle-hud.md`](battle-hud.md)、[`battle-hud-2.md`](battle-hud-2.md)、[`battle-hud-3.md`](battle-hud-3.md)。
+> 接 [`battle-hud.md`](battle-hud.md)、[`battle-hud-2.md`](battle-hud-2.md)、[`battle-hud-3.md`](battle-hud-3.md)。經驗條與格擋值弧見 [`battle-hud-5.md`](battle-hud-5.md)。
 
 ## 10. 狀態差異（以 N 為基準）
 

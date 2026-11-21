@@ -2,6 +2,7 @@
 import os,re,sys
 sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 import gen_battle_hud as G
+import xpblk as X   # v1.3.5 經驗條／格擋值弧（{{X size layer}}）
 ROOT=G.MD_DIR  # md 所在（repo：specs/battle-hud）
 HERE=os.path.dirname(os.path.abspath(__file__))
 COLS='| id | 名稱 | x | y | w | h | 字 | token | 狀態 | 熱區 | 旗 |'
@@ -21,6 +22,7 @@ def build():
         dest=name[:-3]  # battle-hud.md
         t=open(os.path.join(HERE,name),encoding='utf-8').read()
         t=re.sub(r'\{\{T (\S+) (\S+)\}\}',lambda m:table(m.group(1),m.group(2)),t)
+        t=re.sub(r'\{\{X (\S+) (\S+)\}\}',lambda m:X.table(m.group(1),m.group(2)),t)
         p=os.path.join(ROOT,dest); open(p,'w',encoding='utf-8').write(t); out.append((p,len(t.encode())))
     return out
 if __name__=='__main__':
