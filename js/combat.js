@@ -2004,8 +2004,8 @@ function baseTick(dt) {
     for (a.vine.acc += dt; a.vine.acc >= DEBUFF.vineLose && a.vine.n > 0; a.vine.acc -= DEBUFF.vineLose) a.vine.n--;
   if (a.hs && !(a.hstun > G.t) && G.t - (a.hsA || 0) >= 8) a.hs = Math.max(0, a.hs - 5 * dt);
   if (d > 0) {
-    /* 流血、中毒跳過能量護盾 */
-    const viaEs = Math.min(P.es || 0, (d - skipEs) * dt);
+    /* 流血、中毒跳過能量護盾；點了異能魔力（能量護盾保護魔力）能量護盾不擋傷害，跟擊中（esAbsorb）一樣：這段持續傷害（含點燃）全扣生命 */
+    const viaEs = ST.esMana ? 0 : Math.min(P.es || 0, (d - skipEs) * dt);
     P.es = (P.es || 0) - viaEs;
     P.hp -= d * dt - viaEs;
     if (d * dt > viaEs) lifeLost();

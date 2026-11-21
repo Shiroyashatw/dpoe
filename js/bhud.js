@@ -61,6 +61,10 @@ function bhRects() {
       hp: R4(10, A - 44, W - 46, 18),
       mp: R4(10, A - 22, W - 46, 18),
       low: R4(8, A - 46, W - 42, 22),
+      xp: R4(0, A, W, 6),
+      blk: R4(260, A - 92, 84, 44),
+      blkV: R4(278, A - 74, 48, 24),
+      blkI: R4(294, A - 68, 16, 16),
       f0: R4(W - 44, A - 69, 44, 44),
       f0V: R4(W - 30, A - 45, 20, 20),
       f1: R4(W - 44, A - 24, 44, 44),
@@ -95,6 +99,10 @@ function bhRects() {
       hp: R4(340, y + 652, 450, 20),
       mp: R4(340, y + 676, 450, 20),
       low: R4(338, y + 650, 454, 24),
+      xp: R4(340, y + 700, 450, 8),
+      blk: R4(712, y + 600, 74, 48),
+      blkV: R4(726, y + 616, 56, 28),
+      blkI: R4(746, y + 626, 16, 16),
       f0: R4(789, y + 640, 36, 36),
       f0V: R4(796, y + 651, 22, 22),
       f1: R4(789, y + 677, 36, 36),
@@ -141,11 +149,19 @@ function bhInit() {
   ${BH_KEY.map((k, i) => `<button class="bsk" id="bhS${i}" data-bs="${i}"><span class="ic0"></span><s class="cdv"></s><b class="nb"></b><i class="am"></i><i class="gd"></i><i class="gp"><i></i></i><em class="rl"></em><svg class="arc" aria-hidden="true"></svg><kbd>${k}</kbd></button>`).join('')}
   <div class="bh-tip" id="bhTip" role="tooltip" hidden></div>
   <div class="bh-low" id="bhLow" hidden></div>
-  <div class="hb hp" id="bhp"><i></i><b class="ward"></b><span></span></div>
+  <div class="hb hp" id="bhp"><i></i><b class="es" hidden><i></i><em></em></b><span></span></div>
+  <button class="bh-blk" id="bhBlk" data-a="bhblk" aria-label="格擋值" hidden><svg class="v" aria-hidden="true"></svg><img alt=""></button>
   <div class="hb mp" id="bmp"><i></i><span></span></div>
   <button class="bh-fl hp" id="bhF0" data-bf="0" aria-label="生命藥劑"><i class="v"><img alt=""></i><kbd>1</kbd></button>
   <button class="bh-fl mp" id="bhF1" data-bf="1" aria-label="魔力藥劑"><i class="v"><img alt=""></i><kbd>2</kbd></button>`;
   $('hud').prepend(d);
+  /* 經驗條貼在下方面板 P41 上緣（壓在 #pidle 上面）：#hud 是 position: fixed 的疊層，放進去會被 #pidle（z 5）蓋住，所以掛在 body */
+  const xp = document.createElement('div');
+  xp.className = 'bh-xp';
+  xp.id = 'bhXp';
+  xp.setAttribute('aria-hidden', 'true');
+  xp.innerHTML = '<i></i>';
+  document.body.append(xp);
   for (const [i, k] of ['flask_hp', 'flask_mp'].entries()) {
     const im = $('bhF' + i).querySelector('img');
     im.src = hudArtURL('flask', k, 12);
@@ -171,6 +187,18 @@ function bhInit() {
     });
   }
   for (const i of [0, 1]) $('bhF' + i).addEventListener('click', () => drinkFlask(i === 1));
+  /* 格擋弧：390 長按 400 ms＝工具提示（放開收）、桌機 hover；點擊不做事 */
+  const bk = $('bhBlk');
+  bk.addEventListener('pointerenter', e => e.pointerType === 'mouse' && bhTip('blk'));
+  bk.addEventListener('pointerleave', e => e.pointerType === 'mouse' && bhTip(null));
+  bk.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    clearTimeout(BH.lp);
+    BH.lp = setTimeout(() => bhTip('blk'), 400);
+  });
+  for (const ev of ['pointerup', 'pointercancel'])
+    bk.addEventListener(ev, e => e.pointerType !== 'mouse' && (clearTimeout(BH.lp), bhTip(null)));
+  bk.addEventListener('click', e => e.stopPropagation());
   /* 光環：桌機 hover、手機點 */
   const au = $('bhAura');
   au.addEventListener('pointerenter', e => e.pointerType === 'mouse' && bhAuraList(1));
@@ -192,7 +220,7 @@ function bhLayout(force) {
   BH.key = key;
   const R = (BH.R = bhRects()),
     bh = $('bh');
-  bh.hidden = !m;
+  bh.hidden = $('bhXp').hidden = !m;
   if (!m) return;
   bhPos($('bhTop'), R.top);
   for (let i = 0; i < 4; i++) bhPos($('bhC' + i), R['c' + i]);
@@ -212,6 +240,14 @@ function bhLayout(force) {
   bhPos($('bhp'), R.hp);
   bhPos($('bmp'), R.mp);
   bhPos($('bhLow'), R.low);
+  bhPos($('bhXp'), R.xp);
+  bhPos($('bhBlk'), R.blk);
+  bhIn($('bhBlk').firstElementChild, R.blk, R.blkV);
+  bhIn($('bhBlk').lastElementChild, R.blk, R.blkI);
+  $('bhBlk').lastElementChild.src = new URL(
+    `art/icons/hud/hud_block_16${DPR > 1 ? '@2x' : ''}.png`,
+    location.href
+  ).href;
   for (const i of [0, 1]) {
     bhPos($('bhF' + i), R['f' + i]);
     bhIn($('bhF' + i).firstElementChild, R['f' + i], R['f' + i + 'V']);
@@ -225,7 +261,7 @@ function bhLayout(force) {
   bh.style.setProperty('--auc', (R.cell || 12) + 'px');
   $('bhLow').hidden = true;
   $('bhTip').hidden = true;
-  HV.bhsts = HV.bhau = HV.bhcur = HV.bhlow = HV.bhboss = null;
+  HV.bhsts = HV.bhau = HV.bhcur = HV.bhlow = HV.bhboss = HV.bhblk = null;
   idleBar(1);
 }
 /* ---------- 每格更新 ---------- */
@@ -241,6 +277,8 @@ function bhTick() {
   bhStates();
   bhFlasks();
   bhLowHp();
+  bhXp();
+  bhBlock();
 }
 function bhCur() {
   const M = MAT(),
@@ -327,8 +365,14 @@ function bhTip(i) {
   const t = $('bhTip');
   BH.tipK = i;
   if (i == null) return void (t.hidden = true);
-  const R = BH.R,
-    o = bhSkState(i);
+  const R = BH.R;
+  /* 格擋弧：同一個位置（P69／D68；直立收起跟 HUD 下移 140） */
+  if (i === 'blk') {
+    if (!(ST.bv > 0)) return void bhTip(null);
+    t.textContent = bhBlkTip();
+    return void bhPos(t, R.m === 'd' ? R4(340, R.tip[1], 328, 34) : R.tip);
+  }
+  const o = bhSkState(i);
   t.textContent = bhTipText(o);
   let r = R.tip;
   if (R.m === 'd') r = R4(Math.min(R.sk[i][0], IW - 8 - 328), R.tip[1], 328, 34);
@@ -399,7 +443,8 @@ function bhSkills() {
     const no = !fightOn() || (!ST.hellfire && !pracFree() && mpAvail() < o.c.mp) || !wtOK(o.D);
     if (HV['bsno' + i] !== no) b.classList.toggle('no', (HV['bsno' + i] = no));
   }
-  if (BH.tipK != null && !$('bhTip').hidden) $('bhTip').textContent = bhTipText(bhSkState(BH.tipK));
+  if (BH.tipK != null && BH.tipK !== 'blk' && !$('bhTip').hidden)
+    $('bhTip').textContent = bhTipText(bhSkState(BH.tipK));
 }
 /* 蓄力弧：格外 2 px 一圈 2 px 線，平均 3 段、段間 4 px，從正上方順時針 */
 function bhArc(b, o) {
@@ -437,10 +482,18 @@ function bhArc(b, o) {
   svg.innerHTML = h;
 }
 /* ---------- 光環列（名詞表 v0.6.36） ---------- */
-const BH_AURA1 = ['anger', 'precise', 'hasteaura', 'determination', 'purityaura', 'clarity'];
-/* 第一批 6 個用正式素材（art/icons/aura/）；第二批 12 個素材還沒進 art/，先用技能圖 32×32 縮小 */
+/* 第一批 6 個用正式素材（art/icons/aura/sk_{檔名}）：鍵是 AURAS 的鍵，值是圖檔莖（迅捷＝hasteaura、剛毅＝determination、純淨＝purityaura）；
+   第二批 12 個素材還沒進 art/，先用技能圖 32×32 縮小 */
+const BH_AURA1 = {
+  anger: 'anger',
+  precise: 'precise',
+  swift: 'hasteaura',
+  iron: 'determination',
+  purity: 'purityaura',
+  clarity: 'clarity'
+};
 const bhAuraIc = (k, px) =>
-  BH_AURA1.includes(k) ? hudArtURL('aura', k, px - 2) : artIconURL(AURAS[k].ic, px - 2) || iconURL(AURAS[k].ic) || '';
+  BH_AURA1[k] ? hudArtURL('aura', BH_AURA1[k], px - 2) : artIconURL(AURAS[k].ic, px - 2) || iconURL(AURAS[k].ic) || '';
 const bhAuraOn = () => BH.fake.aura || ST.auraOn || [];
 function bhAura() {
   const L = bhAuraOn(),
@@ -513,24 +566,95 @@ function bhFlasks() {
     mpv = hell ? (P.hf || 0) / ST.hfMax : P.mp / ST.mp;
   setV($('bhp'), 'bhpv', Math.max(0, P.hp / ST.hp).toFixed(3));
   setV($('bmp'), 'bmpv', Math.max(0, mpv).toFixed(3));
-  setT(
-    $('bhp').lastChild,
-    'bhpt',
-    `生命 ${Math.ceil(P.hp)} / ${ST.hp}${ST.es ? `・能量護盾 ${Math.floor(P.es || 0)}` : ''}`
-  );
+  setT($('bhp').lastChild, 'bhpt', bhHpText());
   setT(
     $('bmp').lastChild,
     'bmpt',
     hell ? `地獄火 ${Math.floor(P.hf || 0)} / ${ST.hfMax}` : `魔力 ${Math.floor(P.mp)} / ${ST.mp}`
   );
-  const wv = ST.es ? Math.min(1, (P.es || 0) / ST.es).toFixed(3) : '0';
-  if (HV.bhw !== wv) $('bhp').style.setProperty('--w', (HV.bhw = wv));
   if (HV.bhhf !== hell) $('bmp').classList.toggle('hf', (HV.bhhf = hell));
+  bhEs();
 }
-/* ---------- 低血：<35% 紅邊 24 px 60%、<20% 70%，常亮；生命條外框閃 ≤2 次／秒 ---------- */
+/* 生命條字（battle-hud-6 §22）：有能量護盾上限才接「・能量護盾 {es} / {esmax}」 */
+const bhHpText = () =>
+  `生命 ${Math.ceil(P.hp)} / ${ST.hp}${ST.es > 0 ? `・能量護盾 ${Math.floor(P.es || 0)} / ${Math.floor(ST.es)}` : ''}`;
+/* 能量護盾細條（battle-hud-6 P70／P71、D69／D70）：生命條框內最底 3 px；有上限才畫、0 只剩空槽；
+   充能中（4 秒延遲過了、還沒滿）才畫 2 px --es-hi 前緣，常亮不閃 */
+function bhEs() {
+  const on = ST.es > 0,
+    v = on ? Math.max(0, Math.min(1, (P.es || 0) / ST.es)).toFixed(3) : '',
+    ch = on && !!P.esCh && P.es > 0 && P.es < ST.es,
+    k = on ? v + (ch ? 'c' : '') : '';
+  if (HV.bhes === k) return;
+  HV.bhes = k;
+  const b = $('bhp'),
+    e = b.querySelector('.es');
+  e.hidden = !on;
+  b.classList.toggle('hes', on);
+  e.classList.toggle('ch', ch);
+  if (on) e.style.setProperty('--w', v);
+}
+/* 經驗條（battle-hud-5 P66／T43／D65／C64）：經驗÷升級所需；不寫字、不可點、不顯示等級 */
+function bhXp() {
+  const v = (S.lv >= LVMAX ? 1 : Math.max(0, Math.min(1, S.xp / xpNeed(S.lv)))).toFixed(3);
+  setV($('bhXp'), 'bhxp', v);
+}
+/* 格擋弧（battle-hud-5 P67／D66）：拿盾才畫；從左端順時針填目前÷最大；碎開回滿中底 --block-dim、已回的段 --block-regen 斷續（每 16° 畫 10°）；
+   碎開那一下閃 --block-hi 150 ms */
+const bhBlkTip = () =>
+  `格擋值 ${Math.floor(P.bv || 0)} / ${Math.floor(ST.bv)}${P.bvRe != null ? '（碎了，回滿前不吸收）' : ''}`;
+function bhBlock() {
+  const el = $('bhBlk'),
+    on = ST.bv > 0;
+  if (el.hidden === on) {
+    el.hidden = !on;
+    if (!on && BH.tipK === 'blk') bhTip(null);
+  }
+  if (!on) return void (HV.bhblk = null);
+  const f = Math.max(0, Math.min(1, (P.bv || 0) / ST.bv)),
+    br = P.bvRe != null,
+    a = Math.round(f * 180),
+    k = a + (br ? 'b' : '') + BH.R.m;
+  if (BH.tipK === 'blk' && $('bhTip').textContent !== bhBlkTip()) $('bhTip').textContent = bhBlkTip();
+  if (HV.bhblk === k) return;
+  if (br && HV.bhblkBr === false && !reduced()) {
+    el.classList.remove('brk');
+    void el.offsetWidth;
+    el.classList.add('brk');
+    clearTimeout(BH.brk);
+    BH.brk = setTimeout(() => el.classList.remove('brk'), 150);
+  }
+  HV.bhblkBr = br;
+  HV.bhblk = k;
+  const R = BH.R,
+    w = R.blkV[2],
+    r = w / 2,
+    m = r - 3,
+    d = `M3 ${r}A${m} ${m} 0 0 1 ${w - 3} ${r}`,
+    seg = [];
+  if (br) for (let x = 0; x < a; x += 16) seg.push(Math.min(10, a - x), Math.min(6, Math.max(0, a - x - 10)) || 0.001);
+  el.firstElementChild.setAttribute('viewBox', `0 0 ${w} ${r}`);
+  el.firstElementChild.innerHTML =
+    `<path class="ol" d="${d}" pathLength="180"/><path class="tr" d="${d}" pathLength="180"/>` +
+    (a > 0
+      ? `<path class="${br ? 'rg' : 'fg'}" d="${d}" pathLength="180" stroke-dasharray="${br ? seg.join(' ') + ' 0 400' : a + ' 400'}"/>`
+      : '');
+  el.classList.toggle('br', br);
+  el.setAttribute('aria-label', bhBlkTip());
+}
+/* ---------- 危急紅邊（battle-hud-6 §23）：合計＝(生命＋能量護盾)÷(最大生命＋最大能量護盾)；
+   點了異能魔力（ST.esMana）能量護盾不擋傷害，目前值與上限都當 0；沒有能量護盾上限＝生命比例。
+   1 級：合計 < 35% 或 生命 < 35%（LOW）→ 紅邊 60%；2 級：任一 < 20% → 70%；生命條外框同條件。常亮不閃、不加滯後 ---------- */
+function bhDanger() {
+  const es = ST.es > 0 && !ST.esMana ? ST.es : 0,
+    hp = Math.max(0, P.hp),
+    f = hp / ST.hp,
+    c = (hp + (es ? Math.max(0, Math.min(es, P.es || 0)) : 0)) / (ST.hp + es),
+    m = Math.min(f, c);
+  return m < 0.2 ? 2 : m < LOW ? 1 : 0;
+}
 function bhLowHp() {
-  const f = P.hp / ST.hp,
-    lv = G.state === 'play' ? (f < 0.2 ? 2 : f < 0.35 ? 1 : 0) : 0;
+  const lv = G.state === 'play' ? bhDanger() : 0;
   if (HV.bhlow === lv) return;
   HV.bhlow = lv;
   const v = $('bhVig');

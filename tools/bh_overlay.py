@@ -11,17 +11,25 @@ import sys
 from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133-fix2')
 WF = 'docs/production/specs/wireframes/W1-battle-hud'
-# 依據的規格版本：預設 v1.3.3 的 59b6350（交辦依據），BH_SPEC_REV 可換
-REV = os.environ.get('BH_SPEC_REV', '59b6350')
+# 依據的規格版本：預設 main 9c6be66（battle-hud v1.3.6，dpoe-hud133-fix2 交辦），BH_SPEC_REV 可換
+REV = os.environ.get('BH_SPEC_REV', '9c6be66')
 def wf(name):
     return Image.open(io.BytesIO(subprocess.check_output(['git', 'show', f'{REV}:{WF}/{name}'], cwd=ROOT)))
-STATES = ['normal', 'boss', 'lowhp', 'lootflood', 'collapsed']
+STATES = ['normal', 'boss', 'lowhp', 'lootflood', 'collapsed', 'es_full', 'es_partial', 'es_recharge', 'es_zero', 'es_none',
+          'lowcomb', 'lowlife', 'blockbr']
+# 新狀態沒有自己的 W1 疊圖：疊同版面的那張（一般／低血）；v1.3.5／v1.3.6 新元件另附上色示意圖並排（compare_*.png）
+BASE = {'es_full': 'normal', 'es_partial': 'normal', 'es_recharge': 'normal', 'es_zero': 'normal', 'es_none': 'normal',
+        'blockbr': 'normal', 'lowcomb': 'lowhp', 'lowlife': 'lowhp'}
+COLOR = {'es_full': 'v136-es-{s}-full', 'es_partial': 'v136-es-{s}-partial', 'es_recharge': 'v136-es-{s}-recharge',
+         'es_zero': 'v136-es-{s}-zero', 'es_none': 'v136-es-{s}-none', 'lowcomb': 'v136-es-{s}-lowcomb',
+         'lowlife': 'v136-es-{s}-lowlife', 'blockbr': 'v135-xpblk-block-{s}-refilling', 'normal': 'v135-xpblk-hud-{s}-A',
+         'collapsed': 'v135-xpblk-hud-{s}-A-collapsed'}
 SIZES = ['390x844', '1280x720']
 
-lines = ['# battle-hud v1.3.3 疊圖驗收（tools/bh_shots.js＋tools/bh_overlay.py）', '',
-         '截圖 DPR 1、同 CSS 視窗；疊圖＝`W1_battle-{state}_{size}_overlay.png` 100%、左上 (0,0)。',
+lines = ['# battle-hud v1.3.6 疊圖驗收（tools/bh_shots.js＋tools/bh_overlay.py）', '',
+         '截圖 DPR 1、同 CSS 視窗；疊圖＝`W1_battle-{state}_{size}_overlay.png` 100%、左上 (0,0)（能量護盾、格擋碎開、危急兩分支沒有自己的 W1 疊圖，疊一般／低血那張；v1.3.5／v1.3.6 新元件的位置看量測表，另附 `compare_{state}_{size}.jpg`：左實機、右規格上色示意圖）。',
          '差＝實機框四邊減規格框（左、上、右、下，px）；熱區差同理；容差 ±2。字＝computed font-size/weight；色＝computed color。', '']
 tot = bad = 0
 fbad = []
@@ -31,9 +39,19 @@ for size in SIZES:
         if not os.path.exists(shot):
             continue
         a = Image.open(shot).convert('RGBA')
-        b = wf(f'W1_battle-{st}_{size}_overlay.png').convert('RGBA')
+        b = wf(f'W1_battle-{BASE.get(st, st)}_{size}_overlay.png').convert('RGBA')
         assert a.size == b.size, (shot, a.size, b.size)
         Image.alpha_composite(a, b).save(os.path.join(OUT, f'overlay_{st}_{size}.png'))
+        cn = COLOR.get(st)
+        if cn:
+            try:
+                cimg = wf('color/battle-hud-' + cn.format(s=size.split('x')[0]) + '.png').convert('RGB')
+                cw = Image.new('RGB', (a.width + cimg.width + 8, max(a.height, cimg.height)), (255, 255, 255))
+                cw.paste(a.convert('RGB'), (0, 0))
+                cw.paste(cimg, (a.width + 8, 0))
+                cw.save(os.path.join(OUT, f'compare_{st}_{size}.jpg'), quality=88)
+            except subprocess.CalledProcessError:
+                pass
         m = json.load(open(os.path.join(OUT, f'measure_{st}_{size}.json')))
         rep = m['rep']
         nb = [r for r in rep if not r['ok']]
@@ -66,7 +84,7 @@ for size in SIZES:
                          f"{r['hit'] or '—'} | {','.join(map(str, r['hd'])) if r['hd'] else '—'} | {r['f']} | {fnt} | {r.get('col') or '—'} | {res} |")
         lines.append('')
 sha = json.load(open(os.path.join(OUT, 'measure_normal_390x844.json'))).get('sha', '?')
-lines.insert(3, f'產生時的 commit：`{sha}`（每個 measure_*.json 檔頭 `sha` 欄也有）；規格表與疊圖讀自 `{REV}`（battle-hud v1.3.3，交辦依據）。')
+lines.insert(3, f'產生時的 commit：`{sha}`（每個 measure_*.json 檔頭 `sha` 欄也有）；規格表與疊圖讀自 `{REV}`（battle-hud v1.3.6＋-5 v1.3.5＋-6 v1.3.6，dpoe-hud133-fix2 交辦）。')
 lines.insert(4, '')
 lines.insert(4, f'**合計 {tot - bad}／{tot} 項在 ±2 px 內；不符 {bad} 項。**')
 lines.insert(5, f'**字級／字重（規格寫明 px/weight 的項）：不符 {len(fbad)} 項**' + (f'：{"、".join(fbad)}' if fbad else '') + '（⚠ 標在表上）')

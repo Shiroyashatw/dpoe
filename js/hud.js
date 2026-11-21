@@ -2159,7 +2159,10 @@ function idleBar(force) {
   const L0 = (S.log || [])[0],
     lk = L0 ? L0.t + L0.n : '';
   const ln = el.querySelector('.ilast');
-  if (ln && IDLE.last && IDLE.last !== lk && !reduced() && ln.animate)
+  /* 滑入中整塊重畫（同一格又有別的字變了）：新元素接著剩下的時間滑完，不會只滑 1 格就跳到定位 */
+  if (IDLE.last && IDLE.last !== lk) IDLE.slT = now;
+  const el0 = now - (IDLE.slT == null ? -1e9 : IDLE.slT);
+  if (ln && el0 < 200 && !reduced() && ln.animate)
     ln.animate(
       [
         { transform: 'translateX(100%)', opacity: 0 },
@@ -2167,6 +2170,7 @@ function idleBar(force) {
       ],
       {
         duration: 200,
+        delay: -el0,
         easing: 'ease-out'
       }
     );

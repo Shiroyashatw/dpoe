@@ -13,7 +13,7 @@ from collections import Counter
 from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133-fix2')
 
 TK = {
     '--panel': '#25211e', '--panel-raised': '#2c2825', '--panel-inset': '#1d1a17', '--panel-edge': '#a8927f',
@@ -23,6 +23,9 @@ TK = {
     '--sel-edge': '#a8927f', '--focus': '#fbf9f6', '--good': '#95e886', '--bad': '#ff9bba', '--warn': '#a9ae68',
     '--prog-hi': '#b6b0a8', '--rar-normal': '#f1ebdb', '--rar-magic': '#9da7ff', '--rar-rare': '#fbe53a',
     '--rar-unique': '#fa8915', '--rar-chase': '#0cf6ee', '#000': '#000000',
+    # battle-hud-5／-6（M2-36 色票，main 9c6be66）
+    '--es': '#dfbf91', '--es-hi': '#fcefde', '--prog-lo': '#3c3935', '--block': '#a9b8c3', '--block-dim': '#40484e',
+    '--block-regen': '#758088',
 }
 
 
@@ -127,7 +130,7 @@ for size, P in (('390x844', 'P'), ('1280x720', 'D')):
         row(st, size, mp, '魔力條', '--mp', 'bg', R[mp], im)
         if not c:
             pid = R['D25' if d else 'P41']
-            row(st, size, 'D25' if d else 'P41', '下方面板底', '--panel', 'bg', sub(pid, 2, 2, pid[2] - 4, 3) if d else sub(pid, 0, 1, 8, 3), im)
+            row(st, size, 'D25' if d else 'P41', '下方面板底', '--panel', 'bg', sub(pid, 2, 2, pid[2] - 4, 3) if d else sub(pid, 0, 7, 8, 3), im)  # 直立上緣 0–6 是經驗條 P66（v1.3.5），往下取
             if not d:
                 row(st, size, 'P42', '掛機卡底', '--panel-raised', 'bg', sub(R['P42'], 4, 30, 6, 100), im)
             row(st, size, 'D26' if d else 'P43', '本次掛機字', '--tx-dim', 'fg', R['D26' if d else 'P43'], im)
@@ -188,6 +191,53 @@ for size, P in (('390x844', 'P'), ('1280x720', 'D')):
             if r[1] + r[3] > im.size[1] or r[1] < t0:
                 continue
             row(st, size, '掉落牌' if q['c'] != 'elite' else '菁英名牌', q['n'][:10] + ('（★）' if q.get('star') else ''), tok, 'fg', r, im)
+
+# ---------- v1.3.5 經驗條／格擋弧、v1.3.6 能量護盾細條／危急外框 ----------
+for size in ('390x844', '1280x720'):
+    d = size == '1280x720'
+    for st in ['es_partial', 'es_recharge', 'es_zero', 'lowcomb', 'lowlife', 'blockbr', 'normal', 'collapsed']:
+        f = os.path.join(OUT, f'{st}_{size}.png')
+        if not os.path.exists(f):
+            continue
+        im = Image.open(f).convert('RGB')
+        R, m = meas(st, size)
+        c = st == 'collapsed'
+        es = ('C67' if c else 'D69') if d else ('T46' if c else 'P70')
+        if es in R:
+            r = R[es]
+            if st in ('es_partial', 'lowlife', 'es_recharge', 'collapsed', 'lowcomb'):
+                row(st, size, es, '能量護盾細條 填（左端）', '--es', 'bg', sub(r, 0, 0, 2, 3), im)
+            if st not in ('lowlife', 'es_full'):  # 滿的沒有空槽
+                row(st, size, es, '能量護盾細條 空槽（右端）', '--panel-inset', 'bg', sub(r, r[2] - 6, 0, 6, 3), im)
+        ee = ('C68' if c else 'D70') if d else ('T47' if c else 'P71')
+        if ee in R:
+            row(st, size, ee, '充能前緣 2 px', '--es-hi', 'bg', R[ee], im)
+        xp = ('C64' if c else 'D65') if d else ('T43' if c else 'P66')
+        if xp in R:
+            r = R[xp]
+            o = 2 if d else 1
+            row(st, size, xp, '經驗條 填（左）', '--prog-hi', 'bg', sub(r, 4, o, 20, 4), im)
+            row(st, size, xp, '經驗條 空（右）', '--prog-lo', 'bg', sub(r, r[2] - 24, o, 20, 4), im)
+            if d:
+                row(st, size, xp, '經驗條 外框 #000', '#000', 'bg', sub(r, 20, 0, 100, 1), im)
+                row(st, size, xp, '經驗條 內框 --border', '--border', 'bg', sub(r, 20, 1, 100, 1), im)
+            elif c:
+                row(st, size, xp, '經驗條 上下 1 px #000（收起）', '#000', 'bg', sub(r, 20, 0, 100, 1), im)
+            else:
+                row(st, size, xp, '經驗條 上緣 --panel-edge', '--panel-edge', 'bg', sub(r, 20, 0, 100, 1), im)
+                row(st, size, xp, '經驗條 下緣 --border', '--border', 'bg', sub(r, 20, 5, 100, 1), im)
+        bk = ('C65' if c else 'D66') if d else ('T44' if c else 'P67')
+        if bk in R:
+            r = R[bk]
+            if st == 'blockbr':
+                row(st, size, bk, '格擋弧 回滿中斷續段', '--block-regen', 'fg', sub(r, 0, 0, r[2] // 2, r[3]), im)
+            else:
+                row(st, size, bk, '格擋弧 填（左半）', '--block', 'fg', sub(r, 0, 0, r[2] // 2, r[3]), im)
+            row(st, size, bk, '格擋弧 空軌（右端）', '--block-dim', 'fg', sub(r, r[2] - 8, r[3] - 8, 8, 8), im)
+            row(st, size, bk, '格擋弧 外圍 #000', '#000', 'fg', r, im)
+        lw = 'D24' if d else 'P19'
+        if st in ('lowcomb', 'lowlife') and lw in R:
+            row(st, size, lw, '生命條危急外框（常亮）', '--hp-hi', 'fg', sub(R[lw], 0, 0, R[lw][2], 1), im)
 
 # ---------- 退回第 1–5 項驗收抽樣 ----------
 E = os.path.join(OUT)

@@ -113,6 +113,8 @@
   --hp: #934341;
   --block-regen: #758088;
   --block: #a9b8c3;
+  --block-dim: #40484e;
+  --block-hi: #eaf2f8;
   --es-hi: #fcefde;
   --es: #dfbf91;
   --hf: #b65517;
@@ -876,7 +878,6 @@ body:not(.touch) .tbar > b::after { transform: scaleX(-1); }
 .hb i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--v, 1) * 100%); background: var(--hp); transition: width 120ms ease-out; }
 .hb.mp { height: 13px; }
 .hb.mp i { background: var(--mp); }
-.hb .ward { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--w, 0) * 100%); background: rgba(var(--glint-rgb), 0.35); }
 .hb span { position: absolute; inset: 0; display: grid; place-items: center; font: 700 10px/1 var(--font); text-shadow: 0 1px 2px rgb(var(--scrim-rgb)), 0 0 3px rgb(var(--scrim-rgb)); }
 .hb.mp span { font-size: 10px; }
 body.touch #bar .sk.far { display: none; }
@@ -2773,6 +2774,8 @@ body.touch #poff kbd, body.touch #dplate kbd { display: none; }
 #navtip[hidden] { display: none; }
 
 /* M2-12 修訂 #4：鍵盤焦點框（新骨架：分頁、營地升級、掛機條、結算、字板、死亡卡）3 px＋放大 1.04；滑鼠點的不畫（:focus-visible） */
+:is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { outline: 3px solid var(--border-cap); outline-offset: -3px; transform: scale(1.04); z-index: 1; }
+@media (prefers-reduced-motion: reduce) { :is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { transform: none; } }
 
 /* ---------- B2 元件（fix-list-v1.2-to-batches B2） ---------- */
 /* D3-11：每畫面最多 1 顆 --act；同一排並列的主鈕一律改 --btn2 */
@@ -2813,7 +2816,7 @@ body.touch .ph .ftabs button, body.touch .bagf.grp .chip { min-width: 44px; min-
 body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcamp) { max-width: calc(100vw - 644px); }
 
 /* ================= battle-hud v1.3.3（js/bhud.js；框都由 JS 照元件表擺，這裡只管長相） ================= */
-#bh, #pidle, #pnav, #dnav, .bh-aul {
+#bh, #pidle, #pnav, #dnav, .bh-aul, .bh-xp {
   --panel: var(--d2-panel);
   --panel-raised: var(--d2-panel-raised);
   --panel-inset: var(--d2-panel-inset);
@@ -2875,7 +2878,7 @@ body.bhd .bh-big { font-size: 16px; }
 .bh-big b { font-weight: 700; }
 .bh-big .cd { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; }
 .bh-big .cd i { display: block; height: 100%; width: calc(var(--v, 1) * 100%); background: var(--bad-hi); }
-/* 低血紅邊（常亮）＋生命條外框（閃 ≤2 次／秒） */
+/* 危急紅邊（battle-hud-6 §23）＋生命條外框：同一條件，都常亮不閃 */
 .bh-vig i { position: fixed; pointer-events: none; opacity: 0; }
 .bh-vig i:nth-child(1) { background: linear-gradient(var(--vig), transparent); }
 .bh-vig i:nth-child(2) { background: linear-gradient(transparent, var(--vig)); }
@@ -2883,9 +2886,7 @@ body.bhd .bh-big { font-size: 16px; }
 .bh-vig i:nth-child(4) { background: linear-gradient(90deg, transparent, var(--vig)); }
 .bh-vig.on i { opacity: 0.6; }
 .bh-vig.on.l2 i { opacity: 0.7; }
-.bh-low { border: 1px solid var(--hp-hi); pointer-events: none; animation: bhblink 1000ms steps(1) infinite; }
-@keyframes bhblink { 50% { border-color: transparent; } }
-@media (prefers-reduced-motion: reduce) { .bh-low { animation: none; } }
+.bh-low { border: 1px solid var(--hp-hi); pointer-events: none; }
 /* 工具提示 */
 .bh-tip, .bh-aul { display: flex; align-items: center; padding: 0 10px; background: var(--panel-raised); border: 1px solid var(--panel-edge); font: 400 14px/1.3 var(--font); color: var(--tx); white-space: nowrap; overflow: hidden; z-index: 3; }
 body.bhd .bh-tip { font-size: 16px; }
@@ -2950,8 +2951,31 @@ body.bhd .bh-sts .stk { font-size: 16px; }
 #bh .hb { overflow: hidden; background: var(--panel-inset); pointer-events: none; }
 #bh .hb i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--v, 1) * 100%); background: var(--hp); transition: width 120ms ease-out; }
 #bh .hb.mp i { background: var(--mp); }
-#bh .hb .ward { position: absolute; left: 0; bottom: 0; height: 3px; width: calc(var(--w, 0) * 100%); background: var(--tx-strong); }
 #bh .hb span { position: absolute; inset: 0; display: grid; place-items: center; font: 700 14px/1 var(--font); color: var(--tx-strong); text-shadow: 0 1px 1px var(--d2-black); white-space: nowrap; }
+/* 能量護盾細條（battle-hud-6 P70／D69）：框內最底 3 px，空槽 --panel-inset、填 --es；充能中前緣 2 px --es-hi（P71／D70） */
+#bh .hb .es { position: absolute; left: 1px; right: 1px; bottom: 1px; height: 3px; background: var(--panel-inset); }
+#bh .hb .es i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--w, 0) * 100%); background: var(--es); transition: width 120ms ease-out; }
+#bh .hb .es em { display: none; position: absolute; top: 0; bottom: 0; left: calc(var(--w, 0) * 100% - 2px); width: 2px; background: var(--es-hi); transition: left 120ms ease-out; }
+#bh .hb .es.ch em { display: block; }
+#bh .hb.hes span { bottom: 2px; top: -2px; }
+/* 經驗條（battle-hud-5 P66／T43／D65／C64）：4 px 條，空 --prog-lo、填 --prog-hi；不寫字、不可點 */
+.bh-xp { position: fixed; box-sizing: border-box; margin: 0; z-index: 6; pointer-events: none; background: var(--prog-lo); border-top: 1px solid var(--panel-edge); border-bottom: 1px solid var(--border); }
+.bh-xp i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--v, 0) * 100%); background: var(--prog-hi); }
+.bh-xp[hidden], body:not(.inmap) .bh-xp, body:not(.bhp):not(.bhd) .bh-xp { display: none; }
+body.bhp.bhmin .bh-xp { border-color: var(--d2-black); }
+/* 1280（M1）：外 1 px --d2-black＋內 1 px --border，中間 4 px 條（x 342–787、y 702–705） */
+body.bhd .bh-xp { border: 1px solid var(--d2-black); background: var(--border); }
+body.bhd .bh-xp::before { content: ''; position: absolute; inset: 1px; background: var(--prog-lo); }
+body.bhd .bh-xp i { left: 1px; top: 1px; bottom: 1px; width: calc((100% - 2px) * var(--v, 0)); }
+/* 格擋弧（battle-hud-5 P67／D66）：上半圓 4 px，外緣與內緣各 1 px --d2-black；盾牌圖示 16 不染色 */
+.bh-blk .v { position: absolute; overflow: visible; fill: none; pointer-events: none; }
+.bh-blk path { stroke-width: 4; }
+.bh-blk path.ol { stroke: var(--d2-black); stroke-width: 6; }
+.bh-blk path.tr { stroke: var(--block-dim); }
+.bh-blk path.fg { stroke: var(--block); }
+.bh-blk path.rg { stroke: var(--block-regen); }
+.bh-blk.brk path.tr, .bh-blk.brk path.fg, .bh-blk.brk path.rg { stroke: var(--block-hi); }
+.bh-blk img { position: absolute; width: 16px; height: 16px; pointer-events: none; }
 body.bhd #bh .hb span { font-size: 16px; }
 /* 藥劑鈕：只畫冷卻環（2 px --hp-hi／--mp-hi＋1 px 黑） */
 .bh-fl .v { position: absolute; display: grid; place-items: center; border-radius: 50%; box-shadow: 0 0 0 1px var(--d2-black); background: conic-gradient(var(--hp-hi) calc(var(--v, 1) * 360deg), var(--panel-inset) 0); }
@@ -2963,6 +2987,7 @@ body.bhd .bh-fl .v img { width: 14px; height: 14px; }
 body.bhd .bh-fl kbd { display: grid; place-items: center; position: absolute; right: 0; bottom: 0; width: 12px; height: 12px; background: var(--panel-inset); font: 700 10px/1 var(--font); color: var(--tx-dim); }
 /* 直立半版面板開著：下方的 HUD 被面板蓋住，不畫 */
 body.bhp.sheet #bh > :not(.bh-top):not(.bh-cur):not(.bh-loc) { display: none !important; }
+body.bhp.sheet .bh-xp { display: none !important; }
 /* 營地的頂列字在刷圖中不畫（地點改在頂列 P08／D06） */
 body.inmap #area, body.bhp.inmap #area { display: none; }
 body.bhd.inmap .top { top: 48px; }

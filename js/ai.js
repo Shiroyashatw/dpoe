@@ -178,11 +178,15 @@ function aiTick(dt) {
   if (P.roll) return;
   /* 怪物方的地面（地圖詞留下的煙霧、凋零、油、感電、點燃……）：踩在上面就往外走（企劃書 2.1 第 11 項） */
   const hz = G.ground.find(g => g.side === 'm' && !g.done && onGround(g));
-  /* 蓄力技能：按住到蓄滿、目標死了或打不到就放開；踩到怪物方的地面也放開 */
+  /* 蓄力技能（mumi 11/21 11:38 Q1 A）：自動模式蓄滿（max 段）才放開出手；還沒滿時目標死了、打不到或踩到怪物方的地面就取消不放
+     （chargeCancel 退回魔力），不會半段出手 */
   const act = P.act;
-  if (act && act.charge && !hz) {
+  if (act && act.charge) {
     const E = act.c.D.charge;
-    if (T && act.ch < E.max * E.step - 1e-6 && aiReach(act.c, T)) AI.hold = act.slot;
+    if (act.ch < E.max * E.step - 1e-6) {
+      if (T && !hz && aiReach(act.c, T)) AI.hold = act.slot;
+      else chargeCancel();
+    }
   }
   const order = aiOrder(aiTags);
   /* 走位：近戰貼到範圍內，遠程與法系保持 6 公尺 */
@@ -244,7 +248,11 @@ function aiTick(dt) {
     const c = slotCfg(i);
     if (!c || (P.cds['s' + i] || 0) > 0 || !aiReach(c, T)) continue;
     if (skillWhy(c, at) === '魔力不足') lackMp = true;
-    if (aiCan(c, i, at) && useSlot(i)) return;
+    if (aiCan(c, i, at) && useSlot(i)) {
+      /* 剛開始蓄力：同一格就要按住，不然 skillTick 會以第 0 段放出去 */
+      if (P.act && P.act.charge) AI.hold = i;
+      return;
+    }
   }
   if (lackMp && A.flaskT <= 0 && P.mp < ST.mp * 0.3 && !(P.cds.mflask > 0)) (A.flaskT = 1), drinkFlask(1);
 }

@@ -36,7 +36,9 @@ const DBG = (() => {
     if (frz != null) anims(a => a.playState === 'running' && (a.pause(), (a.currentTime = 0)));
     for (const f of L) f(t);
   };
-  window.requestAnimationFrame = cb => (Q.push(cb) === 1 && raf(pump), Q.length);
+  /* 真的 rAF 同時只排一個：step() 直接呼叫 pump 時不再另排，否則每推一格就多一條自己續命的 rAF 鏈，頁面越推越慢 */
+  let rq = 0;
+  window.requestAnimationFrame = cb => (Q.push(cb), rq || ((rq = 1), raf(() => ((rq = 0), pump()))), Q.length);
   const anims = f => document.getAnimations().forEach(f),
     mob = () => Object.values(MOBS)[0],
     at = (x, y) => [x == null ? P.x : x, y == null ? P.y - 60 : y],
@@ -262,6 +264,22 @@ const DBG = (() => {
       BH.fake.goal = p;
       HV.idle = null;
       idleBar(1);
+    },
+    /* 能量護盾（battle-hud-6 §25 例值）：目前 es／上限 max（0＝沒有能量護盾上限）；ch＝充能中（4 秒延遲已過）；mana＝點了異能魔力 */
+    es(es, max = 600, ch = 0, mana = 0) {
+      ST.es = max;
+      ST.esMana = mana ? 1 : 0;
+      P.es = Math.min(es, max);
+      P.esCh = !!ch;
+      P.lastHurt = ch ? G.t - 9 : G.t;
+      HV.bhes = null;
+    },
+    /* 格擋值（battle-hud-5 §14）：目前 n／最大 max（0＝沒拿盾）；br＝碎開回滿中 */
+    block(n, max = 600, br = 0) {
+      ST.bv = max;
+      P.bv = Math.min(n, max);
+      P.bvRe = br ? G.t : null;
+      HV.bhblk = HV.bhblkBr = null;
     },
     /* 收到最小（1）／一般（0）；不播動畫 */
     hudMin(on = 1) {

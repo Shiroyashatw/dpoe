@@ -1,4 +1,4 @@
-/* battle-hud v1.3.3 §13 驗收：5 狀態 × 2 尺寸的實機截圖、疊圖用量測。
+/* battle-hud v1.3.3 §13 驗收（v1.3.5 經驗條／格擋弧、v1.3.6 能量護盾層／危急紅邊）：狀態 × 2 尺寸的實機截圖、疊圖用量測。
    用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/bh_shots.js [輸出資料夾]（預設 docs/production/evidence/battle-hud-v133）
    每張：{state}_{W}x{H}.png（DPR 1）＋ measure_{state}_{W}x{H}.json（每個元件的框、熱區、字級字重、顏色）；
    疊圖與差表由 tools/bh_overlay.py 產生。有 ❌（框四邊差 > 2 px）時結束碼 1 */
@@ -9,12 +9,12 @@ const fs = require('fs'),
 const OUT = process.argv[2] || path.join(__dirname, '..', 'docs/production/evidence/battle-hud-v133'),
   URL = process.argv[3] || 'http://localhost:8000/';
 fs.mkdirSync(OUT, { recursive: true });
-/* 依據的規格版本：預設 v1.3.3 的 59b6350（交辦依據；main 之後升了 v1.3.4–1.3.6），BH_SPEC_REV 可換 */
-const SPEC_REV = process.env.BH_SPEC_REV || '59b6350';
-/* 讀元件表（<!-- T {size} {kind} --> 後面的表）：id → [x, y, w, h, 熱區字串, 狀態] */
-function table(file, tag) {
+/* 依據的規格版本：預設 main 9c6be66（battle-hud v1.3.6＋-5 v1.3.5＋-6 v1.3.6，dpoe-hud133-fix2 交辦），BH_SPEC_REV 可換 */
+const SPEC_REV = process.env.BH_SPEC_REV || '9c6be66';
+/* 讀元件表（<!-- {pf} {size} {kind} --> 後面的表；pf：T＝-2／-3、X＝-5、E＝-6）：id → [x, y, w, h, 熱區字串, 狀態] */
+function table(file, tag, pf = 'T') {
   const s = execSync(`git show ${SPEC_REV}:docs/production/specs/battle-hud/${file}`, { cwd: __dirname }).toString(),
-    i = s.indexOf(`<!-- T ${tag} -->`),
+    i = s.indexOf(`<!-- ${pf} ${tag} -->`),
     L = s.slice(i).split('\n').slice(3),
     o = {};
   for (const l of L) {
@@ -25,8 +25,30 @@ function table(file, tag) {
   return o;
 }
 const T = {
-  '390x844': { hud: table('battle-hud-2.md', '390x844 hud'), min: table('battle-hud-2.md', '390x844 collapsed-hud') },
-  '1280x720': { hud: table('battle-hud-3.md', '1280x720 hud'), min: table('battle-hud-3.md', '1280x720 collapsed-hud') }
+  '390x844': {
+    hud: {
+      ...table('battle-hud-2.md', '390x844 hud'),
+      ...table('battle-hud-5.md', '390x844 hud', 'X'),
+      ...table('battle-hud-6.md', '390x844 hud', 'E')
+    },
+    min: {
+      ...table('battle-hud-2.md', '390x844 collapsed-hud'),
+      ...table('battle-hud-5.md', '390x844 collapsed', 'X'),
+      ...table('battle-hud-6.md', '390x844 collapsed', 'E')
+    }
+  },
+  '1280x720': {
+    hud: {
+      ...table('battle-hud-3.md', '1280x720 hud'),
+      ...table('battle-hud-5.md', '1280x720 hud', 'X'),
+      ...table('battle-hud-6.md', '1280x720 hud', 'E')
+    },
+    min: {
+      ...table('battle-hud-3.md', '1280x720 collapsed-hud'),
+      ...table('battle-hud-5.md', '1280x720 collapsed', 'X'),
+      ...table('battle-hud-6.md', '1280x720 collapsed', 'E')
+    }
+  }
 };
 /* id → 量哪個元素（外觀）；hit＝熱區元素 */
 const nth = (q, i) => `${q}:nth-child(${i})`;
@@ -146,6 +168,31 @@ const SEL = {
   C34: '#pidle .i34',
   C35: '#pidle .ix'
 };
+/* v1.3.5 經驗條、格擋弧（battle-hud-5）；v1.3.6 能量護盾細條、充能前緣（battle-hud-6） */
+Object.assign(SEL, {
+  P66: '#bhXp',
+  P67: ['#bhBlk .v', '#bhBlk'],
+  P68: '#bhBlk img',
+  P69: '#bhTip',
+  T43: '#bhXp',
+  T44: ['#bhBlk .v', '#bhBlk'],
+  T45: '#bhBlk img',
+  D65: '#bhXp',
+  D66: ['#bhBlk .v', '#bhBlk'],
+  D67: '#bhBlk img',
+  D68: '#bhTip',
+  C64: '#bhXp',
+  C65: ['#bhBlk .v', '#bhBlk'],
+  C66: '#bhBlk img',
+  P70: '#bhp .es',
+  P71: '#bhp .es em',
+  T46: '#bhp .es',
+  T47: '#bhp .es em',
+  D69: '#bhp .es',
+  D70: '#bhp .es em',
+  C67: '#bhp .es',
+  C68: '#bhp .es em'
+});
 /* 一列一個的：拾取、狀態、分頁、比較 */
 for (let i = 0; i < 5; i++) SEL['P' + (44 + i)] = [`#pidle .ipk[data-r="${i}"]`, '#pidle .ipks'];
 SEL.P49 = ['#pidle .ipk[data-r="4"]', '#pidle .ipks'];
@@ -166,14 +213,31 @@ for (let i = 0; i < 7; i++) {
   SEL['C' + (7 + i < 10 ? '0' : '') + (7 + i)] = nth('#dnav button', i + 1);
 }
 /* 哪些表列在這個狀態要量（狀態欄：全／NBL／B：／L：／F：…） */
-const inState = (st, s) => {
+/* -5／-6 的列（狀態欄是長句）：經驗條、格擋弧每個狀態都量（截圖一律拿盾）；格擋提示只在 blockbr；
+   能量護盾細條在有上限的狀態、前緣只在充能中（es_recharge、collapsed 用表上的例值 90 / 600） */
+const XE = {
+  xp: /^(P66|T43|D65|C64)$/,
+  blk: /^(P67|P68|T44|T45|D66|D67|C65|C66)$/,
+  blkTip: /^(P69|D68)$/,
+  es: /^(P70|T46|D69|C67)$/,
+  esE: /^(P71|T47|D70|C68)$/
+};
+const ES_ST = { es_full: 1, es_partial: 1, es_recharge: 1, es_zero: 1, lowcomb: 1, lowlife: 1, collapsed: 1 };
+const inState = (st, s, id) => {
+  if (id && XE.xp.test(id)) return true;
+  if (id && XE.blk.test(id)) return true;
+  if (id && XE.blkTip.test(id)) return s === 'blockbr';
+  if (id && XE.es.test(id)) return !!ES_ST[s];
+  if (id && XE.esE.test(id)) return s === 'es_recharge' || s === 'collapsed';
+  s = { lowcomb: 'lowhp', lowlife: 'lowhp' }[s] || (/^es_|^blockbr$/.test(s) ? 'normal' : s);
   const h = st.split('：')[0];
   if (h === '全' || h === 'C') return !(s === 'lootflood' && /^NBL/.test(st) && !/F/.test(h));
   const k = { normal: 'N', boss: 'B', lowhp: 'L', lootflood: 'F' }[s];
   return h.includes(k);
 };
 /* 場景表（battle-hud-2／-3 PW／TW／DW／CW）：[名, 類別, x, y, w, h]；[直立, 桌機]。
-   「混沌石」遊戲裡沒有（Q-T1 未決）：換成真的有的稀有通貨（高階崇高石、追憶之墨）；金會被自動撿走，不放 */
+   表上那顆稀有通貨遊戲裡沒有（Q-T1 未決）：換成真的有的稀有通貨（高階崇高石、追憶之墨）；金會被自動撿走，不放。
+   轉化石（CUR.conv，圖示 id cur_chaos）畫面只寫「轉化石」 */
 const PE = ['判官', 'elite'];
 const PLATES = {
   N: [
@@ -243,7 +307,10 @@ PLATES.C = [
 ];
 /* BH_ONLY=狀態,尺寸 只拍那幾張；BH_NOFULL=1：收起狀態倉庫沒滿（證明 T32／C32 一般字），檔名加 _nofull */
 const NOFULL = !!process.env.BH_NOFULL;
-const STATES = (process.env.BH_STATES || 'normal,boss,lowhp,lootflood,collapsed').split(',');
+const STATES = (
+  process.env.BH_STATES ||
+  'normal,boss,lowhp,lootflood,collapsed,es_full,es_partial,es_recharge,es_zero,es_none,lowcomb,lowlife,blockbr'
+).split(',');
 const SIZES = (process.env.BH_SIZES || '390x844,1280x720')
   .split(',')
   .map(t => t.split('x').map(Number))
@@ -344,6 +411,9 @@ let bad = 0;
             G.big.end = G.t + 1.3;
           }
           if (st === 'lowhp') DBG.hp(31);
+          /* 經驗一半；一律拿盾（格擋值 412 / 600）；能量護盾照 battle-hud-6 §30 例值（最大生命 1000） */
+          S.xp = Math.floor(xpNeed(S.lv) / 2);
+          DBG.block(412, 600);
           if (st === 'lootflood') DBG.reload(0, 1.0), DBG.auras(9), DBG.flood(38), DBG.states(10, 2);
           if (st === 'collapsed') DBG.hudMin(1);
         },
@@ -354,6 +424,20 @@ let bad = 0;
         ([st, PLATES, NOFULL]) => {
           if (st === 'normal') bhTip(0);
           if (st === 'lowhp') DBG.hp(31), (P.cds.flask = 2.2), (P.cds.mflask = 0.9);
+          DBG.block(412, 600);
+          const ES = {
+            es_full: [820, 600, 0],
+            es_partial: [820, 240, 0],
+            es_recharge: [820, 90, 1],
+            es_zero: [820, 0, 0],
+            lowcomb: [500, 30, 0],
+            lowlife: [300, 600, 0],
+            collapsed: [820, 90, 1]
+          }[st];
+          if (ES || st === 'es_none') (ST.hp = 1000), (P.hp = ES ? ES[0] : 820);
+          if (ES) DBG.es(ES[1], 600, ES[2]);
+          if (/^es_/.test(st)) bhTip(0);
+          if (st === 'blockbr') DBG.block(200, 600, 1), bhTip('blk');
           idleBar(1);
           hudTick();
           /* 截圖只看 HUD：吐司、橫幅先收（遊戲照跑時它們會自己出現） */
@@ -379,7 +463,7 @@ let bad = 0;
       }
       /* 量測 */
       const tbl = st === 'collapsed' ? T[tag].min : T[tag].hud,
-        ids = Object.keys(tbl).filter(id => inState(tbl[id].st, st) && SEL[id]),
+        ids = Object.keys(tbl).filter(id => inState(tbl[id].st, st, id) && SEL[id]),
         m = await p.evaluate(
           ([ids, SEL]) => {
             const box = el => {

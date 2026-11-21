@@ -12623,6 +12623,291 @@ const ASC_COMBOS = `const combos = k => {
     ok(`battle-hud ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
     await cx.close();
   }
+  /* dpoe-hud133-fix2：battle-hud-5（經驗條、格擋弧）、battle-hud-6（生命條字、能量護盾細條、危急紅邊）、光環圖對應、
+     AI 蓄滿才出手（mumi Q1 A）、點燃 × 異能魔力 */
+  for (const [W, H, touch] of [
+    [390, 844, 1],
+    [1280, 720, 0]
+  ]) {
+    const cx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !!touch, isMobile: !!touch });
+    await cx.route(/supabase/, r => r.abort());
+    const p = await cx.newPage(),
+      errs = [],
+      tag = `${W}×${H}`;
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(URL + '?dbg=1&seed=5&' + Date.now());
+    await p.evaluate(() => localStorage.clear());
+    await p.reload();
+    await p.waitForTimeout(1200);
+    await p.evaluate(touch => {
+      proSkip();
+      S.story.tips = 0;
+      S.auto = 0;
+      if (touch) DBG.safeArea(34, 47);
+      runNode(TRUNK_K[0]);
+      ST = stats();
+      hudBar();
+      DBG.clear();
+    }, touch);
+    await p.waitForTimeout(600);
+    const m = await p.evaluate(() => {
+      const r = {},
+        rc = q => {
+          const e = document.querySelector(q),
+            b = e && !e.closest('[hidden]') && e.getBoundingClientRect();
+          return b && (b.width || b.height) ? [b.left, b.top, b.width, b.height].map(Math.round) : null;
+        },
+        tick = () => (bhTick(), idleBar(1));
+      DBG.freeze();
+      DBG.hudMin(0);
+      ST.hp = 1000;
+      P.hp = 820;
+      /* 生命條字＋能量護盾細條 */
+      DBG.es(0, 0), tick();
+      r.noEs = [$('bhp').lastChild.textContent, rc('#bhp .es')];
+      DBG.es(240, 600), tick();
+      r.es = [$('bhp').lastChild.textContent, rc('#bhp .es'), rc('#bhp .es i'), rc('#bhp .es em'), rc('#bhp')];
+      DBG.es(0, 600), tick();
+      r.es0 = [rc('#bhp .es'), $('bhp').querySelector('.es').style.getPropertyValue('--w'), rc('#bhp .es em')];
+      DBG.es(90, 600, 1), tick();
+      r.esCh = rc('#bhp .es em');
+      DBG.es(600, 600, 1), tick();
+      r.esFull = rc('#bhp .es em');
+      DBG.es(90, 600, 1, 1), tick();
+      r.esMana = rc('#bhp .es');
+      DBG.hudMin(1), DBG.es(90, 600, 1), tick();
+      r.esMin = [rc('#bhp .es'), rc('#bhp .es em')];
+      DBG.hudMin(0);
+      /* 危急紅邊：合計分支、生命分支（能量護盾仍滿）、2 級、異能魔力只看生命、沒有能量護盾上限＝生命比例；外框常亮不閃 */
+      const lv = (hp, es, max, mana) => {
+        P.hp = hp;
+        DBG.es(es, max, 0, mana);
+        tick();
+        const v = $('bhVig');
+        return [bhDanger(), v.classList.contains('on') ? (v.classList.contains('l2') ? 2 : 1) : 0, !$('bhLow').hidden];
+      };
+      r.lv = [
+        lv(500, 30, 600),
+        lv(300, 600, 600),
+        lv(150, 600, 600),
+        lv(500, 290, 600),
+        lv(500, 0, 600, 1),
+        lv(340, 0, 0),
+        lv(360, 0, 0),
+        lv(190, 0, 0)
+      ];
+      lv(300, 600, 600);
+      r.lowAnim = [getComputedStyle($('bhLow')).animationName, getComputedStyle($('bhLow')).borderTopColor];
+      r.vigAria = $('bhVig').getAttribute('aria-hidden');
+      P.hp = 820;
+      DBG.es(0, 0), tick();
+      /* 經驗條 */
+      S.xp = Math.floor(xpNeed(S.lv) / 2);
+      tick();
+      r.xp = [rc('#bhXp'), rc('#bhXp i'), $('bhXp').textContent, $('bhXp').dataset.tip || null];
+      DBG.hudMin(1), tick();
+      r.xpMin = rc('#bhXp');
+      DBG.hudMin(0), tick();
+      /* 格擋弧 */
+      DBG.block(0, 0), tick();
+      r.blk0 = [rc('#bhBlk'), $('bhBlk').hidden];
+      DBG.block(412, 600), tick();
+      r.blk = [
+        rc('#bhBlk'),
+        rc('#bhBlk .v'),
+        rc('#bhBlk img'),
+        document.querySelector('#bhBlk img').getAttribute('src')
+      ];
+      bhTip('blk');
+      r.blkTip = [$('bhTip').textContent, rc('#bhTip')];
+      bhTip(null);
+      DBG.block(200, 600, 1), tick();
+      bhTip('blk'), tick();
+      r.blkBr = [$('bhTip').textContent, !!document.querySelector('#bhBlk path.rg')];
+      bhTip(null);
+      DBG.hudMin(1), DBG.block(412, 600), tick();
+      bhTip('blk');
+      r.blkMin = [rc('#bhBlk'), rc('#bhTip')];
+      bhTip(null);
+      DBG.hudMin(0), tick();
+      r.bhpTip = $('bhp').dataset.tip || $('bhp').title || null;
+      /* 光環圖：第一批 6 個都走 art/icons/aura/ 的 10／12 px 圖 */
+      r.aura = ['anger', 'precise', 'swift', 'iron', 'purity', 'clarity'].map(k =>
+        bhAuraIc(k, 12).replace(/^.*\/art\//, 'art/')
+      );
+      return r;
+    });
+    const P0 = touch ? [11, 522, 342, 3] : [341, 668, 448, 3];
+    ok(
+      `battle-hud-6 ${tag} 生命條字：有能量護盾上限「生命 820 / 1000・能量護盾 240 / 600」、沒有「生命 820 / 1000」；能量護盾細條 ${P0.join(',')}（${touch ? 'P70' : 'D69'}）、沒有上限整條不畫`,
+      m.noEs[0] === '生命 820 / 1000' &&
+        m.noEs[1] === null &&
+        m.es[0] === '生命 820 / 1000・能量護盾 240 / 600' &&
+        JSON.stringify(m.es[1]) === JSON.stringify(P0) &&
+        Math.abs(m.es[2][2] - P0[2] * 0.4) <= 1 &&
+        m.es[3] === null &&
+        m.es[4][1] + m.es[4][3] === (touch ? 526 : 672),
+      JSON.stringify([m.noEs, m.es])
+    );
+    ok(
+      `battle-hud-6 ${tag} 能量護盾 0 只剩空槽、充能中才畫 2 px 前緣（例 90 / 600 x ${touch ? 60 : 406}）、滿了不畫；點了異能魔力細條仍在；${touch ? '收起下移 140（T46／T47 y 662）' : ''}`,
+      JSON.stringify(m.es0[0]) === JSON.stringify(P0) &&
+        m.es0[1] === '0.000' &&
+        m.es0[2] === null &&
+        m.esCh &&
+        Math.abs(m.esCh[0] - (touch ? 60 : 406)) <= 1 &&
+        m.esCh[2] === 2 &&
+        m.esCh[3] === 3 &&
+        m.esFull === null &&
+        JSON.stringify(m.esMana) === JSON.stringify(P0) &&
+        (!touch || (m.esMin[0][1] === 662 && m.esMin[1][1] === 662)),
+      JSON.stringify([m.es0, m.esCh, m.esFull, m.esMana, m.esMin])
+    );
+    ok(
+      `battle-hud-6 ${tag} 危急紅邊（§23）：合計 < 35% 或 生命 < 35% 亮 1 級、任一 < 20% 2 級；異能魔力只看生命；沒有上限＝生命比例；外框同條件、常亮不閃（沒有 animation）、aria-hidden`,
+      JSON.stringify(m.lv) ===
+        JSON.stringify([
+          [1, 1, true],
+          [1, 1, true],
+          [2, 2, true],
+          [0, 0, false],
+          [0, 0, false],
+          [1, 1, true],
+          [0, 0, false],
+          [2, 2, true]
+        ]) &&
+        m.lowAnim[0] === 'none' &&
+        m.vigAria === 'true',
+      JSON.stringify([m.lv, m.lowAnim, m.vigAria])
+    );
+    const X0 = touch ? [0, 552, 390, 6] : [340, 700, 450, 8];
+    ok(
+      `battle-hud-5 ${tag} 經驗條 ${X0.join(',')}（${touch ? 'P66；收起 T43 y 692' : 'D65；收起 C64 不移'}）：不寫字、沒有滑鼠提示`,
+      JSON.stringify(m.xp[0]) === JSON.stringify(X0) &&
+        m.xp[2] === '' &&
+        m.xp[3] === null &&
+        Math.abs(m.xp[1][2] - (touch ? 390 : 446) * 0.5) <= 2 &&
+        JSON.stringify(m.xpMin) === JSON.stringify(touch ? [0, 692, 390, 6] : X0),
+      JSON.stringify([m.xp, m.xpMin])
+    );
+    const B0 = touch
+        ? [
+            [260, 460, 84, 44],
+            [278, 478, 48, 24],
+            [294, 484, 16, 16]
+          ]
+        : [
+            [712, 600, 74, 48],
+            [726, 616, 56, 28],
+            [746, 626, 16, 16]
+          ],
+      TP = touch ? [10, 392, 370, 34] : [340, 524, 328, 34];
+    ok(
+      `battle-hud-5 ${tag} 格擋弧：沒拿盾不畫、熱區不留；拿盾熱區 ${B0[0].join(',')}、弧 ${B0[1].join(',')}、盾牌 16 hud_block_16；提示「格擋值 412 / 600」在 ${TP.join(',')}，碎開加「（碎了，回滿前不吸收）」＋斷續段；${touch ? '收起弧與提示一起下移 140' : '收起不移'}；生命條不掛格擋提示`,
+      m.blk0[0] === null &&
+        m.blk0[1] === true &&
+        JSON.stringify(m.blk.slice(0, 3)) === JSON.stringify(B0) &&
+        /art\/icons\/hud\/hud_block_16(@2x)?\.png$/.test(m.blk[3]) &&
+        m.blkTip[0] === '格擋值 412 / 600' &&
+        JSON.stringify(m.blkTip[1]) === JSON.stringify(TP) &&
+        m.blkBr[0] === '格擋值 200 / 600（碎了，回滿前不吸收）' &&
+        m.blkBr[1] &&
+        m.blkMin[0][1] - B0[0][1] === (touch ? 140 : 0) &&
+        m.blkMin[1][1] - TP[1] === (touch ? 140 : 0) &&
+        m.bhpTip === null,
+      JSON.stringify([m.blk0, m.blk, m.blkTip, m.blkBr, m.blkMin, m.bhpTip])
+    );
+    ok(
+      `battle-hud ${tag} 光環第一批 6 個（憤怒、精準、迅捷、剛毅、純淨、清晰）都走 art/icons/aura/ 的 HUD 圖（AURAS 鍵 swift／iron／purity 對到 hasteaura／determination／purityaura）`,
+      JSON.stringify(m.aura.map(u => u.replace(/@2x/, ''))) ===
+        JSON.stringify(
+          ['anger', 'precise', 'hasteaura', 'determination', 'purityaura', 'clarity'].map(
+            k => `art/icons/aura/sk_${k}_10.png`
+          )
+        ),
+      JSON.stringify(m.aura)
+    );
+    if (!touch) {
+      /* AI 自動模式蓄滿才出手（mumi 11/21 11:38 Q1 A）；目標死了沒蓄滿＝取消不放；點燃 × 異能魔力 */
+      const a = await p.evaluate(() => {
+        DBG.clear();
+        S.auto = 1;
+        S.eq.weapon = mkItem(BASES.find(x => x.wt === 'mace').id, 10, 0);
+        for (let i = 0; i < 5; i++) S.skills[i] = newSlot();
+        S.skills[0] = { k: 'chargeslam', so: [null, null], n: 2 };
+        S.lib.sk.chargeslam = 1;
+        ST = stats();
+        hudBar();
+        const mob = () => {
+          const m = spawnMob(
+            Object.values(MOBS).find(x => !x.boss),
+            P.x + 60,
+            P.y,
+            0,
+            0
+          );
+          return Object.assign(m, { hp: 1e9, mhp: 1e9, spd: 0, aggro: 1, dmg: 0 });
+        };
+        const rel = [],
+          st0 = window.skillTick;
+        window.skillTick = function (a) {
+          const was = a.charge,
+            o = st0.apply(this, arguments);
+          if (was && !a.charge) rel.push([a.stg, a.c.D.charge.max]);
+          return o;
+        };
+        const m1 = mob();
+        P.hp = ST.hp = 1e9;
+        for (let i = 0; i < 200; i++) DBG.step(33);
+        const r = { rel: rel.slice() };
+        /* 蓄到一半目標死了：取消不放 */
+        rel.length = 0;
+        let n = 0;
+        while (!(P.act && P.act.charge && P.act.ch > 0.3 && P.act.ch < 0.9) && n++ < 200) DBG.step(33);
+        r.mid = !!(P.act && P.act.charge);
+        m1.hp = 0;
+        G.mobs = G.mobs.filter(x => x !== m1);
+        for (let i = 0; i < 10; i++) DBG.step(33);
+        r.cancel = [rel.slice(), P.act ? P.act.k : null];
+        window.skillTick = st0;
+        S.auto = 0;
+        DBG.clear();
+        /* 點燃 × 異能魔力：點了能量護盾保護魔力時點燃不扣能量護盾、全扣生命；沒點時照舊（點燃先扣能量護盾） */
+        const burn = mana => {
+          ST.hp = 1000;
+          P.hp = 1000;
+          ST.es = 600;
+          P.es = 600;
+          ST.esMana = mana;
+          P.ail = { ign: { t: G.t + 9, dps: 100 } };
+          baseTick(0.5);
+          const o = [Math.round(P.es), Math.round(P.hp)];
+          P.ail = {};
+          return o;
+        };
+        r.ign = [burn(1), burn(0)];
+        ST = stats();
+        return r;
+      });
+      ok(
+        'AI 自動模式蓄力技能蓄滿才出手：每次放開都是 3／3（mumi Q1 A；修 aiTick 開頭 AI.hold = -1 讓剛開蓄那一格以第 0 段放出）',
+        a.rel.length >= 2 && a.rel.every(([s, mx]) => s === mx && mx === 3),
+        JSON.stringify(a.rel)
+      );
+      ok(
+        'AI 自動模式蓄到一半目標死了：取消不放（不半段出手）',
+        a.mid && a.cancel[0].length === 0 && a.cancel[1] === null,
+        JSON.stringify([a.mid, a.cancel])
+      );
+      ok(
+        '點燃 × 異能魔力（combat.js baseTick）：點了能量護盾保護魔力，點燃不扣能量護盾、直接扣生命（跟擊中 esAbsorb 一樣）',
+        a.ign[0][0] === 600 && a.ign[0][1] < 1000 && a.ign[1][0] < 600 && a.ign[1][1] === 1000,
+        JSON.stringify(a.ign)
+      );
+    }
+    ok(`dpoe-hud133-fix2 ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
+    await cx.close();
+  }
   /* 全螢幕入口（企劃書 §9「更多」）：不支援 Fullscreen API 就不顯示全螢幕鈕與「更多」的全螢幕列；支援就都顯示 */
   for (const fsE of [false, true]) {
     const cx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
