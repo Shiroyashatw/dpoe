@@ -40,7 +40,13 @@ for size in SIZES:
                   '| id | 名稱 | 規格 x,y,w,h | 實機 x,y,w,h | 四邊差 | 熱區（規格） | 熱區差 | 字（規格） | 字（實機） | 色（實機） | 結果 |',
                   '|---|---|---|---|---|---|---|---|---|---|---|']
         for r in rep:
-            got = ','.join(str(round(v)) for v in r['got']) if r['got'] else '—'
+            got = ','.join(f'{v:g}' for v in r['got']) if r['got'] else '—'
+            # 四邊差寫到小數 2 位（量測本身是小數；容差判定照 bh_shots.js 四捨五入後 ±2）
+            dd = r['d']
+            if r['got'] and r['spec'][2]:
+                g, e = r['got'], r['spec']
+                dd = [g[0] - e[0], g[1] - e[1], g[0] + g[2] - e[0] - e[2], g[1] + g[3] - e[1] - e[3]]
+                dd = [f'{v:+.2f}'.rstrip('0').rstrip('.') if abs(v) > 0.004 else '0' for v in dd]
             res = '✅' if r['ok'] else ('❌ 沒有' if r['miss'] else ('❌ 沒畫' if not r['vis'] else '❌'))
             fnt = f"{r['fs'] or ''}/{r['fw'] or ''}" if r.get('fs') else '—'
             # 字級字重：規格寫「14/700」才比；「+k 14/700」只管 +k 那格（另由 check.js 驗），這裡不比
@@ -49,11 +55,19 @@ for size in SIZES:
                 fok = r['fs'] == mm.group(1) + 'px' and str(r['fw']) == mm.group(2)
                 fnt += '' if fok else ' ⚠'
                 fbad.append(f"{st} {size} {r['id']}") if not fok else None
-            lines.append(f"| {r['id']} | {r['n'][:24]} | {','.join(map(str, r['spec']))} | {got} | {','.join(map(str, r['d']))} | "
+            if r.get('kbd'):
+                fnt += f"；鍵帽 {r['kbd']}"
+            lines.append(f"| {r['id']} | {r['n'][:24]} | {','.join(map(str, r['spec']))} | {got} | {','.join(map(str, dd))} | "
                          f"{r['hit'] or '—'} | {','.join(map(str, r['hd'])) if r['hd'] else '—'} | {r['f']} | {fnt} | {r.get('col') or '—'} | {res} |")
         lines.append('')
+sha = json.load(open(os.path.join(OUT, 'measure_normal_390x844.json'))).get('sha', '?')
+lines.insert(3, f'產生時的 commit：`{sha}`（每個 measure_*.json 檔頭 `sha` 欄也有）。')
+lines.insert(4, '')
 lines.insert(4, f'**合計 {tot - bad}／{tot} 項在 ±2 px 內；不符 {bad} 項。**')
 lines.insert(5, f'**字級／字重（規格寫明 px/weight 的項）：不符 {len(fbad)} 項**' + (f'：{"、".join(fbad)}' if fbad else '') + '（⚠ 標在表上）')
 lines.insert(6, '')
+tk = os.path.join(OUT, 'TOKENS.md')
+if os.path.exists(tk):
+    lines += ['', open(tk).read()]
 open(os.path.join(OUT, 'REPORT.md'), 'w').write('\n'.join(lines) + '\n')
 print(f'{tot - bad}/{tot}，不符 {bad}；字級字重不符 {len(fbad)}：{fbad}')

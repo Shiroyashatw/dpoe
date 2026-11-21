@@ -417,6 +417,12 @@ let bad = 0;
                 Object.assign(o[id], { fs: c.fontSize, fw: c.fontWeight, col: c.color });
               }
               if (he) o[id].hit = box(he).r;
+              /* 鍵帽（技能格、藥劑、桌機分頁）本身的字級 */
+              const kb = el.querySelector('kbd');
+              if (kb && kb.getClientRects().length) {
+                const c = getComputedStyle(kb);
+                o[id].kbd = c.fontSize + '/' + c.fontWeight;
+              }
             }
             return o;
           },
@@ -464,6 +470,7 @@ let bad = 0;
           col: g.col,
           bg: g.bg,
           tk: e.tk,
+          kbd: g.kbd || null,
           ok,
           miss: !!g.miss,
           vis: g.vis

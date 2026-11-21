@@ -1,5 +1,12 @@
 # dungeonPOE 更新紀錄
 
+## 0.5.5：戰鬥 HUD v1.3.3（battle-hud）＋UIUX 退回修正
+
+規格 `docs/production/specs/battle-hud/battle-hud.md` v1.3.3＋`-2`／`-3`／`-4`、`terms-aura.md`。證據 `docs/production/evidence/battle-hud-v133/`（`REPORT.md`：疊圖、框位、字級、token 像素比對）；AI 試玩回歸 `evidence/dpoe-hud133-fix/`。
+- **戰鬥 HUD 改版**（`js/bhud.js`）：直立 390×844 與桌機 1280×720 照元件表擺；頂列通貨＋地點、5 格技能（彈匣、儲存、蓄力弧、藥劑技能、冷卻）、光環列、狀態列、生命／魔力條、藥劑鈕、王血條＋大招警示、低血紅邊；下方面板（本次掛機、拾取、比較、倉庫 %、整理倉庫／自動／去營地）與收起列；分頁 7 格（倉庫 L）。手機橫向沿用舊觸控鍵。
+- **UIUX 退回修正**：直立戰場上方舊地點列暗層移除（王名、王血條不再被壓暗）；彈匣 6 格不折行；蓄力弧換技能後也畫；拾取列與收起列最近一筆照稀有度上色與記號（◆ 稀有、◈ 傳奇、王印 追逐、★ 完美與破裂），戰鬥 HUD 範圍的稀有度色換 D2 值；「⚠ 倉庫快滿」；倉庫分頁在戰鬥中選中；分頁徽章收進框內；天賦分頁位置固定、沒開畫鎖頭；▼／▲ 實心三角；桌機「裝填」16；拿掉 X 鍵。
+- 掉落紀錄多記一個稀有度（`r`，舊紀錄照類別推，不用轉檔）。
+
 ## D2 展示頁修正輪（demo/d2，只改展示頁，遊戲沒動）
 
 照新版 `D2-checklist.md`、`D2-fakedata.md` v1.0 與 11/19 追加交辦 §1–§4、§6 修 D2 展示頁。證據同 `docs/production/evidence/dpoe-d2-demo/`（新增 `check-output.txt`、`d2_demo-output.txt`、F2-2 冷卻截圖 `G02-F2-2.png`、錄影 `V-F2_flask_busy`）。
