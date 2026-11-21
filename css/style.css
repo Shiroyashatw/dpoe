@@ -3037,7 +3037,7 @@ body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcam
 #bh { position: absolute; inset: 0; pointer-events: none; font-family: var(--font); }
 #bh[hidden], #bh [hidden] { display: none !important; }
 #bh > * { position: fixed; box-sizing: border-box; margin: 0; }
-#bh button { pointer-events: auto; padding: 0; margin: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:where(#bh) button { pointer-events: auto; padding: 0; margin: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 #bh button:focus-visible, #pidle button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 #bh img { image-rendering: pixelated; }
 body.bhp:not(.inmap) #bh, body.bhd:not(.inmap) #bh { display: none; }
@@ -3045,6 +3045,7 @@ body.bhp:not(.inmap) #bh, body.bhd:not(.inmap) #bh { display: none; }
 .bh-top { background: var(--panel); border-bottom: 1px solid var(--border); }
 .bh-cur { display: flex; align-items: center; gap: 4px; font: 700 14px/1 var(--font); color: var(--tx-strong); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .bh-cur img { flex: none; width: 16px; height: 16px; }
+.bh-cur b { font-weight: inherit; }
 body.bhd .bh-cur { font-size: 16px; }
 .bh-loc .v { position: absolute; display: flex; align-items: center; justify-content: flex-end; gap: 4px; font: 400 14px/22px var(--font); color: var(--tx-dim); white-space: nowrap; overflow: hidden; }
 .bh-loc .v b { font-weight: 400; color: var(--tx-strong); }
@@ -3154,12 +3155,12 @@ body.bhp .bottom, body.bhd .bottom { display: none; }
 body.bhl #bh .bh-top, body.bhl #bh .bh-cur, body.bhl #bh .bh-loc, body.bhl #bh .bsk, body.bhl #bh .bh-aura, body.bhl #bh .bh-fl { display: none !important; }
 #lvup { position: fixed; left: 50%; bottom: auto; top: 50%; transform: translate(-50%, -120px); z-index: 4; }
 /* 下方面板（P41–P57／D25–D41）與收起列（T30–T35／C30–C35） */
-body:not(.touch.port) #pidle, body.touch.port #pidle, #pidle { position: fixed; z-index: 5; display: block; padding: 0; margin: 0; overflow: visible; max-height: none; background: var(--panel); border: 0; border-radius: 0; box-shadow: none; animation: none; font: 400 14px/22px var(--font); color: var(--tx); }
+#pidle { position: fixed; z-index: 5; display: block; padding: 0; margin: 0; overflow: visible; max-height: none; background: var(--panel); border: 0; border-radius: 0; box-shadow: none; animation: none; font: 400 14px/22px var(--font); color: var(--tx); }
 #pidle[hidden] { display: none !important; }
 #pidle > * { position: absolute; box-sizing: border-box; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-body.bhp #pidle { border-top: 1px solid var(--panel-edge); }
-body.bhp #pidle.min { border-top-color: var(--border-mid); }
-body.bhd #pidle { border: 1px solid var(--panel-edge); border-radius: 6px; font-size: 16px; line-height: 24px; }
+body.bhp #pidle { box-shadow: inset 0 1px 0 var(--panel-edge); }
+body.bhp #pidle.min { box-shadow: inset 0 1px 0 var(--border-mid); }
+body.bhd #pidle { box-shadow: inset 0 0 0 1px var(--panel-edge); border-radius: 6px; font-size: 16px; line-height: 24px; }
 #pidle .icard { background: var(--panel-raised); border: 1px solid var(--border); border-radius: 6px; }
 #pidle .is1, #pidle .is2 { color: var(--tx-dim); }
 #pidle .is2 { font-weight: 700; color: var(--tx-strong); }
@@ -3212,3 +3213,4 @@ body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: none
 .bh-boss.intro .bb { visibility: hidden; }
 .bh-boss.intro b::after { content: '現身'; }
 #dnav .dot:not(.n) { top: 3px; right: 3px; }
+.bh-boss b { font-weight: inherit; }

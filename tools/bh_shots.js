@@ -300,8 +300,20 @@ let bad = 0;
                 continue;
               }
               const el = document.querySelector(q),
-                he = hq && document.querySelector(hq);
+                he = hq && document.querySelector(hq),
+                /* 字級字重量有字的那一層（技能格的數字盒、條上的字、通貨數字） */
+                fe =
+                  el &&
+                  [
+                    ...el.querySelectorAll(
+                      ':scope > .nb, :scope > .cdv, :scope > .rl, :scope > span:not(.v):not(.ic0), :scope > b'
+                    )
+                  ].find(e => e.textContent.trim());
               o[id] = el ? box(el) : { miss: 1 };
+              if (fe) {
+                const c = getComputedStyle(fe);
+                Object.assign(o[id], { fs: c.fontSize, fw: c.fontWeight, col: c.color });
+              }
               if (he) o[id].hit = box(he).r;
             }
             return o;
