@@ -64,7 +64,8 @@
 
 | 畫面 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3.2 定稿（mumi 16:32；勘誤 17:18；mumi 11/20 17:33 拿掉觀戰鍵） | 現行；正式素材挑定見 art-picks/battle-hud-v1.3/；光環第二批 12 個待定；開發仍暫停 |
+| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3.3（mumi 16:32；勘誤 17:18；mumi 11/20 17:33 拿掉觀戰鍵） | 現行；正式素材挑定見 art-picks/battle-hud-v1.3/；光環第二批 12 個待定；開發仍暫停 |
+| 光環欄用語 | `specs/battle-hud/terms-aura.md` | v0.6.36 | 現行（已收進名詞表 v0.6.36） |
 | 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分取代：掛機條版面與光柱外觀 → specs/battle-hud/；掛機條營地訊號（M2-camp-cards §7）、橫幅／王倒下（M2-33-3b、M2-23 §6）、倒下（M2-40 §8）仍現行；觀戰鈕已拿掉（mumi 11/20 17:33 拿掉觀戰鍵） |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
@@ -77,9 +78,9 @@
 | 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.1 | 現行（v1.0 已由本檔取代）；示意圖 W/W3-items/ 現行 |
 | 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
-| 倉庫 | `S/M2-33-2a-items-crafting.md` §3＋`S/M2-37-ia-rework.md` §8 | 11/18 | 現行；B5 新檔 S/stash.md 待寫 |
+| 倉庫 | `S/M2-33-2a-items-crafting.md` §1、§2（動作段）、§3＋`S/M2-item-display.md`（格子與說明；跟 2a 衝突時以它為準）＋`S/M2-37-ia-rework.md` §3、§4 | 2a v1.0.1／item-display v1.1／M2-37 v1.3 | 現行；B5 新檔 S/stash.md 待寫（草稿 W-storage-draft-2145 待 mumi） |
 | 商會 | 規則 `S/M2-trade-tiercap.md` | v1.0 | 規則現行；畫面待寫（各自批次到了再定） |
-| 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2 | 待定（版面段已作廢，技能分頁段要拆成 S/skills-panel.md）；**戰鬥 HUD 部分已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3 |
+| 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2.1 | 待定（版面段已作廢，技能分頁段要拆成 S/skills-panel.md）；**戰鬥 HUD 部分已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；M2-40 裡的「祭壇」字串，畫面上一律改寫「長老屋」（名詞表 v0.6.19） |
 | 天賦樹 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（S2 改版暫停；天賦樹開著時照刷） |
 | 昇華石碑 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（入口兩處都留） |
 | 更多分頁 | `S/M2-33-2b-panels.md` §3＋`S/M2-37-ia-rework.md` §3 | 11/18 | 現行 |
