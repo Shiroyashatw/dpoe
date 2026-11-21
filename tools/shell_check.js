@@ -58,7 +58,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     ([sat, sab, port]) => {
       proSkip();
       S.story.tips = 0;
-      S.orient = port ? 'p' : 'l';
+      S.orient = 'p';
       applyOrient();
       if (sat || sab) DBG.safeArea(sab, sat);
       S.auto = 1;

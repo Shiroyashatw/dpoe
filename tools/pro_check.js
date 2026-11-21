@@ -131,7 +131,15 @@ async function veteran() {
     introStop();
     S = newGame();
     delete S.fresh;
-    Object.assign(S, { lv: 42, xp: 1234, gold: 5678, frag: 90, maxT: 7, tier: 5, orient: 'l' });
+    Object.assign(S, {
+      lv: 42,
+      xp: 1234,
+      gold: 5678,
+      frag: 90,
+      maxT: 7,
+      tier: 5,
+      orient: 'l'
+    }); /* 舊存檔的橫向：讀進來要變直立 */
     S.eq.weapon = mkItem('w_bow_0', 20, 2);
     S.eq.chest = mkItem('c_leather', 20, 1);
     S.story = { boneMet: 1 };
@@ -146,7 +154,10 @@ async function veteran() {
   ok('存檔也一模一樣', (await p.evaluate(DISK)) === before);
   ok('記版本號', await p.evaluate(() => S.story.prologue === PRO_VER && S.story.intro === PRO_VER));
   ok('老玩家沒有多一把劍', await p.evaluate(() => S.eq.weapon.b === 'w_bow_0' && !S.inv.items.length));
-  ok('手機方向設定留著', await p.evaluate(() => S.orient === 'l'));
+  ok(
+    '舊存檔的橫向（l）讀進來改成直立（p）、存回 p',
+    await p.evaluate(() => S.orient === 'p' && JSON.parse(localStorage.getItem(KEY + SLOT)).orient === 'p')
+  );
   /* 版本號 */
   await open(p, 42);
   ok('版本號一樣：不跑', await p.evaluate(() => !IV.on));
@@ -205,17 +216,12 @@ async function calm() {
   ok('沒有頁面錯誤', !p.errs.length, p.errs[0]);
   await p.ctxx.close();
 }
-/* 手機：四個尺寸的字幕與落地 */
+/* 手機：兩個直式尺寸的字幕與落地（2026-11-21 取消橫向） */
 async function phone(w, h) {
-  const tag = w + 'x' + h,
-    port = h > w;
+  const tag = w + 'x' + h;
   console.log('— 手機 ' + tag + ' —');
   const p = await page(w, h, 1);
   await clean(p, 46);
-  await p.evaluate(port => {
-    S.orient = port ? 'p' : 'l';
-    applyOrient();
-  }, port);
   await p.tap('#ivgo');
   ok('開場：觸控模式', await p.evaluate(() => document.body.classList.contains('touch')));
   await p.evaluate(() => {
@@ -244,7 +250,7 @@ async function phone(w, h) {
   ok(
     '看完開刷、拿到劍、分頁列在畫面內',
     await p.evaluate(() => {
-      const n = PORT() ? $('pnav') : TOUCH.on ? document.querySelector('.tmenu [data-tm=inv]') : $('dnav'),
+      const n = PORT() ? $('pnav') : $('dnav'),
         r = n.getBoundingClientRect();
       return !!S.eq.weapon && !n.hidden && r.width >= 44 && r.right <= innerWidth && r.bottom <= innerHeight;
     })
@@ -264,9 +270,7 @@ async function phone(w, h) {
     if (!only || only === 'phone')
       for (const [w, h] of [
         [390, 844],
-        [375, 667],
-        [844, 390],
-        [667, 375]
+        [375, 667]
       ])
         await phone(w, h);
   } catch (e) {

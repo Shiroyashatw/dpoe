@@ -152,6 +152,8 @@ function migrate(s) {
   if (o.pt.some(id => !PTREE.I[id])) (o.pt = [...PT_START]), (o.ptA = {});
   /* 0.5.2：過濾器刪了 */
   delete o.filter;
+  /* 2026-11-21：手機橫向取消，舊存檔的橫向（l）一律改直立 */
+  o.orient = 'p';
   /* 0.2.63：光環欄沒有格數，寶石排前面、尾巴留一個空格 */
   o.auras = [...(o.auras || []).filter(Boolean), null];
   /* 昇華不存在或點對不上（改過昇華的形狀）就退回 */
@@ -163,8 +165,7 @@ function migrate(s) {
   if (o.eq.off && !offOK(o.eq.weapon, o.eq.off) && invPut(o.inv, o.eq.off)) o.eq.off = null;
   return o;
 }
-let NARROW = false,
-  HIDE_AT = 0;
+let HIDE_AT = 0;
 function resize() {
   DPR = Math.min(2, devicePixelRatio || 1);
   IW = innerWidth;
@@ -173,12 +174,10 @@ function resize() {
   const sp = getComputedStyle($('safep'));
   SAFE.t = parseFloat(sp.paddingTop) || 0;
   SAFE.b = parseFloat(sp.paddingBottom) || 0;
-  /* 手機：畫面高度看得到差不多的範圍；背包格子照寬度（夠寬就兩個面板並排） */
-  NARROW = IW < 800;
-  /* 直立：左右看得到約 10 格（480 px）；橫向手機：照高度 */
-  ZOOM = PORT() ? clamp(IW / 480, 0.6, 1.35) : TOUCH.on ? clamp(IH / 470, 0.72, 1.35) : 1.35;
-  /* 直立（0.4.4）：倉庫清單一列 7 格，每格至少 44px；橫向觸控（B2 D2-07）也 44，放不下就換行往下捲 */
-  C = PORT() ? clamp(Math.floor((IW - 36) / 7), 44, 56) : TOUCH.on ? 44 : 36;
+  /* 直立：左右看得到約 10 格（480 px） */
+  ZOOM = PORT() ? clamp(IW / 480, 0.6, 1.35) : 1.35;
+  /* 直立（0.4.4）：倉庫清單一列 7 格，每格至少 44px */
+  C = PORT() ? clamp(Math.floor((IW - 36) / 7), 44, 56) : 36;
   document.documentElement.style.setProperty('--cell', C + 'px');
   if (S) hudPanels();
   CV.width = Math.round(IW * DPR);

@@ -8560,6 +8560,15 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify(r)
     );
   }
+  /* 2026-11-21：手機橫向取消：舊存檔 orient 'l'（或其他非 p）讀進來是 p，存回去（JSON）也是 p；新存檔 p */
+  {
+    const r = R2(`(() => {
+      const m = migrate(JSON.parse(JSON.stringify({ ...newGame(), orient: 'l' }))),
+        x = migrate(JSON.parse(JSON.stringify({ ...newGame(), orient: 'x' })));
+      return [newGame().orient, m.orient, JSON.parse(JSON.stringify(m)).orient, x.orient, migrate(JSON.parse(JSON.stringify(m))).orient];
+    })()`);
+    ok('取消手機橫向：舊存檔 orient l／其他 → p、存回仍是 p、新存檔 p', r.join() === 'p,p,p,p,p', r.join());
+  }
   ok(
     '通貨三階：完美的新詞一定是最高階、高階在最高 2 階內；高階 Lv45、完美 Lv70 才掉，完美 300 次保底',
     R2(`(() => {

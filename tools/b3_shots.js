@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 /* B3 營地場景首頁＋回營地補算的截圖與量測（docs/production/specs/fix-list-v1.2-to-batches.md「B3」）：
    回營地補算（掛機條「回營地前」「回戰場後」、試招場）、D2-11「營地期間 +N」那一行位置與樣式（130%、英文 +40% 假字、減少動態）、
-   D1-04／D1-08 營地場景點鍛造台開的卡「這級」同字串、D3-13 營地與戰場底圖（現有圖）、D1-14 667×375 營地點地圖台（探針＋開地點清單）。
+   D1-04／D1-08 營地場景點鍛造台開的卡「這級」同字串、D3-13 營地與戰場底圖（現有圖）。D1-14（667×375 營地點地圖台）隨 2026-11-21 取消手機橫向拿掉。
    用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/b3_shots.js [寬 390] [高 844] [網址]
    截圖與量測表存 docs/production/evidence/dpoe-b3/（SHOTS 可改）；有 ❌ 結束碼 1 */
 const path = require('path'),
@@ -10,7 +10,7 @@ const W = +process.argv[2] || 390,
   H = +process.argv[3] || 844,
   URL = process.argv[4] || 'http://localhost:8000/',
   PORTM = H > W,
-  MOB = PORTM || H <= 430,
+  MOB = PORTM,
   tag = W + 'x' + H,
   OUT = process.env.SHOTS || path.join(__dirname, '..', 'docs', 'production', 'evidence', 'dpoe-b3'),
   SAT = PORTM && H === 844 ? 47 : 0,
@@ -46,7 +46,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       ([sat, sab, port]) => {
         proSkip();
         S.story.tips = 0;
-        S.orient = port ? 'p' : 'l';
+        S.orient = 'p';
         applyOrient();
         if (sat || sab) DBG.safeArea(sab, sat);
         S.auto = 1;
@@ -84,7 +84,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       act('resume');
     }, m);
   const BAR = PORTM ? [0, 710, 390, 754] : [16, H - 56, 396, H - 16];
-  const hasBar = !(MOB && !PORTM);
+  const hasBar = true;
 
   /* ---------- 回營地補算：回營地前 ---------- */
   const s0 = await p.evaluate(() => ({ t0: SES.t0, r: SES.rounds }));
@@ -143,7 +143,6 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const lr = await rect('#pcline');
   const fL = await shot('SES_2_after_line');
   if (hasBar) ok('回戰場：出「營地期間 +N」那一行', /^營地期間 /.test(ln.t), '營地期間 …', ln.t, fL);
-  else ok('手機橫向不畫掛機條（B1 現行規則），那一行跟著不畫', !ln.t, '不畫', ln.t || '不畫', fL);
   if (hasBar)
     ok(
       'D2-11 那一行蓋在掛機條上（位置＝掛機條）',
@@ -239,33 +238,6 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   if (hasBar) ok('減少動態：那一行照出', /^營地期間 /.test(rm || ''), '營地期間 …', rm, fR);
   await q.context().close();
 
-  /* ---------- D1-14 667×375（與其他手機橫向）營地點地圖台 ---------- */
-  if (MOB && !PORTM) {
-    await p.evaluate(() => (closePanels(), enterCamp(), (S.auto = 0), (G.pan = 0)));
-    await p.waitForTimeout(1300);
-    const pr = await p.evaluate(() => {
-      const e = document.elementFromPoint(333, 96),
-        d = G.props.find(q => q.k === 'device');
-      return {
-        at: e && { tag: e.tagName, id: e.id, cls: String(e.className), z: getComputedStyle(e).zIndex },
-        dv: [(d.x - G.cam.x) * ZOOM + IW / 2, (d.y - 25 - G.cam.y) * ZOOM + cvH() / 2]
-      };
-    });
-    const cdp = await p.context().newCDPSession(p);
-    const touch = (type, pts) =>
-      cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts.map(([x, y], i) => ({ x, y, id: i })) });
-    await touch('touchStart', [pr.dv]);
-    await touch('touchEnd', []);
-    await p.waitForTimeout(500);
-    const fN = await shot('D1-14_camp_device_tap');
-    ok(
-      'D1-14 營地點地圖台＝開地點清單（elementFromPoint(333,96) 是畫布）',
-      (await p.evaluate(() => !!PANEL.node)) && pr.at && pr.at.id === 'cv',
-      'PANEL.node、#cv',
-      pr,
-      fN
-    );
-  }
   await b.close();
   const md = path.join(OUT, `results_${tag}.md`);
   fs.writeFileSync(

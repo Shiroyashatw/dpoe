@@ -3,7 +3,7 @@
    觸控：左半邊浮動搖桿；右下 5 個技能鍵（大的是普攻＝左鍵欄），點一下自動瞄準最近的敵人（王優先）、
    按住拖＝手動瞄準（地上畫線）放開施放、拖回按鈕上取消；普攻按住連打。翻滾、藥劑、互動在技能鍵外圈。 */
 'use strict';
-const TOUCH = { on: false, stick: null, pan: null, mv: [0, 0], sk: null, cast: false, sel: null, front: 'inv' };
+const TOUCH = { on: false, stick: null, pan: null, mv: [0, 0], sk: null, cast: false, sel: null };
 const AIM_R = 360; /* 手動瞄準最遠的距離 */
 
 function setTouch(on) {
@@ -12,29 +12,17 @@ function setTouch(on) {
   document.body.classList.toggle('touch', on);
   applyOrient();
 }
-/* 直立／橫向（設定裡選，存在 S.orient）：換 body.port、視野、全螢幕的方向鎖 */
+/* 手機一律直立（2026-11-21 取消橫向）：觸控＝body.port；全螢幕時鎖直立 */
 function applyOrient() {
-  const p = PORT();
-  document.body.classList.toggle('port', p);
-  /* 0.2.14 以前加到主畫面的捷徑被 manifest 鎖成橫向（Android 要過一陣子才會更新），轉不過來時教玩家重新加入 */
-  $('rott').innerHTML =
-    (p ? '直立操作：把手機轉直' : '橫向操作：把手機橫過來') +
-    (inApp() ? '<small>轉不過來：刪掉主畫面捷徑再重新「加入主畫面」，或改用下面另一種</small>' : '');
-  $('rotb').textContent = p ? '改用橫向操作' : '改用直立操作';
-  if (fsOn() && screen.orientation && screen.orientation.lock)
-    screen.orientation.lock(p ? 'portrait' : 'landscape').catch(() => {});
+  document.body.classList.toggle('port', PORT());
+  if (PORT() && fsOn() && screen.orientation && screen.orientation.lock)
+    screen.orientation.lock('portrait').catch(() => {});
   stickHide();
   fsBtn();
   resize();
   hideTip();
   hudPanels();
   if (TREE.open) treeRender();
-}
-function setOrient(o) {
-  if (S.orient === o) return;
-  S.orient = o;
-  save();
-  applyOrient();
 }
 /* 最近的敵人（王的距離打六折＝優先打王） */
 function autoTarget() {
@@ -82,8 +70,8 @@ function drawAim() {
   CX.arc(w.x, w.y, 22, 0, Math.PI * 2);
   CX.fill();
 }
-/* ---------- 全螢幕：Android 用網頁全螢幕（按全螢幕鈕才進、鎖方向；0.3.2 起不自動進）；
-   iPhone 的 Safari 不支援，教玩家「加入主畫面」（從主畫面打開沒有網址列，manifest.webmanifest） ---------- */
+/* ---------- 全螢幕：Android 用網頁全螢幕（按全螢幕鈕才進、鎖直立；0.3.2 起不自動進）；
+   iPhone 的 Safari 不支援網頁全螢幕。inApp＝以前從主畫面捷徑打開的（已經沒有網址列，藏全螢幕鈕） ---------- */
 const fsOK = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled),
   fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement),
   inApp = () => matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone;
@@ -92,17 +80,12 @@ function fsEnter() {
     rq = el.requestFullscreen || el.webkitRequestFullscreen;
   if (!rq) return;
   Promise.resolve(rq.call(el, { navigationUI: 'hide' }))
-    .then(
-      () => screen.orientation && screen.orientation.lock && screen.orientation.lock(PORT() ? 'portrait' : 'landscape')
-    )
+    .then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('portrait'))
     .catch(() => {});
 }
 function fsClick() {
   if (fsOK()) return fsEnter();
-  showTip(
-    `<b>全螢幕</b><p>iPhone 的 Safari 不支援網頁全螢幕。<br>按下方<span class="c-gold">分享</span> →「加入主畫面」，從主畫面圖示打開就沒有網址列。</p>`,
-    new DOMRect(innerWidth / 2, 0, 0, 0)
-  );
+  showTip(`<b>全螢幕</b><p>這個瀏覽器（iPhone 的 Safari）不支援網頁全螢幕。</p>`, new DOMRect(innerWidth / 2, 0, 0, 0));
   $('tip').classList.add('act');
 }
 function fsBtn() {
@@ -199,27 +182,20 @@ function touchInit() {
       return;
     }
     /* 直立（龍絆式）：整個畫面都是手勢區。拖＝移動、點＝普攻、按住不動＝連打、快速一撥＝翻滾 */
-    if (PORT()) {
-      if (TOUCH.stick) return;
-      const st = (TOUCH.stick = {
-        id: e.pointerId,
-        x0: e.clientX,
-        y0: e.clientY,
-        sx: e.clientX,
-        sy: e.clientY,
-        t: performance.now(),
-        port: true,
-        mv: false
-      });
-      st.tm = setTimeout(() => {
-        if (TOUCH.stick === st && !st.mv) (st.atk = true), (TOUCH.cast = true), (M.L = 1);
-      }, 220);
-      return;
-    }
-    if (e.clientX < innerWidth * 0.55 && !TOUCH.stick) {
-      TOUCH.stick = { id: e.pointerId, x0: e.clientX, y0: e.clientY };
-      stickShow(e.clientX, e.clientY);
-    }
+    if (TOUCH.stick) return;
+    const st = (TOUCH.stick = {
+      id: e.pointerId,
+      x0: e.clientX,
+      y0: e.clientY,
+      sx: e.clientX,
+      sy: e.clientY,
+      t: performance.now(),
+      port: true,
+      mv: false
+    });
+    st.tm = setTimeout(() => {
+      if (TOUCH.stick === st && !st.mv) (st.atk = true), (TOUCH.cast = true), (M.L = 1);
+    }, 220);
   });
   addEventListener('pointermove', e => {
     const pn = TOUCH.pan;
@@ -374,9 +350,6 @@ function touchInit() {
       else if (k === 'tree') treeOpen('pt');
       else if (k === 'camp') campAsk();
       else if (k === 'set') PANEL.set ? closePanels() : (closePanels(), (NAV.full = PORT() ? 1 : 0), openPanel('set'));
-      else if (k === 'port' || k === 'land') setOrient(k[0]);
-      else if (k === 'flip') setOrient(PORT() ? 'l' : 'p');
-      else if (k === 'swap') (TOUCH.front = TOUCH.front === 'inv' ? 'other' : 'inv'), hudPanels();
       return;
     }
     const q = e.target.closest('[data-tq]');
@@ -413,7 +386,7 @@ function touchInit() {
     )
       hideTip();
   });
-  /* 0.3.2：不再自動進全螢幕（要的話按全螢幕鈕）；也不讓 Chrome 跳出「安裝應用程式」的提示（manifest 留著給自己加入主畫面的人） */
+  /* 0.3.2：不再自動進全螢幕（要的話按全螢幕鈕）。安裝版已取消（2026-11-21）：保險起見仍擋掉 Chrome 的安裝提示 */
   addEventListener('beforeinstallprompt', e => e.preventDefault());
   handInit();
   document.addEventListener('fullscreenchange', fsBtn);

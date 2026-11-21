@@ -29,13 +29,13 @@ fs.mkdirSync(OUT, { recursive: true });
     };
     window.__in = r => !!r && r.x >= 0 && r.y >= 0 && r.x + r.w <= innerWidth && r.y + r.h <= innerHeight;
     window.__hit = (a, b) => !!a && !!b && a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-    /* 橫幅蓋到哪些：戰鬥區（直立＝面板上緣以上；桌機與橫向＝主角）、生命魔力條、技能列 */
+    /* 橫幅蓋到哪些：戰鬥區（直立＝面板上緣以上；桌機＝主角）、生命魔力條、技能列 */
     window.noCover = () => {
       const bn = __r('#chase'),
         st = parseFloat(getComputedStyle(document.body).getPropertyValue('--sheet-top')),
         port = document.body.classList.contains('port'),
         L = {
-          /* 直立：面板上緣以上整塊；桌機與橫向：鏡頭跟著主角，主角在畫面中間那一條 */
+          /* 直立：面板上緣以上整塊；桌機：鏡頭跟著主角，主角在畫面中間那一條 */
           戰鬥區: port ? { x: 0, y: 0, w: innerWidth, h: st } : { x: 0, y: innerHeight / 2 - 40, w: innerWidth, h: 80 },
           生命魔力條: __r('.mid .bars'),
           技能列: __r('.mid .bar')
@@ -318,7 +318,7 @@ fs.mkdirSync(OUT, { recursive: true });
     },
     () => {
       const e = document.querySelector('#preveal button.offch');
-      /* 在離線卡的捲動區裡：捲到看得到再量（手機橫向卡片比畫面高） */
+      /* 在離線卡的捲動區裡：捲到看得到再量（矮畫面卡片比畫面高） */
       if (e) e.scrollIntoView({ block: 'nearest' });
       const r = __r(e);
       return [
