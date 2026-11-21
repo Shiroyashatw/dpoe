@@ -27,7 +27,7 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --scene-lava-glow-rgb | `162 122 74` | 54.1／33.6／73 | 熔岩池、熔岩縫、火星；熔岩靠形狀認，不用亮橘：池外圈一定畫不透明結殼 --scene-lava-dark-rgb（＝--scene-X-dark-rgb），寬 ≥ 4 px，加放射漸層與慢冒泡 |
 | --scene-tomb-glow-rgb | `80 146 92` | 55.1／40.0／146 | 毒水窪、磷火燈 |
 | --scene-ice-glow-rgb | `114 168 170` | 65.3／18.4／201 | 冰晶、冰柱、冰晶燈 |
-| --scene-temple-glow-rgb／--scene-hide-glow-rgb | 同 --scene-lamp-glow | — | 廟、藏身處的亮點與燈光 |
+| --scene-temple-glow-rgb／--scene-hide-glow-rgb | 同 --scene-lamp-glow | — | 廟、藏身處的亮點與道具燈光，α ≤ 0.1（地板灰塵點 0.05） |
 熔岩／墓／冰地形發光的脈動只准循環，不准一次性漸強（一次性漸強只給預警）。
 | --accent | `#f4f0ec` | 95.0／2.5／75 | 介面小點綴；**不用在場景**（戰場、營地都不用） |
 `--scene-X-detail-n` 用腳本從新地面換算：L* 夾在 --scene-X-mid 與 --scene-X-light 之間，a*b* 改成 h 75°、C* ≤ 6。
@@ -36,7 +36,7 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | token | 值 | L*／C*／h | ΔE 傳奇 | 角色 |
 | --- | --- | --- | --- | --- |
 | --scene-lamp-body | `#b98a5e` | 61.0／32.9／68 | 14.8（10.6） | 戰場燈籠本體（暖棕布／木框）；不准白燈籠 |
-| --scene-lamp-glow | `#d9a774` 16% | 72.0／35.5／70 | 13.5（11.1） | 戰場燈籠光暈，不透明度 16% |
+| --scene-lamp-glow | `#d9a774` 16% | 72.0／35.5／70 | 13.5（11.1） | 戰場燈籠光暈，不透明度 16%；只畫成固定道具（燈籠、火盆、香爐）周圍的光暈，不畫成整片地面（對 --el-fire 色盲 0.5） |
 | --scene-fire-core | `#ffd890` | 88.2／40.7／— | 22.3（15.0） | 篝火核心；全畫面最亮處，唯一准 L* > 70 的場景色 |
 | --scene-fire-flame | `#e2552c` | 54.9／73.5／44 | 18.5（10.3） | 火舌中段 |
 | --scene-fire-outer | `#c43d24` | 45.9／68.7／40 | 26.6（18.6） | 火舌外緣、炭火 |
@@ -135,7 +135,7 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --rar-normal | `#f1ebdb` | 普通；沒有光柱 |
 | --rar-magic／-bg | `#9da7ff`／`#23232b` | 魔法；沒有光柱 |
 | --rar-rare／-bg | `#fbe53a`／`#26241b` | 稀有；名稱前綴 ◆（掉落牌、拾取紀錄都要）；光柱 64 px |
-| --rar-rare-frame | `#ccb72e`（L* 74.1） | 稀有**格框**專用，2 px；◆ 與稀有名稱仍用 --rar-rare。魔法格框 1 px。灰階靠框寬分稀有／魔法，不加 ◆ 角標 |
+| --rar-rare-frame | `#ccb72e`（L* 74.1） | 稀有**格框**專用，2 px；◆ 與稀有名稱仍用 --rar-rare。魔法格框 1 px。灰階靠框寬分稀有／魔法，不加 ◆ 角標；目前不用在世界畫面，要用先重驗（對 --scene-gold 色盲 6.1） |
 | --rar-unique／-bg | `#fa8915`／`#2a221c` | 傳奇；名稱前綴 ◈（掉落牌、拾取紀錄都要）；光柱 96 px；只當字、◈、光柱、物品框，永不當按鈕底 |
 | --rar-chase／-hi／-bg | `#0cf6ee`／`#8ffbf6`／`#192625` | 追逐；光柱 ≥ 傳奇 1.8 倍（176 px）、連續不斷；名稱前綴王印圖示 16 px（掉落牌、拾取紀錄都要） |
 | --affix | 同 --rar-magic | 技能關鍵字 |
