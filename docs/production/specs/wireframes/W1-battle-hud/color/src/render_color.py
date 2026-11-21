@@ -41,7 +41,7 @@ BOSS=pick('boss_shang-s6921.png')
 SK={'ammo':art('sk_apshot'),'reload':art('sk_apshot'),'gren':art('sk_combust'),'wind':art('sk_groundslam'),'flask':pick('sk_gasflask-s7311.png'),'cd':art('sk_fireburst')}
 AURA_KEYS=['sk_anger','sk_hatred','sk_wrathaura','sk_grace','sk_determination','sk_discipline','sk_clarity','sk_zealotry','sk_hasteaura']
 AURA=[art(k) for k in AURA_KEYS]
-CUR={'金':pick('cur_gold-s5401-16x16.png'),'靈魂':pick('cur_soul-s5306.png'),'混沌':pick('cur_chaos-s5330-16x16.png'),'崇高':pick('cur_exalt-s5329-16x16.png')}
+CUR={'金':pick('cur_gold-s5401-16x16.png'),'靈魂':pick('cur_soul-s5306.png'),'轉化石':pick('cur_chaos-s5330-16x16.png'),'崇高':pick('cur_exalt-s5329-16x16.png')}
 FLASK={'hp':pick('flask_hp-s5312-24.png'),'mp':pick('flask_mp-s5316-24.png')}
 WY=pick('wangyin_chixiao_16-s5404.png')
 AIL={k:pick(f) for k,f in [('rage','ail_rage-s7038.png'),('cons','ail_cons-s9094.png'),('exp','ail_exp-s7032.png'),('bleed','ail_bleed-s7004.png'),
@@ -130,9 +130,9 @@ def find(E,pfx,name_has=None,idsfx=None):
         if name_has and name_has in e['name']: return e
     return None
 DROPMAP={'判官烏紗':('unique','helm'),'王印・赤霄':('chase','wy'),'厲鬼護符':('rare','amulet'),'寒鐵之戒':('magic','ring'),'崇高石':('magic','exalt'),
-         '混沌石×3':('normal','chaos'),'鏽蝕長劍':('normal','sword'),'冥河斬馬刀':('rare','sword'),'金幣×412':('normal','gold')}
-FLOOD=[('混沌石','normal','chaos'),('寒鐵之戒','magic','ring'),('崇高石','magic','exalt'),('鏽蝕長劍','normal','sword'),('金幣×86','normal','gold'),('寒鐵之戒','magic','ring'),('混沌石','normal','chaos')]
-DROPICON={'判官烏紗':'helm','王印・赤霄':'wy','厲鬼護符':'amulet','寒鐵之戒':'ring','崇高石':'exalt','混沌石 ×3':'chaos','混沌石':'chaos',
+         '轉化石（×3）':('normal','chaos'),'鏽蝕長劍':('normal','sword'),'冥河斬馬刀':('rare','sword'),'金幣×412':('normal','gold')}
+FLOOD=[('轉化石','normal','chaos'),('寒鐵之戒','magic','ring'),('崇高石','magic','exalt'),('鏽蝕長劍','normal','sword'),('金幣×86','normal','gold'),('寒鐵之戒','magic','ring'),('轉化石','normal','chaos')]
+DROPICON={'判官烏紗':'helm','王印・赤霄':'wy','厲鬼護符':'amulet','寒鐵之戒':'ring','崇高石':'exalt','轉化石（×3）':'chaos','轉化石':'chaos',
           '鏽蝕長劍':'sword','冥河斬馬刀':'sword','金 ×412':'gold','金 ×86':'gold'}
 def drops_of(E):
     """名稱與稀有度照 gen_battle_hud（DROP_RAR）；寬已由產生器算好（記號＋字＋左右 6，最寬 140）。"""
@@ -284,7 +284,7 @@ def scene(img,E,size,state):
     for (k,x,fy),v in zip(mons,vals): place_num(d,x+10,fy-MON[k].height-24,v,15,'dmg-hit')
     return d
 # ================= HUD（hud 層：座標照元件清單，疊圖 ≤1 px）=================
-PICKUP=[('chase','王印・赤霄'),('unique','判官烏紗'),('rare','厲鬼護符'),('magic','寒鐵之戒'),('normal','混沌石 ×3'),('normal','鏽蝕長劍')]
+PICKUP=[('chase','王印・赤霄'),('unique','判官烏紗'),('rare','厲鬼護符'),('magic','寒鐵之戒'),('normal','轉化石（×3）'),('normal','鏽蝕長劍')]
 def fsz(e,default=14):
     m=re.search(r'(\d+)/(\d+)',e['font']); return (int(m.group(1)),int(m.group(2))) if m else (default,400)
 def skillcell(img,d,e,var,port):
@@ -391,7 +391,7 @@ def hud(img,E,size,state):
             if port: rect(d,x0,y0,x1,y1,fill=c('panel')); d.line((x0,y0,x1-1,y0),fill=c('border-mid'))
             else: rect(d,x0,y0,x1,y1,fill=c('panel'),outline=c('panel-edge'))
         elif n.startswith('通貨 '):
-            cur=n.split(' ')[1]; v={'金':'12,480','靈魂':'3,209','混沌':'86','崇高':'4'}[cur]
+            cur=n.split(' ')[1]; v={'金':'12,480','靈魂':'3,209','轉化石':'86','崇高':'4'}[cur]
             img.alpha_composite(CUR[cur],(x0+2,(y0+y1)//2-8)); text(d,(x0+22,(y0+y1)/2),v,fs,'tx-strong',700,anchor='lm',log=(i,R(e)))
         elif n.startswith('地點'):
             s1='酆都 14 層 '; text(d,(x1-tw('★3',fs,700)-tw(s1,fs),(y0+y1)/2),s1,fs,'tx-dim',anchor='lm',log=(i,R(e)))
