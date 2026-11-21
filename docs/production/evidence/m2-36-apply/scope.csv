@@ -1,0 +1,121 @@
+token,附錄 A 分類,舊值（main 1029c43 :root）,新值,M2-36 規格列號,備註
+--accent,缺 47,（無）,#f4f0ec,32,
+--scene-lamp-body,缺 47,（無）,#b98a5e,38,
+--scene-lamp-glow,缺 47,（無）,#d9a774,39,15 個之一
+--scene-fire-core,缺 47,（無）,#ffd890,40,15 個之一
+--scene-fire-flame,缺 47,（無）,#e2552c,41,15 個之一
+--scene-fire-outer,缺 47,（無）,#c43d24,42,15 個之一
+--scene-lamp-core,缺 47,（無）,#ffcf66,43,
+--scene-gold,缺 47,（無）,#cea464,44,
+--scene-window,缺 47,（無）,#c99560,45,
+--scene-wood,缺 47,（無）,#6b5440,46,
+--scene-wood-lt,缺 47,（無）,#8a6c4e,46,
+--scene-wood-dk,缺 47,（無）,#3f3226,46,15 個之一
+--scene-roof,缺 47,（無）,#5c3b2c,47,
+--scene-roof-dk,缺 47,（無）,#3b261d,47,
+--scene-cloth-red,缺 47,（無）,#7d4a3e,48,15 個之一
+--scene-cloth-yel,缺 47,（無）,#8c7a4a,48,
+--scene-cloth-blue,缺 47,（無）,#55606a,48,
+--scene-linen,缺 47,（無）,#b3a592,49,15 個之一
+--scene-clay,缺 47,（無）,#8a5a40,50,
+--scene-bread,缺 47,（無）,#a07a4a,50,
+--scene-smoke,缺 47,（無）,#8f877e,51,15 個之一
+--scene-rock-night,缺 47,（無）,#1f1b17,52,15 個之一
+--scene-iron,缺 47,（無）,#2e2a27,53,15 個之一
+--scene-stone,缺 47,（無）,#6d655c,54,15 個之一
+--scene-stone-dk,缺 47,（無）,#4a443e,54,15 個之一
+--scene-dirt,缺 47,（無）,#836240,55,
+--scene-dirt-dk,缺 47,（無）,#604832,55,
+--scene-soil,缺 47,（無）,#4a3829,55,
+--scene-grass,缺 47,（無）,#46562e,56,
+--scene-grass-dk,缺 47,（無）,#344224,56,15 個之一
+--scene-leaf,缺 47,（無）,#5f7a3a,57,
+--scene-leaf-dk,缺 47,（無）,#3e5428,57,15 個之一
+--panel-edge,缺 47,（無）,#a8927f,65,15 個之一
+--panel-hi,缺 47,（無）,"rgba(255, 226, 180, 0.12)",66,
+--act-press,缺 47,（無）,#704e23,103,
+--sel-press,缺 47,（無）,#3d332a,109,
+--paper,缺 47,（無）,#e3dcd3,110,
+--block-dim,缺 47,（無）,#40484e,121,
+--block-hi,缺 47,（無）,#eaf2f8,123,
+--rar-rare-frame,缺 47,（無）,#ccb72e,138,
+--rar-chase-hi,缺 47,（無）,#8ffbf6,140,
+--chg-e,缺 47,（無）,#be88a4,150,
+--chg-p,缺 47,（無）,#6fb0f0,150,
+--hero-ring,缺 47,（無）,#fbf6ef,152,
+--beam-edge,缺 47,（無）,"rgba(0, 0, 0, 0.8)",153,
+--cell-corrupt,缺 47,（無）,#4b1e1e,178,
+--cell-cal,缺 47,（無）,#352642,179,
+--scene-lava-glow-rgb,值不同 31,"255, 138, 60","162, 122, 74",27,同時屬場景 26
+--scene-tomb-glow-rgb,值不同 31,"140, 240, 140","80, 146, 92",28,同時屬場景 26
+--scene-ice-glow-rgb,值不同 31,"143, 214, 255","114, 168, 170",29,同時屬場景 26
+--plate-world,值不同 31,"rgba(11, 8, 6, 0.8)","rgba(37, 33, 30, 0.92)",71,
+--sheet-bg,值不同 31,"rgba(31, 25, 21, 0.92)","rgba(37, 33, 30, 0.94)",72,
+--chase-bnr,值不同 31,#1c130d,"rgba(37, 33, 30, 0.94)",73,
+--dodge-vignette-rgb,值不同 31,"80, 180, 255","120, 200, 235",79,
+--border-ctl,值不同 31,#907956,#817b75,86,
+--border-cap,值不同 31,#f1ebdc,#d9d3cd,88,
+--tx-off,值不同 31,#aa9a84,#9d9995,93,5 個基本色
+--tx-empty,值不同 31,#6a5a48,#9d9995,93,5 個基本色
+--focus,值不同 31,#fbf9f5,#fbf9f6,95,
+--act-hi,值不同 31,#a5452f,#876032,102,
+--btn2,值不同 31,var(--panel-raised),#524c47,105,
+--sel-ink,值不同 31,#2a1a12,#231f1a,111,
+--ready,值不同 31,#e6c36a,#e8e5e1,113,
+--good,值不同 31,#7fc95a,#95e886,132,5 個基本色
+--warn,值不同 31,#e0614a,#a9ae68,133,
+--bad-hi,值不同 31,#f06a50,#ff9bba,134,
+--rar-chase-bg,值不同 31,#0e2826,#192625,140,
+--dmg-hit,值不同 31,#fff3e0,#e8e5e1,159,
+--dmg-crit,值不同 31,#ffd166,#f2cb9b,160,
+--dmg-hurt,值不同 31,#ff5a5a,#fbf9f6,161,
+--dmg-gain,值不同 31,#ffd166,#95e886,162,
+--dmg-minor,值不同 31,#9aa3ad,#aeaba7,163,
+--dmg-outline,值不同 31,"rgba(0, 0, 0, 0.8)",#000000,164,
+--asc,值不同 31,#ff9f43,#0fb89f,170,
+--awk-bg,值不同 31,#1b1526,#26222a,171,
+--el-cold,值不同 31,#8fd6ff,#ade2f9,173,5 個基本色
+--el-light,值不同 31,#ffe066,#f3f9a4,173,
+--el-chaos,值不同 31,#c38bff,#e97ccf,173,5 個基本色
+--scene-ice-ground,場景 26,#1f3044,#46413c,22,
+--scene-ice-mid,場景 26,#35607e,#33302b,23,
+--scene-ice-light,場景 26,#a8d8f0,#615b56,24,
+--scene-ice-edge,場景 26,#16263a,#16130f,25,
+--scene-ice-dark-rgb,場景 26,"3, 7, 14","10, 7, 4",26,
+--scene-lava-ground,場景 26,#1b1311,#46413c,22,
+--scene-lava-mid,場景 26,#2a1d18,#33302b,23,
+--scene-lava-light,場景 26,#5c3a28,#615b56,24,
+--scene-lava-edge,場景 26,#0c0807,#16130f,25,
+--scene-lava-dark-rgb,場景 26,"12, 4, 2","10, 7, 4",26,
+--scene-tomb-ground,場景 26,#18201a,#46413c,22,
+--scene-tomb-mid,場景 26,#28362b,#33302b,23,
+--scene-tomb-light,場景 26,#4c6250,#615b56,24,
+--scene-tomb-edge,場景 26,#0b100c,#16130f,25,
+--scene-tomb-dark-rgb,場景 26,"3, 9, 5","10, 7, 4",26,
+--scene-temple-ground,場景 26,#1c181e,#46413c,22,
+--scene-temple-mid,場景 26,#6a241b,#33302b,23,
+--scene-temple-light,場景 26,#a63c2b,#615b56,24,
+--scene-temple-edge,場景 26,#2a150e,#16130f,25,
+--scene-temple-dark-rgb,場景 26,"7, 4, 3","10, 7, 4",26,
+--scene-lava-glow-rgb,場景 26,"255, 138, 60","162, 122, 74",27,同時屬值不同 31
+--scene-tomb-glow-rgb,場景 26,"140, 240, 140","80, 146, 92",28,同時屬值不同 31
+--scene-ice-glow-rgb,場景 26,"143, 214, 255","114, 168, 170",29,同時屬值不同 31
+--scene-temple-glow-rgb,場景 26,"255, 179, 90","217, 167, 116",30,
+--scene-hide-dark-rgb,場景 26,"5, 3, 3","10, 7, 4",26,
+--scene-hide-glow-rgb,場景 26,"255, 150, 70","217, 167, 116",30,
+--scene-fire-core-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"255, 216, 144",16（-rgb＝hex 換算）,
+--scene-fire-flame-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"226, 85, 44",16（-rgb＝hex 換算）,
+--scene-fire-outer-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"196, 61, 36",16（-rgb＝hex 換算）,
+--scene-cloth-red-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"125, 74, 62",16（-rgb＝hex 換算）,
+--scene-linen-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"179, 165, 146",16（-rgb＝hex 換算）,
+--scene-smoke-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"143, 135, 126",16（-rgb＝hex 換算）,
+--scene-grass-dk-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"52, 66, 36",16（-rgb＝hex 換算）,
+--scene-leaf-dk-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"62, 84, 40",16（-rgb＝hex 換算）,
+--scene-lamp-glow-rgb,rgb-new-9（BASE-DIFF §1.1）,（無）,"217, 167, 116",16（-rgb＝hex 換算）,
+--good-rgb,rgb-sync,"123, 211, 107","149, 232, 134",16（-rgb＝hex 換算）,跟著基本色同步；(17)a，製作人 22:18 確認
+--el-cold-rgb,rgb-sync,"143, 214, 255","173, 226, 249",16（-rgb＝hex 換算）,跟著基本色同步；(17)a，製作人 22:18 確認
+--tx-title,missed-same-as,#d9cdb4,#e8e5e1,90,同 --tx；附錄 A 漏列，製作人 22:18 確認屬 M2-36
+--tx-scene,missed-same-as,#d9cdb4,#fbf9f6,94,同 --tx-strong；附錄 A 漏列，製作人 22:18 確認屬 M2-36
+--el-phys,missed-same-as,#fff3e0,#fbf9f6,172,同 --tx-strong；附錄 A 漏列，製作人 22:18 確認屬 M2-36
+--mod-mm,missed-same-as,#c79bff,#e97ccf,180,同 --el-chaos；附錄 A 漏列，製作人 22:18 確認屬 M2-36
+--mod-co,missed-same-as,#e0614a,#ff9bba,180,同 --bad；附錄 A 漏列，製作人 22:18 確認屬 M2-36
