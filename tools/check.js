@@ -11182,16 +11182,30 @@ const ASC_COMBOS = `const combos = k => {
       fnOf(hud, n)
     ),
     lit = /#[0-9a-fA-F]{3,8}\b|rgba?\(/,
-    varRgb = /rgba?\(var\(--[\w-]+-rgb\)(?:\s*[,/]\s*[\d.]+)?\)/g;
-  /* 規則性斷言改寫（CSS 對齊色票，待 UIUX 確認）：CSS 段只准 rgb(var(--*-rgb)／α) 形式，不准寫死數字的 rgb( */
+    rootRgb = new Set(
+      [
+        ...css
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .match(/:root\s*\{([^}]*)\}/)[1]
+          .matchAll(/(--[\w-]+-rgb)\s*:\s*\d+,\s*\d+,\s*\d+\s*;/g)
+      ].map(m => m[1])
+    ),
+    rgbAll = blk.match(/rgba?\(/g) || [],
+    rgbOk = [...blk.matchAll(/(?<![\w-])rgb\(var\((--[\w-]+-rgb)\)\s*[,/]\s*(\d*\.?\d+)\)/g)].filter(
+      m => rootRgb.has(m[1]) && +m[2] <= 1
+    ),
+    rgbRest = rgbOk.reduce((t, m) => t.replace(m[0], ''), blk);
+  /* UIUX 15:16 裁定（ruling.csv 第 33 列 scrim-v1：#hask 遮罩用 rgb(var(--scrim-rgb)/α)）：CSS 段只准 rgb(var(--x-rgb) / α) 或 rgb(var(--x-rgb), α)；
+     --x-rgb 要是 :root 宣告的三元組、α 是 0–1 的數字；寫死數字的 rgb(、rgba(、hex 一律失敗 */
   ok(
-    'M2-38 顏色：M2-38 的 CSS 段沒有 hex、只准 rgb(var(--*-rgb)/α) 形式（不准寫死數字的 rgb()）；新函式沒有色碼字面值；沒有新 token 定義',
+    'M2-38 顏色：M2-38 的 CSS 段只准 rgb(var(--x-rgb) / α)／rgb(var(--x-rgb), α)（:root 的三元組、α 0–1），沒有 hex、rgba(、寫死數字的 rgb(；新函式沒有色碼字面值；沒有新 token 定義',
     blk.length > 100 &&
       fns.every(f => f.length > 20) &&
-      !lit.test(blk.replace(varRgb, '')) &&
+      rgbAll.length === rgbOk.length &&
+      !lit.test(rgbRest) &&
       !fns.some(f => lit.test(f)) &&
       !/\n\s*--[\w-]+\s*:/.test(blk),
-    fns.map(f => f.length).join(',')
+    JSON.stringify({ fn: fns.map(f => f.length), rgb: rgbAll.length, ok: rgbOk.length })
   );
   ok(
     'M2-38 角色頁空格：.eqs.emp 是實心框（沒有 dashed）、不寫「空」',
@@ -11737,18 +11751,53 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify({ de, tok: [tok('--rar-chase-rgb'), tok('--rar-rare-rgb')] })
   );
   /* B2-CAT：M2-36 腐化／災魘色票；災魘色還沒套用（之後徽章批次才用）。
-     規則性斷言改寫（CSS 對齊色票，待 UIUX 確認）：--cat-corr 只准用在判定表指定的位置（ruling.csv 原 legacy-19 那一列：.fslot li.cw, .aff.cor 的字色） */
-  const catFiles = ['css/style.css', ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)],
+     UIUX 15:16 裁定（ruling.csv 第 130 列 legacy-19）：--cat-corr 只准是 .aff.cor 與 .fslot li.cw 的文字色；
+     其他任何選擇器、任何屬性、JS、index.html 出現 --cat-corr 都失敗（:root 的定義除外） */
+  const catFiles = [
+      'css/style.css',
+      'index.html',
+      ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)
+    ],
     catUse = catFiles.filter(f => /var\(--cat-cal/.test(rd(f))),
     corrUse = catFiles.flatMap(f => (rd(f).match(/var\(--cat-corr/g) || []).map(() => f)),
-    corrOk = /\n\.fslot li\.cw, \.aff\.cor \{ color: var\(--cat-corr\); \}/.test(css);
+    corrOk = /\n\.fslot li\.cw, \.aff\.cor \{ color: var\(--cat-corr\); \}/.test(css),
+    cssNc = css.replace(/\/\*[\s\S]*?\*\//g, ''),
+    afterRoot = cssNc.slice(cssNc.indexOf('}', cssNc.search(/:root\s*\{/)) + 1),
+    corrRules = [...afterRoot.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(m => /--cat-corr/.test(m[0])),
+    corrBad = corrRules
+      .filter(
+        m =>
+          m[1]
+            .split(',')
+            .map(x => x.trim())
+            .sort()
+            .join('|') !== '.aff.cor|.fslot li.cw' ||
+          !m[2]
+            .split(';')
+            .filter(d => /--cat-corr/.test(d))
+            .every(d => /^\s*color:\s*var\(--cat-corr\)\s*$/.test(d))
+      )
+      .map(m => m[1].trim()),
+    corrElse = catFiles.filter(f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(rd(f))),
+    corrLeft = (afterRoot.match(/--cat-corr/g) || []).length;
   ok(
-    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只用在判定表指定的 .fslot li.cw, .aff.cor 字色（其他地方不准用）；--cat-cal* 還沒有元件用到',
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准）；--cat-cal* 還沒有元件用到',
     [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
       !catUse.length &&
       corrUse.length === 1 &&
-      corrOk,
-    JSON.stringify({ tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')], catUse, corrUse })
+      corrOk &&
+      corrRules.length === 1 &&
+      !corrBad.length &&
+      corrLeft === 1 &&
+      !corrElse.length,
+    JSON.stringify({
+      tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')],
+      catUse,
+      corrUse,
+      corrBad,
+      corrElse,
+      corrLeft
+    })
   );
   /* CSS 對齊色票（docs/production/evidence/css-palette/ruling/：ruling.csv 139 列＋X1–X4；官方值照 M2-36） */
   {

@@ -191,7 +191,6 @@
   --el-light-v2: #ffe14d;
   --el-chaos: #c38bff;
   --el-chaos-v1: #b28dff;
-  --el-chaos-rgb: 178, 141, 255;
   --el-chaos-rgb-v2: 195, 139, 255;
   /* 跳數字 */
   --dmg-hit: #fff3e0;
@@ -2911,9 +2910,9 @@ body:not(.touch) #prog .pb { height: 8px; }
 /* S9：可切換的分頁、分段、晶片沒選中 400、選中 700 */
 :is(.tbar .tabs, .ftabs, .fseg, .sk-seg, .sk-chips, .modesw, #pnav, #dnav, .gkind) button:not(.on), .chip:not(.on), .ax-tab:not(.on) { font-weight: 400; }
 /* 長按確認卡（M2-33-2b §7 照 P4；D2-01）：暗幕 0.6、卡照欄面板；「⚠ 不能復原」390 14／700、1280 16／700 --bad */
-#hask { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; background: rgba(var(--scrim-rgb), 0.6); }
+#hask { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; background: rgb(var(--scrim-rgb), 0.6); }
 #hask[hidden] { display: none; }
-#hask .card { box-sizing: border-box; width: min(360px, calc(100vw - 32px)); padding: 16px; text-align: left; background: var(--panel); border: 1px solid var(--border-mid); border-radius: 2px; box-shadow: 0 0 0 3px rgba(var(--scrim-rgb), 0.6), 0 8px 24px rgba(var(--scrim-rgb), 0.5); }
+#hask .card { box-sizing: border-box; width: min(360px, calc(100vw - 32px)); padding: 16px; text-align: left; background: var(--panel); border: 1px solid var(--border-mid); border-radius: 2px; box-shadow: 0 0 0 3px rgb(var(--scrim-rgb), 0.6), 0 8px 24px rgb(var(--scrim-rgb), 0.5); }
 #hask h2 { margin: 0 0 8px; font: 900 22px/1.2 var(--serif); color: var(--tx-title); }
 #hask p { margin: 0 0 8px; font-size: var(--f14); line-height: 1.4; color: var(--tx); }
 #hask .hno, #hask .hhint { font-weight: 700; color: var(--bad); }
