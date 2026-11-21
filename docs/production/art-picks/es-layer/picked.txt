@@ -1,0 +1,2 @@
+mumi 2026-11-21 12:31（經幕僚長）挑定：--es A 淡金 #dfbf91／--es-hi #fcefde；准暖色例外；生命條下緣框不改；色值以 M2-36-palette-tokens.md 為準（不以 css/style.css）。
+沒選：B 淡紫、C 薄荷。草稿 docs/production/art-picks/es-layer-draft/（只在盒上）。

@@ -10,7 +10,7 @@ const W = +process.argv[2] || 390,
   H = +process.argv[3] || 844,
   URL = process.argv[4] || 'http://localhost:8000/',
   PORTM = H > W,
-  MOB = PORTM || H <= 430,
+  MOB = PORTM,
   tag = W + 'x' + H,
   OUT = process.env.SHOTS || path.join(__dirname, '..', 'docs', 'production', 'evidence', 'dpoe-b3-art-fix2');
 fs.mkdirSync(OUT, { recursive: true });
@@ -43,7 +43,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     await p.evaluate(port => {
       proSkip();
       S.story.tips = 0;
-      S.orient = port ? 'p' : 'l';
+      S.orient = 'p';
       applyOrient();
       S.auto = 1;
       Object.assign(S.camp, { forge: 5, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
@@ -461,7 +461,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   const nf = await noFrame();
   const fHome2 = await shot(p, 'home_plaque');
   const lum2 = await bright(p, fHome2);
-  /* §12-2：牌匾和別座點擊圈、別的牌匾（間距 4）、安全框外、障礙（繼續刷、橫向技能鈕群，間距 8）的重疊 */
+  /* §12-2：牌匾和別座點擊圈、別的牌匾（間距 4）、安全框外、障礙（繼續刷，間距 8）的重疊 */
   const ov = await p.evaluate(() => {
     const ox = IW / 2 / ZOOM - G.cam.x,
       oy = cvH() / 2 / ZOOM - G.cam.y,
@@ -492,7 +492,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     };
   });
   ok(
-    '牌匾不蓋別座點擊圈、別的牌匾（≥4）、不出安全框（左右 8、頂列＋8、HUD−8）、避開繼續刷與橫向技能鈕群（§12-2）',
+    '牌匾不蓋別座點擊圈、別的牌匾（≥4）、不出安全框（左右 8、頂列＋8、HUD−8）、避開繼續刷（§12-2）',
     ov.bad.length === 0 && ov.n >= 4,
     '重疊 0',
     `重疊 ${ov.bad.length}${ov.bad.length ? '：' + ov.bad.join('、') : ''}；畫了 ${ov.n} 座；安全框 ${ov.sf}；${ov.pr}`,
@@ -730,7 +730,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     mv.map(m => m && m.k).join('→')
   );
   await p.waitForTimeout(300);
-  /* 焦點那座的牌匾若在畫面上下緣外（鏡頭只左右移，667×375 鍛造台牌匾在上緣外），用 → 換到整座在畫面內的那一座再量框 */
+  /* 焦點那座的牌匾若在畫面上下緣外（鏡頭只左右移），用 → 換到整座在畫面內的那一座再量框 */
   const vis = () =>
     p.evaluate(() => {
       const k = G.props.find(k => k._b === document.activeElement);

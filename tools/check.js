@@ -8560,6 +8560,15 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify(r)
     );
   }
+  /* 2026-11-21：手機橫向取消：舊存檔 orient 'l'（或其他非 p）讀進來是 p，存回去（JSON）也是 p；新存檔 p */
+  {
+    const r = R2(`(() => {
+      const m = migrate(JSON.parse(JSON.stringify({ ...newGame(), orient: 'l' }))),
+        x = migrate(JSON.parse(JSON.stringify({ ...newGame(), orient: 'x' })));
+      return [newGame().orient, m.orient, JSON.parse(JSON.stringify(m)).orient, x.orient, migrate(JSON.parse(JSON.stringify(m))).orient];
+    })()`);
+    ok('取消手機橫向：舊存檔 orient l／其他 → p、存回仍是 p、新存檔 p', r.join() === 'p,p,p,p,p', r.join());
+  }
   ok(
     '通貨三階：完美的新詞一定是最高階、高階在最高 2 階內；高階 Lv45、完美 Lv70 才掉，完美 300 次保底',
     R2(`(() => {
@@ -11926,6 +11935,14 @@ const ASC_COMBOS = `const combos = k => {
   ok('色票：JS 不寫色碼（canvas 一律用 PAL）', !lit.length, lit.slice(0, 5).join('、'));
   ok('色票：JS 用到的 PAL 都在 :root 有定義', !miss.length, [...new Set(miss)].slice(0, 5).join('、'));
 }
+/* 安裝版殘留（2026-11-21 取消 PWA）：不攔安裝提示、全螢幕不鎖方向 */
+{
+  const src = ['touch.js', 'hud.js', 'main.js']
+    .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    .join('\n');
+  ok('安裝版殘留：原始碼沒有 beforeinstallprompt', !/beforeinstallprompt/.test(src));
+  ok('安裝版殘留：原始碼沒有 orientation.lock（全螢幕不鎖方向）', !/orientation\.lock/.test(src));
+}
 (async () => {
   let pw;
   try {
@@ -12364,6 +12381,36 @@ const ASC_COMBOS = `const combos = k => {
       ''
     );
     ok(`battle-hud ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
+    await cx.close();
+  }
+  /* 全螢幕入口（企劃書 §9「更多」）：不支援 Fullscreen API 就不顯示全螢幕鈕與「更多」的全螢幕列；支援就都顯示 */
+  for (const fsE of [false, true]) {
+    const cx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    await cx.route(/supabase/, r => r.abort());
+    await cx.addInitScript(v => {
+      Object.defineProperty(Document.prototype, 'fullscreenEnabled', { get: () => v, configurable: true });
+      Object.defineProperty(Document.prototype, 'webkitFullscreenEnabled', { get: () => v, configurable: true });
+    }, fsE);
+    const p = await cx.newPage(),
+      errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(URL + '?' + Date.now());
+    await p.evaluate(() => localStorage.clear());
+    await p.reload();
+    await p.waitForTimeout(1200);
+    const r = await p
+      .evaluate(() => {
+        proSkip();
+        openPanel('more');
+        hudPanels();
+        return [fsOK(), !$('tfs').hidden, !!$('pmore').querySelector('[data-tm="fs"]')];
+      })
+      .catch(e => (errs.push(e.message), []));
+    ok(
+      `全螢幕 fullscreenEnabled=${fsE}：全螢幕鈕與「更多」全螢幕列${fsE ? '都顯示' : '都不顯示'}`,
+      r[0] === fsE && r[1] === fsE && r[2] === fsE && !errs.length,
+      JSON.stringify(r) + errs.join(' | ')
+    );
     await cx.close();
   }
   await b.close();

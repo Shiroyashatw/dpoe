@@ -160,8 +160,8 @@
 
 ## 11. 工程可行性先確認（開工前回 PR 留言）
 1. 開營地升級抽屜、任何面板時 AI 繼續刷（負載與 60 fps）。第二段的營地場景改成戰鬥暫停、回戰場補算（mumi 15:14，見第二段 §0.1）。
-2. PWA／分頁切到背景自動暫停：`visibilitychange` 停畫面與聲音、改離線計算；回來依時長分 <60 秒／60 秒–10 分／≥10 分三種。
-3. 安全區與視窗高：iOS Safari、Android Chrome、安裝後 PWA 三種實際可用高度（`env(safe-area-inset-*)`、`dvh`），含 390×664。
+2. 瀏覽器分頁切到背景自動暫停：`visibilitychange` 停畫面與聲音、改離線計算；回來依時長分 <60 秒／60 秒–10 分／≥10 分三種。
+3. 安全區與視窗高：以 390×844 為基準，量 iOS Safari、Android Chrome 瀏覽器實際可用高度（`env(safe-area-inset-*)`、`100dvh`）；網址列與工具列佔上下故小於 844；含 390×664（估計值，見上文；實測值未驗）。
 4. 手把：Gamepad API＋Steam Input，十字鍵空間導覽、焦點框、鍵帽依裝置 1 幀內換。
 5. 震動：Vibration API 只有 Android；iOS 用畫面＋聲音補。
 6. 音效延遲：按鈕聲 ≤50 ms、同時最多 2 個（WebAudio 預載）。

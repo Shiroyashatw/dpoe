@@ -1,7 +1,7 @@
 /* dungeonPOE · 戰鬥 HUD（battle-hud v1.3.3：docs/production/specs/battle-hud/battle-hud.md、-2／-3／-4、terms-aura.md）
    兩種版面：直立 390×844（P／T 表，照安全區動態排）、桌機 1280×720（D／C 表，下排貼畫面底、分頁貼右）。
    每個元件的框（x、y、w、h）都由 bhRects() 照表算，CSS 只管長相；熱區比外觀大的元件，按鈕本身＝熱區、外觀是裡面的 <i class="v">。
-   手機橫向（規格沒有）沿用舊的觸控鍵（#bar），這裡只排生命／魔力條。 */
+   手機一律直立（2026-11-21 取消橫向）。 */
 'use strict';
 /* 正式素材（docs/production/art-picks/battle-hud-v1.3 挑定，mumi 17:18）：光環第一批 6 個（10／12）、分頁圖示（16）、藥劑球（12／14），各附 @2x。
    小圖直接用檔、不進圖集（js/art.js 是 tools/art.py 產生的，不手改）。光環第二批 12 個還沒進 art/（之後補），先用技能圖縮小 */
@@ -14,8 +14,8 @@ const hudArtURL = (kind, k, px) => new URL(`${HUD_ART[kind](k)}_${px}${DPR > 1 ?
 const BH = { mode: '', key: '', R: {}, fake: {}, tipK: null, lp: 0, last: '' };
 /* 收起狀態（S.hmin，1＝收到最小）；新存檔沒有就是一般 */
 const bhMin = () => !!(S && S.hmin);
-/* 版面：p 直立、d 桌機、l 手機橫向、''＝不在刷圖（營地、天賦樹蓋滿） */
-const bhMode = () => (!S || G.scene !== 'map' || TREE.open ? '' : PORT() ? 'p' : TOUCH.on ? 'l' : 'd');
+/* 版面：p 直立（手機）、d 桌機、''＝不在刷圖（營地、天賦樹蓋滿） */
+const bhMode = () => (!S || G.scene !== 'map' || TREE.open ? '' : PORT() ? 'p' : 'd');
 const R4 = (x, y, w, h) => [Math.round(x), Math.round(y), Math.round(w), Math.round(h)];
 /* 照表算每個元件的框（整頁座標）。直立：A＝HUD 基準（一般＝面板上緣 552；收起＝收起列上緣 −20，整組下移 140） */
 function bhRects() {
@@ -103,19 +103,6 @@ function bhRects() {
       floor: y + 560,
       pan: min ? R4(16, y + 640, 320, 64) : R4(12, y + 452, 310, 256)
     });
-  } else if (m === 'l') {
-    /* 手機橫向：規格沒有；條排在左下搖桿右邊、技能鍵左邊（跟舊的一樣） */
-    const l = 186,
-      w = Math.max(120, W - l - 322);
-    Object.assign(o, {
-      hp: R4(l, H - SAFE.b - 52, w, 18),
-      mp: R4(l, H - SAFE.b - 30, w, 18),
-      low: R4(l - 2, H - SAFE.b - 54, w + 4, 22),
-      sts: R4(l, H - SAFE.b - 98, w, 44),
-      stsV: R4(l, H - SAFE.b - 90, w, 28),
-      stc: 28,
-      floor: H - SAFE.b - 94
-    });
   }
   return o;
 }
@@ -200,7 +187,6 @@ function bhLayout(force) {
     key = [m, IW, IH, SAFE.t, SAFE.b, bhMin(), anyPanel() && PORT() ? 1 : 0].join();
   document.body.classList.toggle('bhp', m === 'p');
   document.body.classList.toggle('bhd', m === 'd');
-  document.body.classList.toggle('bhl', m === 'l');
   document.body.classList.toggle('bhmin', bhMin());
   if (!force && BH.key === key) return;
   BH.key = key;
@@ -248,12 +234,10 @@ function bhTick() {
   bhLayout();
   const m = BH.R.m;
   if (!m) return;
-  if (m !== 'l') {
-    bhCur();
-    bhSkills();
-    bhAura();
-    bhBoss();
-  }
+  bhCur();
+  bhSkills();
+  bhAura();
+  bhBoss();
   bhStates();
   bhFlasks();
   bhLowHp();
@@ -495,17 +479,14 @@ function bhAuraList(on) {
 /* ---------- 狀態圖示：技能列正上方、光環右側；最多 8 格，第 8 格超過時改「+{k}」 ---------- */
 function bhStates() {
   const L = BH.fake.sts || (fightOn() ? playerStates() : []),
-    /* 手機橫向（規格沒有）：面板開著不畫（會蓋到面板） */
-    off = BH.R.m === 'l' && anyPanel(),
-    k = L.map(s => s.k + (s.c || '')).join() + ':' + BH.R.stc + ':' + off;
+    k = L.map(s => s.k + (s.c || '')).join() + ':' + BH.R.stc;
   const box = $('bhSts').firstElementChild;
   if (HV.bhsts !== k) {
     HV.bhsts = k;
     /* 整組一個熱區（P29–P36／D51–D58）；沒有狀態時不畫 */
-    $('bhSts').hidden = !L.length || off;
+    $('bhSts').hidden = !L.length;
     $('bhSts').setAttribute('aria-label', '狀態：' + L.map(s => s.n).join('、'));
-    /* 最多幾格：直立、桌機 8（§11）；手機橫向照排給它的寬（不壓到右邊的觸控鍵） */
-    const cap = BH.R.m === 'l' ? Math.max(2, Math.floor((BH.R.stsV[2] + 4) / (BH.R.stc + 4))) : 8,
+    const cap = 8,
       over = L.length > cap,
       show = over ? L.slice(0, cap - 1) : L;
     box.innerHTML =

@@ -284,8 +284,7 @@ let bad = 0;
           S.story.tips = 0;
           S.auto = 1;
           if (touch) DBG.safeArea(34, 47);
-          /* 手機橫向 smoke（667×375 等）：用橫向操作（設定「改用橫向操作」） */
-          if (touch && innerWidth > innerHeight) setOrient('l');
+          /* 667×375 等橫著拿的 smoke：2026-11-21 取消橫向後一律直立操作（main #156） */
           Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
           S.gold = 12480;
           Object.assign(MAT(), { soul: 3209, conv: 86, exalt: 4 });

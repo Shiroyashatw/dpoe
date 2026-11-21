@@ -1,5 +1,7 @@
 # dpoe M4P-03 PWA 圖示、啟動畫面、安裝說明頁規格
 
+> **已取消（superseded，mumi 11/21 12:42）。** 手機安裝版完全取消。manifest 安裝、42 張 iOS 啟動畫面、加到主畫面的真機驗收都不再做。本檔以下為取消前的歷史規格，不再是現行依據；也不再把 manifest orientation 改成 portrait。
+
 > 現行版就是本檔（repo）；Page 4a048eaf 只是閱讀版，兩邊不同時以本檔為準。改動照 docs/INDEX.md 的定稿流程。
 
 > 同步說明：本檔是 Game Art Director 規格 Page 的完整轉換，數字、文案與線框照原文（線框放在程式碼區塊）。本頁「已決定」各項是製作人 2026-11-17 10:29 的決定，Art Director 已回寫到 Page；決定內容也記在 [`CHANGELOG.md`](../CHANGELOG.md) 變更紀錄與 [`README.md`](../README.md)，不同時以變更紀錄為準。放進 DOC-06（只改文件的 PR）。

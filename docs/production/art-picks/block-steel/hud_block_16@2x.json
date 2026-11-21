@@ -1,0 +1,118 @@
+{
+ "icon": "hud_block",
+ "term": "格擋值（盾牌圖示，放在格擋弧內）",
+ "file": "hud_block_16@2x.png",
+ "sha256": "da82cdea657fa9ec170fc4d8351d0833afdb3138641decd0c15d719bf80f3a03",
+ "size": [
+  32,
+  32
+ ],
+ "anchor": "top-left",
+ "placement": "格擋弧盒內：390 弧盒 48×24 的 (16,6)；1280 弧盒 56×28 的 (20,10)（UIUX K02 草稿位置）",
+ "pivot": [
+  8,
+  8
+ ],
+ "outline": "1 px --scene-void，在 16 格內（不留透明邊），程式不另墊 18×18；盾面也是 --scene-void（暗面，不算描邊）",
+ "tokens": [
+  {
+   "hex": "#16130f",
+   "token": "--scene-void",
+   "role": "外描邊（在 16 內）＋盾面暗面"
+  },
+  {
+   "hex": "#758088",
+   "token": "--block-regen",
+   "role": "盾框暗半（右）"
+  },
+  {
+   "hex": "#a9b8c3",
+   "token": "--block",
+   "role": "盾框本色（左、上）"
+  },
+  {
+   "hex": "#eaf2f8",
+   "token": "--block-hi",
+   "role": "左上緣高光"
+  }
+ ],
+ "colors": 4,
+ "alpha": [
+  0,
+  255
+ ],
+ "image_rendering": "pixelated",
+ "dpr": 2,
+ "dpr2": "DPR 2＝hud_block_16@2x.png（16 最近鄰 ×2，逐像素相同），不另畫 32",
+ "source": {
+  "method": "程式畫（PIL／numpy，手排 16 像素圖）；沒用 PixelLab，沒有 seed",
+  "candidate": "盾牌 a（空心盾框，平頂尖底）、色組 A 冷鋼",
+  "draft": "docs/production/art-picks/block-steel-draft/shield_16/block_shield_16-a.png",
+  "hand_fix": null,
+  "docs": {
+   "M2-36-palette-tokens.md": {
+    "path": "docs/production/specs/M2-36-palette-tokens.md",
+    "version": "D2 定案（無版號）；本次加 --block 四個 token 前的版本",
+    "sha256": "3943c9a680b97f384c1beca3ae9cd642e20af6593e86a60034543cd2f9b12f20"
+   },
+   "M2-36-drawing-rules.md": {
+    "path": "docs/production/specs/M2-36-drawing-rules.md",
+    "version": "無版號；§1、§2、§5.1",
+    "sha256": "fe1c51afb74756c25d26d368cf615de7d97d248cd972b6c5a12b40ccde7d78f8"
+   },
+   "battle-hud.md": {
+    "path": "main 59b6350 docs/production/specs/battle-hud/battle-hud.md",
+    "version": "v1.3.3",
+    "sha256": "b5d9cb220aed7e67329e85cc397e66d8cb60424aece93357064361e211f720cb"
+   },
+   "W-hud-exp-block README": {
+    "path": "/workspace/wireframes-draft/W-hud-exp-block-1138/README.md",
+    "version": "UIUX 2026-11-21 草稿（H6／H7、K01／K02）",
+    "sha256": "3b39fd3f4398e53fc5fe76a359cc1a0af7af612b18fb558f897ccc63359b99aa"
+   }
+  }
+ },
+ "picked": "mumi 2026-11-21 12:07（經幕僚長）：色組 A 冷鋼＋盾牌 a",
+ "author": "Game Art Director 2026-11-21",
+ "checks": {
+  "colors": 4,
+  "palette": [
+   "#16130f",
+   "#758088",
+   "#a9b8c3",
+   "#eaf2f8"
+  ],
+  "alpha": [
+   0,
+   255
+  ],
+  "fill_without_outline": 0,
+  "checker2x2": 0,
+  "margin": {
+   "top": 0,
+   "left": 0,
+   "bottom": 0,
+   "right": 0
+  },
+  "outline_2x2_field_incl": 60,
+  "outline_2x2": 0,
+  "off_palette_vs_M2-36+setA": 0,
+  "size_16": true,
+  "at2x_exact_nearest": true,
+  "at2x_size": [
+   32,
+   32
+  ],
+  "colors_used": [
+   "#16130f",
+   "#758088",
+   "#a9b8c3",
+   "#eaf2f8"
+  ],
+  "all_tokens_known": true,
+  "iou_vis_min": 0.59,
+  "iou_vis_fails(<0.5)": [],
+  "iou_strict_wangyin": 0.667,
+  "same_pixels_as_draft_a": true
+ }
+}

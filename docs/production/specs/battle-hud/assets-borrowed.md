@@ -1,4 +1,4 @@
-# battle-hud v1.3.2 借用素材清單（final，2026-11-20 mumi 16:32；v1.3 勘誤 mumi 17:18；mumi 11/20 17:33 拿掉觀戰鍵，本檔內容不變）
+# battle-hud v1.3.2 借用素材清單（final，2026-11-20 mumi 16:32；v1.3 勘誤 mumi 17:18；mumi 11/20 17:33 拿掉觀戰鍵，本檔內容不變；v1.3.5 2026-11-21 加 #7 格擋值盾牌圖示）
 
 > 上色示意圖（[`../wireframes/W1-battle-hud/color/`](../wireframes/W1-battle-hud/color/)）沒有用生圖，也沒有「佔位」框；下面這些元件是**借現有素材或用程式畫**暫代。正式素材由美術總監排；規格欄是 UIUX 對正式素材的需求。
 > 共同規則：像素圖只做**整數倍**縮放（1x／2x，`@2x` 給 DPR 2）；外框、底色、染色都由程式用 token 畫，素材本身不畫外框；色票只用 D2 定案（`palette-D2-final-ui.md` v1.6、`palette-D2-panel-1plus.md` v1.1、`M2-36-palette-tokens.md`）。
@@ -11,10 +11,11 @@
 | 4 | **王 sprite**：boss 狀態 W04 王＋判決圈（390 PW04、1280 DW04） | `boss_shang` s6921（`art/m2-36-d2-b3` 分支，**暫挑**），64×64 畫 2 倍（128） | 待 mumi／美術總監從 B3 批定案「上尸」的正式圖：**64×64** 原生、畫面 2 倍；面向左或右一張即可（程式翻轉）；腳底要留在下緣（判決圈從腳底量），外框 1 px `--enemy-rim` 由程式加。定案後換同 key。 | 中 |
 | 5 | **菁英標記**：菁英名牌 W03 左側圖示 16（`--tx-strong`） | 程式畫的 16×16 角盔剪影（照 D2 mock 的畫法），不是素材 | **不一定要正式素材**：形狀簡單、單色，程式畫在 1x／2x 都清楚，建議保留程式版。若美術要統一風格，給一張 **16×16 單色遮罩**（＋`@2x` 32），程式染 `--tx-strong`。 | 低 |
 | 6 | **藥劑球**：390 P39／P40（看得到 20）、1280 D61／D62（看得到 22）；只畫冷卻環 2 px `--hp-hi`／`--mp-hi`＋1 px #000 | PixelLab 挑選 `flask_hp` s5312、`flask_mp` s5316（24×24）縮 1/2 成 12×12，放在 `--panel-raised` 圓底正中 | **建議要**：縮 1/2 會掉細節。各 2 張原生：**12×12**（390 圓 20）與 **14×14**（1280 圓 22），＋`@2x`；生命瓶主色 `--hp`、魔力瓶 `--mp`、亮點 `--hp-hi`／`--mp-hi`；透明底、不畫圓框（圓框與冷卻環由程式畫）。若決定不放圖、只留純色圓＋環，也可以，請在規格註明。 | 中 |
+| 7 | **格擋值盾牌圖示**（v1.3.5）：390 P68／T45、1280 D67／C66，16×16 貼在格擋弧盒 (16,6)／(20,10) | 美術總監定案盾 a（mumi 11/21 12:07）；遊戲路徑 `art/icons/hud/hud_block_16.png`＋`art/icons/hud/hud_block_16@2x.png`。來源 main `docs/production/art-picks/block-steel/` 同名檔（#149），逐位元複製，未染色／手修 | 16×16 原生＋@2x 32×32（最近鄰 ×2）；描邊在 16 格內，不墊框；DPR 2 用 @2x | mumi 12:32：同 PR 進 art/；已附兩張 PNG |
 
 ## 其他用到的現有素材（不用換）
 - 狀態圖示 16×16：PixelLab `ail_*`（M2-36-d2-b3／rerun，含 `ail_cons`、`ail_pin`）。王印 16：`wangyin_chixiao_16` s5404。通貨 16：`cur_gold` s5401、`cur_soul` s5306、`cur_chaos` s5330、`cur_exalt` s5329。
 - 技能格 1／2／3／5：art.js `sk_apshot`、`sk_combust`、`sk_groundslam`、`sk_fireburst`（32×32）。
 - 戰場：D2 地磚 `tile_d2_battle_floor`（2 倍）、牆頂／牆面、`prop_lantern`／`prop_joss`／`prop_ash`；怪物 art.js `m_*`；主角 `img/hero.png`；彈 `art/fx/fireball`、`frostbolt`、`void`；光柱 `sig_beam`、`sig_chase`。
-- 程式畫（系統或規格本來就由程式畫）：390 狀態列與 home 條、小地圖、低血紅邊、預警圈、光柱外緣、按鈕與面板。
+- 程式畫（系統或規格本來就由程式畫）：390 狀態列與 home 條、小地圖、危急紅邊（舊「低血紅邊」名稱 superseded，見 battle-hud-6.md §23）、預警圈、光柱外緣、按鈕與面板。
 - 每張素材的來源 branch:path 見 `../wireframes/W1-battle-hud/color/assets/pick/SOURCES.txt` 與 `assets/repo/SOURCE.txt`。

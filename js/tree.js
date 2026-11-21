@@ -45,10 +45,7 @@ const treeZ0 = () =>
   clamp(
     Math.min(
       (IW / 2 - 30) / 560,
-      /* 橫向手機太矮（390 高會縮到點小於 24px），照舊只看寬 */
-      TOUCH.on && !PORT()
-        ? Infinity
-        : (IH - 160) / 2 / (Math.max(...PT_START.map(id => Math.abs(PTREE.I[id].y))) + SECN_OUT + 40)
+      (IH - 160) / 2 / (Math.max(...PT_START.map(id => Math.abs(PTREE.I[id].y))) + SECN_OUT + 40)
     ),
     0.12,
     0.55
@@ -544,7 +541,7 @@ function treeCard() {
   else
     act = `<button class="btn pri" data-ta="go">${cost > 1 ? `沿路點亮到這裡 · 花 ${cost} 點` : '點亮'}<small>剩 ${left} 點</small></button>`;
   c.innerHTML = `<div class="tc-h">${treeTip(id)}<button class="x" aria-label="收起" data-ta="desel">${ICO.x}</button></div><div class="tc-a">${act}</div>`;
-  /* 0.4.10：卡片剛為了這個點彈出來時記時間——橫向手機的卡會蓋到手指下面，放開那一下的 click 會按到「點亮」 */
+  /* 0.4.10：卡片剛為了這個點彈出來時記時間——卡片可能蓋到手指下面，放開那一下的 click 會按到「點亮」 */
   if (c.hidden || TREE.cardFor !== id) (TREE.cardT = performance.now()), (TREE.cardFor = id);
   c.hidden = false;
   /* 選的點不要被卡片蓋住：太低就把樹往上推 */

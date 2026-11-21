@@ -4,14 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0b0d">
-<!-- 手機：加到主畫面＝全螢幕 App（iPhone 的 Safari 不能讓網頁全螢幕，只能這樣） -->
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="img/app-180.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="dungeonPOE">
 <title>dungeonPOE</title>
+<!-- 安裝版（PWA）已取消（2026-11-21）：以前裝過的清掉 service worker 與快取 -->
+<script>
+if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
+if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(() => {});
+</script>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@900&display=swap">

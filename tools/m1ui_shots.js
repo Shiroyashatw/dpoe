@@ -11,7 +11,7 @@ const W = +process.argv[2] || 390,
 fs.mkdirSync(OUT, { recursive: true });
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
-  const mob = W < 900;
+  const mob = W < 900 && H > W;
   const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: mob, isMobile: mob });
   await ctx.route(/supabase/, r => r.abort());
   const p = await ctx.newPage(),
@@ -29,8 +29,8 @@ fs.mkdirSync(OUT, { recursive: true });
     proSkip();
     S.story.tips = 0;
     S.auto = 1;
-    /* 手機橫向測橫向操作（預設直立會叫你把手機轉直） */
-    S.orient = innerWidth > innerHeight ? 'l' : 'p';
+    /* 手機一律直立（2026-11-21 取消橫向） */
+    S.orient = 'p';
     applyOrient();
     Object.assign(S.camp, { forge: 1, altar: 2 });
     ST = stats();
@@ -66,8 +66,6 @@ fs.mkdirSync(OUT, { recursive: true });
     () => closePanels(),
     () => {
       const b = __r('#pidle .igo');
-      /* 手機橫向本來就沒有掛機卡（idleOn：觸控只在直立自動時出） */
-      if (!idleOn()) return [TOUCH.on && !PORT(), { 掛機卡: '橫向沒有' }];
       return [!!b && b.h >= 44 && !document.querySelector('#pidle [data-a^="cup"]'), { 去營地: b }];
     }
   );
@@ -108,7 +106,7 @@ fs.mkdirSync(OUT, { recursive: true });
           __r(b).h >= 48 &&
           b.disabled &&
           !!pz &&
-          (!__hit(pz, P) || (TOUCH.on && !PORT())) /* 手機橫向的面板蓋滿畫面，膠囊在面板底下 */ &&
+          !__hit(pz, P) &&
           !__hit(pz, nav) &&
           (TOUCH.on || (!__hit(P, __r('.mid .bars')) && !__hit(P, __r('.mid .bar')))),
         { 頁籤: tabs.length, 底鈕: [__r(b), b.disabled, b.textContent], 已暫停: pz }
@@ -146,8 +144,9 @@ fs.mkdirSync(OUT, { recursive: true });
       return [
         t === '還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。' &&
           __in(__r('#plog')) &&
-          /* 手機橫向的分頁列藏著（角標沒畫出來）；其他模式找不到角標算失敗 */
-          (TOUCH.on && !PORT() ? !pr : !!pr && (pill.contains(top) || top === pill.parentNode)),
+          /* 找不到角標算失敗 */
+          !!pr &&
+          (pill.contains(top) || top === pill.parentNode),
         { 空狀態: t, 角標: pr }
       ];
     }

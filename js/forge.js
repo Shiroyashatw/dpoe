@@ -916,14 +916,14 @@ function slotsHTML(it, mode, at = 'fg') {
       : '')
   );
 }
-/* M1-14b：沒放裝備時的虛線放置槽（直立點了開選裝格；桌機與橫向照舊點倉庫或身上的裝備）；「填」在槽下方寫 M1-13 定稿原文 */
+/* M1-14b：沒放裝備時的虛線放置槽（直立點了開選裝格；桌機照舊點倉庫或身上的裝備）；「填」在槽下方寫 M1-13 定稿原文 */
 const FILL_EMPTY =
   '把一件裝備放上來：點倉庫或身上的裝備。「填」只能加詞、不能拿掉；蛻變石把普通裝變魔法裝，增幅石替魔法裝補一條詞。';
 const emptySlotHTML = fill =>
   `${
     PORT()
       ? `<button class="cuslot" data-a="pick">${ICO.plus}<span>選一件裝備</span></button>`
-      : `<div class="cuslot"><span>${TOUCH.on ? '點倉庫或身上的裝備，再按「放上鍛造台」' : '點一下倉庫或身上的裝備，放上鍛造台'}</span></div>${TOUCH.on && NARROW ? '<button class="btn" data-tm="swap">去倉庫選裝備</button>' : ''}`
+      : `<div class="cuslot"><span>${TOUCH.on ? '點倉庫或身上的裝備，再按「放上鍛造台」' : '點一下倉庫或身上的裝備，放上鍛造台'}</span></div>`
   }${fill ? `<p class="cuhint">${FILL_EMPTY}</p>` : ''}`;
 /* 上方的裝備卡（沒放東西時是虛線槽） */
 function cardHTML(it) {
@@ -1117,7 +1117,7 @@ function forgeHTML() {
   else if (CRAFT.conv != null && !it.a[CRAFT.conv]) CRAFT.conv = null;
   const P = { forge: fillHTML, temper: temperHTML, holy: holyHTML, corr: corrHTML, calam: calamHTML }[tab](it),
     mode = tab === 'temper' ? 'temper' : tab === 'forge' && CRAFT.op === 'conv' ? 'conv' : 'view';
-  /* 上到下：裝備卡 → 選通貨（top）→ 詞 → 預覽與說明（mid）→ 按鈕（act，黏在面板底部）；手機橫向左右並排（左：卡與詞，右：選、預覽、按鈕） */
+  /* 上到下：裝備卡 → 選通貨（top）→ 詞 → 預覽與說明（mid）→ 按鈕（act，黏在面板底部） */
   const tabsH = `<span class="ftabs">${tabs
     .filter(([k]) => k !== 'make')
     .map(([k, n]) => `<button class="${tab === k ? 'on' : ''}" data-fg="tab:${k}">${n}</button>`)
@@ -1143,7 +1143,6 @@ function craftPick(src, it, eqk) {
   CRAFT.sel = { src, id: it.id, eqk };
   CRAFT.conv = null;
   foreSkip();
-  TOUCH.front = 'other'; /* 手機窄螢幕：選好就切回鍛造台 */
   CRAFT.log = '';
   sfx('equip');
   hudPanels();

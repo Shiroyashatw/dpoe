@@ -738,7 +738,7 @@ html { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
 button, .sk { touch-action: manipulation; }
 /* 道具要能拖：不能讓瀏覽器拿去捲動（manipulation 會讓拖曳變成 pointercancel） */
 .it { touch-action: none; }
-.tonly, #stick, .tmenu, #rot { display: none; }
+.tonly, #stick { display: none; }
 body.touch #cv, body.touch #hud .sk { touch-action: none; }
 body.touch .sk kbd { display: none; }
 /* 生命、魔力、經驗移到左上（下方留給搖桿和技能鍵） */
@@ -749,37 +749,20 @@ body.touch #area { font-size: 14px; white-space: nowrap; overflow: hidden; text-
 body.touch #warn { bottom: auto; top: 30%; }
 /* 右下技能鍵：大的是普攻，4 個技能排成弧形，外圈翻滾、藥水、互動 */
 body.touch #bar { position: fixed; right: calc(70px + env(safe-area-inset-right)); bottom: calc(64px + var(--sab, env(safe-area-inset-bottom))); width: 0; height: 0; display: block; }
-body.touch #bar .sk { display: grid; position: absolute; left: 0; top: 0; width: 58px; height: 58px; border-radius: 50%; background: rgba(var(--scrim-rgb-v1), 0.72); border: 2px solid rgba(var(--hl-rgb-v1), 0.28); transform: translate(calc(var(--x) - 50%), calc(var(--y) - 50%)); transition: scale 90ms ease-out; }
+body.touch #bar .sk { display: grid; position: absolute; left: 0; top: 0; width: 58px; height: 58px; border-radius: 50%; background: rgba(var(--scrim-rgb-v1), 0.72); border: 2px solid rgba(var(--hl-rgb-v1), 0.28); transition: scale 90ms ease-out; }
 body.touch #bar .sk s { border-radius: 50%; }
 body.touch #bar .sk .ic { width: 32px; height: 32px; }
 body.touch #bar .sk.hit { animation: none; }
 body.touch #bar .sk.down, body.touch #bar .sk:active { scale: 0.92; border-color: var(--tx-strong); }
-body.touch #bar .sk[data-k='s0'] { --x: 0px; --y: 0px; width: 80px; height: 80px; }
-body.touch #bar .sk[data-k='s1'] { --x: -102px; --y: 0px; }
-body.touch #bar .sk[data-k='s2'] { --x: -83px; --y: -60px; }
-body.touch #bar .sk[data-k='s3'] { --x: -32px; --y: -97px; }
-body.touch #bar .sk[data-k='s4'] { --x: 32px; --y: -97px; }
-body.touch #bar .sk[data-k='roll'] { --x: -180px; --y: 0px; width: 56px; height: 56px; }
-body.touch #bar .sk[data-k='flask'] { --x: -156px; --y: -90px; width: 48px; height: 48px; }
-body.touch #bar .sk[data-k='mflask'] { --x: -214px; --y: -58px; width: 48px; height: 48px; }
-body.touch #bar .sk[data-k='use'] { --x: -104px; --y: -148px; width: 48px; height: 48px; }
 .sk .use { font-style: normal; font-size: var(--fs-s); font-weight: 700; }
 /* 浮動搖桿：平常淡淡的在左下，手指按哪裡就出現在哪裡 */
 body.touch #stick { display: block; position: fixed; left: calc(110px + env(safe-area-inset-left)); bottom: calc(40px + var(--sab, env(safe-area-inset-bottom))); width: 124px; height: 124px; margin: -62px 0 0 -62px; transform: translateY(62px); border-radius: 50%; border: 2px solid rgba(var(--hl-rgb-v1), 0.16); background: rgba(var(--scrim-rgb), 0.22); opacity: 0.55; pointer-events: none; }
 body.touch #stick.on { opacity: 1; transform: none; }
 #stick i { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(var(--hl-rgb-v1), 0.32); border: 2px solid rgba(var(--hl-rgb-v1), 0.5); }
 /* 右上選單 */
-body.touch .tmenu { display: flex; gap: 6px; position: fixed; top: calc(8px + env(safe-area-inset-top)); right: calc(8px + env(safe-area-inset-right)); pointer-events: auto; }
-.tmenu button { min-width: 48px; min-height: 44px; padding: 0 10px; font: 700 var(--fs-s) var(--font); color: var(--tx); background: rgba(var(--scrim-rgb-v1), 0.8); border: 1px solid var(--border); border-radius: var(--rad); }
-.tmenu button:active { scale: 0.94; border-color: var(--tx-strong); }
-.tmenu button[hidden] { display: none; }
 /* 直拿手機：請橫過來 */
 /* M1-05：方向不對時只在最上面一條（不蓋住戰鬥畫面），切換鈕一定在畫面裡；太矮時這一條自己捲 */
-#rot { position: fixed; top: 0; left: 0; right: 0; z-index: 60; align-items: center; gap: 12px; max-height: 100%; overflow-y: auto; padding: calc(8px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 8px calc(16px + env(safe-area-inset-left)); background: var(--panel); border-bottom: 1px solid var(--border-mid); box-shadow: 0 8px 24px rgba(var(--scrim-rgb), 0.6); color: var(--tx); font-size: var(--fs); font-weight: 700; pointer-events: auto; }
-@media (orientation: portrait) { body.touch:not(.port) #rot { display: flex; } }
-@media (orientation: landscape) { body.touch.port #rot { display: flex; } }
 /* 面板：貼著螢幕上下、可以捲；夠寬就左右並排（各半），窄就一次一個（標題列切換） */
-.ph .sw { display: none; }
 body.touch .panel { top: calc(6px + env(safe-area-inset-top)); max-height: calc(100dvh - 12px); padding: 10px; overscroll-behavior: contain; }
 body.touch #pinv { right: calc(6px + env(safe-area-inset-right)); width: calc(50vw - 9px); }
 body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); width: calc(50vw - 9px); }
@@ -789,8 +772,6 @@ body.touch .st { flex-direction: row; flex-wrap: wrap; gap: 2px 10px; white-spac
 body.touch .ph .x { width: 44px; height: 44px; } /* BASE-01：關閉可見底與熱區 44×44 */
 @media (max-width: 799px) {
   body.touch #pinv, body.touch #pstash, body.touch #pskill { left: calc(6px + env(safe-area-inset-left)); right: calc(6px + env(safe-area-inset-right)); width: auto; }
-  body.touch .ph .sw { display: block; width: auto; padding: 0 12px; margin-left: auto; }
-  body.touch .ph .sw + .x { margin-left: 0; }
 }
 /* 說明框：點道具跳出來，下面是動作按鈕 */
 body.touch #tip { max-width: min(320px, calc(100vw - 16px)); }
@@ -956,9 +937,8 @@ body:not(.touch) #bar .sk .ic { width: 32px; height: 32px; transform: translateY
 body.touch #bar .sk { background: radial-gradient(circle at 50% 35%, rgba(var(--scrim-rgb-v5), 0.85), rgba(var(--scrim-rgb-v6), 0.85)); border: 2px solid var(--border-ctl); box-shadow: 0 0 0 1px rgb(var(--scrim-rgb)); }
 body.touch #bar .sk.down, body.touch #bar .sk:active { border-color: var(--border-hi); }
 body.touch .mid { padding: 5px 6px; margin: 0; background: none; border: 0; box-shadow: none; }
-.tmenu button { background: var(--panel-raised-2); border: 1px solid var(--border-ctl); border-radius: 2px; }
 /* 角落的小菱形：上面兩顆畫在標題列（標題列蓋住面板的上緣），下面兩顆畫在面板 */
-/* 桌機：標題置中、兩側細線，說明在下一行；關閉鈕固定在右上（手機橫向高度不夠，維持一行） */
+/* 桌機：標題置中、兩側細線，說明在下一行；關閉鈕固定在右上 */
 body:not(.touch) .panel > .ph:first-child { flex-wrap: wrap; justify-content: center; row-gap: 2px; padding: 12px 56px 10px; text-align: center; }
 body:not(.touch) .panel > .ph:first-child > b { display: flex; align-items: center; gap: 12px; }
 body:not(.touch) .panel > .ph:first-child > b::after { transform: scaleX(-1); }
@@ -971,7 +951,7 @@ body:not(.touch) .panel > .ph:first-child > .x { position: absolute; right: 12px
 body.touch #warn { top: auto; bottom: calc(60px + var(--sab, env(safe-area-inset-bottom))); left: calc(184px + env(safe-area-inset-left)); right: calc(316px + env(safe-area-inset-right)); transform: none; font-size: var(--fs); text-align: center; white-space: normal; }
 body.touch #warn.on { animation-name: warnT; }
 @keyframes warnT { 0% { opacity: 0; transform: translateY(6px); } 10%, 75% { opacity: 1; transform: none; } 100% { opacity: 0; } }
-/* 說明框不超出畫面（手機橫向矮，詞綴多的稀有裝會很長；下面的動作按鈕要按得到） */
+/* 說明框不超出畫面（畫面矮時詞綴多的稀有裝會很長；下面的動作按鈕要按得到） */
 #tip { max-height: calc(100dvh - 16px); overflow-y: auto; overscroll-behavior: contain; }
 body.touch #tip p { padding-top: 4px; }
 body.touch #tip p + p { margin-top: 4px; }
@@ -983,7 +963,7 @@ body:not(.touch) .tbar > b::after { transform: scaleX(-1); }
 .thelp { font-size: var(--fs); text-align: center; }
 .thelp b { color: var(--tx-title); margin-right: 4px; }
 
-/* ---------- 0.2.14 操作版面：桌機功能列＋設定；手機橫向（MOBA 式）與直立（龍絆式） ---------- */
+/* ---------- 0.2.14 操作版面：桌機功能列＋設定；手機直立（龍絆式；2026-11-21 取消橫向） ---------- */
 /* 桌機：魔力球右邊一排功能鈕（角落寫快捷鍵），取代原本左下角的操作說明 */
 
 /* 設定面板（置中）：操作方向、快捷鍵／手勢一覽 */
@@ -1014,8 +994,6 @@ body:not(.touch) .tbar > b::after { transform: scaleX(-1); }
 .hb span { position: absolute; inset: 0; display: grid; place-items: center; font: 700 10px/1 var(--font); text-shadow: 0 1px 2px rgb(var(--scrim-rgb)), 0 0 3px rgb(var(--scrim-rgb)); }
 .hb.mp span { font-size: 10px; }
 body.touch #bar .sk.far { display: none; }
-.tmenu .ico { width: 18px; height: 18px; }
-.tmenu button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 /* 0.4.0 功能選單：桌機在右下功能列的上面 */
 body:not(.touch) .tmore:not([hidden]) { display: flex; flex-direction: column; gap: 4px; position: fixed; z-index: 13; right: 16px; bottom: 64px; padding: 6px; background: var(--panel); border: 1px solid var(--border-mid); box-shadow: var(--frame), 0 12px 32px rgba(var(--scrim-rgb), 0.8); pointer-events: auto; animation: pop 160ms ease-out; transform-origin: bottom right; }
 .tmore kbd { margin-left: auto; font: 700 10px var(--font); color: var(--tx-dim); }
@@ -1025,14 +1003,7 @@ body.touch .tmore:not([hidden]) { display: flex; flex-direction: column; gap: 4p
 .tmore button:active { scale: 0.97; border-color: var(--border-hi); }
 .tmore button[hidden] { display: none; }
 .tmore .ico { color: var(--tx-title); }
-#rot p { flex: 1; min-width: 0; margin: 0; }
-#rot p small { display: block; margin-top: 2px; font-size: var(--fs-s); font-weight: 500; color: var(--tx-dim); }
-#rot .btn { flex: none; min-height: 44px; }
 
-/* 手機橫向（MOBA 式）：血藍經驗長條在底部中間（搖桿和技能鍵之間），左上只剩地圖名稱 */
-body.touch:not(.port) .bottom { left: calc(186px + env(safe-area-inset-left)); right: calc(322px + env(safe-area-inset-right)); top: auto; bottom: calc(10px + var(--sab, env(safe-area-inset-bottom))); transform: none; display: block; }
-body.touch:not(.port) .mid { width: auto; padding: 0; }
-body.touch:not(.port) .top { top: calc(10px + env(safe-area-inset-top)); right: calc(130px + env(safe-area-inset-right)); }
 
 /* 手機直立（龍絆式）：上面是資訊，下面是拇指的操作；中間整塊是遊戲畫面與手勢區 */
 body.touch.port .top { left: calc(10px + env(safe-area-inset-left)); right: calc(10px + env(safe-area-inset-right)); top: calc(10px + env(safe-area-inset-top)); gap: 6px; }
@@ -1048,7 +1019,6 @@ body.touch.port #bar .sk[data-k='use'] { position: fixed; left: 50%; top: auto; 
 body.touch.port #warn { left: 16px; right: 16px; bottom: calc(204px + var(--sab, env(safe-area-inset-bottom))); }
 body.touch.port #stick { opacity: 0; }
 body.touch.port #stick.on { opacity: 1; }
-body.touch.port .ph .sw { display: none; }
 .tinfo span { white-space: nowrap; }
 .tinfo div > :last-child { text-align: right; }
 
@@ -1142,10 +1112,6 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 
 /* 手機直立：技能面板和背包疊著時，技能多佔一點 */
 
-/* 手機橫向（畫面矮）：地圖台左右兩欄、材料一排、說明框更緊湊 */
-@media (max-height: 480px) {
-  body.touch:not(.port) .mats { flex-wrap: nowrap; overflow-x: auto; margin: 4px 0; }
-}
 @media (prefers-reduced-motion: reduce) {
   .panel, #tip, #warn.on { animation: none; }
 }
@@ -1230,13 +1196,6 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 .fcols .fact { order: 5; position: sticky; bottom: 0; z-index: 2; margin-top: 6px; padding: 6px 0 2px; background: var(--panel); border-top: 1px solid var(--border); }
 .fcols .fact:empty { display: none; }
 .fr .fpv ul { max-height: 84px; overflow-y: auto; }
-@media (max-height: 480px) {
-  body.touch .fcols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
-  body.touch .fcols .fl, body.touch .fcols .fr { display: block; }
-  body.touch .fcols .fact { position: static; margin: 0; padding: 0; border: 0; background: none; }
-  body.touch .fl .fslot li { min-height: 24px; }
-  body.touch .fseg.s6 { grid-template-columns: repeat(3, 1fr); }
-}
 .fq { width: 100%; margin-top: 6px; min-height: 40px; }
 .fsides { display: block; }
 body.touch.port .fsides { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6px; }
@@ -1400,9 +1359,6 @@ body.touch .ax-n::after { content: ''; position: absolute; border-radius: 50%; }
 body.touch .ax-n.b0::after { inset: -8px; }
 body.touch .ax-n.b1::after { inset: -4px; }
 body.touch .ax-l { display: none; }
-/* 手機的切換鈕：只有 swapOn() 才畫出來 */
-body.touch:not(.port) .ph .sw { display: block; width: auto; padding: 0 12px; margin-left: auto; }
-body.touch:not(.port) .ph .sw + .x { margin-left: 0; }
 
 /* 手機直立：動作在拇指區；寶石的檢視區選中時佔掉背包那半邊 */
 body.touch.port #pskill { --pp: 10px; padding-left: 10px; padding-right: 10px; }
@@ -1417,25 +1373,6 @@ body.touch.port .ax-tab { flex-direction: column; gap: 0; justify-content: cente
 body.touch.port .ax-tab .ic { width: 28px; height: 28px; }
 body.touch.port .ax-tab i { display: inline; margin-left: 2px; }
 body.touch.port .ax-chart { height: auto; width: 100%; max-width: 420px; align-self: center; margin-bottom: 8px; }
-
-/* 手機橫向（畫面矮）：左右兩欄，一屏看完 */
-@media (max-height: 480px) {
-  body.touch:not(.port) #pskill > .ph { padding-top: 4px; padding-bottom: 4px; }
-  body.touch:not(.port) #pasc { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: none; grid-template-columns: auto minmax(0, 1fr); padding-top: 8px; padding-bottom: 8px; }
-  body.touch:not(.port) #pasc > .ph { grid-column: 2; grid-row: 1; margin: -8px calc(-1 * var(--pp)) 6px 0; padding-top: 4px; padding-bottom: 4px; }
-  /* 標題列只有 278 寬（667×375）：標題與點數疊成兩行、重置與 × 留在右邊，不會把 × 擠出畫面 */
-  body.touch:not(.port) #pasc > .ph { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0 8px; align-items: center; }
-  body.touch:not(.port) #pasc > .ph > b { grid-column: 1; grid-row: 1; font-size: 18px; }
-  body.touch:not(.port) #pasc > .ph > .ax-sum { grid-column: 1; grid-row: 2; line-height: 1.25; }
-  body.touch:not(.port) #pasc > .ph > .ax-reset { grid-column: 2; grid-row: 1 / 3; margin: 0; }
-  body.touch:not(.port) #pasc > .ph > .x { grid-column: 3; grid-row: 1 / 3; margin: 0; }
-  body.touch:not(.port) .ax-chart { grid-column: 1; grid-row: 1 / 4; height: calc(100dvh - 30px); width: auto; max-width: none; align-self: center; }
-  body.touch:not(.port) .ax-tabs { grid-column: 2; grid-row: 2; padding-bottom: 6px; }
-  body.touch:not(.port) .ax-tab { flex-direction: column; justify-content: center; min-height: 44px; padding: 2px; gap: 0; font-size: 11px; white-space: nowrap; }
-  body.touch:not(.port) .ax-tab .ic { width: 24px; height: 24px; }
-  body.touch:not(.port) .ax-tab i { display: none; }
-  body.touch:not(.port) .ax-side { grid-column: 2; grid-row: 3; }
-}
 
 /* 開場動畫（intro.js）：畫面在 canvas，這裡只有字幕、跳過、開始 */
 body.cine #hud { visibility: hidden; }
@@ -1533,7 +1470,7 @@ body.cine #hud { visibility: hidden; }
 .rvf.offf { --pp: 14px; position: sticky; bottom: calc(-1 * var(--pp)); z-index: 1; flex-direction: column; margin: 8px calc(-1 * var(--pp)) calc(-1 * var(--pp)); padding: 8px var(--pp) var(--pp); background: var(--panel); border-top: 1px solid var(--border); }
 body.touch .rvf.offf { --pp: 10px; }
 .rvf.offf .btn.pri { min-height: 48px; }
-/* 矮的畫面（橫向手機）：兩顆並排，不然面板只剩按鈕 */
+/* 矮的畫面（桌機縮矮視窗）：兩顆並排，不然面板只剩按鈕 */
 @media (max-height: 500px) { .rvf.offf { flex-direction: row; } .rvf.offf .btn { flex: 1; } .rvf.offf .btn small { display: none; } }
 @media (prefers-reduced-motion: reduce) { .rvr.new { animation: none; } }
 /* 手機點出來的說明框變高了（6 固定格）：放不下時裡面捲，動作鈕黏在底部，永遠按得到 */
@@ -1618,7 +1555,6 @@ body.touch #pbox { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); }
 .autob { min-width: 54px; min-height: 44px; font: 700 var(--fs-s) var(--font); letter-spacing: 0.06em; color: var(--tx-dim); background: var(--panel-raised-2); border: 1px solid var(--border-ctl); border-radius: 2px; cursor: pointer; }
 .autob.on { color: var(--tx-strong); border-color: var(--tx-strong); }
 .autob:active { transform: scale(0.94); }
-body.touch:not(.port) .top { right: calc(190px + env(safe-area-inset-right)); }
 body.touch.port #area { max-width: calc(100% - 190px); white-space: pre; line-height: 1.35; }
 
 /* 巡邏卡（0.3.0）：桌機在右邊、手機直立是下半的抽屜（同一份 HTML） */
@@ -1722,7 +1658,6 @@ body.touch.port .ph .ftabs { margin-left: auto; }
 body.touch.port .ph .ftabs + .x { margin-left: 0; }
 body.touch.port .ph .ftabs button { min-height: 44px; }
 /* HUD：右上只剩自動鈕（倉庫、選單搬到分頁列）；左上的地點列點了開地點清單 */
-body.touch.port .tmenu [data-tm='inv'], body.touch.port .tmenu [data-tm='more'] { display: none; }
 body.touch.port #area { max-width: calc(100% - 64px); min-height: 44px; display: flex; align-items: center; gap: 6px; pointer-events: auto; white-space: pre; }
 body.touch.port #area::after { content: '▾'; color: var(--border-hi); }
 body.touch.port #area:active { color: var(--tx-title); }
@@ -1821,7 +1756,7 @@ body.touch.port .fseg.s6 { grid-template-columns: repeat(3, 1fr); }
 .stg > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-height: 26px; font-size: var(--fs-s); color: var(--tx-dim); }
 .stg > div b { font: 700 var(--fs) var(--font); color: var(--tx); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .stg > div b small { margin-left: 5px; font: 400 11px var(--font); color: var(--tx-dim); }
-/* 桌機、手機橫向：面板矮，每組一行（組名在左、項目接著排），不把倉庫擠到畫面外 */
+/* 桌機：面板矮，每組一行（組名在左、項目接著排），不把倉庫擠到畫面外 */
 body:not(.touch.port) .st2 { gap: 1px; }
 body:not(.touch.port) .st2 section { display: flex; align-items: baseline; gap: 10px; }
 body:not(.touch.port) .st2 h4 { flex: none; width: 4.2em; margin: 0; padding: 0; border: 0; white-space: nowrap; }
@@ -1860,7 +1795,7 @@ body.touch.port .eqrow.col .doll { align-self: center; }
 body.touch.port .ph .bagf.grp { overflow: visible; }
 body.touch.port .ph .bagf.grp .chip { flex: 1 1 0; padding: 0 4px; }
 .bag > .it.nq { opacity: 0.4; }
-/* 篩選的兩列：直立各佔一列（在黏著的標題列裡）；桌機與橫向接成一段，大類＋條件一行、選了大類部位換下一行 */
+/* 篩選的兩列：直立各佔一列（在黏著的標題列裡）；桌機接成一段，大類＋條件一行、選了大類部位換下一行 */
 body.touch.port .ph .bagfs { display: contents; }
 body:not(.touch.port) .bagfs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
 body:not(.touch.port) .bagfs .bagf { display: contents; }
@@ -1929,7 +1864,7 @@ body.touch.port #pnav:not([hidden]) { grid-template-columns: none; grid-auto-flo
 @media (prefers-reduced-motion: reduce) { .tcard { animation: none; } }
 
 /* ---- 昇華石碑（0.4.7）----
-   桌機與手機橫向：盤面的點放大、沒點亮的看得出圖示、說明列的按鈕。
+   桌機：盤面的點放大、沒點亮的看得出圖示、說明列的按鈕。
    手機直立整個重做（hud.js 的 ascPortHTML）：不畫盤面，「選 4 個大點」——上面是這個昇華與 4 個位子，下面一張卡一個大點 */
 .ax-cap i { margin-left: 8px; }
 .ax-cap .btn { min-height: 48px; font: 700 var(--fs) var(--font); display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -2004,9 +1939,9 @@ button.axs-s { cursor: pointer; }
 :where(#pskill .skp) button { font: inherit; color: inherit; cursor: pointer; }
 /* 面板裡 title 跟 text 當同一個顏色用（DESIGN.md 第 4 節） */
 #pskill { --tx-title: var(--tx); }
-#pskill > .ph > b, #pskill > .ph .sw { color: var(--tx); }
+#pskill > .ph > b { color: var(--tx); }
 #pskill .ph .soul { margin-left: auto; font-size: 14px; color: var(--tx); }
-#pskill .ph .soul ~ .x, #pskill .ph .soul ~ .sw { margin-left: 4px; }
+#pskill .ph .soul ~ .x { margin-left: 4px; }
 .soul { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .soul i { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--glint), var(--el-cold) 45%, var(--panel-inset)); }
 .sk-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 16px; scrollbar-width: thin; scrollbar-color: var(--border-mid) var(--panel-inset); }
@@ -2068,7 +2003,7 @@ body.touch .sk-chips button { min-height: 44px; }
 .sk-h { margin: 0; font: 700 18px/1.3 var(--font); color: var(--tx); }
 .sk-h small { margin-left: 8px; font: 500 12px var(--font); color: var(--tx-dim); }
 .sk-info { grid-area: info; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-/* 名字 → 主數字（左）＋小圓環（右）→ 說明與輔助；橫向手機改成左邊圓環、右邊資訊 */
+/* 名字 → 主數字（左）＋小圓環（右）→ 說明與輔助 */
 .sk-one { display: flex; flex-direction: column; gap: 10px; }
 .sk-h { display: flex; align-items: center; gap: 10px; }
 .sk-h > .ic { width: 44px; height: 44px; flex: none; background: var(--panel-inset); border-radius: 3px; padding: 4px; box-sizing: border-box; }
@@ -2135,13 +2070,6 @@ body.touch .sk-chips button { min-height: 44px; }
   .skp.fwd, .skp.back { animation: skFade 160ms linear; }
 }
 #pskill button:focus-visible { outline: 2px solid var(--border-hi); outline-offset: -2px; }
-/* 手機橫向（畫面矮）：技能面板佔滿；這一招左邊徽章、右邊資訊 */
-@media (max-height: 480px) {
-  body.touch:not(.port) #pskill { width: calc(100vw - 12px); }
-  body.touch:not(.port) #pskill > .ph .x { min-width: 44px; min-height: 44px; }
-  body.touch:not(.port) .sk-bar { padding-top: 6px; padding-bottom: 6px; }
-  body.touch:not(.port) .sk-scroll { padding-top: 8px; }
-}
 
 /* ================= 0.4.9 介面重做（tools/mock_ui.html 第 9 版、docs/介面體驗模擬.md）：廟宇古地圖的色調、掛機卡、王倒下的卡、戰利品的格子角標與換裝卡、技能總覽、角色頁兩直欄 =================
    色調照第五節：底 L 0.13、卡 L 0.17、紙（--sel）只給主數字與選中、磚紅（--act）是唯一的飽和色。寫在最後蓋過前面的鑄鐵銀框 */
@@ -2188,7 +2116,6 @@ body:not(.touch) .mid { padding: 0; background: none; box-shadow: none; margin: 
 .hb.mp i { background: var(--mp); }
 #area, .hud .loc { padding: 4px 8px; background: var(--plate-world); border-radius: 2px; font: 500 14px var(--font); color: var(--tx-scene); text-shadow: 0 1px 2px rgb(var(--scrim-rgb)); }
 body.touch.port #area::after { content: ''; }
-body.touch.port .tmenu { display: none; }
 /* 按鈕：次要是細框、主要是磚紅；分段、晶片 */
 .btn { background: var(--btn2); border: 1px solid var(--border-mid); border-radius: 3px; color: var(--tx); font-weight: 700; box-shadow: none; }
 .btn:not(:disabled):hover { border-color: var(--border-hi); color: var(--tx); }
@@ -2672,7 +2599,7 @@ p.bagno { font: 500 14px/1.4 var(--font); color: var(--tx-dim); text-align: left
 .dlink2 small { font: 500 13px var(--font); text-decoration: none; }
 
 /* ================= M2-19 追逐物品的演出（docs/交辦/M2-19-追逐演出.md）：色票 --r4、追逐外框 .chf（雙框＋四角印角）、追逐標記 .chm、
-   橫幅 #chase（直立貼半版面板上緣、桌機 top 76 全寬條、手機橫向置中）、掛機卡保底一行、掉落紀錄的追逐列、離線摘要那一列 ================= */
+   橫幅 #chase（直立貼半版面板上緣、桌機 top 76 全寬條）、掛機卡保底一行、掉落紀錄的追逐列、離線摘要那一列 ================= */
 .rc4, .chs-t { color: var(--rar-chase); }
 .chf, #chase { position: relative; background: var(--panel-inset); box-shadow: 0 0 0 1px rgb(var(--scrim-rgb)), inset 0 0 0 2px var(--rar-chase), inset 0 0 0 3px var(--scene-void-v13), inset 0 0 0 4px rgba(var(--rar-chase-rgb), 0.45), 0 0 10px rgba(var(--rar-chase-rgb), 0.35); }
 .chf::before, #chase::before { content: ''; position: absolute; inset: -1px; pointer-events: none;
@@ -2711,11 +2638,6 @@ body:not(.touch).bossup #chase { top: 76px; right: 492px; }
 body:not(.touch) #chase .cbt small, body:not(.touch) #chase .cbr { font-size: 14px; }
 body:not(.touch) #chase .cbt b { font-size: 22px; }
 body:not(.touch) #chase .cbr { flex-direction: row; align-items: center; gap: 10px; }
-/* 手機橫向：照桌機縮小，置中、寬 min(560, 畫面寬 − 16)、高 60 */
-body.touch:not(.port) #chase { top: calc(env(safe-area-inset-top) + 8px); left: max(8px, calc(50% - 280px)); right: max(8px, calc(50% - 280px)); height: 60px; padding: 4px 12px 4px 4px; }
-body.touch:not(.port) #chase .cbi, body.touch:not(.port) #chase .cbi .chf { width: 52px; height: 52px; }
-body.touch:not(.port) #chase .cbi:has(.chf + .chf) { width: 72px; }
-body.touch:not(.port) #chase .cbt b { font-size: 18px; }
 @media (prefers-reduced-motion: reduce) { #chase, #chase.out { animation: none; transition: none; } }
 /* 掛機卡保底一行（M2-19.4）：13／700，永遠一行；6 px 細條；整行一顆透明鈕（熱區上下各延 6）開掉落紀錄 */
 @keyframes cpfull { 50% { opacity: 0.7; } }
@@ -2760,7 +2682,7 @@ body:not(.touch) .panel { border: 1px solid var(--border-mid); }
 body:not(.touch) #pcraft.cwide { left: auto; right: 16px; width: 476px; animation-name: inR; }
 /* #warn：桌機基線 548（Z2 下緣），不壓生命魔力條 */
 body:not(.touch) #warn { bottom: 172px; }
-/* 追逐物品面板：直立半版（通用規則）、桌機右欄（上面）、手機橫向置中 */
+/* 追逐物品面板：直立半版（通用規則）、桌機右欄（上面） */
 #pchase { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(476px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); z-index: 12; }
 body.touch.port #pchase { z-index: 8; }
 #pchase .chg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 4px var(--pp) 2px; }
@@ -2866,7 +2788,6 @@ body.touch.port #bar { bottom: calc(var(--hb) + 8px); }
 /* 營地升級抽屜：直立 330–710（面板區）；桌機右側 420×536（x 844–1264、y 76–612），不用捲 */
 #pcamp { display: flex; flex-direction: column; overscroll-behavior: contain; }
 body:not(.touch.port) #pcamp { left: auto; right: 16px; top: 76px; width: 420px; height: 536px; max-height: calc(100vh - 92px); }
-body.touch:not(.port) #pcamp { right: calc(6px + env(safe-area-inset-right)); top: 6px; width: min(420px, 60vw); height: auto; max-height: calc(100dvh - 12px); }
 body.touch.port #pcamp { padding: 0; top: var(--sheet-top) !important; }
 body.touch.port #pcamp > .ph:first-child { margin: 0; }
 #pcamp > .ph { display: flex; align-items: center; gap: 8px; min-height: 44px; padding-top: 0; padding-bottom: 0; }
@@ -2995,13 +2916,11 @@ body.touch #poff kbd, body.touch #dplate kbd { display: none; }
 #warn2 { position: fixed; z-index: 30; pointer-events: none; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #warn2[hidden] { display: none; }
 /* B2-FIX（D2-07 熱區）：觸控每個可點的東西 ≥44×44、兩個之間 ≥8（殼層：掛機條、分頁列、把手、右上選單在 B1） */
-/* 橫向的「更多」只蓋到狀態列一半，圖示被切一半、跟面板右欄的按鈕疊在一起：開著時藏起來（其他左側面板本來就整排蓋住） */
 body.touch .stc { width: 44px; height: 44px; }
 body.touch .stc .ic { width: 34px; height: 34px; }
 .skr { row-gap: 8px; }
 .cmgrp .cmmul { gap: 8px; }
 body.touch .ph .ftabs button, body.touch .bagf.grp .chip { min-width: 44px; min-height: 44px; }
-body.touch:not(.port) .bagfs { margin-bottom: 8px; }
 /* ---------- B1 骨架第一段 ---------- */
 /* S6／D2-13／D3-03：資源列（金、靈魂）。直立外觀 x 202–382 × 110–142、熱區 106–150；桌機 x 16–316 × 66–98（資訊列下）。字直立 14／桌機 16、700、等寬，每格留 5 字元；底 --plate-world */
 /* D2-05（部分）：桌機窄視窗（1280×800 ×1.25＝CSS 1024×640）右欄最寬 100vw − 644（右邊距 16＋間隔 16，戰場留 ≥612）；1280×720 不變 */
@@ -3163,7 +3082,6 @@ body.inmap #area, body.bhp.inmap #area { display: none; }
 body.bhd.inmap .top { top: 48px; }
 body.bhp.inmap .top { top: calc(var(--sat, env(safe-area-inset-top)) + 52px); }
 body.bhp .bottom, body.bhd .bottom { display: none; }
-body.bhl #bh .bh-top, body.bhl #bh .bh-cur, body.bhl #bh .bh-loc, body.bhl #bh .bsk, body.bhl #bh .bh-aura, body.bhl #bh .bh-fl { display: none !important; }
 #lvup { position: fixed; left: 50%; bottom: auto; top: 50%; transform: translate(-50%, -120px); z-index: 4; }
 /* 下方面板（P41–P57／D25–D41）與收起列（T30–T35／C30–C35） */
 #pidle { position: fixed; z-index: 5; display: block; padding: 0; margin: 0; overflow: visible; max-height: none; background: var(--panel); border: 0; border-radius: 0; box-shadow: none; animation: none; font: 400 14px/22px var(--font); color: var(--tx); }

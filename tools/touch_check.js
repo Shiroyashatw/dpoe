@@ -1,11 +1,13 @@
 const { chromium } = require('playwright');
 /* 手機操作測試（docs/企劃書.md 第 9 節「操作模式」）：Playwright 模擬觸控螢幕、送真的觸控事件。
-   用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/touch_check.js [寬 844] [高 390] [網址]
+   用法：先在 dpoe/ 開 python3 -m http.server 8000，再 node tools/touch_check.js [寬 390] [高 844] [網址]
+   手機一律直式（2026-11-21 取消橫向）：寬 ≤ 高＝觸控直式手機；寬 > 高（1280×720、1440×900）＝桌機（滑鼠，不模擬觸控），只跑桌機那一段
    截圖存在系統暫存資料夾（touch_*.png）；有 ❌ 時結束碼 1 */
 const os = require('os'),
   path = require('path');
-const W = +process.argv[2] || 844,
-  H = +process.argv[3] || 390,
+const W = +process.argv[2] || 390,
+  H = +process.argv[3] || 844,
+  DESK = W > H,
   URL = process.argv[4] || 'http://localhost:8000/',
   tag = W + 'x' + H,
   shot = n => path.join(os.tmpdir(), `touch_${tag}_${n}.png`);
@@ -24,8 +26,8 @@ const settle = async (p, fn, arg) => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const ctx = await b.newContext({
     viewport: { width: W, height: H },
-    hasTouch: true,
-    isMobile: true,
+    hasTouch: !DESK,
+    isMobile: !DESK,
     deviceScaleFactor: 2
   });
   await ctx.route(/supabase/, r => r.abort()); /* 假存檔不能同步到正式雲端 */
@@ -55,19 +57,87 @@ const settle = async (p, fn, arg) => {
   };
   /* M0-06：還沒有手勢就不建立 AudioContext（不跳主控台警告）；第一次點了才建立（檔案最後再驗） */
   ok('還沒點過：音效還沒建立', await p.evaluate(() => !AC));
-  ok('進來就是觸控模式', await p.evaluate(() => document.body.classList.contains('touch')));
-  /* 直的尺寸測直立操作（龍絆式手勢），橫的尺寸測橫向操作 */
-  const PORTM = H > W;
   ok('新存檔預設直立', await p.evaluate(() => S.orient === 'p'));
-  await p.evaluate(port => {
-    S.orient = port ? 'p' : 'l';
-    applyOrient();
-  }, PORTM);
-  await p.waitForTimeout(200);
   ok(
-    '沒有出現「把手機轉過來」',
-    await p.evaluate(() => getComputedStyle($('rot')).display === 'none'),
-    PORTM ? '直立' : '橫向'
+    '沒有方向提示（#rot）、橫向右上鈕（.tmenu）',
+    await p.evaluate(() => !$('rot') && !document.querySelector('.tmenu'))
+  );
+  if (DESK) {
+    /* 桌機（滑鼠）：桌機 HUD、不是觸控直立；舊存檔的橫向（l）讀進來是 p，桌機照舊；面板不超出畫面 */
+    const desk = () =>
+      p.evaluate(() => {
+        const vis = e => !!e && !e.hidden && e.getClientRects().length > 0,
+          r = $('dnav').getBoundingClientRect();
+        return [
+          document.body.classList.contains('touch'),
+          document.body.classList.contains('port'),
+          PORT(),
+          vis($('dnav')) && r.right <= innerWidth && r.bottom <= innerHeight,
+          vis($('pnav')),
+          /* battle-hud v1.3.3：技能列是 #bh 的 5 格（舊的 #bar 拿掉了） */
+          [...document.querySelectorAll('#bh .bsk')].filter(vis).length === 5,
+          ZOOM,
+          C
+        ].join();
+      });
+    ok(
+      '桌機：不是觸控、不是直立、功能列在畫面內、沒有底部分頁、技能列在、視野 1.35、格 36',
+      (await desk()) === 'false,false,false,true,false,true,1.35,36',
+      await desk()
+    );
+    await p.evaluate(() => {
+      S.orient = 'l';
+      save();
+    });
+    await p.reload();
+    await p.waitForTimeout(1500);
+    ok(
+      '桌機：舊存檔 orient l 重新整理後是 p、存回 p',
+      await p.evaluate(() => S.orient === 'p' && JSON.parse(localStorage.getItem(KEY + SLOT)).orient === 'p')
+    );
+    ok('桌機：重新整理後版面照舊', (await desk()) === 'false,false,false,true,false,true,1.35,36', await desk());
+    await p.evaluate(() => {
+      proSkip();
+      S.auto = 0;
+      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    });
+    for (const k of ['inv', 'stash', 'skill', 'craft', 'set', 'node', 'asc', 'log'])
+      await p
+        .evaluate(k => {
+          closePanels();
+          openPanel(k);
+        }, k)
+        .then(async () => {
+          await p.waitForTimeout(250);
+          const r = await p.evaluate(() =>
+            [...document.querySelectorAll('.panel')]
+              .filter(e => !e.hidden && e.getClientRects().length)
+              .map(e => {
+                const b = e.getBoundingClientRect();
+                return [
+                  e.id,
+                  b.left >= -0.5 && b.top >= -0.5 && b.right <= innerWidth + 0.5 && b.bottom <= innerHeight + 0.5
+                ];
+              })
+          );
+          ok(`桌機：開 ${k} 面板不超出畫面`, r.length > 0 && r.every(x => x[1]), JSON.stringify(r));
+        });
+    ok(
+      '桌機：設定沒有「操作方向」',
+      await p.evaluate(() => (closePanels(), openPanel('set'), !/操作方向|橫向/.test($('pset').innerText)))
+    );
+    await p.evaluate(() => closePanels());
+    await p.screenshot({ path: shot('desk') });
+    if (errs.length) fail++;
+    console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');
+    await b.close();
+    process.exit(fail ? 1 : 0);
+  }
+  ok(
+    '進來就是觸控模式、直立操作',
+    await p.evaluate(
+      () => document.body.classList.contains('touch') && document.body.classList.contains('port') && PORT()
+    )
   );
   /* M2-12：營地主角不走動——單指拖＝左右平移鏡頭（不出搖桿、主角不動、不出招）；點場景物件＝開跟分頁同一個面板 */
   await p.evaluate(() => enterCamp());
@@ -118,7 +188,7 @@ const settle = async (p, fn, arg) => {
     }
   });
   const x0 = await p.evaluate(() => P.x),
-    sp = PORTM ? [W / 2 - 60, H * 0.45] : [150, H - 90];
+    sp = [W / 2 - 60, H * 0.45];
   await touch('touchStart', [sp]);
   for (let i = 1; i <= 6; i++) {
     await touch('touchMove', [[sp[0] + i * 12, sp[1]]]);
@@ -142,84 +212,43 @@ const settle = async (p, fn, arg) => {
     window._m = m;
     window._hp = m.hp;
   });
-  /* 橫向：按住普攻鍵；直立：畫面上按住不動 */
-  const r0 = PORTM
-    ? [W / 2, H * 0.3]
-    : await p.evaluate(() => {
-        const r = document.querySelector('.sk[data-k=s0]').getBoundingClientRect();
-        return [r.left + r.width / 2, r.top + r.height / 2];
-      });
+  /* 直立：畫面上按住不動 */
+  const r0 = [W / 2, H * 0.3];
   await touch('touchStart', [r0]);
   /* 要先走到怪旁邊才揮得到：機器忙時遊戲時間比牆鐘慢，固定等 900 毫秒會偶發失敗；改成打中就停、最多 3 秒 */
   await p
     .waitForFunction(() => _m.hp < _hp || !G.mobs.includes(_m), null, { timeout: 3000, polling: 50 })
     .catch(() => {});
-  ok(
-    PORTM ? '畫面上按住不動＝連續普攻最近的怪' : '普攻按住會自動打最近的怪',
-    await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m))
-  );
+  ok('畫面上按住不動＝連續普攻最近的怪', await p.evaluate(() => _m.hp < _hp || !G.mobs.includes(_m)));
   /* 出手中朝向鎖住、下一下才轉：等朝向到位（最多 2 秒、每 50 毫秒看）再判定，不在出手的半途量 */
   const faceOf = () => Math.cos(P.face - Math.atan2(_m.y - P.y, _m.x - P.x));
   await p.waitForFunction(`(${faceOf})() > 0.7`, null, { timeout: 2000, polling: 50 }).catch(() => {});
   const face = await p.evaluate(faceOf);
   ok('朝向怪物', face > 0.7, face.toFixed(2));
   await touch('touchEnd', []);
-  /* battle-hud v1.3.3 §11：直立的技能格不是出招鍵——點＝開技能分頁、長按 400 ms＝工具提示（放開收）；出招靠點畫面（普攻）與自動。
-     橫向（規格沒有）沿用舊的觸控鍵：拖曳畫瞄準線、拖回按鈕取消、點一下施放 */
-  if (PORTM) {
-    const c1 = await p.evaluate(() => {
-      const r = $('bhS1').getBoundingClientRect();
-      return [r.left + r.width / 2, r.top + r.height / 2];
-    });
-    await touch('touchStart', [c1]);
-    await p.waitForTimeout(520);
-    const lt = await p.evaluate(() => [!$('bhTip').hidden, $('bhTip').textContent]);
-    await touch('touchEnd', []);
-    await p.waitForTimeout(80);
-    ok(
-      '直立技能格：長按 400 ms 出工具提示、放開收起',
-      lt[0] && !!lt[1] && (await p.evaluate(() => $('bhTip').hidden)),
-      JSON.stringify(lt)
-    );
-    await touch('touchStart', [c1]);
-    await touch('touchEnd', []);
-    await p.waitForTimeout(200);
-    ok('直立技能格：點一下＝開技能分頁（不出招）', await p.evaluate(() => navOn() === 'skill' && !(P.cds.s1 > 0)));
-    await p.evaluate(() => closePanels());
-    await p.waitForTimeout(150);
-  } else {
-    const r1 = await p.evaluate(() => {
-      const r = document.querySelector('.sk[data-k=s1]').getBoundingClientRect();
-      return [r.left + r.width / 2, r.top + r.height / 2];
-    });
-    const has1 = await p.evaluate(() => !!slotCfg(1));
-    await p.evaluate(() => {
-      P.mp = ST.mp;
-      P.cds = {};
-      window._mp = P.mp;
-    });
-    await touch('touchStart', [r1]);
-    await touch('touchMove', [[r1[0] - 60, r1[1] - 40]]);
-    await p.waitForTimeout(150);
-    await p.screenshot({ path: shot('aim') });
-    ok('拖曳時有瞄準線', await p.evaluate(() => !!(TOUCH.sk && TOUCH.sk.drag)));
-    await touch('touchMove', [r1]);
-    await p.waitForTimeout(50);
-    await touch('touchEnd', []);
-    await p.waitForTimeout(100);
-    ok('拖回按鈕上＝取消（沒放）', await p.evaluate(() => !(P.cds.s1 > 0) && P.mp === _mp));
-    await p.evaluate(() => {
-      P.act = null;
-      P.mp = ST.mp;
-      window._mp = P.mp;
-    });
-    await touch('touchStart', [r1]);
-    await touch('touchEnd', []);
-    await p.waitForTimeout(30);
-    ok('點一下技能＝施放', await p.evaluate(() => P.mp < _mp || P.cds.s1 > 0 || !!P.act));
-  }
-  /* 翻滾：橫向按翻滾鍵；直立快速一撥 */
-  if (PORTM) {
+  /* battle-hud v1.3.3 §11：直立的技能格不是出招鍵——點＝開技能分頁、長按 400 ms＝工具提示（放開收）；出招靠點畫面（普攻）與自動 */
+  const c1 = await p.evaluate(() => {
+    const r = $('bhS1').getBoundingClientRect();
+    return [r.left + r.width / 2, r.top + r.height / 2];
+  });
+  await touch('touchStart', [c1]);
+  await p.waitForTimeout(520);
+  const lt = await p.evaluate(() => [!$('bhTip').hidden, $('bhTip').textContent]);
+  await touch('touchEnd', []);
+  await p.waitForTimeout(80);
+  ok(
+    '直立技能格：長按 400 ms 出工具提示、放開收起',
+    lt[0] && !!lt[1] && (await p.evaluate(() => $('bhTip').hidden)),
+    JSON.stringify(lt)
+  );
+  await touch('touchStart', [c1]);
+  await touch('touchEnd', []);
+  await p.waitForTimeout(200);
+  ok('直立技能格：點一下＝開技能分頁（不出招）', await p.evaluate(() => navOn() === 'skill' && !(P.cds.s1 > 0)));
+  await p.evaluate(() => closePanels());
+  await p.waitForTimeout(150);
+  /* 翻滾：直立快速一撥 */
+  {
     /* 快速一撥＝按下到放開不到 260 毫秒（touch.js）。機器忙時送四個觸控事件就超過 260 毫秒，送出去的不是快速一撥：
        在頁面記下這次手勢實際花多久，太慢就重送（最多 3 次）；撥的判定在下一格才跑，等到翻滾開始（最多 1 秒）再判定 */
     const rolled = () => (!!P.roll && P.roll.dx > 0.7) || P.cds.roll > 0;
@@ -260,19 +289,10 @@ const settle = async (p, fn, arg) => {
           () => false
         )
     );
-  } else {
-    const rr = await p.evaluate(() => {
-      P.cds.roll = 0;
-      const r = document.querySelector('.sk[data-k=roll]').getBoundingClientRect();
-      return [r.left + r.width / 2, r.top + r.height / 2];
-    });
-    await touch('touchStart', [rr]);
-    await touch('touchEnd', []);
-    ok('翻滾鍵', await p.evaluate(() => !!P.roll || P.cds.roll > 0));
   }
   /* 按鈕都在畫面內、不重疊、夠大 */
   const lay = await p.evaluate(() => {
-    const els = [...document.querySelectorAll('#bar .sk,.tmenu button')]
+    const els = [...document.querySelectorAll('#bar .sk')]
       .filter(e => e.offsetParent || getComputedStyle(e).display !== 'none')
       .map(e => [e.dataset.k || e.textContent, e.getBoundingClientRect()]);
     const bad = [];
@@ -457,45 +477,8 @@ const settle = async (p, fn, arg) => {
     ok('每件道具的說明框都不蓋住、不出畫面', !bad.length, bad.join(','));
   }
   await p.evaluate(() => hideTip());
-  if (!PORTM) {
-    /* 拖曳（0.4.0 清單倉庫）：把倉庫裡的一件拖到「拖到這裡賣掉」，賣掉、放開後沒有殘影 */
-    const dg = await p.evaluate(() => {
-      const vis = e => {
-          const r = e.getBoundingClientRect();
-          return r.width && e.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
-        },
-        e = [...document.querySelectorAll('.bag .it[data-id]')].find(vis),
-        z = document.querySelector('#pinv .sell');
-      z.scrollIntoView({ block: 'nearest' });
-      const r = e.getBoundingClientRect(),
-        R = z.getBoundingClientRect();
-      return {
-        id: +e.dataset.id,
-        from: [r.left + 8, r.top + 8],
-        to: [R.left + R.width / 2, R.top + R.height / 2],
-        g: S.gold
-      };
-    });
-    await touch('touchStart', [dg.from]);
-    for (let i = 1; i <= 8; i++)
-      await touch('touchMove', [
-        [dg.from[0] + ((dg.to[0] - dg.from[0]) * i) / 8, dg.from[1] + ((dg.to[1] - dg.from[1]) * i) / 8]
-      ]);
-    ok('拖曳中有跟手的圖示', await p.evaluate(() => !!document.querySelector('.ghost')));
-    await touch('touchEnd', []);
-    await p.waitForTimeout(200);
-    const dr = await p.evaluate(
-      d => [
-        !S.inv.items.some(i => i.id === d.id),
-        S.gold > d.g,
-        document.querySelectorAll('.ghost, .it.lift').length,
-        !!DR
-      ],
-      dg
-    );
-    ok('拖到分解區：分解、拿到金幣', dr[0] && dr[1], JSON.stringify(dr));
-    ok('放開後沒有殘影', !dr[2] && !dr[3], `殘留 ${dr[2]} 個、DR ${dr[3]}`);
-    /* 0.5.0 打造（橫向）：鍛造台的第一頁、按鈕在畫面內、翻牌的三顆鈕在畫面內 */
+  {
+    /* 0.5.0 打造（原本在橫向測，2026-11-21 改在直式）：鍛造台的第一頁、按鈕在畫面內、翻牌的三顆鈕在畫面內 */
     const tapL = async q => {
       const c = await p.evaluate(q => {
         const e = document.querySelector(q);
@@ -535,7 +518,7 @@ const settle = async (p, fn, arg) => {
       ];
     });
     ok(
-      '橫向：鍛造台全 0 的鍛造只有「打造」（跟直立同名，M2-38 起營地是另一頁）、沒有鍛造台／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
+      '直式：鍛造台全 0 的鍛造只有「打造」（跟直立同名，M2-38 起營地是另一頁）、沒有鍛造台／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
       mkL[0] === '打造' && !/鍛造台|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
       JSON.stringify(mkL)
     );
@@ -550,14 +533,15 @@ const settle = async (p, fn, arg) => {
         S.inv.items.length
       ];
     });
-    ok('橫向：翻牌開著、三顆鈕 ≥44px 在畫面內', rvL[0] && rvL[1] === 3 && rvL[2] && rvL[3] >= 1, JSON.stringify(rvL));
+    ok('直式：翻牌開著、三顆鈕 ≥44px 在畫面內', rvL[0] && rvL[1] === 3 && rvL[2] && rvL[3] >= 1, JSON.stringify(rvL));
     await tapL('#preveal [data-a=rvsalv]');
-    ok('橫向：分解掉那一件', await p.evaluate(() => /已分解/.test($('preveal').innerText)));
+    ok('直式：分解掉那一件', await p.evaluate(() => /已分解/.test($('preveal').innerText)));
     await p.evaluate(() => {
       S.camp = JSON.parse(JSON.stringify(_CAMP));
       closePanels();
     });
-  } else {
+  }
+  {
     /* ---------- 直立重排（0.4.4）：上半戰鬥、下半面板、底部分頁 ---------- */
     const tap = async q => {
       const c = await p.evaluate(q => {
@@ -603,9 +587,7 @@ const settle = async (p, fn, arg) => {
     );
     ok(
       '右上沒有按鈕（0.4.9：自動進設定；倉庫、選單在分頁列）',
-      await p.evaluate(
-        () => [...document.querySelectorAll('.tmenu button')].filter(e => e.getClientRects().length).length === 0
-      )
+      await p.evaluate(() => !document.querySelector('.tmenu'))
     );
     /* 戰利品併進角色頁（M2-12 §5）：點「角色」再切「倉庫」 */
     await tap('#pnav [data-tm="nav:char"]');
@@ -1034,7 +1016,7 @@ const settle = async (p, fn, arg) => {
     ok('民房展開：每座產生器一列、「優先」≥44px', ho[0] === 2 && ho[1], JSON.stringify(ho));
     /* battle-hud v1.3.3 取代 M2-12 §2 的掛機條：刷圖中分頁上面是下方面板（P41，204 高；本次掛機、拾取、比較、整理倉庫／自動／去營地），
        ▼（熱區 44）收到最小＝44 高收起列（掛機時間、▲ 熱區 44）；沒有營地升級鈕、不寫輪；營地升級從分頁「營地」開抽屜（刷圖不停） */
-    if (PORTM) {
+    {
       const ic = await p.evaluate(async () => {
         closePanels();
         S.auto = 1;
@@ -1499,7 +1481,7 @@ const settle = async (p, fn, arg) => {
     });
     await p.waitForTimeout(300);
   }
-  if (PORTM) {
+  {
     /* 昇華石碑（0.4.7 直立重做）：不畫盤面，一張卡一個大點；按「選這個」連同前面的小點一起點亮 */
     const asc = await p.evaluate(() => {
       treeClose();
@@ -1596,26 +1578,6 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => navGo('tree'));
     await p.waitForTimeout(300);
   }
-  /* 手機橫向：要決定的東西要在第一屏（背包格、地圖詞、開門鈕）；0.2.30 audit 的發現 */
-  if (W > H) {
-    const fold = await p.evaluate(() => {
-      treeClose();
-      closePanels();
-      openPanel('inv');
-      const g = document.querySelector('#pinv .bag').getBoundingClientRect();
-      closePanels();
-      openPanel('node');
-      const m = document.querySelector('#pnode .ndst').getBoundingClientRect(),
-        k = document.querySelector('#pnode .ndr').getBoundingClientRect();
-      closePanels();
-      return [g.top, m.top, k.bottom, innerHeight].map(Math.round);
-    });
-    ok(
-      '橫向：背包格、地點清單的星級與第一列都在第一屏',
-      fold[0] < fold[3] - 100 && fold[1] < fold[3] - 60 && fold[2] <= fold[3],
-      fold.join()
-    );
-  }
   /* 技能面板（0.4.8）：總覽 → 這一招 → 選了一個孔 → 挑輔助，每個畫面都不出畫面、按得到的東西 ≥44px；手指在清單上滑＝捲清單、不會選到 */
   {
     const tap = async q => {
@@ -1652,7 +1614,7 @@ const settle = async (p, fn, arg) => {
         const pri = document.querySelector('#pskill .sk-bar .pri');
         return { v: SKUI.view, small, out, pri: !pri || pri.getBoundingClientRect().bottom <= pn.bottom + 0.5 };
       });
-    await p.evaluate(port => {
+    await p.evaluate(() => {
       treeClose();
       closePanels();
       const ok = Object.keys(SKILLS).filter(
@@ -1664,8 +1626,8 @@ const settle = async (p, fn, arg) => {
       S.skills[0].n = 3;
       S.skills[0].so = ['fury', null, null];
       changed();
-      port ? navGo('skill') : openPanel('skill');
-    }, PORTM);
+      navGo('skill');
+    });
     await p.waitForTimeout(300);
     const R = [['總覽', await look()]];
     await tap('#pskill [data-sk="go:one:0"]');
@@ -1724,7 +1686,7 @@ const settle = async (p, fn, arg) => {
       S.skills[0].so[1] = null;
       return b;
     });
-    await p.evaluate(port => (port ? navGo('skill') : openPanel('skill')), PORTM);
+    await p.evaluate(() => navGo('skill'));
     await p.waitForTimeout(260);
     let taps = 0;
     /* M1-PK.1：空孔沒有目前項＝不預選，要先點一列（推薦排第一的就是差最多的）再按「放上」 */
@@ -1787,8 +1749,8 @@ const settle = async (p, fn, arg) => {
           openPanel('asc');
         },
         '#pasc',
-        PORTM ? '.axl-r' : '.ax-tab',
-        PORTM ? '.axl-h' : '.ax-pick'
+        '.axl-r',
+        '.axl-h'
       ),
       /* 0.2.73：點過點、出現「重置」後，標題列的 × 也要在畫面內（667×375 曾被擠出去） */
       await inView(
@@ -1971,7 +1933,7 @@ const settle = async (p, fn, arg) => {
     await p.screenshot({ path: shot('m0_resume') });
     ok('點過之後音效建立了', await p.evaluate(() => !!AC && AC.state !== 'closed'));
   }
-  /* ---------- M1-A：新存檔自動開刷、橫向的方向提示、暫停規則、死亡卡的升級鈕、分頁一下就切 ---------- */
+  /* ---------- M1-A：新存檔自動開刷、手機尺寸不會進入橫向、暫停規則、死亡卡的升級鈕、分頁一下就切 ---------- */
   {
     const tapAt = async r => {
       await touch('touchStart', [r]);
@@ -1992,35 +1954,7 @@ const settle = async (p, fn, arg) => {
           b.top >= 0 && b.bottom <= innerHeight && b.left >= 0 && b.right <= innerWidth
         ];
       }, q);
-    if (W > H) {
-      /* M1-05：橫向的手機選了直立操作：提示只佔最上面一條、切換鈕在畫面內 ≥44px，按了戰鬥畫面恢復，重新整理後也一樣 */
-      await p.evaluate(() => {
-        S.orient = 'p';
-        applyOrient();
-      });
-      await p.waitForTimeout(200);
-      const rb = await mid('#rotb'),
-        rh = await p.evaluate(() => [getComputedStyle($('rot')).display, $('rot').getBoundingClientRect().height]);
-      ok(
-        'M1-05 橫向：方向提示只佔最上面一條、「改用橫向操作」在畫面內 ≥44px',
-        rh[0] !== 'none' && rh[1] < H * 0.4 && !!rb && rb[4] && rb[3] >= 44 && rb[2] >= 44,
-        JSON.stringify([rh, rb])
-      );
-      await p.screenshot({ path: shot('m1_rot') });
-      await tapAt(rb);
-      ok(
-        'M1-05：按了切成橫向操作、提示不見',
-        await p.evaluate(() => S.orient === 'l' && getComputedStyle($('rot')).display === 'none')
-      );
-      await p.evaluate(() => save());
-      await p.reload();
-      await p.waitForTimeout(1500);
-      ok(
-        'M1-05：重新整理後還是橫向操作、提示不見',
-        await p.evaluate(() => S.orient === 'l' && getComputedStyle($('rot')).display === 'none')
-      );
-    }
-    if (PORTM) {
+    {
       /* M1-10：自動模式開戰利品、營地照打；技能挑選、天賦樹停住（怪貼身 3 秒生命不變）；手動開任何面板都停；停住時產生器照產 */
       await p.evaluate(() => {
         closePanels();
@@ -2125,7 +2059,7 @@ const settle = async (p, fn, arg) => {
     }
   }
   /* ---------- M1-B：天賦樹路線名稱、解鎖判斷、下一個解鎖、裝備不寫孔、技能失效、測試入口 ---------- */
-  if (PORTM) {
+  {
     const tapAt = async r => {
       await touch('touchStart', [r]);
       await p.waitForTimeout(40);
@@ -2501,7 +2435,7 @@ const settle = async (p, fn, arg) => {
     ok('M1-24：不帶 ?test 時是自己的存檔位', await p.evaluate(() => SLOT === '7' && TEST === ''));
   }
   /* ---------- M1 第二批介面（規格「dpoe M1 直立視覺規格」）：直立先驗 ---------- */
-  if (PORTM) {
+  {
     await p.goto(URL + '?p=21&' + Date.now());
     await p.waitForTimeout(1500);
     await p.evaluate(() => {
@@ -2778,7 +2712,6 @@ const settle = async (p, fn, arg) => {
       why: '直立掛機條（收起列與展開鈕）貼著底部分頁列、兩鈕相連，捲動的面板內容會從它下面經過：掛機條與分頁列屬 B1（M2-12 第一段 §1、§2）'
     },
     { a: '#phand', why: '直立面板把手 24 高、貼著標題列的 × 與分頁：抽屜外框屬 B1（D2-06、M2-12 第一段 §1）' },
-    { a: '.tmenu button', b: '.tmenu button', why: '橫向右上「倉庫」「☰」間距 6：外框殼層屬 B1' },
     {
       a: 'body.port #pinv .doll2 .eqs, body.port #pinv .doll2 .eqs .it',
       b: '#pinv .doll2 *',
@@ -2884,6 +2817,40 @@ const settle = async (p, fn, arg) => {
       return r.every(Boolean);
     })
   );
+  /* 2026-11-21 取消手機橫向：把手機橫過來（viewport 設成 844×390，反向檢查）也還是直立操作、沒有方向提示；舊存檔的 l 讀進來是 p */
+  {
+    const land = () =>
+      p.evaluate(() =>
+        [
+          TOUCH.on,
+          PORT(),
+          document.body.classList.contains('port'),
+          !$('rot'),
+          S.orient,
+          !!document.querySelector('#pnav')
+        ].join()
+      );
+    await p.setViewportSize({ width: 844, height: 390 });
+    await p.waitForTimeout(400);
+    ok(
+      '手機橫過來（844×390）仍是直立操作、沒有方向提示、S.orient p',
+      (await land()) === 'true,true,true,true,p,true',
+      await land()
+    );
+    await p.evaluate(() => {
+      S.orient = 'l';
+      save();
+    });
+    await p.reload();
+    await p.waitForTimeout(1500);
+    ok(
+      '舊存檔 orient l：重新整理後是 p、存回 p、仍是直立操作',
+      (await land()) === 'true,true,true,true,p,true' &&
+        (await p.evaluate(() => JSON.parse(localStorage.getItem(KEY + SLOT)).orient === 'p')),
+      await land()
+    );
+    await p.setViewportSize({ width: W, height: H });
+  }
   if (errs.length) fail++;
   console.log(errs.length ? '❌ 頁面錯誤 ' + errs.join(' / ') : '✅ 沒有頁面錯誤');
   await b.close();
