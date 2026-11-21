@@ -1127,9 +1127,17 @@ const settle = async (p, fn, arg) => {
     });
     /* ---------- 0.4.6：角色數值分組、角色頁點一格列出可以換的、說明框先寫換上去的差別、篩選可以選部位 ---------- */
     const tapIn = async q => {
-      await p.evaluate(q => {
+      await p.evaluate(async q => {
         const e = document.querySelector(q);
-        if (e) e.scrollIntoView({ block: 'center', inline: 'center' });
+        if (!e) return;
+        /* 面板開全版時 top 還在滑（220 ms）就先等它停：滑到一半量的中心點，放開時底下已經換成下一格
+           （dpoe-hud133-fix4：390 開面板後第一格晚 280 ms 就點到腰帶） */
+        const mv = document
+          .getAnimations()
+          .filter(a => a.effect && a.effect.target && a.effect.target.contains && a.effect.target.contains(e))
+          .filter(a => isFinite(a.effect.getComputedTiming().endTime));
+        await Promise.all(mv.map(a => a.finished.catch(() => 0)));
+        e.scrollIntoView({ block: 'center', inline: 'center' });
       }, q);
       await p.waitForTimeout(80);
       return tap(q);

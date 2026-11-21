@@ -328,8 +328,38 @@ async function record(p, W, H, fn, base, touch, kind) {
     '+faststart',
     base + '.mp4'
   ]);
+  if (process.env.BH_SEQ) seq(log, dir, base, kind);
   fs.rmSync(dir, { recursive: true, force: true });
   return f;
+}
+/* dpoe-hud133-fix4 絕對幀序列（BH_SEQ=1）：每支片段第一次事件那一格（狀態第一次變的格）前後各 20 格的原始 PNG，
+   檔名＝影片的絕對幀號（F0123.png）；同一資料夾的 SEQ.json 是這 41 格的狀態 */
+const EVT = {
+  /* 蓄力放開：放開那一格（rel 記到段數） */
+  charge: L => L.find(x => x.rel && x.rel.length),
+  /* 收起：▼ 之後掛機卡上緣第一次動的那一格 */
+  collapse: L => L.find((x, i) => i && x.pid !== L[i - 1].pid),
+  /* 滑入：最近一筆第一次被推到右邊的那一格 */
+  slidein: L => L.find((x, i) => i && x.slx && !L[i - 1].slx),
+  /* 命中頓幀＋震動：trauma 第一次變大（打中）那一格 */
+  hitshake: L => L.find((x, i) => i && x.trauma > L[i - 1].trauma)
+};
+function seq(L, dir, base, kind) {
+  const e = EVT[kind] && EVT[kind](L);
+  if (!e) return;
+  const od = path.join(path.dirname(base), 'frames', path.basename(base));
+  fs.rmSync(od, { recursive: true, force: true });
+  fs.mkdirSync(od, { recursive: true });
+  const W = L.filter(x => Math.abs(x.f - e.f) <= 20);
+  for (const x of W)
+    fs.copyFileSync(
+      path.join(dir, String(x.f).padStart(5, '0') + '.png'),
+      path.join(od, 'F' + String(x.f).padStart(4, '0') + '.png')
+    );
+  fs.writeFileSync(path.join(od, 'SEQ.json'), JSON.stringify({ kind, event: e.f, ms: e.ms, frames: W }));
+  console.log(
+    `  幀序列 ${path.relative(process.cwd(), od)}：事件 F${e.f}（${e.ms} ms），F${W[0].f}–F${W[W.length - 1].f}`
+  );
 }
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});

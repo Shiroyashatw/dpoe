@@ -12443,6 +12443,16 @@ const ASC_COMBOS = `const combos = k => {
         const w = document.querySelector('#pidle .i32');
         r.full = [w.textContent, getComputedStyle(w).color];
         S.inv.items.length = inv0;
+        /* dpoe-hud133-fix4 F7：最近一筆（收起列 T34／C34）左條與字是同一個稀有度 token */
+        r.f7 = [2, 3, 4].map(n => {
+          const k = n === 4 ? CHASE_POOL.trunk[0] : null;
+          S.log = [];
+          dropLog(k ? chaseBanner(k) : '稀' + n, k ? 'chase' : 'it', k, n);
+          idleBar(1);
+          const e = document.querySelector('#pidle .i34'),
+            cs = getComputedStyle(e);
+          return [n, cs.borderLeftWidth, cs.borderLeftColor, getComputedStyle(e.querySelector('.nm')).color];
+        });
         DBG.hudMin(0), tick();
         /* 退回 #7、天賦格：戰鬥沒開面板時倉庫分頁選中；7 格位置固定，天賦沒開畫鎖頭 */
         const nb = TOUCH.on ? '#pnav' : '#dnav';
@@ -12601,6 +12611,19 @@ const ASC_COMBOS = `const combos = k => {
             ['普', 'rgb(241, 235, 219)']
           ]),
       JSON.stringify(m.pk)
+    );
+    ok(
+      `battle-hud ${tag} 最近一筆左條＝字色＝稀有度 token：稀有 --rar-rare #fbe53a、傳奇 --rar-unique #fa8915、追逐 --rar-chase #0cf6ee，條 2 px（dpoe-hud133-fix4 F7）`,
+      m.f7 &&
+        JSON.stringify(m.f7) ===
+          JSON.stringify(
+            [
+              [2, 'rgb(251, 229, 58)'],
+              [3, 'rgb(250, 137, 21)'],
+              [4, 'rgb(12, 246, 238)']
+            ].map(([n, c]) => [n, '2px', c, c])
+          ),
+      JSON.stringify(m.f7)
     );
     ok(
       `battle-hud ${tag} 收起列倉庫快滿：「⚠ 倉庫快滿」--warn #a9ae68（UIUX 退回 #6）`,
