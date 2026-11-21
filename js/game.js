@@ -1789,6 +1789,8 @@ function bossAI(m, dt) {
       m.st = 'wind';
       m.ang = angTo(m, T);
       m.t = BOSS_WIND[m.pat] * rage;
+      /* 大招警示（M2-40-big-attack §4）：出招當下判定；判決照那個圈的 2.1 秒 */
+      bigWarn(m, T, m.pat === 'verdict' ? 2.1 * rage : m.t);
       if (m.pat === 'nova') m.gap = rnd(0, TAU);
       if (m.pat === 'line')
         for (let i = 0; i < 6; i++)

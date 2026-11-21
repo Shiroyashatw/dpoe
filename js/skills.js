@@ -350,7 +350,14 @@ function itemDelta(it, k) {
   const b = stats({ ...S, eq }),
     d0 = dps(a),
     d = dps(b) - d0;
-  return { k, dps: [d, d0 ? (d / d0) * 100 : 0], hp: b.hp - a.hp, es: b.es - a.es, breaks: eqBreaks(it, k) };
+  return {
+    k,
+    dps: [d, d0 ? (d / d0) * 100 : 0],
+    hp: b.hp - a.hp,
+    es: b.es - a.es,
+    st: [a, b],
+    breaks: eqBreaks(it, k)
+  };
 }
 /* 插了暴擊施放（0.2.13 的觸發輔助）的法術：不能手動施放 */
 const metaOf = g =>

@@ -464,12 +464,14 @@ function draw() {
   CX.restore();
   drawPlaques(ox, oy);
   CX.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (G.scene === 'map') drawPlates(ox, oy);
   {
     const W = SW,
       H = SH;
     /* 受傷：畫面邊緣紅；完美閃避：藍 */
-    if (P.hurtT > 0 || P.hp < ST.hp * 0.3 || G.slow > 0) {
-      const a = G.slow > 0 ? 0.35 : Math.max(P.hurtT / 0.35, P.hp < ST.hp * 0.3 ? 0.35 + 0.15 * Math.sin(G.t * 6) : 0),
+    /* 低血紅邊改由戰鬥 HUD 畫（battle-hud v1.3.3 §10 L：常亮不閃，bhud.js 的 bhLowHp） */
+    if (P.hurtT > 0 || G.slow > 0) {
+      const a = G.slow > 0 ? 0.35 : P.hurtT / 0.35,
         vg = CX.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.7);
       vg.addColorStop(0, `rgba(${PAL.rgb.scrim},0)`);
       vg.addColorStop(1, G.slow > 0 ? `rgba(${PAL.rgb.dodgeVignette},${a})` : `rgba(${PAL.rgb.hurtVignette},${a})`);
@@ -773,6 +775,28 @@ function drawFront() {
     G.ground.filter(g => g.side !== 'm' && Math.hypot(g.x - P.x, g.y - P.y) < g.r + 60).length;
   if (n >= 2) footRing(P.x, P.y, 22, cssv('--sel-tx'));
   drawHero(1, n >= 2);
+  heroMark();
+}
+/* battle-hud v1.3.3 §12 主角：腳圈 --hero-ring 4 px＋2 px 黑；頭上 10×8 ▼ --focus（螢幕 px，不跟 ZOOM 變粗） */
+function heroMark() {
+  if (G.scene !== 'map' || typeof BH === 'undefined' || !BH.R.m) return;
+  const z = 1 / ZOOM;
+  CX.beginPath();
+  CX.ellipse(P.x, P.y, 22, 9, 0, 0, TAU);
+  CX.strokeStyle = cssv('--d2-black');
+  CX.lineWidth = 8 * z;
+  CX.stroke();
+  CX.strokeStyle = cssv('--d2-hero-ring');
+  CX.lineWidth = 4 * z;
+  CX.stroke();
+  const y = P.y - 58;
+  CX.beginPath();
+  CX.moveTo(P.x - 5 * z, y - 8 * z);
+  CX.lineTo(P.x + 5 * z, y - 8 * z);
+  CX.lineTo(P.x, y);
+  CX.closePath();
+  CX.fillStyle = cssv('--d2-tx-strong');
+  CX.fill();
 }
 function footRing(x, y, r, col) {
   CX.globalAlpha = 0.6;
@@ -1001,6 +1025,23 @@ function drawMinimap(W) {
   /* 手機：小一點，放在右上選單下面 */
   /* M2-12 §1：直立 88×88 在右上（y 52–140、x 290–378）；桌機 160×160 在右下，營地升級開著時不畫 */
   if (!TOUCH.on && PANEL.camp) return;
+  /* battle-hud v1.3.3：直立不畫小地圖；桌機 D63 170×110（右下，--panel 底、1 px --border），地圖照比例放在框裡置中 */
+  if (PORT()) return;
+  if (!TOUCH.on && BH.R.mini) {
+    const [bx0, by0, bw, bh] = BH.R.mini,
+      sc = Math.min((bw - 8) / G.W, (bh - 8) / G.H),
+      s = sc,
+      mw = G.W * s,
+      mh = G.H * s,
+      x0 = bx0 + (bw - mw) / 2,
+      y0 = by0 + (bh - mh) / 2;
+    CX.fillStyle = cssv('--d2-panel');
+    CX.fillRect(bx0, by0, bw, bh);
+    CX.strokeStyle = cssv('--d2-border');
+    CX.lineWidth = 1;
+    CX.strokeRect(bx0 + 0.5, by0 + 0.5, bw - 1, bh - 1);
+    return miniBody(x0, y0, mw, mh, s);
+  }
   const land = TOUCH.on && !PORT(),
     box = PORT() ? 88 : 160,
     mw = land ? Math.min(104, (68 * G.W) / G.H) / ZOOM : Math.min(box, (box * G.W) / G.H),
@@ -1011,6 +1052,9 @@ function drawMinimap(W) {
   CX.fillStyle = `rgba(${PAL.rgb.sceneVoidV2},0.78)`;
   CX.fillRect(x0, y0, mw, mh);
   frameRect(x0, y0, mw, mh);
+  miniBody(x0, y0, mw, mh, s);
+}
+function miniBody(x0, y0, mw, mh, s) {
   if (!G.mini) {
     /* 地圖縮圖：一格一點，進地圖時畫一次 */
     const c = (G.mini = document.createElement('canvas'));
@@ -1528,4 +1572,100 @@ function drawUnit(u) {
     CX.fillStyle = PAL.goodV3;
     CX.fillRect(u.x - 18, y, (36 * Math.max(0, u.hp)) / u.mhp, 4);
   }
+}
+
+/* ---------- battle-hud v1.3.3 §12：掉落牌、菁英名牌（螢幕座標）----------
+   底 --plate-world；字 14（直立）／16（桌機），高 20／22；名稱用稀有度色＋記號（稀有 ◆、傳奇 ◈、追逐＝王印 16）；
+   寬＝記號＋字寬＋左右各 6，最寬 140（超過才「…」），以中心為準。y 下限：牌子下緣 ≤ 狀態圖示上緣 −4（BH.R.floor），
+   會超過時往上推（x 不變），往上疊、間距 2。預設門檻稀有以上（M2-40 §9）：普通、魔法不出牌 */
+const PLATE_MAX = 140;
+function plateFit(t, w) {
+  if (CX.measureText(t).width <= w) return t;
+  while (t.length > 1 && CX.measureText(t + '…').width > w) t = t.slice(0, -1);
+  return t + '…';
+}
+function plateList(ox, oy) {
+  const L = [],
+    sx = x => (x + ox) * ZOOM,
+    sy = y => (y + oy) * ZOOM;
+  for (const d of G.drops) {
+    const [x, y] = dropXY(d);
+    let n, c;
+    if (d.chase) (n = chaseBanner(d.chase)), (c = 'chase');
+    else if (d.show) (n = d.show === 'pack' ? STR_T.pack : CUR[d.show].n), (c = /3$/.test(d.show) ? 'unique' : 'rare');
+    else if (d.it && d.it.r >= 2) (n = itemName(d.it)), (c = d.it.r >= 3 ? 'unique' : 'rare');
+    else continue;
+    L.push({ n, c, x: sx(x), y: sy(y) - 20 * ZOOM, k: d.chase });
+  }
+  for (const m of G.mobs)
+    if (m.elite && !m.boss && m.hp > 0) L.push({ n: `菁英・${m.D.n}`, c: 'elite', x: sx(m.x), y: sy(m.y - m.sz - 10) });
+  return L;
+}
+function drawPlates(ox, oy) {
+  if (typeof BH === 'undefined' || !BH.R.m) return;
+  const port = PORT(),
+    fs = port ? 14 : 16,
+    h = port ? 20 : 22,
+    floor = BH.R.floor != null ? BH.R.floor - cvTop() : cvH(),
+    L = plateList(ox, oy);
+  if (!L.length) return;
+  CX.textBaseline = 'middle';
+  CX.textAlign = 'left';
+  const col = {
+    rare: cssv('--rar-rare'),
+    unique: cssv('--rar-unique'),
+    chase: cssv('--rar-chase'),
+    elite: cssv('--d2-tx-strong')
+  };
+  /* 寬度、下緣；照下緣由下往上排，壓到下限或彼此重疊就往上推 */
+  for (const p of L) {
+    const mk = p.c === 'chase' ? 19 : p.c === 'elite' ? 20 : fs === 14 ? 16 : 18;
+    CX.font = `${p.c === 'elite' ? 700 : 400} ${fs}px "Noto Sans TC", sans-serif`;
+    p.t = plateFit(p.n, PLATE_MAX - 12 - mk);
+    p.w = Math.min(PLATE_MAX, Math.ceil(mk + CX.measureText(p.t).width + 12));
+    p.mk = mk;
+    p.y1 = Math.min(p.y, floor);
+    p.x0 = Math.round(p.x - p.w / 2);
+  }
+  L.sort((a, b) => b.y1 - a.y1);
+  for (let i = 0; i < L.length; i++)
+    for (let j = 0; j < i; j++) {
+      const a = L[i],
+        b = L[j];
+      if (a.x0 < b.x0 + b.w && b.x0 < a.x0 + a.w && a.y1 > b.y1 - h - 2) a.y1 = b.y1 - h - 2;
+    }
+  for (const p of L) {
+    const y0 = Math.round(p.y1 - h);
+    p.r = [p.x0, y0, p.w, h];
+    CX.fillStyle = cssv('--d2-plate-world');
+    CX.fillRect(p.x0, y0, p.w, h);
+    if (p.c !== 'elite') {
+      CX.strokeStyle = col[p.c];
+      CX.lineWidth = 1;
+      CX.strokeRect(p.x0 + 0.5, y0 + 0.5, p.w - 1, h - 1);
+    }
+    CX.font = `${p.c === 'elite' ? 700 : 400} ${fs}px "Noto Sans TC", sans-serif`;
+    CX.fillStyle = col[p.c];
+    const tx = p.x0 + 6;
+    if (p.c === 'chase') spr(isWy(p.k) ? p.k + '_16' : 'wangyin_guixu_16', tx + 8, y0 + h / 2 + 8, 16);
+    else if (p.c === 'elite') eliteMark(tx, y0 + (h - 16) / 2);
+    else CX.fillText(p.c === 'unique' ? '◈' : '◆', tx, y0 + h / 2 + 1);
+    CX.fillText(p.t, tx + p.mk, y0 + h / 2 + 1);
+  }
+  CX.textBaseline = 'alphabetic';
+  G.plates = L;
+}
+/* 菁英標記 16×16（程式畫的角盔剪影，assets-borrowed #5） */
+function eliteMark(x, y) {
+  CX.beginPath();
+  CX.moveTo(x + 2, y + 1);
+  CX.lineTo(x + 5, y + 6);
+  CX.lineTo(x + 11, y + 6);
+  CX.lineTo(x + 14, y + 1);
+  CX.lineTo(x + 14, y + 10);
+  CX.lineTo(x + 11, y + 15);
+  CX.lineTo(x + 5, y + 15);
+  CX.lineTo(x + 2, y + 10);
+  CX.closePath();
+  CX.fill();
 }

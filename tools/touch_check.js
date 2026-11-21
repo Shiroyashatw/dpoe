@@ -164,36 +164,60 @@ const settle = async (p, fn, arg) => {
   const face = await p.evaluate(faceOf);
   ok('朝向怪物', face > 0.7, face.toFixed(2));
   await touch('touchEnd', []);
-  /* 技能鍵拖曳：畫瞄準線，拖回按鈕取消 */
-  const r1 = await p.evaluate(() => {
-    const r = document.querySelector('.sk[data-k=s1]').getBoundingClientRect();
-    return [r.left + r.width / 2, r.top + r.height / 2];
-  });
-  const has1 = await p.evaluate(() => !!slotCfg(1));
-  await p.evaluate(() => {
-    P.mp = ST.mp;
-    P.cds = {};
-    window._mp = P.mp;
-  });
-  await touch('touchStart', [r1]);
-  await touch('touchMove', [[r1[0] - 60, r1[1] - 40]]);
-  await p.waitForTimeout(150);
-  await p.screenshot({ path: shot('aim') });
-  ok('拖曳時有瞄準線', await p.evaluate(() => !!(TOUCH.sk && TOUCH.sk.drag)));
-  await touch('touchMove', [r1]);
-  await p.waitForTimeout(50);
-  await touch('touchEnd', []);
-  await p.waitForTimeout(100);
-  ok('拖回按鈕上＝取消（沒放）', await p.evaluate(() => !(P.cds.s1 > 0) && P.mp === _mp));
-  await p.evaluate(() => {
-    P.act = null;
-    P.mp = ST.mp;
-    window._mp = P.mp;
-  });
-  await touch('touchStart', [r1]);
-  await touch('touchEnd', []);
-  await p.waitForTimeout(30);
-  ok('點一下技能＝施放', await p.evaluate(() => P.mp < _mp || P.cds.s1 > 0 || !!P.act));
+  /* battle-hud v1.3.3 §11：直立的技能格不是出招鍵——點＝開技能分頁、長按 400 ms＝工具提示（放開收）；出招靠點畫面（普攻）與自動。
+     橫向（規格沒有）沿用舊的觸控鍵：拖曳畫瞄準線、拖回按鈕取消、點一下施放 */
+  if (PORTM) {
+    const c1 = await p.evaluate(() => {
+      const r = $('bhS1').getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    });
+    await touch('touchStart', [c1]);
+    await p.waitForTimeout(520);
+    const lt = await p.evaluate(() => [!$('bhTip').hidden, $('bhTip').textContent]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(80);
+    ok(
+      '直立技能格：長按 400 ms 出工具提示、放開收起',
+      lt[0] && !!lt[1] && (await p.evaluate(() => $('bhTip').hidden)),
+      JSON.stringify(lt)
+    );
+    await touch('touchStart', [c1]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(200);
+    ok('直立技能格：點一下＝開技能分頁（不出招）', await p.evaluate(() => navOn() === 'skill' && !(P.cds.s1 > 0)));
+    await p.evaluate(() => closePanels());
+    await p.waitForTimeout(150);
+  } else {
+    const r1 = await p.evaluate(() => {
+      const r = document.querySelector('.sk[data-k=s1]').getBoundingClientRect();
+      return [r.left + r.width / 2, r.top + r.height / 2];
+    });
+    const has1 = await p.evaluate(() => !!slotCfg(1));
+    await p.evaluate(() => {
+      P.mp = ST.mp;
+      P.cds = {};
+      window._mp = P.mp;
+    });
+    await touch('touchStart', [r1]);
+    await touch('touchMove', [[r1[0] - 60, r1[1] - 40]]);
+    await p.waitForTimeout(150);
+    await p.screenshot({ path: shot('aim') });
+    ok('拖曳時有瞄準線', await p.evaluate(() => !!(TOUCH.sk && TOUCH.sk.drag)));
+    await touch('touchMove', [r1]);
+    await p.waitForTimeout(50);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(100);
+    ok('拖回按鈕上＝取消（沒放）', await p.evaluate(() => !(P.cds.s1 > 0) && P.mp === _mp));
+    await p.evaluate(() => {
+      P.act = null;
+      P.mp = ST.mp;
+      window._mp = P.mp;
+    });
+    await touch('touchStart', [r1]);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(30);
+    ok('點一下技能＝施放', await p.evaluate(() => P.mp < _mp || P.cds.s1 > 0 || !!P.act));
+  }
   /* 翻滾：橫向按翻滾鍵；直立快速一撥 */
   if (PORTM) {
     /* 快速一撥＝按下到放開不到 260 毫秒（touch.js）。機器忙時送四個觸控事件就超過 260 毫秒，送出去的不是快速一撥：
@@ -569,11 +593,11 @@ const settle = async (p, fn, arg) => {
         return [e.textContent, Math.round(r.width), Math.round(r.height), Math.round(r.bottom)];
       })
     );
-    /* M2-12 §5 取代 M2-38 的七格：戰利品併進角色頁，6 格照順序、每格 ≥44px、在畫面內 */
+    /* battle-hud v1.3.3（mumi 15:14、18:45）：7 格照順序（倉庫獨立）、每格 ≥44px、在畫面內 */
     ok(
-      '底部分頁列：6 格（角色・鍛造・技能・天賦・營地・更多）、每格 ≥44px、在畫面內',
-      nav.length === 6 &&
-        nav.map(n => n[0].replace(/\d+$/, '')).join() === '角色,鍛造,技能,天賦,營地,更多' &&
+      '底部分頁列：7 格（倉庫・角色・鍛造・技能・天賦・營地・更多）、每格 ≥44px、在畫面內',
+      nav.length === 7 &&
+        nav.map(n => n[0].replace(/\d+$/, '')).join() === '倉庫,角色,鍛造,技能,天賦,營地,更多' &&
         nav.every(n => n[1] >= 44 && n[2] >= 44 && n[3] <= H),
       JSON.stringify(nav)
     );
@@ -1008,33 +1032,60 @@ const settle = async (p, fn, arg) => {
       return [c.length, c.every(b => b.getBoundingClientRect().height >= 44)];
     });
     ok('民房展開：每座產生器一列、「優先」≥44px', ho[0] === 2 && ho[1], JSON.stringify(ho));
-    /* M2-12 §2 取代掛機卡（0.5.4 C2、M1-CP.4）：刷圖中分頁上面一條 44 高的掛機條（掛機 N 分、展開鈕 ≥44、在畫面內），沒有升級鈕、不寫輪；
-       營地升級改從分頁「營地」開抽屜（刷圖不停） */
+    /* battle-hud v1.3.3 取代 M2-12 §2 的掛機條：刷圖中分頁上面是下方面板（P41，204 高；本次掛機、拾取、比較、整理倉庫／自動／去營地），
+       ▼（熱區 44）收到最小＝44 高收起列（掛機時間、▲ 熱區 44）；沒有營地升級鈕、不寫輪；營地升級從分頁「營地」開抽屜（刷圖不停） */
     if (PORTM) {
       const ic = await p.evaluate(async () => {
         closePanels();
         S.auto = 1;
+        S.hmin = 0;
         if (G.scene !== 'map') runNode(TRUNK_K[0]);
         matAdd('wood', 0, 500);
         await new Promise(r => setTimeout(r, 900));
         idleBar(1);
         const el = $('pidle'),
           r = el.getBoundingClientRect(),
-          x = el.querySelector('.ix').getBoundingClientRect(),
+          x = el.querySelector('.ihd').getBoundingClientRect(),
           nv = $('pnav').getBoundingClientRect();
         return [
           idleOn(),
           Math.round(r.height),
           Math.round(r.bottom) === Math.round(nv.top) && r.top >= 0,
-          el.textContent,
+          el.querySelector('.is1').textContent,
           !el.querySelector('[data-fg^="camp:"], [data-fg^="gen:"]'),
           x.width >= 44 && x.height >= 44
         ];
       });
       ok(
-        '掛機條（M2-12 §2）：刷圖中在分頁上面、44 高、寫「掛機 N 分」、不寫輪、展開鈕 ≥44、沒有升級鈕',
-        ic[0] && ic[1] === 44 && ic[2] && /^掛機 \d+ 分/.test(ic[3]) && !/輪/.test(ic[3]) && ic[4] && ic[5],
+        '下方面板（battle-hud P41）：刷圖中在分頁上面、204 高、寫「本次掛機 N 分」、不寫輪、▼ 熱區 ≥44、沒有升級鈕',
+        ic[0] && ic[1] === 204 && ic[2] && /^本次掛機 \d+ 分/.test(ic[3]) && !/輪/.test(ic[3]) && ic[4] && ic[5],
         JSON.stringify(ic)
+      );
+      await tap('#pidle .ihd');
+      await p.waitForTimeout(400);
+      const mn = await p.evaluate(() => {
+        const el = $('pidle'),
+          r = el.getBoundingClientRect(),
+          x = el.querySelector('.ix').getBoundingClientRect(),
+          nv = $('pnav').getBoundingClientRect();
+        return [
+          bhMin(),
+          Math.round(r.height),
+          Math.round(r.bottom) === Math.round(nv.top),
+          el.querySelector('.i32').textContent,
+          x.width >= 44 && x.height >= 44
+        ];
+      });
+      ok(
+        '收起列（battle-hud T30）：點 ▼ 收到最小、44 高、在分頁上面、寫「掛機 N 分」、▲ ≥44',
+        mn[0] && mn[1] === 44 && mn[2] && /^掛機 \d+ 分|倉庫快滿|離開/.test(mn[3]) && mn[4],
+        JSON.stringify(mn)
+      );
+      await tap('#pidle .ix');
+      await p.waitForTimeout(400);
+      ok(
+        '收起列：點 ▲ 展開回一般',
+        await p.evaluate(() => !bhMin() && $('pidle').getBoundingClientRect().height === 204)
       );
       await tap('#pnav [data-tm="nav:craft"]');
       const dr = await p.evaluate(() => {
@@ -1053,31 +1104,40 @@ const settle = async (p, fn, arg) => {
         dr[0] && dr[1] && dr[2] >= 8 && dr[3] && dr[4] === 1,
         JSON.stringify(dr)
       );
-      /* M2-08：面板開著（半版）首領進度照樣看得到、在面板上緣之上 */
+      /* battle-hud v1.3.3 拿掉「王 n%」首領進度（元件表沒有）：面板開著（半版）頂列（通貨、地點）照樣看得到、在面板上緣之上 */
       const pg = await p.evaluate(() => {
-        const r = $('prog').getBoundingClientRect(),
+        const r = $('bhTop').getBoundingClientRect(),
           top = $('pcamp').getBoundingClientRect().top;
-        return [G.scene, getComputedStyle($('prog')).display, Math.round(r.top), Math.round(r.bottom), Math.round(top)];
+        return [
+          G.scene,
+          getComputedStyle($('bhTop')).display,
+          Math.round(r.top),
+          Math.round(r.bottom),
+          Math.round(top)
+        ];
       });
       ok(
-        'M2-08：直立開半版面板時首領進度不藏、在面板上面',
+        'battle-hud：直立開半版面板時頂列不藏、在面板上面',
         pg[0] === 'map' && pg[1] !== 'none' && pg[3] > pg[2] && pg[3] <= pg[4],
         JSON.stringify(pg)
       );
-      /* M2-08：掛機條換版面（離開幾分鐘那一行換掉左字）400 毫秒內的點擊不算，過了就照常（點了展開） */
+      /* M2-08：收起列換版面（離開幾分鐘那一行換掉左字）400 毫秒內的點擊不算，過了就照常（點了展開） */
       await p.evaluate(() => {
         closePanels();
-        IDLE.open = 0;
+        S.hmin = 1;
+        bhLayout(1);
         IDLE.msg = '離開 4 分・靈魂 +12';
         IDLE.msgT = Date.now() + 6000;
+        HV.idle = null;
         idleBar(1);
       });
-      await tap('#pidle .ib');
-      const g0 = await p.evaluate(() => !!IDLE.open);
+      await tap('#pidle .ihit');
+      const g0 = await p.evaluate(() => !bhMin());
       await p.waitForTimeout(400);
-      await tap('#pidle .ib');
-      const g1 = await p.evaluate(() => !!IDLE.open);
-      ok('M2-08：掛機條剛換版面時點了不算，等一下再點才展開', !g0 && g1, JSON.stringify([g0, g1]));
+      await tap('#pidle .ihit');
+      await p.waitForTimeout(400);
+      const g1 = await p.evaluate(() => !bhMin());
+      ok('M2-08：收起列剛換版面時點了不算，等一下再點才展開', !g0 && g1, JSON.stringify([g0, g1]));
     }
     await p.evaluate(() => {
       S.camp = JSON.parse(JSON.stringify(_CAMP));
@@ -2031,11 +2091,15 @@ const settle = async (p, fn, arg) => {
       if (sl) await tapAt(sl);
       const tipOn = await p.evaluate(() => !$('tip').hidden);
       const nb = await mid('#pnav [data-tm="nav:craft"]');
+      const at = await p.evaluate(([x, y]) => {
+        const e = document.elementFromPoint(x, y);
+        return e && (e.id || e.className) + ' ' + JSON.stringify($('tip').getBoundingClientRect());
+      }, nb);
       await tapAt(nb);
       ok(
         'M1-19：說明框開著時點「營地」一下就切過去',
         tipOn && (await p.evaluate(() => navOn() === 'craft' && $('tip').hidden)),
-        String(tipOn)
+        JSON.stringify([tipOn, nb, at, await p.evaluate(() => [navOn(), $('tip').hidden, G.scene, G.state])])
       );
       /* M1-01：新存檔看完（跳過）開場，5 秒內就在刷第一個地點、自動模式，不用點任何東西 */
       /* 另一份存檔（?p=8）：重新整理前存檔會寫回去，清 localStorage 不算新存檔 */
@@ -2326,12 +2390,15 @@ const settle = async (p, fn, arg) => {
       if (!idleOn()) return (S.auto = a0), { skip: 1 };
       SES.t0 = Date.now() - 125 * 60e3;
       (S.log = S.log || []).unshift({ t: Date.now(), n: '完美崇高石・完美崇高石・完美崇高石', c: 'perf' });
-      IDLE.open = 0;
+      /* battle-hud v1.3.3：收起列 T32–T35（掛機時間 108、追逐保底 108、最近一筆 104、▲ 44） */
+      S.hmin = 1;
+      bhLayout(1);
       IDLE.msg = '';
+      HV.idle = null;
       idleBar(1);
       await new Promise(r => setTimeout(r, 300));
       const bar = $('pidle').getBoundingClientRect(),
-        kids = [...document.querySelectorAll('#pidle .ib > *, #pidle .ix')],
+        kids = [...document.querySelectorAll('#pidle .i32, #pidle .i33, #pidle .i34, #pidle .ix')],
         bad = [];
       for (const e of kids) {
         const r = e.getBoundingClientRect();
@@ -2340,20 +2407,23 @@ const settle = async (p, fn, arg) => {
       for (let k = 0; k + 1 < kids.length; k++)
         if (kids[k].getBoundingClientRect().right > kids[k + 1].getBoundingClientRect().left + 0.5)
           bad.push(kids[k].textContent + ' 跟下一段重疊');
-      const nm = document.querySelector('#pidle .ilast span'),
-        txt = kids.map(e => e.textContent);
+      const nm = document.querySelector('#pidle .i34 .nm'),
+        txt = kids.map(e => e.textContent),
+        ell = !!nm && nm.scrollWidth > nm.clientWidth;
       S.log.shift();
+      S.hmin = 0;
+      bhLayout(1);
       SES.t0 = t0;
       S.auto = a0;
-      return { on: true, h: Math.round(bar.height), ell: !!nm && nm.scrollWidth > nm.clientWidth, bad, txt };
+      return { on: true, h: Math.round(bar.height), ell, bad, txt };
     });
     if (rb.skip) console.log('（這個尺寸觸控模式沒有掛機條，略過 hotfix-ui 掛機條大數字）');
     else {
       await p.screenshot({ path: shot('idle_big') });
       ok(
-        'hotfix-ui：掛機條大數字（掛機 2 時 05 分、長掉落名）不超出條、不重疊、44 高、長名字省略號',
-        /* B1 D2-03：收起列左字改「掛機 {t}・打倒王 {n} 次」（textContent 含放不下時藏起來的那段） */
-        rb.on && rb.h === 44 && rb.ell && !rb.bad.length && rb.txt[0] === '掛機 2 時 05 分・打倒王 0 次',
+        'hotfix-ui：收起列大數字（掛機 2 時 05 分、長掉落名）不超出條、不重疊、44 高、長名字省略號',
+        /* battle-hud v1.3.3 T32：「掛機 2 時 14 分」（不寫打倒王次數）；≥60 分寫「掛機 1 時 05 分」 */
+        rb.on && rb.h === 44 && rb.ell && !rb.bad.length && rb.txt[0] === '掛機 2 時 05 分',
         JSON.stringify(rb)
       );
     }
@@ -2706,6 +2776,11 @@ const settle = async (p, fn, arg) => {
       a: 'body.port .panel *',
       b: '#pnav > *',
       why: '合併 B1 後開面板時掛機條收起，直立面板直接貼分頁列，捲動中的面板內容被分頁列上緣裁切（這裡量的是沒裁切的外框）：分頁列與抽屜外框屬 B1（M2-12 第一段 §1）'
+    },
+    {
+      a: '#bh *, #pidle *, #pnav > *',
+      b: '#bh *, #pidle *, #pnav > *',
+      why: 'battle-hud v1.3.3 元件表定的間距（通貨 4、技能格 6、藥劑熱區上下相接、▼ 熱區與藥劑熱區對邊相接、下方按鈕間距 8／貼分頁上緣 4）：表優先（battle-hud.md §4-5），每個框由 tools/bh_shots.js 逐項量 ±2'
     }
   ];
   const hitSweep = async (name, setup, arg) => {

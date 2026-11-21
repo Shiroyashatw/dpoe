@@ -16,7 +16,12 @@ function artRepaint() {
   clearTimeout(ART_T);
   ART_T = setTimeout(() => {
     hudPanels();
-    HV.sts = null; /* 圖載好了：狀態列強制重畫（key 不含秒數，不會自己補圖） */
+    HV.sts =
+      HV.bhsts =
+      HV.bhau =
+      HV.bhcur =
+        null; /* 圖載好了：狀態列、光環、通貨強制重畫（key 不含秒數，不會自己補圖） */
+    if (typeof BH !== 'undefined') for (let i = 0; i < 5; i++) delete $('bhS' + i).dataset.ic;
     if (document.querySelector('.sk span.ic')) hudBar();
     if (CB.st !== 'idle' && document.querySelector('#chase span.ic'))
       $('chase').innerHTML = chaseBnHTML(); /* 王印圖第一次用到才載，橫幅先畫出空格 */
@@ -83,14 +88,6 @@ const fsApply = () => {
 };
 /* 直立操作：手機而且設定選直立（桌機一律橫向） */
 const PORT = () => TOUCH.on && !!S && S.orient === 'p';
-/* 桌機：魔力球旁的功能列；手機：右上的 ☰ 選單（data-tm 的處理在 touch.js） */
-const DMENU = [
-  ['inv', 'bag', '裝備與倉庫', 'I'],
-  ['skill', 'gem', '技能', 'G'],
-  ['tree', 'tree', '天賦樹', 'P'],
-  ['camp', 'home', '回營地', 'T'],
-  ['set', 'gear', '設定與快捷鍵', 'Esc']
-];
 /* 功能選單（0.4.0）：刷圖時也能開（面板開著戰鬥照跑）；桌機「功能」鈕、手機 ☰ 都列這些 */
 /* M2-38（M2-37.7）：K 鍛造、O 鍛造 › 通貨、H 營地、Y 追逐物品（開放後才有） */
 const FMENU = [
@@ -101,7 +98,7 @@ const FMENU = [
   ['chase', STR_T.chase, 'Y'],
   ['asc', '昇華石碑', 'U'],
   ['box', '山海寶盒', 'J'],
-  ['log', '掉落紀錄', 'L']
+  ['log', '掉落紀錄', ';']
 ];
 function fmenuOpen(k) {
   if (k === 'chase' && !chaseOn()) return;
@@ -124,21 +121,9 @@ const fmenuHTML = () =>
     .join('');
 function hudInit() {
   $('hud').innerHTML = `
-  <div class="top"><div id="area"></div><div id="run" hidden></div><div id="dlog"></div><div id="bossbar" hidden><b id="bossn"></b><em class="bsh">現身</em><div class="bb"><i></i></div></div><div id="prog" hidden><b id="progt">王 0%</b><div class="pb"><i></i></div></div></div>
-  <button id="curs" data-a="curs" hidden></button>
-  <div class="bottom">
-    <div class="orb hp" id="ohp"><i></i><b class="ward"></b><svg class="spir blk" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 5 A45 45 0 0 1 50 95"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 0 50 5"/></svg><span></span></div>
-    <div class="mid">
-      <div id="lvup" role="status" aria-live="polite"></div>
-      <div class="mech" id="mech" role="status" aria-label="目前的狀態"></div>
-      <div class="bars tonly"><div class="hb hp" id="bhp"><i></i><b class="ward"></b><span></span></div><div class="hb bv" id="bbv" hidden><i></i></div><div class="hb mp" id="bmp"><i></i><span></span></div></div>
-      <div class="xp" id="xp" data-tip="經驗"><i></i></div>
-      <div class="bar" id="bar"></div>
-    </div>
-    <div class="orb mp" id="omp"><i></i><svg class="spir" viewBox="0 0 100 100" aria-hidden="true"><path class="tr" d="M50 95 A45 45 0 0 1 50 5"/><path class="fg" pathLength="1" d="M50 95 A45 45 0 0 1 50 5"/></svg><span></span></div>
-    <div class="dmenu"><button class="autob2" data-tm="more" data-tip="地點、通貨與碎片、營地、昇華石碑、山海寶盒、掉落紀錄" aria-expanded="false">功能</button>${DMENU.map(([k, ic, n, key]) => `<button data-tm="${k}" data-tip="${n}（${key}）" aria-label="${n}">${ICO[ic]}<kbd>${key}</kbd></button>`).join('')}</div>
-  </div>
-  <div class="modesw donly" role="group" aria-label="自動／手動"><button data-a="auto:1" aria-pressed="false">${STR_T.modeAuto}</button><button data-a="auto:0" aria-pressed="false">${STR_T.modeMan}</button><kbd>C</kbd></div>
+  <div class="top"><div id="area"></div><div id="run" hidden></div></div>
+  <div id="lvup" role="status" aria-live="polite"></div>
+  <div class="bottom"><div class="bar" id="bar"></div></div>
   <nav id="dnav" class="donly" aria-label="功能"></nav>
   <div id="prac" hidden></div>
   <div id="warn" role="status" aria-live="polite"></div>
@@ -152,36 +137,37 @@ function hudInit() {
   <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
   $('chase').addEventListener('mouseenter', () => chaseBnHover(1));
   $('chase').addEventListener('mouseleave', () => chaseBnHover(0));
+  bhInit();
   pracInit();
   holdInit();
   introInit();
   hudBar();
   hudState();
 }
-/* 技能列的圖示跟著技能欄換（換寶石後重畫）。桌機（M2-38，M2-37.4）：祭壇沒開的技能格不畫；開了但空著的只畫外框＋鍵帽，點了開技能面板 */
+/* 手機橫向的觸控鍵（規格沒有橫向，沿用舊的）：5 個技能、翻滾、藥劑、互動。直立、桌機的技能格在 #bh（bhud.js，battle-hud v1.3.3 §11） */
 function hudBar() {
   HV.bar = barKey();
-  $('bar').innerHTML = BAR.filter(b => b.slot == null || TOUCH.on || b.slot < campN('slots'))
-    .map(b => {
-      if (!TOUCH.on && b.slot != null && !S.skills[b.slot].k)
-        return `<button class="sk emp" data-k="${b.k}" data-tm="skill" data-tip="${esc(tipOf(b))}" aria-label="${b.key}：空的"><kbd>${b.key}</kbd></button>`;
-      const g = b.slot != null && S.skills[b.slot].k,
-        ic =
-          b.k === 'roll'
-            ? `<em class="roll">${ICO.roll}</em>`
-            : b.k === 'use'
-              ? '<em class="use">互動</em>'
-              : b.slot != null
-                ? g
-                  ? icHTML(SKILLS[g].ic)
-                  : `<em class="empty">${ICO.plus}</em>`
-                : icHTML(b.ic);
-      return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
-    })
-    .join('');
-  for (const k in HV) if (/^[tnb]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$|^[cl](flask|mflask)$/.test(k)) delete HV[k];
+  $('bar').innerHTML = !(TOUCH.on && !PORT())
+    ? ''
+    : BAR.map(b => {
+        const g = b.slot != null && S.skills[b.slot].k,
+          ic =
+            b.k === 'roll'
+              ? `<em class="roll">${ICO.roll}</em>`
+              : b.k === 'use'
+                ? '<em class="use">互動</em>'
+                : b.slot != null
+                  ? g
+                    ? icHTML(SKILLS[g].ic)
+                    : `<em class="empty">${ICO.plus}</em>`
+                  : icHTML(b.ic);
+        return `<div class="sk${b.touch ? ' tonly' : ''}" data-k="${b.k}" data-tip="${esc(tipOf(b))}">${ic}<u></u><s></s><kbd>${b.key}</kbd></div>`;
+      }).join('');
+  for (const k in HV)
+    if (/^[tnb]s\d|^cds\d|^(cd|t|n)(flask|mflask|roll)$|^[cl](flask|mflask)$|^bs/.test(k)) delete HV[k];
+  for (let i = 0; i < 5; i++) if ($('bhS' + i)) delete $('bhS' + i).dataset.ic;
 }
-const barKey = () => (TOUCH.on ? 't' : campN('slots'));
+const barKey = () => (TOUCH.on ? (PORT() ? 'p' : 't') : 'd');
 function tipOf(b) {
   if (b.slot == null) return `${b.n}\n${b.d}`;
   const c = slotCfg(b.slot);
@@ -249,7 +235,7 @@ function pausedTick() {
   if (el.hidden === !on && !on) return;
   el.hidden = !on;
   if (!on) return;
-  const b = [$('area'), $('bossbar'), $('prog')]
+  const b = [$('area'), $('bhTop'), $('bhBoss'), $('bhBig')]
     .filter(e => e && !e.hidden && e.offsetParent)
     .map(e => e.getBoundingClientRect().bottom);
   el.style.top = Math.round(Math.max(0, ...b) + (IH < 700 ? 6 : 8)) + 'px';
@@ -268,35 +254,18 @@ function hudTick() {
   if (!P) return;
   pausedTick();
   charmHint();
-  setV($('ohp'), 'hp', (P.hp / ST.hp).toFixed(3));
-  /* 地獄火（0.2.26，炎魔契約）：魔力球改成地獄火（橘紅色、往上漲；八成以上發紅光＝快自爆） */
-  const hell = !!ST.hellfire,
-    mpv = hell ? (P.hf || 0) / ST.hfMax : P.mp / ST.mp,
-    mpt = hell ? `地獄火\n${Math.floor(P.hf || 0)} / ${ST.hfMax}` : Math.floor(P.mp) + ' / ' + ST.mp,
-    hot = hell && mpv >= 0.8;
-  if (HV.hell !== hell || HV.hot !== hot) {
-    HV.hell = hell;
-    HV.hot = hot;
-    for (const el of [$('omp'), $('bmp')]) el.classList.toggle('hf', hell), el.classList.toggle('hot', hot);
-  }
-  setV($('omp'), 'mp', mpv.toFixed(3));
-  setT($('ohp').lastChild, 'ht', Math.ceil(P.hp) + ' / ' + ST.hp + (ST.es ? `\n盾 ${Math.floor(P.es || 0)}` : ''));
-  setT($('omp').lastChild, 'mt', mpt);
-  setV($('xp'), 'xp', (S.xp / xpNeed(S.lv)).toFixed(3));
-  for (const el of document.querySelectorAll('.sk:not(.emp)')) {
+  /* battle-hud v1.3.3（bhud.js）：頂列、技能格、光環、狀態、條、藥劑、王血條、大招、低血 */
+  bhTick();
+  /* 手機橫向的觸控鍵（規格沒有橫向，沿用舊的）：冷卻、魔力不夠、失效 */
+  for (const el of document.querySelectorAll('#bar .sk')) {
     const k = el.dataset.k,
       c = k[0] === 's' ? slotCfg(+k[1]) : null;
     let cd = 0,
       txt = '';
-    if (k === 'flask' || k === 'mflask') {
-      /* 0.3.1：不限次數，只畫冷卻環＋扇形掃過（不寫次數、秒數）；低血（< 35%）且生命藥劑冷卻好了才呼吸外框 */
-      cd = (P.cds[k] || 0) / FLASK.cd;
-      const low = k === 'flask' && !(cd > 0) && P.hp < ST.hp * 0.35;
-      if (HV['c' + k] !== cd > 0) el.classList.toggle('cdn', (HV['c' + k] = cd > 0));
-      if (HV['l' + k] !== low) el.classList.toggle('low', (HV['l' + k] = low));
-    } else if (k === 'roll') cd = (P.cds.roll || 0) / (ROLL.cd + ROLL.t);
+    if (k === 'flask' || k === 'mflask') cd = (P.cds[k] || 0) / FLASK.cd;
+    else if (k === 'roll') cd = (P.cds.roll || 0) / (ROLL.cd + ROLL.t);
     else if (c && isFlaskSk(c.D)) {
-      /* 藥劑技能（0.2.74 追獵者）：還能放幾次（跟紅水同一池）；共用 0.5 秒間隔畫成冷卻圈 */
+      /* 藥劑技能（0.2.74 追獵者）：還能放幾次（跟紅水同一池）；直立、桌機的技能格在 bhud.js 的 bhSkState */
       const n = Math.floor(P.flask / flaskCost() + 1e-9);
       txt = String(n);
       cd = P.flaskT > G.t ? (P.flaskT - G.t) / 0.5 : n ? 0 : 1 - P.flask / flaskCost();
@@ -307,19 +276,12 @@ function hudTick() {
     setV(el, 'cd' + k, cd.toFixed(2));
     setT(el.querySelector('u'), 't' + k, txt);
     const no =
-      (c && ((!hell && !pracFree() && mpAvail() < c.mp) || !wtOK(c.D))) ||
+      (c && ((!ST.hellfire && !pracFree() && mpAvail() < c.mp) || !wtOK(c.D))) ||
       !fightOn() ||
       (ST.noFlask && (k === 'flask' || k === 'mflask'));
     if (HV['n' + k] !== no) el.classList.toggle('no', (HV['n' + k] = no));
-    /* 技能失效（武器不對、能力值不夠）：右上角紅「!」，說明框寫原因 */
-    const bad = k[0] === 's' && c ? slotBad(+k[1], c) : '';
-    if (HV['b' + k] !== bad) {
-      el.classList.toggle('bad', !!(HV['b' + k] = bad));
-      if (bad) el.title = '失效：' + bad;
-      else el.removeAttribute('title');
-    }
   }
-  /* 翻滾冷卻：桌機畫在游標旁（直立是技能鍵旁的小圖示，照上面的 .sk 一起更新） */
+  /* 翻滾冷卻：桌機畫在游標旁 */
   const rc = TOUCH.on ? 0 : (P.cds.roll || 0) / (ROLL.cd + ROLL.t),
     rcd = $('rcd');
   if (rcd.hidden !== !(rc > 0)) rcd.hidden = !(rc > 0);
@@ -327,100 +289,26 @@ function hudTick() {
     rcd.style.transform = `translate(${M.x + 14}px, ${M.y + 14}px)`;
     setV(rcd, 'rcd', rc.toFixed(2));
   }
-  /* 能量護盾（照 PoE）：生命球上疊一層白，高度＝護盾÷最大護盾；騎士的護盾也畫在這層 */
-  const wv = ST.es ? Math.min(1, (P.es || 0) / ST.es).toFixed(3) : '0';
-  if (HV.ward !== wv) $('ohp').style.setProperty('--w', (HV.ward = wv));
-  /* 格擋值（0.2.25）：生命球右邊的弧（手機是生命條下面的細條）；碎掉在回滿的時候變淺色 */
-  const bvOn = ST.bv > 0,
-    bvv = bvOn ? Math.min(1, (P.bv || 0) / ST.bv).toFixed(3) : '0',
-    bvBr = P.bvRe != null;
-  if (HV.bvOn !== bvOn) {
-    HV.bvOn = bvOn;
-    $('ohp').classList.toggle('hasbv', bvOn);
-    $('bbv').hidden = !bvOn;
-    if (!bvOn) delete $('ohp').dataset.tip;
-  }
-  if (HV.bv !== bvv) for (const el of [$('ohp'), $('bbv')]) el.style.setProperty('--b', (HV.bv = bvv));
-  if (HV.bvBr !== bvBr) {
-    HV.bvBr = bvBr;
-    $('ohp').classList.toggle('bvbr', bvBr);
-    $('bbv').classList.toggle('bvbr', bvBr);
-  }
-  if (bvOn) $('ohp').dataset.tip = `格擋值 ${Math.floor(P.bv || 0)} / ${ST.bv}${bvBr ? '（碎了，回滿前不吸收）' : ''}`;
-  /* 精魂：魔力球左邊的弧（已預留÷總量） */
-  const sv = ST.spirit ? (ST.spiritUsed / ST.spirit).toFixed(3) : '0';
-  if (HV.spir !== sv) {
-    $('omp').style.setProperty('--s', (HV.spir = sv));
-    $('omp').dataset.tip = `精魂 ${ST.spiritUsed} / ${ST.spirit}`;
-  }
-  /* 狀態列（0.2.30）：圖示＋剩餘秒數或層數；負面的紅框；點一下看名字與效果 */
-  const sts = fightOn() ? playerStates() : [],
-    stKey = sts.map(s => s.k + (s.c || '')).join();
-  if (HV.sts !== stKey) {
-    HV.sts = stKey;
-    $('mech').innerHTML = sts
-      .map(
-        s =>
-          `<button class="stc ${s.bad ? 'bad' : ''}" ${s.col ? `style="border-color:${s.col}"` : ''} data-st="${esc(s.n + '：' + s.d)}" aria-label="${esc(s.n)}">${icHTML(s.ic)}<i></i>${s.c > 1 || s.sc ? `<b>${s.c}</b>` : ''}</button>`
-      )
-      .join('');
-  }
-  /* 暗色扇形順時針掃過：剩餘越少蓋越多 */
-  const sb = $('mech').children;
-  sts.forEach((s, i) => sb[i] && sb[i].style.setProperty('--f', s.f.toFixed(2)));
-  const b = G.mobs.find(m => m.boss && !m.mini && !m.dummy) || G.mobs.find(m => m.boss && !m.dummy),
-    show = !!(b && b.aggro);
-  if (HV.boss !== show) {
-    const bb = $('bossbar');
-    bb.hidden = !(HV.boss = show);
-    /* M2-12 §4：先出 44 高橫幅「{王名}現身」800 ms，再 240 ms 縮成王血條（CSS 動畫 bossin） */
-    bb.classList.remove('intro');
-    if (show) ($('bossn').textContent = b.D.n), void bb.offsetWidth, bb.classList.add('intro');
-    /* 播完（1040 ms）拿掉 intro：「現身」兩字不留在畫面與讀屏上 */
-    clearTimeout(HV.bt);
-    if (show) HV.bt = setTimeout(() => bb.classList.remove('intro'), 1100);
-  }
-  if (show) setV($('bossbar'), 'bhp', (b.hp / b.mhp).toFixed(3));
-  /* M2-12 修訂：離王進度當「下一個王」短期目標，寫「王 n%」（不寫波數、輪數）；王出現時被王血條取代，
-     王倒下（後台 2 秒空檔）就回到 0 重填：往下 0 ms 跳回，往上 300 ms 填入（CSS transition） */
-  const bAlive = G.bossOut && G.mobs.some(m => m.boss && !m.mini && !m.dummy && m.hp > 0),
-    pr = G.scene === 'map' && !G.arena && !bAlive && !show;
-  if (HV.pr !== pr) $('prog').hidden = !(HV.pr = pr);
-  if (pr) {
-    const v = G.bossOut ? 0 : Math.min(1, G.prog / G.need),
-      i = $('prog').lastChild.firstChild;
-    i.style.transition = v < (HV.prog || 0) ? 'none' : '';
-    setV($('prog'), 'prog', v.toFixed(3));
-    setT($('progt'), 'progt', `王 ${Math.floor(v * 100)}%`);
-  }
   pracHud();
-  const at =
-    G.scene === 'camp'
-      ? `營地 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
-      : /* M2-12 §1：不寫第幾輪、王倒下也不換字（輪是後台的事） */
-        `${G.nodeN || '地圖'}・${G.star || 1}★・怪物 Lv ${mobLv(G.mapT)}`;
-  setT($('area'), 'at', at);
+  /* 營地的頂列字（營地畫面暫停改版，照舊） */
+  if (G.scene === 'camp')
+    setT(
+      $('area'),
+      'at',
+      `營地 · 角色 Lv ${S.lv} · ${S.gold} 金${S.story.crow ? ` · 血霧 ${S.hunt.v}%${S.frags.mist ? `（血霧之印 ${S.frags.mist}）` : ''}` : ''}`
+    );
   chaseUnlock();
   idleBar();
-  curStrip();
   runBar();
   /* 營地分頁開著：每秒補畫數字變了的卡（0.5.1）；分頁列的小點跟著買得起幾件 */
   const ct = performance.now();
   if (ct - CAMP_T > 1000) (CAMP_T = ct), campRefresh(), sheetSync(), PANEL.camp && campDrawer();
-  logBar();
   if (HV.ai !== AI.on) document.body.classList.toggle('ai', !!(HV.ai = AI.on));
-  const au = S.auto ? 1 : 0;
   if (HV.bar !== barKey()) hudBar();
-  const bu = !$('bossbar').hidden;
-  if (HV.bu !== bu) document.body.classList.toggle('bossup', (HV.bu = bu));
+  const au = S.auto ? 1 : 0;
   if (HV.au !== au) {
     HV.au = au;
     document.body.classList.toggle('mauto', !!au);
-    for (const e of document.querySelectorAll('.modesw button')) {
-      const on = e.dataset.a === 'auto:' + au;
-      e.classList.toggle('on', on);
-      e.setAttribute('aria-pressed', on);
-    }
     for (const e of document.querySelectorAll('.autob')) {
       e.textContent = au ? '自動' : '手動';
       e.classList.toggle('on', !!au);
@@ -432,16 +320,11 @@ function hudTick() {
     HV.hm = hm;
     for (const e of document.querySelectorAll('[data-tm=camp]')) e.hidden = hm;
   }
-  /* 手機：血、魔力長條；「互動」只在附近有東西時出現 */
-  setV($('bhp'), 'hp2', HV.hp);
-  setV($('bmp'), 'mp2', HV.mp);
-  setT($('bhp').lastChild, 'ht2', Math.ceil(P.hp) + ' / ' + ST.hp + (ST.es ? ` · 盾 ${Math.floor(P.es || 0)}` : ''));
-  setT($('bmp').lastChild, 'mt2', mpt.replace('\n', ' '));
-  if (HV.w2 !== wv) $('bhp').style.setProperty('--w', (HV.w2 = wv));
-  if (TOUCH.on) {
+  if (TOUCH.on && !PORT()) {
     const near =
       (G.portal && G.scene === 'map' && dist(P, G.portal) < 90) || G.drops.some(d => d.t > 0.3 && dist(P, d) < 110);
-    if (HV.near !== near) document.querySelector('.sk[data-k=use]').classList.toggle('far', !(HV.near = near));
+    const u = document.querySelector('.sk[data-k=use]');
+    if (u && HV.near !== near) u.classList.toggle('far', !(HV.near = near));
   }
 }
 /* 死亡卡的死因 */
@@ -522,13 +405,15 @@ const NAV = { view: 'bag', pick: 0, full: 0, slot: null };
 /* M2-12 第一段 §5：6 格——角色（含戰利品，角色頁上方切「角色｜倉庫」）・鍛造・技能・天賦・營地・更多；追逐物品搬進「更多」。
    第四格是桌機鍵帽 V／K／G／P／H／Z，另有 Tab／Shift+Tab 換下一個／上一個分頁（dpoe-ui1a-rev2）；
    I 是倉庫段、Esc 一層一層關，都不綁分頁；數字鍵 1／2 是喝藥（D3） */
+/* battle-hud v1.3.3（mumi 15:14、18:45）：7 格——倉庫・角色・鍛造・技能・天賦・營地・更多；倉庫獨立（桌機 L）。第五格是直立的分頁圖示（art/icons/tab/） */
 const NAV_T = [
-  ['char', 'hero', '角色', 'V'],
-  ['forge', 'hammer', STR_T.forge, 'K'],
-  ['skill', 'gem', '技能', 'G'],
-  ['tree', 'tree', '天賦', 'P'],
-  ['craft', 'home', '營地', 'H'],
-  ['more', 'menu', '更多', 'Z']
+  ['bag', 'bag', '倉庫', 'L', 'loot'],
+  ['char', 'hero', '角色', 'V', 'char'],
+  ['forge', 'hammer', STR_T.forge, 'K', 'forge'],
+  ['skill', 'gem', '技能', 'G', 'skill'],
+  ['tree', 'tree', '天賦', 'P', 'talent'],
+  ['craft', 'home', '營地', 'H', 'camp'],
+  ['more', 'menu', '更多', 'Z', 'more']
 ];
 /* Tab 換分頁：分頁開著、焦點在畫面本身或分頁鈕上時才換（焦點跟著到新分頁）；焦點在別的按鈕上時 Tab 照焦點順序走（#4） */
 const navTabKey = () => {
@@ -560,7 +445,9 @@ const navOn = () =>
           : PANEL.camp
             ? 'craft'
             : PANEL.inv
-              ? 'char'
+              ? NAV.view === 'bag' && !NAV.pick
+                ? 'bag'
+                : 'char'
               : anyPanel()
                 ? 'more'
                 : '';
@@ -601,6 +488,7 @@ function navGo(t) {
 }
 /* 英文的分頁字（還沒有語系，<html lang="en"> 時用；長名＋短名，短名照規格 §1.4 ≤7 字元） */
 const NAV_EN = {
+  bag: ['Stash', 'Stash'],
   char: ['Character', 'Hero'],
   forge: ['Forge', 'Forge'],
   skill: ['Skills', 'Skills'],
@@ -614,8 +502,8 @@ const navHTML = () => {
   /* 天賦樹分頁要祭壇 Lv4（0.5.1）；營地的小點寫買得起幾件 */
   return NAV_T.filter(([k]) => k !== 'tree' || campCan('tree'))
     .map(
-      ([k, ic, t, key]) =>
-        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" data-s="${en ? NAV_EN[k][1] : t}" aria-pressed="${on === k}">${ICO[ic]}<span>${en ? NAV_EN[k][0] : t}</span>${TOUCH.on ? '' : `<kbd>${key}</kbd>`}${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : k === 'more' ? STR_T.chaseNew : '有點數沒用'}"></i>`) : ''}</button>`
+      ([k, ic, t, key, ta]) =>
+        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" data-s="${en ? NAV_EN[k][1] : t}" aria-pressed="${on === k}">${TOUCH.on ? `<i class="tic" style="--m:url(${hudArtURL('tab', ta, 16)})" aria-hidden="true"></i>` : ''}<span>${en ? NAV_EN[k][0] : t}</span>${TOUCH.on ? '' : `<kbd>${key}</kbd>`}${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : k === 'more' ? STR_T.chaseNew : '有點數沒用'}"></i>`) : ''}</button>`
     )
     .join('');
 };
@@ -626,28 +514,35 @@ const idleOn = () =>
   !TREE.open &&
   !G.ask &&
   !(G.state === 'dead' && !(S.auto && G.node)) &&
-  !shortSheet() &&
+  !(PORT() && anyPanel()) &&
   (!TOUCH.on || PORT());
 /* 半版面板開著（世界地圖是全螢幕，不算）；M2-12 起掛機條是 44 高的條，不算半版 */
 const sheetOn = () => !!(PORT() && anyPanel());
-/* M2-12 §1.1 直立版面：上下安全區（SAFE，main.js 的 resize 量）不放東西；底下是分頁 56＋（刷圖中）掛機條 44；
-   半版面板高 min(380, 可用高−280)，戰場至少 280（390×844：沒開面板 47–710＝663、開了 47–330＝283） */
+/* battle-hud v1.3.3 直立版面：上下安全區（SAFE，main.js 的 resize 量）不放東西；刷圖中上面頂列 44（P03）、底下分頁 54（P58–P64）；
+   一般狀態戰場到下方面板上緣（390×844：91–552）、收起到收起列上緣（91–712）。半版面板開著時下方面板不畫，面板貼分頁上緣：
+   高 min(380, 可用高−283)，戰場至少 283（390×844：91–376） */
 const SAFE = { t: 0, b: 0 };
-/* B1 D2-06：矮螢幕（刷圖中半版放不滿 380，例 390×664）：戰場留 283，面板一路蓋到分頁上緣（掛機條收在面板下面）；角色、鍛造直接全版 */
-const shortScr = () => PORT() && G.scene === 'map' && IH - SAFE.t - SAFE.b - 56 - 44 - 283 < 380;
+const NAV_H = 54;
+const topH = () => (G.scene === 'map' && !TREE.open ? 44 : 0);
+/* B1 D2-06：矮螢幕（刷圖中半版放不滿 380，例 390×664）：角色、鍛造直接全版 */
+const shortScr = () => PORT() && G.scene === 'map' && IH - SAFE.t - SAFE.b - NAV_H - 44 - 283 < 380;
 const shortSheet = () => shortScr() && anyPanel();
-const portFix = () => 56 + (G.scene === 'map' && !shortSheet() ? 44 : 0);
-const sheetH = () =>
-  shortSheet()
-    ? Math.max(0, IH - SAFE.t - SAFE.b - 56 - 283)
-    : Math.min(380, Math.max(0, IH - SAFE.t - SAFE.b - portFix() - 280));
+const portFix = () => NAV_H;
+const sheetH = () => Math.min(380, Math.max(0, IH - SAFE.t - topH() - SAFE.b - NAV_H - 283));
 const fullOf = k => shortScr() && ['char', 'bag', 'inv', 'forge', 'stash'].includes(k);
 const portFull = () => NAV.full && anyPanel();
-const cvTop = () => (PORT() && !portFull() ? SAFE.t : 0);
+const cvTop = () => (PORT() && !portFull() ? SAFE.t + topH() : 0);
 /* 藏身處（第二段才改營地場景）照舊：半版面板上緣在畫面高 38%（SHEET_TOP） */
 const SHEET_TOP = 0.38;
 const sheetTop = () => (G.scene !== 'map' ? Math.round(IH * SHEET_TOP) : IH - SAFE.b - portFix() - sheetH());
-const cvH = () => (!PORT() || portFull() ? IH : (sheetOn() ? sheetTop() : IH - SAFE.b - portFix()) - SAFE.t);
+/* 戰場下緣：半版面板上緣；刷圖中沒開面板＝下方面板（或收起列）上緣；營地＝分頁上緣 */
+const cvBot = () =>
+  sheetOn()
+    ? sheetTop()
+    : G.scene === 'map' && !TREE.open
+      ? IH - SAFE.b - NAV_H - (bhMin() ? 44 : 204)
+      : IH - SAFE.b - NAV_H;
+const cvH = () => (!PORT() || portFull() ? IH : cvBot() - cvTop());
 function sheetSync() {
   const on = sheetOn(),
     b = document.body,
@@ -655,7 +550,7 @@ function sheetSync() {
   b.classList.toggle('sheet', on);
   b.classList.toggle('sheetfull', on && !!NAV.full && anyPanel());
   b.style.setProperty('--sheet-top', (on && !portFull() ? cvTop() + cvH() : 0) + 'px');
-  b.style.setProperty('--idle-h', (G.scene === 'map' && !shortSheet() ? 44 : 0) + 'px');
+  b.style.setProperty('--idle-h', '0px');
   b.classList.toggle('inmap', G.scene === 'map');
   nav.hidden = !PORT();
   $('phand').hidden = !on || !anyPanel() || PANEL.camp;
@@ -834,8 +729,6 @@ const PANEL_LOCK = { asc: 'asc', box: 'box' };
 function openPanel(k) {
   const lk = PANEL_LOCK[k] && lockTxt(PANEL_LOCK[k]);
   if (lk) return hudWarn(lk);
-  /* 展開的掛機條（200 高）會蓋到半版面板：開面板就收起來 */
-  IDLE.open = 0;
   TOUCH.front = k === 'stash' || k === 'skill' || k === 'craft' ? 'other' : 'inv';
   /* 左邊一次只開一個（倉庫／技能寶石／鍛造台），右邊是背包 */
   if (k === 'stash' || k === 'skill' || k === 'craft') {
@@ -899,7 +792,7 @@ const KEYS_PC = [
   ['1 ／ 2', '生命藥劑 ／ 魔力藥劑'],
   ['F', '互動、撿東西'],
   ['V', '角色'],
-  ['I ／ B', '倉庫'],
+  ['L', '倉庫'],
   ['G', '技能'],
   ['P', '天賦樹'],
   ['M', '地點'],
@@ -911,8 +804,8 @@ const KEYS_PC = [
   ['Y', '追逐物品（開放後）'],
   ['U', '昇華石碑'],
   ['J', '山海寶盒'],
-  ['L', '掉落紀錄'],
-  ['X', '掛機條展開／收起'],
+  [';', '掉落紀錄'],
+  ['X', '掉落面板收起／展開'],
   ['T', '回營地（地圖裡先確認，再按一次 T＝回去）'],
   ['Esc', '取消確認、關閉面板；都沒有時打開設定']
 ];
@@ -2228,18 +2121,8 @@ function chaseBnClick() {
   chaseBnHide();
   chaseOpen(k);
 }
-/* HUD 的掉落紀錄（0.4.1）：最新 3 筆，30 秒後淡掉；完整的在「掉落紀錄」面板 */
-const LOG_SHOW = 30000;
-function logBar() {
-  const now = Date.now(),
-    L = (S.log || []).filter(x => now - x.t < LOG_SHOW).slice(0, 3),
-    k = LOGV + ':' + L.length;
-  if (HV.log === k) return;
-  HV.log = k;
-  $('dlog').innerHTML = L.map(x => `<p class="lg-${x.c}">${esc(x.n)}</p>`).join('');
-}
 const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
-/* 掉落紀錄選中的那一筆（橫幅顯示中按 L：最新的追逐物品） */
+/* 掉落紀錄選中的那一筆（橫幅顯示中按 ;：最新的追逐物品） */
 let LOGSEL = null;
 /* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
 function logHTML() {
@@ -2261,143 +2144,243 @@ function logHTML() {
    王倒下後 30 秒換成「這一輪掉的」清單＋看戰利品／推進（不按＝照設定） ---------- */
 let IDLE_T = 0;
 let CAMP_T = 0;
-/* 防誤觸（M2-08，UI 審查 C10）：卡剛出現、或內容換了讓按鈕移位（王倒下的清單），這之後 400 毫秒內點卡上的鈕不算 */
+/* 防誤觸（M2-08）：面板剛出現或內容換了讓按鈕移位，這之後 400 毫秒內點面板上的鈕不算 */
 let IDLE_MV = 0;
+/* battle-hud v1.3.3：下方面板（直立 P41–P57、桌機 D25–D41）與收起列（直立 T30–T35、桌機 C30–C35）都在 #pidle；
+   框照 bhRects() 的 pan，裡面每一塊照表擺（相對面板左上角） */
+const IDLE = { msg: '', msgT: 0, fk: '', anim: 0, last: '' };
+const idleDur = ms => {
+  const m = Math.floor(ms / 60000);
+  return m >= 60 ? `${Math.floor(m / 60)} 時 ${String(m % 60).padStart(2, '0')} 分` : `${m} 分`;
+};
+const bx = (x, y, w, h) => `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
 function idleBar(force) {
   const el = $('pidle'),
     on = idleOn();
   if (el.hidden !== !on) {
     el.hidden = !on;
     IDLE_MV = performance.now();
-    /* 直立：掛機卡出現或收起＝半版切換（畫布高度、分頁列） */
     sheetSync();
   }
-  if (!on) return void ((HV.idle = null), ($('pcline').hidden = true));
+  if (!on) return void (HV.idle = null);
   const now = performance.now();
-  el.classList.toggle('open', !!IDLE.open);
   if (!force && now - IDLE_T < 500) return;
   IDLE_T = now;
-  const h = idleHTML(),
-    fk = IW + ':' + ((S && S.fs) || 100) + ':' + document.documentElement.lang;
-  if (HV.idle === h && IDLE.fk === fk) return;
-  /* 只有字變＝版面沒動；標籤變了（換成王倒下的清單、多一行保底）當作按鈕可能移位 */
+  const r = BH.R.pan;
+  if (!r) return;
+  const pk = r.join();
+  if (el.dataset.pk !== pk && !IDLE.anim) (el.dataset.pk = pk), (el.style.cssText = bx(...r));
+  el.classList.toggle('min', bhMin());
+  const h = idleHTML(r[2]);
+  if (HV.idle === h) return;
   const sk = x => x.replace(/>[^<]*</g, '><').replace(/\d/g, '');
   if (HV.idle && sk(HV.idle) !== sk(h)) IDLE_MV = now;
-  if (HV.idle !== h) keepFocus(el, () => (el.innerHTML = HV.idle = h));
-  IDLE.fk = fk;
-  idleFit(el);
+  keepFocus(el, () => (el.innerHTML = HV.idle = h));
+  /* 最近一筆換新：從右邊滑入 200 ms，然後停住（不做連續滾動） */
+  const L0 = (S.log || [])[0],
+    lk = L0 ? L0.t + L0.n : '';
+  const ln = el.querySelector('.ilast');
+  if (ln && IDLE.last && IDLE.last !== lk && !reduced() && ln.animate)
+    ln.animate(
+      [
+        { transform: 'translateX(100%)', opacity: 0 },
+        { transform: 'none', opacity: 1 }
+      ],
+      {
+        duration: 200,
+        easing: 'ease-out'
+      }
+    );
+  IDLE.last = lk;
 }
-/* B1 S6／D2-13／D3-03：資源列（金、靈魂）固定位置——直立 x 202–382 × 110–142（熱區 106–150）、桌機 x 16–316 × 66–98（資訊列下，不放頂列）。
-   圖示 16＋數字（縮寫捨去，每格留 5 字元）；底 --plate-world。只在刷圖畫面（營地場景、天賦樹不畫；手機橫向不畫：假設）；點了開鍛造 › 通貨（假設，通貨明細在之後的批次） */
-function curStrip() {
-  const el = $('curs'),
-    on = !!S && G.scene === 'map' && !TREE.open && (!TOUCH.on || PORT()) && !portFull();
-  el.hidden = !on;
-  if (!on) return;
-  const h = `<span class="cv"><span>${icHTML('mat_gold', 'ci')}<b>${abbrH(S.gold, 'own')}</b></span><span>${icHTML('cur_soul', 'ci')}<b>${abbrH(MAT().soul || 0, 'own')}</b></span></span>`;
-  if (HV.curs !== h)
-    (el.innerHTML = HV.curs = h),
-      el.setAttribute('aria-label', `金 ${fullN(S.gold, 'own')}、靈魂 ${fullN(MAT().soul || 0, 'own')}`);
+/* 收起／展開：200 ms 滑動 ease-out；動畫結束時戰場一次改高（減少動態：直接換） */
+function idleToggle() {
+  if (IDLE.anim) return;
+  const el = $('pidle'),
+    to = !bhMin(),
+    done = () => {
+      IDLE.anim = 0;
+      S.hmin = to ? 1 : 0;
+      el.style.transform = '';
+      bhLayout(1);
+      sheetSync();
+      idleBar(1);
+    };
+  if (reduced() || !el.animate || el.hidden) return done();
+  const r = BH.R.pan,
+    dy = BH.R.m === 'p' ? 160 : r[3] - 64 || 192;
+  IDLE.anim = 1;
+  el.animate(
+    to
+      ? [{ transform: 'none' }, { transform: `translateY(${dy}px)` }]
+      : [{ transform: 'none' }, { transform: `translateY(-${BH.R.m === 'p' ? 160 : 192}px)` }],
+    { duration: 200, easing: 'ease-out' }
+  ).onfinish = done;
 }
-/* M2-12 §2 掛機條：收起 44 高（掛機 N 分・打倒王 n 次・追逐保底 n%・最近一筆稀有以上・展開鈕），點條展開 200 高、6 秒沒操作自動收。
-   不寫輪數；掛機時間＝SES.t0（只有重開遊戲才歸零，B3）；追逐保底只在會累積的地點（chaseLine，怪物 Lv45 以上；新存檔沒刷過就不畫）；倉庫快滿、離開 60 秒–10 分那一行換掉左字 */
-const IDLE = { open: 0, at: 0, tm: 0, hold: 0, msg: '', msgT: 0, fk: '', fade: 0 };
-const idleDur = ms => {
-  const m = Math.floor(ms / 60000);
-  return m >= 60 ? `${Math.floor(m / 60)} 時 ${String(m % 60).padStart(2, '0')} 分` : `${m} 分`;
-};
-/* 字串表的一句拆成「字頭＋數字＋字尾」：數字那段（tn）永遠完整，字頭、字尾各自一個 span，放不下時照步驟拿掉 */
-const tplSp = (k, key, v, pre) => {
-  const [a, b] = STR_T[k].split('{' + key + '}');
-  return `${a ? `<span class="${pre}">${a}</span>` : ''}<span class="tn">${v}${b}</span>`;
-};
-/* 掉落紀錄的類別 → 形狀（稀有 ◆、傳奇 ◈、追逐＝王印 16 圖示；不用 ★）；不只靠顏色 */
+const idleOpen = () => bhMin() && idleToggle();
+const idleClose = () => !bhMin() && idleToggle();
+/* 往下拖面板上緣也能收起（≥ 24 px） */
+$('pidle').addEventListener('pointerdown', e => {
+  if (bhMin() || e.target.closest('button:not(.ihd)')) return;
+  const y0 = e.clientY,
+    mv = ev => ev.clientY - y0 > 24 && (off(), idleClose()),
+    off = () => (removeEventListener('pointermove', mv), removeEventListener('pointerup', off));
+  addEventListener('pointermove', mv);
+  addEventListener('pointerup', off);
+});
+/* 掉落紀錄的類別 → 形狀（稀有 ◆、傳奇 ◈、追逐＝王印 16）；不只靠顏色 */
 const logSh = x =>
   x.c === 'chase'
     ? icHTML(isWy(x.k) ? x.k + '_16' : 'wangyin_guixu_16', 'ipw')
-    : `<i aria-hidden="true">${x.c === 'mem' ? '◈' : '◆'}</i>`;
+    : x.c === 'mem' || x.c === 'perf'
+      ? '<i aria-hidden="true">◈</i>'
+      : x.c === 'cur' || x.c === 'frac'
+        ? '<i aria-hidden="true">◆</i>'
+        : '';
 const logRow = x => `<span class="ilast lg-${x.c}">${logSh(x)}<span class="nm">${esc(x.n)}</span></span>`;
-/* B1 D2-03：收起列放不下時固定照 5 步收（先拿掉保底小條，M2-12 §2）：①打倒王次數 ②追逐物品名 ③「追逐保底」字樣 ④「掛機」字頭 ⑤其餘字尾省略（CSS）；數字與 % 永遠完整。
-   D1-01：展開的標題列放不下先拿掉「・打倒王 {n} 次」，再換 2 行（44→64），字不縮 */
-function idleFit(el) {
-  const ib = el.querySelector('.ib'),
-    t1 = el.querySelector('.it1');
-  el.classList.remove('f0', 'f1', 'f2', 'f3', 'f4', 'f5');
-  if (t1) t1.classList.remove('two');
-  if (ib)
-    for (const f of ['f0', 'f1', 'f2', 'f3', 'f4', 'f5']) {
-      if (ib.scrollWidth <= ib.clientWidth + 1) break;
-      el.classList.add(f);
-    }
-  const tb = t1 && t1.querySelector('b');
-  if (tb && tb.scrollWidth > tb.clientWidth + 1) el.classList.add('f1');
-  if (tb && tb.scrollWidth > tb.clientWidth + 1) t1.classList.add('two');
+/* 目標（營地下一座）的買得起程度 0–1 */
+const goalP = () => {
+  if (BH.fake.goal != null) return { g: { b: 'altar', lv: 7 }, p: BH.fake.goal };
+  const g = campGoal(),
+    c = g && cdCost(g.b);
+  return g ? { g, p: c ? Math.min(1, affP(c)) : 1 } : null;
+};
+/* 比較：倉庫裡最新、有對應裝備欄的那件；▲／▼ 每項一行（DPS 寫 %，其他寫差值），沒變的不寫 */
+const CMPC = { k: '', v: null };
+function idleCmp() {
+  const it = S.inv.items.filter(x => !x.charm && cmpSlot(x)).reduce((a, b) => (!a || b.id > a.id ? b : a), null);
+  if (!it) return null;
+  const ck = it.id + ':' + upSig(S);
+  if (CMPC.k === ck) return CMPC.v;
+  const d = itemDelta(it, cmpSlot(it).k),
+    [a, b] = d.st || [{}, {}],
+    f = (n, v, pct) => [n, pct ? Math.round(v) : Math.round(v), pct],
+    L = d.why
+      ? []
+      : [
+          f('DPS', d.dps[1], 1),
+          f('生命', d.hp),
+          f('能量護盾', d.es),
+          f('護甲', (b.armor || 0) - (a.armor || 0)),
+          f('閃避值', (b.ev || 0) - (a.ev || 0))
+        ]
+          .filter(x => x[1])
+          .map(([n, v, pct]) => [
+            v > 0,
+            `${v > 0 ? '▲' : '▼'} ${n} ${v > 0 ? '+' : '−'}${fullN(Math.abs(v))}${pct ? '%' : ''}`
+          ]);
+  CMPC.k = ck;
+  return (CMPC.v = { it, L });
 }
-function idleOpen() {
-  IDLE.open = 1;
-  idleArm();
-  idleBar(1);
-}
-/* B1 D1-12：最後一次觸碰／捲動／滑鼠移上起 6 秒才收（計時器，不看幀率）；手（滑鼠、手指）還在卡上不收，離開再算 6 秒 */
-function idleArm() {
-  IDLE.at = performance.now();
-  clearTimeout(IDLE.tm);
-  IDLE.tm = setTimeout(function due() {
-    const left = IDLE.at + 6000 - performance.now();
-    if (!IDLE.open || IDLE.hold) return;
-    if (left > 1) return void (IDLE.tm = setTimeout(due, left));
-    idleClose();
-  }, 6000);
-}
-/* 收起：200 ms 往下收（CSS height）；減少動態 150 ms 淡出再換成收起列 */
-function idleClose() {
-  if (IDLE.fade) return;
-  const el = $('pidle');
-  if (reduced() && el.animate && !el.hidden) {
-    IDLE.fade = 1;
-    el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, easing: 'ease-out' }).onfinish = () => {
-      IDLE.fade = 0;
-      IDLE.open = 0;
-      idleBar(1);
-    };
-    return;
-  }
-  IDLE.open = 0;
-  idleBar(1);
-}
-const idleToggle = () => (IDLE.open ? idleClose() : idleOpen());
-/* 碰到卡就重新計時；手還在卡上（滑鼠移上、手指按著）不收 */
-function idleTouch(e) {
-  if (!e.target.closest || !e.target.closest('#pidle') || !IDLE.open) return;
-  idleArm();
-  if (e.type === 'pointerenter' || (e.type === 'pointerdown' && e.pointerType !== 'mouse')) IDLE.hold = 1;
-  else if (
-    e.type === 'pointerleave' ||
-    (e.type === 'pointerup' && e.pointerType !== 'mouse') ||
-    e.type === 'pointercancel'
-  )
-    IDLE.hold = 0;
-}
-for (const t of ['pointerdown', 'pointerup', 'pointercancel', 'pointermove', 'wheel', 'scroll'])
-  addEventListener(t, idleTouch, { capture: true, passive: true });
-$('pidle').addEventListener('pointerenter', idleTouch);
-$('pidle').addEventListener('pointerleave', idleTouch);
-function idleHTML() {
+function idleHTML(W) {
   const ses = SES || SES0(),
     dur = idleDur(Date.now() - ses.t0),
     n = chasePct(),
     ch = !!chaseLine(G.mapT),
     L = S.log || [],
-    warn = IDLE.msg && Date.now() < IDLE.msgT ? IDLE.msg : S.inv.items.length >= INV_CAP * 0.9 ? STR_T.idleFull : '',
-    lab = esc(strT('idleAria', { t: dur, n: ch ? n : '—' })),
-    tm = `${tplSp('idleT', 't', dur, 'iw')}<span class="ik">${strT('idleBoss', { b: ses.rounds })}</span>`;
-  if (IDLE.open)
-    return `<div class="iex" role="group" aria-label="${lab}">
-    <div class="ir it1"><b>${tm}<span class="is">${strT('idleSoul', { s: abbrH(ses.soul || 0, 'own') })}</span></b><button class="ix" data-a="idlex" aria-label="收起" aria-expanded="true">${ICO.down}</button></div>
-    ${ch ? chaseHTML() : ''}
-    <div class="ir il3">${L.slice(0, 3).map(logRow).join('') || `<span class="c-dim">${STR_T.idleNone}</span>`}</div>
-    <div class="ir">${goalHTML()}</div></div>`;
-  return `<button class="ib" data-a="idlex" aria-label="${lab}" aria-expanded="false">${warn ? `<b class="c-warn">${esc(warn)}</b>` : `<b class="itm">${tm}</b>`}${ch ? `<span class="ipb ${n >= 100 ? 'full' : ''}">${icHTML('wangyin_guixu_16', 'ipw')}${tplSp('idlePity', 'n', n, 'cw')}<i class="pb"><i style="transform:scaleX(${n / 100})"></i></i></span>` : ''}${L[0] ? logRow(L[0]) : ''}</button><button class="ix" data-a="idlex" aria-label="展開" aria-expanded="false">${ICO.down}</button>`;
+    gp = goalP(),
+    pct = Math.floor((100 * S.inv.items.length) / INV_CAP),
+    msg = IDLE.msg && Date.now() < IDLE.msgT ? IDLE.msg : '',
+    /* 收起列：倉庫快滿、離開回來那一行換掉左邊的字（§3 警示）；一般面板只換離開回來（倉庫 % 另有 P54／D38） */
+    warn = bhMin() ? msg || (pct >= 90 ? STR_T.idleFull : '') : msg,
+    d = BH.R.m === 'd',
+    min = bhMin(),
+    gw = (d ? 264 : W) * (gp ? gp.p : 0);
+  if (min) {
+    const T = d
+      ? { a: [8, 6, 124, 24], b: [140, 6, 124, 24], c: [8, 36, 264, 24], x: [280, 28, 40, 36], hit: [0, 0, 280, 64] }
+      : {
+          a: [12, 10, 108, 24],
+          b: [126, 10, 108, 24],
+          c: [W - 152, 10, 104, 24],
+          x: [W - 44, 0, 44, 44],
+          hit: [0, 0, W - 44, 44]
+        };
+    return `<button class="ihit" data-a="idlex" style="${bx(...T.hit)}" aria-label="展開掛機卡" aria-expanded="false"></button>
+    ${gp ? `<i class="igoal" style="${bx(0, 0, Math.round(gw), 4)}"></i>` : ''}
+    <span class="i32${warn ? ' c-warn' : ''}" style="${bx(...T.a)}">${warn ? esc(warn) : esc(strT('idleT', { t: dur }))}</span>
+    ${ch ? `<span class="i33${n >= 100 ? ' full' : ''}" style="${bx(...T.b)}">${icHTML('wangyin_guixu_16', 'ipw')}${esc(strT('idlePity', { n }))}</span>` : ''}
+    <span class="i34" style="${bx(...T.c)}">${L[0] && L[0].c !== 'pack' ? logRow(L[0]) : ''}</span>
+    <button class="ix" data-a="idlex" style="${bx(...T.x)}" aria-label="展開掛機卡" aria-expanded="false">${ICO.down}</button>`;
+  }
+  const rows = d ? 6 : 5,
+    now = Date.now(),
+    fl = BH.fake.flood != null ? BH.fake.flood : L.filter(x => now - x.t < 5000).length - (rows - 1),
+    flood = fl > 0 ? fl : 0,
+    picks = L.slice(0, flood ? rows - 1 : rows),
+    cmp = idleCmp(),
+    P0 = d
+      ? {
+          s1: [12, 8, 258, 24],
+          s2: [12, 32, 258, 24],
+          x: [278, 4, 24, 24],
+          xh: [274, 0, 36, 36],
+          pk: [12, 60, 152, 24],
+          cp: [170, 60, 134, 24],
+          cph: [170, 60, 134, 72],
+          st: [170, 140, 134, 24],
+          sth: [170, 134, 134, 36],
+          b: [
+            [12, 208, 96, 40],
+            [116, 208, 64, 40],
+            [188, 208, 110, 40]
+          ]
+        }
+      : {
+          card: [10, 6, W - 20, 146],
+          s1: [22, 10, W - 114, 22],
+          x: [W - 68, 10, 24, 24],
+          xh: [W - 88, -4, 44, 44],
+          pk: [22, 32, 178, 22],
+          cp: [W - 180, 32, 160, 22],
+          cph: [W - 180, 40, 160, 80],
+          st: [W - 180, 124, 110, 22],
+          b: [
+            [10, 156, 120, 44],
+            [138, 156, 68, 44],
+            [214, 156, W - 224, 44]
+          ]
+        },
+    rh = P0.pk[3],
+    pit = ch
+      ? `<span class="ipb">${d ? icHTML('wangyin_guixu_16', 'ipw') : ''}<b>${esc(strT('idlePity', { n }))}</b></span>`
+      : '',
+    gl = gp
+      ? d
+        ? `目標 ${esc(gp.g.b === 'altar' ? '長老屋' : CAMPN[gp.g.b])} Lv${gp.g.lv} ${Math.floor(gp.p * 100)}%`
+        : `目標 ${Math.floor(gp.p * 100)}%`
+      : '',
+    ses1 = warn
+      ? `<b class="c-warn">${esc(warn)}</b>`
+      : d
+        ? `本次掛機 ${dur}`
+        : [`本次掛機 ${dur}`, pit, gl].filter(Boolean).join('・'),
+    pk = (x, i) =>
+      `<span class="ipk" data-r="${i}" style="${bx(P0.pk[0], P0.pk[1] + rh * i, P0.pk[2], rh)}"><em>拾取</em>${logRow(x)}</span>`;
+  return `${P0.card ? `<i class="icard" style="${bx(...P0.card)}"></i>` : ''}
+  <span class="is1" style="${bx(...P0.s1)}">${ses1}</span>
+  ${d && (pit || gl) ? `<span class="is2" style="${bx(...P0.s2)}">${[pit, gl].filter(Boolean).join('・')}</span>` : ''}
+  <button class="ihd" data-a="idlex" style="${bx(...P0.xh)}" aria-label="收起掛機卡" aria-expanded="true"><i style="${bx(P0.x[0] - P0.xh[0], P0.x[1] - P0.xh[1], 24, 24)}">${ICO.down}</i></button>
+  <button class="ipks" data-a="chaselog" style="${bx(P0.pk[0], P0.pk[1], P0.pk[2], rh * rows)}" aria-label="掉落紀錄"></button>
+  ${picks.map(pk).join('')}${!picks.length ? `<span class="ipk c-dim" style="${bx(P0.pk[0], P0.pk[1], P0.pk[2] + 100, rh)}">${STR_T.idleNone}</span>` : ''}
+  ${flood ? `<span class="ipk c-dim" data-r="${rows - 1}" style="${bx(P0.pk[0], P0.pk[1] + rh * (rows - 1), P0.pk[2], rh)}">+${flood} 件已收</span>` : ''}
+  ${
+    cmp
+      ? `<button class="icph" data-a="bhcmp" style="${bx(...P0.cph)}" aria-label="比較 ${esc(itemName(cmp.it))}"></button><span class="icp c-dim" data-r="0" style="${bx(...P0.cp)}">比較 ${esc(itemName(cmp.it))}</span>${cmp.L.slice(
+          0,
+          d ? 2 : 3
+        )
+          .map(
+            (x, i) =>
+              `<span class="icp ${x[0] ? 'c-good' : 'c-bad'}" data-r="${i + 1}" style="${bx(P0.cp[0], P0.cp[1] + rh * (i + 1), P0.cp[2], rh)}">${esc(x[1])}</span>`
+          )
+          .join('')}`
+      : ''
+  }
+  ${pct >= 90 ? `${P0.sth ? `<button class="isth" data-a="bhbag" style="${bx(...P0.sth)}" aria-label="倉庫 ${pct}%"></button>` : ''}<span class="ist c-warn" style="${bx(...P0.st)}">⚠ 倉庫 ${pct}%</span>` : ''}
+  <button class="btn ib1" data-a="bhbag" style="${bx(...P0.b[0])}">整理倉庫</button>
+  <button class="btn ib2 ${S.auto ? 'on' : ''}" data-a="bhauto" aria-pressed="${!!S.auto}" style="${bx(...P0.b[1])}">自動</button>
+  <button class="btn pri ib3" data-a="camp" style="${bx(...P0.b[2])}">${esc(STR_T.goCamp)}</button>`;
 }
 /* B3 D2-11：回戰場那一行「營地期間 +N」（M2-12 第二段 §0.1）：蓋在掛機條上（同位置），淡入 160 後出現、停 3,000、淡出 300（CSS）；
    0 的項不寫、追逐放第一個（王印 16 圖示）、放不下從後面省略；點一下展開掛機條 */
@@ -2435,7 +2418,7 @@ function chaseHTML() {
   chaseHTML.p = n;
   return `<div class="chs"><span>${icHTML('wangyin_guixu_16', 'ipw')}${strT('idlePity', { n })}</span><div class="pb ${cls}" role="progressbar" aria-label="追逐保底" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${n}"><i style="transform:scaleX(${cls === 'reset' ? 1 : n / 100})"></i></div><button class="chsb" data-a="chaselog" aria-label="${esc(strT('pityAria', { n }))}" data-tip="${esc(STR_T.pityTip)}"></button></div>`;
 }
-/* 開掉落紀錄（點保底一行；sel＝橫幅顯示中按 L：選中最新的追逐物品、展開它的詳情） */
+/* 開掉落紀錄（點保底一行；sel＝橫幅顯示中按 ;：選中最新的追逐物品、展開它的詳情） */
 function chaseLog(sel) {
   LOGSEL = sel ? (S.log || []).find(x => x.c === 'chase') || null : null;
   if (sel) chaseBnHide();
@@ -3004,8 +2987,9 @@ function showTip(html, a, t = $('tip')) {
   t.style.left = t.style.top = '0';
   t.hidden = false;
   let { width: w, height: h } = t.getBoundingClientRect();
+  /* 直立：不蓋分頁列（battle-hud v1.3.3 分頁 54 高；M1-19 說明框開著也要點得到分頁） */
   const W = IW,
-    H = IH;
+    H = PORT() && !$('pnav').hidden ? Math.round($('pnav').getBoundingClientRect().top) : IH;
   /* 比畫面還高（手機橫向的寶石說明＋按鈕）：縮短、裡面可以捲 */
   if (h > H - 2 * M) (h = H - 2 * M), (t.style.maxHeight = h + 'px');
   const cx = clamp((a.left + a.right) / 2 - w / 2, M, W - w - M),
@@ -3101,12 +3085,15 @@ function inputInit() {
     else if (k === 'f') interact();
     else if (k === 'v') navGo('char');
     else if (k === 'z') navGo('more');
-    else if (k === 'tab' && navOn() && !TOUCH.on && navTabKey()) e.preventDefault(), navCycle(e.shiftKey ? -1 : 1);
-    else if (k === 'i' || k === 'b')
-      PANEL.inv && NAV.view === 'bag'
-        ? closePanels()
-        : ((NAV.view = 'bag'), PANEL.inv ? hudPanels() : openPanel('inv'));
-    else if (k === 'l' && CB.st !== 'idle') chaseLog(1);
+    /* battle-hud v1.3.3（mumi 15:14、18:45）：倉庫 L（I／B 不再綁）；掉落紀錄「;」（追逐橫幅顯示中＝選中最新的追逐物品）；N 不綁 */ else if (
+      k === 'tab' &&
+      navOn() &&
+      !TOUCH.on &&
+      navTabKey()
+    )
+      e.preventDefault(), navCycle(e.shiftKey ? -1 : 1);
+    else if (k === 'l') navGo('bag');
+    else if (k === ';' && CB.st !== 'idle') chaseLog(1);
     else if (FMENU.some(f => f[2].toLowerCase() === k)) fmenuOpen(FMENU.find(f => f[2].toLowerCase() === k)[0]);
     else if (PANEL.chase && CHUI.v && (k === 'escape' || (k === 'enter' && CHUI.v === 'swap')))
       e.preventDefault(), wyAct(k === 'enter' ? 'ok' : 'back');
@@ -3170,7 +3157,6 @@ function inputInit() {
   });
   document.addEventListener('click', e => {
     const a = e.target.closest('[data-a]');
-    if (e.target.closest('#pidle') && IDLE.open) idleArm();
     if (a && e.isTrusted && a.closest('#pidle') && performance.now() - IDLE_MV < 400) return;
     /* 離線結算：點鈕以外任一處＝數字直接跑完 */
     if (!a && e.target.closest('#poff')) OFFC.t0 = -1e9;
@@ -3278,7 +3264,6 @@ function knEsc() {
   if (G.ask) act('askno');
   else if (!$('poff').hidden) act('offok');
   else if (PANEL.camp && CDR.one) (CDR.one = null), hudPanels(), fin && knFocus('#pcamp .cdb');
-  else if (IDLE.open && !$('pidle').hidden) idleToggle(), fin && knFocus('#pidle .ib');
   else if (TREE.open) treeClose();
   else if (anyPanel()) closePanels(), fin && knFocus('[data-tm="nav:craft"]');
   else openPanel('set');
@@ -3334,7 +3319,16 @@ function act(a, el) {
     if (G.state === 'dead') deadAgain();
   } else if (a === 'idlex') idleToggle();
   else if (a === 'campline') ($('pcline').hidden = true), idleOpen();
-  else if (a === 'curs') fmenuOpen('stash');
+  else if (a === 'bhcur') fmenuOpen('stash');
+  else if (a === 'bhloc')
+    showTip(
+      `<p class="sktip">${esc(`${G.nodeN || '地圖'}・${G.star || 1}★・怪物 Lv ${mobLv(G.mapT)}`)}</p>`,
+      $('bhLoc').getBoundingClientRect()
+    );
+  else if (a === 'bhaura') bhAuraList($('bhAuL').hidden);
+  else if (a === 'bhsts') bhStsTip();
+  else if (a === 'bhbag' || a === 'bhcmp') navGo('bag');
+  else if (a === 'bhauto') autoToggle(), idleBar(1);
   else if (a === 'offok') offClose();
   else if (a === 'offcamp') offClose(), navGo('craft');
   else if (a === 'resume') {

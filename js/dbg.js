@@ -2,6 +2,14 @@
    只有網址帶 ?test= 或 ?dbg=1 時 index.html 才載入（緊接 core.js 之後）；正式玩家完全不載入、沒有 DBG。
    不改遊戲數值：只把狀態做出來給截圖用 */
 'use strict';
+/* 技能格的假狀態（bhud.js 的 BH.fake[i]）；k 可以是格子 0–4 或技能鍵 */
+function bhFake(k, o) {
+  const i = typeof k === 'number' ? k : S.skills.findIndex(r => r.k === k);
+  if (i < 0) return false;
+  BH.fake[i] = o ? Object.assign(BH.fake[i] || {}, o) : null;
+  for (const x in HV) if (/^bs/.test(x)) delete HV[x];
+  return true;
+}
 const DBG = (() => {
   const q = new URLSearchParams(location.search),
     seed = q.get('seed');
@@ -212,6 +220,63 @@ const DBG = (() => {
       px == null ? st.removeProperty('--sab') : st.setProperty('--sab', px + 'px');
       top == null ? st.removeProperty('--sat') : st.setProperty('--sat', top + 'px');
       resize();
+    },
+    /* battle-hud v1.3.3 §13 做狀態（R4 §3.3）：k＝技能格 0–4 或技能鍵；null＝還原成遊戲真的值 */
+    ammo(k, n) {
+      return bhFake(k, n == null ? null : { n, rl: n > 0 ? 0 : undefined });
+    },
+    reload(k, s) {
+      return bhFake(k, s == null ? null : { n: 0, rl: s });
+    },
+    gren(k, used) {
+      return bhFake(k, used == null ? null : { used });
+    },
+    stage(k, s) {
+      return bhFake(k, s == null ? null : { s });
+    },
+    /* 光環數（照 AURAS 的順序拿生效的 n 個；超過 7 個畫 6＋「+k」）；null 還原 */
+    auras(n) {
+      BH.fake.aura = n == null ? null : Object.keys(AURAS).slice(0, n);
+      HV.bhau = null;
+      return BH.fake.aura;
+    },
+    /* 狀態圖示數（照 STATE 拿 n 個，前 bad 個是負面）；null 還原 */
+    states(n, bad = 1) {
+      BH.fake.sts =
+        n == null
+          ? null
+          : Object.keys(STATE)
+              .slice(0, n)
+              .map((k, i) => ({ k, n: STATE[k][0], ic: STATE[k][1], d: STATE[k][2], f: 0.6, bad: i < bad }));
+      HV.bhsts = null;
+      return n;
+    },
+    /* 掉落洪水：拾取最後一列換成「+n 件已收」；null 還原 */
+    flood(n) {
+      BH.fake.flood = n;
+      HV.idle = null;
+      idleBar(1);
+    },
+    /* 目標（營地下一座）的進度 0–1；null 還原 */
+    goal(p) {
+      BH.fake.goal = p;
+      HV.idle = null;
+      idleBar(1);
+    },
+    /* 收到最小（1）／一般（0）；不播動畫 */
+    hudMin(on = 1) {
+      S.hmin = on ? 1 : 0;
+      bhLayout(1);
+      sheetSync();
+      idleBar(1);
+    },
+    /* 大招警示：現在場上的王出一招判決（只做警示，不出招）；dur 秒 */
+    big(dur = 2.1) {
+      const m = G.mobs.find(x => x.boss && x.hp > 0);
+      if (!m) return false;
+      m.pat = 'verdict';
+      bigWarn(m, P, dur);
+      return true;
     },
     /* 存檔內容：物件就淺層蓋到 S 上，函式就拿 S 去改；之後重算數值、重畫面板 */
     save(preset) {

@@ -11137,16 +11137,16 @@ const ASC_COMBOS = `const combos = k => {
     },
     navK = [...hud.match(/const NAV_T = \[([\s\S]*?)\n\];/)[1].matchAll(/\['(\w+)'/g)].map(m => m[1]),
     fm = Object.fromEntries(
-      [...hud.match(/const FMENU = \[([\s\S]*?)\n\];/)[1].matchAll(/\['(\w+)', [^,]+, '(\w+)'\]/g)].map(m => [
+      [...hud.match(/const FMENU = \[([\s\S]*?)\n\];/)[1].matchAll(/\['(\w+)', [^,]+, '([^']+)'\]/g)].map(m => [
         m[2],
         m[1]
       ])
     ),
     navF = fnOf(hud, 'navHTML');
-  /* M2-12 第一段 §5 取代 M2-38 的 8 格：戰利品併進角色頁（角色頁上方「角色｜倉庫」）、追逐物品搬進「更多」；直立、桌機都是 6 格（天賦照祭壇） */
+  /* battle-hud v1.3.3（mumi 15:14、18:45）取代 M2-12 的 6 格：7 格、倉庫獨立（桌機 L）；追逐物品仍在「更多」；角色頁的「角色｜倉庫」切換照留 */
   ok(
-    'M2-12 分頁：角色（含戰利品）・鍛造・技能・天賦・營地・更多；天賦照祭壇；沒有戰利品、追逐物品分頁（追逐物品在「更多」與 Y 鍵）；角色頁有「角色｜倉庫」切換',
-    navK.join() === 'char,forge,skill,tree,craft,more' &&
+    'battle-hud v1.3.3 分頁：倉庫・角色・鍛造・技能・天賦・營地・更多；天賦照祭壇；沒有追逐物品分頁（追逐物品在「更多」與 Y 鍵）；角色頁有「角色｜倉庫」切換',
+    navK.join() === 'bag,char,forge,skill,tree,craft,more' &&
       navF.includes("k !== 'tree' || campCan('tree')") &&
       !/'chase'|chaseOn/.test(navF) &&
       /data-tm="f:chase"/.test(fnOf(hud, 'moreHTML')) &&
@@ -11154,21 +11154,38 @@ const ASC_COMBOS = `const combos = k => {
     navK.join()
   );
   ok(
-    'M2-38 鍵位：K 鍛造、O 鍛造 › 通貨、H 營地、Y 追逐物品（M 地點、U 昇華、J 寶盒、L 掉落紀錄不變）',
-    fm.K === 'forge' && fm.O === 'stash' && fm.H === 'craft' && fm.Y === 'chase' && fm.M === 'node' && fm.L === 'log',
+    'M2-38 鍵位：K 鍛造、O 鍛造 › 通貨、H 營地、Y 追逐物品（M 地點、U 昇華、J 寶盒）；battle-hud v1.3.3：掉落紀錄改「;」、L 給倉庫（FMENU 不綁 L、I、B、N）',
+    fm.K === 'forge' &&
+      fm.O === 'stash' &&
+      fm.H === 'craft' &&
+      fm.Y === 'chase' &&
+      fm.M === 'node' &&
+      fm[';'] === 'log' &&
+      !['L', 'I', 'B', 'N'].some(k => fm[k]) &&
+      /else if \(k === 'l'\) navGo\('bag'\);/.test(hud) &&
+      !/k === 'i' \|\| k === 'b'/.test(hud) &&
+      !/\['N', /.test(hud.match(/const KEYS_PC = \[([\s\S]*?)\n\];/)[1]),
     JSON.stringify(fm)
   );
-  const bar = fnOf(hud, 'hudBar');
+  /* battle-hud v1.3.3 取代 M2-38 快捷列：直立、桌機都是 5 個技能格（§11，生命／魔力條上方），掛機時也畫（定稿各狀態都有技能列）；
+     空格只畫外框；沒開的技能格照舊不畫圖示（slotCfg 回 null＝空）。手機橫向（規格沒有）沿用舊的觸控鍵 */
+  const bhs = rd('js/bhud.js'),
+    bar = fnOf(hud, 'hudBar');
   ok(
-    'M2-38 快捷列（桌機）：祭壇沒開的技能格不畫（slot < campN(slots)）、開了但空著只畫外框＋鍵帽（不用 ICO.plus）、自動時藏起來（body.mauto）',
-    bar.includes("b.slot < campN('slots')") &&
-      /if \(!TOUCH\.on && b\.slot != null && !S\.skills\[b\.slot\]\.k\)\s*return `<button class="sk emp"[^`]*<kbd>\$\{b\.key\}<\/kbd><\/button>`/.test(
-        bar
-      ) &&
-      /body:not\(\.touch\)\.mauto #bar \{[^}]*visibility: hidden/.test(css),
+    'battle-hud v1.3.3 技能格：5 格（左 右 Q E R）在 bhud.js；空的只畫外框（.bsk.emp，不用 ICO.plus）；自動時不藏（沒有 .mauto 藏技能列的規則）；舊快捷列只剩手機橫向',
+    /const BH_KEY = \['左', '右', 'Q', 'E', 'R'\];/.test(bhs) &&
+      /b\.classList\.toggle\('emp', !!o\.emp\)/.test(bhs) &&
+      !/ICO\.plus/.test(fnOf(bhs, 'bhSkills')) &&
+      !/\.mauto #bar \{[^}]*visibility: hidden/.test(css) &&
+      /TOUCH\.on && !PORT\(\)/.test(bar),
     ''
   );
-  const blk = css.slice(css.indexOf('/* ================= M2-38')),
+  /* M2-38 的 CSS 段到下一段（battle-hud v1.3.3）為止；battle-hud 段另外驗（只用 var()，不寫色碼字面值） */
+  const blk = css.slice(
+      css.indexOf('/* ================= M2-38'),
+      css.indexOf('/* ================= battle-hud v1.3.3')
+    ),
+    bhCss = css.slice(css.indexOf('/* ================= battle-hud v1.3.3')),
     fns = ['chasePanelHTML', 'empHTML', 'forgeHead', 'craftSeg', 'chaseSeen', 'chaseDot', 'goCampT'].map(n =>
       fnOf(hud, n)
     ),
@@ -11181,6 +11198,15 @@ const ASC_COMBOS = `const combos = k => {
       !fns.some(f => lit.test(f)) &&
       !/\n\s*--[\w-]+\s*:/.test(blk),
     fns.map(f => f.length).join(',')
+  );
+  ok(
+    'battle-hud v1.3.3 顏色：CSS 段沒有色碼字面值（hex、rgb()）；段內的 token 只換成 :root 的 D2 色（--x: var(--d2-…)）',
+    bhCss.length > 100 &&
+      !lit.test(bhCss) &&
+      (bhCss.match(/\n\s*--[\w-]+\s*:[^;]*;/g) || []).every(l =>
+        /:\s*(var\(--d2-[\w-]+\)|calc\(54px \+ var\(--sab)/.test(l)
+      ),
+    (bhCss.match(/\n\s*--[\w-]+\s*:[^;]*;/g) || []).length
   );
   ok(
     'M2-38 角色頁空格：.eqs.emp 是實心框（沒有 dashed）、不寫「空」',
@@ -12046,6 +12072,203 @@ const ASC_COMBOS = `const combos = k => {
       JSON.stringify(m.vis)
     );
     ok(`M2-06 ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
+    await cx.close();
+  }
+  /* battle-hud v1.3.3：光環 7 格與 +k、光環清單用語、狀態 8 格與 +k、收起位移與戰場高度、技能格數字與工具提示、掉落牌 y 下限與寬度、大招判定、
+     鍵位（L 倉庫）、畫面用字（沒有彈夾、祭壇；彈藥處不寫充能）。直立模擬安全區 上 47／下 34 */
+  for (const [W, H, touch] of [
+    [390, 844, 1],
+    [1280, 720, 0]
+  ]) {
+    const cx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !!touch, isMobile: !!touch });
+    await cx.route(/supabase/, r => r.abort());
+    const p = await cx.newPage(),
+      errs = [],
+      tag = `${W}×${H}`;
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(URL + '?dbg=1&seed=5&' + Date.now());
+    await p.evaluate(() => localStorage.clear());
+    await p.reload();
+    await p.waitForTimeout(1200);
+    await p.evaluate(touch => {
+      proSkip();
+      S.story.tips = 0;
+      S.auto = 0;
+      if (touch) DBG.safeArea(34, 47);
+      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+      ['apshot', 'grenade', 'chargeslam', 'gasflask'].forEach((k, i) => {
+        S.skills[i] = { k, so: [null, null], n: 2 };
+        S.lib.sk[k] = 1;
+      });
+      runNode(TRUNK_K[0]);
+      ST = stats();
+      hudBar();
+      DBG.clear();
+    }, touch);
+    await p.waitForTimeout(600);
+    const m = await p
+      .evaluate(() => {
+        const r = {},
+          rc = q => {
+            const e = document.querySelector(q),
+              b = e && e.getBoundingClientRect();
+            return b ? [b.left, b.top, b.width, b.height].map(Math.round) : null;
+          },
+          tick = () => (bhTick(), idleBar(1));
+        DBG.freeze();
+        /* 光環 */
+        DBG.auras(7), tick();
+        r.au7 = [document.querySelectorAll('#bhAura .ac').length, !!document.querySelector('#bhAura .ak')];
+        DBG.auras(9), tick();
+        const ak = document.querySelector('#bhAura .ak');
+        r.au9 = [
+          document.querySelectorAll('#bhAura .ac').length,
+          ak && ak.textContent,
+          ak && ak.getAttribute('aria-label')
+        ];
+        bhAuraList(1);
+        r.auL = [...document.querySelectorAll('#bhAuL p')].map(e => e.textContent);
+        bhAuraList(0);
+        DBG.auras(0), tick();
+        r.au0 = $('bhAura').hidden;
+        DBG.auras(null);
+        /* 狀態 */
+        DBG.states(10, 2), tick();
+        r.st = [
+          document.querySelectorAll('#bhSts .stc').length,
+          (document.querySelector('#bhSts .stk') || {}).textContent
+        ];
+        DBG.states(null);
+        /* 技能格 */
+        P.flask = 3 * flaskCost() + 0.01;
+        DBG.ammo(0, 4), DBG.gren(1, 1), DBG.stage(2, 2), tick();
+        r.nb = [0, 1, 2, 3].map(i => document.querySelector(`#bhS${i} .nb`).textContent);
+        r.tip = [0, 1, 2, 3].map(i => (bhTip(i), $('bhTip').textContent));
+        DBG.reload(0, 1), tick();
+        r.rl = [$('bhS0').querySelector('.rl').textContent, (bhTip(0), $('bhTip').textContent)];
+        r.tipR = rc('#bhTip');
+        bhTip(null);
+        /* 收起：直立 HUD 下移 140、戰場 461→621；桌機不移 */
+        DBG.hudMin(0), tick();
+        r.n = [rc('#bhS0'), rc('#pidle'), cvH(), cvTop()];
+        DBG.hudMin(1), tick();
+        r.c = [rc('#bhS0'), rc('#pidle'), cvH(), cvTop()];
+        DBG.hudMin(0), tick();
+        /* 大招：只有王＋5 招、目標是玩家；剩比較久才取代；王死就收 */
+        G.big = null;
+        const mob = { boss: 0, pat: 'charge', hp: 1 },
+          boss = { boss: 1, pat: 'verdict', hp: 1 };
+        bigWarn(mob, P, 1);
+        r.big = [G.big];
+        bigWarn({ boss: 1, pat: 'swipe', hp: 1 }, P, 1);
+        r.big.push(G.big);
+        bigWarn(boss, {}, 2);
+        r.big.push(G.big);
+        bigWarn(boss, P, 2.1);
+        r.big.push(G.big && G.big.dur);
+        bigWarn({ boss: 1, pat: 'charge', hp: 1 }, P, 0.75);
+        r.big.push(G.big.dur);
+        boss.hp = 0;
+        bhBoss();
+        r.big.push(G.big, $('bhBig').hidden);
+        /* 掉落牌：放在畫面最下面的 3 件，下緣都 ≤ 下限、寬 ≤ 140 */
+        DBG.resume();
+        for (const k of ['exalt', 'exalt3', 'chaos'])
+          G.drops.push({ show: CUR[k] ? k : 'exalt', x: P.x + 10, y: P.y + 2000, sx: P.x, sy: P.y, t: 1, hold: 99 });
+        G.drops.push({ chase: CHASE_POOL.trunk[0], x: P.x - 40, y: P.y + 2000, sx: P.x, sy: P.y, t: 1, hold: 99 });
+        r.floor = BH.R.floor;
+        return r;
+      })
+      .catch(e => (errs.push(e.message), {}));
+    await p.waitForTimeout(400);
+    const pl = await p.evaluate(() => (G.plates || []).map(x => [x.r[1] + x.r[3] + cvTop(), x.r[2]])).catch(() => []);
+    /* 鍵位：L＝倉庫 */
+    if (!touch) await p.keyboard.press('l');
+    await p.waitForTimeout(200);
+    const key = await p.evaluate(() => [navOn(), (document.querySelector('#dnav .on') || {}).textContent]);
+    const txt = await p.evaluate(() => [$('bh').innerText, $('pidle').innerText, $('bhTip').textContent].join('\n'));
+    const fl = m.floor;
+    ok(
+      `battle-hud ${tag} 光環列：7 個全畫、9 個畫 6＋「+3」（讀屏「還有 3 個光環」）、沒有生效整組不畫`,
+      m.au7 &&
+        m.au7[0] === 7 &&
+        !m.au7[1] &&
+        m.au9[0] === 6 &&
+        m.au9[1] === '+3' &&
+        m.au9[2] === '還有 3 個光環' &&
+        m.au0 === true,
+      JSON.stringify([m.au7, m.au9, m.au0])
+    );
+    ok(
+      `battle-hud ${tag} 光環清單：每行「{名}・預留精魂 {sp}」、最後一行「精魂 {used}／{max}」（用「預留」不用「保留」）`,
+      m.auL &&
+        m.auL.length === 10 &&
+        m.auL.slice(0, 9).every(t => /^.+・預留精魂 \d+$/.test(t)) &&
+        /^精魂 \d+／\d+$/.test(m.auL[9]) &&
+        !m.auL.join().includes('保留'),
+      JSON.stringify(m.auL)
+    );
+    ok(
+      `battle-hud ${tag} 狀態圖示：10 個畫 7＋「+3」`,
+      m.st && m.st[0] === 7 && m.st[1] === '+3',
+      JSON.stringify(m.st)
+    );
+    ok(
+      `battle-hud ${tag} 技能格數字：彈匣「4」、儲存「1」、蓄力「2/3」、藥劑技能「3」；裝填中寫「裝填」`,
+      JSON.stringify(m.nb) === '["4","1","2/3","3"]' && m.rl && m.rl[0] === '裝填',
+      JSON.stringify([m.nb, m.rl])
+    );
+    ok(
+      `battle-hud ${tag} 技能格工具提示（§11）`,
+      m.tip &&
+        m.tip[0] === '彈匣 4／6 發・打完裝填 1.5 秒' &&
+        /^儲存 1／2 顆・下一顆 \d+\.\d 秒$/.test(m.tip[1]) &&
+        m.tip[2] === '按住蓄力，最多 3 段；自動模式蓄滿才出手' &&
+        /^藥劑技能充能 3 次・每次 \d+(\.\d)? 點$/.test(m.tip[3]) &&
+        m.rl[1] === '裝填中・1.0 秒' &&
+        (touch ? JSON.stringify(m.tipR) === '[10,392,370,34]' : JSON.stringify(m.tipR) === '[340,524,328,34]'),
+      JSON.stringify([m.tip, m.rl, m.tipR])
+    );
+    ok(
+      `battle-hud ${tag} 收起：${touch ? '直立 HUD 下移 140、收起列 0–390 × 712–756、戰場 91–552 → 91–712' : '桌機技能列不移、收起列 16–336 × 640–704（兩行 320×64）'}`,
+      m.n &&
+        (touch
+          ? m.c[0][1] - m.n[0][1] === 140 &&
+            JSON.stringify(m.c[1]) === '[0,712,390,44]' &&
+            JSON.stringify(m.n[1]) === '[0,552,390,204]' &&
+            m.n[2] === 461 &&
+            m.c[2] === 621 &&
+            m.n[3] === 91
+          : m.c[0][1] === m.n[0][1] &&
+            JSON.stringify(m.c[1]) === '[16,640,320,64]' &&
+            JSON.stringify(m.n[1]) === '[12,452,310,256]'),
+      JSON.stringify([m.n, m.c])
+    );
+    ok(
+      `battle-hud ${tag} 大招：小怪、不夠格的王招、目標不是玩家都不出；判決 2.1 秒；剩比較短的不取代；王死就收`,
+      m.big &&
+        m.big[0] === null &&
+        m.big[1] === null &&
+        m.big[2] === null &&
+        m.big[3] === 2.1 &&
+        m.big[4] === 2.1 &&
+        m.big[5] === null &&
+        m.big[6] === true,
+      JSON.stringify(m.big)
+    );
+    ok(
+      `battle-hud ${tag} 掉落牌：下緣都 ≤ ${fl}（狀態圖示上緣 −4）、寬 ≤ 140、往上疊不重疊`,
+      pl.length >= 3 && pl.every(([y1, w]) => y1 <= fl + 0.5 && w <= 140),
+      JSON.stringify(pl)
+    );
+    if (!touch)
+      ok(`battle-hud ${tag} 鍵位：L 開倉庫分頁`, key[0] === 'bag' && /倉庫/.test(key[1]), JSON.stringify(key));
+    ok(
+      `battle-hud ${tag} 畫面用字：沒有「彈夾」「祭壇」「祀壇」「祝壇」「祥壇」「Altar」，技能格工具提示的彈藥處不寫「充能」`,
+      !/彈夾|祭壇|祀壇|祝壇|祥壇|Altar/.test(txt) && !/彈匣[^\n]*充能/.test(txt),
+      ''
+    );
+    ok(`battle-hud ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
     await cx.close();
   }
   await b.close();

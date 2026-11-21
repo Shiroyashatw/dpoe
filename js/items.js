@@ -1065,6 +1065,7 @@ function stats(s = S) {
   o.spirit = calc(o.spirit, o.spiritP, 1, o.spiritTot);
   o.spiritUsed = 0;
   o.auraOn = [];
+  o.auraSp = {}; /* 每個生效光環實際預留的精魂（戰鬥 HUD 光環清單「預留精魂 {sp}」） */
   /* 魔像上限最少 1（巨像的 −1 不會讓魔像全部消失） */
   o.golemMax = Math.max(1, o.golemMax);
   const AG = auraGems(s);
@@ -1092,6 +1093,7 @@ function stats(s = S) {
       (1 + (o.spiritEff + (A.tags.includes('companion') ? o.compSpirit : 0) + (A.her ? o.herSpirit : 0)) / 100);
     if (o.spiritUsed + sp > o.spirit) continue;
     o.spiritUsed += sp;
+    o.auraSp[g.gem] = sp;
     o.auraOn.push(g.gem);
     /* 魔像的增益不吃光環效果（auraEff）：吃增益效果與幅度（buffEff、buffMag）與魔像增益效果 golemEff（下面的 gm） */
     const ae = sup.auraeff,
