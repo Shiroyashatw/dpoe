@@ -12,11 +12,9 @@ function setTouch(on) {
   document.body.classList.toggle('touch', on);
   applyOrient();
 }
-/* 手機一律直立（2026-11-21 取消橫向）：觸控＝body.port；全螢幕時鎖直立 */
+/* 手機一律直立（2026-11-21 取消橫向）：觸控＝body.port；不鎖方向 */
 function applyOrient() {
   document.body.classList.toggle('port', PORT());
-  if (PORT() && fsOn() && screen.orientation && screen.orientation.lock)
-    screen.orientation.lock('portrait').catch(() => {});
   stickHide();
   fsBtn();
   resize();
@@ -70,8 +68,9 @@ function drawAim() {
   CX.arc(w.x, w.y, 22, 0, Math.PI * 2);
   CX.fill();
 }
-/* ---------- 全螢幕：Android 用網頁全螢幕（按全螢幕鈕才進、鎖直立；0.3.2 起不自動進）；
-   iPhone 的 Safari 不支援網頁全螢幕。inApp＝以前從主畫面捷徑打開的（已經沒有網址列，藏全螢幕鈕） ---------- */
+/* ---------- 全螢幕（企劃書 §9「更多」）：桌機與 Android 按全螢幕鈕才進（0.3.2 起不自動進），不鎖方向，
+   退出交給 Esc 與瀏覽器。不支援 Fullscreen API（fsOK() 為 false，例如 iPhone 的 Safari）就不顯示入口。
+   inApp＝已經是全螢幕或獨立視窗（沒有網址列），也不顯示 ---------- */
 const fsOK = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled),
   fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement),
   inApp = () => matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone;
@@ -79,18 +78,14 @@ function fsEnter() {
   const el = document.documentElement,
     rq = el.requestFullscreen || el.webkitRequestFullscreen;
   if (!rq) return;
-  Promise.resolve(rq.call(el, { navigationUI: 'hide' }))
-    .then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('portrait'))
-    .catch(() => {});
+  Promise.resolve(rq.call(el, { navigationUI: 'hide' })).catch(() => {});
 }
 function fsClick() {
-  if (fsOK()) return fsEnter();
-  showTip(`<b>全螢幕</b><p>這個瀏覽器（iPhone 的 Safari）不支援網頁全螢幕。</p>`, new DOMRect(innerWidth / 2, 0, 0, 0));
-  $('tip').classList.add('act');
+  if (fsOK()) fsEnter();
 }
 function fsBtn() {
   const b = $('tfs');
-  if (b) b.hidden = !TOUCH.on || inApp() || fsOn();
+  if (b) b.hidden = !TOUCH.on || !fsOK() || inApp() || fsOn();
 }
 function moreMenu(on) {
   const el = $('tmore');
@@ -386,8 +381,6 @@ function touchInit() {
     )
       hideTip();
   });
-  /* 0.3.2：不再自動進全螢幕（要的話按全螢幕鈕）。安裝版已取消（2026-11-21）：保險起見仍擋掉 Chrome 的安裝提示 */
-  addEventListener('beforeinstallprompt', e => e.preventDefault());
   handInit();
   document.addEventListener('fullscreenchange', fsBtn);
   document.addEventListener('webkitfullscreenchange', fsBtn);

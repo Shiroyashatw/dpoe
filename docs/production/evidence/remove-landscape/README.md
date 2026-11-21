@@ -1,7 +1,7 @@
 # dpoe-land-remove：拿掉手機橫向與安裝版（PWA）證據
 
 - 分支：`chore/remove-landscape-pwa-1121`
-- base（origin/main）：`8bae3f695fe01ac9b0f78106ffe8848103ed995f`
+- base（origin/main，實際合併的 base）：`8273554c5b53159c0a97532051783b71b70953af`（#156 merge commit：`3a80e88acd075252b264229ba1e79f7870c9aa3e`）
 - 程式改動 commit：`479a5d1399cff1c27d019533630a1db4ce405049`
 
 ## 對照截圖（同一場景：新存檔 → proSkip → 自動刷第一個地點 4 秒，Math.random 固定種子）
