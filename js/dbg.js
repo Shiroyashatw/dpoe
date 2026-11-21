@@ -2,6 +2,14 @@
    只有網址帶 ?test= 或 ?dbg=1 時 index.html 才載入（緊接 core.js 之後）；正式玩家完全不載入、沒有 DBG。
    不改遊戲數值：只把狀態做出來給截圖用 */
 'use strict';
+/* 技能格的假狀態（bhud.js 的 BH.fake[i]）；k 可以是格子 0–4 或技能鍵 */
+function bhFake(k, o) {
+  const i = typeof k === 'number' ? k : S.skills.findIndex(r => r.k === k);
+  if (i < 0) return false;
+  BH.fake[i] = o ? Object.assign(BH.fake[i] || {}, o) : null;
+  for (const x in HV) if (/^bs/.test(x)) delete HV[x];
+  return true;
+}
 const DBG = (() => {
   const q = new URLSearchParams(location.search),
     seed = q.get('seed');
@@ -28,7 +36,9 @@ const DBG = (() => {
     if (frz != null) anims(a => a.playState === 'running' && (a.pause(), (a.currentTime = 0)));
     for (const f of L) f(t);
   };
-  window.requestAnimationFrame = cb => (Q.push(cb) === 1 && raf(pump), Q.length);
+  /* 真的 rAF 同時只排一個：step() 直接呼叫 pump 時不再另排，否則每推一格就多一條自己續命的 rAF 鏈，頁面越推越慢 */
+  let rq = 0;
+  window.requestAnimationFrame = cb => (Q.push(cb), rq || ((rq = 1), raf(() => ((rq = 0), pump()))), Q.length);
   const anims = f => document.getAnimations().forEach(f),
     mob = () => Object.values(MOBS)[0],
     at = (x, y) => [x == null ? P.x : x, y == null ? P.y - 60 : y],
@@ -66,6 +76,11 @@ const DBG = (() => {
         anims(a => (a.pause(), (a.currentTime = (a.currentTime || 0) + d)));
         pump();
       }
+    },
+    /* 先把進行中的 CSS 轉場推到終點（等同等到 transitionend）再凍結：截圖時條寬＝數值（dpoe-hud133-fix3 F2） */
+    settle() {
+      anims(a => a instanceof CSSTransition && a.finish());
+      this.freeze();
     },
     resume() {
       if (frz == null) return;
@@ -212,6 +227,102 @@ const DBG = (() => {
       px == null ? st.removeProperty('--sab') : st.setProperty('--sab', px + 'px');
       top == null ? st.removeProperty('--sat') : st.setProperty('--sat', top + 'px');
       resize();
+    },
+    /* battle-hud v1.3.3 §13 做狀態（R4 §3.3）：k＝技能格 0–4 或技能鍵；null＝還原成遊戲真的值 */
+    ammo(k, n) {
+      return bhFake(k, n == null ? null : { n, rl: n > 0 ? 0 : undefined });
+    },
+    reload(k, s) {
+      return bhFake(k, s == null ? null : { n: 0, rl: s });
+    },
+    gren(k, used) {
+      return bhFake(k, used == null ? null : { used });
+    },
+    stage(k, s) {
+      return bhFake(k, s == null ? null : { s });
+    },
+    /* 光環數（照 AURAS 的順序拿生效的 n 個；超過 7 個畫 6＋「+k」）；null 還原 */
+    auras(n) {
+      BH.fake.aura = n == null ? null : Object.keys(AURAS).slice(0, n);
+      HV.bhau = null;
+      return BH.fake.aura;
+    },
+    /* 狀態圖示數（照 STATE 拿 n 個，前 bad 個是負面）；null 還原 */
+    states(n, bad = 1) {
+      BH.fake.sts =
+        n == null
+          ? null
+          : Object.keys(STATE)
+              .slice(0, n)
+              .map((k, i) => ({ k, n: STATE[k][0], ic: STATE[k][1], d: STATE[k][2], f: 0.6, bad: i < bad }));
+      HV.bhsts = null;
+      return n;
+    },
+    /* 掉落洪水：拾取最後一列換成「+n 件已收」；null 還原 */
+    flood(n) {
+      BH.fake.flood = n;
+      HV.idle = null;
+      idleBar(1);
+    },
+    /* 目標（營地下一座）的進度 0–1；null 還原 */
+    goal(p) {
+      BH.fake.goal = p;
+      HV.idle = null;
+      idleBar(1);
+    },
+    /* 能量護盾（battle-hud-6 §25 例值）：目前 es／上限 max（0＝沒有能量護盾上限）；ch＝充能中（4 秒延遲已過）；mana＝點了異能魔力 */
+    es(es, max = 600, ch = 0, mana = 0) {
+      ST.es = max;
+      ST.esMana = mana ? 1 : 0;
+      P.es = Math.min(es, max);
+      P.esCh = !!ch;
+      P.lastHurt = ch ? G.t - 9 : G.t;
+      HV.bhes = null;
+    },
+    /* 格擋值（battle-hud-5 §14）：目前 n／最大 max（0＝沒拿盾）；br＝碎開回滿中 */
+    block(n, max = 600, br = 0) {
+      ST.bv = max;
+      P.bv = Math.min(n, max);
+      P.bvRe = br ? G.t : null;
+      HV.bhblk = HV.bhblkBr = null;
+    },
+    /* 收到最小（1）／一般（0）；不播動畫 */
+    hudMin(on = 1) {
+      S.hmin = on ? 1 : 0;
+      bhLayout(1);
+      sheetSync();
+      idleBar(1);
+    },
+    /* 戰場示意（battle-hud §12 場景表 PW／DW）：照螢幕座標放掉落牌與菁英名牌。L＝[名, 類別, x, y, w, h]；
+       類別：r0–r3＝物品稀有度、chase＝追逐、cur:鍵＝通貨演出、elite＝菁英怪（hp 很多、不動）。地上的東西不會被撿走 */
+    scene(L) {
+      const ox = IW / ZOOM / 2 - G.cam.x,
+        oy = cvH() / ZOOM / 2 - G.cam.y,
+        t0 = cvTop();
+      for (const [n, c, x, y, w, h] of L) {
+        const wx = (x + w / 2) / ZOOM - ox,
+          wy = (y + h - t0) / ZOOM - oy + 20;
+        if (c === 'elite') {
+          const D = Object.values(MOBS).find(m => !m.boss && m.ic) || Object.values(MOBS)[0],
+            m = spawnMob({ ...D, n }, wx, (y + h - t0) / ZOOM - oy, 0, 1);
+          m.y += m.sz + 10;
+          Object.assign(m, { hp: 1e9, mhp: 1e9, aggro: 0, spd: 0 });
+          continue;
+        }
+        const o = { x: wx, y: wy, sx: wx, sy: wy, t: 9, hold: 1e9, nopick: 1 };
+        if (c === 'chase') o.chase = CHASE_POOL.trunk[0];
+        else if (c.startsWith('cur:')) o.show = c.slice(4);
+        else (o.it = mkItem('w_sword1_0', 40, +c.slice(1))), (o.dbgN = n);
+        G.drops.push(o);
+      }
+    },
+    /* 大招警示：現在場上的王出一招判決（只做警示，不出招）；dur 秒 */
+    big(dur = 2.1) {
+      const m = G.mobs.find(x => x.boss && x.hp > 0);
+      if (!m) return false;
+      m.pat = 'verdict';
+      bigWarn(m, P, dur);
+      return true;
     },
     /* 存檔內容：物件就淺層蓋到 S 上，函式就拿 S 去改；之後重算數值、重畫面板 */
     save(preset) {

@@ -1,0 +1,194 @@
+{
+ "A_390x844": {
+  "before": {
+   "v": "1.000",
+   "w": 342
+  },
+  "set": {
+   "HV": "0.300",
+   "cssV": "0.300",
+   "w": 342,
+   "trans": [
+    {
+     "prop": "width",
+     "state": "running",
+     "t": 0
+    }
+   ]
+  },
+  "after300": {
+   "w": 102.59,
+   "inner": 342,
+   "want": 103,
+   "hp": 300,
+   "max": 1000,
+   "text": "生命 300 / 1000・能量護盾 600 / 600",
+   "trans": [],
+   "transitionend": true,
+   "realMs": 301
+  },
+  "ok": true
+ },
+ "B_390x844": {
+  "before": {
+   "v": "1.000",
+   "w": 342
+  },
+  "set": {
+   "HV": "0.300",
+   "cssV": "0.300",
+   "w": 342,
+   "trans": [
+    {
+     "prop": "width",
+     "state": "running",
+     "t": 0
+    }
+   ]
+  },
+  "after300": {
+   "w": 342,
+   "inner": 342,
+   "want": 103,
+   "hp": 300,
+   "max": 1000,
+   "text": "生命 300 / 1000・能量護盾 600 / 600",
+   "trans": [
+    {
+     "prop": "width",
+     "state": "paused",
+     "t": 0
+    }
+   ],
+   "transitionend": null,
+   "realMs": 0
+  },
+  "ok": false
+ },
+ "C_390x844": {
+  "before": {
+   "v": "1.000",
+   "w": 342
+  },
+  "set": {
+   "HV": "0.300",
+   "cssV": "0.300",
+   "w": 342,
+   "trans": [
+    {
+     "prop": "width",
+     "state": "running",
+     "t": 0
+    }
+   ]
+  },
+  "after300": {
+   "w": 102.59,
+   "inner": 342,
+   "want": 103,
+   "hp": 300,
+   "max": 1000,
+   "text": "生命 300 / 1000・能量護盾 600 / 600",
+   "trans": [],
+   "transitionend": null,
+   "realMs": 0
+  },
+  "ok": true
+ },
+ "A_1280x720": {
+  "before": {
+   "v": "1.000",
+   "w": 448
+  },
+  "set": {
+   "HV": "0.300",
+   "cssV": "0.300",
+   "w": 448,
+   "trans": [
+    {
+     "prop": "width",
+     "state": "running",
+     "t": 0
+    }
+   ]
+  },
+  "after300": {
+   "w": 134.39,
+   "inner": 448,
+   "want": 134,
+   "hp": 300,
+   "max": 1000,
+   "text": "生命 300 / 1000・能量護盾 600 / 600",
+   "trans": [],
+   "transitionend": true,
+   "realMs": 300
+  },
+  "ok": true
+ },
+ "B_1280x720": {
+  "before": {
+   "v": "1.000",
+   "w": 448
+  },
+  "set": {
+   "HV": "0.300",
+   "cssV": "0.300",
+   "w": 448,
+   "trans": [
+    {
+     "prop": "width",
+     "state": "running",
+     "t": 0
+    }
+   ]
+  },
+  "after300": {
+   "w": 448,
+   "inner": 448,
+   "want": 134,
+   "hp": 300,
+   "max": 1000,
+   "text": "生命 300 / 1000・能量護盾 600 / 600",
+   "trans": [
+    {
+     "prop": "width",
+     "state": "paused",
+     "t": 0
+    }
+   ],
+   "transitionend": null,
+   "realMs": 0
+  },
+  "ok": false
+ },
+ "C_1280x720": {
+  "before": {
+   "v": "1.000",
+   "w": 448
+  },
+  "set": {
+   "HV": "0.300",
+   "cssV": "0.300",
+   "w": 448,
+   "trans": [
+    {
+     "prop": "width",
+     "state": "running",
+     "t": 0
+    }
+   ]
+  },
+  "after300": {
+   "w": 134.39,
+   "inner": 448,
+   "want": 134,
+   "hp": 300,
+   "max": 1000,
+   "text": "生命 300 / 1000・能量護盾 600 / 600",
+   "trans": [],
+   "transitionend": null,
+   "realMs": 0
+  },
+  "ok": true
+ }
+}

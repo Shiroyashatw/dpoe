@@ -1,0 +1,123 @@
+"""battle-hud v1.3.3 §13 疊圖：把 W1_battle-{state}_{size}_overlay.png 以 100%、左上 (0,0) 疊到實機截圖上，並把量測寫成差表。
+用法：python3 tools/bh_overlay.py [資料夾]（預設 docs/production/evidence/battle-hud-v133；先跑 node tools/bh_shots.js）
+輸出：overlay_{state}_{size}.png、REPORT.md"""
+import io
+import json
+import subprocess
+import re
+import os
+import sys
+
+from PIL import Image
+
+ROOT = os.path.join(os.path.dirname(__file__), '..')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133-fix3')
+WF = 'docs/production/specs/wireframes/W1-battle-hud'
+# 依據的規格版本：預設 main 9c6be66（battle-hud v1.3.6，dpoe-hud133-fix2 交辦），BH_SPEC_REV 可換
+REV = os.environ.get('BH_SPEC_REV', '9c6be66')
+def wf(name):
+    return Image.open(io.BytesIO(subprocess.check_output(['git', 'show', f'{REV}:{WF}/{name}'], cwd=ROOT)))
+STATES = ['normal', 'boss', 'lowhp', 'lootflood', 'collapsed', 'es_full', 'es_partial', 'es_recharge', 'es_zero', 'es_none',
+          'lowcomb', 'lowlife', 'blockbr', 'low2', 'focus', 'focustab', 'focusrm', 'tipblk', 'tipblkmin', 'blkflash']
+# 新狀態沒有自己的 W1 疊圖：疊同版面的那張（一般／低血）；v1.3.5／v1.3.6 新元件另附上色示意圖並排（compare_*.png）
+BASE = {'es_full': 'normal', 'es_partial': 'normal', 'es_recharge': 'normal', 'es_zero': 'normal', 'es_none': 'normal',
+        'blockbr': 'normal', 'lowcomb': 'lowhp', 'lowlife': 'lowhp', 'low2': 'lowhp', 'focus': 'normal',
+        'focustab': 'normal', 'focusrm': 'normal', 'tipblk': 'normal', 'blkflash': 'normal', 'tipblkmin': 'collapsed'}
+COLOR = {'es_full': 'v136-es-{s}-full', 'es_partial': 'v136-es-{s}-partial', 'es_recharge': 'v136-es-{s}-recharge',
+         'es_zero': 'v136-es-{s}-zero', 'es_none': 'v136-es-{s}-none', 'lowcomb': 'v136-es-{s}-lowcomb',
+         'lowlife': 'v136-es-{s}-lowlife', 'blockbr': 'v135-xpblk-block-{s}-refilling', 'normal': 'v135-xpblk-hud-{s}-A',
+         'collapsed': 'v135-xpblk-hud-{s}-A-collapsed'}
+SIZES = ['390x844', '1280x720']
+
+lines = ['# battle-hud v1.3.6 疊圖驗收（tools/bh_shots.js＋tools/bh_overlay.py）', '',
+         '截圖 DPR 1、同 CSS 視窗；疊圖＝`W1_battle-{state}_{size}_overlay.png` 100%、左上 (0,0)（能量護盾、格擋碎開、危急兩分支沒有自己的 W1 疊圖，疊一般／低血那張；v1.3.5／v1.3.6 新元件的位置看量測表，另附 `compare_{state}_{size}.jpg`：左實機、右規格上色示意圖）。',
+         '差＝實機框四邊減規格框（左、上、右、下，px）；熱區差同理；容差 ±2。字＝computed font-size/weight；色＝computed color。', '']
+tot = bad = 0
+fbad, fallow, kbad, cbad, ctot = [], [], [], [], 0
+for size in SIZES:
+    for st in STATES:
+        shot = os.path.join(OUT, f'{st}_{size}.png')
+        if not os.path.exists(shot):
+            continue
+        a = Image.open(shot).convert('RGBA')
+        b = wf(f'W1_battle-{BASE.get(st, st)}_{size}_overlay.png').convert('RGBA')
+        assert a.size == b.size, (shot, a.size, b.size)
+        Image.alpha_composite(a, b).save(os.path.join(OUT, f'overlay_{st}_{size}.png'))
+        cn = COLOR.get(st)
+        if cn:
+            try:
+                cimg = wf('color/battle-hud-' + cn.format(s=size.split('x')[0]) + '.png').convert('RGB')
+                cw = Image.new('RGB', (a.width + cimg.width + 8, max(a.height, cimg.height)), (255, 255, 255))
+                cw.paste(a.convert('RGB'), (0, 0))
+                cw.paste(cimg, (a.width + 8, 0))
+                cw.save(os.path.join(OUT, f'compare_{st}_{size}.jpg'), quality=88)
+            except subprocess.CalledProcessError:
+                pass
+        m = json.load(open(os.path.join(OUT, f'measure_{st}_{size}.json')))
+        rep = m['rep']
+        nb = [r for r in rep if not r['ok']]
+        tot += len(rep)
+        bad += len(nb)
+        lines += [f'## {st} {size}：{len(rep) - len(nb)}／{len(rep)} 項在 ±2 px 內', '',
+                  f'原圖 `{st}_{size}.png`、疊圖 `overlay_{st}_{size}.png`、量測 `measure_{st}_{size}.json`' +
+                  (f'；頁面錯誤：{"／".join(m["errs"])}' if m['errs'] else ''), '',
+                  '| id | 名稱 | 規格 x,y,w,h | 實機 x,y,w,h | 四邊差 | 熱區（規格） | 熱區差 | 字（規格） | 字（實機） | 色（實機） | 結果 |',
+                  '|---|---|---|---|---|---|---|---|---|---|---|']
+        for r in rep:
+            got = ','.join(f'{v:g}' for v in r['got']) if r['got'] else '—'
+            # 四邊差寫到小數 2 位（量測本身是小數；容差判定照 bh_shots.js 四捨五入後 ±2）
+            dd = r['d']
+            if r['got'] and r['spec'][2]:
+                g, e = r['got'], r['spec']
+                dd = [g[0] - e[0], g[1] - e[1], g[0] + g[2] - e[0] - e[2], g[1] + g[3] - e[1] - e[3]]
+                dd = [f'{v:+.2f}'.rstrip('0').rstrip('.') if abs(v) > 0.004 else '0' for v in dd]
+            res = '✅' if r['ok'] else ('❌ 沒有' if r['miss'] else ('❌ 沒畫' if not r['vis'] else '❌'))
+            fnt = f"{r['fs'] or ''}/{r['fw'] or ''}" if r.get('fs') else '—'
+            # 字級字重：規格寫「14/700」才比；「+k 14/700」只管 +k 那格（另由 check.js 驗），這裡不比
+            mm = re.match(r'^(?:數字 )?(\d+)/(\d+)', r['f'] or '')
+            if mm and r.get('fs'):
+                fok = r['fs'] == mm.group(1) + 'px' and str(r['fw']) == mm.group(2)
+                # 依態比對（審查 §3(a)）：冷卻中的技能格量到的是冷卻秒數 16/700（-2 P24、-4 §11）；
+                # 自動「開著」、選中分頁字重 700、字級照規格（P56／D40、palette-D2-panel-1plus §27／§33、M2-36 --sel-tx）
+                why = ''
+                if not fok and r.get('cd') and r['fs'] == '16px' and str(r['fw']) == '700':
+                    why = '冷卻秒數 16/700'
+                elif not fok and r.get('on') and r['fs'] == mm.group(1) + 'px' and str(r['fw']) == '700':
+                    why = '開著／選中 700'
+                if why:
+                    fnt += f'（{why}，規格允許）'
+                    fallow.append(f"{st} {size} {r['id']}")
+                else:
+                    fnt += '' if fok else ' ⚠'
+                    fbad.append(f"{st} {size} {r['id']}") if not fok else None
+            if r.get('kbd'):
+                # 鍵帽：1280 一律 12/700、盒 14×14（-3 D07–D13、D61／D62，-4「1280 鍵帽 14×14、字 12」）；390 不畫
+                kok = size != '1280x720' or (r['kbd'] == '12px/700' and r.get('kbox') in (None, [14, 14]))
+                fnt += f"；鍵帽 {r['kbd']}" + (f" {r['kbox'][0]}×{r['kbox'][1]}" if r.get('kbox') else '') + ('' if kok else ' ⚠')
+                if not kok:
+                    kbad.append(f"{st} {size} {r['id']}")
+            lines.append(f"| {r['id']} | {r['n'][:24]} | {','.join(map(str, r['spec']))} | {got} | {','.join(map(str, dd))} | "
+                         f"{r['hit'] or '—'} | {','.join(map(str, r['hd'])) if r['hd'] else '—'} | {r['f']} | {fnt} | {r.get('col') or '—'} | {res} |")
+        lines.append('')
+        ch = m.get('chk', [])
+        ctot += len(ch)
+        if ch:
+            lines += ['檢查（F1 框、F2 填滿寬度、F3 鍵帽、F4 焦點框）：', '', '| 項目 | 實機 | 應為 | 結果 |', '|---|---|---|---|']
+            for c in ch:
+                lines.append(f"| {c['k']} | {c['got']} | {c['want']} | {'✅' if c['ok'] else '❌'} |")
+                cbad.append(f"{st} {size} {c['k']}") if not c['ok'] else None
+            lines.append('')
+sha = json.load(open(os.path.join(OUT, 'measure_normal_390x844.json'))).get('sha', '?')
+lines.insert(3, f'產生時的 commit：`{sha}`（每個 measure_*.json 檔頭 `sha` 欄也有）；規格表與疊圖讀自 `{REV}`（battle-hud v1.3.6＋-5 v1.3.5＋-6 v1.3.6，dpoe-hud133-fix2 交辦）。')
+lines.insert(4, '')
+lines.insert(4, f'**合計 {tot - bad}／{tot} 項在 ±2 px 內；不符 {bad} 項。**')
+lines.insert(5, f'**字級／字重（規格寫明 px/weight 的項，依態比對）：不符 {len(fbad)} 項**' + (f'：{"、".join(fbad)}' if fbad else '') +
+             f'（⚠ 標在表上）；規格允許的狀態值 {len(fallow)} 項（冷卻秒數 16/700、自動開著 700、選中分頁 700，表上註明）')
+lines.insert(6, f'**鍵帽（1280 12/700、14×14）：不符 {len(kbad)} 項**' + (f'：{"、".join(kbad)}' if kbad else ''))
+lines.insert(7, f'**檢查（F1 框、F2 填滿寬度、F3 鍵帽、F4 焦點框）：{ctot - len(cbad)}／{ctot}，不符 {len(cbad)} 項**' + (f'：{"、".join(cbad)}' if cbad else ''))
+lines.insert(8, '')
+tk = os.path.join(OUT, 'TOKENS.md')
+if os.path.exists(tk):
+    lines += ['', open(tk).read()]
+open(os.path.join(OUT, 'REPORT.md'), 'w').write('\n'.join(lines) + '\n')
+print(f'{tot - bad}/{tot}，不符 {bad}；字級字重不符 {len(fbad)}：{fbad}；允許 {len(fallow)}；鍵帽不符 {len(kbad)}：{kbad}；檢查 {ctot - len(cbad)}/{ctot} 不符 {cbad}')

@@ -1,0 +1,130 @@
+{
+ "390x844": {
+  "lat": [
+   {
+    "slot": 0,
+    "in": "pointerup",
+    "by": "up (js/touch.js:260:11)",
+    "fire": 70.3,
+    "frame": 70.8,
+    "f": 63,
+    "ms": 1080
+   },
+   {
+    "slot": 0,
+    "in": "pointerup",
+    "by": "up (js/touch.js:260:11)",
+    "fire": 27.8,
+    "frame": 38.4,
+    "f": 109,
+    "ms": 1832.8
+   },
+   {
+    "slot": 0,
+    "in": "pointerup",
+    "by": "up (js/touch.js:260:11)",
+    "fire": 27.4,
+    "frame": 40,
+    "f": 153,
+    "ms": 2566
+   },
+   {
+    "slot": 0,
+    "in": "pointerup",
+    "by": "up (js/touch.js:260:11)",
+    "fire": 30.1,
+    "frame": 42.7,
+    "f": 197,
+    "ms": 3299.4
+   },
+   {
+    "slot": 0,
+    "in": "pointerup",
+    "by": "up (js/touch.js:260:11)",
+    "fire": 28.2,
+    "frame": 40.6,
+    "f": 241,
+    "ms": 4032.6
+   },
+   {
+    "slot": 0,
+    "in": "pointerup",
+    "by": "up (js/touch.js:260:11)",
+    "fire": 27.4,
+    "frame": 40.3,
+    "f": 285,
+    "ms": 4765.9
+   }
+  ],
+  "screencast": {
+   "frames": 290,
+   "seconds": 4.83,
+   "fps": 60
+  },
+  "errs": []
+ },
+ "1280x720": {
+  "lat": [
+   {
+    "slot": 2,
+    "in": "keydown:q",
+    "by": "js/hud.js:3080:27",
+    "fire": 5.2,
+    "frame": 5.9,
+    "f": 59,
+    "ms": 1017.3
+   },
+   {
+    "slot": 0,
+    "in": "pointerdown",
+    "by": "HTMLCanvasElement.<anonymous> (js/hud.js:3134:7)",
+    "fire": 2,
+    "frame": 5,
+    "f": 103,
+    "ms": 1746.7
+   },
+   {
+    "slot": 2,
+    "in": "keydown:q",
+    "by": "js/hud.js:3080:27",
+    "fire": 0.9,
+    "frame": 7.4,
+    "f": 146,
+    "ms": 2463.4
+   },
+   {
+    "slot": 0,
+    "in": "pointerdown",
+    "by": "HTMLCanvasElement.<anonymous> (js/hud.js:3134:7)",
+    "fire": 1.1,
+    "frame": 3.3,
+    "f": 188,
+    "ms": 3163.3
+   },
+   {
+    "slot": 2,
+    "in": "keydown:q",
+    "by": "js/hud.js:3080:27",
+    "fire": 3.3,
+    "frame": 11.8,
+    "f": 231,
+    "ms": 3879.9
+   },
+   {
+    "slot": 0,
+    "in": "pointerdown",
+    "by": "HTMLCanvasElement.<anonymous> (js/hud.js:3134:7)",
+    "fire": 0.9,
+    "frame": 5.3,
+    "f": 273,
+    "ms": 4579.9
+   }
+  ],
+  "screencast": {
+   "frames": 279,
+   "seconds": 4.65,
+   "fps": 60.1
+  },
+  "errs": []
+ }
+}

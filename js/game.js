@@ -1218,9 +1218,12 @@ const CHASE_HOLD = 2.4;
 let CHASE_T = -1e9,
   CHASE_UNTIL = 0;
 let LOGV = 0; /* 掉落紀錄改了就加一（HUD 重畫） */
-function dropLog(n, c, k) {
-  const L = (S.log = S.log || []);
-  L.unshift(k ? { t: Date.now(), n, c, k } : { t: Date.now(), n, c });
+/* r＝稀有度（0 普通–3 傳奇、4 追逐）；沒給就照類別推（logR） */
+function dropLog(n, c, k, r) {
+  const L = (S.log = S.log || []),
+    x = k ? { t: Date.now(), n, c, k } : { t: Date.now(), n, c };
+  if (r != null) x.r = r;
+  L.unshift(x);
   if (L.length > 50) L.length = 50;
   LOGV++;
   if (G.rs) G.rs.log.push({ n, c });
@@ -1781,6 +1784,8 @@ function bossAI(m, dt) {
       m.st = 'wind';
       m.ang = angTo(m, T);
       m.t = BOSS_WIND[m.pat] * rage;
+      /* 大招警示（M2-40-big-attack §4）：出招當下判定；判決照那個圈的 2.1 秒 */
+      bigWarn(m, T, m.pat === 'verdict' ? 2.1 * rage : m.t);
       if (m.pat === 'nova') m.gap = rnd(0, TAU);
       if (m.pat === 'line')
         for (let i = 0; i < 6; i++)
