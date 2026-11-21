@@ -11740,6 +11740,158 @@ const ASC_COMBOS = `const combos = k => {
       !catUse.length,
     JSON.stringify({ tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')], catUse })
   );
+  /* CSS 對齊色票（docs/production/evidence/css-palette/ruling/：ruling.csv 139 列＋X1–X4；官方值照 M2-36） */
+  {
+    const root = css.replace(/\/\*[\s\S]*?\*\//g, '').match(/:root\s*\{([^}]*)\}/)[1],
+      rules = css.slice(css.indexOf('\n}\n')).replace(/\/\*[\s\S]*?\*\//g, ''),
+      defd = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1])),
+      jsAll = fs
+        .readdirSync(path.join(__dirname, '..', 'js'))
+        .map(f => rd('js/' + f))
+        .join('\n'),
+      /* 沒有後備值的 var()；JS 在元素上設的局部變數（--v、--c…）不算；--x／--y（.sk-nd／.sk-nl）、--sc（.mcard／.mc2）、--sel（#curs:active，M2-36 已刪）是 main 812b428 就沒定義的，不在本表 */
+      undef = [
+        ...new Set([...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/var\((--[\w-]+)\s*\)/g)].map(m => m[1]))
+      ].filter(
+        t => !defd.has(t) && !new RegExp(`${t}(?![\\w-])`).test(jsAll) && !['--x', '--y', '--sc', '--sel'].includes(t)
+      );
+    ok('CSS 色票：style.css 每個 var(--token) 都有定義', !undef.length, undef.join(','));
+    const camel = s => s.replace(/-(\w)/g, (_, c) => c.toUpperCase()),
+      palKey = t => {
+        const m = t.match(/^--(.+?)-rgb(-v\d+)?$/);
+        return m ? 'PAL.rgb.' + camel(m[1] + (m[2] || '')) : 'PAL.' + camel(t.slice(2));
+      },
+      d1 = rd('docs/production/evidence/css-palette/ruling/ruling.csv')
+        .split('\n')
+        .slice(1)
+        .map(l => l.split(',')[0])
+        .filter(t => /^--/.test(t)),
+      gone = d1.filter(t => !new RegExp(`(^|[;\\s])${t}\\s*:`).test(css)),
+      srcs = [
+        'css/style.css',
+        'index.html',
+        ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f),
+        ...fs
+          .readdirSync(__dirname)
+          .filter(f => /\.js$/.test(f))
+          .map(f => 'tools/' + f)
+      ].map(f => [f, rd(f)]),
+      left = gone.flatMap(t => {
+        const re = new RegExp(`${t.replace(/-/g, '\\-')}(?![\\w-])|${palKey(t).replace(/\./g, '\\.')}(?!\\w)`);
+        return srcs.filter(([f, s]) => re.test(s)).map(([f]) => t + '@' + f);
+      });
+    ok(
+      `CSS 色票：判定表裡已從 :root 刪掉的 ${gone.length} 個舊 token，css／js／index.html／tools 都沒有殘留引用（var()、PAL、cssv）`,
+      gone.length >= 100 && !left.length,
+      left.join(',')
+    );
+    const want = {
+        hf: '#b65517',
+        portal: '#ccbcfe',
+        enemyTel: '#ff3d7f',
+        enemyRim: '#fbbdbb',
+        fxOwn: '#c6c6c6',
+        vig: '#b01a14',
+        es: '#dfbf91',
+        esHi: '#fcefde',
+        block: '#a9b8c3',
+        blockRegen: '#758088',
+        selEdge: '#a8927f',
+        actEdge: '#a8927f',
+        panelGradTop: '#2d251f',
+        hdr: '#2d251f',
+        sceneVoid: '#16130f',
+        panelInset: '#1d1a17',
+        panel: '#25211e',
+        panelRaised: '#2c2825',
+        hp: '#934341',
+        mp: '#3a5b98',
+        rarRare: '#fbe53a',
+        rarChase: '#0cf6ee',
+        elFire: '#ee9978',
+        tx: '#e8e5e1',
+        txStrong: '#fbf9f6',
+        border: '#817b75'
+      },
+      wantRgb = {
+        rarRare: '251,229,58',
+        rarChase: '12,246,238',
+        elFire: '238,153,120',
+        enemyTel: '255,61,127',
+        portal: '204,188,254',
+        scrim: '10,7,4',
+        hurtVignette: '176,26,20'
+      },
+      bad = [
+        ...Object.entries(want).filter(([k, v]) => PAL[k] !== v),
+        ...Object.entries(wantRgb).filter(([k, v]) => PAL.rgb[k] !== v)
+      ];
+    ok(
+      'CSS 色票：PAL 解到 M2-36 官方值（含 --hf、--rar-rare-rgb、--rar-chase-rgb、--el-fire-rgb、--enemy-tel-rgb、--portal／-rgb）',
+      !bad.length,
+      JSON.stringify(bad)
+    );
+    const js = fs
+        .readdirSync(path.join(__dirname, '..', 'js'))
+        .map(f => rd('js/' + f).replace(/\/\*[\s\S]*?\*\//g, '')),
+      keys = [
+        ...new Set(
+          js.flatMap(s => [...s.matchAll(/\bPAL\.(rgb\.|scene\.\w+\.)?([a-zA-Z]\w*)/g)].map(m => (m[1] || '') + m[2]))
+        )
+      ],
+      miss = keys.filter(k => {
+        const v = k.split('.').reduce((o, x) => (o == null ? o : o[x]), PAL);
+        return typeof v !== 'string' || !v.trim();
+      });
+    ok(
+      'CSS 色票：JS 讀到的每個 PAL key 都有值（不是 undefined、不是空字串）',
+      keys.length > 100 && !miss.length,
+      miss.join(',')
+    );
+    const lit = /#[0-9a-fA-F]{3,8}\b|rgba?\(\d/,
+      ruleLit = rules.split('\n').filter(l => lit.test(l)),
+      jsLit = ['palette', 'render', 'game', 'combat', 'skills', 'mech', 'touch', 'maps'].filter(f =>
+        lit.test(
+          rd(`js/${f}.js`)
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+            .replace(/\/\/[^\n]*/g, '')
+        )
+      );
+    ok(
+      'CSS 色票：style.css 的規則（:root 以外）與本次改的 8 支 JS 都沒有寫死 hex、rgb()',
+      !ruleLit.length && !jsLit.length,
+      JSON.stringify({ ruleLit: ruleLit.slice(0, 3), jsLit })
+    );
+    const R = rd('js/render.js'),
+      Gm = rd('js/game.js'),
+      ring = R.slice(R.indexOf("} else if (o.k === 'ring') {"), R.indexOf("} else if (o.k === 'ghost') {")),
+      fxF = Gm.slice(Gm.indexOf('function fx(o)'), Gm.indexOf('const sigFx'));
+    ok(
+      'CSS 色票 X1／X3：稀有掉落光圈 RCOL＝[--rar-normal, --rar-magic, --rar-rare]；「回家」與一般傳送門的填色、環都是 --portal-rgb',
+      R.includes('const RCOL = [PAL.rarNormal, PAL.rarMagic, PAL.rarRare];') &&
+        (R.match(/PAL\.rgb\.portal\b/g) || []).length === 2 &&
+        !/PAL\.rgb\.(rarMagicV2|dodgeVignetteV1)\b/.test(R)
+    );
+    ok(
+      'CSS 色票 X2：fx 環的序列圖用呼叫端的 sh 明示（沒有 RINGFX 色值查表）；王現身、王暴怒、獄火自爆、戰吼、怒氣、詛咒區結束都是 boom',
+      !/RINGFX/.test(Gm) &&
+        /fxs\(o\.sh === undefined && !o\.col \? 'slam' : o\.sh/.test(fxF) &&
+        /r: 160, dur: 0\.6, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
+        /r: 130, dur: 0\.5, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
+        /r: 140, dur: 0\.45, col: PAL\.enemyTel, sh: 'boom'/.test(rd('js/combat.js')) &&
+        (rd('js/skills.js').match(/col: PAL\.fxOwn, sh: 'boom'/g) || []).length === 3 &&
+        /col: PAL\.fxOwn \}/.test(rd('js/combat.js')) &&
+        /r: 40, dur: 0\.3, col: PAL\.fxOwn \}/.test(rd('js/skills.js'))
+    );
+    ok(
+      'CSS 色票 X4：fx 環先畫外 1 px 黑邊（--ring-edge、lineWidth+2）再畫本色；黑邊跟環共用同一個 globalAlpha，我方 --fx-own 環 9%（黑邊永遠不會不透明）',
+      (ring.match(/globalAlpha/g) || []).length === 1 &&
+        /CX\.globalAlpha = \(1 - f\) \* \(o\.col === PAL\.fxOwn \? 0\.09 : 0\.9\)/.test(ring) &&
+        ring.indexOf('PAL.ringEdge') < ring.indexOf('o.col || PAL.catFracV4') &&
+        /lineWidth = lw \+ 2/.test(ring) &&
+        PAL.ringEdge === '#000000'
+    );
+  }
   /* (5a) 王印拼條第一次用到才載：橫幅先畫出空 span.ic，圖載好（artRepaint）要補畫橫幅 */
   const hjs = rd('js/hud.js'),
     rep = hjs.slice(hjs.indexOf('function artRepaint'), hjs.indexOf('/* 技能列'));

@@ -51,7 +51,7 @@ function drawAim() {
   const s = TOUCH.sk;
   if (!TOUCH.on || !s || !s.drag) return;
   const w = touchAim(),
-    col = s.cancel ? `rgba(${PAL.rgb.badV1},` : `rgba(${PAL.rgb.rarRare},`;
+    col = s.cancel ? `rgba(${PAL.rgb.badV1},` : `rgba(${PAL.rgb.hl},`;
   CX.lineWidth = 2;
   CX.strokeStyle = col + '0.18)';
   CX.beginPath();

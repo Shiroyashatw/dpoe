@@ -82,15 +82,18 @@ function gdSet(a, g, el, mv) {
   const v = g.v * GROUND[g.k].dot;
   if (!(a.gd && a.gd.t > G.t && a.gd.v > v)) a.gd = { v, el, mv, n: GROUND[g.k].n, t: G.t + 0.2 };
 }
+/* fx 環要播的序列圖（X2：不再用色值查表）：火 boom、冰 frost、混沌 dark；其他元素不播 */
+const ELSH = { fire: 'boom', cold: 'frost', chaos: 'dark' };
 const GROUND = {
   jagged: { n: '碎裂地面', col: PAL.borderHiV2, slow: 0.3 },
   gas: { n: '毒氣雲', col: PAL.goodV4, burn: 1 },
   /* 緩速在被油纏身裡（離開還留 2 秒），地面本身不另外緩速 */
   oil: { n: '油滑地面', col: PAL.rarRareBgV3, burn: 1, dur: 6, on: a => (a.oiled = G.t + DEBUFF.oilT) },
-  fire: { n: '燃燒地面', col: PAL.badHiV2 },
+  fire: { n: '燃燒地面', col: PAL.enemyTel, sh: 'boom' },
   chill: {
     n: '冰緩地面',
     col: PAL.elCold,
+    sh: 'frost',
     el: 'cold',
     dur: 4,
     on(a, t) {
@@ -202,7 +205,7 @@ const onGround = g => Math.hypot(P.x - g.x, (P.y - g.y) / 0.75) < g.r && los(g.x
 /* 荊棘地面生成時打一次：怪物方打玩家（躲不掉、吃護甲，死因寫地面）；玩家方是荊棘傷害，吃荊棘傷害提高與怪物護甲 */
 function groundBurst(g) {
   const v = g.v * GROUND[g.k].burst;
-  fx({ k: 'ring', x: g.x, y: g.y, r: g.r, dur: 0.3, col: GROUND[g.k].col });
+  fx({ k: 'ring', x: g.x, y: g.y, r: g.r, dur: 0.3, col: GROUND[g.k].col, sh: GROUND[g.k].sh });
   if (g.side === 'm') {
     if (onGround(g)) hurtPlayer(v, { D: { n: GROUND[g.k].n }, x: g.x, y: g.y }, 'phys', true);
   } else
@@ -233,7 +236,7 @@ function detonate(x, y, r, c) {
 function boomAt(x, y, r, c, mul = 1, el) {
   if (!c) return 0;
   const cc = el ? { ...c, D: { ...c.D, el, tags: [...(c.D.tags || []), 'aoe'] } } : c;
-  fx({ k: 'ring', x, y, r, dur: 0.3, col: el ? ELC[el] : PAL.catFracV4 });
+  fx({ k: 'ring', x, y, r, dur: 0.3, col: el ? ELC[el] : PAL.catFracV4, sh: el ? ELSH[el] : 'slam' });
   let n = 0; /* 回傳打到幾隻（爆炸補給用） */
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r) {
@@ -309,7 +312,7 @@ function remnantTick() {
       /* 殘留引力（remnantR 拾取範圍）、雙重殘留（remnantDbl 多 1 層）、恆久灌注（infDur 持續時間） */
       I[r.el] = { n: Math.min(3, cur + 1 + (roll(ST.remnantDbl) ? 1 : 0)), t: G.t + 20 * (1 + ST.infDur / 100) };
       r.t = 0;
-      fx({ k: 'ring', x: P.x, y: P.y, r: 30, dur: 0.25, col: ELC[r.el] });
+      fx({ k: 'ring', x: P.x, y: P.y, r: 30, dur: 0.25, col: ELC[r.el], sh: ELSH[r.el] });
     }
   G.remnants = G.remnants.filter(r => r.t > G.t);
 }
