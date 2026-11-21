@@ -1,0 +1,313 @@
+token,ruling_target,status,note
+--scene-void-v1,--scene-void,已刪（0 引用）,
+--scene-void-v2,--scene-void,已刪（0 引用）,
+--scene-void-v3,--panel-inset,已刪（0 引用）,
+--scene-void-v4,--scrim-rgb,已刪（0 引用）,
+--scene-void-v5,--panel-inset,已刪（0 引用）,
+--scene-void-v6,--scene-void,已刪（0 引用）,
+--scene-void-v7,--scene-void,已刪（0 引用）,
+--scene-void-v8,--panel-inset,已刪（0 引用）,
+--scene-void-v9,--scene-void,已刪（0 引用）,
+--scene-void-v10,--scene-void,已刪（0 引用）,
+--scene-void-v11,--panel-inset,已刪（0 引用）,
+--scene-void-v12,--panel-inset,已刪（0 引用）,
+--scene-void-v13,--scene-void,已刪（0 引用）,
+--panel-inset-v1,--panel-inset,已刪（0 引用）,
+--panel-inset-v2,--panel-inset,已刪（0 引用）,
+--panel-inset-v3,--panel-inset,已刪（0 引用）,
+--panel-v1,--panel-grad-top,已刪（0 引用）,
+--panel-v2,--panel-raised,已刪（0 引用）,
+--panel-raised-2-v1,--panel-raised-2,已刪（0 引用）,
+--panel-rgb-v1,--panel-rgb,已刪（0 引用）,
+--scrim-rgb-v1,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v2,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v3,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v4,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v5,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v6,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v7,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v8,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v9,--scrim-rgb,已刪（0 引用）,
+--scrim-rgb-v10,--on-act-rgb,已刪（0 引用）,
+--scrim-rgb-v11,--scrim-rgb,已刪（0 引用）,
+--scrim-v1,--scrim-rgb（CSS）／--dmg-outline（JS）,已刪（0 引用）,
+--hl-rgb-v1,--hl-rgb,已刪（0 引用）,
+--hl-rgb-v2,--es-hi,已刪（0 引用）,
+--hl-rgb-v3,--es,已刪（0 引用）,
+--hl-rgb-v4,--block,已刪（0 引用）,
+--hl-rgb-v5,--block-regen,已刪（0 引用）,
+--hl-rgb-v6,--hl-rgb,已刪（0 引用）,
+--glint-v1,--block,已刪（0 引用）,
+--glint-v2,--tx,已刪（0 引用）,
+--warm-glint-rgb-v1,--warm-glint-rgb,已刪（0 引用）,
+--warm-glint-rgb-v2,--warm-glint-rgb,已刪（0 引用）,
+--border-v1,--border,已刪（0 引用）,
+--border-mid-v1,--panel-raised,已刪（0 引用）,
+--border-mid-v2,--border,已刪（0 引用）,
+--border-ctl-v1,--prog-hi,已刪（0 引用）,
+--border-hi-v1,--border-hi,已刪（0 引用）,
+--tx-v1,--tx-dim,已刪（0 引用）,
+--tx-dim-v1,--tx-dim,已刪（0 引用）,
+--tx-lock-v1,--tx-lock,已刪（0 引用）,
+--tx-lock-v2,--border,已刪（0 引用）,
+--act-v1,--prog-hi,已刪（0 引用）,
+--act-v2,--hf（定稿 #b65517）,已刪（0 引用）,
+--act-v3,--act,已刪（0 引用）,
+--act-hi-v1,--hp,已刪（0 引用）,
+--on-act-v1,--on-act,已刪（0 引用）,
+--on-act-v2,--tx,已刪（0 引用）,
+--on-act-rgb-v1,--hl-rgb,已刪（0 引用）,
+--sel-bd,--sel-edge,保留,保留：tools/ui_mock.js:21 仍引用（tools 不在授權改的檔）；遊戲 CSS 已全部改 --sel-edge（.fco:hover 改 --border-hi）
+--sel-ink-v1,--panel,已刪（0 引用）,
+--bad-v1,--hp,已刪（0 引用）,
+--bad-v2,--hp,已刪（0 引用）,
+--bad-v3,--tx,已刪（0 引用）,
+--bad-v4,--hp,已刪（0 引用）,
+--bad-hi-v1,--hp,已刪（0 引用）,
+--bad-hi-v2,分用途：--enemy-tel／--fx-own,已刪（0 引用）,
+--warn-v1,--act-edge,已刪（0 引用）,
+--ready-v1,--prog-hi,已刪（0 引用）,
+--ready-v2,--sel-edge,已刪（0 引用）,
+--hp-v1,--hp,已刪（0 引用）,
+--hp-v2,--hp,已刪（0 引用）,
+--mp-v1,--mp,已刪（0 引用）,
+--rar-magic-v1,--mp,已刪（0 引用）,
+--rar-magic-v2,分用途：--tx／--rar-magic／--hp／--enemy-rim,已刪（0 引用）,
+--rar-magic-v3,--mp,已刪（0 引用）,
+--rar-magic-rgb,--rar-magic（CSS）／--enemy-rim（JS 菁英腳下圈）,已刪（0 引用）,
+--rar-magic-rgb-v1,--affix（.term.kw）／--border（#tip .tl）,已刪（0 引用）,
+--rar-magic-bg-v1,--rar-magic-bg,已刪（0 引用）,
+--rar-magic-bg-rgb,--rar-magic-bg,已刪（0 引用）,
+--rar-rare-rgb,--rar-rare-rgb（定稿 251 229 58）,保留,"官方 token：值改 251, 229, 58；CSS .sell.on→--sel-bg、.nd.b2→--border-hi、.cub.g3→--hl-rgb、touch.js 瞄準線→--hl-rgb；其餘引用是官方 token"
+--rar-rare-bg-v1,--sel-bg,已刪（0 引用）,
+--rar-rare-bg-v2,--rar-rare-bg,已刪（0 引用）,
+--rar-rare-bg-rgb,--rar-rare-bg,已刪（0 引用）,
+--rar-unique-rgb,--rar-unique（格框）／--sel-bg（.gkind 選中）,已刪（0 引用）,
+--rar-unique-bg-rgb,--rar-unique-bg,已刪（0 引用）,
+--rar-chase-bg-v1,--act,已刪（0 引用）,
+--rar-chase-bg-v2,--asc-bg,已刪（0 引用）,
+--rar-chase-rgb,--rar-chase-rgb（定稿 12 246 238）,保留,"官方 token：值本來就是 12, 246, 238"
+--asc-v1,--hf（定稿 #b65517）,已刪（0 引用）,
+--asc-hi-v1,--asc-hi,已刪（0 引用）,
+--asc-on-v1,--act,已刪（0 引用）,
+--asc-on-v2,--act,已刪（0 引用）,
+--asc-on-v3,--hp,已刪（0 引用）,
+--asc-rgb,--asc-on（框／線）／--asc-bg（底色）,已刪（0 引用）,
+--cat-frac-v1,--cat-frac,已刪（0 引用）,
+--cat-frac-v2,--cat-frac,已刪（0 引用）,
+--cat-frac-v3,--cat-frac,已刪（0 引用）,
+--cat-mem-v1,--cat-mem,已刪（0 引用）,
+--affix-v1,--affix,已刪（0 引用）,
+--awk-v1,--awk,已刪（0 引用）,
+--el-fire-rgb,--el-fire-rgb（定稿 238 153 120）／CSS 快爆光暈：--hurt-vignette-rgb ≤0.75,保留,"官方 token：值改 238, 153, 120（--el-fire 同步 #ee9978）；CSS 快爆光暈改 rgba(var(--hurt-vignette-rgb), ≤0.75)、框 --border"
+--el-fire-rgb-v1,--border-mid,已刪（0 引用）,
+--el-cold-v1,--tx,已刪（0 引用）,
+--el-cold-v2,--tx,已刪（0 引用）,
+--el-cold-rgb-v1,--es,已刪（0 引用）,
+--el-cold-rgb-v2,--cat-mem,已刪（0 引用）,
+--el-chaos-rgb,分用途：--enemy-tel-rgb（王閃現）／--portal-rgb（傳送門、地圖台符文）,保留,保留：js/hideout.js:283 營地地圖台符文仍引用（範圍外，待授權）；render.js:163→--enemy-tel-rgb、268/275→--portal-rgb 已改
+--el-chaos-rgb-v1,--mp-hi（暫用）,已刪（0 引用）,
+--dmg-hurt-v1,分用途：--hp／--tx-strong／--fx-own,已刪（0 引用）,
+--dmg-minor-v1,--border,已刪（0 引用）,
+--legacy-1,（刪）,已刪（0 引用）,
+--legacy-2,--sel-bg,已刪（0 引用）,
+--legacy-3,--mp-hi（暫用）,已刪（0 引用）,
+--legacy-4,--tx-dim,已刪（0 引用）,
+--legacy-5,--prog-lo,已刪（0 引用）,
+--legacy-6,--tx-dim,已刪（0 引用）,
+--legacy-7,--tx-dim,已刪（0 引用）,
+--legacy-8,--prog-lo,已刪（0 引用）,
+--legacy-9,--rar-magic-bg,已刪（0 引用）,
+--legacy-10,--rar-magic-bg,已刪（0 引用）,
+--legacy-11,--rar-rare-bg,已刪（0 引用）,
+--legacy-12,--rar-rare-bg,已刪（0 引用）,
+--legacy-13,--rar-unique-bg,已刪（0 引用）,
+--legacy-14,--rar-unique-bg,已刪（0 引用）,
+--legacy-15,--tx-dim,已刪（0 引用）,
+--legacy-16,--sel-bg,已刪（0 引用）,
+--legacy-17,--hdr,已刪（0 引用）,
+--legacy-18,--hdr,已刪（0 引用）,
+--legacy-19,--cat-corr,已刪（0 引用）,
+--legacy-20,--prog-lo,已刪（0 引用）,
+--legacy-21,--border,已刪（0 引用）,
+--legacy-22,--scene-void,已刪（0 引用）,
+--legacy-23,--border,已刪（0 引用）,
+--frame,（保留，色已走 --scrim-rgb）,保留,保留（陰影簡寫，色已走 --scrim-rgb）
+--hi,（保留，別名 --mp-hi／--hp-hi）,保留,保留（局部別名）
+--pt-bg,--scene-void,保留,#ptree 局部：值改 var(--scene-void)
+--pt-node,--panel-inset,保留,#ptree 局部：值改 var(--panel-inset)
+--pt-line,--border-hi-rgb,保留,#ptree 局部：值改 var(--border-hi-rgb)
+--rc,（保留，別名 --rar-rare 等）,保留,保留（局部別名）
+X1 render.js:482 RCOL,"[--rar-normal, --rar-magic, --rar-rare]",已改,
+X2 game.js:804 RINGFX,改成明示序列圖名,已改,
+X3 render.js:268/275 回家傳送門,--portal-rgb,已改,
+X4 render.js:953 fx 環,外 1 px #000（--dmg-outline／--beam-edge 系的 #000）,已改,
+--rar-magic-rgb-v2,X3 → --portal-rgb,已刪（0 引用）,「回家」傳送門填色
+--dodge-vignette-rgb-v1,X3 → --portal-rgb,已刪（0 引用）,「回家」傳送門環
+--border-cap-v1,X1 → --rar-normal,保留,RCOL 已改；js/mech.js:119 劍陣地面仍引用（不在判定表）
+--scene-void-v14,（判定表無 target）,保留（只被 JS 讀；不猜）,"#070606；引用 js/render.js:129"
+--scene-void-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"21, 17, 13；引用 js/render.js:484"
+--scene-void-rgb-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"8, 6, 5；引用 js/render.js:1011"
+--panel-raised-2-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#3a2f28；引用 js/render.js:141"
+--panel-rgb-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"38, 40, 45；引用 js/render.js:1437"
+--hl-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#d6f3ff；引用 js/render.js:395"
+--hl-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#cfd8e3；引用 js/mech.js:823 js/render.js:569 js/render.js:1519 js/skills.js:1280 js/skills.js:1384 js/skills.js:2132 js/skills.js:2179 js/skills.js:2191"
+--hl-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c3c7d0；引用 js/render.js:817"
+--hl-v4,（判定表無 target）,保留（只被 JS 讀；不猜）,"#cfe9ff；引用 js/render.js:1475"
+--hl-v5,（判定表無 target）,保留（只被 JS 讀；不猜）,"#cfe8ff；引用 js/game.js:1745"
+--hl-v6,（判定表無 target）,保留（只被 JS 讀；不猜）,"#e8f4ff；引用 js/mech.js:848"
+--hl-v7,（判定表無 target）,保留（只被 JS 讀；不猜）,"#b8c4d4；引用 js/skills.js:1409"
+--hl-v8,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c9d3e0；引用 js/combat.js:556"
+--glint-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#e6f7ff；引用 js/render.js:375"
+--glint-v4,（判定表無 target）,保留（只被 JS 讀；不猜）,"#eef6ff；引用 js/render.js:405"
+--glint-v5,（判定表無 target）,保留（只被 JS 讀；不猜）,"#f4f5f7；引用 js/render.js:817"
+--warm-glint-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffd08a；引用 js/render.js:386"
+--warm-glint-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#fff3b0；引用 js/render.js:1473"
+--hurt-vignette-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c0392b；引用 js/mech.js:837"
+--dodge-vignette-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#6cb8ff；引用 js/render.js:787"
+--dodge-vignette-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#6fb7ff；引用 js/game.js:1763 js/game.js:2028"
+--border-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#4a3d33；引用 js/render.js:1498"
+--border-mid-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#5a4d43；引用 js/render.js:1510"
+--border-hi-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#b08a5a；引用 js/mech.js:86 js/mech.js:118 js/skills.js:1097"
+--tx-off-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c9a27a；引用 js/render.js:921"
+--tx-off-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#a7a294；引用 js/world.js:131"
+--tx-off-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"170, 160, 130；引用 js/tree.js:462"
+--tx-lock-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8a7a6a；引用 js/render.js:964"
+--tx-empty-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"120, 105, 92；引用 js/render.js:1020"
+--on-act-rgb-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 236, 214；引用 js/render.js:751"
+--good-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#7be08a；引用 js/render.js:787"
+--good-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#9df29d；引用 js/render.js:1032 js/skills.js:950"
+--good-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#7bd36b；引用 js/render.js:1465 js/render.js:1528"
+--good-v4,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8fd16b；引用 js/mech.js:87 js/skills.js:1399"
+--good-v5,（判定表無 target）,保留（只被 JS 讀；不猜）,"#a8c24a；引用 js/mech.js:173"
+--good-v6,（判定表無 target）,保留（只被 JS 讀；不猜）,"#6ee06e；引用 js/maps.js:96"
+--good-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"157, 242, 157；引用 js/render.js:1450"
+--bad-v5,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ff3b3b；引用 js/mech.js:767 js/render.js:594"
+--bad-v6,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c95050；引用 js/render.js:1028"
+--bad-hi-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ff6b5b；引用 js/render.js:787"
+--bad-hi-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 107, 61；引用 js/render.js:256"
+--bad-hi-rgb-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 100, 60；引用 js/render.js:579"
+--bad-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"229, 72, 77；引用 js/render.js:171 js/render.js:187 js/render.js:189 js/render.js:198 js/render.js:220 js/render.js:497 js/render.js:501 js/touch.js:68"
+--hp-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#7a1c1c；引用 js/render.js:1502"
+--prog-lo-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#6b4a2b；引用 js/render.js:1505"
+--prog-hi-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c9a46b；引用 js/render.js:1507 js/render.js:1512"
+--prog-hi-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#e3a14a；引用 js/game.js:1951 js/world.js:143"
+--prog-hi-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffb04a；引用 js/hideout.js:275"
+--rar-normal-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#d9c7a3；引用 js/render.js:362"
+--rar-normal-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c9b8a8；引用 js/game.js:628 js/game.js:1124"
+--rar-magic-bg-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"18, 24, 51；引用 js/render.js:485"
+--rar-rare-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffd166；引用 js/maps.js:9 js/maps.js:89"
+--rar-rare-bg-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8a6a2a；引用 js/mech.js:89"
+--rar-rare-bg-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"42, 33, 13；引用 js/render.js:486"
+--rar-unique-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#7fd1c7；引用 js/game.js:2009 js/world.js:137"
+--rar-chase-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ff8a2a；引用 js/mech.js:149"
+--rar-chase-hi-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffb36b；引用 js/render.js:260"
+--rar-chase-hi-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffc9a0；引用 js/render.js:1474"
+--rar-chase-bg-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#3a1a14；引用 js/mech.js:789"
+--asc-hi-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffb3a0；引用 js/render.js:929"
+--cat-frac-v4,（判定表無 target）,保留（只被 JS 讀；不猜）,"#fff3d6；引用 js/game.js:809 js/game.js:814 js/mech.js:236 js/render.js:955"
+--cat-frac-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 244, 214；引用 js/render.js:758"
+--cat-frac-rgb-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 240, 210；引用 js/render.js:911"
+--cat-mem-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8fe0ff；引用 js/render.js:991"
+--cat-mem-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"143, 224, 255；引用 js/render.js:865"
+--el-fire-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ff8a5b；引用 js/game.js:805 js/game.js:1571 js/game.js:1580 js/game.js:2187 js/render.js:929"
+--el-fire-rgb-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 120, 50；引用 js/render.js:613"
+--el-cold-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#6fd3ff；引用 js/mech.js:105"
+--el-cold-v4,（判定表無 target）,保留（只被 JS 讀；不猜）,"#5ad1ff；引用 js/maps.js:103"
+--el-cold-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"143, 214, 255；引用 js/render.js:371"
+--el-cold-rgb-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"122, 208, 255；引用 js/render.js:205 js/render.js:391"
+--el-cold-rgb-v4,（判定表無 target）,保留（只被 JS 讀；不猜）,"170, 210, 255；引用 js/render.js:234"
+--el-cold-rgb-v5,（判定表無 target）,保留（只被 JS 讀；不猜）,"200, 230, 255；引用 js/render.js:403"
+--el-light-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffe08a；引用 js/mech.js:121"
+--el-light-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffe14d；引用 js/mech.js:141"
+--el-chaos-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#b28dff；引用 js/game.js:807 js/game.js:1567 js/game.js:1918 js/game.js:1925 js/game.js:1927 js/game.js:1959 js/game.js:1980"
+--el-chaos-rgb-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"195, 139, 255；引用 js/render.js:234"
+--dmg-hit-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#b4b9c2；引用 js/render.js:1472"
+--dmg-hit-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#e4e7ec；引用 js/render.js:1472"
+--dmg-crit-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffc21a；引用 js/render.js:651"
+--dmg-crit-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffcf6b；引用 js/skills.js:1132 js/skills.js:1958"
+--dmg-hurt-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ff5a5f；引用 js/world.js:132"
+--dmg-hurt-rgb-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 120, 110；引用 js/render.js:505"
+--dmg-gain-v1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8fe0ff；引用 js/render.js:654"
+--dmg-gain-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#b8f0c8；引用 js/render.js:655"
+--dmg-gain-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#d6b8ff；引用 js/render.js:657"
+--dmg-minor-v2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#cfd8e3；引用 js/render.js:647"
+--dmg-minor-v3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c9a3a3；引用 js/render.js:659"
+--dmg-minor-v4,（判定表無 target）,保留（只被 JS 讀；不猜）,"#a7acb6；引用 js/render.js:493"
+--dmg-minor-v5,（判定表無 target）,保留（只被 JS 讀；不猜）,"#979ba5；引用 js/render.js:817"
+--dmg-minor-v6,（判定表無 target）,保留（只被 JS 讀；不猜）,"#aeb3bc；引用 js/render.js:1039"
+--dmg-minor-v7,（判定表無 target）,保留（只被 JS 讀；不猜）,"#aaaaaa；引用 js/game.js:2167"
+--dmg-minor-v8,（判定表無 target）,保留（只被 JS 讀；不猜）,"#9aa0a8；引用 js/mech.js:135"
+--dmg-minor-v9,（判定表無 target）,保留（只被 JS 讀；不猜）,"#aab4c4；引用 js/maps.js:82"
+--scene-detail-1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#140d09；引用 js/biome.js:63"
+--scene-detail-2-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 220, 170；引用 js/biome.js:77"
+--scene-detail-3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#080b09；引用 js/biome.js:80"
+--scene-detail-4-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"70, 110, 60；引用 js/biome.js:89"
+--scene-detail-5-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"150, 220, 140；引用 js/biome.js:94"
+--scene-detail-6,（判定表無 target）,保留（只被 JS 讀；不猜）,"#0b1118；引用 js/biome.js:98"
+--scene-detail-7,（判定表無 target）,保留（只被 JS 讀；不猜）,"#060303；引用 js/biome.js:98"
+--scene-detail-8-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"220, 240, 255；引用 js/biome.js:110 js/biome.js:507"
+--scene-detail-9-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"230, 245, 255；引用 js/biome.js:119"
+--scene-detail-10-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 140, 60；引用 js/biome.js:119"
+--scene-detail-11-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"200, 230, 255；引用 js/biome.js:141"
+--scene-detail-12-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"235, 245, 255；引用 js/biome.js:145"
+--scene-detail-13-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"120, 200, 90；引用 js/biome.js:163"
+--scene-detail-14-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"220, 214, 190；引用 js/biome.js:169"
+--scene-detail-15-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"60, 90, 50；引用 js/biome.js:174"
+--scene-detail-16-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"214, 170, 70；引用 js/biome.js:180"
+--scene-detail-17-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"230, 200, 90；引用 js/biome.js:185"
+--scene-detail-18-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"170, 30, 20；引用 js/biome.js:187"
+--scene-detail-19,（判定表無 target）,保留（只被 JS 讀；不猜）,"#050404；引用 js/biome.js:217"
+--scene-detail-20,（判定表無 target）,保留（只被 JS 讀；不猜）,"#c9a227；引用 js/biome.js:255 js/biome.js:452"
+--scene-detail-21,（判定表無 target）,保留（只被 JS 讀；不猜）,"#3a2418；引用 js/biome.js:258"
+--scene-detail-22-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"220, 245, 255；引用 js/biome.js:273"
+--scene-detail-23-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"190, 230, 255；引用 js/biome.js:281"
+--scene-detail-24-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 120, 40；引用 js/biome.js:289"
+--scene-detail-25-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"80, 130, 70；引用 js/biome.js:297 js/biome.js:538"
+--scene-detail-26,（判定表無 target）,保留（只被 JS 讀；不猜）,"#2a150e；引用 js/biome.js:442"
+--scene-detail-27-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"214, 52, 34；引用 js/biome.js:444"
+--scene-detail-28-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 200, 110；引用 js/biome.js:448"
+--scene-detail-29-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"170, 225, 255；引用 js/biome.js:458"
+--scene-detail-30-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"150, 250, 150；引用 js/biome.js:458"
+--scene-detail-31-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 150, 60；引用 js/biome.js:458"
+--scene-detail-32,（判定表無 target）,保留（只被 JS 讀；不猜）,"#151010；引用 js/biome.js:459"
+--scene-detail-33-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 255, 230；引用 js/biome.js:467"
+--scene-detail-34-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 220, 120；引用 js/biome.js:475"
+--scene-detail-35-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"170, 255, 120；引用 js/biome.js:475"
+--scene-detail-36-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 110, 30；引用 js/biome.js:476"
+--scene-detail-37-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"70, 160, 60；引用 js/biome.js:476"
+--scene-detail-38-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"90, 20, 10；引用 js/biome.js:477"
+--scene-detail-39-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"20, 50, 25；引用 js/biome.js:477"
+--scene-detail-40,（判定表無 target）,保留（只被 JS 讀；不猜）,"#140807；引用 js/biome.js:478"
+--scene-detail-41,（判定表無 target）,保留（只被 JS 讀；不猜）,"#0a140b；引用 js/biome.js:478"
+--scene-detail-42-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 240, 180；引用 js/biome.js:488"
+--scene-detail-43-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"200, 255, 170；引用 js/biome.js:488"
+--scene-detail-44-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"150, 210, 245；引用 js/biome.js:498"
+--scene-detail-45-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"200, 240, 255；引用 js/biome.js:498"
+--scene-detail-46-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"180, 225, 250；引用 js/biome.js:511"
+--scene-detail-47,（判定表無 target）,保留（只被 JS 讀；不猜）,"#1e1513；引用 js/biome.js:515"
+--scene-detail-48-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 110, 40；引用 js/biome.js:519"
+--scene-detail-49,（判定表無 target）,保留（只被 JS 讀；不猜）,"#231a17；引用 js/biome.js:522"
+--scene-detail-50-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 140, 50；引用 js/biome.js:525"
+--scene-detail-51,（判定表無 target）,保留（只被 JS 讀；不猜）,"#2f3a32；引用 js/biome.js:531"
+--scene-detail-52,（判定表無 target）,保留（只被 JS 讀；不猜）,"#4a3020；引用 js/biome.js:541"
+--scene-detail-53,（判定表無 target）,保留（只被 JS 讀；不猜）,"#34302a；引用 js/biome.js:541"
+--scene-detail-54,（判定表無 target）,保留（只被 JS 讀；不猜）,"#4a4540；引用 js/biome.js:550"
+--scene-detail-55,（判定表無 target）,保留（只被 JS 讀；不猜）,"#5a554f；引用 js/biome.js:554"
+--scene-detail-56-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 190, 100；引用 js/biome.js:560"
+--scene-detail-57,（判定表無 target）,保留（只被 JS 讀；不猜）,"#3b3e45；引用 js/biome.js:564"
+--scene-detail-58,（判定表無 target）,保留（只被 JS 讀；不猜）,"#7c8290；引用 js/biome.js:568"
+--scene-detail-59,（判定表無 target）,保留（只被 JS 讀；不猜）,"#3a2d18；引用 js/biome.js:570"
+--scene-detail-60,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8a2a1a；引用 js/biome.js:573"
+--scene-detail-61-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"255, 160, 80；引用 js/biome.js:575"
+--scene-detail-62-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"200, 200, 210；引用 js/biome.js:579"
+--fx-render-1-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"70, 130, 255；引用 js/render.js:230"
+--fx-render-2-rgb,（判定表無 target）,保留（只被 JS 讀；不猜）,"150, 80, 220；引用 js/render.js:230"
+--fx-render-3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ffc4d6；引用 js/render.js:405"
+--fx-game-1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#7dff9a；引用 js/game.js:1862"
+--fx-mech-1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#7a3fa0；引用 js/mech.js:132"
+--fx-mech-2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#5fae7a；引用 js/mech.js:164"
+--fx-mech-3,（判定表無 target）,保留（只被 JS 讀；不猜）,"#ff5a8a；引用 js/mech.js:176"
+--fx-world-1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#e08ad0；引用 js/world.js:141"
+--fx-world-2,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8fb3a0；引用 js/world.js:144"
+--fx-combat-1,（判定表無 target）,保留（只被 JS 讀；不猜）,"#8a6cff；引用 js/combat.js:634"

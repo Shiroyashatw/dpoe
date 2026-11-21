@@ -1,0 +1,144 @@
+token,files,css_def_line,current_value,uses,use_count,live_use_count,verdict,target,target_value,delta_e2000,contrast_old_to_new,pending,reason,note
+--scene-void-v1,css,L8,#15110f,L673,1,1,a,--scene-void,#16130f,1.5,節點描邊 --tx-dim 對樹底：6.55→8.10（≥3過）,,同類：畫面最底層／黑框、陰影環；M2-36 --scene-void 是唯一的近黑底色；天賦節點底，節點靠描邊辨識,
+--scene-void-v2,css,L9,#0d0a08,L696,1,1,a,--scene-void,#16130f,2.4,字 --asc-hi 對描邊：13.84→12.16（≥4.5過）,,字描邊（昇華節點字），深色描邊；同類：畫面最底層／黑框、陰影環；M2-36 --scene-void 是唯一的近黑底色,
+--scene-void-v3,css,L10,#080505,L947,1,1,a,--panel-inset,#1d1a17,5.3,王血條填 --hp 對空段（另有 1 px 框）：4.68→2.57（≥3未過）,,王血條空段；M2-33-1 §王血條＝--panel-inset＋1 px --border-mid；M2-36「條的空段」,填色對空段 2.57 < 3，與玩家生命條同一規格（M2-36 修正 1 靠 1 px --border 框），不另降
+--scene-void-v4,css,L11,#0a0806,L947†,1,0,a,--scrim-rgb,#0a0704,0.5,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,王血條外 3 px 環＝M2-33-1「外 3 px scrim」；寫成 rgb(var(--scrim-rgb)),L947 已被 L1121／L1212 覆寫，宣告可直接刪
+--scene-void-v5,css,L12,#0e0b08,L1082,1,1,a,--panel-inset,#1d1a17,4.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.mc2.on 漸層下緣；凹槽色,.mc2 在 js/index.html 找不到（疑似死碼，未驗）
+--scene-void-v6,css／render.js,L13,#0c0d0f,L1207 L1208 L1212 ｜JS render.js:491,5,5,a,--scene-void,#16130f,3.8,框 對地面（canvas）：1.93→1.84（≥3未過）,,黑環／canvas「外黑」框（frameRect：小地圖、互動提示）；同類：畫面最底層／黑框、陰影環；M2-36 --scene-void 是唯一的近黑底色,JS PAL.sceneVoidV6 要改 PAL.sceneVoid
+--scene-void-v7,css,L14,#090b13,L1500,1,1,a,--scene-void,#16130f,6.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,天賦樹畫布底（經 --pt-bg）；場景外最底層,#ptree 的 --pt-bg 改 var(--scene-void)
+--scene-void-v8,css,L15,#10131b,L1500,1,1,a,--panel-inset,#1d1a17,8.0,節點描邊 --tx-dim 對節點底：6.19→7.57（≥3過）,,天賦節點底（經 --pt-node），比樹底高一階才看得出凹槽,
+--scene-void-v9,css,L16,#0c0e14,L1513,1,1,a,--scene-void,#16130f,5.8,鎖住描邊 --border 對樹底：2.99→4.43（≥3過）,,鎖住節點底；比可點節點（--panel-inset）暗一階＝鎖住,
+--scene-void-v10,css,L17,#05060a,L1937,1,1,a,--scene-void,#16130f,4.8,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,區段號字描邊；同類：畫面最底層／黑框、陰影環；M2-36 --scene-void 是唯一的近黑底色,
+--scene-void-v11,css,L18,#120c0a,L1985,1,1,a,--panel-inset,#1d1a17,3.9,外環 --asc 對井：9.51→6.91（≥3過）,,昇華標頭圖示井；圖示放凹槽,
+--scene-void-v12,css,L19,#14171c,L2004,1,1,a,--panel-inset,#1d1a17,6.3,井框 --border-ctl 對井：4.32→4.14（≥3過）,,昇華選項圖示井,
+--scene-void-v13,css,L20,#120c08,L2727,1,1,a,--scene-void,#16130f,2.0,--rar-chase 框對縫：14.27→13.61（≥3過）,,追逐框內圈縫；M2-33-2a §1.1 外 1 px --scene-void＋2 px --rar-chase,
+--panel-inset-v1,css,L26,#1c1714,L674,1,1,a,--panel-inset,#1d1a17,1.7,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,小節點底；凹槽、空格；M2-36 --panel-inset,
+--panel-inset-v2,css,L27,#1a140f,L1018,1,1,a,--panel-inset,#1d1a17,2.4,輸入字 --tx 對底：14.53→13.80（≥4.5過）,,輸入框漸層下緣；凹槽、空格；M2-36 --panel-inset,
+--panel-inset-v3,css,L28,#1a1210,L1941 L2032,2,2,a,--panel-inset,#1d1a17,4.0,11 px 字 對 --asc 底：7.36→6.91（≥4.5過）,,.ascgo 圓底；.axl-r 小徽章字（深字壓 --asc 底）,深字壓彩底不在 M2-36 字色清單；建議之後改 --tx-strong 字＋--asc-on 底（選擇器層，不在本表）
+--panel-v1,css,L30,#261d13,L1082,1,1,a,--panel-grad-top,#2d251f,3.4,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.mc2.on 漸層上緣＝面板上緣暖漸層,.mc2 疑似死碼（未驗）
+--panel-v2,css,L31,#23272f,L1975,1,1,a,--panel-raised,#2c2825,7.7,框 --border 對底：2.44→3.50（≥3過）,,昇華節點「關」；M2-36 停用底＝--panel-raised,
+--panel-raised-2-v1,css,L34,#3f342b,L2322 L2390 L2393 L2421,4,4,a,--panel-raised-2,#322f2b,5.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格內 1 px 斜面線（裝飾，格框另有稀有度框）；同色系最近,格子邊界靠 L2323–2325 的稀有度框；這條是裝飾
+--panel-rgb-v1,css,L39,"34, 36, 41",L558†,1,0,a,--panel-rgb,37 33 30,6.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,面板色半透明；官方 -rgb,L558 已被 L910／L2322 覆寫，宣告可刪
+--scrim-rgb-v1,css,L44,"12, 10, 9",L494† L748† L769†,3,0,a,--scrim-rgb,10 7 4,0.9,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,技能鈕／觸控技能鈕／觸控選單底；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,3 處全被覆寫（L494→L938/L1210、L748→L964、L769→L967），宣告可刪
+--scrim-rgb-v2,css,L45,"14, 11, 10",L598† L1573,2,1,a,--scrim-rgb,10 7 4,1.1,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,說明框底；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,L598、L1573：L598 已被 L1105／L2192（--panel）覆寫；L1573 #tip.act .tqa 仍活
+--scrim-rgb-v3,css,L46,"7, 6, 6",L648†,1,0,a,--scrim-rgb,10 7 4,1.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,天賦樹底；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,L648 已被 L1500（--pt-bg）覆寫，可刪
+--scrim-rgb-v4,css,L47,"20, 17, 15",L650,1,1,a,--scrim-rgb,10 7 4,2.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.tattr 底；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,.tattr 疑似死碼（未驗）
+--scrim-rgb-v5,css,L48,"23, 24, 28",L910† L964,2,1,a,--scrim-rgb,10 7 4,5.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格底／觸控技能鈕漸層；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,L910 已被 L2322 覆寫；L964 觸控技能鈕仍活
+--scrim-rgb-v6,css／render.js,L49,"8, 9, 11",L964 ｜JS render.js:525,2,2,a,--scrim-rgb,10 7 4,2.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,觸控技能鈕漸層外圈；canvas 怪物狀態圖示墊底（render.js:525）；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,JS PAL.rgb.scrimV6 改 PAL.rgb.scrim；M2-33-2a 角標底也是 rgb(var(--scrim-rgb)/0.7)
+--scrim-rgb-v7,css,L50,"23, 24, 27",L1481 L2103,2,2,a,--scrim-rgb,10 7 4,5.1,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,跳過鈕底／技能分段鈕底；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,
+--scrim-rgb-v8,css,L51,"13, 14, 17",L1698,1,1,a,--scrim-rgb,10 7 4,3.2,橫幅字 --tx 對 0.88 遮罩疊淺磚：14.23→14.97（≥4.5過）,,頂部橫幅底；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,
+--scrim-rgb-v9,css,L52,"9, 11, 19",L1931 L1934,2,2,a,--scrim-rgb,10 7 4,5.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,天賦重置鈕／小地圖底；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,
+--scrim-rgb-v10,css,L53,"17, 17, 17",L2572,1,1,a,--on-act-rgb,#fcf9f3,92.3,10 px 徽章字 對 --act 底：2.92→6.14（≥4.5過）,,分頁徽章數字（10 px／700）壓在 --act 底上：深字只有 3.0，必須換淺字；官方主鈕字 --on-act,底用 --act 違反「主鈕全畫面唯一」；M2-36 分頁徽章應改 --btn2＋--ready 左標，字 --tx-strong（8.05）。選擇器層，不在本表
+--scrim-rgb-v11,css,L54,"15, 12, 10",L2590,1,1,a,--scrim-rgb,10 7 4,1.0,暫停字 --tx 對 0.75 遮罩疊淺磚：12.92→13.49（≥4.5過）,,暫停遮罩；陰影／遮罩／文字陰影；M2-36 --scrim-rgb 唯一,
+--scrim-v1,css／render.js,L55,#000000,L3107 L3109 ｜JS render.js:545,4,4,a,--scrim-rgb（CSS）／--dmg-outline（JS）,#0a0704,1.9,疊數字 --tx-strong 對描邊：19.98→19.98（≥4.5過）,,CSS：#hask 遮罩與卡片陰影＝遮罩，用 rgb(var(--scrim-rgb)/α)；JS render.js:545 疊數字描邊＝數字描邊，M2-36 --dmg-outline #000,JS PAL.scrimV1 改 PAL.dmgOutline（--dmg-outline 尚未進 CSS，屬 (c)）
+--hl-rgb-v1,css,L57,"205, 210, 220",L480† L494† L558† L598† L664† L667† L668† L673 L748† L764 L766,12,4,a,--hl-rgb,225 220 215,8.2,物品格框 0.18 對面板（舊值同樣 <3）：1.57→1.62（≥3未過）；搖桿圓點框 0.5 對淺磚：2.28→2.45（裝飾，不設門檻）,,半透明亮框、樹線、觸控搖桿；hover／亮層；M2-36 --hl-rgb,12 處中 8 處已被後段覆寫（L480/494/558/598/664/667/668/748）；活的：L673 節點框、L764/766 搖桿。α 0.16–0.3 的框 <3，是裝飾；要當格框請用 --border（選擇器層）
+--hl-rgb-v2,css,L58,"220, 240, 255",L635†,1,0,a,--es-hi,#fcefde,17.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.orb .ward 上緣 2 px＝能量護盾充能前緣；AD H11：--es-hi 充能前緣 2 px,L635 已被 L715 覆寫，宣告可刪；L715 本身用 --glint-rgb 0.9，#146 換成 --es-hi
+--hl-rgb-v3,css,L59,"220, 232, 255",L715,1,1,a,--es,#dfbf91,28.6,--es 對 --hp（生命條上）：5.46→3.85（≥3過）,,.orb .ward 填色＝能量護盾；--es 定稿（AD 待合併包，視為官方），平塗不用漸層,rgba 漸層改平塗 var(--es)；AD 量 --es 對 --hp 3.85
+--hl-rgb-v4,css,L60,"190, 210, 235",L722,1,1,a,--block,#a9b8c3,8.5,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,格擋弧光暈色；格擋弧本色＝--block,M2-36：格擋弧靠外 1 px #000 分辨，不加光暈；建議拿掉 drop-shadow（選擇器層）
+--hl-rgb-v5,css,L61,"214, 221, 232",L723 L726,2,2,a,--block-regen,#758088,27.0,--block-regen 對 --panel：2.66→3.95（≥3過）,,格擋碎開（bvbr）狀態的弧／條：M2-36「碎開後回滿中的虛線段」,rgba 0.35 改平塗 var(--block-regen)＋虛線（battle-hud-5）
+--hl-rgb-v6,css,L62,"200, 205, 215",L881† L884† L898† L900 L925 L1008 L1333 L1744† L1870,9,5,a,--hl-rgb,225 220 215,8.7,分隔線 0.25 對 --panel：1.87→1.99（裝飾，不設門檻）,,選取、面板外框、分頁 on 亮層、分隔線；hover／亮層；M2-36 --hl-rgb,9 處中 4 處已被覆寫（L881/884/898/1744）；.ftog 疑似死碼。選中底 M2-36 應是 --sel-bg（選擇器層）
+--glint-v1,css,L72,#d6dde8,L722 L725,2,2,a,--block,#a9b8c3,10.1,--block 對 --panel：11.69→7.86（≥3過）；--block 對淺磚（靠外 1 px #000）：4.90→3.29（≥3過）,,格擋弧描邊（.orb .blk .fg）與格擋條（.hb.bv i）＝格擋值，M2-36 --block,淺磚上 3.29；必須保留外 1 px #000（M2-36 H6）
+--glint-v2,css,L73,#d3dae3,L1185†,1,0,a,--tx,#e8e5e1,7.5,字 對標題列：6.43→11.98（≥4.5過）,,面板標題副字；字一律 --tx 系,L1185 已被 L2195（--tx-dim）覆寫，宣告可刪
+--warm-glint-rgb-v1,css,L80,"255, 233, 160",L1559,1,1,a,--warm-glint-rgb,255 225 170,5.1,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,破裂物品揭曉的暖光（特效）；--warm-glint-rgb「只給特效」,
+--warm-glint-rgb-v2,css,L81,"255, 235, 200",L2252,1,1,a,--warm-glint-rgb,255 225 170,5.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,紙卡上緣 0.06 微光；同為暖亮層,
+--border-v1,css,L92,#4a3a28,L2427 L2437†,2,1,a,--border,#817b75,23.9,孔框 對面板：1.47→3.82（≥3過）,,孔位內框、空技能列虛線；M2-36 格子與停用虛線用 --border,L2437 已被 L2651 覆寫
+--border-mid-v1,css,L95,#5a4a3a,L2239†,1,0,a,--panel-raised,#2c2825,14.0,停用字 --tx-dim 對底：4.39→6.39（≥4.5過）,,停用主鈕底；M2-36 停用鈕底＝--panel-raised,L2239 已被 L2585 覆寫，可刪
+--border-mid-v2,css,L96,#5a4a38,L2429†,1,0,a,--border,#817b75,19.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,空孔虛線；M2-36 停用 1 px 虛線 --border,L2429 已被 L2706 覆寫，可刪
+--border-ctl-v1,css,L99,#8a6a24,L937,1,1,a,--prog-hi,#b6b0a8,29.0,填 對空段：2.28→5.34（≥3過）,,經驗條填色；battle-hud-5 P66：空 --prog-lo、填 --prog-hi（平塗）,漸層改平塗 var(--prog-hi)；.xp 的 --ready-v1 同一處
+--border-hi-v1,css,L101,#9a9086,L826,1,1,a,--border-hi,#b0aaa4,8.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.drill 小方塊；同色系最近,.dot.* 通貨點疑似死碼（現用 icHTML 圖示，未驗）
+--tx-v1,css,L110,#cbb89a,L2239†,1,0,a,--tx-dim,#aeaba7,11.4,字 對 --panel-raised：4.39→6.39（≥4.5過）,,停用主鈕字；M2-36 停用鈕字＝--tx-dim,L2239 已被 L2585 覆寫
+--tx-dim-v1,css,L114,#a2946e,L1504 L1505 L1506 L1518,4,4,a,--tx-dim,#aeaba7,14.5,節點描邊 對樹底：6.55→8.10（≥3過）,,"天賦節點預設描邊／填（var(--c, …) 後備值）；次要色",
+--tx-lock-v1,css,L120,#8a7d66,L822,1,1,a,--tx-lock,#9d9995,12.7,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.dust 漸層外圈,疑似死碼（未驗）
+--tx-lock-v2,css,L121,#8a7a5e,L2254,1,1,a,--border,#817b75,9.1,框 對面板：3.82→3.82（≥3過）,,大技能圖示 1 px 內框＝可按元件框（不拿字色當框）,
+--act-v1,css,L129,#8a3b1c,L477†,1,0,a,--prog-hi,#b6b0a8,41.7,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,#prog 離王進度條；M2-36 進度條＝--prog-lo／--prog-hi，不用暖色,L477 已被 L951（--prog-lo→--prog-hi）覆寫，可刪
+--act-v2,css,L130,#9b2a0e,L485 L487,2,2,b,--hf（定稿 #b65517）,#b65517,13.6,條上數字 --tx-strong：7.32→4.65（≥4.5過）；填 對空段 --panel-inset：2.25→3.55（≥3過）,,地獄火條下段；AD 定稿 --hf「只當獄火條填色」（第二個暖色例外，mumi 13:31）。官方原本沒有獄火色：--el-fire 當條底時條上字只有 2.2，--act 是主鈕專用，--hp 太近,條上字 4.65、對空段 3.55；ΔE 對 --hp 18.5、--act 15.1、--vig 15.1（色盲最低：--act 紅色盲 6.6、--vig 綠色盲 8.2，靠位置分；跟 --mp 不會同時出現）。漸層改平塗 var(--hf)
+--act-v3,css,L131,#7a3a1c,L621†,1,0,a,--act,#7c5729,12.7,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,主鈕底；M2-36 --act,L621 已被 L895／L1112／L2237 覆寫，可刪
+--act-hi-v1,css,L133,#b3261e,L478†,1,0,a,--hp,#934341,10.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,王血條（舊漸層）；M2-33-1 王血條平塗 --hp,L478 已被 L948 覆寫，可刪
+--on-act-v1,css,L135,#ffffff,L1112†,1,0,a,--on-act,#fcf9f3,3.2,主鈕字 對 --act：6.46→6.14（≥4.5過）,,主鈕字,L1112 已被 L2237 覆寫
+--on-act-v2,css,L136,#ffd9b8,L1987,1,1,a,--tx,#e8e5e1,14.0,標題 對標頭底：12.64→12.72（≥4.5過）,,昇華標頭 26 px 標題；≥22 px 標題＝--tx,
+--on-act-rgb-v1,css,L138,"241, 235, 220",L2503,1,1,a,--hl-rgb,225 220 215,5.5,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,資源條「流動」斜紋 0.55；亮層，不是主鈕字,--on-act 只給主鈕字，借用會稀釋
+--sel-bd,css,L142,#a8927f,L665 L669† L682 L822 L827 L1125 L1162 L1194 L1248 L1356 L1388 L1503 L1506 L1522 L1582 L1585 L1685 L1694 L1829 L1889 L2060 L2084 L2097 L2127 L2147 L2202 L2211 L2242 L2303 L2326 L2394 L2418 L2480 L2897,43,42,a,--sel-edge,#a8927f,0.0,選中框 對 --panel-raised：4.93→4.93（≥3過）,,選中 2 px 框（同值 #a8927f，ΔE 0）；M2-36 --sel 系列改名 --sel-edge,例外：L1585 .fco:hover 是 hover，改 --border-hi；L822 .dot.dust 疑似死碼；L669 已被 L961 覆寫
+--sel-ink-v1,css,L147,#2a1a13,L1984,1,1,a,--panel,#25211e,7.5,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,昇華標頭漸層中段；--sel-ink 只配 --paper 當字，不能當底,同一漸層的 --rar-chase-bg-v2 改 --asc-bg
+--bad-v1,css／render.js,L159,#e5484d,L828 ｜JS render.js:629,2,2,a,--hp,#934341,17.1,血條 對底 --panel-inset：4.72→2.57（≥3未過）,,JS render.js:629 怪物頭上生命條；M2-33-3a §1.2「填 PAL.hp、底 PAL.panelInset、外 1 px PAL.sceneVoid」,頭上血條對底 2.57 <3，靠外 1 px --scene-void 框；L828 .dot.d2 疑似死碼
+--bad-v2,css,L160,#d9443a,L948,1,1,a,--hp,#934341,15.1,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,王血條上段；M2-33-1 王血條平塗 --hp,
+--bad-v3,css,L161,#e8574f,L954,1,1,a,--tx,#e8e5e1,36.8,標題 對卡片 --panel：4.49→12.72（≥4.5過）,,「你倒下了」大標題；M2-36 有顏色的字只限物品名與正負數值，--bad 只配 ▼,
+--bad-v4,css,L162,#e0504a,L1029†,1,0,a,--hp,#934341,17.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,生命條上段；M2-36 修正 1「平塗 --hp，拿掉漸層」,L1029 已被 L2229（var(--hp)）覆寫，可刪
+--bad-hi-v1,css,L166,#ff7a50,L478†,1,0,a,--hp,#934341,29.7,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,王血條舊漸層,L478 已被 L948 覆寫，可刪
+--bad-hi-v2,css／combat.js／game.js／mech.js／render.js／skills.js,L167,#ff6b3d,L486† L488† ｜JS combat.js:603 game.js:689 game.js:804 game.js:1124 game.js:1975 mech.js:90 render.js:1028 skills.js:1090 skills.js:1338 skills.js:2031,12,10,a,分用途：--enemy-tel／--fx-own,#ff3d7f,24.8,--enemy-tel 對地面（線 3 px＋外 1 px #000）：3.57→2.99（≥3未過）；--enemy-tel 對黑描邊：7.42→6.23（≥3過）；小地圖王點 對小地圖底 --scene-mid：4.64→3.90（≥3過）,,JS 10 處：王現身環 game:689、王暴怒環 game:1975、燃燒地面 mech:90、地獄火自爆環 combat:603、小地圖王點 render:1028（UIUX 13:32 裁定）＝危險，改 --enemy-tel；戰吼 skills:1090、怒氣 1338、詛咒區結束 2031、王死亡火花 game:1124＝我方或非威脅，改 --fx-own（9% 規則）,--enemy-tel 對地面 2.99、淺磚 1.98，比舊橘低，所以 fx 環一律加外 1 px #000（render.js:953，UIUX 13:32 裁定）；game.js:804 RINGFX 跟著重新對應（見附加列 X2）；CSS L486/488 已被 L1117/1119/1208 覆寫
+--warn-v1,css,L174,#c46a3a,L621†,1,0,a,--act-edge,#a8927f,18.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,主鈕框；M2-36 主鈕 2 px --act-edge,L621 已被覆寫，可刪
+--ready-v1,css,L176,#e1bd62,L937,1,1,a,--prog-hi,#b6b0a8,20.7,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,經驗條填色（同 --border-ctl-v1）；battle-hud-5 P66,
+--ready-v2,css,L177,#d7b77c,L961†,1,0,a,--sel-edge,#a8927f,15.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,天賦已點連線；同一選擇器後段 L1125 已用 --sel-bd,L961 已被 L1125／L1503 覆寫，可刪
+--hp-v1,css,L179,#8e1414,L482 L1029†,2,1,a,--hp,#934341,10.6,條上字 --tx-strong 對 --hp：8.84→6.41（≥4.5過）,,生命球／生命條；M2-36 --hp 平塗,L1029 已被 L2229 覆寫；L482 .orb 仍活（#146 換條後廢）
+--hp-v2,css,L180,#7e1610,L948,1,1,a,--hp,#934341,11.9,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,王血條中段,
+--mp-v1,css,L187,#1a2f8e,L483 L1031†,2,1,a,--mp,#3a5b98,14.0,條上字 --tx-strong 對 --mp：10.85→6.38（≥4.5過）,,魔力球／條；M2-36 --mp 平塗,L1031 已被 L2230 覆寫
+--rar-magic-v1,css,L199,#7aa8ff,L483,1,1,a,--mp,#3a5b98,29.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,魔力球高光。這是魔力不是魔法稀有度，不能用 --rar-magic（稀有度色固定）,漸層改平塗
+--rar-magic-v2,css／maps.js／render.js,L200,#8ab4ff,L604† L676 L805 L833 L844 L1148 L1233 L1243 ｜JS maps.js:8 render.js:482 render.js:629 render.js:1028,12,11,a,分用途：--tx／--rar-magic／--hp／--enemy-rim,#e8e5e1,27.0,詞綴字 --tx 對 --panel：7.65→12.72（≥4.5過）；小地圖菁英點 --enemy-rim 對 --scene-mid：6.29→8.19（≥3過）,,CSS 鍛造與說明的詞綴字（活的：L1148 .fpv、L1233 .fslot、L1243 .fcv）＝M2-33-2a「每條詞綴 14 px --tx」；JS：render.js:482 掉落光圈 r1＝魔法稀有度，改 --rar-magic；render.js:629 菁英頭上血條改 --hp（M2-33-3a）；render.js:1028 小地圖菁英點改 --enemy-rim（UIUX 13:32 裁定，菁英不用稀有度色）,小地圖王點 --enemy-tel 對菁英點 --enemy-rim：ΔE 25.4；maps.js:8 STARS.c 沒有被讀，這個欄位可刪；L604 已被 L926 覆寫；.qb1／.faff／.fop 疑似死碼
+--rar-magic-v3,css,L201,#6f9cff,L1031†,1,0,a,--mp,#3a5b98,26.4,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,魔力條上段（魔力，不是稀有度）,L1031 已被 L2230 覆寫
+--rar-magic-rgb,css／render.js,L202,"138, 180, 255",L539† L563† L1197† L1200† ｜JS render.js:579,5,1,a,--rar-magic（CSS）／--enemy-rim（JS 菁英腳下圈）,#fbbdbb,32.7,菁英腳下圈 --enemy-rim 0.7 對地面：3.19→3.98（≥3過）,,CSS 4 處（魔法格框、漸層、光暈）全被 L2323／L2393 覆寫，現行已是 1 px var(--rar-magic)；JS render.js:579 菁英腳下圈改 --enemy-rim（UIUX 13:32 裁定；原本用魔法藍＝混用稀有度色）,JS 改成 strokeStyle = PAL.enemyRim，再加 globalAlpha 0.7，不用新增 -rgb；要等 JS 改完才能刪這個 token（palette.js 會讀 :root）
+--rar-magic-rgb-v1,css,L203,"154, 166, 255",L1536 L2136,2,2,a,--affix（.term.kw）／--border（#tip .tl）,#9da7ff,0.6,關鍵字底線 --affix 對 --panel：2.81→7.15（≥3過）,,技能關鍵字底線＝--affix（M2-36 技能關鍵字）；說明框詞綴行左標線＝中性框,rgba 改平塗
+--rar-magic-bg-v1,css,L206,#1f2740,L2448,1,1,a,--rar-magic-bg,#23232b,8.2,魔法名 --rar-magic 對底：6.61→6.98（≥4.5過）,,說明框魔法標題帶底；M2-33-2a §2「底用該稀有度的 -bg」,
+--rar-magic-bg-rgb,css,L207,"40, 60, 110",L563† L1197†,2,0,a,--rar-magic-bg,#23232b,17.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,魔法格底；M2-33-2a 格底平塗,L563／L1197 已被 L911／L2323 覆寫，可刪
+--rar-rare-rgb,css／render.js／touch.js,L211,"255, 209, 102",L540† L564† L572 L655† L685 L813† L820† L1198† L1201† L1690 ｜JS touch.js:68 render.js:715,12,5,b伴生,--rar-rare-rgb（定稿 251 229 58）,251 229 58,10.1,光柱 對地面：7.00→7.86（≥3過）,,JS render.js:715 稀有通貨光柱用 cssv 讀 -rgb 來拼色；M2-36 的光柱按稀有度分色，所以 -rgb 必須留著。值＝--rar-rare，不是新色（AD 定稿）,CSS 10 處：L540/564/1198/1201 已被覆寫；活的是 L572 .sell.on、L685 .nd.b2、L1690 .cub.g3，這些是選中、天賦、通貨在用稀有黃＝混用稀有度色，分別改 --sel-bg／--border-hi／--hl-rgb；touch.js:68 瞄準線改 --hl-rgb
+--rar-rare-bg-v1,css,L213,#3a2b12,L683,1,1,a,--sel-bg,#463a2d,7.1,已點框 --sel-edge 對底：4.62→3.72（裝飾，不設門檻）,,天賦大節點已點底。M2-36：--sel-bg＝「天賦已點節點」；改 --rar-rare-bg 會讓天賦節點像稀有物品（稀有度混用），所以不照工程建議,
+--rar-rare-bg-v2,css,L214,#3a2e12,L2449,1,1,a,--rar-rare-bg,#26241b,9.7,稀有名 --rar-rare 對底：10.36→12.12（≥4.5過）,,說明框稀有標題帶底；M2-33-2a §2,
+--rar-rare-bg-rgb,css,L216,"110, 85, 30",L564† L1198†,2,0,a,--rar-rare-bg,#26241b,23.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,稀有格底；平塗,全被 L912／L2324 覆寫，可刪
+--rar-unique-rgb,css,L221,"250, 137, 21",L630† L631 L861† L1199†,4,1,a,--rar-unique（格框）／--sel-bg（.gkind 選中）,#fa8915,0.0,傳奇框 對 --panel-inset：7.14→7.14（≥3過）,,值已等於官方（ΔE 0）；活的只剩 L631 .eqs.r3 框 → 1 px var(--rar-unique)（M2-33-2a）；L630/1199 已被 L2325、L861 已被 L1194／L2242 覆寫,
+--rar-unique-bg-rgb,css,L223,"58, 34, 20",L630† L1199†,2,0,a,--rar-unique-bg,#2a221c,8.7,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,傳奇格底；平塗,全被覆寫，可刪
+--rar-chase-bg-v1,css,L229,#3a110a,L895†,1,0,a,--act,#7c5729,26.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,主鈕舊漸層下緣（不是追逐）；用 --rar-chase-bg 會混稀有度,L895 已被 L1112／L2237 覆寫，可刪
+--rar-chase-bg-v2,css,L230,#4a2a16,L1984,1,1,a,--asc-bg,#1a2623,24.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,昇華標頭漸層起點（不是追逐）；用 --rar-chase-bg 會混稀有度，改昇華底,
+--rar-chase-rgb,css／render.js,L232,"12, 246, 238",L2727 ｜JS render.js:292 render.js:296 render.js:303 render.js:715,6,6,b伴生,--rar-chase-rgb（定稿 12 246 238）,12 246 238,0.0,追逐環 0.9 對地面：6.32→6.32（≥3過）,,M2-33-2a §1.1 追逐框已經寫了 rgb(var(--rar-chase-rgb)/0.45)；JS 追逐光柱與地面環（render.js:292/296/303/715）用它拼 rgba。值＝--rar-chase，不是新色（AD 定稿）,
+--asc-v1,css,L234,#ffb15a,L485 L487,2,2,b,--hf（定稿 #b65517）,#b65517,27.7,條上數字：1.71→4.65（≥4.5過）,,地獄火條上段；跟 --act-v2 合成同一個 --hf（平塗）,舊亮橘當條底時，條上字只有 1.71
+--asc-hi-v1,css,L236,#ffcfa6,L1944 L1998 L2017,3,3,a,--asc-hi,#8ce1cf,33.6,字 對 --asc-on 底：8.30→6.63（≥4.5過）；字 對 --panel-inset：12.15→11.37（≥4.5過）,,昇華亮字（舊橘系；M2-36 昇華已定青色）,
+--asc-on-v1,css,L240,#4a1f0e,L621†,1,0,a,--act,#7c5729,20.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,主鈕舊漸層（不是昇華）,L621 已被覆寫，可刪
+--asc-on-v2,css,L241,#6b2414,L895†,1,0,a,--act,#7c5729,19.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,主鈕舊漸層,L895 已被覆寫，可刪
+--asc-on-v3,css,L242,#5a0e0a,L948,1,1,a,--hp,#934341,16.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,王血條下段（不是昇華）；M2-33-1 平塗 --hp,
+--asc-rgb,css,L243,"255, 159, 67",L691 L692 L1395 L1941 L1984 L1985 L2014 L2017,9,9,a,--asc-on（框／線）／--asc-bg（底色）,28 73 65,59.5,昇華節點框 --asc-on 對 --asc-bg：2.17→1.55（裝飾，不設門檻）,,昇華框線 α 0.3–0.45 與選中底 α 0.03–0.14；官方昇華改青色，α 框約等於 --asc-on、淡底約等於 --asc-bg，可平塗、不必新增 -rgb,框對比低（裝飾），節點靠圖示＋形狀；L1985 外光暈建議拿掉
+--cat-frac-v1,css,L245,#ffe7a8,L824,1,1,a,--cat-frac,#fbf9f6,18.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.dust.rare（疑似死碼，未驗）,
+--cat-frac-v2,css,L246,#fff3c4,L1539,1,1,a,--cat-frac,#fbf9f6,14.6,字 對說明框 --panel：14.35→15.20（≥4.5過）,,破裂詞字；M2-36 --cat-frac＝--tx-strong,
+--cat-frac-v3,css,L247,#ffe9a0,L1539 L1540 L1559,3,3,a,--cat-frac,#fbf9f6,19.6,框 對 --panel：13.24→15.20（≥3過）,,破裂左標線／圖示字／揭曉框,
+--cat-mem-v1,css,L252,#7be6ff,L1541 L1556 L1560,3,3,a,--cat-mem,#ade2f9,7.2,字 對 --panel：11.11→11.42（≥4.5過）,,記憶詞字與框；M2-36 --cat-mem,
+--affix-v1,css,L262,#b9c4ff,L1954,1,1,a,--affix,#9da7ff,8.2,字 對 --panel：9.43→7.15（≥4.5過）,,天賦卡技能關鍵字,
+--awk-v1,css,L264,#b28dff,L582†,1,0,a,--awk,#caaef4,10.5,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.tier.on 框,L582 已被 L900 覆寫；.tier 疑似死碼
+--el-fire-rgb,css／render.js,L270,"255, 138, 76",L1117 L1119 L1208 ｜JS render.js:251 render.js:382,5,5,b伴生,--el-fire-rgb（定稿 238 153 120）／CSS 快爆光暈：--hurt-vignette-rgb ≤0.75,238 153 120,7.8,隕石圈 0.7 對地面：2.90→3.04（裝飾，不設門檻）；快爆光暈 --vig 0.75 疊 --panel 對 --hf：2.20→1.86（裝飾，不設門檻）,,"JS 我方隕石落點圈 render.js:251、火焰地面 render.js:382 用它拼 rgba；M2-33-3a 規定「自己的地面用 PAL.el*」；值＝--el-fire，不是新色（AD 定稿）。CSS L1117/1119/1208 地獄火快爆光暈（UIUX 13:37 定案）：改成 rgba(var(--hurt-vignette-rgb), ≤0.75)，畫在條的 1 px --border 框外面、疊在 --panel 上；L1117 的實心框留 --border，不改 --vig",光暈對 --hf：ΔE 19.1，紅、綠、藍黃三種色盲 ΔE 17.1／15.8／13.8，都 ≥ 10，可以分；實心 --vig 直接貼著 --hf 時綠色盲只有 8.2，所以框不用 --vig。我方隕石圈 0.7 超過我方特效 9% 規則（戰場可讀性風險，不在本表範圍）
+--el-fire-rgb-v1,css,L271,"255, 140, 90",L473†,1,0,a,--border-mid,#817b75,28.4,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,王血條框；M2-33-1 1 px --border-mid,L473 已被 L947／L1121 覆寫，可刪
+--el-cold-v1,css,L274,#8fc4ff,L704†,1,0,a,--tx,#e8e5e1,23.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,傳送門卡大標題；M2-36 字色規則,L704 已被 L956 覆寫，可刪
+--el-cold-v2,css,L275,#a9cfff,L956,1,1,a,--tx,#e8e5e1,20.3,標題 對 --panel：9.93→12.72（≥4.5過）,,傳送門卡大標題（有顏色的字只限物品名與正負值）,
+--el-cold-rgb-v1,css,L279,"190, 225, 255",L635†,1,0,a,--es,#dfbf91,33.5,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.orb .ward 底＝能量護盾,L635 已被 L715 覆寫，可刪
+--el-cold-rgb-v2,css,L280,"123, 230, 255",L1560,1,1,a,--cat-mem,#ade2f9,7.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,記憶揭曉框光暈；記憶＝--cat-mem,M2-33-2a 不准外發光，建議拿掉；保留就用 color-mix(var(--cat-mem))
+--el-chaos-rgb,css／hideout.js／render.js,L289,"178, 141, 255",L582† ｜JS hideout.js:283 render.js:163 render.js:268 render.js:275,5,4,b,分用途：--enemy-tel-rgb（王閃現）／--portal-rgb（傳送門、地圖台符文）,204 188 254,13.0,預警 --enemy-tel 對地面：3.47→2.66（≥3未過）；傳送門環 0.7 對地面：2.70→3.75（≥3過）,,JS render.js:163 王「閃現」預警＝敵方攻擊，改 --enemy-tel-rgb（現在的紫色預警比我方傳送門還不顯眼）；傳送門 render.js:268/275、營地地圖台符文 hideout.js:283，連同地圖裡的「回家」傳送門，一律改 --portal-rgb（AD 定稿 #ccbcfe／204 188 254；UIUX 13:32 裁定：同類同色，所有傳送門是同一族）,--enemy-tel 對地面 2.66（舊紫 3.47），一定要加外 1 px #000；「回家」傳送門現在用 PAL.rgb.rarMagicV2（填色）和 PAL.rgb.dodgeVignetteV1（環），這兩個不在 d1，一併改 --portal-rgb（見附加列 X3）；CSS L582 已被 L900 覆寫
+--el-chaos-rgb-v1,css,L290,"200, 170, 255",L719,1,1,a,--mp-hi（暫用）,#6b7dad,21.5,精魂環 對 --panel：8.10→3.93（≥3過）,,.orb .spir 精魂環的光暈；UIUX 13:32 裁定先用 --mp-hi，如果 #146 拿掉 .orb 就整段刪,
+--dmg-hurt-v1,css／combat.js／render.js／skills.js,L300,#ff6b6b,L482 ｜JS combat.js:1861 render.js:604 render.js:973 skills.js:930,5,5,a,分用途：--hp／--tx-strong／--fx-own,#fbf9f6,35.3,印記菱形 --tx-strong 對地面：3.64→9.60（≥3過）,,CSS 生命球高光 → --hp（平塗）；JS 印記菱形 render.js:604 → --tx-strong（狀態標記，M2-33-3a 狀態列字 --tx-scene）；印記引爆環 combat:1861、上印記環 skills:930、喝藥環 render.js:973 → --fx-own（我方特效）,舊紅色印記在敵人頭上像敵方警示；改白後靠菱形＋位置辨識
+--dmg-minor-v1,css,L308,#8a8d96,L1528,1,1,a,--border,#817b75,10.5,框 對 --panel：4.81→3.82（≥3過）,,天賦圖例「鎖住」虛線框；M2-36 停用 1 px 虛線 --border,
+--legacy-1,css,L319,"255, 90, 40",L486† L488†,2,0,a,（刪）,238 153 120,14.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,兩處都已被 L1117／L1119／L1208 覆寫，畫面不吃,地獄火快爆光暈已定案：見 --el-fire-rgb（UIUX 13:37）
+--legacy-2,css,L320,#3a3d44,L682,1,1,a,--sel-bg,#463a2d,12.8,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,天賦已點節點底後備值；M2-36「--sel-bg：…天賦已點節點」,
+--legacy-3,css,L321,#e6d6ff,L719,1,1,a,--mp-hi（暫用）,#6b7dad,29.4,精魂環描邊 對 --panel：11.73→3.93（≥3過）,,.orb .spir 精魂環描邊；UIUX 13:32 裁定先用 --mp-hi，如果 #146 拿掉 .orb 就刪,
+--legacy-4,css,L322,#d6e4ff,L823,1,1,a,--tx-dim,#aeaba7,19.4,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.dust.fine（死碼：class 找不到）；建議刪規則,
+--legacy-5,css,L323,#5a72b8,L823,1,1,a,--prog-lo,#3c3935,32.4,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.dust.fine（死碼）；建議刪規則,
+--legacy-6,css,L324,#b8862a,L824,1,1,a,--tx-dim,#aeaba7,24.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.dust.rare（疑似死碼）；不可用 --rar-rare 系（通貨≠稀有度）,
+--legacy-7,css,L325,#d6f0ff,L825,1,1,a,--tx-dim,#aeaba7,20.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.soul（疑似死碼）；靈魂現用 cur_soul 圖示,
+--legacy-8,css,L326,#4a7fc4,L825,1,1,a,--prog-lo,#3c3935,34.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,.dot.soul（疑似死碼）,
+--legacy-9,css,L327,"70, 95, 170",L911†,1,0,a,--rar-magic-bg,#23232b,28.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格稀有度漸層；M2-33-2a 格底平塗該稀有度 -bg,L911–913 已被 L1197–1199、L2323–2325 覆寫，可刪
+--legacy-10,css,L328,"20, 28, 60",L911†,1,0,a,--rar-magic-bg,#23232b,11.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格稀有度漸層；M2-33-2a 格底平塗該稀有度 -bg,L911–913 已被 L1197–1199、L2323–2325 覆寫，可刪
+--legacy-11,css,L329,"160, 125, 40",L912†,1,0,a,--rar-rare-bg,#26241b,38.1,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格稀有度漸層；M2-33-2a 格底平塗該稀有度 -bg,L911–913 已被 L1197–1199、L2323–2325 覆寫，可刪
+--legacy-12,css,L330,"55, 42, 12",L912†,1,0,a,--rar-rare-bg,#26241b,10.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格稀有度漸層；M2-33-2a 格底平塗該稀有度 -bg,L911–913 已被 L1197–1199、L2323–2325 覆寫，可刪
+--legacy-13,css,L331,"50, 150, 140",L913†,1,0,a,--rar-unique-bg,#2a221c,44.2,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格稀有度漸層；M2-33-2a 格底平塗該稀有度 -bg,L911–913 已被 L1197–1199、L2323–2325 覆寫，可刪
+--legacy-14,css,L332,"12, 48, 45",L913†,1,0,a,--rar-unique-bg,#2a221c,19.4,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,物品格稀有度漸層；M2-33-2a 格底平塗該稀有度 -bg,L911–913 已被 L1197–1199、L2323–2325 覆寫，可刪
+--legacy-15,css,L333,#8a86a0,L927 L1537 L1555,3,3,a,--tx-dim,#aeaba7,17.9,T 標記 對 --panel：4.56→6.98（≥4.5過）,,說明框／揭曉的 T 標記；M2-33-2a「T 標記 13 --tx-dim」,
+--legacy-16,css,L334,"86, 108, 128",L1126,1,1,a,--sel-bg,#463a2d,25.4,選取字 --glint 對底：6.83→11.03（≥4.5過）,,文字選取底；選中底＝--sel-bg（平塗）,
+--legacy-17,css,L335,#3d4a58,L1183†,1,0,a,--hdr,#2d251f,17.8,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,面板標題列漸層上段；M2-36 --hdr＝標題列底,L1183 已被 L2193（--panel）覆寫
+--legacy-18,css,L336,#2f3945,L1183†,1,0,a,--hdr,#2d251f,14.1,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,面板標題列漸層下段,同上
+--legacy-19,css,L337,#d98bb0,L1241,1,1,a,--cat-corr,#ff6066,19.2,字 對 --panel：6.29→5.41（≥4.5過）；字 對 --panel-raised：5.75→4.95（≥4.5過）,,腐化詞字（.aff.cor、.fslot li.cw）；M2-36 --cat-corr＝腐化詞字色,
+--legacy-20,css,L338,#5a3a3a,L1365,1,1,a,--prog-lo,#3c3935,14.5,框 --border-ctl 對空段：2.39→2.75（裝飾，不設門檻）,,試招場條空段；M2-36 進度條空段 --prog-lo,
+--legacy-21,css,L339,#5a5d66,L1513,1,1,a,--border,#817b75,14.8,框 對樹底：2.99→4.43（≥3過）,,鎖住節點描邊；停用框＝--border,
+--legacy-22,css,L340,#2a2d36,L1520,1,1,a,--scene-void,#16130f,11.3,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,遠景鎖住節點底；同 --scene-void-v9,
+--legacy-23,css,L341,#5b6270,L1975,1,1,a,--border,#817b75,15.2,框 對 --panel-raised：2.44→3.50（≥3過）,,昇華節點「關」框；停用框＝--border,
+--frame,css,L444,0 0 0 (rgb(var(--scrim-rgb))),L641† L884† L915† L934† L1040 L1043 L1698,7,3,a,（保留，色已走 --scrim-rgb）,10 7 4,0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,陰影簡寫，不是色 token；色來自官方 --scrim-rgb，不進色票,7 處中 4 處已被 L1105／L1181 覆寫
+--hi,css,L503,var(--mp-hi),L506,1,1,a,（保留，別名 --mp-hi／--hp-hi）,#6b7dad,0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,局部別名，值已是官方 token；不進色票,
+--pt-bg,css,L1500,#090b13,L1500,1,1,a,--scene-void,#16130f,6.6,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,天賦樹畫布底；值改 var(--scene-void),
+--pt-node,css,L1500,#10131b,L1504 L1505 L1626,3,3,a,--panel-inset,#1d1a17,8.0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,天賦節點底；值改 var(--panel-inset),
+--pt-line,css,L1500,"162, 148, 110",L1501 L1502 L1521 L1624,4,4,a,--border-hi-rgb,176 170 164,13.6,連線 0.62 對樹底：3.14→3.81（≥3過）,,天賦連線 α 0.28–0.62；中性強調框 -rgb（官方），去掉舊暖黃,
+--rc,css,L1549,var(--rar-rare),L1547,1,1,a,（保留，別名 --rar-rare 等）,#fbe53a,0,N/A（非字／非功能邊界：底、陰影、光暈或已覆寫）,,局部別名，指向官方稀有度 token；不進色票,
+X1 render.js:482 RCOL,render.js,,"[PAL.borderCapV1, PAL.rarMagicV2, PAL.dmgCrit]",render.js:482（用在 314–321 掉落光圈）,1,,a,"[--rar-normal, --rar-magic, --rar-rare]",#fbe53a,19.1（暴擊→稀有）,稀有光圈 0.5 對地面：2.90→3.24（裝飾）,,UIUX 13:32：稀有掉落光圈改 --rar-rare（原本借用暴擊色＝混用稀有度色）。r0 的 PAL.borderCapV1 照同一原則改 --rar-normal（這個 token 在刪除清單裡）,
+X2 game.js:804 RINGFX,game.js（＋combat.js／skills.js 傳參）,,以色值當 key,game.js:802–810、814,1,,a,改成明示序列圖名,,—,N/A,,UIUX 13:32：重新對應。改色以後，敵方環（--enemy-tel）和我方環（--fx-own）都不能再靠色值查表，而且同值的 token 會撞 key（--el-cold＝--cat-mem）。建議 fx({k:ring}) 加 sh 欄位：王現身、王暴怒、獄火自爆、戰吼、怒氣、詛咒區結束→boom；火→boom；冰→frost；混沌→dark；預設→slam；印記環、喝藥→不播（維持現狀）,保留查表的話，至少要補上 [PAL.enemyTel] 和 [PAL.fxOwn] 兩個 key；但這樣印記環會多播一張 boom
+X3 render.js:268/275 回家傳送門,render.js,,PAL.rgb.rarMagicV2（填）／PAL.rgb.dodgeVignetteV1（環）,render.js:268、275,2,,b,--portal-rgb,204 188 254,—,環 0.7 對地面：3.33→3.75（≥3過）,,UIUX 13:32：同類同色，所有傳送門都是同一族，「回家」也用 --portal，跟其他傳送門靠位置、圖示分,原本兩個 token 都在刪除清單裡
+X4 render.js:953 fx 環,render.js,,環沒有描邊,render.js:953–959,1,,a,外 1 px #000（--dmg-outline／--beam-edge 系的 #000）,#000000,—,--enemy-tel 對黑 6.23（≥3過）,,UIUX 13:32：fx 環加外 1 px #000（M2-36 --enemy-tel：線 3 px＋外 1 px #000）。先用 lineWidth+2 畫 #000，再畫本色,**硬規則：我方 fx 環的黑邊 alpha 跟環一樣，永遠不能不透明**（--fx-own 環的黑邊最多 9%），確保敵方預警一定比我方環明顯

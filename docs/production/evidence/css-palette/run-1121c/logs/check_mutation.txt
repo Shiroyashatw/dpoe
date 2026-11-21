@@ -1,0 +1,2 @@
+❌ M2-38 顏色：M2-38 的 CSS 段只准 rgb(var(--x-rgb) / α)／rgb(var(--x-rgb), α)（:root 的三元組、α 0–1），沒有 hex、rgba(、寫死數字的 rgb(；新函式沒有色碼字面值；沒有新 token 定義 {"fn":[1833,336,154,215,165,147,90],"rgb":3,"ok":2}
+❌ B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准）；--cat-cal* 還沒有元件用到 {"tok":["#ff6066","#bd7aff","#f1e4ff"],"catUse":[],"corrUse":["css/style.css","css/style.css"],"corrBad":[".xx"],"corrElse":[],"corrLeft":2}

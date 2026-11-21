@@ -1,0 +1,32 @@
+[
+ {
+  "el": "undefined",
+  "col": "#cfd8e3",
+  "sheet": null
+ },
+ {
+  "el": "phys",
+  "col": "#cfd8e3",
+  "sheet": null
+ },
+ {
+  "el": "fire",
+  "col": "#ee9978",
+  "sheet": "boom"
+ },
+ {
+  "el": "cold",
+  "col": "#8fd6ff",
+  "sheet": "frost"
+ },
+ {
+  "el": "light",
+  "col": "#ffe066",
+  "sheet": null
+ },
+ {
+  "el": "chaos",
+  "col": "#cfd8e3",
+  "sheet": "dark"
+ }
+]

@@ -1,0 +1,7 @@
+✅ new.json 22 欄與 9b 逐格相同：是
+✅ mid.json 22 欄與 9b 逐格相同：是
+✅ near.json 22 欄與 9b 逐格相同：是
+✅ full.json 22 欄與 9b 逐格相同：是
+✅ big.json 22 欄與 9b 逐格相同：是
+✅ en.json 22 欄與 9b 逐格相同：是
+exit 0

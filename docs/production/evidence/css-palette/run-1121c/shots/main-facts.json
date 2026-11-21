@@ -1,0 +1,3364 @@
+{
+ "rings": [
+  {
+   "file": "combat.js",
+   "line": 556,
+   "col": "PAL.hlV8",
+   "sh": null,
+   "v": "",
+   "colVal": "#c9d3e0",
+   "sheet": null
+  },
+  {
+   "file": "combat.js",
+   "line": 603,
+   "col": "PAL.badHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b3d",
+   "sheet": "boom"
+  },
+  {
+   "file": "combat.js",
+   "line": 634,
+   "col": "PAL.fxCombat1",
+   "sh": null,
+   "v": "",
+   "colVal": "#8a6cff",
+   "sheet": null
+  },
+  {
+   "file": "combat.js",
+   "line": 645,
+   "col": "PAL.dmgCrit",
+   "sh": null,
+   "v": "",
+   "colVal": "#ffd166",
+   "sheet": null
+  },
+  {
+   "file": "combat.js",
+   "line": 1861,
+   "col": "PAL.dmgHurtV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b6b",
+   "sheet": null
+  },
+  {
+   "file": "combat.js",
+   "line": 2404,
+   "col": "PAL.dmgCrit",
+   "sh": null,
+   "v": "",
+   "colVal": "#ffd166",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 628,
+   "col": "PAL.rarNormalV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#c9b8a8",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 689,
+   "col": "PAL.badHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b3d",
+   "sheet": "boom"
+  },
+  {
+   "file": "game.js",
+   "line": 1287,
+   "col": "PAL.dmgCrit",
+   "sh": null,
+   "v": "",
+   "colVal": "#ffd166",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 1567,
+   "col": "PAL.elChaosV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#b28dff",
+   "sheet": "dark"
+  },
+  {
+   "file": "game.js",
+   "line": 1571,
+   "col": "PAL.elFireV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff8a5b",
+   "sheet": "boom"
+  },
+  {
+   "file": "game.js",
+   "line": 1580,
+   "col": "PAL.elFireV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff8a5b",
+   "sheet": "boom"
+  },
+  {
+   "file": "game.js",
+   "line": 1745,
+   "col": "PAL.hlV5",
+   "sh": null,
+   "v": "",
+   "colVal": "#cfe8ff",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 1862,
+   "col": "PAL.fxGame1",
+   "sh": null,
+   "v": "",
+   "colVal": "#7dff9a",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 1918,
+   "col": "PAL.elChaosV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#b28dff",
+   "sheet": "dark"
+  },
+  {
+   "file": "game.js",
+   "line": 1925,
+   "col": "PAL.elChaosV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#b28dff",
+   "sheet": "dark"
+  },
+  {
+   "file": "game.js",
+   "line": 1927,
+   "col": "PAL.elChaosV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#b28dff",
+   "sheet": "dark"
+  },
+  {
+   "file": "game.js",
+   "line": 1951,
+   "col": "PAL.progHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#e3a14a",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 1959,
+   "col": "PAL.elChaosV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#b28dff",
+   "sheet": "dark"
+  },
+  {
+   "file": "game.js",
+   "line": 1970,
+   "col": "PAL.elLight",
+   "sh": null,
+   "v": "",
+   "colVal": "#ffe066",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 1975,
+   "col": "PAL.badHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b3d",
+   "sheet": "boom"
+  },
+  {
+   "file": "game.js",
+   "line": 1980,
+   "col": "PAL.elChaosV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#b28dff",
+   "sheet": "dark"
+  },
+  {
+   "file": "game.js",
+   "line": 2009,
+   "col": "PAL.rarUniqueV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#7fd1c7",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 2028,
+   "col": "PAL.dodgeVignetteV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#6fb7ff",
+   "sheet": null
+  },
+  {
+   "file": "game.js",
+   "line": 2187,
+   "col": "PAL.elFireV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff8a5b",
+   "sheet": "boom"
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=jagged",
+   "colVal": "#b08a5a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=gas",
+   "colVal": "#8fd16b",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=oil",
+   "colVal": "#8a6a2a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=fire",
+   "colVal": "#ff6b3d",
+   "sheet": "boom"
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=chill",
+   "colVal": "#8fd6ff",
+   "sheet": "frost"
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=salt",
+   "colVal": "#6fd3ff",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=blades",
+   "colVal": "#e8e2d6",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=aftershock",
+   "colVal": "#b08a5a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=cons",
+   "colVal": "#ffe08a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=corrupt",
+   "colVal": "#7a3fa0",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=smoke",
+   "colVal": "#9aa0a8",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=shockg",
+   "colVal": "#ffe14d",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=ignited",
+   "colVal": "#ff8a2a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=wither",
+   "colVal": "#5fae7a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=thorn",
+   "colVal": "#a8c24a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 205,
+   "col": "GROUND[g.k].col",
+   "sh": null,
+   "v": "g.k=howl",
+   "colVal": "#ff5a8a",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 236,
+   "col": "el ? ELC[el] : PAL.catFracV4",
+   "sh": null,
+   "v": "el=undefined",
+   "colVal": "#fff3d6",
+   "sheet": "slam"
+  },
+  {
+   "file": "mech.js",
+   "line": 236,
+   "col": "el ? ELC[el] : PAL.catFracV4",
+   "sh": null,
+   "v": "el=phys",
+   "colVal": "#fff3e0",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 236,
+   "col": "el ? ELC[el] : PAL.catFracV4",
+   "sh": null,
+   "v": "el=fire",
+   "colVal": "#ff8a4c",
+   "sheet": "boom"
+  },
+  {
+   "file": "mech.js",
+   "line": 236,
+   "col": "el ? ELC[el] : PAL.catFracV4",
+   "sh": null,
+   "v": "el=cold",
+   "colVal": "#8fd6ff",
+   "sheet": "frost"
+  },
+  {
+   "file": "mech.js",
+   "line": 236,
+   "col": "el ? ELC[el] : PAL.catFracV4",
+   "sh": null,
+   "v": "el=light",
+   "colVal": "#ffe066",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 236,
+   "col": "el ? ELC[el] : PAL.catFracV4",
+   "sh": null,
+   "v": "el=chaos",
+   "colVal": "#c38bff",
+   "sheet": "dark"
+  },
+  {
+   "file": "mech.js",
+   "line": 312,
+   "col": "ELC[r.el]",
+   "sh": null,
+   "v": "el=undefined",
+   "colVal": null,
+   "sheet": "slam"
+  },
+  {
+   "file": "mech.js",
+   "line": 312,
+   "col": "ELC[r.el]",
+   "sh": null,
+   "v": "el=phys",
+   "colVal": "#fff3e0",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 312,
+   "col": "ELC[r.el]",
+   "sh": null,
+   "v": "el=fire",
+   "colVal": "#ff8a4c",
+   "sheet": "boom"
+  },
+  {
+   "file": "mech.js",
+   "line": 312,
+   "col": "ELC[r.el]",
+   "sh": null,
+   "v": "el=cold",
+   "colVal": "#8fd6ff",
+   "sheet": "frost"
+  },
+  {
+   "file": "mech.js",
+   "line": 312,
+   "col": "ELC[r.el]",
+   "sh": null,
+   "v": "el=light",
+   "colVal": "#ffe066",
+   "sheet": null
+  },
+  {
+   "file": "mech.js",
+   "line": 312,
+   "col": "ELC[r.el]",
+   "sh": null,
+   "v": "el=chaos",
+   "colVal": "#c38bff",
+   "sheet": "dark"
+  },
+  {
+   "file": "skills.js",
+   "line": 846,
+   "col": null,
+   "sh": null,
+   "v": "",
+   "colVal": null,
+   "sheet": "slam"
+  },
+  {
+   "file": "skills.js",
+   "line": 858,
+   "col": "PAL.elFire",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff8a4c",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 878,
+   "col": "ELC.cold",
+   "sh": null,
+   "v": "",
+   "colVal": "#8fd6ff",
+   "sheet": "frost"
+  },
+  {
+   "file": "skills.js",
+   "line": 923,
+   "col": "PAL.elChaos",
+   "sh": null,
+   "v": "",
+   "colVal": "#c38bff",
+   "sheet": "dark"
+  },
+  {
+   "file": "skills.js",
+   "line": 930,
+   "col": "PAL.dmgHurtV1",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b6b",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 950,
+   "col": "PAL.goodV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#9df29d",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1090,
+   "col": "PAL.badHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b3d",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 1097,
+   "col": "PAL.borderHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#b08a5a",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1132,
+   "col": "PAL.dmgCritV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ffcf6b",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1280,
+   "col": "PAL.hlV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#cfd8e3",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1338,
+   "col": "PAL.badHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b3d",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 1384,
+   "col": "PAL.hlV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#cfd8e3",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1399,
+   "col": "PAL.goodV4",
+   "sh": null,
+   "v": "",
+   "colVal": "#8fd16b",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1409,
+   "col": "PAL.hlV7",
+   "sh": null,
+   "v": "",
+   "colVal": "#b8c4d4",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1426,
+   "col": null,
+   "sh": null,
+   "v": "",
+   "colVal": null,
+   "sheet": "slam"
+  },
+  {
+   "file": "skills.js",
+   "line": 1543,
+   "col": "PAL.elFire",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff8a4c",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 1716,
+   "col": "ELC.fire",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff8a4c",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 1784,
+   "col": "ELC[el]",
+   "sh": null,
+   "v": "el=undefined",
+   "colVal": null,
+   "sheet": "slam"
+  },
+  {
+   "file": "skills.js",
+   "line": 1784,
+   "col": "ELC[el]",
+   "sh": null,
+   "v": "el=phys",
+   "colVal": "#fff3e0",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1784,
+   "col": "ELC[el]",
+   "sh": null,
+   "v": "el=fire",
+   "colVal": "#ff8a4c",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 1784,
+   "col": "ELC[el]",
+   "sh": null,
+   "v": "el=cold",
+   "colVal": "#8fd6ff",
+   "sheet": "frost"
+  },
+  {
+   "file": "skills.js",
+   "line": 1784,
+   "col": "ELC[el]",
+   "sh": null,
+   "v": "el=light",
+   "colVal": "#ffe066",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 1784,
+   "col": "ELC[el]",
+   "sh": null,
+   "v": "el=chaos",
+   "colVal": "#c38bff",
+   "sheet": "dark"
+  },
+  {
+   "file": "skills.js",
+   "line": 1803,
+   "col": "ELC.fire",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff8a4c",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 1958,
+   "col": "PAL.dmgCritV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ffcf6b",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 2031,
+   "col": "PAL.badHiV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#ff6b3d",
+   "sheet": "boom"
+  },
+  {
+   "file": "skills.js",
+   "line": 2132,
+   "col": "PAL.hlV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#cfd8e3",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 2179,
+   "col": "PAL.hlV2",
+   "sh": null,
+   "v": "",
+   "colVal": "#cfd8e3",
+   "sheet": null
+  },
+  {
+   "file": "skills.js",
+   "line": 2195,
+   "col": null,
+   "sh": null,
+   "v": "",
+   "colVal": null,
+   "sheet": "slam"
+  }
+ ],
+ "sizes": {
+  "1280x720": {
+   "errs": [],
+   "crowd": {
+    "bars": [
+     {
+      "cls": "hb hp",
+      "id": "bhp",
+      "r": [
+       460,
+       609,
+       360,
+       12
+      ],
+      "fill": [
+       460,
+       609,
+       166,
+       12
+      ],
+      "span": [
+       460,
+       609,
+       360,
+       12
+      ]
+     },
+     {
+      "cls": "hb mp",
+      "id": "bmp",
+      "r": [
+       460,
+       624,
+       360,
+       13
+      ],
+      "fill": [
+       460,
+       624,
+       359,
+       13
+      ],
+      "span": [
+       460,
+       624,
+       360,
+       13
+      ]
+     }
+    ],
+    "tele": [
+     [
+      735,
+      314,
+      95
+     ]
+    ],
+    "dots": [
+     {
+      "col": "rgba(8, 6, 5, 0.78)",
+      "a": 1,
+      "w": 160,
+      "at": [
+       1184,
+       654
+      ]
+     },
+     {
+      "col": "#ff6b3d",
+      "a": 1,
+      "w": 5,
+      "at": [
+       1216,
+       627
+      ]
+     },
+     {
+      "col": "#8ab4ff",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1216,
+       646
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1213,
+       655
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1204,
+       662
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1193,
+       665
+      ]
+     },
+     {
+      "col": "#8ab4ff",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1181,
+       662
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1172,
+       655
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1169,
+       646
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1172,
+       636
+      ]
+     },
+     {
+      "col": "#8ab4ff",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1181,
+       629
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1193,
+       627
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1204,
+       629
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       1213,
+       636
+      ]
+     },
+     {
+      "col": "#9df29d",
+      "a": 1,
+      "w": 4,
+      "at": [
+       1193,
+       646
+      ]
+     }
+    ],
+    "pal": {
+     "hp": "#8a2a2a",
+     "mp": "#2b4a8a",
+     "act": "#8f3a2b",
+     "txStrong": "#f1ebdc",
+     "badV6": "#c95050",
+     "panel": "#26201b",
+     "panelInset": "#1f1915",
+     "hurtVignette": "200,20,20",
+     "ringEdge": "#000000"
+    }
+   },
+   "hot": [
+    {
+     "cls": "hb hp",
+     "id": "bhp",
+     "r": [
+      460,
+      609,
+      360,
+      12
+     ],
+     "fill": [
+      460,
+      609,
+      170,
+      12
+     ],
+     "span": [
+      460,
+      609,
+      360,
+      12
+     ],
+     "fillBg": "rgb(138, 42, 42)",
+     "shadow": "none"
+    },
+    {
+     "cls": "hb mp hf hot",
+     "id": "bmp",
+     "r": [
+      460,
+      624,
+      360,
+      13
+     ],
+     "fill": [
+      460,
+      624,
+      360,
+      13
+     ],
+     "span": [
+      460,
+      624,
+      360,
+      13
+     ],
+     "fillBg": "rgba(0, 0, 0, 0)",
+     "shadow": "rgba(255, 138, 76, 0.7) 0px 0px 8px 0px"
+    }
+   ],
+   "camp": {
+    "device": [
+     640,
+     341,
+     46,
+     22
+    ],
+    "portal": null,
+    "props": [
+     "device",
+     "asc",
+     "stash",
+     "forge",
+     "prac",
+     "box"
+    ]
+   },
+   "panels": {
+    "tip": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    },
+    "asc": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    },
+    "tree": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    },
+    "btn-disabled": {
+     "ok": 1,
+     "btns": [
+      827,
+      91,
+      446,
+      48
+     ],
+     "badge": 0
+    },
+    "nav": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    }
+   }
+  },
+  "390x844": {
+   "crowd": {
+    "bars": [
+     {
+      "cls": "hb hp",
+      "id": "bhp",
+      "r": [
+       12,
+       624,
+       360,
+       12
+      ],
+      "fill": [
+       12,
+       624,
+       170,
+       12
+      ],
+      "span": [
+       12,
+       624,
+       360,
+       12
+      ]
+     },
+     {
+      "cls": "hb mp",
+      "id": "bmp",
+      "r": [
+       12,
+       639,
+       360,
+       13
+      ],
+      "fill": [
+       12,
+       639,
+       360,
+       13
+      ],
+      "span": [
+       12,
+       639,
+       360,
+       13
+      ]
+     }
+    ],
+    "tele": [
+     [
+      244,
+      342,
+      57
+     ]
+    ],
+    "dots": [
+     {
+      "col": "rgba(8, 6, 5, 0.78)",
+      "a": 1,
+      "w": 88,
+      "at": [
+       334,
+       32
+      ]
+     },
+     {
+      "col": "#ff6b3d",
+      "a": 1,
+      "w": 5,
+      "at": [
+       352,
+       17
+      ]
+     },
+     {
+      "col": "#8ab4ff",
+      "a": 1,
+      "w": 2,
+      "at": [
+       352,
+       27
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       350,
+       33
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       345,
+       36
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       339,
+       38
+      ]
+     },
+     {
+      "col": "#8ab4ff",
+      "a": 1,
+      "w": 2,
+      "at": [
+       332,
+       36
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       327,
+       33
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       326,
+       27
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       327,
+       22
+      ]
+     },
+     {
+      "col": "#8ab4ff",
+      "a": 1,
+      "w": 2,
+      "at": [
+       332,
+       18
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       339,
+       17
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       345,
+       18
+      ]
+     },
+     {
+      "col": "#c95050",
+      "a": 1,
+      "w": 2,
+      "at": [
+       350,
+       22
+      ]
+     },
+     {
+      "col": "#9df29d",
+      "a": 1,
+      "w": 4,
+      "at": [
+       339,
+       27
+      ]
+     }
+    ],
+    "pal": {
+     "hp": "#8a2a2a",
+     "mp": "#2b4a8a",
+     "act": "#8f3a2b",
+     "txStrong": "#f1ebdc",
+     "badV6": "#c95050",
+     "panel": "#26201b",
+     "panelInset": "#1f1915",
+     "hurtVignette": "200,20,20",
+     "ringEdge": "#000000"
+    }
+   },
+   "hot": [
+    {
+     "cls": "hb hp",
+     "id": "bhp",
+     "r": [
+      12,
+      624,
+      360,
+      12
+     ],
+     "fill": [
+      12,
+      624,
+      171,
+      12
+     ],
+     "span": [
+      12,
+      624,
+      360,
+      12
+     ],
+     "fillBg": "rgb(138, 42, 42)",
+     "shadow": "none"
+    },
+    {
+     "cls": "hb mp hf hot",
+     "id": "bmp",
+     "r": [
+      12,
+      639,
+      360,
+      13
+     ],
+     "fill": [
+      12,
+      639,
+      360,
+      13
+     ],
+     "span": [
+      12,
+      639,
+      360,
+      13
+     ],
+     "fillBg": "rgba(0, 0, 0, 0)",
+     "shadow": "rgba(255, 138, 76, 0.7) 0px 0px 8px 0px"
+    }
+   ],
+   "camp": {
+    "device": [
+     195,
+     383,
+     28,
+     13
+    ],
+    "portal": null,
+    "props": [
+     "device",
+     "asc",
+     "stash",
+     "forge",
+     "prac",
+     "box"
+    ]
+   },
+   "panels": {
+    "tip": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    },
+    "asc": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    },
+    "tree": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    },
+    "btn-disabled": {
+     "ok": 1,
+     "btns": [
+      10,
+      34,
+      370,
+      48
+     ],
+     "badge": 0
+    },
+    "nav": {
+     "ok": 1,
+     "btns": null,
+     "badge": 0
+    }
+   },
+   "errs": []
+  }
+ },
+ "pal": {
+  "keys": [
+   [
+    "asc",
+    "#ff9f43"
+   ],
+   [
+    "ascHiV2",
+    "#ffb3a0"
+   ],
+   [
+    "badHiV2",
+    "#ff6b3d"
+   ],
+   [
+    "badHiV3",
+    "#ff6b5b"
+   ],
+   [
+    "badV1",
+    "#e5484d"
+   ],
+   [
+    "badV5",
+    "#ff3b3b"
+   ],
+   [
+    "badV6",
+    "#c95050"
+   ],
+   [
+    "borderCapV1",
+    "#e8e2d6"
+   ],
+   [
+    "borderHi",
+    "#a08f78"
+   ],
+   [
+    "borderHiV2",
+    "#b08a5a"
+   ],
+   [
+    "borderMidV3",
+    "#5a4d43"
+   ],
+   [
+    "borderV2",
+    "#4a3d33"
+   ],
+   [
+    "catFracV4",
+    "#fff3d6"
+   ],
+   [
+    "catMemV2",
+    "#8fe0ff"
+   ],
+   [
+    "dmgCrit",
+    "#ffd166"
+   ],
+   [
+    "dmgCritV1",
+    "#ffc21a"
+   ],
+   [
+    "dmgCritV2",
+    "#ffcf6b"
+   ],
+   [
+    "dmgGain",
+    "#ffd166"
+   ],
+   [
+    "dmgGainV1",
+    "#8fe0ff"
+   ],
+   [
+    "dmgGainV2",
+    "#b8f0c8"
+   ],
+   [
+    "dmgGainV3",
+    "#d6b8ff"
+   ],
+   [
+    "dmgHit",
+    "#fff3e0"
+   ],
+   [
+    "dmgHitV1",
+    "#b4b9c2"
+   ],
+   [
+    "dmgHitV2",
+    "#e4e7ec"
+   ],
+   [
+    "dmgHurt",
+    "#ff5a5a"
+   ],
+   [
+    "dmgHurtV1",
+    "#ff6b6b"
+   ],
+   [
+    "dmgHurtV2",
+    "#ff5a5f"
+   ],
+   [
+    "dmgMinor",
+    "#9aa3ad"
+   ],
+   [
+    "dmgMinorV2",
+    "#cfd8e3"
+   ],
+   [
+    "dmgMinorV3",
+    "#c9a3a3"
+   ],
+   [
+    "dmgMinorV4",
+    "#a7acb6"
+   ],
+   [
+    "dmgMinorV5",
+    "#979ba5"
+   ],
+   [
+    "dmgMinorV6",
+    "#aeb3bc"
+   ],
+   [
+    "dmgMinorV7",
+    "#aaaaaa"
+   ],
+   [
+    "dmgMinorV8",
+    "#9aa0a8"
+   ],
+   [
+    "dmgMinorV9",
+    "#aab4c4"
+   ],
+   [
+    "dodgeVignetteV1",
+    "#6cb8ff"
+   ],
+   [
+    "dodgeVignetteV2",
+    "#6fb7ff"
+   ],
+   [
+    "elChaos",
+    "#c38bff"
+   ],
+   [
+    "elChaosV1",
+    "#b28dff"
+   ],
+   [
+    "elCold",
+    "#8fd6ff"
+   ],
+   [
+    "elColdV3",
+    "#6fd3ff"
+   ],
+   [
+    "elColdV4",
+    "#5ad1ff"
+   ],
+   [
+    "elFire",
+    "#ff8a4c"
+   ],
+   [
+    "elFireV1",
+    "#ff8a5b"
+   ],
+   [
+    "elLight",
+    "#ffe066"
+   ],
+   [
+    "elLightV1",
+    "#ffe08a"
+   ],
+   [
+    "elLightV2",
+    "#ffe14d"
+   ],
+   [
+    "elPhys",
+    "#fff3e0"
+   ],
+   [
+    "focus",
+    "#fbf9f5"
+   ],
+   [
+    "fxCombat1",
+    "#8a6cff"
+   ],
+   [
+    "fxGame1",
+    "#7dff9a"
+   ],
+   [
+    "fxMech1",
+    "#7a3fa0"
+   ],
+   [
+    "fxMech2",
+    "#5fae7a"
+   ],
+   [
+    "fxMech3",
+    "#ff5a8a"
+   ],
+   [
+    "fxRender3",
+    "#ffc4d6"
+   ],
+   [
+    "fxWorld1",
+    "#e08ad0"
+   ],
+   [
+    "fxWorld2",
+    "#8fb3a0"
+   ],
+   [
+    "glint",
+    "#ffffff"
+   ],
+   [
+    "glintV3",
+    "#e6f7ff"
+   ],
+   [
+    "glintV4",
+    "#eef6ff"
+   ],
+   [
+    "glintV5",
+    "#f4f5f7"
+   ],
+   [
+    "good",
+    "#7fc95a"
+   ],
+   [
+    "goodV1",
+    "#7be08a"
+   ],
+   [
+    "goodV2",
+    "#9df29d"
+   ],
+   [
+    "goodV3",
+    "#7bd36b"
+   ],
+   [
+    "goodV4",
+    "#8fd16b"
+   ],
+   [
+    "goodV5",
+    "#a8c24a"
+   ],
+   [
+    "goodV6",
+    "#6ee06e"
+   ],
+   [
+    "hlV1",
+    "#d6f3ff"
+   ],
+   [
+    "hlV2",
+    "#cfd8e3"
+   ],
+   [
+    "hlV3",
+    "#c3c7d0"
+   ],
+   [
+    "hlV4",
+    "#cfe9ff"
+   ],
+   [
+    "hlV5",
+    "#cfe8ff"
+   ],
+   [
+    "hlV6",
+    "#e8f4ff"
+   ],
+   [
+    "hlV7",
+    "#b8c4d4"
+   ],
+   [
+    "hlV8",
+    "#c9d3e0"
+   ],
+   [
+    "hpV3",
+    "#7a1c1c"
+   ],
+   [
+    "hurtVignetteV1",
+    "#c0392b"
+   ],
+   [
+    "panelRaised2V2",
+    "#3a2f28"
+   ],
+   [
+    "plateWorld",
+    "rgba(11, 8, 6, 0.8)"
+   ],
+   [
+    "progHi",
+    "#e1a54c"
+   ],
+   [
+    "progHiV1",
+    "#c9a46b"
+   ],
+   [
+    "progHiV2",
+    "#e3a14a"
+   ],
+   [
+    "progHiV3",
+    "#ffb04a"
+   ],
+   [
+    "progLo",
+    "#7a4a14"
+   ],
+   [
+    "progLoV1",
+    "#6b4a2b"
+   ],
+   [
+    "rarChaseBgV3",
+    "#3a1a14"
+   ],
+   [
+    "rarChaseHiV1",
+    "#ffb36b"
+   ],
+   [
+    "rarChaseHiV2",
+    "#ffc9a0"
+   ],
+   [
+    "rarChaseV2",
+    "#ff8a2a"
+   ],
+   [
+    "rarMagicV2",
+    "#8ab4ff"
+   ],
+   [
+    "rarNormalV1",
+    "#d9c7a3"
+   ],
+   [
+    "rarNormalV2",
+    "#c9b8a8"
+   ],
+   [
+    "rarRareBgV3",
+    "#8a6a2a"
+   ],
+   [
+    "rarRareV1",
+    "#ffd166"
+   ],
+   [
+    "rarUniqueV2",
+    "#7fd1c7"
+   ],
+   [
+    "ready",
+    "#e6c36a"
+   ],
+   [
+    "rgb.badHiV1",
+    "255,107,61"
+   ],
+   [
+    "rgb.badHiV2",
+    "255,100,60"
+   ],
+   [
+    "rgb.badV1",
+    "229,72,77"
+   ],
+   [
+    "rgb.catFracV1",
+    "255,244,214"
+   ],
+   [
+    "rgb.catFracV2",
+    "255,240,210"
+   ],
+   [
+    "rgb.catMemV1",
+    "143,224,255"
+   ],
+   [
+    "rgb.dmgHurtV1",
+    "255,120,110"
+   ],
+   [
+    "rgb.dodgeVignette",
+    "80,180,255"
+   ],
+   [
+    "rgb.dodgeVignetteV1",
+    "120,190,255"
+   ],
+   [
+    "rgb.elChaos",
+    "178,141,255"
+   ],
+   [
+    "rgb.elChaosV2",
+    "195,139,255"
+   ],
+   [
+    "rgb.elCold",
+    "143,214,255"
+   ],
+   [
+    "rgb.elColdV3",
+    "122,208,255"
+   ],
+   [
+    "rgb.elColdV4",
+    "170,210,255"
+   ],
+   [
+    "rgb.elColdV5",
+    "200,230,255"
+   ],
+   [
+    "rgb.elFire",
+    "255,138,76"
+   ],
+   [
+    "rgb.elFireV2",
+    "255,120,50"
+   ],
+   [
+    "rgb.fxRender1",
+    "70,130,255"
+   ],
+   [
+    "rgb.fxRender2",
+    "150,80,220"
+   ],
+   [
+    "rgb.glint",
+    "255,255,255"
+   ],
+   [
+    "rgb.goodV1",
+    "157,242,157"
+   ],
+   [
+    "rgb.hurtVignette",
+    "200,20,20"
+   ],
+   [
+    "rgb.onActV2",
+    "255,236,214"
+   ],
+   [
+    "rgb.panelV2",
+    "38,40,45"
+   ],
+   [
+    "rgb.rarChase",
+    "12,246,238"
+   ],
+   [
+    "rgb.rarMagic",
+    "138,180,255"
+   ],
+   [
+    "rgb.rarMagicBgV1",
+    "18,24,51"
+   ],
+   [
+    "rgb.rarMagicV2",
+    "90,160,255"
+   ],
+   [
+    "rgb.rarRare",
+    "255,209,102"
+   ],
+   [
+    "rgb.rarRareBgV1",
+    "42,33,13"
+   ],
+   [
+    "rgb.sceneDetail10",
+    "255,140,60"
+   ],
+   [
+    "rgb.sceneDetail11",
+    "200,230,255"
+   ],
+   [
+    "rgb.sceneDetail12",
+    "235,245,255"
+   ],
+   [
+    "rgb.sceneDetail13",
+    "120,200,90"
+   ],
+   [
+    "rgb.sceneDetail14",
+    "220,214,190"
+   ],
+   [
+    "rgb.sceneDetail15",
+    "60,90,50"
+   ],
+   [
+    "rgb.sceneDetail16",
+    "214,170,70"
+   ],
+   [
+    "rgb.sceneDetail17",
+    "230,200,90"
+   ],
+   [
+    "rgb.sceneDetail18",
+    "170,30,20"
+   ],
+   [
+    "rgb.sceneDetail2",
+    "255,220,170"
+   ],
+   [
+    "rgb.sceneDetail22",
+    "220,245,255"
+   ],
+   [
+    "rgb.sceneDetail23",
+    "190,230,255"
+   ],
+   [
+    "rgb.sceneDetail24",
+    "255,120,40"
+   ],
+   [
+    "rgb.sceneDetail25",
+    "80,130,70"
+   ],
+   [
+    "rgb.sceneDetail27",
+    "214,52,34"
+   ],
+   [
+    "rgb.sceneDetail28",
+    "255,200,110"
+   ],
+   [
+    "rgb.sceneDetail29",
+    "170,225,255"
+   ],
+   [
+    "rgb.sceneDetail30",
+    "150,250,150"
+   ],
+   [
+    "rgb.sceneDetail31",
+    "255,150,60"
+   ],
+   [
+    "rgb.sceneDetail33",
+    "255,255,230"
+   ],
+   [
+    "rgb.sceneDetail34",
+    "255,220,120"
+   ],
+   [
+    "rgb.sceneDetail35",
+    "170,255,120"
+   ],
+   [
+    "rgb.sceneDetail36",
+    "255,110,30"
+   ],
+   [
+    "rgb.sceneDetail37",
+    "70,160,60"
+   ],
+   [
+    "rgb.sceneDetail38",
+    "90,20,10"
+   ],
+   [
+    "rgb.sceneDetail39",
+    "20,50,25"
+   ],
+   [
+    "rgb.sceneDetail4",
+    "70,110,60"
+   ],
+   [
+    "rgb.sceneDetail42",
+    "255,240,180"
+   ],
+   [
+    "rgb.sceneDetail43",
+    "200,255,170"
+   ],
+   [
+    "rgb.sceneDetail44",
+    "150,210,245"
+   ],
+   [
+    "rgb.sceneDetail45",
+    "200,240,255"
+   ],
+   [
+    "rgb.sceneDetail46",
+    "180,225,250"
+   ],
+   [
+    "rgb.sceneDetail48",
+    "255,110,40"
+   ],
+   [
+    "rgb.sceneDetail5",
+    "150,220,140"
+   ],
+   [
+    "rgb.sceneDetail50",
+    "255,140,50"
+   ],
+   [
+    "rgb.sceneDetail56",
+    "255,190,100"
+   ],
+   [
+    "rgb.sceneDetail61",
+    "255,160,80"
+   ],
+   [
+    "rgb.sceneDetail62",
+    "200,200,210"
+   ],
+   [
+    "rgb.sceneDetail8",
+    "220,240,255"
+   ],
+   [
+    "rgb.sceneDetail9",
+    "230,245,255"
+   ],
+   [
+    "rgb.sceneVoidV1",
+    "21,17,13"
+   ],
+   [
+    "rgb.sceneVoidV2",
+    "8,6,5"
+   ],
+   [
+    "rgb.scrim",
+    "0,0,0"
+   ],
+   [
+    "rgb.scrimV6",
+    "8,9,11"
+   ],
+   [
+    "rgb.txEmptyV1",
+    "120,105,92"
+   ],
+   [
+    "rgb.txOffV1",
+    "170,160,130"
+   ],
+   [
+    "rgb.x",
+    null
+   ],
+   [
+    "scene",
+    "[obj]"
+   ],
+   [
+    "scene.hide.dark",
+    "5,3,3"
+   ],
+   [
+    "scene.hide.glow",
+    "255,150,70"
+   ],
+   [
+    "scene.ice.dark",
+    "3,7,14"
+   ],
+   [
+    "scene.ice.edge",
+    "#16263a"
+   ],
+   [
+    "scene.ice.glow",
+    "143,214,255"
+   ],
+   [
+    "scene.ice.ground",
+    "#1f3044"
+   ],
+   [
+    "scene.ice.light",
+    "#a8d8f0"
+   ],
+   [
+    "scene.ice.mid",
+    "#35607e"
+   ],
+   [
+    "scene.lava.dark",
+    "12,4,2"
+   ],
+   [
+    "scene.lava.edge",
+    "#0c0807"
+   ],
+   [
+    "scene.lava.glow",
+    "255,138,60"
+   ],
+   [
+    "scene.lava.ground",
+    "#1b1311"
+   ],
+   [
+    "scene.lava.light",
+    "#5c3a28"
+   ],
+   [
+    "scene.lava.mid",
+    "#2a1d18"
+   ],
+   [
+    "scene.temple.dark",
+    "7,4,3"
+   ],
+   [
+    "scene.temple.edge",
+    "#2a150e"
+   ],
+   [
+    "scene.temple.glow",
+    "255,179,90"
+   ],
+   [
+    "scene.temple.ground",
+    "#1c181e"
+   ],
+   [
+    "scene.temple.light",
+    "#a63c2b"
+   ],
+   [
+    "scene.temple.mid",
+    "#6a241b"
+   ],
+   [
+    "scene.tomb.dark",
+    "3,9,5"
+   ],
+   [
+    "scene.tomb.edge",
+    "#0b100c"
+   ],
+   [
+    "scene.tomb.glow",
+    "140,240,140"
+   ],
+   [
+    "scene.tomb.ground",
+    "#18201a"
+   ],
+   [
+    "scene.tomb.light",
+    "#4c6250"
+   ],
+   [
+    "scene.tomb.mid",
+    "#28362b"
+   ],
+   [
+    "sceneDetail1",
+    "#140d09"
+   ],
+   [
+    "sceneDetail19",
+    "#050404"
+   ],
+   [
+    "sceneDetail20",
+    "#c9a227"
+   ],
+   [
+    "sceneDetail21",
+    "#3a2418"
+   ],
+   [
+    "sceneDetail26",
+    "#2a150e"
+   ],
+   [
+    "sceneDetail3",
+    "#080b09"
+   ],
+   [
+    "sceneDetail32",
+    "#151010"
+   ],
+   [
+    "sceneDetail40",
+    "#140807"
+   ],
+   [
+    "sceneDetail41",
+    "#0a140b"
+   ],
+   [
+    "sceneDetail47",
+    "#1e1513"
+   ],
+   [
+    "sceneDetail49",
+    "#231a17"
+   ],
+   [
+    "sceneDetail51",
+    "#2f3a32"
+   ],
+   [
+    "sceneDetail52",
+    "#4a3020"
+   ],
+   [
+    "sceneDetail53",
+    "#34302a"
+   ],
+   [
+    "sceneDetail54",
+    "#4a4540"
+   ],
+   [
+    "sceneDetail55",
+    "#5a554f"
+   ],
+   [
+    "sceneDetail57",
+    "#3b3e45"
+   ],
+   [
+    "sceneDetail58",
+    "#7c8290"
+   ],
+   [
+    "sceneDetail59",
+    "#3a2d18"
+   ],
+   [
+    "sceneDetail6",
+    "#0b1118"
+   ],
+   [
+    "sceneDetail60",
+    "#8a2a1a"
+   ],
+   [
+    "sceneDetail7",
+    "#060303"
+   ],
+   [
+    "sceneVoid",
+    "#0b0806"
+   ],
+   [
+    "sceneVoidV14",
+    "#070606"
+   ],
+   [
+    "sceneVoidV6",
+    "#0c0d0f"
+   ],
+   [
+    "scrimV1",
+    "#000000"
+   ],
+   [
+    "txLock",
+    "#8a7a62"
+   ],
+   [
+    "txLockV3",
+    "#8a7a6a"
+   ],
+   [
+    "txOffV1",
+    "#c9a27a"
+   ],
+   [
+    "txOffV2",
+    "#a7a294"
+   ],
+   [
+    "txScene",
+    "#d9cdb4"
+   ],
+   [
+    "warmGlintV1",
+    "#ffd08a"
+   ],
+   [
+    "warmGlintV2",
+    "#fff3b0"
+   ]
+  ],
+  "root": {
+   "--tscale": "1",
+   "--f14": "calc(14px * 1)",
+   "--f16": "calc(16px * 1)",
+   "--f20": "calc(20px * 1)",
+   "--f22": "calc(22px * 1)",
+   "--scene-void": "#0b0806",
+   "--scene-void-v1": "#15110f",
+   "--scene-void-v2": "#0d0a08",
+   "--scene-void-v3": "#080505",
+   "--scene-void-v4": "#0a0806",
+   "--scene-void-v5": "#0e0b08",
+   "--scene-void-v6": "#0c0d0f",
+   "--scene-void-v7": "#090b13",
+   "--scene-void-v8": "#10131b",
+   "--scene-void-v9": "#0c0e14",
+   "--scene-void-v10": "#05060a",
+   "--scene-void-v11": "#120c0a",
+   "--scene-void-v12": "#14171c",
+   "--scene-void-v13": "#120c08",
+   "--scene-void-v14": "#070606",
+   "--scene-void-rgb-v1": "21, 17, 13",
+   "--scene-void-rgb-v2": "8, 6, 5",
+   "--panel-inset": "#1f1915",
+   "--panel-inset-v1": "#1c1714",
+   "--panel-inset-v2": "#1a140f",
+   "--panel-inset-v3": "#1a1210",
+   "--panel": "#26201b",
+   "--panel-v1": "#261d13",
+   "--panel-v2": "#23272f",
+   "--panel-raised": "#332a23",
+   "--panel-raised-2": "#3a3027",
+   "--panel-raised-2-v1": "#3f342b",
+   "--panel-raised-2-v2": "#3a2f28",
+   "--plate-world": "rgba(11, 8, 6, 0.8)",
+   "--sheet-bg": "rgba(31, 25, 21, 0.92)",
+   "--panel-rgb": "31, 25, 21",
+   "--panel-rgb-v1": "34, 36, 41",
+   "--panel-rgb-v2": "38, 40, 45",
+   "--chase-bnr": "#1c130d",
+   "--scrim-rgb": "0, 0, 0",
+   "--scrim-rgb-v1": "12, 10, 9",
+   "--scrim-rgb-v2": "14, 11, 10",
+   "--scrim-rgb-v3": "7, 6, 6",
+   "--scrim-rgb-v4": "20, 17, 15",
+   "--scrim-rgb-v5": "23, 24, 28",
+   "--scrim-rgb-v6": "8, 9, 11",
+   "--scrim-rgb-v7": "23, 24, 27",
+   "--scrim-rgb-v8": "13, 14, 17",
+   "--scrim-rgb-v9": "9, 11, 19",
+   "--scrim-rgb-v10": "17, 17, 17",
+   "--scrim-rgb-v11": "15, 12, 10",
+   "--scrim-v1": "#000000",
+   "--hl-rgb": "214, 218, 226",
+   "--hl-rgb-v1": "205, 210, 220",
+   "--hl-rgb-v2": "220, 240, 255",
+   "--hl-rgb-v3": "220, 232, 255",
+   "--hl-rgb-v4": "190, 210, 235",
+   "--hl-rgb-v5": "214, 221, 232",
+   "--hl-rgb-v6": "200, 205, 215",
+   "--hl-v1": "#d6f3ff",
+   "--hl-v2": "#cfd8e3",
+   "--hl-v3": "#c3c7d0",
+   "--hl-v4": "#cfe9ff",
+   "--hl-v5": "#cfe8ff",
+   "--hl-v6": "#e8f4ff",
+   "--hl-v7": "#b8c4d4",
+   "--hl-v8": "#c9d3e0",
+   "--glint": "#ffffff",
+   "--glint-v1": "#d6dde8",
+   "--glint-v2": "#d3dae3",
+   "--glint-v3": "#e6f7ff",
+   "--glint-v4": "#eef6ff",
+   "--glint-v5": "#f4f5f7",
+   "--glint-v6": "#eceef2",
+   "--glint-rgb": "255, 255, 255",
+   "--warm-glint-rgb": "255, 225, 170",
+   "--warm-glint-rgb-v1": "255, 233, 160",
+   "--warm-glint-rgb-v2": "255, 235, 200",
+   "--warm-glint-v1": "#ffd08a",
+   "--warm-glint-v2": "#fff3b0",
+   "--hurt-vignette-rgb": "200, 20, 20",
+   "--hurt-vignette-v1": "#c0392b",
+   "--dodge-vignette-rgb": "80, 180, 255",
+   "--dodge-vignette-rgb-v1": "120, 190, 255",
+   "--dodge-vignette-v1": "#6cb8ff",
+   "--dodge-vignette-v2": "#6fb7ff",
+   "--border": "#4a3e2c",
+   "--border-v1": "#4a3a28",
+   "--border-v2": "#4a3d33",
+   "--border-mid": "#5e4e3a",
+   "--border-mid-v1": "#5a4a3a",
+   "--border-mid-v2": "#5a4a38",
+   "--border-mid-v3": "#5a4d43",
+   "--border-ctl": "#907956",
+   "--border-ctl-v1": "#8a6a24",
+   "--border-hi": "#a08f78",
+   "--border-hi-v1": "#9a9086",
+   "--border-hi-v2": "#b08a5a",
+   "--border-hi-rgb": "160, 143, 120",
+   "--border-cap": "#f1ebdc",
+   "--border-cap-v1": "#e8e2d6",
+   "--focus": "#fbf9f5",
+   "--tx": "#d9cdb4",
+   "--tx-v1": "#cbb89a",
+   "--tx-title": "#d9cdb4",
+   "--tx-strong": "#f1ebdc",
+   "--tx-dim": "#a6957e",
+   "--tx-dim-v1": "#a2946e",
+   "--tx-off": "#aa9a84",
+   "--tx-off-v1": "#c9a27a",
+   "--tx-off-v2": "#a7a294",
+   "--tx-off-rgb-v1": "170, 160, 130",
+   "--tx-lock": "#8a7a62",
+   "--tx-lock-v1": "#8a7d66",
+   "--tx-lock-v2": "#8a7a5e",
+   "--tx-lock-v3": "#8a7a6a",
+   "--tx-empty": "#6a5a48",
+   "--tx-empty-rgb-v1": "120, 105, 92",
+   "--tx-scene": "#d9cdb4",
+   "--tx-scene-dim": "#a6957e",
+   "--act": "#8f3a2b",
+   "--act-v1": "#8a3b1c",
+   "--act-v2": "#9b2a0e",
+   "--act-v3": "#7a3a1c",
+   "--act-hi": "#a5452f",
+   "--act-hi-v1": "#b3261e",
+   "--on-act": "#f3e4d2",
+   "--on-act-v1": "#ffffff",
+   "--on-act-v2": "#ffd9b8",
+   "--on-act-rgb": "243, 228, 210",
+   "--on-act-rgb-v1": "241, 235, 220",
+   "--on-act-rgb-v2": "255, 236, 214",
+   "--sel-bg": "#463a2d",
+   "--sel-bd": "#a8927f",
+   "--sel-tx": "#fbf9f6",
+   "--sel-ink": "#2a1a12",
+   "--btn2": "#332a23",
+   "--sel-ink-v1": "#2a1a13",
+   "--good": "#7fc95a",
+   "--good-v1": "#7be08a",
+   "--good-v2": "#9df29d",
+   "--good-v3": "#7bd36b",
+   "--good-v4": "#8fd16b",
+   "--good-v5": "#a8c24a",
+   "--good-v6": "#6ee06e",
+   "--good-rgb": "123, 211, 107",
+   "--good-rgb-v1": "157, 242, 157",
+   "--bad": "#ff9bba",
+   "--bad-v1": "#e5484d",
+   "--bad-v2": "#d9443a",
+   "--bad-v3": "#e8574f",
+   "--bad-v4": "#e0504a",
+   "--bad-v5": "#ff3b3b",
+   "--bad-v6": "#c95050",
+   "--bad-hi": "#f06a50",
+   "--bad-hi-v1": "#ff7a50",
+   "--bad-hi-v2": "#ff6b3d",
+   "--bad-hi-v3": "#ff6b5b",
+   "--bad-hi-rgb-v1": "255, 107, 61",
+   "--bad-hi-rgb-v2": "255, 100, 60",
+   "--bad-rgb": "255, 155, 186",
+   "--bad-rgb-v1": "229, 72, 77",
+   "--warn": "#e0614a",
+   "--warn-v1": "#c46a3a",
+   "--ready": "#e6c36a",
+   "--ready-v1": "#e1bd62",
+   "--ready-v2": "#d7b77c",
+   "--hp": "#8a2a2a",
+   "--hp-v1": "#8e1414",
+   "--hp-v2": "#7e1610",
+   "--hp-v3": "#7a1c1c",
+   "--mp": "#2b4a8a",
+   "--hp-hi": "#af6c64",
+   "--mp-hi": "#6b7dad",
+   "--ring-edge": "#000000",
+   "--mp-v1": "#1a2f8e",
+   "--prog-lo": "#7a4a14",
+   "--prog-lo-v1": "#6b4a2b",
+   "--prog-hi": "#e1a54c",
+   "--prog-hi-v1": "#c9a46b",
+   "--prog-hi-v2": "#e3a14a",
+   "--prog-hi-v3": "#ffb04a",
+   "--rar-normal": "#d9cdb4",
+   "--rar-normal-v1": "#d9c7a3",
+   "--rar-normal-v2": "#c9b8a8",
+   "--rar-magic": "#7ea7ff",
+   "--rar-magic-v1": "#7aa8ff",
+   "--rar-magic-v2": "#8ab4ff",
+   "--rar-magic-v3": "#6f9cff",
+   "--rar-magic-rgb": "138, 180, 255",
+   "--rar-magic-rgb-v1": "154, 166, 255",
+   "--rar-magic-rgb-v2": "90, 160, 255",
+   "--rar-magic-bg": "#121833",
+   "--rar-magic-bg-v1": "#1f2740",
+   "--rar-magic-bg-rgb": "40, 60, 110",
+   "--rar-magic-bg-rgb-v1": "18, 24, 51",
+   "--rar-rare": "#ffcf5c",
+   "--rar-rare-v1": "#ffd166",
+   "--rar-rare-rgb": "255, 209, 102",
+   "--rar-rare-bg": "#2a210d",
+   "--rar-rare-bg-v1": "#3a2b12",
+   "--rar-rare-bg-v2": "#3a2e12",
+   "--rar-rare-bg-v3": "#8a6a2a",
+   "--rar-rare-bg-rgb": "110, 85, 30",
+   "--rar-rare-bg-rgb-v1": "42, 33, 13",
+   "--rar-unique": "#fa8915",
+   "--rar-unique-v2": "#7fd1c7",
+   "--rar-unique-rgb": "250, 137, 21",
+   "--rar-unique-bg": "#3a2214",
+   "--rar-unique-bg-rgb": "58, 34, 20",
+   "--rar-chase": "#0cf6ee",
+   "--rar-chase-v2": "#ff8a2a",
+   "--rar-chase-hi-v1": "#ffb36b",
+   "--rar-chase-hi-v2": "#ffc9a0",
+   "--rar-chase-bg": "#0e2826",
+   "--rar-chase-bg-v1": "#3a110a",
+   "--rar-chase-bg-v2": "#4a2a16",
+   "--rar-chase-bg-v3": "#3a1a14",
+   "--rar-chase-rgb": "12, 246, 238",
+   "--asc": "#ff9f43",
+   "--asc-v1": "#ffb15a",
+   "--asc-hi": "#ffb38a",
+   "--asc-hi-v1": "#ffcfa6",
+   "--asc-hi-v2": "#ffb3a0",
+   "--asc-bg": "#241510",
+   "--asc-on": "#5a2a12",
+   "--asc-on-v1": "#4a1f0e",
+   "--asc-on-v2": "#6b2414",
+   "--asc-on-v3": "#5a0e0a",
+   "--asc-rgb": "255, 159, 67",
+   "--cat-frac": "#fff7d6",
+   "--cat-frac-v1": "#ffe7a8",
+   "--cat-frac-v2": "#fff3c4",
+   "--cat-frac-v3": "#ffe9a0",
+   "--cat-frac-v4": "#fff3d6",
+   "--cat-frac-rgb-v1": "255, 244, 214",
+   "--cat-frac-rgb-v2": "255, 240, 210",
+   "--cat-mem": "#6fe3ff",
+   "--cat-mem-v1": "#7be6ff",
+   "--cat-mem-v2": "#8fe0ff",
+   "--cat-mem-rgb-v1": "143, 224, 255",
+   "--cat-corr": "#ff6066",
+   "--cat-cal": "#bd7aff",
+   "--cat-cal-hi": "#f1e4ff",
+   "--mod-mm": "#c79bff",
+   "--mod-co": "#e0614a",
+   "--affix": "#9aa6ff",
+   "--affix-v1": "#b9c4ff",
+   "--awk": "#b592ff",
+   "--awk-v1": "#b28dff",
+   "--awk-bg": "#1b1526",
+   "--el-phys": "#fff3e0",
+   "--el-fire": "#ff8a4c",
+   "--el-fire-v1": "#ff8a5b",
+   "--el-fire-rgb": "255, 138, 76",
+   "--el-fire-rgb-v1": "255, 140, 90",
+   "--el-fire-rgb-v2": "255, 120, 50",
+   "--el-cold": "#8fd6ff",
+   "--el-cold-v1": "#8fc4ff",
+   "--el-cold-v2": "#a9cfff",
+   "--el-cold-v3": "#6fd3ff",
+   "--el-cold-v4": "#5ad1ff",
+   "--el-cold-rgb": "143, 214, 255",
+   "--el-cold-rgb-v1": "190, 225, 255",
+   "--el-cold-rgb-v2": "123, 230, 255",
+   "--el-cold-rgb-v3": "122, 208, 255",
+   "--el-cold-rgb-v4": "170, 210, 255",
+   "--el-cold-rgb-v5": "200, 230, 255",
+   "--el-light": "#ffe066",
+   "--el-light-v1": "#ffe08a",
+   "--el-light-v2": "#ffe14d",
+   "--el-chaos": "#c38bff",
+   "--el-chaos-v1": "#b28dff",
+   "--el-chaos-rgb": "178, 141, 255",
+   "--el-chaos-rgb-v1": "200, 170, 255",
+   "--el-chaos-rgb-v2": "195, 139, 255",
+   "--dmg-hit": "#fff3e0",
+   "--dmg-hit-v1": "#b4b9c2",
+   "--dmg-hit-v2": "#e4e7ec",
+   "--dmg-crit": "#ffd166",
+   "--dmg-crit-v1": "#ffc21a",
+   "--dmg-crit-v2": "#ffcf6b",
+   "--dmg-hurt": "#ff5a5a",
+   "--dmg-hurt-v1": "#ff6b6b",
+   "--dmg-hurt-v2": "#ff5a5f",
+   "--dmg-hurt-rgb-v1": "255, 120, 110",
+   "--dmg-gain": "#ffd166",
+   "--dmg-gain-v1": "#8fe0ff",
+   "--dmg-gain-v2": "#b8f0c8",
+   "--dmg-gain-v3": "#d6b8ff",
+   "--dmg-minor": "#9aa3ad",
+   "--dmg-minor-v1": "#8a8d96",
+   "--dmg-minor-v2": "#cfd8e3",
+   "--dmg-minor-v3": "#c9a3a3",
+   "--dmg-minor-v4": "#a7acb6",
+   "--dmg-minor-v5": "#979ba5",
+   "--dmg-minor-v6": "#aeb3bc",
+   "--dmg-minor-v7": "#aaaaaa",
+   "--dmg-minor-v8": "#9aa0a8",
+   "--dmg-minor-v9": "#aab4c4",
+   "--dmg-outline": "rgba(0, 0, 0, 0.8)",
+   "--legacy-1": "255, 90, 40",
+   "--legacy-2": "#3a3d44",
+   "--legacy-3": "#e6d6ff",
+   "--legacy-4": "#d6e4ff",
+   "--legacy-5": "#5a72b8",
+   "--legacy-6": "#b8862a",
+   "--legacy-7": "#d6f0ff",
+   "--legacy-8": "#4a7fc4",
+   "--legacy-9": "70, 95, 170",
+   "--legacy-10": "20, 28, 60",
+   "--legacy-11": "160, 125, 40",
+   "--legacy-12": "55, 42, 12",
+   "--legacy-13": "50, 150, 140",
+   "--legacy-14": "12, 48, 45",
+   "--legacy-15": "#8a86a0",
+   "--legacy-16": "86, 108, 128",
+   "--legacy-17": "#3d4a58",
+   "--legacy-18": "#2f3945",
+   "--legacy-19": "#d98bb0",
+   "--legacy-20": "#5a3a3a",
+   "--legacy-21": "#5a5d66",
+   "--legacy-22": "#2a2d36",
+   "--legacy-23": "#5b6270",
+   "--scene-ice-ground": "#1f3044",
+   "--scene-ice-mid": "#35607e",
+   "--scene-ice-light": "#a8d8f0",
+   "--scene-ice-edge": "#16263a",
+   "--scene-ice-dark-rgb": "3, 7, 14",
+   "--scene-ice-glow-rgb": "143, 214, 255",
+   "--scene-lava-ground": "#1b1311",
+   "--scene-lava-mid": "#2a1d18",
+   "--scene-lava-light": "#5c3a28",
+   "--scene-lava-edge": "#0c0807",
+   "--scene-lava-dark-rgb": "12, 4, 2",
+   "--scene-lava-glow-rgb": "255, 138, 60",
+   "--scene-tomb-ground": "#18201a",
+   "--scene-tomb-mid": "#28362b",
+   "--scene-tomb-light": "#4c6250",
+   "--scene-tomb-edge": "#0b100c",
+   "--scene-tomb-dark-rgb": "3, 9, 5",
+   "--scene-tomb-glow-rgb": "140, 240, 140",
+   "--scene-temple-ground": "#1c181e",
+   "--scene-temple-mid": "#6a241b",
+   "--scene-temple-light": "#a63c2b",
+   "--scene-temple-edge": "#2a150e",
+   "--scene-temple-dark-rgb": "7, 4, 3",
+   "--scene-temple-glow-rgb": "255, 179, 90",
+   "--scene-hide-dark-rgb": "5, 3, 3",
+   "--scene-hide-glow-rgb": "255, 150, 70",
+   "--scene-detail-1": "#140d09",
+   "--scene-detail-2-rgb": "255, 220, 170",
+   "--scene-detail-3": "#080b09",
+   "--scene-detail-4-rgb": "70, 110, 60",
+   "--scene-detail-5-rgb": "150, 220, 140",
+   "--scene-detail-6": "#0b1118",
+   "--scene-detail-7": "#060303",
+   "--scene-detail-8-rgb": "220, 240, 255",
+   "--scene-detail-9-rgb": "230, 245, 255",
+   "--scene-detail-10-rgb": "255, 140, 60",
+   "--scene-detail-11-rgb": "200, 230, 255",
+   "--scene-detail-12-rgb": "235, 245, 255",
+   "--scene-detail-13-rgb": "120, 200, 90",
+   "--scene-detail-14-rgb": "220, 214, 190",
+   "--scene-detail-15-rgb": "60, 90, 50",
+   "--scene-detail-16-rgb": "214, 170, 70",
+   "--scene-detail-17-rgb": "230, 200, 90",
+   "--scene-detail-18-rgb": "170, 30, 20",
+   "--scene-detail-19": "#050404",
+   "--scene-detail-20": "#c9a227",
+   "--scene-detail-21": "#3a2418",
+   "--scene-detail-22-rgb": "220, 245, 255",
+   "--scene-detail-23-rgb": "190, 230, 255",
+   "--scene-detail-24-rgb": "255, 120, 40",
+   "--scene-detail-25-rgb": "80, 130, 70",
+   "--scene-detail-26": "#2a150e",
+   "--scene-detail-27-rgb": "214, 52, 34",
+   "--scene-detail-28-rgb": "255, 200, 110",
+   "--scene-detail-29-rgb": "170, 225, 255",
+   "--scene-detail-30-rgb": "150, 250, 150",
+   "--scene-detail-31-rgb": "255, 150, 60",
+   "--scene-detail-32": "#151010",
+   "--scene-detail-33-rgb": "255, 255, 230",
+   "--scene-detail-34-rgb": "255, 220, 120",
+   "--scene-detail-35-rgb": "170, 255, 120",
+   "--scene-detail-36-rgb": "255, 110, 30",
+   "--scene-detail-37-rgb": "70, 160, 60",
+   "--scene-detail-38-rgb": "90, 20, 10",
+   "--scene-detail-39-rgb": "20, 50, 25",
+   "--scene-detail-40": "#140807",
+   "--scene-detail-41": "#0a140b",
+   "--scene-detail-42-rgb": "255, 240, 180",
+   "--scene-detail-43-rgb": "200, 255, 170",
+   "--scene-detail-44-rgb": "150, 210, 245",
+   "--scene-detail-45-rgb": "200, 240, 255",
+   "--scene-detail-46-rgb": "180, 225, 250",
+   "--scene-detail-47": "#1e1513",
+   "--scene-detail-48-rgb": "255, 110, 40",
+   "--scene-detail-49": "#231a17",
+   "--scene-detail-50-rgb": "255, 140, 50",
+   "--scene-detail-51": "#2f3a32",
+   "--scene-detail-52": "#4a3020",
+   "--scene-detail-53": "#34302a",
+   "--scene-detail-54": "#4a4540",
+   "--scene-detail-55": "#5a554f",
+   "--scene-detail-56-rgb": "255, 190, 100",
+   "--scene-detail-57": "#3b3e45",
+   "--scene-detail-58": "#7c8290",
+   "--scene-detail-59": "#3a2d18",
+   "--scene-detail-60": "#8a2a1a",
+   "--scene-detail-61-rgb": "255, 160, 80",
+   "--scene-detail-62-rgb": "200, 200, 210",
+   "--fx-render-1-rgb": "70, 130, 255",
+   "--fx-render-2-rgb": "150, 80, 220",
+   "--fx-render-3": "#ffc4d6",
+   "--fx-game-1": "#7dff9a",
+   "--fx-mech-1": "#7a3fa0",
+   "--fx-mech-2": "#5fae7a",
+   "--fx-mech-3": "#ff5a8a",
+   "--fx-world-1": "#e08ad0",
+   "--fx-world-2": "#8fb3a0",
+   "--fx-combat-1": "#8a6cff",
+   "--frame": "0 0 0 1px rgb(0, 0, 0)",
+   "--fs-s": "12px",
+   "--fs": "14px",
+   "--fs-l": "18px",
+   "--sp": "8px",
+   "--rad": "6px",
+   "--cell": "36px",
+   "--font": "'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif",
+   "--serif": "'Noto Serif TC', 'PMingLiU', serif",
+   "--pp": "14px"
+  }
+ },
+ "trig": {
+  "王現身 spawnBoss()": {
+   "sheets": [
+    "boom"
+   ],
+   "rings": [
+    {
+     "col": "#ff6b3d"
+    }
+   ]
+  },
+  "獄火自爆 hfBoom()": {
+   "sheets": [
+    "boom"
+   ],
+   "rings": [
+    {
+     "col": "#ff6b3d"
+    }
+   ]
+  }
+ },
+ "ringShots": [
+  {
+   "i": 0,
+   "file": "main-ring-00.png",
+   "colVal": "#c9d3e0",
+   "sheet": null,
+   "site": "combat.js:556 "
+  },
+  {
+   "i": 1,
+   "file": "main-ring-01.png",
+   "colVal": "#ff6b3d",
+   "sheet": "boom",
+   "site": "combat.js:603 "
+  },
+  {
+   "i": 2,
+   "file": "main-ring-02.png",
+   "colVal": "#8a6cff",
+   "sheet": null,
+   "site": "combat.js:634 "
+  },
+  {
+   "i": 3,
+   "file": "main-ring-03.png",
+   "colVal": "#ffd166",
+   "sheet": null,
+   "site": "combat.js:645 "
+  },
+  {
+   "i": 4,
+   "file": "main-ring-04.png",
+   "colVal": "#ff6b6b",
+   "sheet": null,
+   "site": "combat.js:1861 "
+  },
+  {
+   "i": 5,
+   "file": "main-ring-05.png",
+   "colVal": "#c9b8a8",
+   "sheet": null,
+   "site": "game.js:628 "
+  },
+  {
+   "i": 6,
+   "file": "main-ring-06.png",
+   "colVal": "#b28dff",
+   "sheet": "dark",
+   "site": "game.js:1567 "
+  },
+  {
+   "i": 7,
+   "file": "main-ring-07.png",
+   "colVal": "#ff8a5b",
+   "sheet": "boom",
+   "site": "game.js:1571 "
+  },
+  {
+   "i": 8,
+   "file": "main-ring-08.png",
+   "colVal": "#cfe8ff",
+   "sheet": null,
+   "site": "game.js:1745 "
+  },
+  {
+   "i": 9,
+   "file": "main-ring-09.png",
+   "colVal": "#7dff9a",
+   "sheet": null,
+   "site": "game.js:1862 "
+  },
+  {
+   "i": 10,
+   "file": "main-ring-10.png",
+   "colVal": "#e3a14a",
+   "sheet": null,
+   "site": "game.js:1951 "
+  },
+  {
+   "i": 11,
+   "file": "main-ring-11.png",
+   "colVal": "#ffe066",
+   "sheet": null,
+   "site": "game.js:1970 "
+  },
+  {
+   "i": 12,
+   "file": "main-ring-12.png",
+   "colVal": "#7fd1c7",
+   "sheet": null,
+   "site": "game.js:2009 "
+  },
+  {
+   "i": 13,
+   "file": "main-ring-13.png",
+   "colVal": "#6fb7ff",
+   "sheet": null,
+   "site": "game.js:2028 "
+  },
+  {
+   "i": 14,
+   "file": "main-ring-14.png",
+   "colVal": "#b08a5a",
+   "sheet": null,
+   "site": "mech.js:205 g.k=jagged"
+  },
+  {
+   "i": 15,
+   "file": "main-ring-15.png",
+   "colVal": "#8fd16b",
+   "sheet": null,
+   "site": "mech.js:205 g.k=gas"
+  },
+  {
+   "i": 16,
+   "file": "main-ring-16.png",
+   "colVal": "#8a6a2a",
+   "sheet": null,
+   "site": "mech.js:205 g.k=oil"
+  },
+  {
+   "i": 17,
+   "file": "main-ring-17.png",
+   "colVal": "#8fd6ff",
+   "sheet": "frost",
+   "site": "mech.js:205 g.k=chill"
+  },
+  {
+   "i": 18,
+   "file": "main-ring-18.png",
+   "colVal": "#6fd3ff",
+   "sheet": null,
+   "site": "mech.js:205 g.k=salt"
+  },
+  {
+   "i": 19,
+   "file": "main-ring-19.png",
+   "colVal": "#e8e2d6",
+   "sheet": null,
+   "site": "mech.js:205 g.k=blades"
+  },
+  {
+   "i": 20,
+   "file": "main-ring-20.png",
+   "colVal": "#ffe08a",
+   "sheet": null,
+   "site": "mech.js:205 g.k=cons"
+  },
+  {
+   "i": 21,
+   "file": "main-ring-21.png",
+   "colVal": "#7a3fa0",
+   "sheet": null,
+   "site": "mech.js:205 g.k=corrupt"
+  },
+  {
+   "i": 22,
+   "file": "main-ring-22.png",
+   "colVal": "#9aa0a8",
+   "sheet": null,
+   "site": "mech.js:205 g.k=smoke"
+  },
+  {
+   "i": 23,
+   "file": "main-ring-23.png",
+   "colVal": "#ffe14d",
+   "sheet": null,
+   "site": "mech.js:205 g.k=shockg"
+  },
+  {
+   "i": 24,
+   "file": "main-ring-24.png",
+   "colVal": "#ff8a2a",
+   "sheet": null,
+   "site": "mech.js:205 g.k=ignited"
+  },
+  {
+   "i": 25,
+   "file": "main-ring-25.png",
+   "colVal": "#5fae7a",
+   "sheet": null,
+   "site": "mech.js:205 g.k=wither"
+  },
+  {
+   "i": 26,
+   "file": "main-ring-26.png",
+   "colVal": "#a8c24a",
+   "sheet": null,
+   "site": "mech.js:205 g.k=thorn"
+  },
+  {
+   "i": 27,
+   "file": "main-ring-27.png",
+   "colVal": "#ff5a8a",
+   "sheet": null,
+   "site": "mech.js:205 g.k=howl"
+  },
+  {
+   "i": 28,
+   "file": "main-ring-28.png",
+   "colVal": "#fff3d6",
+   "sheet": "slam",
+   "site": "mech.js:236 el=undefined"
+  },
+  {
+   "i": 29,
+   "file": "main-ring-29.png",
+   "colVal": "#fff3e0",
+   "sheet": null,
+   "site": "mech.js:236 el=phys"
+  },
+  {
+   "i": 30,
+   "file": "main-ring-30.png",
+   "colVal": "#ff8a4c",
+   "sheet": "boom",
+   "site": "mech.js:236 el=fire"
+  },
+  {
+   "i": 31,
+   "file": "main-ring-31.png",
+   "colVal": "#c38bff",
+   "sheet": "dark",
+   "site": "mech.js:236 el=chaos"
+  },
+  {
+   "i": 32,
+   "file": "main-ring-32.png",
+   "colVal": null,
+   "sheet": "slam",
+   "site": "mech.js:312 el=undefined"
+  },
+  {
+   "i": 33,
+   "file": "main-ring-33.png",
+   "colVal": "#9df29d",
+   "sheet": null,
+   "site": "skills.js:950 "
+  },
+  {
+   "i": 34,
+   "file": "main-ring-34.png",
+   "colVal": "#ffcf6b",
+   "sheet": null,
+   "site": "skills.js:1132 "
+  },
+  {
+   "i": 35,
+   "file": "main-ring-35.png",
+   "colVal": "#cfd8e3",
+   "sheet": null,
+   "site": "skills.js:1280 "
+  },
+  {
+   "i": 36,
+   "file": "main-ring-36.png",
+   "colVal": "#b8c4d4",
+   "sheet": null,
+   "site": "skills.js:1409 "
+  }
+ ],
+ "x4": [
+  {
+   "ring": "我方 --fx-own",
+   "t": 0,
+   "strokes": [
+    {
+     "a": 0.9,
+     "s": "#fff3d6",
+     "w": 12
+    }
+   ],
+   "edgeAlpha": 0.9,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "我方 --fx-own",
+   "t": 0.3,
+   "strokes": [
+    {
+     "a": 0.63,
+     "s": "#fff3d6",
+     "w": 9
+    }
+   ],
+   "edgeAlpha": 0.63,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "我方 --fx-own",
+   "t": 0.7,
+   "strokes": [
+    {
+     "a": 0.27,
+     "s": "#fff3d6",
+     "w": 5
+    }
+   ],
+   "edgeAlpha": 0.27,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "火 --el-fire",
+   "t": 0,
+   "strokes": [
+    {
+     "a": 0.9,
+     "s": "#ff8a4c",
+     "w": 12
+    }
+   ],
+   "edgeAlpha": 0.9,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "火 --el-fire",
+   "t": 0.3,
+   "strokes": [
+    {
+     "a": 0.63,
+     "s": "#ff8a4c",
+     "w": 9
+    }
+   ],
+   "edgeAlpha": 0.63,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "火 --el-fire",
+   "t": 0.7,
+   "strokes": [
+    {
+     "a": 0.27,
+     "s": "#ff8a4c",
+     "w": 5
+    }
+   ],
+   "edgeAlpha": 0.27,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "敵方 --enemy-tel",
+   "t": 0,
+   "strokes": [
+    {
+     "a": 0.9,
+     "s": "#fff3d6",
+     "w": 12
+    }
+   ],
+   "edgeAlpha": 0.9,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "敵方 --enemy-tel",
+   "t": 0.3,
+   "strokes": [
+    {
+     "a": 0.63,
+     "s": "#fff3d6",
+     "w": 9
+    }
+   ],
+   "edgeAlpha": 0.63,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "敵方 --enemy-tel",
+   "t": 0.7,
+   "strokes": [
+    {
+     "a": 0.27,
+     "s": "#fff3d6",
+     "w": 5
+    }
+   ],
+   "edgeAlpha": 0.27,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "無 col（預設）",
+   "t": 0,
+   "strokes": [
+    {
+     "a": 0.9,
+     "s": "#fff3d6",
+     "w": 12
+    }
+   ],
+   "edgeAlpha": 0.9,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "無 col（預設）",
+   "t": 0.3,
+   "strokes": [
+    {
+     "a": 0.63,
+     "s": "#fff3d6",
+     "w": 9
+    }
+   ],
+   "edgeAlpha": 0.63,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  },
+  {
+   "ring": "無 col（預設）",
+   "t": 0.7,
+   "strokes": [
+    {
+     "a": 0.27,
+     "s": "#fff3d6",
+     "w": 5
+    }
+   ],
+   "edgeAlpha": 0.27,
+   "darkPx": 0,
+   "darkMedian": null,
+   "darkMax": null
+  }
+ ],
+ "tele": [
+  {
+   "base": "規格淺磚 #615b56",
+   "bg": [
+    97,
+    91,
+    86
+   ],
+   "teleFill": [
+    155,
+    82,
+    81
+   ],
+   "teleLine": [
+    205,
+    111,
+    102
+   ],
+   "teleOut": [
+    97,
+    91,
+    86
+   ],
+   "blinkLine": [
+    169,
+    135,
+    234
+   ],
+   "blinkOut": [
+    97,
+    91,
+    86
+   ]
+  },
+  {
+   "base": "--scene-ice-light",
+   "bg": [
+    168,
+    216,
+    240
+   ],
+   "teleFill": [
+    194,
+    152,
+    167
+   ],
+   "teleLine": [
+    227,
+    151,
+    151
+   ],
+   "teleOut": [
+    168,
+    216,
+    240
+   ],
+   "blinkLine": [
+    178,
+    151,
+    254
+   ],
+   "blinkOut": [
+    168,
+    216,
+    240
+   ]
+  },
+  {
+   "base": "--scene-lava-light",
+   "bg": [
+    92,
+    58,
+    40
+   ],
+   "teleFill": [
+    152,
+    63,
+    55
+   ],
+   "teleLine": [
+    203,
+    100,
+    87
+   ],
+   "teleOut": [
+    92,
+    58,
+    40
+   ],
+   "blinkLine": [
+    168,
+    131,
+    229
+   ],
+   "blinkOut": [
+    92,
+    58,
+    40
+   ]
+  },
+  {
+   "base": "--scene-tomb-light",
+   "bg": [
+    76,
+    98,
+    80
+   ],
+   "teleFill": [
+    143,
+    86,
+    78
+   ],
+   "teleLine": [
+    198,
+    113,
+    100
+   ],
+   "teleOut": [
+    76,
+    98,
+    80
+   ],
+   "blinkLine": [
+    166,
+    136,
+    234
+   ],
+   "blinkOut": [
+    76,
+    98,
+    80
+   ]
+  },
+  {
+   "base": "--scene-temple-light",
+   "bg": [
+    166,
+    60,
+    43
+   ],
+   "teleFill": [
+    193,
+    65,
+    57
+   ],
+   "teleLine": [
+    227,
+    101,
+    88
+   ],
+   "teleOut": [
+    166,
+    60,
+    43
+   ],
+   "blinkLine": [
+    177,
+    131,
+    229
+   ],
+   "blinkOut": [
+    166,
+    60,
+    43
+   ]
+  }
+ ]
+}

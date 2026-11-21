@@ -1,0 +1,3 @@
+反向驗證：暫時把 mech.js 填色改回 C.col、render.js 拿掉 7×7 黑邊、閃現黑邊 lineWidth 5→3，跑 check.js，只列 #159 簽核兩項（改回後 895 ✅／0 ❌，見 check_branch.txt）
+❌ CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px --ring-edge 再畫 3 px --enemy-tel（同一個 α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel 
+❌ CSS 色票 #159 簽核 M3：燃燒地面依陣營分色——我方 14% 填色用 --el-fire（colOwn），怪物方維持 --enemy-tel {"colOwn":"#ee9978","col":"#ff3d7f"}

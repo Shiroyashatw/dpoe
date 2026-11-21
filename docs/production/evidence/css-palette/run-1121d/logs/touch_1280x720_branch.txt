@@ -1,0 +1,16 @@
+✅ 還沒點過：音效還沒建立
+✅ 新存檔預設直立
+✅ 沒有方向提示（#rot）、橫向右上鈕（.tmenu）
+✅ 桌機：不是觸控、不是直立、功能列在畫面內、沒有底部分頁、技能列在、視野 1.35、格 36 false,false,false,true,false,true,1.35,36
+✅ 桌機：舊存檔 orient l 重新整理後是 p、存回 p
+✅ 桌機：重新整理後版面照舊 false,false,false,true,false,true,1.35,36
+✅ 桌機：開 inv 面板不超出畫面 [["pinv",true]]
+✅ 桌機：開 stash 面板不超出畫面 [["pstash",true],["pinv",true]]
+✅ 桌機：開 skill 面板不超出畫面 [["pskill",true]]
+✅ 桌機：開 craft 面板不超出畫面 [["pcraft",true]]
+✅ 桌機：開 set 面板不超出畫面 [["pset",true]]
+✅ 桌機：開 node 面板不超出畫面 [["pnode",true]]
+✅ 桌機：開 asc 面板不超出畫面 [["pasc",true]]
+✅ 桌機：開 log 面板不超出畫面 [["plog",true]]
+✅ 桌機：設定沒有「操作方向」
+✅ 沒有頁面錯誤
