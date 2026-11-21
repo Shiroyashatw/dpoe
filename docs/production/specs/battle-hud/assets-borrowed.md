@@ -17,5 +17,5 @@
 - 狀態圖示 16×16：PixelLab `ail_*`（M2-36-d2-b3／rerun，含 `ail_cons`、`ail_pin`）。王印 16：`wangyin_chixiao_16` s5404。通貨 16：`cur_gold` s5401、`cur_soul` s5306、`cur_chaos` s5330、`cur_exalt` s5329。
 - 技能格 1／2／3／5：art.js `sk_apshot`、`sk_combust`、`sk_groundslam`、`sk_fireburst`（32×32）。
 - 戰場：D2 地磚 `tile_d2_battle_floor`（2 倍）、牆頂／牆面、`prop_lantern`／`prop_joss`／`prop_ash`；怪物 art.js `m_*`；主角 `img/hero.png`；彈 `art/fx/fireball`、`frostbolt`、`void`；光柱 `sig_beam`、`sig_chase`。
-- 程式畫（系統或規格本來就由程式畫）：390 狀態列與 home 條、小地圖、低血紅邊、預警圈、光柱外緣、按鈕與面板。
+- 程式畫（系統或規格本來就由程式畫）：390 狀態列與 home 條、小地圖、危急紅邊（舊「低血紅邊」名稱 superseded，見 battle-hud-6.md §23）、預警圈、光柱外緣、按鈕與面板。
 - 每張素材的來源 branch:path 見 `../wireframes/W1-battle-hud/color/assets/pick/SOURCES.txt` 與 `assets/repo/SOURCE.txt`。

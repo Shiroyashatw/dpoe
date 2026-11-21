@@ -484,7 +484,7 @@ def hud(img,E,size,state):
                 if side=='左': od.line((t,0,t,y1-y0),fill=col)
                 if side=='右': od.line((x1-x0-1-t,0,x1-x0-1-t,y1-y0),fill=col)
             img.alpha_composite(ov,(x0,y0)); d=ImageDraw.Draw(img,'RGBA')
-        elif n=='生命條低血外框': rect(d,x0,y0,x1,y1,outline=c('hp-hi'))
+        elif n in('生命條危急外框','生命條低血外框'): rect(d,x0,y0,x1,y1,outline=c('hp-hi'))   # v1.3.6 改名危急；舊名留著相容
         elif n.startswith('目標細條'):
             rect(d,x0,y0,x1,y1,fill=c('good'))
         elif n=='「掛機 2 時 14 分」':

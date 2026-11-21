@@ -36,3 +36,10 @@ python3 check_overlay.py           # → ../check_report.md、../check/overlay-*
 - 色：M2-36 `--block` #a9b8c3、`--block-dim` #40484e、`--block-regen` #758088、`--block-hi` #eaf2f8（美術總監 H6，色組 A 冷鋼）；弧外圍 1 px #000。
 - 盾牌：遊戲路徑 `art/icons/hud/hud_block_16.png`（＋同目錄 `hud_block_16@2x.png`）；來源 main `docs/production/art-picks/block-steel/` 同名檔，逐位元複製（mumi 12:32 同 PR 進 art/）。美術總監定案盾 a，不染色、不墊框。
 - 右下戳記「battle-hud v1.3.5（mumi 11/21 12:07）・上色」。既有 v13 圖不重畫。
+
+## v1.3.6 能量護盾層（mumi 11/21 12:37）
+
+- `src/render_es.py`：底＝`render_xpblk.py`（v1.3.5 經驗條／格擋弧，格擋滿、無提示），再畫 `../src/eslayer.py` 的 P70／P71（390）、D69／D70（1280）；`--es`／`--es-hi` 從 M2-36 讀，不寫死。
+- 7 狀態 × 2 尺寸：`battle-hud-v136-es-{390,1280}-{full,partial,recharge,zero,none,lowcomb,lowlife}.png`（標註）＋`-clean.png`。lowcomb／lowlife 用 lowhp 底（危急紅邊 1 級）。
+- 生命條＋細條＋字的區域和 12:31 定稿示意（W-hud-es-mock-1213）逐像素一致；差異只在格擋盾圖（示意用的是代用盾，這裡用 hud_block_16）。
+- 未驗（沒開遊戲）。
