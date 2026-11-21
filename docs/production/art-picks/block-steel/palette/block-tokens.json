@@ -1,0 +1,208 @@
+{
+ "set": "A 冷鋼",
+ "picked": "mumi 2026-11-21 12:07（經幕僚長）",
+ "source_LCh_block": [
+  74,
+  8,
+  250
+ ],
+ "tokens": {
+  "--block": {
+   "hex": "#a9b8c3",
+   "LCh": [
+    74.0,
+    7.9,
+    248.3
+   ],
+   "role": "格擋弧填色、盾牌本色",
+   "contrast": {
+    "--panel": 7.86,
+    "--panel-inset": 8.52,
+    "--panel-raised": 7.19,
+    "--scene-void": 9.11,
+    "--scene-X-light": 3.29,
+    "淺磚＋燈光 16%": 2.69
+   }
+  },
+  "--block-dim": {
+   "hex": "#40484e",
+   "LCh": [
+    30.1,
+    5.0,
+    249.4
+   ],
+   "role": "格擋弧空軌／被打掉的段",
+   "contrast": {
+    "--panel": 1.71,
+    "--panel-inset": 1.86,
+    "--panel-raised": 1.57,
+    "--scene-void": 1.99,
+    "--scene-X-light": 1.39,
+    "淺磚＋燈光 16%": 1.7
+   }
+  },
+  "--block-regen": {
+   "hex": "#758088",
+   "LCh": [
+    52.9,
+    6.1,
+    248.1
+   ],
+   "role": "碎開後回滿中的虛線段（亮度 Y＝--block 45%）",
+   "contrast": {
+    "--panel": 3.95,
+    "--panel-inset": 4.29,
+    "--panel-raised": 3.62,
+    "--scene-void": 4.58,
+    "--scene-X-light": 1.66,
+    "淺磚＋燈光 16%": 1.36
+   }
+  },
+  "--block-hi": {
+   "hex": "#eaf2f8",
+   "LCh": [
+    95.1,
+    4.1,
+    248.0
+   ],
+   "role": "碎開閃，只在弧上約 150 ms",
+   "contrast": {
+    "--panel": 14.11,
+    "--panel-inset": 15.3,
+    "--panel-raised": 12.91,
+    "--scene-void": 16.36,
+    "--scene-X-light": 5.91,
+    "淺磚＋燈光 16%": 4.84
+   }
+  }
+ },
+ "regen_over_block_Y": 0.45,
+ "Lstar_by_sim": {
+  "normal": {
+   "--block": 74.0,
+   "--block-dim": 30.1,
+   "--block-regen": 52.9,
+   "--block-hi": 95.1
+  },
+  "protan": {
+   "--block": 74.7,
+   "--block-dim": 30.6,
+   "--block-regen": 53.6,
+   "--block-hi": 95.5
+  },
+  "deutan": {
+   "--block": 73.7,
+   "--block-dim": 29.8,
+   "--block-regen": 52.5,
+   "--block-hi": 94.9
+  },
+  "tritan": {
+   "--block": 74.1,
+   "--block-dim": 30.0,
+   "--block-regen": 53.0,
+   "--block-hi": 95.3
+  }
+ },
+ "Lstar_gaps_min": {
+  "normal": 21.1,
+  "protan": 20.8,
+  "deutan": 21.2,
+  "tritan": 21.1
+ },
+ "dE_block_by_sim": {
+  "normal": {
+   "--hp": 44.6,
+   "--hp-hi": 34.2,
+   "--mp": 35.0,
+   "--mp-hi": 21.8,
+   "--prog-hi": 11.8,
+   "--prog-lo": 50.7,
+   "--el-cold": 12.9,
+   "--el-fire": 30.6,
+   "--el-light": 33.1,
+   "--el-chaos": 22.2,
+   "--tx-strong": 17.9,
+   "--tx-dim": 10.0,
+   "--rar-normal": 19.0,
+   "--rar-magic": 12.9,
+   "--rar-rare": 39.0,
+   "--rar-unique": 36.0,
+   "--rar-chase": 24.5,
+   "--border-cap": 13.3,
+   "--asc-hi": 21.2,
+   "--awk": 14.8,
+   "--good": 32.5
+  },
+  "protan": {
+   "--hp": 41.4,
+   "--hp-hi": 26.7,
+   "--mp": 33.5,
+   "--mp-hi": 20.6,
+   "--prog-hi": 10.4,
+   "--prog-lo": 51.4,
+   "--el-cold": 11.0,
+   "--el-fire": 24.8,
+   "--el-light": 33.1,
+   "--el-chaos": 16.5,
+   "--tx-strong": 16.8,
+   "--tx-dim": 9.0,
+   "--rar-normal": 18.2,
+   "--rar-magic": 16.7,
+   "--rar-rare": 37.7,
+   "--rar-unique": 35.2,
+   "--rar-chase": 12.0,
+   "--border-cap": 11.4,
+   "--asc-hi": 13.6,
+   "--awk": 13.8,
+   "--good": 32.6
+  },
+  "deutan": {
+   "--hp": 36.8,
+   "--hp-hi": 26.2,
+   "--mp": 36.7,
+   "--mp-hi": 21.8,
+   "--prog-hi": 11.6,
+   "--prog-lo": 50.2,
+   "--el-cold": 10.9,
+   "--el-fire": 27.4,
+   "--el-light": 33.5,
+   "--el-chaos": 8.4,
+   "--tx-strong": 17.9,
+   "--tx-dim": 9.9,
+   "--rar-normal": 20.0,
+   "--rar-magic": 17.0,
+   "--rar-rare": 38.4,
+   "--rar-unique": 35.8,
+   "--rar-chase": 9.3,
+   "--border-cap": 13.0,
+   "--asc-hi": 8.0,
+   "--awk": 12.2,
+   "--good": 29.1
+  },
+  "tritan": {
+   "--hp": 48.7,
+   "--hp-hi": 39.8,
+   "--mp": 33.0,
+   "--mp-hi": 18.7,
+   "--prog-hi": 16.4,
+   "--prog-lo": 51.8,
+   "--el-cold": 14.8,
+   "--el-fire": 36.1,
+   "--el-light": 21.2,
+   "--el-chaos": 26.6,
+   "--tx-strong": 19.7,
+   "--tx-dim": 13.4,
+   "--rar-normal": 20.8,
+   "--rar-magic": 8.5,
+   "--rar-rare": 28.3,
+   "--rar-unique": 38.3,
+   "--rar-chase": 21.7,
+   "--border-cap": 17.2,
+   "--asc-hi": 16.6,
+   "--awk": 18.8,
+   "--good": 15.4
+  }
+ },
+ "required": "格擋弧外圍 1 px #000 是必要條件（--block 在淺磚 3.29、加燈籠光 16% 2.69；dim／regen 在淺磚靠黑邊和弧形）",
+ "method": "WCAG 2.x；CIEDE2000；Machado 2009 嚴重度 1.0"
+}

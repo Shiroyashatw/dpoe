@@ -124,7 +124,7 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版（11/20 17:10 藥劑冷卻環 2 px＋1 px #000，對齊 battle-hud v1.3） | 現行 |
+| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版（11/20 17:10 藥劑冷卻環 2 px＋1 px #000，對齊 battle-hud v1.3；11/21 12:07 加格擋 --block 四色，弧外圍 1 px #000 必要） | 現行 |
 | D2 介面色 | `S/palette-D2-final-ui.md` | v1.6 | 現行 |
 | 畫法 | `S/M2-36-drawing-rules.md` | 11/20 17:10（§2 光環／分頁遮罩不描暗邊、§5.2 390 戰鬥分頁 16 px 遮罩，對齊 battle-hud v1.3） | 現行 |
 | PixelLab 提示詞與挑圖 | `S/M2-36-pixellab-d2.md`、`S/M2-36-d2-picks.md` | — | 待轉入（PR #119、#126） |
@@ -133,7 +133,7 @@
 | 戰鬥可讀性美術 | `S/M2-40-combat-readability-art.md` | — | 現行（R4 彈藥格位置見 battle-hud v1.3） |
 | 營地外觀分級 | `S/M2-12-lookTiers.md` | 11/20 12:01 | 現行（要改寫成卡片用） |
 | 印章 | `S/M2-12-B3-art.md` 印章段 | 11/20 09:55 | 現行（牌匾段作廢） |
-| 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示、battle-hud-v1.3 正式素材 48 檔） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑；battle-hud-v1.3 見該資料夾 README） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
+| 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示、battle-hud-v1.3 正式素材 48 檔、block-steel 格擋盾牌 hud_block_16） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑；battle-hud-v1.3 見該資料夾 README） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
 
 ## 流程與工程
 

@@ -1,0 +1,2 @@
+mumi 2026-11-21 12:07（經幕僚長）挑定：色組 A 冷鋼（--block #a9b8c3／--block-dim #40484e／--block-regen #758088／--block-hi #eaf2f8）＋盾牌 a（空心盾框）。
+盾牌 a 來源 block-steel-draft/shield_16/block_shield_16-a.png（逐像素相同，未手修）；沒選：色組 B、C，盾牌 b、c、d。
