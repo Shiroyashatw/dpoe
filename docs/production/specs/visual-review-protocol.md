@@ -1,6 +1,6 @@
 # 視覺審查流程（截圖清單 → 雲端截圖量測 → 只看過關的關鍵圖）
 
-負責：Game Art Director（寫清單、看圖）。執行：雲端 Claude Code（截圖、量測、預篩、推證據、PR 留言）。適用所有 dpoe 視覺審查（mumi 2026-11-17 定）。色只寫 token 名。
+負責：Game Art Director（寫清單、看圖）。執行：雲端 Claude Code（截圖、量測、預篩、推證據、PR 留言）。適用所有 dpoe 視覺審查（mumi 2026-11-17 定）。2026-11-21 更新。色只寫 token 名。
 
 ## 0. 規則
 - 美術總監**不開遊戲**。每次審查先寫一份完整的截圖清單（`specs/<任務>-review-checklist.md`）；雲端照清單截、量、預篩，推到 repo，用 PR 留言回報；美術總監只看「過了預篩的關鍵圖」。
@@ -14,7 +14,6 @@
 | P（必截） | `390x844` | 390×844 | 2 | `isMobile`、`hasTouch` |
 | D（必截） | `1280x720` | 1280×720 | 1 | 滑鼠，游標移出畫面 |
 | S | `375x667` | 375×667 | 2 | 同 P |
-| L | `844x390` | 844×390 | 2 | 手機橫向 |
 | W | `1440x900` | 1440×900 | 1 | 同 D |
 - DPR 照遊戲上限 2（main.js）。Playwright Chromium；擋掉雲端存檔連線（照 `tools/ui_shots.js` 的 route）；字型等 `document.fonts.ready`、圖等所有 `img.complete`，再多等 300 ms。
 - 預設 `prefers-reduced-motion: no-preference`；狀態代號帶 `rm` 的才模擬減少動態。
