@@ -160,10 +160,18 @@ function draw() {
       continue;
     }
     if (m.boss && m.pat === 'blink') {
-      CX.strokeStyle = `rgba(${PAL.rgb.elChaos},${0.3 + 0.6 * f})`;
+      /* 王閃現：外 1 px 不透明黑邊（--ring-edge；敵方預警要比己方醒目）再畫 3 px --enemy-tel */
       CX.beginPath();
       CX.arc(m.tx, m.ty, m.r * (1.6 - f * 0.6), 0, TAU);
+      CX.lineWidth = 5;
+      CX.strokeStyle = PAL.ringEdge;
       CX.stroke();
+      CX.globalAlpha = 0.3 + 0.6 * f;
+      CX.lineWidth = 3;
+      CX.strokeStyle = PAL.enemyTel;
+      CX.stroke();
+      CX.globalAlpha = 1;
+      CX.lineWidth = 2;
       continue;
     }
     if (m.boss && m.pat === 'nova') {
@@ -262,17 +270,15 @@ function draw() {
     CX.arc(o.x + (1 - f) * 120, o.y - (1 - f) * 360, 14, 0, TAU);
     CX.fill();
   }
-  /* 傳送門：地圖裡的＝回家（藍） */
+  /* 傳送門：地圖裡的＝回家；所有傳送門同一族 --portal（UIUX 13:32），靠位置、圖示分 */
   if (G.portal) {
     const p = G.portal;
-    CX.fillStyle = p.home ? `rgba(${PAL.rgb.rarMagicV2},0.18)` : `rgba(${PAL.rgb.elChaos},0.18)`;
+    CX.fillStyle = `rgba(${PAL.rgb.portal},0.18)`;
     CX.beginPath();
     CX.ellipse(p.x, p.y, 46, 20, 0, 0, TAU);
     CX.fill();
     for (let i = 0; i < 3; i++) {
-      CX.strokeStyle = p.home
-        ? `rgba(${PAL.rgb.dodgeVignetteV1},${0.7 - i * 0.2})`
-        : `rgba(${PAL.rgb.elChaos},${0.7 - i * 0.2})`;
+      CX.strokeStyle = `rgba(${PAL.rgb.portal},${0.7 - i * 0.2})`;
       CX.lineWidth = 3;
       CX.beginPath();
       CX.ellipse(p.x, p.y, 34 + i * 8 + Math.sin(G.t * 3 + i) * 3, 14 + i * 3, 0, 0, TAU);
@@ -481,7 +487,7 @@ function draw() {
     if (G.scene === 'map') drawMinimap(W);
   }
 }
-const RCOL = [PAL.borderCapV1, PAL.rarMagicV2, PAL.dmgCrit];
+const RCOL = [PAL.rarNormal, PAL.rarMagic, PAL.rarRare];
 const RBG = [
   `rgba(${PAL.rgb.sceneVoidV1},0.95)`,
   `rgba(${PAL.rgb.rarMagicBgV1},0.95)`,
@@ -490,7 +496,7 @@ const RBG = [
 /* canvas 上的鑄鐵銀框（小地圖、互動提示），跟面板同色：外黑、內銀 */
 function frameRect(x, y, w, h) {
   CX.lineWidth = 1;
-  CX.strokeStyle = PAL.sceneVoidV6;
+  CX.strokeStyle = PAL.sceneVoid;
   CX.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
   CX.strokeStyle = PAL.dmgMinorV4;
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
@@ -524,7 +530,7 @@ function drawMobStates(m, y) {
     gap = 2;
   let x = m.x - ((L.length - 1) * (s + gap)) / 2;
   for (const t of L) {
-    CX.fillStyle = `rgba(${PAL.rgb.scrimV6},0.82)`;
+    CX.fillStyle = `rgba(${PAL.rgb.scrim},0.82)`;
     CX.fillRect(x - s / 2 - 1, y - s - 1, s + 2, s + 2);
     spr(t.ic, x, y, s);
     /* 暗色扇形順時針掃過（剩餘越少蓋越多）、層數在右下角 */
@@ -544,7 +550,7 @@ function drawMobStates(m, y) {
       CX.font = `700 ${Math.round(s * 0.5)}px sans-serif`;
       CX.textAlign = 'right';
       CX.lineWidth = 3;
-      CX.strokeStyle = PAL.scrimV1;
+      CX.strokeStyle = PAL.dmgOutline;
       CX.strokeText(t.c, x + s / 2, y);
       CX.fillStyle = PAL.glint;
       CX.fillText(t.c, x + s / 2, y);
@@ -578,11 +584,14 @@ function drawMob(m) {
   shadow(m.x, m.y, m.r * 1.1);
   /* 菁英：腳下光圈；王：大光圈 */
   if (m.elite || m.boss) {
-    CX.strokeStyle = m.boss ? `rgba(${PAL.rgb.badHiV2},0.6)` : `rgba(${PAL.rgb.rarMagic},0.7)`;
+    /* 菁英不用稀有度色：--enemy-rim 70%（UIUX 13:32） */
+    CX.strokeStyle = m.boss ? `rgba(${PAL.rgb.badHiV2},0.6)` : PAL.enemyRim;
+    if (!m.boss) CX.globalAlpha = 0.7;
     CX.lineWidth = 2;
     CX.beginPath();
     CX.ellipse(m.x, m.y, m.r * 1.4, m.r * 0.55, 0, 0, TAU);
     CX.stroke();
+    CX.globalAlpha = 1;
   }
   /* 擠壓：被打扁一下、走路上下彈、蓄力時抖 */
   const bob = m.mv && !D.fly ? Math.abs(Math.sin(m.ph)) * 0.06 : 0,
@@ -599,11 +608,11 @@ function drawMob(m) {
     CX.fill();
     CX.globalAlpha = 1;
   }
-  /* 印記（頭上紅色菱形）、點燃（橘色的火）；異常的 pixelfx 圖示在待做清單 */
+  /* 印記（頭上白色菱形，--tx-strong）、點燃（橘色的火）；異常的 pixelfx 圖示在待做清單 */
   const ma = m.ail || {};
   if (ma.mark) {
     const y = m.y - fly - m.sz - 18;
-    CX.fillStyle = ma.mark.k === 'falcon' ? PAL.dmgCrit : PAL.dmgHurtV1;
+    CX.fillStyle = ma.mark.k === 'falcon' ? PAL.dmgCrit : PAL.txStrong;
     CX.beginPath();
     CX.moveTo(m.x, y - 6);
     CX.lineTo(m.x + 5, y);
@@ -628,7 +637,7 @@ function drawBars() {
       y = m.y - mobFly(m) - m.sz - 8;
     CX.fillStyle = `rgba(${PAL.rgb.scrim},0.7)`;
     CX.fillRect(m.x - w / 2 - 1, y - 1, w + 2, 6);
-    CX.fillStyle = m.elite ? PAL.rarMagicV2 : PAL.badV1;
+    CX.fillStyle = PAL.hp;
     CX.fillRect(m.x - w / 2, y, (w * m.hp) / m.mhp, 4);
   }
 }
@@ -975,11 +984,17 @@ function drawFx() {
       CX.stroke();
       CX.globalAlpha = 1;
     } else if (o.k === 'ring') {
-      CX.globalAlpha = (1 - f) * 0.9;
-      CX.strokeStyle = o.col || PAL.catFracV4;
-      CX.lineWidth = 10 * (1 - f) + 2;
+      /* 外 1 px #000（X4，--ring-edge）：先用 lineWidth+2 畫黑邊、再畫本色；黑邊的 alpha＝環的 alpha，我方 --fx-own 環 9%（硬規則：永遠不能不透明） */
+      const lw = 10 * (1 - f) + 2,
+        rr = o.r * (0.6 + 0.4 * f);
+      CX.globalAlpha = (1 - f) * (o.col === PAL.fxOwn ? 0.09 : 0.9);
       CX.beginPath();
-      CX.ellipse(o.x, o.y - 10, o.r * (0.6 + 0.4 * f), o.r * (0.6 + 0.4 * f) * 0.75, 0, 0, TAU);
+      CX.ellipse(o.x, o.y - 10, rr, rr * 0.75, 0, 0, TAU);
+      CX.strokeStyle = PAL.ringEdge;
+      CX.lineWidth = lw + 2;
+      CX.stroke();
+      CX.strokeStyle = o.col || PAL.catFracV4;
+      CX.lineWidth = lw;
       CX.stroke();
     } else if (o.k === 'ghost') {
       heroCell(6, 2, o.x, o.y, o.flip, 0.35 * (1 - f));
@@ -993,8 +1008,8 @@ function drawFx() {
       /* 死掉：閃白、往上散、淡出 */
       spr(o.sp, o.x, o.y, o.sz, { flip: o.flip, white: f < 0.25, a: 1 - f, sx: 1 + f * 0.4, sy: 1 - f * 0.6 });
     } else if (o.k === 'heal') {
-      CX.globalAlpha = 1 - f;
-      CX.strokeStyle = PAL.dmgHurtV1;
+      CX.globalAlpha = (1 - f) * 0.09;
+      CX.strokeStyle = PAL.fxOwn;
       CX.lineWidth = 3;
       CX.beginPath();
       CX.ellipse(o.x, o.y - f * 40, 26 + f * 20, 10 + f * 6, 0, 0, TAU);
@@ -1068,9 +1083,18 @@ function miniBody(x0, y0, mw, mh, s) {
   CX.drawImage(G.mini, x0, y0, mw, mh);
   for (const m of G.mobs) {
     if (m.arrow) continue;
-    CX.fillStyle = m.boss ? PAL.badHiV2 : m.elite ? PAL.rarMagicV2 : PAL.badV6;
-    const z = m.boss ? 5 : 2;
-    CX.fillRect(x0 + m.x * s - z / 2, y0 + m.y * s - z / 2, z, z);
+    if (m.boss) {
+      /* 王點：對齊整數像素，先畫 7×7 不透明 --ring-edge 再畫 5×5 --enemy-tel，即外 1 px 黑邊 */
+      const bx = Math.round(x0 + m.x * s) - 3,
+        by = Math.round(y0 + m.y * s) - 3;
+      CX.fillStyle = PAL.ringEdge;
+      CX.fillRect(bx, by, 7, 7);
+      CX.fillStyle = PAL.enemyTel;
+      CX.fillRect(bx + 1, by + 1, 5, 5);
+      continue;
+    }
+    CX.fillStyle = m.elite ? PAL.enemyRim : PAL.badV6;
+    CX.fillRect(x0 + m.x * s - 1, y0 + m.y * s - 1, 2, 2);
   }
   CX.fillStyle = PAL.goodV2;
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);

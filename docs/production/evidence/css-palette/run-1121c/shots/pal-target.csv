@@ -1,0 +1,171 @@
+判定表列／來源,target token,定稿值,分支 :root 實際值,狀態
+--scene-void-v1,--scene-void,#16130f,#16130f,ok
+--scene-void-v2,--scene-void,#16130f,#16130f,ok
+--scene-void-v3,--panel-inset,#1d1a17,#1d1a17,ok
+--scene-void-v4,--scrim-rgb,#0a0704,"10, 7, 4",ok
+--scene-void-v5,--panel-inset,#1d1a17,#1d1a17,ok
+--scene-void-v6,--scene-void,#16130f,#16130f,ok
+--scene-void-v7,--scene-void,#16130f,#16130f,ok
+--scene-void-v8,--panel-inset,#1d1a17,#1d1a17,ok
+--scene-void-v9,--scene-void,#16130f,#16130f,ok
+--scene-void-v10,--scene-void,#16130f,#16130f,ok
+--scene-void-v11,--panel-inset,#1d1a17,#1d1a17,ok
+--scene-void-v12,--panel-inset,#1d1a17,#1d1a17,ok
+--scene-void-v13,--scene-void,#16130f,#16130f,ok
+--panel-inset-v1,--panel-inset,#1d1a17,#1d1a17,ok
+--panel-inset-v2,--panel-inset,#1d1a17,#1d1a17,ok
+--panel-inset-v3,--panel-inset,#1d1a17,#1d1a17,ok
+--panel-v1,--panel-grad-top,#2d251f,#2d251f,ok
+--panel-v2,--panel-raised,#2c2825,#2c2825,ok
+--panel-raised-2-v1,--panel-raised-2,#322f2b,#322f2b,ok
+--panel-rgb-v1,--panel-rgb,37 33 30,"37, 33, 30",ok
+--scrim-rgb-v1,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v2,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v3,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v4,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v5,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v6,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v7,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v8,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v9,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-rgb-v10,--on-act-rgb,#fcf9f3,"252, 249, 243",ok
+--scrim-rgb-v11,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--scrim-v1,--scrim-rgb,(分用途，只查有定義),"10, 7, 4",ok
+--scrim-v1,--dmg-outline,(分用途，只查有定義),"rgba(0, 0, 0, 0.8)",ok
+--hl-rgb-v1,--hl-rgb,225 220 215,"225, 220, 215",ok
+--hl-rgb-v2,--es-hi,#fcefde,#fcefde,ok
+--hl-rgb-v3,--es,#dfbf91,#dfbf91,ok
+--hl-rgb-v4,--block,#a9b8c3,#a9b8c3,ok
+--hl-rgb-v5,--block-regen,#758088,#758088,ok
+--hl-rgb-v6,--hl-rgb,225 220 215,"225, 220, 215",ok
+--glint-v1,--block,#a9b8c3,#a9b8c3,ok
+--glint-v2,--tx,#e8e5e1,#e8e5e1,ok
+--warm-glint-rgb-v1,--warm-glint-rgb,255 225 170,"255, 225, 170",ok
+--warm-glint-rgb-v2,--warm-glint-rgb,255 225 170,"255, 225, 170",ok
+--border-v1,--border,#817b75,#817b75,ok
+--border-mid-v1,--panel-raised,#2c2825,#2c2825,ok
+--border-mid-v2,--border,#817b75,#817b75,ok
+--border-ctl-v1,--prog-hi,#b6b0a8,#b6b0a8,ok
+--border-hi-v1,--border-hi,#b0aaa4,#b0aaa4,ok
+--tx-v1,--tx-dim,#aeaba7,#aeaba7,ok
+--tx-dim-v1,--tx-dim,#aeaba7,#aeaba7,ok
+--tx-lock-v1,--tx-lock,#9d9995,#9d9995,ok
+--tx-lock-v2,--border,#817b75,#817b75,ok
+--act-v1,--prog-hi,#b6b0a8,#b6b0a8,ok
+--act-v2,--hf,#b65517,#b65517,ok
+--act-v3,--act,#7c5729,#7c5729,ok
+--act-hi-v1,--hp,#934341,#934341,ok
+--on-act-v1,--on-act,#fcf9f3,#fcf9f3,ok
+--on-act-v2,--tx,#e8e5e1,#e8e5e1,ok
+--on-act-rgb-v1,--hl-rgb,225 220 215,"225, 220, 215",ok
+--sel-bd,--sel-edge,#a8927f,#a8927f,ok
+--sel-ink-v1,--panel,#25211e,#25211e,ok
+--bad-v1,--hp,#934341,#934341,ok
+--bad-v2,--hp,#934341,#934341,ok
+--bad-v3,--tx,#e8e5e1,#e8e5e1,ok
+--bad-v4,--hp,#934341,#934341,ok
+--bad-hi-v1,--hp,#934341,#934341,ok
+--bad-hi-v2,--enemy-tel,(分用途，只查有定義),#ff3d7f,ok
+--bad-hi-v2,--fx-own,(分用途，只查有定義),#c6c6c6,ok
+--warn-v1,--act-edge,#a8927f,#a8927f,ok
+--ready-v1,--prog-hi,#b6b0a8,#b6b0a8,ok
+--ready-v2,--sel-edge,#a8927f,#a8927f,ok
+--hp-v1,--hp,#934341,#934341,ok
+--hp-v2,--hp,#934341,#934341,ok
+--mp-v1,--mp,#3a5b98,#3a5b98,ok
+--rar-magic-v1,--mp,#3a5b98,#3a5b98,ok
+--rar-magic-v2,--tx,(分用途，只查有定義),#e8e5e1,ok
+--rar-magic-v2,--rar-magic,(分用途，只查有定義),#9da7ff,ok
+--rar-magic-v2,--hp,(分用途，只查有定義),#934341,ok
+--rar-magic-v2,--enemy-rim,(分用途，只查有定義),#fbbdbb,ok
+--rar-magic-v3,--mp,#3a5b98,#3a5b98,ok
+--rar-magic-rgb,--rar-magic,(分用途，只查有定義),#9da7ff,ok
+--rar-magic-rgb,--enemy-rim,(分用途，只查有定義),#fbbdbb,ok
+--rar-magic-rgb-v1,--affix,(分用途，只查有定義),#9da7ff,ok
+--rar-magic-rgb-v1,--border,(分用途，只查有定義),#817b75,ok
+--rar-magic-bg-v1,--rar-magic-bg,#23232b,#23232b,ok
+--rar-magic-bg-rgb,--rar-magic-bg,#23232b,#23232b,ok
+--rar-rare-rgb,--rar-rare-rgb,251 229 58,"251, 229, 58",ok
+--rar-rare-bg-v1,--sel-bg,#463a2d,#463a2d,ok
+--rar-rare-bg-v2,--rar-rare-bg,#26241b,#26241b,ok
+--rar-rare-bg-rgb,--rar-rare-bg,#26241b,#26241b,ok
+--rar-unique-rgb,--rar-unique,(分用途，只查有定義),#fa8915,ok
+--rar-unique-rgb,--sel-bg,(分用途，只查有定義),#463a2d,ok
+--rar-unique-bg-rgb,--rar-unique-bg,#2a221c,#2a221c,ok
+--rar-chase-bg-v1,--act,#7c5729,#7c5729,ok
+--rar-chase-bg-v2,--asc-bg,#1a2623,#1a2623,ok
+--rar-chase-rgb,--rar-chase-rgb,12 246 238,"12, 246, 238",ok
+--asc-v1,--hf,#b65517,#b65517,ok
+--asc-hi-v1,--asc-hi,#8ce1cf,#8ce1cf,ok
+--asc-on-v1,--act,#7c5729,#7c5729,ok
+--asc-on-v2,--act,#7c5729,#7c5729,ok
+--asc-on-v3,--hp,#934341,#934341,ok
+--asc-rgb,--asc-on,(分用途，只查有定義),#1c4941,ok
+--asc-rgb,--asc-bg,(分用途，只查有定義),#1a2623,ok
+--cat-frac-v1,--cat-frac,#fbf9f6,#fbf9f6,ok
+--cat-frac-v2,--cat-frac,#fbf9f6,#fbf9f6,ok
+--cat-frac-v3,--cat-frac,#fbf9f6,#fbf9f6,ok
+--cat-mem-v1,--cat-mem,#ade2f9,#ade2f9,ok
+--affix-v1,--affix,#9da7ff,#9da7ff,ok
+--awk-v1,--awk,#caaef4,#caaef4,ok
+--el-fire-rgb,--el-fire-rgb,(分用途，只查有定義),"238, 153, 120",ok
+--el-fire-rgb,--hurt-vignette-rgb,(分用途，只查有定義),"176, 26, 20",ok
+--el-fire-rgb-v1,--border-mid,#817b75,#817b75,ok
+--el-cold-v1,--tx,#e8e5e1,#e8e5e1,ok
+--el-cold-v2,--tx,#e8e5e1,#e8e5e1,ok
+--el-cold-rgb-v1,--es,#dfbf91,#dfbf91,ok
+--el-cold-rgb-v2,--cat-mem,#ade2f9,#ade2f9,ok
+--el-chaos-rgb,--enemy-tel-rgb,(分用途，只查有定義),"255, 61, 127",ok
+--el-chaos-rgb,--portal-rgb,(分用途，只查有定義),"204, 188, 254",ok
+--el-chaos-rgb-v1,--mp-hi,#6b7dad,#6b7dad,ok
+--dmg-hurt-v1,--hp,(分用途，只查有定義),#934341,ok
+--dmg-hurt-v1,--tx-strong,(分用途，只查有定義),#fbf9f6,ok
+--dmg-hurt-v1,--fx-own,(分用途，只查有定義),#c6c6c6,ok
+--dmg-minor-v1,--border,#817b75,#817b75,ok
+--legacy-2,--sel-bg,#463a2d,#463a2d,ok
+--legacy-3,--mp-hi,#6b7dad,#6b7dad,ok
+--legacy-4,--tx-dim,#aeaba7,#aeaba7,ok
+--legacy-5,--prog-lo,#3c3935,#3c3935,ok
+--legacy-6,--tx-dim,#aeaba7,#aeaba7,ok
+--legacy-7,--tx-dim,#aeaba7,#aeaba7,ok
+--legacy-8,--prog-lo,#3c3935,#3c3935,ok
+--legacy-9,--rar-magic-bg,#23232b,#23232b,ok
+--legacy-10,--rar-magic-bg,#23232b,#23232b,ok
+--legacy-11,--rar-rare-bg,#26241b,#26241b,ok
+--legacy-12,--rar-rare-bg,#26241b,#26241b,ok
+--legacy-13,--rar-unique-bg,#2a221c,#2a221c,ok
+--legacy-14,--rar-unique-bg,#2a221c,#2a221c,ok
+--legacy-15,--tx-dim,#aeaba7,#aeaba7,ok
+--legacy-16,--sel-bg,#463a2d,#463a2d,ok
+--legacy-17,--hdr,#2d251f,#2d251f,ok
+--legacy-18,--hdr,#2d251f,#2d251f,ok
+--legacy-19,--cat-corr,#ff6066,#ff6066,ok
+--legacy-20,--prog-lo,#3c3935,#3c3935,ok
+--legacy-21,--border,#817b75,#817b75,ok
+--legacy-22,--scene-void,#16130f,#16130f,ok
+--legacy-23,--border,#817b75,#817b75,ok
+--frame,--scrim-rgb,10 7 4,"10, 7, 4",ok
+--hi,--mp-hi,(分用途，只查有定義),#6b7dad,ok
+--hi,--hp-hi,(分用途，只查有定義),#af6c64,ok
+--pt-bg,--scene-void,#16130f,#16130f,ok
+--pt-node,--panel-inset,#1d1a17,#1d1a17,ok
+--pt-line,--border-hi-rgb,176 170 164,"176, 170, 164",ok
+--rc,--rar-rare,#fbe53a,#fbe53a,ok
+X1 render.js:482 RCOL,--rar-normal,(分用途，只查有定義),#f1ebdb,ok
+X1 render.js:482 RCOL,--rar-magic,(分用途，只查有定義),#9da7ff,ok
+X1 render.js:482 RCOL,--rar-rare,(分用途，只查有定義),#fbe53a,ok
+X3 render.js:268/275 回家傳送門,--portal-rgb,204 188 254,"204, 188, 254",ok
+X4 render.js:953 fx 環,--dmg-outline,(分用途，只查有定義),"rgba(0, 0, 0, 0.8)",ok
+X4 render.js:953 fx 環,--beam-edge,(分用途，只查有定義),,❌ :root 沒有
+SIGNOFF §0,--hf,#b65517,#b65517,ok
+SIGNOFF §0,--portal,#ccbcfe,#ccbcfe,ok
+SIGNOFF §0,--portal-rgb,"204, 188, 254","204, 188, 254",ok
+SIGNOFF §0,--enemy-tel-rgb,"255, 61, 127","255, 61, 127",ok
+SIGNOFF §0,--el-fire-rgb,"238, 153, 120","238, 153, 120",ok
+SIGNOFF §0,--rar-rare-rgb,"251, 229, 58","251, 229, 58",ok
+SIGNOFF §0,--rar-chase-rgb,"12, 246, 238","12, 246, 238",ok
+SIGNOFF §0,--enemy-tel,(要有),#ff3d7f,ok
+SIGNOFF §0,--enemy-rim,(要有),#fbbdbb,ok
+SIGNOFF §0,--fx-own,(要有),#c6c6c6,ok
+SIGNOFF §0,--vig,(要有),#b01a14,ok
+SIGNOFF §0,--dmg-outline,(要有),"rgba(0, 0, 0, 0.8)",ok

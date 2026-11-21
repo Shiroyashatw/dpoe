@@ -600,7 +600,7 @@ function hfGain(v) {
 function hfBoom() {
   P.hf = 0;
   const d = (ST.hp + ST.es) * (1 - effRes('fire') / 100);
-  fx({ k: 'ring', x: P.x, y: P.y, r: 140, dur: 0.45, col: PAL.badHiV2 });
+  fx({ k: 'ring', x: P.x, y: P.y, r: 140, dur: 0.45, col: PAL.enemyTel, sh: 'boom' });
   sfx('slam');
   num(P.x, P.y - 60, d, 'hurt');
   if (ST.reborn) P.rebT = G.t + HF.reborn;
@@ -1858,7 +1858,7 @@ function onHitBase(m, r, c) {
 function markBoom(m) {
   const q = (m.ail.mark && m.ail.mark.q) || 0;
   m.ail.mark = null;
-  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: PAL.dmgHurtV1 });
+  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: PAL.fxOwn });
   for (const o of G.mobs)
     if (o.hp > 0 && o !== m && dist(o, m) < 120 + o.r) {
       (o.hp -= m.mhp * 0.1), num(o.x, o.y - o.sz, m.mhp * 0.1, 'phys');

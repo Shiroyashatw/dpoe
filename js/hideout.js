@@ -278,9 +278,9 @@ function drawHideout(W, H) {
     CX.fillRect(Math.round((s.x + Math.sin(a * 5 + s.x) * 8) / tx) * tx, Math.round((s.y - a * s.v) / tx) * tx, tx, tx);
   }
   if (sp.length && G.t - sp[0].t > sp[0].d) sp.shift();
-  /* 地圖台的符文（紫，跟傳送門同色） */
+  /* 地圖台的符文（--portal，跟傳送門同一族） */
   const d = A.props[0];
-  CX.fillStyle = `rgba(${PAL.rgb.elChaos},${0.5 + 0.28 * Math.sin(G.t * 2)})`;
+  CX.fillStyle = `rgba(${PAL.rgb.portal},${0.5 + 0.28 * Math.sin(G.t * 2)})`;
   for (let i = 0; i < 40; i++) {
     const q = (i / 40) * TAU + G.t * 0.25;
     CX.fillRect(

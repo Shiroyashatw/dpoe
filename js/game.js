@@ -686,7 +686,7 @@ function spawnBoss() {
   mobDef(b, G.mapT || 1);
   b.aggro = 1;
   b.cd = 1.2;
-  fx({ k: 'ring', x: p.x, y: p.y, r: 160, dur: 0.6, col: PAL.badHiV2 });
+  fx({ k: 'ring', x: p.x, y: p.y, r: 160, dur: 0.6, col: PAL.enemyTel, sh: 'boom' });
   sfx('boss');
   /* M2-12 §4：王出現由 #bossbar 的 44 高橫幅「{王名}現身」講，不另外跳字 */
 }
@@ -798,20 +798,12 @@ function num(x, y, v, c, txt) {
     G.nums.splice(i, 1);
   }
 }
-/* 圓環、電弧、死亡、補血這些舊特效，順便疊一張 pixelfx 的序列圖（圓環留著，看得出範圍） */
-const RINGFX = {
-  [PAL.elFire]: 'boom',
-  [PAL.badHiV2]: 'boom',
-  [PAL.elFireV1]: 'boom',
-  [PAL.elCold]: 'frost',
-  [PAL.elChaosV1]: 'dark',
-  [PAL.elChaos]: 'dark',
-  [PAL.catFracV4]: 'slam'
-};
+/* 圓環、電弧、死亡、補血這些舊特效，順便疊一張 pixelfx 的序列圖（圓環留著，看得出範圍）。
+   環的序列圖由呼叫端的 sh 明示（X2，不再用色值當 key）；沒給 col 也沒給 sh＝預設 slam；印記環、喝藥不給＝不播 */
 function fx(o) {
   o.t = 0;
   G.fx.push(o);
-  if (o.k === 'ring') fxs(RINGFX[o.col || PAL.catFracV4], o.x, o.y, o.r);
+  if (o.k === 'ring') fxs(o.sh === undefined && !o.col ? 'slam' : o.sh, o.x, o.y, o.r);
   else if (o.k === 'zap') fxs('zap', o.x2, o.y2);
   else if (o.k === 'die') fxs('poof', o.x, o.y, o.sz * 0.5);
   else if (o.k === 'heal') fxs(o.k, o.x, o.y);
@@ -1121,7 +1113,7 @@ function killMob(m) {
   m.hp = 0;
   const t = G.mapT;
   fx({ k: 'die', x: m.x, y: m.y, sp: m.D.sp, sz: m.sz, dur: 0.45, flip: m.x > P.x });
-  sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? PAL.badHiV2 : PAL.rarNormalV2);
+  sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? PAL.fxOwn : PAL.rarNormalV2);
   mobGround(m);
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
   if (m.summoned) return;
@@ -1567,11 +1559,11 @@ function mobStrike(m) {
         o.owner = m;
         o.summoned = o.aggro = 1;
       }
-    fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.35, col: PAL.elChaosV1 });
+    fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.35, col: PAL.elChaosV1, sh: 'dark' });
     recover(m, 0.5);
   } else if (D.ai === 'bomb') {
     /* 自爆：死掉但不給經驗與掉寶，只算首領進度 */
-    fx({ k: 'ring', x: m.x, y: m.y, r: D.boom, dur: 0.35, col: PAL.elFireV1 });
+    fx({ k: 'ring', x: m.x, y: m.y, r: D.boom, dur: 0.35, col: PAL.elFireV1, sh: 'boom' });
     sfx('slam');
     mobArea(m, m.x, m.y, D.boom, m.dmg, true);
     m.hp = 0;
@@ -1580,7 +1572,7 @@ function mobStrike(m) {
   } else if (D.ai === 'slam') {
     const x = m.x + Math.cos(m.ang) * 55,
       y = m.y + Math.sin(m.ang) * 55;
-    fx({ k: 'ring', x, y, r: 95, dur: 0.3, col: PAL.elFireV1 });
+    fx({ k: 'ring', x, y, r: 95, dur: 0.3, col: PAL.elFireV1, sh: 'boom' });
     mobArea(m, x, y, 95, m.dmg, true);
     recover(m, 0.6);
   }
@@ -1920,16 +1912,16 @@ function bossAI(m, dt) {
           const o = spawnMob(MOBS[m.D.call], m.x + rnd(-90, 90), m.y + rnd(-90, 90), 99, false);
           o.summoned = o.aggro = 1;
         }
-        fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.35, col: PAL.elChaosV1 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.35, col: PAL.elChaosV1, sh: 'dark' });
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'nova') {
         const grp = {};
         for (let i = 0; i < NOVA_N - NOVA_GAP; i++) foeShot(m, novaAng(m, i), 260, m.dmg * 0.8, grp);
         bossRec(m, 0.7, rage);
       } else if (m.pat === 'blink') {
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
         if (!(m.ail.pinT > G.t)) (m.x = m.tx), (m.y = m.ty);
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
         /* 落地接一下揮爪（畫面照揮爪的預警） */
         m.pat = 'swipe';
         m.ang = angTo(m, T);
@@ -1961,7 +1953,7 @@ function bossAI(m, dt) {
           nx = T.x + Math.cos(a) * 150,
           ny = T.y + Math.sin(a) * 150;
         if (!isWall(nx, ny) && !(m.ail.pinT > G.t)) (m.x = nx), (m.y = ny);
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
         G.tele.push({ x: m.x, y: m.y, r: 95, t: 0, dur: 0.5 * rage, dmg: m.dmg, src: m, el: 'chaos' });
         m.cj = (m.cj || 3) - 1;
         if (m.cj > 0) (m.st = 'wind'), (m.t = 0.45 * rage);
@@ -1977,12 +1969,12 @@ function bossAI(m, dt) {
         bossRec(m, 0.5, rage);
       } else if (m.pat === 'wrath') {
         m.wrathT = G.t + 5;
-        fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: PAL.badHiV2 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: PAL.enemyTel, sh: 'boom' });
         hudWarn(`${m.D.n}暴怒了`);
         bossRec(m, 0.4, rage);
       } else if (m.pat === 'dread') {
         m.dreadT = G.t + 3.5;
-        fx({ k: 'ring', x: m.x, y: m.y, r: 170, dur: 3.5, col: PAL.elChaosV1 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 170, dur: 3.5, col: PAL.elChaosV1, sh: 'dark' });
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'tether') {
         m.tethers = [0, 1].map(() => {
@@ -2189,7 +2181,7 @@ function updShots(dt) {
     }
     if (t.t >= t.dur && !t.done) {
       t.done = 1;
-      fx({ k: 'ring', x: t.x, y: t.y, r: t.r, dur: 0.3, col: PAL.elFireV1 });
+      fx({ k: 'ring', x: t.x, y: t.y, r: t.r, dur: 0.3, col: PAL.elFireV1, sh: 'boom' });
       sfx('slam');
       mobArea(t.src, t.x, t.y, t.r, t.dmg, true, t.el);
     }

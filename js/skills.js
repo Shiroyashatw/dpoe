@@ -862,7 +862,7 @@ function actHit(a, idx) {
       fire = use('fire'),
       cold = use('cold'),
       R2 = R * (fire ? 1.5 : 1);
-    fx({ k: 'ring', x: P.x, y: P.y, r: R2, dur: 0.32, col: PAL.elFire });
+    fx({ k: 'ring', x: P.x, y: P.y, r: R2, dur: 0.32, col: PAL.elFire, sh: 'boom' });
     fxs('firering', P.x, P.y, R2);
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R2 + m.r) hitMob(m, c, angTo(P, m), 140 * c.kb, { a });
     if (fire) addGround({ k: 'fire', x: P.x, y: P.y, r: R2, dur: 4, c, dps: 0.3 });
@@ -882,7 +882,7 @@ function actHit(a, idx) {
     /* 汐引（0.2.74 潮汐）：在滑鼠位置掀起浪潮：範圍內每隻受一次冰冷＋閃電的法術擊中，然後拉向中心（王不拉、菁英減半、釘身的不動；約拉到離中心 20% 處），
        留下鹹水地面 3 秒（品質每 1% 多留 0.1 秒；站在上面冰緩 30%、閃電擊中必定感電）。用 G.mobs 的快照，擊殺不會改到迴圈 */
     const hit = G.mobs.filter(m => m.hp > 0 && !m.arrow && Math.hypot(m.x - a.tx, m.y - a.ty) < R + m.r);
-    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: ELC.cold });
+    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: ELC.cold, sh: 'frost' });
     fxs('frost', a.tx, a.ty, R);
     for (const m of hit) hitMob(m, c, Math.atan2(m.y - a.ty, m.x - a.tx), 0, { a });
     for (const m of hit) {
@@ -927,14 +927,14 @@ function actHit(a, idx) {
     sfx('cast');
   } else if (D.curse) {
     G.meteors.push({ x: a.tx, y: a.ty, r: R, t: 0, dur: 1.5, curse: D.curse, lv: c.lv, q: c.q, dm: durOf(c) / D.dur });
-    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: PAL.elChaos });
+    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: PAL.elChaos, sh: 'dark' });
     sfx('cast');
   } else if (D.mark) {
     const m = G.mobs
       /* 印記挑滑鼠位置 120 內最近的一隻（覺醒 B 的範圍補丁乘 c.aoe） */
       .filter(o => o.hp > 0 && Math.hypot(o.x - a.tx, o.y - a.ty) < 120 * c.aoe + o.r)
       .sort((x, y) => Math.hypot(x.x - a.tx, x.y - a.ty) - Math.hypot(y.x - a.tx, y.y - a.ty))[0];
-    if (m) markMob(m, D.mark, c.q), fx({ k: 'ring', x: m.x, y: m.y, r: 40, dur: 0.3, col: PAL.dmgHurtV1 }), sfx('cast');
+    if (m) markMob(m, D.mark, c.q), fx({ k: 'ring', x: m.x, y: m.y, r: 40, dur: 0.3, col: PAL.fxOwn }), sfx('cast');
   } else if (a.k === 'meteor') {
     /* 覺醒 B「三連隕石」：同時落下 c.volley 顆（繞著落點，每顆晚 0.1 秒） */
     const n = c.volley || 1;
@@ -1094,7 +1094,7 @@ function actHit2(a, idx, R, hitArc) {
     P.rage = Math.min(rageCap(), (P.rage || 0) + 15);
     P.rageT = G.t;
     fxs('rage', P.x, P.y - 30, 40);
-    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.badHiV2 });
+    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.fxOwn, sh: 'boom' });
     for (const m of G.mobs) if (m.hp > 0 && dist(P, m) < R + m.r) (m.ail.intim = G.t + durOf(c)), (m.ail.intimQ = c.q);
     if (cryEmpower(R, 'emInf')) P.emInfV = 30 + (c.lv - 1);
   } else if (a.k === 'seiscry') {
@@ -1342,7 +1342,7 @@ function actHit2(a, idx, R, hitArc) {
       P.rage += 4 * c.q - D.rageCost;
       P.rageT = G.t;
       fxs('rage', P.x, P.y - 30, 40);
-      fx({ k: 'ring', x: P.x, y: P.y, r: R * 1.5, dur: 0.35, col: PAL.badHiV2 });
+      fx({ k: 'ring', x: P.x, y: P.y, r: R * 1.5, dur: 0.35, col: PAL.fxOwn, sh: 'boom' });
       around(P.x, P.y, R * 1.5, 260);
       addGround({ k: 'jagged', x: P.x, y: P.y, r: R, dur: 2, c, after: 1 });
     }
@@ -1547,7 +1547,7 @@ function boom(s) {
     addGround({ k: 'gas', x: s.x, y: s.y + 18, r: s.gas, dur: durOf(s.c), c: s.c, dps: 0.6, drift: 60 * (s.c.q || 0) });
     return fxs('gas', s.x, s.y + 18, s.gas);
   }
-  fx({ k: 'ring', x: s.x, y: s.y + 18, r: s.boom, dur: 0.3, col: PAL.elFire });
+  fx({ k: 'ring', x: s.x, y: s.y + 18, r: s.boom, dur: 0.3, col: PAL.elFire, sh: 'boom' });
   sfx('slam');
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - s.x, m.y - 18 - s.y) < s.boom + m.r)
@@ -1720,7 +1720,7 @@ function hitMob(m, c, ang, kb, o = {}) {
 /* 辰龍的隕石：落在目標上，半徑 150 內的敵人受火焰範圍傷害（那一下擊中的 150%，擊中前的總傷害；吃火焰抗性，不走 hitMob 所以不會再算擊中數） */
 function meteorFall(m, r) {
   const v = DT.reduce((s, k) => s + r.pre[k], 0) * 1.5;
-  fx({ k: 'ring', x: m.x, y: m.y, r: 150, dur: 0.4, col: ELC.fire });
+  fx({ k: 'ring', x: m.x, y: m.y, r: 150, dur: 0.4, col: ELC.fire, sh: 'boom' });
   fxs('boom', m.x, m.y, 150);
   for (const o of G.mobs.slice()) if (o.hp > 0 && !o.arrow && dist(o, m) < 150 + o.r) dotHit(o, v, 'fire');
 }
@@ -1788,7 +1788,7 @@ const herR = k => AURAS['h_' + k].r * ST.herA[k];
 function heraldBoom(k, x, y, c, el, flag) {
   const r = herR(k),
     cc = { ...c, ...flag, D: { ...c.D, el, tags: [...(c.D.tags || []), 'aoe'] } };
-  fx({ k: 'ring', x, y, r, dur: 0.3, col: ELC[el] });
+  fx({ k: 'ring', x, y, r, dur: 0.3, col: ELC[el], sh: ELSH[el] });
   fxs(k === 'ice' ? 'shatter' : 'thunder', x, y, r);
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r)
@@ -1807,7 +1807,7 @@ function heraldKill(m, c, o, a) {
   if (H.ash && o.her !== 'ash' && over > m.mhp * 0.2) {
     const r = herR('ash'),
       dps = over * (0.17 + 0.003 * (H.ash - 1)) * 0.2 * ST.herM.ash * herX();
-    fx({ k: 'ring', x: m.x, y: m.y, r, dur: 0.3, col: ELC.fire });
+    fx({ k: 'ring', x: m.x, y: m.y, r, dur: 0.3, col: ELC.fire, sh: 'boom' });
     for (const x of G.mobs)
       if (x !== m && x.hp > 0 && x.ail && !noAil(x.ail, 'ign') && dist(x, m) < r + x.r)
         x.ail.ign = keepMax(x.ail.ign, dps, 3);
@@ -2035,7 +2035,7 @@ function updPools(dt) {
           curseMob(m, o.curse, o.lv, o.q, o.dm);
     } else if (o.t >= o.dur && !o.done) {
       o.done = 1;
-      fx({ k: 'ring', x: o.x, y: o.y, r: o.r, dur: 0.4, col: PAL.badHiV2 });
+      fx({ k: 'ring', x: o.x, y: o.y, r: o.r, dur: 0.4, col: PAL.fxOwn, sh: 'boom' });
       sfx('slam');
       let n = 0;
       for (const m of G.mobs)
@@ -2199,7 +2199,7 @@ function unitFire(u, tgt, mul = 1) {
     /* 同一格已經爆掉、還在 G.units 裡的陷阱不算（冰霜陷阱的品質讓它留下時在 updUnits 清掉） */
     u.spent = 1;
     const boom = (p, o) => {
-      fx({ k: 'ring', x: p.x, y: p.y, r, dur: 0.35, col });
+      fx({ k: 'ring', x: p.x, y: p.y, r, dur: 0.35, col, sh: ELSH[D.el] });
       for (const m of G.mobs)
         if (m.hp > 0 && Math.hypot(m.x - p.x, m.y - p.y) < r + m.r) {
           hitMob(m, c, Math.atan2(m.y - p.y, m.x - p.x), 140, {

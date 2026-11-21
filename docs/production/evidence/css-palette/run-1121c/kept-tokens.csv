@@ -1,0 +1,169 @@
+token,現值,PAL 鍵,JS 引用位置,狀態
+--scene-void-v14,#070606,PAL.sceneVoidV14,js/render.js:129,判定表無 target，保留，待 UIUX 另給對照
+--scene-void-rgb-v1,"21, 17, 13",PAL.rgb.sceneVoidV1,js/render.js:482,判定表無 target，保留，待 UIUX 另給對照
+--scene-void-rgb-v2,"8, 6, 5",PAL.rgb.sceneVoidV2,js/render.js:1017,判定表無 target，保留，待 UIUX 另給對照
+--panel-raised-2-v2,#3a2f28,PAL.panelRaised2V2,js/render.js:141,判定表無 target，保留，待 UIUX 另給對照
+--panel-rgb-v2,"38, 40, 45",PAL.rgb.panelV2,js/render.js:1433,判定表無 target，保留，待 UIUX 另給對照
+--hl-v1,#d6f3ff,PAL.hlV1,js/render.js:393,判定表無 target，保留，待 UIUX 另給對照
+--hl-v2,#cfd8e3,PAL.hlV2,js/mech.js:826 js/render.js:567 js/render.js:1515 js/skills.js:1280 js/skills.js:1384 js/skills.js:2132 js/skills.js:2179 js/skills.js:2191,判定表無 target，保留，待 UIUX 另給對照
+--hl-v3,#c3c7d0,PAL.hlV3,js/render.js:818,判定表無 target，保留，待 UIUX 另給對照
+--hl-v4,#cfe9ff,PAL.hlV4,js/render.js:1471,判定表無 target，保留，待 UIUX 另給對照
+--hl-v5,#cfe8ff,PAL.hlV5,js/game.js:1737,判定表無 target，保留，待 UIUX 另給對照
+--hl-v6,#e8f4ff,PAL.hlV6,js/mech.js:851,判定表無 target，保留，待 UIUX 另給對照
+--hl-v7,#b8c4d4,PAL.hlV7,js/skills.js:1409,判定表無 target，保留，待 UIUX 另給對照
+--hl-v8,#c9d3e0,PAL.hlV8,js/combat.js:556,判定表無 target，保留，待 UIUX 另給對照
+--glint-v3,#e6f7ff,PAL.glintV3,js/render.js:373,判定表無 target，保留，待 UIUX 另給對照
+--glint-v4,#eef6ff,PAL.glintV4,js/render.js:403,判定表無 target，保留，待 UIUX 另給對照
+--glint-v5,#f4f5f7,PAL.glintV5,js/render.js:818,判定表無 target，保留，待 UIUX 另給對照
+--warm-glint-v1,#ffd08a,PAL.warmGlintV1,js/render.js:384,判定表無 target，保留，待 UIUX 另給對照
+--warm-glint-v2,#fff3b0,PAL.warmGlintV2,js/render.js:1469,判定表無 target，保留，待 UIUX 另給對照
+--hurt-vignette-v1,#c0392b,PAL.hurtVignetteV1,js/mech.js:840,判定表無 target，保留，待 UIUX 另給對照
+--dodge-vignette-v1,#6cb8ff,PAL.dodgeVignetteV1,js/render.js:788,判定表無 target，保留，待 UIUX 另給對照
+--dodge-vignette-v2,#6fb7ff,PAL.dodgeVignetteV2,js/game.js:1755 js/game.js:2020,判定表無 target，保留，待 UIUX 另給對照
+--border-v2,#4a3d33,PAL.borderV2,js/render.js:1494,判定表無 target，保留，待 UIUX 另給對照
+--border-mid-v3,#5a4d43,PAL.borderMidV3,js/render.js:1506,判定表無 target，保留，待 UIUX 另給對照
+--border-hi-v2,#b08a5a,PAL.borderHiV2,js/mech.js:88 js/mech.js:121 js/skills.js:1097,判定表無 target，保留，待 UIUX 另給對照
+--border-cap-v1,#e8e2d6,PAL.borderCapV1,js/mech.js:119,判定表無 target，保留，待 UIUX 另給對照
+--tx-off-v1,#c9a27a,PAL.txOffV1,js/render.js:922,判定表無 target，保留，待 UIUX 另給對照
+--tx-off-v2,#a7a294,PAL.txOffV2,js/world.js:131,判定表無 target，保留，待 UIUX 另給對照
+--tx-off-rgb-v1,"170, 160, 130",PAL.rgb.txOffV1,js/tree.js:459,判定表無 target，保留，待 UIUX 另給對照
+--tx-lock-v3,#8a7a6a,PAL.txLockV3,js/render.js:971,判定表無 target，保留，待 UIUX 另給對照
+--tx-empty-rgb-v1,"120, 105, 92",PAL.rgb.txEmptyV1,js/render.js:1026,判定表無 target，保留，待 UIUX 另給對照
+--on-act-rgb-v2,"255, 236, 214",PAL.rgb.onActV2,js/render.js:752,判定表無 target，保留，待 UIUX 另給對照
+--good-v1,#7be08a,PAL.goodV1,js/render.js:788,判定表無 target，保留，待 UIUX 另給對照
+--good-v2,#9df29d,PAL.goodV2,js/render.js:1038 js/skills.js:950,判定表無 target，保留，待 UIUX 另給對照
+--good-v3,#7bd36b,PAL.goodV3,js/render.js:1461 js/render.js:1524,判定表無 target，保留，待 UIUX 另給對照
+--good-v4,#8fd16b,PAL.goodV4,js/mech.js:89 js/skills.js:1399,判定表無 target，保留，待 UIUX 另給對照
+--good-v5,#a8c24a,PAL.goodV5,js/mech.js:176,判定表無 target，保留，待 UIUX 另給對照
+--good-v6,#6ee06e,PAL.goodV6,js/maps.js:96,判定表無 target，保留，待 UIUX 另給對照
+--good-rgb-v1,"157, 242, 157",PAL.rgb.goodV1,js/render.js:1446,判定表無 target，保留，待 UIUX 另給對照
+--bad-v5,#ff3b3b,PAL.badV5,js/mech.js:770 js/render.js:595,判定表無 target，保留，待 UIUX 另給對照
+--bad-v6,#c95050,PAL.badV6,js/render.js:1034,判定表無 target，保留，待 UIUX 另給對照
+--bad-hi-v3,#ff6b5b,PAL.badHiV3,js/render.js:788,判定表無 target，保留，待 UIUX 另給對照
+--bad-hi-rgb-v1,"255, 107, 61",PAL.rgb.badHiV1,js/render.js:256,判定表無 target，保留，待 UIUX 另給對照
+--bad-hi-rgb-v2,"255, 100, 60",PAL.rgb.badHiV2,js/render.js:578,判定表無 target，保留，待 UIUX 另給對照
+--bad-rgb-v1,"229, 72, 77",PAL.rgb.badV1,js/render.js:171 js/render.js:187 js/render.js:189 js/render.js:198 js/render.js:220 js/render.js:495 js/render.js:499 js/touch.js:54,判定表無 target，保留，待 UIUX 另給對照
+--hp-v3,#7a1c1c,PAL.hpV3,js/render.js:1498,判定表無 target，保留，待 UIUX 另給對照
+--prog-lo-v1,#6b4a2b,PAL.progLoV1,js/render.js:1501,判定表無 target，保留，待 UIUX 另給對照
+--prog-hi-v1,#c9a46b,PAL.progHiV1,js/render.js:1503 js/render.js:1508,判定表無 target，保留，待 UIUX 另給對照
+--prog-hi-v2,#e3a14a,PAL.progHiV2,js/game.js:1943 js/world.js:143,判定表無 target，保留，待 UIUX 另給對照
+--prog-hi-v3,#ffb04a,PAL.progHiV3,js/hideout.js:275,判定表無 target，保留，待 UIUX 另給對照
+--rar-normal-v1,#d9c7a3,PAL.rarNormalV1,js/render.js:360,判定表無 target，保留，待 UIUX 另給對照
+--rar-normal-v2,#c9b8a8,PAL.rarNormalV2,js/game.js:628 js/game.js:1116,判定表無 target，保留，待 UIUX 另給對照
+--rar-magic-bg-rgb-v1,"18, 24, 51",PAL.rgb.rarMagicBgV1,js/render.js:483,判定表無 target，保留，待 UIUX 另給對照
+--rar-rare-v1,#ffd166,PAL.rarRareV1,js/maps.js:89,判定表無 target，保留，待 UIUX 另給對照
+--rar-rare-bg-v3,#8a6a2a,PAL.rarRareBgV3,js/mech.js:91,判定表無 target，保留，待 UIUX 另給對照
+--rar-rare-bg-rgb-v1,"42, 33, 13",PAL.rgb.rarRareBgV1,js/render.js:484,判定表無 target，保留，待 UIUX 另給對照
+--rar-unique-v2,#7fd1c7,PAL.rarUniqueV2,js/game.js:2001 js/world.js:137,判定表無 target，保留，待 UIUX 另給對照
+--rar-chase-v2,#ff8a2a,PAL.rarChaseV2,js/mech.js:152,判定表無 target，保留，待 UIUX 另給對照
+--rar-chase-hi-v1,#ffb36b,PAL.rarChaseHiV1,js/render.js:260,判定表無 target，保留，待 UIUX 另給對照
+--rar-chase-hi-v2,#ffc9a0,PAL.rarChaseHiV2,js/render.js:1470,判定表無 target，保留，待 UIUX 另給對照
+--rar-chase-bg-v3,#3a1a14,PAL.rarChaseBgV3,js/mech.js:792,判定表無 target，保留，待 UIUX 另給對照
+--asc-hi-v2,#ffb3a0,PAL.ascHiV2,js/render.js:930,判定表無 target，保留，待 UIUX 另給對照
+--cat-frac-v4,#fff3d6,PAL.catFracV4,js/mech.js:239 js/render.js:964,判定表無 target，保留，待 UIUX 另給對照
+--cat-frac-rgb-v1,"255, 244, 214",PAL.rgb.catFracV1,js/render.js:759,判定表無 target，保留，待 UIUX 另給對照
+--cat-frac-rgb-v2,"255, 240, 210",PAL.rgb.catFracV2,js/render.js:912,判定表無 target，保留，待 UIUX 另給對照
+--cat-mem-v2,#8fe0ff,PAL.catMemV2,js/render.js:998,判定表無 target，保留，待 UIUX 另給對照
+--cat-mem-rgb-v1,"143, 224, 255",PAL.rgb.catMemV1,js/render.js:866,判定表無 target，保留，待 UIUX 另給對照
+--el-fire-v1,#ff8a5b,PAL.elFireV1,js/game.js:1563 js/game.js:1572 js/game.js:2179 js/render.js:930,判定表無 target，保留，待 UIUX 另給對照
+--el-fire-rgb-v2,"255, 120, 50",PAL.rgb.elFireV2,js/render.js:614,判定表無 target，保留，待 UIUX 另給對照
+--el-cold-v3,#6fd3ff,PAL.elColdV3,js/mech.js:108,判定表無 target，保留，待 UIUX 另給對照
+--el-cold-v4,#5ad1ff,PAL.elColdV4,js/maps.js:103,判定表無 target，保留，待 UIUX 另給對照
+--el-cold-rgb,"143, 214, 255",PAL.rgb.elCold,js/render.js:369,判定表無 target，保留，待 UIUX 另給對照
+--el-cold-rgb-v3,"122, 208, 255",PAL.rgb.elColdV3,js/render.js:205 js/render.js:389,判定表無 target，保留，待 UIUX 另給對照
+--el-cold-rgb-v4,"170, 210, 255",PAL.rgb.elColdV4,js/render.js:234,判定表無 target，保留，待 UIUX 另給對照
+--el-cold-rgb-v5,"200, 230, 255",PAL.rgb.elColdV5,js/render.js:401,判定表無 target，保留，待 UIUX 另給對照
+--el-light-v1,#ffe08a,PAL.elLightV1,js/mech.js:124,判定表無 target，保留，待 UIUX 另給對照
+--el-light-v2,#ffe14d,PAL.elLightV2,js/mech.js:144,判定表無 target，保留，待 UIUX 另給對照
+--el-chaos-v1,#b28dff,PAL.elChaosV1,js/game.js:1559 js/game.js:1910 js/game.js:1917 js/game.js:1919 js/game.js:1951 js/game.js:1972,判定表無 target，保留，待 UIUX 另給對照
+--el-chaos-rgb-v2,"195, 139, 255",PAL.rgb.elChaosV2,js/render.js:234,判定表無 target，保留，待 UIUX 另給對照
+--dmg-hit-v1,#b4b9c2,PAL.dmgHitV1,js/render.js:1468,判定表無 target，保留，待 UIUX 另給對照
+--dmg-hit-v2,#e4e7ec,PAL.dmgHitV2,js/render.js:1468,判定表無 target，保留，待 UIUX 另給對照
+--dmg-crit-v1,#ffc21a,PAL.dmgCritV1,js/render.js:652,判定表無 target，保留，待 UIUX 另給對照
+--dmg-crit-v2,#ffcf6b,PAL.dmgCritV2,js/skills.js:1132 js/skills.js:1958,判定表無 target，保留，待 UIUX 另給對照
+--dmg-hurt-v2,#ff5a5f,PAL.dmgHurtV2,js/world.js:132,判定表無 target，保留，待 UIUX 另給對照
+--dmg-hurt-rgb-v1,"255, 120, 110",PAL.rgb.dmgHurtV1,js/render.js:503,判定表無 target，保留，待 UIUX 另給對照
+--dmg-gain-v1,#8fe0ff,PAL.dmgGainV1,js/render.js:655,判定表無 target，保留，待 UIUX 另給對照
+--dmg-gain-v2,#b8f0c8,PAL.dmgGainV2,js/render.js:656,判定表無 target，保留，待 UIUX 另給對照
+--dmg-gain-v3,#d6b8ff,PAL.dmgGainV3,js/render.js:658,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v2,#cfd8e3,PAL.dmgMinorV2,js/render.js:648,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v3,#c9a3a3,PAL.dmgMinorV3,js/render.js:660,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v4,#a7acb6,PAL.dmgMinorV4,js/render.js:491,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v5,#979ba5,PAL.dmgMinorV5,js/render.js:818,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v6,#aeb3bc,PAL.dmgMinorV6,js/render.js:1045,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v7,#aaaaaa,PAL.dmgMinorV7,js/game.js:2159,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v8,#9aa0a8,PAL.dmgMinorV8,js/mech.js:138,判定表無 target，保留，待 UIUX 另給對照
+--dmg-minor-v9,#aab4c4,PAL.dmgMinorV9,js/maps.js:82,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-1,#140d09,PAL.sceneDetail1,js/biome.js:63,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-2-rgb,"255, 220, 170",PAL.rgb.sceneDetail2,js/biome.js:77,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-3,#080b09,PAL.sceneDetail3,js/biome.js:80,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-4-rgb,"70, 110, 60",PAL.rgb.sceneDetail4,js/biome.js:89,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-5-rgb,"150, 220, 140",PAL.rgb.sceneDetail5,js/biome.js:94,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-6,#0b1118,PAL.sceneDetail6,js/biome.js:98,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-7,#060303,PAL.sceneDetail7,js/biome.js:98,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-8-rgb,"220, 240, 255",PAL.rgb.sceneDetail8,js/biome.js:110 js/biome.js:507,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-9-rgb,"230, 245, 255",PAL.rgb.sceneDetail9,js/biome.js:119,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-10-rgb,"255, 140, 60",PAL.rgb.sceneDetail10,js/biome.js:119,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-11-rgb,"200, 230, 255",PAL.rgb.sceneDetail11,js/biome.js:141,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-12-rgb,"235, 245, 255",PAL.rgb.sceneDetail12,js/biome.js:145,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-13-rgb,"120, 200, 90",PAL.rgb.sceneDetail13,js/biome.js:163,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-14-rgb,"220, 214, 190",PAL.rgb.sceneDetail14,js/biome.js:169,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-15-rgb,"60, 90, 50",PAL.rgb.sceneDetail15,js/biome.js:174,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-16-rgb,"214, 170, 70",PAL.rgb.sceneDetail16,js/biome.js:180,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-17-rgb,"230, 200, 90",PAL.rgb.sceneDetail17,js/biome.js:185,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-18-rgb,"170, 30, 20",PAL.rgb.sceneDetail18,js/biome.js:187,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-19,#050404,PAL.sceneDetail19,js/biome.js:217,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-20,#c9a227,PAL.sceneDetail20,js/biome.js:255 js/biome.js:452,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-21,#3a2418,PAL.sceneDetail21,js/biome.js:258,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-22-rgb,"220, 245, 255",PAL.rgb.sceneDetail22,js/biome.js:273,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-23-rgb,"190, 230, 255",PAL.rgb.sceneDetail23,js/biome.js:281,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-24-rgb,"255, 120, 40",PAL.rgb.sceneDetail24,js/biome.js:289,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-25-rgb,"80, 130, 70",PAL.rgb.sceneDetail25,js/biome.js:297 js/biome.js:538,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-26,#2a150e,PAL.sceneDetail26,js/biome.js:442,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-27-rgb,"214, 52, 34",PAL.rgb.sceneDetail27,js/biome.js:444,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-28-rgb,"255, 200, 110",PAL.rgb.sceneDetail28,js/biome.js:448,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-29-rgb,"170, 225, 255",PAL.rgb.sceneDetail29,js/biome.js:458,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-30-rgb,"150, 250, 150",PAL.rgb.sceneDetail30,js/biome.js:458,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-31-rgb,"255, 150, 60",PAL.rgb.sceneDetail31,js/biome.js:458,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-32,#151010,PAL.sceneDetail32,js/biome.js:459,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-33-rgb,"255, 255, 230",PAL.rgb.sceneDetail33,js/biome.js:467,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-34-rgb,"255, 220, 120",PAL.rgb.sceneDetail34,js/biome.js:475,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-35-rgb,"170, 255, 120",PAL.rgb.sceneDetail35,js/biome.js:475,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-36-rgb,"255, 110, 30",PAL.rgb.sceneDetail36,js/biome.js:476,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-37-rgb,"70, 160, 60",PAL.rgb.sceneDetail37,js/biome.js:476,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-38-rgb,"90, 20, 10",PAL.rgb.sceneDetail38,js/biome.js:477,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-39-rgb,"20, 50, 25",PAL.rgb.sceneDetail39,js/biome.js:477,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-40,#140807,PAL.sceneDetail40,js/biome.js:478,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-41,#0a140b,PAL.sceneDetail41,js/biome.js:478,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-42-rgb,"255, 240, 180",PAL.rgb.sceneDetail42,js/biome.js:488,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-43-rgb,"200, 255, 170",PAL.rgb.sceneDetail43,js/biome.js:488,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-44-rgb,"150, 210, 245",PAL.rgb.sceneDetail44,js/biome.js:498,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-45-rgb,"200, 240, 255",PAL.rgb.sceneDetail45,js/biome.js:498,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-46-rgb,"180, 225, 250",PAL.rgb.sceneDetail46,js/biome.js:511,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-47,#1e1513,PAL.sceneDetail47,js/biome.js:515,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-48-rgb,"255, 110, 40",PAL.rgb.sceneDetail48,js/biome.js:519,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-49,#231a17,PAL.sceneDetail49,js/biome.js:522,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-50-rgb,"255, 140, 50",PAL.rgb.sceneDetail50,js/biome.js:525,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-51,#2f3a32,PAL.sceneDetail51,js/biome.js:531,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-52,#4a3020,PAL.sceneDetail52,js/biome.js:541,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-53,#34302a,PAL.sceneDetail53,js/biome.js:541,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-54,#4a4540,PAL.sceneDetail54,js/biome.js:550,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-55,#5a554f,PAL.sceneDetail55,js/biome.js:554,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-56-rgb,"255, 190, 100",PAL.rgb.sceneDetail56,js/biome.js:560,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-57,#3b3e45,PAL.sceneDetail57,js/biome.js:564,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-58,#7c8290,PAL.sceneDetail58,js/biome.js:568,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-59,#3a2d18,PAL.sceneDetail59,js/biome.js:570,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-60,#8a2a1a,PAL.sceneDetail60,js/biome.js:573,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-61-rgb,"255, 160, 80",PAL.rgb.sceneDetail61,js/biome.js:575,判定表無 target，保留，待 UIUX 另給對照
+--scene-detail-62-rgb,"200, 200, 210",PAL.rgb.sceneDetail62,js/biome.js:579,判定表無 target，保留，待 UIUX 另給對照
+--fx-render-1-rgb,"70, 130, 255",PAL.rgb.fxRender1,js/render.js:230,判定表無 target，保留，待 UIUX 另給對照
+--fx-render-2-rgb,"150, 80, 220",PAL.rgb.fxRender2,js/render.js:230,判定表無 target，保留，待 UIUX 另給對照
+--fx-render-3,#ffc4d6,PAL.fxRender3,js/render.js:403,判定表無 target，保留，待 UIUX 另給對照
+--fx-game-1,#7dff9a,PAL.fxGame1,js/game.js:1854,判定表無 target，保留，待 UIUX 另給對照
+--fx-mech-1,#7a3fa0,PAL.fxMech1,js/mech.js:135,判定表無 target，保留，待 UIUX 另給對照
+--fx-mech-2,#5fae7a,PAL.fxMech2,js/mech.js:167,判定表無 target，保留，待 UIUX 另給對照
+--fx-mech-3,#ff5a8a,PAL.fxMech3,js/mech.js:179,判定表無 target，保留，待 UIUX 另給對照
+--fx-world-1,#e08ad0,PAL.fxWorld1,js/world.js:141,判定表無 target，保留，待 UIUX 另給對照
+--fx-world-2,#8fb3a0,PAL.fxWorld2,js/world.js:144,判定表無 target，保留，待 UIUX 另給對照
+--fx-combat-1,#8a6cff,PAL.fxCombat1,js/combat.js:634,判定表無 target，保留，待 UIUX 另給對照
+--sel-bd,#a8927f,PAL.selBd,tools/ui_mock.js:21,保留：tools/ui_mock.js:21（授權範圍外的工具引用；判定表無 target）

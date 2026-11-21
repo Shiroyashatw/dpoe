@@ -1,0 +1,18 @@
+{
+ "info": {
+  "cx": 640,
+  "cy": 360,
+  "zoom": 1.35,
+  "k": 1,
+  "has": {
+   "fxOwn": false,
+   "enemyTel": false
+  }
+ },
+ "clip": {
+  "x": 520,
+  "y": 240,
+  "width": 240,
+  "height": 240
+ }
+}
