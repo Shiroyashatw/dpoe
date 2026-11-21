@@ -2654,7 +2654,6 @@ body.touch.port #bar { bottom: calc(var(--hb) + 8px); }
 #pnav .ico { width: 24px; height: 24px; }
 #dnav button { font-size: var(--f14); }
 #dnav { right: 16px; }
-#dnav kbd { position: absolute; right: 3px; bottom: 2px; font: 600 10px var(--font); color: var(--tx-dim); background: none; border: 0; padding: 0; }
 
 /* 掛機條：直立 390×44 貼在分頁上面（y 710–754），點開 200 高蓋在戰場上；桌機左下 380×40，展開 380×200 */
 /* B1 D1-10／D2-03：收起列一行（nowrap）；放不下時 idleFit 依序加 f0 拿掉保底小條、f1 打倒王次數、f2 追逐物品名、f3「追逐保底」字樣、f4「掛機」字頭、f5 其餘字尾省略；數字與 %（.tn）永遠完整 */
@@ -2773,9 +2772,9 @@ body.touch #poff kbd, body.touch #dplate kbd { display: none; }
 #navtip { position: fixed; z-index: 30; transform: translate(-50%, -100%); padding: 4px 8px; background: var(--plate-world); border: 1px solid var(--border-mid); border-radius: 3px; color: var(--tx); font: 700 var(--f14) var(--font); white-space: nowrap; pointer-events: none; }
 #navtip[hidden] { display: none; }
 
-/* M2-12 修訂 #4：鍵盤焦點框（新骨架：分頁、營地升級、掛機條、結算、字板、死亡卡）3 px＋放大 1.04；滑鼠點的不畫（:focus-visible） */
-:is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { outline: 3px solid var(--border-cap); outline-offset: -3px; transform: scale(1.04); z-index: 1; }
-@media (prefers-reduced-motion: reduce) { :is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over) :is(button, [tabindex='0']):focus-visible { transform: none; } }
+/* M2-12 修訂 #4：鍵盤焦點框（新骨架：分頁、營地升級、掛機條、結算、字板、死亡卡、戰鬥 HUD 的技能格／格擋弧／藥劑）3 px＋放大 1.04；滑鼠點的不畫（:focus-visible） */
+:is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over, #bh) :is(button, [tabindex='0']):focus-visible { outline: 3px solid var(--border-cap); outline-offset: -3px; transform: scale(1.04); z-index: 1; }
+@media (prefers-reduced-motion: reduce) { :is(#pnav, #dnav, #pcamp, #pidle, #poff, #dplate, #over, #bh) :is(button, [tabindex='0']):focus-visible { transform: none; } }
 
 /* ---------- B2 元件（fix-list-v1.2-to-batches B2） ---------- */
 /* D3-11：每畫面最多 1 顆 --act；同一排並列的主鈕一律改 --btn2 */
@@ -2855,7 +2854,6 @@ body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcam
 #bh[hidden], #bh [hidden] { display: none !important; }
 #bh > * { position: fixed; box-sizing: border-box; margin: 0; }
 :where(#bh) button { pointer-events: auto; padding: 0; margin: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-#bh button:focus-visible, #pidle button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 #bh img { image-rendering: pixelated; }
 body.bhp:not(.inmap) #bh, body.bhd:not(.inmap) #bh { display: none; }
 /* 頂列＋4 通貨＋地點 */
@@ -2948,12 +2946,13 @@ body.bhd .bh-aura .ak { font-size: 16px; }
 .bh-sts .stk { flex: none; width: var(--stc); justify-content: center; display: flex; align-items: center; height: var(--stc); font: 700 14px/1 var(--font); color: var(--tx-strong); }
 body.bhd .bh-sts .stk { font-size: 16px; }
 /* 生命／魔力條 */
-#bh .hb { overflow: hidden; background: var(--panel-inset); pointer-events: none; }
+/* 1 px --border 框（battle-hud-6 §25／§27）：外框尺寸不變，填色、細條在框內 */
+#bh .hb { box-sizing: border-box; border: 1px solid var(--border); overflow: hidden; background: var(--panel-inset); pointer-events: none; }
 #bh .hb i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--v, 1) * 100%); background: var(--hp); transition: width 120ms ease-out; }
 #bh .hb.mp i { background: var(--mp); }
 #bh .hb span { position: absolute; inset: 0; display: grid; place-items: center; font: 700 14px/1 var(--font); color: var(--tx-strong); text-shadow: 0 1px 1px var(--d2-black); white-space: nowrap; }
 /* 能量護盾細條（battle-hud-6 P70／D69）：框內最底 3 px，空槽 --panel-inset、填 --es；充能中前緣 2 px --es-hi（P71／D70） */
-#bh .hb .es { position: absolute; left: 1px; right: 1px; bottom: 1px; height: 3px; background: var(--panel-inset); }
+#bh .hb .es { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--panel-inset); }
 #bh .hb .es i { position: absolute; left: 0; top: 0; bottom: 0; width: calc(var(--w, 0) * 100%); background: var(--es); transition: width 120ms ease-out; }
 #bh .hb .es em { display: none; position: absolute; top: 0; bottom: 0; left: calc(var(--w, 0) * 100% - 2px); width: 2px; background: var(--es-hi); transition: left 120ms ease-out; }
 #bh .hb .es.ch em { display: block; }
@@ -2984,7 +2983,7 @@ body.bhd #bh .hb span { font-size: 16px; }
 .bh-fl .v img { position: relative; width: 12px; height: 12px; }
 body.bhd .bh-fl .v img { width: 14px; height: 14px; }
 .bh-fl kbd { display: none; }
-body.bhd .bh-fl kbd { display: grid; place-items: center; position: absolute; right: 0; bottom: 0; width: 12px; height: 12px; background: var(--panel-inset); font: 700 10px/1 var(--font); color: var(--tx-dim); }
+body.bhd .bh-fl kbd { display: grid; place-items: center; position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; background: var(--panel-inset); font: 700 12px/1 var(--font); color: var(--tx-dim); }
 /* 直立半版面板開著：下方的 HUD 被面板蓋住，不畫 */
 body.bhp.sheet #bh > :not(.bh-top):not(.bh-cur):not(.bh-loc) { display: none !important; }
 body.bhp.sheet .bh-xp { display: none !important; }
@@ -3046,7 +3045,7 @@ body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: none
 #dnav button { width: 72px; height: 32px; flex-direction: row; gap: 4px; font: 400 16px/1 var(--font); color: var(--tx); background: var(--btn2); border: 1px solid var(--border); border-radius: 0; box-shadow: none; }
 #dnav button.on { background: var(--sel-bg); color: var(--tx-strong); box-shadow: inset 0 0 0 2px var(--sel-edge); font-weight: 700; }
 #dnav button .ico { display: none; }
-#dnav kbd { position: static; display: grid; place-items: center; width: 12px; height: 12px; padding: 0; background: var(--panel-inset); border: 0; font: 700 10px/1 var(--font); color: var(--tx-dim); }
+#dnav kbd { position: static; display: grid; place-items: center; width: 14px; height: 14px; padding: 0; background: var(--panel-inset); border: 0; font: 700 12px/1 var(--font); color: var(--tx-dim); }
 #pidle .is1, #pidle .is2, #pidle .ipk { display: flex; align-items: center; gap: 4px; }
 /* 掛機行：「・」直接接字，不另加間距；字不縮 */
 #pidle .is1, #pidle .is2 { gap: 0; }

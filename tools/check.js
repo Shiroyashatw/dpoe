@@ -12908,6 +12908,179 @@ const ASC_COMBOS = `const combos = k => {
     ok(`dpoe-hud133-fix2 ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
     await cx.close();
   }
+  /* dpoe-hud133-fix3（UIUX 複審 F1–F4）：生命／魔力條 1 px --border 框、填滿寬度＝數值（真時間等 transitionend；擷取用 DBG.settle）、
+     1280 鍵帽 12/700 14×14、戰鬥區按鈕焦點框跟分頁同一條（3 px --border-cap 往內、1.04×；減少動態不放大） */
+  for (const [W, H, touch] of [
+    [390, 844, 1],
+    [1280, 720, 0]
+  ]) {
+    const cx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: !!touch, isMobile: !!touch });
+    await cx.route(/supabase/, r => r.abort());
+    const p = await cx.newPage(),
+      errs = [],
+      tag = `${W}×${H}`;
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(URL + '?dbg=1&seed=5&' + Date.now());
+    await p.evaluate(() => localStorage.clear());
+    await p.reload();
+    await p.waitForTimeout(1200);
+    await p.evaluate(touch => {
+      proSkip();
+      S.story.tips = 0;
+      S.auto = 0;
+      if (touch) DBG.safeArea(34, 47);
+      runNode(TRUNK_K[0]);
+      ST = stats();
+      hudBar();
+      DBG.clear();
+    }, touch);
+    await p.waitForTimeout(600);
+    const m = await p.evaluate(async () => {
+      const r = {},
+        rc = e => {
+          const b = e.getBoundingClientRect();
+          return [b.left, b.top, b.width, b.height].map(Math.round);
+        },
+        tok = n => {
+          const d = document.createElement('i');
+          d.style.color = getComputedStyle($('bh')).getPropertyValue(n);
+          $('bh').append(d);
+          const c = getComputedStyle(d).color;
+          return d.remove(), c;
+        },
+        fill = () => {
+          const i = $('bhp').querySelector(':scope > i'),
+            e = $('bhp').querySelector('.es');
+          return [
+            +i.getBoundingClientRect().width.toFixed(1),
+            Math.round((P.hp / ST.hp) * $('bhp').clientWidth),
+            +e.querySelector('i').getBoundingClientRect().width.toFixed(1),
+            Math.round(((P.es || 0) / ST.es) * e.clientWidth)
+          ];
+        };
+      DBG.hudMin(0);
+      DBG.block(412, 600);
+      hudTick();
+      r.bd = ['bhp', 'bmp'].map(id => {
+        const c = getComputedStyle($(id));
+        return [c.boxSizing, c.borderLeftWidth, c.borderTopWidth, c.borderLeftColor === tok('--border'), rc($(id))];
+      });
+      /* 真時間（不凍結）：生命 1000 → 300、能量護盾 600 → 240，等 transitionend */
+      ST.hp = 1000;
+      P.hp = 1000;
+      DBG.es(600, 600);
+      hudTick();
+      await new Promise(f => setTimeout(f, 300));
+      const end = new Promise(f => {
+        $('bhp')
+          .querySelector(':scope > i')
+          .addEventListener('transitionend', () => f(1), { once: true });
+        setTimeout(() => f(0), 1000);
+      });
+      P.hp = 300;
+      DBG.es(240, 600);
+      hudTick();
+      r.v = $('bhp').style.getPropertyValue('--v');
+      r.end = await end;
+      await new Promise(f => setTimeout(f, 200));
+      r.live = fill();
+      /* 擷取：同一段 JS 改數值後 DBG.settle()（轉場推到終點再凍結）；對照 DBG.freeze() 會停在第 0 毫秒 */
+      P.hp = 820;
+      DBG.es(90, 600);
+      hudTick();
+      DBG.settle();
+      r.settle = fill();
+      DBG.resume();
+      /* 鍵帽 */
+      r.kbd = [...document.querySelectorAll('#dnav kbd, .bh-fl kbd, .bsk kbd')]
+        .filter(k => k.getClientRects().length)
+        .map(k => {
+          const c = getComputedStyle(k);
+          return `${c.fontSize}/${c.fontWeight} ${k.offsetWidth}×${k.offsetHeight}`;
+        });
+      r.cap = tok('--border-cap');
+      return r;
+    });
+    /* 焦點框：先按一次鍵盤（:focus-visible），再把焦點放到技能格 2、格擋弧、生命藥劑、分頁 */
+    const foc = async () => {
+      await p.keyboard.press('Shift');
+      return p.evaluate(() =>
+        ['#bhS1', '#bhBlk', '#bhF0', PORT() ? '#pnav button:nth-child(2)' : '#dnav button:nth-child(2)'].map(q => {
+          const e = document.querySelector(q);
+          e.focus();
+          const c = getComputedStyle(e);
+          return [
+            q,
+            e.matches(':focus-visible'),
+            c.outlineStyle,
+            c.outlineWidth,
+            c.outlineOffset,
+            c.outlineColor,
+            c.transform
+          ];
+        })
+      );
+    };
+    const fo = await foc();
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    const fr = await foc();
+    await p.emulateMedia({ reducedMotion: 'no-preference' });
+    const HB = touch
+      ? [
+          [10, 508, 344, 18],
+          [10, 530, 344, 18]
+        ]
+      : [
+          [340, 652, 450, 20],
+          [340, 676, 450, 20]
+        ];
+    ok(
+      `dpoe-hud133-fix3 F1 ${tag} 生命條、魔力條 1 px --border 框（border-box），外框尺寸不變（${HB.map(r => r.join(',')).join('／')}）`,
+      m.bd.every(
+        (b, i) =>
+          b[0] === 'border-box' &&
+          b[1] === '1px' &&
+          b[2] === '1px' &&
+          b[3] &&
+          JSON.stringify(b[4]) === JSON.stringify(HB[i])
+      ),
+      JSON.stringify(m.bd)
+    );
+    ok(
+      `dpoe-hud133-fix3 F2 ${tag} 填滿寬度＝數值：不凍結時鐘 setV 有更新（--v 0.300）、transitionend 後生命 |寬−round(300/1000×內寬)| ≤ 2、能量護盾細條 240/600 同理；DBG.settle 擷取 820/1000、90/600 同理`,
+      m.v === '0.300' &&
+        m.end === 1 &&
+        Math.abs(m.live[0] - m.live[1]) <= 2 &&
+        Math.abs(m.live[2] - m.live[3]) <= 2 &&
+        Math.abs(m.settle[0] - m.settle[1]) <= 2 &&
+        Math.abs(m.settle[2] - m.settle[3]) <= 2 &&
+        m.settle[1] === Math.round(0.82 * (touch ? 342 : 448)),
+      JSON.stringify([m.v, m.end, m.live, m.settle])
+    );
+    if (!touch)
+      ok(
+        `dpoe-hud133-fix3 F3 ${tag} 鍵帽（分頁 7、藥劑 2、技能格 5）都是 12px/700、14×14`,
+        m.kbd.length === 14 && m.kbd.every(k => k === '12px/700 14×14'),
+        JSON.stringify(m.kbd)
+      );
+    ok(
+      `dpoe-hud133-fix3 F4 ${tag} 技能格、格擋弧、藥劑、分頁焦點框同一條：3 px --border-cap、offset −3、放大 1.04；減少動態 transform none`,
+      [fo, fr].every((L, j) =>
+        L.every(
+          x =>
+            x[1] &&
+            x[2] === 'solid' &&
+            x[3] === '3px' &&
+            x[4] === '-3px' &&
+            x[5] === m.cap &&
+            (j ? x[6] === 'none' : /^matrix\(1\.04, 0, 0, 1\.04/.test(x[6]))
+        )
+      ),
+      JSON.stringify([fo, fr, m.cap])
+    );
+    ok(`dpoe-hud133-fix3 ${tag} 沒有頁面錯誤`, !errs.length, errs.join(' | '));
+    await cx.close();
+  }
   /* 全螢幕入口（企劃書 §9「更多」）：不支援 Fullscreen API 就不顯示全螢幕鈕與「更多」的全螢幕列；支援就都顯示 */
   for (const fsE of [false, true]) {
     const cx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });

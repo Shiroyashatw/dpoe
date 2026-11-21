@@ -13,7 +13,7 @@ from collections import Counter
 from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133-fix2')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133-fix3')
 
 TK = {
     '--panel': '#25211e', '--panel-raised': '#2c2825', '--panel-inset': '#1d1a17', '--panel-edge': '#a8927f',
@@ -26,6 +26,8 @@ TK = {
     # battle-hud-5／-6（M2-36 色票，main 9c6be66）
     '--es': '#dfbf91', '--es-hi': '#fcefde', '--prog-lo': '#3c3935', '--block': '#a9b8c3', '--block-dim': '#40484e',
     '--block-regen': '#758088',
+    # dpoe-hud133-fix3：焦點框（#bh 範圍 --border-cap＝--d2-border-cap）、碎盾閃、危急紅邊
+    '--border-cap': '#d9d3cd', '--block-hi': '#eaf2f8', '--vig': '#b01a14',
 }
 
 
@@ -238,6 +240,42 @@ for size in ('390x844', '1280x720'):
         lw = 'D24' if d else 'P19'
         if st in ('lowcomb', 'lowlife') and lw in R:
             row(st, size, lw, '生命條危急外框（常亮）', '--hp-hi', 'fg', sub(R[lw], 0, 0, R[lw][2], 1), im)
+
+# ---------- dpoe-hud133-fix3：F1 生命／魔力條框、F6 新狀態 ----------
+ALL = ['normal', 'boss', 'lowhp', 'lootflood', 'collapsed', 'es_full', 'es_partial', 'es_recharge', 'es_zero', 'es_none',
+       'lowcomb', 'lowlife', 'blockbr', 'low2', 'focus', 'focustab', 'focusrm', 'tipblk', 'tipblkmin', 'blkflash']
+for size in ('390x844', '1280x720'):
+    d = size == '1280x720'
+    for st in ALL:
+        f = os.path.join(OUT, f'{st}_{size}.png')
+        if not os.path.exists(f):
+            continue
+        im = Image.open(f).convert('RGB')
+        R, m = meas(st, size)
+        c = st in ('collapsed', 'tipblkmin')
+        for eid in ((('C59', 'C60') if c else ('D59', 'D60')) if d else (('T26', 'T27') if c else ('P37', 'P38'))):
+            if eid not in R:
+                continue
+            r = R[eid]
+            # 左緣 x、上緣 y 那一條 1 px（避開危急外框：取中段）
+            row(st, size, eid, '條框 左緣 1 px', '--border', 'bg', sub(r, 0, 4, 1, r[3] - 8), im)
+            row(st, size, eid, '條框 上緣 1 px', '--border', 'bg', sub(r, 40, 0, 100, 1), im)
+        if st == 'low2':
+            row(st, size, '—', '危急紅邊 2 級（畫面左緣 x0，--vig×0.7 疊場景）', '--vig', 'fg', [0, 300, 2, 100], im)
+        if st.startswith('focus'):
+            fid = {'focustab': ('D08' if d else 'P59')}.get(st, 'D43' if d else 'P21')
+            if fid in R:
+                r = R[fid]
+                row(st, size, fid, '焦點框 3 px（往內，上緣中段）', '--border-cap', 'bg', sub(r, r[2] / 2 - 4, 1, 8, 1), im)
+        if st == 'blkflash':
+            bk = 'D66' if d else 'P67'
+            row(st, size, bk, '碎盾閃 --block-hi', '--block-hi', 'fg', R[bk], im)
+        if st in ('tipblk', 'tipblkmin'):
+            tc = [x for x in m.get('chk', []) if x['k'].startswith('F6 格擋值提示框')]
+            if tc:
+                r = [int(v) for v in tc[0]['got'].split(',')]
+                row(st, size, 'D68' if d else ('P69' if st == 'tipblk' else 'T（收起）'), '格擋值提示 底', '--panel-raised', 'bg', sub(r, 2, 2, r[2] - 4, r[3] - 4), im)
+                row(st, size, 'D68' if d else ('P69' if st == 'tipblk' else 'T（收起）'), '格擋值提示 字', '--tx', 'fg', r, im)
 
 # ---------- 退回第 1–5 項驗收抽樣 ----------
 E = os.path.join(OUT)

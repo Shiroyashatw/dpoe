@@ -226,10 +226,14 @@ const ES_ST = { es_full: 1, es_partial: 1, es_recharge: 1, es_zero: 1, lowcomb: 
 const inState = (st, s, id) => {
   if (id && XE.xp.test(id)) return true;
   if (id && XE.blk.test(id)) return true;
-  if (id && XE.blkTip.test(id)) return s === 'blockbr';
+  if (id && XE.blkTip.test(id)) return s === 'blockbr' || s === 'tipblk';
+  /* 技能提示（P14／D19）只在一般態拍；焦點框、碎盾閃、格擋值提示的狀態不開技能提示 */
+  if (id && /^(P14|D19)$/.test(id) && /^focus|^blkflash$|^tipblk/.test(s)) return false;
   if (id && XE.es.test(id)) return !!ES_ST[s];
   if (id && XE.esE.test(id)) return s === 'es_recharge' || s === 'collapsed';
-  s = { lowcomb: 'lowhp', lowlife: 'lowhp' }[s] || (/^es_|^blockbr$/.test(s) ? 'normal' : s);
+  s =
+    { lowcomb: 'lowhp', lowlife: 'lowhp', low2: 'lowhp', tipblkmin: 'collapsed' }[s] ||
+    (/^es_|^blockbr$|^focus|^tipblk$|^blkflash$/.test(s) ? 'normal' : s);
   const h = st.split('：')[0];
   if (h === '全' || h === 'C') return !(s === 'lootflood' && /^NBL/.test(st) && !/F/.test(h));
   const k = { normal: 'N', boss: 'B', lowhp: 'L', lootflood: 'F' }[s];
@@ -307,9 +311,12 @@ PLATES.C = [
 ];
 /* BH_ONLY=狀態,尺寸 只拍那幾張；BH_NOFULL=1：收起狀態倉庫沒滿（證明 T32／C32 一般字），檔名加 _nofull */
 const NOFULL = !!process.env.BH_NOFULL;
+/* 收起版面的狀態（量 T／C 表） */
+const MIN = st => st === 'collapsed' || st === 'tipblkmin';
 const STATES = (
   process.env.BH_STATES ||
-  'normal,boss,lowhp,lootflood,collapsed,es_full,es_partial,es_recharge,es_zero,es_none,lowcomb,lowlife,blockbr'
+  'normal,boss,lowhp,lootflood,collapsed,es_full,es_partial,es_recharge,es_zero,es_none,lowcomb,lowlife,blockbr,' +
+    'low2,focus,focustab,focusrm,tipblk,tipblkmin,blkflash'
 ).split(',');
 const SIZES = (process.env.BH_SIZES || '390x844,1280x720')
   .split(',')
@@ -337,7 +344,8 @@ let bad = 0;
           viewport: { width: W, height: H },
           hasTouch: !!touch,
           isMobile: !!touch,
-          deviceScaleFactor: 1
+          deviceScaleFactor: 1,
+          reducedMotion: st === 'focusrm' ? 'reduce' : 'no-preference'
         });
       await ctx.route(/supabase/, r => r.abort());
       const p = await ctx.newPage(),
@@ -415,7 +423,7 @@ let bad = 0;
           S.xp = Math.floor(xpNeed(S.lv) / 2);
           DBG.block(412, 600);
           if (st === 'lootflood') DBG.reload(0, 1.0), DBG.auras(9), DBG.flood(38), DBG.states(10, 2);
-          if (st === 'collapsed') DBG.hudMin(1);
+          if (st === 'collapsed' || st === 'tipblkmin') DBG.hudMin(1);
         },
         [st, touch]
       );
@@ -438,20 +446,43 @@ let bad = 0;
           if (ES) DBG.es(ES[1], 600, ES[2]);
           if (/^es_/.test(st)) bhTip(0);
           if (st === 'blockbr') DBG.block(200, 600, 1), bhTip('blk');
+          /* 危急 2 級（生命 15%，沒有能量護盾上限）；格擋值提示展開／收起 */
+          if (st === 'low2') (ST.hp = 1000), (P.hp = 150), DBG.es(0, 0);
+          if (st === 'tipblk' || st === 'tipblkmin') bhTip('blk');
           idleBar(1);
           hudTick();
           /* 截圖只看 HUD：吐司、橫幅先收（遊戲照跑時它們會自己出現） */
           for (const id of ['warn', 'warn2', 'banner', 'chase']) $(id).style.visibility = 'hidden';
           /* 戰場示意：掉落牌＋菁英名牌（PW／TW／DW／CW 表；位置是例子，只驗規則）。普通、魔法照預設門檻不出牌 */
           const L =
-            BH.R.m === 'l' ? [] : PLATES[st === 'collapsed' ? 'C' : st === 'lootflood' ? 'F' : 'N'][PORT() ? 0 : 1];
+            BH.R.m === 'l'
+              ? []
+              : PLATES[st === 'collapsed' || st === 'tipblkmin' ? 'C' : st === 'lootflood' ? 'F' : 'N'][PORT() ? 0 : 1];
           DBG.scene(st === 'boss' ? L.filter(x => x[1] !== 'elite') : L);
           if (st === 'collapsed' && NOFULL) S.inv.items.length = 10;
           idleBar(1);
-          DBG.freeze();
+          /* 碎盾閃（battle-hud-5 --block-hi 150 ms）：先有盾、再一擊打碎，class brk 留著拍（計時器清掉） */
+          if (st === 'blkflash') {
+            DBG.block(412, 600);
+            hudTick();
+            absorb(99999);
+            hudTick();
+            clearTimeout(BH.brk);
+          }
+          /* dpoe-hud133-fix3 F2：凍結前先把進行中的 CSS 轉場推到終點，條寬才等於數值（舊版 freeze 會停在第 0 毫秒） */
+          DBG.settle();
         },
         [st, PLATES, NOFULL]
       );
+      /* 焦點框（F4）：先按一次鍵盤（:focus-visible 的鍵盤啟發式），再把焦點放上技能格 2／倉庫分頁 */
+      if (/^focus/.test(st)) {
+        await p.keyboard.press('Shift');
+        await p.evaluate(st => {
+          const q = st === 'focustab' ? (PORT() ? '#pnav button:nth-child(2)' : '#dnav button:nth-child(2)') : '#bhS1';
+          document.querySelector(q).focus();
+          window.FOCQ = q;
+        }, st);
+      }
       await p.waitForTimeout(300);
       const fn = `${st}${NOFULL ? '_nofull' : ''}_${tag}`;
       await p.screenshot({ path: path.join(OUT, `${fn}.png`) });
@@ -462,7 +493,7 @@ let bad = 0;
         continue;
       }
       /* 量測 */
-      const tbl = st === 'collapsed' ? T[tag].min : T[tag].hud,
+      const tbl = MIN(st) ? T[tag].min : T[tag].hud,
         ids = Object.keys(tbl).filter(id => inState(tbl[id].st, st, id) && SEL[id]),
         m = await p.evaluate(
           ([ids, SEL]) => {
@@ -502,11 +533,16 @@ let bad = 0;
                 Object.assign(o[id], { fs: c.fontSize, fw: c.fontWeight, col: c.color });
               }
               if (he) o[id].hit = box(he).r;
+              /* 依態比對用：開著／選中（.on 或 aria-pressed）、冷卻中（技能格冷卻秒數有字） */
+              const cdv = el.querySelector(':scope > .cdv');
+              o[id].on = el.classList.contains('on') || el.getAttribute('aria-pressed') === 'true';
+              o[id].cd = !!(cdv && cdv.textContent.trim() && cdv.getClientRects().length);
               /* 鍵帽（技能格、藥劑、桌機分頁）本身的字級 */
-              const kb = el.querySelector('kbd');
+              const kb = el.querySelector('kbd') || (he && he.querySelector('kbd'));
               if (kb && kb.getClientRects().length) {
                 const c = getComputedStyle(kb);
                 o[id].kbd = c.fontSize + '/' + c.fontWeight;
+                o[id].kbox = [kb.offsetWidth, kb.offsetHeight];
               }
             }
             return o;
@@ -556,19 +592,124 @@ let bad = 0;
           bg: g.bg,
           tk: e.tk,
           kbd: g.kbd || null,
+          kbox: g.kbox || null,
+          on: !!g.on,
+          cd: !!g.cd,
           ok,
           miss: !!g.miss,
           vis: g.vis
         });
       }
+      /* dpoe-hud133-fix3 檢查：F1 生命／魔力條 1 px --border 框、F2 填滿寬度＝數值、F3 1280 鍵帽 12/700 14×14、F4 焦點框 */
+      const chk = await p.evaluate(st => {
+        const L = [],
+          root = getComputedStyle($('bh')),
+          tok = n => {
+            const d = document.createElement('i');
+            d.style.color = root.getPropertyValue(n);
+            $('bh').append(d);
+            const c = getComputedStyle(d).color;
+            d.remove();
+            return c;
+          },
+          add = (k, ok, got, want) => L.push({ k, ok: !!ok, got, want });
+        for (const id of ['bhp', 'bmp']) {
+          const e = $(id),
+            c = getComputedStyle(e);
+          add(
+            `F1 #${id} 1px --border 框`,
+            c.boxSizing === 'border-box' &&
+              ['Top', 'Right', 'Bottom', 'Left'].every(
+                s => c['border' + s + 'Width'] === '1px' && c['border' + s + 'Color'] === tok('--border')
+              ),
+            `${c.boxSizing} ${c.borderTopWidth} ${c.borderTopColor}`,
+            `border-box 1px ${tok('--border')}`
+          );
+        }
+        const fill = (k, bar, el, v) => {
+          if (!el || !el.getClientRects().length) return;
+          const w = +el.getBoundingClientRect().width.toFixed(2),
+            inner = bar.clientWidth,
+            want = Math.round(Math.max(0, Math.min(1, v)) * inner);
+          add(k, Math.abs(w - want) <= 2, w, `${want}（${v.toFixed(3)}×${inner}）`);
+        };
+        const hell = !!ST.hellfire;
+        fill('F2 生命填滿寬度＝生命÷最大×內寬', $('bhp'), $('bhp').querySelector(':scope > i'), P.hp / ST.hp);
+        fill(
+          'F2 魔力填滿寬度＝魔力÷最大×內寬',
+          $('bmp'),
+          $('bmp').querySelector(':scope > i'),
+          hell ? (P.hf || 0) / ST.hfMax : P.mp / ST.mp
+        );
+        if (ST.es > 0)
+          fill(
+            'F2 能量護盾細條填滿＝能量護盾÷上限×細條寬',
+            $('bhp').querySelector('.es'),
+            $('bhp').querySelector('.es i'),
+            (P.es || 0) / ST.es
+          );
+        if (!PORT())
+          for (const q of ['#dnav kbd', '.bh-fl kbd', '.bsk kbd'])
+            document.querySelectorAll(q).forEach((k, i) => {
+              if (!k.getClientRects().length) return;
+              const c = getComputedStyle(k);
+              add(
+                `F3 鍵帽 ${q} #${i + 1}`,
+                c.fontSize === '12px' && c.fontWeight === '700' && k.offsetWidth === 14 && k.offsetHeight === 14,
+                `${c.fontSize}/${c.fontWeight} ${k.offsetWidth}×${k.offsetHeight}`,
+                '12px/700 14×14'
+              );
+            });
+        /* 格擋值提示（P69／D68；390 收起 10,532,370×34＝bhud.js A−160，規格待補 L4） */
+        if (/^tipblk/.test(st)) {
+          const b = $('bhTip').getBoundingClientRect(),
+            got = [b.left, b.top, b.width, b.height].map(Math.round),
+            want = PORT() ? (S.hmin ? [10, 532, 370, 34] : [10, 392, 370, 34]) : [340, 524, 328, 34];
+          add(
+            `F6 格擋值提示框（${S.hmin ? '收起' : '展開'}）「${$('bhTip').textContent}」`,
+            !$('bhTip').hidden && got.every((v, i) => Math.abs(v - want[i]) <= 2),
+            got.join(','),
+            want.join(',')
+          );
+        }
+        if (window.FOCQ) {
+          const e = document.querySelector(FOCQ),
+            c = getComputedStyle(e),
+            rm = matchMedia('(prefers-reduced-motion: reduce)').matches,
+            tf = c.transform;
+          add(
+            `F4 焦點框 ${FOCQ}${rm ? '（減少動態）' : ''}`,
+            document.activeElement === e &&
+              e.matches(':focus-visible') &&
+              c.outlineStyle === 'solid' &&
+              c.outlineWidth === '3px' &&
+              c.outlineOffset === '-3px' &&
+              c.outlineColor === tok('--border-cap') &&
+              (rm ? tf === 'none' : /^matrix\(1\.04, 0, 0, 1\.04/.test(tf)),
+            `${c.outlineStyle} ${c.outlineWidth} offset ${c.outlineOffset} ${c.outlineColor} ${tf}`,
+            `solid 3px offset -3px ${tok('--border-cap')} ${rm ? 'none' : 'scale(1.04)'}`
+          );
+        }
+        return L;
+      }, st);
+      bad += chk.filter(x => !x.ok).length;
       const plates = await p.evaluate(() => (G.plates || []).map(q => ({ n: q.t, c: q.c, star: q.star, r: q.r })));
       fs.writeFileSync(
         path.join(OUT, `measure_${fn}.json`),
-        JSON.stringify({ sha: SHA, spec: SPEC_REV, st, tag, errs, rep, plates }, null, 1)
+        JSON.stringify({ sha: SHA, spec: SPEC_REV, st, tag, errs, rep, chk, plates }, null, 1)
       );
       const nb = rep.filter(x => !x.ok);
       console.log(
-        `${nb.length ? '❌' : '✅'} ${st} ${tag}：${rep.length - nb.length}／${rep.length} 框在 ±2 px 內${nb.length ? '；不符 ' + nb.map(x => `${x.id}(${x.miss ? '沒有' : !x.vis ? '沒畫' : x.d.join(',') + (x.hd ? ' 熱區 ' + x.hd.join(',') : '')})`).join(' ') : ''}${errs.length ? '；頁面錯誤 ' + errs.join(' / ') : ''}`
+        `${nb.length || chk.some(x => !x.ok) ? '❌' : '✅'} ${st} ${tag}：${rep.length - nb.length}／${rep.length} 框在 ±2 px 內；檢查 ${chk.filter(x => x.ok).length}／${chk.length}${
+          chk.some(x => !x.ok)
+            ? '（不符 ' +
+              chk
+                .filter(x => !x.ok)
+                .map(x => x.k + ' ' + x.got)
+                .join('；') +
+              '）'
+            : ''
+        }${nb.length ? '；不符 ' + nb.map(x => `${x.id}(${x.miss ? '沒有' : !x.vis ? '沒畫' : x.d.join(',') + (x.hd ? ' 熱區 ' + x.hd.join(',') : '')})`).join(' ') : ''}${errs.length ? '；頁面錯誤 ' + errs.join(' / ') : ''}`
       );
       await ctx.close();
     }

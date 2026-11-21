@@ -8,7 +8,7 @@ const fs = require('fs'),
   path = require('path'),
   { execFileSync } = require('child_process');
 const OUT = path.resolve(
-    process.argv[2] || path.join(__dirname, '..', 'docs/production/evidence/battle-hud-v133-fix2/video')
+    process.argv[2] || path.join(__dirname, '..', 'docs/production/evidence/battle-hud-v133-fix3/video')
   ),
   URL = process.argv[3] || 'http://localhost:8000/';
 fs.mkdirSync(OUT, { recursive: true });
@@ -80,6 +80,76 @@ const CLIPS = {
     await hit('#pidle .ihit');
     await wait(p, 1200);
   },
+  /* dpoe-hud133-fix3 補錄（UIUX 複審 §7）—— 危急紅邊 1 級→2 級→回來（最大生命 1000、沒有能量護盾上限；每 300 ms 改一次生命） */
+  danger: async p => {
+    await p.evaluate(() => {
+      DBG.clear();
+      ST.hp = 1000;
+      P.hp = 500;
+      DBG.es(0, 0);
+    });
+    await wait(p, 500);
+    for (const hp of [400, 340, 300, 250, 210, 190, 150, 100, 150, 190, 210, 300, 340, 400]) {
+      await p.evaluate(hp => ((ST.hp = 1000), (P.hp = hp)), hp);
+      await wait(p, 300);
+    }
+    await wait(p, 300);
+  },
+  /* 能量護盾充能前緣：300 / 600，4 秒延遲剩 1 秒 → 每秒 12.5% 充到滿，前緣 2 px 跟著走、滿了消失 */
+  esrecharge: async p => {
+    await p.evaluate(() => {
+      DBG.clear();
+      ST.hp = 1000;
+      P.hp = 1000;
+      DBG.es(300, 600);
+      P.lastHurt = G.t - 3;
+    });
+    await wait(p, 5600);
+  },
+  /* 格擋弧：412 / 600 → 一擊打碎（碎盾閃 --block-hi 150 ms）→ 斷續段回滿（BV.re 8 秒；站著 5 秒） */
+  blkbreak: async p => {
+    await p.evaluate(() => {
+      DBG.clear();
+      DBG.block(412, 600);
+    });
+    await wait(p, 500);
+    await p.evaluate(() => absorb(99999));
+    await wait(p, 8800);
+  },
+  /* Tab 走一圈：每 300 ms 按一次 Tab，記下焦點在哪、框長怎樣 */
+  tabwalk: async p => {
+    await p.evaluate(() => {
+      DBG.clear();
+      DBG.block(412, 600);
+      document.activeElement && document.activeElement.blur();
+    });
+    await wait(p, 300);
+    for (let i = 0; i < 24; i++) {
+      await p.keyboard.press('Tab');
+      await wait(p, 300);
+    }
+  },
+  /* 命中頓幀＋震動：地震術打中 3 隻怪（skills.js actHit quake → shake(0.1)）；hitstop() 程式裡沒有人呼叫 */
+  hitshake: async p => {
+    await p.evaluate(() => {
+      S.eq.weapon = mkItem(BASES.find(x => x.wt === 'mace').id, 10, 0);
+      S.skills[0] = { k: 'quake', so: [null, null], n: 2 };
+      S.lib.sk.quake = 1;
+      ST = stats();
+      hudBar();
+      DBG.clear();
+      for (let i = 0; i < 3; i++)
+        Object.assign(spawnMob(Object.values(MOBS)[0], P.x + 50 + i * 12, P.y + 6 * i, 1, false), { aggro: 0, spd: 0 });
+    });
+    await wait(p, 400);
+    for (let i = 0; i < 3; i++) {
+      await p.evaluate(
+        () => ((P.act = null), (P.cds = {}), (P.mp = ST.mp), (M.x = IW / 2 + 200), (M.y = cvH() / 2), useSlot(0))
+      );
+      await wait(p, 900);
+    }
+  },
+  collapserm: (p, touch) => CLIPS.collapse(p, touch),
   /* 最近一筆掉寶（收起列 T34／C34）：換新時從右滑入 200 ms，然後停住（不做連續滾動） */
   slidein: async p => {
     await p.evaluate(() => DBG.hudMin(1));
@@ -144,8 +214,60 @@ async function record(p, W, H, fn, base, touch, kind) {
         pid: Math.round($('pidle').getBoundingClientRect().top * 10) / 10,
         hmin: S.hmin ? 1 : 0,
         slx: tr === 'none' ? 0 : Math.round(new DOMMatrix(tr).m41 * 10) / 10,
-        rel
+        rel,
+        /* fix3：危急紅邊級數、生命比例；能量護盾、前緣；格擋值、碎盾閃；焦點；震動（render.js 位移上限 14×trauma²）、頓幀 */
+        vig: $('bhVig').classList.contains('on') ? ($('bhVig').classList.contains('l2') ? 2 : 1) : 0,
+        hpf: Math.round((P.hp / ST.hp) * 1000) / 1000,
+        es: Math.round(P.es || 0),
+        esw: (() => {
+          const i = document.querySelector('#bhp .es i');
+          return i && i.getClientRects().length ? Math.round(i.getBoundingClientRect().width * 10) / 10 : null;
+        })(),
+        esem: (() => {
+          const e = document.querySelector('#bhp .es em');
+          return e && e.getClientRects().length ? Math.round(e.getBoundingClientRect().left) : null;
+        })(),
+        bv: Math.round(P.bv || 0),
+        bre: P.bvRe != null ? 1 : 0,
+        brk: $('bhBlk').classList.contains('brk') ? 1 : 0,
+        foc: (() => {
+          const e = document.activeElement;
+          if (!e || e === document.body) return null;
+          const c = getComputedStyle(e);
+          return {
+            q: e.id
+              ? '#' + e.id
+              : e.tagName.toLowerCase() +
+                '.' +
+                [...e.classList].join('.') +
+                (e.textContent ? '「' + e.textContent.trim().slice(0, 8) + '」' : ''),
+            fv: e.matches(':focus-visible') ? 1 : 0,
+            ol: c.outlineStyle === 'none' ? 'none' : `${c.outlineWidth} ${c.outlineOffset} ${c.outlineColor}`,
+            tf: c.transform
+          };
+        })(),
+        trauma: Math.round(G.trauma * 1000) / 1000,
+        amp: Math.round(14 * G.trauma * G.trauma * 100) / 100,
+        hs: Math.round((G.hs || 0) * 1000)
       };
+    };
+    /* setTimeout 跟著虛擬時鐘（碎盾閃 BH.brk 150 ms 等）：每格推完再跑到期的 */
+    const VT = [],
+      st0t = window.setTimeout.bind(window),
+      ct0 = window.clearTimeout.bind(window);
+    let vid = 1e6;
+    window.setTimeout = (fn, ms = 0, ...a) => {
+      if (typeof fn !== 'function') return st0t(fn, ms);
+      VT.push({ id: ++vid, at: performance.now() + (+ms || 0), fn, a });
+      return vid;
+    };
+    window.clearTimeout = id => {
+      const i = VT.findIndex(t => t.id === id);
+      i >= 0 ? VT.splice(i, 1) : ct0(id);
+    };
+    window.VTIMERS = () => {
+      const now = performance.now();
+      for (const t of VT.filter(t => t.at <= now + 0.01)) VT.splice(VT.indexOf(t), 1), t.fn(...t.a);
     };
     window.VSLOT = () => (S.skills[2] && S.skills[2].k === 'chargeslam' ? 2 : 0);
     window.VSTEP = f => {
@@ -153,6 +275,7 @@ async function record(p, W, H, fn, base, touch, kind) {
       const seen = (window.VANIM = window.VANIM || new Set());
       for (const a of document.getAnimations()) seen.add(a);
       DBG.step(1000 / 60);
+      VTIMERS();
       /* 凍結中 Web 動畫推到尾巴不會自己進 finished（onfinish 不觸發）：到尾就 finish() */
       for (const a of [...seen, ...document.getAnimations()]) {
         const e = a.effect && a.effect.getComputedTiming();
@@ -221,7 +344,8 @@ async function record(p, W, H, fn, base, touch, kind) {
         viewport: { width: W, height: H },
         hasTouch: !!touch,
         isMobile: !!touch,
-        deviceScaleFactor: 1
+        deviceScaleFactor: 1,
+        reducedMotion: k === 'collapserm' ? 'reduce' : 'no-preference'
       });
       await ctx.route(/supabase/, r => r.abort());
       const p = await ctx.newPage();

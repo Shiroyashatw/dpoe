@@ -77,6 +77,11 @@ const DBG = (() => {
         pump();
       }
     },
+    /* 先把進行中的 CSS 轉場推到終點（等同等到 transitionend）再凍結：截圖時條寬＝數值（dpoe-hud133-fix3 F2） */
+    settle() {
+      anims(a => a instanceof CSSTransition && a.finish());
+      this.freeze();
+    },
     resume() {
       if (frz == null) return;
       off = pnow() - frz;
