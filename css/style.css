@@ -1391,7 +1391,6 @@ body.touch .ax-n::after { content: ''; position: absolute; border-radius: 50%; }
 body.touch .ax-n.b0::after { inset: -8px; }
 body.touch .ax-n.b1::after { inset: -4px; }
 body.touch .ax-l { display: none; }
-/* 手機的切換鈕：只有 swapOn() 才畫出來 */
 
 /* 手機直立：動作在拇指區；寶石的檢視區選中時佔掉背包那半邊 */
 body.touch.port #pskill { --pp: 10px; padding-left: 10px; padding-right: 10px; }
