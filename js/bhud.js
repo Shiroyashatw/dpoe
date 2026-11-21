@@ -504,18 +504,21 @@ function bhStates() {
     /* 整組一個熱區（P29–P36／D51–D58）；沒有狀態時不畫 */
     $('bhSts').hidden = !L.length || off;
     $('bhSts').setAttribute('aria-label', '狀態：' + L.map(s => s.n).join('、'));
-    const over = L.length > 8,
-      show = over ? L.slice(0, 7) : L;
+    /* 最多幾格：直立、桌機 8（§11）；手機橫向照排給它的寬（不壓到右邊的觸控鍵） */
+    const cap = BH.R.m === 'l' ? Math.max(2, Math.floor((BH.R.stsV[2] + 4) / (BH.R.stc + 4))) : 8,
+      over = L.length > cap,
+      show = over ? L.slice(0, cap - 1) : L;
     box.innerHTML =
       show
         .map(
           s =>
             `<span class="stc ${s.bad ? 'bad' : ''}">${icHTML(s.ic)}<i></i>${s.c > 1 || s.sc ? `<b>${s.c}</b>` : ''}</span>`
         )
-        .join('') + (over ? `<span class="stk" aria-label="還有 ${L.length - 7} 個狀態">+${L.length - 7}</span>` : '');
+        .join('') +
+      (over ? `<span class="stk" aria-label="還有 ${L.length - cap + 1} 個狀態">+${L.length - cap + 1}</span>` : '');
   }
   const sb = box.children;
-  L.slice(0, 8).forEach((s, i) => sb[i] && s.f != null && sb[i].style.setProperty('--f', (+s.f).toFixed(2)));
+  L.slice(0, sb.length).forEach((s, i) => sb[i] && s.f != null && sb[i].style.setProperty('--f', (+s.f).toFixed(2)));
 }
 /* ---------- 藥劑鈕：只畫冷卻環，不寫次數、秒數 ---------- */
 function bhFlasks() {
