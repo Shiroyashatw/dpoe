@@ -1,7 +1,7 @@
 # battle-hud v1.3.3 疊圖驗收（tools/bh_shots.js＋tools/bh_overlay.py）
 
 截圖 DPR 1、同 CSS 視窗；疊圖＝`W1_battle-{state}_{size}_overlay.png` 100%、左上 (0,0)。
-產生時的 commit：`b4429a4d03fd684cffe8ed7a6d7ca8353e501978`（每個 measure_*.json 檔頭 `sha` 欄也有）。
+產生時的 commit：`11c30d8bd4773f2a4fb9fdcba0cc7849d254ad9f`（每個 measure_*.json 檔頭 `sha` 欄也有）；規格表與疊圖讀自 `59b6350`（battle-hud v1.3.3，交辦依據）。
 **合計 480／481 項在 ±2 px 內；不符 1 項。**
 **字級／字重（規格寫明 px/weight 的項）：不符 23 項**：normal 390x844 P24、normal 390x844 P56、normal 390x844 P58、boss 390x844 P24、boss 390x844 P56、boss 390x844 P58、lowhp 390x844 P24、lowhp 390x844 P56、lowhp 390x844 P58、lootflood 390x844 P24、lootflood 390x844 P56、lootflood 390x844 P58、collapsed 390x844 T25、collapsed 390x844 T36、normal 1280x720 D07、normal 1280x720 D40、boss 1280x720 D07、boss 1280x720 D40、lowhp 1280x720 D07、lowhp 1280x720 D40、lootflood 1280x720 D07、lootflood 1280x720 D40、collapsed 1280x720 C07（⚠ 標在表上）
 
@@ -815,10 +815,10 @@
 | boss 1280x720 | D07 | 倉庫分頁 字 | --tx-strong #fbf9f6 | 字／線（101 px 相符） | #fbf9f6 | 0 | 10.50:1（底 #463a2d） | ✅ |
 | boss 1280x720 | D17 | 王名 | --tx-strong #fbf9f6 | 字／線（185 px 相符） | #fbf9f6 | 0 | 6.41:1（底 #934341） | ✅ |
 | boss 1280x720 | D17 | 王血條 | --hp #934341 | 底 | #934341 | 0 | — | ✅ |
-| boss 1280x720 | D18 | 大招字 | --bad #ff9bba | 字／線（1440 px 相符） | #ff9bba | 0 | 8.78:1（底 #1d1a17） | ✅ |
-| boss 1280x720 | 掉落牌 | 高階崇高石 | --rar-rare #fbe53a | 字／線（429 px 相符） | #fbe53a | 0 | 12.75:1（底 #231f1c） | ✅ |
+| boss 1280x720 | D18 | 大招字 | --bad #ff9bba | 字／線（1436 px 相符） | #ff9bba | 0 | 8.78:1（底 #1d1a17） | ✅ |
+| boss 1280x720 | 掉落牌 | 高階崇高石 | --rar-rare #fbe53a | 字／線（430 px 相符） | #fbe53a | 0 | 12.75:1（底 #231f1c） | ✅ |
 | boss 1280x720 | 掉落牌 | 崇高石 | --rar-rare #fbe53a | 字／線（354 px 相符） | #fbe53a | 0 | 12.49:1（底 #24211d） | ✅ |
-| boss 1280x720 | 掉落牌 | 厲鬼護符 | --rar-rare #fbe53a | 字／線（421 px 相符） | #fbe53a | 0 | 12.75:1（底 #231f1c） | ✅ |
+| boss 1280x720 | 掉落牌 | 厲鬼護符 | --rar-rare #fbe53a | 字／線（421 px 相符） | #fbe53a | 0 | 12.49:1（底 #24211d） | ✅ |
 | boss 1280x720 | 掉落牌 | 判官烏紗 | --rar-unique #fa8915 | 字／線（316 px 相符） | #fa8915 | 0 | 6.74:1（底 #231f1c） | ✅ |
 | boss 1280x720 | 掉落牌 | 鎮嶽印・王… | --rar-chase #0cf6ee | 字／線（337 px 相符） | #0cf6ee | 0 | 12.02:1（底 #231f1c） | ✅ |
 | boss 1280x720 | 掉落牌 | 冥河斬馬刀 | --rar-rare #fbe53a | 字／線（457 px 相符） | #fbe53a | 0 | 12.75:1（底 #231f1c） | ✅ |
@@ -917,8 +917,8 @@
 | collapsed 1280x720 | C07 | 倉庫分頁 選中底 | --sel-bg #463a2d | 底 | #463a2d | 0 | — | ✅ |
 | collapsed 1280x720 | C07 | 倉庫分頁 2px --sel-edge（框線內側） | --sel-edge #a8927f | 底 | #a8927f | 0 | — | ✅ |
 | collapsed 1280x720 | C07 | 倉庫分頁 字 | --tx-strong #fbf9f6 | 字／線（101 px 相符） | #fbf9f6 | 0 | 10.50:1（底 #463a2d） | ✅ |
-| collapsed 1280x720 | 掉落牌 | 高階崇高石 | --rar-rare #fbe53a | 字／線（430 px 相符） | #fbe53a | 0 | 12.60:1（底 #24201d） | ✅ |
-| collapsed 1280x720 | 掉落牌 | 崇高石 | --rar-rare #fbe53a | 字／線（354 px 相符） | #fbe53a | 0 | 12.75:1（底 #231f1c） | ✅ |
+| collapsed 1280x720 | 掉落牌 | 高階崇高石 | --rar-rare #fbe53a | 字／線（430 px 相符） | #fbe53a | 0 | 12.49:1（底 #24211d） | ✅ |
+| collapsed 1280x720 | 掉落牌 | 崇高石 | --rar-rare #fbe53a | 字／線（354 px 相符） | #fbe53a | 0 | 12.49:1（底 #24211d） | ✅ |
 | collapsed 1280x720 | 掉落牌 | 厲鬼護符 | --rar-rare #fbe53a | 字／線（421 px 相符） | #fbe53a | 0 | 12.75:1（底 #231f1c） | ✅ |
 | collapsed 1280x720 | 掉落牌 | 追憶之墨 | --rar-rare #fbe53a | 字／線（378 px 相符） | #fbe53a | 0 | 12.75:1（底 #231f1c） | ✅ |
 | collapsed 1280x720 | 掉落牌 | 判官烏紗 | --rar-unique #fa8915 | 字／線（316 px 相符） | #fa8915 | 0 | 6.74:1（底 #231f1c） | ✅ |

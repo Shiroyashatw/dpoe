@@ -4,14 +4,16 @@
    疊圖與差表由 tools/bh_overlay.py 產生。有 ❌（框四邊差 > 2 px）時結束碼 1 */
 const { chromium } = require('playwright');
 const fs = require('fs'),
-  path = require('path');
+  path = require('path'),
+  { execSync } = require('child_process');
 const OUT = process.argv[2] || path.join(__dirname, '..', 'docs/production/evidence/battle-hud-v133'),
   URL = process.argv[3] || 'http://localhost:8000/';
 fs.mkdirSync(OUT, { recursive: true });
-const SPEC = path.join(__dirname, '..', 'docs/production/specs/battle-hud');
+/* 依據的規格版本：預設 v1.3.3 的 59b6350（交辦依據；main 之後升了 v1.3.4–1.3.6），BH_SPEC_REV 可換 */
+const SPEC_REV = process.env.BH_SPEC_REV || '59b6350';
 /* 讀元件表（<!-- T {size} {kind} --> 後面的表）：id → [x, y, w, h, 熱區字串, 狀態] */
 function table(file, tag) {
-  const s = fs.readFileSync(path.join(SPEC, file), 'utf8'),
+  const s = execSync(`git show ${SPEC_REV}:docs/production/specs/battle-hud/${file}`, { cwd: __dirname }).toString(),
     i = s.indexOf(`<!-- T ${tag} -->`),
     L = s.slice(i).split('\n').slice(3),
     o = {};
@@ -249,7 +251,7 @@ const SIZES = (process.env.BH_SIZES || '390x844,1280x720')
 /* 產生時的 commit（寫進 measure_*.json 檔頭） */
 let SHA = '';
 try {
-  SHA = require('child_process').execSync('git rev-parse HEAD', { cwd: __dirname }).toString().trim();
+  SHA = execSync('git rev-parse HEAD', { cwd: __dirname }).toString().trim();
   if (
     require('child_process')
       .execSync('git status --porcelain -- js css index.html', { cwd: path.join(__dirname, '..') })
@@ -478,7 +480,7 @@ let bad = 0;
       const plates = await p.evaluate(() => (G.plates || []).map(q => ({ n: q.t, c: q.c, star: q.star, r: q.r })));
       fs.writeFileSync(
         path.join(OUT, `measure_${fn}.json`),
-        JSON.stringify({ sha: SHA, st, tag, errs, rep, plates }, null, 1)
+        JSON.stringify({ sha: SHA, spec: SPEC_REV, st, tag, errs, rep, plates }, null, 1)
       );
       const nb = rep.filter(x => !x.ok);
       console.log(

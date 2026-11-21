@@ -1,7 +1,9 @@
 """battle-hud v1.3.3 §13 疊圖：把 W1_battle-{state}_{size}_overlay.png 以 100%、左上 (0,0) 疊到實機截圖上，並把量測寫成差表。
 用法：python3 tools/bh_overlay.py [資料夾]（預設 docs/production/evidence/battle-hud-v133；先跑 node tools/bh_shots.js）
 輸出：overlay_{state}_{size}.png、REPORT.md"""
+import io
 import json
+import subprocess
 import re
 import os
 import sys
@@ -10,7 +12,11 @@ from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(__file__), '..')
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, 'docs/production/evidence/battle-hud-v133')
-WF = os.path.join(ROOT, 'docs/production/specs/wireframes/W1-battle-hud')
+WF = 'docs/production/specs/wireframes/W1-battle-hud'
+# 依據的規格版本：預設 v1.3.3 的 59b6350（交辦依據），BH_SPEC_REV 可換
+REV = os.environ.get('BH_SPEC_REV', '59b6350')
+def wf(name):
+    return Image.open(io.BytesIO(subprocess.check_output(['git', 'show', f'{REV}:{WF}/{name}'], cwd=ROOT)))
 STATES = ['normal', 'boss', 'lowhp', 'lootflood', 'collapsed']
 SIZES = ['390x844', '1280x720']
 
@@ -22,11 +28,10 @@ fbad = []
 for size in SIZES:
     for st in STATES:
         shot = os.path.join(OUT, f'{st}_{size}.png')
-        ov = os.path.join(WF, f'W1_battle-{st}_{size}_overlay.png')
         if not os.path.exists(shot):
             continue
         a = Image.open(shot).convert('RGBA')
-        b = Image.open(ov).convert('RGBA')
+        b = wf(f'W1_battle-{st}_{size}_overlay.png').convert('RGBA')
         assert a.size == b.size, (shot, a.size, b.size)
         Image.alpha_composite(a, b).save(os.path.join(OUT, f'overlay_{st}_{size}.png'))
         m = json.load(open(os.path.join(OUT, f'measure_{st}_{size}.json')))
@@ -61,7 +66,7 @@ for size in SIZES:
                          f"{r['hit'] or '—'} | {','.join(map(str, r['hd'])) if r['hd'] else '—'} | {r['f']} | {fnt} | {r.get('col') or '—'} | {res} |")
         lines.append('')
 sha = json.load(open(os.path.join(OUT, 'measure_normal_390x844.json'))).get('sha', '?')
-lines.insert(3, f'產生時的 commit：`{sha}`（每個 measure_*.json 檔頭 `sha` 欄也有）。')
+lines.insert(3, f'產生時的 commit：`{sha}`（每個 measure_*.json 檔頭 `sha` 欄也有）；規格表與疊圖讀自 `{REV}`（battle-hud v1.3.3，交辦依據）。')
 lines.insert(4, '')
 lines.insert(4, f'**合計 {tot - bad}／{tot} 項在 ±2 px 內；不符 {bad} 項。**')
 lines.insert(5, f'**字級／字重（規格寫明 px/weight 的項）：不符 {len(fbad)} 項**' + (f'：{"、".join(fbad)}' if fbad else '') + '（⚠ 標在表上）')
