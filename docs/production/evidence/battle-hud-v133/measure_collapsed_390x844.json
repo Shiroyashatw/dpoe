@@ -1,5 +1,5 @@
 {
- "sha": "729480085ca0cd0716056e0b602ecfc75aa8dd76",
+ "sha": "b4429a4d03fd684cffe8ed7a6d7ca8353e501978",
  "st": "collapsed",
  "tag": "390x844",
  "errs": [],
@@ -34,6 +34,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(37, 33, 30)",
    "tk": "--panel＋下緣 1px --border",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -68,6 +69,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -102,6 +104,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -136,6 +139,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -170,6 +174,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -214,6 +219,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--tx-dim；★ --tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -258,6 +264,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "銅框 1px --panel-edge＋圖示；名詞表 v0.6.36",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -302,6 +309,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -346,6 +354,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -390,6 +399,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -434,6 +444,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -478,6 +489,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -522,6 +534,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -566,6 +579,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -610,6 +624,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面 100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -644,6 +659,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -678,6 +694,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -712,6 +729,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -746,6 +764,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -780,6 +799,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -814,6 +834,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(29, 26, 23)",
    "tk": "--hp、字 --tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -848,6 +869,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(29, 26, 23)",
    "tk": "--mp、字 --tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -892,6 +914,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "冷卻環 2px --hp-hi＋1px #000",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -936,6 +959,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "冷卻環 2px --mp-hi＋1px #000",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -970,6 +994,7 @@
    "col": "rgb(169, 174, 104)",
    "bg": "rgb(37, 33, 30)",
    "tk": "--panel＋上緣 1px --border-mid（M2-33 §5.1）",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1004,6 +1029,7 @@
    "col": "rgb(232, 229, 225)",
    "bg": "rgb(149, 232, 134)",
    "tk": "--good；對底 ≥3:1",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1048,6 +1074,7 @@
    "col": "rgb(169, 174, 104)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--tx",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1082,6 +1109,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "王印 --rar-chase；字 --tx-strong；100% 字 --rar-chase",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1116,6 +1144,7 @@
    "col": "rgb(12, 246, 238)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "左 2px 稀有度直條＋形狀＋稀有度色；過長省略號；最寬 104",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1150,6 +1179,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(82, 76, 71)",
    "tk": "--btn2；aria-label「展開掛機卡」",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1184,6 +1214,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(70, 58, 45)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1218,6 +1249,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1252,6 +1284,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1286,6 +1319,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1320,6 +1354,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1354,6 +1389,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1388,6 +1424,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true

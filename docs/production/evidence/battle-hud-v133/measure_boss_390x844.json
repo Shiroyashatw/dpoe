@@ -1,5 +1,5 @@
 {
- "sha": "729480085ca0cd0716056e0b602ecfc75aa8dd76",
+ "sha": "b4429a4d03fd684cffe8ed7a6d7ca8353e501978",
  "st": "boss",
  "tag": "390x844",
  "errs": [],
@@ -34,6 +34,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(37, 33, 30)",
    "tk": "--panel＋下緣 1px --border",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -68,6 +69,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -102,6 +104,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -136,6 +139,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -170,6 +174,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "圖示 16＋--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -214,6 +219,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--tx-dim；★ --tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -248,6 +254,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -282,6 +289,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -316,6 +324,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -350,6 +359,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -384,6 +394,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、--tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -428,6 +439,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "銅框 1px --panel-edge＋圖示；不寫個數、秒數；名詞表 v0.6.36",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -472,6 +484,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -516,6 +529,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -560,6 +574,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -604,6 +619,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -648,6 +664,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -692,6 +709,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -736,6 +754,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -780,6 +799,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgb(29, 26, 23)",
    "tk": "格 24、圖示 16、1px --border；負面（紅框）100%、其餘 70%",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -814,6 +834,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(29, 26, 23)",
    "tk": "--hp、字 --tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -848,6 +869,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(29, 26, 23)",
    "tk": "--mp、字 --tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -892,6 +914,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "冷卻環 2px --hp-hi＋1px #000",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -936,6 +959,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "冷卻環 2px --mp-hi＋1px #000",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -970,6 +994,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgb(37, 33, 30)",
    "tk": "--panel＋上緣 1px --panel-edge",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1004,6 +1029,7 @@
    "col": "rgb(232, 229, 225)",
    "bg": "rgb(44, 40, 37)",
    "tk": "--panel-raised、1px --border、圓角 6",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1038,6 +1064,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--tx-dim；保底 --tx-strong",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1082,6 +1109,7 @@
    "col": "rgb(12, 246, 238)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "「拾取」--tx-dim＋稀有度色＋記號",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1126,6 +1154,7 @@
    "col": "rgb(250, 137, 21)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "「拾取」--tx-dim＋稀有度色＋記號",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1170,6 +1199,7 @@
    "col": "rgb(251, 229, 58)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "「拾取」--tx-dim＋稀有度色＋記號",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1214,6 +1244,7 @@
    "col": "rgb(157, 167, 255)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "「拾取」--tx-dim＋稀有度色＋記號",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1258,6 +1289,7 @@
    "col": "rgb(241, 235, 219)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "「拾取」--tx-dim＋稀有度色＋記號",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1302,6 +1334,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1336,6 +1369,7 @@
    "col": "rgb(255, 155, 186)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--good",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1370,6 +1404,7 @@
    "col": "rgb(149, 232, 134)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--good",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1404,6 +1439,7 @@
    "col": "rgb(149, 232, 134)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--bad",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1438,6 +1474,7 @@
    "col": "rgb(169, 174, 104)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--warn",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1472,6 +1509,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(82, 76, 71)",
    "tk": "--btn2＋1px --border",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1506,6 +1544,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(70, 58, 45)",
    "tk": "--btn2＋1px --border",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1540,6 +1579,7 @@
    "col": "rgb(252, 249, 243)",
    "bg": "rgb(124, 87, 41)",
    "tk": "--act＋2px --act-edge、--on-act",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1584,6 +1624,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(82, 76, 71)",
    "tk": "--btn2；aria-label「收起掛機卡」",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1618,6 +1659,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgb(70, 58, 45)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1652,6 +1694,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1686,6 +1729,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1720,6 +1764,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1754,6 +1799,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1788,6 +1834,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1822,6 +1869,7 @@
    "col": "rgb(174, 171, 167)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "選中 --sel-bg＋上緣 2px --focus；未選 --tx-dim",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1856,6 +1904,7 @@
    "col": "rgb(217, 205, 180)",
    "bg": "rgba(37, 33, 30, 0.92)",
    "tk": "--plate-world 0.92",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1890,6 +1939,7 @@
    "col": "rgb(251, 249, 246)",
    "bg": "rgba(0, 0, 0, 0)",
    "tk": "--panel-inset 槽、--hp、--tx-strong；底板 P12b",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1924,6 +1974,7 @@
    "col": "rgb(255, 155, 186)",
    "bg": "rgb(29, 26, 23)",
    "tk": "--panel-inset 底、2px --bad-hi、字 --bad-hi",
+   "kbd": null,
    "ok": true,
    "miss": false,
    "vis": true
@@ -1946,7 +1997,7 @@
    "c": "chase",
    "star": false,
    "r": [
-    221,
+    220,
     295,
     140,
     20
@@ -1979,7 +2030,7 @@
    "c": "rare",
    "star": false,
    "r": [
-    97,
+    96,
     251,
     98,
     20
