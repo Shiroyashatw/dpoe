@@ -55,7 +55,7 @@
 |---|---|---|---|
 | 現況總覽 | `docs/production/README.md` | 要重寫 | 現行（內容過時，重寫中） |
 | 決定與變更歷史 | `docs/production/CHANGELOG.md` | — | 現行（唯一的歷史） |
-| 分批表 B1–B10 | `S/fix-list-v1.2-to-batches.md` | v1.0 | 現行 |
+| 分批表 B1–B10 | `S/fix-list-v1.2-to-batches.md` | v1.1 | 現行 |
 | 排程 | `docs/production/schedule.md`（從 Page ee479f88 寫） | — | 待轉入 |
 | 任務 | `docs/production/tasks/<ID>.md` | — | 現行；B、C、S 系列任務檔待寫 |
 | 開發狀態 | 全面暫停（mumi 11/20 14:40） | — | — |
@@ -69,12 +69,12 @@
 | 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分取代：掛機條版面與光柱外觀 → specs/battle-hud/；掛機條營地訊號（M2-camp-cards §7）、橫幅／王倒下（M2-33-3b、M2-23 §6）、倒下（M2-40 §8）仍現行；觀戰鈕已拿掉（mumi 11/20 17:33 拿掉觀戰鍵） |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
-| 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.1／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
-| 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0 | 現行；e0f94cc8 的字串併進 §5.1 |
+| 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.4／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
+| 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0.2 | 現行；e0f94cc8 的字串併進 §5.1 |
 | 營地線框 | W/W2-camp/ | — | HUD 位置對齊 battle-hud v1.3；W2 仍在上色示意圖關 |
 | 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
 | 山海寶盒 | （無） | — | 待寫（各自批次到了再定） |
-| 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | v1.0 | 現行（只限這幾節；照刷） |
+| 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | addendum v1.0.2／稻草人 v1.1 | 現行（只限這幾節；照刷） |
 | 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.2 | 現行（v1.1 已由本檔取代）；示意圖 W/W3-items/ 現行 |
 | 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
@@ -93,8 +93,8 @@
 | 標題、暫停、讀取 | （無） | — | 待寫（W6） |
 | 設定、鍵位 | `S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 | 11/18 | 現行；以 battle-hud v1.3 為準 |
 | 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；畫面 B9 待寫 |
-| 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | v1.1 | 現行 |
-| PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 現行 |
+| 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | foundations v1.0.2／panel-1plus v1.2 | 現行 |
+| PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 已取消（superseded，mumi 11/21 12:42）；正文留作歷史紀錄 |
 
 正式素材已挑定（mumi 17:18），見 art-picks/battle-hud-v1.3/；光環第二批由 Game Art Director 補。
 
@@ -103,13 +103,13 @@
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
 | 名詞表 | `docs/名詞表.md` | v0.6.39 | 現行；v0.6.38 已取代 |
-| 數值總表 | `S/數值總表.md` | v0.4 | 現行 v0.4 |
+| 數值總表 | `S/數值總表.md` | v0.5 | 現行 v0.5 |
 | 追逐掉落 | `S/M2-17-chase-drops.md` | v1.3 | 現行 |
 | 大招判定 | `S/M2-40-big-attack.md` | v1.0 | 現行 |
 | 輔助推薦分數 | `S/M2-40-rec-score.md` | v1.0 | 現行 |
 | 商會階上限 | `S/M2-trade-tiercap.md` | v1.0 | 現行 |
 | 數字縮寫 | `S/number-abbrev.md` | v1.1 | 現行（第 32 行暫停補算要改成照刷） |
-| 試招場稻草人 | `S/M2-13-practice-dummies.md` | v1.0 | 現行 |
+| 試招場稻草人 | `S/M2-13-practice-dummies.md` | v1.1 | 現行 |
 | 上癮門檻 | `S/M2-03-addictiveness-criteria.md` | — | 現行 |
 | 王招元素 | `S/boss-move-element-unify.md` | — | 現行（已決定，待解凍） |
 | 前 30 分鐘節奏 | `S/M2-21-pacing-v2.md` | v2 草案 | 草稿，不可交辦 |

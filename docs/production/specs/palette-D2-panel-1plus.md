@@ -1,6 +1,6 @@
 # 全遊戲面板：備案 1+（暖銅框＋微光＋淡暖漸層＋深暖選中）
 
-版本 v1.1｜2026-11-19 18:20（Asia/Taipei；v1.0 18:05）｜UIUX設計師｜決定：mumi 18:02（幕僚長轉）選備案 1+，套全遊戲所有面板；戰場示意圖隨之定案｜上層：`palette-D2-final-ui.md` v1.6（衝突時本檔管面板外觀與選中狀態）｜示意圖：`/workspace/d2final/out/panel_{char,forge}_opt1b_390x844.png`（見 `docs/INDEX.md`、`specs/palette-D2-final-ui.md`）
+版本 v1.2｜2026-11-21｜UIUX設計師｜667×375 smoke 已取消（mumi 11/21 12:25）｜v1.1（superseded）｜2026-11-19 18:20（Asia/Taipei；v1.0 18:05）｜UIUX設計師｜決定：mumi 18:02（幕僚長轉）選備案 1+，套全遊戲所有面板；戰場示意圖隨之定案｜上層：`palette-D2-final-ui.md` v1.6（衝突時本檔管面板外觀與選中狀態）｜示意圖：`/workspace/d2final/out/panel_{char,forge}_opt1b_390x844.png`（見 `docs/INDEX.md`、`specs/palette-D2-final-ui.md`）
 
 **結論**
 - 面板底色不變（`--panel` `#25211e`、`--panel-raised` `#2c2825`），只加暖銅外框、頂邊微光、上方 40% 淡暖漸層、標題列暖底。
@@ -43,5 +43,5 @@
 
 ## 4. 未驗
 
-- 1280×720 示意實量（18:20）：L*>80 角色 1.50%、鍛造 1.70%（≤2.0%，過）；米白 `#e3dcd3` 像素 0。667×375 smoke 未驗。
+- 1280×720 示意實量（18:20）：L*>80 角色 1.50%、鍛造 1.70%（≤2.0%，過）；米白 `#e3dcd3` 像素 0。667×375 smoke 未驗——該尺寸已取消（mumi 11/21 12:25），不再驗。
 - 遊戲內實際畫面未驗；等合併修正輪截圖量。
