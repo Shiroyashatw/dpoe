@@ -1593,9 +1593,11 @@ function plateList(ox, oy) {
     let n, c;
     if (d.chase) (n = chaseBanner(d.chase)), (c = 'chase');
     else if (d.show) (n = d.show === 'pack' ? STR_T.pack : CUR[d.show].n), (c = /3$/.test(d.show) ? 'unique' : 'rare');
-    else if (d.it && d.it.r >= 2) (n = itemName(d.it)), (c = d.it.r >= 3 ? 'unique' : 'rare');
+    else if (d.it && d.it.r >= 2) (n = d.dbgN || itemName(d.it)), (c = d.it.r >= 3 ? 'unique' : 'rare');
     else continue;
-    L.push({ n, c, x: sx(x), y: sy(y) - 20 * ZOOM, k: d.chase });
+    /* ★ 只給星級（完美通貨）與破裂；其他照稀有度：稀有 ◆、傳奇 ◈ */
+    const star = (d.show && /3$/.test(d.show)) || !!(d.it && d.it.frac);
+    L.push({ n, c, star, x: sx(x), y: sy(y) - 20 * ZOOM, k: d.chase });
   }
   for (const m of G.mobs)
     if (m.elite && !m.boss && m.hp > 0) L.push({ n: `菁英・${m.D.n}`, c: 'elite', x: sx(m.x), y: sy(m.y - m.sz - 10) });
@@ -1612,7 +1614,8 @@ function drawPlates(ox, oy) {
   CX.textBaseline = 'middle';
   CX.textAlign = 'left';
   const col = {
-    rare: cssv('--rar-rare'),
+    /* D2 稀有度色（M2-36；跟 #bh 範圍的 --rar-* 同值） */
+    rare: cssv('--d2-rar-rare'),
     unique: cssv('--rar-unique'),
     chase: cssv('--rar-chase'),
     elite: cssv('--d2-tx-strong')
@@ -1649,7 +1652,7 @@ function drawPlates(ox, oy) {
     const tx = p.x0 + 6;
     if (p.c === 'chase') spr(isWy(p.k) ? p.k + '_16' : 'wangyin_guixu_16', tx + 8, y0 + h / 2 + 8, 16);
     else if (p.c === 'elite') eliteMark(tx, y0 + (h - 16) / 2);
-    else CX.fillText(p.c === 'unique' ? '◈' : '◆', tx, y0 + h / 2 + 1);
+    else CX.fillText(p.star ? '★' : p.c === 'unique' ? '◈' : '◆', tx, y0 + h / 2 + 1);
     CX.fillText(p.t, tx + p.mk, y0 + h / 2 + 1);
   }
   CX.textBaseline = 'alphabetic';

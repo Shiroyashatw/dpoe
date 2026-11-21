@@ -170,11 +170,94 @@ const inState = (st, s) => {
   const k = { normal: 'N', boss: 'B', lowhp: 'L', lootflood: 'F' }[s];
   return h.includes(k);
 };
-const STATES = ['normal', 'boss', 'lowhp', 'lootflood', 'collapsed'];
-const SIZES = [
-  [390, 844, 1],
-  [1280, 720, 0]
+/* 場景表（battle-hud-2／-3 PW／TW／DW／CW）：[名, 類別, x, y, w, h]；[直立, 桌機]。
+   「混沌石」遊戲裡沒有（Q-T1 未決）：換成真的有的稀有通貨（高階崇高石、追憶之墨）；金會被自動撿走，不放 */
+const PE = ['判官', 'elite'];
+const PLATES = {
+  N: [
+    [
+      [...PE, 135, 135, 102, 20],
+      ['判官烏紗', 'r3', 14, 386, 84, 20],
+      ['王印', 'chase', 240, 396, 101, 20],
+      ['厲鬼護符', 'r2', 153, 408, 84, 20],
+      ['寒鐵之戒', 'r1', 83, 408, 68, 20],
+      ['', 'cur:exalt', 187, 376, 54, 18],
+      ['', 'cur:exalt2', 106, 362, 79, 18],
+      ['鏽蝕長劍', 'r0', 13, 408, 68, 20]
+    ],
+    [
+      [...PE, 570, 160, 112, 20],
+      ['冥河斬馬刀', 'r2', 186, 230, 110, 22],
+      ['判官烏紗', 'r3', 349, 440, 94, 22],
+      ['王印', 'chase', 914, 415, 111, 22],
+      ['厲鬼護符', 'r2', 839, 500, 94, 22],
+      ['鏽蝕長劍', 'r0', 496, 505, 76, 22],
+      ['寒鐵之戒', 'r1', 416, 538, 76, 22],
+      ['', 'cur:exalt2', 556, 538, 89, 22],
+      ['', 'cur:exalt', 705, 520, 60, 22]
+    ]
+  ]
+};
+PLATES.F = [
+  [
+    ...PLATES.N[0],
+    ['', 'cur:ink', 14, 250, 54, 20],
+    ['寒鐵之戒', 'r1', 248, 250, 68, 20],
+    ['', 'cur:exalt', 48, 300, 54, 20],
+    ['鏽蝕長劍', 'r0', 251, 330, 68, 20],
+    ['寒鐵之戒', 'r1', 243, 374, 68, 20]
+  ],
+  [
+    ...PLATES.N[1],
+    ['', 'cur:ink', 305, 250, 60, 22],
+    ['寒鐵之戒', 'r1', 902, 250, 76, 22],
+    ['', 'cur:exalt', 770, 300, 60, 22],
+    ['鏽蝕長劍', 'r0', 377, 320, 76, 22],
+    ['寒鐵之戒', 'r1', 642, 470, 76, 22]
+  ]
 ];
+PLATES.C = [
+  [
+    ['判官烏紗', 'r3', 14, 386, 84, 20],
+    ['王印', 'chase', 240, 396, 101, 20],
+    ['厲鬼護符', 'r2', 153, 408, 84, 20],
+    ['寒鐵之戒', 'r1', 83, 408, 68, 20],
+    ['', 'cur:exalt', 187, 376, 54, 18],
+    ['', 'cur:exalt2', 106, 362, 79, 18],
+    ['鏽蝕長劍', 'r0', 13, 518, 68, 20],
+    ['', 'cur:ink', 261, 540, 54, 20]
+  ],
+  [
+    ['冥河斬馬刀', 'r2', 186, 230, 110, 22],
+    ['判官烏紗', 'r3', 37, 440, 94, 22],
+    ['王印', 'chase', 914, 415, 111, 22],
+    ['厲鬼護符', 'r2', 839, 500, 94, 22],
+    ['鏽蝕長劍', 'r0', 496, 505, 76, 22],
+    ['寒鐵之戒', 'r1', 416, 538, 76, 22],
+    ['', 'cur:exalt2', 556, 538, 89, 22],
+    ['', 'cur:exalt', 705, 520, 60, 22],
+    ['', 'cur:ink', 185, 500, 60, 22]
+  ]
+];
+/* BH_ONLY=狀態,尺寸 只拍那幾張；BH_NOFULL=1：收起狀態倉庫沒滿（證明 T32／C32 一般字），檔名加 _nofull */
+const NOFULL = !!process.env.BH_NOFULL;
+const STATES = (process.env.BH_STATES || 'normal,boss,lowhp,lootflood,collapsed').split(',');
+const SIZES = (process.env.BH_SIZES || '390x844,1280x720')
+  .split(',')
+  .map(t => t.split('x').map(Number))
+  .map(([w, h]) => [w, h, w < 1000 ? 1 : 0]);
+/* 產生時的 commit（寫進 measure_*.json 檔頭） */
+let SHA = '';
+try {
+  SHA = require('child_process').execSync('git rev-parse HEAD', { cwd: __dirname }).toString().trim();
+  if (
+    require('child_process')
+      .execSync('git status --porcelain -- js css index.html', { cwd: path.join(__dirname, '..') })
+      .toString()
+      .trim()
+  )
+    SHA += '+dirty';
+} catch (e) {}
 let bad = 0;
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
@@ -232,14 +315,15 @@ let bad = 0;
           /* 掉落紀錄（拾取列、最近一筆） */
           S.log = [];
           const ck = CHASE_POOL.trunk[0];
+          /* 規格範例（battle-hud §12）：判官烏紗＝傳奇、厲鬼護符＝稀有、寒鐵之戒＝魔法、鏽蝕長劍＝普通；通貨用遊戲裡真的有的一般通貨（不掛記號） */
           [
-            ['鏽蝕長劍', 'pack'],
-            ['混沌石 ×3', 'pack'],
-            ['寒鐵之戒', 'cur'],
-            ['厲鬼護符', 'cur'],
-            ['判官烏紗', 'mem'],
-            [chaseBanner(ck), 'chase', ck]
-          ].forEach(([n, c, k]) => dropLog(n, c, k));
+            ['鏽蝕長劍', 'it', null, 0],
+            [`${CUR.conv.n} ×3`, 'cur', null, 0],
+            ['寒鐵之戒', 'it', null, 1],
+            ['厲鬼護符', 'it', null, 2],
+            ['判官烏紗', 'it', null, 3],
+            [chaseBanner(ck), 'chase', ck, 4]
+          ].forEach(([n, c, k, r]) => dropLog(n, c, k, r));
           S.log.forEach(x => (x.t -= 60000));
           SES.t0 = Date.now() - (2 * 60 + 14) * 60000;
           P.flask = 3 * flaskCost() + 0.1;
@@ -263,17 +347,33 @@ let bad = 0;
         [st, touch]
       );
       await p.waitForTimeout(700);
-      await p.evaluate(st => {
-        if (st === 'normal') bhTip(0);
-        if (st === 'lowhp') DBG.hp(31), (P.cds.flask = 2.2), (P.cds.mflask = 0.9);
-        idleBar(1);
-        hudTick();
-        /* 截圖只看 HUD：吐司、橫幅先收（遊戲照跑時它們會自己出現） */
-        for (const id of ['warn', 'warn2', 'banner', 'chase']) $(id).style.visibility = 'hidden';
-        DBG.freeze();
-      }, st);
+      await p.evaluate(
+        ([st, PLATES, NOFULL]) => {
+          if (st === 'normal') bhTip(0);
+          if (st === 'lowhp') DBG.hp(31), (P.cds.flask = 2.2), (P.cds.mflask = 0.9);
+          idleBar(1);
+          hudTick();
+          /* 截圖只看 HUD：吐司、橫幅先收（遊戲照跑時它們會自己出現） */
+          for (const id of ['warn', 'warn2', 'banner', 'chase']) $(id).style.visibility = 'hidden';
+          /* 戰場示意：掉落牌＋菁英名牌（PW／TW／DW／CW 表；位置是例子，只驗規則）。普通、魔法照預設門檻不出牌 */
+          const L =
+            BH.R.m === 'l' ? [] : PLATES[st === 'collapsed' ? 'C' : st === 'lootflood' ? 'F' : 'N'][PORT() ? 0 : 1];
+          DBG.scene(st === 'boss' ? L.filter(x => x[1] !== 'elite') : L);
+          if (st === 'collapsed' && NOFULL) S.inv.items.length = 10;
+          idleBar(1);
+          DBG.freeze();
+        },
+        [st, PLATES, NOFULL]
+      );
       await p.waitForTimeout(300);
-      await p.screenshot({ path: path.join(OUT, `${st}_${tag}.png`) });
+      const fn = `${st}${NOFULL ? '_nofull' : ''}_${tag}`;
+      await p.screenshot({ path: path.join(OUT, `${fn}.png`) });
+      /* 667×375 等規格沒有的尺寸：只拍 smoke（不疊圖、不量） */
+      if (!T[tag]) {
+        console.log(`📷 ${fn}（smoke）${errs.length ? '；頁面錯誤 ' + errs.join(' / ') : ''}`);
+        await ctx.close();
+        continue;
+      }
       /* 量測 */
       const tbl = st === 'collapsed' ? T[tag].min : T[tag].hud,
         ids = Object.keys(tbl).filter(id => inState(tbl[id].st, st) && SEL[id]),
@@ -367,7 +467,11 @@ let bad = 0;
           vis: g.vis
         });
       }
-      fs.writeFileSync(path.join(OUT, `measure_${st}_${tag}.json`), JSON.stringify({ st, tag, errs, rep }, null, 1));
+      const plates = await p.evaluate(() => (G.plates || []).map(q => ({ n: q.t, c: q.c, star: q.star, r: q.r })));
+      fs.writeFileSync(
+        path.join(OUT, `measure_${fn}.json`),
+        JSON.stringify({ sha: SHA, st, tag, errs, rep, plates }, null, 1)
+      );
       const nb = rep.filter(x => !x.ok);
       console.log(
         `${nb.length ? '❌' : '✅'} ${st} ${tag}：${rep.length - nb.length}／${rep.length} 框在 ±2 px 內${nb.length ? '；不符 ' + nb.map(x => `${x.id}(${x.miss ? '沒有' : !x.vis ? '沒畫' : x.d.join(',') + (x.hd ? ' 熱區 ' + x.hd.join(',') : '')})`).join(' ') : ''}${errs.length ? '；頁面錯誤 ' + errs.join(' / ') : ''}`

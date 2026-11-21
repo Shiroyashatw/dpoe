@@ -270,6 +270,29 @@ const DBG = (() => {
       sheetSync();
       idleBar(1);
     },
+    /* 戰場示意（battle-hud §12 場景表 PW／DW）：照螢幕座標放掉落牌與菁英名牌。L＝[名, 類別, x, y, w, h]；
+       類別：r0–r3＝物品稀有度、chase＝追逐、cur:鍵＝通貨演出、elite＝菁英怪（hp 很多、不動）。地上的東西不會被撿走 */
+    scene(L) {
+      const ox = IW / ZOOM / 2 - G.cam.x,
+        oy = cvH() / ZOOM / 2 - G.cam.y,
+        t0 = cvTop();
+      for (const [n, c, x, y, w, h] of L) {
+        const wx = (x + w / 2) / ZOOM - ox,
+          wy = (y + h - t0) / ZOOM - oy + 20;
+        if (c === 'elite') {
+          const D = Object.values(MOBS).find(m => !m.boss && m.ic) || Object.values(MOBS)[0],
+            m = spawnMob({ ...D, n }, wx, (y + h - t0) / ZOOM - oy, 0, 1);
+          m.y += m.sz + 10;
+          Object.assign(m, { hp: 1e9, mhp: 1e9, aggro: 0, spd: 0 });
+          continue;
+        }
+        const o = { x: wx, y: wy, sx: wx, sy: wy, t: 9, hold: 1e9, nopick: 1 };
+        if (c === 'chase') o.chase = CHASE_POOL.trunk[0];
+        else if (c.startsWith('cur:')) o.show = c.slice(4);
+        else (o.it = mkItem('w_sword1_0', 40, +c.slice(1))), (o.dbgN = n);
+        G.drops.push(o);
+      }
+    },
     /* 大招警示：現在場上的王出一招判決（只做警示，不出招）；dur 秒 */
     big(dur = 2.1) {
       const m = G.mobs.find(x => x.boss && x.hp > 0);

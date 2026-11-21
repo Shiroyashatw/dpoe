@@ -78,13 +78,21 @@ const CLIPS = {
   slidein: async p => {
     await p.evaluate(() => DBG.hudMin(1));
     await p.waitForTimeout(800);
+    /* 規格範例的稀有度：判官烏紗＝傳奇、厲鬼護符＝稀有、最後一筆追逐（直條 --rar-chase） */
     const L = [
-      ['判官烏紗', 'mem'],
-      ['厲鬼護符', 'cur'],
-      ['完美崇高石', 'perf']
+      ['判官烏紗', 'it', 3],
+      ['厲鬼護符', 'it', 2],
+      ['', 'chase', 4]
     ];
-    for (const [n, c] of L) {
-      await p.evaluate(([n, c]) => (dropLog(n, c), idleBar(1)), [n, c]);
+    for (const [n, c, r] of L) {
+      await p.evaluate(
+        ([n, c, r]) => {
+          const k = c === 'chase' ? CHASE_POOL.trunk[0] : null;
+          dropLog(k ? chaseBanner(k) : n, c, k, r);
+          idleBar(1);
+        },
+        [n, c, r]
+      );
       await p.waitForTimeout(1300);
     }
   }
@@ -163,7 +171,7 @@ async function record(p, W, H, fn, base, touch) {
         if (touch) DBG.safeArea(34, 47);
         Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
         runNode(TRUNK_K[0]);
-        S.log = [{ t: Date.now() - 6e4, n: '寒鐵之戒', c: 'cur' }];
+        S.log = [{ t: Date.now() - 6e4, n: '寒鐵之戒', c: 'it', r: 1 }];
         idleBar(1);
         for (const id of ['warn', 'warn2', 'banner']) $(id).style.visibility = 'hidden';
       }, touch);

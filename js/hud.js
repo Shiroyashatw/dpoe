@@ -466,6 +466,7 @@ function navGo(t) {
   /* M1-19：說明框開著時，點分頁＝收起說明框並切過去（一下就好） */
   hideTip();
   /* 天賦樹（0.4.7 起有自己的分頁）：蓋滿畫面、分頁列留著；再點一次收起來 */
+  if (t === 'tree' && !campCan('tree')) return hudWarn(navLockTxt());
   if (t === 'tree') return treeOpen();
   if (TREE.open) treeClose();
   const on = navOn() === t && (t !== 'more' || PANEL.more);
@@ -498,14 +499,20 @@ const NAV_EN = {
 };
 const navHTML = () => {
   const on = navOn(),
-    en = document.documentElement.lang === 'en';
-  /* 天賦樹分頁要祭壇 Lv4（0.5.1）；營地的小點寫買得起幾件 */
-  return NAV_T.filter(([k]) => k !== 'tree' || campCan('tree'))
-    .map(
-      ([k, ic, t, key, ta]) =>
-        `<button class="${on === k ? 'on' : ''}" data-tm="nav:${k}" data-s="${en ? NAV_EN[k][1] : t}" aria-pressed="${on === k}">${TOUCH.on ? `<i class="tic" style="--m:url(${hudArtURL('tab', ta, 16)})" aria-hidden="true"></i>` : ''}<span>${en ? NAV_EN[k][0] : t}</span>${TOUCH.on ? '' : `<kbd>${key}</kbd>`}${navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : k === 'more' ? STR_T.chaseNew : '有點數沒用'}"></i>`) : ''}</button>`
-    )
-    .join('');
+    en = document.documentElement.lang === 'en',
+    /* 戰鬥畫面沒開面板＝倉庫分頁選中（P58／T36／D07／C07：下方面板就是倉庫的掉落摘要） */
+    home = !on && G.scene === 'map' && !TREE.open && !!bhMode() && bhMode() !== 'l' ? 'bag' : '';
+  /* 7 格位置固定（UIUX 裁定 Q-PR8）：天賦樹要長老屋 Lv4（0.5.1），沒開時天賦格畫鎖頭、--tx-off，點了寫解鎖條件；營地的小點寫買得起幾件 */
+  return NAV_T.map(([k, ic, t, key, ta]) => {
+    const lk = k === 'tree' && !campCan('tree'),
+      sel = on === k || home === k;
+    return `<button class="${sel ? 'on' : ''}${lk ? ' lock' : ''}" data-tm="nav:${k}" data-s="${en ? NAV_EN[k][1] : t}" aria-pressed="${on === k}"${home === k ? ' aria-current="page"' : ''}${lk ? ` aria-disabled="true" title="${esc(navLockTxt())}"` : ''}>${TOUCH.on ? `<i class="tic" style="--m:url(${hudArtURL('tab', ta, 16)})" aria-hidden="true"></i>` : ''}<span>${en ? NAV_EN[k][0] : t}</span>${TOUCH.on ? '' : `<kbd>${key}</kbd>`}${lk ? `<i class="nlk" aria-hidden="true">${ICO.lock}</i>` : navDot(k) ? (k === 'craft' ? `<i class="dot n pill" aria-label="營地 ${campReady()} 件可以升級">${campReady()}</i>` : `<i class="dot" aria-label="${k === 'skill' ? '現在可以變強' : k === 'more' ? STR_T.chaseNew : '有點數沒用'}"></i>`) : ''}</button>`;
+  }).join('');
+};
+/* 天賦格沒開的一句話（戰鬥 HUD 名詞用「長老屋」） */
+const navLockTxt = () => {
+  const e = campKey('tree');
+  return e ? `升${e[0] === 'altar' ? '長老屋' : CAMPN[e[0]]}到 Lv ${e[1]} 才開天賦樹` : '';
 };
 /* 掛機條（M2-12 §2）：刷圖中一直在（面板開著也在，自動模式倒下也在；確認卡、手動的死亡卡蓋上來時收起）；手機只在直立（橫向太矮），桌機在左下；天賦樹蓋滿時不畫 */
 const idleOn = () =>
@@ -805,7 +812,6 @@ const KEYS_PC = [
   ['U', '昇華石碑'],
   ['J', '山海寶盒'],
   [';', '掉落紀錄'],
-  ['X', '掉落面板收起／展開'],
   ['T', '回營地（地圖裡先確認，再按一次 T＝回去）'],
   ['Esc', '取消確認、關閉面板；都沒有時打開設定']
 ];
@@ -2176,6 +2182,12 @@ function idleBar(force) {
   const sk = x => x.replace(/>[^<]*</g, '><').replace(/\d/g, '');
   if (HV.idle && sk(HV.idle) !== sk(h)) IDLE_MV = now;
   keepFocus(el, () => (el.innerHTML = HV.idle = h));
+  /* P43／D27 放不下：先收目標名，再收「本次」（不縮字、不裁字） */
+  for (const ln of el.querySelectorAll('.is1, .is2'))
+    for (const q of ['.ifit', '.ifit2']) {
+      const x = ln.querySelector(q);
+      if (x && ln.scrollWidth > ln.clientWidth) x.hidden = true;
+    }
   /* 最近一筆換新：從右邊滑入 200 ms，然後停住（不做連續滾動） */
   const L0 = (S.log || [])[0],
     lk = L0 ? L0.t + L0.n : '';
@@ -2228,16 +2240,34 @@ $('pidle').addEventListener('pointerdown', e => {
   addEventListener('pointermove', mv);
   addEventListener('pointerup', off);
 });
-/* 掉落紀錄的類別 → 形狀（稀有 ◆、傳奇 ◈、追逐＝王印 16）；不只靠顏色 */
-const logSh = x =>
-  x.c === 'chase'
+/* 掉落紀錄的稀有度（M2-33 §5.2 色表）：有記 r 就用；舊紀錄照類別推：追逐 4、完美／破裂／記憶 3、稀有通貨（rareCur）2、其他 0 */
+const logR = x =>
+  x.r != null
+    ? x.r
+    : x.c === 'chase'
+      ? 4
+      : x.c === 'perf' || x.c === 'frac' || x.c === 'mem'
+        ? 3
+        : x.c === 'cur'
+          ? 2
+          : 0;
+/* 記號只看稀有度：稀有 ◆、傳奇 ◈、追逐＝王印 16；★ 只給星級（完美）與破裂；普通、魔法沒有記號。不只靠顏色 */
+const logSh = x => {
+  const r = logR(x);
+  return r === 4
     ? icHTML(isWy(x.k) ? x.k + '_16' : 'wangyin_guixu_16', 'ipw')
-    : x.c === 'mem' || x.c === 'perf'
-      ? '<i aria-hidden="true">◈</i>'
-      : x.c === 'cur' || x.c === 'frac'
-        ? '<i aria-hidden="true">◆</i>'
-        : '';
-const logRow = x => `<span class="ilast lg-${x.c}">${logSh(x)}<span class="nm">${esc(x.n)}</span></span>`;
+    : x.c === 'perf' || x.c === 'frac'
+      ? '<i aria-hidden="true">★</i>'
+      : r === 3
+        ? '<i aria-hidden="true">◈</i>'
+        : r === 2
+          ? '<i aria-hidden="true">◆</i>'
+          : '';
+};
+const logRow = x => `<span class="ilast rr${logR(x)}">${logSh(x)}<span class="nm">${esc(x.n)}</span></span>`;
+/* 收起 ▼／展開 ▲（P65／D64／T35／C35）：24×24 實心三角，--tx-strong 畫在 --btn2 上 */
+const TRI_DN = '<svg class="tri" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-7 9z"/></svg>',
+  TRI_UP = '<svg class="tri" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 16h14l-7-9z"/></svg>';
 /* 目標（營地下一座）的買得起程度 0–1 */
 const goalP = () => {
   if (BH.fake.goal != null) return { g: { b: 'altar', lv: 7 }, p: BH.fake.goal };
@@ -2282,26 +2312,28 @@ function idleHTML(W) {
     pct = Math.floor((100 * S.inv.items.length) / INV_CAP),
     msg = IDLE.msg && Date.now() < IDLE.msgT ? IDLE.msg : '',
     /* 收起列：倉庫快滿、離開回來那一行換掉左邊的字（§3 警示）；一般面板只換離開回來（倉庫 % 另有 P54／D38） */
-    warn = bhMin() ? msg || (pct >= 90 ? STR_T.idleFull : '') : msg,
+    warn = bhMin() ? msg || (pct >= 90 ? '⚠ ' + STR_T.idleFull : '') : msg,
     d = BH.R.m === 'd',
     min = bhMin(),
     gw = (d ? 264 : W) * (gp ? gp.p : 0);
   if (min) {
-    const T = d
-      ? { a: [8, 6, 124, 24], b: [140, 6, 124, 24], c: [8, 36, 264, 24], x: [280, 28, 40, 36], hit: [0, 0, 280, 64] }
-      : {
-          a: [12, 10, 108, 24],
-          b: [126, 10, 108, 24],
-          c: [W - 152, 10, 104, 24],
-          x: [W - 44, 0, 44, 44],
-          hit: [0, 0, W - 44, 44]
-        };
+    /* T34／C34：最近一筆稀有以上 */
+    const hi = L.find(x => logR(x) >= 2),
+      T = d
+        ? { a: [8, 6, 124, 24], b: [140, 6, 124, 24], c: [8, 36, 264, 24], x: [280, 28, 40, 36], hit: [0, 0, 280, 64] }
+        : {
+            a: [12, 10, 108, 24],
+            b: [126, 10, 108, 24],
+            c: [W - 152, 10, 104, 24],
+            x: [W - 44, 0, 44, 44],
+            hit: [0, 0, W - 44, 44]
+          };
     return `<button class="ihit" data-a="idlex" style="${bx(...T.hit)}" aria-label="展開掛機卡" aria-expanded="false"></button>
     ${gp ? `<i class="igoal" style="${bx(0, 0, Math.round(gw), 4)}"></i>` : ''}
     <span class="i32${warn ? ' c-warn' : ''}" style="${bx(...T.a)}">${warn ? esc(warn) : esc(strT('idleT', { t: dur }))}</span>
     ${ch ? `<span class="i33${n >= 100 ? ' full' : ''}" style="${bx(...T.b)}">${icHTML('wangyin_guixu_16', 'ipw')}${esc(strT('idlePity', { n }))}</span>` : ''}
-    <span class="i34" style="${bx(...T.c)}">${L[0] && L[0].c !== 'pack' ? logRow(L[0]) : ''}</span>
-    <button class="ix" data-a="idlex" style="${bx(...T.x)}" aria-label="展開掛機卡" aria-expanded="false">${ICO.down}</button>`;
+    <span class="i34${hi ? ' rr' + logR(hi) : ''}" style="${bx(...T.c)}">${hi ? logRow(hi) : ''}</span>
+    <button class="ix" data-a="idlex" style="${bx(...T.x)}" aria-label="展開掛機卡" aria-expanded="false">${TRI_UP}</button>`;
   }
   const rows = d ? 6 : 5,
     now = Date.now(),
@@ -2347,20 +2379,20 @@ function idleHTML(W) {
       : '',
     gl = gp
       ? d
-        ? `目標 ${esc(gp.g.b === 'altar' ? '長老屋' : CAMPN[gp.g.b])} Lv${gp.g.lv} ${Math.floor(gp.p * 100)}%`
+        ? `目標 <span class="ifit">${esc(gp.g.b === 'altar' ? '長老屋' : CAMPN[gp.g.b])} Lv${gp.g.lv} </span>${Math.floor(gp.p * 100)}%`
         : `目標 ${Math.floor(gp.p * 100)}%`
       : '',
     ses1 = warn
       ? `<b class="c-warn">${esc(warn)}</b>`
       : d
         ? `本次掛機 ${dur}`
-        : [`本次掛機 ${dur}`, pit, gl].filter(Boolean).join('・'),
+        : [`<span class="ifit2">本次</span>掛機 ${dur}`, pit, gl].filter(Boolean).join('・'),
     pk = (x, i) =>
       `<span class="ipk" data-r="${i}" style="${bx(P0.pk[0], P0.pk[1] + rh * i, P0.pk[2], rh)}"><em>拾取</em>${logRow(x)}</span>`;
   return `${P0.card ? `<i class="icard" style="${bx(...P0.card)}"></i>` : ''}
   <span class="is1" style="${bx(...P0.s1)}">${ses1}</span>
   ${d && (pit || gl) ? `<span class="is2" style="${bx(...P0.s2)}">${[pit, gl].filter(Boolean).join('・')}</span>` : ''}
-  <button class="ihd" data-a="idlex" style="${bx(...P0.xh)}" aria-label="收起掛機卡" aria-expanded="true"><i style="${bx(P0.x[0] - P0.xh[0], P0.x[1] - P0.xh[1], 24, 24)}">${ICO.down}</i></button>
+  <button class="ihd" data-a="idlex" style="${bx(...P0.xh)}" aria-label="收起掛機卡" aria-expanded="true"><i style="${bx(P0.x[0] - P0.xh[0], P0.x[1] - P0.xh[1], 24, 24)}">${TRI_DN}</i></button>
   <button class="ipks" data-a="chaselog" style="${bx(P0.pk[0], P0.pk[1], P0.pk[2], rh * rows)}" aria-label="掉落紀錄"></button>
   ${picks.map(pk).join('')}${!picks.length ? `<span class="ipk c-dim" style="${bx(P0.pk[0], P0.pk[1], P0.pk[2] + 100, rh)}">${STR_T.idleNone}</span>` : ''}
   ${flood ? `<span class="ipk c-dim" data-r="${rows - 1}" style="${bx(P0.pk[0], P0.pk[1] + rh * (rows - 1), P0.pk[2], rh)}">+${flood} 件已收</span>` : ''}
@@ -3100,7 +3132,6 @@ function inputInit() {
     else if (k === 'escape') knEsc();
     else if (k === 't') campAsk();
     else if (k === 'c') autoToggle();
-    else if (k === 'x' && idleOn()) idleToggle(); /* B1 D3-13（D1 §5 K06）：X 展開／收起掛機條 */
     /* 用鍵盤開營地升級：焦點放在建議那顆印章 */
     if (k === 'h' && PANEL.camp)
       requestAnimationFrame(() => knFocus('#pcamp .stamp.sug, #pcamp .stamp, #pcamp button'));

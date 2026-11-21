@@ -361,6 +361,8 @@ function bhSkills() {
       b.classList.toggle('emp', !!o.emp);
       b.setAttribute('aria-label', `${BH_KEY[i]}：${o.emp ? '空的' : o.D.n}`);
       b.querySelector('.arc').innerHTML = '';
+      /* 換了技能：彈匣格、儲存點、蓄力弧都要照新的重畫 */
+      b.dataset.kd = '';
     }
     if (o.emp) continue;
     const kind = (o.kind === 'rl' ? 'ammo' : o.kind) + ':' + (o.max || 0);
@@ -374,6 +376,7 @@ function bhSkills() {
           : '';
       b.querySelector('.gd').innerHTML = o.kind === 'gren' ? '<i></i>'.repeat(o.max) : '';
       bhArc(b, o);
+      HV['bsa' + i] = HV['bsg' + i] = HV['bsc' + i] = null;
     }
     setT(b.querySelector('.nb'), 'bsn' + i, o.n);
     if (o.kind === 'ammo' || o.kind === 'rl') {

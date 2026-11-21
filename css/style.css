@@ -477,6 +477,10 @@
   --d2-vig: #b01a14;
   --d2-plate-world: rgb(37 33 30 / 0.92);
   --d2-prog-hi: #b6b0a8;
+  --d2-tx-off: #9d9995;
+  --d2-rar-normal: #f1ebdb;
+  --d2-rar-magic: #9da7ff;
+  --d2-rar-rare: #fbe53a;
   --d2-scrim: rgb(0 0 0 / 0.62);
   --d2-black: #000;
   --d2-hero-ring: #fbf6ef;
@@ -3033,6 +3037,11 @@ body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcam
   --vig: var(--d2-vig);
   --plate-world: var(--d2-plate-world);
   --prog-hi: var(--d2-prog-hi);
+  --tx-off: var(--d2-tx-off);
+  /* 稀有度色（M2-36；傳奇、追逐沿用全域同值） */
+  --rar-normal: var(--d2-rar-normal);
+  --rar-magic: var(--d2-rar-magic);
+  --rar-rare: var(--d2-rar-rare);
 }
 #bh { position: absolute; inset: 0; pointer-events: none; font-family: var(--font); }
 #bh[hidden], #bh [hidden] { display: none !important; }
@@ -3091,7 +3100,7 @@ body.bhd .bh-aul { font-size: 16px; }
 .bsk[data-k='chg'] .nb { left: 14px; width: 28px; }
 body.bhd .bsk .nb { left: 28px; width: 18px; height: 19px; font-size: 16px; }
 body.bhd .bsk[data-k='chg'] .nb { left: 16px; width: 30px; }
-.bsk .am { position: absolute; left: 4px; top: 35px; width: 34px; display: flex; flex-wrap: wrap; gap: 2px; padding: 1px; margin: -1px; background: var(--panel-inset); pointer-events: none; }
+.bsk .am { position: absolute; left: 4px; top: 35px; width: 36px; display: flex; flex-wrap: nowrap; gap: 2px; padding: 1px; margin: -1px; background: var(--panel-inset); pointer-events: none; }
 .bsk .am:empty, .bsk .gd:empty { display: none; }
 .bsk .am i { width: 4px; height: 4px; box-sizing: border-box; border: 1px solid var(--border-mid); }
 .bsk .am i.on { background: var(--prog-hi); border-color: var(--prog-hi); transition: background 0ms; }
@@ -3106,10 +3115,12 @@ body.bhd .bsk .gd { left: 14px; top: 33px; }
 .bsk .gp i { display: block; height: 100%; width: calc(var(--g, 0) * 100%); background: var(--prog-hi); }
 .bsk .rl { position: absolute; inset: 0; display: grid; place-items: center; font: 700 14px/1 var(--font); font-style: normal; color: var(--tx-strong); pointer-events: none; }
 .bsk .rl:empty { display: none; }
+body.bhd .bsk .rl { font-size: 16px; }
 .bsk[data-k='rl'] .rl { background: radial-gradient(closest-side, var(--d2-scrim) 70%, transparent 72%), conic-gradient(var(--prog-hi) calc(var(--r, 0) * 360deg), var(--panel-inset) 0); }
-.bsk .arc { position: absolute; left: -4px; top: -4px; width: calc(100% + 8px); height: calc(100% + 8px); overflow: visible; pointer-events: none; fill: none; }
-.bsk .arc path { stroke: var(--border-mid); stroke-width: 1; }
-.bsk .arc path.on { stroke: var(--prog-hi); stroke-width: 2; }
+.bsk .arc { position: absolute; left: -5px; top: -5px; width: calc(100% + 10px); height: calc(100% + 10px); overflow: visible; pointer-events: none; fill: none; }
+/* 弧的路徑在格外 2–4 px 的中線；未到 1 px 線往內外各推半格才對齊像素 */
+.bsk .arc path { stroke: var(--border-mid); stroke-width: 1; transform: translate(0.5px, 0.5px); }
+.bsk .arc path.on { stroke: var(--prog-hi); stroke-width: 2; transform: none; }
 .bsk.full { animation: bhfull 120ms steps(1); }
 @keyframes bhfull { 0% { outline: 2px solid var(--border-cap); outline-offset: 1px; } }
 .bsk kbd { display: none; }
@@ -3148,7 +3159,7 @@ body.bhd .bh-fl kbd { display: grid; place-items: center; position: absolute; ri
 /* 直立半版面板開著：下方的 HUD 被面板蓋住，不畫 */
 body.bhp.sheet #bh > :not(.bh-top):not(.bh-cur):not(.bh-loc) { display: none !important; }
 /* 營地的頂列字在刷圖中不畫（地點改在頂列 P08／D06） */
-body.inmap #area { display: none; }
+body.inmap #area, body.bhp.inmap #area { display: none; }
 body.bhd.inmap .top { top: 48px; }
 body.bhp.inmap .top { top: calc(var(--sat, env(safe-area-inset-top)) + 52px); }
 body.bhp .bottom, body.bhd .bottom { display: none; }
@@ -3179,32 +3190,39 @@ body.bhd #pidle { box-shadow: inset 0 0 0 1px var(--panel-edge); border-radius: 
 #pidle .ihd i, #pidle .ix { display: grid; place-items: center; position: absolute; background: var(--btn2); border: 0; color: var(--tx-strong); padding: 0; }
 #pidle .ihd .ico, #pidle .ix .ico { width: 16px; height: 16px; }
 #pidle .ix { cursor: pointer; }
-#pidle .ix .ico { transform: rotate(180deg); }
+#pidle .tri { display: block; width: 24px; height: 24px; fill: currentColor; }
 #pidle .btn { display: grid; place-items: center; min-height: 0; padding: 0; background: var(--btn2); border: 1px solid var(--border); border-radius: 0; box-shadow: none; font: 400 14px/1 var(--font); color: var(--tx-strong); }
-#pidle .btn.on { background: var(--sel-bg); }
+#pidle .btn.on { background: var(--sel-bg); color: var(--tx-strong); font-weight: 700; }
 #pidle .btn.pri { background: var(--act); border: 2px solid var(--act-edge); font: 700 16px/1 var(--font); color: var(--on-act); }
 body.bhd #pidle .btn:not(.pri) { font-size: 16px; }
 #pidle .igoal { background: var(--good); }
 #pidle .i32 { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tx); }
+#pidle .i32.c-warn { color: var(--warn); }
 #pidle .i33 { display: flex; align-items: center; gap: 2px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--tx-strong); }
 #pidle .i33.full { color: var(--rar-chase); }
 #pidle .i33 .ic { width: 16px; height: 16px; }
 #pidle .i34 { font-weight: 700; border-left: 2px solid currentColor; padding-left: 4px; }
+/* 拾取列、最近一筆：照稀有度上色（i34 的直條跟著字色） */
+#pidle .rr0 { color: var(--rar-normal); } #pidle .rr1 { color: var(--rar-magic); } #pidle .rr2 { color: var(--rar-rare); } #pidle .rr3 { color: var(--rar-unique); } #pidle .rr4 { color: var(--rar-chase); }
 #pidle.min .i34:empty { border: 0; }
 body.bhd #pidle.min { line-height: 24px; }
 /* 分頁：直立 7 格（56×54，圖示 16＋字 14/400）；桌機頂列 7 格（72×32，字 16/400＋鍵帽 12） */
 body.touch.port { --nav-h: calc(54px + var(--sab, env(safe-area-inset-bottom))); }
 body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); height: var(--nav-h); padding: 0 0 var(--sab, env(safe-area-inset-bottom)); background: var(--panel); border: 0; box-shadow: none; }
 #pnav button { gap: 2px; min-height: 0; height: 54px; padding: 0; font: 400 14px/1 var(--font); color: var(--tx-dim); background: none; border: 0; border-radius: 0; box-shadow: none; }
-#pnav button.on { background: var(--sel-bg); color: var(--tx-strong); box-shadow: inset 0 2px 0 var(--focus); font-weight: 400; }
+#pnav button.on { background: var(--sel-bg); color: var(--tx-strong); box-shadow: inset 0 2px 0 var(--focus); font-weight: 700; }
 #pnav .tic { display: block; width: 16px; height: 16px; background: currentColor; -webkit-mask: var(--m) center / 16px 16px no-repeat; mask: var(--m) center / 16px 16px no-repeat; }
 #pnav .ico { display: none; }
 #dnav { top: 4px; right: 6px; gap: 4px; z-index: 6; }
 #dnav button { width: 72px; height: 32px; flex-direction: row; gap: 4px; font: 400 16px/1 var(--font); color: var(--tx); background: var(--btn2); border: 1px solid var(--border); border-radius: 0; box-shadow: none; }
-#dnav button.on { background: var(--sel-bg); color: var(--tx-strong); box-shadow: inset 0 0 0 2px var(--sel-edge); font-weight: 400; }
+#dnav button.on { background: var(--sel-bg); color: var(--tx-strong); box-shadow: inset 0 0 0 2px var(--sel-edge); font-weight: 700; }
 #dnav button .ico { display: none; }
 #dnav kbd { position: static; display: grid; place-items: center; width: 12px; height: 12px; padding: 0; background: var(--panel-inset); border: 0; font: 700 10px/1 var(--font); color: var(--tx-dim); }
 #pidle .is1, #pidle .is2, #pidle .ipk { display: flex; align-items: center; gap: 4px; }
+/* 掛機行：「・」直接接字，不另加間距；字不縮 */
+#pidle .is1, #pidle .is2 { gap: 0; }
+#pidle .is1 .ipb, #pidle .is2 .ipb { flex: none; }
+#pidle .ifit[hidden], #pidle .ifit2[hidden] { display: none; }
 #pidle .ipb { display: inline-flex; align-items: center; gap: 2px; min-width: 0; }
 #pidle .ipb .ic, #pidle .ipk .ic { flex: none; width: 16px; height: 16px; }
 #pidle .ipk em { flex: none; margin: 0; }
@@ -3212,5 +3230,17 @@ body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: none
 #pidle .ilast .nm { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bh-boss.intro .bb { visibility: hidden; }
 .bh-boss.intro b::after { content: '現身'; }
-#dnav .dot:not(.n) { top: 3px; right: 3px; }
+/* 分頁徽章收在分頁框內（UIUX Q-U2）：小圓點 8×8 在框內右上 (x+w−12, y+4)；營地數字膠囊高 16、上緣 +2、右緣 −2 */
+#pnav .dot:not(.n), #dnav .dot:not(.n) { top: 4px; right: 4px; left: auto; transform: none; }
+#pnav .dot.n.pill, #dnav .dot.n.pill { top: 2px; right: 2px; left: auto; transform: none; height: 16px; min-width: 16px; padding: 0 4px; border-radius: 8px; font: 700 12px/16px var(--font); box-sizing: border-box; }
+#dnav .dot.n.pill { top: 8px; }
+#dnav button:has(.pill) { padding-right: 16px; }
+/* 天賦沒開：鎖頭（直立取代分頁圖示、桌機接在字後），--tx-off */
+#pnav button.lock, #dnav button.lock { color: var(--tx-off); }
+#pnav button.lock .tic { display: none; }
+#pnav .nlk, #dnav .nlk { display: grid; place-items: center; font-style: normal; }
+#pnav .nlk { order: -1; width: 16px; height: 16px; }
+#dnav .nlk { width: 12px; height: 12px; }
+#pnav .nlk .ico { display: block; width: 16px; height: 16px; }
+#dnav .nlk .ico { display: block; width: 12px; height: 12px; }
 .bh-boss b { font-weight: inherit; }

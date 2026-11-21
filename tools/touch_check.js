@@ -1297,8 +1297,16 @@ const settle = async (p, fn, arg) => {
           $('bhp').getClientRects().length > 0
       )
     );
-    await tap('#area');
-    ok('點左上的地點列＝開地點清單', await p.evaluate(() => !$('pnode').hidden));
+    /* battle-hud v1.3.3 P08：直立刷圖時頂列的地點＝點了出提示（星級、怪物 Lv），舊 #area 不畫；地點清單在「更多 › 地點」 */
+    await tap('#bhLoc');
+    ok(
+      '點頂列的地點（P08）＝提示星級與怪物 Lv；舊地點列 #area 不畫',
+      await p.evaluate(
+        () => !$('tip').hidden && /★.*怪物 Lv \d+/.test($('tip').textContent) && !$('area').getClientRects().length
+      ),
+      await p.evaluate(() => [$('tip').hidden, $('tip').textContent].join('|'))
+    );
+    await p.evaluate(() => hideTip());
     await p.evaluate(() => {
       G.node = G.node || '0,0';
       P.hp = 0;
@@ -2158,7 +2166,10 @@ const settle = async (p, fn, arg) => {
       closePanels();
       navGo('more');
       const rows = [...document.querySelectorAll('#pmore .mrow b')].map(b => b.textContent),
-        nav = !!document.querySelector('#pnav [data-tm="nav:tree"]');
+        tb = document.querySelector('#pnav [data-tm="nav:tree"]'),
+        /* battle-hud（UIUX 裁定）：7 格位置固定，天賦格還在但畫鎖頭；點了不開、跳解鎖條件 */
+        nav = !!tb && tb.classList.contains('lock') && !!tb.querySelector('.nlk') && (navGo('tree'), !TREE.open),
+        nw = $('warn').textContent;
       closePanels();
       useProp({ k: 'asc' });
       const asc = !!PANEL.asc,
@@ -2166,11 +2177,12 @@ const settle = async (p, fn, arg) => {
       useProp({ k: 'box' });
       const box = !!PANEL.box;
       closePanels();
-      return { rows, nav, asc, w, box };
+      return { rows, nav, nw, asc, w, box };
     });
     ok(
-      'M1-06：分頁列沒有天賦、更多沒有天賦樹與昇華石碑、點昇華石碑打不開並跳那一句；山海寶盒照開（例外）',
-      !lk2.nav &&
+      'M1-06：分頁列的天賦格畫鎖頭、點了不開並跳「升長老屋到 Lv 4 才開天賦樹」；更多沒有天賦樹與昇華石碑、點昇華石碑打不開並跳那一句；山海寶盒照開（例外）',
+      lk2.nav &&
+        lk2.nw === '升長老屋到 Lv 4 才開天賦樹' &&
         !lk2.rows.includes('天賦樹') &&
         !lk2.rows.includes('昇華石碑') &&
         !lk2.asc &&

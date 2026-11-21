@@ -11145,9 +11145,12 @@ const ASC_COMBOS = `const combos = k => {
     navF = fnOf(hud, 'navHTML');
   /* battle-hud v1.3.3（mumi 15:14、18:45）取代 M2-12 的 6 格：7 格、倉庫獨立（桌機 L）；追逐物品仍在「更多」；角色頁的「角色｜倉庫」切換照留 */
   ok(
-    'battle-hud v1.3.3 分頁：倉庫・角色・鍛造・技能・天賦・營地・更多；天賦照祭壇；沒有追逐物品分頁（追逐物品在「更多」與 Y 鍵）；角色頁有「角色｜倉庫」切換',
+    'battle-hud v1.3.3 分頁：倉庫・角色・鍛造・技能・天賦・營地・更多（7 格位置固定）；天賦照祭壇（沒開畫鎖頭）；沒有追逐物品分頁（追逐物品在「更多」與 Y 鍵）；角色頁有「角色｜倉庫」切換',
     navK.join() === 'bag,char,forge,skill,tree,craft,more' &&
-      navF.includes("k !== 'tree' || campCan('tree')") &&
+      /* 7 格位置固定：天賦沒開時畫鎖頭（UIUX 裁定），點了寫解鎖條件 */
+      navF.includes("k === 'tree' && !campCan('tree')") &&
+      /nlk/.test(navF) &&
+      /t === 'tree' && !campCan\('tree'\)\) return hudWarn\(navLockTxt\(\)\)/.test(fnOf(hud, 'navGo')) &&
       !/'chase'|chaseOn/.test(navF) &&
       /data-tm="f:chase"/.test(fnOf(hud, 'moreHTML')) &&
       /\['eq', '角色'\],\s*\['bag', '倉庫'\]/.test(fnOf(hud, 'invHTML')),
@@ -12148,6 +12151,56 @@ const ASC_COMBOS = `const combos = k => {
         r.rl = [$('bhS0').querySelector('.rl').textContent, (bhTip(0), $('bhTip').textContent)];
         r.tipR = rc('#bhTip');
         bhTip(null);
+        /* UIUX 退回 #2／#3：彈匣 6 格同一行；蓄力弧 3 段（2 段 on）在格外 2 px，換技能圖示後也重畫 */
+        DBG.reload(0, null), DBG.ammo(0, 4), tick();
+        r.am = [...$('bhS0').querySelectorAll('.am i')].map(e => Math.round(e.getBoundingClientRect().top));
+        const arc = () => {
+          const ps = $('bhS2').querySelectorAll('.arc path'),
+            sv = rc('#bhS2 .arc'),
+            bx2 = rc('#bhS2');
+          return [ps.length, [...ps].filter(e => e.classList.contains('on')).length, sv[0] - bx2[0], sv[2] - bx2[2]];
+        };
+        r.arc = [arc()];
+        $('bhS2').dataset.ic = '';
+        tick();
+        r.arc.push(arc());
+        /* 退回 #4／#5／#6：拾取列照稀有度上色、記號只看稀有度；收起列倉庫快滿 ⚠＋--warn */
+        S.log = [];
+        [
+          ['普', 'it', null, 0],
+          [CUR.conv.n, 'cur', null, 0],
+          ['魔', 'it', null, 1],
+          ['稀', 'it', null, 2],
+          ['傳', 'it', null, 3]
+        ].forEach(x => dropLog(...x));
+        BH.fake.flood = 0;
+        idleBar(1);
+        r.pk = [...document.querySelectorAll('#pidle .ipk .ilast')].map(e => [
+          e.textContent,
+          getComputedStyle(e).color
+        ]);
+        BH.fake.flood = null;
+        const inv0 = S.inv.items.length;
+        for (let i = S.inv.items.length; i < INV_CAP; i++) S.inv.items.push(mkItem('w_sword1_0', 1, 0));
+        DBG.hudMin(1), tick();
+        const w = document.querySelector('#pidle .i32');
+        r.full = [w.textContent, getComputedStyle(w).color];
+        S.inv.items.length = inv0;
+        DBG.hudMin(0), tick();
+        /* 退回 #7、天賦格：戰鬥沒開面板時倉庫分頁選中；7 格位置固定，天賦沒開畫鎖頭 */
+        const nb = TOUCH.on ? '#pnav' : '#dnav';
+        r.tab = [
+          document.querySelectorAll(nb + ' button').length,
+          (document.querySelector(nb + ' button.on') || {}).textContent
+        ];
+        const alt = S.camp.altar;
+        S.camp.altar = 0;
+        HV.nav = null;
+        sheetSync();
+        r.lock = [document.querySelectorAll(nb + ' button').length, !!document.querySelector(nb + ' button.lock .nlk')];
+        S.camp.altar = alt;
+        HV.nav = null;
+        sheetSync();
         /* 收起：直立 HUD 下移 140、戰場 461→621；桌機不移 */
         DBG.hudMin(0), tick();
         r.n = [rc('#bhS0'), rc('#pidle'), cvH(), cvTop()];
@@ -12182,6 +12235,14 @@ const ASC_COMBOS = `const combos = k => {
       .catch(e => (errs.push(e.message), {}));
     await p.waitForTimeout(400);
     const pl = await p.evaluate(() => (G.plates || []).map(x => [x.r[1] + x.r[3] + cvTop(), x.r[2]])).catch(() => []);
+    /* X 不綁（§1-8 沒有）：按了不收起 */
+    let xk = null;
+    if (!touch) {
+      await p.evaluate(() => $('cv').focus && document.activeElement.blur());
+      await p.keyboard.press('x');
+      await p.waitForTimeout(300);
+      xk = await p.evaluate(() => S.hmin || 0);
+    }
     /* 鍵位：L＝倉庫 */
     if (!touch) await p.keyboard.press('l');
     await p.waitForTimeout(200);
@@ -12261,6 +12322,40 @@ const ASC_COMBOS = `const combos = k => {
       pl.length >= 3 && pl.every(([y1, w]) => y1 <= fl + 0.5 && w <= 140),
       JSON.stringify(pl)
     );
+    ok(
+      `battle-hud ${tag} 彈匣 6 格同一行（UIUX 退回 #2）`,
+      m.am && m.am.length === 6 && new Set(m.am).size === 1,
+      JSON.stringify(m.am)
+    );
+    ok(
+      `battle-hud ${tag} 蓄力弧：3 段、到了 2 段亮；外框比格子大 8（格外 2 px＋線 2 px，左右各 4 再加框線）；換圖示後也重畫（UIUX 退回 #3）`,
+      m.arc && m.arc.every(a => a[0] === 3 && a[1] === 2 && a[2] === -4 && a[3] === 8),
+      JSON.stringify(m.arc)
+    );
+    ok(
+      `battle-hud ${tag} 拾取列照稀有度：傳奇 ◈ #fa8915、稀有 ◆ #fbe53a、魔法 #9da7ff、普通與一般通貨 #f1ebdb 沒有記號（UIUX 退回 #4）`,
+      m.pk &&
+        JSON.stringify(m.pk) ===
+          JSON.stringify([
+            ['◈傳', 'rgb(250, 137, 21)'],
+            ['◆稀', 'rgb(251, 229, 58)'],
+            ['魔', 'rgb(157, 167, 255)'],
+            ['轉化石', 'rgb(241, 235, 219)'],
+            ['普', 'rgb(241, 235, 219)']
+          ]),
+      JSON.stringify(m.pk)
+    );
+    ok(
+      `battle-hud ${tag} 收起列倉庫快滿：「⚠ 倉庫快滿」--warn #a9ae68（UIUX 退回 #6）`,
+      m.full && m.full[0] === '⚠ 倉庫快滿' && m.full[1] === 'rgb(169, 174, 104)',
+      JSON.stringify(m.full)
+    );
+    ok(
+      `battle-hud ${tag} 分頁 7 格位置固定：沒開面板時倉庫選中；天賦沒開畫鎖頭（UIUX 退回 #7、天賦格裁定）`,
+      m.tab && m.tab[0] === 7 && /倉庫/.test(m.tab[1]) && m.lock[0] === 7 && m.lock[1],
+      JSON.stringify([m.tab, m.lock])
+    );
+    if (!touch) ok(`battle-hud ${tag} X 不綁鍵（§1-8 沒有）：按了不收起`, xk === 0, String(xk));
     if (!touch)
       ok(`battle-hud ${tag} 鍵位：L 開倉庫分頁`, key[0] === 'bag' && /倉庫/.test(key[1]), JSON.stringify(key));
     ok(
