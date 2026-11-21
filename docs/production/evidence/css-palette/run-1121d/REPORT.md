@@ -24,6 +24,7 @@
 數字全在 `shots/measure.csv`（138 列）。截圖：`shots/cmp-*`＝左 main｜右分支。
 
 ### M1 王閃現預警線（`render.js:162`）— **已改；線對黑邊 α0.9 通過，α0.7 冰原未達 3，請 UIUX 裁定**
+- **更新（dpoe-css-palette5）：UIUX 裁定黑邊改不透明，已改；五種淺磚線對黑邊 α0.9 5.16、α0.7 3.41，全部 ≥3，M1 通過。見 `../run-1121e/REPORT.md`。** 以下是本輪（同 α 黑邊）的原紀錄。
 - 程式：`const a = 0.3 + 0.6 * f`；同一條 arc 先 `globalAlpha = a`、`lineWidth 5`、`PAL.ringEdge` stroke，再 `lineWidth 3`、`PAL.enemyTel` stroke；畫完把 globalAlpha、lineWidth 還原成 1／2（後面的預警照舊）。
 - 量法：在遊戲裡擺一隻 `pat='blink'` 的王，攔 `draw()` 對閃現圓實際呼叫的 stroke（`shots/*-facts.json` 的 `rec`）：分支 = `#000000 5px α0.9` ＋ `#ff3d7f 3px α0.9`（f=1）／α0.7（f=2/3）。再把**同樣的筆畫**畫在 run-1121c 那五種淺磚（合成底，沒加燈籠光）上讀像素。main 用同一方法重量（main 實際筆畫是 `rgba(178,141,255,0.898)` 2 px），得 2.38／1.60／3.45／2.36／2.24，和簽核引用的 2.34／1.57／3.37／2.31／2.19 差 ≤0.08（取樣點與反鋸齒不同）。
 

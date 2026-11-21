@@ -1,0 +1,3 @@
+反向驗證：在黑邊 stroke 前加回 globalAlpha = 0.3 + 0.6 * f（黑邊跟線同 α）
+❌ CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel 
+1

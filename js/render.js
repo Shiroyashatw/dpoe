@@ -160,14 +160,13 @@ function draw() {
       continue;
     }
     if (m.boss && m.pat === 'blink') {
-      /* 王閃現：外 1 px 黑邊（--ring-edge，跟線同一個 α）再畫 3 px --enemy-tel */
-      const a = 0.3 + 0.6 * f;
+      /* 王閃現：外 1 px 不透明黑邊（--ring-edge；敵方預警要比己方醒目）再畫 3 px --enemy-tel */
       CX.beginPath();
       CX.arc(m.tx, m.ty, m.r * (1.6 - f * 0.6), 0, TAU);
-      CX.globalAlpha = a;
       CX.lineWidth = 5;
       CX.strokeStyle = PAL.ringEdge;
       CX.stroke();
+      CX.globalAlpha = 0.3 + 0.6 * f;
       CX.lineWidth = 3;
       CX.strokeStyle = PAL.enemyTel;
       CX.stroke();

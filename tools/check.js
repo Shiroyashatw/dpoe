@@ -11958,11 +11958,13 @@ const ASC_COMBOS = `const combos = k => {
         R.indexOf('PAL.goodV2;', R.indexOf('if (m.arrow) continue;'))
       );
     ok(
-      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px --ring-edge 再畫 3 px --enemy-tel（同一個 α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
-      /const a = 0\.3 \+ 0\.6 \* f;/.test(blink) &&
-        (blink.match(/globalAlpha = a/g) || []).length === 1 &&
+      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
+      (blink.match(/globalAlpha = /g) || []).length === 2 &&
         blink.indexOf('lineWidth = 5') < blink.indexOf('PAL.ringEdge') &&
-        blink.indexOf('PAL.ringEdge') < blink.indexOf('lineWidth = 3') &&
+        blink.indexOf('PAL.ringEdge') < blink.indexOf('CX.stroke()') &&
+        blink.indexOf('CX.stroke()') < blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') &&
+        blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') < blink.indexOf('lineWidth = 3') &&
+        /globalAlpha = 1;\s*CX\.lineWidth = 2;\s*continue;/.test(blink) &&
         blink.indexOf('lineWidth = 3') < blink.indexOf('PAL.enemyTel') &&
         /fillStyle = PAL\.ringEdge;\s*CX\.fillRect\(bx, by, 7, 7\);\s*CX\.fillStyle = PAL\.enemyTel;\s*CX\.fillRect\(bx \+ 1, by \+ 1, 5, 5\);/.test(
           mini
