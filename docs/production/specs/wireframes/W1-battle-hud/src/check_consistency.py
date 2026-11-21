@@ -109,6 +109,32 @@ for size,(W,H) in G.SIZES.items():
                         if ix>0 and iy>0 and e['kind'].split(':')[0]!='region':
                             warn.append(f'{size} {st} {e["id"]} {e["name"][:16]} 進中央 60% {ix}×{iy}')
 
+# v1.3.5 經驗條／格擋弧（xpblk.py ⇄ battle-hud-5.md 的 X 表；熱區下限、出界、與既有熱區互疊）
+import xpblk as X
+xt={}
+for name in MD_FILES:
+    t=open(os.path.join(ROOT,name),encoding='utf-8').read()
+    for m in re.finditer(r'<!-- X (\S+) (\S+) -->\n(.*?)(?:\n\n|\Z)',t,re.S):
+        xt[(m.group(1),m.group(2))]=[[x.strip() for x in ln.strip().strip('|').split('|')] for ln in m.group(3).splitlines()[2:] if ln.strip().startswith('|')]
+for size,(W,H) in G.SIZES.items():
+    for layer,col in (('hud',False),('collapsed',True)):
+        exp=X.rows(size,col); got=xt.get((size,layer))
+        if got is None: fail.append(f'md 缺 X 表 {size} {layer}'); continue
+        if exp!=got: fail.append(f'X 表 {size} {layer} 跟 xpblk.py 不同')
+        total+=len(exp)
+        base=G.elements_collapsed(size) if col else G.elements(size,'normal')
+        bh=[(box(e['hit'],e),e['id']) for e in base if e['hit']!='—' and box(e['hit'],e)]
+        mn_hit=44 if size=='390x844' else 36
+        for e in X.items(size,col):
+            if not(0<=e['x0']<=e['x1']<=W and 0<=e['y0']<=e['y1']<=H): fail.append(f'{size} {e["id"]} 出界')
+            m=re.match(r'(\d+)–(\d+)×(\d+)–(\d+)',e['hit'])
+            if m:
+                b=(int(m.group(1)),int(m.group(3)),int(m.group(2)),int(m.group(4)))
+                if min(b[2]-b[0],b[3]-b[1])<mn_hit: fail.append(f'{size} {e["id"]} 熱區 < {mn_hit}')
+                for ob,oid in bh:
+                    if min(b[2],ob[2])-max(b[0],ob[0])>0 and min(b[3],ob[3])-max(b[1],ob[1])>0: fail.append(f'{size} {e["id"]} 熱區疊到 {oid}')
+
+
 for name in MD_FILES:
     for i,ln in enumerate(open(os.path.join(ROOT,name),encoding='utf-8'),1):
         if any(w in ln for w in BAN) and '沒有' not in ln and '禁用' not in ln: fail.append(f'{name}:{i} 禁用字')
