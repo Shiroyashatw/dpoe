@@ -1,8 +1,8 @@
-# battle-hud v1.3.5（final，2026-11-20 mumi 16:32；v1.3 勘誤 mumi 17:18；mumi 11/20 17:33 拿掉觀戰鍵；v1.3.4 勘誤 2026-11-21；v1.3.5 經驗條與格擋弧 2026-11-21 12:07）
+# battle-hud v1.3.6（final，2026-11-20 mumi 16:32；v1.3 勘誤 mumi 17:18；mumi 11/20 17:33 拿掉觀戰鍵；v1.3.4 勘誤 2026-11-21；v1.3.5 經驗條與格擋弧 2026-11-21 12:07；v1.3.6 能量護盾層 2026-11-21 12:37）
 
 > **狀態：定稿（final）。** mumi 16:06 核准示意圖；**mumi 16:32 核准上色版定稿進 repo**，同時定三項：1280 收起列改兩行 320×64（§3）、390 收起列 T32 寬 108（§3）、掉落牌／菁英名牌寬度跟名稱（battle-hud-4.md §12）。現行戰鬥 HUD 以本檔為準；M2-40 的戰鬥 HUD 版面、Page 389c5787（dpoe 戰場 定案）與 W1 各草稿都已 superseded。決定記在 [`CHANGELOG.md`](../../CHANGELOG.md)。
 > **裁定：** 畫面規格由 UIUX設計師裁定。交付必須跟本檔一致，用實機截圖疊示意圖比對；不符就退回、不 merge。
-> **續篇：** [`battle-hud-2.md`](battle-hud-2.md) 直立表、[`battle-hud-3.md`](battle-hud-3.md) 桌機表、[`battle-hud-4.md`](battle-hud-4.md) 狀態／技能格／戰場訊號／驗收、[`battle-hud-5.md`](battle-hud-5.md) 經驗條與格擋弧（v1.3.5）。名詞：[`terms-aura.md`](terms-aura.md)（名詞表 v0.6.36）。
+> **續篇：** [`battle-hud-2.md`](battle-hud-2.md) 直立表、[`battle-hud-3.md`](battle-hud-3.md) 桌機表、[`battle-hud-4.md`](battle-hud-4.md) 狀態／技能格／戰場訊號／驗收、[`battle-hud-5.md`](battle-hud-5.md) 經驗條與格擋弧（v1.3.5）、[`battle-hud-6.md`](battle-hud-6.md) 能量護盾層／危急紅邊（v1.3.6）。名詞：[`terms-aura.md`](terms-aura.md)（名詞表 v0.6.36）。
 
 **來源**
 - v1.3 草稿 `/workspace/share-v13/`、`/workspace/wireframes-draft/W1-v13-draft/`（mumi 15:50 通過）。
@@ -19,6 +19,8 @@
 - 上色版：`color/battle-hud-v13-color-{state}-{size}.png`（上色畫面＋id 標籤＋右側說明欄）與 `-clean.png`（實機樣子，剛好 W×H）。色票只用 D2 定案 token；素材來源與借用清單見 `color/README.md` 與 [`assets-borrowed.md`](assets-borrowed.md)。
 - 每張圖右下角標「battle-hud v1.3（final，2026-11-20 mumi 16:32）」（v1.3.1、v1.3.2 只改文字，圖上沒有觀戰鈕，圖不重畫）。產生器 `src/gen_battle_hud.py`（線框）、`color/src/render_color.py`（上色）；表由 `src/build_md.py` 產生，`src/check_consistency.py` 反向比對；上色版疊圖自檢 `color/src/check_overlay.py`。
 - v1.3.5 經驗條／格擋弧上色版：`color/battle-hud-v135-xpblk-{hud-390-A,hud-390-A-collapsed,hud-1280-A,block-{390,1280}-{full,partial,refilling,none}}.png`＋`-clean.png`，右下標「battle-hud v1.3.5（mumi 11/21 12:07）」；產生器 `color/src/render_xpblk.py`（底圖 render_color.py 不改），座標只讀 `src/xpblk.py`。既有 W1 線框與 v13 上色圖不重畫。
+
+- v1.3.6 上色版：`color/battle-hud-v136-es-{390,1280}-{full,partial,recharge,zero,none,lowcomb,lowlife}.png`＋`-clean.png`，產生器 `color/src/render_es.py`、元件表 `src/eslayer.py`。
 
 ## 1. 已決項（mumi 15:50 及先前）
 
@@ -44,6 +46,7 @@
 - **自動鈕開著（Q-U1）**：P56／D40 用 `--sel-bg`＋字 `--tx-strong` 700。
 - **分頁角標（Q-U2）**：紅點／膠囊畫在分頁框內；8×8 在 (x+w−12, y+4)，膠囊高 16、左右 6；不得出框。未驗。
 - **1280 物品名省略號（Q-U3）**：掉落列／比較欄物品名過長可省略號，不換行、不加寬欄。未驗。
+- **v1.3.6（mumi 12:37）**：能量護盾在生命條框內底 3 px（ES1 B）、--es 淡金、充能中 --es-hi 2 px 前緣；字「生命 {hp} / {max}・能量護盾 {es} / {esmax}」，字級不變（E1）；危急紅邊改看合計或生命（舊「低血紅邊」條件作廢），詳 battle-hud-6.md。未驗。
 - 仍開放的問題見 [QUESTIONS.md](QUESTIONS.md)。
 
 
@@ -98,3 +101,4 @@
 | v1.3.2（mumi 11/20 17:33 拿掉觀戰鍵） | 拿掉觀戰鈕、觀戰狀態與 N 鍵（N 不綁）；§3 收起列只有展開鈕。圖上本來就沒畫觀戰鈕，圖不變。 |
 | v1.3.4 勘誤（2026-11-21 11:38） | 分頁鎖定（固定位置＋鎖頭）；經驗條與格擋弧都留、位置待草稿定案；不綁 X；通貨／掉落牌「混沌」改「轉化石」；P49 y 650→672；P24／T25 冷卻秒數 16/700；裝填字級分尺寸；Q-U1～Q-U4 各一行。 |
 | v1.3.5（mumi 11/21 12:07） | 經驗條與格擋弧定案（新檔 battle-hud-5.md）：A 位置、不顯示等級、同寬；1280 經驗條 M1 雙邊 8 px；空軌不加框（M2）；冷鋼色組 `--block*`、盾 a `hud_block_16`；新 id P66–P69、T43–T45、D65–D68、C64–C66。既有元件不動。 |
+| v1.3.6（mumi 11/21 12:37） | 能量護盾層與危急紅邊定案；新檔 battle-hud-6.md；ES1 B 框內底 3 px、--es 淡金、ES3 常亮前緣、ES4 不標；E1 維持字級／E2 異能魔力細條留生命條／E3 重疊點到算藥劑；舊生命比例限定與外框閃爍作廢。 |

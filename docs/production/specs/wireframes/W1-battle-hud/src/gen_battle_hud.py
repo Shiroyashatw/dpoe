@@ -95,8 +95,8 @@ def port(state):
         a(el('P14','工具提示（長按技能格 400 ms）「彈匣 4／6 發・打完裝填 1.5 秒」',10,392,380,426,'tip','14/400','--panel-raised、1px --panel-edge、--tx',st='長按時；放開收'))
     if state=='lowhp':
         for i,(n,b) in enumerate([('上',(0,91,390,115)),('下',(0,528,390,552)),('左',(0,115,24,528)),('右',(366,115,390,528))]):
-            a(el(f'P{15+i}',f'低血紅邊 {n}',*b,'vig',token='--vig 24px，<35% 60%／<20% 70%',st='常亮不閃'))
-        a(el('P19','生命條低血外框',8,506,356,528,'bar',token='1px --hp-hi',st='閃 ≤2 次／秒'))
+            a(el(f'P{15+i}',f'危急紅邊 {n}',*b,'vig',token='--vig 24px：合計或生命 <35% 60%、任一 <20% 70%（battle-hud-6.md §23）',st='常亮不閃'))
+        a(el('P19','生命條危急外框',8,506,356,528,'bar',token='1px --hp-hi',st='同危急紅邊條件，常亮不閃（v1.3.6）'))
     var=['ammo','gren','wind','flask','cd'] if state!='lootflood' else ['reload','gren','wind','flask','cd']
     for i,v in enumerate(var):
         x=10+i*50; a(el(f'P{20+i}',f'技能格 {i+1}',x,460,x+44,504,'cell:'+v,'數字 14/700；冷卻秒數 16/700' if v=='cd' else '數字 14/700','--panel-raised、1px --border、--tx-strong','=框',CELL_ST[v]))
@@ -153,8 +153,8 @@ def desk(state):
         a(el('D19','工具提示（hover 技能格）「彈匣 4／6 發・打完裝填 1.5 秒」',340,524,668,558,'tip','16/400','--panel-raised、1px --panel-edge、--tx',st='hover 時'))
     if state=='lowhp':
         for i,(n,b) in enumerate([('上',(0,40,1280,64)),('下',(0,696,1280,720)),('左',(0,64,24,696)),('右',(1256,64,1280,696))]):
-            a(el(f'D{20+i}',f'低血紅邊 {n}',*b,'vig',token='--vig 24px，<35% 60%／<20% 70%',st='常亮不閃'))
-        a(el('D24','生命條低血外框',338,650,792,674,'bar',token='1px --hp-hi',st='閃 ≤2 次／秒'))
+            a(el(f'D{20+i}',f'危急紅邊 {n}',*b,'vig',token='--vig 24px：合計或生命 <35% 60%、任一 <20% 70%（battle-hud-6.md §23）',st='常亮不閃'))
+        a(el('D24','生命條危急外框',338,650,792,674,'bar',token='1px --hp-hi',st='同危急紅邊條件，常亮不閃（v1.3.6）'))
     a(el('D25','掉落面板',12,452,322,708,'panel',token='--panel＋1px --panel-edge、圓角 6'))
     a(el('D26','「本次掛機 2 時 14 分」',24,460,282,484,'text','16/400','--tx-dim','—','右側讓給 D64 ▼'))
     a(el('D27','「追逐保底 42%・目標 長老屋 Lv7 62%」',24,484,282,508,'text','16/700','王印 16＋--tx-strong','24–282×460–508','點＝追逐目標；右側讓給 D64 ▼',flag='未驗'))

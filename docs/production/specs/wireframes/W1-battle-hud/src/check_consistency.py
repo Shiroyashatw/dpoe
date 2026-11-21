@@ -135,6 +135,32 @@ for size,(W,H) in G.SIZES.items():
                     if min(b[2],ob[2])-max(b[0],ob[0])>0 and min(b[3],ob[3])-max(b[1],ob[1])>0: fail.append(f'{size} {e["id"]} 熱區疊到 {oid}')
 
 
+# v1.3.6 能量護盾層（eslayer.py ⇄ battle-hud-6.md 的 E 表；必須在生命條框內、出界、不可點）
+import eslayer as ES
+et={}
+for name in MD_FILES:
+    t=open(os.path.join(ROOT,name),encoding='utf-8').read()
+    for m in re.finditer(r'<!-- E (\S+) (\S+) -->\n(.*?)(?:\n\n|\Z)',t,re.S):
+        et[(m.group(1),m.group(2))]=[[x.strip() for x in ln.strip().strip('|').split('|')] for ln in m.group(3).splitlines()[2:] if ln.strip().startswith('|')]
+for size,(W,H) in G.SIZES.items():
+    for layer,col in (('hud',False),('collapsed',True)):
+        exp=ES.rows(size,col); got=et.get((size,layer))
+        if got is None: fail.append(f'md 缺 E 表 {size} {layer}'); continue
+        if exp!=got: fail.append(f'E 表 {size} {layer} 跟 eslayer.py 不同')
+        total+=len(exp)
+        base=G.elements_collapsed(size) if col else G.elements(size,'normal')
+        bar=[e for e in base if e['name'].startswith('生命條「')]
+        if len(bar)!=1: fail.append(f'{size} {layer} 找不到生命條'); continue
+        b=bar[0]
+        for e in ES.items(size,col):
+            if not(b['x0']+1<=e['x0']<=e['x1']<=b['x1']-1 and b['y0']+1<=e['y0']<=e['y1']<=b['y1']-1): fail.append(f'{size} {e["id"]} 不在 {b["id"]} 1 px 框內')
+            if e['kind']=='es' and e['y1']!=b['y1']-1: fail.append(f'{size} {e["id"]} 不是貼框內最底')
+            if not e['hit'].startswith('—'): fail.append(f'{size} {e["id"]} 應不可點')
+        ids=[e['id'] for e in ES.items(size,col)]
+        dup=set(ids)&{e['id'] for e in base}|set(ids)&{e['id'] for e in X.items(size,col)}
+        if dup: fail.append(f'{size} {layer} id 重複 {sorted(dup)}')
+
+
 for name in MD_FILES:
     for i,ln in enumerate(open(os.path.join(ROOT,name),encoding='utf-8'),1):
         if any(w in ln for w in BAN) and '沒有' not in ln and '禁用' not in ln: fail.append(f'{name}:{i} 禁用字')

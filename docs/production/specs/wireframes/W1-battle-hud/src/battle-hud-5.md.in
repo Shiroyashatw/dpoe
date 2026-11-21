@@ -1,5 +1,6 @@
-# battle-hud v1.3.5（2026-11-21 mumi 12:07 經幕僚長）續篇：經驗條與格擋弧
+# battle-hud v1.3.5（2026-11-21 mumi 12:07 經幕僚長；v1.3.6 未改本檔表格）續篇：經驗條與格擋弧
 
+> 能量護盾層與危急紅邊見 [`battle-hud-6.md`](battle-hud-6.md)。
 > 接 [`battle-hud.md`](battle-hud.md)、[`battle-hud-2.md`](battle-hud-2.md)、[`battle-hud-3.md`](battle-hud-3.md)、[`battle-hud-4.md`](battle-hud-4.md)。本檔只寫 v1.3.5 新加的兩個元件；既有元件座標一格都沒動。
 > 名詞「經驗」（EN Experience）「格擋值」（EN Block Value）照名詞表 v0.6.38（數值設計師，main 5d4014ef）；「格擋弧」只是元件名，不出現在畫面；畫面不寫 XP、EXP。
 

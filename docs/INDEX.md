@@ -64,7 +64,7 @@
 
 | 畫面 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3.5（mumi 16:32；勘誤 17:18；mumi 11/20 17:33 拿掉觀戰鍵；v1.3.4 勘誤 2026-11-21 11:38；v1.3.5 經驗條與格擋弧 2026-11-21 12:11，見 battle-hud-5.md） | 現行；v1.3.4「經驗條與格擋弧位置待草稿定案」已取代；正式素材挑定見 art-picks/battle-hud-v1.3/；光環第二批 12 個待定；開發仍暫停 |
+| battle-hud | `specs/battle-hud/battle-hud.md` | v1.3.6（mumi 16:32；勘誤 17:18；mumi 11/20 17:33 拿掉觀戰鍵；v1.3.4 勘誤 2026-11-21 11:38；v1.3.5 經驗條與格擋弧 2026-11-21 12:11；v1.3.6 能量護盾層／危急紅邊 2026-11-21 12:37，見 battle-hud-6.md） | 現行；v1.3.5 能量護盾未定、舊低血紅邊條件已取代；v1.3.4「經驗條與格擋弧位置待草稿定案」已取代；正式素材挑定見 art-picks/battle-hud-v1.3/；光環第二批 12 個待定；開發仍暫停 |
 | 光環欄用語 | `specs/battle-hud/terms-aura.md` | v0.6.36 | 現行（已收進名詞表 v0.6.36） |
 | 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分取代：掛機條版面與光柱外觀 → specs/battle-hud/；掛機條營地訊號（M2-camp-cards §7）、橫幅／王倒下（M2-33-3b、M2-23 §6）、倒下（M2-40 §8）仍現行；觀戰鈕已拿掉（mumi 11/20 17:33 拿掉觀戰鍵） |
@@ -75,17 +75,18 @@
 | 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
 | 山海寶盒 | （無） | — | 待寫（各自批次到了再定） |
 | 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | v1.0 | 現行（只限這幾節；照刷） |
-| 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.1 | 現行（v1.0 已由本檔取代）；示意圖 W/W3-items/ 現行 |
+| 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.2 | 現行（v1.1 已由本檔取代）；示意圖 W/W3-items/ 現行 |
 | 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
-| 倉庫 | `S/M2-33-2a-items-crafting.md` §1、§2（動作段）、§3＋`S/M2-item-display.md`（格子與說明；跟 2a 衝突時以它為準）＋`S/M2-37-ia-rework.md` §3、§4 | 2a v1.0.1／item-display v1.1／M2-37 v1.3 | 草稿／未定稿；B5 新檔 S/stash.md 待寫（草稿 W-storage-draft-2145 待 mumi） |
-| 角色 | `S/M2-33-2a-items-crafting.md` §4＋`S/M2-37-ia-rework.md` §8 | 2a v1.0.1／M2-37 v1.3 | 草稿／未定稿（畫面草稿 W3-character-draft-1807 待 mumi） |
+| 倉庫 | `S/M2-33-2a-items-crafting.md` §1、§2（動作段）、§3＋`S/M2-item-display.md`（格子與說明；跟 2a 衝突時以它為準）＋`S/M2-37-ia-rework.md` §3、§4 | 2a v1.0.1／item-display v1.2／M2-37 v1.3.1 | 草稿／未定稿；B5 新檔 S/stash.md 待寫（草稿 W-storage-draft-2145 待 mumi） |
+| 角色 | `S/M2-character.md` v1.0（元件表 `S/M2-character-2.md`～`S/M2-character-4.md`；格子與說明以 `S/M2-item-display.md` v1.2 為準；2a §4、M2-37 §8 空格狀態仍可對照） | v1.0 | 定稿草稿（390×844 示意圖已定；1280×720 版面待補；未進入開發） |
 | 商會 | 規則 `S/M2-trade-tiercap.md` | v1.0 | 規則現行；畫面待寫（各自批次到了再定） |
 | 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2.1 | 待定（版面段已作廢，技能分頁段要拆成 S/skills-panel.md）；**戰鬥 HUD 部分已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；M2-40 裡的「祭壇」字串，畫面上一律改寫「長老屋」（名詞表 v0.6.19） |
 | 天賦樹 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（S2 改版暫停；天賦樹開著時照刷） |
 | 昇華石碑 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（入口兩處都留） |
 | 更多分頁 | `S/M2-33-2b-panels.md` §3＋`S/M2-37-ia-rework.md` §3 | 11/18 | 現行 |
-| 底部分頁 7 格 | `S/M2-37-ia-rework.md` | v1.3 | **現行**：mumi 18:45 定 7 格、倉庫獨立（對齊 battle-hud）；18:14 分頁名戰利品改倉庫 |
+| 底部分頁 7 格 | `S/M2-37-ia-rework.md`＋`S/M2-37-ia-rework-2.md`（§12） | v1.3.1 | **現行**：mumi 18:45 定 7 格、倉庫獨立（對齊 battle-hud）；18:14 分頁名戰利品改倉庫；12:40 拆檔 |
+| M2-37 續篇 | `S/M2-37-ia-rework-2.md`（§12 M2-38 實作交辦） | v1.3.1 | 現行（2026-11-21 12:40 自主檔整節移出，正文未改寫） |
 | 追逐物品面板 | `S/M2-33-3b-feedback.md` §1＋`S/M2-37-ia-rework.md` §5 | 11/18 | 現行 |
 | 掉落紀錄 | `S/M2-33-2b-panels.md` §5 | 11/18 | 現行 |
 | 王印 | 王印 v0.2（Page 685f7eea） | v0.2 | 待轉入成 S/king-seal.md（各自批次到了再定） |
@@ -101,7 +102,7 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 名詞表 | `docs/名詞表.md` | v0.6.38 | 現行 |
+| 名詞表 | `docs/名詞表.md` | v0.6.39 | 現行；v0.6.38 已取代 |
 | 數值總表 | `S/數值總表.md` | v0.4 | 現行 v0.4 |
 | 追逐掉落 | `S/M2-17-chase-drops.md` | v1.3 | 現行 |
 | 大招判定 | `S/M2-40-big-attack.md` | v1.0 | 現行 |
@@ -124,7 +125,7 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版（11/20 17:10 藥劑冷卻環 2 px＋1 px #000，對齊 battle-hud v1.3；11/21 12:07 加格擋 --block 四色，弧外圍 1 px #000 必要） | 現行 |
+| 色票與 token | `S/M2-36-palette-tokens.md` | D2 版（11/20 17:10 藥劑冷卻環 2 px＋1 px #000，對齊 battle-hud v1.3；11/21 12:07 加格擋 --block 四色，弧外圍 1 px #000 必要；11/21 12:31 加能量護盾 --es／--es-hi（淡金，唯一暖色例外）；11/21 12:53 低血紅邊改名危急紅邊、條件照 battle-hud v1.3.6；11/21 13:15 加獄火條 --hf、傳送門 --portal、四組 -rgb，待 mumi 授權） | 現行 |
 | D2 介面色 | `S/palette-D2-final-ui.md` | v1.6 | 現行 |
 | 畫法 | `S/M2-36-drawing-rules.md` | 11/20 17:10（§2 光環／分頁遮罩不描暗邊、§5.2 390 戰鬥分頁 16 px 遮罩，對齊 battle-hud v1.3） | 現行 |
 | PixelLab 提示詞與挑圖 | `S/M2-36-pixellab-d2.md`、`S/M2-36-d2-picks.md` | — | 待轉入（PR #119、#126） |
@@ -133,7 +134,7 @@
 | 戰鬥可讀性美術 | `S/M2-40-combat-readability-art.md` | — | 現行（R4 彈藥格位置見 battle-hud v1.3） |
 | 營地外觀分級 | `S/M2-12-lookTiers.md` | 11/20 12:01 | 現行（要改寫成卡片用） |
 | 印章 | `S/M2-12-B3-art.md` 印章段 | 11/20 09:55 | 現行（牌匾段作廢） |
-| 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示、battle-hud-v1.3 正式素材 48 檔、block-steel 格擋盾牌 hud_block_16） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑；battle-hud-v1.3 見該資料夾 README） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
+| 美術挑定檔（PR #120 八列、M2-40 九枚技能圖示、battle-hud-v1.3 正式素材 48 檔、block-steel 格擋盾牌 hud_block_16、es-layer 能量護盾色） | `docs/production/art-picks/`（README 列來源與建議 art/ 路徑；battle-hud-v1.3 見該資料夾 README） | — | 參考，不是規格（不是執行時資產；進 art/ 另開 PR） |
 
 ## 流程與工程
 
