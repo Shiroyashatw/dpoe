@@ -11950,6 +11950,33 @@ const ASC_COMBOS = `const combos = k => {
         /lineWidth = lw \+ 2/.test(ring) &&
         PAL.ringEdge === '#000000'
     );
+    const Mc = rd('js/mech.js'),
+      GF = vm.runInContext('GROUND.fire', ctx),
+      blink = R.slice(R.indexOf("m.pat === 'blink'"), R.indexOf("m.pat === 'nova'")),
+      mini = R.slice(
+        R.indexOf('for (const m of G.mobs) {\n    if (m.arrow) continue;'),
+        R.indexOf('PAL.goodV2;', R.indexOf('if (m.arrow) continue;'))
+      );
+    ok(
+      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px --ring-edge 再畫 3 px --enemy-tel（同一個 α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
+      /const a = 0\.3 \+ 0\.6 \* f;/.test(blink) &&
+        (blink.match(/globalAlpha = a/g) || []).length === 1 &&
+        blink.indexOf('lineWidth = 5') < blink.indexOf('PAL.ringEdge') &&
+        blink.indexOf('PAL.ringEdge') < blink.indexOf('lineWidth = 3') &&
+        blink.indexOf('lineWidth = 3') < blink.indexOf('PAL.enemyTel') &&
+        /fillStyle = PAL\.ringEdge;\s*CX\.fillRect\(bx, by, 7, 7\);\s*CX\.fillStyle = PAL\.enemyTel;\s*CX\.fillRect\(bx \+ 1, by \+ 1, 5, 5\);/.test(
+          mini
+        ) &&
+        /const bx = Math\.round\(/.test(mini)
+    );
+    ok(
+      'CSS 色票 #159 簽核 M3：燃燒地面依陣營分色——我方 14% 填色用 --el-fire（colOwn），怪物方維持 --enemy-tel',
+      GF.colOwn === PAL.elFire &&
+        GF.col === PAL.enemyTel &&
+        PAL.elFire !== PAL.enemyTel &&
+        /CX\.fillStyle = \(!foe && C\.colOwn\) \|\| C\.col;/.test(Mc),
+      JSON.stringify({ colOwn: GF.colOwn, col: GF.col })
+    );
   }
   /* (5a) 王印拼條第一次用到才載：橫幅先畫出空 span.ic，圖載好（artRepaint）要補畫橫幅 */
   const hjs = rd('js/hud.js'),

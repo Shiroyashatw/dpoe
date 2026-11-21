@@ -160,10 +160,19 @@ function draw() {
       continue;
     }
     if (m.boss && m.pat === 'blink') {
-      CX.strokeStyle = `rgba(${PAL.rgb.enemyTel},${0.3 + 0.6 * f})`;
+      /* 王閃現：外 1 px 黑邊（--ring-edge，跟線同一個 α）再畫 3 px --enemy-tel */
+      const a = 0.3 + 0.6 * f;
       CX.beginPath();
       CX.arc(m.tx, m.ty, m.r * (1.6 - f * 0.6), 0, TAU);
+      CX.globalAlpha = a;
+      CX.lineWidth = 5;
+      CX.strokeStyle = PAL.ringEdge;
       CX.stroke();
+      CX.lineWidth = 3;
+      CX.strokeStyle = PAL.enemyTel;
+      CX.stroke();
+      CX.globalAlpha = 1;
+      CX.lineWidth = 2;
       continue;
     }
     if (m.boss && m.pat === 'nova') {
@@ -1031,9 +1040,18 @@ function drawMinimap(W) {
   CX.drawImage(G.mini, x0, y0, mw, mh);
   for (const m of G.mobs) {
     if (m.arrow) continue;
-    CX.fillStyle = m.boss ? PAL.enemyTel : m.elite ? PAL.enemyRim : PAL.badV6;
-    const z = m.boss ? 5 : 2;
-    CX.fillRect(x0 + m.x * s - z / 2, y0 + m.y * s - z / 2, z, z);
+    if (m.boss) {
+      /* 王點：對齊整數像素，先畫 7×7 不透明 --ring-edge 再畫 5×5 --enemy-tel，即外 1 px 黑邊 */
+      const bx = Math.round(x0 + m.x * s) - 3,
+        by = Math.round(y0 + m.y * s) - 3;
+      CX.fillStyle = PAL.ringEdge;
+      CX.fillRect(bx, by, 7, 7);
+      CX.fillStyle = PAL.enemyTel;
+      CX.fillRect(bx + 1, by + 1, 5, 5);
+      continue;
+    }
+    CX.fillStyle = m.elite ? PAL.enemyRim : PAL.badV6;
+    CX.fillRect(x0 + m.x * s - 1, y0 + m.y * s - 1, 2, 2);
   }
   CX.fillStyle = PAL.goodV2;
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);

@@ -89,7 +89,8 @@ const GROUND = {
   gas: { n: '毒氣雲', col: PAL.goodV4, burn: 1 },
   /* 緩速在被油纏身裡（離開還留 2 秒），地面本身不另外緩速 */
   oil: { n: '油滑地面', col: PAL.rarRareBgV3, burn: 1, dur: 6, on: a => (a.oiled = G.t + DEBUFF.oilT) },
-  fire: { n: '燃燒地面', col: PAL.enemyTel, sh: 'boom' },
+  /* 我方燃燒地面填 --el-fire（colOwn）；--enemy-tel 只給怪物方 */
+  fire: { n: '燃燒地面', col: PAL.enemyTel, colOwn: PAL.elFire, sh: 'boom' },
   chill: {
     n: '冰緩地面',
     col: PAL.elCold,
@@ -761,7 +762,7 @@ function drawMech() {
       const C = GROUND[g.k],
         f = Math.min(1, (g.dur - g.t) / 0.5);
       CX.globalAlpha = (foe ? 0.36 : 0.14) * f;
-      CX.fillStyle = C.col;
+      CX.fillStyle = (!foe && C.colOwn) || C.col;
       CX.beginPath();
       CX.ellipse(g.x, g.y, g.r, g.r * 0.75, 0, 0, TAU);
       CX.fill();

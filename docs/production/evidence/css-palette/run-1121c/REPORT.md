@@ -34,10 +34,10 @@
 ## 3. 保留的 token（判定表沒有 target，不猜）
 - 完整清單：**`kept-tokens.csv`**（token、現值、PAL 鍵、JS 引用位置、狀態）。
 - `work/risk_deleted_but_js.json` 的 169 個：2 個上一輪已刪（X3 遷完），**167 個保留**，狀態都是「判定表無 target，保留，待 UIUX 另給對照」。SIGNOFF-CHECKLIST 第 18 行允許「這次先不刪」。
-- 另外兩個照實列理由：
+- 另外兩個照實列理由（`--border-cap-v1` 其實也在上面 167 個裡，見下）：
   - `--sel-bd #a8927f`：只有 `tools/ui_mock.js:21` 用（授權範圍外的工具），判定表沒有 target。
   - `--border-cap-v1 #e8e2d6`：`js/mech.js:119` 劍陣地面 `GROUND.blades.col`。X1 的 target 只管 RCOL 掉落光圈；劍陣地面在判定表沒有 target，套稀有度色也違反「稀有度色只出現在掉落上」。
-- `--el-chaos-rgb` 這一輪已刪，所以保留總數是 167＋2＝**169 個**（上一輪 170）。
+- `--el-chaos-rgb` 這一輪已刪，所以保留總數是 **168 個不重複 token**（風險清單 167＋`--sel-bd`）。`--border-cap-v1` 本來就在 169 個風險清單裡，原本 csv 列了兩次、寫成 169，是重複計算；dpoe-css-palette4（UIUX #159 簽核 M4）已刪重複列，`kept-tokens.csv` 現在 168 列。
 
 ## 4. 簽核清單：上一輪「未驗」的項目
 量測腳本：`measure.js`（主量測）、`x4.js`（黑邊像素）、`x2_local.js`（區域變數的環）、`measure.py`（算對比、ΔE、色盲、並排）。全部數字在 `shots/measure.csv`。main 用 812b428 的 worktree 開另一個本機伺服器，同一組種子。

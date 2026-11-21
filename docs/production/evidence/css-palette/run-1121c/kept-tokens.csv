@@ -167,4 +167,3 @@ token,現值,PAL 鍵,JS 引用位置,狀態
 --fx-world-2,#8fb3a0,PAL.fxWorld2,js/world.js:144,判定表無 target，保留，待 UIUX 另給對照
 --fx-combat-1,#8a6cff,PAL.fxCombat1,js/combat.js:634,判定表無 target，保留，待 UIUX 另給對照
 --sel-bd,#a8927f,PAL.selBd,tools/ui_mock.js:21,保留：tools/ui_mock.js:21（授權範圍外的工具引用；判定表無 target）
---border-cap-v1,#e8e2d6,PAL.borderCapV1,js/mech.js:119,保留：js/mech.js 劍陣地面 GROUND.blades.col（X1 target 只管 RCOL 掉落光圈；劍陣地面判定表無 target；套稀有度色違反「稀有度色只出現在掉落上」）
