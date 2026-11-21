@@ -110,6 +110,12 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --prog-lo／--prog-hi | `#3c3935`／`#b6b0a8` | 進度條（中性紙灰，不用暖色） |
 | --hp／--mp | `#934341`／`#3a5b98` | 生命條／魔力條，平塗；條上字 --tx-strong 6.41／6.38 |
 | --hp-hi／--mp-hi | `#af6c64`／`#6b7dad` | 藥劑鈕冷卻環 2 px＋外 1 px `#000`（戰鬥 HUD 藥劑球照 battle-hud v1.3；UIUX 11/20 17:06）；藥劑不限次數、冷卻 3 秒，沒有次數格、沒有空瓶圖示；低血時藥劑鈕外框用 --hp-hi |
+| --block | `#a9b8c3` | 格擋弧填色、盾牌圖示本色（冷鋼 L* 74）；對 --panel 7.86、--scene-void 9.11、淺磚 3.29 |
+| --block-dim | `#40484e` | 格擋弧空軌／被打掉的段（L* 30）；對 --panel 1.71 |
+| --block-regen | `#758088` | 碎開後回滿中的虛線段（L* 53，亮度＝--block 45%）；對 --panel 3.95 |
+| --block-hi | `#eaf2f8` | 碎開閃（L* 95），只在格擋弧上約 150 ms；不當字色、不當框 |
+
+格擋弧（H6，mumi 11/21 12:07 選 A 冷鋼）：**外圍 1 px `#000` 是必要條件，不能拿掉**——--block 在戰場最亮的淺磚上只有 3.29（加燈籠光 16% 只剩 2.69），--block-dim／--block-regen 在淺磚上（1.39／1.66）靠這圈黑邊和弧形分辨。四階靠亮度分（三種色盲模擬 L* 間距都 ≥ 20.8）。盾牌圖示 `hud_block_16.png`＋`@2x`（16 最近鄰 ×2），定稿在 `art-picks/block-steel/`。
 
 按鈕形狀規則：主鈕圓角 6、高 ≥ 40、熱區 ≥ 44。一個畫面最多 1 顆（戰場「去營地」、營地單座卡「▲ 升級」、確認框的確認鈕、天賦樹「確認配點」）。主鈕只放在 --panel、--plate-world 或磚縫上，不直接放在淺磚上；HUD 上要墊 --plate-world。停用鈕：底 --panel-raised、1 px 虛線 --border、字 --tx-dim。分頁徽章 `.tab .bdg`、`.plq .stp.can`、`.cc .stamp.can` 改 --btn2＋--ready 左標。
 
@@ -189,6 +195,7 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --act-edge 對地面／--panel／--panel-raised／磚縫 | ≥ 3 | 3.40／5.39／4.93／4.43 |
 | --border 對 --panel；--border-hi 對 --panel-raised-2 | ≥ 3 | 3.82；5.79 |
 | 冷卻環對 --panel／--panel-raised | ≥ 3 | 3.92–3.93／3.58–3.59 |
+| --block 對 --panel／--scene-void／淺磚；--block-dim 對 --panel | ≥ 3；≥ 1.5 | 7.86／9.11／3.29（燈籠光 2.69，靠 1 px `#000`）；1.71 |
 | 焦點框對 --panel／地面／主鈕 | ≥ 3 | 15.20／9.60／6.14 |
 | 主角腳圈對地面／淺磚 | ≥ 3 | 9.38／6.22 |
 | 光柱對地面（魔法／稀有／傳奇／追逐） | ≥ 3 | 4.52／7.86／4.16／7.41 |
