@@ -11181,12 +11181,14 @@ const ASC_COMBOS = `const combos = k => {
     fns = ['chasePanelHTML', 'empHTML', 'forgeHead', 'craftSeg', 'chaseSeen', 'chaseDot', 'goCampT'].map(n =>
       fnOf(hud, n)
     ),
-    lit = /#[0-9a-fA-F]{3,8}\b|rgba?\(/;
+    lit = /#[0-9a-fA-F]{3,8}\b|rgba?\(/,
+    varRgb = /rgba?\(var\(--[\w-]+-rgb\)(?:\s*[,/]\s*[\d.]+)?\)/g;
+  /* 規則性斷言改寫（CSS 對齊色票，待 UIUX 確認）：CSS 段只准 rgb(var(--*-rgb)／α) 形式，不准寫死數字的 rgb( */
   ok(
-    'M2-38 顏色：M2-38 的 CSS 段與新函式沒有色碼字面值（hex、rgb()）、沒有新 token 定義',
+    'M2-38 顏色：M2-38 的 CSS 段沒有 hex、只准 rgb(var(--*-rgb)/α) 形式（不准寫死數字的 rgb()）；新函式沒有色碼字面值；沒有新 token 定義',
     blk.length > 100 &&
       fns.every(f => f.length > 20) &&
-      !lit.test(blk) &&
+      !lit.test(blk.replace(varRgb, '')) &&
       !fns.some(f => lit.test(f)) &&
       !/\n\s*--[\w-]+\s*:/.test(blk),
     fns.map(f => f.length).join(',')
@@ -11288,7 +11290,11 @@ const ASC_COMBOS = `const combos = k => {
 /* M2-34 3a（素材接入，M2-33-3a）：繪製順序（製作人 2026-11-17 19:46）、地磚缺圖退回、王印拼條缺圖退回、招牌特效缺圖退回 */
 {
   const JS = f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8');
-  /* 1. 繪製順序：真的跑 render.js 的 draw()，記下跳數字（fillText）、怪物生命條（#e5484d 的 fillRect）、掉落光柱（漸層或 sig_beam）跟暗層（drawImage DARK）的先後 */
+  /* 1. 繪製順序：真的跑 render.js 的 draw()，記下跳數字（fillText）、怪物生命條（顏色＝:root 的 --hp 實際值的 fillRect）、掉落光柱（漸層或 sig_beam）跟暗層（drawImage DARK）的先後 */
+  const HPC = PAL_CSS.replace(/\/\*[\s\S]*?\*\//g, '')
+    .match(/:root\s*\{([^}]*)\}/)[1]
+    .match(/--hp\s*:\s*([^;]+);/)[1]
+    .trim();
   const order = mode => {
     const ev = [],
       mk = log =>
@@ -11303,7 +11309,7 @@ const ASC_COMBOS = `const combos = k => {
                   : (...a) => {
                       if (!log) return;
                       if (k === 'fillText') log('num');
-                      if (k === 'fillRect' && o.fillStyle === '#e5484d') log('bar');
+                      if (k === 'fillRect' && o.fillStyle === HPC) log('bar');
                       if (k === 'drawImage' && a[0] && a[0].dark) log('dark');
                     },
             set: (o, k, v) => ((o[k] = v), true)
@@ -11722,23 +11728,27 @@ const ASC_COMBOS = `const combos = k => {
     rgb = s => (s ? s.split(',').map(Number) : [0, 0, 0]),
     de = ['chase', 'rare'].map(k => +de00(rgb(tok(`--rar-${k}-rgb`)), hex(tok(`--rar-${k}`))).toFixed(2));
   ok(
-    'M2-34 3a 修正 (4)：掉落光柱顏色讀 --rar-chase-rgb／--rar-rare-rgb（不寫死）；token 照 B2 S2：#0cf6ee／12, 246, 238、#ffcf5c／255, 209, 102；上色後跟 --rar-* ΔE2000 ≤ 2',
-    !/12,\s*246,\s*238|255,\s*209,\s*102/.test(beams) &&
+    'M2-34 3a 修正 (4)：掉落光柱顏色讀 --rar-chase-rgb／--rar-rare-rgb（不寫死）；token 照 B2 S2＋M2-36 定稿：#0cf6ee／12, 246, 238、#fbe53a／251, 229, 58；上色後跟 --rar-* ΔE2000 ≤ 2',
+    !/12,\s*246,\s*238|251,\s*229,\s*58/.test(beams) &&
       beams.includes("cssv(d.chase ? '--rar-chase-rgb' : '--rar-rare-rgb')") &&
       [tok('--rar-chase'), tok('--rar-chase-rgb'), tok('--rar-rare'), tok('--rar-rare-rgb')].join('|') ===
-        '#0cf6ee|12, 246, 238|#ffcf5c|255, 209, 102' &&
+        '#0cf6ee|12, 246, 238|#fbe53a|251, 229, 58' &&
       de.every(v => v <= 2),
     JSON.stringify({ de, tok: [tok('--rar-chase-rgb'), tok('--rar-rare-rgb')] })
   );
-  /* B2-CAT：M2-36 腐化／災魘色票只定義、還沒套用（之後徽章批次才用） */
-  const catUse = ['css/style.css', ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)].filter(f =>
-    /var\(--cat-(corr|cal)/.test(rd(f))
-  );
+  /* B2-CAT：M2-36 腐化／災魘色票；災魘色還沒套用（之後徽章批次才用）。
+     規則性斷言改寫（CSS 對齊色票，待 UIUX 確認）：--cat-corr 只准用在判定表指定的位置（ruling.csv 原 legacy-19 那一列：.fslot li.cw, .aff.cor 的字色） */
+  const catFiles = ['css/style.css', ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)],
+    catUse = catFiles.filter(f => /var\(--cat-cal/.test(rd(f))),
+    corrUse = catFiles.flatMap(f => (rd(f).match(/var\(--cat-corr/g) || []).map(() => f)),
+    corrOk = /\n\.fslot li\.cw, \.aff\.cor \{ color: var\(--cat-corr\); \}/.test(css);
   ok(
-    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff，還沒有元件用到',
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只用在判定表指定的 .fslot li.cw, .aff.cor 字色（其他地方不准用）；--cat-cal* 還沒有元件用到',
     [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
-      !catUse.length,
-    JSON.stringify({ tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')], catUse })
+      !catUse.length &&
+      corrUse.length === 1 &&
+      corrOk,
+    JSON.stringify({ tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')], catUse, corrUse })
   );
   /* CSS 對齊色票（docs/production/evidence/css-palette/ruling/：ruling.csv 139 列＋X1–X4；官方值照 M2-36） */
   {
