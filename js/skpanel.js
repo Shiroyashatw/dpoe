@@ -903,7 +903,7 @@ function skillHTML() {
     body = PICKV.includes(v) ? pickHTML(c) : v === 'one' ? oneHTML(c) : homeHTML(),
     anim = SKUI.anim;
   SKUI.anim = '';
-  return `<div class="ph"><b>技能</b><span class="soul" title="靈魂：升級、開孔、解鎖輔助 II 都花它"><i></i>${abbrH(MAT().soul, 'own')}</span>${swapB('背包')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><b>技能</b><span class="soul" title="靈魂：升級、開孔、解鎖輔助 II 都花它"><i></i>${abbrH(MAT().soul, 'own')}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="skp ${v === 'home' ? 'home' : v === 'one' ? 'one' : 'pick'} ${anim}">${body}</div>`;
 }
 

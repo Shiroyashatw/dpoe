@@ -1001,12 +1001,11 @@ function drawMinimap(W) {
   /* 手機：小一點，放在右上選單下面 */
   /* M2-12 §1：直立 88×88 在右上（y 52–140、x 290–378）；桌機 160×160 在右下，營地升級開著時不畫 */
   if (!TOUCH.on && PANEL.camp) return;
-  const land = TOUCH.on && !PORT(),
-    box = PORT() ? 88 : 160,
-    mw = land ? Math.min(104, (68 * G.W) / G.H) / ZOOM : Math.min(box, (box * G.W) / G.H),
+  const box = PORT() ? 88 : 160,
+    mw = Math.min(box, (box * G.W) / G.H),
     mh = (mw * G.H) / G.W,
-    x0 = W - mw - (land ? 10 / ZOOM : PORT() ? 12 : 16),
-    y0 = land ? 60 / ZOOM : PORT() ? 5 : cvH() - mh - 16,
+    x0 = W - mw - (PORT() ? 12 : 16),
+    y0 = PORT() ? 5 : cvH() - mh - 16,
     s = mw / G.W;
   CX.fillStyle = `rgba(${PAL.rgb.sceneVoidV2},0.78)`;
   CX.fillRect(x0, y0, mw, mh);
@@ -1138,30 +1137,20 @@ function plqRing(X, Y, w, h, off, th, col) {
   CX.fillRect(x, y + th, th, H - 2 * th);
   CX.fillRect(x + W - th, y + th, th, H - 2 * th);
 }
-/* 牌匾安全框（§12-2）：左右 8、頂列下緣 +8、底部 HUD 上緣 −8；障礙＝「繼續刷」鈕、橫向右側技能鈕群（畫布座標，250 ms 量一次） */
+/* 牌匾安全框（§12-2）：左右 8、頂列下緣 +8、底部 HUD 上緣 −8；障礙＝「繼續刷」鈕（畫布座標，250 ms 量一次） */
 const PLQ_SF = { t: -1e9 };
 function plqSafe() {
   const now = performance.now(),
     H = cvH();
   if (now - PLQ_SF.t < 250 && PLQ_SF.w === IW && PLQ_SF.h === H) return PLQ_SF;
   const y0 = cvTop(),
-    R = [...document.querySelectorAll('#area, #dnav, .tmenu, .bottom .mid, #run [data-a=resume], .sk')]
+    R = [...document.querySelectorAll('#area, #dnav, .bottom .mid, #run [data-a=resume]')]
       .filter(e => e.offsetParent || getComputedStyle(e).position === 'fixed')
       .map(e => [e, e.getBoundingClientRect()])
       .filter(([, r]) => r.width && r.height),
     of = s => R.filter(([e]) => e.matches(s)).map(([, r]) => r),
     box = L => [L[0], L[1] - y0, L[2] - L[0], L[3] - L[1]],
-    ob = of('#run [data-a=resume]').map(r => box([r.left, r.top, r.right, r.bottom])),
-    sk = !PORT() && document.body.classList.contains('touch') ? of('.sk') : [];
-  if (sk.length)
-    ob.push(
-      box([
-        Math.min(...sk.map(r => r.left)),
-        Math.min(...sk.map(r => r.top)),
-        Math.max(...sk.map(r => r.right)),
-        Math.max(...sk.map(r => r.bottom))
-      ])
-    );
+    ob = of('#run [data-a=resume]').map(r => box([r.left, r.top, r.right, r.bottom]));
   const mid = of('.bottom .mid')[0];
   return Object.assign(PLQ_SF, {
     t: now,
@@ -1169,7 +1158,7 @@ function plqSafe() {
     h: H,
     l: 8,
     r: IW - 8,
-    top: Math.max(0, ...of('#area, #dnav, .tmenu').map(r => r.bottom - y0)) + 8,
+    top: Math.max(0, ...of('#area, #dnav').map(r => r.bottom - y0)) + 8,
     b: (mid ? mid.top - y0 : H) - 8,
     ob
   });

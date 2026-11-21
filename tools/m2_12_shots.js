@@ -14,7 +14,7 @@ const ok = (c, n, v = '') => {
   console.log(`${c ? '✅' : '❌'} ${n}`, typeof v === 'string' ? v : JSON.stringify(v));
 };
 async function run(b, W, H) {
-  const mob = W < 900,
+  const mob = W < 900 && H > W,
     tag = `${W}x${H}`;
   const ctx = await b.newContext({
     viewport: { width: W, height: H },
@@ -38,7 +38,7 @@ async function run(b, W, H) {
   await p.evaluate(mob => {
     proSkip();
     S.story.tips = 0;
-    S.orient = mob ? 'p' : 'l';
+    S.orient = 'p';
     if (mob) setTouch(true);
     applyOrient();
     enterCamp();

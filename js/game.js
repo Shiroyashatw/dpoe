@@ -12,7 +12,7 @@ function newGame() {
   const s = {
     v: 35,
     name: '女忍者',
-    /* 手機的操作方向：p 直立、l 橫向（桌機一律橫向）；舊存檔 migrate 從這裡補 */
+    /* 手機的操作方向：一律 p 直立（2026-11-21 取消橫向，舊存檔的 l 由 migrate 改成 p） */
     orient: 'p',
     mute: 0 /* 關音效（設定，audio.js 的 muted） */,
     curIt: null /* 倉庫通貨頁中間那格的裝備（0.3.6，hud.js 的 slotGet） */,

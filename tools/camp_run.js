@@ -16,7 +16,7 @@ const URL = process.argv[2] || 'http://localhost:8000/',
   /* 第 6 個之後的參數：.csv 結尾的是 M1-21 的 CSV 路徑，其他是輸出資料夾 */
   CSV = process.argv.slice(6).find(a => /\.csv$/i.test(a)),
   OUT = process.argv.slice(6).find(a => !/\.csv$/i.test(a)) || path.join(__dirname, '..', 'evidence', 'm2-01'),
-  MOB = VW < 900,
+  MOB = VW < 900 && VH > VW /* 手機一律直式（2026-11-21 取消橫向） */,
   ZERO = 3 /* M2-30：連續這麼多分鐘 0 靈魂（玩家或無人任一份）就整場失敗、結束碼 1 */,
   STALL = 30; /* 這麼多秒畫面上什麼都沒變（場景、輪數、首領進度、活著的怪、靈魂，怪的總生命也沒往下掉）＝AI 卡住，整段算掛機停住 */
 

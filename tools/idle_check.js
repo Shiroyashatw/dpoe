@@ -105,7 +105,7 @@ const gwait = async (p, sec) => {
   while ((await p.evaluate(() => window.__F.gt)) - g0 < sec) await p.waitForTimeout(250);
 };
 async function ctxOf(b) {
-  const touch = W < 1000;
+  const touch = W < 1000 && H > W; /* 手機一律直式（2026-11-21 取消橫向） */
   const ctx = await b.newContext({ viewport: { width: W, height: H }, hasTouch: touch, isMobile: touch });
   await ctx.route(/supabase/, r => r.abort()); /* 測試絕對不能碰正式雲端 */
   return ctx;

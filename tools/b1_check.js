@@ -10,8 +10,8 @@ const W = +process.argv[2] || 390,
   H = +process.argv[3] || 844,
   URL = process.argv[4] || 'http://localhost:8000/',
   PORTM = H > W,
-  /* 手機橫向（844×390、667×375）用觸控模擬 */
-  MOB = PORTM || H <= 430,
+  /* 手機一律直式（2026-11-21 取消橫向）：直的尺寸用觸控模擬，橫的是桌機 */
+  MOB = PORTM,
   tag = W + 'x' + H,
   DSF = W === 1024 && H === 640 ? 1.25 : 2,
   OUT = process.env.SHOTS || path.join(__dirname, '..', 'docs', 'production', 'evidence', 'dpoe-b1'),
@@ -73,7 +73,7 @@ const near = (a, b, d = 2) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= 
     ([sat, sab, port]) => {
       proSkip();
       S.story.tips = 0;
-      S.orient = port ? 'p' : 'l';
+      S.orient = 'p';
       applyOrient();
       if (sat || sab) DBG.safeArea(sab, sat);
       S.auto = 1;
@@ -89,15 +89,13 @@ const near = (a, b, d = 2) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= 
     ses: Math.round((Date.now() - SES.t0) / 1000)
   }));
   const fN = await shot('D3-07_newsave');
-  if (MOB && !PORTM) ok('手機橫向不畫掛機條（現行規則，M2-12：橫向太矮）', !ns.t, '不畫', ns.t || '不畫', fN);
-  else
-    ok(
-      'D3-07 新存檔：掛機條照實際時間「掛機 0 分」、沒刷過怪物 Lv45 以上不畫「追逐保底」',
-      /^掛機 0 分/.test(ns.t) && ns.ses < 60 && !ns.pity && ns.lv < 45,
-      '「掛機 0 分」、保底段 0',
-      `「${ns.t}」${ns.ses} 秒、怪物 Lv${ns.lv}、保底段 ${ns.pity ? 1 : 0}`,
-      fN
-    );
+  ok(
+    'D3-07 新存檔：掛機條照實際時間「掛機 0 分」、沒刷過怪物 Lv45 以上不畫「追逐保底」',
+    /^掛機 0 分/.test(ns.t) && ns.ses < 60 && !ns.pity && ns.lv < 45,
+    '「掛機 0 分」、保底段 0',
+    `「${ns.t}」${ns.ses} 秒、怪物 Lv${ns.lv}、保底段 ${ns.pity ? 1 : 0}`,
+    fN
+  );
   await scan('新存檔戰鬥');
 
   /* ---------- S6／D2-13／D3-03 資源列、分頁位置 ---------- */
@@ -141,7 +139,7 @@ const near = (a, b, d = 2) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= 
       `${nb} 格 ${JSON.stringify(cs.nav)}`,
       fC
     );
-  } else ok('資源列：手機橫向不畫（假設）', !cs.btn, '不畫', JSON.stringify(cs.btn), fC);
+  }
   if (cs.vis)
     ok(
       'S6 資源列內容：金 8,6xx、靈魂 1,18x（<10,000 寫完整；設 8,640／1,180，刷圖中在漲）',
@@ -184,7 +182,7 @@ const near = (a, b, d = 2) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= 
       await shot('F9-2_cur_big')
     );
 
-  /* 只有直立與桌機有掛機條（手機橫向不畫） */
+  /* 直立與桌機有掛機條 */
   const hasIdle = !!(await rect('#pidle'));
   if (hasIdle) {
     /* D1-01 展開標題列 */
@@ -696,7 +694,7 @@ const near = (a, b, d = 2) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= 
       ([sat, sab, port]) => {
         proSkip();
         S.story.tips = 0;
-        S.orient = port ? 'p' : 'l';
+        S.orient = 'p';
         applyOrient();
         if (sat || sab) DBG.safeArea(sab, sat);
         S.auto = 1;
@@ -760,7 +758,7 @@ const near = (a, b, d = 2) => a && b && a.every((v, i) => Math.abs(v - b[i]) <= 
       ([sat, sab, port]) => {
         proSkip();
         S.story.tips = 0;
-        S.orient = port ? 'p' : 'l';
+        S.orient = 'p';
         applyOrient();
         if (sat || sab) DBG.safeArea(sab, sat);
         S.auto = 1;

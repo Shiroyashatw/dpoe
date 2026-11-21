@@ -81,8 +81,8 @@ const fsApply = () => {
   r.style.setProperty('--tscale', ((S && S.fs) || 100) / 100);
   r.classList.toggle('fsbig', !!S && S.fs > 100);
 };
-/* 直立操作：手機而且設定選直立（桌機一律橫向） */
-const PORT = () => TOUCH.on && !!S && S.orient === 'p';
+/* 直立操作：手機一律直立（2026-11-21 取消橫向），桌機不是 */
+const PORT = () => TOUCH.on && !!S;
 /* 桌機：魔力球旁的功能列；手機：右上的 ☰ 選單（data-tm 的處理在 touch.js） */
 const DMENU = [
   ['inv', 'bag', '裝備與倉庫', 'I'],
@@ -147,9 +147,7 @@ function hudInit() {
   <div id="paused" hidden>已暫停</div>
   <div id="banner" role="status" aria-live="polite" hidden></div>
   <div class="tonly" id="stick"><i></i></div>
-  <div class="tonly tmenu"><button data-tm="inv">${ICO.bag}倉庫</button><button data-tm="more" aria-label="選單" aria-expanded="false">${ICO.menu}</button></div>
-  <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="camp">${ICO.home}回營地</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>
-  <div class="tonly" id="rot"><p id="rott"></p><button class="btn" data-tm="flip" id="rotb"></button></div>`;
+  <div class="tmore" id="tmore" hidden>${fmenuHTML()}<button class="tonly" data-tm="skill">${ICO.gem}技能</button><button class="tonly" data-tm="tree">${ICO.tree}天賦樹</button><button class="tonly" data-tm="camp">${ICO.home}回營地</button><button class="tonly" data-tm="fs" id="tfs">${ICO.full}全螢幕</button><button class="tonly" data-tm="set">${ICO.gear}設定</button></div>`;
   $('chase').addEventListener('mouseenter', () => chaseBnHover(1));
   $('chase').addEventListener('mouseleave', () => chaseBnHover(0));
   pracInit();
@@ -619,7 +617,7 @@ const navHTML = () => {
     )
     .join('');
 };
-/* 掛機條（M2-12 §2）：刷圖中一直在（面板開著也在，自動模式倒下也在；確認卡、手動的死亡卡蓋上來時收起）；手機只在直立（橫向太矮），桌機在左下；天賦樹蓋滿時不畫 */
+/* 掛機條（M2-12 §2）：刷圖中一直在（面板開著也在，自動模式倒下也在；確認卡、手動的死亡卡蓋上來時收起）；手機在直立，桌機在左下；天賦樹蓋滿時不畫 */
 const idleOn = () =>
   !!S &&
   G.scene === 'map' &&
@@ -828,7 +826,7 @@ const craftSeg = on =>
     .join('')}</span>`;
 /* 鍛造的標題列：「鍛造」＋三段＋關閉（直立、桌機同一份） */
 const forgeHead = on =>
-  `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}${swapB('裝備')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
+  `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
 /* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點營地場景的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
 const PANEL_LOCK = { asc: 'asc', box: 'box' };
 function openPanel(k) {
@@ -836,7 +834,6 @@ function openPanel(k) {
   if (lk) return hudWarn(lk);
   /* 展開的掛機條（200 高）會蓋到半版面板：開面板就收起來 */
   IDLE.open = 0;
-  TOUCH.front = k === 'stash' || k === 'skill' || k === 'craft' ? 'other' : 'inv';
   /* 左邊一次只開一個（倉庫／技能寶石／鍛造台），右邊是背包 */
   if (k === 'stash' || k === 'skill' || k === 'craft') {
     PANEL.stash = PANEL.skill = PANEL.craft = false;
@@ -924,22 +921,9 @@ const KEYS_PORT = [
   ['技能鍵', '點＝自動瞄準 · 拖出去＝手動瞄準 · 拖回按鈕＝取消'],
   ['道具', '點一下看說明與動作']
 ];
-const KEYS_LAND = [
-  ['左半邊拖', '移動'],
-  ['大按鈕', '普攻（按住連打）'],
-  ['技能鍵', '點＝自動瞄準 · 拖出去＝手動瞄準 · 拖回按鈕＝取消'],
-  ['翻滾鍵', '翻滾（怪物出手的瞬間＝完美閃避）'],
-  ['道具', '點一下看說明與動作']
-];
 function setHTML() {
-  const rows = TOUCH.on ? (PORT() ? KEYS_PORT : KEYS_LAND) : KEYS_PC,
-    p = S.orient === 'p';
+  const rows = TOUCH.on ? KEYS_PORT : KEYS_PC;
   return `<div class="ph"><b>設定</b><span>dungeonPOE v${VER}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  ${
-    TOUCH.on
-      ? `<div class="ph2">操作方向</div><div class="gkind seg2"><button class="btn ${p ? 'on' : ''}" data-tm="port">直立</button><button class="btn ${p ? '' : 'on'}" data-tm="land">橫向</button></div><p class="sethint">直立單手操作；橫向雙手操作，視野較寬</p>`
-      : ''
-  }
   <div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
   <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
   <div class="ph2">文字大小</div><div class="gkind seg2">${[100, 115, 130].map(v => `<button class="btn ${(S.fs || 100) === v ? 'on' : ''}" data-a="fs:${v}">${v}%</button>`).join('')}</div>
@@ -1054,10 +1038,6 @@ function hudPanels() {
   if (PANEL.log) panelHTML($('plog'), logHTML());
   $('pskill').hidden = !PANEL.skill;
   $('pcraft').hidden = !PANEL.craft;
-  if (swapOn()) {
-    if (TOUCH.front === 'inv') $('pstash').hidden = $('pskill').hidden = $('pcraft').hidden = true;
-    else $('pinv').hidden = true;
-  }
   if (PORT()) {
     /* 直立一次只看一個面板：技能、做裝蓋住裝備面板；做裝在挑裝備（NAV.pick）時反過來只看倉庫清單 */
     if (!(PANEL.stash || PANEL.craft)) NAV.pick = 0;
@@ -1095,14 +1075,6 @@ function hudPanels() {
   }
 }
 const hudInv = () => PANEL.inv && hudPanels();
-/* 手機窄螢幕：兩個面板一次只顯示一個，標題列的按鈕切換 */
-const swapOn = () =>
-  TOUCH.on &&
-  !PORT() &&
-  PANEL.inv &&
-  (PANEL.stash || PANEL.skill || PANEL.craft) &&
-  (NARROW || (PANEL.skill && LAND()));
-const swapB = n => (swapOn() ? `<button class="x sw" data-tm="swap">${n}</button>` : '');
 /* 裝備欄的位置（照 PoE 的人形擺法），單位 px */
 /* 裝備欄的位置（照 PoE 的人形擺法，緊湊版），[x, y, 寬, 高] px；右邊放角色數值 */
 const EQPOS = {
@@ -1121,7 +1093,6 @@ const EQPOS = {
 };
 /* 空的裝備欄：那個部位的淡圖示（取第一個同部位的基底圖） */
 const slotIc = e => (BASES.find(b => b.k === e.t) || {}).ic;
-const LAND = () => TOUCH.on && !PORT() && IH < 480;
 /* 角色頁的穿著（0.4.9，示意頁第 9 版）：兩直欄——左邊防具（頭、胸、手、鞋、腰）、右邊武器與飾品（武器、副手、項鍊、戒指），
    中間主角（img/hero.png 第一格）與四個抗性（不夠的紅字）；護符與神格另一列。格子跟戰利品同一套角標，空的寫部位名 */
 const DOLL_L = ['helm', 'chest', 'gloves', 'boots', 'belt'],
@@ -1180,10 +1151,9 @@ let CHSW = null;
 function invHTML() {
   const s = ST,
     pen = G.scene === 'map' ? resPen(mobLv(G.mapT || 1)) : 0,
-    land = LAND(),
     port = PORT(),
     /* 0.4.9：桌機也拆成「角色」「戰利品」兩頁（分頁列同一份）；序章第 2 步要點背包裡的劍：固定在背包分頁 */
-    tb = land ? PANEL.invT || 'bag' : !NAV.pick && NAV.view === 'char' ? 'eq' : 'bag',
+    tb = !NAV.pick && NAV.view === 'char' ? 'eq' : 'bag',
     /* M2-12：戰利品併進角色頁，直立、桌機也有這一組 */
     invTabs = !NAV.pick
       ? `<span class="ftabs">${[
@@ -1210,8 +1180,8 @@ function invHTML() {
     head = NAV.pick
       ? `<b>選一件裝備</b><span>點一下就放上去</span><button class="x" aria-label="取消" data-a="pickno">${ICO.x}</button>`
       : tb === 'eq'
-        ? `<b>角色</b><span>Lv ${S.lv}・經驗 ${Math.round((100 * S.xp) / xpNeed(S.lv))}%${ptLeft() > 0 ? `・天賦 ${ptLeft()} 點未用` : ''}</span>${invTabs}${swapB(PANEL.stash ? '倉庫' : PANEL.craft ? '鍛造' : '技能')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`
-        : `<b>戰利品</b><span>${fullN(n)}／${fullN(INV_CAP)}・${abbrH(S.gold, 'own')} 金</span>${invTabs}${swapB(PANEL.stash ? '倉庫' : PANEL.craft ? '鍛造' : '技能')}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`;
+        ? `<b>角色</b><span>Lv ${S.lv}・經驗 ${Math.round((100 * S.xp) / xpNeed(S.lv))}%${ptLeft() > 0 ? `・天賦 ${ptLeft()} 點未用` : ''}</span>${invTabs}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`
+        : `<b>戰利品</b><span>${fullN(n)}／${fullN(INV_CAP)}・${abbrH(S.gold, 'own')} 金</span>${invTabs}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button>`;
   /* 0.4.9：篩選四列跟著清單捲（黏在上面會吃掉半個畫面） */
   return `<div class="ph">${head}</div>
   ${tb === 'bag' ? bagHTML() : `<div class="eqrow col">${dollHTML()}${NAV.slot ? slotPickHTML() : ''}${statsHTML(s, pen)}</div>${port ? '<div class="schint" hidden aria-hidden="true">' + ICO.down + '</div>' : ''}`}`;
@@ -1660,10 +1630,7 @@ document.addEventListener('click', e => {
   const st = e.target.closest('[data-st]');
   if (st) return hudWarn(st.dataset.st);
   const iv = e.target.closest('[data-invt]');
-  if (iv)
-    return (
-      LAND() ? (PANEL.invT = iv.dataset.invt) : (NAV.view = iv.dataset.invt === 'eq' ? 'char' : 'bag'), hudPanels()
-    );
+  if (iv) return (NAV.view = iv.dataset.invt === 'eq' ? 'char' : 'bag'), hudPanels();
   const tm = e.target.closest('[data-term]');
   if (tm) return showTerm(tm);
   if (e.target.closest('#chase')) return chaseBnClick();
@@ -2146,7 +2113,7 @@ function banner(t, c, k) {
   BANT = setTimeout(() => (el.hidden = true), 2600);
 }
 /* ---------- 追逐物品的橫幅 #chase（M2-19.2c–g）：進場 220 → 停 2800 → 退場 320；顯示中再來一件＝合併成 ×n（重新計時，從第一件起最多 5.6 秒）；
-   出現 400 ms 內點了不算；桌機滑鼠停在上面暫停倒數（最多多 8 秒）。不暫停戰鬥。直立貼在半版面板上緣、桌機 top 76 全寬條、手機橫向置中 ---------- */
+   出現 400 ms 內點了不算；桌機滑鼠停在上面暫停倒數（最多多 8 秒）。不暫停戰鬥。直立貼在半版面板上緣、桌機 top 76 全寬條 ---------- */
 const CB = { st: 'idle', items: [], t0: 0, end: 0, guard: 0, hs: 0, ext: 0, tm: 0 };
 const CB_IN = 220,
   CB_HOLD = 2800,
@@ -2288,7 +2255,7 @@ function idleBar(force) {
   idleFit(el);
 }
 /* B1 S6／D2-13／D3-03：資源列（金、靈魂）固定位置——直立 x 202–382 × 110–142（熱區 106–150）、桌機 x 16–316 × 66–98（資訊列下，不放頂列）。
-   圖示 16＋數字（縮寫捨去，每格留 5 字元）；底 --plate-world。只在刷圖畫面（營地場景、天賦樹不畫；手機橫向不畫：假設）；點了開鍛造 › 通貨（假設，通貨明細在之後的批次） */
+   圖示 16＋數字（縮寫捨去，每格留 5 字元）；底 --plate-world。只在刷圖畫面（營地場景、天賦樹不畫）；點了開鍛造 › 通貨（假設，通貨明細在之後的批次） */
 function curStrip() {
   const el = $('curs'),
     on = !!S && G.scene === 'map' && !TREE.open && (!TOUCH.on || PORT()) && !portFull();
@@ -2718,7 +2685,6 @@ function quickMove(src, it, eqk, shift) {
     takeOut('inv', it);
     S.curIt = it;
     if (old && !invPut(S.inv, old)) return (S.curIt = old), invPut(S.inv, it), hudWarn('倉庫滿了');
-    TOUCH.front = 'other'; /* 手機窄螢幕：放好就切回通貨頁 */
   } else if (it.charm) {
     /* 護符：放進第一個空的護符槽 */
     const i = S.charms.findIndex((c, j) => !c && j < charmSlots(S));
@@ -3006,7 +2972,7 @@ function showTip(html, a, t = $('tip')) {
   let { width: w, height: h } = t.getBoundingClientRect();
   const W = IW,
     H = IH;
-  /* 比畫面還高（手機橫向的寶石說明＋按鈕）：縮短、裡面可以捲 */
+  /* 比畫面還高（矮畫面的寶石說明＋按鈕）：縮短、裡面可以捲 */
   if (h > H - 2 * M) (h = H - 2 * M), (t.style.maxHeight = h + 'px');
   const cx = clamp((a.left + a.right) / 2 - w / 2, M, W - w - M),
     cy = clamp((a.top + a.bottom) / 2 - h / 2, M, H - h - M),
@@ -3018,7 +2984,7 @@ function showTip(html, a, t = $('tip')) {
   else if (h <= dn) (x = cx), (y = a.bottom + G);
   else if (h <= up) (x = cx), (y = a.top - G - h);
   else if (t.classList.contains('act') && Math.max(up, dn) < 240) (x = cx), (y = cy);
-  /* 點出來的說明框：上下都太窄（手機橫向）才蓋住被點的東西（點別處關掉）；不然照下面縮短、裡面捲 */ else {
+  /* 點出來的說明框：上下都太窄（矮畫面）才蓋住被點的東西（點別處關掉）；不然照下面縮短、裡面捲 */ else {
     t.style.maxHeight = Math.max(up, dn) + 'px';
     x = cx;
     y = dn >= up ? a.bottom + G : M;

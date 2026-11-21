@@ -112,7 +112,7 @@ if (require.main === module)
       H = +process.argv[3] || 844,
       URL = process.argv[4] || 'http://localhost:8000/',
       OUT = process.argv[5] || path.join(os.tmpdir(), 'ui_look'),
-      mobile = W < 768;
+      mobile = W < 768 && H > W;
     fs.mkdirSync(OUT, { recursive: true });
     const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
     const ctx = await b.newContext(
@@ -132,7 +132,7 @@ if (require.main === module)
       S.story.tips = 0;
       S.lv = 60;
       S.maxT = 13;
-      if (mobile) (S.orient = innerHeight > innerWidth ? 'p' : 'l'), applyOrient();
+      if (mobile) (S.orient = 'p'), applyOrient();
       MAT().soul = 500000;
       Object.keys(SKILLS)
         .filter(k => SKILLS[k].m && !skWhy(SKILLS[k]) && !gemLack(mkGem(k, 1)).length)

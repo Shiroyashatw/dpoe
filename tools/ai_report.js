@@ -1,10 +1,10 @@
 const { spawn, execSync } = require('child_process');
 const fs = require('fs'),
   path = require('path');
-/* dungeonPOE · 每版 AI 試玩報告（M2-10）：五個尺寸同時跑 tools/camp_run.js，把 A1–A10 收成一張總表 A1-A10.md。
+/* dungeonPOE · 每版 AI 試玩報告（M2-10）：四個尺寸同時跑 tools/camp_run.js，把 A1–A10 收成一張總表 A1-A10.md。
    用法：先開本機伺服器（python3 -m http.server 8000），node tools/ai_report.js <輸出資料夾，例 evidence/<代號>> [網址] [--base=<上一版資料夾>]
    跑完自動用 tools/ai_compare.js 比完成標準與上一版（省略 --base 就找 evidence/ 裡 commit 最新的 A1-A10.md），接在 A1-A10.md 後面。
-   390×844、1280×720 跑 120 分鐘（A5 要 2 小時），375×667、844×390、1440×900 跑 30 分鐘（遊戲內時間）。
+   390×844、1280×720 跑 120 分鐘（A5 要 2 小時），375×667、1440×900 跑 30 分鐘（2026-11-21 取消手機橫向，拿掉 844×390）（遊戲內時間）。
    資料夾裡已有同一個 commit 的 JSON 就不重跑（某個尺寸失敗時只補那一個）。門檻見 docs/production/specs/M2-03-addictiveness-criteria.md */
 const A = process.argv.slice(2).filter(a => !a.startsWith('--base=')),
   BASE = (process.argv.find(a => a.startsWith('--base=')) || '').slice(7) || undefined,
@@ -14,7 +14,6 @@ const A = process.argv.slice(2).filter(a => !a.startsWith('--base=')),
     [390, 844, 120],
     [1280, 720, 120],
     [375, 667, 30],
-    [844, 390, 30],
     [1440, 900, 30]
   ];
 if (!OUT) throw new Error('用法：node tools/ai_report.js <輸出資料夾> [網址]');
