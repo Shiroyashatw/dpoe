@@ -260,8 +260,18 @@ for size in ('390x844', '1280x720'):
             # 左緣 x、上緣 y 那一條 1 px（避開危急外框：取中段）
             row(st, size, eid, '條框 左緣 1 px', '--border', 'bg', sub(r, 0, 4, 1, r[3] - 8), im)
             row(st, size, eid, '條框 上緣 1 px', '--border', 'bg', sub(r, 40, 0, 100, 1), im)
-        if st == 'low2':
-            row(st, size, '—', '危急紅邊 2 級（畫面左緣 x0，--vig×0.7 疊場景）', '--vig', 'fg', [0, 300, 2, 100], im)
+        if st in ('low2', 'lowhp'):
+            # 危急紅邊：左緣 x0 的像素＝--vig × 不透明度（1 級 .6、2 級 .7）＋同位置沒有紅邊的底（normal 同尺寸）×（1 − 不透明度）
+            a = 0.7 if st == 'low2' else 0.6
+            base = Image.open(os.path.join(OUT, f'normal_{size}.png')).convert('RGB')
+            ys = range(300, 400, 10)
+            worst = 0
+            for y in ys:
+                g, bb, v = im.getpixel((0, y)), base.getpixel((0, y)), rgb(TK['--vig'])
+                want = tuple(round(v[i] * a + bb[i] * (1 - a)) for i in range(3))
+                worst = max(worst, dist(g, want))
+            ok = worst <= 8
+            rows.append(f'| {st} {size} | — | 危急紅邊 {2 if st == "low2" else 1} 級（左緣 x0，y300–390 每 10 px） | --vig #b01a14 ×{a} 疊 normal 同位置 | 合成 | 例 {hx(im.getpixel((0, 300)))}（期望 {hx(tuple(round(rgb(TK["--vig"])[i] * a + base.getpixel((0, 300))[i] * (1 - a)) for i in range(3)))}） | {worst} | — | {"✅" if ok else "❌"} |')
         if st.startswith('focus'):
             fid = {'focustab': ('D08' if d else 'P59')}.get(st, 'D43' if d else 'P21')
             if fid in R:

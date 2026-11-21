@@ -1,0 +1,14 @@
+❌ 390x844 pointerup → 出手（up (js/touch.js:260:11)） 70.3 ms、畫出來 70.8 ms（頁面 rAF F63，1080 ms）
+✅ 390x844 pointerup → 出手（up (js/touch.js:260:11)） 27.8 ms、畫出來 38.4 ms（頁面 rAF F109，1832.8 ms）
+✅ 390x844 pointerup → 出手（up (js/touch.js:260:11)） 27.4 ms、畫出來 40 ms（頁面 rAF F153，2566 ms）
+✅ 390x844 pointerup → 出手（up (js/touch.js:260:11)） 30.1 ms、畫出來 42.7 ms（頁面 rAF F197，3299.4 ms）
+✅ 390x844 pointerup → 出手（up (js/touch.js:260:11)） 28.2 ms、畫出來 40.6 ms（頁面 rAF F241，4032.6 ms）
+✅ 390x844 pointerup → 出手（up (js/touch.js:260:11)） 27.4 ms、畫出來 40.3 ms（頁面 rAF F285，4765.9 ms）
+   screencast 290 張／4.83 秒（平均 60.0 fps）→ latency_390x844.mp4
+✅ 1280x720 keydown:q → 出手（js/hud.js:3080:27） 5.2 ms、畫出來 5.9 ms（頁面 rAF F59，1017.3 ms）
+✅ 1280x720 pointerdown → 出手（HTMLCanvasElement.<anonymous> (js/hud.js:3134:7)） 2 ms、畫出來 5 ms（頁面 rAF F103，1746.7 ms）
+✅ 1280x720 keydown:q → 出手（js/hud.js:3080:27） 0.9 ms、畫出來 7.4 ms（頁面 rAF F146，2463.4 ms）
+✅ 1280x720 pointerdown → 出手（HTMLCanvasElement.<anonymous> (js/hud.js:3134:7)） 1.1 ms、畫出來 3.3 ms（頁面 rAF F188，3163.3 ms）
+✅ 1280x720 keydown:q → 出手（js/hud.js:3080:27） 3.3 ms、畫出來 11.8 ms（頁面 rAF F231，3879.9 ms）
+✅ 1280x720 pointerdown → 出手（HTMLCanvasElement.<anonymous> (js/hud.js:3134:7)） 0.9 ms、畫出來 5.3 ms（頁面 rAF F273，4579.9 ms）
+   screencast 279 張／4.65 秒（平均 60.1 fps）→ latency_1280x720.mp4
