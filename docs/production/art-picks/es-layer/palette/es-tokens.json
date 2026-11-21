@@ -1,0 +1,464 @@
+{
+ "set": "A 淡金",
+ "picked": "mumi 2026-11-21 12:31（經幕僚長）：選 A；准暖色例外；生命條下緣框不改；色值以 M2-36-palette-tokens.md 為準（不以 css/style.css）",
+ "tokens": {
+  "--es": {
+   "hex": "#dfbf91",
+   "LCh": [
+    79.0,
+    27.9,
+    79.9
+   ],
+   "Y": 0.55,
+   "role": "能量護盾：生命條框內最底 3 px 細條填色；空槽沿用 --panel-inset"
+  },
+  "--es-hi": {
+   "hex": "#fcefde",
+   "LCh": [
+    95.0,
+    9.9,
+    80.7
+   ],
+   "Y": 0.877,
+   "role": "充能中填色前緣 2 px 亮邊（不閃）"
+  }
+ },
+ "warm_exception": "「全畫面唯一暖色重點＝--act」的唯一例外：--es（C* 28、只在生命條底 3 px）",
+ "uiux_request": {
+  "doc": "/workspace/mockups/W-hud-es-mock-1213/art-request-es-token.md",
+  "method": "UIUX src/check_es.py 的 Lsim／crh：WCAG 相對亮度 Y；色盲＝Machado 2009 嚴重度 1.0 矩陣乘線性 RGB 後再算 Y",
+  "Y_range_0.418-0.650": true,
+  "palette_doc": {
+   "ratios（一般,紅,綠,藍黃）": {
+    "es/--hp": [
+     3.85,
+     4.31,
+     3.61,
+     3.83
+    ],
+    "es/--panel-inset": [
+     9.9,
+     9.46,
+     10.17,
+     9.83
+    ],
+    "es/--panel": [
+     9.12,
+     8.74,
+     9.36,
+     9.06
+    ],
+    "es_hi/es": [
+     1.55,
+     1.6,
+     1.52,
+     1.54
+    ],
+    "es_hi/--hp": [
+     5.94,
+     6.88,
+     5.46,
+     5.91
+    ],
+    "es/--block": [
+     1.16,
+     1.08,
+     1.21,
+     1.15
+    ],
+    "es/--mp": [
+     3.83,
+     3.38,
+     4.15,
+     3.66
+    ],
+    "es/--el-cold": [
+     1.25,
+     1.38,
+     1.17,
+     1.27
+    ],
+    "es/--prog-hi": [
+     1.23,
+     1.18,
+     1.26,
+     1.22
+    ],
+    "es/--rar-normal": [
+     1.47,
+     1.53,
+     1.44,
+     1.48
+    ],
+    "es/--rar-magic": [
+     1.28,
+     1.16,
+     1.35,
+     1.24
+    ],
+    "es/--rar-rare": [
+     1.36,
+     1.36,
+     1.36,
+     1.3
+    ],
+    "es/--rar-unique": [
+     1.39,
+     1.6,
+     1.28,
+     1.53
+    ],
+    "es/--rar-chase": [
+     1.29,
+     1.51,
+     1.15,
+     1.37
+    ]
+   },
+   "hard": {
+    "es/--hp>=3": true,
+    "es/--panel-inset>=3": true,
+    "es/--panel>=3": true,
+    "es_hi/es>=1.5": true,
+    "es_hi/--hp>=3": true
+   }
+  },
+  "main_css_c57ff912": {
+   "ratios（一般,紅,綠,藍黃）": {
+    "es/--hp": [
+     4.91,
+     5.74,
+     4.5,
+     4.88
+    ],
+    "es/--panel-inset": [
+     9.93,
+     9.53,
+     10.18,
+     9.87
+    ],
+    "es/--panel": [
+     9.2,
+     8.83,
+     9.42,
+     9.14
+    ],
+    "es_hi/es": [
+     1.55,
+     1.6,
+     1.52,
+     1.54
+    ],
+    "es_hi/--hp": [
+     7.58,
+     9.17,
+     6.82,
+     7.54
+    ],
+    "es/--block": [
+     1.16,
+     1.08,
+     1.21,
+     1.15
+    ],
+    "es/--mp": [
+     4.9,
+     4.31,
+     5.31,
+     4.58
+    ],
+    "es/--el-cold": [
+     1.1,
+     1.24,
+     1.02,
+     1.12
+    ],
+    "es/--prog-hi": [
+     1.24,
+     1.3,
+     1.2,
+     1.24
+    ],
+    "es/--rar-normal": [
+     1.11,
+     1.15,
+     1.09,
+     1.12
+    ],
+    "es/--rar-magic": [
+     1.35,
+     1.2,
+     1.47,
+     1.31
+    ],
+    "es/--rar-rare": [
+     1.19,
+     1.16,
+     1.21,
+     1.12
+    ],
+    "es/--rar-unique": [
+     1.39,
+     1.6,
+     1.28,
+     1.53
+    ],
+    "es/--rar-chase": [
+     1.29,
+     1.51,
+     1.15,
+     1.37
+    ]
+   },
+   "hard": {
+    "es/--hp>=3": true,
+    "es/--panel-inset>=3": true,
+    "es/--panel>=3": true,
+    "es_hi/es>=1.5": true,
+    "es_hi/--hp>=3": true
+   }
+  }
+ },
+ "dE_vs_neighbours": {
+  "--es": {
+   "normal": {
+    "--el-cold": 32.5,
+    "--mp": 52.9,
+    "--mp-hi": 41.4,
+    "--prog-hi": 14.3,
+    "--block": 25.3,
+    "--block-dim": 51.8,
+    "--block-regen": 31.7,
+    "--block-hi": 24.0,
+    "--rar-normal": 14.9,
+    "--rar-magic": 42.6,
+    "--rar-rare": 19.3,
+    "--rar-unique": 19.6,
+    "--rar-chase": 36.1,
+    "--rar-chase-hi": 33.1,
+    "--tx-strong": 20.0,
+    "--hp-hi": 29.0,
+    "--good": 27.6,
+    "--asc-hi": 29.4,
+    "--awk": 39.7,
+    "--el-fire": 16.9,
+    "--el-light": 18.3,
+    "--el-chaos": 43.6,
+    "--border-cap": 14.7,
+    "--tx": 17.3,
+    "--tx-dim": 16.6
+   },
+   "protan": {
+    "--el-cold": 30.7,
+    "--mp": 51.2,
+    "--mp-hi": 41.2,
+    "--prog-hi": 13.7,
+    "--block": 24.6,
+    "--block-dim": 49.7,
+    "--block-regen": 29.3,
+    "--block-hi": 23.5,
+    "--rar-normal": 14.3,
+    "--rar-magic": 42.6,
+    "--rar-rare": 18.6,
+    "--rar-unique": 17.5,
+    "--rar-chase": 22.7,
+    "--rar-chase-hi": 23.0,
+    "--tx-strong": 20.3,
+    "--hp-hi": 24.7,
+    "--good": 9.9,
+    "--asc-hi": 13.9,
+    "--awk": 39.2,
+    "--el-fire": 7.8,
+    "--el-light": 13.1,
+    "--el-chaos": 40.6,
+    "--border-cap": 14.9,
+    "--tx": 17.4,
+    "--tx-dim": 15.8
+   },
+   "deutan": {
+    "--el-cold": 33.5,
+    "--mp": 56.9,
+    "--mp-hi": 44.7,
+    "--prog-hi": 14.6,
+    "--block": 25.9,
+    "--block-dim": 53.1,
+    "--block-regen": 33.2,
+    "--block-hi": 24.2,
+    "--rar-normal": 13.6,
+    "--rar-magic": 45.1,
+    "--rar-rare": 16.0,
+    "--rar-unique": 14.7,
+    "--rar-chase": 31.2,
+    "--rar-chase-hi": 28.7,
+    "--tx-strong": 19.7,
+    "--hp-hi": 20.9,
+    "--good": 4.1,
+    "--asc-hi": 19.5,
+    "--awk": 39.2,
+    "--el-fire": 5.2,
+    "--el-light": 10.8,
+    "--el-chaos": 35.1,
+    "--border-cap": 14.7,
+    "--tx": 16.9,
+    "--tx-dim": 16.8
+   },
+   "tritan": {
+    "--el-cold": 40.8,
+    "--mp": 58.5,
+    "--mp-hi": 46.0,
+    "--prog-hi": 14.0,
+    "--block": 31.0,
+    "--block-dim": 53.8,
+    "--block-regen": 35.7,
+    "--block-hi": 27.8,
+    "--rar-normal": 15.7,
+    "--rar-magic": 41.7,
+    "--rar-rare": 8.8,
+    "--rar-unique": 17.4,
+    "--rar-chase": 47.4,
+    "--rar-chase-hi": 45.5,
+    "--tx-strong": 20.2,
+    "--hp-hi": 22.8,
+    "--good": 42.3,
+    "--asc-hi": 43.1,
+    "--awk": 14.4,
+    "--el-fire": 12.1,
+    "--el-light": 17.9,
+    "--el-chaos": 15.1,
+    "--border-cap": 14.3,
+    "--tx": 17.6,
+    "--tx-dim": 16.8
+   }
+  },
+  "--es-hi": {
+   "normal": {
+    "--el-cold": 23.8,
+    "--mp": 53.6,
+    "--mp-hi": 40.6,
+    "--prog-hi": 15.8,
+    "--block": 20.9,
+    "--block-dim": 56.7,
+    "--block-regen": 34.2,
+    "--block-hi": 12.3,
+    "--rar-normal": 3.4,
+    "--rar-magic": 36.0,
+    "--rar-rare": 24.0,
+    "--rar-unique": 30.2,
+    "--rar-chase": 29.4,
+    "--rar-chase-hi": 26.5,
+    "--tx-strong": 6.9,
+    "--hp-hi": 36.7,
+    "--good": 26.1,
+    "--asc-hi": 25.9,
+    "--awk": 32.5,
+    "--el-fire": 24.6,
+    "--el-light": 17.7,
+    "--el-chaos": 38.3,
+    "--border-cap": 7.9,
+    "--tx": 6.5,
+    "--tx-dim": 17.8
+   },
+   "protan": {
+    "--el-cold": 20.2,
+    "--mp": 51.5,
+    "--mp-hi": 39.8,
+    "--prog-hi": 15.6,
+    "--block": 19.5,
+    "--block-dim": 55.5,
+    "--block-regen": 32.7,
+    "--block-hi": 11.2,
+    "--rar-normal": 1.3,
+    "--rar-magic": 35.1,
+    "--rar-rare": 24.9,
+    "--rar-unique": 31.0,
+    "--rar-chase": 11.3,
+    "--rar-chase-hi": 10.6,
+    "--tx-strong": 6.7,
+    "--hp-hi": 33.9,
+    "--good": 17.3,
+    "--asc-hi": 6.0,
+    "--awk": 31.5,
+    "--el-fire": 20.9,
+    "--el-light": 15.4,
+    "--el-chaos": 36.3,
+    "--border-cap": 7.9,
+    "--tx": 6.2,
+    "--tx-dim": 17.5
+   },
+   "deutan": {
+    "--el-cold": 24.1,
+    "--mp": 56.4,
+    "--mp-hi": 42.9,
+    "--prog-hi": 16.0,
+    "--block": 21.6,
+    "--block-dim": 57.4,
+    "--block-regen": 35.1,
+    "--block-hi": 12.9,
+    "--rar-normal": 1.7,
+    "--rar-magic": 37.7,
+    "--rar-rare": 22.6,
+    "--rar-unique": 26.8,
+    "--rar-chase": 22.1,
+    "--rar-chase-hi": 18.4,
+    "--tx-strong": 7.2,
+    "--hp-hi": 30.1,
+    "--good": 14.7,
+    "--asc-hi": 13.2,
+    "--awk": 31.6,
+    "--el-fire": 18.6,
+    "--el-light": 13.5,
+    "--el-chaos": 30.0,
+    "--border-cap": 8.3,
+    "--tx": 6.6,
+    "--tx-dim": 17.9
+   },
+   "tritan": {
+    "--el-cold": 31.5,
+    "--mp": 57.0,
+    "--mp-hi": 42.5,
+    "--prog-hi": 15.5,
+    "--block": 23.7,
+    "--block-dim": 57.4,
+    "--block-regen": 35.6,
+    "--block-hi": 14.7,
+    "--rar-normal": 2.6,
+    "--rar-magic": 33.7,
+    "--rar-rare": 9.3,
+    "--rar-unique": 29.9,
+    "--rar-chase": 34.7,
+    "--rar-chase-hi": 33.8,
+    "--tx-strong": 6.3,
+    "--hp-hi": 35.7,
+    "--good": 33.1,
+    "--asc-hi": 34.0,
+    "--awk": 14.5,
+    "--el-fire": 25.0,
+    "--el-light": 5.5,
+    "--el-chaos": 27.2,
+    "--border-cap": 7.1,
+    "--tx": 6.1,
+    "--tx-dim": 17.6
+   }
+  }
+ },
+ "contrast_extra": {
+  "--es": {
+   "--hp": 3.85,
+   "--panel-inset": 9.9,
+   "--border": 2.39,
+   "#000000": 12.0,
+   "--mp": 3.83,
+   "--prog-hi": 1.23,
+   "--es-hi": 1.55
+  },
+  "--es-hi": {
+   "--hp": 5.94,
+   "--panel-inset": 15.29,
+   "--border": 3.69,
+   "#000000": 18.54,
+   "--mp": 5.92,
+   "--prog-hi": 1.9,
+   "--es": 1.55
+  }
+ }
+}
