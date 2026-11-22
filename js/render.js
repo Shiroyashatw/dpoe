@@ -73,7 +73,6 @@ const ACT_ROW = {
   shadowstrike: 3,
   clawchain: 3,
   blindpounce: 3,
-  chainsweep: 8,
   banner: 5,
   chaosbolt: 5,
   corpseboom: 5,

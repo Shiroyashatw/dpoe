@@ -148,8 +148,27 @@ function migrate(s) {
   if (o.hunt && o.hunt.full) (o.frags.mist += 1), (o.hunt = newHunt());
   o.world = { ...newWorld(), ...o.world, seed: W_SEED };
   o.ptA = o.ptA || {};
-  /* 存檔裡有樹上已經沒有的點（重烘過）也全部退回，不然算數值會壞 */
-  if (o.pt.some(id => !PTREE.I[id])) (o.pt = [...PT_START]), (o.ptA = {});
+  /* 存檔裡有樹上已經沒有的點（重烘過）或鎖住的點（2026-11-22 鏈錘、魔符叢集）也全部退回，不然算數值會壞 */
+  if (o.pt.some(id => !PTREE.I[id] || PTREE.I[id].lock)) (o.pt = [...PT_START]), (o.ptA = {});
+  /* 2026-11-22：鏈錘併進錘（裝備換成同階的單手錘）、鏈錘橫掃與轉圖騰拿掉（升過的退靈魂）、魔符藏起來（武器類別退回、魔符技能從技能欄拿下） */
+  o.inv.items = o.inv.items.filter(it => !it.gem || SKILLS[it.gem] || SUPPORTS[it.gem] || AURAS[it.gem]);
+  for (const it of [...Object.values(o.eq), o.curIt, ...o.inv.items])
+    if (it && /^w_flail_/.test(it.b)) it.b = it.b.replace('flail', 'mace1');
+  o.camp.wts = [...new Set(o.camp.wts.map(w => (w === 'flail' ? 'mace' : w)))].filter(w => !WT_HIDE.includes(w));
+  if (!o.camp.wts.length) o.camp.wts = ['sword'];
+  for (let l = 1; l < (o.lib.sk.chainsweep || 0); l++) o.mat.soul = (o.mat.soul || 0) + soulCost(l);
+  delete o.lib.sk.chainsweep;
+  delete o.lib.sup.totemc;
+  for (const r of [...o.skills, ...o.auras]) {
+    if (!r) continue;
+    if (
+      r.k &&
+      ((!SKILLS[r.k] && !AURAS[r.k]) ||
+        (SKILLS[r.k] && SKILLS[r.k].wt && SKILLS[r.k].wt.every(w => WT_HIDE.includes(w))))
+    )
+      r.k = null;
+    if (r.so) r.so = r.so.map(k => (k && !SUPPORTS[k] ? null : k));
+  }
   /* 0.5.2：過濾器刪了 */
   delete o.filter;
   /* 2026-11-21：手機橫向取消，舊存檔的橫向（l）一律改直立 */

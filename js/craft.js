@@ -367,7 +367,7 @@ function campN(k) {
   const f = C.forge,
     a = C.altar;
   if (k === 'batch') return f >= 16 ? 20 : f >= 9 ? 10 : f >= 5 ? 5 : f >= 2 ? 3 : 1;
-  if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length, 2 + Math.floor((f - 11) / 2));
+  if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length - WT_HIDE.length, 2 + Math.floor((f - 11) / 2));
   if (k === 'slots') return Math.min(S.skills.length, a >= 9 ? 5 : a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1);
   if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
   if (k === 'star') return Math.min(5, (C.scout || 0) + 1);

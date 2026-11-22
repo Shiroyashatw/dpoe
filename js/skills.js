@@ -193,7 +193,7 @@ function gemCfg(g, i) {
     else if (k === 'autocast') c.auto = sp;
     else if (SUPPORTS[k].conv && !c.conv) {
       c.conv = SUPPORTS[k].conv;
-      c.more *= c.conv === 'trap' ? 1.2 : c.conv === 'totem' ? 0.7 : 1;
+      c.more *= c.conv === 'trap' ? 1.2 : 1;
     }
   }
   /* 覺醒（企劃書 6.3）：A＝傷害更多 15%（有傷害的招；原本的品質效果走 c.q）、B＝變化版的補丁 */
@@ -1301,10 +1301,6 @@ function actHit2(a, idx, R, hitArc) {
     fxs('claw', P.x, P.y - 20, R, { rot: ang });
     if (hitArc(ang, D.arc, R, 60 * c.kb, { blind: idx === 3 && qRoll(20 * c.q) }))
       P.hp = Math.min(ST.hp, P.hp + ST.hp * 0.01);
-  } else if (a.k === 'chainsweep') {
-    const r = R * [1, 1.3, 1.7][a.stage || 0];
-    fxs('whip', P.x, P.y - 20, r, { rot: a.ang });
-    hitArc(a.ang, D.arc, r, 150 * c.kb, { glory: a.stage === 2 ? 1 + c.q : 1 });
   } else if (a.k === 'banner') {
     if (plantBanner({ dmg: 30 }, 220 * ST.aoeM * c.aoe, durOf(c)))
       (G.banner.q = c.q), fxs('pillar', P.x, P.y, 70), sfx('cast');

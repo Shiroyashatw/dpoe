@@ -154,8 +154,7 @@ const SUPTAB = {
   異常: ['bleed', 'poison', 'poistack', 'ailmag', 'armbreak', 'wither', 'blind', 'pin'],
   元素: ['scorch', 'brittle', 'sap', 'expose', 'elec'],
   法術: ['arcane', 'cast_crit', 'cast_kill', 'cast_dodge', 'cast_block', 'cast_hurt'],
-  召喚: ['pack', 'giant', 'mindmg', 'minlife'],
-  轉換: ['totemc']
+  召喚: ['pack', 'giant', 'mindmg', 'minlife']
 };
 /* 輔助 k 的分頁名（II 跟著 I；沒列的放通用） */
 const supTab = k => {
