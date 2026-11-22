@@ -356,11 +356,12 @@ const SKILLS = {
     ic: 'sk_enfeeble',
     t: 0.35,
     mp: 14,
+    cd: 8,
     m: 0,
     r: 110,
     curse: 'enfeeble',
     dur: 6,
-    tags: ['spell', 'curse', 'aoe', 'occ'],
+    tags: ['spell', 'curse', 'aoe', 'occ', 'cd'],
     d: '對一個區域施放詛咒，使範圍內的敵人造成更少傷害。',
     x: ['施放 1.5 秒後生效', '只詛咒與範圍中心之間沒有牆阻擋的敵人']
   },
@@ -369,11 +370,12 @@ const SKILLS = {
     ic: 'sk_elemweak',
     t: 0.35,
     mp: 14,
+    cd: 8,
     m: 0,
     r: 110,
     curse: 'eleweak',
     dur: 6,
-    tags: ['spell', 'curse', 'aoe', 'occ'],
+    tags: ['spell', 'curse', 'aoe', 'occ', 'cd'],
     d: '對一個區域施放詛咒，降低範圍內敵人的元素抗性。',
     x: ['施放 1.5 秒後生效', '只詛咒與範圍中心之間沒有牆阻擋的敵人']
   },
@@ -382,11 +384,12 @@ const SKILLS = {
     ic: 'sk_chaoschain',
     t: 0.35,
     mp: 14,
+    cd: 8,
     m: 0,
     r: 110,
     curse: 'tchains',
     dur: 6,
-    tags: ['spell', 'curse', 'aoe', 'occ'],
+    tags: ['spell', 'curse', 'aoe', 'occ', 'cd'],
     d: '對一個區域施放詛咒，使範圍內的敵人移動變慢。',
     x: ['施放 1.5 秒後生效', '只詛咒與範圍中心之間沒有牆阻擋的敵人', '只影響移動速度，不影響攻擊與施放速度']
   },
@@ -395,11 +398,12 @@ const SKILLS = {
     ic: 'sk_weaken',
     t: 0.35,
     mp: 14,
+    cd: 8,
     m: 0,
     r: 110,
     curse: 'vuln',
     dur: 6,
-    tags: ['spell', 'curse', 'aoe', 'occ'],
+    tags: ['spell', 'curse', 'aoe', 'occ', 'cd'],
     d: '對一個區域施放詛咒，降低範圍內敵人的護甲。',
     x: ['施放 1.5 秒後生效', '只詛咒與範圍中心之間沒有牆阻擋的敵人']
   },
@@ -408,11 +412,12 @@ const SKILLS = {
     ic: 'sk_despair',
     t: 0.35,
     mp: 14,
+    cd: 8,
     m: 0,
     r: 110,
     curse: 'despair',
     dur: 6,
-    tags: ['spell', 'curse', 'aoe', 'occ'],
+    tags: ['spell', 'curse', 'aoe', 'occ', 'cd'],
     d: '對一個區域施放詛咒，降低範圍內敵人的混沌抗性。',
     x: ['施放 1.5 秒後生效', '只詛咒與範圍中心之間沒有牆阻擋的敵人']
   },
@@ -518,7 +523,7 @@ const SKILLS = {
     mp: 8,
     m: 0,
     mark: 'warlord',
-    wt: ['mace', 'flail'],
+    wt: ['mace'],
     tags: ['spell', 'mark'],
     d: '對一個目標施加印記。擊中帶有印記的敵人時回復生命；目標死亡時獲得耐力球。',
     x: [
@@ -689,7 +694,7 @@ const SKILLS = {
     r: 170,
     arc: 1.4,
     stun: 0.6,
-    wt: ['mace', 'flail'],
+    wt: ['mace'],
     tags: ['attack', 'melee', 'aoe'],
     d: '往前方重擊地面，留下碎裂地面，結束時產生餘震。消耗全部耐力球，每顆讓餘震多一次。',
     x: [
@@ -1127,7 +1132,7 @@ const SKILLS = {
     r: 100,
     arc: 1.2,
     armBreak: 1,
-    wt: ['mace', 'flail'],
+    wt: ['mace'],
     tags: ['attack', 'melee'],
     d: '猛擊前方的單一敵人。對瀕臨沉重暈眩的敵人造成粉碎重擊，震傷其周圍敵人。',
     x: [
@@ -1144,7 +1149,7 @@ const SKILLS = {
     m: 1.8,
     r: 120,
     dist: 300,
-    wt: ['mace', 'flail'],
+    wt: ['mace'],
     tags: ['attack', 'melee', 'aoe', 'move'],
     d: '躍向目標位置並砸擊地面，留下碎裂地面，結束時產生餘震。',
     x: [
@@ -1161,7 +1166,7 @@ const SKILLS = {
     mp: 12,
     m: 1.3,
     r: 55,
-    wt: ['mace', 'flail'],
+    wt: ['mace'],
     tags: ['attack', 'melee', 'aoe'],
     d: '向前方連續裂開地面 5 處。',
     x: [
@@ -1319,21 +1324,6 @@ const SKILLS = {
     d: '撲向滑鼠附近的敵人，落地時攻擊周圍並留下煙霧。',
     x: ['滑鼠 5 公尺內沒有敵人時無法使用', '最遠撲出 10.7 公尺', '擊中時致盲敵人', '落點留下煙霧，持續 2 秒']
   },
-  chainsweep: {
-    n: '鏈錘橫掃',
-    ic: 'sk_sweep',
-    t: 0.42,
-    mp: 4,
-    m: 1,
-    r: 130,
-    arc: 2.2,
-    crit: 50,
-    stage: 1,
-    wt: ['mace', 'flail'],
-    tags: ['attack', 'melee'],
-    d: '甩動鏈錘橫掃前方。連續使用時範圍逐段變大，第 3 段為最終打擊。',
-    x: ['增加 50% 暴擊率', '1 秒內再次使用時進入下一段，共 3 段', '第 2 段的範圍為 1.3 倍，第 3 段為 1.7 倍']
-  },
   banner: {
     n: '鬥旗',
     ic: 'sk_banner',
@@ -1341,7 +1331,6 @@ const SKILLS = {
     mp: 5,
     m: 0,
     dur: 10,
-    wt: ['mace', 'flail'],
     tags: ['banner'],
     d: '消耗全部榮耀插下鬥旗，強化站在鬥旗範圍內的你。',
     x: ['需要 100 點榮耀', '鬥旗範圍為 7.3 公尺', '你在鬥旗範圍內時增加 30% 傷害', '同時只能有一面鬥旗']
@@ -1650,7 +1639,7 @@ const SKILLS = {
     m: 1.3,
     r: 110,
     charge: { max: 3, step: 0.4, more: 100, aoe: 20 },
-    wt: ['mace', 'flail'],
+    wt: ['mace'],
     tags: ['attack', 'melee', 'aoe'],
     d: '按住蓄力，放開時砸擊地面。蓄力越久傷害越高、範圍越大。',
     x: [
@@ -1706,7 +1695,6 @@ const CLS_TAGS = {
   shadowstrike: 'strike cond',
   clawchain: 'strike',
   blindpounce: 'slam cond',
-  chainsweep: 'strike final',
   banner: 'cond duration',
   chaosbolt: 'repeat',
   corpseboom: 'cond cascade',
@@ -2218,22 +2206,6 @@ const SUPPORTS = {
     d: '輔助法術技能，使其擊中時讓你獲得秘能波動。',
     x: ['被輔助的技能擊中時獲得秘能波動，持續 10 秒', '秘能波動：15%更多施法速度、20%更多魔力回復']
   },
-  /* 轉換：技能改成立圖騰（陷阱、地雷 0.2.11 起是陷阱器自己的技能） */
-  totemc: {
-    n: '轉圖騰',
-    ic: 'sup_sp_totem',
-    need: ['spell', 'attack'],
-    conv: 'totem',
-    d: '輔助法術或攻擊技能，使其改為放置圖騰替你使用，代價是造成更少傷害。',
-    x: [
-      '被輔助的技能改為放置圖騰，由圖騰重複使用',
-      '被輔助的技能造成 30%更少傷害',
-      '圖騰持續 8 秒，技能本身有持續時間時改用該持續時間',
-      '圖騰每次使用的間隔為技能使用時間的 1.8 倍，最少 0.5 秒，不受速度影響',
-      '圖騰與砲塔圖騰合計上限為 2 個，放置新的時收掉最舊的',
-      '無法輔助位移、召喚、蓄力技能，以及陷阱、地雷、圖騰、砲塔等場上單位技能'
-    ]
-  },
   /* 0.2.28：自動施放（skills.js 的 autoTick）；砲塔圖騰、圖騰可以，陷阱、地雷、位移、召喚不行（supOK） */
   autocast: {
     n: '自動化',
@@ -2739,7 +2711,6 @@ const AWK = {
     A: { n: '乘盲', d: '落地範圍內有致盲的敵人時，冷卻時間減少 1 秒' },
     B: { n: '連撲', fx: { cd: 0.65, more: 0.85 } }
   },
-  chainsweep: { A: { n: '榮耀', d: '第 3 段擊中獲得的榮耀加倍' }, B: { n: '連環掃', fx: { aoe: 1.3, kb: 1.5 } } },
   banner: { A: { n: '歸旗', d: '鬥旗結束時返還 25 點榮耀' }, B: { n: '大旗', fx: { aoe: 1.4, mp: 1.25 } } },
   chaosbolt: { A: { n: '凋蔓', d: '擊中有 10 層凋零的敵人時，對其 4 公尺內的其他敵人施加 5 層凋零' } },
   corpseboom: { A: { n: '餘骸', d: '有 20% 機率不消耗屍體' } },
@@ -2960,6 +2931,9 @@ const ATTR = ['str', 'dex', 'int'];
 const ATTN = { str: '力量', dex: '敏捷', int: '智慧' };
 const ATT_START = 10;
 const ATT_PT = { s: 'str', d: 'dex', i: 'int' };
+/* 2026-11-22：魔符先藏（不能選、不掉、技能不列）；鏈錘拿掉。兩者的天賦叢集鎖住（不重烘，點的編號不變） */
+const WT_HIDE = ['talisman'];
+const PT_WP_LOCK = ['flail', ...WT_HIDE];
 const PT_WP = (wp, n, c, ic, rg, nt) => ({ n, c, ic, wp, rg, sm: [{ ['w_' + wp]: 10 }], nt });
 const PT_THEME = [
   { n: '基礎', c: '#8a8f98', ic: 'asc_s_heart', base: 1, rg: [0, 0, 0, 0, 0, 0], sm: PT_BASE.flat(), nt: [] },
@@ -4629,12 +4603,12 @@ const PT_THEME = [
 const PT_TH = Object.fromEntries(PT_THEME.map((t, i) => [t.n, i]));
 /* 六條路（起點，照技能體系；排成一圈，相鄰的互相混搭）：th 起點的顏色與圖示、d 往外偏重什麼 */
 const PT_ROADS = [
-  { n: '鬥士之路', th: '近戰', d: '劍、斧、錘、鏈錘、盾；近戰、打擊、重擊、盛怒、護甲、格擋、招架、荊棘' },
+  { n: '鬥士之路', th: '近戰', d: '劍、斧、錘、盾；近戰、打擊、重擊、盛怒、護甲、格擋、招架、荊棘' },
   { n: '遊俠之路', th: '投射物', d: '弓、十字弓、長矛；投射物、身法、偏斜、攻擊速度' },
   { n: '暗影之路', th: '暴擊率', d: '匕首、爪、陷阱器；暴擊、流血、中毒、陷阱地雷' },
   { n: '魔導之路', th: '元素技能', d: '長杖；元素技能（火、冰、電）、法術、能量護盾、持續時間' },
   { n: '死靈之路', th: '秘術技能', d: '法杖、權杖；秘術技能（混沌、詛咒、召喚）、召喚物、精魂光環、持續時間' },
-  { n: '自然之路', th: '原始技能', d: '魔符、細杖；原始技能（變身、圖騰、植物）、生命、回復、堅韌、砲塔圖騰' }
+  { n: '自然之路', th: '原始技能', d: '細杖；原始技能（變身、圖騰、植物）、生命、回復、堅韌、砲塔圖騰' }
 ];
 /* 基石（0.2.17；0.2.23 起改機制，開關寫在 STATN；每條路 2 個，放在外圈末端、只連 1 條線）：好處和代價寫在同一點；「傷害更多」是全域的（7.2 第 5 步） */
 const PT_KEYS = [
@@ -5651,6 +5625,9 @@ const PTREE = (() => {
         big: t === 7 ? 1 : 0,
         lock: 1
       };
+    /* 鏈錘、魔符的叢集鎖住（WT_HIDE） */
+    if ((t === 1 || t === 2) && PT_WP_LOCK.includes(T.wp))
+      Object.assign(o, { s: {}, d: `還沒開放：「${T.n}」`, lock: 1 });
     N.push((I[id] = { id, x, y, th, ...o }));
     ids.push(id);
   }
@@ -6873,7 +6850,6 @@ const WTN = {
   xbow: '十字弓',
   dagger: '匕首',
   claw: '爪',
-  flail: '鏈錘',
   staff: '長杖',
   wand: '法杖',
   sceptre: '權杖',
@@ -6891,7 +6867,6 @@ const WATT = {
   xbow: ['str', 'dex'],
   dagger: ['dex', 'int'],
   claw: ['dex'],
-  flail: ['str', 'int'],
   staff: ['int'],
   wand: ['int'],
   sceptre: ['int'],
@@ -7225,14 +7200,6 @@ const WCLS = {
     imps: [{ loh: 2 }, { bleedCh: 8 }, { critInc: 20 }, { ss: 5 }, { leech: 1 }, { onsKill: 20 }],
     ic: [27, 14, 27, 14, 27, 14],
     n: ['拳刃', '爪', '虎爪', '鷹爪', '鬼爪', '龍爪']
-  },
-  flail: {
-    m: 1.1,
-    as: 1.45,
-    crit: 4,
-    imps: [{ dazeCh: 10 }, { aoe: 8 }, { bleedCh: 10 }, { critX: 15 }, { armBreak: 1 }, { lightP: 25 }],
-    ic: [22, 22, 22, 22, 22, 22],
-    n: ['鏈錘', '流星錘', '鐵蒺藜', '雙節錘', '晨星鏈錘', '天雷鏈錘']
   },
   staff: {
     m: 0.35,

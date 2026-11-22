@@ -303,7 +303,10 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
   const nd = nts.map(n => D[n.id]).sort((x, y) => x - y),
     attrs = T.N.filter(n => n.s && n.s.attr),
     ks = T.N.filter(n => n.big === 2),
-    wp = TH.filter((t, i) => t.wp && !T.N.some(n => n.th === i && !n.lock && /^c\d/.test(n.id))).map(t => t.n),
+    PTL = vm.runInContext('PT_WP_LOCK', ctx),
+    wp = TH.filter(
+      (t, i) => t.wp && !PTL.includes(t.wp) && !T.N.some(n => n.th === i && !n.lock && /^c\d/.test(n.id))
+    ).map(t => t.n),
     auto = nts.filter(n => n.auto).length;
   ok(
     `天賦樹 ${C.length} 個叢集（${locked.length} 個鎖住），平均 ${smAvg.toFixed(2)} 小＋${ntAvg.toFixed(2)} 大（PoE2 4.74＋1.65；4～6.5、1.3～2）`,
@@ -345,11 +348,11 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       free = bfs(G.PT_START, n => !n.lock),
       cut = T.N.filter(n => !n.lock && free[n.id] === undefined).length,
       multi = locked.filter(ns => ns.flatMap(n => A[n.id].filter(o => !T.I[o].lock)).length !== 1).length,
-      want = RSV.reduce((s, r) => s + r[2], 0);
+      want = RSV.reduce((s, r) => s + r[2], 0) + 7; /* 2026-11-22：鏈錘、魔符叢集鎖住 7 個 */
     /* 0.2.67 起預留叢集全部解鎖（表是空的）；以後再佔位置時這條仍檢查：數量對、各只有一個入口、不擋路 */
     ok(
-      `預留叢集：表上 ${want} 個、樹上鎖住 ${locked.length} 個（0.2.67 全部解鎖＝0）、各只有一個入口、不擋路`,
-      want === 0 && locked.length === want && !multi && !cut,
+      `預留叢集：表上加鏈錘、魔符 ${want} 個、樹上鎖住 ${locked.length} 個、各只有一個入口、不擋路`,
+      locked.length === want && !multi && !cut,
       `入口不是 1 個的 ${multi}、被擋住的點 ${cut}`
     );
     ok(
@@ -474,7 +477,7 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       two = sm.filter(n => Object.keys(n.s).length > 1).length / sm.length;
     ok(`小點 ${kinds} 種（≥ 420）、兩條詞的佔 ${Math.round(100 * two)}%（≤ 32%）`, kinds >= 420 && two <= 0.32);
   }
-  ok('15 種武器都有專精叢集', !wp.length, wp.join(','));
+  ok('13 種武器都有專精叢集（鏈錘、魔符鎖住）', !wp.length, wp.join(','));
   /* 0.2.68：重烘時調路（4A 驗收發現所有叢集重抽後武器專精換了路）、固定擺法的路線、全域防禦只在 4 個叢集 */
   {
     const BK = vm.runInContext('PT_BAKE', ctx),
@@ -485,7 +488,6 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
         sword: [0],
         axe: [0],
         mace: [0],
-        flail: [0],
         spear: [0, 1],
         bow: [1],
         xbow: [1],
@@ -1209,7 +1211,7 @@ vm.runInContext(
     const o = {}, K = Object.keys(SKILLS), r2 = v => +v.toFixed(4);
     o.A = K.filter(k => !(AWK[k] && AWK[k].A && AWK[k].A.n && AWK[k].A.d && !AWK[k].A.d.includes('{') && !AWK[k].A.d.includes('品質'))).join();
     const bound = K.filter(k => SKILLS[k].wt);
-    o.B = [bound.length, bound.filter(k => !(AWK[k] && AWK[k].B)).join(), K.filter(k => AWK[k].B).length, K.filter(k => AWK[k].B && !SKILLS[k].wt && k !== 'meteor').join()];
+    o.B = [bound.length, bound.filter(k => !(AWK[k] && AWK[k].B)).join(), K.filter(k => AWK[k].B).length, K.filter(k => AWK[k].B && !SKILLS[k].wt && k !== 'meteor' && k !== 'banner').join()];
     o.fxKeys = K.filter(k => AWK[k].B && Object.keys(AWK[k].B.fx).some(f => !FXN[f])).join();
     /* 靜態規則：補丁要有東西讀——cd 要打在本來就有冷卻的招、aoe 要打在有範圍的招（D.r）、印記（挑目標的半徑）、鬥旗、劍陣 */
     o.bStatic = K.filter(k => AWK[k].B && ((AWK[k].B.fx.cd && !(SKILLS[k].cd > 0)) || (AWK[k].B.fx.aoe && !(SKILLS[k].r || SKILLS[k].mark || ['banner', 'swordarray'].includes(k))))).join();
@@ -1289,8 +1291,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '覺醒（0.2.75）資料：82 招都有 A（名字與說明、沒有留 {}）、綁武器的 48 招加隕石有 B、B 的補丁鍵都認得、名字不重複也不撞技能／輔助／光環／基石／天賦大點／昇華點',
-    aw.A === '' && j(aw.B) === '[48,"",49,""]' && aw.fxKeys === '' && aw.dupSelf === '' && aw.dupOther === '',
+    '覺醒（0.2.75）資料：81 招都有 A（名字與說明、沒有留 {}）、綁武器的 46 招加隕石、鬥旗有 B、B 的補丁鍵都認得、名字不重複也不撞技能／輔助／光環／基石／天賦大點／昇華點',
+    aw.A === '' && j(aw.B) === '[46,"",48,""]' && aw.fxKeys === '' && aw.dupSelf === '' && aw.dupOther === '',
     j([aw.A, aw.B, aw.fxKeys, aw.dupSelf, aw.dupOther])
   );
   ok(
@@ -4701,7 +4703,7 @@ const ASC_COMBOS = `const combos = k => {
     const rq = id => { const r = itemReq(mkItem(id, 1, 0)); return [r.lv, r.str, r.dex, r.int].join(); };
     const wk = wt => BASES.filter(b => b.wt === wt);
     out.req = [rq('c_leather'), rq('c_plate'), rq('c_katabira'), rq('c_robe'), rq('c_kage'), rq('r_ruby'), rq('a_gold'), rq('bt_leather'), rq('s_tower'), rq('f_mirror'),
-      rq(wk('mace')[5].id), rq(wk('bow')[0].id), rq(wk('sword')[2].id), rq(wk('staff')[3].id), rq(wk('flail')[5].id)];
+      rq(wk('mace')[5].id), rq(wk('bow')[0].id), rq(wk('sword')[2].id), rq(wk('staff')[3].id)];
     /* 寶石需求：單色 1.6×、多色 0.9×、每顆輔助 +5；輔助與光環沒有 */
     const gr = (k, lv, n = 0) => { const g = mkGem(k, lv); for (let i = 0; i < n; i++) g.sup[i] = mkGem('fury', 1); const r = gemAttrReq(g); return [r.str, r.dex, r.int].join(); };
     out.gem = [gr('fireball', 5), gr('fireball', 5, 2), gr('slash', 1), gr('slash', 20), gr('fury', 5), gemLack(mkGem('fireball', 5), { str: 10, dex: 10, int: 21 }).length, gemLack(mkGem('fireball', 5), { str: 10, dex: 10, int: 22 }).length];
@@ -4757,7 +4759,7 @@ const ASC_COMBOS = `const combos = k => {
   ok(
     '裝備需求：階級換算成等級 1～83，單系 1.6×等級、混合各 0.9×、飾品與腰帶沒有',
     b3.req.join('|') ===
-      '1,2,0,0|56,90,0,0|39,35,35,0|6,0,0,10|61,0,98,0|0,0,0,0|0,0,0,0|0,0,0,0|67,107,0,0|67,0,0,107|78,125,0,0|1,0,2,0|28,25,25,0|45,0,0,72|78,70,0,70',
+      '1,2,0,0|56,90,0,0|39,35,35,0|6,0,0,10|61,0,98,0|0,0,0,0|0,0,0,0|0,0,0,0|67,107,0,0|67,0,0,107|78,125,0,0|1,0,2,0|28,25,25,0|45,0,0,72',
     b3.req.join('|')
   );
   ok(
@@ -6296,7 +6298,7 @@ const ASC_COMBOS = `const combos = k => {
       );
       return L.length !== 6 || L.some(x => !x) || new Set(L).size !== 6;
     });
-  ok('基底：武器每類 6 個，固定詞都不一樣', WC.length === 18 && !wSame.length, wSame.join());
+  ok('基底：武器每類 6 個，固定詞都不一樣', WC.length === 17 && !wSame.length, wSame.join());
   const dup = a => a.filter((x, i) => a.indexOf(x) !== i);
   ok(
     '基底：id、名字不重複',
@@ -6716,7 +6718,7 @@ const ASC_COMBOS = `const combos = k => {
 
     /* 標籤 */
     const tagOf = k => SKILLS[k].tags;
-    o.tags = [tagOf('venom').includes('orb'), tagOf('rend').includes('payoff'), tagOf('fissure').includes('payoff'), tagOf('grenade').includes('grenade'), tagOf('banner').includes('banner'), tagOf('warcry').includes('cascade'), tagOf('nova').includes('cascade'), tagOf('meteor').includes('cascade'), tagOf('cu_vuln').includes('cascade'), tagOf('slash').includes('final'), tagOf('chainsweep').includes('final'), tagOf('paperdoll').includes('temp')];
+    o.tags = [tagOf('venom').includes('orb'), tagOf('rend').includes('payoff'), tagOf('fissure').includes('payoff'), tagOf('grenade').includes('grenade'), tagOf('banner').includes('banner'), tagOf('warcry').includes('cascade'), tagOf('nova').includes('cascade'), tagOf('meteor').includes('cascade'), tagOf('cu_vuln').includes('cascade'), tagOf('slash').includes('final'), tagOf('paperdoll').includes('temp')];
     o.tagNo = [tagOf('fireball').includes('cascade'), tagOf('smash').includes('payoff'), tagOf('thrust').includes('payoff')];
     o.stageFinal = Object.keys(SKILLS).filter(k => !!SKILLS[k].stage !== tagOf(k).includes('final'));
     o.terms = ['寶珠技能','捷光環技能','遣散技能','擲彈技能','鬥旗技能','疾風技能','風暴技能','可爆發技能','主要輔助','連結的輔助技能','分裂','迴旋','超限格擋率','效果消耗','最終打擊','終極','擴散傷害','只有最低或最高傷害','封印','極大','暫時召喚物','召喚物死亡及擊殺召喚物','復甦召喚物','迷蹤','無法閃避翻滾或衝刺','閃避翻滾無法躲避傷害','預期擊退','黑暗血鐮訓練','循環教義','騎士信條','堅鐵之力','鋼鐵意志','無法獲得力量的固有加成','無法獲得敏捷的固有加成','無法獲得智慧的固有加成'].filter(k => !TERMS[k]);
@@ -6789,7 +6791,7 @@ const ASC_COMBOS = `const combos = k => {
     reset();
     P.stage = {}; const st = [nextStage('slash'), nextStage('slash'), nextStage('slash'), nextStage('slash')];
     o.stages = [st.join(), isFinal(2), isFinal(1)];
-    reset(); gainBuff('finality', 5); o.skip = [nextStage('slash'), nextStage('slash'), nextStage('chainsweep')];
+    reset(); gainBuff('finality', 5); o.skip = [nextStage('slash'), nextStage('slash'), nextStage('smash')];
     reset(); ST.noCrit = 0; ST.wcrit = 10; ST.critInc = 0;
     let c0 = 0, c1 = 0, c2 = 0;
     for (let i = 0; i < 4000; i++) { if (hitCalc(ATK, mk()).crit) c0++; if (hitCalc(ATK, mk(), { final: 1 }).crit) c1++; }
@@ -7323,7 +7325,7 @@ const ASC_COMBOS = `const combos = k => {
     start(); P.mp = 10; chargeCancel(); out.cancel = [P.mp === 10 + c.mp || pracFree(), P.act === null];
     /* 自動化、觸發、轉圖騰插在蓄力技能上不相容；幻影不會用它 */
     const g = mkGem('chargeslam', 5);
-    out.sup = ['autocast', 'totemc', 'heavy'].map(k => { const sp = mkGem(k, 1); g.sup = [sp, null]; return supOK(SKILLS.chargeslam, sp, g); });
+    out.sup = ['autocast', 'heavy'].map(k => { const sp = mkGem(k, 1); g.sup = [sp, null]; return supOK(SKILLS.chargeslam, sp, g); });
     out.tags = SKILLS.chargeslam.tags.includes('channel') && MIRAGE_NO.has('chargeslam');
     Object.assign(G, { mobs: keep.mobs, ground: keep.ground, t: keep.t });
     Object.assign(P, { act: keep.act, mp: keep.mp });
@@ -7331,9 +7333,9 @@ const ASC_COMBOS = `const combos = k => {
     return out;
   })()`);
   ok(
-    'E 引導：按住蓄力最多 3 段、放開照段數出手、輕點是第 0 段；每段傷害更多 100%、蓄滿才留碎裂地面；取消退魔力；自動化與轉圖騰不相容',
+    'E 引導：按住蓄力最多 3 段、放開照段數出手、輕點是第 0 段；每段傷害更多 100%、蓄滿才留碎裂地面；取消退魔力；自動化不相容',
     JSON.stringify(e54) ===
-      '{"cap":[1.2,1,true],"stage":[[0,0,true],[0,1,true],[0,3,true]],"dmg":[2,4],"ground":[0,0,1],"cancel":[true,true],"sup":[false,false,true],"tags":true}',
+      '{"cap":[1.2,1,true],"stage":[[0,0,true],[0,1,true],[0,3,true]],"dmg":[2,4],"ground":[0,0,1],"cancel":[true,true],"sup":[false,true],"tags":true}',
     JSON.stringify(e54)
   );
   /* 0.2.55 F1：戰吼的強化攻擊（強度每 10 點 1 下、最多 5 下、8 秒）、出手扣 1、震地的餘震、跳過冷卻 */
@@ -8448,6 +8450,22 @@ const ASC_COMBOS = `const combos = k => {
       const m = migrate(JSON.parse(JSON.stringify(o))).mat.mats;
       return [m.wood, m['iron:1'], m['iron:2'], matName('iron', 1), matName('iron', 2)].join();
     })()`) === '30,123,7,生鐵,熟鐵'
+  );
+  ok(
+    '2026-11-22 舊存檔：鏈錘裝備換單手錘、鏈錘類別併進錘、魔符類別拿掉、鏈錘橫掃退靈魂並拿下、轉圖騰拔掉、魔符技能拿下、點過鎖住的叢集退點',
+    R2(`(() => {
+      const o = newGame(), lk = PTREE.N.find(n => n.lock).id;
+      o.eq.weapon = { id: 1, b: 'w_flail_3', r: 0, aff: [] };
+      o.camp.wts = ['sword', 'flail', 'talisman', 'mace'];
+      o.lib.sk.chainsweep = 3;
+      o.mat.soul = 0;
+      o.skills[1] = { k: 'chainsweep', so: ['totemc', 'fury'], n: 2 };
+      o.skills[2] = { k: Object.keys(SKILLS).find(k => SKILLS[k].wt && SKILLS[k].wt.join() === 'talisman'), so: [null, null], n: 2 };
+      o.lib.sup.totemc = 1;
+      o.pt = [...PT_START, lk];
+      const m = migrate(JSON.parse(JSON.stringify(o)));
+      return [m.eq.weapon.b, m.camp.wts.join(), m.mat.soul === soulCost(1) + soulCost(2), m.skills[1].k, m.skills[1].so.join(), m.skills[2].k, 'totemc' in m.lib.sup, m.pt.length === PT_START.length].join('|');
+    })()`) === 'w_mace1_3|sword,mace|true||,fury||false|true'
   );
   /* 0.5.2：序章刪了，main.js 的 proBoot／proGive：沒看過開場＝放開場、看過＝新存檔給劍、記版本號；老存檔不動 */
   R2('save = () => {}');
@@ -10573,8 +10591,8 @@ const ASC_COMBOS = `const combos = k => {
     return { n: ks.length, bad };
   })()`);
   ok(
-    'M1-16 castRate：82 招都有合理的數值、有冷卻＝冷卻、沒冷卻＝出手時間',
-    cr.n === 82 && !cr.bad.length,
+    'M1-16 castRate：81 招都有合理的數值、有冷卻＝冷卻、沒冷卻＝出手時間',
+    cr.n === 81 && !cr.bad.length,
     JSON.stringify(cr)
   );
   /* M1-20：同一件換上去差 0；武器只影響 DPS（生命差 0）；不能裝回原因；跟實際換上後的 DPS、生命差 ≤1 */

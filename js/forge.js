@@ -458,7 +458,7 @@ function wtPickHTML() {
   return `<div class="ph2">選一種武器類別<span>還能選 ${left} 種；選了才打得出那種武器、列得出那種武器的技能</span></div><div class="bagf">${Object.keys(
     WTN
   )
-    .filter(wt => !S.camp.wts.includes(wt))
+    .filter(wt => !S.camp.wts.includes(wt) && !WT_HIDE.includes(wt))
     .map(wt => chipB(`wt:${wt}`, 0, WTN[wt]))
     .join('')}</div>`;
 }
@@ -1223,7 +1223,8 @@ document.addEventListener('click', e => {
   else if (k === 'pri') (genOf(v).pri = genOf(v).pri ? 0 : 1), save();
   else if (k === 'gt') (genOf(v).tier = +x), save();
   else if (k === 'wt') {
-    if (S.camp.wts.length < campN('wts') && WTN[v] && !S.camp.wts.includes(v)) S.camp.wts.push(v), (MK.wt = v), save();
+    if (S.camp.wts.length < campN('wts') && WTN[v] && !WT_HIDE.includes(v) && !S.camp.wts.includes(v))
+      S.camp.wts.push(v), (MK.wt = v), save();
   } else if (k === 'tr') {
     err = tradeDo(v);
     if (!err) sfx('coin'), save();

@@ -242,7 +242,6 @@ Object.assign(BUILDS, {
   長矛: { tree: WT('spear', { projP: 2 }), gear: WG, wt: 'spear', sk: 'spearthrow' },
   十字弓: { tree: WT('xbow', { projP: 2 }), gear: WG, wt: 'xbow', sk: 'apshot' },
   爪: { tree: WT('claw', { meleeP: 2 }), gear: WG, wt: 'claw', sk: 'clawchain' },
-  鏈錘: { tree: WT('flail', { meleeP: 2 }), gear: WG, wt: 'flail', sk: 'chainsweep' },
   魔符: { tree: WT('talisman', { meleeP: 2, priP: 2 }), gear: WG, wt: 'talisman', sk: 'bearmaul' },
   盾: {
     tree: WT('mace', { meleeP: 2, shieldP: 2, armorP: 2 }),

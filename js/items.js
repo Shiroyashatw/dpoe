@@ -36,7 +36,9 @@ function pickBase(ilvl, kind, wt) {
     let r = Math.random() * kw.reduce((a, b) => a + b, 0);
     kind = ks.find((k, i) => (r -= kw[i]) <= 0) || ks[0];
   }
-  const pool = BASES.filter(b => b.lv <= ilvl && (!kind || b.k === kind) && (!wt || b.wt === wt));
+  const pool = BASES.filter(
+    b => b.lv <= ilvl && (!kind || b.k === kind) && (!wt || b.wt === wt) && !WT_HIDE.includes(b.wt)
+  );
   /* 高階的基底機率高一點 */
   const w = pool.map(b => 1 + b.lv / 4);
   let r = Math.random() * w.reduce((a, b) => a + b, 0);
