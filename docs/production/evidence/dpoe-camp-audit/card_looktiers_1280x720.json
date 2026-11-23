@@ -1,0 +1,78 @@
+{
+ "tag": "1280x720",
+ "card": {
+  "panelRect": [
+   844,
+   76,
+   1264,
+   612
+  ],
+  "head": "‹\n鍛造台\n›",
+  "btns": [
+   "‹",
+   "›",
+   "回格子",
+   "▲ 升級"
+  ],
+  "upBtn": true
+ },
+ "rows": [
+  {
+   "label": "Lv0→1（lookTiers 表內 1）",
+   "lv": 1,
+   "T": 1200,
+   "q": false,
+   "scaleMs": 603,
+   "dustLastMs": 1137,
+   "dustMax": 9,
+   "rect": [
+    325,
+    70,
+    161,
+    44
+   ],
+   "buildingDiff": {
+    "changed": 293,
+    "of": 30910
+   }
+  },
+  {
+   "label": "Lv1→2（不在表內）",
+   "lv": 2,
+   "T": 600,
+   "q": false,
+   "scaleMs": 586,
+   "dustLastMs": 552,
+   "dustMax": 16,
+   "rect": [
+    325,
+    70,
+    161,
+    44
+   ],
+   "buildingDiff": {
+    "changed": 0,
+    "of": 30910
+   }
+  },
+  {
+   "label": "Lv4→5（lookTiers 表內 5）",
+   "lv": 5,
+   "T": 1200,
+   "q": false,
+   "scaleMs": 588,
+   "dustLastMs": 1071,
+   "dustMax": 12,
+   "rect": [
+    325,
+    70,
+    161,
+    44
+   ],
+   "buildingDiff": {
+    "changed": 0,
+    "of": 30910
+   }
+  }
+ ]
+}
