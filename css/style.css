@@ -2927,12 +2927,14 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .c12p .l3 .lh:not(.r) { grid-column: 1; grid-row: 1; }
 .c12 .c12p .l3 .lh.r { grid-column: 2; grid-row: 1; }
 .c12 .c12p .l3s { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; align-content: start; min-height: 0; overflow-y: auto; scrollbar-width: none; }
-.c12 .c12p .l3 .csb { right: 4px; top: 32px; bottom: 12px; }
+.c12 .c12p .l3 .csb { right: 4px; top: 32px; bottom: 32px; }
+.c12 .c12p .l3m { grid-column: 1 / -1; grid-row: 3; display: block; height: 20px; line-height: 20px; text-align: center; }
+.c12 .c12p .l3m[hidden] { display: none; }
 .c12 .c12p .l2 { min-height: 73px; }
 .c12 .c12p .kv { display: flex; align-items: baseline; gap: 8px; height: 20px; line-height: 20px; }
 .c12 .c12p .kv b { font: 700 16px var(--font); font-variant-numeric: tabular-nums; }
 /* ③ 放不下時層內捲動（V-4），不裁切；①②④⑤ 永遠完整 */
-.c12 .c12p .l3 { position: relative; flex: 0 1 auto; min-height: 107px; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; align-content: start; }
+.c12 .c12p .l3 { position: relative; flex: 0 1 auto; min-height: 107px; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; align-content: start; }
 .c12 .c12p.det .l3 { min-height: 119px; }
 .c12 .c12p ul { margin: 0; padding: 0; list-style: none; min-width: 0; }
 .c12 .c12p li { display: flex; align-items: baseline; gap: 6px; height: 24px; line-height: 24px; white-space: nowrap; }

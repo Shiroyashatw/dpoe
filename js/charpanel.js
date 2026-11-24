@@ -1,11 +1,12 @@
 /* 角色頁桌機 1280×720（S/M2-character-1280.md ＋ M2-character.md v1.1；示意圖 W3-character/color 01、02、03、04a、04b、07）。
    右欄 #pinv（788,76 476×486）加 .c12，裡面照規格座標絕對定位（左上角＝右欄左上角）。直立（PORT）仍走 hud.js 的 invHTML。
-   CH：edit 編輯釘選、menu 長按選單開著的數值鍵、hov 比較浮窗的候選 id、alt 按住 Alt／手把 Y、o 候選排序、f 篩選、op 分組展開 */
+   CH：edit 編輯釘選、menu 長按選單開著的數值鍵、hov 比較浮窗的候選 id、alt 按住 Alt／手把 Y、l3 比較浮窗 ③ 的捲動位置、o 候選排序、f 篩選、op 分組展開 */
 const CH = {
   edit: 0,
   menu: null,
   hov: null,
   alt: 0,
+  l3: 0,
   o: 'j',
   f: 'all',
   op: { atk: 1, core: 1 }
@@ -365,7 +366,7 @@ function chCmpHTML() {
   return `<div class="c12p ${det ? 'det' : ''}" role="dialog" aria-label="比較">
   <section class="l1"><div><small>身分　身上</small>${cur ? nm(cur) + sub(cur) : '<b>空著</b>'}</div><div><small>候選${j ? `（${j}）` : ''}</small>${nm(it)}${sub(it)}</div></section>
   <section class="l2"><small class="lh">基底</small><div>${bcol(B0)}</div><div>${bcol(B1)}</div></section>
-  <section class="l3"><small class="lh">詞綴${det && cur ? `　${side(cur)}` : ''}</small>${det ? `<small class="lh r">${side(it)}　✦＝最好階</small>` : ''}<div class="l3s" data-sb><ul>${chAffs(cur, det)}</ul><ul>${chAffs(it, det)}</ul></div><i class="csb"><i></i></i></section>
+  <section class="l3"><small class="lh">詞綴${det && cur ? `　${side(cur)}` : ''}</small>${det ? `<small class="lh r">${side(it)}　✦＝最好階</small>` : ''}<div class="l3s" data-sb><ul>${chAffs(cur, det)}</ul><ul>${chAffs(it, det)}</ul></div><i class="csb"><i></i></i><small class="l3m">▼ 還有 <b>0</b> 條</small></section>
   <section class="l4"><small class="lh">換上</small><p>${dl}</p></section>
   <section class="l5"><small class="lh">操作</small><p><span ${d.why ? 'class="off" aria-disabled="true"' : ''}>Ⓐ 裝備</span>　Ｘ 鎖定身上　Ｒ3 名詞</p><kbd>${det ? '放開' : '按住'} Alt</kbd><kbd>Y</kbd></section></div>`;
 }
@@ -394,7 +395,7 @@ function chRender() {
   panelHTML(p, charHTML());
   const n = c && p.querySelector(`[data-c="${CSS.escape(c)}"]`);
   if (n) n.focus({ preventScroll: true });
-  chSb();
+  chL3();
 }
 /* 比較浮窗只換自己（不重畫整個面板，捲動與焦點都留著） */
 function chCmpSync() {
@@ -403,7 +404,20 @@ function chCmpSync() {
     h = chCmpHTML();
   if (o) h ? (o.outerHTML = h) : o.remove();
   else if (h) p.insertAdjacentHTML('beforeend', h);
+  chL3();
+}
+/* 比較浮窗 ③：按住 Alt 滾輪／按住 Y 右搖桿才捲（d＝捲多少）；重畫後捲回 CH.l3。
+   換格、按下或放開 Alt／Y 時 CH.l3 歸零（chAlt、chHov） */
+function chL3(d) {
+  const s = $('pinv').querySelector('.c12p .l3s');
+  if (s) (s.scrollTop = CH.l3 + (d || 0)), (CH.l3 = s.scrollTop);
   chSb();
+}
+function chAlt(v) {
+  if (CH.alt === v) return;
+  CH.alt = v;
+  CH.l3 = 0;
+  chCmpSync();
 }
 /* 自繪 4 px 捲動條（L-10）：[data-sb] 後面的 .csb；內容超過可視區才出現。軌 --border、滑塊 --tx-dim */
 function chSb() {
@@ -420,10 +434,22 @@ function chSb() {
     t.firstChild.style.height = th + 'px';
     t.firstChild.style.transform = `translateY(${Math.round(((H - th) * el.scrollTop) / (sh - ch))}px)`;
   }
+  /* ③ 放不下：底部「▼ 還有 n 條」＝還在可視區下面的詞綴條數（捲到底就淡掉，列位留著不跳版） */
+  const m = $('pinv').querySelector('.c12p .l3m');
+  if (!m) return;
+  const s = m.parentNode.querySelector('.l3s'),
+    on = s.scrollHeight > s.clientHeight + 1;
+  m.hidden = !on;
+  if (!on) return;
+  const y = s.getBoundingClientRect().bottom + 0.5,
+    n = [...s.querySelectorAll('li')].filter(li => li.getBoundingClientRect().bottom > y).length;
+  m.firstElementChild.textContent = n;
+  m.style.visibility = n ? '' : 'hidden';
 }
 function chHov(id) {
   if (CH.hov === id) return;
   CH.hov = id;
+  CH.l3 = 0;
   chCmpSync();
 }
 /* ---------- 名詞提示：停留 0.4 秒（手把 R3），放在右欄左邊的戰場側 ---------- */
@@ -521,15 +547,13 @@ function chInit() {
   /* 長按選單：點右欄外面（戰場、分頁列……）也關（V-1） */
   addEventListener('pointerdown', e => CH.menu && !p.contains(e.target) && ((CH.menu = null), hudPanels()), true);
   p.addEventListener('scroll', chSb, true);
-  /* 比較浮窗不接滑鼠：③ 放不下時，在候選格上滾輪捲 ③ */
+  /* 比較浮窗不接滑鼠（UIUX 11/24）：按住 Alt 時滾輪捲 ③；沒按 Alt 照常捲候選清單 */
   p.addEventListener(
     'wheel',
     e => {
-      const s = p.querySelector('.c12p .l3s');
-      if (!s || s.scrollHeight <= s.clientHeight + 1 || !e.target.closest('[data-c^="cand:"]')) return;
+      if (!(e.altKey || CH.alt) || !p.querySelector('.c12p .l3s')) return;
       e.preventDefault();
-      s.scrollTop += e.deltaY;
-      chSb();
+      chL3(e.deltaY * (e.deltaMode === 1 ? 24 : e.deltaMode === 2 ? 240 : 1));
     },
     { passive: false }
   );
@@ -565,7 +589,7 @@ function chInit() {
     'keydown',
     e => {
       if (!PANEL.inv || !p.classList.contains('c12')) return;
-      if (e.key === 'Alt') return e.preventDefault(), CH.alt || ((CH.alt = 1), chCmpSync());
+      if (e.key === 'Alt') return e.preventDefault(), chAlt(1);
       /* Esc 先關長按選單，不關面板 */
       if (e.key === 'Escape' && CH.menu)
         return e.preventDefault(), e.stopImmediatePropagation(), (CH.menu = null), hudPanels();
@@ -576,8 +600,8 @@ function chInit() {
     },
     true
   );
-  addEventListener('keyup', e => e.key === 'Alt' && CH.alt && (e.preventDefault(), (CH.alt = 0), chCmpSync()), true);
-  addEventListener('blur', () => CH.alt && ((CH.alt = 0), chCmpSync()));
+  addEventListener('keyup', e => e.key === 'Alt' && CH.alt && (e.preventDefault(), chAlt(0)), true);
+  addEventListener('blur', () => chAlt(0));
   addEventListener('gamepadconnected', () => PADW.on || ((PADW.on = 1), requestAnimationFrame(chPad)));
 }
 /* 往 (dx,dy) 找最近的格：主方向距離＋偏離 ×2 */
@@ -598,7 +622,7 @@ function chMove(dx, dy) {
   }
   if (best) best.focus(), best.scrollIntoView({ block: 'nearest' });
 }
-/* 手把（標準配置）：Y 按住＝詳細、R3＝焦點上的名詞、Ⓐ＝裝備焦點上的候選、Ⓑ＝關 */
+/* 手把（標準配置）：Y 按住＝詳細（同時右搖桿上下捲 ③）、R3＝焦點上的名詞、Ⓐ＝裝備焦點上的候選、Ⓑ＝關 */
 const PADW = {};
 function chPad() {
   const g = [...navigator.getGamepads()].find(Boolean);
@@ -608,7 +632,9 @@ function chPad() {
   if (!PANEL.inv || !$('pinv').classList.contains('c12')) return;
   const b = i => !!(g.buttons[i] && g.buttons[i].pressed),
     edge = i => b(i) && !PADW[i];
-  if (b(3) !== !!PADW[3]) (CH.alt = b(3) ? 1 : 0), chCmpSync();
+  if (b(3) !== !!PADW[3]) chAlt(b(3) ? 1 : 0);
+  const ry = g.axes[3] || 0;
+  if (b(3) && Math.abs(ry) > 0.2) chL3(Math.round(ry * 12));
   const f = document.activeElement;
   if (edge(11) && f && f.dataset && f.dataset.tm2) chTermShow(f);
   if (edge(0) && f && f.dataset && f.dataset.c) chAct(f.dataset.c, f);

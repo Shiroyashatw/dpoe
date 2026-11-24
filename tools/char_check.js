@@ -22,6 +22,30 @@ const box = (p, q) =>
     return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)];
   }, q);
 const is = (b, x, y, w, h) => !!b && near(b[0], x) && near(b[1], y) && near(b[2], w) && near(b[3], h);
+/* 比較浮窗 ③ 的捲動狀態（fix3）：top ③ 捲動位置、below 可視區下面的條數、m「▼ 還有 n 條」（淡掉時空字）、
+   bar／bw／ty 捲動條、same 軌與滑塊同候選捲動條 .csb.sg 的色、list 候選清單捲動、h ③ 層高、det 詳細 */
+const L3S = () => {
+  const P = $('pinv'),
+    c = P.querySelector('.c12p'),
+    s = c.querySelector('.l3s'),
+    m = c.querySelector('.l3m'),
+    t = c.querySelector('.l3 .csb'),
+    g = P.querySelector('.csb.sg'),
+    y = s.getBoundingClientRect().bottom + 0.5,
+    bg = e => getComputedStyle(e).backgroundColor;
+  return {
+    top: s.scrollTop,
+    below: [...s.querySelectorAll('li')].filter(li => li.getBoundingClientRect().bottom > y).length,
+    m: !m.hidden && m.style.visibility !== 'hidden' ? m.textContent.trim() : '',
+    bar: !t.hidden,
+    bw: Math.round(t.getBoundingClientRect().width),
+    ty: t.firstChild.style.transform,
+    same: bg(t) === bg(g) && bg(t.firstChild) === bg(g.firstChild),
+    list: P.querySelector('.c12g').scrollTop,
+    h: Math.round(c.querySelector('.l3').getBoundingClientRect().height),
+    det: c.classList.contains('det')
+  };
+};
 /* 跟示意圖接近的一套：Lv 49、身上全稀有、倉庫 14 頂頭盔（候選 4×3 再多兩件可以捲；物品等級高的穿不上＝不能裝備）；
    示意圖的格狀態：胸甲腐化＋破裂、鞋子災魘、項鍊追憶、武器套王印 */
 const setup = () => {
@@ -633,12 +657,67 @@ const CH_BOX = {
         r.l3in,
       JSON.stringify(r)
     );
+    /* fix3（UIUX 11/24）：沒按 Alt 滾輪照常捲候選清單、③ 不動 */
     if (!det && r.scroll) {
+      const hid = await p.evaluate(() => CH.hov);
       await p.mouse.wheel(0, 120);
       await p.waitForTimeout(80);
-      ok('③ 放不下：在候選格上滾輪捲 ③', await p.evaluate(() => $('pinv').querySelector('.c12p .l3s').scrollTop > 0));
+      const nw = await p.evaluate(() => [
+        $('pinv').querySelector('.c12p .l3s') ? $('pinv').querySelector('.c12p .l3s').scrollTop : -1,
+        $('pinv').querySelector('.c12g').scrollTop
+      ]);
+      ok('沒按 Alt：滾輪捲候選清單、③ 不捲', nw[1] > 0 && nw[0] <= 0, JSON.stringify(nw));
+      await p.evaluate(() => ($('pinv').querySelector('.c12g').scrollTop = 0));
+      await p.waitForTimeout(50);
+      await p.mouse.move(0, 0);
+      await p.hover(`#pinv [data-c="cand:${hid}"]`);
+      await p.waitForTimeout(50);
     }
     if (OUT) await p.screenshot({ path: path.join(OUT, `04${det ? 'b' : 'a'}-dualdef-6affix.png`) });
+    if (det && r.scroll) {
+      const hid = await p.evaluate(() => CH.hov),
+        L3 = () => p.evaluate(L3S);
+      const a0 = await L3();
+      ok(
+        '按住 Alt、③ 放不下：底部「▼ 還有 n 條」（n＝可視區下面的條數）＋4 px 捲動條（軌、滑塊同候選捲動條的色）',
+        a0.top === 0 && a0.below > 0 && a0.m === `▼ 還有 ${a0.below} 條` && a0.bar && a0.bw === 4 && a0.same,
+        JSON.stringify(a0)
+      );
+      if (OUT) await p.screenshot({ path: path.join(OUT, 'fix3-l3-before.png') });
+      await p.mouse.wheel(0, 24);
+      await p.waitForTimeout(80);
+      const a1 = await L3();
+      ok(
+        '按住 Alt：滾輪捲 ③（候選清單不動）、「還有 n 條」跟著減、滑塊往下',
+        a1.top > 0 &&
+          a1.list === 0 &&
+          a1.below < a0.below &&
+          a1.below > 0 &&
+          a1.m === `▼ 還有 ${a1.below} 條` &&
+          a1.ty !== a0.ty,
+        JSON.stringify([a0, a1])
+      );
+      if (OUT) await p.screenshot({ path: path.join(OUT, 'fix3-l3-after.png') });
+      await p.mouse.wheel(0, 2400);
+      await p.waitForTimeout(80);
+      const a2 = await L3();
+      ok('捲到底：「還有 n 條」淡掉（不跳版）', a2.below === 0 && a2.m === '' && a2.h === a0.h, JSON.stringify(a2));
+      await p.keyboard.up('Alt');
+      await p.waitForTimeout(50);
+      const a3 = await L3();
+      ok('放開 Alt：③ 回頂端', a3.top === 0 && !a3.det, JSON.stringify(a3));
+      await p.keyboard.down('Alt');
+      await p.waitForTimeout(50);
+      await p.mouse.wheel(0, 48);
+      await p.waitForTimeout(80);
+      const t4 = (await L3()).top;
+      await p.hover(`#pinv .c12g .cq:not([data-c="cand:${hid}"])`);
+      await p.waitForTimeout(50);
+      await p.hover(`#pinv [data-c="cand:${hid}"]`);
+      await p.waitForTimeout(50);
+      const a5 = await L3();
+      ok('滑鼠移到別格再回來：③ 回頂端', t4 > 0 && a5.top === 0 && a5.det, JSON.stringify([t4, a5]));
+    }
   }
   await p.keyboard.up('Alt');
   /* 換回原本的底材與詞綴（不然快取的「能不能裝備」會跟著舊底材） */
@@ -726,6 +805,42 @@ const CH_BOX = {
   await p.keyboard.press('v');
   ok('1280×720 沒有頁面錯誤', !errs.length, errs.join(' | '));
   await ctx.close();
+  /* fix3：破裂／追憶定稿圖（affix-icons-final-1124）：DPR1 用 16、DPR2 用 16@2x，畫成 16×16（不墊 18×18） */
+  for (const dpr of [1, 2]) {
+    const cx = await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: dpr });
+    await cx.route(/supabase/, r => r.abort());
+    const d = await cx.newPage();
+    await d.goto(URL + '?' + Date.now());
+    await d.evaluate(() => localStorage.clear());
+    await d.reload();
+    await d.waitForTimeout(1500);
+    await d.evaluate(setup);
+    await d.keyboard.press('v');
+    await d.waitForTimeout(300);
+    const im = await d.evaluate(() =>
+      ['chest', 'amulet'].map(k => {
+        const e = document.querySelector(`#pinv [data-c="eq:${k}"] .cx img`),
+          r = e && e.getBoundingClientRect();
+        return e && [e.getAttribute('src'), e.naturalWidth, e.naturalHeight, Math.round(r.width), Math.round(r.height)];
+      })
+    );
+    const re = dpr > 1 ? /_16@2x\.png$/ : /_16\.png$/;
+    ok(
+      `DPR${dpr}：胸甲破裂、項鍊追憶用 ${dpr > 1 ? '16@2x' : '16'}（原圖 ${16 * dpr}×${16 * dpr}）、畫成 16×16`,
+      !!im[0] &&
+        !!im[1] &&
+        /affix_frac/.test(im[0][0]) &&
+        /affix_mem/.test(im[1][0]) &&
+        im.every(x => re.test(x[0]) && x[1] === 16 * dpr && x[2] === 16 * dpr && x[3] === 16 && x[4] === 16),
+      JSON.stringify(im)
+    );
+    if (OUT)
+      await d.screenshot({
+        path: path.join(OUT, `fix3-affix-icons-dpr${dpr}.png`),
+        clip: { x: 788, y: 140, width: 476, height: 220 }
+      });
+    await cx.close();
+  }
   /* 390×844：直立角色頁照舊（hud.js 的 invHTML，不走 .c12） */
   const c2 = await b.newContext({
     viewport: { width: 390, height: 844 },
@@ -758,7 +873,8 @@ const CH_BOX = {
   await c3.route(/supabase/, r => r.abort());
   await c3.addInitScript(() => {
     window.PADB = Array.from({ length: 17 }, () => ({ pressed: false, value: 0 }));
-    navigator.getGamepads = () => [window.PADON ? { buttons: window.PADB } : null];
+    window.PADA = [0, 0, 0, 0];
+    navigator.getGamepads = () => [window.PADON ? { buttons: window.PADB, axes: window.PADA } : null];
   });
   const g3 = await c3.newPage();
   await g3.goto(URL + '?' + Date.now());
@@ -776,6 +892,43 @@ const CH_BOX = {
   await g3.waitForTimeout(150);
   const gy2 = await g3.evaluate(() => !!$('pinv').querySelector('.c12p') && !$('pinv').querySelector('.c12p.det'));
   ok('手把：按住 Y＝詳細、放開回簡易', gy && gy2, JSON.stringify([gy, gy2]));
+  /* fix3：按住 Y 時右搖桿捲 ③；放開 Y 回頂端（焦點上的候選與身上頭盔各 6 條詞綴，③ 放不下） */
+  await g3.evaluate(() => {
+    const it = S.inv.items.find(x => x.id === CH.hov),
+      A = S.inv.items.flatMap(x => x.a || []);
+    window.DD3 = [it, it.a, S.eq.helm.a];
+    S.eq.helm.a = A.slice(0, 6);
+    it.a = A.slice(6, 12);
+    chCmpSync();
+  });
+  await g3.evaluate(() => (PADB[3].pressed = true));
+  await g3.waitForTimeout(150);
+  const y0 = await g3.evaluate(L3S);
+  await g3.evaluate(() => (PADA[3] = 1));
+  await g3.waitForTimeout(150);
+  await g3.evaluate(() => (PADA[3] = 0));
+  const y1 = await g3.evaluate(L3S);
+  await g3.evaluate(() => (PADB[3].pressed = false));
+  await g3.waitForTimeout(150);
+  const y2 = await g3.evaluate(L3S);
+  ok(
+    '手把：按住 Y 右搖桿捲 ③（「▼ 還有 n 條」跟著減）、放開 Y 回頂端',
+    y0.det &&
+      y0.top === 0 &&
+      y0.below > 0 &&
+      y1.top > 0 &&
+      y1.below < y0.below &&
+      y1.list === 0 &&
+      !y2.det &&
+      y2.top === 0,
+    JSON.stringify([y0, y1, y2])
+  );
+  await g3.evaluate(() => {
+    const [it, a, ha] = DD3;
+    it.a = a;
+    S.eq.helm.a = ha;
+    chCmpSync();
+  });
   await g3.focus('#pinv .cres span');
   await g3.evaluate(() => (PADB[11].pressed = true));
   await g3.waitForTimeout(150);
