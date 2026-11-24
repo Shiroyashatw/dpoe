@@ -106,89 +106,81 @@ function pt2Rim(x, y) {
   return 4950 + 170 * Math.sin(d * 5 + 1) + 110 * Math.sin(d * 11 + 2);
 }
 
-/* 珠寶孔（num-tree-v4-jewel18b）：孔是樹上自己的一個點，掛在掛點（幹道能力值點）旁邊，點到要 1 點、點到就開。
-   [孔, 掛點, 種類, 路]；來源 evidence/num-tree-v4-verify/v4_sockets.csv（analyze.js 挑的 18 孔，原樣照抄）。
-   位置：從掛點沿半徑（樹中心 (0, 0)）往外推，取「跟每一個既有點、先放好的孔距離都 ≥ 最小點距」的最大偏移
-   （從掛點往外第一段可行範圍的盡頭；沒有點擋住時以 pt2Rim 為上限）。最小點距＝現有點兩兩最近距離的實際下限。 */
+/* 珠寶孔（num-tree-v4-jewel18c）：孔是樹上自己的一個點，掛在掛點（幹道能力值點）旁邊，點到要 1 點、點到就開。
+   [孔, 掛點, 種類, 路, 換掛點條件]；來源 evidence/num-tree-v4-verify/v4_sockets.csv（analyze.js 挑的 18 孔，原樣照抄）。
+   換掛點條件＝analyze.js 挑這個孔時實際用到的範圍（csv 的「挑選放寬」欄）：前期 R＝半徑上限；交會 JA＝離交界角度上限、JR＝半徑上限。 */
 const PT2_JS = [
-  ['J0a', 't78', '前期', '鬥士'],
-  ['J1a', 't89', '前期', '遊俠'],
-  ['J2a', 't_m7', '前期', '暗影'],
-  ['J3a', 't_m10', '前期', '魔導'],
-  ['J4a', 't_m14', '前期', '死靈'],
-  ['J5a', 't117', '前期', '自然'],
-  ['J0b', 't149', '交會', '鬥士|遊俠'],
-  ['J1b', 't202', '交會', '遊俠|暗影'],
-  ['J2b', 't164', '交會', '暗影|魔導'],
-  ['J3b', 't173', '交會', '魔導|死靈'],
-  ['J4b', 't138', '交會', '死靈|自然'],
-  ['J5b', 't123', '交會', '自然|鬥士'],
-  ['J0c', 't_o1', '外圈大孔', '鬥士'],
-  ['J1c', 't153', '外圈大孔', '遊俠'],
-  ['J2c', 't_o8', '外圈大孔', '暗影'],
-  ['J3c', 't_o10', '外圈大孔', '魔導'],
-  ['J4c', 't181', '外圈大孔', '死靈'],
-  ['J5c', 't219', '外圈大孔', '自然']
+  ['J0a', 't78', '前期', '鬥士', { R: 2300 }],
+  ['J1a', 't89', '前期', '遊俠', { R: 2300 }],
+  ['J2a', 't_m7', '前期', '暗影', { R: 2300 }],
+  ['J3a', 't_m10', '前期', '魔導', { R: 2300 }],
+  ['J4a', 't_m14', '前期', '死靈', { R: 2300 }],
+  ['J5a', 't117', '前期', '自然', { R: 2300 }],
+  ['J0b', 't149', '交會', '鬥士|遊俠', { JA: 15, JR: 2800 }],
+  ['J1b', 't202', '交會', '遊俠|暗影', { JA: 30, JR: 3600 }],
+  ['J2b', 't164', '交會', '暗影|魔導', { JA: 22, JR: 3100 }],
+  ['J3b', 't173', '交會', '魔導|死靈', { JA: 22, JR: 3100 }],
+  ['J4b', 't138', '交會', '死靈|自然', { JA: 15, JR: 2800 }],
+  ['J5b', 't123', '交會', '自然|鬥士', { JA: 15, JR: 2800 }],
+  ['J0c', 't_o1', '外圈大孔', '鬥士', {}],
+  ['J1c', 't153', '外圈大孔', '遊俠', {}],
+  ['J2c', 't_o8', '外圈大孔', '暗影', {}],
+  ['J3c', 't_o10', '外圈大孔', '魔導', {}],
+  ['J4c', 't181', '外圈大孔', '死靈', {}],
+  ['J5c', 't219', '外圈大孔', '自然', {}]
 ];
-/* rows、edges＝PT_BAKE 的 N、E（已取到 0.1）；回傳 { J, minD, info, bad } 或 { err }。
-   bad＝跟 pt2Audit 同一套規則：孔壓到線（孔到線 < 10＋6，孔當最小的點）、掛點→孔的連線跟線交叉或壓到點 */
+/* 角度試驗順序：0、+5、−5、+10、−10 … ±45（＋＝樹的角度增加的方向，也就是畫面上順時針）；距離 0.6d～1.5d 每 0.1d */
+const PT2_ANG = [0, ...[5, 10, 15, 20, 25, 30, 35, 40, 45].flatMap(a => [a, -a])],
+  PT2_DF = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+/* rows、edges＝PT_BAKE 的 N、E（已取到 0.1）。照 csv 的順序一個一個放：每個孔在掛點周圍照上面的順序試，
+   取第一個通過 tree_bake 所有規則的位置（跟 pt2Audit 同一套：點不壓線＝點到線 ≥ 半徑＋6，孔當最小的點 10；線不交叉；
+   掛點上兩條線夾角 ≥ 0.21；兩點距離 ≥ 兩個半徑＋8，另外孔跟所有點、孔的距離 ≥ 最小點距；不超出 pt2Rim）。
+   d＝那一圈（同種類的 6 個孔）的掛點到它相連的每個點的直線距離，取中位數。
+   都不過：換到符合 analyze.js 同種孔挑選條件的其他幹道點（離原掛點近的先試）。回傳 { J, minD, ringD, info, fail } */
 function pt2Socks(rows, edges) {
+  const TAU = Math.PI * 2,
+    RAD = Math.PI / 180,
+    r1 = x => Math.round(x * 10) / 10;
   let minD = Infinity;
   for (let i = 0; i < rows.length; i++)
     for (let j = i + 1; j < rows.length; j++)
       minD = Math.min(minD, Math.hypot(rows[i][1] - rows[j][1], rows[i][2] - rows[j][2]));
-  const at = Object.fromEntries(rows.map(n => [n[0], n])),
-    pts = rows.map(n => [n[1], n[2]]),
-    J = [],
-    info = [];
-  const okAt = (x, y) =>
-    pts.every(([px, py]) => Math.hypot(px - x, py - y) >= minD) && Math.hypot(x, y) <= pt2Rim(x, y);
-  for (const [id, anchor, kind, road] of PT2_JS) {
-    const A = at[anchor];
-    if (!A) return { err: id + ' 的掛點 ' + anchor + ' 不在樹上' };
-    const L = Math.hypot(A[1], A[2]),
-      ux = A[1] / L,
-      uy = A[2] / L,
-      iv = [];
-    /* 每個點在這條射線上擋住的範圍 (lo, hi)：距離 < minD 的那一段 */
-    for (const [px, py] of pts) {
-      const dx = px - A[1],
-        dy = py - A[2],
-        s = dx * ux + dy * uy,
-        h2 = dx * dx + dy * dy - s * s;
-      if (h2 >= minD * minD) continue;
-      const w = Math.sqrt(minD * minD - h2);
-      if (s + w > 0) iv.push([s - w, s + w]);
+  const ri = Object.fromEntries(rows.map((n, i) => [n[0], i])),
+    NRt = t => (t === 3 ? 30 : t === 4 ? 20 : t === 2 || t === 7 ? 19 : 10),
+    deg = (x, y) => (Math.atan2(x, -y) / RAD + 360) % 360,
+    nb = rows.map(() => []);
+  edges.forEach(e => (nb[e[0]].push(e), nb[e[1]].push(e)));
+  /* 線的折線（弧線照 pt2Audit 切 6 段）、線在某端點的方向（弧線用切線） */
+  const segs = [];
+  for (const e of edges) {
+    const a = rows[e[0]],
+      b = rows[e[1]],
+      P = [[a[1], a[2]]];
+    if (e.length > 2) {
+      const [cx, cy, r] = e.slice(2),
+        a0 = Math.atan2(a[2] - cy, a[1] - cx);
+      let d = Math.atan2(b[2] - cy, b[1] - cx) - a0;
+      while (d > Math.PI) d -= TAU;
+      while (d < -Math.PI) d += TAU;
+      for (let k = 1; k < 6; k++) P.push([cx + Math.cos(a0 + (d * k) / 6) * r, cy + Math.sin(a0 + (d * k) / 6) * r]);
     }
-    iv.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    let cur = 0,
-      end = null;
-    for (const [lo, hi] of iv)
-      if (lo <= cur) cur = Math.max(cur, hi);
-      else {
-        end = lo;
-        break;
-      }
-    const cap = pt2Rim(A[1], A[2]) - L,
-      by = end == null || end > cap ? 'rim' : 'pt';
-    let d = by === 'rim' ? cap : end;
-    if (!(d >= cur)) return { err: id + ' 往外沒有可放的位置' };
-    /* 取到 0.1 後還要滿足；不滿足就往內退 0.1 */
-    let x, y;
-    for (;;) {
-      x = Math.round((A[1] + ux * d) * 10) / 10;
-      y = Math.round((A[2] + uy * d) * 10) / 10;
-      if (okAt(x, y)) break;
-      d -= 0.1;
-      if (d < cur) return { err: id + ' 取整後放不下' };
-    }
-    pts.push([x, y]);
-    J.push({ id, anchor, x, y, kind, road });
-    info.push({ id, d: Math.round(d * 10) / 10, by, start: Math.round(cur * 10) / 10 });
+    P.push([b[1], b[2]]);
+    for (let k = 0; k < P.length - 1; k++)
+      segs.push({ v: [e[0], e[1]], a: P[k], b: P[k + 1], n: rows[e[0]][0] + '-' + rows[e[1]][0] });
   }
-  /* 線：弧線照 pt2Audit 切成 6 段 */
-  const segs = [],
-    segD = (x, y, a, b) => {
+  const dirAt = (i, e) => {
+    const o = e[0] === i ? e[1] : e[0],
+      n = rows[i],
+      m = rows[o];
+    if (e.length < 3) return Math.atan2(m[2] - n[2], m[1] - n[1]);
+    const [cx, cy] = e.slice(2),
+      a0 = Math.atan2(n[2] - cy, n[1] - cx);
+    let d = Math.atan2(m[2] - cy, m[1] - cx) - a0;
+    while (d > Math.PI) d -= TAU;
+    while (d < -Math.PI) d += TAU;
+    return a0 + (d > 0 ? Math.PI / 2 : -Math.PI / 2);
+  };
+  const segD = (x, y, a, b) => {
       const dx = b[0] - a[0],
         dy = b[1] - a[1],
         f = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy || 1)));
@@ -200,39 +192,166 @@ function pt2Socks(rows, edges) {
       const t = ((r[0] - p[0]) * (s[1] - r[1]) - (r[1] - p[1]) * (s[0] - r[0])) / d,
         u = ((r[0] - p[0]) * (q[1] - p[1]) - (r[1] - p[1]) * (q[0] - p[0])) / d;
       return t > 0.02 && t < 0.98 && u > 0.02 && u < 0.98;
-    };
-  for (const e of edges) {
-    const a = rows[e[0]],
-      b = rows[e[1]],
-      P = [[a[1], a[2]]];
-    if (e.length > 2) {
-      const [cx, cy, r] = e.slice(2),
-        a0 = Math.atan2(a[2] - cy, a[1] - cx);
-      let d = Math.atan2(b[2] - cy, b[1] - cx) - a0;
-      while (d > Math.PI) d -= Math.PI * 2;
-      while (d < -Math.PI) d += Math.PI * 2;
-      for (let k = 1; k < 6; k++) P.push([cx + Math.cos(a0 + (d * k) / 6) * r, cy + Math.sin(a0 + (d * k) / 6) * r]);
+    },
+    angGap = (a, b) => Math.abs(((((a - b) % TAU) + TAU + Math.PI) % TAU) - Math.PI);
+  /* 每圈的 d */
+  const med = L => {
+      const s = [...L].sort((a, b) => a - b),
+        h = s.length >> 1;
+      return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2;
+    },
+    ringD = {};
+  for (const kind of [...new Set(PT2_JS.map(s => s[2]))]) {
+    const L = [];
+    for (const s of PT2_JS.filter(s => s[2] === kind)) {
+      const i = ri[s[1]];
+      for (const e of nb[i]) {
+        const o = rows[e[0] === i ? e[1] : e[0]];
+        L.push(Math.hypot(o[1] - rows[i][1], o[2] - rows[i][2]));
+      }
     }
-    P.push([b[1], b[2]]);
-    for (let k = 0; k < P.length - 1; k++) segs.push({ e, a: P[k], b: P[k + 1] });
+    ringD[kind] = { d: med(L), n: L.length, min: Math.min(...L), max: Math.max(...L) };
   }
-  const ri = Object.fromEntries(rows.map((n, i) => [n[0], i])),
-    NRt = t => (t === 3 ? 30 : t === 4 ? 20 : t === 2 || t === 7 ? 19 : 10),
-    bad = [];
-  for (const j of J) {
-    const ai = ri[j.anchor],
-      A = [rows[ai][1], rows[ai][2]],
-      H = [j.x, j.y];
-    for (const s of segs)
-      if (segD(j.x, j.y, s.a, s.b) < 16) bad.push('壓線 ' + j.id + ' ← ' + rows[s.e[0]][0] + '-' + rows[s.e[1]][0]);
-    for (const s of segs)
-      if (s.e[0] !== ai && s.e[1] !== ai && cross(A, H, s.a, s.b))
-        bad.push('交叉 ' + j.anchor + '-' + j.id + ' x ' + rows[s.e[0]][0] + '-' + rows[s.e[1]][0]);
+  /* 換掛點用：起點到每個點的步數 */
+  const adj = rows.map(() => []);
+  edges.forEach(e => (adj[e[0]].push(e[1]), adj[e[1]].push(e[0])));
+  const bfs = s => {
+      const d = new Array(rows.length).fill(Infinity),
+        q = [s];
+      d[s] = 0;
+      for (let h = 0; h < q.length; h++)
+        for (const o of adj[q[h]]) if (d[o] === Infinity) (d[o] = d[q[h]] + 1), q.push(o);
+      return d;
+    },
+    DS = [0, 1, 2, 3, 4, 5].map(g => bfs(ri['g' + g])),
+    minAll = i => Math.min(...DS.map(d => d[i] + 1)),
+    rad = n => Math.hypot(n[1], n[2]),
+    roadOf = n => Math.round(deg(n[1], n[2]) / 60) % 6;
+  const holes = [],
+    hsegs = [];
+  /* 第一條不過的規則（null＝全過） */
+  const check = (ai, x, y) => {
+    const A = rows[ai];
+    if (Math.hypot(x, y) > pt2Rim(x, y)) return '超出樹緣';
     for (const n of rows)
-      if (n[0] !== j.anchor && segD(n[1], n[2], A, H) < NRt(n[3]) + 6)
-        bad.push('壓 ' + n[0] + ' ← ' + j.anchor + '-' + j.id);
+      if (Math.hypot(n[1] - x, n[2] - y) < Math.max(minD, NRt(n[3]) + 18)) return '離點太近 ' + n[0];
+    for (const h of holes) if (Math.hypot(h.x - x, h.y - y) < Math.max(minD, 28)) return '離孔太近 ' + h.id;
+    for (const s of [...segs, ...hsegs]) if (segD(x, y, s.a, s.b) < 16) return '孔壓線 ' + s.n;
+    const P = [A[1], A[2]],
+      H = [x, y];
+    for (const n of rows) if (n !== A && segD(n[1], n[2], P, H) < NRt(n[3]) + 6) return '連線壓點 ' + n[0];
+    for (const h of holes) if (segD(h.x, h.y, P, H) < 16) return '連線壓孔 ' + h.id;
+    for (const s of segs) if (s.v[0] !== ai && s.v[1] !== ai && cross(P, H, s.a, s.b)) return '連線交叉 ' + s.n;
+    for (const s of hsegs) if (s.v[0] !== ai && cross(P, H, s.a, s.b)) return '連線交叉 ' + s.n;
+    const a = Math.atan2(y - A[2], x - A[1]);
+    for (const e of nb[ai])
+      if (angGap(a, dirAt(ai, e)) < 0.21) return '夾角太小 ' + rows[e[0]][0] + '-' + rows[e[1]][0];
+    for (const s of hsegs)
+      if (s.v[0] === ai && angGap(a, Math.atan2(s.b[1] - s.a[1], s.b[0] - s.a[0])) < 0.21) return '夾角太小 ' + s.n;
+    return null;
+  };
+  const tryAt = (ai, d) => {
+    const A = rows[ai],
+      g0 = deg(A[1], A[2]),
+      why = {};
+    let first = null;
+    for (const th of PT2_ANG)
+      for (const f of PT2_DF) {
+        const p = (g0 + th) * RAD,
+          L = (f / 10) * d,
+          x = r1(A[1] + Math.sin(p) * L),
+          y = r1(A[2] - Math.cos(p) * L),
+          w = check(ai, x, y);
+        if (!w) return { x, y, th, f: f / 10, L: Math.hypot(x - A[1], y - A[2]) };
+        const k = w.split(' ')[0];
+        why[k] = (why[k] || 0) + 1;
+        if (!first) first = { th, f: f / 10, w };
+      }
+    return { why, first };
+  };
+  const J = [],
+    info = [],
+    fail = [],
+    anchors = PT2_JS.map(s => s[1]);
+  for (const [si, [id, anchor, kind, road, cond]] of PT2_JS.entries()) {
+    const ai = ri[anchor];
+    if (ai == null) return { err: id + ' 的掛點 ' + anchor + ' 不在樹上' };
+    const d = ringD[kind].d;
+    let r = tryAt(ai, d),
+      r0 = r,
+      useA = ai,
+      alts = [],
+      tried = [];
+    if (r.x == null) {
+      /* 換掛點：analyze.js 同種孔的挑選條件 */
+      const g = +id[1],
+        g2 = (g + 1) % 6,
+        used = new Set(anchors.filter((a, k) => k !== si).map(a => ri[a])),
+        far = i => [...used].every(u => bfs(i)[u] >= 4),
+        ok = n => {
+          const i = ri[n[0]];
+          if (n[3] !== 0 || i === ai || used.has(i) || minAll(i) < 10) return false;
+          if (kind === '前期') return roadOf(n) === g && DS[g][i] + 1 >= 10 && DS[g][i] + 1 <= 15 && rad(n) <= cond.R;
+          if (kind === '交會') {
+            const bd = g * 60 + 30,
+              an = Math.abs(((deg(n[1], n[2]) - bd + 540) % 360) - 180);
+            return an <= cond.JA && rad(n) >= 1700 && rad(n) <= cond.JR && far(i);
+          }
+          return roadOf(n) === g && rad(n) >= 3000 && far(i);
+        };
+      alts = rows
+        .filter(ok)
+        .map(n => ({ i: ri[n[0]], dist: Math.hypot(n[1] - rows[ai][1], n[2] - rows[ai][2]) }))
+        .sort((a, b) => a.dist - b.dist);
+      for (const c of alts) {
+        const rr = tryAt(c.i, d);
+        tried.push({ id: rows[c.i][0], dist: c.dist, ok: rr.x != null, first: rr.first, why: rr.why });
+        if (rr.x != null) {
+          r = rr;
+          useA = c.i;
+          break;
+        }
+      }
+    }
+    if (r.x == null) {
+      fail.push({ id, anchor, d, why: r.why, first: r.first, alts: tried });
+      continue;
+    }
+    const A = rows[useA];
+    anchors[si] = A[0];
+    holes.push({ id, x: r.x, y: r.y });
+    hsegs.push({ v: [useA], a: [A[1], A[2]], b: [r.x, r.y], n: A[0] + '-' + id });
+    J.push({ id, anchor: A[0], x: r.x, y: r.y, kind, road });
+    info.push({
+      id,
+      anchor0: anchor,
+      anchor: A[0],
+      th: r.th,
+      f: r.f,
+      L: r.L,
+      d,
+      alts: tried,
+      why0: r0.why,
+      first0: r0.first
+    });
   }
-  return { J, minD, info, bad: [...new Set(bad)] };
+  return { J, minD, ringD, info, fail };
+}
+/* 把孔加進 T（孔＝小點、加一條掛點→孔的線），用 pt2Audit 整棵重驗 */
+function pt2SockAudit(T, J) {
+  const N = [...T.N],
+    E = [...T.E],
+    I = { ...T.I },
+    ADJ = Object.fromEntries(Object.entries(T.ADJ).map(([k, v]) => [k, [...v]]));
+  for (const j of J) {
+    const n = { id: j.id, x: j.x, y: j.y, sock: 1 };
+    N.push(n);
+    I[j.id] = n;
+    E.push([j.anchor, j.id]);
+    ADJ[j.anchor].push(j.id);
+    ADJ[j.id] = [j.anchor];
+  }
+  return pt2Audit({ ...T, N, E, I, ADJ });
 }
 
 function ptreeGen2(env) {
@@ -1667,16 +1786,47 @@ if (typeof require !== 'undefined' && require.main === module) {
     cl = T.CL.map(c => [Math.round(c.x), Math.round(c.y), c.lock ? -c.lock : c.th, c.maxR]),
     M = Object.fromEntries(Object.entries(A).filter(([k]) => k[0] !== '_')),
     SK = pt2Socks(rows, edges);
-  if (SK.err || SK.bad.length) {
-    console.log('❌ 不寫檔：珠寶孔 ' + (SK.err || SK.bad.join('、')));
+  for (const [k, v] of Object.entries(SK.ringD || {}))
+    console.log(
+      '珠寶孔 ' +
+        k +
+        ' d＝' +
+        v.d.toFixed(1) +
+        '（' +
+        v.n +
+        ' 條線，' +
+        v.min.toFixed(1) +
+        '～' +
+        v.max.toFixed(1) +
+        '）'
+    );
+  if (SK.err || SK.fail.length) {
+    console.log('❌ 不寫檔：珠寶孔 ' + (SK.err || JSON.stringify(SK.fail)));
+    process.exit(1);
+  }
+  const SA = pt2SockAudit(T, SK.J);
+  if (SA.線交叉 + SA.線壓到點 + SA.兩點太近 + SA.夾角小於12度 || !SA.全部連得到) {
+    console.log('❌ 不寫檔：加孔後 pt2Audit ' + SA._dbg.join('、'));
     process.exit(1);
   }
   console.log(
     '珠寶孔 最小點距 ' +
       SK.minD.toFixed(2) +
       '：' +
-      SK.info.map(o => o.id + ' +' + o.d + (o.by === 'rim' ? '（外緣）' : '')).join(' ')
+      SK.info
+        .map(
+          o =>
+            o.id +
+            (o.anchor !== o.anchor0 ? '（掛點 ' + o.anchor0 + '→' + o.anchor + '）' : '') +
+            ' ' +
+            o.th +
+            '° ' +
+            o.f +
+            'd'
+        )
+        .join(' ')
   );
+  console.log('加孔後 pt2Audit：線交叉 0、線壓到點 0、兩點太近 0、夾角小於12度 0、全部連得到');
   fs.writeFileSync(
     js('ptdata.js'),
     '/* tools/tree_bake.js 產生，不要手改：天賦樹的形狀（點、線、叢集）。效果在 data.js 的 PT_THEME */\nconst PT_BAKE = ' +
@@ -1695,4 +1845,4 @@ if (typeof require !== 'undefined' && require.main === module) {
       ' 個珠寶孔'
   );
 }
-if (typeof module !== 'undefined') module.exports = { ptreeGen2, pt2Audit, pt2Socks, pt2Rim, PT2_JS };
+if (typeof module !== 'undefined') module.exports = { ptreeGen2, pt2Audit, pt2Socks, pt2SockAudit, pt2Rim, PT2_JS };
