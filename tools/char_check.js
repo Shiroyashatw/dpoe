@@ -345,7 +345,8 @@ const CH_BOX = {
   ok('滑鼠離開名詞：提示收起', await p.evaluate(() => $('ctm').hidden));
   /* 02 長按選單 */
   await shadowOk(p, '右欄', '#pinv.c12', 'boxShadow', 0.6);
-  await shadowOk(p, '格角標字', '#pinv.c12 .cq > i', 'textShadow', 1);
+  /* .cx（破裂／追憶／印的圖示列）自己寫 text-shadow: none，不算在這條裡 */
+  await shadowOk(p, '格角標字', '#pinv.c12 .cq > i:not(.cx)', 'textShadow', 1);
   const row = await p.$('#pinv .cr');
   const rb = await row.boundingBox();
   await p.mouse.move(rb.x + 40, rb.y + 10);
