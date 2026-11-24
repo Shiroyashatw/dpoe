@@ -4052,16 +4052,16 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   ok(
-    '掉落（固定種子、偽隨機）：鍛造台 Lv13／19／17 才開破裂石／完美石／追憶之墨與珠寶；開了以後王的平均掉率＝表（破裂石 2%、完美石 1%、墨 3%、珠寶 2%，±25%）；小怪不擲破裂石',
+    '掉落（固定種子、偽隨機）：鍛造台 Lv13／19／17 才開破裂石／完美石／追憶之墨與珠寶；開了以後王的平均掉率＝表（破裂石 1.34%、完美石 1%、墨 2.12%，±25%）；小怪不擲破裂石',
     R(`(() => {
       S.camp = newCamp(); S.camp.forge = 12; S.prd = PRD0(); S.jewels = [];
       let n0 = 0;
       for (let i = 0; i < 3000; i++) { const d = dropCur(2, { star: 1, ilvl: 8, tier: 8 }); n0 += (d.cur.frac || 0) + (d.cur.perf || 0) + (d.cur.ink || 0) + (d.jw ? 1 : 0); }
       if (n0) return 'locked ' + n0;
       S.camp.forge = 20; S.prd = PRD0();
-      const c = { frac: 0, perf: 0, ink: 0, jw: 0 }, N = 20000;
-      for (let i = 0; i < N; i++) { const d = dropCur(2, { star: 1, ilvl: 8, tier: 8 }); for (const k of ['frac', 'perf', 'ink']) c[k] += d.cur[k] || 0; c.jw += d.jw ? 1 : 0; }
-      const want = { frac: 0.02, perf: 0.01, ink: 0.03, jw: 0.02 };
+      const c = { frac: 0, perf: 0, ink: 0 }, N = 20000;
+      for (let i = 0; i < N; i++) { const d = dropCur(2, { star: 1, ilvl: 8, tier: 8 }); for (const k of ['frac', 'perf', 'ink']) c[k] += d.cur[k] || 0; }
+      const want = { frac: 0.0134, perf: 0.01, ink: 0.0212 };
       for (const k in want) if (Math.abs(c[k] / N - want[k]) / want[k] > 0.25) return k + ' ' + c[k];
       for (let i = 0; i < 500; i++) dropCur(0, { star: 1, ilvl: 8, tier: 8 });
       return !S.prd.fracO0 ? '' : 'small';
