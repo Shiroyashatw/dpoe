@@ -743,7 +743,7 @@ function openPanel(k) {
   } else PANEL[k] = true;
   if (k === 'chase') chaseSeeNow();
   /* 技能面板（0.4.8）：打開一律先到總覽 */
-  if (k === 'skill') skHome();
+  if (k === 'skill') skHome(), sk12Reset();
   if (k === 'asc')
     (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]), (ASCUI.n = null), (ASCUI.pick = S.asc || !PORT() ? 0 : 1);
   hideTip();
@@ -958,7 +958,13 @@ function hudPanels() {
       if (on) on.scrollIntoView({ block: 'nearest' });
     }
   } else HV.nsel = null;
-  if (PANEL.skill) panelHTML($('pskill'), skillHTML());
+  /* 桌機技能面板（skills-panel v1.0.1）走 skpanel12.js；觸控照舊 */
+  $('pskill').classList.toggle('s12', sk12On());
+  if (PANEL.skill && sk12On()) sk12Render();
+  else {
+    if (PANEL.skill) panelHTML($('pskill'), skillHTML());
+    skRosSync(), skSide();
+  }
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
   /* 桌機角色頁（M2-character-1280）走 charpanel.js 的 charHTML；直立、倉庫照舊 */
   if (PANEL.inv && !cw)

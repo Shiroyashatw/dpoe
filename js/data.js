@@ -7752,7 +7752,7 @@ const CAMP = {
     { soul: 9000, wood: 800, mats: { 'iron:3': 50 }, cur: { exalt: 5 }, un: ['cur:frac'], d: '破裂石開始掉' },
     { soul: 13000, wood: 900, mats: { 'hide:3': 50 }, un: ['auto2t'], d: '自動分解照詞階、追憶、▲' },
     { soul: 18000, wood: 1000, gold: 20000, un: ['cur:corr', 'tab:corr'], d: '腐化石開始掉、腐化' },
-    { soul: 25000, wood: 1200, mats: { 'iron:4': 50 }, cur: { rich: 20 }, d: '一次打 20 件' },
+    { soul: 25000, wood: 1200, mats: { 'iron:4': 50 }, cur: { rich: 20 }, d: '一次打 20 件、第 5 格技能' },
     { soul: 35000, wood: 1400, cur: { exalt: 20 }, un: ['cur:ink', 'jewel'], d: '追憶之墨、珠寶開始掉' },
     { soul: 50000, wood: 1600, mats: { 'iron:5': 50 }, un: ['tier2'], d: '高階通貨開始掉' },
     { soul: 70000, wood: 1800, gold: 50000, un: ['cur:perf'], d: '完美石開始掉' },
@@ -7793,7 +7793,7 @@ const CAMP = {
     { soul: 25000, wood: 1200, d: '第 4 格技能' },
     { soul: 50000, wood: 1800, mats: { 'silk:3': 20 }, un: ['asc'], d: '昇華石碑（兩個昇華）' },
     { soul: 90000, wood: 2500, d: '第 3 個輔助孔' },
-    { soul: 150000, wood: 3500, mats: { 'silk:4': 30 }, d: '第 5 格技能' },
+    { soul: 150000, wood: 3500, mats: { 'silk:4': 30 }, d: '（第 5 格技能改到鍛造台 Lv16）' },
     { soul: 250000, wood: 5000, un: ['jsock'], d: '天賦樹珠寶孔' },
     { soul: 350000, wood: 7000, un: ['asc3'], d: '第三個昇華以後；輔助孔開到 5 個' }
   ],
