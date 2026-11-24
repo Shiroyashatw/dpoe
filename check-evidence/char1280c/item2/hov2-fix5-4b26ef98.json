@@ -1,0 +1,58 @@
+{
+ "toOther": [
+  {
+   "focusB": "cand:14718",
+   "mouseA": 14721,
+   "right_after_move": "A",
+   "afterRenders": "AAAAAA",
+   "focEnd": "cand:14718"
+  },
+  {
+   "focusB": "cand:28414",
+   "mouseA": 28417,
+   "right_after_move": "A",
+   "afterRenders": "AAAAAA",
+   "focEnd": "cand:28414"
+  },
+  {
+   "focusB": "cand:42465",
+   "mouseA": 42463,
+   "right_after_move": "A",
+   "afterRenders": "AAAAAA",
+   "focEnd": "cand:42465"
+  },
+  {
+   "focusB": "cand:55994",
+   "mouseA": 55992,
+   "right_after_move": "A",
+   "afterRenders": "AAAAAA",
+   "focEnd": "cand:55994"
+  }
+ ],
+ "out": [
+  {
+   "right_after_out": "-",
+   "afterForcedRenders": "OOOOOO",
+   "then3sNatural": "OOOOOOOOOOOO",
+   "focEnd": "cand:14718"
+  },
+  {
+   "right_after_out": "-",
+   "afterForcedRenders": "OOOOOO",
+   "then3sNatural": "OOOOOOOOOOOO",
+   "focEnd": "cand:28414"
+  },
+  {
+   "right_after_out": "-",
+   "afterForcedRenders": "OOOOOO",
+   "then3sNatural": "OOOOOOOOOOOO",
+   "focEnd": "cand:42465"
+  },
+  {
+   "right_after_out": "-",
+   "afterForcedRenders": "OOOOOO",
+   "then3sNatural": "OOOOOOOOOOOO",
+   "focEnd": "cand:55994"
+  }
+ ]
+}

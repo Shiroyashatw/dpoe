@@ -1,0 +1,26 @@
+{
+ "nMain": 350,
+ "nPr": 354,
+ "diff": [
+  [
+   "--rar-rare-frame",
+   null,
+   "#ccb72e"
+  ],
+  [
+   "--cell-corrupt",
+   null,
+   "#4b1e1e"
+  ],
+  [
+   "--corr-dash-rgb",
+   null,
+   "111, 58, 56"
+  ],
+  [
+   "--cell-cal",
+   null,
+   "#352642"
+  ]
+ ]
+}

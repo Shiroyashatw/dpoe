@@ -1,0 +1,1695 @@
+{
+ "affixWidths": {
+  "n": 39,
+  "shortest": [
+   [
+    "spirit",
+    "精魂 +30",
+    64,
+    "(26–30)"
+   ],
+   [
+    "str",
+    "力量 +33",
+    64,
+    "(28–33)"
+   ],
+   [
+    "dex",
+    "敏捷 +33",
+    64,
+    "(28–33)"
+   ],
+   [
+    "int",
+    "智慧 +33",
+    64,
+    "(28–33)"
+   ],
+   [
+    "armor",
+    "護甲 +260",
+    73,
+    "(218–260)"
+   ],
+   [
+    "crit",
+    "+5% 暴擊率",
+    86,
+    "(4–5)"
+   ]
+  ],
+  "longest": [
+   [
+    "ss",
+    "增加 15% 技能速度",
+    138,
+    "(13–15)"
+   ],
+   [
+    "defP",
+    "增加 30% 全域防禦",
+    138,
+    "(26–30)"
+   ],
+   [
+    "spellP",
+    "增加 90% 法術傷害",
+    138,
+    "(76–90)"
+   ],
+   [
+    "critX",
+    "+70% 暴擊傷害加成",
+    143,
+    "(60–70)"
+   ],
+   [
+    "dmgP",
+    "增加 170% 物理傷害",
+    147,
+    "(143–170)"
+   ],
+   [
+    "parryMag",
+    "增加 24% 受招架幅度",
+    154,
+    "(21–24)"
+   ],
+   [
+    "loh",
+    "擊中敵人時獲得 20 生命",
+    170,
+    "(17–20)"
+   ],
+   [
+    "parryDur",
+    "增加 36% 受招架持續時間",
+    186,
+    "(31–36)"
+   ]
+  ],
+  "allAff": 39,
+  "noRange": []
+ },
+ "samples": [
+  {
+   "id": "s1-shortest",
+   "note": "最短的詞綴（T1）",
+   "simple": [
+    [
+     {
+      "main": "精魂 +30",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "力量 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "敏捷 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "智慧 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "護甲 +260",
+      "cut": false,
+      "sw": 73,
+      "cw": 73,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     }
+    ]
+   ],
+   "det": [
+    [
+     {
+      "main": "精魂 +30",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(26–30) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 960.2,
+      "liRight": 1020
+     },
+     {
+      "main": "力量 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(28–33) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 960.2,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "敏捷 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(28–33) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1184.2,
+      "liRight": 1244
+     },
+     {
+      "main": "智慧 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(28–33) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1184.2,
+      "liRight": 1244
+     },
+     {
+      "main": "護甲 +260",
+      "cut": false,
+      "sw": 73,
+      "cw": 73,
+      "liW": 212,
+      "num": true,
+      "aux": "(218–260) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1209.2,
+      "liRight": 1244
+     }
+    ]
+   ]
+  },
+  {
+   "id": "s2-short-low-tier",
+   "note": "短詞綴、低階（T4～T6，沒有 ✦）",
+   "simple": [
+    [
+     {
+      "main": "精魂 +8",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "敏捷 +5",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "力量 +19",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "智慧 +5",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "+2% 暴擊率",
+      "cut": false,
+      "sw": 86,
+      "cw": 86,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     }
+    ]
+   ],
+   "det": [
+    [
+     {
+      "main": "精魂 +8",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": "(8–13) T5",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 928.1,
+      "liRight": 1020
+     },
+     {
+      "main": "敏捷 +5",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": "(5–10) T6",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 928.1,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "力量 +19",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(14–19) T4",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1169.3,
+      "liRight": 1244
+     },
+     {
+      "main": "智慧 +5",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": "(5–10) T6",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1152.1,
+      "liRight": 1244
+     },
+     {
+      "main": "+2% 暴擊率",
+      "cut": false,
+      "sw": 86,
+      "cw": 86,
+      "liW": 212,
+      "num": true,
+      "aux": "(2–2) T5",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1175.7,
+      "liRight": 1244
+     }
+    ]
+   ]
+  },
+  {
+   "id": "s3-median",
+   "note": "中等長度（中位數附近，T1）",
+   "simple": [
+    [
+     {
+      "main": "附加 36 冰冷傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "附加 48 閃電傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "附加 40 火焰傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "附加 30 混沌傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "附加 24 物理傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     }
+    ]
+   ],
+   "det": [
+    [
+     {
+      "main": "附加 36 冰冷傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": "(30–36) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1018.4,
+      "liRight": 1020
+     },
+     {
+      "main": "附加 48 閃電傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": "(40–48) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1018.4,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "附加 40 火焰傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": "(34–40) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1242.4,
+      "liRight": 1244
+     },
+     {
+      "main": "附加 30 混沌傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": "(25–30) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1242.4,
+      "liRight": 1244
+     },
+     {
+      "main": "附加 24 物理傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": "(19–24) T2",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1227.5,
+      "liRight": 1244
+     }
+    ]
+   ]
+  },
+  {
+   "id": "s4-long",
+   "note": "長詞綴（最寬的幾條，T1）",
+   "simple": [
+    [
+     {
+      "main": "增加 24% 受招架幅度",
+      "cut": false,
+      "sw": 154,
+      "cw": 154,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "增加 170% 物理傷害",
+      "cut": false,
+      "sw": 147,
+      "cw": 147,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "增加 36% 受招架持續時間",
+      "cut": false,
+      "sw": 186,
+      "cw": 186,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "+70% 暴擊傷害加成",
+      "cut": false,
+      "sw": 143,
+      "cw": 143,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     }
+    ]
+   ],
+   "det": [
+    [
+     {
+      "main": "增加 24% 受招架幅度",
+      "cut": false,
+      "sw": 154,
+      "cw": 154,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 998.6,
+      "liRight": 1020
+     },
+     {
+      "main": "增加 170% 物理傷害",
+      "cut": false,
+      "sw": 147,
+      "cw": 147,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 992,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "增加 36% 受招架持續時間",
+      "cut": false,
+      "sw": 186,
+      "cw": 186,
+      "liW": 212,
+      "num": true,
+      "aux": " ✦",
+      "rg": false,
+      "tr": false,
+      "star": true,
+      "fr": false,
+      "auxRight": 1235.3,
+      "liRight": 1244
+     },
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1239.2,
+      "liRight": 1244
+     },
+     {
+      "main": "+70% 暴擊傷害加成",
+      "cut": false,
+      "sw": 143,
+      "cw": 143,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1212.4,
+      "liRight": 1244
+     }
+    ]
+   ]
+  },
+  {
+   "id": "s5-longest-frac",
+   "note": "最寬一條＋破裂",
+   "simple": [
+    [
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "精魂 +30",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "增加 36% 受招架持續時間",
+      "cut": false,
+      "sw": 186,
+      "cw": 186,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "力量 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     }
+    ]
+   ],
+   "det": [
+    [
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1015.2,
+      "liRight": 1020
+     },
+     {
+      "main": "精魂 +30",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(26–30) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 960.2,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "增加 36% 受招架持續時間",
+      "cut": false,
+      "sw": 186,
+      "cw": 186,
+      "liW": 212,
+      "num": true,
+      "aux": " ✦",
+      "rg": false,
+      "tr": false,
+      "star": true,
+      "fr": false,
+      "auxRight": 1235.3,
+      "liRight": 1244
+     },
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1239.2,
+      "liRight": 1244
+     },
+     {
+      "main": "力量 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(28–33) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1184.2,
+      "liRight": 1244
+     }
+    ]
+   ]
+  },
+  {
+   "id": "s6-mixed-6x6",
+   "note": "長短混排 6 條對 6 條（要捲）",
+   "simple": [
+    [
+     {
+      "main": "精魂 +30",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "增加 26% 受招架持續時間",
+      "cut": false,
+      "sw": 186,
+      "cw": 186,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "附加 25 冰冷傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "智慧 +5",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "增加 90% 法術傷害",
+      "cut": false,
+      "sw": 138,
+      "cw": 138,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     },
+     {
+      "main": "最大魔力 +38",
+      "cut": false,
+      "sw": 96,
+      "cw": 96,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "力量 +28",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "增加 9% 全域防禦",
+      "cut": false,
+      "sw": 128,
+      "cw": 128,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "敏捷 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "增加 35% 暴擊率",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     },
+     {
+      "main": "增加 7% 受招架幅度",
+      "cut": false,
+      "sw": 144,
+      "cw": 144,
+      "liW": 212,
+      "num": true,
+      "aux": null,
+      "rg": false,
+      "tr": false,
+      "star": false,
+      "fr": false,
+      "auxRight": null,
+      "liRight": 1244
+     }
+    ]
+   ],
+   "det": [
+    [
+     {
+      "main": "精魂 +30",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(26–30) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 960.2,
+      "liRight": 1020
+     },
+     {
+      "main": "增加 26% 受招架持續時間",
+      "cut": false,
+      "sw": 186,
+      "cw": 186,
+      "liW": 212,
+      "num": true,
+      "aux": "T3",
+      "rg": false,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1015.7,
+      "liRight": 1020
+     },
+     {
+      "main": "附加 25 冰冷傷害",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": "(25–30) T2",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1003.5,
+      "liRight": 1020
+     },
+     {
+      "main": "智慧 +5",
+      "cut": false,
+      "sw": 55,
+      "cw": 55,
+      "liW": 212,
+      "num": true,
+      "aux": "(5–10) T6",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 928.1,
+      "liRight": 1020
+     },
+     {
+      "main": "增加 90% 法術傷害",
+      "cut": false,
+      "sw": 138,
+      "cw": 138,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 982.6,
+      "liRight": 1020
+     },
+     {
+      "main": "最大魔力 +38",
+      "cut": false,
+      "sw": 96,
+      "cw": 96,
+      "liW": 212,
+      "num": true,
+      "aux": "(27–38) T4",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 977.3,
+      "liRight": 1020
+     }
+    ],
+    [
+     {
+      "main": "擊中敵人時獲得 20 生命",
+      "cut": false,
+      "sw": 170,
+      "cw": 170,
+      "liW": 212,
+      "num": true,
+      "aux": "T1 ✦",
+      "rg": false,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1239.2,
+      "liRight": 1244
+     },
+     {
+      "main": "力量 +28",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(24–28) T2",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1169.3,
+      "liRight": 1244
+     },
+     {
+      "main": "增加 9% 全域防禦",
+      "cut": false,
+      "sw": 128,
+      "cw": 128,
+      "liW": 212,
+      "num": true,
+      "aux": "(9–13) T5",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1225.7,
+      "liRight": 1244
+     },
+     {
+      "main": "敏捷 +33",
+      "cut": false,
+      "sw": 64,
+      "cw": 64,
+      "liW": 212,
+      "num": true,
+      "aux": "(28–33) T1 ✦ 破裂",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": true,
+      "auxRight": 1215.3,
+      "liRight": 1244
+     },
+     {
+      "main": "增加 35% 暴擊率",
+      "cut": false,
+      "sw": 122,
+      "cw": 122,
+      "liW": 212,
+      "num": true,
+      "aux": "(35–40) T1 ✦",
+      "rg": true,
+      "tr": true,
+      "star": true,
+      "fr": false,
+      "auxRight": 1241.8,
+      "liRight": 1244
+     },
+     {
+      "main": "增加 7% 受招架幅度",
+      "cut": false,
+      "sw": 144,
+      "cw": 144,
+      "liW": 212,
+      "num": true,
+      "aux": "(4–7) T6",
+      "rg": true,
+      "tr": true,
+      "star": false,
+      "fr": false,
+      "auxRight": 1233.9,
+      "liRight": 1244
+     }
+    ]
+   ]
+  }
+ ],
+ "sweepAll": {
+  "rows": 468,
+  "tally": {
+   "完整（區間＋T 階）": 398,
+   "剩「T n（✦）」": 68,
+   "只剩「✦」": 2
+  },
+  "tallyT1": {
+   "完整（區間＋T 階）": 48,
+   "剩「T n（✦）」": 28,
+   "只剩「✦」": 2
+  },
+  "colW": [
+   212
+  ],
+  "cut": [],
+  "noNum": 0,
+  "overRight": 0,
+  "perAffixT1max": [
+   [
+    "精魂 +30",
+    64,
+    "(26–30)",
+    "完整（區間＋T 階）",
+    "(26–30) T1 ✦"
+   ],
+   [
+    "力量 +33",
+    64,
+    "(28–33)",
+    "完整（區間＋T 階）",
+    "(28–33) T1 ✦"
+   ],
+   [
+    "敏捷 +33",
+    64,
+    "(28–33)",
+    "完整（區間＋T 階）",
+    "(28–33) T1 ✦"
+   ],
+   [
+    "智慧 +33",
+    64,
+    "(28–33)",
+    "完整（區間＋T 階）",
+    "(28–33) T1 ✦"
+   ],
+   [
+    "護甲 +260",
+    73,
+    "(218–260)",
+    "完整（區間＋T 階）",
+    "(218–260) T1 ✦"
+   ],
+   [
+    "+5% 暴擊率",
+    86,
+    "(4–5)",
+    "完整（區間＋T 階）",
+    "(4–5) T1 ✦"
+   ],
+   [
+    "閃避值 +260",
+    89,
+    "(218–260)",
+    "完整（區間＋T 階）",
+    "(218–260) T1 ✦"
+   ],
+   [
+    "命中值 +400",
+    89,
+    "(335–400)",
+    "完整（區間＋T 階）",
+    "(335–400) T1 ✦"
+   ],
+   [
+    "+12% 格擋率",
+    95,
+    "(10–12)",
+    "完整（區間＋T 階）",
+    "(10–12) T1 ✦"
+   ],
+   [
+    "最大魔力 +70",
+    96,
+    "(59–70)",
+    "完整（區間＋T 階）",
+    "(59–70) T1 ✦"
+   ],
+   [
+    "全能力值 +13",
+    96,
+    "(11–13)",
+    "完整（區間＋T 階）",
+    "(11–13) T1 ✦"
+   ],
+   [
+    "最大生命 +120",
+    105,
+    "(101–120)",
+    "完整（區間＋T 階）",
+    "(101–120) T1 ✦"
+   ],
+   [
+    "+48% 火焰抗性",
+    111,
+    "(41–48)",
+    "完整（區間＋T 階）",
+    "(41–48) T1 ✦"
+   ],
+   [
+    "+48% 冰冷抗性",
+    111,
+    "(41–48)",
+    "完整（區間＋T 階）",
+    "(41–48) T1 ✦"
+   ],
+   [
+    "+48% 閃電抗性",
+    111,
+    "(41–48)",
+    "完整（區間＋T 階）",
+    "(41–48) T1 ✦"
+   ],
+   [
+    "+35% 混沌抗性",
+    111,
+    "(30–35)",
+    "完整（區間＋T 階）",
+    "(30–35) T1 ✦"
+   ],
+   [
+    "60 物理荊棘傷害",
+    119,
+    "(51–60)",
+    "完整（區間＋T 階）",
+    "(51–60) T1 ✦"
+   ],
+   [
+    "附加 28 物理傷害",
+    122,
+    "(24–28)",
+    "完整（區間＋T 階）",
+    "(24–28) T1 ✦"
+   ],
+   [
+    "附加 40 火焰傷害",
+    122,
+    "(34–40)",
+    "完整（區間＋T 階）",
+    "(34–40) T1 ✦"
+   ],
+   [
+    "附加 36 冰冷傷害",
+    122,
+    "(30–36)",
+    "完整（區間＋T 階）",
+    "(30–36) T1 ✦"
+   ],
+   [
+    "附加 48 閃電傷害",
+    122,
+    "(40–48)",
+    "完整（區間＋T 階）",
+    "(40–48) T1 ✦"
+   ],
+   [
+    "附加 30 混沌傷害",
+    122,
+    "(25–30)",
+    "完整（區間＋T 階）",
+    "(25–30) T1 ✦"
+   ],
+   [
+    "增加 40% 暴擊率",
+    122,
+    "(35–40)",
+    "完整（區間＋T 階）",
+    "(35–40) T1 ✦"
+   ],
+   [
+    "每秒回復 30 生命",
+    122,
+    "(25–30)",
+    "完整（區間＋T 階）",
+    "(25–30) T1 ✦"
+   ],
+   [
+    "+18% 全元素抗性",
+    127,
+    "(16–18)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "最大能量護盾 +140",
+    137,
+    "(118–140)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 30% 物理傷害",
+    138,
+    "(26–30)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 28% 攻擊速度",
+    138,
+    "(24–28)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 32% 移動速度",
+    138,
+    "(28–32)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 30% 範圍效果",
+    138,
+    "(26–30)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 60% 藥劑效果",
+    138,
+    "(52–60)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 15% 技能速度",
+    138,
+    "(13–15)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 30% 全域防禦",
+    138,
+    "(26–30)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 90% 法術傷害",
+    138,
+    "(76–90)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "+70% 暴擊傷害加成",
+    143,
+    "(60–70)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 170% 物理傷害",
+    147,
+    "(143–170)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 24% 受招架幅度",
+    154,
+    "(21–24)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "擊中敵人時獲得 20 生命",
+    170,
+    "(17–20)",
+    "剩「T n（✦）」",
+    "T1 ✦"
+   ],
+   [
+    "增加 36% 受招架持續時間",
+    186,
+    "(31–36)",
+    "只剩「✦」",
+    " ✦"
+   ]
+  ]
+ },
+ "sweepRandom": {
+  "rows": 1435,
+  "tally": {
+   "完整（區間＋T 階）": 1105,
+   "剩「T n（✦）」": 318,
+   "其他： 破裂": 4,
+   "只剩「✦」": 8
+  },
+  "bySlot": {
+   "helm": {
+    "完整（區間＋T 階）": 156,
+    "剩「T n（✦）」": 14
+   },
+   "weapon": {
+    "其他： 破裂": 1,
+    "剩「T n（✦）」": 99,
+    "完整（區間＋T 階）": 80,
+    "只剩「✦」": 4
+   },
+   "chest": {
+    "剩「T n（✦）」": 27,
+    "完整（區間＋T 階）": 151,
+    "其他： 破裂": 1,
+    "只剩「✦」": 1
+   },
+   "gloves": {
+    "剩「T n（✦）」": 57,
+    "完整（區間＋T 階）": 120,
+    "其他： 破裂": 1,
+    "只剩「✦」": 1
+   },
+   "boots": {
+    "完整（區間＋T 階）": 159,
+    "剩「T n（✦）」": 16
+   },
+   "belt": {
+    "完整（區間＋T 階）": 177,
+    "剩「T n（✦）」": 6
+   },
+   "amulet": {
+    "剩「T n（✦）」": 39,
+    "完整（區間＋T 階）": 139
+   },
+   "ring1": {
+    "完整（區間＋T 階）": 123,
+    "剩「T n（✦）」": 60,
+    "只剩「✦」": 2,
+    "其他： 破裂": 1
+   }
+  },
+  "cut": [],
+  "maxMainW": 170,
+  "noRangeAffix": 330
+ },
+ "battleStable": {
+  "D": {
+   "out": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "renders": 0,
+   "scene": "map"
+  },
+  "D2": {
+   "frames": 169,
+   "cutFrames": 0,
+   "noPopFrames": 0
+  }
+ },
+ "_errs": []
+}

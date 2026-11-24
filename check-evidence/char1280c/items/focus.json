@@ -1,0 +1,94 @@
+{
+ "item10_focus": {
+  "afterClickChest": {
+   "c": "eq:chest",
+   "filter": "brightness(1.2)",
+   "outline": "solid 2px rgb(217, 211, 205) -5px",
+   "fv": false,
+   "kb": false,
+   "sel": true
+  },
+  "padDown": {
+   "c": "eq:gloves",
+   "filter": "brightness(1.2)",
+   "outline": "auto 1px rgb(16, 16, 16) 0px",
+   "fv": false,
+   "kb": true,
+   "sel": false
+  },
+  "afterClickHelm": {
+   "c": "eq:helm",
+   "filter": "brightness(1.2)",
+   "outline": "solid 2px rgb(217, 211, 205) -5px",
+   "fv": false,
+   "kb": false,
+   "sel": true
+  },
+  "padRight": {
+   "c": "cand:168075",
+   "filter": "brightness(1.2)",
+   "outline": "auto 1px rgb(16, 16, 16) 0px",
+   "fv": false,
+   "kb": true,
+   "sel": false
+  },
+  "padRight2": {
+   "c": "cand:168073",
+   "filter": "brightness(1.2)",
+   "outline": "auto 1px rgb(16, 16, 16) 0px",
+   "fv": false,
+   "kb": true,
+   "sel": false
+  },
+  "afterClickCand": {
+   "c": "cand:168086",
+   "filter": "brightness(1.2)",
+   "outline": "none 3px rgb(232, 229, 225) 0px",
+   "fv": false,
+   "kb": false,
+   "sel": false
+  },
+  "padRightAfterCandClick": {
+   "c": "cand:168085",
+   "filter": "brightness(1.2)",
+   "outline": "auto 1px rgb(16, 16, 16) 0px",
+   "fv": false,
+   "kb": true,
+   "sel": false
+  },
+  "padLeftBack": {
+   "c": "cand:168086",
+   "filter": "brightness(1.2)",
+   "outline": "auto 1px rgb(16, 16, 16) 0px",
+   "fv": false,
+   "kb": true,
+   "sel": false
+  },
+  "onSelWithKb": {
+   "c": "eq:helm",
+   "filter": "brightness(1.2)",
+   "outline": "solid 2px rgb(217, 211, 205) -5px",
+   "fv": false,
+   "kb": true,
+   "sel": true
+  },
+  "afterMouseClickOutside": true,
+  "tabAfterClick": {
+   "c": "eq:gloves",
+   "filter": "brightness(1.2)",
+   "outline": "auto 1px rgb(16, 16, 16) 0px",
+   "fv": true,
+   "kb": false,
+   "sel": false
+  },
+  "padAfterMouseMoveOnly": {
+   "c": "eq:belt",
+   "filter": "brightness(1.2)",
+   "outline": "auto 1px rgb(16, 16, 16) 0px",
+   "fv": true,
+   "kb": true,
+   "sel": false
+  }
+ },
+ "_errs": []
+}

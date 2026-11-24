@@ -1,0 +1,225 @@
+{
+ "i": [
+  {
+   "s0": {
+    "foc": "cand:525752",
+    "hov": 525752,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "1111111111111111",
+   "panelRendersIn4s": 1,
+   "forced": "11111111",
+   "mouseToOther": true,
+   "mouseOut": true
+  },
+  {
+   "s0": {
+    "foc": "cand:539817",
+    "hov": 539817,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "1111111111111111",
+   "panelRendersIn4s": 2,
+   "forced": "11111111",
+   "mouseToOther": true,
+   "mouseOut": true
+  },
+  {
+   "s0": {
+    "foc": "cand:553832",
+    "hov": 553832,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "1111111111111111",
+   "panelRendersIn4s": 2,
+   "forced": "11111111",
+   "mouseToOther": true,
+   "mouseOut": true
+  },
+  {
+   "s0": {
+    "foc": "cand:567651",
+    "hov": 567651,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "1111111111111111",
+   "panelRendersIn4s": 2,
+   "forced": "11111111",
+   "mouseToOther": false,
+   "mouseOut": true
+  },
+  {
+   "s0": {
+    "foc": "cand:581844",
+    "hov": 581844,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "1111111111111111",
+   "panelRendersIn4s": 1,
+   "forced": "11111111",
+   "mouseToOther": true,
+   "mouseOut": true
+  },
+  {
+   "s0": {
+    "foc": "cand:595718",
+    "hov": 595718,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "1111111111111111",
+   "panelRendersIn4s": 1,
+   "forced": "11111111",
+   "mouseToOther": true,
+   "mouseOut": false
+  }
+ ],
+ "ii": [
+  {
+   "sel": "helm",
+   "s0": {
+    "foc": "cand:609830",
+    "hov": 609830,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "11111111",
+   "forced": "00000000",
+   "end": {
+    "foc": "cand:609830",
+    "hov": null,
+    "pop": false,
+    "scene": "map"
+   }
+  },
+  {
+   "sel": "helm",
+   "s0": {
+    "foc": "cand:622772",
+    "hov": null,
+    "pop": false,
+    "scene": "map"
+   },
+   "natural": "00000000",
+   "forced": "00000000",
+   "end": {
+    "foc": "cand:622772",
+    "hov": null,
+    "pop": false,
+    "scene": "map"
+   }
+  },
+  {
+   "sel": "helm",
+   "s0": {
+    "foc": "cand:634912",
+    "hov": 634912,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "00000000",
+   "forced": "00000000",
+   "end": {
+    "foc": "cand:634912",
+    "hov": null,
+    "pop": false,
+    "scene": "map"
+   }
+  },
+  {
+   "sel": "helm",
+   "s0": {
+    "foc": "cand:646787",
+    "hov": null,
+    "pop": false,
+    "scene": "map"
+   },
+   "natural": "00000000",
+   "forced": "00000000",
+   "end": {
+    "foc": "cand:646787",
+    "hov": null,
+    "pop": false,
+    "scene": "map"
+   }
+  }
+ ],
+ "iii": [
+  {
+   "tabs": 17,
+   "s0": {
+    "foc": "cand:659058",
+    "hov": 659058,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "11111111",
+   "forced": "11111111"
+  },
+  {
+   "tabs": 17,
+   "s0": {
+    "foc": "cand:671938",
+    "hov": 671938,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "11111111",
+   "forced": "11111111"
+  },
+  {
+   "tabs": 17,
+   "s0": {
+    "foc": "cand:684975",
+    "hov": 684975,
+    "pop": true,
+    "scene": "map"
+   },
+   "natural": "11111111",
+   "forced": "11111111"
+  }
+ ],
+ "iv": [
+  {
+   "hoverA": 697765,
+   "focusB": "cand:697758",
+   "hovAfterPad": 697758,
+   "forced": "11111111",
+   "end": {
+    "foc": "cand:697758",
+    "hov": 697758,
+    "pop": true,
+    "scene": "map"
+   }
+  },
+  {
+   "hoverA": 707022,
+   "focusB": "cand:707020",
+   "hovAfterPad": 707020,
+   "forced": "11111111",
+   "end": {
+    "foc": "cand:707020",
+    "hov": 707020,
+    "pop": true,
+    "scene": "map"
+   }
+  },
+  {
+   "hoverA": 717131,
+   "focusB": "cand:717129",
+   "hovAfterPad": 717129,
+   "forced": "11111111",
+   "end": {
+    "foc": "cand:717129",
+    "hov": 717129,
+    "pop": true,
+    "scene": "map"
+   }
+  }
+ ]
+}
