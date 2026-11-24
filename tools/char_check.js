@@ -46,6 +46,17 @@ const L3S = () => {
     det: c.classList.contains('det')
   };
 };
+/* fix4：.c12 段 4 條陰影（右欄、格角標字、長按選單、比較浮窗）算出來不是無效值也不是 none，色是 --scrim-rgb 加規格的 α */
+const SHADOW = ([q, prop, a]) => {
+  const e = document.querySelector(q),
+    v = e ? getComputedStyle(e)[prop] : '',
+    c = getComputedStyle(document.documentElement).getPropertyValue('--scrim-rgb').trim();
+  return [!!v && v !== 'none' && v.includes(a === 1 ? `rgb(${c})` : `rgba(${c}, ${a})`), v];
+};
+const shadowOk = async (p, n, q, prop, a) => {
+  const [c, v] = await p.evaluate(SHADOW, [q, prop, a]);
+  ok(`陰影 ${n}：${q} 的 ${prop} 有畫出來（--scrim-rgb α ${a}）`, c, v);
+};
 /* 跟示意圖接近的一套：Lv 49、身上全稀有、倉庫 14 頂頭盔（候選 4×3 再多兩件可以捲；物品等級高的穿不上＝不能裝備）；
    示意圖的格狀態：胸甲腐化＋破裂、鞋子災魘、項鍊追憶、武器套王印 */
 const setup = () => {
@@ -333,6 +344,8 @@ const CH_BOX = {
   await p.waitForTimeout(100);
   ok('滑鼠離開名詞：提示收起', await p.evaluate(() => $('ctm').hidden));
   /* 02 長按選單 */
+  await shadowOk(p, '右欄', '#pinv.c12', 'boxShadow', 0.6);
+  await shadowOk(p, '格角標字', '#pinv.c12 .cq > i', 'textShadow', 1);
   const row = await p.$('#pinv .cr');
   const rb = await row.boundingBox();
   await p.mouse.move(rb.x + 40, rb.y + 10);
@@ -355,6 +368,7 @@ const CH_BOX = {
       (await p.evaluate(() => !$('pinv').querySelector('.btn.pri'))),
     JSON.stringify(mb)
   );
+  await shadowOk(p, '長按選單', '#pinv.c12 .cmenu', 'boxShadow', 0.6);
   await shot('02-stats-menu');
   /* V-1：點右欄外面（戰場、底列、上方）或按 Esc 都關選單 */
   const menuOn = () => p.evaluate(() => !!$('pinv').querySelector('.cmenu'));
@@ -560,6 +574,7 @@ const CH_BOX = {
     !!pb && pb[0] === 796 && pb[1] === 76 && pb[2] === 460 && pb[3] >= 448 && pb[3] <= 486 && pb[1] + pb[3] <= 562,
     JSON.stringify(pb)
   );
+  await shadowOk(p, '比較浮窗', '#pinv.c12 .c12p', 'boxShadow', 0.7);
   const l1 = await box(p, '#pinv .c12p .l1');
   ok(
     '拿掉窗頂標注：沒有「懸浮時才出現」；① 身分層 y 98、高 68（＋層間 13）；⑤ 寫「Ⓐ 裝備　Ｘ 鎖定身上　Ｒ3 名詞」',

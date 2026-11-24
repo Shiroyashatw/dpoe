@@ -20,6 +20,7 @@ python3 tools/char_overlay.py docs/production/evidence/character-1280
 | `04-cands-cantwear.png` | 修正輪 fix1（V-6）：候選格「可以換的 n 件」只算穿得上的；不能裝備的排後面、右下斜線、沒有判定角標 |
 | `fix3-l3-before.png`、`fix3-l3-after.png` | 修正輪 fix3：按住 Alt 時 ③ 放不下，底部「▼ 還有 n 條」＋4 px 捲動條；滾輪捲動前／後 |
 | `fix3-affix-icons-dpr1.png`、`fix3-affix-icons-dpr2.png` | 修正輪 fix3：胸甲破裂、項鍊追憶定稿圖示，DPR1 用 16、DPR2 用 16@2x（畫成 16×16） |
+| `fix4-diff.md`、`fix4-*-before-after.png` | 修正輪 fix4：`.c12` 段 4 條陰影（右欄、格角標字、長按選單、比較浮窗）修改前｜修改後｜差異（洋紅）；像素數與範圍外差異在 `fix4-diff.md` |
 | `04a-dualdef-6affix.png`、`04b-dualdef-6affix.png` | 修正輪 fix1（V-4）：雙防禦底材＋6＋6 條詞綴，浮窗長到上限 486 內、③ 層內捲動（4 px 軌）、①②④⑤ 完整 |
 
 修正輪 fix1 的格狀態（V-2）看 `01-stats.png`：胸甲腐化底＋虛線＋破裂圖示、鞋子災魘底＋爪痕、項鍊追憶圖示、武器王印、各格右上 ✦{n}。

@@ -2807,7 +2807,7 @@ body.touch .ph .ftabs button, body.touch .bagf.grp .chip { min-width: 44px; min-
 body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcamp) { max-width: calc(100vw - 644px); }
 
 /* ---------- 角色頁桌機 1280×720（S/M2-character-1280.md；js/charpanel.js）：右欄 788,76 476×486，子元件座標＝規格座標 −(788,76) ---------- */
-body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: hidden; border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px var(--panel-edge), 0 12px 40px rgb(var(--scrim-rgb) / 0.6); background: linear-gradient(var(--panel-grad-top), var(--panel) 48px); }
+body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: hidden; border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px var(--panel-edge, transparent), 0 12px 40px rgb(var(--scrim-rgb), 0.6); background: linear-gradient(var(--panel-grad-top), var(--panel) 48px); }
 #pinv.c12 { font-weight: 400; }
 .c12 > * { position: absolute; }
 .c12 .chd { left: 8px; top: 4px; width: 200px; height: 32px; overflow: hidden; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--tx-strong); white-space: nowrap; }
@@ -2838,7 +2838,7 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .cq .ccl stop { stop-color: var(--cat-cal); }
 .c12 .cq.sel { outline: 2px solid var(--border-cap); outline-offset: -5px; }
 .c12 .cq:hover, .c12 .cq:focus-visible { filter: brightness(1.2); }
-.c12 .cq > i { position: absolute; font: 700 10px var(--font); font-style: normal; line-height: 1; pointer-events: none; text-shadow: 0 1px 2px rgb(var(--scrim-rgb) / 1); }
+.c12 .cq > i { position: absolute; font: 700 10px var(--font); font-style: normal; line-height: 1; pointer-events: none; text-shadow: 0 1px 2px rgb(var(--scrim-rgb), 1); }
 .c12 .cq .cj { left: calc(3px - var(--bw)); top: calc(3px - var(--bw)); padding: 1px 2px; background: var(--plate-world); }
 .c12 .cq .cs { right: calc(3px - var(--bw)); top: 0; display: flex; align-items: center; gap: 1px; font-size: 12px; color: var(--tx-strong); }
 .c12 .cq .cs svg { width: 12px; height: 12px; fill: currentColor; }
@@ -2890,7 +2890,7 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .cr.on { background: var(--sel-bg); box-shadow: inset 0 0 0 1px var(--sel-edge); }
 .c12 .cr:has(.cpin) { height: 28px; padding-right: 42px; }
 .c12 .cpin { position: absolute; right: 10px; top: 0; width: 28px; height: 28px; padding: 0; background: var(--btn2); border: 1px solid var(--border); color: var(--tx-strong); font: 700 16px var(--font); cursor: pointer; }
-.c12 .cmenu { left: 112px; top: 284px; width: 210px; min-height: 168px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-raised-2); border: 1px solid var(--border-hi); z-index: 3; box-shadow: 0 8px 24px rgb(var(--scrim-rgb) / 0.6); }
+.c12 .cmenu { left: 112px; top: 284px; width: 210px; min-height: 168px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-raised-2); border: 1px solid var(--border-hi); z-index: 3; box-shadow: 0 8px 24px rgb(var(--scrim-rgb), 0.6); }
 .c12 .cmenu b { font: 700 12px var(--font); color: var(--tx-strong); }
 .c12 .cmenu p { margin: 0; font-size: 11px; color: var(--tx); }
 .c12 .cmenu small { font-size: 11px; color: var(--tx-dim); }
@@ -2911,7 +2911,7 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .cep { left: 80px; top: 152px; width: 300px; height: 36px; margin: 0; font-size: 13px; color: var(--tx); }
 .c12 .cmk { left: 80px; top: 204px; width: 300px; height: 48px; min-height: 0; font: 700 14px var(--font); }
 /* 比較浮窗：五層（主角 16/700、輔助 14/400 --tx-dim、換上 18/700）；不接滑鼠，懸停的格子在底下 */
-.c12 .c12p { left: 8px; top: 0; width: 460px; min-height: 448px; max-height: 486px; overflow: hidden; display: flex; flex-direction: column; padding: 22px 0 8px; background: var(--panel); outline: 1px solid var(--panel-edge); outline-offset: -1px; box-shadow: 0 12px 32px rgb(var(--scrim-rgb) / 0.7); pointer-events: none; z-index: 4; color: var(--tx-strong); }
+.c12 .c12p { left: 8px; top: 0; width: 460px; min-height: 448px; max-height: 486px; overflow: hidden; display: flex; flex-direction: column; padding: 22px 0 8px; background: var(--panel); outline: 1px solid var(--panel-edge); outline-offset: -1px; box-shadow: 0 12px 32px rgb(var(--scrim-rgb), 0.7); pointer-events: none; z-index: 4; color: var(--tx-strong); }
 .c12 .c12p.det { min-height: 486px; }
 .c12 .c12p small { font: 400 14px var(--font); color: var(--tx-dim); }
 .c12 .c12p > * { flex: none; }
