@@ -1,8 +1,8 @@
 # M2-36 天賦主題圖（補缺）
 
-負責：Game Art Director。版本 2026-11-24 15:35（台北）。準備檔，本輪不產圖、不呼叫生成服務、不改 `art/`、不開 PR。規格、JSON、日誌、對話不寫 API key 的名或值。
+負責：Game Art Director。版本 2026-11-24 15:39（台北）。規格、JSON、日誌、對話不寫 API key 的名或值。挑圖清單交工程師開文件 PR（#176）；本檔不改 `art/`。產圖由像素產圖師依 §4 已核准的試產執行，其餘次數見 §4。
 
-依據：mumi 2026-11-24（經幕僚長）原話「天賦圖示：沿用 11/19 計畫只補缺的」「基石圖：照暫定用」「缺圖：每條路一張主題圖」。畫法沿用 `M2-36-pixellab-d2-batch2.md` §1 與 `M2-36-pixellab-d2.md` §0（本檔自足抄錄，不必整支第二批規格進本次文件 PR）。接線見 `M2-36-d2-picks.md`。資料核對 `origin/main`（`49b9babf`）`js/data.js`（`PT_THEME`／`PT_WP`／`PT_ICONS`／`PT_STAT_IC`／`TERMS`）、`js/ptdata.js` `PT_BAKE`、`js/tree.js`。
+依據：mumi 2026-11-24（經幕僚長）原話「天賦圖示：沿用 11/19 計畫只補缺的」「基石圖：照暫定用」「缺圖：每條路一張主題圖」；同日續定「主題圖：補 28 條，鏈錘和魔符先不產」「小點格擋：留著已挑的圖」「核准像素產圖師試產格擋與盾、範圍、十字弓術 3 張共 12 次」「挑圖清單交工程師開文件 PR」。畫法沿用 `M2-36-pixellab-d2-batch2.md` §1 與 `M2-36-pixellab-d2.md` §0（本檔自足抄錄，不必整支第二批規格進本次文件 PR）。接線見 `M2-36-d2-picks.md`。資料核對 `origin/main`（`49b9babf`）`js/data.js`（`PT_THEME`／`PT_WP`／`PT_ICONS`／`PT_STAT_IC`／`TERMS`）、`js/ptdata.js` `PT_BAKE`、`js/tree.js`。
 
 「路」＝天賦樹一個主題（`PT_THEME` 一列，含 `PT_WP` 武器術），不是六條起始扇區。已挑的 42 枚大點、23 枚小點、23 枚基石不重產。11/19 對 0.2.67 新主題「借現成的圖，不產新圖」被本次「只補缺的／每條路一張主題圖」取代。
 
@@ -11,10 +11,10 @@
 - 大點主題圖 `tn_*`：32×32 直出。同主題大點與該主題入口共用這一枚（取代 `PT_ICONS` 輪流借圖）。
 - 小點 `ts_*`：先產同一張 32，再最近鄰 2× 縮成 16（PIL `NEAREST`，再 `alpha_binary` 吸 palette；同物理／閃電／混沌）。小點仍優先 `PT_STAT_IC[第一條數值]`，否則退回該主題這枚。
 - 圖示寬約＝節點直徑×0.8；外圍留 ≥2 單位給程式畫的三狀態外圈。`tree.js` 倍數（小 1.3→1.6、大 1.4→1.68、基石 1.4→1.6）仍是 11/19 UIUX 已准、尚未上線，與本批產圖分開。
-- 例外：`ts_block`（格擋小點家族，種子 8429）11/19 已挑。本批產新 `tn_block` 32；建議暫留已挑 `ts_block`，若要改成新 32 的 16 縮小，另請 mumi 定。
+- `ts_block`（格擋小點家族，種子 8429）：**留 11/19 已挑的圖**（mumi 11/24 原話「小點格擋：留著已挑的圖」）。本批仍產新 `tn_block` 32，但不把 `ts_block` 換成它的 16 縮小。
 - 節點數：大＝bake 型別 2，小＝型別 1＋5。基石／起始／屬性點不計入「使用這枚主題圖」的點數。現借圖＝`PT_THEME`／`PT_WP` 的 `ic`（接入前仍用）。`origin/main` 尚無任何 `tk_`／`tn_`／`ts_` PNG。
 
-## 1. 缺圖清單（30 條路）
+## 1. 缺圖清單（本批產 28 條；鏈錘術、魔符術不產）
 
 中文名一律用遊戲資料 `PT_THEME.n`／`PT_WP` 正式名，不自造。`docs/名詞表.md`（main v0.6.41）無這些主題的獨立列，請數值設計師補列或確認是否沿用資料名（見 §5）。
 
@@ -38,7 +38,7 @@
 | `tn_sword` | 劍術 | 武器術 | 7／13 | `gear_weapon_0` | 否 |
 | `tn_axe` | 斧術 | 武器術 | 8／27 | `gear_weapon_2` | 否（UIUX 未列） |
 | `tn_mace` | 錘術 | 武器術 | 11／30 | `gear_weapon_8` | 否 |
-| `tn_flail` | 鏈錘術 | 武器術 | 9／17 | `gear_weapon_22` | 否（未列；執行期鎖，見 §5） |
+| `tn_flail` | 鏈錘術 | 武器術 | 9／17 | `gear_weapon_22` | **不產（鎖住，mumi 11/24）** |
 | `tn_spear` | 長矛術 | 武器術 | 7／26 | `gear_weapon_9` | 否 |
 | `tn_bow` | 弓術 | 武器術 | 10／45 | `gear_weapon_3` | 否 |
 | `tn_xbow` | 十字弓術 | 武器術 | 10／36 | `gear_weapon_12` | 否（「弩炮」是此主題一個大點名，不是獨立路） |
@@ -48,7 +48,7 @@
 | `tn_staff` | 長杖術 | 武器術 | 12／40 | `gear_weapon_4` | 否（未列） |
 | `tn_wand` | 法杖術 | 武器術 | 8／31 | `gear_weapon_31` | 否（未列） |
 | `tn_sceptre` | 權杖術 | 武器術 | 7／29 | `gear_weapon_15` | 否（未列） |
-| `tn_talisman` | 魔符術 | 武器術 | 10／24 | `asc_tamer_e` | 否（未列；執行期鎖，見 §5） |
+| `tn_talisman` | 魔符術 | 武器術 | 10／24 | `asc_tamer_e` | **不產（鎖住，mumi 11/24）** |
 | `tn_qstaff` | 棍術 | 武器術 | 8／17 | `asc_moon_c` | 否 |
 
 對應小點 id：把 `tn_` 換成 `ts_`（16＝該 32 最近鄰縮小）。不要跟已佔 id 撞名：`tn_trap`＝陷阱地雷、`tn_totem`＝砲塔圖騰、`tn_minion`＝召喚。
@@ -61,7 +61,7 @@ UIUX 列 21 項：範圍、格擋與盾、7 條武器路（劑、錘、長矛、
 - 「十字弓含弩炮」＝主題 **十字弓術**；「弩炮」是該主題第 10 個大點名，不必另產一枚。
 - UIUX 短名對正式名：錘→錘術、長矛→長矛術、弓→弓術、棍→棍術、匕首→匕首術。
 - UIUX 列的 21 條路確實都缺新圖，沒有「列了但不缺」的項。
-- UIUX 未列、樹上有大／小點、11/19 也沒挑到主題圖的還有 **9** 條：全域防禦、斧術、鏈錘術、爪術、機關術、長杖術、法杖術、權杖術、魔符術。本檔建議 30 條一併補（鏈錘術、魔符術執行期已鎖，是否花錢先請 mumi 定）。
+- UIUX 未列、樹上有大／小點、11/19 也沒挑到主題圖的還有：全域防禦、斧術、鏈錘術、爪術、機關術、長杖術、法杖術、權杖術、魔符術。本批納入其中 7 條（全域防禦、斧術、爪術、機關術、長杖術、法杖術、權杖術）。鏈錘術、魔符術 **不產**（mumi 11/24 原話「主題圖：補 28 條，鏈錘和魔符先不產」）；提示詞保留供日後，不計入本批 87 次。
 - 已覆蓋、不要重產：基礎 `tn_base`、命中 `tn_acc` 等 42 枚已挑大點與 23 枚已挑小點。
 - 節點數以 `origin/main` 為準。`origin/numbers/num-tree-v4-verify` 缺圖集合相同；十字弓術小點 v4 為 32、main 為 36，若 UIUX 依 v4 起草，點數會略有出入。
 
@@ -79,9 +79,9 @@ palette：共用 `#000000` `#33302b` `#615b56` `#aeaba7` `#e8e5e1`，再加該�
 
 過關另加主檔 §6，並：顯示尺寸上一眼認出主形；與已挑天賦圖示（及本批彼此）剪影 1−IoU ≥0.5（兩兩 IoU <0.7）；不准圓框、字、臉；C*>40 ≤25% 不透明像素。格擋與盾、範圍 11/19 因封閉圓形（圓盾、同心弧）沒過，本批改不閉合造形，禁止再寫 round shield／expanding arcs。
 
-種子建議：第 k 列 seed0＝8601＋(k−1)×n（n 見 §4；接在 11/19 大點 6201、小點 6401 之後，避免撞檔名）。檔名 `<id>-s<seed>.png`。
+種子：接在 11/19 大點 6201、小點 6401 之後，避免撞檔名。本批 28 枚：試產 3 枚 seed0＝8601／8605／8609（各 n 4）；其餘 25 枚按表中本批產之列、自 8613 起每列 n 3。不產的兩列不佔本批種子。檔名 `<id>-s<seed>.png`。
 
-## 3. 提示詞表（每條路一張 32）
+## 3. 提示詞表（本批 28 張 32；鏈錘術、魔符術提示詞保留、本批不產）
 
 「對」＝剪影比對時至少要過的已挑近鄰（產出後用 32 二值剪影算 IoU；小點用縮小後的 16 再對已挑 `ts_*`）。
 
@@ -105,7 +105,7 @@ palette：共用 `#000000` `#33302b` `#615b56` `#aeaba7` `#e8e5e1`，再加該�
 | `tn_sword` | 劍術 | 武器術 | 32；共用；點綴無 | a straight longsword pointing up-right, slimmer and longer than a short broad sword | `tn_melee` `tn_parry` `tn_atkspd` |
 | `tn_axe` | 斧術 | 武器術 | 32；共用；點綴無 | a single-bit battle axe in profile, blade facing right | `tn_heavy` `tn_phys` `tn_strike` |
 | `tn_mace` | 錘術 | 武器術 | 32；共用；點綴無 | a flanged mace head on a short haft, flanges not a hammer poll | `tn_heavy` `tn_phys` `tn_strike` `tn_stun` |
-| `tn_flail` | 鏈錘術 | 武器術 | 32；共用；點綴無 | a spiked ball on two chain links, short haft at the left | `tn_mace` `tn_heavy` `tn_thorns` |
+| `tn_flail` | 鏈錘術 | 武器術 | **本批不產（鎖住，mumi 11/24）**；32；共用；點綴無 | a spiked ball on two chain links, short haft at the left | `tn_mace` `tn_heavy` `tn_thorns` |
 | `tn_spear` | 長矛術 | 武器術 | 32；共用；點綴無 | a long spear pointing up-right, narrow leaf blade and a short cross-bar | `tn_proj` `tn_melee` `tn_deflect` |
 | `tn_bow` | 弓術 | 武器術 | 32；共用；點綴無 | an upright recurve bow with a nocked arrow, the bow is the main shape | `tn_proj` `tn_evade` |
 | `tn_xbow` | 十字弓術 | 武器術 | 32；共用；點綴無 | a horizontal crossbow with a short prod and a bolt in the groove | `tn_bow` `tn_proj` `tn_trap` `tn_totem` |
@@ -115,22 +115,23 @@ palette：共用 `#000000` `#33302b` `#615b56` `#aeaba7` `#e8e5e1`，再加該�
 | `tn_staff` | 長杖術 | 武器術 | 32；共用；點綴無 | a tall quarterstaff with a wrapped mid-grip and no crystal head | `tn_elemskill` `tn_spell` |
 | `tn_wand` | 法杖術 | 武器術 | 32；共用；點綴魔 | a short wand with a small crystal tip, held diagonal | `tn_spell` `tn_occult` `tn_staff` |
 | `tn_sceptre` | 權杖術 | 武器術 | 32；共用；點綴金 | a short sceptre with a weighted ornate head, not a crystal wand tip | `tn_minion` `tn_aura` `tn_wand` |
-| `tn_talisman` | 魔符術 | 武器術 | 32；共用；點綴綠 | a carved animal-tooth talisman on a short thong, no readable text | `tn_primal` `tn_curse` `tn_aura` |
+| `tn_talisman` | 魔符術 | 武器術 | **本批不產（鎖住，mumi 11/24）**；32；共用；點綴綠 | a carved animal-tooth talisman on a short thong, no readable text | `tn_primal` `tn_curse` `tn_aura` |
 | `tn_qstaff` | 棍術 | 武器術 | 32；共用；點綴無 | a short fighting stick, tapered end, clearly shorter than the tall staff | `tn_staff` `tn_melee` `tn_parry` |
 
-## 4. 試產與點數（請 mumi 核准後再跑）
+## 4. 試產與點數（已核准）
 
-先試產 3 枚 × 4 種子（12 點），確認剪影與「不閉合」再鋪開：`tn_block`、`tn_area`（11/19 沒過的兩張）、`tn_xbow`（武器術代表，易跟 `tn_bow`／`tn_proj` 撞形）。過關再跑其餘 27 枚 × n 3（81 點）。
+試產 12 次已核准（mumi 11/24 原話「核准像素產圖師試產格擋與盾、範圍、十字弓術 3 張共 12 次」）：`tn_block`、`tn_area`、`tn_xbow` 各 4 種子。確認剪影與「不閉合」後，再跑其餘 25 張 × n 3（75 次）。
 
-估計：試產 12＋其餘 81＝**93** 點（每張 1 點，16／24／32／48／64 實測同價）。格擋與盾、範圍若再因圓形被退，各補跑 2–3 種子，總預算 **93–110** 點。n 3 與 11/19 大點相同；試產第 4 顆種子只加在這 3 枚。產出放草稿分支 `art/_tmp/`（目錄名待開跑時定），不過主檔 §6 的不進挑圖。本檔只請核准範圍與點數，不授權現在生成。
+本批總生成 **87** 次＝試產 12＋其餘 25×3（每張 1 次，16／24／32／48／64 實測同價）。補跑須另行核准，本檔不預留重跑上限。產出放草稿分支 `art/_tmp/`（目錄名待開跑時定），不過主檔 §6 的不進挑圖。
 
-## 5. 請 mumi／數值設計師
+## 5. 已決定與請數值設計師
 
-請 mumi：
+mumi 11/24（經幕僚長）已決定，原話：
 
-1. 核准 30 條路＋上述 93–110 點（或改成只做 UIUX 列的 21 條，去掉未列 9 條）。
-2. 鏈錘術、魔符術：mumi 11/22 已鎖叢集（「鏈錘與魔符天賦叢集鎖住」）。樹上仍有點（9／17、10／24）。是否本批就產圖，或等解鎖再做。
-3. `ts_block` 已挑 vs 新 `tn_block` 縮小：建議暫留已挑，除非要統一造形。
+- 「主題圖：補 28 條，鏈錘和魔符先不產」——本批產 28 條；`tn_flail` 鏈錘術、`tn_talisman` 魔符術標不產，提示詞保留供日後。兩叢集 11/22 已鎖，樹上仍有點（9／17、10／24）。
+- 「小點格擋：留著已挑的圖」——`ts_block` 留 11/19 已挑的圖，不改成新 `tn_block` 的 16 縮小。
+- 「核准像素產圖師試產格擋與盾、範圍、十字弓術 3 張共 12 次」——見 §4；本批總生成 87 次＝試產 12＋其餘 25×3。
+- 「挑圖清單交工程師開文件 PR」。
 
 請數值設計師：
 
