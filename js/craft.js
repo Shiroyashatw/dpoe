@@ -307,13 +307,12 @@ function autoKeep(it) {
   return (A.t > 0 && bestT(it) <= A.t) || (!!A.mem && !!it.mem) || (!!A.up && itemUp(it));
 }
 
-/* ---------- 營地（0.5.1，工坊與解鎖表第 3 節：兩層十座）：S.camp＝{ forge, watch, scout, house, altar, store 解鎖表六座的等級,
+/* ---------- 營地（0.5.1，工坊與解鎖表第 3 節：兩層十座）：S.camp＝{ forge, watch, scout, altar, store 解鎖表五座的等級（num-mat-final：民房拿掉）,
    wts 開了的武器類別, gen: { wood: { lv, tier 往下調幾階, pri 優先補位, acc 還沒滿 1 的產量 }, iron, hide, silk } }；表在 data.js 的 CAMP、GEN ---------- */
 const newCamp = () => ({
   forge: 0,
   watch: 0,
   scout: 0,
-  house: 0,
   altar: 0,
   store: 0,
   wts: ['sword'],
@@ -355,14 +354,12 @@ function lockSlotTxt(k) {
 const curKey = k =>
   k.startsWith('om_') ? 'cur:om' : /^(tran|aug|rich|exalt)[23]$/.test(k) ? 'tier' + k.slice(-1) : 'cur:' + k;
 const campWt = wt => ((S.camp || newCamp()).wts || ['sword']).includes(wt);
-/* 數值型：batch 一次打幾件、wts 幾種武器類別、slots 技能格數、holes 每招最多幾個輔助孔、star 星級上限、pop 人口、off 離線上限（小時） */
+/* 數值型：batch 一次打幾件、wts 幾種武器類別、slots 技能格數、holes 每招最多幾個輔助孔、star 星級上限、off 離線上限（小時） */
 function campN(k) {
   const C = S && S.camp;
   if (!C)
     return (
-      { batch: 20, wts: 99, slots: S && S.skills ? S.skills.length : 5, holes: GEM_SO_MAX, star: 5, pop: 99, off: 12 }[
-        k
-      ] || 0
+      { batch: 20, wts: 99, slots: S && S.skills ? S.skills.length : 5, holes: GEM_SO_MAX, star: 5, off: 12 }[k] || 0
     );
   const f = C.forge,
     a = C.altar;
@@ -370,9 +367,9 @@ function campN(k) {
   if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length - WT_HIDE.length, 2 + Math.floor((f - 11) / 2));
   /* num-mat-sources（只為模擬，不能合併）：第 5 格是鍛造台 Lv16（num-skill-slot5-pace 實驗組），長老屋 Lv9 沒有效果 */
   if (k === 'slots') return Math.min(S.skills.length, (a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1) + (f >= 16 ? 1 : 0));
-  if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
+  /* num-mat-final（只為模擬）：長老屋攤開，Lv9 第 4 個、Lv11 第 5 個 */
+  if (k === 'holes') return a >= 11 ? 5 : a >= 9 ? 4 : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
   if (k === 'star') return Math.min(5, (C.scout || 0) + 1);
-  if (k === 'pop') return CAMP_POP[Math.min(C.house || 0, CAMP_POP.length - 1)];
   if (k === 'off') return [1, 4, 4, 8, 8, 12][Math.min(5, C.store || 0)];
   return 0;
 }
@@ -382,7 +379,7 @@ const NEXT_U = {
   slot: { n: 'slots', b: 'altar', t: '技能格' },
   hole: { n: 'holes', b: 'altar', t: '輔助孔' },
   wt: { n: 'wts', b: 'forge', t: '武器類別' },
-  tree: { k: { tree: '天賦樹', jsock: '天賦樹珠寶孔' } },
+  tree: { k: { tree: '天賦樹' } },
   asc: { k: { asc: '昇華石碑', asc3: '第三個昇華' } },
   aura: { k: { aura: '光環欄' } },
   menu: { k: { tree: '天賦樹', asc: '昇華石碑' } },
@@ -414,7 +411,20 @@ const campMax = b => CAMP[b].length;
 function campNext(b) {
   const lv = (S.camp || newCamp())[b] || 0,
     r = CAMP[b][lv];
-  return r ? { lv: lv + 1, ...r } : null;
+  return r ? { lv: lv + 1, ...r, any: 1 } : null;
+}
+/* num-mat-final（只為模擬）：設施升級（campNext 帶 any）的鐵／皮／靈絲同種類任何階都收，T 階 1 個＝3^(T−1) 個第 1 階；
+   matAny＝這一種折成 T 階有幾個（捨去）；matPayAny＝先用最低階付，最後一階無條件進位、多付不找。打造、商會照舊 */
+const matEq = (k, T) => 3 ** (T - 1);
+const matAny = (k, T) => Math.floor([1, 2, 3, 4, 5, 6].reduce((a, u) => a + matN(k, u) * matEq(k, u), 0) / matEq(k, T));
+function matPayAny(k, T, n) {
+  let need = n * matEq(k, T);
+  for (let u = 1; u <= 6 && need > 0; u++) {
+    const v = matEq(k, u),
+      x = Math.min(matN(k, u), Math.ceil(need / v));
+    matAdd(k, u, -x);
+    need -= x * v;
+  }
 }
 /* 一筆費用（解鎖表的一級、產生器的 n 級）的每一項：[名字, 有, 要, 鍵（soul／wood／材料鍵／gold／cur:通貨）] */
 function costRows(c) {
@@ -422,7 +432,8 @@ function costRows(c) {
     L = [];
   if (c.soul) L.push(['靈魂', M.soul, c.soul, 'soul']);
   if (c.wood) L.push(['木', matN('wood'), c.wood, 'wood']);
-  for (const key in c.mats || {}) L.push([matName(...matOf(key)), matN(...matOf(key)), c.mats[key], key]);
+  for (const key in c.mats || {})
+    L.push([matName(...matOf(key)), (c.any ? matAny : matN)(...matOf(key)), c.mats[key], key]);
   if (c.gold) L.push(['金', S.gold, c.gold, 'gold']);
   for (const k in c.cur || {}) L.push([CUR[k].n, M[k] || 0, c.cur[k], 'cur:' + k]);
   return L;
@@ -431,7 +442,7 @@ function costPay(c) {
   const M = MAT();
   M.soul -= c.soul || 0;
   if (c.wood) matAdd('wood', 0, -c.wood);
-  for (const key in c.mats || {}) matAdd(...matOf(key), -c.mats[key]);
+  for (const key in c.mats || {}) c.any ? matPayAny(...matOf(key), c.mats[key]) : matAdd(...matOf(key), -c.mats[key]);
   S.gold -= c.gold || 0;
   for (const k in c.cur || {}) M[k] -= c.cur[k];
 }
@@ -479,8 +490,7 @@ const FORGE_SAY = [
 const ALTAR_SAY = {
   4: '祭壇 Lv4：天賦樹開了，照等級補發的點數已經放進去。',
   7: '祭壇 Lv7：昇華石碑開了，先開放兩個昇華可以選。',
-  10: '祭壇 Lv10：天賦樹的珠寶孔開了，撿到的珠寶可以鑲進去。',
-  11: '祭壇 Lv11：第三個昇華以後的內容開了，輔助孔可以開到 5 個。'
+  10: '祭壇 Lv10：第三個昇華以後的內容開了。'
 };
 /* 設施升到 lv 那一句（S.camp 已經是新的等級） */
 function campSay(b, lv) {
@@ -496,10 +506,9 @@ function campSay(b, lv) {
     return `瞭望台 Lv${lv}：${line}開了，「${n ? wName(S, n.q, n.r) : WTYPE[t].n}」出現在地點清單，它的通貨開始掉。`;
   }
   if (b === 'scout') return `斥候營 Lv${lv}：可以選到 ${lv + 1}★。星級越高，怪越強、掉得越多。`;
-  if (b === 'house') return `民房 Lv${lv}：人口 ${campN('pop')}，新居民會自己補到空的工位。`;
   if (b === 'altar') {
     if (ALTAR_SAY[lv]) return ALTAR_SAY[lv];
-    if ([1, 3, 6, 9].includes(lv)) return `祭壇 Lv${lv}：開了第 ${campN('slots')} 格技能，到技能分頁挑一招。`;
+    if ([1, 3, 6].includes(lv)) return `祭壇 Lv${lv}：開了第 ${campN('slots')} 格技能，到技能分頁挑一招。`;
     return `祭壇 Lv${lv}：每一招多 1 個輔助孔，到技能分頁插一顆輔助。${lv === 5 ? '光環欄也開了。' : ''}`;
   }
   if (b === 'store') {
@@ -519,7 +528,7 @@ function genSay(k, a, b) {
       tier = q.tu > p.tu && k !== 'wood' ? `可以產${matName(k, 1 + q.tu)}，上限看瞭望台。` : '';
     if (q.m > p.m || tier)
       L.push([`gen:${k}:${x}:m`, `${nm} Lv${x}：${q.m > p.m ? `產量 ×${q.m / p.m}。` : ''}${tier}`]);
-    if (q.slots > p.slots && x > 1) L.push([`gen:${k}:${x}:s`, `${nm} Lv${x}：多一個工位，民房有空的人會自己補上。`]);
+    if (q.slots > p.slots && x > 1) L.push([`gen:${k}:${x}:s`, `${nm} Lv${x}：多一個工位。`]);
   }
   return L;
 }
@@ -582,34 +591,8 @@ const tierCap = () =>
 const genTierTop = k => (k === 'wood' ? 0 : Math.min(1 + genMs(genOf(k).lv).tu, tierCap()));
 const genTier = k => (k === 'wood' ? 0 : Math.max(1, genTierTop(k) - (genOf(k).tier || 0)));
 const genSlots = k => (genOn(k) ? genMs(Math.max(1, genOf(k).lv)).slots : 0);
-/* 民房的人口自動補到空工位（3.4）：已經在做的留著（S.camp.gen[k].w），多出來的人補到空工位——有「優先」的先、再照離滿員最近的、再照設施順序；
-   人口比在職的少（舊存檔、工具）就從後面的設施先撤。回 { 鍵: 在職人數 } */
-function popAssign() {
-  const w = {};
-  let used = 0;
-  for (const k of GEN_K) used += w[k] = Math.min(genOf(k).w || 0, genSlots(k));
-  let free = campN('pop') - used;
-  for (let i = GEN_K.length - 1; free < 0 && i >= 0; i--) {
-    const d = Math.min(w[GEN_K[i]], -free);
-    w[GEN_K[i]] -= d;
-    free += d;
-  }
-  while (free > 0) {
-    const open = GEN_K.filter(k => w[k] < genSlots(k));
-    if (!open.length) break;
-    open.sort((a, b) => !!genOf(b).pri - !!genOf(a).pri || genSlots(a) - w[a] - (genSlots(b) - w[b]));
-    w[open[0]]++;
-    free--;
-  }
-  for (const k of GEN_K) genOf(k).w = w[k];
-  return w;
-}
-/* 每分鐘產多少：r × L × 里程碑倍率 × 在職／工位（0 人不產） */
-function genRate(k, W = popAssign()) {
-  const g = genOf(k),
-    s = genSlots(k);
-  return s ? GEN[k].r * g.lv * genMs(g.lv).m * (W[k] / s) : 0;
-}
+/* 每分鐘產多少：num-mat-final 民房與居民拿掉，0 人不產 */
+const genRate = k => 0;
 /* 升 n 級的費用 { wood, mats }：c × 1.12^L × (1.12^n − 1) / 0.12，每一項四捨五入（林場 Lv1→2＝木 11） */
 function genCost(k, n = 1) {
   const L = genOf(k).lv,
@@ -651,34 +634,14 @@ function genUp(k, n = 1) {
 function genTick(dt) {
   /* num-mat-sources（只為模擬）：產生器與居民拿掉，不產任何東西 */
   return {};
-  if (typeof S === 'undefined' || !S || !S.camp) return {};
-  const W = popAssign(),
-    got = {};
-  for (const k of GEN_K) {
-    if (!genOn(k)) continue;
-    const g = genOf(k);
-    if (!g.lv) g.lv = 1;
-    g.acc = (g.acc || 0) + (genRate(k, W) * dt) / 60;
-    const n = Math.floor(g.acc);
-    if (n > 0) {
-      g.acc -= n;
-      /* 這一座總共產了多少（0.5.4，卡片上的「總共產了 N」） */
-      g.tot = (g.tot || 0) + n;
-      const key = matKey(k, genTier(k));
-      matAdd(...matOf(key), n);
-      got[key] = (got[key] || 0) + n;
-    }
-  }
-  return got;
 }
 /* 每分鐘的材料進帳 { 材料鍵: n }（「還要幾分鐘」用） */
 function genRates() {
-  const W = popAssign(),
-    o = {};
+  const o = {};
   for (const k of GEN_K)
     if (genOn(k)) {
       const key = matKey(k, genTier(k));
-      o[key] = (o[key] || 0) + genRate(k, W);
+      o[key] = (o[key] || 0) + genRate(k);
     }
   return o;
 }
@@ -1683,29 +1646,6 @@ function killMats(k, t, soul, o) {
   });
   const w = matRound(soul * W_RATIO);
   if (w) matAdd('wood', 0, w);
-}
-/* ---------- num-mat-soulwall（只為模擬，不能合併） ----------
-   倉房回收（RECYC_ON，倉房 Lv2 開）：每 1 個換多少靈魂，[木, T1…T6]，鐵／皮／靈絲同一個；照機率進位（matRnd）；算靈魂收入、不算木 */
-let RECYC_ON = 0;
-const RECYC = [0.5, 0.5, 1, 1.5, 2, 2.5, 3];
-function matRecycle(key, n) {
-  if (!RECYC_ON || !campCan('salv65') || !(n > 0) || (S.mat.mats[key] || 0) < n) return 0;
-  const T = key === 'wood' ? 0 : matOf(key)[1],
-    s = matRound(n * RECYC[T]);
-  S.mat.mats[key] -= n;
-  S.mat.soul += s;
-  return s;
-}
-/* 後段靈魂費用上限（soulCapSet(cap, keep)）：這 11 級的靈魂改成 cap（0＝原表）；keep＝{ 'forge16': 1 } 這種，照原表 */
-const SOUL_CAP_LV = { forge: [16, 17, 18, 19, 20], altar: [6, 7, 8], scout: [4], store: [3, 4] };
-const SOUL_CAP0 = Object.fromEntries(
-  Object.entries(SOUL_CAP_LV).map(([b, L]) => [b, L.map(lv => CAMP[b][lv - 1].soul)])
-);
-let SOUL_CAP = 0;
-function soulCapSet(cap, keep = {}) {
-  SOUL_CAP = cap;
-  for (const b in SOUL_CAP_LV)
-    SOUL_CAP_LV[b].forEach((lv, i) => (CAMP[b][lv - 1].soul = cap && !keep[b + lv] ? cap : SOUL_CAP0[b][i]));
 }
 /* 打怪拿材料：靈魂、通貨、精髓自動進材料頁（0.5.1 起不掉材料，材料由產生器產）；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {

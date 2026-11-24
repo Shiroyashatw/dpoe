@@ -7778,12 +7778,6 @@ const CAMP = {
     { soul: 10000, wood: 800, mats: { 'hide:3': 30 }, d: '4★' },
     { soul: 40000, wood: 1500, mats: { 'hide:4': 40 }, d: '5★' }
   ],
-  /* 民房＝人口上限（CAMP_POP），居民自動補到產生器空的工位（craft.js 的 popAssign） */
-  house: [100, 250, 500, 1000, 2500, 6000, 15000, 40000, 100000, 250000].map((soul, i) => ({
-    soul,
-    wood: [30, 80, 150, 300, 600, 1200, 2500, 5000, 10000, 20000][i],
-    d: ''
-  })),
   altar: [
     { soul: 300, wood: 60, d: '第 2 格技能' },
     { soul: 900, wood: 150, d: '第 1 個輔助孔（每一招）' },
@@ -7793,9 +7787,10 @@ const CAMP = {
     { soul: 25000, wood: 1200, d: '第 4 格技能' },
     { soul: 50000, wood: 1800, mats: { 'silk:3': 20 }, un: ['asc'], d: '昇華石碑（兩個昇華）' },
     { soul: 90000, wood: 2500, d: '第 3 個輔助孔' },
-    { soul: 150000, wood: 3500, mats: { 'silk:4': 30 }, d: '第 5 格技能' },
-    { soul: 250000, wood: 5000, un: ['jsock'], d: '天賦樹珠寶孔' },
-    { soul: 350000, wood: 7000, un: ['asc3'], d: '第三個昇華以後；輔助孔開到 5 個' }
+    /* num-mat-final（只為模擬）：長老屋攤開，費用照 main；jsock 拿掉 */
+    { soul: 150000, wood: 3500, mats: { 'silk:4': 30 }, d: '第 4 個輔助孔' },
+    { soul: 250000, wood: 5000, un: ['asc3'], d: '第三個昇華' },
+    { soul: 350000, wood: 7000, d: '第 5 個輔助孔' }
   ],
   store: [
     { soul: 2000, wood: 400, d: '離線結算 4 小時' },
@@ -7805,16 +7800,12 @@ const CAMP = {
     { soul: 200000, wood: 8000, un: ['salv80'], d: '離線 12 小時；分解回收 80%' }
   ]
 };
-/* 民房每一級的人口（3.4 ⚠️）；民房那一列的說明照它寫 */
-const CAMP_POP = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25];
-CAMP.house.forEach((r, i) => (r.d = `人口 ${CAMP_POP[i + 1]}`));
-const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '祭壇', store: '倉房' };
+const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', altar: '祭壇', store: '倉房' };
 /* 十座設施與靈魂的圖示（0.5.4）：ART 有的借 ART，沒有的是 sprites.js 手畫的 i_*（icHTML 都認得） */
 const CAMP_IC = {
   forge: 'it_anvil',
   watch: 'it_hawkeye',
   scout: 'it_warbanner',
-  house: 'i_house',
   altar: 'unit_guardtotem',
   store: 'i_crate',
   wood: 'i_tree',

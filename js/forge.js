@@ -113,10 +113,10 @@ function auto2HTML() {
 /* ---------- 營地總覽（0.5.1，工坊與解鎖表第 3 節、增量遊戲精髓 5.3；0.5.4 照 docs/介面考核_0.5.3.md 重做）：
    固定順序——庫存列（資源條）與「下一件事」黏在上面、產生器四張（標題列有 ×1／×10／最大）、解鎖表六張；不照買得起重排，買得起的卡左邊一條金邊、鈕亮。
    卡片兩種同一個框：產生器卡 genCardHTML（主數字＝每分鐘產量、資源在跑的條、金色細條＝到下一個里程碑、工位人影、升級鈕 ×1／×10／最大）、
-   解鎖表卡 campCardHTML（主數字＝下一級解鎖什麼、鈕的底色＝材料湊齊幾成）。點卡的標題＝展開那一座（民房的工位、倉房的商會、斥候營的星級、祭壇開了什麼…）。
+   解鎖表卡 campCardHTML（主數字＝下一級解鎖什麼、鈕的底色＝材料湊齊幾成）。點卡的標題＝展開那一座（倉房的商會、斥候營的星級、祭壇開了什麼…）。
    會跑的東西（資源條、數字、鈕的底色、滾數字）每格由 rbTick 只改 transform 與文字，不重畫卡；卡片每秒只補畫字變了的（campRefresh） ---------- */
 const CAMPUI = { mul: 1, open: null, fx: {}, wt: {}, w: {} };
-const CAMP_B = ['forge', 'watch', 'scout', 'house', 'altar', 'store'];
+const CAMP_B = ['forge', 'watch', 'scout', 'altar', 'store'];
 /* 資源條的數字與每分鐘產量：照 abbr（擁有／獲得，捨去） */
 const fmtR = v => (v >= 10 ? abbr(v, 'own') : +v.toFixed(1));
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -157,10 +157,7 @@ function campThings() {
 }
 /* 升一級多產多少（每分鐘） */
 function genRate1(k, x = genOf(k).lv + 1) {
-  const W = popAssign(),
-    s = genSlots(k),
-    f = s ? W[k] / s : 0;
-  return GEN[k].r * f * (x * genMs(x).m - (x - 1) * genMs(x - 1).m);
+  return 0; /* num-mat-final：居民拿掉，沒有人做 */
 }
 /* ---------- B1 D1-04／D1-08：「這級：{效果}」全遊戲只從這裡組（單座卡、營地總覽卡、下一件事同一句短式）。
    {效果}＝M1-13 那一級的解鎖句（campSay，S.camp 暫時當作那一級）去掉「{設施} Lv n：」、取第一句；
@@ -309,7 +306,7 @@ const ccFx = k => {
   const f = CAMPUI.fx[k];
   return f && performance.now() - f.t < 1200 ? f : null;
 };
-/* 工位畫成人影（考核 A3）：一個工位一個小人，在職亮、空的暗；民房升級補上人那一下，新亮的那個跳一下（1.5 秒） */
+/* 工位畫成人影（考核 A3）：一個工位一個小人，在職亮、空的暗（num-mat-final：民房拿掉，一律是空的） */
 function wkHTML(k, W, s) {
   const o = CAMPUI.w[k],
     now = performance.now();
@@ -330,7 +327,6 @@ function genMs0(L) {
 }
 function genCardHTML(k) {
   const g = genOf(k),
-    W = popAssign(),
     s = genSlots(k),
     T = genTier(k),
     ms = genNextMs(k),
@@ -341,16 +337,15 @@ function genCardHTML(k) {
     msAt = ms && ms.at <= g.lv + n,
     f = ccFx(k),
     top = genTierTop(k),
-    r = genRate(k, W),
+    r = genRate(k),
     roll = f && f.to != null && !reduced() && performance.now() - f.t < 300,
     m0 = genMs0(g.lv),
     mp = ms ? Math.round((100 * (g.lv - m0)) / (ms.at - m0)) : 100;
   return `<div class="paper camp cc gen ${ok ? 'can' : ''} ${f ? 'up' : ''} ${f && f.ms ? 'ms' : ''}" id="cc-${k}">
-  <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}">${icHTML(CAMP_IC[k])}<b>${GEN[k].n}</b><span>Lv ${g.lv}</span>${wkHTML(k, W[k], s)}${ICO.down}</button>
+  <button class="cch" data-fg="cc:${k}" aria-expanded="${CAMPUI.open === k}">${icHTML(CAMP_IC[k])}<b>${GEN[k].n}</b><span>Lv ${g.lv}</span>${wkHTML(k, 0, s)}${ICO.down}</button>
   ${ms ? `<div class="ccm" role="progressbar" aria-label="到下一個里程碑" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${mp}"><i style="--m:${mp}%"></i></div><div class="ccml"><span>Lv ${ms.at}：${esc(ms.t)}</span><span>總共產了 ${fullN(g.tot || 0)}</span></div>` : ''}
   <div class="ccbig"><small>每分鐘</small><b class="${roll ? 'nroll' : ''}" ${roll ? `data-r="${f.from}:${f.to}:${f.t}"` : ''}>+${fmtR(roll ? f.from : r)}</b><small>${matName(k, T)}</small>${f && f.add ? `<em class="ccfl">${esc(f.add)}</em>` : ''}</div>
   <i class="rt rtg" data-rg="${k}"><i></i></i>
-  ${!W[k] ? '<p class="cchint">升民房就有人來做</p>' : W[k] < s ? `<p class="cchint">升民房再來 ${s - W[k]} 個人</p>` : ''}
   <button class="btn ${ok ? 'pri' : ''} wide cfill" data-fg="gen:${k}:${n}" ${ok ? '' : 'disabled'}>${ok ? `升 ${n} 級・${esc(costTxt(c))}` : esc(lackTxt1(e))}${msAt ? `<em class="ccms">${esc(ms.t)}</em>` : ''}</button>
   ${
     CAMPUI.open === k && top > 1
@@ -389,19 +384,8 @@ function campOpenHTML(b) {
   }
   if (b === 'scout')
     return `<div class="ccopen"><div class="bagf" role="group" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => chipB(`star:${i + 1}`, wStar(S) === i + 1, `${i + 1}★`)).join('')}</div><p class="sub">星級越高越危險、掉得越好；每一輪重抽地圖詞</p></div>`;
-  if (b === 'house') {
-    const W = popAssign();
-    return `<div class="ccopen"><p class="sub">人口 ${campN('pop')}・居民自動補到空的工位（有「優先」的先）</p>${GEN_K.filter(
-      genOn
-    )
-      .map(
-        k =>
-          `<div class="row2"><span>${GEN[k].n} ${W[k]}／${genSlots(k)} 人</span>${chipB(`pri:${k}`, genOf(k).pri, '優先')}</div>`
-      )
-      .join('')}</div>`;
-  }
   if (b === 'altar')
-    return `<div class="ccopen"><p class="sub">技能格 ${campN('slots')}・輔助孔 ${campN('holes')}${campCan('tree') ? '・天賦樹' : ''}${campCan('aura') ? '・光環' : ''}${campCan('asc') ? '・昇華' : ''}${campCan('jsock') ? '・珠寶孔' : ''}</p></div>`;
+    return `<div class="ccopen"><p class="sub">技能格 ${campN('slots')}・輔助孔 ${campN('holes')}${campCan('tree') ? '・天賦樹' : ''}${campCan('aura') ? '・光環' : ''}${campCan('asc') ? '・昇華' : ''}${campCan('asc3') ? '・第三個昇華' : ''}</p></div>`;
   if (b === 'store')
     return `<div class="ccopen"><p class="sub">離線結算上限 ${campN('off')} 小時・分解回收 ${Math.round(salvRate() * 100)}%</p>${storeHTML()}</div>`;
   return '';

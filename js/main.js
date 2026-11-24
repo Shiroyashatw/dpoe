@@ -110,14 +110,13 @@ function migrate(s) {
     o.v = 34;
   }
   /* 存檔 35（0.5.1，工坊與解鎖表 3.7 下面那段，⚠️ 一條簡單的表）：0.5.0 的瞭望台（星級）改叫斥候營；瞭望台＝主幹開到第 n 個點 → Lv n−1；
-     民房＝角色等級 ÷ 5；林場、礦場＝角色等級 × 2（最多 100），獵場、絲地照鍛造台開了沒；星級全域一個；推進設定刪掉 */
+     林場、礦場＝角色等級 × 2（最多 100），獵場、絲地照鍛造台開了沒；星級全域一個；推進設定刪掉 */
   if (o.v < 35) {
     const C = (o.camp = { ...newCamp(), ...o.camp }),
       lv = o.lv || 1,
       st = Math.max(1, ...Object.values((o.world && o.world.star) || {}));
     C.scout = Math.min(CAMP.scout.length, C.watch || 0);
     C.watch = wFrontDone(o);
-    C.house = Math.min(CAMP.house.length, Math.floor(lv / 5));
     const g = Math.min(100, Math.max(1, lv * 2));
     C.gen = {
       wood: { lv: g },
@@ -134,6 +133,8 @@ function migrate(s) {
   if (o.stopWhy === 'home') o.stopWhy = 'camp';
   delete o.scene;
   o.camp = { ...newCamp(), ...o.camp };
+  /* num-mat-final：民房拿掉，舊存檔的民房等級直接刪掉（沒有退費、不影響任何數值） */
+  delete o.camp.house;
   o.camp.gen = { ...newCamp().gen, ...o.camp.gen };
   o.auto2 = { ...AUTO2(), ...o.auto2 };
   /* 道具編號接著存檔裡最大的往下編 */
@@ -280,10 +281,10 @@ const TESTS = {
       for (const m of G.mobs) m.aggro = 1;
     }
   },
-  /* 祭壇 6、鍛造台 10、瞭望台 8、斥候營 2、民房 5、倉房 2，產生器 20 級、角色 Lv 25（M1-07、M1-14 抽查後段的解鎖） */
+  /* 祭壇 6、鍛造台 10、瞭望台 8、斥候營 2、倉房 2，產生器 20 級、角色 Lv 25（M1-07、M1-14 抽查後段的解鎖） */
   midgame: {
     build: s => {
-      Object.assign(s.camp, { altar: 6, forge: 10, watch: 8, scout: 2, house: 5, store: 2 });
+      Object.assign(s.camp, { altar: 6, forge: 10, watch: 8, scout: 2, store: 2 });
       for (const k of GEN_K) s.camp.gen[k] = { lv: 20, w: 0 };
       s.lv = 25;
       s.mat.soul = 3000;
@@ -293,7 +294,7 @@ const TESTS = {
   /* M2-18 追逐掉落：角色 Lv 70、營地滿、在第 15 個主幹地點（怪物 Lv48）；進場 1.5 秒後用開發觸發 devChase 掉一個王印 */
   chase: {
     build: s => {
-      Object.assign(s.camp, { altar: 10, forge: 20, watch: CAMP.watch.length, scout: 5, house: 10, store: 5 });
+      Object.assign(s.camp, { altar: 10, forge: 20, watch: CAMP.watch.length, scout: 5, store: 5 });
       for (const k of GEN_K) s.camp.gen[k] = { lv: 20, w: 0 };
       s.lv = 70;
       s.chase.pts = 230;
@@ -341,7 +342,6 @@ function start() {
   setInterval(save, 10000);
   if (TEST) {
     ST = stats();
-    popAssign();
     TESTS[TEST] ? TESTS[TEST].go() : hudWarn(`沒有「${TEST}」這個測試情境：dualweap、nearDeath、midgame、chase`);
     hudWarn(`測試入口：${TEST}（不存進正式存檔、不連雲端）`);
   } else comeBack(farm, offAt);
