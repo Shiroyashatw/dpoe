@@ -368,7 +368,8 @@ function campN(k) {
     a = C.altar;
   if (k === 'batch') return f >= 16 ? 20 : f >= 9 ? 10 : f >= 5 ? 5 : f >= 2 ? 3 : 1;
   if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length - WT_HIDE.length, 2 + Math.floor((f - 11) / 2));
-  if (k === 'slots') return Math.min(S.skills.length, a >= 9 ? 5 : a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1);
+  /* num-mat-sources（只為模擬，不能合併）：第 5 格是鍛造台 Lv16（num-skill-slot5-pace 實驗組），長老屋 Lv9 沒有效果 */
+  if (k === 'slots') return Math.min(S.skills.length, (a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1) + (f >= 16 ? 1 : 0));
   if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
   if (k === 'star') return Math.min(5, (C.scout || 0) + 1);
   if (k === 'pop') return CAMP_POP[Math.min(C.house || 0, CAMP_POP.length - 1)];
@@ -574,7 +575,9 @@ function genMsT(k, x) {
     .join('、');
 }
 /* 材料階的上限＝瞭望台開到最深的主幹地點（3.2） */
-const tierCap = () => matTier(TRUNK[Math.min(S.camp.watch || 0, TRUNK.length - 1)].lv);
+/* num-mat-sources（只為模擬）：改成到過最深的主幹地點（S.world.deep，killMat 記；沒有就照瞭望台） */
+const tierCap = () =>
+  matTier(TRUNK[Math.min(S.world && S.world.deep != null ? S.world.deep : S.camp.watch || 0, TRUNK.length - 1)].lv);
 /* 這座現在產幾階：min(1＋階里程碑, 上限) − 往下調；林場沒有階（0） */
 const genTierTop = k => (k === 'wood' ? 0 : Math.min(1 + genMs(genOf(k).lv).tu, tierCap()));
 const genTier = k => (k === 'wood' ? 0 : Math.max(1, genTierTop(k) - (genOf(k).tier || 0)));
@@ -633,6 +636,8 @@ function genAfford(k) {
   return Math.max(0, n);
 }
 function genUp(k, n = 1) {
+  /* num-mat-sources（只為模擬）：產生器拿掉，不能買 */
+  return '產生器已拿掉';
   if (!genOn(k)) return '還沒出現';
   const c = genCost(k, n),
     lack = costRows(c).filter(([, h, w]) => h < w);
@@ -644,6 +649,8 @@ function genUp(k, n = 1) {
 }
 /* 每一格累加產量（主迴圈叫，藏身處、場地、面板開著都算；離線用同一條公式乘時間）；回這一次加了多少 { 材料鍵: n } */
 function genTick(dt) {
+  /* num-mat-sources（只為模擬）：產生器與居民拿掉，不產任何東西 */
+  return {};
   if (typeof S === 'undefined' || !S || !S.camp) return {};
   const W = popAssign(),
     got = {};
@@ -1623,6 +1630,60 @@ function ghSalvage(i, s = S) {
   return null;
 }
 
+/* ---------- num-mat-sources（只為模擬，不能合併）：擊殺掉材料（鐵、皮、靈絲、木），取代產生器 ----------
+   每隻 U＝基礎（小怪 0.25、菁英 3、王 12）×（1＋0.2(t−1)）× MAT_SCALE ×（1＋地圖卡材料%／100）；種類比例照地點的區域；
+   75% 是 T 階、25% 是 T−1 階（T＝matTier）；木＝這隻的靈魂 × W_RATIO。小數照機率進位（每種、每階分開），用自己的亂數流（matRnd），不碰 Math.random */
+let MAT_SCALE = 1,
+  W_RATIO = 0.3,
+  MAT_SEED = Date.now() >>> 0;
+const matRnd = () => {
+  let x = (MAT_SEED = (MAT_SEED + 0x6d2b79f5) | 0);
+  x = Math.imul(x ^ (x >>> 15), x | 1);
+  x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+  return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+};
+const matRound = v => Math.floor(v) + (matRnd() < v - Math.floor(v) ? 1 : 0);
+/* 區域 → 鐵／皮／靈絲；主幹照 TRUNK 的 g，特殊節點（四條機制、裂口）照裂口腹地 */
+const MAT_MIX = {
+  枯河原野: [60, 25, 15],
+  灰燼平原: [50, 30, 20],
+  熔岩裂谷: [60, 20, 20],
+  寒鴉冰原: [40, 20, 40],
+  血霧荒原: [35, 45, 20],
+  黑水沼澤: [40, 20, 40],
+  裂口腹地: [40, 30, 30]
+};
+function matMix(wk) {
+  const n = (typeof WNODE !== 'undefined' && WNODE[wk]) || TRUNK[0],
+    r = [...MAT_MIX[n.i == null ? '裂口腹地' : n.g]];
+  if (!campCan('mat:hide')) (r[0] += r[1]), (r[1] = 0);
+  if (!campCan('mat:silk')) (r[0] += r[2]), (r[2] = 0);
+  return r.map(v => v / 100);
+}
+function killMats(k, t, soul, o) {
+  const wk = S.world && S.world.cur,
+    n = wk && typeof WNODE !== 'undefined' && WNODE[wk];
+  if (n && n.i != null) S.world.deep = Math.max(S.world.deep || 0, n.i);
+  const U = [0.25, 3, 12][k] * (1 + 0.2 * (t - 1)) * MAT_SCALE * (1 + (o.mat || 0) / 100),
+    T = Math.max(1, Math.min(6, Math.ceil(tierIlvl(t) / 3))),
+    mix = matMix(wk);
+  ['iron', 'hide', 'silk'].forEach((m, i) => {
+    if (!mix[i]) return;
+    const tiers =
+      T > 1
+        ? [
+            [T, 0.75],
+            [T - 1, 0.25]
+          ]
+        : [[1, 1]];
+    for (const [u, p] of tiers) {
+      const c = matRound(U * mix[i] * p);
+      if (c) matAdd(m, u, c);
+    }
+  });
+  const w = matRound(soul * W_RATIO);
+  if (w) matAdd('wood', 0, w);
+}
 /* 打怪拿材料：靈魂、通貨、精髓自動進材料頁（0.5.1 起不掉材料，材料由產生器產）；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),
@@ -1632,6 +1693,7 @@ function killMat(m, t, o = {}) {
   const soul = Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
   M.soul += soul;
   if (typeof SES !== 'undefined' && SES) SES.soul += soul;
+  killMats(k, t, soul, o);
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
   if (D.jw) got.push(...jwAdd(1));
