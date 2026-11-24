@@ -390,7 +390,7 @@ function campOpenHTML(b) {
     return `<div class="ccopen"><p class="sub">離線結算上限 ${campN('off')} 小時・分解回收 ${Math.round(salvRate() * 100)}%</p>${storeHTML()}</div>`;
   return '';
 }
-/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階（高一階超過 tierCap() 的列出但鎖住）；鐵 20（最高階）→ 1 顆蛻變石；1 顆蛻變石 → 木 50 */
+/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階（高一階超過 tierCap() 的列出但鎖住）；材料換通貨照 craft.js 的 TRADE_CUR（num-mat-v11，畫面只列鐵換蛻變石）；1 顆蛻變石 → 木 50 */
 function tradeList() {
   const L = [];
   for (const m of ['iron', 'hide', 'silk'])
@@ -415,14 +415,11 @@ function storeHTML() {
         ? `<button class="chip" data-fg="tr:${i}" aria-pressed="false" disabled title="${x.why}">${t}</button>`
         : chipB(`tr:${i}`, 0, t);
     }).join('') || '<span class="c-dim">同一階的材料有 5 個才能換高一階</span>'
-  }${matN('iron', tierCap()) >= 20 ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×20 → 蛻變石`) : ''}${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>${why.join('')}`;
+  }${matN('iron', tierCap()) >= tradeCost('iron', tierCap(), 'tran') ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×${tradeCost('iron', tierCap(), 'tran')} → 蛻變石`) : ''}${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>${why.join('')}`;
 }
 function tradeDo(i) {
-  if (i === 'cur') {
-    if (matN('iron', tierCap()) < 20) return '鐵不夠';
-    matAdd('iron', tierCap(), -20);
-    MAT().tran++;
-  } else if (i === 'wood') {
+  if (i === 'cur') return tradeCur('iron', tierCap(), 'tran');
+  else if (i === 'wood') {
     if (!(MAT().tran >= 1)) return '沒有蛻變石';
     MAT().tran--;
     matAdd('wood', 0, 50);

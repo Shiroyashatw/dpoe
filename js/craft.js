@@ -1647,6 +1647,27 @@ function killMats(k, t, soul, o) {
   const w = matRound(soul * W_RATIO);
   if (w) matAdd('wood', 0, w);
 }
+/* num-mat-v11（只為模擬，不能合併）：商會（倉房 Lv4）材料換打造通貨，擴充原本的「鐵 20 → 蛻變石」。
+   TRADE_CUR[材料][通貨]＝換 1 顆要幾個第 1 階當量（T 階 1 個＝3^(T−1) 個第 1 階，所以每一階都照同一個比例；都是 243＝3^5 的倍數，T6 也是整數個）；木沒有階。
+   只換打造通貨（照通貨自己的掉落開放條件 campCan(curKey)），不換靈魂、金，也沒有任何通貨能換回靈魂 */
+const TRADE_CUR = {
+  wood: { tran: 243, aug: 243 } /* 木 243 → 1 顆（蛻變石 → 木 50 換不回來） */,
+  iron: { tran: 4860, aug: 4860 } /* 原本的「鐵 20 → 蛻變石」：T6 20＝T5 60＝…＝T1 4,860 */,
+  hide: { rich: 48600 } /* T6 200 */,
+  silk: { exalt: 24300 } /* T6 100 */
+};
+/* T 階的 m 換 n 顆 c 要幾個（木 T＝0） */
+const tradeCost = (m, T, c, n = 1) => (TRADE_CUR[m][c] * n) / (T ? 3 ** (T - 1) : 1);
+function tradeCur(m, T, c, n = 1) {
+  if (!campCan('trade')) return '倉房 Lv4 才開商會';
+  if (!(TRADE_CUR[m] && TRADE_CUR[m][c])) return '換不了';
+  if (!campCan(curKey(c))) return CUR[c].n + '還沒開始掉';
+  const q = tradeCost(m, T, c, n);
+  if (matN(m, T) < q) return (T ? matName(m, T) : '木') + '不夠';
+  matAdd(m, T, -q);
+  MAT()[c] = (MAT()[c] || 0) + n;
+  return null;
+}
 /* 打怪拿材料：靈魂、通貨、精髓自動進材料頁（0.5.1 起不掉材料，材料由產生器產）；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),
