@@ -96,6 +96,110 @@ const edgeOk = async p => {
     JSON.stringify(e.sec)
   );
 };
+/* fix7（RULINGS-3 F-2、F-3）：比較浮窗 ⑤ 操作層超出浮窗下緣多少（l5 整層、p 操作字、kbd 鍵帽），①②④ 有沒有完整在窗內 */
+const M5 = () => {
+  const c = $('pinv').querySelector('.c12p');
+  if (!c) return null;
+  const cb = c.getBoundingClientRect(),
+    o = q =>
+      Math.max(
+        0,
+        ...[...c.querySelectorAll(q)].map(e => Math.round((e.getBoundingClientRect().bottom - cb.bottom) * 10) / 10)
+      );
+  return {
+    h: cb.height,
+    bot: cb.bottom,
+    l5: o('.l5'),
+    p: o('.l5 p'),
+    kbd: o('.l5 kbd'),
+    l5h: c.querySelector('.l5').getBoundingClientRect().height,
+    l124: o('.l1, .l2, .l4'),
+    l3: c.querySelector('.l3').getBoundingClientRect().height
+  };
+};
+/* 每個部位 × 需求項數（0＝能裝備、1–3 項不符）× 詞綴（原樣、6＋6 條）× 簡易／詳細：[部位, 需求項數, ② 列數, 6＋6, 詳細, M5]。
+   每個部位每種需求項數挑 ② 列數最多的基底（物品等級 80 稀有） */
+const MATRIX = m5 => {
+  const M5 = eval(m5),
+    out = [],
+    A = S.inv.items.flatMap(x => x.a || []);
+  for (const e of EQS) {
+    const k = e.k,
+      C = {};
+    if (!eqOpen(S, k)) continue;
+    /* 副手格：先換一把配得上副手的武器，不然沒有候選 */
+    const w0 = S.eq.weapon,
+      sh = k === 'off' && mkItem(BASES.find(b => b.k === 'shield').id, 20, 2);
+    if (sh)
+      S.eq.weapon =
+        BASES.filter(b => b.k === 'weapon' && b.lv <= 20)
+          .map(b => mkItem(b.id, 20, 2))
+          .find(w => offOK(w, sh)) || w0;
+    for (const B of BASES.filter(b => eqTakes(e, b.k))) {
+      const it = mkItem(B.id, 80, 2);
+      S.inv.items.push(it);
+      const w = itemDelta(it, k).why,
+        n = w ? (w.match(/、/g) || []).length + 1 : 0,
+        r = chBase(it).length,
+        can = slotCands(k).includes(it);
+      S.inv.items.pop();
+      if (can && (!C[n] || C[n][1] < r)) C[n] = [it, r];
+    }
+    for (const n in C)
+      for (const six of [0, 1])
+        for (const det of [0, 1]) {
+          const it = C[n][0],
+            cur = S.eq[k],
+            a0 = it.a,
+            c0 = cur && cur.a;
+          if (six) (it.a = A.slice(6, 12)), cur && (cur.a = A.slice(0, 6));
+          S.inv.items.push(it);
+          (NAV.slot = k), (CH.hov = it.id), (CH.alt = det), chRender();
+          out.push([k, +n, C[n][1], six, det, M5()]);
+          S.inv.items.pop();
+          it.a = a0;
+          if (cur) cur.a = c0;
+        }
+    S.eq.weapon = w0;
+  }
+  (CH.alt = 0), (CH.hov = null), (NAV.slot = 'helm'), chRender();
+  return out;
+};
+/* fix7（RULINGS-3 Q1）：每種詞綴 × 6 階 × 高低值（第一條另測破裂），詳細模式每條留下什麼：
+   noT 沒有 T 階、noFr 破裂的沒寫「破裂」、cut 主文字被截、over 輔助字超出欄右緣；full 有區間、t 只剩 T 階、w2 輔助字換到下一小行 */
+const TSCAN = m5 => {
+  const M5 = eval(m5),
+    L = [];
+  for (const k of Object.keys(AFF).filter(k => AFF[k].r))
+    for (let T = 1; T <= 6; T++) for (const v of [0, 1]) L.push({ k, T, v: tierRange(k, T)[v] });
+  const it = S.inv.items.find(x => kindOf(x) === 'helm' && !cantWear(x)),
+    a0 = it.a,
+    f0 = it.frac,
+    c0 = S.eq.helm.a,
+    res = { n: 0, full: 0, t: 0, w2: 0, noT: [], noFr: [], cut: [], over: [], l5: 0 };
+  (NAV.slot = 'helm'), (CH.hov = it.id), (CH.alt = 1);
+  for (let i = 0; i < L.length; i += 6)
+    for (const fr of [0, 1]) {
+      it.a = L.slice(i, i + 6);
+      S.eq.helm.a = L.slice(i, i + 3);
+      it.frac = fr ? it.a[0].k : null;
+      chRender();
+      res.l5 = Math.max(res.l5, M5().l5);
+      [...$('pinv').querySelectorAll('.c12p .l3s ul')[1].children].forEach((li, j) => {
+        const b = li.firstChild,
+          t = b.textContent,
+          sm = li.querySelector('small');
+        res.n++;
+        if (!li.querySelector('.tr')) res.noT.push(t + '｜' + (sm ? sm.textContent : ''));
+        if (fr && !j && !li.querySelector('.fr')) res.noFr.push(t);
+        if (b.scrollWidth > b.clientWidth) res.cut.push(t);
+        if (sm && sm.getBoundingClientRect().right > li.getBoundingClientRect().right + 0.5) res.over.push(t);
+        li.classList.contains('w2') ? res.w2++ : li.querySelector('.rg') ? res.full++ : res.t++;
+      });
+    }
+  (it.a = a0), (it.frac = f0), (S.eq.helm.a = c0), (CH.alt = 0), (CH.hov = null), chRender();
+  return res;
+};
 /* 跟示意圖接近的一套：Lv 49、身上全稀有、倉庫 14 頂頭盔（候選 4×3 再多兩件可以捲；物品等級高的穿不上＝不能裝備）；
    示意圖的格狀態：胸甲腐化＋破裂、鞋子災魘、項鍊追憶、武器套王印 */
 const setup = () => {
@@ -1080,6 +1184,80 @@ const CH_BOX = {
       JSON.stringify(w)
     );
   }
+  /* ---------- fix7（RULINGS-3）：⑤ 不被切、T 階不消失、有穿沒候選的文案 ---------- */
+  const mx5 = await f.evaluate(MATRIX, `(${M5})`),
+    has = (k, n, det, six) => mx5.some(x => x[0] === k && x[1] === n && x[4] === det && (six == null || x[3] === six)),
+    bad5 = mx5.filter(
+      ([, , , , , m]) =>
+        !m || m.l5 > 0 || m.p > 0 || m.kbd > 0 || m.l124 > 0 || m.l5h !== 44 || m.h > 486 || m.bot > 562
+    );
+  ok(
+    '⑤ 樣本齊：三項需求武器（簡易＋詳細）、能裝備武器詳細、頭胸手鞋三項需求詳細、雙防禦 6＋6',
+    has('weapon', 3, 0) &&
+      has('weapon', 3, 1) &&
+      has('weapon', 0, 1) &&
+      ['helm', 'chest', 'gloves', 'boots'].every(k => has(k, 3, 1)) &&
+      mx5.some(x => x[0] === 'helm' && x[2] >= 3 && x[3] && x[4]) &&
+      new Set(mx5.map(x => x[0])).size >= 10,
+    JSON.stringify([...new Set(mx5.map(x => x.slice(0, 2).join(':')))])
+  );
+  ok(
+    `每個部位 × 需求 0–3 項 × 詞綴原樣／6＋6 × 簡易／詳細（${mx5.length} 組）：⑤ 層高 44，層、操作字、鍵帽超出浮窗下緣都是 0；①②④ 完整；浮窗高 ≤ 486、下緣 ≤ 562`,
+    mx5.length > 0 && !bad5.length,
+    JSON.stringify(bad5)
+  );
+  const ts = await f.evaluate(TSCAN, `(${M5})`);
+  ok(
+    `04b 每種詞綴 × 6 階 × 高低值（${ts.n} 條，含破裂）：T 階都在（沒有只剩「✦」）、破裂的都寫「破裂」、主文字沒被截、輔助字不超出欄；放不下的換到下一小行（${ts.w2} 條），⑤ 不被切`,
+    ts.n > 400 && !ts.noT.length && !ts.noFr.length && !ts.cut.length && !ts.over.length && ts.w2 > 0 && ts.l5 === 0,
+    JSON.stringify({ ...ts, noT: [...new Set(ts.noT)].slice(0, 6), noFr: ts.noFr.slice(0, 6) })
+  );
+  /* 最長的詞（受招架持續時間 T1 最大值）＋破裂：按住 Alt 看得到「T1 ✦ 破裂」，字 14/400 --tx-dim */
+  await f.hover(`#pinv [data-c="cand:${fid}"]`);
+  await f.keyboard.down('Alt');
+  await f.waitForTimeout(100);
+  const lw = await f.evaluate(m5 => {
+    const li = [...$('pinv').querySelectorAll('.c12p .l3s li')].find(li => /受招架持續時間/.test(li.textContent)),
+      sm = li && li.querySelector('small'),
+      s = sm && getComputedStyle(sm),
+      d = document.body.appendChild(document.createElement('i'));
+    d.style.color = 'var(--tx-dim)';
+    const dim = getComputedStyle(d).color;
+    d.remove();
+    return li && sm
+      ? [sm.textContent.trim(), li.classList.contains('w2'), s.fontSize, s.fontWeight, s.color === dim, eval(m5)().l5]
+      : null;
+  }, `(${M5})`);
+  ok(
+    '最長詞綴＋破裂（詳細）：主文字下一小行寫「T1 ✦ 破裂」14/400 --tx-dim；⑤ 不被切',
+    !!lw && lw[0] === 'T1 ✦ 破裂' && lw[1] && lw[2] === '14px' && lw[3] === '400' && lw[4] && lw[5] === 0,
+    JSON.stringify(lw)
+  );
+  await f.keyboard.up('Alt');
+  /* Q4：身上有胸甲、倉庫沒有胸甲 */
+  await f.click('#pinv [data-c="eq:chest"]');
+  await f.waitForTimeout(150);
+  const q4 = await f.evaluate(() => {
+    const P = $('pinv'),
+      t = q => (P.querySelector(q) || {}).textContent || '';
+    return [
+      t('.cet'),
+      '現在：' + itemName(S.eq.chest),
+      t('.cep'),
+      t('.cmk'),
+      P.querySelectorAll('.btn.pri').length,
+      /空著|\d\s*ms|毫秒/.test(P.textContent)
+    ];
+  });
+  ok(
+    '身上有裝備、倉庫沒有可換的：「現在：{名}」「可以換的 0 件」（讀屏「胸甲已裝備，倉庫有 0 件可以換」），主鈕「去鍛造打一件」；不寫「空著」',
+    q4[0] === q4[1] &&
+      q4[2] === '可以換的 0 件胸甲已裝備，倉庫有 0 件可以換' &&
+      q4[3] === '去鍛造打一件' &&
+      q4[4] === 1 &&
+      !q4[5],
+    JSON.stringify(q4)
+  );
   await c4.close();
   /* 390×844：直立角色頁照舊（hud.js 的 invHTML，不走 .c12） */
   const c2 = await b.newContext({
@@ -1255,6 +1433,114 @@ const CH_BOX = {
   await g3.mouse.move(300, 300);
   await g3.waitForTimeout(100);
   ok('滑鼠真的移開右欄：浮窗收起', await g3.evaluate(() => !$('pinv').querySelector('.c12p')));
+  /* ---------- fix7（RULINGS-3 F-1、Q2）：浮窗跟最後一次有效輸入 ---------- */
+  const st = () =>
+    g3.evaluate(() => {
+      const c = (document.activeElement.dataset || {}).c || '';
+      /* [焦點在候選且浮窗是它, 浮窗在, 浮窗的候選, 焦點] */
+      return [
+        c.startsWith('cand:') && CH.hov === +c.slice(5) && !!$('pinv').querySelector('.c12p'),
+        !!$('pinv').querySelector('.c12p'),
+        CH.hov,
+        c
+      ];
+    });
+  const redraw = async (n = 3) => {
+    const L = [];
+    for (let i = 0; i < n; i++) await g3.evaluate(() => hudPanels()), await g3.waitForTimeout(400), L.push(await st());
+    return L;
+  };
+  /* F-1：面板關著時游標停在 (828,178)，之後不動滑鼠：V 開、手把選頭盔格、右到候選。4 次都要一開始就出浮窗、重畫後還開著 */
+  await g3.keyboard.press('v');
+  await g3.waitForTimeout(300);
+  await g3.mouse.move(600, 300);
+  await g3.mouse.move(828, 178);
+  await g3.waitForTimeout(200);
+  const parked = [];
+  for (let i = 0; i < 4; i++) {
+    await g3.keyboard.press('v');
+    await g3.waitForTimeout(400);
+    await pad(13);
+    for (let j = 0; j < 8 && !(await g3.evaluate(() => document.activeElement.dataset.c === 'eq:helm')); j++)
+      await pad(12);
+    if (!(await g3.evaluate(() => NAV.slot === 'helm'))) await pad(0);
+    await pad(15);
+    const a = await st();
+    parked.push([a[0], ...(await redraw(2)).map(x => x[0]), await g3.evaluate(() => PANEL.inv && G.scene === 'map')]);
+    if (i < 3) await g3.keyboard.press('v'), await g3.waitForTimeout(300);
+  }
+  ok(
+    '開面板前游標就停在右欄 (828,178)、不動滑鼠：手把移焦點到候選，浮窗一開始就出現、重畫後仍開著、焦點仍在候選（戰鬥中 4 次）',
+    parked.every(x => x.every(Boolean)),
+    JSON.stringify(parked)
+  );
+  /* 座標沒變的 pointerover／pointermove／pointerleave（重畫換掉游標下的元素、另一個候選滑到游標下）：不算滑鼠接管，浮窗不關、不換 */
+  await g3.evaluate(() => {
+    const E = [...$('pinv').querySelectorAll('.c12g .cq')],
+      o = { bubbles: true, pointerType: 'mouse', clientX: 828, clientY: 178 };
+    E.find(e => e !== document.activeElement).dispatchEvent(new PointerEvent('pointerover', o));
+    $('pinv').querySelector('.chd').dispatchEvent(new PointerEvent('pointerover', o));
+    $('pinv').querySelector('.chd').dispatchEvent(new PointerEvent('pointermove', o));
+    $('pinv').dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse', clientX: 828, clientY: 178 }));
+  });
+  const fk2 = [await st(), ...(await redraw(2))];
+  ok(
+    '座標沒變的 pointerover／pointermove／pointerleave：浮窗不關、仍是焦點那一件',
+    fk2.every(x => x[0]),
+    JSON.stringify(fk2)
+  );
+  /* Q2：滑鼠真的移到另一個候選 A：跟滑鼠；重畫不變回焦點那一件 */
+  const oth = await g3.evaluate(() => {
+    const g = $('pinv').querySelector('.c12g').getBoundingClientRect(),
+      e = [...$('pinv').querySelectorAll('.c12g .cq')].find(
+        e => e !== document.activeElement && e.getBoundingClientRect().bottom <= g.bottom
+      ),
+      r = e.getBoundingClientRect();
+    return [+e.dataset.c.slice(5), r.x + 32, r.y + 32];
+  });
+  await g3.mouse.move(oth[1], oth[2]);
+  await g3.waitForTimeout(100);
+  const m1 = [await st(), ...(await redraw(4))];
+  ok(
+    '焦點在候選 B、滑鼠真的移到候選 A：浮窗換成 A，重畫 4 次仍是 A（焦點留在 B）',
+    m1.every(x => x[1] && x[2] === oth[0] && x[3].startsWith('cand:') && x[3] !== 'cand:' + oth[0]),
+    JSON.stringify([oth[0], m1])
+  );
+  /* 再用手把移焦點：最後一次有效輸入是焦點，浮窗跟焦點（游標還停在 A 上），重畫不變回 A */
+  await pad(13);
+  const m2 = [await st(), ...(await redraw(3))];
+  ok(
+    '接著手把移焦點：浮窗跟焦點那一件，重畫 3 次不變回游標下的 A',
+    m2.every(x => x[0] && x[2] !== oth[0]),
+    JSON.stringify(m2)
+  );
+  /* 滑鼠真的移出右欄：收起並保持收起（重畫還原焦點不算焦點移動）；焦點再移動才再開 */
+  await g3.mouse.move(300, 300);
+  await g3.waitForTimeout(100);
+  const m3 = [await st(), ...(await redraw(4))];
+  ok(
+    '滑鼠真的移出右欄：浮窗收起，重畫 4 次都不自己打開，焦點仍在候選',
+    m3.every(x => !x[1] && x[2] == null && x[3].startsWith('cand:')),
+    JSON.stringify(m3)
+  );
+  await pad(12);
+  const m4 = [await st(), ...(await redraw(2))];
+  ok(
+    '移出後手把再移焦點：浮窗跟焦點再打開，重畫後仍開著',
+    m4.every(x => x[0]),
+    JSON.stringify(m4)
+  );
+  /* 滑鼠移回右欄的候選：跟滑鼠 */
+  await g3.mouse.move(oth[1], oth[2]);
+  await g3.waitForTimeout(100);
+  const m5 = await g3.evaluate(
+    ([x, y]) => {
+      const e = document.elementFromPoint(x, y).closest('[data-c^="cand:"]');
+      return !!e && CH.hov === +e.dataset.c.slice(5) && !!$('pinv').querySelector('.c12p');
+    },
+    [oth[1], oth[2]]
+  );
+  ok('滑鼠移回右欄的候選：浮窗跟游標下那一件', m5);
   if (OUT) fs.writeFileSync(path.join(OUT, 'boxes.json'), JSON.stringify(BOX, null, 1));
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '✅ 角色頁全部通過');

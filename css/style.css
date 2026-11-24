@@ -2911,7 +2911,7 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .c12g { left: 80px; top: 178px; width: 290px; height: 204px; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 64px); grid-auto-rows: 64px; gap: 6px; align-content: start; scrollbar-width: none; }
 .c12 .c12g .cq { position: relative; }
 .c12 .cnone { grid-column: 1 / -1; margin: 8px 0; font-size: 12px; color: var(--tx-dim); }
-.c12 .cet { left: 80px; top: 124px; width: 300px; height: 24px; font: 700 12px var(--font); color: var(--tx-strong); }
+.c12 .cet { left: 80px; top: 124px; width: 300px; height: 24px; font: 700 12px var(--font); color: var(--tx-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .c12 .cep { left: 80px; top: 152px; width: 300px; height: 36px; margin: 0; font-size: 13px; color: var(--tx); }
 .c12 .cmk { left: 80px; top: 204px; width: 300px; height: 48px; min-height: 0; font: 700 14px var(--font); }
 /* 比較浮窗：五層（主角 16/700、輔助 14/400 --tx-dim、換上 18/700）；不接滑鼠，懸停的格子在底下 */
@@ -2937,14 +2937,19 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .c12p .l2 { min-height: 73px; }
 .c12 .c12p .kv { display: flex; align-items: baseline; gap: 8px; height: 20px; line-height: 20px; }
 .c12 .c12p .kv b { font: 700 16px var(--font); font-variant-numeric: tabular-nums; }
-/* ③ 放不下時層內捲動（V-4），不裁切；①②④⑤ 永遠完整 */
-.c12 .c12p .l3 { position: relative; flex: 0 1 auto; min-height: 107px; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; align-content: start; }
-.c12 .c12p.det .l3 { min-height: 119px; }
+/* ③ 放不下時層內捲動（V-4），不裁切；①②④⑤ 永遠完整。
+   ③ 平常至少 107（詳細 119，由 ::before 撐）；②④ 長高到浮窗頂到 486 時只有 ③ 再縮（RULINGS-3 F-2、F-3） */
+.c12 .c12p .l3 { position: relative; flex: 0 1 auto; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; align-content: start; }
+.c12 .c12p .l3::before { content: ""; grid-column: 1; grid-row: 1 / 4; height: 94px; }
+.c12 .c12p.det .l3::before { height: 106px; }
 .c12 .c12p ul { margin: 0; padding: 0; list-style: none; min-width: 0; }
 .c12 .c12p li { display: flex; align-items: baseline; gap: 6px; height: 24px; line-height: 24px; white-space: nowrap; }
 .c12 .c12p li b { min-width: 0; font: 700 16px var(--font); overflow: hidden; text-overflow: ellipsis; }
 .c12 .c12p li small { flex: none; }
 .c12 .c12p li i { font-style: normal; }
+/* 04b：主文字＋「T 階 ✦」一行放不下，輔助字換到下一小行（RULINGS-3 Q1） */
+.c12 .c12p li.w2 { flex-wrap: wrap; height: auto; }
+.c12 .c12p li.w2 small { flex-basis: 100%; line-height: 20px; }
 .c12 .c12p .l4 { min-height: 65px; }
 .c12 .c12p .l4 p { grid-column: 1 / -1; display: flex; gap: 24px; margin: 0; padding: 4px 10px; border: 1px solid var(--border); font: 700 18px/22px var(--font); white-space: nowrap; overflow: hidden; }
 .c12 .c12p .l4 p.cw { flex-wrap: wrap; gap: 0; }

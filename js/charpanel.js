@@ -281,7 +281,7 @@ function chCandHTML() {
     cur = S.eq[k],
     all = slotCands(k);
   if (!all.length)
-    return `<b class="cet">${e.n}　空著</b><p class="cep">${strT('noCand', { s: e.n })}</p><button class="btn pri cmk" data-a="mkslot:${k}">${STR_T.mkSlot}</button>`;
+    return `<b class="cet">${cur ? `現在：${esc(itemName(cur))}` : `${e.n}　空著`}</b><p class="cep">${cur ? `可以換的 0 件<span class="sr">${strT('slotWorn', { s: e.n, n: 0 })}</span>` : strT('noCand', { s: e.n })}</p><button class="btn pri cmk" data-a="mkslot:${k}">${STR_T.mkSlot}</button>`;
   const J = chCands(k),
     W = chWear(k),
     up = W.filter(it => ['▲', '▲▲'].includes(chJudge(it, k))).length,
@@ -398,7 +398,9 @@ function chRender() {
     c = p.contains(f) && f.dataset && f.dataset.c;
   panelHTML(p, charHTML());
   const n = c && p.querySelector(`[data-c="${CSS.escape(c)}"]`);
+  CH_RF = 1;
   if (n) n.focus({ preventScroll: true });
+  CH_RF = 0;
   chL3();
 }
 /* 比較浮窗只換自己（不重畫整個面板，捲動與焦點都留著） */
@@ -414,11 +416,12 @@ function chCmpSync() {
    換格、按下或放開 Alt／Y 時 CH.l3 歸零（chAlt、chHov） */
 function chL3(d) {
   const s = $('pinv').querySelector('.c12p .l3s');
-  /* 04b 放不下（Q3）：先收區間、再收 T 階，還不夠才收「破裂」、整段輔助字；詞綴＋實際數值要完整 */
+  /* 04b 放不下（RULINGS-3 Q1）：先收區間；還不夠就把「T 階 ✦ 破裂」換到下一小行（.w2），T 階與「破裂」不收 */
   if (s)
-    for (const b of s.querySelectorAll('li > b'))
-      for (const c of ['.rg', '.tr', '.fr', 'small'])
-        if (b.scrollWidth > b.clientWidth) b.parentNode.querySelector(c)?.remove();
+    for (const b of s.querySelectorAll('li > b')) {
+      if (b.scrollWidth > b.clientWidth) b.parentNode.querySelector('.rg')?.remove();
+      if (b.scrollWidth > b.clientWidth) b.parentNode.classList.add('w2');
+    }
   if (s) (s.scrollTop = CH.l3 + (d || 0)), (CH.l3 = s.scrollTop);
   chSb();
 }
@@ -480,7 +483,8 @@ function chTermHide() {
 }
 /* ---------- 輸入 ---------- */
 let CH_LP = 0,
-  CH_LPF = 0;
+  CH_LPF = 0,
+  CH_RF = 0;
 function chAct(c, el) {
   const P = pins();
   if (c.startsWith('eq:')) {
@@ -548,12 +552,15 @@ function chInit() {
   /* 長按數值列（0.5 秒）或右鍵＝選單（02） */
   p.addEventListener('pointerdown', e => {
     CH_LPF = 0;
+    pd = 1;
+    if (e.pointerType === 'mouse') (mouse = 1), over(e.target);
     p.classList.remove('kb');
     const r = p.classList.contains('c12') && !CH.edit && e.target.closest('[data-c^="row:"]');
     clearTimeout(CH_LP);
     if (r) CH_LP = setTimeout(() => ((CH.menu = r.dataset.c.slice(4)), (CH_LPF = 1), chTermHide(), hudPanels()), 500);
   });
   for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) p.addEventListener(ev, () => clearTimeout(CH_LP));
+  for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => (pd = 0), true);
   /* 長按選單：點右欄外面（戰場、分頁列……）也關（V-1） */
   addEventListener('pointerdown', e => CH.menu && !p.contains(e.target) && ((CH.menu = null), hudPanels()), true);
   p.addEventListener('scroll', chSb, true);
@@ -571,6 +578,10 @@ function chInit() {
     const r = p.classList.contains('c12') && !CH.edit && e.target.closest('[data-c^="row:"]');
     if (r) e.preventDefault(), (CH.menu = r.dataset.c.slice(4)), hudPanels();
   });
+  let mx,
+    my,
+    mouse = 0,
+    pd = 0;
   const over = el => {
     if (!p.classList.contains('c12')) return;
     const c = el && el.closest('[data-c^="cand:"]');
@@ -589,19 +600,28 @@ function chInit() {
         }, 400);
     }
   };
-  /* 戰鬥中面板重畫會換掉游標下的元素、送一次座標沒變的 pointerover：焦點（鍵盤／手把）在候選上時不讓它關浮窗 */
-  let mx, my;
-  p.addEventListener('pointermove', e => ((mx = e.clientX), (my = e.clientY)));
-  p.addEventListener('pointerover', e => {
-    if (e.pointerType !== 'mouse') return;
-    if (e.clientX === mx && e.clientY === my && p.querySelector('[data-c^="cand:"]:focus')) return;
-    over(e.target);
-  });
-  p.addEventListener('pointerleave', () => (chHov(null), chTermHide(), (CTM_EL = null)));
-  p.addEventListener(
-    'focusin',
-    e => e.target.closest('[data-c^="cand:"]') && chHov(+e.target.closest('[data-c^="cand:"]').dataset.c.slice(5))
+  /* 比較浮窗跟最後一次有效輸入（RULINGS-3 F-1、Q2）：mouse＝1 跟游標、0 跟焦點。
+     滑鼠輸入只有座標真的變了的 pointermove 與按下；焦點輸入是鍵盤／手把移焦點（重畫還原焦點 CH_RF、按下帶來的焦點 pd 不算）。
+     重畫、座標沒變的 pointerover／pointerleave 不改跟誰：跟游標時照游標下的元素更新，跟焦點時不理 */
+  addEventListener(
+    'pointermove',
+    e => {
+      if (e.pointerType !== 'mouse' || (e.clientX === mx && e.clientY === my)) return;
+      (mx = e.clientX), (my = e.clientY), (mouse = 1);
+      over(p.contains(e.target) ? e.target : null);
+    },
+    true
   );
+  p.addEventListener('pointerover', e => {
+    if (mouse && e.pointerType === 'mouse') over(e.target);
+  });
+  p.addEventListener('pointerleave', () => mouse && over(null));
+  p.addEventListener('focusin', e => {
+    if (CH_RF || pd) return;
+    const c = e.target.closest('[data-c^="cand:"]');
+    mouse = 0;
+    chHov(c ? +c.dataset.c.slice(5) : null);
+  });
   addEventListener(
     'keydown',
     e => {

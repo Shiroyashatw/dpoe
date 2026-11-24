@@ -8791,6 +8791,7 @@ const STR_T = {
   noCand: '還沒有能裝在{s}的裝備',
   beltCharm: '裝上腰帶就有護符槽',
   slotAria: '{s}空著，倉庫有 {n} 件可以裝備',
+  slotWorn: '{s}已裝備，倉庫有 {n} 件可以換',
   chaseSub: '王印 {k}／4・下一件保底 {n}%',
   chaseNew: '追逐物品有新東西',
   wyHave: '擁有 {n}・身上 {m}',
