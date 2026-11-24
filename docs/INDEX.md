@@ -95,7 +95,7 @@
 | 王印 | 王印 v0.2（Page 685f7eea） | v0.2 | 待轉入成 S/king-seal.md（各自批次到了再定） |
 | 標題、暫停、讀取 | （無） | — | 待寫（W6） |
 | 設定、鍵位 | `S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 | 11/18 | 現行；以 battle-hud v1.3 為準 |
-| 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；畫面 B9 待寫 |
+| 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；2026-11-24 材料定稿 v1.1 更新；畫面 B9 待寫 |
 | 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | foundations v1.0.2／panel-1plus v1.2 | 現行 |
 | PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 已取消（superseded，mumi 11/21 12:42）；正文留作歷史紀錄 |
 
@@ -105,8 +105,8 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 名詞表 | `docs/名詞表.md` | v0.6.41 | 現行；v0.6.40 已取代 |
-| 數值總表 | `S/數值總表.md` | v0.5 | 現行 v0.5 |
+| 名詞表 | `docs/名詞表.md` | v0.6.48 | 現行；v0.6.47 以前已取代 |
+| 數值總表 | `S/數值總表.md` | v0.5.2 | 現行；v0.5.1 已取代 |
 | 追逐掉落 | `S/M2-17-chase-drops.md` | v1.3 | 現行 |
 | 大招判定 | `S/M2-40-big-attack.md` | v1.0 | 現行 |
 | 輔助推薦分數 | `S/M2-40-rec-score.md` | v1.0 | 現行 |
@@ -122,7 +122,13 @@
 | 數值排程 | `docs/production/數值待排.md` | — | 草稿，不可交辦 |
 | 劍技能草案 | `docs/production/劍技能草案.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
-| 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | 現行（原定併進 `S/M2-camp-cards.md` §5.1） |
+| 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）；產生器已拿掉，正文留作紀錄，不刪檔 |
+| 材料來源 | `docs/production/adjust/材料來源.md` | 定稿 v1.1 | 現行；定案 v1.0 superseded |
+| 工坊與解鎖表 | `docs/工坊與解鎖表.md` | — | 現行；2026-11-24 材料定稿 v1.1 更新（產生器、民房、居民段落是舊設計，留作紀錄） |
+| 待決題目 | `docs/production/adjust/待決題目.md` | — | 現行 |
+| 天賦樹與珠寶孔 | `docs/production/adjust/天賦樹與珠寶孔.md` | — | 現行 |
+| 調整書目錄 | `docs/production/adjust/README.md` | — | 現行；README 提到的 `技能改版.md`、`底層機制盤點.md`、`低生命紅框.md`、`王暴怒揮爪.md`、`_input/` 未進 repo |
+| 調整書變更紀錄 | `docs/production/adjust/CHANGELOG.md` | — | 現行 |
 
 ## 美術（Game Art Director）
 
