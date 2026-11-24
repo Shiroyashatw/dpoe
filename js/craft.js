@@ -1658,13 +1658,27 @@ const TRADE_CUR = {
 };
 /* T 階的 m 換 n 顆 c 要幾個（木 T＝0） */
 const tradeCost = (m, T, c, n = 1) => (TRADE_CUR[m][c] * n) / (T ? 3 ** (T - 1) : 1);
+/* num-mat-v12（只為模擬，不能合併）：商會每種通貨每小時最多換 TRADE_QH 顆；額度連續回復、最多存 1 小時；每種通貨從第一次查它的額度那一刻的 0 開始（模擬裡＝商會開張那一刻）；不同材料換同一種通貨共用額度。
+   tradeNow＝秒（模擬器覆寫成模擬時間） */
+const TRADE_QH = { tran: 117, aug: 117, rich: 13, exalt: 26 };
+let tradeNow = () => Date.now() / 1000;
+function tradeLeft(c) {
+  const Q = (MAT().tq = MAT().tq || {}),
+    now = tradeNow(),
+    o = Q[c] || (Q[c] = { n: 0, at: now });
+  o.n = Math.min(TRADE_QH[c], o.n + ((now - o.at) * TRADE_QH[c]) / 3600);
+  o.at = now;
+  return Math.floor(o.n);
+}
 function tradeCur(m, T, c, n = 1) {
   if (!campCan('trade')) return '倉房 Lv4 才開商會';
   if (!(TRADE_CUR[m] && TRADE_CUR[m][c])) return '換不了';
   if (!campCan(curKey(c))) return CUR[c].n + '還沒開始掉';
   const q = tradeCost(m, T, c, n);
   if (matN(m, T) < q) return (T ? matName(m, T) : '木') + '不夠';
+  if (tradeLeft(c) < n) return CUR[c].n + '這小時換完了';
   matAdd(m, T, -q);
+  MAT().tq[c].n -= n;
   MAT()[c] = (MAT()[c] || 0) + n;
   return null;
 }
