@@ -82,7 +82,7 @@
 | 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
 | 倉庫 | `S/M2-33-2a-items-crafting.md` §1、§2（動作段）、§3＋`S/M2-item-display.md`（格子與說明；跟 2a 衝突時以它為準）＋`S/M2-37-ia-rework.md` §3、§4 | 2a v1.0.1／item-display v1.2／M2-37 v1.3.1 | 草稿／未定稿；B5 新檔 S/stash.md 待寫（草稿 W-storage-draft-2145 待 mumi） |
-| 角色 | `S/M2-character.md` v1.0（元件表 `S/M2-character-2.md`～`S/M2-character-4.md`；格子與說明以 `S/M2-item-display.md` v1.2 為準；2a §4、M2-37 §8 空格狀態仍可對照） | v1.0 | 定稿草稿（390×844 示意圖已定；1280×720 版面待補；未進入開發） |
+| 角色 | `S/M2-character.md` v1.1 ＋ `S/M2-character-1280.md`（1280×720 定稿；390 元件表 `S/M2-character-2.md`～`S/M2-character-4.md`；格子與說明以 `S/M2-item-display.md` v1.2 為準；2a §4、M2-37 §8 空格狀態仍可對照，與 1280 衝突時以 M2-character-1280 為準） | v1.1 | 定稿（mumi 11/24 12:22 上色示意圖過關；示意圖 `W/W3-character/color/`；390×844 仍見主檔 §1–§11，示意圖未進 repo；珠寶分頁不在本版；未進入開發） |
 | 商會 | 規則 `S/M2-trade-tiercap.md` | v1.0 | 規則現行；畫面待寫（各自批次到了再定） |
 | 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2.1 | 待定（版面段已作廢，技能分頁段要拆成 S/skills-panel.md）；**戰鬥 HUD 部分已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；M2-40 裡的「祭壇」字串，畫面上一律改寫「長老屋」（名詞表 v0.6.19） |
 | 天賦樹 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（S2 改版暫停；天賦樹開著時照刷） |
