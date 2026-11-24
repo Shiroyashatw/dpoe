@@ -2999,6 +2999,10 @@ body:not(.touch) :is(#pskill.s12, #pros) { display: block; top: 76px; width: 476
 #pskill.s12 .s-r > * { position: absolute; }
 #pskill.s12 .s-r.on, #pskill.s12 .s-r.lift { background: var(--sel-bg); box-shadow: inset 0 0 0 2px var(--sel-edge); }
 #pskill.s12 .s-r.lift { z-index: 3; box-shadow: inset 0 0 0 2px var(--sel-edge), 0 8px 24px rgb(var(--scrim-rgb), 0.7); cursor: grabbing; }
+/* F-3：換序時其他列讓位（被越過的列滑到空出的格）、插入線 452×2 */
+#pskill.s12 .s-l > .s-r:not(.lift) { transition: transform 0.15s ease-out; }
+#pskill.s12 > .s-ins { left: 12px; width: 452px; height: 2px; background: var(--tx); z-index: 2; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { #pskill.s12 .s-l > .s-r:not(.lift) { transition: none; } }
 #pskill.s12 .s-g { left: 6px; top: 0; width: 20px; height: 92px; display: grid; place-items: center; background: none; border: 0; color: var(--tx-dim); cursor: grab; }
 #pskill.s12 .s-g .ico { width: 10px; height: 20px; stroke-width: 3; }
 #pskill.s12 .s-g[aria-pressed='true'] { color: var(--sel-tx); }
@@ -3021,6 +3025,7 @@ body:not(.touch) :is(#pskill.s12, #pros) { display: block; top: 76px; width: 476
 #pskill.s12 .s-o .ic { width: 32px; height: 32px; object-fit: contain; }
 #pskill.s12 .s-o.x .ic { opacity: 0.4; }
 #pskill.s12 .s-o.can { border: 2px solid var(--sel-edge); background: var(--sel-bg); }
+#pskill.s12 .s-o.no { opacity: 0.4; }
 :is(.s12, #pros, #skg) :is(.ii, .xx, .nm) { position: absolute; font: 700 10px/12px var(--font); font-style: normal; color: var(--tx-strong); }
 #pskill.s12 .ii { right: 1px; bottom: 1px; padding: 0 2px; background: var(--panel); }
 #pskill.s12 .xx { right: 2px; top: 1px; }
@@ -3046,6 +3051,10 @@ body:not(.touch) :is(#pskill.s12, #pros) { display: block; top: 76px; width: 476
 #pskill.s12 .s-f section > b { display: block; margin-top: 6px; font: 700 16px/20px var(--font); color: var(--tx-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #pskill.s12 .s-f section:first-of-type > b { margin-top: 2px; }
 #pskill.s12 .s-f section > p { margin: 0; font: 400 14px/20px var(--font); color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pskill.s12 .s-f section > p.w { white-space: normal; overflow: visible; text-overflow: clip; line-height: 18px; overflow-wrap: anywhere; }
+/* F-1：詳細浮窗輔助行折成兩行時的空間（框 476×368 不變） */
+#pskill.s12 .s-f.det section:not(:first-of-type) { padding-top: 3px; }
+#pskill.s12 .s-f.det section:not(:first-of-type) > b { margin-top: 4px; }
 #pskill.s12 .s-f .c-bad { color: var(--bad); }
 #pskill.s12 .s-f .op > p { margin-top: 4px; }
 #pskill.s12 .s-f .op > div { display: flex; gap: 8px; margin-top: 4px; }
@@ -3062,6 +3071,10 @@ body:not(.touch) :is(#pskill.s12, #pros) { display: block; top: 76px; width: 476
 /* 卸下後的復原列（08） */
 #pskill.s12 .s-u { left: 12px; top: 438px; width: 452px; height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 0 12px; background: var(--panel-raised); box-shadow: inset 0 0 0 1px var(--border); font: 400 16px/24px var(--font); color: var(--tx-strong); z-index: 3; }
 #pskill.s12 .s-u .s-b { padding: 0 10px; }
+#sku { position: fixed; z-index: 30; height: 40px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 0 12px; background: var(--panel-raised); box-shadow: inset 0 0 0 1px var(--border); font: 400 16px/24px var(--font); color: var(--tx-strong); white-space: nowrap; }
+#sku[hidden] { display: none; }
+#sku > * { position: static; }
+#sku .s-b { padding: 0 10px; }
 /* 名冊抽屜 */
 #pros .p-hd { left: 12px; top: 10px; font: 700 16px/24px var(--font); color: var(--tx-strong); }
 #pros .p-tab { left: 84px; top: 10px; width: 72px; font-weight: 400; }

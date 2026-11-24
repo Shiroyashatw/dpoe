@@ -205,9 +205,9 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       .join(' ')
   );
   /* dpoe-b3-art-fix2（§12-3）：牌匾寫設施名（名詞表），Lv 取那座設施 */
-  const LV = { forge: '鍛造台 Lv5', device: '瞭望台 Lv26', asc: '祭壇 Lv11', stash: '倉房 Lv5' };
+  const LV = { forge: '鍛造台 Lv5', device: '瞭望台 Lv26', asc: '長老屋 Lv11', stash: '倉房 Lv5' };
   ok(
-    '牌匾寫設施名（§12-3）：鍛造台 Lv5、瞭望台 Lv26、祭壇 Lv11、倉房 Lv5；練習區、山海寶盒只有名字',
+    '牌匾寫設施名（§12-3）：鍛造台 Lv5、瞭望台 Lv26、長老屋 Lv11、倉房 Lv5；練習區、山海寶盒只有名字',
     L0.every(k => (LV[k.k] ? k.n === LV[k.k] : !/Lv/.test(k.n))),
     Object.values(LV).join('、'),
     L0.map(k => k.n).join('、')
@@ -696,10 +696,10 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   });
   ok('Tab 走得到牌匾（#plqs 透明按鈕，照場景左右順序）', !!kb.k0 && tabs < 40, '≤40 次 Tab', `${tabs} 次 → ${kb.k0}`);
   ok(
-    'aria-label：設施名（瞭望台、祭壇、倉房、鍛造台）「{名} {n} 級，可以升級」、其他擺設只有名字',
+    'aria-label：設施名（瞭望台、長老屋、倉房、鍛造台）「{名} {n} 級，可以升級」、其他擺設只有名字',
     kb.labels.some(l => /^鍛造台 \d+ 級，可以升級$/.test(l)) &&
       kb.labels.some(l => /^瞭望台 \d+ 級/.test(l)) &&
-      kb.labels.some(l => /^祭壇 \d+ 級/.test(l)) &&
+      kb.labels.some(l => /^長老屋 \d+ 級/.test(l)) &&
       kb.labels.some(l => /^倉房 \d+ 級/.test(l)) &&
       !kb.labels.some(l => /地圖台|昇華石碑|倉庫/.test(l)) &&
       kb.labels.includes('練習區') &&

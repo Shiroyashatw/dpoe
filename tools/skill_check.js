@@ -85,7 +85,7 @@ const ROWS = [0, 1, 2, 3].map(i => [`技能列 ${i + 1}`, `#pskill [data-s="row:
     '04-skill-hover-detail': FLOAT,
     '05-support-hover': FLOAT,
     '07-insert-pick': [...ROS, ['主鈕（高約 44）', '#pros .p-m .s-b', [28, 508, 448, 44]], ...ROWS],
-    '08-remove': [...HEAD, ...ROWS.slice(0, 3)],
+    '08-remove': [...HEAD, ...ROWS.slice(0, 3), ['復原列（示意 H38，3 列情境）', '#sku', [800, 460, 452, 40]]],
     '09-socket-empty': [...HEAD, ...ROWS, ...HOLES(1)],
     '10-socket-locked': [...HEAD, ...ROWS, ...HOLES(0)],
     '11-socket-incompat': [...HEAD, ...ROWS, ...HOLES(2)],
@@ -98,9 +98,16 @@ const ROWS = [0, 1, 2, 3].map(i => [`技能列 ${i + 1}`, `#pskill [data-s="row:
     ],
     '14-noun-tip': HEAD,
     '15-unlock-ii': FLOAT,
-    '16-reorder': [...HEAD, ROWS[0], ROWS[3]],
+    '16-reorder': [
+      ...HEAD,
+      ROWS[0],
+      ROWS[3],
+      ['插入線（示意 P22）', '#pskill > .s-ins', [800, 242, 452, 2]],
+      ['提起列 油榴彈（示意 P23）', '#pskill .s-r.lift', [812, 248, 452, 92]],
+      ['讓位的第 2 列 爆裂榴彈（示意 P31）', '#pskill [data-s="row:1"]', [800, 360, 452, 92]]
+    ],
     '17-roster-skills': [...ROS, ['名冊格 1', '#pros .p-c', [28, 192, 80, 80]], ...ROWS.slice(0, 3)],
-    '18-roster-supports': [...ROS, ['名冊格 1', '#pros .p-c', [28, 192, 80, 80]], ...ROWS]
+    '18-roster-supports': [...ROS, ['名冊格 1', '#pros .p-c', [28, 192, 80, 80]], ...ROWS, ...HOLES(1)]
   };
 /* 頁內：面板的狀態（一趟拿完） */
 const ST = () => {
@@ -164,7 +171,7 @@ const TOK = L => {
 /* 頁內：超出與字級。over＝右欄／名冊裡看得到的元素超出自己那一欄的；cut＝字被切（scrollWidth > clientWidth）；small＝小於 14 px 的字（II 角標、✕ 10、關閉鍵帽 8、佔位 12 除外） */
 const OVER = () => {
   const res = { over: [], cut: [], small: [], doc: document.documentElement.scrollWidth - innerWidth };
-  for (const id of ['pskill', 'pros', 'skt', 'skc', 'skn', 'skh']) {
+  for (const id of ['pskill', 'pros', 'skt', 'skc', 'skn', 'skh', 'sku']) {
     const P = $(id);
     if (!P || P.hidden) continue;
     const pr = P.getBoundingClientRect();
@@ -195,10 +202,35 @@ const OVER = () => {
   }
   return res;
 };
+/* 頁內（F-6）：點選清單看得到的每一列都完整（不被捲動區或主鈕切半）、清單底 ≤ 主鈕上緣；捲到底最後一列完整；捲回原位 */
+const F6 = async () => {
+  const L = document.querySelector('#pros .p-l'),
+    m = document.querySelector('#pros .p-m .s-b').getBoundingClientRect(),
+    y0 = L.scrollTop,
+    look = () => {
+      const a = L.getBoundingClientRect(),
+        R = [...L.children].map(e => e.getBoundingClientRect()),
+        vis = R.filter(r => r.bottom > a.top + 0.5 && r.top < a.bottom - 0.5);
+      return {
+        lb: Math.round(a.bottom),
+        cut: vis.filter(r => r.bottom > a.bottom + 0.5 || r.bottom > m.top + 0.5).length,
+        last:
+          R.length && R[R.length - 1].bottom <= Math.min(a.bottom, m.top) + 0.5 && R[R.length - 1].top >= a.top - 0.5,
+        n: vis.length
+      };
+    },
+    rest = look();
+  L.scrollTop = L.scrollHeight;
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const end = look();
+  L.scrollTop = y0;
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  return { rest, end, m: [m.x, m.y, m.width, m.height].map(Math.round), after: look() };
+};
 /* 畫面不出現的詞（skills-panel「工程師實作範圍」＋名詞表） */
 const BAN = /祭壇|法力|MP\b|寶石|彈夾|\bms\b|收藏|火II|加速|點此放一招|DPS\/秒|DPS／秒/;
 const TXT = () =>
-  ['pskill', 'pros', 'skt', 'skc', 'skn', 'skh']
+  ['pskill', 'pros', 'skt', 'skc', 'skn', 'skh', 'sku']
     .map(id => ($(id) && !$(id).hidden ? $(id).textContent : ''))
     .join('\n');
 
@@ -578,6 +610,42 @@ const TXT = () =>
     J(fb)
   );
   ok('按住 Alt 時浮窗接滑鼠（鈕按得到）', s.f.pe === 'auto', s.f.pe);
+  const fF1 = await p.evaluate(() => {
+    const f = document.querySelector('#pskill .s-f'),
+      P = [...f.querySelectorAll('section > p')].find(e => e.textContent.includes('這顆讓 DPS 多')),
+      fr = f.getBoundingClientRect(),
+      s = P && getComputedStyle(P),
+      lines = P ? [...P.getClientRects()] : [],
+      r = P && P.getBoundingClientRect(),
+      nav = $('dnav') && $('dnav').getBoundingClientRect(),
+      h3 = [0, 1, 2, 3, 4].map(j => document.querySelector(`#pskill [data-s="hole:3:${j}"]`).getBoundingClientRect());
+    return {
+      t: P && P.textContent,
+      sw: P && P.scrollWidth,
+      cw: P && P.clientWidth,
+      to: s && s.textOverflow,
+      h: r && Math.round(r.height),
+      lh: s && parseFloat(s.lineHeight),
+      rIn: !!r && r.left >= fr.left && r.right <= fr.right && r.bottom <= fr.bottom,
+      f: [fr.x, fr.y, fr.width, fr.height].map(Math.round),
+      nav: !!nav && !(nav.bottom > fr.top && nav.top < fr.bottom && nav.right > fr.left && nav.left < fr.right),
+      holes: h3.every(h => h.top >= fr.bottom),
+      lines: lines.length
+    };
+  });
+  ok(
+    'F-1 04：輔助行「這顆讓 DPS 多 n」數字完整（沒有「…」、不用 ellipsis、scrollWidth ≤ clientWidth、放不下折行），整行在浮窗內；浮窗仍 788,76 476×368、下緣 444，不蓋第 4 列孔與 #dnav',
+    !!fF1.t &&
+      /這顆讓 DPS 多 [\d,]+$/.test(fF1.t) &&
+      !fF1.t.includes('…') &&
+      fF1.to !== 'ellipsis' &&
+      fF1.sw <= fF1.cw &&
+      fF1.rIn &&
+      J(fF1.f) === J([788, 76, 476, 368]) &&
+      fF1.holes &&
+      fF1.nav,
+    J(fF1)
+  );
   await shot('04-skill-hover-detail');
   await p.keyboard.up('Alt');
   await p.waitForTimeout(120);
@@ -801,6 +869,18 @@ const TXT = () =>
   );
   await p.evaluate(() => ((SK.f.sups = '推薦'), (SK.pick = 'crit'), hudPanels()));
   await p.waitForTimeout(120);
+  const f6_07 = await p.evaluate(F6);
+  ok(
+    'F-6 07：名冊清單底 ≤ 主鈕上緣 508、看得到的列沒有被切半；捲到底最後一列（圖示＋名稱）完整；主鈕仍 28,508 448×44',
+    f6_07.rest.n > 0 &&
+      f6_07.rest.cut === 0 &&
+      f6_07.rest.lb <= 508 &&
+      f6_07.end.cut === 0 &&
+      f6_07.end.last &&
+      f6_07.after.cut === 0 &&
+      J(f6_07.m) === J([28, 508, 448, 44]),
+    J(f6_07)
+  );
   await shot('07-insert-pick');
   await p.focus('#pros .p-r.on');
   await p.keyboard.press('Enter');
@@ -816,22 +896,60 @@ const TXT = () =>
   await p.keyboard.press('Delete');
   await p.waitForTimeout(200);
   s = await st();
-  const ub = { u: await bx('#pskill .s-u'), b: await bx('#pskill .s-u .s-b') };
+  /* F-2：4 列都在畫面時復原列搬到戰場 #sku（列下方會壓第 4 列的孔） */
+  const UQ = ':is(#pskill .s-u, #sku:not([hidden]))',
+    ub = { u: await bx(UQ), b: await bx(UQ + ' .s-b') };
   ok(
     'Del 卸下（不用確認）：孔空了，出「已卸下 附加火焰 II　復原」',
     s.sk[1][1] == null && !!ub.u && ub.u.t === '已卸下 附加火焰 II復原' && ub.b.t === '復原' && s.soul >= 3209,
     J([s.sk[1], ub])
   );
   await away();
+  const fF2 = await p.evaluate(() => {
+    const R = e => e && e.getBoundingClientRect(),
+      u = R(document.querySelector(':is(#pskill .s-u, #sku:not([hidden]))')),
+      ub = document.querySelector(':is(#pskill .s-u, #sku:not([hidden])) .s-b'),
+      L = R(document.querySelector('#pskill .s-l')),
+      H = [0, 1, 2, 3, 4].map(j => R(document.querySelector(`#pskill [data-s="hole:3:${j}"]`))),
+      X = (a, b) =>
+        Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
+        Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)),
+      top = (x, y) => document.elementFromPoint(x, y),
+      band = { left: 788, right: 1264, top: 494, bottom: 534 },
+      ubr = R(ub);
+    return {
+      u: u && [u.x, u.y, u.width, u.height].map(Math.round),
+      inSku: !$('sku').hidden,
+      holeArea: H.reduce((n, h) => n + X(u, h), 0),
+      bandArea: X(u, band),
+      hintArea: X(u, R($('skh'))),
+      holesFull: H.every(h => h && h.top >= L.top && h.bottom <= L.bottom),
+      holesTop: H.every(h => (e => e && e.closest(`[data-s^="hole:3:"]`))(top(h.x + h.width / 2, h.y + h.height / 2))),
+      ubTop: !!ubr && top(ubr.x + ubr.width / 2, ubr.y + ubr.height / 2) === ub,
+      uIn: u.left >= 0 && u.right <= innerWidth && u.bottom <= innerHeight
+    };
+  });
+  ok(
+    'F-2 08：4 列在畫面時復原列搬到戰場（#sku），跟第 4 列 5 個孔、孔帶 494–534、提示列相交面積都是 0；5 個孔完整、點得到；「復原」點得到',
+    fF2.inSku &&
+      fF2.holeArea === 0 &&
+      fF2.bandArea === 0 &&
+      fF2.hintArea === 0 &&
+      fF2.holesFull &&
+      fF2.holesTop &&
+      fF2.ubTop &&
+      fF2.uIn,
+    J(fF2)
+  );
   await shot('08-remove');
-  await click('#pskill .s-u .s-b');
+  await click(UQ + ' .s-b');
   s = await st();
-  ok('3 秒內按「復原」：輔助回到原孔', s.sk[1][1] === 'fireadd2' && !(await bx('#pskill .s-u')), J(s.sk[1]));
+  ok('3 秒內按「復原」：輔助回到原孔', s.sk[1][1] === 'fireadd2' && !(await bx(UQ)), J(s.sk[1]));
   await hover('#pskill [data-s="hole:1:1"]', 60);
   await p.keyboard.press('x');
   await p.waitForTimeout(3300);
   s = await st();
-  ok('X 也能卸下；過了 3 秒復原列消失、不能復原', s.sk[1][2] == null && !(await bx('#pskill .s-u')), J(s.sk[1]));
+  ok('X 也能卸下；過了 3 秒復原列消失、不能復原', s.sk[1][2] == null && !(await bx(UQ)), J(s.sk[1]));
   await away();
   /* ---------- 16 換序 ---------- */
   const g2 = await ctr('#pskill [data-s="grip:2"]');
@@ -847,6 +965,42 @@ const TXT = () =>
     J(lf)
   );
   ok('提起時更換圖示仍在名稱右側', is((await bx('#pskill .s-r.lift .s-sw')).b, 1022, lf ? lf.b[1] + 4 : 0, 24, 24));
+  await p.waitForTimeout(250);
+  const f3 = await p.evaluate(() => {
+    const R = q => document.querySelector(q).getBoundingClientRect(),
+      L = R('#pskill .s-l'),
+      lift = R('#pskill .s-r.lift'),
+      rows = [0, 1, 3].map(i => R(`#pskill [data-s="row:${i}"]`)),
+      ln = document.querySelector('#pskill > .s-ins'),
+      lr = ln && ln.getBoundingClientRect(),
+      X = (a, b) => Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)),
+      /* 第 2 列名稱、孔是不是最上面那一層（沒被提起的列蓋住） */
+      top = q =>
+        (r => document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2))(R(q)).closest('[data-s^="row:"]'),
+      r1 = document.querySelector('#pskill [data-s="row:1"]');
+    return {
+      r1: [rows[1].x, rows[1].y, rows[1].width, rows[1].height].map(Math.round),
+      r1In: rows[1].top >= L.top && rows[1].bottom <= L.bottom,
+      r1Over: X(rows[1], lift),
+      r1Top: top('#pskill [data-s="row:1"] .s-n') === r1 && top('#pskill [data-s="hole:1:0"]') === r1,
+      ln: lr && [lr.x, lr.y, lr.width, lr.height].map(Math.round),
+      gap: lr && rows[0].bottom <= lr.top && lr.bottom <= rows[1].top,
+      r3: Math.round(rows[2].top)
+    };
+  });
+  ok(
+    'F-3 16：提起第 3 列、拉過第 2 列：第 2 列「爆裂榴彈」讓到插入點下方（344），完整可見、名稱與孔沒被蓋（相交 0）；插入線 452×2 在第 1 列與讓位列之間；第 4 列不動',
+    f3.r1In &&
+      f3.r1Over === 0 &&
+      f3.r1Top &&
+      near(f3.r1[1], 344, 1) &&
+      !!f3.ln &&
+      f3.ln[2] === 452 &&
+      f3.ln[3] === 2 &&
+      f3.gap &&
+      near(f3.r3, 444, 1),
+    J(f3)
+  );
   await shot('16-reorder');
   /* 放開的位置過了上一列的中線才換 */
   await p.mouse.move(g2[0], g2[1] - 112, { steps: 2 });
@@ -1035,9 +1189,12 @@ const TXT = () =>
   const hc = await p.evaluate(() =>
     [...document.querySelectorAll('#pskill .s-o')].map(e => [e.dataset.s, e.classList.contains('can'), e.className])
   );
+  /* F-4（RULINGS-2）：原本「開著的孔都加框」把已插的孔也標成可插；改成只有空孔加框，已插、鎖孔不加 */
   ok(
-    '名冊輔助開著：右邊開著的孔加框、鎖孔不加',
-    hc.filter(x => /hole:1:[0-2]/.test(x[0])).every(x => x[1]) && hc.filter(x => / lk/.test(x[2])).every(x => !x[1]),
+    '名冊輔助開著：右邊空著的孔加框；已插的孔、鎖孔不加',
+    hc.filter(x => /hole:1:[12]$/.test(x[0])).every(x => x[1]) &&
+      hc.filter(x => / f/.test(x[2])).every(x => !x[1]) &&
+      hc.filter(x => / lk/.test(x[2])).every(x => !x[1]),
     J(hc.slice(5, 10))
   );
   const f2 = await ctr('#pros [data-s="pk:crit"]'),
@@ -1047,6 +1204,35 @@ const TXT = () =>
   await p.mouse.move(740, 300, { steps: 6 });
   await p.waitForTimeout(100);
   ok('拖輔助「致命」：跟著游標', ((await bx('#skg')) || {}).t === '致命');
+  const f4 = await p.evaluate(() =>
+    [...document.querySelectorAll('#pskill .s-l .s-o[data-s^="hole:"]')].map(e => {
+      const [, i, j] = e.dataset.s.split(':'),
+        h = skHole(+i, 0, +j),
+        fit = h.t === 'e' && skWith('sups', +i, 0, +j, c => supWhy(c, 'crit', +j)) === '',
+        cs = getComputedStyle(e);
+      return {
+        s: e.dataset.s,
+        t: h.t,
+        fit,
+        can: e.classList.contains('can'),
+        bd: cs.borderTopWidth + ' ' + cs.borderTopColor,
+        op: cs.opacity,
+        x: e.textContent.includes('✕')
+      };
+    })
+  );
+  ok(
+    'F-4 18：拖「致命」時只有空、相容、沒鎖的孔加可插框（2 px --sel-edge）；已插、鎖住、不相容的孔沒有框、透明度 0.4＋✕',
+    f4.some(h => h.fit) &&
+      f4.some(h => h.t === 'f') &&
+      f4.some(h => h.t === 'lk') &&
+      f4.every(h =>
+        h.fit
+          ? h.can && h.bd === `2px ${tk['sel-edge']}` && h.op === '1' && !h.x
+          : !h.can && h.bd !== `2px ${tk['sel-edge']}` && h.op === '0.4' && h.x
+      ),
+    J(f4.filter(h => (h.fit ? !h.can || h.op !== '1' || h.x : h.can || h.op !== '0.4' || !h.x)))
+  );
   await shot('18-roster-supports');
   await p.mouse.move(...t2, { steps: 6 });
   await p.mouse.up();
@@ -1084,6 +1270,18 @@ const TXT = () =>
   await click('#pros [data-s="pk:apshot"]');
   const m13 = await bx('#pros .p-m .s-b');
   ok('主鈕「放進第 1 格：穿甲彈」', m13.t === '放進第 1 格：穿甲彈' && is(m13.b, 28, 508, 448, 44), J(m13));
+  const f6_13 = await p.evaluate(F6);
+  ok(
+    'F-6 13：名冊清單底 ≤ 主鈕上緣 508、看得到的列沒有被切半；捲到底最後一列（圖示＋名稱）完整；主鈕仍 28,508 448×44',
+    f6_13.rest.n > 0 &&
+      f6_13.rest.cut === 0 &&
+      f6_13.rest.lb <= 508 &&
+      f6_13.end.cut === 0 &&
+      f6_13.end.last &&
+      f6_13.after.cut === 0 &&
+      J(f6_13.m) === J([28, 508, 448, 44]),
+    J(f6_13)
+  );
   await shot('13-skill-pick');
   await click('#pros .p-m .s-b');
   s = await st();
@@ -1270,6 +1468,31 @@ const TXT = () =>
   });
   await g.keyboard.press('g');
   await g.waitForTimeout(300);
+  /* F-7：G 打開後只按 ↓：名冊鈕的下一步是第 1 列技能格（不是孔 3），提示列「更換技能」；再往右才進孔 */
+  const f7 = [];
+  for (let n = 0; n < 4; n++) {
+    await g.keyboard.press('ArrowDown');
+    await g.waitForTimeout(150);
+    const t = await g.evaluate(ST);
+    f7.push([t.foc, t.hint]);
+    if (/^(row|hole|sw|grip):/.test(t.foc)) break;
+  }
+  const f7r = [];
+  for (let n = 0; n < 2; n++) {
+    await g.keyboard.press('ArrowRight');
+    await g.waitForTimeout(150);
+    f7r.push((await g.evaluate(ST)).foc);
+  }
+  ok(
+    'F-7 鍵盤：G 打開後只按 ↓，名冊鈕之後停在第 1 列技能格 row:0（不是 hole:0:2），提示列有「更換技能」；再按 → 經更換圖示進孔 1',
+    f7.length >= 2 &&
+      f7[f7.length - 2][0] === 'ros' &&
+      f7[f7.length - 1][0] === 'row:0' &&
+      /更換技能/.test(f7[f7.length - 1][1]) &&
+      !f7.some(x => /^hole:/.test(x[0])) &&
+      J(f7r) === J(['sw:0', 'hole:0:0']),
+    J([f7, f7r])
+  );
   await g.evaluate(() => ((window.PADON = 1), dispatchEvent(new Event('gamepadconnected'))));
   const pad = async (i, ms = 120) => {
     await g.evaluate(i => (PADB[i].pressed = true), i);

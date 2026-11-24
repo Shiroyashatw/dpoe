@@ -99,12 +99,14 @@ function skHolesHTML(i, ai) {
     .map(j => {
       const h = skHole(i, ai, j),
         /* 能插的加框（K10 A）：點選挑輔助＝對準的那一孔；拖放＝選中的那顆放得進去的孔（沒選＝開著的孔） */
+        /* F-4（示意 18）：拖放時只有空、相容、沒鎖的孔加框；已插、鎖住、不相容變淡＋✕（點已插的孔仍可換成這顆） */
         can =
-          R && R.tab === 'sups' && (h.t === 'f' || h.t === 'e')
+          R && R.tab === 'sups'
             ? grid
-              ? !SK.pick || skWith('sups', i, ai, j, c => supWhy(c, SK.pick, j)) === ''
-              : R.i === i && R.ai === ai && R.hole === j
+              ? h.t === 'e' && (!SK.pick || skWith('sups', i, ai, j, c => supWhy(c, SK.pick, j)) === '')
+              : (h.t === 'f' || h.t === 'e') && R.i === i && R.ai === ai && R.hole === j
             : 0,
+        no = grid && R.tab === 'sups' && !can,
         lab =
           h.t === 'f'
             ? skSupN(h.k) + (h.x ? '，沒有效果' : '')
@@ -113,14 +115,12 @@ function skHolesHTML(i, ai) {
               : h.t === 'dr'
                 ? '還沒打開的輔助孔'
                 : '還不能用的輔助孔';
-      return `<button class="s-o ${h.t}${h.x ? ' x' : ''}${can ? ' can' : ''}" data-s="hole:${i}:${j}" data-h="hole:${i}:${j}" aria-label="孔 ${j + 1}：${esc(lab)}">${
+      return `<button class="s-o ${h.t}${h.x ? ' x' : ''}${can ? ' can' : ''}${no ? ' no' : ''}" data-s="hole:${i}:${j}" data-h="hole:${i}:${j}" aria-label="孔 ${j + 1}：${esc(lab)}">${
         h.t === 'f'
           ? icHTML(SUPPORTS[h.k].ic) +
             (SUPPORTS[h.k].tier === 2 ? '<i class="ii">II</i>' : '') +
-            (h.x ? '<i class="xx">✕</i>' : '')
-          : h.t === 'e'
-            ? '＋'
-            : SK_CHAIN
+            (h.x || no ? '<i class="xx">✕</i>' : '')
+          : (h.t === 'e' ? '＋' : SK_CHAIN) + (no ? '<i class="xx">✕</i>' : '')
       }</button>`;
     })
     .join('')}</span>`;
@@ -184,7 +184,7 @@ function sk12HTML() {
 const skSec = (lab, lead, ...sub) =>
   `<section><small>${lab}</small>${lead ? `<b>${lead}</b>` : ''}${sub
     .filter(Boolean)
-    .map(t => `<p>${t}</p>`)
+    .map(t => (Array.isArray(t) ? `<p class="${t[0]}">${t[1]}</p>` : `<p>${t}</p>`))
     .join('')}</section>`;
 function skFloatHTML() {
   const act = SK.alt || SK.pin || SK.ii,
@@ -241,10 +241,14 @@ function skSkillHTML(i, ai, det) {
       ? skSec(
           '輔助孔',
           j >= 0 ? hole(j) : '孔 1 空',
+          /* F-1：「這顆讓 DPS 多 n」不截，放不下就折行（.w） */
           det && j >= 0
-            ? [plainTxt((SUPPORTS[r.so[j]].x && SUPPORTS[r.so[j]].x[0]) || SUPPORTS[r.so[j]].d), gain]
-                .filter(Boolean)
-                .join('・')
+            ? [
+                'w',
+                [plainTxt((SUPPORTS[r.so[j]].x && SUPPORTS[r.so[j]].x[0]) || SUPPORTS[r.so[j]].d), gain]
+                  .filter(Boolean)
+                  .join('・')
+              ]
             : [gain, `輔助孔 ${n}／5`].filter(Boolean).join('・'),
           det
             ? Array.from({ length: n }, (_, x) => x)
@@ -486,6 +490,7 @@ const skEl = id => {
     e.id = id;
     e.hidden = true;
     if (id === 'pros') (e.className = 'panel'), e.setAttribute('role', 'dialog'), e.setAttribute('aria-label', '名冊');
+    else if (id === 'sku') (e.className = 's12'), e.setAttribute('role', 'status');
     else e.setAttribute('role', id === 'skh' ? 'status' : 'tooltip');
   }
   return e;
@@ -538,6 +543,7 @@ function skRosSync() {
   if (SK.rt && p.querySelector('[data-sb]')) p.querySelector('[data-sb]').scrollTop = 0;
   SK.rt = 0;
   skPaint(p, skRosHTML());
+  skRosFit(p);
   if (SK.rf)
     (
       p.querySelector('.p-r.on, .p-c.on') ||
@@ -545,6 +551,21 @@ function skRosSync() {
       p.querySelector('[data-s]')
     ).focus();
   SK.rf = 0;
+}
+/* F-6：點選清單（07／13）的捲動區下緣停在最後一列完整看得到的地方（≤ 主鈕上緣 508），不留半列被切；捲到底最後一列完整 */
+function skRosFit(p) {
+  const L = p.querySelector('.p-b:not(.grid) > .p-l');
+  if (!L) return;
+  L.style.flex = '';
+  const a = L.getBoundingClientRect();
+  let b = a.top;
+  for (const r of L.children) {
+    const q = r.getBoundingClientRect();
+    if (q.bottom <= a.bottom + 0.5) b = Math.max(b, q.bottom);
+    else break;
+  }
+  if (b > a.top && b < a.bottom - 0.5) L.style.flex = `0 0 ${Math.floor(b - a.top)}px`;
+  skSb(p);
 }
 /* 浮窗只換自己（不重畫整個面板） */
 function skFloat() {
@@ -606,6 +627,30 @@ function skSide() {
   }
   hint.hidden = !on;
   if (on) hint.textContent = skHint();
+  skUndoSide(on);
+}
+/* F-2：復原列在列下方會碰到列或孔（4 列以上）就搬到戰場（右欄左邊、右緣 780、不透明底），不壓孔、不壓提示列 */
+function skUndoSide(on) {
+  const u = skEl('sku'),
+    P = $('pskill'),
+    pu = P.querySelector(':scope > .s-u');
+  if (!on || !SK.undo) return void ((u.hidden = true), u.replaceChildren(), pu && pu.remove());
+  if (!pu) return;
+  const a = pu.getBoundingClientRect(),
+    Lr = P.querySelector('.s-l').getBoundingClientRect(),
+    hit = [...P.querySelectorAll('.s-l .s-r, .s-l [data-s]')].some(e => {
+      const r = e.getBoundingClientRect(),
+        t = Math.max(r.top, Lr.top),
+        b = Math.min(r.bottom, Lr.bottom);
+      return b > t && r.left < a.right && r.right > a.left && t < a.bottom && b > a.top;
+    });
+  if (!hit) return void ((u.hidden = true), u.replaceChildren());
+  /* 焦點在戰場那一顆「復原」上：留著舊的，不換掉（換掉焦點會掉） */
+  if (!u.contains(document.activeElement) || u.hidden) u.replaceChildren(...pu.childNodes);
+  pu.remove();
+  u.hidden = false;
+  u.style.left = Math.round(P.getBoundingClientRect().left - 8 - u.offsetWidth) + 'px';
+  u.style.top = Math.round(a.top) + 'px';
 }
 /* 提示列：現在能做什麼（手把焦點在技能格上時寫「更換技能」，跟名冊鈕同一個操作） */
 function skHint() {
@@ -860,9 +905,10 @@ function skFocusMove(dx, dy) {
   const f = document.activeElement,
     ros = skEl('pros'),
     box = SK.ros && !$('pskill').contains(f) ? ros : $('pskill'),
-    L = [...box.querySelectorAll('[data-s]:not([disabled]), [data-tm2]')].filter(e =>
-      SK.ii ? e.closest('.s-f') : !e.closest('.s-f') || SK.pin || SK.alt
-    );
+    L = [
+      ...box.querySelectorAll('[data-s]:not([disabled]), [data-tm2]'),
+      ...(box === ros || skEl('sku').hidden ? [] : skEl('sku').querySelectorAll('[data-s]'))
+    ].filter(e => (SK.ii ? e.closest('.s-f') : !e.closest('.s-f') || SK.pin || SK.alt));
   if (!L.length) return;
   SK.kb = 1;
   $('pskill').classList.add('kb'), ros.classList.add('kb');
@@ -885,9 +931,12 @@ function skFocusMove(dx, dy) {
   if (dx) to = rows[li][rows[li].indexOf(f) + dx];
   else {
     const r = rows[li + dy];
+    /* F-7：從列外（名冊鈕、關閉）走進技能列，先停在技能列本體（提示列「更換技能」），再往右進孔 */
     to =
       r &&
-      (r.find(e => sig(e) === sig(f)) || r.reduce((m, e) => (Math.abs(x(e) - x(f)) < Math.abs(x(m) - x(f)) ? e : m)));
+      (r.find(e => sig(e) === sig(f)) ||
+        (!f.closest('.s-r') && r.find(e => sig(e) === 'row')) ||
+        r.reduce((m, e) => (Math.abs(x(e) - x(f)) < Math.abs(x(m) - x(f)) ? e : m)));
   }
   if (to) to.focus(), to.scrollIntoView({ block: 'nearest' });
 }
@@ -948,8 +997,8 @@ function sk12Init() {
   const p = $('pskill'),
     ros = skEl('pros'),
     on = () => PANEL.skill && p.classList.contains('s12'),
-    inUI = t => t && t.closest && (p.contains(t) || ros.contains(t));
-  for (const id of ['skt', 'skc', 'skn', 'skh']) skEl(id);
+    inUI = t => t && t.closest && (p.contains(t) || ros.contains(t) || skEl('sku').contains(t));
+  for (const id of ['skt', 'skc', 'skn', 'skh', 'sku']) skEl(id);
   document.addEventListener('click', e => {
     if (!on()) return;
     if (SK.drag === 2) return void (SK.drag = 0);
@@ -993,13 +1042,31 @@ function sk12Init() {
         /* 提起的列（16）：用選中色、隨游標；範圍＝開著的格 */
         d.el = p.querySelector(`[data-s="row:${d.row}"]`);
         d.el.classList.add('lift');
-        const R = [...p.querySelectorAll('.s-l > .s-r')];
-        d.min = R[0].getBoundingClientRect().top - d.el.getBoundingClientRect().top;
-        d.max = R[R.length - 1].getBoundingClientRect().top - d.el.getBoundingClientRect().top;
+        /* F-3：其他列讓位。記住提起前每一列的頂（讓位後量的會跟著動）；範圍＝技能格 0–4（不含光環列） */
+        d.R = [...p.querySelectorAll('.s-l > .s-r')].filter(r => +r.dataset.s.split(':')[1] < 5);
+        d.T = d.R.map(r => r.getBoundingClientRect().top);
+        d.a = d.R.indexOf(d.el);
+        d.pitch = d.R.length > 1 ? d.T[1] - d.T[0] : 100;
+        d.min = d.T[0] - d.T[d.a];
+        d.max = d.T[d.T.length - 1] - d.T[d.a];
+        d.to = d.a;
+        p.insertAdjacentHTML('beforeend', '<i class="s-ins" aria-hidden="true"></i>');
+        d.ln = p.querySelector(':scope > .s-ins');
       }
     }
     if (d.k) (skEl('skg').style.left = e.clientX - 40 + 'px'), (skEl('skg').style.top = e.clientY - 40 + 'px');
-    else d.el.style.transform = `translateY(${Math.max(d.min, Math.min(d.max, e.clientY - d.y))}px)`;
+    else {
+      const dy = Math.max(d.min, Math.min(d.max, e.clientY - d.y)),
+        to = Math.max(0, Math.min(d.R.length - 1, d.a + Math.round(dy / d.pitch)));
+      d.el.style.transform = `translateY(${dy}px)`;
+      /* 被越過的列移到空出的格；插入線畫在要插的那一格上緣（示意 16 P22：452×2） */
+      d.to = to;
+      d.R.forEach((r, i) => {
+        const m = d.a < to && i > d.a && i <= to ? -d.pitch : to < d.a && i >= to && i < d.a ? d.pitch : 0;
+        r !== d.el && (r.style.transform = m ? `translateY(${m}px)` : '');
+      });
+      d.ln.style.top = Math.round(d.T[to] - p.getBoundingClientRect().top - 2) + 'px';
+    }
   });
   const drop = e => {
     skHoldStop();
@@ -1031,11 +1098,8 @@ function sk12Init() {
       else hudWarn('拖到右邊的格子'), hudPanels();
       return;
     }
-    /* 放開的位置：中線上面有幾列，就排第幾個 */
-    const mid = d.el.getBoundingClientRect().top + 46,
-      R = [...p.querySelectorAll('.s-l > .s-r')],
-      to = R.filter(r => r !== d.el && r.getBoundingClientRect().top + 46 < mid).length;
-    if (e.type === 'pointerup') skMove(d.row, to);
+    /* 放開的位置＝讓位後空出來的那一格（插入線所在） */
+    if (e.type === 'pointerup') skMove(d.row, d.to);
     SK.sel = null;
     changed();
   };
@@ -1074,7 +1138,8 @@ function sk12Init() {
       if (box === p) skHov(h ? h.dataset.h : null);
       skSide();
     });
-  for (const box of [p, ros]) box.addEventListener('scroll', () => (skSb(box), skSide()), true);
+  for (const box of [p, ros])
+    box.addEventListener('scroll', () => (box === ros && skRosFit(ros), skSb(box), skSide()), true);
   addEventListener(
     'keydown',
     e => {

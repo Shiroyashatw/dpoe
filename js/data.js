@@ -7808,7 +7808,7 @@ const CAMP = {
 /* 民房每一級的人口（3.4 ⚠️）；民房那一列的說明照它寫 */
 const CAMP_POP = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25];
 CAMP.house.forEach((r, i) => (r.d = `人口 ${CAMP_POP[i + 1]}`));
-const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '祭壇', store: '倉房' };
+const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '長老屋', store: '倉房' };
 /* 十座設施與靈魂的圖示（0.5.4）：ART 有的借 ART，沒有的是 sprites.js 手畫的 i_*（icHTML 都認得） */
 const CAMP_IC = {
   forge: 'it_anvil',

@@ -521,7 +521,7 @@ function supRows(c) {
     while (lv < campMax('altar') && ((S.camp.altar = ++lv), campN('holes') <= j));
     S.camp.altar = a0;
     rows.push(
-      `<div class="sk-row emp lk">${ICO.lock}<span class="sk-t"><b>第 ${j + 1} 孔</b><small>這一孔要祭壇 Lv ${lv} 才生效。</small></span></div>`
+      `<div class="sk-row emp lk">${ICO.lock}<span class="sk-t"><b>第 ${j + 1} 孔</b><small>這一孔要長老屋 Lv ${lv} 才生效。</small></span></div>`
     );
   }
   if (r.n < campN('holes'))

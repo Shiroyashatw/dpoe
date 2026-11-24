@@ -10568,8 +10568,9 @@ const ASC_COMBOS = `const combos = k => {
     `(() => { S = newGame(); const a = [lockTxt('tree'), lockTxt('asc'), lockTxt('box')]; S.camp.altar = 4; a.push(lockTxt('tree'), lockTxt('asc')); return a; })()`
   );
   ok(
-    'M1-06：天賦樹、昇華沒開時寫「升祭壇到 Lv n 才開」；山海寶盒不在解鎖表上＝放行；升到了就空',
-    JSON.stringify(lk) === JSON.stringify(['升祭壇到 Lv 4 才開', '升祭壇到 Lv 7 才開', '', '', '升祭壇到 Lv 7 才開']),
+    'M1-06：天賦樹、昇華沒開時寫「升長老屋到 Lv n 才開」；山海寶盒不在解鎖表上＝放行；升到了就空',
+    JSON.stringify(lk) ===
+      JSON.stringify(['升長老屋到 Lv 4 才開', '升長老屋到 Lv 7 才開', '', '', '升長老屋到 Lv 7 才開']),
     JSON.stringify(lk)
   );
   /* M1-07：每一類只回最近的一個；升到那一級換下一個；全開回 null */
@@ -10582,9 +10583,9 @@ const ASC_COMBOS = `const combos = k => {
     return { a, t, b, c };
   })()`);
   ok(
-    'M1-07 nextUnlock：新存檔每一類回最近的一個、升到那一級換下一個、全開回 null；「升祭壇到 Lv 4 開天賦樹」',
+    'M1-07 nextUnlock：新存檔每一類回最近的一個、升到那一級換下一個、全開回 null；「升長老屋到 Lv 4 開天賦樹」',
     nu.a === 'altar1,altar2,forge11,altar4,altar7,altar5,altar4' &&
-      nu.t === '升祭壇到 Lv 4 開天賦樹' &&
+      nu.t === '升長老屋到 Lv 4 開天賦樹' &&
       nu.b === 'altar6,altar5,forge11,altar10,altar7,altar5,altar7' &&
       nu.c === '-,-,-,-,-,-,-',
     JSON.stringify(nu)
@@ -10689,8 +10690,8 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(sy) ===
       JSON.stringify([
         '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
-        '祭壇 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
-        '祭壇 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
+        '長老屋 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
+        '長老屋 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
         '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。',
         '礦場 Lv25：產量 ×2。可以產熟鐵，上限看瞭望台。'
       ]),
