@@ -1643,7 +1643,7 @@ const matRnd = () => {
   return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
 };
 const matRound = v => Math.floor(v) + (matRnd() < v - Math.floor(v) ? 1 : 0);
-/* 區域 → 鐵／皮／靈絲；主幹照 TRUNK 的 g，特殊節點（四條機制、裂口）照裂口腹地 */
+/* 區域 → 鐵／皮／靈絲；主幹照 TRUNK 的 g，特殊節點照 world.js 的 g（它掛的主幹地點的區域，num-mat-soulwall） */
 const MAT_MIX = {
   枯河原野: [60, 25, 15],
   灰燼平原: [50, 30, 20],
@@ -1655,7 +1655,7 @@ const MAT_MIX = {
 };
 function matMix(wk) {
   const n = (typeof WNODE !== 'undefined' && WNODE[wk]) || TRUNK[0],
-    r = [...MAT_MIX[n.i == null ? '裂口腹地' : n.g]];
+    r = [...MAT_MIX[n.g]];
   if (!campCan('mat:hide')) (r[0] += r[1]), (r[1] = 0);
   if (!campCan('mat:silk')) (r[0] += r[2]), (r[2] = 0);
   return r.map(v => v / 100);
@@ -1683,6 +1683,29 @@ function killMats(k, t, soul, o) {
   });
   const w = matRound(soul * W_RATIO);
   if (w) matAdd('wood', 0, w);
+}
+/* ---------- num-mat-soulwall（只為模擬，不能合併） ----------
+   倉房回收（RECYC_ON，倉房 Lv2 開）：每 1 個換多少靈魂，[木, T1…T6]，鐵／皮／靈絲同一個；照機率進位（matRnd）；算靈魂收入、不算木 */
+let RECYC_ON = 0;
+const RECYC = [0.5, 0.5, 1, 1.5, 2, 2.5, 3];
+function matRecycle(key, n) {
+  if (!RECYC_ON || !campCan('salv65') || !(n > 0) || (S.mat.mats[key] || 0) < n) return 0;
+  const T = key === 'wood' ? 0 : matOf(key)[1],
+    s = matRound(n * RECYC[T]);
+  S.mat.mats[key] -= n;
+  S.mat.soul += s;
+  return s;
+}
+/* 後段靈魂費用上限（soulCapSet(cap, keep)）：這 11 級的靈魂改成 cap（0＝原表）；keep＝{ 'forge16': 1 } 這種，照原表 */
+const SOUL_CAP_LV = { forge: [16, 17, 18, 19, 20], altar: [6, 7, 8], scout: [4], store: [3, 4] };
+const SOUL_CAP0 = Object.fromEntries(
+  Object.entries(SOUL_CAP_LV).map(([b, L]) => [b, L.map(lv => CAMP[b][lv - 1].soul)])
+);
+let SOUL_CAP = 0;
+function soulCapSet(cap, keep = {}) {
+  SOUL_CAP = cap;
+  for (const b in SOUL_CAP_LV)
+    SOUL_CAP_LV[b].forEach((lv, i) => (CAMP[b][lv - 1].soul = cap && !keep[b + lv] ? cap : SOUL_CAP0[b][i]));
 }
 /* 打怪拿材料：靈魂、通貨、精髓自動進材料頁（0.5.1 起不掉材料，材料由產生器產）；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
