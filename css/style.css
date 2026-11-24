@@ -143,6 +143,7 @@
   --rar-rare-bg: #26241b;
   --rar-rare-bg-v3: #8a6a2a;
   --rar-rare-bg-rgb-v1: 42, 33, 13;
+  --rar-rare-frame: #ccb72e; /* 稀有格框專用 2 px（M2-36 色票）；◆ 與稀有名稱仍用 --rar-rare */
   /* S2（mumi 13:55 對調）：傳奇＝橘、追逐＝青；-bg 兩色互換是假設，正式值等美術總監 A4 */
   --rar-unique: #fa8915;
   --rar-unique-v2: #7fd1c7;
@@ -170,6 +171,9 @@
   --cat-corr: #ff6066;
   --cat-cal: #bd7aff;
   --cat-cal-hi: #f1e4ff; /* 只用在災魘腐化徽章內部，不得用於文字 */
+  --cell-corrupt: #4b1e1e; /* 只用在裝備格底：腐化（M2-36 色票） */
+  --corr-dash-rgb: 111, 58, 56; /* 只用在腐化格框內 1 px 虛線（item-display K2；mumi 11/24 立 token） */
+  --cell-cal: #352642; /* 只用在裝備格底：災魘（M2-36 色票；斜紋改格內爪痕，M2-character §4） */
   --mod-mm: #c79bff;
   --mod-co: #e0614a;
   --affix: #9da7ff;
@@ -425,7 +429,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--scene-
 /* ---------- 面板（不擋遊戲：沒有遮罩，遊戲照跑） ---------- */
 .panel { position: fixed; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; box-shadow: 0 12px 40px rgba(var(--scrim-rgb), 0.6); }
 .panel[hidden] { display: none !important; }
-#pinv { right: 16px; width: 476px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pinv { --panel-edge: var(--d2-panel-edge); right: 16px; width: 476px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pstash { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes inR { from { opacity: 0; transform: translateX(24px); } }
 @keyframes inL { from { opacity: 0; transform: translateX(-24px); } }
@@ -1643,13 +1647,6 @@ body.touch.port .fseg.s6 { grid-template-columns: repeat(3, 1fr); }
 .stg > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; min-height: 26px; font-size: var(--fs-s); color: var(--tx-dim); }
 .stg > div b { font: 700 var(--fs) var(--font); color: var(--tx); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .stg > div b small { margin-left: 5px; font: 400 11px var(--font); color: var(--tx-dim); }
-/* 桌機：面板矮，每組一行（組名在左、項目接著排），不把倉庫擠到畫面外 */
-body:not(.touch.port) .st2 { gap: 1px; }
-body:not(.touch.port) .st2 section { display: flex; align-items: baseline; gap: 10px; }
-body:not(.touch.port) .st2 h4 { flex: none; width: 4.2em; margin: 0; padding: 0; border: 0; white-space: nowrap; }
-body:not(.touch.port) .st2 h4 small { display: none; }
-body:not(.touch.port) .stg { display: flex; flex-wrap: wrap; gap: 0 14px; }
-body:not(.touch.port) .stg > div { min-height: 22px; gap: 5px; justify-content: flex-start; }
 /* 說明框：換上去的差別放最上面，一格一項 */
 #tip .cmp2 { padding: 8px 14px; text-align: left; border-bottom: 1px solid rgba(var(--hl-rgb), 0.25); background: rgba(var(--scrim-rgb), 0.25); }
 #tip .cmp2 > span { display: block; margin-bottom: 4px; font-size: var(--fs-s); color: var(--tx-dim); }
@@ -2169,11 +2166,6 @@ body.touch.port .cmpc > div { padding: 8px; }
 .stg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 20px; }
 .stg > div { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--tx-dim); padding: 2px 0; min-height: 26px; border-bottom: 1px solid var(--border); }
 .stg > div b { font: 700 14px var(--font); color: var(--tx); }
-body:not(.touch.port) .st2 { gap: 0; }
-body:not(.touch.port) .st2 section { display: block; }
-body:not(.touch.port) .st2 h4 { width: auto; margin: 10px 0 2px; white-space: normal; }
-body:not(.touch.port) .stg { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px 16px; }
-body:not(.touch.port) .stg > div { justify-content: space-between; }
 .slotp .ph2 { margin-top: 0; }
 /* 技能總覽：主數字、一列一招（把手、圖、名字＋Lv＋冷卻、孔、DPS、升級）、精魂條 */
 #pskill .sk-scroll { gap: 10px; }
@@ -2814,6 +2806,167 @@ body.touch .ph .ftabs button, body.touch .bagf.grp .chip { min-width: 44px; min-
 /* D2-05（部分）：桌機窄視窗（1280×800 ×1.25＝CSS 1024×640）右欄最寬 100vw − 644（右邊距 16＋間隔 16，戰場留 ≥612）；1280×720 不變 */
 body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcamp) { max-width: calc(100vw - 644px); }
 
+/* ---------- 角色頁桌機 1280×720（S/M2-character-1280.md；js/charpanel.js）：右欄 788,76 476×486，子元件座標＝規格座標 −(788,76) ---------- */
+body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: hidden; border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px var(--panel-edge, transparent), 0 12px 40px rgb(var(--scrim-rgb), 0.6); background: linear-gradient(var(--panel-grad-top), var(--panel) 48px); }
+/* fix6（RULINGS-2 Q1、Q2）：角色頁右欄的色票換成 D2 值，只在這裡蓋，:root 與其他面板不動 */
+#pinv.c12 { font-weight: 400; --good: var(--d2-good); --bad: var(--d2-bad); --bad-hi: var(--d2-bad); --btn2: var(--d2-btn2); --plate-world: var(--d2-plate-world); --border-cap: var(--d2-border-cap); --tx-off: var(--d2-tx-off); }
+.c12 .c-bad { color: var(--bad); }
+.c12 > * { position: absolute; }
+.c12 .chd { left: 8px; top: 4px; width: 200px; height: 32px; overflow: hidden; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--tx-strong); white-space: nowrap; }
+.c12 .chd .asc { width: 24px; height: 24px; }
+.c12 .cxp { left: 206px; top: 17px; width: 134px; height: 16px; display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--tx); }
+.c12 .cxp > i { position: relative; flex: 1; height: 6px; background: var(--prog-lo); }
+.c12 .cxp > i > i { position: absolute; inset: 0 auto 0 0; background: var(--prog-hi); }
+.c12 .cclose { left: 436px; top: 2px; width: 36px; height: 36px; display: grid; place-items: center; padding: 0; background: var(--btn2); border: 1px solid var(--border); border-radius: 2px; color: var(--tx-strong); cursor: pointer; }
+.c12 .cclose svg { width: 18px; height: 18px; }
+.c12 .cclose kbd { position: absolute; bottom: 0; right: 2px; font: 700 8px var(--font); color: var(--tx-dim); }
+.c12 .cres { left: 8px; top: 46px; width: 460px; height: 22px; display: flex; align-items: center; gap: 18px; font-size: 12px; color: var(--tx); }
+.c12 .cres small { font-size: 11px; color: var(--tx-dim); }
+.c12 .cres span.neg { color: var(--bad); }
+.c12 [data-tm2] { cursor: help; }
+/* 格子 64 */
+.c12 .cq { --bw: 1px; width: 64px; height: 64px; display: grid; place-items: center; background: var(--panel-inset); border: 1px solid var(--border); cursor: pointer; }
+.c12 .cq .ic { position: relative; width: 48px; height: 48px; object-fit: contain; }
+.c12 .cq.r1 { background: var(--rar-magic-bg); border-color: var(--rar-magic); }
+.c12 .cq.r2 { --bw: 2px; background: var(--rar-rare-bg); border: 2px solid var(--rar-rare-frame); }
+.c12 .cq.r3 { --bw: 2px; background: var(--rar-unique-bg); border: 2px solid var(--rar-unique); }
+/* 腐化：格底 --cell-corrupt＋框內 3 px 處 1 px 虛線（3 亮 2 暗，--corr-dash-rgb，item-display K2）；畫在道具圖與角標底板下面 */
+.c12 .cq.co { background: var(--cell-corrupt); }
+.c12 .cq.co::before { content: ''; position: absolute; inset: calc(3px - var(--bw)); --d: rgb(var(--corr-dash-rgb), 1) 0 3px, transparent 3px 5px; background: repeating-linear-gradient(90deg, var(--d)) top / 100% 1px no-repeat, repeating-linear-gradient(90deg, var(--d)) bottom / 100% 1px no-repeat, repeating-linear-gradient(180deg, var(--d)) left / 1px 100% no-repeat, repeating-linear-gradient(180deg, var(--d)) right / 1px 100% no-repeat; pointer-events: none; }
+/* 災魘：格底 --cell-cal＋格內右上三道爪痕（M2-character §4）；框維持稀有度色、直角 */
+.c12 .cq.cal { background: var(--cell-cal); }
+.c12 .cq .ccl { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: url(#cclg); stroke-width: 1.5px; stroke-linecap: round; pointer-events: none; }
+.c12 .cq .ccl path { vector-effect: non-scaling-stroke; }
+.c12 .cq .ccl stop { stop-color: var(--cat-cal); }
+.c12 .cq.sel { outline: 2px solid var(--border-cap); outline-offset: -5px; }
+.c12 .cq:hover, .c12 .cq:focus-visible, .c12.kb .cq:focus { filter: brightness(1.2); }
+/* 點過滑鼠再用手把方向鍵（:focus-visible 不成立）：焦點框照瀏覽器的 :focus-visible 畫 */
+.c12.kb .cq:focus:not(.sel) { outline: auto 1px -webkit-focus-ring-color; }
+.c12 .cq > i { position: absolute; font: 700 10px var(--font); font-style: normal; line-height: 1; pointer-events: none; text-shadow: 0 1px 2px rgb(var(--scrim-rgb), 1); }
+.c12 .cq .cj { left: calc(3px - var(--bw)); top: calc(3px - var(--bw)); padding: 1px 2px; background: var(--plate-world); }
+.c12 .cq .cs { right: calc(3px - var(--bw)); top: 0; display: flex; align-items: center; gap: 1px; font-size: 12px; color: var(--tx-strong); }
+.c12 .cq .cs svg { width: 12px; height: 12px; fill: currentColor; }
+/* 特殊詞圖示 16 CSS px（描邊含在 16 內、不加底墊）：第 1 個 x 4、y 44，間距 2 */
+.c12 .cq .cx { left: calc(4px - var(--bw)); top: calc(44px - var(--bw)); display: flex; gap: 2px; text-shadow: none; }
+.c12 .cq .cx img { position: static; width: 16px; height: 16px; image-rendering: pixelated; }
+/* 不能裝備：右下 12 px 斜線 --bad；有鎖時畫在鎖左邊（格內），不重疊 */
+.c12 .cq .cnq { position: absolute; right: calc(3px - var(--bw)); bottom: calc(3px - var(--bw)); width: 12px; height: 12px; background: linear-gradient(to top left, transparent calc(50% - 1px), var(--bad) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)); pointer-events: none; }
+.c12 .cq .ck ~ .cnq { right: calc(17px - var(--bw)); }
+.c12 .cq .ck { right: calc(3px - var(--bw)); bottom: calc(3px - var(--bw)); width: 12px; height: 12px; color: var(--tx-dim); }
+.c12 .cq .ck svg { width: 100%; height: 100%; }
+.c12 .cq.emp .sil { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+.c12 .cq.emp .sil .ic { width: 32px; height: 32px; }
+.c12 .cq.emp .nm { position: absolute; bottom: 3px; font: 700 12px var(--font); color: var(--tx-dim); }
+.c12 .cq.emp .cn { position: absolute; right: 4px; top: 2px; font: 700 12px var(--font); font-style: normal; color: var(--tx-dim); }
+.c12 .cq.lock { color: var(--tx-off); }
+/* 切換 */
+.c12 .ctg { left: 80px; top: 72px; width: 150px; height: 36px; background: var(--btn2); border: 1px solid var(--border); color: var(--tx); font: 400 13px var(--font); cursor: pointer; }
+.c12 .ctg.r { left: 234px; }
+.c12 .ctg.on { background: var(--sel-bg); border-color: var(--sel-edge); color: var(--sel-tx); font-weight: 700; }
+/* 數值（01、02、03） */
+.c12 .cdps { left: 86px; top: 110px; width: 126px; height: 28px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.c12 .cdps:has(.pe) { width: 170px; height: 36px; }
+.c12 .cdps small { font-size: 11px; color: var(--tx-dim); }
+.c12 .cdps b { font: 700 16px var(--font); color: var(--tx-strong); font-variant-numeric: tabular-nums; }
+.c12 .cdps b.pe { font-size: 12px; }
+.c12 .cedit { left: 268px; top: 110px; width: 96px; height: 36px; min-height: 0; padding: 0; font: 700 13px var(--font); color: var(--tx-strong); }
+.c12 .cdone { left: 300px; top: 110px; width: 68px; height: 36px; min-height: 0; padding: 0; font: 700 13px var(--font); }
+.c12 .cc { width: 102px; height: 32px; padding: 2px 6px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; background: var(--panel-raised); border: 1px solid var(--border-ctl); color: var(--tx-strong); text-align: left; font-family: var(--font); }
+.c12 button.cc { cursor: pointer; }
+.c12 .cc small { font-size: 10px; line-height: 12px; color: var(--tx-dim); }
+.c12 .cc b { font: 700 12px var(--font); line-height: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.c12 .cc.emp { border: 1px dashed var(--border); }
+.c12 .cc.emp b { font-weight: 400; color: var(--tx-dim); }
+.c12 .cc .cst { position: absolute; right: 6px; top: 9px; font-style: normal; color: var(--tx-strong); }
+.c12 .c12l { left: 80px; top: 262px; width: 304px; bottom: 8px; overflow-y: auto; scrollbar-width: none; }
+/* 自繪 4 px 捲動條（L-10，圖例 A43 清單 1178,338 4×200；D46 候選 1150,254 4×204）：軌 --border、滑塊 --tx-dim；js chSb 只在內容超出時顯示 */
+.c12 [data-sb]::-webkit-scrollbar { display: none; }
+.c12 .csb { position: absolute; width: 4px; background: var(--border); pointer-events: none; }
+.c12 .csb[hidden] { display: none; }
+.c12 .csb > i { display: block; width: 4px; background: var(--tx-dim); }
+.c12 .csb.sl { left: 390px; top: 262px; height: 200px; }
+.c12 .csb.sg { left: 362px; top: 178px; height: 204px; }
+.c12 .cg { display: flex; align-items: center; gap: 6px; width: 300px; height: 32px; margin-bottom: 4px; padding: 0 8px; background: var(--panel-raised); border: 1px solid var(--border-ctl); color: var(--tx); font: 700 13px var(--font); cursor: pointer; }
+.c12 .cg.sub { height: 28px; }
+.c12 .cg small { margin-left: auto; font: 400 11px var(--font); color: var(--tx-dim); }
+.c12 .cr { position: relative; display: flex; align-items: center; justify-content: space-between; width: 300px; height: 22px; padding: 0 8px 0 6px; font-size: 12px; color: var(--tx); user-select: none; }
+.c12 .cr b { font: 700 12px var(--font); color: var(--tx-strong); font-variant-numeric: tabular-nums; }
+.c12 .cr.on { height: 28px; margin: -3px 0; background: var(--sel-bg); box-shadow: inset 0 0 0 1px var(--sel-edge); }
+.c12 .cr:has(.cpin) { height: 28px; padding-right: 42px; }
+.c12 .cpin { position: absolute; right: 10px; top: 0; width: 28px; height: 28px; padding: 0; background: var(--btn2); border: 1px solid var(--border); color: var(--tx-strong); font: 700 16px var(--font); cursor: pointer; }
+.c12 .cmenu { left: 112px; top: 284px; width: 210px; min-height: 168px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-raised-2); border: 1px solid var(--border-hi); z-index: 3; box-shadow: 0 8px 24px rgb(var(--scrim-rgb), 0.6); }
+.c12 .cmenu b { font: 700 12px var(--font); color: var(--tx-strong); }
+.c12 .cmenu p { margin: 0; font-size: 11px; color: var(--tx); }
+.c12 .cmenu small { font-size: 11px; color: var(--tx-dim); }
+.c12 .cmenu .btn { min-height: 40px; font-size: 13px; }
+/* 候選（04a、04b、07） */
+.c12 .cnt { left: 80px; top: 112px; width: 200px; height: 18px; font: 700 12px var(--font); color: var(--tx-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c12 .cns { left: 80px; top: 130px; width: 200px; height: 14px; white-space: nowrap; font-size: 11px; color: var(--tx-dim); }
+.c12 .cx2 { left: 360px; top: 110px; width: 28px; height: 28px; display: grid; place-items: center; padding: 0; background: var(--btn2); border: 1px solid var(--border); color: var(--tx-strong); cursor: pointer; }
+.c12 .cx2 svg { width: 16px; height: 16px; }
+.c12 .chip { min-height: 0; height: 24px; padding: 0 8px; font-size: 11px; }
+.c12 .csort { left: 80px; top: 148px; width: 88px; }
+.c12 .cflt { left: 174px; top: 148px; width: 152px; display: grid; grid-template-columns: auto auto auto; gap: 4px; }
+.c12 .cflt .chip { padding: 0 4px; }
+.c12 .c12g { left: 80px; top: 178px; width: 290px; height: 204px; overflow-y: auto; display: grid; grid-template-columns: repeat(4, 64px); grid-auto-rows: 64px; gap: 6px; align-content: start; scrollbar-width: none; }
+.c12 .c12g .cq { position: relative; }
+.c12 .cnone { grid-column: 1 / -1; margin: 8px 0; font-size: 12px; color: var(--tx-dim); }
+.c12 .cet { left: 80px; top: 124px; width: 300px; height: 24px; font: 700 12px var(--font); color: var(--tx-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c12 .cep { left: 80px; top: 152px; width: 300px; height: 36px; margin: 0; font-size: 13px; color: var(--tx); }
+.c12 .cmk { left: 80px; top: 204px; width: 300px; height: 48px; min-height: 0; font: 700 14px var(--font); }
+/* 比較浮窗：五層（主角 16/700、輔助 14/400 --tx-dim、換上 18/700）；不接滑鼠，懸停的格子在底下 */
+.c12 .c12p { left: 8px; top: 0; width: 460px; min-height: 448px; max-height: 486px; overflow: hidden; display: flex; flex-direction: column; padding: 22px 0 8px; background: var(--panel); outline: 1px solid var(--panel-edge); outline-offset: -1px; box-shadow: 0 12px 32px rgb(var(--scrim-rgb), 0.7); pointer-events: none; z-index: 4; color: var(--tx-strong); }
+.c12 .c12p.det { min-height: 486px; }
+.c12 .c12p small { font: 400 14px var(--font); color: var(--tx-dim); }
+.c12 .c12p > * { flex: none; }
+.c12 .c12p section { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; padding: 0 12px 12px; margin-bottom: 12px; border-bottom: 1px solid var(--panel-edge); }
+.c12 .c12p section > div { display: flex; flex-direction: column; min-width: 0; }
+.c12 .c12p .l1 { min-height: 81px; }
+.c12 .c12p .l1 b { font: 700 16px var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c12 .c12p .rc0 { color: var(--tx-strong); }
+.c12 .c12p .rc1 { color: var(--rar-magic); }
+.c12 .c12p .rc2 { color: var(--rar-rare); }
+.c12 .c12p .rc3 { color: var(--rar-unique); }
+.c12 .c12p .lh { grid-column: 1 / -1; display: block; height: 20px; }
+.c12 .c12p .l3 .lh:not(.r) { grid-column: 1; grid-row: 1; }
+.c12 .c12p .l3 .lh.r { grid-column: 2; grid-row: 1; }
+.c12 .c12p .l3s { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; align-content: start; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+.c12 .c12p .l3 .csb { right: 4px; top: 32px; bottom: 32px; }
+.c12 .c12p .l3m { grid-column: 1 / -1; grid-row: 3; display: block; height: 20px; line-height: 20px; text-align: center; }
+.c12 .c12p .l3m[hidden] { display: none; }
+.c12 .c12p .l2 { min-height: 73px; }
+.c12 .c12p .kv { display: flex; align-items: baseline; gap: 8px; height: 20px; line-height: 20px; }
+.c12 .c12p .kv b { font: 700 16px var(--font); font-variant-numeric: tabular-nums; }
+/* ③ 放不下時層內捲動（V-4），不裁切；①②④⑤ 永遠完整。
+   ③ 平常至少 107（詳細 119，由 ::before 撐）；②④ 長高到浮窗頂到 486 時只有 ③ 再縮（RULINGS-3 F-2、F-3） */
+.c12 .c12p .l3 { position: relative; flex: 0 1 auto; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; align-content: start; }
+.c12 .c12p .l3::before { content: ""; grid-column: 1; grid-row: 1 / 4; height: 94px; }
+.c12 .c12p.det .l3::before { height: 106px; }
+.c12 .c12p ul { margin: 0; padding: 0; list-style: none; min-width: 0; }
+.c12 .c12p li { display: flex; align-items: baseline; gap: 6px; height: 24px; line-height: 24px; white-space: nowrap; }
+.c12 .c12p li b { min-width: 0; font: 700 16px var(--font); overflow: hidden; text-overflow: ellipsis; }
+.c12 .c12p li small { flex: none; }
+.c12 .c12p li i { font-style: normal; }
+/* 04b：主文字＋「T 階 ✦」一行放不下，輔助字換到下一小行（RULINGS-3 Q1） */
+.c12 .c12p li.w2 { flex-wrap: wrap; height: auto; }
+.c12 .c12p li.w2 small { flex-basis: 100%; line-height: 20px; }
+.c12 .c12p .l4 { min-height: 65px; }
+.c12 .c12p .l4 p { grid-column: 1 / -1; display: flex; gap: 24px; margin: 0; padding: 4px 10px; border: 1px solid var(--border); font: 700 18px/22px var(--font); white-space: nowrap; overflow: hidden; }
+.c12 .c12p .l4 p.cw { flex-wrap: wrap; gap: 0; }
+.c12 .c12p .l5 { min-height: 44px; padding: 0 12px; border-bottom: 0; margin-bottom: 0; grid-template-columns: 1fr auto auto; align-items: center; }
+.c12 .c12p .l5 .lh { grid-column: 1; grid-row: 1; height: 20px; }
+.c12 .c12p .l5 p { grid-column: 1; grid-row: 2; }
+.c12 .c12p .l5 kbd { grid-row: 1 / 3; }
+.c12 .c12p .l5 p { margin: 0; font: 400 14px var(--font); color: var(--tx-dim); }
+.c12 .c12p .l5 p .off { color: var(--tx-off); text-decoration: line-through; }
+.c12 .c12p .l5 kbd { box-sizing: border-box; width: 95px; margin-left: 8px; padding: 2px 0; text-align: center; line-height: 20px; border: 1px solid var(--border); background: var(--panel-raised); font: 400 14px var(--font); color: var(--tx-dim); }
+.c12 .c12p .l5 kbd + kbd { width: 49px; }
+.c12 .c12p.det .l5 kbd { border-color: var(--border-hi); background: var(--panel-raised-2); }
+/* 名詞提示（停留 0.4 秒／手把 R3）：戰場側，貼著右欄左邊 */
+#ctm { position: fixed; z-index: 30; width: 260px; min-height: 56px; padding: 6px 10px; background: var(--d2-plate-world); border: 1px solid var(--border-hi); pointer-events: none; }
+#ctm[hidden] { display: none; }
+#ctm p { margin: 2px 0 0; font: 400 13px var(--font); color: var(--tx-strong); }
+#ctm::after { content: ''; position: absolute; right: -7px; top: 18px; border: 6px solid transparent; border-right: 0; border-left-color: var(--border-hi); }
 /* ================= battle-hud v1.3.3（js/bhud.js；框都由 JS 照元件表擺，這裡只管長相） ================= */
 #bh, #pidle, #pnav, #dnav, .bh-aul, .bh-xp {
   --panel: var(--d2-panel);

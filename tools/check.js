@@ -31,6 +31,31 @@ const G = vm.runInContext(
   '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, libUp, libUpCheck, libLv, drillDo, newSlot, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, stats, dps, invPut, INV_CAP, INV_SPARE, sellPrice, bestTier, tierRange, affText, itemName })',
   ctx
 );
+/* mumi 11/24（經幕僚長）：腐化虛線色立 --corr-dash-rgb（item-display K2 的 #6f3a38＝111, 58, 56）。
+   三項「禁止寫死色碼」都另外確認：:root 有這個三元組、只有 .c12 .cq.co::before 的 --d 用 rgb(var(--corr-dash-rgb), 1)、
+   style.css／js／index.html 都沒有 #6f3a38（含註解）、JS 不碰這個 token */
+function corrDash() {
+  const raw = PAL_CSS,
+    c = raw.replace(/\/\*[\s\S]*?\*\//g, ''),
+    root = c.match(/:root\s*\{([^}]*)\}/)[1],
+    after = c.slice(c.indexOf('}', c.search(/:root\s*\{/)) + 1),
+    uses = [...after.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(m => /--corr-dash-rgb/.test(m[0])),
+    other = [
+      fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8'),
+      ...fs
+        .readdirSync(path.join(__dirname, '..', 'js'))
+        .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    ].join('\n');
+  return (
+    /(^|;)\s*--corr-dash-rgb:\s*111, 58, 56;/.test(root) &&
+    uses.length === 1 &&
+    uses[0][1].trim() === '.c12 .cq.co::before' &&
+    (uses[0][2].match(/--corr-dash-rgb/g) || []).length === 1 &&
+    /--d: rgb\(var\(--corr-dash-rgb\), 1\) 0 3px, transparent 3px 5px;/.test(uses[0][2]) &&
+    !/6f3a38/i.test(raw + other) &&
+    !/--corr-dash/.test(other)
+  );
+}
 let bad = 0;
 const ok = (name, cond, info = '') => {
   console.log((cond ? '✅ ' : '❌ ') + name + (cond ? '' : ' ' + info));
@@ -11236,14 +11261,15 @@ const ASC_COMBOS = `const combos = k => {
   /* UIUX 15:16 裁定（ruling.csv 第 33 列 scrim-v1：#hask 遮罩用 rgb(var(--scrim-rgb)/α)）：CSS 段只准 rgb(var(--x-rgb) / α) 或 rgb(var(--x-rgb), α)；
      --x-rgb 要是 :root 宣告的三元組、α 是 0–1 的數字；寫死數字的 rgb(、rgba(、hex 一律失敗 */
   ok(
-    'M2-38 顏色：M2-38 的 CSS 段只准 rgb(var(--x-rgb) / α)／rgb(var(--x-rgb), α)（:root 的三元組、α 0–1），沒有 hex、rgba(、寫死數字的 rgb(；新函式沒有色碼字面值；沒有新 token 定義',
+    'M2-38 顏色：M2-38 的 CSS 段只准 rgb(var(--x-rgb) / α)／rgb(var(--x-rgb), α)（:root 的三元組、α 0–1），沒有 hex、rgba(、寫死數字的 rgb(；新函式沒有色碼字面值；沒有新 token 定義；腐化虛線走 :root 的 --corr-dash-rgb',
     blk.length > 100 &&
       fns.every(f => f.length > 20) &&
       rgbAll.length === rgbOk.length &&
       !lit.test(rgbRest) &&
       !fns.some(f => lit.test(f)) &&
-      !/\n\s*--[\w-]+\s*:/.test(blk),
-    JSON.stringify({ fn: fns.map(f => f.length), rgb: rgbAll.length, ok: rgbOk.length })
+      !/\n\s*--[\w-]+\s*:/.test(blk) &&
+      corrDash(),
+    JSON.stringify({ fn: fns.map(f => f.length), rgb: rgbAll.length, ok: rgbOk.length, corrDash: corrDash() })
   );
   ok(
     'battle-hud v1.3.3 顏色：CSS 段沒有色碼字面值（hex、rgb()）；段內的 token 只換成 :root 的 D2 色（--x: var(--d2-…)）',
@@ -11805,7 +11831,26 @@ const ASC_COMBOS = `const combos = k => {
       'index.html',
       ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)
     ],
-    catUse = catFiles.filter(f => /var\(--cat-cal/.test(rd(f))),
+    /* mumi 11/24：災魘爪痕只准 .c12、.cq、.ccl 的規則用 --cat-cal（選擇器要同時有這三個 class）；
+       其他 CSS 規則、JS、index.html 用 var(--cat-cal*)、或任何規則用 --cat-cal-hi 都算違規 */
+    calRules = [
+      ...(cs => cs.slice(cs.indexOf('}', cs.search(/:root\s*\{/)) + 1))(css.replace(/\/\*[\s\S]*?\*\//g, '')).matchAll(
+        /([^{}]+)\{([^{}]*)\}/g
+      )
+    ].filter(m => /--cat-cal/.test(m[0])),
+    calOk = calRules.filter(
+      m =>
+        m[1]
+          .split(',')
+          .map(x => x.trim())
+          .every(x => /\.c12\b/.test(x) && /\.cq\b/.test(x) && /\.ccl\b/.test(x)) &&
+        !/--cat-cal-hi/.test(m[0]) &&
+        !/--cat-cal\s*:/.test(m[2])
+    ),
+    catUse = [
+      ...catFiles.filter(f => f !== 'css/style.css' && /var\(--cat-cal/.test(rd(f))),
+      ...calRules.filter(m => !calOk.includes(m)).map(m => m[1].trim())
+    ],
     corrUse = catFiles.flatMap(f => (rd(f).match(/var\(--cat-corr/g) || []).map(() => f)),
     corrOk = /\n\.fslot li\.cw, \.aff\.cor \{ color: var\(--cat-corr\); \}/.test(css),
     cssNc = css.replace(/\/\*[\s\S]*?\*\//g, ''),
@@ -11828,9 +11873,10 @@ const ASC_COMBOS = `const combos = k => {
     corrElse = catFiles.filter(f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(rd(f))),
     corrLeft = (afterRoot.match(/--cat-corr/g) || []).length;
   ok(
-    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准）；--cat-cal* 還沒有元件用到',
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准）；--cat-cal 只准 .c12 .cq .ccl（災魘爪痕）用，--cat-cal-hi 還沒有元件用到',
     [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
       !catUse.length &&
+      calOk.length >= 1 &&
       corrUse.length === 1 &&
       corrOk &&
       corrRules.length === 1 &&
@@ -11840,6 +11886,7 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify({
       tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')],
       catUse,
+      calOk: calOk.map(m => m[1].trim()),
       corrUse,
       corrBad,
       corrElse,
@@ -11964,9 +12011,9 @@ const ASC_COMBOS = `const combos = k => {
         )
       );
     ok(
-      'CSS 色票：style.css 的規則（:root 以外）與本次改的 8 支 JS 都沒有寫死 hex、rgb()',
-      !ruleLit.length && !jsLit.length,
-      JSON.stringify({ ruleLit: ruleLit.slice(0, 3), jsLit })
+      'CSS 色票：style.css 的規則（:root 以外）與本次改的 8 支 JS 都沒有寫死 hex、rgb()；腐化虛線走 :root 的 --corr-dash-rgb',
+      !ruleLit.length && !jsLit.length && corrDash(),
+      JSON.stringify({ ruleLit: ruleLit.slice(0, 3), jsLit, corrDash: corrDash() })
     );
     const R = rd('js/render.js'),
       Gm = rd('js/game.js'),
@@ -12171,7 +12218,11 @@ const ASC_COMBOS = `const combos = k => {
     out = css.replace(/:root\s*\{[^}]*\}/, ''),
     cssLit = out.match(/#[0-9a-fA-F]{3,8}\b(?![\w-]*\s*[{,])|rgba?\(\s*\d/g) || [];
   ok('色票：style.css 只有一個 :root，而且在最前面', roots.length === 1 && /^\s*:root/.test(css), roots.length);
-  ok('色票：style.css 的 :root 以外沒有寫死的色碼', !cssLit.length, cssLit.slice(0, 5).join(' '));
+  ok(
+    '色票：style.css 的 :root 以外沒有寫死的色碼；腐化虛線走 :root 的 --corr-dash-rgb',
+    !cssLit.length && corrDash(),
+    cssLit.slice(0, 5).join(' ') + ' corrDash=' + corrDash()
+  );
   const files = fs.readdirSync(path.join(__dirname, '..', 'js')).filter(f => f.endsWith('.js')),
     SKIP = ['intro.js', 'sprites.js', 'core.js', 'palette.js', 'art.js', 'hideart.js', 'fxsheets.js', 'ptdata.js'],
     lit = [],

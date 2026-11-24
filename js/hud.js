@@ -860,7 +860,7 @@ function acctHTML() {
    0.4.7：捲動位置在 hudPanels 一開始、還沒動到畫面時一次讀完（panelSnap），寫完再放回去——
    邊寫邊讀會每個面板強制排版一次；本來就關著的面板不讀；位置是 0 的不寫 */
 const KEEP = {
-  pinv: ['', '.bagf.sub'],
+  pinv: ['', '.bagf.sub', '.c12l', '.c12g'],
   pskill: ['.sk-scroll', '.sk-chips'],
   pnode: [''],
   pchase: [''],
@@ -960,7 +960,9 @@ function hudPanels() {
   } else HV.nsel = null;
   if (PANEL.skill) panelHTML($('pskill'), skillHTML());
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
-  if (PANEL.inv && !cw) panelHTML($('pinv'), invHTML());
+  /* 桌機角色頁（M2-character-1280）走 charpanel.js 的 charHTML；直立、倉庫照舊 */
+  if (PANEL.inv && !cw)
+    $('pinv').classList.toggle('c12', chOn()), chOn() ? chRender() : panelHTML($('pinv'), invHTML());
   if (PANEL.stash) $('pstash').innerHTML = forgeHead('cur') + curPageHTML();
   if (navOn() === 'forge') FSEG = fseg();
   $('pchase').hidden = !PANEL.chase;

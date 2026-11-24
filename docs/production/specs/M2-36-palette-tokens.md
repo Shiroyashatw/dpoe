@@ -176,6 +176,7 @@ Page（定案）：[D2 色票定案](https://cursor.com/canvas/store-82cf5215-7b
 | --cat-cal | `#bd7aff`（L* 63.3） | 災魘詞字色＋災魘徽章邊線；對 --panel 5.62、--hdr 5.29、--panel-raised 5.14；ΔE2000 對 --tx 36.5、--cat-frac 38.4、--cat-mem 27.1、--rar-chase 48.5、--bad 24.5；對 --cat-corr 33.9。離 --rar-magic 只有 15.5、綠色盲下 5.5，靠圖示分（魔法色只在名稱） |
 | --cat-cal-hi | `#f1e4ff` | 只用在災魘徽章內部，不得用於文字或其他元素；讓災魘徽章灰階 ΔL* 對普通腐化 16.6（≥15）；對 --panel 13.14 |
 | --cell-corrupt | `#4b1e1e`（L* 18.0） | 只用在裝備格底，B5b：腐化物品整格底色（mumi 13:10 T2 案，UIUX M2-item-display §16）；不得用於面板、文字或其他元素；對 --border 3.34、--tx 11.12、--cat-corr 4.73 |
+| --corr-dash-rgb | `111, 58, 56`（＝`#6f3a38`） | 只用在腐化格框內 3 px 處 1 px 虛線（item-display K2，3 亮 2 暗，`rgb(var(--corr-dash-rgb), 1)`）；不得他用。mumi 11/24 立 token（原本寫死） |
 | --cell-cal | `#352642`（L* 18.1） | 只用在裝備格底，B5b：災魘物品整格底色，另加 45° 斜紋 1 px `#524165`（L* 30.7）每 6 px；斜紋色不另立 token、不得他用；對 --border 3.33、--tx 11.10、--cat-cal 4.90；斜紋對底 1.53 |
 | --mod-mm／--mod-co | 同 --el-chaos／同 --bad |
 這組跟新的語意＋稀有度組有撞色（見「未過」）。**定案規則（mumi 2026-11-19 選 B）：元素、昇華、覺醒色一律搭圖示或文字使用，不能單靠顏色區分；色值沿用，不再為撞色重定。**
