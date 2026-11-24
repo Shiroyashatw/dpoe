@@ -1466,7 +1466,6 @@ if (typeof require !== 'undefined' && require.main === module) {
     vm = require('vm'),
     path = require('path'),
     js = f => path.join(__dirname, '..', 'js', f),
-    /* data.js 載入時會用 PT_BAKE 組 PTREE：烘的時候給一份空的 */
     ctx = {
       console,
       Math,
@@ -1475,11 +1474,12 @@ if (typeof require !== 'undefined' && require.main === module) {
       Object,
       Array,
       location: { search: '' },
-      URLSearchParams,
-      PT_BAKE: { N: [], E: [] }
+      URLSearchParams
     };
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(js('palette.js'), 'utf8'), ctx, { filename: 'palette.js' });
+  /* data.js 載入時用 PT_BAKE 組 PTREE、找起點：先載現有的 ptdata.js（新的形狀只靠下面的 PT_* 表產生） */
+  vm.runInContext(fs.readFileSync(js('ptdata.js'), 'utf8'), ctx, { filename: 'ptdata.js' });
   vm.runInContext(fs.readFileSync(js('data.js'), 'utf8'), ctx, { filename: 'data.js' });
   const env = vm.runInContext('({ PT_THEME, PT_TH, PT_RW, PT_KEYS, PT_ROADS, PT_RSV, PT_STARTS, PT_FIX })', ctx),
     T = ptreeGen2(env),
