@@ -172,6 +172,7 @@
   --cat-cal: #bd7aff;
   --cat-cal-hi: #f1e4ff; /* 只用在災魘腐化徽章內部，不得用於文字 */
   --cell-corrupt: #4b1e1e; /* 只用在裝備格底：腐化（M2-36 色票） */
+  --corr-dash-rgb: 111, 58, 56; /* 只用在腐化格框內 1 px 虛線（item-display K2；mumi 11/24 立 token） */
   --cell-cal: #352642; /* 只用在裝備格底：災魘（M2-36 色票；斜紋改格內爪痕，M2-character §4） */
   --mod-mm: #c79bff;
   --mod-co: #e0614a;
@@ -2827,9 +2828,9 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .cq.r1 { background: var(--rar-magic-bg); border-color: var(--rar-magic); }
 .c12 .cq.r2 { --bw: 2px; background: var(--rar-rare-bg); border: 2px solid var(--rar-rare-frame); }
 .c12 .cq.r3 { --bw: 2px; background: var(--rar-unique-bg); border: 2px solid var(--rar-unique); }
-/* 腐化：格底 --cell-corrupt＋框內 3 px 處 1 px 虛線（3 亮 2 暗，#6f3a38，item-display K2；palette 沒有虛線 token）；畫在道具圖與角標底板下面 */
+/* 腐化：格底 --cell-corrupt＋框內 3 px 處 1 px 虛線（3 亮 2 暗，--corr-dash-rgb，item-display K2）；畫在道具圖與角標底板下面 */
 .c12 .cq.co { background: var(--cell-corrupt); }
-.c12 .cq.co::before { content: ''; position: absolute; inset: calc(3px - var(--bw)); --d: #6f3a38 0 3px, transparent 3px 5px; background: repeating-linear-gradient(90deg, var(--d)) top / 100% 1px no-repeat, repeating-linear-gradient(90deg, var(--d)) bottom / 100% 1px no-repeat, repeating-linear-gradient(180deg, var(--d)) left / 1px 100% no-repeat, repeating-linear-gradient(180deg, var(--d)) right / 1px 100% no-repeat; pointer-events: none; }
+.c12 .cq.co::before { content: ''; position: absolute; inset: calc(3px - var(--bw)); --d: rgb(var(--corr-dash-rgb), 1) 0 3px, transparent 3px 5px; background: repeating-linear-gradient(90deg, var(--d)) top / 100% 1px no-repeat, repeating-linear-gradient(90deg, var(--d)) bottom / 100% 1px no-repeat, repeating-linear-gradient(180deg, var(--d)) left / 1px 100% no-repeat, repeating-linear-gradient(180deg, var(--d)) right / 1px 100% no-repeat; pointer-events: none; }
 /* 災魘：格底 --cell-cal＋格內右上三道爪痕（M2-character §4）；框維持稀有度色、直角 */
 .c12 .cq.cal { background: var(--cell-cal); }
 .c12 .cq .ccl { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: url(#cclg); stroke-width: 1.5px; stroke-linecap: round; pointer-events: none; }
