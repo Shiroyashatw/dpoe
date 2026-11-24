@@ -962,7 +962,7 @@ function hudPanels() {
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
   /* 桌機角色頁（M2-character-1280）走 charpanel.js 的 charHTML；直立、倉庫照舊 */
   if (PANEL.inv && !cw)
-    $('pinv').classList.toggle('c12', chOn()), panelHTML($('pinv'), chOn() ? charHTML() : invHTML());
+    $('pinv').classList.toggle('c12', chOn()), chOn() ? chRender() : panelHTML($('pinv'), invHTML());
   if (PANEL.stash) $('pstash').innerHTML = forgeHead('cur') + curPageHTML();
   if (navOn() === 'forge') FSEG = fseg();
   $('pchase').hidden = !PANEL.chase;

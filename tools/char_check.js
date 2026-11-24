@@ -22,7 +22,8 @@ const box = (p, q) =>
     return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)];
   }, q);
 const is = (b, x, y, w, h) => !!b && near(b[0], x) && near(b[1], y) && near(b[2], w) && near(b[3], h);
-/* 跟示意圖接近的一套：Lv 49、身上全稀有、倉庫 14 頂頭盔（候選 4×3 再多兩件可以捲） */
+/* 跟示意圖接近的一套：Lv 49、身上全稀有、倉庫 14 頂頭盔（候選 4×3 再多兩件可以捲；物品等級高的穿不上＝不能裝備）；
+   示意圖的格狀態：胸甲腐化＋破裂、鞋子災魘、項鍊追憶、武器套王印 */
 const setup = () => {
   proSkip();
   S.story.tips = 0;
@@ -35,6 +36,12 @@ const setup = () => {
   }
   const H = BASES.filter(b => b.k === 'helm');
   for (let i = 0; i < 14; i++) invPut(S.inv, mkItem(H[i % H.length].id, 8 + i * 4, [2, 1, 0][i % 3]));
+  S.eq.chest.cor = 1;
+  S.eq.chest.frac = S.eq.chest.a[0].k;
+  S.eq.boots.cor = 1;
+  S.eq.boots.cal = { g: { k: 'g_hp', v: 10 }, b: { k: 'b_resF', v: 20 } };
+  S.eq.amulet.mem = rollMem(Object.keys(MEM)[0]);
+  S.eq.weapon.wy = 'wangyin_guixu';
   changed();
 };
 /* [圖例編號, 選擇器, 圖例座標 x,y,w,h, 量高度時扣掉的層間距] */
@@ -50,7 +57,8 @@ const CH_COMMON = [
   ['21 武器', '#pinv [data-c="eq:weapon"]', [1192, 146, 64, 64]],
   ['25 戒指', '#pinv [data-c="eq:ring2"]', [1192, 426, 64, 64]],
   ['27 切換 角色數值', '#pinv .ctg', [868, 148, 150, 36]],
-  ['28 切換 候選裝備', '#pinv .ctg.r', [1022, 148, 150, 36]]
+  ['28 切換 候選裝備', '#pinv .ctg.r', [1022, 148, 150, 36]],
+  ['16 胸甲 破裂圖示（左下 x 4、y 44）', '#pinv [data-c="eq:chest"] .cx > *', [800, 260, 16, 16]]
 ];
 const CH_STATS = [
   ['29 DPS', '#pinv .cdps', [874, 186, 126, 28]],
@@ -59,7 +67,8 @@ const CH_STATS = [
   ['39 空釘位', '#pinv .cc.emp', [1080, 294, 102, 32]],
   ['40 分組 攻擊／法術', '#pinv .cg', [868, 338, 300, 32]],
   ['41 子組 核心', '#pinv .cg.sub', [868, 374, 300, 28]],
-  ['42 數值列（第一列）', '#pinv .cr', [868, 406, 300, 22]]
+  ['42 數值列（第一列）', '#pinv .cr', [868, 406, 300, 22]],
+  ['43 清單捲動軌', '#pinv .csb.sl', [1178, 338, 4, 200]]
 ];
 const CH_POP = d => [
   ['47 比較浮窗', '#pinv .c12p', [796, 76, 460, d ? 486 : 448]],
@@ -76,7 +85,8 @@ const CH_CAND = [
   ['32 排序', '#pinv .csort', [868, 224, 88, 24]],
   ['33 篩選', '#pinv .cflt', [962, 224, 152, 24]],
   ['34 候選第 1 格', '#pinv .c12g .cq:nth-child(1)', [868, 254, 64, 64]],
-  ['45 候選第 12 格', '#pinv .c12g .cq:nth-child(12)', [1078, 394, 64, 64]]
+  ['45 候選第 12 格', '#pinv .c12g .cq:nth-child(12)', [1078, 394, 64, 64]],
+  ['46 候選捲動軌', '#pinv .csb.sg', [1150, 254, 4, 204]]
 ];
 const CH_BOX = {
   '01-stats': [...CH_COMMON, ...CH_STATS, ['44 名詞提示', '#ctm', [516, 110, 260, 56]]],
@@ -163,6 +173,110 @@ const CH_BOX = {
     JSON.stringify(cells)
   );
   ok('神格格在 796,496', is(await box(p, '#pinv .cq.lock, #pinv .cq:not([data-c])'), 796, 496, 64, 64));
+  /* 格狀態（V-2；M2-character §3–§5）：✦{n}、特殊詞 16 px 圖示、腐化底＋虛線、災魘底＋爪痕、稀有框 --rar-rare-frame */
+  const cs = await p.evaluate(() => {
+    const q = k => document.querySelector(`#pinv [data-c="eq:${k}"]`),
+      gs = (e, x) => getComputedStyle(e, x),
+      rel = (e, c) => {
+        const r = e.getBoundingClientRect(),
+          b = c.getBoundingClientRect();
+        return [r.x - b.x, r.y - b.y, r.width, r.height, b.right - r.right];
+      },
+      imgs = c => [...c.querySelectorAll('.cx > *')].map(i => [i.getAttribute('src') || '', ...rel(i, c)]),
+      K = ['helm', 'chest', 'gloves', 'belt', 'boots', 'weapon', 'amulet', 'ring1', 'ring2'];
+    return {
+      star: K.map(k => {
+        const e = q(k).querySelector('.cs'),
+          it = S.eq[k];
+        return [k, e ? e.textContent : '', it.a.filter(a => a.T <= itemT(it)).length, !!(e && e.querySelector('svg'))];
+      }),
+      starPos: (() => {
+        const k = K.find(k => q(k).querySelector('.cs'));
+        return k ? rel(q(k).querySelector('.cs'), q(k)) : null;
+      })(),
+      ch: [gs(q('chest')).backgroundColor, gs(q('chest'), '::before').backgroundImage, gs(q('chest'), '::before').top],
+      chImg: imgs(q('chest')),
+      amImg: imgs(q('amulet')),
+      wpImg: imgs(q('weapon')),
+      bo: [
+        gs(q('boots')).backgroundColor,
+        q('boots').querySelectorAll('.ccl path').length,
+        !!q('boots').querySelector('.ccl + .ic'),
+        gs(q('boots').querySelector('.ccl stop')).stopColor,
+        gs(q('boots').querySelector('.ccl path')).strokeWidth,
+        gs(q('boots'), '::before').content
+      ],
+      frame: [gs(q('helm')).borderTopColor, gs(q('helm')).borderTopWidth, S.eq.helm.r],
+      txt: [...document.querySelectorAll('#pinv .cq .cx')].map(e => e.textContent).join('')
+    };
+  });
+  ok(
+    '右上 ✦{n}：n＝頂階詞條數（0 不畫），✦ 是 12 px 圖示；右緣 −3、上緣 +框寬',
+    cs.star.every(([, t, n, sv]) => (n ? t === String(n) && sv : t === '')) &&
+      cs.star.some(x => x[2]) &&
+      !!cs.starPos &&
+      cs.starPos[1] === 2 &&
+      cs.starPos[4] === 3,
+    JSON.stringify([cs.star, cs.starPos])
+  );
+  const at = (L, re) =>
+    L.length && re.test(L[0][0]) && L[0][1] === 4 && L[0][2] === 44 && L[0][3] === 16 && L[0][4] === 16;
+  ok(
+    '左下特殊詞圖示 16 px（第 1 個 x 4、y 44）：破裂＝affix_frac、追憶＝affix_mem、印＝王印 16；不是 ★／◆ 文字',
+    at(cs.chImg, /affix_frac_16/) && at(cs.amImg, /affix_mem_16/) && at(cs.wpImg, /./) && !/[★◆◈]/.test(cs.txt),
+    JSON.stringify([cs.chImg, cs.amImg, cs.wpImg, cs.txt])
+  );
+  ok(
+    '腐化：格底 --cell-corrupt #4b1e1e＋框內 3 px 處 1 px 虛線 #6f3a38（3 亮 2 暗）',
+    cs.ch[0] === 'rgb(75, 30, 30)' &&
+      /repeating-linear-gradient.*rgb\(111, 58, 56\) 0px, rgb\(111, 58, 56\) 3px/.test(cs.ch[1]) &&
+      cs.ch[2] === '1px',
+    JSON.stringify(cs.ch)
+  );
+  ok(
+    '災魘：格底 --cell-cal #352642（蓋過腐化底）＋三道爪痕（--cat-cal、1.5 px、在道具圖下面）；不畫腐化虛線、不用整格斜紋',
+    cs.bo[0] === 'rgb(53, 38, 66)' &&
+      cs.bo[1] === 3 &&
+      cs.bo[2] &&
+      cs.bo[3] === 'rgb(189, 122, 255)' &&
+      cs.bo[4] === '1.5px' &&
+      cs.bo[5] === 'none',
+    JSON.stringify(cs.bo)
+  );
+  ok(
+    '稀有格框 2 px --rar-rare-frame #ccb72e（不用 --rar-rare）',
+    cs.frame[2] !== 2 || (cs.frame[0] === 'rgb(204, 183, 46)' && cs.frame[1] === '2px'),
+    JSON.stringify(cs.frame)
+  );
+  ok(
+    '輔助字 400：抗性標與值、Lv、DPS 標、固定 3 格標、釘選標、數值列名',
+    await p.evaluate(() =>
+      ['.cres small', '.cres span', '.chd span:last-child', '.cdps small', '.cc small', '.cr span'].every(
+        q => getComputedStyle($('pinv').querySelector(q)).fontWeight === '400'
+      )
+    )
+  );
+  const crit = await p.evaluate(() =>
+    [...document.querySelectorAll('#pinv .cc')].map(e => e.textContent).find(t => t.startsWith('暴擊率'))
+  );
+  ok('暴擊率 n.n%（整數也寫 .0）', /^暴擊率\d+\.\d%$/.test(crit || ''), crit);
+  const sl = await p.evaluate(() => {
+    const l = $('pinv').querySelector('.c12l'),
+      t = $('pinv').querySelector('.csb.sl'),
+      r = t.getBoundingClientRect();
+    return [
+      l.scrollHeight > l.clientHeight,
+      !t.hidden,
+      [r.x, r.y, r.width, r.height].map(Math.round),
+      t.firstChild.offsetHeight,
+      getComputedStyle(l).scrollbarWidth
+    ];
+  });
+  ok(
+    '數值清單自繪 4 px 捲動軌 1178,338 4×200（內容超過才出現；不靠原生捲動條）',
+    sl[4] === 'none' && sl[0] === sl[1] && (!sl[0] || (is(sl[2], 1178, 338, 4, 200) && sl[3] >= 16)),
+    JSON.stringify(sl)
+  );
   ok(
     '摘要：DPS、固定 3 格（生命／能量護盾／魔力）＋釘選 6 格（預設暴擊率、攻擊速度、護甲、閃避率、格擋率、空位）',
     await p.evaluate(
@@ -182,8 +296,12 @@ const CH_BOX = {
   const t2 = await p.evaluate(() => !!$('ctm') && !$('ctm').hidden && $('ctm').textContent);
   const tb = await box(p, '#ctm');
   ok(
-    '名詞提示：停 0.25 秒還沒出、0.55 秒出現；寫「火焰抗性 n%・最大火焰抗性 n%。」；在右欄左邊戰場側（右緣 ≤ 776）',
-    !t1 && /火焰抗性 -?\d+%・最大火焰抗性 \d+%。/.test(t2 || '') && tb && tb[0] + tb[2] <= 777,
+    '名詞提示：停 0.25 秒還沒出、0.55 秒出現；只寫正文「火焰抗性 n%・最大火焰抗性 n%。」（沒有「名詞提示　停留 0.4 秒」帽）；在右欄左邊戰場側（右緣 ≤ 776）',
+    !t1 &&
+      /^火焰抗性 -?\d+%・最大火焰抗性 \d+%。/.test(t2 || '') &&
+      !/名詞提示|停留/.test(t2) &&
+      tb &&
+      tb[0] + tb[2] <= 777,
     JSON.stringify([t1, t2, tb])
   );
   await shot('01-stats');
@@ -206,16 +324,41 @@ const CH_BOX = {
       (await p.evaluate(
         () =>
           /釘到摘要|取消釘選/.test($('pinv').querySelector('.cmenu').textContent) &&
-          /編輯釘選/.test($('pinv').querySelector('.cmenu').textContent)
+          /編輯釘選/.test($('pinv').querySelector('.cmenu').textContent) &&
+          /* 說明：有 TERMS 才畫那一行 */
+          !!$('pinv').querySelector('.cmenu p') === !!TERMS[chStat(CH.menu)[1]]
       )) &&
       (await p.evaluate(() => !$('pinv').querySelector('.btn.pri'))),
     JSON.stringify(mb)
   );
   await shot('02-stats-menu');
-  await p.mouse.click(300, 300);
+  /* V-1：點右欄外面（戰場、底列、上方）或按 Esc 都關選單 */
+  const menuOn = () => p.evaluate(() => !!$('pinv').querySelector('.cmenu'));
+  const closed = [];
+  for (const xy of [[300, 300], [400, 650], [640, 20], 'Escape']) {
+    if (!(await p.evaluate(() => PANEL.inv))) await p.keyboard.press('v');
+    /* 右鍵開選單（直接送 contextmenu：上一輪的選單可能蓋著這一列） */
+    await p.$eval('#pinv .cr', e =>
+      e.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+    );
+    await p.waitForTimeout(80);
+    const o = await menuOn();
+    if (xy === 'Escape') await p.keyboard.press('Escape');
+    else await p.mouse.click(xy[0], xy[1]);
+    await p.waitForTimeout(120);
+    closed.push([o, !(await menuOn()), await p.evaluate(() => PANEL.inv)]);
+    if (OUT && xy[0] === 300) await p.screenshot({ path: path.join(OUT, '02-menu-closed-click-300-300.png') });
+  }
+  ok(
+    '點右欄外 (300,300)、(400,650)、(640,20) 都關長按選單；Esc 也關（面板留著）',
+    closed.every(([o, c, v], i) => o && c && (i < 3 || v)),
+    JSON.stringify(closed)
+  );
+  if (!(await p.evaluate(() => PANEL.inv))) await p.keyboard.press('v');
+  await p.$eval('#pinv .cr', e => e.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })));
   await p.mouse.click(1000, 120);
   await p.waitForTimeout(100);
-  ok('點選單外面：選單收起', await p.evaluate(() => !$('pinv').querySelector('.cmenu')));
+  ok('點右欄裡選單外面：選單收起', !(await menuOn()));
   /* 03 編輯釘選 */
   await p.click('#pinv [data-c="edit"]');
   await p.waitForTimeout(100);
@@ -262,6 +405,73 @@ const CH_BOX = {
       g[12][1] >= gv[1] + gv[3],
     JSON.stringify([g.slice(0, 5), g[12], gv])
   );
+  /* V-6：不能裝備的不算「可以換的 n 件」、排在後面、沒有判定角標、右下 12 px 斜線 --bad、不淡化 */
+  const nq = await p.evaluate(() => {
+    const E = [...document.querySelectorAll('#pinv .c12g .cq')],
+      L = E.map(e => S.inv.items.find(x => x.id === +e.dataset.c.slice(5))),
+      W = L.filter(it => !cantWear(it)),
+      e = E.find((e, i) => cantWear(L[i])),
+      r = e && e.querySelector('.cnq') && e.querySelector('.cnq').getBoundingClientRect(),
+      c = e && e.getBoundingClientRect();
+    return {
+      n: W.length,
+      bad: L.length - W.length,
+      k: W.filter(it => ['▲', '▲▲'].includes(chJudge(it, 'helm'))).length,
+      cns: $('pinv').querySelector('.cns').textContent,
+      after: L.findIndex(cantWear) === W.length,
+      marks: E.filter((e, i) => cantWear(L[i])).every(
+        e =>
+          !e.querySelector('.cj') &&
+          !!e.querySelector('.cnq') &&
+          /不能裝備：/.test(e.getAttribute('aria-label')) &&
+          getComputedStyle(e).opacity === '1'
+      ),
+      slash: r && [Math.round(c.right - r.right), Math.round(c.bottom - r.bottom), r.width, r.height],
+      col: e && getComputedStyle(e.querySelector('.cnq')).backgroundImage,
+      cnsW: getComputedStyle($('pinv').querySelector('.cns')).fontWeight
+    };
+  });
+  ok(
+    '「可以換的 n 件，▲ k」只算穿得上的；不能裝備的排在後面、沒有判定角標、右下 12 px 斜線 --bad、不淡化、讀屏「不能裝備：」；字重 400',
+    nq.bad > 0 &&
+      nq.n > 0 &&
+      nq.cns === `可以換的 ${nq.n} 件，▲ ${nq.k}` &&
+      nq.after &&
+      nq.marks &&
+      JSON.stringify(nq.slash) === '[3,3,12,12]' &&
+      /rgb\(255, 155, 186\)/.test(nq.col) &&
+      nq.cnsW === '400',
+    JSON.stringify(nq)
+  );
+  /* 懸停不能裝備的候選：④ 寫「不能裝備：{原因}」、⑤ Ⓐ 裝備停用；點了不換上 */
+  const h0 = await p.evaluate(() => S.eq.helm.id);
+  await p.hover('#pinv .c12g .cq.nq');
+  await p.waitForTimeout(50);
+  const nqp = await p.evaluate(() => [
+    $('pinv').querySelector('.c12p .l4').textContent,
+    !!$('pinv').querySelector('.c12p .l5 .off[aria-disabled="true"]')
+  ]);
+  await p.click('#pinv .c12g .cq.nq');
+  await p.waitForTimeout(50);
+  ok(
+    '不能裝備的候選：④「不能裝備：等級 n／m…」、Ⓐ 裝備停用、點了不換上',
+    /不能裝備：.*\d+／\d+/.test(nqp[0]) && nqp[1] && (await p.evaluate(id => S.eq.helm.id === id, h0)),
+    JSON.stringify(nqp)
+  );
+  await away();
+  await p.waitForTimeout(50);
+  if (OUT) await p.screenshot({ path: path.join(OUT, '04-cands-cantwear.png') });
+  await p.evaluate(() => ($('pinv').querySelector('.c12g').scrollTop = 0));
+  const sg = await p.evaluate(() => {
+    const t = $('pinv').querySelector('.csb.sg'),
+      r = t.getBoundingClientRect();
+    return [!t.hidden, [r.x, r.y, r.width, r.height].map(Math.round)];
+  });
+  ok(
+    '候選區自繪 4 px 捲動軌 1150,254 4×204（14 件超過 12 格才出現）',
+    sg[0] && is(sg[1], 1150, 254, 4, 204),
+    JSON.stringify(sg)
+  );
   const ord = await p.evaluate(() =>
     [...document.querySelectorAll('#pinv .c12g .cq')].map(e => (e.querySelector('.cj') || {}).textContent || '')
   );
@@ -272,11 +482,16 @@ const CH_BOX = {
     ord.join(' ')
   );
   await p.click('#pinv [data-c="sort"]');
-  const ids = await p.evaluate(() => [...document.querySelectorAll('#pinv .c12g .cq')].map(e => +e.dataset.c.slice(5)));
+  const ids = await p.evaluate(() =>
+    [...document.querySelectorAll('#pinv .c12g .cq')].map(e => [
+      e.classList.contains('nq') ? 1 : 0,
+      +e.dataset.c.slice(5)
+    ])
+  );
   ok(
-    '排序換「最新」：新的在前',
-    ids.every((v, i) => !i || ids[i - 1] > v),
-    ids.join()
+    '排序換「最新」：新的在前（不能裝備的仍排在可裝備件之後）',
+    ids.every((v, i) => !i || ids[i - 1][0] < v[0] || (ids[i - 1][0] === v[0] && ids[i - 1][1] > v[1])),
+    JSON.stringify(ids)
   );
   await p.click('#pinv [data-c="sort"]');
   await p.click('#pinv [data-c="f:up"]');
@@ -316,7 +531,19 @@ const CH_BOX = {
   ok('有一件跟示意圖一樣的候選可以比（基底一種防禦、詞綴 ≤ 3 條）', few >= 0, String(few));
   await p.hover(`#pinv .c12g .cq:nth-child(${few + 1})`);
   const pb = await box(p, '#pinv .c12p');
-  ok('懸停候選立即出比較浮窗：796,76 460×448', is(pb, 796, 76, 460, 448), JSON.stringify(pb));
+  ok(
+    '懸停候選立即出比較浮窗：左上 796,76、寬 460、高 448–486、下緣 ≤ 562',
+    !!pb && pb[0] === 796 && pb[1] === 76 && pb[2] === 460 && pb[3] >= 448 && pb[3] <= 486 && pb[1] + pb[3] <= 562,
+    JSON.stringify(pb)
+  );
+  const l1 = await box(p, '#pinv .c12p .l1');
+  ok(
+    '拿掉窗頂標注：沒有「懸浮時才出現」；① 身分層 y 98、高 68（＋層間 13）；⑤ 寫「Ⓐ 裝備　Ｘ 鎖定身上　Ｒ3 名詞」',
+    !(await p.evaluate(() => /懸浮時才出現|按住 Alt／Y 中/.test($('pinv').textContent))) &&
+      is(l1, 796, 98, 460, 81) &&
+      (await p.evaluate(() => $('pinv').querySelector('.c12p .l5 p').textContent === 'Ⓐ 裝備　Ｘ 鎖定身上　Ｒ3 名詞')),
+    JSON.stringify(l1)
+  );
   ok(
     '浮窗五層：身分、基底、詞綴、換上、操作（簡易不列 T 階）；④ 換上 18/700；主角 16/700、輔助 14/400',
     await p.evaluate(() => {
@@ -361,20 +588,66 @@ const CH_BOX = {
       () => !$('pinv').querySelector('.c12p.det') && !/T\d/.test($('pinv').querySelector('.c12p .l3').textContent)
     )
   );
-  /* 詞綴多（身上 6 條、候選 6 條）：詞綴層收縮，浮窗不超出右欄、⑤ 操作層看得到 */
+  /* V-4：雙防禦底材＋6＋6 條詞綴：浮窗只長到 486（下緣 ≤ 562）；③ 不裁切（詞綴全在 DOM、層內可捲、出 4 px 軌），①②④⑤ 完整 */
+  const dd = await p.evaluate(() => {
+    const it = S.inv.items.find(x => x.id === CH.hov),
+      B = BASES.find(b => b.k === 'helm' && chBase({ b: b.id, a: [] }).length >= 3);
+    if (!B) return null;
+    window.DD0 = [it, it.b, it.a, S.eq.helm.b, S.eq.helm.a];
+    it.b = S.eq.helm.b = B.id;
+    const A = S.inv.items.flatMap(x => x.a || []);
+    S.eq.helm.a = A.slice(0, 6);
+    it.a = A.slice(6, 12);
+    chCmpSync();
+    return B.n;
+  });
+  for (const det of [0, 1]) {
+    if (det) await p.keyboard.down('Alt'), await p.waitForTimeout(50);
+    const r = await p.evaluate(() => {
+      const c = $('pinv').querySelector('.c12p'),
+        b = e => e.getBoundingClientRect(),
+        s = c.querySelector('.l3s'),
+        cb = b(c);
+      return {
+        pop: [cb.x, cb.y, cb.width, cb.height].map(Math.round),
+        lis: c.querySelectorAll('.l3s li').length,
+        txt: [...c.querySelectorAll('.l3s li b')].every(e => e.textContent.trim()),
+        scroll: s.scrollHeight > s.clientHeight + 1,
+        bar: !c.querySelector('.l3 .csb').hidden,
+        whole: ['.l1', '.l2', '.l4', '.l5'].every(q => b(c.querySelector(q)).bottom <= cb.bottom + 0.5),
+        l3in: b(s).bottom <= b(c.querySelector('.l3')).bottom + 0.5
+      };
+    });
+    ok(
+      `雙防禦（${dd}）＋6＋6 條詞綴（${det ? '詳細' : '簡易'}）：浮窗 796,76 寬 460、高 ≤ 486、下緣 ≤ 562；③ 12 條都在、放不下就層內捲（4 px 軌）；①②④⑤ 完整`,
+      !!dd &&
+        r.pop[0] === 796 &&
+        r.pop[1] === 76 &&
+        r.pop[2] === 460 &&
+        r.pop[3] <= 486 &&
+        r.pop[1] + r.pop[3] <= 562 &&
+        r.lis === 12 &&
+        r.txt &&
+        r.scroll === r.bar &&
+        r.whole &&
+        r.l3in,
+      JSON.stringify(r)
+    );
+    if (!det && r.scroll) {
+      await p.mouse.wheel(0, 120);
+      await p.waitForTimeout(80);
+      ok('③ 放不下：在候選格上滾輪捲 ③', await p.evaluate(() => $('pinv').querySelector('.c12p .l3s').scrollTop > 0));
+    }
+    if (OUT) await p.screenshot({ path: path.join(OUT, `04${det ? 'b' : 'a'}-dualdef-6affix.png`) });
+  }
+  await p.keyboard.up('Alt');
+  /* 換回原本的底材與詞綴（不然快取的「能不能裝備」會跟著舊底材） */
   await p.evaluate(() => {
-    const it = S.inv.items.find(x => x.id === CH.hov);
-    S.eq.helm.a = [...S.eq.helm.a, ...it.a, ...it.a, ...it.a].slice(0, 6);
-    it.a = [...it.a, ...it.a, ...it.a, ...it.a].slice(0, 6);
+    const [it, b, a, hb, ha] = DD0;
+    Object.assign(it, { b, a });
+    Object.assign(S.eq.helm, { b: hb, a: ha });
     chCmpSync();
   });
-  const pm = await box(p, '#pinv .c12p'),
-    l5 = await box(p, '#pinv .c12p .l5');
-  ok(
-    '6＋6 條詞綴：浮窗下緣 ≤ 562、⑤ 操作層整層在浮窗內',
-    pm[1] + pm[3] <= 562 && l5[1] + l5[3] <= pm[1] + pm[3],
-    JSON.stringify([pm, l5])
-  );
   await away();
   await p.waitForTimeout(50);
   ok('滑鼠離開：浮窗收起', await p.evaluate(() => !$('pinv').querySelector('.c12p')));
@@ -386,6 +659,23 @@ const CH_BOX = {
   const lk0 = await p.evaluate(() => !!S.eq.helm.lock);
   await p.keyboard.press('x');
   ok('X：切換選中格身上裝備的鎖定', await p.evaluate(l => !!S.eq.helm.lock === !l, lk0));
+  /* 空格有候選：右上候選數、讀屏「倉庫有 n 件可以裝備」只算穿得上的 */
+  const em = await p.evaluate(() => {
+    S.eq.helm = null;
+    NAV.slot = null;
+    changed();
+    hudPanels();
+    const e = $('pinv').querySelector('[data-c="eq:helm"]'),
+      n = slotCands('helm').filter(it => !cantWear(it)).length;
+    const r = [n, slotCands('helm').length, (e.querySelector('.cn') || {}).textContent, e.getAttribute('aria-label')];
+    NAV.slot = 'helm';
+    return r;
+  });
+  ok(
+    '空格的候選數與讀屏只算穿得上的（不含不能裝備）',
+    em[0] < em[1] && em[2] === String(em[0]) && em[3] === `頭部空著，倉庫有 ${em[0]} 件可以裝備`,
+    JSON.stringify(em)
+  );
   /* 07 空格沒候選 */
   await p.evaluate(() => {
     S.inv.items = S.inv.items.filter(it => kindOf(it) !== 'helm');
@@ -406,6 +696,34 @@ const CH_BOX = {
   await p.keyboard.press('v');
   await p.waitForTimeout(250);
   ok('再按 V：關掉', await p.evaluate(() => !PANEL.inv && $('pinv').hidden));
+  /* Q4：第三隻戒指（開了才有）在右柱第 6 格 1192,496 */
+  await p.keyboard.press('v');
+  await p.waitForTimeout(300);
+  const r3 = await p.evaluate(() => {
+    for (const [a, v] of Object.entries(ASC))
+      for (const [id, n] of Object.entries(v.N || {}))
+        if (n[3] && 'ring3' in n[3]) {
+          S.asc = a;
+          S.at = ['xx' + id];
+          hudPanels();
+          const e = $('pinv').querySelector('[data-c="eq:ring3"]');
+          if (!e) return null;
+          const r = e.getBoundingClientRect();
+          return [
+            r.x,
+            r.y,
+            r.width,
+            r.height,
+            $('pinv').getBoundingClientRect().x,
+            $('pinv').className,
+            NAV.view,
+            innerWidth
+          ];
+        }
+    return 'no';
+  });
+  ok('第三隻戒指開了：右柱第 6 格 1192,496 64×64', r3 === 'no' || is(r3, 1192, 496, 64, 64), JSON.stringify(r3));
+  await p.keyboard.press('v');
   ok('1280×720 沒有頁面錯誤', !errs.length, errs.join(' | '));
   await ctx.close();
   /* 390×844：直立角色頁照舊（hud.js 的 invHTML，不走 .c12） */
@@ -468,6 +786,27 @@ const CH_BOX = {
   await g3.evaluate(() => (PADB[0].pressed = true));
   await g3.waitForTimeout(150);
   ok('手把 Ⓐ：裝備焦點上的候選', await g3.evaluate(id => S.eq.helm.id === id, gid));
+  /* Q11：手把方向鍵在格間移焦點（候選 4×3 照行列），焦點上的候選立即出比較浮窗 */
+  await g3.evaluate(() => (PADB[0].pressed = false));
+  await g3.waitForTimeout(100);
+  await g3.focus('#pinv .c12g .cq');
+  const pad = async i => {
+    await g3.evaluate(i => (PADB[i].pressed = true), i);
+    await g3.waitForTimeout(120);
+    await g3.evaluate(i => (PADB[i].pressed = false), i);
+    await g3.waitForTimeout(120);
+    return g3.evaluate(() => {
+      const E = [...document.querySelectorAll('#pinv .c12g .cq')],
+        f = document.activeElement;
+      return [E.indexOf(f), CH.hov === +((f.dataset.c || '').slice(5) || NaN), !!$('pinv').querySelector('.c12p')];
+    });
+  };
+  const mv = [await pad(15), await pad(13), await pad(14), await pad(12)];
+  ok(
+    '手把方向鍵：右 → 第 2 格、下 → 第 6 格、左 → 第 5 格、上 → 第 1 格；焦點格立即出比較浮窗',
+    JSON.stringify(mv.map(x => x[0])) === '[1,5,4,0]' && mv.every(x => x[1] && x[2]),
+    JSON.stringify(mv)
+  );
   if (OUT) fs.writeFileSync(path.join(OUT, 'boxes.json'), JSON.stringify(BOX, null, 1));
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '✅ 角色頁全部通過');

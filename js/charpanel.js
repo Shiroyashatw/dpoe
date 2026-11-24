@@ -17,8 +17,7 @@ const CH_L = ['helm', 'chest', 'gloves', 'belt', 'boots', 'gh'],
 /* 預設釘選（mumi 11/21 12:51 案 A）：暴擊率、攻擊速度、護甲、閃避率、格擋率，空一格 */
 const PIN_DEF = ['crit', 'aps', 'armor', 'evr', 'block', null];
 const pins = () => (S.pin = Array.isArray(S.pin) && S.pin.length === 6 ? S.pin : PIN_DEF.slice());
-const ch_pct = v => `${Math.round(v * 10) / 10}%`,
-  ch_inc = v => (v ? `增加 ${Math.round(v)}%` : null),
+const ch_inc = v => (v ? `增加 ${Math.round(v)}%` : null),
   ch_rng = a => (a && a[1] ? `${Math.round(a[0])}–${Math.round(a[1])}` : null);
 /* 數值清單：[鍵, 名稱, 值（null＝不列）]；分組 [鍵, 名稱, 子組 [鍵, 名稱, 項目]] */
 const CH_G = [
@@ -32,7 +31,7 @@ const CH_G = [
         [
           ['dmg', '武器傷害', s => ch_rng(s.dmg)],
           ['aps', '攻擊速度', s => `${s.aps.toFixed(2)}／秒`],
-          ['crit', '暴擊率', s => ch_pct(s.crit)],
+          ['crit', '暴擊率', s => `${(Math.round(s.crit * 10) / 10).toFixed(1)}%`],
           ['critm', '暴擊傷害加成', s => `+${Math.round((s.critM - 1) * 100)}%`],
           ['hit', '命中率', s => `${Math.round(100 * hitChance(s.acc, mobEv(S.lv)))}%`],
           ['acc', '命中值', s => fullN(s.acc, 'own')],
@@ -165,16 +164,49 @@ const JORD = { '▲▲': 0, '▲': 1, '±': 2, '—': 3, '▼': 4, '': 5 };
 function chCands(k) {
   const L = slotCands(k).filter(it => CH.f !== 'lock' || !it.lock);
   const J = L.map(it => [it, chJudge(it, k)]).filter(([, j]) => CH.f !== 'up' || j === '▲' || j === '▲▲');
-  if (CH.o === 'j') J.sort((a, b) => JORD[a[1]] - JORD[b[1]] || b[0].id - a[0].id);
-  else J.sort((a, b) => b[0].id - a[0].id);
+  /* 不能裝備的排在可裝備件之後，不參與判定排序 */
+  J.sort(
+    (a, b) => cantWear(a[0]) - cantWear(b[0]) || (CH.o === 'j' ? JORD[a[1]] - JORD[b[1]] : 0) || b[0].id - a[0].id
+  );
   return J;
 }
-/* ---------- 格子 ---------- */
+/* ---------- 格子（M2-character §3–§5、item-display v1.2） ----------
+   層（下到上）：格底（腐化／災魘蓋過稀有度底）→ 腐化虛線／災魘爪痕 → 道具圖 → 框 → 角標。
+   角標：左上比較判定、右上 ✦{n}（頂階詞條數）、左下特殊詞圖示（破裂 > 追憶 > 印，最多 2 個）、右下鎖；不能裝備＝右下斜線 */
 const chJcls = j => (j === '▲' || j === '▲▲' ? 'c-good' : j === '▼' ? 'c-bad' : 'c-dim');
-function chCell(it, attrs, j) {
-  const b = bestA(it);
-  return `<div class="cq r${it.r} ${it.cor ? 'co' : ''}" ${attrs} aria-label="${esc(itemName(it))}">${icHTML(itemIc(it))}${j ? `<i class="cj ${chJcls(j)}">${j}</i>` : ''}${b && b <= itemT(it) ? '<i class="cs">✦</i>' : ''}${it.frac ? '<i class="cx">★</i>' : it.mem ? '<i class="cx">◆</i>' : ''}${it.lock ? `<i class="ck">${ICO.lock}</i>` : ''}</div>`;
+const CH_STAR =
+  '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 0 7.3 4.7 12 6 7.3 7.3 6 12 4.7 7.3 0 6 4.7 4.7z"/></svg>';
+/* 災魘爪痕（§4 方案 A）：格內內容區的正規化貝茲，1.5 px、--cat-cal 中段 70%、兩端淡出 */
+const CH_CLAW = `<svg class="ccl" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="cclg" x2="1" y2="1"><stop offset="0" stop-opacity="0"/><stop offset=".5" stop-opacity=".7"/><stop offset="1" stop-opacity="0"/></linearGradient></defs>${[
+  'M.25 0C.3 .32 .7 .6 1 .64',
+  'M.38 0C.46 .2 .82 .46 .94 .5',
+  'M.52 0C.62 .14 .88 .3 1 .36'
+]
+  .map(d => `<path d="${d}"/>`)
+  .join('')}</svg>`;
+const chAfx = n => `<img src="art/icons/affix/${n}_16${DPR > 1 ? '@2x' : ''}.png" alt="">`;
+/* c：候選格（才看能不能裝備） */
+function chCell(it, attrs, j, c) {
+  const t = itemT(it),
+    n = (it.a || []).filter(a => a.T <= t).length,
+    why = c && cantWear(it) && itemDelta(it, NAV.slot).why,
+    sp = [
+      it.frac && [chAfx('affix_frac'), '破裂'],
+      it.mem && [chAfx('affix_mem'), '追憶'],
+      WY_FX[it.wy] && [icHTML(it.wy + '_16'), '印']
+    ]
+      .filter(Boolean)
+      .slice(0, 2),
+    st = it.cal ? 'cal' : it.cor ? 'co' : '',
+    lab = [itemName(it), ...sp.map(x => x[1]), st && (st === 'cal' ? '災魘' : '腐化'), why && chWhy(why)].filter(
+      Boolean
+    );
+  return `<div class="cq r${it.r} ${st} ${why ? 'nq' : ''}" ${attrs} aria-label="${esc(lab.join('，'))}">${st === 'cal' ? CH_CLAW : ''}${icHTML(itemIc(it))}${j ? `<i class="cj ${chJcls(j)}">${j}</i>` : ''}${n ? `<i class="cs">${CH_STAR}${n}</i>` : ''}${sp.length ? `<i class="cx">${sp.map(x => x[0]).join('')}</i>` : ''}${it.lock ? `<i class="ck">${ICO.lock}</i>` : ''}${why ? '<i class="cnq"></i>' : ''}</div>`;
 }
+/* 不能裝備的原因（規格用字「不能裝備：{原因}」） */
+const chWhy = w => '不能裝備：' + w.replace(/^不符合需求：/, '');
+/* 可以換的：穿得上的才算（V-6） */
+const chWear = k => slotCands(k).filter(it => !cantWear(it));
 function chSlot(k, x, y) {
   const st = `style="left:${x}px;top:${y}px"`;
   if (k === 'gh') {
@@ -191,7 +223,7 @@ function chSlot(k, x, y) {
     return `<div class="cq emp lock" ${st} data-c="lk" data-lk="${esc(e.n + '：被昇華鎖住，退點才能用')}"><span class="nm">${e.n}</span><i class="ck">${ICO.lock}</i></div>`;
   if (it)
     return chCell(it, `${st} data-c="eq:${k}" tabindex="0" role="button"`).replace('class="cq', `class="cq ${sel}`);
-  const L = slotCands(k),
+  const L = chWear(k),
     up = L.some(c => chJudge(c, k) === '▲' || chJudge(c, k) === '▲▲');
   return `<div class="cq emp ${sel}" ${st} data-c="eq:${k}" tabindex="0" role="button" aria-label="${esc(strT('slotAria', { s: e.n, n: L.length }))}"><span class="sil">${icHTML(slotIc(e))}</span><span class="nm">${e.n}</span>${L.length ? `<em class="cn ${up ? 'c-good' : ''}">${L.length}</em>` : ''}</div>`;
 }
@@ -239,7 +271,7 @@ function chStatsHTML() {
           : `<button class="btn" data-c="star:${m[0]}" ${n >= 6 ? 'disabled' : ''}>釘到摘要</button>`
       }<small>${n >= 6 && !P.includes(m[0]) ? '已滿，先取消一個' : `目前 ${n}／6，還可再釘 ${6 - n} 個`}</small><button class="btn" data-c="edit">編輯釘選</button></div>`
     : '';
-  return `${head}${cards}<div class="c12l">${list}</div>${menu}`;
+  return `${head}${cards}<div class="c12l" data-sb>${list}</div><i class="csb sl"><i></i></i>${menu}`;
 }
 /* ---------- 候選裝備（04a、04b、07） ---------- */
 function chCandHTML() {
@@ -250,12 +282,13 @@ function chCandHTML() {
   if (!all.length)
     return `<b class="cet">${e.n}　空著</b><p class="cep">${strT('noCand', { s: e.n })}</p><button class="btn pri cmk" data-a="mkslot:${k}">${STR_T.mkSlot}</button>`;
   const J = chCands(k),
-    up = all.filter(it => ['▲', '▲▲'].includes(chJudge(it, k))).length,
+    W = chWear(k),
+    up = W.filter(it => ['▲', '▲▲'].includes(chJudge(it, k))).length,
     chip = (v, t) =>
       `<button class="chip ${CH.f === v ? 'on' : ''}" data-c="f:${v}" aria-pressed="${CH.f === v}">${t}</button>`;
-  return `<b class="cnt">${cur ? `現在：${esc(itemName(cur))}` : `${e.n}　空著`}</b><small class="cns">可以換的 ${all.length} 件，▲ ${up}</small><button class="cx2" data-c="slotx" aria-label="收起">${ICO.x}</button>
+  return `<b class="cnt">${cur ? `現在：${esc(itemName(cur))}` : `${e.n}　空著`}</b><small class="cns">可以換的 ${W.length} 件，▲ ${up}</small><button class="cx2" data-c="slotx" aria-label="收起">${ICO.x}</button>
   <button class="chip csort" data-c="sort">${CH.o === 'j' ? '判定' : '最新'} ▾</button><div class="cflt">${chip('all', '全部')}${chip('up', '只看 ▲')}${chip('lock', '未鎖')}</div>
-  <div class="c12g">${J.map(([it, j]) => chCell(it, `data-c="cand:${it.id}" tabindex="0" role="button"`, j)).join('') || '<p class="cnone">沒有符合篩選的裝備</p>'}</div>${chCmpHTML()}`;
+  <div class="c12g" data-sb>${J.map(([it, j]) => chCell(it, `data-c="cand:${it.id}" tabindex="0" role="button"`, j, 1)).join('') || '<p class="cnone">沒有符合篩選的裝備</p>'}</div><i class="csb sg"><i></i></i>${chCmpHTML()}`;
 }
 /* 比較浮窗（04a 簡易／04b 詳細）：五層——① 身分 ② 基底 ③ 詞綴 ④ 換上 ⑤ 操作；懸停立即出現，不接滑鼠（pointer-events: none） */
 function chBase(it) {
@@ -316,7 +349,7 @@ function chCmpHTML() {
       ).join(''),
     d = itemDelta(it, k),
     dl = d.why
-      ? `<span class="c-bad">${esc(d.why)}</span>`
+      ? `<span class="c-bad">${esc(chWhy(d.why))}</span>`
       : [
           ['DPS', d.dps[0]],
           ['生命', d.hp],
@@ -330,12 +363,11 @@ function chCmpHTML() {
           )
           .join('') || '<span class="c-dim">沒有變化</span>';
   return `<div class="c12p ${det ? 'det' : ''}" role="dialog" aria-label="比較">
-  <small class="pcap">懸浮時才出現${det ? '・按住 Alt／Y 中' : ''}</small>
   <section class="l1"><div><small>身分　身上</small>${cur ? nm(cur) + sub(cur) : '<b>空著</b>'}</div><div><small>候選${j ? `（${j}）` : ''}</small>${nm(it)}${sub(it)}</div></section>
   <section class="l2"><small class="lh">基底</small><div>${bcol(B0)}</div><div>${bcol(B1)}</div></section>
-  <section class="l3"><small class="lh">詞綴${det && cur ? `　${side(cur)}` : ''}</small>${det ? `<small class="lh r">${side(it)}　✦＝最好階</small>` : ''}<ul>${chAffs(cur, det)}</ul><ul>${chAffs(it, det)}</ul></section>
+  <section class="l3"><small class="lh">詞綴${det && cur ? `　${side(cur)}` : ''}</small>${det ? `<small class="lh r">${side(it)}　✦＝最好階</small>` : ''}<div class="l3s" data-sb><ul>${chAffs(cur, det)}</ul><ul>${chAffs(it, det)}</ul></div><i class="csb"><i></i></i></section>
   <section class="l4"><small class="lh">換上</small><p>${dl}</p></section>
-  <section class="l5"><small class="lh">操作</small><p>Ⓐ 裝備　Ｘ 鎖定　Ｒ3 名詞</p><kbd>${det ? '放開' : '按住'} Alt</kbd><kbd>Y</kbd></section></div>`;
+  <section class="l5"><small class="lh">操作</small><p><span ${d.why ? 'class="off" aria-disabled="true"' : ''}>Ⓐ 裝備</span>　Ｘ 鎖定身上　Ｒ3 名詞</p><kbd>${det ? '放開' : '按住'} Alt</kbd><kbd>Y</kbd></section></div>`;
 }
 /* ---------- 整頁 ---------- */
 function charHTML() {
@@ -354,6 +386,16 @@ function charHTML() {
   <button class="ctg ${cand ? '' : 'on'}" data-c="tab:stats" aria-pressed="${!cand}">角色數值</button><button class="ctg r ${cand ? 'on' : ''}" data-c="tab:cand" aria-pressed="${cand}">候選裝備</button>
   ${cand ? chCandHTML() : chStatsHTML()}`;
 }
+/* 重畫整個面板（戰鬥中會一直重畫）：焦點留在同一格（手把方向鍵、Tab 才不會掉回最前面） */
+function chRender() {
+  const p = $('pinv'),
+    f = document.activeElement,
+    c = p.contains(f) && f.dataset && f.dataset.c;
+  panelHTML(p, charHTML());
+  const n = c && p.querySelector(`[data-c="${CSS.escape(c)}"]`);
+  if (n) n.focus({ preventScroll: true });
+  chSb();
+}
 /* 比較浮窗只換自己（不重畫整個面板，捲動與焦點都留著） */
 function chCmpSync() {
   const p = $('pinv'),
@@ -361,6 +403,23 @@ function chCmpSync() {
     h = chCmpHTML();
   if (o) h ? (o.outerHTML = h) : o.remove();
   else if (h) p.insertAdjacentHTML('beforeend', h);
+  chSb();
+}
+/* 自繪 4 px 捲動條（L-10）：[data-sb] 後面的 .csb；內容超過可視區才出現。軌 --border、滑塊 --tx-dim */
+function chSb() {
+  for (const el of $('pinv').querySelectorAll('[data-sb]')) {
+    const t = el.nextElementSibling;
+    if (!t || !t.classList.contains('csb')) continue;
+    const ch = el.clientHeight,
+      sh = el.scrollHeight,
+      on = sh > ch + 1;
+    t.hidden = !on;
+    if (!on) continue;
+    const H = t.clientHeight,
+      th = Math.max(16, Math.round((H * ch) / sh));
+    t.firstChild.style.height = th + 'px';
+    t.firstChild.style.transform = `translateY(${Math.round(((H - th) * el.scrollTop) / (sh - ch))}px)`;
+  }
 }
 function chHov(id) {
   if (CH.hov === id) return;
@@ -373,7 +432,7 @@ let CTM_T = 0,
 function chTermShow(el) {
   let t = $('ctm');
   if (!t) document.body.insertAdjacentHTML('beforeend', '<div id="ctm" role="tooltip" hidden></div>'), (t = $('ctm'));
-  t.innerHTML = `<small>名詞提示　停留 0.4 秒／手把 Ｒ3</small><p>${esc(el.dataset.tm2)}</p>`;
+  t.innerHTML = `<p>${esc(el.dataset.tm2)}</p>`;
   const r = (el.closest('.cres') || el).getBoundingClientRect(),
     pr = $('pinv').getBoundingClientRect();
   t.hidden = false;
@@ -425,6 +484,8 @@ function chEquip(id) {
   const it = S.inv.items.find(x => x.id === id),
     k = NAV.slot;
   if (!it || !k) return;
+  /* 不能裝備：Ⓐ 停用，只說原因 */
+  if (cantWear(it)) return hudWarn(chWhy(itemDelta(it, k).why || ''));
   const n = S.inv.items.length;
   equipTo(it, k);
   if (S.inv.items.length !== n || S.eq[k] === it) (CH.hov = null), changed();
@@ -457,6 +518,21 @@ function chInit() {
     if (r) CH_LP = setTimeout(() => ((CH.menu = r.dataset.c.slice(4)), (CH_LPF = 1), chTermHide(), hudPanels()), 500);
   });
   for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) p.addEventListener(ev, () => clearTimeout(CH_LP));
+  /* 長按選單：點右欄外面（戰場、分頁列……）也關（V-1） */
+  addEventListener('pointerdown', e => CH.menu && !p.contains(e.target) && ((CH.menu = null), hudPanels()), true);
+  p.addEventListener('scroll', chSb, true);
+  /* 比較浮窗不接滑鼠：③ 放不下時，在候選格上滾輪捲 ③ */
+  p.addEventListener(
+    'wheel',
+    e => {
+      const s = p.querySelector('.c12p .l3s');
+      if (!s || s.scrollHeight <= s.clientHeight + 1 || !e.target.closest('[data-c^="cand:"]')) return;
+      e.preventDefault();
+      s.scrollTop += e.deltaY;
+      chSb();
+    },
+    { passive: false }
+  );
   p.addEventListener('contextmenu', e => {
     const r = p.classList.contains('c12') && !CH.edit && e.target.closest('[data-c^="row:"]');
     if (r) e.preventDefault(), (CH.menu = r.dataset.c.slice(4)), hudPanels();
@@ -490,6 +566,9 @@ function chInit() {
     e => {
       if (!PANEL.inv || !p.classList.contains('c12')) return;
       if (e.key === 'Alt') return e.preventDefault(), CH.alt || ((CH.alt = 1), chCmpSync());
+      /* Esc 先關長按選單，不關面板 */
+      if (e.key === 'Escape' && CH.menu)
+        return e.preventDefault(), e.stopImmediatePropagation(), (CH.menu = null), hudPanels();
       const t = e.target;
       if (t && t.closest && t.closest('#pinv') && (e.key === 'Enter' || e.key === ' ') && t.dataset.c)
         return e.preventDefault(), e.stopImmediatePropagation(), chAct(t.dataset.c, t);
@@ -500,6 +579,24 @@ function chInit() {
   addEventListener('keyup', e => e.key === 'Alt' && CH.alt && (e.preventDefault(), (CH.alt = 0), chCmpSync()), true);
   addEventListener('blur', () => CH.alt && ((CH.alt = 0), chCmpSync()));
   addEventListener('gamepadconnected', () => PADW.on || ((PADW.on = 1), requestAnimationFrame(chPad)));
+}
+/* 往 (dx,dy) 找最近的格：主方向距離＋偏離 ×2 */
+function chMove(dx, dy) {
+  const L = [...$('pinv').querySelectorAll('.cq[tabindex]')],
+    f = document.activeElement;
+  if (!L.length) return;
+  if (!L.includes(f)) return L[0].focus();
+  const c = r => [r.x + r.width / 2, r.y + r.height / 2],
+    [x0, y0] = c(f.getBoundingClientRect());
+  let best = null,
+    bd = 1e9;
+  for (const el of L) {
+    const [x, y] = c(el.getBoundingClientRect()),
+      a = (x - x0) * dx + (y - y0) * dy,
+      o = Math.abs((x - x0) * dy) + Math.abs((y - y0) * dx);
+    if (a > 1 && a + 2 * o < bd) (bd = a + 2 * o), (best = el);
+  }
+  if (best) best.focus(), best.scrollIntoView({ block: 'nearest' });
 }
 /* 手把（標準配置）：Y 按住＝詳細、R3＝焦點上的名詞、Ⓐ＝裝備焦點上的候選、Ⓑ＝關 */
 const PADW = {};
@@ -516,6 +613,13 @@ function chPad() {
   if (edge(11) && f && f.dataset && f.dataset.tm2) chTermShow(f);
   if (edge(0) && f && f.dataset && f.dataset.c) chAct(f.dataset.c, f);
   if (edge(1)) navGo('char');
-  for (const i of [0, 1, 3, 11]) PADW[i] = b(i);
+  /* 方向鍵：在裝備格與候選格之間移焦點（候選 4×3 照行列）；焦點上的候選立即出比較浮窗 */
+  [
+    [12, 0, -1],
+    [13, 0, 1],
+    [14, -1, 0],
+    [15, 1, 0]
+  ].forEach(([i, dx, dy]) => edge(i) && chMove(dx, dy));
+  for (const i of [0, 1, 3, 11, 12, 13, 14, 15]) PADW[i] = b(i);
 }
 chInit();
