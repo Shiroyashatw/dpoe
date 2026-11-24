@@ -368,7 +368,8 @@ function campN(k) {
     a = C.altar;
   if (k === 'batch') return f >= 16 ? 20 : f >= 9 ? 10 : f >= 5 ? 5 : f >= 2 ? 3 : 1;
   if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length - WT_HIDE.length, 2 + Math.floor((f - 11) / 2));
-  if (k === 'slots') return Math.min(S.skills.length, a >= 9 ? 5 : a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1);
+  /* num-skill-slot5-pace 實驗組（只為模擬，不能合併）：第 5 格改鍛造台 Lv16（加在長老屋給的格數上），長老屋 Lv9 沒有效果 */
+  if (k === 'slots') return Math.min(S.skills.length, (a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1) + (f >= 16 ? 1 : 0));
   if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
   if (k === 'star') return Math.min(5, (C.scout || 0) + 1);
   if (k === 'pop') return CAMP_POP[Math.min(C.house || 0, CAMP_POP.length - 1)];
