@@ -429,7 +429,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--scene-
 /* ---------- 面板（不擋遊戲：沒有遮罩，遊戲照跑） ---------- */
 .panel { position: fixed; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px; box-shadow: 0 12px 40px rgba(var(--scrim-rgb), 0.6); }
 .panel[hidden] { display: none !important; }
-#pinv { right: 16px; width: 476px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+#pinv { --panel-edge: var(--d2-panel-edge); right: 16px; width: 476px; animation: inR 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 #pstash { left: 16px; width: 476px; animation: inL 200ms cubic-bezier(0.23, 1, 0.32, 1); }
 @keyframes inR { from { opacity: 0; transform: translateX(24px); } }
 @keyframes inL { from { opacity: 0; transform: translateX(-24px); } }

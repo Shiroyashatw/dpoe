@@ -57,6 +57,40 @@ const shadowOk = async (p, n, q, prop, a) => {
   const [c, v] = await p.evaluate(SHADOW, [q, prop, a]);
   ok(`陰影 ${n}：${q} 的 ${prop} 有畫出來（--scrim-rgb α ${a}）`, c, v);
 };
+/* fix5：#pinv 定義 --panel-edge＝--d2-panel-edge 後，右欄內框、比較浮窗 outline、五層之間 4 條分層線都是這個色、寬 1px */
+const EDGE = () => {
+  const t = document.body.appendChild(document.createElement('i'));
+  t.style.color = 'var(--d2-panel-edge)';
+  const c = getComputedStyle(t).color,
+    g = q => getComputedStyle(document.querySelector(q));
+  t.remove();
+  return {
+    c,
+    def: getComputedStyle(document.documentElement).getPropertyValue('--d2-panel-edge').trim(),
+    box: g('#pinv.c12').boxShadow,
+    out: (({ outlineStyle: s, outlineWidth: w, outlineColor: k }) => [s, w, k])(g('#pinv.c12 .c12p')),
+    sec: [...document.querySelectorAll('#pinv.c12 .c12p section')].map(e => {
+      const s = getComputedStyle(e);
+      return [s.borderBottomStyle, s.borderBottomWidth, s.borderBottomColor];
+    })
+  };
+};
+const edgeOk = async p => {
+  const e = await p.evaluate(EDGE),
+    line = v => v[0] === 'solid' && v[1] === '1px' && v[2] === e.c;
+  ok(
+    '--d2-panel-edge 有定義（#a8927f）',
+    e.def === '#a8927f' && e.c === 'rgb(168, 146, 127)',
+    JSON.stringify([e.def, e.c])
+  );
+  ok('框線 右欄：#pinv.c12 內框 1px 是 --d2-panel-edge', e.box.includes(`${e.c} 0px 0px 0px 1px inset`), e.box);
+  ok('框線 比較浮窗：.c12p 的 outline 1px solid --d2-panel-edge', line(e.out), JSON.stringify(e.out));
+  ok(
+    '框線 分層線：.c12p ①–④ 層 section 的 border-bottom 是 1px solid --d2-panel-edge（⑤ 最後一層自己寫 border-bottom: 0）',
+    e.sec.length === 5 && e.sec.slice(0, 4).every(line) && e.sec[4][1] === '0px',
+    JSON.stringify(e.sec)
+  );
+};
 /* 跟示意圖接近的一套：Lv 49、身上全稀有、倉庫 14 頂頭盔（候選 4×3 再多兩件可以捲；物品等級高的穿不上＝不能裝備）；
    示意圖的格狀態：胸甲腐化＋破裂、鞋子災魘、項鍊追憶、武器套王印 */
 const setup = () => {
@@ -576,6 +610,7 @@ const CH_BOX = {
     JSON.stringify(pb)
   );
   await shadowOk(p, '比較浮窗', '#pinv.c12 .c12p', 'boxShadow', 0.7);
+  await edgeOk(p);
   const l1 = await box(p, '#pinv .c12p .l1');
   ok(
     '拿掉窗頂標注：沒有「懸浮時才出現」；① 身分層 y 98、高 68（＋層間 13）；⑤ 寫「Ⓐ 裝備　Ｘ 鎖定身上　Ｒ3 名詞」',
