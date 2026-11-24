@@ -4,7 +4,7 @@
 - **驗的 head**：`8d6189cb5790f2d7a1c1909f8922bde24900c4bb`（開工時 `gh api repos/Shiroyashatw/dpoe/pulls/190 --jq .head.sha` ＝ 同一個 sha，沒有移動）
 - **規格**：`docs/production/specs/skills-panel.md` v1.0.1（2026-11-24 18:28）＋ `docs/production/specs/wireframes/W4-skill-panel/color/` 16 張（不含 01b／02／06／390）
 - **驗收日**：2026-11-24
-- **結論：❌ 不通過**（問題 24 條：高 0、中 8、低 16；另 3 條文件問題待 UIUX 裁定）
+- **結論：❌ 不通過**（問題 24 條：高 0、中 8、低 16；另有 A–C 三組文件問題待 UIUX 裁定；回歸測試全綠）
 
 > 規格「不符由 UIUX 設計師裁定，退回、不 merge」。主要幾何（規格表座標）全部對上，但有 8 條中度問題（12 缺光環列與「換一個」、17 寫「十字弓」不是「連弩」、04 裁字、08 復原列蓋第 4 列、16 換序不讓位、18 可插／不可插標示跟示意圖不同、提示列位置、升級訊息仍寫「祭壇」）。
 
@@ -101,7 +101,20 @@
 
 ## 測試數字（在 head 8d6189c 上，各跑一次）
 
-TEST_RESULTS_PLACEHOLDER
+| 測試 | ✅ | ❌ | 結束碼 | 備註 |
+|---|---|---|---|---|
+| `node tools/check.js` | 951 | 0 | 0 | |
+| `node tools/skill_check.js http://localhost:8003/` | 148 | 0 | 0 | 規格量測全過（作者自己的工具；本報告的問題多為它沒斷言的部分） |
+| `node tools/char_check.js http://localhost:8003/` | 98 | 0 | 0 | 已知偶發「沒按 Alt：滾輪捲候選清單、③ 不捲」、「④ 換上的 ▲ 走 --good」這次都 ✅，樣本有出現 |
+| touch_check 390×844 | 161 | 0 | 0 | |
+| touch_check 375×667 | 161 | 0 | 0 | 已知偶發「快速一撥＝翻滾」這次沒出現，不用重跑 |
+| touch_check 844×390 | 16 | 0 | 0 | |
+| touch_check 667×375 | 16 | 0 | 0 | |
+| touch_check 1280×720 | 16 | 0 | 0 | |
+| touch_check 1440×900 | 16 | 0 | 0 | |
+| touch_check 1280×800 | 16 | 0 | 0 | |
+
+全部各跑一次，沒有重跑、沒有放寬斷言。瀏覽器：`PW_CHROME=/usr/bin/google-chrome`（＝預裝 Playwright Chromium，Chrome for Testing 158.0.8127.36）。回歸全綠；不通過是因為上面的畫面問題，不是測試失敗。
 
 ## 未驗項目
 
