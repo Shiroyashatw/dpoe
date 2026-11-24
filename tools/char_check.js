@@ -26,8 +26,10 @@ const is = (b, x, y, w, h) => !!b && near(b[0], x) && near(b[1], y) && near(b[2]
    bar／bw／ty 捲動條、same 軌與滑塊同候選捲動條 .csb.sg 的色、list 候選清單捲動、h ③ 層高、det 詳細 */
 const L3S = () => {
   const P = $('pinv'),
-    c = P.querySelector('.c12p'),
-    s = c.querySelector('.l3s'),
+    c = P.querySelector('.c12p');
+  /* 浮窗不在（fix6）：回空物件，斷言記失敗、後面照跑 */
+  if (!c) return {};
+  const s = c.querySelector('.l3s'),
     m = c.querySelector('.l3m'),
     t = c.querySelector('.l3 .csb'),
     g = P.querySelector('.csb.sg'),
@@ -53,6 +55,9 @@ const SHADOW = ([q, prop, a]) => {
     c = getComputedStyle(document.documentElement).getPropertyValue('--scrim-rgb').trim();
   return [!!v && v !== 'none' && v.includes(a === 1 ? `rgb(${c})` : `rgba(${c}, ${a})`), v];
 };
+/* fix6：找元素與送 contextmenu 在同一趟頁內腳本（$eval 是兩趟，戰鬥中重畫會打到已脫離的節點） */
+const CTX = () =>
+  document.querySelector('#pinv .cr').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
 const shadowOk = async (p, n, q, prop, a) => {
   const [c, v] = await p.evaluate(SHADOW, [q, prop, a]);
   ok(`陰影 ${n}：${q} 的 ${prop} 有畫出來（--scrim-rgb α ${a}）`, c, v);
@@ -411,9 +416,7 @@ const CH_BOX = {
   for (const xy of [[300, 300], [400, 650], [640, 20], 'Escape']) {
     if (!(await p.evaluate(() => PANEL.inv))) await p.keyboard.press('v');
     /* 右鍵開選單（直接送 contextmenu：上一輪的選單可能蓋著這一列） */
-    await p.$eval('#pinv .cr', e =>
-      e.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
-    );
+    await p.evaluate(CTX);
     await p.waitForTimeout(80);
     const o = await menuOn();
     if (xy === 'Escape') await p.keyboard.press('Escape');
@@ -428,7 +431,7 @@ const CH_BOX = {
     JSON.stringify(closed)
   );
   if (!(await p.evaluate(() => PANEL.inv))) await p.keyboard.press('v');
-  await p.$eval('#pinv .cr', e => e.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true })));
+  await p.evaluate(CTX);
   await p.mouse.click(1000, 120);
   await p.waitForTimeout(100);
   ok('點右欄裡選單外面：選單收起', !(await menuOn()));
@@ -892,6 +895,192 @@ const CH_BOX = {
       });
     await cx.close();
   }
+  /* ---------- fix6（RULINGS-2）：色票、編輯釘選字色、長按列高、⑤ 鍵帽、04b 長詞綴、三項需求折行 ---------- */
+  const c4 = await b.newContext({ viewport: { width: 1280, height: 720 } });
+  await c4.route(/supabase/, r => r.abort());
+  const f = await c4.newPage();
+  await f.goto(URL + '?' + Date.now());
+  await f.evaluate(() => localStorage.clear());
+  await f.reload();
+  await f.waitForTimeout(1500);
+  await f.evaluate(setup);
+  /* 一頂三項需求（等級＋兩種能力值）的頭盔 */
+  const w3 = await f.evaluate(() => {
+    for (const B of BASES.filter(b => b.k === 'helm')) {
+      const it = mkItem(B.id, 80, 2);
+      if (((itemDelta(it, 'helm').why || '').match(/、/g) || []).length === 2)
+        return invPut(S.inv, it), changed(), it.id;
+    }
+  });
+  await f.keyboard.press('v');
+  await f.waitForTimeout(300);
+  const col = (q, k = 'color') =>
+    f.evaluate(([q, k]) => (e => e && getComputedStyle(e)[k])(document.querySelector(q)), [q, k]);
+  const tok = await f.evaluate(() =>
+    ['good', 'bad', 'bad-hi', 'btn2', 'plate-world', 'border-cap', 'tx-off'].map(k => [
+      getComputedStyle($('pinv'))
+        .getPropertyValue('--' + k)
+        .trim(),
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--d2-' + (k === 'bad-hi' ? 'bad' : k))
+        .trim()
+    ])
+  );
+  ok(
+    '#pinv 色票是 D2 值：--good #95e886、--bad／--bad-hi #ff9bba、--btn2 #524c47、--plate-world rgb(37 33 30 / 0.92)、--border-cap #d9d3cd、--tx-off #9d9995',
+    tok.every(([a, d]) => a === d) &&
+      tok.map(t => t[0]).join('|') === '#95e886|#ff9bba|#ff9bba|#524c47|rgb(37 33 30 / 0.92)|#d9d3cd|#9d9995',
+    JSON.stringify(tok)
+  );
+  const ed = await f.evaluate(() =>
+    (s => [s.color, s.fontSize, s.fontWeight, s.backgroundColor])(getComputedStyle($('pinv').querySelector('.cedit')))
+  );
+  ok(
+    '「編輯釘選」字 --tx-strong、13/700、底 --btn2',
+    ed.join('|') === 'rgb(251, 249, 246)|13px|700|rgb(82, 76, 71)',
+    ed.join('|')
+  );
+  const r0 = await box(f, '#pinv .cr');
+  await f.evaluate(CTX);
+  await f.waitForTimeout(80);
+  const r1 = [await box(f, '#pinv .cr.on'), await box(f, '#pinv .cr.on + .cr')];
+  ok(
+    '長按中的列 300×28（B41）；其他列不跟著跳（下一列仍在原位、高 22）',
+    !!r1[0] && r1[0][2] === 300 && r1[0][3] === 28 && !!r1[1] && r1[1][1] === r0[1] + 22 && r1[1][3] === 22,
+    JSON.stringify([r0, r1])
+  );
+  await f.keyboard.press('Escape');
+  await f.click('#pinv [data-c="eq:helm"]');
+  await f.waitForTimeout(150);
+  ok('選中格外框 2 px --border-cap #d9d3cd', (await col('#pinv .cq.sel', 'outlineColor')) === 'rgb(217, 211, 205)');
+  /* 04b 長詞綴：身上 2 條、候選 4 條（含最寬的兩條與破裂），都是 T1 */
+  const fid = await f.evaluate(() => {
+    const it = S.inv.items.find(x => x.id === +$('pinv').querySelector('.c12g .cq:not(.nq)').dataset.c.slice(5)),
+      mk = (t, v) => {
+        const k = Object.keys(AFF).find(k => AFF[k].r && affText({ k, T: 1, v: tierRange(k, 1)[1] }).includes(t));
+        return { k, T: 1, v: tierRange(k, 1)[v] };
+      };
+    S.eq.helm.a = [mk('最大能量護盾', 0), mk('範圍效果', 1)];
+    it.a = [mk('最大能量護盾', 1), mk('受招架持續時間', 1), mk('擊中敵人時獲得', 1), mk('物理傷害', 1)];
+    it.frac = it.a[1].k;
+    changed();
+    hudPanels();
+    return it.id;
+  });
+  await f.hover(`#pinv [data-c="cand:${fid}"]`);
+  await f.waitForTimeout(100);
+  ok(
+    '④ 換上的 ▲ 走 --good #95e886、格內判定角標同色、角標底 --plate-world',
+    (await col('#pinv .c12p .l4 .c-good')) === 'rgb(149, 232, 134)' &&
+      (await col('#pinv .c12g .cj.c-good')) === 'rgb(149, 232, 134)' &&
+      (await col('#pinv .c12g .cj', 'backgroundColor')) === 'rgba(37, 33, 30, 0.92)',
+    JSON.stringify([await col('#pinv .c12p .l4 .c-good'), await col('#pinv .c12g .cj', 'backgroundColor')])
+  );
+  const kb = await f.evaluate(() => {
+    const c = $('pinv').querySelector('.c12p'),
+      p = c.querySelector('.l5 p');
+    return [
+      ...[...c.querySelectorAll('.l5 kbd')].map(e =>
+        (r => [Math.round(r.width), Math.round(r.right)])(e.getBoundingClientRect())
+      ),
+      [
+        p.scrollWidth <= p.clientWidth,
+        p.getBoundingClientRect().right <= c.querySelector('.l5 kbd').getBoundingClientRect().left
+      ],
+      [...c.querySelectorAll('section')].map(e => (r => [r.left, r.right])(e.getBoundingClientRect()))
+    ];
+  });
+  ok(
+    '⑤ 鍵帽靠右：「按住 Alt」寬 95、「Y」寬 49、右緣 1244；左邊操作字不被擠掉；分層線橫跨 796–1256',
+    kb[0][0] === 95 &&
+      kb[1][0] === 49 &&
+      kb[1][1] === 1244 &&
+      kb[2][0] &&
+      kb[2][1] &&
+      kb[3].every(x => x[0] === 796 && x[1] === 1256),
+    JSON.stringify(kb)
+  );
+  await f.keyboard.down('Alt');
+  await f.waitForTimeout(100);
+  const la = await f.evaluate(() => {
+    const c = document.createElement('canvas').getContext('2d'),
+      L = [...$('pinv').querySelectorAll('.c12p .l3s li')];
+    c.font = getComputedStyle(L[0].firstChild).font;
+    return {
+      /* 每條：[主文字, 沒被截, 有實際數值, 還留著區間, 還留著 T 階, 輔助字] */
+      li: L.map(li => {
+        const b = li.firstChild;
+        return [
+          b.textContent,
+          b.scrollWidth <= b.clientWidth,
+          /\d/.test(b.textContent),
+          !!li.querySelector('.rg'),
+          !!li.querySelector('.tr'),
+          (li.querySelector('small') || {}).textContent || ''
+        ];
+      }),
+      colW: L[0].clientWidth,
+      /* 每種詞綴 T1 最大值的主文字寬：都放得進一欄，所以不需要在詞名中間加「…」 */
+      max: Math.max(
+        ...Object.keys(AFF)
+          .filter(k => AFF[k].r)
+          .map(k => c.measureText(affText({ k, T: 1, v: tierRange(k, 1)[1] })).width)
+      ),
+      det: $('pinv').querySelector('.c12p').classList.contains('det')
+    };
+  });
+  ok(
+    '04b 長詞綴：每條「詞綴＋實際數值」完整（不出「…」）；放不下時先收區間、T 階留著；沒有「主文字被截、區間完整」的排法',
+    la.det &&
+      la.li.length === 6 &&
+      la.li.every(x => x[1] && x[2]) &&
+      la.li.some(x => !x[3] && x[4]) &&
+      la.li.every(x => !x[3] || x[4]),
+    JSON.stringify(la.li)
+  );
+  ok('每種詞綴 T1 最大值的主文字寬 ≤ 欄寬（主文字不必截）', la.max <= la.colW, JSON.stringify([la.max, la.colW]));
+  await f.keyboard.up('Alt');
+  await f.waitForTimeout(50);
+  const s4 = await f.evaluate(() =>
+    [...$('pinv').querySelectorAll('.c12p .l3s li')].every(li => !li.querySelector('small'))
+  );
+  ok('放開 Alt：回簡易（不列區間與 T 階）', s4);
+  /* 三項需求的不能裝備：④ 折第二行，不縮字、不裁切；浮窗仍 ≤ 486、下緣 ≤ 562 */
+  ok('有一頂三項需求的頭盔可以測', !!w3, String(w3));
+  if (w3) {
+    await f.evaluate(id => $('pinv').querySelector(`[data-c="cand:${id}"]`).scrollIntoView({ block: 'nearest' }), w3);
+    await f.hover(`#pinv [data-c="cand:${w3}"]`);
+    await f.waitForTimeout(100);
+    const w = await f.evaluate(() => {
+      const c = $('pinv').querySelector('.c12p'),
+        p = c.querySelector('.l4 p'),
+        b = e => e.getBoundingClientRect(),
+        s = getComputedStyle(p.firstChild),
+        cb = b(c);
+      return {
+        t: p.textContent,
+        fit: p.scrollWidth <= p.clientWidth && p.scrollHeight <= p.clientHeight,
+        in: [...p.children].every(e => b(e).right <= b(p).right && b(e).bottom <= b(p).bottom),
+        rows: new Set([...p.children].map(e => Math.round(b(e).top))).size,
+        font: [s.fontSize, s.fontWeight, s.color].join('|'),
+        pop: [cb.height, cb.bottom],
+        whole: ['.l1', '.l2', '.l4', '.l5'].every(q => b(c.querySelector(q)).bottom <= cb.bottom + 0.5)
+      };
+    });
+    ok(
+      '三項需求：④「不能裝備：等級 a／b、{能力} a／b、{能力} a／b」18/700 --bad，一行放不下折第二行、不裁切；浮窗高 ≤ 486、下緣 ≤ 562、①②④⑤ 完整',
+      /^不能裝備：等級 \d+／\d+、\S+ \d+／\d+、\S+ \d+／\d+$/.test(w.t) &&
+        w.fit &&
+        w.in &&
+        w.rows <= 2 &&
+        w.font === '18px|700|rgb(255, 155, 186)' &&
+        w.pop[0] <= 486 &&
+        w.pop[1] <= 562 &&
+        w.whole,
+      JSON.stringify(w)
+    );
+  }
+  await c4.close();
   /* 390×844：直立角色頁照舊（hud.js 的 invHTML，不走 .c12） */
   const c2 = await b.newContext({
     viewport: { width: 390, height: 844 },
@@ -943,10 +1132,15 @@ const CH_BOX = {
   await g3.waitForTimeout(150);
   const gy2 = await g3.evaluate(() => !!$('pinv').querySelector('.c12p') && !$('pinv').querySelector('.c12p.det'));
   ok('手把：按住 Y＝詳細、放開回簡易', gy && gy2, JSON.stringify([gy, gy2]));
+  ok(
+    '手把段：焦點在候選上，比較浮窗 .c12p 在（不在就記失敗，後面照跑）',
+    await g3.evaluate(() => !!$('pinv').querySelector('.c12p'))
+  );
   /* fix3：按住 Y 時右搖桿捲 ③；放開 Y 回頂端（焦點上的候選與身上頭盔各 6 條詞綴，③ 放不下） */
   await g3.evaluate(() => {
     const it = S.inv.items.find(x => x.id === CH.hov),
       A = S.inv.items.flatMap(x => x.a || []);
+    if (!it) return;
     window.DD3 = [it, it.a, S.eq.helm.a];
     S.eq.helm.a = A.slice(0, 6);
     it.a = A.slice(6, 12);
@@ -975,6 +1169,7 @@ const CH_BOX = {
     JSON.stringify([y0, y1, y2])
   );
   await g3.evaluate(() => {
+    if (!window.DD3) return;
     const [it, a, ha] = DD3;
     it.a = a;
     S.eq.helm.a = ha;
@@ -1011,6 +1206,55 @@ const CH_BOX = {
     JSON.stringify(mv.map(x => x[0])) === '[1,5,4,0]' && mv.every(x => x[1] && x[2]),
     JSON.stringify(mv)
   );
+  /* fix6（問題 13）：先點滑鼠再按方向鍵（:focus-visible 不成立），焦點格仍有焦點框 */
+  await g3.click('#pinv [data-c="eq:chest"]');
+  await g3.waitForTimeout(100);
+  const fk = async () => {
+    await pad(13);
+    return g3.evaluate(() => {
+      const e = document.activeElement,
+        s = getComputedStyle(e);
+      return [e.dataset.c, s.filter, s.outlineStyle, $('pinv').classList.contains('kb')];
+    });
+  };
+  const f1 = await fk();
+  ok(
+    '先點胸甲格、再按方向鍵下：焦點到手套格，有焦點框（亮度 1.2＋outline）',
+    f1[0] === 'eq:gloves' && f1[1] === 'brightness(1.2)' && f1[2] !== 'none' && f1[3],
+    JSON.stringify(f1)
+  );
+  await g3.mouse.click(300, 300);
+  await g3.click('#pinv [data-c="eq:chest"]');
+  ok('再點滑鼠：.kb 收掉（只用滑鼠時不多畫一層）', await g3.evaluate(() => !$('pinv').classList.contains('kb')));
+  /* fix6（問題 4）：戰鬥中（面板一直重畫）、游標停在右欄內的頭盔格，手把把焦點移到候選：沒有滑鼠移動，浮窗保持開著 */
+  await g3.evaluate(() => runNode(TRUNK_K[0]));
+  await g3.waitForTimeout(2000);
+  if (!(await g3.evaluate(() => PANEL.inv))) await g3.keyboard.press('v'), await g3.waitForTimeout(300);
+  if (!(await g3.evaluate(() => NAV.slot === 'helm'))) await g3.click('#pinv [data-c="eq:helm"]');
+  else await g3.hover('#pinv [data-c="eq:helm"]');
+  await g3.waitForTimeout(150);
+  await pad(15);
+  const keep = [];
+  for (let i = 0; i < 6; i++) {
+    /* 戰鬥自己會重畫；再多畫一次，讓游標下的元素一定被換掉 */
+    await g3.evaluate(() => hudPanels());
+    await g3.waitForTimeout(500);
+    keep.push(
+      await g3.evaluate(() => {
+        const c = (document.activeElement.dataset || {}).c || '';
+        return c.startsWith('cand:') && CH.hov === +c.slice(5) && !!$('pinv').querySelector('.c12p');
+      })
+    );
+  }
+  ok(
+    '戰鬥中、游標停在右欄內：手把移焦點到候選後 3 秒（重畫 6 次以上）浮窗都開著、焦點仍在候選',
+    (await g3.evaluate(() => G.scene === 'map')) && keep.every(Boolean),
+    JSON.stringify(keep)
+  );
+  await g3.mouse.move(1000, 300);
+  await g3.mouse.move(300, 300);
+  await g3.waitForTimeout(100);
+  ok('滑鼠真的移開右欄：浮窗收起', await g3.evaluate(() => !$('pinv').querySelector('.c12p')));
   if (OUT) fs.writeFileSync(path.join(OUT, 'boxes.json'), JSON.stringify(BOX, null, 1));
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '✅ 角色頁全部通過');

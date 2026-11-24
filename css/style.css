@@ -2808,7 +2808,9 @@ body:not(.touch) :is(#pinv, #pskill, #pset, #plog, #pchase, #pcraft.cwide, #pcam
 
 /* ---------- 角色頁桌機 1280×720（S/M2-character-1280.md；js/charpanel.js）：右欄 788,76 476×486，子元件座標＝規格座標 −(788,76) ---------- */
 body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: hidden; border: 0; border-radius: 0; box-shadow: inset 0 0 0 1px var(--panel-edge, transparent), 0 12px 40px rgb(var(--scrim-rgb), 0.6); background: linear-gradient(var(--panel-grad-top), var(--panel) 48px); }
-#pinv.c12 { font-weight: 400; }
+/* fix6（RULINGS-2 Q1、Q2）：角色頁右欄的色票換成 D2 值，只在這裡蓋，:root 與其他面板不動 */
+#pinv.c12 { font-weight: 400; --good: var(--d2-good); --bad: var(--d2-bad); --bad-hi: var(--d2-bad); --btn2: var(--d2-btn2); --plate-world: var(--d2-plate-world); --border-cap: var(--d2-border-cap); --tx-off: var(--d2-tx-off); }
+.c12 .c-bad { color: var(--bad); }
 .c12 > * { position: absolute; }
 .c12 .chd { left: 8px; top: 4px; width: 200px; height: 32px; overflow: hidden; display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--tx-strong); white-space: nowrap; }
 .c12 .chd .asc { width: 24px; height: 24px; }
@@ -2837,7 +2839,9 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .cq .ccl path { vector-effect: non-scaling-stroke; }
 .c12 .cq .ccl stop { stop-color: var(--cat-cal); }
 .c12 .cq.sel { outline: 2px solid var(--border-cap); outline-offset: -5px; }
-.c12 .cq:hover, .c12 .cq:focus-visible { filter: brightness(1.2); }
+.c12 .cq:hover, .c12 .cq:focus-visible, .c12.kb .cq:focus { filter: brightness(1.2); }
+/* 點過滑鼠再用手把方向鍵（:focus-visible 不成立）：焦點框照瀏覽器的 :focus-visible 畫 */
+.c12.kb .cq:focus:not(.sel) { outline: auto 1px -webkit-focus-ring-color; }
 .c12 .cq > i { position: absolute; font: 700 10px var(--font); font-style: normal; line-height: 1; pointer-events: none; text-shadow: 0 1px 2px rgb(var(--scrim-rgb), 1); }
 .c12 .cq .cj { left: calc(3px - var(--bw)); top: calc(3px - var(--bw)); padding: 1px 2px; background: var(--plate-world); }
 .c12 .cq .cs { right: calc(3px - var(--bw)); top: 0; display: flex; align-items: center; gap: 1px; font-size: 12px; color: var(--tx-strong); }
@@ -2865,7 +2869,7 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .cdps small { font-size: 11px; color: var(--tx-dim); }
 .c12 .cdps b { font: 700 16px var(--font); color: var(--tx-strong); font-variant-numeric: tabular-nums; }
 .c12 .cdps b.pe { font-size: 12px; }
-.c12 .cedit { left: 268px; top: 110px; width: 96px; height: 36px; min-height: 0; padding: 0; font: 700 13px var(--font); }
+.c12 .cedit { left: 268px; top: 110px; width: 96px; height: 36px; min-height: 0; padding: 0; font: 700 13px var(--font); color: var(--tx-strong); }
 .c12 .cdone { left: 300px; top: 110px; width: 68px; height: 36px; min-height: 0; padding: 0; font: 700 13px var(--font); }
 .c12 .cc { width: 102px; height: 32px; padding: 2px 6px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; background: var(--panel-raised); border: 1px solid var(--border-ctl); color: var(--tx-strong); text-align: left; font-family: var(--font); }
 .c12 button.cc { cursor: pointer; }
@@ -2887,7 +2891,7 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .cg small { margin-left: auto; font: 400 11px var(--font); color: var(--tx-dim); }
 .c12 .cr { position: relative; display: flex; align-items: center; justify-content: space-between; width: 300px; height: 22px; padding: 0 8px 0 6px; font-size: 12px; color: var(--tx); user-select: none; }
 .c12 .cr b { font: 700 12px var(--font); color: var(--tx-strong); font-variant-numeric: tabular-nums; }
-.c12 .cr.on { background: var(--sel-bg); box-shadow: inset 0 0 0 1px var(--sel-edge); }
+.c12 .cr.on { height: 28px; margin: -3px 0; background: var(--sel-bg); box-shadow: inset 0 0 0 1px var(--sel-edge); }
 .c12 .cr:has(.cpin) { height: 28px; padding-right: 42px; }
 .c12 .cpin { position: absolute; right: 10px; top: 0; width: 28px; height: 28px; padding: 0; background: var(--btn2); border: 1px solid var(--border); color: var(--tx-strong); font: 700 16px var(--font); cursor: pointer; }
 .c12 .cmenu { left: 112px; top: 284px; width: 210px; min-height: 168px; padding: 10px; display: flex; flex-direction: column; gap: 6px; background: var(--panel-raised-2); border: 1px solid var(--border-hi); z-index: 3; box-shadow: 0 8px 24px rgb(var(--scrim-rgb), 0.6); }
@@ -2938,19 +2942,23 @@ body:not(.touch) #pinv.c12 { padding: 0; height: calc(100vh - 234px); overflow: 
 .c12 .c12p.det .l3 { min-height: 119px; }
 .c12 .c12p ul { margin: 0; padding: 0; list-style: none; min-width: 0; }
 .c12 .c12p li { display: flex; align-items: baseline; gap: 6px; height: 24px; line-height: 24px; white-space: nowrap; }
-.c12 .c12p li b { font: 700 16px var(--font); overflow: hidden; text-overflow: ellipsis; }
+.c12 .c12p li b { min-width: 0; font: 700 16px var(--font); overflow: hidden; text-overflow: ellipsis; }
+.c12 .c12p li small { flex: none; }
+.c12 .c12p li i { font-style: normal; }
 .c12 .c12p .l4 { min-height: 65px; }
 .c12 .c12p .l4 p { grid-column: 1 / -1; display: flex; gap: 24px; margin: 0; padding: 4px 10px; border: 1px solid var(--border); font: 700 18px/22px var(--font); white-space: nowrap; overflow: hidden; }
+.c12 .c12p .l4 p.cw { flex-wrap: wrap; gap: 0; }
 .c12 .c12p .l5 { min-height: 44px; padding: 0 12px; border-bottom: 0; margin-bottom: 0; grid-template-columns: 1fr auto auto; align-items: center; }
 .c12 .c12p .l5 .lh { grid-column: 1; grid-row: 1; height: 20px; }
 .c12 .c12p .l5 p { grid-column: 1; grid-row: 2; }
 .c12 .c12p .l5 kbd { grid-row: 1 / 3; }
 .c12 .c12p .l5 p { margin: 0; font: 400 14px var(--font); color: var(--tx-dim); }
 .c12 .c12p .l5 p .off { color: var(--tx-off); text-decoration: line-through; }
-.c12 .c12p .l5 kbd { margin-left: 8px; padding: 2px 12px; line-height: 20px; border: 1px solid var(--border); background: var(--panel-raised); font: 400 14px var(--font); color: var(--tx-dim); }
+.c12 .c12p .l5 kbd { box-sizing: border-box; width: 95px; margin-left: 8px; padding: 2px 0; text-align: center; line-height: 20px; border: 1px solid var(--border); background: var(--panel-raised); font: 400 14px var(--font); color: var(--tx-dim); }
+.c12 .c12p .l5 kbd + kbd { width: 49px; }
 .c12 .c12p.det .l5 kbd { border-color: var(--border-hi); background: var(--panel-raised-2); }
 /* 名詞提示（停留 0.4 秒／手把 R3）：戰場側，貼著右欄左邊 */
-#ctm { position: fixed; z-index: 30; width: 260px; min-height: 56px; padding: 6px 10px; background: var(--plate-world); border: 1px solid var(--border-hi); pointer-events: none; }
+#ctm { position: fixed; z-index: 30; width: 260px; min-height: 56px; padding: 6px 10px; background: var(--d2-plate-world); border: 1px solid var(--border-hi); pointer-events: none; }
 #ctm[hidden] { display: none; }
 #ctm p { margin: 2px 0 0; font: 400 13px var(--font); color: var(--tx-strong); }
 #ctm::after { content: ''; position: absolute; right: -7px; top: 18px; border: 6px solid transparent; border-right: 0; border-left-color: var(--border-hi); }

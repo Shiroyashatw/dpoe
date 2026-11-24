@@ -321,7 +321,7 @@ function chAffs(it, det) {
     t = itemT(it);
   return A.map(a => {
     const r = det && !Array.isArray(a.v) && AFF[a.k].r ? tierRange(a.k, a.T) : null;
-    return `<li><b>${esc(affText(a))}</b>${det ? `<small>${r ? `(${r[0]}–${r[1]}) ` : ''}T${a.T}${a.T <= t ? ' ✦' : ''}${isFrac(it, a) ? ' 破裂' : ''}</small>` : ''}</li>`;
+    return `<li><b>${esc(affText(a))}</b>${det ? `<small>${r ? `<i class="rg">(${r[0]}–${r[1]}) </i>` : ''}<i class="tr">T${a.T}</i>${a.T <= t ? ' ✦' : ''}${isFrac(it, a) ? '<i class="fr"> 破裂</i>' : ''}</small>` : ''}</li>`;
   }).join('');
 }
 function chCmpHTML() {
@@ -350,7 +350,11 @@ function chCmpHTML() {
       ).join(''),
     d = itemDelta(it, k),
     dl = d.why
-      ? `<span class="c-bad">${esc(chWhy(d.why))}</span>`
+      ? /* 一行放不下就在「、」後折行（Q7）：每項需求一塊 */
+        chWhy(d.why)
+          .split('、')
+          .map((t, i, a) => `<span class="c-bad">${esc(t)}${i < a.length - 1 ? '、' : ''}</span>`)
+          .join('')
       : [
           ['DPS', d.dps[0]],
           ['生命', d.hp],
@@ -367,7 +371,7 @@ function chCmpHTML() {
   <section class="l1"><div><small>身分　身上</small>${cur ? nm(cur) + sub(cur) : '<b>空著</b>'}</div><div><small>候選${j ? `（${j}）` : ''}</small>${nm(it)}${sub(it)}</div></section>
   <section class="l2"><small class="lh">基底</small><div>${bcol(B0)}</div><div>${bcol(B1)}</div></section>
   <section class="l3"><small class="lh">詞綴${det && cur ? `　${side(cur)}` : ''}</small>${det ? `<small class="lh r">${side(it)}　✦＝最好階</small>` : ''}<div class="l3s" data-sb><ul>${chAffs(cur, det)}</ul><ul>${chAffs(it, det)}</ul></div><i class="csb"><i></i></i><small class="l3m">▼ 還有 <b>0</b> 條</small></section>
-  <section class="l4"><small class="lh">換上</small><p>${dl}</p></section>
+  <section class="l4"><small class="lh">換上</small><p${d.why ? ' class="cw"' : ''}>${dl}</p></section>
   <section class="l5"><small class="lh">操作</small><p><span ${d.why ? 'class="off" aria-disabled="true"' : ''}>Ⓐ 裝備</span>　Ｘ 鎖定身上　Ｒ3 名詞</p><kbd>${det ? '放開' : '按住'} Alt</kbd><kbd>Y</kbd></section></div>`;
 }
 /* ---------- 整頁 ---------- */
@@ -410,6 +414,11 @@ function chCmpSync() {
    換格、按下或放開 Alt／Y 時 CH.l3 歸零（chAlt、chHov） */
 function chL3(d) {
   const s = $('pinv').querySelector('.c12p .l3s');
+  /* 04b 放不下（Q3）：先收區間、再收 T 階，還不夠才收「破裂」、整段輔助字；詞綴＋實際數值要完整 */
+  if (s)
+    for (const b of s.querySelectorAll('li > b'))
+      for (const c of ['.rg', '.tr', '.fr', 'small'])
+        if (b.scrollWidth > b.clientWidth) b.parentNode.querySelector(c)?.remove();
   if (s) (s.scrollTop = CH.l3 + (d || 0)), (CH.l3 = s.scrollTop);
   chSb();
 }
@@ -539,6 +548,7 @@ function chInit() {
   /* 長按數值列（0.5 秒）或右鍵＝選單（02） */
   p.addEventListener('pointerdown', e => {
     CH_LPF = 0;
+    p.classList.remove('kb');
     const r = p.classList.contains('c12') && !CH.edit && e.target.closest('[data-c^="row:"]');
     clearTimeout(CH_LP);
     if (r) CH_LP = setTimeout(() => ((CH.menu = r.dataset.c.slice(4)), (CH_LPF = 1), chTermHide(), hudPanels()), 500);
@@ -579,7 +589,14 @@ function chInit() {
         }, 400);
     }
   };
-  p.addEventListener('pointerover', e => e.pointerType === 'mouse' && over(e.target));
+  /* 戰鬥中面板重畫會換掉游標下的元素、送一次座標沒變的 pointerover：焦點（鍵盤／手把）在候選上時不讓它關浮窗 */
+  let mx, my;
+  p.addEventListener('pointermove', e => ((mx = e.clientX), (my = e.clientY)));
+  p.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse') return;
+    if (e.clientX === mx && e.clientY === my && p.querySelector('[data-c^="cand:"]:focus')) return;
+    over(e.target);
+  });
   p.addEventListener('pointerleave', () => (chHov(null), chTermHide(), (CTM_EL = null)));
   p.addEventListener(
     'focusin',
@@ -609,6 +626,7 @@ function chMove(dx, dy) {
   const L = [...$('pinv').querySelectorAll('.cq[tabindex]')],
     f = document.activeElement;
   if (!L.length) return;
+  $('pinv').classList.add('kb');
   if (!L.includes(f)) return L[0].focus();
   const c = r => [r.x + r.width / 2, r.y + r.height / 2],
     [x0, y0] = c(f.getBoundingClientRect());

@@ -22,6 +22,7 @@ python3 tools/char_overlay.py docs/production/evidence/character-1280
 | `fix3-affix-icons-dpr1.png`、`fix3-affix-icons-dpr2.png` | 修正輪 fix3：胸甲破裂、項鍊追憶定稿圖示，DPR1 用 16、DPR2 用 16@2x（畫成 16×16） |
 | `fix4-diff.md`、`fix4-*-before-after.png` | 修正輪 fix4：`.c12` 段 4 條陰影（右欄、格角標字、長按選單、比較浮窗）修改前｜修改後｜差異（洋紅）；像素數與範圍外差異在 `fix4-diff.md` |
 | `fix5-diff.md`、`fix5-*-before-after.png` | 修正輪 fix5：`#pinv` 補 `--panel-edge` 後右欄內框、浮窗 outline、4 條分層線，修改前｜修改後｜差異（洋紅）；像素數與其他差異在 `fix5-diff.md` |
+| `fix6-diff.md`、`fix6-*-before-after.png` | 修正輪 fix6（RULINGS-2 一次修清單）：04b 長詞綴、長按選單列高、⑤ 鍵帽、不能裝備原因折行、焦點框、編輯釘選字色、④ 顏色，修改前｜修改後；量到的數字在 `fix6-diff.md` |
 | `04a-dualdef-6affix.png`、`04b-dualdef-6affix.png` | 修正輪 fix1（V-4）：雙防禦底材＋6＋6 條詞綴，浮窗長到上限 486 內、③ 層內捲動（4 px 軌）、①②④⑤ 完整 |
 
 修正輪 fix1 的格狀態（V-2）看 `01-stats.png`：胸甲腐化底＋虛線＋破裂圖示、鞋子災魘底＋爪痕、項鍊追憶圖示、武器王印、各格右上 ✦{n}。
