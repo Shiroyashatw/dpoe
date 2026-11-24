@@ -26,7 +26,11 @@ const URL0 = process.argv[2] || 'http://localhost:8765/';
     /* 新存檔直接用新格式（12:57：舊存檔不支援，不做 migrate 珠寶遷移） */
     {
       const g = newGame();
-      ok('17 新存檔直接用新格式：S.inv.jw 是空的分頁、沒有 S.jewels', Array.isArray(g.inv.jw) && !g.inv.jw.length && !('jewels' in g), { inv: Object.keys(g.inv), jewels: 'jewels' in g });
+      ok(
+        '17 新存檔直接用新格式：S.inv.jw 是空的分頁、沒有 S.jewels',
+        Array.isArray(g.inv.jw) && !g.inv.jw.length && !('jewels' in g),
+        { inv: Object.keys(g.inv), jewels: 'jewels' in g }
+      );
     }
     S = newGame();
     S.camp.store = 0;

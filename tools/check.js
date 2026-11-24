@@ -10235,9 +10235,12 @@ const ASC_COMBOS = `const combos = k => {
     own.inv.jw = [j];
     own.jsock = ['j1', null, null, null, null, null];
     if (F.jewelNodes(own).length) bad.push('已經點了的大點又算一次');
-    /* 珠寶分頁（num-tree-v3-verify：定案 4.1.1）：王保底、鑲上、丟棄（不給東西、鑲著不能丟）、正常格數滿了機率掉落暫停、王保底照收可超過 */
+    /* 珠寶分頁（num-tree-v4-verify：定案 4.1.1）：王保底、鑲上、丟棄（不給東西、鑲著不能丟）、正常格數滿了機率掉落暫停、王保底照收可超過 */
     setS();
-    vm.runInContext('S.inv = { items: [], jw: [] }; S.jsock = [null, null, null, null, null, null]; S.camp = { store: 0 }', ctx);
+    vm.runInContext(
+      'S.inv = { items: [], jw: [] }; S.jsock = [null, null, null, null, null, null]; S.camp = { store: 0 }',
+      ctx
+    );
     const JW = () => S().inv.jw,
       t1 = F.jwGain('chiyou'),
       t2 = F.jwGain('zhuolu');
@@ -10262,7 +10265,7 @@ const ASC_COMBOS = `const combos = k => {
       bad.push('王保底超過上限');
     vm.runInContext('ST = null', ctx);
     ok(
-      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能丟、丟棄不給東西、正常格數滿了機率掉落暫停、王保底照收可超過（num-tree-v3-verify 珠寶分頁）`,
+      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能丟、丟棄不給東西、正常格數滿了機率掉落暫停、王保底照收可超過（num-tree-v4-verify 珠寶分頁）`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -10773,7 +10776,7 @@ const ASC_COMBOS = `const combos = k => {
       r.cap = [S.prd.feel, feelK()];
       S.camp.forge = 13;
       r.cap.push(boss(hi).pack === want, S.prd.feel);
-      /* 18（num-tree-v3-verify：定案 4.2 10:29 保底珠寶格改給靈魂包）：輪到原本的珠寶格 → 給靈魂包（照靈魂公式、殺的時候不加）、計數歸零、算有感；不給珠寶 */
+      /* 18（num-tree-v4-verify：定案 4.2 10:29 保底珠寶格改給靈魂包）：輪到原本的珠寶格 → 給靈魂包（照靈魂公式、殺的時候不加）、計數歸零、算有感；不給珠寶 */
       S.camp.forge = 20; S.prd = PRD0(); S.prd.feel = feelK() - 1; S.inv.jw = [];
       s0 = S.mat.soul;
       const gj = boss(hi);

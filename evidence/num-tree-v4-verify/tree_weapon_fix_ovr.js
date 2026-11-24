@@ -1,0 +1,1 @@
+{const W={"劍術":[0,4],"斧術":[0,4],"匕首術":[2,8],"爪術":[2,5],"機關術":[2,7],"長杖術":[3,8],"法杖術":[4,5],"權杖術":[4,5],"棍術":[5,4],"長矛術":[1,7],"弓術":[1,8]};for(const [n,[rd,k,dd]] of Object.entries(W)){PT_THEME[PT_TH[n]].rg=[0,0,0,0,0,0];PT_FIX.push(dd?[n,Array(k).fill(rd),dd]:[n,Array(k).fill(rd)]);}}

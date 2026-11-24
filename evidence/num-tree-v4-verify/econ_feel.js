@@ -25,7 +25,17 @@ function mkctx(seed) {
   };
   const M = Object.create(Math);
   M.random = rand;
-  const ctx = { console, Math: M, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams, PAL_CSS: fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8') };
+  const ctx = {
+    console,
+    Math: M,
+    Date,
+    JSON,
+    Object,
+    Array,
+    location: { search: '' },
+    URLSearchParams,
+    PAL_CSS: fs.readFileSync(path.join(root, 'css', 'style.css'), 'utf8')
+  };
   vm.createContext(ctx);
   for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js'])
     vm.runInContext(fs.readFileSync(path.join(root, 'js', f), 'utf8'), ctx, { filename: f });

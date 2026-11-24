@@ -7,7 +7,17 @@ const ROOT = path.join(__dirname, '../..'),
   J = f => fs.readFileSync(path.join(ROOT, 'js', f), 'utf8'),
   { ptreeGen2 } = require(path.join(ROOT, 'tools/tree_bake.js'));
 function mkCtx(ptdataSrc, ovr = '') {
-  const ctx = { console, Math, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams, PAL_CSS: fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8') };
+  const ctx = {
+    console,
+    Math,
+    Date,
+    JSON,
+    Object,
+    Array,
+    location: { search: '' },
+    URLSearchParams,
+    PAL_CSS: fs.readFileSync(path.join(ROOT, 'css/style.css'), 'utf8')
+  };
   vm.createContext(ctx);
   vm.runInContext(J('palette.js'), ctx);
   vm.runInContext(ptdataSrc || J('ptdata.js'), ctx);
@@ -28,7 +38,18 @@ function bakeSrc(T, pt2Audit) {
     idx = Object.fromEntries(T.N.map((n, i) => [n.id, i])),
     rows = T.N.map(n => {
       const t = n.gate ? 4 : n.big === 2 ? 3 : n.tk ? 0 : n.lock ? (n.big ? 7 : 6) : n.sv != null ? 5 : n.big ? 2 : 1,
-        v = t === 4 ? +n.id.slice(1) : t === 3 ? +n.id.slice(2) : t === 5 ? n.g * 4 + n.sv : t > 5 ? n.lock - 1 : t ? n.v : 0;
+        v =
+          t === 4
+            ? +n.id.slice(1)
+            : t === 3
+              ? +n.id.slice(2)
+              : t === 5
+                ? n.g * 4 + n.sv
+                : t > 5
+                  ? n.lock - 1
+                  : t
+                    ? n.v
+                    : 0;
       return [n.id, r1(n.x), r1(n.y), t, n.th || 0, v];
     }),
     edges = T.E.map(([a, b]) => {
@@ -38,7 +59,11 @@ function bakeSrc(T, pt2Audit) {
     cl = T.CL.map(c => [Math.round(c.x), Math.round(c.y), c.lock ? -c.lock : c.th, c.maxR]),
     A = pt2Audit(T),
     M = Object.fromEntries(Object.entries(A).filter(([k]) => k[0] !== '_'));
-  return '/* tools/tree_bake.js 產生，不要手改：天賦樹的形狀（點、線、叢集）。效果在 data.js 的 PT_THEME */\nconst PT_BAKE = ' + JSON.stringify({ N: rows, E: edges, C: cl, M }) + ';\n';
+  return (
+    '/* tools/tree_bake.js 產生，不要手改：天賦樹的形狀（點、線、叢集）。效果在 data.js 的 PT_THEME */\nconst PT_BAKE = ' +
+    JSON.stringify({ N: rows, E: edges, C: cl, M }) +
+    ';\n'
+  );
 }
 function counts(T, env) {
   const c = env.PT_THEME.map(() => []);

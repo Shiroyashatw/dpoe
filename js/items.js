@@ -267,7 +267,7 @@ const sockOpen = (s, i, c = secCount(s)) => c[i] >= JEWEL.need;
 const jwNo = () => {
   throw new Error('珠寶不能換金、賣出或分解');
 };
-/* 珠寶分頁（num-tree-v3-verify 驗算用，定案 4.1.1 S1～S5）：珠寶放倉庫的 S.inv.jw（鑲著的也在這裡、也佔格），不算進 INV_CAP；
+/* 珠寶分頁（num-tree-v4-verify 驗算用（沿用 v3），定案 4.1.1 S1～S5）：珠寶放倉庫的 S.inv.jw（鑲著的也在這裡、也佔格），不算進 INV_CAP；
    正常格數照倉房等級（JEWEL.cap），王保底另外多留 JEWEL.boss 格，再滿也照收（提示清理）。珠寶不是裝備：invPut、賣價、分解都擋 */
 const isJewel = it => !!it && Array.isArray(it.nt) && !it.base;
 const jwList = s => ((s.inv = s.inv || { items: [] }).jw = s.inv.jw || []);

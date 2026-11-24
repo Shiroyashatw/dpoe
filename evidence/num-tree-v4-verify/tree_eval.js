@@ -8,9 +8,20 @@ function evaluate(ovr, tag = 'x') {
   const { T, env } = L.gen(ovr),
     f = path.join(require('os').tmpdir(), `ptd_${tag}_${process.pid}.js`);
   fs.writeFileSync(f, L.bakeSrc(T, pt2Audit));
-  const out = cp.execFileSync('node', [path.join(__dirname, 'tree_quick.js')], { env: { ...process.env, PTDATA: f, OVR: ovr }, encoding: 'utf8', maxBuffer: 1e8 });
+  const out = cp.execFileSync('node', [path.join(__dirname, 'tree_quick.js')], {
+    env: { ...process.env, PTDATA: f, OVR: ovr },
+    encoding: 'utf8',
+    maxBuffer: 1e8
+  });
   const c = L.counts(T, env);
-  return { bad: out.split('\n').filter(l => l.startsWith('❌')), out, counts: Object.fromEntries(env.PT_THEME.map((t, i) => [t.n, c[i].join('')])), file: f, T, env };
+  return {
+    bad: out.split('\n').filter(l => l.startsWith('❌')),
+    out,
+    counts: Object.fromEntries(env.PT_THEME.map((t, i) => [t.n, c[i].join('')])),
+    file: f,
+    T,
+    env
+  };
 }
 module.exports = { evaluate };
 if (require.main === module) {

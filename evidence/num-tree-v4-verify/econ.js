@@ -1,5 +1,5 @@
 'use strict';
-/* num-tree-v4-verify（沿用 v3） 第 11～15 項：載入 main（base 68a48d98）的真實掉落函式，蒙地卡羅＋期望值。
+/* num-tree-v4-verify（沿用 v3） 第 11～15 項：載入 main（base 49b9babf）的真實掉落函式，蒙地卡羅＋期望值。
    用法：node econ.js [main 的根目錄，預設 $S/main] [每地點輪數，預設 20000]
    假設（都可在下面改）：一輪 150 秒＝roundSec() 沒紀錄時的值（craft.js:1367-1370）＋輪間 2 秒（game.js:1213）→ 每小時 3600/152 輪；
    1★、沒有地圖詞；鍛造台 Lv20（全部通貨都開）；每輪擊殺數＝生成量 ÷ 1.55（王出來前的進度 G.need＝pts÷rnd(1.5,1.6)，game.js:575-597），菁英每群照同一比例。
