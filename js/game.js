@@ -10,7 +10,7 @@ let S;
 /* 存檔版本 10 是 0.2.0（重製：0.1 的存檔不沿用） */
 function newGame() {
   const s = {
-    v: 35,
+    v: 36,
     name: '女忍者',
     /* 手機的操作方向：一律 p 直立（2026-11-21 取消橫向，舊存檔的 l 由 migrate 改成 p） */
     orient: 'p',
@@ -30,7 +30,6 @@ function newGame() {
     army: {},
     gods: [],
     godOn: null,
-    jewels: [],
     jsock: [null, null, null, null, null, null],
     /* 世界地圖（world.js）：走過的節點、每節點的星級、在刷的節點、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
     world: newWorld(),
@@ -39,7 +38,7 @@ function newGame() {
     tier: 1,
     eq: Object.fromEntries(EQS.map(e => [e.k, null])),
     /* 清單倉庫（0.4.0）：所有裝備一件一格，容量 INV_CAP（items.js 的 invPut） */
-    inv: { items: [] },
+    inv: { items: [], jw: [] } /* jw：珠寶分頁（存檔 36） */,
     /* 0.3.0 掛機：1 自動（AI 操作）、0 手動 */
     auto: 1,
     stopWhy: null /* 'camp'＝玩家自己回營地，刷圖暫停（M2-12 前叫 'home'，main.js 的 migrate 轉） */,

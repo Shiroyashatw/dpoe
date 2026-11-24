@@ -1,0 +1,500 @@
+{
+ "root": "/home/user/dpoe",
+ "starts": {
+  "鬥士": {
+   "nearestEv": {
+    "d": 9,
+    "id": "c540_0",
+    "name": "身法小點",
+    "s": "{\"evP\":12}",
+    "big": 0,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestEvNotable": {
+    "d": 10,
+    "id": "c540_1",
+    "name": "殘影",
+    "s": "{\"evP\":25,\"tailwind\":1}",
+    "big": 1,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestDf": {
+    "d": 12,
+    "id": "c116_l0",
+    "name": "偏斜小點",
+    "s": "{\"evAsDefl\":8}",
+    "big": 0,
+    "road": "遊俠",
+    "cluster": "116:偏斜"
+   },
+   "nearestDfNotable": {
+    "d": 14,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "evWithin15": 16,
+   "dfWithin15": 7,
+   "dualWithin15": [],
+   "cl身法": [
+    {
+     "ci": 160,
+     "entry": 8,
+     "road": "鬥士",
+     "st": 0
+    },
+    {
+     "ci": 540,
+     "entry": 9,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 561,
+     "entry": 11,
+     "road": "遊俠",
+     "st": 0
+    }
+   ],
+   "cl偏斜": [
+    {
+     "ci": 116,
+     "entry": 12,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 354,
+     "entry": 16,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 512,
+     "entry": 17,
+     "road": "暗影",
+     "st": 0
+    }
+   ]
+  },
+  "遊俠": {
+   "nearestEv": {
+    "d": 6,
+    "id": "c243_0",
+    "name": "身法小點",
+    "s": "{\"evP\":12}",
+    "big": 0,
+    "road": "遊俠",
+    "cluster": "243:身法"
+   },
+   "nearestEvNotable": {
+    "d": 9,
+    "id": "c540_1",
+    "name": "殘影",
+    "s": "{\"evP\":25,\"tailwind\":1}",
+    "big": 1,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestDf": {
+    "d": 10,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "nearestDfNotable": {
+    "d": 10,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "evWithin15": 20,
+   "dfWithin15": 15,
+   "dualWithin15": [],
+   "cl身法": [
+    {
+     "ci": 243,
+     "entry": 6,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 160,
+     "entry": 8,
+     "road": "鬥士",
+     "st": 0
+    },
+    {
+     "ci": 540,
+     "entry": 8,
+     "road": "遊俠",
+     "st": 0
+    }
+   ],
+   "cl偏斜": [
+    {
+     "ci": 116,
+     "entry": 11,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 512,
+     "entry": 13,
+     "road": "暗影",
+     "st": 0
+    },
+    {
+     "ci": 354,
+     "entry": 15,
+     "road": "遊俠",
+     "st": 0
+    }
+   ]
+  },
+  "暗影": {
+   "nearestEv": {
+    "d": 3,
+    "id": "s2rp1",
+    "name": "身法小點",
+    "s": "{\"evP\":12}",
+    "big": 0,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "nearestEvNotable": {
+    "d": 10,
+    "id": "c540_1",
+    "name": "殘影",
+    "s": "{\"evP\":25,\"tailwind\":1}",
+    "big": 1,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestDf": {
+    "d": 1,
+    "id": "s2rs1",
+    "name": "偏斜小點",
+    "s": "{\"evAsDefl\":8}",
+    "big": 0,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "nearestDfNotable": {
+    "d": 5,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "evWithin15": 17,
+   "dfWithin15": 14,
+   "dualWithin15": [],
+   "cl身法": [
+    {
+     "ci": 8,
+     "entry": 6,
+     "road": "暗影",
+     "st": 1
+    },
+    {
+     "ci": 243,
+     "entry": 8,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 540,
+     "entry": 9,
+     "road": "遊俠",
+     "st": 0
+    }
+   ],
+   "cl偏斜": [
+    {
+     "ci": 116,
+     "entry": 12,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 512,
+     "entry": 12,
+     "road": "暗影",
+     "st": 0
+    },
+    {
+     "ci": 354,
+     "entry": 16,
+     "road": "遊俠",
+     "st": 0
+    }
+   ]
+  },
+  "魔導": {
+   "nearestEv": {
+    "d": 11,
+    "id": "s2rp2",
+    "name": "身法小點",
+    "s": "{\"evP\":12}",
+    "big": 0,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "nearestEvNotable": {
+    "d": 14,
+    "id": "c540_1",
+    "name": "殘影",
+    "s": "{\"evP\":25,\"tailwind\":1}",
+    "big": 1,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestDf": {
+    "d": 10,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "nearestDfNotable": {
+    "d": 10,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "evWithin15": 10,
+   "dfWithin15": 8,
+   "dualWithin15": [],
+   "cl身法": [
+    {
+     "ci": 8,
+     "entry": 11,
+     "road": "暗影",
+     "st": 1
+    },
+    {
+     "ci": 243,
+     "entry": 12,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 348,
+     "entry": 12,
+     "road": "暗影",
+     "st": 0
+    }
+   ],
+   "cl偏斜": [
+    {
+     "ci": 512,
+     "entry": 13,
+     "road": "暗影",
+     "st": 0
+    },
+    {
+     "ci": 116,
+     "entry": 16,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 354,
+     "entry": 20,
+     "road": "遊俠",
+     "st": 0
+    }
+   ]
+  },
+  "死靈": {
+   "nearestEv": {
+    "d": 15,
+    "id": "s2rp2",
+    "name": "身法小點",
+    "s": "{\"evP\":12}",
+    "big": 0,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "nearestEvNotable": {
+    "d": 18,
+    "id": "c540_1",
+    "name": "殘影",
+    "s": "{\"evP\":25,\"tailwind\":1}",
+    "big": 1,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestDf": {
+    "d": 14,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "nearestDfNotable": {
+    "d": 14,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "evWithin15": 1,
+   "dfWithin15": 3,
+   "dualWithin15": [],
+   "cl身法": [
+    {
+     "ci": 8,
+     "entry": 15,
+     "road": "暗影",
+     "st": 1
+    },
+    {
+     "ci": 160,
+     "entry": 16,
+     "road": "鬥士",
+     "st": 0
+    },
+    {
+     "ci": 243,
+     "entry": 16,
+     "road": "遊俠",
+     "st": 0
+    }
+   ],
+   "cl偏斜": [
+    {
+     "ci": 512,
+     "entry": 17,
+     "road": "暗影",
+     "st": 0
+    },
+    {
+     "ci": 116,
+     "entry": 20,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 354,
+     "entry": 24,
+     "road": "遊俠",
+     "st": 0
+    }
+   ]
+  },
+  "自然": {
+   "nearestEv": {
+    "d": 13,
+    "id": "c540_0",
+    "name": "身法小點",
+    "s": "{\"evP\":12}",
+    "big": 0,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestEvNotable": {
+    "d": 14,
+    "id": "c540_1",
+    "name": "殘影",
+    "s": "{\"evP\":25,\"tailwind\":1}",
+    "big": 1,
+    "road": "遊俠",
+    "cluster": "540:身法"
+   },
+   "nearestDf": {
+    "d": 16,
+    "id": "c116_l0",
+    "name": "偏斜小點",
+    "s": "{\"evAsDefl\":8}",
+    "big": 0,
+    "road": "遊俠",
+    "cluster": "116:偏斜"
+   },
+   "nearestDfNotable": {
+    "d": 18,
+    "id": "s2rn",
+    "name": "卸力",
+    "s": "{\"evAsDefl\":12}",
+    "big": 1,
+    "road": "暗影",
+    "cluster": "起點模板"
+   },
+   "evWithin15": 8,
+   "dfWithin15": 0,
+   "dualWithin15": [],
+   "cl身法": [
+    {
+     "ci": 160,
+     "entry": 12,
+     "road": "鬥士",
+     "st": 0
+    },
+    {
+     "ci": 540,
+     "entry": 13,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 561,
+     "entry": 15,
+     "road": "遊俠",
+     "st": 0
+    }
+   ],
+   "cl偏斜": [
+    {
+     "ci": 116,
+     "entry": 16,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 354,
+     "entry": 20,
+     "road": "遊俠",
+     "st": 0
+    },
+    {
+     "ci": 512,
+     "entry": 21,
+     "road": "暗影",
+     "st": 0
+    }
+   ]
+  }
+ },
+ "dual": [],
+ "卸力": [
+  {
+   "id": "s2rn",
+   "s": {
+    "evAsDefl": 12
+   }
+  }
+ ]
+}

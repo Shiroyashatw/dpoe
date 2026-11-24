@@ -2947,7 +2947,6 @@ const PT_THEME = [
     nt: [
       ['不屈', { hpP: 3, regen: 6 }],
       ['血氣方剛', { flask: 20, hpP: 2 }],
-      ['背水一戰', { lowHp: 35 }],
       ['強韌體魄', { life: 25, regen: 4 }],
       ['鐵打筋骨', { hpP: 3, armorP: 10 }, '護甲'],
       ['飲血', { killHeal: 6, regen: 4 }],
@@ -2960,6 +2959,7 @@ const PT_THEME = [
       ['堅忍', { hpP: 2, ailThrP: 25 }],
       ['戰後療傷', { killHeal: 8 }],
       ['活力', { life: 20, ms: 2 }],
+      ['背水一戰', { lowHp: 35 }],
       ['心如磐石', { hpP: 3, blockInc: 5 }, '格擋與盾'],
       ['熱血', { regen: 8, meleeP: 10 }, '近戰'],
       ['野性體質', { hpP: 3, priP: 10 }, '原始技能'],
@@ -2985,7 +2985,6 @@ const PT_THEME = [
     sm: [{ armorP: 12 }, { armEle: 5 }],
     nt: [
       ['鐵骨', { armorP: 25, resA: 3, stunThrP: 15 }],
-      ['閃甲', { evAsArmor: 15 }, '身法'],
       ['金剛', { armorP: 20, armBreak: 1 }],
       ['熔岩鎧', { maxResF: 1, resF: 12 }],
       ['不動之甲', { stillP: 20, armorP: 15 }],
@@ -2995,6 +2994,7 @@ const PT_THEME = [
       ['重鎧', { armorP: 30, evP: -15 }],
       ['壁立千仞', { armorP: 25, resF: 5 }],
       ['鋼皮', { armorP: 30, stunThrP: 10 }],
+      ['閃甲', { evAsArmor: 15 }, '身法'],
       ['盔甲專精', { armorP: 25, armorF: 30 }],
       ['鍛甲', { armorP: 20, str: 10 }],
       ['反甲', { armorP: 20, thornP: 15 }, '荊棘'],
@@ -3095,7 +3095,6 @@ const PT_THEME = [
     sub: [{ projAtkP: 10 }],
     nt: [
       ['詭射', { chainCh: 15, projP: 10 }],
-      ['短射', { projSpd: -30, closeP: 20 }],
       ['分光', { fork: 1, projP: 10 }],
       ['風箏手', { projSpd: 30, projP: 15 }],
       ['鷹眼', { projP: 25, critInc: 10 }],
@@ -3108,6 +3107,7 @@ const PT_THEME = [
       ['霜箭', { cvPC: 25, projP: 10 }],
       ['破甲箭', { projP: 20, armBreak: 1 }],
       ['毒矢', { projP: 15, poisonCh: 15 }, '異常'],
+      ['短射', { projSpd: -30, closeP: 20 }],
       ['飛矢', { projAtkP: 25, as: 2 }],
       ['箭術', { projAtkP: 25, acc: 30 }],
       ['巧射', { projP: 20, critInc: 15 }, '暴擊率'],
@@ -3159,7 +3159,6 @@ const PT_THEME = [
     rg: [1, 1, 3, 1, 1, 1],
     sm: [{ critInc: 10 }],
     nt: [
-      ['天眼', { lukCrit: 1, critX: -30 }],
       ['致命精準', { critInc: 25, accP: 15 }],
       ['孤影', { critInc: 15, isoP: 25 }],
       ['一擊脫離', { afterRoll: 25, critInc: 10 }],
@@ -3172,6 +3171,7 @@ const PT_THEME = [
       ['貫穿', { critInc: 25, acc: 30 }],
       ['殘風', { tailwind: 1, critInc: 10 }],
       ['先發制人', { critInc: 35, closeP: -15 }],
+      ['天眼', { lukCrit: 1, critX: -30 }],
       ['乘勝追擊', { powOnCrit: 25 }],
       ['弱點', { critInc: 20, ailMag: 10 }, '異常'],
       ['獵殺', { critInc: 20, onsKill: 10 }],
@@ -3393,7 +3393,6 @@ const PT_THEME = [
     sub: [{ esDelay: 6 }, { esRec: 10 }],
     nt: [
       ['靜電充能', { esRec: 20, esDelay: 10 }],
-      ['絕境靈壓', { lowEsP: 30, esP: 10 }],
       ['靈能壁', { esP: 20, esAsThr: 10 }],
       ['靈障', { esP: 25, esF: 15 }],
       ['快速充能', { esRec: 30, esP: 10, esDelay: 40 }],
@@ -3404,6 +3403,7 @@ const PT_THEME = [
       ['盾中鋒芒', { esUp: 30 }],
       ['盾下施法', { esUp: 20, esP: 10 }],
       ['堅韌心智', { esP: 20, hpP: 2 }],
+      ['絕境靈壓', { lowEsP: 30, esP: 10 }],
       ['雷光屏障', { maxResL: 1, resL: 12 }],
       ['護盾強化', { esP: 40, ms: -3 }],
       ['光之壁', { esP: 20, blockInc: 5 }, '格擋與盾'],
@@ -3734,7 +3734,7 @@ const PT_THEME = [
     '十字弓術',
     '#8fb88a',
     'gear_weapon_12',
-    [0, 3, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0] /* V4：固定擺法 PT_FIX，7 個都在遊俠之路 */,
     [
       ['重弩', { w_xbow: 25, armBreak: 1 }],
       ['速裝', { w_xbow: 25, as: 3 }],
@@ -4311,10 +4311,9 @@ const PT_THEME = [
     sm: [{ evAsDefl: 8 }],
     sub: [{ defl: 20 }],
     nt: [
-      ['卸力', { evAsDefl: 12, evP: 10 }],
+      ['卸力', { evAsDefl: 12 }],
       ['滑步', { defl: 40, ms: 2 }],
       ['斜擋', { evAsDefl: 10, blockInc: 5 }, '格擋與盾'],
-      ['圓轉', { defl: 50, evP: 10 }],
       ['遊身', { evAsDefl: 10, rollCd: 10 }],
       ['借力', { evAsDefl: 10, as: 3 }, '攻擊速度'],
       ['擦身', { defl: 40, afterRoll: 15 }],
@@ -5335,7 +5334,6 @@ const PT_SMX = {
     { thornP: 10, blockInc: 2 }
   ],
   偏斜: [
-    { evAsDefl: 5, evP: 8 },
     { evAsDefl: 5, esDelay: 4 },
     { defl: 12, ms: 1 }
   ],
@@ -5515,12 +5513,15 @@ const PT_FIX = [
   ['榴彈', [1, 1, 1, 2]],
   ['灌注', [3, 3, 3]],
   ['護符與藥劑', [0, 1, 2, 3, 4, 5]],
-  ['破甲', [0, 0, 0, 1]]
+  ['破甲', [0, 0, 0, 1]],
+  ['十字弓術', [1, 1, 1, 1, 1, 1, 1]] /* V4（mumi 11/24 11:42）：十字弓叢集固定 7 個在遊俠之路 */
 ];
 /* 起點模板的小點（六條路同一套形狀：第 1 步傷害與防禦各一個，各分成兩條路擇一的菱形）：
    d 傷害菱形、f 防禦菱形，各是 [主詞, 另一條路]；一格＝[主題名, 用那個主題的第幾種小點, 自訂的詞（可省）] */
 const PT_STARTS = [
   {
+    de: ['近戰', '暈眩'],
+    fe: ['護甲'],
     d: [
       ['近戰', 0],
       ['暈眩', 0]
@@ -5531,16 +5532,20 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['攻擊速度', '投射物'],
+    fe: ['生命'],
     d: [
       ['投射物', 0],
       ['攻擊速度', 0]
     ],
     f: [
-      ['身法', 0],
-      ['身法', 1]
+      ['身法', 1],
+      ['生命', 0]
     ]
   },
   {
+    de: ['暴擊率', '異常'],
+    fe: ['身法'],
     d: [
       ['暴擊率', 0],
       ['異常', 0]
@@ -5551,6 +5556,8 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['元素技能', '法術'],
+    fe: ['能量護盾'],
     d: [
       ['元素技能', 0],
       ['法術', 0, { ss: 3 }]
@@ -5561,6 +5568,8 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['召喚', '秘術技能'],
+    fe: ['能量護盾'],
     d: [
       ['秘術技能', 0],
       ['召喚', 0]
@@ -5571,6 +5580,8 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['原始技能', '砲塔圖騰'],
+    fe: ['生命'],
     d: [
       ['原始技能', 0],
       ['砲塔圖騰', 0]
@@ -5642,7 +5653,8 @@ const PTREE = (() => {
 const PT_START = ['g0', 'g1', 'g2', 'g3', 'g4', 'g5'];
 /* 天賦樹六區與珠寶孔（0.2.84）：照六個起點的方向各切 ±30°（n.sec），一區點滿 JEWEL.need 點（起點不算、能力值點算）開那一區的珠寶孔；
    孔不是樹上的點，畫在那一區的外緣（tree.js）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點；退到門檻以下珠寶鎖住不生效 */
-const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
+/* cap：珠寶分頁正常格數，照倉房 Lv0～5（mumi 11/24 11:32）；boss：王保底多留的格數（固定 5） */
+const JEWEL = { need: 40, cap: [30, 34, 38, 42, 46, 50], boss: 5, nt: { chiyou: 1, zhuolu: 2 } };
 {
   const A = PT_START.map(k => Math.atan2(PTREE.I[k].y, PTREE.I[k].x));
   for (const n of PTREE.N) {
@@ -7753,7 +7765,13 @@ const CAMP = {
     { soul: 13000, wood: 900, mats: { 'hide:3': 50 }, un: ['auto2t'], d: '自動分解照詞階、追憶、▲' },
     { soul: 18000, wood: 1000, gold: 20000, un: ['cur:corr', 'tab:corr'], d: '腐化石開始掉、腐化' },
     { soul: 25000, wood: 1200, mats: { 'iron:4': 50 }, cur: { rich: 20 }, d: '一次打 20 件' },
-    { soul: 35000, wood: 1400, cur: { exalt: 20 }, un: ['cur:ink', 'jewel'], d: '追憶之墨、珠寶開始掉' },
+    {
+      soul: 35000,
+      wood: 1400,
+      cur: { exalt: 20 },
+      un: ['cur:ink'],
+      d: '追憶之墨開始掉'
+    } /* 定案 4.2：珠寶只從特殊機制掉，這級拿掉 jewel */,
     { soul: 50000, wood: 1600, mats: { 'iron:5': 50 }, un: ['tier2'], d: '高階通貨開始掉' },
     { soul: 70000, wood: 1800, gold: 50000, un: ['cur:perf'], d: '完美石開始掉' },
     {

@@ -348,7 +348,9 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       free = bfs(G.PT_START, n => !n.lock),
       cut = T.N.filter(n => !n.lock && free[n.id] === undefined).length,
       multi = locked.filter(ns => ns.flatMap(n => A[n.id].filter(o => !T.I[o].lock)).length !== 1).length,
-      want = RSV.reduce((s, r) => s + r[2], 0) + 7; /* 2026-11-22：鏈錘、魔符叢集鎖住 7 個 */
+      want =
+        RSV.reduce((s, r) => s + r[2], 0) +
+        10; /* 2026-11-22：鏈錘、魔符叢集鎖住；mumi 11/24 11:42 V3：重烘後接受 10 個 */
     /* 0.2.67 起預留叢集全部解鎖（表是空的）；以後再佔位置時這條仍檢查：數量對、各只有一個入口、不擋路 */
     ok(
       `預留叢集：表上加鏈錘、魔符 ${want} 個、樹上鎖住 ${locked.length} 個、各只有一個入口、不擋路`,
@@ -8497,7 +8499,7 @@ const ASC_COMBOS = `const combos = k => {
     R2(`(() => {
       const old = newGame(); Object.assign(old, { v: 30, lv: 57 });
       const n = migrate(JSON.parse(JSON.stringify(old)));
-      if (n.v !== 35 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
+      if (n.v !== 36 || n.lv !== 1) return 'v30 ' + n.v + ' ' + n.lv;
       for (const bad of [null, {}, { v: 'x' }, { v: 10 }, { v: 29, lv: 50 }]) if (migrate(bad).lv !== 1) return 'bad';
       const it = (r, o) => ({ ...mkItem('c_leather', 12, r), ...o });
       const v31 = { ...newGame(), v: 31, lv: 57, gold: 5, frag: 40, auto: 0, cards: { x: 1 }, patrol: { rg: 'a' }, run: { k: '0,0' },
@@ -8507,13 +8509,13 @@ const ASC_COMBOS = `const combos = k => {
       delete v31.push;
       /* 舊地圖走過最遠的是 9,9（第 18 圈＝舊的 Lv63）：主幹開到 Lv63（劇情 9 個＋Lv23～63 的 9 個） */
       const m = migrate(JSON.parse(JSON.stringify(v31)));
-      if (m.v !== 35 || m.lv !== 57 || m.auto !== 0 || 'push' in m) return 'base';
+      if (m.v !== 36 || m.lv !== 57 || m.auto !== 0 || 'push' in m) return 'base';
       if (m.inv.items.length !== 4 || m.inv.items.some(x => x.uid || 'x' in x) || m.inv.w) return 'inv ' + m.inv.items.length;
       if (['stash', 'temp', 'temp2', 'frag', 'cards', 'patrol', 'run'].some(k => k in m)) return 'gone';
       if (m.gold !== 5 + 400) return 'gold ' + m.gold;
       if (m.world.seed !== W_SEED || m.world.stage !== 9 || m.world.done.length !== 18 || wFront(m) !== 18 || m.camp.watch !== 18) return 'world ' + m.world.done.length + ' ' + wFront(m);
       const again = migrate(JSON.parse(JSON.stringify(m)));
-      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 35 ? '' : 'again';
+      return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 36 ? '' : 'again';
     })()`) === ''
   );
   /* 0.4.8：存檔 32 → 33：一般輔助升過的等級退靈魂（每一級照 libUp 扣的 soulCost(那一級)）、刪紀錄；用過的 II 算解鎖；覺醒輔助、技能、光環等級不動 */
@@ -8529,11 +8531,11 @@ const ASC_COMBOS = `const combos = k => {
       for (const lv of [6, 3]) for (let l = 1; l < lv; l++) want += soulCost(l);
       const again = migrate(JSON.parse(JSON.stringify(m)));
       return { v: m.v, soul: m.mat.soul === want, want, sup: m.lib.sup, sup2: Object.keys(m.lib.sup2).sort(), keep: [m.lib.sk.fireball, m.lib.aura.anger, m.skills[0].so.join()],
-        again: again.mat.soul === m.mat.soul, fresh: newGame().v === 35 && !!newGame().lib.sup2 };
+        again: again.mat.soul === m.mat.soul, fresh: newGame().v === 36 && !!newGame().lib.sup2 };
     })()`);
     ok(
-      '存檔 33（0.4.8）：一般輔助升過的等級退靈魂（Σ soulCost(1…lv−1)）、紀錄刪掉；插著的 II（技能格、光環欄）與目錄有紀錄的 II 算解鎖；覺醒輔助、技能、光環的等級與孔不動；轉過的再載入不重複退；新存檔是 35',
-      r.v === 35 &&
+      '存檔 33（0.4.8）：一般輔助升過的等級退靈魂（Σ soulCost(1…lv−1)）、紀錄刪掉；插著的 II（技能格、光環欄）與目錄有紀錄的 II 算解鎖；覺醒輔助、技能、光環的等級與孔不動；轉過的再載入不重複退；新存檔是 36（num-tree-v3-verify 存檔 36）',
+      r.v === 36 &&
         r.soul &&
         JSON.stringify(r.sup) === '{"aw_fury":5}' &&
         JSON.stringify(r.sup2) === '["area","leech","multi"]' &&
@@ -8555,9 +8557,9 @@ const ASC_COMBOS = `const combos = k => {
       return { v: m.v, camp: m.camp, star: m.star, mats: m.mat.mats, gam: 'gamN' in m, auto2: m.auto2, fresh: newGame().v, lo: n.camp, again: migrate(JSON.parse(JSON.stringify(m))).camp.forge };
     })()`);
     ok(
-      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、民房 9、林場與礦場 Lv90、倉房 1、星級 3；Lv1 新手全 0；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 35',
-      r.v === 35 &&
-        r.fresh === 35 &&
+      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、民房 9、林場與礦場 Lv90、倉房 1、星級 3；Lv1 新手全 0；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 36（num-tree-v3-verify 存檔 36）',
+      r.v === 36 &&
+        r.fresh === 36 &&
         r.camp.forge === 14 &&
         r.camp.altar === 3 &&
         r.camp.scout === 2 &&
@@ -9723,7 +9725,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwDrop, jwChance })',
     ctx
   );
   const mul = seed => () => {
@@ -10207,7 +10209,7 @@ const ASC_COMBOS = `const combos = k => {
         at: [],
         auras: [],
         charms: [],
-        jewels: [],
+        inv: { items: [], jw: [] },
         jsock: [null, null, null, null, null, null]
       });
     if (F.secCount(base(40))[0] !== 40 || !F.sockOpen(base(40), 0) || F.sockOpen(base(39), 0)) bad.push('40 點開孔');
@@ -10216,10 +10218,10 @@ const ASC_COMBOS = `const combos = k => {
     const j = { id: 'j1', nt: [nt] },
       j2 = { id: 'j2', nt: [nt] },
       on = base(40);
-    on.jewels = [j, j2];
+    on.inv.jw = [j, j2];
     on.jsock = ['j1', 'j2', null, null, null, null];
     const off = base(39);
-    off.jewels = [j];
+    off.inv.jw = [j];
     off.jsock = ['j1', null, null, null, null, null];
     const h0 = F.stats(base(40)).hp,
       h1 = F.stats(on).hp,
@@ -10230,32 +10232,37 @@ const ASC_COMBOS = `const combos = k => {
     if (F.jewelNodes(on).length !== 1) bad.push('重複的大點算了兩次');
     const own = base(40);
     own.pt.push(nt);
-    own.jewels = [j];
+    own.inv.jw = [j];
     own.jsock = ['j1', null, null, null, null, null];
     if (F.jewelNodes(own).length) bad.push('已經點了的大點又算一次');
-    /* 收藏、鑲上、拆掉 */
+    /* 珠寶分頁（num-tree-v3-verify：定案 4.1.1）：王保底、鑲上、丟棄（不給東西、鑲著不能丟）、正常格數滿了機率掉落暫停、王保底照收可超過 */
     setS();
-    vm.runInContext('S.jewels = []; S.jsock = [null, null, null, null, null, null]', ctx);
-    const t1 = F.jwGain('chiyou'),
+    vm.runInContext('S.inv = { items: [], jw: [] }; S.jsock = [null, null, null, null, null, null]; S.camp = { store: 0 }', ctx);
+    const JW = () => S().inv.jw,
+      t1 = F.jwGain('chiyou'),
       t2 = F.jwGain('zhuolu');
     if (
-      S().jewels[0].nt.length !== 1 ||
-      S().jewels[1].nt.length !== 2 ||
-      new Set(S().jewels[1].nt).size !== 2 ||
+      JW()[0].nt.length !== 1 ||
+      JW()[1].nt.length !== 2 ||
+      new Set(JW()[1].nt).size !== 2 ||
       !/亡靈珠寶/.test(t1[0] + t2[0])
     )
       bad.push('蚩尤 1、涿鹿兵主 2 個大點');
-    const id = S().jewels[0].id;
+    const id = JW()[0].id;
     F.jwPut(2, id);
     F.jwPut(4, id);
     if (S().jsock[2] || S().jsock[4] !== id) bad.push('換孔');
     const so = F.MAT().soul;
-    if (!F.jwSalvage(id) || F.jwSalvage(S().jewels[1].id) || F.MAT().soul !== so + 200) bad.push('拆掉');
-    for (let i = 0; i < F.JEWEL.keep + 3; i++) F.jwGain('chiyou');
-    if (S().jewels.length !== F.JEWEL.keep) bad.push('收藏上限');
+    if (!F.jwDrop(id) || F.jwDrop(JW()[1].id) || F.MAT().soul !== so || JW().length !== 1) bad.push('丟棄');
+    for (let i = 0; i < 40; i++) F.jwChance(1);
+    const cap = F.JEWEL.cap[0];
+    if (JW().length !== cap) bad.push('正常格數');
+    for (let i = 0; i < F.JEWEL.boss + 3; i++) F.jwGain('chiyou');
+    if (JW().length !== cap + F.JEWEL.boss + 3 || F.jwChance(1).length !== 1 || JW().length !== cap + F.JEWEL.boss + 3)
+      bad.push('王保底超過上限');
     vm.runInContext('ST = null', ctx);
     ok(
-      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能拆、收藏上限`,
+      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能丟、丟棄不給東西、正常格數滿了機率掉落暫停、王保底照收可超過（num-tree-v3-verify 珠寶分頁）`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -10766,11 +10773,11 @@ const ASC_COMBOS = `const combos = k => {
       r.cap = [S.prd.feel, feelK()];
       S.camp.forge = 13;
       r.cap.push(boss(hi).pack === want, S.prd.feel);
-      /* 18：珠寶收藏滿 30 顆、輪到珠寶：給 500 靈魂、計數歸零、算有感掉落 */
-      S.camp.forge = 20; S.prd = PRD0(); S.prd.feel = feelK() - 1; S.jewels = Array.from({ length: JEWEL.keep }, (_, i) => ({ id: 'j' + i }));
+      /* 18（num-tree-v3-verify：定案 4.2 10:29 保底珠寶格改給靈魂包）：輪到原本的珠寶格 → 給靈魂包（照靈魂公式、殺的時候不加）、計數歸零、算有感；不給珠寶 */
+      S.camp.forge = 20; S.prd = PRD0(); S.prd.feel = feelK() - 1; S.inv.jw = [];
       s0 = S.mat.soul;
       const gj = boss(hi);
-      r.jw = [S.mat.soul - s0 - bs, S.prd.feel, !!gj.feel, S.jewels.length, gj.includes('珠寶收藏滿了：換 500 靈魂')];
+      r.jw = [S.mat.soul - s0 - bs, S.prd.feel, !!gj.feel, gj.pack === want, jwList(S).length, gj.some(x => /珠寶/.test(x))];
       /* 19：七情王當菁英：+1 點、不佔前 4 隻名額（ei 9 照判）、點數 600 也不必掉、不碰有感保底計數；判中 0.14% 就掉 */
       S.prd = PRD0(); S.prd.feel = 2; S.chase.pts = 600; S.chase.got = {};
       Math.random = () => 0.99;
@@ -10797,7 +10804,7 @@ const ASC_COMBOS = `const combos = k => {
   ok(
     'M2-18 追逐掉落：Lv43 不判定不累計、Lv48 王 +5 菁英 +1、菁英不觸發必掉、第 5 隻菁英不判定、點數 500 必掉並歸零、沒拿過的優先、每輪前 4 隻菁英、舊存檔補 S.chase；' +
       '賽制線關閉（五種賽制線地點機率 0、點數 499：不掉、不擲、點數不動、沒有基底、掛機卡沒有那一行）；有感保底鍛造台 14 給靈魂包（照靈魂公式、殺的時候不加、不給破裂石）；' +
-      '計數上限 K（鍛造台 12 停在 10，升 13 下一隻就給）；珠寶滿 30 給 500 靈魂並歸零、算有感；七情王 +1 點、不佔名額、不必掉、不碰有感計數、判中就掉',
+      '計數上限 K（鍛造台 12 停在 10，升 13 下一隻就給）；保底輪到原本的珠寶格給靈魂包並歸零、算有感、不給珠寶（定案 4.2）；七情王 +1 點、不佔名額、不必掉、不碰有感計數、判中就掉',
     JSON.stringify(ch.lo) === '[true,true,0]' &&
       ch.acc === 6 &&
       JSON.stringify(ch.el) === '[true,601]' &&
@@ -10809,7 +10816,7 @@ const ASC_COMBOS = `const combos = k => {
         '[0,"ghost/false/499/0/0/","dream/false/499/0/0/","fiend/false/499/0/0/","army/false/499/0/0/","rift/false/499/0/0/"]' &&
       JSON.stringify(ch.feel) === '[10,true,true,0,0,true]' &&
       JSON.stringify(ch.cap) === '[10,10,true,0]' &&
-      JSON.stringify(ch.jw) === '[500,0,true,30,true]' &&
+      JSON.stringify(ch.jw) === '[0,0,true,true,0,false]' &&
       JSON.stringify(ch.mini) === '[true,601,2,true,true,0]' &&
       ch.mig === '{"pts":0,"got":{}}',
     JSON.stringify(ch)

@@ -24,6 +24,26 @@ function save() {
   }
   if (typeof CLOUD !== 'undefined') CLOUD.dirty = true;
 }
+/* 珠寶搬進倉庫珠寶分頁（定案 4.1.1 S3）：全部照搬（可暫時超過上限；不換金、不換靈魂、不刪）；用 id 去重，重跑不會多；
+   同 id 不同內容給新 id（舊 id＋「_」＋原本的序號，重跑也一樣）、兩顆都留；孔裡的 id 找不到珠寶就清空，記在 o.jwLog */
+function jwMigrate(o) {
+  const L = jwList(o),
+    log = (o.jwLog = o.jwLog || []),
+    same = (a, b) => JSON.stringify(a.nt) === JSON.stringify(b.nt),
+    has = j => L.some(x => x.id === j.id && same(x, j));
+  (o.jewels || []).forEach((j, i) => {
+    if (has(j)) return;
+    const c = L.find(x => x.id === j.id),
+      n = c ? { id: j.id + '_' + i, nt: [...j.nt] } : { id: j.id, nt: [...j.nt] };
+    if (c && !has(n)) log.push(`珠寶 id 衝突：${j.id} → ${n.id}`);
+    if (!has(n)) L.push(n);
+  });
+  delete o.jewels;
+  o.jsock = (o.jsock || []).map((id, i) =>
+    id && !L.some(j => j.id === id) ? (log.push(`孔 ${i} 的珠寶 ${id} 找不到：清空`), null) : id
+  );
+  return o;
+}
 /* 存檔版本 S.v：10 是 0.2.0 重製；0.3.0（31）以前的直接開新角色；更早的轉換在 git 紀錄 */
 function migrate(s) {
   if (!s || !(s.v >= 31)) return newGame();
@@ -130,6 +150,8 @@ function migrate(s) {
     if (o.world) delete o.world.star;
     o.v = 35;
   }
+  /* 存檔 36（num-tree-v3-verify 驗算用，定案 4.1.1 S3＝M1）：S.jewels 搬進倉庫珠寶分頁 S.inv.jw */
+  if (o.v < 36) jwMigrate(o), (o.v = 36);
   /* M2-12：藏身處併入營地。玩家自己回去（刷圖暫停）的旗標 'home' 改叫 'camp'；早期存檔殘留的場景欄位拿掉（場景一律從營地開始） */
   if (o.stopWhy === 'home') o.stopWhy = 'camp';
   delete o.scene;

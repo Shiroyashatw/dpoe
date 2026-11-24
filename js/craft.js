@@ -278,6 +278,7 @@ function salvValue(it) {
   return v;
 }
 function salvageDo(it) {
+  if (isJewel(it)) jwNo();
   const v = salvValue(it),
     M = MAT();
   for (const key in v.mats) matAdd(...matOf(key), v.mats[key]);
@@ -1278,6 +1279,7 @@ const STAR_DROP = [
    階級 10 以上：菁英掉聖化石 2%、每張圖掉腐化石 5%（偽隨機保底） */
 /* 0.5.3（第 4、6 節，⚠️ 暫定）：破裂石 菁英 0.5%、王 2%；完美石一半；追憶之墨 王 3%（陰兵借道的將領保底）；珠寶 小怪 0.05%、菁英 0.5%、王 2%。
    一小時約 25 輪（一輪 2.5 分鐘、菁英 1～2）→ 破裂石約每 1.5 小時一顆、完美石約每 3 小時、墨約每 1.3 小時、珠寶約每小時一顆；都用偽隨機（S.prd 的 fracO／perfO／ink／jw＋0 小怪／1 菁英／2 王） */
+/* jw：V5 起不掉珠寶，只當有感保底的歸零判定（dropCur） */
 const NEW_P = { frac: [0, 0.005, 0.02], perf: [0, 0.0025, 0.01], ink: [0, 0, 0.03], jw: [0.0005, 0.005, 0.02] };
 /* M2-18 追逐掉落（M2-17 數值設計師 v1.0，交辦 docs/交辦/M2-18-追逐掉落.md）：平機率；輪末王 +5 點判 b、菁英判 e 沒中 +1 點（每輪前 ec 隻）；
    點數到 cap 的輪末王必掉（菁英不觸發必掉）；掉到任何一件點數歸零；地點怪物等級 lv 以上才判定也才累計；沒拿過的優先。存檔 S.chase＝{ pts, got: { 鍵: 件數 } }
@@ -1286,6 +1288,8 @@ const CHASE = { b: 0.014, e: 0.0014, cap: 500, ptB: 5, ptE: 1, lv: 45, ec: 4, li
 /* 有感保底：連續 K＝max(3, floor(FEEL_TG ÷ 最近 10 輪平均秒數)) 隻輪末王沒有有感掉落（破裂石、完美石、追憶之墨、珠寶、追逐物品）→ 輪流給 1 件；
    計數上限 K（第 17 點：沒東西可給時停在 K，開了之後下一隻輪末王就給） */
 const FEEL_TG = 1500;
+/* 定案 4.2：保底的珠寶格改給靈魂包，跟原本的珠寶格同時開（鍛造台 Lv17，跟追憶之墨一起） */
+const FEEL_PACK = 'cur:ink';
 /* 池（M2-19.9）：主幹 4 王印、賽制線各 2 個異寶基底；名字只從字串表 STR_T（data.js）讀。⚠️ 用法與固定詞數值待定：現在只收起來、看得到詳情、帶追逐標記 */
 const CHASE_POOL = { trunk: Object.keys(STR_T.wangyin) };
 for (const l of ['ghost', 'dream', 'fiend', 'army', 'rift']) CHASE_POOL[l] = [l + '1', l + '2'];
@@ -1385,10 +1389,10 @@ function feelGive(t) {
   for (let i = 0; i < 3; i++) {
     const j = ((P.feelI || 0) + i) % 3,
       k = L[j];
-    if (!campCan(k === 'jewel' ? k : 'cur:' + k)) continue;
+    if (!campCan(k === 'jewel' ? FEEL_PACK : 'cur:' + k)) continue;
     P.feelI = j + 1;
     P.feel = 0;
-    if (k === 'jewel') got.push(...jwAdd(1));
+    if (k === 'jewel') got.pack = packSoul(t); /* 定案 4.2（mumi 11/24 10:29）：珠寶那格改給靈魂包 */
     else if (k === 'frac' && !campCan('cur:ink')) got.pack = packSoul(t);
     else MAT()[k]++, got.push(`1 ${CUR[k].n}`), got.rare.push(k);
     return got;
@@ -1456,7 +1460,9 @@ function dropCur(kind, o) {
   /* 0.5.0：通貨照鍛造台等級開關（工坊與解鎖表第 4 節）；沒開的不掉 */
   for (const k in cur) if (!campCan(curKey(k))) delete cur[k];
   /* 0.5.3 珠寶全域（鍛造台 Lv17）：任何節點低機率，一個大點 */
-  const jw = campCan('jewel') && prdRoll('jw' + kind, NEW_P.jw[kind]);
+  /* 定案 4.2（10:21）：全域珠寶拿掉。V5（mumi 11/24 11:42）：原本的珠寶偽隨機判定留著，只當有感保底的歸零條件（擲中＝歸零、不給東西），
+     保底次數跟 main 一樣，破裂石、追憶之墨的頻率不變 */
+  const jw = campCan(FEEL_PACK) && prdRoll('jw' + kind, NEW_P.jw[kind]);
   return { cur, ess: campCan('cur:ess') ? ess : [], jw };
 }
 /* 酆都的王額外掉的（0.2.78，企劃書 4.2）：k＝王的 fd（ox／horse／black／white／yama／uber）。直接進材料頁與碎片分頁，回傳要跳字的清單 */
@@ -1548,22 +1554,32 @@ function jwRoll(n) {
   while (nt.length < n) nt.push(...L.splice(irnd(0, L.length - 1), 1));
   return { id: Math.random().toString(36).slice(2, 9), nt };
 }
-const jwGain = (k, s = S) => jwAdd(JEWEL.nt[k], s);
-/* 收一顆 n 個大點的珠寶（0.5.3 全域掉落是 1 個） */
-function jwAdd(n, s = S) {
-  const L = (s.jewels = s.jewels || []);
-  if (L.length >= JEWEL.keep) return (MAT().soul += 500), ['珠寶收藏滿了：換 500 靈魂'];
+const jwGain = (k, s = S) => jwAdd(JEWEL.nt[k], s, 1);
+/* 收一顆 n 個大點的珠寶（定案 4.1.1 S2）：boss＝王保底（蚩尤、涿鹿兵主）照收、可超過上限；其他（機率掉落）要先 jwRoom，滿了不擲 */
+function jwAdd(n, s = S, boss) {
+  const L = jwList(s),
+    cap = jwCap(s);
+  if (!boss && L.length >= cap) return [`珠寶分頁滿了（${L.length}／${cap}）：不會再掉珠寶，丟掉不要的才會再掉`];
   const j = jwRoll(n);
   L.push(j);
-  return [jwName(j)];
+  return L.length > cap + JEWEL.boss
+    ? [jwName(j), `珠寶分頁超過上限（${L.length}／${cap + JEWEL.boss}）：請清理`]
+    : [jwName(j)];
 }
-/* 拆掉不要的珠寶：換靈魂（鑲著的不能拆） */
-function jwSalvage(id, s = S) {
-  if ((s.jsock || []).includes(id)) return '鑲著的不能拆：先拔下來';
-  const i = (s.jewels || []).findIndex(j => j.id === id);
+/* 機率掉落（機制王）：分頁滿了直接跳過、不擲骰（定案 4.1 A、4.1.1 S2） */
+const jwChance = (p, n = 1, s = S) =>
+  !jwRoom(s)
+    ? [`珠寶分頁滿了（${jwList(s).length}／${jwCap(s)}）：不會再掉珠寶`]
+    : Math.random() < p
+      ? jwAdd(n, s)
+      : [];
+/* 丟棄（定案 4.1）：不給任何東西；鑲著的不能丟 */
+function jwDrop(id, s = S) {
+  if ((s.jsock || []).includes(id)) return '鑲著的不能丟：先拔下來';
+  const L = jwList(s),
+    i = L.findIndex(j => j.id === id);
   if (i < 0) return '沒有這顆珠寶';
-  s.jewels.splice(i, 1);
-  MAT().soul += 200;
+  L.splice(i, 1);
   return null;
 }
 /* 鑲上／拔下：一顆珠寶只能在一個孔；孔沒開也能先放（鎖住、不生效） */
@@ -1634,7 +1650,6 @@ function killMat(m, t, o = {}) {
   if (typeof SES !== 'undefined' && SES) SES.soul += soul;
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
-  if (D.jw) got.push(...jwAdd(1));
   /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
   got.rare = Object.keys(D.cur).filter(rareCur);
   /* M2-18 追逐掉落與有感保底 */
