@@ -1,0 +1,368 @@
+[
+ {
+  "n": 0,
+  "bad": 0,
+  "badRows": [],
+  "ev": []
+ },
+ {
+  "n": 1,
+  "bad": 0,
+  "badRows": [],
+  "ev": []
+ },
+ {
+  "n": 2,
+  "bad": 0,
+  "badRows": [],
+  "ev": []
+ },
+ {
+  "n": 3,
+  "bad": 1,
+  "badRows": [
+   [
+    "300,300",
+    false,
+    true,
+    null,
+    true,
+    false,
+    898,
+    "char",
+    true,
+    [
+     false,
+     true
+    ]
+   ]
+  ],
+  "ev": [
+   [
+    "menu=dmg",
+    7884,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    7988,
+    "at charpanel.js?v=0.5.5:548:86"
+   ],
+   [
+    "EV pointerdown",
+    7993,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "EV click",
+    7994,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "EV contextmenu",
+    8222,
+    false,
+    "cr ",
+    ""
+   ],
+   [
+    "menu=dmg",
+    8222,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    8318,
+    "at charpanel.js?v=0.5.5:548:86"
+   ],
+   [
+    "EV pointerdown",
+    8324,
+    true,
+    "v",
+    ""
+   ],
+   [
+    "EV click",
+    8325,
+    true,
+    "v",
+    ""
+   ],
+   [
+    "EV contextmenu",
+    8526,
+    false,
+    "cr ",
+    ""
+   ],
+   [
+    "menu=dmg",
+    8526,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    8622,
+    "at charpanel.js?v=0.5.5:595:75"
+   ],
+   [
+    "FAIL-MARK",
+    8970,
+    "[0,10,\"row:dmg\",{\"atk\":1,\"core\":1},\"map\"]"
+   ]
+  ]
+ },
+ {
+  "n": 4,
+  "bad": 0,
+  "badRows": [],
+  "ev": []
+ },
+ {
+  "n": 5,
+  "bad": 2,
+  "badRows": [
+   [
+    "640,20",
+    false,
+    true,
+    null,
+    true,
+    false,
+    997,
+    "char",
+    true,
+    [
+     false,
+     true
+    ]
+   ],
+   [
+    "Escape",
+    false,
+    true,
+    null,
+    true,
+    false,
+    997,
+    "char",
+    true,
+    [
+     false,
+     false
+    ]
+   ]
+  ],
+  "ev": [
+   [
+    "menu=dmg",
+    7555,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    7670,
+    "at charpanel.js?v=0.5.5:595:75"
+   ],
+   [
+    "EV contextmenu",
+    7915,
+    false,
+    "cr ",
+    ""
+   ],
+   [
+    "menu=dmg",
+    7915,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    8028,
+    "at charpanel.js?v=0.5.5:548:86"
+   ],
+   [
+    "EV pointerdown",
+    8034,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "EV click",
+    8035,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "EV contextmenu",
+    8235,
+    false,
+    "cr ",
+    ""
+   ],
+   [
+    "menu=dmg",
+    8235,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    8348,
+    "at charpanel.js?v=0.5.5:548:86"
+   ],
+   [
+    "EV pointerdown",
+    8353,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "EV click",
+    8355,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "FAIL-MARK",
+    8694,
+    "[0,9,\"row:dmg\",{\"atk\":1,\"core\":1},\"map\"]"
+   ]
+  ]
+ },
+ {
+  "n": 6,
+  "bad": 2,
+  "badRows": [
+   [
+    "400,650",
+    false,
+    true,
+    null,
+    true,
+    false,
+    807,
+    "char",
+    true,
+    [
+     false,
+     true
+    ]
+   ],
+   [
+    "300,300",
+    false,
+    true,
+    null,
+    true,
+    false,
+    807,
+    "char",
+    true,
+    [
+     false,
+     true
+    ]
+   ]
+  ],
+  "ev": [
+   [
+    "menu=dmg",
+    6580,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    6703,
+    "at charpanel.js?v=0.5.5:548:86"
+   ],
+   [
+    "EV pointerdown",
+    6712,
+    true,
+    "v",
+    ""
+   ],
+   [
+    "EV click",
+    6719,
+    true,
+    "v",
+    ""
+   ],
+   [
+    "EV contextmenu",
+    7017,
+    false,
+    "cr ",
+    ""
+   ],
+   [
+    "menu=dmg",
+    7017,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    7130,
+    "at charpanel.js?v=0.5.5:595:75"
+   ],
+   [
+    "EV contextmenu",
+    7380,
+    false,
+    "cr ",
+    ""
+   ],
+   [
+    "menu=dmg",
+    7380,
+    "at HTMLDivElement.<anonymous> (charpanel.js?v=0.5.5:562:41) < at eval (eval at evaluate (:311:30), <anonymous>:1:8) < at UtilityScript.evaluate (<anonymous>:313:16) < at UtilityScript.<anonymous> (<anonymous>:1:44)"
+   ],
+   [
+    "menu=null",
+    7487,
+    "at charpanel.js?v=0.5.5:548:86"
+   ],
+   [
+    "EV pointerdown",
+    7492,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "EV click",
+    7494,
+    true,
+    "cv",
+    ""
+   ],
+   [
+    "FAIL-MARK",
+    7900,
+    "[0,9,\"row:dmg\",{\"atk\":1,\"core\":1},\"map\"]"
+   ]
+  ]
+ },
+ {
+  "n": 7,
+  "bad": 0,
+  "badRows": [],
+  "ev": []
+ },
+ {
+  "n": 8,
+  "bad": 0,
+  "badRows": [],
+  "ev": []
+ }
+]

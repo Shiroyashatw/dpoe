@@ -1,0 +1,44 @@
+[
+ {
+  "n": 0,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:761356",
+  "ev": [
+   [
+    "chHov",
+    761356,
+    3543,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 1,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:769485",
+  "ev": [
+   [
+    "chHov",
+    769485,
+    3581,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 2,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:777993",
+  "ev": [
+   [
+    "chHov",
+    777993,
+    3374,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ }
+]

@@ -1,0 +1,120 @@
+[
+ {
+  "n": 0,
+  "lost": true,
+  "t": "111111111110",
+  "focus": "cand:829446",
+  "ev": [
+   [
+    "chHov",
+    829446,
+    6698,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ],
+   [
+    "chHov",
+    null,
+    9571,
+    "at over (http://localhost:8200/js/charpanel.js?v=0.5.5:567:5 < at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 1,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:840666",
+  "ev": [
+   [
+    "chHov",
+    840666,
+    6455,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 2,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:851887",
+  "ev": [
+   [
+    "chHov",
+    851887,
+    6224,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 3,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:863013",
+  "ev": [
+   [
+    "chHov",
+    863013,
+    5876,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 4,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:873463",
+  "ev": [
+   [
+    "chHov",
+    873463,
+    5954,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 5,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:883520",
+  "ev": [
+   [
+    "chHov",
+    883520,
+    5725,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 6,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:893549",
+  "ev": [
+   [
+    "chHov",
+    893549,
+    5499,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ },
+ {
+  "n": 7,
+  "lost": false,
+  "t": "111111111111",
+  "focus": "cand:903278",
+  "ev": [
+   [
+    "chHov",
+    903278,
+    5493,
+    "at HTMLDivElement.<anonymous> (http://localhost:8200/js/char"
+   ]
+  ]
+ }
+]
