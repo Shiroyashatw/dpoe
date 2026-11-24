@@ -2098,8 +2098,8 @@ const settle = async (p, fn, arg) => {
       return [...t, !!PANEL.asc, $('warn').textContent];
     });
     ok(
-      'M1-06：祭壇不夠時天賦樹、昇華石碑打不開，跳「升祭壇到 Lv n 才開」',
-      !lk[0] && lk[1] === '升祭壇到 Lv 4 才開' && !lk[2] && lk[3] === '升祭壇到 Lv 7 才開',
+      'M1-06：長老屋不夠時天賦樹、昇華石碑打不開，跳「升長老屋到 Lv n 才開」',
+      !lk[0] && lk[1] === '升長老屋到 Lv 4 才開' && !lk[2] && lk[3] === '升長老屋到 Lv 7 才開',
       JSON.stringify(lk)
     );
     /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點營地的昇華石碑；山海寶盒例外照開 */
@@ -2128,7 +2128,7 @@ const settle = async (p, fn, arg) => {
         !lk2.rows.includes('天賦樹') &&
         !lk2.rows.includes('昇華石碑') &&
         !lk2.asc &&
-        lk2.w === '升祭壇到 Lv 7 才開' &&
+        lk2.w === '升長老屋到 Lv 7 才開' &&
         lk2.box,
       JSON.stringify(lk2)
     );
@@ -2189,7 +2189,7 @@ const settle = async (p, fn, arg) => {
     const n2 = await nx();
     ok(
       'M1-07：更多選單只多一列「下一個」、升級後換成下一項、全開了就沒有',
-      n0.join() === '升祭壇到 Lv 4 開天賦樹' && n1.join() === '升祭壇到 Lv 7 開昇華石碑' && n2.length === 0,
+      n0.join() === '升長老屋到 Lv 4 開天賦樹' && n1.join() === '升長老屋到 Lv 7 開昇華石碑' && n2.length === 0,
       JSON.stringify([n0, n1, n2])
     );
     /* M1-03：天賦樹一打開，六條路的全名都在畫面裡、不在中央的昇華圓裡、沒被頂部列與分頁列蓋住 */
@@ -2530,7 +2530,7 @@ const settle = async (p, fn, arg) => {
       sk[0] &&
         /^Lv 1 · (每秒 [\d.]+ 下|[\d.]+ 秒一次)$/.test(sk[1]) &&
         sk[2] === 1 &&
-        sk[3] === '升祭壇到 Lv3，開第 3 格技能。',
+        sk[3] === '升長老屋到 Lv3，開第 3 格技能。',
       JSON.stringify(sk)
     );
     /* M1-PK.1：從「換」進來預選現在這招、底部鈕停用；點別的列＝改選、底部「換成｛名｝」 */
