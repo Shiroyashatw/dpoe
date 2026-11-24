@@ -1,0 +1,193 @@
+{
+ "entry": [
+  {
+   "road": "鬥士",
+   "side": "輸出",
+   "fifth": "斬鐵",
+   "clusters": [
+    "近戰(戰意)",
+    "暈眩(破綻大開)"
+   ]
+  },
+  {
+   "road": "鬥士",
+   "side": "防禦",
+   "fifth": "鐵骨",
+   "clusters": [
+    "護甲(熔岩鎧)"
+   ]
+  },
+  {
+   "road": "遊俠",
+   "side": "防禦",
+   "fifth": "不受阻",
+   "clusters": [
+    "生命(血氣方剛)"
+   ]
+  },
+  {
+   "road": "遊俠",
+   "side": "輸出",
+   "fifth": "詭射",
+   "clusters": [
+    "攻擊速度(雷速/連斬)"
+   ]
+  },
+  {
+   "road": "暗影",
+   "side": "輸出",
+   "fifth": "致命精準",
+   "clusters": [
+    "暴擊率(孤影)",
+    "異常(纏綿)"
+   ]
+  },
+  {
+   "road": "暗影",
+   "side": "防禦",
+   "fifth": "卸力",
+   "clusters": [
+    "身法(殘影)"
+   ]
+  },
+  {
+   "road": "魔導",
+   "side": "防禦",
+   "fifth": "靜電充能",
+   "clusters": [
+    "能量護盾(快速充能)"
+   ]
+  },
+  {
+   "road": "魔導",
+   "side": "輸出",
+   "fifth": "秘法迴響",
+   "clusters": [
+    "元素技能(灌注)"
+   ]
+  },
+  {
+   "road": "死靈",
+   "side": "輸出",
+   "fifth": "凋零",
+   "clusters": [
+    "召喚(魔像之主)"
+   ]
+  },
+  {
+   "road": "死靈",
+   "side": "防禦",
+   "fifth": "靈能壁",
+   "clusters": [
+    "能量護盾(寒霜屏障)"
+   ]
+  },
+  {
+   "road": "自然",
+   "side": "防禦",
+   "fifth": "不屈",
+   "clusters": []
+  },
+  {
+   "road": "自然",
+   "side": "輸出",
+   "fifth": "獸性",
+   "clusters": [
+    "原始技能(獸魂)",
+    "砲塔圖騰(堅實圖騰)"
+   ]
+  }
+ ],
+ "weapons": {
+  "劍術": {
+   "home": "鬥士",
+   "onHome": 3,
+   "total": 4,
+   "roads": "0050"
+  },
+  "斧術": {
+   "home": "鬥士",
+   "onHome": 3,
+   "total": 4,
+   "roads": "0005"
+  },
+  "錘術": {
+   "home": "鬥士",
+   "onHome": 4,
+   "total": 6,
+   "roads": "550000"
+  },
+  "鏈錘術": {
+   "home": "鬥士",
+   "onHome": 4,
+   "total": 7,
+   "roads": "0110010"
+  },
+  "長矛術": {
+   "home": "遊俠",
+   "onHome": 4,
+   "total": 5,
+   "roads": "10111"
+  },
+  "弓術": {
+   "home": "遊俠",
+   "onHome": 5,
+   "total": 7,
+   "roads": "1120111"
+  },
+  "十字弓術": {
+   "home": "遊俠",
+   "onHome": 4,
+   "total": 7,
+   "roads": "2121211"
+  },
+  "匕首術": {
+   "home": "暗影",
+   "onHome": 3,
+   "total": 6,
+   "roads": "122211"
+  },
+  "爪術": {
+   "home": "暗影",
+   "onHome": 4,
+   "total": 4,
+   "roads": "2222"
+  },
+  "機關術": {
+   "home": "暗影",
+   "onHome": 2,
+   "total": 3,
+   "roads": "221"
+  },
+  "長杖術": {
+   "home": "魔導",
+   "onHome": 4,
+   "total": 6,
+   "roads": "343433"
+  },
+  "法杖術": {
+   "home": "死靈",
+   "onHome": 2,
+   "total": 5,
+   "roads": "43343"
+  },
+  "權杖術": {
+   "home": "死靈",
+   "onHome": 3,
+   "total": 5,
+   "roads": "44334"
+  },
+  "魔符術": {
+   "home": "自然",
+   "onHome": 5,
+   "total": 5,
+   "roads": "55555"
+  },
+  "棍術": {
+   "home": "自然",
+   "onHome": 5,
+   "total": 5,
+   "roads": "55555"
+  }
+ }
+}

@@ -2947,7 +2947,6 @@ const PT_THEME = [
     nt: [
       ['不屈', { hpP: 3, regen: 6 }],
       ['血氣方剛', { flask: 20, hpP: 2 }],
-      ['背水一戰', { lowHp: 35 }],
       ['強韌體魄', { life: 25, regen: 4 }],
       ['鐵打筋骨', { hpP: 3, armorP: 10 }, '護甲'],
       ['飲血', { killHeal: 6, regen: 4 }],
@@ -2960,6 +2959,7 @@ const PT_THEME = [
       ['堅忍', { hpP: 2, ailThrP: 25 }],
       ['戰後療傷', { killHeal: 8 }],
       ['活力', { life: 20, ms: 2 }],
+      ['背水一戰', { lowHp: 35 }],
       ['心如磐石', { hpP: 3, blockInc: 5 }, '格擋與盾'],
       ['熱血', { regen: 8, meleeP: 10 }, '近戰'],
       ['野性體質', { hpP: 3, priP: 10 }, '原始技能'],
@@ -2985,7 +2985,6 @@ const PT_THEME = [
     sm: [{ armorP: 12 }, { armEle: 5 }],
     nt: [
       ['鐵骨', { armorP: 25, resA: 3, stunThrP: 15 }],
-      ['閃甲', { evAsArmor: 15 }, '身法'],
       ['金剛', { armorP: 20, armBreak: 1 }],
       ['熔岩鎧', { maxResF: 1, resF: 12 }],
       ['不動之甲', { stillP: 20, armorP: 15 }],
@@ -2995,6 +2994,7 @@ const PT_THEME = [
       ['重鎧', { armorP: 30, evP: -15 }],
       ['壁立千仞', { armorP: 25, resF: 5 }],
       ['鋼皮', { armorP: 30, stunThrP: 10 }],
+      ['閃甲', { evAsArmor: 15 }, '身法'],
       ['盔甲專精', { armorP: 25, armorF: 30 }],
       ['鍛甲', { armorP: 20, str: 10 }],
       ['反甲', { armorP: 20, thornP: 15 }, '荊棘'],
@@ -3095,7 +3095,6 @@ const PT_THEME = [
     sub: [{ projAtkP: 10 }],
     nt: [
       ['詭射', { chainCh: 15, projP: 10 }],
-      ['短射', { projSpd: -30, closeP: 20 }],
       ['分光', { fork: 1, projP: 10 }],
       ['風箏手', { projSpd: 30, projP: 15 }],
       ['鷹眼', { projP: 25, critInc: 10 }],
@@ -3108,6 +3107,7 @@ const PT_THEME = [
       ['霜箭', { cvPC: 25, projP: 10 }],
       ['破甲箭', { projP: 20, armBreak: 1 }],
       ['毒矢', { projP: 15, poisonCh: 15 }, '異常'],
+      ['短射', { projSpd: -30, closeP: 20 }],
       ['飛矢', { projAtkP: 25, as: 2 }],
       ['箭術', { projAtkP: 25, acc: 30 }],
       ['巧射', { projP: 20, critInc: 15 }, '暴擊率'],
@@ -3159,7 +3159,6 @@ const PT_THEME = [
     rg: [1, 1, 3, 1, 1, 1],
     sm: [{ critInc: 10 }],
     nt: [
-      ['天眼', { lukCrit: 1, critX: -30 }],
       ['致命精準', { critInc: 25, accP: 15 }],
       ['孤影', { critInc: 15, isoP: 25 }],
       ['一擊脫離', { afterRoll: 25, critInc: 10 }],
@@ -3172,6 +3171,7 @@ const PT_THEME = [
       ['貫穿', { critInc: 25, acc: 30 }],
       ['殘風', { tailwind: 1, critInc: 10 }],
       ['先發制人', { critInc: 35, closeP: -15 }],
+      ['天眼', { lukCrit: 1, critX: -30 }],
       ['乘勝追擊', { powOnCrit: 25 }],
       ['弱點', { critInc: 20, ailMag: 10 }, '異常'],
       ['獵殺', { critInc: 20, onsKill: 10 }],
@@ -3393,7 +3393,6 @@ const PT_THEME = [
     sub: [{ esDelay: 6 }, { esRec: 10 }],
     nt: [
       ['靜電充能', { esRec: 20, esDelay: 10 }],
-      ['絕境靈壓', { lowEsP: 30, esP: 10 }],
       ['靈能壁', { esP: 20, esAsThr: 10 }],
       ['靈障', { esP: 25, esF: 15 }],
       ['快速充能', { esRec: 30, esP: 10, esDelay: 40 }],
@@ -3404,6 +3403,7 @@ const PT_THEME = [
       ['盾中鋒芒', { esUp: 30 }],
       ['盾下施法', { esUp: 20, esP: 10 }],
       ['堅韌心智', { esP: 20, hpP: 2 }],
+      ['絕境靈壓', { lowEsP: 30, esP: 10 }],
       ['雷光屏障', { maxResL: 1, resL: 12 }],
       ['護盾強化', { esP: 40, ms: -3 }],
       ['光之壁', { esP: 20, blockInc: 5 }, '格擋與盾'],
@@ -3734,7 +3734,7 @@ const PT_THEME = [
     '十字弓術',
     '#8fb88a',
     'gear_weapon_12',
-    [0, 3, 0, 0, 0, 1],
+    [0, 3, 0, 0, 0, 0],
     [
       ['重弩', { w_xbow: 25, armBreak: 1 }],
       ['速裝', { w_xbow: 25, as: 3 }],
@@ -4311,7 +4311,7 @@ const PT_THEME = [
     sm: [{ evAsDefl: 8 }],
     sub: [{ defl: 20 }],
     nt: [
-      ['卸力', { evAsDefl: 12, evP: 10 }],
+      ['卸力', { evAsDefl: 12 }],
       ['滑步', { defl: 40, ms: 2 }],
       ['斜擋', { evAsDefl: 10, blockInc: 5 }, '格擋與盾'],
       ['圓轉', { defl: 50, evP: 10 }],
@@ -5521,6 +5521,8 @@ const PT_FIX = [
    d 傷害菱形、f 防禦菱形，各是 [主詞, 另一條路]；一格＝[主題名, 用那個主題的第幾種小點, 自訂的詞（可省）] */
 const PT_STARTS = [
   {
+    de: ['近戰', '暈眩'],
+    fe: ['護甲'],
     d: [
       ['近戰', 0],
       ['暈眩', 0]
@@ -5531,16 +5533,20 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['攻擊速度', '投射物'],
+    fe: ['生命'],
     d: [
       ['投射物', 0],
       ['攻擊速度', 0]
     ],
     f: [
-      ['身法', 0],
-      ['身法', 1]
+      ['身法', 1],
+      ['生命', 0]
     ]
   },
   {
+    de: ['暴擊率', '異常'],
+    fe: ['身法'],
     d: [
       ['暴擊率', 0],
       ['異常', 0]
@@ -5551,6 +5557,8 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['元素技能', '法術'],
+    fe: ['能量護盾'],
     d: [
       ['元素技能', 0],
       ['法術', 0, { ss: 3 }]
@@ -5561,6 +5569,8 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['召喚', '秘術技能'],
+    fe: ['能量護盾'],
     d: [
       ['秘術技能', 0],
       ['召喚', 0]
@@ -5571,6 +5581,8 @@ const PT_STARTS = [
     ]
   },
   {
+    de: ['原始技能', '砲塔圖騰'],
+    fe: ['生命'],
     d: [
       ['原始技能', 0],
       ['砲塔圖騰', 0]

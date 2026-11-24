@@ -313,7 +313,13 @@ function ptreeGen2(env) {
         x1 = attr(tag + 'x', { x: (nt.x + ax.x) / 2 + v.x * 40 * side, y: (nt.y + ax.y) / 2 + v.y * 40 * side });
       tlink(nt, x1);
       chain(x1, ax);
-      startHubs.push({ n: nt, g, th: [main, alt, main], out: Math.atan2(u.y, u.x) + side * 0.5 });
+      startHubs.push({
+        n: nt,
+        g,
+        th: [main, alt, main],
+        out: Math.atan2(u.y, u.x) + side * 0.5,
+        el: T === S.d ? S.de : S.fe
+      });
     }
   }
   const trunk = N.filter(n => n.tk);
@@ -1007,9 +1013,11 @@ function ptreeGen2(env) {
       return +wpick(W);
     };
   /* 4a. 起點的大點是樞紐：各再掛 3 個入門叢集（主題固定） */
+  /* 主題照 PT_STARTS 的 de（輸出側）／fe（防禦側）；沒寫的照舊 */
   for (const h of startHubs)
-    for (const th of [...h.th, h.th[0]])
-      tryPlace(h.n, { n: 3 + Math.floor(R() * 3), g: h.g, ks: [0, 1], cone: [h.out, 1.9], th, st: 1 });
+    for (const th of h.el ? h.el.map(n => PT_TH[n]) : [...h.th, h.th[0]])
+      if (!tryPlace(h.n, { n: 3 + Math.floor(R() * 3), g: h.g, ks: [0, 1], cone: [h.out, 1.9], th, st: 1 }) && h.el)
+        console.log('入門叢集放不下：' + h.n.id + ' ' + PT_THEME[th].n);
   /* 4b. 最外圍：外環與支線末端往外長大型專精叢集 */
   const outer = shuffle(trunk.filter(n => Math.hypot(n.x, n.y) > 3250));
   for (const h of outer)
