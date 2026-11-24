@@ -264,7 +264,16 @@ function secCount(s) {
   return c;
 }
 const sockOpen = (s, i, c = secCount(s)) => c[i] >= JEWEL.need;
-const jwOf = (s, id) => (s.jewels || []).find(j => j.id === id);
+const jwNo = () => {
+  throw new Error('珠寶不能換金、賣出或分解');
+};
+/* 珠寶分頁（num-tree-v3-verify 驗算用，定案 4.1.1 S1～S5）：珠寶放倉庫的 S.inv.jw（鑲著的也在這裡、也佔格），不算進 INV_CAP；
+   正常格數照倉房等級（JEWEL.cap），王保底另外多留 JEWEL.boss 格，再滿也照收（提示清理）。珠寶不是裝備：invPut、賣價、分解都擋 */
+const isJewel = it => !!it && Array.isArray(it.nt) && !it.base;
+const jwList = s => ((s.inv = s.inv || { items: [] }).jw = s.inv.jw || []);
+const jwCap = s => JEWEL.cap[Math.min(JEWEL.cap.length - 1, (s.camp && s.camp.store) || 0)];
+const jwRoom = s => jwList(s).length < jwCap(s);
+const jwOf = (s, id) => jwList(s).find(j => j.id === id);
 /* 生效的珠寶大點：孔要開著；已經點了的大點、別顆已經給的不重複 */
 function jewelNodes(s) {
   const c = secCount(s),
@@ -357,11 +366,13 @@ function baseLayers(it) {
 }
 /* 賣價：越高階、詞綴越多越貴 */
 const sellPrice = it =>
-  it.charm
-    ? 3
-    : Math.round(
-        (1 + it.a.length * 2 + (it.r === 2 ? 4 : 0)) * (1 + it.L * 0.4) * (1 + Math.max(0, (it.q || 0) - 0.2) * 5)
-      );
+  isJewel(it)
+    ? jwNo()
+    : it.charm
+      ? 3
+      : Math.round(
+          (1 + it.a.length * 2 + (it.r === 2 ? 4 : 0)) * (1 + it.L * 0.4) * (1 + Math.max(0, (it.q || 0) - 0.2) * 5)
+        );
 /* 副手合不合規（0.2.9，docs/開發參考.md 0.1）：雙手武器不能拿副手（弓可以配箭袋）；
    盾配任何單手武器；法器配法杖、權杖；權杖可以放副手（主手不能也是權杖）；爪、匕首、單手劍、單手斧可以雙持同類 */
 function offOK(w, off) {
@@ -394,7 +405,7 @@ const INV_CAP = 300 /* 0.5.0：3000 → 300，只放打造後留下來的 */,
   INV_SPARE = 50;
 const invRoom = (g, it) => g.items.length < INV_CAP + (it && (it.frac || it.mem || it.chase) ? INV_SPARE : 0);
 function invPut(g, it) {
-  if (!invRoom(g, it)) return false;
+  if (isJewel(it) || !invRoom(g, it)) return false;
   delete it.x, delete it.y;
   g.items.push(it);
   return true;

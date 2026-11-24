@@ -326,9 +326,9 @@ function treeSockOpen(i) {
     },
     row = j => {
       const at = (S.jsock || []).indexOf(j.id);
-      return `<div class="jw ${j.id === cur ? 'on' : ''}"><div><b>${esc(jwName(j))}</b>${at >= 0 && at !== i ? `<span class="c-dim">（在${esc(secName(at))}）</span>` : ''}<ul>${j.nt.map(nt).join('')}</ul></div><span class="jw-b">${j.id === cur ? `<button class="btn" data-ta="jout:${i}">拔下</button>` : `<button class="btn pri" data-ta="jput:${i}:${j.id}">鑲上</button>`}${at < 0 ? `<button class="btn" data-ta="jx:${j.id}">拆</button>` : ''}</span></div>`;
+      return `<div class="jw ${j.id === cur ? 'on' : ''}"><div><b>${esc(jwName(j))}</b>${at >= 0 && at !== i ? `<span class="c-dim">（在${esc(secName(at))}）</span>` : ''}<ul>${j.nt.map(nt).join('')}</ul></div><span class="jw-b">${j.id === cur ? `<button class="btn" data-ta="jout:${i}">拔下</button>` : `<button class="btn pri" data-ta="jput:${i}:${j.id}">鑲上</button>`}${at < 0 ? `<button class="btn" data-ta="jx:${j.id}">丟棄</button>` : ''}</span></div>`;
     },
-    L = S.jewels || [],
+    L = jwList(S),
     d = document.createElement('div');
   d.id = 'tsockp';
   d.dataset.i = i;
@@ -336,7 +336,7 @@ function treeSockOpen(i) {
   d.innerHTML = `<div class="ph"><b>${esc(secName(i))}的珠寶孔</b><span class="${op ? 'c-good' : ''}">這一區 ${c}／${JEWEL.need} 點</span><button class="x" aria-label="關閉" data-ta="sockx">${ICO.x}</button></div>
     ${cur && !op ? `<p class="c-bad">珠寶未生效：這一區再點 ${JEWEL.need - c} 點恢復</p>` : op ? '' : `<p class="fhint">這一區再點 ${JEWEL.need - c} 點才開孔；可以先鑲上，開孔後生效</p>`}
     ${L.length ? L.map(row).join('') : '<p class="fhint">亡靈珠寶由山海寶盒的蚩尤、涿鹿兵主掉落</p>'}
-    <p class="fhint">珠寶的大點等同點亮天賦；已點過或重複的大點只算一次。拆掉換 200 靈魂。</p>`;
+    <p class="fhint">珠寶的大點等同點亮天賦；已點過或重複的大點只算一次。丟棄不給任何東西。</p>`;
   $('ptree').appendChild(d);
 }
 let TBOX = null;
@@ -866,8 +866,8 @@ function treeInit() {
       treeChanged();
       treeSockOpen(+x);
     }
-    if (k === 'jx' && !holdAsk(a, '拆解', '拆成 200 靈魂')) {
-      const w = jwSalvage(x);
+    if (k === 'jx' && !holdAsk(a, '丟棄', '丟掉，不給任何東西')) {
+      const w = jwDrop(x);
       if (w) return hudWarn(w);
       save();
       treeSockOpen(+$('tsockp').dataset.i);

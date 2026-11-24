@@ -1231,7 +1231,7 @@ function bagDirty() {
   }, 600);
 }
 /* 批量賣出：這個篩選裡沒鎖定的 */
-const bagSells = () => bagList().filter(it => !it.lock);
+const bagSells = () => bagList().filter(it => !it.lock && !isJewel(it)); /* 珠寶不會在這裡，物品種類層再擋一次 */
 function bagHTML() {
   const L = bagList(),
     sl = L.filter(it => !it.lock),

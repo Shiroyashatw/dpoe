@@ -1,0 +1,1 @@
+{"N":3917,"CL":594,"within40":[18,18,18,18,18,18],"ownEarly":[10,10,11,11,11,11],"startToNotable":{"nearest":4,"tenth":5,"avg":16.1,"far":29}}

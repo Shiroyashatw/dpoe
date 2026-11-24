@@ -348,7 +348,9 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
       free = bfs(G.PT_START, n => !n.lock),
       cut = T.N.filter(n => !n.lock && free[n.id] === undefined).length,
       multi = locked.filter(ns => ns.flatMap(n => A[n.id].filter(o => !T.I[o].lock)).length !== 1).length,
-      want = RSV.reduce((s, r) => s + r[2], 0) + 7; /* 2026-11-22：鏈錘、魔符叢集鎖住 7 個 */
+      want =
+        RSV.reduce((s, r) => s + r[2], 0) +
+        10; /* 2026-11-22：鏈錘、魔符叢集鎖住；mumi 11/24 11:42 V3：重烘後接受 10 個 */
     /* 0.2.67 起預留叢集全部解鎖（表是空的）；以後再佔位置時這條仍檢查：數量對、各只有一個入口、不擋路 */
     ok(
       `預留叢集：表上加鏈錘、魔符 ${want} 個、樹上鎖住 ${locked.length} 個、各只有一個入口、不擋路`,
@@ -9723,7 +9725,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwDrop, jwChance })',
     ctx
   );
   const mul = seed => () => {
@@ -10207,7 +10209,7 @@ const ASC_COMBOS = `const combos = k => {
         at: [],
         auras: [],
         charms: [],
-        jewels: [],
+        inv: { items: [], jw: [] },
         jsock: [null, null, null, null, null, null]
       });
     if (F.secCount(base(40))[0] !== 40 || !F.sockOpen(base(40), 0) || F.sockOpen(base(39), 0)) bad.push('40 點開孔');
@@ -10216,10 +10218,10 @@ const ASC_COMBOS = `const combos = k => {
     const j = { id: 'j1', nt: [nt] },
       j2 = { id: 'j2', nt: [nt] },
       on = base(40);
-    on.jewels = [j, j2];
+    on.inv.jw = [j, j2];
     on.jsock = ['j1', 'j2', null, null, null, null];
     const off = base(39);
-    off.jewels = [j];
+    off.inv.jw = [j];
     off.jsock = ['j1', null, null, null, null, null];
     const h0 = F.stats(base(40)).hp,
       h1 = F.stats(on).hp,
@@ -10230,32 +10232,37 @@ const ASC_COMBOS = `const combos = k => {
     if (F.jewelNodes(on).length !== 1) bad.push('重複的大點算了兩次');
     const own = base(40);
     own.pt.push(nt);
-    own.jewels = [j];
+    own.inv.jw = [j];
     own.jsock = ['j1', null, null, null, null, null];
     if (F.jewelNodes(own).length) bad.push('已經點了的大點又算一次');
-    /* 收藏、鑲上、拆掉 */
+    /* 珠寶分頁（num-tree-v3-verify：定案 4.1.1）：王保底、鑲上、丟棄（不給東西、鑲著不能丟）、正常格數滿了機率掉落暫停、王保底照收可超過 */
     setS();
-    vm.runInContext('S.jewels = []; S.jsock = [null, null, null, null, null, null]', ctx);
-    const t1 = F.jwGain('chiyou'),
+    vm.runInContext('S.inv = { items: [], jw: [] }; S.jsock = [null, null, null, null, null, null]; S.camp = { store: 0 }', ctx);
+    const JW = () => S().inv.jw,
+      t1 = F.jwGain('chiyou'),
       t2 = F.jwGain('zhuolu');
     if (
-      S().jewels[0].nt.length !== 1 ||
-      S().jewels[1].nt.length !== 2 ||
-      new Set(S().jewels[1].nt).size !== 2 ||
+      JW()[0].nt.length !== 1 ||
+      JW()[1].nt.length !== 2 ||
+      new Set(JW()[1].nt).size !== 2 ||
       !/亡靈珠寶/.test(t1[0] + t2[0])
     )
       bad.push('蚩尤 1、涿鹿兵主 2 個大點');
-    const id = S().jewels[0].id;
+    const id = JW()[0].id;
     F.jwPut(2, id);
     F.jwPut(4, id);
     if (S().jsock[2] || S().jsock[4] !== id) bad.push('換孔');
     const so = F.MAT().soul;
-    if (!F.jwSalvage(id) || F.jwSalvage(S().jewels[1].id) || F.MAT().soul !== so + 200) bad.push('拆掉');
-    for (let i = 0; i < F.JEWEL.keep + 3; i++) F.jwGain('chiyou');
-    if (S().jewels.length !== F.JEWEL.keep) bad.push('收藏上限');
+    if (!F.jwDrop(id) || F.jwDrop(JW()[1].id) || F.MAT().soul !== so || JW().length !== 1) bad.push('丟棄');
+    for (let i = 0; i < 40; i++) F.jwChance(1);
+    const cap = F.JEWEL.cap[0];
+    if (JW().length !== cap) bad.push('正常格數');
+    for (let i = 0; i < F.JEWEL.boss + 3; i++) F.jwGain('chiyou');
+    if (JW().length !== cap + F.JEWEL.boss + 3 || F.jwChance(1).length !== 1 || JW().length !== cap + F.JEWEL.boss + 3)
+      bad.push('王保底超過上限');
     vm.runInContext('ST = null', ctx);
     ok(
-      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能拆、收藏上限`,
+      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能丟、丟棄不給東西、正常格數滿了機率掉落暫停、王保底照收可超過（num-tree-v3-verify 珠寶分頁）`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -10766,11 +10773,11 @@ const ASC_COMBOS = `const combos = k => {
       r.cap = [S.prd.feel, feelK()];
       S.camp.forge = 13;
       r.cap.push(boss(hi).pack === want, S.prd.feel);
-      /* 18：珠寶收藏滿 30 顆、輪到珠寶：給 500 靈魂、計數歸零、算有感掉落 */
-      S.camp.forge = 20; S.prd = PRD0(); S.prd.feel = feelK() - 1; S.jewels = Array.from({ length: JEWEL.keep }, (_, i) => ({ id: 'j' + i }));
+      /* 18（num-tree-v3-verify：定案 4.2 10:29 保底珠寶格改給靈魂包）：輪到原本的珠寶格 → 給靈魂包（照靈魂公式、殺的時候不加）、計數歸零、算有感；不給珠寶 */
+      S.camp.forge = 20; S.prd = PRD0(); S.prd.feel = feelK() - 1; S.inv.jw = [];
       s0 = S.mat.soul;
       const gj = boss(hi);
-      r.jw = [S.mat.soul - s0 - bs, S.prd.feel, !!gj.feel, S.jewels.length, gj.includes('珠寶收藏滿了：換 500 靈魂')];
+      r.jw = [S.mat.soul - s0 - bs, S.prd.feel, !!gj.feel, gj.pack === want, jwList(S).length, gj.some(x => /珠寶/.test(x))];
       /* 19：七情王當菁英：+1 點、不佔前 4 隻名額（ei 9 照判）、點數 600 也不必掉、不碰有感保底計數；判中 0.14% 就掉 */
       S.prd = PRD0(); S.prd.feel = 2; S.chase.pts = 600; S.chase.got = {};
       Math.random = () => 0.99;
@@ -10797,7 +10804,7 @@ const ASC_COMBOS = `const combos = k => {
   ok(
     'M2-18 追逐掉落：Lv43 不判定不累計、Lv48 王 +5 菁英 +1、菁英不觸發必掉、第 5 隻菁英不判定、點數 500 必掉並歸零、沒拿過的優先、每輪前 4 隻菁英、舊存檔補 S.chase；' +
       '賽制線關閉（五種賽制線地點機率 0、點數 499：不掉、不擲、點數不動、沒有基底、掛機卡沒有那一行）；有感保底鍛造台 14 給靈魂包（照靈魂公式、殺的時候不加、不給破裂石）；' +
-      '計數上限 K（鍛造台 12 停在 10，升 13 下一隻就給）；珠寶滿 30 給 500 靈魂並歸零、算有感；七情王 +1 點、不佔名額、不必掉、不碰有感計數、判中就掉',
+      '計數上限 K（鍛造台 12 停在 10，升 13 下一隻就給）；保底輪到原本的珠寶格給靈魂包並歸零、算有感、不給珠寶（定案 4.2）；七情王 +1 點、不佔名額、不必掉、不碰有感計數、判中就掉',
     JSON.stringify(ch.lo) === '[true,true,0]' &&
       ch.acc === 6 &&
       JSON.stringify(ch.el) === '[true,601]' &&
@@ -10809,7 +10816,7 @@ const ASC_COMBOS = `const combos = k => {
         '[0,"ghost/false/499/0/0/","dream/false/499/0/0/","fiend/false/499/0/0/","army/false/499/0/0/","rift/false/499/0/0/"]' &&
       JSON.stringify(ch.feel) === '[10,true,true,0,0,true]' &&
       JSON.stringify(ch.cap) === '[10,10,true,0]' &&
-      JSON.stringify(ch.jw) === '[500,0,true,30,true]' &&
+      JSON.stringify(ch.jw) === '[0,0,true,true,0,false]' &&
       JSON.stringify(ch.mini) === '[true,601,2,true,true,0]' &&
       ch.mig === '{"pts":0,"got":{}}',
     JSON.stringify(ch)
