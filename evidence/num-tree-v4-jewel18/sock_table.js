@@ -18,7 +18,11 @@ const H = csv.shift();
 const skel = id => /^t_[imosx]\d+$/.test(id);
 const ringOf = id => ({ i: '內環', m: '中環', o: '外環', s: '支線', x: '支線' })[id[2]];
 console.log('重建的樹與 ptdata 一致:', sameAsPtdata);
-console.log('| 孔 | 種類 | 路 | 掛點 | csv x | csv y | 掛點 x（全精度） | 掛點 y | 半徑 | 掛點所在幹道段（兩端骨架點） | 最近叢集點（步數；點 id＋主題） | ' + H.slice(9, 15).join(' | ') + ' |');
+console.log(
+  '| 孔 | 種類 | 路 | 掛點 | csv x | csv y | 掛點 x（全精度） | 掛點 y | 半徑 | 掛點所在幹道段（兩端骨架點） | 最近叢集點（步數；點 id＋主題） | ' +
+    H.slice(9, 15).join(' | ') +
+    ' |'
+);
 for (const r of csv) {
   const a = r[3],
     n = T.I[a];
@@ -42,11 +46,21 @@ for (const r of csv) {
   const d = L.bfs(A, [a]);
   const near = Object.keys(d)
     .filter(id => cOf[id] != null)
-    .sort((x, y) => d[x] - d[y] || Math.hypot(T.I[x].x - n.x, T.I[x].y - n.y) - Math.hypot(T.I[y].x - n.x, T.I[y].y - n.y))[0];
+    .sort(
+      (x, y) => d[x] - d[y] || Math.hypot(T.I[x].x - n.x, T.I[x].y - n.y) - Math.hypot(T.I[y].x - n.x, T.I[y].y - n.y)
+    )[0];
   console.log(
     '| ' +
       [
-        r[0], r[1], r[2], a, r[5], r[6], n.x.toFixed(2), n.y.toFixed(2), r[8],
+        r[0],
+        r[1],
+        r[2].replace('|', '×'),
+        a,
+        r[5],
+        r[6],
+        n.x.toFixed(2),
+        n.y.toFixed(2),
+        r[8],
         ends.map(e => e + '(' + ringOf(e) + ')').join('–'),
         near + '（' + d[near] + ' 步；' + TH[T.I[near].th].n + '）',
         ...r.slice(9, 15)
