@@ -710,6 +710,34 @@ const BAN =
   await p.keyboard.press('Escape');
   await p.waitForTimeout(100);
   ok('Esc 關營地', !(await E(() => PANEL.camp)));
+  /* 手把（假的標準配置手把）：Ⓐ 開詳細頁、十字鍵右換座、Ⓑ 退回卡片格 */
+  await E(() => {
+    window.__pad = { buttons: Array.from({ length: 17 }, () => ({ pressed: false })), axes: [0, 0, 0, 0] };
+    navigator.getGamepads = () => [window.__pad];
+    dispatchEvent(new Event('gamepadconnected'));
+  });
+  const pad = async i => {
+    await E(i => (window.__pad.buttons[i].pressed = true), i);
+    await p.waitForTimeout(80);
+    await E(i => (window.__pad.buttons[i].pressed = false), i);
+    await p.waitForTimeout(80);
+  };
+  await p.keyboard.press('h');
+  await p.waitForTimeout(300);
+  await E(() => document.querySelector('#c12-forge .c12b').focus());
+  await pad(0);
+  const pa = await E(() => CDR.one);
+  await pad(15);
+  const pr = await E(() => CDR.one);
+  await pad(1);
+  const pb = await E(() => [CDR.one, PANEL.camp]);
+  ok(
+    '手把：Ⓐ 開鍛造台詳細頁、十字鍵右換瞭望台、Ⓑ 退回卡片格',
+    pa === 'forge' && pr === 'watch' && pb[0] === null && pb[1],
+    JSON.stringify([pa, pr, pb])
+  );
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(100);
   /* ======================= 倉庫 ======================= */
   /* 示意圖那一套：142 件（武器 18 件中有 2 件火焰詞、防具 22 件）、珠寶 12 顆（2 顆鑲著）、鎮嶽印 ×2、赤霄印拿過（0） */
   const STASH = n =>

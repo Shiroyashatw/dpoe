@@ -560,3 +560,34 @@ function stFocusGrid() {
   const c = $('pinv').querySelector('[data-sg] > [tabindex]');
   if (c) c.focus();
 }
+/* ---------- 手把（標準配置）：營地與倉庫共用。十字鍵＝方向鍵、Ⓐ＝確認（格子上＝裝備）、Ⓑ＝退一層、Ⓧ＝升級／鎖定、LB／RB＝第一層、按住 Ⓨ＝比較詳細、R3＝名詞提示 ---------- */
+const PAD12 = {};
+function pad12() {
+  const g = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(Boolean);
+  if (!g) return void (PAD12.on = 0);
+  requestAnimationFrame(pad12);
+  const b = i => !!(g.buttons[i] && g.buttons[i].pressed),
+    edge = i => b(i) && !PAD12[i],
+    key = (k, up) =>
+      (document.activeElement || document.body).dispatchEvent(
+        new KeyboardEvent(up ? 'keyup' : 'keydown', { key: k, bubbles: true, cancelable: true })
+      );
+  if ((PANEL.camp && c12On()) || (PANEL.inv && st12On())) {
+    [
+      [12, 'ArrowUp'],
+      [13, 'ArrowDown'],
+      [14, 'ArrowLeft'],
+      [15, 'ArrowRight'],
+      [1, 'Escape'],
+      [2, 'x'],
+      [4, 'q'],
+      [5, 'e']
+    ].forEach(([i, k]) => edge(i) && key(k));
+    const a = document.activeElement;
+    if (edge(0) && a && a !== document.body) a.dataset.st && a.dataset.st.startsWith('it:') ? key('Enter') : a.click();
+    if (PANEL.inv && b(3) !== !!PAD12[3]) key('Alt', !b(3));
+    if (edge(11)) c12R3();
+  }
+  for (const i of [0, 1, 2, 3, 4, 5, 11, 12, 13, 14, 15]) PAD12[i] = b(i);
+}
+addEventListener('gamepadconnected', () => PAD12.on || ((PAD12.on = 1), pad12()));
