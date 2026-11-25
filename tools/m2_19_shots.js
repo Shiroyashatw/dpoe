@@ -292,7 +292,7 @@ fs.mkdirSync(OUT, { recursive: true });
       Math.random = () => 0.99;
       const o = offSettle(3600e3);
       Math.random = r;
-      offShow(o, {}, 3600e3);
+      offShow(o);
     },
     () => {
       const e = document.querySelector('#preveal .offch');
@@ -314,7 +314,7 @@ fs.mkdirSync(OUT, { recursive: true });
       S.chase.pts = 495;
       S.rounds = [{ d: 150, nS: 40, nE: 2, xp: 0, gold: 0 }];
       window.__o = offSettle(12 * 3600e3);
-      offShow(__o, {}, 12 * 3600e3);
+      offShow(__o);
     },
     () => {
       const e = document.querySelector('#preveal button.offch');

@@ -110,21 +110,12 @@ function migrate(s) {
     o.v = 34;
   }
   /* 存檔 35（0.5.1，工坊與解鎖表 3.7 下面那段，⚠️ 一條簡單的表）：0.5.0 的瞭望台（星級）改叫斥候營；瞭望台＝主幹開到第 n 個點 → Lv n−1；
-     民房＝角色等級 ÷ 5；林場、礦場＝角色等級 × 2（最多 100），獵場、絲地照鍛造台開了沒；星級全域一個；推進設定刪掉 */
+     星級全域一個；推進設定刪掉 */
   if (o.v < 35) {
     const C = (o.camp = { ...newCamp(), ...o.camp }),
-      lv = o.lv || 1,
       st = Math.max(1, ...Object.values((o.world && o.world.star) || {}));
     C.scout = Math.min(CAMP.scout.length, C.watch || 0);
     C.watch = wFrontDone(o);
-    C.house = Math.min(CAMP.house.length, Math.floor(lv / 5));
-    const g = Math.min(100, Math.max(1, lv * 2));
-    C.gen = {
-      wood: { lv: g },
-      iron: { lv: g },
-      hide: { lv: C.forge >= 3 ? 1 : 0 },
-      silk: { lv: C.forge >= 8 ? 1 : 0 }
-    };
     o.star = Math.min(st, C.scout + 1);
     delete o.push;
     if (o.world) delete o.world.star;
@@ -134,7 +125,6 @@ function migrate(s) {
   if (o.stopWhy === 'home') o.stopWhy = 'camp';
   delete o.scene;
   o.camp = { ...newCamp(), ...o.camp };
-  o.camp.gen = { ...newCamp().gen, ...o.camp.gen };
   o.auto2 = { ...AUTO2(), ...o.auto2 };
   /* 道具編號接著存檔裡最大的往下編 */
   for (const it of [...Object.values(o.eq), o.curIt, ...o.inv.items, ...o.charms]) if (it && it.id > IID) IID = it.id;
@@ -240,17 +230,16 @@ function useSave(r) {
 }
 /* 重開網頁（M2-25，試玩報告 A4／B2）：上次關掉時在刷圖、或沒有自己按回營地 → 先結算離線、回到原地點接著刷，再出離線摘要
    （M3-04 選項 A：摘要後面已經在打）。手動模式也回去（摘要開著時世界照 M1-10 暫停）；離線輪數只算自動模式（offSettle）。
-   原地點進不去了（裂口的血霧之印用完）就退回 wBack；產生器不管在不在刷都照產（0.5.1） */
+   原地點進不去了（裂口的血霧之印用完）就退回 wBack */
 function comeBack(farm, offAt) {
   const away = Date.now() - offAt,
     c = S.world.cur;
   if (c && wWhy(S, ...wXY(c)) && wBack(c)) S.world.cur = wBack(c);
   const k = S.world.cur,
     resume = (farm || !S.stopWhy) && k && !wWhy(S, ...wXY(k)),
-    o = resume ? offSettle(away) : null,
-    g = offGen(away);
+    o = resume ? offSettle(away) : null;
   if (resume) runNode(k);
-  offBack(o, g, away);
+  offBack(o, away);
 }
 /* ---------- 測試入口（M1-24）：?test=dualweap／nearDeath／midgame／chase。每次載入照情境重建，存在 test_名字 存檔位、不連雲端 ----------
    build 在 hudInit 之前做存檔；go 在開場之後（已經看過開場）做要進場地、扣血的事 */
@@ -280,11 +269,10 @@ const TESTS = {
       for (const m of G.mobs) m.aggro = 1;
     }
   },
-  /* 祭壇 6、鍛造台 10、瞭望台 8、斥候營 2、民房 5、倉房 2，產生器 20 級、角色 Lv 25（M1-07、M1-14 抽查後段的解鎖） */
+  /* 祭壇 6、鍛造台 10、瞭望台 8、斥候營 2、倉房 2、角色 Lv 25（M1-07、M1-14 抽查後段的解鎖） */
   midgame: {
     build: s => {
-      Object.assign(s.camp, { altar: 6, forge: 10, watch: 8, scout: 2, house: 5, store: 2 });
-      for (const k of GEN_K) s.camp.gen[k] = { lv: 20, w: 0 };
+      Object.assign(s.camp, { altar: 6, forge: 10, watch: 8, scout: 2, store: 2 });
       s.lv = 25;
       s.mat.soul = 3000;
     },
@@ -293,8 +281,7 @@ const TESTS = {
   /* M2-18 追逐掉落：角色 Lv 70、營地滿、在第 15 個主幹地點（怪物 Lv48）；進場 1.5 秒後用開發觸發 devChase 掉一個王印 */
   chase: {
     build: s => {
-      Object.assign(s.camp, { altar: 10, forge: 20, watch: CAMP.watch.length, scout: 5, house: 10, store: 5 });
-      for (const k of GEN_K) s.camp.gen[k] = { lv: 20, w: 0 };
+      Object.assign(s.camp, { altar: 10, forge: 20, watch: CAMP.watch.length, scout: 5, store: 5 });
       s.lv = 70;
       s.chase.pts = 230;
     },
@@ -311,7 +298,6 @@ function testSave(name) {
   s.eq.weapon = mkItem('w_sword1_0', 1, 0);
   s.story.intro = s.story.prologue = PRO_VER;
   s.auto = 1;
-  s.camp.gen = s.camp.gen || newCamp().gen;
   if (T) T.build(s);
   return s;
 }
@@ -341,20 +327,18 @@ function start() {
   setInterval(save, 10000);
   if (TEST) {
     ST = stats();
-    popAssign();
     TESTS[TEST] ? TESTS[TEST].go() : hudWarn(`沒有「${TEST}」這個測試情境：dualweap、nearDeath、midgame、chase`);
     hudWarn(`測試入口：${TEST}（不存進正式存檔、不連雲端）`);
   } else comeBack(farm, offAt);
-  /* 分頁切走、手機鎖螢幕：記時間，回來時結算（主迴圈停著，產生器也要補） */
+  /* 分頁切走、手機鎖螢幕：記時間，回來時結算（主迴圈停著） */
   document.addEventListener('visibilitychange', () => {
     /* M2-12 §11-2：藏起來時聲音也停（AudioContext suspend），回來由 audioWake 恢復 */
     if (document.hidden) return (HIDE_AT = Date.now()), AC && AC.suspend(), save();
     if (AC && AC.state === 'suspended') AC.resume();
     if (HIDE_AT) {
       const t = Date.now() - HIDE_AT,
-        o2 = G.scene === 'map' ? offSettle(t) : null,
-        g2 = offGen(t);
-      offBack(o2, g2, t);
+        o2 = G.scene === 'map' ? offSettle(t) : null;
+      offBack(o2, t);
     }
     HIDE_AT = 0;
   });

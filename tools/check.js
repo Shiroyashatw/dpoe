@@ -4105,17 +4105,17 @@ const ASC_COMBOS = `const combos = k => {
   );
   /* 7. 營地：campCan 全 0 時藏的清單、全滿時全開；升級扣對、節點門檻、另外三座不能超過鍛造台 */
   ok(
-    'campCan（0.5.1）：六座全 0 時只有鐵、劍、一件一次、1★、1 格技能、0 孔、人口 2、沒有通貨與分頁與天賦樹；鍛造台 Lv20 全開；鍵不在表上不受管',
+    'campCan（0.5.1）：五座全 0 時只有鐵、劍、一件一次、1★、1 格技能、0 孔、沒有通貨與分頁與天賦樹；鍛造台 Lv20 全開；鍵不在表上不受管',
     R(`(() => {
       S.camp = newCamp();
       const off = ['tab:fill', 'cur:tran', 'cur:aug', 'cur:rich', 'cur:exalt', 'cur:ess', 'mat:hide', 'mat:silk', 'tab:temper', 'tab:holy', 'tab:corr', 'auto2', 'auto2t', 'tier2', 'tier3', 'cur:awk', 'sup2'];
       if (off.some(campCan) || campN('batch') !== 1 || campN('wts') !== 1 || !campWt('sword') || campWt('bow')) return 'zero';
-      if (!campCan('不在表上') || campCan('tree') || campCan('aura') || campN('star') !== 1 || campN('slots') !== 1 || campN('holes') !== 0 || campN('pop') !== 2 || campN('off') !== 1) return 'zero2';
+      if (!campCan('不在表上') || campCan('tree') || campCan('aura') || campN('star') !== 1 || campN('slots') !== 1 || campN('holes') !== 0 || campN('off') !== 1) return 'zero2';
       if (Object.keys(dropCur(2, { star: 5, ilvl: 16, tier: 16 }).cur).length || dropCur(2, { star: 5, ilvl: 16, tier: 16 }).ess.length) return 'drop0';
       S.camp.forge = 20;
       if (!off.every(campCan) || campN('batch') !== 20 || campN('wts') !== 6) return 'full';
-      Object.assign(S.camp, { altar: 11, scout: 4, house: 10, store: 5 });
-      if (!campCan('tree') || !campCan('asc') || campN('slots') !== Math.min(5, S.skills.length) || campN('holes') !== 5 || campN('star') !== 5 || campN('pop') !== 25 || campN('off') !== 12) return 'full2';
+      Object.assign(S.camp, { altar: 11, scout: 4, store: 5 });
+      if (!campCan('tree') || !campCan('asc') || campN('slots') !== Math.min(5, S.skills.length) || campN('holes') !== 5 || campN('star') !== 5 || campN('off') !== 12) return 'full2';
       S.camp.forge = 7; let n = 0; for (let i = 0; i < 50; i++) n += dropCur(2, { star: 1, ilvl: 8, tier: 8 }).cur.exalt || 0;
       return n === 50 ? '' : 'exalt7 ' + n;
     })()`) === ''
@@ -4134,32 +4134,44 @@ const ASC_COMBOS = `const combos = k => {
       return '';
     })()`) === ''
   );
-  /* 0.5.1 產生器（3.7）：費用 ×1.12、產量線性、里程碑、工位與人口、階的上限照瞭望台、買得起幾級、genTick 60 秒＝genRate */
+  /* mumi 2026-11-25：產生器經濟整個收掉（產生器、民房、背景生產、相關存檔欄位與數值）；campReady 只算五座 */
   ok(
-    '產生器：林場 Lv1→2 要木 11、×1.12／級；里程碑 5 ×2、10 +1 工位、25 ×2 階+1、50 ×2 +1 工位、75 階+1、100 ×3；買得起幾級＝反算；人口補到空工位（優先的先）、0 人不產；階照瞭望台上限；genTick 60 秒＝genRate',
+    "產生器與民房收掉：GEN／GEN_K／GEN_MUL／CAMP_POP 與 genTick／genRates／popAssign／offGen／genAll 都不存在；CAMP、CAMPN 只有五座；newCamp 沒有 house／gen；campN('pop') 為 0",
     R(`(() => {
-      S.camp = newCamp(); S.mat = newMat(); S.world = newWorld();
-      if (genCost('wood').wood !== 11 || genCost('wood', 2).wood !== Math.round(10 * (1.12 + 1.12 ** 2))) return 'cost ' + genCost('wood').wood;
-      const ms = [1, 5, 10, 25, 50, 75, 100].map(L => { const m = genMs(L); return m.m + '/' + m.slots + '/' + m.tu; }).join();
-      if (ms !== '1/1/0,2/1/0,2/2/0,4/2/1,8/3/1,8/3/2,24/4/2') return 'ms ' + ms;
-      if (genRate('wood') !== GEN.wood.r || genRate('iron') !== GEN.iron.r || genOn('hide') || genSlots('hide')) return 'rate0';
-      matAdd('wood', 0, 100); const n = genAfford('wood');
-      if (!(n >= 1) || genUp('wood', n) !== null || genAfford('wood') !== 0 || matN('wood') < 0) return 'afford ' + n;
-      S.camp.gen.wood.lv = 10; let W = popAssign(); if (W.wood !== 1 || W.iron !== 1 || genRate('wood') !== (GEN.wood.r * 10 * 2) / 2) return 'half ' + JSON.stringify(W);
-      S.camp.house = 1; W = popAssign(); if (W.wood !== 2 || genRate('wood') !== GEN.wood.r * 20) return 'fill';
-      S.camp.gen.iron.lv = 10; W = popAssign(); if (W.iron !== 1 || W.wood !== 2) return 'stay ' + JSON.stringify(W);
-      S.camp.gen.wood.lv = 50; S.camp.gen.iron.pri = 1; S.camp.house = 2; W = popAssign(); if (W.iron !== 2 || W.wood !== 2) return 'pri ' + JSON.stringify(W);
-      S.camp = newCamp(); S.camp.forge = 3; W = popAssign(); if (!genOn('hide') || genSlots('hide') !== 1 || W.hide !== 0 || W.wood !== 1 || W.iron !== 1 || genRate('hide') !== 0) return 'hide0 ' + JSON.stringify(W);
-      S.camp.house = 1; if (popAssign().hide !== 1) return 'hide1';
-      S.camp.gen.iron.lv = 75; if (genTier('iron') !== 1) return 'cap1 ' + genTier('iron');
-      S.camp.watch = 9; if (genTier('iron') !== 2 || tierCap() !== 2) return 'cap2';
-      S.camp.watch = 21; if (genTier('iron') !== 3) return 'cap3';
-      S.camp.gen.iron.tier = 1; if (genTier('iron') !== 2) return 'down';
-      S.camp.gen.iron.tier = 0;
-      const r = genRate('iron'), i0 = matN('iron', 3), w0 = matN('wood');
-      for (let i = 0; i < 600; i++) genTick(0.1);
-      return Math.abs(matN('iron', 3) - i0 - r) <= 1 && Math.abs(matN('wood') - w0 - genRate('wood')) <= 1 ? '' : 'tick';
+      const gone = ['GEN', 'GEN_K', 'GEN_MUL', 'CAMP_POP', 'genTick', 'genRates', 'genRate', 'genOf', 'genOn', 'genCost', 'genAfford', 'genUp', 'genAll', 'genMs', 'genSay', 'genSlots', 'genTier', 'popAssign', 'offGen'].filter(k => { try { return eval('typeof ' + k) !== 'undefined'; } catch (e) { return false; } });
+      if (gone.length) return 'still ' + gone.join();
+      if (Object.keys(CAMP).join() !== 'forge,watch,scout,altar,store' || Object.keys(CAMPN).join() !== 'forge,watch,scout,altar,store') return 'camp ' + Object.keys(CAMP).join();
+      const C = newCamp();
+      if ('house' in C || 'gen' in C) return 'newCamp ' + Object.keys(C).join();
+      S.camp = newCamp();
+      return campN('pop') === 0 ? '' : 'pop ' + campN('pop');
     })()`) === ''
+  );
+  ok(
+    'campReady 只算五座：舊存檔殘留的 gen（林場、礦場買得起）與 house 不算；五座都買不起＝0、鍛造台買得起＝1',
+    R(`(() => {
+      S.camp = { ...newCamp(), house: 0, gen: { wood: { lv: 1 }, iron: { lv: 1 }, hide: { lv: 0 }, silk: { lv: 0 } } };
+      S.mat = newMat(); S.gold = 0;
+      matAdd('wood', 0, 39); matAdd('iron', 1, 1000); S.mat.soul = 99;
+      if (campReady() !== 0) return 'ready0 ' + campReady();
+      S.mat.soul = 150; matAdd('wood', 0, 1);
+      if (campReady() !== 1) return 'ready1 ' + campReady();
+      return '';
+    })()`) === ''
+  );
+  ok(
+    '沒有背景生產：主迴圈（frame）、重開網頁與切回分頁的離線結算都不再叫 genTick／offGen；offBack／offShow 不收產量參數',
+    (() => {
+      const g = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8'),
+        m = fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8');
+      return (
+        !/genTick|offGen|genAll|popAssign/.test(g + m) &&
+        /function offBack\(o, away\)/.test(g) &&
+        /function offShow\(o\)/.test(g) &&
+        /offBack\(o, away\)/.test(m) &&
+        /offBack\(o2, t\)/.test(m)
+      );
+    })()
   );
   ok(
     '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 5（第 1 級固定 W_LV1 的靈魂與鐵，M1-21）（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
@@ -8580,15 +8592,15 @@ const ASC_COMBOS = `const combos = k => {
       return { v: m.v, camp: m.camp, star: m.star, mats: m.mat.mats, gam: 'gamN' in m, auto2: m.auto2, fresh: newGame().v, lo: n.camp, again: migrate(JSON.parse(JSON.stringify(m))).camp.forge };
     })()`);
     ok(
-      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、民房 9、林場與礦場 Lv90、倉房 1、星級 3；Lv1 新手全 0；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 35',
+      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、倉房 1、星級 3、不再轉民房與產生器；Lv1 新手全 0；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 35',
       r.v === 35 &&
         r.fresh === 35 &&
         r.camp.forge === 14 &&
         r.camp.altar === 3 &&
         r.camp.scout === 2 &&
         r.camp.watch === 12 &&
-        r.camp.house === 9 &&
-        r.camp.gen.iron.lv === 90 &&
+        !('house' in r.camp) &&
+        !('gen' in r.camp) &&
         r.star === 3 &&
         r.camp.store === 1 &&
         r.camp.wts.join() === 'sword,bow' &&
@@ -8637,7 +8649,7 @@ const ASC_COMBOS = `const combos = k => {
     })()`)
   );
   ok(
-    '一輪的掉落（roundLoot，0.5.1）：不掉裝備、不掉材料、通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限照倉房（Lv3＝8 小時、Lv0＝1 小時）、停在原本的節點、不到 5 分鐘不算；產生器離線照產＝在線 × 時間',
+    '一輪的掉落（roundLoot，0.5.1）：不掉裝備、不掉材料、通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限照倉房（Lv3＝8 小時、Lv0＝1 小時）、停在原本的節點、不到 5 分鐘不算；離線不產木與材料（產生器已收掉，舊存檔殘留的 gen 也不產）',
     R2(`(() => {
       S = newGame(); S.lv = 60; S.camp.forge = 20; S.camp.watch = 14; S.camp.store = 3; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
       const m0 = S.mat.exalt, L = roundLoot(lvT(50), 3, 40, 4);
@@ -8647,10 +8659,11 @@ const ASC_COMBOS = `const combos = k => {
       const g0 = S.gold, o = offSettle(3600e3);
       if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !(o.soul > 0) || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won]);
       if (offSettle(99 * 3600e3).n !== 480) return 'cap';
-      /* 產生器離線照產：上限照倉房（Lv3＝8 小時），產量＝在線 × 時間 */
-      const w0 = matN('wood'), r = genRate('wood'), g = offGen(99 * 3600e3);
-      if (Math.abs(matN('wood') - w0 - r * 480) > 1 || g.wood !== matN('wood') - w0) return 'gen ' + (matN('wood') - w0);
-      S.camp.store = 0; const w1 = matN('wood'); offGen(99 * 3600e3); if (Math.abs(matN('wood') - w1 - r * 60) > 1) return 'gencap';
+      /* 產生器收掉（mumi 2026-11-25）：離線結算不產木與材料 */
+      S.camp.gen = { wood: { lv: 50 }, iron: { lv: 50 } };
+      const mm = JSON.stringify(S.mat.mats);
+      offSettle(99 * 3600e3);
+      if (JSON.stringify(S.mat.mats) !== mm) return 'mats ' + JSON.stringify(S.mat.mats);
       return S.inv.items.length === 0 ? '' : 'inv';
     })()`) === ''
   );
@@ -10470,7 +10483,7 @@ const ASC_COMBOS = `const combos = k => {
   ok('README 的版本跟 version.json 一樣', md.includes(`v${v}`), v);
   ok('README 的桌機快捷鍵跟設定裡的操作表一致', keys.length > 10 && !miss.length, miss.join('、'));
 }
-/* M1-10：暫停規則（Q9 B）與 M1-17 新手的前幾輪。暫停時 frame 不跑敵人、投射物、技能（計數）、產生器照產 */
+/* M1-10：暫停規則（Q9 B）與 M1-17 新手的前幾輪。暫停時 frame 不跑敵人、投射物、技能（計數）；產生器收掉後 frame 不論停不停都不產材料 */
 {
   const c3 = {
     ...ctx,
@@ -10499,7 +10512,7 @@ const ASC_COMBOS = `const combos = k => {
     anyPanel = () => OPEN || PANEL.skill, PORT = () => true, IV = { on: false }, N = { m: 0, p: 0 }, IW = 390, ZOOM = 1;
     requestAnimationFrame = () => {}; rbTick = sesSample = draw = hudTick = () => {}; mouseWorld = () => ({ x: 0, y: 0 });
     updMobs = () => N.m++; updShots = updSkills = () => {}; updPlayer = () => N.p++;
-    S = newGame(); S.camp.house = 1; genOf('wood').lv = 5; P = { x: 0, y: 0 }; G.state = 'play'; G.ask = 0; G.t = 0;
+    S = newGame(); S.camp.house = 1; S.camp.gen = { wood: { lv: 50 }, iron: { lv: 50 } }; P = { x: 0, y: 0 }; G.state = 'play'; G.ask = 0; G.t = 0;
     var tick = () => { last = 0; for (let i = 1; i <= 20; i++) frame(i * 50); };`);
   const run = setup =>
     R(
@@ -10523,9 +10536,9 @@ const ASC_COMBOS = `const combos = k => {
     手動沒面板: 1,
     確認卡: 0
   };
-  const badP = Object.keys(want).filter(k => tab[k][0] !== !!want[k] || tab[k][1] !== !!want[k] || !tab[k][2]);
+  const badP = Object.keys(want).filter(k => tab[k][0] !== !!want[k] || tab[k][1] !== !!want[k] || tab[k][2]);
   ok(
-    'M1-10 暫停：手動開面板、技能挑選、天賦樹、確認卡停住敵人與時間；自動開一般面板照打；停住時產生器照產',
+    'M1-10 暫停：手動開面板、技能挑選、天賦樹、確認卡停住敵人與時間；自動開一般面板照打；停不停 frame 都不產木（沒有背景生產，舊存檔殘留 gen／house 也不產）',
     !badP.length,
     JSON.stringify(tab)
   );
@@ -10686,7 +10699,7 @@ const ASC_COMBOS = `const combos = k => {
     !!st && st[0] > 0 && st[0] === st[1],
     JSON.stringify(st)
   );
-  /* M1-14：解鎖一句話照「M1-13 定稿」、只在第一次出現一次；產生器里程碑 */
+  /* M1-14：解鎖一句話照「M1-13 定稿」、只在第一次出現一次（產生器里程碑句隨產生器收掉） */
   const sy = R(`(() => {
     var said = []; hudWarn = t => said.push(t); setTimeout = () => {};
     S = newGame(); S.mat.soul = 1e7; S.mat.mats.wood = 1e7; for (const T of [1, 2, 3]) S.mat.mats['iron:' + T] = 1e5;
@@ -10695,24 +10708,22 @@ const ASC_COMBOS = `const combos = k => {
     S.camp.altar = 4; campUp('altar'); SAY.length = 0;
     S.camp.altar = 1; campUp('altar'); SAY.length = 0;
     S.camp.store = 4; campUp('store'); SAY.length = 0;
-    genOf('iron').lv = 24; genUp('iron'); SAY.length = 0;
     return said;
   })()`);
   ok(
-    'M1-14：解鎖一句話照定稿表原文、同一個解鎖第二次不出現、產生器里程碑（產量、階）',
+    'M1-14：解鎖一句話照定稿表原文、同一個解鎖第二次不出現',
     JSON.stringify(sy) ===
       JSON.stringify([
         '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
         '長老屋 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
         '長老屋 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
-        '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。',
-        '礦場 Lv25：產量 ×2。可以產熟鐵，上限看瞭望台。'
+        '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。'
       ]),
     JSON.stringify(sy)
   );
   const all = R(`(() => {
     S = newGame(); const bad = [];
-    for (const b of ['forge', 'watch', 'scout', 'house', 'altar', 'store'])
+    for (const b of ['forge', 'watch', 'scout', 'altar', 'store'])
       for (let lv = 1; lv <= CAMP[b].length; lv++) { S.camp[b] = lv; const t = campSay(b, lv); if (!t || !t.startsWith(CAMPN[b] + ' Lv' + lv + '：') || /undefined|NaN/.test(t)) bad.push(b + lv + ' ' + t); }
     return bad;
   })()`);
@@ -10722,7 +10733,7 @@ const ASC_COMBOS = `const combos = k => {
       '瞭望台 Lv1：新地點「枯河渡口」開了（怪物 Lv 6）。到地點清單點它就去刷。' &&
       R(`campSay('watch', 22)`) === '瞭望台 Lv22：酆都開了，「鬼門關」出現在地點清單，它的通貨開始掉。'
   );
-  ok('M1-14：六座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
+  ok('M1-14：五座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
   /* M1-26：角色頁鎖住的護符／神格格的一句話（是什麼＋怎麼開）；條件照 lockTxt 與腰帶的護符槽，不另編數字 */
   const lk26 = R(`(() => {
     S = newGame(); const r = [lockSlotTxt('ch0'), lockSlotTxt('gh')];
@@ -12438,7 +12449,7 @@ const ASC_COMBOS = `const combos = k => {
       S.story.tips = 0;
       S.auto = 0;
       if (touch) DBG.safeArea(34, 47);
-      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
       ['apshot', 'grenade', 'chargeslam', 'gasflask'].forEach((k, i) => {
         S.skills[i] = { k, so: [null, null], n: 2 };
         S.lib.sk[k] = 1;

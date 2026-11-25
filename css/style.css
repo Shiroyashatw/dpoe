@@ -2269,10 +2269,8 @@ body.touch.port .cmpc > div { padding: 8px; }
 .cmnext small { display: block; font-size: var(--fs-s); color: var(--tx-dim); }
 .cmnext small.d { color: var(--tx); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cmnext .btn { flex: none; max-width: 46%; min-height: 48px; min-width: 88px; padding: 4px 10px; }
-/* 一組的標題列：產生器那一組右邊是 ×1／×10／最大 */
+/* 一組的標題列 */
 .cmgrp { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; font: 700 var(--fs-s) var(--font); letter-spacing: 1px; color: var(--tx-dim); }
-.cmgrp .cmmul { flex-wrap: nowrap; gap: 6px; }
-.cmmul .chip { min-height: 44px; min-width: 52px; font-size: var(--fs); }
 .cmcards { display: flex; flex-direction: column; gap: 8px; }
 .cc { border-left: 3px solid transparent; }
 .cc.can { border-left-color: var(--ready); }
@@ -2280,34 +2278,16 @@ body.touch.port .cmpc > div { padding: 8px; }
 .cc .cch .ic { flex: none; width: 32px; height: 32px; }
 .cc .cch b { font: 700 var(--fs) var(--font); color: var(--tx); }
 .cc .cch span { font-size: var(--fs-s); }
-/* 工位人影：在職亮、空的暗；剛補上的那一個跳一下 */
-.wk { display: flex; gap: 3px; margin-left: auto; }
-.wk img { width: 16px; height: 16px; image-rendering: pixelated; opacity: 0.22; }
-.wk img.on { opacity: 1; }
-.wk img.new { animation: wknew 1.2s cubic-bezier(0.23, 1, 0.32, 1); }
-@keyframes wknew { 0% { transform: translateY(-6px) scale(1.5); filter: drop-shadow(0 0 4px var(--ready)); } 60% { filter: drop-shadow(0 0 4px var(--ready)); } }
-/* 里程碑：卡頭下面一條金色細條＋一行小字（到哪一級、給什麼；右邊總共產了多少） */
-.ccm { height: 3px; background: var(--panel-inset); border-radius: 2px; overflow: hidden; }
-.ccm i { display: block; height: 100%; width: var(--m); background: var(--ready); }
-.ccml { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-s); color: var(--tx-dim); }
 .ccbig { position: relative; display: flex; align-items: baseline; gap: 6px; font: 900 22px/1.15 var(--serif); color: var(--tx); font-variant-numeric: tabular-nums; }
 .ccbig small { font: 500 var(--fs-s) var(--font); color: var(--tx-dim); }
 .ccbig.sm { font: 700 var(--fs-l)/1.3 var(--font); }
-.cc .rtg { height: 6px; }
-.cchint { margin: 0; font-size: var(--fs-s); color: var(--tx-dim); }
 /* 材料湊齊幾成：還買不起的鈕，底色從左邊填（rbTick 寫 --f） */
 .cfill:disabled { opacity: 1; color: var(--tx); background: linear-gradient(90deg, rgba(var(--border-hi-rgb), 0.3) var(--f, 0%), transparent var(--f, 0%)); }
-.ccms { margin-left: 8px; padding: 1px 6px; border: 1px solid var(--ready); border-radius: 3px; font: 700 var(--fs-s) var(--font); font-style: normal; color: inherit; }
 .ccopen { display: flex; flex-direction: column; gap: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
-.ccopen .row2 { display: flex; justify-content: space-between; align-items: center; }
 .ccopen .chip, .ccopen .btn { min-height: 44px; }
-.ccfl { display: inline-block; margin-left: 4px; font: 700 var(--fs) var(--font); font-style: normal; color: var(--good); white-space: nowrap; animation: ccfl 1.1s ease-out forwards; }
 .cc.up { animation: ccup 0.4s ease-out; }
-.cc.ms { animation: ccms 1.1s ease-out; }
-@keyframes ccfl { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-14px); } }
 @keyframes ccup { from { background: rgba(var(--good-rgb), 0.18); } }
-@keyframes ccms { 0%, 60% { box-shadow: 0 0 0 2px var(--ready); } }
-@media (prefers-reduced-motion: reduce) { .ccfl, .cc.up, .cc.ms, .wk img.new, .rt.flow > i::after, .rbar.flow .rt > i::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cc.up, .rt.flow > i::after, .rbar.flow .rt > i::after { animation: none; } }
 /* 營地買得起的一件一列（王倒下的卡、離線卡） */
 .cups { display: flex; flex-direction: column; gap: 6px; }
 .cup { display: flex; align-items: center; gap: 10px; padding: 6px 10px; background: var(--panel-raised); border-radius: 3px; }
@@ -2433,14 +2413,11 @@ body.touch.port #pinv .eqrow.col { margin-top: 0; }
 .sk-d0 { font: 500 14px/1.4 var(--font); color: var(--tx-dim); }
 #pskill .sk-bar > .sk-btn.pri { width: 100%; min-height: 48px; }
 /* ===== M1-CP 營地、M1-02.3 掛機卡 ===== */
-.cmnxu { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px dashed var(--border-hi); border-radius: 3px; font: 500 14px/1.4 var(--font); color: var(--tx-dim); }
-.cmnxu .ico { width: 16px; height: 16px; flex: none; }
 .cmmore { margin: 0; font: 500 13px/1.4 var(--font); color: var(--tx-dim); }
 .cch { min-height: 44px; }
 .cch > .ico:last-child { width: 20px; height: 20px; margin-left: auto; flex: none; color: var(--tx-dim); transition: transform 160ms ease-out; }
 .cch[aria-expanded='true'] > .ico:last-child { transform: rotate(180deg); }
 .ccbig.sm { font: 500 14px/1.4 var(--font); color: var(--tx-dim); }
-.cmmul button, .bagf.cmmul button { min-height: 44px; }
 #pcraft .ftabs button { min-height: 44px; font-size: 14px; }
 #pcraft [data-fg='go'] { width: 100%; min-height: 48px; }
 /* M1-CP.2 徽章：pill 高 18、12／700、#f3e4d2 on --act，「3 可升級」 */
@@ -2464,11 +2441,10 @@ p.bagno { font: 500 14px/1.4 var(--font); color: var(--tx-dim); text-align: left
 #pskill .sk-lab { font: 500 13px/1.4 var(--font); color: var(--tx-dim); }
 /* BASE-03／M1-02.2：資訊 14 px、輔助說明 13 px，不再用 12 px 承擔資訊（技能詳情、營地） */
 .sk-h small, .sk-hero small, .sk-t small, .sk-more { font-size: 14px; }
-.rbar .rn, .cch span, .bagf.cmmul .chip, .cmnext b { font-size: 14px; }
-.cmnext small, .cmnext small.d, .cmgrp > span, .ccml span, .ccbig small, .btn small { font-size: 13px; }
+.rbar .rn, .cch span, .cmnext b { font-size: 14px; }
+.cmnext small, .cmnext small.d, .cmgrp > span, .ccbig small, .btn small { font-size: 13px; }
 #pcraft .cch span, #pcraft .bagf .chip { font-size: 14px !important; }
 #pcraft .btn small { font-size: 13px !important; }
-#pcraft .ccml, #pcraft .ccml span { font-size: 13px !important; }
 #pcraft .ftabs button { font-size: 14px !important; min-height: 44px; }
 .rbar small { font-size: 14px; }
 /* M1-17 視覺：升級鈕的費用在鈕內第二行 */
@@ -2799,7 +2775,6 @@ body.touch #poff kbd, body.touch #dplate kbd { display: none; }
 body.touch .stc { width: 44px; height: 44px; }
 body.touch .stc .ic { width: 34px; height: 34px; }
 .skr { row-gap: 8px; }
-.cmgrp .cmmul { gap: 8px; }
 body.touch .ph .ftabs button, body.touch .bagf.grp .chip { min-width: 44px; min-height: 44px; }
 /* ---------- B1 骨架第一段 ---------- */
 /* S6／D2-13／D3-03：資源列（金、靈魂）。直立外觀 x 202–382 × 110–142、熱區 106–150；桌機 x 16–316 × 66–98（資訊列下）。字直立 14／桌機 16、700、等寬，每格留 5 字元；底 --plate-world */

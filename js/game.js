@@ -19,7 +19,7 @@ function newGame() {
     lv: 1,
     xp: 0,
     gold: 0,
-    /* 營地（0.5.1，craft.js 的 campCan）：解鎖表六座的等級、產生器四座、開了的武器類別；自動分解規則；星級全域一個（斥候營開上限） */
+    /* 營地（0.5.1，craft.js 的 campCan）：五座設施的等級、開了的武器類別；自動分解規則；星級全域一個（斥候營開上限） */
     camp: newCamp(),
     auto2: AUTO2(),
     star: 1,
@@ -66,7 +66,7 @@ function newGame() {
   s.charms = [null, null, null];
   s.eq.chest = mkItem('c_leather', 1, 0);
   s.mat = newMat();
-  /* 營地的廢墟剩一點木：第一次升林場馬上按得下去（0.5.1 ⚠️） */
+  /* 營地的廢墟剩一點木（0.5.1 ⚠️） */
   s.mat.mats = { wood: 20 };
   /* 偽隨機保底（craft.js 的 prdRoll）：★、追憶、聖化石、腐化石各自連續沒中的次數 */
   s.prd = PRD0();
@@ -323,51 +323,38 @@ function offSettle(away, min = OFF_MIN) {
     here: !!chaseLine(t)
   };
 }
-/* 離開的時候產生器照產（0.5.1，3.7）：上限照倉房；回產了多少 { 材料鍵: n } */
-const offGen = away => genTick(Math.min(away, offMax()) / 1000);
 /* 回來時（M2-12 §7，依離開多久分三段）：<60 秒什麼都不出；60 秒–10 分只在掛機條一行 6 秒；≥10 分出離線結算（半版／桌機中間的卡）。
    計算門檻照舊（OFF_MIN，後台不改）；這裡只決定怎麼顯示 */
 const OFF_LINE = 60e3,
   OFF_CARD = 10 * 60e3;
-function offBack(o, g, away) {
+function offBack(o, away) {
   if (away < OFF_LINE) return;
-  if (away >= OFF_CARD) return offShow(o, g, away);
-  const gs = Object.entries(g || {}).filter(([, v]) => v > 0),
-    r =
-      o && o.soul > 0
-        ? `靈魂 +${abbr(o.soul, 'own')}`
-        : gs.length
-          ? `${rbName(gs[0][0])} +${abbr(gs[0][1], 'own')}`
-          : '';
+  if (away >= OFF_CARD) return offShow(o, away);
+  const r = o && o.soul > 0 ? `靈魂 +${abbr(o.soul, 'own')}` : '';
   IDLE.msg = strT('idleAway', { t: idleDur(away), r }).replace(/・$/, '');
   IDLE.msgT = Date.now() + 6000;
   idleBar(1);
 }
 /* 離線結算的卡：標題「離開 h 時 m 分」、一行計數（數字 1200 ms 跑上去）、掉落 3 列（追逐那列最後）、接下來一行、兩顆鈕（收下・繼續刷是主鈕） */
 const OFFC = { t0: 0, n: [], on: 0 };
-function offShow(o, g, away) {
-  const gs = Object.entries(g || {}).filter(([, v]) => v > 0);
-  if (!o && !gs.length) return;
-  const t = o ? o.away : Math.min(away || 0, offMax()),
-    rows = o
-      ? o.cur
-          .filter(([c]) => rareCur(c))
-          .sort((a, b) => /3$/.test(b[0]) - /3$/.test(a[0]))
-          .slice(0, o.here && o.chase ? 2 : 3)
-          .map(
-            ([c, v]) =>
-              `<li class="lg-${/3$/.test(c) ? 'perf' : 'cur'}"><i>${/3$/.test(c) ? '★' : '◆'}</i><span>${esc(CUR[c].n)} ×${v}</span></li>`
-          )
-      : [];
-  if (o && o.here && o.chase) {
+function offShow(o) {
+  if (!o) return;
+  const t = o.away,
+    rows = o.cur
+      .filter(([c]) => rareCur(c))
+      .sort((a, b) => /3$/.test(b[0]) - /3$/.test(a[0]))
+      .slice(0, o.here && o.chase ? 2 : 3)
+      .map(
+        ([c, v]) =>
+          `<li class="lg-${/3$/.test(c) ? 'perf' : 'cur'}"><i>${/3$/.test(c) ? '★' : '◆'}</i><span>${esc(CUR[c].n)} ×${v}</span></li>`
+      );
+  if (o.here && o.chase) {
     rows.push(`<li class="lg-chase ch"><i>印</i><span>${esc(strT('chaseN', { n: o.chase }))}</span></li>`);
     sfx('chaseBell');
     buzz(30);
   }
   const num = v => `<b data-n="${v}">0</b>`,
-    cnt = o
-      ? strT('offCnt', { b: num(o.won), s: num(o.soul) })
-      : gs.map(([k, v]) => `${esc(rbName(k))} +${num(v)}`).join('・'),
+    cnt = strT('offCnt', { b: num(o.won), s: num(o.soul) }),
     g1 = campGoal(),
     el = $('poff');
   el.innerHTML = `<h2>${esc(strT('offT', { t: idleDur(t) }))}</h2><p class="offc">${cnt}</p><ul class="offl">${rows.join('')}</ul>${g1 ? `<p class="offn">${esc(strT('offNext', { t: g1.t }))}</p>` : ''}
@@ -2192,7 +2179,7 @@ function updShots(dt) {
 /* ---------- 主迴圈 ---------- */
 let last = 0;
 /* 世界停住嗎（Q9 的共用開關，企劃書第 9 節）：確認卡、倒下、技能挑選、天賦樹一律停；手動模式開任何面板也停（M1-10）；
-   自動模式開一般面板照打。停住時產生器與離線計時照跑（frame 開頭的 genTick） */
+   自動模式開一般面板照打。停住時離線計時照跑 */
 const skPicking = () => PANEL.skill && PICKV.includes(SKUI.view);
 /* 手動模式時離線結算（M2-12 §7）開著也算面板：世界停，收下才接著打（M2-25） */
 const worldPaused = () =>
@@ -2201,9 +2188,8 @@ function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
   last = now;
-  /* 營地的產生器（0.5.1）：照真實時間產，世界地圖、開場、面板開著都算 */
   /* 資源條（0.5.4）：每格只改條與數字 */
-  if (S) genTick(rdt), sesSample(), rbTick();
+  if (S) sesSample(), rbTick();
   if (IV.on) return introFrame(rdt);
   if (G.hs > 0) {
     G.hs -= rdt;
@@ -2214,7 +2200,7 @@ function frame(now) {
     G.slow -= rdt;
     dt *= G.slowK || ROLL.slowScale;
   } else G.slowK = 0;
-  /* 世界暫停（M0-02）：敵人、投射物、傷害、出怪都停，產生器照產（上面的 genTick）；倒下時只跑 AI 的重來計時 */
+  /* 世界暫停（M0-02）：敵人、投射物、傷害、出怪都停，倒下時只跑 AI 的重來計時 */
   if (dt > 0 && worldPaused()) {
     if (G.state === 'dead') aiTick(dt);
   } else if (dt > 0) {

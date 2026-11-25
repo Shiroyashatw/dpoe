@@ -89,7 +89,7 @@ const BAN =
     S.story.tips = 0;
     S.lv = 38;
     S.auto = 0;
-    Object.assign(S.camp, { forge: 15, watch: 12, scout: 2, altar: 6, store: 2, house: 0 });
+    Object.assign(S.camp, { forge: 15, watch: 12, scout: 2, altar: 6, store: 2 });
     const M = MAT();
     for (const k in M) if (typeof M[k] === 'number') M[k] = 0;
     for (const b of ['forge', 'watch']) {
@@ -710,6 +710,59 @@ const BAN =
   await p.keyboard.press('Escape');
   await p.waitForTimeout(100);
   ok('Esc 關營地', !(await E(() => PANEL.camp)));
+  /* mumi 2026-11-25：產生器經濟收掉。分頁小點（campReady）只算五座：舊存檔殘留的 gen／house、木一大堆也不算 */
+  const rd0 = await E(() => {
+    S.camp = { ...S.camp, house: 0, gen: { wood: { lv: 1 }, iron: { lv: 1 }, hide: { lv: 1 }, silk: { lv: 1 } } };
+    const M = MAT();
+    for (const k in M) if (typeof M[k] === 'number') M[k] = 0;
+    S.gold = 0;
+    M.mats = { wood: 1e6, 'iron:1': 1e5, 'hide:1': 1e5, 'silk:1': 1e5 };
+    changed();
+    hudPanels();
+    const dot = document.querySelector('[data-tm="nav:craft"] .dot');
+    return [campReady(), dot ? dot.textContent : null];
+  });
+  ok(
+    '分頁小點：五座都買不起（只有木與材料，靈魂 0）＝campReady 0、營地分頁沒有小點（舊存檔殘留 gen／house 不算）',
+    rd0[0] === 0 && rd0[1] === null,
+    JSON.stringify(rd0)
+  );
+  await E(MID);
+  const rd1 = await E(() => {
+    S.camp = { ...S.camp, house: 0, gen: { wood: { lv: 1 }, iron: { lv: 1 } } };
+    hudPanels();
+    const dot = document.querySelector('[data-tm="nav:craft"] .dot');
+    return [campReady(), dot ? dot.textContent : null];
+  });
+  await p.keyboard.press('h');
+  await p.waitForTimeout(300);
+  const rdH = await txt('#pcamp .c12h > span');
+  ok(
+    `分頁小點＝面板「可升級 {n}」＝campReady：鍛造台、瞭望台買得起＝2（${rd1[1]}／${rdH}）`,
+    rd1[0] === 2 && rd1[1] === '2' && rdH === '可升級 2',
+    JSON.stringify([rd1, rdH])
+  );
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(100);
+  /* 沒有背景生產：刷圖中主迴圈跑 3 秒、切走分頁 2 小時再回來（離線結算），木與材料都不會自己變多 */
+  const mm0 = await E(() => {
+    S.auto = 0;
+    G.mobs.length = 0;
+    return JSON.stringify(MAT().mats);
+  });
+  await p.waitForTimeout(3000);
+  const mm1 = await E(() => JSON.stringify(MAT().mats));
+  const mm2 = await E(() => {
+    HIDE_AT = Date.now() - 2 * 3600e3;
+    document.dispatchEvent(new Event('visibilitychange'));
+    return JSON.stringify(MAT().mats);
+  });
+  ok(
+    '沒有背景生產：刷圖中 3 秒、離開 2 小時回來，木與材料都沒變（舊存檔殘留 gen 也不產）',
+    mm0 === mm1 && mm0 === mm2,
+    JSON.stringify([mm0, mm1, mm2])
+  );
+  await E(() => !$('poff').hidden && act('offok'));
   /* 手把（假的標準配置手把）：Ⓐ 開詳細頁、十字鍵右換座、Ⓑ 退回卡片格 */
   await E(() => {
     window.__pad = { buttons: Array.from({ length: 17 }, () => ({ pressed: false })), axes: [0, 0, 0, 0] };

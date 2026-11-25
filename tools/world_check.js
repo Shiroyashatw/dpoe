@@ -259,32 +259,14 @@ async function flow(b) {
   ok('繼續刷', await until(p, () => G.scene === 'map' && G.node === S.world.cur));
   /* 存檔還原 */
   const before = await p.evaluate(
-    () => (
-      save(),
-      JSON.stringify([
-        S.world.done,
-        S.world.cur,
-        S.star,
-        CAMP_B.map(b => S.camp[b]),
-        GEN_K.map(k => S.camp.gen[k].lv),
-        S.v
-      ])
-    )
+    () => (save(), JSON.stringify([S.world.done, S.world.cur, S.star, CAMP_B.map(b => S.camp[b]), S.v]))
   );
   await p.reload();
   await p.waitForFunction(() => typeof G === 'object' && !!G.scene);
   ok(
     '存檔還原：走過的、在刷的、星級、營地',
-    (await p.evaluate(() =>
-      JSON.stringify([
-        S.world.done,
-        S.world.cur,
-        S.star,
-        CAMP_B.map(b => S.camp[b]),
-        GEN_K.map(k => S.camp.gen[k].lv),
-        S.v
-      ])
-    )) === before
+    (await p.evaluate(() => JSON.stringify([S.world.done, S.world.cur, S.star, CAMP_B.map(b => S.camp[b]), S.v]))) ===
+      before
   );
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
