@@ -1,0 +1,317 @@
+[
+ {
+  "b": "mace",
+  "asc": "iron",
+  "at": [
+   "dash",
+   "mass",
+   "push",
+   "s1",
+   "s2",
+   "s4",
+   "s7",
+   "wall"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "mace",
+  "asc": "iron",
+  "at": [
+   "mass",
+   "push",
+   "s1",
+   "s2",
+   "s4",
+   "s5",
+   "stun",
+   "wall"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "frost",
+  "asc": "tide",
+  "at": [
+   "back",
+   "ebb",
+   "fall",
+   "pull",
+   "s1",
+   "s3",
+   "s4",
+   "s6"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "frost",
+  "asc": "tide",
+  "at": [
+   "ebb",
+   "fall",
+   "pull",
+   "s1",
+   "s2",
+   "s3",
+   "s4",
+   "surge"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "frost",
+  "asc": "tide",
+  "at": [
+   "ebb",
+   "pull",
+   "rise",
+   "s1",
+   "s2",
+   "s3",
+   "s4",
+   "surge"
+  ],
+  "why": "潮起"
+ },
+ {
+  "b": "bow",
+  "asc": "wind",
+  "at": [
+   "endless",
+   "gale",
+   "mirage",
+   "near",
+   "s1",
+   "s3",
+   "s4",
+   "s8"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "bow",
+  "asc": "wind",
+  "at": [
+   "falcon",
+   "gale",
+   "mirage",
+   "near",
+   "s1",
+   "s3",
+   "s5",
+   "s8"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "bow",
+  "asc": "iron",
+  "at": [
+   "anvil",
+   "mass",
+   "s1",
+   "s3",
+   "s4",
+   "s6",
+   "stand",
+   "wall"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "bow",
+  "asc": "iron",
+  "at": [
+   "mass",
+   "s1",
+   "s3",
+   "s4",
+   "s5",
+   "stand",
+   "stun",
+   "wall"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "bow",
+  "asc": "tide",
+  "at": [
+   "back",
+   "ebb",
+   "rise",
+   "s1",
+   "s2",
+   "s3",
+   "s6",
+   "surge"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "bow",
+  "asc": "tide",
+  "at": [
+   "back",
+   "ebb",
+   "fall",
+   "s1",
+   "s2",
+   "s3",
+   "s6",
+   "surge"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "arc",
+  "asc": "wind",
+  "at": [
+   "eye",
+   "falcon",
+   "gale",
+   "s1",
+   "s2",
+   "s5",
+   "s6",
+   "walk"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "arc",
+  "asc": "wind",
+  "at": [
+   "falcon",
+   "gale",
+   "gust",
+   "s1",
+   "s2",
+   "s5",
+   "s7",
+   "walk"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "arc",
+  "asc": "iron",
+  "at": [
+   "anvil",
+   "mass",
+   "s1",
+   "s3",
+   "s4",
+   "s6",
+   "stand",
+   "wall"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "arc",
+  "asc": "iron",
+  "at": [
+   "mass",
+   "s1",
+   "s3",
+   "s4",
+   "s5",
+   "stand",
+   "stun",
+   "wall"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "arc",
+  "asc": "tide",
+  "at": [
+   "back",
+   "ebb",
+   "rise",
+   "s1",
+   "s2",
+   "s3",
+   "s6",
+   "surge"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "arc",
+  "asc": "tide",
+  "at": [
+   "back",
+   "ebb",
+   "pull",
+   "rise",
+   "s1",
+   "s3",
+   "s4",
+   "s6"
+  ],
+  "why": "top"
+ },
+ {
+  "b": "arc",
+  "asc": "tide",
+  "at": [
+   "ebb",
+   "fall",
+   "pull",
+   "s1",
+   "s2",
+   "s3",
+   "s4",
+   "surge"
+  ],
+  "why": "潮落"
+ },
+ {
+  "b": "arc",
+  "asc": "tide",
+  "at": [
+   "ebb",
+   "heart",
+   "pull",
+   "rise",
+   "s1",
+   "s3",
+   "s4",
+   "s5"
+  ],
+  "why": "浪潮之心"
+ },
+ {
+  "b": "frost",
+  "asc": "tide",
+  "at": [
+   "ebb",
+   "fall",
+   "heart",
+   "pull",
+   "s1",
+   "s3",
+   "s4",
+   "s5"
+  ],
+  "why": "浪潮之心"
+ },
+ {
+  "b": "bow",
+  "asc": "tide",
+  "at": [
+   "heart",
+   "pull",
+   "rise",
+   "s1",
+   "s2",
+   "s4",
+   "s5",
+   "surge"
+  ],
+  "why": "浪潮之心"
+ }
+]
