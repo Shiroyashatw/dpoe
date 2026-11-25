@@ -1,6 +1,6 @@
 # dungeonPOE 更新紀錄
 
-## 天賦樹桌機 1280×720 定稿（talent-tree v1.0.1；版號未動）
+## 0.5.6：天賦樹桌機 1280×720 定稿（talent-tree v1.0.1）
 
 依據 `docs/production/specs/talent-tree.md` v1.0.1（commit 75bed9a）、示意圖 `W5-talent-tree/01–19`。證據 `docs/production/evidence/talent-tree/`（`diff.md` 疊圖逐項位置差、各測試輸出）。
 - **版面**：滿版頂欄 52（天賦樹、剩 n 點、搜尋天賦 260、「回」、×）／樹 624／底欄 44；底欄改「雙圈大圓是基石（有代價）」「虛線圈＝還沒開放」「名詞停留 0.4 秒／手把 R3」，拿掉顏色圖例與「金框」；重置天賦 12,628 高 36；小地圖 168×168「整棵樹」桌機一直顯示。
@@ -14,6 +14,7 @@
 - **修 bug**：`skpanel.js` 的升級連升 `holdStop` 跟 `hud.js` 長按確認卡同名，後載入的蓋掉卡片的，所有長按確認卡「提早放開＝取消」都失效（放開後照樣執行）；技能面板那支改名 `skUpStop`。
 - **工具**：新增 `tools/tree_check.js`（桌機 1280×720 量測＋390×844 基本操作）、`tools/tree_overlay.py`（跟示意圖疊圖、寫 diff.md）；`tools/check.js` 的六區珠寶孔測試改驗 18 孔節點。
 - 不做存檔相容（舊存檔的 `jsock` 照 18 孔順序讀，舊的 6 格不轉）。
+- **合併前升版 0.5.6**（mumi 11/25 13:41「合併前要升版」）：`VER`、`index.html` 全部 `?v=`、`version.json` 改 0.5.6。v4 烘焙樹不併（「v4 不併，落差列精修」），三項樹形落差列在 issue #189「天賦樹 PR #196 樹形落差（未併 v4 烘焙，mumi 11/25 13:41）」。
 
 ## 0.5.5：戰鬥 HUD v1.3.3（battle-hud）＋UIUX 退回修正
 

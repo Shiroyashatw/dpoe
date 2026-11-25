@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.5.5';
+const VER = '0.5.6';
 const KEY = 'dungeonpoe_v1';
 /* 測試入口（M1-24）：?test=名字 用自己的存檔位（test_名字）、每次載入重建、不連雲端；正式玩家不帶參數不受影響 */
 const TEST = new URLSearchParams(location.search).get('test') || '';
