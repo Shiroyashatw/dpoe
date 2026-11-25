@@ -368,7 +368,8 @@ function campN(k) {
     a = C.altar;
   if (k === 'batch') return f >= 16 ? 20 : f >= 9 ? 10 : f >= 5 ? 5 : f >= 2 ? 3 : 1;
   if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length - WT_HIDE.length, 2 + Math.floor((f - 11) / 2));
-  if (k === 'slots') return Math.min(S.skills.length, a >= 9 ? 5 : a >= 6 ? 4 : a >= 3 ? 3 : a >= 1 ? 2 : 1);
+  /* 第 5 格＝鍛造台 Lv16（skills-panel v1.0.1；之前是祭壇 Lv9） */
+  if (k === 'slots') return Math.min(S.skills.length, a >= 6 ? (f >= 16 ? 5 : 4) : a >= 3 ? 3 : a >= 1 ? 2 : 1);
   if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
   if (k === 'star') return Math.min(5, (C.scout || 0) + 1);
   if (k === 'pop') return CAMP_POP[Math.min(C.house || 0, CAMP_POP.length - 1)];
@@ -378,7 +379,7 @@ function campN(k) {
 /* 下一個要解鎖的（M1-07，Q10 C）：每一類只回最近的那一個 { b 設施, lv, n 開什麼, t 一句話 }；這一類全開了回 null。
    數值型（技能格、輔助孔、武器類別）照 campN 變多的第一級；開關型照 campKey 要的等級 */
 const NEXT_U = {
-  slot: { n: 'slots', b: 'altar', t: '技能格' },
+  slot: { n: 'slots', b: ['altar', 'forge'], t: '技能格' },
   hole: { n: 'holes', b: 'altar', t: '輔助孔' },
   wt: { n: 'wts', b: 'forge', t: '武器類別' },
   tree: { k: { tree: '天賦樹', jsock: '天賦樹珠寶孔' } },
@@ -392,13 +393,16 @@ function nextUnlock(kind) {
     C = S.camp || newCamp();
   let r = null;
   if (u.n) {
-    const now = campN(u.n),
-      lv0 = C[u.b] || 0;
-    for (let lv = lv0 + 1; lv <= campMax(u.b) && !r; lv++) {
-      C[u.b] = lv;
-      if (campN(u.n) > now) r = { b: u.b, lv, m: campN(u.n), n: `第 ${campN(u.n)} 個${u.t}` };
+    const now = campN(u.n);
+    /* 設施可以不只一座（第 5 格技能看鍛造台）：照順序找第一個升了會變多的 */
+    for (const b of [].concat(u.b)) {
+      const lv0 = C[b] || 0;
+      for (let lv = lv0 + 1; lv <= campMax(b) && !r; lv++) {
+        C[b] = lv;
+        if (campN(u.n) > now) r = { b, lv, m: campN(u.n), n: `第 ${campN(u.n)} 個${u.t}` };
+      }
+      C[b] = lv0;
     }
-    C[u.b] = lv0;
   } else
     for (const k in u.k) {
       const e = campKey(k);
@@ -469,17 +473,19 @@ const FORGE_SAY = [
   '鍛造台 Lv13：破裂石開始掉。四條詞以上的稀有裝，隨機一條升到 T0 並鎖住。',
   '鍛造台 Lv14：自動分解可以照詞階、追憶與 ▲ 決定留不留。',
   '鍛造台 Lv15：腐化石開始掉，開了「腐化」。',
-  '鍛造台 Lv16：打造一次 20 件。',
+  '鍛造台 Lv16：打造一次 20 件；開了第 5 格技能，到技能分頁挑一招。',
   '鍛造台 Lv17：追憶之墨與珠寶開始掉。打造時加一瓶墨，保證一條追憶詞。',
   '鍛造台 Lv18：高階通貨開始掉。',
   '鍛造台 Lv19：完美石開始掉。六條詞全滿的稀有裝，隨機一條升到 T0。',
   '鍛造台 Lv20：開了輔助 II 與覺醒，完美通貨開始掉。'
 ];
 const ALTAR_SAY = {
-  4: '祭壇 Lv4：天賦樹開了，照等級補發的點數已經放進去。',
-  7: '祭壇 Lv7：昇華石碑開了，先開放兩個昇華可以選。',
-  10: '祭壇 Lv10：天賦樹的珠寶孔開了，撿到的珠寶可以鑲進去。',
-  11: '祭壇 Lv11：第三個昇華以後的內容開了，輔助孔可以開到 5 個。'
+  4: '長老屋 Lv4：天賦樹開了，照等級補發的點數已經放進去。',
+  7: '長老屋 Lv7：昇華石碑開了，先開放兩個昇華可以選。',
+  /* 第 5 格技能改到鍛造台 Lv16（skills-panel v1.0.1），這一級先沒有東西開 */
+  9: '長老屋 Lv9：再升一級開天賦樹的珠寶孔。',
+  10: '長老屋 Lv10：天賦樹的珠寶孔開了，撿到的珠寶可以鑲進去。',
+  11: '長老屋 Lv11：第三個昇華以後的內容開了，輔助孔可以開到 5 個。'
 };
 /* 設施升到 lv 那一句（S.camp 已經是新的等級） */
 function campSay(b, lv) {
@@ -498,8 +504,8 @@ function campSay(b, lv) {
   if (b === 'house') return `民房 Lv${lv}：人口 ${campN('pop')}，新居民會自己補到空的工位。`;
   if (b === 'altar') {
     if (ALTAR_SAY[lv]) return ALTAR_SAY[lv];
-    if ([1, 3, 6, 9].includes(lv)) return `祭壇 Lv${lv}：開了第 ${campN('slots')} 格技能，到技能分頁挑一招。`;
-    return `祭壇 Lv${lv}：每一招多 1 個輔助孔，到技能分頁插一顆輔助。${lv === 5 ? '光環欄也開了。' : ''}`;
+    if ([1, 3, 6].includes(lv)) return `長老屋 Lv${lv}：開了第 ${campN('slots')} 格技能，到技能分頁挑一招。`;
+    return `長老屋 Lv${lv}：每一招多 1 個輔助孔，到技能分頁插一顆輔助。${lv === 5 ? '光環欄也開了。' : ''}`;
   }
   if (b === 'store') {
     if (lv === 2) return '倉房 Lv2：分解回收的材料從 50% 提高到 65%。';
