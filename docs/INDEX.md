@@ -124,6 +124,7 @@
 | 武器定位表＋近戰技能草案（斧、錘、細杖、長矛、匕首、爪） | `docs/production/技能草案-近戰第一批.md` | — | 草稿，不可交辦 |
 | 遠程技能草案（弓、十字弓、陷阱器） | `docs/production/技能草案-遠程第二批.md` | — | 草稿，不可交辦 |
 | 法系技能草案（長杖、法杖、權杖） | `docs/production/技能草案-法系第三批.md` | — | 草稿，不可交辦 |
+| 通用技能草案（戰吼、旗幟、通用法術） | `docs/production/技能草案-通用第四批.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
 | 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | 現行（原定併進 `S/M2-camp-cards.md` §5.1） |
 
