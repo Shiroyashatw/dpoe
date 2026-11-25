@@ -25,7 +25,7 @@ const box = (p, q) =>
   }, q);
 const is = (b, x, y, w, h) => !!b && near(b[0], x) && near(b[1], y) && near(b[2], w) && near(b[3], h);
 const LAUNCH = process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {};
-const BANNED = ['法力', 'MP', '祭壇', '換上', 'ms', '彈夾', '輪末王', '推薦路線', '暫定', '金框', '叢集'];
+const BANNED = ['法力', 'MP', '祭壇', '換上', 'ms', '彈夾', '輪末王', '輪', '推薦路線', '暫定', '金框', '叢集'];
 const setup = () => {
   proSkip();
   S.story.tips = 0;
@@ -969,16 +969,16 @@ const BOX = {};
   /* ---------- 禁用字、Esc、手把 Ⓑ 關樹 ---------- */
   const txt = await p.evaluate(() => {
     const out = [$('ptree').innerText];
-    for (const n of [...PTREE.N.slice(0, 400), ...PTREE.J]) out.push(treeTip(n.id, 0), treeTip(n.id, 1));
-    return out.join('\n').replace(/<[^>]+>/g, ' ');
+    for (const n of [...PTREE.N, ...PTREE.J]) out.push(treeTip(n.id, 0), treeTip(n.id, 1));
+    return [PTREE.N.length + PTREE.J.length, out.join('\n').replace(/<[^>]+>/g, ' ')];
   });
-  const hit = BANNED.filter(w =>
-    w === 'ms' ? /\d\s*ms\b/.test(txt) : w === 'MP' ? /\bMP\b/.test(txt) : txt.includes(w)
-  );
+  /* 整棵樹掃；「輪」只排除底欄定稿句的「滾輪」 */
+  const re = w => (w === 'ms' ? /\d\s*ms\b/g : w === 'MP' ? /\bMP\b/g : w === '輪' ? /(?<!滾)輪/g : new RegExp(w, 'g')),
+    hit = BANNED.map(w => [w, (txt[1].match(re(w)) || []).length]).filter(h => h[1]);
   ok(
-    '天賦樹畫面與懸浮不出現禁用字（法力、MP、祭壇、換上、ms、彈夾、輪末王、推薦路線、暫定、金框、叢集）',
+    `天賦樹畫面與整棵樹 ${txt[0]} 個點的懸浮不出現禁用字（${BANNED.join('、')}）`,
     !hit.length,
-    hit.join()
+    hit.map(h => h.join('×')).join(' ')
   );
   await pad(1, true), await p.waitForTimeout(80), await pad(1, false), await p.waitForTimeout(60);
   ok('手把 Ⓑ 關樹', await p.evaluate(() => !TREE.open));
