@@ -302,7 +302,8 @@ function campOpenHTML(b) {
     return `<div class="ccopen"><p class="sub">離線結算上限 ${campN('off')} 小時・分解回收 ${Math.round(salvRate() * 100)}%</p>${storeHTML()}</div>`;
   return '';
 }
-/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階（高一階超過 tierCap() 的列出但鎖住）；鐵 20（最高階）→ 1 顆蛻變石；1 顆蛻變石 → 木 50 */
+/* 商會（倉房 Lv4，⚠️ 固定匯率）：同一種材料 5 個低一階 → 1 個高一階（高一階超過 tierCap() 的列出但鎖住）；1 顆蛻變石 → 木 50；
+   材料換打造通貨照 craft.js 的 TRADE_CUR／TRADE_QH（材料來源.md 定稿 v1.1 §6）。畫面是最小可用，等 UIUX 規格 */
 function tradeList() {
   const L = [];
   for (const m of ['iron', 'hide', 'silk'])
@@ -327,13 +328,33 @@ function storeHTML() {
         ? `<button class="chip" data-fg="tr:${i}" aria-pressed="false" disabled title="${x.why}">${t}</button>`
         : chipB(`tr:${i}`, 0, t);
     }).join('') || '<span class="c-dim">同一階的材料有 5 個才能換高一階</span>'
-  }${matN('iron', tierCap()) >= 20 ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×20 → 蛻變石`) : ''}${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>${why.join('')}`;
+  }${MAT().tran >= 1 ? chipB('tr:wood', 0, '蛻變石 → 木 50') : ''}</div>${why.join('')}${tradeCurHTML()}`;
+}
+/* 材料換通貨：每種已開始掉的通貨一列額度＋手上夠換 1 顆的每一種材料、每一階（一下換 1 顆） */
+function tradeCurHTML() {
+  return Object.keys(TRADE_QH)
+    .filter(c => campCan(curKey(c)))
+    .map(c => {
+      const L = [];
+      for (const m in TRADE_CUR)
+        if (TRADE_CUR[m][c])
+          for (const T of m === 'wood' ? [0] : [1, 2, 3, 4, 5, 6])
+            if (matN(m, T) >= tradeCost(m, T, c))
+              L.push(
+                chipB(
+                  `tr:${c}-${m}-${T}`,
+                  0,
+                  `${T ? matName(m, T) : '木'} ×${fullN(tradeCost(m, T, c), 'cost')} → ${CUR[c].n}`
+                )
+              );
+      return `<div class="ph2">${CUR[c].n}<span>這小時還能換 ${tradeLeft(c)}／${TRADE_QH[c]} 顆</span></div><div class="bagf">${L.join('') || `<span class="c-dim">材料不夠換 1 顆${CUR[c].n}</span>`}</div>`;
+    })
+    .join('');
 }
 function tradeDo(i) {
-  if (i === 'cur') {
-    if (matN('iron', tierCap()) < 20) return '鐵不夠';
-    matAdd('iron', tierCap(), -20);
-    MAT().tran++;
+  if (String(i).includes('-')) {
+    const [c, m, T] = i.split('-');
+    return tradeCur(m, +T, c);
   } else if (i === 'wood') {
     if (!(MAT().tran >= 1)) return '沒有蛻變石';
     MAT().tran--;

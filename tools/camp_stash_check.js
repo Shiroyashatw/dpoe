@@ -768,6 +768,8 @@ const BAN =
     rd0[0] === 0 && rd0[1] === null,
     JSON.stringify(rd0)
   );
+  /* 材料來源 v1.1 §3 設施收任何階：rd0 留下的生鐵／生皮／繭絲各 10 萬能折算付斥候營的厚革，先清掉，只留 MID 給鍛造台、瞭望台的 */
+  await E(() => (MAT().mats = {}));
   await E(MID);
   const rd1 = await E(() => {
     S.camp = { ...S.camp, house: 0, gen: { wood: { lv: 1 }, iron: { lv: 1 } } };

@@ -4226,6 +4226,138 @@ const ASC_COMBOS = `const combos = k => {
       e
     );
   }
+  {
+    /* 材料來源.md 定稿 v1.1 §3：設施升級收任何階（T 階 1 個＝3^(T−1) 個第 1 階；先用最低階、最後一階無條件進位、多付不找）；付款預覽照 camp.md v1.0 04 示意圖 D07 */
+    const rd = f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8');
+    R(rd('hud.js').match(/^const fullN = .*$/m)[0]);
+    R(rd('camp12.js').match(/^function matPlanTxt\([^]*?^\}$/m)[0]);
+    const e = R(`(() => {
+      const m0 = S.mat, c0 = S.camp; S.camp = newCamp(); S.mat = newMat();
+      let e = [];
+      const put = o => { S.mat.mats = {}; for (const k in o) matAdd('iron', +k, o[k]); };
+      const nn = () => [1, 2, 3, 4, 5, 6].map(T => matN('iron', T)).join();
+      /* 示意圖的例子：熟鐵 30、百煉鋼 160 付玄鐵 50 */
+      put({ 2: 30, 3: 160 });
+      const c = { any: 1, mats: { 'iron:4': 50 } };
+      if (costRows(c)[0][1] !== 56) e.push('有 ' + costRows(c)[0][1]);
+      if (JSON.stringify(matPlan('iron', 4, 50)) !== '[[2,30],[3,140]]') e.push('plan ' + JSON.stringify(matPlan('iron', 4, 50)));
+      if (matPlanTxt('iron:4', 50) !== '任何階都收・用掉：熟鐵 30、百煉鋼 140') e.push('預覽 ' + matPlanTxt('iron:4', 50));
+      costPay(c);
+      if (nn() !== '0,0,20,0,0,0') e.push('扣 ' + nn());
+      /* 最後一階無條件進位、多付不找：生鐵 5＋百煉鋼 1（=14 個 T1）付熟鐵 2（=6）→ 生鐵 5 用完、百煉鋼 1 整個用掉 */
+      put({ 1: 5, 3: 1 });
+      if (costRows({ any: 1, mats: { 'iron:2': 2 } })[0][1] !== 4) e.push('折熟鐵 ' + costRows({ any: 1, mats: { 'iron:2': 2 } })[0][1]);
+      costPay({ any: 1, mats: { 'iron:2': 2 } });
+      if (nn() !== '0,0,0,0,0,0') e.push('進位 ' + nn());
+      /* 高階付低階：隕鐵 1 付生鐵 80 → 隕鐵用掉、不找 */
+      put({ 6: 1 });
+      costPay({ any: 1, mats: { 'iron:1': 80 } });
+      if (nn() !== '0,0,0,0,0,0') e.push('高付低 ' + nn());
+      /* 只用到那一階本身：預覽不寫 */
+      put({ 4: 60 });
+      if (matPlanTxt('iron:4', 50) !== '') e.push('同階也寫預覽');
+      /* 不夠：不寫預覽、costRows 照折算的寫 */
+      put({ 3: 2 });
+      if (matPlanTxt('iron:4', 1) !== '' || costRows(c)[0][1] !== 0) e.push('不夠');
+      /* 沒有 any（打造等其他費用）照舊只看那一階 */
+      put({ 1: 999 });
+      if (costRows({ mats: { 'iron:2': 1 } })[0][1] !== 0) e.push('strict');
+      /* 實際升級：campNext 帶 any；找第一個要 T2 以上材料的設施等級，全部只給生鐵也升得上去 */
+      let hit = null;
+      for (const b of Object.keys(CAMP)) CAMP[b].forEach((r, i) => { for (const k in r.mats || {}) if (!hit && matOf(k)[1] >= 2) hit = { b, lv: i, k, n: r.mats[k] }; });
+      if (!hit) e.push('沒有 T2 以上的設施費用');
+      else {
+        S.camp[hit.b] = hit.lv; S.mat.soul = 1e9; S.gold = 1e9;
+        for (const k in CUR) S.mat[k] = 1e6;
+        put({ 1: hit.n * 3 ** (matOf(hit.k)[1] - 1) + 7 }); matAdd('wood', 0, 1e9);
+        if (!campNext(hit.b).any) e.push('campNext 沒帶 any');
+        const r = campUp(hit.b);
+        if (r !== null || S.camp[hit.b] !== hit.lv + 1 || matN('iron', 1) !== 7) e.push('升 ' + hit.b + hit.lv + ' ' + r + ' 剩 ' + matN('iron', 1));
+      }
+      S.mat = m0; S.camp = c0;
+      return e.join(' | ');
+    })()`);
+    ok(
+      '材料來源 v1.1 §3 設施升級收任何階：3^(T−1) 換算、先用最低階、最後一階進位多付不找、高階可付低階；costRows 有＝折成那一階（捨去）；付款預覽「任何階都收・用掉：熟鐵 30、百煉鋼 140」（camp.md 04 D07）、只用同階時不寫；打造等沒有 any 的費用照舊；campUp 只給生鐵也升得上去',
+      e === '',
+      e
+    );
+  }
+  {
+    /* 材料來源.md 定稿 v1.1 §6：商會材料換打造通貨（§6.1 換率）＋每小時額度（§6.3：117／117／13／26，從 0 起算、連續回復、最多存 1 小時、離線照時間、木和鐵共用、用完不扣不給） */
+    const e = R(`(() => {
+      const m0 = S.mat, c0 = S.camp, g0 = S.gold, n0 = tradeNow; S.camp = newCamp(); S.mat = newMat();
+      let e = [], now = 1e6;
+      tradeNow = () => now;
+      /* 換率 */
+      const rate = [['wood', 0, 'tran', 243], ['wood', 0, 'aug', 243], ['iron', 1, 'tran', 4860], ['iron', 2, 'aug', 1620], ['iron', 3, 'tran', 540], ['iron', 4, 'tran', 180], ['iron', 5, 'tran', 60], ['iron', 6, 'aug', 20],
+        ['hide', 1, 'rich', 48600], ['hide', 4, 'rich', 1800], ['hide', 6, 'rich', 200], ['silk', 1, 'exalt', 24300], ['silk', 5, 'exalt', 300], ['silk', 6, 'exalt', 100]];
+      for (const [m, T, c, q] of rate) if (tradeCost(m, T, c) !== q) e.push('率 ' + m + T + c + ' ' + tradeCost(m, T, c));
+      if (JSON.stringify(TRADE_QH) !== '{"tran":117,"aug":117,"rich":13,"exalt":26}') e.push('額度 ' + JSON.stringify(TRADE_QH));
+      /* 倉房 Lv4 前不開 */
+      S.camp.forge = 20; S.camp.store = 3;
+      matAdd('wood', 0, 1e6);
+      if (tradeCur('wood', 0, 'tran') !== '倉房 Lv4 才開商會') e.push('未開');
+      /* 開張那一刻從 0 起算 */
+      S.mat.soul = 1e9; S.gold = 1e9; for (const k in CUR) S.mat[k] = 0; S.mat.soul = 1e9;
+      const st = campNext('store'); for (const k in st.cur || {}) S.mat[k] = st.cur[k];
+      matAdd('iron', 1, 1e9); matAdd('hide', 1, 1e9); matAdd('silk', 1, 1e9);
+      if (campUp('store') !== null || S.camp.store !== 4) e.push('升倉房 Lv4');
+      for (const k in CUR) S.mat[k] = 0;
+      for (const c in TRADE_QH) if (tradeLeft(c) !== 0) e.push('開張 ' + c + ' ' + tradeLeft(c));
+      const w0 = matN('wood'), s0 = S.mat.soul, gd = S.gold;
+      if (tradeCur('wood', 0, 'tran') !== '蛻變石這小時換完了' || matN('wood') !== w0 || S.mat.tran !== 0) e.push('0 額度扣了');
+      /* 連續回復：半小時 58、1 小時 117、10 小時還是 117 */
+      now += 1800; if (tradeLeft('tran') !== 58) e.push('半小時 ' + tradeLeft('tran'));
+      now += 1800; if (tradeLeft('tran') !== 117) e.push('1 小時 ' + tradeLeft('tran'));
+      now += 36000; if (tradeLeft('tran') !== 117 || tradeLeft('rich') !== 13 || tradeLeft('exalt') !== 26) e.push('存超過 1 小時');
+      /* 木和鐵共用蛻變石：木換 100、鐵 T6 換 17 → 用完；增幅石另外算 */
+      matAdd('iron', 6, 1000);
+      for (let i = 0; i < 100; i++) if (tradeCur('wood', 0, 'tran')) { e.push('木換 ' + i); break; }
+      for (let i = 0; i < 17; i++) if (tradeCur('iron', 6, 'tran')) { e.push('鐵換 ' + i); break; }
+      const i6 = matN('iron', 6);
+      if (S.mat.tran !== 117 || matN('wood') !== w0 - 243 * 100 || i6 !== 1000 - 20 * 17) e.push('扣 ' + S.mat.tran + ' ' + matN('wood') + ' ' + i6);
+      if (tradeCur('iron', 6, 'tran') !== '蛻變石這小時換完了' || matN('iron', 6) !== i6 || S.mat.tran !== 117) e.push('用完還換');
+      if (tradeCur('iron', 6, 'aug') !== null || S.mat.aug !== 1) e.push('增幅石另算');
+      /* 不碰靈魂、金；材料不夠不吃額度 */
+      if (S.mat.soul !== s0 || S.gold !== gd) e.push('動到靈魂或金');
+      S.mat.mats['silk:2'] = 10;
+      const ex = tradeLeft('exalt');
+      if (tradeCur('silk', 2, 'exalt') !== '熟絲不夠' || tradeLeft('exalt') !== ex) e.push('不夠也扣額度');
+      /* 一次換 n 顆：超過額度整筆不換 */
+      if (tradeCur('silk', 1, 'exalt', 27) !== '崇高石這小時換完了' || tradeCur('silk', 1, 'exalt', 26) !== null || S.mat.exalt !== 26) e.push('n 顆');
+      /* 皮只換富豪石、不能換蛻變石；木不能帶階 */
+      if (tradeCur('hide', 1, 'tran') !== '換不了' || tradeCur('wood', 2, 'tran') !== '換不了') e.push('換錯通貨');
+      /* 5 換 1、蛻變石換木 50 不吃額度（蛻變石額度 0 時照樣能換） */
+      if (tradeLeft('tran') !== 0) e.push('蛻變石應為 0');
+      S.camp.watch = 26; S.mat.mats['iron:1'] = 5; S.mat.mats['iron:2'] = 0;
+      if (tradeDo('wood') !== null || tradeDo('0') !== null || matN('iron', 2) !== 1) e.push('5 換 1／換木被擋');
+      /* 商會列的 data-fg 鍵：tradeDo('c-m-T') 走 tradeCur */
+      now += 3600;
+      if (tradeDo('tran-iron-6') !== null || S.mat.tran !== 117) e.push('tradeDo 鍵 ' + S.mat.tran);
+      /* 富豪石還沒開始掉（鍛造台 Lv3）不能換 */
+      S.camp.forge = 3;
+      if (tradeCur('hide', 1, 'rich') !== '富豪石還沒開始掉') e.push('富豪石未開 ' + tradeCur('hide', 1, 'rich'));
+      S.camp.forge = 20;
+      /* 離線：照真實時間（Date.now）回復；存檔來回（JSON）後，存檔時 0 顆、離線 30 分回來 58、離線 5 小時回來 117（最多 1 小時份） */
+      tradeNow = n0;
+      const t = Date.now() / 1000;
+      S.mat.tq = { tran: { n: 0, at: t - 1800 }, rich: { n: 0, at: t - 5 * 3600 }, exalt: { n: 3, at: t - 3600 } };
+      S.mat = JSON.parse(JSON.stringify(S.mat));
+      if (tradeLeft('tran') !== 58 || tradeLeft('rich') !== 13 || tradeLeft('exalt') !== 26) e.push('離線 ' + [tradeLeft('tran'), tradeLeft('rich'), tradeLeft('exalt')]);
+      /* 舊物件沒有 tq（不搬遷）：當作空的、從 0 起算 */
+      delete S.mat.tq;
+      if (tradeLeft('aug') !== 0 || !S.mat.tq.aug) e.push('沒有 tq');
+      if (JSON.stringify(newMat().tq) !== '{}') e.push('newMat 沒有 tq');
+      tradeNow = n0; S.mat = m0; S.camp = c0; S.gold = g0;
+      return e.join(' | ');
+    })()`);
+    ok(
+      '材料來源 v1.1 §6 商會換打造通貨：換率照 §6.1（木 243、鐵 4,860／3^(T−1)、皮 48,600、靈絲 24,300）；每小時額度 117／117／13／26，倉房 Lv4 開張時 0、連續回復、最多存 1 小時、離線照時間（存檔來回）；木和鐵共用蛻變石；用完回「蛻變石這小時換完了」不扣不給；材料不夠不吃額度；不碰靈魂、金；5 換 1、蛻變石換木 50 不吃額度；沒有 tq 當空的',
+      e === '',
+      e
+    );
+  }
   ok(
     'M1 材料顯示名：iron:1＝生鐵、hide:6＝神獸革、silk:3＝彩絲、木＝木；內部鍵仍是 iron:1、MATS.iron.n 仍是鐵',
     R(

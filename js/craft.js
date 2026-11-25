@@ -4,7 +4,7 @@
 'use strict';
 
 /* ---------- 材料（S.mat）：靈魂＋10 種通貨（data.js 的 CUR），精髓另放 S.mat.ess＝{ '類:T': 數量 } ---------- */
-const newMat = () => ({ soul: 0, ...Object.fromEntries(Object.keys(CUR).map(k => [k, 0])), ess: {}, mats: {} });
+const newMat = () => ({ soul: 0, ...Object.fromEntries(Object.keys(CUR).map(k => [k, 0])), ess: {}, mats: {}, tq: {} });
 const MAT = () => (S.mat = S.mat || newMat());
 const essKey = (cls, T) => cls + ':' + T;
 const essName = key => {
@@ -410,7 +410,21 @@ const campMax = b => CAMP[b].length;
 function campNext(b) {
   const lv = (S.camp || newCamp())[b] || 0,
     r = CAMP[b][lv];
-  return r ? { lv: lv + 1, ...r } : null;
+  return r ? { lv: lv + 1, ...r, any: 1 } : null;
+}
+/* 設施升級（campNext 帶 any）的鐵／皮／靈絲同種類任何階都收（材料來源.md 定稿 v1.1 §3）：T 階 1 個＝3^(T−1) 個第 1 階。
+   matAny＝這一種折成 T 階有幾個（捨去）；matPlan＝付 n 個 T 階要用掉的 [[階, 個]…]：先用最低階、最後一階無條件進位、多付不找（夠不夠由 matAny 先擋）。
+   打造、商會照舊要那一階 */
+const matEq = T => 3 ** (T - 1);
+const matAny = (k, T) => Math.floor([1, 2, 3, 4, 5, 6].reduce((a, u) => a + matN(k, u) * matEq(u), 0) / matEq(T));
+function matPlan(k, T, n) {
+  const L = [];
+  let need = n * matEq(T);
+  for (let u = 1; u <= 6 && need > 0; u++) {
+    const x = Math.min(matN(k, u), Math.ceil(need / matEq(u)));
+    if (x > 0) L.push([u, x]), (need -= x * matEq(u));
+  }
+  return L;
 }
 /* 一筆費用（解鎖表的一級）的每一項：[名字, 有, 要, 鍵（soul／wood／材料鍵／gold／cur:通貨）] */
 function costRows(c) {
@@ -418,7 +432,8 @@ function costRows(c) {
     L = [];
   if (c.soul) L.push(['靈魂', M.soul, c.soul, 'soul']);
   if (c.wood) L.push(['木', matN('wood'), c.wood, 'wood']);
-  for (const key in c.mats || {}) L.push([matName(...matOf(key)), matN(...matOf(key)), c.mats[key], key]);
+  for (const key in c.mats || {})
+    L.push([matName(...matOf(key)), (c.any ? matAny : matN)(...matOf(key)), c.mats[key], key]);
   if (c.gold) L.push(['金', S.gold, c.gold, 'gold']);
   for (const k in c.cur || {}) L.push([CUR[k].n, M[k] || 0, c.cur[k], 'cur:' + k]);
   return L;
@@ -427,7 +442,11 @@ function costPay(c) {
   const M = MAT();
   M.soul -= c.soul || 0;
   if (c.wood) matAdd('wood', 0, -c.wood);
-  for (const key in c.mats || {}) matAdd(...matOf(key), -c.mats[key]);
+  for (const key in c.mats || {}) {
+    const [k, T] = matOf(key);
+    if (c.any && T) for (const [u, x] of matPlan(k, T, c.mats[key])) matAdd(k, u, -x);
+    else matAdd(k, T, -c.mats[key]);
+  }
   S.gold -= c.gold || 0;
   for (const k in c.cur || {}) M[k] -= c.cur[k];
 }
@@ -445,6 +464,9 @@ function campUp(b) {
   S.camp[b] = n.lv;
   /* 斥候營：星級預設跟著上限 */
   if (b === 'scout') S.star = campN('star');
+  /* 商會開張那一刻，每種通貨的每小時額度從 0 起算（材料來源.md v1.1 §6.3） */
+  if (b === 'store' && campCan('trade') && !Object.keys(MAT().tq || {}).length)
+    MAT().tq = Object.fromEntries(Object.keys(TRADE_QH).map(c => [c, { n: 0, at: tradeNow() }]));
   sayOnce('camp:' + b + ':' + n.lv, campSay(b, n.lv));
   return null;
 }
@@ -519,6 +541,41 @@ function sayNext() {
   setTimeout(() => (SAY.shift(), sayNext()), 2400);
 }
 
+/* ---------- 商會：材料換打造通貨（倉房 Lv4；材料來源.md 定稿 v1.1 §6） ----------
+   TRADE_CUR[材料][通貨]＝換 1 顆要幾個第 1 階（§6.1）；T 階 1 個＝3^(T−1) 個第 1 階，木沒有階。不換出靈魂、金 */
+const TRADE_CUR = {
+  wood: { tran: 243, aug: 243 },
+  iron: { tran: 4860, aug: 4860 },
+  hide: { rich: 48600 },
+  silk: { exalt: 24300 }
+};
+/* T 階的 m 換 n 顆 c 要幾個（木 T＝0） */
+const tradeCost = (m, T, c, n = 1) => (TRADE_CUR[m][c] * n) / (T ? matEq(T) : 1);
+/* 每小時額度（§6.3）：每種通貨每小時固定顆數，木和鐵共用蛻變石、增幅石；連續回復、最多存 1 小時、從 0 起算；
+   照真實時間補，所以離線也照時間回復。S.mat.tq[c]＝{ n 現有, at 秒 }。tradeNow＝秒（測試可覆寫） */
+const TRADE_QH = { tran: 117, aug: 117, rich: 13, exalt: 26 };
+let tradeNow = () => Date.now() / 1000;
+function tradeLeft(c) {
+  const Q = (MAT().tq = MAT().tq || {}),
+    now = tradeNow(),
+    o = Q[c] || (Q[c] = { n: 0, at: now });
+  o.n = Math.min(TRADE_QH[c], o.n + (Math.max(0, now - o.at) * TRADE_QH[c]) / 3600);
+  o.at = now;
+  return Math.floor(o.n);
+}
+/* 換：材料夠了才看額度；額度用完不扣材料、不給通貨。回 null＝成功、字串＝原因 */
+function tradeCur(m, T, c, n = 1) {
+  if (!campCan('trade')) return '倉房 Lv4 才開商會';
+  if (!(TRADE_CUR[m] && TRADE_CUR[m][c]) || (m === 'wood') !== !T) return '換不了';
+  if (!campCan(curKey(c))) return CUR[c].n + '還沒開始掉';
+  const q = tradeCost(m, T, c, n);
+  if (matN(m, T) < q) return (T ? matName(m, T) : '木') + '不夠';
+  if (tradeLeft(c) < n) return CUR[c].n + '這小時換完了';
+  matAdd(m, T, -q);
+  MAT().tq[c].n -= n;
+  MAT()[c] = (MAT()[c] || 0) + n;
+  return null;
+}
 /* 材料階的上限＝瞭望台開到最深的主幹地點（3.2） */
 const tierCap = () => matTier(TRUNK[Math.min(S.camp.watch || 0, TRUNK.length - 1)].lv);
 /* 靈魂每分鐘：本次掛機最近 5 分鐘的平均（SES.sm 每 10 秒記一筆 [時間, 累計靈魂]，數字不每秒亂跳）；

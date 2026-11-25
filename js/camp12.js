@@ -178,6 +178,19 @@ const c12EtaT = m => {
     h = Math.floor(t / 60);
   return h ? `約 ${h} 時${t % 60 ? ` ${t % 60} 分` : ''}` : `約 ${t} 分`;
 };
+/* 付款預覽（camp.md v1.0 04 示意圖費用列 D07）：「任何階都收・用掉：熟鐵 30、百煉鋼 140」；只用到那一階本身時不寫 */
+const c12PlanHTML = (key, n) => {
+  const t = matPlanTxt(key, n);
+  return t ? `<small class="c12plan">${t}</small>` : '';
+};
+function matPlanTxt(key, n) {
+  const [k, T] = matOf(key);
+  if (!T || matAny(k, T) < n) return '';
+  const L = matPlan(k, T, n);
+  return L.length === 1 && L[0][0] === T
+    ? ''
+    : '任何階都收・用掉：' + L.map(([u, x]) => `${matName(k, u)} ${fullN(x, 'cost')}`).join('、');
+}
 /* 最缺的那一列（同一個估計給 toast） */
 function c12Worst(c) {
   let w = null;
@@ -276,7 +289,7 @@ function c12OneHTML(b) {
           .map(([nm, h, wn, key]) => {
             const s = h < wn,
               e = s ? c12EtaT(c12Min(key, wn - h)) : '';
-            return `<li class="${s ? 'short' : 'full'} ${s && C12.flash === key && now - C12.ft < 700 ? 'flash' : ''}">${icHTML(c12Ic(key))}<b>${nm}</b><span>${abbr(h, 'own')}／${abbr(wn, 'cost')}</span><i class="c12bar"><i style="width:${Math.min(100, (100 * Math.max(0, h)) / wn).toFixed(1)}%"></i></i><i class="c12sq"></i>${e ? `<small>${e}</small>` : ''}</li>`;
+            return `<li class="${s ? 'short' : 'full'} ${s && C12.flash === key && now - C12.ft < 700 ? 'flash' : ''}">${icHTML(c12Ic(key))}<b>${nm}</b><span>${abbr(h, 'own')}／${abbr(wn, 'cost')}</span><i class="c12bar"><i style="width:${Math.min(100, (100 * Math.max(0, h)) / wn).toFixed(1)}%"></i></i><i class="c12sq"></i>${e ? `<small>${e}</small>` : ''}${c12PlanHTML(key, wn)}</li>`;
           })
           .join('')}</ul>`
       : ''
