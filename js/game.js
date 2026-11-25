@@ -31,7 +31,7 @@ function newGame() {
     gods: [],
     godOn: null,
     jewels: [],
-    jsock: [null, null, null, null, null, null],
+    jsock: [] /* 18 個珠寶孔（PT_J 的順序）鑲了哪顆 */,
     /* 世界地圖（world.js）：走過的節點、每節點的星級、在刷的節點、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
     world: newWorld(),
     hunt: newHunt(),

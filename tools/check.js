@@ -209,9 +209,9 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     q = [...G.PT_START];
   while (q.length) for (const o of T.ADJ[q.pop()] || []) if (!seen.has(o)) seen.add(o), q.push(o);
   ok(
-    `天賦樹 ${T.N.length} 個點，每個都從起點連得到`,
-    T.N.length >= 1000 && !bad.length && seen.size === T.N.length,
-    `${seen.size}/${T.N.length}`
+    `天賦樹 ${T.N.length} 個點＋${T.J.length} 個珠寶孔，每個都從起點連得到`,
+    T.N.length >= 1000 && !bad.length && seen.size === T.N.length + T.J.length,
+    `${seen.size}/${T.N.length + T.J.length}`
   );
 }
 {
@@ -466,7 +466,7 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     /* 4B 新增與替代的大點名字全部上樹（排在 nt 前段才保證抽得到；提案指定的 5 個曾經沒上樹）；新變體各至少 6 個小點 */
     const NEWN =
         `巨盾 風箏手 致命精準 靜電充能 靈能壁 鎖鏈暴擊 貫矛 蠻力 重壓 山岳 破軍 燎原 餘燼不熄 重霜 導電 凋零之觸 血債難償 凌遲 細切 蝕骨之毒 連環打擊 震顫 廣咒 惡語
-        詭射 短射 分支閃電 濕透 忍痛 不滅怒火 鬥志回流 炎熱餘韻 高貴之狼 節奏脈輪 連環制動 纏綿 易傷體質 漫長寒冬 綿長出血 纏毒 強電流 連鎖咒術 不受阻 清場 符文護佑
+        詭射 短射 分支閃電 濕透 忍痛 不滅怒火 鬥志回流 炎熱餘韻 高貴之狼 連擊節奏 連環制動 纏綿 易傷體質 漫長寒冬 綿長出血 纏毒 強電流 連鎖咒術 不受阻 清場 符文護佑
         鐵壁之心 岩心 靈能屏障 不撓`.split(/\s+/),
       onTree = new Set(T.N.filter(n => n.big === 1).map(n => n.n)),
       smallOf = k => T.N.filter(n => !n.big && n.s && k in n.s).length;
@@ -9748,7 +9748,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, PT_J, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwDrop })',
     ctx
   );
   const mul = seed => () => {
@@ -10210,8 +10210,9 @@ const ASC_COMBOS = `const combos = k => {
       [...new Set(bad)].slice(0, 4).join('、')
     );
   });
-  /* 6e. 天賦樹六區與珠寶孔（0.2.84）：每個點都分到一區、六區大小差不多、起點在自己那一區；一區 40 點開孔（起點不算）；
-     珠寶的大點進 stats、已經點了的與兩顆重複的只算一次、孔沒開不生效；鑲上換位、拆掉、收藏上限 */
+  /* 6e. 天賦樹六區與珠寶孔：每個點都分到一區、六區大小差不多、起點在自己那一區；
+     珠寶孔 18 個（S/talent-tree.md v1.0.1）：每孔是獨立節點、連到表上的掛點（J3c＝t210）、從起點走得到、點亮（花 1 點）才開；
+     珠寶的大點進 stats、已經點了的與兩顆重複的只算一次、孔沒開不生效；鑲上換位、丟棄（不給東西、鑲著的不能丟）、收藏上限 */
   seeded(7808, () => {
     const bad = [],
       S = () => vm.runInContext('S', ctx),
@@ -10224,43 +10225,54 @@ const ASC_COMBOS = `const combos = k => {
     if (Math.min(...sz) < 550 || Math.max(...sz) > 750) bad.push('六區大小 ' + sz);
     F.PT_START.forEach((k, i) => P.I[k].sec !== i && bad.push('起點不在自己那一區 ' + k));
     if (F.PT_NOTABLES.some(id => P.I[id].big !== 1 || P.I[id].gate || P.I[id].lock)) bad.push('珠寶抽得到不是大點的');
-    const sec0 = P.N.filter(n => n.sec === 0 && !n.gate && n.big === 0).map(n => n.id),
-      base = n => ({
-        lv: 100,
-        eq: Object.fromEntries(F.EQS.map(e => [e.k, null])),
-        pt: [...F.PT_START, ...sec0.slice(0, n)],
-        at: [],
-        auras: [],
-        charms: [],
-        jewels: [],
-        jsock: [null, null, null, null, null, null]
-      });
-    if (F.secCount(base(40))[0] !== 40 || !F.sockOpen(base(40), 0) || F.sockOpen(base(39), 0)) bad.push('40 點開孔');
+    if (F.PT_J.length !== 18 || P.J.length !== 18) bad.push('珠寶孔不是 18 個');
+    if (P.I.J3c.an !== 't210' || P.I.J1a.an !== 't89' || P.I.J1c.an !== 't153') bad.push('掛點');
+    if (P.J.filter(n => n.out).length !== 6) bad.push('外圈大孔不是 6 個');
+    /* 從起點走到 J0a 的最短路：點亮整條（含孔）＝開；少了孔＝沒開 */
+    const prev = {},
+      q = [...F.PT_START];
+    q.forEach(k => (prev[k] = null));
+    for (let i = 0; i < q.length; i++)
+      for (const o of P.ADJ[q[i]] || []) if (!(o in prev) && !P.I[o].lock) (prev[o] = q[i]), q.push(o);
+    for (const n of P.J) if (!(n.id in prev) || !P.ADJ[n.an].includes(n.id)) bad.push('孔走不到 ' + n.id);
+    const road = [];
+    for (let x = 'J0a'; x && !F.PT_START.includes(x); x = prev[x]) road.unshift(x);
+    const base = n => ({
+      lv: 100,
+      eq: Object.fromEntries(F.EQS.map(e => [e.k, null])),
+      pt: [...F.PT_START, ...road.slice(0, n ? road.length : road.length - 1)],
+      at: [],
+      auras: [],
+      charms: [],
+      jewels: [],
+      jsock: []
+    });
+    if (!F.sockOpen(base(1), 0) || F.sockOpen(base(0), 0) || F.sockOpen(base(1), 1)) bad.push('點亮孔才開');
     /* 找一個加 hpP 的大點來驗 stats */
     const nt = F.PT_NOTABLES.find(id => P.I[id].s.hpP > 0 && !P.I[id].s.only);
     const j = { id: 'j1', nt: [nt] },
       j2 = { id: 'j2', nt: [nt] },
-      on = base(40);
+      on = base(1);
     on.jewels = [j, j2];
-    on.jsock = ['j1', 'j2', null, null, null, null];
-    const off = base(39);
+    on.jsock = ['j1', 'j2'];
+    const off = base(0);
     off.jewels = [j];
-    off.jsock = ['j1', null, null, null, null, null];
-    const h0 = F.stats(base(40)).hp,
+    off.jsock = ['j1'];
+    const h0 = F.stats(base(1)).hp,
       h1 = F.stats(on).hp,
       hOff = F.stats(off).hp,
-      h39 = F.stats(base(39)).hp;
+      h39 = F.stats(base(0)).hp;
     if (!(h1 > h0) || hOff !== h39) bad.push(`珠寶進 stats ${h0} ${h1} ${hOff} ${h39}`);
     /* 第二顆同一個大點放在 1 區（孔沒開），只算一次 */
     if (F.jewelNodes(on).length !== 1) bad.push('重複的大點算了兩次');
-    const own = base(40);
+    const own = base(1);
     own.pt.push(nt);
     own.jewels = [j];
-    own.jsock = ['j1', null, null, null, null, null];
+    own.jsock = ['j1'];
     if (F.jewelNodes(own).length) bad.push('已經點了的大點又算一次');
-    /* 收藏、鑲上、拆掉 */
+    /* 收藏、鑲上、丟棄 */
     setS();
-    vm.runInContext('S.jewels = []; S.jsock = [null, null, null, null, null, null]', ctx);
+    vm.runInContext('S.jewels = []; S.jsock = []', ctx);
     const t1 = F.jwGain('chiyou'),
       t2 = F.jwGain('zhuolu');
     if (
@@ -10272,15 +10284,15 @@ const ASC_COMBOS = `const combos = k => {
       bad.push('蚩尤 1、涿鹿兵主 2 個大點');
     const id = S().jewels[0].id;
     F.jwPut(2, id);
-    F.jwPut(4, id);
-    if (S().jsock[2] || S().jsock[4] !== id) bad.push('換孔');
+    F.jwPut(17, id);
+    if (S().jsock[2] || S().jsock[17] !== id) bad.push('換孔');
     const so = F.MAT().soul;
-    if (!F.jwSalvage(id) || F.jwSalvage(S().jewels[1].id) || F.MAT().soul !== so + 200) bad.push('拆掉');
+    if (!F.jwDrop(id) || F.jwDrop(S().jewels[1].id) || F.MAT().soul !== so || S().jewels.length !== 1) bad.push('丟棄');
     for (let i = 0; i < F.JEWEL.keep + 3; i++) F.jwGain('chiyou');
     if (S().jewels.length !== F.JEWEL.keep) bad.push('收藏上限');
     vm.runInContext('ST = null', ctx);
     ok(
-      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能拆、收藏上限`,
+      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；珠寶孔 18 個（外圈大孔 6）、掛點照表（J3c＝t210）、都走得到、點亮孔（1 點）才開；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能丟、丟棄不給東西、收藏上限`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );

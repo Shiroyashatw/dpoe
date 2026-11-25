@@ -36,6 +36,39 @@ function treeCanRefund(id) {
   while (q.length) for (const o of adj[q.pop()] || []) if (have.has(o) && !seen.has(o)) seen.add(o), q.push(o);
   return seen.size === have.size;
 }
+/* 點在畫面上的框（只量圈，不含珠寶孔旁的字、基石外圈） */
+const ndRect = id => TEL.n.get(id).querySelector('circle:not(.r2)').getBoundingClientRect();
+/* 點的半徑（世界座標）：基石 30、起點 20、大點 19、小點 10；珠寶孔前期／交會 14、外圈大孔 20 */
+const TR = n => (n.jw >= 0 ? (n.out ? 20 : 14) : n.big === 2 ? 30 : n.gate ? 20 : n.big ? 19 : 10);
+/* 能力值點的三種標記（CSS 照 .a-s／.a-d／.a-i 只顯示選的那一種；字母只在點 ≥24px 時畫，#tsvg.lt） */
+const ATT_SVG =
+  '<g class="am"><rect class="as" x="-7" y="-7" width="14" height="14"/><path class="ad" d="M0 -9L9 0L0 9L-9 0Z"/><circle class="ai" r="7.5"/><text class="al">S</text><text class="al">D</text><text class="al">I</text></g>';
+/* 鎖住的點連成一團一團（PT_WP_LOCK、PT_RSV）：每團的中心、半徑、字 */
+function treeLocks() {
+  const seen = new Set(),
+    out = [];
+  for (const n of PTREE.N) {
+    if (!n.lock || seen.has(n.id)) continue;
+    const g = [],
+      q = [n];
+    seen.add(n.id);
+    while (q.length) {
+      const a = q.pop();
+      g.push(a);
+      for (const o of PTREE.ADJ[a.id] || []) if (PTREE.I[o].lock && !seen.has(o)) seen.add(o), q.push(PTREE.I[o]);
+    }
+    const x = g.reduce((t, a) => t + a.x, 0) / g.length,
+      y = g.reduce((t, a) => t + a.y, 0) / g.length;
+    out.push({
+      x,
+      y,
+      r: Math.max(...g.map(a => Math.hypot(a.x - x, a.y - y) + TR(a))) + 24,
+      t: n.d || '還沒開放',
+      ids: g.map(a => a.id)
+    });
+  }
+  return out;
+}
 /* 看得清楚圖示的縮放（小點 25px）；小於 Z_TAP 時手機點一下只放大過去、不選點（0.4.7） */
 const Z_NEAR = 1.25,
   Z_TAP = 0.7;
@@ -79,6 +112,7 @@ function treeOpen() {
   treeView();
   treeCard();
   if (PORT()) sheetSync();
+  if (!TPAD.on) (TPAD.on = 1), requestAnimationFrame(treePad);
   const w = TREE.vw,
     h = TREE.vh;
   treeSize();
@@ -115,6 +149,8 @@ function treeClose() {
   cancelAnimationFrame(TREE.fly);
   treeAttrClose();
   treeSockOpen(null);
+  TREE.hov = null;
+  TREE.alt = 0;
   $('ptree').hidden = true;
   hideTip();
   if (PORT()) sheetSync();
@@ -146,37 +182,60 @@ function treeRender() {
       b
     ]);
   }
+  /* 珠寶孔的線（孔→掛點） */
+  for (const n of PTREE.J) {
+    const A = PTREE.I[n.an];
+    cell(eC, (A.x + n.x) / 2, (A.y + n.y) / 2, [
+      line(A, n, have.has(n.id) && have.has(n.an), have.has(n.an)),
+      n.an,
+      n.id
+    ]);
+  }
   let html = Object.entries(eC)
     .map(([k, L]) => `<g class="tc e" data-c="${k}" style="display:none">${L.map(x => x[0]).join('')}</g>`)
     .join('');
   /* 圖示：每個點直接一個 <image>（0.3.3：原本用 <use> 引用 <defs>，每個 <use> 都要複製一份，手機打開排版慢一倍）；
      網址 treeIcons 補（artIconURL 快取，同一張圖共用一個字串） */
   for (const n of PTREE.N) {
-    const r = n.big === 2 ? 30 : n.gate ? 20 : n.big ? 19 : 10,
+    const r = TR(n),
       st = have.has(n.id) ? 'on' : treeCan(n.id) ? 'can' : 'off',
       s = r * (n.big ? 1.4 : 1.3),
-      img =
-        n.ic && typeof ART !== 'undefined' && ART[n.ic]
-          ? `<image class="ti" data-ic="${n.ic}" width="1" height="1" transform="translate(${-s / 2} ${-s / 2}) scale(${s})"/>`
-          : '';
+      art = n.ic && typeof ART !== 'undefined' && ART[n.ic],
+      /* 圖：有圖貼圖；缺圖畫「佔位」虛線框（S/talent-tree.md「圖示與佔位」：缺圖狀態必須可辨） */
+      img = art
+        ? `<image class="ti" data-ic="${n.ic}" width="1" height="1" transform="translate(${-s / 2} ${-s / 2}) scale(${s})"/>`
+        : n.lock
+          ? ''
+          : `<rect class="ph" x="${-s / 3}" y="${-s / 3}" width="${(s * 2) / 3}" height="${(s * 2) / 3}"/>`,
+      /* 能力值點：選了才畫形狀＋字母（力量方形 S、敏捷菱形 D、智慧圓形 I）；沒選不畫（不畫成力量） */
+      att = n.s.attr ? ATT_SVG : '',
+      ring = n.big === 2 ? `<circle class="r2" r="${r + 7}"/>` : '';
     cell(
       nC,
       n.x,
       n.y,
-      `<g class="nd ${st} b${n.big}${n.lock ? ' lk' : ''}${TREE.sel === n.id ? ' sel' : ''}" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})" style="--c:${PT_THEME[n.th].c}"><circle r="${r}"/>${img}</g>`
+      `<g class="nd ${st} b${n.big}${n.lock ? ' lk' : ''}${TREE.sel === n.id ? ' sel' : ''}" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})" style="--c:${PT_THEME[n.th].c}">${ring}<circle r="${r}"/>${img}${att}</g>`
     );
   }
+  /* 珠寶孔：程式畫的圈，孔上標「空」／「已鑲」（treeRefresh 換字）；還沒點亮的旁邊標「還沒點亮（開孔要 1 點）」 */
+  for (const n of PTREE.J)
+    cell(
+      nC,
+      n.x,
+      n.y,
+      `<g class="nd js${n.out ? ' jo' : ''} off b0" data-n="${n.id}" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})"><circle r="${TR(n)}"/><text class="jt" y="1">空</text><text class="jl" x="${TR(n) + 8}" y="1">還沒點亮（開孔要 1 點）</text></g>`
+    );
   html += Object.entries(nC)
     .map(([k, L]) => `<g class="tc" data-c="${k}" style="display:none">${L.join('')}</g>`)
     .join('');
   html += `<circle class="hollow" r="${PT_R0 - 40}"/>`;
-  /* 六區（0.2.84）：分區線（兩區中間，從挖空的地方畫到最外圈）、每區外緣的珠寶孔（treeSocks 在 treeRefresh 更新） */
-  const R1 = treeR();
-  html += PTREE.SECA.map(a => {
-    const b = a + Math.PI / 6;
-    return `<line class="secl" x1="${(Math.cos(b) * PT_R0).toFixed(0)}" y1="${(Math.sin(b) * PT_R0).toFixed(0)}" x2="${(Math.cos(b) * R1).toFixed(0)}" y2="${(Math.sin(b) * R1).toFixed(0)}"/>`;
-  }).join('');
-  html += '<g id="tsocks"></g>';
+  /* 還沒開放的（鎖住）：每一團畫一個虛線圈，標「還沒開放：「鏈錘術」」（玩家畫面不寫「叢集」） */
+  html += treeLocks()
+    .map(
+      g =>
+        `<g class="lkc"><circle cx="${g.x.toFixed(0)}" cy="${g.y.toFixed(0)}" r="${g.r.toFixed(0)}"/><text x="${g.x.toFixed(0)}" y="${(g.y - g.r - 14).toFixed(0)}">${esc(g.t)}</text></g>`
+    )
+    .join('');
   /* 六區的名字：縮小看全圖時才顯示（#tsvg.far1），點一下放大到那一區 */
   html += PT_START.map((id, i) => {
     /* M1-03：寫在起點往外的那一側（以前一律寫在上面，下半圈三條路的名字掉進中間的昇華圓）；左右兩邊往中間收，直立看全圖時才不會被切掉 */
@@ -197,17 +256,15 @@ function treeRender() {
     <b>天賦樹</b>
     <span class="tleft" title="每級 1 點，逢 10 級 +3">剩 <b id="tpts"></b> 點</span>
     <input id="tfind" type="search" placeholder="搜尋天賦" aria-label="搜尋天賦" autocomplete="off"><button id="tfound" data-ta="next" aria-live="polite" hidden></button>
-    <button class="x" aria-label="回到我點到的地方" title="回到我點到的地方" data-ta="mine">${ICO.aim}</button>
+    <button class="x tmine" aria-label="回到我點到的地方" title="回到我點到的地方" data-ta="mine">回</button>
     <button class="x" aria-label="關閉" data-ta="close">${ICO.x}</button></div>
   <div id="tview"><svg id="tsvg" viewBox="${B.x} ${B.y} ${B.w} ${B.h}" width="${B.w}" height="${B.h}"><g id="tg">${html}</g></svg></div>
-  <canvas id="tmini" width="168" height="168" aria-label="整棵樹的總覽，點一下移過去" hidden></canvas>
+  <div id="tminiw" hidden><b>整棵樹</b><canvas id="tmini" width="168" height="168" aria-label="整棵樹的總覽，點一下移過去"></canvas></div>
   <button class="btn" data-ta="reset" id="treset">重置天賦</button>
   <div id="tcard" class="tcard" hidden></div>
-  <p class="thelp"><b>顏色</b> ${Object.keys(PT_FAM)
-    .map(k => `<span class="lg" style="--c:${PT_FAM[k]}">${PT_FAMN[k]}</span>`)
-    .join(
-      ''
-    )}${PTREE.N.some(n => n.lock) ? '<span class="lg lk">鎖住＝還沒開放</span>　' : ''}<b>操作</b> 點亮著的點＝點下去，再點＝退回 · 拖曳移動 · 滾輪縮放　金框大圓是基石（有代價）</p>`;
+  <div id="thov" class="thov" role="tooltip" hidden></div>
+  <div id="tterm" class="tterm" role="tooltip" hidden></div>
+  <p class="thelp"><b>操作</b>點亮著的點＝點下去，再點＝退回　·　拖曳移動　·　滾輪縮放　·　雙圈大圓是基石（有代價）　·　虛線圈＝還沒開放　·　名詞停留 0.4 秒／手把 R3</p>`;
   /* 之後選取、點亮只改 class，不重畫整棵樹（一千多個點，手機重畫會卡） */
   const tg = $('tg'),
     eEls = tg.querySelectorAll('.tc.e');
@@ -253,7 +310,9 @@ function treeCull() {
     if (on !== c.on && (on || !TREE.mov)) (c.on = on), (c.el.style.display = on ? '' : 'none');
   }
   const far = z < 0.2,
-    far1 = z < Z_TAP;
+    far1 = z < Z_TAP,
+    lt = z * 20 >= 24; /* 能力值點 ≥24px 才畫 S／D／I */
+  if (lt !== TREE.lt) (TREE.lt = lt), $('tsvg').classList.toggle('lt', lt);
   if (far !== TREE.far) (TREE.far = far), $('tsvg').classList.toggle('far', far);
   /* 小點的圖示小於 9px 就不畫（看不出是什麼，三千多張圖很吃效能）；六區的名字這時才顯示 */
   if (far1 !== TREE.far1) (TREE.far1 = far1), $('tsvg').classList.toggle('far1', far1);
@@ -267,8 +326,13 @@ function treeRefresh() {
   for (const [id, el] of TEL.n) {
     const n = PTREE.I[id],
       st = have.has(id) ? 'on' : left && !n.lock && (PTREE.ADJ[id] || []).some(o => have.has(o)) ? 'can' : 'off',
-      cls = `nd ${st} b${n.big}${n.lock ? ' lk' : ''}${TREE.sel === id ? ' sel' : ''}${path.has(id) ? ' pth' : ''}${hits && hits.has(id) ? (TREE.hits[TREE.hi] === id ? ' hit cur' : ' hit') : ''}`;
-    if (TEL.k.get(id) !== cls) TEL.k.set(id, cls), el.setAttribute('class', cls);
+      a = n.s.attr && have.has(id) && S.ptA[id],
+      j = n.jw >= 0 && (S.jsock || [])[n.jw] && jwOf(S, S.jsock[n.jw]),
+      cls = `nd ${st} b${n.big}${n.lock ? ' lk' : ''}${n.jw >= 0 ? ` js${n.out ? ' jo' : ''}${j ? ' full' : ''}` : ''}${a ? ' a-' + a : ''}${TREE.sel === id ? ' sel' : ''}${path.has(id) ? ' pth' : ''}${hits && hits.has(id) ? (TREE.hits[TREE.hi] === id ? ' hit cur' : ' hit') : ''}`;
+    if (TEL.k.get(id) !== cls) {
+      TEL.k.set(id, cls), el.setAttribute('class', cls);
+      if (n.jw >= 0) el.querySelector('.jt').textContent = j ? '已鑲' : '空';
+    }
   }
   for (const x of TEL.e) {
     const cls = have.has(x[1]) && have.has(x[2]) ? 'on' : have.has(x[1]) || have.has(x[2]) ? 'near' : '';
@@ -286,57 +350,46 @@ function treeRefresh() {
       : '點這裡選一個';
     go.classList.toggle('todo', !S.asc || ascLeft() > 0);
   }
-  treeSocks();
   $('tpts').textContent = ptLeft();
   $('tpts').className = ptLeft() > 0 ? 'c-gold' : '';
   $('treset').hidden = S.pt.length <= PT_START.length;
   treeMini();
 }
-/* 最外圈的半徑（分區線畫到這裡，珠寶孔畫在外面一點） */
-let TR1 = 0;
-const treeR = () => TR1 || (TR1 = Math.max(...PTREE.N.map(n => Math.hypot(n.x, n.y))) + 60);
 const secName = i => PTREE.I[PT_START[i]].n;
 /* 六條路的名字離起點多遠（往外；看全圖時字放大到 150，要讓開起點） */
 const SECN_OUT = 130;
-/* 六個珠寶孔（0.2.84）：進度 x／40；開了是亮的；有珠寶但點數不夠＝鎖住（紅字） */
-function treeSocks() {
-  const g = $('tsocks');
-  if (!g) return;
-  const c = secCount(S),
-    R = treeR() + 230;
-  g.innerHTML = PTREE.SECA.map((a, i) => {
-    const op = c[i] >= JEWEL.need,
-      j = (S.jsock || [])[i] && jwOf(S, S.jsock[i]),
-      st = j && !op ? 'lock' : op ? (j ? 'on' : 'open') : '',
-      txt = j && !op ? '鎖住' : op ? (j ? '已鑲' : '可鑲') : `${c[i]}／${JEWEL.need}`;
-    return `<g class="tsock ${st}" data-ta="sock:${i}" transform="translate(${(Math.cos(a) * R).toFixed(0)} ${(Math.sin(a) * R).toFixed(0)})"><circle r="170"/><text class="n" y="30">${txt}</text><text class="l" y="-70">${esc(secName(i))}</text><text class="l" y="115">珠寶孔</text></g>`;
-  }).join('');
-}
-/* 珠寶孔的選單：這一孔的狀態、裡面的珠寶（拔下）、收藏裡的珠寶（鑲上、拆） */
+/* 珠寶孔的面板（S/talent-tree.md 06／07）：孔的狀態、裡面的珠寶（拔下）、收藏裡的珠寶（鑲上）。畫面不出現 J1a 等代碼 */
+const JW_DROP = '珠寶打鬼門關、心魔幻境、凶地、陰兵借道才會掉。不保證第一顆。',
+  JW_NO = '珠寶無法分解，也不能打造或重鑄。',
+  /* 暫時說明（mumi 11/25 13:17 方案 A）：珠寶分頁上線後拿掉 */
+  JW_TMP = '珠寶分頁還沒上線，暫時不能丟棄';
+const jwState = n => {
+  const j = (S.jsock || [])[n.jw] && jwOf(S, S.jsock[n.jw]);
+  return [j, j ? '已鑲上' : S.pt.includes(n.id) ? '空' : '還沒點亮（開孔要 1 點）'];
+};
 function treeSockOpen(i) {
   treeAttrClose();
   $('tsockp') && $('tsockp').remove();
   if (i == null) return;
-  const c = secCount(S)[i],
-    op = c >= JEWEL.need,
-    cur = (S.jsock || [])[i],
-    nt = id => {
-      const n = PTREE.I[id];
-      return `<li><b>${esc(n.n)}</b>${S.pt.includes(id) ? ' <span class="c-dim">已點過，不重複計算</span>' : ''}<small>${statLines(n.s).map(esc).join('、')}</small></li>`;
-    },
+  const n = PTREE.J[i],
+    [cur, st] = jwState(n),
+    nts = j => j.nt.map(id => esc(PTREE.I[id].n) + (S.pt.includes(id) ? '（已點過，不重複計算）' : '')).join('　·　'),
     row = j => {
       const at = (S.jsock || []).indexOf(j.id);
-      return `<div class="jw ${j.id === cur ? 'on' : ''}"><div><b>${esc(jwName(j))}</b>${at >= 0 && at !== i ? `<span class="c-dim">（在${esc(secName(at))}）</span>` : ''}<ul>${j.nt.map(nt).join('')}</ul></div><span class="jw-b">${j.id === cur ? `<button class="btn" data-ta="jout:${i}">拔下</button>` : `<button class="btn pri" data-ta="jput:${i}:${j.id}">鑲上</button>`}${at < 0 ? `<button class="btn" data-ta="jx:${j.id}">拆</button>` : ''}</span></div>`;
+      return `<div class="jw"><div><b>${esc(jwName(j))}</b>${at >= 0 ? `<span class="c-dim">（在${esc(secName(PTREE.J[at].sec))}的珠寶孔）</span>` : ''}<small>${nts(j)}</small></div><button class="btn pri" data-ta="jput:${i}:${j.id}">鑲上</button></div>`;
     },
-    L = S.jewels || [],
     d = document.createElement('div');
   d.id = 'tsockp';
   d.dataset.i = i;
   d.className = 'tsockp';
-  d.innerHTML = `<div class="ph"><b>${esc(secName(i))}的珠寶孔</b><span class="${op ? 'c-good' : ''}">這一區 ${c}／${JEWEL.need} 點</span><button class="x" aria-label="關閉" data-ta="sockx">${ICO.x}</button></div>
-    ${cur && !op ? `<p class="c-bad">珠寶未生效：這一區再點 ${JEWEL.need - c} 點恢復</p>` : op ? '' : `<p class="fhint">這一區再點 ${JEWEL.need - c} 點才開孔；可以先鑲上，開孔後生效</p>`}
-    ${L.length ? L.map(row).join('') : '<p class="fhint">亡靈珠寶由山海寶盒的蚩尤、涿鹿兵主掉落</p>'}
-    <p class="fhint">珠寶的大點等同點亮天賦；已點過或重複的大點只算一次。拆掉換 200 靈魂。</p>`;
+  /* 已鑲：珠寶、拔下、不能丟；空：掉落句；收藏裡的珠寶（空孔才列，鑲上） */
+  d.innerHTML = `<b class="tt">${esc(secName(n.sec))}的珠寶孔${n.out ? '（大孔）' : ''}</b><button class="x" aria-label="關閉" data-ta="sockx">${ICO.x}</button>
+    <p class="sub">${cur ? '已鑲上' : st}</p>
+    ${
+      cur
+        ? `<p class="lead">${esc(jwName(cur))}　·　${nts(cur)}</p><p class="jn">珠寶的大點等同點亮天賦；已點過或重複的大點只算一次。</p><button class="btn" data-ta="jout:${i}">拔下</button><p class="jn">鑲著的珠寶不能丟棄。${JW_NO}丟棄（在倉庫的珠寶分頁，長按確認）不給任何東西。</p>`
+        : `<p class="lead">這個孔是空的。</p><p class="jn">${JW_DROP}</p><p class="jn">${JW_NO}空孔可先看，不藏起來。</p>${(S.jewels || []).map(row).join('')}`
+    }<p class="jn jtmp">${JW_TMP}</p>`;
   $('ptree').appendChild(d);
 }
 let TBOX = null;
@@ -348,9 +401,8 @@ function treeBox() {
     y1 = 0;
   for (const n of PTREE.N)
     (x0 = Math.min(x0, n.x)), (y0 = Math.min(y0, n.y)), (x1 = Math.max(x1, n.x)), (y1 = Math.max(y1, n.y));
-  /* 外緣留給珠寶孔（0.2.84） */
-  const R = treeR() + 420;
-  (x0 = Math.min(x0, -R)), (y0 = Math.min(y0, -R)), (x1 = Math.max(x1, R)), (y1 = Math.max(y1, R));
+  for (const n of PTREE.J)
+    (x0 = Math.min(x0, n.x)), (y0 = Math.min(y0, n.y)), (x1 = Math.max(x1, n.x)), (y1 = Math.max(y1, n.y));
   return (TBOX = {
     x: Math.floor(x0 - 60),
     y: Math.floor(y0 - 60),
@@ -362,7 +414,10 @@ function treeBox() {
 function treeFind(q) {
   q = q.trim().toLowerCase();
   if (!TREE.txt)
-    TREE.txt = PTREE.N.map(n => [n.id, ((n.n || '') + ' ' + treeTip(n.id).replace(/<[^>]+>/g, ' ')).toLowerCase()]);
+    TREE.txt = PTREE.N.map(n => [
+      n.id,
+      [n.n || '', n.d || '', n.s.attr ? '能力值' : '', ...statLines(n.s)].join(' ').toLowerCase()
+    ]);
   TREE.hits = q ? TREE.txt.filter(([, t]) => t.includes(q)).map(([id]) => id) : [];
   TREE.hi = -1;
   TREE.hs = q ? new Set(TREE.hits) : null;
@@ -441,8 +496,9 @@ const TMINI = 168;
 function treeMini() {
   const c = $('tmini');
   if (!c || !TREE.open) return;
-  const show = TREE.z >= 0.45;
-  if (c.hidden === show) c.hidden = !show;
+  const show = !TOUCH.on || TREE.z >= 0.45,
+    w0 = $('tminiw');
+  if (w0.hidden === show) w0.hidden = !show;
   if (!show) return;
   const B = treeBox(),
     k = TMINI / Math.max(B.w, B.h),
@@ -578,9 +634,14 @@ function treeToggle(id) {
     if (why) return hudWarn(why);
     have.splice(have.indexOf(id), 1);
     delete S.ptA[id];
-  } else if (treeCan(id)) {
-    /* 過路點：先選要加哪一項能力值（treePick 才真的點下去） */
-    if (!asc && PTREE.I[id].s.attr) return treeAttrAsk(id);
+  } else if (!asc && !PTREE.I[id].lock && treePath(id).length) {
+    /* 沿路點亮（S/talent-tree.md 10、11）：不夠點不點；路上有能力值點先選一種，整條路都用它（treePick 才真的點下去） */
+    const path = treePath(id),
+      left = ptLeft();
+    if (path.length > left) return hudWarn(`要 ${path.length} 點才走得到，還差 ${path.length - left} 點`);
+    if (path.some(p => PTREE.I[p].s.attr)) return treeAttrAsk(id);
+    have.push(...path);
+  } else if (asc && treeCan(id)) {
     /* 點亮鎖欄位的點（甲蟲之殼、腹蛇之眼）：那欄的裝備脫到背包（滿了放臨時頁），都放不下就擋下來 */
     const why = asc && eqUnloadWhy(S, [...have, id]);
     if (why) return hudWarn(why);
@@ -596,30 +657,46 @@ function treeToggle(id) {
   sfx('equip');
   treeChanged();
 }
-/* 過路點的選擇框（0.2.42）：+5 力量／敏捷／智慧，點按鈕才點下去；再點別處或按取消關掉。
-   0.2.45：框貼在被點的那個點旁邊（以前固定在畫面最下面，離點很遠），按鈕照系色（紅力、綠敏、藍智） */
+/* 能力值三選一（S/talent-tree.md 15）：貼在被點的點旁邊；標題「能力值 +5」，點按鈕才點下去（沿路的話整條路的能力值點都用同一種）。
+   鍵盤 1／2／3、Esc；手把方向鍵選、Ⓐ 確認、Ⓑ 取消（treePad） */
+const ATT_IC = {
+  s: '<svg class="aic" viewBox="0 0 22 22" aria-hidden="true"><rect x="3" y="3" width="16" height="16"/><text x="11" y="15.5">S</text></svg>',
+  d: '<svg class="aic" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 1L21 11L11 21L1 11Z"/><text x="11" y="15.5">D</text></svg>',
+  i: '<svg class="aic" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9"/><text x="11" y="15.5">I</text></svg>'
+};
 function treeAttrAsk(id) {
   treeAttrClose();
   const d = document.createElement('div');
   d.id = 'tattr';
   d.className = 'tattr';
-  d.innerHTML = `<span>+${PT_ATTR} 能力值：</span>${Object.entries(ATT_PT)
-    .map(
-      ([c, k]) =>
-        `<button class="btn pri" style="--c:${PT_FAM[ATT_FAM[k]]}" data-ta="attr:${id}:${c}">${ATTN[k]}（${ATT_HINT[k]}）</button>`
-    )
-    .join('')}<button class="btn" data-ta="attrx">取消</button>`;
+  d.setAttribute('role', 'dialog');
+  d.setAttribute('aria-label', `能力值 +${PT_ATTR}`);
+  d.innerHTML = `<b class="th">能力值 +${PT_ATTR}</b><p class="tp">點的時候選力量、敏捷或智慧。點按鈕才點下去。</p>${Object.entries(
+    ATT_PT
+  )
+    .map(([c, k], i) => {
+      const [per, w] = ATT_PER[k];
+      return `<button class="ab" data-ta="attr:${id}:${c}">${ATT_IC[c]}<b>${ATTN[k]}</b><small>${ATT_HINT[k]}</small><span>+${PT_ATTR} ${ATTN[k]}＝+${per * PT_ATTR} ${w}</span><kbd>${i + 1}</kbd></button>`;
+    })
+    .join(
+      ''
+    )}<div class="ac"><button class="btn" data-ta="attrx">取消<kbd>Esc</kbd></button></div><p class="keys"><b>鍵盤</b>滑鼠點選項或取消；鍵盤 1／2／3 對應力量／敏捷／智慧，Esc 或點別處關掉。<br><b>手把</b>方向鍵或左搖桿選，Ⓐ 確認，Ⓑ 取消。</p>`;
   const P = $('ptree');
   P.appendChild(d);
-  /* 放在點的下面，放不下就放上面；左右不超出畫面 */
-  const r = TEL.n.get(id).getBoundingClientRect(),
+  hideTip(), treeHov(null);
+  /* 放在點的右邊，放不下放左邊；上下不超出樹的畫面 */
+  const r = ndRect(id),
     p = P.getBoundingClientRect(),
+    v = $('tview').getBoundingClientRect(),
     w = d.offsetWidth,
     h = d.offsetHeight,
-    below = r.bottom + 10 + h <= p.bottom - 8;
-  d.style.left = clamp(r.left + r.width / 2 - w / 2, p.left + 8, p.right - w - 8) - p.left + 'px';
-  d.style.top = (below ? r.bottom + 10 : Math.max(p.top + 8, r.top - 10 - h)) - p.top + 'px';
+    x = r.right + 24 + w <= p.right - 12 ? r.right + 24 : r.left - 24 - w;
+  d.style.left = clamp(x, p.left + 12, p.right - w - 12) - p.left + 'px';
+  d.style.top = clamp(r.top + r.height / 2 - h / 2, v.top + 12, v.bottom - h - 12) - p.top + 'px';
+  d.querySelector('.ab').focus();
 }
+/* 重置確認卡的第二句（12 與 18 必須相同） */
+const TREE_RESET2 = ['起點不能退，重置後仍留在所選的路上。此操作會清掉目前的配點，但之後可再免費點回來。'];
 const ATT_HINT = { str: '生命', dex: '命中', int: '魔力' },
   ATT_FAM = { str: 'r', dex: 'g', int: 'b' };
 /* 點擊範圍（0.2.45）：小點在預設縮放下只有 11px，不靠圓本身，找游標附近最近的點（半徑至少 22px） */
@@ -630,7 +707,7 @@ function treeHit(e) {
   if (el || !v || !TEL || !e.target.closest('#tview')) return el;
   if (!THIT) {
     THIT = new Map();
-    for (const n of PTREE.N) {
+    for (const n of [...PTREE.N, ...PTREE.J]) {
       const k = Math.floor(n.x / 200) + ',' + Math.floor(n.y / 200);
       (THIT.get(k) || THIT.set(k, []).get(k)).push(n);
     }
@@ -642,7 +719,7 @@ function treeHit(e) {
   for (let i = Math.floor((x - R - 30) / 200); i <= Math.floor((x + R + 30) / 200); i++)
     for (let j = Math.floor((y - R - 30) / 200); j <= Math.floor((y + R + 30) / 200); j++)
       for (const n of THIT.get(i + ',' + j) || []) {
-        const d = Math.hypot(n.x - x, n.y - y) - (n.big === 2 ? 30 : n.big ? 19 : 10);
+        const d = Math.hypot(n.x - x, n.y - y) - TR(n);
         if (d < bd) (bd = d), (best = n);
       }
   return best ? TEL.n.get(best.id) : null;
@@ -658,9 +735,12 @@ function treeAttrClose() {
 }
 function treePick(id, c) {
   treeAttrClose();
-  if (!ATT_PT[c] || S.pt.includes(id) || !treeCan(id)) return;
-  S.pt.push(id);
-  S.ptA[id] = c;
+  const path = treePath(id);
+  if (!ATT_PT[c] || !path.length || path.length > ptLeft()) return;
+  for (const p of path) {
+    S.pt.push(p);
+    if (PTREE.I[p].s.attr) S.ptA[p] = c;
+  }
   sfx('equip');
   treeChanged();
 }
@@ -682,39 +762,133 @@ const statLines = s => [
     .filter(([k]) => k !== 'only')
     .flatMap(([k, v]) => statText(k, v).split('\n'))
 ];
-function treeTip(id) {
+/* 名詞（TERMS）在效果文字裡加虛線底線；停留 0.4 秒或手把 R3 才出名詞提示（另一層，不是懸浮窗本身）。同一窗同一詞只標第一次 */
+const treeTerms = (L, seen = new Set()) =>
+  L.map(t =>
+    esc(t).replace(TERM_RE, w => (seen.has(w) ? w : (seen.add(w), `<span class="tm" data-tm="${w}">${w}</span>`)))
+  );
+/* 能力值的固有加成（items.js 的 stats：每 1 點力量 +2 最大生命、敏捷 +8 命中值、智慧 +2 最大魔力） */
+const ATT_PER = { str: [2, '最大生命'], dex: [8, '命中值'], int: [2, '最大魔力'] };
+/* 懸浮窗的內容（S/talent-tree.md「懸浮與畫面文案表」）；det＝按住 Alt／Ｙ 的詳細層（同一窗加高，不另開頁）。手機的說明卡也用這個 */
+function treeTip(id, det) {
   const n = id.startsWith('a_') ? ascT().I[id] : PTREE.I[id];
-  const kind = n.asc
-    ? n.big === 3
-      ? '昇華起點'
-      : n.big
-        ? n.g
-          ? '昇華大點（同一組只能選一個）'
-          : '昇華大點'
-        : '昇華小點'
-    : n.lock
-      ? '預留（鎖住）'
-      : n.big === 2
-        ? '基石'
-        : n.gate
-          ? '起點'
-          : n.big
-            ? '大點'
-            : '小點';
-  const lines =
-    n.big === 3
-      ? [esc(ASC[S.asc].d)]
-      : n.d
-        ? esc(n.d).split('\n')
-        : n.s.attr
-          ? [
-              S.ptA[id]
-                ? `${ATTN[ATT_PT[S.ptA[id]]]} +${n.s.attr}`
-                : `能力值 +${n.s.attr}（點的時候選力量、敏捷或智慧）`
-            ]
-          : statLines(n.s);
-  const sec = n.asc || n.gate ? '' : ` · 算在${secName(n.sec)}`;
-  return `<b class="${n.big === 2 || n.asc ? 'c-gold' : ''}">${esc(n.n)}</b><small>${kind}${sec}</small>${lines.length ? `<p class="aff">${lines.join('<br>')}</p>` : ''}`;
+  if (n.asc) {
+    const kind = n.big === 3 ? '昇華起點' : n.big ? (n.g ? '昇華大點（同一組只能選一個）' : '昇華大點') : '昇華小點',
+      L = n.big === 3 ? [esc(ASC[S.asc].d)] : n.d ? esc(n.d).split('\n') : statLines(n.s).map(esc);
+    return `<b class="c-gold">${esc(n.n)}</b><small>${kind}</small>${L.length ? `<p class="aff">${L.join('<br>')}</p>` : ''}`;
+  }
+  const have = S.pt.includes(id),
+    path = have || n.lock ? [] : treePath(id),
+    left = ptLeft(),
+    lack = !have && path.length > left,
+    top = det ? '<p class="hdet">正在按住 Alt／Ｙ　·　放開回簡易</p>' : '',
+    need = lack
+      ? `<p class="need">要 ${path.length} 點才走得到，還差 <em>${path.length - left}</em> 點</p><p class="hh">沒有足夠的天賦點時不能點亮。升級會再給（每級 1 點，逢 10 級 +3）。</p>`
+      : '';
+  /* 能力值點：未選只用一句；已選列結果、固有加成與改選 */
+  if (n.s.attr) {
+    const k = have && ATT_PT[S.ptA[id]];
+    if (!k) return `${top}<b>能力值 +${n.s.attr}（點的時候選力量、敏捷或智慧）</b>${need}`;
+    const [per, w] = ATT_PER[k];
+    return `${top}<b>${ATTN[k]} +${n.s.attr}</b><p class="ef">+${per * n.s.attr} ${w}（每 1 點${ATTN[k]} +${per} ${w}）</p><p class="hh">改選：先退回這一點（後面沒有連著的點時；免費），再點一次重選。不能就地換。</p>`;
+  }
+  /* 珠寶孔：狀態寫在副標；空孔寫掉落句 */
+  if (n.jw >= 0) {
+    const [j, st] = jwState(n);
+    return `${top}<b>${esc(secName(n.sec))}的珠寶孔${n.out ? '（大孔）' : ''}</b><small>${st}</small>${
+      j
+        ? `<p class="ef">${esc(jwName(j))}：${j.nt.map(k => esc(PTREE.I[k].n)).join('、')}</p><p class="hh">鑲著的珠寶不能丟棄。${JW_NO}丟棄（在倉庫的珠寶分頁，長按確認）不給任何東西。</p><p class="hh">${JW_TMP}</p>`
+        : `<p class="ef">這個孔是空的。</p><p class="hh">${JW_DROP}</p><p class="hh">${JW_NO}空孔可先看，不藏起來。</p>`
+    }${need}`;
+  }
+  if (n.lock) return `<b>${esc(n.n)}</b><small>${esc(n.d || '還沒開放')}</small>`;
+  const T = PT_THEME[n.th],
+    kind = n.big === 2 ? '基石' : n.gate ? '起點' : n.big ? `大點　·　${T.n}` : '小點',
+    L = n.gate ? [n.d] : statLines(n.s),
+    ef = `<p class="ef">${treeTerms(L).join('<br>')}</p>`;
+  let more;
+  if (need) more = need;
+  else if (!n.big)
+    more =
+      '<p class="hh k">滑鼠懸停立即出現。按住 Alt／手把 Ｙ 看詳細（小點通常沒有更多層）。名詞提示要停留 0.4 秒或按 R3，與本窗分開。</p>';
+  else if (!det) more = '<p class="hh k">按住 Alt（鍵盤）或 Ｙ（手把）看詳細，放開回簡易。</p>';
+  else
+    more = `<p class="hh">${have ? '已點亮。' : `沿路點亮到這裡要 ${path.length} 點。`}這一點本身 1 點。</p>${
+      n.big === 1 && !n.gate ? `<p class="hh">同一條路的${esc(T.n)}大點共用一張主題圖。</p>` : ''
+    }${n.big === 2 ? '' : '<p class="hh">沒有基石代價（基石才會在這一層寫代價）。</p>'}`;
+  return `${top}<b>${esc(n.n)}</b><small>${kind}</small>${ef}${more}`;
+}
+/* 桌機懸浮窗（S/talent-tree.md 08–11、17）：0 秒出現，貼在點旁（小點寬 360、大點寬 400 在右側）；游標移進窗裡不收（名詞要停在窗裡的字上）。
+   滑過還沒點的點：沿路要點亮的那幾點加粗（路線高亮，不是推薦路線） */
+function treeHov(id) {
+  const h = $('thov');
+  if (!h) return;
+  if (id !== TREE.hov) clearTimeout(TREE.tmT), ($('tterm').hidden = true);
+  TREE.hov = id;
+  if (!id || !TEL.n.get(id)) {
+    h.hidden = true;
+    if (!TOUCH.on && (TREE.path || []).length) (TREE.path = []), treeRefresh();
+    return;
+  }
+  const n = PTREE.I[id],
+    P = $('ptree').getBoundingClientRect(),
+    v = $('tview').getBoundingClientRect(),
+    r = ndRect(id);
+  h.className = 'thov' + (n.big ? ' w4' : '') + (TREE.alt ? ' det' : '');
+  h.innerHTML = treeTip(id, TREE.alt);
+  h.hidden = false;
+  const w = h.offsetWidth,
+    hh = h.offsetHeight,
+    x = r.right + 16 + w <= P.right - 12 ? r.right + 16 : r.left - 16 - w;
+  h.style.left = clamp(x, P.left + 12, P.right - w - 12) - P.left + 'px';
+  h.style.top = clamp(r.top + r.height / 2 - hh / 2, v.top + 8, v.bottom - hh - 8) - P.top + 'px';
+  const path = S.pt.includes(id) || n.lock ? [] : treePath(id);
+  if (!TOUCH.on && String(path) !== String(TREE.path || [])) (TREE.path = path), treeRefresh();
+}
+/* 按住 Alt（鍵盤）／Ｙ（手把）＝同一窗看詳細，放開回簡易 */
+function treeAlt(on) {
+  if (TREE.alt === on) return;
+  TREE.alt = on;
+  if (TREE.hov) treeHov(TREE.hov);
+}
+/* 名詞提示（13）：另一層、不取代懸浮窗；停留 0.4 秒或手把 R3。字以 TERMS 為準 */
+function treeTerm(el) {
+  const t = $('tterm');
+  if (!el) return void (t.hidden = true);
+  const w = el.dataset.tm,
+    P = $('ptree').getBoundingClientRect(),
+    v = $('tview').getBoundingClientRect(),
+    h = $('thov').getBoundingClientRect();
+  t.innerHTML = `<b>${esc(w)}</b><p>${esc(TERMS[w])}</p>`;
+  t.hidden = false;
+  const tw = t.offsetWidth,
+    th = t.offsetHeight;
+  t.style.left = clamp(h.left - 40 - tw + 0.5 * tw, P.left + 12, P.right - tw - 12) - P.left + 'px';
+  t.style.top = clamp(h.top - th - 8, v.top + 8, v.bottom - th - 8) - P.top + 'px';
+}
+/* 手把（樹開著才讀）：Ｙ 按住看詳細、R3 名詞提示、Ⓑ 關三選一／珠寶孔面板／樹；三選一時方向鍵選、Ⓐ 確認 */
+const TPAD = {};
+function treePad() {
+  if (!TREE.open) return void (TPAD.on = 0);
+  requestAnimationFrame(treePad);
+  const g = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(Boolean);
+  if (!g) return;
+  const b = i => !!(g.buttons[i] && g.buttons[i].pressed),
+    tap = i => b(i) && !TPAD[i];
+  if (b(3) !== !!TPAD[3]) treeAlt(b(3) ? 1 : 0);
+  const A = $('tattr');
+  if (tap(11)) {
+    const m = !$('thov').hidden && $('thov').querySelector('.tm');
+    $('tterm').hidden || !m ? treeTerm(null) : treeTerm(m);
+  }
+  if (tap(1)) A ? treeAttrClose() : $('tsockp') ? treeSockOpen(null) : treeClose();
+  if (A && (tap(12) || tap(13))) {
+    const L = [...A.querySelectorAll('.ab, [data-ta="attrx"]')],
+      i = L.indexOf(document.activeElement);
+    L[(i + (tap(12) ? -1 : 1) + L.length) % L.length].focus();
+  }
+  if (A && tap(0) && A.contains(document.activeElement)) document.activeElement.click();
+  for (const i of [0, 1, 3, 11, 12, 13]) TPAD[i] = b(i);
 }
 /* 以畫面上一點為中心縮放 */
 function treeZoomAt(cx, cy, z, soon) {
@@ -788,12 +962,23 @@ function treeInit() {
       }
     }
     if (e.pointerType !== 'mouse') return;
-    const n = treeHit(e);
-    if (n) {
-      const r = n.getBoundingClientRect();
-      showTip(treeTip(n.dataset.n), r);
-    } else hideTip();
+    /* 游標在懸浮窗裡：窗不收；停在虛線底線的名詞上 0.4 秒出名詞提示 */
+    if (e.target.closest('#thov')) {
+      const m = e.target.closest('.tm');
+      if (m !== TREE.tmEl) {
+        TREE.tmEl = m;
+        clearTimeout(TREE.tmT);
+        if (m) TREE.tmT = setTimeout(() => treeTerm(m), 400);
+        else treeTerm(null);
+      }
+      return;
+    }
+    TREE.tmEl = null;
+    if (e.target.closest('#tattr, #tsockp, #tterm')) return;
+    const n = e.target.closest('#tview') && treeHit(e);
+    treeHov(n ? n.dataset.n : null);
   });
+  el.addEventListener('pointerleave', () => treeHov(null));
   const up = e => {
     if (TREE.mm) return void (TREE.mm = 0);
     TP.delete(e.pointerId);
@@ -825,6 +1010,9 @@ function treeInit() {
     TREE.sel = null;
     hideTip();
     treeToggle(id);
+    /* 珠寶孔：點了照樣點亮／退回（開孔要 1 點），同時打開孔的面板 */
+    if (PTREE.I[id].jw >= 0) treeSockOpen(PTREE.I[id].jw);
+    if (TREE.hov) treeHov(TREE.hov);
   };
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
@@ -855,25 +1043,41 @@ function treeInit() {
     if (ta === 'go' || ta.startsWith('go:')) treeGo(ta.slice(3));
     if (ta === 'back') treeToggle(TREE.sel), treeSelect(TREE.sel);
     /* 重置按兩次：一鍵清空幾十點太容易誤觸 */
-    if (ta === 'reset' && !holdAsk(a, '重置', '退回全部天賦點'))
+    if (
+      ta === 'reset' &&
+      !holdAsk(a, '重置', '退回全部已點的天賦點。洗點免費，不扣靈魂。', {
+        t: '重置天賦？',
+        more: TREE_RESET2,
+        hint: '按住 0.6 秒。條滿才執行；提早放開＝取消。鍵盤在長按鈕上按住 Enter 或空白鍵同長按，Esc 取消。',
+        cls: 'w400'
+      })
+    )
       (S.pt = [...PT_START]), (S.ptA = {}), (TREE.sel = null), (TREE.path = []), treeChanged(), treeCard();
-    /* 珠寶孔（0.2.84） */
+    /* 珠寶孔 */
     const [k, x, y] = ta.split(':');
-    if (k === 'sock') treeSockOpen(+x);
     if (k === 'sockx') treeSockOpen(null);
     if (k === 'jput' || k === 'jout') {
       jwPut(+x, k === 'jput' ? y : null);
       treeChanged();
       treeSockOpen(+x);
     }
-    if (k === 'jx' && !holdAsk(a, '拆解', '拆成 200 靈魂')) {
-      const w = jwSalvage(x);
-      if (w) return hudWarn(w);
-      save();
-      treeSockOpen(+$('tsockp').dataset.i);
-    }
   });
   el.addEventListener('input', e => e.target.id === 'tfind' && treeFind(e.target.value));
+  /* 鍵盤：Alt 按住看詳細；三選一開著時 1／2／3 選、Esc 關（先關卡／面板，不關樹） */
+  addEventListener(
+    'keydown',
+    e => {
+      if (!TREE.open || HASK) return;
+      if (e.key === 'Alt') return e.preventDefault(), treeAlt(1);
+      const A = $('tattr');
+      if (A && /^[123]$/.test(e.key)) return e.preventDefault(), A.querySelectorAll('.ab')[e.key - 1].click();
+      if (e.key === 'Escape' && (A || $('tsockp')))
+        e.stopImmediatePropagation(), e.preventDefault(), A ? treeAttrClose() : treeSockOpen(null);
+    },
+    true
+  );
+  addEventListener('keyup', e => e.key === 'Alt' && TREE.alt && (e.preventDefault(), treeAlt(0)), true);
+  addEventListener('blur', () => treeAlt(0));
   el.addEventListener('keydown', e => {
     if (e.target.id !== 'tfind') return;
     if (e.key === 'Enter') e.preventDefault(), treeJump(e.shiftKey ? -1 : 1);
