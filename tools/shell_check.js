@@ -230,14 +230,14 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   ok('D 倉庫快滿取代左字', full === '倉庫快滿', '倉庫快滿', full, await shot('04c_idle_full'));
   await p.evaluate(() => {
     S.inv.items.length = 10;
-    offBack(null, { wood: 12000 }, 4 * 60e3 + 5e3);
+    offBack({ soul: 12000 }, 4 * 60e3 + 5e3);
   });
   await p.waitForTimeout(200);
   const away = await p.evaluate(() => [$('pidle').querySelector('.ib > b').textContent, $('poff').hidden]);
   ok(
     'D 離開 60 秒–10 分：只在掛機條一行',
-    /^離開 4 分・木 \+12\.0K$/.test(away[0]) && away[1],
-    '離開 4 分・木 +12.0K（number-abbrev v1.1：掛機條離開那一行縮寫；不出結算卡）',
+    /^離開 4 分・靈魂 \+12\.0K$/.test(away[0]) && away[1],
+    '離開 4 分・靈魂 +12.0K（number-abbrev v1.1：掛機條離開那一行縮寫；不出結算卡；產生器收掉後離線只有靈魂）',
     away.join('｜'),
     await shot('04d_idle_away')
   );
@@ -483,7 +483,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   await p.evaluate(() => {
     MAT().soul = 1e6;
     matAdd('wood', 0, 1e6);
-    for (const k of GEN_K) if (k !== 'wood' && genOn(k)) matAdd(k, genTier(k), 1e5);
+    for (const k of ['iron', 'hide', 'silk']) matAdd(k, tierCap(), 1e5);
     S.gold = 1e6;
     closePanels();
   });
@@ -584,11 +584,12 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   ok('A 字級（抽屜最小字）', dfs >= 14, '≥14', String(dfs), f3);
   ok('A 名詞：抽屜沒有「輪」', !(await noWord()), '0 個', (await noWord()) || '0 個', f3);
   /* 升級：按一下就升；300 ms 內再按不算；過了再按又升；回饋 0／100／300 ms */
-  /* 林場：只吃木，連升幾級都買得起 */
-  const k = 'wood';
-  const lv = () => p.evaluate(k => genOf(k).lv, k);
+  /* 倉房：只吃靈魂、木、金（產生器收掉後改用設施；先退到 Lv 0，連升 3 級都買得起） */
+  const k = 'store';
+  await p.evaluate(() => ((S.camp.store = 0), (S.gold = 1e6), campDrawer(1)));
+  const lv = () => p.evaluate(k => S.camp[k], k);
   const l0 = await lv();
-  const sel = `#pcamp .stamp[data-fg="gen:${k}:1"]`;
+  const sel = `#pcamp .stamp[data-fg="camp:${k}"]`;
   await press(sel);
   const fb = await p.evaluate(() => {
     const c = document.querySelector('#pcamp .cdc.up');
@@ -606,7 +607,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   /* 連點：在頁面裡照真實時間點（Playwright 的 tap 會等動畫停才點，量不到 300 ms 內） */
   const [l1, l2, l3] = await p.evaluate(
     async ([sel, k]) => {
-      const lv = () => genOf(k).lv,
+      const lv = () => S.camp[k],
         wait = ms => new Promise(r => setTimeout(r, ms));
       await wait(350);
       const a = lv();
@@ -625,7 +626,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     'D 升級一下就好、300 ms 內重複不算、之後可以連升',
     l1 === l0 + 2 && l2 === l1 && l3 === l2 + 1,
     `點→+1；隔 120 ms 再點→不算；隔 320 ms→+1`,
-    `${l0}→(+1)${l0 + 1}→${l1}→${l2}→${l3}（林場）`,
+    `${l0}→(+1)${l0 + 1}→${l1}→${l2}→${l3}（倉房）`,
     f3b
   );
   ok(
@@ -756,7 +757,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   await p.evaluate(() => closePanels());
 
   /* ---------- 離線結算：≥10 分才出、半版、可一點跑完 ---------- */
-  await p.evaluate(() => offBack(null, { wood: 10 }, 30e3));
+  await p.evaluate(() => offBack(null, 30e3));
   ok('D 離開 <60 秒什麼都不出', await p.evaluate(() => $('poff').hidden && !IDLE.msg), '不出', '', '');
   await p.evaluate(() => {
     const o = {
@@ -776,7 +777,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       pts: 0,
       here: true
     };
-    offBack(o, { wood: 5000 }, o.away);
+    offBack(o, o.away);
   });
   await p.waitForTimeout(150);
   const of0 = await p.evaluate(() => $('poff').querySelector('.offc').innerText);
@@ -1282,7 +1283,9 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     for (const k in MAT()) if (typeof MAT()[k] === 'number') MAT()[k] = 1e9;
     S.gold = 1e9;
     campDrawer(1);
-    const b = document.querySelector('#pcamp [data-fg="gen:wood:1"]');
+    S.camp.store = 0;
+    campDrawer(1);
+    const b = document.querySelector('#pcamp [data-fg="camp:store"]');
     b.focus();
     return [b.dataset.fg, cdLv(b.dataset.fg.replace(/^(camp|gen):/, '').replace(/:1$/, ''))];
   });
@@ -1326,11 +1329,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     ''
   );
   await p.evaluate(() =>
-    offShow(
-      { away: 15 * 60e3, n: 9, won: 8, soul: 1200, gold: 0, cur: [], here: 0, chase: 0, chaseL: [], lv: 0 },
-      { wood: 30 },
-      15 * 60e3
-    )
+    offShow({ away: 15 * 60e3, n: 9, won: 8, soul: 1200, gold: 0, cur: [], here: 0, chase: 0, chaseL: [], lv: 0 })
   );
   await frames(2);
   const of1 = await p.evaluate(() => [

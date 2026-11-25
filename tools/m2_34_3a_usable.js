@@ -51,9 +51,8 @@ async function run(b, W, H) {
     proSkip();
     S.story.tips = 0;
     S.auto = 0;
-    /* 解鎖表全開到中間（每座都還有下一級）、產生器全開：卡最多 */
+    /* 解鎖表全開到中間（每座都還有下一級）：卡最多 */
     for (const k of CAMP_B) S.camp[k] = Math.max(1, Math.min(campMax(k) - 1, 3));
-    for (const k of GEN_K) if (S.camp.gen[k]) S.camp.gen[k].lv = Math.max(S.camp.gen[k].lv, 1);
     S.mat.soul = 1e9;
     hudBar();
   });

@@ -43,7 +43,7 @@ const settle = async (p, fn, arg) => {
     S.story.tips = 0;
     S.auto = 0; /* 手動的流程在 S.auto = 0 下跑；自動鈕另外測 */
     /* 0.5.0／0.5.1：舊流程（通貨頁、鍛造台、天賦、技能格）要營地開了才看得到；全 0 的藏法另外測 */
-    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
     window._CAMP = JSON.parse(JSON.stringify(S.camp));
     S.skills[1].k = 'mirage'; /* 0.5.0 開局只有斬擊；技能鍵的測試要第 2 格有招 */
     hudBar();
@@ -99,7 +99,7 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => {
       proSkip();
       S.auto = 0;
-      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
     });
     for (const k of ['inv', 'stash', 'skill', 'craft', 'set', 'node', 'asc', 'log'])
       await p
@@ -935,19 +935,18 @@ const settle = async (p, fn, arg) => {
       JSON.stringify([s1, s2, s3])
     );
     await p.evaluate(() => closePanels());
-    /* ---------- 0.5.1 營地總覽：卡片、升級鈕、×1／×10／最大、下一件事、民房的「優先」 ---------- */
+    /* ---------- 0.5.1 營地總覽：卡片、升級鈕、下一件事（產生器、民房 mumi 2026-11-25 收掉） ---------- */
     await p.evaluate(() => {
       closePanels();
       S.camp = newCamp();
       S.mat.mats = { wood: 400, 'iron:1': 400 };
-      S.mat.soul = 0;
+      S.mat.soul = 500;
       CRAFT.tab = 'camp';
-      CAMPUI.mul = 1;
     });
     await tap('#pnav [data-tm="nav:craft"]');
     const cm = await p.evaluate(() => {
       const cs = [...document.querySelectorAll('#pcraft .cc')],
-        bs = [...document.querySelectorAll('#pcraft .cc .btn, #pcraft .cmmul .chip, #pcraft .cmnext .btn')];
+        bs = [...document.querySelectorAll('#pcraft .cc .btn, #pcraft .cmnext .btn')];
       return [
         cs.length,
         cs.every(c => c.getBoundingClientRect().left >= 0 && c.getBoundingClientRect().right <= innerWidth),
@@ -959,61 +958,41 @@ const settle = async (p, fn, arg) => {
       ];
     });
     ok(
-      '營地總覽（0.5.1）：開局 8 張卡（解鎖表六座＋林場、礦場）都在畫面寬度內、升級鈕與 ×1／×10／最大 ≥44px、上面兩行（庫存＋速率、下一件事）、分頁列徽章寫買得起幾件（M2-38 只寫數字）',
-      cm[0] === 8 && cm[1] && cm[2] && cm[3] && /^\d+$/.test(cm[4]) && parseInt(cm[4]) >= 2,
+      '營地總覽（0.5.1）：開局 5 張卡（五座設施，沒有產生器、民房）都在畫面寬度內、升級鈕 ≥44px、上面兩行（庫存、下一件事）、分頁列徽章寫買得起幾件（M2-38 只寫數字）',
+      cm[0] === 5 && cm[1] && cm[2] && cm[3] && /^\d+$/.test(cm[4]) && parseInt(cm[4]) >= 2,
       JSON.stringify(cm)
     );
-    /* 0.5.4（工項 12-C）：資源條在跑（同一條隔 1.5 秒寬度變了、數字有字）、卡片固定順序（產生器在前、解鎖表照 CAMP_B，升級後不重排）、上面兩行黏住 */
+    /* 0.5.4（工項 12-C）：資源條庫存有數字、卡片固定順序（照 CAMP_B，升級後不重排）、上面兩行黏住；產生器收掉後木不跑、不寫每分鐘產量、沒有產生器卡的條 */
     const ord0 = await p.evaluate(() => [...document.querySelectorAll('#pcraft .cc')].map(c => c.id).join());
-    const rb0 = await p.evaluate(
-      () => getComputedStyle(document.querySelector('#cmtop [data-rb="wood"] .rt i')).transform
-    );
+    const w0 = await p.evaluate(() => matN('wood'));
     await p.waitForTimeout(1500);
     const rb1 = await p.evaluate(() => [
-      getComputedStyle(document.querySelector('#cmtop [data-rb="wood"] .rt i')).transform,
+      matN('wood'),
       document.querySelector('#cmtop [data-rb="wood"] b').textContent,
       getComputedStyle(document.querySelector('#pcraft .cmhead')).position,
-      [...document.querySelectorAll('#pcraft .rtg')].length
+      [...document.querySelectorAll('#pcraft .rtg')].length,
+      document.querySelector('#cmtop [data-rb="wood"] small').textContent
     ]);
     ok(
-      '營地總覽（0.5.4）：資源條在跑（木的條 1.5 秒內變了）、庫存有數字、產生器卡各有一條、上面兩行黏住、卡片固定順序（林場、礦場、鍛造台…倉房）',
-      rb0 !== rb1[0] &&
+      '營地總覽（0.5.4）：庫存有數字、上面兩行黏住、卡片固定順序（鍛造台、瞭望台、斥候營、長老屋、倉房）；木 1.5 秒不會自己變多、不寫「+n／分」、沒有產生器條',
+      rb1[0] === w0 &&
         /\d/.test(rb1[1]) &&
         rb1[2] === 'sticky' &&
-        rb1[3] === 2 &&
-        ord0 === 'cc-wood,cc-iron,cc-forge,cc-watch,cc-scout,cc-house,cc-altar,cc-store',
-      JSON.stringify([rb0, ...rb1, ord0])
+        rb1[3] === 0 &&
+        rb1[4] === '' &&
+        ord0 === 'cc-forge,cc-watch,cc-scout,cc-altar,cc-store',
+      JSON.stringify([w0, ...rb1, ord0])
     );
     await p.evaluate(() =>
-      document.querySelector('#pcraft [data-fg="gen:wood:1"]').scrollIntoView({ block: 'center' })
+      document.querySelector('#pcraft [data-fg="camp:forge"]').scrollIntoView({ block: 'center' })
     );
-    await tap('#pcraft [data-fg="gen:wood:1"]');
-    await tap('#pcraft [data-fg="mul:max"]');
-    await p.evaluate(() =>
-      document.querySelector('#pcraft [data-fg^="gen:iron:"]').scrollIntoView({ block: 'center' })
-    );
-    await tap('#pcraft [data-fg^="gen:iron:"]');
+    await tap('#pcraft [data-fg="camp:forge"]');
     const g2 = await p.evaluate(() => [
-      S.camp.gen.wood.lv,
-      S.camp.gen.iron.lv,
+      S.camp.forge,
       matN('wood') < 400,
       [...document.querySelectorAll('#pcraft .cc')].map(c => c.id).join()
     ]);
-    ok(
-      '產生器：×1 升 1 級、最大一次升好幾級、扣木；升完卡片順序不變',
-      g2[0] === 2 && g2[1] > 2 && g2[2] && g2[3] === ord0,
-      JSON.stringify(g2)
-    );
-    await p.evaluate(() => {
-      S.camp.house = 1;
-      document.querySelector('#pcraft [data-fg="cc:house"]').scrollIntoView({ block: 'center' });
-    });
-    await tap('#pcraft [data-fg="cc:house"]');
-    const ho = await p.evaluate(() => {
-      const c = [...document.querySelectorAll('#cc-house .ccopen .chip')];
-      return [c.length, c.every(b => b.getBoundingClientRect().height >= 44)];
-    });
-    ok('民房展開：每座產生器一列、「優先」≥44px', ho[0] === 2 && ho[1], JSON.stringify(ho));
+    ok('設施卡：點升級鈕升 1 級、扣木；升完卡片順序不變', g2[0] === 1 && g2[1] && g2[2] === ord0, JSON.stringify(g2));
     /* battle-hud v1.3.3 取代 M2-12 §2 的掛機條：刷圖中分頁上面是下方面板（P41，204 高；本次掛機、拾取、比較、整理倉庫／自動／去營地），
        ▼（熱區 44）收到最小＝44 高收起列（掛機時間、▲ 熱區 44）；沒有營地升級鈕、不寫輪；營地升級從分頁「營地」開抽屜（刷圖不停） */
     {
@@ -1082,8 +1061,8 @@ const settle = async (p, fn, arg) => {
         ];
       });
       ok(
-        '刷圖中點「營地」：開營地升級抽屜（不是營地總覽），6 設施＋已出現的產生器、印章 ≥44、只有 1 顆實心（建議）',
-        dr[0] && dr[1] && dr[2] >= 8 && dr[3] && dr[4] === 1,
+        '刷圖中點「營地」：開營地升級抽屜（不是營地總覽），只有 5 設施（沒有產生器、民房）、印章 ≥44、只有 1 顆實心（建議）',
+        dr[0] && dr[1] && dr[2] === 5 && dr[3] && dr[4] === 1,
         JSON.stringify(dr)
       );
       /* battle-hud v1.3.3 拿掉「王 n%」首領進度（元件表沒有）：面板開著（半版）頂列（通貨、地點）照樣看得到、在面板上緣之上 */
@@ -1963,13 +1942,13 @@ const settle = async (p, fn, arg) => {
         ];
       }, q);
     {
-      /* M1-10：自動模式開戰利品、營地照打；技能挑選、天賦樹停住（怪貼身 3 秒生命不變）；手動開任何面板都停；停住時產生器照產 */
+      /* M1-10：自動模式開戰利品、營地照打；技能挑選、天賦樹停住（怪貼身 3 秒生命不變）；手動開任何面板都停；產生器收掉後停住時木不會自己變多 */
       await p.evaluate(() => {
         closePanels();
         if (TREE.open) treeClose();
         S.auto = 1;
         S.camp = { ...S.camp, ..._CAMP };
-        genOf('wood').lv = Math.max(10, genOf('wood').lv);
+        S.camp.gen = { wood: { lv: 50 } };
         runNode(TRUNK_K[0]);
       });
       await p.waitForTimeout(500);
@@ -2000,12 +1979,20 @@ const settle = async (p, fn, arg) => {
         r4 = await runs(() => treeOpen(), cl);
       ok('M1-10 自動：開戰利品照打', r1.run && !r1.paused, JSON.stringify(r1));
       ok('M1-10 自動：開營地照打', r2.run && !r2.paused, JSON.stringify(r2));
-      ok('M1-10 自動：技能挑選停住、生命不變、產生器照產', !r3.run && r3.same && r3.gen, JSON.stringify(r3));
-      ok('M1-10 自動：天賦樹停住、生命不變、產生器照產', !r4.run && r4.same && r4.gen, JSON.stringify(r4));
+      ok(
+        'M1-10 自動：技能挑選停住、生命不變、木不會自己變多（沒有背景生產）',
+        !r3.run && r3.same && !r3.gen,
+        JSON.stringify(r3)
+      );
+      ok(
+        'M1-10 自動：天賦樹停住、生命不變、木不會自己變多（沒有背景生產）',
+        !r4.run && r4.same && !r4.gen,
+        JSON.stringify(r4)
+      );
       await p.evaluate(() => (S.auto = 0));
       const r5 = await runs(() => navGo('bag'), cl),
         r6 = await runs(() => navGo('more'), cl);
-      ok('M1-10 手動：開戰利品停住、產生器照產', !r5.run && r5.same && r5.gen, JSON.stringify(r5));
+      ok('M1-10 手動：開戰利品停住、木不會自己變多（沒有背景生產）', !r5.run && r5.same && !r5.gen, JSON.stringify(r5));
       ok('M1-10 手動：開更多也停住', !r6.run && r6.same, JSON.stringify(r6));
       const t1 = await p.evaluate(() => G.t);
       await p.waitForTimeout(500);
@@ -2648,14 +2635,14 @@ const settle = async (p, fn, arg) => {
       hudPanels();
       return [
         document.querySelectorAll('#pcraft .cmnxu').length,
-        (document.querySelector('#pcraft .cmnxu') || {}).textContent,
-        !!document.querySelector('#pcraft .cmmore'),
+        document.querySelectorAll('#pcraft .cc.gen').length,
+        (document.querySelector('#pcraft .cmmore') || {}).textContent || '',
         document.querySelectorAll('#pcraft .cch > .ico:last-child').length > 0
       ];
     });
     ok(
-      'M1-CP／M1-07b：營地首屏一列下一個解鎖「升鍛造台到 Lv 3 開獵場」、還有幾座、卡頭箭頭',
-      cp[0] === 1 && cp[1] === '升鍛造台到 Lv 3 開獵場' && cp[2] && cp[3],
+      'M1-CP：營地首屏沒有產生器的下一個解鎖列與產生器卡（mumi 2026-11-25 收掉）、「還有 5 座」、卡頭箭頭',
+      cp[0] === 0 && cp[1] === 0 && cp[2].startsWith('還有 5 座') && cp[3],
       JSON.stringify(cp)
     );
     await p.screenshot({ path: shot('m1ui_camp') });
@@ -2663,7 +2650,7 @@ const settle = async (p, fn, arg) => {
   }
   /* ---------- M2-08：設定的暗幕、掛機卡在死亡卡底下、天賦樹搜尋 N／總數 ---------- */
   const m8 = await p.evaluate(async () => {
-    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
     if (TREE.open) treeClose();
     closePanels();
     if (G.scene !== 'map') runNode(TRUNK_K[0]);

@@ -1400,18 +1400,13 @@ function dustTick(now) {
     if (now - DUST.ok >= 2000) DUST.half = DUST.ok = 0;
   } else DUST.ok = 0;
 }
-/* 換外觀的等級（M2-12-lookTiers.md，設施 id／GEN id）：升到或一次連升跨過表內等級＝1200 ms */
+/* 換外觀的等級（M2-12-lookTiers.md，設施 id）：升到或一次連升跨過表內等級＝1200 ms */
 const LOOK_TIERS = {
   forge: [1, 5, 10, 15, 20],
   watch: [1, 8, 15, 22, 26] /* 23～25 只加光點，600 */,
   scout: [1, 2, 3, 4],
-  house: [1, 4, 7, 10],
   altar: [1, 4, 7, 11] /* 畫面名：長老屋 */,
-  store: [1, 3, 5],
-  wood: [5, 10, 25, 50],
-  iron: [5, 10, 25, 50],
-  hide: [5, 10, 25, 50] /* Lv0→1 首次出現不在表內，600 */,
-  silk: [5, 10, 25, 50]
+  store: [1, 3, 5]
 };
 /* 從 a 級升到 b 級：跨過表內等級＝1200 ms；10 秒內連升 250、其餘 600（§4、§12-5） */
 const buildMs = (bk, a, b, q) => (q ? 250 : (LOOK_TIERS[bk] || []).some(t => t > a && t <= b) ? 1200 : 600);
@@ -1424,12 +1419,12 @@ const dustPick = (a, w) => {
   for (let i = 0; i < a.length; i++) if ((r -= w[i]) < 0) return a[i];
   return a[a.length - 1];
 };
-/* a＝升級前的等級（產生器可一次連升多級）；沒擺設的設施只記時機（翻牌在卡上） */
+/* a＝升級前的等級；沒擺設的設施只記時機（翻牌在卡上） */
 function campDust(bk, a) {
   const k = G.scene === 'camp' && G.props.find(p => PLQ_B[p.k] === bk),
     now = performance.now(),
     q = now - (DUST.last[bk] || -1e9) < 10000,
-    lv = GEN[bk] ? genOf(bk).lv : S.camp[bk],
+    lv = S.camp[bk],
     T = buildMs(bk, a ?? lv - 1, lv, q),
     say = $('plqsay');
   DUST.last[bk] = now;

@@ -7734,7 +7734,7 @@ const MEM = {
 /* ---------- 材料（0.5.0，docs/工坊與解鎖表.md 第 4 節）：戰鬥不掉裝備，掉這三種，有階 T1～T6 跟著節點等級（craft.js 的 matTier）；
    鐵＝護甲系防具與所有武器、皮＝閃避系、靈絲＝能量護盾系與法器（craft.js 的 baseMat）。圖示先借現有的 ⚠️ ---------- */
 const MATS = {
-  wood: { n: '木', ic: 'i_log', d: '每一座設施升級都要（林場產）' },
+  wood: { n: '木', ic: 'i_log', d: '每一座設施升級都要' },
   iron: { n: '鐵', ic: 'it_whetstone', d: '武器、護甲系防具、飾品的材料' },
   hide: { n: '皮', ic: 'it_thickhide', d: '閃避系防具、箭袋的材料' },
   silk: { n: '靈絲', ic: 'i_spool', d: '能量護盾系防具、法器的材料' }
@@ -7742,7 +7742,7 @@ const MATS = {
 const MAT_K = Object.keys(MATS);
 /* ---------- 營地（0.5.1，工坊與解鎖表第 3 節：兩層十座）：解鎖表六座各一張短表，一列一級
    { soul, wood?, mats?: { 'iron:2': 50 }, gold?, cur?: { 通貨: n }, un: [解鎖鍵…], d: 一句說明 }。
-   解鎖鍵由 craft.js 的 campCan 查（'cur:rich' 通貨開始掉、'mat:hide' 獵場出現、'tab:temper' 鍛造台分頁、'auto2' 自動分解、'tree'…）；
+   解鎖鍵由 craft.js 的 campCan 查（'cur:rich' 通貨開始掉、'mat:hide' 皮系裝備、'tab:temper' 鍛造台分頁、'auto2' 自動分解、'tree'…）；
    數值型（批量、技能格數、孔數、星級上限、武器類別數、人口、離線時數）由 campN 算。瞭望台的表由 world.js 用公式產（3.2）。⚠️ 數字全部暫定 */
 const CAMP = {
   forge: [
@@ -7753,7 +7753,7 @@ const CAMP = {
       d: '「填」：蛻變石、增幅石開始掉'
     },
     { soul: 300, wood: 80, d: '一次打 3 件' },
-    { soul: 450, wood: 120, mats: { 'iron:1': 30 }, un: ['mat:hide'], d: '獵場出現（產皮）：閃避系防具、箭袋' },
+    { soul: 450, wood: 120, mats: { 'iron:1': 30 }, un: ['mat:hide'], d: '閃避系防具、箭袋' },
     { soul: 600, wood: 160, un: ['cur:rich'], d: '富豪石開始掉；打造有機率出稀有' },
     { soul: 700, wood: 200, mats: { 'iron:2': 20 }, un: ['cur:ess'], d: '一次打 5 件；精髓開始掉' },
     { soul: 800, wood: 250, gold: 1000, un: ['tab:temper'], d: '淬鍊' },
@@ -7764,7 +7764,7 @@ const CAMP = {
       mats: { 'iron:2': 50 },
       cur: { tran: 20 },
       un: ['mat:silk', 'auto2'],
-      d: '絲地出現（產靈絲）：能量護盾系防具、法器；自動分解'
+      d: '能量護盾系防具、法器；自動分解'
     },
     { soul: 2000, wood: 400, cur: { aug: 20 }, d: '一次打 10 件' },
     {
@@ -7806,12 +7806,6 @@ const CAMP = {
     { soul: 10000, wood: 800, mats: { 'hide:3': 30 }, d: '4★' },
     { soul: 40000, wood: 1500, mats: { 'hide:4': 40 }, d: '5★' }
   ],
-  /* 民房＝人口上限（CAMP_POP），居民自動補到產生器空的工位（craft.js 的 popAssign） */
-  house: [100, 250, 500, 1000, 2500, 6000, 15000, 40000, 100000, 250000].map((soul, i) => ({
-    soul,
-    wood: [30, 80, 150, 300, 600, 1200, 2500, 5000, 10000, 20000][i],
-    d: ''
-  })),
   altar: [
     { soul: 300, wood: 60, d: '第 2 格技能' },
     { soul: 900, wood: 150, d: '第 1 個輔助孔（每一招）' },
@@ -7821,9 +7815,9 @@ const CAMP = {
     { soul: 25000, wood: 1200, d: '第 4 格技能' },
     { soul: 50000, wood: 1800, mats: { 'silk:3': 20 }, un: ['asc'], d: '昇華石碑（兩個昇華）' },
     { soul: 90000, wood: 2500, d: '第 3 個輔助孔' },
-    { soul: 150000, wood: 3500, mats: { 'silk:4': 30 }, d: '（第 5 格技能改到鍛造台 Lv16）' },
-    { soul: 250000, wood: 5000, un: ['jsock'], d: '天賦樹珠寶孔' },
-    { soul: 350000, wood: 7000, un: ['asc3'], d: '第三個昇華以後；輔助孔開到 5 個' }
+    { soul: 90000, wood: 3500, mats: { 'silk:4': 30 }, d: '第 4 個輔助孔（每一招）' },
+    { soul: 200000, wood: 5000, un: ['asc3'], d: '潮汐' },
+    { soul: 200000, wood: 7000, d: '第 5 個輔助孔（每一招）' }
   ],
   store: [
     { soul: 2000, wood: 400, d: '離線結算 4 小時' },
@@ -7833,16 +7827,12 @@ const CAMP = {
     { soul: 200000, wood: 8000, un: ['salv80'], d: '離線 12 小時；分解回收 80%' }
   ]
 };
-/* 民房每一級的人口（3.4 ⚠️）；民房那一列的說明照它寫 */
-const CAMP_POP = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25];
-CAMP.house.forEach((r, i) => (r.d = `人口 ${CAMP_POP[i + 1]}`));
-const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '長老屋', store: '倉房' };
+const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', altar: '長老屋', store: '倉房' };
 /* 十座設施與靈魂的圖示（0.5.4）：ART 有的借 ART，沒有的是 sprites.js 手畫的 i_*（icHTML 都認得） */
 const CAMP_IC = {
   forge: 'it_anvil',
   watch: 'it_hawkeye',
   scout: 'it_warbanner',
-  house: 'i_house',
   altar: 'unit_guardtotem',
   store: 'i_crate',
   wood: 'i_tree',
@@ -7851,16 +7841,6 @@ const CAMP_IC = {
   silk: 'i_cocoon',
   soul: 'cur_soul'
 };
-/* 產生器（0.5.1，3.7）：可以一直升（每級每分鐘 ⚠️ 自己定的：文件 1.5／1／0.5／0.25，新存檔模擬前 12 分鐘一次都按不到，改成 6／4／2／1，對回 3.4 原本「每人每分鐘 6 木、4 礦」）；第 L 級升到 L＋1 的費用＝c × 1.12^L（吃木與自己產的材料，同階）；每分鐘＝r × L × 里程碑倍率 × 在職／工位。
-   show＝出現的解鎖鍵（獵場鍛造台 Lv3、絲地 Lv8，出現時 Lv1、0 人）；卡片的圖示在 CAMP_IC */
-const GEN = {
-  wood: { n: '林場', r: 6, c: { wood: 10 } },
-  iron: { n: '礦場', r: 4, c: { wood: 15, iron: 5 } },
-  hide: { n: '獵場', r: 2, c: { wood: 15, hide: 5 }, show: 'mat:hide' },
-  silk: { n: '絲地', r: 1, c: { wood: 20, silk: 5 }, show: 'mat:silk' }
-};
-const GEN_K = Object.keys(GEN);
-const GEN_MUL = 1.12;
 /* 星級放大 ★ 與追憶的機率（企劃書 5.4.5）：1～5★（⚠️ 暫定：壓平成 1／1.1／1.2／1.35／1.5，星級越高越好、不爆量） */
 const STAR_MUL = [1, 1, 1.1, 1.2, 1.35, 1.5];
 /* 腐化的結果表（企劃書 5.3.4）：機率合計 100；0.2.77 起最多 1 條腐化詞（原本 2 條的 10% 併進 1 條） */

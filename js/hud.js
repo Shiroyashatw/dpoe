@@ -361,7 +361,7 @@ function hudState() {
       up = campNextThing(),
       upB =
         up && up.e.m === 0
-          ? `<button class="btn pri wide dup" data-fg="${GEN[up.k] ? `gen:${up.k}:1` : `camp:${up.k}`}">現在可以升：${esc(up.n)}<small>${esc(costTxt(up.c))}</small></button>`
+          ? `<button class="btn pri wide dup" data-fg="camp:${up.k}">現在可以升：${esc(up.n)}<small>${esc(costTxt(up.c))}</small></button>`
           : '';
     o.innerHTML = `<div class="card dead"><h2 class="c-bad">你倒下了</h2>${deathCause()}${mods.length ? `<p class="dmods">地圖詞：${mods.map(m => esc(MAPMOD[m].t)).join('、')}</p>` : ''}<p>不扣經驗，裝備都還在。</p>
       <div class="pbtns dcol">${upB}${again ? `<button class="btn ${upB ? '' : 'pri'}" data-a="again">再試一次<small>${bk ? esc(`${strT('deadN', { n: DEAD_MAX })}，退回${wName(S, ...wXY(bk))}`) : '同一個地點重新開始'}</small></button>` : `<button class="btn pri" data-a="camp">回營地<small>自動刷圖暫停</small></button>`}</div></div>`;
@@ -967,8 +967,13 @@ function hudPanels() {
   }
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
   /* 桌機角色頁（M2-character-1280）走 charpanel.js 的 charHTML；直立、倉庫照舊 */
-  if (PANEL.inv && !cw)
-    $('pinv').classList.toggle('c12', chOn()), chOn() ? chRender() : panelHTML($('pinv'), invHTML());
+  /* 桌機倉庫（stash.md v1.0）走 stash12.js 的 stRender */
+  if (PANEL.inv && !cw) {
+    const s12 = !chOn() && st12On();
+    $('pinv').classList.toggle('c12', chOn());
+    $('pinv').classList.toggle('st12', s12);
+    chOn() ? chRender() : s12 ? stRender() : panelHTML($('pinv'), invHTML());
+  } else $('pinv').classList.remove('st12');
   if (PANEL.stash) $('pstash').innerHTML = forgeHead('cur') + curPageHTML();
   if (navOn() === 'forge') FSEG = fseg();
   $('pchase').hidden = !PANEL.chase;
@@ -1930,7 +1935,7 @@ function revealHTML() {
     sel
       ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button></div><button class="dlink2" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div>`
       : REV.sum
-        ? `<div class="rvf offf">${GEN_K.some(k => genOn(k) && genAfford(k) > 0) ? '<button class="btn wide" data-a="genall">全部升級<small>產生器照最便宜的先買</small></button>' : ''}<button class="btn pri wide" data-a="close">收下</button></div>`
+        ? `<div class="rvf offf"><button class="btn pri wide" data-a="close">收下</button></div>`
         : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
@@ -2283,7 +2288,9 @@ function idleCmp() {
   return (CMPC.v = { it, L });
 }
 function idleHTML(W) {
-  const ses = SES || SES0(),
+  /* CP-10：桌機營地面板開著時主鈕改「關營地」，點了關面板（同標題 ×） */
+  const cx = PANEL.camp && c12On(),
+    ses = SES || SES0(),
     dur = idleDur(Date.now() - ses.t0),
     n = chasePct(),
     ch = !!chaseLine(G.mapT),
@@ -2392,7 +2399,7 @@ function idleHTML(W) {
   ${pct >= 90 ? `${P0.sth ? `<button class="isth" data-a="bhbag" style="${bx(...P0.sth)}" aria-label="倉庫 ${pct}%"></button>` : ''}<span class="ist c-warn" style="${bx(...P0.st)}">⚠ 倉庫 ${pct}%</span>` : ''}
   <button class="btn ib1" data-a="bhbag" style="${bx(...P0.b[0])}">整理倉庫</button>
   <button class="btn ib2 ${S.auto ? 'on' : ''}" data-a="bhauto" aria-pressed="${!!S.auto}" style="${bx(...P0.b[1])}">自動</button>
-  <button class="btn pri ib3" data-a="camp" style="${bx(...P0.b[2])}">${esc(STR_T.goCamp)}</button>`;
+  <button class="btn pri ib3" data-a="${cx ? 'close' : 'camp'}" style="${bx(...P0.b[2])}">${cx ? '關營地' : esc(STR_T.goCamp)}</button>`;
 }
 /* B3 D2-11：回戰場那一行「營地期間 +N」（M2-12 第二段 §0.1）：蓋在掛機條上（同位置），淡入 160 後出現、停 3,000、淡出 300（CSS）；
    0 的項不寫、追逐放第一個（王印 16 圖示）、放不下從後面省略；點一下展開掛機條 */
@@ -3113,7 +3120,9 @@ function inputInit() {
     else if (k === 'c') autoToggle();
     /* 用鍵盤開營地升級：焦點放在建議那顆印章 */
     if (k === 'h' && PANEL.camp)
-      requestAnimationFrame(() => knFocus('#pcamp .stamp.sug, #pcamp .stamp, #pcamp button'));
+      requestAnimationFrame(() =>
+        knFocus(c12On() ? '#pcamp .c12c.sug .c12b, #pcamp .c12b' : '#pcamp .stamp.sug, #pcamp .stamp, #pcamp button')
+      );
     pressFx(k);
   });
   addEventListener('keyup', e => (K[e.key.toLowerCase()] = 0));
@@ -3273,7 +3282,8 @@ function knEsc() {
     fin = f && f.closest && f.closest('#pcamp, #pidle, #poff');
   if (G.ask) act('askno');
   else if (!$('poff').hidden) act('offok');
-  else if (PANEL.camp && CDR.one) (CDR.one = null), hudPanels(), fin && knFocus('#pcamp .cdb');
+  else if (PANEL.camp && CDR.one)
+    (CDR.one = null), hudPanels(), fin && knFocus(c12On() && C12.last ? `#c12-${C12.last} .c12b` : '#pcamp .cdb');
   else if (TREE.open) treeClose();
   else if (anyPanel()) closePanels(), fin && knFocus('[data-tm="nav:craft"]');
   else openPanel('set');
