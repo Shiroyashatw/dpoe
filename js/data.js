@@ -5592,8 +5592,7 @@ const PTREE = (() => {
     ids = [],
     smIc = s => PT_STAT_IC[Object.keys(s)[0]];
   for (const [id, x, y, t, th, v] of PT_BAKE.N) {
-    const T = PT_THEME[th],
-      L = PT_ICONS[T.n] || [T.ic];
+    const T = PT_THEME[th];
     let o;
     if (t === 0) o = { n: '基礎', s: { ...PT_BASE[0][0] }, ic: PT_STAT_IC.attr, big: 0 };
     else if (t === 1 || t === 5) {
@@ -5613,7 +5612,7 @@ const PTREE = (() => {
             big: 1,
             auto: 1
           };
-      o.ic = L[(v + 1) % L.length];
+      o.ic = T.ic; /* 每條路（主題）一張主題圖，路上大點共用（S/talent-tree.md「主題圖」，mumi 11/24 Q3 A） */
     } else if (t === 3) o = { n: PT_KEYS[v].n, ic: PT_KEYS[v].ic, s: PT_KEYS[v].s, big: 2 };
     else if (t === 4) o = { n: PT_ROADS[v].n, d: '往外偏重：' + PT_ROADS[v].d, ic: T.ic, s: {}, big: 1, gate: 1 };
     else
