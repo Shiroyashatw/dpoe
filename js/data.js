@@ -5640,9 +5640,8 @@ const PTREE = (() => {
   return { N, E, I, ADJ, ARC };
 })();
 const PT_START = ['g0', 'g1', 'g2', 'g3', 'g4', 'g5'];
-/* 天賦樹六區與珠寶孔（0.2.84）：照六個起點的方向各切 ±30°（n.sec），一區點滿 JEWEL.need 點（起點不算、能力值點算）開那一區的珠寶孔；
-   孔不是樹上的點，畫在那一區的外緣（tree.js）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點；退到門檻以下珠寶鎖住不生效 */
-const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
+/* 天賦樹六區（0.2.84）：照六個起點的方向各切 ±30°（n.sec）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點 */
+const JEWEL = { keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
 {
   const A = PT_START.map(k => Math.atan2(PTREE.I[k].y, PTREE.I[k].x));
   for (const n of PTREE.N) {
@@ -5657,6 +5656,36 @@ const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
   }
   PTREE.SECA = A;
 }
+/* 珠寶孔 18 個（S/talent-tree.md v1.0.1；座標與掛點照 issue #182、PT_BAKE.J @6bc39ef，J3c＝t210）：每孔是獨立節點、連到掛點、花 1 點開（點亮＝開孔）。
+   前期 a、交會 b、外圈大孔 c（big＝外圈）。不放進 PTREE.N／E（那是烘焙出來的形狀，check.js 驗形狀）；I、ADJ 有，點亮、沿路、退回照一般的點 */
+const PT_J = [
+  ['J0a', 't78', -47.6, -2387.8],
+  ['J1a', 't89', 2089.8, -765.3],
+  ['J2a', 't_m7', 2319.2, 736.7],
+  ['J3a', 't_m10', 577.6, 2250.4],
+  ['J4a', 't_m14', -1878.6, 1467.8],
+  ['J5a', 't117', -2263, -703],
+  ['J0b', 't149', 1377.2, -2217.2],
+  ['J1b', 't202', 3399.5, 446.9],
+  ['J2b', 't164', 1458.7, 2659.8],
+  ['J3b', 't173', -1588.4, 2670],
+  ['J4b', 't138', -2380.3, 294.1],
+  ['J5b', 't123', -1141.8, -1882.2],
+  ['J0c', 't_o1', 646, -3663.2],
+  ['J1c', 't153', 2530.9, -2431.6],
+  ['J2c', 't_o8', 2603.8, 2514.5],
+  ['J3c', 't210', 242.6, 3659.2],
+  ['J4c', 't181', -3379.2, 845.9],
+  ['J5c', 't219', -3543.2, -518.7]
+];
+PTREE.J = PT_J.map(([id, an, x, y], i) => {
+  const a = PTREE.I[an],
+    n = { id, x, y, th: a.th, sec: a.sec, an, n: '珠寶孔', s: {}, big: 0, jw: i, out: id.endsWith('c') ? 1 : 0 };
+  PTREE.I[id] = n;
+  PTREE.ADJ[id] = [an];
+  PTREE.ADJ[an].push(id);
+  return n;
+});
 /* 珠寶抽得到的大點：一般大點（不是起點、基石、預留） */
 const PT_NOTABLES = PTREE.N.filter(n => n.big === 1 && !n.gate && !n.lock).map(n => n.id);
 /* 天賦點：每級 1 點、每到 10 的倍數再 +3（到 100 級共 129）；100 級後每 10 級 1 點 */

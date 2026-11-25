@@ -1563,20 +1563,19 @@ function jwAdd(n, s = S) {
   L.push(j);
   return [jwName(j)];
 }
-/* 拆掉不要的珠寶：換靈魂（鑲著的不能拆） */
-function jwSalvage(id, s = S) {
-  if ((s.jsock || []).includes(id)) return '鑲著的不能拆：先拔下來';
+/* 丟棄（S/talent-tree.md v1.0.1）：不給任何東西；鑲著的不能丟。珠寶無法分解、不能打造或重鑄 */
+function jwDrop(id, s = S) {
+  if ((s.jsock || []).includes(id)) return '鑲著的珠寶不能丟棄：先拔下來';
   const i = (s.jewels || []).findIndex(j => j.id === id);
   if (i < 0) return '沒有這顆珠寶';
   s.jewels.splice(i, 1);
-  MAT().soul += 200;
   return null;
 }
-/* 鑲上／拔下：一顆珠寶只能在一個孔；孔沒開也能先放（鎖住、不生效） */
+/* 鑲上／拔下：一顆珠寶只能在一個孔（18 孔，PT_J 的順序）；孔沒開也能先放（不生效） */
 function jwPut(i, id, s = S) {
-  const J = (s.jsock = s.jsock || [null, null, null, null, null, null]);
+  const J = (s.jsock = s.jsock || []);
   if (id && !jwOf(s, id)) return '沒有這顆珠寶';
-  for (let k = 0; k < 6; k++) if (J[k] === id) J[k] = null;
+  for (let k = 0; k < PT_J.length; k++) if (J[k] === id) J[k] = null;
   J[i] = id || null;
   return null;
 }

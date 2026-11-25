@@ -3386,3 +3386,85 @@ body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: none
 #pnav .nlk .ico { display: block; width: 16px; height: 16px; }
 #dnav .nlk .ico { display: block; width: 12px; height: 12px; }
 .bh-boss b { font-weight: inherit; }
+/* ---------- 天賦樹 1280×720 定稿（S/talent-tree.md v1.0.1；W5-talent-tree 01–19）：桌機滿版 頂欄 52／樹 624／底欄 44；只用既有 token ---------- */
+body:not(.touch) #ptree .tbar { box-sizing: border-box; height: 52px; min-height: 0; flex: none; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid var(--border-mid); }
+body:not(.touch) #ptree .tbar > b { position: static; transform: none; display: block; font: 700 16px/1.2 var(--font); letter-spacing: 0; color: var(--tx-title); text-shadow: none; }
+body:not(.touch) #ptree .tbar > b::before, body:not(.touch) #ptree .tbar > b::after { display: none; }
+body:not(.touch) #ptree .tbar .tleft, body:not(.touch) #ptree .tbar .tleft b { font: 700 16px/1.2 var(--font); }
+body:not(.touch) #ptree #tfind { flex: none; box-sizing: border-box; width: 260px; max-width: none; height: 36px; margin-left: auto; font: 400 16px var(--font); }
+body:not(.touch) #ptree .tbar .x { box-sizing: border-box; width: 36px; height: 36px; font: 700 16px var(--font); color: var(--tx); background: var(--panel-inset); border: 1px solid var(--border-mid); border-radius: 2px; }
+body:not(.touch) #ptree #tview { flex: none; height: calc(100% - 96px); }
+body:not(.touch) #ptree .thelp { box-sizing: border-box; display: flex; align-items: center; gap: 12px; height: 44px; margin: 0; padding: 0 16px 0 70px; font: 400 14px/1.2 var(--font); text-align: left; white-space: nowrap; overflow: hidden; }
+body:not(.touch) #ptree .thelp b { font-weight: 700; color: var(--tx-title); margin: 0; }
+body:not(.touch) #ptree #treset { box-sizing: border-box; left: 12px; top: auto; bottom: 56px; height: 36px; min-height: 36px; padding: 0 14px; font: 700 14px var(--font); }
+#tminiw { position: absolute; right: 12px; top: calc(64px + env(safe-area-inset-top)); z-index: 2; box-sizing: border-box; width: 168px; height: 168px; background: var(--panel-inset); border: 1px solid var(--border-mid); border-radius: 2px; }
+#tminiw[hidden] { display: none; }
+#tminiw b { position: absolute; left: 6px; top: 4px; font: 700 11px var(--font); color: var(--tx-dim); pointer-events: none; }
+#tminiw #tmini { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: none; }
+body.touch #tminiw { width: 84px; height: 84px; top: calc(66px + env(safe-area-inset-top)); right: 10px; }
+body.touch #tminiw b { display: none; }
+.thov, .tterm { position: absolute; z-index: 5; box-sizing: border-box; width: 360px; padding: 12px; background: var(--panel); border: 1px solid var(--border-mid); border-radius: 2px; font: 400 16px/1.4 var(--font); color: var(--tx); }
+.thov[hidden], .tterm[hidden] { display: none; }
+.thov.w4 { width: 400px; }
+.thov > b, .tterm > b { display: block; font: 700 16px/1.3 var(--font); color: var(--tx-title); }
+.thov > small { display: block; margin-top: 2px; font: 400 14px/1.3 var(--font); color: var(--tx-dim); }
+.thov p { margin: 8px 0 0; }
+.thov .hh { font-size: 14px; color: var(--tx-dim); }
+.thov .hh.k:first-of-type, .thov .need { border-top: 1px solid var(--border); padding-top: 8px; }
+.thov .need, .thov .need em { color: var(--bad); font-style: normal; }
+.thov .hdet { margin: 0 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--tx-dim); }
+.thov .tm { border-bottom: 1px dashed var(--tx-dim); cursor: help; }
+.tterm { z-index: 6; }
+.tterm p { margin: 4px 0 0; }
+body.touch .tcard .hh.k, body.touch .tcard .hdet { display: none; }
+body:not(.touch) #ptree .tsockp { left: auto; right: 20px; top: 248px; transform: none; width: 440px; max-height: calc(100% - 300px); }
+#ptree .tsockp { box-sizing: border-box; padding: 12px 16px 19px; font: 400 16px/22px var(--font); }
+.tsockp .tt { display: block; padding-right: 40px; font: 700 16px/24px var(--font); color: var(--tx-title); }
+.tsockp > .x { position: absolute; right: 8px; top: 8px; width: 32px; height: 32px; display: grid; place-items: center; background: none; border: 0; color: var(--tx-dim); cursor: pointer; }
+.tsockp .sub { margin: 3px 0 0; font-size: 14px; line-height: 20px; color: var(--tx-dim); }
+.tsockp .lead { margin: 6px 0 0; }
+.tsockp .jn { margin: 6px 0 0; font-size: 14px; line-height: 20px; color: var(--tx-dim); }
+.tsockp > .btn { margin-top: 10px; min-height: 36px; padding: 0 16px; font: 700 16px var(--font); }
+.tsockp .jw small { display: block; font-size: 14px; color: var(--tx-dim); }
+.tsockp .jw .btn { min-height: 44px; flex: none; }
+#hask .card.w400 { padding: 20px; }
+.tattr { flex-direction: column; align-items: stretch; flex-wrap: nowrap; box-sizing: border-box; width: min(420px, calc(100% - 24px)); left: 0; bottom: auto; transform: none; gap: 8px; padding: 12px; background: var(--panel); border-color: var(--border-mid); border-radius: 2px; }
+.tattr .th { font: 700 16px var(--font); color: var(--tx-title); }
+.tattr .tp { margin: 0; font-size: 14px; color: var(--tx-dim); }
+.tattr .ab { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; background: var(--panel-inset); border: 1px solid var(--border-mid); border-radius: 2px; color: var(--tx); font: 400 14px var(--font); text-align: left; cursor: pointer; }
+.tattr .ab:hover, .tattr .ab:focus-visible { border-color: var(--tx-strong); outline: none; }
+.tattr .ab b { font: 700 16px var(--font); }
+.tattr .ab small { color: var(--tx-dim); font-size: 14px; }
+.tattr .ab span { flex: 1; color: var(--tx-dim); }
+.tattr kbd { min-width: 14px; padding: 0 3px; border: 1px solid var(--border-mid); border-radius: 2px; font: 400 11px var(--font); color: var(--tx-dim); text-align: center; }
+.tattr .ac { display: flex; justify-content: flex-end; }
+.tattr .ac .btn { min-height: 44px; gap: 6px; }
+.tattr .keys { margin: 0; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 14px; color: var(--tx-dim); }
+.tattr .keys b { margin-right: 12px; color: var(--tx); }
+.aic { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--tx); stroke-width: 1.6; }
+.aic text { fill: var(--tx); stroke: none; font: 700 12px var(--font); text-anchor: middle; }
+#hask .card.w400 { width: min(400px, calc(100vw - 32px)); }
+#hask .card .hmore { font-size: 14px; color: var(--tx-dim); }
+#hask .card.w400 h2, #hask .card.w400 > p:not(.hmore):not(.hno) { font-size: 16px; }
+/* 節點：基石雙圈、缺圖佔位、能力值標記（選了才畫；≥24px 才有字母）、珠寶孔、鎖住的圈 */
+.nd .r2 { fill: none; stroke: var(--tx-strong); stroke-opacity: 0.75; stroke-width: 3; }
+.nd .ph { fill: none; stroke: var(--tx-dim); stroke-width: 1.5; stroke-dasharray: 3 2; pointer-events: none; }
+.nd .am, .nd .am > *, #tsvg .nd .al { display: none; }
+.nd .am { pointer-events: none; }
+.nd .am > rect, .nd .am > path, .nd .am > circle { fill: var(--panel-inset); stroke: var(--tx-strong); stroke-width: 2; }
+.nd .am .al { fill: var(--tx-strong); font: 700 11px var(--font); text-anchor: middle; dominant-baseline: central; }
+.nd.a-s .am, .nd.a-d .am, .nd.a-i .am { display: inline; }
+.nd.a-s .am .as, .nd.a-d .am .ad, .nd.a-i .am .ai { display: inline; }
+.nd.a-s .ti, .nd.a-d .ti, .nd.a-i .ti { display: none; }
+#tsvg.lt .nd.a-s .al:nth-of-type(1), #tsvg.lt .nd.a-d .al:nth-of-type(2), #tsvg.lt .nd.a-i .al:nth-of-type(3) { display: inline; }
+.nd.js circle { fill: var(--panel-inset); stroke: var(--border-mid); stroke-width: 3; }
+.nd.js.can circle { stroke: var(--tx); }
+.nd.js.on circle { stroke: var(--tx-strong); stroke-width: 4; }
+.nd.js.full circle { fill: var(--border-mid); stroke-width: 6; }
+.nd.js .jt { fill: var(--tx); font: 700 11px var(--font); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.nd.js.jo .jt { font-size: 14px; }
+.nd.js .jl { fill: var(--tx-dim); font: 400 11px var(--font); dominant-baseline: central; pointer-events: none; }
+.nd.js.on .jl, #tsvg.far1 .nd.js .jl, #tsvg.far1 .nd.js .jt { display: none; }
+#tg .lkc circle { fill: none; stroke: var(--border-mid); stroke-width: 3; stroke-dasharray: 10 8; pointer-events: none; }
+#tg .lkc text { fill: var(--tx-dim); font: 700 16px var(--font); text-anchor: middle; pointer-events: none; }
+#tsvg.far1 .lkc text { display: none; }

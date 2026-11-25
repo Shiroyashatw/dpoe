@@ -1463,12 +1463,13 @@ const termify = t => {
    填滿後在原按鈕記一次許可、再點它一下，呼叫處照原流程往下跑（按鈕被重畫過就用同一個 data- 屬性找回來） */
 const HOLD_MS = 600;
 let HASK = null;
-function holdAsk(b, act, why = '') {
+/* x：卡片另外的字（天賦樹重置，S/talent-tree.md 12）：t 標題、more 第二段起（14px）、hint 不能復原下面的操作說明、cls 卡片寬 */
+function holdAsk(b, act, why = '', x = {}) {
   if (b.dataset.ok) return delete b.dataset.ok, false;
   const a = [...b.attributes].find(x => x.name.startsWith('data-'));
   HASK = { b, q: a && `[${a.name}="${CSS.escape(a.value)}"]`, t: 0 };
   const o = $('hask');
-  o.innerHTML = `<div class="card"><h2 id="haskT">${esc(act)}？</h2>${why ? `<p>${esc(why)}</p>` : ''}<p class="hno">⚠ 不能復原</p><p class="hhint" hidden>按住 0.6 秒</p>
+  o.innerHTML = `<div class="card ${x.cls || ''}"><h2 id="haskT">${esc(x.t || act + '？')}</h2>${why ? `<p>${esc(why)}</p>` : ''}${(x.more || []).map(t => `<p class="hmore">${esc(t)}</p>`).join('')}<p class="hno">⚠ 不能復原</p>${x.hint ? `<p class="hmore">${esc(x.hint)}</p>` : ''}<p class="hhint" hidden>按住 0.6 秒</p>
     <div class="hbtns"><button class="btn hgo" data-h="go">長按${esc(act)}</button><button class="btn pri" data-h="no">取消</button></div></div>`;
   o.hidden = false;
   o.querySelector('[data-h="no"]').focus();
