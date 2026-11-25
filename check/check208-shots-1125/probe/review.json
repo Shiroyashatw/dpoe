@@ -1,0 +1,10149 @@
+{
+ "10": [
+  [
+   "返回",
+   ".c12bk",
+   {
+    "box": [
+     852,
+     76,
+     44,
+     44
+    ],
+    "text": "←",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     863,
+     82,
+     22,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "設施名",
+   ".c12h.one > b",
+   {
+    "box": [
+     900,
+     87,
+     48,
+     22
+    ],
+    "text": "斥候營",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     900,
+     86,
+     48,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "序",
+   ".c12h.one > span",
+   {
+    "box": [
+     964,
+     88,
+     208,
+     20
+    ],
+    "text": "3／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 208,
+    "clientW": 208,
+    "textBox": [
+     964,
+     88,
+     30,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "‹",
+   "[data-c12=\"nav:-1\"]",
+   {
+    "box": [
+     1172,
+     76,
+     44,
+     44
+    ],
+    "text": "‹",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1191,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "›",
+   "[data-c12=\"nav:1\"]",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "›",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1239,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部",
+   ".c12top",
+   {
+    "box": [
+     852,
+     128,
+     404,
+     52
+    ],
+    "text": "斥\n佔位\nLv 4（滿級）",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     126,
+     404,
+     51
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 icon",
+   ".c12top .c12ph",
+   {
+    "box": [
+     852,
+     128,
+     48,
+     48
+    ],
+    "text": "斥\n佔位",
+    "font": "22px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 46,
+    "clientW": 46,
+    "textBox": [
+     853,
+     136,
+     46,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 Lv",
+   ".c12top b",
+   {
+    "box": [
+     908,
+     128,
+     348,
+     28
+    ],
+    "text": "Lv 4（滿級）",
+    "font": "22px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 348,
+    "clientW": 348,
+    "textBox": [
+     908,
+     126,
+     130,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 最高",
+   ".c12top > small",
+   null
+  ],
+  [
+   "頭部 條",
+   ".c12pb",
+   null
+  ],
+  [
+   "頭部 %",
+   ".c12pp",
+   null
+  ],
+  [
+   "小標列1",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     186,
+     404,
+     24
+    ],
+    "text": "目前\n解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     186,
+     388,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標1 b",
+   ".c12sub b",
+   {
+    "box": [
+     852,
+     188,
+     28,
+     20
+    ],
+    "text": "目前",
+    "font": "14px/900",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 28,
+    "clientW": 28,
+    "textBox": [
+     852,
+     188,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕",
+   ".c12cat",
+   {
+    "box": [
+     1146,
+     186,
+     94,
+     24
+    ],
+    "text": "解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 92,
+    "clientW": 92,
+    "textBox": [
+     1161,
+     188,
+     64,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級後全句",
+   ".c12full",
+   {
+    "box": [
+     852,
+     212,
+     404,
+     24
+    ],
+    "text": "可選 5★",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     212,
+     61,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "次要鈕",
+   ".c12sec",
+   null
+  ],
+  [
+   "小標2",
+   ".c12sub",
+   null
+  ],
+  [
+   "小標3",
+   ".c12sub",
+   null
+  ],
+  [
+   "對照列1",
+   ".c12cmp li",
+   null
+  ],
+  [
+   "對照列1 項",
+   ".c12cmp li span",
+   null
+  ],
+  [
+   "對照列1 現",
+   ".c12cmp li span",
+   null
+  ],
+  [
+   "對照列1 下",
+   ".c12cmp li b",
+   null
+  ],
+  [
+   "對照列1 Δ",
+   ".c12cmp li em",
+   null
+  ],
+  [
+   "費用列1",
+   ".c12cost li",
+   null
+  ],
+  [
+   "費用列1 名",
+   ".c12cost li b",
+   null
+  ],
+  [
+   "費用列1 數",
+   ".c12cost li span",
+   null
+  ],
+  [
+   "費用列1 條",
+   ".c12cost li .c12bar",
+   null
+  ],
+  [
+   "費用列1 方",
+   ".c12cost li .c12sq",
+   null
+  ],
+  [
+   "費用列2",
+   ".c12cost li",
+   null
+  ],
+  [
+   "費用列3",
+   ".c12cost li",
+   null
+  ],
+  [
+   "費用列4",
+   ".c12cost li",
+   null
+  ],
+  [
+   "底列",
+   ".c12foot",
+   {
+    "box": [
+     845,
+     556,
+     418,
+     48
+    ],
+    "text": "滿級",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 418,
+    "clientW": 418,
+    "textBox": [
+     860,
+     558,
+     396,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "摘要",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     224,
+     40
+    ],
+    "text": "",
+    "font": "16px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "滿級",
+    "font": "16px/400",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgb(82, 76, 71)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1158,
+     568,
+     32,
+     24
+    ],
+    "disabled": true,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕 small",
+   ".c12up small",
+   null
+  ],
+  [
+   "短列",
+   ".c12cost li.short",
+   null
+  ],
+  [
+   "短列 條 fill",
+   ".c12cost li.short .c12bar i",
+   null
+  ],
+  [
+   "短列 方",
+   ".c12cost li.short .c12sq",
+   null
+  ],
+  [
+   "短列 ETA",
+   ".c12cost li small",
+   null
+  ]
+ ],
+ "11": [
+  [
+   "toast",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     220,
+     40
+    ],
+    "text": "差 530 木",
+    "font": "14px/700",
+    "color": "rgb(255, 155, 186)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(255, 155, 186) L:1px rgb(255, 155, 186)",
+    "outline": "3px none rgb(255, 155, 186) off 0px",
+    "scrollW": 218,
+    "clientW": 218,
+    "textBox": [
+     873,
+     570,
+     59,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "升級\n差 530 木",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgb(82, 76, 71)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1149,
+     560,
+     51,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "閃列",
+   ".c12cost li.flash",
+   {
+    "box": [
+     852,
+     421,
+     404,
+     43
+    ],
+    "text": "木\n120／650",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(61, 52, 42)",
+    "ownBg": "rgb(61, 52, 42)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     426,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "閃列 方",
+   ".c12cost li.flash .c12sq",
+   {
+    "box": [
+     1171,
+     447,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(61, 52, 42)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "2px solid rgb(255, 155, 186) L:2px rgb(255, 155, 186)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用 最後一列",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     464,
+     404,
+     43
+    ],
+    "text": "百煉鋼\n136／130",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     469,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ]
+ ],
+ "12": [
+  [
+   "名詞 #c12tip",
+   "#c12tip",
+   {
+    "box": [
+     500,
+     205,
+     320,
+     124
+    ],
+    "text": "倉房\n\n延長離線收益時數、提高分解回收，珠寶分頁每級多 4 格；Lv 4 開商會。跟「倉庫」不同\n\n名詞提示　停留 0.4 秒／手把 R3。與物品比較窗分開。",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgb(37, 33, 30)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 318,
+    "clientW": 318,
+    "textBox": [
+     513,
+     216,
+     294,
+     102
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "名詞 標題",
+   "#c12tip b",
+   {
+    "box": [
+     513,
+     216,
+     294,
+     24
+    ],
+    "text": "倉房",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 294,
+    "clientW": 294,
+    "textBox": [
+     513,
+     216,
+     32,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "名詞 正文",
+   "#c12tip p",
+   {
+    "box": [
+     513,
+     244,
+     294,
+     42
+    ],
+    "text": "延長離線收益時數、提高分解回收，珠寶分頁每級多 4 格；Lv 4 開商會。跟「倉庫」不同",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 294,
+    "clientW": 294,
+    "textBox": [
+     513,
+     244,
+     294,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "名詞 small",
+   "#c12tip small",
+   {
+    "box": [
+     513,
+     294,
+     294,
+     24
+    ],
+    "text": "名詞提示　停留 0.4 秒／手把 R3。與物品比較窗分開。",
+    "font": "12px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 294,
+    "clientW": 294,
+    "textBox": [
+     513,
+     301,
+     291,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ]
+ ],
+ "14": [
+  [
+   "功能 昇華石碑",
+   ".c12fn button",
+   {
+    "box": [
+     1016,
+     160,
+     76,
+     56
+    ],
+    "text": "鎖\n佔位\nU\n昇華石碑",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     1026,
+     165,
+     59,
+     48
+    ],
+    "disabled": false,
+    "ariaDis": "true"
+   }
+  ],
+  [
+   "功能 昇華石碑 名",
+   ".c12fn button span",
+   {
+    "box": [
+     1026,
+     193,
+     56,
+     20
+    ],
+    "text": "昇華石碑",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 56,
+    "clientW": 56,
+    "textBox": [
+     1026,
+     193,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "可升級",
+   ".c12h > span",
+   {
+    "box": [
+     936,
+     88,
+     284,
+     20
+    ],
+    "text": "可升級 0",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 284,
+    "clientW": 284,
+    "textBox": [
+     936,
+     88,
+     53,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 利益行",
+   "#c12-forge .c12ben",
+   {
+    "box": [
+     860,
+     276,
+     182,
+     24
+    ],
+    "text": "解鎖：「填」",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     860,
+     276,
+     88,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 利益 em",
+   "#c12-forge .c12ben em",
+   {
+    "box": [
+     908,
+     276,
+     40,
+     24
+    ],
+    "text": "「填」",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     908,
+     276,
+     40,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 印章",
+   "#c12-forge .stamp",
+   {
+    "box": [
+     996,
+     234,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1009,
+     243,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 利益行",
+   "#c12-watch .c12ben",
+   {
+    "box": [
+     1066,
+     276,
+     182,
+     24
+    ],
+    "text": "解鎖：枯河渡口",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     1066,
+     276,
+     112,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 利益 em",
+   "#c12-watch .c12ben em",
+   {
+    "box": [
+     1114,
+     276,
+     64,
+     24
+    ],
+    "text": "枯河渡口",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     1114,
+     276,
+     64,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 印章",
+   "#c12-watch .stamp",
+   {
+    "box": [
+     1202,
+     234,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1215,
+     243,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 利益行",
+   "#c12-scout .c12ben",
+   {
+    "box": [
+     860,
+     404,
+     182,
+     24
+    ],
+    "text": "可選 2★",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     860,
+     404,
+     61,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 利益 em",
+   "#c12-scout .c12ben em",
+   {
+    "box": [
+     895.6,
+     404,
+     9.5,
+     24
+    ],
+    "text": "2",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     896,
+     404,
+     9,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 印章",
+   "#c12-scout .stamp",
+   {
+    "box": [
+     996,
+     362,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1009,
+     371,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 利益行",
+   "#c12-altar .c12ben",
+   {
+    "box": [
+     1066,
+     404,
+     182,
+     24
+    ],
+    "text": "解鎖：第 2 格技能",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     1066,
+     404,
+     129,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 利益 em",
+   "#c12-altar .c12ben em",
+   {
+    "box": [
+     1114,
+     404,
+     80.7,
+     24
+    ],
+    "text": "第 2 格技能",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     1114,
+     404,
+     81,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 印章",
+   "#c12-altar .stamp",
+   {
+    "box": [
+     1202,
+     362,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1215,
+     371,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 利益行",
+   "#c12-store .c12ben",
+   {
+    "box": [
+     860,
+     532,
+     182,
+     24
+    ],
+    "text": "離線收益最多 4 小時",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     860,
+     532,
+     145,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 利益 em",
+   "#c12-store .c12ben em",
+   {
+    "box": [
+     959.6,
+     532,
+     9.5,
+     24
+    ],
+    "text": "4",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     960,
+     532,
+     9,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 印章",
+   "#c12-store .stamp",
+   {
+    "box": [
+     996,
+     490,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1009,
+     499,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ]
+ ],
+ "15": [
+  [
+   "小窗",
+   ".c12cw",
+   {
+    "box": [
+     472,
+     88,
+     368,
+     402
+    ],
+    "text": "長老屋・解鎖一覽\nLv 1\n第 2 格技能\n已解鎖\nLv 2\n每一招第 1 個輔助孔\n已解鎖\nLv 3\n第 3 格技能\n已解鎖\nLv 4\n天賦樹\n已解鎖\nLv 5\n每一招第 2 個輔助孔；光環欄\n已解鎖\nLv 6\n第 4 格技能\n目前\nLv",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgb(37, 33, 30)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 366,
+    "clientW": 366,
+    "textBox": [
+     473,
+     89,
+     366,
+     400
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "窗頭",
+   ".c12ch",
+   {
+    "box": [
+     473,
+     89,
+     366,
+     40
+    ],
+    "text": "長老屋・解鎖一覽",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 366,
+    "clientW": 366,
+    "textBox": [
+     485,
+     89,
+     354,
+     40
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "窗標題",
+   ".c12ch b",
+   {
+    "box": [
+     485,
+     96.5,
+     314,
+     24
+    ],
+    "text": "長老屋・解鎖一覽",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 314,
+    "clientW": 314,
+    "textBox": [
+     485,
+     97,
+     128,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "窗關閉",
+   ".c12ch .x",
+   {
+    "box": [
+     799,
+     88.5,
+     40,
+     40
+    ],
+    "text": "",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 39,
+    "clientW": 39,
+    "textBox": [
+     812,
+     101,
+     16,
+     16
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv1",
+   ".c12cw li",
+   {
+    "box": [
+     473,
+     133,
+     366,
+     32
+    ],
+    "text": "Lv 1\n第 2 格技能\n已解鎖",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:3px rgba(0, 0, 0, 0)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 363,
+    "clientW": 363,
+    "textBox": [
+     487,
+     139,
+     344,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv1 級",
+   ".c12cw li span",
+   {
+    "box": [
+     487,
+     139,
+     48,
+     20
+    ],
+    "text": "Lv 1",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     487,
+     139,
+     25,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv1 文",
+   ".c12cw li b",
+   {
+    "box": [
+     535,
+     139,
+     260,
+     20
+    ],
+    "text": "第 2 格技能",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 260,
+    "clientW": 260,
+    "textBox": [
+     535,
+     139,
+     70,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv1 狀態",
+   ".c12cw li small",
+   {
+    "box": [
+     795,
+     140.5,
+     36,
+     17
+    ],
+    "text": "已解鎖",
+    "font": "12px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 36,
+    "clientW": 36,
+    "textBox": [
+     795,
+     141,
+     36,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv6 目前",
+   ".c12cw li",
+   {
+    "box": [
+     473,
+     293,
+     366,
+     32
+    ],
+    "text": "Lv 6\n第 4 格技能\n目前",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:3px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 363,
+    "clientW": 363,
+    "textBox": [
+     487,
+     299,
+     344,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv7 下一級",
+   ".c12cw li",
+   {
+    "box": [
+     473,
+     325,
+     366,
+     32
+    ],
+    "text": "Lv 7\n昇華石碑，先開兩個昇華\n下一級",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:4px rgb(149, 232, 134)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 362,
+    "clientW": 362,
+    "textBox": [
+     487,
+     331,
+     344,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv7 文",
+   ".c12cw li b",
+   {
+    "box": [
+     535,
+     331,
+     260,
+     20
+    ],
+    "text": "昇華石碑，先開兩個昇華",
+    "font": "14px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 260,
+    "clientW": 260,
+    "textBox": [
+     535,
+     331,
+     154,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv8 未解鎖",
+   ".c12cw li",
+   {
+    "box": [
+     473,
+     357,
+     366,
+     32
+    ],
+    "text": "Lv 8\n每一招第 3 個輔助孔\n未解鎖",
+    "font": "14px/400",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(157, 153, 149) L:3px rgba(0, 0, 0, 0)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 363,
+    "clientW": 363,
+    "textBox": [
+     487,
+     363,
+     344,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv8 文",
+   ".c12cw li b",
+   {
+    "box": [
+     535,
+     363,
+     260,
+     20
+    ],
+    "text": "每一招第 3 個輔助孔",
+    "font": "14px/400",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(157, 153, 149) L:0px rgb(157, 153, 149)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 260,
+    "clientW": 260,
+    "textBox": [
+     535,
+     363,
+     126,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv8 狀態",
+   ".c12cw li small",
+   {
+    "box": [
+     795,
+     364.5,
+     36,
+     17
+    ],
+    "text": "未解鎖",
+    "font": "12px/700",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(157, 153, 149) L:0px rgb(157, 153, 149)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 36,
+    "clientW": 36,
+    "textBox": [
+     795,
+     365,
+     36,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "列 Lv11",
+   ".c12cw li",
+   {
+    "box": [
+     473,
+     453,
+     366,
+     32
+    ],
+    "text": "Lv 11\n每一招第 5 個輔助孔\n未解鎖",
+    "font": "14px/400",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(157, 153, 149) L:3px rgba(0, 0, 0, 0)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 363,
+    "clientW": 363,
+    "textBox": [
+     487,
+     459,
+     344,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕 按下",
+   ".c12cat",
+   {
+    "box": [
+     1146,
+     186,
+     94,
+     24
+    ],
+    "text": "解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(70, 58, 45)",
+    "ownBg": "rgb(70, 58, 45)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 92,
+    "clientW": 92,
+    "textBox": [
+     1161,
+     188,
+     64,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ]
+ ],
+ "02": [
+  [
+   "焦點卡 .c12b",
+   "#c12-forge .c12b",
+   {
+    "box": [
+     853,
+     225,
+     196,
+     120
+    ],
+    "text": "鍛\n佔位\n鍛造台\nLv 15／20\n一次打造 10→20 件\n可升級",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px solid rgb(251, 249, 245) off -3px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     860,
+     228,
+     182,
+     104
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "鍵帽 #c12key",
+   "#c12key",
+   {
+    "box": [
+     500,
+     365,
+     320,
+     28
+    ],
+    "text": "Ⓐ 開詳細頁\nⓍ 升級\nEsc 關閉",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgb(37, 33, 30)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 318,
+    "clientW": 318,
+    "textBox": [
+     511,
+     369,
+     201,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "鍵帽 span1",
+   "#c12key span",
+   {
+    "box": [
+     511,
+     369,
+     73.1,
+     20
+    ],
+    "text": "Ⓐ 開詳細頁",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 73,
+    "clientW": 73,
+    "textBox": [
+     511,
+     369,
+     73,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "鍵帽 span3",
+   "#c12key span",
+   {
+    "box": [
+     658.7,
+     369,
+     53.1,
+     20
+    ],
+    "text": "Esc 關閉",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 53,
+    "clientW": 53,
+    "textBox": [
+     659,
+     369,
+     53,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ]
+ ],
+ "02focusEl": [
+  "cdb c12b",
+  true
+ ],
+ "01": [
+  [
+   "面板",
+   "#pcamp",
+   {
+    "box": [
+     844,
+     76,
+     420,
+     536
+    ],
+    "text": "營地\n可升級 2\n下一個目標：鍛造台 Lv 16\n地\n佔位\nM\n地點\n庫\n佔位\nL\n倉庫\n鎖\n佔位\nU\n昇華石碑\n盒\n佔位\nJ\n山海寶盒\n試\n佔位\n試招場\n鍛\n佔位\n鍛造台\nLv 15／20\n一次打造 10→20 件\n可升級\n建議\n▲\n瞭\n",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgb(37, 33, 30)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off -5px",
+    "scrollW": 419,
+    "clientW": 418,
+    "textBox": [
+     845,
+     77,
+     418,
+     525
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "標題列 .c12h",
+   ".c12h",
+   {
+    "box": [
+     845,
+     77,
+     418,
+     43
+    ],
+    "text": "營地\n可升級 2",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 419,
+    "clientW": 418,
+    "textBox": [
+     856,
+     76,
+     408,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "營地",
+   ".c12h > b",
+   {
+    "box": [
+     856,
+     87,
+     80,
+     22
+    ],
+    "text": "營地",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 80,
+    "clientW": 80,
+    "textBox": [
+     856,
+     86,
+     32,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "可升級",
+   ".c12h > span",
+   {
+    "box": [
+     936,
+     88,
+     284,
+     20
+    ],
+    "text": "可升級 2",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 284,
+    "clientW": 284,
+    "textBox": [
+     936,
+     88,
+     53,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "× 關閉",
+   ".c12h > .x",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1235,
+     90,
+     16,
+     16
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "目標條",
+   ".c12goal",
+   {
+    "box": [
+     852,
+     120,
+     404,
+     36
+    ],
+    "text": "下一個目標：鍛造台 Lv 16",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     860,
+     126,
+     185,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 地點",
+   ".c12fn button",
+   {
+    "box": [
+     852,
+     160,
+     76,
+     56
+    ],
+    "text": "地\n佔位\nM\n地點",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     876,
+     165,
+     45,
+     48
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 倉庫",
+   ".c12fn button",
+   {
+    "box": [
+     934,
+     160,
+     76,
+     56
+    ],
+    "text": "庫\n佔位\nL\n倉庫",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     958,
+     165,
+     45,
+     48
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 昇華石碑",
+   ".c12fn button",
+   {
+    "box": [
+     1016,
+     160,
+     76,
+     56
+    ],
+    "text": "鎖\n佔位\nU\n昇華石碑",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     1026,
+     165,
+     59,
+     48
+    ],
+    "disabled": false,
+    "ariaDis": "true"
+   }
+  ],
+  [
+   "功能 昇華石碑 名",
+   ".c12fn button span",
+   {
+    "box": [
+     1026,
+     193,
+     56,
+     20
+    ],
+    "text": "昇華石碑",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 56,
+    "clientW": 56,
+    "textBox": [
+     1026,
+     193,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 昇華石碑 icon",
+   ".c12fn button .c12ph",
+   {
+    "box": [
+     1042,
+     167,
+     24,
+     24
+    ],
+    "text": "鎖\n佔位",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 22,
+    "clientW": 22,
+    "textBox": [
+     1043,
+     169,
+     22,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 山海寶盒",
+   ".c12fn button",
+   {
+    "box": [
+     1098,
+     160,
+     76,
+     56
+    ],
+    "text": "盒\n佔位\nJ\n山海寶盒",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     1108,
+     165,
+     59,
+     48
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 試招場",
+   ".c12fn button",
+   {
+    "box": [
+     1180,
+     160,
+     76,
+     56
+    ],
+    "text": "試\n佔位\n試招場",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     1197,
+     167,
+     42,
+     46
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 地點 名",
+   ".c12fn button span",
+   {
+    "box": [
+     876,
+     193,
+     28,
+     20
+    ],
+    "text": "地點",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 28,
+    "clientW": 28,
+    "textBox": [
+     876,
+     193,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "功能 地點 kbd",
+   ".c12fn button kbd",
+   {
+    "box": [
+     902.8,
+     165,
+     18.3,
+     18
+    ],
+    "text": "M",
+    "font": "12px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(217, 211, 205) L:1px rgb(217, 211, 205)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 16,
+    "clientW": 16,
+    "textBox": [
+     907,
+     165,
+     10,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 卡",
+   "#c12-forge",
+   {
+    "box": [
+     852,
+     224,
+     198,
+     122
+    ],
+    "text": "鍛\n佔位\n鍛造台\nLv 15／20\n一次打造 10→20 件\n可升級\n建議\n▲",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     853,
+     225,
+     196,
+     120
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 名",
+   "#c12-forge .c12b > b",
+   {
+    "box": [
+     890,
+     230,
+     48,
+     20
+    ],
+    "text": "鍛造台",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     890,
+     228,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge Lv",
+   "#c12-forge .lv",
+   {
+    "box": [
+     890,
+     252,
+     62.5,
+     18
+    ],
+    "text": "Lv 15／20",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 63,
+    "clientW": 63,
+    "textBox": [
+     890,
+     251,
+     63,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 利益行",
+   "#c12-forge .c12ben",
+   {
+    "box": [
+     860,
+     276,
+     182,
+     24
+    ],
+    "text": "一次打造 10→20 件",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     860,
+     276,
+     141,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 利益 em",
+   "#c12-forge .c12ben em",
+   {
+    "box": [
+     927.6,
+     276,
+     53.8,
+     24
+    ],
+    "text": "10→20",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     928,
+     276,
+     54,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 底列",
+   "#c12-forge .c12st",
+   {
+    "box": [
+     860,
+     312,
+     42,
+     20
+    ],
+    "text": "可升級",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     860,
+     312,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 印章",
+   "#c12-forge .stamp",
+   {
+    "box": [
+     996,
+     234,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(252, 249, 243)",
+    "bg": "rgb(124, 87, 41)",
+    "ownBg": "rgb(124, 87, 41)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(252, 249, 243) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1009,
+     243,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 進度條",
+   "#c12-forge .cdp",
+   {
+    "box": [
+     853,
+     341,
+     196,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     853,
+     341,
+     196,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "forge 進度 fill",
+   "#c12-forge .cdp i",
+   {
+    "box": [
+     853,
+     341,
+     196,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(149, 232, 134)",
+    "ownBg": "rgb(149, 232, 134)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 卡",
+   "#c12-watch",
+   {
+    "box": [
+     1058,
+     224,
+     198,
+     122
+    ],
+    "text": "瞭\n佔位\n瞭望台\nLv 12／26\n解鎖：凍河口\n可升級\n▲",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     1059,
+     225,
+     196,
+     120
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 名",
+   "#c12-watch .c12b > b",
+   {
+    "box": [
+     1096,
+     230,
+     48,
+     20
+    ],
+    "text": "瞭望台",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     1096,
+     228,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch Lv",
+   "#c12-watch .lv",
+   {
+    "box": [
+     1096,
+     252,
+     62.5,
+     18
+    ],
+    "text": "Lv 12／26",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 63,
+    "clientW": 63,
+    "textBox": [
+     1096,
+     251,
+     63,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 利益行",
+   "#c12-watch .c12ben",
+   {
+    "box": [
+     1066,
+     276,
+     182,
+     24
+    ],
+    "text": "解鎖：凍河口",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     1066,
+     276,
+     96,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 利益 em",
+   "#c12-watch .c12ben em",
+   {
+    "box": [
+     1114,
+     276,
+     48,
+     24
+    ],
+    "text": "凍河口",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     1114,
+     276,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 底列",
+   "#c12-watch .c12st",
+   {
+    "box": [
+     1066,
+     312,
+     42,
+     20
+    ],
+    "text": "可升級",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1066,
+     312,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 印章",
+   "#c12-watch .stamp",
+   {
+    "box": [
+     1202,
+     234,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(252, 249, 243)",
+    "bg": "rgb(124, 87, 41)",
+    "ownBg": "rgb(124, 87, 41)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(252, 249, 243) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1215,
+     243,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 進度條",
+   "#c12-watch .cdp",
+   {
+    "box": [
+     1059,
+     341,
+     196,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     1059,
+     341,
+     196,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "watch 進度 fill",
+   "#c12-watch .cdp i",
+   {
+    "box": [
+     1059,
+     341,
+     196,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(149, 232, 134)",
+    "ownBg": "rgb(149, 232, 134)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 卡",
+   "#c12-scout",
+   {
+    "box": [
+     852,
+     352,
+     198,
+     122
+    ],
+    "text": "斥\n佔位\n斥候營\nLv 2／4\n可選 3→4★\n▲",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     853,
+     353,
+     196,
+     120
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 名",
+   "#c12-scout .c12b > b",
+   {
+    "box": [
+     890,
+     358,
+     48,
+     20
+    ],
+    "text": "斥候營",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     890,
+     356,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout Lv",
+   "#c12-scout .lv",
+   {
+    "box": [
+     890,
+     380,
+     47,
+     18
+    ],
+    "text": "Lv 2／4",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 47,
+    "clientW": 47,
+    "textBox": [
+     890,
+     379,
+     47,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 利益行",
+   "#c12-scout .c12ben",
+   {
+    "box": [
+     860,
+     404,
+     182,
+     24
+    ],
+    "text": "可選 3→4★",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     860,
+     404,
+     87,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 利益 em",
+   "#c12-scout .c12ben em",
+   {
+    "box": [
+     895.6,
+     404,
+     34.9,
+     24
+    ],
+    "text": "3→4",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     896,
+     404,
+     35,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 底列",
+   "#c12-scout .c12st",
+   null
+  ],
+  [
+   "scout 印章",
+   "#c12-scout .stamp",
+   {
+    "box": [
+     996,
+     362,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1009,
+     371,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 進度條",
+   "#c12-scout .cdp",
+   {
+    "box": [
+     853,
+     469,
+     196,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     853,
+     469,
+     0,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "scout 進度 fill",
+   "#c12-scout .cdp i",
+   {
+    "box": [
+     853,
+     469,
+     0,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(182, 176, 168)",
+    "ownBg": "rgb(182, 176, 168)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 卡",
+   "#c12-altar",
+   {
+    "box": [
+     1058,
+     352,
+     198,
+     122
+    ],
+    "text": "長\n佔位\n長老屋\nLv 6／11\n解鎖：昇華石碑\n▲",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     1059,
+     353,
+     196,
+     120
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 名",
+   "#c12-altar .c12b > b",
+   {
+    "box": [
+     1096,
+     358,
+     48,
+     20
+    ],
+    "text": "長老屋",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     1096,
+     356,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar Lv",
+   "#c12-altar .lv",
+   {
+    "box": [
+     1096,
+     380,
+     54.8,
+     18
+    ],
+    "text": "Lv 6／11",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 55,
+    "clientW": 55,
+    "textBox": [
+     1096,
+     379,
+     55,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 利益行",
+   "#c12-altar .c12ben",
+   {
+    "box": [
+     1066,
+     404,
+     182,
+     24
+    ],
+    "text": "解鎖：昇華石碑",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     1066,
+     404,
+     112,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 利益 em",
+   "#c12-altar .c12ben em",
+   {
+    "box": [
+     1114,
+     404,
+     64,
+     24
+    ],
+    "text": "昇華石碑",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     1114,
+     404,
+     64,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 底列",
+   "#c12-altar .c12st",
+   null
+  ],
+  [
+   "altar 印章",
+   "#c12-altar .stamp",
+   {
+    "box": [
+     1202,
+     362,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1215,
+     371,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 進度條",
+   "#c12-altar .cdp",
+   {
+    "box": [
+     1059,
+     469,
+     196,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     1059,
+     469,
+     0,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "altar 進度 fill",
+   "#c12-altar .cdp i",
+   {
+    "box": [
+     1059,
+     469,
+     0,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(182, 176, 168)",
+    "ownBg": "rgb(182, 176, 168)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 卡",
+   "#c12-store",
+   {
+    "box": [
+     852,
+     480,
+     198,
+     122
+    ],
+    "text": "倉\n佔位\n倉房\nLv 2／5\n離線收益最多 4→8 小時\n▲",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     853,
+     481,
+     196,
+     120
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 名",
+   "#c12-store .c12b > b",
+   {
+    "box": [
+     890,
+     486,
+     32,
+     20
+    ],
+    "text": "倉房",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 32,
+    "clientW": 32,
+    "textBox": [
+     890,
+     484,
+     32,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store Lv",
+   "#c12-store .lv",
+   {
+    "box": [
+     890,
+     508,
+     47,
+     18
+    ],
+    "text": "Lv 2／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 47,
+    "clientW": 47,
+    "textBox": [
+     890,
+     507,
+     47,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 利益行",
+   "#c12-store .c12ben",
+   {
+    "box": [
+     860,
+     532,
+     182,
+     24
+    ],
+    "text": "離線收益最多 4→8 小時",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 182,
+    "clientW": 182,
+    "textBox": [
+     860,
+     532,
+     170,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 利益 em",
+   "#c12-store .c12ben em",
+   {
+    "box": [
+     959.6,
+     532,
+     34.9,
+     24
+    ],
+    "text": "4→8",
+    "font": "16px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     960,
+     532,
+     35,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 底列",
+   "#c12-store .c12st",
+   null
+  ],
+  [
+   "store 印章",
+   "#c12-store .stamp",
+   {
+    "box": [
+     996,
+     490,
+     44,
+     44
+    ],
+    "text": "▲",
+    "font": "18px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     1009,
+     499,
+     18,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 進度條",
+   "#c12-store .cdp",
+   {
+    "box": [
+     853,
+     597,
+     196,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     853,
+     597,
+     0,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "store 進度 fill",
+   "#c12-store .cdp i",
+   {
+    "box": [
+     853,
+     597,
+     0,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(182, 176, 168)",
+    "ownBg": "rgb(182, 176, 168)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 196,
+    "clientW": 196,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "建議",
+   ".c12sg",
+   {
+    "box": [
+     853,
+     225,
+     36,
+     18
+    ],
+    "text": "建議",
+    "font": "12px/700",
+    "color": "rgb(252, 249, 243)",
+    "bg": "rgb(124, 87, 41)",
+    "ownBg": "rgb(124, 87, 41)",
+    "border": "0px none rgb(252, 249, 243) L:0px rgb(252, 249, 243)",
+    "outline": "3px none rgb(252, 249, 243) off 0px",
+    "scrollW": 36,
+    "clientW": 36,
+    "textBox": [
+     859,
+     225,
+     24,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ]
+ ],
+ "02b": [
+  [
+   "懸停 #c12tip",
+   "#c12tip",
+   {
+    "box": [
+     612,
+     237,
+     220,
+     71
+    ],
+    "text": "鍛造台\n\n第 5 格技能",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgb(37, 33, 30)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 218,
+    "clientW": 218,
+    "textBox": [
+     625,
+     248,
+     194,
+     49
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "懸停 標題",
+   "#c12tip b",
+   {
+    "box": [
+     625,
+     248,
+     194,
+     24
+    ],
+    "text": "鍛造台",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 194,
+    "clientW": 194,
+    "textBox": [
+     625,
+     248,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "懸停 正文",
+   "#c12tip p",
+   {
+    "box": [
+     625,
+     276,
+     194,
+     21
+    ],
+    "text": "第 5 格技能",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 194,
+    "clientW": 194,
+    "textBox": [
+     625,
+     276,
+     70,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "懸停 small",
+   "#c12tip small",
+   null
+  ]
+ ],
+ "03hover": [
+  [
+   "鎖 懸停 #c12tip",
+   "#c12tip",
+   {
+    "box": [
+     500,
+     278,
+     320,
+     103
+    ],
+    "text": "昇華石碑\n\n升長老屋到 Lv 7 才開\n\n名詞提示　停留 0.4 秒／手把 R3。與物品比較窗分開。",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgb(37, 33, 30)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 318,
+    "clientW": 318,
+    "textBox": [
+     513,
+     289,
+     294,
+     81
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "鎖 懸停 small",
+   "#c12tip small",
+   {
+    "box": [
+     513,
+     346,
+     294,
+     24
+    ],
+    "text": "名詞提示　停留 0.4 秒／手把 R3。與物品比較窗分開。",
+    "font": "12px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 294,
+    "clientW": 294,
+    "textBox": [
+     513,
+     353,
+     291,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "昇華石碑 button",
+   ".c12fn button",
+   {
+    "box": [
+     1016,
+     160,
+     76,
+     56
+    ],
+    "text": "鎖\n佔位\nU\n昇華石碑",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     1026,
+     165,
+     59,
+     48
+    ],
+    "disabled": false,
+    "ariaDis": "true"
+   }
+  ]
+ ],
+ "03click": [
+  [
+   "#warn",
+   "#warn",
+   {
+    "box": [
+     555.7,
+     521.3,
+     168.6,
+     27
+    ],
+    "text": "升長老屋到 Lv 7 才開",
+    "font": "18px/700",
+    "color": "rgb(217, 205, 180)",
+    "bg": "rgb(22, 19, 15)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(217, 205, 180) L:0px rgb(217, 205, 180)",
+    "outline": "3px none rgb(217, 205, 180) off 0px",
+    "scrollW": 169,
+    "clientW": 169,
+    "textBox": [
+     556,
+     521,
+     169,
+     26
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "鎖 點後 button",
+   ".c12fn button",
+   {
+    "box": [
+     1016,
+     160,
+     76,
+     56
+    ],
+    "text": "鎖\n佔位\nU\n昇華石碑",
+    "font": "14px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 74,
+    "clientW": 74,
+    "textBox": [
+     1026,
+     165,
+     59,
+     48
+    ],
+    "disabled": false,
+    "ariaDis": "true"
+   }
+  ]
+ ],
+ "04": [
+  [
+   "返回",
+   ".c12bk",
+   {
+    "box": [
+     852,
+     76,
+     44,
+     44
+    ],
+    "text": "←",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     863,
+     82,
+     22,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "設施名",
+   ".c12h.one > b",
+   {
+    "box": [
+     900,
+     87,
+     48,
+     22
+    ],
+    "text": "鍛造台",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     900,
+     86,
+     48,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "序",
+   ".c12h.one > span",
+   {
+    "box": [
+     964,
+     88,
+     208,
+     20
+    ],
+    "text": "1／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 208,
+    "clientW": 208,
+    "textBox": [
+     964,
+     88,
+     30,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "‹",
+   "[data-c12=\"nav:-1\"]",
+   {
+    "box": [
+     1172,
+     76,
+     44,
+     44
+    ],
+    "text": "‹",
+    "font": "22px/400",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(157, 153, 149) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1191,
+     82,
+     7,
+     32
+    ],
+    "disabled": true,
+    "ariaDis": null
+   }
+  ],
+  [
+   "›",
+   "[data-c12=\"nav:1\"]",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "›",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1239,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部",
+   ".c12top",
+   {
+    "box": [
+     852,
+     128,
+     404,
+     52
+    ],
+    "text": "鍛\n佔位\nLv 15 → Lv 16\n最高 20\n100%",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     126,
+     404,
+     51
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 icon",
+   ".c12top .c12ph",
+   {
+    "box": [
+     852,
+     128,
+     48,
+     48
+    ],
+    "text": "鍛\n佔位",
+    "font": "22px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 46,
+    "clientW": 46,
+    "textBox": [
+     853,
+     136,
+     46,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 Lv",
+   ".c12top b",
+   {
+    "box": [
+     908,
+     128,
+     348,
+     28
+    ],
+    "text": "Lv 15 → Lv 16",
+    "font": "22px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 348,
+    "clientW": 348,
+    "textBox": [
+     908,
+     126,
+     142,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 最高",
+   ".c12top > small",
+   {
+    "box": [
+     908,
+     156,
+     46.7,
+     20
+    ],
+    "text": "最高 20",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     908,
+     156,
+     47,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 條",
+   ".c12pb",
+   {
+    "box": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 104,
+    "clientW": 104,
+    "textBox": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 %",
+   ".c12pp",
+   {
+    "box": [
+     1219.8,
+     157,
+     36.2,
+     20
+    ],
+    "text": "100%",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 36,
+    "clientW": 36,
+    "textBox": [
+     1220,
+     157,
+     36,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標列1",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     186,
+     404,
+     24
+    ],
+    "text": "升級後\n解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     186,
+     388,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標1 b",
+   ".c12sub b",
+   {
+    "box": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "text": "升級後",
+    "font": "14px/900",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕",
+   ".c12cat",
+   {
+    "box": [
+     1146,
+     186,
+     94,
+     24
+    ],
+    "text": "解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 92,
+    "clientW": 92,
+    "textBox": [
+     1161,
+     188,
+     64,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級後全句",
+   ".c12full",
+   {
+    "box": [
+     852,
+     212,
+     404,
+     24
+    ],
+    "text": "一次打造 20 件；第 5 格技能",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     212,
+     203,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "次要鈕",
+   ".c12sec",
+   null
+  ],
+  [
+   "小標2",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     242,
+     404,
+     24
+    ],
+    "text": "前後對照",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     244,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標3",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     336,
+     404,
+     24
+    ],
+    "text": "費用",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     338,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1",
+   ".c12cmp li",
+   {
+    "box": [
+     852,
+     266,
+     404,
+     32
+    ],
+    "text": "一次打造\n10 件\n→ 20 件\n▲ +10",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     270,
+     404,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 項",
+   ".c12cmp li span",
+   {
+    "box": [
+     852,
+     272,
+     136,
+     20
+    ],
+    "text": "一次打造",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 136,
+    "clientW": 136,
+    "textBox": [
+     852,
+     272,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 現",
+   ".c12cmp li span",
+   {
+    "box": [
+     988,
+     270,
+     84,
+     24
+    ],
+    "text": "10 件",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 84,
+    "clientW": 84,
+    "textBox": [
+     988,
+     270,
+     37,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 下",
+   ".c12cmp li b",
+   {
+    "box": [
+     1072,
+     270,
+     112,
+     24
+    ],
+    "text": "→ 20 件",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 112,
+    "clientW": 112,
+    "textBox": [
+     1072,
+     270,
+     58,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 Δ",
+   ".c12cmp li em",
+   {
+    "box": [
+     1184,
+     272,
+     72,
+     20
+    ],
+    "text": "▲ +10",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 72,
+    "clientW": 72,
+    "textBox": [
+     1184,
+     272,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     360,
+     404,
+     43
+    ],
+    "text": "靈魂\n32.2K／25.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     365,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 名",
+   ".c12cost li b",
+   {
+    "box": [
+     880,
+     365,
+     64,
+     20
+    ],
+    "text": "靈魂",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 64,
+    "clientW": 64,
+    "textBox": [
+     880,
+     365,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 數",
+   ".c12cost li span",
+   {
+    "box": [
+     948,
+     365,
+     308,
+     20
+    ],
+    "text": "32.2K／25.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 308,
+    "clientW": 308,
+    "textBox": [
+     948,
+     365,
+     87,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 條",
+   ".c12cost li .c12bar",
+   {
+    "box": [
+     880,
+     388,
+     257,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 257,
+    "clientW": 257,
+    "textBox": [
+     880,
+     388,
+     257,
+     8
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 方",
+   ".c12cost li .c12sq",
+   {
+    "box": [
+     1171,
+     386,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(149, 232, 134)",
+    "ownBg": "rgb(149, 232, 134)",
+    "border": "2px solid rgb(149, 232, 134) L:2px rgb(149, 232, 134)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列2",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     403,
+     404,
+     43
+    ],
+    "text": "木\n1,212／1,200",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     408,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列3",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     446,
+     404,
+     43
+    ],
+    "text": "玄鐵\n56／50",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     451,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列4",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     489,
+     404,
+     43
+    ],
+    "text": "富豪石\n26／20",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     494,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "底列",
+   ".c12foot",
+   {
+    "box": [
+     845,
+     556,
+     418,
+     48
+    ],
+    "text": "可升級\n▲ 升級",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 418,
+    "clientW": 418,
+    "textBox": [
+     860,
+     558,
+     396,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "摘要",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     224,
+     40
+    ],
+    "text": "可升級",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     860,
+     568,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "▲ 升級",
+    "font": "16px/700",
+    "color": "rgb(252, 249, 243)",
+    "bg": "rgb(124, 87, 41)",
+    "ownBg": "rgb(124, 87, 41)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(252, 249, 243) off 0px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1148,
+     568,
+     52,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕 small",
+   ".c12up small",
+   null
+  ],
+  [
+   "短列",
+   ".c12cost li.short",
+   null
+  ],
+  [
+   "短列 條 fill",
+   ".c12cost li.short .c12bar i",
+   null
+  ],
+  [
+   "短列 方",
+   ".c12cost li.short .c12sq",
+   null
+  ],
+  [
+   "短列 ETA",
+   ".c12cost li small",
+   null
+  ]
+ ],
+ "05": [
+  [
+   "返回",
+   ".c12bk",
+   {
+    "box": [
+     852,
+     76,
+     44,
+     44
+    ],
+    "text": "←",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     863,
+     82,
+     22,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "設施名",
+   ".c12h.one > b",
+   {
+    "box": [
+     900,
+     87,
+     48,
+     22
+    ],
+    "text": "瞭望台",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     900,
+     86,
+     48,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "序",
+   ".c12h.one > span",
+   {
+    "box": [
+     964,
+     88,
+     208,
+     20
+    ],
+    "text": "2／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 208,
+    "clientW": 208,
+    "textBox": [
+     964,
+     88,
+     30,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "‹",
+   "[data-c12=\"nav:-1\"]",
+   {
+    "box": [
+     1172,
+     76,
+     44,
+     44
+    ],
+    "text": "‹",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1191,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "›",
+   "[data-c12=\"nav:1\"]",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "›",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1239,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部",
+   ".c12top",
+   {
+    "box": [
+     852,
+     128,
+     404,
+     52
+    ],
+    "text": "瞭\n佔位\nLv 12 → Lv 13\n最高 26\n100%",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     126,
+     404,
+     51
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 icon",
+   ".c12top .c12ph",
+   {
+    "box": [
+     852,
+     128,
+     48,
+     48
+    ],
+    "text": "瞭\n佔位",
+    "font": "22px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 46,
+    "clientW": 46,
+    "textBox": [
+     853,
+     136,
+     46,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 Lv",
+   ".c12top b",
+   {
+    "box": [
+     908,
+     128,
+     348,
+     28
+    ],
+    "text": "Lv 12 → Lv 13",
+    "font": "22px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 348,
+    "clientW": 348,
+    "textBox": [
+     908,
+     126,
+     142,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 最高",
+   ".c12top > small",
+   {
+    "box": [
+     908,
+     156,
+     46.7,
+     20
+    ],
+    "text": "最高 26",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     908,
+     156,
+     47,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 條",
+   ".c12pb",
+   {
+    "box": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 104,
+    "clientW": 104,
+    "textBox": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 %",
+   ".c12pp",
+   {
+    "box": [
+     1219.8,
+     157,
+     36.2,
+     20
+    ],
+    "text": "100%",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 36,
+    "clientW": 36,
+    "textBox": [
+     1220,
+     157,
+     36,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標列1",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     186,
+     404,
+     24
+    ],
+    "text": "升級後",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標1 b",
+   ".c12sub b",
+   {
+    "box": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "text": "升級後",
+    "font": "14px/900",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕",
+   ".c12cat",
+   null
+  ],
+  [
+   "升級後全句",
+   ".c12full",
+   {
+    "box": [
+     852,
+     212,
+     404,
+     24
+    ],
+    "text": "解鎖新地點 凍河口（怪物 Lv 43）",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     212,
+     239,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "次要鈕",
+   ".c12sec",
+   {
+    "box": [
+     852,
+     242,
+     404,
+     44
+    ],
+    "text": "開地點清單",
+    "font": "16px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 402,
+    "clientW": 402,
+    "textBox": [
+     865,
+     252,
+     80,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標2",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     292,
+     404,
+     24
+    ],
+    "text": "前後對照",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     294,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標3",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     354,
+     404,
+     24
+    ],
+    "text": "費用",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     356,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1",
+   ".c12cmp li",
+   {
+    "box": [
+     852,
+     316,
+     404,
+     32
+    ],
+    "text": "已開地點\n13\n→ 14\n▲ +1",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     320,
+     404,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 項",
+   ".c12cmp li span",
+   {
+    "box": [
+     852,
+     322,
+     136,
+     20
+    ],
+    "text": "已開地點",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 136,
+    "clientW": 136,
+    "textBox": [
+     852,
+     322,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 現",
+   ".c12cmp li span",
+   {
+    "box": [
+     988,
+     320,
+     84,
+     24
+    ],
+    "text": "13",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 84,
+    "clientW": 84,
+    "textBox": [
+     988,
+     320,
+     18,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 下",
+   ".c12cmp li b",
+   {
+    "box": [
+     1072,
+     320,
+     112,
+     24
+    ],
+    "text": "→ 14",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 112,
+    "clientW": 112,
+    "textBox": [
+     1072,
+     320,
+     39,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 Δ",
+   ".c12cmp li em",
+   {
+    "box": [
+     1184,
+     322,
+     72,
+     20
+    ],
+    "text": "▲ +1",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 72,
+    "clientW": 72,
+    "textBox": [
+     1184,
+     322,
+     34,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     378,
+     404,
+     43
+    ],
+    "text": "靈魂\n32.2K／1,250",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     383,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 名",
+   ".c12cost li b",
+   {
+    "box": [
+     880,
+     383,
+     64,
+     20
+    ],
+    "text": "靈魂",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 64,
+    "clientW": 64,
+    "textBox": [
+     880,
+     383,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 數",
+   ".c12cost li span",
+   {
+    "box": [
+     948,
+     383,
+     308,
+     20
+    ],
+    "text": "32.2K／1,250",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 308,
+    "clientW": 308,
+    "textBox": [
+     948,
+     383,
+     85,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 條",
+   ".c12cost li .c12bar",
+   {
+    "box": [
+     880,
+     406,
+     257,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 257,
+    "clientW": 257,
+    "textBox": [
+     880,
+     406,
+     257,
+     8
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 方",
+   ".c12cost li .c12sq",
+   {
+    "box": [
+     1171,
+     404,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(149, 232, 134)",
+    "ownBg": "rgb(149, 232, 134)",
+    "border": "2px solid rgb(149, 232, 134) L:2px rgb(149, 232, 134)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列2",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     421,
+     404,
+     43
+    ],
+    "text": "木\n1,212／650",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     426,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列3",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     464,
+     404,
+     43
+    ],
+    "text": "百煉鋼\n136／130",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     469,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列4",
+   ".c12cost li",
+   null
+  ],
+  [
+   "底列",
+   ".c12foot",
+   {
+    "box": [
+     845,
+     556,
+     418,
+     48
+    ],
+    "text": "可升級\n▲ 升級",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 418,
+    "clientW": 418,
+    "textBox": [
+     860,
+     558,
+     396,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "摘要",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     224,
+     40
+    ],
+    "text": "可升級",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     860,
+     568,
+     48,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "▲ 升級",
+    "font": "16px/700",
+    "color": "rgb(252, 249, 243)",
+    "bg": "rgb(124, 87, 41)",
+    "ownBg": "rgb(124, 87, 41)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px solid rgb(251, 249, 245) off -3px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1148,
+     568,
+     52,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕 small",
+   ".c12up small",
+   null
+  ],
+  [
+   "短列",
+   ".c12cost li.short",
+   null
+  ],
+  [
+   "短列 條 fill",
+   ".c12cost li.short .c12bar i",
+   null
+  ],
+  [
+   "短列 方",
+   ".c12cost li.short .c12sq",
+   null
+  ],
+  [
+   "短列 ETA",
+   ".c12cost li small",
+   null
+  ]
+ ],
+ "05fv": true,
+ "06": [
+  [
+   "返回",
+   ".c12bk",
+   {
+    "box": [
+     852,
+     76,
+     44,
+     44
+    ],
+    "text": "←",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     863,
+     82,
+     22,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "設施名",
+   ".c12h.one > b",
+   {
+    "box": [
+     900,
+     87,
+     48,
+     22
+    ],
+    "text": "斥候營",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     900,
+     86,
+     48,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "序",
+   ".c12h.one > span",
+   {
+    "box": [
+     964,
+     88,
+     208,
+     20
+    ],
+    "text": "3／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 208,
+    "clientW": 208,
+    "textBox": [
+     964,
+     88,
+     30,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "‹",
+   "[data-c12=\"nav:-1\"]",
+   {
+    "box": [
+     1172,
+     76,
+     44,
+     44
+    ],
+    "text": "‹",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1191,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "›",
+   "[data-c12=\"nav:1\"]",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "›",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1239,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部",
+   ".c12top",
+   {
+    "box": [
+     852,
+     128,
+     404,
+     52
+    ],
+    "text": "斥\n佔位\nLv 2 → Lv 3\n最高 4\n0%",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     126,
+     404,
+     51
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 icon",
+   ".c12top .c12ph",
+   {
+    "box": [
+     852,
+     128,
+     48,
+     48
+    ],
+    "text": "斥\n佔位",
+    "font": "22px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 46,
+    "clientW": 46,
+    "textBox": [
+     853,
+     136,
+     46,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 Lv",
+   ".c12top b",
+   {
+    "box": [
+     908,
+     128,
+     348,
+     28
+    ],
+    "text": "Lv 2 → Lv 3",
+    "font": "22px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 348,
+    "clientW": 348,
+    "textBox": [
+     908,
+     126,
+     116,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 最高",
+   ".c12top > small",
+   {
+    "box": [
+     908,
+     156,
+     38.9,
+     20
+    ],
+    "text": "最高 4",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     908,
+     156,
+     39,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 條",
+   ".c12pb",
+   {
+    "box": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 104,
+    "clientW": 104,
+    "textBox": [
+     1088,
+     165,
+     0,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 %",
+   ".c12pp",
+   {
+    "box": [
+     1235.3,
+     157,
+     20.7,
+     20
+    ],
+    "text": "0%",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 21,
+    "clientW": 21,
+    "textBox": [
+     1235,
+     157,
+     21,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標列1",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     186,
+     404,
+     24
+    ],
+    "text": "升級後\n解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     186,
+     388,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標1 b",
+   ".c12sub b",
+   {
+    "box": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "text": "升級後",
+    "font": "14px/900",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕",
+   ".c12cat",
+   {
+    "box": [
+     1146,
+     186,
+     94,
+     24
+    ],
+    "text": "解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 92,
+    "clientW": 92,
+    "textBox": [
+     1161,
+     188,
+     64,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級後全句",
+   ".c12full",
+   {
+    "box": [
+     852,
+     212,
+     404,
+     24
+    ],
+    "text": "可選 4★",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     212,
+     61,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "次要鈕",
+   ".c12sec",
+   null
+  ],
+  [
+   "小標2",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     242,
+     404,
+     24
+    ],
+    "text": "前後對照",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     244,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標3",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     304,
+     404,
+     24
+    ],
+    "text": "費用",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     306,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1",
+   ".c12cmp li",
+   {
+    "box": [
+     852,
+     266,
+     404,
+     32
+    ],
+    "text": "星級上限\n3★\n→ 4★\n▲ +1★",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     270,
+     404,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 項",
+   ".c12cmp li span",
+   {
+    "box": [
+     852,
+     272,
+     136,
+     20
+    ],
+    "text": "星級上限",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 136,
+    "clientW": 136,
+    "textBox": [
+     852,
+     272,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 現",
+   ".c12cmp li span",
+   {
+    "box": [
+     988,
+     270,
+     84,
+     24
+    ],
+    "text": "3★",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 84,
+    "clientW": 84,
+    "textBox": [
+     988,
+     270,
+     25,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 下",
+   ".c12cmp li b",
+   {
+    "box": [
+     1072,
+     270,
+     112,
+     24
+    ],
+    "text": "→ 4★",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 112,
+    "clientW": 112,
+    "textBox": [
+     1072,
+     270,
+     45,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 Δ",
+   ".c12cmp li em",
+   {
+    "box": [
+     1184,
+     272,
+     72,
+     20
+    ],
+    "text": "▲ +1★",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 72,
+    "clientW": 72,
+    "textBox": [
+     1184,
+     272,
+     48,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     328,
+     404,
+     43
+    ],
+    "text": "靈魂\n32.2K／10.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     333,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 名",
+   ".c12cost li b",
+   {
+    "box": [
+     880,
+     333,
+     64,
+     20
+    ],
+    "text": "靈魂",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 64,
+    "clientW": 64,
+    "textBox": [
+     880,
+     333,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 數",
+   ".c12cost li span",
+   {
+    "box": [
+     948,
+     333,
+     308,
+     20
+    ],
+    "text": "32.2K／10.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 308,
+    "clientW": 308,
+    "textBox": [
+     948,
+     333,
+     87,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 條",
+   ".c12cost li .c12bar",
+   {
+    "box": [
+     880,
+     356,
+     257,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 257,
+    "clientW": 257,
+    "textBox": [
+     880,
+     356,
+     257,
+     8
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 方",
+   ".c12cost li .c12sq",
+   {
+    "box": [
+     1171,
+     354,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(149, 232, 134)",
+    "ownBg": "rgb(149, 232, 134)",
+    "border": "2px solid rgb(149, 232, 134) L:2px rgb(149, 232, 134)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列2",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     371,
+     404,
+     43
+    ],
+    "text": "木\n1,212／800",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     376,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列3",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     414,
+     404,
+     43
+    ],
+    "text": "厚革\n0／30",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     419,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列4",
+   ".c12cost li",
+   null
+  ],
+  [
+   "底列",
+   ".c12foot",
+   {
+    "box": [
+     845,
+     556,
+     418,
+     48
+    ],
+    "text": "升級\n差 30 厚革",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 418,
+    "clientW": 418,
+    "textBox": [
+     860,
+     558,
+     396,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "摘要",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     224,
+     40
+    ],
+    "text": "",
+    "font": "16px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "升級\n差 30 厚革",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgb(82, 76, 71)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px solid rgb(251, 249, 245) off -3px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1146,
+     560,
+     56,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕 small",
+   ".c12up small",
+   {
+    "box": [
+     1146.2,
+     583.5,
+     55.6,
+     17
+    ],
+    "text": "差 30 厚革",
+    "font": "12px/700",
+    "color": "rgb(255, 155, 186)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(255, 155, 186) L:0px rgb(255, 155, 186)",
+    "outline": "3px none rgb(255, 155, 186) off 0px",
+    "scrollW": 56,
+    "clientW": 56,
+    "textBox": [
+     1146,
+     584,
+     56,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列",
+   ".c12cost li.short",
+   {
+    "box": [
+     852,
+     414,
+     404,
+     43
+    ],
+    "text": "厚革\n0／30",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     419,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 條 fill",
+   ".c12cost li.short .c12bar i",
+   {
+    "box": [
+     880,
+     442,
+     0,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 方",
+   ".c12cost li.short .c12sq",
+   {
+    "box": [
+     1171,
+     440,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "2px solid rgb(255, 155, 186) L:2px rgb(255, 155, 186)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 ETA",
+   ".c12cost li small",
+   null
+  ]
+ ],
+ "07": [
+  [
+   "返回",
+   ".c12bk",
+   {
+    "box": [
+     852,
+     76,
+     44,
+     44
+    ],
+    "text": "←",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     863,
+     82,
+     22,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "設施名",
+   ".c12h.one > b",
+   {
+    "box": [
+     900,
+     87,
+     48,
+     22
+    ],
+    "text": "長老屋",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     900,
+     86,
+     48,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "序",
+   ".c12h.one > span",
+   {
+    "box": [
+     964,
+     88,
+     208,
+     20
+    ],
+    "text": "4／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 208,
+    "clientW": 208,
+    "textBox": [
+     964,
+     88,
+     30,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "‹",
+   "[data-c12=\"nav:-1\"]",
+   {
+    "box": [
+     1172,
+     76,
+     44,
+     44
+    ],
+    "text": "‹",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1191,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "›",
+   "[data-c12=\"nav:1\"]",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "›",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1239,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部",
+   ".c12top",
+   {
+    "box": [
+     852,
+     128,
+     404,
+     52
+    ],
+    "text": "長\n佔位\nLv 6 → Lv 7\n最高 11\n0%",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     126,
+     404,
+     51
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 icon",
+   ".c12top .c12ph",
+   {
+    "box": [
+     852,
+     128,
+     48,
+     48
+    ],
+    "text": "長\n佔位",
+    "font": "22px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 46,
+    "clientW": 46,
+    "textBox": [
+     853,
+     136,
+     46,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 Lv",
+   ".c12top b",
+   {
+    "box": [
+     908,
+     128,
+     348,
+     28
+    ],
+    "text": "Lv 6 → Lv 7",
+    "font": "22px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 348,
+    "clientW": 348,
+    "textBox": [
+     908,
+     126,
+     116,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 最高",
+   ".c12top > small",
+   {
+    "box": [
+     908,
+     156,
+     46.7,
+     20
+    ],
+    "text": "最高 11",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     908,
+     156,
+     47,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 條",
+   ".c12pb",
+   {
+    "box": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 104,
+    "clientW": 104,
+    "textBox": [
+     1088,
+     165,
+     0,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 %",
+   ".c12pp",
+   {
+    "box": [
+     1235.3,
+     157,
+     20.7,
+     20
+    ],
+    "text": "0%",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 21,
+    "clientW": 21,
+    "textBox": [
+     1235,
+     157,
+     21,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標列1",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     186,
+     404,
+     24
+    ],
+    "text": "升級後\n解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     186,
+     388,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標1 b",
+   ".c12sub b",
+   {
+    "box": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "text": "升級後",
+    "font": "14px/900",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕",
+   ".c12cat",
+   {
+    "box": [
+     1146,
+     186,
+     94,
+     24
+    ],
+    "text": "解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 92,
+    "clientW": 92,
+    "textBox": [
+     1161,
+     188,
+     64,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級後全句",
+   ".c12full",
+   {
+    "box": [
+     852,
+     212,
+     404,
+     24
+    ],
+    "text": "解鎖昇華石碑，先開兩個昇華",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     212,
+     208,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "次要鈕",
+   ".c12sec",
+   {
+    "box": [
+     852,
+     242,
+     404,
+     44
+    ],
+    "text": "昇華石碑（Lv 7 開）",
+    "font": "16px/700",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px solid rgb(251, 249, 245) off -3px",
+    "scrollW": 402,
+    "clientW": 402,
+    "textBox": [
+     865,
+     252,
+     146,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": "true"
+   }
+  ],
+  [
+   "小標2",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     292,
+     404,
+     24
+    ],
+    "text": "前後對照",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     294,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標3",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     354,
+     404,
+     24
+    ],
+    "text": "費用",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     356,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1",
+   ".c12cmp li",
+   {
+    "box": [
+     852,
+     316,
+     404,
+     32
+    ],
+    "text": "昇華石碑\n未開\n→ 開\n▲ 開",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     320,
+     404,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 項",
+   ".c12cmp li span",
+   {
+    "box": [
+     852,
+     322,
+     136,
+     20
+    ],
+    "text": "昇華石碑",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 136,
+    "clientW": 136,
+    "textBox": [
+     852,
+     322,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 現",
+   ".c12cmp li span",
+   {
+    "box": [
+     988,
+     320,
+     84,
+     24
+    ],
+    "text": "未開",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 84,
+    "clientW": 84,
+    "textBox": [
+     988,
+     320,
+     32,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 下",
+   ".c12cmp li b",
+   {
+    "box": [
+     1072,
+     320,
+     112,
+     24
+    ],
+    "text": "→ 開",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 112,
+    "clientW": 112,
+    "textBox": [
+     1072,
+     320,
+     36,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 Δ",
+   ".c12cmp li em",
+   {
+    "box": [
+     1184,
+     322,
+     72,
+     20
+    ],
+    "text": "▲ 開",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 72,
+    "clientW": 72,
+    "textBox": [
+     1184,
+     322,
+     31,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     378,
+     404,
+     43
+    ],
+    "text": "靈魂\n32.2K／50.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     383,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 名",
+   ".c12cost li b",
+   {
+    "box": [
+     880,
+     383,
+     64,
+     20
+    ],
+    "text": "靈魂",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 64,
+    "clientW": 64,
+    "textBox": [
+     880,
+     383,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 數",
+   ".c12cost li span",
+   {
+    "box": [
+     948,
+     383,
+     308,
+     20
+    ],
+    "text": "32.2K／50.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 308,
+    "clientW": 308,
+    "textBox": [
+     948,
+     383,
+     87,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 條",
+   ".c12cost li .c12bar",
+   {
+    "box": [
+     880,
+     406,
+     257,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 257,
+    "clientW": 257,
+    "textBox": [
+     880,
+     406,
+     166,
+     8
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 方",
+   ".c12cost li .c12sq",
+   {
+    "box": [
+     1171,
+     404,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "2px solid rgb(255, 155, 186) L:2px rgb(255, 155, 186)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列2",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     421,
+     404,
+     43
+    ],
+    "text": "木\n1,212／1,800",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     426,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列3",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     464,
+     404,
+     43
+    ],
+    "text": "彩絲\n0／20",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     469,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列4",
+   ".c12cost li",
+   null
+  ],
+  [
+   "底列",
+   ".c12foot",
+   {
+    "box": [
+     845,
+     556,
+     418,
+     48
+    ],
+    "text": "升級\n差 20 彩絲",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 418,
+    "clientW": 418,
+    "textBox": [
+     860,
+     558,
+     396,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "摘要",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     224,
+     40
+    ],
+    "text": "",
+    "font": "16px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "升級\n差 20 彩絲",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgb(82, 76, 71)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1146,
+     560,
+     56,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕 small",
+   ".c12up small",
+   {
+    "box": [
+     1146.2,
+     583.5,
+     55.6,
+     17
+    ],
+    "text": "差 20 彩絲",
+    "font": "12px/700",
+    "color": "rgb(255, 155, 186)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(255, 155, 186) L:0px rgb(255, 155, 186)",
+    "outline": "3px none rgb(255, 155, 186) off 0px",
+    "scrollW": 56,
+    "clientW": 56,
+    "textBox": [
+     1146,
+     584,
+     56,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列",
+   ".c12cost li.short",
+   {
+    "box": [
+     852,
+     378,
+     404,
+     43
+    ],
+    "text": "靈魂\n32.2K／50.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     383,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 條 fill",
+   ".c12cost li.short .c12bar i",
+   {
+    "box": [
+     880,
+     406,
+     165.5,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 166,
+    "clientW": 166,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 方",
+   ".c12cost li.short .c12sq",
+   {
+    "box": [
+     1171,
+     404,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "2px solid rgb(255, 155, 186) L:2px rgb(255, 155, 186)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 ETA",
+   ".c12cost li small",
+   null
+  ]
+ ],
+ "08": [
+  [
+   "返回",
+   ".c12bk",
+   {
+    "box": [
+     852,
+     76,
+     44,
+     44
+    ],
+    "text": "←",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     863,
+     82,
+     22,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "設施名",
+   ".c12h.one > b",
+   {
+    "box": [
+     900,
+     87,
+     32,
+     22
+    ],
+    "text": "倉房",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 32,
+    "clientW": 32,
+    "textBox": [
+     900,
+     86,
+     32,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "序",
+   ".c12h.one > span",
+   {
+    "box": [
+     948,
+     88,
+     224,
+     20
+    ],
+    "text": "5／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     948,
+     88,
+     30,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "‹",
+   "[data-c12=\"nav:-1\"]",
+   {
+    "box": [
+     1172,
+     76,
+     44,
+     44
+    ],
+    "text": "‹",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1191,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "›",
+   "[data-c12=\"nav:1\"]",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "›",
+    "font": "22px/400",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(157, 153, 149) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1239,
+     82,
+     7,
+     32
+    ],
+    "disabled": true,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部",
+   ".c12top",
+   {
+    "box": [
+     852,
+     128,
+     404,
+     52
+    ],
+    "text": "倉\n佔位\nLv 2 → Lv 3\n最高 5\n0%",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     126,
+     404,
+     51
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 icon",
+   ".c12top .c12ph",
+   {
+    "box": [
+     852,
+     128,
+     48,
+     48
+    ],
+    "text": "倉\n佔位",
+    "font": "22px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 46,
+    "clientW": 46,
+    "textBox": [
+     853,
+     136,
+     46,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 Lv",
+   ".c12top b",
+   {
+    "box": [
+     908,
+     128,
+     348,
+     28
+    ],
+    "text": "Lv 2 → Lv 3",
+    "font": "22px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 348,
+    "clientW": 348,
+    "textBox": [
+     908,
+     126,
+     116,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 最高",
+   ".c12top > small",
+   {
+    "box": [
+     908,
+     156,
+     38.9,
+     20
+    ],
+    "text": "最高 5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     908,
+     156,
+     39,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 條",
+   ".c12pb",
+   {
+    "box": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 104,
+    "clientW": 104,
+    "textBox": [
+     1088,
+     165,
+     0,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 %",
+   ".c12pp",
+   {
+    "box": [
+     1235.3,
+     157,
+     20.7,
+     20
+    ],
+    "text": "0%",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 21,
+    "clientW": 21,
+    "textBox": [
+     1235,
+     157,
+     21,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標列1",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     186,
+     404,
+     24
+    ],
+    "text": "升級後\n解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     186,
+     388,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標1 b",
+   ".c12sub b",
+   {
+    "box": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "text": "升級後",
+    "font": "14px/900",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕",
+   ".c12cat",
+   {
+    "box": [
+     1146,
+     186,
+     94,
+     24
+    ],
+    "text": "解鎖一覽 ›",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(168, 146, 127) L:1px rgb(168, 146, 127)",
+    "outline": "3px solid rgb(251, 249, 245) off -3px",
+    "scrollW": 92,
+    "clientW": 92,
+    "textBox": [
+     1161,
+     188,
+     64,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級後全句",
+   ".c12full",
+   {
+    "box": [
+     852,
+     212,
+     404,
+     24
+    ],
+    "text": "離線收益最多 8 小時；珠寶分頁 42 格",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     212,
+     267,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "次要鈕",
+   ".c12sec",
+   {
+    "box": [
+     852,
+     242,
+     404,
+     44
+    ],
+    "text": "商會（Lv 4 開）",
+    "font": "16px/700",
+    "color": "rgb(157, 153, 149)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(157, 153, 149) off 0px",
+    "scrollW": 402,
+    "clientW": 402,
+    "textBox": [
+     865,
+     252,
+     114,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": "true"
+   }
+  ],
+  [
+   "小標2",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     292,
+     404,
+     24
+    ],
+    "text": "前後對照",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     294,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標3",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     386,
+     404,
+     24
+    ],
+    "text": "費用",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     388,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1",
+   ".c12cmp li",
+   {
+    "box": [
+     852,
+     316,
+     404,
+     32
+    ],
+    "text": "離線收益\n4 小時\n→ 8 小時\n▲ +4 小時",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     320,
+     404,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 項",
+   ".c12cmp li span",
+   {
+    "box": [
+     852,
+     322,
+     136,
+     20
+    ],
+    "text": "離線收益",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 136,
+    "clientW": 136,
+    "textBox": [
+     852,
+     322,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 現",
+   ".c12cmp li span",
+   {
+    "box": [
+     988,
+     320,
+     84,
+     24
+    ],
+    "text": "4 小時",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 84,
+    "clientW": 84,
+    "textBox": [
+     988,
+     320,
+     44,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 下",
+   ".c12cmp li b",
+   {
+    "box": [
+     1072,
+     320,
+     112,
+     24
+    ],
+    "text": "→ 8 小時",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 112,
+    "clientW": 112,
+    "textBox": [
+     1072,
+     320,
+     65,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 Δ",
+   ".c12cmp li em",
+   {
+    "box": [
+     1184,
+     322,
+     72,
+     20
+    ],
+    "text": "▲ +4 小時",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 72,
+    "clientW": 72,
+    "textBox": [
+     1184,
+     322,
+     65,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     410,
+     404,
+     43
+    ],
+    "text": "靈魂\n32.2K／30.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     415,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 名",
+   ".c12cost li b",
+   {
+    "box": [
+     880,
+     415,
+     64,
+     20
+    ],
+    "text": "靈魂",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 64,
+    "clientW": 64,
+    "textBox": [
+     880,
+     415,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 數",
+   ".c12cost li span",
+   {
+    "box": [
+     948,
+     415,
+     308,
+     20
+    ],
+    "text": "32.2K／30.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 308,
+    "clientW": 308,
+    "textBox": [
+     948,
+     415,
+     87,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 條",
+   ".c12cost li .c12bar",
+   {
+    "box": [
+     880,
+     438,
+     257,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 257,
+    "clientW": 257,
+    "textBox": [
+     880,
+     438,
+     257,
+     8
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 方",
+   ".c12cost li .c12sq",
+   {
+    "box": [
+     1171,
+     436,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(149, 232, 134)",
+    "ownBg": "rgb(149, 232, 134)",
+    "border": "2px solid rgb(149, 232, 134) L:2px rgb(149, 232, 134)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列2",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     453,
+     404,
+     43
+    ],
+    "text": "木\n1,212／2,000",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     458,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列3",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     496,
+     404,
+     43
+    ],
+    "text": "金\n0／20.0K",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     501,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列4",
+   ".c12cost li",
+   null
+  ],
+  [
+   "底列",
+   ".c12foot",
+   {
+    "box": [
+     845,
+     556,
+     418,
+     48
+    ],
+    "text": "升級\n差 20.0K 金",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 418,
+    "clientW": 418,
+    "textBox": [
+     860,
+     558,
+     396,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "摘要",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     224,
+     40
+    ],
+    "text": "",
+    "font": "16px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "升級\n差 20.0K 金",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgb(82, 76, 71)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1143,
+     560,
+     63,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕 small",
+   ".c12up small",
+   {
+    "box": [
+     1142.6,
+     583.5,
+     62.8,
+     17
+    ],
+    "text": "差 20.0K 金",
+    "font": "12px/700",
+    "color": "rgb(255, 155, 186)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(255, 155, 186) L:0px rgb(255, 155, 186)",
+    "outline": "3px none rgb(255, 155, 186) off 0px",
+    "scrollW": 63,
+    "clientW": 63,
+    "textBox": [
+     1143,
+     584,
+     63,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列",
+   ".c12cost li.short",
+   {
+    "box": [
+     852,
+     453,
+     404,
+     43
+    ],
+    "text": "木\n1,212／2,000",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     458,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 條 fill",
+   ".c12cost li.short .c12bar i",
+   {
+    "box": [
+     880,
+     481,
+     155.7,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 156,
+    "clientW": 156,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 方",
+   ".c12cost li.short .c12sq",
+   {
+    "box": [
+     1171,
+     479,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "2px solid rgb(255, 155, 186) L:2px rgb(255, 155, 186)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 ETA",
+   ".c12cost li small",
+   null
+  ]
+ ],
+ "09": [
+  [
+   "返回",
+   ".c12bk",
+   {
+    "box": [
+     852,
+     76,
+     44,
+     44
+    ],
+    "text": "←",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     863,
+     82,
+     22,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "設施名",
+   ".c12h.one > b",
+   {
+    "box": [
+     900,
+     87,
+     48,
+     22
+    ],
+    "text": "瞭望台",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     900,
+     86,
+     48,
+     25
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "序",
+   ".c12h.one > span",
+   {
+    "box": [
+     964,
+     88,
+     208,
+     20
+    ],
+    "text": "2／5",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 208,
+    "clientW": 208,
+    "textBox": [
+     964,
+     88,
+     30,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "‹",
+   "[data-c12=\"nav:-1\"]",
+   {
+    "box": [
+     1172,
+     76,
+     44,
+     44
+    ],
+    "text": "‹",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1191,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "›",
+   "[data-c12=\"nav:1\"]",
+   {
+    "box": [
+     1220,
+     76,
+     44,
+     44
+    ],
+    "text": "›",
+    "font": "22px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 43,
+    "clientW": 43,
+    "textBox": [
+     1239,
+     82,
+     7,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部",
+   ".c12top",
+   {
+    "box": [
+     852,
+     128,
+     404,
+     52
+    ],
+    "text": "瞭\n佔位\nLv 12 → Lv 13\n最高 26\n18%",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     126,
+     404,
+     51
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 icon",
+   ".c12top .c12ph",
+   {
+    "box": [
+     852,
+     128,
+     48,
+     48
+    ],
+    "text": "瞭\n佔位",
+    "font": "22px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 46,
+    "clientW": 46,
+    "textBox": [
+     853,
+     136,
+     46,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 Lv",
+   ".c12top b",
+   {
+    "box": [
+     908,
+     128,
+     348,
+     28
+    ],
+    "text": "Lv 12 → Lv 13",
+    "font": "22px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 348,
+    "clientW": 348,
+    "textBox": [
+     908,
+     126,
+     142,
+     32
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 最高",
+   ".c12top > small",
+   {
+    "box": [
+     908,
+     156,
+     46.7,
+     20
+    ],
+    "text": "最高 26",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 0,
+    "clientW": 0,
+    "textBox": [
+     908,
+     156,
+     47,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 條",
+   ".c12pb",
+   {
+    "box": [
+     1088,
+     165,
+     104,
+     4
+    ],
+    "text": "",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 104,
+    "clientW": 104,
+    "textBox": [
+     1088,
+     165,
+     19,
+     4
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "頭部 %",
+   ".c12pp",
+   {
+    "box": [
+     1227.6,
+     157,
+     28.4,
+     20
+    ],
+    "text": "18%",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 28,
+    "clientW": 28,
+    "textBox": [
+     1228,
+     157,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標列1",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     186,
+     404,
+     24
+    ],
+    "text": "升級後",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標1 b",
+   ".c12sub b",
+   {
+    "box": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "text": "升級後",
+    "font": "14px/900",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 42,
+    "clientW": 42,
+    "textBox": [
+     852,
+     188,
+     42,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "解鎖一覽鈕",
+   ".c12cat",
+   null
+  ],
+  [
+   "升級後全句",
+   ".c12full",
+   {
+    "box": [
+     852,
+     212,
+     404,
+     24
+    ],
+    "text": "解鎖新地點 凍河口（怪物 Lv 43）",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     212,
+     239,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "次要鈕",
+   ".c12sec",
+   {
+    "box": [
+     852,
+     242,
+     404,
+     44
+    ],
+    "text": "開地點清單",
+    "font": "16px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px solid rgb(251, 249, 245) off -3px",
+    "scrollW": 402,
+    "clientW": 402,
+    "textBox": [
+     865,
+     252,
+     80,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標2",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     292,
+     404,
+     24
+    ],
+    "text": "前後對照",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     294,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "小標3",
+   ".c12sub",
+   {
+    "box": [
+     852,
+     354,
+     404,
+     24
+    ],
+    "text": "費用",
+    "font": "14px/700",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     356,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1",
+   ".c12cmp li",
+   {
+    "box": [
+     852,
+     316,
+     404,
+     32
+    ],
+    "text": "已開地點\n13\n→ 14\n▲ +1",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     320,
+     404,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 項",
+   ".c12cmp li span",
+   {
+    "box": [
+     852,
+     322,
+     136,
+     20
+    ],
+    "text": "已開地點",
+    "font": "14px/400",
+    "color": "rgb(174, 171, 167)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(174, 171, 167) L:0px rgb(174, 171, 167)",
+    "outline": "3px none rgb(174, 171, 167) off 0px",
+    "scrollW": 136,
+    "clientW": 136,
+    "textBox": [
+     852,
+     322,
+     56,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 現",
+   ".c12cmp li span",
+   {
+    "box": [
+     988,
+     320,
+     84,
+     24
+    ],
+    "text": "13",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 84,
+    "clientW": 84,
+    "textBox": [
+     988,
+     320,
+     18,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 下",
+   ".c12cmp li b",
+   {
+    "box": [
+     1072,
+     320,
+     112,
+     24
+    ],
+    "text": "→ 14",
+    "font": "16px/700",
+    "color": "rgb(251, 249, 246)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(251, 249, 246) L:0px rgb(251, 249, 246)",
+    "outline": "3px none rgb(251, 249, 246) off 0px",
+    "scrollW": 112,
+    "clientW": 112,
+    "textBox": [
+     1072,
+     320,
+     39,
+     24
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "對照列1 Δ",
+   ".c12cmp li em",
+   {
+    "box": [
+     1184,
+     322,
+     72,
+     20
+    ],
+    "text": "▲ +1",
+    "font": "14px/700",
+    "color": "rgb(149, 232, 134)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(149, 232, 134) L:0px rgb(149, 232, 134)",
+    "outline": "3px none rgb(149, 232, 134) off 0px",
+    "scrollW": 72,
+    "clientW": 72,
+    "textBox": [
+     1184,
+     322,
+     34,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     378,
+     404,
+     43
+    ],
+    "text": "靈魂\n32.2K／1,250",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     383,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 名",
+   ".c12cost li b",
+   {
+    "box": [
+     880,
+     383,
+     64,
+     20
+    ],
+    "text": "靈魂",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 64,
+    "clientW": 64,
+    "textBox": [
+     880,
+     383,
+     28,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 數",
+   ".c12cost li span",
+   {
+    "box": [
+     948,
+     383,
+     308,
+     20
+    ],
+    "text": "32.2K／1,250",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 308,
+    "clientW": 308,
+    "textBox": [
+     948,
+     383,
+     85,
+     20
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 條",
+   ".c12cost li .c12bar",
+   {
+    "box": [
+     880,
+     406,
+     257,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgb(29, 26, 23)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 257,
+    "clientW": 257,
+    "textBox": [
+     880,
+     406,
+     257,
+     8
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列1 方",
+   ".c12cost li .c12sq",
+   {
+    "box": [
+     1171,
+     404,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(149, 232, 134)",
+    "ownBg": "rgb(149, 232, 134)",
+    "border": "2px solid rgb(149, 232, 134) L:2px rgb(149, 232, 134)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列2",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     421,
+     404,
+     43
+    ],
+    "text": "木\n120／650",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     426,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列3",
+   ".c12cost li",
+   {
+    "box": [
+     852,
+     464,
+     404,
+     43
+    ],
+    "text": "百煉鋼\n136／130",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     469,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "費用列4",
+   ".c12cost li",
+   null
+  ],
+  [
+   "底列",
+   ".c12foot",
+   {
+    "box": [
+     845,
+     556,
+     418,
+     48
+    ],
+    "text": "升級\n差 530 木",
+    "font": "14px/500",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "1px solid rgb(129, 123, 117) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 418,
+    "clientW": 418,
+    "textBox": [
+     860,
+     558,
+     396,
+     44
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "摘要",
+   ".c12sum",
+   {
+    "box": [
+     860,
+     560,
+     224,
+     40
+    ],
+    "text": "",
+    "font": "16px/700",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(37, 33, 30)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 224,
+    "clientW": 224,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕",
+   ".c12up",
+   {
+    "box": [
+     1092,
+     558,
+     164,
+     44
+    ],
+    "text": "升級\n差 530 木",
+    "font": "16px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgb(82, 76, 71)",
+    "border": "1px solid rgb(129, 123, 117) L:1px rgb(129, 123, 117)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 162,
+    "clientW": 162,
+    "textBox": [
+     1149,
+     560,
+     51,
+     41
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "升級鈕 small",
+   ".c12up small",
+   {
+    "box": [
+     1148.6,
+     583.5,
+     50.7,
+     17
+    ],
+    "text": "差 530 木",
+    "font": "12px/700",
+    "color": "rgb(255, 155, 186)",
+    "bg": "rgb(82, 76, 71)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(255, 155, 186) L:0px rgb(255, 155, 186)",
+    "outline": "3px none rgb(255, 155, 186) off 0px",
+    "scrollW": 51,
+    "clientW": 51,
+    "textBox": [
+     1149,
+     584,
+     51,
+     17
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列",
+   ".c12cost li.short",
+   {
+    "box": [
+     852,
+     421,
+     404,
+     43
+    ],
+    "text": "木\n120／650",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgb(44, 40, 37)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 404,
+    "clientW": 404,
+    "textBox": [
+     852,
+     426,
+     404,
+     31
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 條 fill",
+   ".c12cost li.short .c12bar i",
+   {
+    "box": [
+     880,
+     449,
+     47.5,
+     8
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(29, 26, 23)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "0px none rgb(232, 229, 225) L:0px rgb(232, 229, 225)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 48,
+    "clientW": 48,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 方",
+   ".c12cost li.short .c12sq",
+   {
+    "box": [
+     1171,
+     447,
+     10,
+     10
+    ],
+    "text": "",
+    "font": "14px/400",
+    "color": "rgb(232, 229, 225)",
+    "bg": "rgb(44, 40, 37)",
+    "ownBg": "rgba(0, 0, 0, 0)",
+    "border": "2px solid rgb(255, 155, 186) L:2px rgb(255, 155, 186)",
+    "outline": "3px none rgb(232, 229, 225) off 0px",
+    "scrollW": 6,
+    "clientW": 6,
+    "textBox": [
+     0,
+     0,
+     0,
+     0
+    ],
+    "disabled": false,
+    "ariaDis": null
+   }
+  ],
+  [
+   "短列 ETA",
+   ".c12cost li small",
+   null
+  ]
+ ],
+ "11warn": [
+  "升長老屋到 Lv 7 才開",
+  "0"
+ ],
+ "11flashAfter": "\"⚠\"",
+ "11soulRate": 0,
+ "13bn": [
+  "pchase",
+  "panel",
+  [
+   0,
+   0,
+   0,
+   0
+  ]
+ ],
+ "warnCss": [
+  377.390625,
+  521,
+  525.21875,
+  27,
+  "18px"
+ ],
+ "errs": []
+}

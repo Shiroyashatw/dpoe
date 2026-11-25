@@ -1,0 +1,33 @@
+### camp_stash START 14:30:44
+### camp_stash EXIT 0 14:31:32
+### check START 14:31:32
+### check EXIT 0 14:33:13
+### skill START 14:33:13
+### skill EXIT 0 14:34:27
+### char START 14:34:27
+### char EXIT 0 14:35:42
+### pro START 14:35:42
+### pro EXIT 0 14:36:27
+### hide START 14:36:27
+### hide EXIT 0 14:37:14
+### world START 14:37:14
+### world EXIT 0 14:40:37
+### tree START 14:40:37
+### tree EXIT 0 14:40:58
+### touch_390x844 START 14:40:58
+### touch_390x844 EXIT 0 14:43:18
+### touch_375x667 START 14:43:18
+### touch_375x667 EXIT 0 14:45:37
+### touch_844x390 START 14:45:37
+### touch_844x390 EXIT 0 14:45:46
+### touch_667x375 START 14:45:46
+### touch_667x375 EXIT 0 14:45:54
+### touch_1280x720 START 14:45:54
+### touch_1280x720 EXIT 0 14:46:05
+### touch_1440x900 START 14:46:05
+### touch_1440x900 EXIT 0 14:46:16
+### touch_1280x800 START 14:46:16
+### touch_1280x800 EXIT 0 14:46:26
+### prettier START 14:46:26
+### prettier EXIT 0 14:46:34
+### dmg START 14:46:34

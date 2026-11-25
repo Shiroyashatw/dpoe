@@ -1,0 +1,20 @@
+const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } });
+  await ctx.route(/supabase/, r => r.abort());
+  const p = await ctx.newPage();
+  await p.goto('http://localhost:8003/?' + Date.now());
+  await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(1500);
+  await p.evaluate(() => proSkip()); await p.waitForTimeout(1500);
+  await p.mouse.move(400,300);
+  await p.keyboard.press('h'); await p.waitForTimeout(800);
+  const r1 = await p.evaluate(() => ({ paused: !!(G.paused||G.pause||S.pause), btns: [...document.querySelectorAll('button')].filter(e=>e.offsetParent&&/營地/.test(e.textContent)).map(e=>e.textContent.trim()), top: (document.querySelector('#topnode,#hudtop,.toploc')||{}).textContent }));
+  const t0 = await p.evaluate(() => G.t || G.time || performance.now());
+  const k0 = await p.evaluate(() => (G.kills||0)+'|'+ (MAT().soul));
+  await p.waitForTimeout(4000);
+  const k1 = await p.evaluate(() => (G.kills||0)+'|'+ (MAT().soul));
+  await p.screenshot({ path: process.argv[2] + '/camp-open-live-1280.png' });
+  console.log(JSON.stringify({ r1, k0, k1 }));
+  await b.close();
+})();
