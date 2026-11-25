@@ -34,6 +34,68 @@ const setup = () => {
   S.camp.altar = 10;
 };
 /* 開樹、看某個點（世界座標），縮放 z */
+/* 能力值標記的計算後樣式（F-1：不得被節點圈規則蓋掉） */
+const amCss = (p, id, z) =>
+  p.evaluate(
+    ([id, z]) => {
+      const n = PTREE.I[id];
+      TREE.z = z;
+      TREE.x = -n.x * z;
+      TREE.y = -n.y * z;
+      treeView();
+      treeMoving(false);
+      const e = TEL.n.get(id),
+        body = getComputedStyle(e.querySelector(':scope > circle')),
+        v = [...e.querySelectorAll('.am > rect, .am > path, .am > circle')].filter(
+          x => getComputedStyle(x).display !== 'none'
+        ),
+        c = v[0] && getComputedStyle(v[0]),
+        a = c && c.stroke.match(/rgba?\(([^)]+)\)/),
+        sa = a ? +(a[1].split(',')[3] ?? 1) : 0;
+      return {
+        a: S.ptA[id],
+        shape: v.map(x => x.getAttribute('class')).join(),
+        fill: c && c.fill,
+        fo: c && c.fillOpacity,
+        stroke: c && c.stroke,
+        so: c && c.strokeOpacity,
+        sa,
+        sw: c && parseFloat(c.strokeWidth),
+        body: body.fill,
+        al: [...e.querySelectorAll('.al')].filter(x => getComputedStyle(x).display !== 'none').length
+      };
+    },
+    [id, z]
+  );
+const amOk = (r, big) =>
+  r.shape === { s: 'as', d: 'ad', i: 'ai' }[r.a] &&
+  r.fill !== 'none' &&
+  r.fill !== r.body &&
+  +r.fo === 1 &&
+  +r.so === 1 &&
+  r.sa >= 0.9 &&
+  r.sw >= 2 &&
+  (big ? r.al === 1 : r.al === 0);
+/* 珠寶孔孔上標／旁標的計算後 display（F-2：線框縮放下不得隱藏） */
+const jtCss = (p, id, z) =>
+  p.evaluate(
+    ([id, z]) => {
+      const n = PTREE.I[id];
+      TREE.z = z;
+      TREE.x = -n.x * z;
+      TREE.y = -n.y * z;
+      treeView();
+      treeMoving(false);
+      const e = TEL.n.get(id);
+      return {
+        z,
+        jt: e.querySelector('.jt').textContent,
+        jtD: getComputedStyle(e.querySelector('.jt')).display,
+        jlD: getComputedStyle(e.querySelector('.jl')).display
+      };
+    },
+    [id, z]
+  );
 const look = (p, id, z) =>
   p.evaluate(
     ([id, z]) => {
@@ -544,6 +606,24 @@ const BOX = {};
     await pad(0, true), await p.waitForTimeout(60), await pad(0, false), await p.waitForTimeout(80);
     ok('手把：三選一方向鍵下兩次＋Ⓐ＝智慧', await p.evaluate(id => S.ptA[id] === 'i' && !$('tattr'), a2));
   }
+  /* F-1：已選敏捷菱形／智慧圓形的計算後樣式（0.688 只畫形狀、1.25 形狀＋字母） */
+  for (const [id, nm] of [
+    [ids.attr, '敏捷菱形'],
+    [a2, '智慧圓形']
+  ]) {
+    if (!id) continue;
+    const r0 = await amCss(p, id, 0.688),
+      r1 = await amCss(p, id, 1.25);
+    ok(
+      `已選${nm}：計算後 fill 不是 none、不同於節點圈，fill／stroke 不透明（0.688 只形狀、1.25 加字母）`,
+      amOk(r0, false) && amOk(r1, true),
+      JSON.stringify([r0, r1])
+    );
+  }
+  await amCss(p, ids.attr, 0.688);
+  await shot('fix2-16-attr-0688', SHELL);
+  await amCss(p, ids.attr, 1.25);
+  await shot('fix2-16b-attr-125', SHELL);
 
   /* ---------- 06／07 珠寶孔 ---------- */
   await p.evaluate(() => {
@@ -554,6 +634,26 @@ const BOX = {};
     for (const x of road) S.pt.push(x), PTREE.I[x].s.attr && (S.ptA[x] = 'd');
     treeChanged();
   });
+  {
+    const r0 = await amCss(p, 't89', 0.688),
+      r1 = await amCss(p, 't89', 1.25);
+    ok('掛點 t89（a-d）的敏捷菱形：計算後樣式同上', amOk(r0, false) && amOk(r1, true), JSON.stringify([r0, r1]));
+    await amCss(p, 't89', 0.688);
+    await shot('fix2-16c-t89-0688', SHELL);
+    const W6 = [];
+    for (const z of [0.602, 0.525, 0.44]) W6.push(await jtCss(p, 'J1a', z));
+    ok(
+      '06 未開孔在線框縮放（0.602／0.525）與預設總覽（0.44）：孔上「空」、旁標的計算後 display 不是 none',
+      W6.every(r => r.jt === '空' && r.jtD !== 'none' && r.jlD !== 'none'),
+      JSON.stringify(W6)
+    );
+    await jtCss(p, 'J1a', 0.602);
+    await shot('fix2-06-jewel-empty-0602', SHELL);
+    await jtCss(p, 'J1a', 0.5);
+    await shot('fix2-06-jewel-empty-050', SHELL);
+    const F6 = await jtCss(p, 'J1a', 0.15);
+    ok('整棵樹（z<0.2，#tsvg.far）才藏孔上字', F6.jtD === 'none' && F6.jlD === 'none', JSON.stringify(F6));
+  }
   await look(p, 'J1a', 1.25);
   await p.waitForTimeout(150);
   await hover(p, 'J1a');
@@ -582,6 +682,16 @@ const BOX = {};
     left: ptLeft()
   }));
   ok('點孔＝花 1 點開孔，同時開孔的面板', P6.open && P6.left === lv0 - 1 && !!P6.t, JSON.stringify(P6));
+  {
+    const W6b = await jtCss(p, 'J1a', 0.602);
+    ok(
+      '06b 已開未鑲在線框縮放：孔上「空」看得到（旁標藏）',
+      W6b.jt === '空' && W6b.jtD !== 'none' && W6b.jlD === 'none',
+      JSON.stringify(W6b)
+    );
+    await look(p, 'J1a', 1.25);
+    await p.waitForTimeout(80);
+  }
   await p.mouse.click(...(await at(p, 'J1a')).slice(0, 2));
   await p.waitForTimeout(80);
   const P6b = await p.evaluate(() => ({
@@ -670,6 +780,21 @@ const BOX = {};
       !/J\d[abc]/.test(P7.t),
     JSON.stringify(P7)
   );
+  {
+    const W7 = [];
+    for (const z of [0.602, 0.525, 0.44]) W7.push(await jtCss(p, 'J1c', z));
+    ok(
+      '07 已鑲在線框縮放（0.602／0.525）與預設總覽（0.44）：孔上「已鑲」計算後 display 不是 none',
+      W7.every(r => r.jt === '已鑲' && r.jtD !== 'none'),
+      JSON.stringify(W7)
+    );
+    await jtCss(p, 'J1c', 0.525);
+    await shot('fix2-07-jewel-socketed-0525', SHELL);
+    await jtCss(p, 'J1c', 0.5);
+    await shot('fix2-07-jewel-socketed-050', SHELL);
+    await look(p, 'J1c', 1.25);
+    await p.waitForTimeout(80);
+  }
   const T7 = await p.evaluate(() => {
     const e = $('tsockp').querySelector('.jtmp'),
       r = e && e.getBoundingClientRect(),
