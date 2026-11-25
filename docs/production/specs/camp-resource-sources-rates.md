@@ -1,5 +1,7 @@
 # dpoe 營地資源：去哪拿與每分鐘產量 v1.0
 
+> superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）
+
 - 來源 Page：https://cursor.com/canvas/store-82cf5215-7bf0-49e1-b610-9b76fbf158ee/e0f94cc8-3286-49bc-a545-27dee43b254c
 - 版本：v1.0
 - 日期：Page 最後更新 2026-11-20 14:36（UTC+8）；轉成 md 是 2026-11-20

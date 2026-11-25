@@ -73,7 +73,7 @@
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分取代：掛機條版面與光柱外觀 → specs/battle-hud/；掛機條營地訊號（M2-camp-cards §7）、橫幅／王倒下（M2-33-3b、M2-23 §6）、倒下（M2-40 §8）仍現行；觀戰鈕已拿掉（mumi 11/20 17:33 拿掉觀戰鍵） |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
 | 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.4／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
-| 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0.2 | 現行；e0f94cc8 的字串併進 §5.1 |
+| 營地（卡片）＋設施詳細頁 | `S/M2-camp-cards.md` | v1.0.2 | 部分 superseded（2026-11-24 材料定稿 v1.1：產生器、民房、居民已拿掉，營地只剩五座，見 docs/production/adjust/材料來源.md）；其他部分現行；e0f94cc8 的字串併進 §5.1 |
 | 營地線框 | W/W2-camp/ | — | HUD 位置對齊 battle-hud v1.3；W2 仍在上色示意圖關 |
 | 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
 | 山海寶盒 | （無） | — | 待寫（各自批次到了再定） |
@@ -83,8 +83,9 @@
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
 | 倉庫 | `S/M2-33-2a-items-crafting.md` §1、§2（動作段）、§3＋`S/M2-item-display.md`（格子與說明；跟 2a 衝突時以它為準）＋`S/M2-37-ia-rework.md` §3、§4 | 2a v1.0.1／item-display v1.2／M2-37 v1.3.1 | 草稿／未定稿；B5 新檔 S/stash.md 待寫（草稿 W-storage-draft-2145 待 mumi） |
 | 角色 | `S/M2-character.md` v1.1 ＋ `S/M2-character-1280.md`（1280×720 定稿；390 元件表 `S/M2-character-2.md`～`S/M2-character-4.md`；格子與說明以 `S/M2-item-display.md` v1.2 為準；2a §4、M2-37 §8 空格狀態仍可對照，與 1280 衝突時以 M2-character-1280 為準） | v1.1 | 定稿（mumi 11/24 12:22 上色示意圖過關；示意圖 `W/W3-character/color/`；390×844 仍見主檔 §1–§11，示意圖未進 repo；珠寶分頁不在本版；未進入開發） |
-| 商會 | 規則 `S/M2-trade-tiercap.md` | v1.0 | 規則現行；畫面待寫（各自批次到了再定） |
+| 商會 | 規則 `S/M2-trade-tiercap.md`；換通貨與每小時額度 `docs/production/adjust/材料來源.md` §6 | v1.0；定稿 v1.1 | 規則現行；畫面待寫（各自批次到了再定） |
 | 技能分頁＋輔助孔 | `S/skills-panel.md` v1.0.1（1280×720 定稿；輔助孔規則與文案仍見 `S/M1-08-support-sockets.md`，與本檔衝突時以 skills-panel 為準） | v1.0.1 | 定稿（mumi 11/24 17:50 上色示意圖過關，更換圖示採名稱右側方案 a；v1.0.1 對齊名詞表工作版 v0.6.47；示意圖 `W/W4-skill-panel/color/`（01、03–05、07–18；01b 不採用）；`S/M2-40-skill-panel-hud.md` 技能分頁／抽屜版面 **已取代**；戰鬥 HUD 仍見 `specs/battle-hud/battle-hud.md` v1.3；M2-40 裡的「祭壇」字串，畫面上一律改寫「長老屋」（名詞表 v0.6.19）；390 本版不含；未進入開發） |
+| 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2.1 | 待定（版面段已作廢，技能分頁段要拆成 S/skills-panel.md）；**戰鬥 HUD 部分已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；M2-40 裡的「祭壇」字串，畫面上一律改寫「長老屋」（名詞表 v0.6.19） |
 | 天賦樹 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（S2 改版暫停；天賦樹開著時照刷） |
 | 昇華石碑 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（入口兩處都留） |
 | 更多分頁 | `S/M2-33-2b-panels.md` §3＋`S/M2-37-ia-rework.md` §3 | 11/18 | 現行 |
@@ -95,7 +96,7 @@
 | 王印 | 王印 v0.2（Page 685f7eea） | v0.2 | 待轉入成 S/king-seal.md（各自批次到了再定） |
 | 標題、暫停、讀取 | （無） | — | 待寫（W6） |
 | 設定、鍵位 | `S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 | 11/18 | 現行；以 battle-hud v1.3 為準 |
-| 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；畫面 B9 待寫 |
+| 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | 現行（文案）；2026-11-24 材料定稿 v1.1 更新；畫面 B9 待寫 |
 | 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | foundations v1.0.2／panel-1plus v1.2 | 現行 |
 | PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 已取消（superseded，mumi 11/21 12:42）；正文留作歷史紀錄 |
 
@@ -105,24 +106,30 @@
 
 | 主題 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
-| 名詞表 | `docs/名詞表.md` | v0.6.41 | 現行；v0.6.40 已取代 |
-| 數值總表 | `S/數值總表.md` | v0.5 | 現行 v0.5 |
+| 名詞表 | `docs/名詞表.md` | v0.6.48 | 現行；v0.6.47 以前已取代 |
+| 數值總表 | `S/數值總表.md` | v0.5.3 | 現行；v0.5.2 已取代 |
 | 追逐掉落 | `S/M2-17-chase-drops.md` | v1.3 | 現行 |
 | 大招判定 | `S/M2-40-big-attack.md` | v1.0 | 現行 |
 | 輔助推薦分數 | `S/M2-40-rec-score.md` | v1.0 | 現行 |
-| 商會階上限 | `S/M2-trade-tiercap.md` | v1.0 | 現行 |
+| 商會階上限 | `S/M2-trade-tiercap.md` | v1.0 | 現行（換通貨與每小時額度見材料來源.md §6） |
 | 數字縮寫 | `S/number-abbrev.md` | v1.1 | 現行（第 32 行暫停補算要改成照刷） |
 | 試招場稻草人 | `S/M2-13-practice-dummies.md` | v1.1 | 現行 |
 | 上癮門檻 | `S/M2-03-addictiveness-criteria.md` | — | 現行 |
 | 王招元素 | `S/boss-move-element-unify.md` | — | 現行（已決定，待解凍） |
-| 前 30 分鐘節奏 | `S/M2-21-pacing-v2.md` | v2 草案 | 草稿，不可交辦 |
+| 前 30 分鐘節奏 | `S/M2-21-pacing-v2.md` | v2 草案 | superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）；交工程師時刪 |
 | 詞綴階級 | `S/affix-tiers-framework.md` | v0.5 | 草稿，不可交辦 |
 | 腐化與災魘 | `S/corruption-calamity-analysis.md` | v0.5 | 草稿，不可交辦 |
 | 耐力球詞 | `S/B5b-c-endure.md` | v0.1 | 草稿，不可交辦 |
 | 數值排程 | `docs/production/數值待排.md` | — | 草稿，不可交辦 |
 | 劍技能草案 | `docs/production/劍技能草案.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
-| 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | 現行（原定併進 `S/M2-camp-cards.md` §5.1） |
+| 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）；產生器已拿掉，正文留作紀錄；交工程師時刪 |
+| 材料來源 | `docs/production/adjust/材料來源.md` | 定稿 v1.1 | 現行；定案 v1.0 superseded |
+| 工坊與解鎖表 | `docs/工坊與解鎖表.md` | — | 現行；2026-11-24 材料定稿 v1.1 更新（產生器、民房、居民段落是舊設計，留作紀錄） |
+| 待決題目 | `docs/production/adjust/待決題目.md` | — | 現行 |
+| 天賦樹與珠寶孔 | `docs/production/adjust/天賦樹與珠寶孔.md` | — | 現行 |
+| 調整書目錄 | `docs/production/adjust/README.md` | — | 現行；README 提到的 `技能改版.md`、`底層機制盤點.md`、`低生命紅框.md`、`王暴怒揮爪.md`、`_input/` 未進 repo |
+| 調整書變更紀錄 | `docs/production/adjust/CHANGELOG.md` | — | 現行 |
 
 ## 美術（Game Art Director）
 
@@ -152,6 +159,6 @@
 | 視覺審查 | `S/visual-review-protocol.md` | 現行 |
 | 匿名漏斗 | `S/M2-26-funnel.md` | 現行 |
 | 設計原則、世界觀 | `docs/設計原則.md`、`docs/世界觀.md` | 現行 |
-| 研究資料 | `docs/PoE*.md`、`docs/增量遊戲*.md`、`docs/打寶遊戲比較.md`、`docs/火炬之光無限參考.md`、`docs/音樂音效來源.md` | 參考（不跟版本；之後移到 docs/research/） |
+| 研究資料 | `docs/PoE*.md`、`docs/增量遊戲*.md`、`docs/打寶遊戲比較.md`、`docs/火炬之光無限參考.md`、`docs/音樂音效來源.md` | 參考（不跟版本；之後移到 docs/research/）；`docs/增量遊戲精髓.md`、`docs/增量遊戲參考.md` 標歷史參考（2026-11-24，產生器、民房已拿掉） |
 | PoE 腐化、詞綴資料 | `docs/reference/poe/poe_corruption_2026-11-19/`、`docs/reference/poe/poe_affixes_2026-11-18/` | 參考，不是規格 |
 | v0.5.4 測試證據截圖 | `docs/production/evidence/v0.5.4/`（README 列 8 張對應必須修項） | 參考，不是規格 |
