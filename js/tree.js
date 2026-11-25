@@ -360,7 +360,9 @@ const secName = i => PTREE.I[PT_START[i]].n;
 const SECN_OUT = 130;
 /* 珠寶孔的面板（S/talent-tree.md 06／07）：孔的狀態、裡面的珠寶（拔下）、收藏裡的珠寶（鑲上）。畫面不出現 J1a 等代碼 */
 const JW_DROP = '珠寶打鬼門關、心魔幻境、凶地、陰兵借道才會掉。不保證第一顆。',
-  JW_NO = '珠寶無法分解，也不能打造或重鑄。';
+  JW_NO = '珠寶無法分解，也不能打造或重鑄。',
+  /* 暫時說明（mumi 11/25 13:17 方案 A）：珠寶分頁上線後拿掉 */
+  JW_TMP = '珠寶分頁還沒上線，暫時不能丟棄';
 const jwState = n => {
   const j = (S.jsock || [])[n.jw] && jwOf(S, S.jsock[n.jw]);
   return [j, j ? '已鑲上' : S.pt.includes(n.id) ? '空' : '還沒點亮（開孔要 1 點）'];
@@ -387,7 +389,7 @@ function treeSockOpen(i) {
       cur
         ? `<p class="lead">${esc(jwName(cur))}　·　${nts(cur)}</p><p class="jn">珠寶的大點等同點亮天賦；已點過或重複的大點只算一次。</p><button class="btn" data-ta="jout:${i}">拔下</button><p class="jn">鑲著的珠寶不能丟棄。${JW_NO}丟棄（在倉庫的珠寶分頁，長按確認）不給任何東西。</p>`
         : `<p class="lead">這個孔是空的。</p><p class="jn">${JW_DROP}</p><p class="jn">${JW_NO}空孔可先看，不藏起來。</p>${(S.jewels || []).map(row).join('')}`
-    }`;
+    }<p class="jn jtmp">${JW_TMP}</p>`;
   $('ptree').appendChild(d);
 }
 let TBOX = null;
@@ -795,7 +797,7 @@ function treeTip(id, det) {
     const [j, st] = jwState(n);
     return `${top}<b>${esc(secName(n.sec))}的珠寶孔${n.out ? '（大孔）' : ''}</b><small>${st}</small>${
       j
-        ? `<p class="ef">${esc(jwName(j))}：${j.nt.map(k => esc(PTREE.I[k].n)).join('、')}</p><p class="hh">鑲著的珠寶不能丟棄。${JW_NO}丟棄（在倉庫的珠寶分頁，長按確認）不給任何東西。</p>`
+        ? `<p class="ef">${esc(jwName(j))}：${j.nt.map(k => esc(PTREE.I[k].n)).join('、')}</p><p class="hh">鑲著的珠寶不能丟棄。${JW_NO}丟棄（在倉庫的珠寶分頁，長按確認）不給任何東西。</p><p class="hh">${JW_TMP}</p>`
         : `<p class="ef">這個孔是空的。</p><p class="hh">${JW_DROP}</p><p class="hh">${JW_NO}空孔可先看，不藏起來。</p>`
     }${need}`;
   }

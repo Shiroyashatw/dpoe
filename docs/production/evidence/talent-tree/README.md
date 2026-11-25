@@ -18,3 +18,5 @@ python3 tools/tree_overlay.py /tmp/tt docs/production/evidence/talent-tree
 ```
 
 01–05、14、16、19 的樹本身是 main 現行樹形（規格寫明這幾頁除珠寶孔外是示意），所以疊圖只比殼（頂欄、樹視圖、底欄、重置、小地圖）的座標。
+
+- `fix1-jewel-tmp-note-1280x720.png`：dpoe-talent-tree-fix1，1280×720 已鑲珠寶孔面板，最後一行是暫時說明「珠寶分頁還沒上線，暫時不能丟棄」。`tools/tree_check.js` 第 07 頁截圖，用預裝 Playwright Chromium（`/opt/pw-browsers`，未設 `PW_CHROME`）。

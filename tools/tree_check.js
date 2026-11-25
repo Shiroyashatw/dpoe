@@ -600,6 +600,25 @@ const BOX = {};
       P6b.t.includes('珠寶無法分解，也不能打造或重鑄。空孔可先看，不藏起來。'),
     P6b.t
   );
+  const T6 = await p.evaluate(() => {
+    const e = $('tsockp').querySelector('.jtmp'),
+      r = e && e.getBoundingClientRect(),
+      q = $('tsockp').getBoundingClientRect();
+    return (
+      e && [
+        e.textContent,
+        Math.round(r.top),
+        Math.round(r.bottom),
+        Math.round(q.bottom),
+        $('tsockp').innerText.split('暫時不能丟棄').length - 1
+      ]
+    );
+  });
+  ok(
+    '暫時說明（mumi 11/25 13:17 方案 A）：空孔面板有「珠寶分頁還沒上線，暫時不能丟棄」，整句在面板內、在樹視圖內（底 ≤676），只出現一次',
+    !!T6 && T6[0] === '珠寶分頁還沒上線，暫時不能丟棄' && T6[2] <= T6[3] && T6[3] <= 676 && T6[4] === 1,
+    T6
+  );
   const sp = await box(p, '#tsockp');
   ok('珠寶孔面板 820,248 寬 440（示意圖 06／07 的位置）', !!sp && sp[0] === 820 && sp[1] === 248 && sp[2] === 440, sp);
   await p.mouse.move(640, 700);
@@ -650,6 +669,49 @@ const BOX = {};
       ) &&
       !/J\d[abc]/.test(P7.t),
     JSON.stringify(P7)
+  );
+  const T7 = await p.evaluate(() => {
+    const e = $('tsockp').querySelector('.jtmp'),
+      r = e && e.getBoundingClientRect(),
+      q = $('tsockp').getBoundingClientRect();
+    return (
+      e && [
+        e.textContent,
+        Math.round(r.bottom),
+        Math.round(q.bottom),
+        $('tsockp').innerText.split('暫時不能丟棄').length - 1
+      ]
+    );
+  });
+  ok(
+    '暫時說明：已鑲面板在丟棄句下面有「珠寶分頁還沒上線，暫時不能丟棄」，整句看得到（底 ≤676），只出現一次；定稿丟棄句不改',
+    !!T7 && T7[0] === '珠寶分頁還沒上線，暫時不能丟棄' && T7[1] <= T7[2] && T7[2] <= 676 && T7[3] === 1,
+    T7
+  );
+  /* (b) 滿 30 顆暫留舊行為：多出來的換 500 靈魂（珠寶分頁上線後改回定稿：暫停機率掉落、王的保底收進多留的 5 格） */
+  const J30 = await p.evaluate(() => {
+    const keep = S.jewels,
+      soul = MAT().soul;
+    S.jewels = Array.from({ length: 29 }, (_, i) => ({ id: 'jf' + i, nt: [PT_NOTABLES[0]] }));
+    const a = jwAdd(1),
+      n29 = S.jewels.length,
+      s29 = MAT().soul;
+    const b = jwAdd(1),
+      r = [JEWEL.keep, n29, s29 - soul, a.length, b, S.jewels.length, MAT().soul - s29];
+    S.jewels = keep;
+    MAT().soul = soul;
+    return r;
+  });
+  ok(
+    '滿 30 顆暫留舊行為：第 30 顆照收；已有 30 顆時多的一顆換 500 靈魂（「珠寶收藏滿了：換 500 靈魂」），收藏仍 30',
+    J30[0] === 30 &&
+      J30[1] === 30 &&
+      J30[2] === 0 &&
+      J30[3] === 1 &&
+      J30[4].join('|') === '珠寶收藏滿了：換 500 靈魂' &&
+      J30[5] === 30 &&
+      J30[6] === 500,
+    J30
   );
   await p.mouse.move(640, 700);
   await p.waitForTimeout(60);
