@@ -569,36 +569,36 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--scene-
 #tsvg.far .nd.b0 .ti { display: none; }
 #tsvg.far line, #tsvg.far path { stroke: rgba(var(--hl-rgb), 0.2); stroke-width: 12; }
 #tsvg.far line.on, #tsvg.far path.on { stroke: var(--sel-edge); stroke-width: 26; }
-#tsvg.far .nd circle { stroke-width: 7; }
+#tsvg.far .nd > circle { stroke-width: 7; }
 #tsvg line, #tsvg path { stroke: rgba(var(--hl-rgb), 0.1); stroke-width: 5; fill: none; }
 #tsvg line.near, #tsvg path.near { stroke: rgba(var(--hl-rgb), 0.22); }
 #tsvg line.on, #tsvg path.on { stroke: var(--sel-edge); stroke-width: 7; }
 #tsvg line.asc { stroke-width: 6; }
 #tsvg line.asc.on { stroke: var(--asc); }
 .nd { cursor: pointer; }
-.nd circle { fill: var(--scene-void); stroke: rgba(var(--hl-rgb), 0.22); stroke-width: 3; }
-.nd.b0 circle { fill: var(--panel-inset); }
+.nd > circle { fill: var(--scene-void); stroke: rgba(var(--hl-rgb), 0.22); stroke-width: 3; }
+.nd.b0 > circle { fill: var(--panel-inset); }
 .nd image, .nd .ti { image-rendering: pixelated; opacity: 0.35; pointer-events: none; }
-.nd.can circle { stroke: var(--tx); stroke-width: 4; }
+.nd.can > circle { stroke: var(--tx); stroke-width: 4; }
 .nd.can image, .nd.can .ti { opacity: 0.85; }
 /* 點下去：小點填上那個方向的顏色，大點金框；小點的圖示淡一點 */
 .nd.b0 .ti { opacity: 0.25; }
 .nd.b0.can .ti { opacity: 0.6; }
 .nd.b0.on .ti { opacity: 0.95; }
-.nd.on circle { fill: var(--c, var(--sel-bg)); stroke: var(--sel-edge); stroke-width: 4; }
-.nd.on.b1 circle, .nd.on.b2 circle { fill: var(--sel-bg); }
+.nd.on > circle { fill: var(--c, var(--sel-bg)); stroke: var(--sel-edge); stroke-width: 4; }
+.nd.on.b1 > circle, .nd.on.b2 > circle { fill: var(--sel-bg); }
 .nd.on image, .nd.on .ti { opacity: 1; }
-.nd.b2 circle { stroke-width: 5; stroke: var(--border-hi); }
-.nd:hover circle { filter: brightness(1.6); }
+.nd.b2 > circle { stroke-width: 5; stroke: var(--border-hi); }
+.nd:hover > circle { filter: brightness(1.6); }
 .hollow { fill: var(--panel-inset); stroke: var(--border-mid); stroke-width: 3; }
 #tsvg text.hint { fill: var(--tx-dim); font: 700 30px var(--font); text-anchor: middle; }
 #tsvg text.hint.sm { font-size: 20px; }
 /* 昇華（0.2.25）：中間挖空的地方；橘色系跟天賦樹分開，選擇組（三選一、二選一）的大點外框是虛線 */
 #tsvg line.asc.near { stroke: var(--asc-on); }
-.nd.asc circle { fill: var(--asc-bg); stroke: var(--asc-on); }
-.nd.asc.grp circle { stroke-dasharray: 6 4; }
-.nd.asc.can circle { stroke: var(--asc-hi); }
-.nd.asc.on circle { fill: var(--asc-on); stroke: var(--asc); stroke-dasharray: none; }
+.nd.asc > circle { fill: var(--asc-bg); stroke: var(--asc-on); }
+.nd.asc.grp > circle { stroke-dasharray: 6 4; }
+.nd.asc.can > circle { stroke: var(--asc-hi); }
+.nd.asc.on > circle { fill: var(--asc-on); stroke: var(--asc); stroke-dasharray: none; }
 .nd.asc text { fill: var(--tx-dim); font: 700 15px var(--font); text-anchor: middle; pointer-events: none; paint-order: stroke; stroke: var(--scene-void); stroke-width: 4px; }
 .nd.asc.can text { fill: var(--tx); }
 .nd.asc.on text { fill: var(--asc-hi); }
@@ -675,7 +675,7 @@ body.touch #over .card { min-width: 0; max-width: calc(100vw - 24px); }
 body.touch .tbar { flex-wrap: wrap; gap: 6px 10px; padding: calc(6px + env(safe-area-inset-top)) 10px 6px; }
 body.touch .tbar > span { font-size: var(--fs-s); }
 body.touch .thelp { display: none; }
-.nd.sel circle { stroke: var(--glint); stroke-width: 6; }
+.nd.sel > circle { stroke: var(--glint); stroke-width: 6; }
 
 /* ---------- 0.2.6 底材三層：品質的區間顏色 ---------- */
 #tip .lay { color: var(--tx-dim); font-size: var(--fs-s); }
@@ -986,7 +986,7 @@ body.touch.port #bar .sk[data-k='roll'] { display: grid; position: fixed; left: 
 #tfind:focus-visible { outline: 2px solid var(--border-hi); outline-offset: 1px; }
 #tfound { min-width: 44px; font-size: var(--fs-s); }
 #tsvg.finding .nd:not(.hit) { opacity: 0.22; }
-.nd.hit circle { stroke: var(--tx-strong); stroke-width: 6; }
+.nd.hit > circle { stroke: var(--tx-strong); stroke-width: 6; }
 
 /* 商人：圖示格＋選中後列出底材 */
 .shopg { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
@@ -1296,23 +1296,23 @@ body.cine #hud { visibility: hidden; }
 #tsvg line:not(.asc), #tsvg path { stroke: rgba(var(--pt-line), 0.3); stroke-width: 4; }
 #tsvg line.near:not(.asc), #tsvg path.near { stroke: rgba(var(--pt-line), 0.62); }
 #tsvg line.on:not(.asc), #tsvg path.on { stroke: var(--sel-edge); stroke-width: 7; }
-.nd:not(.asc) circle { fill: var(--pt-node); stroke: var(--c, var(--tx-dim)); stroke-opacity: 0.6; stroke-width: 3; }
-.nd.can:not(.asc) circle { fill: color-mix(in srgb, var(--c, var(--tx-dim)) 30%, var(--pt-node)); stroke-opacity: 1; stroke-width: 4; }
-.nd.on:not(.asc) circle { fill: var(--c, var(--tx-dim)); stroke: var(--sel-edge); stroke-opacity: 1; stroke-width: 4; }
-.nd.b2:not(.asc):not(.on) circle { stroke: var(--tx-strong); stroke-opacity: 0.75; stroke-width: 5; }
+.nd:not(.asc) > circle { fill: var(--pt-node); stroke: var(--c, var(--tx-dim)); stroke-opacity: 0.6; stroke-width: 3; }
+.nd.can:not(.asc) > circle { fill: color-mix(in srgb, var(--c, var(--tx-dim)) 30%, var(--pt-node)); stroke-opacity: 1; stroke-width: 4; }
+.nd.on:not(.asc) > circle { fill: var(--c, var(--tx-dim)); stroke: var(--sel-edge); stroke-opacity: 1; stroke-width: 4; }
+.nd.b2:not(.asc):not(.on) > circle { stroke: var(--tx-strong); stroke-opacity: 0.75; stroke-width: 5; }
 .nd:not(.asc) image, .nd:not(.asc) .ti { opacity: 0.6; }
 .nd.b0:not(.asc) .ti { opacity: 0.5; }
 .nd.can:not(.asc) image, .nd.can:not(.asc) .ti { opacity: 0.95; }
 .nd.on:not(.asc) image, .nd.on:not(.asc) .ti { opacity: 1; }
 .nd.lk { cursor: not-allowed; }
-.nd.lk:not(.asc) circle { fill: var(--scene-void); stroke: var(--border); stroke-opacity: 0.9; stroke-dasharray: 5 4; }
+.nd.lk:not(.asc) > circle { fill: var(--scene-void); stroke: var(--border); stroke-opacity: 0.9; stroke-dasharray: 5 4; }
 .nd.lk:not(.asc) .ti, .nd.lk:not(.asc) image { opacity: 0.25; }
-.nd.sel:not(.asc) circle { stroke: var(--glint); stroke-opacity: 1; stroke-width: 6; }
-.nd.hit:not(.asc) circle { stroke: var(--tx-strong); stroke-opacity: 1; stroke-width: 6; }
+.nd.sel:not(.asc) > circle { stroke: var(--glint); stroke-opacity: 1; stroke-width: 6; }
+.nd.hit:not(.asc) > circle { stroke: var(--tx-strong); stroke-opacity: 1; stroke-width: 6; }
 /* 縮到看不清楚時：每個點就是一顆系色的點，一眼看出哪個方向是什麼系 */
-#tsvg.far .nd:not(.asc) circle { fill: var(--c, var(--tx-dim)); fill-opacity: 0.65; stroke-width: 7; }
-#tsvg.far .nd.on:not(.asc) circle { fill-opacity: 1; }
-#tsvg.far .nd.lk:not(.asc) circle { fill: var(--scene-void); fill-opacity: 1; }
+#tsvg.far .nd:not(.asc) > circle { fill: var(--c, var(--tx-dim)); fill-opacity: 0.65; stroke-width: 7; }
+#tsvg.far .nd.on:not(.asc) > circle { fill-opacity: 1; }
+#tsvg.far .nd.lk:not(.asc) > circle { fill: var(--scene-void); fill-opacity: 1; }
 #tsvg.far line:not(.asc), #tsvg.far path { stroke: rgba(var(--pt-line), 0.28); stroke-width: 10; }
 #tsvg.far line.on:not(.asc), #tsvg.far path.on { stroke: var(--sel-edge); stroke-width: 24; }
 /* 能力值的選擇框貼在被點的點旁邊（位置由 tree.js 的 treeAttrAsk 算），按鈕照系色 */
@@ -1705,7 +1705,7 @@ body:not(.touch) .tbar > b { position: static; transform: none; }
 #tfound { min-width: 44px; min-height: 44px; padding: 0 6px; white-space: nowrap; background: none; border: 0; font: 700 var(--fs) var(--font); font-variant-numeric: tabular-nums; color: var(--tx); cursor: pointer; }
 #tfound[hidden] { display: none; }
 /* 目前跳到的那一個：比其他命中更粗、更亮（M2-08） */
-.nd.hit.cur circle, .nd.hit.cur:not(.asc) circle { stroke: var(--act); stroke-opacity: 1; stroke-width: 14; }
+.nd.hit.cur > circle, .nd.hit.cur:not(.asc) > circle { stroke: var(--act); stroke-opacity: 1; stroke-width: 14; }
 .tbar .x { flex: none; width: 44px; height: 44px; }
 .tbar .x .ico { width: 20px; height: 20px; }
 /* 重置：左下角，離右上的關閉最遠；說明卡開著時被卡片蓋住 */
@@ -1725,7 +1725,7 @@ body:not(.touch) #treset { bottom: 52px; }
 #tg .ascgo text { text-anchor: middle; pointer-events: none; fill: var(--asc-hi); font: 900 64px var(--serif); }
 #tg .ascgo text.s { fill: var(--tx-dim); font: 700 40px var(--font); }
 #tg .ascgo.todo text.s { fill: var(--tx-strong); }
-.nd.pth:not(.asc) circle { stroke: var(--glint); stroke-opacity: 1; stroke-width: 5; stroke-dasharray: 5 4; }
+.nd.pth:not(.asc) > circle { stroke: var(--glint); stroke-opacity: 1; stroke-width: 5; stroke-dasharray: 5 4; }
 /* 說明卡：跟面板同一套（深底、上緣一條線、標題靠左），固定在底部 */
 .tcard { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 10px 14px calc(12px + var(--sab, env(safe-area-inset-bottom))); background: var(--panel-raised); border-top: 1px solid var(--border-hi); box-shadow: 0 -8px 24px rgba(var(--scrim-rgb), 0.5); animation: sheetin 160ms cubic-bezier(0.23, 1, 0.32, 1); }
 .tcard[hidden] { display: none; }
@@ -3386,3 +3386,85 @@ body.touch.port #pnav:not([hidden]) { display: grid; grid-template-columns: none
 #pnav .nlk .ico { display: block; width: 16px; height: 16px; }
 #dnav .nlk .ico { display: block; width: 12px; height: 12px; }
 .bh-boss b { font-weight: inherit; }
+/* ---------- 天賦樹 1280×720 定稿（S/talent-tree.md v1.0.1；W5-talent-tree 01–19）：桌機滿版 頂欄 52／樹 624／底欄 44；只用既有 token ---------- */
+body:not(.touch) #ptree .tbar { box-sizing: border-box; height: 52px; min-height: 0; flex: none; align-items: center; gap: 12px; padding: 0 12px; border-bottom: 1px solid var(--border-mid); }
+body:not(.touch) #ptree .tbar > b { position: static; transform: none; display: block; font: 700 16px/1.2 var(--font); letter-spacing: 0; color: var(--tx-title); text-shadow: none; }
+body:not(.touch) #ptree .tbar > b::before, body:not(.touch) #ptree .tbar > b::after { display: none; }
+body:not(.touch) #ptree .tbar .tleft, body:not(.touch) #ptree .tbar .tleft b { font: 700 16px/1.2 var(--font); }
+body:not(.touch) #ptree #tfind { flex: none; box-sizing: border-box; width: 260px; max-width: none; height: 36px; margin-left: auto; font: 400 16px var(--font); }
+body:not(.touch) #ptree .tbar .x { box-sizing: border-box; width: 36px; height: 36px; font: 700 16px var(--font); color: var(--tx); background: var(--panel-inset); border: 1px solid var(--border-mid); border-radius: 2px; }
+body:not(.touch) #ptree #tview { flex: none; height: calc(100% - 96px); }
+body:not(.touch) #ptree .thelp { box-sizing: border-box; display: flex; align-items: center; gap: 12px; height: 44px; margin: 0; padding: 0 16px 0 70px; font: 400 14px/1.2 var(--font); text-align: left; white-space: nowrap; overflow: hidden; }
+body:not(.touch) #ptree .thelp b { font-weight: 700; color: var(--tx-title); margin: 0; }
+body:not(.touch) #ptree #treset { box-sizing: border-box; left: 12px; top: auto; bottom: 56px; height: 36px; min-height: 36px; padding: 0 14px; font: 700 14px var(--font); }
+#tminiw { position: absolute; right: 12px; top: calc(64px + env(safe-area-inset-top)); z-index: 2; box-sizing: border-box; width: 168px; height: 168px; background: var(--panel-inset); border: 1px solid var(--border-mid); border-radius: 2px; }
+#tminiw[hidden] { display: none; }
+#tminiw b { position: absolute; left: 6px; top: 4px; font: 700 11px var(--font); color: var(--tx-dim); pointer-events: none; }
+#tminiw #tmini { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: none; }
+body.touch #tminiw { width: 84px; height: 84px; top: calc(66px + env(safe-area-inset-top)); right: 10px; }
+body.touch #tminiw b { display: none; }
+.thov, .tterm { position: absolute; z-index: 5; box-sizing: border-box; width: 360px; padding: 12px; background: var(--panel); border: 1px solid var(--border-mid); border-radius: 2px; font: 400 16px/1.4 var(--font); color: var(--tx); }
+.thov[hidden], .tterm[hidden] { display: none; }
+.thov.w4 { width: 400px; }
+.thov > b, .tterm > b { display: block; font: 700 16px/1.3 var(--font); color: var(--tx-title); }
+.thov > small { display: block; margin-top: 2px; font: 400 14px/1.3 var(--font); color: var(--tx-dim); }
+.thov p { margin: 8px 0 0; }
+.thov .hh { font-size: 14px; color: var(--tx-dim); }
+.thov .hh.k:first-of-type, .thov .need { border-top: 1px solid var(--border); padding-top: 8px; }
+.thov .need, .thov .need em { color: var(--bad); font-style: normal; }
+.thov .hdet { margin: 0 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--tx-dim); }
+.thov .tm { border-bottom: 1px dashed var(--tx-dim); cursor: help; }
+.tterm { z-index: 6; }
+.tterm p { margin: 4px 0 0; }
+body.touch .tcard .hh.k, body.touch .tcard .hdet { display: none; }
+body:not(.touch) #ptree .tsockp { left: auto; right: 20px; top: 248px; transform: none; width: 440px; max-height: calc(100% - 300px); }
+#ptree .tsockp { box-sizing: border-box; padding: 12px 16px 19px; font: 400 16px/22px var(--font); }
+.tsockp .tt { display: block; padding-right: 40px; font: 700 16px/24px var(--font); color: var(--tx-title); }
+.tsockp > .x { position: absolute; right: 8px; top: 8px; width: 32px; height: 32px; display: grid; place-items: center; background: none; border: 0; color: var(--tx-dim); cursor: pointer; }
+.tsockp .sub { margin: 3px 0 0; font-size: 14px; line-height: 20px; color: var(--tx-dim); }
+.tsockp .lead { margin: 6px 0 0; }
+.tsockp .jn { margin: 6px 0 0; font-size: 14px; line-height: 20px; color: var(--tx-dim); }
+.tsockp > .btn { margin-top: 10px; min-height: 36px; padding: 0 16px; font: 700 16px var(--font); }
+.tsockp .jw small { display: block; font-size: 14px; color: var(--tx-dim); }
+.tsockp .jw .btn { min-height: 44px; flex: none; }
+#hask .card.w400 { padding: 20px; }
+.tattr { flex-direction: column; align-items: stretch; flex-wrap: nowrap; box-sizing: border-box; width: min(420px, calc(100% - 24px)); left: 0; bottom: auto; transform: none; gap: 8px; padding: 12px; background: var(--panel); border-color: var(--border-mid); border-radius: 2px; }
+.tattr .th { font: 700 16px var(--font); color: var(--tx-title); }
+.tattr .tp { margin: 0; font-size: 14px; color: var(--tx-dim); }
+.tattr .ab { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; background: var(--panel-inset); border: 1px solid var(--border-mid); border-radius: 2px; color: var(--tx); font: 400 14px var(--font); text-align: left; cursor: pointer; }
+.tattr .ab:hover, .tattr .ab:focus-visible { border-color: var(--tx-strong); outline: none; }
+.tattr .ab b { font: 700 16px var(--font); }
+.tattr .ab small { color: var(--tx-dim); font-size: 14px; }
+.tattr .ab span { flex: 1; color: var(--tx-dim); }
+.tattr kbd { min-width: 14px; padding: 0 3px; border: 1px solid var(--border-mid); border-radius: 2px; font: 400 11px var(--font); color: var(--tx-dim); text-align: center; }
+.tattr .ac { display: flex; justify-content: flex-end; }
+.tattr .ac .btn { min-height: 44px; gap: 6px; }
+.tattr .keys { margin: 0; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 14px; color: var(--tx-dim); }
+.tattr .keys b { margin-right: 12px; color: var(--tx); }
+.aic { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--tx); stroke-width: 1.6; }
+.aic text { fill: var(--tx); stroke: none; font: 700 12px var(--font); text-anchor: middle; }
+#hask .card.w400 { width: min(400px, calc(100vw - 32px)); }
+#hask .card .hmore { font-size: 14px; color: var(--tx-dim); }
+#hask .card.w400 h2, #hask .card.w400 > p:not(.hmore):not(.hno) { font-size: 16px; }
+/* 節點：基石雙圈、缺圖佔位、能力值標記（選了才畫；≥24px 才有字母）、珠寶孔、鎖住的圈 */
+.nd .r2 { fill: none; stroke: var(--tx-strong); stroke-opacity: 0.75; stroke-width: 3; }
+.nd .ph { fill: none; stroke: var(--tx-dim); stroke-width: 1.5; stroke-dasharray: 3 2; pointer-events: none; }
+.nd .am, .nd .am > *, #tsvg .nd .al { display: none; }
+.nd .am { pointer-events: none; }
+#tsvg .nd.a-s .am .as, #tsvg .nd.a-d .am .ad, #tsvg .nd.a-i .am .ai { fill: var(--panel-inset); fill-opacity: 1; stroke: var(--tx-strong); stroke-opacity: 1; stroke-width: 2; }
+.nd .am .al { fill: var(--tx-strong); font: 700 11px var(--font); text-anchor: middle; dominant-baseline: central; }
+.nd.a-s .am, .nd.a-d .am, .nd.a-i .am { display: inline; }
+.nd.a-s .am .as, .nd.a-d .am .ad, .nd.a-i .am .ai { display: inline; }
+.nd.a-s .ti, .nd.a-d .ti, .nd.a-i .ti { display: none; }
+#tsvg.lt .nd.a-s .al:nth-of-type(1), #tsvg.lt .nd.a-d .al:nth-of-type(2), #tsvg.lt .nd.a-i .al:nth-of-type(3) { display: inline; }
+.nd.js > circle { fill: var(--panel-inset); stroke: var(--border-mid); stroke-width: 3; }
+.nd.js.can > circle { stroke: var(--tx); }
+.nd.js.on > circle { stroke: var(--tx-strong); stroke-width: 4; }
+.nd.js.full > circle { fill: var(--border-mid); stroke-width: 6; }
+.nd.js .jt { fill: var(--tx); font: 700 11px var(--font); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.nd.js.jo .jt { font-size: 14px; }
+.nd.js .jl { fill: var(--tx-dim); font: 400 11px var(--font); dominant-baseline: central; pointer-events: none; }
+.nd.js.on .jl, #tsvg.far .nd.js .jl, #tsvg.far .nd.js .jt { display: none; }
+#tg .lkc circle { fill: none; stroke: var(--border-mid); stroke-width: 3; stroke-dasharray: 10 8; pointer-events: none; }
+#tg .lkc text { fill: var(--tx-dim); font: 700 16px var(--font); text-anchor: middle; pointer-events: none; }
+#tsvg.far1 .lkc text { display: none; }

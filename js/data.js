@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.5.5';
+const VER = '0.5.6';
 const KEY = 'dungeonpoe_v1';
 /* 測試入口（M1-24）：?test=名字 用自己的存檔位（test_名字）、每次載入重建、不連雲端；正式玩家不帶參數不受影響 */
 const TEST = new URLSearchParams(location.search).get('test') || '';
@@ -3373,7 +3373,7 @@ const PT_THEME = [
       ['靈思', { spellP: 25, int: 10 }],
       ['快詠', { spellP: 20, castP: 6 }],
       ['深研', { spellP: 30, castP: -3 }],
-      ['法力強化', { spellP: 20, mpEff: 8 }],
+      ['魔力強化', { spellP: 20, mpEff: 8 }],
       ['孤咒', { spellP: 20, isoP: 15 }],
       ['法相', { spellP: 20, aoe: 6 }, '範圍'],
       ['魔導', { spellP: 20, mpReg: 15 }, '魔力冷卻'],
@@ -3435,7 +3435,7 @@ const PT_THEME = [
       ['時間扭曲', { cdr: 6, castP: 3 }],
       ['節能', { mpReg: 20, mpP: 5 }],
       ['冷卻大師', { cdr: 10, mpReg: -10 }],
-      ['法力漩渦', { mpP: 10, spellP: 10 }, '法術'],
+      ['魔力漩渦', { mpP: 10, spellP: 10 }, '法術'],
       ['再生', { mpReg: 20, regen: 3 }, '生命'],
       ['博學', { mpP: 15, cdr: 4 }],
       ['靜坐冥想', { stillP: 20, mpReg: 10 }],
@@ -3889,7 +3889,7 @@ const PT_THEME = [
     'asc_moon_c',
     [1, 0, 0, 0, 0, 3],
     [
-      ['節奏脈輪', { comboCh: 30 }],
+      ['連擊節奏', { comboCh: 30 }],
       ['武僧', { w_qstaff: 25, as: 3 }],
       ['風雷棍', { only: 'qstaff', afterRoll: 30, rollCd: 20 }],
       ['禪定', { w_qstaff: 20, powOnCrit: 15 }],
@@ -5592,8 +5592,7 @@ const PTREE = (() => {
     ids = [],
     smIc = s => PT_STAT_IC[Object.keys(s)[0]];
   for (const [id, x, y, t, th, v] of PT_BAKE.N) {
-    const T = PT_THEME[th],
-      L = PT_ICONS[T.n] || [T.ic];
+    const T = PT_THEME[th];
     let o;
     if (t === 0) o = { n: '基礎', s: { ...PT_BASE[0][0] }, ic: PT_STAT_IC.attr, big: 0 };
     else if (t === 1 || t === 5) {
@@ -5613,7 +5612,7 @@ const PTREE = (() => {
             big: 1,
             auto: 1
           };
-      o.ic = L[(v + 1) % L.length];
+      o.ic = T.ic; /* 每條路（主題）一張主題圖，路上大點共用（S/talent-tree.md「主題圖」，mumi 11/24 Q3 A） */
     } else if (t === 3) o = { n: PT_KEYS[v].n, ic: PT_KEYS[v].ic, s: PT_KEYS[v].s, big: 2 };
     else if (t === 4) o = { n: PT_ROADS[v].n, d: '往外偏重：' + PT_ROADS[v].d, ic: T.ic, s: {}, big: 1, gate: 1 };
     else
@@ -5640,9 +5639,8 @@ const PTREE = (() => {
   return { N, E, I, ADJ, ARC };
 })();
 const PT_START = ['g0', 'g1', 'g2', 'g3', 'g4', 'g5'];
-/* 天賦樹六區與珠寶孔（0.2.84）：照六個起點的方向各切 ±30°（n.sec），一區點滿 JEWEL.need 點（起點不算、能力值點算）開那一區的珠寶孔；
-   孔不是樹上的點，畫在那一區的外緣（tree.js）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點；退到門檻以下珠寶鎖住不生效 */
-const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
+/* 天賦樹六區（0.2.84）：照六個起點的方向各切 ±30°（n.sec）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點 */
+const JEWEL = { keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
 {
   const A = PT_START.map(k => Math.atan2(PTREE.I[k].y, PTREE.I[k].x));
   for (const n of PTREE.N) {
@@ -5657,6 +5655,36 @@ const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
   }
   PTREE.SECA = A;
 }
+/* 珠寶孔 18 個（S/talent-tree.md v1.0.1；座標與掛點照 issue #182、PT_BAKE.J @6bc39ef，J3c＝t210）：每孔是獨立節點、連到掛點、花 1 點開（點亮＝開孔）。
+   前期 a、交會 b、外圈大孔 c（big＝外圈）。不放進 PTREE.N／E（那是烘焙出來的形狀，check.js 驗形狀）；I、ADJ 有，點亮、沿路、退回照一般的點 */
+const PT_J = [
+  ['J0a', 't78', -47.6, -2387.8],
+  ['J1a', 't89', 2089.8, -765.3],
+  ['J2a', 't_m7', 2319.2, 736.7],
+  ['J3a', 't_m10', 577.6, 2250.4],
+  ['J4a', 't_m14', -1878.6, 1467.8],
+  ['J5a', 't117', -2263, -703],
+  ['J0b', 't149', 1377.2, -2217.2],
+  ['J1b', 't202', 3399.5, 446.9],
+  ['J2b', 't164', 1458.7, 2659.8],
+  ['J3b', 't173', -1588.4, 2670],
+  ['J4b', 't138', -2380.3, 294.1],
+  ['J5b', 't123', -1141.8, -1882.2],
+  ['J0c', 't_o1', 646, -3663.2],
+  ['J1c', 't153', 2530.9, -2431.6],
+  ['J2c', 't_o8', 2603.8, 2514.5],
+  ['J3c', 't210', 242.6, 3659.2],
+  ['J4c', 't181', -3379.2, 845.9],
+  ['J5c', 't219', -3543.2, -518.7]
+];
+PTREE.J = PT_J.map(([id, an, x, y], i) => {
+  const a = PTREE.I[an],
+    n = { id, x, y, th: a.th, sec: a.sec, an, n: '珠寶孔', s: {}, big: 0, jw: i, out: id.endsWith('c') ? 1 : 0 };
+  PTREE.I[id] = n;
+  PTREE.ADJ[id] = [an];
+  PTREE.ADJ[an].push(id);
+  return n;
+});
 /* 珠寶抽得到的大點：一般大點（不是起點、基石、預留） */
 const PT_NOTABLES = PTREE.N.filter(n => n.big === 1 && !n.gate && !n.lock).map(n => n.id);
 /* 天賦點：每級 1 點、每到 10 的倍數再 +3（到 100 級共 129）；100 級後每 10 級 1 點 */
