@@ -52,13 +52,14 @@ const stJwKind = j => jwName(j);
 /* 物品搜尋：名字或任何一條詞綴的字 */
 const stHit = (it, q) =>
   !q || itemName(it).includes(q) || (it.a || []).some(a => affText(a).includes(q)) || baseOf(it).n.includes(q);
-function stList() {
+/* hit＝只留搜尋命中的（整批快速選用）；格子照常全列、命中加框其餘變淡（ST-11） */
+function stList(hit) {
   const L = S.inv.items.filter(
     it =>
       (ST12.f === 'all' || (!it.charm && bagGrp(it) === ST12.f)) &&
       (!ST12.k || bagSub(it) === ST12.k) &&
       (ST12.f !== 'weapon' || ST12.rar[Math.min(3, it.r || 0)]) &&
-      stHit(it, ST12.q.trim())
+      (!hit || stHit(it, ST12.q.trim()))
   );
   const o = ST12.o,
     up = it => (ST12.up && itemUp(it) ? 0 : 1);
@@ -76,13 +77,18 @@ const stCell = (it, i, extra = '') => {
   const k = stSlot(it),
     j = k ? chJudge(it, k) : '',
     lk = ST12.bat && it.lock,
-    ck = ST12.bat && ST12.bat.has(it.id);
+    ck = ST12.bat && ST12.bat.has(it.id),
+    q = !ST12.bat && ST12.q.trim(),
+    h = q && stHit(it, q);
   return chCell(
     it,
     `style="left:${(i % 5) * 72}px;top:${Math.floor(i / 5) * 72}px" data-st="it:${it.id}" tabindex="0" role="button"${extra}`,
     j === '▲' || j === '▲▲' ? j : ''
   )
-    .replace('class="cq', `class="cq ${it.chase ? 'chf' : ''} ${lk ? 'dim' : ''} ${ck ? 'ck' : ''}`)
+    .replace(
+      'class="cq',
+      `class="cq ${it.chase ? 'chf' : ''} ${lk || (q && !h) ? 'dim' : ''} ${h ? 'hit' : ''} ${ck ? 'ck' : ''}`
+    )
     .replace(/<\/div>$/, `${ST12.bat && !lk ? `<i class="stck">${ck ? '✓' : ''}</i>` : ''}</div>`);
 };
 /* ---------- 標題列與內分頁 ---------- */
@@ -144,6 +150,7 @@ function stColHTML() {
 function stEqHTML() {
   const n = S.inv.items.length,
     L = stList(),
+    nh = ST12.q.trim() ? L.filter(it => stHit(it, ST12.q.trim())).length : L.length,
     filt = ST12.f !== 'all' || ST12.q.trim(),
     warn =
       n >= INV_CAP
@@ -153,10 +160,10 @@ function stEqHTML() {
           : '';
   const top = ST12.bat
     ? `<div class="stqs"><small>快速選</small>${[0, 1, 2].map(r => `<button data-st="qs:${r}" class="${stQsOn(r) ? 'on' : ''}">${ST_RAR[r]}</button>`).join('')}<button data-st="qs:x">全不選</button></div>`
-    : `<div class="stf" role="tablist">${ST_F.map(([k, t]) => `<button class="${ST12.f === k ? 'on' : ''}" role="tab" aria-selected="${ST12.f === k}" data-st="f:${k}">${t}</button>`).join('')}</div><input class="sts ${filt ? 'n' : ''}" type="search" placeholder="名稱或詞綴" value="${esc(ST12.q)}" aria-label="名稱或詞綴">${filt ? `<span class="stc">${L.length} 件</span>` : ''}`;
+    : `<div class="stf" role="tablist">${ST_F.map(([k, t]) => `<button class="${ST12.f === k ? 'on' : ''}" role="tab" aria-selected="${ST12.f === k}" data-st="f:${k}">${t}</button>`).join('')}</div><input class="sts ${filt ? 'n' : ''}" type="search" placeholder="名稱或詞綴" value="${esc(ST12.q)}" aria-label="名稱或詞綴">${filt ? `<span class="stcnt">${nh} 件</span>` : ''}`;
   const body = !n
     ? `<div class="ste"><p>還沒有裝備</p><button class="stact" data-st="mk">去鍛造打一件</button></div>`
-    : !L.length
+    : !nh
       ? `<div class="ste"><p>沒有符合的裝備</p></div>`
       : `<div class="c12 stg ${warn ? 'wn' : ''}" data-sg>${L.map((it, i) => stCell(it, i)).join('')}</div><small class="stmore"></small>`;
   return `${top}${warn}${body}${
@@ -166,7 +173,7 @@ function stEqHTML() {
   }`;
 }
 const stQsOn = r => {
-  const L = stList().filter(it => !it.lock && (it.r || 0) === r);
+  const L = stList(1).filter(it => !it.lock && (it.r || 0) === r);
   return !!ST12.bat && L.length > 0 && L.every(it => ST12.bat.has(it.id));
 };
 /* ---------- 比較浮窗（07 簡易、08 詳細） ---------- */
@@ -184,14 +191,24 @@ function stCmpHTML() {
             ...chBase(x).map(
               ([n, v, o]) => `<li><span>${n}</span><b>${v}${det && o != null ? `<small> (${o})</small>` : ''}</b></li>`
             ),
-            ...(x.a || []).map(a => `<li><span>${esc(affText(a))}</span>${det ? `<b class="tr">T${a.T}</b>` : ''}</li>`)
+            ...(x.a || []).map(
+              a => `<li><span>${esc(affText(a))}</span>${det ? `<b class="tr">T${a.T}</b>` : ''}</li>`
+            ),
+            /* ST-28：詳細版補前綴／後綴空位（普通、傳奇沒有空位＝0） */
+            ...(det
+              ? [1, 0].map(p => {
+                  const c = x.r === 1 || x.r === 2 ? sideCap(x) : 0,
+                    n = (x.a || []).filter(a => !!AFF[a.k].p === !!p).length;
+                  return `<li><span>${p ? '前綴' : '後綴'}空位</span><b>${Math.max(0, c - n)}</b></li>`;
+                })
+              : [])
           ].join('')
         : '<li><span class="c-dim">空著</span></li>';
   return `<div class="stp ${det ? 'det' : ''}" role="dialog" aria-label="比較"><b class="rc${it.r}">${esc(itemName(it))}</b>
   <small class="sub">${ST_RAR[Math.min(3, it.r || 0)]}　${e ? e.n : KINDS[kindOf(it)] ? KINDS[kindOf(it)].n : ''}　物品等級 ${it.L}　品質 +${Math.round((it.q || 0) * 100)}%</small>
   <div class="stpc"><div><small>身上${cur ? `・${esc(itemName(cur))}` : ''}</small><ul>${rows(cur)}</ul></div><div><small>這件${j ? `（${j}）` : ''}</small><ul>${rows(it)}</ul></div></div>
   <div class="stpa"><button class="del" data-st="salv:${it.id}">分解</button><button data-st="lock:${it.id}">${it.lock ? '解鎖' : '鎖定'}</button><button class="eq" data-st="eq:${it.id}">裝備<small>${cur ? `換下 ${esc(itemName(cur))}，放進倉庫` : ''}</small></button></div>
-  <p class="stph">${det ? '放開 <kbd>Alt</kbd>／手把 <kbd>Y</kbd> 回到簡易。' : '懸停立即出現。按住 <kbd>Alt</kbd>／手把 <kbd>Y</kbd> 看詳細。名詞提示要停留 0.4 秒或按 R3，與本窗分開。'}</p></div>`;
+  <p class="stph">${det ? '放開 <kbd>Alt</kbd>／手把 Ｙ 回到簡易。' : '懸停立即出現。按住 <kbd>Alt</kbd>／手把 Ｙ 看詳細。名詞提示要停留 0.4 秒或按 R3，與本窗分開。'}</p></div>`;
 }
 /* ---------- 珠寶頁 ---------- */
 function stJwHTML() {
@@ -202,7 +219,7 @@ function stJwHTML() {
     sock = new Set(S.jsock || []),
     cells = L.map((j, i) => {
       const nm = stJwKind(j).split('・');
-      return `<div class="cq jw" style="left:${(i % 5) * 72}px;top:${Math.floor(i / 5) * 72}px" data-st="jw:${j.id}" tabindex="0" role="button" aria-label="${esc(stJwKind(j))}"><i class="jn">${nm.join('<br>')}</i><i class="jg">◆<small>佔位</small></i>${sock.has(j.id) ? '<i class="js">已鑲</i>' : ''}</div>`;
+      return `<div class="cq jw" style="left:${(i % 5) * 72}px;top:${Math.floor(i / 5) * 72}px" data-st="jw:${j.id}" tabindex="0" role="button" aria-label="${esc(stJwKind(j))}"><i class="jn">${nm.map((s, i) => (i ? '・' + s : s)).join('<br>')}</i><i class="jg">◆<small>佔位</small></i>${sock.has(j.id) ? '<i class="js">已鑲</i>' : ''}</div>`;
     }),
     empty = ST12.jk ? 0 : Math.max(0, cap - L.length);
   for (let i = 0; i < empty; i++) {
@@ -212,24 +229,33 @@ function stJwHTML() {
   return `${over ? '<p class="stw jw">已超過上限，請清理。機率掉落暫停；王保底照樣收。</p>' : '<p class="stnote">格數另計，鑲著的也算。不能分解，只能丟棄</p>'}
   ${
     J.length
-      ? `<div class="c12 stg jw" data-sg>${cells.join('')}</div><small class="stmore jw"></small>`
+      ? `<div class="c12 stg jw" data-sg>${cells.join('')}</div>`
       : '<div class="ste jw"><p>還沒有珠寶</p><small>珠寶打鬼門關、心魔幻境、凶地、陰兵借道才會掉。不保證第一顆。</small></div>'
   }
-  <small class="stjf">倉房 Lv ${S.camp.store || 0}　上限 ${cap}　王保底另留 5</small>`;
+  <small class="stjf">倉房 Lv ${S.camp.store || 0}　上限 ${cap}　王保底另留 5<span class="stmore jw"></span></small>`;
 }
 /* ---------- 通貨頁、特殊物品頁 ---------- */
-const stBox = (ic, n, nm, a = '') =>
-  `<div class="stbx ${n ? '' : 'z'}" ${a} title="${esc(nm)}" aria-label="${esc(nm)} ${n}">${icHTML(ic)}<em>${abbr(n, 'own')}</em></div>`;
+/* ph＝借用圖（stash.md「圖示與佔位」）：角標「佔位」（ST-35） */
+const stBox = (ic, n, nm, a = '', ph) =>
+  `<div class="stbx ${n ? '' : 'z'}" ${a} title="${esc(nm)}" aria-label="${esc(nm)} ${n}">${icHTML(ic)}${ph ? '<small class="ph">佔位</small>' : ''}<em>${abbr(n, 'own')}</em></div>`;
 const stSec = (t, h) => (h ? `<section><h4>${t}</h4><div>${h}</div></section>` : '');
 const ST_CUR_LINE = {
   鬼門關: ['calam', 'pcalam', 'pen'],
   心魔幻境: [...Object.keys(CUR).filter(k => k.startsWith('om_')), 'v2', 'v3'],
-  凶地: ['heart']
+  凶地: ['heart'],
+  裂口: ['conv']
 };
+/* 借用圖的通貨（data.js 註「圖示先借現有的」＋賽制區借怪物圖）；裂口的轉化石是專用圖 */
+const ST_CUR_PH = new Set([
+  'frac',
+  'perf',
+  'ink',
+  ...Object.entries(ST_CUR_LINE).flatMap(([t, L]) => (t === '裂口' ? [] : L))
+]);
 function stCurHTML() {
   const M = MAT(),
     line = Object.values(ST_CUR_LINE).flat(),
-    box = k => stBox(CUR[k].ic, M[k] || 0, CUR[k].n);
+    box = k => stBox(CUR[k].ic, M[k] || 0, CUR[k].n, '', ST_CUR_PH.has(k));
   return `<p class="stnote">數量跟鍛造台同一份，到鍛造台或技能分頁使用</p><div class="stsec">${stSec(
     '打造通貨',
     Object.keys(CUR)
@@ -270,7 +296,7 @@ function stSpHTML() {
       stSec(
         t,
         L.filter(k => FRAGS[k])
-          .map(k => stBox(FRAGS[k].ic, F[k] || 0, FRAGS[k].n))
+          .map(k => stBox(FRAGS[k].ic, F[k] || 0, FRAGS[k].n, '', 1))
           .join('')
       )
     )
@@ -296,10 +322,10 @@ function stAskHTML() {
       v = salvZero();
     for (const it of L) salvAdd(v, salvValue(it));
     const r2 = L.filter(it => it.r >= 2).length;
-    return `<div class="stask" role="alertdialog" aria-label="分解 ${L.length} 件？"><b>分解 ${L.length} 件？</b><p>${r2 ? `其中 ◆ ${r2} 件。` : ''}會得到 ${esc(salvText(v))}。分解了就拿不回來。</p><small>不能復原</small><div><button class="hold" data-hold="bat">長按分解<i></i></button><button class="stact" data-st="ask:x">取消</button></div></div>`;
+    return `<div class="stscr"></div><div class="stask" role="alertdialog" aria-label="分解 ${L.length} 件？"><b>分解 ${L.length} 件？</b><p>${r2 ? `其中 ◆ ${r2} 件。` : ''}會得到 ${esc(salvText(v))}。分解了就拿不回來。</p><small>不能復原</small><div><button class="hold" data-hold="bat">長按分解<i></i></button><button class="stact" data-st="ask:x">取消</button></div></div>`;
   }
   const j = jwOf(S, a.id);
-  return `<div class="stask" role="alertdialog" aria-label="丟棄這顆珠寶？"><b>丟棄這顆珠寶？</b><p>丟棄「${esc(j ? stJwKind(j) : '')}」？不會得到材料或靈魂。丟了就拿不回來。</p><small>不能復原</small><div><button class="hold" data-hold="jw">長按丟棄<i></i></button><button class="stact" data-st="ask:x">取消</button></div></div>`;
+  return `<div class="stscr"></div><div class="stask" role="alertdialog" aria-label="丟棄這顆珠寶？"><b>丟棄這顆珠寶？</b><p>丟棄「${esc(j ? stJwKind(j) : '')}」？不會得到材料或靈魂。丟了就拿不回來。</p><small>不能復原</small><div><button class="hold" data-hold="jw">長按丟棄<i></i></button><button class="stact" data-st="ask:x">取消</button></div></div>`;
 }
 function stHTML() {
   const t = ST12.tab;
@@ -327,6 +353,16 @@ function stRender() {
     const n = p.querySelector(`[data-st="${CSS.escape(f)}"]`);
     if (n) n.focus({ preventScroll: true });
   }
+  /* ST-09：確認卡打開時焦點在「取消」，關掉時還給打開它的那一個 */
+  const ask = p.querySelector('.stask');
+  if (ask && !ask.contains(document.activeElement)) {
+    if (a && a.dataset && a.dataset.hold) ask.querySelector('.hold').focus();
+    else (ST12.askF = ST12.askF || f), ask.querySelector('[data-st="ask:x"]').focus();
+  } else if (!ask && ST12.askF) {
+    const n = p.querySelector(`[data-st="${CSS.escape(ST12.askF)}"]`);
+    ST12.askF = null;
+    if (n) n.focus({ preventScroll: true });
+  }
 }
 /* 「往下還有 n 件」：可視區下緣以下的格數 */
 function stMore() {
@@ -336,7 +372,7 @@ function stMore() {
   if (!g || !m) return;
   const y = g.scrollTop + g.clientHeight,
     n = [...g.children].filter(c => !c.classList.contains('emp') && c.offsetTop + 32 > y).length;
-  m.textContent = n ? (ST12.tab === 'jw' ? `往下還有 ${n} 顆` : `往下還有 ${n} 件`) : '';
+  m.textContent = n ? (ST12.tab === 'jw' ? `　往下還有 ${n} 顆` : `往下還有 ${n} 件`) : '';
 }
 /* 只換比較浮窗（懸停、Alt） */
 function stCmpSync() {
@@ -384,7 +420,7 @@ function stAct(v, el) {
   } else if (k === 'qs') {
     if (x === 'x') ST12.bat.clear();
     else {
-      const L = stList().filter(it => !it.lock && (it.r || 0) === +x),
+      const L = stList(1).filter(it => !it.lock && (it.r || 0) === +x),
         on = stQsOn(+x);
       for (const it of L) on ? ST12.bat.delete(it.id) : ST12.bat.add(it.id);
     }

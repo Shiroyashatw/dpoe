@@ -2288,7 +2288,9 @@ function idleCmp() {
   return (CMPC.v = { it, L });
 }
 function idleHTML(W) {
-  const ses = SES || SES0(),
+  /* CP-10：桌機營地面板開著時主鈕改「關營地」，點了關面板（同標題 ×） */
+  const cx = PANEL.camp && c12On(),
+    ses = SES || SES0(),
     dur = idleDur(Date.now() - ses.t0),
     n = chasePct(),
     ch = !!chaseLine(G.mapT),
@@ -2397,7 +2399,7 @@ function idleHTML(W) {
   ${pct >= 90 ? `${P0.sth ? `<button class="isth" data-a="bhbag" style="${bx(...P0.sth)}" aria-label="倉庫 ${pct}%"></button>` : ''}<span class="ist c-warn" style="${bx(...P0.st)}">⚠ 倉庫 ${pct}%</span>` : ''}
   <button class="btn ib1" data-a="bhbag" style="${bx(...P0.b[0])}">整理倉庫</button>
   <button class="btn ib2 ${S.auto ? 'on' : ''}" data-a="bhauto" aria-pressed="${!!S.auto}" style="${bx(...P0.b[1])}">自動</button>
-  <button class="btn pri ib3" data-a="camp" style="${bx(...P0.b[2])}">${esc(STR_T.goCamp)}</button>`;
+  <button class="btn pri ib3" data-a="${cx ? 'close' : 'camp'}" style="${bx(...P0.b[2])}">${cx ? '關營地' : esc(STR_T.goCamp)}</button>`;
 }
 /* B3 D2-11：回戰場那一行「營地期間 +N」（M2-12 第二段 §0.1）：蓋在掛機條上（同位置），淡入 160 後出現、停 3,000、淡出 300（CSS）；
    0 的項不寫、追逐放第一個（王印 16 圖示）、放不下從後面省略；點一下展開掛機條 */
@@ -3280,7 +3282,8 @@ function knEsc() {
     fin = f && f.closest && f.closest('#pcamp, #pidle, #poff');
   if (G.ask) act('askno');
   else if (!$('poff').hidden) act('offok');
-  else if (PANEL.camp && CDR.one) (CDR.one = null), hudPanels(), fin && knFocus('#pcamp .cdb');
+  else if (PANEL.camp && CDR.one)
+    (CDR.one = null), hudPanels(), fin && knFocus(c12On() && C12.last ? `#c12-${C12.last} .c12b` : '#pcamp .cdb');
   else if (TREE.open) treeClose();
   else if (anyPanel()) closePanels(), fin && knFocus('[data-tm="nav:craft"]');
   else openPanel('set');

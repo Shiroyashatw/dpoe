@@ -267,7 +267,7 @@ function c12OneHTML(b) {
   return `<div class="c12h one"><button class="x c12bk" data-c12="back" aria-label="返回">←</button><b data-nt="${esc(C12_NT[b])}" data-ntt="${CAMPN[b]}"><span>${CAMPN[b]}</span></b><span>${i + 1}／${C12_B.length}</span><button class="x" data-c12="nav:-1" aria-label="上一座" ${i ? '' : 'disabled'}>‹</button><button class="x" data-c12="nav:1" aria-label="下一座" ${i < C12_B.length - 1 ? '' : 'disabled'}>›</button></div>
   <div class="c12d">
   <div class="c12top">${c12Ph(CAMPN[b][0])}<b>${n ? `Lv ${lv} → Lv ${n.lv}` : `Lv ${lv}（滿級）`}</b>${n ? `<small>最高 ${mx}</small><i class="c12pb"><i style="transform:scaleX(${p.toFixed(3)})"></i></i><small class="c12pp">${Math.floor(p * 100)}%</small>` : ''}</div>
-  <div class="c12sub"><b>${n ? '升級後' : '目前'}</b>${b !== 'watch' ? `<button class="c12cat ${C12.cat ? 'on' : ''}" data-c12="cat">解鎖一覽 ›</button>` : ''}</div>
+  <div class="c12sub"><b>${n ? '升級後' : '目前'}</b>${n && b !== 'watch' ? `<button class="c12cat ${C12.cat ? 'on' : ''}" data-c12="cat">解鎖一覽 ›</button>` : ''}</div>
   <p class="c12full">${esc(B.full)}</p>${sec}
   ${cmp.length ? `<div class="c12sub"><b>前後對照</b></div><ul class="c12cmp">${cmp.map(([k, a, c, d]) => `<li><span>${k}</span><span>${a}</span><b>→ ${c}</b><em>▲ ${d}</em></li>`).join('')}</ul>` : ''}
   ${
@@ -345,14 +345,14 @@ document.addEventListener('click', e => {
     CDR.one = C12.last = C12_B[i];
     C12.cat = 0;
   } else if (k === 'cat') C12.cat = C12.cat ? 0 : 1;
-  else if (k === 'lk') return hudWarn(lockTxt(v));
+  else if (k === 'lk') return c12Lk(el, lockTxt(v));
   else if (k === 'trade') {
     closePanels();
     CRAFT.tab = 'camp';
     CAMPUI.open = 'store';
     return openPanel('craft');
   } else if (k === 'fn') {
-    if (v === 'asc' && !campCan('asc')) return hudWarn(lockTxt('asc'));
+    if (v === 'asc' && !campCan('asc')) return c12Lk(el, lockTxt('asc'));
     if (v === 'bag') return navGo('bag');
     if (v === 'dummy') return closePanels(), campAsk();
     return fmenuOpen(v);
@@ -381,17 +381,24 @@ addEventListener(
 );
 /* ---------- 懸停提示（停留 0.4 秒；卡片次要句、名詞提示）：營地放在面板左側戰場（右緣 832），倉庫放在面板裡 ---------- */
 const C12T = { t: 0, el: null };
-function c12TipShow(el) {
+/* 鎖住的功能（CP-02）：營地內單句提示條停 2 秒，不走戰場 #warn */
+const c12Lk = (el, t) => (c12TipShow(el, t), clearTimeout(C12T.t), (C12T.t = setTimeout(c12TipHide, 2000)));
+function c12TipShow(el, t) {
   let d = $('c12tip');
   if (!d) (d = document.createElement('div')), (d.id = 'c12tip'), (d.role = 'tooltip'), document.body.appendChild(d);
   const st = el.closest('#pinv');
-  d.className = st ? 'in' : el.closest('.c12c') ? 'card' : '';
-  d.innerHTML = `<b>${esc(el.dataset.ntt || '')}</b><p>${esc(el.dataset.nt)}</p>${st || !el.closest('.c12c') ? '<small>名詞提示　停留 0.4 秒／手把 R3。與物品比較窗分開。</small>' : ''}`;
+  /* 功能列鎖住（CP-02）：功能列下一句 280×36、沒有標題，懸停與點擊同一顆 */
+  const lk = t || el.closest('.c12fn');
+  d.className = st ? 'in' : el.closest('.c12c') ? 'card' : lk ? 'lk' : '';
+  d.innerHTML = lk
+    ? esc(t || el.dataset.nt)
+    : `<b>${esc(el.dataset.ntt || '')}</b><p>${esc(el.dataset.nt)}</p>${st ? '<small>名詞提示　停留 0.4 秒／手把 R3。與物品比較窗分開。</small>' : ''}`;
   d.hidden = false;
   const r = el.getBoundingClientRect(),
     w = d.offsetWidth;
   /* 倉庫：面板裡 796,118；營地卡片次要句：卡頂 +12；營地名詞提示：觸發字頂 +118（12 倉房 87 → 205） */
   if (st) (d.style.left = '796px'), (d.style.top = '118px');
+  else if (lk) (d.style.left = '560px'), (d.style.top = Math.round(r.top + (r.height - 36) / 2) + 'px');
   else
     (d.style.left = Math.max(8, (el.closest('.c12c') ? 832 : 820) - w) + 'px'),
       (d.style.top = Math.round(r.top + (el.closest('.c12c') ? 12 : 118)) + 'px');

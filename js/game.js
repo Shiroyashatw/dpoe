@@ -1131,6 +1131,7 @@ function killMob(m) {
     ei: G.rs ? G.rs.nE : 0
   };
   const mat = killMat(m, t, od);
+  for (const [mk, c] of mat.mats || []) pickLog(matName(...matOf(mk)), c);
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   /* M2-19.2：追逐物品落在地上（橘色雙光柱＋印環，停 CHASE_HOLD 秒再吸）；王印早就進碎片頁了，地上的只是演出 */
   if (mat.chase) dropAt(m.x, m.y, { chase: mat.chase });

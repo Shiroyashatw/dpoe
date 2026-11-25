@@ -3103,6 +3103,8 @@ body:not(.touch) :is(#pskill.s12, #pros) { display: block; top: 76px; width: 476
 #skh { z-index: 5; right: 16px; top: calc(100vh - 154px); width: 476px; max-width: calc(100vw - 644px); height: 28px; padding: 0 10px; overflow: hidden; background: var(--panel); border: 1px solid var(--border); font: 400 14px/26px var(--font); color: var(--tx); white-space: nowrap; text-overflow: ellipsis; }
 #skg { z-index: 40; border: 2px solid var(--sel-edge); background: var(--sel-bg); box-shadow: 0 8px 24px rgb(var(--scrim-rgb), 0.7); cursor: grabbing; }
 
+/* 倉庫確認卡（stash.md 10、14；ST-29）：整畫面暗幕 0.55，卡與長按鈕在上面；倉庫段在 battle-hud 段內不准寫透明度色，所以放這裡 */
+#pinv.st12 > .stscr { position: fixed; inset: 0; background: rgb(var(--scrim-rgb), 0.55); z-index: 19; }
 /* ================= battle-hud v1.3.3（js/bhud.js；框都由 JS 照元件表擺，這裡只管長相） ================= */
 #bh, #pidle, #pnav, #dnav, .bh-aul, .bh-xp {
   --panel: var(--d2-panel);
@@ -3174,6 +3176,12 @@ body.bhd .bh-big { font-size: 16px; }
 .bh-vig.on i { opacity: 0.6; }
 .bh-vig.on.l2 i { opacity: 0.7; }
 .bh-low { border: 1px solid var(--hp-hi); pointer-events: none; }
+.bh-pick { display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; gap: 2px; pointer-events: none; z-index: 2; }
+.bh-pick div { padding: 1px 6px; font: 700 13px/18px var(--font); color: var(--tx); background: var(--d2-scrim); white-space: nowrap; transform-origin: left center; transition: opacity 300ms ease-out; }
+.bh-pick div.p { animation: bhPk 120ms ease-out; }
+.bh-pick div.out { opacity: 0; }
+@keyframes bhPk { 50% { transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .bh-pick div.p { animation: none; } }
 /* 工具提示 */
 .bh-tip, .bh-aul { display: flex; align-items: center; padding: 0 10px; background: var(--panel-raised); border: 1px solid var(--panel-edge); font: 400 14px/1.3 var(--font); color: var(--tx); white-space: nowrap; overflow: hidden; z-index: 3; }
 body.bhd .bh-tip { font-size: 16px; }
@@ -3449,6 +3457,7 @@ body:not(.touch) #ptree .tsockp { left: auto; right: 20px; top: 248px; transform
 #pcamp.cm12 :is(button, [tabindex='0']):focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; transform: none; }
 #pcamp.cm12 .x { width: 44px; height: 44px; padding: 0; background: none; border: 0; border-left: 1px solid var(--d2-border); color: var(--d2-tx-dim); font: 400 22px var(--font); display: grid; place-items: center; }
 #pcamp.cm12 .x:disabled { color: var(--d2-tx-off); cursor: default; }
+#pcamp.cm12 .c12h.one .x { font: 700 16px var(--font); }
 .c12h { position: relative; display: flex; align-items: center; height: 43px; border-bottom: 1px solid var(--d2-border); }
 .c12h > b { margin-left: 11px; width: 80px; font: 700 16px/22px var(--font); color: var(--d2-tx-strong); }
 .c12h > span { flex: 1; font: 400 14px var(--font); color: var(--d2-tx-dim); }
@@ -3460,7 +3469,7 @@ body:not(.touch) #ptree .tsockp { left: auto; right: 20px; top: 248px; transform
 .c12fn { display: flex; gap: 6px; margin: 4px 7px 0; }
 .c12fn button { position: relative; width: 76px; height: 56px; padding: 6px 0 0; background: var(--d2-panel-raised); border: 1px solid var(--d2-border); border-radius: 2px; display: flex; flex-direction: column; align-items: center; gap: 2px; font: 700 14px var(--font); }
 .c12fn button kbd { position: absolute; top: 4px; right: 6px; min-width: 16px; height: 18px; padding: 0 3px; border: 1px solid var(--d2-border-cap); border-radius: 2px; font: 700 12px/16px var(--font); color: var(--d2-tx); background: none; }
-.c12fn button.lock { color: var(--d2-tx-off); }
+#pcamp .c12fn button.lock { color: var(--d2-tx-off); }
 .c12ph { position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; flex: none; background: var(--d2-panel-inset); border: 1px solid var(--d2-border); font: 700 14px/1 var(--font); font-style: normal; color: var(--d2-tx); }
 .c12ph small { position: absolute; left: 0; right: 0; bottom: -2px; font: 400 7px/1 var(--font); color: var(--d2-warn); text-align: center; }
 body #pcamp.cm12 .cdg.c12g { display: grid; grid-template-columns: 198px 198px; grid-auto-rows: 122px; gap: 6px 8px; margin: 8px 7px 0; padding: 0; }
@@ -3474,7 +3483,7 @@ body #pcamp.cm12 .cdg.c12g { display: grid; grid-template-columns: 198px 198px; 
 .c12ben em, .c12full em { font-style: normal; color: var(--d2-good); }
 .c12st { position: absolute; left: 7px; top: 87px; font: 700 14px/20px var(--font); color: var(--d2-good); }
 #pcamp .c12sg { position: absolute; z-index: 1; left: 0; top: 0; padding: 1px 6px; background: var(--d2-act); color: var(--d2-on-act); font: 700 12px/16px var(--font); font-style: normal; pointer-events: none; }
-#pcamp.cm12 .stamp.c12s:not(.one) { position: absolute; left: 143px; top: 9px; margin: 0; width: 44px; height: 44px; border-radius: 2px; border: 1px solid var(--d2-border); background: var(--d2-panel-inset); color: var(--d2-tx); font: 700 18px var(--font); }
+#pcamp.cm12 .stamp.c12s:not(.one) { position: absolute; left: 143px; top: 9px; margin: 0; width: 44px; height: 44px; border-radius: 2px; border: 1px solid var(--d2-border); background: var(--d2-panel-inset); color: var(--d2-tx); font: 700 16px var(--font); }
 #pcamp.cm12 .stamp.c12s.off { color: var(--d2-tx-dim); }
 #pcamp.cm12 .stamp.c12s.can, #pcamp.cm12 .stamp.c12s.sug { background: var(--d2-act); border-color: var(--d2-act-edge); color: var(--d2-on-act); }
 #pcamp .c12c .cdp { height: 4px; background: var(--d2-panel-inset); }
@@ -3518,10 +3527,10 @@ body #pcamp.cm12 .cdg.c12g { display: grid; grid-template-columns: 198px 198px; 
 .c12sum { flex: 1; height: 40px; margin-top: 2px; display: flex; align-items: center; font: 700 16px var(--font); }
 .c12sum.ok { color: var(--d2-tx-strong); }
 .c12sum.toast { flex: none; width: 220px; padding: 0 12px; border: 1px solid var(--d2-bad); color: var(--d2-bad); font-size: 14px; }
-#pcamp .c12up { margin-left: auto; width: 164px; height: 44px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--d2-btn2); border: 1px solid var(--d2-border); border-radius: 2px; font: 400 16px var(--font); color: var(--d2-tx-strong); }
+#pcamp .c12up { margin-left: auto; width: 164px; height: 44px; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--d2-panel-inset); border: 1px solid var(--d2-border); border-radius: 2px; font: 400 16px var(--font); color: var(--d2-tx-strong); }
 #pcamp .c12up.ok { background: var(--d2-act); border-color: var(--d2-act-edge); font-weight: 700; color: var(--d2-on-act); }
 #pcamp .c12up small { font: 700 12px var(--font); color: var(--d2-bad); }
-#pcamp .c12up:disabled { color: var(--d2-tx-off); cursor: default; }
+#pcamp .c12up:disabled { color: var(--d2-tx-off); font-weight: 700; cursor: default; }
 /* 解鎖一覽小窗：戰場上 472,88 368 寬 */
 .c12cw { position: fixed; left: 472px; top: 88px; width: 368px; background: var(--d2-panel); border: 1px solid var(--d2-panel-edge); border-radius: 2px; z-index: 5; }
 .c12ch { display: flex; align-items: center; height: 40px; padding-left: 12px; border-bottom: 1px solid var(--d2-border); }
@@ -3539,6 +3548,10 @@ body #pcamp.cm12 .cdg.c12g { display: grid; grid-template-columns: 198px 198px; 
 #c12tip { position: fixed; z-index: 60; width: 320px; padding: 10px 12px; background: var(--d2-panel); border: 1px solid var(--d2-panel-edge); box-shadow: 0 8px 24px var(--d2-panel-inset); pointer-events: none; color: var(--d2-tx); }
 #c12tip.card { width: 220px; }
 #c12tip.in { width: 460px; }
+/* CP-09／ST-07：營地、倉庫桌機面板開著時，#warn 放在掛機卡（右緣 322）與面板之間的戰場置中、可換行（#hud 疊在掛機卡下面，不能壓過去） */
+body:has(#pcamp.cm12:not([hidden])) #warn { left: 584px; width: max-content; max-width: 480px; white-space: normal; text-align: center; }
+body:has(#pinv.st12:not([hidden])) #warn { left: 556px; width: max-content; max-width: 424px; white-space: normal; text-align: center; }
+#c12tip.lk { box-sizing: border-box; width: 280px; height: 36px; padding: 0 12px; display: flex; align-items: center; font: 400 16px var(--font); white-space: nowrap; }
 #c12tip[hidden] { display: none; }
 #c12tip b { display: block; font: 700 16px var(--font); color: var(--d2-tx-strong); }
 #c12tip p { margin: 4px 0 0; font: 400 14px/1.5 var(--font); }
@@ -3550,6 +3563,7 @@ body:not(.touch) #pinv.st12 { padding: 0; height: 486px; overflow: hidden; borde
 #pinv.st12 > * { position: absolute; }
 #pinv.st12 button { font-family: var(--font); color: inherit; cursor: pointer; }
 #pinv.st12 button:focus-visible, #pinv.st12 .cq:focus-visible { outline: 2px solid var(--d2-panel-edge); outline-offset: -2px; }
+#pinv.st12 .cq:focus-visible { outline-offset: 2px; }
 #pinv.st12 .stt { left: 7px; top: 7px; width: 48px; height: 20px; font: 700 14px/20px var(--font); color: var(--d2-tx); }
 #pinv.st12 .stt.wide { width: 220px; }
 /* 有名詞提示的字：點線底（.term） */
@@ -3569,33 +3583,35 @@ body:not(.touch) #pinv.st12 { padding: 0; height: 486px; overflow: hidden; borde
 #pinv.st12 .sttab button.on, #pinv.st12 .stf button.on, #pinv.st12 .stqs button.on { background: var(--d2-sel-bg); border: 2px solid var(--d2-panel-edge); font-weight: 700; color: var(--d2-tx-strong); }
 #pinv.st12 .stf { left: 7px; top: 75px; display: flex; gap: 5px; }
 #pinv.st12 .stf button, #pinv.st12 .stqs button { width: 48px; height: 32px; padding: 0; background: var(--d2-panel-raised); border: 1px solid var(--d2-border); border-radius: 2px; font: 400 13px var(--font); }
-#pinv.st12 .sts { left: 219px; top: 75px; width: 140px; height: 32px; padding: 0 8px; background: var(--d2-panel-inset); border: 1px solid var(--d2-border); border-radius: 0; color: var(--d2-tx); font: 400 12px var(--font); }
+#pinv.st12 .sts { left: 219px; top: 75px; width: 140px; height: 32px; padding: 0 8px; background: var(--d2-panel-inset); border: 1px solid var(--d2-border); border-radius: 0; color: var(--d2-tx); font: 700 12px var(--font); border-width: 2px; }
 #pinv.st12 .sts.n { width: 84px; }
 #pinv.st12 .sts::placeholder { color: var(--d2-tx-dim); }
-#pinv.st12 .stc { left: 307px; top: 75px; width: 52px; height: 32px; font: 400 12px/32px var(--font); color: var(--d2-tx); }
+#pinv.st12 .stcnt { left: 307px; top: 75px; width: 52px; height: 32px; font: 700 12px/32px var(--font); color: var(--d2-tx); }
 #pinv.st12 .stqs { left: 7px; top: 39px; display: flex; align-items: center; gap: 4px; }
 #pinv.st12 .stqs small { width: 52px; font: 400 13px var(--font); color: var(--d2-tx-dim); }
 #pinv.st12 .stqs button { width: 56px; }
 #pinv.st12 .stqs button:last-child { width: 72px; }
-#pinv.st12 .stw { left: 15px; top: 111px; width: 352px; height: 20px; margin: 0; padding: 0 6px; border: 1px solid var(--d2-bad); font: 700 12px/18px var(--font); color: var(--d2-bad); white-space: nowrap; overflow: hidden; }
+#pinv.st12 .stw { left: 7px; top: 111px; width: 352px; height: 20px; margin: 0; padding: 0 6px; border: 1px solid var(--d2-bad); font: 700 12px/18px var(--font); color: var(--d2-bad); white-space: nowrap; overflow: hidden; }
 #pinv.st12 .stw.jw { top: 75px; }
 #pinv.st12 .stnote { left: 7px; top: 75px; width: 460px; margin: 0; font: 400 11px/16px var(--font); color: var(--d2-tx-dim); }
 #pinv.st12 .stg { left: 15px; top: 111px; width: 352px; height: 352px; overflow-y: auto; scrollbar-width: none; }
 #pinv.st12 .stg::-webkit-scrollbar { display: none; }
-#pinv.st12 .stg.wn { top: 135px; height: 328px; }
+#pinv.st12 .stg.wn { top: 135px; height: 280px; }
+#pinv.st12 .stg.wn + .stmore { top: 419px; }
 #pinv.st12.bat .stg { top: 79px; height: 352px; }
 #pinv.st12.bat .stmore { display: none; }
 #pinv.st12 .stg.jw { top: 99px; height: 352px; }
 #pinv.st12 .stg > * { position: absolute; }
 #pinv.st12 .stg .cq.chf { box-shadow: inset 0 0 0 2px var(--rar-chase); }
 #pinv.st12 .stg .cq.dim { opacity: 0.38; }
+#pinv.st12 .stg .cq.hit { box-shadow: 0 0 0 2px var(--d2-tx-strong); }
 #pinv.st12 .stck { left: 22px; top: 2px; width: 20px; height: 20px; display: grid; place-items: center; background: var(--d2-panel-inset); border: 2px solid var(--d2-tx-strong); font: 700 14px/1 var(--font); color: var(--d2-tx-strong); text-shadow: none; }
 #pinv.st12 .stmore { left: 15px; top: 467px; width: 200px; height: 14px; font: 400 11px/14px var(--font); color: var(--d2-tx-dim); }
-#pinv.st12 .ste { left: 15px; top: 111px; width: 352px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
-#pinv.st12 .ste p { margin: 0; font: 400 14px var(--font); color: var(--d2-tx); }
+#pinv.st12 .ste { left: 15px; top: 135px; width: 352px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; }
+#pinv.st12 .ste p { margin: 0; font: 400 14px var(--font); color: var(--d2-tx-dim); }
 #pinv.st12 .ste small { font: 400 14px/1.6 var(--font); color: var(--d2-tx); }
-#pinv.st12 .ste.jw { left: 7px; width: 460px; top: 140px; }
-#pinv.st12 .stact { position: static; min-width: 140px; height: 32px; padding: 0 16px; background: var(--d2-act); border: 1px solid var(--d2-act-edge); border-radius: 2px; font: 700 13px var(--font); color: var(--d2-on-act); }
+#pinv.st12 .ste.jw { left: 15px; width: 352px; top: 179px; white-space: normal; }
+#pinv.st12 .stact { position: static; min-width: 160px; height: 36px; padding: 0 16px; background: var(--d2-act); border: 1px solid var(--d2-act-edge); border-radius: 2px; font: 700 14px var(--font); color: var(--d2-on-act); }
 #pinv.st12 .stcan { left: 7px; top: 449px; width: 110px; height: 32px; padding: 0; background: var(--d2-btn2); border: 1px solid var(--d2-border); border-radius: 2px; font: 400 13px var(--font); }
 #pinv.st12 .stgo { left: 299px; top: 449px; width: 168px; height: 32px; padding: 0; background: var(--d2-panel-inset); border: 1px solid var(--d2-bad); border-radius: 2px; font: 700 13px var(--font); color: var(--d2-bad); }
 #pinv.st12 .stgo.act { background: var(--d2-act); border-color: var(--d2-act-edge); color: var(--d2-on-act); }
@@ -3604,12 +3620,12 @@ body:not(.touch) #pinv.st12 { padding: 0; height: 486px; overflow: hidden; borde
 #pinv.st12 .stcol { left: 367px; top: 39px; width: 100px; height: 438px; padding: 0; border-left: 1px solid var(--d2-border); background: var(--d2-panel); display: flex; flex-direction: column; gap: 2px; }
 #pinv.st12 .stch { height: 14px; flex: none; display: flex; align-items: baseline; gap: 4px; padding-left: 4px; }
 #pinv.st12 .stch b { font: 700 12px/16px var(--font); }
-#pinv.st12 .stch small { font: 400 8px var(--font); color: var(--d2-tx-dim); }
+#pinv.st12 .stch small { font: 400 10px var(--font); color: var(--d2-tx-dim); }
 #pinv.st12 .stcol .sub { width: 100px; height: 24px; flex: none; padding: 0; background: var(--d2-panel-raised); border: 1px solid var(--d2-border); border-radius: 0; font: 400 12px/22px var(--font); white-space: nowrap; }
 #pinv.st12 .stcol .sub.on { background: var(--d2-sel-bg); border: 2px solid var(--d2-panel-edge); font-weight: 700; color: var(--d2-tx-strong); }
 #pinv.st12 .stcf { position: absolute; left: 0; top: 404px; width: 100px; height: 34px; }
 #pinv.st12 .stcf div { display: flex; gap: 2px; }
-#pinv.st12 .stcf button { width: 23px; height: 16px; padding: 0; background: var(--d2-panel-inset); border: 1px solid var(--d2-border); font: 400 8px/14px var(--font); color: var(--d2-tx-dim); }
+#pinv.st12 .stcf button { width: 23px; height: 16px; padding: 0; background: var(--d2-panel-inset); border: 1px solid var(--d2-border); font: 400 10px/14px var(--font); color: var(--d2-tx-dim); }
 #pinv.st12 .stcf button.on.r0 { color: var(--rar-normal); border-color: var(--rar-normal); }
 #pinv.st12 .stcf button.on.r1 { color: var(--rar-magic); border-color: var(--rar-magic); }
 #pinv.st12 .stcf button.on.r2 { color: var(--rar-rare); border-color: var(--rar-rare); }
@@ -3636,18 +3652,19 @@ body:not(.touch) #pinv.st12 { padding: 0; height: 486px; overflow: hidden; borde
 #pinv.st12 .cq.jw { border: 1px solid var(--d2-border); background: var(--d2-panel-inset); }
 #pinv.st12 .cq.jw.emp { border-style: dashed; cursor: default; background: none; }
 #pinv.st12 .cq.jw .jn { left: 3px; top: 3px; right: 3px; font: 700 8px/1.15 var(--font); color: var(--d2-tx); text-align: center; }
-#pinv.st12 .cq.jw .jg { left: 22px; top: 24px; font: 700 18px/1 var(--font); color: var(--d2-tx-dim); }
-#pinv.st12 .cq.jw .jg small { display: block; font: 400 6px var(--font); color: var(--d2-warn); }
-#pinv.st12 .cq.jw .js { right: 2px; bottom: 2px; padding: 0 2px; border: 1px solid var(--d2-border); font: 400 8px/10px var(--font); color: var(--d2-tx); }
-#pinv.st12 .stjf { left: 15px; top: 459px; width: 280px; height: 14px; font: 400 11px/14px var(--font); color: var(--d2-tx-dim); white-space: pre; }
+#pinv.st12 .cq.jw .jg { left: 19px; top: 24px; font: 700 18px/1 var(--font); color: var(--d2-tx-dim); }
+#pinv.st12 .cq.jw .jg small { display: block; font: 400 10px/1 var(--font); color: var(--d2-warn); }
+#pinv.st12 .cq.jw .js { right: 2px; bottom: 2px; padding: 0 2px; border: 1px solid var(--d2-border); font: 700 9px/10px var(--font); color: var(--d2-tx); }
+#pinv.st12 .stjf { left: 15px; top: 459px; width: 352px; height: 14px; font: 400 11px/14px var(--font); color: var(--d2-tx-dim); white-space: pre; }
 /* 通貨、碎片：44×44、9 欄 */
 #pinv.st12 .stsec { left: 15px; top: 99px; width: 452px; height: 380px; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; column-gap: 24px; }
 #pinv.st12 .stsec section { max-width: 460px; }
-#pinv.st12 .stsec h4 { margin: 6px 0 4px -8px; font: 700 11px var(--font); color: var(--d2-tx); }
+#pinv.st12 .stsec h4 { margin: 6px 0 4px 0; font: 700 11px var(--font); color: var(--d2-tx); }
 #pinv.st12 .stsec section > div { display: flex; flex-wrap: wrap; gap: 6px; max-width: 444px; }
 #pinv.st12 .stbx { position: relative; width: 44px; height: 44px; display: grid; place-items: center; background: var(--d2-panel-inset); border: 1px solid var(--d2-border); }
 #pinv.st12 .stbx.z { border-style: dashed; opacity: 0.55; }
 #pinv.st12 .stbx .ic { width: 32px; height: 32px; }
+#pinv.st12 .stbx .ph { position: absolute; left: 1px; top: 0; font: 400 10px/1 var(--font); color: var(--d2-warn); }
 #pinv.st12 .stbx em { position: absolute; right: 2px; bottom: 0; font: 700 11px var(--font); font-style: normal; color: var(--d2-tx-strong); }
 #pinv.st12 .stbx[data-st] { cursor: pointer; }
 /* 追逐物品：214×96 收集格、保底條 */
@@ -3658,6 +3675,7 @@ body:not(.touch) #pinv.st12 { padding: 0; height: 486px; overflow: hidden; borde
 #pinv.st12 .stwc small { display: block; font: 400 13px var(--font); color: var(--d2-tx); }
 #pinv.st12 .stwc p { margin: 2px 0 0; font: 400 13px var(--font); color: var(--d2-tx); }
 #pinv.st12 .stwc.no { border-style: dashed; }
+#pinv.st12 .stwc.no b { font-weight: 400; }
 #pinv.st12 .stwc.no b, #pinv.st12 .stwc.no small, #pinv.st12 .stwc.no p { color: var(--d2-tx-dim); }
 #pinv.st12 .stwc.no .ic { opacity: 0.35; filter: grayscale(1); }
 #pinv.st12 .stpity { left: 15px; top: 299px; width: 444px; }
@@ -3665,23 +3683,23 @@ body:not(.touch) #pinv.st12 { padding: 0; height: 486px; overflow: hidden; borde
 #pinv.st12 .stpity > i { display: block; height: 6px; margin: 6px 0 10px; background: var(--d2-panel-inset); }
 #pinv.st12 .stpity > i > i { display: block; height: 100%; background: var(--rar-chase); transform-origin: left; }
 #pinv.st12 .stpity p { margin: 0; font: 400 13px var(--font); color: var(--d2-tx-dim); }
-#pinv.st12 .stq { left: 15px; top: 79px; width: 444px; margin: 0; }
+#pinv.st12 .stq { left: 7px; top: 79px; width: 360px; margin: 0; }
 #pinv.st12 .stq b { display: block; font: 700 14px var(--font); }
 #pinv.st12 .stq small { font: 400 12px var(--font); color: var(--d2-tx-dim); }
 #pinv.st12 .stal { left: 15px; top: 129px; width: 444px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-#pinv.st12 .stal button { width: 100%; height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: var(--d2-panel-raised); border: 1px solid var(--d2-border); border-radius: 2px; text-align: left; }
+#pinv.st12 .stal button { width: 100%; height: 36px; display: flex; align-items: center; gap: 10px; padding: 0 10px; background: var(--d2-panel-raised); border: 1px solid var(--d2-border); border-radius: 2px; text-align: left; }
 #pinv.st12 .stal button.on { background: var(--d2-sel-bg); border-color: var(--d2-panel-edge); }
 #pinv.st12 .stal .ic { width: 22px; height: 22px; }
-#pinv.st12 .stal b { flex: 1; font: 700 13px var(--font); }
+#pinv.st12 .stal b { flex: 1; font: 700 14px var(--font); }
 #pinv.st12 .stal small { font: 400 12px var(--font); color: var(--d2-tx-dim); }
 /* 整批分解：面板變暗、確認卡在戰場上（189,201 398 寬） */
-#pinv.st12.bat:has(.stask) > :not(.stask) { opacity: 0.35; }
-#pinv.st12 .stask { position: fixed; left: 189px; top: 201px; width: 398px; padding: 16px 18px; background: var(--d2-panel); border: 1px solid var(--d2-panel-edge); box-shadow: 0 8px 24px var(--d2-panel-inset); z-index: 20; }
+#pinv.st12:has(.stask) { z-index: 20; }
+#pinv.st12 .stask { position: fixed; left: 189px; top: 201px; width: 398px; padding: 16px 14px; background: var(--d2-panel); border: 1px solid var(--d2-panel-edge); box-shadow: 0 8px 24px var(--d2-panel-inset); z-index: 20; }
 #pinv.st12 .stask b { display: block; font: 700 16px var(--font); color: var(--d2-tx-strong); }
-#pinv.st12 .stask p { margin: 8px 0 4px; font: 400 13px/1.6 var(--font); }
-#pinv.st12 .stask small { display: block; font: 700 12px var(--font); color: var(--d2-bad); }
+#pinv.st12 .stask p { margin: 8px 0 4px; font: 400 14px/1.6 var(--font); }
+#pinv.st12 .stask small { display: block; font: 700 14px var(--font); color: var(--d2-bad); }
 #pinv.st12 .stask div { display: flex; gap: 8px; margin-top: 12px; }
-#pinv.st12 .stask .hold { position: relative; flex: 1; height: 44px; overflow: hidden; background: var(--d2-panel-inset); border: 2px solid var(--d2-bad); border-radius: 2px; font: 700 14px var(--font); color: var(--d2-bad); }
+#pinv.st12 .stask .hold { position: relative; flex: 1; height: 56px; overflow: hidden; background: var(--d2-panel-inset); border: 2px solid var(--d2-bad); border-radius: 2px; font: 700 16px var(--font); color: var(--d2-bad); }
 #pinv.st12 .stask .hold i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--d2-bad); opacity: 0.3; transform: scaleX(0); transform-origin: left; }
 #pinv.st12 .stask .hold.go i { transform: scaleX(1); transition: transform 600ms linear; }
-#pinv.st12 .stask .stact { min-width: 86px; height: 44px; }
+#pinv.st12 .stask .stact { min-width: 110px; height: 56px; font-size: 16px; }

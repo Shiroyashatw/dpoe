@@ -301,12 +301,38 @@ const BAN =
   const lt = await E(() => ($('c12tip').hidden ? '' : $('c12tip').textContent));
   await p.mouse.click(1054, 188);
   await p.waitForTimeout(100);
+  /* CP-02：點了也是營地內同一句提示條（280×36、400 16px、沒有標題、功能列下），不走戰場 #warn；CP-01：鎖住的字色是 --d2-tx-off */
+  const lc = await E(() => {
+    const t = $('c12tip'),
+      r = t.getBoundingClientRect(),
+      cs = getComputedStyle(t),
+      k = Object.assign(document.createElement('i'), { style: 'color:var(--d2-tx-off)' });
+    document.body.append(k);
+    const off = getComputedStyle(k).color;
+    k.remove();
+    return [
+      t.hidden ? '' : t.textContent,
+      t.className,
+      [r.x, r.y, r.width, r.height].map(Math.round),
+      cs.fontSize + '/' + cs.fontWeight,
+      !!t.querySelector('b'),
+      getComputedStyle(document.querySelector('.c12fn .lock')).color === off
+    ];
+  });
   ok(
-    '功能列昇華石碑鎖住（--tx-off、鎖）：懸停／點了都寫「升長老屋到 Lv 7 才開」',
-    lt.includes('升長老屋到 Lv 7 才開') &&
-      (await txt('#warn')) === '升長老屋到 Lv 7 才開' &&
+    '功能列昇華石碑鎖住（--tx-off、鎖）：懸停／點了都寫「升長老屋到 Lv 7 才開」（營地內提示條 560 起 280×36、16px／400、沒有標題；不走 #warn）',
+    lt === '升長老屋到 Lv 7 才開' &&
+      lc[0] === '升長老屋到 Lv 7 才開' &&
+      lc[1] === 'lk' &&
+      lc[2][0] === 560 &&
+      lc[2][2] === 280 &&
+      lc[2][3] === 36 &&
+      lc[3] === '16px/400' &&
+      !lc[4] &&
+      lc[5] &&
+      (await txt('#warn')) !== '升長老屋到 Lv 7 才開' &&
       (await E(() => document.querySelector('.c12fn .lock span').textContent)) === '昇華石碑',
-    JSON.stringify([lt, await txt('#warn')])
+    JSON.stringify([lt, lc, await txt('#warn')])
   );
   await shotKeep('camp-03-func-locked', C_MAIN);
   /* 04 鍛造台詳細 */
@@ -447,7 +473,12 @@ const BAN =
   );
   await p.click('.c12sec', { force: true });
   await p.waitForTimeout(80);
-  ok('點鎖住的昇華石碑：「升長老屋到 Lv 7 才開」', (await txt('#warn')) === '升長老屋到 Lv 7 才開', await txt('#warn'));
+  ok(
+    '點鎖住的昇華石碑：營地內提示條「升長老屋到 Lv 7 才開」（同功能列那一顆）',
+    (await E(() => (!$('c12tip').hidden && $('c12tip').className === 'lk' ? $('c12tip').textContent : ''))) ===
+      '升長老屋到 Lv 7 才開',
+    await E(() => $('c12tip').outerHTML)
+  );
   await shot('camp-07-detail-elder', D_COM);
   /* 15 解鎖一覽 */
   await p.click('.c12cat');
@@ -607,11 +638,15 @@ const BAN =
     document.querySelector('.c12sub b').textContent,
     document.querySelector('.c12full').textContent,
     document.querySelector('.c12up').textContent,
-    document.querySelector('.c12up').disabled
+    document.querySelector('.c12up').disabled,
+    !!document.querySelector('.c12cat'),
+    getComputedStyle(document.querySelector('.c12up')).fontWeight,
+    [...document.querySelectorAll('.c12h.one .x')].map(x => getComputedStyle(x).font.match(/\d+ \d+px/)[0]).join()
   ]);
   ok(
-    '滿級（斥候營 Lv 4）：「Lv 4（滿級）」、小標「目前」「可選 5★」、底列「滿級」不可按',
-    JSON.stringify(d10) === JSON.stringify(['Lv 4（滿級）', '目前', '可選 5★', '滿級', true]),
+    '滿級（斥候營 Lv 4）：「Lv 4（滿級）」、小標「目前」「可選 5★」、底列「滿級」不可按、700（CP-05）；不畫解鎖一覽（CP-04）；← ‹ › 700 16px（CP-08）',
+    JSON.stringify(d10) ===
+      JSON.stringify(['Lv 4（滿級）', '目前', '可選 5★', '滿級', true, false, '700', '700 16px,700 16px,700 16px']),
     JSON.stringify(d10)
   );
   await shot('camp-10-max-level', D_COM);
@@ -626,8 +661,14 @@ const BAN =
   await p.keyboard.press('Escape');
   await p.waitForTimeout(100);
   ok(
-    'Esc 從詳細頁退回卡片格（面板還開著）',
-    await E(() => PANEL.camp && !CDR.one && !!document.querySelector('.c12g'))
+    'Esc 從詳細頁退回卡片格（面板還開著），焦點回到原本那張（斥候營，CP-06）',
+    await E(
+      () =>
+        PANEL.camp &&
+        !CDR.one &&
+        !!document.querySelector('.c12g') &&
+        document.activeElement === document.querySelector('#c12-scout .c12b')
+    )
   );
   /* 升級：X 鍵在鍛造台卡上 */
   await E(MID);
@@ -994,10 +1035,10 @@ const BAN =
   const wc = await E(() => S.inv.items.filter(it => !it.charm && bagGrp(it) === 'weapon').length);
   ok(
     `搜尋列右邊件數「${wc} 件」（有篩選才顯示）、搜尋縮成 84 寬`,
-    (await txt('#pinv .stc')) === `${wc} 件` &&
+    (await txt('#pinv .stcnt')) === `${wc} 件` &&
       (await box('.sts'))[2] === 84 &&
-      is(await box('#pinv .stc'), 1096, 152, 52, 32),
-    JSON.stringify([await txt('#pinv .stc'), await box('.sts'), await box('#pinv .stc')])
+      is(await box('#pinv .stcnt'), 1096, 152, 52, 32),
+    JSON.stringify([await txt('#pinv .stcnt'), await box('.sts'), await box('#pinv .stcnt')])
   );
   /* 鍵盤：格子右緣按方向右進右欄、上下選、Enter 選取、Esc 回格子 */
   await E(() => document.querySelector('[data-sg] > :nth-child(5)').focus());
@@ -1063,13 +1104,20 @@ const BAN =
   await p.waitForTimeout(150);
   const fire = await E(() => [
     S.inv.items.filter(it => stHit(it, '火焰')).length,
+    document.querySelectorAll('[data-sg] > .cq.hit').length,
+    document.querySelector('#pinv .stcnt').textContent,
+    document.activeElement.classList.contains('sts'),
     document.querySelectorAll('[data-sg] > .cq').length,
-    document.querySelector('#pinv .stc').textContent,
-    document.activeElement.classList.contains('sts')
+    stList().length,
+    document.querySelectorAll('[data-sg] > .cq.dim:not(.hit)').length
   ]);
   ok(
-    '搜尋「火焰」（名稱或詞綴）：件數「n 件」、格子只列符合的、打字時焦點留在搜尋框',
-    fire[0] === fire[1] && fire[2] === `${fire[0]} 件` && fire[3],
+    '搜尋「火焰」（名稱或詞綴）：件數「n 件」、命中的加框、其餘變淡留在原位（ST-11）、打字時焦點留在搜尋框',
+    fire[0] === fire[1] &&
+      fire[2] === `${fire[0]} 件` &&
+      fire[3] &&
+      fire[4] === fire[5] &&
+      fire[6] === fire[4] - fire[1],
     JSON.stringify(fire)
   );
   await shot('stash-20-search', [...S_COM.slice(0, 10), S_SRCH]);
@@ -1081,7 +1129,7 @@ const BAN =
   await p.waitForTimeout(150);
   const nm = await E(() => [
     document.querySelector('.ste') && document.querySelector('.ste').textContent,
-    document.querySelector('#pinv .stc').textContent
+    document.querySelector('#pinv .stcnt').textContent
   ]);
   ok('搜「細杖」：「沒有符合的裝備」「0 件」', nm[0] === '沒有符合的裝備' && nm[1] === '0 件', JSON.stringify(nm));
   await shot('stash-21-nomatch', [...S_COM.slice(0, 10), S_SRCH]);
@@ -1119,8 +1167,8 @@ const BAN =
     JSON.stringify(cp)
   );
   ok(
-    '浮窗提示句：「懸停立即出現。按住 Alt／手把 Y 看詳細。名詞提示要停留 0.4 秒或按 R3，與本窗分開。」',
-    !!cp && cp[5] === '懸停立即出現。按住 Alt／手把 Y 看詳細。名詞提示要停留 0.4 秒或按 R3，與本窗分開。',
+    '浮窗提示句：「懸停立即出現。按住 Alt／手把 Ｙ 看詳細。名詞提示要停留 0.4 秒或按 R3，與本窗分開。」',
+    !!cp && cp[5] === '懸停立即出現。按住 Alt／手把 Ｙ 看詳細。名詞提示要停留 0.4 秒或按 R3，與本窗分開。',
     cp && cp[5]
   );
   ok(
@@ -1137,11 +1185,16 @@ const BAN =
   const det = await E(() => [
     document.querySelector('.stp').classList.contains('det'),
     document.querySelector('.stph').textContent,
-    !!document.querySelector('.stp .tr')
+    !!document.querySelector('.stp .tr'),
+    [...document.querySelectorAll('.stpc > div:last-child li')].slice(-2).map(l => l.textContent)
   ]);
   ok(
-    '按住 Alt：詳細（T 階、原值），提示改「放開 Alt／手把 Y 回到簡易。」',
-    det[0] && det[1] === '放開 Alt／手把 Y 回到簡易。' && det[2],
+    '按住 Alt：詳細（T 階、原值），提示改「放開 Alt／手把 Ｙ 回到簡易。」；最後兩列「前綴空位 n」「後綴空位 n」（ST-28）',
+    det[0] &&
+      det[1] === '放開 Alt／手把 Ｙ 回到簡易。' &&
+      det[2] &&
+      /^前綴空位\d$/.test(det[3][0]) &&
+      /^後綴空位\d$/.test(det[3][1]),
     JSON.stringify(det)
   );
   await shotKeep('stash-08-compare-detail', [['S11 比較浮窗', '.stp', [796, 118, 460, 300]]]);
@@ -1464,12 +1517,25 @@ const BAN =
     document.querySelector('.stnote').textContent,
     [...document.querySelectorAll('.stsec h4')].map(h => h.textContent),
     (r => [r.width, r.height])(document.querySelector('.stbx').getBoundingClientRect()),
-    !!document.querySelector('.stb')
+    !!document.querySelector('.stb'),
+    [...document.querySelectorAll('.stsec section')].map(x => [
+      x.querySelector('h4').textContent,
+      [...x.querySelectorAll('.stbx')].map(b => (b.querySelector('.ph') ? '佔位:' : '') + b.title)
+    ]),
+    (q => q && getComputedStyle(q).fontSize)(document.querySelector('.stbx .ph'))
   ]);
+  const cs = Object.fromEntries(cu[4]),
+    phOk =
+      (cs['打造通貨'] || []).every(t => t.startsWith('佔位:') === /^佔位:(破裂石|完美石|追憶之墨)$/.test(t)) &&
+      ['鬼門關', '心魔幻境', '凶地'].every(k => cs[k] && cs[k].every(t => t.startsWith('佔位:')));
   ok(
-    '通貨分頁：說明「數量跟鍛造台同一份，到鍛造台或技能分頁使用」、分區 打造通貨／鬼門關／心魔幻境／凶地、格 44×44、只看不操作',
+    '通貨分頁：說明「數量跟鍛造台同一份，到鍛造台或技能分頁使用」、分區 打造通貨／鬼門關／心魔幻境／凶地／裂口（轉化石，ST-06）、格 44×44、只看不操作；借用圖（破裂石、完美石、追憶之墨、賽制區）有「佔位」角標 ≥10px，其他沒有（ST-35）',
     cu[0] === '數量跟鍛造台同一份，到鍛造台或技能分頁使用' &&
-      JSON.stringify(cu[1]) === JSON.stringify(['打造通貨', '鬼門關', '心魔幻境', '凶地']) &&
+      JSON.stringify(cu[1]) === JSON.stringify(['打造通貨', '鬼門關', '心魔幻境', '凶地', '裂口']) &&
+      JSON.stringify(cs['裂口']) === JSON.stringify(['轉化石']) &&
+      !cs['打造通貨'].includes('轉化石') &&
+      phOk &&
+      parseFloat(cu[5]) >= 10 &&
       cu[2][0] === 44 &&
       cu[2][1] === 44 &&
       !cu[3],

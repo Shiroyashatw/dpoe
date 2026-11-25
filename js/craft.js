@@ -288,10 +288,10 @@ function salvageDo(it) {
 /* 回收寫成一句：「熟鐵 +4、靈魂 +8、12 金」 */
 const salvText = v =>
   [
-    ...Object.entries(v.mats).map(([key, n]) => `${matName(...matOf(key))} +${n}`),
-    v.soul ? `靈魂 +${v.soul}` : '',
-    v.gold ? `${v.gold} 金` : '',
-    ...Object.entries(v.cur).map(([k, n]) => `${CUR[k].n} +${n}`)
+    ...Object.entries(v.mats).map(([key, n]) => `${matName(...matOf(key))} +${abbr(n, 'own')}`),
+    v.soul ? `靈魂 +${abbr(v.soul, 'own')}` : '',
+    v.gold ? `${abbr(v.gold, 'own')} 金` : '',
+    ...Object.entries(v.cur).map(([k, n]) => `${CUR[k].n} +${abbr(n, 'own')}`)
   ]
     .filter(Boolean)
     .join('、');
@@ -1496,7 +1496,7 @@ function killMats(k, t, soul, o = {}) {
   add('wood', 0, rndInt(soul * 0.3));
   return got;
 }
-/* 打怪拿材料：靈魂、通貨、精髓、材料（killMats）自動進材料頁；回傳要跳字的清單 */
+/* 打怪拿材料：靈魂、通貨、精髓、材料（killMats）自動進材料頁；回傳要跳字的清單（材料在 got.mats） */
 function killMat(m, t, o = {}) {
   const M = MAT(),
     k = m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0,
@@ -1505,7 +1505,8 @@ function killMat(m, t, o = {}) {
   const soul = Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
   M.soul += soul;
   if (typeof SES !== 'undefined' && SES) SES.soul += soul;
-  for (const [mk, c] of killMats(k, t, soul, o)) got.push(`${c} ${matName(...matOf(mk))}`);
+  /* F-floater：普通材料不跳字，另外回傳給拾取紀錄（bhud.js 的 pickLog） */
+  got.mats = killMats(k, t, soul, o);
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
   if (D.jw) got.push(...jwAdd(1));
