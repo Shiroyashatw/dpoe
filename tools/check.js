@@ -4185,7 +4185,7 @@ const ASC_COMBOS = `const combos = k => {
       const m0 = S.mat;
       for (let n = 1; n <= 21; n++) {
         const r = CAMP.watch[n - 1], T = TRUNK[n - 1];
-        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== (n > 1 ? 10 * n : 130)) return 'row ' + n;
+        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== (n > 1 ? 10 * n : 80)) return 'row ' + n;
         S.mat = newMat(); const a = roundLoot(lvT(TRUNK[0].lv), 1, 40, 0); S.mat = newMat(); const b = roundLoot(lvT(T.lv), 1, 40, 0);
         const want = ((W_SPM * b) / a) * W_MIN;
         if (n > 1 ? Math.abs(r.soul - want) / want > 0.1 : r.soul !== 200) return 'soul ' + n + ' ' + r.soul + ' ' + want;
@@ -8592,7 +8592,7 @@ const ASC_COMBOS = `const combos = k => {
       return { v: m.v, camp: m.camp, star: m.star, mats: m.mat.mats, gam: 'gamN' in m, auto2: m.auto2, fresh: newGame().v, lo: n.camp, again: migrate(JSON.parse(JSON.stringify(m))).camp.forge };
     })()`);
     ok(
-      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、倉房 1、星級 3、不再轉民房與產生器；Lv1 新手全 0；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 35',
+      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、倉房 1、星級 3、不再轉民房與產生器；Lv1 新手全 0；材料從開局（木 20、生鐵 16，材料來源 v1.1 §2.5）；gamN 刪掉；轉過的再載入不變；新存檔是 35',
       r.v === 35 &&
         r.fresh === 35 &&
         r.camp.forge === 14 &&
@@ -8604,7 +8604,7 @@ const ASC_COMBOS = `const combos = k => {
         r.star === 3 &&
         r.camp.store === 1 &&
         r.camp.wts.join() === 'sword,bow' &&
-        !Object.keys(r.mats).some(k => k !== 'wood') &&
+        JSON.stringify(r.mats) === '{"wood":20,"iron:1":16}' &&
         !r.gam &&
         r.auto2.r === 1 &&
         r.lo.forge === 0 &&
@@ -8649,22 +8649,36 @@ const ASC_COMBOS = `const combos = k => {
     })()`)
   );
   ok(
-    '一輪的掉落（roundLoot，0.5.1）：不掉裝備、不掉材料、通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限照倉房（Lv3＝8 小時、Lv0＝1 小時）、停在原本的節點、不到 5 分鐘不算；離線不產木與材料（產生器已收掉，舊存檔殘留的 gen 也不產）',
+    '一輪的掉落（roundLoot，0.5.1）：不掉裝備、通貨進材料頁、擊殺照 killMats 掉材料（材料來源 v1.1：木、鐵／皮／靈絲只有這個地點的 T 與 T−1 階）；離線結算照最近 10 輪的秒數與死亡率、上限照倉房（Lv3＝8 小時、Lv0＝1 小時）、停在原本的節點、不到 5 分鐘不算；離線照擊殺掉材料（產生器已收掉）',
     R2(`(() => {
       S = newGame(); S.lv = 60; S.camp.forge = 20; S.camp.watch = 14; S.camp.store = 3; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
-      const m0 = S.mat.exalt, L = roundLoot(lvT(50), 3, 40, 4);
-      if (!(L > 100) || Object.keys(S.mat.mats).some(k => k !== 'wood') || S.mat.exalt <= m0 || S.inv.items.length) return 'round ' + JSON.stringify(L);
+      const m0 = S.mat.exalt, t = lvT(TRUNK[14].lv), T = matTier(TRUNK[14].lv), w0 = S.mat.mats.wood, L = roundLoot(t, 3, 40, 4);
+      const ks = new Set(['wood', ...['iron', 'hide', 'silk'].flatMap(m => [m + ':' + T, m + ':' + (T - 1)]), 'iron:1']);
+      if (!(L > 100) || Object.keys(S.mat.mats).some(k => !ks.has(k)) || !(S.mat.mats.wood > w0) || !(S.mat.mats['iron:' + T] > 0) || !(S.mat.mats['silk:' + T] > 0) || S.mat.exalt <= m0 || S.inv.items.length) return 'round ' + JSON.stringify([L, S.mat.mats]);
       S.rounds = Array.from({ length: 10 }, (_, i) => (i < 2 ? { d: 60, die: 1 } : { d: 60, xp: 100, gold: 50, nS: 40, nE: 3 }));
       if (offSettle(4 * 60e3)) return 'short';
       const g0 = S.gold, o = offSettle(3600e3);
       if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !(o.soul > 0) || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won]);
       if (offSettle(99 * 3600e3).n !== 480) return 'cap';
-      /* 產生器收掉（mumi 2026-11-25）：離線結算不產木與材料 */
-      S.camp.gen = { wood: { lv: 50 }, iron: { lv: 50 } };
-      const mm = JSON.stringify(S.mat.mats);
+      /* 離線照擊殺掉材料（材料來源 v1.1 §2.1：跟著靈魂一起被離線結算算進去），只有這個地點的階 */
+      const wd = S.mat.mats.wood, fe = S.mat.mats['iron:' + T];
       offSettle(99 * 3600e3);
-      if (JSON.stringify(S.mat.mats) !== mm) return 'mats ' + JSON.stringify(S.mat.mats);
+      if (!(S.mat.mats.wood > wd) || !(S.mat.mats['iron:' + T] > fe) || Object.keys(S.mat.mats).some(k => !ks.has(k))) return 'mats ' + JSON.stringify(S.mat.mats);
       return S.inv.items.length === 0 ? '' : 'inv';
+    })()`) === ''
+  );
+  ok(
+    '新存檔用正常刷怪買得起鍛造台 Lv1（材料來源 v1.1）：開局木 20、生鐵 16，買不起（木不夠）；在第 1 個地點一隻一隻殺（真的 killMat），小怪 40＋菁英 1 之後還差靈魂，打倒王就買得起、升完扣 150 靈魂與 40 木',
+    R2(`(() => {
+      S = newGame(); S.world.cur = TRUNK_K[0];
+      if (JSON.stringify(S.mat.mats) !== '{"wood":20,"iron:1":16}' || !campUp('forge') || S.camp.forge) return 'start ' + JSON.stringify(S.mat.mats);
+      const t = lvT(TRUNK[0].lv);
+      for (let i = 0; i < 40; i++) killMat({}, t, {});
+      killMat({ elite: 1 }, t, { ei: 1 });
+      if (!campUp('forge') || S.camp.forge) return 'early ' + S.mat.soul;
+      killMat({ boss: 1 }, t, {});
+      const s0 = S.mat.soul, w0 = S.mat.mats.wood, e = campUp('forge');
+      return !e && S.camp.forge === 1 && S.mat.soul === s0 - 150 && S.mat.mats.wood === w0 - 40 ? '' : 'buy ' + e + JSON.stringify([s0, w0]);
     })()`) === ''
   );
 }
@@ -9346,9 +9360,11 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 300; i++) E.killMat({}, 3, { star: 5, p: E.mapCurP(5, 60), ilvl: E.tierIlvl(3) });
     const M = E.MAT();
     ok(
-      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片，不掉材料（0.5.1）',
-      M.soul > 0 &&
-        !Object.keys(M.mats || {}).length &&
+      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片；不在地點時材料只掉木＝靈魂 × 0.3（材料來源 v1.1 §2.2；鐵／皮／靈絲見下一條）',
+      M.soul === 300 &&
+        Object.keys(M.mats || {}).join() === 'wood' &&
+        M.mats.wood >= 60 &&
+        M.mats.wood <= 120 &&
         M.tran > 0 &&
         M.aug > 0 &&
         M.whet + M.plate > 0 &&
@@ -9360,6 +9376,85 @@ const ASC_COMBOS = `const combos = k => {
         !M.corr &&
         !Object.keys(M.ess).length,
       JSON.stringify(M)
+    );
+  });
+  /* 擊殺掉材料（docs/production/adjust/材料來源.md v1.1 §2.1～2.4）：期望值照規格算，大量擊殺的平均差 ≤ 4% */
+  seeded(9100, () => {
+    const R = c => vm.runInContext(c, ctx),
+      bad = [];
+    /* wk 地點、forge 鍛造台等級、k 0 小怪／1 菁英／2 王、n 隻、mat 地圖詞材料% → 每個鍵的總數 */
+    const run = (wk, forge, k, n, mat = 0) =>
+      R(`(() => {
+        S = { gold: 0, lv: 90, mat: newMat(), world: { cur: ${JSON.stringify(wk)} }, camp: { forge: ${forge}, watch: 21, scout: 0, altar: 0, store: 0 }, prd: PRD0() };
+        const m = [{}, { elite: 1 }, { boss: 1 }][${k}], t = lvT(WNODE[S.world.cur].lv);
+        for (let i = 0; i < ${n}; i++) killMat(m, t, { mat: ${mat} });
+        return { mats: S.mat.mats, soul: S.mat.soul, t, T: matTier(WNODE[S.world.cur].lv), g: WNODE[S.world.cur].g };
+      })()`);
+    const near = (got, want, tag) =>
+      Math.abs(got - want) <= Math.max(3, want * 0.04) ? 0 : bad.push(`${tag} ${got}≠${want.toFixed(1)}`);
+    const TK = R('TRUNK_K'),
+      SP = R('SPECIAL.map(o => [wKey(o.q, o.r), o.g])');
+    /* [地點, 鍛造台, 種類, 隻數, 地圖詞材料%, 區域比例 鐵／皮／靈絲] */
+    const cases = [
+      [TK[0], 0, 0, 40000, 0, [60, 25, 15]],
+      [TK[0], 8, 0, 40000, 0, [60, 25, 15]],
+      [TK[9], 3, 1, 4000, 0, [50, 30, 20]],
+      [TK[12], 20, 1, 4000, 0, [60, 20, 20]],
+      [TK[15], 20, 2, 1500, 50, [40, 20, 40]],
+      [TK[17], 20, 1, 4000, 0, [35, 45, 20]],
+      [TK[19], 20, 1, 4000, 0, [40, 20, 40]],
+      [TK[21], 20, 2, 1500, 0, [40, 30, 30]],
+      ...SP.map(([k]) => [k, 20, 1, 3000, 0, null])
+    ];
+    const MIX = {
+      枯河原野: [60, 25, 15],
+      灰燼平原: [50, 30, 20],
+      熔岩裂谷: [60, 20, 20],
+      寒鴉冰原: [40, 20, 40],
+      血霧荒原: [35, 45, 20],
+      黑水沼澤: [40, 20, 40],
+      裂口腹地: [40, 30, 30]
+    };
+    for (const [wk, forge, k, n, mat, mix0] of cases) {
+      const r = run(wk, forge, k, n, mat),
+        tag = `${r.g} 鍛造台${forge} ${['小怪', '菁英', '王'][k]}`,
+        mix = [...(mix0 || MIX[r.g])];
+      if (mix0 && JSON.stringify(mix0) !== JSON.stringify(MIX[r.g])) bad.push(tag + ' 區域 ' + r.g);
+      if (forge < 3) (mix[0] += mix[1]), (mix[1] = 0);
+      if (forge < 8) (mix[0] += mix[2]), (mix[2] = 0);
+      const U = [0.25, 3, 12][k] * (1 + 0.2 * (r.t - 1)) * (1 + mat / 100),
+        tiers =
+          r.T > 1
+            ? [
+                [r.T, 0.75],
+                [r.T - 1, 0.25]
+              ]
+            : [[1, 1]],
+        ok = new Set(['wood']);
+      ['iron', 'hide', 'silk'].forEach((m, i) =>
+        tiers.forEach(([T, p]) => {
+          if (mix[i]) ok.add(m + ':' + T);
+          near(r.mats[m + ':' + T] || 0, (n * U * mix[i] * p) / 100, `${tag} ${m}:${T}`);
+        })
+      );
+      near(r.mats.wood || 0, r.soul * 0.3, tag + ' 木');
+      for (const key in r.mats) if (!ok.has(key)) bad.push(`${tag} 多了 ${key}`);
+    }
+    /* 地點的階：第 9 個出 T2、第 13 個 T3、第 16 個 T4、第 19 個 T5、第 22 個 T6（v1.1 §2.4），前一個地點還是前一階 */
+    const tiers = R('TRUNK.map(n => matTier(n.lv)).join()');
+    for (const [i, T] of [
+      [8, 2],
+      [12, 3],
+      [15, 4],
+      [18, 5],
+      [21, 6]
+    ])
+      if (+tiers.split(',')[i] !== T || +tiers.split(',')[i - 1] !== T - 1)
+        bad.push('第 ' + (i + 1) + ' 個地點 ' + tiers);
+    ok(
+      '擊殺掉材料（材料來源 v1.1 §2）：小怪 0.25／菁英 3／王 12 ×（1＋0.2(t−1)）×（1＋地圖詞材料%）；鐵／皮／靈絲照區域比例（特殊節點照它掛的主幹），皮 Lv3、靈絲 Lv8 前併進鐵；75% T 階、25% T−1；木＝靈魂 × 0.3；T2～T6 在第 9／13／16／19／22 個地點出現',
+      !bad.length,
+      bad.slice(0, 5).join('、')
     );
   });
   /* ================= 8-2：掉落的四樣與機制綁定（企劃書 5.4.2～5.4.5、5.8） ================= */

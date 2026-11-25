@@ -1459,7 +1459,44 @@ function ghSalvage(i, s = S) {
   return null;
 }
 
-/* 打怪拿材料：靈魂、通貨、精髓自動進材料頁（0.5.1 起不掉材料；產生器已拿掉，材料只剩分解與商會）；回傳要跳字的清單 */
+/* 擊殺掉材料（docs/production/adjust/材料來源.md v1.1 §2）：每隻 U＝基礎（小怪 0.25、菁英 3、王 12）×（1＋0.2(t−1)）×（1＋地圖詞材料%／100）；
+   鐵／皮／靈絲照地點的區域（WNODE 的 g，特殊節點照它掛的主幹）分；皮在鍛造台 Lv3（mat:hide）、靈絲在 Lv8（mat:silk）之前併進鐵；
+   75% 是 T 階、25% 是 T−1 階（T＝matTier，第 1 階全部 T1）；木＝這隻的靈魂 × 0.3。小數照機率進位（每種、每階分開）。回 [[鍵, 數量]…] */
+const MAT_MIX = {
+  枯河原野: [60, 25, 15],
+  灰燼平原: [50, 30, 20],
+  熔岩裂谷: [60, 20, 20],
+  寒鴉冰原: [40, 20, 40],
+  血霧荒原: [35, 45, 20],
+  黑水沼澤: [40, 20, 40],
+  裂口腹地: [40, 30, 30]
+};
+const rndInt = v => Math.floor(v) + (Math.random() < v % 1 ? 1 : 0);
+function killMats(k, t, soul, o = {}) {
+  const n = typeof WNODE !== 'undefined' && S.world && WNODE[S.world.cur],
+    got = [],
+    add = (m, T, c) => c && (matAdd(m, T, c), got.push([matKey(m, T), c]));
+  /* 假設（v1.1 沒寫）：不在任何地點（沒有 S.world.cur）時不掉鐵、皮、靈絲，木照掉 */
+  if (n && MAT_MIX[n.g]) {
+    const U = [0.25, 3, 12][k] * (1 + 0.2 * (t - 1)) * (1 + (o.mat || 0) / 100),
+      T = Math.max(1, Math.min(6, Math.ceil(tierIlvl(t) / 3))),
+      [fe, hi, si] = MAT_MIX[n.g],
+      h = campCan('mat:hide') ? hi : 0,
+      s = campCan('mat:silk') ? si : 0,
+      mix = { iron: fe + hi - h + si - s, hide: h, silk: s };
+    for (const m in mix)
+      for (const [u, p] of T > 1
+        ? [
+            [T, 0.75],
+            [T - 1, 0.25]
+          ]
+        : [[1, 1]])
+        add(m, u, rndInt((U * mix[m] * p) / 100));
+  }
+  add('wood', 0, rndInt(soul * 0.3));
+  return got;
+}
+/* 打怪拿材料：靈魂、通貨、精髓、材料（killMats）自動進材料頁；回傳要跳字的清單 */
 function killMat(m, t, o = {}) {
   const M = MAT(),
     k = m.boss && !m.mini ? 2 : m.elite || m.mini ? 1 : 0,
@@ -1468,6 +1505,7 @@ function killMat(m, t, o = {}) {
   const soul = Math.round([1, 10, 100][k] * (1 + 0.2 * (t - 1)));
   M.soul += soul;
   if (typeof SES !== 'undefined' && SES) SES.soul += soul;
+  for (const [mk, c] of killMats(k, t, soul, o)) got.push(`${c} ${matName(...matOf(mk))}`);
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
   for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
   if (D.jw) got.push(...jwAdd(1));

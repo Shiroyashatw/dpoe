@@ -67,7 +67,8 @@ function newGame() {
   s.eq.chest = mkItem('c_leather', 1, 0);
   s.mat = newMat();
   /* 營地的廢墟剩一點木（0.5.1 ⚠️） */
-  s.mat.mats = { wood: 20 };
+  /* 材料來源 v1.1 §2.5：另給生鐵 16（武器 2 件，第一次打造不用等第一輪打完） */
+  s.mat.mats = { wood: 20, 'iron:1': 16 };
   /* 偽隨機保底（craft.js 的 prdRoll）：★、追憶、聖化石、腐化石各自連續沒中的次數 */
   s.prd = PRD0();
   return s;

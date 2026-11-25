@@ -1,6 +1,6 @@
 /* D1 展示頁的 6 份假存檔：從 docs/production/specs/D1-demo-checklist.md 9b 兩張表逐格照抄（raw），
    另補 demo 畫圖用的結構值（d）。倉庫上限不寫進存檔：demo 讀 js/items.js 的 INV_CAP；
-   標 ≈ 的產生器費用照 js/data.js 的 GEN／GEN_MUL 公式算（genCost，n＝1）。
+   標 ≈ 的產生器費用照舊 GEN／GEN_MUL 公式算（genCost，n＝1；產生器已拿掉，常數凍結在下面）。
    用法：node tools/d1_saves.js（寫 demo/d1/saves/*.json）；node tools/d1_saves.js --check（只比對，不一致結束碼 1） */
 const fs = require('fs'),
   path = require('path');
@@ -37,17 +37,11 @@ COLS.forEach((c, i) => {
   if (SET.head[i + 1] !== c || FLD.head[i + 1] !== c) throw new Error('9b 欄名不對：' + c);
 });
 
-/* 產生器費用（craft.js genCost，n＝1）：round(c × GEN_MUL^L) */
-const GEN_MUL = +DATA.match(/const GEN_MUL = ([\d.]+);/)[1];
-const genC = k => {
-  const m = DATA.match(new RegExp(k + ": \\{ n: '[^']+', r: \\d+, c: \\{([^}]+)\\}"));
-  return Object.fromEntries(
-    m[1]
-      .split(',')
-      .map(s => s.split(':').map(x => x.trim()))
-      .map(([a, b]) => [a, +b])
-  );
-};
+/* 產生器費用（舊 craft.js genCost，n＝1）：round(c × GEN_MUL^L)。產生器已從程式拿掉（mumi 2026-11-25），
+   D1 表抄的是當時的費用，所以把 main @5252d0c 的 data.js GEN／GEN_MUL 原樣凍結在這裡 */
+const GEN_MUL = 1.12,
+  GEN_C = { wood: { wood: 10 }, iron: { wood: 15, iron: 5 }, hide: { wood: 15, hide: 5 }, silk: { wood: 20, silk: 5 } };
+const genC = k => GEN_C[k];
 const gen = (k, L) => {
   const c = genC(k),
     o = {};
