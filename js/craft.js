@@ -370,7 +370,7 @@ function campN(k) {
   if (k === 'wts') return f < 11 ? 1 : Math.min(Object.keys(WTN).length - WT_HIDE.length, 2 + Math.floor((f - 11) / 2));
   /* 第 5 格＝鍛造台 Lv16（skills-panel v1.0.1；之前是祭壇 Lv9） */
   if (k === 'slots') return Math.min(S.skills.length, a >= 6 ? (f >= 16 ? 5 : 4) : a >= 3 ? 3 : a >= 1 ? 2 : 1);
-  if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
+  if (k === 'holes') return a >= 11 ? GEM_SO_MAX : a >= 9 ? 4 : a >= 8 ? 3 : a >= 5 ? 2 : a >= 2 ? 1 : 0;
   if (k === 'star') return Math.min(5, (C.scout || 0) + 1);
   if (k === 'pop') return CAMP_POP[Math.min(C.house || 0, CAMP_POP.length - 1)];
   if (k === 'off') return [1, 4, 4, 8, 8, 12][Math.min(5, C.store || 0)];
@@ -382,8 +382,8 @@ const NEXT_U = {
   slot: { n: 'slots', b: ['altar', 'forge'], t: '技能格' },
   hole: { n: 'holes', b: 'altar', t: '輔助孔' },
   wt: { n: 'wts', b: 'forge', t: '武器類別' },
-  tree: { k: { tree: '天賦樹', jsock: '天賦樹珠寶孔' } },
-  asc: { k: { asc: '昇華石碑', asc3: '第三個昇華' } },
+  tree: { k: { tree: '天賦樹' } },
+  asc: { k: { asc: '昇華石碑', asc3: '潮汐' } },
   aura: { k: { aura: '光環欄' } },
   menu: { k: { tree: '天賦樹', asc: '昇華石碑' } },
   camp: { k: { 'mat:hide': '獵場', 'mat:silk': '絲地' } }
@@ -482,10 +482,8 @@ const FORGE_SAY = [
 const ALTAR_SAY = {
   4: '長老屋 Lv4：天賦樹開了，照等級補發的點數已經放進去。',
   7: '長老屋 Lv7：昇華石碑開了，先開放兩個昇華可以選。',
-  /* 第 5 格技能改到鍛造台 Lv16（skills-panel v1.0.1），這一級先沒有東西開 */
-  9: '長老屋 Lv9：再升一級開天賦樹的珠寶孔。',
-  10: '長老屋 Lv10：天賦樹的珠寶孔開了，撿到的珠寶可以鑲進去。',
-  11: '長老屋 Lv11：第三個昇華以後的內容開了，輔助孔可以開到 5 個。'
+  /* camp.md v1.0 解鎖一覽：Lv9 第 4 個輔助孔、Lv10 潮汐、Lv11 第 5 個輔助孔（珠寶孔只來自天賦樹，名詞表 v0.6.48） */
+  10: '長老屋 Lv10：潮汐開了。'
 };
 /* 設施升到 lv 那一句（S.camp 已經是新的等級） */
 function campSay(b, lv) {
@@ -1555,10 +1553,12 @@ function jwRoll(n) {
   return { id: Math.random().toString(36).slice(2, 9), nt };
 }
 const jwGain = (k, s = S) => jwAdd(JEWEL.nt[k], s);
+/* 倉庫珠寶分頁的格數（名詞表「倉房」：Lv0～Lv5＝30／34／38／42／46／50，每級 +4；王保底另留 5 不跟著加） */
+const jwCap = (s = S) => JEWEL.keep + 4 * Math.min(5, (s && s.camp && s.camp.store) || 0);
 /* 收一顆 n 個大點的珠寶（0.5.3 全域掉落是 1 個） */
 function jwAdd(n, s = S) {
   const L = (s.jewels = s.jewels || []);
-  if (L.length >= JEWEL.keep) return (MAT().soul += 500), ['珠寶收藏滿了：換 500 靈魂'];
+  if (L.length >= jwCap(s)) return (MAT().soul += 500), ['珠寶收藏滿了：換 500 靈魂'];
   const j = jwRoll(n);
   L.push(j);
   return [jwName(j)];

@@ -10598,7 +10598,8 @@ const ASC_COMBOS = `const combos = k => {
     'M1-07 nextUnlock：新存檔每一類回最近的一個、升到那一級換下一個、全開回 null；「升長老屋到 Lv 4 開天賦樹」',
     nu.a === 'altar1,altar2,forge11,altar4,altar7,altar5,altar4' &&
       nu.t === '升長老屋到 Lv 4 開天賦樹' &&
-      nu.b === 'altar6,altar5,forge11,altar10,altar7,altar5,altar7' &&
+      /* camp.md v1.0：珠寶孔不在長老屋（名詞表 v0.6.48：只來自天賦樹）→ 天賦樹這一類升到 Lv 4 後沒有下一個 */
+      nu.b === 'altar6,altar5,forge11,-,altar7,altar5,altar7' &&
       nu.c === '-,-,-,-,-,-,-',
     JSON.stringify(nu)
   );

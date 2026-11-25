@@ -967,8 +967,13 @@ function hudPanels() {
   }
   if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
   /* 桌機角色頁（M2-character-1280）走 charpanel.js 的 charHTML；直立、倉庫照舊 */
-  if (PANEL.inv && !cw)
-    $('pinv').classList.toggle('c12', chOn()), chOn() ? chRender() : panelHTML($('pinv'), invHTML());
+  /* 桌機倉庫（stash.md v1.0）走 stash12.js 的 stRender */
+  if (PANEL.inv && !cw) {
+    const s12 = !chOn() && st12On();
+    $('pinv').classList.toggle('c12', chOn());
+    $('pinv').classList.toggle('st12', s12);
+    chOn() ? chRender() : s12 ? stRender() : panelHTML($('pinv'), invHTML());
+  } else $('pinv').classList.remove('st12');
   if (PANEL.stash) $('pstash').innerHTML = forgeHead('cur') + curPageHTML();
   if (navOn() === 'forge') FSEG = fseg();
   $('pchase').hidden = !PANEL.chase;
@@ -3113,7 +3118,9 @@ function inputInit() {
     else if (k === 'c') autoToggle();
     /* 用鍵盤開營地升級：焦點放在建議那顆印章 */
     if (k === 'h' && PANEL.camp)
-      requestAnimationFrame(() => knFocus('#pcamp .stamp.sug, #pcamp .stamp, #pcamp button'));
+      requestAnimationFrame(() =>
+        knFocus(c12On() ? '#pcamp .c12c.sug .c12b, #pcamp .c12b' : '#pcamp .stamp.sug, #pcamp .stamp, #pcamp button')
+      );
     pressFx(k);
   });
   addEventListener('keyup', e => (K[e.key.toLowerCase()] = 0));

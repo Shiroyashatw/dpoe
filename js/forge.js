@@ -574,7 +574,9 @@ function campDrawerHTML() {
 /* 畫抽屜：字串沒變不重畫（進度條另外填，資源一直在跑不會讓格子重建） */
 function campDrawer(force) {
   const el = $('pcamp'),
-    h = campDrawerHTML();
+    w = c12On(),
+    h = w ? c12HTML() : campDrawerHTML();
+  el.classList.toggle('cm12', w);
   if (force || CDR.h !== h) keepFocus(el, () => (el.innerHTML = CDR.h = h));
   for (const i of document.querySelectorAll('[data-cp]')) {
     const c = cdCost(i.dataset.cp);
