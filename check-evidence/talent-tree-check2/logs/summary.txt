@@ -1,0 +1,15 @@
+check exit=0 ok=951 bad=0
+skill_check exit=0 ok=155 bad=0
+char_check exit=0 ok=98 bad=0
+pro exit=0 ok=35 bad=0
+hide exit=0 ok=52 bad=0
+world exit=0 ok=42 bad=0
+touch_390x844 exit=0 ok=161 bad=0
+touch_375x667 exit=0 ok=161 bad=0
+touch_844x390 exit=0 ok=16 bad=0
+touch_667x375 exit=0 ok=16 bad=0
+touch_1280x720 exit=0 ok=16 bad=0
+touch_1440x900 exit=0 ok=16 bad=0
+touch_1280x800 exit=0 ok=16 bad=0
+prettier exit=0
+DONE
