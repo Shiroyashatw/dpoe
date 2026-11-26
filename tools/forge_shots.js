@@ -676,7 +676,7 @@ const SHOTS = [
         }),
       M
     );
-    md.push(`## ${id}（${ref}.png）`, '', `![${id}](${file})　疊圖：![${id} 疊圖](${id}-疊圖.png)`, '');
+    md.push(`## ${id}（${ref}.png）`, '', `![${id}](${file})　疊圖：![${id} 疊圖](${id}-疊圖.jpg)`, '');
     md.push('| 元件 | 規格 x,y w×h | 實機 x,y w×h | 差 Δx,Δy Δw,Δh | |', '|---|---|---|---|---|');
     for (const [n, x, y, w, h, r] of R) {
       all++;
