@@ -130,7 +130,7 @@ function migrate(s) {
   for (const it of [...Object.values(o.eq), o.curIt, ...o.inv.items, ...o.charms]) if (it && it.id > IID) IID = it.id;
   /* 之後新增的通貨鍵補 0、精髓表一定有 */
   o.mat = { ...newMat(), ...o.mat };
-  o.mat.ess = o.mat.ess || {};
+  o.mat.dust = o.mat.dust || {};
   o.mat.mats = o.mat.mats || {};
   o.prd = { ...PRD0(), ...o.prd };
   o.frags = { ...newFrags(), ...o.frags };

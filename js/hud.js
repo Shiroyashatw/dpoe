@@ -110,7 +110,7 @@ function fmenuOpen(k) {
   /* BASE-01：跑圖中鍛造、營地、掉落紀錄、追逐物品半版；其他（地點、昇華、寶盒）照舊蓋滿 */
   NAV.full =
     PORT() && (fullOf(k) || !(G.scene === 'map' && ['forge', 'stash', 'craft', 'log', 'chase'].includes(k))) ? 1 : 0;
-  if (k === 'forge' || k === 'stash') act('ctab:' + (k === 'stash' ? 'cur' : FSEG));
+  if (k === 'forge' || k === 'stash') act('ctab:' + (k === 'stash' ? 'forge' : FSEG));
   else if (k === 'craft' && G.scene === 'map') openPanel('camp');
   else if (k === 'craft') (CRAFT.tab = 'camp'), openPanel('craft');
   else openPanel(k);
@@ -426,7 +426,7 @@ function navCycle(d) {
   navGo(t);
   if (inNav) requestAnimationFrame(() => knFocus(`#dnav [data-tm="nav:${t}"]`));
 }
-/* 鍛造的三段：上次離開的段（這次遊戲）；第一次與從掛機卡、空格進來一律打造 */
+/* 鍛造的兩段：上次離開的段（這次遊戲）；第一次與從掛機卡、空格進來一律打造 */
 let FSEG = 'make';
 const FTABS = ['forge', 'temper', 'holy', 'corr', 'calam'];
 const fseg = () => (PANEL.stash ? 'cur' : CRAFT.tab === 'make' ? 'make' : 'forge');
@@ -520,6 +520,8 @@ const idleOn = () =>
   !G.ask &&
   !(G.state === 'dead' && !(S.auto && G.node)) &&
   !(PORT() && anyPanel()) &&
+  /* 鍛造 v1.0 桌機：鍛造面板 760×536 蓋到左下，掛機卡收起（forge-spec §1 版面沒有掛機卡） */
+  !(PANEL.craft && CRAFT.tab !== 'camp' && !TOUCH.on && !PORT()) &&
   (!TOUCH.on || PORT());
 /* 半版面板開著（世界地圖是全螢幕，不算）；M2-12 起掛機條是 44 高的條，不算半版 */
 const sheetOn = () => !!(PORT() && anyPanel());
@@ -713,11 +715,10 @@ function nodeHTML() {
   <div class="bagf ndst" role="radiogroup" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => `<button class="chip ${st0 === i + 1 ? 'on' : ''}" role="radio" aria-checked="${st0 === i + 1}" data-a="nstar:${i + 1}">${i + 1}★</button>`).join('')}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條地圖詞・星越多越危險、掉得越好</span></div>
   <ul class="ndl">${rows}</ul>`;
 }
-/* 鍛造分頁的三段（M2-38，M2-37.1）：打造永遠在；通貨（點了就用）、鍛造台（填、淬鍊、災魘）要鍛造台 Lv1 */
+/* 鍛造分頁的兩段（鍛造 v1.0、名詞表 F1）：打造永遠在；鍛造台（填、淬鍊、聖化、腐化、災魘）要鍛造台 Lv1。main 的「通貨」段併進鍛造台・填 */
 const CSEG = () =>
   [
     ['make', '打造', true],
-    ['cur', '通貨', campCan('tab:fill')],
     ['forge', '鍛造台', campCan('tab:fill')]
   ].filter(x => x[2]);
 const craftSeg = on =>
@@ -726,9 +727,9 @@ const craftSeg = on =>
       ([k, n]) => `<button class="${on === k ? 'on' : ''}" data-a="ctab:${k}" aria-pressed="${on === k}">${n}</button>`
     )
     .join('')}</span>`;
-/* 鍛造的標題列：「鍛造」＋三段＋關閉（直立、桌機同一份） */
+/* 鍛造的標題列：「鍛造」＋兩段＋自動分解規則（鍛造台 Lv8）＋關閉（直立、桌機同一份） */
 const forgeHead = on =>
-  `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
+  `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}${campCan('auto2') ? '<button class="btn fa2b" data-fg="a2o">自動分解規則</button>' : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
 /* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點營地場景的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
 const PANEL_LOCK = { asc: 'asc', box: 'box' };
 function openPanel(k) {
@@ -736,6 +737,8 @@ function openPanel(k) {
   if (lk) return hudWarn(lk);
   /* 左邊一次只開一個（倉庫／技能寶石／鍛造台），右邊是背包 */
   if (k === 'stash' || k === 'skill' || k === 'craft') {
+    /* 揭曉的「跳過動畫」：每次打開鍛造第 1 次打造不能勾（forge-spec §5） */
+    if (k === 'craft' && !PANEL.craft) CRAFT.made = 0;
     PANEL.stash = PANEL.skill = PANEL.craft = false;
     /* 0.4.9：技能面板自己一個（桌機也是）；鍛造旁邊要有倉庫；營地總覽（M2-38）自己一個、桌機在右欄 */
     PANEL.inv = k !== 'skill' && !(k === 'craft' && CRAFT.tab === 'camp');
@@ -965,7 +968,10 @@ function hudPanels() {
     if (PANEL.skill) panelHTML($('pskill'), skillHTML());
     skRosSync(), skSide();
   }
-  if (PANEL.craft) $('pcraft').innerHTML = forgeHTML();
+  if (PANEL.craft) {
+    $('pcraft').classList.toggle('f12', !TOUCH.on && !PORT() && CRAFT.tab !== 'camp');
+    $('pcraft').innerHTML = forgeHTML();
+  }
   /* 桌機角色頁（M2-character-1280）走 charpanel.js 的 charHTML；直立、倉庫照舊 */
   /* 桌機倉庫（stash.md v1.0）走 stash12.js 的 stRender */
   if (PANEL.inv && !cw) {
@@ -974,13 +980,13 @@ function hudPanels() {
     $('pinv').classList.toggle('st12', s12);
     chOn() ? chRender() : s12 ? stRender() : panelHTML($('pinv'), invHTML());
   } else $('pinv').classList.remove('st12');
-  if (PANEL.stash) $('pstash').innerHTML = forgeHead('cur') + curPageHTML();
   if (navOn() === 'forge') FSEG = fseg();
   $('pchase').hidden = !PANEL.chase;
   if (PANEL.chase) panelHTML($('pchase'), chasePanelHTML());
   if (PANEL.asc) panelHTML($('pasc'), ascHTML());
   if (PANEL.box) $('pbox').innerHTML = boxHTML();
   if (PANEL.ident) {
+    $('preveal').classList.toggle('rvc', !!REV.craft);
     panelHTML($('preveal'), revealHTML());
     const n = $('preveal').querySelector('.new');
     if (n) n.scrollIntoView({ block: 'nearest' });
@@ -1894,10 +1900,12 @@ function revealOpen(L = identifyAll(S), o = {}) {
     chx: 0,
     more: o.more || ''
   });
+  if (REV.craft) rvInit(o);
   PANEL.ident = true;
   save();
   hudPanels();
-  revealStep();
+  /* 打造的揭曉（鍛造 v1.0 §5）：卡背朝上，玩家自己翻 */
+  if (!REV.craft) revealStep();
 }
 function revealStep() {
   clearTimeout(REV.tm);
@@ -1908,35 +1916,24 @@ function revealStep() {
     return hudPanels();
   }
   const it = REV.list[REV.i++];
-  if (REV.craft && !it.salv) REV.sel = it.id;
   sfx(it.frac ? 'star' : it.mem ? 'mem' : it.r === 2 ? 'flipRare' : 'flip');
   hudPanels();
   REV.tm = setTimeout(revealStep, it.frac || it.mem ? 750 : it.r === 2 ? 450 : 260);
 }
-/* 打造模式選中的那一件（還在倉庫裡的才算） */
-const rvSel = () => (REV.craft && REV.sel != null && S.inv.items.find(x => x.id === REV.sel)) || null;
-/* 選下一件還沒處理的（跳過分解掉的、換上的） */
-function rvNext() {
-  const i = REV.list.findIndex(x => x.id === REV.sel),
-    nx = [...REV.list.slice(i + 1), ...REV.list.slice(0, Math.max(0, i))].find(x => !x.salv && S.inv.items.includes(x));
-  REV.sel = nx ? nx.id : null;
-}
 function revealHTML() {
+  if (REV.craft) return rvCraftHTML();
   const n = REV.list.length,
-    sel = rvSel(),
     row = (it, k) =>
       k < REV.i
-        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''} ${REV.craft && sel === it ? 'on' : ''} ${it.salv || (REV.craft && !S.inv.items.includes(it)) ? 'gone' : ''}" ${REV.craft && !it.salv && S.inv.items.includes(it) ? `role="button" tabindex="0" data-a="rvsel:${it.id}"` : ''}>${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${it.salv ? ' · 已分解' : REV.craft && !S.inv.items.includes(it) ? ' · 換上了' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span>${REV.craft && !it.salv && S.inv.items.includes(it) ? eqDeltaHTML(it) : ''}</div></div>`
+        ? `<div class="rvr r${it.r} ${k === REV.i - 1 && !REV.done ? 'new' : ''} ${it.frac ? 'frac' : it.mem ? 'mem' : ''} ${it.salv ? 'gone' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">${esc(itemName(it))}</b><small>T${itemT(it)} · 品質 ${Math.round((it.q || 0) * 100)}%${it.frac ? ' · <span class="frac">★ 破裂</span>' : ''}${it.salv ? ' · 已分解' : ''}</small>${it.mem ? `<small class="mem">◈ ${esc(memText(it.mem))}</small>` : ''}${it.mem2 ? `<small class="mem">◈ ${esc(memText(it.mem2))}</small>` : ''}<span class="rva">${it.a.map(a => `${esc(affText(a))} <i>T${a.T}${isFrac(it, a) ? ' ★' : ''}</i>`).join('　') || '（沒有詞綴）'}</span></div></div>`
         : `<div class="rvr un r${it.r} ${it.frac ? 'frac' : it.mem ? 'mem' : ''}">${icHTML(itemIc(it))}<div><b class="rc${it.r}">？？？</b><small>${esc(baseOf(it).n)} · T${itemT(it)}${it.frac ? ' · ★' : ''}${it.mem ? ' · ◈' : ''}</small></div></div>`;
   /* 沒有要翻的（離線卡，0.5.4 考核 E2）：不寫「0／0 件」；head 可以是函式（按了升級要重畫） */
   return `<div class="ph"><b>${esc(REV.title)}</b>${n ? `<span>${Math.min(REV.i, n)}／${n} 件</span>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  ${typeof REV.head === 'function' ? REV.head() : REV.head}${n ? `<div class="rvl ${sel ? 'sm' : ''}">${REV.list.map(row).join('')}</div>` : ''}${REV.more ? `<p class="summ">${esc(REV.more)}</p>` : ''}
+  ${typeof REV.head === 'function' ? REV.head() : REV.head}${n ? `<div class="rvl">${REV.list.map(row).join('')}</div>` : ''}${REV.more ? `<p class="summ">${esc(REV.more)}</p>` : ''}
   ${
-    sel
-      ? `<div class="foot sel rvsel">${cmpHTML(sel, 1)}<div class="acts"><button class="btn pri" data-a="rvwear" ${cmpSlot(sel) && !eqLack(S, sel, cmpSlot(sel).k).length ? '' : 'disabled'}>換上</button><button class="btn" data-a="rvkeep">留著</button></div><button class="dlink2" data-a="rvsalv">分解<small>${esc(salvText(salvValue(sel)).split('、').slice(0, 2).join('、'))}</small></button></div>`
-      : REV.sum
-        ? `<div class="rvf offf"><button class="btn pri wide" data-a="close">收下</button></div>`
-        : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
+    REV.sum
+      ? `<div class="rvf offf"><button class="btn pri wide" data-a="close">收下</button></div>`
+      : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
 /* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */
@@ -2122,7 +2119,7 @@ function logHTML() {
     };
   return `<div class="ph"><b>掉落紀錄</b><span>最近 50 筆重點掉落</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="ph2">保底進度・<span>滿了下一次一定掉</span></div>
-  ${campCan('cur:frac') ? bar('破裂石（王）', P.fracO2 || 0, prdMax(NEW_P.frac[2])) : ''}${campCan('cur:perf') ? bar('完美石（王）', P.perfO2 || 0, prdMax(NEW_P.perf[2])) : ''}${campCan('cur:ink') ? bar('追憶之墨（王）', P.ink2 || 0, prdMax(NEW_P.ink[2])) : ''}${bar('完美通貨', P.perfC || 0, TIER_P.pity)}${chaseOf().pts || chaseN() ? bar(STR_T.chase, chasePct(), 100, chasePct() + '%') : ''}
+  ${campCan('cur:frac') ? bar('破裂石（王）', P.fracO2 || 0, prdMax(NEW_P.frac[2])) : ''}${campCan('cur:perf') ? bar('完美石（王）', P.perfO2 || 0, prdMax(NEW_P.perf[2])) : ''}${campCan('cur:ink') ? bar('追憶之墨（王）', P.ink2 || 0, prdMax(NEW_P.ink[2])) : ''}${chaseOf().pts || chaseN() ? bar(STR_T.chase, chasePct(), 100, chasePct() + '%') : ''}
   <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c} ${x === LOGSEL ? 'on' : ''}" ${x.k ? `data-chs="${x.k}" role="button" tabindex="0"` : ''}><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。</li>'}</ul>`;
 }
 /* ---------- 掛機卡（0.4.9，示意頁第 9 版）：刷圖中、沒開面板時直立佔下半、桌機在左下。
@@ -2753,7 +2750,7 @@ function quickMove(src, it, eqk, shift) {
   sfx('equip');
   changed();
 }
-/* 分解（0.5.0 取代賣掉，craft.js 的 salvageDo）：回材料、靈魂、金（黃裝另回 1 顆蛻變或增幅） */
+/* 分解（0.5.0 取代賣掉，craft.js 的 salvageDo）：回材料、靈魂、金（黃裝另回 1 顆加詞石） */
 /* 直接換到指定的欄位（打造的開獎：跟卡上比的那一格）；換下來的進倉庫 */
 function equipTo(it, k) {
   const lack = eqLack(S, it, k);
@@ -3360,10 +3357,9 @@ function act(a, el) {
   } else if (a === 'chaselog') chaseGo();
   else if (a.startsWith('wy:')) wyAct(a.slice(3));
   else if (a.startsWith('ctab:')) {
-    /* 鍛造的三段（M2-38）：打造／通貨／鍛造台。鍛造台沒選裝備時，接著用通貨頁中間那一件 */
+    /* 鍛造的兩段（鍛造 v1.0）：打造／鍛造台。鍛造台沒選裝備時，接著用舊通貨頁中間那一件（S.curIt） */
     const k = a.slice(5);
     sfx('click');
-    if (k === 'cur') return openPanel('stash');
     if (k === 'make') CRAFT.tab = 'make';
     else {
       if (!FTABS.includes(CRAFT.tab)) CRAFT.tab = 'forge';
@@ -3401,24 +3397,6 @@ function act(a, el) {
   } else if (a === 'rvskip') {
     REV.i = REV.list.length;
     revealStep();
-  } else if (a.startsWith('rvsel:')) {
-    const id = +a.slice(6);
-    REV.sel = REV.sel === id ? null : id;
-    sfx('click');
-    hudPanels();
-  } else if (a === 'rvwear' || a === 'rvkeep' || a === 'rvsalv') {
-    /* 打造的開獎（0.5.0）：換上（換下來的進倉庫）、留著（跳下一件）、分解 */
-    const it = rvSel();
-    if (!it) return;
-    if (a === 'rvwear') equipTo(it, cmpSlot(it).k);
-    else if (a === 'rvsalv') {
-      takeOut('inv', it);
-      it.salv = 1;
-      hudWarn(`分解：${salvText(salvageDo(it))}`);
-      sfx('coin');
-    }
-    rvNext();
-    changed();
   } else if (a.startsWith('bagf:') || a.startsWith('bago:') || a.startsWith('bagk:')) {
     /* 部位再點一次＝取消；換大類：部位回到全部 */
     BAG[a[3]] = a[3] === 'k' && BAG.k === a.slice(5) ? '' : a.slice(5);
