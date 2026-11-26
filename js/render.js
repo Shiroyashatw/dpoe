@@ -205,7 +205,7 @@ function draw() {
       const len = m.boss ? 520 : D.reach + 20,
         wd = m.r * 1.6;
       /* 整條範圍畫在 A（0.12–0.30 照舊）、進度畫在 B（0.55） */
-      const [A, B] = foeLayer(),
+      const [A, B] = foeLayer(m.x, m.y, len + wd),
         x = m.x,
         y = m.y,
         an = m.ang;
@@ -240,7 +240,7 @@ function draw() {
     } else if (D.ai === 'melee' || (m.boss && m.pat === 'swipe')) {
       /* 扇形 0.10–0.35 照舊，畫在 B（÷0.55） */
       const R = m.boss ? 150 : D.reach + 10,
-        B = foeLayer()[1],
+        B = foeLayer(m.x, m.y, R)[1],
         x = m.x,
         y = m.y,
         an = m.ang,
@@ -538,38 +538,54 @@ function frameRect(x, y, w, h) {
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
 /* 敵方填色層（總表 §1-6、C25、3.2）：外圈畫在 A（整層 0.30）、進度內圈與敵方地面畫在 B（整層 0.55）；
-   同一層裡重疊不疊加，A 扣掉 B 的範圍再貼，任一點合成最多 0.55（＝外圈 0.30＋內圈 0.357）。框與圖示等貼完再畫（FOE.L） */
+   同一層裡重疊不疊加，A 扣掉 B 的範圍再貼，任一點合成最多 0.55（＝外圈 0.30＋內圈 0.357）。框與圖示等貼完再畫（FOE.L）。
+   只處理畫到的範圍（世界座標中心 x、y、半徑 r 的外接框聯集；全畫面貼幾次太貴），貼完把那塊清掉 */
 const FOE = { on: 0, L: [] };
-function foeLayer() {
+function foeLayer(x, y, r) {
   if (!FOE.on) {
     const m = CX.getTransform();
     FOE.c = FOE.c || [0, 1].map(() => document.createElement('canvas').getContext('2d'));
     for (const g of FOE.c) {
       if (g.canvas.width !== CV.width || g.canvas.height !== CV.height)
         (g.canvas.width = CV.width), (g.canvas.height = CV.height);
-      g.setTransform(1, 0, 0, 1, 0, 0);
-      g.clearRect(0, 0, CV.width, CV.height);
       g.setTransform(m);
     }
-    (FOE.on = 1), (FOE.L = []);
+    (FOE.on = 1), (FOE.L = []), (FOE.b = [x - r, y - r, x + r, y + r]);
   }
+  const b = FOE.b;
+  (b[0] = Math.min(b[0], x - r)),
+    (b[1] = Math.min(b[1], y - r)),
+    (b[2] = Math.max(b[2], x + r)),
+    (b[3] = Math.max(b[3], y + r));
   return FOE.c;
 }
 function foeFlush() {
   if (!FOE.on) return;
   const [A, B] = FOE.c,
-    m = CX.getTransform();
+    m = CX.getTransform(),
+    W = CV.width,
+    H = CV.height,
+    x = clamp(Math.floor(m.a * FOE.b[0] + m.e) - 4, 0, W),
+    y = clamp(Math.floor(m.d * FOE.b[1] + m.f) - 4, 0, H),
+    w = clamp(Math.ceil(m.a * FOE.b[2] + m.e) + 4, 0, W) - x,
+    h = clamp(Math.ceil(m.d * FOE.b[3] + m.f) + 4, 0, H) - y;
   A.setTransform(1, 0, 0, 1, 0, 0);
-  A.globalAlpha = 1;
-  A.globalCompositeOperation = 'destination-out';
-  A.drawImage(B.canvas, 0, 0);
-  A.globalCompositeOperation = 'source-over';
+  B.setTransform(1, 0, 0, 1, 0, 0);
   CX.setTransform(1, 0, 0, 1, 0, 0);
-  CX.globalAlpha = 0.3;
-  CX.drawImage(A.canvas, 0, 0);
-  CX.globalAlpha = 0.55;
-  CX.drawImage(B.canvas, 0, 0);
-  CX.globalAlpha = 1;
+  if (w > 0 && h > 0) {
+    A.globalAlpha = 1;
+    A.globalCompositeOperation = 'destination-out';
+    A.drawImage(B.canvas, x, y, w, h, x, y, w, h);
+    A.globalCompositeOperation = 'source-over';
+    CX.globalAlpha = 0.3;
+    CX.drawImage(A.canvas, x, y, w, h, x, y, w, h);
+    CX.globalAlpha = 0.55;
+    CX.drawImage(B.canvas, x, y, w, h, x, y, w, h);
+    CX.globalAlpha = 1;
+  }
+  /* 這一格畫過的都在框裡（框外的部分畫不上畫布），清框就是清乾淨 */
+  A.clearRect(x, y, w, h);
+  B.clearRect(x, y, w, h);
   CX.setTransform(m);
   for (const f of FOE.L) f();
   FOE.on = 0;
@@ -603,7 +619,7 @@ function foeIcon(x, y, col) {
   CX.fill();
 }
 function teleCircle(x, y, r, f) {
-  const [A, B] = foeLayer();
+  const [A, B] = foeLayer(x, y, r);
   A.fillStyle = B.fillStyle = PAL.enemyTel;
   A.beginPath();
   A.arc(x, y, r, 0, TAU);

@@ -769,7 +769,7 @@ function drawMech() {
       CX.fill();
       continue;
     }
-    const B = foeLayer()[1];
+    const B = foeLayer(g.x, g.y, g.r)[1];
     B.globalAlpha = f;
     B.fillStyle = C.col;
     B.beginPath();

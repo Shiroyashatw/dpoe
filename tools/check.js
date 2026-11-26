@@ -12335,14 +12335,17 @@ const ASC_COMBOS = `const combos = k => {
       bmTc = R.slice(R.indexOf('function teleCircle'), R.indexOf('function shadow'));
     ok(
       '第 5 步 teleCircle／敵方地面：外圈畫 A 層、進度內圈與敵方地面畫 B 層，A 扣掉 B 後 A 貼 0.30、B 貼 0.55（外 0.30＋內 0.357＝0.55，重疊取最大不疊加）',
-      /A\.globalCompositeOperation = 'destination-out';\s*A\.drawImage\(B\.canvas, 0, 0\);/.test(bmFl) &&
-        /CX\.globalAlpha = 0\.3;\s*CX\.drawImage\(A\.canvas, 0, 0\);\s*CX\.globalAlpha = 0\.55;\s*CX\.drawImage\(B\.canvas, 0, 0\);/.test(
+      /A\.globalCompositeOperation = 'destination-out';\s*A\.drawImage\(B\.canvas, x, y, w, h, x, y, w, h\);/.test(
+        bmFl
+      ) &&
+        /CX\.globalAlpha = 0\.3;\s*CX\.drawImage\(A\.canvas, x, y, w, h, x, y, w, h\);\s*CX\.globalAlpha = 0\.55;\s*CX\.drawImage\(B\.canvas, x, y, w, h, x, y, w, h\);/.test(
           bmFl
         ) &&
+        /A\.clearRect\(x, y, w, h\);\s*B\.clearRect\(x, y, w, h\);/.test(bmFl) &&
         /A\.arc\(x, y, r, 0, TAU\)/.test(bmTc) &&
         /B\.arc\(x, y, r \* clamp\(f, 0, 1\), 0, TAU\)/.test(bmTc) &&
         !/rgba\(/.test(bmTc) &&
-        /const B = foeLayer\(\)\[1\];/.test(Mc) &&
+        /const B = foeLayer\(g\.x, g\.y, g\.r\)\[1\];/.test(Mc) &&
         !/0\.36/.test(Mc.slice(Mc.indexOf('function drawMech'), Mc.indexOf('for (const c of G.corpses)'))) &&
         /CX\.globalAlpha = 0\.14 \* f;/.test(Mc) &&
         /R\.indexOf|foeFlush\(\);/.test(R.slice(R.indexOf('for (const t of G.tele) teleCircle'), R.indexOf('愛的紅線')))
