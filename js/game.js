@@ -546,8 +546,8 @@ function enterMap(t, keep) {
   G.cols = cols;
   G.rows = rows;
   for (let y = 1; y < rows - 1; y++) for (let x = 1; x < cols - 1; x++) tiles[y * cols + x] = 0;
-  /* 場景只是外觀（biome.js）：每張圖隨機一種；擺設照 3×2 塊各擺幾個、不擋路 */
-  G.biome = was ? was.biome : pick(Object.keys(BIOMES));
+  /* 場景只是外觀（biome.js）：全地點共用 BIO_ONE（設 null 才每張圖隨機一種）；擺設照 3×2 塊各擺幾個、不擋路 */
+  G.biome = was ? was.biome : BIO_ONE || pick(Object.keys(BIOMES));
   const cx = i => 1 + Math.floor((i * (cols - 2)) / 3),
     cy = j => 1 + Math.floor((j * (rows - 2)) / 2),
     cells = [];

@@ -11670,6 +11670,38 @@ const ASC_COMBOS = `const combos = k => {
     !tl.err && tl.bad === null && JSON.stringify(tl.fall) === '[384,true,false,true]' && tl.none,
     JSON.stringify(tl)
   );
+  /* 戰鬥地板全地點共用一套（mumi 2026-11-26；M2-36-d2-picks §11）：temple 地板只剩 tile_d2_battle_floor，
+     img/ 的檔跟 art-picks 挑定原檔逐位元相同；enterMap 用 BIO_ONE，不再每張圖隨機抽 */
+  {
+    const R = (...a) => fs.readFileSync(path.join(__dirname, '..', ...a)),
+      md5 = b => require('crypto').createHash('md5').update(b).digest('hex'),
+      fl = vm.runInContext(
+        'TILE_SRC.temple.floor',
+        (() => {
+          const c = {};
+          vm.createContext(c);
+          vm.runInContext(JS('tiles.js').replace('const TILE_SRC', 'var TILE_SRC'), c);
+          return c;
+        })()
+      ),
+      pick = String(R('art', 'tiles', 'temple', 'floor', 'picked.txt')).trim(),
+      src = md5(
+        R('docs', 'production', 'art-picks', 'm2-36-d2-first', 'tile_d2_battle_floor', 'tile_d2_battle_floor-s5201.png')
+      );
+    ok(
+      '戰鬥地板：temple 地板只有 tile_d2_battle_floor-s5201（picked.txt、art/ 複本、img/ 檔都跟 art-picks 原檔相同）',
+      pick === 'tile_d2_battle_floor-s5201.png' &&
+        fl.length === 1 &&
+        md5(R('art', 'tiles', 'temple', 'floor', pick)) === src &&
+        md5(R(fl[0])) === src,
+      JSON.stringify({ pick, fl })
+    );
+    ok(
+      '戰鬥地板：enterMap 用 BIO_ONE（全地點共用 temple），隨機抽地形只在 BIO_ONE 設 null 時',
+      /^const BIO_ONE = 'temple';$/m.test(JS('biome.js')) &&
+        /G\.biome = was \? was\.biome : BIO_ONE \|\| pick\(Object\.keys\(BIOMES\)\);/.test(JS('game.js'))
+    );
+  }
   /* 3. 王印拼條：載到用 ic_wy32／ic_wy16；載不到（onerror）退回借 cur_regal，不報錯 */
   const wy = (() => {
     const c = {

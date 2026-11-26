@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 /* 世界地圖實測（Playwright，0.4.0 固定節點＋連續刷）：選節點 → 打倒王 → 同一個場地下一輪、往下推 → 世界展開 → 選星級 → 死亡重來、連死退回 → 再推一次 → 倉庫滿 → 特殊節點 → 存檔還原；
    手勢（拖曳、滾輪、單指、雙指）、減少動態、手機降速 4 倍的效能。序章前 7 步在 pro_check.js 走。
-   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|auto|patrol|ses|gesture|still|perf]（預設全跑）。
+   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|auto|patrol|ses|floor|gesture|still|perf]（預設全跑）。
    環境變數 PW_CHROME 指定瀏覽器；截圖存在系統暫存資料夾（world_*.png）；有 ❌ 時結束碼 1 */
 const os = require('os'),
   path = require('path');
@@ -460,12 +460,80 @@ async function ses(b) {
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
+/* 戰鬥地板全地點共用一套（mumi 2026-11-26）：每個地點各進 3 次都是 BIO_ONE（temple）、地板是 tile_d2_battle_floor、
+   沒有岩漿的發光點與岩漿池（擺設沒有 lava、bDecals 沒畫岩漿色點） */
+async function floor(b) {
+  const p = await open(b);
+  const r = await p.evaluate(async () => {
+    proSkip();
+    S.world.done = TRUNK_K.slice();
+    S.camp.watch = 99;
+    S.lv = 99;
+    S.frags.mist = 99;
+    const seen = {},
+      no = [],
+      deco = new Set();
+    for (const k of W_ALL)
+      for (let i = 0; i < 3; i++) {
+        if (!runNode(k)) {
+          no.push(k);
+          break;
+        }
+        seen[G.biome] = (seen[G.biome] || 0) + 1;
+        for (const d of G.deco) deco.add(d.k);
+        G.mobs = [];
+      }
+    /* 等地磚載好，畫一格，看 bDecals 有沒有畫岩漿那種亮橘點（rgba(255,120／190,50,…)） */
+    for (let i = 0; i < 50 && !tileSet(G.biome); i++) await new Promise(f => setTimeout(f, 100));
+    const fills = [],
+      d0 = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'fillStyle');
+    Object.defineProperty(CX, 'fillStyle', {
+      set: v => (fills.push(String(v)), d0.set.call(CX, v)),
+      get: () => d0.get.call(CX),
+      configurable: true
+    });
+    bDecals(innerWidth * 2, innerHeight * 2);
+    delete CX.fillStyle;
+    const T = tileSet(G.biome);
+    return {
+      n: W_ALL.length,
+      no,
+      seen,
+      one: BIO_ONE,
+      deco: [...deco],
+      lavaDot: fills.filter(f => /^rgba\(255,(120|190),50,/.test(f)).length,
+      fills: fills.length,
+      src: TILE_SRC.temple.floor,
+      img: T && T.floor.map(i => i.src.replace(/^.*\/img\//, 'img/'))
+    };
+  });
+  ok(
+    '戰鬥地板全地點共用：每個地點各進 3 次都是同一種地形（BIO_ONE＝temple），不再隨機抽',
+    !r.no.length && r.one === 'temple' && JSON.stringify(r.seen) === JSON.stringify({ temple: r.n * 3 }),
+    JSON.stringify(r)
+  );
+  ok(
+    '戰鬥地板全地點共用：地板只有一張 tile_d2_battle_floor（img/tiles/temple-floor.*），戰鬥中載入的就是它',
+    r.src.length === 1 &&
+      /^img\/tiles\/temple-floor\.[0-9a-f]{8}\.png$/.test(r.src[0]) &&
+      JSON.stringify(r.img) === JSON.stringify(r.src),
+    JSON.stringify(r)
+  );
+  ok(
+    '熔岩裝飾不出現：擺設沒有岩漿池、地上沒有岩漿發光點',
+    !r.deco.includes('lava') && r.fills > 0 && r.lavaDot === 0,
+    JSON.stringify(r)
+  );
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
+  await p.context().close();
+}
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   if (!ONLY || ONLY === 'flow') await flow(b);
   if (!ONLY || ONLY === 'auto') await auto(b);
   if (!ONLY || ONLY === 'patrol') await patrol(b);
   if (!ONLY || ONLY === 'ses') await ses(b);
+  if (!ONLY || ONLY === 'floor') await floor(b);
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '世界地圖實測全部通過');
   process.exit(bad ? 1 : 0);

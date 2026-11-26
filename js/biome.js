@@ -40,6 +40,9 @@ const BIOMES = {
     light: PAL.scene.temple.glow
   }
 };
+/* 戰鬥地板全地點共用一套（mumi 2026-11-26；M2-36-d2-picks §11 的 tile_d2_battle_floor 接在 temple）：每張圖都用 BIO_ONE。
+   要分地點時改成 null，回到每張圖從 BIOMES 隨機抽（冰、岩漿、古墓的程式畫法都還在，含岩漿的發光點與岩漿池） */
+const BIO_ONE = 'temple';
 const BIO = () => (G.scene === 'camp' ? HIDE_BIO : BIOMES[G.biome] || BIOMES.temple);
 
 /* ---------- 地板：每種場景一張 256×256 的花紋（固定亂數，畫一次） ---------- */
