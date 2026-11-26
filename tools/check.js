@@ -2938,7 +2938,7 @@ const ASC_COMBOS = `const combos = k => {
       j(g.chipBl) === '[100,50,-30,-30,-30,-30,-30,0]' &&
       j(g.chipOff) === '[0,0,0]' &&
       !g.chipKeys.length &&
-      j(g.states) === '[[2,1,true],"rou_red:#ff5a5a,rou_blue:#5ad1ff"]' &&
+      j(g.states) === '[[2,1,true],"rou_red:#ff6066,rou_blue:#ade2f9"]' &&
       g.statesOff === 0,
     j([g.mm, g.chipRP, g.chipBG, g.chipBl, g.chipOff, g.chipKeys, g.states, g.statesOff])
   );
@@ -11990,10 +11990,15 @@ const ASC_COMBOS = `const combos = k => {
             .every(d => /^\s*color:\s*var\(--cat-corr\)\s*$/.test(d))
       )
       .map(m => m[1].trim()),
-    corrElse = catFiles.filter(f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(rd(f))),
+    /* mumi 2026-11-26 12:40（經幕僚長轉達）裁定：放寬 B2-CAT，命運輪盤紅籤（js/maps.js ROUL 的 red）准用 PAL.catCorr；
+       只放這一處：maps.js 拿掉那一行後不能再有 --cat-corr／catCorr */
+    rouRed = /\n  \{ id: 'red', n: '紅', c: PAL\.catCorr, [^\n]*\n/,
+    corrElse = catFiles.filter(
+      f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(f === 'js/maps.js' ? rd(f).replace(rouRed, '\n') : rd(f))
+    ),
     corrLeft = (afterRoot.match(/--cat-corr/g) || []).length;
   ok(
-    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准）；--cat-cal 只准 .c12 .cq .ccl（災魘爪痕）用，--cat-cal-hi 還沒有元件用到',
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准；例外：命運輪盤紅籤 PAL.catCorr，mumi 11/26 12:40）；--cat-cal 只准 .c12 .cq .ccl（災魘爪痕）用，--cat-cal-hi 還沒有元件用到',
     [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
       !catUse.length &&
       calOk.length >= 1 &&
@@ -12152,15 +12157,18 @@ const ASC_COMBOS = `const combos = k => {
         /r: 160, dur: 0\.6, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
         /r: 130, dur: 0\.5, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
         /r: 140, dur: 0\.45, col: PAL\.enemyTel, sh: 'boom'/.test(rd('js/combat.js')) &&
-        (rd('js/skills.js').match(/col: PAL\.fxOwn, sh: 'boom'/g) || []).length === 3 &&
+        /* 第 4 步（總表 3.2 我方元素環 → --fx-own）：skills.js 原本 ELC.fire 的兩個 boom 環也改 PAL.fxOwn，3 → 5 */
+        (rd('js/skills.js').match(/col: PAL\.fxOwn, sh: 'boom'/g) || []).length === 5 &&
         /col: PAL\.fxOwn \}/.test(rd('js/combat.js')) &&
         /r: 40, dur: 0\.3, col: PAL\.fxOwn \}/.test(rd('js/skills.js'))
     );
     ok(
-      'CSS 色票 X4：fx 環先畫外 1 px 黑邊（--ring-edge、lineWidth+2）再畫本色；黑邊跟環共用同一個 globalAlpha，我方 --fx-own 環 9%（黑邊永遠不會不透明）',
+      'CSS 色票 X4：fx 環先畫外 1 px 黑邊（--ring-edge、lineWidth+2）再畫本色；黑邊跟環共用同一個 globalAlpha，我方 --fx-own 環 9%（黑邊永遠不會不透明）；沒給色的環＝--fx-own（總表列 62）',
       (ring.match(/globalAlpha/g) || []).length === 1 &&
-        /CX\.globalAlpha = \(1 - f\) \* \(o\.col === PAL\.fxOwn \? 0\.09 : 0\.9\)/.test(ring) &&
-        ring.indexOf('PAL.ringEdge') < ring.indexOf('o.col || PAL.catFracV4') &&
+        /const col = o\.col \|\| PAL\.fxOwn;\s*CX\.globalAlpha = \(1 - f\) \* \(col === PAL\.fxOwn \? 0\.09 : 0\.9\)/.test(
+          ring
+        ) &&
+        ring.indexOf('PAL.ringEdge') < ring.indexOf('strokeStyle = col;') &&
         /lineWidth = lw \+ 2/.test(ring) &&
         PAL.ringEdge === '#000000'
     );
@@ -12169,15 +12177,15 @@ const ASC_COMBOS = `const combos = k => {
       blink = R.slice(R.indexOf("m.pat === 'blink'"), R.indexOf("m.pat === 'nova'")),
       mini = R.slice(
         R.indexOf('for (const m of G.mobs) {\n    if (m.arrow) continue;'),
-        R.indexOf('PAL.goodV2;', R.indexOf('if (m.arrow) continue;'))
+        R.indexOf('/* 玩家 4×4', R.indexOf('if (m.arrow) continue;'))
       );
     ok(
-      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
+      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.7＋0.2f，總表 3.2 (5)）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
       (blink.match(/globalAlpha = /g) || []).length === 2 &&
         blink.indexOf('lineWidth = 5') < blink.indexOf('PAL.ringEdge') &&
         blink.indexOf('PAL.ringEdge') < blink.indexOf('CX.stroke()') &&
-        blink.indexOf('CX.stroke()') < blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') &&
-        blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') < blink.indexOf('lineWidth = 3') &&
+        blink.indexOf('CX.stroke()') < blink.indexOf('globalAlpha = 0.7 + 0.2 * f;') &&
+        blink.indexOf('globalAlpha = 0.7 + 0.2 * f;') < blink.indexOf('lineWidth = 3') &&
         /globalAlpha = 1;\s*CX\.lineWidth = 2;\s*continue;/.test(blink) &&
         blink.indexOf('lineWidth = 3') < blink.indexOf('PAL.enemyTel') &&
         /fillStyle = PAL\.ringEdge;\s*CX\.fillRect\(bx, by, 7, 7\);\s*CX\.fillStyle = PAL\.enemyTel;\s*CX\.fillRect\(bx \+ 1, by \+ 1, 5, 5\);/.test(
@@ -12190,8 +12198,176 @@ const ASC_COMBOS = `const combos = k => {
       GF.colOwn === PAL.elFire &&
         GF.col === PAL.enemyTel &&
         PAL.elFire !== PAL.enemyTel &&
-        /CX\.fillStyle = \(!foe && C\.colOwn\) \|\| C\.col;/.test(Mc),
+        /CX\.fillStyle = C\.colOwn \|\| C\.col;/.test(Mc) &&
+        /c\.fillStyle = C\.col;/.test(Mc),
       JSON.stringify({ colOwn: GF.colOwn, col: GF.col })
+    );
+    /* dpoe-battle-mockup-1126：顏色總表第 4、5 步與 battle-mockup-gap-list */
+    const bmCss = rd('css/style.css'),
+      bmGone = [
+        '--scene-detail-28-rgb',
+        '--scene-detail-31-rgb',
+        '--scene-detail-56-rgb',
+        '--scene-detail-61-rgb',
+        '--dmg-minor-v9',
+        '--rar-rare-v1',
+        '--good-v6',
+        '--el-cold-v4'
+      ].filter(t => bmCss.includes(t + ':')),
+      bmJs = fs
+        .readdirSync(path.join(__dirname, '..', 'js'))
+        .map(f => rd('js/' + f))
+        .join('\n'),
+      bmOld = [
+        'rgb.sceneVoidV1',
+        'rgb.sceneVoidV2',
+        'hlV1',
+        'hlV2',
+        'hlV3',
+        'hlV4',
+        'hlV5',
+        'hlV6',
+        'hlV7',
+        'hlV8',
+        'glintV3',
+        'glintV4',
+        'glintV5',
+        'warmGlintV1',
+        'warmGlintV2',
+        'hurtVignetteV1',
+        'dodgeVignetteV1',
+        'dodgeVignetteV2',
+        'borderV2',
+        'borderMidV3',
+        'borderHiV2',
+        'borderCapV1',
+        'txOffV1',
+        'txLockV3',
+        'rgb.txEmptyV1',
+        'rgb.onActV2',
+        'goodV1',
+        'goodV2',
+        'goodV3',
+        'goodV4',
+        'goodV5',
+        'rgb.goodV1',
+        'badV5',
+        'badV6',
+        'badHiV3',
+        'rgb.badHiV1',
+        'rgb.badHiV2',
+        'hpV3',
+        'progLoV1',
+        'progHiV1',
+        'progHiV2',
+        'rarNormalV1',
+        'rarNormalV2',
+        'rgb.rarMagicBgV1',
+        'rarRareBgV3',
+        'rgb.rarRareBgV1',
+        'rarUniqueV2',
+        'rarChaseV2',
+        'rarChaseHiV1',
+        'rarChaseHiV2',
+        'rarChaseBgV3',
+        'ascHiV2',
+        'catFracV4',
+        'rgb.catFracV1',
+        'rgb.catFracV2',
+        'catMemV2',
+        'rgb.catMemV1',
+        'elFireV1',
+        'rgb.elFireV2',
+        'elColdV3',
+        'rgb.elColdV3',
+        'rgb.elColdV4',
+        'rgb.elColdV5',
+        'elLightV1',
+        'elLightV2',
+        'elChaosV1',
+        'rgb.elChaosV2',
+        'dmgHitV1',
+        'dmgHitV2',
+        'dmgCritV1',
+        'dmgCritV2',
+        'rgb.dmgHurtV1',
+        'dmgGainV2',
+        'dmgMinorV3',
+        'dmgMinorV4',
+        'dmgMinorV5',
+        'dmgMinorV7',
+        'dmgMinorV8',
+        'rgb.fxRender1',
+        'rgb.fxRender2',
+        'fxRender3',
+        'fxGame1',
+        'fxMech1',
+        'fxMech2',
+        'fxMech3',
+        'fxCombat1',
+        'dmgGainV1',
+        'dmgGainV3',
+        'dmgMinorV2'
+      ]
+        .filter(k => new RegExp(`PAL\\.${k.replace('.', '\\.')}\\b`).test(bmJs))
+        .concat(
+          /PAL\.rgb\.badV1\b/.test(bmJs.replace(/`rgba\(\$\{PAL\.rgb\.badV1\},` : `rgba\(\$\{PAL\.rgb\.hl\},`/, ''))
+            ? ['rgb.badV1']
+            : []
+        ),
+      bmAdd = [
+        '--el-chaos-rgb: 233, 124, 207;',
+        '--tx-empty-rgb: 157, 153, 149;',
+        '--rar-magic-bg-rgb: 35, 35, 43;',
+        '--rar-rare-bg-rgb: 38, 36, 27;'
+      ];
+    ok(
+      '顏色總表第 4 步：§3／§4 的舊 token 在 js/ 已沒有使用處（touch.js:54 的 390 取消色照 §5 範圍外留著）；補 4 個 -rgb 伴生；8 個沒人引用的舊 token 已刪',
+      !bmOld.length && !bmGone.length && bmAdd.every(t => bmCss.includes('  ' + t)),
+      JSON.stringify({ bmOld, bmGone })
+    );
+    ok(
+      '顏色總表列 41／32／20：能量球讀 --chg-e／--good／--chg-p，先畫半徑 5 的 --ring-edge 再畫半徑 4',
+      R.includes('const CHGC = { e: PAL.chgE, f: PAL.good, p: PAL.chgP };') &&
+        /\[PAL\.ringEdge, 5\],\s*\[c, 4\]/.test(R)
+    );
+    const bmFl = R.slice(R.indexOf('function foeFlush'), R.indexOf('function foeEdge')),
+      bmTc = R.slice(R.indexOf('function teleCircle'), R.indexOf('function shadow'));
+    ok(
+      '第 5 步 teleCircle／敵方地面：外圈記在 a、進度內圈與敵方地面記在 b；離屏先畫 a、整塊 destination-out 1−0.30/0.55、再畫 b，整層 0.55 貼一次（外 0.30＋內 0.357＝0.55，重疊取最大不疊加），只處理外接框',
+      /for \(const f of FOE\.a\) f\(g\);[\s\S]*?g\.globalCompositeOperation = 'destination-out';\s*g\.globalAlpha = 1 - 0\.3 \/ 0\.55;\s*g\.fillRect\(x, y, w, h\);[\s\S]*?for \(const f of FOE\.b\) f\(g\);[\s\S]*?CX\.globalAlpha = 0\.55;\s*CX\.drawImage\(g\.canvas, x, y, w, h, x, y, w, h\);[\s\S]*?g\.clearRect\(x, y, w, h\);/.test(
+        bmFl
+      ) &&
+        /\['a', r\],\s*\['b', r \* clamp\(f, 0, 1\)\]/.test(bmTc) &&
+        !/rgba\(/.test(bmTc) &&
+        /foeFill\('b', g\.x, g\.y, g\.r, c => \{\s*c\.globalAlpha = f;\s*c\.fillStyle = C\.col;/.test(Mc) &&
+        !/0\.36/.test(Mc.slice(Mc.indexOf('function drawMech'), Mc.indexOf('for (const c of G.corpses)'))) &&
+        /CX\.globalAlpha = 0\.14 \* f;/.test(Mc) &&
+        /foeFlush\(\);/.test(R.slice(R.indexOf('for (const t of G.tele) teleCircle'), R.indexOf('愛的紅線')))
+    );
+    ok(
+      '第 5 步預警框（C24／T2／T3）：先 5 px 不透明 --ring-edge 再 3 px --enemy-tel α0.9 虛線 [10, 6]、中央菱形；王閃現 α 0.7＋0.2f',
+      /lineWidth = 5;\s*CX\.strokeStyle = PAL\.ringEdge;\s*CX\.stroke\(\);\s*CX\.setLineDash\(\[10, 6\]\);\s*CX\.globalAlpha = 0\.9;\s*CX\.lineWidth = 3;\s*CX\.strokeStyle = PAL\.enemyTel;/.test(
+        R.slice(R.indexOf('function foeEdge'), R.indexOf('function foeIcon'))
+      ) && /globalAlpha = 0\.7 \+ 0\.2 \* f;/.test(R)
+    );
+    ok(
+      '第 5 步我方特效 --fx-own 9%（總表 B1、列 42／158）：ownFx 是 0.09×a、黑邊是 --ring-edge；隕石落點、雷暴範圍、震地、完美閃避都走 ownFx',
+      /CX\.globalAlpha = 0\.09 \* a;/.test(R.slice(R.indexOf('function ownFx'), R.indexOf('const FXI'))) &&
+        (R.match(/ownFx\(/g) || []).length === 8 &&
+        /if \(p\.wet\) ownFx\(a, 1, 0\);/.test(R)
+    );
+    ok(
+      '差距清單 C1／C2／C4、E1、E2：暴擊「暴擊 」前綴＋2 px --dmg-outline；元素數字 --dmg-hit；敵人畫 1 px --enemy-rim 剪影；王腳圈 4 px 黑＋3 px --enemy-tel α0.9',
+      /n\.c === 'crit'\s*\?\s*'暴擊 ' \+ numT\(n\.v\)/.test(R) &&
+        /CX\.lineWidth = n\.c === 'crit' \? 2 : 4;/.test(R) &&
+        /n\.c === 'crit' \? PAL\.dmgOutline :/.test(R) &&
+        /fire: \[PAL\.dmgHit, 15\],\s*cold: \[PAL\.dmgHit, 15\],\s*light: \[PAL\.dmgHit, 15\],\s*chaos: \[PAL\.dmgHit, 15\],/.test(
+          R
+        ) &&
+        /spr\(D\.sp, m\.x \+ wind, m\.y - fly, m\.sz, \{ \.\.\.o, rim: PAL\.enemyRim \}\);/.test(R) &&
+        /if \(m\.boss\) footRing\(m\.x, m\.y, m\.r \* 1\.4, PAL\.enemyTel, 0\.9, 3, 4/.test(R) &&
+        PAL.dmgOutline === '#000000'
     );
   }
   /* (5a) 王印拼條第一次用到才載：橫幅先畫出空 span.ic，圖載好（artRepaint）要補畫橫幅 */
@@ -12292,7 +12468,7 @@ const ASC_COMBOS = `const combos = k => {
     let warn = 0, pill = 0;
     hudWarn = () => warn++; lvPill = () => pill++; sfx = () => {}; sheetSync = () => {}; PORT = () => false;
     gainXp(xpNeed(1) + xpNeed(2));
-    r.lv = [S.lv, pill, warn, G.nums.length, G.fx.filter(o => o.k === 'ring' && o.col === '#ffd166').length, G.fx.filter(o => o.k === 'lvup' || o.n === 'lvup').length];
+    r.lv = [S.lv, pill, warn, G.nums.length, G.fx.filter(o => o.k === 'ring' && o.col === PAL.dmgCrit).length, G.fx.filter(o => o.k === 'lvup' || o.n === 'lvup').length];
     return r;
   })()`);
   ok(

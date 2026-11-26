@@ -445,7 +445,7 @@ function bDeco(W, H) {
         CX.beginPath();
         CX.ellipse(x, y - 4, 9, 10, 0, 0, TAU);
         CX.fill();
-        CX.fillStyle = `rgba(${PAL.rgb.sceneDetail28},${0.55 * fk})`;
+        CX.fillStyle = `rgba(${PAL.rgb.sceneWindow},${0.55 * fk})`;
         CX.beginPath();
         CX.ellipse(x, y - 4, 5, 7, 0, 0, TAU);
         CX.fill();
@@ -455,7 +455,7 @@ function bDeco(W, H) {
         CX.fillRect(x - 1, y + 7, 2, 6);
       } else {
         /* 壁上的火盆／冰晶燈／磷火燈 */
-        const col = b === 'ice' ? PAL.rgb.sceneDetail29 : b === 'tomb' ? PAL.rgb.sceneDetail30 : PAL.rgb.sceneDetail31;
+        const col = b === 'ice' ? PAL.rgb.sceneDetail29 : b === 'tomb' ? PAL.rgb.sceneDetail30 : PAL.rgb.sceneFireFlame;
         CX.fillStyle = PAL.sceneDetail32;
         CX.fillRect(x - 6, y, 12, 4);
         CX.fillRect(x - 2, y + 4, 4, 6);
@@ -557,7 +557,7 @@ function bDeco(W, H) {
       CX.lineTo(x, y - 48);
       CX.lineTo(x + 16, y - 38);
       CX.fill();
-      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail56},${0.85 * fk})`;
+      CX.fillStyle = `rgba(${PAL.rgb.sceneWindow},${0.85 * fk})`;
       CX.fillRect(x - 4, y - 35, 8, 8);
     } else if (d.k === 'incense') {
       /* 香爐：三腳銅爐＋三炷香＋煙 */
@@ -572,7 +572,7 @@ function bDeco(W, H) {
       CX.fillRect(x + 9, y - 2, 3, 6);
       CX.fillStyle = PAL.sceneDetail60;
       for (let i = -1; i <= 1; i++) CX.fillRect(x + i * 5, y - 30, 1.5, 16);
-      CX.fillStyle = `rgba(${PAL.rgb.sceneDetail61},${fk})`;
+      CX.fillStyle = `rgba(${PAL.rgb.sceneFireOuter},${fk})`;
       for (let i = -1; i <= 1; i++) CX.fillRect(x + i * 5 - 0.5, y - 31, 2.5, 2);
       for (let i = 0; i < 3; i++) {
         const t = (G.t * 0.35 + i / 3) % 1;
@@ -610,7 +610,8 @@ function bLights(dg, ox, oy) {
 }
 let GLOW = null;
 function bGlow(ox, oy) {
-  const c = BIO().light;
+  /* 戰場燈籠／火盆／香爐光暈：--scene-lamp-glow 16%（差距清單 F2、M2-36 第 39 行）；營地照舊用場景光色 */
+  const c = G.scene === 'camp' ? BIO().light : PAL.rgb.sceneLampGlow;
   CX.globalCompositeOperation = 'lighter';
   /* 光暈圖只在換場景顏色時畫一次，之後每格放大貼上（每格建漸層太貴） */
   if (!GLOW || GLOW.c !== c) {
