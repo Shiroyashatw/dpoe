@@ -68,6 +68,8 @@
 | 畫面 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
 | battle-hud | `specs/battle-hud/battle-hud.md` | v1.3.6（mumi 16:32；勘誤 17:18；mumi 11/20 17:33 拿掉觀戰鍵；v1.3.4 勘誤 2026-11-21 11:38；v1.3.5 經驗條與格擋弧 2026-11-21 12:11；v1.3.6 能量護盾層／危急紅邊 2026-11-21 12:37，見 battle-hud-6.md） | 現行；v1.3.5 能量護盾未定、舊低血紅邊條件已取代；v1.3.4「經驗條與格擋弧位置待草稿定案」已取代；正式素材挑定見 art-picks/battle-hud-v1.3/；光環第二批 12 個待定；開發仍暫停 |
+| 戰鬥地板程序鋪磚 | `specs/battle-floor/procedural-floor-impl.md` | 2026-11-26 | 現行（mumi 12:12：營地示意圖程序地板接到實機；實作規格，待工程師） |
+| 戰鬥場上指示對圖差距 | `specs/battle-floor/battle-mockup-gap-list.md` | 2026-11-26 | 現行（mumi 12:14：只列敵人外框／標記／虛框與危險圖示、暴擊、預警圈、地板；不列面板 HUD） |
 | 光環欄用語 | `specs/battle-hud/terms-aura.md` | v0.6.36 | 現行（已收進名詞表 v0.6.36） |
 | 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分取代：掛機條版面與光柱外觀 → specs/battle-hud/；掛機條營地訊號（M2-camp-cards §7）、橫幅／王倒下（M2-33-3b、M2-23 §6）、倒下（M2-40 §8）仍現行；觀戰鈕已拿掉（mumi 11/20 17:33 拿掉觀戰鍵） |

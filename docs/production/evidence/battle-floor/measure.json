@@ -1,0 +1,488 @@
+{
+  "calib": {
+    "mu_normal": 27.199,
+    "mu_light": 36.893,
+    "sd_normal": 1.644,
+    "sd_light": 1.513,
+    "threshold": 32.046,
+    "false_neg": 0.0,
+    "false_pos": 0.0
+  },
+  "ref_crop": {
+    "source": "/workspace/d2final/panels/bg_battle_1280_noidle.png",
+    "file": "ref/floor-384x256.png",
+    "box": [
+      0,
+      356,
+      384,
+      612
+    ],
+    "grid": "tiles originate at y=36 (render_final.py:116-118 desk top=36), 64px cells",
+    "note": "右側仍切到掉落牌一角，對圖避開右 64 px；此裁切 24 格中沒有過門檻淺磚",
+    "px_share": {
+      "ground": 0.8112,
+      "mid": 0.165,
+      "light": 0.0238
+    },
+    "n_cells": 24,
+    "cell_Lstar_min": 22.02,
+    "cell_Lstar_max": 29.47,
+    "cell_Lstar_range": 7.45,
+    "light_tile_share": 0.0,
+    "light_tile_n": 0,
+    "threshold": 32.046
+  },
+  "bg_band": {
+    "box": [
+      0,
+      100,
+      1280,
+      676
+    ],
+    "n": 180,
+    "light_share": 0.0944,
+    "central_n": 60,
+    "central_light": 0.1333,
+    "outer_n": 120,
+    "outer_light": 0.075,
+    "Lmin": 20.98,
+    "Lmax": 40.89,
+    "px_share": {
+      "ground": 0.6767,
+      "mid": 0.2119,
+      "light": 0.1114
+    },
+    "expected_4_12": 0.0912
+  },
+  "gen_s1202": {
+    "Lmin": 25.54,
+    "Lmax": 40.06,
+    "Lrange": 14.51,
+    "detected_light": 0.1667,
+    "detected_n": 4,
+    "true_light": 0.1667
+  },
+  "gen_s5201": {
+    "Lmin": 25.72,
+    "Lmax": 40.56,
+    "Lrange": 14.85,
+    "detected_light": 0.1667,
+    "detected_n": 4,
+    "true_light": 0.1667
+  },
+  "perf": {
+    "sec_per_64": 0.08,
+    "ms_per_tile": 1.251,
+    "mem_32rgba_bytes": 4096,
+    "N32_bytes": 131072,
+    "N48_bytes": 196608
+  },
+  "recommended_single_rate": {
+    "rate": 0.0944,
+    "why": "無盡戰場不能用視窗相對的中央／外圍。以營地底圖在 y=36+64 網格上、用已知淺磚／普通磚 L* 中點門檻測得的淺磚佔比為起點（待實測）。預期可見佔比約此值，且畫面中央 60% 內應 ≤ 10%（M2-36 第 24 行）。"
+  },
+  "preview": {
+    "path": "preview-1280x720-示意.png",
+    "rate_used": 0.0944,
+    "true_light": 0.075,
+    "detected_light": 0.0773,
+    "n_full_cells": 220,
+    "Lmin": 23.77,
+    "Lmax": 39.54,
+    "Lrange": 15.78
+  },
+  "preview_Cgt40": {
+    "frac": 0.0,
+    "maxC": 5.93,
+    "medianC": 3.94
+  },
+  "sample_light_mean": "#5f5954",
+  "contrasts": [
+    {
+      "item": "token ground",
+      "hex": "#46413c",
+      "L": 27.87,
+      "C": 3.97,
+      "h": 73.8,
+      "Cgt40": false
+    },
+    {
+      "item": "token mid",
+      "hex": "#33302b",
+      "L": 20.01,
+      "C": 3.69,
+      "h": 86.0,
+      "Cgt40": false
+    },
+    {
+      "item": "token light",
+      "hex": "#615b56",
+      "L": 39.06,
+      "C": 4.01,
+      "h": 69.1,
+      "Cgt40": false
+    },
+    {
+      "item": "token enemy-tel",
+      "hex": "#ff3d7f",
+      "L": 58.16,
+      "C": 75.58,
+      "h": 7.1,
+      "Cgt40": true
+    },
+    {
+      "item": "token enemy-rim",
+      "hex": "#fbbdbb",
+      "L": 82.11,
+      "C": 24.07,
+      "h": 23.8,
+      "Cgt40": false
+    },
+    {
+      "item": "token fx-own",
+      "hex": "#c6c6c6",
+      "L": 79.88,
+      "C": 0.01,
+      "h": 24.6,
+      "Cgt40": false
+    },
+    {
+      "item": "token el-light",
+      "hex": "#f3f9a4",
+      "L": 95.78,
+      "C": 42.78,
+      "h": 110.0,
+      "Cgt40": true
+    },
+    {
+      "item": "token dmg-crit",
+      "hex": "#f2cb9b",
+      "L": 83.94,
+      "C": 29.98,
+      "h": 76.1,
+      "Cgt40": false
+    },
+    {
+      "item": "token rar-rare",
+      "hex": "#fbe53a",
+      "L": 90.25,
+      "C": 79.97,
+      "h": 96.9,
+      "Cgt40": true
+    },
+    {
+      "item": "token rar-unique",
+      "hex": "#fa8915",
+      "L": 68.22,
+      "C": 79.95,
+      "h": 62.8,
+      "Cgt40": true
+    },
+    {
+      "item": "token rar-chase",
+      "hex": "#0cf6ee",
+      "L": 88.05,
+      "C": 49.8,
+      "h": 191.4,
+      "Cgt40": true
+    },
+    {
+      "item": "enemy-rim ÷ scene-light",
+      "fg": "#fbbdbb",
+      "bg": "#615b56",
+      "contrast": 4.173,
+      "thresh": 3,
+      "ok": true,
+      "note": "框對底 ≥ 3（M2-36 第 189 行）"
+    },
+    {
+      "item": "enemy-rim ÷ (tel 55% on light)",
+      "fg": "#fbbdbb",
+      "bg": "#b84a6d",
+      "contrast": 3.09,
+      "thresh": 3,
+      "ok": true,
+      "note": "C25：淺磚上 rim 對填色 ≥ 3"
+    },
+    {
+      "item": "tel 55% on light ÷ light",
+      "fg": "#b84a6d",
+      "bg": "#615b56",
+      "contrast": 1.35,
+      "thresh": null,
+      "ok": null,
+      "note": "敵方填色可見度"
+    },
+    {
+      "item": "tel 30% on light ÷ light",
+      "fg": "#905262",
+      "bg": "#615b56",
+      "contrast": 1.137,
+      "thresh": null,
+      "ok": null,
+      "note": "teleCircle 外圈"
+    },
+    {
+      "item": "tel 35.7% on light ÷ light",
+      "fg": "#995065",
+      "bg": "#615b56",
+      "contrast": 1.175,
+      "thresh": null,
+      "ok": null,
+      "note": "teleCircle 內圈（不疊在 30% 上）"
+    },
+    {
+      "item": "感電 14% on light ÷ light",
+      "fg": "#757161",
+      "bg": "#615b56",
+      "contrast": 1.367,
+      "thresh": null,
+      "ok": null,
+      "note": "C24 已接受例外（示意量表 1.367 vs 敵方 1.350），不改值"
+    },
+    {
+      "item": "fx-own 9% on light ÷ light",
+      "contrast": 1.161,
+      "note": "峰值須 ≤ 同磚預警 55% 對比"
+    },
+    {
+      "item": "(fx-own 9% 對比) ÷ (tel 55% 對比)",
+      "contrast": 0.86,
+      "ok": true,
+      "note": "fx=1.161 tel=1.350"
+    },
+    {
+      "item": "rare beam ÷ light",
+      "fg": "#fbe53a",
+      "bg": "#615b56",
+      "contrast": 5.215,
+      "thresh": 3,
+      "ok": true,
+      "note": "光柱對底 ≥ 3"
+    },
+    {
+      "item": "unique beam ÷ light",
+      "fg": "#fa8915",
+      "bg": "#615b56",
+      "contrast": 2.757,
+      "thresh": 3,
+      "ok": false,
+      "note": "光柱對底 ≥ 3"
+    },
+    {
+      "item": "chase beam ÷ light",
+      "fg": "#0cf6ee",
+      "bg": "#615b56",
+      "contrast": 4.916,
+      "thresh": 3,
+      "ok": true,
+      "note": "光柱對底 ≥ 3"
+    },
+    {
+      "item": "enemy-rim ÷ scene-ground",
+      "fg": "#fbbdbb",
+      "bg": "#46413c",
+      "contrast": 6.292,
+      "thresh": 3,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "item": "enemy-rim ÷ (tel 55% on ground)",
+      "fg": "#fbbdbb",
+      "bg": "#ac3f61",
+      "contrast": 3.601,
+      "thresh": 3,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "item": "enemy-rim ÷ generated light-tile mean",
+      "fg": "#fbbdbb",
+      "bg": "#5f5954",
+      "contrast": 4.304,
+      "thresh": 3,
+      "ok": true,
+      "note": "用實際生成淺磚平均色，非平坦 token"
+    },
+    {
+      "item": "enemy-rim ÷ (tel 55% on generated light mean)",
+      "fg": "#fbbdbb",
+      "bg": "#b74a6c",
+      "contrast": 3.112,
+      "thresh": 3,
+      "ok": true,
+      "note": ""
+    },
+    {
+      "item": "感電 14% on generated light mean ÷ tile",
+      "fg": "#746f5f",
+      "bg": "#5f5954",
+      "contrast": 1.374,
+      "thresh": null,
+      "ok": null,
+      "note": ""
+    },
+    {
+      "item": "tel 55% on generated light mean ÷ tile",
+      "fg": "#b74a6c",
+      "bg": "#5f5954",
+      "contrast": 1.383,
+      "thresh": null,
+      "ok": null,
+      "note": ""
+    }
+  ],
+  "composite": {
+    "tel55_on_light": "#b84a6d",
+    "tel30": "#905262",
+    "tel357": "#995065",
+    "own14": "#757161",
+    "fx9": "#6a6560"
+  },
+  "ref_crops": [
+    {
+      "file": "indicators-elite-tel-crit-1280.png",
+      "source": "battle-hud-v13-color-normal-1280x720-clean.png",
+      "box": [
+        430,
+        170,
+        880,
+        430
+      ],
+      "w": 450,
+      "h": 260,
+      "bytes": 46870,
+      "note": "菁英名牌、扇形預警、暴擊 4,812、敵人 1 px 外框；取自 v1.3 normal 1280 clean"
+    },
+    {
+      "file": "crit-number-1280.png",
+      "source": "battle-hud-v13-color-normal-1280x720-clean.png",
+      "box": [
+        430,
+        200,
+        650,
+        290
+      ],
+      "w": 220,
+      "h": 90,
+      "bytes": 12728,
+      "note": "暴擊數字「暴擊 4,812」24 px --dmg-crit、2 px 黑邊"
+    },
+    {
+      "file": "telegraph-fan-1280.png",
+      "source": "battle-hud-v13-color-normal-1280x720-clean.png",
+      "box": [
+        600,
+        270,
+        860,
+        430
+      ],
+      "w": 260,
+      "h": 160,
+      "bytes": 13643,
+      "note": "菁英扇形預警：填 55% --enemy-tel，線 3 px＋外 1 px #000（實線，無危險圖示）"
+    },
+    {
+      "file": "elite-nameplate-1280.png",
+      "source": "battle-hud-v13-color-normal-1280x720-clean.png",
+      "box": [
+        480,
+        160,
+        820,
+        250
+      ],
+      "w": 340,
+      "h": 90,
+      "bytes": 13793,
+      "note": "菁英名牌 --plate-world＋--tx-strong＋16 px 標記"
+    },
+    {
+      "file": "enemy-rim-1280.png",
+      "source": "battle-hud-v13-color-normal-1280x720-clean.png",
+      "box": [
+        150,
+        250,
+        430,
+        430
+      ],
+      "w": 280,
+      "h": 180,
+      "bytes": 12689,
+      "note": "一般敵人 1 px --enemy-rim 外框＋腳底陰影"
+    },
+    {
+      "file": "telegraph-boss-circle-1280.png",
+      "source": "battle-hud-v13-color-boss-1280x720-clean.png",
+      "box": [
+        520,
+        200,
+        900,
+        480
+      ],
+      "w": 380,
+      "h": 280,
+      "bytes": 39974,
+      "note": "王判決圈：橢圓填 55%＋3 px 線＋外 1 px #000"
+    },
+    {
+      "file": "telegraph-ellipse-lowhp-1280.png",
+      "source": "battle-hud-v13-color-lowhp-1280x720-clean.png",
+      "box": [
+        620,
+        300,
+        900,
+        520
+      ],
+      "w": 280,
+      "h": 220,
+      "bytes": 21721,
+      "note": "低血畫面地上橢圓預警（55% 填＋實線）"
+    }
+  ],
+  "tokens": {
+    "ground": {
+      "hex": "#46413c",
+      "L": 27.869,
+      "C": 3.973,
+      "h": 73.84
+    },
+    "mid": {
+      "hex": "#33302b",
+      "L": 20.012,
+      "C": 3.693,
+      "h": 85.95
+    },
+    "light": {
+      "hex": "#615b56",
+      "L": 39.063,
+      "C": 4.01,
+      "h": 69.09
+    }
+  },
+  "ref_crop_has_units": {
+    "source": "/workspace/d2final/panels/bg_battle_1280_noidle.png",
+    "box": [
+      0,
+      292,
+      384,
+      548
+    ],
+    "grid": "tiles originate at y=36 (render_final.py:116-118 desk top=36), 64px cells",
+    "sprite_or_ui_frac": 0.013,
+    "px_share": {
+      "ground": 0.732,
+      "mid": 0.2047,
+      "light": 0.0633
+    },
+    "n_cells": 24,
+    "cell_Lstar_min": 22.02,
+    "cell_Lstar_max": 35.35,
+    "cell_Lstar_range": 13.32,
+    "light_tile_share": 0.0417,
+    "light_tile_n": 1,
+    "threshold": 32.046,
+    "file": "ref/floor-384x256-has-units.png",
+    "note": "先前裁切，上緣有單位，只供看淺磚，不作疊圖主參照"
+  }
+}
