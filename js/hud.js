@@ -718,7 +718,7 @@ function nodeHTML() {
     .join('');
   return `<div class="ph"><b>地點</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="bagf ndst" role="radiogroup" aria-label="星級"><span class="ndst-t">星級</span>${stars}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條<span class="zterm" data-zh="地圖詞" tabindex="0">地圖詞</span> · 越危險、掉越好</span></div>
-  <ul class="ndl">${rows}</ul><p class="ndft">${NODEUI.star ? '星級是全域的，所有地點共用。正在刷的這一輪地圖詞不立刻重抽，下一輪才生效。' : ''}</p>`;
+  <ul class="ndl">${rows}</ul><p class="ndft">${NODEUI.star ? '星級是全域的，所有地點共用。正在刷的這張地圖不立刻重抽地圖詞，下一張才生效。' : ''}</p>`;
 }
 document.addEventListener('scroll', e => e.target.matches && e.target.matches('#pnode .ndl') && nodeFoot(), true);
 /* 清單捲動提示（C01 第 15 項）：上面藏了幾個地點、下面從哪一區起；切過星級後這一行改寫星級說明 */
@@ -1601,7 +1601,7 @@ const ZH = {
   昇華: ['昇華石碑', '長老屋 Lv 7 開，在這裡選昇華；先開兩個，長老屋 Lv 10 再開第 3 個'],
   山海寶盒: ['山海寶盒', '花首領碎片打開殿和王場。倒下的話，碎片不退。'],
   首領碎片: ['首領碎片', '開殿、開王場用的掉落總稱。勾魂令、生死簿都算。數量跟倉庫「特殊物品」同一份。倒下不退。'],
-  地圖詞: ['地圖詞', '這一輪地圖上的危險與報酬。星級越高，抽到的條數越多，怪物更強、掉得更好。同一組只會出一條。']
+  地圖詞: ['地圖詞', '這張地圖上的危險與報酬。星級越高，抽到的條數越多，怪物更強、掉得更好。同一組只會出一條。']
 };
 const ZT = { a: null, t: 0 };
 const zTipHTML = (a, k) =>
