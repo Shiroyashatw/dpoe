@@ -40,8 +40,8 @@ token,附錄 A 分類,舊值（main 1029c43 :root）,新值,M2-36 規格列號,�
 --block-hi,缺 47,（無）,#eaf2f8,123,
 --rar-rare-frame,缺 47,（無）,#ccb72e,138,
 --rar-chase-hi,缺 47,（無）,#8ffbf6,140,
---chg-e,缺 47,（無）,#be88a4,150,
---chg-p,缺 47,（無）,#6fb0f0,150,
+--chg-e,缺 47,（無）,#b6889a,150,(18) mumi 22:19：#be88a4→#b6889a（第 3 步）
+--chg-p,缺 47,（無）,#70b2f2,150,(18) mumi 22:19：#6fb0f0→#70b2f2（第 3 步）
 --hero-ring,缺 47,（無）,#fbf6ef,152,
 --beam-edge,缺 47,（無）,"rgba(0, 0, 0, 0.8)",153,
 --cell-corrupt,缺 47,（無）,#4b1e1e,178,
@@ -119,3 +119,15 @@ token,附錄 A 分類,舊值（main 1029c43 :root）,新值,M2-36 規格列號,�
 --el-phys,missed-same-as,#fff3e0,#fbf9f6,172,同 --tx-strong；附錄 A 漏列，製作人 22:18 確認屬 M2-36
 --mod-mm,missed-same-as,#c79bff,#e97ccf,180,同 --el-chaos；附錄 A 漏列，製作人 22:18 確認屬 M2-36
 --mod-co,missed-same-as,#e0614a,#ff9bba,180,同 --bad；附錄 A 漏列，製作人 22:18 確認屬 M2-36
+--scene-window-rgb,19-companion,（無）,"201, 149, 96",45（-rgb＝hex 換算）,(19) 紅燈籠內光／石燈籠窗要用 rgba，補 --scene-window 的伴生（第 3 步；列在 #210 待裁）
+--chase-bnr,210-ruling-2,"rgba(37, 33, 30, 0.94)",#25211e,—,#210 裁定 2：不透明（M2-34 3a）
+js/maps.js ROUL red,19-usage,PAL.dmgHurt,PAL.catCorr（#ff6066）,§2.1 第 6 點,命運輪盤紅籤；#210 裁定 1
+js/maps.js ROUL black,210-ruling-1,PAL.dmgMinorV9,PAL.borderHi,§2.1 第 6 點,命運輪盤黑籤
+js/maps.js ROUL gold,210-ruling-1,PAL.rarRareV1,PAL.dmgCrit,§2.1 第 6 點,命運輪盤金籤
+js/maps.js ROUL green,210-ruling-1,PAL.goodV6,PAL.good,§2.1 第 6 點,命運輪盤綠籤
+js/maps.js ROUL blue,210-ruling-1,PAL.elColdV4,PAL.elCold,§2.1 第 6 點,命運輪盤藍籤
+js/maps.js ROUL purple,19-usage,PAL.elChaos,PAL.catCal（#bd7aff）,§2.1 第 6 點,命運輪盤紫籤
+js/biome.js 紅燈籠內光,19-usage,PAL.rgb.sceneDetail28,PAL.rgb.sceneWindow,§2.1 第 3 點,α 0.55×fk 不變
+js/biome.js 壁上火盆（ice、tomb 以外）,19-usage,PAL.rgb.sceneDetail31,PAL.rgb.sceneFireFlame,§2.1 第 1 點,α 0.85×fk 不變；ice／tomb 分支不動
+js/biome.js 石燈籠窗,19-usage,PAL.rgb.sceneDetail56,PAL.rgb.sceneWindow,§2.1 第 3 點,α 0.85×fk 不變
+js/biome.js 香頭火點,19-usage,PAL.rgb.sceneDetail61,PAL.rgb.sceneFireOuter,§2.1 第 2 點,α fk 不變

@@ -20,7 +20,7 @@
   --sheet-bg: rgba(37, 33, 30, 0.94);
   --panel-rgb: 37, 33, 30;
   --panel-rgb-v2: 38, 40, 45;
-  --chase-bnr: rgba(37, 33, 30, 0.94);
+  --chase-bnr: #25211e;
   /* 疊層 */
   --scrim-rgb: 10, 7, 4;
   --hl-rgb: 225, 220, 215;
@@ -415,13 +415,14 @@
   --sel-press: #3d332a;
   --paper: #e3dcd3;
   --rar-chase-hi: #8ffbf6;
-  --chg-e: #be88a4;
-  --chg-p: #6fb0f0;
+  --chg-e: #b6889a;
+  --chg-p: #70b2f2;
   --hero-ring: #fbf6ef;
   --beam-edge: rgba(0, 0, 0, 0.8);
   --scene-fire-core-rgb: 255, 216, 144;
   --scene-fire-flame-rgb: 226, 85, 44;
   --scene-fire-outer-rgb: 196, 61, 36;
+  --scene-window-rgb: 201, 149, 96;
   --scene-cloth-red-rgb: 125, 74, 62;
   --scene-linen-rgb: 179, 165, 146;
   --scene-smoke-rgb: 143, 135, 126;

@@ -2938,7 +2938,7 @@ const ASC_COMBOS = `const combos = k => {
       j(g.chipBl) === '[100,50,-30,-30,-30,-30,-30,0]' &&
       j(g.chipOff) === '[0,0,0]' &&
       !g.chipKeys.length &&
-      j(g.states) === '[[2,1,true],"rou_red:#ff5a5a,rou_blue:#5ad1ff"]' &&
+      j(g.states) === '[[2,1,true],"rou_red:#ff6066,rou_blue:#ade2f9"]' &&
       g.statesOff === 0,
     j([g.mm, g.chipRP, g.chipBG, g.chipBl, g.chipOff, g.chipKeys, g.states, g.statesOff])
   );
@@ -12292,7 +12292,7 @@ const ASC_COMBOS = `const combos = k => {
     let warn = 0, pill = 0;
     hudWarn = () => warn++; lvPill = () => pill++; sfx = () => {}; sheetSync = () => {}; PORT = () => false;
     gainXp(xpNeed(1) + xpNeed(2));
-    r.lv = [S.lv, pill, warn, G.nums.length, G.fx.filter(o => o.k === 'ring' && o.col === '#ffd166').length, G.fx.filter(o => o.k === 'lvup' || o.n === 'lvup').length];
+    r.lv = [S.lv, pill, warn, G.nums.length, G.fx.filter(o => o.k === 'ring' && o.col === PAL.dmgCrit).length, G.fx.filter(o => o.k === 'lvup' || o.n === 'lvup').length];
     return r;
   })()`);
   ok(
