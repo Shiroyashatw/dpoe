@@ -258,15 +258,16 @@ const OFF_MIN = 5 * 60e3;
 /* B3 暫停補算（M2-12 第二段 §0.1）：在營地場景、試招場的時間回戰場時一次補算（同離線結算的估法，不設 5 分門檻）；
    打倒王次數照加、靈魂由 killMat 加進 SES；<10 秒不出那一行。假設：件數＝拿到的通貨個數（離線估法不掉裝備），◆＝稀有通貨個數 */
 const CAMP_LINE = 10e3;
-function campBack() {
+function campBack(tt) {
   const t = Date.now() - SES.away;
-  SES.away = 0;
+  SES.away = SES.asc = 0;
   const o = offSettle(t, 0);
   if (!o) return;
   const r = o.cur.filter(([c]) => rareCur(c)).reduce((a, [, v]) => a + v, 0);
   SES.rounds += o.won;
   SES.cur += r;
-  if (t >= CAMP_LINE) campLine({ soul: o.soul, n: o.cur.reduce((a, [, v]) => a + v, 0), r, ch: o.here ? o.chase : 0 });
+  if (t >= CAMP_LINE)
+    campLine({ soul: o.soul, n: o.cur.reduce((a, [, v]) => a + v, 0), r, ch: o.here ? o.chase : 0 }, tt);
 }
 /* 離線上限照倉房（campN('off')：1／4／8／12 小時） */
 const offMax = () => campN('off') * 3600e3;
@@ -2181,11 +2182,11 @@ function updShots(dt) {
 /* ---------- 主迴圈 ---------- */
 let last = 0;
 /* 世界停住嗎（Q9 的共用開關，企劃書第 9 節）：確認卡、倒下、技能挑選、天賦樹一律停；手動模式開任何面板也停（M1-10）；
-   自動模式開一般面板照打。停住時離線計時照跑 */
+   自動模式開一般面板照打；昇華石碑跟天賦樹一樣停（ascend-spec §0）。停住時離線計時照跑 */
 const skPicking = () => PANEL.skill && PICKV.includes(SKUI.view);
 /* 手動模式時離線結算（M2-12 §7）開著也算面板：世界停，收下才接著打（M2-25） */
 const worldPaused = () =>
-  !!G.ask || G.state === 'dead' || TREE.open || skPicking() || (!S.auto && (anyPanel() || OFFC.on));
+  !!G.ask || G.state === 'dead' || TREE.open || PANEL.asc || skPicking() || (!S.auto && (anyPanel() || OFFC.on));
 function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
