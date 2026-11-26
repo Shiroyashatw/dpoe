@@ -641,6 +641,80 @@ async function floor(b) {
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
+/* dpoe-battle-mockup-1126 第 5 步（顏色總表 §1-6、C25、3.2）：在真的畫面上量敵方填色的合成 α——
+   在 foeFlush 貼完那一刻讀同一點有／沒有預警與敵方地面的像素反推：只有外圈 0.30、兩個外圈重疊仍 0.30（不疊加）、
+   內圈／敵方地面／外圈＋地面 0.55；任何一點都不超過 0.55。我方元素地面 14% 那一點不變 */
+async function foe(b) {
+  const p = await open(b, { viewport: { width: 1280, height: 720 } });
+  const r = await p.evaluate(() => {
+    proSkip();
+    S.auto = 0;
+    runNode(TRUNK_K[0]);
+    G.mobs.length = G.tele.length = G.ground.length = G.fx.length = G.nums.length = 0;
+    G.waves = [];
+    G.bossOut = 1;
+    G.cam.x = P.x;
+    G.cam.y = P.y;
+    const ax = P.x + 140,
+      ay = P.y + 10,
+      W = IW / ZOOM,
+      H = cvH() / ZOOM,
+      scr = (x, y) => [(x + Math.round(W / 2 - G.cam.x)) * ZOOM * DPR, (y + Math.round(H / 2 - G.cam.y)) * ZOOM * DPR],
+      pts = {
+        outer: [ax - 75, ay],
+        outerOuter: [ax + 42, ay - 70],
+        innerInner: [ax + 42, ay],
+        outerGround: [ax - 10, ay + 80],
+        ground: [ax - 10, ay + 175],
+        own: [ax - 330, ay]
+      },
+      read = () =>
+        Object.fromEntries(
+          Object.entries(pts).map(([k, q]) => {
+            const [x, y] = scr(...q);
+            return [k, [...CX.getImageData(Math.round(x), Math.round(y), 1, 1).data.slice(0, 3)]];
+          })
+        ),
+      ff = window.foeFlush;
+    let got;
+    window.foeFlush = () => (ff(), (got = read()));
+    G.ground.push({ k: 'gas', x: ax - 330, y: ay, r: 80, dur: 99, t: 0 });
+    draw();
+    const base = got;
+    G.tele.push({ x: ax, y: ay, r: 95, t: 0.5, dur: 1 }, { x: ax + 85, y: ay, r: 95, t: 0.5, dur: 1 });
+    G.ground.push({ k: 'corrupt', side: 'm', x: ax - 10, y: ay + 120, r: 96, dur: 99, t: 0, v: 1 });
+    draw();
+    window.foeFlush = ff;
+    const on = got,
+      col = { tel: hex2rgb(PAL.enemyTel), gnd: hex2rgb(GROUND.corrupt.col) },
+      a = (k, c) => {
+        const i = [0, 1, 2].reduce((m, j) => (Math.abs(c[j] - base[k][j]) > Math.abs(c[m] - base[k][m]) ? j : m), 0);
+        return +((on[k][i] - base[k][i]) / (c[i] - base[k][i])).toFixed(3);
+      };
+    return {
+      outer: a('outer', col.tel),
+      outerOuter: a('outerOuter', col.tel),
+      innerInner: a('innerInner', col.tel),
+      outerGround: a('outerGround', col.gnd),
+      ground: a('ground', col.gnd),
+      ownSame: base.own.join() === on.own.join()
+    };
+  });
+  const near = (v, t) => Math.abs(v - t) <= 0.01;
+  ok(
+    `敵方填色合成：外圈 ${r.outer}、兩外圈重疊 ${r.outerOuter}（0.30，不疊加）；內圈重疊 ${r.innerInner}、外圈＋敵方地面 ${r.outerGround}、敵方地面 ${r.ground}（0.55）`,
+    near(r.outer, 0.3) &&
+      near(r.outerOuter, 0.3) &&
+      near(r.innerInner, 0.55) &&
+      near(r.outerGround, 0.55) &&
+      near(r.ground, 0.55) &&
+      Math.max(r.outer, r.outerOuter, r.innerInner, r.outerGround, r.ground) <= 0.555 &&
+      r.ownSame,
+    JSON.stringify(r)
+  );
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
+  await p.context().close();
+}
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   if (!ONLY || ONLY === 'flow') await flow(b);
@@ -648,6 +722,7 @@ async function floor(b) {
   if (!ONLY || ONLY === 'patrol') await patrol(b);
   if (!ONLY || ONLY === 'ses') await ses(b);
   if (!ONLY || ONLY === 'floor') await floor(b);
+  if (!ONLY || ONLY === 'foe') await foe(b);
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '世界地圖實測全部通過');
   process.exit(bad ? 1 : 0);

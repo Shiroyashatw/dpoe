@@ -184,8 +184,9 @@ function artIconURL(n, px) {
   return u;
 }
 /* 回傳正方形畫布（圖貼底置中、留 1 格邊）；還沒載好時回傳空白（不快取） */
+/* white：真值＝白色剪影（閃白）；字串＝那個顏色的剪影（敵人外框 --enemy-rim） */
 function artSprite(name, white) {
-  const key = name + (white ? '|w' : '');
+  const key = name + (white ? '|' + white : '');
   let c = SPC.get(key);
   if (c) return c;
   const a = artImg(name.slice(2)),
@@ -203,7 +204,7 @@ function artSprite(name, white) {
   x.drawImage(im, sx, sy, w, h, fl((N - w) / 2), N - 1 - h, w, h);
   if (white) {
     x.globalCompositeOperation = 'source-in';
-    x.fillStyle = '#fff';
+    x.fillStyle = typeof white === 'string' ? white : '#fff';
     x.fillRect(0, 0, N, N);
   }
   SPC.set(key, c);

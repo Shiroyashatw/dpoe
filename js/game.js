@@ -613,7 +613,7 @@ function spawnWave() {
       const p = floorNear(c.x, c.y, 0, 70, 20) || c;
       spawnMob(MOBS[n], p.x, p.y, pk, elite && j === 0).aggro = 1;
     });
-    fx({ k: 'ring', x: c.x, y: c.y, r: 60, dur: 0.4, col: PAL.rarNormalV2 });
+    fx({ k: 'ring', x: c.x, y: c.y, r: 60, dur: 0.4, col: PAL.enemyRim });
   }
   if (G.dream && !G.fdB && G.waveN === 2) {
     const c = edge(),
@@ -1101,7 +1101,7 @@ function killMob(m) {
   m.hp = 0;
   const t = G.mapT;
   fx({ k: 'die', x: m.x, y: m.y, sp: m.D.sp, sz: m.sz, dur: 0.45, flip: m.x > P.x });
-  sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? PAL.fxOwn : PAL.rarNormalV2);
+  sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? PAL.fxOwn : PAL.txDim);
   mobGround(m);
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
   if (m.summoned) return;
@@ -1548,11 +1548,11 @@ function mobStrike(m) {
         o.owner = m;
         o.summoned = o.aggro = 1;
       }
-    fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.35, col: PAL.elChaosV1, sh: 'dark' });
+    fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.35, col: PAL.enemyTel, sh: 'dark' });
     recover(m, 0.5);
   } else if (D.ai === 'bomb') {
     /* 自爆：死掉但不給經驗與掉寶，只算首領進度 */
-    fx({ k: 'ring', x: m.x, y: m.y, r: D.boom, dur: 0.35, col: PAL.elFireV1, sh: 'boom' });
+    fx({ k: 'ring', x: m.x, y: m.y, r: D.boom, dur: 0.35, col: PAL.enemyTel, sh: 'boom' });
     sfx('slam');
     mobArea(m, m.x, m.y, D.boom, m.dmg, true);
     m.hp = 0;
@@ -1561,7 +1561,7 @@ function mobStrike(m) {
   } else if (D.ai === 'slam') {
     const x = m.x + Math.cos(m.ang) * 55,
       y = m.y + Math.sin(m.ang) * 55;
-    fx({ k: 'ring', x, y, r: 95, dur: 0.3, col: PAL.elFireV1, sh: 'boom' });
+    fx({ k: 'ring', x, y, r: 95, dur: 0.3, col: PAL.enemyTel, sh: 'boom' });
     mobArea(m, x, y, 95, m.dmg, true);
     recover(m, 0.6);
   }
@@ -1726,7 +1726,7 @@ function bossAI(m, dt) {
       w.x += Math.cos(a) * 120 * dt;
       w.y += Math.sin(a) * 120 * dt;
       if (Math.random() < 0.5)
-        fx({ k: 'ring', x: w.x + rnd(-10, 10), y: w.y + rnd(-10, 10), r: rnd(20, 45), dur: 0.35, col: PAL.hlV5 });
+        fx({ k: 'ring', x: w.x + rnd(-10, 10), y: w.y + rnd(-10, 10), r: rnd(20, 45), dur: 0.35, col: PAL.enemyTel });
       if (Math.hypot(P.x - w.x, P.y - w.y) < 55 + P.r) {
         moveBody(P, Math.cos(a) * 160 * dt, Math.sin(a) * 160 * dt);
         if (!(w.h > G.t)) (w.h = G.t + 0.5), mobHit(m, P, m.dmg * 0.4);
@@ -1744,7 +1744,7 @@ function bossAI(m, dt) {
         y: R.y + rnd(-0.6, 0.6) * R.r,
         r: 8,
         dur: 0.3,
-        col: PAL.dodgeVignetteV2
+        col: PAL.enemyTel
       });
     if (Math.hypot(P.x - R.x, (P.y - R.y) / 0.75) < R.r) {
       drench(P, 1);
@@ -1845,7 +1845,7 @@ function bossAI(m, dt) {
             const r = d * 0.24;
             const x = m.x + Math.cos(a) * d,
               y = m.y + Math.sin(a) * d;
-            if (safe.has(i)) fx({ k: 'ring', x, y, r, dur: m.t, col: PAL.fxGame1 });
+            if (safe.has(i)) fx({ k: 'ring', x, y, r, dur: m.t, col: PAL.good });
             else G.tele.push({ x, y, r, t: 0, dur: m.t, dmg: m.dmg * 1.2, src: m, el: ZODIAC[i].el });
           }
         }
@@ -1901,16 +1901,16 @@ function bossAI(m, dt) {
           const o = spawnMob(MOBS[m.D.call], m.x + rnd(-90, 90), m.y + rnd(-90, 90), 99, false);
           o.summoned = o.aggro = 1;
         }
-        fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.35, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.35, col: PAL.enemyTel, sh: 'dark' });
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'nova') {
         const grp = {};
         for (let i = 0; i < NOVA_N - NOVA_GAP; i++) foeShot(m, novaAng(m, i), 260, m.dmg * 0.8, grp);
         bossRec(m, 0.7, rage);
       } else if (m.pat === 'blink') {
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.enemyTel, sh: 'dark' });
         if (!(m.ail.pinT > G.t)) (m.x = m.tx), (m.y = m.ty);
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.enemyTel, sh: 'dark' });
         /* 落地接一下揮爪（畫面照揮爪的預警） */
         m.pat = 'swipe';
         m.ang = angTo(m, T);
@@ -1934,7 +1934,7 @@ function bossAI(m, dt) {
         bossRec(m, 0.5, rage);
       } else if (m.pat === 'unstop') {
         m.unstopT = G.t + 5;
-        fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: PAL.progHiV2 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: PAL.enemyRim });
         hudWarn(`${m.D.n}橫衝直撞：5 秒內免疫擊退與定身`);
         bossRec(m, 0.2, rage);
       } else if (m.pat === 'chaosjump') {
@@ -1942,7 +1942,7 @@ function bossAI(m, dt) {
           nx = T.x + Math.cos(a) * 150,
           ny = T.y + Math.sin(a) * 150;
         if (!isWall(nx, ny) && !(m.ail.pinT > G.t)) (m.x = nx), (m.y = ny);
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.enemyTel, sh: 'dark' });
         G.tele.push({ x: m.x, y: m.y, r: 95, t: 0, dur: 0.5 * rage, dmg: m.dmg, src: m, el: 'chaos' });
         m.cj = (m.cj || 3) - 1;
         if (m.cj > 0) (m.st = 'wind'), (m.t = 0.45 * rage);
@@ -1963,7 +1963,7 @@ function bossAI(m, dt) {
         bossRec(m, 0.4, rage);
       } else if (m.pat === 'dread') {
         m.dreadT = G.t + 3.5;
-        fx({ k: 'ring', x: m.x, y: m.y, r: 170, dur: 3.5, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 170, dur: 3.5, col: PAL.enemyTel, sh: 'dark' });
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'tether') {
         m.tethers = [0, 1].map(() => {
@@ -1992,7 +1992,7 @@ function bossAI(m, dt) {
             nx = m.x + Math.cos(a) * (m.r + 40),
             ny = m.y + Math.sin(a) * (m.r + 40);
           if (!isWall(nx, ny)) (o.x = nx), (o.y = ny);
-          fx({ k: 'ring', x: o.x, y: o.y, r: 50, dur: 0.3, col: PAL.rarUniqueV2 });
+          fx({ k: 'ring', x: o.x, y: o.y, r: 50, dur: 0.3, col: PAL.enemyRim });
           G.tele.push({ x: m.x, y: m.y, r: m.r + 110, t: 0, dur: 0.5 * rage, dmg: m.dmg * 1.3, src: m, el: m.el });
         }
         m.hk = null;
@@ -2011,7 +2011,7 @@ function bossAI(m, dt) {
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'rain') {
         m.rain = { x: T.x, y: T.y, r: 200, t: G.t + 4 };
-        fx({ k: 'ring', x: T.x, y: T.y, r: 200, dur: 4, col: PAL.dodgeVignetteV2 });
+        fx({ k: 'ring', x: T.x, y: T.y, r: 200, dur: 4, col: PAL.enemyTel });
         hudWarn(`${m.D.n}降下驟雨：站在雨裡會濕透`);
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'fog') {
@@ -2150,7 +2150,7 @@ function updShots(dt) {
     else if (isWall(s.x, s.y)) {
       if (s.boom) boom(s);
       s.life = 0;
-      sparks(s.x, s.y, Math.atan2(-s.vy, -s.vx), 4, PAL.dmgMinorV7);
+      sparks(s.x, s.y, Math.atan2(-s.vy, -s.vx), 4, PAL.txDim);
     }
     if (s.life <= 0 && s.onEnd) s.onEnd(s), (s.onEnd = null);
   }
@@ -2170,7 +2170,7 @@ function updShots(dt) {
     }
     if (t.t >= t.dur && !t.done) {
       t.done = 1;
-      fx({ k: 'ring', x: t.x, y: t.y, r: t.r, dur: 0.3, col: PAL.elFireV1, sh: 'boom' });
+      fx({ k: 'ring', x: t.x, y: t.y, r: t.r, dur: 0.3, col: PAL.enemyTel, sh: 'boom' });
       sfx('slam');
       mobArea(t.src, t.x, t.y, t.r, t.dmg, true, t.el);
     }
