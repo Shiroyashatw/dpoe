@@ -38,7 +38,7 @@
 | C04 | 能量護盾細條 | `--es` #dfbf91 3 px、前緣 `--es-hi` #fcefde 2 px | `--es`／`--hp` ≥ 3（3.85）；`--es-hi`／`--es` ≥ 1.5（1.55）；前緣不閃 | S8 |
 | C05 | 暴擊字 | `--dmg-crit` #f2cb9b、24 px、2 px #000、彈出 1.0→1.35→1.0（160 ms） | 色值 ΔE ≤ 2；字對描邊 ≥ 4.5；描邊對場景 ≥ 3；跟 `--es` 靠位置分（-6 §28） | S1、S6、S7 |
 | C06 | 一般擊中／元素／受傷數字 | hit、phys、fire、cold、light、chaos 全部 `--dmg-hit` #e8e5e1 15 px 不彈（不用元素色）；hurt #fbf9f6、0.8 倍 | 元素數字取樣＝#e8e5e1（ΔE ≤ 2）；同 C05 的對比兩條 | S1、S6、S11 |
-| C07 | 其他數字 | gold／lv／perfect／mat `--dmg-gain` #95e886；miss／block／dot `--dmg-minor` #aeaba7；描邊 #000000 不透明 | 色值 ΔE ≤ 2；同 C05 的對比兩條 | S11 |
+| C07 | 其他數字 | gold／lv／perfect／mat `--dmg-gain` #95e886；miss／block／ev／dot `--dmg-minor` #aeaba7；描邊 #000000 不透明 | 色值 ΔE ≤ 2；同 C05 的對比兩條 | S11 |
 | C08 | 敵人名牌（菁英） | `--tx-strong`＋菁英圖示 16、底 `--plate-world` rgb(37 33 30 / 0.92)、**不用稀有度色** | 字對底 ≥ 4.5；寬＝圖示 16＋4＋字寬＋左右各 6、最寬 140 | S1、S6 |
 | C09 | 王血條 | 底板 `--plate-world`、槽 `--panel-inset`、血 `--hp`、王名 `--tx-strong` | 王名對底板 ≥ 4.5；底板四邊外擴 4 px（1280：396–884 × 44–74） | S2 |
 | C10 | 危急紅邊 | `--vig` #b01a14 24 px；1 級 60%、2 級 70%；常亮不閃 | 不透明度 ±2%；連拍 1 秒內不變 | S3 |

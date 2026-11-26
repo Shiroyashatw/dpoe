@@ -127,7 +127,7 @@
 | 81 | `--dmg-crit-v1`＝`#ffc21a` | render.js:661 | 豪賭大獎數字 | --dmg-crit | `#f2cb9b` | 4 | (7a) |
 | 82 | `--dmg-crit-v2`＝`#ffcf6b` | skills.js:1139,1961 | 嘲諷環（執政官、魔像，我 | --fx-own 9% | `#c6c6c6` | 4 | (7a) |
 | 84 | `--dmg-hurt-rgb-v1`＝`255, 120, 110` | render.js:512 | teleCircle 外 | --enemy-tel-rgb α0.9 3 px＋5 px 不透明 #000 | `255, 61, 127` | 4 | (6) |
-| 86 | `--dmg-gain-v2`＝`#b8f0c8` | render.js:665 | 迴避數字 | --dmg-gain | `#95e886` | 4 | (7a) |
+| 86 | `--dmg-gain-v2`＝`#b8f0c8` | render.js:665 | 迴避數字 | --dmg-minor | `#aeaba7` | 4 | P3b |
 | 89 | `--dmg-minor-v3`＝`#c9a3a3` | render.js:669 | 持續傷害數字 | --dmg-minor | `#aeaba7` | 4 | (7a) |
 | 90 | `--dmg-minor-v4`＝`#a7acb6` | render.js:500 | canvas 鑄鐵框內線 | --panel-edge | `#a8927f` | 4 | (7a) |
 | 91 | `--dmg-minor-v5`＝`#979ba5` | render.js:849 | 蓄力條：部分 | --tx-dim | `#aeaba7` | 4 | (7a) |
@@ -181,6 +181,7 @@
 | P1 | 元素傷害數字 render.js:653–656 用元素色，M2-36 第 159 行與 battle-hud-4 §12 寫全部用 `--dmg-hit` | 「UIUX 裁定 11/26」照 M2-36／v1.3.6：全部 `--dmg-hit`，元素靠環／圖示分；第 4 步（3.2） |
 | P2 | `--el-phys`＝`--tx-strong` 後，物理環（mech.js:316 主角腳下 r30）對 `--hero-ring` ΔE2000 只有 2.1 | 「UIUX 裁定 11/26」物理環改 `--fx-own` 9%；`--el-phys` 照 M2-36 #fbf9f6 |
 | P3 | 列 85／87／88 數字色跟 M2-36 第 162–163 行不一致 | 「UIUX 裁定 11/26」完美閃避、材料用 `--dmg-gain`，格擋用 `--dmg-minor`；材料逐殺浮字 #208 已拿掉（改邊緣拾取列），列 87 只套還會畫材料字的地方 |
+| P3b | 列 86 迴避（ev）數字原裁 `--dmg-gain`，M2-36 第 163 行歸 `--dmg-minor` | 「UIUX 裁定 11/26」照 M2-36 用 `--dmg-minor`（迴避不是事件，要安靜） |
 | P4 | (18) 新色 vs main M2-36 第 150 行舊值 | 「UIUX 裁定 11/26」(18) 為準：第 3 步套值 PR 同時把第 150 行改成 #b6889a／#70b2f2（§2 末列） |
 | P5 | `--d2-*` 層套值後重複；`--d2-scrim`、`--d2-black` 不是 M2-36 token | 「UIUX 裁定 11/26」v1.3.6 驗收後另開收尾工作；本表不改列 |
 | P6 | (5) 倒數半徑 1.6r→1.0r、600 ms 屬戰鬥時間 | 「UIUX 裁定 11/26」放預兆 PR；本表只留 α |
