@@ -937,6 +937,9 @@ const settle = async (p, fn, arg) => {
       const L = [];
       for (let i = 0; i < 20; i++) {
         const it = mkItem('c_leather', 16, i % 3);
+        /* 沒有詞＝不會隨機出 ✦2 自動鎖，其餘分解要剛好 20 件 */
+        it.a = [];
+        delete it.uid;
         invPut(S.inv, it);
         L.push(it);
       }
@@ -997,10 +1000,10 @@ const settle = async (p, fn, arg) => {
     await p.waitForTimeout(800);
     await touch('touchEnd', []);
     await p.waitForTimeout(300);
-    const late = await p.evaluate(() => [S.inv.items.length, _rv20.filter(it => it.salv).length, 20 - REV.lk.size]);
+    const late = await p.evaluate(() => [S.inv.items.length, _rv20.filter(it => it.salv).length, REV.lk.size]);
     ok(
-      'B5 直式：其餘分解含稀有要長按；按 0.3 秒放開不分解，按住 0.8 秒才分解（已鎖的 ✦2 跳過）',
-      rest[0] && early === inv0 && late[0] === inv0 - late[2] && late[1] === late[2] && late[2] >= 15,
+      'B5 直式：其餘分解含稀有要長按；按 0.3 秒放開不分解，按住 0.8 秒才分解 20 件',
+      rest[0] && early === inv0 && late[0] === inv0 - 20 && late[1] === 20 && late[2] === 0,
       JSON.stringify([rest[0], inv0, early, late])
     );
     await p.evaluate(() => {
