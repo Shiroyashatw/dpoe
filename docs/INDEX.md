@@ -63,7 +63,7 @@
 | 任務 | `docs/production/tasks/<ID>.md` | — | 現行；B、C、S 系列任務檔待寫 |
 | 開發狀態 | 全面暫停（mumi 11/20 14:40） | — | — |
 
-## 畫面（UIUX設計師；底稿 /workspace/screen-inventory/inventory.md v2）
+## 畫面（UIUX設計師；底稿見歷史 screen-inventory/inventory.md v2）
 
 | 畫面 | 現行檔 | 版本 | 狀態 |
 |---|---|---|---|
@@ -75,8 +75,8 @@
 | 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.4／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
 | 營地（卡片）＋設施詳細頁 | `S/camp.md` v1.0（1280×720 定稿；示意圖 `W/W2-camp/color/` 01–15）。`S/M2-camp-cards.md` v1.0.2 的 1280 卡片／詳細頁／示意圖 **已取代**（檔案保留，勿刪）；衝突以 camp.md 為準。掛機條營地訊號（原 M2-camp-cards §7）仍可對照 | v1.0 | 定稿（mumi 11/25 18:14 上色示意圖 v0.5 過關，不再審；五座固定順序、一行利益；用字凍結，待本地化編輯過規格用字表；390 本版不含；未進入開發） |
 | 營地線框 | W/W2-camp/ | — | **已取代**：現行示意圖是 `W/W2-camp/color/`（camp v1.0）；根目錄印章／銘牌圖保留，勿刪 |
-| 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
-| 山海寶盒 | （無） | — | 待寫（各自批次到了再定）；五頁頁名改用地點名：鬼門關、心魔幻境、凶地、陰兵借道、裂口（mumi 2026-11-25 15:35，幕僚長轉達，relayed；名詞表 v0.6.56「山海寶盒」列；程式頁名未改） |
+| 地點清單 | `S/zones/zones-spec.md` v1.0（1280×720 定稿；示意圖 `docs/production/evidence/zones/` C01–C04；面板寬 640 靠左；未開星級虛線顯示）。`S/M2-33-2b-panels.md` §6 的 1280 地點畫面 **已取代**（檔案保留，勿刪）；衝突以 zones-spec 為準。交接 `S/zones/zones-handoff.md`。390 本版不含出圖（只做自動檢查）。未進入開發 | v1.0 | 定稿（mumi 2026-11-26 核可草稿 v2，裁定非核心畫面跳過上色關，直接定稿；未開星級採虛線，讓玩家知道要升斥候營） |
+| 山海寶盒 | `S/shanhai/shanhai-spec.md` v1.0（1280×720 定稿；示意圖 `docs/production/evidence/shanhai/` B01–B05；單頁五區，區名對齊名詞表：鬼門關／心魔幻境／凶地／陰兵借道／裂口；開王場直接點擊、倒下不退）。交接 `S/shanhai/shanhai-handoff.md`。390 本版不含出圖（只做自動檢查）。未進入開發 | v1.0 | 定稿（mumi 2026-11-26 核可草稿 v2，裁定非核心畫面跳過上色關，直接定稿） |
 | 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | addendum v1.0.2／稻草人 v1.1 | 現行（只限這幾節；照刷） |
 | 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.2 | 現行（v1.1 已由本檔取代）；示意圖 W/W3-items/ 現行 |
 | 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
