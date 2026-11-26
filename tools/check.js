@@ -11591,8 +11591,14 @@ const ASC_COMBOS = `const combos = k => {
               k in o
                 ? o[k]
                 : (...a) => (
-                    log.push([k, a[0] && a[0].src, a[1], a[2]]),
-                    k === 'createPattern' ? {} : k === 'getTransform' ? { a: 1, d: 1, e: 0, f: 0 } : undefined
+                    log.push([k, a[0] && (a[0].src || (a[0].width === 32 ? 'gen32' : undefined)), a[1], a[2]]),
+                    k === 'createPattern'
+                      ? {}
+                      : k === 'getTransform'
+                        ? { a: 1, d: 1, e: 0, f: 0 }
+                        : /ImageData$/.test(k)
+                          ? { data: new Uint8ClampedArray(4096) }
+                          : undefined
                   ),
             set: (o, k, v) => ((o[k] = v), true)
           }
@@ -11631,7 +11637,7 @@ const ASC_COMBOS = `const combos = k => {
       r.loaded = !!R("tileSet('temple')") && R('G.bc') === null;
       log.length = 0;
       const ch = R("bakeChunk(0, 0, BCH * TS, tileSet('temple'))"),
-        fl = log.filter(l => l[0] === 'drawImage' && /temple-floor/.test(l[1]));
+        fl = log.filter(l => l[0] === 'drawImage' && l[1] === 'gen32');
       r.tile = [
         ch.width,
         ch.height,
@@ -11670,6 +11676,67 @@ const ASC_COMBOS = `const combos = k => {
     !tl.err && tl.bad === null && JSON.stringify(tl.fall) === '[384,true,false,true]' && tl.none,
     JSON.stringify(tl)
   );
+  /* 程序地板（procedural-floor-impl.md §1.1、§1.2）：亮度樣板是 TILE_SRC.lava.floor[0]＝tile_lava_floor-s1202（逐位元相同），
+     地板不再載 TILE_SRC.<地形>.floor 平鋪圖；色用 --scene-temple-ground／mid／light＝M2-36 --scene-X 值 */
+  {
+    const R = (...a) => fs.readFileSync(path.join(__dirname, '..', ...a)),
+      md5 = b => require('crypto').createHash('md5').update(b).digest('hex'),
+      fl = vm.runInContext(
+        'TILE_SRC.lava.floor',
+        (() => {
+          const c = {};
+          vm.createContext(c);
+          vm.runInContext(JS('tiles.js').replace('const TILE_SRC', 'var TILE_SRC'), c);
+          return c;
+        })()
+      ),
+      bj = JS('biome.js'),
+      css = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8'),
+      tok = ['ground', 'mid', 'light'].map(
+        k => (css.match(new RegExp(`--scene-temple-${k}: (#[0-9a-f]{6});`)) || [])[1]
+      );
+    ok(
+      '程序地板：樣板是 tile_lava_floor-s1202（TILE_SRC.lava.floor[0] 跟 art/ 原檔逐位元相同），tileSet 不再載平鋪地板圖',
+      md5(R(fl[0])) === md5(R('art', 'tiles', 'lava', 'floor', 'tile_lava_floor-s1202.png')) &&
+        /t\.tpl = ld\(TILE_SRC\.lava\.floor\[0\]\)/.test(bj) &&
+        !/s\.floor\.map\(ld\)/.test(bj),
+      JSON.stringify(fl)
+    );
+    ok(
+      '程序地板：--scene-temple-ground／mid／light＝M2-36 --scene-X 的 #46413c／#33302b／#615b56',
+      tok.join() === '#46413c,#33302b,#615b56',
+      tok.join()
+    );
+    ok(
+      '戰鬥地板：enterMap 用 BIO_ONE（全地點共用 temple），隨機抽地形只在 BIO_ONE 設 null 時',
+      /^const BIO_ONE = 'temple';$/m.test(JS('biome.js')) &&
+        /G\.biome = was \? was\.biome : BIO_ONE \|\| pick\(Object\.keys\(BIOMES\)\);/.test(JS('game.js'))
+    );
+    /* 程序地板 §1.5、§1.6、§2：載入時 32 普通＋16 淺磚；每格由世界格座標決定（淺磚 h(tx,ty,1)%1000<94、第幾張 h(tx,ty)） */
+    ok(
+      '程序地板：載入時生成 32 普通＋16 淺磚，bakeChunk 每格照世界格雜湊挑（淺磚 h(tx, ty, 1) % 1000 < 94，張 h(tx, ty) % 張數）',
+      /const FLOOR_N = \[32, 16\],\n  FLOOR_LIGHT = 94;/.test(bj) &&
+        /F = T\.floorL && h\(tx, ty, 1\) % 1000 < FLOOR_LIGHT \? T\.floorL : T\.floor;\n\s*CX\.drawImage\(F\[h\(tx, ty\) % F\.length\]/.test(
+          bj
+        )
+    );
+    /* 怪物腳下陰影（mumi 2026-11-26）：drawMob 用 mobShadow，表 MOB_SHADOW 外淡內深、只用 --scrim，不寫 rgba( */
+    const rj = JS('render.js'),
+      ms = rj.slice(rj.indexOf('function mobShadow'), rj.indexOf('function drawMobStates')),
+      tab = (rj.match(/const MOB_SHADOW = (\[[^;]*\]);/) || [])[1];
+    ok(
+      '怪物腳下陰影：drawMob 畫 mobShadow（--scrim 兩層、外淡內深、寬至少 m.r×1.1），函式裡沒有 rgba(',
+      /function drawMob\(m\) \{[^}]*?\n  mobShadow\(m\);/.test(rj) &&
+        !!tab &&
+        (t => t.length === 2 && t[0].w > t[1].w && t[0].a < t[1].a && t.every(s => s.a > 0 && s.a < 1))(
+          vm.runInNewContext(tab)
+        ) &&
+        /PAL\.rgb\.scrim/.test(ms) &&
+        /m\.r \* 1\.1/.test(ms) &&
+        !/rgba\(/.test(ms),
+      tab
+    );
+  }
   /* 3. 王印拼條：載到用 ic_wy32／ic_wy16；載不到（onerror）退回借 cur_regal，不報錯 */
   const wy = (() => {
     const c = {

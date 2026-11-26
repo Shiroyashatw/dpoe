@@ -1,0 +1,18 @@
+{
+  "floor": {
+    "gen": true,
+    "cells": 273,
+    "light": 0.11355311355311355,
+    "centralCells": 72,
+    "centralLight": 0.09722222222222222
+  },
+  "alpha": "foeFlush 不存在（這個分支沒有敵方填色層）",
+  "crit": {
+    "at": [
+      869,
+      236
+    ],
+    "font": 24,
+    "outline": 2
+  }
+}

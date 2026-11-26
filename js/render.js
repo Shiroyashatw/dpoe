@@ -639,6 +639,25 @@ function shadow(x, y, r) {
   CX.ellipse(x, y, r, r * 0.38, 0, 0, TAU);
   CX.fill();
 }
+/* 怪物腳下陰影（mumi 2026-11-26「怪物腳下加陰影，用程式畫」）：--scrim 疊兩層橢圓（外圈淡、內圈深），
+   寬照精靈畫出來的寬（至少 m.r×1.1），不改怪物圖、不加描邊；w＝寬倍率、k＝扁度、a＝不透明度。
+   check/battle-floor-1126/measure.py 讀這張表量色差，改了要重量 */
+const MOB_SHADOW = [
+  { w: 1.3, k: 0.4, a: 0.35 },
+  { w: 0.95, k: 0.36, a: 0.6 }
+];
+function mobShadow(m) {
+  const a = artImg(m.D.sp),
+    R0 = Math.max(m.r * 1.1, a ? (a.r[2] * m.sz) / a.r[3] / 2 : 0);
+  CX.fillStyle = `rgb(${PAL.rgb.scrim})`;
+  for (const s of MOB_SHADOW) {
+    CX.globalAlpha = s.a;
+    CX.beginPath();
+    CX.ellipse(m.x, m.y, R0 * s.w, R0 * s.w * s.k, 0, 0, TAU);
+    CX.fill();
+  }
+  CX.globalAlpha = 1;
+}
 /* 怪物頭上的異常圖示（0.2.30）：血條上面一排，最多 6 個 */
 function drawMobStates(m, y) {
   const L = mobStates(m).slice(0, 6);
@@ -699,7 +718,7 @@ function drawMob(m) {
   if (m.arrow) return drawArrow(m);
   const D = m.D,
     fly = mobFly(m);
-  shadow(m.x, m.y, m.r * 1.1);
+  mobShadow(m);
   /* 菁英：腳下光圈；王：大光圈 */
   /* 菁英不用稀有度色：--enemy-rim 70%（UIUX 13:32；去留待 mumi）；王：4 px 不透明 --ring-edge＋3 px --enemy-tel α0.9（總表列 43） */
   if (m.boss) footRing(m.x, m.y, m.r * 1.4, PAL.enemyTel, 0.9, 3, 4, 0.55 / 1.4);
