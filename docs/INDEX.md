@@ -79,7 +79,7 @@
 | 山海寶盒 | （無） | — | 待寫（各自批次到了再定）；五頁頁名改用地點名：鬼門關、心魔幻境、凶地、陰兵借道、裂口（mumi 2026-11-25 15:35，幕僚長轉達，relayed；名詞表 v0.6.56「山海寶盒」列；程式頁名未改） |
 | 試招場 | `S/M2-33-addendum-camp-zoom.md` §2.2–§2.4＋`S/M2-13-practice-dummies.md` | addendum v1.0.2／稻草人 v1.1 | 現行（只限這幾節；照刷） |
 | 裝備格、拾取、物品詳情 | `S/M2-item-display.md` | v1.2 | 現行（v1.1 已由本檔取代）；示意圖 W/W3-items/ 現行 |
-| 鍛造 | `S/M2-item-detail-forge-reveal.md` | v1.5 | 現行 |
+| 鍛造 | `specs/forge/forge-spec.md` v1.0（1280×720 定稿；畫面表 `forge-screens-make.md`（01–04）／`forge-screens-bench.md`（05–07b）／`forge-screens-mods.md`（08–17）；交接 `forge-handoff.md`；上色示意圖與驗收清單 `docs/production/evidence/forge/`（20 張＋REVIEW-CHECKLIST.md）。✦／破裂照 `S/M2-item-display.md` v1.2。`S/M2-item-detail-forge-reveal.md` v1.5 的 1280 鍛造面板、揭曉卡 **已取代**（檔案保留，勿刪）；衝突以 forge-spec 為準） | v1.0 | 定稿（mumi 2026-11-26 上色示意圖過關，加三項最終修改後直接定稿：拿掉卡上分數、恢復 ✦n、詞列 ✦／破裂標；數值照 Page 282ab999 待雲端模擬；名詞表凍結，暫稱見 forge-handoff §2；390 本版不含出圖（只做自動檢查）；未進入開發） |
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
 | 倉庫 | `S/stash.md` v1.0（1280×720 定稿；上色示意圖 `W/W-stash/color/` 01–25）。格子與說明以 `S/M2-item-display.md` 為準；IA、分頁名仍見 `S/M2-37-ia-rework.md`／`S/M2-37-ia-rework-2.md`，與本檔衝突的 1280 倉庫畫面以 stash 為準。名詞以 `docs/glossary-talent-v1` @`425a113c` v0.6.57 為準（未合併該分支）。390 本版不含出圖（只做自動檢查；右欄列高 24＜44 待辦）。未進入開發 | v1.0 | 定稿（mumi 11/25 18:14 准緊湊右欄後指示直接定稿；與營地 v1.0 同一 PR） |
 | 角色 | `S/M2-character.md` v1.1 ＋ `S/M2-character-1280.md`（1280×720 定稿；390 元件表 `S/M2-character-2.md`～`S/M2-character-4.md`；格子與說明以 `S/M2-item-display.md` v1.2 為準；2a §4、M2-37 §8 空格狀態仍可對照，與 1280 衝突時以 M2-character-1280 為準） | v1.1 | 定稿（mumi 11/24 12:22 上色示意圖過關；示意圖 `W/W3-character/color/`；390×844 仍見主檔 §1–§11，示意圖未進 repo；珠寶分頁不在本版；未進入開發） |
