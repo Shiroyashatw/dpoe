@@ -1,0 +1,24 @@
+{
+  "floor": {
+    "gen": true,
+    "cells": 273,
+    "light": 0.11355311355311355,
+    "centralCells": 72,
+    "centralLight": 0.09722222222222222
+  },
+  "alpha": {
+    "outer": 0.298,
+    "outerOuter": 0.298,
+    "innerInner": 0.549,
+    "outerGround": 0.548,
+    "ground": 0.55
+  },
+  "crit": {
+    "at": [
+      869,
+      236
+    ],
+    "font": 24,
+    "outline": 2
+  }
+}
