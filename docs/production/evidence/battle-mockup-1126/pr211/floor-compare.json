@@ -1,0 +1,34 @@
+{
+  "ref_box": [
+    0,
+    0,
+    320,
+    256
+  ],
+  "shot_box": [
+    640,
+    360,
+    960,
+    616
+  ],
+  "ref": {
+    "L_median": 28.31,
+    "C_median": 3.96,
+    "C_gt40_share": 0.0,
+    "cells": 20,
+    "cell_L_min": 21.98,
+    "cell_L_max": 29.46,
+    "cell_L_range": 7.49,
+    "light_cells_over_32.05": 0
+  },
+  "shot": {
+    "L_median": 26.79,
+    "C_median": 3.73,
+    "C_gt40_share": 0.0001,
+    "cells": 12,
+    "cell_L_min": 23.13,
+    "cell_L_max": 38.53,
+    "cell_L_range": 15.4,
+    "light_cells_over_32.05": 3
+  }
+}
