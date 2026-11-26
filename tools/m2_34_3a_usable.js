@@ -248,7 +248,8 @@ async function run(b, W, H) {
         }
       const T = tileSet(bk);
       T.floor0 = T.floor0 || T.floor;
-      T.floor = [c];
+      T.floorL0 = T.floorL0 || T.floorL;
+      (T.floor = [c]), (T.floorL = null);
       G.bc = null;
       /* 鏡頭放在不整齊的位置（小數），量 bStatic 剛畫完的畫布（暗層、特效之前） */
       let img = null,
@@ -284,7 +285,7 @@ async function run(b, W, H) {
         res.push({ img, rects: rects.slice() });
       }
       window.bStatic = bs;
-      T.floor = T.floor0;
+      (T.floor = T.floor0), (T.floorL = T.floorL0);
       G.bc = null;
       /* 掃描：水平看紅欄（地磚開頭）、垂直看藍列；材質像素＝黑白交錯的一段 */
       const cls = (d, o) => {

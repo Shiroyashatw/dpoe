@@ -11591,8 +11591,14 @@ const ASC_COMBOS = `const combos = k => {
               k in o
                 ? o[k]
                 : (...a) => (
-                    log.push([k, a[0] && a[0].src, a[1], a[2]]),
-                    k === 'createPattern' ? {} : k === 'getTransform' ? { a: 1, d: 1, e: 0, f: 0 } : undefined
+                    log.push([k, a[0] && (a[0].src || (a[0].width === 32 ? 'gen32' : undefined)), a[1], a[2]]),
+                    k === 'createPattern'
+                      ? {}
+                      : k === 'getTransform'
+                        ? { a: 1, d: 1, e: 0, f: 0 }
+                        : /ImageData$/.test(k)
+                          ? { data: new Uint8ClampedArray(4096) }
+                          : undefined
                   ),
             set: (o, k, v) => ((o[k] = v), true)
           }
@@ -11631,7 +11637,7 @@ const ASC_COMBOS = `const combos = k => {
       r.loaded = !!R("tileSet('temple')") && R('G.bc') === null;
       log.length = 0;
       const ch = R("bakeChunk(0, 0, BCH * TS, tileSet('temple'))"),
-        fl = log.filter(l => l[0] === 'drawImage' && /temple-floor/.test(l[1]));
+        fl = log.filter(l => l[0] === 'drawImage' && l[1] === 'gen32');
       r.tile = [
         ch.width,
         ch.height,
@@ -11670,13 +11676,13 @@ const ASC_COMBOS = `const combos = k => {
     !tl.err && tl.bad === null && JSON.stringify(tl.fall) === '[384,true,false,true]' && tl.none,
     JSON.stringify(tl)
   );
-  /* 戰鬥地板全地點共用一套（mumi 2026-11-26；M2-36-d2-picks §11）：temple 地板只剩 tile_d2_battle_floor，
-     img/ 的檔跟 art-picks 挑定原檔逐位元相同；enterMap 用 BIO_ONE，不再每張圖隨機抽 */
+  /* 程序地板（procedural-floor-impl.md §1.1、§1.2）：亮度樣板是 TILE_SRC.lava.floor[0]＝tile_lava_floor-s1202（逐位元相同），
+     地板不再載 TILE_SRC.<地形>.floor 平鋪圖；色用 --scene-temple-ground／mid／light＝M2-36 --scene-X 值 */
   {
     const R = (...a) => fs.readFileSync(path.join(__dirname, '..', ...a)),
       md5 = b => require('crypto').createHash('md5').update(b).digest('hex'),
       fl = vm.runInContext(
-        'TILE_SRC.temple.floor',
+        'TILE_SRC.lava.floor',
         (() => {
           const c = {};
           vm.createContext(c);
@@ -11684,27 +11690,35 @@ const ASC_COMBOS = `const combos = k => {
           return c;
         })()
       ),
-      pick = String(R('art', 'tiles', 'temple', 'floor', 'picked.txt')).trim(),
-      src = md5(
-        R('docs', 'production', 'art-picks', 'm2-36-d2-first', 'tile_d2_battle_floor', 'tile_d2_battle_floor-s5201.png')
+      bj = JS('biome.js'),
+      css = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8'),
+      tok = ['ground', 'mid', 'light'].map(
+        k => (css.match(new RegExp(`--scene-temple-${k}: (#[0-9a-f]{6});`)) || [])[1]
       );
     ok(
-      '戰鬥地板：temple 地板只有 tile_d2_battle_floor-s5201（picked.txt、art/ 複本、img/ 檔都跟 art-picks 原檔相同）',
-      pick === 'tile_d2_battle_floor-s5201.png' &&
-        fl.length === 1 &&
-        md5(R('art', 'tiles', 'temple', 'floor', pick)) === src &&
-        md5(R(fl[0])) === src,
-      JSON.stringify({ pick, fl })
+      '程序地板：樣板是 tile_lava_floor-s1202（TILE_SRC.lava.floor[0] 跟 art/ 原檔逐位元相同），tileSet 不再載平鋪地板圖',
+      md5(R(fl[0])) === md5(R('art', 'tiles', 'lava', 'floor', 'tile_lava_floor-s1202.png')) &&
+        /t\.tpl = ld\(TILE_SRC\.lava\.floor\[0\]\)/.test(bj) &&
+        !/s\.floor\.map\(ld\)/.test(bj),
+      JSON.stringify(fl)
+    );
+    ok(
+      '程序地板：--scene-temple-ground／mid／light＝M2-36 --scene-X 的 #46413c／#33302b／#615b56',
+      tok.join() === '#46413c,#33302b,#615b56',
+      tok.join()
     );
     ok(
       '戰鬥地板：enterMap 用 BIO_ONE（全地點共用 temple），隨機抽地形只在 BIO_ONE 設 null 時',
       /^const BIO_ONE = 'temple';$/m.test(JS('biome.js')) &&
         /G\.biome = was \? was\.biome : BIO_ONE \|\| pick\(Object\.keys\(BIOMES\)\);/.test(JS('game.js'))
     );
-    /* 地板先不補變體（mumi 2026-11-26），但變體的路要通：picked.txt 多一行＝TILE_SRC 多一張，地圖逐格照雜湊挑 */
+    /* 程序地板 §1.5、§1.6、§2：載入時 32 普通＋16 淺磚；每格由世界格座標決定（淺磚 h(tx,ty,1)%1000<94、第幾張 h(tx,ty)） */
     ok(
-      '戰鬥地板：地板變體的路還在（每格照雜湊挑 T.floor[… % T.floor.length]），以後 picked.txt 多一行就是多一種',
-      /T\.floor\[h\([^\]]*\) % T\.floor\.length\]/.test(JS('biome.js'))
+      '程序地板：載入時生成 32 普通＋16 淺磚，bakeChunk 每格照世界格雜湊挑（淺磚 h(tx, ty, 1) % 1000 < 94，張 h(tx, ty) % 張數）',
+      /const FLOOR_N = \[32, 16\],\n  FLOOR_LIGHT = 94;/.test(bj) &&
+        /F = T\.floorL && h\(tx, ty, 1\) % 1000 < FLOOR_LIGHT \? T\.floorL : T\.floor;\n\s*CX\.drawImage\(F\[h\(tx, ty\) % F\.length\]/.test(
+          bj
+        )
     );
     /* 怪物腳下陰影（mumi 2026-11-26）：drawMob 用 mobShadow，表 MOB_SHADOW 外淡內深、只用 --scrim，不寫 rgba( */
     const rj = JS('render.js'),

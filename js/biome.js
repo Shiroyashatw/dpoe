@@ -317,10 +317,114 @@ function tileSet(b) {
   if (!t) {
     const ld = u =>
       Object.assign(new Image(), { onload: () => --t.n || (G.bc = null), onerror: () => (t.bad = 1), src: u });
-    t = TILES[b] = { n: s.floor.length + 1 + s.face.length };
-    (t.floor = s.floor.map(ld)), (t.top = ld(s.top)), (t.face = s.face.map(ld));
+    t = TILES[b] = { n: 2 + s.face.length };
+    (t.tpl = ld(TILE_SRC.lava.floor[0])), (t.top = ld(s.top)), (t.face = s.face.map(ld));
   }
-  return t.n || t.bad ? null : t;
+  if (t.n || t.bad) return null;
+  if (!t.floor) floorGen(t, BIOMES[b] || BIOMES.temple);
+  return t;
+}
+/* 程序地板（specs/battle-floor/procedural-floor-impl.md §1、§2）：亮度樣板 tile_lava_floor-s1202（TILE_SRC.lava.floor[0]）
+   ＋--scene-<地形>-ground／mid／light（BIOMES 的 top／face／hi），載入時生成 32 張普通＋16 張淺磚（32×32），bakeChunk 照世界格雜湊挑。
+   照 base_r2.py make_tile：翻轉／轉置、整磚偏移、兩層雜訊、磚縫（d < -1.1）、縫的亮邊／暗邊、0–3 個污點 */
+const FLOOR_N = [32, 16],
+  FLOOR_LIGHT = 94; /* 淺磚 9.4%：h(tx, ty, 1) % 1000 < 94（§1.5，起點待實測） */
+function floorGen(t, B) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(t.tpl, 0, 0);
+  const px = g.getImageData(0, 0, 32, 32).data,
+    Y = new Float64Array(1024);
+  for (let i = 0; i < 1024; i++)
+    Y[i] = (px[i * 4] * 19595 + px[i * 4 + 1] * 38470 + px[i * 4 + 2] * 7471 + 0x8000) >> 16;
+  const so = [...Y].sort((a, b) => a - b),
+    mu = Y.reduce((a, v) => a + v, 0) / 1024,
+    sd = Math.sqrt(Y.reduce((a, v) => a + (v - mu) ** 2, 0) / 1024),
+    D = Y.map(v => (v - (so[511] + so[512]) / 2) / (sd + 1e-6)),
+    lab = hex => {
+      const [x, y, z] = hex2rgb(hex)
+          .map(v => ((v /= 255) > 0.04045 ? ((v + 0.055) / 1.055) ** 2.4 : v / 12.92))
+          .reduce(
+            (o, v, i) =>
+              o.map(
+                (s, j) =>
+                  s +
+                  v *
+                    [0.4124564, 0.3575761, 0.1804375, 0.2126729, 0.7151522, 0.072175, 0.0193339, 0.119192, 0.9503041][
+                      j * 3 + i
+                    ]
+              ),
+            [0, 0, 0]
+          ),
+        f = v => (v > 0.008856 ? Math.cbrt(v) : 7.787 * v + 16 / 116),
+        [fx, fy, fz] = [f(x / 0.95047), f(y), f(z / 1.08883)];
+      return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+    },
+    [G0, M0, L0] = [B.top, B.face, B.hi].map(lab),
+    gam = v => Math.round(255 * Math.min(1, Math.max(0, v > 0.0031308 ? 1.055 * v ** (1 / 2.4) - 0.055 : 12.92 * v)));
+  const tile = (R, light) => {
+    const nrm = s => Math.sqrt(-2 * Math.log(1 - R())) * Math.cos(2 * Math.PI * R()) * s,
+      fx = R() < 0.5,
+      fy = R() < 0.5,
+      tr = R() < 0.5,
+      seam = new Uint8Array(1024),
+      L = new Float64Array(1024),
+      A = new Float64Array(1024),
+      B = new Float64Array(1024),
+      off = nrm(1.6),
+      n16 = Array.from({ length: 256 }, () => nrm(1.4)),
+      [bL, ba, bb] = light ? L0 : [G0[0], M0[1], M0[2]];
+    for (let y = 0; y < 32; y++)
+      for (let x = 0; x < 32; x++) {
+        let u = fx ? 31 - x : x,
+          v = fy ? 31 - y : y;
+        if (tr) [u, v] = [v, u];
+        const i = y * 32 + x;
+        seam[i] = D[v * 32 + u] < -1.1;
+        L[i] = bL + off + n16[(y >> 1) * 16 + (x >> 1)] + nrm(0.7);
+      }
+    const S = (x, y) => x >= 0 && y >= 0 && x < 32 && y < 32 && seam[y * 32 + x];
+    for (let y = 0; y < 32; y++)
+      for (let x = 0; x < 32; x++) {
+        const i = y * 32 + x;
+        if (seam[i]) (L[i] = M0[0] + nrm(0.6)), (A[i] = M0[1]), (B[i] = M0[2]);
+        else {
+          if (S(x, y - 1) || S(x - 1, y)) L[i] += 2.6;
+          else if (S(x, y + 1)) L[i] -= 1.8;
+          (A[i] = ba + nrm(0.35)), (B[i] = bb + nrm(0.35));
+        }
+      }
+    for (let k = Math.floor(R() * 4); k > 0; k--) {
+      const x = 2 + Math.floor(R() * 28),
+        y = 2 + Math.floor(R() * 28);
+      L[y * 32 + x] -= 4;
+      if (R() < 0.5 && x + 1 < 32) L[y * 32 + x + 1] -= 3;
+    }
+    const o = document.createElement('canvas');
+    o.width = o.height = 32;
+    const og = o.getContext('2d'),
+      im = og.createImageData(32, 32);
+    for (let i = 0; i < 1024; i++) {
+      const q = (L[i] + 16) / 116,
+        f = v => (v ** 3 > 0.008856 ? v ** 3 : (v - 16 / 116) / 7.787),
+        X = 0.95047 * f(q + A[i] / 500),
+        Yv = f(q),
+        Z = 1.08883 * f(q - B[i] / 200);
+      im.data.set(
+        [
+          gam(3.2404542 * X - 1.5371385 * Yv - 0.4985314 * Z),
+          gam(-0.969266 * X + 1.8760108 * Yv + 0.041556 * Z),
+          gam(0.0556434 * X - 0.2040259 * Yv + 1.0572252 * Z),
+          255
+        ],
+        i * 4
+      );
+    }
+    og.putImageData(im, 0, 0);
+    return o;
+  };
+  [t.floor, t.floorL] = FLOOR_N.map((n, l) => Array.from({ length: n }, (_, i) => tile(rng(h(i, l, 7)), l)));
 }
 /* 地板＋牆不會動：切成 8×8 格的區塊，第一次進畫面時畫成一張圖，之後每格只貼圖（每格重畫 400 多個方塊太貴）。
    shortcut: 岩漿牆的裂縫亮度固定在畫的那一刻，不再閃；要閃的話另外每格畫裂縫 */
@@ -371,8 +475,12 @@ function bakeChunk(cx, cy, S, T) {
   if (T) {
     CX.imageSmoothingEnabled = false;
     for (let y = 0; y < BCH; y++)
-      for (let x = 0; x < BCH; x++)
-        CX.drawImage(T.floor[h(cx * BCH + x, cy * BCH + y) % T.floor.length], x * 32, y * 32);
+      for (let x = 0; x < BCH; x++) {
+        const tx = cx * BCH + x,
+          ty = cy * BCH + y,
+          F = T.floorL && h(tx, ty, 1) % 1000 < FLOOR_LIGHT ? T.floorL : T.floor;
+        CX.drawImage(F[h(tx, ty) % F.length], x * 32, y * 32);
+      }
     CX.scale(32 / TS, 32 / TS);
   }
   CX.translate(-cx * S, -cy * S);

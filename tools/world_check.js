@@ -503,8 +503,11 @@ async function floor(b) {
       deco: [...deco],
       lavaDot: fills.filter(f => /^rgba\(255,(120|190),50,/.test(f)).length,
       fills: fills.length,
-      src: TILE_SRC.temple.floor,
-      img: T && T.floor.map(i => i.src.replace(/^.*\/img\//, 'img/'))
+      gen: T && [
+        T.floor.length,
+        T.floorL.length,
+        [...T.floor, ...T.floorL].every(c => c.width === 32 && c.height === 32)
+      ]
     };
   });
   ok(
@@ -513,12 +516,75 @@ async function floor(b) {
     JSON.stringify(r)
   );
   ok(
-    '戰鬥地板全地點共用：地板只有一張 tile_d2_battle_floor（img/tiles/temple-floor.*），戰鬥中載入的就是它',
-    r.src.length === 1 &&
-      /^img\/tiles\/temple-floor\.[0-9a-f]{8}\.png$/.test(r.src[0]) &&
-      JSON.stringify(r.img) === JSON.stringify(r.src),
-    JSON.stringify(r)
+    '程序地板：戰鬥中載入的是生成的 32 張普通＋16 張淺磚（32×32），不是平鋪圖',
+    JSON.stringify(r.gen) === '[32,16,true]',
+    JSON.stringify(r.gen)
   );
+  /* 程序地板驗收（procedural-floor-impl.md §3.2）：量生成結果與世界格挑法；L* 用 CIE Lab D65 */
+  const pf = await p.evaluate(() => {
+    const T = tileSet(G.biome),
+      c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const g = c.getContext('2d', { willReadFrequently: true }),
+      lin = v => ((v /= 255) > 0.04045 ? ((v + 0.055) / 1.055) ** 2.4 : v / 12.92),
+      Ls = (r, gg, b) => {
+        const y = 0.2126729 * lin(r) + 0.7151522 * lin(gg) + 0.072175 * lin(b);
+        return 116 * (y > 0.008856 ? Math.cbrt(y) : 7.787 * y + 16 / 116) - 16;
+      },
+      st = im => {
+        g.drawImage(im, 0, 0);
+        const d = g.getImageData(0, 0, 32, 32).data;
+        let L = 0;
+        for (let i = 0; i < 4096; i += 4) L += Ls(d[i], d[i + 1], d[i + 2]);
+        return L / 1024;
+      },
+      mN = T.floor.map(st),
+      mL = T.floorL.map(st),
+      cell = (x, y) => (h(x, y, 1) % 1000 < FLOOR_LIGHT ? mL[h(x, y) % 16] : mN[h(x, y) % 32]);
+    /* 全場淺磚次數：200×200 世界格；畫面中央 60%（20×11 格可見範圍內 12×7）：在 50 個不同鏡頭位置取最大 */
+    let n = 0;
+    for (let y = 0; y < 200; y++) for (let x = 0; x < 200; x++) n += h(x, y, 1) % 1000 < FLOOR_LIGHT;
+    let cMax = 0,
+      cSum = 0,
+      rng = [];
+    for (let k = 0; k < 50; k++) {
+      const x0 = k * 7,
+        y0 = k * 5;
+      let m = 0,
+        lo = 99,
+        hi = 0;
+      for (let y = 0; y < 11; y++)
+        for (let x = 0; x < 20; x++) {
+          const v = cell(x0 + x, y0 + y);
+          (lo = Math.min(lo, v)), (hi = Math.max(hi, v));
+          if (x >= 4 && x < 16 && y >= 2 && y < 9) m += h(x0 + x, y0 + y, 1) % 1000 < FLOOR_LIGHT;
+        }
+      cMax = Math.max(cMax, m / 84);
+      cSum += m / 84 / 50;
+      rng.push(hi - lo);
+    }
+    /* 重烘不變：同一塊烘兩次逐像素相同 */
+    const px = a => {
+        const q = document.createElement('canvas').getContext('2d');
+        q.canvas.width = q.canvas.height = 256;
+        q.drawImage(a, 0, 0);
+        return q.getImageData(0, 0, 256, 256).data.join();
+      },
+      same = px(bakeChunk(3, 2, BCH * TS, T)) === px(bakeChunk(3, 2, BCH * TS, T));
+    const avg = a => a.reduce((s, v) => s + v, 0) / a.length;
+    return { frac: n / 40000, cAvg: cSum, cMax, rngMin: Math.min(...rng), mN: avg(mN), mL: avg(mL), same };
+  });
+  ok(
+    `程序地板：淺磚 ${(pf.frac * 100).toFixed(2)}%（9.4% ±3）；畫面中央 60% 平均 ${(pf.cAvg * 100).toFixed(1)}%（≤10%，50 個鏡頭位置裡最多 ${(pf.cMax * 100).toFixed(1)}%）`,
+    Math.abs(pf.frac - 0.094) <= 0.03 && pf.cAvg <= 0.1,
+    JSON.stringify(pf)
+  );
+  ok(
+    `程序地板：一個畫面（20×11 格）鄰格平均 L* 全距最小 ${pf.rngMin.toFixed(2)}（≥7）；普通磚 L* ${pf.mN.toFixed(2)}、淺磚 ${pf.mL.toFixed(2)}（對 --scene-X 27.9／39.1，±3）`,
+    pf.rngMin >= 7 && Math.abs(pf.mN - 27.87) <= 3 && Math.abs(pf.mL - 39.06) <= 3,
+    JSON.stringify(pf)
+  );
+  ok('程序地板：同一區塊重烘兩次逐像素相同（世界格決定，不跟鏡頭變）', pf.same, JSON.stringify(pf));
   ok(
     '熔岩裝飾不出現：擺設沒有岩漿池、地上沒有岩漿發光點',
     !r.deco.includes('lava') && r.fills > 0 && r.lavaDot === 0,
