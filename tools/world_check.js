@@ -524,6 +524,54 @@ async function floor(b) {
     !r.deco.includes('lava') && r.fills > 0 && r.lavaDot === 0,
     JSON.stringify(r)
   );
+  /* 怪物腳下陰影（mumi 2026-11-26）：每種怪在一張鋪滿戰鬥地板的小畫布上畫一次（drawMob），
+     腳下正中、精靈寬外側（外圈只蓋到陰影）都要比地板暗，陰影外的地板不變；怪物圖本身照 main 畫（同一張 artImg） */
+  const sh = await p.evaluate(async () => {
+    for (let i = 0; i < 50; i++) {
+      const D = Object.values(MOBS);
+      if (D.every(d => (artImg(d.sp) || {}).im?.naturalWidth)) break;
+      await new Promise(f => setTimeout(f, 100));
+    }
+    const T = tileSet('temple'),
+      c = document.createElement('canvas'),
+      main = CX,
+      out = [];
+    c.width = c.height = 320;
+    const g = c.getContext('2d', { willReadFrequently: true }),
+      px = (x, y) => [...g.getImageData(Math.round(x), Math.round(y), 1, 1).data.slice(0, 3)].reduce((a, b) => a + b),
+      base = () => {
+        for (let y = 0; y < 320; y += 32) for (let x = 0; x < 320; x += 32) g.drawImage(T.floor[0], x, y);
+      };
+    CX = g;
+    try {
+      for (const k in MOBS) {
+        const D = MOBS[k],
+          a = artImg(D.sp);
+        if (!a) continue;
+        base();
+        const m = { D, x: 160, y: 200, r: D.r, sz: D.sz, sq: 0, ph: 0, st: 'idle', mv: 0, flash: 0, ail: {} },
+          R0 = Math.max(D.r * 1.1, (a.r[2] * D.sz) / a.r[3] / 2),
+          at = [
+            [160, 202],
+            [160 + R0 * 1.15, 200],
+            [10, 200]
+          ],
+          fl = at.map(q => px(...q));
+        drawMob(m);
+        const [foot, rim, far] = at.map(q => px(...q));
+        out.push({ k, fl, foot, rim, far });
+      }
+    } finally {
+      CX = main;
+    }
+    return { n: out.length, tab: MOB_SHADOW, out };
+  });
+  const dark = sh.out.filter(o => !(o.foot < o.fl[0] && o.rim < o.fl[1] && o.far === o.fl[2]));
+  ok(
+    `怪物腳下陰影：${sh.n} 種怪腳下正中與精靈寬外側都比地板暗、陰影外地板不變`,
+    sh.n === Object.keys(await p.evaluate(() => MOBS)).length && sh.n > 20 && !dark.length,
+    JSON.stringify(dark.slice(0, 5))
+  );
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }

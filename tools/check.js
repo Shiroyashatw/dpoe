@@ -11701,6 +11701,27 @@ const ASC_COMBOS = `const combos = k => {
       /^const BIO_ONE = 'temple';$/m.test(JS('biome.js')) &&
         /G\.biome = was \? was\.biome : BIO_ONE \|\| pick\(Object\.keys\(BIOMES\)\);/.test(JS('game.js'))
     );
+    /* 地板先不補變體（mumi 2026-11-26），但變體的路要通：picked.txt 多一行＝TILE_SRC 多一張，地圖逐格照雜湊挑 */
+    ok(
+      '戰鬥地板：地板變體的路還在（每格照雜湊挑 T.floor[… % T.floor.length]），以後 picked.txt 多一行就是多一種',
+      /T\.floor\[h\([^\]]*\) % T\.floor\.length\]/.test(JS('biome.js'))
+    );
+    /* 怪物腳下陰影（mumi 2026-11-26）：drawMob 用 mobShadow，表 MOB_SHADOW 外淡內深、只用 --scrim，不寫 rgba( */
+    const rj = JS('render.js'),
+      ms = rj.slice(rj.indexOf('function mobShadow'), rj.indexOf('function drawMobStates')),
+      tab = (rj.match(/const MOB_SHADOW = (\[[^;]*\]);/) || [])[1];
+    ok(
+      '怪物腳下陰影：drawMob 畫 mobShadow（--scrim 兩層、外淡內深、寬至少 m.r×1.1），函式裡沒有 rgba(',
+      /function drawMob\(m\) \{[^}]*?\n  mobShadow\(m\);/.test(rj) &&
+        !!tab &&
+        (t => t.length === 2 && t[0].w > t[1].w && t[0].a < t[1].a && t.every(s => s.a > 0 && s.a < 1))(
+          vm.runInNewContext(tab)
+        ) &&
+        /PAL\.rgb\.scrim/.test(ms) &&
+        /m\.r \* 1\.1/.test(ms) &&
+        !/rgba\(/.test(ms),
+      tab
+    );
   }
   /* 3. 王印拼條：載到用 ic_wy32／ic_wy16；載不到（onerror）退回借 cur_regal，不報錯 */
   const wy = (() => {
