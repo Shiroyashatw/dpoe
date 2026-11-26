@@ -55,6 +55,256 @@ const settle = async (p, fn, arg) => {
     if (!v) fail++;
     console.log((v ? '✅ ' : '❌ ') + n + (d ? ' ' + d : ''));
   };
+  /* ---------- 昇華、山海寶盒、地點 v1.0（三份 REVIEW-CHECKLIST.md 的 B 段）：每個尺寸都跑；直立用真的觸控事件、桌機用滑鼠 ---------- */
+  const aszCheck = async () => {
+    const R = (f, a) => p.evaluate(f, a),
+      at = async q => {
+        const r = await R(q => {
+          const e = document.querySelector(q);
+          /* 置中：面板標題列是黏住的，貼邊捲會被它蓋住 */
+          e.scrollIntoView({ block: 'center' });
+          const b = e.getBoundingClientRect();
+          return [b.left + b.width / 2, b.top + b.height / 2];
+        }, q);
+        return r;
+      },
+      press = async (q, ms = 0) => {
+        const [x, y] = await at(q);
+        if (DESK) {
+          await p.mouse.move(x, y);
+          await p.mouse.down();
+          await p.waitForTimeout(ms);
+          await p.mouse.up();
+        } else {
+          await touch('touchStart', [[x, y]]);
+          await p.waitForTimeout(ms);
+          await touch('touchEnd', []);
+        }
+        await p.waitForTimeout(150);
+      },
+      /* 面板（和其中的元件）在畫面內、沒有橫向溢出；min＝觸控時要 ≥44 的元件 */
+      fit = (id, min = []) =>
+        R(
+          ([id, min, desk]) => {
+            const P = $(id),
+              r = P.getBoundingClientRect(),
+              inV = b =>
+                b.left >= -0.5 && b.top >= -0.5 && b.right <= innerWidth + 0.5 && b.bottom <= innerHeight + 0.5,
+              small = min
+                .flatMap(q => [...P.querySelectorAll(q)])
+                .filter(e => {
+                  const b = e.getBoundingClientRect();
+                  return b.width && (b.height < 44 - 0.5 || b.width < 44 - 0.5);
+                });
+            return {
+              in: inV(r),
+              ov: P.scrollWidth <= P.clientWidth + 1,
+              small: desk ? [] : small.map(e => e.className + ':' + Math.round(e.getBoundingClientRect().height))
+            };
+          },
+          [id, min, DESK]
+        ),
+      good = o => o.in && o.ov && !o.small.length,
+      HID = await R(() =>
+        Object.entries(ASC)
+          .filter(([k]) => !['wind', 'iron', 'tide'].includes(k))
+          .map(([, A]) => A.n)
+      );
+    const reset = o =>
+      R(o => {
+        holdClose();
+        closePanels();
+        proSkip();
+        S.auto = 0;
+        Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 9, store: 5 });
+        S.lv = 40;
+        S.asc = 'wind';
+        S.at = ['a_st'];
+        new Function(o)();
+      }, o);
+    /* 昇華 B1–B3：未解鎖 15 格全 ???；Lv 7–9 潮汐具名未開放、隱藏格沒有名字 */
+    await reset(`S.camp.altar = 6; openPanel('asc');`);
+    await p.waitForTimeout(250);
+    const a1 = await R(
+      H => ({
+        n: document.querySelectorAll('#pasc .axk, #pasc .axl-r, #pasc .axl-q').length,
+        q: [...document.querySelectorAll('#pasc .axk, #pasc .axl-q')].filter(e => e.textContent.includes('???')).length,
+        names:
+          H.filter(n => $('pasc').textContent.includes(n)).length + ($('pasc').textContent.includes('潮汐') ? 1 : 0)
+      }),
+      HID
+    );
+    const f1 = await fit('pasc', ['.ph .x', '.axl-back', '.axlk .btn']);
+    ok(
+      `昇華 B2 未解鎖：15 格全 ???、仍在面板裡、不出畫面（${tag}）`,
+      a1.n === 15 && a1.q === 15 && !a1.names && good(f1),
+      JSON.stringify([a1, f1])
+    );
+    await reset(`openPanel('asc'); ASCUI.pick = 1; hudPanels();`);
+    await p.waitForTimeout(250);
+    const a2 = await R(
+      H => ({
+        n: document.querySelectorAll('#pasc .axk, #pasc .axl-r, #pasc .axl-q').length,
+        tide: [...document.querySelectorAll('#pasc .axk, #pasc .axl-q')].some(
+          e => e.textContent.includes('潮汐') && e.textContent.includes('升長老屋到 Lv 10 才開')
+        ),
+        hid: H.filter(n => $('pasc').textContent.includes(n))
+      }),
+      HID
+    );
+    const f2 = await fit('pasc', ['.ph .x', '.axl-r', '.axl-back']);
+    ok(
+      `昇華 B1／B3 選擇面板：15 格、潮汐具名未開放、隱藏格無名稱、≥44px、不出畫面（${tag}）`,
+      a2.n === 15 && a2.tide && !a2.hid.length && good(f2),
+      JSON.stringify([a2, f2])
+    );
+    /* 桌機小於 1280×720（844×390、667×375）不是驗收尺寸（REVIEW-CHECKLIST 只要 1280 疊圖＋390 自動檢查）：只量版面，不跑點擊與長按 */
+    const FULL = !DESK || (W >= 1280 && H >= 720);
+    if (FULL) {
+      /* B4：換昇華 600 ms 長按（提早放開不換）；第一次「成為」直接 */
+      await R(() => document.querySelector('#pasc [data-ax="v:iron"]').click());
+      await p.waitForTimeout(150);
+      await press('#pasc .ax-pick');
+      const hk = await fit('hask', ['.hgo', '[data-h="no"]']);
+      ok(
+        `昇華 B4 換昇華開長按卡、卡與按鈕在畫面內（${tag}）`,
+        (await R(() => !$('hask').hidden)) && good(hk),
+        JSON.stringify(hk)
+      );
+      await press('#hask .hgo', 300);
+      ok(`昇華 B4 提早放開（300 ms）不換（${tag}）`, await R(() => S.asc === 'wind'));
+      await press('#hask .hgo', 700);
+      ok(`昇華 B4 按滿 0.6 秒才換成鐵金剛（${tag}）`, await R(() => S.asc === 'iron' && $('hask').hidden));
+      await reset(`S.asc = null; S.at = []; openPanel('asc'); ASCUI.v = 'iron'; ASCUI.pick = 0; hudPanels();`);
+      await p.waitForTimeout(200);
+      await press('#pasc .ax-pick');
+      ok(`昇華 B4 第一次「成為鐵金剛」直接點、不長按（${tag}）`, await R(() => S.asc === 'iron' && $('hask').hidden));
+      /* B5、B6：詳細盤面（桌機）／卡片（直立）：點數不足不點亮；浮動提示不出畫面 */
+      await reset(
+        `S.maxT = 0; S.at = ['a_st', 'a_s1', 'a_gale']; openPanel('asc'); ASCUI.v = 'wind'; ASCUI.pick = 0; hudPanels();`
+      );
+      await p.waitForTimeout(250);
+      const at0 = await R(() => S.at.join());
+      if (await R(() => !!document.querySelector('#pasc .axn'))) {
+        await p.mouse.move(...(await at('#pasc [data-ax="n:a_walk"]')));
+        await p.waitForTimeout(100);
+        const tp = await R(() => {
+          const t = $('ztip').getBoundingClientRect(),
+            x = document.querySelector('#pasc .ph .x').getBoundingClientRect();
+          return {
+            on: !$('ztip').hidden,
+            in: t.left >= 0 && t.top >= 0 && t.right <= innerWidth && t.bottom <= innerHeight,
+            x: t.right <= x.left || x.right <= t.left || t.bottom <= x.top || x.bottom <= t.top,
+            txt: $('ztip').textContent
+          };
+        });
+        ok(
+          `昇華 B5 節點浮動提示在畫面內、不擋關閉；B6 寫點數不足（${tag}）`,
+          tp.on && tp.in && tp.x && tp.txt.includes('點數不足'),
+          JSON.stringify(tp)
+        );
+        await press('#pasc [data-ax="n:a_walk"]');
+      } else {
+        const w = await R(() => (document.querySelector('#axc-a_walk .axc-w') || {}).textContent || '');
+        ok(
+          `昇華 B6 點數不足：卡片寫原因、沒有選的按鈕（${tag}）`,
+          /點|先選/.test(w) && !(await R(() => !!document.querySelector('#pasc [data-ax="take:a_walk"]'))),
+          w
+        );
+      }
+      ok(`昇華 B6 點數不足時不點亮（${tag}）`, (await R(() => S.at.join())) === at0);
+    }
+    /* 山海寶盒 B1–B4 */
+    await reset(
+      `Object.assign(S.frags, { ox: 3, horse: 3, joy: 1, rage: 1, grief: 1, blood: 6 }); S.idols = ZODIAC.map(z => z[0]); S.gods = [{ ...ghRoll(false), g: 'rat' }, { ...ghRoll(false), g: 'ox' }]; S.godOn = 0; BOXUI.tab = 'ghost'; openPanel('box');`
+    );
+    await p.waitForTimeout(250);
+    const b1 = await R(() => ({
+      z: [...document.querySelectorAll('#pbox .bxz h4')].map(e => e.textContent).join(),
+      old: ['酆都', '心魔劫', '四凶', '弒神'].some(w => $('pbox').textContent.includes(w)),
+      g1: document.querySelector('#pbox .bxgo.g1').disabled
+    }));
+    const fb = await fit('pbox', ['.ph .x', '.bxgo', '.bxc', '.bxg .btn']);
+    ok(
+      `山海寶盒 B1／B2 五區是地點名、不出畫面、主鈕與碎片格 ≥44px；B3 不足時停用（${tag}）`,
+      b1.z === '鬼門關,心魔幻境,凶地,陰兵借道,裂口' && !b1.old && b1.g1 && good(fb),
+      JSON.stringify([b1, fb])
+    );
+    if (!FULL) {
+      await R(() => closePanels());
+      console.log(`— ${tag}：桌機小視窗只量版面，略過神格管理、長按、開王場`);
+    } else {
+      await press('#pbox .bxg .btn');
+      const fm = await fit('pbox', ['.bxml .btn', '.bxmx']),
+        /* 桌機是小視窗（整個在畫面內）；直立是面板裡的清單：每顆按鈕捲到後都在畫面內 */
+        mi = await R(() =>
+          [document.querySelector('#pbox .bxmc'), ...document.querySelectorAll('#pbox .bxmc .btn')].every((e, i) => {
+            if (i && TOUCH.on) e.scrollIntoView({ block: 'nearest' });
+            if (!i && TOUCH.on) return true;
+            const b = e.getBoundingClientRect();
+            return b.left >= 0 && b.top >= 0 && b.right <= innerWidth && b.bottom <= innerHeight;
+          })
+        );
+      ok(`山海寶盒 B4 神格管理窗在畫面內、按鈕 ≥44px（${tag}）`, mi && good(fm), JSON.stringify(fm));
+      await press('#pbox .bxml li:not(.on) [data-bx^="ghx:"]');
+      const hs = await fit('hask', ['.hgo', '[data-h="no"]']);
+      ok(
+        `山海寶盒 B4 拆解確認卡在畫面內（${tag}）`,
+        (await R(() => !$('hask').hidden)) && good(hs),
+        JSON.stringify(hs)
+      );
+      await press('#hask .hgo', 300);
+      ok(`山海寶盒 B5 拆解提早放開不執行（${tag}）`, await R(() => S.gods.length === 2));
+      await press('#hask .hgo', 700);
+      ok(`山海寶盒 B5 按滿 0.6 秒才拆（${tag}）`, await R(() => S.gods.length === 1));
+      await R(() => ((BOXUI.gm = 0), hudPanels()));
+      await press('#pbox .bxgo.g0');
+      ok(
+        `山海寶盒 B3 足夠時點一下就開王場、沒有長按（${tag}）`,
+        await R(() => G.arena === 'yama' && $('hask').hidden && !PANEL.box)
+      );
+    }
+    /* 地點 B1–B5 */
+    await reset(
+      `S.camp.scout = 1; S.camp.watch = 12; S.star = 2; runNode(TRUNK_K[12]); closePanels(); PANEL.node = true; hudPanels();`
+    );
+    await p.waitForTimeout(300);
+    const z1 = await R(() =>
+      [...document.querySelectorAll('#pnode .ndst .chip')]
+        .map(e => e.textContent + (e.classList.contains('off') ? getComputedStyle(e).borderStyle : ''))
+        .join()
+    );
+    const fz = await fit('pnode', ['.ph .x', '.ndst .chip', '.ndr']);
+    ok(
+      `地點 B1／B3 1★–5★ 都在（3★–5★ 虛線）、不出畫面、可見列與星級 ≥44px（${tag}）`,
+      z1 === '1★,2★,3★dashed,4★dashed,5★dashed' && good(fz),
+      JSON.stringify([z1, fz])
+    );
+    if (FULL) {
+      await press('#pnode .ndst .chip:nth-of-type(4)');
+      ok(`地點 B3 點未開星級不改 S.star（${tag}）`, await R(() => S.star === 2));
+      await p.waitForTimeout(450);
+      const zt = await R(() => {
+        const t = $('ztip').getBoundingClientRect(),
+          x = document.querySelector('#pnode .ph .x').getBoundingClientRect();
+        return {
+          on: !$('ztip').hidden && $('ztip').textContent.includes('升斥候營到 Lv 3 才開'),
+          in: t.left >= 0 && t.top >= 0 && t.right <= innerWidth && t.bottom <= innerHeight,
+          x: t.right <= x.left || x.right <= t.left || t.bottom <= x.top || x.bottom <= t.top
+        };
+      });
+      ok(`地點 B5 未開星級提示（停 0.4 秒）在畫面內、不擋關閉（${tag}）`, zt.on && zt.in && zt.x, JSON.stringify(zt));
+      const cur0 = await R(() => S.world.cur);
+      await press('#pnode li.nx ~ li.lock:not(.nx) .ndr');
+      ok(
+        `地點 B4 點其他鎖定列：不進入、有原因提示（${tag}）`,
+        await R(c => S.world.cur === c && PANEL.node && $('warn').textContent.includes('才開'), cur0)
+      );
+      await press('#pnode li.nx .ndr');
+      ok(`地點 B4 點下一座：去營地（${tag}）`, await R(() => !PANEL.node && (PANEL.camp || PANEL.craft)));
+    } else console.log(`— ${tag}：桌機小視窗只量版面，略過昇華長按、浮動提示、地點點擊`);
+    await R(() => (holdClose(), closePanels()));
+  };
   /* M0-06：還沒有手勢就不建立 AudioContext（不跳主控台警告）；第一次點了才建立（檔案最後再驗） */
   ok('還沒點過：音效還沒建立', await p.evaluate(() => !AC));
   ok('新存檔預設直立', await p.evaluate(() => S.orient === 'p'));
@@ -122,6 +372,7 @@ const settle = async (p, fn, arg) => {
           );
           ok(`桌機：開 ${k} 面板不超出畫面`, r.length > 0 && r.every(x => x[1]), JSON.stringify(r));
         });
+    await aszCheck();
     ok(
       '桌機：設定沒有「操作方向」',
       await p.evaluate(() => (closePanels(), openPanel('set'), !/操作方向|橫向/.test($('pset').innerText)))
@@ -2223,11 +2474,17 @@ const settle = async (p, fn, arg) => {
       treeOpen();
       const t = [TREE.open, $('warn').textContent];
       openPanel('asc');
-      return [...t, !!PANEL.asc, $('warn').textContent];
+      return [
+        ...t,
+        !!PANEL.asc &&
+          [...document.querySelectorAll('#pasc .axl-q')].filter(e => e.textContent.includes('???')).length === 15,
+        $('warn').textContent
+      ];
     });
+    /* 昇華 v1.0（ascend-spec A01）：石碑沒開也打開 15 格全 ??? 的選擇面板，同時跳那一句（原本是打不開） */
     ok(
-      'M1-06：長老屋不夠時天賦樹、昇華石碑打不開，跳「升長老屋到 Lv n 才開」',
-      !lk[0] && lk[1] === '升長老屋到 Lv 4 才開' && !lk[2] && lk[3] === '升長老屋到 Lv 7 才開',
+      'M1-06：長老屋不夠時天賦樹打不開、昇華石碑打開 15 格全 ???（ascend-spec A01），都跳「升長老屋到 Lv n 才開」',
+      !lk[0] && lk[1] === '升長老屋到 Lv 4 才開' && lk[2] && lk[3] === '升長老屋到 Lv 7 才開',
       JSON.stringify(lk)
     );
     /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點營地的昇華石碑；山海寶盒例外照開 */
@@ -2250,12 +2507,12 @@ const settle = async (p, fn, arg) => {
       return { rows, nav, nw, asc, w, box };
     });
     ok(
-      'M1-06：分頁列的天賦格畫鎖頭、點了不開並跳「升長老屋到 Lv 4 才開天賦樹」；更多沒有天賦樹與昇華石碑、點昇華石碑打不開並跳那一句；山海寶盒照開（例外）',
+      'M1-06：分頁列的天賦格畫鎖頭、點了不開並跳「升長老屋到 Lv 4 才開天賦樹」；更多沒有天賦樹與昇華石碑；點昇華石碑打開 15 格全 ??? 並跳那一句（ascend-spec A01）；山海寶盒照開（例外）',
       lk2.nav &&
         lk2.nw === '升長老屋到 Lv 4 才開天賦樹' &&
         !lk2.rows.includes('天賦樹') &&
         !lk2.rows.includes('昇華石碑') &&
-        !lk2.asc &&
+        lk2.asc &&
         lk2.w === '升長老屋到 Lv 7 才開' &&
         lk2.box,
       JSON.stringify(lk2)
@@ -2953,6 +3210,7 @@ const settle = async (p, fn, arg) => {
       return r.every(Boolean);
     })
   );
+  await aszCheck();
   /* 2026-11-21 取消手機橫向：把手機橫過來（viewport 設成 844×390，反向檢查）也還是直立操作、沒有方向提示；舊存檔的 l 讀進來是 p */
   {
     const land = () =>

@@ -523,7 +523,7 @@ const idleOn = () =>
   /* 鍛造 v1.0 桌機：鍛造面板 760×536 蓋到左下，掛機卡收起（forge-spec §1 版面沒有掛機卡） */
   !(PANEL.craft && CRAFT.tab !== 'camp' && !TOUCH.on && !PORT()) &&
   /* 昇華、山海寶盒、地點 v1.0 桌機：版面沒有掛機卡（面板蓋到左下） */
-  !((PANEL.asc || PANEL.box || PANEL.node) && !TOUCH.on && !PORT()) &&
+  !((PANEL.asc || PANEL.box || PANEL.node) && D12()) &&
   (!TOUCH.on || PORT());
 /* 半版面板開著（世界地圖是全螢幕，不算）；M2-12 起掛機條是 44 高的條，不算半版 */
 const sheetOn = () => !!(PORT() && anyPanel());
@@ -753,6 +753,8 @@ const craftSeg = on =>
 /* 鍛造的標題列：「鍛造」＋兩段＋自動分解規則（鍛造台 Lv8）＋關閉（直立、桌機同一份） */
 const forgeHead = on =>
   `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}${campCan('auto2') ? '<button class="btn fa2b" data-fg="a2o">自動分解規則</button>' : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
+/* 昇華、山海寶盒、地點 v1.0 的 1280×720 定稿版面：桌機、視窗至少 1280×720 才用（小視窗照順序排） */
+const D12 = () => !TOUCH.on && !PORT() && innerWidth >= 1280 && innerHeight >= 720;
 /* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點營地場景的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
 const PANEL_LOCK = { box: 'box' };
 function openPanel(k) {
@@ -990,14 +992,14 @@ function hudPanels() {
   if (PANEL.more) $('pmore').innerHTML = moreHTML();
   idleBar(1);
   $('pnode').hidden = !PANEL.node;
-  $('pnode').classList.toggle('z12', !TOUCH.on && !PORT());
+  $('pnode').classList.toggle('z12', D12());
   if (PANEL.node) {
     panelHTML($('pnode'), nodeHTML());
     /* 剛打開：捲到正在刷的那一列 */
     if (!HV.nsel) {
       HV.nsel = 1;
       const on = $('pnode').querySelector('li.on');
-      if (on) on.scrollIntoView({ block: 'nearest' });
+      if (on) on.scrollIntoView({ block: D12() ? 'center' : 'nearest' });
     }
     nodeFoot();
   } else (HV.nsel = null), (NODEUI.star = 0);
@@ -1023,9 +1025,10 @@ function hudPanels() {
   if (navOn() === 'forge') FSEG = fseg();
   $('pchase').hidden = !PANEL.chase;
   if (PANEL.chase) panelHTML($('pchase'), chasePanelHTML());
-  $('pasc').classList.toggle('a12', !TOUCH.on && !PORT());
+  document.body.classList.toggle('d12', D12());
+  $('pasc').classList.toggle('a12', D12());
   if (PANEL.asc) panelHTML($('pasc'), ascHTML());
-  $('pbox').classList.toggle('b12', !TOUCH.on && !PORT());
+  $('pbox').classList.toggle('b12', D12());
   if (PANEL.box) $('pbox').innerHTML = boxHTML();
   if (PANEL.ident) {
     $('preveal').classList.toggle('rvc', !!REV.craft);
@@ -1612,7 +1615,11 @@ function zTip(a, k) {
   clearTimeout(ZT.t);
   ZT.a = a;
   if (!a) return void (t.hidden = true);
-  t.className = k === 'zh' ? 'h' : '';
+  /* 尺寸照示意圖：卡片預覽 360（A02）、寶盒右欄名詞 404（B01）、地點「地圖詞」520（C02） */
+  const map = a.dataset.zh === '地圖詞' && a.closest('#pnode');
+  t.className =
+    (k === 'zh' ? 'h' : '') +
+    (a.closest('.bxr') ? ' w404' : map ? ' w520' : a.dataset.zp && a.dataset.zp.startsWith('ak:') ? ' ak' : '');
   t.innerHTML = zTipHTML(a, k);
   t.hidden = false;
   const r = a.getBoundingClientRect(),
@@ -1624,7 +1631,12 @@ function zTip(a, k) {
     T = Math.max(box.top + 8, 8),
     B = Math.min(box.bottom - 8, innerHeight - 8);
   let x, y;
-  if (k === 'zp' && a.matches('.axn')) {
+  const go = a.closest('.bxr') && [...a.closest('.bxr').querySelectorAll('.bxgo')].pop();
+  /* 山海寶盒右欄的名詞（B01 第 15 項）：放在兩顆開啟鈕下面，不擋主鈕 */
+  if (go) (x = go.getBoundingClientRect().left), (y = go.getBoundingClientRect().bottom + 12);
+  /* 地點「地圖詞」（C02 第 10 項）：放在面板左下 32,320，不貼星級列 */ else if (map)
+    (x = box.left + 16), (y = box.top + 244);
+  else if (k === 'zp' && a.matches('.axn')) {
     x = r.right + 12 + w <= R ? r.right + 12 : r.left - 12 - w;
     y = r.top + r.height / 2 - h / 2;
   } else {
@@ -1641,7 +1653,11 @@ function zTipOn(a) {
   if (a.dataset.zp) return zTip(a, 'zp');
   zTip(null);
   ZT.a = a;
-  ZT.t = setTimeout(() => ZT.a === a && a.isConnected && zTip(a, 'zh'), 400);
+  /* 0.4 秒內面板重畫過：找回同一個 data-zh 的新元素 */
+  ZT.t = setTimeout(() => {
+    const n = a.isConnected ? a : document.querySelector(`[data-zh="${CSS.escape(a.dataset.zh)}"]`);
+    if (ZT.a === a && n) zTip(n, 'zh');
+  }, 400);
 }
 document.addEventListener('pointerover', e => {
   if (e.pointerType === 'touch') return;
@@ -1650,6 +1666,11 @@ document.addEventListener('pointerover', e => {
 document.addEventListener('focusin', e => {
   const a = e.target.closest && e.target.closest('[data-zp], [data-zh]');
   if (a || ZT.a) zTipOn(a);
+});
+/* 觸控沒有懸停：點名詞或未開星級＝直接出提示 */
+document.addEventListener('click', e => {
+  const a = TOUCH.on && e.target.closest('[data-zh]');
+  if (a) zTip(a, 'zh');
 });
 /* 面板重畫：錨點換成新的同一個元素（同一個 data-zp）再定位一次；找不到就收 */
 function zTipSync() {
@@ -2169,7 +2190,7 @@ function boxHTML() {
     sub = Z.sub(),
     btn = (kind, i) => {
       const w = arenaWhy(S, kind, BOXUI.sel);
-      return `<button class="btn bxgo ${w ? 'off' : 'pri'}" data-bx="go:${kind}" ${w ? 'disabled' : ''}><b>${i ? '終極王場' : '一般王場'} · ${ARENA[kind]}</b><small>${esc(w || sub[i])}</small></button>`;
+      return `<button class="btn bxgo g${i} ${w ? 'off' : 'pri'}" data-bx="go:${kind}" ${w ? 'disabled' : ''}><b>${i ? '終極王場' : '一般王場'} · ${ARENA[kind]}</b><small>${esc(w || sub[i])}</small></button>`;
     },
     L = S.gods || [],
     on = L[S.godOn];
@@ -2182,6 +2203,27 @@ function boxHTML() {
   <div class="bxg"><span>身上裝備：${on ? esc(ghName(on)) : '無'}<small>神格 ${L.length}／${TAISUI.keep}</small></span><button class="btn pri" data-bx="gm">管理神格</button></div>
   ${BOXUI.gm ? boxGodHTML() : ''}`;
 }
+/* 鍵盤（ascend-spec §6.2、zones-spec §6）：15 格方向鍵移焦點（左右 1 格、上下 5 格）、星級左右；昇華詳細按 Backspace 回選擇面板 */
+document.addEventListener('keydown', e => {
+  const t = e.target.closest && e.target.closest('#pasc .axk, #pnode .ndst .chip');
+  if (PANEL.asc && e.key === 'Backspace' && !ASCUI.pick && !HASK) return (ASCUI.pick = 1), sfx('click'), hudPanels();
+  const d = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -5, ArrowDown: 5 }[e.key];
+  if (!t || !d || (t.matches('.chip') && Math.abs(d) > 1)) return;
+  const L = [...t.parentNode.querySelectorAll(t.matches('.chip') ? '.chip' : '.axk')],
+    n = L[L.indexOf(t) + d];
+  if (n) e.preventDefault(), n.focus();
+});
+/* 神格管理小視窗開著：Esc 只關小視窗 */
+document.addEventListener(
+  'keydown',
+  e => {
+    if (e.key !== 'Escape' || !PANEL.box || !BOXUI.gm) return;
+    e.stopImmediatePropagation();
+    BOXUI.gm = 0;
+    hudPanels();
+  },
+  true
+);
 /* 神格管理小視窗（B04）：身上只能 1 個；裝上換下舊的、卸下都不花材料；裝著的不能拆 */
 function boxGodHTML() {
   const L = S.gods || [];
@@ -2203,7 +2245,7 @@ document.addEventListener('click', e => {
   else if (k === 'sf')
     (BOXUI.tab = 'dream'), (BOXUI.sel = BOXUI.sel.includes(v) ? BOXUI.sel.filter(x => x !== v) : [...BOXUI.sel, v]);
   else if (k === 'go') return openArena(v, BOXUI.sel);
-  else if (k === 'gm') BOXUI.gm = 1;
+  else if (k === 'gm') (BOXUI.gm = 1), ($('pbox').scrollTop = 0);
   else if (k === 'gmx') BOXUI.gm = 0;
   else if (k === 'gh' && S.lv < GH_LV && S.godOn !== +v) hudWarn(lockSlotTxt('gh'));
   else if (k === 'gh') (S.godOn = S.godOn === +v ? null : +v), (ST = stats()), save();
