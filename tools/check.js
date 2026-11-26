@@ -12199,7 +12199,7 @@ const ASC_COMBOS = `const combos = k => {
         GF.col === PAL.enemyTel &&
         PAL.elFire !== PAL.enemyTel &&
         /CX\.fillStyle = C\.colOwn \|\| C\.col;/.test(Mc) &&
-        /B\.fillStyle = C\.col;/.test(Mc),
+        /c\.fillStyle = C\.col;/.test(Mc),
       JSON.stringify({ colOwn: GF.colOwn, col: GF.col })
     );
     /* dpoe-battle-mockup-1126：顏色總表第 4、5 步與 battle-mockup-gap-list */
@@ -12334,25 +12334,20 @@ const ASC_COMBOS = `const combos = k => {
     const bmFl = R.slice(R.indexOf('function foeFlush'), R.indexOf('function foeEdge')),
       bmTc = R.slice(R.indexOf('function teleCircle'), R.indexOf('function shadow'));
     ok(
-      '第 5 步 teleCircle／敵方地面：外圈畫 A 層、進度內圈與敵方地面畫 B 層，A 扣掉 B 後 A 貼 0.30、B 貼 0.55（外 0.30＋內 0.357＝0.55，重疊取最大不疊加）',
-      /A\.globalCompositeOperation = 'destination-out';\s*A\.drawImage\(B\.canvas, x, y, w, h, x, y, w, h\);/.test(
+      '第 5 步 teleCircle／敵方地面：外圈記在 a、進度內圈與敵方地面記在 b；離屏先畫 a、整塊 destination-out 1−0.30/0.55、再畫 b，整層 0.55 貼一次（外 0.30＋內 0.357＝0.55，重疊取最大不疊加），只處理外接框',
+      /for \(const f of FOE\.a\) f\(g\);[\s\S]*?g\.globalCompositeOperation = 'destination-out';\s*g\.globalAlpha = 1 - 0\.3 \/ 0\.55;\s*g\.fillRect\(x, y, w, h\);[\s\S]*?for \(const f of FOE\.b\) f\(g\);[\s\S]*?CX\.globalAlpha = 0\.55;\s*CX\.drawImage\(g\.canvas, x, y, w, h, x, y, w, h\);[\s\S]*?g\.clearRect\(x, y, w, h\);/.test(
         bmFl
       ) &&
-        /CX\.globalAlpha = 0\.3;\s*CX\.drawImage\(A\.canvas, x, y, w, h, x, y, w, h\);\s*CX\.globalAlpha = 0\.55;\s*CX\.drawImage\(B\.canvas, x, y, w, h, x, y, w, h\);/.test(
-          bmFl
-        ) &&
-        /A\.clearRect\(x, y, w, h\);\s*B\.clearRect\(x, y, w, h\);/.test(bmFl) &&
-        /A\.arc\(x, y, r, 0, TAU\)/.test(bmTc) &&
-        /B\.arc\(x, y, r \* clamp\(f, 0, 1\), 0, TAU\)/.test(bmTc) &&
+        /\['a', r\],\s*\['b', r \* clamp\(f, 0, 1\)\]/.test(bmTc) &&
         !/rgba\(/.test(bmTc) &&
-        /const B = foeLayer\(g\.x, g\.y, g\.r\)\[1\];/.test(Mc) &&
+        /foeFill\('b', g\.x, g\.y, g\.r, c => \{\s*c\.globalAlpha = f;\s*c\.fillStyle = C\.col;/.test(Mc) &&
         !/0\.36/.test(Mc.slice(Mc.indexOf('function drawMech'), Mc.indexOf('for (const c of G.corpses)'))) &&
         /CX\.globalAlpha = 0\.14 \* f;/.test(Mc) &&
-        /R\.indexOf|foeFlush\(\);/.test(R.slice(R.indexOf('for (const t of G.tele) teleCircle'), R.indexOf('愛的紅線')))
+        /foeFlush\(\);/.test(R.slice(R.indexOf('for (const t of G.tele) teleCircle'), R.indexOf('愛的紅線')))
     );
     ok(
-      '第 5 步預警框（C24／T2／T3）：虛線 [10, 6]、先 5 px 不透明 --ring-edge 再 3 px --enemy-tel α0.9、中央菱形；王閃現 α 0.7＋0.2f',
-      /setLineDash\(\[10, 6\]\);[\s\S]*?lineWidth = 5;\s*CX\.strokeStyle = PAL\.ringEdge;[\s\S]*?globalAlpha = 0\.9;\s*CX\.lineWidth = 3;\s*CX\.strokeStyle = PAL\.enemyTel;/.test(
+      '第 5 步預警框（C24／T2／T3）：先 5 px 不透明 --ring-edge 再 3 px --enemy-tel α0.9 虛線 [10, 6]、中央菱形；王閃現 α 0.7＋0.2f',
+      /lineWidth = 5;\s*CX\.strokeStyle = PAL\.ringEdge;\s*CX\.stroke\(\);\s*CX\.setLineDash\(\[10, 6\]\);\s*CX\.globalAlpha = 0\.9;\s*CX\.lineWidth = 3;\s*CX\.strokeStyle = PAL\.enemyTel;/.test(
         R.slice(R.indexOf('function foeEdge'), R.indexOf('function foeIcon'))
       ) && /globalAlpha = 0\.7 \+ 0\.2 \* f;/.test(R)
     );

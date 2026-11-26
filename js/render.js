@@ -204,23 +204,23 @@ function draw() {
     if (D.ai === 'lunge' || (m.boss && m.pat === 'charge')) {
       const len = m.boss ? 520 : D.reach + 20,
         wd = m.r * 1.6;
-      /* 整條範圍畫在 A（0.12–0.30 照舊）、進度畫在 B（0.55） */
-      const [A, B] = foeLayer(m.x, m.y, len + wd),
-        x = m.x,
+      /* 整條範圍畫在 a（0.12–0.30 照舊）、進度畫在 b（0.55） */
+      const x = m.x,
         y = m.y,
         an = m.ang;
-      for (const [g, a, l] of [
-        [A, (0.12 + 0.18 * f) / 0.3, len],
-        [B, 1, len * f]
-      ]) {
-        g.save();
-        g.translate(x, y);
-        g.rotate(an);
-        g.globalAlpha = a;
-        g.fillStyle = PAL.enemyTel;
-        g.fillRect(0, -wd / 2, l, wd);
-        g.restore();
-      }
+      for (const [k, a, l] of [
+        ['a', (0.12 + 0.18 * f) / 0.3, len],
+        ['b', 1, len * f]
+      ])
+        foeFill(k, x, y, len + wd, g => {
+          g.save();
+          g.translate(x, y);
+          g.rotate(an);
+          g.globalAlpha = a;
+          g.fillStyle = PAL.enemyTel;
+          g.fillRect(0, -wd / 2, l, wd);
+          g.restore();
+        });
       foeEdge(
         () => {
           CX.save();
@@ -238,18 +238,19 @@ function draw() {
         y = m.y + Math.sin(m.ang) * 55;
       teleCircle(x, y, 95, f);
     } else if (D.ai === 'melee' || (m.boss && m.pat === 'swipe')) {
-      /* 扇形 0.10–0.35 照舊，畫在 B（÷0.55） */
+      /* 扇形 0.10–0.35 照舊，畫在 b（÷0.55） */
       const R = m.boss ? 150 : D.reach + 10,
-        B = foeLayer(m.x, m.y, R)[1],
         x = m.x,
         y = m.y,
         an = m.ang,
         fan = g => (g.beginPath(), g.moveTo(x, y), g.arc(x, y, R, an - 1.2, an + 1.2), g.closePath());
-      B.globalAlpha = (0.1 + 0.25 * f) / 0.55;
-      B.fillStyle = PAL.enemyTel;
-      fan(B);
-      B.fill();
-      B.globalAlpha = 1;
+      foeFill('b', x, y, R, g => {
+        g.globalAlpha = (0.1 + 0.25 * f) / 0.55;
+        g.fillStyle = PAL.enemyTel;
+        fan(g);
+        g.fill();
+        g.globalAlpha = 1;
+      });
       foeEdge(() => fan(CX), x + Math.cos(an) * R * 0.6, y + Math.sin(an) * R * 0.6);
     } else if (D.ai === 'ranged' || D.ai === 'fan') {
       CX.strokeStyle = `rgba(${PAL.rgb.enemyTel},${0.2 + 0.5 * f})`;
@@ -537,56 +538,50 @@ function frameRect(x, y, w, h) {
   CX.strokeStyle = PAL.panelEdge;
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
-/* 敵方填色層（總表 §1-6、C25、3.2）：外圈畫在 A（整層 0.30）、進度內圈與敵方地面畫在 B（整層 0.55）；
-   同一層裡重疊不疊加，A 扣掉 B 的範圍再貼，任一點合成最多 0.55（＝外圈 0.30＋內圈 0.357）。框與圖示等貼完再畫（FOE.L）。
-   只處理畫到的範圍（世界座標中心 x、y、半徑 r 的外接框聯集；全畫面貼幾次太貴），貼完把那塊清掉 */
-const FOE = { on: 0, L: [] };
-function foeLayer(x, y, r) {
-  if (!FOE.on) {
-    const m = CX.getTransform();
-    FOE.c = FOE.c || [0, 1].map(() => document.createElement('canvas').getContext('2d'));
-    for (const g of FOE.c) {
-      if (g.canvas.width !== CV.width || g.canvas.height !== CV.height)
-        (g.canvas.width = CV.width), (g.canvas.height = CV.height);
-      g.setTransform(m);
-    }
-    (FOE.on = 1), (FOE.L = []), (FOE.b = [x - r, y - r, x + r, y + r]);
-  }
-  const b = FOE.b;
+/* 敵方填色層（總表 §1-6、C25、3.2）：外圈（'a'，0.30）與進度內圈、敵方地面（'b'，0.55）都先記下來，foeFlush 時畫進同一張離屏：
+   先畫全部 a（不透明聯集）→ 整塊 destination-out 1−0.30/0.55，a 剩 0.545 → 再畫全部 b（不透明）→ 整層 0.55 貼一次。
+   同一層重疊取最大、不疊加，任一點合成最多 0.55（＝外圈 0.30＋內圈 0.357）。只處理畫到的外接框（世界座標 x、y、半徑 r 的聯集）。
+   框與圖示等貼完再畫（FOE.L） */
+const FOE = { on: 0, a: [], b: [], L: [] };
+function foeFill(k, x, y, r, f) {
+  if (!FOE.on) (FOE.on = 1), (FOE.a = []), (FOE.b = []), (FOE.L = []), (FOE.bb = [x - r, y - r, x + r, y + r]);
+  const b = FOE.bb;
   (b[0] = Math.min(b[0], x - r)),
     (b[1] = Math.min(b[1], y - r)),
     (b[2] = Math.max(b[2], x + r)),
     (b[3] = Math.max(b[3], y + r));
-  return FOE.c;
+  FOE[k].push(f);
 }
 function foeFlush() {
   if (!FOE.on) return;
-  const [A, B] = FOE.c,
-    m = CX.getTransform(),
+  const m = CX.getTransform(),
     W = CV.width,
     H = CV.height,
-    x = clamp(Math.floor(m.a * FOE.b[0] + m.e) - 4, 0, W),
-    y = clamp(Math.floor(m.d * FOE.b[1] + m.f) - 4, 0, H),
-    w = clamp(Math.ceil(m.a * FOE.b[2] + m.e) + 4, 0, W) - x,
-    h = clamp(Math.ceil(m.d * FOE.b[3] + m.f) + 4, 0, H) - y;
-  A.setTransform(1, 0, 0, 1, 0, 0);
-  B.setTransform(1, 0, 0, 1, 0, 0);
-  CX.setTransform(1, 0, 0, 1, 0, 0);
+    x = clamp(Math.floor(m.a * FOE.bb[0] + m.e) - 4, 0, W),
+    y = clamp(Math.floor(m.d * FOE.bb[1] + m.f) - 4, 0, H),
+    w = clamp(Math.ceil(m.a * FOE.bb[2] + m.e) + 4, 0, W) - x,
+    h = clamp(Math.ceil(m.d * FOE.bb[3] + m.f) + 4, 0, H) - y,
+    g = FOE.g || (FOE.g = document.createElement('canvas').getContext('2d'));
+  if (g.canvas.width !== W || g.canvas.height !== H) (g.canvas.width = W), (g.canvas.height = H);
   if (w > 0 && h > 0) {
-    A.globalAlpha = 1;
-    A.globalCompositeOperation = 'destination-out';
-    A.drawImage(B.canvas, x, y, w, h, x, y, w, h);
-    A.globalCompositeOperation = 'source-over';
-    CX.globalAlpha = 0.3;
-    CX.drawImage(A.canvas, x, y, w, h, x, y, w, h);
+    g.setTransform(m);
+    for (const f of FOE.a) f(g);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'destination-out';
+    g.globalAlpha = 1 - 0.3 / 0.55;
+    g.fillRect(x, y, w, h);
+    g.globalCompositeOperation = 'source-over';
+    g.globalAlpha = 1;
+    g.setTransform(m);
+    for (const f of FOE.b) f(g);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    CX.setTransform(1, 0, 0, 1, 0, 0);
     CX.globalAlpha = 0.55;
-    CX.drawImage(B.canvas, x, y, w, h, x, y, w, h);
+    CX.drawImage(g.canvas, x, y, w, h, x, y, w, h);
     CX.globalAlpha = 1;
+    CX.setTransform(m);
+    g.clearRect(x, y, w, h);
   }
-  /* 這一格畫過的都在框裡（框外的部分畫不上畫布），清框就是清乾淨 */
-  A.clearRect(x, y, w, h);
-  B.clearRect(x, y, w, h);
-  CX.setTransform(m);
   for (const f of FOE.L) f();
   FOE.on = 0;
 }
@@ -594,11 +589,11 @@ function foeFlush() {
    中央圖示沒有專用的危險圖示，先用程式菱形（--enemy-tel，桌機 20、觸控 16 px） */
 function foeEdge(path, x, y) {
   FOE.L.push(() => {
-    CX.setLineDash([10, 6]);
     path();
     CX.lineWidth = 5;
     CX.strokeStyle = PAL.ringEdge;
     CX.stroke();
+    CX.setLineDash([10, 6]);
     CX.globalAlpha = 0.9;
     CX.lineWidth = 3;
     CX.strokeStyle = PAL.enemyTel;
@@ -619,14 +614,16 @@ function foeIcon(x, y, col) {
   CX.fill();
 }
 function teleCircle(x, y, r, f) {
-  const [A, B] = foeLayer(x, y, r);
-  A.fillStyle = B.fillStyle = PAL.enemyTel;
-  A.beginPath();
-  A.arc(x, y, r, 0, TAU);
-  A.fill();
-  B.beginPath();
-  B.arc(x, y, r * clamp(f, 0, 1), 0, TAU);
-  B.fill();
+  for (const [k, R] of [
+    ['a', r],
+    ['b', r * clamp(f, 0, 1)]
+  ])
+    foeFill(k, x, y, r, g => {
+      g.fillStyle = PAL.enemyTel;
+      g.beginPath();
+      g.arc(x, y, R, 0, TAU);
+      g.fill();
+    });
   foeEdge(
     () => {
       CX.beginPath();

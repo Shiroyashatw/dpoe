@@ -4,8 +4,8 @@
     "floorN": 1
   },
   "alpha": {
-    "outer": 0.301,
-    "outerOuter": 0.301,
+    "outer": 0.296,
+    "outerOuter": 0.296,
     "innerInner": 0.549,
     "outerGround": 0.549,
     "ground": 0.549

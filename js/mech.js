@@ -755,7 +755,7 @@ function mechTick(dt) {
 /* 怪物方地面中央的圖示（M2-05.1b）：對應異常的圖示；沒有對應的畫元素色小菱形 */
 const GROUND_IC = { fire: 'ign', chill: 'chill', gas: 'poison', jagged: 'bleed' };
 function drawMech() {
-  /* 地面不寫字（M2-05.1）：自己的只留 14% 填色、不畫框，在這裡畫；怪物方 55% 填色（畫進 render.js 的敵方填色層 B，
+  /* 地面不寫字（M2-05.1）：自己的只留 14% 填色、不畫框，在這裡畫；怪物方 55% 填色（畫進 render.js 的敵方填色層 b，
      跟預警、其他敵方地面重疊取最大、不疊加；總表 3.2、C25）＋--enemy-tel 虛線框＋中央圖示，等填色層貼完才畫（foeFlush） */
   for (const g of G.ground) {
     const C = GROUND[g.k],
@@ -769,13 +769,14 @@ function drawMech() {
       CX.fill();
       continue;
     }
-    const B = foeLayer(g.x, g.y, g.r)[1];
-    B.globalAlpha = f;
-    B.fillStyle = C.col;
-    B.beginPath();
-    B.ellipse(g.x, g.y, g.r, g.r * 0.75, 0, 0, TAU);
-    B.fill();
-    B.globalAlpha = 1;
+    foeFill('b', g.x, g.y, g.r, c => {
+      c.globalAlpha = f;
+      c.fillStyle = C.col;
+      c.beginPath();
+      c.ellipse(g.x, g.y, g.r, g.r * 0.75, 0, 0, TAU);
+      c.fill();
+      c.globalAlpha = 1;
+    });
     FOE.L.push(() => {
       CX.globalAlpha = 0.95 * f;
       CX.strokeStyle = PAL.enemyTel;
