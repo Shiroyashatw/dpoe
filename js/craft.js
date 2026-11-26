@@ -3,28 +3,24 @@
    通貨掉落、材料、靈魂升級、開孔 */
 'use strict';
 
-/* ---------- 材料（S.mat）：靈魂＋10 種通貨（data.js 的 CUR），精髓另放 S.mat.ess＝{ '類:T': 數量 } ---------- */
-const newMat = () => ({ soul: 0, ...Object.fromEntries(Object.keys(CUR).map(k => [k, 0])), ess: {}, mats: {} });
+/* ---------- 材料（S.mat）：靈魂＋通貨（data.js 的 CUR）；精髓粉另放 S.mat.dust＝{ 類: 份數 }（鍛造 v1.0 §4.2：只分類別、階由檔決定） ---------- */
+const newMat = () => ({ soul: 0, ...Object.fromEntries(Object.keys(CUR).map(k => [k, 0])), dust: {}, mats: {} });
 const MAT = () => (S.mat = S.mat || newMat());
-const essKey = (cls, T) => cls + ':' + T;
-const essName = key => {
-  const [c, T] = key.split(':');
-  return `${ACLSI[c].n}精髓 T${T}`;
-};
-function essAdd(cls, T, n = 1) {
-  const e = (MAT().ess = MAT().ess || {}),
-    k = essKey(cls, T);
-  e[k] = (e[k] || 0) + n;
+const dustName = cls => ACLSI[cls].n + '粉';
+const dustN = cls => (MAT().dust || {})[cls] || 0;
+function dustAdd(cls, n = 1) {
+  const d = (MAT().dust = MAT().dust || {});
+  d[cls] = (d[cls] || 0) + n;
 }
-/* 手上的精髓清單：類別順序、階級小（高階）的在前 */
-const essList = () =>
-  Object.entries(MAT().ess || {})
-    .filter(([, n]) => n > 0)
-    .sort(
-      (a, b) =>
-        ACLS.findIndex(x => x.k === a[0].split(':')[0]) - ACLS.findIndex(x => x.k === b[0].split(':')[0]) ||
-        +a[0].split(':')[1] - +b[0].split(':')[1]
-    );
+/* 精髓粉三檔（Page 282ab999，待雲端模擬）：w＝詞階隨機寬度、n＝b1 時用幾份；檔名是暫稱 */
+const DUST_G = [
+  { n: '定類', w: 5, k: 2 },
+  { n: '下限提高', w: 3, k: 6 },
+  { n: '次頂階以上', w: 1, k: 12 }
+];
+/* 每次掉精髓粉給幾份（⚠️ 待裁：規格沒寫，取「一次掉落＝檔 1 用一次」）；鍛造台 Lv18 起 ×1.5 */
+const DUST_DROP = 2;
+const dustDrop = () => (campCan('cur:zhi') ? Math.round(DUST_DROP * 1.5) : DUST_DROP);
 
 /* ---------- 詞綴的條數上限 ---------- */
 const affCap = it => (it.r === 2 ? 6 : it.r === 1 ? 2 : 0);
@@ -39,40 +35,28 @@ function affPool(it, cls, skip) {
     k => !have.has(k) && (!cls || affCls(k) === cls) && (AFF[k].p ? np < cap : ns < cap)
   );
 }
-/* 新加的詞（企劃書 5.3.1）：照物品等級骰階（最高 T1）；精髓給 minT＝保證至少那一階（T 的數字要 ≤ minT），
-   但不會比物品等級允許的最高階更高（bestTier） */
-/* 高階／完美通貨（0.4.1）這一次的最低階數（T 數字），forgeDo 裡才有值 */
-let TIER_MIN = null;
-function fillAff(it, cls, minT = TIER_MIN != null ? TIER_MIN : undefined) {
+/* 新加的詞（鍛造 v1.0 §4.1）：T＝min(6, b＋隨機 0～w)，b＝這件的頂階（bestTier）；ADD_W 在 forgeDo 裡才有值，沒有就照掉落的骰法 */
+let ADD_W = null;
+const rollAddT = (it, w) => Math.min(AFF_T, bestTier(it.L) + irnd(0, w));
+function fillAff(it, cls) {
   const P = omenPool(it, cls),
-    r1 = () => rollAff(pick(P), it.L);
+    r1 = () => {
+      const k = pick(P);
+      return ADD_W == null ? rollAff(k, it.L) : rollAffT(k, rollAddT(it, ADD_W));
+    };
   let a = r1();
   /* 預兆・貪欲：骰 2 次取階數高的（T 數字小的） */
   if (OMEN_ON && OMEN_ON.has('om_greed')) {
     const b = r1();
     if (b.T < a.T) a = b;
   }
-  if (minT == null || a.T <= minT) return a;
-  return rollAffT(a.k, Math.max(bestTier(it.L), minT));
+  return a;
 }
 /* ---------- 預兆（0.2.79 心魔劫，企劃書 4.2）：作用在下一顆通貨，用了就沒了；多顆要放在鼎裡（三尸鼎 2 顆、三彭鼎 3 顆）一起用 ---------- */
 let OMEN_ON = null; /* 這一次通貨生效的預兆（Set），forgeDo 裡才有值 */
-const EXALTS = ['exalt', 'exalt2', 'exalt3'],
-  OMEN_ADD = [
-    'tran',
-    'aug',
-    'rich',
-    'exalt',
-    'tran2',
-    'aug2',
-    'rich2',
-    'exalt2',
-    'tran3',
-    'aug3',
-    'rich3',
-    'exalt3',
-    'ess'
-  ],
+/* 預兆只配崇高石與精髓粉（forge-handoff N-3：加詞石、至臻石吃不吃預兆待確認，現在照畫法不吃）；一次 1 顆（Q-M8） */
+const EXALTS = ['exalt'],
+  OMEN_ADD = ['exalt', 'dust'],
   OMEN_OPS = {
     om_joy: EXALTS,
     om_fear: EXALTS,
@@ -98,15 +82,12 @@ function omenPool(it, cls) {
 function omenWhy(op, om) {
   if (!om || !om.length) return null;
   const M = MAT();
-  if (new Set(om).size !== om.length) return '同一種預兆不能放兩顆';
-  if (om.length > 3) return '最多同時用 3 顆預兆';
-  if (om.length === 3 && !(M.v3 >= 1)) return '要三彭鼎才能同時用 3 顆預兆';
-  if (om.length === 2 && !(M.v2 >= 1) && !(M.v3 >= 1)) return '要三尸鼎才能同時用 2 顆預兆';
+  if (om.length > 1) return '一次只能用 1 顆預兆';
   for (const k of om) {
     if (!(M[k] >= 1)) return CUR[k].n + '不夠';
-    if (!OMEN_OPS[k].includes(op)) return `${CUR[k].n}只能用在${OMEN_OPS[k].length === 1 ? '崇高石' : '填詞的通貨'}`;
+    if (!OMEN_OPS[k].includes(op))
+      return `${CUR[k].n}只能用在${OMEN_OPS[k].length === 1 ? '崇高石' : '崇高石或精髓粉'}`;
   }
-  for (const [a, b] of SIN.clash) if (om.includes(a) && om.includes(b)) return `${CUR[a].n}跟${CUR[b].n}不能一起用`;
   return null;
 }
 /* 預兆・雙喜：兩條給你挑，選了才加上去 */
@@ -252,7 +233,7 @@ function craftDo(kind, o) {
   if (typeof SES !== 'undefined' && SES) (SES.craft += n), (SES.rare += items.filter(it => it.r === 2).length);
   return { items, salv };
 }
-/* ---------- 分解（第 5 節）：回材料（打造費用 × 回收率，倉房升級再提高）＋靈魂（物品等級 × 2 ⚠️）＋金（舊賣價）；黃裝另回 1 顆蛻變或增幅。
+/* ---------- 分解（第 5 節）：回材料（打造費用 × 回收率，倉房升級再提高）＋靈魂（物品等級 × 2 ⚠️）＋金（舊賣價）；黃裝另回 1 顆加詞石（forge-handoff N-1，暫定）。
    只算與加進材料頁，不碰倉庫（叫的人自己 takeOut） ---------- */
 const salvRate = () => (!S.camp ? 0.5 : campCan('salv80') ? 0.8 : campCan('salv65') ? 0.65 : 0.5);
 const salvZero = () => ({ mats: {}, soul: 0, gold: 0, cur: {}, n: 0 });
@@ -273,7 +254,7 @@ function salvValue(it) {
     c = craftCost(baseOf(it), T);
   for (const m in c.mats) v.mats[matKey(m, T)] = Math.max(1, Math.floor(c.mats[m] * salvRate()));
   v.soul = it.L * 2;
-  if (it.r === 2) v.cur[Math.random() < 0.5 ? 'tran' : 'aug'] = 1;
+  if (it.r === 2) v.cur.aug = 1;
   return v;
 }
 function salvageDo(it) {
@@ -348,9 +329,8 @@ function lockSlotTxt(k) {
   if (b && !eqOpen(S, 'belt')) return '護符：腰帶被昇華鎖住，退點才能用';
   return b ? `護符：腰帶要有 ${+k[2] + 1} 格護符槽才開` : '護符：裝上腰帶才開';
 }
-/* 通貨對應的解鎖鍵：預兆一組、高階與完美照階 */
-const curKey = k =>
-  k.startsWith('om_') ? 'cur:om' : /^(tran|aug|rich|exalt)[23]$/.test(k) ? 'tier' + k.slice(-1) : 'cur:' + k;
+/* 通貨對應的解鎖鍵：預兆一組 */
+const curKey = k => (k.startsWith('om_') ? 'cur:om' : 'cur:' + k);
 const campWt = wt => ((S.camp || newCamp()).wts || ['sword']).includes(wt);
 /* 數值型：batch 一次打幾件、wts 幾種武器類別、slots 技能格數、holes 每招最多幾個輔助孔、star 星級上限、pop 人口、off 離線上限（小時） */
 function campN(k) {
@@ -451,11 +431,11 @@ function campUp(b) {
 /* ---------- 解鎖一句話（M1-14，docs/production/milestones.md「M1-13 定稿」，原文照用）：每一句只在第一次達成時出現一次（S.hint.u）；
    一次升好幾件（全部升級）時排隊，一句一句出（hud.js 的 hudWarn） ---------- */
 const FORGE_SAY = [
-  '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
+  '鍛造台 Lv1：開了「填」。加詞石開始掉，拿來替裝備加詞。',
   '鍛造台 Lv2：打造一次 3 件。',
   '鍛造台 Lv3：可以打造閃避系防具與箭袋。',
-  '鍛造台 Lv4：富豪石開始掉，打造有機率出稀有裝。',
-  '鍛造台 Lv5：打造一次 5 件；精髓開始掉。',
+  '鍛造台 Lv4：打造有機率出稀有裝。',
+  '鍛造台 Lv5：打造一次 5 件；精髓粉開始掉。',
   '鍛造台 Lv6：開了「淬鍊」，可以重骰詞的數值。',
   '鍛造台 Lv7：崇高石開始掉。',
   '鍛造台 Lv8：能打能量護盾系防具與法器；自動分解開了。',
@@ -463,14 +443,14 @@ const FORGE_SAY = [
   '鍛造台 Lv10：轉化石、預知石開始掉。',
   '鍛造台 Lv11：可以選第二種武器類別。',
   '鍛造台 Lv12：聖化石開始掉，開了「聖化」。',
-  '鍛造台 Lv13：破裂石開始掉。四條詞以上的稀有裝，隨機一條升到 T0 並鎖住。',
+  '鍛造台 Lv13：破裂石開始掉。四條詞以上的稀有裝，隨機一條變成破裂詞，保留原階並鎖住。',
   '鍛造台 Lv14：自動分解可以照詞階、追憶與 ▲ 決定留不留。',
   '鍛造台 Lv15：腐化石開始掉，開了「腐化」。',
   '鍛造台 Lv16：打造一次 20 件；開了第 5 格技能，到技能分頁挑一招。',
   '鍛造台 Lv17：追憶之墨與珠寶開始掉。打造時加一瓶墨，保證一條追憶詞。',
-  '鍛造台 Lv18：高階通貨開始掉。',
+  '鍛造台 Lv18：至臻石開始掉；精髓粉掉得更多。',
   '鍛造台 Lv19：完美石開始掉。六條詞全滿的稀有裝，隨機一條升到 T0。',
-  '鍛造台 Lv20：開了輔助 II 與覺醒，完美通貨開始掉。'
+  '鍛造台 Lv20：開了輔助 II 與覺醒。'
 ];
 const ALTAR_SAY = {
   4: '長老屋 Lv4：天賦樹開了，照等級補發的點數已經放進去。',
@@ -574,67 +554,45 @@ function lockWhy(it, kind) {
 /* 加 1 條詞的共同檢查：atR 是加完之後的稀有度（算前後綴上限）、cls 限定類別 */
 const addWhy = (it, atR, cls) =>
   affPool({ ...it, r: atR }, cls).length ? null : cls ? '這一類沒有詞可加，或前後綴已滿' : '前後綴已滿，沒有詞可加';
-const toYellow = it => {
-  it.r = 2;
-};
+/* 三顆單階加詞通貨（鍛造 v1.0 §4.1）：四步通用——普通→魔法、魔法+1、魔法滿 2 條→稀有、稀有+1；w＝詞階隨機寬度（加詞石 5、崇高石 3、至臻石 1） */
+const ADD_CUR = { aug: 5, exalt: 3, zhi: 1 };
+/* 加完之後的稀有度 */
+const addR = it => (it.r === 0 ? 1 : it.r === 1 && it.a.length >= 2 ? 2 : it.r);
+const addOp = k => ({
+  n: CUR[k].n,
+  d: CUR[k].d,
+  w: ADD_CUR[k],
+  ok: it => (it.r === 2 && it.a.length >= 6 ? '詞綴已滿（6 條）' : addWhy(it, addR(it))),
+  add: it => affPool({ ...it, r: addR(it) }),
+  run(it) {
+    it.r = addR(it);
+    it.a.push(fillAff(it));
+  }
+});
 const FORGE = {
-  tran: {
-    n: '蛻變石',
-    d: '將普通物品升級為魔法物品，並新增 1 條隨機詞綴',
-    ok: it => (it.r ? '只有普通物品能用蛻變石' : addWhy(it, 1)),
-    add: it => affPool({ ...it, r: 1 }),
-    run(it) {
-      it.r = 1;
-      it.a.push(fillAff(it));
-    }
-  },
-  aug: {
-    n: '增幅石',
-    d: '為魔法物品新增 1 條隨機詞綴（魔法物品最多 2 條）',
-    ok: it => (it.r !== 1 ? '只有魔法物品能用增幅石' : it.a.length >= 2 ? '魔法物品最多 2 條詞綴' : addWhy(it, 1)),
-    add: it => affPool(it),
-    run(it) {
-      it.a.push(fillAff(it));
-    }
-  },
-  rich: {
-    n: '富豪石',
-    d: '將魔法物品升級為稀有物品，並新增 1 條隨機詞綴',
-    ok: it => (it.r !== 1 ? '只有魔法物品能用富豪石' : addWhy(it, 2)),
-    add: it => affPool({ ...it, r: 2 }),
-    run(it) {
-      toYellow(it);
-      it.a.push(fillAff(it));
-    }
-  },
-  exalt: {
-    n: '崇高石',
-    d: '為稀有物品新增 1 條隨機詞綴（前綴、後綴各最多 3 條）',
-    ok: it => (it.r !== 2 ? '只有稀有物品能用崇高石' : it.a.length >= 6 ? '詞綴已滿（6 條）' : addWhy(it, 2)),
-    add: it => affPool(it),
-    run(it) {
-      it.a.push(fillAff(it));
-    }
-  },
-  /* 精髓：藍裝用＝增幅、黃裝用＝崇高，但保證那一類、而且至少那一階 */
-  ess: {
-    n: '精髓',
-    d: '為魔法或稀有物品新增 1 條該精髓類別的詞綴，至少是精髓的階級',
+  aug: addOp('aug'),
+  exalt: addOp('exalt'),
+  zhi: addOp('zhi'),
+  /* 精髓粉（§4.2）：arg＝'類:檔'（檔 1～3）；保證那一類，詞階 T＝min(6, b＋隨機 0～w)，不保證頂階 */
+  dust: {
+    n: '精髓粉',
+    d: '為魔法或稀有物品新增 1 條指定類別的詞綴；檔越高，詞階下限越高',
     ok(it, arg) {
-      const [cls] = String(arg || '').split(':');
-      if (!ACLSI[cls]) return '先選一種精髓';
-      if (!it.r) return '普通物品要先用蛻變石';
+      const [cls, g] = String(arg || '').split(':');
+      if (!ACLSI[cls]) return '先選一種粉';
+      if (!DUST_G[g - 1]) return '先選一檔';
+      if (bestTier(it.L) >= AFF_T && +g > 1) return '這件只能用檔 1';
+      if (!it.r) return '只能用在魔法或稀有物品';
       if (it.r === 1 && it.a.length >= 2) return '魔法物品最多 2 條詞綴';
       if (it.a.length >= 6) return '詞綴已滿（6 條）';
       return addWhy(it, it.r, cls);
     },
     add: (it, arg) => affPool(it, String(arg).split(':')[0]),
     run(it, arg) {
-      const [cls, T] = arg.split(':');
-      it.a.push(fillAff(it, cls, +T));
+      it.a.push(fillAff(it, String(arg).split(':')[0]));
     }
   },
-  /* 0.5.3 破裂石（工坊與解鎖表第 6 節）：黃裝、四條以上、還沒有破裂詞：隨機一條升到 T0、變成破裂 ★（it.frac；轉化、淬鍊、聖化都不碰它） */
+  /* 破裂石（名詞表 A 案，鍛造 v1.0 §9）：黃裝、四條以上、還沒有破裂詞：隨機一條變成破裂詞（it.frac；保留原階、鎖住；轉化、淬鍊、聖化都不碰它） */
   frac: {
     n: '破裂石',
     d: CUR.frac.d,
@@ -642,9 +600,7 @@ const FORGE = {
       it.r !== 2 ? '只有稀有物品能用破裂石' : it.a.length < 4 ? '要四條以上詞綴' : it.frac ? '已經有破裂詞了' : null,
     add: () => [],
     run(it) {
-      const i = irnd(0, it.a.length - 1);
-      it.a[i] = rollAffT(it.a[i].k, 0);
-      it.frac = it.a[i].k;
+      it.frac = pick(it.a).k;
     }
   },
   /* 0.5.3 完美石：黃裝、六條全滿：隨機一條沒破裂的升到 T0（a.perf，不鎖、不算破裂）；一件一次（it.perfed） */
@@ -691,57 +647,48 @@ const FORGE = {
 };
 /* 轉化石能換成什麼：同類、不是自己、這件裝備出得了、前後綴放得下（被換掉的那條不算） */
 const convPool = (it, a) => affPool(it, affCls(a.k), a).filter(k => k !== a.k);
-/* 這顆通貨在材料頁的數量（精髓看選的那一種） */
-const curHave = (op, arg) => (op === 'ess' ? (MAT().ess || {})[arg] || 0 : MAT()[op] || 0);
-const curName = (op, arg) => (op === 'ess' ? (arg ? essName(arg) : '精髓') : CUR[op].n);
-/* 這一步能不能做：why＝這件裝備不能這樣做的原因，lack＝通貨不夠（預覽照樣可以看） */
-/* 通貨分三階（0.4.1，企劃書 5.3、5.8）：高階、完美照原本那顆的規則，只是新詞有最低階數：
-   高階＝這件能出的最高階（bestTier）或下一階各一半，完美＝保證最高階；T0 仍然只有破裂 ★ */
-const CUR_TIER = { 2: '高階', 3: '完美' };
-for (const k of ['tran', 'aug', 'rich', 'exalt'])
-  for (const g of [2, 3]) {
-    const B = FORGE[k];
-    FORGE[k + g] = {
-      ...B,
-      n: CUR[k + g].n,
-      d: CUR[k + g].d,
-      run(it, arg) {
-        TIER_MIN = bestTier(it.L) + (g === 3 ? 0 : irnd(0, 1));
-        try {
-          B.run(it, arg);
-        } finally {
-          TIER_MIN = null;
-        }
-      }
-    };
-  }
+/* 這顆通貨在材料頁的數量（精髓粉看選的那一類，回「能用幾次」） */
+const dustCost = arg => DUST_G[String(arg).split(':')[1] - 1].k;
+const curHave = (op, arg) =>
+  op === 'dust'
+    ? arg && DUST_G[String(arg).split(':')[1] - 1]
+      ? Math.floor(dustN(String(arg).split(':')[0]) / dustCost(arg))
+      : 0
+    : MAT()[op] || 0;
+const curName = (op, arg) => (op === 'dust' ? (arg ? dustName(String(arg).split(':')[0]) : '精髓粉') : CUR[op].n);
 const FILL_OPS = Object.keys(FORGE);
-const rareCur = k => EXALTS.includes(k) || /^(tran|aug|rich)[23]$/.test(k) || ['frac', 'perf', 'ink'].includes(k);
-/* 掉落（0.4.1，⚠️ 暫定）：每掉 1 顆蛻變、增幅、富豪、崇高，Lv45 以上的節點另外 10% 掉同種的高階；
-   Lv70 以上 1% 掉完美（保底：連續 TIER_P.pity 次沒掉，下一次必掉，S.prd.perfC） */
-const TIER_P = { g: 0.1, gLv: 45, p: 0.01, pLv: 70, pity: 300 };
-function tierDrop(cur, lv) {
-  for (const k of ['tran', 'aug', 'rich', 'exalt'])
-    for (let i = 0; i < (cur[k] || 0); i++) {
-      if (lv >= TIER_P.gLv && Math.random() < TIER_P.g) cur[k + '2'] = (cur[k + '2'] || 0) + 1;
-      if (lv < TIER_P.pLv) continue;
-      const P = (S.prd = S.prd || PRD0()),
-        n = (P.perfC || 0) + 1;
-      if (n >= TIER_P.pity || Math.random() < TIER_P.p) (cur[k + '3'] = (cur[k + '3'] || 0) + 1), (P.perfC = 0);
-      else P.perfC = n;
-    }
-}
+const rareCur = k => ['exalt', 'zhi', 'frac', 'perf', 'ink'].includes(k);
+/* 這一步能不能做：why＝這件裝備不能這樣做的原因，lack＝通貨不夠（預覽照樣可以看） */
 function forgeCheck(it, op, arg, om) {
   /* 預兆・畏縮：先移除 1 條再加，所以 6 條滿的黃裝也能用崇高石 */
   const full = om && om.includes('om_fear') && EXALTS.includes(op) && it.r === 2 && it.a.length >= 6;
+  let lack = null;
+  if (curHave(op, arg) < 1)
+    lack =
+      op === 'dust' && arg && DUST_G[String(arg).split(':')[1] - 1]
+        ? `${curName(op, arg)}不夠（還差 ${dustCost(arg) - dustN(String(arg).split(':')[0])}）`
+        : `${curName(op, arg)}不夠`;
   return {
     why: lockWhy(it, 'fill') || (full ? null : FORGE[op].ok(it, arg)) || omenWhy(op, om),
-    lack: curHave(op, arg) < 1 ? `${curName(op, arg)}不夠` : null
+    lack
   };
 }
+/* 加詞的詞階分布（§4.1 預覽）：[T, 機率]，超過 T6 併入 T6 */
+function tierOdds(it, w) {
+  const b = bestTier(it.L),
+    o = {};
+  for (let i = 0; i <= w; i++) {
+    const T = Math.min(AFF_T, b + i);
+    o[T] = (o[T] || 0) + 1 / (w + 1);
+  }
+  return Object.entries(o).map(([T, p]) => [+T, p]);
+}
+const opW = (op, arg) => (op === 'dust' ? DUST_G[String(arg).split(':')[1] - 1].w : FORGE[op].w);
 /* 預覽（鍛造台用）：add 可能加入的詞綴鍵、out 可能被換掉的詞、tier 階級說明 */
 function forgeWhat(it, op, arg) {
-  const out = op === 'conv' && it.a[+arg] ? [it.a[+arg]] : [];
+  const out = op === 'conv' && it.a[+arg] ? [it.a[+arg]] : [],
+    w = op === 'dust' ? (arg && DUST_G[String(arg).split(':')[1] - 1] ? opW(op, arg) : null) : FORGE[op].w,
+    odds = w != null ? tierOdds(it, w) : null;
   return {
     out,
     add: FORGE[op].add(it, arg),
@@ -750,20 +697,30 @@ function forgeWhat(it, op, arg) {
         ? out[0]
           ? `T${out[0].T}（階不變）`
           : ''
-        : op === 'frac' || op === 'perf'
+        : op === 'perf'
           ? 'T0'
-          : op === 'ess'
-            ? `至少 T${String(arg).split(':')[1]}`
-            : /3$/.test(op)
-              ? `T${bestTier(it.L)}`
-              : /2$/.test(op)
-                ? `T${bestTier(it.L)}～T${bestTier(it.L) + 1}`
-                : tierSpan(it)
+          : op === 'frac'
+            ? '保留原階'
+            : odds
+              ? odds.length > 1
+                ? `T${odds[0][0]}～T${odds[odds.length - 1][0]}`
+                : `T${odds[0][0]}`
+              : tierSpan(it),
+    odds
   };
 }
 function payCur(op, arg) {
-  if (op === 'ess') MAT().ess[arg]--;
+  if (op === 'dust') MAT().dust[String(arg).split(':')[0]] -= dustCost(arg);
   else MAT()[op]--;
+}
+/* 照這顆通貨的 w 跑 run（ADD_W 只在這一下有值） */
+function runOp(it, op, arg) {
+  ADD_W = op === 'dust' ? opW(op, arg) : FORGE[op].w != null ? FORGE[op].w : null;
+  try {
+    FORGE[op].run(it, arg);
+  } finally {
+    ADD_W = null;
+  }
 }
 function forgeDo(it, op, arg, om) {
   const { why, lack } = forgeCheck(it, op, arg, om);
@@ -779,20 +736,18 @@ function forgeDo(it, op, arg, om) {
         c.a.splice(c.a.indexOf(pick(L)), 1);
       }
       if (
-        !omenPool(
-          { ...c, r: /^tran/.test(op) ? 1 : /^rich/.test(op) ? 2 : c.r },
-          op === 'ess' ? String(arg).split(':')[0] : undefined
-        ).length
+        !omenPool({ ...c, r: op === 'dust' ? c.r : addR(c) }, op === 'dust' ? String(arg).split(':')[0] : undefined)
+          .length
       )
         return '預兆的條件下沒有詞可以加';
-      FORGE[op].run(c, arg);
+      runOp(c, op, arg);
       if (OMEN_ON.has('om_joy')) {
         const a1 = c.a.pop(),
           P = omenPool(c).filter(k => k !== a1.k);
         if (P.length) {
-          let a2 = rollAff(pick(P), c.L);
+          let a2 = rollAffT(pick(P), rollAddT(c, FORGE[op].w));
           if (OMEN_ON.has('om_greed')) {
-            const b = rollAff(pick(P), c.L);
+            const b = rollAffT(pick(P), rollAddT(c, FORGE[op].w));
             if (b.T < a2.T) a2 = b;
           }
           c.exOpt = [a1, a2];
@@ -805,8 +760,6 @@ function forgeDo(it, op, arg, om) {
     payCur(op, arg);
     const M = MAT();
     for (const k of om) M[k]--;
-    if (om.length === 2) M[M.v2 >= 1 ? 'v2' : 'v3']--;
-    if (om.length === 3) M.v3--;
     /* 沒動到的詞放回原本那個物件（鍛造台的紀錄靠物件比對「加了哪條」） */
     const old = it.a.slice();
     c.a = c.a.map(x => {
@@ -820,15 +773,74 @@ function forgeDo(it, op, arg, om) {
   }
   FORE = null;
   payCur(op, arg);
-  FORGE[op].run(it, arg);
+  runOp(it, op, arg);
   sortAff(it);
   return null;
 }
-/* 推薦：白→蛻變；藍→增幅（滿 2 條改富豪）；黃沒滿→崇高 */
-function forgeHint(it) {
-  if (lockWhy(it, 'fill')) return null;
-  return it.r === 0 ? 'tran' : it.r === 1 ? (it.a.length < 2 ? 'aug' : 'rich') : it.a.length < 6 ? 'exalt' : null;
+/* ---------- 鼎（鍛造 v1.0 §4.3，mumi 11/26：鼎＝裝粉）：三尸鼎 2 孔、三彭鼎 3 孔，一孔一種粉、同種不能兩孔。
+   煉製＝重擲全部非破裂詞（前後綴條數不變），照鼎裡的粉調權重。數字是 07b 示例（forge-handoff N-4 待數值確認）：
+   每孔用 POT_N 份、鼎裡的類別權重 ×POT_UP、POT_EX 排除對照；每次煉製用掉 1 個鼎 ---------- */
+const POT_N = 3,
+  POT_UP = 3,
+  POT_EX = { ele: 'phys', crit: 'def' },
+  POT_HOLE = { v2: 2, v3: 3 };
+/* pot＝{ v: 'v2'|'v3', s: [類…] } */
+function potWeights(pot) {
+  const W = Object.fromEntries(ACLS.map(c => [c.k, 1]));
+  for (const c of pot.s) W[c] *= POT_UP;
+  for (const c of pot.s) if (POT_EX[c]) W[POT_EX[c]] = 0;
+  return W;
 }
+function potCheck(it, pot) {
+  const M = MAT();
+  const why =
+    lockWhy(it, 'fill') ||
+    (!POT_HOLE[pot.v] ? '先選一個鼎' : '') ||
+    (!pot.s.length ? '先放一種粉進鼎孔' : '') ||
+    (!it.r ? '只能用在魔法或稀有物品' : '') ||
+    (!it.a.some(a => !isFrac(it, a)) ? '沒有可以重擲的詞' : '') ||
+    null;
+  let lack = null;
+  if (!why) {
+    if (!(M[pot.v] >= 1)) lack = `${CUR[pot.v].n}不夠`;
+    else
+      for (const c of pot.s)
+        if (dustN(c) < POT_N) {
+          lack = `${dustName(c)}不夠（還差 ${POT_N - dustN(c)}）`;
+          break;
+        }
+  }
+  return { why, lack };
+}
+/* 照庫存還能洗幾次 */
+const potLeft = pot => Math.min(MAT()[pot.v] || 0, ...pot.s.map(c => Math.floor(dustN(c) / POT_N)));
+function potDo(it, pot) {
+  const { why, lack } = potCheck(it, pot);
+  if (why || lack) return why || lack;
+  FORE = null;
+  const M = MAT();
+  M[pot.v]--;
+  for (const c of pot.s) M.dust[c] -= POT_N;
+  const W = potWeights(pot),
+    keep = it.a.filter(a => isFrac(it, a)),
+    old = it.a.filter(a => !isFrac(it, a)),
+    np = old.filter(a => AFF[a.k].p).length,
+    ns = old.length - np;
+  it.a = keep.slice();
+  const add = pre => {
+    const P = affPool(it).filter(k => !!AFF[k].p === pre && W[affCls(k)] > 0);
+    if (!P.length) return;
+    let r = Math.random() * P.reduce((t, k) => t + W[affCls(k)], 0);
+    const k = P.find(x => (r -= W[affCls(x)]) <= 0) || P[P.length - 1];
+    it.a.push(rollAff(k, it.L));
+  };
+  for (let i = 0; i < np; i++) add(true);
+  for (let i = 0; i < ns; i++) add(false);
+  sortAff(it);
+  return null;
+}
+/* 頂階詞條數（✦n，forge-spec §3：a.T <= 這件的頂階；破裂詞照原階算） */
+const starN = it => (it && it.a ? it.a.filter(a => a.T <= bestTier(it.L)).length : 0);
 
 /* ---------- 預知石（企劃書 5.3.1）：先看下一顆通貨的結果再決定用不用。
    forePeek 花 1 顆預知石、先把結果算好（不動裝備、不花那顆通貨）；foreUse 用掉那顆通貨、套用算好的結果；
@@ -842,7 +854,7 @@ function forePeek(it, op, arg) {
   if (why || lack) return why || lack;
   MAT().fore--;
   const res = { ...it, a: it.a.map(a => ({ ...a, v: Array.isArray(a.v) ? a.v.slice() : a.v })) };
-  FORGE[op].run(res, arg);
+  runOp(res, op, arg);
   sortAff(res);
   FORE = { id: it.id, op, arg, res, a0: it.a.map(a => JSON.stringify(a)), r0: it.r };
   return null;
@@ -881,11 +893,11 @@ function temperDo(it, idx) {
   if (w) return w;
   if (!it.a.length) return '沒有詞可以淬鍊';
   if (single && !it.a[idx]) return '沒有這條詞';
+  if (single && isFrac(it, it.a[idx])) return '破裂詞鎖住了，不能淬鍊';
   if (S.gold < c) return `金不夠（要 ${c}）`;
   FORE = null;
   S.gold -= c;
   it.tmp = (it.tmp || 0) + 1;
-  if (single && isFrac(it, it.a[idx])) return '破裂詞鎖住了，不能淬鍊';
   if (single) rerollV(it.a[idx]);
   else for (const a of it.a) if (!isFrac(it, a)) rerollV(a);
   return null;
@@ -936,7 +948,7 @@ function holyDo(it) {
 
 /* ---------- 腐化（企劃書 5.3.4）：一次、純隨機、之後全部鎖定。
    結果：腐化詞 1／2 條（不占前後綴）、孔 +1（可超過部位上限 1 格）、無變化、
-   爆開（腐化殘渣：黃裝換詞綴數一半的崇高石、藍裝換 1 顆富豪石） ---------- */
+   爆開（腐化殘渣：黃裝換詞綴數一半的崇高石、藍裝換 1 顆加詞石，forge-handoff N-1 暫定） ---------- */
 function corruptCheck(it) {
   const w = lockWhy(it, 'corr');
   if (w) return w;
@@ -964,7 +976,7 @@ function corruptDo(it, force) {
   } else if (res === 'sock') it.so = (it.so || 0) + 1;
   else if (res === 'burst') {
     it.burst = 1;
-    out.give = it.r === 2 ? { exalt: Math.floor(it.a.length / 2) } : it.r === 1 ? { rich: 1 } : {};
+    out.give = it.r === 2 ? { exalt: Math.floor(it.a.length / 2) } : it.r === 1 ? { aug: 1 } : {};
     for (const k in out.give) MAT()[k] += out.give[k];
   }
   return out;
@@ -1077,7 +1089,6 @@ const PRD0 = () => ({
   pen: 0,
   book: 0,
   perf: 0,
-  perfC: 0,
   holy7: 0,
   v3: 0,
   heart: 0,
@@ -1099,7 +1110,7 @@ function addMem(it, force) {
 }
 
 /* ---------- 掉落（0.2.72，企劃書 5.4.5、5.8）：純邏輯，game.js 的 killMob 套用 ---------- */
-/* 星級表：el 菁英數、cur 一般通貨（蛻變、增幅、磨刀石／護甲片各自）每張圖的量、ess 精髓機率（每隻菁英）、essB 精髓機率（王；5★ 保底 1）。
+/* 星級表：el 菁英數、cur 一般通貨（加詞石兩份、磨刀石／護甲片各自）每張圖的量、ess 精髓機率（每隻菁英）、essB 精髓機率（王；5★ 保底 1）。
    ⚠️ 暫定：裝備件數欄（企劃書 5.4.5）跟「王必掉 3 件、菁英各 1 件」對不上，照明文規則做；精髓機率文件只寫「機率／提高／保底」 */
 const STAR_DROP = [
   null,
@@ -1109,7 +1120,7 @@ const STAR_DROP = [
   { el: [4, 5], cur: [4, 6], ess: 0.3, essB: 0.5 },
   { el: [5, 6], cur: [6, 8], ess: 0.3, essB: 1 }
 ];
-/* ⚠️ 暫定：菁英掉富豪石的機率（偶爾）、掉崇高石的機率（小機率）；裂口的每隻菁英掉轉化石的機率（生肖王保底 1，0.4.2 起只有裂口掉）；
+/* ⚠️ 暫定：菁英掉至臻石的機率（偶爾；原富豪石，鍛造台 Lv18 才開）、掉崇高石的機率（小機率）；裂口的每隻菁英掉轉化石的機率（生肖王保底 1，0.4.2 起只有裂口掉）；
    階級 10 以上：菁英掉聖化石 2%、每張圖掉腐化石 5%（偽隨機保底） */
 /* 0.5.3（第 4、6 節，⚠️ 暫定）：破裂石 菁英 0.5%、王 2%；完美石一半；追憶之墨 王 3%（陰兵借道的將領保底）；珠寶 小怪 0.05%、菁英 0.5%、王 2%。
    一小時約 25 輪（一輪 2.5 分鐘、菁英 1～2）→ 破裂石約每 1.5 小時一顆、完美石約每 3 小時、墨約每 1.3 小時、珠寶約每小時一顆；都用偽隨機（S.prd 的 fracO／perfO／ink／jw＋0 小怪／1 菁英／2 王） */
@@ -1230,7 +1241,7 @@ function feelGive(t) {
   }
   return got;
 }
-const ELITE_RICH = 0.35,
+const ELITE_ZHI = 0.35,
   ELITE_EXALT = 0.03 /* 0.5.0：8% → 3%，鍛造台 Lv7 才開始掉 */,
   HUNT_ELITE = 0.3,
   HOLY_P = 0.02,
@@ -1244,11 +1255,11 @@ const ELITE_RICH = 0.35,
 const eliteCount = star => irnd(...STAR_DROP[star].el);
 /* 王出現前大概會打倒幾隻小怪：首領進度＝(小怪數＋6×菁英數)÷1.55 才滿，菁英（每隻 6 點）都打倒了的話，剩下的由小怪補 */
 const mapKills = (small, el) => Math.max(Math.round(small * 0.3), Math.round((small + 6 * el) / 1.55 - 6 * el));
-/* 這張圖每種一般通貨（蛻變、增幅、品質）的量，換成每隻小怪的掉落機率：預計打倒的小怪數看 mapKills */
+/* 這張圖每種一般通貨（加詞石＝原蛻變＋增幅兩份、品質）的量，換成每隻小怪的掉落機率：預計打倒的小怪數看 mapKills */
 function mapCurP(star, small, el = 0) {
   const n = Math.max(1, mapKills(small, el)),
     q = () => irnd(...STAR_DROP[star].cur) / n;
-  return { tran: q(), aug: q(), qual: q() };
+  return { aug: q() + q(), qual: q() };
 }
 /* 一隻怪死掉掉的通貨（不含靈魂）：kind 0 小怪、1 菁英、2 王；
    o：{ ilvl, star, p＝mapCurP 的結果, qty＝地圖詞數量 %（通貨件數）, mat＝地圖詞材料 %（崇高與精髓的機率）, tier＝地圖階級,
@@ -1263,10 +1274,12 @@ function dropCur(kind, o) {
   if (kind === 0) {
     const p = o.p || mapCurP(star, 60),
       f = 1 + (o.qty || 0) / 100;
-    for (const k of ['tran', 'aug']) if (Math.random() < p[k] * f) add(k);
+    const e = p.aug * f;
+    add('aug', Math.floor(e) + (Math.random() < e % 1 ? 1 : 0));
+    if (!cur.aug) delete cur.aug;
     if (Math.random() < p.qual * f) add(Math.random() < 0.5 ? 'whet' : 'plate');
   } else if (kind === 1) {
-    if (Math.random() < ELITE_RICH) add('rich');
+    if (Math.random() < ELITE_ZHI) add('zhi');
     if (Math.random() < ELITE_EXALT * mat) add('exalt');
     if (Math.random() < D.ess * mat) ess.push(rollEss(o.ilvl));
     if (o.hunt && Math.random() < HUNT_ELITE) add('conv');
@@ -1282,7 +1295,6 @@ function dropCur(kind, o) {
     /* 覺醒石（0.2.75，企劃書 5.7）：階級 10 以上的王 3%（偽隨機，跟腐化石各自一個計數器）。⚠️ 暫定 */
     if ((o.tier || 0) >= HIGH_T && prdRoll('awk', AWK_P)) add('awk');
   }
-  if (o.tier) tierDrop(cur, mobLv(o.tier));
   /* 0.5.3：破裂石、完美石、追憶之墨（下面照鍛造台等級濾掉沒開的） */
   /* 機率 0 的不擲；小怪、菁英、王各一個計數器（共用的話小怪會把王的機率墊高） */
   if (NEW_P.frac[kind] && prdRoll('fracO' + kind, NEW_P.frac[kind] * mat)) add('frac');
@@ -1508,9 +1520,9 @@ function killMat(m, t, o = {}) {
   /* F-floater：普通材料不跳字，另外回傳給拾取紀錄（bhud.js 的 pickLog） */
   got.mats = killMats(k, t, soul, o);
   for (const c in D.cur) (M[c] += D.cur[c]), got.push(`${D.cur[c]} ${CUR[c].n}`);
-  for (const [cls, T] of D.ess) essAdd(cls, T), got.push(essName(essKey(cls, T)));
+  for (const [cls] of D.ess) dustAdd(cls, dustDrop()), got.push(dustName(cls));
   if (D.jw) got.push(...jwAdd(1));
-  /* 稀有通貨（0.4.1）：崇高石各階、高階與完美通貨，地圖上另外演一次（game.js 的 rareShow） */
+  /* 稀有通貨：崇高石、至臻石、破裂石、完美石、追憶之墨，地圖上另外演一次（game.js 的 rareShow） */
   got.rare = Object.keys(D.cur).filter(rareCur);
   /* M2-18 追逐掉落與有感保底 */
   /* 七情王（m.mini）當菁英（第 19 點）：判 e、+1 點，不佔前 4 隻的名額（ei 0），不算輪末王、不碰有感保底 */

@@ -578,7 +578,7 @@ function enterMap(t, keep) {
   }
   G.waves = Array.from({ length: WAVES }, (_, w) => packs.filter((_, i) => i % WAVES === w));
   G.waveN = 0;
-  /* 一般通貨（蛻變、增幅、磨刀石／護甲片）：每張圖的量照星級表，換成每隻小怪的掉落機率 */
+  /* 一般通貨（加詞石、磨刀石／護甲片）：每張圖的量照星級表，換成每隻小怪的掉落機率 */
   G.curP = mapCurP(G.star, small, els.size);
   if (!G.arena) spawnWave();
   skillsEnter();

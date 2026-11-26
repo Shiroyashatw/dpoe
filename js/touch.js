@@ -357,12 +357,11 @@ function touchInit() {
       else if (q.dataset.tq === 'lock') lockToggle(it);
       else if (q.dataset.tq === 'drop') dropFloor(src, it, eqk);
       else if (q.dataset.tq === 'craft') {
-        /* 直立的「做裝」：倉庫的放進通貨頁中間；身上的不脫下來，直接上鍛造台 */
+        /* 直立的「做裝」：倉庫的、身上的都直接上鍛造台（不脫下來） */
         HP_HOLD++;
         closePanels();
         NAV.full = 1;
-        if (src === 'inv') openPanel('stash'), quickMove(src, it, eqk);
-        else (CRAFT.tab = FTABS.includes(CRAFT.tab) ? CRAFT.tab : 'forge'), openPanel('craft'), craftPick(src, it, eqk);
+        (CRAFT.tab = FTABS.includes(CRAFT.tab) ? CRAFT.tab : 'forge'), openPanel('craft'), craftPick(src, it, eqk);
         HP_HOLD--;
         NOSNAP = 1;
         hudPanels();

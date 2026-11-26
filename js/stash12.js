@@ -89,7 +89,10 @@ const stCell = (it, i, extra = '') => {
       'class="cq',
       `class="cq ${it.chase ? 'chf' : ''} ${lk || (q && !h) ? 'dim' : ''} ${h ? 'hit' : ''} ${ck ? 'ck' : ''}`
     )
-    .replace(/<\/div>$/, `${ST12.bat && !lk ? `<i class="stck">${ck ? '✓' : ''}</i>` : ''}</div>`);
+    .replace(
+      /<\/div>$/,
+      `${ST12.bat && !lk ? `<i class="stck">${ck ? '✓' : ''}</i>` : ''}${PANEL.craft && CRAFT.tab !== 'make' && CRAFT.sel && CRAFT.sel.id === it.id ? '<i class="stfb">鍛造台</i>' : ''}</div>`
+    );
 };
 /* ---------- 標題列與內分頁 ---------- */
 function stHeadHTML() {
