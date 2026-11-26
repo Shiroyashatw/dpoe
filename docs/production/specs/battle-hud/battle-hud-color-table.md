@@ -212,5 +212,5 @@ Game Art Director 11/26 簽核與複核意見B1–B3、I1–I5、N1、N4、N5 �
 ## 8. AD 簽名確認
 | 角色 | 簽名 | 日期時間（UTC+8） | 意見 |
 |---|---|---|---|
-| Game Art Director |  |  |  |
+| Game Art Director | Game Art Director | 2026-11-26 10:38 | 照 head `6fad35e3` 簽核：第 3 步 27 列、第 4 步 100 列的色值，跟 M2-36（main 53e1bbad）和 mumi 已核准的值一致；我方特效全部 `--fx-own` 9%；敵方填色合成 ≤ 0.55、重疊不疊加（teleCircle 0.30＋0.357＝0.55，淺磚上 enemy-rim 3.07）；M2-36 角色文字照 §2.1（套用後 25,005 B）。引文：mumi 2026-11-21 22:19 (18)(19)、11/26 M3，都是經幕僚長轉達，見 CHANGELOG。名詞「暗影球／暴擊球」交本地化編輯。 |
 | UIUX設計師 |  |  |  |
