@@ -125,6 +125,7 @@
 | 遠程技能草案（弓、十字弓、陷阱器） | `docs/production/技能草案-遠程第二批.md` | — | 草稿，不可交辦 |
 | 法系技能草案（長杖、法杖） | `docs/production/技能草案-法系第三批.md` | — | 草稿，不可交辦 |
 | 通用技能草案（戰吼、旗幟、通用法術、召喚） | `docs/production/技能草案-通用第四批.md` | — | 草稿，不可交辦 |
+| 光環草案（增益光環、捷光環、魔像、夥伴） | `docs/production/技能草案-光環第五批.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
 | 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | 現行（原定併進 `S/M2-camp-cards.md` §5.1） |
 
