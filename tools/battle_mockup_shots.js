@@ -11,7 +11,8 @@ const OUT = process.argv[2] || 'shots',
 fs.mkdirSync(OUT, { recursive: true });
 const M = {};
 async function page(b, w, h) {
-  const p = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
+  const ph = w < 600,
+    p = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: ph, hasTouch: ph });
   p.errs = [];
   p.on('pageerror', e => p.errs.push(String(e)));
   await p.goto(URL);
@@ -29,6 +30,8 @@ async function page(b, w, h) {
     }
     DBG.freeze();
     window.SET = {
+      /* 手機直立畫面窄：橫向位移縮小 */
+      k: IW < 600 ? 0.35 : 1,
       /* 世界座標 → 畫面 CSS px（draw 用的轉換：CX 的 DPR×ZOOM 加鏡頭位移） */
       scr: (x, y) => {
         const W = IW / ZOOM,
@@ -47,7 +50,7 @@ async function page(b, w, h) {
         G.cam.y = P.y;
       },
       mob(k, dx, dy, elite) {
-        const m = spawnMob(MOBS[k], P.x + dx, P.y + dy, 1, elite);
+        const m = spawnMob(MOBS[k], P.x + dx * SET.k, P.y + dy, 1, elite);
         m.st = 'idle';
         m.t = 0;
         return m;
@@ -124,19 +127,19 @@ const shot = async (p, n) => {
     /* S-T teleCircle 進度（盡量壓到淺磚） */
     const tl = await p.evaluate(() => {
       SET.reset();
-      let at = [P.x + 220, P.y + 20];
+      let at = [P.x + 220 * SET.k, P.y + 20];
       const T = tileSet(G.biome);
       if (T && T.floorL)
         for (let k = 0; k < 400; k++) {
-          const tx = Math.floor(P.x / TS) + 2 + (k % 6),
-            ty = Math.floor(P.y / TS) - 2 + Math.floor(k / 6);
+          const tx = Math.floor(P.x / TS) + (SET.k < 1 ? 1 : 2) + (k % (SET.k < 1 ? 2 : 6)),
+            ty = Math.floor(P.y / TS) - 2 + Math.floor(k / (SET.k < 1 ? 2 : 6));
           if (h(tx, ty, 1) % 1000 < FLOOR_LIGHT) {
             at = [(tx + 0.5) * TS, (ty + 0.5) * TS];
             break;
           }
         }
       G.tele.push({ x: at[0], y: at[1], r: 95, t: 0.5, dur: 1 });
-      SET.mob(Object.keys(MOBS)[0], at[0] - 130, at[1] - 60);
+      SET.mob(Object.keys(MOBS)[0], (at[0] - P.x) / SET.k - 130, at[1] - P.y - 60);
       return at;
     });
     await shot(p, `S-T-${sz}`);
@@ -144,6 +147,7 @@ const shot = async (p, n) => {
       /* S-TX 兩個預警重疊、預警＋敵方地面重疊：量合成 α */
       const R = await p.evaluate(() => {
         SET.reset();
+        if (typeof foeFlush !== 'function') return { alpha: 'foeFlush 不存在（這個分支沒有敵方填色層）' };
         const ax = P.x + 140,
           ay = P.y + 10,
           tA = { x: ax, y: ay, r: 95, t: 0.5, dur: 1 },

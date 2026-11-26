@@ -1,0 +1,21 @@
+{
+  "floor": {
+    "gen": false,
+    "floorN": 1
+  },
+  "alpha": {
+    "outer": 0.301,
+    "outerOuter": 0.301,
+    "innerInner": 0.549,
+    "outerGround": 0.549,
+    "ground": 0.549
+  },
+  "crit": {
+    "at": [
+      869,
+      236
+    ],
+    "font": 24,
+    "outline": 2
+  }
+}
