@@ -655,7 +655,8 @@ const curHave = (op, arg) =>
       ? Math.floor(dustN(String(arg).split(':')[0]) / dustCost(arg))
       : 0
     : MAT()[op] || 0;
-const curName = (op, arg) => (op === 'dust' ? (arg ? dustName(String(arg).split(':')[0]) : '精髓粉') : CUR[op].n);
+const curName = (op, arg) =>
+  op === 'dust' ? (ACLSI[String(arg).split(':')[0]] ? dustName(String(arg).split(':')[0]) : '精髓粉') : CUR[op].n;
 const FILL_OPS = Object.keys(FORGE);
 const rareCur = k => ['exalt', 'zhi', 'frac', 'perf', 'ink'].includes(k);
 /* 這一步能不能做：why＝這件裝備不能這樣做的原因，lack＝通貨不夠（預覽照樣可以看） */
@@ -827,11 +828,15 @@ function potDo(it, pot) {
     np = old.filter(a => AFF[a.k].p).length,
     ns = old.length - np;
   it.a = keep.slice();
+  /* 排除後湊不滿原本的條數：退回不排除（條數不變優先） */
   const add = pre => {
-    const P = affPool(it).filter(k => !!AFF[k].p === pre && W[affCls(k)] > 0);
+    const all = affPool(it).filter(k => !!AFF[k].p === pre),
+      ok = all.filter(k => W[affCls(k)] > 0),
+      P = ok.length ? ok : all,
+      w = k => W[affCls(k)] || 1;
     if (!P.length) return;
-    let r = Math.random() * P.reduce((t, k) => t + W[affCls(k)], 0);
-    const k = P.find(x => (r -= W[affCls(x)]) <= 0) || P[P.length - 1];
+    let r = Math.random() * P.reduce((t, k) => t + w(k), 0);
+    const k = P.find(x => (r -= w(x)) <= 0) || P[P.length - 1];
     it.a.push(rollAff(k, it.L));
   };
   for (let i = 0; i < np; i++) add(true);

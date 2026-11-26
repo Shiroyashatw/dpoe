@@ -4009,9 +4009,9 @@ const ASC_COMBOS = `const combos = k => {
       return k + 1 === prdMax(0.4) ? '' : 'pity ' + k;
     })()`) === ''
   );
-  /* 5. 分解：回收不超過投入（50%、倉房 Lv2 65%、Lv5 80%）、靈魂＝物品等級 × 2、黃裝另回 1 顆蛻變或增幅、金照賣價 */
+  /* 5. 分解：回收不超過投入（50%、倉房 Lv2 65%、Lv5 80%）、靈魂＝物品等級 × 2、黃裝另回 1 顆加詞石（鍛造 v1.0 forge-handoff N-1，取代蛻變／增幅）、金照賣價 */
   ok(
-    '分解：材料回收 50%（倉房 Lv2 65%、Lv5 80%）不超過投入、靈魂＝物品等級 × 2、黃裝另回 1 顆蛻變或增幅、金照賣價',
+    '分解：材料回收 50%（倉房 Lv2 65%、Lv5 80%）不超過投入、靈魂＝物品等級 × 2、黃裝另回 1 顆加詞石、金照賣價',
     R(`(() => {
       S.camp.forge = 16; S.auto2.r = 0;
       for (const [st, rate] of [[0, 0.5], [2, 0.65], [5, 0.8]]) {
@@ -4023,7 +4023,7 @@ const ASC_COMBOS = `const combos = k => {
           if (v.mats['iron:4'] > spent || v.mats['iron:4'] !== Math.floor(spent * rate)) return 'mat ' + st + ' ' + v.mats['iron:4'];
           if (v.soul !== it.L * 2 || S.mat.soul - M0.soul !== it.L * 2) return 'soul';
           if (S.gold - g0 !== sellPrice(it)) return 'gold';
-          const cur = (S.mat.tran - M0.tran) + (S.mat.aug - M0.aug);
+          const cur = S.mat.aug - M0.aug;
           if (cur !== (it.r === 2 ? 1 : 0)) return 'cur ' + it.r + ' ' + cur;
         }
       }
@@ -4048,32 +4048,37 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   /* 0.5.3 破裂石、完美石、追憶之墨、珠寶全域（工坊與解鎖表第 4、6 節） */
-  ok(
-    '破裂石：黃裝四條以上、一件一條、升到 T0 鎖住（淬鍊、聖化、轉化石不碰）；完美石：六條全滿、升一條不是破裂的到 T0（a.perf）、一件一次；一件最多兩個 T0',
-    R(`(() => {
+  {
+    const r = R(`(() => {
       S.camp = newCamp(); S.camp.forge = 20; S.mat = newMat(); S.gold = 1e9;
       const it = mkItem('c_leather', 16, 2);
       while (it.a.length < 6) it.a.push(fillAff(it));
       const it3 = mkItem('c_leather', 16, 2); it3.a = it3.a.slice(0, 3);
       S.mat.frac = 2; S.mat.perf = 2; S.mat.holy = 1;
       if (!forgeCheck(it3, 'frac').why || !forgeCheck(it3, 'perf').why) return 'gate';
-      const e = forgeDo(it, 'frac');
+      const js = () => JSON.stringify(it.a.map(a => JSON.stringify(a)).sort()), T0 = js(), e = forgeDo(it, 'frac');
       if (e) return 'frac ' + e;
       const f = it.a.find(a => a.k === it.frac);
-      if (!f || f.T !== 0 || !/已經有破裂/.test(forgeCheck(it, 'frac').why || '')) return 'frac1';
+      if (!f || js() !== T0 || !/已經有破裂/.test(forgeCheck(it, 'frac').why || '')) return 'frac1';
+      const g0 = S.gold, t0 = it.tmp || 0;
+      if (!/破裂/.test(temperDo(it, it.a.indexOf(f)) || '') || S.gold !== g0 || (it.tmp || 0) !== t0) return 'temper1';
       const fv = JSON.stringify(f);
       if (forgeDo(it, 'perf')) return 'perf';
       const pa = it.a.filter(a => a.perf);
       if (pa.length !== 1 || pa[0].T !== 0 || isFrac(it, pa[0]) || !it.perfed || !/用過/.test(forgeCheck(it, 'perf').why || '')) return 'perf1';
-      if (it.a.filter(a => a.T === 0).length !== 2) return 'two';
       temperDo(it);
       if (JSON.stringify(it.a.find(a => a.k === it.frac)) !== fv) return 'temper';
       if (!/破裂/.test(forgeCheck(it, 'conv', it.a.indexOf(it.a.find(a => a.k === it.frac))).why || '')) return 'conv';
       holyDo(it);
       if (JSON.stringify(it.a.find(a => a.k === it.frac)) !== fv || !it.a.some(a => a.m)) return 'holy';
       return S.mat.frac === 1 && S.mat.perf === 1 ? '' : 'pay';
-    })()`) === ''
-  );
+    })()`);
+    ok(
+      '破裂石（名詞表 A 案，鍛造 v1.0 §9）：黃裝四條以上、一件一條、保留原階鎖住（淬鍊、聖化、轉化石不碰；單條淬鍊先擋不扣金）；完美石：六條全滿、升一條不是破裂的到 T0（a.perf）、一件一次',
+      r === '',
+      r
+    );
+  }
   ok(
     '掉落（固定種子、偽隨機）：鍛造台 Lv13／19／17 才開破裂石／完美石／追憶之墨與珠寶；開了以後王的平均掉率＝表（破裂石 2%、完美石 1%、墨 3%、珠寶 2%，±25%）；小怪不擲破裂石',
     R(`(() => {
@@ -4108,7 +4113,7 @@ const ASC_COMBOS = `const combos = k => {
     'campCan（0.5.1）：五座全 0 時只有鐵、劍、一件一次、1★、1 格技能、0 孔、沒有通貨與分頁與天賦樹；鍛造台 Lv20 全開；鍵不在表上不受管',
     R(`(() => {
       S.camp = newCamp();
-      const off = ['tab:fill', 'cur:tran', 'cur:aug', 'cur:rich', 'cur:exalt', 'cur:ess', 'mat:hide', 'mat:silk', 'tab:temper', 'tab:holy', 'tab:corr', 'auto2', 'auto2t', 'tier2', 'tier3', 'cur:awk', 'sup2'];
+      const off = ['tab:fill', 'cur:aug', 'cur:exalt', 'cur:zhi', 'cur:ess', 'mat:hide', 'mat:silk', 'tab:temper', 'tab:holy', 'tab:corr', 'auto2', 'auto2t', 'cur:awk', 'sup2'];
       if (off.some(campCan) || campN('batch') !== 1 || campN('wts') !== 1 || !campWt('sword') || campWt('bow')) return 'zero';
       if (!campCan('不在表上') || campCan('tree') || campCan('aura') || campN('star') !== 1 || campN('slots') !== 1 || campN('holes') !== 0 || campN('off') !== 1) return 'zero2';
       if (Object.keys(dropCur(2, { star: 5, ilvl: 16, tier: 16 }).cur).length || dropCur(2, { star: 5, ilvl: 16, tier: 16 }).ess.length) return 'drop0';
@@ -8624,21 +8629,83 @@ const ASC_COMBOS = `const combos = k => {
     })()`);
     ok('取消手機橫向：舊存檔 orient l／其他 → p、存回仍是 p、新存檔 p', r.join() === 'p,p,p,p,p', r.join());
   }
-  ok(
-    '通貨三階：完美的新詞一定是最高階、高階在最高 2 階內；高階 Lv45、完美 Lv70 才掉，完美 300 次保底',
-    R2(`(() => {
-      S = newGame(); S.mat.exalt3 = 999; S.mat.exalt2 = 999; S.mat.exalt = 999;
-      const T = op => { const it = mkItem('c_leather', 80, 2); it.a = it.a.slice(0, 3); const b = it.a.slice(), e = forgeDo(it, op); if (e) return 'err ' + e; return it.a.find(x => !b.includes(x)).T - bestTier(80); };
-      for (let i = 0; i < 200; i++) { const p = T('exalt3'); if (p !== 0) return 'perfect ' + p; const g = T('exalt2'); if (!(g >= 0 && g <= 1)) return 'greater ' + g; }
-      if (forgeWhat(mkItem('c_leather', 80, 2), 'exalt3').tier !== 'T' + bestTier(80)) return 'what';
-      const c = l => { const cur = { tran: 1000 }; tierDrop(cur, l); return cur; };
-      if (c(44).tran2 || c(44).tran3) return 'lv44';
-      const g = c(50).tran2 || 0; if (g < 60 || g > 140 || c(50).tran3) return 'lv50 ' + g;
-      S.prd.perfC = 0; const p = c(75).tran3 || 0; if (p < 3 || p > 25) return 'lv75 ' + p;
-      S.prd.perfC = TIER_P.pity - 1; const one = { tran: 1 }; tierDrop(one, 75); if (one.tran3 !== 1 || S.prd.perfC !== 0) return 'pity';
-      return FILL_OPS.includes('exalt3') && rareCur('exalt') && rareCur('aug2') && !rareCur('aug') ? '' : 'keys';
-    })()`) === ''
-  );
+  {
+    const r = R2(`(() => {
+      S = newGame(); S.mat.aug = 1e6; S.mat.exalt = 1e6; S.mat.zhi = 1e6;
+      const W = { aug: 5, exalt: 3, zhi: 1 };
+      for (const L of [80, 16, 1]) {
+        const b = bestTier(L);
+        for (const op in W) {
+          let top = 0, n = 2000;
+          for (let i = 0; i < n; i++) {
+            const it = mkItem('c_leather', L, 2); it.a = it.a.slice(0, 3); const bf = it.a.slice();
+            const e = forgeDo(it, op); if (e) return op + ' err ' + e;
+            const T = it.a.find(x => !bf.includes(x)).T;
+            if (T < b || T > Math.min(6, b + W[op])) return op + ' L' + L + ' T' + T;
+            if (T === b) top++;
+          }
+          const want = b + W[op] > 6 ? (6 - b + 1 === 1 ? 1 : 1 / (W[op] + 1)) : 1 / (W[op] + 1);
+          if (Math.abs(top / n - (b === 6 ? 1 : want)) > 0.05) return op + ' L' + L + ' top ' + top / n;
+        }
+      }
+      const it = mkItem('c_leather', 16, 0); it.a = [];
+      for (const [r, n] of [[1, 1], [1, 2], [2, 3], [2, 4]]) { const e = forgeDo(it, 'zhi'); if (e || it.r !== r || it.a.length !== n) return 'step ' + [e, it.r, it.a.length]; }
+      if (['tran', 'rich', 'aug2', 'exalt3'].some(k => k in CUR || k in FORGE)) return 'old keys';
+      if (forgeWhat(mkItem('c_leather', 16, 2), 'zhi').tier !== 'T' + bestTier(16) + '～T' + (bestTier(16) + 1)) return 'what';
+      return rareCur('exalt') && rareCur('zhi') && !rareCur('aug') ? '' : 'rare';
+    })()`);
+    ok(
+      '鍛造 v1.0 §4.1 三顆單階加詞通貨：加詞石 T b～b+5、崇高石 b～b+3、至臻石 b～b+1（超過 T6 併入 T6）、頂階機率 1/6／1/4／1/2；四步通用（白→藍、藍+1、藍滿 2 條→黃、黃+1）；蛻變／增幅／富豪／高階／完美通貨拿掉',
+      r === '',
+      r
+    );
+  }
+  {
+    const r = R2(`(() => {
+      S = newGame(); S.mat.dust = { res: 100 };
+      const it = mkItem('c_leather', 16, 2); it.a = it.a.filter(a => affCls(a.k) !== 'res').slice(0, 2); const bf = it.a.slice(), b = bestTier(16);
+      const e = forgeDo(it, 'dust', 'res:3'); if (e) return 'do ' + e;
+      const a = it.a.find(x => !bf.includes(x));
+      if (affCls(a.k) !== 'res' || a.T < b || a.T > b + 1 || S.mat.dust.res !== 88) return 'g3 ' + [a.k, a.T, S.mat.dust.res];
+      S.mat.dust.res = 3;
+      const y = () => { const x = mkItem('c_leather', 16, 2); x.a = x.a.filter(a => affCls(a.k) !== 'res').slice(0, 2); return x; };
+      const c = forgeCheck(y(), 'dust', 'res:2');
+      if (c.lack !== '抗性粉不夠（還差 3）') return 'lack ' + c.lack;
+      if (!forgeCheck(mkItem('c_leather', 16, 0), 'dust', 'res:1').why) return 'white';
+      const t6 = () => { const x = mkItem('c_leather', 1, 2); x.a = x.a.filter(a => affCls(a.k) !== 'res').slice(0, 2); return x; };
+      if (!forgeCheck(t6(), 'dust', 'res:2').why || forgeCheck(t6(), 'dust', 'res:1').why) return 't6';
+      return DUST_G.map(g => g.k + '/' + g.w).join() === '2/5,6/3,12/1' && ACLS.length === 9 ? '' : 'table';
+    })()`);
+    ok(
+      '鍛造 v1.0 §4.2 精髓粉：9 類 3 檔（2／6／12 份、w 5／3／1）、保證類別、詞階 b～b+w、不夠寫「還差 n」、只能魔法／稀有、b＝T6 只有檔 1',
+      r === '',
+      r
+    );
+  }
+  {
+    const r = R2(`(() => {
+      S = newGame(); S.mat.v3 = 5; S.mat.dust = { ele: 30, crit: 30, life: 30 };
+      const it = mkItem('c_leather', 40, 2); it.a = it.a.slice(0, 4); it.frac = it.a[0].k;
+      const fr = it.a[0], np = it.a.filter(a => AFF[a.k].p).length, P = { v: 'v3', s: ['ele', 'life'] };
+      const W = potWeights({ v: 'v3', s: ['ele', 'crit'] });
+      if (W.phys !== 0 || W.def !== 0 || W.ele !== 3 || W.crit !== 3 || W.life !== 1) return 'weights';
+      for (let i = 0; i < 3; i++) {
+        if (potDo(it, P)) return 'do';
+        if (!it.a.includes(fr) || it.a.length !== 4 || it.a.filter(a => AFF[a.k].p).length !== np) return 'keep';
+        if (it.a.some(a => a !== fr && affCls(a.k) === 'phys')) return 'excluded';
+      }
+      if (S.mat.v3 !== 2 || S.mat.dust.ele !== 21 || S.mat.dust.life !== 21) return 'pay ' + [S.mat.v3, S.mat.dust.ele];
+      S.mat.dust.crit = 1;
+      if (potCheck(it, { v: 'v3', s: ['crit'] }).lack !== '暴擊粉不夠（還差 2）') return 'lack';
+      if (POT_HOLE.v2 !== 2 || POT_HOLE.v3 !== 3) return 'holes';
+      return omenWhy('exalt', ['om_rage', 'om_grief']) ? '' : 'one omen';
+    })()`);
+    ok(
+      '鍛造 v1.0 §4.3 鼎裝粉：三尸 2 孔／三彭 3 孔、煉製＝重擲全部非破裂詞（前後綴條數不變、破裂詞不動）、用掉鼎 1＋每孔 3 份、排除類不出、粉不夠寫「還差 n」',
+      r === '',
+      r
+    );
+  }
   ok(
     '中間階梯：兩條以上 T1（T0 算）→「T1×n」、品質 20% 以上 →「品質 n%」',
     R2(`(() => {
@@ -8807,14 +8874,14 @@ const ASC_COMBOS = `const combos = k => {
     }
   };
   const E = vm.runInContext(
-    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropCur, killMat, matTier, STAR_MUL, MATS, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
+    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, dustAdd, dustN, dustName, DUST_G, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropCur, killMat, matTier, STAR_MUL, MATS, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
     ctx
   );
   const setS = () => vm.runInContext('S = { gold: 1e12, lv: 60, mat: null, maxT: 16 }; S.mat = newMat();', ctx);
   const give = () => {
     const M = E.MAT();
     for (const k in E.CUR) M[k] = 1e9;
-    for (const c of E.ACLS) for (let T = 1; T <= 6; T++) E.essAdd(c.k, T, 1e6);
+    for (const c of E.ACLS) E.dustAdd(c.k, 1e6);
   };
   const finite = it => it.a.every(a => (Array.isArray(a.v) ? a.v : [a.v]).every(Number.isFinite));
   const cnt = it => [it.a.filter(a => E.AFF[a.k].p).length, it.a.filter(a => !E.AFF[a.k].p).length];
@@ -8846,21 +8913,24 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：35 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎；0.2.80 燭龍之心；0.4.1 高階與完美的蛻變、增幅、富豪、崇高；0.5.3 破裂石、完美石、追憶之墨）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 35 &&
+    '通貨：26 種（鍛造 v1.0：加詞石、崇高石、至臻石，拿掉蛻變／增幅／富豪與高階／完美；轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；災魘石、完美災魘石、判官筆；七種預兆、三尸鼎、三彭鼎；燭龍之心；破裂石、完美石、追憶之墨）＋靈魂＋精髓粉表，沒有舊精髓表',
+    Object.keys(E.CUR).length === 26 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
-      JSON.stringify(nm.ess) === '{}' &&
-      !('dust' in nm || 'fine' in nm || 'rare' in nm),
+      JSON.stringify(nm.dust) === '{}' &&
+      !('ess' in nm || 'fine' in nm || 'rare' in nm),
     Object.keys(nm).join()
   );
-  E.essAdd('life', 3, 2);
-  E.essAdd('life', 3, 1);
-  E.essAdd('res', 1);
+  E.dustAdd('life', 2);
+  E.dustAdd('life', 1);
+  E.dustAdd('res');
   ok(
-    '精髓：同類同階疊一格、不同階分開',
-    E.MAT().ess['life:3'] === 3 && E.essList().length === 2 && E.essName('life:3') === '生命精髓 T3',
-    JSON.stringify(E.MAT().ess)
+    '精髓粉（鍛造 v1.0 §4.2）：只分類別、同類疊一格；名字「{類}粉」',
+    E.MAT().dust.life === 3 &&
+      E.dustN('res') === 1 &&
+      E.dustName('life') === '生命粉' &&
+      Object.keys(E.MAT().dust).length === 2,
+    JSON.stringify(E.MAT().dust)
   );
   {
     const bad = [];
@@ -8895,7 +8965,7 @@ const ASC_COMBOS = `const combos = k => {
           a0 = it.a.slice(),
           r0 = it.r,
           a = arg ? arg(it, i) : undefined,
-          h0 = op === 'ess' ? E.MAT().ess[a] : E.MAT()[op],
+          h0 = op === 'dust' ? E.MAT().dust[a.split(':')[0]] : E.MAT()[op],
           err = E.forgeDo(it, op, a);
         if (err) {
           /* 有的基底某一類真的沒有詞可以加或換，不算錯（下面要求大部分做得成） */
@@ -8910,22 +8980,27 @@ const ASC_COMBOS = `const combos = k => {
         if (new Set(it.a.map(x => x.k)).size !== it.a.length) bad.push(op + ' 重複的詞');
         if (it.a.some(x => x.T < E.bestTier(L) || x.T > 6 || x.T === 0)) bad.push(op + ' 階超出物品等級允許');
         if (it.a.some(x => !inRange(x))) bad.push(op + ' 數值超出階級範圍');
-        const h1 = op === 'ess' ? E.MAT().ess[a] : E.MAT()[op];
-        if (h0 - h1 !== 1) bad.push(op + ' 通貨沒扣 1');
+        const h1 = op === 'dust' ? E.MAT().dust[a.split(':')[0]] : E.MAT()[op];
+        if (h0 - h1 !== (op === 'dust' ? E.DUST_G[a.split(':')[1] - 1].k : 1)) bad.push(op + ' 通貨沒扣對');
         if (op === 'conv') {
           if (it.a.length !== a0.length || it.a.filter(x => !a0.includes(x)).length !== 1) bad.push('conv 條數變了');
         } else if (it.a.length !== a0.length + 1) bad.push(op + ' 沒有剛好加 1 條');
-        const want = { tran: 1, aug: 1, rich: 2, exalt: 2, ess: r0, conv: r0 }[op];
+        const want = op === 'dust' || op === 'conv' ? r0 : r0 === 0 ? 1 : r0 === 1 && a0.length >= 2 ? 2 : r0;
         if (it.r !== want) bad.push(op + ' 稀有度 ' + r0 + '→' + it.r);
       }
       return { bad, done };
     });
   for (const [op, mk, arg, label] of [
-    ['tran', L => E.mkItem(rb(), L, 0), null, '蛻變：白→藍加 1 條'],
-    ['aug', blue(1), null, '增幅：藍加 1 條'],
-    ['rich', blue(1), null, '富豪：藍→黃加 1 條'],
-    ['exalt', yellow(3), null, '崇高：黃加 1 條'],
-    ['ess', yellow(4), (it, i) => pickCls(it, i) + ':' + (1 + (i % 6)), '精髓：黃裝指定類、至少該階'],
+    ['aug', L => E.mkItem(rb(), L, 0), null, '加詞石：白→藍加 1 條'],
+    ['exalt', blue(1), null, '崇高石：藍加 1 條'],
+    ['zhi', blue(2), null, '至臻石：藍滿 2 條→黃加 1 條'],
+    ['exalt', yellow(3), null, '崇高石：黃加 1 條'],
+    [
+      'dust',
+      yellow(4),
+      (it, i) => pickCls(it, i) + ':' + (E.bestTier(it.L) >= 6 ? 1 : 1 + (i % 3)),
+      '精髓粉：黃裝指定類、檔 1～3'
+    ],
     ['conv', yellow(5), (it, i) => String(convIdx(it, i)), '轉化石：同類橫移']
   ]) {
     const r = fillTest(op, mk, arg);
@@ -8943,30 +9018,25 @@ const ASC_COMBOS = `const combos = k => {
       b = withN(E.mkItem('c_leather', 10, 1), 2),
       y = withN(E.mkItem('c_leather', 10, 2), 6);
     const t = [
-      ['tran', b],
-      ['tran', y],
-      ['aug', w],
-      ['aug', b],
       ['aug', y],
-      ['rich', w],
-      ['rich', y],
-      ['exalt', w],
-      ['exalt', b],
       ['exalt', y],
+      ['zhi', y],
       ['conv', w, '0'],
-      ['ess', w, 'life:1'],
-      ['ess', b, 'life:1'],
-      ['ess', y, 'life:1']
+      ['dust', w, 'life:1'],
+      ['dust', b, 'life:1'],
+      ['dust', y, 'life:1'],
+      ['dust', y, 'life'],
+      ['dust', y, 'xx:1']
     ];
     const m0 = JSON.stringify(E.MAT()),
       errs = t.map(([op, it, a]) => E.forgeDo(it, op, a));
     ok(
-      '通貨用錯稀有度或滿條數會被擋下，也不扣通貨',
+      '通貨用錯稀有度或滿條數會被擋下，也不扣通貨（三顆加詞通貨黃裝滿 6 條、精髓粉白裝／藍滿 2 條／黃滿 6 條／沒選檔／沒選類）',
       b.a.length === 2 && y.a.length === 6 && errs.every(Boolean) && JSON.stringify(E.MAT()) === m0,
       JSON.stringify(errs)
     );
   });
-  /* 4. 精髓保證類與階 */
+  /* 4. 精髓粉保證類，詞階 b～min(6, b＋w) */
   seeded(7200, () => {
     const bad = [];
     let n = 0;
@@ -8976,17 +9046,17 @@ const ASC_COMBOS = `const combos = k => {
       const L = 1 + (i % E.TMAX),
         it = yellow(3)(L),
         cls = pickCls(it, i),
-        T = 1 + (i % 6),
+        g = E.bestTier(L) >= 6 ? 1 : 1 + (i % 3),
         before = it.a.slice();
-      if (E.forgeDo(it, 'ess', cls + ':' + T)) continue;
+      if (E.forgeDo(it, 'dust', cls + ':' + g)) continue;
       n++;
       const nw = it.a.find(a => !before.includes(a));
       if (E.affCls(nw.k) !== cls) bad.push('類不對');
-      if (nw.T > Math.max(E.bestTier(L), T)) bad.push(`階 T${nw.T} 低於保證 T${T}（L${L}）`);
+      if (nw.T > Math.min(6, E.bestTier(L) + E.DUST_G[g - 1].w)) bad.push(`階 T${nw.T} 超出檔 ${g}（L${L}）`);
       if (nw.T < E.bestTier(L)) bad.push('階比物品等級允許的高');
     }
     ok(
-      `精髓：保證加的詞是那一類、而且至少該階（不超過物品等級允許的最高階）（${n} 次）`,
+      `精髓粉：保證加的詞是那一類、詞階在 b～b＋w 內（不超過物品等級允許的最高階）（${n} 次）`,
       n > 400 && !bad.length,
       [...new Set(bad)].slice(0, 3).join('、') || n
     );
@@ -9053,7 +9123,7 @@ const ASC_COMBOS = `const combos = k => {
     r.push(E.forePeek(it, 'exalt') === '預知石不夠', M.exalt === 4);
     M.fore = 1;
     r.push(
-      E.forePeek(it, 'aug') === '只有魔法物品能用增幅石',
+      E.forePeek(it, 'perf') === '要六條詞綴全滿',
       M.fore === 1,
       E.forePeek(it, 'holy') === '預知石只能看填詞的結果',
       M.fore === 1
@@ -9147,7 +9217,7 @@ const ASC_COMBOS = `const combos = k => {
         n0 = it.a.length,
         so0 = it.so,
         ex0 = E.MAT().exalt,
-        ri0 = E.MAT().rich,
+        ri0 = E.MAT().aug,
         r = E.corruptDo(it);
       if (r.why) {
         bad.push(r.why);
@@ -9164,13 +9234,13 @@ const ASC_COMBOS = `const combos = k => {
       if (it.so > max + 1 || (it.so > max && r.res !== 'sock')) bad.push('孔超過上限 +1');
       if (r.res === 'burst') {
         const w = Math.floor(n0 / 2);
-        if (!it.burst || E.MAT().exalt - ex0 !== w || E.MAT().rich - ri0 !== 0)
+        if (!it.burst || E.MAT().exalt - ex0 !== w || E.MAT().aug - ri0 !== 0)
           bad.push(`黃裝殘渣 ${n0} 條應換 ${w} 顆崇高石，實際 ${E.MAT().exalt - ex0}`);
       } else if (it.burst) bad.push('沒爆開卻標了 burst');
       if (i < 200) {
         const e = [
           E.forgeDo(it, 'exalt'),
-          E.forgeDo(it, 'tran'),
+          E.forgeDo(it, 'aug'),
           E.temperDo(it),
           E.holyDo(it),
           E.corruptDo(it).why,
@@ -9196,13 +9266,13 @@ const ASC_COMBOS = `const combos = k => {
       it.a = [];
       while (it.a.length < n) it.a.push(E.rollAffT(E.affPool({ ...it, r: 2 })[0], 3));
       const ex = M.exalt,
-        ri = M.rich;
+        ri = M.aug;
       E.corruptDo(it, 'burst');
-      return [M.exalt - ex, M.rich - ri];
+      return [M.exalt - ex, M.aug - ri];
     };
     const got = JSON.stringify([burst(2, 6), burst(2, 5), burst(2, 3), burst(1, 2), burst(0, 0)]);
     ok(
-      '爆開的腐化殘渣：黃裝 6 條 → 3 顆崇高石、5 條 → 2 顆、3 條 → 1 顆；藍裝 → 1 顆富豪石；白裝沒有',
+      '爆開的腐化殘渣：黃裝 6 條 → 3 顆崇高石、5 條 → 2 顆、3 條 → 1 顆；藍裝 → 1 顆加詞石（forge-handoff N-1 暫定，取代富豪石）；白裝沒有',
       got === '[[3,0],[2,0],[1,0],[0,1],[0,0]]',
       got
     );
@@ -9266,7 +9336,7 @@ const ASC_COMBOS = `const combos = k => {
       setS();
       give();
       const it = E.dropItem(1 + (i % E.TMAX), (i % 5) / 4);
-      if (it.r === 1 && i % 3) E.forgeDo(it, 'rich');
+      if (it.r === 1 && i % 3) E.forgeDo(it, 'zhi');
       if (it.r === 2 && it.a.length < 6) E.forgeDo(it, 'exalt');
       if (i % 4 === 0) E.holyDo(it);
       if (it.a.some(a => a.T === 0)) bad.push('出現 T0');
@@ -9325,7 +9395,7 @@ const ASC_COMBOS = `const combos = k => {
         };
         const sm = E.dropCur(0, o);
         for (const k in sm.cur) all[k] = (all[k] || 0) + 1;
-        if (sm.ess.length || sm.cur.rich || sm.cur.exalt) bad.push('小怪掉了富豪／崇高／精髓');
+        if (sm.ess.length || sm.cur.zhi || sm.cur.exalt) bad.push('小怪掉了至臻／崇高／精髓粉');
         const ec = E.dropCur(1, o);
         for (const k in ec.cur) all[k] = (all[k] || 0) + 1;
         const bc = E.dropCur(2, o);
@@ -9348,7 +9418,7 @@ const ASC_COMBOS = `const combos = k => {
         tot = Array.from({ length: 300 }, () => {
           const p = E.mapCurP(star, 100, 3);
           let n = 0;
-          for (let i = 0, k = E.mapKills(100, 3); i < k; i++) if (Math.random() < p.tran) n++;
+          for (let i = 0, k = E.mapKills(100, 3); i < k; i++) if (Math.random() < p.aug / 2) n++;
           return n;
         }),
         mean = tot.reduce((a, b) => a + b, 0) / tot.length,
@@ -9360,21 +9430,20 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 300; i++) E.killMat({}, 3, { star: 5, p: E.mapCurP(5, 60), ilvl: E.tierIlvl(3) });
     const M = E.MAT();
     ok(
-      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片；不在地點時材料只掉木＝靈魂 × 0.3（材料來源 v1.1 §2.2；鐵／皮／靈絲見下一條）',
+      'killMat：小怪只進靈魂、加詞石、磨刀石、護甲片；不在地點時材料只掉木＝靈魂 × 0.3（材料來源 v1.1 §2.2；鐵／皮／靈絲見下一條）',
       M.soul === 300 &&
         Object.keys(M.mats || {}).join() === 'wood' &&
         M.mats.wood >= 60 &&
         M.mats.wood <= 120 &&
-        M.tran > 0 &&
         M.aug > 0 &&
         M.whet + M.plate > 0 &&
-        !M.rich &&
+        !M.zhi &&
         !M.exalt &&
         !M.conv &&
         !M.fore &&
         !M.holy &&
         !M.corr &&
-        !Object.keys(M.ess).length,
+        !Object.keys(M.dust).length,
       JSON.stringify(M)
     );
   });
@@ -9459,7 +9528,7 @@ const ASC_COMBOS = `const combos = k => {
   });
   /* ================= 8-2：掉落的四樣與機制綁定（企劃書 5.4.2～5.4.5、5.8） ================= */
   const E2 = vm.runInContext(
-    '({ addMem, memPool, memText, rollMem, prdC, prdMax, prdRoll, PRD0, MEM, STAR_MUL, HIGH_T, HUNT_ELITE, ELITE_EXALT, ELITE_RICH, HOLY_P, CORR_P, CURSES, curseV, rollRarity, rollQ })',
+    '({ addMem, memPool, memText, rollMem, prdC, prdMax, prdRoll, PRD0, MEM, STAR_MUL, HIGH_T, HUNT_ELITE, ELITE_EXALT, ELITE_ZHI, HOLY_P, CORR_P, CURSES, curseV, rollRarity, rollQ })',
     ctx
   );
   /* 1. 偽隨機：長期機率剛好是 p；連續 prdMax(p) 次沒中，下一次必中 */
@@ -9704,12 +9773,12 @@ const ASC_COMBOS = `const combos = k => {
     const bad = [];
     /* 數量：小怪通貨機率（0.5.0 起沒有裝備件數） */
     setS();
-    const p = { tran: 0.1, aug: 0.1, qual: 0.1 };
+    const p = { aug: 0.1, qual: 0.1 };
     let c0 = 0,
       c1 = 0;
     for (let i = 0; i < 20000; i++)
-      (c0 += E.dropCur(0, { star: 1, ilvl: 40, p }).cur.tran ? 1 : 0),
-        (c1 += E.dropCur(0, { star: 1, ilvl: 40, p, qty: 50 }).cur.tran ? 1 : 0);
+      (c0 += E.dropCur(0, { star: 1, ilvl: 40, p }).cur.aug ? 1 : 0),
+        (c1 += E.dropCur(0, { star: 1, ilvl: 40, p, qty: 50 }).cur.aug ? 1 : 0);
     if (Math.abs(c1 / c0 - 1.5) > 0.12) bad.push(`數量 ${c1 / c0}`);
     /* 稀有度：黃裝比例變高（rollRarity 還給護符以外的工具用） */
     let y0 = 0,
@@ -9764,7 +9833,7 @@ const ASC_COMBOS = `const combos = k => {
       for (const it of [E.mkItem(E.BASES[i % E.BASES.length].id, E.tierIlvl(1 + (i % 16)), i % 3)]) {
         if ('uid' in it) bad.push('做出來的裝備有 uid');
         const errs = [
-          E.forgeDo(it, 'tran'),
+          E.forgeDo(it, 'aug'),
           E.forgeDo(it, 'exalt'),
           E.temperDo(it),
           E.holyDo(it),
@@ -10458,14 +10527,18 @@ const ASC_COMBOS = `const combos = k => {
       if (F.forgeDo(it, 'exalt', null, ['om_fear']) || it.a.length !== 6 || !it.a.some(a => a.k === fr.k))
         bad.push('畏縮');
       M = setM();
-      if (F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) !== '要三尸鼎才能同時用 2 顆預兆')
-        bad.push('沒鼎也能用 2 顆');
+      /* 鍛造 v1.0 §4.3：鼎改裝粉，預兆一次 1 顆（Q-M8），有鼎也一樣；不扣鼎 */
       M.v2 = 1;
       const om0 = M.om_rage;
-      if (F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) || M.v2 !== 0 || M.om_rage !== om0 - 1)
-        bad.push('鼎沒扣');
+      if (
+        F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) !== '一次只能用 1 顆預兆' ||
+        M.v2 !== 1 ||
+        M.om_rage !== om0
+      )
+        bad.push('2 顆預兆沒擋');
       if (!F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_grief'])) bad.push('衝突沒擋');
-      if (!F.forgeDo(y(2), 'tran', null, ['om_joy'])) bad.push('雙喜用在蛻變');
+      if (!F.forgeDo(y(2), 'aug', null, ['om_joy'])) bad.push('雙喜用在加詞石');
+      if (!F.forgeDo(y(2), 'aug', null, ['om_rage'])) bad.push('怒焰用在加詞石（N-3：照畫法只配崇高石與精髓粉）');
       /* 只有前綴可加、又只要後綴：加不上就不扣 */
       const full = F.mkItem('r_lazuli', 60, 2);
       full.a = full.a.filter(a => !F.AFF[a.k].p);
@@ -10492,7 +10565,7 @@ const ASC_COMBOS = `const combos = k => {
     }
     if (!(t1 < t0 * 0.95)) bad.push(`貪欲沒有比較好 ${t0} ${t1}`);
     ok(
-      '預兆：怒焰只前綴、哀音只後綴、相思同類、厭棄不同類、貪欲取高、雙喜二選一、畏縮先移除（破裂不動、6 條也能用）；2 顆要鼎、衝突擋下、雙喜不能用在蛻變、加不上就不扣',
+      '預兆：怒焰只前綴、哀音只後綴、相思同類、厭棄不同類、貪欲取高、雙喜二選一、畏縮先移除（破裂不動、6 條也能用）；一次 1 顆（鍛造 v1.0 鼎改裝粉）、衝突擋下、雙喜與怒焰不能用在加詞石、加不上就不扣',
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -10809,7 +10882,7 @@ const ASC_COMBOS = `const combos = k => {
     'M1-14：解鎖一句話照定稿表原文、同一個解鎖第二次不出現',
     JSON.stringify(sy) ===
       JSON.stringify([
-        '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
+        '鍛造台 Lv1：開了「填」。加詞石開始掉，拿來替裝備加詞。',
         '長老屋 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
         '長老屋 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
         '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。'
@@ -11032,8 +11105,8 @@ const ASC_COMBOS = `const combos = k => {
       /* 4：基底的程式留著（M2 不掉），直接收一件來測標記保留 */
       const it = chasePut('fiend1', hi);
       /* 4：追逐標記在打造（填：蛻變）之後保留；套上王印之後一般裝備也帶上追逐標記、基底原本的標記不動 */
-      S.mat.tran = 5;
-      const why = forgeDo(it, 'tran');
+      S.mat.aug = 5;
+      const why = forgeDo(it, 'aug');
       const plain = mkItem(it.b, it.L, 1); /* M2-29：王印只能套在魔法或稀有裝備 */
       const w1 = wangyinSet(plain, k1), w2 = wangyinSet(it, k2);
       r.keep = [why || '', it.r, it.chase, plain.chase, plain.wy, w1, w2, it.chase, it.wy, S.inv.items.includes(it), S.frags[k1], S.frags[k2], wangyinSet(plain, k1)];
