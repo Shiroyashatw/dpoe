@@ -16,6 +16,22 @@ function spr(n, x, y, hgt, o = {}) {
   CX.translate(Math.round(x), Math.round(y));
   if (o.flip) CX.scale(-1, 1);
   if (o.a != null) CX.globalAlpha = o.a;
+  if (o.rim) {
+    /* 剪影跟本體同比例同位置（artSprite 四邊留 1 格），往左右上下各移 1 螢幕 px */
+    const c = artSprite('a_' + n, o.rim),
+      N = c.height,
+      kx = sc * (o.sx || 1),
+      ky = sc * (o.sy || 1),
+      d = 1 / ZOOM;
+    if (!c.pending)
+      for (const [dx, dy] of [
+        [-d, 0],
+        [d, 0],
+        [0, -d],
+        [0, d]
+      ])
+        CX.drawImage(c, -w / 2 - Math.floor((N - r[2]) / 2) * kx + dx, -(N - 1) * ky + dy, N * kx, N * ky);
+  }
   if (o.white) {
     /* 閃白：artSprite 的白色版（留 1 格邊、貼底） */
     const c = artSprite('a_' + n, 1),
@@ -165,7 +181,7 @@ function draw() {
       CX.lineWidth = 5;
       CX.strokeStyle = PAL.ringEdge;
       CX.stroke();
-      CX.globalAlpha = 0.3 + 0.6 * f;
+      CX.globalAlpha = 0.7 + 0.2 * f;
       CX.lineWidth = 3;
       CX.strokeStyle = PAL.enemyTel;
       CX.stroke();
@@ -175,7 +191,7 @@ function draw() {
     }
     if (m.boss && m.pat === 'nova') {
       /* 彈幕環：畫出每一發的方向，缺口看得到 */
-      CX.strokeStyle = `rgba(${PAL.rgb.badV1},${0.25 + 0.5 * f})`;
+      CX.strokeStyle = `rgba(${PAL.rgb.enemyTel},${0.25 + 0.5 * f})`;
       CX.beginPath();
       for (let i = 0; i < NOVA_N - NOVA_GAP; i++) {
         const a = novaAng(m, i);
@@ -188,28 +204,55 @@ function draw() {
     if (D.ai === 'lunge' || (m.boss && m.pat === 'charge')) {
       const len = m.boss ? 520 : D.reach + 20,
         wd = m.r * 1.6;
-      CX.save();
-      CX.translate(m.x, m.y);
-      CX.rotate(m.ang);
-      CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.12 + 0.18 * f})`;
-      CX.fillRect(0, -wd / 2, len, wd);
-      CX.fillStyle = `rgba(${PAL.rgb.badV1},0.35)`;
-      CX.fillRect(0, -wd / 2, len * f, wd);
-      CX.restore();
+      /* 整條範圍畫在 A（0.12–0.30 照舊）、進度畫在 B（0.55） */
+      const [A, B] = foeLayer(),
+        x = m.x,
+        y = m.y,
+        an = m.ang;
+      for (const [g, a, l] of [
+        [A, (0.12 + 0.18 * f) / 0.3, len],
+        [B, 1, len * f]
+      ]) {
+        g.save();
+        g.translate(x, y);
+        g.rotate(an);
+        g.globalAlpha = a;
+        g.fillStyle = PAL.enemyTel;
+        g.fillRect(0, -wd / 2, l, wd);
+        g.restore();
+      }
+      foeEdge(
+        () => {
+          CX.save();
+          CX.translate(x, y);
+          CX.rotate(an);
+          CX.beginPath();
+          CX.rect(0, -wd / 2, len, wd);
+          CX.restore();
+        },
+        x + (Math.cos(an) * len) / 2,
+        y + (Math.sin(an) * len) / 2
+      );
     } else if (D.ai === 'slam') {
       const x = m.x + Math.cos(m.ang) * 55,
         y = m.y + Math.sin(m.ang) * 55;
       teleCircle(x, y, 95, f);
     } else if (D.ai === 'melee' || (m.boss && m.pat === 'swipe')) {
-      const R = m.boss ? 150 : D.reach + 10;
-      CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.1 + 0.25 * f})`;
-      CX.beginPath();
-      CX.moveTo(m.x, m.y);
-      CX.arc(m.x, m.y, R, m.ang - 1.2, m.ang + 1.2);
-      CX.closePath();
-      CX.fill();
+      /* 扇形 0.10–0.35 照舊，畫在 B（÷0.55） */
+      const R = m.boss ? 150 : D.reach + 10,
+        B = foeLayer()[1],
+        x = m.x,
+        y = m.y,
+        an = m.ang,
+        fan = g => (g.beginPath(), g.moveTo(x, y), g.arc(x, y, R, an - 1.2, an + 1.2), g.closePath());
+      B.globalAlpha = (0.1 + 0.25 * f) / 0.55;
+      B.fillStyle = PAL.enemyTel;
+      fan(B);
+      B.fill();
+      B.globalAlpha = 1;
+      foeEdge(() => fan(CX), x + Math.cos(an) * R * 0.6, y + Math.sin(an) * R * 0.6);
     } else if (D.ai === 'ranged' || D.ai === 'fan') {
-      CX.strokeStyle = `rgba(${PAL.rgb.elColdV3},${0.2 + 0.5 * f})`;
+      CX.strokeStyle = `rgba(${PAL.rgb.enemyTel},${0.2 + 0.5 * f})`;
       CX.setLineDash([6, 6]);
       CX.beginPath();
       for (const da of D.ai === 'fan' ? [-0.3, 0, 0.3] : [0]) {
@@ -221,10 +264,11 @@ function draw() {
     }
   }
   for (const t of G.tele) teleCircle(t.x, t.y, t.r, t.t / t.dur);
+  foeFlush();
   /* 愛的紅線（0.2.79）：牽著的小怪還活著就畫一條線連到七情王 */
   for (const m of G.mobs)
     if (m.tether && m.hp > 0 && m.tether.hp > 0) {
-      CX.strokeStyle = `rgba(${PAL.rgb.badV1},0.75)`;
+      CX.strokeStyle = `rgba(${PAL.rgb.enemyTel},0.75)`;
       CX.lineWidth = 2;
       CX.beginPath();
       CX.moveTo(m.x, m.y - m.sz * 0.4);
@@ -234,11 +278,10 @@ function draw() {
   /* 毒刃雨：紫色範圍＋落下的刀光；雷暴（p.wet）同一種畫法，換成藍色 */
   for (const p of G.pools || []) {
     const a = Math.min(1, (p.dur - p.t) * 2);
-    CX.fillStyle = p.wet ? `rgba(${PAL.rgb.fxRender1},${0.16 * a})` : `rgba(${PAL.rgb.fxRender2},${0.16 * a})`;
     CX.beginPath();
     CX.ellipse(p.x, p.y, p.r, p.r * 0.7, 0, 0, TAU);
-    CX.fill();
-    CX.strokeStyle = p.wet ? `rgba(${PAL.rgb.elColdV4},${0.5 * a})` : `rgba(${PAL.rgb.elChaosV2},${0.5 * a})`;
+    if (p.wet) ownFx(a, 1, 0);
+    else (CX.fillStyle = `rgba(${PAL.rgb.elChaos},${0.16 * a})`), CX.fill();
     CX.lineWidth = 2;
     for (let i = 0; i < 6; i++) {
       const k = (G.t * 3 + i * 0.37) % 1,
@@ -247,7 +290,7 @@ function draw() {
       CX.beginPath();
       CX.moveTo(x, y - 60 + k * 50);
       CX.lineTo(x, y - 48 + k * 50);
-      CX.stroke();
+      ownFx(a);
     }
   }
   /* 陷阱、地雷、砲塔圖騰、圖騰 */
@@ -255,16 +298,14 @@ function draw() {
   /* 隕石：落點的橘圈越來越滿，球從上面掉下來 */
   for (const o of G.meteors || []) {
     const f = Math.min(1, o.t / o.dur);
-    CX.strokeStyle = `rgba(${PAL.rgb.elFire},0.7)`;
     CX.lineWidth = 2;
     CX.beginPath();
     CX.ellipse(o.x, o.y, o.r, o.r * 0.7, 0, 0, TAU);
-    CX.stroke();
-    CX.fillStyle = `rgba(${PAL.rgb.badHiV1},${0.1 + 0.2 * f})`;
+    ownFx(1);
     CX.beginPath();
     CX.ellipse(o.x, o.y, o.r * f, o.r * 0.7 * f, 0, 0, TAU);
-    CX.fill();
-    CX.fillStyle = PAL.rarChaseHiV1;
+    ownFx(1, 1, 0);
+    CX.fillStyle = `rgb(${PAL.rgb.warmGlint})`;
     CX.beginPath();
     CX.arc(o.x + (1 - f) * 120, o.y - (1 - f) * 360, 14, 0, TAU);
     CX.fill();
@@ -364,7 +405,7 @@ function draw() {
       CX.save();
       CX.translate(s.x, s.y);
       CX.rotate(s.ang);
-      CX.fillStyle = s.bolt ? PAL.rarNormalV1 : ELC[s.wave];
+      CX.fillStyle = s.bolt ? `rgb(${PAL.rgb.hl})` : ELC[s.wave];
       CX.fillRect(-16, -2, 26, 4);
       CX.globalAlpha = 0.35;
       CX.fillRect(-34, -4, 22, 8);
@@ -377,7 +418,7 @@ function draw() {
       CX.beginPath();
       CX.arc(s.x, s.y, 16, 0, TAU);
       CX.fill();
-      CX.fillStyle = PAL.glintV3;
+      CX.fillStyle = PAL.glint;
       CX.beginPath();
       CX.arc(s.x, s.y, 7, 0, TAU);
       CX.fill();
@@ -388,16 +429,16 @@ function draw() {
       CX.beginPath();
       CX.arc(s.x, s.y, 20, 0, TAU);
       CX.fill();
-      CX.fillStyle = PAL.warmGlintV1;
+      CX.fillStyle = `rgb(${PAL.rgb.warmGlint})`;
       CX.beginPath();
       CX.arc(s.x, s.y, 9, 0, TAU);
       CX.fill();
     } else if (s.foe) {
-      CX.fillStyle = `rgba(${PAL.rgb.elColdV3},0.25)`;
+      CX.fillStyle = `rgba(${PAL.rgb.enemyTel},0.25)`;
       CX.beginPath();
       CX.arc(s.x, s.y, s.r * 2.2, 0, TAU);
       CX.fill();
-      CX.fillStyle = PAL.hlV1;
+      CX.fillStyle = PAL.enemyRim;
       CX.beginPath();
       CX.arc(s.x, s.y, s.r, 0, TAU);
       CX.fill();
@@ -405,9 +446,9 @@ function draw() {
       CX.save();
       CX.translate(s.x, s.y);
       CX.rotate(s.ang);
-      CX.fillStyle = `rgba(${PAL.rgb.elColdV5},0.25)`;
+      CX.fillStyle = `rgba(${PAL.rgb.glint},0.25)`;
       CX.fillRect(-40, -3, 40, 6);
-      CX.fillStyle = s.pink ? PAL.fxRender3 : PAL.glintV4;
+      CX.fillStyle = PAL.glint;
       CX.beginPath();
       CX.moveTo(14, 0);
       CX.lineTo(-6, -7);
@@ -487,32 +528,97 @@ function draw() {
   }
 }
 const RCOL = [PAL.rarNormal, PAL.rarMagic, PAL.rarRare];
-const RBG = [
-  `rgba(${PAL.rgb.sceneVoidV1},0.95)`,
-  `rgba(${PAL.rgb.rarMagicBgV1},0.95)`,
-  `rgba(${PAL.rgb.rarRareBgV1},0.95)`
-];
+const RBG = [`rgba(${PAL.rgb.panel},0.92)`, `rgba(${PAL.rgb.rarMagicBg},0.95)`, `rgba(${PAL.rgb.rarRareBg},0.95)`];
 /* canvas 上的鑄鐵銀框（小地圖、互動提示），跟面板同色：外黑、內銀 */
 function frameRect(x, y, w, h) {
   CX.lineWidth = 1;
   CX.strokeStyle = PAL.sceneVoid;
   CX.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
-  CX.strokeStyle = PAL.dmgMinorV4;
+  CX.strokeStyle = PAL.panelEdge;
   CX.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
 }
+/* 敵方填色層（總表 §1-6、C25、3.2）：外圈畫在 A（整層 0.30）、進度內圈與敵方地面畫在 B（整層 0.55）；
+   同一層裡重疊不疊加，A 扣掉 B 的範圍再貼，任一點合成最多 0.55（＝外圈 0.30＋內圈 0.357）。框與圖示等貼完再畫（FOE.L） */
+const FOE = { on: 0, L: [] };
+function foeLayer() {
+  if (!FOE.on) {
+    const m = CX.getTransform();
+    FOE.c = FOE.c || [0, 1].map(() => document.createElement('canvas').getContext('2d'));
+    for (const g of FOE.c) {
+      if (g.canvas.width !== CV.width || g.canvas.height !== CV.height)
+        (g.canvas.width = CV.width), (g.canvas.height = CV.height);
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, CV.width, CV.height);
+      g.setTransform(m);
+    }
+    (FOE.on = 1), (FOE.L = []);
+  }
+  return FOE.c;
+}
+function foeFlush() {
+  if (!FOE.on) return;
+  const [A, B] = FOE.c,
+    m = CX.getTransform();
+  A.setTransform(1, 0, 0, 1, 0, 0);
+  A.globalAlpha = 1;
+  A.globalCompositeOperation = 'destination-out';
+  A.drawImage(B.canvas, 0, 0);
+  A.globalCompositeOperation = 'source-over';
+  CX.setTransform(1, 0, 0, 1, 0, 0);
+  CX.globalAlpha = 0.3;
+  CX.drawImage(A.canvas, 0, 0);
+  CX.globalAlpha = 0.55;
+  CX.drawImage(B.canvas, 0, 0);
+  CX.globalAlpha = 1;
+  CX.setTransform(m);
+  for (const f of FOE.L) f();
+  FOE.on = 0;
+}
+/* 敵方預警的框與圖示（C24／M3、差距清單 T2／T3）：照敵方地面的虛線 [10, 6]，先 5 px 不透明 --ring-edge 再 3 px --enemy-tel α0.9；
+   中央圖示沒有專用的危險圖示，先用程式菱形（--enemy-tel，桌機 20、觸控 16 px） */
+function foeEdge(path, x, y) {
+  FOE.L.push(() => {
+    CX.setLineDash([10, 6]);
+    path();
+    CX.lineWidth = 5;
+    CX.strokeStyle = PAL.ringEdge;
+    CX.stroke();
+    CX.globalAlpha = 0.9;
+    CX.lineWidth = 3;
+    CX.strokeStyle = PAL.enemyTel;
+    CX.stroke();
+    CX.setLineDash([]);
+    CX.globalAlpha = 1;
+    foeIcon(x, y, PAL.enemyTel);
+  });
+}
+function foeIcon(x, y, col) {
+  const z = (TOUCH.on ? 16 : 20) / ZOOM;
+  CX.fillStyle = col;
+  CX.beginPath();
+  CX.moveTo(x, y - z / 2);
+  CX.lineTo(x + z / 3, y);
+  CX.lineTo(x, y + z / 2);
+  CX.lineTo(x - z / 3, y);
+  CX.fill();
+}
 function teleCircle(x, y, r, f) {
-  CX.fillStyle = `rgba(${PAL.rgb.badV1},${0.08 + 0.12 * f})`;
-  CX.beginPath();
-  CX.arc(x, y, r, 0, TAU);
-  CX.fill();
-  CX.fillStyle = `rgba(${PAL.rgb.badV1},0.3)`;
-  CX.beginPath();
-  CX.arc(x, y, r * clamp(f, 0, 1), 0, TAU);
-  CX.fill();
-  CX.strokeStyle = `rgba(${PAL.rgb.dmgHurtV1},0.7)`;
-  CX.beginPath();
-  CX.arc(x, y, r, 0, TAU);
-  CX.stroke();
+  const [A, B] = foeLayer();
+  A.fillStyle = B.fillStyle = PAL.enemyTel;
+  A.beginPath();
+  A.arc(x, y, r, 0, TAU);
+  A.fill();
+  B.beginPath();
+  B.arc(x, y, r * clamp(f, 0, 1), 0, TAU);
+  B.fill();
+  foeEdge(
+    () => {
+      CX.beginPath();
+      CX.arc(x, y, r, 0, TAU);
+    },
+    x,
+    y
+  );
 }
 function shadow(x, y, r) {
   CX.fillStyle = `rgba(${PAL.rgb.scrim},0.4)`;
@@ -573,7 +679,7 @@ function drawArrow(m) {
     CX.restore();
   }
   const n = ARROW_HITS - m.fired;
-  CX.fillStyle = PAL.hlV2;
+  CX.fillStyle = `rgb(${PAL.rgb.hl})`;
   for (let i = 0; i < n; i++) CX.fillRect(Math.round(m.x - n * 4 + 1 + i * 8), Math.round(m.y + 10), 6, 6);
 }
 function drawMob(m) {
@@ -582,26 +688,20 @@ function drawMob(m) {
     fly = mobFly(m);
   shadow(m.x, m.y, m.r * 1.1);
   /* 菁英：腳下光圈；王：大光圈 */
-  if (m.elite || m.boss) {
-    /* 菁英不用稀有度色：--enemy-rim 70%（UIUX 13:32） */
-    CX.strokeStyle = m.boss ? `rgba(${PAL.rgb.badHiV2},0.6)` : PAL.enemyRim;
-    if (!m.boss) CX.globalAlpha = 0.7;
-    CX.lineWidth = 2;
-    CX.beginPath();
-    CX.ellipse(m.x, m.y, m.r * 1.4, m.r * 0.55, 0, 0, TAU);
-    CX.stroke();
-    CX.globalAlpha = 1;
-  }
+  /* 菁英不用稀有度色：--enemy-rim 70%（UIUX 13:32；去留待 mumi）；王：4 px 不透明 --ring-edge＋3 px --enemy-tel α0.9（總表列 43） */
+  if (m.boss) footRing(m.x, m.y, m.r * 1.4, PAL.enemyTel, 0.9, 3, 4, 0.55 / 1.4);
+  else if (m.elite) footRing(m.x, m.y, m.r * 1.4, PAL.enemyRim, 0.7, 2, 0, 0.55 / 1.4);
   /* 擠壓：被打扁一下、走路上下彈、蓄力時抖 */
   const bob = m.mv && !D.fly ? Math.abs(Math.sin(m.ph)) * 0.06 : 0,
     sqv = m.sq * 0.18,
     wind = m.st === 'wind' ? Math.sin(G.t * 60) * 2 : 0;
   const o = { flip: P.x > m.x, sx: 1 + sqv, sy: 1 - sqv + bob, white: m.flash > 0 };
-  spr(D.sp, m.x + wind, m.y - fly, m.sz, o);
+  /* 1 px --enemy-rim 外框（差距清單 E1）：精靈剪影往四個方向各移 1 螢幕 px 先畫 */
+  spr(D.sp, m.x + wind, m.y - fly, m.sz, { ...o, rim: PAL.enemyRim });
   /* 蓄力：紅光 */
   if (m.st === 'wind') {
     CX.globalAlpha = 0.25 + 0.2 * Math.sin(G.t * 30);
-    CX.fillStyle = PAL.badV5;
+    CX.fillStyle = PAL.enemyTel;
     CX.beginPath();
     CX.arc(m.x, m.y - fly - m.sz * 0.5, m.sz * 0.35, 0, TAU);
     CX.fill();
@@ -620,7 +720,7 @@ function drawMob(m) {
     CX.fill();
   }
   if (ma.ign && ma.ign.t > G.t) {
-    CX.fillStyle = `rgba(${PAL.rgb.elFireV2},0.3)`;
+    CX.fillStyle = `rgba(${PAL.rgb.elFire},0.3)`;
     CX.beginPath();
     CX.ellipse(m.x, m.y - fly - m.sz * 0.4, m.r * 0.9, m.sz * 0.45, 0, 0, TAU);
     CX.fill();
@@ -650,23 +750,23 @@ function drawNums() {
       y = n.y - (rm ? 0 : 30 * Math.sqrt(f)) - (n.c === 'crit' || n.c === 'jackpot' ? 10 : 0);
     const st = {
       phys: [PAL.dmgHit, 15],
-      fire: [ELC.fire, 15],
-      cold: [ELC.cold, 15],
-      light: [ELC.light, 15],
-      chaos: [ELC.chaos, 15],
-      block: [PAL.dmgMinorV2, 16],
+      fire: [PAL.dmgHit, 15],
+      cold: [PAL.dmgHit, 15],
+      light: [PAL.dmgHit, 15],
+      chaos: [PAL.dmgHit, 15],
+      block: [PAL.dmgMinor, 16],
       hit: [PAL.dmgHit, 15],
       crit: [PAL.dmgCrit, 24],
       /* 豪賭的大獎（0.2.74 賭徒）：金色、更大 */
-      jackpot: [PAL.dmgCritV1, 30],
+      jackpot: [PAL.dmgCrit, 30],
       hurt: [PAL.dmgHurt, 17],
       gold: [PAL.dmgGain, 14],
-      perfect: [PAL.dmgGainV1, 26],
-      ev: [PAL.dmgGainV2, 18],
+      perfect: [PAL.dmgGain, 26],
+      ev: [PAL.dmgMinor, 18],
       miss: [PAL.dmgMinor, 14],
-      mat: [PAL.dmgGainV3, 15],
+      mat: [PAL.dmgGain, 15],
       /* 持續傷害：小、淡，跟擊中分開 */
-      dot: [PAL.dmgMinorV3, 12]
+      dot: [PAL.dmgMinor, 12]
     }[n.c];
     const fa = 1 - Math.max(0, f - 0.6) / 0.4;
     CX.font = `700 ${Math.round(st[1] * pop)}px "Noto Sans TC", sans-serif`;
@@ -675,17 +775,20 @@ function drawNums() {
         ? '+' + numT(n.v) + ' 金'
         : n.c === 'jackpot'
           ? '大獎 ' + numT(n.v)
-          : n.c === 'block'
-            ? '格擋'
-            : n.c === 'perfect'
-              ? '完美閃避'
-              : n.c === 'ev'
-                ? '閃避'
-                : n.txt || numT(n.v);
+          : n.c === 'crit'
+            ? '暴擊 ' + numT(n.v)
+            : n.c === 'block'
+              ? '格擋'
+              : n.c === 'perfect'
+                ? '完美閃避'
+                : n.c === 'ev'
+                  ? '閃避'
+                  : n.txt || numT(n.v);
     /* 描邊比字慢淡出（M2-31 C1） */
     CX.globalAlpha = Math.min(1, fa + 0.3);
-    CX.lineWidth = 4;
-    CX.strokeStyle = `rgba(${PAL.rgb.scrim},0.95)`;
+    /* 暴擊：2 px 不透明 --dmg-outline（差距清單 C2）；其他照舊 */
+    CX.lineWidth = n.c === 'crit' ? 2 : 4;
+    CX.strokeStyle = n.c === 'crit' ? PAL.dmgOutline : `rgba(${PAL.rgb.scrim},0.95)`;
     CX.strokeText(txt, n.x, y);
     CX.globalAlpha = fa;
     CX.fillStyle = st[0];
@@ -758,14 +861,14 @@ function drawBeams() {
     CX.fillStyle = g;
     if (d.chase) {
       CX.fillRect(x - 14, y - bh, 28, bh);
-      CX.fillStyle = `rgba(${PAL.rgb.onActV2},${a})`;
+      CX.fillStyle = `rgba(${PAL.rgb.onAct},${a})`;
       CX.fillRect(x - 3, y - bh * 0.9, 6, bh * 0.9);
       CX.fillStyle = `rgba(${rgb},${a * 0.6})`;
       CX.fillRect(x - 19, y - bh * 0.7, 1.5, bh * 0.7);
       CX.fillRect(x + 17.5, y - bh * 0.7, 1.5, bh * 0.7);
     } else {
       CX.fillRect(x - 10, y - bh, 20, bh);
-      CX.fillStyle = `rgba(${PAL.rgb.catFracV1},${a})`;
+      CX.fillStyle = `rgba(${PAL.rgb.glint},${a})`;
       CX.fillRect(x - 2, y - bh * 0.85, 4, bh * 0.85);
     }
   }
@@ -777,7 +880,9 @@ const cssv = n => CSSV[n] || (CSSV[n] = getComputedStyle(document.documentElemen
 function drawFront() {
   const T = G.mobs.length ? aiTarget() : null;
   for (const m of G.mobs)
-    if (m.hp > 0 && (m === T || m.boss)) footRing(m.x, m.y, m.r * 1.4, cssv('--bad-hi')), drawMob(m);
+    if (m.hp > 0 && (m === T || m.boss))
+      /* 目前目標（總表 3.2 #159-6）：王 4 px 黑＋3 px --enemy-tel α0.9；其他 --enemy-rim α0.9＋外 1 px 黑 */
+      footRing(m.x, m.y, m.r * 1.4, m.boss ? PAL.enemyTel : PAL.enemyRim, 0.9, m.boss ? 3 : 2, 4), drawMob(m);
   const n =
     G.fx.filter(o => o.k === 'sh' && Math.hypot(o.x - P.x, o.y - P.y) < 60).length +
     G.ground.filter(g => g.side !== 'm' && Math.hypot(g.x - P.x, g.y - P.y) < g.r + 60).length;
@@ -806,26 +911,33 @@ function heroMark() {
   CX.fillStyle = cssv('--d2-tx-strong');
   CX.fill();
 }
-function footRing(x, y, r, col) {
-  CX.globalAlpha = 0.6;
-  CX.strokeStyle = col;
-  CX.lineWidth = 2;
+/* 腳下圈：col 寬 w、α a；e＞0 先畫寬 e 的不透明 --ring-edge 黑邊 */
+function footRing(x, y, r, col, a = 0.6, w = 2, e = 0, k = 0.4) {
   CX.beginPath();
-  CX.ellipse(x, y, r, r * 0.4, 0, 0, TAU);
+  CX.ellipse(x, y, r, r * k, 0, 0, TAU);
+  if (e) (CX.strokeStyle = PAL.ringEdge), (CX.lineWidth = e), CX.stroke();
+  CX.globalAlpha = a;
+  CX.strokeStyle = col;
+  CX.lineWidth = w;
   CX.stroke();
   CX.globalAlpha = 1;
 }
-/* 能量球：玩家身邊繞圈的小圓點（耐力紅、盛怒綠、暴擊藍） */
-const CHGC = { e: PAL.badHiV3, f: PAL.goodV1, p: PAL.dodgeVignetteV1 };
+/* 能量球：玩家身邊繞圈的小圓點（耐力 --chg-e、盛怒 --good、暴擊 --chg-p），外 1 px 不透明黑邊（總表列 41、32、20） */
+const CHGC = { e: PAL.chgE, f: PAL.good, p: PAL.chgP };
 function drawCharges() {
   const ds = [];
   for (const k of ['e', 'f', 'p']) for (let i = chgN(k); i > 0; i--) ds.push(CHGC[k]);
   ds.forEach((c, i) => {
     const a = G.t * 2.4 + (i * TAU) / ds.length;
-    CX.fillStyle = c;
-    CX.beginPath();
-    CX.arc(P.x + Math.cos(a) * 26, P.y - 34 + Math.sin(a) * 9, 4, 0, TAU);
-    CX.fill();
+    for (const [col, r] of [
+      [PAL.ringEdge, 5],
+      [c, 4]
+    ]) {
+      CX.fillStyle = col;
+      CX.beginPath();
+      CX.arc(P.x + Math.cos(a) * 26, P.y - 34 + Math.sin(a) * 9, r, 0, TAU);
+      CX.fill();
+    }
   });
 }
 /* 蓄力條（0.2.54）：蓄力技能按住時畫在腳下，一段一格；正在蓄的那格跟著時間長，滿一格變亮，全滿整條最亮。
@@ -846,7 +958,7 @@ function chargeBar() {
   for (let i = 0; i < E.max; i++) {
     const f = Math.max(0, Math.min(1, a.ch / E.step - i));
     if (!f) continue;
-    CX.fillStyle = full || (f >= 1 && flash) ? PAL.glintV5 : f >= 1 ? PAL.hlV3 : PAL.dmgMinorV5;
+    CX.fillStyle = full || (f >= 1 && flash) ? PAL.glint : f >= 1 ? `rgb(${PAL.rgb.hl})` : PAL.txDim;
     CX.fillRect(x0 + i * (w + gap), y, w * f, 4);
   }
 }
@@ -894,12 +1006,21 @@ function drawHero(top, ol) {
   drawCharges();
   /* 完美閃避後的下一擊：刀光 */
   if (P.critNext) {
-    CX.strokeStyle = `rgba(${PAL.rgb.catMemV1},${0.5 + 0.3 * Math.sin(G.t * 12)})`;
     CX.lineWidth = 2;
     CX.beginPath();
     CX.ellipse(P.x, P.y, 24, 9, 0, 0, TAU);
-    CX.stroke();
+    ownFx((0.5 + 0.3 * Math.sin(G.t * 12)) / 0.8);
   }
+}
+/* 我方特效（總表 B1）：--fx-own 9%×a；線先畫寬 +2 的不透明色 --ring-edge 黑邊（同 α）再畫本色；
+   fill 時填色、edge 時再描 2 寬黑邊（同 α）；用目前的路徑 */
+function ownFx(a, fill, edge = 1) {
+  const w = CX.lineWidth;
+  CX.globalAlpha = 0.09 * a;
+  if (fill) (CX.fillStyle = PAL.fxOwn), CX.fill();
+  if (edge) (CX.strokeStyle = PAL.ringEdge), (CX.lineWidth = fill ? 2 : w + 2), CX.stroke();
+  if (!fill) (CX.strokeStyle = PAL.fxOwn), (CX.lineWidth = w), CX.stroke();
+  (CX.globalAlpha = 1), (CX.lineWidth = w);
 }
 const FXI = {};
 const fxImg = n => FXI[n] || Object.assign((FXI[n] = new Image()), { src: `img/fx/${n}.png?v=${VER}` });
@@ -940,7 +1061,7 @@ function drawFx() {
       const a0 = o.ang - o.arc / 2 + o.arc * Math.min(1, f * 2.4) * 0;
       const g = CX.createRadialGradient(o.x, o.y - 20, o.r * 0.3, o.x, o.y - 20, o.r);
       g.addColorStop(0, `rgba(${PAL.rgb.glint},0)`);
-      g.addColorStop(0.7, `rgba(${PAL.rgb.catFracV2},0.35)`);
+      g.addColorStop(0.7, `rgba(${hex2rgb(PAL.fxOwn)},0.09)`);
       g.addColorStop(1, `rgba(${PAL.rgb.glint},0.95)`);
       CX.fillStyle = g;
       CX.beginPath();
@@ -949,16 +1070,14 @@ function drawFx() {
       CX.closePath();
       CX.fill();
     } else if (o.k === 'quake') {
-      CX.globalAlpha = 0.6 * (1 - f);
-      CX.fillStyle = PAL.txOffV1;
       CX.beginPath();
       CX.moveTo(o.x, o.y);
       CX.arc(o.x, o.y, o.r * (0.5 + 0.5 * f), o.ang - o.arc / 2, o.ang + o.arc / 2);
       CX.closePath();
-      CX.fill();
+      ownFx(1 - f, 1);
     } else if (o.k === 'claw') {
       CX.globalAlpha = 1 - f;
-      CX.strokeStyle = o.big ? PAL.elFireV1 : PAL.ascHiV2;
+      CX.strokeStyle = o.big ? PAL.enemyRim : `rgb(${PAL.rgb.hl})`;
       CX.lineWidth = o.big ? 6 : 3;
       for (let i = -1; i <= 1; i++) {
         CX.beginPath();
@@ -986,20 +1105,21 @@ function drawFx() {
       /* 外 1 px #000（X4，--ring-edge）：先用 lineWidth+2 畫黑邊、再畫本色；黑邊的 alpha＝環的 alpha，我方 --fx-own 環 9%（硬規則：永遠不能不透明） */
       const lw = 10 * (1 - f) + 2,
         rr = o.r * (0.6 + 0.4 * f);
-      CX.globalAlpha = (1 - f) * (o.col === PAL.fxOwn ? 0.09 : 0.9);
+      const col = o.col || PAL.fxOwn;
+      CX.globalAlpha = (1 - f) * (col === PAL.fxOwn ? 0.09 : 0.9);
       CX.beginPath();
       CX.ellipse(o.x, o.y - 10, rr, rr * 0.75, 0, 0, TAU);
       CX.strokeStyle = PAL.ringEdge;
       CX.lineWidth = lw + 2;
       CX.stroke();
-      CX.strokeStyle = o.col || PAL.catFracV4;
+      CX.strokeStyle = col;
       CX.lineWidth = lw;
       CX.stroke();
     } else if (o.k === 'ghost') {
       heroCell(6, 2, o.x, o.y, o.flip, 0.35 * (1 - f));
     } else if (o.k === 'dust') {
       CX.globalAlpha = 0.35 * (1 - f);
-      CX.fillStyle = PAL.txLockV3;
+      CX.fillStyle = PAL.border;
       CX.beginPath();
       CX.arc(o.x, o.y - f * 10, 4 + f * 10, 0, TAU);
       CX.fill();
@@ -1025,12 +1145,10 @@ function drawFx() {
         o.loop ? Math.floor((o.t * S.fps) % S.n) : Math.min(S.n - 1, Math.floor(f * S.n))
       );
     } else if (o.k === 'perfect') {
-      CX.globalAlpha = 1 - f;
-      CX.strokeStyle = PAL.catMemV2;
       CX.lineWidth = 3;
       CX.beginPath();
       CX.arc(o.x, o.y - 30, 30 + f * 160, 0, TAU);
-      CX.stroke();
+      ownFx(1 - f);
     }
     CX.globalAlpha = 1;
   }
@@ -1062,7 +1180,7 @@ function drawMinimap(W) {
     x0 = W - mw - (PORT() ? 12 : 16),
     y0 = PORT() ? 5 : cvH() - mh - 16,
     s = mw / G.W;
-  CX.fillStyle = `rgba(${PAL.rgb.sceneVoidV2},0.78)`;
+  CX.fillStyle = `rgba(${PAL.rgb.scrim},0.78)`;
   CX.fillRect(x0, y0, mw, mh);
   frameRect(x0, y0, mw, mh);
   miniBody(x0, y0, mw, mh, s);
@@ -1074,7 +1192,7 @@ function miniBody(x0, y0, mw, mh, s) {
     c.width = G.cols;
     c.height = G.rows;
     const g = c.getContext('2d');
-    g.fillStyle = `rgba(${PAL.rgb.txEmptyV1},0.9)`;
+    g.fillStyle = `rgba(${PAL.rgb.txEmpty},0.9)`;
     for (let y = 0; y < G.rows; y++)
       for (let x = 0; x < G.cols; x++) if (!G.tiles[y * G.cols + x]) g.fillRect(x, y, 1, 1);
   }
@@ -1092,10 +1210,16 @@ function miniBody(x0, y0, mw, mh, s) {
       CX.fillRect(bx + 1, by + 1, 5, 5);
       continue;
     }
-    CX.fillStyle = m.elite ? PAL.enemyRim : PAL.badV6;
+    /* 一般怪 --enemy-tel、菁英 --enemy-rim，2×2 點先墊 4×4 不透明 --ring-edge（總表列 40、#159-2／3） */
+    CX.fillStyle = PAL.ringEdge;
+    CX.fillRect(x0 + m.x * s - 2, y0 + m.y * s - 2, 4, 4);
+    CX.fillStyle = m.elite ? PAL.enemyRim : PAL.enemyTel;
     CX.fillRect(x0 + m.x * s - 1, y0 + m.y * s - 1, 2, 2);
   }
-  CX.fillStyle = PAL.goodV2;
+  /* 玩家 4×4 --good 先墊 6×6 --ring-edge（列 33、#159-4） */
+  CX.fillStyle = PAL.ringEdge;
+  CX.fillRect(x0 + P.x * s - 3, y0 + P.y * s - 3, 6, 6);
+  CX.fillStyle = PAL.good;
   CX.fillRect(x0 + P.x * s - 2, y0 + P.y * s - 2, 4, 4);
 }
 
@@ -1498,7 +1622,7 @@ function drawWolf(w) {
   shadow(w.x, w.y, 13);
   /* 魔像（0.2.63）：圖與腳下圈的顏色看 AURAS[src] 的 mon、col */
   const A = AURAS[w.src];
-  CX.strokeStyle = A && A.col ? A.col : `rgba(${PAL.rgb.goodV1},0.6)`;
+  CX.strokeStyle = A && A.col ? A.col : `rgba(${PAL.rgb.good},0.6)`;
   CX.lineWidth = 1.5;
   CX.beginPath();
   CX.ellipse(w.x, w.y, 16, 6, 0, 0, TAU);
@@ -1513,17 +1637,17 @@ function drawWolf(w) {
       y = w.y - sz * giantM(w) - 8;
     CX.fillStyle = `rgba(${PAL.rgb.scrim},0.7)`;
     CX.fillRect(w.x - bw / 2 - 1, y - 1, bw + 2, 6);
-    CX.fillStyle = PAL.goodV3;
+    CX.fillStyle = PAL.good;
     CX.fillRect(w.x - bw / 2, y, (bw * Math.max(0, w.hp)) / w.mhp, 4);
   }
 }
 
 /* 陷阱的屬性色 [圓環, 旋轉小點]：物理灰、閃電黃、火焰橙、冰霜青（0.2.66；圓環中心再畫技能圖示） */
 const TRAP_COL = {
-  phys: [PAL.dmgHitV1, PAL.dmgHitV2],
-  light: [PAL.elLight, PAL.warmGlintV2],
-  fire: [PAL.elFire, PAL.rarChaseHiV2],
-  cold: [PAL.elCold, PAL.hlV4]
+  phys: [PAL.dmgMinor, PAL.dmgHit],
+  light: [PAL.elLight, PAL.elLight],
+  fire: [PAL.elFire, PAL.elFire],
+  cold: [PAL.elCold, PAL.elCold]
 };
 /* 場上單位：陷阱（地上的齒輪）、地雷（閃紅點）、砲塔圖騰（十字弓）、圖騰（柱子）；砲塔圖騰、圖騰下面的小條是剩下的時間 */
 function drawUnit(u) {
@@ -1546,28 +1670,28 @@ function drawUnit(u) {
     }
     spr(D.ic, u.x, u.y + 2, 12);
   } else if (u.type === 'mine') {
-    CX.fillStyle = PAL.borderV2;
+    CX.fillStyle = PAL.border;
     CX.beginPath();
     CX.arc(u.x, u.y - 4, 9, 0, TAU);
     CX.fill();
-    CX.fillStyle = Math.sin(G.t * 14) > 0 ? PAL.dmgHurt : PAL.hpV3;
+    CX.fillStyle = Math.sin(G.t * 14) > 0 ? PAL.dmgHurt : PAL.progLo;
     CX.fillRect(u.x - 2, u.y - 7, 4, 4);
   } else if (u.type === 'turret') {
-    CX.fillStyle = PAL.progLoV1;
+    CX.fillStyle = PAL.border;
     CX.fillRect(u.x - 10, u.y - 20, 20, 20);
-    CX.fillStyle = PAL.progHiV1;
+    CX.fillStyle = PAL.borderHi;
     CX.fillRect(u.x - 16, u.y - 26, 32, 6);
   } else {
-    CX.fillStyle = PAL.borderMidV3;
+    CX.fillStyle = PAL.borderMid;
     CX.fillRect(u.x - 9, u.y - 46, 18, 46);
-    CX.fillStyle = D.el === 'fire' ? PAL.elFire : PAL.progHiV1;
+    CX.fillStyle = D.el === 'fire' ? PAL.elFire : PAL.borderHi;
     CX.fillRect(u.x - 12, u.y - 52, 24, 10);
     spr(D.ic, u.x, u.y - 22, 18);
   }
   if (u.type === 'turret' || u.type === 'totem') {
     CX.fillStyle = `rgba(${PAL.rgb.scrim},0.6)`;
     CX.fillRect(u.x - 14, u.y + 6, 28, 3);
-    CX.fillStyle = PAL.hlV2;
+    CX.fillStyle = `rgb(${PAL.rgb.hl})`;
     CX.fillRect(u.x - 14, u.y + 6, 28 * Math.max(0, 1 - u.t / u.dur), 3);
   }
   /* 生命條（0.2.53，圖騰與砲塔圖騰會被打）：受傷才顯示，畫法跟召喚物、怪物的小血條一樣 */
@@ -1576,7 +1700,7 @@ function drawUnit(u) {
     const y = u.y - (u.type === 'turret' ? 40 : 62);
     CX.fillStyle = `rgba(${PAL.rgb.scrim},0.7)`;
     CX.fillRect(u.x - 19, y - 1, 38, 6);
-    CX.fillStyle = PAL.goodV3;
+    CX.fillStyle = PAL.good;
     CX.fillRect(u.x - 18, y, (36 * Math.max(0, u.hp)) / u.mhp, 4);
   }
 }

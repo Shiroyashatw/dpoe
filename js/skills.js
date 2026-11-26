@@ -882,7 +882,7 @@ function actHit(a, idx) {
     /* 汐引（0.2.74 潮汐）：在滑鼠位置掀起浪潮：範圍內每隻受一次冰冷＋閃電的法術擊中，然後拉向中心（王不拉、菁英減半、釘身的不動；約拉到離中心 20% 處），
        留下鹹水地面 3 秒（品質每 1% 多留 0.1 秒；站在上面冰緩 30%、閃電擊中必定感電）。用 G.mobs 的快照，擊殺不會改到迴圈 */
     const hit = G.mobs.filter(m => m.hp > 0 && !m.arrow && Math.hypot(m.x - a.tx, m.y - a.ty) < R + m.r);
-    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: ELC.cold, sh: 'frost' });
+    fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: PAL.fxOwn, sh: 'frost' });
     fxs('frost', a.tx, a.ty, R);
     for (const m of hit) hitMob(m, c, Math.atan2(m.y - a.ty, m.x - a.tx), 0, { a });
     for (const m of hit) {
@@ -954,7 +954,7 @@ function actHit(a, idx) {
   } else if (a.k === 'wolf') {
     for (const w of G.allies.filter(w => w.src === 'gem')) allyDie(w);
     for (let i = 0; i < c.wolves; i++) callWolf('gem', c);
-    fx({ k: 'ring', x: P.x, y: P.y, r: 90, dur: 0.35, col: PAL.goodV2 });
+    fx({ k: 'ring', x: P.x, y: P.y, r: 90, dur: 0.35, col: PAL.fxOwn });
   } else actHit2(a, idx, R, hitArc);
 }
 /* 0.2.11 的武器技能（docs/技能分配.md）；機制都在 mech.js、combat.js */
@@ -1101,7 +1101,7 @@ function actHit2(a, idx, R, hitArc) {
     /* 震地戰吼：周圍傷害＋擊退，瀕臨沉重暈眩的粉碎重擊（給耐力球） */
     cryFx(R, c);
     fxs('slam', P.x, P.y, R * 0.6);
-    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.borderHiV2 });
+    fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.fxOwn });
     sfx('slam');
     shake(0.1);
     for (const m of G.mobs)
@@ -1136,7 +1136,7 @@ function actHit2(a, idx, R, hitArc) {
     } else
       for (const w of L) {
         fxs('slam', w.x, w.y, R * 0.6);
-        fx({ k: 'ring', x: w.x, y: w.y, r: R, dur: 0.35, col: PAL.dmgCritV2 });
+        fx({ k: 'ring', x: w.x, y: w.y, r: R, dur: 0.35, col: PAL.fxOwn });
         sfx('slam');
         for (const m of G.mobs)
           if (m.hp > 0 && dist(m, w) < R + m.r) {
@@ -1284,7 +1284,7 @@ function actHit2(a, idx, R, hitArc) {
     }
   } else if (a.k === 'flyswords') {
     if (swordN() >= SWORD_MAX) launchSwords(a.tx, a.ty), sfx('throw');
-    else gainSwords(3 + c.proj - 1, c), fx({ k: 'ring', x: P.x, y: P.y, r: 45, dur: 0.25, col: PAL.hlV2 });
+    else gainSwords(3 + c.proj - 1, c), fx({ k: 'ring', x: P.x, y: P.y, r: 45, dur: 0.25, col: PAL.fxOwn });
   } else if (a.k === 'shadowstrike' || a.k === 'wolfpounce') {
     /* 撲到目標身邊：影襲必定暴擊（翻滾後 2 秒內 ×2），狼撲上獵人印記 */
     const t = a.tm;
@@ -1384,7 +1384,7 @@ function actHit2(a, idx, R, hitArc) {
     else if (plantSwords(a.tx, a.ty, c)) {
       const nw = G.ground[G.ground.length - 1];
       nw.r *= 1 + 0.2 * c.q;
-      fx({ k: 'ring', x: nw.x, y: nw.y, r: nw.r, dur: 0.3, col: PAL.hlV2 });
+      fx({ k: 'ring', x: nw.x, y: nw.y, r: nw.r, dur: 0.3, col: PAL.fxOwn });
       sfx('throw');
     }
   } else if (a.k === 'bloodrage') {
@@ -1399,7 +1399,7 @@ function actHit2(a, idx, R, hitArc) {
     if (a.k === 'gasflask') {
       /* 毒霧：地面 'gas'（mech.js）每 0.5 秒對圈內擊中一次並必定中毒；每下＝主手武器傷害 ×0.4 轉混沌（dps 0.8 × 0.5 秒） */
       addGround({ k: 'gas', x: a.tx, y: a.ty, r: R, dur: t, c, dps: 0.8 });
-      fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: PAL.goodV4 });
+      fx({ k: 'ring', x: a.tx, y: a.ty, r: R, dur: 0.4, col: PAL.fxOwn });
     } else if (a.k === 'windflask') {
       gainBuff('onslaught', t);
       gainBuff('phasing', t);
@@ -1409,7 +1409,7 @@ function actHit2(a, idx, R, hitArc) {
       /* 石膚：守護（P.stoneV，combat.js 的 absorb）最多最大生命的 30%（吃藥劑效果），期間不會被擊退（hurtPlayer） */
       gainBuff('stone', t);
       P.stoneV = ST.hp * 0.3 * flaskEff();
-      fx({ k: 'ring', x: P.x, y: P.y, r: 50, dur: 0.4, col: PAL.hlV7 });
+      fx({ k: 'ring', x: P.x, y: P.y, r: 50, dur: 0.4, col: PAL.fxOwn });
     }
     sfx('drink');
   } else if (a.k === 'allin') {
@@ -1716,7 +1716,7 @@ function hitMob(m, c, ang, kb, o = {}) {
 /* 辰龍的隕石：落在目標上，半徑 150 內的敵人受火焰範圍傷害（那一下擊中的 150%，擊中前的總傷害；吃火焰抗性，不走 hitMob 所以不會再算擊中數） */
 function meteorFall(m, r) {
   const v = DT.reduce((s, k) => s + r.pre[k], 0) * 1.5;
-  fx({ k: 'ring', x: m.x, y: m.y, r: 150, dur: 0.4, col: ELC.fire, sh: 'boom' });
+  fx({ k: 'ring', x: m.x, y: m.y, r: 150, dur: 0.4, col: PAL.fxOwn, sh: 'boom' });
   fxs('boom', m.x, m.y, 150);
   for (const o of G.mobs.slice()) if (o.hp > 0 && !o.arrow && dist(o, m) < 150 + o.r) dotHit(o, v, 'fire');
 }
@@ -1784,7 +1784,7 @@ const herR = k => AURAS['h_' + k].r * ST.herA[k];
 function heraldBoom(k, x, y, c, el, flag) {
   const r = herR(k),
     cc = { ...c, ...flag, D: { ...c.D, el, tags: [...(c.D.tags || []), 'aoe'] } };
-  fx({ k: 'ring', x, y, r, dur: 0.3, col: ELC[el], sh: ELSH[el] });
+  fx({ k: 'ring', x, y, r, dur: 0.3, col: PAL.fxOwn, sh: ELSH[el] });
   fxs(k === 'ice' ? 'shatter' : 'thunder', x, y, r);
   for (const m of G.mobs)
     if (m.hp > 0 && Math.hypot(m.x - x, m.y - y) < r + m.r)
@@ -1803,7 +1803,7 @@ function heraldKill(m, c, o, a) {
   if (H.ash && o.her !== 'ash' && over > m.mhp * 0.2) {
     const r = herR('ash'),
       dps = over * (0.17 + 0.003 * (H.ash - 1)) * 0.2 * ST.herM.ash * herX();
-    fx({ k: 'ring', x: m.x, y: m.y, r, dur: 0.3, col: ELC.fire, sh: 'boom' });
+    fx({ k: 'ring', x: m.x, y: m.y, r, dur: 0.3, col: PAL.fxOwn, sh: 'boom' });
     for (const x of G.mobs)
       if (x !== m && x.hp > 0 && x.ail && !noAil(x.ail, 'ign') && dist(x, m) < r + x.r)
         x.ail.ign = keepMax(x.ail.ign, dps, 3);
@@ -1958,7 +1958,7 @@ function updAllies(dt) {
         m.ail.tauntBy = w;
         m.ail.tauntT = G.t + MINION.tauntT * (m.boss ? 0.5 : 1);
       }
-      if (near.length) fx({ k: 'ring', x: w.x, y: w.y, r: MINION.tauntR, dur: 0.35, col: PAL.dmgCritV2 });
+      if (near.length) fx({ k: 'ring', x: w.x, y: w.y, r: MINION.tauntR, dur: 0.35, col: PAL.fxOwn });
     }
     leechTick(dt, w, [['hp', w.mhp]]);
     /* 復甦召喚物：一段時間沒受傷就自癒 */
@@ -2132,7 +2132,7 @@ function unitHurt(u, d) {
   if (!(u.hp > 0)) return;
   u.hp -= d;
   u.hurtT = G.t;
-  if (u.hp <= 0) fx({ k: 'ring', x: u.x, y: u.y, r: 26, dur: 0.3, col: PAL.hlV2 }), sfx('slam');
+  if (u.hp <= 0) fx({ k: 'ring', x: u.x, y: u.y, r: 26, dur: 0.3, col: PAL.fxOwn }), sfx('slam');
 }
 const UNIT_N = { trap: '陷阱', mine: '地雷', totem: '圖騰', turret: '砲塔圖騰' };
 function placeUnit(c, w) {
@@ -2179,7 +2179,7 @@ function putUnit(c, type, x, y) {
     (u.r = 14), (u.hp = u.mhp = allyLife('totem', c) * (1 + ST.totemLife / 100));
   G.units.push(u);
   if (type === 'mine') G.mineT = G.t + 1.2;
-  fx({ k: 'ring', x, y, r: 30, dur: 0.25, col: PAL.hlV2 });
+  fx({ k: 'ring', x, y, r: 30, dur: 0.25, col: PAL.fxOwn });
 }
 /* 從場上單位施放：本身就是單位的技能（陷阱爆開、地雷爆開、砲塔圖騰射擊、火焰圖騰）或轉換來的技能 */
 function unitFire(u, tgt, mul = 1) {
@@ -2191,7 +2191,7 @@ function unitFire(u, tgt, mul = 1) {
     const r = (D.r || 100) * ST.aoeM * c.aoe,
       /* 閃電陷阱（0.2.64）：場上每多一個其他陷阱，本體這一下傷害 +20%（品質再加）；閃電連鎖到每個其他陷阱，在那裡也爆一次（半傷害，不吃這個加成，免得平方成長） */
       others = D.chainTrap ? G.units.filter(x => x !== u && x.type === 'trap' && !x.spent) : [],
-      col = { cold: PAL.elCold, light: PAL.elLight, fire: PAL.elFire }[D.el] || PAL.hlV2;
+      col = PAL.fxOwn;
     /* 同一格已經爆掉、還在 G.units 裡的陷阱不算（冰霜陷阱的品質讓它留下時在 updUnits 清掉） */
     u.spent = 1;
     const boom = (p, o) => {

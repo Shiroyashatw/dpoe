@@ -610,7 +610,8 @@ function bLights(dg, ox, oy) {
 }
 let GLOW = null;
 function bGlow(ox, oy) {
-  const c = BIO().light;
+  /* 戰場燈籠／火盆／香爐光暈：--scene-lamp-glow 16%（差距清單 F2、M2-36 第 39 行）；營地照舊用場景光色 */
+  const c = G.scene === 'camp' ? BIO().light : PAL.rgb.sceneLampGlow;
   CX.globalCompositeOperation = 'lighter';
   /* 光暈圖只在換場景顏色時畫一次，之後每格放大貼上（每格建漸層太貴） */
   if (!GLOW || GLOW.c !== c) {

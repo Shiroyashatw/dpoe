@@ -71,6 +71,7 @@
   --tx-lock: #9d9995;
   --tx-lock-v3: #8a7a6a;
   --tx-empty: #9d9995;
+  --tx-empty-rgb: 157, 153, 149;
   --tx-empty-rgb-v1: 120, 105, 92;
   --tx-scene: #fbf9f6;
   --tx-scene-dim: #a6957e;
@@ -96,7 +97,6 @@
   --good-v3: #7bd36b;
   --good-v4: #8fd16b;
   --good-v5: #a8c24a;
-  --good-v6: #6ee06e;
   --good-rgb: 149, 232, 134;
   --good-rgb-v1: 157, 242, 157;
   --bad: #ff9bba;
@@ -136,11 +136,12 @@
   --rar-normal-v2: #c9b8a8;
   --rar-magic: #9da7ff;
   --rar-magic-bg: #23232b;
+  --rar-magic-bg-rgb: 35, 35, 43;
   --rar-magic-bg-rgb-v1: 18, 24, 51;
   --rar-rare: #fbe53a;
-  --rar-rare-v1: #ffd166;
   --rar-rare-rgb: 251, 229, 58;
   --rar-rare-bg: #26241b;
+  --rar-rare-bg-rgb: 38, 36, 27;
   --rar-rare-bg-v3: #8a6a2a;
   --rar-rare-bg-rgb-v1: 42, 33, 13;
   --rar-rare-frame: #ccb72e; /* 稀有格框專用 2 px（M2-36 色票）；◆ 與稀有名稱仍用 --rar-rare */
@@ -187,7 +188,6 @@
   --el-fire-rgb-v2: 255, 120, 50;
   --el-cold: #ade2f9;
   --el-cold-v3: #6fd3ff;
-  --el-cold-v4: #5ad1ff;
   --el-cold-rgb: 173, 226, 249;
   --el-cold-rgb-v3: 122, 208, 255;
   --el-cold-rgb-v4: 170, 210, 255;
@@ -196,6 +196,7 @@
   --el-light-v1: #ffe08a;
   --el-light-v2: #ffe14d;
   --el-chaos: #e97ccf;
+  --el-chaos-rgb: 233, 124, 207;
   --el-chaos-v1: #b28dff;
   --el-chaos-rgb-v2: 195, 139, 255;
   /* 跳數字 */
@@ -220,7 +221,6 @@
   --dmg-minor-v6: #aeb3bc;
   --dmg-minor-v7: #aaaaaa;
   --dmg-minor-v8: #9aa0a8;
-  --dmg-minor-v9: #aab4c4;
   --dmg-outline: #000000;
   --vig: #b01a14;
   --portal-rgb: 204, 188, 254;
@@ -286,10 +286,8 @@
   --scene-detail-25-rgb: 80, 130, 70;
   --scene-detail-26: #2a150e;
   --scene-detail-27-rgb: 214, 52, 34;
-  --scene-detail-28-rgb: 255, 200, 110;
   --scene-detail-29-rgb: 170, 225, 255;
   --scene-detail-30-rgb: 150, 250, 150;
-  --scene-detail-31-rgb: 255, 150, 60;
   --scene-detail-32: #151010;
   --scene-detail-33-rgb: 255, 255, 230;
   --scene-detail-34-rgb: 255, 220, 120;
@@ -314,12 +312,10 @@
   --scene-detail-53: #34302a;
   --scene-detail-54: #4a4540;
   --scene-detail-55: #5a554f;
-  --scene-detail-56-rgb: 255, 190, 100;
   --scene-detail-57: #3b3e45;
   --scene-detail-58: #7c8290;
   --scene-detail-59: #3a2d18;
   --scene-detail-60: #8a2a1a;
-  --scene-detail-61-rgb: 255, 160, 80;
   --scene-detail-62-rgb: 200, 200, 210;
   /* 特效專用色（canvas，沒有角色；--fx-檔名-n） */
   --fx-render-1-rgb: 70, 130, 255;

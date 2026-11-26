@@ -11990,10 +11990,15 @@ const ASC_COMBOS = `const combos = k => {
             .every(d => /^\s*color:\s*var\(--cat-corr\)\s*$/.test(d))
       )
       .map(m => m[1].trim()),
-    corrElse = catFiles.filter(f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(rd(f))),
+    /* mumi 2026-11-26 12:40（經幕僚長轉達）裁定：放寬 B2-CAT，命運輪盤紅籤（js/maps.js ROUL 的 red）准用 PAL.catCorr；
+       只放這一處：maps.js 拿掉那一行後不能再有 --cat-corr／catCorr */
+    rouRed = /\n  \{ id: 'red', n: '紅', c: PAL\.catCorr, [^\n]*\n/,
+    corrElse = catFiles.filter(
+      f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(f === 'js/maps.js' ? rd(f).replace(rouRed, '\n') : rd(f))
+    ),
     corrLeft = (afterRoot.match(/--cat-corr/g) || []).length;
   ok(
-    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准）；--cat-cal 只准 .c12 .cq .ccl（災魘爪痕）用，--cat-cal-hi 還沒有元件用到',
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准；例外：命運輪盤紅籤 PAL.catCorr，mumi 11/26 12:40）；--cat-cal 只准 .c12 .cq .ccl（災魘爪痕）用，--cat-cal-hi 還沒有元件用到',
     [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
       !catUse.length &&
       calOk.length >= 1 &&
@@ -12152,15 +12157,18 @@ const ASC_COMBOS = `const combos = k => {
         /r: 160, dur: 0\.6, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
         /r: 130, dur: 0\.5, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
         /r: 140, dur: 0\.45, col: PAL\.enemyTel, sh: 'boom'/.test(rd('js/combat.js')) &&
-        (rd('js/skills.js').match(/col: PAL\.fxOwn, sh: 'boom'/g) || []).length === 3 &&
+        /* 第 4 步（總表 3.2 我方元素環 → --fx-own）：skills.js 原本 ELC.fire 的兩個 boom 環也改 PAL.fxOwn，3 → 5 */
+        (rd('js/skills.js').match(/col: PAL\.fxOwn, sh: 'boom'/g) || []).length === 5 &&
         /col: PAL\.fxOwn \}/.test(rd('js/combat.js')) &&
         /r: 40, dur: 0\.3, col: PAL\.fxOwn \}/.test(rd('js/skills.js'))
     );
     ok(
-      'CSS 色票 X4：fx 環先畫外 1 px 黑邊（--ring-edge、lineWidth+2）再畫本色；黑邊跟環共用同一個 globalAlpha，我方 --fx-own 環 9%（黑邊永遠不會不透明）',
+      'CSS 色票 X4：fx 環先畫外 1 px 黑邊（--ring-edge、lineWidth+2）再畫本色；黑邊跟環共用同一個 globalAlpha，我方 --fx-own 環 9%（黑邊永遠不會不透明）；沒給色的環＝--fx-own（總表列 62）',
       (ring.match(/globalAlpha/g) || []).length === 1 &&
-        /CX\.globalAlpha = \(1 - f\) \* \(o\.col === PAL\.fxOwn \? 0\.09 : 0\.9\)/.test(ring) &&
-        ring.indexOf('PAL.ringEdge') < ring.indexOf('o.col || PAL.catFracV4') &&
+        /const col = o\.col \|\| PAL\.fxOwn;\s*CX\.globalAlpha = \(1 - f\) \* \(col === PAL\.fxOwn \? 0\.09 : 0\.9\)/.test(
+          ring
+        ) &&
+        ring.indexOf('PAL.ringEdge') < ring.indexOf('strokeStyle = col;') &&
         /lineWidth = lw \+ 2/.test(ring) &&
         PAL.ringEdge === '#000000'
     );
@@ -12169,15 +12177,15 @@ const ASC_COMBOS = `const combos = k => {
       blink = R.slice(R.indexOf("m.pat === 'blink'"), R.indexOf("m.pat === 'nova'")),
       mini = R.slice(
         R.indexOf('for (const m of G.mobs) {\n    if (m.arrow) continue;'),
-        R.indexOf('PAL.goodV2;', R.indexOf('if (m.arrow) continue;'))
+        R.indexOf('/* 玩家 4×4', R.indexOf('if (m.arrow) continue;'))
       );
     ok(
-      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
+      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.7＋0.2f，總表 3.2 (5)）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
       (blink.match(/globalAlpha = /g) || []).length === 2 &&
         blink.indexOf('lineWidth = 5') < blink.indexOf('PAL.ringEdge') &&
         blink.indexOf('PAL.ringEdge') < blink.indexOf('CX.stroke()') &&
-        blink.indexOf('CX.stroke()') < blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') &&
-        blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') < blink.indexOf('lineWidth = 3') &&
+        blink.indexOf('CX.stroke()') < blink.indexOf('globalAlpha = 0.7 + 0.2 * f;') &&
+        blink.indexOf('globalAlpha = 0.7 + 0.2 * f;') < blink.indexOf('lineWidth = 3') &&
         /globalAlpha = 1;\s*CX\.lineWidth = 2;\s*continue;/.test(blink) &&
         blink.indexOf('lineWidth = 3') < blink.indexOf('PAL.enemyTel') &&
         /fillStyle = PAL\.ringEdge;\s*CX\.fillRect\(bx, by, 7, 7\);\s*CX\.fillStyle = PAL\.enemyTel;\s*CX\.fillRect\(bx \+ 1, by \+ 1, 5, 5\);/.test(
@@ -12190,7 +12198,8 @@ const ASC_COMBOS = `const combos = k => {
       GF.colOwn === PAL.elFire &&
         GF.col === PAL.enemyTel &&
         PAL.elFire !== PAL.enemyTel &&
-        /CX\.fillStyle = \(!foe && C\.colOwn\) \|\| C\.col;/.test(Mc),
+        /CX\.fillStyle = C\.colOwn \|\| C\.col;/.test(Mc) &&
+        /B\.fillStyle = C\.col;/.test(Mc),
       JSON.stringify({ colOwn: GF.colOwn, col: GF.col })
     );
   }
