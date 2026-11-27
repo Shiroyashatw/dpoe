@@ -779,7 +779,11 @@ const CR = q => {
     JSON.stringify(c02t)
   );
   await shot('C', 'C02');
-  await measure('C', 'C02', CSH);
+  /* 定稿 C02 的提示座標 32,320 照列；mumi 11/27 裁定改放面板右緣外，這列照實記成不符 */
+  await measure('C', 'C02', [
+    ...CSH,
+    ['名詞提示「地圖詞」（定稿 32,320；11/27 裁定改面板右緣外）', '#ztip', 32, 320, 520, 140]
+  ]);
 
   await reset(openNode + `document.querySelector('#pnode li.nx').scrollIntoView({ block: 'start' });`);
   await p.waitForTimeout(80);
