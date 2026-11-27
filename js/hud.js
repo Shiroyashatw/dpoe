@@ -869,7 +869,7 @@ const KEYS_PORT = [
 function setHTML() {
   const rows = TOUCH.on ? KEYS_PORT : KEYS_PC;
   /* small-screens S01／S03：桌機滿寬三欄（遊戲設定｜快捷鍵 23 列｜帳號）、免捲；觸控與小視窗照順序排 */
-  return `<div class="ph"><b>設定</b><span>dungeonPOE v${VER}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  return `<div class="ph"><b>設定</b><span>山海燼窟 v${VER}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="setc setc1"><div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
   <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
   <div class="ph2">文字大小</div><div class="gkind seg2">${[100, 115, 130].map(v => `<button class="btn ${(S.fs || 100) === v ? 'on' : ''}" data-a="fs:${v}">${v}%</button>`).join('')}</div>

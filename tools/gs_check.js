@@ -809,63 +809,232 @@ const CONTRAST = `(() => {
   {
     const p = await fresh(34, false);
     const t = await p.evaluate(`(() => {
-      const g = $('ivg'), img = g.querySelector('.ivbg'), sc = g.querySelector('.ivsc'), h = g.querySelector('h1'), b = $('ivgo');
+      const g = $('ivg'), img = g.querySelector('.ivbg'), sc = g.querySelector('.ivsc'), h = g.querySelector('h1'), lg = h && h.querySelector('img'), dv = g.querySelector('.tdiv'), b = $('ivgo');
       const r = e => { const x = e.getBoundingClientRect(); return [x.left, x.top, x.right, x.bottom].map(Math.round); };
+      const sk = document.querySelector('#intro .ivskip'), cs = getComputedStyle(sc);
       return { vis: !g.hidden && getComputedStyle(g).display !== 'none', src: img && img.currentSrc, nw: img && img.naturalWidth, nh: img && img.naturalHeight, fit: img && getComputedStyle(img).objectFit,
-        img: r(img), sc: r(sc), scBg: getComputedStyle(sc).backgroundColor, h: r(h), b: r(b), hC: getComputedStyle(h).color, bC: getComputedStyle(b).color, bBg: getComputedStyle(b).backgroundColor,
+        pix: img && getComputedStyle(img).imageRendering, img: r(img), sc: r(sc), scBg: cs.backgroundColor, scImg: cs.backgroundImage,
+        lgSrc: lg && lg.currentSrc, lgAlt: lg && lg.alt, lgN: lg && [lg.naturalWidth, lg.naturalHeight], lgPix: lg && getComputedStyle(lg).imageRendering, lg: lg && r(lg),
+        dv: r(dv), dvAria: dv.getAttribute('aria-hidden'), b: r(b), bTx: b.textContent, bAria: b.getAttribute('aria-label'),
+        lb: r(b.querySelector('.lb')), lbLs: getComputedStyle(b.querySelector('.lb')).letterSpacing, bFont: getComputedStyle(b).font, seals: [...b.querySelectorAll('.seal')].map(r), cn: b.querySelectorAll('.cn').length,
+        skip: !!sk && sk.getBoundingClientRect().width > 0, gTx: g.textContent, title: document.title,
         focus: document.activeElement === b, W: innerWidth, H: innerHeight };
     })()`);
     ok(
-      '開場 T02 背景圖 A 接上：img/bg/t02_title_bg_A_1280x720.png（1280×720）、object-fit cover、滿版',
+      '開場 T02 背景圖 A 接上：img/title/t02_title_bg_A_1280x720.png（1280×720）、object-fit cover、pixelated、滿版',
       t.vis &&
-        /t02_title_bg_A_1280x720\.png$/.test(t.src) &&
+        /\/img\/title\/t02_title_bg_A_1280x720\.png$/.test(t.src) &&
         t.nw === 1280 &&
         t.nh === 720 &&
         t.fit === 'cover' &&
+        t.pix === 'pixelated' &&
         t.img.join() === `0,0,${t.W},${t.H}`,
       JSON.stringify(t)
     );
     ok(
-      '開場 T02 全畫面獨立遮罩 rgb(0 0 0 / 0.62)',
-      t.sc.join() === `0,0,${t.W},${t.H}` && t.scBg === 'rgba(0, 0, 0, 0.62)',
-      JSON.stringify([t.sc, t.scBg])
+      '開場 T02 中央局部暗暈：radial-gradient 380×260、50%→38%→0，無全畫面 0.62 遮罩',
+      t.sc.join() === `0,0,${t.W},${t.H}` &&
+        t.scBg === 'rgba(0, 0, 0, 0)' &&
+        /^radial-gradient\(380px 260px( at |,)/.test(t.scImg) &&
+        /rgba\(0, 0, 0, 0\.5\) 0(px|%)?, rgba\(0, 0, 0, 0\.38\) 55%, rgba\(0, 0, 0, 0\) 100%/.test(t.scImg) &&
+        !/0\.62/.test(t.scImg),
+      JSON.stringify([t.sc, t.scBg, t.scImg])
     );
     ok(
-      '開場 T02 標題 --tx-strong、開始 --act＋--on-act、預設焦點',
-      t.hC === 'rgb(251, 249, 246)' && t.bC === 'rgb(252, 249, 243)' && t.bBg === 'rgb(124, 87, 41)' && t.focus,
-      JSON.stringify(t)
+      '開場 T02 標題：<title>山海燼窟 Shanhai Crypts、<h1> 內 Logo L3、alt「山海燼窟 SHANHAI CRYPTS」（燼 U+71FC）、pixelated、整數倍原圖',
+      t.title === '山海燼窟 Shanhai Crypts' &&
+        t.lgAlt === '山海燼窟 SHANHAI CRYPTS' &&
+        t.lgAlt.charCodeAt(2) === 0x71fc &&
+        t.lgPix === 'pixelated' &&
+        ((/\/img\/title\/t02_title_logo_L3_2x\.png$/.test(t.lgSrc) && t.lgN.join() === '880,268') ||
+          (/\/img\/title\/t02_title_logo_L3_1x\.png$/.test(t.lgSrc) && t.lgN.join() === '440,134')),
+      JSON.stringify([t.title, t.lgAlt, t.lgSrc, t.lgN, t.lgPix])
     );
-    if (DESK && H === 720) {
-      const S = [360, 232, 920, 440],
-        inS = r => r[0] >= S[0] && r[1] >= S[1] && r[2] <= S[2] && r[3] <= S[3];
-      ok(
-        '開場 T02 標題與開始都在安全區 360,232 560×208 內；開始 560,346 160×48',
-        inS(t.h) && inS(t.b) && t.b.join() === '560,346,720,394',
-        JSON.stringify([t.h, t.b])
-      );
-      /* 最亮背景經 62% 遮罩後仍 ≥ 4.5：取圖最亮像素 */
-      const lit = await p.evaluate(async () => {
-        const img = $('ivg').querySelector('.ivbg'),
-          c = document.createElement('canvas');
-        c.width = 1280;
-        c.height = 720;
-        const x = c.getContext('2d');
-        x.drawImage(img, 0, 0);
-        const d = x.getImageData(0, 0, 1280, 720).data;
-        let m = 0;
-        const lum = v => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
-        for (let i = 0; i < d.length; i += 4) {
-          const L = 0.2126 * lum(d[i] * 0.38) + 0.7152 * lum(d[i + 1] * 0.38) + 0.0722 * lum(d[i + 2] * 0.38);
-          if (L > m) m = L;
-        }
-        const fg = 0.2126 * lum(251) + 0.7152 * lum(249) + 0.0722 * lum(246),
-          tx = 0.2126 * lum(232) + 0.7152 * lum(229) + 0.0722 * lum(225);
-        return [+((fg + 0.05) / (m + 0.05)).toFixed(2), +((tx + 0.05) / (m + 0.05)).toFixed(2)];
+    ok(
+      '開場 T02 主鈕「踏入燼窟」：aria-label 同字、4 角＋2 菱印、700 22px Noto Serif TC、字距 0.24em、預設焦點',
+      t.bTx === '踏入燼窟' &&
+        t.bAria === '踏入燼窟' &&
+        t.cn === 4 &&
+        t.seals.length === 2 &&
+        /^700 22px/.test(t.bFont) &&
+        /Noto Serif TC/.test(t.bFont) &&
+        Math.abs(parseFloat(t.lbLs) - 22 * 0.24) < 0.05 &&
+        t.focus,
+      JSON.stringify([t.bTx, t.bAria, t.cn, t.seals.length, t.bFont, t.lbLs, t.focus])
+    );
+    ok(
+      '開場 T02 維持極簡：沒有跳過文字鈕、Enter 提示、版本號',
+      !t.skip && !/Enter|跳過|開始|dungeonPOE|v\d|\d+\.\d+/.test(t.gTx),
+      JSON.stringify([t.skip, t.gTx])
+    );
+    {
+      const css = require('fs').readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8');
+      const bad = [];
+      css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/([^{}]+)\{([^{}]*)\}/g, (m, sel, body) => {
+        if (/--t02-/.test(body) && sel.split(',').some(q => !/#ivg\b/.test(q))) bad.push(sel.trim());
+        return '';
       });
       ok(
-        '開場 T02 最亮背景像素經遮罩後：--tx-strong／--tx 對比 ≥ 4.5',
-        lit[0] >= 4.5 && lit[1] >= 4.5,
-        JSON.stringify(lit)
+        '--t02-* 只用在 T02（選擇器都在 #ivg 內）',
+        !bad.length && /--t02-bronze/.test(css),
+        JSON.stringify(bad.slice(0, 3))
+      );
+    }
+    ok(
+      '開場 T02 Logo、分隔線、主鈕都在畫面內；主鈕 ≥ 44 px',
+      [t.lg, t.dv, t.b].every(q => q[0] >= 0 && q[1] >= 0 && q[2] <= t.W && q[3] <= t.H) &&
+        t.b[3] - t.b[1] >= 44 &&
+        t.dvAria === 'true',
+      JSON.stringify([t.lg, t.dv, t.b])
+    );
+    if (DESK && (H === 720 || H === 800) && W === 1280) {
+      ok(
+        '開場 T02 座標：Logo 200,146 880×268、分隔線 480,432 320×9、主鈕 504,463 272×56',
+        t.lg.join() === '200,146,1080,414' && t.dv.join() === '480,432,800,441' && t.b.join() === '504,463,776,519',
+        JSON.stringify([t.lg, t.dv, t.b])
+      );
+      /* 字墨中心：.lb 寬含最後一個字距（0.24em），扣掉才是字 */
+      const ink = (t.lb[0] + t.lb[2] - 22 * 0.24) / 2,
+        l = t.seals[0][0] - t.b[0],
+        rr = t.b[2] - t.seals[1][2];
+      ok(
+        '開場 T02 主鈕字置中（±1 px）、左右菱印到鈕邊等距（±1 px）',
+        Math.abs(ink - 640) <= 1 && Math.abs(l - rr) <= 1,
+        JSON.stringify([ink, l, rr])
+      );
+    }
+    if (DESK && H === 720 && W === 1280) {
+      /* 兩側火把：x<230、x>1050 的像素跟原圖一樣（局部暗暈不壓）；中央有壓暗 */
+      await p.mouse.move(5, 700);
+      const png = (await p.screenshot()).toString('base64');
+      const tor = await p.evaluate(async b64 => {
+        const ld = s =>
+          new Promise(res => {
+            const i = new Image();
+            i.onload = () => res(i);
+            i.src = s;
+          });
+        const [a, o] = await Promise.all([
+          ld('data:image/png;base64,' + b64),
+          ld($('ivg').querySelector('.ivbg').currentSrc)
+        ]);
+        const px = im => {
+          const c = document.createElement('canvas');
+          c.width = 1280;
+          c.height = 720;
+          const x = c.getContext('2d');
+          x.drawImage(im, 0, 0);
+          return x.getImageData(0, 0, 1280, 720).data;
+        };
+        const A = px(a),
+          O = px(o);
+        let side = 0,
+          n = 0,
+          mid = 0,
+          mo = 0;
+        for (let y = 0; y < 720; y++)
+          for (let x = 0; x < 1280; x++) {
+            const i = (y * 1280 + x) * 4,
+              d = Math.max(Math.abs(A[i] - O[i]), Math.abs(A[i + 1] - O[i + 1]), Math.abs(A[i + 2] - O[i + 2]));
+            if (x < 230 || x > 1050) {
+              n++;
+              if (d > 2 && !(x >= 200 && x < 1080 && y >= 146 && y < 414)) side++; /* Logo 本身壓到兩側的部分不算 */
+            }
+            if (x >= 400 && x < 470 && y >= 418 && y < 430) {
+              mid += A[i] + A[i + 1] + A[i + 2];
+              mo += O[i] + O[i + 1] + O[i + 2];
+            }
+          }
+        return [side, n, +(mid / Math.max(mo, 1)).toFixed(3)];
+      }, png);
+      ok(
+        '開場 T02 兩側火把亮度與原圖相同（x<230、x>1050 像素不變）、中央有壓暗',
+        tor[0] === 0 && tor[2] < 0.8,
+        JSON.stringify(tor)
+      );
+      /* 四態：一般（無焦點、滑鼠不在上面）／懸停／按下／鍵盤焦點，色值與動效 */
+      const st = () =>
+        p.evaluate(() => {
+          const b = $('ivgo'),
+            c = getComputedStyle(b),
+            se = getComputedStyle(b.querySelector('.seal')),
+            cn = getComputedStyle(b.querySelector('.cn'));
+          return [
+            c.color,
+            c.borderTopColor,
+            c.borderTopStyle,
+            se.backgroundColor,
+            cn.borderTopColor,
+            c.outlineStyle + ' ' + c.outlineColor + ' ' + c.outlineOffset,
+            c.transform,
+            c.backgroundImage.slice(0, 120),
+            c.transitionDuration
+          ];
+        });
+      await p.evaluate(() => $('ivgo').blur());
+      await p.waitForTimeout(200);
+      const s0 = await st();
+      await p.mouse.move(640, 491);
+      await p.waitForTimeout(200);
+      const s1 = await st();
+      await p.mouse.down();
+      await p.waitForTimeout(150);
+      const s2 = await st();
+      await p.mouse.move(5, 700); /* 移出鈕外才放開：不觸發開始 */
+      await p.mouse.up();
+      await p.evaluate(() => $('ivgo').blur());
+      await p.keyboard.press('Shift'); /* 鍵盤操作過，焦點才算 :focus-visible */
+      await p.evaluate(() => $('ivgo').focus());
+      await p.waitForTimeout(200);
+      const s3 = await p.evaluate(() => document.activeElement.id === 'ivgo' && $('ivgo').matches(':focus-visible'));
+      const s3s = await st();
+      await p.evaluate(() => ($('ivgo').disabled = true));
+      await p.waitForTimeout(200);
+      const s4 = await st();
+      await p.evaluate(() => (($('ivgo').disabled = false), $('ivgo').focus()));
+      ok(
+        '主鈕一般：字 --tx、外框 #8a6c4e、菱印 #8a2a1a、角 #a8927f、三段深石漸層、120ms／60ms',
+        s0[0] === 'rgb(232, 229, 225)' &&
+          s0[1] === 'rgb(138, 108, 78)' &&
+          s0[3] === 'rgb(138, 42, 26)' &&
+          s0[4] === 'rgb(168, 146, 127)' &&
+          /linear-gradient\(rgb\(45, 37, 31\) 0(px|%)?, rgb\(37, 33, 30\) 40%, rgb\(29, 26, 23\) 100%\)/.test(s0[7]) &&
+          s0[8] === '0.12s, 0.12s, 0.12s, 0.06s' &&
+          !/solid/.test(s0[5]),
+        JSON.stringify(s0)
+      );
+      ok(
+        '主鈕懸停：字 --tx-strong、外框 #b98a5e、菱印 #b01a14、角 #e3dcd3',
+        s1[0] === 'rgb(251, 249, 246)' &&
+          s1[1] === 'rgb(185, 138, 94)' &&
+          s1[3] === 'rgb(176, 26, 20)' &&
+          s1[4] === 'rgb(227, 220, 211)',
+        JSON.stringify(s1)
+      );
+      ok(
+        '主鈕按下：字 --tx、外框 #b98a5e、translateY(1px)、底 #16130f→#1d1a17 60%→#25211e',
+        s2[0] === 'rgb(232, 229, 225)' &&
+          s2[1] === 'rgb(185, 138, 94)' &&
+          s2[6] === 'matrix(1, 0, 0, 1, 0, 1)' &&
+          /linear-gradient\(rgb\(22, 19, 15\) 0(px|%)?, rgb\(29, 26, 23\) 60%, rgb\(37, 33, 30\) 100%\)/.test(s2[7]),
+        JSON.stringify(s2)
+      );
+      ok(
+        '主鈕鍵盤焦點：:focus-visible、同懸停色、outline 1px #e3dcd3 距 6px',
+        s3 &&
+          s3s[0] === 'rgb(251, 249, 246)' &&
+          s3s[1] === 'rgb(185, 138, 94)' &&
+          s3s[5] === 'solid rgb(227, 220, 211) 6px',
+        JSON.stringify([s3, s3s])
+      );
+      ok(
+        '主鈕停用：字 --tx-off、1px dashed #5a544e、菱印 #3f3b36、平塗 --panel-inset',
+        s4[0] === 'rgb(157, 153, 149)' &&
+          s4[1] === 'rgb(90, 84, 78)' &&
+          s4[2] === 'dashed' &&
+          s4[3] === 'rgb(63, 59, 54)' &&
+          s4[7] === 'none',
+        JSON.stringify(s4)
       );
       await snap(p, 'small-screens', 'T02-實機');
     }

@@ -4447,17 +4447,73 @@ body.d12 #authcf .acfo { position: absolute; left: 22px; top: 102px; width: 552p
 body.d12 #authcf .acfw { position: absolute; left: 22px; top: 148px; width: 552px; height: 52px; box-sizing: border-box; padding: 6px 12px; }
 body.d12 #authcf .acfy { position: absolute; left: 22px; top: 244px; width: 220px; height: 44px; }
 body.d12 #authcf .acfn { position: absolute; left: 394px; top: 244px; width: 180px; height: 44px; }
-/* T02 開場標題（small-screens-spec-2 §T02）：1 背景圖 cover 置中 → 2 全畫面 62% 暗調遮罩（不可調淡）→ 標題與開始在安全區 360,232 560×208；壓圖字只用 --tx-strong／--tx */
-#ivg { background: var(--panel-inset); }
+/* T02 開場標題 v1.1（small-screens-spec-2 §T02，2026-11-27 定稿）：1 背景 A cover 置中 → 2 中央局部暗暈（x<230、x>1050 不壓）→ 3 Logo L3 200,146 880×268 → 4 分隔線 480,432 320×9 → 5 主鈕「踏入燼窟」504,463 272×56。
+   --t02-* 只准用在 T02（宣告在 #ivg 內，別的畫面拿不到）；主鈕是 D2「主鈕用 --act」「不准漸層底」的唯一例外 */
+#ivg {
+  --t02-bronze: #8a6c4e; --t02-bronze-hi: #b98a5e; --t02-seal: #8a2a1a; --t02-seal-edge: #b01a14; --t02-seal-hi: #c43d24; --t02-bone: #e3dcd3;
+  --t02-serif: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
+  background: var(--panel-inset); gap: 0;
+}
 #ivg .ivbg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; image-rendering: pixelated; }
-#ivg .ivsc { position: absolute; inset: 0; background: var(--d2-scrim); }
-#ivg h1, #ivg #ivgo { position: relative; z-index: 1; }
-#ivg h1 { color: var(--tx-strong); text-shadow: 0 2px 6px var(--d2-black); }
-#ivg #ivgo { min-width: 160px; min-height: 48px; background: var(--act); color: var(--on-act); border: 0; border-radius: 0; box-shadow: none; }
-body:not(.touch) #ivg { display: block; }
-body:not(.touch) #ivg h1 { position: absolute; left: 50%; top: calc(50% - 82px); transform: translateX(-50%); white-space: nowrap; line-height: 56px; font-size: 48px; }
-body:not(.touch) #ivg #ivgo { position: absolute; left: calc(50% - 80px); top: calc(50% - 14px); width: 160px; height: 48px; }
-body:not(.touch) #ivg[hidden] { display: none; }
+#ivg .ivsc { position: absolute; inset: 0; background: radial-gradient(380px 260px at 50% 350px, rgb(0 0 0 / 0.5) 0, rgb(0 0 0 / 0.38) 55%, rgb(0 0 0 / 0) 100%); }
+#ivg h1, #ivg .tdiv, #ivg #ivgo { position: relative; z-index: 1; }
+#ivg h1 { margin: 0; width: 880px; height: 268px; line-height: 0; }
+#ivg h1 picture { display: block; }
+#ivg .ivlogo { display: block; width: 880px; height: 268px; image-rendering: pixelated; }
+#ivg .tdiv { display: block; width: 320px; height: 9px; margin: 18px 0 22px; }
+#ivg .tdiv::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 1px;
+  background: linear-gradient(90deg, transparent 0 12.5%, rgb(138 108 78 / 0.3) 12.5% 25%, rgb(138 108 78 / 0.6) 25% 37.5%, var(--t02-bronze) 37.5% 47%, transparent 47% 53%, var(--t02-bronze) 53% 62.5%, rgb(138 108 78 / 0.6) 62.5% 75%, rgb(138 108 78 / 0.3) 75% 87.5%, transparent 87.5% 100%); }
+#ivg .tdiv::after { content: ""; position: absolute; left: 50%; top: 4.5px; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; transform: rotate(45deg); background: var(--t02-seal-edge); }
+/* 主鈕「踏入燼窟」幽冥石碑・硃印 272×56（四態照 T02-title-btn-states.png） */
+#ivg .tgo { position: relative; box-sizing: border-box; width: 272px; height: 56px; padding: 0; margin: 0; display: inline-flex; align-items: center; justify-content: center; gap: 18px;
+  font: 700 22px/1 var(--t02-serif); letter-spacing: 0; color: var(--tx); text-shadow: 0 1px 0 rgb(0 0 0 / 0.9);
+  background: linear-gradient(180deg, var(--panel-grad-top) 0, var(--panel) 40%, var(--panel-inset) 100%);
+  border: 1px solid var(--t02-bronze); border-radius: 0; min-width: 0; min-height: 0;
+  box-shadow: inset 0 1px 0 rgb(232 229 225 / 0.1), inset 0 -2px 0 rgb(0 0 0 / 0.55), 0 0 0 3px rgb(0 0 0 / 0.6), 0 8px 24px rgb(0 0 0 / 0.5);
+  cursor: pointer; outline: none; transition: border-color 120ms ease-out, box-shadow 120ms ease-out, color 120ms ease-out, transform 60ms ease-out; }
+#ivg .tgo::before { content: ""; position: absolute; inset: 3px; border: 1px solid rgb(168 146 127 / 0.32); pointer-events: none; transition: border-color 120ms ease-out; }
+#ivg .tgo .cn { position: absolute; width: 7px; height: 7px; border: 0 solid var(--panel-edge); pointer-events: none; transition: border-color 120ms ease-out; }
+#ivg .tgo .cn.tl { left: -4px; top: -4px; border-left-width: 1px; border-top-width: 1px; }
+#ivg .tgo .cn.tr { right: -4px; top: -4px; border-right-width: 1px; border-top-width: 1px; }
+#ivg .tgo .cn.bl { left: -4px; bottom: -4px; border-left-width: 1px; border-bottom-width: 1px; }
+#ivg .tgo .cn.br { right: -4px; bottom: -4px; border-right-width: 1px; border-bottom-width: 1px; }
+#ivg .tgo .seal { width: 8px; height: 8px; flex: none; transform: rotate(45deg); background: var(--t02-seal); box-shadow: 0 0 0 1px var(--t02-seal-edge); transition: background-color 120ms ease-out, box-shadow 120ms ease-out; }
+#ivg .tgo .lb { display: block; letter-spacing: 0.24em; margin-right: -0.24em; }
+#ivg .tgo:hover:not(:disabled), #ivg .tgo:focus-visible { color: var(--tx-strong); border-color: var(--t02-bronze-hi);
+  box-shadow: inset 0 1px 0 rgb(232 229 225 / 0.18), inset 0 -14px 16px -10px rgb(176 26 20 / 0.38), inset 0 -2px 0 rgb(0 0 0 / 0.55), 0 0 0 3px rgb(0 0 0 / 0.6), 0 8px 24px rgb(0 0 0 / 0.5); }
+#ivg .tgo:hover:not(:disabled)::before, #ivg .tgo:focus-visible::before { border-color: rgb(185 138 94 / 0.55); }
+#ivg .tgo:hover:not(:disabled) .cn, #ivg .tgo:focus-visible .cn { border-color: var(--t02-bone); }
+#ivg .tgo:hover:not(:disabled) .seal, #ivg .tgo:focus-visible .seal { background: var(--t02-seal-edge); box-shadow: 0 0 0 1px var(--t02-seal-hi); }
+#ivg .tgo:focus-visible { outline: 1px solid var(--t02-bone); outline-offset: 6px; }
+#ivg .tgo:active:not(:disabled) { transform: translateY(1px); transition-duration: 60ms; color: var(--tx); border-color: var(--t02-bronze-hi);
+  background: linear-gradient(180deg, var(--scene-void) 0, var(--panel-inset) 60%, var(--panel) 100%);
+  box-shadow: inset 0 2px 0 rgb(0 0 0 / 0.6), inset 0 -12px 14px -10px rgb(176 26 20 / 0.3), 0 0 0 3px rgb(0 0 0 / 0.6), 0 4px 12px rgb(0 0 0 / 0.5); }
+#ivg .tgo:active:not(:disabled) .seal { background: var(--t02-seal-edge); box-shadow: 0 0 0 1px var(--t02-seal-hi); }
+#ivg .tgo:disabled { cursor: default; color: var(--tx-off); text-shadow: none; background: var(--panel-inset); border: 1px dashed #5a544e; box-shadow: 0 0 0 3px rgb(0 0 0 / 0.6); }
+#ivg .tgo:disabled::before { border-color: rgb(129 123 117 / 0.18); }
+#ivg .tgo:disabled .cn { border-color: #5a544e; }
+#ivg .tgo:disabled .seal { background: #3f3b36; box-shadow: 0 0 0 1px #4a443e; }
+/* T02 維持極簡：標題畫面不出「跳過」文字鈕（旁白開始後才出；Esc 照舊可跳） */
+#intro:has(#ivg:not([hidden])) .ivskip { display: none; }
+@media (prefers-reduced-motion: reduce) { #ivg .tgo, #ivg .tgo::before, #ivg .tgo .cn, #ivg .tgo .seal { transition-duration: 0ms; } }
+/* 桌機：照 1280×720 舞台座標（x 對中線；y 不隨高度移動，1280×800 也不動） */
+@media (min-width: 920px) and (min-height: 600px) {
+  body:not(.touch) #ivg { display: block; }
+  body:not(.touch) #ivg h1 { position: absolute; left: calc(50% - 440px); top: 146px; }
+  body:not(.touch) #ivg .tdiv { position: absolute; left: calc(50% - 160px); top: 432px; margin: 0; }
+  body:not(.touch) #ivg #ivgo { position: absolute; left: calc(50% - 136px); top: 463px; }
+  body:not(.touch) #ivg[hidden] { display: none; }
+}
+/* 觸控與小畫面：同一組直排置中；Logo 只用 1×（440×134 原尺寸）或 2×，放不下 1× 才等比縮（待裁） */
+body.touch #ivg .ivsc { background: radial-gradient(380px 260px at 50% 50%, rgb(0 0 0 / 0.5) 0, rgb(0 0 0 / 0.38) 55%, rgb(0 0 0 / 0) 100%); }
+@media (max-width: 919px), (max-height: 599px) {
+  #ivg .ivsc { background: radial-gradient(380px 260px at 50% 50%, rgb(0 0 0 / 0.5) 0, rgb(0 0 0 / 0.38) 55%, rgb(0 0 0 / 0) 100%); }
+  #ivg h1, #ivg .ivlogo { width: 440px; height: 134px; }
+}
+@media (max-width: 471px) {
+  #ivg h1, #ivg .ivlogo { width: calc(100vw - 32px); height: auto; }
+  #ivg h1 { aspect-ratio: 440 / 134; }
+}
 body.d12:not(.touch) #pset { max-width: none; }
 body.d12 #pset .ph2 > span.zterm { margin-left: 0; font: inherit; color: inherit; }
 #poff .offl li > i.oic { display: inline-grid; place-items: center; width: 20px; height: 20px; font-style: normal; }
