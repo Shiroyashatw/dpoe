@@ -32,6 +32,8 @@ const supOK = (D, sp, g) => {
   if (g && supDup(g, sp)) return false;
   /* 連鎖輔助：不能連鎖的投射物（閃電箭、一路穿透的冰霜彈）標成不相容 */
   if ((U.base || sp.gem) === 'chain' && D.noChain) return false;
+  /* 迴旋：本來就一定飛回的（擲斧，SU-03）標成不相容 */
+  if ((U.base || sp.gem) === 'ret' && D.back) return false;
   /* 蓄力技能（0.2.54）要有人按住：自動化、觸發、轉圖騰都不相容 */
   if (D.charge && (U.meta || U.conv)) return false;
   if (sp.gem === 'arbiter' && D.el !== 'fire') return false;
@@ -735,6 +737,14 @@ function actHit(a, idx) {
       (ST.aoeM + ((a.sealA || 0) + (D.tags.includes('warcry') ? ST.cryAoe : 0)) / 100) *
       c.aoe *
       (ST.wt === 'spear' && D.tags.includes('melee') ? 1.25 : 1);
+  /* 折射箭矢（SU-03）：你使用弓技能時，額外射出一支同樣的箭飛向 15 公尺內的折射箭矢（不再花魔力；觸發、幻影、場上單位放的不算） */
+  if (idx === 0 && !a.refr && !a.trig && !a.unit && a.k !== 'refract' && D.wt && D.wt.includes('bow')) {
+    const ar = G.mobs.find(m => m.arrow && m.hp > 0 && dist(P, m) < 15 * METER);
+    if (ar) {
+      const ang = Math.atan2(ar.y - ar.sz * 0.4 - (P.y - 18), ar.x - P.x);
+      actHit({ ...a, refr: 1, ang, tx: ar.x, ty: ar.y, c: { ...c, proj: 1 } }, 0);
+    }
+  }
   const hitArc = (ang, arc, r, kb, o) => {
     let n = 0;
     for (const m of G.mobs) {
@@ -1025,7 +1035,7 @@ function actHit2(a, idx, R, hitArc) {
     for (let i = 0; i < n; i++)
       shoot(a.ang + (i - (n - 1) / 2) * 0.16 * c.fan, D.spd, c, a, {
         ...o,
-        back: a.k === 'axethrow' && qRoll(20 * c.q)
+        back: !!D.back
       });
   } else if (a.k === 'shieldcrush') {
     /* 盾牌粉碎：前方扇形；瀕臨沉重暈眩的粉碎重擊（直接沉重暈眩），並震傷粉碎重擊那隻周圍的怪 */
@@ -1396,9 +1406,8 @@ function actHit2(a, idx, R, hitArc) {
       sfx('throw');
     }
   } else if (a.k === 'bloodrage') {
-    /* 血怒：開著再按就關掉 */
-    if (stkN('bloodrage')) stkClr('bloodrage');
-    else (P.brQ = c.q), gainStk('bloodrage', 1, durOf(c)), fxs('rage', P.x, P.y - 30, 40);
+    /* 血怒（SU-03 起冷卻 20 秒、再按不會關掉）：開著時再放只重算持續時間 */
+    (P.brQ = c.q), gainStk('bloodrage', 1, durOf(c)), fxs('rage', P.x, P.y - 30, 40);
   } else if (isFlaskSk(D)) {
     /* 藥劑技能（0.2.74 追獵者）：算使用藥劑（催毒），持續時間與效果吃藥劑效果（品質多 1 秒）；藥劑生效期間給以毒攻毒讀（BUFF.flaskAct） */
     const t = D.fdur * flaskEff() + c.q;
@@ -1462,8 +1471,9 @@ function boltChain(m, c, a) {
     from = n;
   }
 }
-/* 折射箭矢：放在 G.mobs 裡，所有打怪的技能自動打得到；怪不會理它，不算擊殺（hp 由 updMobs 補滿） */
-const ARROW_HITS = 3;
+/* 折射箭矢：放在 G.mobs 裡，所有打怪的技能自動打得到；怪不會理它，不算擊殺（hp 由 updMobs 補滿）
+   SU-03：拿掉每根 3 次的上限，改成持續時間內每 0.5 秒最多一次衝擊波（waveT） */
+const ARROW_GAP = 0.5;
 const ARROW_D = { hp: 1, dmg: 0, r: 16, sz: 34, xp: 0 };
 function spawnArrow(x, y, c) {
   const m = spawnMob(ARROW_D, x, y, -1, false);
@@ -1486,8 +1496,7 @@ function arrowHit(m, r, c) {
     .sort((x, y) => r.pre[y[0]] - r.pre[x[0]])[0];
   a.ign = a.chill = a.shock = null;
   a.flam = 0;
-  if (el && m.fired++ < ARROW_HITS) arrowWave(m, el[0]);
-  if (m.fired >= ARROW_HITS) m.hp = 0;
+  if (el && !(m.waveT > G.t)) (m.waveT = G.t + ARROW_GAP), m.fired++, arrowWave(m, el[0]);
 }
 /* 衝擊波：用箭矢這顆寶石的數值，物理全部轉成那個元素；先降門檻，這一下就吃得到 */
 function arrowWave(u, el) {

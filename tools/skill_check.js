@@ -1115,7 +1115,7 @@ const TXT = () =>
   );
   ok(
     `名冊副標：{武器}能用 n 招＝靜態目錄（無武器限制＋這把武器專用，全開時 ${nSk}）`,
-    nSk === 39 && s.ros.t.includes(`能用 ${nSk} 招`),
+    nSk === 46 && s.ros.t.includes(`能用 ${nSk} 招`) /* SU-03：7 個印記改不限武器，39 → 46 */,
     J([nSk, s.ros.t.slice(0, 30)])
   );
   const fc = await p.evaluate(() => [...document.querySelectorAll('#pros .p-f .s-b')].map(e => e.textContent));

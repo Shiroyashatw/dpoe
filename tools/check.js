@@ -1343,7 +1343,7 @@ vm.runInContext(
     const o = {}, K = Object.keys(SKILLS), r2 = v => +v.toFixed(4);
     o.A = K.filter(k => !(AWK[k] && AWK[k].A && AWK[k].A.n && AWK[k].A.d && !AWK[k].A.d.includes('{') && !AWK[k].A.d.includes('品質'))).join();
     const bound = K.filter(k => SKILLS[k].wt);
-    o.B = [bound.length, bound.filter(k => !(AWK[k] && AWK[k].B)).join(), K.filter(k => AWK[k].B).length, K.filter(k => AWK[k].B && !SKILLS[k].wt && k !== 'meteor' && k !== 'banner').join()];
+    o.B = [bound.length, bound.filter(k => !(AWK[k] && AWK[k].B)).join(), K.filter(k => AWK[k].B).length, K.filter(k => AWK[k].B && !SKILLS[k].wt && !SKILLS[k].mark && k !== 'meteor' && k !== 'banner').join()];
     o.fxKeys = K.filter(k => AWK[k].B && Object.keys(AWK[k].B.fx).some(f => !FXN[f])).join();
     /* 靜態規則：補丁要有東西讀——cd 要打在本來就有冷卻的招、aoe 要打在有範圍的招（D.r）、印記（挑目標的半徑）、鬥旗、劍陣 */
     o.bStatic = K.filter(k => AWK[k].B && ((AWK[k].B.fx.cd && !(SKILLS[k].cd > 0)) || (AWK[k].B.fx.aoe && !(SKILLS[k].r || SKILLS[k].mark || ['banner', 'swordarray'].includes(k))))).join();
@@ -1423,8 +1423,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '覺醒（0.2.75）資料：81 招都有 A（名字與說明、沒有留 {}）、綁武器的 46 招加隕石、鬥旗有 B、B 的補丁鍵都認得、名字不重複也不撞技能／輔助／光環／基石／天賦大點／昇華點',
-    aw.A === '' && j(aw.B) === '[46,"",48,""]' && aw.fxKeys === '' && aw.dupSelf === '' && aw.dupOther === '',
+    '覺醒（0.2.75）資料：81 招都有 A（名字與說明、沒有留 {}）、綁武器的 39 招與 7 個印記（SU-03 改不限武器）加隕石、鬥旗有 B、B 的補丁鍵都認得、名字不重複也不撞技能／輔助／光環／基石／天賦大點／昇華點',
+    aw.A === '' && j(aw.B) === '[39,"",48,""]' && aw.fxKeys === '' && aw.dupSelf === '' && aw.dupOther === '',
     j([aw.A, aw.B, aw.fxKeys, aw.dupSelf, aw.dupOther])
   );
   ok(
@@ -4489,7 +4489,7 @@ const ASC_COMBOS = `const combos = k => {
   ok('技能面板的數字沒有 NaN', !badn.length, JSON.stringify(badn));
   const nod = nums.filter(([, h, , , , ef]) => h == null && !ef).map(x => x[0]);
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
-  /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
+  /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：每 0.5 秒最多一次衝擊波（SU-03）、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
   const bow = R(`(() => {
     G.mobs = []; G.t = 100; G.kills = 0; ST.chain = 3; ST.dmg = [100, 100]; globalThis.spawnMob = (D, x, y) => mk(x - P.x); globalThis.aggroPack = globalThis.sparks = globalThis.hitstop = globalThis.killMob = () => {};
     const D = Object.values(MOBS)[0],
@@ -4517,11 +4517,32 @@ const ASC_COMBOS = `const combos = k => {
     const ar2 = G.mobs[G.mobs.length - 1];
     hitMob(ar2, { ...rc, cvF: 40, cvC: 30, cvL: 30 }, 0, 0);
     Math.random = rnd0;
-    out.push(ar.fired, ar.hp, G.kills - k0, ar2.fired);
+    out.push(ar.fired, ar.hp > 0 ? 1 : 0, G.kills - k0, ar2.fired);
+    /* SU-03：沒有 3 次上限，改成每 0.5 秒最多一次；持續 8 秒、冷卻 12 秒 */
+    Math.random = () => 0;
+    G.t += 0.5; hitMob(ar, fire, 0, 0);
+    Math.random = rnd0;
+    out.push(ar.fired, durOf(rc), SKILLS.refract.cd);
+    /* SU-03：使用弓技能時，15 公尺內有折射箭矢就多射一支同樣的箭飛向它（不花魔力）；超過 15 公尺、折射箭矢自己不算 */
+    const sc = gemCfg(mkGem('split', 1), 0), sh = (k, cc) => { G.shots = []; actHit({ k, c: cc, ang: Math.PI, tx: P.x - 100, ty: P.y, hits: [0], n: 0 }, 0); return G.shots.length; };
+    G.mobs = []; const n0 = sh('split', sc);
+    spawnArrow(P.x + 300, P.y, rc); const n1 = sh('split', sc), toArr = G.shots.filter(s => Math.cos(s.ang) > 0.9).length;
+    G.mobs = []; spawnArrow(P.x + 500, P.y, rc); const n2 = sh('split', sc);
+    out.push(n1 - n0, toArr, n2 - n0);
     G.mobs = [];
     return out;
   })()`);
-  ok('閃電箭與折射箭矢', bow.join() === '90,0,1,false,true,true,false,1,false,true,true,0.7,1,3,0,0,1', bow.join());
+  ok(
+    '閃電箭與折射箭矢（SU-03：每 0.5 秒一次衝擊波、持續 8 秒、冷卻 12 秒、弓技能多射一支給 15 公尺內的箭矢）',
+    bow.join() === '90,0,1,false,true,true,false,1,false,true,true,0.7,1,1,1,0,1,2,8,12,1,1,0',
+    bow.join()
+  );
+  ok(
+    '印記（SU-03）：7 個都不限武器、冷卻 4 秒、有冷卻標籤',
+    R(
+      `Object.keys(SKILLS).filter(k => SKILLS[k].mark).map(k => !SKILLS[k].wt && SKILLS[k].cd === 4 && SKILLS[k].tags.includes('cd')).join()`
+    ) === Array(7).fill('true').join()
+  );
   /* 0.2.42 定身與控制：禁錮四種、釘身來源與觸發、可釘身、目眩、玩家僵直與沉重暈眩、暈眩恢復、堅韌 */
   const ctl = R(`(() => {
     G.mobs = []; G.t = 200; G.mapT = 16; G.mm = null; ST.dmg = [100, 100]; ST.noCrit = 1; ST.hp = 1000;
@@ -6887,7 +6908,7 @@ const ASC_COMBOS = `const combos = k => {
     reset(); ST.fork = 1; o.forkCfg = [gemCfg(mkGem('axethrow', 1), 0).fork, gemCfg(mkGem('slash', 1), 0).fork];
 
     /* 迴旋：飛到終點或打完最後一個目標後飛回來，回程再打一次；投射物技能才有；會爆炸的不飛回來 */
-    reset(); const gr = mkGem('axethrow', 1); gr.sup = [mkGem('ret', 1)];
+    reset(); const gr = mkGem('spearthrow', 1); gr.sup = [mkGem('ret', 1)];
     o.retCfg = [!!gemCfg(gr, 0).ret, !!gemCfg(mkGem('slash', 1), 0).ret];
     const cr = gemCfg(gr, 0); cr.pierce = 0;
     P.x = P.y = 500;
@@ -6902,6 +6923,14 @@ const ASC_COMBOS = `const combos = k => {
     reset(); const cu = { ...gemCfg(mkGem('axethrow', 1), 0), ret: true };
     shoot(0, 800, cu, { unit: 1 }, { sx: 500, sy: 300, x: 520, y: 280, ret: 1 });
     P.x = 4000; updShots(1 / 60); o.retUnit = G.shots[0].vx < 0 ? 1 : r2(G.shots[0].vx);
+    /* 擲斧（SU-03）：一定飛回、穿透所有目標；回程擊中流血的敵人時加劇流血；迴旋、連鎖不相容 */
+    reset(); const ax = gemCfg(mkGem('axethrow', 1), 0);
+    P.x = P.y = 500; const m4 = mk(700, 482), m5 = mk(760, 482); G.mobs = [m4, m5];
+    m4.ail.bleed = { dps: 10, t: G.t + 5 };
+    shot(ax, { back: !!SKILLS.axethrow.back }); const sx = G.shots[0];
+    let axN = 0, hp4 = m4.hp;
+    for (let i = 0; i < 180 && G.shots.length; i++) { updShots(1 / 60); if (m4.hp < hp4) (axN++, (hp4 = m4.hp)); }
+    o.axe = [!!sx.back, ax.pierce >= 99, axN, m5.hp < m5.mhp, !!(m4.ail.bleed && m4.ail.bleed.agg), supOK(SKILLS.axethrow, mkGem('ret', 1)), supOK(SKILLS.axethrow, mkGem('chain', 1))];
 
     /* 超限格擋率：超過 50 的部分，沒超過是 0 */
     reset();
@@ -7086,6 +7115,11 @@ const ASC_COMBOS = `const combos = k => {
     b.ret.join() === 'true,2,0' && b.retCfg.join() === 'true,false' && !b.retBoom && b.retUnit === 1,
     JSON.stringify([b.ret, b.retCfg, b.retBoom, b.retUnit])
   );
+  ok(
+    '擲斧（SU-03）：一定飛回、穿透所有目標、來回各擊中一次；回程擊中流血的敵人時加劇流血；迴旋、連鎖輔助不相容',
+    b.axe.join() === 'true,true,2,true,true,false,false',
+    JSON.stringify(b.axe)
+  );
   ok('超限格擋率：超過 50 的部分，沒超過是 0', b.over.join() === '50,10,30,0', b.over.join());
   /* 0.2.47 第 3 層 B 批（近戰）：耐力球、狂怒重砸、霜波、霜牙、劍陣、血怒（盾衝的反擊狀態在第 10 批那一段） */
   const b47 = R(`(() => {
@@ -7123,7 +7157,7 @@ const ASC_COMBOS = `const combos = k => {
     out.arr = [swordN(), !!bl, bl && bl.n]; h = m.hp;
     actHit(A('swordarray'), 0); groundTick(0.01); out.arrBoom = [h > m.hp, G.ground.some(g => g.k === 'blades')];
     gainSwords(2, c('flyswords')); actHit(A('swordarray'), 0); h = m.hp; G.t += 8.1; groundTick(8.1); out.arrEnd = [h > m.hp, G.ground.length];
-    /* 血怒：技能速度 +20、偷取 +3；每秒損失 4% 最大生命，生命剩 1 就不再扣；再按關掉 */
+    /* 血怒：技能速度 +20、偷取 +3；每秒損失 4% 最大生命，生命剩 1 就不再扣；SU-03 起再放不會關掉 */
     P.stk = {}; P.hp = ST.hp; actHit(A('bloodrage'), 0);
     out.br = [stkN('bloodrage'), bufV('ss'), bufV('leech'), gemCfg(mkGem('clawchain', 5), 0).leech > ST.leech / 100];
     stkTick(1); out.brLoss = +((ST.hp - P.hp) / ST.hp).toFixed(3);
@@ -7141,7 +7175,7 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(b47)
   );
   ok(
-    'B 批近戰：劍陣要有飛劍、插地後再按引爆、8 秒自己爆；血怒給速度與偷取、每秒扣 4% 生命、剩 1 不再扣、再按關掉',
+    'B 批近戰：劍陣要有飛劍、插地後再按引爆、8 秒自己爆；血怒給速度與偷取、每秒扣 4% 生命、剩 1 不再扣、再放不會關掉（SU-03）、冷卻 20 秒',
     JSON.stringify([
       b47.arrWhy,
       b47.arrOk,
@@ -7152,7 +7186,8 @@ const ASC_COMBOS = `const combos = k => {
       b47.brLoss,
       b47.brMin,
       b47.brOff
-    ]) === '["要先用御劍訣召出飛劍","",[0,true,4],[true,false],[true,0],[1,20,3,true],0.04,1,0]',
+    ]) === '["要先用御劍訣召出飛劍","",[0,true,4],[true,false],[true,0],[1,20,3,true],0.04,1,1]' &&
+      R('SKILLS.bloodrage.cd') === 20,
     JSON.stringify(b47)
   );
   /* 0.2.48 第 3 層 B 批（遠程與法術）：油榴彈、雷暴、裂解、破咒、褻瀆儀式 */
@@ -7223,11 +7258,12 @@ const ASC_COMBOS = `const combos = k => {
       out = {};
     ST.fork = false;
     ST.chain = 0;
-    const base = cf('axethrow', []);
-    const f = cf('axethrow', ['fork']), ch = cf('axethrow', ['chain']), rt = cf('axethrow', ['ret']);
+    /* SU-03：擲斧一路穿透又一定飛回，連鎖、迴旋不相容，改用擲矛測 */
+    const base = cf('spearthrow', []);
+    const f = cf('spearthrow', ['fork']), ch = cf('spearthrow', ['chain']), rt = cf('spearthrow', ['ret']);
     out.proj = [!!f.fork, r2(f.more / base.more), ch.chain - base.chain, r2(ch.more / base.more), !!rt.ret, r2(rt.more / base.more)];
     /* 分裂＋連鎖可以同插；連鎖＋迴旋同分類，只有一顆生效 */
-    const fc = cf('axethrow', ['fork', 'chain']), cr = cf('axethrow', ['chain', 'ret']);
+    const fc = cf('spearthrow', ['fork', 'chain']), cr = cf('spearthrow', ['chain', 'ret']);
     out.cat = [!!fc.fork, fc.chain - base.chain, (cr.chain - base.chain === 2 ? 1 : 0) + (cr.ret ? 1 : 0)];
     /* 一路穿透的冰霜彈、閃電箭插連鎖沒有效果（不相容） */
     out.noChain = [cf('frostbolt', ['chain']).chain, r2(cf('frostbolt', ['chain']).more / cf('frostbolt', []).more), cf('split', ['chain']).chain];
@@ -11668,10 +11704,8 @@ const ASC_COMBOS = `const combos = k => {
       if (wt === 'spear') {
         const v = L.findIndex(r => r[3] === 'mk_volt');
         ok(
-          `M2-15b 電壓印記（${at}）：排在所有有直傷的後面、沒直傷的非武器招前面`,
-          v > L.map(r => r[2]).lastIndexOf(true) &&
-            L.every((r, j) => r[2] || r[0] || j > v) &&
-            L.slice(v + 1).some(r => !r[2] && !r[0]),
+          `M2-15b 電壓印記（${at}）：排在所有有直傷的後面；SU-03 起印記不限武器，跟其他沒直傷的非武器招同一組`,
+          v > L.map(r => r[2]).lastIndexOf(true) && !L[v][0] && !L[v][2],
           JSON.stringify(L)
         );
       }
@@ -13496,7 +13530,8 @@ const ASC_COMBOS = `const combos = k => {
         };
         const m1 = mob();
         P.hp = ST.hp = 1e9;
-        for (let i = 0; i < 200; i++) DBG.step(33);
+        /* SU-03：蓄力重砸冷卻 6 秒，跑 15 秒才看得到兩次放開 */
+        for (let i = 0; i < 450; i++) DBG.step(33);
         const r = { rel: rel.slice() };
         /* 蓄到一半目標死了：取消不放 */
         rel.length = 0;
