@@ -1,0 +1,19 @@
+check exit=0 85s
+gs_1280x720 exit=0 46s
+gs_390x844 exit=0 17s
+camp_stash exit=0 30s
+pro exit=0 41s
+skill exit=0 68s
+char exit=0 72s
+hide exit=0 44s
+world exit=0 207s
+tree exit=0 22s
+touch_390x844 exit=0 154s
+touch_1280x720 exit=0 20s
+touch_375x667 exit=0 150s
+touch_844x390 exit=0 9s
+touch_667x375 exit=0 10s
+touch_1440x900 exit=0 21s
+touch_1280x800 exit=0 21s
+prettier exit=0 6s
+DONE
