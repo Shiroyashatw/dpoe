@@ -19,6 +19,7 @@ for (const f of [
   'ptdata.js',
   'data.js',
   'items.js',
+  'uniq.js',
   'craft.js',
   'combat.js',
   'maps.js',
@@ -156,6 +157,8 @@ for (let i = 0; i < 3000; i++) {
     it = G.dropItem(L, (i % 5) / 4),
     n = it.a.length,
     np = it.a.filter(a => G.AFF[a.k].p).length;
+  /* 傳奇（SU-01）的詞綴照那一件的範圍，另外檢查 */
+  if (it.r === 3) continue;
   if (it.r === 0 && n) err.push('普通有詞綴');
   if (it.r === 1 && (n < 1 || n > 2 || np > 1 || n - np > 1)) err.push('魔法詞綴數 ' + n);
   if (it.r === 2 && (n < 3 || n > 6 || np > 3 || n - np > 3)) err.push('稀有詞綴數 ' + n);
@@ -981,7 +984,17 @@ vm.runInContext(
 {
   const c7 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c7);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c7, { filename: f });
   const R = s => vm.runInContext(s, c7);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -1431,7 +1444,17 @@ vm.runInContext(
 const RA = (() => {
   const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c8);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
   const R = s => vm.runInContext(s, c8);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -4284,7 +4307,17 @@ const ASC_COMBOS = `const combos = k => {
     document: { getElementById: () => ({ classList: { add() {}, remove() {} } }), querySelectorAll: () => [] }
   };
   vm.createContext(c2);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
   const R = s => vm.runInContext(s, c2);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -5148,7 +5181,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c3 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c3);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c3, { filename: f });
   const R = s => vm.runInContext(s, c3);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -5965,7 +6008,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 100, mapT: 5, scene: 'camp', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6263,7 +6316,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6519,7 +6582,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c5 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c5);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c5, { filename: f });
   const R = s => vm.runInContext(s, c5);
   R(`var G = { t: 100, mapT: 5, scene: 'camp', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6712,7 +6785,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c6 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c6);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c6, { filename: f });
   const R = s => vm.runInContext(s, c6);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -8446,6 +8529,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -8558,6 +8642,142 @@ const ASC_COMBOS = `const combos = k => {
       return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 35 ? '' : 'again';
     })()`) === ''
   );
+  /* SU-01 傳奇：表的每一列合法、每一件產得出來、數值在範圍內、不能鍛造、可以腐化、特色詞進數值、掉落、舊存檔讀得進來 */
+  {
+    const r = R2(`(() => {
+      const out = { rows: [], gen: [], lock: [], corr: [], st: [], save: '', misc: [] };
+      const minN = L => (L >= 90 ? 5 : L >= 72 ? 4 : L >= 36 ? 3 : 2);
+      for (const [k, U] of Object.entries(UNIQ)) {
+        const B = BASEI[U.b], pool = B ? B.aff || KINDS[B.k].aff : [];
+        if (!B) out.rows.push(k + ' 基底');
+        else if (U.a.length < minN(U.L)) out.rows.push(k + ' 條數');
+        for (const [ak, lo, hi] of U.a) if (!AFF[ak] || !pool.includes(ak) || lo > hi) out.rows.push(k + ' 詞綴 ' + ak);
+        for (const [sk, lo, hi] of U.x) if (!STATN[sk] || (hi != null && lo > hi)) out.rows.push(k + ' 特色詞 ' + sk);
+        if (uqLv(U) !== Math.max(1, Math.round(U.L / 6))) out.rows.push(k + ' 物品等級');
+        for (let i = 0; i < 300; i++) {
+          const it = mkUniq(k, 1 + (i % TMAX));
+          const inA = it.a.every((a, j) => {
+            const [ak, lo, hi] = U.a.find(x => x[0] === a.k), v = Array.isArray(a.v) ? a.v[1] : a.v;
+            return v >= lo && v <= hi && a.T >= 1 && a.T <= AFF_T && (!Array.isArray(a.v) || a.v[0] <= a.v[1]);
+          });
+          const inX = it.ux.length === U.x.length && it.ux.every((x, j) => {
+            const [sk, lo, hi] = U.x[j];
+            return x.k === sk && (hi == null ? x.v === lo : x.v >= lo && x.v <= hi);
+          });
+          if (it.r !== 3 || it.u !== k || it.L < uqLv(U) || it.a.length !== U.a.length || !inA || !inX || itemName(it) !== U.n) {
+            out.gen.push(k);
+            break;
+          }
+        }
+        /* 不能鍛造：填（四種加詞通貨、轉化、破裂、完美）、淬鍊、聖化、品質、王印都擋下，說得出原因；王印不扣 */
+        const it = mkUniq(k, TMAX);
+        S.frags = S.frags || {};
+        const wk = Object.keys(WY_FX)[0];
+        S.frags[wk] = 1;
+        MAT().holy = 5; MAT().whet = 5; MAT().plate = 5; S.gold = 1e9;
+        const why = [
+          ...FILL_OPS.map(op => forgeCheck(it, op, op === 'dust' ? 'atk:1' : 0).why),
+          temperDo(it), holyCheck(it), qualCheck(it).why
+        ];
+        if (!why.every(w => w === UQ_LOCK) || !wangyinSet(it, wk) || S.frags[wk] !== 1 || it.wy || it.holy || it.tmp) out.lock.push(k + ' ' + why.join('/'));
+        /* 可以腐化 */
+        MAT().corr = 1;
+        const c = corruptDo(it, 'cw1');
+        if (c.why || !it.cor || !it.cw || it.cw.length !== 1 || lockWhy(it, 'fill') !== '已腐化，全部鎖定') out.corr.push(k);
+      }
+      /* 特色詞進角色數值：穿上去前後的差＝特色詞的值（同一個能力鍵在詞綴也有的扣掉詞綴） */
+      const req0 = itemReq;
+      itemReq = () => ({ lv: 0, str: 0, dex: 0, int: 0 }); /* 只看特色詞，能力值需求先不管 */
+      for (const [k, U] of Object.entries(UNIQ)) {
+        S = newGame(); delete S.fresh; S.lv = 100;
+        const it = mkUniq(k, TMAX), e = EQS.find(q => eqTakes(q, baseOf(it).k) && (baseOf(it).k !== 'focus' || q.k === 'off'));
+        if (baseOf(it).k === 'focus') S.eq.weapon = mkItem('w_wand_0', 1, 0); /* 法器要配法杖 */
+        const a0 = stats();
+        S.eq[e.k] = it;
+        const a1 = stats(), keep = it.ux;
+        it.ux = [];
+        const a2 = stats();
+        it.ux = keep;
+        for (const x of keep) if (Math.abs(a1[x.k] - a2[x.k] - x.v) > 1e-9) out.st.push(k + ' ' + x.k + ' ' + (a1[x.k] - a2[x.k]) + '≠' + x.v);
+        if (a1.eqBad.includes(e.k)) out.st.push(k + ' 穿不上');
+      }
+      itemReq = req0;
+      /* 舊存檔：沒有傳奇的照常；存了傳奇的再讀一次，r、u、ux 都在 */
+      const s = newGame();
+      s.inv.items.push(mkUniq('qianyu', 3), mkItem('w_bow_0', 3, 2));
+      const m = migrate(JSON.parse(JSON.stringify(s))), u = m.inv.items.find(x => x.r === 3);
+      const m0 = migrate(JSON.parse(JSON.stringify({ ...newGame(), lv: 12 })));
+      out.save = !u || u.u !== 'qianyu' || u.ux.length !== 2 || itemName(u) !== '千羽' || m0.lv !== 12 || m0.inv.items.some(x => x.r === 3) ? 'bad' : '';
+      /* 沒有這一列的傳奇（之後刪掉了）照基底名顯示，不會壞 */
+      const gone = { ...mkUniq('hetu', 1), u: 'zz' };
+      out.misc.push(itemName(gone) === baseOf(gone).n, RARN[3] === '傳奇');
+      /* 分解比照同階稀有：材料、靈魂、加詞石一樣 */
+      const U1 = mkUniq('tiexie', 9), R1 = mkItem('b_iron', 9, 2), v1 = salvValue(U1), v2 = salvValue(R1);
+      out.misc.push(JSON.stringify(v1.mats) === JSON.stringify(v2.mats) && v1.soul === v2.soul && v1.cur.aug === 1);
+      return out;
+    })()`);
+    ok(
+      `SU-01 傳奇：${Object.keys(R2('UNIQ')).length} 件樣板的基底、詞綴（在部位詞綴池、條數照物品等級）、特色詞（STATN 有）都合法`,
+      !r.rows.length,
+      r.rows.join('、')
+    );
+    ok(
+      'SU-01 傳奇：每件各產 300 次，稀有度、名字、物品等級、詞綴與特色詞數值都在範圍內',
+      !r.gen.length,
+      r.gen.join('、')
+    );
+    ok(
+      'SU-01 傳奇：填、淬鍊、聖化、品質都擋下（「傳奇不能鍛造，只能腐化」），王印套不上、不扣',
+      !r.lock.length,
+      r.lock.join(' | ')
+    );
+    ok('SU-01 傳奇：可以腐化，腐化後全部鎖定', !r.corr.length, r.corr.join('、'));
+    ok('SU-01 傳奇：穿上去，特色詞的值照實加進角色數值', !r.st.length, r.st.join('、'));
+    ok('SU-01 傳奇：舊存檔讀得進來；存了傳奇的存檔讀回來 r、u、ux 都在', r.save === '', r.save);
+    ok(
+      'SU-01 傳奇：表裡沒有的傳奇照基底名、RARN 有「傳奇」、分解回收量比照同階稀有',
+      r.misc.every(Boolean),
+      JSON.stringify(r.misc)
+    );
+    /* 掉落：稀有裝有 UNIQ_P 改成傳奇；物品等級不夠的不會掉；打造只給同部位同武器種類，且記進掉落紀錄（稀有度 3） */
+    const d = R2(`(() => {
+      let rare = 0, uq = 0, low = 0;
+      for (let i = 0; i < 60000; i++) {
+        const it = dropItem(1 + (i % TMAX), 2);
+        if (it.r === 2) rare++;
+        if (it.r === 3) (uq++, (low += it.L < uqLv(UNIQ[it.u]) ? 1 : 0));
+      }
+      const pool1 = uqPool(1), poolB = uqPool(TMAX, b => b.k === 'boots');
+      const rr = Math.random;
+      Math.random = () => 0;
+      let craft;
+      try {
+        S = newGame(); delete S.fresh; S.camp.forge = 16; S.gold = 1e9; S.log = [];
+        const b = craftBase('boots', { T: 6, sys: 'armor' }), c = craftCost(b, 6);
+        for (const m in c.mats) matAdd(m, 6, 1e4);
+        const res = craftDo('boots', { T: 6, sys: 'armor', n: 1 });
+        craft = { r: res.items && res.items[0].r, k: res.items && BASEI[UNIQ[res.items[0].u] ? UNIQ[res.items[0].u].b : res.items[0].b].k, log: S.log[0] && S.log[0].r, c: S.log[0] && S.log[0].c, why: res.why };
+      } finally {
+        Math.random = rr;
+      }
+      return { rare, uq, low, p: uq / (rare + uq), pool1, poolB, craft };
+    })()`);
+    ok(
+      `SU-01 掉落：稀有裝 ${(R2('UNIQ_P') * 100).toFixed(0)}% 改成傳奇（實測 ${(d.p * 100).toFixed(2)}%，${d.uq} 件），物品等級不夠的沒掉`,
+      d.uq > 0 && d.p > 0.012 && d.p < 0.03 && !d.low,
+      JSON.stringify(d)
+    );
+    ok(
+      'SU-01 掉落：物品等級 1 不會掉鐵鞋（最低物品等級 42 → 7）；打造鞋子只會出鞋子的傳奇，並記進掉落紀錄（傳奇＝3）',
+      !d.pool1.includes('tiexie') &&
+        d.poolB.every(k => ['caoshangfei', 'tiexie'].includes(k)) &&
+        d.craft.r === 3 &&
+        d.craft.k === 'boots' &&
+        d.craft.log === 3 &&
+        d.craft.c === 'uniq',
+      JSON.stringify(d.craft)
+    );
+  }
   /* 0.4.8：存檔 32 → 33：一般輔助升過的等級退靈魂（每一級照 libUp 扣的 soulCost(那一級)）、刪紀錄；用過的 II 算解鎖；覺醒輔助、技能、光環等級不動 */
   {
     const r = R2(`(() => {
@@ -9597,7 +9817,17 @@ const ASC_COMBOS = `const combos = k => {
   {
     const cx = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
     vm.createContext(cx);
-    for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    for (const f of [
+      'palette.js',
+      'ptdata.js',
+      'data.js',
+      'items.js',
+      'uniq.js',
+      'craft.js',
+      'combat.js',
+      'maps.js',
+      'mech.js'
+    ])
       vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), cx, { filename: f });
     const RX = s => vm.runInContext(s, cx);
     RX(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -10575,7 +10805,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c8);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
   vm.runInContext(
     `var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], shots: [], tele: [], allies: [] }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -10665,6 +10905,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -10739,6 +10980,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -11338,7 +11580,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c = { console, Math, Date, JSON, Object, Array, Set, Map, location: { search: '' }, URLSearchParams };
   vm.createContext(c);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'uniq.js', 'craft.js', 'combat.js', 'maps.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c, { filename: f });
   const gs = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, ''),
     cut = (a, b) => gs.slice(gs.indexOf(a), gs.indexOf(b));
@@ -11513,6 +11755,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -11875,6 +12118,7 @@ const ASC_COMBOS = `const combos = k => {
       'ptdata.js',
       'data.js',
       'items.js',
+      'uniq.js',
       'craft.js',
       'combat.js',
       'maps.js',
@@ -12569,6 +12813,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',

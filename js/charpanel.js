@@ -322,7 +322,9 @@ function chAffs(it, det) {
   return A.map(a => {
     const r = det && !Array.isArray(a.v) && AFF[a.k].r ? tierRange(a.k, a.T) : null;
     return `<li><b>${esc(affText(a))}</b>${det ? `<small>${r ? `<i class="rg">(${r[0]}–${r[1]}) </i>` : ''}<i class="tr">T${a.T}</i>${a.T <= t ? ' ✦' : ''}${isFrac(it, a) ? '<i class="fr"> 破裂</i>' : ''}</small>` : ''}</li>`;
-  }).join('');
+  })
+    .concat((it.ux || []).map(u => `<li class="uq"><b>${esc(uxText(u))}</b></li>`))
+    .join('');
 }
 function chCmpHTML() {
   const k = NAV.slot,
@@ -332,7 +334,7 @@ function chCmpHTML() {
     e = EQS.find(q => q.k === k),
     det = CH.alt,
     j = chJudge(it, k),
-    nm = x => `<b class="rc${x.r}">${x.r === 2 ? '◆ ' : ''}${esc(itemName(x))}</b>`,
+    nm = x => `<b class="rc${x.r}">${x.r === 3 ? '◈ ' : x.r === 2 ? '◆ ' : ''}${esc(itemName(x))}</b>`,
     sub = x => `<small>${e.n}・物品等級 ${x.L}</small>`,
     side = x => {
       if (!x) return '';

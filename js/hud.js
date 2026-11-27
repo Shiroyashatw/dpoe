@@ -2125,9 +2125,9 @@ function revealStep() {
     return hudPanels();
   }
   const it = REV.list[REV.i++];
-  sfx(it.frac ? 'star' : it.mem ? 'mem' : it.r === 2 ? 'flipRare' : 'flip');
+  sfx(it.frac ? 'star' : it.mem ? 'mem' : it.r >= 2 ? 'flipRare' : 'flip');
   hudPanels();
-  REV.tm = setTimeout(revealStep, it.frac || it.mem ? 750 : it.r === 2 ? 450 : 260);
+  REV.tm = setTimeout(revealStep, it.frac || it.mem ? 750 : it.r >= 2 ? 450 : 260);
 }
 function revealHTML() {
   if (REV.craft) return rvCraftHTML();
@@ -2385,7 +2385,16 @@ function chaseBnClick() {
   chaseOpen(k);
 }
 /* 掉落紀錄的類別框標（small-screens L01）：一律文字；存檔裡的鍵不改（mid＝裝備，英文 Gear） */
-const LOGN = { frac: '破裂', mem: '追憶', cur: '通貨', perf: '完美', mid: '裝備', chase: '追逐', pack: '靈魂包' };
+const LOGN = {
+  uniq: '傳奇',
+  frac: '破裂',
+  mem: '追憶',
+  cur: '通貨',
+  perf: '完美',
+  mid: '裝備',
+  chase: '追逐',
+  pack: '靈魂包'
+};
 /* 掉落紀錄選中的那一筆（橫幅顯示中按 ;：最新的追逐物品） */
 let LOGSEL = null;
 /* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
@@ -3196,7 +3205,8 @@ function dragEnd(e) {
 /* 需求列（0.2.42）：夠的是一般字、缺的是紅字；有缺再加一行紅字「缺什麼」；req 全空就不顯示；lack 是 [[名稱, 現有, 需求]] */
 /* 說明框的前綴 3 格、後綴 3 格（空格畫出來；白、藍裝多出來的格寫「—」）：每條後面寫 T，破裂詞加 ★ 並用特別顏色 */
 function tipSlots(it) {
-  const cap = sideCap(it),
+  /* 傳奇沒有空位（照 stash ST-28），空格畫「—」 */
+  const cap = it.r === 3 ? 0 : sideCap(it),
     side = (pre, nm) => {
       const L = it.a.filter(a => !!AFF[a.k].p === pre);
       return `<div class="tcol"><span class="ts">${nm}</span>${Array.from({ length: 3 }, (_, j) =>
@@ -3264,6 +3274,8 @@ function itemTip(it, cmp) {
   if (it.mem) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem))}</p>`;
   if (it.mem2) html += `<p class="mem">◈ 追憶：${esc(memText(it.mem2))}</p>`;
   html += un ? `<p class="hint c-warn">回營地找撿骨師免費鑑定，鑑定後才能裝備與做裝</p>` : tipSlots(it);
+  /* 傳奇的特色詞（SU-01；規格沒寫，先放在前後綴下面、腐化詞上面） */
+  if (!un && it.ux && it.ux.length) html += `<p class="aff uq">${it.ux.map(x => esc(uxText(x))).join('<br>')}</p>`;
   if (!un && it.cw && it.cw.length) html += `<p class="aff cor">${it.cw.map(c => esc(cwText(c))).join('<br>')}</p>`;
   if (!un && it.cal)
     html += `<p class="aff"><span class="c-good">${esc(calText(it.cal.g))}</span>${it.cal.b ? `<br><span class="c-bad">${esc(calText(it.cal.b, 1))}</span>` : ''}</p>`;

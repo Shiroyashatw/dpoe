@@ -19,7 +19,17 @@ sMath.random = () => {
 };
 const ctx = { console, Math: sMath, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+for (const f of [
+  'palette.js',
+  'ptdata.js',
+  'data.js',
+  'items.js',
+  'uniq.js',
+  'craft.js',
+  'combat.js',
+  'maps.js',
+  'mech.js'
+])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 /* 遊戲裡由 game.js 提供的全域：這裡給最小的替身 */
 vm.runInContext(

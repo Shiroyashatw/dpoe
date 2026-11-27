@@ -23,8 +23,9 @@ const DUST_DROP = 2;
 const dustDrop = () => (campCan('cur:zhi') ? Math.round(DUST_DROP * 1.5) : DUST_DROP);
 
 /* ---------- 詞綴的條數上限 ---------- */
-const affCap = it => (it.r === 2 ? 6 : it.r === 1 ? 2 : 0);
-const sideCap = it => (it.r === 2 ? 3 : 1);
+/* 傳奇（r 3）照稀有裝的版面：前後綴各 3 格 */
+const affCap = it => (it.r >= 2 ? 6 : it.r === 1 ? 2 : 0);
+const sideCap = it => (it.r >= 2 ? 3 : 1);
 /* 這件還能加哪些詞（指定類 cls；沒指定＝全部），照前後綴上限；skip＝算上限時不算這一條（轉化石換掉它） */
 function affPool(it, cls, skip) {
   const have = new Set(it.a.filter(a => a !== skip).map(a => a.k)),
@@ -294,7 +295,12 @@ function craftDo(kind, o) {
     salv = salvZero();
   const ink = !!o.ink && campCan('cur:ink') && MAT().ink >= 1;
   for (let i = 0; i < n; i++) {
-    const it = mkItem(b.id, matIlvl(o.T), craftRar(S.camp ? S.camp.forge : 0));
+    /* SU-01：打出稀有時有 UNIQ_P 改成同部位（武器同種類）的傳奇 */
+    const it = uqSwap(
+      mkItem(b.id, matIlvl(o.T), craftRar(S.camp ? S.camp.forge : 0)),
+      x => x.k === b.k && (b.k !== 'weapon' || x.wt === b.wt)
+    );
+    if (it.r === 3 && typeof dropLog === 'function') dropLog(itemName(it), 'uniq', null, 3);
     /* 0.5.3 追憶之墨：一瓶管這一批的第一件（這個部位沒有追憶池就不扣） */
     if (ink && !i && memPool(it).length) addMem(it), MAT().ink--;
     if (!autoKeep(it) || !invPut(S.inv, it)) (it.salv = 1), salvAdd(salv, salvageDo(it));
@@ -324,7 +330,7 @@ function salvValue(it) {
     c = craftCost(baseOf(it), T);
   for (const m in c.mats) v.mats[matKey(m, T)] = Math.max(1, Math.floor(c.mats[m] * salvRate()));
   v.soul = it.L * 2;
-  if (it.r === 2) v.cur.aug = 1;
+  if (it.r >= 2) v.cur.aug = 1;
   return v;
 }
 function salvageDo(it) {
@@ -611,11 +617,14 @@ const campReady = () =>
 /* ---------- 填（企劃書 5.3.1）：通貨按鈕。ok(it, arg) 回傳 null＝可以、字串＝不行的原因；run(it, arg) 真的做。
    arg：精髓是 '類:T'，轉化石是要換的那條詞在 it.a 的位置 ---------- */
 /* 這件現在不能動的原因（kind：'fill' 填、'temper' 淬鍊、'qual' 品質、'holy' 聖化、'corr' 腐化） */
+const UQ_LOCK = '傳奇不能鍛造，只能腐化';
 function lockWhy(it, kind) {
   if (it.charm) return '這個不能做裝';
   if (it.uid) return '還沒鑑定：先找撿骨師';
   if (it.exOpt) return '先從雙喜的兩條詞選一條';
   if (it.cor) return '已腐化，全部鎖定';
+  /* 傳奇（SU-01，使用者 2026-11-27）：不能鍛造，只能腐化；品質也算鍛造，一併擋下 */
+  if (it.r === 3 && kind !== 'corr') return UQ_LOCK;
   if (it.holy && kind === 'fill') return '已聖化，不能再填';
   if (it.holy && kind === 'temper') return '已聖化，不能再淬鍊';
   if (it.holy && kind === 'holy') return '已經聖化過了';
@@ -1051,7 +1060,7 @@ function corruptDo(it, force) {
   } else if (res === 'sock') it.so = (it.so || 0) + 1;
   else if (res === 'burst') {
     it.burst = 1;
-    out.give = it.r === 2 ? { exalt: Math.floor(it.a.length / 2) } : it.r === 1 ? { aug: 1 } : {};
+    out.give = it.r >= 2 ? { exalt: Math.floor(it.a.length / 2) } : it.r === 1 ? { aug: 1 } : {};
     for (const k in out.give) MAT()[k] += out.give[k];
   }
   return out;

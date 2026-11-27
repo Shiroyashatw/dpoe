@@ -25,7 +25,17 @@ const M = Object.create(Math);
 M.random = rand;
 const ctx = { console, Math: M, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js'])
+for (const f of [
+  'palette.js',
+  'ptdata.js',
+  'data.js',
+  'items.js',
+  'uniq.js',
+  'craft.js',
+  'combat.js',
+  'maps.js',
+  'world.js'
+])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 const R = s => vm.runInContext(s, ctx);
 console.log(`新存檔、一輪 ${SEC} 秒（小怪 ${NS}、菁英照 1★）、${MIN} 分鐘；會按的玩家：五座設施夠了就升（沒有產生器）`);

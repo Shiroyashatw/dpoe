@@ -31,7 +31,17 @@ function one(seed) {
     URLSearchParams,
     PAL_CSS
   });
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'world.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
   return vm.runInContext(
     `(() => {

@@ -720,7 +720,7 @@ function campRefresh() {
 function craftGo() {
   const r = craftDo(MK.kind, MK);
   if (r.why) return hudWarn(r.why), fShake('[data-fg="go"]');
-  sfx(r.items.some(it => it.r === 2) ? 'flipRare' : 'equip');
+  sfx(r.items.some(it => it.r >= 2) ? 'flipRare' : 'equip');
   revealOpen(
     r.items.filter(it => !it.salv),
     { title: `打造 ${r.items.length} 件・${craftBase(MK.kind, MK).n}`, craft: 1, auto: r.salv.n }
@@ -759,12 +759,18 @@ function slotsHTML(it, mode) {
       return `<h5 class="fsh">${name}</h5><ul class="fslot">${Array.from({ length: 3 }, (_, j) =>
         L[j]
           ? one(...L[j])
-          : `<li class="emp ${j >= cap ? 'lk' : ''}"><span>${j >= cap ? '稀有物品才有' : '（空）'}</span></li>`
+          : it.r === 3
+            ? '<li class="emp lk"><span>—</span></li>'
+            : `<li class="emp ${j >= cap ? 'lk' : ''}"><span>${j >= cap ? '稀有物品才有' : '（空）'}</span></li>`
       ).join('')}</ul>`;
     };
   return (
     side(true, '前綴') +
     side(false, '後綴') +
+    /* 傳奇的特色詞（SU-01）：規格沒寫，先接在後綴下面、不加標題 */
+    (it.ux && it.ux.length
+      ? `<ul class="fslot">${it.ux.map(u => `<li class="uq"><span>${esc(uxText(u))}</span></li>`).join('')}</ul>`
+      : '') +
     (it.cw && it.cw.length
       ? `<h5 class="fsh">腐化詞</h5><ul class="fslot">${it.cw.map(c => `<li class="cw"><span>${esc(cwText(c))}</span></li>`).join('')}</ul>`
       : '') +
@@ -1554,7 +1560,7 @@ function rvCard(it, cls = '') {
 }
 function rvBack(it, big) {
   const an = REV.anim && REV.anim.id === it.id ? REV.anim.c : '';
-  return `<button class="rvk ${big ? '' : 'sm'} ${it.r === 2 ? 'hi' : ''} ${an}" data-rv="fl:${it.id}" aria-label="翻開"><b>?</b>${big ? `<small>點一下翻開</small>${it.r === 2 ? '<small class="c-rare">亮邊：稀有以上</small>' : ''}` : ''}</button>`;
+  return `<button class="rvk ${big ? '' : 'sm'} ${it.r >= 2 ? 'hi' : ''} ${an}" data-rv="fl:${it.id}" aria-label="翻開"><b>?</b>${big ? `<small>點一下翻開</small>${it.r >= 2 ? '<small class="c-rare">亮邊：稀有以上</small>' : ''}` : ''}</button>`;
 }
 function rvSmall(it) {
   return `<button class="rvs r${it.r} ${rvJack(it) ? 'jk' : ''} ${REV.exp === it.id ? 'sel' : ''} ${rvIn(it) ? '' : 'gone'}" data-rv="ex:${it.id}">${icHTML(itemIc(it))}${fStar(it)}<b class="rc${it.r}">${RARN[it.r]}</b>${REV.lk.has(it.id) ? '<i class="rvtag lk">已鎖</i>' : REV.kp.has(it.id) ? '<i class="rvtag">留著</i>' : ''}</button>`;
@@ -1567,10 +1573,10 @@ function rvCraftHTML() {
     big = rvBig(),
     fl = L.filter(it => REV.fl.has(it.id)).length,
     rest = rvRest(),
-    rr = rest.some(it => it.r === 2),
+    rr = rest.some(it => it.r >= 2),
     sv = rest.reduce((a, it) => salvAdd(a, salvValue(it)), salvZero()),
     all = fl >= n,
-    show = L.filter(it => !REV.rare || it.r === 2 || !REV.fl.has(it.id)),
+    show = L.filter(it => !REV.rare || it.r >= 2 || !REV.fl.has(it.id)),
     ex = !big && REV.exp != null && L.find(it => it.id === REV.exp && REV.fl.has(it.id)),
     exI = ex ? show.indexOf(ex) : -1;
   return `<div class="rvbox ${big ? 'big' : 'smc'} ${n === 1 ? 'one' : ''}">
@@ -1609,9 +1615,9 @@ function rvFlip(it, cb) {
         setTimeout(go, RV_T.shake);
       });
     });
-  sfx(it.r === 2 ? 'flipRare' : 'flip');
+  sfx(it.r >= 2 ? 'flipRare' : 'flip');
   REV.fl.add(it.id);
-  step(it.r === 2 ? 'fr' : 'fn', it.r === 2 ? RV_T.r : RV_T.n, go);
+  step(it.r >= 2 ? 'fr' : 'fn', it.r >= 2 ? RV_T.r : RV_T.n, go);
 }
 /* 全部翻開：每張隔 60 ms（20 件 30 ms），✦2 以上排最後、前面停一下 */
 function rvFlipAll(cb) {
