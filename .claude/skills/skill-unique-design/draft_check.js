@@ -29,22 +29,59 @@ const BASES = g('BASES'),
   SPELLW = g('SPELLW'),
   SPELL_AFF = g('SPELL_AFF');
 const BY = Object.fromEntries(BASES.map(b => [b.n, b]));
-/* 這個基底能出的詞綴：法系武器（SPELLW：長杖、法杖、權杖、陷阱器）用 SPELL_AFF（data.js 的 WEAPON_BASES 也是這樣給），其他照部位 */
-const poolOf = b => (b.aff || (b.k === 'weapon' && SPELLW.has(b.wt) ? SPELL_AFF : KINDS[b.k].aff)).filter(k => AFF[k]);
+/* 詞綴表：現有的 AFF＋草案 docs/production/詞綴池擴充草案.md 的兩張表（新單項、複合）。rs＝每個 {} 的整條範圍 */
+const A = {},
+  POOL = {};
+for (const [k, a] of Object.entries(AFF)) A[k] = { n: a.n, rs: [a.r] };
+for (const [k, v] of Object.entries(KINDS)) POOL[k] = (v.aff || []).filter(x => A[x]);
+POOL.spellw = SPELL_AFF.filter(x => A[x]);
+const PART = {
+  武器: 'weapon',
+  法系武器: 'spellw',
+  盾: 'shield',
+  法器: 'focus',
+  箭袋: 'quiver',
+  頭部: 'helm',
+  胸甲: 'chest',
+  手套: 'gloves',
+  鞋子: 'boots',
+  腰帶: 'belt',
+  戒指: 'ring',
+  項鍊: 'amulet'
+};
+const EXT = path.join(root, 'docs', 'production', '詞綴池擴充草案.md');
+if (fs.existsSync(EXT))
+  for (const l of fs.readFileSync(EXT, 'utf8').split('\n')) {
+    const c = l.split('|').map(x => x.trim());
+    if (c.length < 7 || !/^[A-Za-z_0-9]+$/.test(c[1])) continue;
+    const rs = c[4].split('／').map(x => x.split('～').map(Number));
+    if (rs.some(r => r.length !== 2 || r.some(isNaN)) || rs.length !== c[3].split('{}').length - 1)
+      throw new Error('詞綴池擴充草案這一列讀不懂：' + l);
+    A[c[1]] = { n: c[3], rs, draft: 1 };
+    for (const part of c[5].split('、')) {
+      if (!PART[part]) throw new Error('詞綴池擴充草案的部位寫錯：' + part);
+      POOL[PART[part]].push(c[1]);
+    }
+  }
+/* 這個基底能出的詞綴：法系武器（SPELLW：長杖、法杖、權杖、陷阱器）用法系池（data.js 的 WEAPON_BASES 也是這樣給），其他照部位 */
+const poolOf = b => POOL[b.k === 'weapon' && SPELLW.has(b.wt) ? 'spellw' : b.k];
 /* 物品等級 1～100 的最低等級：基底等級 ×6（等級 1 的基底＝1）。程式改成 1～100 之後這裡要跟著改 */
 const minLv = b => (b.lv === 1 ? 1 : b.lv * 6);
 /* 詞綴條數下限與建議範圍落在整條範圍的哪一段（照物品等級區間） */
 const band = lv => (lv >= 90 ? [5, 0.8, 1.1] : lv >= 72 ? [4, 0.6, 0.9] : lv >= 36 ? [3, 0.35, 0.65] : [2, 0.1, 0.35]);
-/* 整條上限 6 以下的（基礎暴擊率）留一位小數，其他取整數 */
-const suggest = (k, lv) => {
-  const [lo, hi] = AFF[k].r,
-    [, a, b] = band(lv),
+/* 整條上限 6 以下的（基礎暴擊率、偷取）留一位小數，其他取整數 */
+const sug1 = ([lo, hi], lv) => {
+  const [, a, b] = band(lv),
     rnd = v => (hi <= 6 ? Math.round(v * 10) / 10 : Math.round(v));
   return [Math.max(1, rnd(lo + (hi - lo) * a)), Math.max(2, rnd(lo + (hi - lo) * b))];
 };
+const fill = (n, vals) => {
+  let i = 0;
+  return n.replace(/\{\}/g, () => vals[i++]);
+};
 const NUM = '(\\d+(?:\\.\\d+)?)(?:～(\\d+(?:\\.\\d+)?))?';
 const esc = s => s.replace(/[.*+?^$()|[\]\\]/g, '\\$&');
-const affRe = k => new RegExp('^' + esc(AFF[k].n).replace('\\{\\}', NUM).replace('{}', NUM) + '$');
+const affRe = k => new RegExp('^' + esc(A[k].n).replace(/\\\{\\\}|\{\}/g, NUM) + '$');
 
 const args = process.argv.slice(2);
 if (args[0] === '--aff') {
@@ -52,10 +89,15 @@ if (args[0] === '--aff') {
   if (!b) throw new Error('沒有這個基底：' + args[1]);
   const lv = +args[2] || minLv(b);
   console.log(`${b.n}（${KINDS[b.k].n}，最低物品等級 ${minLv(b)}）在物品等級 ${lv}：至少 ${band(lv)[0]} 條詞綴`);
-  for (const k of poolOf(b)) {
-    const [a, c] = suggest(k, lv);
-    console.log('  ' + AFF[k].n.replace('{}', `${a}～${c}`) + `   （整條 ${AFF[k].r.join('～')}）`);
-  }
+  for (const k of poolOf(b))
+    console.log(
+      '  ' +
+        fill(
+          A[k].n,
+          A[k].rs.map(r => sug1(r, lv).join('～'))
+        ) +
+        `   （整條 ${A[k].rs.map(r => r.join('～')).join('／')}${A[k].draft ? (A[k].rs.length > 1 ? '，複合' : '，新') : ''}）`
+    );
   process.exit(0);
 }
 if (args[0] === '--taken') {
@@ -151,9 +193,13 @@ for (const f of files) {
       if (seen.has(k)) fail(f, name, `詞綴重複：${p}`);
       seen.add(k);
       const mm = p.match(affRe(k));
-      if (mm[2] === undefined) continue; /* 固定詞 */
-      if (+mm[1] >= +mm[2]) fail(f, name, `範圍寫反或相等：${p}`);
-      if (+mm[2] > AFF[k].r[1] * 1.25) fail(f, name, `超出這條詞綴的上限太多：${p}（整條到 ${AFF[k].r[1]}）`);
+      A[k].rs.forEach((r, i) => {
+        const lo = mm[1 + i * 2],
+          hi = mm[2 + i * 2];
+        if (hi === undefined) return; /* 固定詞 */
+        if (+lo >= +hi) fail(f, name, `範圍寫反或相等：${p}`);
+        if (+hi > r[1] * 1.25) fail(f, name, `超出這條詞綴的上限太多：${p}（整條到 ${r[1]}）`);
+      });
     }
     if (seen.size < band(lv)[0]) fail(f, name, `詞綴只有 ${seen.size} 條，物品等級 ${lv} 至少要 ${band(lv)[0]} 條`);
     if (![...parts].some(p => /～/.test(p))) fail(f, name, '詞綴沒有任何範圍詞');
