@@ -871,11 +871,12 @@ const CONTRAST = `(() => {
       const css = require('fs').readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8');
       const bad = [];
       css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/([^{}]+)\{([^{}]*)\}/g, (m, sel, body) => {
-        if (/--t02-/.test(body) && sel.split(',').some(q => !/#ivg\b/.test(q))) bad.push(sel.trim());
+        if (/var\(--t02-/.test(body) && sel.split(',').some(q => !/#ivg\b/.test(q))) bad.push(sel.trim());
+        if (/--t02-[\w-]+\s*:/.test(body) && sel.trim() !== ':root') bad.push(sel.trim());
         return '';
       });
       ok(
-        '--t02-* 只用在 T02（選擇器都在 #ivg 內）',
+        '--t02-* 只宣告在 :root、只用在 T02（用到的選擇器都在 #ivg 內）',
         !bad.length && /--t02-bronze/.test(css),
         JSON.stringify(bad.slice(0, 3))
       );

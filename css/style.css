@@ -427,6 +427,32 @@
   --scene-grass-dk-rgb: 52, 66, 36;
   --scene-leaf-dk-rgb: 62, 84, 40;
   --scene-lamp-glow-rgb: 217, 167, 116;
+  /* T02 開場標題 v1.1 專屬 token（small-screens-spec-2 §T02；色值取自 L3 Logo 像素與規格，只准用在 #ivg） */
+  --t02-bronze: #8a6c4e;
+  --t02-bronze-hi: #b98a5e;
+  --t02-seal: #8a2a1a;
+  --t02-seal-edge: #b01a14;
+  --t02-seal-hi: #c43d24;
+  --t02-bone: #e3dcd3;
+  --t02-bronze-30: rgb(138 108 78 / 0.3);
+  --t02-bronze-60: rgb(138 108 78 / 0.6);
+  --t02-frame: rgb(168 146 127 / 0.32);
+  --t02-frame-hi: rgb(185 138 94 / 0.55);
+  --t02-rim: rgb(232 229 225 / 0.1);
+  --t02-rim-hi: rgb(232 229 225 / 0.18);
+  --t02-ember: rgb(176 26 20 / 0.38);
+  --t02-ember-dn: rgb(176 26 20 / 0.3);
+  --t02-black-0: rgb(0 0 0 / 0);
+  --t02-black-38: rgb(0 0 0 / 0.38);
+  --t02-black-50: rgb(0 0 0 / 0.5);
+  --t02-black-55: rgb(0 0 0 / 0.55);
+  --t02-black-60: rgb(0 0 0 / 0.6);
+  --t02-black-90: rgb(0 0 0 / 0.9);
+  --t02-off-edge: #5a544e;
+  --t02-off-seal: #3f3b36;
+  --t02-off-seal-edge: #4a443e;
+  --t02-off-frame: rgb(129 123 117 / 0.18);
+  --t02-serif: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: var(--scene-void); color: var(--tx); font: 500 var(--fs)/1.5 var(--font); user-select: none; -webkit-user-select: none; }
@@ -4448,30 +4474,26 @@ body.d12 #authcf .acfw { position: absolute; left: 22px; top: 148px; width: 552p
 body.d12 #authcf .acfy { position: absolute; left: 22px; top: 244px; width: 220px; height: 44px; }
 body.d12 #authcf .acfn { position: absolute; left: 394px; top: 244px; width: 180px; height: 44px; }
 /* T02 開場標題 v1.1（small-screens-spec-2 §T02，2026-11-27 定稿）：1 背景 A cover 置中 → 2 中央局部暗暈（x<230、x>1050 不壓）→ 3 Logo L3 200,146 880×268 → 4 分隔線 480,432 320×9 → 5 主鈕「踏入燼窟」504,463 272×56。
-   --t02-* 只准用在 T02（宣告在 #ivg 內，別的畫面拿不到）；主鈕是 D2「主鈕用 --act」「不准漸層底」的唯一例外 */
-#ivg {
-  --t02-bronze: #8a6c4e; --t02-bronze-hi: #b98a5e; --t02-seal: #8a2a1a; --t02-seal-edge: #b01a14; --t02-seal-hi: #c43d24; --t02-bone: #e3dcd3;
-  --t02-serif: 'Noto Serif TC', 'Noto Serif CJK TC', serif;
-  background: var(--panel-inset); gap: 0;
-}
+   --t02-* 宣告在 :root（色票規則：色碼只寫在 :root），只准用在 #ivg；主鈕是 D2「主鈕用 --act」「不准漸層底」的唯一例外 */
+#ivg { background: var(--panel-inset); gap: 0; }
 #ivg .ivbg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; image-rendering: pixelated; }
-#ivg .ivsc { position: absolute; inset: 0; background: radial-gradient(380px 260px at 50% 350px, rgb(0 0 0 / 0.5) 0, rgb(0 0 0 / 0.38) 55%, rgb(0 0 0 / 0) 100%); }
+#ivg .ivsc { position: absolute; inset: 0; background: radial-gradient(380px 260px at 50% 350px, var(--t02-black-50) 0, var(--t02-black-38) 55%, var(--t02-black-0) 100%); }
 #ivg h1, #ivg .tdiv, #ivg #ivgo { position: relative; z-index: 1; }
 #ivg h1 { margin: 0; width: 880px; height: 268px; line-height: 0; }
 #ivg h1 picture { display: block; }
 #ivg .ivlogo { display: block; width: 880px; height: 268px; image-rendering: pixelated; }
 #ivg .tdiv { display: block; width: 320px; height: 9px; margin: 18px 0 22px; }
 #ivg .tdiv::before { content: ""; position: absolute; left: 0; right: 0; top: 4px; height: 1px;
-  background: linear-gradient(90deg, transparent 0 12.5%, rgb(138 108 78 / 0.3) 12.5% 25%, rgb(138 108 78 / 0.6) 25% 37.5%, var(--t02-bronze) 37.5% 47%, transparent 47% 53%, var(--t02-bronze) 53% 62.5%, rgb(138 108 78 / 0.6) 62.5% 75%, rgb(138 108 78 / 0.3) 75% 87.5%, transparent 87.5% 100%); }
+  background: linear-gradient(90deg, transparent 0 12.5%, var(--t02-bronze-30) 12.5% 25%, var(--t02-bronze-60) 25% 37.5%, var(--t02-bronze) 37.5% 47%, transparent 47% 53%, var(--t02-bronze) 53% 62.5%, var(--t02-bronze-60) 62.5% 75%, var(--t02-bronze-30) 75% 87.5%, transparent 87.5% 100%); }
 #ivg .tdiv::after { content: ""; position: absolute; left: 50%; top: 4.5px; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; transform: rotate(45deg); background: var(--t02-seal-edge); }
 /* 主鈕「踏入燼窟」幽冥石碑・硃印 272×56（四態照 T02-title-btn-states.png） */
 #ivg .tgo { position: relative; box-sizing: border-box; width: 272px; height: 56px; padding: 0; margin: 0; display: inline-flex; align-items: center; justify-content: center; gap: 18px;
-  font: 700 22px/1 var(--t02-serif); letter-spacing: 0; color: var(--tx); text-shadow: 0 1px 0 rgb(0 0 0 / 0.9);
+  font: 700 22px/1 var(--t02-serif); letter-spacing: 0; color: var(--tx); text-shadow: 0 1px 0 var(--t02-black-90);
   background: linear-gradient(180deg, var(--panel-grad-top) 0, var(--panel) 40%, var(--panel-inset) 100%);
   border: 1px solid var(--t02-bronze); border-radius: 0; min-width: 0; min-height: 0;
-  box-shadow: inset 0 1px 0 rgb(232 229 225 / 0.1), inset 0 -2px 0 rgb(0 0 0 / 0.55), 0 0 0 3px rgb(0 0 0 / 0.6), 0 8px 24px rgb(0 0 0 / 0.5);
+  box-shadow: inset 0 1px 0 var(--t02-rim), inset 0 -2px 0 var(--t02-black-55), 0 0 0 3px var(--t02-black-60), 0 8px 24px var(--t02-black-50);
   cursor: pointer; outline: none; transition: border-color 120ms ease-out, box-shadow 120ms ease-out, color 120ms ease-out, transform 60ms ease-out; }
-#ivg .tgo::before { content: ""; position: absolute; inset: 3px; border: 1px solid rgb(168 146 127 / 0.32); pointer-events: none; transition: border-color 120ms ease-out; }
+#ivg .tgo::before { content: ""; position: absolute; inset: 3px; border: 1px solid var(--t02-frame); pointer-events: none; transition: border-color 120ms ease-out; }
 #ivg .tgo .cn { position: absolute; width: 7px; height: 7px; border: 0 solid var(--panel-edge); pointer-events: none; transition: border-color 120ms ease-out; }
 #ivg .tgo .cn.tl { left: -4px; top: -4px; border-left-width: 1px; border-top-width: 1px; }
 #ivg .tgo .cn.tr { right: -4px; top: -4px; border-right-width: 1px; border-top-width: 1px; }
@@ -4480,19 +4502,19 @@ body.d12 #authcf .acfn { position: absolute; left: 394px; top: 244px; width: 180
 #ivg .tgo .seal { width: 8px; height: 8px; flex: none; transform: rotate(45deg); background: var(--t02-seal); box-shadow: 0 0 0 1px var(--t02-seal-edge); transition: background-color 120ms ease-out, box-shadow 120ms ease-out; }
 #ivg .tgo .lb { display: block; letter-spacing: 0.24em; margin-right: -0.24em; }
 #ivg .tgo:hover:not(:disabled), #ivg .tgo:focus-visible { color: var(--tx-strong); border-color: var(--t02-bronze-hi);
-  box-shadow: inset 0 1px 0 rgb(232 229 225 / 0.18), inset 0 -14px 16px -10px rgb(176 26 20 / 0.38), inset 0 -2px 0 rgb(0 0 0 / 0.55), 0 0 0 3px rgb(0 0 0 / 0.6), 0 8px 24px rgb(0 0 0 / 0.5); }
-#ivg .tgo:hover:not(:disabled)::before, #ivg .tgo:focus-visible::before { border-color: rgb(185 138 94 / 0.55); }
+  box-shadow: inset 0 1px 0 var(--t02-rim-hi), inset 0 -14px 16px -10px var(--t02-ember), inset 0 -2px 0 var(--t02-black-55), 0 0 0 3px var(--t02-black-60), 0 8px 24px var(--t02-black-50); }
+#ivg .tgo:hover:not(:disabled)::before, #ivg .tgo:focus-visible::before { border-color: var(--t02-frame-hi); }
 #ivg .tgo:hover:not(:disabled) .cn, #ivg .tgo:focus-visible .cn { border-color: var(--t02-bone); }
 #ivg .tgo:hover:not(:disabled) .seal, #ivg .tgo:focus-visible .seal { background: var(--t02-seal-edge); box-shadow: 0 0 0 1px var(--t02-seal-hi); }
 #ivg .tgo:focus-visible { outline: 1px solid var(--t02-bone); outline-offset: 6px; }
 #ivg .tgo:active:not(:disabled) { transform: translateY(1px); transition-duration: 60ms; color: var(--tx); border-color: var(--t02-bronze-hi);
   background: linear-gradient(180deg, var(--scene-void) 0, var(--panel-inset) 60%, var(--panel) 100%);
-  box-shadow: inset 0 2px 0 rgb(0 0 0 / 0.6), inset 0 -12px 14px -10px rgb(176 26 20 / 0.3), 0 0 0 3px rgb(0 0 0 / 0.6), 0 4px 12px rgb(0 0 0 / 0.5); }
+  box-shadow: inset 0 2px 0 var(--t02-black-60), inset 0 -12px 14px -10px var(--t02-ember-dn), 0 0 0 3px var(--t02-black-60), 0 4px 12px var(--t02-black-50); }
 #ivg .tgo:active:not(:disabled) .seal { background: var(--t02-seal-edge); box-shadow: 0 0 0 1px var(--t02-seal-hi); }
-#ivg .tgo:disabled { cursor: default; color: var(--tx-off); text-shadow: none; background: var(--panel-inset); border: 1px dashed #5a544e; box-shadow: 0 0 0 3px rgb(0 0 0 / 0.6); }
-#ivg .tgo:disabled::before { border-color: rgb(129 123 117 / 0.18); }
-#ivg .tgo:disabled .cn { border-color: #5a544e; }
-#ivg .tgo:disabled .seal { background: #3f3b36; box-shadow: 0 0 0 1px #4a443e; }
+#ivg .tgo:disabled { cursor: default; color: var(--tx-off); text-shadow: none; background: var(--panel-inset); border: 1px dashed var(--t02-off-edge); box-shadow: 0 0 0 3px var(--t02-black-60); }
+#ivg .tgo:disabled::before { border-color: var(--t02-off-frame); }
+#ivg .tgo:disabled .cn { border-color: var(--t02-off-edge); }
+#ivg .tgo:disabled .seal { background: var(--t02-off-seal); box-shadow: 0 0 0 1px var(--t02-off-seal-edge); }
 /* T02 維持極簡：標題畫面不出「跳過」文字鈕（旁白開始後才出；Esc 照舊可跳） */
 #intro:has(#ivg:not([hidden])) .ivskip { display: none; }
 @media (prefers-reduced-motion: reduce) { #ivg .tgo, #ivg .tgo::before, #ivg .tgo .cn, #ivg .tgo .seal { transition-duration: 0ms; } }
@@ -4505,9 +4527,9 @@ body.d12 #authcf .acfn { position: absolute; left: 394px; top: 244px; width: 180
   body:not(.touch) #ivg[hidden] { display: none; }
 }
 /* 觸控與小畫面：同一組直排置中；Logo 只用 1×（440×134 原尺寸）或 2×，放不下 1× 才等比縮（待裁） */
-body.touch #ivg .ivsc { background: radial-gradient(380px 260px at 50% 50%, rgb(0 0 0 / 0.5) 0, rgb(0 0 0 / 0.38) 55%, rgb(0 0 0 / 0) 100%); }
+body.touch #ivg .ivsc { background: radial-gradient(380px 260px at 50% 50%, var(--t02-black-50) 0, var(--t02-black-38) 55%, var(--t02-black-0) 100%); }
 @media (max-width: 919px), (max-height: 599px) {
-  #ivg .ivsc { background: radial-gradient(380px 260px at 50% 50%, rgb(0 0 0 / 0.5) 0, rgb(0 0 0 / 0.38) 55%, rgb(0 0 0 / 0) 100%); }
+  #ivg .ivsc { background: radial-gradient(380px 260px at 50% 50%, var(--t02-black-50) 0, var(--t02-black-38) 55%, var(--t02-black-0) 100%); }
   #ivg h1, #ivg .ivlogo { width: 440px; height: 134px; }
 }
 @media (max-width: 471px) {
