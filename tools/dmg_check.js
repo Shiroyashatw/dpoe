@@ -101,7 +101,8 @@ function gear(t, want, wt, off, L = 999, noInt) {
       if (!pool.length) break;
       const b = pool[Math.floor(sMath.random() * pool.length)],
         it = R('mkItem')(b.id, R('tierIlvl')(t), 2),
-        v = it.a.reduce((a, x) => a + (want[x.k] || 0) * (Array.isArray(x.v) ? x.v[1] : x.v), 0);
+        /* SU-02：複合詞拆成兩種能力各自算（items.js 的 affParts） */
+        v = it.a.flatMap(R('affParts')).reduce((a, [k, x]) => a + (want[k] || 0) * (Array.isArray(x) ? x[1] : x), 0);
       if (v > bv) (bv = v), (best = it);
     }
     if (best && (e.k !== 'off' || R('offOK')(eq.weapon, best))) eq[e.k] = best;
