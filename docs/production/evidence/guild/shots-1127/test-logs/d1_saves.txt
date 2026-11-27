@@ -1,0 +1,2 @@
+寫好 6 份：/home/user/dpoe/demo/d1/saves
+exit=0

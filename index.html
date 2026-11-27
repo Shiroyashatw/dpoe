@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0b0d">
-<title>dungeonPOE</title>
+<title>山海燼窟 Shanhai Crypts</title>
 <!-- 安裝版（PWA）已取消（2026-11-21）：以前裝過的清掉 service worker 與快取 -->
 <script>
 if (navigator.serviceWorker) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {});
@@ -12,7 +12,7 @@ if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).c
 </script>
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap">
 <link rel="stylesheet" href="css/style.css?v=0.5.6">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 </head>
@@ -35,6 +35,8 @@ if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).c
 <div id="pmore" class="panel" role="dialog" aria-label="更多" hidden></div>
 <div id="pnode" class="panel" role="dialog" aria-label="地點" hidden></div>
 <div id="pcamp" class="panel" role="dialog" aria-label="營地升級" hidden></div>
+<div id="pguild" class="panel" role="dialog" aria-label="商會" hidden></div>
+<div id="gtip" role="tooltip" hidden></div>
 <!-- M2-12：掛機條（44 高，點開 200）、倒下字板、離線結算、量安全區用的探針 -->
 <div id="pidle" role="region" aria-label="本次掛機" hidden></div>
 <button id="pcline" data-a="campline" aria-live="polite" hidden></button>
@@ -48,14 +50,16 @@ if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).c
 <nav id="pnav" aria-label="功能" hidden></nav>
 <div id="ptree" hidden></div>
 <div id="over" hidden></div>
+<div id="authcf" hidden></div>
 <div id="tip" hidden></div>
 <div id="ttip" hidden></div>
+<div id="ztip" role="tooltip" hidden></div>
 <div id="rcd" hidden></div>
 <div id="lid" hidden><i></i><i></i></div>
 <div id="intro" hidden>
   <button class="btn ivskip" data-iv="skip">跳過</button>
   <div class="ivb"><p id="ivs" aria-live="polite"></p></div>
-  <div id="ivg"><h1>dungeonPOE</h1><button class="btn pri" id="ivgo" data-iv="go">開始</button></div>
+  <div id="ivg"><img class="ivbg" src="img/title/t02_title_bg_A_1280x720.png" alt="" aria-hidden="true"><i class="ivsc" aria-hidden="true"></i><h1><picture><source media="(max-width: 919px), (max-height: 599px)" srcset="img/title/t02_title_logo_L3_1x.png"><img class="ivlogo" src="img/title/t02_title_logo_L3_2x.png" width="880" height="268" alt="山海燼窟 SHANHAI CRYPTS"></picture></h1><i class="tdiv" aria-hidden="true"></i><button class="tgo" id="ivgo" data-iv="go" aria-label="踏入燼窟"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i><span class="seal"></span><span class="lb">踏入燼窟</span><span class="seal"></span></button></div>
 </div>
 <script src="js/core.js?v=0.5.6"></script>
 <script src="js/palette.js?v=0.5.6"></script>

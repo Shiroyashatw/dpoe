@@ -77,7 +77,8 @@ async function flow(b) {
   ok(
     '地點清單（M2-07）：清單比面板高時面板可以捲到最後一個',
     await p.evaluate(() => {
-      const P = $('pnode'),
+      /* 地點 v1.0 桌機（#pnode.z12）：標題與星級固定，捲的是清單 .ndl；其他尺寸面板自己捲 */
+      const P = $('pnode').classList.contains('z12') ? $('pnode').querySelector('.ndl') : $('pnode'),
         L = P.querySelectorAll('.ndr');
       P.scrollTop = P.scrollHeight;
       const a = L[L.length - 1].getBoundingClientRect(),

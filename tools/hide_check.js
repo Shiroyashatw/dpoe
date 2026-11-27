@@ -172,7 +172,20 @@ const ok = (n, c, info = '') => {
     const got = await panelOf(),
       warn = await p.evaluate(() => $('warn').textContent),
       lk = await p.evaluate(k => lockTxt(k), want[s.k]);
-    if (lk)
+    /* 昇華 v1.0（ascend-spec A01）：石碑沒開照樣打開 15 格全 ??? 的選擇面板，同時出那一句；其他設施照舊不開 */
+    if (lk && want[s.k] === 'asc')
+      ok(
+        `點${s.n}（未解鎖）：出「${lk}」、打開 15 格全 ???（ascend-spec A01）`,
+        got === 'asc' &&
+          warn === lk &&
+          (await p.evaluate(
+            () =>
+              [...document.querySelectorAll('#pasc .axk.q, #pasc .axl-q')].filter(e => e.textContent.includes('???'))
+                .length === 15
+          )),
+        got + ' ' + warn
+      );
+    else if (lk)
       ok(
         `點${s.n}（未解鎖）：出「${lk}」、不開面板`,
         !got && warn === lk && /^升.+到 Lv \d+ 才開$/.test(lk),
