@@ -72,7 +72,7 @@
 | 戰鬥線框 | W/W1-battle/ | — | **已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；線框與上色示意圖在 `W/W1-battle-hud/` |
 | 掛機條、光柱、倒下 | 併進戰鬥 HUD | — | 部分取代：掛機條版面與光柱外觀 → specs/battle-hud/；掛機條營地訊號（M2-camp-cards §7）、橫幅／王倒下（M2-33-3b、M2-23 §6）、倒下（M2-40 §8）仍現行；觀戰鈕已拿掉（mumi 11/20 17:33 拿掉觀戰鍵） |
 | 掉落橫幅、王倒下卡 | `S/M2-33-3b-feedback.md` §2、§3、§5＋`S/M2-23-feedback.md` §6 | 11/18 | 現行；之後併成 S/loot-feedback.md |
-| 離線結算 | `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.4／v1.2 | 現行（只限這兩節）；之後拆成 S/offline-return.md |
+| 離線結算 | `S/small-screens/small-screens-spec-2.md` §O01 v1.0（1280×720 畫面定稿）；規則仍見 `S/M2-12-shell-part2.md` §5＋`S/M2-12-shell-part1.md` §7 | v1.0 | 定稿（mumi 2026-11-27，跳過上色關） |
 | 營地（卡片）＋設施詳細頁 | `S/camp.md` v1.0（1280×720 定稿；示意圖 `W/W2-camp/color/` 01–15）。`S/M2-camp-cards.md` v1.0.2 的 1280 卡片／詳細頁／示意圖 **已取代**（檔案保留，勿刪）；衝突以 camp.md 為準。掛機條營地訊號（原 M2-camp-cards §7）仍可對照 | v1.0 | 定稿（mumi 11/25 18:14 上色示意圖 v0.5 過關，不再審；五座固定順序、一行利益；用字凍結，待本地化編輯過規格用字表；390 本版不含；未進入開發） |
 | 營地線框 | W/W2-camp/ | — | **已取代**：現行示意圖是 `W/W2-camp/color/`（camp v1.0）；根目錄印章／銘牌圖保留，勿刪 |
 | 地點清單 | `S/M2-33-2b-panels.md` §6 | 11/18 | 現行；B7 新檔 S/location-list.md 待寫 |
@@ -83,20 +83,21 @@
 | 詞綴與底材挑選 | `S/M2-item-affix-base-pick.md` | v1.7 | 待轉入（UIUX 確認後） |
 | 倉庫 | `S/stash.md` v1.0（1280×720 定稿；上色示意圖 `W/W-stash/color/` 01–25）。格子與說明以 `S/M2-item-display.md` 為準；IA、分頁名仍見 `S/M2-37-ia-rework.md`／`S/M2-37-ia-rework-2.md`，與本檔衝突的 1280 倉庫畫面以 stash 為準。名詞以 `docs/glossary-talent-v1` @`425a113c` v0.6.57 為準（未合併該分支）。390 本版不含出圖（只做自動檢查；右欄列高 24＜44 待辦）。未進入開發 | v1.0 | 定稿（mumi 11/25 18:14 准緊湊右欄後指示直接定稿；與營地 v1.0 同一 PR） |
 | 角色 | `S/M2-character.md` v1.1 ＋ `S/M2-character-1280.md`（1280×720 定稿；390 元件表 `S/M2-character-2.md`～`S/M2-character-4.md`；格子與說明以 `S/M2-item-display.md` v1.2 為準；2a §4、M2-37 §8 空格狀態仍可對照，與 1280 衝突時以 M2-character-1280 為準） | v1.1 | 定稿（mumi 11/24 12:22 上色示意圖過關；示意圖 `W/W3-character/color/`；390×844 仍見主檔 §1–§11，示意圖未進 repo；珠寶分頁不在本版；未進入開發） |
-| 商會 | 規則 `S/M2-trade-tiercap.md`；換通貨與每小時額度 `docs/production/adjust/材料來源.md` §6 | v1.0；定稿 v1.1 | 規則現行；畫面待寫（各自批次到了再定） |
+| 商會 | `S/guild/guild-spec.md` v1.0（1280×720 定稿；示意圖 `docs/production/evidence/guild/` G01–G03；滿寬雙欄、每列「換 1 顆／換到上限」、只在會用光材料時兩步確認、皮→加詞石 T5＝600 正式值共用 234／時、至臻石不換）。規則仍見 `S/M2-trade-tiercap.md`、`docs/production/adjust/材料來源.md` §6。交接 `S/guild/guild-handoff.md`。390 不出圖（只做自動檢查）。未進入開發 | v1.0 | 定稿（mumi 2026-11-27 核可草稿，裁定非核心畫面跳過上色關，直接定稿） |
 | 技能分頁＋輔助孔 | `S/skills-panel.md` v1.0.1（1280×720 定稿；輔助孔規則與文案仍見 `S/M1-08-support-sockets.md`，與本檔衝突時以 skills-panel 為準） | v1.0.1 | 定稿（mumi 11/24 17:50 上色示意圖過關，更換圖示採名稱右側方案 a；v1.0.1 對齊名詞表工作版 v0.6.47；示意圖 `W/W4-skill-panel/color/`（01、03–05、07–18；01b 不採用）；`S/M2-40-skill-panel-hud.md` 技能分頁／抽屜版面 **已取代**；戰鬥 HUD 仍見 `specs/battle-hud/battle-hud.md` v1.3；M2-40 裡的「祭壇」字串，畫面上一律改寫「長老屋」（名詞表 v0.6.19）；390 本版不含；未進入開發） |
 | 技能分頁＋輔助孔 | `S/M2-40-skill-panel-hud.md` 技能分頁段（§2.1／§2.2 抽屜、§4–§10） | v1.2.1 | 舊版（已由 `S/skills-panel.md` v1.0.1 取代；UIUX 11/25 裁定）；**戰鬥 HUD 部分已取代**：現行是 `specs/battle-hud/battle-hud.md` v1.3；M2-40 裡的「祭壇」字串，畫面上一律改寫「長老屋」（名詞表 v0.6.19） |
 | 天賦樹 | `S/talent-tree.md` v1.0.1（1280×720 定稿；示意圖 `W/W5-talent-tree/` 01–19；滿版、珠寶孔、能力值三選一、重置長按 0.6 秒）。名詞以 `docs/glossary-talent-v1` @`344ff9a` v0.6.49 為準（未合併該分支）。開樹時戰鬥暫停／照刷與昇華石碑仍見 `S/D1-fix-mumi-1119-part2.md` §6，與本檔衝突的 1280 樹面以 talent-tree 為準 | v1.0.1 | 定稿（mumi 11/25 09:46 指示直接定稿進 repo，跳過上色關；11/25 10:43 核可英文、珠寶掉落句與連擊三種用法都維持原名；數值設計師：J3c＝t210、路徑點數 23／19／15／15／16／20、未選能力值不畫成力量；390 本版不含；未進入開發） |
 | 昇華石碑 | `S/D1-fix-mumi-1119-part2.md` §6 | v1.2 | 現行（入口兩處都留） |
-| 更多分頁 | `S/M2-33-2b-panels.md` §3＋`S/M2-37-ia-rework.md` §3 | 11/18 | 現行 |
+| 更多分頁 | `S/small-screens/small-screens-spec.md` §M01 v1.0（1280×720 定稿；3×3 共 9 格，已拿掉追逐物品格；示意圖 `docs/production/evidence/small-screens/M01-more.png`）。`S/M2-33-2b-panels.md` §3＋`S/M2-37-ia-rework.md` §3 不衝突部分仍有效 | v1.0 | 定稿（mumi 2026-11-27，跳過上色關） |
 | 底部分頁 7 格 | `S/M2-37-ia-rework.md`＋`S/M2-37-ia-rework-2.md`（§12） | v1.3.1 | **現行**：mumi 18:45 定 7 格、倉庫獨立（對齊 battle-hud）；18:14 分頁名戰利品改倉庫；12:40 拆檔 |
 | M2-37 續篇 | `S/M2-37-ia-rework-2.md`（§12 M2-38 實作交辦） | v1.3.1 | 現行（2026-11-21 12:40 自主檔整節移出，正文未改寫） |
 | 追逐物品面板 | `S/M2-33-3b-feedback.md` §1＋`S/M2-37-ia-rework.md` §5 | 11/18 | **已取代**（mumi 2026-11-25 14:40 選 C、15:04 併頁，relayed）：王印的收集格、保底、套到裝備改放倉庫「特殊物品」分頁（mumi 14:42 M5 定名），取代製作人 D2 = B；桌機分頁「追逐物品」與追逐物品面板併進特殊物品分頁的「追逐物品」區（mumi 15:04）；新頁規格待寫（UIUX），機制定義見名詞表 v0.6.56 |
 | 倉庫 › 特殊物品分頁 | （無） | — | 待寫（UIUX；頁名「特殊物品」mumi 2026-11-25 14:42 定（M5）；第一區「追逐物品」（王印，mumi 15:04 併頁），其餘放首領碎片，分區用地點名（鬼門關／心魔幻境／凶地／陰兵借道／裂口，mumi 2026-11-25 15:35，幕僚長轉達，relayed）；神格本版不入倉庫；機制定義見名詞表 v0.6.56「特殊物品」「神格」列） |
-| 掉落紀錄 | `S/M2-33-2b-panels.md` §5 | 11/18 | 現行 |
+| 掉落紀錄 | `S/small-screens/small-screens-spec.md` §L01–L02 v1.0（1280×720 定稿；類別框標文字，「好胚」改「裝備」並列畫面禁用詞；示意圖 L01–L02）。`S/M2-33-2b-panels.md` §5 不衝突部分仍有效 | v1.0 | 定稿（mumi 2026-11-27，跳過上色關） |
+| 剩餘小畫面（倒下卡／字板、回營地確認、追逐與稀有橫幅、練習區） | `S/small-screens/small-screens-spec-2.md` v1.0（D01、D02、C01、B01、B02、P01；共用殼與 D2 token 對照在 `S/small-screens/small-screens-spec.md` §2）。交接 `S/small-screens/small-screens-handoff.md`；示意圖與驗收 `docs/production/evidence/small-screens/`（15 張）。390 不出圖 | v1.0 | 定稿（mumi 2026-11-27 核可草稿，裁定非核心畫面跳過上色關，直接定稿） |
 | 王印 | 王印 v0.2（Page 685f7eea） | v0.2 | 待轉入成 S/king-seal.md（各自批次到了再定） |
-| 標題、暫停、讀取 | （無） | — | 待寫（W6） |
-| 設定、鍵位 | `S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 | 11/18 | 現行；以 battle-hud v1.3 為準 |
+| 標題、暫停、讀取 | 開場旁白與標題：`S/small-screens/small-screens-spec-2.md` §T01–T02 v1.0（T02 預留滿版 1280×720 背景圖槽位＋62% 遮罩＋壓字安全區）。暫停選單、讀取畫面程式沒有，未寫 | v1.0（標題） | 標題定稿（mumi 2026-11-27）；暫停、讀取待寫 |
+| 設定、鍵位 | `S/small-screens/small-screens-spec.md` §S01–S03 v1.0（1280×720 定稿；滿寬三欄、23 列免捲；登入覆蓋訪客進度兩步確認 S02）。`S/M2-33-2b-panels.md` §4＋`S/M2-33-1-foundations.md` §11 不衝突部分仍有效；以 battle-hud v1.3 為準 | v1.0 | 定稿（mumi 2026-11-27，跳過上色關） |
 | 新手、解鎖提示 | `S/M1-13-unlock-copy.md` | — | **部分取代**：營地設施升級後／卡片利益句以 `S/camp.md` 為準（M1-13 與工坊表／產生器列已過時，見 camp.md 待辦 Q4；檔案保留，勿刪）；非營地解鎖提示仍見本檔；畫面 B9 待寫 |
 | 對話框、元件 | `S/M2-33-1-foundations.md` §5、§9＋`S/palette-D2-panel-1plus.md` | foundations v1.0.2／panel-1plus v1.2 | 現行 |
 | PWA 安裝說明 | `S/M4P-03-pwa.md` | 11/17 | 已取消（superseded，mumi 11/21 12:42）；正文留作歷史紀錄 |
