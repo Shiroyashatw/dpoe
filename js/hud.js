@@ -522,6 +522,8 @@ const idleOn = () =>
   !(PORT() && anyPanel()) &&
   /* 鍛造 v1.0 桌機：鍛造面板 760×536 蓋到左下，掛機卡收起（forge-spec §1 版面沒有掛機卡） */
   !(PANEL.craft && CRAFT.tab !== 'camp' && !TOUCH.on && !PORT()) &&
+  /* 昇華、山海寶盒、地點 v1.0 桌機：版面沒有掛機卡（面板蓋到左下） */
+  !((PANEL.asc || PANEL.box || PANEL.node) && D12()) &&
   (!TOUCH.on || PORT());
 /* 半版面板開著（世界地圖是全螢幕，不算）；M2-12 起掛機條是 44 高的條，不算半版 */
 const sheetOn = () => !!(PORT() && anyPanel());
@@ -684,12 +686,14 @@ function moreHTML() {
     ${fsOK() && !inApp() && !fsOn() ? row('fs', '全螢幕', '藏起網址列') : ''}
   </div>`;
 }
-/* 「地點」（0.5.2，工坊與解鎖表第 7 節）：取代世界地圖的唯一入口。上面是星級（全域，上限照斥候營），
-   底下一列一個節點、照區域分組；M2-07：全部列出（面板自己捲動），主幹照順序、特殊節點接在它掛的主幹後面；
-   鎖著的寫條件（wWhy），下一個寫「升瞭望台 Lv n 就開」、點了去營地；其他鎖著的點了也寫原因。
-   每列寫怪物 Lv 與這個地點刷過的靈魂／分（S.spm，刷過才有）、正在刷的那一列。點一列＝去那裡刷 */
+/* 「地點」v1.0（specs/zones/zones-spec.md；0.5.2 起唯一入口）：上面星級永遠畫 1★–5★（全域，上限照斥候營；沒開的虛線、不能選、
+   停 0.4 秒出「升斥候營到 Lv n 才開」）；底下一列一個節點、照區域分組，全部列出（面板自己捲），特殊節點接在它掛的主幹後面。
+   列：名字｜Lv · 每分鐘靈魂（刷過才有；特殊地點加類型）｜狀態（正在刷／升瞭望台 Lv n 就開／wWhy）。點已開＝去刷、下一座＝去營地、其他鎖的＝寫原因。
+   桌機 #pnode.z12 收到 640 寬靠左，右邊露出戰場 */
+const NODEUI = { star: 0 };
 function nodeHTML() {
   const st0 = wStar(S),
+    mx = campN('star'),
     spm = S.spm || {},
     nx = TRUNK_K[wFront(S) + 1],
     keys = TRUNK_K.flatMap((k, i) => [k, ...SPECIAL.filter(o => o.at === i).map(o => wKey(o.q, o.r))]);
@@ -699,21 +703,40 @@ function nodeHTML() {
       const [q, r] = wXY(k),
         why = wWhy(S, q, r),
         n = WNODE[k],
+        on = S.world.cur === k,
         head = n.g !== g ? `<li class="ndg">${esc((g = n.g))}</li>` : '',
-        st =
-          S.world.cur === k
-            ? '<em class="c-gold">正在刷</em>'
-            : k === nx
-              ? `<em>升瞭望台 Lv ${n.i} 就開</em>`
-              : why
-                ? `<em>${esc(why)}</em>`
-                : '';
-      return `${head}<li class="${why ? 'lock' : ''}${k === nx ? ' nx' : ''} ${S.world.cur === k ? 'on' : ''}"><button class="ndr" ${k === nx ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>怪物 Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${abbr(spm[k], 'own')} 靈魂` : ''}</small>${st}</button></li>`;
+        st = on ? '正在刷' : k === nx ? `升瞭望台 Lv ${n.i} 就開` : why;
+      return `${head}<li class="${why ? 'lock' : ''}${k === nx ? ' nx' : ''} ${on ? 'on' : ''}" data-g="${esc(n.g)}"><button class="ndr" ${k === nx ? 'data-tm="nav:craft"' : `data-a="ngo:${k}"`}><b>${esc(wName(S, q, r))}</b><small>Lv ${wLv(q, r)}${n.i == null ? ` · ${esc(WTYPE[n.t].n)}` : ''}${spm[k] ? ` · 每分鐘 ${abbr(spm[k], 'own')} 靈魂` : ''}</small>${st ? `<em>${esc(st)}</em>` : ''}</button></li>`;
     })
     .join('');
+  const stars = [1, 2, 3, 4, 5]
+    .map(i =>
+      i <= mx
+        ? `<button class="chip ${st0 === i ? 'on' : ''}" role="radio" aria-checked="${st0 === i}" data-a="nstar:${i}">${i}★</button>`
+        : `<button class="chip off" role="radio" aria-checked="false" aria-disabled="true" data-zh="star:${i}">${i}★</button>`
+    )
+    .join('');
   return `<div class="ph"><b>地點</b><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="bagf ndst" role="radiogroup" aria-label="星級">${Array.from({ length: campN('star') }, (_, i) => `<button class="chip ${st0 === i + 1 ? 'on' : ''}" role="radio" aria-checked="${st0 === i + 1}" data-a="nstar:${i + 1}">${i + 1}★</button>`).join('')}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條地圖詞・星越多越危險、掉得越好</span></div>
-  <ul class="ndl">${rows}</ul>`;
+  <div class="bagf ndst" role="radiogroup" aria-label="星級"><span class="ndst-t">星級</span>${stars}<span class="c-dim">${STARS[st0].n[0]}～${STARS[st0].n[1]} 條<span class="zterm" data-zh="地圖詞" tabindex="0">地圖詞</span> · 越危險、掉越好</span></div>
+  <ul class="ndl">${rows}</ul><p class="ndft">${NODEUI.star ? '星級是全域的，所有地點共用。正在刷的這張地圖不立刻重抽地圖詞，下一張才生效。' : ''}</p>`;
+}
+document.addEventListener('scroll', e => e.target.matches && e.target.matches('#pnode .ndl') && nodeFoot(), true);
+/* 清單捲動提示（C01 第 15 項）：上面藏了幾個地點、下面從哪一區起；切過星級後這一行改寫星級說明 */
+function nodeFoot() {
+  const P = $('pnode'),
+    L = P.querySelector('.ndl'),
+    f = P.querySelector('.ndft');
+  if (!L || !f || NODEUI.star) return;
+  const r = L.getBoundingClientRect(),
+    li = [...L.querySelectorAll('li:not(.ndg)')],
+    up = li.filter(e => e.getBoundingClientRect().bottom <= r.top + 1),
+    dn = li.find(e => e.getBoundingClientRect().top >= r.bottom - 1);
+  f.textContent = [
+    up.length ? `↑ 上面還有${up[up.length - 1].dataset.g} ${up.length} 個地點` : '',
+    dn ? `↓ 後面還有${dn.dataset.g}以降` : ''
+  ]
+    .filter(Boolean)
+    .join('　');
 }
 /* 鍛造分頁的兩段（鍛造 v1.0、名詞表 F1）：打造永遠在；鍛造台（填、淬鍊、聖化、腐化、災魘）要鍛造台 Lv1。main 的「通貨」段併進鍛造台・填 */
 const CSEG = () =>
@@ -730,11 +753,15 @@ const craftSeg = on =>
 /* 鍛造的標題列：「鍛造」＋兩段＋自動分解規則（鍛造台 Lv8）＋關閉（直立、桌機同一份） */
 const forgeHead = on =>
   `<div class="ph"><b>${STR_T.forge}</b>${craftSeg(on)}${campCan('auto2') ? '<button class="btn fa2b" data-fg="a2o">自動分解規則</button>' : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
+/* 昇華、山海寶盒、地點 v1.0 的 1280×720 定稿版面：桌機、視窗至少 1280×720 才用（小視窗照順序排） */
+const D12 = () => !TOUCH.on && !PORT() && innerWidth >= 1280 && innerHeight >= 720;
 /* 面板對應的解鎖鍵（M1-06）：快捷鍵、更多選單、點營地場景的物件都走 openPanel，鎖在這裡。山海寶盒在解鎖表上沒有對應的設施，campCan 照舊放行 */
-const PANEL_LOCK = { asc: 'asc', box: 'box' };
+const PANEL_LOCK = { box: 'box' };
 function openPanel(k) {
   const lk = PANEL_LOCK[k] && lockTxt(PANEL_LOCK[k]);
   if (lk) return hudWarn(lk);
+  /* 昇華石碑沒開：照樣打開 15 格全 ??? 的選擇面板（ascend-spec A01），另出紅字 */
+  if (k === 'asc' && !campCan('asc')) hudWarn(lockTxt('asc'));
   /* 左邊一次只開一個（倉庫／技能寶石／鍛造台），右邊是背包 */
   if (k === 'stash' || k === 'skill' || k === 'craft') {
     /* 揭曉的「跳過動畫」：每次打開鍛造第 1 次打造不能勾（forge-spec §5） */
@@ -745,14 +772,26 @@ function openPanel(k) {
     PANEL[k] = true;
   } else PANEL[k] = true;
   if (k === 'chase') chaseSeeNow();
+  if (k === 'box') BOXUI.gm = 0;
   /* 技能面板（0.4.8）：打開一律先到總覽 */
   if (k === 'skill') skHome(), sk12Reset();
+  /* 桌機一律先到 15 格選擇面板；直立選好了直接看自己的 */
   if (k === 'asc')
-    (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]), (ASCUI.n = null), (ASCUI.pick = S.asc || !PORT() ? 0 : 1);
+    (ASCUI.v = S.asc || ASCUI.v || Object.keys(ASC)[0]),
+      (ASCUI.n = null),
+      (ASCUI.pick = S.asc && PORT() && campCan('asc') ? 0 : 1),
+      ascPause(1);
   hideTip();
   hudPanels();
 }
+/* 開昇華石碑：戰鬥停、回來一次補算（D1-fix §6，同營地 SES.away／campBack），那一行寫「昇華石碑期間」 */
+function ascPause(on) {
+  if (typeof SES === 'undefined' || !SES || G.scene !== 'map') return;
+  if (on && !SES.away) (SES.away = Date.now()), (SES.asc = 1);
+  else if (!on && SES.asc) campBack('昇華石碑期間');
+}
 function closePanels() {
+  if (PANEL.asc) ascPause(0);
   PANEL.inv =
     PANEL.stash =
     PANEL.skill =
@@ -772,6 +811,7 @@ function closePanels() {
   NAV.slot = null;
   CHUI.v = 0;
   clearTimeout(REV.tm);
+  zTip(null);
   hideTip();
   hudPanels();
 }
@@ -865,9 +905,9 @@ function acctHTML() {
 const KEEP = {
   pinv: ['', '.bagf.sub', '.c12l', '.c12g'],
   pskill: ['.sk-scroll', '.sk-chips'],
-  pnode: [''],
+  pnode: ['', '.ndl'],
   pchase: [''],
-  pasc: ['', '.ax-list'],
+  pasc: [''],
   plog: ['.lgl'],
   preveal: ['.rvl']
 };
@@ -952,15 +992,17 @@ function hudPanels() {
   if (PANEL.more) $('pmore').innerHTML = moreHTML();
   idleBar(1);
   $('pnode').hidden = !PANEL.node;
+  $('pnode').classList.toggle('z12', D12());
   if (PANEL.node) {
     panelHTML($('pnode'), nodeHTML());
     /* 剛打開：捲到正在刷的那一列 */
     if (!HV.nsel) {
       HV.nsel = 1;
       const on = $('pnode').querySelector('li.on');
-      if (on) on.scrollIntoView({ block: 'nearest' });
+      if (on) on.scrollIntoView({ block: D12() ? 'center' : 'nearest' });
     }
-  } else HV.nsel = null;
+    nodeFoot();
+  } else (HV.nsel = null), (NODEUI.star = 0);
   /* 桌機技能面板（skills-panel v1.0.1）走 skpanel12.js；觸控照舊 */
   $('pskill').classList.toggle('s12', sk12On());
   if (PANEL.skill && sk12On()) sk12Render();
@@ -983,7 +1025,10 @@ function hudPanels() {
   if (navOn() === 'forge') FSEG = fseg();
   $('pchase').hidden = !PANEL.chase;
   if (PANEL.chase) panelHTML($('pchase'), chasePanelHTML());
+  document.body.classList.toggle('d12', D12());
+  $('pasc').classList.toggle('a12', D12());
   if (PANEL.asc) panelHTML($('pasc'), ascHTML());
+  $('pbox').classList.toggle('b12', D12());
   if (PANEL.box) $('pbox').innerHTML = boxHTML();
   if (PANEL.ident) {
     $('preveal').classList.toggle('rvc', !!REV.craft);
@@ -991,6 +1036,7 @@ function hudPanels() {
     const n = $('preveal').querySelector('.new');
     if (n) n.scrollIntoView({ block: 'nearest' });
   }
+  zTipSync();
 }
 const hudInv = () => PANEL.inv && hudPanels();
 /* 裝備欄的位置（照 PoE 的人形擺法），單位 px */
@@ -1278,9 +1324,18 @@ function cantWear(it) {
   NQC.set(it.id, [sig, v]);
   return v;
 }
-/* 0.4.10：昇華先只開前兩個（做減法）；已經選了別的照樣看得到 */
-const ASC_SHOW = ['wind', 'iron'],
-  ascList = () => Object.entries(ASC).filter(([id]) => ASC_SHOW.includes(id) || id === S.asc);
+/* 昇華 v1.0（specs/ascend/ascend-spec.md §1）：永遠 15 格；已揭示的排前（風行神射、鐵金剛、潮汐），其餘 ??? 不露名。
+   石碑沒開（長老屋 < Lv 7）＝全部 ???；潮汐到長老屋 Lv 10（asc3）才可選，之前具名未開放；已經選了別的照樣看得到 */
+const ASC_REV = ['wind', 'iron', 'tide'],
+  ascOpen = id => campCan('asc') && (id === S.asc || (ASC_REV.includes(id) && (id !== 'tide' || campCan('asc3')))),
+  ascSlots = () => {
+    const L = campCan('asc') ? [...new Set([...ASC_REV, ...(S.asc ? [S.asc] : [])])] : [];
+    return Array.from({ length: Object.keys(ASC).length }, (_, i) => L[i] || null);
+  },
+  ascList = () =>
+    ascSlots()
+      .filter(id => id && ascOpen(id))
+      .map(id => [id, ASC[id]]);
 /* 這件最好的詞是 T 幾（沒有詞＝0）；跟這件物品等級能出的上限一樣就亮底 */
 const bestA = it => (it.a && it.a.length ? Math.min(...it.a.map(a => a.T)) : 0);
 function itemHTML(it, src, eqk) {
@@ -1540,6 +1595,95 @@ function holdInit() {
     true
   );
 }
+/* ---------- 浮動提示（昇華、山海寶盒、地點 v1.0）：data-zp＝卡片／節點，懸停或焦點立即出現（≤100 ms）；
+   data-zh＝名詞、未開星級，停 0.4 秒才出現。貼錨點旁（節點優先右、卡片優先下，放不下翻對側），夾在面板裡；不擋點擊 ---------- */
+const ZH = {
+  昇華: ['昇華石碑', '長老屋 Lv 7 開，在這裡選昇華；先開兩個，長老屋 Lv 10 再開第 3 個'],
+  山海寶盒: ['山海寶盒', '花首領碎片打開殿和王場。倒下的話，碎片不退。'],
+  首領碎片: ['首領碎片', '開殿、開王場用的掉落總稱。勾魂令、生死簿都算。數量跟倉庫「特殊物品」同一份。倒下不退。'],
+  地圖詞: ['地圖詞', '這張地圖上的危險與報酬。星級越高，抽到的條數越多，怪物更強、掉得更好。同一組只會出一條。']
+};
+const ZT = { a: null, t: 0 };
+const zTipHTML = (a, k) =>
+  k === 'zh'
+    ? a.dataset.zh.startsWith('star:')
+      ? `<b>${a.dataset.zh.slice(5)}★</b><p>升斥候營到 Lv ${a.dataset.zh.slice(5) - 1} 才開</p>`
+      : `<b>${ZH[a.dataset.zh][0]}</b><p>${ZH[a.dataset.zh][1]}</p>`
+    : ascTipHTML(a.dataset.zp);
+function zTip(a, k) {
+  const t = $('ztip');
+  clearTimeout(ZT.t);
+  ZT.a = a;
+  if (!a) return void (t.hidden = true);
+  /* 尺寸照示意圖：卡片預覽 360（A02）、寶盒右欄名詞 404（B01）、地點「地圖詞」520（C02） */
+  const map = a.dataset.zh === '地圖詞' && a.closest('#pnode');
+  t.className =
+    (k === 'zh' ? 'h' : '') +
+    (a.closest('.bxr') ? ' w404' : map ? ' w520' : a.dataset.zp && a.dataset.zp.startsWith('ak:') ? ' ak' : '');
+  t.innerHTML = zTipHTML(a, k);
+  t.hidden = false;
+  const r = a.getBoundingClientRect(),
+    box = (a.closest('.panel') || document.body).getBoundingClientRect(),
+    w = t.offsetWidth,
+    h = t.offsetHeight,
+    T = Math.max(box.top + 8, 8),
+    B = Math.min(box.bottom - 8, innerHeight - 8);
+  let x,
+    y,
+    L = Math.max(box.left + 8, 8),
+    R = Math.min(box.right - 8, innerWidth - 8);
+  const go = a.closest('.bxr') && [...a.closest('.bxr').querySelectorAll('.bxgo')].pop();
+  /* 山海寶盒右欄的名詞（B01 第 15 項）：放在兩顆開啟鈕下面，不擋主鈕 */
+  if (go) (x = go.getBoundingClientRect().left), (y = go.getBoundingClientRect().bottom + 12);
+  /* 地點「地圖詞」：放在面板右緣外側露出的戰場，不遮地點清單；右邊放不下（直立）照一般名詞放 */ else if (
+    map &&
+    box.right + 12 + w <= innerWidth - 8
+  )
+    (x = L = box.right + 12), (y = r.top), (R = x + w);
+  else if (k === 'zp' && a.matches('.axn')) {
+    x = r.right + 12 + w <= R ? r.right + 12 : r.left - 12 - w;
+    y = r.top + r.height / 2 - h / 2;
+  } else {
+    x = r.left;
+    y = r.bottom + 12 + h <= B ? r.bottom + 12 : r.top - 12 - h;
+  }
+  t.style.left = Math.round(Math.min(Math.max(x, L), R - w)) + 'px';
+  t.style.top = Math.round(Math.min(Math.max(y, T), B - h)) + 'px';
+}
+function zTipOn(a) {
+  if (a === ZT.a && !$('ztip').hidden) return;
+  clearTimeout(ZT.t);
+  if (!a) return zTip(null);
+  if (a.dataset.zp) return zTip(a, 'zp');
+  zTip(null);
+  ZT.a = a;
+  /* 0.4 秒內面板重畫過：找回同一個 data-zh 的新元素 */
+  ZT.t = setTimeout(() => {
+    const n = a.isConnected ? a : document.querySelector(`[data-zh="${CSS.escape(a.dataset.zh)}"]`);
+    if (ZT.a === a && n) zTip(n, 'zh');
+  }, 400);
+}
+document.addEventListener('pointerover', e => {
+  if (e.pointerType === 'touch') return;
+  zTipOn(e.target.closest && e.target.closest('#pasc [data-zp], [data-zh]'));
+});
+document.addEventListener('focusin', e => {
+  const a = e.target.closest && e.target.closest('[data-zp], [data-zh]');
+  if (a || ZT.a) zTipOn(a);
+});
+/* 觸控沒有懸停：點名詞或未開星級＝直接出提示 */
+document.addEventListener('click', e => {
+  const a = TOUCH.on && e.target.closest('[data-zh]');
+  if (a) zTip(a, 'zh');
+});
+/* 面板重畫：錨點換成新的同一個元素（同一個 data-zp）再定位一次；找不到就收 */
+function zTipSync() {
+  const a = ZT.a;
+  if (!a || a.isConnected || $('ztip').hidden) return;
+  const k = a.dataset.zp ? 'zp' : 'zh',
+    n = document.querySelector(`[data-${k}="${CSS.escape(a.dataset[k])}"]`);
+  zTip(n, k);
+}
 /* 名詞說明：疊在說明框上面，貼著被點的字 */
 function showTerm(el) {
   const w = el.dataset.term;
@@ -1565,29 +1709,6 @@ document.addEventListener('click', e => {
 /* 昇華石碑：上面選昇華，盤面的位置跟天賦樹中間一樣，直接在這裡點；換昇華免費、點數全部退回 */
 /* v 看哪個昇華、n 選中的點、pick 直立時「換昇華」的清單打開了沒（0.4.7：選好之後平常收著） */
 const ASCUI = { v: null, n: null, pick: 0 };
-/* 這個點為什麼不能點；空字串＝可以點或退回 */
-function ascWhy(id, T) {
-  if (S.at.includes(id)) return treeCanRefund(id) ? '' : '先退後面的點';
-  if (treeCan(id)) return '';
-  if (ascLeft() <= 0) return '昇華點用完了';
-  if (T.I[id].g && S.at.some(o => T.I[o].g === T.I[id].g)) return '同一組只能選一個';
-  return '要先點亮連著的點';
-}
-/* 說明列：選中的點的效果與點亮鈕 */
-function ascCap(k, T, sel) {
-  if (!sel) return `<div class="ax-cap ph0"><p>${esc(ASC[k].d)}</p></div>`;
-  const cur = S.asc === k,
-    start = sel.id === 'a_st',
-    w = cur && !start ? ascWhy(sel.id, T) : '',
-    on = cur && S.at.includes(sel.id),
-    gn = sel.g && T.N.filter(n => n.g === sel.g).length,
-    txt = sel.big === 1 ? termify(sel.d) : start ? '昇華的起點' : esc(statLines(sel.s).join(' · '));
-  return `<div class="ax-cap" data-n="${sel.id}"><div><b>${esc(sel.n)}</b><i>${sel.big === 1 ? '昇華大點' : ''}${gn ? ` · ${['', '', '二選一', '三選一'][gn]}` : ''}</i><p>${txt}</p></div>${
-    cur && !start
-      ? `<button class="btn ${on ? '' : 'pri'}" data-ax="t:${sel.id}" ${w ? `disabled title="${esc(w)}"` : ''}>${w || (on ? '退回這一點' : `點亮<small>剩 ${ascLeft()} 點</small>`)}</button>`
-      : ''
-  }</div>`;
-}
 /* ---------- 直立的昇華（0.4.7 重做）----------
    昇華的規則其實是「選 4 個大點，每個大點前面固定一個小點，所以一個 2 點」。以前照天賦樹畫成一張 13～25 個圓點的盤面，
    玩家要在 22px 的點上戳 8 次、對照下面的清單才知道每個點是什麼。手機上不畫盤面：
@@ -1683,13 +1804,14 @@ function ascDrop(id) {
 }
 function ascPortHTML() {
   const [sm, bg] = S.asc ? ascCount() : [0, 0],
-    head = `<div class="ph"><b>昇華石碑</b><span class="ax-sum">${S.asc ? `已選 <b class="c-gold">${bg}</b>／4 · 剩 <b class="${ascLeft() > 0 ? 'c-gold' : ''}">${ascLeft()}</b> 點` : `有 <b class="c-gold">${ascPoints(S)}</b> 點`}</span>${S.at.length > 1 ? `<button class="btn mini ax-reset" data-ax="reset">重置</button>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
+    head = `<div class="ph"><b>昇華</b><span class="ax-sum">${S.asc ? `已選 <b class="c-gold">${bg}</b>／4 · 剩 <b class="${ascLeft() > 0 ? 'c-gold' : ''}">${ascLeft()}</b> 點` : `有 <b class="c-gold">${ascPoints(S)}</b> 點`}</span>${S.at.length > 1 ? `<button class="btn mini ax-reset" data-ax="reset">重置</button>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>`;
   /* 15 個昇華的清單 */
   if (ASCUI.pick || !ASC[ASCUI.v])
-    return `${head}<div class="axl">${S.asc ? `<button class="btn axl-back" data-ax="v:${S.asc}">‹ 回到${ASC[S.asc].n}</button>` : '<p class="axl-h">選一個昇華。之後可以免費換，點數全部退回。</p>'}${ascList()
-      .map(
-        ([id, B]) =>
-          `<button class="axl-r ${S.asc === id ? 'cur' : ''}" data-ax="v:${id}">${icHTML(B.ic)}<span><b>${B.n}${S.asc === id ? '<i>目前</i>' : ''}</b><small>${esc(B.d)}</small></span></button>`
+    return `${head}<div class="axl">${!campCan('asc') ? `<p class="axl-h">${ASC_LOCK_T}</p><button class="btn pri axl-back" data-ax="camp">前往營地・長老屋</button>` : S.asc ? `<button class="btn axl-back" data-ax="v:${S.asc}">‹ 回到${ASC[S.asc].n}</button>` : '<p class="axl-h">選一個昇華。之後可以免費換，點數全部退回。</p>'}${ascSlots()
+      .map(id =>
+        id && ascOpen(id)
+          ? `<button class="axl-r ${S.asc === id ? 'cur' : ''}" data-ax="v:${id}">${icHTML(ASC[id].ic)}<span><b>${ASC[id].n}${S.asc === id ? '<i>目前</i>' : ''}</b><small>${esc(ASC[id].d)}</small></span></button>`
+          : `<div class="axl-q" tabindex="0" aria-disabled="true">${id ? `<b>${ASC[id].n}</b><small>未開放 · ${esc(lockTxt('asc3'))}</small>` : '<b>???</b><small>未開放</small>'}</div>`
       )
       .join('')}</div>`;
   const k = ASCUI.v,
@@ -1758,91 +1880,165 @@ function ascPortHTML() {
   <div class="axs-r"><p class="axs-t">${cur ? hint : '選 4 個大點，一個 2 點。先看看它有什麼'}</p><button class="btn" data-ax="pick">${cur ? '換昇華' : '‹ 全部昇華'}</button></div>
   ${body}</div>${cur ? '' : `<button class="btn pri ax-pick" data-a="asc:${k}">${S.asc ? `改成${A.n}（點數退回）` : `成為${A.n}`}</button>`}`;
 }
-function ascHTML() {
-  if (PORT()) return ascPortHTML();
+/* ---------- 昇華 v1.0 桌機（specs/ascend/ascend-spec.md）：A 選擇面板 5×3＝15 格 ↔ B 詳細盤面（單一滿寬、沒有側欄）。
+   座標照規格（面板內 px），#pasc.a12 的 CSS 擺；觸控橫向沒有 .a12，同一份 HTML 照順序排 ---------- */
+const ASC_LOCK_T = '升長老屋到 Lv 7 才開。下面 15 格是之後會出現的昇華位置。';
+const ascFirst = d => (d.match(/^[^。]*。/) || [d])[0];
+const ascSumT = () => {
+  const [sm, bg] = S.asc ? ascCount() : [0, 0];
+  return S.asc ? `剩 <b>${ascLeft()}</b> 點　·　小 ${sm}／4　·　大 ${bg}／4` : `可用 <b>${ascPoints(S)}</b> 點`;
+};
+function ascSelHTML() {
+  const lk = !campCan('asc'),
+    sum = lk ? `尚未解鎖 · ${lockTxt('asc')}` : `${S.asc ? `目前：${ASC[S.asc].n}　·　` : ''}${ascSumT()}`,
+    cards = ascSlots()
+      .map((id, i) => {
+        if (id && ascOpen(id)) {
+          const on = S.asc === id;
+          return `<button class="axk ${on ? 'cur' : 'open'}" data-ax="v:${id}" data-zp="ak:${id}" data-i="${i}"><span class="axk-ic">${icHTML(ASC[id].ic)}</span><b>${ASC[id].n}</b><i>${on ? '目前啟用' : '可選'}</i><p>${esc(ascFirst(ASC[id].d))}</p><small>點擊進入詳細盤面</small></button>`;
+        }
+        if (id)
+          return `<div class="axk off nm" tabindex="0" aria-disabled="true" data-zp="ak:${id}" data-i="${i}"><span class="axk-ic"></span><b>${ASC[id].n}</b><i>未開放</i><p>${esc(lockTxt('asc3'))}</p></div>`;
+        return `<div class="axk off q" tabindex="0" aria-disabled="true" aria-label="未開放" data-i="${i}"><b>???</b><i>未開放</i></div>`;
+      })
+      .join('');
+  return `<div class="ph"><b data-zh="昇華">昇華</b><span class="ax-sum">${sum}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="axgr">${cards}</div>${lk ? `<div class="axlk"><h3>昇華石碑尚未解鎖</h3><p>${ASC_LOCK_T}</p><button class="btn pri" data-ax="camp">前往營地・長老屋</button></div>` : ''}
+  <p class="axft">點已開放的卡片，進入該昇華的詳細盤面。隱藏中的昇華以 ??? 佔位，不顯示名稱。</p>`;
+}
+/* 盤面：照 ASC[k].N 的座標分兩軸縮進 1216×392（左右留 72、上下留 44 給名字）；位置用 %，觸控橫向跟著盤面縮 */
+const AXB = { w: 1216, h: 392, px: 72, py: 44 };
+function ascBoard(T) {
+  const xs = T.N.map(n => n.x),
+    ys = T.N.map(n => n.y),
+    [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)],
+    sx = (AXB.w - 2 * AXB.px) / Math.max(1, x1 - x0),
+    sy = (AXB.h - 2 * AXB.py) / Math.max(1, y1 - y0),
+    P = {};
+  for (const n of T.N) P[n.id] = [AXB.px + (n.x - x0) * sx, AXB.py + (n.y - y0) * sy];
+  return P;
+}
+/* 盤面上這個點的狀態：on 已點亮、can 可點亮、off 不可點、pv 預覽（還不是這個昇華） */
+function ascSt(k, T, id) {
+  if (id === 'a_st') return 'on';
+  if (S.asc !== k) return 'pv';
+  if (S.at.includes(id)) return 'on';
+  return ascNodeWhy(T, id) ? 'off' : 'can';
+}
+/* 點了會怎樣：[狀態行, 花幾點]；狀態行空＝可以 */
+function ascNodeWhy(T, id) {
+  const n = T.I[id];
+  if (S.at.includes(id)) return treeCanRefund(id) ? '' : '先退後面的點';
+  if (n.big === 1) {
+    const b = ascBig(T, ascMap(T), id),
+      other = b.path.find(p => p !== id && T.I[p].big === 1);
+    if (b.st === 'can') return '';
+    if (other) return `前置未點（先點亮${T.I[other].n}）`;
+    if (ascLeft() < b.cost) return `點數不足（要 ${b.cost} 點，還差 ${b.cost - ascLeft()} 點）`;
+    return b.why;
+  }
+  if (treeCan(id)) return '';
+  if (ascLeft() <= 0) return '點數不足（要 1 點，還差 1 點）';
+  if (n.g && S.at.some(o => T.I[o].g === n.g)) return '同一組只能選一個';
+  if (!(T.ADJ[id] || []).some(o => S.at.includes(o))) {
+    const p = ascMap(T).par[id];
+    return `前置未點（先點亮${T.I[p].big ? T.I[p].n : '前面的小點'}）`;
+  }
+  return '這樣選最後湊不滿 4 小 4 大';
+}
+const GRPN = ['', '', '二選一', '三選一'];
+function ascDetHTML() {
   const k = ASCUI.v,
     A = ASC[k],
     T = ascNodes(k),
     cur = S.asc === k,
-    /* 盤面半徑：讓最遠的點剛好在圓裡 */
-    R = Math.max(...T.N.map(n => Math.hypot(n.x, n.y))) + 36,
-    pos = n => [50 + (n.x / (2 * R)) * 100, 50 + (n.y / (2 * R)) * 100],
-    lit = id => cur && S.at.includes(id),
-    st = id => (lit(id) ? 'on' : cur && treeCan(id) ? 'can' : 'off'),
-    sel = T.I[ASCUI.n] || null,
-    nx = S.maxT <= 6 ? 31 : S.maxT <= 12 ? 63 : !S.t16 ? 83 : 0;
-  const lines = T.E.map(
-      ([a, b]) =>
-        `<line x1="${T.I[a].x}" y1="${T.I[a].y}" x2="${T.I[b].x}" y2="${T.I[b].y}" class="${lit(a) && lit(b) ? 'on' : ''}"/>`
-    ).join(''),
+    P = ascBoard(T),
+    pct = ([x, y]) => `left:${(x / AXB.w) * 100}%;top:${(y / AXB.h) * 100}%`,
+    st = id => ascSt(k, T, id),
+    sum = cur
+      ? `${A.n}（目前）　·　${ascSumT()}`
+      : `${A.n}（預覽）　·　${S.asc ? `切換會退回${ASC[S.asc].n}的全部點數` : `可用 <b>${ascPoints(S)}</b> 點`}`;
+  const lines = T.E.map(([a, b]) => {
+      const [x1, y1] = P[a],
+        [x2, y2] = P[b];
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${st(a) === 'on' && st(b) === 'on' ? 'on' : ''}"/>`;
+    }).join(''),
+    /* 選擇組的虛線框（三選一、二選一） */
+    grps = [...new Set(T.N.map(n => n.g).filter(Boolean))]
+      .map(g => {
+        const L = T.N.filter(n => n.g === g).map(n => P[n.id]),
+          x = Math.min(...L.map(p => p[0])) - 40,
+          y = Math.min(...L.map(p => p[1])) - 38,
+          w = Math.max(...L.map(p => p[0])) + 40 - x,
+          h = Math.max(...L.map(p => p[1])) + 38 - y;
+        /* 組名寫在跟點的名字相反的那一邊（點在起點上面＝名字在上、組名在下） */
+        return `<span class="axgp ${Math.max(...L.map(p => p[1])) < P.a_st[1] ? 'dn' : ''}" style="${pct([x, y])};width:${(w / AXB.w) * 100}%;height:${(h / AXB.h) * 100}%"><i>${GRPN[L.length] || '選一個'}</i></span>`;
+      })
+      .join(''),
+    y0 = P.a_st[1],
     nodes = T.N.map(n => {
-      const [x, y] = pos(n);
-      return `<button class="ax-n b${n.big} ${st(n.id)} ${n.g ? 'grp' : ''} ${sel === n ? 'sel' : ''}" data-ax="n:${n.id}" style="left:${x}%;top:${y}%" aria-label="${esc(n.n)}">${n.ic ? icHTML(n.ic) : ''}</button>${n.big === 1 ? `<span class="ax-l ${st(n.id)}" style="left:${x}%;top:${y}%">${esc(n.n)}</span>` : ''}`;
+      const s = st(n.id),
+        lab =
+          n.big === 1
+            ? `<span class="axl2 ${s} ${P[n.id][1] < y0 ? 'up' : ''}" style="${pct(P[n.id])}">${esc(n.n)}</span>`
+            : n.big === 3
+              ? `<span class="axl2 st" style="${pct(P[n.id])}">起點</span>`
+              : '';
+      return `<button class="axn b${n.big} ${s}" data-ax="n:${n.id}" data-zp="an:${n.id}" style="${pct(P[n.id])}" aria-label="${esc(n.big === 3 ? '起點' : n.n)}">${n.big === 1 && n.ic ? icHTML(n.ic) : ''}</button>${lab}`;
     }).join('');
-  /* 大點清單：選擇組併成一列 */
-  const L = [];
-  for (const n of T.N) {
-    if (n.big !== 1) continue;
-    const row = n.g && L.find(r => r.g === n.g);
-    if (row) row.n.push(n);
-    else L.push({ g: n.g, n: [n] });
-  }
-  const list = L.map(
-      r =>
-        `<li>${r.n.length > 1 ? `<h5>${['', '', '二選一', '三選一'][r.n.length]}</h5>` : ''}${r.n
-          .map(
-            n =>
-              `<div class="ax-r ${sel === n ? 'on' : ''} ${lit(n.id) ? 'lit' : ''}" data-ax="n:${n.id}" role="button" tabindex="0"><b>${esc(n.n)}</b><span>${termify(n.d)}</span></div>`
-          )
-          .join('')}</li>`
-    ).join(''),
-    [sm, bg] = S.asc ? ascCount() : [0, 0];
-  const fold = false,
-    tabs =
-      fold && !ASCUI.pick
-        ? ''
-        : `<div class="ax-tabs" role="tablist">${ascList()
-            .map(
-              ([id, B]) =>
-                `<button class="ax-tab ${id === k ? 'on' : ''} ${S.asc === id ? 'cur' : ''}" role="tab" aria-selected="${id === k}" data-ax="v:${id}">${icHTML(B.ic)}<span>${B.n}${S.asc === id && !fold ? '<i>目前</i>' : ''}</span></button>`
-            )
-            .join('')}</div>`;
-  return `<div class="ph"><b>昇華石碑</b><span class="ax-sum">剩 <b class="c-gold">${S.asc ? ascLeft() : ascPoints(S)}</b> 點${S.asc ? ` · 小 ${sm}/4 · 大 ${bg}/4` : ''}</span>${S.at.length > 1 ? `<button class="btn mini ax-reset" data-ax="reset">重置</button>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  ${fold ? `<div class="ax-cur">${icHTML(ASC[S.asc].ic)}<b>${ASC[S.asc].n}</b><button class="btn" data-ax="pick" aria-expanded="${!!ASCUI.pick}">${ASCUI.pick ? '收起' : '換昇華'}</button></div>` : ''}
-  ${tabs}
-  <div class="ax-chart"><div class="ax-disc"></div><svg viewBox="${-R} ${-R} ${2 * R} ${2 * R}" aria-hidden="true">${lines}</svg>${nodes}</div>
-  <div class="ax-side">${ascCap(k, T, sel)}<ul class="ax-list">${list}${nx ? `<li class="ax-note">第一次打倒 Lv ${nx} 地圖的王：昇華點 +2。換昇華免費，點數全部退回</li>` : ''}</ul>${cur ? '' : `<button class="btn pri ax-pick" data-a="asc:${k}">${S.asc ? `改成${A.n}（點數退回）` : `成為${A.n}`}</button>`}</div>`;
+  const have = ascPoints(S),
+    nx = S.maxT <= 6 ? 31 : S.maxT <= 12 ? 63 : !S.t16 ? 83 : 0,
+    seg = ['開局 +2', 'Lv 31 +2', 'Lv 63 +2', 'Lv 83 +2']
+      .map((t, i) => `<span class="${i * 2 < have ? 'on' : ''}">${t}</span>`)
+      .join(''),
+    foot = cur
+      ? `<div class="axsrc"><span class="axsrc-t">點數來源<b>${have}／8 點</b></span><span class="axsrc-s">${seg}</span><span class="axsrc-n">${nx ? `下次：第一次打倒 Lv ${nx} 地圖的王：昇華點 +2。` : ''}換昇華免費，點數全部退回。</span></div>`
+      : `<div class="axsw"><button class="btn pri ax-pick" data-a="asc:${k}">${S.asc ? '切換昇華（點數退回）' : `成為${A.n}`}</button></div>`;
+  return `<div class="ph"><button class="btn axbk" data-ax="pick">← 選擇昇華</button><b data-zh="昇華">昇華</b><span class="ax-sum">${sum}</span>${cur && S.at.length > 1 ? `<button class="btn ax-reset" data-ax="reset">重置</button>` : ''}<button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="axbd"><span class="axbt">${cur ? '盤面' : `盤面預覽 · ${A.n}（點還不會花點）`}</span><svg viewBox="0 0 ${AXB.w} ${AXB.h}" aria-hidden="true">${lines}</svg>${grps}${nodes}</div>
+  ${foot}`;
 }
-/* 手機點盤面（0.4.7）：點與點最近只隔 27px，做不到每個 44px；改成找手指附近最近的點（34px 以內），
-   第一下只選取（說明在盤面正下方），所以點歪了也不會花掉點數 */
-function ascNear(ch, e) {
-  const T = ascNodes(ASCUI.v),
-    R = Math.max(...T.N.map(n => Math.hypot(n.x, n.y))) + 36,
-    r = ch.getBoundingClientRect(),
-    k = (2 * R) / r.width,
-    x = (e.clientX - r.left - r.width / 2) * k,
-    y = (e.clientY - r.top - r.height / 2) * k;
-  let best = null,
-    bd = 34 * k;
-  for (const n of T.N) {
-    const d = Math.hypot(n.x - x, n.y - y);
-    if (d < bd) (bd = d), (best = n);
-  }
-  return best && best.id;
+function ascHTML() {
+  if (PORT()) return ascPortHTML();
+  if (!campCan('asc') || ASCUI.pick || !ASC[ASCUI.v]) return ascSelHTML();
+  return ascDetHTML();
 }
+/* 浮動預覽（立即出現）：ak:鍵＝選擇面板的卡、an:點＝盤面的點 */
+function ascTipHTML(v) {
+  const [t, id] = v.split(':');
+  if (t === 'ak') {
+    const A = ASC[id];
+    if (!ascOpen(id)) return `<b>${A.n}</b><i>未開放</i><p class="zt-s">${esc(lockTxt('asc3'))}</p>`;
+    const T = ascNodes(id),
+      bigs = T.N.filter(n => n.big === 1)
+        .slice(0, 3)
+        .map(n => n.n)
+        .join('、');
+    return `<b>${A.n}</b><i>已開放昇華</i><p>${esc(A.d)}<br>代表大點：${esc(bigs)}</p><p class="zt-s">${S.asc === id ? '目前啟用' : '可直接預覽盤面'}<br>點擊進入詳細盤面</p>`;
+  }
+  const k = ASCUI.v,
+    T = ascNodes(k),
+    n = T.I[id],
+    cur = S.asc === k,
+    gn = n.g && T.N.filter(o => o.g === n.g).length;
+  if (n.big === 3) return `<b>${esc(ASC[k].n)}</b><i>起點・不花點</i><p>${esc(ASC[k].d)}</p>`;
+  const type = (n.big === 1 ? '昇華大點' : '昇華小點') + (gn ? `・${GRPN[gn]}` : ''),
+    txt = n.big === 1 ? termify(n.d) : esc(statLines(n.s).join(' · '));
+  if (!cur) return `<b>${esc(n.n)}</b><i>${type}</i><p>${txt}</p><p class="zt-s">預覽：成為這個昇華後才能點</p>`;
+  const lit = S.at.includes(id),
+    w = ascNodeWhy(T, id),
+    cost = lit ? 0 : n.big === 1 ? ascBig(T, ascMap(T), id).cost : 1;
+  return `<b>${esc(n.n)}</b><i>${type}</i><p>${txt}</p>${lit ? '' : `<p class="zt-c">消耗 ${cost} 點 · 剩 ${ascLeft()} 點</p>`}<p class="zt-s ${w ? 'bad' : ''}">${esc(w || (lit ? '點擊退回' : '點擊點亮'))}</p>`;
+}
+/* 換昇華與重置都是 0.6 秒長按（ascend-spec §6.1）；欄位被關掉、背包放不下就先警告、不開卡 */
+const ASC_HINT = '外圈 0.6 秒填滿才執行；提早放開＝取消';
 document.addEventListener('click', e => {
-  const ch = TOUCH.on && e.target.closest('#pasc .ax-chart'),
-    b = e.target.closest('[data-ax]');
-  if ((!b && !ch) || e.target.closest('.term')) return;
-  let [k, id] = b ? b.dataset.ax.split(':') : [];
-  const cur = S.asc === ASCUI.v;
-  if (ch) {
-    id = ascNear(ch, e);
-    if (!id) return;
-    k = 'n';
-  }
+  const b = e.target.closest('[data-ax]');
+  if (!b || e.target.closest('.term')) return;
+  const [k, id] = b.dataset.ax.split(':');
   if (k === 'v') (ASCUI.v = id), (ASCUI.n = null), (ASCUI.pick = 0), (ASCUI.top = 1), sfx('click');
   else if (k === 'pick') (ASCUI.pick = 1), (ASCUI.top = 1), sfx('click');
+  else if (k === 'camp') return closePanels(), fmenuOpen('craft');
   else if (k === 'take') ascTake(id);
   else if (k === 'drop') ascDrop(id);
   else if (k === 'see') {
@@ -1850,36 +2046,25 @@ document.addEventListener('click', e => {
     if (c) c.scrollIntoView({ block: 'center', behavior: 'smooth' });
     return;
   } else if (k === 'n') {
-    /* 盤面：桌機點一下就點亮或退回；手機第一下選取，再點同一個＝點亮（退回要按說明列的按鈕，跟天賦樹一樣）；清單只選取 */
-    const lit = cur && S.at.includes(id),
-      again = !TOUCH.on || (ASCUI.n === id && !lit),
-      can = cur && id !== 'a_st' && (ch || b.classList.contains('ax-n')) && again;
-    ASCUI.n = id;
-    if (can) {
-      const w = ascWhy(id, ascT());
-      if (w) hudWarn(w);
-      else treeToggle(id);
-    }
-  } else if (k === 't') treeToggle(id);
-  else if (k === 'reset') {
+    /* 盤面：點一下＝點亮或退回；大點連同前面的小點一起點亮、一起退回；預覽別的昇華不能點 */
+    if (S.asc !== ASCUI.v || id === 'a_st') return;
+    const T = ascT(),
+      w = ascNodeWhy(T, id);
+    if (w) return hudWarn(w);
+    if (T.I[id].big === 1) S.at.includes(id) ? ascDrop(id) : ascTake(id);
+    else treeToggle(id);
+    sfx('click');
+  } else if (k === 'reset') {
     const why = eqUnloadWhy(S, ['a_st']);
     if (why) return hudWarn(why);
-    if (holdAsk(b, '重置', '退回這個昇華的全部點數')) return;
+    if (holdAsk(b, '重置', '退回這個昇華的全部點數。昇華種類不變。', { hint: ASC_HINT, cls: 'ahk' })) return;
     S.at = ['a_st'];
     treeChanged();
+    sfx('click');
   }
   hudPanels();
   /* 換了一頁（清單 ↔ 某個昇華）：回到最上面 */
   if (ASCUI.top) (ASCUI.top = 0), ($('pasc').scrollTop = 0);
-});
-/* 滑鼠滑過點或清單列就更新說明列，不用點 */
-document.addEventListener('pointerover', e => {
-  if (e.pointerType !== 'mouse' || !PANEL.asc) return;
-  const b = e.target.closest('#pasc [data-ax^="n:"]'),
-    cap = document.querySelector('#pasc .ax-cap');
-  if (!b || !cap || b.dataset.ax.slice(2) === cap.dataset.n) return;
-  const T = ascNodes(ASCUI.v);
-  cap.outerHTML = ascCap(ASCUI.v, T, T.I[b.dataset.ax.slice(2)]);
 });
 /* 商人（0.2.28）：選種類賭一件，結果顯示在上面、東西進背包 */
 /* ---------- 撿骨師的鑑定（8-3，企劃書 5.4.1）：免費、一鍵、一件一件翻開，越好的越晚翻；不做鑑定卷軸 ---------- */
@@ -1936,72 +2121,141 @@ function revealHTML() {
       : `<div class="rvf">${REV.done ? '<button class="btn pri" data-a="close">收下</button>' : '<button class="btn" data-a="rvskip">全部翻開</button>'}</div>`
   }`;
 }
-/* 山海寶盒（0.2.80，企劃書 4.2）：分頁酆都／心魔劫／四凶，花碎片開王場；心魔要選帶哪幾種碎片（每片一個減益） */
-const BOXUI = { tab: 'fd', sel: null };
+/* ---------- 山海寶盒 v1.0（specs/shanhai/shanhai-spec.md）：單頁五區，區名用地點名；點左邊一區或一格，右邊對準那一區的王場。
+   開王場直接點（不長按、倒下不退）；只有拆神格是 0.6 秒長按。桌機 #pbox.b12 照規格座標，觸控同一份 HTML 照順序排 ---------- */
+const BOXUI = { tab: 'ghost', sel: null, gm: 0 };
+const BOXZ = {
+  ghost: {
+    n: '鬼門關',
+    cells: () => [...FENG.elites, 'book'],
+    k: ['yama', 'uber'],
+    cost: () =>
+      `一般：任 ${FENG.hun} 張勾魂令，從張數最多的開始扣。終極：四種勾魂令各 1＋生死簿＋角色 Lv ${FENG.uberLv}。`,
+    sub: () => [`花 ${FENG.hun} 張勾魂令（現有 ${fdHun(S)}）`, '四種勾魂令各 1＋生死簿']
+  },
+  dream: {
+    n: '心魔幻境',
+    cells: () => SIN.emo,
+    k: ['sanshi', 'sanpeng'],
+    cost: () =>
+      `一般：至少 ${SIN.need} 種各 1 片；帶入的每種加一條減益。終極：7 種各 1＋角色 Lv ${SIN.uberLv}。${BOXUI.sel.length ? `已選${BOXUI.sel.map(k => SIN_FRAG[k].n.slice(0, 1)).join('／')}。` : ''}`,
+    sub: () => [`帶 ${BOXUI.sel.length} 種碎片`, '7 種各 1 片']
+  },
+  fiend: {
+    n: '凶地',
+    cells: () => [...XIONG, 'eye'],
+    k: ['zhulong', 'zhu9'],
+    cost: () => `一般：四凶之鱗各 1。終極：再加燭龍之目＋角色 Lv ${XI.uberLv}。`,
+    sub: () => ['四凶之鱗各 1 片', '再加燭龍之目']
+  },
+  army: {
+    n: '陰兵借道',
+    cells: () => [...ARMY.gen, 'fu'],
+    k: ['chiyou', 'zhuolu'],
+    cost: () => `一般：三種將印各 1。終極：兵符＋角色 Lv ${ARMY.uberLv}。`,
+    sub: () => ['三種將印各 1 個', '兵符']
+  },
+  rift: {
+    n: '裂口',
+    cells: () => ['blood'],
+    k: ['taisui', 'xingjun'],
+    cost: () =>
+      `一般：十二神像全亮＋${TAISUI.blood} 份神血（現有 ${S.frags.blood || 0}）。終極：${TAISUI.uber} 份神血＋角色 Lv ${TAISUI.uberLv}。`,
+    sub: () => [`十二神像全亮＋${TAISUI.blood} 份神血`, `${TAISUI.uber} 份神血`]
+  }
+};
 function boxHTML() {
   const F = S.frags,
-    tabs = [
-      ['fd', '酆都'],
-      ['sin', '心魔劫'],
-      ['xi', '四凶'],
-      ['army', '陰兵'],
-      ['god', '弒神']
-    ],
-    row = (k, n) =>
-      `<li class="${n ? '' : 'z'}">${icHTML(FRAGS[k].ic)}<div><b>${esc(FRAGS[k].n)}</b></div><em>${fullN(n || 0, 'own')}</em></li>`,
-    btn = (kind, cost) => {
+    z = BOXZ[BOXUI.tab] ? BOXUI.tab : (BOXUI.tab = 'ghost'),
+    Z = BOXZ[z];
+  BOXUI.sel = (BOXUI.sel || []).filter(k => F[k] > 0);
+  if (!BOXUI.sel.length) BOXUI.sel = SIN.emo.filter(k => F[k] > 0).slice(0, SIN.need);
+  const cell = (zk, k) => {
+      const n = F[k] || 0,
+        sin = zk === 'dream',
+        on = sin && BOXUI.sel.includes(k),
+        nm = sin ? SIN_FRAG[k].n : FRAGS[k].n;
+      return `<button class="bxc ${n ? '' : 'z'} ${on ? 'on' : ''}" data-bx="${sin ? `sf:${k}` : `z:${zk}`}" ${sin ? `aria-pressed="${on}"` : ''} ${n ? '' : 'disabled'}>${icHTML(sin ? SIN_FRAG[k].ic : FRAGS[k].ic)}<span>${esc(nm)}</span><b>×${fullN(n, 'own')}</b></button>`;
+    },
+    idols = (S.idols || []).length,
+    zones = Object.entries(BOXZ)
+      .map(
+        ([zk, o]) =>
+          `<section class="bxz bxz-${zk} ${zk === z ? 'on' : ''}" data-bx="z:${zk}"><h4>${o.n}</h4><div class="bxcs">${o
+            .cells()
+            .map(k => cell(zk, k))
+            .join('')}${
+            zk === 'rift'
+              ? `<div class="bxi"><span>十二神像 ${idols}／${ZODIAC.length}</span><span class="bxd">${ZODIAC.map((_, i) => `<i class="${i < idols ? 'on' : ''}"></i>`).join('')}</span><span class="bxp"><i style="width:${(idols / ZODIAC.length) * 100}%"></i></span></div>`
+              : ''
+          }</div></section>`
+      )
+      .join(''),
+    sub = Z.sub(),
+    btn = (kind, i) => {
       const w = arenaWhy(S, kind, BOXUI.sel);
-      return `<button class="btn wm-hall ${w ? '' : 'pri'}" data-bx="go:${kind}" ${w ? 'disabled' : ''}><b>${ARENA[kind]}</b><small>${esc(w || cost)}</small></button>`;
-    };
-  let body = '';
-  if (BOXUI.tab === 'fd')
-    body = `<ul class="mpg">${[...FENG.elites, 'book'].map(k => row(k, F[k])).join('')}</ul>
-      <div class="wm-halls">${btn('yama', `花 ${FENG.hun} 張勾魂令`)}${btn('uber', '四種勾魂令各 1＋生死簿')}</div>`;
-  else if (BOXUI.tab === 'sin') {
-    BOXUI.sel = (BOXUI.sel || []).filter(k => F[k] > 0);
-    if (!BOXUI.sel.length) BOXUI.sel = SIN.emo.filter(k => F[k] > 0).slice(0, SIN.need);
-    body = `<p class="fhint">選要帶進去的碎片：每片在王場加一個減益</p>
-      <div class="wm-sin">${SIN.emo
-        .map(k => {
-          const on = BOXUI.sel.includes(k);
-          return `<button class="chip ${on ? 'on' : ''}" data-bx="sf:${k}" aria-pressed="${on}" ${F[k] ? '' : 'disabled'}>${esc(SIN_FRAG[k].n.slice(0, 1))} <small>×${F[k] || 0}</small><i>${esc(SIN_FRAG[k].deb)}</i></button>`;
-        })
-        .join('')}</div>
-      <div class="wm-halls">${btn('sanshi', `帶 ${BOXUI.sel.length} 種碎片`)}${btn('sanpeng', `7 種各 1 片＋Lv${SIN.uberLv}`)}</div>`;
-  } else if (BOXUI.tab === 'army')
-    body = `<ul class="mpg">${[...ARMY.gen, 'fu'].map(k => row(k, F[k])).join('')}</ul>
-      <div class="wm-halls">${btn('chiyou', '三種將印各 1 個')}${btn('zhuolu', `兵符＋Lv${ARMY.uberLv}`)}</div>`;
-  else if (BOXUI.tab === 'god') {
-    const L = S.gods || [];
-    body = `<ul class="mpg">${row('blood', F.blood)}</ul>
-      <div class="wm-halls">${btn('taisui', `十二神像全亮＋${TAISUI.blood} 份神血`)}${btn('xingjun', `${TAISUI.uber} 份神血＋Lv${TAISUI.uberLv}`)}</div>
-      <div class="ph2">神格<span>${L.length}／${TAISUI.keep} · 身上只能裝 1 個</span></div>
-      ${
-        L.length
-          ? `<ul class="mpg gh-list">${L.map((g, i) => {
-              const on = S.godOn === i;
-              return `<li class="${on ? 'on' : ''}">${icHTML('z_' + g.g)}<div><b>${esc(ghName(g))}${on ? ' <span class="c-good">裝著</span>' : ''}</b><small>${ghText(g).map(esc).join('<br>')}</small></div><span class="gh-b"><button class="btn ${on ? '' : 'pri'}" data-bx="gh:${i}">${on ? '卸下' : '裝上'}</button>${on ? '' : `<button class="btn" data-bx="ghx:${i}">拆</button>`}</span></li>`;
-            }).join('')}</ul>`
-          : '<p class="fhint">太歲、太歲星君掉的神格放在這裡</p>'
-      }`;
-  } else
-    body = `<ul class="mpg">${[...XIONG, 'eye'].map(k => row(k, F[k])).join('')}</ul>
-      <div class="wm-halls">${btn('zhulong', '四凶之鱗各 1 片')}${btn('zhu9', `再加燭龍之目＋Lv${XI.uberLv}`)}</div>`;
-  return `<div class="ph"><b>山海寶盒</b><span>王場 Lv ${arenaLv(S)}（你打過最高的地方）</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-    <div class="ftabs bx-tabs">${tabs.map(([k, n]) => `<button class="${BOXUI.tab === k ? 'on' : ''}" data-bx="tab:${k}">${n}</button>`).join('')}</div>
-    ${body}<p class="fhint">只花碎片，不用地圖卡；王場只有王，沒有小怪。死亡不退碎片。</p>`;
+      return `<button class="btn bxgo g${i} ${w ? 'off' : 'pri'}" data-bx="go:${kind}" ${w ? 'disabled' : ''}><b>${i ? '終極王場' : '一般王場'} · ${ARENA[kind]}</b><small>${esc(w || sub[i])}</small></button>`;
+    },
+    L = S.gods || [],
+    on = L[S.godOn],
+    db = z === 'dream' && BOXUI.sel.length ? `已選減益：${BOXUI.sel.map(k => esc(SIN_FRAG[k].deb)).join('；')}。` : '';
+  return `<div class="ph"><b data-zh="山海寶盒">山海寶盒</b><span class="bx-sum">單頁總覽 · 點左側對準王場</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="bxl">${zones}</div>
+  <div class="bxr"><h3>開啟：${Z.n}</h3><p class="bxlv">王場等級：Lv ${arenaLv(S)}（你打過最高的地方）</p>
+    <h5>消耗</h5><p class="bxct">${esc(Z.cost())}</p>
+    <h5>規則</h5><p class="bxrl">只花<span class="zterm" data-zh="首領碎片" tabindex="0">首領碎片</span>，不用地圖卡。王場只有王，沒有小怪。倒下不退碎片。${db ? `<span class="bxdb" title="${db}">${db}</span>` : ''}</p>
+    ${btn(Z.k[0], 0)}${btn(Z.k[1], 1)}</div>
+  <div class="bxg"><span>身上裝備：${on ? esc(ghName(on)) : '無'}<small>神格 ${L.length}／${TAISUI.keep}</small></span><button class="btn pri" data-bx="gm">管理神格</button></div>
+  ${BOXUI.gm ? boxGodHTML() : ''}`;
+}
+/* 鍵盤（ascend-spec §6.2、zones-spec §6）：15 格方向鍵移焦點（左右 1 格、上下 5 格）、星級左右；昇華詳細按 Backspace 回選擇面板 */
+document.addEventListener('keydown', e => {
+  const t = e.target.closest && e.target.closest('#pasc .axk, #pnode .ndst .chip');
+  if (PANEL.asc && e.key === 'Backspace' && !ASCUI.pick && !HASK) return (ASCUI.pick = 1), sfx('click'), hudPanels();
+  const d = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -5, ArrowDown: 5 }[e.key];
+  if (!t || !d || (t.matches('.chip') && Math.abs(d) > 1)) return;
+  const L = [...t.parentNode.querySelectorAll(t.matches('.chip') ? '.chip' : '.axk')],
+    n = L[L.indexOf(t) + d];
+  if (n) e.preventDefault(), n.focus();
+});
+/* 神格管理小視窗開著：Esc 只關小視窗 */
+document.addEventListener(
+  'keydown',
+  e => {
+    if (e.key !== 'Escape' || !PANEL.box || !BOXUI.gm) return;
+    e.stopImmediatePropagation();
+    BOXUI.gm = 0;
+    hudPanels();
+  },
+  true
+);
+/* 神格管理小視窗（B04）：身上只能 1 個；裝上換下舊的、卸下都不花材料；裝著的不能拆 */
+function boxGodHTML() {
+  const L = S.gods || [];
+  return `<div class="bxm"><div class="bxmc" role="dialog" aria-label="神格管理"><h3>神格管理</h3><p class="bxms">身上只能裝 1 個 · 角色 Lv ${GH_LV} 起可裝 · ${L.length}／${TAISUI.keep}</p>
+    <ul class="bxml">${
+      L.length
+        ? L.map((g, i) => {
+            const on = S.godOn === i;
+            return `<li class="${on ? 'on' : ''}">${icHTML('z_' + g.g)}<div><b>${esc(ghName(g))}</b><small>${ghText(g).map(esc).join('　')}</small></div>${on ? '<em>裝著</em>' : ''}<span class="gh-b"><button class="btn ${on ? '' : 'pri'}" data-bx="gh:${i}">${on ? '卸下' : '裝上'}</button>${on ? '' : `<button class="btn" data-bx="ghx:${i}">拆</button>`}</span></li>`;
+          }).join('')
+        : '<li class="none">太歲、太歲星君掉的神格放在這裡</li>'
+    }</ul><button class="btn bxmx" data-bx="gmx">關閉</button></div></div>`;
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-bx]');
-  if (!b || b.disabled) return;
+  if (!b || b.disabled || e.target.closest('[data-zh]')) return;
   const [k, v] = b.dataset.bx.split(':');
-  if (k === 'tab') BOXUI.tab = v;
-  else if (k === 'sf') BOXUI.sel = BOXUI.sel.includes(v) ? BOXUI.sel.filter(x => x !== v) : [...BOXUI.sel, v];
+  if (k === 'z') BOXUI.tab = v;
+  else if (k === 'sf')
+    (BOXUI.tab = 'dream'), (BOXUI.sel = BOXUI.sel.includes(v) ? BOXUI.sel.filter(x => x !== v) : [...BOXUI.sel, v]);
   else if (k === 'go') return openArena(v, BOXUI.sel);
+  else if (k === 'gm') (BOXUI.gm = 1), ($('pbox').scrollTop = 0);
+  else if (k === 'gmx') BOXUI.gm = 0;
   else if (k === 'gh' && S.lv < GH_LV && S.godOn !== +v) hudWarn(lockSlotTxt('gh'));
   else if (k === 'gh') (S.godOn = S.godOn === +v ? null : +v), (ST = stats()), save();
   else if (k === 'ghx') {
-    if (holdAsk(b, '拆解', '拆成 200 靈魂')) return;
+    if (holdAsk(b, '拆解', '拆成 200 靈魂。', { t: '拆解？', hint: ASC_HINT, cls: 'ghk' })) return;
     const w = ghSalvage(+v);
     if (w) return hudWarn(w);
     save();
@@ -2400,7 +2654,7 @@ function idleHTML(W) {
 }
 /* B3 D2-11：回戰場那一行「營地期間 +N」（M2-12 第二段 §0.1）：蓋在掛機條上（同位置），淡入 160 後出現、停 3,000、淡出 300（CSS）；
    0 的項不寫、追逐放第一個（王印 16 圖示）、放不下從後面省略；點一下展開掛機條 */
-function campLine(o) {
+function campLine(o, tt = STR_T.clT) {
   const L = [
       o.ch && [
         `<span class="lg-chase">${icHTML('wangyin_guixu_16', 'ipw')}${strT('clCh', { n: o.ch })}</span>`,
@@ -2412,7 +2666,7 @@ function campLine(o) {
     ].filter(Boolean),
     el = $('pcline');
   if (!L.length) return;
-  el.innerHTML = `${STR_T.clT} ${L.map(x => x[0]).join('・')}`;
+  el.innerHTML = `${tt} ${L.map(x => x[0]).join('・')}`;
   el.setAttribute('aria-label', strT('clAria', { t: L.map(x => x[1]).join('，') }));
   el.hidden = false;
   el.classList.remove('go');
@@ -3391,6 +3645,7 @@ function act(a, el) {
     if (runNode(a.slice(4))) sfx('click'), closePanels();
   } else if (a.startsWith('nstar:')) {
     S.star = +a.slice(6);
+    NODEUI.star = 1;
     sfx('click');
     save();
     hudPanels();
@@ -3460,8 +3715,21 @@ function act(a, el) {
     if (el && !holdAsk(el, '分解', `分解 ${bagSells().length} 件`)) sellAll();
   } else if (a.startsWith('asc:')) {
     /* 選昇華／換昇華：點數全部退回（被關掉的欄位裡的裝備脫到背包，放不下就擋下來） */
-    const why = eqUnloadWhy(S, ['a_st'], a.slice(4));
+    const why = eqUnloadWhy(S, ['a_st'], a.slice(4)),
+      to = ASC[a.slice(4)].n;
     if (why) return hudWarn(why);
+    /* 已經有昇華再換＝0.6 秒長按（ascend-spec §6.1）；第一次「成為」直接點 */
+    if (
+      S.asc &&
+      el &&
+      holdAsk(el, '更換', `退回${ASC[S.asc].n}的全部點數，再成為${to}。`, {
+        t: `改成${to}？`,
+        more: ['被這個昇華鎖住的欄位，裝備會脫到背包。'],
+        hint: ASC_HINT,
+        cls: 'ahk'
+      })
+    )
+      return;
     S.asc = a.slice(4);
     S.at = ['a_st'];
     ASCUI.n = null;
