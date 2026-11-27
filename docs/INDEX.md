@@ -127,7 +127,8 @@
 | 遠程技能草案（弓、十字弓、陷阱器） | `docs/production/技能草案-遠程第二批.md` | — | 草稿，不可交辦 |
 | 法系技能草案（長杖、法杖） | `docs/production/技能草案-法系第三批.md` | — | 草稿，不可交辦 |
 | 通用技能草案（戰吼、旗幟、通用法術、召喚） | `docs/production/技能草案-通用第四批.md` | — | 草稿，不可交辦 |
-| 光環草案（增益光環、捷光環、魔像、夥伴） | `docs/production/技能草案-光環第五批.md` | — | 草稿，不可交辦 |
+| 光環草案（增益光環、捷光環、魔像、夥伴） | `docs/production/技能草案-光環第五批.md` | — | 已取消（2026-11-27），不可交辦；留著備查 |
+| 傳奇物品草案（112 件） | `docs/production/傳奇物品草案.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
 | 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）；產生器已拿掉，正文留作紀錄；交工程師時刪 |
 | 材料來源 | `docs/production/adjust/材料來源.md` | 定稿 v1.1 | 現行；定案 v1.0 superseded |
