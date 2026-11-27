@@ -4461,3 +4461,9 @@ body.d12:not(.touch) #pset { max-width: none; }
 body.d12 #pset .ph2 > span.zterm { margin-left: 0; font: inherit; color: inherit; }
 #poff .offl li > i.oic { display: inline-grid; place-items: center; width: 20px; height: 20px; font-style: normal; }
 #poff .offl li.ch > i { box-sizing: border-box; min-width: 20px; height: 20px; padding: 0 3px; font: 400 10px/18px var(--font); font-style: normal; text-align: center; color: var(--tx-dim); background: var(--panel-inset); border: 1px solid var(--border); }
+body.d12 #pguild .gsh .gall::after { inset: -8px 0; }
+body.d12 #pguild > .ph .x::after { content: ''; position: absolute; inset: -4px -2px; }
+/* 卡片類（C01、D01、O01）：--btn2 鈕內第二行一律 --tx（--tx-dim 在 --btn2 上只有 3.70:1，PR #213 教訓）；D01 標題不用紅 */
+#over .btn:not(.pri) small, #poff .btn:not(.pri) small, #poff .btn:not(.pri) kbd { color: var(--tx); }
+#over .card.dead h2 { color: var(--tx-strong); }
+#pset .gkind .btn small { color: var(--tx); }
