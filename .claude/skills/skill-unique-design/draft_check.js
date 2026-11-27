@@ -26,12 +26,11 @@ const g = n => vm.runInContext(n, ctx);
 const BASES = g('BASES'),
   AFF = g('AFF'),
   KINDS = g('KINDS'),
-  SPELLW = g('typeof SPELLW !== "undefined" ? SPELLW : []'),
-  SPELL_AFF = g('typeof SPELL_AFF !== "undefined" ? SPELL_AFF : []');
+  SPELLW = g('SPELLW'),
+  SPELL_AFF = g('SPELL_AFF');
 const BY = Object.fromEntries(BASES.map(b => [b.n, b]));
-const isSpellW = b => (Array.isArray(SPELLW) ? SPELLW.includes(b.wt) : !!SPELLW[b.wt]);
-/* 這個基底能出的詞綴：法系武器（長杖、法杖、權杖）用 SPELL_AFF，其他照部位 */
-const poolOf = b => (b.k === 'weapon' && isSpellW(b) ? SPELL_AFF : KINDS[b.k].aff).filter(k => AFF[k]);
+/* 這個基底能出的詞綴：法系武器（SPELLW：長杖、法杖、權杖、陷阱器）用 SPELL_AFF（data.js 的 WEAPON_BASES 也是這樣給），其他照部位 */
+const poolOf = b => (b.aff || (b.k === 'weapon' && SPELLW.has(b.wt) ? SPELL_AFF : KINDS[b.k].aff)).filter(k => AFF[k]);
 /* 物品等級 1～100 的最低等級：基底等級 ×6（等級 1 的基底＝1）。程式改成 1～100 之後這裡要跟著改 */
 const minLv = b => (b.lv === 1 ? 1 : b.lv * 6);
 /* 詞綴條數下限與建議範圍落在整條範圍的哪一段（照物品等級區間） */
