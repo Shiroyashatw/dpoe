@@ -89,16 +89,152 @@
 
 第一次進遊戲：沒有頂列、分頁、HUD。插畫區 160,120 960×400（`intro.js` 6 段鏡頭）；旁白 240,560 800×24 置中 18/700 `--tx-strong`，一行一行淡入，`aria-live`；底 `--panel-inset`（旁白不壓在插畫上）。右上「跳過」1160,24 96×36（`--btn2`＋`--tx`；Esc 也可）。
 
-## T02 開場標題＋背景圖槽位
+## T02 開場標題（v1.1 視覺定稿 2026-11-27）
 
-旁白結束或按跳過後出現。**美術總監產 1280×720 開場背景圖中，實作先預留槽位，不等圖。**
+旁白結束或按跳過後出現。線框 `T02-title.png` 保留作版面紀錄；**視覺定稿以 `T02-title-preview-1280x720.png`（整畫面）與 `T02-title-btn-states.png`（主鈕四態）為準**，兩張都在 `evidence/small-screens/`。
+
+mumi 2026-11-27 拍板（幕僚長轉達）4 項：
+1. **背景暗幕**：改中央局部暗暈，兩側火把保持原亮度（取代 v1.0 的全畫面 0.62 遮罩）。
+2. **T02 專屬主鈕例外**：核准石碑銅框＋硃砂印樣式，含 `--t02-*` 五個 token 與 3 段深石漸層（D2「主鈕用 `--act`」「不准漸層底」兩條只在 T02 主鈕放寬，別的畫面不適用）。
+3. **主鈕文案**：「開始」改「**踏入燼窟**」。
+4. **維持極簡**：不加「跳過開場」文字鈕、不加 Enter 鍵帽提示、不放版本號。
 
 | 層（下 → 上） | x,y w×h | 規格 |
 |---|---|---|
-| 1 背景圖槽位 | 0,0 1280×720（滿版） | 1280×720 PNG／WebP；`object-fit: cover`、置中。圖未到前用 `--panel-inset` 純色。Steam Deck 1280×800：圖以 cover 上下各延伸 40（美術交付需含 1280×800 出血，或確認上下 40 被裁不影響構圖）；標題與按鈕座標不動 |
-| 2 暗調壓字遮罩 | 0,0 1280×720 | 全畫面 `--d2-scrim` rgb(0 0 0 / 0.62)，疊在圖上、字下 |
-| 3 壓字安全區 | 360,232 560×208 | 標題與「開始」只放在此區；美術避免在此放高頻細節（亮點、細線、文字狀紋理） |
-| 4 標題「dungeonPOE」 | 340,290 600×24 置中（x 中心 640） | `--tx-strong`；實機 serif 32～56；可加 0 2px 6px 黑陰影，**對比計算不靠陰影** |
-| 5 開始（主鈕） | 560,346 160×48 | `--act`＋`--on-act`（不透明，6.14:1）；Enter；預設焦點 |
+| 1 背景 A 幽冥地宮石門 | 0,0 1280×720 | `t02_title_bg_A_1280x720.png`（320×180 原生，4× 最近鄰）；`object-fit: cover`、置中、`image-rendering: pixelated`。圖未到前用 `--panel-inset` 純色 |
+| 2 局部暗暈 | 0,0 1280×720 | `radial-gradient(380px 260px at 640px 350px, rgb(0 0 0 / .50) 0, rgb(0 0 0 / .38) 55%, rgb(0 0 0 / 0) 100%)`；x<230、x>1050 不壓（火把像素與原圖相同） |
+| 3 標題 Logo L3 幽冥墨韻硃印 | 200,146 880×268 | `t02_title_logo_L3_2x.png`（440×134 原生，2× 最近鄰、α 只有 0／255）；`image-rendering: pixelated`；包在 `<h1>`，`alt="山海燼窟 SHANHAI CRYPTS"` |
+| 4 分隔線 | 480,432 320×9 | 1 px 銅線四階硬色階淡出（`#8a6c4e` 30%／60%／100%，中央留 6% 空隙）＋中央 5×5 硃菱 `#b01a14`（旋 45°）；`aria-hidden` |
+| 5 主鈕「踏入燼窟」 | 504,463 272×56 | 熱區同；Enter；預設焦點。樣式見下 |
 
-對比保證：最亮的純白圖素經 62% 黑遮罩後為 `#616161`。壓在圖上的字：`--tx-strong` **5.90:1**、`--tx` 4.94:1（皆 ≥ 4.5:1）；`--tx-dim` 只有 2.71:1，**禁止壓圖**（版本號等淡字要放就加 `--panel-inset` 底條）。遮罩不可調淡於 0.62；若美術要更亮的圖，改在安全區局部加深，不可減全畫面遮罩。
+垂直排列：Logo 底 414 → 18 → 分隔線 432–441 → 22 → 主鈕 463–519；整組在背景石門暗拱內、地面（y≈550）之上。
+
+### 主鈕「踏入燼窟」
+
+- 字：`700 22px/1 'Noto Serif TC'`、字距 **0.24em**，字距尾巴用 `margin-right: -0.24em` 補回（實測字墨中心 x 639.5、鈕中心 640）；陰影 `0 1px 0 rgb(0 0 0 / .9)`。
+- 菱印：左右各 8×8 旋 45°，與字距 18 px（flex `gap`），菱印到鈕邊 55 px。
+- 框：外框 1 px；內縮 3 px 細內框 1 px；四角 7×7 L 刻角 1 px、外移 4 px；圓角 0。
+- 浮框陰影照 D2：`0 0 0 3px rgb(0 0 0 / .6)`＋桌機柔影 `0 8px 24px rgb(0 0 0 / .5)`。
+
+| 狀態 | 底 | 外框／內框／角 | 菱印 | 字 | 其他 | 對比（字對底） |
+|---|---|---|---|---|---|---|
+| 一般 | `#2d251f`→`#25211e` 40%→`#1d1a17` | `#8a6c4e`／`rgb(168 146 127 / .32)`／`#a8927f` | `#8a2a1a`＋1 px `#b01a14` | `--tx` `#e8e5e1` | 頂緣 `inset 0 1px 0 rgb(232 229 225 / .10)`、底緣 `inset 0 -2px 0 rgb(0 0 0 / .55)` | 12.7:1（最暗段 13.8）；外框對石門 4.1:1 |
+| 懸停／焦點 | 同一般 | `#b98a5e`／`rgb(185 138 94 / .55)`／`#e3dcd3` | `#b01a14`＋1 px `#c43d24` | `--tx-strong` `#fbf9f6` | 內暈 `inset 0 -14px 16px -10px rgb(176 26 20 / .38)`（不外發光）；`:focus-visible` 加 `outline: 1px solid #e3dcd3; outline-offset: 6px`；120 ms ease-out | 14.3:1；外框 6.5:1 |
+| 按下 | `#16130f`→`#1d1a17` 60%→`#25211e` | 外框 `#b98a5e` | 同懸停 | `--tx` | `translateY(1px)`、`inset 0 2px 0 rgb(0 0 0 / .6)`、柔影縮 `0 4px 12px`；60 ms | 13.8:1 |
+| 停用（存檔載入中） | `--panel-inset` 平塗 | `1px dashed #5a544e`／`rgb(129 123 117 / .18)`／`#5a544e` | `#3f3b36`＋1 px `#4a443e` | `--tx-off` `#9d9995` | 只留 3 px scrim 圈、`cursor: default` | 6.1:1 |
+
+`prefers-reduced-motion`：保留顏色變化，`transition-duration` 可改 0。
+
+### Token
+
+D2 既有：`--panel-grad-top` `#2d251f`、`--panel` `#25211e`、`--panel-inset` `#1d1a17`、`--scene-void` `#16130f`、`--panel-edge` `#a8927f`、`--tx`、`--tx-strong`、`--tx-off`、`--vig` `#b01a14`。
+
+T02 專屬（色值取自 L3 Logo 像素，只准用在 T02）：
+
+| token | 值 | 用途 |
+|---|---|---|
+| `--t02-bronze` | `#8a6c4e` | 一般外框、分隔線 |
+| `--t02-bronze-hi` | `#b98a5e` | 懸停／按下外框 |
+| `--t02-seal` | `#8a2a1a` | 菱印底 |
+| `--t02-seal-hi` | `#c43d24` | 懸停菱印框 |
+| `--t02-bone` | `#e3dcd3` | 懸停角飾、焦點環 |
+
+停用灰 `#5a544e`、`#3f3b36`、`#4a443e` 取自 L3／場景色階，只在停用態。
+
+### CSS 參考（可直接搬；結構 `<button class="tgo" id="ivgo">` 內放 4 個 `<i class="cn tl|tr|bl|br">`＋`<span class="seal">`＋`<span class="lb">踏入燼窟</span>`＋`<span class="seal">`）
+
+```css
+/* T02-title 主鈕「踏入燼窟」「幽冥石碑・硃印」— 純 CSS，工程可直接搬 */
+:root{
+  /* 既有 D2 token */
+  --panel-grad-top:#2d251f; --panel:#25211e; --panel-inset:#1d1a17; --scene-void:#16130f;
+  --panel-edge:#a8927f; --border:#817b75; --tx:#e8e5e1; --tx-strong:#fbf9f6; --tx-off:#9d9995;
+  --vig:#b01a14; --scrim-rgb:0,0,0;
+  /* L3 Logo 內既有像素色（新增 title 專用 token，只用在 T02） */
+  --t02-bronze:#8a6c4e;      /* L3 銅（預設外框） */
+  --t02-bronze-hi:#b98a5e;   /* L3 亮銅（懸停外框／角飾） */
+  --t02-seal:#8a2a1a;        /* L3 印底硃砂 */
+  --t02-seal-edge:#b01a14;   /* L3 印框＝--vig */
+  --t02-seal-hi:#c43d24;     /* L3 印面亮硃 */
+  --t02-bone:#e3dcd3;        /* L3 骨灰白主筆 */
+  --serif-t:'Noto Serif TC','Noto Serif CJK TC',serif;
+}
+.tgo{ /* 主鈕 272×56 */
+  position:relative; width:272px; height:56px; padding:0; margin:0;
+  display:inline-flex; align-items:center; justify-content:center; gap:18px;
+  font:700 22px/1 var(--serif-t); letter-spacing:0; color:var(--tx);
+  text-shadow:0 1px 0 rgb(var(--scrim-rgb) / 0.9);
+  background:linear-gradient(180deg,var(--panel-grad-top) 0,var(--panel) 40%,var(--panel-inset) 100%);
+  border:1px solid var(--t02-bronze); border-radius:0;
+  box-shadow:
+    inset 0 1px 0 rgba(232,229,225,0.10),          /* 頂緣骨白微光 */
+    inset 0 -2px 0 rgb(var(--scrim-rgb) / 0.55),   /* 底緣石影 */
+    0 0 0 3px rgb(var(--scrim-rgb) / 0.6),         /* D2 浮框 scrim 圈（必做） */
+    0 8px 24px rgb(var(--scrim-rgb) / 0.5);        /* 桌機柔影 */
+  cursor:pointer; outline:none;
+  transition:border-color 120ms ease-out, box-shadow 120ms ease-out, color 120ms ease-out, transform 60ms ease-out;
+}
+.tgo::before{ /* 內縮 3px 細內框 */
+  content:""; position:absolute; inset:3px; border:1px solid rgba(168,146,127,0.32); pointer-events:none;
+  transition:border-color 120ms ease-out;
+}
+/* 四角 L 刻角：每邊 7px、線寬 1px，貼在外框外側 2px */
+.tgo .cn{position:absolute; width:7px; height:7px; border:0 solid var(--panel-edge); pointer-events:none; transition:border-color 120ms ease-out;}
+.tgo .cn.tl{left:-4px; top:-4px; border-left-width:1px; border-top-width:1px;}
+.tgo .cn.tr{right:-4px; top:-4px; border-right-width:1px; border-top-width:1px;}
+.tgo .cn.bl{left:-4px; bottom:-4px; border-left-width:1px; border-bottom-width:1px;}
+.tgo .cn.br{right:-4px; bottom:-4px; border-right-width:1px; border-bottom-width:1px;}
+/* 硃砂菱印 8×8（旋 45° 後對角 ≈11px） */
+.tgo .seal{width:8px; height:8px; flex:none; transform:rotate(45deg); background:var(--t02-seal); box-shadow:0 0 0 1px var(--t02-seal-edge); transition:background-color 120ms ease-out, box-shadow 120ms ease-out;}
+.tgo .lb{display:block; letter-spacing:0.24em; margin-right:-0.24em;} /* 抵掉字距尾巴，左右等距 */
+
+/* Hover / 手把焦點 */
+.tgo:hover:not(:disabled), .tgo:focus-visible, .tgo.is-hover{
+  color:var(--tx-strong); border-color:var(--t02-bronze-hi);
+  box-shadow:
+    inset 0 1px 0 rgba(232,229,225,0.18),
+    inset 0 -14px 16px -10px rgba(176,26,20,0.38),  /* 門內餘燼：內暈，不外發光 */
+    inset 0 -2px 0 rgb(var(--scrim-rgb) / 0.55),
+    0 0 0 3px rgb(var(--scrim-rgb) / 0.6),
+    0 8px 24px rgb(var(--scrim-rgb) / 0.5);
+}
+.tgo:hover:not(:disabled)::before, .tgo:focus-visible::before, .tgo.is-hover::before{border-color:rgba(185,138,94,0.55);}
+.tgo:hover:not(:disabled) .cn, .tgo:focus-visible .cn, .tgo.is-hover .cn{border-color:var(--t02-bone);}
+.tgo:hover:not(:disabled) .seal, .tgo:focus-visible .seal, .tgo.is-hover .seal{background:var(--t02-seal-edge); box-shadow:0 0 0 1px var(--t02-seal-hi);}
+/* 焦點環：外 1px 骨白，距框 6px（在角飾外，手把／鍵盤一定看得到） */
+.tgo:focus-visible, .tgo.is-focus{outline:1px solid var(--t02-bone); outline-offset:6px;}
+
+/* Active 按下 */
+.tgo:active:not(:disabled), .tgo.is-active{
+  transform:translateY(1px); transition-duration:60ms;
+  color:var(--tx); border-color:var(--t02-bronze-hi);
+  background:linear-gradient(180deg,var(--scene-void) 0,var(--panel-inset) 60%,var(--panel) 100%);
+  box-shadow:
+    inset 0 2px 0 rgb(var(--scrim-rgb) / 0.6),      /* 凹下去：影子在上 */
+    inset 0 -12px 14px -10px rgba(176,26,20,0.30),
+    0 0 0 3px rgb(var(--scrim-rgb) / 0.6),
+    0 4px 12px rgb(var(--scrim-rgb) / 0.5);
+}
+.tgo:active:not(:disabled) .seal, .tgo.is-active .seal{background:var(--t02-seal-edge); box-shadow:0 0 0 1px var(--t02-seal-hi);}
+
+/* Disabled（存檔載入中等） */
+.tgo:disabled{
+  cursor:default; color:var(--tx-off); text-shadow:none;
+  background:var(--panel-inset); border:1px dashed #5a544e;
+  box-shadow:0 0 0 3px rgb(var(--scrim-rgb) / 0.6);
+}
+.tgo:disabled::before{border-color:rgba(129,123,117,0.18);}
+.tgo:disabled .cn{border-color:#5a544e;}
+.tgo:disabled .seal{background:#3f3b36; box-shadow:0 0 0 1px #4a443e;}
+
+/* L3 與按鈕之間的分隔：320×1 階梯淡出（硬色階、非柔和漸層）＋中央硃砂菱點 */
+.tdiv{position:relative; width:320px; height:9px;}
+.tdiv::before{content:""; position:absolute; left:0; right:0; top:4px; height:1px;
+  background:linear-gradient(90deg,
+    transparent 0 12.5%, rgba(138,108,78,0.30) 12.5% 25%, rgba(138,108,78,0.60) 25% 37.5%, var(--t02-bronze) 37.5% 47%,
+    transparent 47% 53%,
+    var(--t02-bronze) 53% 62.5%, rgba(138,108,78,0.60) 62.5% 75%, rgba(138,108,78,0.30) 75% 87.5%, transparent 87.5% 100%);}
+.tdiv::after{content:""; position:absolute; left:50%; top:4.5px; width:5px; height:5px; margin:-2.5px 0 0 -2.5px; transform:rotate(45deg); background:var(--t02-seal-edge);}
+```
+
+v1.0 的全畫面 0.62 遮罩與安全區 360,232 560×208 由本節取代（歷史見 CHANGELOG 2026-11-27 11:41）。
