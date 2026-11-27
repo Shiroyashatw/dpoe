@@ -426,11 +426,12 @@ const SKILLS = {
     ic: 'sk_markshot',
     t: 0.25,
     mp: 8,
+    cd: 4,
     m: 0,
     mark: 'sniper',
     /* SU-03：印記不限武器；能力值需求維持原本 bow 的顏色 */
     at: ['dex'],
-    tags: ['spell', 'mark'],
+    tags: ['spell', 'mark', 'cd'],
     d: '對一個目標施加印記。你暴擊帶有印記的敵人時，消耗印記，造成額外傷害並獲得狂怒球。',
     x: [
       '對滑鼠位置 4 公尺內最近的一個敵人施加印記',
@@ -443,11 +444,12 @@ const SKILLS = {
     ic: 'sk_frostchain',
     t: 0.25,
     mp: 8,
+    cd: 4,
     m: 0,
     mark: 'freeze',
     /* SU-03：印記不限武器；能力值需求維持原本 qstaff 的顏色 */
     at: ['dex', 'int'],
-    tags: ['spell', 'mark'],
+    tags: ['spell', 'mark', 'cd'],
     d: '對一個目標施加印記，使其更容易被冰凍。你擊中被冰凍的印記目標時，消耗印記並獲得附加冰冷增益。',
     x: [
       '對滑鼠位置 4 公尺內最近的一個敵人施加印記',
@@ -461,11 +463,12 @@ const SKILLS = {
     ic: 'sk_chainlight',
     t: 0.25,
     mp: 8,
+    cd: 4,
     m: 0,
     mark: 'volt',
     /* SU-03：印記不限武器；能力值需求維持原本 spear 的顏色 */
     at: ['str', 'dex'],
-    tags: ['spell', 'mark'],
+    tags: ['spell', 'mark', 'cd'],
     d: '對一個目標施加印記，使其更容易觸電。你擊中觸電中的印記目標時，消耗印記並獲得附加閃電增益。',
     x: [
       '對滑鼠位置 4 公尺內最近的一個敵人施加印記',
@@ -479,11 +482,12 @@ const SKILLS = {
     ic: 'sk_deathmark',
     t: 0.25,
     mp: 8,
+    cd: 4,
     m: 0,
     mark: 'hound',
     /* SU-03：印記不限武器；能力值需求維持原本 axe 的顏色 */
     at: ['str', 'dex'],
-    tags: ['spell', 'mark'],
+    tags: ['spell', 'mark', 'cd'],
     d: '對一個目標施加印記。目標身上的流血會累積沉重暈眩；你擊中遭沉重暈眩的印記目標或目標死亡時，消耗印記並引發血爆。',
     x: [
       '對滑鼠位置 4 公尺內最近的一個敵人施加印記',
@@ -496,11 +500,12 @@ const SKILLS = {
     ic: 'sk_assassinate',
     t: 0.25,
     mp: 8,
+    cd: 4,
     m: 0,
     mark: 'assassin',
     /* SU-03：印記不限武器；能力值需求維持原本 dagger 的顏色 */
     at: ['dex', 'int'],
-    tags: ['spell', 'mark'],
+    tags: ['spell', 'mark', 'cd'],
     d: '對一個目標施加印記。帶有印記的敵人死亡時，你獲得暴擊球。',
     x: ['對滑鼠位置 4 公尺內最近的一個敵人施加印記', '同一種印記同一時間只能標記一個敵人', '死亡時獲得 1 顆暴擊球']
   },
@@ -509,11 +514,12 @@ const SKILLS = {
     ic: 'ail_mark',
     t: 0.25,
     mp: 8,
+    cd: 4,
     m: 0,
     mark: 'poacher',
     /* SU-03：印記不限武器；能力值需求維持原本 talisman 的顏色 */
     at: ['str', 'int'],
-    tags: ['spell', 'mark'],
+    tags: ['spell', 'mark', 'cd'],
     d: '對一個目標施加印記。擊中帶有印記的敵人時回復魔力；目標死亡時獲得狂怒球並回復生命。',
     x: [
       '對滑鼠位置 4 公尺內最近的一個敵人施加印記',
@@ -527,11 +533,12 @@ const SKILLS = {
     ic: 'sk_doom',
     t: 0.25,
     mp: 8,
+    cd: 4,
     m: 0,
     mark: 'warlord',
     /* SU-03：印記不限武器；能力值需求維持原本 mace 的顏色 */
     at: ['str'],
-    tags: ['spell', 'mark'],
+    tags: ['spell', 'mark', 'cd'],
     d: '對一個目標施加印記。擊中帶有印記的敵人時回復生命；目標死亡時獲得耐力球。',
     x: [
       '對滑鼠位置 4 公尺內最近的一個敵人施加印記',

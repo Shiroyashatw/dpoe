@@ -4430,6 +4430,12 @@ const ASC_COMBOS = `const combos = k => {
     bow.join() === '90,0,1,false,true,true,false,1,false,true,true,0.7,1,1,1,0,1,2,8,12,1,1,0',
     bow.join()
   );
+  ok(
+    '印記（SU-03）：7 個都不限武器、冷卻 4 秒、有冷卻標籤',
+    R(
+      `Object.keys(SKILLS).filter(k => SKILLS[k].mark).map(k => !SKILLS[k].wt && SKILLS[k].cd === 4 && SKILLS[k].tags.includes('cd')).join()`
+    ) === Array(7).fill('true').join()
+  );
   /* 0.2.42 定身與控制：禁錮四種、釘身來源與觸發、可釘身、目眩、玩家僵直與沉重暈眩、暈眩恢復、堅韌 */
   const ctl = R(`(() => {
     G.mobs = []; G.t = 200; G.mapT = 16; G.mm = null; ST.dmg = [100, 100]; ST.noCrit = 1; ST.hp = 1000;
