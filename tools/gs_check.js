@@ -550,10 +550,10 @@ const CONTRAST = `(() => {
     });
     await p.waitForTimeout(200);
     const c = await p.evaluate(`(() => {
-      const A = $('acf'), y = A.querySelector('.acfy'), n = A.querySelector('.acfn'), w = A.querySelector('.acfw');
+      const A = $('authcf'), y = A.querySelector('.acfy'), n = A.querySelector('.acfn'), w = A.querySelector('.acfw');
       return { on: !A.hidden, t: A.textContent, focus: document.activeElement === n, nPri: n.classList.contains('pri'),
         yB: getComputedStyle(y).borderTopColor, yC: getComputedStyle(y).color, yBg: getComputedStyle(y).backgroundColor, wB: getComputedStyle(w).borderTopColor,
-        cr: [...A.querySelectorAll('b, p, small, .btn')].map(e => +__cr(e).toFixed(2)), inV: (${inView})('#acf .btn'),
+        cr: [...A.querySelectorAll('b, p, small, .btn')].map(e => +__cr(e).toFixed(2)), inV: (${inView})('#authcf .btn'),
         yL: y.getBoundingClientRect().left < n.getBoundingClientRect().left };
     })()`);
     ok(
@@ -580,18 +580,18 @@ const CONTRAST = `(() => {
     ok('登入 S02 卡內字／底對比 ≥ 4.5、兩顆鈕在畫面內', c.cr.every(x => x >= 4.5) && c.inV, JSON.stringify(c.cr));
     await snap(p, 'small-screens', 'S02-實機');
     const lv0 = await p.evaluate(() => S.lv);
-    await tapOrClick(p, '#acf .acfn');
+    await tapOrClick(p, '#authcf .acfn');
     await p.waitForTimeout(300);
-    const cx = await p.evaluate(() => [$('acf').hidden, window.__used, S.lv]);
+    const cx = await p.evaluate(() => [$('authcf').hidden, window.__used, S.lv]);
     ok(
       '登入 S02 取消：卡關掉、不載入雲端存檔、本機進度不變',
       cx[0] && cx[1] === 0 && cx[2] === lv0,
       JSON.stringify(cx)
     );
     await p.evaluate(() => authCfAsk({ v: 12, lv: 52 }, 'login'));
-    await tapOrClick(p, '#acf .acfy');
+    await tapOrClick(p, '#authcf .acfy');
     await p.waitForTimeout(300);
-    const cy = await p.evaluate(() => [$('acf').hidden, window.__used]);
+    const cy = await p.evaluate(() => [$('authcf').hidden, window.__used]);
     ok('登入 S02 按一下「確認登入並覆蓋」就執行（無長按）', cy[0] && cy[1] === 1, JSON.stringify(cy));
     const gh = await p.evaluate(() => {
       const a = [S.lv, S.xp, S.inv.items.length];

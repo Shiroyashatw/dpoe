@@ -4401,11 +4401,12 @@ body.d12 #pset .setc2 { left: 431px; width: 416px; }
 body.d12 #pset .setc3 { left: 871px; width: 344px; }
 body.d12 #pset .ph2 { margin: 0; padding: 0; height: 22px; font: 700 12px/16px var(--font); color: var(--tx-strong); border: 0; background: none; }
 body.d12 #pset .ph2 > span { font: 400 11px/16px var(--font); color: var(--tx-dim); margin-left: 8px; }
-body.d12 #pset .gkind { display: flex; gap: 12px; margin: 0 0 12px; }
-body.d12 #pset .gkind .btn { position: relative; width: 120px; height: 32px; min-height: 0; padding: 0; font: 400 12px/1 var(--font); color: var(--tx); background: var(--btn2); border: 1px solid transparent; border-radius: 0; box-shadow: none; }
-body.d12 #pset .gkind .btn::after { content: ''; position: absolute; inset: -6px 0; }
-body.d12 #pset .gkind .btn.on { color: var(--tx-strong); background: var(--sel-bg); border: 2px solid var(--sel-edge); box-shadow: none; font-weight: 700; }
-body.d12 #pset .setc1 > .gkind:first-of-type .btn { width: 180px; height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+body.d12 #pset .gkind { display: flex; gap: 12px; margin: -6px 0 6px; }
+/* 看起來 120×32、熱區 44 高：上下 6 px 透明框、底只畫在 padding 內；選中框用 inset 陰影 */
+body.d12 #pset .gkind .btn { position: relative; width: 120px; height: 44px; min-height: 0; padding: 0; font: 400 12px/1 var(--font); color: var(--tx); background: var(--btn2); background-clip: padding-box; border: 0; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-radius: 0; box-shadow: none; }
+body.d12 #pset .gkind .btn.on { color: var(--tx-strong); background: var(--sel-bg); background-clip: padding-box; box-shadow: inset 0 0 0 2px var(--sel-edge); font-weight: 700; }
+body.d12 #pset .setc1 > .gkind:first-of-type { margin-top: 0; }
+body.d12 #pset .setc1 > .gkind:first-of-type .btn { width: 180px; height: 44px; border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 body.d12 #pset .gkind .btn small { font: 400 11px/14px var(--font); color: var(--tx); }
 body.d12 #pset .sethint { margin: -4px 0 0; font: 400 11px/16px var(--font); color: var(--tx-dim); }
 body.d12 #pset .keyl { margin: 2px 0 0; display: grid; grid-template-columns: 112px 1fr; gap: 0; }
@@ -4423,35 +4424,35 @@ body.d12 #pset .acct .lnk { justify-self: start; height: auto; padding: 4px 0; b
 body.d12 #pset .acct.row .btn { width: 100px; height: 32px; }
 body.d12 #scrim:not([hidden]) { background: none; }
 /* 登入覆蓋確認卡（S02）：暗幕 --d2-scrim；主鈕取消（預設焦點）；危險次鈕 --panel-raised＋2px --bad＋--bad 字 */
-#acf { position: fixed; inset: 0; z-index: 80; }
-#acf[hidden] { display: none; }
-#acf .acfs { position: absolute; inset: 0; background: var(--d2-scrim); }
-body.d12 #acf .acfs { inset: 76px auto auto 16px; width: 1248px; height: 536px; }
-body.d12 #acf .acfs::before { content: ''; position: fixed; inset: 0; z-index: -1; }
-#acf .acf { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100vw - 24px)); box-sizing: border-box; padding: 18px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--panel); border: 2px solid var(--panel-edge); color: var(--tx); font-family: var(--font); }
-#acf .acf > b, #acf .acf > p, #acf .acfw { grid-column: 1 / -1; margin: 0; }
-#acf .acf > b { font: 700 16px/22px var(--font); color: var(--tx-strong); }
-#acf .acfd { font: 400 13px/20px var(--font); color: var(--tx); }
-#acf .acfo { font: 400 12px/18px var(--font); color: var(--tx-dim); }
-#acf .acfw { padding: 8px 12px; background: var(--panel-inset); border: 1px solid var(--bad); }
-#acf .acfw b { display: block; font: 700 12px/18px var(--font); color: var(--bad); }
-#acf .acfw small { font: 400 11px/16px var(--font); color: var(--tx); }
-#acf .acf .btn { min-height: 44px; border-radius: 0; box-shadow: none; font: 700 12px/1 var(--font); }
-#acf .acfy { background: var(--panel-raised); border: 2px solid var(--bad); color: var(--bad); }
-#acf .acfn { background: var(--act); border: 0; color: var(--on-act); }
-body.d12 #acf .acf { left: 340px; top: 170px; transform: none; width: 600px; height: 310px; padding: 0; display: block; }
-body.d12 #acf .acf > b { position: absolute; left: 22px; top: 16px; }
-body.d12 #acf .acfd { position: absolute; left: 22px; top: 50px; width: 552px; }
-body.d12 #acf .acfo { position: absolute; left: 22px; top: 102px; width: 552px; }
-body.d12 #acf .acfw { position: absolute; left: 22px; top: 148px; width: 552px; height: 52px; box-sizing: border-box; padding: 6px 12px; }
-body.d12 #acf .acfy { position: absolute; left: 22px; top: 244px; width: 220px; height: 44px; }
-body.d12 #acf .acfn { position: absolute; left: 394px; top: 244px; width: 180px; height: 44px; }
+#authcf { position: fixed; inset: 0; z-index: 80; }
+#authcf[hidden] { display: none; }
+#authcf .acfs { position: absolute; inset: 0; background: var(--d2-scrim); }
+body.d12 #authcf .acfs { inset: 76px auto auto 16px; width: 1248px; height: 536px; }
+body.d12 #authcf .acfs::before { content: ''; position: fixed; inset: 0; z-index: -1; }
+#authcf .acf { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(600px, calc(100vw - 24px)); box-sizing: border-box; padding: 18px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: var(--panel); border: 2px solid var(--panel-edge); color: var(--tx); font-family: var(--font); }
+#authcf .acf > b, #authcf .acf > p, #authcf .acfw { grid-column: 1 / -1; margin: 0; }
+#authcf .acf > b { font: 700 16px/22px var(--font); color: var(--tx-strong); }
+#authcf .acfd { font: 400 13px/20px var(--font); color: var(--tx); }
+#authcf .acfo { font: 400 12px/18px var(--font); color: var(--tx-dim); }
+#authcf .acfw { padding: 8px 12px; background: var(--panel-inset); border: 1px solid var(--bad); }
+#authcf .acfw b { display: block; font: 700 12px/18px var(--font); color: var(--bad); }
+#authcf .acfw small { font: 400 11px/16px var(--font); color: var(--tx); }
+#authcf .acf .btn { min-height: 44px; border-radius: 0; box-shadow: none; font: 700 12px/1 var(--font); }
+#authcf .acfy { background: var(--panel-raised); border: 2px solid var(--bad); color: var(--bad); }
+#authcf .acfn { background: var(--act); border: 0; color: var(--on-act); }
+body.d12 #authcf .acf { left: 340px; top: 170px; transform: none; width: 600px; height: 310px; padding: 0; display: block; }
+body.d12 #authcf .acf > b { position: absolute; left: 22px; top: 16px; }
+body.d12 #authcf .acfd { position: absolute; left: 22px; top: 50px; width: 552px; }
+body.d12 #authcf .acfo { position: absolute; left: 22px; top: 102px; width: 552px; }
+body.d12 #authcf .acfw { position: absolute; left: 22px; top: 148px; width: 552px; height: 52px; box-sizing: border-box; padding: 6px 12px; }
+body.d12 #authcf .acfy { position: absolute; left: 22px; top: 244px; width: 220px; height: 44px; }
+body.d12 #authcf .acfn { position: absolute; left: 394px; top: 244px; width: 180px; height: 44px; }
 /* T02 開場標題（small-screens-spec-2 §T02）：1 背景圖 cover 置中 → 2 全畫面 62% 暗調遮罩（不可調淡）→ 標題與開始在安全區 360,232 560×208；壓圖字只用 --tx-strong／--tx */
 #ivg { background: var(--panel-inset); }
 #ivg .ivbg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; image-rendering: pixelated; }
 #ivg .ivsc { position: absolute; inset: 0; background: var(--d2-scrim); }
 #ivg h1, #ivg #ivgo { position: relative; z-index: 1; }
-#ivg h1 { color: var(--tx-strong); text-shadow: 0 2px 6px #000; }
+#ivg h1 { color: var(--tx-strong); text-shadow: 0 2px 6px var(--d2-black); }
 #ivg #ivgo { min-width: 160px; min-height: 48px; background: var(--act); color: var(--on-act); border: 0; border-radius: 0; box-shadow: none; }
 body:not(.touch) #ivg { display: block; }
 body:not(.touch) #ivg h1 { position: absolute; left: 50%; top: calc(50% - 82px); transform: translateX(-50%); white-space: nowrap; line-height: 56px; font-size: 48px; }
@@ -4463,7 +4464,7 @@ body.d12 #pset .ph2 > span.zterm { margin-left: 0; font: inherit; color: inherit
 #poff .offl li.ch > i { box-sizing: border-box; min-width: 20px; height: 20px; padding: 0 3px; font: 400 10px/18px var(--font); font-style: normal; text-align: center; color: var(--tx-dim); background: var(--panel-inset); border: 1px solid var(--border); }
 body.d12 #pguild .gsh .gall::after { inset: -8px 0; }
 body.d12 #pguild > .ph .x::after { content: ''; position: absolute; inset: -4px -2px; }
-/* 卡片類（C01、D01、O01）：--btn2 鈕內第二行一律 --tx（--tx-dim 在 --btn2 上只有 3.70:1，PR #213 教訓）；D01 標題不用紅 */
+/* 卡片類（C01、D01、O01）：--btn2 鈕內第二行一律 --tx（--tx-dim 在 --btn2 上只有 3.70:1，PR 213 教訓）；D01 標題不用紅 */
 #over .btn:not(.pri) small, #poff .btn:not(.pri) small, #poff .btn:not(.pri) kbd { color: var(--tx); }
 #over .card.dead h2 { color: var(--tx-strong); }
 #pset .gkind .btn small { color: var(--tx); }

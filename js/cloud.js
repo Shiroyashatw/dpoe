@@ -197,7 +197,7 @@ function authCfHTML() {
   <button class="btn acfy" data-acf="1">確認登入並覆蓋</button><button class="btn pri acfn" data-acf="0">取消</button></div>`;
 }
 function authCfDraw() {
-  const el = $('acf');
+  const el = $('authcf');
   if (!el) return;
   el.hidden = !AUTH_CF.on;
   el.innerHTML = AUTH_CF.on ? authCfHTML() : '';
