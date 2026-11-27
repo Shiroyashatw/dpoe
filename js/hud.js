@@ -1371,8 +1371,9 @@ function cmpCol(it, head) {
   if (b.dmg && !SPELLW.has(B.wt || 'sword')) {
     const segs = [`<span>${Math.round(b.dmg[0] * m)}–${Math.round(b.dmg[1] * m)}</span>`].concat(
       (it.a || [])
-        .filter(a => ELCLS[a.k] && Array.isArray(a.v))
-        .map(a => `<span class="${ELCLS[a.k]}"><i>／</i>${a.v[0]}–${a.v[1]}</span>`)
+        .flatMap(affParts)
+        .filter(([k, v]) => ELCLS[k] && Array.isArray(v))
+        .map(([k, v]) => `<span class="${ELCLS[k]}"><i>／</i>${v[0]}–${v[1]}</span>`)
     );
     kv.push(
       ['傷害', `<b class="dmg">${segs.join('')}</b>`],

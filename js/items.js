@@ -14,14 +14,39 @@ function rollRarity(bonus) {
 }
 /* 在指定的階級 T 骰一條詞（T0＝破裂詞，tierRange 會給 T1 再往上一段） */
 function rollAffT(k, T) {
-  const [lo, hi] = tierRange(k, T);
-  if (AFF[k].add) {
+  /* 強力詞（AFF.top：技能等級、最大抗性）最低就是 AFF_TOP_T 階（SU-02） */
+  if (AFF[k].top && T > AFF_TOP_T) T = AFF_TOP_T;
+  const A = AFF[k];
+  /* 複合詞（SU-02）：兩個數字各自在自己的範圍骰（暫定）；附加傷害的那一半照附加傷害骰 */
+  if (A.h) return { k, T, v: rollV(A.h[0], tierRange(k, T, 0)), v2: rollV(A.h[1], tierRange(k, T, 1)) };
+  return { k, T, v: rollV(k, tierRange(k, T)) };
+}
+function rollV(k, [lo, hi]) {
+  if (AFF[k] && AFF[k].add) {
     /* 附加傷害：a～b，b 大約是 a 的 2 倍 */
     const v = irnd(lo, hi);
-    return { k, T, v: [Math.max(1, Math.round(v * 0.5)), v] };
+    return [Math.max(1, Math.round(v * 0.5)), v];
   }
-  return { k, T, v: irnd(lo, hi) };
+  /* 有小數的範圍（每秒回復 x% 最大生命）留一位小數 */
+  return lo % 1 || hi % 1 ? Math.round(rnd(lo, hi) * 10) / 10 : irnd(lo, hi);
 }
+/* 詞綴給的能力鍵：複合詞兩個、其他一個（s＝能力鍵跟詞綴鍵不同） */
+const affKs = k => AFF[k].h || [k];
+/* 一條詞拆成 [能力鍵, 數值]：stats、本地詞、能力值、盾的防禦都用這個讀 */
+const affParts = a => {
+  const A = AFF[a.k] || {};
+  return A.h
+    ? [
+        [A.h[0], a.v],
+        [A.h[1], a.v2]
+      ]
+    : [[A.s || a.k, a.v]];
+};
+/* 同一件不會同時有單項詞和含同一種能力的複合詞（SU-02 完成標準）；複合詞之間可以重疊（例：火冰抗＋火閃抗） */
+const affClash = (k, have) =>
+  have.some(h => h !== k && (AFF[h].h ? !AFF[k].h && AFF[h].h.includes(k) : !!AFF[k].h && AFF[k].h.includes(h)));
+/* 這個物品等級能不能出這條（強力詞要能出到 AFF_TOP_T 階） */
+const affLvOK = (k, ilvl) => !AFF[k].top || bestTier(ilvl) <= AFF_TOP_T;
 function rollAff(k, ilvl) {
   const best = bestTier(ilvl);
   /* 一次骰在最高階往下 3 階內 */
@@ -93,7 +118,7 @@ function mkItem(baseId, ilvl, rar) {
   /* 魔法 1～2 條（前、後綴各最多 1）；稀有 3～6 條（各最多 3） */
   const n = rar === 1 ? irnd(1, 2) : irnd(3, 6),
     cap = rar === 1 ? 1 : 3,
-    pool = (B.aff || K.aff).slice();
+    pool = (B.aff || K.aff).filter(k => affLvOK(k, ilvl));
   let np = 0,
     ns = 0;
   for (let i = 0; i < 40 && it.a.length < n && pool.length; i++) {
@@ -102,6 +127,13 @@ function mkItem(baseId, ilvl, rar) {
       pre = AFF[k].p;
     if ((pre && np >= cap) || (!pre && ns >= cap)) continue;
     pool.splice(j, 1);
+    if (
+      affClash(
+        k,
+        it.a.map(a => a.k)
+      )
+    )
+      continue;
     it.a.push(rollAff(k, ilvl));
     pre ? np++ : ns++;
   }
@@ -227,7 +259,12 @@ const labelTag = it =>
   it.charm
     ? ''
     : ` T${itemT(it)}${it.chase ? ' ◆' : ''}${it.frac ? ' ★' : ''}${it.mem ? ' ◈' : ''}${it.mem2 ? '◈' : ''}`;
-const affText = a => AFF[a.k].n.replace('{}', Array.isArray(a.v) ? a.v[0] + ' 至 ' + a.v[1] : a.v);
+const affNum = v => (Array.isArray(v) ? v[0] + ' 至 ' + v[1] : v);
+/* 複合詞（SU-02）一行兩個數字：第一個 {} 放 v、第二個放 v2 */
+const affText = a => {
+  const n = AFF[a.k].n.replace('{}', affNum(a.v));
+  return AFF[a.k].h ? n.replace('{}', affNum(a.v2)) : n;
+};
 /* 腐化詞（0.2.72）：it.cw 的一條 */
 const cwText = c => CORR[c.k].n.replace('{}', c.v);
 /* 災魘詞（0.2.78）：有利 g、有害 b 各一條 */
@@ -434,9 +471,9 @@ function itemAttr(it) {
   const r = { str: 0, dex: 0, int: 0 };
   const B = it && baseOf(it);
   /* 固定詞（基底的 b）跟詞綴一樣算：項鍊有 +能力值 的基底 */
-  for (const a of [...Object.entries(B ? B.b : {}).map(([k, v]) => ({ k, v })), ...((it && it.a) || [])]) {
-    if (a.k === 'attrA') for (const k of ATTR) r[k] += a.v;
-    else if (a.k in r) r[a.k] += a.v;
+  for (const [k0, v] of [...Object.entries(B ? B.b : {}), ...((it && it.a) || []).flatMap(affParts)]) {
+    if (k0 === 'attrA') for (const k of ATTR) r[k] += v;
+    else if (k0 in r) r[k0] += v;
   }
   return r;
 }
@@ -593,6 +630,8 @@ function stats(s = S) {
     ),
     /* 0.2.67 第 4 層 A 新增的能力（data.js 的 PT_NEW） */
     ...Object.fromEntries(Object.keys(PT_NEW).map(k => [k, 0])),
+    /* SU-02 詞綴池擴充的新能力（data.js 的 AFF_ST） */
+    ...Object.fromEntries(Object.keys(AFF_ST).map(k => [k, 0])),
     more: 0,
     lowHp: 0,
     fullHp: 0,
@@ -896,10 +935,10 @@ function stats(s = S) {
           crit: 0,
           add: { fire: [0, 0], cold: [0, 0], light: [0, 0], chaos: [0, 0] }
         };
-      for (const a of (it && it.a) || []) {
-        if (a.k === 'dmgP' || a.k === 'as' || a.k === 'crit') L[a.k] += a.v;
-        else if (a.k === 'flat') (L.flat[0] += a.v[0]), (L.flat[1] += a.v[1]);
-        else if (L.add[a.k]) (L.add[a.k][0] += a.v[0]), (L.add[a.k][1] += a.v[1]);
+      for (const [k, v] of ((it && it.a) || []).flatMap(affParts)) {
+        if (k === 'dmgP' || k === 'as' || k === 'crit') L[k] += v;
+        else if (k === 'flat') (L.flat[0] += v[0]), (L.flat[1] += v[1]);
+        else if (L.add[k]) (L.add[k][0] += v[0]), (L.add[k][1] += v[1]);
       }
       const m = (it ? qMul(it) : 1) + L.dmgP / 100;
       return {
@@ -912,6 +951,10 @@ function stats(s = S) {
     isLocal = (it, k) => baseOf(it).k === 'weapon' && (['dmgP', 'as', 'crit', 'flat'].includes(k) || !!o.wadd[k]);
   /* 裝備給的生命（豐血只放大裝備與天賦的，角色等級與能力值給的不算） */
   let lifeEq = 0;
+  /* SU-02：裝備詞裡跟天賦同一池的提高（最大生命%、護甲%、冷卻時間恢復率…）先記著，等下面的 pt 建好再加進去 */
+  const eqPt = {},
+    PT_EQ = ['hpP', 'armorP', 'evP', 'mpP', 'mpReg', 'cdr', 'blockInc'],
+    putEq = (k, v) => (PT_EQ.includes(k) ? (eqPt[k] = (eqPt[k] || 0) + v) : put(k, v));
   const put = (k, v) => {
     if (k === 'life') (o.hp += v), (lifeEq += v);
     else if (k === 'resF') o.res.fire += v;
@@ -936,7 +979,7 @@ function stats(s = S) {
     for (const k in b)
       if (!(baseOf(it).k === 'weapon' && (k === 'dmg' || k === 'as' || k === 'crit')))
         put(k, DEFK.includes(k) ? Math.round(b[k] * qMul(it)) : b[k]);
-    for (const a of it.a) if (!isLocal(it, a.k)) put(a.k, a.v);
+    for (const [k, v] of it.a.flatMap(affParts)) if (!isLocal(it, k)) putEq(k, v);
     /* 追憶詞：投射物、連鎖、精魂保留直接加進既有的能力，其餘放在 o.mem */
     for (const m of [it.mem, it.mem2])
       if (m && MEM[m.k])
@@ -967,6 +1010,7 @@ function stats(s = S) {
     esF: 0,
     blockInc: 0
   };
+  for (const k in eqPt) pt[k] += eqPt[k];
   const nodes = [...(s.pt || []).map(id => PTREE.I[id]), ...jewelNodes(s)],
     wt0 = (w && baseOf(w).wt) || 'unarmed';
   for (const n of nodes) {
@@ -1127,7 +1171,10 @@ function stats(s = S) {
   const shI = off && offOK(w, off) && baseOf(off).k === 'shield' ? off : null,
     /* 盾上的護甲、閃避、能量護盾（基底照品質＋詞綴） */
     shOf = k =>
-      shI ? Math.round((baseOf(shI).b[k] || 0) * qMul(shI)) + shI.a.reduce((t, a) => t + (a.k === k ? a.v : 0), 0) : 0,
+      shI
+        ? Math.round((baseOf(shI).b[k] || 0) * qMul(shI)) +
+          shI.a.flatMap(affParts).reduce((t, [k2, v]) => t + (k2 === k ? v : 0), 0)
+        : 0,
     shArm = shOf('armor');
   /* 盾的防禦提高（shieldDef，0.2.68）：盾本身的護甲、閃避、能量護盾再加這個 %，進各自的基礎值（之後吃全部的提高） */
   o.es += (shOf('es') * o.shieldDef) / 100;
@@ -1187,7 +1234,7 @@ function stats(s = S) {
     const b = baseOf(sh).b,
       def =
         ((b.armor || 0) + (b.ev || 0)) * qMul(sh) +
-        sh.a.reduce((t, a) => t + (DEFK.includes(a.k) && a.k !== 'es' ? a.v : 0), 0);
+        sh.a.flatMap(affParts).reduce((t, [k, v]) => t + (DEFK.includes(k) && k !== 'es' ? v : 0), 0);
     o.sdmg = [def * 0.14, def * 0.26];
   }
   o.aps = o.waps * (1 + o.as / 100);

@@ -29,10 +29,11 @@ const BASES = g('BASES'),
   SPELLW = g('SPELLW'),
   SPELL_AFF = g('SPELL_AFF');
 const BY = Object.fromEntries(BASES.map(b => [b.n, b]));
-/* 詞綴表：現有的 AFF＋草案 docs/production/詞綴池擴充草案.md 的兩張表（新單項、複合）。rs＝每個 {} 的整條範圍 */
+/* 詞綴表：優先讀程式的 AFF（SU-02 起草案的新單項、複合詞都在裡面；複合詞 r2＝第二個數字的範圍），
+   草案 docs/production/詞綴池擴充草案.md 的兩張表只補程式裡還沒有的列（draft）。rs＝每個 {} 的整條範圍 */
 const A = {},
   POOL = {};
-for (const [k, a] of Object.entries(AFF)) A[k] = { n: a.n, rs: [a.r] };
+for (const [k, a] of Object.entries(AFF)) A[k] = { n: a.n, rs: a.r2 ? [a.r, a.r2] : [a.r], ...(a.c ? { su: 1 } : {}) };
 for (const [k, v] of Object.entries(KINDS)) POOL[k] = (v.aff || []).filter(x => A[x]);
 POOL.spellw = SPELL_AFF.filter(x => A[x]);
 const PART = {
@@ -57,10 +58,12 @@ if (fs.existsSync(EXT))
     const rs = c[4].split('／').map(x => x.split('～').map(Number));
     if (rs.some(r => r.length !== 2 || r.some(isNaN)) || rs.length !== c[3].split('{}').length - 1)
       throw new Error('詞綴池擴充草案這一列讀不懂：' + l);
-    A[c[1]] = { n: c[3], rs, draft: 1 };
+    /* 加開（x_）的列用原本的鍵；程式已經有的鍵（含加開進池）就以程式為準，不再從表補 */
+    const k = c[1].startsWith('x_') ? c[1].slice(2) : c[1];
+    if (!A[k]) A[k] = { n: c[3], rs, draft: 1 };
     for (const part of c[5].split('、')) {
       if (!PART[part]) throw new Error('詞綴池擴充草案的部位寫錯：' + part);
-      POOL[PART[part]].push(c[1]);
+      if (!POOL[PART[part]].includes(k)) POOL[PART[part]].push(k);
     }
   }
 /* 這個基底能出的詞綴：法系武器（SPELLW：長杖、法杖、權杖、陷阱器）用法系池（data.js 的 WEAPON_BASES 也是這樣給），其他照部位 */
@@ -96,7 +99,7 @@ if (args[0] === '--aff') {
           A[k].n,
           A[k].rs.map(r => sug1(r, lv).join('～'))
         ) +
-        `   （整條 ${A[k].rs.map(r => r.join('～')).join('／')}${A[k].draft ? (A[k].rs.length > 1 ? '，複合' : '，新') : ''}）`
+        `   （整條 ${A[k].rs.map(r => r.join('～')).join('／')}${A[k].rs.length > 1 ? '，複合' : A[k].su ? '，新' : ''}${A[k].draft ? '，草案、程式還沒有' : ''}）`
     );
   process.exit(0);
 }

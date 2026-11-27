@@ -981,7 +981,7 @@ function drinkFlask(mana) {
   if (P.cds[k] > 0) return flaskBusy(k);
   P.cds[k] = FLASK.cd;
   flaskDrunk();
-  const v = flaskEff() + (mana ? ST.mpFlask : 0) / 100;
+  const v = flaskEff() + (mana ? ST.mpFlask : ST.lifeFlask || 0) / 100;
   if (mana) P.mheal += ST.mp * FLASK.mp * v;
   else P.heal += ST.hp * FLASK.heal * v;
   fx({ k: 'heal', x: P.x, y: P.y, dur: 0.5 });

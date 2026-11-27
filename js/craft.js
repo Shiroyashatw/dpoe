@@ -31,8 +31,14 @@ function affPool(it, cls, skip) {
     np = it.a.filter(a => a !== skip && AFF[a.k].p).length,
     ns = it.a.filter(a => a !== skip && !AFF[a.k].p).length,
     cap = sideCap(it);
+  /* SU-02：強力詞看物品等級、單項與複合詞不重疊（items.js 的 affLvOK、affClash） */
   return (baseOf(it).aff || KINDS[baseOf(it).k].aff).filter(
-    k => !have.has(k) && (!cls || affCls(k) === cls) && (AFF[k].p ? np < cap : ns < cap)
+    k =>
+      !have.has(k) &&
+      (!cls || affCls(k) === cls) &&
+      (AFF[k].p ? np < cap : ns < cap) &&
+      affLvOK(k, it.L) &&
+      !affClash(k, [...have])
   );
 }
 /* 新加的詞（鍛造 v1.0 §4.1）：T＝min(6, b＋隨機 0～w)，b＝這件的頂階（bestTier）；ADD_W 在 forgeDo 裡才有值，沒有就照掉落的骰法 */
@@ -109,9 +115,9 @@ const tierSpan = it => {
 /* 預覽（0.2.30）：一條詞可能的數字範圍（這件物品等級能出的階級） */
 function affRangeTxt(k, it) {
   const b = bestTier(it.L),
-    [, hi] = tierRange(k, b),
-    [lo] = tierRange(k, Math.min(AFF_T, b + 2));
-  return AFF[k].n.replace('{}', `${lo}～${hi}`);
+    rg = j => `${tierRange(k, Math.min(AFF_T, b + 2), j)[0]}～${tierRange(k, b, j)[1]}`,
+    n = AFF[k].n.replace('{}', rg(0));
+  return AFF[k].h ? n.replace('{}', rg(1)) : n;
 }
 const affName = k => AFF[k].n.replace(/ ?\+?\{\}%?/g, '').replace('附加 ', '');
 
@@ -716,7 +722,8 @@ const FORGE = {
   }
 };
 /* 轉化石能換成什麼：同類、不是自己、這件裝備出得了、前後綴放得下（被換掉的那條不算） */
-const convPool = (it, a) => affPool(it, affCls(a.k), a).filter(k => k !== a.k);
+/* 強力詞（AFF.top）只換得到 AFF_TOP_T 階以上的那條（不然轉化會把低階詞升上去） */
+const convPool = (it, a) => affPool(it, affCls(a.k), a).filter(k => k !== a.k && (!AFF[k].top || a.T <= AFF_TOP_T));
 /* 這顆通貨在材料頁的數量（精髓粉看選的那一類，回「能用幾次」） */
 const dustCost = arg => DUST_G[String(arg).split(':')[1] - 1].k;
 const curHave = (op, arg) =>
@@ -928,7 +935,8 @@ function forePeek(it, op, arg) {
   const { why, lack } = forgeCheck(it, op, arg);
   if (why || lack) return why || lack;
   MAT().fore--;
-  const res = { ...it, a: it.a.map(a => ({ ...a, v: Array.isArray(a.v) ? a.v.slice() : a.v })) };
+  const cp = v => (Array.isArray(v) ? v.slice() : v),
+    res = { ...it, a: it.a.map(a => ({ ...a, v: cp(a.v), ...('v2' in a ? { v2: cp(a.v2) } : {}) })) };
   runOp(res, op, arg);
   sortAff(res);
   FORE = { id: it.id, op, arg, res, a0: it.a.map(a => JSON.stringify(a)), r0: it.r };
@@ -952,13 +960,18 @@ const foreNew = f => f.res.a.filter(a => !f.a0.includes(JSON.stringify(a)));
 
 /* ---------- 淬鍊：階級不變，只在範圍裡重骰數值（破裂詞在 T0 的範圍裡） ---------- */
 function rerollV(a) {
-  a.v = rollAffT(a.k, a.T).v;
+  const b = rollAffT(a.k, a.T);
+  a.v = b.v;
+  if ('v2' in b) a.v2 = b.v2;
 }
-/* 這條在階級範圍裡的百分位（0～1；聖化後數值可能超出範圍，夾回 0～1） */
+/* 這條在階級範圍裡的百分位（0～1；聖化後數值可能超出範圍，夾回 0～1）；複合詞取兩個數字的平均 */
 function affPct(a) {
-  const [lo, hi] = tierRange(a.k, a.T),
-    v = Array.isArray(a.v) ? a.v[1] : a.v;
-  return hi > lo ? Math.max(0, Math.min(1, (v - lo) / (hi - lo))) : 1;
+  const one = (j, x) => {
+    const [lo, hi] = tierRange(a.k, a.T, j),
+      v = Array.isArray(x) ? x[1] : x;
+    return hi > lo ? Math.max(0, Math.min(1, (v - lo) / (hi - lo))) : 1;
+  };
+  return AFF[a.k].h ? (one(0, a.v) + one(1, a.v2)) / 2 : one(0, a.v);
 }
 const perfection = it => (it.a.length ? it.a.reduce((s, a) => s + affPct(a), 0) / it.a.length : 0);
 function temperDo(it, idx) {
@@ -1000,7 +1013,11 @@ function qualDo(it) {
    之後不能再填、淬鍊，還能腐化 ---------- */
 const holyRoll = () => 0.8 + 0.4 * ((Math.random() + Math.random() + Math.random()) / 3);
 const scaleV = (v, m) =>
-  Array.isArray(v) ? v.map(x => Math.max(1, Math.round(x * m))) : Math.max(1, Math.round(v * m));
+  Array.isArray(v)
+    ? v.map(x => Math.max(1, Math.round(x * m)))
+    : v % 1
+      ? Math.max(0.1, Math.round(v * m * 10) / 10)
+      : Math.max(1, Math.round(v * m));
 function holyCheck(it) {
   const w = lockWhy(it, 'holy');
   if (w) return w;
@@ -1016,6 +1033,7 @@ function holyDo(it) {
     if (isFrac(it, a)) continue;
     a.m = Math.round(holyRoll() * 1000) / 1000;
     a.v = scaleV(a.v, a.m);
+    if ('v2' in a) a.v2 = scaleV(a.v2, a.m);
   }
   it.holy = 1;
   return null;

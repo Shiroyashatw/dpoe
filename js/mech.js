@@ -674,6 +674,7 @@ function mirageTick() {
       c = gemCfg(M.g || mirageGem(), -1);
     if (!c) continue;
     c.more *= M.mul;
+    c.phantom = 1;
     P.x = M.x;
     P.y = M.y;
     actHit(

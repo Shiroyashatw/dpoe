@@ -63,7 +63,14 @@ function gemCfg(g, i) {
   if (!g) return null;
   const D = awD(g.gem, g.aw),
     /* 長杖：法術技能等級 +1；追憶詞「裝備的技能寶石等級 +1」（8-2）所有技能都加 */
-    lv = g.lv + (D.tags.includes('spell') ? ST.spellLv : 0) + ((ST.mem && ST.mem.gemLv) || 0) + awLvAdd(g),
+    lv =
+      g.lv +
+      (D.tags.includes('spell') ? ST.spellLv : 0) +
+      /* SU-02 詞綴：近戰、召喚技能寶石等級 */
+      (D.tags.includes('melee') ? ST.gemLvMelee || 0 : 0) +
+      (D.tags.includes('minion') ? ST.gemLvMinion || 0 : 0) +
+      ((ST.mem && ST.mem.gemLv) || 0) +
+      awLvAdd(g),
     c = {
       i,
       k: g.gem,
@@ -78,7 +85,8 @@ function gemCfg(g, i) {
         : 1,
       mp: D.mp * gemMpMul(g.lv),
       cd: D.cd || 0,
-      cdrP: ST.cdr,
+      /* SU-02：位移技能（move 標籤）另吃位移技能冷卻時間恢復率 */
+      cdrP: ST.cdr + (D.tags.includes('move') ? ST.travelCdr || 0 : 0),
       g,
       critInc: D.crit || 0,
       critX: 0,
@@ -2121,6 +2129,7 @@ function moveMul() {
 /* 殺怪：擊殺回血 */
 function onKill() {
   if (ST.killHeal) P.hp = Math.min(ST.hp, P.hp + ST.killHeal);
+  if (ST.mpOnKill) P.mp = Math.min(ST.mp, P.mp + ST.mpOnKill);
 }
 
 /* ---------- 陷阱、地雷、砲塔圖騰、圖騰（場上單位） ---------- */

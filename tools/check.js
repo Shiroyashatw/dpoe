@@ -172,6 +172,113 @@ for (let i = 0; i < 3000; i++) {
   if (!G.itemName(it) || it.a.some(a => G.affText(a).includes('{}'))) err.push('文字');
 }
 ok('3000 件裝備的稀有度、詞綴、數值範圍', !err.length, [...new Set(err)].slice(0, 5).join('；'));
+/* SU-02 詞綴池擴充：12 類部位各產 3000 件（魔法、稀有各半，物品等級 1～最高輪流）：
+   新單項、加開、複合詞都出得來；數值（複合詞兩個數字各自）在那一階的範圍、沒有 NaN；單項詞不跟含同一能力的複合詞同件；
+   強力詞（技能等級、最大抗性）只出 T1～T2；每條新詞穿上去都會改到 stats()；複合詞的寫法＝兩種能力各自的寫法 */
+{
+  const X = n => vm.runInContext(n, ctx),
+    SPELLW = X('SPELLW'),
+    WT_HIDE = X('WT_HIDE'),
+    ADD = X('AFF_ADD'),
+    STATN = X('STATN'),
+    AFF = G.AFF,
+    PART = {
+      weapon: b => b.k === 'weapon' && !SPELLW.has(b.wt),
+      spellw: b => b.k === 'weapon' && SPELLW.has(b.wt),
+      shield: b => b.k === 'shield',
+      focus: b => b.k === 'focus',
+      quiver: b => b.k === 'quiver',
+      helm: b => b.k === 'helm',
+      chest: b => b.k === 'chest',
+      gloves: b => b.k === 'gloves',
+      boots: b => b.k === 'boots',
+      belt: b => b.k === 'belt',
+      ring: b => b.k === 'ring',
+      amulet: b => b.k === 'amulet'
+    },
+    numOK = v => (Array.isArray(v) ? v.every(Number.isFinite) && v[0] <= v[1] : Number.isFinite(v)),
+    bad = [],
+    miss = [],
+    cnt = { one: 0, comp: 0 };
+  for (const [part, f] of Object.entries(PART)) {
+    const pool = G.BASES.filter(b => f(b) && !WT_HIDE.includes(b.wt)),
+      seen = new Set();
+    for (let i = 0; i < 3000; i++) {
+      const B = pool[i % pool.length],
+        L = Math.max(B.lv, 1 + (i % G.TMAX)),
+        it = G.mkItem(B.id, L, 1 + (i % 2)),
+        ks = it.a.map(a => a.k),
+        P = B.aff || G.KINDS[B.k].aff;
+      for (const a of it.a) {
+        const A = AFF[a.k];
+        seen.add(a.k);
+        if (A.c) A.h ? cnt.comp++ : cnt.one++;
+        if (!P.includes(a.k)) bad.push(part + ' 不該出現 ' + a.k);
+        if (!numOK(a.v) || (A.h && !numOK(a.v2))) bad.push(part + ' NaN ' + a.k);
+        (A.h ? [a.v, a.v2] : [a.v]).forEach((v, j) => {
+          const [lo, hi] = G.tierRange(a.k, a.T, j),
+            x = Array.isArray(v) ? v[1] : v;
+          if (x < lo || x > hi) bad.push(`${part} ${a.k} 第 ${j + 1} 個數字 ${x} 不在 T${a.T} ${lo}～${hi}`);
+        });
+        if (A.top && a.T > X('AFF_TOP_T')) bad.push(part + ' 強力詞 ' + a.k + ' T' + a.T);
+        if (G.affText(a).includes('{}') || /NaN|undefined/.test(G.affText(a))) bad.push(part + ' 文字 ' + a.k);
+        if (A.h && ks.some(k => A.h.includes(k))) bad.push(part + ' 單項與複合重疊 ' + a.k);
+      }
+    }
+    for (const k of ADD[part]) if (!seen.has(k)) miss.push(part + ':' + k);
+  }
+  ok(
+    `SU-02：12 類部位各 3000 件，新詞與加開的詞都出得來、數值在範圍、沒有 NaN、單項不跟同能力的複合詞同件、強力詞只出 T1～T2（新單項 ${cnt.one} 條次、複合 ${cnt.comp} 條次）`,
+    !bad.length && !miss.length && cnt.comp > 0,
+    [...new Set(bad)].slice(0, 5).join('；') + (miss.length ? ' 沒出現：' + miss.slice(0, 8).join('、') : '')
+  );
+  /* 穿上去會改到 stats()：每條新詞單獨放在一件 Lv1 基底上，跟同一件沒有詞比 */
+  const noFx = [],
+    bow = G.BASES.find(b => b.k === 'weapon' && b.wt === 'bow' && b.lv === 1),
+    wand = G.BASES.find(b => b.k === 'weapon' && b.wt === 'wand' && b.lv === 1);
+  for (const [part, f] of Object.entries(PART))
+    for (const k of ADD[part]) {
+      const B = G.BASES.filter(b => f(b) && !WT_HIDE.includes(b.wt)).sort((x, y) => x.lv - y.lv)[0],
+        it0 = G.mkItem(B.id, 16, 0),
+        it1 = { ...it0, a: [X(`rollAffT(${JSON.stringify(k)}, 1)`)] },
+        slot =
+          B.k === 'weapon'
+            ? 'weapon'
+            : ['shield', 'focus', 'quiver'].includes(B.k)
+              ? 'off'
+              : B.k === 'ring'
+                ? 'ring1'
+                : B.k,
+        st = it => {
+          const eq = { [slot]: it };
+          if (B.k === 'quiver') eq.weapon = G.mkItem(bow.id, 1, 0);
+          if (B.k === 'focus') eq.weapon = G.mkItem(wand.id, 1, 0);
+          return JSON.stringify(G.stats({ lv: 100, eq, pt: [], skills: [], auras: [], lib: {} }));
+        };
+      if (st(it0) === st(it1)) noFx.push(part + ':' + k);
+    }
+  ok('SU-02：每條新詞、加開的詞穿上去都會改到角色數值（stats）', !noFx.length, noFx.join('、'));
+  /* 複合詞的寫法＝兩種能力各自的寫法（AFF 的 n，沒有就是 STATN 的模板），用「、」接起來 */
+  const txt = Object.keys(AFF)
+    .filter(k => AFF[k].h)
+    .filter(k => {
+      const w = AFF[k].h.map(c => (AFF[c] ? AFF[c].n : STATN[c] && STATN[c][3]));
+      return w.join('、') !== AFF[k].n;
+    });
+  ok(
+    'SU-02：45 條複合詞的寫法跟兩種能力各自的寫法一致',
+    !txt.length && Object.keys(AFF).filter(k => AFF[k].h).length === 45,
+    txt.join('、')
+  );
+  /* 鍛造：淬鍊、聖化、預知都帶著第二個數字 */
+  const it = G.mkItem(G.BASES.find(b => b.k === 'chest').id, 16, 2);
+  it.a = [X("rollAffT('h_arLife', 2)"), X("rollAffT('h_resFC', 2)")];
+  X('globalThis.S = globalThis.S || { mat: {} }; S.gold = 1e9');
+  G.temperDo(it);
+  const t1 = it.a.every(a => numOK(a.v2) && a.v2 >= G.tierRange(a.k, 2, 1)[0] && a.v2 <= G.tierRange(a.k, 2, 1)[1]),
+    pc = G.affPct(it.a[0]);
+  ok('SU-02：複合詞淬鍊後第二個數字還在範圍、百分位 0～1', t1 && pc >= 0 && pc <= 1, JSON.stringify(it.a));
+}
 /* 3. 全身穿滿的數值沒有 NaN */
 let nan = 0;
 for (let i = 0; i < 300; i++) {
@@ -4791,11 +4898,11 @@ const ASC_COMBOS = `const combos = k => {
     b3.pick.join()
   );
   ok(
-    '能力值詞綴：範圍 [5,33]／全能力值 [2,13]、六個部位可出、全能力值只有項鍊',
+    '能力值詞綴：範圍 [5,33]／全能力值 [2,13]、六個部位可出、全能力值只有戒指與項鍊（SU-02 加開戒指；力量加開盾、胸甲、腰帶）',
     b3.aff.slice(0, 6).join('|') === '5,33|5,33|5,33|2,13|33|13' &&
       b3.aff[6] &&
-      b3.aff[7] === 'amulet' &&
-      b3.aff[8] === 'amulet,boots,gloves,helm,ring,weapon',
+      b3.aff[7] === 'ring,amulet' &&
+      b3.aff[8] === 'amulet,belt,boots,chest,gloves,helm,ring,shield,weapon',
     JSON.stringify(b3.aff)
   );
   ok(
@@ -8937,7 +9044,9 @@ const ASC_COMBOS = `const combos = k => {
     for (const k of Object.keys(E.AFF)) {
       const [l1, h1] = E.tierRange(k, 1),
         [l0, h0] = E.tierRange(k, 0);
-      if (!(l0 >= h1 - 1 && h0 > h1)) bad.push(k + ' T0 沒有在 T1 之上');
+      /* 整條範圍窄到一階不到 1 的整數詞（投射物 +1～2、技能等級 +1～3），T0 只能跟 T1 一樣（SU-02） */
+      const tiny = !E.AFF[k].d && (E.AFF[k].r[1] - E.AFF[k].r[0]) / 6 < 1;
+      if (!(l0 >= h1 - 1 && (h0 > h1 || (tiny && h0 === h1)))) bad.push(k + ' T0 沒有在 T1 之上');
       if (Math.abs(h0 - l0 - (h1 - l1)) > 2) bad.push(k + ' T0 寬度 ' + (h0 - l0) + ' vs T1 ' + (h1 - l1));
       if (!E.affCls(k)) bad.push(k + ' 沒有類別');
     }
