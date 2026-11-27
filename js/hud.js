@@ -1404,7 +1404,7 @@ function cmpCol(it, head) {
     };
   return `<div><div class="h">${icHTML(itemIc(it))}${head}${it.q ? `<span class="qq">+${Math.round(it.q * 100)}%</span>` : ''}</div>
   ${kv.map(([k, v]) => `<div class="kv"><span>${k}</span>${v}</div>`).join('')}${WY_FX[it.wy] ? `<p class="wyl">${esc(wyText(it.wy))}</p>` : ''}
-  <ul>${side(true, '前綴')}${side(false, '後綴')}</ul>${it.mem ? `<p class="mem">◆ 追憶：${esc(memText(it.mem))}</p>` : ''}</div>`;
+  <ul>${side(true, '前綴')}${side(false, '後綴')}${(it.ux || []).map(u => `<li class="uq"><b>${esc(uxText(u))}</b></li>`).join('')}</ul>${it.mem ? `<p class="mem">◆ 追憶：${esc(memText(it.mem))}</p>` : ''}</div>`;
 }
 /* 比哪一格：放得進的欄位，直立角色頁選了一格就比那一格 */
 function cmpSlot(it) {

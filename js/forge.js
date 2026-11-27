@@ -1551,7 +1551,7 @@ function rvCard(it, cls = '') {
           `<li><i class="fst">${a.T <= bt ? CH_STAR : ''}</i><span>${esc(affText(a))}</span><i class="ftt">T${a.T}</i></li>`
       )
       .join('') || '<li class="c-dim">沒有詞綴</li>'
-  }</ul>${gone ? `<p class="rvd c-dim">${it.salv ? '已分解' : '換上了'}</p>` : rvDelta(it)}
+  }${(it.ux || []).map(u => `<li class="uq"><span>${esc(uxText(u))}</span></li>`).join('')}</ul>${gone ? `<p class="rvd c-dim">${it.salv ? '已分解' : '換上了'}</p>` : rvDelta(it)}
   <div class="rvb">${
     gone
       ? ''
