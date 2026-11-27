@@ -366,24 +366,11 @@ function tradeList() {
 }
 function storeHTML() {
   if (!campCan('trade')) return '';
-  const L = tradeList(),
-    seen = {},
-    why = L.filter(x => x.why && !seen[x.g[0]] && (seen[x.g[0]] = 1)).map(x => `<p class="sub">${x.why}</p>`);
-  return `<div class="ph2">商會<span>固定匯率</span></div><div class="bagf">${
-    L.map((x, i) => {
-      const t = `${matName(x.g[0], x.g[1])} ×5 → ${matName(x.t[0], x.t[1])}`;
-      return x.why
-        ? `<button class="chip" data-fg="tr:${i}" aria-pressed="false" disabled title="${x.why}">${t}</button>`
-        : chipB(`tr:${i}`, 0, t);
-    }).join('') || '<span class="c-dim">同一階的材料有 5 個才能換高一階</span>'
-  }${matN('iron', tierCap()) >= 20 ? chipB('tr:cur', 0, `${matName('iron', tierCap())} ×20 → 加詞石`) : ''}${MAT().aug >= 1 ? chipB('tr:wood', 0, '加詞石 → 木 50') : ''}</div>${why.join('')}`;
+  return `<div class="ph2">商會<span>材料照固定匯率換打造通貨</span></div><button class="btn" data-gd="open:store">商會</button>`;
 }
-function tradeDo(i) {
-  if (i === 'cur') {
-    if (matN('iron', tierCap()) < 20) return '鐵不夠';
-    matAdd('iron', tierCap(), -20);
-    MAT().aug++;
-  } else if (i === 'wood') {
+/* 5 換 1：i＝tradeList 的第幾列；n＝'all' 全換（不吃額度） */
+function tradeDo(i, n) {
+  if (i === 'wood') {
     if (!(MAT().aug >= 1)) return '沒有加詞石';
     MAT().aug--;
     matAdd('wood', 0, 50);
@@ -391,11 +378,176 @@ function tradeDo(i) {
     const x = tradeList()[+i];
     if (!x) return '換不了';
     if (x.why) return x.why;
-    matAdd(x.g[0], x.g[1], -5);
-    matAdd(x.t[0], x.t[1], 1);
+    const k = n === 'all' ? Math.floor(matN(x.g[0], x.g[1]) / 5) : 1;
+    matAdd(x.g[0], x.g[1], -5 * k);
+    matAdd(x.t[0], x.t[1], k);
   }
   return null;
 }
+/* ---------- 商會 v1.0（specs/guild/guild-spec.md，1280×720 定稿）：獨立滿寬面板 #pguild ----------
+   左欄：加詞石、崇高石兩區（額度＋條＋回復＋整區換到上限；每列換 1 顆／換到上限 ×n）；右欄：5 換 1、加詞石換木、至臻石說明條。
+   換到上限只在會把某種材料用光時出兩步確認卡（G03）；額度 0 整區停用、原因寫在區頭（不在戰場跳字） */
+const GUILD = { from: 'store', pend: null, h: '' };
+const gNum = n => Math.floor(n + 1e-9).toLocaleString('en-US');
+const gSec = s =>
+  s >= 60 ? `${Math.floor(s / 60)} 分${s % 60 ? ` ${Math.round(s % 60)} 秒` : ''}` : `${Math.round(s)} 秒`;
+const gMat = (k, T) => (T ? `${matName(k, T)}（T${T}）` : matName(k, T));
+const gTerm = w => `<span class="zterm" data-zh="${esc(w)}" tabindex="0">${esc(w)}</span>`;
+function guildOpen(from) {
+  HP_HOLD++;
+  closePanels();
+  HP_HOLD--;
+  GUILD.from = from || 'store';
+  GUILD.pend = null;
+  PANEL.guild = true;
+  hudPanels();
+}
+function guildSecHTML(c) {
+  const C = TRADE_CUR[c],
+    cn = CUR[c].n,
+    lk = C.un && lockTxt(C.un),
+    q = Math.floor(tradeQ(c) + 1e-9),
+    out = !lk && q < 1,
+    rows = tradeRows(c),
+    sec = tradeQSec(c),
+    src = c === 'aug' ? '木、鐵、皮換這顆' : '靈絲換這顆（照舊）',
+    dis = out || lk,
+    pd = GUILD.pend,
+    btn = (cls, a, t, off, why) =>
+      `<button class="gb ${cls}${pd && pd.a === a ? ' on' : ''}" data-gd="${a}"${off ? ` aria-disabled="true" data-gw="${esc(why)}"` : ''}>${t}</button>`;
+  const why = lk || `${cn}這小時換完了・約 ${gSec(sec - (((tradeQ(c) * 3600) / C.q) % sec))}後回 1 顆`;
+  const L = rows.length
+    ? rows.map(r => {
+        const n = Math.min(q, r.max),
+          ok = r.max >= 1;
+        if (!ok)
+          return `<li class="gno"><span>${esc(gMat(r.k, r.T))}</span><span class="r">${gNum(r.have)}</span><span>${gNum(r.rate)} 個 → 1 顆</span><span class="gnot">材料不夠換 1 顆${cn}</span></li>`;
+        return `<li><span>${gTerm(matName(r.k, r.T))}${r.T ? `（T${r.T}）` : ''}</span><span class="r">${gNum(r.have)}</span><span>${gNum(r.rate)} 個 → 1 顆</span><span class="r">${dis ? '—' : `${gNum(n)} 顆`}</span>${btn('g1', `one:${c}:${r.k}:${r.T}`, '換 1 顆', dis, why)}${btn('gmx', `max:${c}:${r.k}:${r.T}`, n && !dis ? `換到上限 ×${gNum(n)}` : '換到上限', dis || !n, why)}</li>`;
+      })
+    : [
+        `<li class="gno"><span>${esc(gMat(C.m[0][0], C.m[0][0] === 'wood' ? 0 : 1))}</span><span class="r">0</span><span>${gNum(tradeRate(C.m[0][0], 1))} 個 → 1 顆</span><span class="gnot">材料不夠換 1 顆${cn}</span></li>`
+      ];
+  const all = tradePlan(c, tradeOrder(rows)).n;
+  return `<section class="gsec ${out ? 'out' : ''}${lk ? ' lk' : ''}" data-c="${c}">
+  <div class="gsh">${icHTML(CUR[c].ic, '', 16)}<b>${gTerm(cn)}</b><small>${src}</small>
+  ${
+    lk
+      ? `<em class="gqt off">${esc(lk)}</em>`
+      : out
+        ? `<em class="gqt bad">這小時換完了　0／${C.q} 顆</em>`
+        : `<em class="gqt">這小時還能換 ${q}／${C.q} 顆</em>`
+  }<i class="gqb"><i style="width:${lk ? 0 : ((100 * tradeQ(c)) / C.q).toFixed(1)}%"></i></i>
+  <small class="grc${out ? ' bad' : ''}">${out ? esc(why) : `約 ${gSec(sec)}回 1 顆・最多存 1 小時`}</small>
+  ${btn('gall', `all:${c}`, '整區換到上限', dis || !all, why)}</div>
+  <div class="gth"><span>材料</span><span class="r">持有</span><span>換率</span><span class="r">最多可換</span><span>單次／換到上限</span></div>
+  <ul class="gl">${L.join('')}</ul></section>`;
+}
+function guildRightHTML() {
+  const L = tradeList().filter(x => x.g[0] !== 'wood');
+  return `<section class="g51"><b>低階換高階（5 換 1）</b><small>不吃額度；換出的階不能超過材料階上限</small>
+  <ul>${
+    L.map((x, i) =>
+      x.why
+        ? `<li class="glk"><span>${esc(matName(x.g[0], x.g[1]))} ×5 → ${esc(matName(x.t[0], x.t[1]))}</span><small>${esc(x.why)}</small></li>`
+        : `<li><span>${gTerm(matName(x.g[0], x.g[1]))} ×5 → ${gTerm(matName(x.t[0], x.t[1]))}</span><button class="gb g1" data-gd="t51:${i}">換 1</button><button class="gb gmx" data-gd="t51:${i}:all">全換 ×${gNum(Math.floor(matN(x.g[0], x.g[1]) / 5))}</button></li>`
+    ).join('') || '<li class="gno"><span>同一階的材料有 5 個才能換高一階</span></li>'
+  }</ul></section>
+  <section class="gwd"><b>${gTerm(CUR.aug.n)} ×1 → 木 50</b><small>不吃額度・有 ${gNum(MAT().aug || 0)} 顆</small><button class="gb gmx" data-gd="wood"${MAT().aug >= 1 ? '' : ' aria-disabled="true" data-gw="沒有加詞石"'}>換 1 次</button></section>
+  <section class="gzh"><b>${gTerm(CUR.zhi.n)}：商會不換</b><small>只靠打怪掉落（鍛造台 Lv 18 起）</small></section>`;
+}
+/* 確認卡（G03）：會用光某種材料時才出 */
+function guildCfHTML() {
+  const p = GUILD.pend;
+  if (!p) return '';
+  const cn = CUR[p.c].n,
+    q = Math.floor(tradeQ(p.c) + 1e-9),
+    one = p.use.length === 1,
+    t = one
+      ? `會用光${matName(p.use[0][0], p.use[0][1])}：換到上限 ${cn} ×${gNum(p.n)}`
+      : `會用光材料：整區換到上限 ${cn} ×${gNum(p.n)}`;
+  return `<div class="gcf" role="alertdialog" aria-label="${esc(t)}" style="--y:${p.y || 0}px"><b>${esc(t)}</b>
+  <ul>${p.use.map(([k, T, n, h]) => `<li><span>用掉</span>${esc(matName(k, T))} ×${gNum(n)}（持有 ${gNum(h)} → ${gNum(h - n)}${n >= h ? '，用光' : ''}）</li>`).join('')}
+  <li><span>換到</span>${esc(cn)} ×${gNum(p.n)}</li><li><span>額度</span>這小時還能換 ${q} → ${q - p.n} 顆</li></ul>
+  <p class="gwarn">⚠ 通貨換不回材料</p>
+  <div class="gcfb"><button class="btn pri" data-gd="ok">確認換 ${gNum(p.n)} 顆</button><button class="btn" data-gd="no">取消</button></div></div>`;
+}
+function guildHTML() {
+  return `<div class="ph"><button class="btn gback" data-gd="back">← ${GUILD.from === 'forge' ? '鍛造' : '倉房'}</button><b>商會</b><span>倉房 Lv ${S.camp.store}・材料照固定匯率換打造通貨，每種通貨每小時有額度</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
+  <div class="gcols"><div class="gleft">${guildSecHTML('aug')}${guildSecHTML('exalt')}</div><div class="gright">${guildRightHTML()}</div></div>
+  <p class="gft">單次＝換 1 顆；換到上限＝換到這小時額度或材料用完（先到者）。額度連續回復、離線照算、最多存 1 小時份；木、鐵、皮共用加詞石額度。通貨換不回材料（加詞石換木除外）。會把某種材料用光時先出確認卡，否則直接換。</p>
+  ${GUILD.pend ? `<div class="gcfs" data-gd="no"></div>${guildCfHTML()}` : ''}`;
+}
+/* 每秒（hudTick）跟面板重畫：字串沒變就不動（焦點不跳） */
+function guildDraw() {
+  const el = $('pguild'),
+    h = guildHTML();
+  if (h !== GUILD.h) keepFocus(el, () => (el.innerHTML = GUILD.h = h));
+}
+/* 結果行：照舊用 hudWarn 的一行（不在戰場中央跳字） */
+function guildDo(a, el) {
+  const [k, c, mk, T] = a.split(':');
+  let err = null;
+  if (k === 'back') {
+    const f = GUILD.from;
+    PANEL.guild = false;
+    GUILD.pend = null;
+    if (f === 'forge') return openPanel('craft');
+    return cdOne('store');
+  }
+  if (el && el.getAttribute('aria-disabled') === 'true') return;
+  if (k === 'no') GUILD.pend = null;
+  else if (k === 'ok') {
+    const p = GUILD.pend;
+    GUILD.pend = null;
+    if (p) err = tradeCur(p.c, p.kind, p.k, p.T);
+    if (!err) sfx('coin'), save();
+  } else if (k === 'one') {
+    err = tradeCur(c, 'one', mk, T);
+    if (!err) sfx('coin'), save();
+  } else if (k === 'max' || k === 'all') {
+    const rows = k === 'all' ? tradeOrder(tradeRows(c)) : tradeRows(c).filter(r => r.k === mk && r.T === +T),
+      P = tradePlan(c, rows);
+    if (P.empty.length) {
+      const r = el && el.getBoundingClientRect(),
+        pr = $('pguild').getBoundingClientRect();
+      GUILD.pend = { a, c, kind: k, k: mk, T, n: P.n, use: P.use, y: r ? Math.round(r.bottom - pr.top + 4) : 0 };
+    } else {
+      err = tradeCur(c, k, mk, T);
+      if (!err) sfx('coin'), save();
+    }
+  } else if (k === 't51') {
+    err = tradeDo(c, mk);
+    if (!err) sfx('coin'), save();
+  } else if (k === 'wood') {
+    err = tradeDo('wood');
+    if (!err) sfx('coin'), save();
+  }
+  if (err) hudWarn(err);
+  guildDraw();
+  if (GUILD.pend) {
+    const b = $('pguild').querySelector('.gcf [data-gd="ok"]');
+    if (b) b.focus();
+  }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-gd]');
+  if (!b) return;
+  const [k, v] = b.dataset.gd.split(':');
+  if (k === 'open') return guildOpen(v);
+  guildDo(b.dataset.gd, b);
+});
+/* 停用鈕懸停：同一句原因（G02） */
+document.addEventListener('pointerover', e => {
+  const b = e.target.closest && e.target.closest('#pguild [data-gw]');
+  const t = $('gtip');
+  if (!t) return;
+  if (!b) return void (t.hidden = true);
+  const r = b.getBoundingClientRect();
+  t.textContent = b.dataset.gw;
+  t.hidden = false;
+  t.style.left = Math.round(Math.max(8, Math.min(innerWidth - t.offsetWidth - 8, r.right - t.offsetWidth))) + 'px';
+  t.style.top = Math.round(Math.min(innerHeight - t.offsetHeight - 8, r.bottom + 8)) + 'px';
+});
 /* 第二種以後的武器類別（鍛造台 Lv11 起，15 選 1）：開了幾種 campN('wts')，還能選就列出沒開的 */
 function wtPickHTML() {
   const left = campN('wts') - S.camp.wts.length;
@@ -1170,10 +1322,7 @@ document.addEventListener('click', e => {
     HP_HOLD--;
     return cdOne('forge');
   } else if (k === 'shop') {
-    HP_HOLD++;
-    closePanels();
-    HP_HOLD--;
-    return cdOne('store');
+    return guildOpen('forge');
   } else if (k === 'a2o') (CRAFT.a2 = 1), sfx('click');
   else if (k === 'a2x') (CRAFT.a2 = 0), save();
   else if (k === 'camp') {

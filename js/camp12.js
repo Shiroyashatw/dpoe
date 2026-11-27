@@ -346,12 +346,8 @@ document.addEventListener('click', e => {
     C12.cat = 0;
   } else if (k === 'cat') C12.cat = C12.cat ? 0 : 1;
   else if (k === 'lk') return c12Lk(el, lockTxt(v));
-  else if (k === 'trade') {
-    closePanels();
-    CRAFT.tab = 'camp';
-    CAMPUI.open = 'store';
-    return openPanel('craft');
-  } else if (k === 'fn') {
+  else if (k === 'trade') return guildOpen('store');
+  else if (k === 'fn') {
     if (v === 'asc' && !campCan('asc')) return c12Lk(el, lockTxt('asc'));
     if (v === 'bag') return navGo('bag');
     if (v === 'dummy') return closePanels(), campAsk();

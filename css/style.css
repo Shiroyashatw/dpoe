@@ -4251,3 +4251,114 @@ body:not(.touch) #pnode.z12 { left: 16px; top: 76px; width: 640px; height: 536px
 #pnode.z12 .ndr small { grid-column: 2; grid-row: 1; font: 400 11px/16px var(--font); }
 #pnode.z12 .ndr em { grid-column: 3; grid-row: 1; max-width: none; font: 400 11px/16px var(--font); font-style: normal; }
 #pnode.z12 .ndft { position: absolute; left: 15px; top: 521px; width: 608px; height: 13px; margin: 0; overflow: hidden; white-space: nowrap; line-height: 13px; }
+
+/* ================= 商會 v1.0（specs/guild/guild-spec.md；js/forge.js guildHTML）：D2 正式色票，桌機 1280×720 照座標，其他尺寸照順序排 ================= */
+#pguild { --pp: 12px; left: 6px; right: 6px; top: 6px; bottom: 6px; z-index: 13; overflow-y: auto; padding: var(--pp); background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 0; color: var(--tx); font: 400 12px/1.4 var(--font); }
+#pguild > .ph:first-child { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+#pguild > .ph b { font: 700 16px/22px var(--font); color: var(--tx-strong); }
+#pguild > .ph > span { flex: 1 1 200px; font: 400 12px/16px var(--font); color: var(--tx-dim); }
+#pguild .gback { min-height: 44px; padding: 0 10px; font: 400 12px/1 var(--font); background: var(--btn2); color: var(--tx); border: 0; border-radius: 0; }
+#pguild .x { margin-left: auto; }
+#pguild section { position: relative; margin: 0 0 12px; padding: 10px 12px; background: var(--panel-inset); border: 1px solid var(--border); }
+#pguild .gsh { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+#pguild .gsh b, #pguild .g51 > b, #pguild .gwd > b { font: 700 14px/20px var(--font); color: var(--tx-strong); }
+#pguild small, #pguild .gth, #pguild .gft { font: 400 11px/16px var(--font); color: var(--tx-dim); }
+#pguild .gqt { font: 700 12px/16px var(--font); font-style: normal; color: var(--tx-strong); }
+#pguild .gqt.bad, #pguild .grc.bad, #pguild .gwarn { color: var(--bad); }
+#pguild .gqt.off { color: var(--tx-off); }
+#pguild .gsec.out { border: 2px solid var(--bad); }
+#pguild .gqb { display: block; width: 200px; height: 6px; background: var(--panel); }
+#pguild .gqb > i { display: block; height: 100%; background: var(--act); }
+#pguild .gth { display: none; }
+#pguild ul { list-style: none; margin: 8px 0 0; padding: 0; }
+#pguild .gl li, #pguild .g51 li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 0; border-top: 1px solid var(--border); color: var(--tx); }
+#pguild .gl li > span:first-child { flex: 1 1 100%; }
+#pguild li.gno, #pguild li.gno span, #pguild li.glk span { color: var(--tx-off); }
+#pguild li.glk { border: 1px dashed var(--border); padding: 6px 8px; flex-direction: column; align-items: flex-start; }
+#pguild .gb { min-height: 44px; min-width: 64px; padding: 0 10px; font: 400 12px/1 var(--font); color: var(--tx); background: var(--btn2); border: 1px solid transparent; border-radius: 0; cursor: pointer; }
+#pguild .gb:hover:not([aria-disabled='true']) { border-color: var(--sel-edge); }
+#pguild .gb.on { border: 2px solid var(--sel-edge); }
+#pguild .gb[aria-disabled='true'] { background: var(--panel-inset); border: 1px dashed var(--border); color: var(--tx-off); cursor: not-allowed; }
+#pguild .gzh { border-style: dashed; }
+#pguild .gzh b { font: 700 12px/16px var(--font); color: var(--tx); }
+#pguild .gzh small, #pguild .gwd small { display: block; }
+#pguild .zterm { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
+#pguild .gcfs { position: absolute; inset: 0; z-index: 4; }
+#pguild .gcf { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; width: min(420px, calc(100vw - 24px)); box-sizing: border-box; padding: 12px 16px; background: var(--panel); border: 2px solid var(--panel-edge); color: var(--tx); }
+#pguild .gcf > b { display: block; font: 700 14px/20px var(--font); color: var(--tx-strong); }
+#pguild .gcf ul { margin: 8px 0; }
+#pguild .gcf li { font: 400 12px/20px var(--font); }
+#pguild .gcf li > span { display: inline-block; width: 36px; color: var(--tx-dim); }
+#pguild .gwarn { margin: 0 0 10px; font: 700 12px/16px var(--font); }
+#pguild .gcfb { display: flex; justify-content: space-between; gap: 12px; }
+#pguild .gcfb .btn { min-height: 44px; border-radius: 0; font: 700 13px/1 var(--font); }
+#pguild .gcfb .pri { width: 180px; background: var(--act); color: var(--on-act); }
+#pguild .gcfb .btn:not(.pri) { width: 120px; background: var(--btn2); color: var(--tx); }
+#gtip { position: fixed; z-index: 40; max-width: 268px; padding: 8px 10px; font: 400 12px/1.5 var(--font); color: var(--tx); background: var(--panel-raised); border: 2px solid var(--panel-edge); pointer-events: none; }
+#gtip[hidden] { display: none; }
+#ztip small { display: block; font: 400 11px/16px var(--font); color: var(--tx-dim); }
+/* 桌機 1280×720：滿寬面板 16,76 1248×536，左欄 840、右欄 360（座標＝面板內 px） */
+body.d12 #pguild { left: 16px; top: 76px; right: auto; bottom: auto; width: 1248px; height: 536px; max-height: none; max-width: none; padding: 0; overflow: hidden; box-sizing: border-box; box-shadow: none; outline: 0; animation: none; }
+body.d12 #pguild > .ph:first-child { position: absolute; inset: 0 0 auto 0; height: 50px; margin: 0; padding: 0; background: none; border: 0; display: block; }
+body.d12 #pguild .gback { position: absolute; left: 15px; top: 5px; width: 96px; min-height: 0; height: 32px; }
+body.d12 #pguild .gback::after { content: ''; position: absolute; inset: -6px 0; }
+body.d12 #pguild > .ph b { position: absolute; left: 123px; top: 7px; }
+body.d12 #pguild > .ph > span { position: absolute; left: 175px; top: 11px; white-space: nowrap; }
+body.d12 #pguild > .ph .x { position: absolute; left: 1197px; top: 3px; width: 40px; height: 36px; margin: 0; }
+body.d12 #pguild .gleft { position: absolute; left: 15px; top: 55px; width: 840px; }
+body.d12 #pguild .gright { position: absolute; left: 871px; top: 55px; width: 360px; }
+body.d12 #pguild section { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+body.d12 #pguild .gsec[data-c='aug'] { top: 0; height: 226px; }
+body.d12 #pguild .gsec[data-c='exalt'] { top: 238px; height: 190px; }
+body.d12 #pguild .gsh { display: block; }
+body.d12 #pguild .gsh > * { position: absolute; margin: 0; }
+body.d12 #pguild .gsh > img, body.d12 #pguild .gsh > .ic, body.d12 #pguild .gsh > i:first-child { left: 12px; top: 12px; }
+body.d12 #pguild .gsh > b { left: 34px; top: 9px; }
+body.d12 #pguild .gsh > small:first-of-type { left: 108px; top: 12px; }
+body.d12 #pguild .gqt { left: 284px; top: 8px; width: 220px; white-space: nowrap; }
+body.d12 #pguild .gqb { left: 284px; top: 28px; }
+body.d12 #pguild .grc { left: 496px; top: 12px; width: 210px; white-space: nowrap; overflow: hidden; }
+body.d12 #pguild .gsh .gall { left: 712px; top: 8px; width: 116px; height: 28px; min-height: 0; padding: 0; }
+body.d12 #pguild .gth { display: block; position: absolute; left: 0; top: 48px; width: 100%; height: 16px; }
+body.d12 #pguild .gth > span, body.d12 #pguild .gl li > * { position: absolute; top: 0; }
+body.d12 #pguild .gth > span:nth-child(1), body.d12 #pguild .gl li > span:nth-child(1) { left: 12px; }
+body.d12 #pguild .gth > span:nth-child(2), body.d12 #pguild .gl li > span:nth-child(2) { left: 200px; width: 110px; text-align: right; }
+body.d12 #pguild .gth > span:nth-child(3), body.d12 #pguild .gl li > span:nth-child(3) { left: 340px; }
+body.d12 #pguild .gth > span:nth-child(4), body.d12 #pguild .gl li > span:nth-child(4) { left: 470px; width: 110px; text-align: right; }
+body.d12 #pguild .gth > span:nth-child(5) { left: 608px; }
+body.d12 #pguild .gl li > span { top: 11px; line-height: 16px; }
+body.d12 #pguild .gl li > span.gnot { left: 470px; width: 358px; }
+body.d12 #pguild .gl { position: absolute; left: 0; right: 0; top: 64px; bottom: 2px; margin: 0; overflow-y: auto; scrollbar-width: thin; }
+body.d12 #pguild .gl li { display: block; position: relative; height: 38px; padding: 0; box-sizing: border-box; border-top: 0; border-bottom: 1px solid var(--border); }
+body.d12 #pguild .gl li > span:first-child { flex: none; }
+body.d12 #pguild .gb { min-height: 0; }
+body.d12 #pguild .gl .gb { top: 4px; height: 30px; padding: 0; }
+body.d12 #pguild .gl .g1 { left: 608px; width: 80px; }
+body.d12 #pguild .gl .gmx { left: 700px; width: 128px; }
+body.d12 #pguild .gb::after { content: ''; position: absolute; inset: -7px 0; }
+body.d12 #pguild .g51 { top: 0; height: 244px; }
+body.d12 #pguild .g51 > b { position: absolute; left: 16px; top: 10px; }
+body.d12 #pguild .g51 > small { position: absolute; left: 16px; top: 32px; }
+body.d12 #pguild .g51 ul { position: absolute; left: 0; right: 0; top: 50px; bottom: 4px; margin: 0; overflow-y: auto; scrollbar-width: thin; }
+body.d12 #pguild .g51 li { display: block; position: relative; height: 40px; padding: 0; border: 0; }
+body.d12 #pguild .g51 li > span { position: absolute; left: 16px; top: 12px; line-height: 16px; }
+body.d12 #pguild .g51 li .gb { position: absolute; top: 5px; height: 30px; padding: 0; }
+body.d12 #pguild .g51 li .g1 { left: 168px; width: 64px; }
+body.d12 #pguild .g51 li .gmx { left: 240px; width: 108px; }
+body.d12 #pguild .g51 li.glk { height: 56px; margin: 0 8px; padding: 0; }
+body.d12 #pguild .g51 li.glk > span { left: 8px; top: 8px; }
+body.d12 #pguild .g51 li.glk > small { position: absolute; left: 8px; top: 30px; }
+body.d12 #pguild .gwd { top: 256px; height: 92px; }
+body.d12 #pguild .gwd > b { position: absolute; left: 16px; top: 10px; }
+body.d12 #pguild .gwd > small { position: absolute; left: 16px; top: 34px; }
+body.d12 #pguild .gwd .gb { position: absolute; left: 240px; top: 54px; width: 108px; height: 30px; padding: 0; }
+body.d12 #pguild .gzh { top: 360px; height: 72px; }
+body.d12 #pguild .gzh > b { position: absolute; left: 16px; top: 14px; }
+body.d12 #pguild .gzh > small { position: absolute; left: 16px; top: 38px; }
+body.d12 #pguild .gft { position: absolute; left: 15px; top: 495px; width: 840px; margin: 0; }
+body.d12 #pguild .gcf { position: absolute; left: 435px; top: min(var(--y, 200px), 332px); transform: none; width: 420px; height: 196px; padding: 0; }
+body.d12 #pguild .gcf > b { position: absolute; left: 14px; top: 10px; }
+body.d12 #pguild .gcf ul { position: absolute; left: 14px; top: 38px; right: 14px; margin: 0; }
+body.d12 #pguild .gcf .gwarn { position: absolute; left: 14px; top: 108px; margin: 0; }
+body.d12 #pguild .gcfb { position: absolute; left: 14px; right: 14px; top: 142px; }
+body.d12 #pguild .gcfb .btn { min-height: 0; height: 40px; }

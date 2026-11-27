@@ -300,7 +300,8 @@ function hudTick() {
   runBar();
   /* 營地分頁開著：每秒補畫數字變了的卡（0.5.1）；分頁列的小點跟著買得起幾件 */
   const ct = performance.now();
-  if (ct - CAMP_T > 1000) (CAMP_T = ct), campRefresh(), sheetSync(), PANEL.camp && campDrawer();
+  if (ct - CAMP_T > 1000)
+    (CAMP_T = ct), campRefresh(), sheetSync(), PANEL.camp && campDrawer(), PANEL.guild && guildDraw();
   if (HV.ai !== AI.on) document.body.classList.toggle('ai', !!(HV.ai = AI.on));
   if (HV.bar !== barKey()) hudBar();
   const au = S.auto ? 1 : 0;
@@ -805,7 +806,9 @@ function closePanels() {
     PANEL.more =
     PANEL.node =
     PANEL.camp =
+    PANEL.guild =
       false;
+  if (typeof GUILD !== 'undefined') GUILD.pend = null;
   CDR.one = null;
   NAV.pick = NAV.full = 0;
   NAV.slot = null;
@@ -828,7 +831,8 @@ const anyPanel = () =>
   PANEL.chase ||
   PANEL.more ||
   PANEL.node ||
-  PANEL.camp;
+  PANEL.camp ||
+  PANEL.guild;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
 const KEYS_PC = [
   ['C', '自動／手動'],
@@ -988,6 +992,8 @@ function hudPanels() {
   }
   $('pcamp').hidden = !PANEL.camp;
   if (PANEL.camp) campDrawer();
+  $('pguild').hidden = !PANEL.guild;
+  if (PANEL.guild) guildDraw();
   $('pmore').hidden = !PANEL.more;
   if (PANEL.more) $('pmore').innerHTML = moreHTML();
   idleBar(1);
@@ -1604,11 +1610,17 @@ const ZH = {
   地圖詞: ['地圖詞', '這張地圖上的危險與報酬。星級越高，抽到的條數越多，怪物更強、掉得更好。同一組只會出一條。']
 };
 const ZT = { a: null, t: 0 };
+/* 名詞提示的內容：ZH 表優先，其次通貨（CUR）、材料階名與其他名詞（TERMS） */
+function zhTxt(k) {
+  const c = Object.values(CUR).find(x => x.n === k),
+    z = ZH[k] || (c ? [k, c.d, '打造通貨'] : TERMS[k] ? [k, TERMS[k]] : [k, '']);
+  return `<b>${esc(z[0])}</b>${z[2] ? `<small>${esc(z[2])}</small>` : ''}<p>${esc(z[1])}</p>`;
+}
 const zTipHTML = (a, k) =>
   k === 'zh'
     ? a.dataset.zh.startsWith('star:')
       ? `<b>${a.dataset.zh.slice(5)}★</b><p>升斥候營到 Lv ${a.dataset.zh.slice(5) - 1} 才開</p>`
-      : `<b>${ZH[a.dataset.zh][0]}</b><p>${ZH[a.dataset.zh][1]}</p>`
+      : zhTxt(a.dataset.zh)
     : ascTipHTML(a.dataset.zp);
 function zTip(a, k) {
   const t = $('ztip');
@@ -3531,8 +3543,10 @@ function knFocus(q) {
 function knEsc() {
   const f = document.activeElement,
     fin = f && f.closest && f.closest('#pcamp, #pidle, #poff');
-  if (G.ask) act('askno');
+  if (AUTH_CF.on) authCf(0);
+  else if (G.ask) act('askno');
   else if (!$('poff').hidden) act('offok');
+  else if (PANEL.guild && GUILD.pend) guildDo('no');
   else if (PANEL.camp && CDR.one)
     (CDR.one = null), hudPanels(), fin && knFocus(c12On() && C12.last ? `#c12-${C12.last} .c12b` : '#pcamp .cdb');
   else if (TREE.open) treeClose();
@@ -3546,7 +3560,7 @@ function keepFocus(box, fn) {
   if (!a || !box.contains(a)) return fn();
   const all = [...box.querySelectorAll(q)],
     i = all.indexOf(a),
-    at = ['data-fg', 'data-cd', 'data-a', 'data-tm'].find(x => a.hasAttribute(x)),
+    at = ['data-fg', 'data-cd', 'data-gd', 'data-a', 'data-tm'].find(x => a.hasAttribute(x)),
     v = at && a.getAttribute(at);
   fn();
   const e =
