@@ -1,0 +1,10 @@
+page.goto: Target page, context or browser has been closed
+Call log:
+[2m  - navigating to "http://localhost:8000/?p=78&1795776430705", waiting until "load"[22m
+
+    at boot (/tmp/claude-0/-home-user-dpoe/eca542b2-87e7-5406-99c3-b7f22fb97254/scratchpad/wt_a67/tools/camp_run.js:450:12)
+    at async /tmp/claude-0/-home-user-dpoe/eca542b2-87e7-5406-99c3-b7f22fb97254/scratchpad/wt_a67/tools/camp_run.js:501:20 {
+  log: [
+    '  - navigating to "http://localhost:8000/?p=78&1795776430705", waiting until "load"'
+  ]
+}

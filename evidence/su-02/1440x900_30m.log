@@ -1,0 +1,7 @@
+page.evaluate: Target page, context or browser has been closed
+    at oneMin (/tmp/claude-0/-home-user-dpoe/eca542b2-87e7-5406-99c3-b7f22fb97254/scratchpad/wt_a67/tools/camp_run.js:518:20)
+    at async /tmp/claude-0/-home-user-dpoe/eca542b2-87e7-5406-99c3-b7f22fb97254/scratchpad/wt_a67/tools/camp_run.js:541:42 {
+  log: []
+}
+[]
+}
