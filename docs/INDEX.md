@@ -123,6 +123,16 @@
 | 耐力球詞 | `S/B5b-c-endure.md` | v0.1 | 草稿，不可交辦 |
 | 數值排程 | `docs/production/數值待排.md` | — | 草稿，不可交辦 |
 | 劍技能草案 | `docs/production/劍技能草案.md` | — | 草稿，不可交辦 |
+| 武器定位表＋近戰技能草案（斧、錘、細杖、長矛、匕首、爪） | `docs/production/技能草案-近戰第一批.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| 遠程技能草案（弓、十字弓、陷阱器） | `docs/production/技能草案-遠程第二批.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| 法系技能草案（長杖、法杖） | `docs/production/技能草案-法系第三批.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| 通用技能草案（戰吼、旗幟、通用法術、召喚） | `docs/production/技能草案-通用第四批.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| 光環草案（增益光環、捷光環、魔像、夥伴） | `docs/production/技能草案-光環第五批.md` | — | 已取消（2026-11-27），不可交辦；留著備查 |
+| 傳奇物品草案：規則與檔案清單 | `docs/production/傳奇物品草案.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| 傳奇物品草案：通用 202 件 | `docs/production/傳奇-通用-武器.md`、`docs/production/傳奇-通用-防具.md`、`docs/production/傳奇-通用-副手與飾品.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| 傳奇物品草案：專屬 78 件＋傳奇珠寶 26 顆 | `docs/production/傳奇物品草案-專屬與珠寶.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| 詞綴池擴充草案（新單項 131、複合 45） | `docs/production/詞綴池擴充草案.md` | v1.0 | 現行（定稿，使用者 2026-11-27 拍板；分批交辦見 `docs/production/tasks/SU-01.md`～`SU-04.md`；檔名沿用「草案」） |
+| SU 系列待做清單（技能、傳奇、詞綴池做到哪、還缺什麼） | `docs/production/tasks/SU-待做清單.md` | 2026-11-27 | 現行 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
 | 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）；產生器已拿掉，正文留作紀錄；交工程師時刪 |
 | 材料來源 | `docs/production/adjust/材料來源.md` | 定稿 v1.1 | 現行；定案 v1.0 superseded |

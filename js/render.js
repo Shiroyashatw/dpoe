@@ -710,9 +710,6 @@ function drawArrow(m) {
     CX.drawImage(im, 5 * S.w + 26, 0, 45, S.h, (26 - S.ox) * sc, -S.oy * sc, 45 * sc, S.h * sc);
     CX.restore();
   }
-  const n = ARROW_HITS - m.fired;
-  CX.fillStyle = `rgb(${PAL.rgb.hl})`;
-  for (let i = 0; i < n; i++) CX.fillRect(Math.round(m.x - n * 4 + 1 + i * 8), Math.round(m.y + 10), 6, 6);
 }
 function drawMob(m) {
   if (m.arrow) return drawArrow(m);

@@ -197,6 +197,8 @@ function stCmpHTML() {
             ...(x.a || []).map(
               a => `<li><span>${esc(affText(a))}</span>${det ? `<b class="tr">T${a.T}</b>` : ''}</li>`
             ),
+            /* 傳奇的特色詞（SU-01），接在詞綴後面 */
+            ...(x.ux || []).map(u => `<li class="uq"><span>${esc(uxText(u))}</span></li>`),
             /* ST-28：詳細版補前綴／後綴空位（普通、傳奇沒有空位＝0） */
             ...(det
               ? [1, 0].map(p => {

@@ -411,7 +411,11 @@ const expOf = (a, k) =>
   );
 /* 詛咒實際的效果：站在奉獻地面上少 50%（玩家、怪物同一組欄位）
    shortcut: 怪物的脆弱在施放時就改 m.arm，奉獻地面減不到，等脆弱改成即時算再接 */
-const cuV = a => a.curse.v * (a.cons > G.t ? 1 - DEBUFF.consCurse / 100 : 1);
+/* SU-02：你身上的詛咒效果減少（selfCurse，最多減到 0） */
+const cuV = a =>
+  a.curse.v *
+  (a.cons > G.t ? 1 - DEBUFF.consCurse / 100 : 1) *
+  (typeof P === 'object' && P && a === P.ail ? 1 - Math.min(100, ST.selfCurse || 0) / 100 : 1);
 /* 凋零層數（玩家、怪物同一組欄位）：每層受到的混沌傷害提高 5%，每層各自 4 秒 */
 const witherN = a => (a.wither || []).filter(t => t > G.t).length;
 function witherAdd(a, max = 10) {
@@ -721,8 +725,8 @@ function hitCalc(c, m, o = {}) {
   const sum = DT.reduce((s, k) => s + pre[k], 0);
   pre.fire += (sum * ((c.fireAdd || 0) * 100 + ST.fireAdd)) / 100;
   /* 0.2.50 附加冰冷／閃電／混沌輔助：跟附加火焰同一步、同一個基準（sum），彼此相加 */
-  pre.cold += sum * (c.coldAdd || 0);
-  pre.light += sum * (c.lightAdd || 0);
+  pre.cold += sum * ((c.coldAdd || 0) + ST.xCold / 100);
+  pre.light += sum * ((c.lightAdd || 0) + ST.xLight / 100);
   pre.chaos += sum * (c.chaosAdd || 0);
   if (P.buf && P.buf.unholy > G.t) pre.chaos += sum * 0.3;
   /* 風暴湧流：綁在武器上，只有攻擊吃得到 */
@@ -782,6 +786,9 @@ function hitCalc(c, m, o = {}) {
       (tg.includes('aoe') ? ST.aoeP : 0) +
       (o.minion ? ST.minionP : 0) +
       (o.unit ? ST.unitP : 0) +
+      /* SU-02 詞綴：幻影（mech.js 的 mirageTick 標 c.phantom）、飛劍（御劍訣的環繞、射出、劍陣都帶它的 c） */
+      (c.phantom ? ST.phantomP : 0) +
+      (c.k === 'flyswords' ? ST.flySwP : 0) +
       (lowHp() ? ST.lowHp : 0) +
       (P.hp >= ST.hp ? ST.fullHp + (hasBuff('howl') ? DEBUFF.howlDmg : 0) : 0) +
       (P.es > 0 ? ST.esUp : 0) +
@@ -830,7 +837,9 @@ function hitCalc(c, m, o = {}) {
       light: ST.lightP + (hr.thunder ? ST.herEleL : 0) + bufV('tideEle'),
       chaos: ST.chaosP
     },
-    incOf = ch => ch.reduce((t, k) => t + typeInc[k], 0) + (ch.some(k => ELEK.includes(k)) ? ST.eleP : 0);
+    incOf = ch =>
+      ch.reduce((t, k) => t + typeInc[k], 0) +
+      (ch.some(k => ELEK.includes(k)) ? ST.eleP + (tg.includes('attack') ? ST.eleAtkP : 0) : 0);
   /* 5. 更多：輔助、昇華、盛怒（只有攻擊）、化身（法術的元素） */
   let more = (o.mult || 1) * (c.more || 1);
   /* 你被「衰弱」詛咒（地圖詞）：造成的傷害更少 */

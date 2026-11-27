@@ -320,9 +320,23 @@ function chAffs(it, det) {
   const A = it.a || [],
     t = itemT(it);
   return A.map(a => {
-    const r = det && !Array.isArray(a.v) && AFF[a.k].r ? tierRange(a.k, a.T) : null;
-    return `<li><b>${esc(affText(a))}</b>${det ? `<small>${r ? `<i class="rg">(${r[0]}–${r[1]}) </i>` : ''}<i class="tr">T${a.T}</i>${a.T <= t ? ' ✦' : ''}${isFrac(it, a) ? '<i class="fr"> 破裂</i>' : ''}</small>` : ''}</li>`;
-  }).join('');
+    /* 複合詞（SU-02）兩段範圍用「／」隔開；附加傷害（兩個數字）不標範圍 */
+    const rg = j => {
+        const x = tierRange(a.k, a.T, j);
+        return `${x[0]}–${x[1]}`;
+      },
+      r =
+        det && !Array.isArray(a.v) && AFF[a.k].r
+          ? AFF[a.k].h
+            ? Array.isArray(a.v2)
+              ? null
+              : rg(0) + '／' + rg(1)
+            : rg(0)
+          : null;
+    return `<li><b>${esc(affText(a))}</b>${det ? `<small>${r ? `<i class="rg">(${r}) </i>` : ''}<i class="tr">T${a.T}</i>${a.T <= t ? ' ✦' : ''}${isFrac(it, a) ? '<i class="fr"> 破裂</i>' : ''}</small>` : ''}</li>`;
+  })
+    .concat((it.ux || []).map(u => `<li class="uq"><b>${esc(uxText(u))}</b></li>`))
+    .join('');
 }
 function chCmpHTML() {
   const k = NAV.slot,
@@ -332,7 +346,7 @@ function chCmpHTML() {
     e = EQS.find(q => q.k === k),
     det = CH.alt,
     j = chJudge(it, k),
-    nm = x => `<b class="rc${x.r}">${x.r === 2 ? '◆ ' : ''}${esc(itemName(x))}</b>`,
+    nm = x => `<b class="rc${x.r}">${x.r === 3 ? '◈ ' : x.r === 2 ? '◆ ' : ''}${esc(itemName(x))}</b>`,
     sub = x => `<small>${e.n}・物品等級 ${x.L}</small>`,
     side = x => {
       if (!x) return '';

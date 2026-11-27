@@ -25,7 +25,17 @@ const M = Object.create(Math);
 M.random = rand;
 const ctx = { console, Math: M, Date, JSON, Object, Array, location: { search: '' }, URLSearchParams };
 vm.createContext(ctx);
-for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'world.js'])
+for (const f of [
+  'palette.js',
+  'ptdata.js',
+  'data.js',
+  'items.js',
+  'uniq.js',
+  'craft.js',
+  'combat.js',
+  'maps.js',
+  'world.js'
+])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), ctx, { filename: f });
 ctx.SIM = { NS };
 /* 珠寶收藏（JEWEL.keep）：基準快滿就清掉（玩家會拆）；o.full＝一開始就滿 30 顆、一直不清（珠寶換 500 靈魂，照樣算有感掉落） */

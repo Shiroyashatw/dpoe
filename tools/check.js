@@ -19,6 +19,7 @@ for (const f of [
   'ptdata.js',
   'data.js',
   'items.js',
+  'uniq.js',
   'craft.js',
   'combat.js',
   'maps.js',
@@ -156,6 +157,8 @@ for (let i = 0; i < 3000; i++) {
     it = G.dropItem(L, (i % 5) / 4),
     n = it.a.length,
     np = it.a.filter(a => G.AFF[a.k].p).length;
+  /* 傳奇（SU-01）的詞綴照那一件的範圍，另外檢查 */
+  if (it.r === 3) continue;
   if (it.r === 0 && n) err.push('普通有詞綴');
   if (it.r === 1 && (n < 1 || n > 2 || np > 1 || n - np > 1)) err.push('魔法詞綴數 ' + n);
   if (it.r === 2 && (n < 3 || n > 6 || np > 3 || n - np > 3)) err.push('稀有詞綴數 ' + n);
@@ -172,6 +175,113 @@ for (let i = 0; i < 3000; i++) {
   if (!G.itemName(it) || it.a.some(a => G.affText(a).includes('{}'))) err.push('文字');
 }
 ok('3000 件裝備的稀有度、詞綴、數值範圍', !err.length, [...new Set(err)].slice(0, 5).join('；'));
+/* SU-02 詞綴池擴充：12 類部位各產 3000 件（魔法、稀有各半，物品等級 1～最高輪流）：
+   新單項、加開、複合詞都出得來；數值（複合詞兩個數字各自）在那一階的範圍、沒有 NaN；單項詞不跟含同一能力的複合詞同件；
+   強力詞（技能等級、最大抗性）只出 T1～T2；每條新詞穿上去都會改到 stats()；複合詞的寫法＝兩種能力各自的寫法 */
+{
+  const X = n => vm.runInContext(n, ctx),
+    SPELLW = X('SPELLW'),
+    WT_HIDE = X('WT_HIDE'),
+    ADD = X('AFF_ADD'),
+    STATN = X('STATN'),
+    AFF = G.AFF,
+    PART = {
+      weapon: b => b.k === 'weapon' && !SPELLW.has(b.wt),
+      spellw: b => b.k === 'weapon' && SPELLW.has(b.wt),
+      shield: b => b.k === 'shield',
+      focus: b => b.k === 'focus',
+      quiver: b => b.k === 'quiver',
+      helm: b => b.k === 'helm',
+      chest: b => b.k === 'chest',
+      gloves: b => b.k === 'gloves',
+      boots: b => b.k === 'boots',
+      belt: b => b.k === 'belt',
+      ring: b => b.k === 'ring',
+      amulet: b => b.k === 'amulet'
+    },
+    numOK = v => (Array.isArray(v) ? v.every(Number.isFinite) && v[0] <= v[1] : Number.isFinite(v)),
+    bad = [],
+    miss = [],
+    cnt = { one: 0, comp: 0 };
+  for (const [part, f] of Object.entries(PART)) {
+    const pool = G.BASES.filter(b => f(b) && !WT_HIDE.includes(b.wt)),
+      seen = new Set();
+    for (let i = 0; i < 3000; i++) {
+      const B = pool[i % pool.length],
+        L = Math.max(B.lv, 1 + (i % G.TMAX)),
+        it = G.mkItem(B.id, L, 1 + (i % 2)),
+        ks = it.a.map(a => a.k),
+        P = B.aff || G.KINDS[B.k].aff;
+      for (const a of it.a) {
+        const A = AFF[a.k];
+        seen.add(a.k);
+        if (A.c) A.h ? cnt.comp++ : cnt.one++;
+        if (!P.includes(a.k)) bad.push(part + ' 不該出現 ' + a.k);
+        if (!numOK(a.v) || (A.h && !numOK(a.v2))) bad.push(part + ' NaN ' + a.k);
+        (A.h ? [a.v, a.v2] : [a.v]).forEach((v, j) => {
+          const [lo, hi] = G.tierRange(a.k, a.T, j),
+            x = Array.isArray(v) ? v[1] : v;
+          if (x < lo || x > hi) bad.push(`${part} ${a.k} 第 ${j + 1} 個數字 ${x} 不在 T${a.T} ${lo}～${hi}`);
+        });
+        if (A.top && a.T > X('AFF_TOP_T')) bad.push(part + ' 強力詞 ' + a.k + ' T' + a.T);
+        if (G.affText(a).includes('{}') || /NaN|undefined/.test(G.affText(a))) bad.push(part + ' 文字 ' + a.k);
+        if (A.h && ks.some(k => A.h.includes(k))) bad.push(part + ' 單項與複合重疊 ' + a.k);
+      }
+    }
+    for (const k of ADD[part]) if (!seen.has(k)) miss.push(part + ':' + k);
+  }
+  ok(
+    `SU-02：12 類部位各 3000 件，新詞與加開的詞都出得來、數值在範圍、沒有 NaN、單項不跟同能力的複合詞同件、強力詞只出 T1～T2（新單項 ${cnt.one} 條次、複合 ${cnt.comp} 條次）`,
+    !bad.length && !miss.length && cnt.comp > 0,
+    [...new Set(bad)].slice(0, 5).join('；') + (miss.length ? ' 沒出現：' + miss.slice(0, 8).join('、') : '')
+  );
+  /* 穿上去會改到 stats()：每條新詞單獨放在一件 Lv1 基底上，跟同一件沒有詞比 */
+  const noFx = [],
+    bow = G.BASES.find(b => b.k === 'weapon' && b.wt === 'bow' && b.lv === 1),
+    wand = G.BASES.find(b => b.k === 'weapon' && b.wt === 'wand' && b.lv === 1);
+  for (const [part, f] of Object.entries(PART))
+    for (const k of ADD[part]) {
+      const B = G.BASES.filter(b => f(b) && !WT_HIDE.includes(b.wt)).sort((x, y) => x.lv - y.lv)[0],
+        it0 = G.mkItem(B.id, 16, 0),
+        it1 = { ...it0, a: [X(`rollAffT(${JSON.stringify(k)}, 1)`)] },
+        slot =
+          B.k === 'weapon'
+            ? 'weapon'
+            : ['shield', 'focus', 'quiver'].includes(B.k)
+              ? 'off'
+              : B.k === 'ring'
+                ? 'ring1'
+                : B.k,
+        st = it => {
+          const eq = { [slot]: it };
+          if (B.k === 'quiver') eq.weapon = G.mkItem(bow.id, 1, 0);
+          if (B.k === 'focus') eq.weapon = G.mkItem(wand.id, 1, 0);
+          return JSON.stringify(G.stats({ lv: 100, eq, pt: [], skills: [], auras: [], lib: {} }));
+        };
+      if (st(it0) === st(it1)) noFx.push(part + ':' + k);
+    }
+  ok('SU-02：每條新詞、加開的詞穿上去都會改到角色數值（stats）', !noFx.length, noFx.join('、'));
+  /* 複合詞的寫法＝兩種能力各自的寫法（AFF 的 n，沒有就是 STATN 的模板），用「、」接起來 */
+  const txt = Object.keys(AFF)
+    .filter(k => AFF[k].h)
+    .filter(k => {
+      const w = AFF[k].h.map(c => (AFF[c] ? AFF[c].n : STATN[c] && STATN[c][3]));
+      return w.join('、') !== AFF[k].n;
+    });
+  ok(
+    'SU-02：45 條複合詞的寫法跟兩種能力各自的寫法一致',
+    !txt.length && Object.keys(AFF).filter(k => AFF[k].h).length === 45,
+    txt.join('、')
+  );
+  /* 鍛造：淬鍊、聖化、預知都帶著第二個數字 */
+  const it = G.mkItem(G.BASES.find(b => b.k === 'chest').id, 16, 2);
+  it.a = [X("rollAffT('h_arLife', 2)"), X("rollAffT('h_resFC', 2)")];
+  X('globalThis.S = globalThis.S || { mat: {} }; S.gold = 1e9');
+  G.temperDo(it);
+  const t1 = it.a.every(a => numOK(a.v2) && a.v2 >= G.tierRange(a.k, 2, 1)[0] && a.v2 <= G.tierRange(a.k, 2, 1)[1]),
+    pc = G.affPct(it.a[0]);
+  ok('SU-02：複合詞淬鍊後第二個數字還在範圍、百分位 0～1', t1 && pc >= 0 && pc <= 1, JSON.stringify(it.a));
+}
 /* 3. 全身穿滿的數值沒有 NaN */
 let nan = 0;
 for (let i = 0; i < 300; i++) {
@@ -981,7 +1091,17 @@ vm.runInContext(
 {
   const c7 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c7);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c7, { filename: f });
   const R = s => vm.runInContext(s, c7);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -1236,7 +1356,7 @@ vm.runInContext(
     const o = {}, K = Object.keys(SKILLS), r2 = v => +v.toFixed(4);
     o.A = K.filter(k => !(AWK[k] && AWK[k].A && AWK[k].A.n && AWK[k].A.d && !AWK[k].A.d.includes('{') && !AWK[k].A.d.includes('品質'))).join();
     const bound = K.filter(k => SKILLS[k].wt);
-    o.B = [bound.length, bound.filter(k => !(AWK[k] && AWK[k].B)).join(), K.filter(k => AWK[k].B).length, K.filter(k => AWK[k].B && !SKILLS[k].wt && k !== 'meteor' && k !== 'banner').join()];
+    o.B = [bound.length, bound.filter(k => !(AWK[k] && AWK[k].B)).join(), K.filter(k => AWK[k].B).length, K.filter(k => AWK[k].B && !SKILLS[k].wt && !SKILLS[k].mark && k !== 'meteor' && k !== 'banner').join()];
     o.fxKeys = K.filter(k => AWK[k].B && Object.keys(AWK[k].B.fx).some(f => !FXN[f])).join();
     /* 靜態規則：補丁要有東西讀——cd 要打在本來就有冷卻的招、aoe 要打在有範圍的招（D.r）、印記（挑目標的半徑）、鬥旗、劍陣 */
     o.bStatic = K.filter(k => AWK[k].B && ((AWK[k].B.fx.cd && !(SKILLS[k].cd > 0)) || (AWK[k].B.fx.aoe && !(SKILLS[k].r || SKILLS[k].mark || ['banner', 'swordarray'].includes(k))))).join();
@@ -1316,8 +1436,8 @@ vm.runInContext(
     return o;
   })()`);
   ok(
-    '覺醒（0.2.75）資料：81 招都有 A（名字與說明、沒有留 {}）、綁武器的 46 招加隕石、鬥旗有 B、B 的補丁鍵都認得、名字不重複也不撞技能／輔助／光環／基石／天賦大點／昇華點',
-    aw.A === '' && j(aw.B) === '[46,"",48,""]' && aw.fxKeys === '' && aw.dupSelf === '' && aw.dupOther === '',
+    '覺醒（0.2.75）資料：81 招都有 A（名字與說明、沒有留 {}）、綁武器的 39 招與 7 個印記（SU-03 改不限武器）加隕石、鬥旗有 B、B 的補丁鍵都認得、名字不重複也不撞技能／輔助／光環／基石／天賦大點／昇華點',
+    aw.A === '' && j(aw.B) === '[39,"",48,""]' && aw.fxKeys === '' && aw.dupSelf === '' && aw.dupOther === '',
     j([aw.A, aw.B, aw.fxKeys, aw.dupSelf, aw.dupOther])
   );
   ok(
@@ -1431,7 +1551,17 @@ vm.runInContext(
 const RA = (() => {
   const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c8);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
   const R = s => vm.runInContext(s, c8);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -4284,7 +4414,17 @@ const ASC_COMBOS = `const combos = k => {
     document: { getElementById: () => ({ classList: { add() {}, remove() {} } }), querySelectorAll: () => [] }
   };
   vm.createContext(c2);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c2, { filename: f });
   const R = s => vm.runInContext(s, c2);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -4382,7 +4522,7 @@ const ASC_COMBOS = `const combos = k => {
   ok('技能面板的數字沒有 NaN', !badn.length, JSON.stringify(badn));
   const nod = nums.filter(([, h, , , , ef]) => h == null && !ef).map(x => x[0]);
   console.log('   沒有傷害也沒有效果字的技能：' + nod.join('、'));
-  /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：3 次就消失、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
+  /* 閃電箭：品質 20% 轉 90%、無法連鎖、只有打已感電的才跳 2 隻；折射箭矢：每 0.5 秒最多一次衝擊波（SU-03）、不算擊殺、衝擊波降門檻、三種元素一起中也只放 1 次 */
   const bow = R(`(() => {
     G.mobs = []; G.t = 100; G.kills = 0; ST.chain = 3; ST.dmg = [100, 100]; globalThis.spawnMob = (D, x, y) => mk(x - P.x); globalThis.aggroPack = globalThis.sparks = globalThis.hitstop = globalThis.killMob = () => {};
     const D = Object.values(MOBS)[0],
@@ -4410,11 +4550,32 @@ const ASC_COMBOS = `const combos = k => {
     const ar2 = G.mobs[G.mobs.length - 1];
     hitMob(ar2, { ...rc, cvF: 40, cvC: 30, cvL: 30 }, 0, 0);
     Math.random = rnd0;
-    out.push(ar.fired, ar.hp, G.kills - k0, ar2.fired);
+    out.push(ar.fired, ar.hp > 0 ? 1 : 0, G.kills - k0, ar2.fired);
+    /* SU-03：沒有 3 次上限，改成每 0.5 秒最多一次；持續 8 秒、冷卻 12 秒 */
+    Math.random = () => 0;
+    G.t += 0.5; hitMob(ar, fire, 0, 0);
+    Math.random = rnd0;
+    out.push(ar.fired, durOf(rc), SKILLS.refract.cd);
+    /* SU-03：使用弓技能時，15 公尺內有折射箭矢就多射一支同樣的箭飛向它（不花魔力）；超過 15 公尺、折射箭矢自己不算 */
+    const sc = gemCfg(mkGem('split', 1), 0), sh = (k, cc) => { G.shots = []; actHit({ k, c: cc, ang: Math.PI, tx: P.x - 100, ty: P.y, hits: [0], n: 0 }, 0); return G.shots.length; };
+    G.mobs = []; const n0 = sh('split', sc);
+    spawnArrow(P.x + 300, P.y, rc); const n1 = sh('split', sc), toArr = G.shots.filter(s => Math.cos(s.ang) > 0.9).length;
+    G.mobs = []; spawnArrow(P.x + 500, P.y, rc); const n2 = sh('split', sc);
+    out.push(n1 - n0, toArr, n2 - n0);
     G.mobs = [];
     return out;
   })()`);
-  ok('閃電箭與折射箭矢', bow.join() === '90,0,1,false,true,true,false,1,false,true,true,0.7,1,3,0,0,1', bow.join());
+  ok(
+    '閃電箭與折射箭矢（SU-03：每 0.5 秒一次衝擊波、持續 8 秒、冷卻 12 秒、弓技能多射一支給 15 公尺內的箭矢）',
+    bow.join() === '90,0,1,false,true,true,false,1,false,true,true,0.7,1,1,1,0,1,2,8,12,1,1,0',
+    bow.join()
+  );
+  ok(
+    '印記（SU-03）：7 個都不限武器、冷卻 4 秒、有冷卻標籤',
+    R(
+      `Object.keys(SKILLS).filter(k => SKILLS[k].mark).map(k => !SKILLS[k].wt && SKILLS[k].cd === 4 && SKILLS[k].tags.includes('cd')).join()`
+    ) === Array(7).fill('true').join()
+  );
   /* 0.2.42 定身與控制：禁錮四種、釘身來源與觸發、可釘身、目眩、玩家僵直與沉重暈眩、暈眩恢復、堅韌 */
   const ctl = R(`(() => {
     G.mobs = []; G.t = 200; G.mapT = 16; G.mm = null; ST.dmg = [100, 100]; ST.noCrit = 1; ST.hp = 1000;
@@ -4791,11 +4952,11 @@ const ASC_COMBOS = `const combos = k => {
     b3.pick.join()
   );
   ok(
-    '能力值詞綴：範圍 [5,33]／全能力值 [2,13]、六個部位可出、全能力值只有項鍊',
+    '能力值詞綴：範圍 [5,33]／全能力值 [2,13]、六個部位可出、全能力值只有戒指與項鍊（SU-02 加開戒指；力量加開盾、胸甲、腰帶）',
     b3.aff.slice(0, 6).join('|') === '5,33|5,33|5,33|2,13|33|13' &&
       b3.aff[6] &&
-      b3.aff[7] === 'amulet' &&
-      b3.aff[8] === 'amulet,boots,gloves,helm,ring,weapon',
+      b3.aff[7] === 'ring,amulet' &&
+      b3.aff[8] === 'amulet,belt,boots,chest,gloves,helm,ring,shield,weapon',
     JSON.stringify(b3.aff)
   );
   ok(
@@ -5148,7 +5309,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c3 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c3);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c3, { filename: f });
   const R = s => vm.runInContext(s, c3);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -5965,7 +6136,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 100, mapT: 5, scene: 'camp', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6263,7 +6444,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c4 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c4);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c4, { filename: f });
   const R = s => vm.runInContext(s, c4);
   R(`var G = { t: 1, mapT: 1, scene: 'map', state: 'play', mobs: [], shots: [], grenades: [], units: [], ground: [], W: 2000, H: 2000 }, P = { x: 500, y: 500, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6519,7 +6710,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c5 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c5);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c5, { filename: f });
   const R = s => vm.runInContext(s, c5);
   R(`var G = { t: 100, mapT: 5, scene: 'camp', state: 'play', mobs: [], pools: [], shots: [], grenades: [], units: [], ground: [], allies: [], W: 2000, H: 2000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6712,7 +6913,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c6 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c6);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c6, { filename: f });
   const R = s => vm.runInContext(s, c6);
   R(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -6780,7 +6991,7 @@ const ASC_COMBOS = `const combos = k => {
     reset(); ST.fork = 1; o.forkCfg = [gemCfg(mkGem('axethrow', 1), 0).fork, gemCfg(mkGem('slash', 1), 0).fork];
 
     /* 迴旋：飛到終點或打完最後一個目標後飛回來，回程再打一次；投射物技能才有；會爆炸的不飛回來 */
-    reset(); const gr = mkGem('axethrow', 1); gr.sup = [mkGem('ret', 1)];
+    reset(); const gr = mkGem('spearthrow', 1); gr.sup = [mkGem('ret', 1)];
     o.retCfg = [!!gemCfg(gr, 0).ret, !!gemCfg(mkGem('slash', 1), 0).ret];
     const cr = gemCfg(gr, 0); cr.pierce = 0;
     P.x = P.y = 500;
@@ -6795,6 +7006,14 @@ const ASC_COMBOS = `const combos = k => {
     reset(); const cu = { ...gemCfg(mkGem('axethrow', 1), 0), ret: true };
     shoot(0, 800, cu, { unit: 1 }, { sx: 500, sy: 300, x: 520, y: 280, ret: 1 });
     P.x = 4000; updShots(1 / 60); o.retUnit = G.shots[0].vx < 0 ? 1 : r2(G.shots[0].vx);
+    /* 擲斧（SU-03）：一定飛回、穿透所有目標；回程擊中流血的敵人時加劇流血；迴旋、連鎖不相容 */
+    reset(); const ax = gemCfg(mkGem('axethrow', 1), 0);
+    P.x = P.y = 500; const m4 = mk(700, 482), m5 = mk(760, 482); G.mobs = [m4, m5];
+    m4.ail.bleed = { dps: 10, t: G.t + 5 };
+    shot(ax, { back: !!SKILLS.axethrow.back }); const sx = G.shots[0];
+    let axN = 0, hp4 = m4.hp;
+    for (let i = 0; i < 180 && G.shots.length; i++) { updShots(1 / 60); if (m4.hp < hp4) (axN++, (hp4 = m4.hp)); }
+    o.axe = [!!sx.back, ax.pierce >= 99, axN, m5.hp < m5.mhp, !!(m4.ail.bleed && m4.ail.bleed.agg), supOK(SKILLS.axethrow, mkGem('ret', 1)), supOK(SKILLS.axethrow, mkGem('chain', 1))];
 
     /* 超限格擋率：超過 50 的部分，沒超過是 0 */
     reset();
@@ -6979,6 +7198,11 @@ const ASC_COMBOS = `const combos = k => {
     b.ret.join() === 'true,2,0' && b.retCfg.join() === 'true,false' && !b.retBoom && b.retUnit === 1,
     JSON.stringify([b.ret, b.retCfg, b.retBoom, b.retUnit])
   );
+  ok(
+    '擲斧（SU-03）：一定飛回、穿透所有目標、來回各擊中一次；回程擊中流血的敵人時加劇流血；迴旋、連鎖輔助不相容',
+    b.axe.join() === 'true,true,2,true,true,false,false',
+    JSON.stringify(b.axe)
+  );
   ok('超限格擋率：超過 50 的部分，沒超過是 0', b.over.join() === '50,10,30,0', b.over.join());
   /* 0.2.47 第 3 層 B 批（近戰）：耐力球、狂怒重砸、霜波、霜牙、劍陣、血怒（盾衝的反擊狀態在第 10 批那一段） */
   const b47 = R(`(() => {
@@ -7016,7 +7240,7 @@ const ASC_COMBOS = `const combos = k => {
     out.arr = [swordN(), !!bl, bl && bl.n]; h = m.hp;
     actHit(A('swordarray'), 0); groundTick(0.01); out.arrBoom = [h > m.hp, G.ground.some(g => g.k === 'blades')];
     gainSwords(2, c('flyswords')); actHit(A('swordarray'), 0); h = m.hp; G.t += 8.1; groundTick(8.1); out.arrEnd = [h > m.hp, G.ground.length];
-    /* 血怒：技能速度 +20、偷取 +3；每秒損失 4% 最大生命，生命剩 1 就不再扣；再按關掉 */
+    /* 血怒：技能速度 +20、偷取 +3；每秒損失 4% 最大生命，生命剩 1 就不再扣；SU-03 起再放不會關掉 */
     P.stk = {}; P.hp = ST.hp; actHit(A('bloodrage'), 0);
     out.br = [stkN('bloodrage'), bufV('ss'), bufV('leech'), gemCfg(mkGem('clawchain', 5), 0).leech > ST.leech / 100];
     stkTick(1); out.brLoss = +((ST.hp - P.hp) / ST.hp).toFixed(3);
@@ -7034,7 +7258,7 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify(b47)
   );
   ok(
-    'B 批近戰：劍陣要有飛劍、插地後再按引爆、8 秒自己爆；血怒給速度與偷取、每秒扣 4% 生命、剩 1 不再扣、再按關掉',
+    'B 批近戰：劍陣要有飛劍、插地後再按引爆、8 秒自己爆；血怒給速度與偷取、每秒扣 4% 生命、剩 1 不再扣、再放不會關掉（SU-03）、冷卻 20 秒',
     JSON.stringify([
       b47.arrWhy,
       b47.arrOk,
@@ -7045,7 +7269,8 @@ const ASC_COMBOS = `const combos = k => {
       b47.brLoss,
       b47.brMin,
       b47.brOff
-    ]) === '["要先用御劍訣召出飛劍","",[0,true,4],[true,false],[true,0],[1,20,3,true],0.04,1,0]',
+    ]) === '["要先用御劍訣召出飛劍","",[0,true,4],[true,false],[true,0],[1,20,3,true],0.04,1,1]' &&
+      R('SKILLS.bloodrage.cd') === 20,
     JSON.stringify(b47)
   );
   /* 0.2.48 第 3 層 B 批（遠程與法術）：油榴彈、雷暴、裂解、破咒、褻瀆儀式 */
@@ -7116,11 +7341,12 @@ const ASC_COMBOS = `const combos = k => {
       out = {};
     ST.fork = false;
     ST.chain = 0;
-    const base = cf('axethrow', []);
-    const f = cf('axethrow', ['fork']), ch = cf('axethrow', ['chain']), rt = cf('axethrow', ['ret']);
+    /* SU-03：擲斧一路穿透又一定飛回，連鎖、迴旋不相容，改用擲矛測 */
+    const base = cf('spearthrow', []);
+    const f = cf('spearthrow', ['fork']), ch = cf('spearthrow', ['chain']), rt = cf('spearthrow', ['ret']);
     out.proj = [!!f.fork, r2(f.more / base.more), ch.chain - base.chain, r2(ch.more / base.more), !!rt.ret, r2(rt.more / base.more)];
     /* 分裂＋連鎖可以同插；連鎖＋迴旋同分類，只有一顆生效 */
-    const fc = cf('axethrow', ['fork', 'chain']), cr = cf('axethrow', ['chain', 'ret']);
+    const fc = cf('spearthrow', ['fork', 'chain']), cr = cf('spearthrow', ['chain', 'ret']);
     out.cat = [!!fc.fork, fc.chain - base.chain, (cr.chain - base.chain === 2 ? 1 : 0) + (cr.ret ? 1 : 0)];
     /* 一路穿透的冰霜彈、閃電箭插連鎖沒有效果（不相容） */
     out.noChain = [cf('frostbolt', ['chain']).chain, r2(cf('frostbolt', ['chain']).more / cf('frostbolt', []).more), cf('split', ['chain']).chain];
@@ -8446,6 +8672,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -8558,6 +8785,142 @@ const ASC_COMBOS = `const combos = k => {
       return again.inv.items.length === 4 && again.world.done.length === 18 && again.v === 35 ? '' : 'again';
     })()`) === ''
   );
+  /* SU-01 傳奇：表的每一列合法、每一件產得出來、數值在範圍內、不能鍛造、可以腐化、特色詞進數值、掉落、舊存檔讀得進來 */
+  {
+    const r = R2(`(() => {
+      const out = { rows: [], gen: [], lock: [], corr: [], st: [], save: '', misc: [] };
+      const minN = L => (L >= 90 ? 5 : L >= 72 ? 4 : L >= 36 ? 3 : 2);
+      for (const [k, U] of Object.entries(UNIQ)) {
+        const B = BASEI[U.b], pool = B ? B.aff || KINDS[B.k].aff : [];
+        if (!B) out.rows.push(k + ' 基底');
+        else if (U.a.length < minN(U.L)) out.rows.push(k + ' 條數');
+        for (const [ak, lo, hi] of U.a) if (!AFF[ak] || !pool.includes(ak) || lo > hi) out.rows.push(k + ' 詞綴 ' + ak);
+        for (const [sk, lo, hi] of U.x) if (!STATN[sk] || (hi != null && lo > hi)) out.rows.push(k + ' 特色詞 ' + sk);
+        if (uqLv(U) !== Math.max(1, Math.round(U.L / 6))) out.rows.push(k + ' 物品等級');
+        for (let i = 0; i < 300; i++) {
+          const it = mkUniq(k, 1 + (i % TMAX));
+          const inA = it.a.every((a, j) => {
+            const [ak, lo, hi] = U.a.find(x => x[0] === a.k), v = Array.isArray(a.v) ? a.v[1] : a.v;
+            return v >= lo && v <= hi && a.T >= 1 && a.T <= AFF_T && (!Array.isArray(a.v) || a.v[0] <= a.v[1]);
+          });
+          const inX = it.ux.length === U.x.length && it.ux.every((x, j) => {
+            const [sk, lo, hi] = U.x[j];
+            return x.k === sk && (hi == null ? x.v === lo : x.v >= lo && x.v <= hi);
+          });
+          if (it.r !== 3 || it.u !== k || it.L < uqLv(U) || it.a.length !== U.a.length || !inA || !inX || itemName(it) !== U.n) {
+            out.gen.push(k);
+            break;
+          }
+        }
+        /* 不能鍛造：填（四種加詞通貨、轉化、破裂、完美）、淬鍊、聖化、品質、王印都擋下，說得出原因；王印不扣 */
+        const it = mkUniq(k, TMAX);
+        S.frags = S.frags || {};
+        const wk = Object.keys(WY_FX)[0];
+        S.frags[wk] = 1;
+        MAT().holy = 5; MAT().whet = 5; MAT().plate = 5; S.gold = 1e9;
+        const why = [
+          ...FILL_OPS.map(op => forgeCheck(it, op, op === 'dust' ? 'atk:1' : 0).why),
+          temperDo(it), holyCheck(it), qualCheck(it).why
+        ];
+        if (!why.every(w => w === UQ_LOCK) || !wangyinSet(it, wk) || S.frags[wk] !== 1 || it.wy || it.holy || it.tmp) out.lock.push(k + ' ' + why.join('/'));
+        /* 可以腐化 */
+        MAT().corr = 1;
+        const c = corruptDo(it, 'cw1');
+        if (c.why || !it.cor || !it.cw || it.cw.length !== 1 || lockWhy(it, 'fill') !== '已腐化，全部鎖定') out.corr.push(k);
+      }
+      /* 特色詞進角色數值：穿上去前後的差＝特色詞的值（同一個能力鍵在詞綴也有的扣掉詞綴） */
+      const req0 = itemReq;
+      itemReq = () => ({ lv: 0, str: 0, dex: 0, int: 0 }); /* 只看特色詞，能力值需求先不管 */
+      for (const [k, U] of Object.entries(UNIQ)) {
+        S = newGame(); delete S.fresh; S.lv = 100;
+        const it = mkUniq(k, TMAX), e = EQS.find(q => eqTakes(q, baseOf(it).k) && (baseOf(it).k !== 'focus' || q.k === 'off'));
+        if (baseOf(it).k === 'focus') S.eq.weapon = mkItem('w_wand_0', 1, 0); /* 法器要配法杖 */
+        const a0 = stats();
+        S.eq[e.k] = it;
+        const a1 = stats(), keep = it.ux;
+        it.ux = [];
+        const a2 = stats();
+        it.ux = keep;
+        for (const x of keep) if (Math.abs(a1[x.k] - a2[x.k] - x.v) > 1e-9) out.st.push(k + ' ' + x.k + ' ' + (a1[x.k] - a2[x.k]) + '≠' + x.v);
+        if (a1.eqBad.includes(e.k)) out.st.push(k + ' 穿不上');
+      }
+      itemReq = req0;
+      /* 舊存檔：沒有傳奇的照常；存了傳奇的再讀一次，r、u、ux 都在 */
+      const s = newGame();
+      s.inv.items.push(mkUniq('qianyu', 3), mkItem('w_bow_0', 3, 2));
+      const m = migrate(JSON.parse(JSON.stringify(s))), u = m.inv.items.find(x => x.r === 3);
+      const m0 = migrate(JSON.parse(JSON.stringify({ ...newGame(), lv: 12 })));
+      out.save = !u || u.u !== 'qianyu' || u.ux.length !== 2 || itemName(u) !== '千羽' || m0.lv !== 12 || m0.inv.items.some(x => x.r === 3) ? 'bad' : '';
+      /* 沒有這一列的傳奇（之後刪掉了）照基底名顯示，不會壞 */
+      const gone = { ...mkUniq('hetu', 1), u: 'zz' };
+      out.misc.push(itemName(gone) === baseOf(gone).n, RARN[3] === '傳奇');
+      /* 分解比照同階稀有：材料、靈魂、加詞石一樣 */
+      const U1 = mkUniq('tiexie', 9), R1 = mkItem('b_iron', 9, 2), v1 = salvValue(U1), v2 = salvValue(R1);
+      out.misc.push(JSON.stringify(v1.mats) === JSON.stringify(v2.mats) && v1.soul === v2.soul && v1.cur.aug === 1);
+      return out;
+    })()`);
+    ok(
+      `SU-01 傳奇：${Object.keys(R2('UNIQ')).length} 件樣板的基底、詞綴（在部位詞綴池、條數照物品等級）、特色詞（STATN 有）都合法`,
+      !r.rows.length,
+      r.rows.join('、')
+    );
+    ok(
+      'SU-01 傳奇：每件各產 300 次，稀有度、名字、物品等級、詞綴與特色詞數值都在範圍內',
+      !r.gen.length,
+      r.gen.join('、')
+    );
+    ok(
+      'SU-01 傳奇：填、淬鍊、聖化、品質都擋下（「傳奇不能鍛造，只能腐化」），王印套不上、不扣',
+      !r.lock.length,
+      r.lock.join(' | ')
+    );
+    ok('SU-01 傳奇：可以腐化，腐化後全部鎖定', !r.corr.length, r.corr.join('、'));
+    ok('SU-01 傳奇：穿上去，特色詞的值照實加進角色數值', !r.st.length, r.st.join('、'));
+    ok('SU-01 傳奇：舊存檔讀得進來；存了傳奇的存檔讀回來 r、u、ux 都在', r.save === '', r.save);
+    ok(
+      'SU-01 傳奇：表裡沒有的傳奇照基底名、RARN 有「傳奇」、分解回收量比照同階稀有',
+      r.misc.every(Boolean),
+      JSON.stringify(r.misc)
+    );
+    /* 掉落：稀有裝有 UNIQ_P 改成傳奇；物品等級不夠的不會掉；打造只給同部位同武器種類，且記進掉落紀錄（稀有度 3） */
+    const d = R2(`(() => {
+      let rare = 0, uq = 0, low = 0;
+      for (let i = 0; i < 60000; i++) {
+        const it = dropItem(1 + (i % TMAX), 2);
+        if (it.r === 2) rare++;
+        if (it.r === 3) (uq++, (low += it.L < uqLv(UNIQ[it.u]) ? 1 : 0));
+      }
+      const pool1 = uqPool(1), poolB = uqPool(TMAX, b => b.k === 'boots');
+      const rr = Math.random;
+      Math.random = () => 0;
+      let craft;
+      try {
+        S = newGame(); delete S.fresh; S.camp.forge = 16; S.gold = 1e9; S.log = [];
+        const b = craftBase('boots', { T: 6, sys: 'armor' }), c = craftCost(b, 6);
+        for (const m in c.mats) matAdd(m, 6, 1e4);
+        const res = craftDo('boots', { T: 6, sys: 'armor', n: 1 });
+        craft = { r: res.items && res.items[0].r, k: res.items && BASEI[UNIQ[res.items[0].u] ? UNIQ[res.items[0].u].b : res.items[0].b].k, log: S.log[0] && S.log[0].r, c: S.log[0] && S.log[0].c, why: res.why };
+      } finally {
+        Math.random = rr;
+      }
+      return { rare, uq, low, p: uq / (rare + uq), pool1, poolB, craft };
+    })()`);
+    ok(
+      `SU-01 掉落：稀有裝 ${(R2('UNIQ_P') * 100).toFixed(0)}% 改成傳奇（實測 ${(d.p * 100).toFixed(2)}%，${d.uq} 件），物品等級不夠的沒掉`,
+      d.uq > 0 && d.p > 0.012 && d.p < 0.03 && !d.low,
+      JSON.stringify(d)
+    );
+    ok(
+      'SU-01 掉落：物品等級 1 不會掉鐵鞋（最低物品等級 42 → 7）；打造鞋子只會出鞋子的傳奇，並記進掉落紀錄（傳奇＝3）',
+      !d.pool1.includes('tiexie') &&
+        d.poolB.every(k => ['caoshangfei', 'tiexie'].includes(k)) &&
+        d.craft.r === 3 &&
+        d.craft.k === 'boots' &&
+        d.craft.log === 3 &&
+        d.craft.c === 'uniq',
+      JSON.stringify(d.craft)
+    );
+  }
   /* 0.4.8：存檔 32 → 33：一般輔助升過的等級退靈魂（每一級照 libUp 扣的 soulCost(那一級)）、刪紀錄；用過的 II 算解鎖；覺醒輔助、技能、光環等級不動 */
   {
     const r = R2(`(() => {
@@ -8937,7 +9300,9 @@ const ASC_COMBOS = `const combos = k => {
     for (const k of Object.keys(E.AFF)) {
       const [l1, h1] = E.tierRange(k, 1),
         [l0, h0] = E.tierRange(k, 0);
-      if (!(l0 >= h1 - 1 && h0 > h1)) bad.push(k + ' T0 沒有在 T1 之上');
+      /* 整條範圍窄到一階不到 1 的整數詞（投射物 +1～2、技能等級 +1～3），T0 只能跟 T1 一樣（SU-02） */
+      const tiny = !E.AFF[k].d && (E.AFF[k].r[1] - E.AFF[k].r[0]) / 6 < 1;
+      if (!(l0 >= h1 - 1 && (h0 > h1 || (tiny && h0 === h1)))) bad.push(k + ' T0 沒有在 T1 之上');
       if (Math.abs(h0 - l0 - (h1 - l1)) > 2) bad.push(k + ' T0 寬度 ' + (h0 - l0) + ' vs T1 ' + (h1 - l1));
       if (!E.affCls(k)) bad.push(k + ' 沒有類別');
     }
@@ -9597,7 +9962,17 @@ const ASC_COMBOS = `const combos = k => {
   {
     const cx = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
     vm.createContext(cx);
-    for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+    for (const f of [
+      'palette.js',
+      'ptdata.js',
+      'data.js',
+      'items.js',
+      'uniq.js',
+      'craft.js',
+      'combat.js',
+      'maps.js',
+      'mech.js'
+    ])
       vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), cx, { filename: f });
     const RX = s => vm.runInContext(s, cx);
     RX(`var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], pools: [], meteors: [], swarms: [], shots: [], tele: [], grenades: [], units: [], ground: [], allies: [], W: 5000, H: 5000 }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -10575,7 +10950,17 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c8 = { console, Math, Date, JSON, Object, Array, Set, location: { search: '' }, URLSearchParams };
   vm.createContext(c8);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js', 'mech.js'])
+  for (const f of [
+    'palette.js',
+    'ptdata.js',
+    'data.js',
+    'items.js',
+    'uniq.js',
+    'craft.js',
+    'combat.js',
+    'maps.js',
+    'mech.js'
+  ])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c8, { filename: f });
   vm.runInContext(
     `var G = { t: 100, mapT: 5, scene: 'map', state: 'play', mobs: [], shots: [], tele: [], allies: [] }, P = { x: 0, y: 0, r: 14, cds: {}, mp: 1e4, hp: 100, ail: {} }, S, ST, TOUCH = { on: 0 };
@@ -10665,6 +11050,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -10739,6 +11125,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -11338,7 +11725,7 @@ const ASC_COMBOS = `const combos = k => {
 {
   const c = { console, Math, Date, JSON, Object, Array, Set, Map, location: { search: '' }, URLSearchParams };
   vm.createContext(c);
-  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'craft.js', 'combat.js', 'maps.js'])
+  for (const f of ['palette.js', 'ptdata.js', 'data.js', 'items.js', 'uniq.js', 'craft.js', 'combat.js', 'maps.js'])
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'), c, { filename: f });
   const gs = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8').replace(/\r/g, ''),
     cut = (a, b) => gs.slice(gs.indexOf(a), gs.indexOf(b));
@@ -11513,6 +11900,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -11559,10 +11947,8 @@ const ASC_COMBOS = `const combos = k => {
       if (wt === 'spear') {
         const v = L.findIndex(r => r[3] === 'mk_volt');
         ok(
-          `M2-15b 電壓印記（${at}）：排在所有有直傷的後面、沒直傷的非武器招前面`,
-          v > L.map(r => r[2]).lastIndexOf(true) &&
-            L.every((r, j) => r[2] || r[0] || j > v) &&
-            L.slice(v + 1).some(r => !r[2] && !r[0]),
+          `M2-15b 電壓印記（${at}）：排在所有有直傷的後面；SU-03 起印記不限武器，跟其他沒直傷的非武器招同一組`,
+          v > L.map(r => r[2]).lastIndexOf(true) && !L[v][0] && !L[v][2],
           JSON.stringify(L)
         );
       }
@@ -11875,6 +12261,7 @@ const ASC_COMBOS = `const combos = k => {
       'ptdata.js',
       'data.js',
       'items.js',
+      'uniq.js',
       'craft.js',
       'combat.js',
       'maps.js',
@@ -12569,6 +12956,7 @@ const ASC_COMBOS = `const combos = k => {
     'ptdata.js',
     'data.js',
     'items.js',
+    'uniq.js',
     'craft.js',
     'combat.js',
     'maps.js',
@@ -13387,7 +13775,8 @@ const ASC_COMBOS = `const combos = k => {
         };
         const m1 = mob();
         P.hp = ST.hp = 1e9;
-        for (let i = 0; i < 200; i++) DBG.step(33);
+        /* SU-03：蓄力重砸冷卻 6 秒，跑 15 秒才看得到兩次放開 */
+        for (let i = 0; i < 450; i++) DBG.step(33);
         const r = { rel: rel.slice() };
         /* 蓄到一半目標死了：取消不放 */
         rel.length = 0;

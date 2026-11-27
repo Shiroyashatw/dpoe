@@ -981,7 +981,7 @@ function drinkFlask(mana) {
   if (P.cds[k] > 0) return flaskBusy(k);
   P.cds[k] = FLASK.cd;
   flaskDrunk();
-  const v = flaskEff() + (mana ? ST.mpFlask : 0) / 100;
+  const v = flaskEff() + (mana ? ST.mpFlask : ST.lifeFlask || 0) / 100;
   if (mana) P.mheal += ST.mp * FLASK.mp * v;
   else P.heal += ST.hp * FLASK.heal * v;
   fx({ k: 'heal', x: P.x, y: P.y, dur: 0.5 });
@@ -2066,13 +2066,19 @@ function updShots(dt) {
         g = Math.atan2(h.y - 20 - s.y, h.x - s.x);
       (s.vx = Math.cos(g) * 900), (s.vy = Math.sin(g) * 900), (s.life = 1);
       if (Math.hypot(h.x - s.x, h.y - 20 - s.y) < 30) s.life = 0;
-      /* 擲斧的品質：回程再打一次 */
-      if (s.back)
+      /* 迴旋：回程再打一次。擲斧（SU-03）：回程不吃技能自己的流血機率（品質給 20% 流血），擊中流血的敵人時加劇流血 */
+      if (s.back) {
+        const axe = s.c.k === 'axethrow',
+          cb = axe ? (s.cB = s.cB || { ...s.c, bleedCh: s.c.bleedCh - (s.c.D.bleed || 0) + 20 * (s.c.q || 0) }) : s.c;
         for (const m of G.mobs) {
           if (m.hp <= 0 || (s.hitB = s.hitB || new Set()).has(m)) continue;
-          if (Math.hypot(m.x - s.x, m.y - m.sz * 0.4 - s.y) < m.r + s.r + 6)
-            s.hitB.add(m), hitMob(m, s.c, g, 60 * s.c.kb, { a: s.a, from: s });
+          if (Math.hypot(m.x - s.x, m.y - m.sz * 0.4 - s.y) < m.r + s.r + 6) {
+            const bl = axe && !m.arrow && hasState(m, 'bleed');
+            s.hitB.add(m), hitMob(m, cb, g, 60 * s.c.kb, { a: s.a, from: s });
+            if (bl && m.hp > 0) aggBleed(m);
+          }
         }
+      }
       continue;
     }
     if ((s.bounce != null || s.back) && s.life <= 0) (s.ret = 1), (s.life = 1);
