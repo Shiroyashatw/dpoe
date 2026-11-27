@@ -4515,8 +4515,6 @@ body.d12 #authcf .acfn { position: absolute; left: 394px; top: 244px; width: 180
 #ivg .tgo:disabled::before { border-color: var(--t02-off-frame); }
 #ivg .tgo:disabled .cn { border-color: var(--t02-off-edge); }
 #ivg .tgo:disabled .seal { background: var(--t02-off-seal); box-shadow: 0 0 0 1px var(--t02-off-seal-edge); }
-/* T02 維持極簡：標題畫面不出「跳過」文字鈕（旁白開始後才出；Esc 照舊可跳） */
-#intro:has(#ivg:not([hidden])) .ivskip { display: none; }
 @media (prefers-reduced-motion: reduce) { #ivg .tgo, #ivg .tgo::before, #ivg .tgo .cn, #ivg .tgo .seal { transition-duration: 0ms; } }
 /* 桌機：照 1280×720 舞台座標（x 對中線；y 不隨高度移動，1280×800 也不動） */
 @media (min-width: 920px) and (min-height: 600px) {

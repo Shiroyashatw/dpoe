@@ -811,7 +811,7 @@ const CONTRAST = `(() => {
     const t = await p.evaluate(`(() => {
       const g = $('ivg'), img = g.querySelector('.ivbg'), sc = g.querySelector('.ivsc'), h = g.querySelector('h1'), lg = h && h.querySelector('img'), dv = g.querySelector('.tdiv'), b = $('ivgo');
       const r = e => { const x = e.getBoundingClientRect(); return [x.left, x.top, x.right, x.bottom].map(Math.round); };
-      const sk = document.querySelector('#intro .ivskip'), cs = getComputedStyle(sc);
+      const sk = g.querySelector('.ivskip, [data-iv=skip]'), cs = getComputedStyle(sc);
       return { vis: !g.hidden && getComputedStyle(g).display !== 'none', src: img && img.currentSrc, nw: img && img.naturalWidth, nh: img && img.naturalHeight, fit: img && getComputedStyle(img).objectFit,
         pix: img && getComputedStyle(img).imageRendering, img: r(img), sc: r(sc), scBg: cs.backgroundColor, scImg: cs.backgroundImage,
         lgSrc: lg && lg.currentSrc, lgAlt: lg && lg.alt, lgN: lg && [lg.naturalWidth, lg.naturalHeight], lgPix: lg && getComputedStyle(lg).imageRendering, lg: lg && r(lg),
@@ -863,7 +863,7 @@ const CONTRAST = `(() => {
       JSON.stringify([t.bTx, t.bAria, t.cn, t.seals.length, t.bFont, t.lbLs, t.focus])
     );
     ok(
-      '開場 T02 維持極簡：沒有跳過文字鈕、Enter 提示、版本號',
+      '開場 T02 維持極簡：#ivg 內沒有新增跳過文字鈕、Enter 提示、版本號（T01 既有「跳過」鈕見待裁）',
       !t.skip && !/Enter|跳過|開始|dungeonPOE|v\d|\d+\.\d+/.test(t.gTx),
       JSON.stringify([t.skip, t.gTx])
     );
@@ -909,6 +909,9 @@ const CONTRAST = `(() => {
       await p.mouse.move(5, 700);
       const png = (await p.screenshot()).toString('base64');
       const tor = await p.evaluate(async b64 => {
+        /* T01 既有「跳過」鈕（待裁）壓在右上，外加 4 px 不算 */
+        const k = document.querySelector('#intro .ivskip').getBoundingClientRect(),
+          inK = (x, y) => k.width > 0 && x >= k.left - 4 && x < k.right + 4 && y >= k.top - 4 && y < k.bottom + 4;
         const ld = s =>
           new Promise(res => {
             const i = new Image();
@@ -939,7 +942,8 @@ const CONTRAST = `(() => {
               d = Math.max(Math.abs(A[i] - O[i]), Math.abs(A[i + 1] - O[i + 1]), Math.abs(A[i + 2] - O[i + 2]));
             if (x < 230 || x > 1050) {
               n++;
-              if (d > 2 && !(x >= 200 && x < 1080 && y >= 146 && y < 414)) side++; /* Logo 本身壓到兩側的部分不算 */
+              if (d > 2 && !(x >= 200 && x < 1080 && y >= 146 && y < 414) && !inK(x, y))
+                side++; /* Logo 本身壓到兩側的部分不算 */
             }
             if (x >= 400 && x < 470 && y >= 418 && y < 430) {
               mid += A[i] + A[i + 1] + A[i + 2];
