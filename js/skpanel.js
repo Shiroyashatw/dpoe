@@ -193,7 +193,7 @@ function skList(c) {
         aw: S.lib.aw && S.lib.aw[k],
         tabs: [
           ...(SKILLS[k].wt ? ['武器'] : []),
-          ...['elem:元素', 'occ:秘術', 'pri:原始', 'curse:詛咒']
+          ...['elem:元素', 'occ:秘術', 'pri:原始', 'curse:詛咒', 'mark:印記']
             .filter(t => SKILLS[k].tags.includes(t.split(':')[0]))
             .map(t => t.split(':')[1])
         ]
@@ -795,7 +795,7 @@ function pickHTML(c) {
   const P = pickRows(c),
     v = SKUI.view,
     L = P.L,
-    order = [...new Set(['武器', '元素', '秘術', '原始', '詛咒', '光環', '召喚', ...Object.keys(SUPTAB)])],
+    order = [...new Set(['武器', '元素', '秘術', '原始', '詛咒', '印記', '光環', '召喚', ...Object.keys(SUPTAB)])],
     have = new Set(L.flatMap(x => x.tabs)),
     tabs = ['推薦', ...order.filter(t => have.has(t)), '全部'];
   let f = tabs.includes(SKUI.f[v]) ? SKUI.f[v] : '推薦';
