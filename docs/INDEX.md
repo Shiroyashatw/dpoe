@@ -128,7 +128,8 @@
 | 法系技能草案（長杖、法杖） | `docs/production/技能草案-法系第三批.md` | — | 草稿，不可交辦 |
 | 通用技能草案（戰吼、旗幟、通用法術、召喚） | `docs/production/技能草案-通用第四批.md` | — | 草稿，不可交辦 |
 | 光環草案（增益光環、捷光環、魔像、夥伴） | `docs/production/技能草案-光環第五批.md` | — | 已取消（2026-11-27），不可交辦；留著備查 |
-| 傳奇物品草案：規則＋通用 202 件 | `docs/production/傳奇物品草案.md` | — | 草稿，不可交辦 |
+| 傳奇物品草案：規則與檔案清單 | `docs/production/傳奇物品草案.md` | — | 草稿，不可交辦 |
+| 傳奇物品草案：通用 202 件 | `docs/production/傳奇-通用-武器.md`、`docs/production/傳奇-通用-防具.md`、`docs/production/傳奇-通用-副手與飾品.md` | — | 草稿，不可交辦 |
 | 傳奇物品草案：專屬 78 件＋傳奇珠寶 26 顆 | `docs/production/傳奇物品草案-專屬與珠寶.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
 | 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）；產生器已拿掉，正文留作紀錄；交工程師時刪 |
