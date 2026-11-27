@@ -61,6 +61,24 @@ const GODS = () => {
   S.godOn = 0;
 };
 
+/* WCAG 對比度：字色對最近一層不透明底色（往上找） */
+const CR = q => {
+  const e = document.querySelector(q);
+  if (!e) return 0;
+  const rgb = c => c.match(/[\d.]+/g).map(Number),
+    lum = c => {
+      const v = rgb(c)
+        .slice(0, 3)
+        .map(x => ((x /= 255) <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4));
+      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+    };
+  let b = e;
+  while (b && (rgb(getComputedStyle(b).backgroundColor)[3] ?? 1) === 0) b = b.parentElement;
+  const x = lum(getComputedStyle(e).color),
+    y = lum(getComputedStyle(b || document.body).backgroundColor);
+  return +((Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)).toFixed(2);
+};
+
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
@@ -121,7 +139,7 @@ const GODS = () => {
     await p.mouse.move(2, 400);
     await p.waitForTimeout(120);
   };
-  await R(`window.FRAG_B01 = ${FRAG_B01.toString()}; window.GODS = ${GODS.toString()};`);
+  await R(`window.FRAG_B01 = ${FRAG_B01.toString()}; window.GODS = ${GODS.toString()}; window.CR = ${CR.toString()};`);
 
   /* ================= 昇華 ================= */
   const AP = '#pasc ';
@@ -193,6 +211,12 @@ const GODS = () => {
     a02.hid.join()
   );
   ok('C6 開昇華面板時戰鬥暫停（worldPaused）', a02.paused);
+  const crA = await R(() => [CR('#pasc .axk.open p'), CR('#pasc .axk.open small')]);
+  ok(
+    'A02 可選卡次要字（說明、「點擊進入詳細盤面」）對比度 ≥ 4.5:1',
+    crA.every(v => v >= 4.5),
+    crA.join('／') + ':1'
+  );
   const tA = await tipTime(AP + '.axk[data-i="1"]');
   ok('A02 卡片浮動預覽：懸停後 ≤ 100 ms 出現', tA >= 0 && tA <= 100, tA + ' ms');
   await p.waitForTimeout(80);
@@ -483,6 +507,85 @@ const GODS = () => {
   }
   await p.click(BP + '.bxz-dream .bxc:nth-child(5)');
   ok('B03 心魔格可多選：點第 4 種多勾一個', await R(() => BOXUI.sel.length === 4));
+  /* 規則句固定第一行、減益在下面最多 2 行（超出省略、title 看全文）；整塊不碰開啟鈕（y 316） */
+  const ruleBox = () =>
+    R(() => {
+      const p = document.querySelector('#pbox .bxrl'),
+        d = p.querySelector('.bxdb'),
+        g = document.querySelector('#pbox .bxgo.g0').getBoundingClientRect(),
+        rg = document.createRange();
+      rg.setStart(p.firstChild, 0);
+      rg.setEnd(d ? d.previousSibling : p.lastChild, (d ? d.previousSibling : p.lastChild).length);
+      const L = [...rg.getClientRects()],
+        top = Math.min(...L.map(r => r.top)),
+        bot = Math.max(...L.map(r => r.bottom)),
+        tail = [...p.childNodes].find(n => n.nodeType === 3 && n.textContent.includes('倒下不退碎片')),
+        tr = document.createRange();
+      tr.selectNodeContents(tail);
+      const T = [...tr.getClientRects()].pop(),
+        hit = document.elementFromPoint(T.right - 6, T.top + T.height / 2),
+        D = d && d.getBoundingClientRect(),
+        P = p.getBoundingClientRect();
+      return {
+        lines: new Set(L.map(r => Math.round(r.top))).size,
+        rule: [Math.round(L[0].left), Math.round(top), Math.round(bot)],
+        hitP: !!hit && hit.closest('.bxrl') === p,
+        deb: D && [Math.round(D.top), Math.round(D.bottom), Math.round(D.height / 13)],
+        cut: d ? d.scrollHeight > d.clientHeight + 1 : false,
+        clamp: d ? getComputedStyle(d).webkitLineClamp : '',
+        title: d ? d.title : '',
+        txt: d ? d.textContent : '',
+        p: [Math.round(P.top), Math.round(P.bottom), p.scrollHeight <= p.clientHeight + 1],
+        g0: Math.round(g.top)
+      };
+    });
+  const r4 = await ruleBox(),
+    sel4 = await R(() => BOXUI.sel.slice());
+  ok(
+    'B03 選 4 種：規則句「…倒下不退碎片。」一行、在減益上面；末字點得到規則本身（沒被蓋）；減益 ≤ 2 行；整塊底 ≤ 開啟鈕頂（316）',
+    r4.lines === 1 &&
+      r4.hitP &&
+      r4.deb &&
+      r4.deb[0] >= r4.rule[2] &&
+      r4.deb[2] <= 2 &&
+      r4.p[1] <= r4.g0 &&
+      r4.deb[1] <= r4.g0 &&
+      r4.p[2] &&
+      (r4.txt.match(/；/g) || []).length === 3,
+    JSON.stringify(r4)
+  );
+  await R(() => {
+    BOXUI.sel = Object.keys(SIN_FRAG);
+    hudPanels();
+  });
+  const r7 = await ruleBox();
+  ok(
+    'B03 全選（有碎片的 6 種）：減益仍 ≤ 2 行（最多 2 行、超出省略號）、title 是全文；規則句仍一行、不被遮、不碰開啟鈕',
+    r7.lines === 1 &&
+      r7.hitP &&
+      r7.deb[2] <= 2 &&
+      r7.clamp === '2' &&
+      r7.title === r7.txt &&
+      (r7.title.match(/；/g) || []).length === 5 &&
+      r7.deb[1] <= r7.g0 &&
+      r7.p[1] <= r7.g0,
+    JSON.stringify(r7)
+  );
+  const cut = await R(() => {
+    const d = document.querySelector('#pbox .bxdb');
+    d.textContent += d.textContent;
+    const r = d.getBoundingClientRect();
+    return [d.scrollHeight > d.clientHeight + 1, Math.round(r.height), Math.round(r.bottom)];
+  });
+  ok(
+    'B03 減益超過 2 行（塞兩倍字）：截在 2 行（26 px）、底 ≤ 316',
+    cut[0] && cut[1] <= 26 && cut[2] <= 316,
+    cut.join()
+  );
+  await R(s => {
+    BOXUI.sel = s;
+    hudPanels();
+  }, sel4);
   await shot('B', 'B03');
   await measure('B', 'B03', BSH);
   for (const [z, k] of [
@@ -512,6 +615,8 @@ const GODS = () => {
     b04.t === '開啟：裂口' && !b04.d[0] && b04.d[1] && b04.rows === 2 && !b04.x0 && b04.x1 && !b04.sym,
     JSON.stringify(b04)
   );
+  const crB = await R(() => CR('#pbox .bxml li:not(.on) small'));
+  ok('B04 神格管理未裝備列的詞（灰底）對比度 ≥ 4.5:1', crB >= 4.5, crB + ':1');
   await shot('B', 'B04');
   await measure('B', 'B04', [
     ['神格管理小視窗', BP + '.bxmc', 360, 170, 560, 330],
@@ -653,8 +758,28 @@ const GODS = () => {
     'C02 說明句：不立刻重抽當輪地圖詞',
     await R(() => document.querySelector('#pnode .ndft').textContent.includes('不立刻重抽'))
   );
+  const c02t = await R(() => {
+    const t = $('ztip').getBoundingClientRect(),
+      P = $('pnode').getBoundingClientRect(),
+      hit = [...document.querySelectorAll('#pnode .ndl > li')].filter(li => {
+        const r = li.getBoundingClientRect();
+        return r.height && r.right > t.left && r.left < t.right && r.bottom > t.top && r.top < t.bottom;
+      }).length;
+    return {
+      tip: [t.left, t.top, t.width, t.height].map(Math.round),
+      pr: Math.round(P.right),
+      gap: Math.round(t.left - P.right),
+      hit,
+      vw: t.right <= innerWidth - 8 && t.bottom <= innerHeight - 8
+    };
+  });
+  ok(
+    'C02 「地圖詞」提示在面板右緣外側（露出的戰場）、不蓋任何地點列、不出畫面',
+    c02t.gap >= 8 && c02t.hit === 0 && c02t.vw,
+    JSON.stringify(c02t)
+  );
   await shot('C', 'C02');
-  await measure('C', 'C02', [...CSH, ['名詞提示「地圖詞」', '#ztip', 32, 320, 520, 140]]);
+  await measure('C', 'C02', CSH);
 
   await reset(openNode + `document.querySelector('#pnode li.nx').scrollIntoView({ block: 'start' });`);
   await p.waitForTimeout(80);

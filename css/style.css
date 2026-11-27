@@ -4016,6 +4016,8 @@ button.axk { cursor: pointer; }
 .axk i { display: block; margin-left: 38px; font: 700 11px/16px var(--font); font-style: normal; color: var(--tx-strong); }
 .axk p { margin: 16px 0 0; font: 400 11px/16px var(--font); color: var(--tx-dim); }
 .axk small { position: absolute; left: 12px; bottom: 10px; font: 400 10px/14px var(--font); color: var(--tx-dim); }
+/* 可選卡是 --btn2 底：次要字用 --tx 才 ≥4.5:1（--tx-dim 只有 3.70） */
+.axk.open p, .axk.open small { color: var(--tx); }
 .axk.off b, .axk.off i { color: var(--tx-off); }
 .axk.off i { font-weight: 400; }
 .axk.q { justify-content: center; text-align: center; }
@@ -4138,6 +4140,8 @@ body.d12 #hask .card.ahk .hbtns .btn::after { content: ''; position: absolute; i
 .bxr h5 { margin: 6px 0 2px; font: 700 12px/16px var(--font); color: var(--tx-strong); }
 .bxlv, .bxct { margin: 2px 0 0; font: 400 12px/18px var(--font); color: var(--tx-dim); }
 .bxrl { margin: 0; font: 400 12px/18px var(--font); color: var(--tx); }
+/* 心魔幻境已選減益：規則句（第一行）下面，最多 2 行（18＋13×2＝44，桌機不碰 y 316 的開啟鈕），超出省略、懸停看全文（title） */
+.bxdb { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font: 400 11px/13px var(--font); color: var(--tx-dim); }
 .bxgo { display: grid; place-content: center; gap: 2px; width: 100%; min-height: 60px; margin-top: 8px; }
 .bxgo b { font: 700 14px/20px var(--font); }
 .bxgo small { font: 400 11px/16px var(--font); }
@@ -4158,6 +4162,7 @@ body.d12 #hask .card.ahk .hbtns .btn::after { content: ''; position: absolute; i
 .bxml li > div { flex: 1; min-width: 0; }
 .bxml b { display: block; font: 700 14px/20px var(--font); color: var(--tx-strong); }
 .bxml small { font: 400 12px/18px var(--font); color: var(--tx-dim); }
+.bxml li:not(.on) small { color: var(--tx); }
 .bxml em { font: 400 12px var(--font); font-style: normal; color: var(--tx-dim); }
 .bxml .gh-b { display: flex; gap: 8px; flex: none; }
 .bxml .gh-b .btn { width: 88px; min-height: 44px; }

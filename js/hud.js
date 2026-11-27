@@ -1626,16 +1626,20 @@ function zTip(a, k) {
     box = (a.closest('.panel') || document.body).getBoundingClientRect(),
     w = t.offsetWidth,
     h = t.offsetHeight,
-    L = Math.max(box.left + 8, 8),
-    R = Math.min(box.right - 8, innerWidth - 8),
     T = Math.max(box.top + 8, 8),
     B = Math.min(box.bottom - 8, innerHeight - 8);
-  let x, y;
+  let x,
+    y,
+    L = Math.max(box.left + 8, 8),
+    R = Math.min(box.right - 8, innerWidth - 8);
   const go = a.closest('.bxr') && [...a.closest('.bxr').querySelectorAll('.bxgo')].pop();
   /* 山海寶盒右欄的名詞（B01 第 15 項）：放在兩顆開啟鈕下面，不擋主鈕 */
   if (go) (x = go.getBoundingClientRect().left), (y = go.getBoundingClientRect().bottom + 12);
-  /* 地點「地圖詞」（C02 第 10 項）：放在面板左下 32,320，不貼星級列 */ else if (map)
-    (x = box.left + 16), (y = box.top + 244);
+  /* 地點「地圖詞」：放在面板右緣外側露出的戰場，不遮地點清單；右邊放不下（直立）照一般名詞放 */ else if (
+    map &&
+    box.right + 12 + w <= innerWidth - 8
+  )
+    (x = L = box.right + 12), (y = r.top), (R = x + w);
   else if (k === 'zp' && a.matches('.axn')) {
     x = r.right + 12 + w <= R ? r.right + 12 : r.left - 12 - w;
     y = r.top + r.height / 2 - h / 2;
@@ -2193,12 +2197,13 @@ function boxHTML() {
       return `<button class="btn bxgo g${i} ${w ? 'off' : 'pri'}" data-bx="go:${kind}" ${w ? 'disabled' : ''}><b>${i ? '終極王場' : '一般王場'} · ${ARENA[kind]}</b><small>${esc(w || sub[i])}</small></button>`;
     },
     L = S.gods || [],
-    on = L[S.godOn];
+    on = L[S.godOn],
+    db = z === 'dream' && BOXUI.sel.length ? `已選減益：${BOXUI.sel.map(k => esc(SIN_FRAG[k].deb)).join('；')}。` : '';
   return `<div class="ph"><b data-zh="山海寶盒">山海寶盒</b><span class="bx-sum">單頁總覽 · 點左側對準王場</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="bxl">${zones}</div>
   <div class="bxr"><h3>開啟：${Z.n}</h3><p class="bxlv">王場等級：Lv ${arenaLv(S)}（你打過最高的地方）</p>
     <h5>消耗</h5><p class="bxct">${esc(Z.cost())}</p>
-    <h5>規則</h5><p class="bxrl">${z === 'dream' && BOXUI.sel.length ? `已選減益：${BOXUI.sel.map(k => esc(SIN_FRAG[k].deb)).join('；')}。` : ''}只花<span class="zterm" data-zh="首領碎片" tabindex="0">首領碎片</span>，不用地圖卡。王場只有王，沒有小怪。倒下不退碎片。</p>
+    <h5>規則</h5><p class="bxrl">只花<span class="zterm" data-zh="首領碎片" tabindex="0">首領碎片</span>，不用地圖卡。王場只有王，沒有小怪。倒下不退碎片。${db ? `<span class="bxdb" title="${db}">${db}</span>` : ''}</p>
     ${btn(Z.k[0], 0)}${btn(Z.k[1], 1)}</div>
   <div class="bxg"><span>身上裝備：${on ? esc(ghName(on)) : '無'}<small>神格 ${L.length}／${TAISUI.keep}</small></span><button class="btn pri" data-bx="gm">管理神格</button></div>
   ${BOXUI.gm ? boxGodHTML() : ''}`;
