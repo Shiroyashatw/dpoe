@@ -50,6 +50,7 @@ if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).c
 <nav id="pnav" aria-label="功能" hidden></nav>
 <div id="ptree" hidden></div>
 <div id="over" hidden></div>
+<div id="acf" hidden></div>
 <div id="tip" hidden></div>
 <div id="ttip" hidden></div>
 <div id="ztip" role="tooltip" hidden></div>
@@ -58,7 +59,7 @@ if (window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).c
 <div id="intro" hidden>
   <button class="btn ivskip" data-iv="skip">跳過</button>
   <div class="ivb"><p id="ivs" aria-live="polite"></p></div>
-  <div id="ivg"><h1>dungeonPOE</h1><button class="btn pri" id="ivgo" data-iv="go">開始</button></div>
+  <div id="ivg"><img class="ivbg" src="img/bg/t02_title_bg_A_1280x720.png" alt="" aria-hidden="true"><i class="ivsc" aria-hidden="true"></i><h1>dungeonPOE</h1><button class="btn pri" id="ivgo" data-iv="go">開始</button></div>
 </div>
 <script src="js/core.js?v=0.5.6"></script>
 <script src="js/palette.js?v=0.5.6"></script>

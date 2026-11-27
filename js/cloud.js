@@ -142,6 +142,8 @@ async function authLogin(email, password) {
   await cloudUser(data.user);
   const remote = await cloudFetch();
   if (remote && remote.v >= 10) {
+    /* small-screens S02：本機有訪客進度＝先出兩步確認卡（主鈕取消、危險次鈕確認登入並覆蓋），不直接換 */
+    if (guestHas()) return authCfAsk(remote, 'login');
     useSave(remote);
     return '已登入，載入這個帳號的存檔';
   }
@@ -161,7 +163,10 @@ async function authNewPw(_, password) {
   history.replaceState(null, '', location.pathname + location.search);
   await cloudUser(data.user);
   const remote = await cloudFetch();
-  if (remote && remote.v >= 10) useSave(remote);
+  if (remote && remote.v >= 10) {
+    if (guestHas()) return authCfAsk(remote, 'newpw');
+    useSave(remote);
+  }
   return '新密碼設定好了';
 }
 /* 登出：先把進度存上去，這台裝置改回全新的訪客（本機進度留著，之後存到新的訪客身分） */
@@ -173,6 +178,60 @@ async function authLogout() {
   await cloudUser(r.data.user);
   return '已登出';
 }
+/* ---------- 登入覆蓋訪客進度的確認卡（small-screens S02）：兩步、不用長按；取消＝登出回訪客、本機進度不動 ---------- */
+const AUTH_CF = { on: 0, r: null, k: '' };
+/* 本機有訪客進度：有任何角色經驗或倉庫物品 */
+const guestHas = () => !!S && (S.lv > 1 || S.xp > 0 || (S.inv && S.inv.items.length > 0));
+function authCfAsk(remote, k) {
+  Object.assign(AUTH_CF, { on: 1, r: remote, k });
+  authCfDraw();
+  return '這個帳號已有雲端存檔：確認後才會覆蓋這台裝置的進度';
+}
+function authCfHTML() {
+  const r = AUTH_CF.r || {};
+  return `<div class="acfs" data-acf="0"></div><div class="acf" role="alertdialog" aria-modal="true" aria-labelledby="acft">
+  <b id="acft">登入會覆蓋這台裝置的訪客進度</b>
+  <p class="acfd">這個帳號已有雲端存檔（角色 Lv ${r.lv || 1}）。登入後改用雲端存檔，這台裝置的訪客進度（角色 Lv ${S.lv}）會被覆蓋。</p>
+  <p class="acfo">想保留目前進度：按取消，改用「註冊」開新帳號，進度會跟著帶過去。</p>
+  <div class="acfw"><b>⚠ 訪客進度覆蓋後不能復原</b><small>訪客進度：角色 Lv ${S.lv}・金 ${Math.floor(S.gold || 0).toLocaleString('en-US')}・倉庫 ${S.inv.items.length} 件</small></div>
+  <button class="btn acfy" data-acf="1">確認登入並覆蓋</button><button class="btn pri acfn" data-acf="0">取消</button></div>`;
+}
+function authCfDraw() {
+  const el = $('acf');
+  if (!el) return;
+  el.hidden = !AUTH_CF.on;
+  el.innerHTML = AUTH_CF.on ? authCfHTML() : '';
+  if (AUTH_CF.on) el.querySelector('.acfn').focus();
+}
+/* yes＝載入雲端存檔；否則登出、換回全新的訪客（本機存檔照舊，之後存到新的訪客身分） */
+async function authCf(yes) {
+  if (!AUTH_CF.on) return;
+  const r = AUTH_CF.r;
+  Object.assign(AUTH_CF, { on: 0, r: null });
+  authCfDraw();
+  if (yes) {
+    useSave(r);
+    Object.assign(AUTH, { msg: '已登入，載入這個帳號的存檔', err: false });
+  } else {
+    try {
+      if (CLOUD.sb) {
+        await CLOUD.sb.auth.signOut();
+        const a = await CLOUD.sb.auth.signInAnonymously();
+        if (a.error) throw new Error(authMsg(a.error));
+        await cloudUser(a.data.user);
+        CLOUD.dirty = true;
+      }
+      Object.assign(AUTH, { msg: '已取消，仍是訪客；這台裝置的進度沒動', err: false });
+    } catch (e) {
+      Object.assign(AUTH, { msg: e.message, err: true });
+    }
+  }
+  hudPanels();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-acf]');
+  if (b) authCf(b.dataset.acf === '1');
+});
 const AUTHF = { register: authRegister, login: authLogin, reset: authReset, newpw: authNewPw, logout: authLogout };
 async function authDo(k) {
   /* 按 Enter 送出時焦點還在輸入框，hudPanels 會跳過重畫 */
