@@ -348,7 +348,7 @@ function offShow(o) {
       .slice(0, o.here && o.chase ? 2 : 3)
       .map(
         ([c, v]) =>
-          `<li class="lg-${/3$/.test(c) ? 'perf' : 'cur'}"><i>${/3$/.test(c) ? '★' : '◆'}</i><span>${esc(CUR[c].n)} ×${v}</span></li>`
+          `<li class="lg-${/3$/.test(c) ? 'perf' : 'cur'}"><i class="oic">${icHTML(CUR[c].ic, '', 16)}</i><span>${esc(CUR[c].n)} ×${v}</span></li>`
       );
   if (o.here && o.chase) {
     rows.push(`<li class="lg-chase ch"><i>印</i><span>${esc(strT('chaseN', { n: o.chase }))}</span></li>`);

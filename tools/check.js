@@ -11390,14 +11390,15 @@ const ASC_COMBOS = `const combos = k => {
     navF = fnOf(hud, 'navHTML');
   /* battle-hud v1.3.3（mumi 15:14、18:45）取代 M2-12 的 6 格：7 格、倉庫獨立（桌機 L）；追逐物品仍在「更多」；角色頁的「角色｜倉庫」切換照留 */
   ok(
-    'battle-hud v1.3.3 分頁：倉庫・角色・鍛造・技能・天賦・營地・更多（7 格位置固定）；天賦照祭壇（沒開畫鎖頭）；沒有追逐物品分頁（追逐物品在「更多」與 Y 鍵）；角色頁有「角色｜倉庫」切換',
+    'battle-hud v1.3.3 分頁：倉庫・角色・鍛造・技能・天賦・營地・更多（7 格位置固定）；天賦照祭壇（沒開畫鎖頭）；沒有追逐物品分頁；更多也沒有追逐物品格（small-screens M01：改從倉庫 › 特殊物品與 Y 鍵進）；角色頁有「角色｜倉庫」切換',
     navK.join() === 'bag,char,forge,skill,tree,craft,more' &&
       /* 7 格位置固定：天賦沒開時畫鎖頭（UIUX 裁定），點了寫解鎖條件 */
       navF.includes("k === 'tree' && !campCan('tree')") &&
       /nlk/.test(navF) &&
       /t === 'tree' && !campCan\('tree'\)\) return hudWarn\(navLockTxt\(\)\)/.test(fnOf(hud, 'navGo')) &&
       !/'chase'|chaseOn/.test(navF) &&
-      /data-tm="f:chase"/.test(fnOf(hud, 'moreHTML')) &&
+      /* small-screens M01（mumi 11/27 定案）：更多拿掉追逐物品格，改從倉庫 › 特殊物品進；Y 鍵照舊（下一條的 fm.Y） */
+      !/f:chase|chaseOn/.test(fnOf(hud, 'moreHTML')) &&
       /\['eq', '角色'\],\s*\['bag', '倉庫'\]/.test(fnOf(hud, 'invHTML')),
     navK.join()
   );

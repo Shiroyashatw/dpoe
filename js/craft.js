@@ -141,6 +141,76 @@ function matAdd(k, T, n = 1) {
   m[key] = (m[key] || 0) + n;
 }
 const matN = (k, T) => MATSOF()[matKey(k, T)] || 0;
+/* ---------- 商會 v1.0（specs/guild/，材料來源 §6）：材料換打造通貨，每種通貨每小時額度 ----------
+   加詞石：木、鐵、皮共用 234／時（皮沿用舊富豪石換率，mumi 11/27 定為正式值）；崇高石：靈絲 26／時；至臻石不換。
+   換率＝T1 的量 ÷ 3^(T−1)；木不分階。額度連續回復、最多存 1 小時份、從 0 起、離線照算（S.mat.tq＝{ 通貨: [剩, 時間] }） */
+const TRADE_CUR = {
+  aug: {
+    q: 234,
+    m: [
+      ['wood', 243],
+      ['iron', 4860],
+      ['hide', 48600]
+    ]
+  },
+  exalt: { q: 26, m: [['silk', 24300]], un: 'cur:exalt' }
+};
+const tradeRate = (k, T) => {
+  const r = TRADE_CUR[tradeCurOf(k)].m.find(x => x[0] === k)[1];
+  return k === 'wood' ? r : r / 3 ** (T - 1);
+};
+const tradeCurOf = k => Object.keys(TRADE_CUR).find(c => TRADE_CUR[c].m.some(x => x[0] === k));
+/* 這小時還能換幾顆（小數；畫面取整數） */
+function tradeQ(c, now = Date.now()) {
+  const tq = (MAT().tq = MAT().tq || {}),
+    q = TRADE_CUR[c].q;
+  if (!tq[c]) tq[c] = [0, now];
+  return Math.min(q, tq[c][0] + (Math.max(0, now - tq[c][1]) / 3.6e6) * q);
+}
+function tradeQSet(c, v, now = Date.now()) {
+  MAT().tq[c] = [Math.max(0, v), now];
+}
+/* 回 1 顆要幾秒（滿了也照算） */
+const tradeQSec = c => 3600 / TRADE_CUR[c].q;
+/* 一區的列：手上有的材料階（木、鐵 T1–T6…），每列 { k, T, rate, have, max }；max＝只看材料能換幾顆 */
+function tradeRows(c) {
+  const L = [];
+  for (const [k] of TRADE_CUR[c].m)
+    for (const T of k === 'wood' ? [0] : [1, 2, 3, 4, 5, 6]) {
+      const have = matN(k, T);
+      if (have > 0) L.push({ k, T, rate: tradeRate(k, T), have, max: Math.floor(have / tradeRate(k, T)) });
+    }
+  return L;
+}
+/* 換到上限的結算（不動存檔）：rows＝要換的列（整區＝由最低階起：木、各材料 T1 起），回 { n, use: [[k, T, 用掉, 持有]…], empty: 會用光的列 } */
+function tradePlan(c, rows) {
+  let left = Math.floor(tradeQ(c) + 1e-9);
+  const use = [];
+  let n = 0;
+  for (const r of rows) {
+    const k = Math.min(left, r.max);
+    if (k <= 0) continue;
+    use.push([r.k, r.T, k * r.rate, r.have]);
+    n += k;
+    left -= k;
+  }
+  return { n, use, empty: use.filter(u => u[2] >= u[3]) };
+}
+const tradeOrder = rows => [...rows].sort((a, b) => (a.k === 'wood' ? -1 : b.k === 'wood' ? 1 : a.T - b.T));
+/* 換：kind＝'one'（1 顆）／'max'（單列換到上限）／'all'（整區換到上限）；k:T 指定列。回錯誤字或 null */
+function tradeCur(c, kind, k, T) {
+  const C = TRADE_CUR[c];
+  if (!C || !campCan('trade') || (C.un && !campCan(C.un))) return '換不了';
+  if (Math.floor(tradeQ(c) + 1e-9) < 1) return `${CUR[c].n}這小時換完了`;
+  const rows = kind === 'all' ? tradeOrder(tradeRows(c)) : tradeRows(c).filter(r => r.k === k && r.T === +T);
+  if (kind === 'one') rows.forEach(r => (r.max = Math.min(r.max, 1)));
+  const P = tradePlan(c, rows);
+  if (!P.n) return `材料不夠換 1 顆${CUR[c].n}`;
+  for (const [mk, mT, n] of P.use) matAdd(mk, mT, -n);
+  MAT()[c] = (MAT()[c] || 0) + P.n;
+  tradeQSet(c, tradeQ(c) - P.n);
+  return null;
+}
 /* 手上的材料 [[種類, 階, 數量]…]：鐵、皮、靈絲，階高的在前 */
 const matList = () =>
   Object.entries(MATSOF())

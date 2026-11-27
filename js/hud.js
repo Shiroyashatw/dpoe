@@ -300,7 +300,8 @@ function hudTick() {
   runBar();
   /* 營地分頁開著：每秒補畫數字變了的卡（0.5.1）；分頁列的小點跟著買得起幾件 */
   const ct = performance.now();
-  if (ct - CAMP_T > 1000) (CAMP_T = ct), campRefresh(), sheetSync(), PANEL.camp && campDrawer();
+  if (ct - CAMP_T > 1000)
+    (CAMP_T = ct), campRefresh(), sheetSync(), PANEL.camp && campDrawer(), PANEL.guild && guildDraw();
   if (HV.ai !== AI.on) document.body.classList.toggle('ai', !!(HV.ai = AI.on));
   if (HV.bar !== barKey()) hudBar();
   const au = S.auto ? 1 : 0;
@@ -670,19 +671,18 @@ function moreHTML() {
   /* M1-07：還沒開的選單功能只列下一個（點了到營地那一座） */
   const nxu = nextUnlock('menu'),
     pts = ptLeft(),
-    row = (tm, n, d, a) =>
-      `<button class="mrow" ${a ? `data-a="${tm}"` : `data-tm="${tm}"`}><b>${n}</b><small>${d}</small></button>`;
+    row = (tm, n, d, key) =>
+      `<button class="mrow" data-tm="${tm}"><b>${n}</b>${key && !TOUCH.on ? `<kbd>${key}</kbd>` : ''}<small>${d}</small></button>`;
   return `<div class="ph"><b>更多</b><span>角色 Lv ${S.lv} · ${abbrH(S.gold, 'own')} 金</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
   <div class="mgrid">
-    ${row('nav:node', '地點', esc(G.scene === 'map' && G.nodeN ? `正在刷：${G.nodeN} · ${G.star || 1}★` : '選一個地點開始刷'))}
-    ${campCan('tree') ? row('tree', '天賦樹', pts > 0 ? `<span class="c-good">剩 ${pts} 點</span>` : '點數用完了') : ''}
-    ${campCan('asc') ? row('f:asc', '昇華石碑', S.asc ? esc(ASC[S.asc].n) : '<span class="c-good">還沒選</span>') : ''}
-    ${chaseOn() ? `<button class="mrow" data-tm="f:chase"><b>${STR_T.chase}${chaseDot() ? `<em class="cnew">${STR_T.new}</em>` : ''}</b><small>${esc(chaseSub())}</small></button>` : ''}
-    ${row('f:box', '山海寶盒', '殿與王場的門票')}
-    ${nxu ? `<button class="mrow" data-fg="jump:${nxu.b}"><b>下一個</b><small>${esc(nxu.t)}</small></button>` : ''}
-    ${row('f:log', '掉落紀錄', `${(S.log || []).length} 筆 · 保底進度`)}
-    ${row('set', '設定', '操作、音效、帳號')}
-    ${G.scene === 'map' ? row('camp', '回營地', '刷圖暫停') : ''}
+    ${row('nav:node', '地點', esc(G.scene === 'map' && G.nodeN ? `正在刷：${G.nodeN} · ${G.star || 1}★` : '選一個地點開始刷'), 'M')}
+    ${campCan('tree') ? row('tree', '天賦樹', pts > 0 ? `<span class="c-good">剩 ${pts} 點</span>` : '點數用完了', 'P') : ''}
+    ${campCan('asc') ? row('f:asc', '昇華石碑', S.asc ? esc(ASC[S.asc].n) : '<span class="c-good">還沒選</span>', 'U') : ''}
+    ${row('f:box', '<span data-zh="山海寶盒">山海寶盒</span>', '殿與王場的門票', 'J')}
+    ${nxu ? `<button class="mrow nx" data-fg="jump:${nxu.b}"><b>下一個</b><small>${esc(nxu.t)}</small></button>` : ''}
+    ${row('f:log', '掉落紀錄', `${(S.log || []).length} 筆 · 保底進度`, ';')}
+    ${row('set', '設定', '操作、音效、帳號', 'Esc')}
+    ${G.scene === 'map' ? row('camp', '回營地', '刷圖暫停', 'T') : ''}
     ${fsOK() && !inApp() && !fsOn() ? row('fs', '全螢幕', '藏起網址列') : ''}
   </div>`;
 }
@@ -805,7 +805,9 @@ function closePanels() {
     PANEL.more =
     PANEL.node =
     PANEL.camp =
+    PANEL.guild =
       false;
+  if (typeof GUILD !== 'undefined') GUILD.pend = null;
   CDR.one = null;
   NAV.pick = NAV.full = 0;
   NAV.slot = null;
@@ -828,7 +830,8 @@ const anyPanel = () =>
   PANEL.chase ||
   PANEL.more ||
   PANEL.node ||
-  PANEL.camp;
+  PANEL.camp ||
+  PANEL.guild;
 /* 設定：操作方向（手機）、快捷鍵／手勢一覽（取代原本左下角的操作說明） */
 const KEYS_PC = [
   ['C', '自動／手動'],
@@ -865,22 +868,23 @@ const KEYS_PORT = [
 ];
 function setHTML() {
   const rows = TOUCH.on ? KEYS_PORT : KEYS_PC;
+  /* small-screens S01／S03：桌機滿寬三欄（遊戲設定｜快捷鍵 23 列｜帳號）、免捲；觸控與小視窗照順序排 */
   return `<div class="ph"><b>設定</b><span>dungeonPOE v${VER}</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
+  <div class="setc setc1"><div class="ph2">操作</div><div class="gkind seg2"><button class="btn ${S.auto ? 'on' : ''}" data-a="auto:1">自動<small>AI 操作角色</small></button><button class="btn ${S.auto ? '' : 'on'}" data-a="auto:0">手動<small>自己操作${TOUCH.on ? '' : '（C）'}</small></button></div>
   <div class="ph2">音效</div><div class="gkind seg2"><button class="btn ${S.mute ? '' : 'on'}" data-a="mute:0">開</button><button class="btn ${S.mute ? 'on' : ''}" data-a="mute:1">關</button></div>
   <div class="ph2">文字大小</div><div class="gkind seg2">${[100, 115, 130].map(v => `<button class="btn ${(S.fs || 100) === v ? 'on' : ''}" data-a="fs:${v}">${v}%</button>`).join('')}</div>
   <div class="ph2">畫面震動</div><div class="gkind seg2"><button class="btn ${S.shk === 0 ? '' : 'on'}" data-a="shk:1">開</button><button class="btn ${S.shk === 0 ? 'on' : ''}" data-a="shk:0">關</button></div>
   ${TOUCH.on ? `<div class="ph2">手機震動</div><div class="gkind seg2"><button class="btn ${S.vib === 0 ? '' : 'on'}" data-a="vib:1">開</button><button class="btn ${S.vib === 0 ? 'on' : ''}" data-a="vib:0">關</button></div>` : ''}
-  <div class="ph2">傷害數字</div><div class="gkind">${[
+  <div class="ph2"><span class="zterm" data-zh="傷害數字" tabindex="0">傷害數字</span></div><div class="gkind">${[
     ['all', '全部'],
     ['crit', '只暴擊與受傷'],
     ['off', '關閉']
   ]
     .map(([k, n]) => `<button class="btn ${dmgN() === k ? 'on' : ''}" data-a="dmgn:${k}">${n}</button>`)
-    .join('')}</div><p class="sethint">關掉的數字不影響傷害，只是不畫</p>
-  <div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
-  <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl>
-  ${acctHTML()}`;
+    .join('')}</div><p class="sethint">關掉的數字不影響傷害，只是不畫</p></div>
+  <div class="setc setc2"><div class="ph2">${TOUCH.on ? '手勢' : '快捷鍵'}</div>
+  <dl class="keyl">${rows.map(([k, d]) => `<dt>${k}</dt><dd>${d}</dd>`).join('')}</dl></div>
+  <div class="setc setc3">${acctHTML()}</div>`;
 }
 /* 帳號：訪客 → 信箱＋密碼、註冊／登入；登入後顯示信箱、登出；點重設密碼信回來 → 設定新密碼 */
 function acctHTML() {
@@ -897,7 +901,7 @@ function acctHTML() {
     <div class="seg2 g2"><button class="btn pri" data-ac="register"${dis}>註冊</button><button class="btn" data-ac="login"${dis}>登入</button></div>
     <button class="btn mini lnk" data-ac="reset"${dis}>忘記密碼</button></div>`
       : `<div class="acct row"><span class="acem">${esc(CLOUD.email || '')}</span><button class="btn" data-ac="logout"${dis}>登出</button></div>`;
-  return `<div class="ph2">帳號<span>${CLOUD.anon ? '訪客' : '已登入'} · ${esc(CLOUD.status)}</span></div>${body}${msg}`;
+  return `<div class="ph2">帳號<span>${CLOUD.anon ? '<span class="zterm" data-zh="訪客" tabindex="0">訪客</span>' : '已登入'} · ${esc(CLOUD.status)}</span></div>${body}${msg}`;
 }
 /* 重畫時保留捲動位置（選了一列，清單不彈回最上面）；KEEP 是每個面板要保留的子元素，'' 是面板本身。
    0.4.7：捲動位置在 hudPanels 一開始、還沒動到畫面時一次讀完（panelSnap），寫完再放回去——
@@ -988,6 +992,8 @@ function hudPanels() {
   }
   $('pcamp').hidden = !PANEL.camp;
   if (PANEL.camp) campDrawer();
+  $('pguild').hidden = !PANEL.guild;
+  if (PANEL.guild) guildDraw();
   $('pmore').hidden = !PANEL.more;
   if (PANEL.more) $('pmore').innerHTML = moreHTML();
   idleBar(1);
@@ -1601,14 +1607,23 @@ const ZH = {
   昇華: ['昇華石碑', '長老屋 Lv 7 開，在這裡選昇華；先開兩個，長老屋 Lv 10 再開第 3 個'],
   山海寶盒: ['山海寶盒', '花首領碎片打開殿和王場。倒下的話，碎片不退。'],
   首領碎片: ['首領碎片', '開殿、開王場用的掉落總稱。勾魂令、生死簿都算。數量跟倉庫「特殊物品」同一份。倒下不退。'],
+  保底進度: ['保底進度', '每打倒一隻王累積一點；滿了下一次一定掉。倒下不歸零。', '掉落紀錄'],
+  傷害數字: ['傷害數字', '戰場上跳出來的數字。關掉的數字不影響傷害，只是不畫。', '設定'],
+  訪客: ['訪客', '沒用信箱註冊的帳號。存檔只在這台裝置；註冊後換裝置或清除網站資料都能登入取回。', '帳號'],
   地圖詞: ['地圖詞', '這張地圖上的危險與報酬。星級越高，抽到的條數越多，怪物更強、掉得更好。同一組只會出一條。']
 };
 const ZT = { a: null, t: 0 };
+/* 名詞提示的內容：ZH 表優先，其次通貨（CUR）、材料階名與其他名詞（TERMS） */
+function zhTxt(k) {
+  const c = Object.values(CUR).find(x => x.n === k),
+    z = ZH[k] || (c ? [k, c.d, '打造通貨'] : TERMS[k] ? [k, TERMS[k]] : [k, '']);
+  return `<b>${esc(z[0])}</b>${z[2] ? `<small>${esc(z[2])}</small>` : ''}<p>${esc(z[1])}</p>`;
+}
 const zTipHTML = (a, k) =>
   k === 'zh'
     ? a.dataset.zh.startsWith('star:')
       ? `<b>${a.dataset.zh.slice(5)}★</b><p>升斥候營到 Lv ${a.dataset.zh.slice(5) - 1} 才開</p>`
-      : `<b>${ZH[a.dataset.zh][0]}</b><p>${ZH[a.dataset.zh][1]}</p>`
+      : zhTxt(a.dataset.zh)
     : ascTipHTML(a.dataset.zp);
 function zTip(a, k) {
   const t = $('ztip');
@@ -1634,7 +1649,16 @@ function zTip(a, k) {
     R = Math.min(box.right - 8, innerWidth - 8);
   const go = a.closest('.bxr') && [...a.closest('.bxr').querySelectorAll('.bxgo')].pop();
   /* 山海寶盒右欄的名詞（B01 第 15 項）：放在兩顆開啟鈕下面，不擋主鈕 */
+  const dock = a.closest('#pmore, #plog'),
+    seg = a.closest('#pset .ph2') && a.closest('.ph2').nextElementSibling;
   if (go) (x = go.getBoundingClientRect().left), (y = go.getBoundingClientRect().bottom + 12);
+  /* 右側停靠面板（更多、掉落紀錄；small-screens M01／L01）：往左貼在戰場上，不蓋格與進度條 */ else if (
+    dock &&
+    box.left - 12 - w >= 8
+  )
+    (x = box.left - 12 - w), (L = 8), (R = box.left - 12), (y = r.top - 8);
+  /* 設定「傷害數字」（S01）：貼在三顆選項與說明下方，不蓋選項 */ else if (seg)
+    (x = r.left), (y = seg.getBoundingClientRect().bottom + 28);
   /* 地點「地圖詞」：放在面板右緣外側露出的戰場，不遮地點清單；右邊放不下（直立）照一般名詞放 */ else if (
     map &&
     box.right + 12 + w <= innerWidth - 8
@@ -2270,7 +2294,8 @@ function banner(t, c, k) {
   if (c === 'chase') return chaseBn(k);
   const el = $('banner');
   if (!el) return;
-  el.textContent = t;
+  /* 類別用文字框標、不用 ★（small-screens B02） */
+  el.innerHTML = `${LOGN[c] ? `<i class="bnt">${LOGN[c]}</i>` : ''}<span>${esc(t)}</span>`;
   el.className = 'bn-' + c;
   el.hidden = false;
   clearTimeout(BANT);
@@ -2359,7 +2384,8 @@ function chaseBnClick() {
   chaseBnHide();
   chaseOpen(k);
 }
-const LOGN = { frac: '★', mem: '◈', cur: '通貨', perf: '完美', mid: '好胚', chase: '追逐', pack: '靈魂包' };
+/* 掉落紀錄的類別框標（small-screens L01）：一律文字；存檔裡的鍵不改（mid＝裝備，英文 Gear） */
+const LOGN = { frac: '破裂', mem: '追憶', cur: '通貨', perf: '完美', mid: '裝備', chase: '追逐', pack: '靈魂包' };
 /* 掉落紀錄選中的那一筆（橫幅顯示中按 ;：最新的追逐物品） */
 let LOGSEL = null;
 /* 掉落紀錄面板：保底進度（★、追憶、完美通貨）＋最近 50 筆 */
@@ -2372,7 +2398,7 @@ function logHTML() {
       return m < 1 ? '剛剛' : m < 60 ? `${m} 分鐘前` : `${Math.floor(m / 60)} 小時前`;
     };
   return `<div class="ph"><b>掉落紀錄</b><span>最近 50 筆重點掉落</span><button class="x" aria-label="關閉" data-a="close">${ICO.x}</button></div>
-  <div class="ph2">保底進度・<span>滿了下一次一定掉</span></div>
+  <div class="ph2"><span class="zterm" data-zh="保底進度" tabindex="0">保底進度</span>・<span>滿了下一次一定掉</span></div>
   ${campCan('cur:frac') ? bar('破裂石（王）', P.fracO2 || 0, prdMax(NEW_P.frac[2])) : ''}${campCan('cur:perf') ? bar('完美石（王）', P.perfO2 || 0, prdMax(NEW_P.perf[2])) : ''}${campCan('cur:ink') ? bar('追憶之墨（王）', P.ink2 || 0, prdMax(NEW_P.ink[2])) : ''}${chaseOf().pts || chaseN() ? bar(STR_T.chase, chasePct(), 100, chasePct() + '%') : ''}
   <ul class="lgl">${(S.log || []).map(x => `<li class="lg-${x.c} ${x === LOGSEL ? 'on' : ''}" ${x.k ? `data-chs="${x.k}" role="button" tabindex="0"` : ''}><i>${LOGN[x.c] || ''}</i><span>${esc(x.n)}</span><small>${ago(x.t)}</small></li>`).join('') || '<li class="c-dim none">還沒有掉落。刷地點時，稀有以上的掉落會記在這裡（最近 50 筆）。</li>'}</ul>`;
 }
@@ -3531,8 +3557,10 @@ function knFocus(q) {
 function knEsc() {
   const f = document.activeElement,
     fin = f && f.closest && f.closest('#pcamp, #pidle, #poff');
-  if (G.ask) act('askno');
+  if (typeof AUTH_CF !== 'undefined' && AUTH_CF.on) authCf(0);
+  else if (G.ask) act('askno');
   else if (!$('poff').hidden) act('offok');
+  else if (PANEL.guild && GUILD.pend) guildDo('no');
   else if (PANEL.camp && CDR.one)
     (CDR.one = null), hudPanels(), fin && knFocus(c12On() && C12.last ? `#c12-${C12.last} .c12b` : '#pcamp .cdb');
   else if (TREE.open) treeClose();
@@ -3546,7 +3574,7 @@ function keepFocus(box, fn) {
   if (!a || !box.contains(a)) return fn();
   const all = [...box.querySelectorAll(q)],
     i = all.indexOf(a),
-    at = ['data-fg', 'data-cd', 'data-a', 'data-tm'].find(x => a.hasAttribute(x)),
+    at = ['data-fg', 'data-cd', 'data-gd', 'data-a', 'data-tm'].find(x => a.hasAttribute(x)),
     v = at && a.getAttribute(at);
   fn();
   const e =
