@@ -31,6 +31,31 @@ const G = vm.runInContext(
   '({ BASES, BASEI, KINDS, AFF, EQS, eqTakes, offOK, SOCK_MAX, ACLS, FORGE, forgeCheck, forgeDo, temperDo, tierRange, affPct, newMat, libUp, libUpCheck, libLv, drillDo, newSlot, soulCost, TMAX, MOBS, BOSSES, SKILLS, SUPPORTS, PTREE, PT_START, mkItem, mkGem, dropItem, stats, dps, invPut, INV_CAP, INV_SPARE, sellPrice, bestTier, tierRange, affText, itemName })',
   ctx
 );
+/* mumi 11/24（經幕僚長）：腐化虛線色立 --corr-dash-rgb（item-display K2 的 #6f3a38＝111, 58, 56）。
+   三項「禁止寫死色碼」都另外確認：:root 有這個三元組、只有 .c12 .cq.co::before 的 --d 用 rgb(var(--corr-dash-rgb), 1)、
+   style.css／js／index.html 都沒有 #6f3a38（含註解）、JS 不碰這個 token */
+function corrDash() {
+  const raw = PAL_CSS,
+    c = raw.replace(/\/\*[\s\S]*?\*\//g, ''),
+    root = c.match(/:root\s*\{([^}]*)\}/)[1],
+    after = c.slice(c.indexOf('}', c.search(/:root\s*\{/)) + 1),
+    uses = [...after.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(m => /--corr-dash-rgb/.test(m[0])),
+    other = [
+      fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8'),
+      ...fs
+        .readdirSync(path.join(__dirname, '..', 'js'))
+        .map(f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8'))
+    ].join('\n');
+  return (
+    /(^|;)\s*--corr-dash-rgb:\s*111, 58, 56;/.test(root) &&
+    uses.length === 1 &&
+    uses[0][1].trim() === '.c12 .cq.co::before' &&
+    (uses[0][2].match(/--corr-dash-rgb/g) || []).length === 1 &&
+    /--d: rgb\(var\(--corr-dash-rgb\), 1\) 0 3px, transparent 3px 5px;/.test(uses[0][2]) &&
+    !/6f3a38/i.test(raw + other) &&
+    !/--corr-dash/.test(other)
+  );
+}
 let bad = 0;
 const ok = (name, cond, info = '') => {
   console.log((cond ? '✅ ' : '❌ ') + name + (cond ? '' : ' ' + info));
@@ -184,9 +209,9 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     q = [...G.PT_START];
   while (q.length) for (const o of T.ADJ[q.pop()] || []) if (!seen.has(o)) seen.add(o), q.push(o);
   ok(
-    `天賦樹 ${T.N.length} 個點，每個都從起點連得到`,
-    T.N.length >= 1000 && !bad.length && seen.size === T.N.length,
-    `${seen.size}/${T.N.length}`
+    `天賦樹 ${T.N.length} 個點＋${T.J.length} 個珠寶孔，每個都從起點連得到`,
+    T.N.length >= 1000 && !bad.length && seen.size === T.N.length + T.J.length,
+    `${seen.size}/${T.N.length + T.J.length}`
   );
 }
 {
@@ -441,7 +466,7 @@ ok('技能、輔助、天賦的圖示都在', !miss2.length, [...new Set(miss2)]
     /* 4B 新增與替代的大點名字全部上樹（排在 nt 前段才保證抽得到；提案指定的 5 個曾經沒上樹）；新變體各至少 6 個小點 */
     const NEWN =
         `巨盾 風箏手 致命精準 靜電充能 靈能壁 鎖鏈暴擊 貫矛 蠻力 重壓 山岳 破軍 燎原 餘燼不熄 重霜 導電 凋零之觸 血債難償 凌遲 細切 蝕骨之毒 連環打擊 震顫 廣咒 惡語
-        詭射 短射 分支閃電 濕透 忍痛 不滅怒火 鬥志回流 炎熱餘韻 高貴之狼 節奏脈輪 連環制動 纏綿 易傷體質 漫長寒冬 綿長出血 纏毒 強電流 連鎖咒術 不受阻 清場 符文護佑
+        詭射 短射 分支閃電 濕透 忍痛 不滅怒火 鬥志回流 炎熱餘韻 高貴之狼 連擊節奏 連環制動 纏綿 易傷體質 漫長寒冬 綿長出血 纏毒 強電流 連鎖咒術 不受阻 清場 符文護佑
         鐵壁之心 岩心 靈能屏障 不撓`.split(/\s+/),
       onTree = new Set(T.N.filter(n => n.big === 1).map(n => n.n)),
       smallOf = k => T.N.filter(n => !n.big && n.s && k in n.s).length;
@@ -2913,7 +2938,7 @@ const ASC_COMBOS = `const combos = k => {
       j(g.chipBl) === '[100,50,-30,-30,-30,-30,-30,0]' &&
       j(g.chipOff) === '[0,0,0]' &&
       !g.chipKeys.length &&
-      j(g.states) === '[[2,1,true],"rou_red:#ff5a5a,rou_blue:#5ad1ff"]' &&
+      j(g.states) === '[[2,1,true],"rou_red:#ff6066,rou_blue:#ade2f9"]' &&
       g.statesOff === 0,
     j([g.mm, g.chipRP, g.chipBG, g.chipBl, g.chipOff, g.chipKeys, g.states, g.statesOff])
   );
@@ -3984,9 +4009,9 @@ const ASC_COMBOS = `const combos = k => {
       return k + 1 === prdMax(0.4) ? '' : 'pity ' + k;
     })()`) === ''
   );
-  /* 5. 分解：回收不超過投入（50%、倉房 Lv2 65%、Lv5 80%）、靈魂＝物品等級 × 2、黃裝另回 1 顆蛻變或增幅、金照賣價 */
+  /* 5. 分解：回收不超過投入（50%、倉房 Lv2 65%、Lv5 80%）、靈魂＝物品等級 × 2、黃裝另回 1 顆加詞石（鍛造 v1.0 forge-handoff N-1，取代蛻變／增幅）、金照賣價 */
   ok(
-    '分解：材料回收 50%（倉房 Lv2 65%、Lv5 80%）不超過投入、靈魂＝物品等級 × 2、黃裝另回 1 顆蛻變或增幅、金照賣價',
+    '分解：材料回收 50%（倉房 Lv2 65%、Lv5 80%）不超過投入、靈魂＝物品等級 × 2、黃裝另回 1 顆加詞石、金照賣價',
     R(`(() => {
       S.camp.forge = 16; S.auto2.r = 0;
       for (const [st, rate] of [[0, 0.5], [2, 0.65], [5, 0.8]]) {
@@ -3998,7 +4023,7 @@ const ASC_COMBOS = `const combos = k => {
           if (v.mats['iron:4'] > spent || v.mats['iron:4'] !== Math.floor(spent * rate)) return 'mat ' + st + ' ' + v.mats['iron:4'];
           if (v.soul !== it.L * 2 || S.mat.soul - M0.soul !== it.L * 2) return 'soul';
           if (S.gold - g0 !== sellPrice(it)) return 'gold';
-          const cur = (S.mat.tran - M0.tran) + (S.mat.aug - M0.aug);
+          const cur = S.mat.aug - M0.aug;
           if (cur !== (it.r === 2 ? 1 : 0)) return 'cur ' + it.r + ' ' + cur;
         }
       }
@@ -4023,32 +4048,37 @@ const ASC_COMBOS = `const combos = k => {
     })()`) === ''
   );
   /* 0.5.3 破裂石、完美石、追憶之墨、珠寶全域（工坊與解鎖表第 4、6 節） */
-  ok(
-    '破裂石：黃裝四條以上、一件一條、升到 T0 鎖住（淬鍊、聖化、轉化石不碰）；完美石：六條全滿、升一條不是破裂的到 T0（a.perf）、一件一次；一件最多兩個 T0',
-    R(`(() => {
+  {
+    const r = R(`(() => {
       S.camp = newCamp(); S.camp.forge = 20; S.mat = newMat(); S.gold = 1e9;
       const it = mkItem('c_leather', 16, 2);
       while (it.a.length < 6) it.a.push(fillAff(it));
       const it3 = mkItem('c_leather', 16, 2); it3.a = it3.a.slice(0, 3);
       S.mat.frac = 2; S.mat.perf = 2; S.mat.holy = 1;
       if (!forgeCheck(it3, 'frac').why || !forgeCheck(it3, 'perf').why) return 'gate';
-      const e = forgeDo(it, 'frac');
+      const js = () => JSON.stringify(it.a.map(a => JSON.stringify(a)).sort()), T0 = js(), e = forgeDo(it, 'frac');
       if (e) return 'frac ' + e;
       const f = it.a.find(a => a.k === it.frac);
-      if (!f || f.T !== 0 || !/已經有破裂/.test(forgeCheck(it, 'frac').why || '')) return 'frac1';
+      if (!f || js() !== T0 || !/已經有破裂/.test(forgeCheck(it, 'frac').why || '')) return 'frac1';
+      const g0 = S.gold, t0 = it.tmp || 0;
+      if (!/破裂/.test(temperDo(it, it.a.indexOf(f)) || '') || S.gold !== g0 || (it.tmp || 0) !== t0) return 'temper1';
       const fv = JSON.stringify(f);
       if (forgeDo(it, 'perf')) return 'perf';
       const pa = it.a.filter(a => a.perf);
       if (pa.length !== 1 || pa[0].T !== 0 || isFrac(it, pa[0]) || !it.perfed || !/用過/.test(forgeCheck(it, 'perf').why || '')) return 'perf1';
-      if (it.a.filter(a => a.T === 0).length !== 2) return 'two';
       temperDo(it);
       if (JSON.stringify(it.a.find(a => a.k === it.frac)) !== fv) return 'temper';
       if (!/破裂/.test(forgeCheck(it, 'conv', it.a.indexOf(it.a.find(a => a.k === it.frac))).why || '')) return 'conv';
       holyDo(it);
       if (JSON.stringify(it.a.find(a => a.k === it.frac)) !== fv || !it.a.some(a => a.m)) return 'holy';
       return S.mat.frac === 1 && S.mat.perf === 1 ? '' : 'pay';
-    })()`) === ''
-  );
+    })()`);
+    ok(
+      '破裂石（名詞表 A 案，鍛造 v1.0 §9）：黃裝四條以上、一件一條、保留原階鎖住（淬鍊、聖化、轉化石不碰；單條淬鍊先擋不扣金）；完美石：六條全滿、升一條不是破裂的到 T0（a.perf）、一件一次',
+      r === '',
+      r
+    );
+  }
   ok(
     '掉落（固定種子、偽隨機）：鍛造台 Lv13／19／17 才開破裂石／完美石／追憶之墨與珠寶；開了以後王的平均掉率＝表（破裂石 2%、完美石 1%、墨 3%、珠寶 2%，±25%）；小怪不擲破裂石',
     R(`(() => {
@@ -4080,17 +4110,17 @@ const ASC_COMBOS = `const combos = k => {
   );
   /* 7. 營地：campCan 全 0 時藏的清單、全滿時全開；升級扣對、節點門檻、另外三座不能超過鍛造台 */
   ok(
-    'campCan（0.5.1）：六座全 0 時只有鐵、劍、一件一次、1★、1 格技能、0 孔、人口 2、沒有通貨與分頁與天賦樹；鍛造台 Lv20 全開；鍵不在表上不受管',
+    'campCan（0.5.1）：五座全 0 時只有鐵、劍、一件一次、1★、1 格技能、0 孔、沒有通貨與分頁與天賦樹；鍛造台 Lv20 全開；鍵不在表上不受管',
     R(`(() => {
       S.camp = newCamp();
-      const off = ['tab:fill', 'cur:tran', 'cur:aug', 'cur:rich', 'cur:exalt', 'cur:ess', 'mat:hide', 'mat:silk', 'tab:temper', 'tab:holy', 'tab:corr', 'auto2', 'auto2t', 'tier2', 'tier3', 'cur:awk', 'sup2'];
+      const off = ['tab:fill', 'cur:aug', 'cur:exalt', 'cur:zhi', 'cur:ess', 'mat:hide', 'mat:silk', 'tab:temper', 'tab:holy', 'tab:corr', 'auto2', 'auto2t', 'cur:awk', 'sup2'];
       if (off.some(campCan) || campN('batch') !== 1 || campN('wts') !== 1 || !campWt('sword') || campWt('bow')) return 'zero';
-      if (!campCan('不在表上') || campCan('tree') || campCan('aura') || campN('star') !== 1 || campN('slots') !== 1 || campN('holes') !== 0 || campN('pop') !== 2 || campN('off') !== 1) return 'zero2';
+      if (!campCan('不在表上') || campCan('tree') || campCan('aura') || campN('star') !== 1 || campN('slots') !== 1 || campN('holes') !== 0 || campN('off') !== 1) return 'zero2';
       if (Object.keys(dropCur(2, { star: 5, ilvl: 16, tier: 16 }).cur).length || dropCur(2, { star: 5, ilvl: 16, tier: 16 }).ess.length) return 'drop0';
       S.camp.forge = 20;
       if (!off.every(campCan) || campN('batch') !== 20 || campN('wts') !== 6) return 'full';
-      Object.assign(S.camp, { altar: 11, scout: 4, house: 10, store: 5 });
-      if (!campCan('tree') || !campCan('asc') || campN('slots') !== Math.min(5, S.skills.length) || campN('holes') !== 5 || campN('star') !== 5 || campN('pop') !== 25 || campN('off') !== 12) return 'full2';
+      Object.assign(S.camp, { altar: 11, scout: 4, store: 5 });
+      if (!campCan('tree') || !campCan('asc') || campN('slots') !== Math.min(5, S.skills.length) || campN('holes') !== 5 || campN('star') !== 5 || campN('off') !== 12) return 'full2';
       S.camp.forge = 7; let n = 0; for (let i = 0; i < 50; i++) n += dropCur(2, { star: 1, ilvl: 8, tier: 8 }).cur.exalt || 0;
       return n === 50 ? '' : 'exalt7 ' + n;
     })()`) === ''
@@ -4109,32 +4139,44 @@ const ASC_COMBOS = `const combos = k => {
       return '';
     })()`) === ''
   );
-  /* 0.5.1 產生器（3.7）：費用 ×1.12、產量線性、里程碑、工位與人口、階的上限照瞭望台、買得起幾級、genTick 60 秒＝genRate */
+  /* mumi 2026-11-25：產生器經濟整個收掉（產生器、民房、背景生產、相關存檔欄位與數值）；campReady 只算五座 */
   ok(
-    '產生器：林場 Lv1→2 要木 11、×1.12／級；里程碑 5 ×2、10 +1 工位、25 ×2 階+1、50 ×2 +1 工位、75 階+1、100 ×3；買得起幾級＝反算；人口補到空工位（優先的先）、0 人不產；階照瞭望台上限；genTick 60 秒＝genRate',
+    "產生器與民房收掉：GEN／GEN_K／GEN_MUL／CAMP_POP 與 genTick／genRates／popAssign／offGen／genAll 都不存在；CAMP、CAMPN 只有五座；newCamp 沒有 house／gen；campN('pop') 為 0",
     R(`(() => {
-      S.camp = newCamp(); S.mat = newMat(); S.world = newWorld();
-      if (genCost('wood').wood !== 11 || genCost('wood', 2).wood !== Math.round(10 * (1.12 + 1.12 ** 2))) return 'cost ' + genCost('wood').wood;
-      const ms = [1, 5, 10, 25, 50, 75, 100].map(L => { const m = genMs(L); return m.m + '/' + m.slots + '/' + m.tu; }).join();
-      if (ms !== '1/1/0,2/1/0,2/2/0,4/2/1,8/3/1,8/3/2,24/4/2') return 'ms ' + ms;
-      if (genRate('wood') !== GEN.wood.r || genRate('iron') !== GEN.iron.r || genOn('hide') || genSlots('hide')) return 'rate0';
-      matAdd('wood', 0, 100); const n = genAfford('wood');
-      if (!(n >= 1) || genUp('wood', n) !== null || genAfford('wood') !== 0 || matN('wood') < 0) return 'afford ' + n;
-      S.camp.gen.wood.lv = 10; let W = popAssign(); if (W.wood !== 1 || W.iron !== 1 || genRate('wood') !== (GEN.wood.r * 10 * 2) / 2) return 'half ' + JSON.stringify(W);
-      S.camp.house = 1; W = popAssign(); if (W.wood !== 2 || genRate('wood') !== GEN.wood.r * 20) return 'fill';
-      S.camp.gen.iron.lv = 10; W = popAssign(); if (W.iron !== 1 || W.wood !== 2) return 'stay ' + JSON.stringify(W);
-      S.camp.gen.wood.lv = 50; S.camp.gen.iron.pri = 1; S.camp.house = 2; W = popAssign(); if (W.iron !== 2 || W.wood !== 2) return 'pri ' + JSON.stringify(W);
-      S.camp = newCamp(); S.camp.forge = 3; W = popAssign(); if (!genOn('hide') || genSlots('hide') !== 1 || W.hide !== 0 || W.wood !== 1 || W.iron !== 1 || genRate('hide') !== 0) return 'hide0 ' + JSON.stringify(W);
-      S.camp.house = 1; if (popAssign().hide !== 1) return 'hide1';
-      S.camp.gen.iron.lv = 75; if (genTier('iron') !== 1) return 'cap1 ' + genTier('iron');
-      S.camp.watch = 9; if (genTier('iron') !== 2 || tierCap() !== 2) return 'cap2';
-      S.camp.watch = 21; if (genTier('iron') !== 3) return 'cap3';
-      S.camp.gen.iron.tier = 1; if (genTier('iron') !== 2) return 'down';
-      S.camp.gen.iron.tier = 0;
-      const r = genRate('iron'), i0 = matN('iron', 3), w0 = matN('wood');
-      for (let i = 0; i < 600; i++) genTick(0.1);
-      return Math.abs(matN('iron', 3) - i0 - r) <= 1 && Math.abs(matN('wood') - w0 - genRate('wood')) <= 1 ? '' : 'tick';
+      const gone = ['GEN', 'GEN_K', 'GEN_MUL', 'CAMP_POP', 'genTick', 'genRates', 'genRate', 'genOf', 'genOn', 'genCost', 'genAfford', 'genUp', 'genAll', 'genMs', 'genSay', 'genSlots', 'genTier', 'popAssign', 'offGen'].filter(k => { try { return eval('typeof ' + k) !== 'undefined'; } catch (e) { return false; } });
+      if (gone.length) return 'still ' + gone.join();
+      if (Object.keys(CAMP).join() !== 'forge,watch,scout,altar,store' || Object.keys(CAMPN).join() !== 'forge,watch,scout,altar,store') return 'camp ' + Object.keys(CAMP).join();
+      const C = newCamp();
+      if ('house' in C || 'gen' in C) return 'newCamp ' + Object.keys(C).join();
+      S.camp = newCamp();
+      return campN('pop') === 0 ? '' : 'pop ' + campN('pop');
     })()`) === ''
+  );
+  ok(
+    'campReady 只算五座：舊存檔殘留的 gen（林場、礦場買得起）與 house 不算；五座都買不起＝0、鍛造台買得起＝1',
+    R(`(() => {
+      S.camp = { ...newCamp(), house: 0, gen: { wood: { lv: 1 }, iron: { lv: 1 }, hide: { lv: 0 }, silk: { lv: 0 } } };
+      S.mat = newMat(); S.gold = 0;
+      matAdd('wood', 0, 39); matAdd('iron', 1, 1000); S.mat.soul = 99;
+      if (campReady() !== 0) return 'ready0 ' + campReady();
+      S.mat.soul = 150; matAdd('wood', 0, 1);
+      if (campReady() !== 1) return 'ready1 ' + campReady();
+      return '';
+    })()`) === ''
+  );
+  ok(
+    '沒有背景生產：主迴圈（frame）、重開網頁與切回分頁的離線結算都不再叫 genTick／offGen；offBack／offShow 不收產量參數',
+    (() => {
+      const g = fs.readFileSync(path.join(__dirname, '..', 'js', 'game.js'), 'utf8'),
+        m = fs.readFileSync(path.join(__dirname, '..', 'js', 'main.js'), 'utf8');
+      return (
+        !/genTick|offGen|genAll|popAssign/.test(g + m) &&
+        /function offBack\(o, away\)/.test(g) &&
+        /function offShow\(o\)/.test(g) &&
+        /offBack\(o, away\)/.test(m) &&
+        /offBack\(o2, t\)/.test(m)
+      );
+    })()
   );
   ok(
     '瞭望台（3.2）：Lv0 只有第 1 個地點、Lv n 開第 n＋1 個、Lv21 主幹全開、賽制照 line:*；費用＝最深地點每分鐘靈魂 × 5（第 1 級固定 W_LV1 的靈魂與鐵，M1-21）（跟 roundLoot 量的比例差 ±10%）、木 50n、鐵 10n（階＝那時候的上限）',
@@ -4148,7 +4190,7 @@ const ASC_COMBOS = `const combos = k => {
       const m0 = S.mat;
       for (let n = 1; n <= 21; n++) {
         const r = CAMP.watch[n - 1], T = TRUNK[n - 1];
-        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== (n > 1 ? 10 * n : 130)) return 'row ' + n;
+        if (r.wood !== 50 * n || r.mats['iron:' + matTier(T.lv)] !== (n > 1 ? 10 * n : 80)) return 'row ' + n;
         S.mat = newMat(); const a = roundLoot(lvT(TRUNK[0].lv), 1, 40, 0); S.mat = newMat(); const b = roundLoot(lvT(T.lv), 1, 40, 0);
         const want = ((W_SPM * b) / a) * W_MIN;
         if (n > 1 ? Math.abs(r.soul - want) / want > 0.1 : r.soul !== 200) return 'soul ' + n + ' ' + r.soul + ' ' + want;
@@ -8555,19 +8597,19 @@ const ASC_COMBOS = `const combos = k => {
       return { v: m.v, camp: m.camp, star: m.star, mats: m.mat.mats, gam: 'gamN' in m, auto2: m.auto2, fresh: newGame().v, lo: n.camp, again: migrate(JSON.parse(JSON.stringify(m))).camp.forge };
     })()`);
     ok(
-      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、民房 9、林場與礦場 Lv90、倉房 1、星級 3；Lv1 新手全 0；材料從 0；gamN 刪掉；轉過的再載入不變；新存檔是 35',
+      '存檔 34 → 35（0.5.0、0.5.1）：Lv45、主幹 12 個、用到第 3 格與 3 孔、3★、有弓 → 鍛造台 ≥ 14（弓算第二種武器類別 → 11）、祭壇 3、斥候營 2（0.5.0 的瞭望台）、瞭望台 12（主幹開到第 13 個）、倉房 1、星級 3、不再轉民房與產生器；Lv1 新手全 0；材料從開局（木 20、生鐵 16，材料來源 v1.1 §2.5）；gamN 刪掉；轉過的再載入不變；新存檔是 35',
       r.v === 35 &&
         r.fresh === 35 &&
         r.camp.forge === 14 &&
         r.camp.altar === 3 &&
         r.camp.scout === 2 &&
         r.camp.watch === 12 &&
-        r.camp.house === 9 &&
-        r.camp.gen.iron.lv === 90 &&
+        !('house' in r.camp) &&
+        !('gen' in r.camp) &&
         r.star === 3 &&
         r.camp.store === 1 &&
         r.camp.wts.join() === 'sword,bow' &&
-        !Object.keys(r.mats).some(k => k !== 'wood') &&
+        JSON.stringify(r.mats) === '{"wood":20,"iron:1":16}' &&
         !r.gam &&
         r.auto2.r === 1 &&
         r.lo.forge === 0 &&
@@ -8587,21 +8629,83 @@ const ASC_COMBOS = `const combos = k => {
     })()`);
     ok('取消手機橫向：舊存檔 orient l／其他 → p、存回仍是 p、新存檔 p', r.join() === 'p,p,p,p,p', r.join());
   }
-  ok(
-    '通貨三階：完美的新詞一定是最高階、高階在最高 2 階內；高階 Lv45、完美 Lv70 才掉，完美 300 次保底',
-    R2(`(() => {
-      S = newGame(); S.mat.exalt3 = 999; S.mat.exalt2 = 999; S.mat.exalt = 999;
-      const T = op => { const it = mkItem('c_leather', 80, 2); it.a = it.a.slice(0, 3); const b = it.a.slice(), e = forgeDo(it, op); if (e) return 'err ' + e; return it.a.find(x => !b.includes(x)).T - bestTier(80); };
-      for (let i = 0; i < 200; i++) { const p = T('exalt3'); if (p !== 0) return 'perfect ' + p; const g = T('exalt2'); if (!(g >= 0 && g <= 1)) return 'greater ' + g; }
-      if (forgeWhat(mkItem('c_leather', 80, 2), 'exalt3').tier !== 'T' + bestTier(80)) return 'what';
-      const c = l => { const cur = { tran: 1000 }; tierDrop(cur, l); return cur; };
-      if (c(44).tran2 || c(44).tran3) return 'lv44';
-      const g = c(50).tran2 || 0; if (g < 60 || g > 140 || c(50).tran3) return 'lv50 ' + g;
-      S.prd.perfC = 0; const p = c(75).tran3 || 0; if (p < 3 || p > 25) return 'lv75 ' + p;
-      S.prd.perfC = TIER_P.pity - 1; const one = { tran: 1 }; tierDrop(one, 75); if (one.tran3 !== 1 || S.prd.perfC !== 0) return 'pity';
-      return FILL_OPS.includes('exalt3') && rareCur('exalt') && rareCur('aug2') && !rareCur('aug') ? '' : 'keys';
-    })()`) === ''
-  );
+  {
+    const r = R2(`(() => {
+      S = newGame(); S.mat.aug = 1e6; S.mat.exalt = 1e6; S.mat.zhi = 1e6;
+      const W = { aug: 5, exalt: 3, zhi: 1 };
+      for (const L of [80, 16, 1]) {
+        const b = bestTier(L);
+        for (const op in W) {
+          let top = 0, n = 2000;
+          for (let i = 0; i < n; i++) {
+            const it = mkItem('c_leather', L, 2); it.a = it.a.slice(0, 3); const bf = it.a.slice();
+            const e = forgeDo(it, op); if (e) return op + ' err ' + e;
+            const T = it.a.find(x => !bf.includes(x)).T;
+            if (T < b || T > Math.min(6, b + W[op])) return op + ' L' + L + ' T' + T;
+            if (T === b) top++;
+          }
+          const want = b + W[op] > 6 ? (6 - b + 1 === 1 ? 1 : 1 / (W[op] + 1)) : 1 / (W[op] + 1);
+          if (Math.abs(top / n - (b === 6 ? 1 : want)) > 0.05) return op + ' L' + L + ' top ' + top / n;
+        }
+      }
+      const it = mkItem('c_leather', 16, 0); it.a = [];
+      for (const [r, n] of [[1, 1], [1, 2], [2, 3], [2, 4]]) { const e = forgeDo(it, 'zhi'); if (e || it.r !== r || it.a.length !== n) return 'step ' + [e, it.r, it.a.length]; }
+      if (['tran', 'rich', 'aug2', 'exalt3'].some(k => k in CUR || k in FORGE)) return 'old keys';
+      if (forgeWhat(mkItem('c_leather', 16, 2), 'zhi').tier !== 'T' + bestTier(16) + '～T' + (bestTier(16) + 1)) return 'what';
+      return rareCur('exalt') && rareCur('zhi') && !rareCur('aug') ? '' : 'rare';
+    })()`);
+    ok(
+      '鍛造 v1.0 §4.1 三顆單階加詞通貨：加詞石 T b～b+5、崇高石 b～b+3、至臻石 b～b+1（超過 T6 併入 T6）、頂階機率 1/6／1/4／1/2；四步通用（白→藍、藍+1、藍滿 2 條→黃、黃+1）；蛻變／增幅／富豪／高階／完美通貨拿掉',
+      r === '',
+      r
+    );
+  }
+  {
+    const r = R2(`(() => {
+      S = newGame(); S.mat.dust = { res: 100 };
+      const it = mkItem('c_leather', 16, 2); it.a = it.a.filter(a => affCls(a.k) !== 'res').slice(0, 2); const bf = it.a.slice(), b = bestTier(16);
+      const e = forgeDo(it, 'dust', 'res:3'); if (e) return 'do ' + e;
+      const a = it.a.find(x => !bf.includes(x));
+      if (affCls(a.k) !== 'res' || a.T < b || a.T > b + 1 || S.mat.dust.res !== 88) return 'g3 ' + [a.k, a.T, S.mat.dust.res];
+      S.mat.dust.res = 3;
+      const y = () => { const x = mkItem('c_leather', 16, 2); x.a = x.a.filter(a => affCls(a.k) !== 'res').slice(0, 2); return x; };
+      const c = forgeCheck(y(), 'dust', 'res:2');
+      if (c.lack !== '抗性粉不夠（還差 3）') return 'lack ' + c.lack;
+      if (!forgeCheck(mkItem('c_leather', 16, 0), 'dust', 'res:1').why) return 'white';
+      const t6 = () => { const x = mkItem('c_leather', 1, 2); x.a = x.a.filter(a => affCls(a.k) !== 'res').slice(0, 2); return x; };
+      if (!forgeCheck(t6(), 'dust', 'res:2').why || forgeCheck(t6(), 'dust', 'res:1').why) return 't6';
+      return DUST_G.map(g => g.k + '/' + g.w).join() === '2/5,6/3,12/1' && ACLS.length === 9 ? '' : 'table';
+    })()`);
+    ok(
+      '鍛造 v1.0 §4.2 精髓粉：9 類 3 檔（2／6／12 份、w 5／3／1）、保證類別、詞階 b～b+w、不夠寫「還差 n」、只能魔法／稀有、b＝T6 只有檔 1',
+      r === '',
+      r
+    );
+  }
+  {
+    const r = R2(`(() => {
+      S = newGame(); S.mat.v3 = 5; S.mat.dust = { ele: 30, crit: 30, life: 30 };
+      const it = mkItem('c_leather', 40, 2); it.a = it.a.slice(0, 4); it.frac = it.a[0].k;
+      const fr = it.a[0], np = it.a.filter(a => AFF[a.k].p).length, P = { v: 'v3', s: ['ele', 'life'] };
+      const W = potWeights({ v: 'v3', s: ['ele', 'crit'] });
+      if (W.phys !== 0 || W.def !== 0 || W.ele !== 3 || W.crit !== 3 || W.life !== 1) return 'weights';
+      for (let i = 0; i < 3; i++) {
+        if (potDo(it, P)) return 'do';
+        if (!it.a.includes(fr) || it.a.length !== 4 || it.a.filter(a => AFF[a.k].p).length !== np) return 'keep';
+        if (it.a.some(a => a !== fr && affCls(a.k) === 'phys')) return 'excluded';
+      }
+      if (S.mat.v3 !== 2 || S.mat.dust.ele !== 21 || S.mat.dust.life !== 21) return 'pay ' + [S.mat.v3, S.mat.dust.ele];
+      S.mat.dust.crit = 1;
+      if (potCheck(it, { v: 'v3', s: ['crit'] }).lack !== '暴擊粉不夠（還差 2）') return 'lack';
+      if (POT_HOLE.v2 !== 2 || POT_HOLE.v3 !== 3) return 'holes';
+      return omenWhy('exalt', ['om_rage', 'om_grief']) ? '' : 'one omen';
+    })()`);
+    ok(
+      '鍛造 v1.0 §4.3 鼎裝粉：三尸 2 孔／三彭 3 孔、煉製＝重擲全部非破裂詞（前後綴條數不變、破裂詞不動）、用掉鼎 1＋每孔 3 份、排除類不出、粉不夠寫「還差 n」',
+      r === '',
+      r
+    );
+  }
   ok(
     '中間階梯：兩條以上 T1（T0 算）→「T1×n」、品質 20% 以上 →「品質 n%」',
     R2(`(() => {
@@ -8612,21 +8716,36 @@ const ASC_COMBOS = `const combos = k => {
     })()`)
   );
   ok(
-    '一輪的掉落（roundLoot，0.5.1）：不掉裝備、不掉材料、通貨進材料頁；離線結算照最近 10 輪的秒數與死亡率、上限照倉房（Lv3＝8 小時、Lv0＝1 小時）、停在原本的節點、不到 5 分鐘不算；產生器離線照產＝在線 × 時間',
+    '一輪的掉落（roundLoot，0.5.1）：不掉裝備、通貨進材料頁、擊殺照 killMats 掉材料（材料來源 v1.1：木、鐵／皮／靈絲只有這個地點的 T 與 T−1 階）；離線結算照最近 10 輪的秒數與死亡率、上限照倉房（Lv3＝8 小時、Lv0＝1 小時）、停在原本的節點、不到 5 分鐘不算；離線照擊殺掉材料（產生器已收掉）',
     R2(`(() => {
       S = newGame(); S.lv = 60; S.camp.forge = 20; S.camp.watch = 14; S.camp.store = 3; S.world.stage = 9; S.world.done = TRUNK_K.slice(0, 15); S.world.cur = TRUNK_K[14];
-      const m0 = S.mat.exalt, L = roundLoot(lvT(50), 3, 40, 4);
-      if (!(L > 100) || Object.keys(S.mat.mats).some(k => k !== 'wood') || S.mat.exalt <= m0 || S.inv.items.length) return 'round ' + JSON.stringify(L);
+      const m0 = S.mat.exalt, t = lvT(TRUNK[14].lv), T = matTier(TRUNK[14].lv), w0 = S.mat.mats.wood, L = roundLoot(t, 3, 40, 4);
+      const ks = new Set(['wood', ...['iron', 'hide', 'silk'].flatMap(m => [m + ':' + T, m + ':' + (T - 1)]), 'iron:1']);
+      if (!(L > 100) || Object.keys(S.mat.mats).some(k => !ks.has(k)) || !(S.mat.mats.wood > w0) || !(S.mat.mats['iron:' + T] > 0) || !(S.mat.mats['silk:' + T] > 0) || S.mat.exalt <= m0 || S.inv.items.length) return 'round ' + JSON.stringify([L, S.mat.mats]);
       S.rounds = Array.from({ length: 10 }, (_, i) => (i < 2 ? { d: 60, die: 1 } : { d: 60, xp: 100, gold: 50, nS: 40, nE: 3 }));
       if (offSettle(4 * 60e3)) return 'short';
       const g0 = S.gold, o = offSettle(3600e3);
       if (!o || o.n !== 60 || o.won < 35 || o.won > 60 || !(o.soul > 0) || S.gold <= g0 || S.world.cur !== TRUNK_K[14]) return 'settle ' + JSON.stringify(o && [o.n, o.won]);
       if (offSettle(99 * 3600e3).n !== 480) return 'cap';
-      /* 產生器離線照產：上限照倉房（Lv3＝8 小時），產量＝在線 × 時間 */
-      const w0 = matN('wood'), r = genRate('wood'), g = offGen(99 * 3600e3);
-      if (Math.abs(matN('wood') - w0 - r * 480) > 1 || g.wood !== matN('wood') - w0) return 'gen ' + (matN('wood') - w0);
-      S.camp.store = 0; const w1 = matN('wood'); offGen(99 * 3600e3); if (Math.abs(matN('wood') - w1 - r * 60) > 1) return 'gencap';
+      /* 離線照擊殺掉材料（材料來源 v1.1 §2.1：跟著靈魂一起被離線結算算進去），只有這個地點的階 */
+      const wd = S.mat.mats.wood, fe = S.mat.mats['iron:' + T];
+      offSettle(99 * 3600e3);
+      if (!(S.mat.mats.wood > wd) || !(S.mat.mats['iron:' + T] > fe) || Object.keys(S.mat.mats).some(k => !ks.has(k))) return 'mats ' + JSON.stringify(S.mat.mats);
       return S.inv.items.length === 0 ? '' : 'inv';
+    })()`) === ''
+  );
+  ok(
+    '新存檔用正常刷怪買得起鍛造台 Lv1（材料來源 v1.1）：開局木 20、生鐵 16，買不起（木不夠）；在第 1 個地點一隻一隻殺（真的 killMat），小怪 40＋菁英 1 之後還差靈魂，打倒王就買得起、升完扣 150 靈魂與 40 木',
+    R2(`(() => {
+      S = newGame(); S.world.cur = TRUNK_K[0];
+      if (JSON.stringify(S.mat.mats) !== '{"wood":20,"iron:1":16}' || !campUp('forge') || S.camp.forge) return 'start ' + JSON.stringify(S.mat.mats);
+      const t = lvT(TRUNK[0].lv);
+      for (let i = 0; i < 40; i++) killMat({}, t, {});
+      killMat({ elite: 1 }, t, { ei: 1 });
+      if (!campUp('forge') || S.camp.forge) return 'early ' + S.mat.soul;
+      killMat({ boss: 1 }, t, {});
+      const s0 = S.mat.soul, w0 = S.mat.mats.wood, e = campUp('forge');
+      return !e && S.camp.forge === 1 && S.mat.soul === s0 - 150 && S.mat.mats.wood === w0 - 40 ? '' : 'buy ' + e + JSON.stringify([s0, w0]);
     })()`) === ''
   );
 }
@@ -8755,14 +8874,14 @@ const ASC_COMBOS = `const combos = k => {
     }
   };
   const E = vm.runInContext(
-    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, essAdd, essList, essKey, essName, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropCur, killMat, matTier, STAR_MUL, MATS, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
+    '({ mkItem, dropItem, FORGE, FILL_OPS, forgeCheck, forgeDo, forePeek, foreUse, foreSkip, foreOf, foreNew, temperDo, holyDo, holyCheck, corruptDo, qualDo, qualCheck, lockWhy, MAT, newMat, dustAdd, dustN, dustName, DUST_G, CUR, CORR, CORR_ROLL, tierRange, rollAffT, bestTier, isFrac, affCls, AFF, SOCK_MAX, baseOf, BASES, dropCur, killMat, matTier, STAR_MUL, MATS, eliteCount, mapCurP, mapKills, STAR_DROP, drillCost, soulCost, drillDo, drillCheck, newSlot, mkGem, stats, EQS, sideCap, affPool, ACLS, ACLSI, TMAX, perfection, tierIlvl, affPct })',
     ctx
   );
   const setS = () => vm.runInContext('S = { gold: 1e12, lv: 60, mat: null, maxT: 16 }; S.mat = newMat();', ctx);
   const give = () => {
     const M = E.MAT();
     for (const k in E.CUR) M[k] = 1e9;
-    for (const c of E.ACLS) for (let T = 1; T <= 6; T++) E.essAdd(c.k, T, 1e6);
+    for (const c of E.ACLS) E.dustAdd(c.k, 1e6);
   };
   const finite = it => it.a.every(a => (Array.isArray(a.v) ? a.v : [a.v]).every(Number.isFinite));
   const cnt = it => [it.a.filter(a => E.AFF[a.k].p).length, it.a.filter(a => !E.AFF[a.k].p).length];
@@ -8794,21 +8913,24 @@ const ASC_COMBOS = `const combos = k => {
   setS();
   const nm = E.newMat();
   ok(
-    '通貨：35 種（蛻變、增幅、富豪、崇高、轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；0.2.78 災魘石、完美災魘石、判官筆；0.2.79 七種預兆、三尸鼎、三彭鼎；0.2.80 燭龍之心；0.4.1 高階與完美的蛻變、增幅、富豪、崇高；0.5.3 破裂石、完美石、追憶之墨）＋靈魂＋精髓表，沒有粉',
-    Object.keys(E.CUR).length === 35 &&
+    '通貨：26 種（鍛造 v1.0：加詞石、崇高石、至臻石，拿掉蛻變／增幅／富豪與高階／完美；轉化、預知、磨刀石、護甲片、聖化、腐化、覺醒石；災魘石、完美災魘石、判官筆；七種預兆、三尸鼎、三彭鼎；燭龍之心；破裂石、完美石、追憶之墨）＋靈魂＋精髓粉表，沒有舊精髓表',
+    Object.keys(E.CUR).length === 26 &&
       Object.keys(E.CUR).every(k => nm[k] === 0) &&
       nm.soul === 0 &&
-      JSON.stringify(nm.ess) === '{}' &&
-      !('dust' in nm || 'fine' in nm || 'rare' in nm),
+      JSON.stringify(nm.dust) === '{}' &&
+      !('ess' in nm || 'fine' in nm || 'rare' in nm),
     Object.keys(nm).join()
   );
-  E.essAdd('life', 3, 2);
-  E.essAdd('life', 3, 1);
-  E.essAdd('res', 1);
+  E.dustAdd('life', 2);
+  E.dustAdd('life', 1);
+  E.dustAdd('res');
   ok(
-    '精髓：同類同階疊一格、不同階分開',
-    E.MAT().ess['life:3'] === 3 && E.essList().length === 2 && E.essName('life:3') === '生命精髓 T3',
-    JSON.stringify(E.MAT().ess)
+    '精髓粉（鍛造 v1.0 §4.2）：只分類別、同類疊一格；名字「{類}粉」',
+    E.MAT().dust.life === 3 &&
+      E.dustN('res') === 1 &&
+      E.dustName('life') === '生命粉' &&
+      Object.keys(E.MAT().dust).length === 2,
+    JSON.stringify(E.MAT().dust)
   );
   {
     const bad = [];
@@ -8843,7 +8965,7 @@ const ASC_COMBOS = `const combos = k => {
           a0 = it.a.slice(),
           r0 = it.r,
           a = arg ? arg(it, i) : undefined,
-          h0 = op === 'ess' ? E.MAT().ess[a] : E.MAT()[op],
+          h0 = op === 'dust' ? E.MAT().dust[a.split(':')[0]] : E.MAT()[op],
           err = E.forgeDo(it, op, a);
         if (err) {
           /* 有的基底某一類真的沒有詞可以加或換，不算錯（下面要求大部分做得成） */
@@ -8858,22 +8980,27 @@ const ASC_COMBOS = `const combos = k => {
         if (new Set(it.a.map(x => x.k)).size !== it.a.length) bad.push(op + ' 重複的詞');
         if (it.a.some(x => x.T < E.bestTier(L) || x.T > 6 || x.T === 0)) bad.push(op + ' 階超出物品等級允許');
         if (it.a.some(x => !inRange(x))) bad.push(op + ' 數值超出階級範圍');
-        const h1 = op === 'ess' ? E.MAT().ess[a] : E.MAT()[op];
-        if (h0 - h1 !== 1) bad.push(op + ' 通貨沒扣 1');
+        const h1 = op === 'dust' ? E.MAT().dust[a.split(':')[0]] : E.MAT()[op];
+        if (h0 - h1 !== (op === 'dust' ? E.DUST_G[a.split(':')[1] - 1].k : 1)) bad.push(op + ' 通貨沒扣對');
         if (op === 'conv') {
           if (it.a.length !== a0.length || it.a.filter(x => !a0.includes(x)).length !== 1) bad.push('conv 條數變了');
         } else if (it.a.length !== a0.length + 1) bad.push(op + ' 沒有剛好加 1 條');
-        const want = { tran: 1, aug: 1, rich: 2, exalt: 2, ess: r0, conv: r0 }[op];
+        const want = op === 'dust' || op === 'conv' ? r0 : r0 === 0 ? 1 : r0 === 1 && a0.length >= 2 ? 2 : r0;
         if (it.r !== want) bad.push(op + ' 稀有度 ' + r0 + '→' + it.r);
       }
       return { bad, done };
     });
   for (const [op, mk, arg, label] of [
-    ['tran', L => E.mkItem(rb(), L, 0), null, '蛻變：白→藍加 1 條'],
-    ['aug', blue(1), null, '增幅：藍加 1 條'],
-    ['rich', blue(1), null, '富豪：藍→黃加 1 條'],
-    ['exalt', yellow(3), null, '崇高：黃加 1 條'],
-    ['ess', yellow(4), (it, i) => pickCls(it, i) + ':' + (1 + (i % 6)), '精髓：黃裝指定類、至少該階'],
+    ['aug', L => E.mkItem(rb(), L, 0), null, '加詞石：白→藍加 1 條'],
+    ['exalt', blue(1), null, '崇高石：藍加 1 條'],
+    ['zhi', blue(2), null, '至臻石：藍滿 2 條→黃加 1 條'],
+    ['exalt', yellow(3), null, '崇高石：黃加 1 條'],
+    [
+      'dust',
+      yellow(4),
+      (it, i) => pickCls(it, i) + ':' + (E.bestTier(it.L) >= 6 ? 1 : 1 + (i % 3)),
+      '精髓粉：黃裝指定類、檔 1～3'
+    ],
     ['conv', yellow(5), (it, i) => String(convIdx(it, i)), '轉化石：同類橫移']
   ]) {
     const r = fillTest(op, mk, arg);
@@ -8891,30 +9018,25 @@ const ASC_COMBOS = `const combos = k => {
       b = withN(E.mkItem('c_leather', 10, 1), 2),
       y = withN(E.mkItem('c_leather', 10, 2), 6);
     const t = [
-      ['tran', b],
-      ['tran', y],
-      ['aug', w],
-      ['aug', b],
       ['aug', y],
-      ['rich', w],
-      ['rich', y],
-      ['exalt', w],
-      ['exalt', b],
       ['exalt', y],
+      ['zhi', y],
       ['conv', w, '0'],
-      ['ess', w, 'life:1'],
-      ['ess', b, 'life:1'],
-      ['ess', y, 'life:1']
+      ['dust', w, 'life:1'],
+      ['dust', b, 'life:1'],
+      ['dust', y, 'life:1'],
+      ['dust', y, 'life'],
+      ['dust', y, 'xx:1']
     ];
     const m0 = JSON.stringify(E.MAT()),
       errs = t.map(([op, it, a]) => E.forgeDo(it, op, a));
     ok(
-      '通貨用錯稀有度或滿條數會被擋下，也不扣通貨',
+      '通貨用錯稀有度或滿條數會被擋下，也不扣通貨（三顆加詞通貨黃裝滿 6 條、精髓粉白裝／藍滿 2 條／黃滿 6 條／沒選檔／沒選類）',
       b.a.length === 2 && y.a.length === 6 && errs.every(Boolean) && JSON.stringify(E.MAT()) === m0,
       JSON.stringify(errs)
     );
   });
-  /* 4. 精髓保證類與階 */
+  /* 4. 精髓粉保證類，詞階 b～min(6, b＋w) */
   seeded(7200, () => {
     const bad = [];
     let n = 0;
@@ -8924,17 +9046,17 @@ const ASC_COMBOS = `const combos = k => {
       const L = 1 + (i % E.TMAX),
         it = yellow(3)(L),
         cls = pickCls(it, i),
-        T = 1 + (i % 6),
+        g = E.bestTier(L) >= 6 ? 1 : 1 + (i % 3),
         before = it.a.slice();
-      if (E.forgeDo(it, 'ess', cls + ':' + T)) continue;
+      if (E.forgeDo(it, 'dust', cls + ':' + g)) continue;
       n++;
       const nw = it.a.find(a => !before.includes(a));
       if (E.affCls(nw.k) !== cls) bad.push('類不對');
-      if (nw.T > Math.max(E.bestTier(L), T)) bad.push(`階 T${nw.T} 低於保證 T${T}（L${L}）`);
+      if (nw.T > Math.min(6, E.bestTier(L) + E.DUST_G[g - 1].w)) bad.push(`階 T${nw.T} 超出檔 ${g}（L${L}）`);
       if (nw.T < E.bestTier(L)) bad.push('階比物品等級允許的高');
     }
     ok(
-      `精髓：保證加的詞是那一類、而且至少該階（不超過物品等級允許的最高階）（${n} 次）`,
+      `精髓粉：保證加的詞是那一類、詞階在 b～b＋w 內（不超過物品等級允許的最高階）（${n} 次）`,
       n > 400 && !bad.length,
       [...new Set(bad)].slice(0, 3).join('、') || n
     );
@@ -9001,7 +9123,7 @@ const ASC_COMBOS = `const combos = k => {
     r.push(E.forePeek(it, 'exalt') === '預知石不夠', M.exalt === 4);
     M.fore = 1;
     r.push(
-      E.forePeek(it, 'aug') === '只有魔法物品能用增幅石',
+      E.forePeek(it, 'perf') === '要六條詞綴全滿',
       M.fore === 1,
       E.forePeek(it, 'holy') === '預知石只能看填詞的結果',
       M.fore === 1
@@ -9095,7 +9217,7 @@ const ASC_COMBOS = `const combos = k => {
         n0 = it.a.length,
         so0 = it.so,
         ex0 = E.MAT().exalt,
-        ri0 = E.MAT().rich,
+        ri0 = E.MAT().aug,
         r = E.corruptDo(it);
       if (r.why) {
         bad.push(r.why);
@@ -9112,13 +9234,13 @@ const ASC_COMBOS = `const combos = k => {
       if (it.so > max + 1 || (it.so > max && r.res !== 'sock')) bad.push('孔超過上限 +1');
       if (r.res === 'burst') {
         const w = Math.floor(n0 / 2);
-        if (!it.burst || E.MAT().exalt - ex0 !== w || E.MAT().rich - ri0 !== 0)
+        if (!it.burst || E.MAT().exalt - ex0 !== w || E.MAT().aug - ri0 !== 0)
           bad.push(`黃裝殘渣 ${n0} 條應換 ${w} 顆崇高石，實際 ${E.MAT().exalt - ex0}`);
       } else if (it.burst) bad.push('沒爆開卻標了 burst');
       if (i < 200) {
         const e = [
           E.forgeDo(it, 'exalt'),
-          E.forgeDo(it, 'tran'),
+          E.forgeDo(it, 'aug'),
           E.temperDo(it),
           E.holyDo(it),
           E.corruptDo(it).why,
@@ -9144,13 +9266,13 @@ const ASC_COMBOS = `const combos = k => {
       it.a = [];
       while (it.a.length < n) it.a.push(E.rollAffT(E.affPool({ ...it, r: 2 })[0], 3));
       const ex = M.exalt,
-        ri = M.rich;
+        ri = M.aug;
       E.corruptDo(it, 'burst');
-      return [M.exalt - ex, M.rich - ri];
+      return [M.exalt - ex, M.aug - ri];
     };
     const got = JSON.stringify([burst(2, 6), burst(2, 5), burst(2, 3), burst(1, 2), burst(0, 0)]);
     ok(
-      '爆開的腐化殘渣：黃裝 6 條 → 3 顆崇高石、5 條 → 2 顆、3 條 → 1 顆；藍裝 → 1 顆富豪石；白裝沒有',
+      '爆開的腐化殘渣：黃裝 6 條 → 3 顆崇高石、5 條 → 2 顆、3 條 → 1 顆；藍裝 → 1 顆加詞石（forge-handoff N-1 暫定，取代富豪石）；白裝沒有',
       got === '[[3,0],[2,0],[1,0],[0,1],[0,0]]',
       got
     );
@@ -9214,7 +9336,7 @@ const ASC_COMBOS = `const combos = k => {
       setS();
       give();
       const it = E.dropItem(1 + (i % E.TMAX), (i % 5) / 4);
-      if (it.r === 1 && i % 3) E.forgeDo(it, 'rich');
+      if (it.r === 1 && i % 3) E.forgeDo(it, 'zhi');
       if (it.r === 2 && it.a.length < 6) E.forgeDo(it, 'exalt');
       if (i % 4 === 0) E.holyDo(it);
       if (it.a.some(a => a.T === 0)) bad.push('出現 T0');
@@ -9273,7 +9395,7 @@ const ASC_COMBOS = `const combos = k => {
         };
         const sm = E.dropCur(0, o);
         for (const k in sm.cur) all[k] = (all[k] || 0) + 1;
-        if (sm.ess.length || sm.cur.rich || sm.cur.exalt) bad.push('小怪掉了富豪／崇高／精髓');
+        if (sm.ess.length || sm.cur.zhi || sm.cur.exalt) bad.push('小怪掉了至臻／崇高／精髓粉');
         const ec = E.dropCur(1, o);
         for (const k in ec.cur) all[k] = (all[k] || 0) + 1;
         const bc = E.dropCur(2, o);
@@ -9296,7 +9418,7 @@ const ASC_COMBOS = `const combos = k => {
         tot = Array.from({ length: 300 }, () => {
           const p = E.mapCurP(star, 100, 3);
           let n = 0;
-          for (let i = 0, k = E.mapKills(100, 3); i < k; i++) if (Math.random() < p.tran) n++;
+          for (let i = 0, k = E.mapKills(100, 3); i < k; i++) if (Math.random() < p.aug / 2) n++;
           return n;
         }),
         mean = tot.reduce((a, b) => a + b, 0) / tot.length,
@@ -9308,25 +9430,105 @@ const ASC_COMBOS = `const combos = k => {
     for (let i = 0; i < 300; i++) E.killMat({}, 3, { star: 5, p: E.mapCurP(5, 60), ilvl: E.tierIlvl(3) });
     const M = E.MAT();
     ok(
-      'killMat：小怪只進靈魂、蛻變、增幅、磨刀石、護甲片，不掉材料（0.5.1）',
-      M.soul > 0 &&
-        !Object.keys(M.mats || {}).length &&
-        M.tran > 0 &&
+      'killMat：小怪只進靈魂、加詞石、磨刀石、護甲片；不在地點時材料只掉木＝靈魂 × 0.3（材料來源 v1.1 §2.2；鐵／皮／靈絲見下一條）',
+      M.soul === 300 &&
+        Object.keys(M.mats || {}).join() === 'wood' &&
+        M.mats.wood >= 60 &&
+        M.mats.wood <= 120 &&
         M.aug > 0 &&
         M.whet + M.plate > 0 &&
-        !M.rich &&
+        !M.zhi &&
         !M.exalt &&
         !M.conv &&
         !M.fore &&
         !M.holy &&
         !M.corr &&
-        !Object.keys(M.ess).length,
+        !Object.keys(M.dust).length,
       JSON.stringify(M)
+    );
+  });
+  /* 擊殺掉材料（docs/production/adjust/材料來源.md v1.1 §2.1～2.4）：期望值照規格算，大量擊殺的平均差 ≤ 4% */
+  seeded(9100, () => {
+    const R = c => vm.runInContext(c, ctx),
+      bad = [];
+    /* wk 地點、forge 鍛造台等級、k 0 小怪／1 菁英／2 王、n 隻、mat 地圖詞材料% → 每個鍵的總數 */
+    const run = (wk, forge, k, n, mat = 0) =>
+      R(`(() => {
+        S = { gold: 0, lv: 90, mat: newMat(), world: { cur: ${JSON.stringify(wk)} }, camp: { forge: ${forge}, watch: 21, scout: 0, altar: 0, store: 0 }, prd: PRD0() };
+        const m = [{}, { elite: 1 }, { boss: 1 }][${k}], t = lvT(WNODE[S.world.cur].lv);
+        for (let i = 0; i < ${n}; i++) killMat(m, t, { mat: ${mat} });
+        return { mats: S.mat.mats, soul: S.mat.soul, t, T: matTier(WNODE[S.world.cur].lv), g: WNODE[S.world.cur].g };
+      })()`);
+    const near = (got, want, tag) =>
+      Math.abs(got - want) <= Math.max(3, want * 0.04) ? 0 : bad.push(`${tag} ${got}≠${want.toFixed(1)}`);
+    const TK = R('TRUNK_K'),
+      SP = R('SPECIAL.map(o => [wKey(o.q, o.r), o.g])');
+    /* [地點, 鍛造台, 種類, 隻數, 地圖詞材料%, 區域比例 鐵／皮／靈絲] */
+    const cases = [
+      [TK[0], 0, 0, 40000, 0, [60, 25, 15]],
+      [TK[0], 8, 0, 40000, 0, [60, 25, 15]],
+      [TK[9], 3, 1, 4000, 0, [50, 30, 20]],
+      [TK[12], 20, 1, 4000, 0, [60, 20, 20]],
+      [TK[15], 20, 2, 1500, 50, [40, 20, 40]],
+      [TK[17], 20, 1, 4000, 0, [35, 45, 20]],
+      [TK[19], 20, 1, 4000, 0, [40, 20, 40]],
+      [TK[21], 20, 2, 1500, 0, [40, 30, 30]],
+      ...SP.map(([k]) => [k, 20, 1, 3000, 0, null])
+    ];
+    const MIX = {
+      枯河原野: [60, 25, 15],
+      灰燼平原: [50, 30, 20],
+      熔岩裂谷: [60, 20, 20],
+      寒鴉冰原: [40, 20, 40],
+      血霧荒原: [35, 45, 20],
+      黑水沼澤: [40, 20, 40],
+      裂口腹地: [40, 30, 30]
+    };
+    for (const [wk, forge, k, n, mat, mix0] of cases) {
+      const r = run(wk, forge, k, n, mat),
+        tag = `${r.g} 鍛造台${forge} ${['小怪', '菁英', '王'][k]}`,
+        mix = [...(mix0 || MIX[r.g])];
+      if (mix0 && JSON.stringify(mix0) !== JSON.stringify(MIX[r.g])) bad.push(tag + ' 區域 ' + r.g);
+      if (forge < 3) (mix[0] += mix[1]), (mix[1] = 0);
+      if (forge < 8) (mix[0] += mix[2]), (mix[2] = 0);
+      const U = [0.25, 3, 12][k] * (1 + 0.2 * (r.t - 1)) * (1 + mat / 100),
+        tiers =
+          r.T > 1
+            ? [
+                [r.T, 0.75],
+                [r.T - 1, 0.25]
+              ]
+            : [[1, 1]],
+        ok = new Set(['wood']);
+      ['iron', 'hide', 'silk'].forEach((m, i) =>
+        tiers.forEach(([T, p]) => {
+          if (mix[i]) ok.add(m + ':' + T);
+          near(r.mats[m + ':' + T] || 0, (n * U * mix[i] * p) / 100, `${tag} ${m}:${T}`);
+        })
+      );
+      near(r.mats.wood || 0, r.soul * 0.3, tag + ' 木');
+      for (const key in r.mats) if (!ok.has(key)) bad.push(`${tag} 多了 ${key}`);
+    }
+    /* 地點的階：第 9 個出 T2、第 13 個 T3、第 16 個 T4、第 19 個 T5、第 22 個 T6（v1.1 §2.4），前一個地點還是前一階 */
+    const tiers = R('TRUNK.map(n => matTier(n.lv)).join()');
+    for (const [i, T] of [
+      [8, 2],
+      [12, 3],
+      [15, 4],
+      [18, 5],
+      [21, 6]
+    ])
+      if (+tiers.split(',')[i] !== T || +tiers.split(',')[i - 1] !== T - 1)
+        bad.push('第 ' + (i + 1) + ' 個地點 ' + tiers);
+    ok(
+      '擊殺掉材料（材料來源 v1.1 §2）：小怪 0.25／菁英 3／王 12 ×（1＋0.2(t−1)）×（1＋地圖詞材料%）；鐵／皮／靈絲照區域比例（特殊節點照它掛的主幹），皮 Lv3、靈絲 Lv8 前併進鐵；75% T 階、25% T−1；木＝靈魂 × 0.3；T2～T6 在第 9／13／16／19／22 個地點出現',
+      !bad.length,
+      bad.slice(0, 5).join('、')
     );
   });
   /* ================= 8-2：掉落的四樣與機制綁定（企劃書 5.4.2～5.4.5、5.8） ================= */
   const E2 = vm.runInContext(
-    '({ addMem, memPool, memText, rollMem, prdC, prdMax, prdRoll, PRD0, MEM, STAR_MUL, HIGH_T, HUNT_ELITE, ELITE_EXALT, ELITE_RICH, HOLY_P, CORR_P, CURSES, curseV, rollRarity, rollQ })',
+    '({ addMem, memPool, memText, rollMem, prdC, prdMax, prdRoll, PRD0, MEM, STAR_MUL, HIGH_T, HUNT_ELITE, ELITE_EXALT, ELITE_ZHI, HOLY_P, CORR_P, CURSES, curseV, rollRarity, rollQ })',
     ctx
   );
   /* 1. 偽隨機：長期機率剛好是 p；連續 prdMax(p) 次沒中，下一次必中 */
@@ -9571,12 +9773,12 @@ const ASC_COMBOS = `const combos = k => {
     const bad = [];
     /* 數量：小怪通貨機率（0.5.0 起沒有裝備件數） */
     setS();
-    const p = { tran: 0.1, aug: 0.1, qual: 0.1 };
+    const p = { aug: 0.1, qual: 0.1 };
     let c0 = 0,
       c1 = 0;
     for (let i = 0; i < 20000; i++)
-      (c0 += E.dropCur(0, { star: 1, ilvl: 40, p }).cur.tran ? 1 : 0),
-        (c1 += E.dropCur(0, { star: 1, ilvl: 40, p, qty: 50 }).cur.tran ? 1 : 0);
+      (c0 += E.dropCur(0, { star: 1, ilvl: 40, p }).cur.aug ? 1 : 0),
+        (c1 += E.dropCur(0, { star: 1, ilvl: 40, p, qty: 50 }).cur.aug ? 1 : 0);
     if (Math.abs(c1 / c0 - 1.5) > 0.12) bad.push(`數量 ${c1 / c0}`);
     /* 稀有度：黃裝比例變高（rollRarity 還給護符以外的工具用） */
     let y0 = 0,
@@ -9631,7 +9833,7 @@ const ASC_COMBOS = `const combos = k => {
       for (const it of [E.mkItem(E.BASES[i % E.BASES.length].id, E.tierIlvl(1 + (i % 16)), i % 3)]) {
         if ('uid' in it) bad.push('做出來的裝備有 uid');
         const errs = [
-          E.forgeDo(it, 'tran'),
+          E.forgeDo(it, 'aug'),
           E.forgeDo(it, 'exalt'),
           E.temperDo(it),
           E.holyDo(it),
@@ -9723,7 +9925,7 @@ const ASC_COMBOS = `const combos = k => {
 /* 0.2.78 酆都（企劃書 4.2）：災魘詞池、災魘石、判官筆、完美災魘石、酆都的掉落、殿的門票、鬼門節點、一般王池 */
 {
   const F = vm.runInContext(
-    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, secCount, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwSalvage })',
+    '({ CALAM_G, CALAM_B, CALAM_OK, calamDo, calamPick, calamCheck, MAT, newMat, mkItem, stats, EQS, fdDrop, fdHallWhy, fdHallPay, fdHun, FENG, FRAGS, newFrags, BOSSES, bossPick, fdBoss, fdUber, wType, wRing, newWorld, CUR, prdRoll, calText, SIN, SIN_FRAG, sinDrop, sinHallWhy, sinHallPay, sinBoss, sinUber, forgeDo, omenPick, omenWhy, AFF, affCls, isFrac, XIONG, XIONG_MOD, xiBoss, xiUber, xiDrop, xiHallWhy, xiHallPay, AW_SUP, AW_MAX, awGain, awHave, heartUse, SUPPORTS, soulCost, libUpCheck, ARMY, armyRes, armyDrop, armyHallWhy, armyHallPay, armyBoss, armyUber, wClear, wName, wNode, wKey, memPool, PT_START, lvT, TAISUI, tsHallWhy, tsHallPay, tsDrop, ghRoll, ghFx, ghText, ghName, ghSalvage, tsBoss, tsUber, GODSON, ZODIAC, JEWEL, PT_NOTABLES, PTREE, PT_J, sockOpen, jewelNodes, jwRoll, jwGain, jwPut, jwDrop })',
     ctx
   );
   const mul = seed => () => {
@@ -10185,8 +10387,9 @@ const ASC_COMBOS = `const combos = k => {
       [...new Set(bad)].slice(0, 4).join('、')
     );
   });
-  /* 6e. 天賦樹六區與珠寶孔（0.2.84）：每個點都分到一區、六區大小差不多、起點在自己那一區；一區 40 點開孔（起點不算）；
-     珠寶的大點進 stats、已經點了的與兩顆重複的只算一次、孔沒開不生效；鑲上換位、拆掉、收藏上限 */
+  /* 6e. 天賦樹六區與珠寶孔：每個點都分到一區、六區大小差不多、起點在自己那一區；
+     珠寶孔 18 個（S/talent-tree.md v1.0.1）：每孔是獨立節點、連到表上的掛點（J3c＝t210）、從起點走得到、點亮（花 1 點）才開；
+     珠寶的大點進 stats、已經點了的與兩顆重複的只算一次、孔沒開不生效；鑲上換位、丟棄（不給東西、鑲著的不能丟）、收藏上限 */
   seeded(7808, () => {
     const bad = [],
       S = () => vm.runInContext('S', ctx),
@@ -10199,43 +10402,54 @@ const ASC_COMBOS = `const combos = k => {
     if (Math.min(...sz) < 550 || Math.max(...sz) > 750) bad.push('六區大小 ' + sz);
     F.PT_START.forEach((k, i) => P.I[k].sec !== i && bad.push('起點不在自己那一區 ' + k));
     if (F.PT_NOTABLES.some(id => P.I[id].big !== 1 || P.I[id].gate || P.I[id].lock)) bad.push('珠寶抽得到不是大點的');
-    const sec0 = P.N.filter(n => n.sec === 0 && !n.gate && n.big === 0).map(n => n.id),
-      base = n => ({
-        lv: 100,
-        eq: Object.fromEntries(F.EQS.map(e => [e.k, null])),
-        pt: [...F.PT_START, ...sec0.slice(0, n)],
-        at: [],
-        auras: [],
-        charms: [],
-        jewels: [],
-        jsock: [null, null, null, null, null, null]
-      });
-    if (F.secCount(base(40))[0] !== 40 || !F.sockOpen(base(40), 0) || F.sockOpen(base(39), 0)) bad.push('40 點開孔');
+    if (F.PT_J.length !== 18 || P.J.length !== 18) bad.push('珠寶孔不是 18 個');
+    if (P.I.J3c.an !== 't210' || P.I.J1a.an !== 't89' || P.I.J1c.an !== 't153') bad.push('掛點');
+    if (P.J.filter(n => n.out).length !== 6) bad.push('外圈大孔不是 6 個');
+    /* 從起點走到 J0a 的最短路：點亮整條（含孔）＝開；少了孔＝沒開 */
+    const prev = {},
+      q = [...F.PT_START];
+    q.forEach(k => (prev[k] = null));
+    for (let i = 0; i < q.length; i++)
+      for (const o of P.ADJ[q[i]] || []) if (!(o in prev) && !P.I[o].lock) (prev[o] = q[i]), q.push(o);
+    for (const n of P.J) if (!(n.id in prev) || !P.ADJ[n.an].includes(n.id)) bad.push('孔走不到 ' + n.id);
+    const road = [];
+    for (let x = 'J0a'; x && !F.PT_START.includes(x); x = prev[x]) road.unshift(x);
+    const base = n => ({
+      lv: 100,
+      eq: Object.fromEntries(F.EQS.map(e => [e.k, null])),
+      pt: [...F.PT_START, ...road.slice(0, n ? road.length : road.length - 1)],
+      at: [],
+      auras: [],
+      charms: [],
+      jewels: [],
+      jsock: []
+    });
+    if (!F.sockOpen(base(1), 0) || F.sockOpen(base(0), 0) || F.sockOpen(base(1), 1)) bad.push('點亮孔才開');
     /* 找一個加 hpP 的大點來驗 stats */
     const nt = F.PT_NOTABLES.find(id => P.I[id].s.hpP > 0 && !P.I[id].s.only);
     const j = { id: 'j1', nt: [nt] },
       j2 = { id: 'j2', nt: [nt] },
-      on = base(40);
+      on = base(1);
     on.jewels = [j, j2];
-    on.jsock = ['j1', 'j2', null, null, null, null];
-    const off = base(39);
+    on.jsock = ['j1', 'j2'];
+    const off = base(0);
     off.jewels = [j];
-    off.jsock = ['j1', null, null, null, null, null];
-    const h0 = F.stats(base(40)).hp,
+    off.jsock = ['j1'];
+    const h0 = F.stats(base(1)).hp,
       h1 = F.stats(on).hp,
       hOff = F.stats(off).hp,
-      h39 = F.stats(base(39)).hp;
+      h39 = F.stats(base(0)).hp;
     if (!(h1 > h0) || hOff !== h39) bad.push(`珠寶進 stats ${h0} ${h1} ${hOff} ${h39}`);
     /* 第二顆同一個大點放在 1 區（孔沒開），只算一次 */
     if (F.jewelNodes(on).length !== 1) bad.push('重複的大點算了兩次');
-    const own = base(40);
+    const own = base(1);
     own.pt.push(nt);
     own.jewels = [j];
-    own.jsock = ['j1', null, null, null, null, null];
+    own.jsock = ['j1'];
     if (F.jewelNodes(own).length) bad.push('已經點了的大點又算一次');
-    /* 收藏、鑲上、拆掉 */
+    /* 收藏、鑲上、丟棄 */
     setS();
-    vm.runInContext('S.jewels = []; S.jsock = [null, null, null, null, null, null]', ctx);
+    vm.runInContext('S.jewels = []; S.jsock = []', ctx);
     const t1 = F.jwGain('chiyou'),
       t2 = F.jwGain('zhuolu');
     if (
@@ -10247,15 +10461,15 @@ const ASC_COMBOS = `const combos = k => {
       bad.push('蚩尤 1、涿鹿兵主 2 個大點');
     const id = S().jewels[0].id;
     F.jwPut(2, id);
-    F.jwPut(4, id);
-    if (S().jsock[2] || S().jsock[4] !== id) bad.push('換孔');
+    F.jwPut(17, id);
+    if (S().jsock[2] || S().jsock[17] !== id) bad.push('換孔');
     const so = F.MAT().soul;
-    if (!F.jwSalvage(id) || F.jwSalvage(S().jewels[1].id) || F.MAT().soul !== so + 200) bad.push('拆掉');
+    if (!F.jwDrop(id) || F.jwDrop(S().jewels[1].id) || F.MAT().soul !== so || S().jewels.length !== 1) bad.push('丟棄');
     for (let i = 0; i < F.JEWEL.keep + 3; i++) F.jwGain('chiyou');
     if (S().jewels.length !== F.JEWEL.keep) bad.push('收藏上限');
     vm.runInContext('ST = null', ctx);
     ok(
-      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；一區 ${F.JEWEL.need} 點開珠寶孔（39 不開）；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能拆、收藏上限`,
+      `天賦樹六區：每區 ${Math.min(...sz)}～${Math.max(...sz)} 點、起點在自己那一區；珠寶孔 18 個（外圈大孔 6）、掛點照表（J3c＝t210）、都走得到、點亮孔（1 點）才開；珠寶的大點進 stats、孔沒開不生效、已經點了的與重複的只算一次；蚩尤 1、涿鹿兵主 2 個大點；換孔、鑲著不能丟、丟棄不給東西、收藏上限`,
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -10313,14 +10527,18 @@ const ASC_COMBOS = `const combos = k => {
       if (F.forgeDo(it, 'exalt', null, ['om_fear']) || it.a.length !== 6 || !it.a.some(a => a.k === fr.k))
         bad.push('畏縮');
       M = setM();
-      if (F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) !== '要三尸鼎才能同時用 2 顆預兆')
-        bad.push('沒鼎也能用 2 顆');
+      /* 鍛造 v1.0 §4.3：鼎改裝粉，預兆一次 1 顆（Q-M8），有鼎也一樣；不扣鼎 */
       M.v2 = 1;
       const om0 = M.om_rage;
-      if (F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) || M.v2 !== 0 || M.om_rage !== om0 - 1)
-        bad.push('鼎沒扣');
+      if (
+        F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_greed']) !== '一次只能用 1 顆預兆' ||
+        M.v2 !== 1 ||
+        M.om_rage !== om0
+      )
+        bad.push('2 顆預兆沒擋');
       if (!F.forgeDo(y(2), 'exalt', null, ['om_rage', 'om_grief'])) bad.push('衝突沒擋');
-      if (!F.forgeDo(y(2), 'tran', null, ['om_joy'])) bad.push('雙喜用在蛻變');
+      if (!F.forgeDo(y(2), 'aug', null, ['om_joy'])) bad.push('雙喜用在加詞石');
+      if (!F.forgeDo(y(2), 'aug', null, ['om_rage'])) bad.push('怒焰用在加詞石（N-3：照畫法只配崇高石與精髓粉）');
       /* 只有前綴可加、又只要後綴：加不上就不扣 */
       const full = F.mkItem('r_lazuli', 60, 2);
       full.a = full.a.filter(a => !F.AFF[a.k].p);
@@ -10347,7 +10565,7 @@ const ASC_COMBOS = `const combos = k => {
     }
     if (!(t1 < t0 * 0.95)) bad.push(`貪欲沒有比較好 ${t0} ${t1}`);
     ok(
-      '預兆：怒焰只前綴、哀音只後綴、相思同類、厭棄不同類、貪欲取高、雙喜二選一、畏縮先移除（破裂不動、6 條也能用）；2 顆要鼎、衝突擋下、雙喜不能用在蛻變、加不上就不扣',
+      '預兆：怒焰只前綴、哀音只後綴、相思同類、厭棄不同類、貪欲取高、雙喜二選一、畏縮先移除（破裂不動、6 條也能用）；一次 1 顆（鍛造 v1.0 鼎改裝粉）、衝突擋下、雙喜與怒焰不能用在加詞石、加不上就不扣',
       !bad.length,
       [...new Set(bad)].slice(0, 4).join('、')
     );
@@ -10433,7 +10651,7 @@ const ASC_COMBOS = `const combos = k => {
   ok('README 的版本跟 version.json 一樣', md.includes(`v${v}`), v);
   ok('README 的桌機快捷鍵跟設定裡的操作表一致', keys.length > 10 && !miss.length, miss.join('、'));
 }
-/* M1-10：暫停規則（Q9 B）與 M1-17 新手的前幾輪。暫停時 frame 不跑敵人、投射物、技能（計數）、產生器照產 */
+/* M1-10：暫停規則（Q9 B）與 M1-17 新手的前幾輪。暫停時 frame 不跑敵人、投射物、技能（計數）；產生器收掉後 frame 不論停不停都不產材料 */
 {
   const c3 = {
     ...ctx,
@@ -10462,7 +10680,7 @@ const ASC_COMBOS = `const combos = k => {
     anyPanel = () => OPEN || PANEL.skill, PORT = () => true, IV = { on: false }, N = { m: 0, p: 0 }, IW = 390, ZOOM = 1;
     requestAnimationFrame = () => {}; rbTick = sesSample = draw = hudTick = () => {}; mouseWorld = () => ({ x: 0, y: 0 });
     updMobs = () => N.m++; updShots = updSkills = () => {}; updPlayer = () => N.p++;
-    S = newGame(); S.camp.house = 1; genOf('wood').lv = 5; P = { x: 0, y: 0 }; G.state = 'play'; G.ask = 0; G.t = 0;
+    S = newGame(); S.camp.house = 1; S.camp.gen = { wood: { lv: 50 }, iron: { lv: 50 } }; P = { x: 0, y: 0 }; G.state = 'play'; G.ask = 0; G.t = 0;
     var tick = () => { last = 0; for (let i = 1; i <= 20; i++) frame(i * 50); };`);
   const run = setup =>
     R(
@@ -10486,9 +10704,9 @@ const ASC_COMBOS = `const combos = k => {
     手動沒面板: 1,
     確認卡: 0
   };
-  const badP = Object.keys(want).filter(k => tab[k][0] !== !!want[k] || tab[k][1] !== !!want[k] || !tab[k][2]);
+  const badP = Object.keys(want).filter(k => tab[k][0] !== !!want[k] || tab[k][1] !== !!want[k] || tab[k][2]);
   ok(
-    'M1-10 暫停：手動開面板、技能挑選、天賦樹、確認卡停住敵人與時間；自動開一般面板照打；停住時產生器照產',
+    'M1-10 暫停：手動開面板、技能挑選、天賦樹、確認卡停住敵人與時間；自動開一般面板照打；停不停 frame 都不產木（沒有背景生產，舊存檔殘留 gen／house 也不產）',
     !badP.length,
     JSON.stringify(tab)
   );
@@ -10543,8 +10761,9 @@ const ASC_COMBOS = `const combos = k => {
     `(() => { S = newGame(); const a = [lockTxt('tree'), lockTxt('asc'), lockTxt('box')]; S.camp.altar = 4; a.push(lockTxt('tree'), lockTxt('asc')); return a; })()`
   );
   ok(
-    'M1-06：天賦樹、昇華沒開時寫「升祭壇到 Lv n 才開」；山海寶盒不在解鎖表上＝放行；升到了就空',
-    JSON.stringify(lk) === JSON.stringify(['升祭壇到 Lv 4 才開', '升祭壇到 Lv 7 才開', '', '', '升祭壇到 Lv 7 才開']),
+    'M1-06：天賦樹、昇華沒開時寫「升長老屋到 Lv n 才開」；山海寶盒不在解鎖表上＝放行；升到了就空',
+    JSON.stringify(lk) ===
+      JSON.stringify(['升長老屋到 Lv 4 才開', '升長老屋到 Lv 7 才開', '', '', '升長老屋到 Lv 7 才開']),
     JSON.stringify(lk)
   );
   /* M1-07：每一類只回最近的一個；升到那一級換下一個；全開回 null */
@@ -10557,10 +10776,11 @@ const ASC_COMBOS = `const combos = k => {
     return { a, t, b, c };
   })()`);
   ok(
-    'M1-07 nextUnlock：新存檔每一類回最近的一個、升到那一級換下一個、全開回 null；「升祭壇到 Lv 4 開天賦樹」',
+    'M1-07 nextUnlock：新存檔每一類回最近的一個、升到那一級換下一個、全開回 null；「升長老屋到 Lv 4 開天賦樹」',
     nu.a === 'altar1,altar2,forge11,altar4,altar7,altar5,altar4' &&
-      nu.t === '升祭壇到 Lv 4 開天賦樹' &&
-      nu.b === 'altar6,altar5,forge11,altar10,altar7,altar5,altar7' &&
+      nu.t === '升長老屋到 Lv 4 開天賦樹' &&
+      /* camp.md v1.0：珠寶孔不在長老屋（名詞表 v0.6.48：只來自天賦樹）→ 天賦樹這一類升到 Lv 4 後沒有下一個 */
+      nu.b === 'altar6,altar5,forge11,-,altar7,altar5,altar7' &&
       nu.c === '-,-,-,-,-,-,-',
     JSON.stringify(nu)
   );
@@ -10647,7 +10867,7 @@ const ASC_COMBOS = `const combos = k => {
     !!st && st[0] > 0 && st[0] === st[1],
     JSON.stringify(st)
   );
-  /* M1-14：解鎖一句話照「M1-13 定稿」、只在第一次出現一次；產生器里程碑 */
+  /* M1-14：解鎖一句話照「M1-13 定稿」、只在第一次出現一次（產生器里程碑句隨產生器收掉） */
   const sy = R(`(() => {
     var said = []; hudWarn = t => said.push(t); setTimeout = () => {};
     S = newGame(); S.mat.soul = 1e7; S.mat.mats.wood = 1e7; for (const T of [1, 2, 3]) S.mat.mats['iron:' + T] = 1e5;
@@ -10656,24 +10876,22 @@ const ASC_COMBOS = `const combos = k => {
     S.camp.altar = 4; campUp('altar'); SAY.length = 0;
     S.camp.altar = 1; campUp('altar'); SAY.length = 0;
     S.camp.store = 4; campUp('store'); SAY.length = 0;
-    genOf('iron').lv = 24; genUp('iron'); SAY.length = 0;
     return said;
   })()`);
   ok(
-    'M1-14：解鎖一句話照定稿表原文、同一個解鎖第二次不出現、產生器里程碑（產量、階）',
+    'M1-14：解鎖一句話照定稿表原文、同一個解鎖第二次不出現',
     JSON.stringify(sy) ===
       JSON.stringify([
-        '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。',
-        '祭壇 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
-        '祭壇 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
-        '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。',
-        '礦場 Lv25：產量 ×2。可以產熟鐵，上限看瞭望台。'
+        '鍛造台 Lv1：開了「填」。加詞石開始掉，拿來替裝備加詞。',
+        '長老屋 Lv5：每一招多 1 個輔助孔，到技能分頁插一顆輔助。光環欄也開了。',
+        '長老屋 Lv2：每一招多 1 個輔助孔，到技能分頁插一顆輔助。',
+        '倉房 Lv5：離線收益最多算 12 小時。分解回收提高到 80%。'
       ]),
     JSON.stringify(sy)
   );
   const all = R(`(() => {
     S = newGame(); const bad = [];
-    for (const b of ['forge', 'watch', 'scout', 'house', 'altar', 'store'])
+    for (const b of ['forge', 'watch', 'scout', 'altar', 'store'])
       for (let lv = 1; lv <= CAMP[b].length; lv++) { S.camp[b] = lv; const t = campSay(b, lv); if (!t || !t.startsWith(CAMPN[b] + ' Lv' + lv + '：') || /undefined|NaN/.test(t)) bad.push(b + lv + ' ' + t); }
     return bad;
   })()`);
@@ -10683,7 +10901,7 @@ const ASC_COMBOS = `const combos = k => {
       '瞭望台 Lv1：新地點「枯河渡口」開了（怪物 Lv 6）。到地點清單點它就去刷。' &&
       R(`campSay('watch', 22)`) === '瞭望台 Lv22：酆都開了，「鬼門關」出現在地點清單，它的通貨開始掉。'
   );
-  ok('M1-14：六座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
+  ok('M1-14：五座設施每一級都有一句、開頭是「設施 Lvn：」、沒有 undefined', !all.length, all.slice(0, 3).join('、'));
   /* M1-26：角色頁鎖住的護符／神格格的一句話（是什麼＋怎麼開）；條件照 lockTxt 與腰帶的護符槽，不另編數字 */
   const lk26 = R(`(() => {
     S = newGame(); const r = [lockSlotTxt('ch0'), lockSlotTxt('gh')];
@@ -10887,8 +11105,8 @@ const ASC_COMBOS = `const combos = k => {
       /* 4：基底的程式留著（M2 不掉），直接收一件來測標記保留 */
       const it = chasePut('fiend1', hi);
       /* 4：追逐標記在打造（填：蛻變）之後保留；套上王印之後一般裝備也帶上追逐標記、基底原本的標記不動 */
-      S.mat.tran = 5;
-      const why = forgeDo(it, 'tran');
+      S.mat.aug = 5;
+      const why = forgeDo(it, 'aug');
       const plain = mkItem(it.b, it.L, 1); /* M2-29：王印只能套在魔法或稀有裝備 */
       const w1 = wangyinSet(plain, k1), w2 = wangyinSet(it, k2);
       r.keep = [why || '', it.r, it.chase, plain.chase, plain.wy, w1, w2, it.chase, it.wy, S.inv.items.includes(it), S.frags[k1], S.frags[k2], wangyinSet(plain, k1)];
@@ -11236,14 +11454,15 @@ const ASC_COMBOS = `const combos = k => {
   /* UIUX 15:16 裁定（ruling.csv 第 33 列 scrim-v1：#hask 遮罩用 rgb(var(--scrim-rgb)/α)）：CSS 段只准 rgb(var(--x-rgb) / α) 或 rgb(var(--x-rgb), α)；
      --x-rgb 要是 :root 宣告的三元組、α 是 0–1 的數字；寫死數字的 rgb(、rgba(、hex 一律失敗 */
   ok(
-    'M2-38 顏色：M2-38 的 CSS 段只准 rgb(var(--x-rgb) / α)／rgb(var(--x-rgb), α)（:root 的三元組、α 0–1），沒有 hex、rgba(、寫死數字的 rgb(；新函式沒有色碼字面值；沒有新 token 定義',
+    'M2-38 顏色：M2-38 的 CSS 段只准 rgb(var(--x-rgb) / α)／rgb(var(--x-rgb), α)（:root 的三元組、α 0–1），沒有 hex、rgba(、寫死數字的 rgb(；新函式沒有色碼字面值；沒有新 token 定義；腐化虛線走 :root 的 --corr-dash-rgb',
     blk.length > 100 &&
       fns.every(f => f.length > 20) &&
       rgbAll.length === rgbOk.length &&
       !lit.test(rgbRest) &&
       !fns.some(f => lit.test(f)) &&
-      !/\n\s*--[\w-]+\s*:/.test(blk),
-    JSON.stringify({ fn: fns.map(f => f.length), rgb: rgbAll.length, ok: rgbOk.length })
+      !/\n\s*--[\w-]+\s*:/.test(blk) &&
+      corrDash(),
+    JSON.stringify({ fn: fns.map(f => f.length), rgb: rgbAll.length, ok: rgbOk.length, corrDash: corrDash() })
   );
   ok(
     'battle-hud v1.3.3 顏色：CSS 段沒有色碼字面值（hex、rgb()）；段內的 token 只換成 :root 的 D2 色（--x: var(--d2-…)）',
@@ -11445,8 +11664,14 @@ const ASC_COMBOS = `const combos = k => {
               k in o
                 ? o[k]
                 : (...a) => (
-                    log.push([k, a[0] && a[0].src, a[1], a[2]]),
-                    k === 'createPattern' ? {} : k === 'getTransform' ? { a: 1, d: 1, e: 0, f: 0 } : undefined
+                    log.push([k, a[0] && (a[0].src || (a[0].width === 32 ? 'gen32' : undefined)), a[1], a[2]]),
+                    k === 'createPattern'
+                      ? {}
+                      : k === 'getTransform'
+                        ? { a: 1, d: 1, e: 0, f: 0 }
+                        : /ImageData$/.test(k)
+                          ? { data: new Uint8ClampedArray(4096) }
+                          : undefined
                   ),
             set: (o, k, v) => ((o[k] = v), true)
           }
@@ -11485,7 +11710,7 @@ const ASC_COMBOS = `const combos = k => {
       r.loaded = !!R("tileSet('temple')") && R('G.bc') === null;
       log.length = 0;
       const ch = R("bakeChunk(0, 0, BCH * TS, tileSet('temple'))"),
-        fl = log.filter(l => l[0] === 'drawImage' && /temple-floor/.test(l[1]));
+        fl = log.filter(l => l[0] === 'drawImage' && l[1] === 'gen32');
       r.tile = [
         ch.width,
         ch.height,
@@ -11524,6 +11749,67 @@ const ASC_COMBOS = `const combos = k => {
     !tl.err && tl.bad === null && JSON.stringify(tl.fall) === '[384,true,false,true]' && tl.none,
     JSON.stringify(tl)
   );
+  /* 程序地板（procedural-floor-impl.md §1.1、§1.2）：亮度樣板是 TILE_SRC.lava.floor[0]＝tile_lava_floor-s1202（逐位元相同），
+     地板不再載 TILE_SRC.<地形>.floor 平鋪圖；色用 --scene-temple-ground／mid／light＝M2-36 --scene-X 值 */
+  {
+    const R = (...a) => fs.readFileSync(path.join(__dirname, '..', ...a)),
+      md5 = b => require('crypto').createHash('md5').update(b).digest('hex'),
+      fl = vm.runInContext(
+        'TILE_SRC.lava.floor',
+        (() => {
+          const c = {};
+          vm.createContext(c);
+          vm.runInContext(JS('tiles.js').replace('const TILE_SRC', 'var TILE_SRC'), c);
+          return c;
+        })()
+      ),
+      bj = JS('biome.js'),
+      css = fs.readFileSync(path.join(__dirname, '..', 'css', 'style.css'), 'utf8'),
+      tok = ['ground', 'mid', 'light'].map(
+        k => (css.match(new RegExp(`--scene-temple-${k}: (#[0-9a-f]{6});`)) || [])[1]
+      );
+    ok(
+      '程序地板：樣板是 tile_lava_floor-s1202（TILE_SRC.lava.floor[0] 跟 art/ 原檔逐位元相同），tileSet 不再載平鋪地板圖',
+      md5(R(fl[0])) === md5(R('art', 'tiles', 'lava', 'floor', 'tile_lava_floor-s1202.png')) &&
+        /t\.tpl = ld\(TILE_SRC\.lava\.floor\[0\]\)/.test(bj) &&
+        !/s\.floor\.map\(ld\)/.test(bj),
+      JSON.stringify(fl)
+    );
+    ok(
+      '程序地板：--scene-temple-ground／mid／light＝M2-36 --scene-X 的 #46413c／#33302b／#615b56',
+      tok.join() === '#46413c,#33302b,#615b56',
+      tok.join()
+    );
+    ok(
+      '戰鬥地板：enterMap 用 BIO_ONE（全地點共用 temple），隨機抽地形只在 BIO_ONE 設 null 時',
+      /^const BIO_ONE = 'temple';$/m.test(JS('biome.js')) &&
+        /G\.biome = was \? was\.biome : BIO_ONE \|\| pick\(Object\.keys\(BIOMES\)\);/.test(JS('game.js'))
+    );
+    /* 程序地板 §1.5、§1.6、§2：載入時 32 普通＋16 淺磚；每格由世界格座標決定（淺磚 h(tx,ty,1)%1000<94、第幾張 h(tx,ty)） */
+    ok(
+      '程序地板：載入時生成 32 普通＋16 淺磚，bakeChunk 每格照世界格雜湊挑（淺磚 h(tx, ty, 1) % 1000 < 94，張 h(tx, ty) % 張數）',
+      /const FLOOR_N = \[32, 16\],\n  FLOOR_LIGHT = 94;/.test(bj) &&
+        /F = T\.floorL && h\(tx, ty, 1\) % 1000 < FLOOR_LIGHT \? T\.floorL : T\.floor;\n\s*CX\.drawImage\(F\[h\(tx, ty\) % F\.length\]/.test(
+          bj
+        )
+    );
+    /* 怪物腳下陰影（mumi 2026-11-26）：drawMob 用 mobShadow，表 MOB_SHADOW 外淡內深、只用 --scrim，不寫 rgba( */
+    const rj = JS('render.js'),
+      ms = rj.slice(rj.indexOf('function mobShadow'), rj.indexOf('function drawMobStates')),
+      tab = (rj.match(/const MOB_SHADOW = (\[[^;]*\]);/) || [])[1];
+    ok(
+      '怪物腳下陰影：drawMob 畫 mobShadow（--scrim 兩層、外淡內深、寬至少 m.r×1.1），函式裡沒有 rgba(',
+      /function drawMob\(m\) \{[^}]*?\n  mobShadow\(m\);/.test(rj) &&
+        !!tab &&
+        (t => t.length === 2 && t[0].w > t[1].w && t[0].a < t[1].a && t.every(s => s.a > 0 && s.a < 1))(
+          vm.runInNewContext(tab)
+        ) &&
+        /PAL\.rgb\.scrim/.test(ms) &&
+        /m\.r \* 1\.1/.test(ms) &&
+        !/rgba\(/.test(ms),
+      tab
+    );
+  }
   /* 3. 王印拼條：載到用 ic_wy32／ic_wy16；載不到（onerror）退回借 cur_regal，不報錯 */
   const wy = (() => {
     const c = {
@@ -11805,7 +12091,26 @@ const ASC_COMBOS = `const combos = k => {
       'index.html',
       ...fs.readdirSync(path.join(__dirname, '..', 'js')).map(f => 'js/' + f)
     ],
-    catUse = catFiles.filter(f => /var\(--cat-cal/.test(rd(f))),
+    /* mumi 11/24：災魘爪痕只准 .c12、.cq、.ccl 的規則用 --cat-cal（選擇器要同時有這三個 class）；
+       其他 CSS 規則、JS、index.html 用 var(--cat-cal*)、或任何規則用 --cat-cal-hi 都算違規 */
+    calRules = [
+      ...(cs => cs.slice(cs.indexOf('}', cs.search(/:root\s*\{/)) + 1))(css.replace(/\/\*[\s\S]*?\*\//g, '')).matchAll(
+        /([^{}]+)\{([^{}]*)\}/g
+      )
+    ].filter(m => /--cat-cal/.test(m[0])),
+    calOk = calRules.filter(
+      m =>
+        m[1]
+          .split(',')
+          .map(x => x.trim())
+          .every(x => /\.c12\b/.test(x) && /\.cq\b/.test(x) && /\.ccl\b/.test(x)) &&
+        !/--cat-cal-hi/.test(m[0]) &&
+        !/--cat-cal\s*:/.test(m[2])
+    ),
+    catUse = [
+      ...catFiles.filter(f => f !== 'css/style.css' && /var\(--cat-cal/.test(rd(f))),
+      ...calRules.filter(m => !calOk.includes(m)).map(m => m[1].trim())
+    ],
     corrUse = catFiles.flatMap(f => (rd(f).match(/var\(--cat-corr/g) || []).map(() => f)),
     corrOk = /\n\.fslot li\.cw, \.aff\.cor \{ color: var\(--cat-corr\); \}/.test(css),
     cssNc = css.replace(/\/\*[\s\S]*?\*\//g, ''),
@@ -11825,12 +12130,18 @@ const ASC_COMBOS = `const combos = k => {
             .every(d => /^\s*color:\s*var\(--cat-corr\)\s*$/.test(d))
       )
       .map(m => m[1].trim()),
-    corrElse = catFiles.filter(f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(rd(f))),
+    /* mumi 2026-11-26 12:40（經幕僚長轉達）裁定：放寬 B2-CAT，命運輪盤紅籤（js/maps.js ROUL 的 red）准用 PAL.catCorr；
+       只放這一處：maps.js 拿掉那一行後不能再有 --cat-corr／catCorr */
+    rouRed = /\n  \{ id: 'red', n: '紅', c: PAL\.catCorr, [^\n]*\n/,
+    corrElse = catFiles.filter(
+      f => f !== 'css/style.css' && /--cat-corr|catCorr/.test(f === 'js/maps.js' ? rd(f).replace(rouRed, '\n') : rd(f))
+    ),
     corrLeft = (afterRoot.match(/--cat-corr/g) || []).length;
   ok(
-    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准）；--cat-cal* 還沒有元件用到',
+    'B2-CAT：:root 有 --cat-corr #ff6066、--cat-cal #bd7aff、--cat-cal-hi #f1e4ff；--cat-corr 只准是 .aff.cor／.fslot li.cw 的文字色（其他選擇器、屬性、JS、index.html 一律不准；例外：命運輪盤紅籤 PAL.catCorr，mumi 11/26 12:40）；--cat-cal 只准 .c12 .cq .ccl（災魘爪痕）用，--cat-cal-hi 還沒有元件用到',
     [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')].join('|') === '#ff6066|#bd7aff|#f1e4ff' &&
       !catUse.length &&
+      calOk.length >= 1 &&
       corrUse.length === 1 &&
       corrOk &&
       corrRules.length === 1 &&
@@ -11840,6 +12151,7 @@ const ASC_COMBOS = `const combos = k => {
     JSON.stringify({
       tok: [tok('--cat-corr'), tok('--cat-cal'), tok('--cat-cal-hi')],
       catUse,
+      calOk: calOk.map(m => m[1].trim()),
       corrUse,
       corrBad,
       corrElse,
@@ -11964,9 +12276,9 @@ const ASC_COMBOS = `const combos = k => {
         )
       );
     ok(
-      'CSS 色票：style.css 的規則（:root 以外）與本次改的 8 支 JS 都沒有寫死 hex、rgb()',
-      !ruleLit.length && !jsLit.length,
-      JSON.stringify({ ruleLit: ruleLit.slice(0, 3), jsLit })
+      'CSS 色票：style.css 的規則（:root 以外）與本次改的 8 支 JS 都沒有寫死 hex、rgb()；腐化虛線走 :root 的 --corr-dash-rgb',
+      !ruleLit.length && !jsLit.length && corrDash(),
+      JSON.stringify({ ruleLit: ruleLit.slice(0, 3), jsLit, corrDash: corrDash() })
     );
     const R = rd('js/render.js'),
       Gm = rd('js/game.js'),
@@ -11985,15 +12297,18 @@ const ASC_COMBOS = `const combos = k => {
         /r: 160, dur: 0\.6, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
         /r: 130, dur: 0\.5, col: PAL\.enemyTel, sh: 'boom'/.test(Gm) &&
         /r: 140, dur: 0\.45, col: PAL\.enemyTel, sh: 'boom'/.test(rd('js/combat.js')) &&
-        (rd('js/skills.js').match(/col: PAL\.fxOwn, sh: 'boom'/g) || []).length === 3 &&
+        /* 第 4 步（總表 3.2 我方元素環 → --fx-own）：skills.js 原本 ELC.fire 的兩個 boom 環也改 PAL.fxOwn，3 → 5 */
+        (rd('js/skills.js').match(/col: PAL\.fxOwn, sh: 'boom'/g) || []).length === 5 &&
         /col: PAL\.fxOwn \}/.test(rd('js/combat.js')) &&
         /r: 40, dur: 0\.3, col: PAL\.fxOwn \}/.test(rd('js/skills.js'))
     );
     ok(
-      'CSS 色票 X4：fx 環先畫外 1 px 黑邊（--ring-edge、lineWidth+2）再畫本色；黑邊跟環共用同一個 globalAlpha，我方 --fx-own 環 9%（黑邊永遠不會不透明）',
+      'CSS 色票 X4：fx 環先畫外 1 px 黑邊（--ring-edge、lineWidth+2）再畫本色；黑邊跟環共用同一個 globalAlpha，我方 --fx-own 環 9%（黑邊永遠不會不透明）；沒給色的環＝--fx-own（總表列 62）',
       (ring.match(/globalAlpha/g) || []).length === 1 &&
-        /CX\.globalAlpha = \(1 - f\) \* \(o\.col === PAL\.fxOwn \? 0\.09 : 0\.9\)/.test(ring) &&
-        ring.indexOf('PAL.ringEdge') < ring.indexOf('o.col || PAL.catFracV4') &&
+        /const col = o\.col \|\| PAL\.fxOwn;\s*CX\.globalAlpha = \(1 - f\) \* \(col === PAL\.fxOwn \? 0\.09 : 0\.9\)/.test(
+          ring
+        ) &&
+        ring.indexOf('PAL.ringEdge') < ring.indexOf('strokeStyle = col;') &&
         /lineWidth = lw \+ 2/.test(ring) &&
         PAL.ringEdge === '#000000'
     );
@@ -12002,15 +12317,15 @@ const ASC_COMBOS = `const combos = k => {
       blink = R.slice(R.indexOf("m.pat === 'blink'"), R.indexOf("m.pat === 'nova'")),
       mini = R.slice(
         R.indexOf('for (const m of G.mobs) {\n    if (m.arrow) continue;'),
-        R.indexOf('PAL.goodV2;', R.indexOf('if (m.arrow) continue;'))
+        R.indexOf('/* 玩家 4×4', R.indexOf('if (m.arrow) continue;'))
       );
     ok(
-      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.3＋0.6f）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
+      'CSS 色票 #159 簽核 M1／M2：王閃現線先畫 5 px 不透明 --ring-edge（α1）再畫 3 px --enemy-tel（α 0.7＋0.2f，總表 3.2 (5)）；小地圖王點對齊整數像素，先畫 7×7 --ring-edge 再畫 5×5 --enemy-tel',
       (blink.match(/globalAlpha = /g) || []).length === 2 &&
         blink.indexOf('lineWidth = 5') < blink.indexOf('PAL.ringEdge') &&
         blink.indexOf('PAL.ringEdge') < blink.indexOf('CX.stroke()') &&
-        blink.indexOf('CX.stroke()') < blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') &&
-        blink.indexOf('globalAlpha = 0.3 + 0.6 * f;') < blink.indexOf('lineWidth = 3') &&
+        blink.indexOf('CX.stroke()') < blink.indexOf('globalAlpha = 0.7 + 0.2 * f;') &&
+        blink.indexOf('globalAlpha = 0.7 + 0.2 * f;') < blink.indexOf('lineWidth = 3') &&
         /globalAlpha = 1;\s*CX\.lineWidth = 2;\s*continue;/.test(blink) &&
         blink.indexOf('lineWidth = 3') < blink.indexOf('PAL.enemyTel') &&
         /fillStyle = PAL\.ringEdge;\s*CX\.fillRect\(bx, by, 7, 7\);\s*CX\.fillStyle = PAL\.enemyTel;\s*CX\.fillRect\(bx \+ 1, by \+ 1, 5, 5\);/.test(
@@ -12023,8 +12338,176 @@ const ASC_COMBOS = `const combos = k => {
       GF.colOwn === PAL.elFire &&
         GF.col === PAL.enemyTel &&
         PAL.elFire !== PAL.enemyTel &&
-        /CX\.fillStyle = \(!foe && C\.colOwn\) \|\| C\.col;/.test(Mc),
+        /CX\.fillStyle = C\.colOwn \|\| C\.col;/.test(Mc) &&
+        /c\.fillStyle = C\.col;/.test(Mc),
       JSON.stringify({ colOwn: GF.colOwn, col: GF.col })
+    );
+    /* dpoe-battle-mockup-1126：顏色總表第 4、5 步與 battle-mockup-gap-list */
+    const bmCss = rd('css/style.css'),
+      bmGone = [
+        '--scene-detail-28-rgb',
+        '--scene-detail-31-rgb',
+        '--scene-detail-56-rgb',
+        '--scene-detail-61-rgb',
+        '--dmg-minor-v9',
+        '--rar-rare-v1',
+        '--good-v6',
+        '--el-cold-v4'
+      ].filter(t => bmCss.includes(t + ':')),
+      bmJs = fs
+        .readdirSync(path.join(__dirname, '..', 'js'))
+        .map(f => rd('js/' + f))
+        .join('\n'),
+      bmOld = [
+        'rgb.sceneVoidV1',
+        'rgb.sceneVoidV2',
+        'hlV1',
+        'hlV2',
+        'hlV3',
+        'hlV4',
+        'hlV5',
+        'hlV6',
+        'hlV7',
+        'hlV8',
+        'glintV3',
+        'glintV4',
+        'glintV5',
+        'warmGlintV1',
+        'warmGlintV2',
+        'hurtVignetteV1',
+        'dodgeVignetteV1',
+        'dodgeVignetteV2',
+        'borderV2',
+        'borderMidV3',
+        'borderHiV2',
+        'borderCapV1',
+        'txOffV1',
+        'txLockV3',
+        'rgb.txEmptyV1',
+        'rgb.onActV2',
+        'goodV1',
+        'goodV2',
+        'goodV3',
+        'goodV4',
+        'goodV5',
+        'rgb.goodV1',
+        'badV5',
+        'badV6',
+        'badHiV3',
+        'rgb.badHiV1',
+        'rgb.badHiV2',
+        'hpV3',
+        'progLoV1',
+        'progHiV1',
+        'progHiV2',
+        'rarNormalV1',
+        'rarNormalV2',
+        'rgb.rarMagicBgV1',
+        'rarRareBgV3',
+        'rgb.rarRareBgV1',
+        'rarUniqueV2',
+        'rarChaseV2',
+        'rarChaseHiV1',
+        'rarChaseHiV2',
+        'rarChaseBgV3',
+        'ascHiV2',
+        'catFracV4',
+        'rgb.catFracV1',
+        'rgb.catFracV2',
+        'catMemV2',
+        'rgb.catMemV1',
+        'elFireV1',
+        'rgb.elFireV2',
+        'elColdV3',
+        'rgb.elColdV3',
+        'rgb.elColdV4',
+        'rgb.elColdV5',
+        'elLightV1',
+        'elLightV2',
+        'elChaosV1',
+        'rgb.elChaosV2',
+        'dmgHitV1',
+        'dmgHitV2',
+        'dmgCritV1',
+        'dmgCritV2',
+        'rgb.dmgHurtV1',
+        'dmgGainV2',
+        'dmgMinorV3',
+        'dmgMinorV4',
+        'dmgMinorV5',
+        'dmgMinorV7',
+        'dmgMinorV8',
+        'rgb.fxRender1',
+        'rgb.fxRender2',
+        'fxRender3',
+        'fxGame1',
+        'fxMech1',
+        'fxMech2',
+        'fxMech3',
+        'fxCombat1',
+        'dmgGainV1',
+        'dmgGainV3',
+        'dmgMinorV2'
+      ]
+        .filter(k => new RegExp(`PAL\\.${k.replace('.', '\\.')}\\b`).test(bmJs))
+        .concat(
+          /PAL\.rgb\.badV1\b/.test(bmJs.replace(/`rgba\(\$\{PAL\.rgb\.badV1\},` : `rgba\(\$\{PAL\.rgb\.hl\},`/, ''))
+            ? ['rgb.badV1']
+            : []
+        ),
+      bmAdd = [
+        '--el-chaos-rgb: 233, 124, 207;',
+        '--tx-empty-rgb: 157, 153, 149;',
+        '--rar-magic-bg-rgb: 35, 35, 43;',
+        '--rar-rare-bg-rgb: 38, 36, 27;'
+      ];
+    ok(
+      '顏色總表第 4 步：§3／§4 的舊 token 在 js/ 已沒有使用處（touch.js:54 的 390 取消色照 §5 範圍外留著）；補 4 個 -rgb 伴生；8 個沒人引用的舊 token 已刪',
+      !bmOld.length && !bmGone.length && bmAdd.every(t => bmCss.includes('  ' + t)),
+      JSON.stringify({ bmOld, bmGone })
+    );
+    ok(
+      '顏色總表列 41／32／20：能量球讀 --chg-e／--good／--chg-p，先畫半徑 5 的 --ring-edge 再畫半徑 4',
+      R.includes('const CHGC = { e: PAL.chgE, f: PAL.good, p: PAL.chgP };') &&
+        /\[PAL\.ringEdge, 5\],\s*\[c, 4\]/.test(R)
+    );
+    const bmFl = R.slice(R.indexOf('function foeFlush'), R.indexOf('function foeEdge')),
+      bmTc = R.slice(R.indexOf('function teleCircle'), R.indexOf('function shadow'));
+    ok(
+      '第 5 步 teleCircle／敵方地面：外圈記在 a、進度內圈與敵方地面記在 b；離屏先畫 a、整塊 destination-out 1−0.30/0.55、再畫 b，整層 0.55 貼一次（外 0.30＋內 0.357＝0.55，重疊取最大不疊加），只處理外接框',
+      /for \(const f of FOE\.a\) f\(g\);[\s\S]*?g\.globalCompositeOperation = 'destination-out';\s*g\.globalAlpha = 1 - 0\.3 \/ 0\.55;\s*g\.fillRect\(x, y, w, h\);[\s\S]*?for \(const f of FOE\.b\) f\(g\);[\s\S]*?CX\.globalAlpha = 0\.55;\s*CX\.drawImage\(g\.canvas, x, y, w, h, x, y, w, h\);[\s\S]*?g\.clearRect\(x, y, w, h\);/.test(
+        bmFl
+      ) &&
+        /\['a', r\],\s*\['b', r \* clamp\(f, 0, 1\)\]/.test(bmTc) &&
+        !/rgba\(/.test(bmTc) &&
+        /foeFill\('b', g\.x, g\.y, g\.r, c => \{\s*c\.globalAlpha = f;\s*c\.fillStyle = C\.col;/.test(Mc) &&
+        !/0\.36/.test(Mc.slice(Mc.indexOf('function drawMech'), Mc.indexOf('for (const c of G.corpses)'))) &&
+        /CX\.globalAlpha = 0\.14 \* f;/.test(Mc) &&
+        /foeFlush\(\);/.test(R.slice(R.indexOf('for (const t of G.tele) teleCircle'), R.indexOf('愛的紅線')))
+    );
+    ok(
+      '第 5 步預警框（C24／T2／T3）：先 5 px 不透明 --ring-edge 再 3 px --enemy-tel α0.9 虛線 [10, 6]、中央菱形；王閃現 α 0.7＋0.2f',
+      /lineWidth = 5;\s*CX\.strokeStyle = PAL\.ringEdge;\s*CX\.stroke\(\);\s*CX\.setLineDash\(\[10, 6\]\);\s*CX\.globalAlpha = 0\.9;\s*CX\.lineWidth = 3;\s*CX\.strokeStyle = PAL\.enemyTel;/.test(
+        R.slice(R.indexOf('function foeEdge'), R.indexOf('function foeIcon'))
+      ) && /globalAlpha = 0\.7 \+ 0\.2 \* f;/.test(R)
+    );
+    ok(
+      '第 5 步我方特效 --fx-own 9%（總表 B1、列 42／158）：ownFx 是 0.09×a、黑邊是 --ring-edge；隕石落點、雷暴範圍、震地、完美閃避都走 ownFx',
+      /CX\.globalAlpha = 0\.09 \* a;/.test(R.slice(R.indexOf('function ownFx'), R.indexOf('const FXI'))) &&
+        (R.match(/ownFx\(/g) || []).length === 8 &&
+        /if \(p\.wet\) ownFx\(a, 1, 0\);/.test(R)
+    );
+    ok(
+      '差距清單 C1／C2／C4、E1、E2：暴擊「暴擊 」前綴＋2 px --dmg-outline；元素數字 --dmg-hit；敵人畫 1 px --enemy-rim 剪影；王腳圈 4 px 黑＋3 px --enemy-tel α0.9',
+      /n\.c === 'crit'\s*\?\s*'暴擊 ' \+ numT\(n\.v\)/.test(R) &&
+        /CX\.lineWidth = n\.c === 'crit' \? 2 : 4;/.test(R) &&
+        /n\.c === 'crit' \? PAL\.dmgOutline :/.test(R) &&
+        /fire: \[PAL\.dmgHit, 15\],\s*cold: \[PAL\.dmgHit, 15\],\s*light: \[PAL\.dmgHit, 15\],\s*chaos: \[PAL\.dmgHit, 15\],/.test(
+          R
+        ) &&
+        /spr\(D\.sp, m\.x \+ wind, m\.y - fly, m\.sz, \{ \.\.\.o, rim: PAL\.enemyRim \}\);/.test(R) &&
+        /if \(m\.boss\) footRing\(m\.x, m\.y, m\.r \* 1\.4, PAL\.enemyTel, 0\.9, 3, 4/.test(R) &&
+        PAL.dmgOutline === '#000000'
     );
   }
   /* (5a) 王印拼條第一次用到才載：橫幅先畫出空 span.ic，圖載好（artRepaint）要補畫橫幅 */
@@ -12125,7 +12608,7 @@ const ASC_COMBOS = `const combos = k => {
     let warn = 0, pill = 0;
     hudWarn = () => warn++; lvPill = () => pill++; sfx = () => {}; sheetSync = () => {}; PORT = () => false;
     gainXp(xpNeed(1) + xpNeed(2));
-    r.lv = [S.lv, pill, warn, G.nums.length, G.fx.filter(o => o.k === 'ring' && o.col === '#ffd166').length, G.fx.filter(o => o.k === 'lvup' || o.n === 'lvup').length];
+    r.lv = [S.lv, pill, warn, G.nums.length, G.fx.filter(o => o.k === 'ring' && o.col === PAL.dmgCrit).length, G.fx.filter(o => o.k === 'lvup' || o.n === 'lvup').length];
     return r;
   })()`);
   ok(
@@ -12171,7 +12654,11 @@ const ASC_COMBOS = `const combos = k => {
     out = css.replace(/:root\s*\{[^}]*\}/, ''),
     cssLit = out.match(/#[0-9a-fA-F]{3,8}\b(?![\w-]*\s*[{,])|rgba?\(\s*\d/g) || [];
   ok('色票：style.css 只有一個 :root，而且在最前面', roots.length === 1 && /^\s*:root/.test(css), roots.length);
-  ok('色票：style.css 的 :root 以外沒有寫死的色碼', !cssLit.length, cssLit.slice(0, 5).join(' '));
+  ok(
+    '色票：style.css 的 :root 以外沒有寫死的色碼；腐化虛線走 :root 的 --corr-dash-rgb',
+    !cssLit.length && corrDash(),
+    cssLit.slice(0, 5).join(' ') + ' corrDash=' + corrDash()
+  );
   const files = fs.readdirSync(path.join(__dirname, '..', 'js')).filter(f => f.endsWith('.js')),
     SKIP = ['intro.js', 'sprites.js', 'core.js', 'palette.js', 'art.js', 'hideart.js', 'fxsheets.js', 'ptdata.js'],
     lit = [],
@@ -12373,7 +12860,7 @@ const ASC_COMBOS = `const combos = k => {
       S.story.tips = 0;
       S.auto = 0;
       if (touch) DBG.safeArea(34, 47);
-      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
       ['apshot', 'grenade', 'chargeslam', 'gasflask'].forEach((k, i) => {
         S.skills[i] = { k, so: [null, null], n: 2 };
         S.lib.sk[k] = 1;

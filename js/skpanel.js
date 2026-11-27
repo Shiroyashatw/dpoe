@@ -521,7 +521,7 @@ function supRows(c) {
     while (lv < campMax('altar') && ((S.camp.altar = ++lv), campN('holes') <= j));
     S.camp.altar = a0;
     rows.push(
-      `<div class="sk-row emp lk">${ICO.lock}<span class="sk-t"><b>第 ${j + 1} 孔</b><small>這一孔要祭壇 Lv ${lv} 才生效。</small></span></div>`
+      `<div class="sk-row emp lk">${ICO.lock}<span class="sk-t"><b>第 ${j + 1} 孔</b><small>這一孔要長老屋 Lv ${lv} 才生效。</small></span></div>`
     );
   }
   if (r.n < campN('holes'))
@@ -1114,7 +1114,8 @@ function skPut(k) {
 }
 /* 升級按住連升：按下就升一級，按住 0.4 秒後每 0.12 秒再升一級，放開或升不了就停（數字跟著動） */
 const HOLD = { t: 0, last: -1e9 };
-function holdStop() {
+/* 跟 hud.js 長按確認卡的 holdStop 分開命名（同名的話後載入的這支會蓋掉卡片的，提早放開不會取消） */
+function skUpStop() {
   clearTimeout(HOLD.t);
   HOLD.t = 0;
 }
@@ -1128,10 +1129,10 @@ document.addEventListener('pointerdown', e => {
     HOLD.last = performance.now();
     HOLD.t = skUp(k) ? setTimeout(step, 120) : 0;
   };
-  holdStop();
+  skUpStop();
   HOLD.t = setTimeout(step, 400);
 });
-['pointerup', 'pointercancel', 'blur'].forEach(t => addEventListener(t, holdStop));
+['pointerup', 'pointercancel', 'blur'].forEach(t => addEventListener(t, skUpStop));
 /* 出招順序拖把手換順序：列跟著手指，放開照位置換；不動就是選它（底下出上移／下移） */
 const DRAG = { moved: 0 };
 document.addEventListener('pointerdown', e => {

@@ -254,24 +254,15 @@ function rollMem(k) {
     ...(D.lv ? { lv: irnd(...D.lv), c: pick(Object.keys(CURSES)) } : {})
   };
 }
-/* 天賦樹六區（0.2.84）：每區點了幾點（起點不算）、開了幾個孔、孔裡的珠寶給哪些大點 */
-function secCount(s) {
-  const c = [0, 0, 0, 0, 0, 0];
-  for (const id of s.pt || []) {
-    const n = PTREE.I[id];
-    if (n && !n.gate) c[n.sec]++;
-  }
-  return c;
-}
-const sockOpen = (s, i, c = secCount(s)) => c[i] >= JEWEL.need;
+/* 珠寶孔（S/talent-tree.md v1.0.1）：第 i 孔（PT_J）的節點點亮了＝開了；孔裡的珠寶給哪些大點 */
+const sockOpen = (s, i) => (s.pt || []).includes(PT_J[i][0]);
 const jwOf = (s, id) => (s.jewels || []).find(j => j.id === id);
 /* 生效的珠寶大點：孔要開著；已經點了的大點、別顆已經給的不重複 */
 function jewelNodes(s) {
-  const c = secCount(s),
-    have = new Set(s.pt || []),
+  const have = new Set(s.pt || []),
     out = [];
   (s.jsock || []).forEach((id, i) => {
-    const j = id && sockOpen(s, i, c) && jwOf(s, id);
+    const j = id && PT_J[i] && sockOpen(s, i) && jwOf(s, id);
     if (j) for (const k of j.nt) if (!have.has(k) && PTREE.I[k]) have.add(k), out.push(PTREE.I[k]);
   });
   return out;

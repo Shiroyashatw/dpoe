@@ -51,9 +51,8 @@ async function run(b, W, H) {
     proSkip();
     S.story.tips = 0;
     S.auto = 0;
-    /* 解鎖表全開到中間（每座都還有下一級）、產生器全開：卡最多 */
+    /* 解鎖表全開到中間（每座都還有下一級）：卡最多 */
     for (const k of CAMP_B) S.camp[k] = Math.max(1, Math.min(campMax(k) - 1, 3));
-    for (const k of GEN_K) if (S.camp.gen[k]) S.camp.gen[k].lv = Math.max(S.camp.gen[k].lv, 1);
     S.mat.soul = 1e9;
     hudBar();
   });
@@ -249,7 +248,8 @@ async function run(b, W, H) {
         }
       const T = tileSet(bk);
       T.floor0 = T.floor0 || T.floor;
-      T.floor = [c];
+      T.floorL0 = T.floorL0 || T.floorL;
+      (T.floor = [c]), (T.floorL = null);
       G.bc = null;
       /* 鏡頭放在不整齊的位置（小數），量 bStatic 剛畫完的畫布（暗層、特效之前） */
       let img = null,
@@ -285,7 +285,7 @@ async function run(b, W, H) {
         res.push({ img, rects: rects.slice() });
       }
       window.bStatic = bs;
-      T.floor = T.floor0;
+      (T.floor = T.floor0), (T.floorL = T.floorL0);
       G.bc = null;
       /* 掃描：水平看紅欄（地磚開頭）、垂直看藍列；材質像素＝黑白交錯的一段 */
       const cls = (d, o) => {

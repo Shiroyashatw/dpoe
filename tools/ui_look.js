@@ -159,8 +159,7 @@ if (require.main === module)
         20,
         async () =>
           p.evaluate(m => {
-            Object.assign(S.camp, { forge: 8, watch: 5, scout: 1, house: 3, altar: 4, store: 1 });
-            Object.assign(S.camp.gen, { wood: { lv: 30 }, iron: { lv: 18 }, hide: { lv: 9 }, silk: { lv: 4 } });
+            Object.assign(S.camp, { forge: 8, watch: 5, scout: 1, altar: 4, store: 1 });
             matAdd('wood', 0, 900);
             matAdd('iron', 1, 300);
             MAT().soul = 2400;

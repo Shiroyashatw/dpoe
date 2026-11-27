@@ -3,8 +3,8 @@ const fs = require('fs'),
   path = require('path');
 /* dungeonPOE · 新存檔實掛＋上癮度指標表（M1-21、M2-01；門檻照 docs/production/specs/M2-03-addictiveness-criteria.md 的 A1–A10）。
    M2-01 起用 Playwright 的假時鐘跑「遊戲內時間」（約 5 倍速、不受機器忙不忙影響）；開兩個新存檔：
-   「玩家」：AI 自動打，一個會按的玩家每 5 秒看一次營地：解鎖表夠了就升（鍛造台、民房、瞭望台、祭壇、斥候營、倉房）、產生器用剩下的木買
-   （一次一級、最便宜的先，留下一件解鎖表要的木與材料）、瞭望台開了新地點就去那裡刷、一分鐘打造一件（部位輪流）並在 ▲ 時換上、其他分解；
+   「玩家」：AI 自動打，一個會按的玩家每 5 秒看一次營地：五座設施夠了就升（鍛造台、瞭望台、長老屋、斥候營、倉房；產生器與民房 mumi 2026-11-25 收掉）、
+   瞭望台開了新地點就去那裡刷、一分鐘打造一件（部位輪流）並在 ▲ 時換上、其他分解；
    「無人」：只有 AI 自動打，量 A5 掛機停住。每分鐘印一列；最後照每個量測窗（30 分鐘、跑滿的分鐘數）各寫一張 A1–A10 表（Markdown＋JSON）。
    用法：先開本機伺服器，node tools/camp_run.js [網址] [分鐘，預設 120] [寬 390] [高 844] [輸出資料夾，預設 evidence/m2-01]；只量不改。
    M1-21 瞭望台：再給一個 .csv 路徑就逐分鐘寫一列（「玩家」那份：靈魂收入、靈魂花在哪座設施、鐵 T1 產量與用量）。
@@ -67,7 +67,7 @@ const fake = () => ({
 function judge(R, X) {
   const W = R.w * 60,
     ok = b => (b ? '✅ 達標' : '❌ 未達標'),
-    small = R.up.filter(u => u[0] <= W && (u[1] === '產生器' || u[1] === '換上')).map(u => u[0]),
+    small = R.up.filter(u => u[0] <= W && u[1] === '換上').map(u => u[0]),
     news = R.ev.filter(e => e[0] <= W && e[2]).map(e => e[0]),
     g15 = maxGap(small, 0, Math.min(900, W)),
     gLate = W > 900 ? maxGap(small, 900, W) : null,
@@ -106,14 +106,14 @@ function judge(R, X) {
     ],
     [
       'A3',
-      '新東西（設施升級、產生器里程碑）',
+      '新東西（設施升級）',
       '30 分鐘 ≥ 10；第一小時 ≥ 18',
       `30 分鐘 ${n30} 個；第一小時 ${n60 == null ? '—（只跑 ' + R.w + ' 分）' : n60 + ' 個'}`,
       ok(n30 >= 10 && (n60 == null || n60 >= 18)) + (n60 == null ? '（只判 30 分鐘）' : '')
     ],
     [
       'A4',
-      '小的變強（產生器 +1 級、打造換上）間隔',
+      '小的變強（打造換上）間隔',
       '前 15 分鐘每 30–60 秒；之後每 1–2 分鐘',
       `前 15 分鐘 ${small.filter(t => t <= 900).length} 次、最大間隔 ${Math.round(g15[1])} 秒（${mmss(g15[0])} 起）` +
         (gLate
@@ -184,11 +184,11 @@ function table(R, X) {
           .join('\n')}${flags.length > 12 ? `\n- …另外 ${flags.length - 12} 筆在 JSON` : ''}`
       : 'AI 異常：無（沒有畫面 30 秒不動、0 靈魂／分、10 分鐘沒打完一輪）',
     '',
-    `<details><summary>資源曲線（每 5 分鐘）</summary>\n\n| 分 | 地點 | 角色 | 靈魂（/分） | 木 | 鐵 | 產生器（級(人)） | 鍛瞭斥民祭倉 | 輪／倒下 |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n${R.rows
+    `<details><summary>資源曲線（每 5 分鐘）</summary>\n\n| 分 | 地點 | 角色 | 靈魂（/分） | 木 | 鐵 | 鍛瞭斥祭倉 | 輪／倒下 |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n${R.rows
       .filter(r => r.min <= R.w && (r.min % 5 === 0 || r.min === 1))
       .map(
         r =>
-          `| ${r.min} | ${r.node} | Lv${r.lv} | ${r.soul}（${r.spm}） | ${r.wood} | ${r.iron} | ${r.gen} | ${r.camp} | ${r.rounds}／${r.deaths} |`
+          `| ${r.min} | ${r.node} | Lv${r.lv} | ${r.soul}（${r.spm}） | ${r.wood} | ${r.iron} | ${r.camp} | ${r.rounds}／${r.deaths} |`
       )
       .join('\n')}\n\n</details>`,
     '',
@@ -230,10 +230,7 @@ function MON([who, STALL]) {
     }),
     sec = () => (Date.now() - __M.t0) / 1000,
     w0 = hudWarn,
-    sig = () => [
-      GEN_K.map(k => genOf(k).lv).join(),
-      ['forge', 'watch', 'scout', 'house', 'altar', 'store'].map(b => S.camp[b]).join()
-    ],
+    sig = () => ['forge', 'watch', 'scout', 'altar', 'store'].map(b => S.camp[b]).join(),
     live = () =>
       `${G.scene}|${G.state}|${SES ? SES.rounds : 0}|${Math.round(G.prog)}|${G.mobs.filter(m => m.hp > 0).length}|${Math.floor(SES ? SES.soul : 0)}`,
     /* 怪的總生命只算往下掉的（回血不算進展） */
@@ -249,7 +246,7 @@ function MON([who, STALL]) {
   hudWarn = t => (
     /^\S+ Lv\d+：/.test(t) && __M.say.push(`${Math.round(sec())} ${t}`), /失效/.test(t) && __M.warn.push(sec()), w0(t)
   );
-  let [g0, c0] = sig(),
+  let c0 = sig(),
     lv = S.lv,
     L = live(),
     Lt = 0,
@@ -258,10 +255,9 @@ function MON([who, STALL]) {
     bad = S.skills.map((_, i) => !!slotBad(i));
   setInterval(() => {
     const t = sec(),
-      [g, c] = sig();
-    if (g !== g0) __M.up.push([t, '產生器']);
+      c = sig();
     if (c !== c0) __M.up.push([t, '設施']);
-    (g0 = g), (c0 = c);
+    c0 = c;
     if (S.lv > lv) __M.up.push([t, '角色']), (lv = S.lv);
     if (!__M.r1 && SES && SES.rounds > 0) __M.r1 = t;
     /* A5：世界暫停（倒下等 AI 重來不算）；畫面 STALL 秒沒變＝卡住 */
@@ -308,13 +304,12 @@ function ROW(min) {
       .filter(([k]) => k.startsWith('iron'))
       .map(([k, n]) => matName(...matOf(k)) + ' ' + n)
       .join(' '),
-    gen: GEN_K.map(k => `${GEN[k].n[0]}${genOf(k).lv}(${genOf(k).w || 0})`).join(' '),
-    camp: ['forge', 'watch', 'scout', 'house', 'altar', 'store'].map(b => S.camp[b]).join('/'),
+    camp: ['forge', 'watch', 'scout', 'altar', 'store'].map(b => S.camp[b]).join('/'),
     rounds: SES ? SES.rounds : 0,
     deaths: SES ? SES.deaths : 0,
     spm: Math.round(soulRate()),
     next: (() => {
-      const n = ['forge', 'house', 'watch', 'altar', 'scout', 'store']
+      const n = ['forge', 'watch', 'altar', 'scout', 'store']
         .map(b => [b, campNext(b)])
         .filter(x => x[1])
         .sort((a, b) => a[1].soul - b[1].soul)[0];
@@ -340,7 +335,7 @@ function ROW(min) {
 }
 /* 會按的玩家（每 5 秒）；決策記進 __M.ev：[秒, 文字, 是不是新東西] */
 function PLAY() {
-  const ORDER = ['forge', 'house', 'watch', 'altar', 'scout', 'store'],
+  const ORDER = ['forge', 'watch', 'altar', 'scout', 'store'],
     t = (Date.now() - __M.t0) / 1000;
   for (const b of ORDER)
     if (!campUp(b)) {
@@ -350,32 +345,13 @@ function PLAY() {
   const nx = ORDER.map(b => campNext(b))
       .filter(Boolean)
       .sort((a, b) => a.soul - b.soul)[0],
-    rs = nx && S.mat.soul >= nx.soul ? nx : { wood: 0, mats: {} },
-    bought = {};
-  for (let g = 0; g < 30; g++) {
-    const ok = GEN_K.filter(k => {
-      if (!genOn(k) || genAfford(k) < 1) return false;
-      const c = genCost(k);
-      /* 林場永遠買（它自己會把木賺回來）；其他產生器留下一件解鎖表要的木 */
-      if (k !== 'wood' && matN('wood') - c.wood < (rs.wood || 0)) return false;
-      return Object.keys(c.mats).every(key => matN(...matOf(key)) - c.mats[key] >= ((rs.mats || {})[key] || 0));
-    });
-    if (!ok.length) break;
-    const k = ok.reduce((a, b) => (genCost(a).wood <= genCost(b).wood ? a : b)),
-      m0 = genMs(genOf(k).lv);
-    genUp(k);
-    bought[GEN[k].n] = (bought[GEN[k].n] || 0) + 1;
-    const m1 = genMs(genOf(k).lv);
-    if (m1.m > m0.m || m1.slots > m0.slots || m1.tu > m0.tu) __M.ev.push([t, `${GEN[k].n} Lv${genOf(k).lv} 里程碑`, 1]);
-  }
-  const bs = Object.entries(bought);
-  if (bs.length) __M.ev.push([t, '升產生器 ' + bs.map(([n, v]) => `${n} +${v}`).join('、'), 0]);
-  /* 打造：一分鐘一件、部位輪流，留下一件升級要的鐵與升礦場的鐵；▲ 就換上（先用 eqBreaks 預告會失效的招），不然分解 */
+    rs = nx && S.mat.soul >= nx.soul ? nx : { wood: 0, mats: {} };
+  /* 打造：一分鐘一件、部位輪流，留下一件升級要的鐵；▲ 就換上（先用 eqBreaks 預告會失效的招），不然分解 */
   const K = ['weapon', 'chest', 'helm', 'gloves', 'boots', 'belt', 'ring', 'amulet'];
   __M.cr = __M.cr || [0, 0, -1e9];
   const kind = K[__M.cr[0] % K.length],
-    T = genTier('iron'),
-    keep = ((rs.mats || {})['iron:' + T] || 0) + (genCost('iron').mats['iron:' + T] || 0);
+    T = tierCap(),
+    keep = (rs.mats || {})['iron:' + T] || 0;
   if (t - __M.cr[2] < 60 || matN('iron', T) - 8 < keep) return;
   __M.cr[2] = t;
   const r = craftDo(kind, {
@@ -396,9 +372,9 @@ function PLAY() {
   ST = stats();
 }
 
-/* M1-21 CSV（只在給了 .csv 時裝）：靈魂花在哪（campUp 前後的差）、鐵 T1 產量（genTick 回的）與用量（營地／產生器／打造前後的差，打造含同一批分解退回的） */
+/* M1-21 CSV（只在給了 .csv 時裝）：靈魂花在哪（campUp 前後的差）、鐵 T1 用量（營地／打造前後的差，打造含同一批分解退回的） */
 function ACC() {
-  window.__acc = { sp: {}, ip: 0, iu: { camp: 0, gen: 0, craft: 0 } };
+  window.__acc = { sp: {}, iu: { camp: 0, craft: 0 } };
   const i1 = () => matN('iron', 1),
     wrap = (f, on) =>
       function (...a) {
@@ -412,24 +388,17 @@ function ACC() {
     if (ds) __acc.sp[b] = (__acc.sp[b] || 0) + ds;
     __acc.iu.camp += di;
   });
-  genUp = wrap(genUp, (a, ds, di) => (__acc.iu.gen += di));
   craftDo = wrap(craftDo, (a, ds, di) => (__acc.iu.craft += di));
-  const gt = genTick;
-  genTick = dt => {
-    const got = gt(dt);
-    __acc.ip += (got && got['iron:1']) || 0;
-    return got;
-  };
 }
 /* 取這一分鐘的 CSV 資料並歸零 */
 function ACCROW() {
   const a = __acc;
-  window.__acc = { sp: {}, ip: 0, iu: { camp: 0, gen: 0, craft: 0 } };
+  window.__acc = { sp: {}, iu: { camp: 0, craft: 0 } };
   return { acc: a, iron1: matN('iron', 1) };
 }
 function csvOut(rows, accs, evs) {
-  const B = ['forge', 'watch', 'scout', 'house', 'altar', 'store'],
-    N = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '祭壇', store: '倉房' },
+  const B = ['forge', 'watch', 'scout', 'altar', 'store'],
+    N = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', altar: '長老屋', store: '倉房' },
     L = [
       [
         '分',
@@ -438,11 +407,9 @@ function csvOut(rows, accs, evs) {
         '靈魂庫存',
         '靈魂收入',
         ...B.map(b => '靈魂花在' + N[b]),
-        '鍛瞭斥民祭倉',
+        '鍛瞭斥祭倉',
         '鐵T1庫存',
-        '鐵T1產量',
         '鐵T1用量_營地',
-        '鐵T1用量_產生器',
         '鐵T1用量_打造',
         '事件'
       ].join(',')
@@ -463,9 +430,7 @@ function csvOut(rows, accs, evs) {
         ...sp,
         r.camp,
         iron1,
-        acc.ip,
         acc.iu.camp,
-        acc.iu.gen,
         acc.iu.craft,
         '"' + evs[i].join('；') + '"'
       ].join(',')
@@ -568,7 +533,7 @@ else
         else if (!x.gain) zero.forEach(z => z.who === who && z.end === min - 1 && (z.end = min));
       if (CSV) accs.push(await P.pg.evaluate(ACCROW)), evs.push(ev);
       console.log(
-        `${String(min).padStart(3)} 分 | ${r.node} Lv${r.lv} | 靈魂 ${r.soul}（本分 +${r.gain}，${r.spm}/分）| 木 ${r.wood} | ${r.iron} | ${r.gen} | 鍛瞭斥民祭倉 ${r.camp} | 輪 ${r.rounds} 死 ${r.deaths} | ${r.dbg} ‖ 無人：${n.dbg} 本分 +${n.gain} 輪 ${n.rounds}${ev.length ? '\n      ' + ev.join('\n      ') : ''}`
+        `${String(min).padStart(3)} 分 | ${r.node} Lv${r.lv} | 靈魂 ${r.soul}（本分 +${r.gain}，${r.spm}/分）| 木 ${r.wood} | ${r.iron} | 鍛瞭斥祭倉 ${r.camp} | 輪 ${r.rounds} 死 ${r.deaths} | ${r.dbg} ‖ 無人：${n.dbg} 本分 +${n.gain} 輪 ${n.rounds}${ev.length ? '\n      ' + ev.join('\n      ') : ''}`
       );
       if (min === 30 || min === MIN)
         await P.pg.screenshot({ path: path.join(OUT, `${VW}x${VH}_${MIN}m_第${min}分.png`) }).catch(() => {});

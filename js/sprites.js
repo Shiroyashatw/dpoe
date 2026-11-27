@@ -1,7 +1,7 @@
 /* dungeonPOE · 圖片：PNG 大圖（頭像、怪物、道具圖示）、8×8 備用星星、程式像素圖（藥劑） */
 'use strict';
 /* 8×8 備用圖示：PNG 圖示還沒載好或沒有時顯示 */
-/* 0.5.4：營地的手畫 16×16（木、靈絲、林場、礦場、絲地、民房、倉房）與工位的人影 8×8；ART 裡挑不到的才畫這裡（icHTML 先找這裡） */
+/* 0.5.4：營地的手畫 16×16（木、靈絲、林場、礦場、絲地、倉房）；ART 裡挑不到的才畫這裡（icHTML 先找這裡） */
 const ICONS = {
   star: ['...yy...', '...yy...', 'yyyyyyyy', '.yyyyyy.', '..yyyy..', '.yy..yy.', 'yy....yy', '........'],
   i_log: [
@@ -94,24 +94,6 @@ const ICONS = {
     '................',
     '................'
   ],
-  i_house: [
-    '................',
-    '.......kk.......',
-    '......krrk......',
-    '.....krrrrk.....',
-    '....krrrrrrk....',
-    '...krrrrrrrrk...',
-    '..krrrrrrrrrrk..',
-    '.kkkkkkkkkkkkkk.',
-    '..kllllllllllk..',
-    '..klkkklllyylk..',
-    '..klkdklllyylk..',
-    '..klkdkllllllk..',
-    '..klkdkllllllk..',
-    '..kkkkkkkkkkkk..',
-    '................',
-    '................'
-  ],
   i_crate: [
     '................',
     '................',
@@ -129,8 +111,7 @@ const ICONS = {
     '................',
     '................',
     '................'
-  ],
-  i_man: ['...ww...', '...ww...', '..wwww..', '.w.ww.w.', '...ww...', '..w..w..', '..w..w..', '........']
+  ]
 };
 const ICOPAL = {
   w: '#e8e6e0',
@@ -203,8 +184,9 @@ function artIconURL(n, px) {
   return u;
 }
 /* 回傳正方形畫布（圖貼底置中、留 1 格邊）；還沒載好時回傳空白（不快取） */
+/* white：真值＝白色剪影（閃白）；字串＝那個顏色的剪影（敵人外框 --enemy-rim） */
 function artSprite(name, white) {
-  const key = name + (white ? '|w' : '');
+  const key = name + (white ? '|' + white : '');
   let c = SPC.get(key);
   if (c) return c;
   const a = artImg(name.slice(2)),
@@ -222,7 +204,7 @@ function artSprite(name, white) {
   x.drawImage(im, sx, sy, w, h, fl((N - w) / 2), N - 1 - h, w, h);
   if (white) {
     x.globalCompositeOperation = 'source-in';
-    x.fillStyle = '#fff';
+    x.fillStyle = typeof white === 'string' ? white : '#fff';
     x.fillRect(0, 0, N, N);
   }
   SPC.set(key, c);

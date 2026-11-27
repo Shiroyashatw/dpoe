@@ -19,7 +19,7 @@ function newGame() {
     lv: 1,
     xp: 0,
     gold: 0,
-    /* 營地（0.5.1，craft.js 的 campCan）：解鎖表六座的等級、產生器四座、開了的武器類別；自動分解規則；星級全域一個（斥候營開上限） */
+    /* 營地（0.5.1，craft.js 的 campCan）：五座設施的等級、開了的武器類別；自動分解規則；星級全域一個（斥候營開上限） */
     camp: newCamp(),
     auto2: AUTO2(),
     star: 1,
@@ -31,7 +31,7 @@ function newGame() {
     gods: [],
     godOn: null,
     jewels: [],
-    jsock: [null, null, null, null, null, null],
+    jsock: [] /* 18 個珠寶孔（PT_J 的順序）鑲了哪顆 */,
     /* 世界地圖（world.js）：走過的節點、每節點的星級、在刷的節點、血霧。maxT、t16 是內部欄位（昇華點、練習區、賭裝） */
     world: newWorld(),
     hunt: newHunt(),
@@ -66,8 +66,9 @@ function newGame() {
   s.charms = [null, null, null];
   s.eq.chest = mkItem('c_leather', 1, 0);
   s.mat = newMat();
-  /* 營地的廢墟剩一點木：第一次升林場馬上按得下去（0.5.1 ⚠️） */
-  s.mat.mats = { wood: 20 };
+  /* 營地的廢墟剩一點木（0.5.1 ⚠️） */
+  /* 材料來源 v1.1 §2.5：另給生鐵 16（武器 2 件，第一次打造不用等第一輪打完） */
+  s.mat.mats = { wood: 20, 'iron:1': 16 };
   /* 偽隨機保底（craft.js 的 prdRoll）：★、追憶、聖化石、腐化石各自連續沒中的次數 */
   s.prd = PRD0();
   return s;
@@ -323,51 +324,38 @@ function offSettle(away, min = OFF_MIN) {
     here: !!chaseLine(t)
   };
 }
-/* 離開的時候產生器照產（0.5.1，3.7）：上限照倉房；回產了多少 { 材料鍵: n } */
-const offGen = away => genTick(Math.min(away, offMax()) / 1000);
 /* 回來時（M2-12 §7，依離開多久分三段）：<60 秒什麼都不出；60 秒–10 分只在掛機條一行 6 秒；≥10 分出離線結算（半版／桌機中間的卡）。
    計算門檻照舊（OFF_MIN，後台不改）；這裡只決定怎麼顯示 */
 const OFF_LINE = 60e3,
   OFF_CARD = 10 * 60e3;
-function offBack(o, g, away) {
+function offBack(o, away) {
   if (away < OFF_LINE) return;
-  if (away >= OFF_CARD) return offShow(o, g, away);
-  const gs = Object.entries(g || {}).filter(([, v]) => v > 0),
-    r =
-      o && o.soul > 0
-        ? `靈魂 +${abbr(o.soul, 'own')}`
-        : gs.length
-          ? `${rbName(gs[0][0])} +${abbr(gs[0][1], 'own')}`
-          : '';
+  if (away >= OFF_CARD) return offShow(o, away);
+  const r = o && o.soul > 0 ? `靈魂 +${abbr(o.soul, 'own')}` : '';
   IDLE.msg = strT('idleAway', { t: idleDur(away), r }).replace(/・$/, '');
   IDLE.msgT = Date.now() + 6000;
   idleBar(1);
 }
 /* 離線結算的卡：標題「離開 h 時 m 分」、一行計數（數字 1200 ms 跑上去）、掉落 3 列（追逐那列最後）、接下來一行、兩顆鈕（收下・繼續刷是主鈕） */
 const OFFC = { t0: 0, n: [], on: 0 };
-function offShow(o, g, away) {
-  const gs = Object.entries(g || {}).filter(([, v]) => v > 0);
-  if (!o && !gs.length) return;
-  const t = o ? o.away : Math.min(away || 0, offMax()),
-    rows = o
-      ? o.cur
-          .filter(([c]) => rareCur(c))
-          .sort((a, b) => /3$/.test(b[0]) - /3$/.test(a[0]))
-          .slice(0, o.here && o.chase ? 2 : 3)
-          .map(
-            ([c, v]) =>
-              `<li class="lg-${/3$/.test(c) ? 'perf' : 'cur'}"><i>${/3$/.test(c) ? '★' : '◆'}</i><span>${esc(CUR[c].n)} ×${v}</span></li>`
-          )
-      : [];
-  if (o && o.here && o.chase) {
+function offShow(o) {
+  if (!o) return;
+  const t = o.away,
+    rows = o.cur
+      .filter(([c]) => rareCur(c))
+      .sort((a, b) => /3$/.test(b[0]) - /3$/.test(a[0]))
+      .slice(0, o.here && o.chase ? 2 : 3)
+      .map(
+        ([c, v]) =>
+          `<li class="lg-${/3$/.test(c) ? 'perf' : 'cur'}"><i>${/3$/.test(c) ? '★' : '◆'}</i><span>${esc(CUR[c].n)} ×${v}</span></li>`
+      );
+  if (o.here && o.chase) {
     rows.push(`<li class="lg-chase ch"><i>印</i><span>${esc(strT('chaseN', { n: o.chase }))}</span></li>`);
     sfx('chaseBell');
     buzz(30);
   }
   const num = v => `<b data-n="${v}">0</b>`,
-    cnt = o
-      ? strT('offCnt', { b: num(o.won), s: num(o.soul) })
-      : gs.map(([k, v]) => `${esc(rbName(k))} +${num(v)}`).join('・'),
+    cnt = strT('offCnt', { b: num(o.won), s: num(o.soul) }),
     g1 = campGoal(),
     el = $('poff');
   el.innerHTML = `<h2>${esc(strT('offT', { t: idleDur(t) }))}</h2><p class="offc">${cnt}</p><ul class="offl">${rows.join('')}</ul>${g1 ? `<p class="offn">${esc(strT('offNext', { t: g1.t }))}</p>` : ''}
@@ -558,8 +546,8 @@ function enterMap(t, keep) {
   G.cols = cols;
   G.rows = rows;
   for (let y = 1; y < rows - 1; y++) for (let x = 1; x < cols - 1; x++) tiles[y * cols + x] = 0;
-  /* 場景只是外觀（biome.js）：每張圖隨機一種；擺設照 3×2 塊各擺幾個、不擋路 */
-  G.biome = was ? was.biome : pick(Object.keys(BIOMES));
+  /* 場景只是外觀（biome.js）：全地點共用 BIO_ONE（設 null 才每張圖隨機一種）；擺設照 3×2 塊各擺幾個、不擋路 */
+  G.biome = was ? was.biome : BIO_ONE || pick(Object.keys(BIOMES));
   const cx = i => 1 + Math.floor((i * (cols - 2)) / 3),
     cy = j => 1 + Math.floor((j * (rows - 2)) / 2),
     cells = [];
@@ -590,7 +578,7 @@ function enterMap(t, keep) {
   }
   G.waves = Array.from({ length: WAVES }, (_, w) => packs.filter((_, i) => i % WAVES === w));
   G.waveN = 0;
-  /* 一般通貨（蛻變、增幅、磨刀石／護甲片）：每張圖的量照星級表，換成每隻小怪的掉落機率 */
+  /* 一般通貨（加詞石、磨刀石／護甲片）：每張圖的量照星級表，換成每隻小怪的掉落機率 */
   G.curP = mapCurP(G.star, small, els.size);
   if (!G.arena) spawnWave();
   skillsEnter();
@@ -625,7 +613,7 @@ function spawnWave() {
       const p = floorNear(c.x, c.y, 0, 70, 20) || c;
       spawnMob(MOBS[n], p.x, p.y, pk, elite && j === 0).aggro = 1;
     });
-    fx({ k: 'ring', x: c.x, y: c.y, r: 60, dur: 0.4, col: PAL.rarNormalV2 });
+    fx({ k: 'ring', x: c.x, y: c.y, r: 60, dur: 0.4, col: PAL.enemyRim });
   }
   if (G.dream && !G.fdB && G.waveN === 2) {
     const c = edge(),
@@ -1113,7 +1101,7 @@ function killMob(m) {
   m.hp = 0;
   const t = G.mapT;
   fx({ k: 'die', x: m.x, y: m.y, sp: m.D.sp, sz: m.sz, dur: 0.45, flip: m.x > P.x });
-  sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? PAL.fxOwn : PAL.rarNormalV2);
+  sparks(m.x, m.y - m.sz * 0.4, rnd(0, TAU), 14, m.boss ? PAL.fxOwn : PAL.txDim);
   mobGround(m);
   /* 召喚出來的小怪：不給經驗、不掉落、不算擊殺 */
   if (m.summoned) return;
@@ -1143,6 +1131,7 @@ function killMob(m) {
     ei: G.rs ? G.rs.nE : 0
   };
   const mat = killMat(m, t, od);
+  for (const [mk, c] of mat.mats || []) pickLog(matName(...matOf(mk)), c);
   for (const k of mat.rare || []) dropAt(m.x, m.y, { show: k });
   /* M2-19.2：追逐物品落在地上（橘色雙光柱＋印環，停 CHASE_HOLD 秒再吸）；王印早就進碎片頁了，地上的只是演出 */
   if (mat.chase) dropAt(m.x, m.y, { chase: mat.chase });
@@ -1559,11 +1548,11 @@ function mobStrike(m) {
         o.owner = m;
         o.summoned = o.aggro = 1;
       }
-    fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.35, col: PAL.elChaosV1, sh: 'dark' });
+    fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.35, col: PAL.enemyTel, sh: 'dark' });
     recover(m, 0.5);
   } else if (D.ai === 'bomb') {
     /* 自爆：死掉但不給經驗與掉寶，只算首領進度 */
-    fx({ k: 'ring', x: m.x, y: m.y, r: D.boom, dur: 0.35, col: PAL.elFireV1, sh: 'boom' });
+    fx({ k: 'ring', x: m.x, y: m.y, r: D.boom, dur: 0.35, col: PAL.enemyTel, sh: 'boom' });
     sfx('slam');
     mobArea(m, m.x, m.y, D.boom, m.dmg, true);
     m.hp = 0;
@@ -1572,7 +1561,7 @@ function mobStrike(m) {
   } else if (D.ai === 'slam') {
     const x = m.x + Math.cos(m.ang) * 55,
       y = m.y + Math.sin(m.ang) * 55;
-    fx({ k: 'ring', x, y, r: 95, dur: 0.3, col: PAL.elFireV1, sh: 'boom' });
+    fx({ k: 'ring', x, y, r: 95, dur: 0.3, col: PAL.enemyTel, sh: 'boom' });
     mobArea(m, x, y, 95, m.dmg, true);
     recover(m, 0.6);
   }
@@ -1737,7 +1726,7 @@ function bossAI(m, dt) {
       w.x += Math.cos(a) * 120 * dt;
       w.y += Math.sin(a) * 120 * dt;
       if (Math.random() < 0.5)
-        fx({ k: 'ring', x: w.x + rnd(-10, 10), y: w.y + rnd(-10, 10), r: rnd(20, 45), dur: 0.35, col: PAL.hlV5 });
+        fx({ k: 'ring', x: w.x + rnd(-10, 10), y: w.y + rnd(-10, 10), r: rnd(20, 45), dur: 0.35, col: PAL.enemyTel });
       if (Math.hypot(P.x - w.x, P.y - w.y) < 55 + P.r) {
         moveBody(P, Math.cos(a) * 160 * dt, Math.sin(a) * 160 * dt);
         if (!(w.h > G.t)) (w.h = G.t + 0.5), mobHit(m, P, m.dmg * 0.4);
@@ -1755,7 +1744,7 @@ function bossAI(m, dt) {
         y: R.y + rnd(-0.6, 0.6) * R.r,
         r: 8,
         dur: 0.3,
-        col: PAL.dodgeVignetteV2
+        col: PAL.enemyTel
       });
     if (Math.hypot(P.x - R.x, (P.y - R.y) / 0.75) < R.r) {
       drench(P, 1);
@@ -1856,7 +1845,7 @@ function bossAI(m, dt) {
             const r = d * 0.24;
             const x = m.x + Math.cos(a) * d,
               y = m.y + Math.sin(a) * d;
-            if (safe.has(i)) fx({ k: 'ring', x, y, r, dur: m.t, col: PAL.fxGame1 });
+            if (safe.has(i)) fx({ k: 'ring', x, y, r, dur: m.t, col: PAL.good });
             else G.tele.push({ x, y, r, t: 0, dur: m.t, dmg: m.dmg * 1.2, src: m, el: ZODIAC[i].el });
           }
         }
@@ -1912,16 +1901,16 @@ function bossAI(m, dt) {
           const o = spawnMob(MOBS[m.D.call], m.x + rnd(-90, 90), m.y + rnd(-90, 90), 99, false);
           o.summoned = o.aggro = 1;
         }
-        fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.35, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.35, col: PAL.enemyTel, sh: 'dark' });
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'nova') {
         const grp = {};
         for (let i = 0; i < NOVA_N - NOVA_GAP; i++) foeShot(m, novaAng(m, i), 260, m.dmg * 0.8, grp);
         bossRec(m, 0.7, rage);
       } else if (m.pat === 'blink') {
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.enemyTel, sh: 'dark' });
         if (!(m.ail.pinT > G.t)) (m.x = m.tx), (m.y = m.ty);
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.enemyTel, sh: 'dark' });
         /* 落地接一下揮爪（畫面照揮爪的預警） */
         m.pat = 'swipe';
         m.ang = angTo(m, T);
@@ -1945,7 +1934,7 @@ function bossAI(m, dt) {
         bossRec(m, 0.5, rage);
       } else if (m.pat === 'unstop') {
         m.unstopT = G.t + 5;
-        fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: PAL.progHiV2 });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 130, dur: 0.5, col: PAL.enemyRim });
         hudWarn(`${m.D.n}橫衝直撞：5 秒內免疫擊退與定身`);
         bossRec(m, 0.2, rage);
       } else if (m.pat === 'chaosjump') {
@@ -1953,7 +1942,7 @@ function bossAI(m, dt) {
           nx = T.x + Math.cos(a) * 150,
           ny = T.y + Math.sin(a) * 150;
         if (!isWall(nx, ny) && !(m.ail.pinT > G.t)) (m.x = nx), (m.y = ny);
-        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 70, dur: 0.3, col: PAL.enemyTel, sh: 'dark' });
         G.tele.push({ x: m.x, y: m.y, r: 95, t: 0, dur: 0.5 * rage, dmg: m.dmg, src: m, el: 'chaos' });
         m.cj = (m.cj || 3) - 1;
         if (m.cj > 0) (m.st = 'wind'), (m.t = 0.45 * rage);
@@ -1974,7 +1963,7 @@ function bossAI(m, dt) {
         bossRec(m, 0.4, rage);
       } else if (m.pat === 'dread') {
         m.dreadT = G.t + 3.5;
-        fx({ k: 'ring', x: m.x, y: m.y, r: 170, dur: 3.5, col: PAL.elChaosV1, sh: 'dark' });
+        fx({ k: 'ring', x: m.x, y: m.y, r: 170, dur: 3.5, col: PAL.enemyTel, sh: 'dark' });
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'tether') {
         m.tethers = [0, 1].map(() => {
@@ -2003,7 +1992,7 @@ function bossAI(m, dt) {
             nx = m.x + Math.cos(a) * (m.r + 40),
             ny = m.y + Math.sin(a) * (m.r + 40);
           if (!isWall(nx, ny)) (o.x = nx), (o.y = ny);
-          fx({ k: 'ring', x: o.x, y: o.y, r: 50, dur: 0.3, col: PAL.rarUniqueV2 });
+          fx({ k: 'ring', x: o.x, y: o.y, r: 50, dur: 0.3, col: PAL.enemyRim });
           G.tele.push({ x: m.x, y: m.y, r: m.r + 110, t: 0, dur: 0.5 * rage, dmg: m.dmg * 1.3, src: m, el: m.el });
         }
         m.hk = null;
@@ -2022,7 +2011,7 @@ function bossAI(m, dt) {
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'rain') {
         m.rain = { x: T.x, y: T.y, r: 200, t: G.t + 4 };
-        fx({ k: 'ring', x: T.x, y: T.y, r: 200, dur: 4, col: PAL.dodgeVignetteV2 });
+        fx({ k: 'ring', x: T.x, y: T.y, r: 200, dur: 4, col: PAL.enemyTel });
         hudWarn(`${m.D.n}降下驟雨：站在雨裡會濕透`);
         bossRec(m, 0.6, rage);
       } else if (m.pat === 'fog') {
@@ -2161,7 +2150,7 @@ function updShots(dt) {
     else if (isWall(s.x, s.y)) {
       if (s.boom) boom(s);
       s.life = 0;
-      sparks(s.x, s.y, Math.atan2(-s.vy, -s.vx), 4, PAL.dmgMinorV7);
+      sparks(s.x, s.y, Math.atan2(-s.vy, -s.vx), 4, PAL.txDim);
     }
     if (s.life <= 0 && s.onEnd) s.onEnd(s), (s.onEnd = null);
   }
@@ -2181,7 +2170,7 @@ function updShots(dt) {
     }
     if (t.t >= t.dur && !t.done) {
       t.done = 1;
-      fx({ k: 'ring', x: t.x, y: t.y, r: t.r, dur: 0.3, col: PAL.elFireV1, sh: 'boom' });
+      fx({ k: 'ring', x: t.x, y: t.y, r: t.r, dur: 0.3, col: PAL.enemyTel, sh: 'boom' });
       sfx('slam');
       mobArea(t.src, t.x, t.y, t.r, t.dmg, true, t.el);
     }
@@ -2192,7 +2181,7 @@ function updShots(dt) {
 /* ---------- 主迴圈 ---------- */
 let last = 0;
 /* 世界停住嗎（Q9 的共用開關，企劃書第 9 節）：確認卡、倒下、技能挑選、天賦樹一律停；手動模式開任何面板也停（M1-10）；
-   自動模式開一般面板照打。停住時產生器與離線計時照跑（frame 開頭的 genTick） */
+   自動模式開一般面板照打。停住時離線計時照跑 */
 const skPicking = () => PANEL.skill && PICKV.includes(SKUI.view);
 /* 手動模式時離線結算（M2-12 §7）開著也算面板：世界停，收下才接著打（M2-25） */
 const worldPaused = () =>
@@ -2201,9 +2190,8 @@ function frame(now) {
   requestAnimationFrame(frame);
   let rdt = Math.min(0.05, (now - last) / 1000 || 0);
   last = now;
-  /* 營地的產生器（0.5.1）：照真實時間產，世界地圖、開場、面板開著都算 */
   /* 資源條（0.5.4）：每格只改條與數字 */
-  if (S) genTick(rdt), sesSample(), rbTick();
+  if (S) sesSample(), rbTick();
   if (IV.on) return introFrame(rdt);
   if (G.hs > 0) {
     G.hs -= rdt;
@@ -2214,7 +2202,7 @@ function frame(now) {
     G.slow -= rdt;
     dt *= G.slowK || ROLL.slowScale;
   } else G.slowK = 0;
-  /* 世界暫停（M0-02）：敵人、投射物、傷害、出怪都停，產生器照產（上面的 genTick）；倒下時只跑 AI 的重來計時 */
+  /* 世界暫停（M0-02）：敵人、投射物、傷害、出怪都停，倒下時只跑 AI 的重來計時 */
   if (dt > 0 && worldPaused()) {
     if (G.state === 'dead') aiTick(dt);
   } else if (dt > 0) {

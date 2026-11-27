@@ -1,6 +1,6 @@
 /* dungeonPOE · 資料表：版本、主角、技能、地圖階級、裝備欄與基底、詞綴（T6～T1）、怪物、王 */
 'use strict';
-const VER = '0.5.5';
+const VER = '0.5.6';
 const KEY = 'dungeonpoe_v1';
 /* 測試入口（M1-24）：?test=名字 用自己的存檔位（test_名字）、每次載入重建、不連雲端；正式玩家不帶參數不受影響 */
 const TEST = new URLSearchParams(location.search).get('test') || '';
@@ -3373,7 +3373,7 @@ const PT_THEME = [
       ['靈思', { spellP: 25, int: 10 }],
       ['快詠', { spellP: 20, castP: 6 }],
       ['深研', { spellP: 30, castP: -3 }],
-      ['法力強化', { spellP: 20, mpEff: 8 }],
+      ['魔力強化', { spellP: 20, mpEff: 8 }],
       ['孤咒', { spellP: 20, isoP: 15 }],
       ['法相', { spellP: 20, aoe: 6 }, '範圍'],
       ['魔導', { spellP: 20, mpReg: 15 }, '魔力冷卻'],
@@ -3435,7 +3435,7 @@ const PT_THEME = [
       ['時間扭曲', { cdr: 6, castP: 3 }],
       ['節能', { mpReg: 20, mpP: 5 }],
       ['冷卻大師', { cdr: 10, mpReg: -10 }],
-      ['法力漩渦', { mpP: 10, spellP: 10 }, '法術'],
+      ['魔力漩渦', { mpP: 10, spellP: 10 }, '法術'],
       ['再生', { mpReg: 20, regen: 3 }, '生命'],
       ['博學', { mpP: 15, cdr: 4 }],
       ['靜坐冥想', { stillP: 20, mpReg: 10 }],
@@ -3889,7 +3889,7 @@ const PT_THEME = [
     'asc_moon_c',
     [1, 0, 0, 0, 0, 3],
     [
-      ['節奏脈輪', { comboCh: 30 }],
+      ['連擊節奏', { comboCh: 30 }],
       ['武僧', { w_qstaff: 25, as: 3 }],
       ['風雷棍', { only: 'qstaff', afterRoll: 30, rollCd: 20 }],
       ['禪定', { w_qstaff: 20, powOnCrit: 15 }],
@@ -5592,8 +5592,7 @@ const PTREE = (() => {
     ids = [],
     smIc = s => PT_STAT_IC[Object.keys(s)[0]];
   for (const [id, x, y, t, th, v] of PT_BAKE.N) {
-    const T = PT_THEME[th],
-      L = PT_ICONS[T.n] || [T.ic];
+    const T = PT_THEME[th];
     let o;
     if (t === 0) o = { n: '基礎', s: { ...PT_BASE[0][0] }, ic: PT_STAT_IC.attr, big: 0 };
     else if (t === 1 || t === 5) {
@@ -5613,7 +5612,7 @@ const PTREE = (() => {
             big: 1,
             auto: 1
           };
-      o.ic = L[(v + 1) % L.length];
+      o.ic = T.ic; /* 每條路（主題）一張主題圖，路上大點共用（S/talent-tree.md「主題圖」，mumi 11/24 Q3 A） */
     } else if (t === 3) o = { n: PT_KEYS[v].n, ic: PT_KEYS[v].ic, s: PT_KEYS[v].s, big: 2 };
     else if (t === 4) o = { n: PT_ROADS[v].n, d: '往外偏重：' + PT_ROADS[v].d, ic: T.ic, s: {}, big: 1, gate: 1 };
     else
@@ -5640,9 +5639,8 @@ const PTREE = (() => {
   return { N, E, I, ADJ, ARC };
 })();
 const PT_START = ['g0', 'g1', 'g2', 'g3', 'g4', 'g5'];
-/* 天賦樹六區與珠寶孔（0.2.84）：照六個起點的方向各切 ±30°（n.sec），一區點滿 JEWEL.need 點（起點不算、能力值點算）開那一區的珠寶孔；
-   孔不是樹上的點，畫在那一區的外緣（tree.js）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點；退到門檻以下珠寶鎖住不生效 */
-const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
+/* 天賦樹六區（0.2.84）：照六個起點的方向各切 ±30°（n.sec）。亡靈珠寶（蚩尤、涿鹿兵主掉）帶 1～2 個樹上現有的大點 */
+const JEWEL = { keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
 {
   const A = PT_START.map(k => Math.atan2(PTREE.I[k].y, PTREE.I[k].x));
   for (const n of PTREE.N) {
@@ -5657,6 +5655,36 @@ const JEWEL = { need: 40, keep: 30, nt: { chiyou: 1, zhuolu: 2 } };
   }
   PTREE.SECA = A;
 }
+/* 珠寶孔 18 個（S/talent-tree.md v1.0.1；座標與掛點照 issue #182、PT_BAKE.J @6bc39ef，J3c＝t210）：每孔是獨立節點、連到掛點、花 1 點開（點亮＝開孔）。
+   前期 a、交會 b、外圈大孔 c（big＝外圈）。不放進 PTREE.N／E（那是烘焙出來的形狀，check.js 驗形狀）；I、ADJ 有，點亮、沿路、退回照一般的點 */
+const PT_J = [
+  ['J0a', 't78', -47.6, -2387.8],
+  ['J1a', 't89', 2089.8, -765.3],
+  ['J2a', 't_m7', 2319.2, 736.7],
+  ['J3a', 't_m10', 577.6, 2250.4],
+  ['J4a', 't_m14', -1878.6, 1467.8],
+  ['J5a', 't117', -2263, -703],
+  ['J0b', 't149', 1377.2, -2217.2],
+  ['J1b', 't202', 3399.5, 446.9],
+  ['J2b', 't164', 1458.7, 2659.8],
+  ['J3b', 't173', -1588.4, 2670],
+  ['J4b', 't138', -2380.3, 294.1],
+  ['J5b', 't123', -1141.8, -1882.2],
+  ['J0c', 't_o1', 646, -3663.2],
+  ['J1c', 't153', 2530.9, -2431.6],
+  ['J2c', 't_o8', 2603.8, 2514.5],
+  ['J3c', 't210', 242.6, 3659.2],
+  ['J4c', 't181', -3379.2, 845.9],
+  ['J5c', 't219', -3543.2, -518.7]
+];
+PTREE.J = PT_J.map(([id, an, x, y], i) => {
+  const a = PTREE.I[an],
+    n = { id, x, y, th: a.th, sec: a.sec, an, n: '珠寶孔', s: {}, big: 0, jw: i, out: id.endsWith('c') ? 1 : 0 };
+  PTREE.I[id] = n;
+  PTREE.ADJ[id] = [an];
+  PTREE.ADJ[an].push(id);
+  return n;
+});
 /* 珠寶抽得到的大點：一般大點（不是起點、基石、預留） */
 const PT_NOTABLES = PTREE.N.filter(n => n.big === 1 && !n.gate && !n.lock).map(n => n.id);
 /* 天賦點：每級 1 點、每到 10 的倍數再 +3（到 100 級共 129）；100 級後每 10 級 1 點 */
@@ -7556,10 +7584,18 @@ const drillCost = k => {
 
 /* ---------- 通貨（0.2.72，企劃書 5.7）：S.mat 的鍵（精髓另外放 S.mat.ess＝{ '類:T': 數量 }）。圖示先借現有的 ---------- */
 const CUR = {
-  tran: { n: '蛻變石', ic: 'cur_trans', d: '將普通物品升級為魔法物品，並新增 1 條隨機詞綴' },
-  aug: { n: '增幅石', ic: 'cur_aug', d: '為魔法物品新增 1 條隨機詞綴' },
-  rich: { n: '富豪石', ic: 'cur_regal', d: '將魔法物品升級為稀有物品，並新增 1 條隨機詞綴' },
-  exalt: { n: '崇高石', ic: 'cur_exalt', d: '為稀有物品新增 1 條隨機詞綴' },
+  /* 鍛造 v1.0（forge-spec §4.1）：三顆單階加詞通貨，四步通用（白→藍、藍+1、藍→黃、黃+1）；詞階 T＝min(6, b＋隨機 0～w)，b＝這件的頂階 */
+  aug: { n: '加詞石', ic: 'cur_aug', d: '新增 1 條隨機詞綴；普通物品變魔法、魔法物品滿 2 條變稀有' },
+  exalt: {
+    n: '崇高石',
+    ic: 'cur_exalt',
+    d: '新增 1 條隨機詞綴，詞階比加詞石集中；普通物品變魔法、魔法物品滿 2 條變稀有'
+  },
+  zhi: {
+    n: '至臻石',
+    ic: 'cur_regal',
+    d: '新增 1 條隨機詞綴，詞階只在頂階與下一階；普通物品變魔法、魔法物品滿 2 條變稀有'
+  },
   conv: { n: '轉化石', ic: 'cur_chaos', d: '將物品上指定的 1 條詞綴換成同類的另一條隨機詞綴，階級不變' },
   fore: { n: '預知石', ic: 'cur_wish', d: '預覽下一顆新增或轉化詞綴的通貨結果，再決定是否使用' },
   whet: { n: '磨刀石', ic: 'cur_whet', d: '武器品質 +5%，上限為 20%' },
@@ -7571,35 +7607,10 @@ const CUR = {
   frac: {
     n: '破裂石',
     ic: 'cur_scrap',
-    d: '稀有物品、四條以上詞綴、還沒有破裂詞綴：隨機一條變成破裂詞綴（升到 T0、鎖住）'
+    d: '稀有物品、四條以上詞綴、還沒有破裂詞綴：隨機一條變成破裂詞綴（保留原階、鎖住）'
   },
   perf: { n: '完美石', ic: 'cur_alch', d: '稀有物品、六條詞綴全滿：隨機一條不是破裂的詞綴升到 T0；一件只能用一次' },
   ink: { n: '追憶之墨', ic: 'cur_soul', d: '打造時加一瓶：這一件保證有一條追憶詞綴' },
-  /* 0.4.1 通貨分三階（照 PoE2 的高階／完美）：只有蛻變、增幅、富豪、崇高分階；高階＝新詞在這件能出的最高 2 階內、完美＝保證最高階（craft.js 的 CUR_TIER） */
-  tran2: {
-    n: '高階蛻變石',
-    ic: 'cur_trans',
-    d: '將普通物品升級為魔法物品，並新增 1 條隨機詞綴；新詞綴至少是能出的最高 2 階'
-  },
-  aug2: { n: '高階增幅石', ic: 'cur_aug', d: '為魔法物品新增 1 條隨機詞綴；新詞綴至少是能出的最高 2 階' },
-  rich2: {
-    n: '高階富豪石',
-    ic: 'cur_regal',
-    d: '將魔法物品升級為稀有物品，並新增 1 條隨機詞綴；新詞綴至少是能出的最高 2 階'
-  },
-  exalt2: { n: '高階崇高石', ic: 'cur_exalt', d: '為稀有物品新增 1 條隨機詞綴；新詞綴至少是能出的最高 2 階' },
-  tran3: {
-    n: '完美蛻變石',
-    ic: 'cur_trans',
-    d: '將普通物品升級為魔法物品，並新增 1 條隨機詞綴；新詞綴必定是能出的最高階'
-  },
-  aug3: { n: '完美增幅石', ic: 'cur_aug', d: '為魔法物品新增 1 條隨機詞綴；新詞綴必定是能出的最高階' },
-  rich3: {
-    n: '完美富豪石',
-    ic: 'cur_regal',
-    d: '將魔法物品升級為稀有物品，並新增 1 條隨機詞綴；新詞綴必定是能出的最高階'
-  },
-  exalt3: { n: '完美崇高石', ic: 'cur_exalt', d: '為稀有物品新增 1 條隨機詞綴；新詞綴必定是能出的最高階' },
   /* 0.2.78 酆都（企劃書 4.2）：災魘石、判官筆閻羅掉，完美災魘石只有十殿閻羅掉 */
   calam: {
     n: '災魘石',
@@ -7620,8 +7631,12 @@ const CUR = {
   om_love: { n: '預兆・相思', ic: 'guixinniang', d: '下一顆崇高石新增的詞綴與物品上已有的某條詞綴同類' },
   om_hate: { n: '預兆・厭棄', ic: 'sin_pride_mirror', d: '下一顆崇高石新增的詞綴與物品上已有的詞綴皆不同類' },
   om_greed: { n: '預兆・貪欲', ic: 'sin_greed_usurer', d: '下一顆新增詞綴的通貨擲 2 次，保留階級較高的那條' },
-  v2: { n: '三尸鼎', ic: 'sin_glut_glutton', d: '使 2 顆不同的預兆同時作用於下一顆通貨，與預兆一起消耗' },
-  v3: { n: '三彭鼎', ic: 'necro', d: '使 3 顆不同的預兆同時作用於下一顆通貨，與預兆一起消耗' },
+  v2: {
+    n: '三尸鼎',
+    ic: 'sin_glut_glutton',
+    d: '2 孔：各放一種精髓粉，煉製＝重擲全部非破裂詞，照粉調權重；煉製一次用掉 1 個'
+  },
+  v3: { n: '三彭鼎', ic: 'necro', d: '3 孔：各放一種精髓粉，煉製＝重擲全部非破裂詞，照粉調權重；煉製一次用掉 1 個' },
   /* 0.2.80 四凶 */
   heart: { n: '燭龍之心', ic: 'zhulong', d: '使一個等級 5 的覺醒輔助突破至等級 6' }
 };
@@ -7706,7 +7721,7 @@ const MEM = {
 /* ---------- 材料（0.5.0，docs/工坊與解鎖表.md 第 4 節）：戰鬥不掉裝備，掉這三種，有階 T1～T6 跟著節點等級（craft.js 的 matTier）；
    鐵＝護甲系防具與所有武器、皮＝閃避系、靈絲＝能量護盾系與法器（craft.js 的 baseMat）。圖示先借現有的 ⚠️ ---------- */
 const MATS = {
-  wood: { n: '木', ic: 'i_log', d: '每一座設施升級都要（林場產）' },
+  wood: { n: '木', ic: 'i_log', d: '每一座設施升級都要' },
   iron: { n: '鐵', ic: 'it_whetstone', d: '武器、護甲系防具、飾品的材料' },
   hide: { n: '皮', ic: 'it_thickhide', d: '閃避系防具、箭袋的材料' },
   silk: { n: '靈絲', ic: 'i_spool', d: '能量護盾系防具、法器的材料' }
@@ -7714,29 +7729,29 @@ const MATS = {
 const MAT_K = Object.keys(MATS);
 /* ---------- 營地（0.5.1，工坊與解鎖表第 3 節：兩層十座）：解鎖表六座各一張短表，一列一級
    { soul, wood?, mats?: { 'iron:2': 50 }, gold?, cur?: { 通貨: n }, un: [解鎖鍵…], d: 一句說明 }。
-   解鎖鍵由 craft.js 的 campCan 查（'cur:rich' 通貨開始掉、'mat:hide' 獵場出現、'tab:temper' 鍛造台分頁、'auto2' 自動分解、'tree'…）；
+   解鎖鍵由 craft.js 的 campCan 查（'cur:exalt' 通貨開始掉、'mat:hide' 皮系裝備、'tab:temper' 鍛造台分頁、'auto2' 自動分解、'tree'…）；
    數值型（批量、技能格數、孔數、星級上限、武器類別數、人口、離線時數）由 campN 算。瞭望台的表由 world.js 用公式產（3.2）。⚠️ 數字全部暫定 */
 const CAMP = {
   forge: [
     {
       soul: 150,
       wood: 40,
-      un: ['tab:fill', 'cur:tran', 'cur:aug', 'cur:whet', 'cur:plate'],
-      d: '「填」：蛻變石、增幅石開始掉'
+      un: ['tab:fill', 'cur:aug', 'cur:whet', 'cur:plate'],
+      d: '「填」：加詞石開始掉'
     },
     { soul: 300, wood: 80, d: '一次打 3 件' },
-    { soul: 450, wood: 120, mats: { 'iron:1': 30 }, un: ['mat:hide'], d: '獵場出現（產皮）：閃避系防具、箭袋' },
-    { soul: 600, wood: 160, un: ['cur:rich'], d: '富豪石開始掉；打造有機率出稀有' },
-    { soul: 700, wood: 200, mats: { 'iron:2': 20 }, un: ['cur:ess'], d: '一次打 5 件；精髓開始掉' },
+    { soul: 450, wood: 120, mats: { 'iron:1': 30 }, un: ['mat:hide'], d: '閃避系防具、箭袋' },
+    { soul: 600, wood: 160, d: '打造有機率出稀有' },
+    { soul: 700, wood: 200, mats: { 'iron:2': 20 }, un: ['cur:ess'], d: '一次打 5 件；精髓粉開始掉' },
     { soul: 800, wood: 250, gold: 1000, un: ['tab:temper'], d: '淬鍊' },
     { soul: 900, wood: 300, un: ['cur:exalt'], d: '崇高石開始掉' },
     {
       soul: 1000,
       wood: 350,
       mats: { 'iron:2': 50 },
-      cur: { tran: 20 },
+      cur: { aug: 20 },
       un: ['mat:silk', 'auto2'],
-      d: '絲地出現（產靈絲）：能量護盾系防具、法器；自動分解'
+      d: '能量護盾系防具、法器；自動分解'
     },
     { soul: 2000, wood: 400, cur: { aug: 20 }, d: '一次打 10 件' },
     {
@@ -7747,21 +7762,21 @@ const CAMP = {
       un: ['cur:conv', 'cur:fore'],
       d: '轉化石、預知石開始掉'
     },
-    { soul: 4500, wood: 600, cur: { rich: 5 }, d: '第二種武器類別（之後每 2 級再開 1 種）' },
+    { soul: 4500, wood: 600, cur: { aug: 5 }, d: '第二種武器類別（之後每 2 級再開 1 種）' },
     { soul: 6500, wood: 700, gold: 10000, un: ['cur:holy', 'tab:holy'], d: '聖化石開始掉、聖化' },
     { soul: 9000, wood: 800, mats: { 'iron:3': 50 }, cur: { exalt: 5 }, un: ['cur:frac'], d: '破裂石開始掉' },
     { soul: 13000, wood: 900, mats: { 'hide:3': 50 }, un: ['auto2t'], d: '自動分解照詞階、追憶、▲' },
     { soul: 18000, wood: 1000, gold: 20000, un: ['cur:corr', 'tab:corr'], d: '腐化石開始掉、腐化' },
-    { soul: 25000, wood: 1200, mats: { 'iron:4': 50 }, cur: { rich: 20 }, d: '一次打 20 件' },
+    { soul: 25000, wood: 1200, mats: { 'iron:4': 50 }, cur: { aug: 20 }, d: '一次打 20 件、第 5 格技能' },
     { soul: 35000, wood: 1400, cur: { exalt: 20 }, un: ['cur:ink', 'jewel'], d: '追憶之墨、珠寶開始掉' },
-    { soul: 50000, wood: 1600, mats: { 'iron:5': 50 }, un: ['tier2'], d: '高階通貨開始掉' },
+    { soul: 50000, wood: 1600, mats: { 'iron:5': 50 }, un: ['cur:zhi'], d: '至臻石開始掉；精髓粉掉落 ×1.5' },
     { soul: 70000, wood: 1800, gold: 50000, un: ['cur:perf'], d: '完美石開始掉' },
     {
       soul: 100000,
       wood: 2000,
       mats: { 'iron:6': 50 },
-      un: ['sup2', 'awk', 'cur:awk', 'tier3'],
-      d: '輔助 II、覺醒、完美通貨'
+      un: ['sup2', 'awk', 'cur:awk'],
+      d: '輔助 II、覺醒'
     }
   ],
   /* 第 1～21 級（開第 2～22 個主幹地點）由 world.js 照公式補在前面；這裡是第 22～26 級：五條賽制一條一條開 */
@@ -7778,12 +7793,6 @@ const CAMP = {
     { soul: 10000, wood: 800, mats: { 'hide:3': 30 }, d: '4★' },
     { soul: 40000, wood: 1500, mats: { 'hide:4': 40 }, d: '5★' }
   ],
-  /* 民房＝人口上限（CAMP_POP），居民自動補到產生器空的工位（craft.js 的 popAssign） */
-  house: [100, 250, 500, 1000, 2500, 6000, 15000, 40000, 100000, 250000].map((soul, i) => ({
-    soul,
-    wood: [30, 80, 150, 300, 600, 1200, 2500, 5000, 10000, 20000][i],
-    d: ''
-  })),
   altar: [
     { soul: 300, wood: 60, d: '第 2 格技能' },
     { soul: 900, wood: 150, d: '第 1 個輔助孔（每一招）' },
@@ -7793,9 +7802,9 @@ const CAMP = {
     { soul: 25000, wood: 1200, d: '第 4 格技能' },
     { soul: 50000, wood: 1800, mats: { 'silk:3': 20 }, un: ['asc'], d: '昇華石碑（兩個昇華）' },
     { soul: 90000, wood: 2500, d: '第 3 個輔助孔' },
-    { soul: 150000, wood: 3500, mats: { 'silk:4': 30 }, d: '第 5 格技能' },
-    { soul: 250000, wood: 5000, un: ['jsock'], d: '天賦樹珠寶孔' },
-    { soul: 350000, wood: 7000, un: ['asc3'], d: '第三個昇華以後；輔助孔開到 5 個' }
+    { soul: 90000, wood: 3500, mats: { 'silk:4': 30 }, d: '第 4 個輔助孔（每一招）' },
+    { soul: 200000, wood: 5000, un: ['asc3'], d: '潮汐' },
+    { soul: 200000, wood: 7000, d: '第 5 個輔助孔（每一招）' }
   ],
   store: [
     { soul: 2000, wood: 400, d: '離線結算 4 小時' },
@@ -7805,16 +7814,12 @@ const CAMP = {
     { soul: 200000, wood: 8000, un: ['salv80'], d: '離線 12 小時；分解回收 80%' }
   ]
 };
-/* 民房每一級的人口（3.4 ⚠️）；民房那一列的說明照它寫 */
-const CAMP_POP = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25];
-CAMP.house.forEach((r, i) => (r.d = `人口 ${CAMP_POP[i + 1]}`));
-const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', house: '民房', altar: '祭壇', store: '倉房' };
+const CAMPN = { forge: '鍛造台', watch: '瞭望台', scout: '斥候營', altar: '長老屋', store: '倉房' };
 /* 十座設施與靈魂的圖示（0.5.4）：ART 有的借 ART，沒有的是 sprites.js 手畫的 i_*（icHTML 都認得） */
 const CAMP_IC = {
   forge: 'it_anvil',
   watch: 'it_hawkeye',
   scout: 'it_warbanner',
-  house: 'i_house',
   altar: 'unit_guardtotem',
   store: 'i_crate',
   wood: 'i_tree',
@@ -7823,16 +7828,6 @@ const CAMP_IC = {
   silk: 'i_cocoon',
   soul: 'cur_soul'
 };
-/* 產生器（0.5.1，3.7）：可以一直升（每級每分鐘 ⚠️ 自己定的：文件 1.5／1／0.5／0.25，新存檔模擬前 12 分鐘一次都按不到，改成 6／4／2／1，對回 3.4 原本「每人每分鐘 6 木、4 礦」）；第 L 級升到 L＋1 的費用＝c × 1.12^L（吃木與自己產的材料，同階）；每分鐘＝r × L × 里程碑倍率 × 在職／工位。
-   show＝出現的解鎖鍵（獵場鍛造台 Lv3、絲地 Lv8，出現時 Lv1、0 人）；卡片的圖示在 CAMP_IC */
-const GEN = {
-  wood: { n: '林場', r: 6, c: { wood: 10 } },
-  iron: { n: '礦場', r: 4, c: { wood: 15, iron: 5 } },
-  hide: { n: '獵場', r: 2, c: { wood: 15, hide: 5 }, show: 'mat:hide' },
-  silk: { n: '絲地', r: 1, c: { wood: 20, silk: 5 }, show: 'mat:silk' }
-};
-const GEN_K = Object.keys(GEN);
-const GEN_MUL = 1.12;
 /* 星級放大 ★ 與追憶的機率（企劃書 5.4.5）：1～5★（⚠️ 暫定：壓平成 1／1.1／1.2／1.35／1.5，星級越高越好、不爆量） */
 const STAR_MUL = [1, 1, 1.1, 1.2, 1.35, 1.5];
 /* 腐化的結果表（企劃書 5.3.4）：機率合計 100；0.2.77 起最多 1 條腐化詞（原本 2 條的 10% 併進 1 條） */
@@ -8791,6 +8786,7 @@ const STR_T = {
   noCand: '還沒有能裝在{s}的裝備',
   beltCharm: '裝上腰帶就有護符槽',
   slotAria: '{s}空著，倉庫有 {n} 件可以裝備',
+  slotWorn: '{s}已裝備，倉庫有 {n} 件可以換',
   chaseSub: '王印 {k}／4・下一件保底 {n}%',
   chaseNew: '追逐物品有新東西',
   wyHave: '擁有 {n}・身上 {m}',

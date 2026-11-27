@@ -43,7 +43,7 @@ const settle = async (p, fn, arg) => {
     S.story.tips = 0;
     S.auto = 0; /* 手動的流程在 S.auto = 0 下跑；自動鈕另外測 */
     /* 0.5.0／0.5.1：舊流程（通貨頁、鍛造台、天賦、技能格）要營地開了才看得到；全 0 的藏法另外測 */
-    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
     window._CAMP = JSON.parse(JSON.stringify(S.camp));
     S.skills[1].k = 'mirage'; /* 0.5.0 開局只有斬擊；技能鍵的測試要第 2 格有招 */
     hudBar();
@@ -99,7 +99,7 @@ const settle = async (p, fn, arg) => {
     await p.evaluate(() => {
       proSkip();
       S.auto = 0;
-      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+      Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
     });
     for (const k of ['inv', 'stash', 'skill', 'craft', 'set', 'node', 'asc', 'log'])
       await p
@@ -518,24 +518,49 @@ const settle = async (p, fn, arg) => {
       ];
     });
     ok(
-      '直式：鍛造台全 0 的鍛造只有「打造」（跟直立同名，M2-38 起營地是另一頁）、沒有鍛造台／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
+      'B1 直式：鍛造台全 0 的鍛造只有「打造」（跟直立同名，M2-38 起營地是另一頁）、沒有鍛造台／淬鍊／災魘、打造鈕 ≥44px 在畫面內、面板不超出畫面、沒有橫向溢出',
       mkL[0] === '打造' && !/鍛造台|淬鍊/.test(mkL[0]) && !mkL[1] && mkL[2] >= 44 && mkL[3] && mkL[4] && mkL[5],
       JSON.stringify(mkL)
     );
     await tapL('#pcraft [data-fg=go]');
     await p.waitForTimeout(500);
-    const rvL = await p.evaluate(() => {
-      const b = [...document.querySelectorAll('#preveal .acts .btn, #preveal .dlink2')];
+    /* 鍛造 v1.0 REVIEW-CHECKLIST B3：揭曉底列四顆（全部收下、其餘分解、全部翻開、跳過動畫列）≥44px、在畫面內 */
+    const inV = r => r.top >= -0.5 && r.left >= -0.5 && r.bottom <= innerHeight + 0.5 && r.right <= innerWidth + 0.5;
+    const ft = await p.evaluate(inV => {
+      const f = new Function('return ' + inV)();
+      return ['.rvall', '.rvrest', '.rvflip', '.rvsk'].map(q => {
+        const e = document.querySelector('#preveal ' + q);
+        if (!e) return [q, 0, false];
+        e.scrollIntoView({ block: 'nearest' });
+        const r = e.getBoundingClientRect();
+        return [q, Math.round(r.height), f(r)];
+      });
+    }, inV.toString());
+    ok(
+      'B3 直式：揭曉底列四顆（全部收下、其餘分解、全部翻開、跳過動畫列）≥44px、在畫面內',
+      ft.every(x => x[1] >= 44 && x[2]),
+      JSON.stringify(ft)
+    );
+    await tapL('#preveal .rvk');
+    await p.waitForTimeout(400);
+    const rvL = await p.evaluate(inV => {
+      const f = new Function('return ' + inV)();
+      const b = [...document.querySelectorAll('#preveal .rvc .rvb .btn')];
+      if (b[0]) b[0].scrollIntoView({ block: 'nearest' });
       return [
         PANEL.ident,
-        b.length,
-        b.every(x => x.getBoundingClientRect().bottom <= innerHeight + 0.5 && x.getBoundingClientRect().height >= 44),
+        b.map(x => x.textContent).join(),
+        b.every(x => f(x.getBoundingClientRect()) && x.getBoundingClientRect().height >= 44),
         S.inv.items.length
       ];
-    });
-    ok('直式：翻牌開著、三顆鈕 ≥44px 在畫面內', rvL[0] && rvL[1] === 3 && rvL[2] && rvL[3] >= 1, JSON.stringify(rvL));
-    await tapL('#preveal [data-a=rvsalv]');
-    ok('直式：分解掉那一件', await p.evaluate(() => /已分解/.test($('preveal').innerText)));
+    }, inV.toString());
+    ok(
+      'B2 直式：翻牌開著、點卡背翻開，三顆鈕（換上／留著／分解）≥44px 在畫面內',
+      rvL[0] && rvL[1] === '換上,留著,分解' && rvL[2] && rvL[3] >= 1,
+      JSON.stringify(rvL)
+    );
+    await tapL('#preveal [data-rv^="sv:"]');
+    ok('直式：單卡分解不確認，那一件寫「已分解」', await p.evaluate(() => /已分解/.test($('preveal').innerText)));
     await p.evaluate(() => {
       S.camp = JSON.parse(JSON.stringify(_CAMP));
       closePanels();
@@ -659,105 +684,142 @@ const settle = async (p, fn, arg) => {
     );
     await tap('#tip [data-tq=craft]');
     ok(
-      '按「做裝」：開鍛造 › 通貨、裝備放在中間',
-      await p.evaluate(() => !!S.curIt && !$('pstash').hidden && $('pinv').hidden && navOn() === 'forge')
+      '按「做裝」：開鍛造 › 鍛造台、那件放上鍛造台（鍛造 v1.0：通貨段併進鍛造台・填）',
+      await p.evaluate(
+        () => !!craftItem() && !$('pcraft').hidden && $('pinv').hidden && navOn() === 'forge' && CRAFT.tab === 'forge'
+      )
     );
     /* 換一件：挑裝備只看倉庫清單，點一下直接放上去 */
-    const cur0 = await p.evaluate(() => S.curIt.id);
+    const cur0 = await p.evaluate(() => CRAFT.sel.id);
     await p.evaluate(() => act('pick'));
     await p.waitForTimeout(150);
     ok(
       '挑裝備：只看倉庫清單',
-      await p.evaluate(() => !$('pinv').hidden && $('pstash').hidden && /選一件裝備/.test($('pinv').textContent))
+      await p.evaluate(() => !$('pinv').hidden && $('pcraft').hidden && /選一件裝備/.test($('pinv').textContent))
     );
-    await tap('#pinv .bag .it');
+    await tap(await p.evaluate(c => `#pinv .bag .it:not([data-id="${c}"])`, cur0));
     ok(
       '點一件直接放上去、回到做裝（不用先開說明框）',
-      await p.evaluate(c => !!S.curIt && S.curIt.id !== c && !$('pstash').hidden && $('tip').hidden && !NAV.pick, cur0)
+      await p.evaluate(
+        c => !!craftItem() && CRAFT.sel.id !== c && !$('pcraft').hidden && $('tip').hidden && !NAV.pick,
+        cur0
+      )
     );
-    /* 通貨頁（0.4.5）：每顆通貨有名字與說明、不能用的寫原因、裝備的詞黏在上面、剛加的那條亮起來 */
-    const full0 = await box('#pstash');
+    const full0 = await box('#pcraft');
     ok('做裝打開就蓋滿（看得到詞與通貨）', !!full0 && full0[1] < 60, JSON.stringify(full0));
+    /* B6：鍛造台段的通貨格每格 ≥44px、主鈕 ≥44px、在畫面內 */
     await p.evaluate(() => {
-      for (const k of [
-        'tran',
-        'tran2',
-        'tran3',
-        'aug',
-        'rich',
-        'exalt',
-        'conv',
-        'fore',
-        'holy',
-        'corr',
-        'plate',
-        'whet'
-      ])
-        S.mat[k] = 5;
-      invPut(S.inv, S.curIt);
-      S.curIt = mkItem(pickBase(40, 'chest').id, 40, 0);
+      Object.assign(S.mat, { aug: 5, exalt: 5, zhi: 5, conv: 5, fore: 5, frac: 5, perf: 5, v2: 2, v3: 2, corr: 3 });
+      S.mat.dust = { ele: 30, crit: 30, life: 30 };
+      const it = mkItem(pickBase(40, 'chest').id, 40, 0);
+      delete it.uid;
+      invPut(S.inv, it);
+      CRAFT.sel = { src: 'inv', id: it.id };
+      CRAFT.op = null;
+      CRAFT.tab = 'forge';
       changed();
     });
     await p.waitForTimeout(150);
-    const cu = await p.evaluate(() => {
-      const rows = [...document.querySelectorAll('#pstash .culist .curow')],
-        t3 = [...document.querySelectorAll('#pstash .cut3 button')];
-      return {
-        named: rows.every(
-          r => r.querySelector('.ct b').textContent.length >= 3 && r.querySelector('.ct small').textContent
-        ),
-        h: Math.min(
-          ...rows.map(r => r.getBoundingClientRect().height),
-          ...t3.map(b => b.getBoundingClientRect().height)
-        ),
-        n: rows.length,
-        tier: t3.map(b => b.textContent),
-        no: [...document.querySelectorAll('#pstash .curow.no')].map(r => r.querySelector('.ct').textContent),
-        ring: !!document.querySelector('#pstash .cupg')
-      };
-    });
+    const big = (q, n) =>
+      p.evaluate(
+        ([q, inV]) => {
+          const f = new Function('return ' + inV)(),
+            L = [...document.querySelectorAll(q)];
+          return L.map(e => {
+            e.scrollIntoView({ block: 'nearest' });
+            const r = e.getBoundingClientRect();
+            return [Math.round(r.width), Math.round(r.height), f(r)];
+          });
+        },
+        [q, inV.toString()]
+      );
+    const inV = r => r.top >= -0.5 && r.left >= -0.5 && r.bottom <= innerHeight + 0.5 && r.right <= innerWidth + 0.5;
+    const cg = await big('#pcraft .fcg .fcu');
+    await tap('#pcraft [data-fg="sel:aug"]');
+    const mb = await big('#pcraft .fact .fgo');
     ok(
-      '通貨一列一顆：有名字與說明、每列與三階按鈕 ≥44px、沒有只剩圖示的那一圈',
-      cu.named && cu.h >= 44 && cu.n >= 9 && !cu.ring,
-      JSON.stringify([cu.named, cu.h, cu.n, cu.ring])
+      'B6 直式：鍛造台段通貨格 8 格每格 ≥44px、主鈕 ≥44px、在畫面內',
+      cg.length === 8 &&
+        cg.every(x => x[0] >= 44 && x[1] >= 44 && x[2]) &&
+        mb.length === 1 &&
+        mb[0][1] >= 44 &&
+        mb[0][2],
+      JSON.stringify([cg, mb, await p.evaluate(() => [CRAFT.tab, !!craftItem(), $('pcraft').innerText.slice(0, 120)])])
     );
+    await tap('#pcraft [data-fg="op"]');
     ok(
-      '白裝：蛻變石展開三階（寫會出哪幾階）、增幅富豪崇高寫不能用的原因',
-      cu.tier.length === 3 && cu.tier.every(t => /T\d/.test(t)) && cu.no.filter(t => /只有/.test(t)).length === 3,
-      JSON.stringify([cu.tier, cu.no])
-    );
-    await tap('#pstash [data-cu="u:tran"]');
-    ok(
-      '點蛻變石：直接用掉，剛加的那條詞亮起來',
+      '選加詞石 → 看預覽 → 使用：白裝變魔法、加 1 條、剛加的那條亮起來、加詞石扣 1',
       await p.evaluate(
         () =>
-          S.curIt.r === 1 &&
-          S.curIt.a.length === 1 &&
-          S.mat.tran === 4 &&
-          document.querySelectorAll('#pstash .cutop .fslot li.new').length === 1
+          craftItem().r === 1 &&
+          craftItem().a.length === 1 &&
+          S.mat.aug === 4 &&
+          document.querySelectorAll('#pcraft .fslot li.new').length === 1
       )
     );
-    await p.evaluate(() => ($('pstash').scrollTop = 600));
-    await p.waitForTimeout(150);
-    const st = await p.evaluate(() => {
-      const t = document.querySelector('#pstash .cutop .fslot').getBoundingClientRect(),
-        pn = $('pstash').getBoundingClientRect();
-      return [
-        Math.round(t.top),
-        Math.round(t.bottom),
-        Math.round(pn.top),
-        Math.round(pn.bottom),
-        $('pstash').scrollTop
-      ];
+    /* B7：07b 鼎孔、粉選盤每顆 ≥44px */
+    await p.evaluate(() => {
+      forgeDo(craftItem(), 'aug');
+      CRAFT.op = 'pot';
+      CRAFT.pot = { v: 'v3', s: ['ele'], keep: 1 };
+      changed();
     });
-    ok('清單往下捲，裝備的詞還黏在上面', st[4] > 100 && st[0] >= st[2] && st[1] < st[3] - 100, st.join());
-    await p.evaluate(() => ($('pstash').scrollTop = 0));
+    await p.waitForTimeout(150);
+    const ph = await big('#pcraft .fhole'),
+      pp = await big('#pcraft .fpal .fdc');
+    ok(
+      'B7 直式：鼎孔、粉選盤每顆 ≥44px、在畫面內',
+      ph.length === 3 && pp.length === 9 && [...ph, ...pp].every(x => x[0] >= 44 && x[1] >= 44 && x[2]),
+      JSON.stringify([ph, pp])
+    );
+    /* B9：✦n 與 affix_frac 在 390 的格子（鍛造台裝備卡）上不互壓、不被裁掉 */
+    await p.evaluate(() => {
+      const it = mkItem('c_leather', 16, 2);
+      delete it.uid;
+      it.a = it.a.slice(0, 4).map(a => rollAffT(a.k, bestTier(16)));
+      it.frac = it.a[0].k;
+      invPut(S.inv, it);
+      CRAFT.sel = { src: 'inv', id: it.id };
+      CRAFT.op = null;
+      changed();
+    });
+    await p.waitForTimeout(150);
+    const b9 = await p.evaluate(() => {
+      const g = document.querySelector('#pcraft .fsel .fic'),
+        st = g && g.querySelector('.cs'),
+        fr = g && g.querySelector('.ffr');
+      if (!st || !fr) return null;
+      const G = g.getBoundingClientRect(),
+        a = st.getBoundingClientRect(),
+        b = fr.getBoundingClientRect(),
+        inG = r =>
+          r.left >= G.left - 0.5 && r.right <= G.right + 0.5 && r.top >= G.top - 0.5 && r.bottom <= G.bottom + 0.5,
+        hit = !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
+      return [inG(a), inG(b), !hit, st.textContent];
+    });
+    ok(
+      'B9 直式：裝備卡圖示格右上 ✦n 與左下 affix_frac 都在格內、不互壓',
+      !!b9 && b9[0] && b9[1] && b9[2] && b9[3] === String(await p.evaluate(() => starN(craftItem()))),
+      JSON.stringify(b9)
+    );
+    /* B8：腐化確認框：長按鈕與取消都在畫面內、≥44px */
+    await p.evaluate(() => ((CRAFT.tab = 'corr'), changed()));
+    await p.waitForTimeout(150);
+    await tap('#pcraft [data-fg="cor"]');
+    await p.waitForTimeout(150);
+    const hk = await big('#hask .hgo, #hask [data-h="no"]');
+    ok(
+      'B8 直式：腐化確認框長按鈕與取消都在畫面內、≥44px',
+      hk.length === 2 && hk.every(x => x[1] >= 44 && x[2]),
+      JSON.stringify(hk)
+    );
+    await p.evaluate(() => (holdClose(), (CRAFT.tab = 'forge'), changed()));
     /* 把手：蓋滿 ↔ 半版 */
     await tap('#phand');
-    const half = await box('#pstash');
+    const half = await box('#pcraft');
     ok('點把手：縮回半版', !!half && half[1] > H * 0.3, JSON.stringify(half));
     await tap('#phand');
-    const full = await box('#pstash');
+    const full = await box('#pcraft');
     ok('再點把手：面板放大到蓋滿', !!full && full[1] < 60, JSON.stringify(full));
     await tap('#phand');
     /* 點亮著的分頁＝收起來 */
@@ -794,7 +856,7 @@ const settle = async (p, fn, arg) => {
     const mk = await p.evaluate(() => {
       const b = document.querySelector('#pcraft [data-fg=go]'),
         r = b.getBoundingClientRect(),
-        k = document.querySelector('#pcraft .shopb');
+        k = document.querySelector('#pcraft .fk');
       return [
         b.textContent,
         b.disabled,
@@ -810,22 +872,24 @@ const settle = async (p, fn, arg) => {
     );
     await tap('#pcraft [data-fg=go]');
     await p.waitForTimeout(500);
+    await tap('#preveal .rvk');
+    await p.waitForTimeout(400);
     const rv = await p.evaluate(() => {
-      /* BASE-04：分解是主行動下一行的文字鏈（.dlink2） */
-      const b = [...document.querySelectorAll('#preveal .acts .btn, #preveal .dlink2')];
+      const b = [...document.querySelectorAll('#preveal .rvc .rvb .btn')];
+      if (b[0]) b[0].scrollIntoView({ block: 'nearest' });
       return [
         PANEL.ident,
         REV.craft,
-        REV.sel != null,
-        !!document.querySelector('#preveal .cmpc'),
-        b.map(x => x.textContent.slice(0, 2)).join(),
+        REV.fl.size === 1,
+        !!document.querySelector('#preveal .rvc'),
+        b.map(x => x.textContent).join(),
         b.every(x => x.getBoundingClientRect().height >= 44 && x.getBoundingClientRect().bottom <= innerHeight),
         matN('iron', 1),
         S.inv.items.length - _n0
       ];
     });
     ok(
-      '按打造：扣 8 個鐵、翻牌、選中那一件、換裝卡與換上／留著／分解 ≥44px 在畫面內',
+      '按打造：扣 8 個鐵、揭曉卡背朝上、點一張翻開、換上／留著／分解 ≥44px 在畫面內',
       rv[0] &&
         rv[1] &&
         rv[2] &&
@@ -838,7 +902,7 @@ const settle = async (p, fn, arg) => {
       JSON.stringify(rv)
     );
     const eq0 = await p.evaluate(() => itemName(S.eq.weapon));
-    await tap('#preveal [data-a=rvwear]');
+    await tap('#preveal [data-rv^="wear:"]');
     await p.waitForTimeout(200);
     ok(
       '換上：新的進武器欄、舊的進倉庫',
@@ -851,11 +915,13 @@ const settle = async (p, fn, arg) => {
     await tap('#pnav [data-tm="nav:forge"]');
     await tap('#pcraft [data-fg=go]');
     await p.waitForTimeout(500);
+    await tap('#preveal .rvk');
+    await p.waitForTimeout(400);
     const s0 = await p.evaluate(() => S.mat.soul);
-    await tap('#preveal [data-a=rvsalv]');
+    await tap('#preveal [data-rv^="sv:"]');
     await p.waitForTimeout(200);
     ok(
-      '分解：回鐵與靈魂、那一件消失、翻牌寫「已分解」',
+      '分解：回鐵與靈魂、那一件消失、卡上寫「已分解」',
       await p.evaluate(
         s0 =>
           S.inv.items.length === _n0 + 1 &&
@@ -864,6 +930,81 @@ const settle = async (p, fn, arg) => {
           /已分解/.test($('preveal').innerText),
         s0
       )
+    );
+    /* B4：20 件揭曉：小卡可捲動，任何一張可點（≥44px），展開卡在畫面內 */
+    await p.evaluate(() => {
+      closePanels();
+      const L = [];
+      for (let i = 0; i < 20; i++) {
+        const it = mkItem('c_leather', 16, i % 3);
+        /* 沒有詞＝不會隨機出 ✦2 自動鎖，其餘分解要剛好 20 件 */
+        it.a = [];
+        delete it.uid;
+        invPut(S.inv, it);
+        L.push(it);
+      }
+      window._rv20 = L;
+      CRAFT.tab = 'make';
+      openPanel('craft');
+      revealOpen(L, { title: '打造 20 件', craft: 1 });
+      for (const it of L) REV.fl.add(it.id);
+      changed();
+    });
+    await p.waitForTimeout(300);
+    const sm = await p.evaluate(() =>
+      [...document.querySelectorAll('#preveal .rvs')].map(e => {
+        e.scrollIntoView({ block: 'nearest' });
+        const r = e.getBoundingClientRect();
+        return (
+          Math.min(r.width, r.height) >= 44 &&
+          r.top >= -0.5 &&
+          r.bottom <= innerHeight + 0.5 &&
+          r.right <= innerWidth + 0.5
+        );
+      })
+    );
+    await tap('#preveal .rvs:nth-child(20)');
+    await p.waitForTimeout(250);
+    const ex = await p.evaluate(() => {
+      const e = document.querySelector('#preveal .rvex');
+      if (!e) return null;
+      e.scrollIntoView({ block: 'nearest' });
+      const r = e.getBoundingClientRect();
+      return [
+        r.top >= -0.5,
+        r.left >= -0.5,
+        r.bottom <= innerHeight + 0.5,
+        r.right <= innerWidth + 0.5,
+        REV.exp === _rv20[19].id
+      ];
+    });
+    ok(
+      'B4 直式：20 件揭曉 20 張小卡都捲得到、每張 ≥44px、點最後一張展開卡在畫面內',
+      sm.length === 20 && sm.every(Boolean) && !!ex && ex.every(Boolean),
+      JSON.stringify([sm.filter(Boolean).length, ex])
+    );
+    /* B5：其餘分解含稀有：長按 600 ms 才執行，提早放開不執行（真觸控事件） */
+    const rest = await p.evaluate(() => {
+      const b = document.querySelector('#preveal .rvrest');
+      b.scrollIntoView({ block: 'nearest' });
+      const r = b.getBoundingClientRect();
+      return [b.classList.contains('hold'), r.left + r.width / 2, r.top + r.height / 2];
+    });
+    const inv0 = await p.evaluate(() => S.inv.items.length);
+    await touch('touchStart', [[rest[1], rest[2]]]);
+    await p.waitForTimeout(300);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(200);
+    const early = await p.evaluate(() => S.inv.items.length);
+    await touch('touchStart', [[rest[1], rest[2]]]);
+    await p.waitForTimeout(800);
+    await touch('touchEnd', []);
+    await p.waitForTimeout(300);
+    const late = await p.evaluate(() => [S.inv.items.length, _rv20.filter(it => it.salv).length, REV.lk.size]);
+    ok(
+      'B5 直式：其餘分解含稀有要長按；按 0.3 秒放開不分解，按住 0.8 秒才分解 20 件',
+      rest[0] && early === inv0 && late[0] === inv0 - 20 && late[1] === 20 && late[2] === 0,
+      JSON.stringify([rest[0], inv0, early, late])
     );
     await p.evaluate(() => {
       closePanels();
@@ -888,8 +1029,8 @@ const settle = async (p, fn, arg) => {
       [...document.querySelectorAll('#pcraft .ftabs button')].map(b => b.textContent)
     );
     ok(
-      '升到 Lv1：靈魂扣 150、鍛造的通貨與鍛造台段出現',
-      (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '打造,通貨,鍛造台',
+      '升到 Lv1：靈魂扣 150、鍛造台段出現（鍛造 v1.0 兩段：打造／鍛造台）',
+      (await p.evaluate(() => S.camp.forge === 1 && S.mat.soul === 0)) && seg1.join() === '打造,鍛造台',
       seg1.join()
     );
     /* ---------- 0.5.3 破裂石、完美石：鍛造台「填」選石頭 → 按鈕在畫面內、≥44px → 用下去 ---------- */
@@ -922,7 +1063,7 @@ const settle = async (p, fn, arg) => {
     await tap('#pcraft [data-fg="op"]');
     const s3 = await p.evaluate(() => [!!_st.frac, !!_st.perfed, _st.a.filter(a => a.T === 0).length]);
     ok(
-      '破裂石、完美石（0.5.3）：「填」裡選得到、按鈕 ≥44px 在畫面內，用下去一件有一個 ★ 一個完美 T0',
+      '破裂石、完美石：「填」裡選得到、按鈕 ≥44px 在畫面內，用下去一件有一條破裂詞（A 案保留原階）、一個完美 T0',
       s1 &&
         s1[0] === '破裂石' &&
         s1[1] &&
@@ -931,23 +1072,22 @@ const settle = async (p, fn, arg) => {
         s2 &&
         s2[0] === '完美石' &&
         s2[1] &&
-        s3.join() === 'true,true,2',
+        s3.join() === 'true,true,1',
       JSON.stringify([s1, s2, s3])
     );
     await p.evaluate(() => closePanels());
-    /* ---------- 0.5.1 營地總覽：卡片、升級鈕、×1／×10／最大、下一件事、民房的「優先」 ---------- */
+    /* ---------- 0.5.1 營地總覽：卡片、升級鈕、下一件事（產生器、民房 mumi 2026-11-25 收掉） ---------- */
     await p.evaluate(() => {
       closePanels();
       S.camp = newCamp();
       S.mat.mats = { wood: 400, 'iron:1': 400 };
-      S.mat.soul = 0;
+      S.mat.soul = 500;
       CRAFT.tab = 'camp';
-      CAMPUI.mul = 1;
     });
     await tap('#pnav [data-tm="nav:craft"]');
     const cm = await p.evaluate(() => {
       const cs = [...document.querySelectorAll('#pcraft .cc')],
-        bs = [...document.querySelectorAll('#pcraft .cc .btn, #pcraft .cmmul .chip, #pcraft .cmnext .btn')];
+        bs = [...document.querySelectorAll('#pcraft .cc .btn, #pcraft .cmnext .btn')];
       return [
         cs.length,
         cs.every(c => c.getBoundingClientRect().left >= 0 && c.getBoundingClientRect().right <= innerWidth),
@@ -959,61 +1099,41 @@ const settle = async (p, fn, arg) => {
       ];
     });
     ok(
-      '營地總覽（0.5.1）：開局 8 張卡（解鎖表六座＋林場、礦場）都在畫面寬度內、升級鈕與 ×1／×10／最大 ≥44px、上面兩行（庫存＋速率、下一件事）、分頁列徽章寫買得起幾件（M2-38 只寫數字）',
-      cm[0] === 8 && cm[1] && cm[2] && cm[3] && /^\d+$/.test(cm[4]) && parseInt(cm[4]) >= 2,
+      '營地總覽（0.5.1）：開局 5 張卡（五座設施，沒有產生器、民房）都在畫面寬度內、升級鈕 ≥44px、上面兩行（庫存、下一件事）、分頁列徽章寫買得起幾件（M2-38 只寫數字）',
+      cm[0] === 5 && cm[1] && cm[2] && cm[3] && /^\d+$/.test(cm[4]) && parseInt(cm[4]) >= 2,
       JSON.stringify(cm)
     );
-    /* 0.5.4（工項 12-C）：資源條在跑（同一條隔 1.5 秒寬度變了、數字有字）、卡片固定順序（產生器在前、解鎖表照 CAMP_B，升級後不重排）、上面兩行黏住 */
+    /* 0.5.4（工項 12-C）：資源條庫存有數字、卡片固定順序（照 CAMP_B，升級後不重排）、上面兩行黏住；產生器收掉後木不跑、不寫每分鐘產量、沒有產生器卡的條 */
     const ord0 = await p.evaluate(() => [...document.querySelectorAll('#pcraft .cc')].map(c => c.id).join());
-    const rb0 = await p.evaluate(
-      () => getComputedStyle(document.querySelector('#cmtop [data-rb="wood"] .rt i')).transform
-    );
+    const w0 = await p.evaluate(() => matN('wood'));
     await p.waitForTimeout(1500);
     const rb1 = await p.evaluate(() => [
-      getComputedStyle(document.querySelector('#cmtop [data-rb="wood"] .rt i')).transform,
+      matN('wood'),
       document.querySelector('#cmtop [data-rb="wood"] b').textContent,
       getComputedStyle(document.querySelector('#pcraft .cmhead')).position,
-      [...document.querySelectorAll('#pcraft .rtg')].length
+      [...document.querySelectorAll('#pcraft .rtg')].length,
+      document.querySelector('#cmtop [data-rb="wood"] small').textContent
     ]);
     ok(
-      '營地總覽（0.5.4）：資源條在跑（木的條 1.5 秒內變了）、庫存有數字、產生器卡各有一條、上面兩行黏住、卡片固定順序（林場、礦場、鍛造台…倉房）',
-      rb0 !== rb1[0] &&
+      '營地總覽（0.5.4）：庫存有數字、上面兩行黏住、卡片固定順序（鍛造台、瞭望台、斥候營、長老屋、倉房）；木 1.5 秒不會自己變多、不寫「+n／分」、沒有產生器條',
+      rb1[0] === w0 &&
         /\d/.test(rb1[1]) &&
         rb1[2] === 'sticky' &&
-        rb1[3] === 2 &&
-        ord0 === 'cc-wood,cc-iron,cc-forge,cc-watch,cc-scout,cc-house,cc-altar,cc-store',
-      JSON.stringify([rb0, ...rb1, ord0])
+        rb1[3] === 0 &&
+        rb1[4] === '' &&
+        ord0 === 'cc-forge,cc-watch,cc-scout,cc-altar,cc-store',
+      JSON.stringify([w0, ...rb1, ord0])
     );
     await p.evaluate(() =>
-      document.querySelector('#pcraft [data-fg="gen:wood:1"]').scrollIntoView({ block: 'center' })
+      document.querySelector('#pcraft [data-fg="camp:forge"]').scrollIntoView({ block: 'center' })
     );
-    await tap('#pcraft [data-fg="gen:wood:1"]');
-    await tap('#pcraft [data-fg="mul:max"]');
-    await p.evaluate(() =>
-      document.querySelector('#pcraft [data-fg^="gen:iron:"]').scrollIntoView({ block: 'center' })
-    );
-    await tap('#pcraft [data-fg^="gen:iron:"]');
+    await tap('#pcraft [data-fg="camp:forge"]');
     const g2 = await p.evaluate(() => [
-      S.camp.gen.wood.lv,
-      S.camp.gen.iron.lv,
+      S.camp.forge,
       matN('wood') < 400,
       [...document.querySelectorAll('#pcraft .cc')].map(c => c.id).join()
     ]);
-    ok(
-      '產生器：×1 升 1 級、最大一次升好幾級、扣木；升完卡片順序不變',
-      g2[0] === 2 && g2[1] > 2 && g2[2] && g2[3] === ord0,
-      JSON.stringify(g2)
-    );
-    await p.evaluate(() => {
-      S.camp.house = 1;
-      document.querySelector('#pcraft [data-fg="cc:house"]').scrollIntoView({ block: 'center' });
-    });
-    await tap('#pcraft [data-fg="cc:house"]');
-    const ho = await p.evaluate(() => {
-      const c = [...document.querySelectorAll('#cc-house .ccopen .chip')];
-      return [c.length, c.every(b => b.getBoundingClientRect().height >= 44)];
-    });
-    ok('民房展開：每座產生器一列、「優先」≥44px', ho[0] === 2 && ho[1], JSON.stringify(ho));
+    ok('設施卡：點升級鈕升 1 級、扣木；升完卡片順序不變', g2[0] === 1 && g2[1] && g2[2] === ord0, JSON.stringify(g2));
     /* battle-hud v1.3.3 取代 M2-12 §2 的掛機條：刷圖中分頁上面是下方面板（P41，204 高；本次掛機、拾取、比較、整理倉庫／自動／去營地），
        ▼（熱區 44）收到最小＝44 高收起列（掛機時間、▲ 熱區 44）；沒有營地升級鈕、不寫輪；營地升級從分頁「營地」開抽屜（刷圖不停） */
     {
@@ -1082,8 +1202,8 @@ const settle = async (p, fn, arg) => {
         ];
       });
       ok(
-        '刷圖中點「營地」：開營地升級抽屜（不是營地總覽），6 設施＋已出現的產生器、印章 ≥44、只有 1 顆實心（建議）',
-        dr[0] && dr[1] && dr[2] >= 8 && dr[3] && dr[4] === 1,
+        '刷圖中點「營地」：開營地升級抽屜（不是營地總覽），只有 5 設施（沒有產生器、民房）、印章 ≥44、只有 1 顆實心（建議）',
+        dr[0] && dr[1] && dr[2] === 5 && dr[3] && dr[4] === 1,
         JSON.stringify(dr)
       );
       /* battle-hud v1.3.3 拿掉「王 n%」首領進度（元件表沒有）：面板開著（半版）頂列（通貨、地點）照樣看得到、在面板上緣之上 */
@@ -1963,13 +2083,13 @@ const settle = async (p, fn, arg) => {
         ];
       }, q);
     {
-      /* M1-10：自動模式開戰利品、營地照打；技能挑選、天賦樹停住（怪貼身 3 秒生命不變）；手動開任何面板都停；停住時產生器照產 */
+      /* M1-10：自動模式開戰利品、營地照打；技能挑選、天賦樹停住（怪貼身 3 秒生命不變）；手動開任何面板都停；產生器收掉後停住時木不會自己變多 */
       await p.evaluate(() => {
         closePanels();
         if (TREE.open) treeClose();
         S.auto = 1;
         S.camp = { ...S.camp, ..._CAMP };
-        genOf('wood').lv = Math.max(10, genOf('wood').lv);
+        S.camp.gen = { wood: { lv: 50 } };
         runNode(TRUNK_K[0]);
       });
       await p.waitForTimeout(500);
@@ -2000,12 +2120,20 @@ const settle = async (p, fn, arg) => {
         r4 = await runs(() => treeOpen(), cl);
       ok('M1-10 自動：開戰利品照打', r1.run && !r1.paused, JSON.stringify(r1));
       ok('M1-10 自動：開營地照打', r2.run && !r2.paused, JSON.stringify(r2));
-      ok('M1-10 自動：技能挑選停住、生命不變、產生器照產', !r3.run && r3.same && r3.gen, JSON.stringify(r3));
-      ok('M1-10 自動：天賦樹停住、生命不變、產生器照產', !r4.run && r4.same && r4.gen, JSON.stringify(r4));
+      ok(
+        'M1-10 自動：技能挑選停住、生命不變、木不會自己變多（沒有背景生產）',
+        !r3.run && r3.same && !r3.gen,
+        JSON.stringify(r3)
+      );
+      ok(
+        'M1-10 自動：天賦樹停住、生命不變、木不會自己變多（沒有背景生產）',
+        !r4.run && r4.same && !r4.gen,
+        JSON.stringify(r4)
+      );
       await p.evaluate(() => (S.auto = 0));
       const r5 = await runs(() => navGo('bag'), cl),
         r6 = await runs(() => navGo('more'), cl);
-      ok('M1-10 手動：開戰利品停住、產生器照產', !r5.run && r5.same && r5.gen, JSON.stringify(r5));
+      ok('M1-10 手動：開戰利品停住、木不會自己變多（沒有背景生產）', !r5.run && r5.same && !r5.gen, JSON.stringify(r5));
       ok('M1-10 手動：開更多也停住', !r6.run && r6.same, JSON.stringify(r6));
       const t1 = await p.evaluate(() => G.t);
       await p.waitForTimeout(500);
@@ -2098,8 +2226,8 @@ const settle = async (p, fn, arg) => {
       return [...t, !!PANEL.asc, $('warn').textContent];
     });
     ok(
-      'M1-06：祭壇不夠時天賦樹、昇華石碑打不開，跳「升祭壇到 Lv n 才開」',
-      !lk[0] && lk[1] === '升祭壇到 Lv 4 才開' && !lk[2] && lk[3] === '升祭壇到 Lv 7 才開',
+      'M1-06：長老屋不夠時天賦樹、昇華石碑打不開，跳「升長老屋到 Lv n 才開」',
+      !lk[0] && lk[1] === '升長老屋到 Lv 4 才開' && !lk[2] && lk[3] === '升長老屋到 Lv 7 才開',
       JSON.stringify(lk)
     );
     /* M1-06（製作人決定 1）：其他入口也打不開——分頁列沒有天賦、更多選單沒有天賦樹與昇華石碑、點營地的昇華石碑；山海寶盒例外照開 */
@@ -2128,7 +2256,7 @@ const settle = async (p, fn, arg) => {
         !lk2.rows.includes('天賦樹') &&
         !lk2.rows.includes('昇華石碑') &&
         !lk2.asc &&
-        lk2.w === '升祭壇到 Lv 7 才開' &&
+        lk2.w === '升長老屋到 Lv 7 才開' &&
         lk2.box,
       JSON.stringify(lk2)
     );
@@ -2164,7 +2292,7 @@ const settle = async (p, fn, arg) => {
     });
     ok(
       'M1-14：營地升鍛造台 Lv1 跳「鍛造台 Lv1：開了「填」。…」；同一級第二次不再出現',
-      sy[0] && sy[1] === '鍛造台 Lv1：開了「填」。蛻變石、增幅石開始掉，拿來替裝備加詞。' && sy[2] === '',
+      sy[0] && sy[1] === '鍛造台 Lv1：開了「填」。加詞石開始掉，拿來替裝備加詞。' && sy[2] === '',
       JSON.stringify(sy)
     );
     await p.evaluate(() => (S.camp.forge = 0));
@@ -2189,7 +2317,7 @@ const settle = async (p, fn, arg) => {
     const n2 = await nx();
     ok(
       'M1-07：更多選單只多一列「下一個」、升級後換成下一項、全開了就沒有',
-      n0.join() === '升祭壇到 Lv 4 開天賦樹' && n1.join() === '升祭壇到 Lv 7 開昇華石碑' && n2.length === 0,
+      n0.join() === '升長老屋到 Lv 4 開天賦樹' && n1.join() === '升長老屋到 Lv 7 開昇華石碑' && n2.length === 0,
       JSON.stringify([n0, n1, n2])
     );
     /* M1-03：天賦樹一打開，六條路的全名都在畫面裡、不在中央的昇華圓裡、沒被頂部列與分頁列蓋住 */
@@ -2308,7 +2436,7 @@ const settle = async (p, fn, arg) => {
     for (const [n, f] of [
       ['角色頁', () => (closePanels(), navGo('char'))],
       ['戰利品', () => (closePanels(), navGo('bag'))],
-      ['鍛造（通貨）', () => (closePanels(), act('ctab:cur'))],
+      ['鍛造（鍛造台）', () => (closePanels(), act('ctab:forge'))],
       ['鍛造（換一件）', () => PORT() && act('pick')]
     ]) {
       await p.evaluate(f);
@@ -2530,7 +2658,7 @@ const settle = async (p, fn, arg) => {
       sk[0] &&
         /^Lv 1 · (每秒 [\d.]+ 下|[\d.]+ 秒一次)$/.test(sk[1]) &&
         sk[2] === 1 &&
-        sk[3] === '升祭壇到 Lv3，開第 3 格技能。',
+        sk[3] === '升長老屋到 Lv3，開第 3 格技能。',
       JSON.stringify(sk)
     );
     /* M1-PK.1：從「換」進來預選現在這招、底部鈕停用；點別的列＝改選、底部「換成｛名｝」 */
@@ -2648,14 +2776,14 @@ const settle = async (p, fn, arg) => {
       hudPanels();
       return [
         document.querySelectorAll('#pcraft .cmnxu').length,
-        (document.querySelector('#pcraft .cmnxu') || {}).textContent,
-        !!document.querySelector('#pcraft .cmmore'),
+        document.querySelectorAll('#pcraft .cc.gen').length,
+        (document.querySelector('#pcraft .cmmore') || {}).textContent || '',
         document.querySelectorAll('#pcraft .cch > .ico:last-child').length > 0
       ];
     });
     ok(
-      'M1-CP／M1-07b：營地首屏一列下一個解鎖「升鍛造台到 Lv 3 開獵場」、還有幾座、卡頭箭頭',
-      cp[0] === 1 && cp[1] === '升鍛造台到 Lv 3 開獵場' && cp[2] && cp[3],
+      'M1-CP：營地首屏沒有產生器的下一個解鎖列與產生器卡（mumi 2026-11-25 收掉）、「還有 5 座」、卡頭箭頭',
+      cp[0] === 0 && cp[1] === 0 && cp[2].startsWith('還有 5 座') && cp[3],
       JSON.stringify(cp)
     );
     await p.screenshot({ path: shot('m1ui_camp') });
@@ -2663,7 +2791,7 @@ const settle = async (p, fn, arg) => {
   }
   /* ---------- M2-08：設定的暗幕、掛機卡在死亡卡底下、天賦樹搜尋 N／總數 ---------- */
   const m8 = await p.evaluate(async () => {
-    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, house: 10, altar: 11, store: 5 });
+    Object.assign(S.camp, { forge: 20, watch: 26, scout: 4, altar: 11, store: 5 });
     if (TREE.open) treeClose();
     closePanels();
     if (G.scene !== 'map') runNode(TRUNK_K[0]);

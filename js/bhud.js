@@ -56,6 +56,7 @@ function bhRects() {
       auraV: R4(10, A - 114, 96, 12),
       cell: 12,
       sts: R4(114, A - 138, 226, 44),
+      pick: R4(10, A - 212, 220, 66),
       stsV: R4(116, A - 120, 220, 24),
       stc: 24,
       hp: R4(10, A - 44, W - 46, 18),
@@ -94,6 +95,7 @@ function bhRects() {
       auraV: R4(340, y + 571, 110, 14),
       cell: 14,
       sts: R4(460, y + 560, 258, 36),
+      pick: R4(340, y + 486, 220, 66),
       stsV: R4(462, y + 564, 252, 28),
       stc: 28,
       hp: R4(340, y + 652, 450, 20),
@@ -149,6 +151,7 @@ function bhInit() {
   ${BH_KEY.map((k, i) => `<button class="bsk" id="bhS${i}" data-bs="${i}"><span class="ic0"></span><s class="cdv"></s><b class="nb"></b><i class="am"></i><i class="gd"></i><i class="gp"><i></i></i><em class="rl"></em><svg class="arc" aria-hidden="true"></svg><kbd>${k}</kbd></button>`).join('')}
   <div class="bh-tip" id="bhTip" role="tooltip" hidden></div>
   <div class="bh-low" id="bhLow" hidden></div>
+  <div class="bh-pick" id="bhPick" aria-hidden="true"></div>
   <div class="hb hp" id="bhp"><i></i><b class="es" hidden><i></i><em></em></b><span></span></div>
   <button class="bh-blk" id="bhBlk" data-a="bhblk" aria-label="格擋值" hidden><svg class="v" aria-hidden="true"></svg><img alt=""></button>
   <div class="hb mp" id="bmp"><i></i><span></span></div>
@@ -240,6 +243,7 @@ function bhLayout(force) {
   bhPos($('bhp'), R.hp);
   bhPos($('bmp'), R.mp);
   bhPos($('bhLow'), R.low);
+  bhPos($('bhPick'), R.pick);
   bhPos($('bhXp'), R.xp);
   bhPos($('bhBlk'), R.blk);
   bhIn($('bhBlk').firstElementChild, R.blk, R.blkV);
@@ -705,4 +709,28 @@ function bhStsTip() {
   const L = BH.fake.sts || (fightOn() ? playerStates() : []);
   if (!L.length) return;
   showTip(`<p class="sktip">${L.map(s => esc(s.n + '：' + s.d)).join('<br>')}</p>`, $('bhSts').getBoundingClientRect());
+}
+/* F-floater（UIUX 裁定）：普通材料不在戰場跳字，改成技能列上方的拾取紀錄：同材料 1500 毫秒內併成一行（數字更新時 120 毫秒脈衝）、
+   最多 3 行（新的擠掉最舊的）、2500 毫秒沒新撿取就淡出；不播音 */
+function pickLog(n, c) {
+  const box = $('bhPick');
+  if (!box || !c) return;
+  const now = performance.now();
+  let r = [...box.children].find(e => e.dataset.n === n && !e.classList.contains('out'));
+  if (!r) {
+    r = document.createElement('div');
+    r.dataset.n = n;
+    r._c = 0;
+    box.append(r);
+    while (box.children.length > 3) box.firstChild.remove();
+  } else if (now - r._t < 1500) {
+    r.classList.remove('p');
+    void r.offsetWidth;
+    r.classList.add('p');
+  } else r._c = 0;
+  r._t = now;
+  r._c += c;
+  r.textContent = `${n} +${fullN(r._c)}`;
+  clearTimeout(r._f);
+  r._f = setTimeout(() => (r.classList.add('out'), setTimeout(() => r.remove(), 300)), 2500);
 }

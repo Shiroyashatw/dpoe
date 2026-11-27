@@ -205,9 +205,9 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       .join(' ')
   );
   /* dpoe-b3-art-fix2（§12-3）：牌匾寫設施名（名詞表），Lv 取那座設施 */
-  const LV = { forge: '鍛造台 Lv5', device: '瞭望台 Lv26', asc: '祭壇 Lv11', stash: '倉房 Lv5' };
+  const LV = { forge: '鍛造台 Lv5', device: '瞭望台 Lv26', asc: '長老屋 Lv11', stash: '倉房 Lv5' };
   ok(
-    '牌匾寫設施名（§12-3）：鍛造台 Lv5、瞭望台 Lv26、祭壇 Lv11、倉房 Lv5；練習區、山海寶盒只有名字',
+    '牌匾寫設施名（§12-3）：鍛造台 Lv5、瞭望台 Lv26、長老屋 Lv11、倉房 Lv5；練習區、山海寶盒只有名字',
     L0.every(k => (LV[k.k] ? k.n === LV[k.k] : !/Lv/.test(k.n))),
     Object.values(LV).join('、'),
     L0.map(k => k.n).join('、')
@@ -696,10 +696,10 @@ const ok = (n, v, goal = '', got = '', file = '') => {
   });
   ok('Tab 走得到牌匾（#plqs 透明按鈕，照場景左右順序）', !!kb.k0 && tabs < 40, '≤40 次 Tab', `${tabs} 次 → ${kb.k0}`);
   ok(
-    'aria-label：設施名（瞭望台、祭壇、倉房、鍛造台）「{名} {n} 級，可以升級」、其他擺設只有名字',
+    'aria-label：設施名（瞭望台、長老屋、倉房、鍛造台）「{名} {n} 級，可以升級」、其他擺設只有名字',
     kb.labels.some(l => /^鍛造台 \d+ 級，可以升級$/.test(l)) &&
       kb.labels.some(l => /^瞭望台 \d+ 級/.test(l)) &&
-      kb.labels.some(l => /^祭壇 \d+ 級/.test(l)) &&
+      kb.labels.some(l => /^長老屋 \d+ 級/.test(l)) &&
       kb.labels.some(l => /^倉房 \d+ 級/.test(l)) &&
       !kb.labels.some(l => /地圖台|昇華石碑|倉庫/.test(l)) &&
       kb.labels.includes('練習區') &&
@@ -844,7 +844,7 @@ const ok = (n, v, goal = '', got = '', file = '') => {
           else if (key.startsWith('cur:')) M[key.slice(4)] = (M[key.slice(4)] || 0) + w * 3;
           else matAdd(...(key === 'wood' ? ['wood', 0] : matOf(key)), w * 3);
       },
-      /* 走真的按鈕（forge.js 的 data-fg 點擊）：camp:設施、gen:產生器:級數 */
+      /* 走真的按鈕（forge.js 的 data-fg 點擊）：camp:設施 */
       click = fg => {
         const el = document.createElement('button');
         el.dataset.fg = fg;
@@ -861,31 +861,17 @@ const ok = (n, v, goal = '', got = '', file = '') => {
         click('camp:' + bk);
         return S.camp[bk] === from + 1 ? T(bk) : 'err';
       },
-      gen = (bk, from, n) => {
-        genOf(bk).lv = from;
-        fund(genCost(bk, n));
-        DUST.last = {};
-        delete DUST.up[bk];
-        click(`gen:${bk}:${n}`);
-        return genOf(bk).lv === from + n ? T(bk) : 'err';
-      },
       want = {
         forge: [1, 5, 10, 15, 20],
         watch: [1, 8, 15, 22, 26],
         scout: [1, 2, 3, 4],
-        house: [1, 4, 7, 10],
         altar: [1, 4, 7, 11],
-        store: [1, 3, 5],
-        wood: [5, 10, 25, 50],
-        iron: [5, 10, 25, 50],
-        hide: [5, 10, 25, 50],
-        silk: [5, 10, 25, 50]
+        store: [1, 3, 5]
       },
       keep = { ...S.camp },
       r = { table: JSON.stringify(LOOK_TIERS) === JSON.stringify(want) };
-    S.camp.forge = 8; /* 獵場、絲地出現 */
-    /* 解鎖表六座：每一個表內等級都升一次（跨過＝1200）；表外等級各升一次（不跨過＝600） */
-    for (const bk of ['forge', 'watch', 'scout', 'house', 'altar', 'store']) {
+    /* 五座設施：每一個表內等級都升一次（跨過＝1200）；表外等級各升一次（不跨過＝600） */
+    for (const bk of ['forge', 'watch', 'scout', 'altar', 'store']) {
       const mx = CAMP[bk].length,
         cross = want[bk].map(t => camp(bk, t - 1)),
         not = [];
@@ -894,16 +880,6 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     }
     /* 瞭望台 23～25 只加光點：600 */
     r.watchDot = [23, 24, 25].map(lv => camp('watch', lv - 1));
-    /* 產生器：單升踩到表內＝1200；單升表外＝600；×10 連升跨過＝1200、沒跨過＝600 */
-    for (const bk of ['wood', 'iron', 'hide', 'silk'])
-      r[bk] = {
-        cross: want[bk].map(t => gen(bk, t - 1, 1)),
-        not: [2, 6, 11, 26, 51, 75].map(t => gen(bk, t - 1, 1)),
-        multiCross: [gen(bk, 1, 10), gen(bk, 20, 10), gen(bk, 45, 10)],
-        multiNot: [gen(bk, 10, 10), gen(bk, 50, 10)]
-      };
-    /* 獵場、絲地 Lv0→1 首次出現：600 */
-    r.first = ['hide', 'silk'].map(bk => [buildMs(bk, 0, 1, false), gen(bk, 0, 1)]);
     /* 10 秒內連升：250（不管跨不跨） */
     S.camp.forge = 3;
     fund(campNext('forge'));
@@ -918,8 +894,8 @@ const ok = (n, v, goal = '', got = '', file = '') => {
     return r;
   });
   const all = (a, v) => a.length > 0 && a.every(x => x === v);
-  ok('LOOK_TIERS 照 M2-12-lookTiers.md 十座', lk.table, '相同', lk.table);
-  for (const bk of ['forge', 'watch', 'scout', 'house', 'altar', 'store'])
+  ok('LOOK_TIERS 照 M2-12-lookTiers.md 五座設施（產生器、民房收掉）', lk.table, '相同', lk.table);
+  for (const bk of ['forge', 'watch', 'scout', 'altar', 'store'])
     ok(
       `換外觀 ${bk}：表內 ${lk[bk].cross.length} 級＝1200；表外 ${lk[bk].not.length} 級＝600`,
       all(lk[bk].cross, 1200) && (bk === 'scout' ? lk[bk].not.length === 0 : all(lk[bk].not, 600)),
@@ -927,19 +903,6 @@ const ok = (n, v, goal = '', got = '', file = '') => {
       lk[bk]
     );
   ok('例外：瞭望台 23～25 只加光點＝600', all(lk.watchDot, 600), '600×3', lk.watchDot);
-  for (const bk of ['wood', 'iron', 'hide', 'silk'])
-    ok(
-      `換外觀 ${bk}：單升跨過 5／10／25／50＝1200、表外＝600；×10 跨過＝1200、沒跨過＝600`,
-      all(lk[bk].cross, 1200) && all(lk[bk].not, 600) && all(lk[bk].multiCross, 1200) && all(lk[bk].multiNot, 600),
-      '1200／600',
-      lk[bk]
-    );
-  ok(
-    '例外：獵場、絲地 Lv0→1 首次出現＝600',
-    lk.first.flat().every(x => x === 600),
-    '600',
-    lk.first
-  );
   ok('10 秒內連升＝250', lk.quick === 250, '250', lk.quick);
   ok('沒有頁面錯誤', !p.errs.length, '0', p.errs.slice(0, 3).join(' | '));
   /* ---- 減少動態 ---- */

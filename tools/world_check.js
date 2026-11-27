@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 /* 世界地圖實測（Playwright，0.4.0 固定節點＋連續刷）：選節點 → 打倒王 → 同一個場地下一輪、往下推 → 世界展開 → 選星級 → 死亡重來、連死退回 → 再推一次 → 倉庫滿 → 特殊節點 → 存檔還原；
    手勢（拖曳、滾輪、單指、雙指）、減少動態、手機降速 4 倍的效能。序章前 7 步在 pro_check.js 走。
-   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|auto|patrol|ses|gesture|still|perf]（預設全跑）。
+   用法：先在 dpoe/ 開本機伺服器，再 node tools/world_check.js [網址] [flow|auto|patrol|ses|floor|gesture|still|perf]（預設全跑）。
    環境變數 PW_CHROME 指定瀏覽器；截圖存在系統暫存資料夾（world_*.png）；有 ❌ 時結束碼 1 */
 const os = require('os'),
   path = require('path');
@@ -259,32 +259,14 @@ async function flow(b) {
   ok('繼續刷', await until(p, () => G.scene === 'map' && G.node === S.world.cur));
   /* 存檔還原 */
   const before = await p.evaluate(
-    () => (
-      save(),
-      JSON.stringify([
-        S.world.done,
-        S.world.cur,
-        S.star,
-        CAMP_B.map(b => S.camp[b]),
-        GEN_K.map(k => S.camp.gen[k].lv),
-        S.v
-      ])
-    )
+    () => (save(), JSON.stringify([S.world.done, S.world.cur, S.star, CAMP_B.map(b => S.camp[b]), S.v]))
   );
   await p.reload();
   await p.waitForFunction(() => typeof G === 'object' && !!G.scene);
   ok(
     '存檔還原：走過的、在刷的、星級、營地',
-    (await p.evaluate(() =>
-      JSON.stringify([
-        S.world.done,
-        S.world.cur,
-        S.star,
-        CAMP_B.map(b => S.camp[b]),
-        GEN_K.map(k => S.camp.gen[k].lv),
-        S.v
-      ])
-    )) === before
+    (await p.evaluate(() => JSON.stringify([S.world.done, S.world.cur, S.star, CAMP_B.map(b => S.camp[b]), S.v]))) ===
+      before
   );
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
@@ -478,12 +460,269 @@ async function ses(b) {
   ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
   await p.context().close();
 }
+/* 戰鬥地板全地點共用一套（mumi 2026-11-26）：每個地點各進 3 次都是 BIO_ONE（temple）、地板是 tile_d2_battle_floor、
+   沒有岩漿的發光點與岩漿池（擺設沒有 lava、bDecals 沒畫岩漿色點） */
+async function floor(b) {
+  const p = await open(b);
+  const r = await p.evaluate(async () => {
+    proSkip();
+    S.world.done = TRUNK_K.slice();
+    S.camp.watch = 99;
+    S.lv = 99;
+    S.frags.mist = 99;
+    const seen = {},
+      no = [],
+      deco = new Set();
+    for (const k of W_ALL)
+      for (let i = 0; i < 3; i++) {
+        if (!runNode(k)) {
+          no.push(k);
+          break;
+        }
+        seen[G.biome] = (seen[G.biome] || 0) + 1;
+        for (const d of G.deco) deco.add(d.k);
+        G.mobs = [];
+      }
+    /* 等地磚載好，畫一格，看 bDecals 有沒有畫岩漿那種亮橘點（rgba(255,120／190,50,…)） */
+    for (let i = 0; i < 50 && !tileSet(G.biome); i++) await new Promise(f => setTimeout(f, 100));
+    const fills = [],
+      d0 = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'fillStyle');
+    Object.defineProperty(CX, 'fillStyle', {
+      set: v => (fills.push(String(v)), d0.set.call(CX, v)),
+      get: () => d0.get.call(CX),
+      configurable: true
+    });
+    bDecals(innerWidth * 2, innerHeight * 2);
+    delete CX.fillStyle;
+    const T = tileSet(G.biome);
+    return {
+      n: W_ALL.length,
+      no,
+      seen,
+      one: BIO_ONE,
+      deco: [...deco],
+      lavaDot: fills.filter(f => /^rgba\(255,(120|190),50,/.test(f)).length,
+      fills: fills.length,
+      gen: T && [
+        T.floor.length,
+        T.floorL.length,
+        [...T.floor, ...T.floorL].every(c => c.width === 32 && c.height === 32)
+      ]
+    };
+  });
+  ok(
+    '戰鬥地板全地點共用：每個地點各進 3 次都是同一種地形（BIO_ONE＝temple），不再隨機抽',
+    !r.no.length && r.one === 'temple' && JSON.stringify(r.seen) === JSON.stringify({ temple: r.n * 3 }),
+    JSON.stringify(r)
+  );
+  ok(
+    '程序地板：戰鬥中載入的是生成的 32 張普通＋16 張淺磚（32×32），不是平鋪圖',
+    JSON.stringify(r.gen) === '[32,16,true]',
+    JSON.stringify(r.gen)
+  );
+  /* 程序地板驗收（procedural-floor-impl.md §3.2）：量生成結果與世界格挑法；L* 用 CIE Lab D65 */
+  const pf = await p.evaluate(() => {
+    const T = tileSet(G.biome),
+      c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const g = c.getContext('2d', { willReadFrequently: true }),
+      lin = v => ((v /= 255) > 0.04045 ? ((v + 0.055) / 1.055) ** 2.4 : v / 12.92),
+      Ls = (r, gg, b) => {
+        const y = 0.2126729 * lin(r) + 0.7151522 * lin(gg) + 0.072175 * lin(b);
+        return 116 * (y > 0.008856 ? Math.cbrt(y) : 7.787 * y + 16 / 116) - 16;
+      },
+      st = im => {
+        g.drawImage(im, 0, 0);
+        const d = g.getImageData(0, 0, 32, 32).data;
+        let L = 0;
+        for (let i = 0; i < 4096; i += 4) L += Ls(d[i], d[i + 1], d[i + 2]);
+        return L / 1024;
+      },
+      mN = T.floor.map(st),
+      mL = T.floorL.map(st),
+      cell = (x, y) => (h(x, y, 1) % 1000 < FLOOR_LIGHT ? mL[h(x, y) % 16] : mN[h(x, y) % 32]);
+    /* 全場淺磚次數：200×200 世界格；畫面中央 60%（20×11 格可見範圍內 12×7）：在 50 個不同鏡頭位置取最大 */
+    let n = 0;
+    for (let y = 0; y < 200; y++) for (let x = 0; x < 200; x++) n += h(x, y, 1) % 1000 < FLOOR_LIGHT;
+    let cMax = 0,
+      cSum = 0,
+      rng = [];
+    for (let k = 0; k < 50; k++) {
+      const x0 = k * 7,
+        y0 = k * 5;
+      let m = 0,
+        lo = 99,
+        hi = 0;
+      for (let y = 0; y < 11; y++)
+        for (let x = 0; x < 20; x++) {
+          const v = cell(x0 + x, y0 + y);
+          (lo = Math.min(lo, v)), (hi = Math.max(hi, v));
+          if (x >= 4 && x < 16 && y >= 2 && y < 9) m += h(x0 + x, y0 + y, 1) % 1000 < FLOOR_LIGHT;
+        }
+      cMax = Math.max(cMax, m / 84);
+      cSum += m / 84 / 50;
+      rng.push(hi - lo);
+    }
+    /* 重烘不變：同一塊烘兩次逐像素相同 */
+    const px = a => {
+        const q = document.createElement('canvas').getContext('2d');
+        q.canvas.width = q.canvas.height = 256;
+        q.drawImage(a, 0, 0);
+        return q.getImageData(0, 0, 256, 256).data.join();
+      },
+      same = px(bakeChunk(3, 2, BCH * TS, T)) === px(bakeChunk(3, 2, BCH * TS, T));
+    const avg = a => a.reduce((s, v) => s + v, 0) / a.length;
+    return { frac: n / 40000, cAvg: cSum, cMax, rngMin: Math.min(...rng), mN: avg(mN), mL: avg(mL), same };
+  });
+  ok(
+    `程序地板：淺磚 ${(pf.frac * 100).toFixed(2)}%（9.4% ±3）；畫面中央 60% 平均 ${(pf.cAvg * 100).toFixed(1)}%（≤10%，50 個鏡頭位置裡最多 ${(pf.cMax * 100).toFixed(1)}%）`,
+    Math.abs(pf.frac - 0.094) <= 0.03 && pf.cAvg <= 0.1,
+    JSON.stringify(pf)
+  );
+  ok(
+    `程序地板：一個畫面（20×11 格）鄰格平均 L* 全距最小 ${pf.rngMin.toFixed(2)}（≥7）；普通磚 L* ${pf.mN.toFixed(2)}、淺磚 ${pf.mL.toFixed(2)}（對 --scene-X 27.9／39.1，±3）`,
+    pf.rngMin >= 7 && Math.abs(pf.mN - 27.87) <= 3 && Math.abs(pf.mL - 39.06) <= 3,
+    JSON.stringify(pf)
+  );
+  ok('程序地板：同一區塊重烘兩次逐像素相同（世界格決定，不跟鏡頭變）', pf.same, JSON.stringify(pf));
+  ok(
+    '熔岩裝飾不出現：擺設沒有岩漿池、地上沒有岩漿發光點',
+    !r.deco.includes('lava') && r.fills > 0 && r.lavaDot === 0,
+    JSON.stringify(r)
+  );
+  /* 怪物腳下陰影（mumi 2026-11-26）：每種怪在一張鋪滿戰鬥地板的小畫布上畫一次（drawMob），
+     腳下正中、精靈寬外側（外圈只蓋到陰影）都要比地板暗，陰影外的地板不變；怪物圖本身照 main 畫（同一張 artImg） */
+  const sh = await p.evaluate(async () => {
+    for (let i = 0; i < 50; i++) {
+      const D = Object.values(MOBS);
+      if (D.every(d => (artImg(d.sp) || {}).im?.naturalWidth)) break;
+      await new Promise(f => setTimeout(f, 100));
+    }
+    const T = tileSet('temple'),
+      c = document.createElement('canvas'),
+      main = CX,
+      out = [];
+    c.width = c.height = 320;
+    const g = c.getContext('2d', { willReadFrequently: true }),
+      px = (x, y) => [...g.getImageData(Math.round(x), Math.round(y), 1, 1).data.slice(0, 3)].reduce((a, b) => a + b),
+      base = () => {
+        for (let y = 0; y < 320; y += 32) for (let x = 0; x < 320; x += 32) g.drawImage(T.floor[0], x, y);
+      };
+    CX = g;
+    try {
+      for (const k in MOBS) {
+        const D = MOBS[k],
+          a = artImg(D.sp);
+        if (!a) continue;
+        base();
+        const m = { D, x: 160, y: 200, r: D.r, sz: D.sz, sq: 0, ph: 0, st: 'idle', mv: 0, flash: 0, ail: {} },
+          R0 = Math.max(D.r * 1.1, (a.r[2] * D.sz) / a.r[3] / 2),
+          at = [
+            [160, 202],
+            [160 + R0 * 1.15, 200],
+            [10, 200]
+          ],
+          fl = at.map(q => px(...q));
+        drawMob(m);
+        const [foot, rim, far] = at.map(q => px(...q));
+        out.push({ k, fl, foot, rim, far });
+      }
+    } finally {
+      CX = main;
+    }
+    return { n: out.length, tab: MOB_SHADOW, out };
+  });
+  const dark = sh.out.filter(o => !(o.foot < o.fl[0] && o.rim < o.fl[1] && o.far === o.fl[2]));
+  ok(
+    `怪物腳下陰影：${sh.n} 種怪腳下正中與精靈寬外側都比地板暗、陰影外地板不變`,
+    sh.n === Object.keys(await p.evaluate(() => MOBS)).length && sh.n > 20 && !dark.length,
+    JSON.stringify(dark.slice(0, 5))
+  );
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
+  await p.context().close();
+}
+/* dpoe-battle-mockup-1126 第 5 步（顏色總表 §1-6、C25、3.2）：在真的畫面上量敵方填色的合成 α——
+   在 foeFlush 貼完那一刻讀同一點有／沒有預警與敵方地面的像素反推：只有外圈 0.30、兩個外圈重疊仍 0.30（不疊加）、
+   內圈／敵方地面／外圈＋地面 0.55；任何一點都不超過 0.55。我方元素地面 14% 那一點不變 */
+async function foe(b) {
+  const p = await open(b, { viewport: { width: 1280, height: 720 } });
+  const r = await p.evaluate(() => {
+    proSkip();
+    S.auto = 0;
+    runNode(TRUNK_K[0]);
+    G.mobs.length = G.tele.length = G.ground.length = G.fx.length = G.nums.length = 0;
+    G.waves = [];
+    G.bossOut = 1;
+    G.cam.x = P.x;
+    G.cam.y = P.y;
+    const ax = P.x + 140,
+      ay = P.y + 10,
+      W = IW / ZOOM,
+      H = cvH() / ZOOM,
+      scr = (x, y) => [(x + Math.round(W / 2 - G.cam.x)) * ZOOM * DPR, (y + Math.round(H / 2 - G.cam.y)) * ZOOM * DPR],
+      pts = {
+        outer: [ax - 75, ay],
+        outerOuter: [ax + 42, ay - 70],
+        innerInner: [ax + 42, ay],
+        outerGround: [ax - 10, ay + 80],
+        ground: [ax - 10, ay + 175],
+        own: [ax - 330, ay]
+      },
+      read = () =>
+        Object.fromEntries(
+          Object.entries(pts).map(([k, q]) => {
+            const [x, y] = scr(...q);
+            return [k, [...CX.getImageData(Math.round(x), Math.round(y), 1, 1).data.slice(0, 3)]];
+          })
+        ),
+      ff = window.foeFlush;
+    let got;
+    window.foeFlush = () => (ff(), (got = read()));
+    G.ground.push({ k: 'gas', x: ax - 330, y: ay, r: 80, dur: 99, t: 0 });
+    draw();
+    const base = got;
+    G.tele.push({ x: ax, y: ay, r: 95, t: 0.5, dur: 1 }, { x: ax + 85, y: ay, r: 95, t: 0.5, dur: 1 });
+    G.ground.push({ k: 'corrupt', side: 'm', x: ax - 10, y: ay + 120, r: 96, dur: 99, t: 0, v: 1 });
+    draw();
+    window.foeFlush = ff;
+    const on = got,
+      col = { tel: hex2rgb(PAL.enemyTel), gnd: hex2rgb(GROUND.corrupt.col) },
+      a = (k, c) => {
+        const i = [0, 1, 2].reduce((m, j) => (Math.abs(c[j] - base[k][j]) > Math.abs(c[m] - base[k][m]) ? j : m), 0);
+        return +((on[k][i] - base[k][i]) / (c[i] - base[k][i])).toFixed(3);
+      };
+    return {
+      outer: a('outer', col.tel),
+      outerOuter: a('outerOuter', col.tel),
+      innerInner: a('innerInner', col.tel),
+      outerGround: a('outerGround', col.gnd),
+      ground: a('ground', col.gnd),
+      ownSame: base.own.join() === on.own.join()
+    };
+  });
+  const near = (v, t) => Math.abs(v - t) <= 0.01;
+  ok(
+    `敵方填色合成：外圈 ${r.outer}、兩外圈重疊 ${r.outerOuter}（0.30，不疊加）；內圈重疊 ${r.innerInner}、外圈＋敵方地面 ${r.outerGround}、敵方地面 ${r.ground}（0.55）`,
+    near(r.outer, 0.3) &&
+      near(r.outerOuter, 0.3) &&
+      near(r.innerInner, 0.55) &&
+      near(r.outerGround, 0.55) &&
+      near(r.ground, 0.55) &&
+      Math.max(r.outer, r.outerOuter, r.innerInner, r.outerGround, r.ground) <= 0.555 &&
+      r.ownSame,
+    JSON.stringify(r)
+  );
+  ok('沒有頁面錯誤', !p.errs.length, p.errs.join('|'));
+  await p.context().close();
+}
 (async () => {
   const b = await chromium.launch(process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {});
   if (!ONLY || ONLY === 'flow') await flow(b);
   if (!ONLY || ONLY === 'auto') await auto(b);
   if (!ONLY || ONLY === 'patrol') await patrol(b);
   if (!ONLY || ONLY === 'ses') await ses(b);
+  if (!ONLY || ONLY === 'floor') await floor(b);
+  if (!ONLY || ONLY === 'foe') await foe(b);
   await b.close();
   console.log(bad ? `❌ ${bad} 項沒過` : '世界地圖實測全部通過');
   process.exit(bad ? 1 : 0);

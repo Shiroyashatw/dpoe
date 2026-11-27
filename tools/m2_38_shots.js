@@ -46,7 +46,7 @@ const helpers = () => {
   };
   window.__rich = on => {
     for (const k in S.mat.mats) S.mat.mats[k] = on ? 1e7 : 0;
-    for (const k of GEN_K) S.mat.mats[matKey(k, 1)] = on ? 1e7 : 0;
+    for (const k of ['wood', 'iron', 'hide', 'silk']) S.mat.mats[matKey(k, 1)] = on ? 1e7 : 0;
     S.mat.soul = on ? 1e9 : 0;
     S.gold = on ? 1e9 : 0;
   };

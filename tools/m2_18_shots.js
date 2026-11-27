@@ -200,7 +200,7 @@ fs.mkdirSync(OUT, { recursive: true });
       const a = 2 * 3600e3;
       const o = offSettle(a);
       window.__dbg = [!!o, o && o.chase, S.chase.pts, S.auto, S.stopWhy, (S.rounds || []).length];
-      offShow(o, offGen(a), a);
+      offShow(o);
     },
     () => {
       const e = [...document.querySelectorAll('#preveal .sub')].find(x => x.textContent.startsWith('追逐物品')),

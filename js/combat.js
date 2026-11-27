@@ -553,7 +553,7 @@ function absorb(d) {
       const R = DEBUFF.shatterR * METER * (1 + ST.parryR / 100);
       for (const o of G.mobs || [])
         if (o.hp > 0 && !o.arrow && Math.hypot(o.x - P.x, o.y - P.y) <= R + o.r) applyParry(o);
-      fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.hlV8 });
+      fx({ k: 'ring', x: P.x, y: P.y, r: R, dur: 0.35, col: PAL.fxOwn });
       sfx('block');
     }
     d -= ab;
@@ -631,7 +631,7 @@ function reapBoom(m) {
   const c = P.chg && P.chg.p;
   if (!ST.reap || !(c && c.t > G.t && c.n > 0)) return;
   c.n--;
-  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: PAL.fxCombat1 });
+  fx({ k: 'ring', x: m.x, y: m.y, r: 120, dur: 0.3, col: PAL.fxOwn });
   const v = (m.mhp * ST.reap) / 100;
   for (const o of G.mobs)
     if (o.hp > 0 && o !== m && dist(o, m) < 120 + o.r) (o.hp -= v), num(o.x, o.y - o.sz, v, 'phys');

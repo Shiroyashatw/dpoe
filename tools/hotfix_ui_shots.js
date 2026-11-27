@@ -50,20 +50,16 @@ const icBad = () =>
     await p.waitForFunction(() => typeof proSkip === 'function');
     await p.evaluate(() => proSkip());
     await p.waitForTimeout(800);
-    /* 掛機卡：產生器全開、材料與速率照 mumi 回報的量級 */
+    /* 掛機卡：材料與靈魂速率照 mumi 回報的量級（產生器已收掉） */
     await p.evaluate(async () => {
       closePanels();
       S.auto = 1;
       G.loot = null;
-      for (const k of GEN_K) S.camp[k] = Math.max(S.camp[k] || 0, 30);
-      const R = { wood: 2976 };
-      for (const k of GEN_K)
-        if (k !== 'wood' && genOn(k)) (R[matKey(k, genTier(k))] = 2400), matAdd(k, genTier(k), 671232);
+      for (const k of ['iron', 'hide', 'silk']) matAdd(k, tierCap(), 671232);
       matAdd('wood', 0, 2644835);
       MAT().soul = 1234567;
-      window.genRates = () => R;
       window.soulRate = () => 12345;
-      RB.R = null;
+      RB.t = 0;
       idleBar(1);
     });
     await p.waitForTimeout(1500);
