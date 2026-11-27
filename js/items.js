@@ -142,8 +142,40 @@ function mkItem(baseId, ilvl, rar) {
   return it;
 }
 function dropItem(ilvl, bonus) {
-  return mkItem(pickBase(ilvl).id, ilvl, rollRarity(bonus));
+  return uqSwap(mkItem(pickBase(ilvl).id, ilvl, rollRarity(bonus)));
 }
+/* ---------- 傳奇（SU-01，表在 uniq.js 的 UNIQ） ---------- */
+/* 草案的物品等級是 1～100，程式現在是 1～16：最低物品等級 ÷ 6（1 當 1）。基底等級改成 1～100 時只改這裡 */
+const uqLv = U => Math.max(1, Math.round(U.L / 6));
+/* 這條詞的值落在哪一階（T6～T1，比 T1 高也算 T1；T0 只給破裂與完美石） */
+function uqT(k, v) {
+  for (let T = 1; T < AFF_T; T++) if (v >= tierRange(k, T)[0]) return T;
+  return AFF_T;
+}
+function uqAff([k, lo, hi]) {
+  const v = irnd(lo, hi);
+  return { k, T: uqT(k, v), v: AFF[k].add ? [Math.max(1, Math.round(v * 0.5)), v] : v };
+}
+/* 做一件傳奇：品質、孔照 mkItem；物品等級不低於這件的最低物品等級 */
+function mkUniq(k, ilvl = 1) {
+  const U = UNIQ[k],
+    it = mkItem(U.b, Math.max(ilvl, uqLv(U)), 0);
+  it.r = 3;
+  it.u = k;
+  it.a = U.a.map(uqAff).sort((x, y) => AFF[y.k].p - AFF[x.k].p);
+  it.ux = U.x.map(([sk, lo, hi]) => ({ k: sk, v: hi == null ? lo : irnd(lo, hi) }));
+  return it;
+}
+/* 這個物品等級能掉哪些傳奇；f 再篩（打造只給同部位、同武器種類） */
+const uqPool = (ilvl, f) => Object.keys(UNIQ).filter(k => uqLv(UNIQ[k]) <= ilvl && (!f || f(BASEI[UNIQ[k].b])));
+/* 稀有裝產生時有 UNIQ_P 改成一件物品等級夠的傳奇；沒有能掉的就照原本的稀有裝 */
+function uqSwap(it, f) {
+  if (it.r !== 2 || Math.random() >= UNIQ_P) return it;
+  const L = uqPool(it.L, f);
+  return L.length ? mkUniq(pick(L), it.L) : it;
+}
+/* 特色詞的一行字 */
+const uxText = x => statText(x.k, x.v);
 /* 技能、輔助、光環不是道具（0.2.75，企劃書 6.1）：目錄本身是 SKILLS／SUPPORTS／AURAS，玩家資料只記等級 S.lib＝{ sk, sup, aura }（鍵 → 等級，沒記的 Lv 1 可用）；
    技能格 S.skills[i]＝{ k, so: [輔助鍵…], n: 孔數 2～5 }（覺醒記在目錄 S.lib.aw[技能鍵]）、光環欄 S.auras 的項目＝{ k, so, n }。等級一律查目錄，所以換下來再換回去不用重練。
    gemCfg／stats 讀的「技能設定」gem＝{ gem, lv, so, sup: [{ gem, lv }…] }，由 recGem 從格子加目錄現做，mkGem 直接做一份（測試用） */
@@ -249,9 +281,11 @@ const itemName = it =>
       ? chaseName(it.chase)
       : it.uid
         ? baseOf(it).n
-        : it.r === 2
-          ? rareName(it)
-          : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
+        : it.r === 3
+          ? (UNIQ[it.u] || { n: baseOf(it).n }).n
+          : it.r === 2
+            ? rareName(it)
+            : (it.r === 1 ? '魔法' : '') + baseOf(it).n;
 /* 物品等級決定的 T（這件能出的最高階），標籤與說明框的「T2」 */
 const itemT = it => bestTier(it.L);
 /* 地上標籤的小字：T、孔、★、追憶（未鑑定也看得到的資訊） */
@@ -388,7 +422,7 @@ const sellPrice = it =>
   it.charm
     ? 3
     : Math.round(
-        (1 + it.a.length * 2 + (it.r === 2 ? 4 : 0)) * (1 + it.L * 0.4) * (1 + Math.max(0, (it.q || 0) - 0.2) * 5)
+        (1 + it.a.length * 2 + (it.r >= 2 ? 4 : 0)) * (1 + it.L * 0.4) * (1 + Math.max(0, (it.q || 0) - 0.2) * 5)
       );
 /* 副手合不合規（0.2.9，docs/開發參考.md 0.1）：雙手武器不能拿副手（弓可以配箭袋）；
    盾配任何單手武器；法器配法杖、權杖；權杖可以放副手（主手不能也是權杖）；爪、匕首、單手劍、單手斧可以雙持同類 */
@@ -1029,6 +1063,8 @@ function stats(s = S) {
     const it = s.eq[e.k];
     if (!it || chk.bad.has(e.k) || (e.k === 'off' && !offOK(w, it))) continue;
     if (WY_FX[it.wy]) wy.add(it.wy);
+    /* 傳奇的特色詞（SU-01）：跟腐化詞同一個池 */
+    for (const x of it.ux || []) x.k in pt ? (pt[x.k] += x.v) : put(x.k, x.v);
     for (const c of it.cw || []) {
       const f = CORR[c.k].fx(c.v);
       for (const k in f) k in pt ? (pt[k] += f[k]) : put(k, f[k]);
