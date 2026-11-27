@@ -1,0 +1,23 @@
+✅ 還沒點過：音效還沒建立
+✅ 新存檔預設直立
+✅ 沒有方向提示（#rot）、橫向右上鈕（.tmenu）
+✅ 桌機：不是觸控、不是直立、功能列在畫面內、沒有底部分頁、技能列在、視野 1.35、格 36 false,false,false,true,false,true,1.35,36
+✅ 桌機：舊存檔 orient l 重新整理後是 p、存回 p
+✅ 桌機：重新整理後版面照舊 false,false,false,true,false,true,1.35,36
+✅ 桌機：開 inv 面板不超出畫面 [["pinv",true]]
+✅ 桌機：開 stash 面板不超出畫面 [["pstash",true],["pinv",true]]
+✅ 桌機：開 skill 面板不超出畫面 [["pskill",true]]
+✅ 桌機：開 craft 面板不超出畫面 [["pcraft",true]]
+✅ 桌機：開 set 面板不超出畫面 [["pset",true]]
+✅ 桌機：開 node 面板不超出畫面 [["pnode",true]]
+✅ 桌機：開 asc 面板不超出畫面 [["pasc",true]]
+✅ 桌機：開 log 面板不超出畫面 [["plog",true]]
+✅ 昇華 B2 未解鎖：15 格全 ???、仍在面板裡、不出畫面（844x390） [{"n":15,"q":15,"names":0},{"in":true,"ov":true,"small":[]}]
+✅ 昇華 B1／B3 選擇面板：15 格、潮汐具名未開放、隱藏格無名稱、≥44px、不出畫面（844x390） [{"n":15,"tide":true,"hid":[]},{"in":true,"ov":true,"small":[]}]
+✅ 山海寶盒 B1／B2 五區是地點名、不出畫面、主鈕與碎片格 ≥44px；B3 不足時停用（844x390） [{"z":"鬼門關,心魔幻境,凶地,陰兵借道,裂口","old":false,"g1":true},{"in":true,"ov":true,"small":[]}]
+— 844x390：桌機小視窗只量版面，略過神格管理、長按、開王場
+✅ 地點 B1／B3 1★–5★ 都在（3★–5★ 虛線）、不出畫面、可見列與星級 ≥44px（844x390） ["1★,2★,3★dashed,4★dashed,5★dashed",{"in":true,"ov":true,"small":[]}]
+— 844x390：桌機小視窗只量版面，略過昇華長按、浮動提示、地點點擊
+✅ 桌機：設定沒有「操作方向」
+✅ 沒有頁面錯誤
+exit=0
