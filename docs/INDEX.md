@@ -131,6 +131,7 @@
 | 傳奇物品草案：規則與檔案清單 | `docs/production/傳奇物品草案.md` | — | 草稿，不可交辦 |
 | 傳奇物品草案：通用 202 件 | `docs/production/傳奇-通用-武器.md`、`docs/production/傳奇-通用-防具.md`、`docs/production/傳奇-通用-副手與飾品.md` | — | 草稿，不可交辦 |
 | 傳奇物品草案：專屬 78 件＋傳奇珠寶 26 顆 | `docs/production/傳奇物品草案-專屬與珠寶.md` | — | 草稿，不可交辦 |
+| 詞綴池擴充草案（新單項 42、複合 24） | `docs/production/詞綴池擴充草案.md` | — | 草稿，不可交辦 |
 | 護符 | `S/charm-cards-numbers-eval.md` | 無版號（Page 最後更新 11/20 13:51） | 現行（評估中） |
 | 營地資源產量 | `S/camp-resource-sources-rates.md` | v1.0 | superseded（2026-11-24 材料定稿 v1.1，見 docs/production/adjust/材料來源.md）；產生器已拿掉，正文留作紀錄；交工程師時刪 |
 | 材料來源 | `docs/production/adjust/材料來源.md` | 定稿 v1.1 | 現行；定案 v1.0 superseded |
